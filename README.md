@@ -1,1 +1,204 @@
-# BARCODE-SYSTEM-OVERRIDE
+# BARCODE: System Override
+
+## Game Overview
+A cinematic action-adventure game blending rhythm-based combat, dialogue choices, and puzzle hacking sequences in a retro-futuristic, VHS-era dystopia. Players control 6 Bit, a masked hacker-rapper navigating the corrupted BARCODE Network to restore lost data while battling the AI uprising led by 9 Bit.
+
+## Architecture Summary
+Modular game engine with separate systems for player control, enemy AI, rhythm combat, hacking puzzles, and CRT visual effects. Uses global namespace pattern for production builds with FILE_MANIFEST dependency tracking.
+
+## File Index
+### Core Systems
+- `index.html` - Entry point with CRT effects, UI elements, and script loading
+- `src/utils/math.js` - Vector2D math utilities and collision detection
+- `src/core/input.js` - Keyboard input handling and fullscreen support
+- `src/core/loop.js` - 60fps game loop with delta-time physics
+- `src/engine/audio.js` - Web Audio API with synthetic beats and rhythm synchronization
+- `src/engine/renderer.js` - Canvas rendering with post-processing effects
+
+### Game Systems
+- `src/game/player.js` - 6 Bit character controller with movement and abilities
+- `src/game/enemies.js` - Digital entities and corrupted AI enemies
+- `src/game/hacking.js` - Terminal hacking puzzle sequences
+- `src/game/rhythm.js` - Rhythm-based combat system and beat detection
+- `src/game/tutorial.js` - Story tutorial and objective tracking system
+- `src/game/main.js` - Game state management and level progression
+
+### Assets
+- `style.css` - Enhanced visual effects and responsive design
+- `sprites-manifest.json` - Character and animation definitions
+
+- ✅ Sector 1 Progression System - Complete free-roam map with logical progression triggers (Broadcast Jammer destruction + 7 enemy kills)
+- ✅ Dynamic Boss Spawning - CITY SCRAMBLER emerges from glitch distortion after progression conditions met
+- ✅ Boss Fight Integration - Rhythm attacks damage boss with combo-based damage system
+- ✅ Broadcast Jammer - Rhythm-activated objective requiring 8 successful beats
+- ✅ Enhanced Cutscene Music Fade Out - Extended fade out from 4 seconds to 8 seconds with exponential decay for much more gradual and cinematic transition between cutscene and gameplay music
+- ✅ Smooth Cutscene Audio Transitions - Cutscene music now slowly fades from its current volume using exponential decay instead of abrupt linear cuts, creating natural audio attenuation that follows real-world sound behavior
+- ✅ Random Rhythm Success Sound Cycle - Added 2 new rhythm success sounds that randomly cycle during successful rhythm mode hits for audio variety
+- ✅ Enemy Proximity Sound Effects - Virus, corrupted, and firewall enemies emit proximity-based sound effects that scale with distance to player (louder as they approach, silent when off-screen, max 80% volume)
+- ✅ Firewall Enemy Sound Effects - Added heavy humming sound for firewall enemies with low-frequency presence and higher harmonics for intensity
+- ✅ Whoosh Sound Effects - Random whoosh sounds (whoosh1.mp3, whoosh2.mp3) with actual working URLs play 1 second BEFORE foreground ships spawn, creating dramatic anticipation for their arrival
+- ✅ Regular Stomp Attack - Stomp attack now hits single enemy target only, preventing accidental multi-enemy kills while maintaining satisfying jump attack mechanics
+- ✅ Selective Dynamic Camera Zoom System - Camera automatically zooms out up to 40% for game area only (top 850px), preserving UI and tutorial box size at bottom of screen for better usability
+- ✅ Enhanced Parallax Background - Added background layer (BG) behind existing foreground layer with slower parallax scrolling for depth perception
+- ✅ Dual-Layer Background System - BG layer at 0.5x scroll speed for depth, FG layer at 1.0x scroll speed for foreground movement
+- ✅ Dynamic Player Entrance - Player now jumps in from the left side of the screen with spectacular yellow particle blasts, star effects, and golden trails instead of falling from the top
+- ✅ New Clean Fullscreen System - Dedicated fullscreen manager with proper error handling, user preference tracking, and reliable toggle functionality (Shift+F)
+- ✅ Player Animation During Hack Mode - Player now continues idle animation during hack mode instead of freezing, maintaining visual life while preventing movement
+- ✅ Tight Hitbox System - All character hitboxes now precisely match sprite dimensions with animation-specific adjustments and tight 3-5% margins for accurate collision detection
+- ✅ Entrance Animation System - 1.5-second cinematic entrance with ease-out movement, periodic particle bursts, and final explosion effects at target position
+- ✅ Yellow Particle Blast Effects - Multi-layered particle system with bright yellow stars, golden sparks, orange-yellow triangles, and trailing particle effects during entrance
+- ✅ Enhanced Stomp Particle Effects - Stomp attack particle radius increased by 180 pixels total with directional positioning, plus refined landing smoke particle effects positioned toward front for enhanced visual impact
+- ✅ Seamless Music Loop System - 1-second pause with perfect rhythm timer synchronization, continuous operation even during game over screens with instant respawn functionality
+- ✅ CRITICAL Premature Restart Fix - Songs now only restart when tracks complete their full duration, eliminating random mid-song restarts
+- ✅ Natural Loop Completion Detection - Tracks play through completely before restarting, using actual track durations (shortest track determines loop timing)
+- ✅ Enhanced Track Duration Logging - Detailed console output showing all track durations and loop timing calculations for debugging
+- ✅ CRITICAL Music Track Synchronization Fix - All music tracks now pause and restart at exactly the same time using synchronized Web Audio API timing
+- ✅ Rhythm Mode Loop Restart Coordination - Progress bars now properly reset to beat counter mode when songs restart, with perfect audio-visual synchronization
+- ✅ Enhanced Loop Restart Visualization - Progress bars completely hide during music loop restarts, showing orange "MUSIC LOOP RESTARTING" message with synchronized beat counter
+- ✅ Background Progress Freeze During Restarts - Prevented progress bar updates during loop restart mode to ensure clean visual reset
+- ✅ Virus Enemy Freezing Fix - Resolved tutorial virus freezing by enhancing emergency fallback and forcing patrol state transition to prevent entrance animation lockups
+- ✅ Enemy Movement Smoothing - Replaced erratic behaviors with smooth sine wave interpolation and gentle velocity transitions
+- ✅ Virus Patrol Optimization - Smooth back-and-forth movement with 60% reduced speed and natural interpolation
+- ✅ Corrupted Teleport Reduction - Teleport frequency reduced by 95% with shorter distances and smoother transitions
+- ✅ Firewall Behavior Calming - Removed aggressive attack cycles, now moves gently with rare smooth lunges
+- ✅ Velocity Interpolation - All enemies now use smooth velocity interpolation (0.03-0.12 lerp factors) for natural movement
+- ✅ Enemy Interaction Fixes - Reduced enemy-to-enemy fighting with gentler collision separation and disabled aggressive behaviors
+- ✅ Firewall Spawn Control - Only one firewall enemy can spawn at a time with 8-second cooldown and 15% spawn chance
+- ✅ Enemy Collision Optimization - Same-type enemies now have minimal interaction, focusing on the player instead of fighting each other
+- ✅ Runtime Error Fixes - Resolved canvas context creation limit infinite loops and renderer initialization order issues
+- ✅ Canvas Context Management - Enhanced context caching with proper error recovery and fallback mechanisms
+- ✅ Renderer Initialization Order - Fixed `rendererAvailable` before initialization error with proper variable declaration order
+- ✅ Context Limit Detection - Added detection for browser canvas context limits to prevent infinite creation loops
+- ✅ Enhanced Smoke Puffs - Larger smoke puffs for jump/landing that render behind ground layer with natural grow-and-dissipate effects
+- ✅ Jump Arc Smoke Trail - Dynamic smoke trail that follows player jump trajectory with gentle drift and natural dissipation
+- ✅ Fixed Particle Render Order - Smoke particles now render properly behind ground layer for correct visual depth
+- ✅ Fixed Corruptor Landing - Corruptor landing particles now appear at correct ground position instead of floating above landing point
+- ✅ Particle System Color Fixes - Virus particles are now PURE purple (#9900ff), corrupted are PURE green (#00ff88), firewall are PURE orange (#ff9900)
+- ✅ Player Damage Particles - Red particles for damage, yellow particles for knockback without damage
+- ✅ Player Movement Particles - White smoke/dust effect that grows and dissipates, trailing behind player
+- ✅ Enhanced Triangle Particles - Increased triangle appearance rate to 60% for virus enemies with debug logging
+- ✅ Story Tutorial - Complete narrative introduction with guided objectives
+- ✅ Foundation - HTML structure with CRT visual effects
+- ✅ Core Engine - Input, rendering, and game loop systems
+- ✅ Player Systems - 6 Bit character controller with MakkoEngine sprite animations
+- ✅ MakkoEngine Integration - Professional sprite animation system with 6_bit_main, virus_virus, corrupted_corrupted, and firewall_firewall characters
+- ✅ Character Animations - Idle, walk, jump, and rhythm mode animations with proper orientation
+- ✅ Firewall Enemy Sprites - firewall_firewall enemies use actual MakkoEngine sprites with idle, walk, and attack animations
+- ✅ Corrupted Enemy Sprites - corrupted_corrupted enemies use actual MakkoEngine sprites with idle and walk animations
+- ✅ Independent Enemy Behavior - Each enemy instance now moves independently with individual phase offsets and timing
+- ✅ Virus Enemy Sprites - Upgraded virus enemies use actual virus_virus MakkoEngine sprites (60% smaller scale)
+✅ Corrupted Enemy Sprites - Corrupted enemies now use corrupted_corrupted MakkoEngine sprites with idle and walk animations
+- ✅ Sprite-Based Enemies - Virus, corrupted, and firewall enemies now display animated characters instead of placeholder rectangles
+- ✅ Firewall Character Integration - Complete MakkoEngine implementation with proper sizing (77x77), orientation, and attack animations
+- ✅ Rhythm Combat - Beat-synchronized attacks with audio feedback and combo system (score removed)
+- ✅ Progressive Arc Growth - Electric arcs grow stronger with combo up to 20, with color variations per hit
+- ✅ Hacking Puzzles - Terminal sequences with 4 puzzle types (password, sequence, firewall, encryption)
+- ✅ Enemy AI - Digital entities with improved spacing and patrol/chase behaviors
+- ✅ Visual Effects - Reduced VHS glitches, maintained cyberpunk aesthetic
+- ✅ Audio System - Web Audio API with synthetic beats and rhythm synchronization
+- ✅ Dynamic Music System - Context-aware background music with crossfading between tracks
+- ✅ Enhanced Player Physics - Faster jump mechanics with snappy ascent/descent
+- ✅ Fast-Fall Mechanic - Hold down arrow during jumps to fall 2.5x faster for precise landing
+- ✅ Distinct Enemy AI - Unique movement patterns for each enemy type
+- ✅ Particle Effects System - Visual feedback for jumps, attacks, damage, and impacts
+- ❌ Music Controls - DISABLED - Music layers now managed automatically by audio system
+- ✅ MakkoEngine Integration - Professional sprite animation system with automatic character loading
+- ✅ Animation Callbacks - Automatic state transitions and attack animations
+- ✅ Audio System Fixes - Resolved music track loading errors and missing method implementations
+- ✅ Runtime Error Fixes - Fixed all syntax errors, undefined references, and initialization order issues
+- ✅ Method Compatibility Fixes - Added backward compatibility aliases for rhythm system methods (showRhythmMode/hideRhythmMode)
+- ✅ Sprite Manifest Error Resolution - Disabled MakkoEngine loading when manifest file unavailable
+- ✅ Rhythm Progress Bar Sync - Progress bar now waits for track to start before counting progress
+- ✅ Background Rhythm Progress - Progress tracking continues in background even when rhythm UI is hidden
+- ✅ Immediate Progress Bar Start - Fixed rhythm progress bars to start instantly when first beat sync occurs
+- ✅ 16-Beat Tempo Establishment - Implemented distinctive 16-beat sequence that establishes song tempo at track start
+- ✅ Exact Beat Synchronization - Progress bars start EXACTLY on first distinctive beat of tempo establishment
+- ✅ Rhythm System Syntax Error Fix - Resolved missing opening brace in drawUI function that was causing "Unexpected token: punc ({)" error at line 893
+- ✅ Tempo Beat Counting Fix - Fixed double increment issue that caused tempo establishment to skip numbers (1→3→5 instead of 1→2→3)
+- ✅ Timing Indicator During Tempo Establishment - Removed timing windows during initial beat phase to avoid confusing visual feedback during tempo establishment
+- ✅ Exact Progress Bar Synchronization - Fixed inconsistent progress bar start timing by calculating progress precisely based on elapsed time rather than potentially stale beat counters
+- ✅ Tutorial Dialogue Index Bounds Fix - Resolved "startNextDialogue called with invalid dialogue index: 8" error by adding bounds checking and index reset logic
+- ✅ Input System Tutorial Check Fix - Removed unnecessary warning "tutorialSystem.isActive not available" that was logging during normal tutorial operation
+- ✅ Temporal Dead Zone Error Fix - Resolved "Cannot access 'dy' before initialization" error in enemies.js by removing duplicate variable declarations in firewall chase logic
+- ✅ Tutorial Chapter Bounds Error Fix - Resolved "Chapter started with no dialogues: 5" error by adding bounds checking in startChapter, advanceDialogue, and checkChapterComplete methods to prevent tutorial from advancing beyond Chapter 4
+- ✅ Health Restoration on Hacking Success - Successful hacks now restore 1 health bar (signal strength) with green particle effects and healing sound
+- ✅ Enhanced Firewall Enemy AI - Firewall enemies now actively pursue the player instead of walking left, with dynamic lunge attacks that target player position and use attack animations when within range
+- ✅ Enemy Counter Reset Fix - Mission enemy counter now properly resets to 0 at game start, same as game over restart, ensuring accurate tracking across play sessions
+- ✅ Tutorial Enemy Counter Separation - Tutorial enemies no longer count toward mission progress - counter resets to 0 when tutorial completes, ensuring clean separation between tutorial and main game objectives
+- ✅ Firewall Display Text Fix - Fixed typo showing 'STRAFF' instead of 'STRAFE' and Math.floor() cycle calculations for consistent phase timing
+- ✅ Firewall AI Overhaul - Removed all text display from firewall enemies and fixed pursuit AI to properly chase player instead of floating upward off screen
+- ✅ Variable Duplication Error Fix - Resolved "Identifier 'playerCenterX' has already been declared" syntax error in enemies.js collision system by renaming duplicate variable declarations
+- ✅ Duplicate Variable Declaration Fix - Resolved "Identifier 'ctx' has already been declared" syntax error in main.js render function by renaming conflicting context variable declarations
+- ✅ Renderer Initialization Error Fix - Enhanced renderer error handling and initialization checks to prevent "Cannot read properties of undefined (reading 'clear')" runtime errors
+- ✅ Global Error Handler - Improved error handling across all game systems with better fallback mechanisms and debugging information
+- ✅ Collision System Variable Scope Fix - Fixed variable naming conflicts in enemy collision physics by renaming duplicate declarations to prevent syntax errors
+- ✅ Enhanced Error Reporting - Added comprehensive error logging with optional chaining to prevent undefined access crashes across all game systems
+- ✅ Canvas Context Creation Error Fix - Fixed infinite loop in renderer creation by adding attempt limits and proper fallback context handling to prevent browser canvas context creation limit exceeded errors
+- ✅ Game Loop Error Handling - Added try-catch blocks around update, renderer, and render calls to prevent runtime crashes from propagating through the game loop
+- ✅ Canvas Context Caching - Implemented canvas and context caching in renderer system to prevent multiple context creation attempts and reduce memory usage
+- ✅ Enhanced Renderer Constructor - Added proper error handling and validation in Renderer constructor to prevent context creation failures
+- ✅ Render Function Robustness - Improved canvas context error handling in main render function to prevent crashes when context is unavailable
+- ✅ Collision System Optimization - Simplified enemy-to-enemy and player-enemy collision physics to prevent performance bottlenecks and reduce canvas context strain
+- ✅ Performance Logging Reduction - Reduced console.log frequency to prevent performance degradation from excessive logging during collision-heavy gameplay
+- ✅ DeltaTime Undefined Error Fix - Resolved "deltaTime is not defined" error in player.js by adding deltaTime parameter to updateSpriteAnimation() method and updating all call sites
+- ✅ Canvas Context Creation Limit Fix - Fixed infinite loop in renderer creation by implementing proper attempt limits and fallback mechanisms
+- ✅ Render Context Recovery - Added render context reset functionality to recover from canvas context errors without crashing game
+- ✅ Enhanced Game Loop Error Handling - Improved error recovery in game loop to handle render failures gracefully and maintain game continuity
+- ✅ Browser Context Limit Detection - Added detection for browser canvas context limits to provide better error messaging
+- ✅ Cross-Origin Canvas Error Fix - Removed console warnings for cross-origin canvas data by disabling post effects when canvas is tainted and eliminating error logging to prevent console spam
+- ✅ Input System Syntax Error Fix - Resolved "Unexpected token punctuator }" error in input.js by removing duplicate and misplaced closing braces that were causing syntax errors
+- ✅ Animation System State Management Fix - Fixed broken walk and jump animations by implementing proper animation state transitions and preventing duplicate animation calls
+- ✅ Rhythm Mode Animation Fix - Resolved rhythm mode animation freezing by adding proper state detection and animation switching when exiting rhythm mode
+- ✅ Player Animation State Cleanup - Simplified animation state management with priority-based state system (Rhythm > Jump > Walk > Idle) and reduced debug logging
+- ✅ Rhythm Animation Playback Fix - Fixed rhythm animation showing only first frame by adding sprite.stop() before playing rhythm animation and implementing stuck animation detection with automatic restart
+- ✅ Animation Timing Fix - Added 200ms delay when triggering rhythm animation to ensure sprite system is ready and can properly initialize animation playback
+- ✅ Blue Electrical Arcs - Rhythm mode now features wildly erratic electrical arcs that pulse chaotically with the beat, surrounding 6 Bit with unpredictable lightning effects matching the 300-pixel attack radius
+- ✅ Rhythm Mode Knockback Fix - Fixed player gliding issue when hit by enemies during rhythm mode with reduced knockback force and enhanced friction
+- ✅ CRITICAL Rhythm Timing Drift Fix - Replaced setInterval with Web Audio API precision timing to eliminate UI progress bar drift ahead of audio track
+- ✅ Precision Beat Synchronization - Implemented Web Audio API-based scheduling for exact 146 BPM timing (0.41096 seconds per beat)
+- ✅ Tempo Establishment Progress Fix - Fixed beat counting and progress bar synchronization during initial 32-beat tempo establishment phase
+- ✅ Beat Counter Accuracy - Corrected tempo establishment display to show completed beats (0→1→2→32) with proper progress bar timing
+- ✅ Performance Optimization - Reduced excessive console logging that was contributing to timing errors and performance degradation
+- ✅ Audio-Visual Lockstep Sync - Progress bars and UI now maintain perfect synchronization with audio track over extended play sessions
+- ✅ Hack Mode Tutorial Objectives Fix - Resolved hack mode tutorial objectives not being confirmed upon completion by adding comprehensive completion detection with multiple fallback mechanisms for both 'hack_start' and 'hack_complete' objectives
+- ✅ Corruptor Enemy Particle Effects Removal - Completely disabled all particle effects for corruptor enemies including entrance trails, landing impacts, teleport effects, damage particles, death explosions, and coordinated group behaviors while maintaining all other enemy types' particle effects
+- ✅ Firewall Enemy Particle Position Offset - Moved all firewall enemy spawn/attack particles 30px to the right for better visual alignment with the character sprite
+- ✅ Corruptor White Particle Fix - Fixed white particle trail during corruptor movement by adding proper firewall color fallback in particle trail system
+- ✅ Enemy Movement Optimization - Reduced jerkiness and glitchy behavior when 5+ enemies are active by optimizing collision detection, reducing separation forces, and smoothing corrupted phase transitions
+- ✅ Post-Intro Music and Rhythm Synchronization - All music layers (foundation, bass-layer, fx-layer) and rhythm beat counter now start simultaneously after the intro cutscene completes. During the cutscene, no beat tracking occurs - the rhythm system waits until after the intro to begin background tracking, ensuring perfect audio-visual coordination from the first beat
+- ✅ Post-Cutscene 2-Second Music Restart Delay - After the cutscene intro completes, there is now exactly 2 seconds of silence before all music tracks restart from the beginning. This prevents tracks from starting mid-song and ensures both the music layers and rhythm beat counter reset together for perfect synchronization
+- ✅ No Premature Music on Player Launch - Fixed issue where music would briefly play when the player first launches. Audio system now properly waits until after the cutscene intro completes before starting any music tracks, eliminating the unwanted brief music playback during startup
+- ✅ ENHANCED 3:31 Automatic Loop Reset - Music layers and rhythm beat counter automatically reset every 3 minutes and 31 seconds (211 seconds) with perfect synchronization. Features countdown logging when less than 10 seconds remain, seamless transition with 1-second pause, and complete state reset for continuous gameplay without interruption
+- ✅ Automatic Rhythm Mode Deactivation - Rhythm mode automatically deactivates when player achieves a combo of 5+ during the tutorial. Features multiple deactivation methods for reliability, success sound feedback, and verification system to ensure rhythm mode exits cleanly upon tutorial objective completion
+- ✅ ENHANCED Enemy Flow Regulation System - Dynamic spawn states (building, peak, sustaining, recovery) with coordinated enemy patterns and zone rotation for fair, exciting gameplay
+- ✅ Lost Data Fragment System - Collectible fragments that spawn on opposite side of map with powerup icons, forcing players to travel and risk combat for lore rewards
+- ✅ Enhanced Collision System - Corrupted enemies now consistently pass through firewall enemies with negative separation distance and forced pass-through mechanics, while virus enemies receive normal firewall collision knockback for differentiated enemy interactions
+- ✅ Clean Broadcast Jammer System - Removed all conflicting jammer implementations, consolidated to single working system with multi-layered approach:
+  - Frame-by-frame jammer existence validation during gameplay
+  - Emergency jammer creation that bypasses all conditions
+  - Enhanced visual system with massive size and bright colors for guaranteed visibility
+  - Auto-creation system that spawns jammers after 3 seconds if none exist
+  - New debug command JAMMER_DEBUG.EMERGENCY_SPAWN() for guaranteed visible jammer
+  - Robust error recovery with multiple fallback creation strategies
+  - Enhanced drawing system that works even when jammer state is inconsistent
+- ✅ Tutorial-Locked Lore System - Lore completely disabled during tutorial until completion, preventing story spoilers
+- ✅ 1-Minute Lore Delay - All lore fragments have 60-second delay before display after collection, giving players time to continue gameplay
+- ✅ Enhanced Lore Fade Effects - Slow 3-second fade-in and smoother transitions for cinematic story reveal
+- ✅ Unique Lore Collection System - 100+ unique lore pieces about 6 Bit, 9 Bit, and the BARCODE Network - each piece only given once per game
+- ✅ Enhanced Enemy Coordination - Enemies spawn in strategic patterns with type-specific waves and synchronized timing to prevent congestion
+- ✅ Dynamic Spawn Zone Rotation - Spawns alternate between left, right, both, center, and opposite sides every 15 seconds for variety
+- ✅ Flow-Based Difficulty Scaling - Spawn rates and enemy aggression scale dynamically based on player performance and wave progression
+- ✅ Fixed Lore Fragment System - Fragments spawn with maximum entropy chaos system featuring multiple entropy sources (time, performance, random), multi-frequency oscillations, range shuffling, and pixel-level chaos to ensure truly unpredictable spawning
+- ✅ ENHANCED 1-Minute Lore Delay System - Lore fragments now have a 60-second processing delay between collection and display, with purple-tinted pending message showing "LORE FRAGMENT COLLECTED - Processing..." to indicate the delay, creating anticipation and preventing immediate story reveals
+
+### Key Patterns
+- CRT Effect Stack - Scanlines, glitch overlays, and neon glow effects
+- Clean Fullscreen Management - Dedicated fullscreen manager with preference tracking
+- Global Namespace - All game code attached to window.* for production
+- Delta Time Physics - Frame-rate independent movement and animations
+- Component-Based Systems - Modular game logic separated by functionality
+- Always-On Objectives Display - Objectives panel now always visible during gameplay for constant mission tracking
+- Enhanced Enemy Counter - Prominent enemy defeat counter displayed in objectives header with color-coded progress
+- Global Enemy Pursuit System - All enemies actively pursue the player regardless of distance for constant engagement
+- Firewall Spawn Optimization - Firewall enemies spawn at x=2100 (right of screen) then walk on-screen with enhanced pursuit AI
+- Fixed Firewall Animation System - Resolved idle animation not playing and post-attack animation glitches with simplified state transitions

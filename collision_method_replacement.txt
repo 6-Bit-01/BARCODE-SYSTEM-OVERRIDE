@@ -1,0 +1,119 @@
+  checkCollisions(player) {
+    try {
+      const playerHitbox = player.getHitbox();
+      
+      this.enemies.forEach(enemy => {
+        if (!enemy.active) return;
+        
+        const enemyHitbox = enemy.getHitbox();
+        
+        // Check for collision
+        if (window.aabbCollision && window.aabbCollision(playerHitbox, enemyHitbox)) {
+          // Calculate overlap and centers for bounce physics
+          const overlapX = Math.min(playerHitbox.x + playerHitbox.width, enemyHitbox.x + enemyHitbox.width) - 
+                          Math.max(playerHitbox.x, enemyHitbox.x);
+          const overlapY = Math.min(playerHitbox.y + playerHitbox.height, enemyHitbox.y + enemyHitbox.height) - 
+                          Math.max(playerHitbox.y, enemyHitbox.y);
+          const overlapArea = overlapX * overlapY;
+          
+          // Calculate centers and relative positions
+          const playerCenterX = playerHitbox.x + playerHitbox.width / 2;
+          const playerCenterY = playerHitbox.y + playerHitbox.height / 2;
+          const enemyCenterX = enemyHitbox.x + enemyHitbox.width / 2;
+          const enemyCenterY = enemyHitbox.y + enemyHitbox.height / 2;
+          
+          // Calculate collision direction (from enemy center to player center)
+          const dx = playerCenterX - enemyCenterX;
+          const dy = playerCenterY - enemyCenterY;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          
+          // Normalize direction for bounce
+          const pushX = (dx / distance) * 0.8; // Reduce bounce force
+          const pushY = (dy / distance) * 0.8;
+          
+          // Calculate key positions for stomp detection
+          const playerBottom = playerHitbox.y + playerHitbox.height;
+          const playerTop = playerHitbox.y;
+          const enemyTop = enemyHitbox.y;
+          const enemyBottom = enemyHitbox.y + enemyHitbox.height;
+          
+          // STOMP ATTACK: Player jumping down on enemy from above (HIGHEST PRIORITY)
+          if (player.velocity.y > 0 && // Player moving down
+              playerBottom > enemyTop + 10 && // Player feet below enemy top (small margin)
+              playerBottom < enemyBottom - 10 && // Player hasn't gone through enemy
+              Math.abs(playerCenterX - enemyCenterX) < enemyHitbox.width * 0.9) { // Good horizontal alignment
+            
+            console.log('STOMP ATTACK! Player jumping on enemy from above');
+            enemy.takeDamage(3); // Stomp does high damage
+            
+            // Bounce player up
+            if (window.player && window.player.velocity !== undefined) {
+              window.player.velocity.y = -300;
+            }
+            
+            // Create stomp effect
+            if (window.particleSystem) {
+              window.particleSystem.impact(enemy.position.x, enemy.position.y - this.height, '#00ffff', 15);
+            }
+            
+            return; // Stomp attack - exit collision check
+          }
+          
+          // ENEMY ATTACKING PLAYER FROM TOP: Enemy colliding with player's upper body
+          if (enemyTop < playerTop + playerHitbox.height * 0.6 && // Enemy top in upper 60% of player
+              Math.abs(playerCenterX - enemyCenterX) < enemyHitbox.width * 0.7) { // Good horizontal alignment
+            
+            console.log('Enemy attacking player from TOP');
+            player.takeDamage(enemy.damage);
+            enemy.takeDamage(1); // Enemy takes minor damage from collision
+            return; // Top attack - exit collision check
+          }
+          
+          // Enhanced corner grazing prevention
+          const playerArea = playerHitbox.width * playerHitbox.height;
+          const overlapRatio = overlapArea / playerArea;
+          
+          // Skip damage if it's just a corner graze (less than 20% of player area)
+          // OR if overlap is very thin (less than 35% width OR less than 35% height)
+          const widthRatio = overlapX / playerHitbox.width;
+          const heightRatio = overlapY / playerHitbox.height;
+          
+          if (overlapRatio < 0.20 || widthRatio < 0.35 || heightRatio < 0.35) {
+            return; // Corner graze or edge contact - no damage
+          }
+          
+          // BOUNCE COLLISION: Separate and push both entities apart
+          console.log('BOUNCE COLLISION: Enemy and player colliding');
+          
+          // Apply damage to both entities
+          player.takeDamage(enemy.damage);
+          enemy.takeDamage(1);
+          
+          // Calculate separation based on overlap
+          const separationX = overlapX / 2;
+          const separationY = overlapY / 2;
+          
+          // Push player away from enemy
+          if (window.player && window.player.velocity !== undefined) {
+            window.player.velocity.x += pushX + separationX * 2;
+            window.player.velocity.y += pushY + separationY * 2;
+          }
+          
+          // Push enemy away from player
+          enemy.velocity.x -= pushX + separationX * 2;
+          enemy.velocity.y -= pushY + separationY * 2;
+          
+          // Create collision effects
+          if (window.particleSystem) {
+            const collisionPoint = {
+              x: enemyCenterX + (dx / distance) * (enemyHitbox.width / 2),
+              y: enemyCenterY + (dy / distance) * (enemyHitbox.height / 2)
+            };
+            window.particleSystem.impact(collisionPoint.x, collisionPoint.y, '#ff9900', 8);
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error checking enemy collisions:', error?.message || error);
+    }
+  }

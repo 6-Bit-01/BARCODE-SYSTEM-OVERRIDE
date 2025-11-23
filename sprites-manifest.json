@@ -1,0 +1,243 @@
+{
+  "version": "1.0",
+  "characters": {
+    "6_bit_main": {
+      "animations": {
+        "6_bit_idle_idle": {
+          "fps": 12,
+          "json": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/bb9eb111-39a1-47a8-9942-cf7dd2c6524e/6_bit_idle_idle.json?t=1762977008157",
+          "image": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/bb9eb111-39a1-47a8-9942-cf7dd2c6524e/6_bit_idle_idle.webp?t=1762977008157",
+          "anchor": {
+            "x": 43,
+            "y": 95,
+            "strategy": "bottom-center",
+            "normalized": {
+              "x": 0.5,
+              "y": 0.9895833333333334
+            }
+          },
+          "priority": "medium",
+          "dimensions": {
+            "width": 86,
+            "height": 96
+          },
+          "frameCount": 26,
+          "animationLength": 2.1666666666666665
+        },
+        "6_bit_jump_jump": {
+          "fps": 12,
+          "json": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/ba623379-dfb3-491c-8bd1-f045d54e169c/6_bit_jump_jump.json?t=1762977008157",
+          "image": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/ba623379-dfb3-491c-8bd1-f045d54e169c/6_bit_jump_jump.webp?t=1762977008157",
+          "anchor": {
+            "x": 21,
+            "y": 95,
+            "strategy": "bottom-center",
+            "normalized": {
+              "x": 0.5121951219512195,
+              "y": 0.9895833333333334
+            }
+          },
+          "priority": "medium",
+          "dimensions": {
+            "width": 41,
+            "height": 96
+          },
+          "frameCount": 27,
+          "animationLength": 2.25
+        },
+        "6_bit_walk_walk": {
+          "fps": 12,
+          "json": "https://dcnmwoxzefwqmvvkpqap.supabase.co/storage/v1/object/public/sprite-sheets/bbe67ae6-69c4-4f57-ac28-b63cb61221c4/6_bit_walk_walk.json?t=1762977008157",
+          "image": "https://dcnmwoxzefwqmvvkpqap.supabase.co/storage/v1/object/public/sprite-sheets/bbe67ae6-69c4-4f57-ac28-b63cb61221c4/6_bit_walk_walk.webp?t=1762977008157",
+          "anchor": {
+            "x": 33,
+            "y": 94,
+            "strategy": "bottom-center",
+            "normalized": {
+              "x": 0.5,
+              "y": 0.9791666666666666
+            }
+          },
+          "priority": "medium",
+          "dimensions": {
+            "width": 66,
+            "height": 96
+          },
+          "frameCount": 48,
+          "animationLength": 4
+        },
+        "6_bit_r__h_mode_rhmode": {
+          "fps": 12,
+          "json": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/8f0edc47-1a83-4e56-a9f7-294529079d64/6_bit_r__h_mode_rhmode.json?t=1762977008157",
+          "image": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/8f0edc47-1a83-4e56-a9f7-294529079d64/6_bit_r__h_mode_rhmode.webp?t=1762977008157",
+          "anchor": {
+            "x": 26,
+            "y": 95,
+            "strategy": "bottom-center",
+            "normalized": {
+              "x": 0.5098039215686274,
+              "y": 0.9895833333333334
+            }
+          },
+          "priority": "medium",
+          "dimensions": {
+            "width": 51,
+            "height": 96
+          },
+          "frameCount": 48,
+          "animationLength": 4
+        }
+      },
+      "metadata": {
+        "character_id": "87f596cb-0d6e-4ad3-8259-869b3538a39c"
+      }
+    },
+    "virus_virus": {
+      "animations": {
+        "virus_idle_idle": {
+          "fps": 12,
+          "json": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/ecddaade-7056-4ad0-8296-e210b6c74274/virus_idle_idle.json?t=1763009617082",
+          "image": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/ecddaade-7056-4ad0-8296-e210b6c74274/virus_idle_idle.webp?t=1763009617082",
+          "anchor": {
+            "x": 48,
+            "y": 92,
+            "strategy": "bottom-center",
+            "normalized": {
+              "x": 0.5,
+              "y": 0.989247311827957
+            }
+          },
+          "priority": "medium",
+          "dimensions": {
+            "width": 96,
+            "height": 93
+          },
+          "frameCount": 51,
+          "animationLength": 4.25
+        }
+      },
+      "metadata": {
+        "character_id": "24202a6a-e2e8-4e4c-94ca-21b0f914935b"
+      }
+    },
+    "corrupted_corrupted": {
+      "animations": {
+        "corrupted_idle_idle": {
+          "fps": 12,
+          "json": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/15369875-0aa7-4b12-befe-15af51a54d36/corrupted_idle_idle.json?t=1763031461233",
+          "image": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/15369875-0aa7-4b12-befe-15af51a54d36/corrupted_idle_idle.webp?t=1763031461233",
+          "anchor": {
+            "x": 40,
+            "y": 84,
+            "strategy": "bottom-center",
+            "normalized": {
+              "x": 0.5,
+              "y": 0.875
+            }
+          },
+          "priority": "medium",
+          "dimensions": {
+            "width": 80,
+            "height": 96
+          },
+          "frameCount": 51,
+          "animationLength": 4.25
+        },
+        "corrupted_walk_walk": {
+          "fps": 12,
+          "json": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/4b80773e-42ba-4731-9c01-c8a2c3336643/corrupted_walk_walk.json?t=1763031461233",
+          "image": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/4b80773e-42ba-4731-9c01-c8a2c3336643/corrupted_walk_walk.webp?t=1763031461233",
+          "anchor": {
+            "x": 37,
+            "y": 95,
+            "strategy": "bottom-center",
+            "normalized": {
+              "x": 0.5,
+              "y": 0.9895833333333334
+            }
+          },
+          "priority": "medium",
+          "dimensions": {
+            "width": 74,
+            "height": 96
+          },
+          "frameCount": 46,
+          "animationLength": 3.8333333333333335
+        }
+      },
+      "metadata": {
+        "character_id": "13035fd9-da4e-44a7-8426-37d88f24dd95"
+      }
+    },
+    "firewall_firewall": {
+      "animations": {
+        "firewall_idle_idle": {
+          "fps": 12,
+          "json": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/b1fa4f69-6a11-4de3-b0ac-cc3613fda63e/firewall_idle_idle.json?t=1763100253652",
+          "image": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/b1fa4f69-6a11-4de3-b0ac-cc3613fda63e/firewall_idle_idle.webp?t=1763100253652",
+          "anchor": {
+            "x": 48,
+            "y": 92,
+            "strategy": "bottom-center",
+            "normalized": {
+              "x": 0.5,
+              "y": 0.989247311827957
+            }
+          },
+          "priority": "medium",
+          "dimensions": {
+            "width": 96,
+            "height": 93
+          },
+          "frameCount": 62,
+          "animationLength": 5.166666666666667
+        },
+        "firewall_walk_walk": {
+          "fps": 12,
+          "json": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/c66f404e-6ada-48f6-b651-4b33edf4916f/firewall_walk_walk.json?t=1763100253652",
+          "image": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/c66f404e-6ada-48f6-b651-4b33edf4916f/firewall_walk_walk.webp?t=1763100253652",
+          "anchor": {
+            "x": 34,
+            "y": 95,
+            "strategy": "bottom-center",
+            "normalized": {
+              "x": 0.5,
+              "y": 0.9895833333333334
+            }
+          },
+          "priority": "medium",
+          "dimensions": {
+            "width": 68,
+            "height": 96
+          },
+          "frameCount": 33,
+          "animationLength": 2.75
+        },
+        "firewall_attack_default": {
+          "fps": 12,
+          "json": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/4841801f-9a1c-4bfc-9e39-96665233f9b3/firewall_attack_default.json?t=1763100253652",
+          "image": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/4841801f-9a1c-4bfc-9e39-96665233f9b3/firewall_attack_default.webp?t=1763100253652",
+          "anchor": {
+            "x": 48,
+            "y": 66,
+            "strategy": "bottom-center",
+            "normalized": {
+              "x": 0.5,
+              "y": 0.9850746268656716
+            }
+          },
+          "priority": "medium",
+          "dimensions": {
+            "width": 96,
+            "height": 67
+          },
+          "frameCount": 59,
+          "animationLength": 4.916666666666667
+        }
+      },
+      "metadata": {
+        "character_id": "87c97df3-0f91-4092-ba08-1186b6089d55"
+      }
+    }
+  }
+}

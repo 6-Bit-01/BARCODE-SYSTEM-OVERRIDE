@@ -1,0 +1,67 @@
+// Check for collision
+        if (window.aabbCollision && window.aabbCollision(playerHitbox, enemyHitbox)) {
+          // Calculate overlap area and relative positions for directional damage
+          const overlapX = Math.min(playerHitbox.x + playerHitbox.width, enemyHitbox.x + enemyHitbox.width) - 
+                          Math.max(playerHitbox.x, enemyHitbox.x);
+          const overlapY = Math.min(playerHitbox.y + playerHitbox.height, enemyHitbox.y + enemyHitbox.height) - 
+                          Math.max(playerHitbox.y, enemyHitbox.y);
+          const overlapArea = overlapX * overlapY;
+          
+          // Calculate key positions
+          const playerBottom = playerHitbox.y + playerHitbox.height;
+          const playerTop = playerHitbox.y;
+          const playerCenterX = playerHitbox.x + playerHitbox.width / 2;
+          const enemyTop = enemyHitbox.y;
+          const enemyBottom = enemyHitbox.y + enemyHitbox.height;
+          const enemyCenterX = enemyHitbox.x + enemyHitbox.width / 2;
+          
+          // STOMP ATTACK: Player jumping down on enemy from above (MOST PERMISSIVE FIRST)
+          if (player.velocity.y > 0 && // Player moving down
+              playerBottom > enemyTop + 10 && // Player feet below enemy top (small margin)
+              playerBottom < enemyBottom - 10 && // Player hasn't gone through enemy
+              Math.abs(playerCenterX - enemyCenterX) < enemyHitbox.width * 0.9) { // Good horizontal alignment
+            
+            console.log('STOMP ATTACK! Player jumping on enemy from above');
+            enemy.takeDamage(3); // Stomp does high damage
+            
+            // Bounce player up
+            if (window.player && window.player.velocity !== undefined) {
+              window.player.velocity.y = -300;
+            }
+            
+            // Create stomp effect
+            if (window.particleSystem) {
+              window.particleSystem.impact(enemy.position.x, enemy.position.y - this.height, '#00ffff', 15);
+            }
+            
+            return; // Stomp attack - no player damage, exit collision check
+          }
+          
+          // ENEMY ATTACKING PLAYER FROM TOP: Enemy colliding with player's upper body
+          if (enemyTop < playerTop + playerHitbox.height * 0.6 && // Enemy top in upper 60% of player
+              Math.abs(playerCenterX - enemyCenterX) < enemyHitbox.width * 0.7) { // Good horizontal alignment
+            
+            console.log('Enemy attacking player from TOP');
+            player.takeDamage(enemy.damage);
+            enemy.takeDamage(1); // Enemy takes minor damage from collision
+            return; // Top attack - exit collision check
+          }
+          
+          // Enhanced corner grazing prevention
+          const playerArea = playerHitbox.width * playerHitbox.height;
+          const overlapRatio = overlapArea / playerArea;
+          
+          // Skip damage if it's just a corner graze (less than 20% of player area)
+          // OR if overlap is very thin (less than 35% width OR less than 35% height)
+          const widthRatio = overlapX / playerHitbox.width;
+          const heightRatio = overlapY / playerHitbox.height;
+          
+          if (overlapRatio < 0.20 || widthRatio < 0.35 || heightRatio < 0.35) {
+            return; // Corner graze or edge contact - no damage
+          }
+          
+          // SIDE/BOTTOM COLLISION: Enemy attacking player from sides or bottom
+          console.log('Enemy attacking player from SIDES/BOTTOM');
+          player.takeDamage(enemy.damage);
+          enemy.takeDamage(1); // Enemies take damage from collision
+        }
