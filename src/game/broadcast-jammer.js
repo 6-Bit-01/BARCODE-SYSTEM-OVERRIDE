@@ -477,34 +477,63 @@ window.BroadcastJammerSystem = {
     return false;
   },
   
-  // Force spawn jammer
+  // Force spawn jammer with enhanced debugging and error handling
   forceSpawn(x = null, y = null) {
-    // Clean up existing jammer
-    if (this.jammer) {
-      this.jammer.active = false;
-      this.jammer = null;
+    const spawnStartTime = Date.now();
+    
+    // Initialize debug counters if not done
+    if (!this.debugMode) {
+      this.initEnhancedDebugging();
     }
     
-    // Calculate spawn position if not provided - completely random
-    if (x === null || y === null) {
-      x = 500 + Math.random() * 3000; // Random X across the map (500-3500)
-      y = 880 + 0; // Original height (880) - only 10px lower than before
+    this.spawnAttempts++;
+    this.lastSpawnAttempt = spawnStartTime;
+    
+    console.log('🚨 FORCE SPAWN ATTEMPT #' + this.spawnAttempts);
+    console.log('📊 Debug Stats:', this.getSpawnStats());
+    
+    // CRITICAL: Pre-spawn validation
+    const validationResult = this.validateSpawnConditions();
+    if (!validationResult.valid) {
+      this.failedSpawns++;
+      console.error('❌ SPAWN VALIDATION FAILED:', validationResult.reason);
+      this.logSpawnAttempt(false, spawnStartTime, validationResult.reason);
+      return null;
     }
     
-    console.log(`🚨 FORCING JAMMER SPAWN on opposite side of map at (${x.toFixed(1)}, ${y.toFixed(1)})`);
-    
-    // Create new jammer
-    this.jammer = new window.BroadcastJammer(x, y);
+    try {
+      // Clean up existing jammer
+      if (this.jammer) {
+        this.jammer.active = false;
+        this.jammer = null;
+      }
+      
+      // Calculate spawn position if not provided - completely random
+      if (x === null || y === null) {
+        x = 500 + Math.random() * 3000; // Random X across the map (500-3500)
+        y = 880 + 0; // Original height (880) - only 10px lower than before
+      }
+      
+      console.log(`🚨 FORCING JAMMER SPAWN on opposite side of map at (${x.toFixed(1)}, ${y.toFixed(1)})`);
+      
+      // Create new jammer
+      this.jammer = new window.BroadcastJammer(x, y);
 
-    // ✅ keep global alias in sync
-    window.broadcastJammer = this.jammer;
-    
-    console.log('✅ JAMMER SPAWNED SUCCESSFULLY!');
-    console.log(`📍 Position: (${x}, ${y})`);
-    console.log('🎯 Status: ACTIVE and ready for rhythm attacks');
-    console.log('🎵 Rhythm hits required:', this.jammer.rhythmHitsRequired);
-    
-    return this.jammer;
+      // ✅ keep global alias in sync
+      window.broadcastJammer = this.jammer;
+      
+      console.log('✅ JAMMER SPAWNED SUCCESSFULLY!');
+      console.log(`📍 Position: (${x}, ${y})`);
+      console.log('🎯 Status: ACTIVE and ready for rhythm attacks');
+      console.log('🎵 Rhythm hits required:', this.jammer.rhythmHitsRequired);
+      
+      return this.jammer;
+    } catch (error) {
+      console.error('❌ JAMMER SPAWN FAILED:', error.message);
+      this.failedSpawns++;
+      this.logSpawnAttempt(false, spawnStartTime, `Spawn exception: ${error.message}`);
+      return null;
+    }
   },
   
   // Draw jammer
@@ -574,6 +603,302 @@ window.BroadcastJammerSystem = {
       Math.pow(this.jammer.x - playerX, 2) +
       Math.pow(this.jammer.y - playerY, 2)
     );
+  },
+  
+  // ENHANCED: Comprehensive debugging and verification methods
+  
+  // Initialize enhanced debugging system
+  initEnhancedDebugging: function() {
+    this.debugMode = true;
+    this.resetDebugCounters();
+    this.systemInitialized = true;
+    
+    console.log('🔍 Enhanced debugging system initialized');
+    console.log('📊 Debug counters reset');
+    
+    // Start verification monitoring
+    this.startVerificationMonitoring();
+  },
+  
+  // Reset debug counters
+  resetDebugCounters: function() {
+    this.spawnAttempts = 0;
+    this.successfulSpawns = 0;
+    this.failedSpawns = 0;
+    this.verificationFailures = 0;
+    this.emergencyRetries = 0;
+    this.lastSpawnAttempt = 0;
+    this.lastSuccessfulSpawn = 0;
+    this.spawnHistory = [];
+  },
+  
+  // Get spawn statistics
+  getSpawnStats: function() {
+    const successRate = this.spawnAttempts > 0 ? (this.successfulSpawns / this.spawnAttempts * 100).toFixed(1) : '0.0';
+    return {
+      attempts: this.spawnAttempts,
+      successful: this.successfulSpawns,
+      failed: this.failedSpawns,
+      successRate: successRate + '%',
+      verificationFailures: this.verificationFailures,
+      emergencyRetries: this.emergencyRetries,
+      lastAttempt: this.lastSpawnAttempt > 0 ? new Date(this.lastSpawnAttempt).toISOString() : 'Never',
+      lastSuccess: this.lastSuccessfulSpawn > 0 ? new Date(this.lastSuccessfulSpawn).toISOString() : 'Never'
+    };
+  },
+  
+  // Validate spawn conditions
+  validateSpawnConditions: function() {
+    if (this.permanentlyDestroyed) {
+      return { valid: false, reason: 'Jammer permanently destroyed' };
+    }
+    
+    if (!window.BroadcastJammer) {
+      return { valid: false, reason: 'BroadcastJammer class not available' };
+    }
+    
+    if (typeof window.BroadcastJammer !== 'function') {
+      return { valid: false, reason: 'BroadcastJammer is not a constructor' };
+    }
+    
+    return { valid: true, reason: 'All conditions met' };
+  },
+  
+  // Verify spawn integrity
+  verifySpawnIntegrity: function() {
+    const errors = [];
+    
+    if (!this.jammer) {
+      errors.push('No jammer instance created');
+    } else {
+      // Check required properties
+      const requiredProps = ['x', 'y', 'active', 'rhythmHitsRequired'];
+      requiredProps.forEach(prop => {
+        if (!(prop in this.jammer)) {
+          errors.push(`Missing property: ${prop}`);
+        }
+      });
+      
+      // Check global alias sync
+      if (window.broadcastJammer !== this.jammer) {
+        errors.push('Global alias out of sync');
+      }
+      
+      // Check active status
+      if (!this.jammer.active) {
+        errors.push('Jammer not active after spawn');
+      }
+    }
+    
+    return {
+      success: errors.length === 0,
+      errors: errors
+    };
+  },
+  
+  // Attempt emergency recovery
+  attemptEmergencyRecovery: function(originalX, originalY, spawnStartTime) {
+    console.log('🚨 ATTEMPTING EMERGENCY RECOVERY...');
+    this.emergencyRetries++;
+    
+    try {
+      // Try direct constructor as emergency fallback
+      const emergencyJammer = new window.BroadcastJammer(originalX || 2000, originalY || 880);
+      
+      // Force register in all systems
+      this.jammer = emergencyJammer;
+      window.broadcastJammer = emergencyJammer;
+      
+      // Verify emergency spawn
+      const verification = this.verifySpawnIntegrity();
+      
+      if (verification.success) {
+        console.log('✅ EMERGENCY RECOVERY SUCCESSFUL');
+        this.logSpawnAttempt(true, spawnStartTime, 'Emergency recovery successful');
+        return emergencyJammer;
+      } else {
+        console.error('❌ EMERGENCY RECOVERY FAILED:', verification.errors);
+        this.logSpawnAttempt(false, spawnStartTime, 'Emergency recovery failed');
+        return null;
+      }
+    } catch (error) {
+      console.error('❌ EMERGENCY RECOVERY EXCEPTION:', error.message);
+      this.logSpawnAttempt(false, spawnStartTime, `Emergency recovery exception: ${error.message}`);
+      return null;
+    }
+  },
+  
+  // Log spawn attempt
+  logSpawnAttempt: function(success, timestamp, details) {
+    const logEntry = {
+      timestamp: timestamp,
+      success: success,
+      details: details,
+      stats: this.getSpawnStats()
+    };
+    
+    if (success) {
+      console.log('✅ SPAWN ATTEMPT SUCCEEDED:', logEntry);
+    } else {
+      console.error('❌ SPAWN ATTEMPT FAILED:', logEntry);
+    }
+    
+    // Add to history
+    this.spawnHistory.push(logEntry);
+    if (this.spawnHistory.length > 20) {
+      this.spawnHistory = this.spawnHistory.slice(-20);
+    }
+  },
+  
+  // Start verification monitoring
+  startVerificationMonitoring: function() {
+    if (this.verificationMonitoringInterval) {
+      clearInterval(this.verificationMonitoringInterval);
+    }
+    
+    // Check every 5 seconds for spawn issues
+    this.verificationMonitoringInterval = setInterval(() => {
+      this.performPeriodicVerification();
+    }, 5000);
+    
+    console.log('🔍 Verification monitoring started (5-second intervals)');
+  },
+  
+  // Perform periodic verification
+  performPeriodicVerification: function() {
+    if (!this.debugMode || !this.jammer) return;
+    
+    const verification = this.verifySpawnIntegrity();
+    
+    if (!verification.success) {
+      console.warn('⚠️ PERIODIC VERIFICATION FAILED:', verification.errors);
+      this.verificationFailures++;
+      
+      // Attempt automatic repair if jammer should exist
+      if (this.spawnAttempts > 0 && this.successfulSpawns > 0) {
+        console.log('🔧 Attempting automatic repair...');
+        this.attemptAutomaticRepair();
+      }
+    }
+  },
+  
+  // Attempt automatic repair
+  attemptAutomaticRepair: function() {
+    console.log('🔧 AUTOMATIC REPAIR: Attempting to fix jammer issues...');
+    
+    // Try to re-sync global alias
+    if (this.jammer && window.broadcastJammer !== this.jammer) {
+      console.log('🔧 Fixing global alias sync...');
+      window.broadcastJammer = this.jammer;
+    }
+    
+    // Try to reactivate jammer if it exists but is inactive
+    if (this.jammer && !this.jammer.active && !this.permanentlyDestroyed) {
+      console.log('🔧 Reactivating inactive jammer...');
+      this.jammer.active = true;
+    }
+    
+    // Final verification
+    const finalVerification = this.verifySpawnIntegrity();
+    if (finalVerification.success) {
+      console.log('✅ AUTOMATIC REPAIR SUCCESSFUL');
+    } else {
+      console.error('❌ AUTOMATIC REPAIR FAILED:', finalVerification.errors);
+    }
+  },
+  
+  // Schedule delayed verification
+  scheduleDelayedVerification: function() {
+    // Check after 2 seconds to catch delayed failures
+    setTimeout(() => {
+      if (this.jammer) {
+        const delayedVerification = this.verifySpawnIntegrity();
+        if (!delayedVerification.success) {
+          console.error('❌ DELAYED VERIFICATION FAILED:', delayedVerification.errors);
+          this.verificationFailures++;
+        } else {
+          console.log('✅ Delayed verification passed');
+        }
+      }
+    }, 2000);
+  },
+  
+  // Enhanced force spawn with debugging
+  forceSpawnWithDebugging: function(x, y) {
+    console.log('🔍 ENHANCED FORCE SPAWN WITH DEBUGGING');
+    console.log('📊 Current stats:', this.getSpawnStats());
+    
+    const spawnStartTime = Date.now();
+    this.spawnAttempts++;
+    this.lastSpawnAttempt = spawnStartTime;
+    
+    // Use existing forceSpawn but with enhanced monitoring
+    const result = this.forceSpawn(x, y);
+    
+    // Enhanced post-spawn verification
+    if (result) {
+      const verification = this.verifySpawnIntegrity();
+      if (verification.success) {
+        this.successfulSpawns++;
+        this.lastSuccessfulSpawn = spawnStartTime;
+        this.logSpawnAttempt(true, spawnStartTime, 'Enhanced force spawn successful');
+      } else {
+        this.failedSpawns++;
+        this.verificationFailures++;
+        this.logSpawnAttempt(false, spawnStartTime, `Post-spawn verification failed: ${verification.errors.join(', ')}`);
+      }
+    } else {
+      this.failedSpawns++;
+      this.logSpawnAttempt(false, spawnStartTime, 'Force spawn returned null');
+    }
+    
+    return result;
+  },
+  
+  // Get comprehensive status report
+  getComprehensiveStatus: function() {
+    const basicStatus = this.getStatus();
+    const debugStats = this.getSpawnStats();
+    
+    return {
+      ...basicStatus,
+      debug: {
+        mode: this.debugMode,
+        systemInitialized: this.systemInitialized,
+        permanentlyDestroyed: this.permanentlyDestroyed,
+        stats: debugStats,
+        verificationMonitoring: !!this.verificationMonitoringInterval
+      },
+      system: {
+        globalAlias: !!window.broadcastJammer,
+        globalAliasSync: window.broadcastJammer === this.jammer,
+        classAvailable: typeof window.BroadcastJammer === 'function'
+      },
+      history: this.spawnHistory.slice(-5) // Last 5 attempts
+    };
+  },
+  
+  // Emergency debugging command: Reset all debugging state
+  emergencyResetDebugging: function() {
+    console.log('🚨 EMERGENCY DEBUG RESET');
+    
+    this.resetDebugCounters();
+    this.permanentlyDestroyed = false;
+    
+    if (this.verificationMonitoringInterval) {
+      clearInterval(this.verificationMonitoringInterval);
+      this.verificationMonitoringInterval = null;
+    }
+    
+    // Clean up jammer if exists
+    if (this.jammer) {
+      this.jammer.active = false;
+      this.jammer = null;
+    }
+    window.broadcastJammer = null;
+    
+    console.log('✅ Emergency debugging reset completed');
+    return 'Debugging state reset - all counters cleared';
   }
 };
 
@@ -588,13 +913,8 @@ if (typeof window !== 'undefined') {
   window.BroadcastJammerSystem.init();
   console.log('📡 Broadcast Jammer System auto-initialized on load');
   
-  // CRITICAL: IMMEDIATE SPAWN FOR VISIBILITY TESTING
-  setTimeout(() => {
-    console.log('🚨 IMMEDIATE SPAWN: Force spawning jammer at visible position!');
-    // Use random spawning instead of fixed position
-    const randomX = 500 + Math.random() * 3000;
-    window.BroadcastJammerSystem.forceSpawn(randomX, 880); // Random position, original height
-  }, 500);
+  // REMOVED: Immediate spawn disabled - jammer will now spawn only when "Defeat 20 enemies" objective is completed
+  console.log('📋 Jammer will spawn when "Defeat 20 enemies" objective is completed');
   
   // Emergency debug helpers
   window.JAMMER_DEBUG = {

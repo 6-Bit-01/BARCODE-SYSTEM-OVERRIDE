@@ -45,14 +45,6 @@ window.Sector1Progression = class Sector1Progression {
     this.tenseMusicActive = false;
     this.combatMusicActive = false;
     
-    // Broadcast Jammer state
-    this.broadcastJammer = null;
-    this.jammerPosition = null;
-    this.jammerActive = false; // Hidden until 20 enemies defeated
-    this.jammerRevealed = false; // Track if jammer has been revealed
-    this.jammerHealth = 5;
-    this.jammerMaxHealth = 5;
-    
     // Player reference
     this.player = null;
     
@@ -63,9 +55,6 @@ window.Sector1Progression = class Sector1Progression {
   // Initialize the progression system
   init(player) {
     this.player = player;
-    // Broadcast Jammer will be created dynamically on the opposite side of the player
-    this.jammerActive = false; // HIDDEN until 20 enemies defeated
-    this.jammerRevealed = false;
     
     // Start in free-roam phase
     this.currentPhase = 'FREE_ROAM_START';
@@ -73,31 +62,7 @@ window.Sector1Progression = class Sector1Progression {
     console.log('🗺️ Sector 1 Progression initialized');
     console.log('📋 Phase: FREE_ROAM_START - Player can explore entire map');
     console.log('🎯 Objectives: Defeat 20 enemies to reveal jammer, then destroy it');
-    console.log('📡 Broadcast Jammer HIDDEN - Will be revealed after 1 enemy defeated');
-    
-    // CRITICAL: EMERGENCY JAMMER SPAWN - Force immediate visibility
-    console.log('🚨 EMERGENCY: Forcing immediate jammer spawn for visibility testing!');
-    setTimeout(() => {
-      console.log('🧪 EMERGENCY: Spawning jammer immediately for visibility!');
-      // Set enemy count to meet requirement
-      this.enemiesDefeated = 20;
-      // Force jammer reveal
-      this.revealJammer();
-    }, 2000);
-    
-    // CRITICAL: DISABLED - Remove auto-check interval to prevent respawning after destruction
-    // Jammer reveal now only happens through proper progression logic (onEnemyDefeated)
-    // this.jammerCheckInterval = setInterval(() => {
-    //   if (this.enemiesDefeated >= this.requiredEnemyKills && !this.jammerRevealed) {
-    //     console.log('🚨 INTERVAL-CHECK: Enemy quota met - forcing jammer reveal!');
-    //     this.revealJammer();
-    //     
-    //     // Clear interval after successful reveal
-    //     if (this.jammerRevealed) {
-    //       clearInterval(this.jammerCheckInterval);
-    //     }
-    //   }
-    // }, 1000);
+    console.log('📡 Jammer spawning delegated to ObjectivesSystem');
     
     this.initialized = true;
   }
@@ -107,15 +72,6 @@ window.Sector1Progression = class Sector1Progression {
     if (!this.initialized || !this.player) return;
     
     const dt = deltaTime / 1000;
-    
-    // Check for jammer reveal when 20 enemies defeated
-    if (this.enemiesDefeated >= this.requiredEnemyKills && !this.jammerRevealed) {
-      console.log(`🎯 UPDATE CHECK: Enemy quota met (${this.enemiesDefeated}/${this.requiredEnemyKills}) - Revealing jammer!`);
-      this.revealJammer();
-    }
-    
-    // CRITICAL: BroadcastJammerSystem handles its own updates
-    // Don't duplicate jammer updates here
     
     // Update current phase
     switch (this.currentPhase) {
@@ -138,11 +94,6 @@ window.Sector1Progression = class Sector1Progression {
     
     // Update visual effects
     this.updateVisualEffects(deltaTime);
-    
-    // DEBUG: Log jammer status periodically
-    if (Date.now() % 5000 < 100) {
-      console.log(`📡 Jammer Status: Active=${this.jammerActive}, Health=${this.broadcastJammer?.health || 0}, Position=${this.jammerPosition?.x || 0}, ${this.jammerPosition?.y || 0}`);
-    }
   }
   
   // Free Roam Phase - player can explore everything
@@ -151,9 +102,6 @@ window.Sector1Progression = class Sector1Progression {
     if (this.checkProgressionConditionsMet()) {
       this.transitionToBossAwakening();
     }
-    
-    // CRITICAL: BroadcastJammerSystem handles its own updates
-    // Don't duplicate jammer updates here
   }
   
   // Check if both progression conditions are met
@@ -161,15 +109,11 @@ window.Sector1Progression = class Sector1Progression {
     const jammerCondition = this.broadcastJammerDestroyed;
     const enemyCondition = this.enemiesDefeated >= this.requiredEnemyKills;
     
-    // Reveal jammer when 20 enemies are defeated
-    if (enemyCondition && !this.jammerRevealed) {
-      this.revealJammer();
-    }
-    
+    // Delegate jammer spawn to ObjectivesSystem
     if (jammerCondition && !enemyCondition) {
       console.log(`📡 Broadcast Jammer destroyed! Need ${this.requiredEnemyKills - this.enemiesDefeated} more enemies.`);
     } else if (!jammerCondition && enemyCondition) {
-      console.log(`⚔️ Enemy quota met! Broadcast Jammer revealed - destroy it to continue.`);
+      console.log(`⚔️ Enemy quota met! Jammer spawning handled by ObjectivesSystem.`);
     } else if (jammerCondition && enemyCondition) {
       console.log('✅ BOTH PROGRESSION CONDITIONS MET!');
       return true;
@@ -547,12 +491,6 @@ window.Sector1Progression = class Sector1Progression {
       console.log(`📚 Tutorial enemies defeated: ${this.tutorialEnemiesDefeated} (not counted toward mission)`);
     }
     
-    // SIMPLE LOGIC: Reveal jammer when 20 enemies defeated
-    if (this.enemiesDefeated >= this.requiredEnemyKills && !this.jammerRevealed) {
-      console.log(`🚨 ENEMY QUOTA MET (${this.enemiesDefeated}/${this.requiredEnemyKills}) - REVEALING JAMMER!`);
-      this.revealJammer();
-    }
-    
     // Check progression conditions
     if (this.currentPhase === 'FREE_ROAM_START' && this.checkProgressionConditionsMet()) {
       this.transitionToBossAwakening();
@@ -561,7 +499,6 @@ window.Sector1Progression = class Sector1Progression {
   
   onJammerDestroyed() {
     this.broadcastJammerDestroyed = true;
-    this.jammerActive = false;
     console.log('📡 Broadcast Jammer destroyed!');
     
     // Check progression conditions
@@ -578,78 +515,8 @@ window.Sector1Progression = class Sector1Progression {
     }
   }
   
-  // Reveal the broadcast jammer - USE BroadcastJammerSystem
-  revealJammer() {
-    console.log(`🔧 revealJammer() called: revealed=${this.jammerRevealed}, enemyCount=${this.enemiesDefeated}/${this.requiredEnemyKills}`);
-    
-    if (this.jammerRevealed) {
-      console.log('📡 Jammer already revealed - skipping');
-      return;
-    }
-    
-    // Mark as revealed immediately
-    this.jammerRevealed = true;
-    this.jammerActive = true;
-    
-    // CRITICAL: FORCE BroadcastJammerSystem to spawn immediately
-    if (window.BroadcastJammerSystem && typeof window.BroadcastJammerSystem.forceSpawn === 'function') {
-      console.log('🚨 Using BroadcastJammerSystem to spawn jammer!');
-      
-      // CRITICAL: Spawn on opposite side of map from player
-      const playerX = this.player ? this.player.position.x : 960;
-      const mapCenter = 2048; // Center of 4096px map
-      
-      let spawnX, spawnY;
-      if (playerX < mapCenter) {
-        // Player is on left half - spawn on right half
-        spawnX = 3500 + Math.random() * 300; // Right side with some randomness
-      } else {
-        // Player is on right half - spawn on left half
-        spawnX = 300 + Math.random() * 300; // Left side with some randomness
-      }
-      
-      spawnY = 880 + (Math.random() - 0.5) * 100; // Slight Y variation
-      
-      console.log(`🚨 SPAWNING JAMMER at fixed location (${spawnX}, ${spawnY})`);
-      
-      // Force spawn the jammer
-      const spawnedJammer = window.BroadcastJammerSystem.forceSpawn(spawnX, spawnY);
-      
-      // Verify the jammer was created
-      if (spawnedJammer && window.BroadcastJammerSystem.jammer) {
-        this.broadcastJammer = window.BroadcastJammerSystem.jammer;
-        this.jammerPosition = this.broadcastJammer.position;
-        console.log('✅ JAMMER REVEALED SUCCESSFULLY!');
-        console.log(`📍 Position: (${this.jammerPosition.x}, ${this.jammerPosition.y})`);
-        console.log(`🎯 Active: ${this.broadcastJammer.active}`);
-      } else {
-        console.error('❌ FAILED: BroadcastJammerSystem.forceSpawn returned null or jammer not created');
-      }
-    } else {
-      console.error('❌ BroadcastJammerSystem not available - CRITICAL ERROR');
-      console.error('Available systems:', Object.keys(window).filter(key => key.includes('Jammer')));
-      // CRITICAL: Cannot create fallback - BroadcastJammerSystem is REQUIRED
-      return;
-    }
-    
-    // Show message to player
-    if (window.loreSystem) {
-      window.loreSystem.displayLoreMessage('BROADCAST JAMMER REVEALED! Use rhythm attacks (R key) to destroy it.');
-    }
-    
-    // Update objectives system
-    if (window.objectivesSystem) {
-      if (typeof window.objectivesSystem.revealJammerObjective === 'function') {
-        window.objectivesSystem.revealJammerObjective();
-      }
-    }
-  }
-  
-  // REMOVED: Fallback jammer creation - BroadcastJammerSystem is REQUIRED
-  
   // Drawing functions
   draw(ctx) {
-    // CRITICAL: BroadcastJammerSystem handles its own drawing - just draw boss and effects
     // Draw boss
     if (this.boss && this.boss.active) {
       this.boss.draw(ctx);
@@ -662,9 +529,6 @@ window.Sector1Progression = class Sector1Progression {
     if (this.bossFightStarted && this.boss && this.boss.active) {
       this.drawBossHealthBar(ctx);
     }
-    
-    // CRITICAL: DO NOT draw jammer here - BroadcastJammerSystem handles all jammer drawing
-    // This prevents duplicate jammer visuals and conflicts
   }
   
   drawVisualEffects(ctx) {
@@ -734,81 +598,28 @@ window.Sector1Progression = class Sector1Progression {
     ctx.fillText(`${this.boss.health}/${this.boss.maxHealth}`, 960, y + barHeight + 10);
   }
   
-  // REMOVED: Emergency jammer creation - BroadcastJammerSystem is REQUIRED
-  
-  // ENHANCED: Draw additional jammer indicators for guaranteed visibility
-  drawJammerIndicators(ctx) {
-    if (!this.broadcastJammer || !this.broadcastJammer.active) return;
-    
-    ctx.save();
-    
-    const pos = this.broadcastJammer.position;
-    const pulseIntensity = 0.7 + Math.sin(Date.now() * 0.005) * 0.3;
-    
-    // Draw massive targeting circle around jammer
-    ctx.strokeStyle = `rgba(255, 255, 0, ${pulseIntensity * 0.5})`;
-    ctx.lineWidth = 8;
-    ctx.beginPath();
-    ctx.arc(pos.x, pos.y, 150, 0, Math.PI * 2);
-    ctx.stroke();
-    
-    // Draw pulsing crosshair
-    ctx.strokeStyle = `rgba(255, 0, 0, ${pulseIntensity})`;
-    ctx.lineWidth = 6;
-    
-    // Horizontal line
-    ctx.beginPath();
-    ctx.moveTo(pos.x - 200, pos.y);
-    ctx.lineTo(pos.x + 200, pos.y);
-    ctx.stroke();
-    
-    // Vertical line
-    ctx.beginPath();
-    ctx.moveTo(pos.x, pos.y - 200);
-    ctx.lineTo(pos.x, pos.y + 200);
-    ctx.stroke();
-    
-    // Draw "TARGET" text
-    ctx.fillStyle = '#ffff00';
-    ctx.font = 'bold 20px monospace';
-    ctx.textAlign = 'center';
-    ctx.shadowColor = '#ff0000';
-    ctx.shadowBlur = 15;
-    ctx.fillText('TARGET', pos.x, pos.y - 250);
-    ctx.shadowBlur = 0;
-    
-    ctx.restore();
-  }
-  
   // Reset progression (for restart)
   reset(preserveEnemyProgress = false) {
-    // Clear jammer check interval if it exists
-    if (this.jammerCheckInterval) {
-      clearInterval(this.jammerCheckInterval);
-      this.jammerCheckInterval = null;
-    }
-    
-    // CRITICAL: Reset BroadcastJammerSystem permanent destruction flag
-    if (window.BroadcastJammerSystem) {
-      window.BroadcastJammerSystem.permanentlyDestroyed = false;
-      console.log('🔄 Reset BroadcastJammerSystem permanent destruction flag');
-    }
-    
     // CRITICAL: Check if we should preserve enemy progress (20+ enemies defeated)
     const shouldPreserveEnemies = preserveEnemyProgress && this.enemiesDefeated >= this.requiredEnemyKills;
     const preservedEnemyCount = this.enemiesDefeated;
+    const preservedJammerDestroyed = this.broadcastJammerDestroyed;
+    
+    console.log(`🔄 Sector1Progression.reset() called with preserveEnemyProgress=${preserveEnemyProgress}`);
+    console.log(`  Current state: enemies=${this.enemiesDefeated}, jammerDestroyed=${this.broadcastJammerDestroyed}`);
+    console.log(`  Should preserve enemies: ${shouldPreserveEnemies}`);
     
     this.currentPhase = 'FREE_ROAM_START';
-    this.broadcastJammerDestroyed = false;
-    this.tutorialEnemiesDefeated = 0; // Reset tutorial enemy counter
+    this.tutorialEnemiesDefeated = 0; // Always reset tutorial enemy counter
     
-    // PERSISTENCE LOGIC: Only reset enemy count if below threshold
+    // CRITICAL: PERSISTENCE LOGIC - Handle enemy count based on preservation flag
     if (shouldPreserveEnemies) {
       console.log(`🔄 PERSISTENCE: Preserving enemy progress - ${preservedEnemyCount}/${this.requiredEnemyKills} enemies defeated`);
-      // Keep enemiesDefeated at current count
+      // DO NOT reset enemiesDefeated - preserve the count
     } else {
       console.log(`🔄 RESET: Enemy progress ${this.enemiesDefeated}/${this.requiredEnemyKills} below threshold - full reset`);
       this.enemiesDefeated = 0;
+      this.broadcastJammerDestroyed = false; // Only reset jammer destroyed if not preserving
     }
     
     this.boss = null;
@@ -821,17 +632,23 @@ window.Sector1Progression = class Sector1Progression {
     this.screenShakeIntensity = 0;
     this.rippleEffect = null;
     this.glitchFogOpacity = 0;
-    this.jammerActive = false; // Hidden by default
-    this.jammerRevealed = false; // Not revealed yet
     
-    // Broadcast Jammer will be created dynamically on the opposite side of the player
+    // CRITICAL: Preserve jammer destroyed state if preserving enemies
+    if (shouldPreserveEnemies && preservedJammerDestroyed) {
+      this.broadcastJammerDestroyed = preservedJammerDestroyed;
+      console.log(`🔄 PERSISTENCE: Preserving jammer destroyed state: ${preservedJammerDestroyed}`);
+    }
     
-    console.log('🔄 Sector 1 Progression reset' + (shouldPreserveEnemies ? ' (enemy progress preserved)' : ''));
+    console.log('🔄 Sector 1 Progression reset completed' + (shouldPreserveEnemies ? ' (enemy and jammer state preserved)' : ' (full reset)'));
+    
+    // Log final state for debugging
+    console.log(`🔄 Final state after reset:`);
+    console.log(`  enemiesDefeated: ${this.enemiesDefeated}`);
+    console.log(`  broadcastJammerDestroyed: ${this.broadcastJammerDestroyed}`);
+    console.log(`  currentPhase: ${this.currentPhase}`);
+    console.log(`  tutorialEnemiesDefeated: ${this.tutorialEnemiesDefeated}`);
   }
 };
-
-// REMOVED: Duplicate BroadcastJammer class - use broadcast-jammer.js only
-// This was causing conflicts and orange square visual artifacts
 
 // City Scrambler Boss class
 window.CityScrambler = class CityScrambler {
@@ -1040,31 +857,6 @@ window.CityScrambler = class CityScrambler {
 // Initialize global sector 1 progression system
 window.sector1Progression = null;
 
-// EMERGENCY GLOBAL JAMMER SPAWN - DISABLED to prevent respawning after destruction
-// window.EMERGENCY_FORCE_JAMMER = function() {
-//   console.log('🚨 EMERGENCY FORCE JAMMER CALLED!');
-//   
-//   // Force enemy count to 20 if needed
-//   if (window.sector1Progression) {
-//     if (window.sector1Progression.enemiesDefeated < 20) {
-//       console.log('🔧 Setting enemy count to 20 for jammer spawn');
-//       window.sector1Progression.enemiesDefeated = 20;
-//     }
-//     
-//     // Force jammer reveal
-//     console.log('🔧 Forcing jammer reveal');
-//       window.sector1Progression.revealJammer();
-//   }
-//   
-//   // Also force via BroadcastJammerSystem
-//   if (window.BroadcastJammerSystem && typeof window.BroadcastJammerSystem.forceSpawn === 'function') {
-//     console.log('🔧 Force spawning jammer via BroadcastJammerSystem');
-//     window.BroadcastJammerSystem.forceSpawn(2800, 880);
-//   }
-//   
-//   console.log('✅ Emergency jammer spawn completed');
-// };
-
 // Initialize sector 1 progression
 window.initSector1Progression = function(player) {
   try {
@@ -1072,49 +864,9 @@ window.initSector1Progression = function(player) {
     window.sector1Progression.init(player);
     console.log('✅ Sector 1 Progression system initialized');
     
-    // CRITICAL: DISABLED - Remove auto-creation to prevent respawning after destruction
-    // setTimeout(() => {
-    //   console.log('🔧 AUTO-CHECK: Verifying jammer creation status...');
-    //   console.log(`📊 Current status: enemiesDefeated=${this.enemiesDefeated}, jammerRevealed=${this.jammerRevealed}`);
-    //   console.log(`📊 BroadcastJammerSystem exists: ${!!window.BroadcastJammerSystem}`);
-    //   console.log(`📊 BroadcastJammerSystem.jammer exists: ${!!window.BroadcastJammerSystem?.jammer}`);
-    //   
-    //   if (window.sector1Progression && !window.sector1Progression.broadcastJammer) {
-    //     console.log('🚨 AUTO-CREATION: No jammer found after 3 seconds - forcing emergency creation!');
-    //     
-    //     // Force enemy count to meet requirement
-    //     window.sector1Progression.enemiesDefeated = 20;
-    //     
-    //     // Force reveal
-    //     window.sector1Progression.revealJammer();
-    //     
-    //     // Verify it was created
-    //     setTimeout(() => {
-    //       if (!window.sector1Progression.broadcastJammer) {
-    //         console.log('🚨 AUTO-CREATION: Still no jammer - trying direct BroadcastJammerSystem call!');
-    //         
-    //         // Direct emergency spawn - let it calculate opposite side position
-    //         if (window.BroadcastJammerSystem && typeof window.BroadcastJammerSystem.forceSpawn === 'function') {
-    //           window.BroadcastJammerSystem.forceSpawn(); // Use opposite side positioning
-    //           window.sector1Progression.broadcastJammer = window.BroadcastJammerSystem.jammer;
-    //           window.sector1Progression.jammerRevealed = true;
-    //           console.log('🚨 DIRECT SPAWN: Emergency jammer created!');
-    //         }
-    //       } else {
-    //         console.log('✅ AUTO-CREATION: Jammer successfully created!');
-    //         console.log(`📍 Jammer position: (${window.sector1Progression.broadcastJammer.position.x}, ${window.sector1Progression.broadcastJammer.position.y})`);
-    //       }
-    //     }, 1000);
-    //   }
-    // }, 3000);
-    
     return true;
   } catch (error) {
     console.error('Failed to initialize Sector 1 progression:', error?.message || error);
     return false;
   }
 };
-
-// REMOVED: Debug methods that create conflicting jammers - use BroadcastJammerSystem only
-
-// Debug methods removed - use BroadcastJammerSystem only

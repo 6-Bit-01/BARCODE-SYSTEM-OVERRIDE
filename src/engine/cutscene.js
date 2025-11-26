@@ -151,10 +151,18 @@ window.CutsceneSystem = class CutsceneSystem {
       console.warn('⚠️ Some images failed to load, continuing with fallbacks');
     }
     
+    // Stop any title screen music before starting cutscene music
+    if (window.audioSystem && typeof window.audioSystem.stopTitleScreenMusic === 'function') {
+      window.audioSystem.stopTitleScreenMusic();
+      console.log('🎬 Stopped title screen music before cutscene');
+    }
+    
     // Start cutscene music
     if (window.audioSystem && typeof window.audioSystem.playCutsceneMusic === 'function') {
       window.audioSystem.playCutsceneMusic();
       console.log('🎬 Cutscene music started');
+    } else {
+      console.log('🎬 Cutscene music not available');
     }
     
     this.isActive = true;

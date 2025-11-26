@@ -7,6 +7,12 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
         
+        /* Preload terminal font for boot screen */
+        @font-face {
+            font-family: 'Terminal';
+            src: local('Share Tech Mono'), local('Courier New'), monospace;
+        }
+        
         * {
             margin: 0;
             padding: 0;
@@ -321,15 +327,17 @@
             margin-bottom: 3vw;
             text-align: center;
             letter-spacing: 0.5vw;
-            animation: titleGlow 3s ease-in-out infinite alternate;
             background: linear-gradient(45deg, #00ffff, #ff00ff, #00ffff);
             background-size: 200% 200%;
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: titleGlow 3s ease-in-out infinite alternate, gradientShift 4s ease-in-out infinite;
             min-height: auto;
             line-height: 1.1;
+            z-index: 10;
+            position: relative;
+            text-transform: uppercase;
+            font-family: 'Orbitron', monospace;
         }
         
         @keyframes titleGlow {
@@ -364,9 +372,9 @@
         }
         
         .start-button {
-            background: linear-gradient(135deg, #00ffff, #ff00ff);
-            border: none;
-            color: #000;
+            background: linear-gradient(135deg, rgba(0,255,255,0.15), rgba(255,0,255,0.15));
+            border: 2px solid rgba(0,255,255,0.6);
+            color: #00ffff;
             font-size: 3.5vw;
             font-weight: 700;
             padding: 3vw 8vw;
@@ -375,14 +383,16 @@
             cursor: pointer;
             border-radius: 12px;
             box-shadow: 
-                0 0 30px rgba(0, 255, 255, 0.5),
-                0 10px 40px rgba(255, 0, 255, 0.3);
+                0 0 15px rgba(0, 255, 255, 0.3),
+                0 5px 20px rgba(255, 0, 255, 0.2),
+                inset 0 0 20px rgba(0,255,255,0.1);
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             font-family: 'Orbitron', monospace;
             position: relative;
             overflow: hidden;
             min-width: 350px;
             min-height: 100px;
+            backdrop-filter: blur(5px);
         }
         
         .start-button::before {
@@ -401,10 +411,37 @@
         }
         
         .start-button:hover {
-            transform: scale(1.08) translateY(-2px);
+            transform: scale(1.05) translateY(-2px);
+            background: linear-gradient(135deg, rgba(0,255,255,0.25), rgba(255,0,255,0.25));
+            border-color: rgba(0,255,255,0.9);
             box-shadow: 
-                0 0 50px rgba(0, 255, 255, 0.8),
-                0 15px 50px rgba(255, 0, 255, 0.5);
+                0 0 25px rgba(0, 255, 255, 0.6),
+                0 8px 30px rgba(255, 0, 255, 0.4),
+                inset 0 0 30px rgba(0,255,255,0.2);
+            animation: button-glitch 0.3s infinite;
+        }
+        
+        @keyframes button-glitch {
+            0%, 100% {
+                filter: hue-rotate(0deg) brightness(1);
+                text-shadow: 0 0 10px currentColor;
+            }
+            20% {
+                filter: hue-rotate(90deg) brightness(1.2);
+                transform: translateX(1px) scale(1.05);
+            }
+            40% {
+                filter: hue-rotate(-90deg) brightness(0.9);
+                transform: translateX(-1px) scale(1.05);
+            }
+            60% {
+                filter: hue-rotate(180deg) brightness(1.1);
+                text-shadow: -2px 0 10px #ff00ff, 2px 0 10px #00ffff;
+            }
+            80% {
+                filter: hue-rotate(45deg) brightness(1.05);
+                transform: translateX(0.5px) scale(1.05);
+            }
         }
         
         .start-button:active {
@@ -418,7 +455,7 @@
             font-size: 1.6vw;
             text-align: center;
             line-height: 1.8;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.85);
             padding: 2.5vw 4vw;
             border: 1px solid rgba(0,255,255,0.2);
             border-radius: 8px;
@@ -497,25 +534,8 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- FULL SCREEN INTRO OVERLAY -->
-    <div id="startOverlay" class="start-overlay" style="
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
-        background: radial-gradient(ellipse at center, rgba(0,20,40,0.95) 0%, rgba(0,0,0,0.98) 100%) !important;
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: center !important;
-        align-items: center !important;
-        z-index: 2000 !important;
-        transform: scale(1) !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    ">
+    <!-- FULL SCREEN INTRO OVERLAY - INITIALLY HIDDEN -->
+    <div id="startOverlay" class="start-overlay" style="display: none; opacity: 0;">
         <h1 class="game-title">BARCODE</h1>
         <div class="game-subtitle">System Override</div>
         <button id="startButton" class="start-button">START SYSTEM</button>
@@ -540,10 +560,10 @@
         </div>
         
         <!-- Game Canvas - Fills remaining space -->
-        <canvas id="gameCanvas" width="1920" height="1080" style="display: none;"></canvas>
+        <canvas id="gameCanvas" width="1920" height="1080"></canvas>
         
         <!-- Game UI Bottom Hint -->
-        <div class="hint" style="display: none;">Arrow Keys: Move | Space: Action | R: Rhythm Attack | H: Hack Terminal</div>
+        <div class="hint">Arrow Keys: Move | Space: Action | R: Rhythm Attack | H: Hack Terminal</div>
     </div>
 
     <!-- MakkoEngine for sprite animations -->
@@ -554,12 +574,14 @@
     <script src="src/core/fullscreen.js"></script>
     <script src="src/core/input.js"></script>
     <script src="src/engine/audio.js"></script>
+    <script src="src/engine/boot-loader.js"></script>
     <script src="src/engine/particles.js"></script>
     <script src="src/engine/renderer.js"></script>
     <script src="src/engine/parallax.js"></script>
     <script src="src/engine/spaceships.js"></script>
     <script src="src/engine/lore.js"></script>
     <script src="src/engine/jammer-indicator.js"></script>
+    <script src="src/engine/title-screen.js"></script>
     <script src="src/game/objectives.js"></script>
     <script src="src/engine/cutscene.js"></script>
     <script src="src/core/loop.js"></script>
@@ -575,8 +597,18 @@
     <script src="src/game/lost-data.js"></script>
     <script src="src/game/sector1-progression.js"></script>
 
-    <!-- Main Game -->
-    <script src="src/game/main.js"></script>
+    <!-- Game Modules (New Modular Structure) -->
+    <script src="src/game/game-state.js"></script>
+    <script src="src/game/update-coordinator.js"></script>
+    <script src="src/game/render-coordinator.js"></script>
+    <script src="src/game/ui-manager.js"></script>
+    <script src="src/game/game-initializer.js"></script>
+    <script src="src/game/dependency-validator.js"></script>
+    <script src="src/game/debug-commands.js"></script>
+
+    <!-- Main Game (Modular Structure) -->
+    <script src="src/game/main-new.js"></script>
+    <!-- Legacy main.js removed - now using modular structure -->
 
     <script>
         // ========================================
@@ -621,6 +653,60 @@
         // Users should control fullscreen manually with Shift+F to prevent unwanted fullscreen behavior
         
         // ========================================
+        // BOOT LOADER INITIALIZATION
+        // ========================================
+        
+        // Start boot sequence when page loads
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🚀 Starting boot sequence...');
+            
+            // Start the terminal boot loader
+            if (window.bootLoader) {
+                window.bootLoader.startBootSequence();
+            }
+            
+            // Monitor asset loading and update boot loader status
+            monitorAssetLoading();
+        });
+        
+        // Monitor asset loading progress
+        function monitorAssetLoading() {
+            // Check audio loading
+            const checkAudioLoading = setInterval(() => {
+                if (window.audioSystem && window.audioSystem.isInitialized()) {
+                    console.log('🎵 Audio system loaded');
+                    if (window.bootLoader) {
+                        window.bootLoader.setAudioLoaded(true);
+                    }
+                    clearInterval(checkAudioLoading);
+                }
+            }, 100);
+            
+            // Check sprite loading
+            const checkSpriteLoading = setInterval(() => {
+                if (window.MakkoEngine && window.MakkoEngine.isLoaded()) {
+                    console.log('🎮 Sprite system loaded');
+                    if (window.bootLoader) {
+                        window.bootLoader.setSpritesLoaded(true);
+                    }
+                    clearInterval(checkSpriteLoading);
+                }
+            }, 100);
+            
+            // Timeout fallbacks with graceful handling
+            setTimeout(() => {
+                if (window.bootLoader && !window.bootLoader.audioLoaded) {
+                    console.log('⚠️ Audio loading timeout - will proceed without audio');
+                    window.bootLoader.setAudioLoaded(true);
+                }
+                if (window.bootLoader && !window.bootLoader.spritesLoaded) {
+                    console.log('⚠️ Sprite loading timeout - proceeding with fallback graphics');
+                    window.bootLoader.setSpritesLoaded(true);
+                }
+            }, 15000); // Increased to 15 second timeout to match other systems
+        }
+        
+        // ========================================
         // INTRO SCENE MANAGEMENT
         // ========================================
         
@@ -628,6 +714,10 @@
         
         // START BUTTON HANDLER - STARTS GAME IN FULLSCREEN
         document.getElementById('startButton').addEventListener('click', async function() {
+            // Use title screen transition if available
+            if (window.titleScreen && typeof window.titleScreen.hide === 'function') {
+                window.titleScreen.hide();
+            }
             console.log('=== START BUTTON CLICKED - INITIALIZING GAME ===');
             
             // STEP 0: Enter fullscreen immediately (using new fullscreen manager)
@@ -657,11 +747,24 @@
                 // STEP 1: Initialize all game systems
                 console.log('Step 1: Initializing game systems...');
                 
-                // Initialize sprite system
-                await window.initSprites();
+                // Sprite and audio systems are already loaded by boot loader
+                console.log('✓ Assets already loaded by boot sequence');
                 
-                // Initialize audio system
-                await window.initAudio();
+                // Initialize sprite system (if needed)
+                if (typeof window.initSprites === 'function') {
+                    await window.initSprites();
+                }
+                
+                // Initialize audio system (if needed)
+                if (typeof window.initAudio === 'function') {
+                    await window.initAudio();
+                }
+                
+                // CRITICAL: Stop title screen music when game starts
+                if (window.audioSystem && typeof window.audioSystem.stopTitleScreenMusic === 'function') {
+                    window.audioSystem.stopTitleScreenMusic();
+                    console.log('🔇 Stopped title screen music - starting game');
+                }
                 
                 // Initialize parallax background
                 console.log('Initializing parallax background...');
@@ -754,7 +857,9 @@
                 console.log('✓ GAME STARTED SUCCESSFULLY IN FULLSCREEN!');
                 
             } catch (error) {
-                console.error('❌ FATAL ERROR INITIALIZING GAME:', error);
+                console.error('❌ FATAL ERROR INITIALIZING GAME:', error?.message || error?.toString() || 'Unknown error');
+                console.error('Error stack:', error?.stack || 'No stack available');
+                console.error('Error type:', typeof error);
                 
                 // Show error state
                 this.textContent = 'ERROR - RETRY';

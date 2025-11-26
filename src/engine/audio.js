@@ -14,6 +14,10 @@ window.AudioSystem = class AudioSystem {
     this.sfxGain = null;
     this.initialized = false;
     
+    // Title screen music retry tracking
+    this.titleMusicRetryCount = 0;
+    this.maxTitleMusicRetries = 5;
+    
     // Audio buffers
     this.sounds = {};
     
@@ -135,6 +139,11 @@ window.AudioSystem = class AudioSystem {
         whoosh2: !!this.sounds['whoosh2'],
         availableSounds: Object.keys(this.sounds).filter(key => key.includes('whoosh'))
       });
+      
+      // Load title screen music
+      console.log('🎵 Loading title screen music...');
+      await this.loadTitleScreenMusic();
+      console.log('🎵 Title screen music load completed, status:', !!this.titleScreenMusic, 'isLoaded:', this.titleScreenMusic?.isLoaded);
       
       // Load cutscene music
       await this.loadCutsceneMusic();
@@ -1348,6 +1357,198 @@ window.AudioSystem = class AudioSystem {
     };
   }
 
+  // Load title screen music
+  async loadTitleScreenMusic() {
+    const titleScreenUrl = 'https://api.makko.ai/storage/v1/object/public/audio-assets/e56876ca-50d1-4b32-bcb9-1e37b7d1f822/21dd0b0c-3f5f-4d57-92a8-dc8b7b01be03.mp3';
+    
+    console.log('🎵 Loading title screen music...');
+    console.log(`🎵 Attempting to load title screen music from: ${titleScreenUrl}`);
+    
+    // Create timeout with proper Promise.race pattern
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Audio loading timeout')), 10000);
+    });
+    
+    try {
+      // Race between fetch and timeout
+      await Promise.race([this.fetchTitleScreenMusic(titleScreenUrl), timeoutPromise]);
+    } catch (error) {
+      // Handle timeout gracefully
+      if (error?.message && error.message.includes('timeout')) {
+        console.log('⚠️ Title screen music loading timeout - will proceed without it');
+        this.titleScreenMusic = null;
+      } else {
+        console.error('❌ Error loading title screen music:', error?.message || error?.toString() || 'Unknown error');
+        console.error('❌ Error details:', error);
+        this.titleScreenMusic = null;
+      }
+    }
+  }
+  
+  // Helper method for fetching title screen music
+  async fetchTitleScreenMusic(titleScreenUrl) {
+    // First try HEAD request to check availability
+    console.log('🎵 Step 1: Checking title screen music URL availability with HEAD request...');
+    const response = await fetch(titleScreenUrl, { method: 'HEAD' });
+    
+    if (response.ok) {
+      console.log('🎵 Step 2: Title screen music URL available, fetching full audio data...');
+      const fullResponse = await fetch(titleScreenUrl);
+      
+      if (!fullResponse.ok) {
+        throw new Error(`Full fetch failed with status: ${fullResponse.status}`);
+      }
+      
+      console.log('🎵 Step 3: Converting title screen music to array buffer...');
+      const arrayBuffer = await fullResponse.arrayBuffer();
+      
+      console.log(`🎵 Step 4: Decoding title screen music audio data (${arrayBuffer.byteLength} bytes)...`);
+      const audioBuffer = await this.context.decodeAudioData(arrayBuffer);
+      
+      console.log(`🎵 Step 5: Title screen music audio decoded successfully - duration: ${audioBuffer.duration.toFixed(2)}s`);
+      
+      this.titleScreenMusic = {
+        buffer: audioBuffer,
+        source: null,
+        gain: null,
+        isLoaded: true
+      };
+      
+      console.log('✅ Title screen music loaded successfully!');
+      console.log('✅ Duration:', audioBuffer.duration.toFixed(2), 'seconds');
+      console.log('✅ Sample rate:', audioBuffer.sampleRate, 'Hz');
+      console.log('✅ Channels:', audioBuffer.numberOfChannels);
+    } else {
+      console.error(`❌ Title screen music not available (HTTP ${response.status})`);
+      console.error(`❌ Response headers:`, response.headers);
+      this.titleScreenMusic = null;
+    }
+  }
+  
+  // Play title screen music
+  playTitleScreenMusic() {
+    console.log('🎵 playTitleScreenMusic called - boot sequence complete');
+    console.log('🎵 Audio system status check:');
+    console.log('  - initialized:', this.initialized);
+    console.log('  - context exists:', !!this.context);
+    console.log('  - context state:', this.context?.state || 'no context');
+    console.log('  - titleScreenMusic exists:', !!this.titleScreenMusic);
+    console.log('  - titleScreenMusic.isLoaded:', this.titleScreenMusic?.isLoaded);
+    
+    // CRITICAL FIX: Be more permissive with checks - the boot loader timing can be tight
+    // Allow playback even if some checks are borderline, as long as we have the essentials
+    
+    // Check if context exists and is usable
+    if (!this.context) {
+      console.log('🎵 Audio context not available - cannot play title music');
+      return;
+    }
+    
+    // Resume context if needed
+    if (this.context.state === 'suspended') {
+      console.log('🎵 Resuming audio context for title music...');
+      this.context.resume().then(() => {
+        console.log('🎵 Audio context resumed, retrying title music play...');
+        setTimeout(() => this.playTitleScreenMusic(), 100);
+      }).catch(error => {
+        console.error('🎵 Failed to resume audio context:', error?.message || error);
+      });
+      return;
+    }
+    
+    // Check if title music is loaded - be more permissive here
+    if (!this.titleScreenMusic || !this.titleScreenMusic.isLoaded) {
+      console.log('🎵 Title screen music not loaded - will retry in 2000ms');
+      console.log('🎵 titleScreenMusic object:', this.titleScreenMusic);
+      // CRITICAL FIX: Auto-retry with longer delay instead of giving up
+      setTimeout(() => this.playTitleScreenMusic(), 2000);
+      return;
+    }
+    
+    console.log('🎵 All checks passed - starting title screen music after boot sequence complete');
+    
+    try {
+      // Stop any existing music first
+      this.stopTitleScreenMusic();
+      
+      // Create gain and source
+      this.titleScreenMusic.gain = this.context.createGain();
+      this.titleScreenMusic.gain.gain.value = 0.8;
+      
+      this.titleScreenMusic.source = this.context.createBufferSource();
+      this.titleScreenMusic.source.buffer = this.titleScreenMusic.buffer;
+      this.titleScreenMusic.source.loop = true;
+      
+      // Connect and play
+      this.titleScreenMusic.source.connect(this.titleScreenMusic.gain);
+      this.titleScreenMusic.gain.connect(this.masterGain);
+      this.titleScreenMusic.source.start(0);
+      
+      console.log('🎵 Title screen music started successfully after boot!');
+      console.log('🎵 Music source:', !!this.titleScreenMusic.source);
+      console.log('🎵 Music gain:', !!this.titleScreenMusic.gain);
+      console.log('🎵 Music gain value:', this.titleScreenMusic.gain.gain.value);
+    } catch (error) {
+      console.error('🎵 Error playing title screen music:', error?.message || error);
+      console.error('🎵 Error stack:', error?.stack || 'No stack available');
+      // CRITICAL FIX: Retry on error with longer delay instead of giving up
+      setTimeout(() => this.playTitleScreenMusic(), 2000);
+    }
+  }
+  
+  // Helper method for fetching cutscene music
+  async fetchCutsceneMusic(cutsceneUrl) {
+    // First try HEAD request to check availability
+    console.log('🎬 Step 1: Checking URL availability with HEAD request...');
+    const response = await fetch(cutsceneUrl, { method: 'HEAD' });
+    
+    if (response.ok) {
+      console.log('🎬 Step 2: URL available, fetching full audio data...');
+      const fullResponse = await fetch(cutsceneUrl);
+      
+      if (!fullResponse.ok) {
+        throw new Error(`Full fetch failed with status: ${fullResponse.status}`);
+      }
+      
+      console.log('🎬 Step 3: Converting to array buffer...');
+      const arrayBuffer = await fullResponse.arrayBuffer();
+      
+      console.log(`🎬 Step 4: Decoding audio data (${arrayBuffer.byteLength} bytes)...`);
+      const audioBuffer = await this.context.decodeAudioData(arrayBuffer);
+      
+      console.log(`🎬 Step 5: Audio decoded successfully - duration: ${audioBuffer.duration.toFixed(2)}s`);
+      
+      this.cutsceneMusic = {
+        buffer: audioBuffer,
+        isLoaded: true
+      };
+      
+      console.log('✅ Cutscene music loaded successfully!');
+      console.log('✅ Duration:', audioBuffer.duration.toFixed(2), 'seconds');
+      console.log('✅ Sample rate:', audioBuffer.sampleRate, 'Hz');
+      console.log('✅ Channels:', audioBuffer.numberOfChannels);
+    } else {
+      console.error(`❌ Cutscene music not available (HTTP ${response.status})`);
+      console.error(`❌ Response headers:`, response.headers);
+      this.cutsceneMusic = null;
+    }
+  }
+  
+  // Stop title screen music
+  stopTitleScreenMusic() {
+    if (this.titleScreenMusic && this.titleScreenMusic.source) {
+      try {
+        this.titleScreenMusic.source.stop();
+        this.titleScreenMusic.source = null;
+        this.titleScreenMusic.gain = null;
+      } catch (error) {
+        console.log('Error stopping title screen music:', error);
+      }
+    }
+    
+    console.log('🎵 Title screen music stopped');
+  }
+  
   // Load cutscene music
   async loadCutsceneMusic() {
     const cutsceneUrl = 'https://api.makko.ai/storage/v1/object/public/audio-assets/e56876ca-50d1-4b32-bcb9-1e37b7d1f822/ad312365-af12-4019-a3f5-6ef3841ba959.mp3';
@@ -1355,45 +1556,24 @@ window.AudioSystem = class AudioSystem {
     console.log('🎬 Loading cutscene music...');
     console.log(`🎬 Attempting to load from: ${cutsceneUrl}`);
     
+    // Create timeout with proper Promise.race pattern
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Cutscene audio loading timeout')), 10000);
+    });
+    
     try {
-      // First try HEAD request to check availability
-      console.log('🎬 Step 1: Checking URL availability with HEAD request...');
-      const response = await fetch(cutsceneUrl, { method: 'HEAD' });
-      
-      if (response.ok) {
-        console.log('🎬 Step 2: URL available, fetching full audio data...');
-        const fullResponse = await fetch(cutsceneUrl);
-        
-        if (!fullResponse.ok) {
-          throw new Error(`Full fetch failed with status: ${fullResponse.status}`);
-        }
-        
-        console.log('🎬 Step 3: Converting to array buffer...');
-        const arrayBuffer = await fullResponse.arrayBuffer();
-        
-        console.log(`🎬 Step 4: Decoding audio data (${arrayBuffer.byteLength} bytes)...`);
-        const audioBuffer = await this.context.decodeAudioData(arrayBuffer);
-        
-        console.log(`🎬 Step 5: Audio decoded successfully - duration: ${audioBuffer.duration.toFixed(2)}s`);
-        
-        this.cutsceneMusic = {
-          buffer: audioBuffer,
-          isLoaded: true
-        };
-        
-        console.log('✅ Cutscene music loaded successfully!');
-        console.log('✅ Duration:', audioBuffer.duration.toFixed(2), 'seconds');
-        console.log('✅ Sample rate:', audioBuffer.sampleRate, 'Hz');
-        console.log('✅ Channels:', audioBuffer.numberOfChannels);
+      // Race between fetch and timeout
+      await Promise.race([this.fetchCutsceneMusic(cutsceneUrl), timeoutPromise]);
+    } catch (error) {
+      // Handle timeout gracefully
+      if (error?.message && error.message.includes('timeout')) {
+        console.log('⚠️ Cutscene music loading timeout - will proceed without it');
+        this.cutsceneMusic = null;
       } else {
-        console.error(`❌ Cutscene music not available (HTTP ${response.status})`);
-        console.error(`❌ Response headers:`, response.headers);
+        console.error('❌ Error loading cutscene music:', error?.message || error?.toString() || 'Unknown error');
+        console.error('❌ Error details:', error);
         this.cutsceneMusic = null;
       }
-    } catch (error) {
-      console.error('❌ Error loading cutscene music:', error?.message || error?.toString() || 'Unknown error');
-      console.error('❌ Error details:', error);
-      this.cutsceneMusic = null;
     }
   }
   
@@ -1408,37 +1588,23 @@ window.AudioSystem = class AudioSystem {
     for (const [name, url] of Object.entries(trackUrls)) {
       let trackLoaded = false;
       
+      // Create timeout for each track
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error(`Music track ${name} loading timeout`)), 8000);
+      });
+      
       try {
-        // Try to load the remote track with proper error handling
-        const response = await fetch(url, { method: 'HEAD' });
-        
-        if (response.ok) {
-          // If HEAD request succeeds, do a full GET for actual data
-          const fullResponse = await fetch(url);
-          const arrayBuffer = await fullResponse.arrayBuffer();
-          
-          const audioBuffer = await this.context.decodeAudioData(arrayBuffer);
-          
-          this.musicTracks[name] = {
-            buffer: audioBuffer,
-            source: null,
-            startTime: 0,
-            pauseTime: 0,
-            isPlaying: false,
-            volume: 1.0,
-            gain: null,
-            isFallback: false
-          };
-          
-          console.log(`✓ Loaded music track: ${name}`);
-          trackLoaded = true;
-        } else {
-          // HEAD request failed - create fallback immediately
-          console.log(`Remote track ${name} not available (HTTP ${response.status}), creating fallback`);
-        }
+        // Race between fetch and timeout
+        await Promise.race([this.fetchMusicTrack(name, url), timeoutPromise]);
+        trackLoaded = true;
       } catch (error) {
-        // Network or fetch error - create fallback immediately
-        console.log(`Network error loading track ${name}, creating fallback:`, error?.message || 'Network error');
+        // Handle timeout gracefully
+        if (error?.message && error.message.includes('timeout')) {
+          console.log(`⚠️ Music track ${name} loading timeout - creating fallback`);
+        } else {
+          // Network or fetch error - create fallback immediately
+          console.log(`Network error loading track ${name}, creating fallback:`, error?.message || 'Network error');
+        }
       }
       
       // If remote loading failed, always create fallback
@@ -1455,6 +1621,36 @@ window.AudioSystem = class AudioSystem {
           console.error(`Critical error creating fallback for ${name}:`, fallbackError?.message || fallbackError?.toString() || 'Unknown error');
         }
       }
+    }
+  }
+  
+  // Helper method for fetching individual music tracks
+  async fetchMusicTrack(name, url) {
+    // Try to load the remote track with proper error handling
+    const response = await fetch(url, { method: 'HEAD' });
+    
+    if (response.ok) {
+      // If HEAD request succeeds, do a full GET for actual data
+      const fullResponse = await fetch(url);
+      const arrayBuffer = await fullResponse.arrayBuffer();
+      
+      const audioBuffer = await this.context.decodeAudioData(arrayBuffer);
+      
+      this.musicTracks[name] = {
+        buffer: audioBuffer,
+        source: null,
+        startTime: 0,
+        pauseTime: 0,
+        isPlaying: false,
+        volume: 1.0,
+        gain: null,
+        isFallback: false
+      };
+      
+      console.log(`✓ Loaded music track: ${name}`);
+    } else {
+      // HEAD request failed - throw error to trigger fallback
+      throw new Error(`Remote track ${name} not available (HTTP ${response.status})`);
     }
   }
   

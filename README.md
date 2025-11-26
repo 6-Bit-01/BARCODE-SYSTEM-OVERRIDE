@@ -12,8 +12,18 @@ Modular game engine with separate systems for player control, enemy AI, rhythm c
 - `src/utils/math.js` - Vector2D math utilities and collision detection
 - `src/core/input.js` - Keyboard input handling and fullscreen support
 - `src/core/loop.js` - 60fps game loop with delta-time physics
-- `src/engine/audio.js` - Web Audio API with synthetic beats and rhythm synchronization
+- `src/core/fullscreen.js` - Fullscreen management with preference tracking
+- `src/core/boot.js` - Boot system for coordinated initialization (under 500 lines)
+
+### Engine Systems
 - `src/engine/renderer.js` - Canvas rendering with post-processing effects
+- `src/engine/audio.js` - Web Audio API with synthetic beats and rhythm synchronization
+- `src/engine/particles.js` - Particle effects system
+- `src/engine/parallax.js` - Dual-layer parallax background system
+- `src/engine/spaceships.js` - Space ship management system
+- `src/engine/lore.js` - Lore system for story fragments
+- `src/engine/jammer-indicator.js` - Visual jammer tracking system
+- `src/engine/cutscene.js` - Intro cutscene management
 
 ### Game Systems
 - `src/game/player.js` - 6 Bit character controller with movement and abilities
@@ -21,7 +31,21 @@ Modular game engine with separate systems for player control, enemy AI, rhythm c
 - `src/game/hacking.js` - Terminal hacking puzzle sequences
 - `src/game/rhythm.js` - Rhythm-based combat system and beat detection
 - `src/game/tutorial.js` - Story tutorial and objective tracking system
-- `src/game/main.js` - Game state management and level progression
+- `src/game/broadcast-jammer.js` - Centralized jammer system
+- `src/game/post-tutorial-objectives.js` - Post-tutorial objective management
+- `src/game/lost-data.js` - Collectible lore fragment system
+- `src/game/sector1-progression.js` - Sector 1 progression and boss spawning
+- `src/game/objectives.js` - Mission objectives tracking
+
+### Game Modules (Modular Structure - COMPLETED REFACTORING)
+- `src/game/game-state.js` - Centralized game state management and game conditions
+- `src/game/update-coordinator.js` - Update logic coordination with system separation
+- `src/game/render-coordinator.js` - Render coordination and drawing management
+- `src/game/ui-manager.js` - UI drawing and interface management
+- `src/game/game-initializer.js` - Audio, sprite, and system initialization
+- `src/game/dependency-validator.js` - Dependency validation and error checking
+- `src/game/main-new.js` - Clean modular main game controller
+- `src/game/main-legacy-removed.js` - Legacy file documentation (removed from load)
 
 ### Assets
 - `style.css` - Enhanced visual effects and responsive design
@@ -30,7 +54,7 @@ Modular game engine with separate systems for player control, enemy AI, rhythm c
 - ✅ Sector 1 Progression System - Complete free-roam map with logical progression triggers (Broadcast Jammer destruction + 7 enemy kills)
 - ✅ Dynamic Boss Spawning - CITY SCRAMBLER emerges from glitch distortion after progression conditions met
 - ✅ Boss Fight Integration - Rhythm attacks damage boss with combo-based damage system
-- ✅ Broadcast Jammer - Rhythm-activated objective requiring 8 successful beats
+- ✅ Broadcast Jammer - Spawns when "Defeat 20 enemies" objective is completed, requires 8 successful rhythm beats to destroy (fixed persistence through game over)
 - ✅ Enhanced Cutscene Music Fade Out - Extended fade out from 4 seconds to 8 seconds with exponential decay for much more gradual and cinematic transition between cutscene and gameplay music
 - ✅ Smooth Cutscene Audio Transitions - Cutscene music now slowly fades from its current volume using exponential decay instead of abrupt linear cuts, creating natural audio attenuation that follows real-world sound behavior
 - ✅ Random Rhythm Success Sound Cycle - Added 2 new rhythm success sounds that randomly cycle during successful rhythm mode hits for audio variety
@@ -190,6 +214,10 @@ Modular game engine with separate systems for player control, enemy AI, rhythm c
 - ✅ Flow-Based Difficulty Scaling - Spawn rates and enemy aggression scale dynamically based on player performance and wave progression
 - ✅ Fixed Lore Fragment System - Fragments spawn with maximum entropy chaos system featuring multiple entropy sources (time, performance, random), multi-frequency oscillations, range shuffling, and pixel-level chaos to ensure truly unpredictable spawning
 - ✅ ENHANCED 1-Minute Lore Delay System - Lore fragments now have a 60-second processing delay between collection and display, with purple-tinted pending message showing "LORE FRAGMENT COLLECTED - Processing..." to indicate the delay, creating anticipation and preventing immediate story reveals
+✅ COMPLETED Modular Structure Refactoring - Full refactoring completed with focused modules under 500 lines each, proper dependency declarations, and clean separation of concerns. Legacy main.js removed and replaced with main-new.js using coordinator pattern.
+- ✅ General Virus Drop Spawning - All virus enemies now drop from above-left of player with height variation, gentle drift rightward, and entrance animations for consistent behavior across all gameplay modes
+- ✅ Enhanced Player Damage Knockback - Player now bounces in the opposite direction of enemy attacks with directional physics, enhanced particle effects, and proper facing direction updates
+- ✅ 12 Enemy Maximum Cap - Enforced enemy limit across all gameplay modes for performance optimization and balanced gameplay
 
 ### Key Patterns
 - CRT Effect Stack - Scanlines, glitch overlays, and neon glow effects
@@ -202,3 +230,6 @@ Modular game engine with separate systems for player control, enemy AI, rhythm c
 - Global Enemy Pursuit System - All enemies actively pursue the player regardless of distance for constant engagement
 - Firewall Spawn Optimization - Firewall enemies spawn at x=2100 (right of screen) then walk on-screen with enhanced pursuit AI
 - Fixed Firewall Animation System - Resolved idle animation not playing and post-attack animation glitches with simplified state transitions
+- Enhanced Audio Boot Flow - Audio system loads during boot screen initialization with proper status communication between boot system and boot loader
+- Optimized Boot Performance - Faster boot sequence with reduced typing delays and immediate title screen music start
+- ✅ Enhanced Title Screen Music System - Improved boot loader with retry logic (up to 5 attempts) and comprehensive audio system status checking to ensure title screen music plays reliably after boot sequence completes

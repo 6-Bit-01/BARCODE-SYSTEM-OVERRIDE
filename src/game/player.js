@@ -643,6 +643,111 @@ window.Player = class Player {
       }
     }, 2000); // 2 seconds of invulnerability for visual effects
   }
+  
+  takeDamageWithKnockback(amount, knockbackX, knockbackY, enemyPosition = null) {
+    // Check if player is currently invulnerable from recent damage
+    const currentTime = Date.now();
+    if (this.invulnerableUntil && currentTime < this.invulnerableUntil) {
+      return; // No damage while invulnerable
+    }
+    
+    // Check if player is invulnerable from fast-fall
+    if (this.fastFallInvincibleUntil && currentTime < this.fastFallInvincibleUntil) {
+      return; // No damage while fast-falling
+    }
+    
+    this.health = Math.max(0, this.health - amount);
+    
+    // Apply directional knockback
+    this.velocity.x = knockbackX;
+    this.velocity.y = knockbackY;
+    
+    // CRITICAL FIX: Face the enemy that damaged you, not the knockback direction
+    if (enemyPosition) {
+      // Face toward the enemy that hit you
+      const dx = enemyPosition.x - this.position.x;
+      this.facing = dx > 0 ? 1 : -1;
+      console.log(`👊 Player hit by enemy at (${enemyPosition.x.toFixed(0)}, ${enemyPosition.y.toFixed(0)}) - facing enemy (${this.facing === 1 ? 'right' : 'left'})`);
+    } else {
+      // Fallback: use knockback direction if no enemy position
+      if (knockbackX > 0) {
+        this.facing = 1; // Knocked right, face right
+      } else if (knockbackX < 0) {
+        this.facing = -1; // Knocked left, face left
+      }
+    }
+    
+    // CRITICAL: Play player damage sound
+    if (window.audioSystem && typeof window.audioSystem.playPlayerDamageSound === 'function') {
+      window.audioSystem.playPlayerDamageSound();
+      console.log('💥 Playing player damage sound with knockback');
+    }
+    
+    // CRITICAL: Create enhanced damage particles for knockback
+    if (window.particleSystem && typeof window.particleSystem.damageEffect === 'function') {
+      // Create damage particles at impact point
+      window.particleSystem.damageEffect(this.position.x, this.position.y - 50, null, 15);
+      
+      // Create directional knockback particles
+      const particleCount = 8;
+      for (let i = 0; i < particleCount; i++) {
+        const angle = (Math.PI * 2 * i) / particleCount;
+        const speed = 100 + Math.random() * 100;
+        const particleX = this.position.x + Math.cos(angle) * 20;
+        const particleY = this.position.y - 50 + Math.sin(angle) * 20;
+        
+        if (window.particleSystem.particles) {
+          window.particleSystem.particles.push(new window.Particle(
+            particleX,
+            particleY,
+            Math.cos(angle) * speed,
+            Math.sin(angle) * speed - 50, // Upward bias
+            '#ff6600', // Orange color for knockback
+            3 + Math.random() * 3,
+            500 + Math.random() * 300,
+            'circle'
+          ));
+        }
+      }
+      console.log('💥 Creating enhanced knockback particles');
+    }
+    
+    // CRITICAL: Deactivate rhythm mode when hit
+    if (window.rhythmSystem && window.rhythmSystem.isActive()) {
+      console.log('💥 Player hit - deactivating rhythm mode');
+      window.rhythmSystem.hide();
+      window.rhythmSystem.stop();
+    }
+    
+    // CRITICAL: Deactivate hack mode when hit
+    if (window.hackingSystem && window.hackingSystem.isActive()) {
+      console.log('💥 Player hit - deactivating hack mode');
+      window.hackingSystem.cancel();
+    }
+    
+    // Disable controls briefly during knockback
+    this.controlsDisabled = true;
+    this.controlsDisabledUntil = currentTime + 400;
+    
+    setTimeout(() => {
+      if (this) {
+        this.controlsDisabled = false;
+      }
+    }, 400);
+    
+    // Set invulnerability for 2 seconds after taking damage
+    this.invulnerableUntil = currentTime + 2000;
+    
+    // Also set the old invulnerable flag for visual effects
+    this.invulnerable = true;
+    setTimeout(() => {
+      if (this) {
+        this.invulnerable = false;
+      }
+    }, 2000); // 2 seconds of invulnerability for visual effects
+    
+    console.log(`💥 Player took ${amount} damage with knockback: (${knockbackX.toFixed(0)}, ${knockbackY.toFixed(0)})`);
+  }
 
   // Create wind effect particles for fast-fall
   createWindEffect() {

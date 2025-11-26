@@ -1,10 +1,14 @@
-// Main game controller for BARCODE: System Override
+// Main game controller for BARCODE: System Override (Legacy - DEPRECATED)
+// This file has been refactored into smaller modules
+// Use main-new.js for the new modular structure
 window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({
   name: 'src/game/main.js',
   exports: ['update', 'render', 'startGame', 'gameState'],
   dependencies: ['Player', 'player', 'EnemyManager', 'enemyManager', 'HackingSystem', 'hackingSystem', 'RhythmSystem', 'rhythmSystem', 'renderer']
 });
+
+// NOTE: This file is deprecated. Please use the modular structure in main-new.js
 
 // Game state management
 window.gameState = {
@@ -284,8 +288,9 @@ window.initSprites = async function() {
   return Promise.resolve();
 };
 
-// Main update function called from game loop
+// Main update function - DEPRECATED: Use updateGame from update-coordinator.js
 window.update = function(deltaTime) {
+  console.warn('⚠️ Using deprecated main.js update function - please migrate to update-coordinator.js');
   if (!window.gameState.running || window.gameState.paused) return;
   
   // Music system updates happen automatically
@@ -402,14 +407,14 @@ window.update = function(deltaTime) {
   
   // Jammer system updates are handled by BroadcastJammerSystem
   
-  // CRITICAL: Update Broadcast Jammer System - this was missing!
-  if (window.BroadcastJammerSystem && typeof window.BroadcastJammerSystem.update === 'function') {
-    try {
-      window.BroadcastJammerSystem.update(deltaTime);
-    } catch (error) {
-      console.error('Error updating Broadcast Jammer System:', error?.message || error);
-    }
-  }
+  // DEPRECATED: Broadcast Jammer System update moved to update-coordinator.js
+  // if (window.BroadcastJammerSystem && typeof window.BroadcastJammerSystem.update === 'function') {
+  //   try {
+  //     window.BroadcastJammerSystem.update(deltaTime);
+  //   } catch (error) {
+  //     console.error('Error updating Broadcast Jammer System:', error?.message || error);
+  //   }
+  // }
   
   
   // Update jammer indicator system - BROADCAST JAMMER PRIORITY
@@ -572,8 +577,9 @@ let renderContext = null;
 let contextCreationAttempts = 0;
 const MAX_CONTEXT_ATTEMPTS = 3;
 
-// Main render function
+// Main render function - DEPRECATED: Use renderGame from render-coordinator.js
 window.render = function() {
+  console.warn('⚠️ Using deprecated main.js render function - please migrate to render-coordinator.js');
   // Check if renderer is available before use (fix initialization order issue)
   let rendererAvailable = window.renderer && typeof window.renderer === 'object' && window.renderer !== null && typeof window.renderer.clear === 'function';
   
@@ -628,7 +634,7 @@ window.render = function() {
     return;
   }
   
-  let ctx = renderContext;
+  var ctx = renderContext;
   
   // Ensure ctx is available before use
   if (!ctx) {
@@ -842,14 +848,14 @@ function drawGameElements(ctx) {
   
   // Jammer drawing is handled by BroadcastJammerSystem
   
-  // CRITICAL: Draw Broadcast Jammer System - this was missing!
-  if (window.BroadcastJammerSystem && typeof window.BroadcastJammerSystem.draw === 'function') {
-    try {
-      window.BroadcastJammerSystem.draw(ctx);
-    } catch (error) {
-      console.error('Error drawing Broadcast Jammer System:', error?.message || error);
-    }
-  }
+  // DEPRECATED: Broadcast Jammer System draw moved to render-coordinator.js
+  // if (window.BroadcastJammerSystem && typeof window.BroadcastJammerSystem.draw === 'function') {
+  //   try {
+  //     window.BroadcastJammerSystem.draw(ctx);
+  //   } catch (error) {
+  //     console.error('Error drawing Broadcast Jammer System:', error?.message || error);
+  //   }
+  // }
   
   // REMOVED: Simple jammer drawing - using BroadcastJammerSystem only
   

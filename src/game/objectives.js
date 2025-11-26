@@ -24,6 +24,9 @@ window.ObjectivesSystem = class ObjectivesSystem {
     // Mission critical objectives
     this.initializeMissionObjectives();
     
+    // Track if jammer has been spawned for completed objective
+    this.jammerSpawnedForObjective = false;
+    
     // All lore retrieved state - RESTORED for overlay notification
     this.allLoreRetrieved = false;
     this.loreRetrievedTime = 0;
@@ -37,13 +40,13 @@ window.ObjectivesSystem = class ObjectivesSystem {
     // Add mission critical objectives
     this.objectives.push({
       id: 'defeat_enemies',
-      title: 'Defeat 1 enemy',
+      title: 'Defeat 20 enemies',
       description: 'Eliminate 20 hostile entities',
       priority: 'HIGH',
       completed: false,
       visible: true,
       progress: 0,
-      required: 1
+      required: 20
     });
     
     this.objectives.push({
@@ -83,7 +86,19 @@ window.ObjectivesSystem = class ObjectivesSystem {
   
   updateEnemyObjective() {
     const enemyObjective = this.objectives.find(obj => obj.id === 'defeat_enemies');
-    if (!enemyObjective || enemyObjective.completed) return;
+    if (!enemyObjective) return;
+    
+    // Check if objective is completed and jammer hasn't been spawned yet
+    if (enemyObjective.completed && !this.jammerSpawnedForObjective) {
+      console.log('🚨 DETECTED: Objective completed but jammer not spawned - spawning now!');
+      this.spawnBroadcastJammer();
+      this.jammerSpawnedForObjective = true;
+      this.revealJammerObjective();
+      return;
+    }
+    
+    // Return if already completed and jammer spawned
+    if (enemyObjective.completed && this.jammerSpawnedForObjective) return;
     
     // Get enemy defeat count from sector progression system (excludes tutorial kills)
     let enemiesDefeated = 0;
@@ -111,6 +126,10 @@ window.ObjectivesSystem = class ObjectivesSystem {
       enemyObjective.completed = true;
       this.completedObjectives.add('defeat_enemies');
       console.log('✅ Objective completed: Defeat enemies - Jammer revealed!');
+      
+      // Spawn the broadcast jammer when objective is completed
+      this.spawnBroadcastJammer();
+      this.jammerSpawnedForObjective = true;
       
       // Reveal the jammer objective
       this.revealJammerObjective();
@@ -147,8 +166,6 @@ window.ObjectivesSystem = class ObjectivesSystem {
         console.log(`📖 Current allLoreRetrieved state: ${this.allLoreRetrieved}`);
         this._lastAllLoreCollected = allLoreCollected;
       }
-    } else {
-      console.log('⚠️ Lost Data System not available');
     }
     
     // Method 2: Check lore system fallback
@@ -222,6 +239,359 @@ window.ObjectivesSystem = class ObjectivesSystem {
         }
       }
     }
+  }
+  
+  // Spawn broadcast jammer when "Defeat 20 enemies" objective is completed
+  // ENHANCED: Single authoritative spawn method with robust error handling and state tracking
+  spawnBroadcastJammer() {
+    console.log('🚨 AUTHORIZED SPAWN: ObjectivesSystem spawning broadcast jammer - "Defeat 20 enemies" objective completed!');
+    
+    // CRITICAL: State validation - prevent duplicate spawns
+    if (this.jammerSpawnedForObjective) {
+      console.log('⚠️ SPAWN BLOCKED: Jammer already spawned for this objective completion');
+      return false;
+    }
+    
+    // CRITICAL: System validation - ensure BroadcastJammerSystem is available
+    if (!window.BroadcastJammerSystem) {
+      console.error('❌ SPAWN FAILED: BroadcastJammerSystem not available');
+      // Fallback: Try to create emergency jammer
+      return this.attemptEmergencyJammerSpawn();
+    }
+    
+    // CRITICAL: Existing jammer validation - clean up any existing instances
+    if (window.BroadcastJammerSystem.jammer) {
+      console.log('🔄 CLEANUP: Existing jammer detected - cleaning up before spawn');
+      
+      // If existing jammer is active and not destroyed, log conflict
+      if (window.BroadcastJammerSystem.jammer.active) {
+        console.warn('⚠️ CONFLICT: Active jammer already exists - this should not happen');
+      }
+      
+      // Clean up existing jammer
+      window.BroadcastJammerSystem.jammer.active = false;
+      window.BroadcastJammerSystem.jammer = null;
+      window.broadcastJammer = null;
+      console.log('🧹 Cleanup completed');
+    }
+    
+    // CRITICAL: Calculate spawn position using enhanced algorithm
+    const spawnPosition = this.calculateOptimalSpawnPosition();
+    const { spawnX, spawnY, spawnReason } = spawnPosition;
+    
+    console.log(`📍 ENHANCED SPAWN POSITION: (${spawnX.toFixed(1)}, ${spawnY.toFixed(1)}) - ${spawnReason}`);
+    
+    // CRITICAL: Attempt spawn with comprehensive error handling
+    let spawnAttempt = null;
+    let spawnSuccess = false;
+    
+    try {
+      // Primary spawn method
+      if (typeof window.BroadcastJammerSystem.forceSpawn === 'function') {
+        spawnAttempt = window.BroadcastJammerSystem.forceSpawn(spawnX, spawnY);
+        
+        // CRITICAL: Verify spawn success
+        if (spawnAttempt && typeof spawnAttempt === 'object') {
+          // Verify jammer has required properties
+          if (typeof spawnAttempt.x === 'number' && typeof spawnAttempt.y === 'number' && typeof spawnAttempt.active === 'boolean') {
+            spawnSuccess = true;
+            console.log('✅ PRIMARY SPAWN SUCCESS: Jammer created with valid properties');
+          } else {
+            console.error('❌ SPAWN VALIDATION FAILED: Jammer missing required properties');
+            spawnAttempt = null;
+          }
+        } else {
+          console.error('❌ PRIMARY SPAWN FAILED: forceSpawn returned invalid result');
+        }
+      } else {
+        console.error('❌ SPAWN METHOD NOT AVAILABLE: forceSpawn function not found');
+      }
+    } catch (error) {
+      console.error('❌ SPAWN EXCEPTION:', error.message || error);
+      spawnAttempt = null;
+    }
+    
+    // CRITICAL: Fallback spawn if primary method fails
+    if (!spawnSuccess) {
+      console.log('🔄 ATTEMPTING FALLBACK SPAWN METHOD');
+      spawnSuccess = this.attemptEmergencyJammerSpawn(spawnX, spawnY);
+    }
+    
+    // CRITICAL: Post-spawn validation and system synchronization
+    if (spawnSuccess) {
+      // Update state tracking
+      this.jammerSpawnedForObjective = true;
+      
+      // Verify jammer is properly registered
+      const finalVerification = this.verifyJammerSpawn();
+      
+      if (finalVerification) {
+        console.log('✅ AUTHORIZED SPAWN COMPLETE: Broadcast jammer successfully spawned and verified');
+        console.log('🎯 Jammer status: ACTIVE and ready for rhythm attacks');
+        
+        // Create enhanced spawn effects
+        this.createJammerSpawnEffects(spawnX, spawnY);
+        
+        // Show comprehensive spawn message
+        this.showJammerSpawnNotification();
+        
+        // CRITICAL: Notify all relevant systems
+        this.notifySystemsOfJammerSpawn(spawnX, spawnY);
+        
+        return true;
+      } else {
+        console.error('❌ SPAWN VERIFICATION FAILED: Jammer spawned but verification failed');
+        return false;
+      }
+    } else {
+      console.error('❌ COMPLETE SPAWN FAILURE: All spawn methods failed');
+      return false;
+    }
+  }
+  
+  // Calculate optimal spawn position using enhanced algorithm
+  calculateOptimalSpawnPosition() {
+    // Get player position with fallbacks
+    let playerX = 960; // Default center
+    let playerY = 880; // Default ground level
+    
+    if (window.player && typeof window.player.position === 'object') {
+      playerX = window.player.position.x || playerX;
+      playerY = window.player.position.y || playerY;
+    } else if (typeof window.player === 'object' && window.player.x !== undefined) {
+      playerX = window.player.x;
+      playerY = window.player.y;
+    }
+    
+    // Enhanced spawn logic with multiple strategies
+    const mapWidth = 4096;
+    const mapCenter = mapWidth / 2;
+    const safeMargin = 500; // Keep away from edges
+    const minDistance = 800; // Minimum distance from player
+    
+    let spawnX, spawnY, spawnReason;
+    
+    // Strategy 1: Opposite side of player
+    if (playerX < mapCenter) {
+      spawnX = mapCenter + (mapCenter - safeMargin) * (0.7 + Math.random() * 0.3);
+      spawnReason = 'Opposite side (right) of player';
+    } else {
+      spawnX = safeMargin + (mapCenter - safeMargin) * (0.3 + Math.random() * 0.4);
+      spawnReason = 'Opposite side (left) of player';
+    }
+    
+    // Strategy 2: Ensure minimum distance from player
+    const distanceFromPlayer = Math.abs(spawnX - playerX);
+    if (distanceFromPlayer < minDistance) {
+      // Adjust to maintain minimum distance
+      if (spawnX > playerX) {
+        spawnX = playerX + minDistance + Math.random() * 200;
+      } else {
+        spawnX = Math.max(safeMargin, playerX - minDistance - Math.random() * 200);
+      }
+      spawnReason += ' (adjusted for minimum distance)';
+    }
+    
+    // Strategy 3: Add Y variation for unpredictability
+    spawnY = 880 + (Math.random() - 0.5) * 120; // More Y variation
+    
+    // Final bounds checking
+    spawnX = Math.max(safeMargin, Math.min(mapWidth - safeMargin, spawnX));
+    spawnY = Math.max(800, Math.min(950, spawnY));
+    
+    return { spawnX, spawnY, spawnReason };
+  }
+  
+  // Emergency jammer spawn fallback method
+  attemptEmergencyJammerSpawn(forcedX = null, forcedY = null) {
+    console.log('🚨 EMERGENCY SPAWN: Attempting fallback jammer creation');
+    
+    try {
+      // Calculate emergency spawn position
+      const emergencyX = forcedX || (500 + Math.random() * 3000);
+      const emergencyY = forcedY || (880 + (Math.random() - 0.5) * 100);
+      
+      // Create jammer directly as last resort
+      if (typeof window.BroadcastJammer === 'function') {
+        const emergencyJammer = new window.BroadcastJammer(emergencyX, emergencyY);
+        
+        // Register jammer manually
+        window.BroadcastJammerSystem.jammer = emergencyJammer;
+        window.broadcastJammer = emergencyJammer;
+        
+        console.log('✅ EMERGENCY SPAWN SUCCESS: Jammer created via direct constructor');
+        return true;
+      } else {
+        console.error('❌ EMERGENCY SPAWN FAILED: BroadcastJammer constructor not available');
+        return false;
+      }
+    } catch (error) {
+      console.error('❌ EMERGENCY SPAWN EXCEPTION:', error.message || error);
+      return false;
+    }
+  }
+  
+  // Verify jammer spawn was successful
+  verifyJammerSpawn() {
+    console.log('🔍 VERIFYING JAMMER SPAWN...');
+    
+    // Check BroadcastJammerSystem
+    let systemJammer = null;
+    if (window.BroadcastJammerSystem && window.BroadcastJammerSystem.jammer) {
+      systemJammer = window.BroadcastJammerSystem.jammer;
+    }
+    
+    // Check global alias
+    let globalJammer = null;
+    if (window.broadcastJammer) {
+      globalJammer = window.broadcastJammer;
+    }
+    
+    // Verify consistency
+    if (!systemJammer && !globalJammer) {
+      console.error('❌ VERIFICATION FAILED: No jammer found in any system');
+      return false;
+    }
+    
+    if (systemJammer !== globalJammer) {
+      console.warn('⚠️ VERIFICATION WARNING: System and global jammer references differ - fixing');
+      // Fix inconsistency
+      if (systemJammer) {
+        window.broadcastJammer = systemJammer;
+      } else if (globalJammer) {
+        window.BroadcastJammerSystem.jammer = globalJammer;
+      }
+    }
+    
+    // Use system jammer as authoritative
+    const authoritativeJammer = systemJammer || globalJammer;
+    
+    // Verify jammer properties
+    const requiredProperties = ['x', 'y', 'active', 'rhythmHitsRequired'];
+    const missingProperties = requiredProperties.filter(prop => !(prop in authoritativeJammer));
+    
+    if (missingProperties.length > 0) {
+      console.error(`❌ VERIFICATION FAILED: Jammer missing properties: ${missingProperties.join(', ')}`);
+      return false;
+    }
+    
+    // Verify jammer is active
+    if (!authoritativeJammer.active) {
+      console.warn('⚠️ VERIFICATION WARNING: Jammer is not active after spawn');
+      // Try to activate jammer
+      authoritativeJammer.active = true;
+    }
+    
+    console.log('✅ VERIFICATION SUCCESS: Jammer properly spawned and registered');
+    console.log(`📍 Final position: (${authoritativeJammer.x.toFixed(1)}, ${authoritativeJammer.y.toFixed(1)})`);
+    console.log(`🎯 Active status: ${authoritativeJammer.active}`);
+    console.log(`🎵 Rhythm hits required: ${authoritativeJammer.rhythmHitsRequired}`);
+    
+    return true;
+  }
+  
+  // Create enhanced spawn effects
+  createJammerSpawnEffects(x, y) {
+    console.log('✨ Creating jammer spawn effects...');
+    
+    // Create main spawn explosion
+    if (window.particleSystem && typeof window.particleSystem.explosion === 'function') {
+      window.particleSystem.explosion(x, y, '#ff9900', 30);
+      
+      // Create secondary ring effect
+      setTimeout(() => {
+        if (window.particleSystem && typeof window.particleSystem.explosion === 'function') {
+          window.particleSystem.explosion(x, y - 50, '#ffff00', 20);
+        }
+      }, 200);
+    }
+    
+    // Play spawn sound
+    if (window.audioSystem) {
+      try {
+        if (typeof window.audioSystem.playSound === 'function') {
+          window.audioSystem.playSound('synthHit', 0.6);
+        }
+      } catch (error) {
+        console.warn('⚠️ Could not play spawn sound:', error.message);
+      }
+    }
+    
+    // Screen shake effect if available
+    if (window.renderer && typeof window.renderer.setScreenShake === 'function') {
+      try {
+        window.renderer.setScreenShake(5, 500);
+      } catch (error) {
+        console.warn('⚠️ Could not apply screen shake:', error.message);
+      }
+    }
+  }
+  
+  // Show comprehensive jammer spawn notification
+  showJammerSpawnNotification() {
+    console.log('📢 Displaying jammer spawn notification...');
+    
+    const messages = [
+      'BROADCAST JAMMER SPAWNED!',
+      'Use rhythm attacks (R key) to destroy it.',
+      'The jammer can only be destroyed with rhythm attacks!'
+    ];
+    
+    // Display messages through multiple channels
+    if (window.loreSystem && typeof window.loreSystem.displayLoreMessage === 'function') {
+      messages.forEach((message, index) => {
+        setTimeout(() => {
+          try {
+            window.loreSystem.displayLoreMessage(message);
+          } catch (error) {
+            console.warn('⚠️ Could not display lore message:', error.message);
+          }
+        }, index * 2000);
+      });
+    }
+    
+    // Console notification for debugging
+    console.log('🎯 JAMMER SPAWN NOTIFICATION:');
+    messages.forEach((message, index) => {
+      console.log(`  ${index + 1}. ${message}`);
+    });
+  }
+  
+  // Notify all relevant systems of jammer spawn
+  notifySystemsOfJammerSpawn(x, y) {
+    console.log('📡 Notifying systems of jammer spawn...');
+    
+    // Notify sector progression system
+    if (window.sector1Progression && typeof window.sector1Progression.onJammerSpawned === 'function') {
+      try {
+        window.sector1Progression.onJammerSpawned(x, y);
+        console.log('✅ Notified sector progression system');
+      } catch (error) {
+        console.warn('⚠️ Could not notify sector progression system:', error.message);
+      }
+    }
+    
+    // Notify jammer indicator system
+    if (window.jammerIndicatorSystem && typeof window.jammerIndicatorSystem.onJammerSpawned === 'function') {
+      try {
+        window.jammerIndicatorSystem.onJammerSpawned(x, y);
+        console.log('✅ Notified jammer indicator system');
+      } catch (error) {
+        console.warn('⚠️ Could not notify jammer indicator system:', error.message);
+      }
+    }
+    
+    // Update jammer arrow system if available
+    if (window.jammerArrowSystem && typeof window.jammerArrowSystem.updateJammerPosition === 'function') {
+      try {
+        window.jammerArrowSystem.updateJammerPosition(x, y);
+        console.log('✅ Updated jammer arrow system');
+      } catch (error) {
+        console.warn('⚠️ Could not update jammer arrow system:', error.message);
+      }
+    }
+    
+    console.log('✅ System notifications completed');
   }
   
   onObjectiveCompleted(objective) {
@@ -460,56 +830,215 @@ window.ObjectivesSystem = class ObjectivesSystem {
     return lines;
   }
   
-  reset() {
-    this.completedObjectives.clear();
-    // Reset lore retrieved state
-    this.allLoreRetrieved = false;
-    this.loreRetrievedTime = 0;
-    this.loreOverlayLocked = false; // Reset overlay lock status
+  // Synchronization method to ensure both systems stay in sync
+  synchronizeWithSectorProgression() {
+    if (!window.sector1Progression) {
+      return false;
+    }
     
-    // CRITICAL: Check enemy count before resetting - persistence logic
+    const sectorEnemies = window.sector1Progression.enemiesDefeated;
+    const sectorJammerDestroyed = window.sector1Progression.broadcastJammerDestroyed;
+    const objectivesJammerFlag = this.jammerSpawnedForObjective;
+    
+    console.log('🔄 SYNCHRONIZATION CHECK:');
+    console.log(`  Sector progression: enemies=${sectorEnemies}, jammerDestroyed=${sectorJammerDestroyed}`);
+    console.log(`  Objectives system: jammerSpawnedForObjective=${objectivesJammerFlag}`);
+    
+    // Fix synchronization issues
+    let fixed = false;
+    
+    // If jammer is destroyed in sector but objectives doesn't know
+    if (sectorJammerDestroyed && !objectivesJammerFlag) {
+      console.log('🔧 SYNC FIX: Jammer was destroyed but objectives flag not set - fixing...');
+      this.jammerSpawnedForObjective = true;
+      fixed = true;
+    }
+    
+    // Update defeat enemies objective to match sector progression
+    const defeatObjective = this.objectives.find(obj => obj.id === 'defeat_enemies');
+    if (defeatObjective && defeatObjective.progress !== sectorEnemies) {
+      console.log(`🔧 SYNC FIX: Updating enemy objective progress from ${defeatObjective.progress} to ${sectorEnemies}`);
+      defeatObjective.progress = sectorEnemies;
+      defeatObjective.completed = sectorEnemies >= defeatObjective.required;
+      if (defeatObjective.completed) {
+        this.completedObjectives.add('defeat_enemies');
+      }
+      fixed = true;
+    }
+    
+    // Update jammer objective to match sector progression
+    const jammerObjective = this.objectives.find(obj => obj.id === 'destroy_jammer');
+    if (jammerObjective) {
+      const shouldBeCompleted = sectorJammerDestroyed;
+      const shouldBeVisible = sectorEnemies >= 20 || sectorJammerDestroyed;
+      
+      if (jammerObjective.completed !== shouldBeCompleted) {
+        console.log(`🔧 SYNC FIX: Updating jammer objective completed from ${jammerObjective.completed} to ${shouldBeCompleted}`);
+        jammerObjective.completed = shouldBeCompleted;
+        if (shouldBeCompleted) {
+          this.completedObjectives.add('destroy_jammer');
+        }
+        fixed = true;
+      }
+      
+      if (jammerObjective.visible !== shouldBeVisible) {
+        console.log(`🔧 SYNC FIX: Updating jammer objective visible from ${jammerObjective.visible} to ${shouldBeVisible}`);
+        jammerObjective.visible = shouldBeVisible;
+        fixed = true;
+      }
+    }
+    
+    if (fixed) {
+      console.log('✅ Synchronization fixed - systems are now in sync');
+    } else {
+      console.log('✅ Systems already synchronized');
+    }
+    
+    return fixed;
+  }
+  
+  reset() {
+    console.log('🔄 ObjectivesSystem reset called - performing enhanced state management...');
+    
+    // CRITICAL: Capture current state before reset for persistence logic
     const currentEnemyCount = window.sector1Progression ? window.sector1Progression.enemiesDefeated : 0;
     const requiredEnemies = 20;
+    const shouldPreserveProgress = currentEnemyCount >= requiredEnemies;
+    const jammerAlreadySpawned = this.jammerSpawnedForObjective;
+    const jammerExists = window.BroadcastJammerSystem && window.BroadcastJammerSystem.jammer;
+    const jammerActive = jammerExists && window.BroadcastJammerSystem.jammer.active;
+    const jammerDestroyed = window.sector1Progression ? window.sector1Progression.broadcastJammerDestroyed : false;
     
-    if (currentEnemyCount >= requiredEnemies) {
-      // PERSISTENCE: Don't reset enemy counter if 20+ enemies were defeated
-      console.log(`🔄 PERSISTENCE: Enemy count ${currentEnemyCount}/${requiredEnemies} meets requirement - keeping progress`);
+    console.log(`🔄 RESET STATE CAPTURE:`);
+    console.log(`  Enemy count: ${currentEnemyCount}/${requiredEnemies}`);
+    console.log(`  Should preserve progress: ${shouldPreserveProgress}`);
+    console.log(`  Jammer already spawned: ${jammerAlreadySpawned}`);
+    console.log(`  Jammer exists: ${jammerExists}`);
+    console.log(`  Jammer active: ${jammerActive}`);
+    console.log(`  Jammer destroyed: ${jammerDestroyed}`);
+    
+    // Reset core objectives state
+    this.completedObjectives.clear();
+    this.allLoreRetrieved = false;
+    this.loreRetrievedTime = 0;
+    this.loreOverlayLocked = false;
+    
+    // CRITICAL: Enhanced jammer spawn state management
+    if (shouldPreserveProgress && (jammerAlreadySpawned || jammerDestroyed)) {
+      // PERSISTENCE: Keep jammer spawn flag if enemy quota met and jammer was spawned or destroyed
+      console.log('🔄 PERSISTENCE: Preserving jammer spawn state - enemy quota met and jammer was spawned/destroyed');
+      // Don't reset jammerSpawnedForObjective - this preserves the spawned state
+      if (jammerDestroyed) {
+        this.jammerSpawnedForObjective = true; // Ensure flag is set if jammer was destroyed
+      }
+    } else {
+      // NORMAL RESET: Reset jammer spawn flag if conditions not met
+      console.log('🔄 NORMAL RESET: Resetting jammer spawn state - conditions not met for persistence');
+      this.jammerSpawnedForObjective = false;
+    }
+    
+    // ALWAYS reinitialize objectives first
+    this.initializeMissionObjectives();
+    
+    if (shouldPreserveProgress) {
+      // ENHANCED PERSISTENCE: Restore the defeat_enemies objective as completed
+      console.log(`🔄 ENHANCED PERSISTENCE: Restoring objective state for ${currentEnemyCount} enemy defeats`);
       
-      // Keep the defeat_enemies objective completed but reset everything else
+      // Restore the defeat_enemies objective state
       const defeatObjective = this.objectives.find(obj => obj.id === 'defeat_enemies');
       if (defeatObjective) {
         defeatObjective.completed = true;
         defeatObjective.progress = currentEnemyCount;
         defeatObjective.required = requiredEnemies;
         this.completedObjectives.add('defeat_enemies');
+        console.log('✅ Defeat enemies objective restored as completed');
       }
       
-      // Reset sector progression but keep enemy count
+      // ENHANCED: Handle jammer objective persistence
+      const jammerObjective = this.objectives.find(obj => obj.id === 'destroy_jammer');
+      if (jammerObjective) {
+        if (window.sector1Progression && window.sector1Progression.broadcastJammerDestroyed) {
+          // If jammer was destroyed, mark objective as completed
+          jammerObjective.completed = true;
+          jammerObjective.visible = true;
+          this.completedObjectives.add('destroy_jammer');
+          console.log('✅ Destroy jammer objective restored as completed (jammer was destroyed)');
+        } else if (jammerAlreadySpawned && jammerActive) {
+          // If jammer was spawned and is still active, reveal objective but don't mark complete
+          jammerObjective.visible = true;
+          console.log('✅ Destroy jammer objective revealed (jammer is active)');
+        } else {
+          // Otherwise hide objective until jammer spawns
+          jammerObjective.visible = false;
+          console.log('🔄 Destroy jammer objective hidden (jammer not yet spawned)');
+        }
+      }
+      
+      // ENHANCED: Handle sector progression state preservation
       if (window.sector1Progression) {
-        const preserveEnemies = window.sector1Progression.enemiesDefeated; // Preserve enemy count
-        window.sector1Progression.tutorialEnemiesDefeated = 0;
-        window.sector1Progression.broadcastJammerDestroyed = false;
-        window.sector1Progression.jammerRevealed = false;
-        window.sector1Progression.jammerActive = false;
-        window.sector1Progression.enemiesDefeated = preserveEnemies; // Restore enemy count
-        console.log(`🔄 Sector 1 progression reset but preserved ${preserveEnemies} enemy defeats`);
+        const preserveEnemies = window.sector1Progression.enemiesDefeated;
+        const preserveJammerDestroyed = window.sector1Progression.broadcastJammerDestroyed;
+        
+        // CRITICAL: Call sector progression reset with preservation flag
+        window.sector1Progression.reset(true); // true = preserve enemy progress
+        
+        // Override specific values that need to be preserved
+        window.sector1Progression.enemiesDefeated = preserveEnemies;
+        window.sector1Progression.broadcastJammerDestroyed = preserveJammerDestroyed;
+        window.sector1Progression.jammerRevealed = jammerActive || preserveJammerDestroyed; // Reveal if active or was destroyed
+        window.sector1Progression.jammerActive = jammerActive && !preserveJammerDestroyed; // Active if jammer exists and not destroyed
+        
+        console.log(`🔄 Sector 1 progression state preserved and synchronized:`);
+        console.log(`  Enemy defeats: ${preserveEnemies}`);
+        console.log(`  Jammer destroyed: ${preserveJammerDestroyed}`);
+        console.log(`  Jammer active: ${window.sector1Progression.jammerActive}`);
+        console.log(`  Jammer revealed: ${window.sector1Progression.jammerRevealed}`);
+      }
+      
+      // CRITICAL: Auto-spawn jammer if it was spawned before but doesn't exist now
+      if (jammerAlreadySpawned && !jammerActive && !window.sector1Progression?.broadcastJammerDestroyed) {
+        console.log('🔄 AUTO-SPAWN: Jammer was spawned before but missing - attempting to restore');
+        
+        // Attempt to restore jammer after a short delay to ensure all systems are ready
+        setTimeout(() => {
+          if (this.jammerSpawnedForObjective && !window.BroadcastJammerSystem?.jammer?.active) {
+            console.log('🔄 RESTORING: Spawning jammer to restore previous game state');
+            this.spawnBroadcastJammer();
+          }
+        }, 1000);
       }
     } else {
       // NORMAL RESET: Reset everything if less than 20 enemies defeated
       console.log(`🔄 NORMAL RESET: Enemy count ${currentEnemyCount}/${requiredEnemies} below requirement - full reset`);
       
-      // Reset sector progression enemy counter if available
+      // Reset sector progression with no preservation
       if (window.sector1Progression) {
-        window.sector1Progression.enemiesDefeated = 0;
-        window.sector1Progression.tutorialEnemiesDefeated = 0;
-        window.sector1Progression.broadcastJammerDestroyed = false;
-        window.sector1Progression.jammerRevealed = false;
-        window.sector1Progression.jammerActive = false;
-        console.log('🔄 Sector 1 progression counters fully reset');
+        window.sector1Progression.reset(false); // false = no preservation
+        console.log('🔄 Sector 1 progression fully reset');
+      }
+      
+      // CRITICAL: Clean up any existing jammer to prevent conflicts
+      if (window.BroadcastJammerSystem && window.BroadcastJammerSystem.jammer) {
+        console.log('🧹 CLEANUP: Removing existing jammer during full reset');
+        window.BroadcastJammerSystem.jammer.active = false;
+        window.BroadcastJammerSystem.jammer = null;
+        window.broadcastJammer = null;
+        
+        // Reset permanent destruction flag to allow fresh spawn
+        if (window.BroadcastJammerSystem.permanentlyDestroyed !== undefined) {
+          window.BroadcastJammerSystem.permanentlyDestroyed = false;
+        }
       }
     }
     
-    this.initializeMissionObjectives();
+    // CRITICAL: Synchronize systems after reset to ensure consistency
+    setTimeout(() => {
+      if (window.sector1Progression) {
+        this.synchronizeWithSectorProgression();
+      }
+    }, 100);
+    
+    console.log('✅ ObjectivesSystem reset completed with enhanced state management and synchronization');
   }
 };
 
@@ -537,7 +1066,6 @@ window.DEBUG_ALL_LORE_RETRIEVED = function() {
     
     return '✅ ALL LORE RETRIEVED overlay triggered - should now be visible!';
   } else {
-    console.error('❌ Objectives system not available');
     return '❌ Objectives system not available';
   }
 };
@@ -552,8 +1080,6 @@ window.DEBUG_LORE_STATUS = function() {
     console.log(`  Collected: ${progress.collected}/${progress.total}`);
     console.log(`  Remaining: ${progress.remainingLore}`);
     console.log(`  All collected: ${progress.collected >= progress.total && progress.total > 0}`);
-  } else {
-    console.log('❌ Lost Data System not available');
   }
   
   if (window.objectivesSystem) {
@@ -595,6 +1121,310 @@ window.initObjectives = function() {
     return false;
   }
 };
+
+// ENHANCED: Debug commands for jammer spawning system
+window.DEBUG_JAMMER_SPAWNING = {
+  // Get comprehensive jammer spawn status
+  getStatus: function() {
+    if (!window.objectivesSystem) {
+      return '❌ Objectives system not available';
+    }
+    
+    const status = {
+      objectivesSystem: {
+        jammerSpawnedForObjective: window.objectivesSystem.jammerSpawnedForObjective,
+        active: window.objectivesSystem.active
+      },
+      broadcastJammerSystem: {
+        exists: !!window.BroadcastJammerSystem,
+        jammer: !!window.BroadcastJammerSystem?.jammer,
+        jammerActive: window.BroadcastJammerSystem?.jammer?.active || false,
+        permanentlyDestroyed: window.BroadcastJammerSystem?.permanentlyDestroyed || false
+      },
+      globalAlias: {
+        exists: !!window.broadcastJammer,
+        active: window.broadcastJammer?.active || false
+      },
+      sectorProgression: {
+        enemiesDefeated: window.sector1Progression?.enemiesDefeated || 0,
+        requiredEnemyKills: window.sector1Progression?.requiredEnemyKills || 20,
+        broadcastJammerDestroyed: window.sector1Progression?.broadcastJammerDestroyed || false,
+        jammerRevealed: window.sector1Progression?.jammerRevealed || false,
+        jammerActive: window.sector1Progression?.jammerActive || false
+      },
+      objectives: {
+        defeatEnemies: window.objectivesSystem.getObjectiveStatus('defeat_enemies'),
+        destroyJammer: window.objectivesSystem.getObjectiveStatus('destroy_jammer')
+      }
+    };
+    
+    console.log('🔍 COMPREHENSIVE JAMMER SPAWN STATUS:');
+    console.table(status);
+    
+    // Check for inconsistencies
+    const issues = [];
+    
+    if (status.broadcastJammerSystem.jammer && !status.globalAlias.exists) {
+      issues.push('⚠️ Jammer exists in system but global alias is missing');
+    }
+    
+    if (status.globalAlias.exists && !status.broadcastJammerSystem.jammer) {
+      issues.push('⚠️ Global alias exists but system jammer is missing');
+    }
+    
+    if (status.objectivesSystem.jammerSpawnedForObjective && !status.broadcastJammerSystem.jammer) {
+      issues.push('⚠️ Jammer marked as spawned but no jammer found in system');
+    }
+    
+    if (status.broadcastJammerSystem.permanentlyDestroyed && status.broadcastJammerSystem.jammerActive) {
+      issues.push('⚠️ Jammer marked as permanently destroyed but still active');
+    }
+    
+    if (issues.length > 0) {
+      console.log('🚨 ISSUES DETECTED:');
+      issues.forEach(issue => console.log(issue));
+    } else {
+      console.log('✅ No consistency issues detected');
+    }
+    
+    return status;
+  },
+  
+  // Force trigger jammer spawn for testing
+  forceSpawn: function() {
+    if (!window.objectivesSystem) {
+      return false;
+    }
+    
+    console.log('🔧 DEBUG: Force triggering jammer spawn...');
+    
+    // Mark enemy objective as completed
+    const defeatObjective = window.objectivesSystem.objectives.find(obj => obj.id === 'defeat_enemies');
+    if (defeatObjective) {
+      defeatObjective.completed = true;
+      defeatObjective.progress = 20;
+      defeatObjective.required = 20;
+      window.objectivesSystem.completedObjectives.add('defeat_enemies');
+      console.log('✅ Marked defeat enemies objective as completed');
+    }
+    
+    // Simulate enemy count in sector progression
+    if (window.sector1Progression) {
+      window.sector1Progression.enemiesDefeated = 20;
+      console.log('✅ Set sector progression enemy count to 20');
+    }
+    
+    // Trigger spawn
+    const spawnResult = window.objectivesSystem.spawnBroadcastJammer();
+    console.log('🔧 Force spawn result:', spawnResult);
+    
+    return spawnResult;
+  },
+  
+  // Reset jammer spawning state
+  resetState: function() {
+    if (!window.objectivesSystem) {
+      console.error('❌ Objectives system not available');
+      return false;
+    }
+    
+    console.log('🔧 DEBUG: Resetting jammer spawning state...');
+    
+    window.objectivesSystem.jammerSpawnedForObjective = false;
+    
+    if (window.BroadcastJammerSystem) {
+      window.BroadcastJammerSystem.permanentlyDestroyed = false;
+      if (window.BroadcastJammerSystem.jammer) {
+        window.BroadcastJammerSystem.jammer.active = false;
+        window.BroadcastJammerSystem.jammer = null;
+      }
+    }
+    
+    window.broadcastJammer = null;
+    
+    console.log('✅ Jammer spawning state reset');
+    return true;
+  },
+  
+  // Test emergency spawn method
+  testEmergencySpawn: function() {
+    if (!window.objectivesSystem) {
+      console.error('❌ Objectives system not available');
+      return false;
+    }
+    
+    console.log('🔧 DEBUG: Testing emergency spawn method...');
+    
+    const testResult = window.objectivesSystem.attemptEmergencyJammerSpawn(2000, 880);
+    console.log('🔧 Emergency spawn test result:', testResult);
+    
+    return testResult;
+  },
+  
+  // Test spawn position calculation
+  testSpawnPosition: function() {
+    if (!window.objectivesSystem) {
+      return null;
+    }
+    
+    console.log('🔧 DEBUG: Testing spawn position calculation...');
+    
+    const position = window.objectivesSystem.calculateOptimalSpawnPosition();
+    console.log('🔧 Calculated spawn position:', position);
+    
+    return position;
+  },
+  
+  // Test jammer verification
+  testVerification: function() {
+    if (!window.objectivesSystem) {
+      console.error('❌ Objectives system not available');
+      return false;
+    }
+    
+    console.log('🔧 DEBUG: Testing jammer verification...');
+    
+    const verificationResult = window.objectivesSystem.verifyJammerSpawn();
+    console.log('🔧 Verification result:', verificationResult);
+    
+    return verificationResult;
+  }
+};
+
+console.log('🔧 Enhanced jammer spawning debug commands loaded:');
+console.log('  DEBUG_JAMMER_SPAWNING.getStatus() - Get comprehensive jammer spawn status');
+console.log('  DEBUG_JAMMER_SPAWNING.forceSpawn() - Force trigger jammer spawn for testing');
+console.log('  DEBUG_JAMMER_SPAWNING.resetState() - Reset jammer spawning state');
+console.log('  DEBUG_JAMMER_SPAWNING.testEmergencySpawn() - Test emergency spawn method');
+console.log('  DEBUG_JAMMER_SPAWNING.testSpawnPosition() - Test spawn position calculation');
+console.log('  DEBUG_JAMMER_SPAWNING.testVerification() - Test jammer verification');
+
+// ENHANCED: Debug commands for persistence and reset logic
+window.DEBUG_PERSISTENCE = {
+  // Test persistence logic by simulating different scenarios
+  testPersistence: function(enemyCount, jammerDestroyed = false) {
+    console.log(`🔧 DEBUG: Testing persistence with enemies=${enemyCount}, jammerDestroyed=${jammerDestroyed}`);
+    
+    if (!window.objectivesSystem || !window.sector1Progression) {
+      console.error('❌ Required systems not available');
+      return false;
+    }
+    
+    // Set up test state
+    window.sector1Progression.enemiesDefeated = enemyCount;
+    window.sector1Progression.broadcastJammerDestroyed = jammerDestroyed;
+    
+    if (jammerDestroyed) {
+      window.objectivesSystem.jammerSpawnedForObjective = true;
+    }
+    
+    console.log('🔧 Test state set, calling reset()...');
+    
+    // Test reset
+    window.objectivesSystem.reset();
+    
+    // Check results
+    const result = {
+      enemiesPreserved: window.sector1Progression.enemiesDefeated === enemyCount && enemyCount >= 20,
+      jammerFlagPreserved: window.objectivesSystem.jammerSpawnedForObjective === (jammerDestroyed || enemyCount >= 20),
+      jammerDestroyedPreserved: window.sector1Progression.broadcastJammerDestroyed === jammerDestroyed
+    };
+    
+    console.log('🔧 Persistence test results:', result);
+    return result;
+  },
+  
+  // Test synchronization between systems
+  testSynchronization: function() {
+    console.log('🔧 DEBUG: Testing system synchronization...');
+    
+    if (!window.objectivesSystem) {
+      console.error('❌ Objectives system not available');
+      return false;
+    }
+    
+    const syncResult = window.objectivesSystem.synchronizeWithSectorProgression();
+    console.log(`🔧 Synchronization result: ${syncResult ? 'Fixed issues' : 'No issues found'}`);
+    return syncResult;
+  },
+  
+  // Force manual synchronization
+  forceSync: function() {
+    console.log('🔧 DEBUG: Forcing manual synchronization...');
+    
+    if (!window.objectivesSystem) {
+      console.error('❌ Objectives system not available');
+      return false;
+    }
+    
+    return window.objectivesSystem.synchronizeWithSectorProgression();
+  },
+  
+  // Show current persistence state
+  showState: function() {
+    console.log('🔧 DEBUG: Current persistence state:');
+    
+    if (window.sector1Progression) {
+      console.log('  Sector1Progression:');
+      console.log(`    enemiesDefeated: ${window.sector1Progression.enemiesDefeated}`);
+      console.log(`    tutorialEnemiesDefeated: ${window.sector1Progression.tutorialEnemiesDefeated}`);
+      console.log(`    broadcastJammerDestroyed: ${window.sector1Progression.broadcastJammerDestroyed}`);
+      console.log(`    currentPhase: ${window.sector1Progression.currentPhase}`);
+    } else {
+      console.log('  Sector1Progression: Not available');
+    }
+    
+    if (window.objectivesSystem) {
+      console.log('  ObjectivesSystem:');
+      console.log(`    jammerSpawnedForObjective: ${window.objectivesSystem.jammerSpawnedForObjective}`);
+      const defeatStatus = window.objectivesSystem.getObjectiveStatus('defeat_enemies');
+      const jammerStatus = window.objectivesSystem.getObjectiveStatus('destroy_jammer');
+      console.log(`    defeat_enemies objective:`, defeatStatus);
+      console.log(`    destroy_jammer objective:`, jammerStatus);
+    } else {
+      console.log('  ObjectivesSystem: Not available');
+    }
+    
+    if (window.BroadcastJammerSystem) {
+      console.log('  BroadcastJammerSystem:');
+      console.log(`    jammer exists: ${!!window.BroadcastJammerSystem.jammer}`);
+      console.log(`    jammer active: ${window.BroadcastJammerSystem.jammer?.active || false}`);
+      console.log(`    permanentlyDestroyed: ${window.BroadcastJammerSystem.permanentlyDestroyed || false}`);
+    } else {
+      console.log('  BroadcastJammerSystem: Not available');
+    }
+  },
+  
+  // Simulate game over scenario
+  simulateGameOver: function() {
+    console.log('🔧 DEBUG: Simulating game over scenario...');
+    
+    if (!window.objectivesSystem) {
+      console.error('❌ Objectives system not available');
+      return false;
+    }
+    
+    // Show state before reset
+    console.log('🔧 State before game over:');
+    this.showState();
+    
+    // Simulate game over reset
+    window.objectivesSystem.reset();
+    
+    // Show state after reset
+    console.log('🔧 State after game over:');
+    this.showState();
+    
+    return true;
+  }
+};
+
+console.log('🔧 Enhanced persistence debug commands loaded:');
+console.log('  DEBUG_PERSISTENCE.testPersistence(enemyCount, jammerDestroyed) - Test persistence logic');
+console.log('  DEBUG_PERSISTENCE.testSynchronization() - Test system synchronization');
+console.log('  DEBUG_PERSISTENCE.forceSync() - Force manual synchronization');
+console.log('  DEBUG_PERSISTENCE.showState() - Show current persistence state');
+console.log('  DEBUG_PERSISTENCE.simulateGameOver() - Simulate game over scenario');
 
 // CRITICAL: Auto-initialize objectives system when this script loads
 console.log('🎯 Objectives script loaded - auto-initializing...');

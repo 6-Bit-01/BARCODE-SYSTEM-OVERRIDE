@@ -250,9 +250,20 @@ window.TutorialSystem = class TutorialSystem {
         const defeatedCount = window.enemyManager.defeatedCount || 0;
         const activeEnemies = window.enemyManager.getActiveEnemies?.()?.length || 0;
         
-        if (this.combatEnemiesPaused && activeEnemies > 0) {
-          const frozenEnemies = window.enemyManager.getActiveEnemies().filter(enemy => 
-            enemy.type === 'virus' && enemy.position.y < 700
+        // CRITICAL FIX: Track tutorial-specific enemies separately
+        if (!this._tutorialEnemyCount) {
+          this._tutorialEnemyCount = 0;
+          this._tutorialEnemiesDefeated = 0;
+        }
+        
+        // Count tutorial enemies (virus type spawned during tutorial)
+        const tutorialEnemies = window.enemyManager.getActiveEnemies().filter(enemy => 
+          enemy.type === 'virus' && enemy.position.x > 0 && enemy.position.x < 4096
+        );
+        
+        if (this.combatEnemiesPaused && tutorialEnemies.length > 0) {
+          const frozenEnemies = tutorialEnemies.filter(enemy => 
+            enemy.state !== 'patrol' && enemy.state !== 'chase'
           );
           
           if (frozenEnemies.length > 0) {
@@ -261,8 +272,10 @@ window.TutorialSystem = class TutorialSystem {
           }
         }
         
-        if (defeatedCount >= 3 && !this.completedObjectives.has('combat') && activeEnemies === 0) {
-          console.log('ALL CONDITIONS MET: 3 defeated AND no active enemies - completing combat objective');
+        // CRITICAL FIX: Only complete objective when 3 TUTORIAL enemies are defeated
+        if (this._tutorialEnemiesDefeated >= 3 && !this.completedObjectives.has('combat')) {
+          console.log('✅ TUTORIAL COMBAT COMPLETE: 3 tutorial enemies defeated! (Total defeated: ' + this._tutorialEnemiesDefeated + ')');
+          console.log('📊 Tutorial objective completion - _tutorialEnemiesDefeated:', this._tutorialEnemiesDefeated, 'completedObjectives.has(combat):', this.completedObjectives.has('combat'));
           this.checkObjective('combat');
         }
       }
@@ -618,7 +631,8 @@ window.TutorialSystem = class TutorialSystem {
       
       // Show enemy counter during combat tutorial
       if (window.enemyManager && this.storyChapter === 1) {
-        const defeatedCount = window.enemyManager.defeatedCount;
+        // CRITICAL FIX: Use tutorial-specific counter instead of global counter
+        const defeatedCount = this._tutorialEnemiesDefeated || 0;
         const combatObjectiveCompleted = this.completedObjectives.has('combat');
         
         if (!combatObjectiveCompleted && defeatedCount < 3) {
@@ -767,36 +781,100 @@ window.TutorialSystem = class TutorialSystem {
   spawnCombatEnemies() {
     if (!window.enemyManager) return;
     
+    // Check current enemy count before spawning
+    const currentEnemyCount = window.enemyManager.getActiveEnemies().length;
+    const maxEnemies = 12;
+    const enemiesToSpawn = Math.min(3, maxEnemies - currentEnemyCount);
+    
+    if (enemiesToSpawn <= 0) {
+      console.log('Enemy limit reached, skipping spawn');
+      return;
+    }
+    
     window.enemyManager.clear();
+    
+    // CRITICAL FIX: Reset tutorial enemy counters
+    this._tutorialEnemyCount = 0;
+    this._tutorialEnemiesDefeated = 0;
     
     const playerX = window.player?.position?.x || 960;
     const playerY = window.player?.position?.y || 750;
     
-    const minDistance = 250;
-    const maxDistance = 350;
-    
+    // Spawn at least 800px away from player on random sides
     const spawnPositions = [];
-    for (let i = 0; i < 3; i++) {
-      const angle = -Math.PI * 0.6 + (Math.PI * 1.2 * i / 2);
-      const distance = minDistance + Math.random() * (maxDistance - minDistance);
+    const minDistance = 800; // Minimum distance from player
+    const maxDistance = 1500; // Maximum distance to keep enemies visible
+    
+    for (let i = 0; i < enemiesToSpawn; i++) {
+      // Choose random side: left, right, or both
+      const sides = ['left', 'right'];
+      const chosenSide = sides[Math.floor(Math.random() * sides.length)];
       
-      const x = playerX + Math.cos(angle) * distance;
-      const y = playerY - 50;
+      let xOffset, vx, spawnSide;
       
-      const safeX = window.clamp(x, 150, 4046 - 150);
+      if (chosenSide === 'left') {
+        // Spawn on left side, at least 800px away
+        xOffset = -window.randomRange(minDistance, Math.min(maxDistance, 1200));
+        vx = 80; // Drift right toward player
+        spawnSide = 'left';
+      } else {
+        // Spawn on right side, at least 800px away
+        xOffset = window.randomRange(minDistance, Math.min(maxDistance, 1200));
+        vx = -80; // Drift left toward player
+        spawnSide = 'right';
+      }
+      
+      const x = playerX + xOffset;
+      const y = -100 - (i * 150); // Higher spawn point with more stagger
+      
+      // Ensure within world bounds (canvas is 1920 wide)
+      const safeX = window.clamp(x, 50, 1870);
+      
+      // Verify minimum distance is maintained
+      const actualDistance = Math.abs(safeX - playerX);
+      const finalX = actualDistance >= minDistance ? safeX : 
+                    (safeX < playerX ? playerX - minDistance : playerX + minDistance);
       
       spawnPositions.push({ 
-        x: safeX, 
-        y: y
+        x: finalX, 
+        y: y,
+        vx: vx, // Directional drift toward player
+        vy: 150, // Faster fall for more dramatic entrance
+        edge: spawnSide === 'left' ? 'top-left' : 'top-right',
+        side: spawnSide
       });
     }
     
     spawnPositions.forEach((pos, index) => {
       setTimeout(() => {
-        window.enemyManager.spawnEnemyAt(pos.x, pos.y);
+        // CRITICAL FIX: Force spawn virus type and mark as tutorial enemy
+        const enemy = new window.Enemy(pos.x, pos.y, 'virus');
+        enemy._isTutorialEnemy = true; // Mark as tutorial enemy
+        enemy.entranceComplete = false; // Enable entrance animation
+        enemy.state = 'entrance'; // Start in entrance state for dropping effect
+        enemy.position.x = pos.x;
+        enemy.position.y = pos.y;
+        enemy.velocity.x = pos.vx;
+        enemy.velocity.y = pos.vy;
+        enemy.isOnGround = false; // Not on ground initially
+        
+        // Set entrance behavior for top drop
+        enemy._dropEdge = 'top';
+        
+        // Create spawn particle effect using established system
+        if (window.particleSystem) {
+          console.log(`🌟 Creating virus spawn effect at (${pos.x.toFixed(0)}, ${pos.y.toFixed(0)})`);
+          window.particleSystem.enemySpawnEffect(pos.x, pos.y, 'virus');
+        }
+        
+        window.enemyManager.enemies.push(enemy);
+        this._tutorialEnemyCount++;
+        
         const distToPlayer = window.distance(pos.x, pos.y, playerX, playerY);
-        console.log(`Spawned enemy #${index + 1} around player: (${pos.x.toFixed(0)}, ${pos.y}), distance: ${distToPlayer.toFixed(0)}px`);
-      }, index * 400);
+        console.log(`🎯 SPAWNED TUTORIAL enemy #${index + 1} at X:${pos.x.toFixed(0)} on ${pos.side} side`);
+        console.log(`   Distance from player: ${distToPlayer.toFixed(0)}px (Min required: ${minDistance}px)`);
+        console.log(`   Safe distance check: ${distToPlayer >= minDistance ? '✅ SAFE' : '⚠️ TOO CLOSE'}`);
+      }, index * 1000); // Longer delay for better visual pacing
     });
   }
   
@@ -813,8 +891,13 @@ window.TutorialSystem = class TutorialSystem {
         enemy.stateTimer = 0;
         enemy.position.y = 750;
         enemy.velocity.y = 0;
-        enemy.velocity.x = enemy.speed * 0.5;
+        enemy.velocity.x = 0; // CRITICAL: Reset velocity to let AI control movement
         enemy.isOnGround = true;
+        
+        // CRITICAL FIX: Force sprite to correct animation state
+        if (enemy.spriteReady && enemy.sprite) {
+          enemy.playAnimation('idle');
+        }
       });
       
       this.combatEnemiesPaused = false;
