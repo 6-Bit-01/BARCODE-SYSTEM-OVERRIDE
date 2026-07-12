@@ -287,6 +287,18 @@
       "reference": "/lib/MakkoEngine.min.js",
       "normalizedPath": "lib/MakkoEngine.min.js",
       "kind": "script"
+    },
+    {
+      "source": "src/engine/audio.js",
+      "reference": "/assets/sounds/whoosh1.mp3",
+      "normalizedPath": "assets/sounds/whoosh1.mp3",
+      "kind": "string-reference"
+    },
+    {
+      "source": "src/engine/audio.js",
+      "reference": "/assets/sounds/whoosh2.mp3",
+      "normalizedPath": "assets/sounds/whoosh2.mp3",
+      "kind": "string-reference"
     }
   ],
   "externalHosts": [

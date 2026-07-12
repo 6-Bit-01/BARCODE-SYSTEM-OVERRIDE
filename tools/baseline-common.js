@@ -60,9 +60,12 @@ function missingFirstPartyReferences() {
   for (const l of parseLinks()) if (l.localPath && !exists(l.localPath)) refs.push({ source:'index.html', reference:l.href, normalizedPath:l.localPath, kind:'link' });
   for (const file of jsFiles()) {
     const text = read(file);
-    const re = /["']((?:src|assets|lib)\/[^"']+\.(?:js|css|png|jpg|jpeg|gif|webp|mp3|wav|ogg|json))["']/g;
+    const re = /["'](\/?(?:src|assets|lib)\/[^"']+\.(?:js|css|png|jpg|jpeg|gif|webp|mp3|wav|ogg|json))["']/g;
     let m;
-    while ((m = re.exec(text))) if (!m[1].includes('${') && !exists(m[1])) refs.push({ source:file, reference:m[1], normalizedPath:m[1], kind:'string-reference' });
+    while ((m = re.exec(text))) {
+      const localPath = normalizeLocal(m[1]);
+      if (!m[1].includes('${') && localPath && !exists(localPath)) refs.push({ source:file, reference:m[1], normalizedPath:localPath, kind:'string-reference' });
+    }
   }
   return refs.sort((a,b)=>(a.source+a.reference).localeCompare(b.source+b.reference));
 }
