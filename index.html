@@ -581,6 +581,7 @@
     <script src="src/engine/spaceships.js"></script>
     <script src="src/engine/lore.js"></script>
     <script src="src/engine/jammer-indicator.js"></script>
+    <script src="src/engine/jammer-arrow-indicator.js"></script>
     <script src="src/engine/title-screen.js"></script>
     <script src="src/game/objectives.js"></script>
     <script src="src/engine/cutscene.js"></script>
@@ -589,8 +590,8 @@
     <!-- Game Systems -->
     <script src="src/game/player.js"></script>
     <script src="src/game/enemies.js"></script>
+    <script src="src/game/jammer-spawn-logic.js"></script>
     <script src="src/game/hacking.js"></script>
-    <script src="src/game/broadcast-jammer.js"></script>
     <script src="src/game/rhythm.js"></script>
     <script src="src/game/tutorial.js"></script>
     <script src="src/game/post-tutorial-objectives.js"></script>
@@ -605,6 +606,10 @@
     <script src="src/game/game-initializer.js"></script>
     <script src="src/game/dependency-validator.js"></script>
     <script src="src/game/debug-commands.js"></script>
+    
+    <!-- Jammer Fixes -->
+    <script src="jammer-fix-patch.js"></script>
+    <script src="src/game/collision-fix.js"></script>
 
     <!-- Main Game (Modular Structure) -->
     <script src="src/game/main-new.js"></script>
@@ -711,6 +716,7 @@
         // ========================================
         
         let gameInitialized = false;
+        let titleScreenMusicBlocked = false; // Prevent title music from starting after game start
         
         // START BUTTON HANDLER - STARTS GAME IN FULLSCREEN
         document.getElementById('startButton').addEventListener('click', async function() {
@@ -766,6 +772,9 @@
                     console.log('🔇 Stopped title screen music - starting game');
                 }
                 
+                // Block title screen music from starting after game start
+                titleScreenMusicBlocked = true;
+                
                 // Initialize parallax background
                 console.log('Initializing parallax background...');
                 window.initParallax();
@@ -799,14 +808,8 @@
                 window.initCutscene();
                 console.log('✓ Cutscene system initialized');
                 
-                // Initialize broadcast jammer system
-                console.log('Initializing broadcast jammer system...');
-                if (window.BroadcastJammerSystem && typeof window.BroadcastJammerSystem.init === 'function') {
-                    window.BroadcastJammerSystem.init();
-                    console.log('✓ Broadcast jammer system initialized');
-                } else {
-                    console.warn('⚠️ Broadcast jammer system not available');
-                }
+                // REMOVED: Old broadcast jammer system initialization
+                // Jammer system now uses regular enemy-based JammerEnemy class
                 
                 // Do NOT start rhythm system - wait until game starts
                 console.log('Rhythm system waiting - will start with game');
