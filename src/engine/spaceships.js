@@ -316,7 +316,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
           ship.size
         );
       }
-      console.log(`🚀 Drawing ship ${ship.shipType + 1} with GIF at (${ship.x.toFixed(1)}, ${ship.y.toFixed(1)}) size ${ship.size.toFixed(1)}`);
+      if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log(`🚀 Drawing ship ${ship.shipType + 1} with GIF at (${ship.x.toFixed(1)}, ${ship.y.toFixed(1)}) size ${ship.size.toFixed(1)}`);
     } else {
       // Draw fallback ship (rectangle with details)
       ctx.fillStyle = '#4a5568';
@@ -336,7 +336,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
         ctx.fillStyle = 'rgba(255, 100, 0, 0.8)';
         ctx.fillRect(ship.size / 2, -ship.size / 8, 5, ship.size / 4);
       }
-      console.log(`🚀 Drawing fallback ship at (${ship.x.toFixed(1)}, ${ship.y.toFixed(1)}) size ${ship.size.toFixed(1)}`);
+      if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log(`🚀 Drawing fallback ship at (${ship.x.toFixed(1)}, ${ship.y.toFixed(1)}) size ${ship.size.toFixed(1)}`);
     }
     
     ctx.restore();
@@ -346,8 +346,8 @@ window.SpaceShipSystem = class SpaceShipSystem {
   drawNormalShips(ctx) {
     const normalShips = this.ships.filter(ship => !ship.isForeground);
     
-    // Always draw debug info to see if system is working
-    if (!this.lastDebugLog || Date.now() - this.lastDebugLog > 1000) {
+    // Optional recurring ship diagnostics. Disabled during normal play.
+    if (window.BARCODE_DEBUG_FRAME_OWNERSHIP && (!this.lastDebugLog || Date.now() - this.lastDebugLog > 1000)) {
       const foregroundCount = this.ships.filter(ship => ship.isForeground).length;
       console.log(`🚀 Space Ship System Status:`);
       console.log(`  - Normal ships: ${normalShips.length}`);
