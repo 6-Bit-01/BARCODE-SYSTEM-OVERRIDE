@@ -30,15 +30,54 @@ if (!startHandlerMatch) {
   }
   const body = startHandlerMatch[1];
   const guardSet = body.indexOf('gameStartInProgress = true;');
+  const firstTry = body.indexOf('try {');
   const firstAwait = body.indexOf('await ');
+  const firstTitleHide = body.indexOf('window.titleScreen.hide();');
   if (guardSet === -1 || firstAwait === -1 || guardSet > firstAwait) {
     fail('startButton click handler must set its single-flight guard before the first await.');
+  }
+  if (firstTry === -1 || firstTry < guardSet) {
+    fail('startButton click handler must begin recovery handling after setting its single-flight guard.');
+  }
+  const betweenGuardAndTry = body.slice(guardSet + 'gameStartInProgress = true;'.length, firstTry);
+  if (/\bawait\b/.test(betweenGuardAndTry) || betweenGuardAndTry.includes('window.titleScreen.hide();')) {
+    fail('startButton recovery handling must begin before title hiding and before the first await.');
+  }
+  if (firstTitleHide !== -1 && firstTry > firstTitleHide) {
+    fail('title screen hiding must be protected by the start-button try/catch/finally.');
   }
   if (!body.includes('if (gameStartInProgress || gameInitialized)')) {
     fail('startButton click handler must ignore reentrant start attempts.');
   }
-  if (!body.includes('gameStartInProgress = false;')) {
-    fail('startButton click handler must reset its guard on completion/failure paths.');
+  const finallyIndex = body.indexOf('finally {');
+  if (finallyIndex === -1) {
+    fail('startButton click handler must use finally for cleanup.');
+  } else {
+    const finallyBody = body.slice(finallyIndex);
+    if (!finallyBody.includes('gameStartInProgress = false;')) {
+      fail('startButton click handler must reset its guard in finally.');
+    }
+    if (!finallyBody.includes('assetLoadingMonitor.cleanup();')) {
+      fail('startButton click handler must clean up the asset monitor in finally.');
+    }
+  }
+  const catchIndex = body.indexOf('catch (error) {');
+  if (catchIndex === -1 || (finallyIndex !== -1 && catchIndex > finallyIndex)) {
+    fail('startButton click handler must keep an error recovery catch before finally.');
+  } else {
+    const catchBody = body.slice(catchIndex, finallyIndex === -1 ? undefined : finallyIndex);
+    for (const token of [
+      'window.titleScreen.show();',
+      "startOverlay.classList.remove('hidden');",
+      "startOverlay.style.display = '';",
+      "this.textContent = 'ERROR - RETRY';",
+      'this.disabled = false;',
+      "this.textContent = 'START SYSTEM';"
+    ]) {
+      if (!catchBody.includes(token)) {
+        fail(`startButton failure recovery must include ${token}`);
+      }
+    }
   }
 }
 

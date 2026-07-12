@@ -757,36 +757,37 @@
             }
             gameStartInProgress = true;
 
-            // Use title screen transition if available
-            if (window.titleScreen && typeof window.titleScreen.hide === 'function') {
-                window.titleScreen.hide();
-            }
-            console.log('=== START BUTTON CLICKED - INITIALIZING GAME ===');
-            
-            // STEP 0: Enter fullscreen immediately (using new fullscreen manager)
-            console.log('Step 0: Entering fullscreen mode...');
-            if (window.fullscreenManager) {
-                window.fullscreenManager.enter().catch(err => {
-                    // Silently handle permissions check failures
-                    if (err.name === 'TypeError' && err.message && err.message.includes('Permissions check failed')) {
-                        return;
-                    }
-                    console.log('🎮 Fullscreen request declined on start:', err.message);
-                });
-            }
-            
-            // Small delay to ensure fullscreen is active
-            await new Promise(resolve => setTimeout(resolve, 200));
-            
-            // Disable button to prevent multiple clicks
-            this.disabled = true;
-            this.textContent = 'INITIALIZING...';
-            
-            // Show loading indicator
-            const loadingIndicator = document.getElementById('loadingIndicator');
-            loadingIndicator.classList.add('visible');
-            
+            let loadingIndicator;
+
             try {
+                // Show loading indicator
+                loadingIndicator = document.getElementById('loadingIndicator');
+                // Use title screen transition if available
+                if (window.titleScreen && typeof window.titleScreen.hide === 'function') {
+                    window.titleScreen.hide();
+                }
+                console.log('=== START BUTTON CLICKED - INITIALIZING GAME ===');
+
+                // STEP 0: Enter fullscreen immediately (using new fullscreen manager)
+                console.log('Step 0: Entering fullscreen mode...');
+                if (window.fullscreenManager) {
+                    window.fullscreenManager.enter().catch(err => {
+                        // Silently handle permissions check failures
+                        if (err.name === 'TypeError' && err.message && err.message.includes('Permissions check failed')) {
+                            return;
+                        }
+                        console.log('🎮 Fullscreen request declined on start:', err.message);
+                    });
+                }
+
+                // Small delay to ensure fullscreen is active
+                await new Promise(resolve => setTimeout(resolve, 200));
+
+                // Disable button to prevent multiple clicks
+                this.disabled = true;
+                this.textContent = 'INITIALIZING...';
+
+                loadingIndicator.classList.add('visible');
                 // STEP 1: Initialize all game systems
                 console.log('Step 1: Initializing game systems...');
                 
@@ -893,10 +894,6 @@
                 loadingIndicator.classList.remove('visible');
                 
                 gameInitialized = true;
-                gameStartInProgress = false;
-                if (assetLoadingMonitor) {
-                    assetLoadingMonitor.cleanup();
-                }
                 
                 console.log('✓ GAME STARTED SUCCESSFULLY IN FULLSCREEN!');
                 
@@ -905,22 +902,35 @@
                 console.error('Error stack:', error?.stack || 'No stack available');
                 console.error('Error type:', typeof error);
                 
-                gameStartInProgress = false;
-                if (assetLoadingMonitor) {
-                    assetLoadingMonitor.cleanup();
+                // Restore visible retry surface
+                if (window.titleScreen && typeof window.titleScreen.show === 'function') {
+                    window.titleScreen.show();
                 }
+                const startOverlay = document.getElementById('startOverlay');
+                startOverlay.classList.remove('hidden');
+                startOverlay.style.display = '';
+                startOverlay.style.opacity = '';
 
                 // Show error state
                 this.textContent = 'ERROR - RETRY';
                 this.disabled = false;
-                loadingIndicator.textContent = 'INITIALIZATION FAILED';
-                loadingIndicator.style.color = '#ff0000';
+                if (loadingIndicator) {
+                    loadingIndicator.textContent = 'INITIALIZATION FAILED';
+                    loadingIndicator.style.color = '#ff0000';
+                }
                 
                 // Allow retry after delay
                 setTimeout(() => {
                     this.textContent = 'START SYSTEM';
-                    loadingIndicator.classList.remove('visible');
+                    if (loadingIndicator) {
+                        loadingIndicator.classList.remove('visible');
+                    }
                 }, 3000);
+            } finally {
+                gameStartInProgress = false;
+                if (assetLoadingMonitor) {
+                    assetLoadingMonitor.cleanup();
+                }
             }
         });
         
