@@ -34,6 +34,15 @@ The visual direction is damaged public-access television, VHS, obsolete computin
 
 Existing approved player, enemy, parallax, particle, audio, dialogue, and UI assets should be reused intelligently where they support this direction and do not contradict locked prologue/art guidance.
 
+### Existing Level 1 environment stack
+
+- The approved far background `BG.png` is 1280×855.
+- The approved transparent street foreground `FG.png` is 1279×462.
+- The active non-tiled parallax draw path currently forces both images to 4400×1589. This approximately preserves the foreground aspect ratio but horizontally distorts the far background.
+- Three approved animated flying-car GIFs are already active: normal traffic renders between the background and street foreground, while occasional foreground flybys render over the game world.
+- PR-007 must preserve these approved assets and URLs, maintain the foreground/player ground alignment, correct the far-background presentation without replacing its artwork, and deliberately author traffic choreography around the authoritative beat clock.
+- PR-003 does not change environment scale, traffic timing, draw order, or visual output.
+
 Known missing assets that must be listed honestly before the vertical slice is complete:
 
 - Owner-approved Level 1 boss identity and any required final boss art.
