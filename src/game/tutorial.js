@@ -307,6 +307,8 @@ window.TutorialSystem = class TutorialSystem {
         if (hackingActive && !this.completedObjectives.has('hack_start')) {
           console.log('🔐 HACKING STARTED - Player activated terminal!');
           this.checkObjective('hack_start');
+          // Check if we can auto-skip current dialogue
+          this._checkAutoSkipCurrentDialogue();
         }
         
         if (hackingComplete && !this.completedObjectives.has('hack_complete') && 
@@ -401,6 +403,9 @@ window.TutorialSystem = class TutorialSystem {
         console.log('✓ Objective marked as completed in UI:', objective.text);
       }
       
+      // AUTO-SKIP MECHANISM: Check if current dialogue should be auto-skipped
+      this._checkAutoSkipCurrentDialogue();
+      
       // Handle specific objective completions
       switch(id) {
         case 'combat':
@@ -417,12 +422,11 @@ window.TutorialSystem = class TutorialSystem {
               clearTimeout(this._combatTimeout);
             }
             
-            this.addDialogue('Perfect! You still know how to fight.', 'guide', 2000);
-            this._combatTimeout = setTimeout(() => {
-              console.log('Starting rhythm chapter...');
+            // AUTO-SKIP: Immediately advance to next chapter
+            console.log('⏩ AUTO-SKIP: Combat objective completed early - skipping to next chapter');
+            setTimeout(() => {
               this.startChapter(2);
-              this._combatTimeout = null;
-            }, 2000);
+            }, 1000); // Brief pause for visual feedback
             return;
           }
           break;
@@ -433,12 +437,16 @@ window.TutorialSystem = class TutorialSystem {
           
           const currentRhythmDialogue = this.dialogue[this.currentDialogue];
           if (currentRhythmDialogue && currentRhythmDialogue.text === 'Complete the task to continue...') {
+            // AUTO-SKIP: Check if rhythm_start is also completed
             setTimeout(() => {
               const hasRhythmStart = this.completedObjectives.has('rhythm_start');
               if (hasRhythmStart) {
+                console.log('⏩ AUTO-SKIP: All rhythm objectives completed - advancing to hacking chapter');
+                this.startChapter(3);
+              } else {
                 this.advanceDialogue();
               }
-            }, 100);
+            }, 500);
             return;
           }
           break;
@@ -446,14 +454,19 @@ window.TutorialSystem = class TutorialSystem {
         case 'hack_complete':
           const currentHackDialogue = this.dialogue[this.currentDialogue];
           if (currentHackDialogue && currentHackDialogue.text === 'Complete the task to continue...') {
-            this.addDialogue('System breached! You\'ve still got your skills.', 'guide', 0);
-            
+            // AUTO-SKIP: Check if hack_start is also completed
             setTimeout(() => {
               const hasHackStart = this.completedObjectives.has('hack_start');
               if (hasHackStart) {
-                this.advanceDialogue();
+                console.log('⏩ AUTO-SKIP: All hacking objectives completed - advancing to final chapter');
+                this.startChapter(4);
+              } else {
+                this.addDialogue('System breached! You\'ve still got your skills.', 'guide', 0);
+                setTimeout(() => {
+                  this.advanceDialogue();
+                }, 100);
               }
-            }, 100);
+            }, 500);
             return;
           }
           break;
@@ -733,6 +746,39 @@ window.TutorialSystem = class TutorialSystem {
   checkObjective(id) {
     if (this.active) {
       this.completeObjective(id);
+    }
+  }
+  
+  _checkAutoSkipCurrentDialogue() {
+    // Check if current dialogue can be auto-skipped due to completed objectives
+    if (this.currentDialogue < 0 || this.currentDialogue >= this.dialogue.length) {
+      return;
+    }
+    
+    const currentDialogue = this.dialogue[this.currentDialogue];
+    if (!currentDialogue || !currentDialogue.requiresObjectives) {
+      return;
+    }
+    
+    // Check if all required objectives for this dialogue are now complete
+    const allRequiredComplete = currentDialogue.requiresObjectives.every(objId => 
+      this.completedObjectives.has(objId)
+    );
+    
+    if (allRequiredComplete) {
+      console.log('⏩ AUTO-SKIP: All objectives completed for current dialogue - auto-advancing');
+      
+      // Skip the typing animation and mark as ready to advance immediately
+      this.currentText = this.targetText;
+      this.characterIndex = this.targetText.length;
+      this.readyToAdvance = true;
+      
+      // Auto-advance after brief delay for player to see completion
+      setTimeout(() => {
+        if (this.active && allRequiredComplete) {
+          this.advanceDialogue();
+        }
+      }, 500);
     }
   }
   

@@ -3,7 +3,7 @@ window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({
   name: 'src/game/update-coordinator.js',
   exports: ['updateGame'],
-  dependencies: ['gameState', 'checkGameConditions', 'player', 'enemyManager', 'hackingSystem', 'rhythmSystem', 'renderer', 'particleSystem', 'spaceShipSystem', 'tutorialSystem', 'BroadcastJammerSystem', 'jammerIndicator', 'sector1Progression', 'objectivesSystem', 'loreSystem', 'lostDataSystem', 'audioSystem']
+  dependencies: ['gameState', 'checkGameConditions', 'player', 'enemyManager', 'hackingSystem', 'rhythmSystem', 'renderer', 'particleSystem', 'spaceShipSystem', 'tutorialSystem', 'jammerIndicator', 'sector1Progression', 'objectivesSystem', 'loreSystem', 'lostDataSystem', 'audioSystem']
 });
 
 // Main update function called from game loop
@@ -48,6 +48,9 @@ window.updateGame = function(deltaTime) {
   // Update tutorial
   updateTutorial(deltaTime);
   
+  // Update lost data system (fragments)
+  updateLostDataSystem(deltaTime);
+  
   // Update lore system
   updateLoreSystem(deltaTime);
   
@@ -81,9 +84,7 @@ function updateEnemies(deltaTime) {
       if (typeof window.enemyManager.checkCollisions === 'function') {
         window.enemyManager.checkCollisions(window.player);
       }
-      if (typeof window.enemyManager.checkPlayerAttacks === 'function') {
-        window.enemyManager.checkPlayerAttacks(window.player);
-      }
+      // Rhythm attacks only called from input.js on actual down arrow presses
     } catch (error) {
       console.error('Error updating enemy manager:', error?.message || error);
     }
@@ -147,14 +148,8 @@ function updateVisualSystems(deltaTime) {
     }
   }
   
-  // Update Broadcast Jammer System - INTEGRATED: Update jammer spawned by ObjectivesSystem
-  if (window.BroadcastJammerSystem && typeof window.BroadcastJammerSystem.update === 'function') {
-    try {
-      window.BroadcastJammerSystem.update(deltaTime);
-    } catch (error) {
-      console.error('Error updating Broadcast Jammer System:', error?.message || error);
-    }
-  }
+  // Jammer enemies are now handled through the regular EnemyManager
+  // No separate jammer system update needed
   
   // Update jammer indicator system
   if (window.jammerIndicator && typeof window.jammerIndicator.update === 'function') {
@@ -162,38 +157,45 @@ function updateVisualSystems(deltaTime) {
       const playerX = window.player ? window.player.position.x : 960;
       const playerY = window.player ? window.player.position.y : 750;
       
-      if (window.BroadcastJammerSystem && window.BroadcastJammerSystem.jammer && window.BroadcastJammerSystem.jammer.active) {
-        window.jammerIndicator.update(
-          deltaTime,
-          window.BroadcastJammerSystem.jammer.position,
-          playerX,
-          playerY
-        );
-      } else {
-        window.jammerIndicator.update(deltaTime, null, playerX, playerY);
+      // Check for active jammer enemy
+      let jammerPosition = null;
+      
+      if (window.enemyManager && window.enemyManager.enemies) {
+        const jammerEnemy = window.enemyManager.enemies.find(e => e.type === 'jammer' && e.active);
+        if (jammerEnemy) {
+          jammerPosition = {
+            x: jammerEnemy.position.x,
+            y: jammerEnemy.position.y
+          };
+        }
       }
+      
+      window.jammerIndicator.update(deltaTime, jammerPosition, playerX, playerY);
     } catch (error) {
       console.error('Error updating jammer indicator:', error?.message || error);
     }
   }
 }
 
-// Update sector progression system - SIMPLIFIED: Only progression state, no jammer spawning
+// Update sector progression system
 function updateSectorProgression(deltaTime) {
   if (window.sector1Progression) {
     try {
       window.sector1Progression.update(deltaTime);
       
-      // NOTE: Jammer spawning is now handled exclusively by ObjectivesSystem.update()
-      // This prevents duplicate spawns and ensures single authority for jammer creation
+      const tutorialCompleted = window.tutorialSystem && 
+        typeof window.tutorialSystem.isCompleted === 'function' && 
+        window.tutorialSystem.isCompleted();
       
+      // NOTE: Removed redundant jammer reveal calls - objectives system handles this exclusively
+      // The objectives system will handle jammer spawning when 20 enemies are defeated
     } catch (error) {
       console.error('Error updating Sector 1 progression:', error?.message || error);
     }
   }
 }
 
-// Update objectives system - CRITICAL: This triggers jammer spawning when enemy quota met
+// Update objectives system
 function updateObjectives(deltaTime) {
   if (window.objectivesSystem && typeof window.objectivesSystem.update === 'function') {
     try {
@@ -257,6 +259,17 @@ function updateTutorial(deltaTime) {
       if (window.tutorialSystem && typeof window.tutorialSystem.complete === 'function') {
         window.tutorialSystem.complete();
       }
+    }
+  }
+}
+
+// Update lost data system (fragments)
+function updateLostDataSystem(deltaTime) {
+  if (window.lostDataSystem && typeof window.lostDataSystem.update === 'function') {
+    try {
+      window.lostDataSystem.update(deltaTime);
+    } catch (error) {
+      console.error('Error updating lost data system:', error?.message || error);
     }
   }
 }

@@ -224,7 +224,14 @@ function drawBasicUI(ctx) {
   let progressText = 'SECTOR 1: THE CITY';
   
   if (window.sector1Progression) {
-    const jammerStatus = window.sector1Progression.broadcastJammerDestroyed ? '✓' : '📡';
+    // Check for jammer enemy instead of broadcastJammer
+    let jammerDestroyed = window.sector1Progression.broadcastJammerDestroyed;
+    // Also check if no active jammer enemies exist
+    if (!jammerDestroyed && window.enemyManager && window.enemyManager.enemies) {
+      const jammerEnemy = window.enemyManager.enemies.find(e => e.type === 'jammer' && e.active);
+      jammerDestroyed = !jammerEnemy;
+    }
+    const jammerStatus = jammerDestroyed ? '✓' : '📡';
     const enemyStatus = `${window.sector1Progression.enemiesDefeated}/${window.sector1Progression.requiredEnemyKills}`;
     progressText += ` | ${jammerStatus} Jammer | ${enemyStatus} Enemies`;
   }
@@ -351,7 +358,13 @@ function drawObjectives(ctx) {
   
   // Jammer objective (show after 20 enemies)
   if (enemiesDefeated >= requiredEnemies) {
-    const jammerDestroyed = window.sector1Progression && window.sector1Progression.broadcastJammerDestroyed;
+    // Check for jammer enemy instead of broadcastJammer
+    let jammerDestroyed = window.sector1Progression && window.sector1Progression.broadcastJammerDestroyed;
+    // Also check if no active jammer enemies exist
+    if (!jammerDestroyed && window.enemyManager && window.enemyManager.enemies) {
+      const jammerEnemy = window.enemyManager.enemies.find(e => e.type === 'jammer' && e.active);
+      jammerDestroyed = !jammerEnemy;
+    }
     ctx.fillStyle = jammerDestroyed ? '#00ff00' : '#ff9900';
     ctx.font = 'bold 14px monospace';
     ctx.textAlign = 'left';

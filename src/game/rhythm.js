@@ -584,12 +584,6 @@ window.RhythmSystem = class RhythmSystem {
     }
     this.lastInputTime = currentTime;
     
-    // SIMPLIFIED: Check jammer distance FIRST before timing
-    let jammerInRange = this.checkJammerInRange();
-    if (jammerInRange) {
-      console.log('🎵 JAMMER IN RANGE: Jammer is in range - waiting for timing check');
-    }
-    
     // CRITICAL: Calculate distance to NEXT BEAT for proper alignment
     // The beat just happened at lastBeatTime, so we need to measure from there
     if (this.lastBeatTime === 0) {
@@ -633,8 +627,8 @@ window.RhythmSystem = class RhythmSystem {
         window.audioSystem.playSound('synthHit', 0.3);
       }
       
-      // CRITICAL FIX: MISSED BEATS SHOULD NEVER DAMAGE JAMMER
-      return { hit: false, timing: 'miss', combo: 0, target: null };
+      // MISSED BEATS don't damage any enemies
+      return { hit: false, timing: 'miss', combo: 0 };
     }
     
     // CRITICAL FIX: Use distance to nearest beat for timing determination - NO COMPENSATION
@@ -675,12 +669,10 @@ window.RhythmSystem = class RhythmSystem {
       
       console.log(`${timing.toUpperCase()} HIT! Combo: ${this.combo}`);
       
-      // CRITICAL FIX: ONLY DAMAGE JAMMER ON SUCCESSFUL TIMING HITS
-      let jammerHit = false;
-      if (jammerInRange) {
-        console.log('🎵 SUCCESSFUL HIT WITH JAMMER IN RANGE - damaging jammer!');
-        window.BroadcastJammerSystem.onRhythmHit();
-        jammerHit = true;
+      // Apply rhythm damage to all enemies in range
+      if (window.enemyManager && window.enemyManager.checkPlayerAttacks) {
+        const rhythmResult = { hit: true, timing: timing, combo: this.combo };
+        window.enemyManager.checkPlayerAttacks(window.player, rhythmResult);
       }
       
       // DAMAGE BOSS if in boss fight
@@ -700,13 +692,14 @@ window.RhythmSystem = class RhythmSystem {
         console.log(`💀 Boss damaged! -${bossDamage} HP (${timing})`);
       }
       
-      return { hit: true, timing: timing, combo: this.combo, target: jammerHit ? 'jammer' : null };
+      console.log(`🎵 RHYTHM HIT RESULT: hit=true, timing=${timing}, combo=${this.combo}`);
+      return { hit: true, timing: timing, combo: this.combo };
     }
     
     // NOTE: We should never reach here because misses are handled above
     // This is just safety fallback
     console.log('SAFETY FALLBACK - Should never reach here!');
-    return { hit: false, timing: 'miss', combo: this.combo, target: null };
+    return { hit: false, timing: 'miss', combo: this.combo };
   }
   
   // Score calculation removed
@@ -2120,11 +2113,14 @@ window.RhythmSystem = class RhythmSystem {
   
   // Calculate damage radius based on combo growth (weaker start, gradual growth)
   getDamageRadius() {
-    if (!this.powerArcActive || this.arcGrowthLevel === 0) {
-      return this.baseDamageRadius; // Weaker base radius when no combo
+    // CRITICAL FIX: Always return a valid damage radius for rhythm attacks
+    // Even without power arcs, rhythm hits should damage enemies
+    
+    if (this.arcGrowthLevel === 0) {
+      return this.baseDamageRadius; // Base radius 250px for first hits
     }
     
-    // Gradual growth from 180px to 300px as combo increases from 1 to 10
+    // Gradual growth from 250px to 350px as combo increases from 1 to 10
     const growthProgress = this.arcGrowthLevel / this.maxArcGrowthLevel;
     const radiusGrowth = (this.maxDamageRadius - this.baseDamageRadius) * growthProgress;
     return this.baseDamageRadius + radiusGrowth;
@@ -2243,59 +2239,7 @@ window.RhythmSystem = class RhythmSystem {
     console.log('🔄 RHYTHM: Beat counter reset complete - continuing background tracking');
   }
   
-  // Simplified jammer range check
-  checkJammerInRange() {
-    if (!window.BroadcastJammerSystem || !window.BroadcastJammerSystem.jammer || !window.BroadcastJammerSystem.jammer.active) {
-      console.log('🎵 NO JAMMER: No active jammer found');
-      return false;
-    }
-    
-    const jammer = window.BroadcastJammerSystem.jammer;
-    
-    // Get player position
-    let playerX = 960, playerY = 750; // Default fallback
-    if (window.player && window.player.position) {
-      console.log('🎵 PLAYER POS TYPE:', typeof window.player.position);
-      console.log('🎵 PLAYER POS:', window.player.position);
-      
-      if (typeof window.player.position.x === 'number') {
-        playerX = window.player.position.x;
-        playerY = window.player.position.y;
-        console.log('🎵 USING DIRECT X/Y');
-      } else {
-        // Vector2D object - access properties directly
-        playerX = window.player.position.x || 960;
-        playerY = window.player.position.y || 750;
-        console.log('🎵 USING VECTOR2D X/Y');
-      }
-    }
-    
-    console.log(`🎵 FINAL PLAYER POS: (${playerX}, ${playerY})`);
-    console.log(`🎵 JAMMER POS: (${jammer.x}, ${jammer.y})`);
-    
-    // Calculate distance
-    const distance = Math.sqrt(
-      Math.pow(jammer.x - playerX, 2) + 
-      Math.pow(jammer.y - playerY, 2)
-    );
-    
-    // Get attack range
-    const attackRange = this.getDamageRadius();
-    
-    console.log(`🎵 DISTANCE: ${distance.toFixed(1)}px`);
-    console.log(`🎵 ATTACK RANGE: ${attackRange.toFixed(1)}px`);
-    console.log(`🎵 IN RANGE: ${distance <= attackRange}`);
-    
-    // Check if in range - damage is handled by main hit logic
-    if (distance <= attackRange) {
-      console.log('🎵 JAMMER IN RANGE: Jammer is within attack range');
-      return true;
-    } else {
-      console.log('🎵 JAMMER OUT OF RANGE: Jammer is too far away');
-    }
-    
-    return false;
-  }
+  // Jammer handling removed - jammers are now regular enemies handled by EnemyManager
   
   // ========================================
   // LOOP RESTART SYSTEM
