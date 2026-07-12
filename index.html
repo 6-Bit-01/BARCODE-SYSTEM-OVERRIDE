@@ -760,8 +760,16 @@
             let loadingIndicator;
 
             try {
-                // Show loading indicator
+                // Reset any stale retry failure presentation before hiding the title.
                 loadingIndicator = document.getElementById('loadingIndicator');
+                if (loadingIndicator) {
+                    loadingIndicator.textContent = 'INITIALIZING SYSTEM...';
+                    loadingIndicator.style.color = '';
+                    loadingIndicator.classList.remove('visible');
+                }
+                this.disabled = false;
+                this.textContent = 'START SYSTEM';
+
                 // Use title screen transition if available
                 if (window.titleScreen && typeof window.titleScreen.hide === 'function') {
                     window.titleScreen.hide();
@@ -963,18 +971,27 @@
             });
         }
         
-        // Monitor game state for debugging
-        setInterval(() => {
-            if (gameInitialized && window.gameState) {
-                console.log('Game state:', {
-                    running: window.gameState.running,
-                    audioReady: !!(window.audioSystem && window.audioSystem.isInitialized()),
-                    playerReady: !!window.player,
-                    rhythmActive: !!(window.rhythmSystem && window.rhythmSystem.isActive && window.rhythmSystem.isActive()),
-                    fullscreen: !!document.fullscreenElement
-                });
-            }
-        }, 5000);
+        // Optional recurring state monitor. Disabled by default to avoid normal-play log churn.
+        if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) {
+            window.gameStateDebugInterval = setInterval(() => {
+                if (gameInitialized && window.gameState) {
+                    console.log('Game state:', {
+                        running: window.gameState.running,
+                        audioReady: !!(window.audioSystem && window.audioSystem.isInitialized()),
+                        playerReady: !!window.player,
+                        rhythmActive: !!(window.rhythmSystem && window.rhythmSystem.isActive && window.rhythmSystem.isActive()),
+                        fullscreen: !!document.fullscreenElement
+                    });
+                }
+            }, 5000);
+
+            window.addEventListener('beforeunload', () => {
+                if (window.gameStateDebugInterval) {
+                    clearInterval(window.gameStateDebugInterval);
+                    window.gameStateDebugInterval = null;
+                }
+            });
+        }
     </script>
 </body>
 </html>

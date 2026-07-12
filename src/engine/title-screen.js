@@ -12,6 +12,10 @@ window.TitleScreen = class TitleScreen {
     this.backgroundImage = null;
     this.effects = [];
     this.scanlineOffset = 0;
+    this.animationFrameHandle = null;
+    this.hideTimeoutHandle = null;
+    this.hideGeneration = 0;
+    this.scanlineElement = null;
     this.glitchTimer = 0;
     this.textRevealTimer = 0;
     this.particleSystem = null;
@@ -127,11 +131,25 @@ window.TitleScreen = class TitleScreen {
     document.head.appendChild(style);
   }
 
+  scheduleAnimationFrame() {
+    if (this.animationFrameHandle !== null || this.overlay.classList.contains('hidden')) return;
+    this.animationFrameHandle = requestAnimationFrame((timestamp) => this.animate(timestamp));
+  }
+
   startAnimationLoop() {
-    this.animate();
+    this.scheduleAnimationFrame();
+  }
+
+  stopAnimationLoop() {
+    if (this.animationFrameHandle !== null) {
+      cancelAnimationFrame(this.animationFrameHandle);
+      this.animationFrameHandle = null;
+    }
   }
 
   animate() {
+    this.animationFrameHandle = null;
+    if (this.overlay.classList.contains('hidden')) return;
     // Update scanlines
     this.scanlineOffset += 2;
     if (this.scanlineOffset > 10) this.scanlineOffset = 0;
@@ -162,7 +180,7 @@ window.TitleScreen = class TitleScreen {
     // Apply scanline effect
     this.applyScanlineEffect();
 
-    requestAnimationFrame(() => this.animate());
+    this.scheduleAnimationFrame();
   }
 
   revealTitle() {
@@ -245,11 +263,13 @@ window.TitleScreen = class TitleScreen {
   }
 
   applyScanlineEffect() {
-    if (!this.overlay.classList.contains('hidden')) {
-      const scanline = document.createElement('div');
-      scanline.style.cssText = `
+    if (this.overlay.classList.contains('hidden')) return;
+
+    if (!this.scanlineElement) {
+      this.scanlineElement = document.createElement('div');
+      this.scanlineElement.dataset.titleScanline = 'true';
+      this.scanlineElement.style.cssText = `
         position: absolute !important;
-        top: ${this.scanlineOffset * 10}px !important;
         left: 0 !important;
         right: 0 !important;
         height: 2px !important;
@@ -261,17 +281,10 @@ window.TitleScreen = class TitleScreen {
         z-index: 100 !important;
         pointer-events: none !important;
       `;
-      
-      this.overlay.appendChild(scanline);
-      
-      // Remove old scanlines
-      setTimeout(() => {
-        const scanlines = this.overlay.querySelectorAll('[style*="top:"]');
-        if (scanlines.length > 20) {
-          scanlines[0].remove();
-        }
-      }, 100);
+      this.overlay.appendChild(this.scanlineElement);
     }
+
+    this.scanlineElement.style.top = `${this.scanlineOffset * 10}px`;
   }
 
   applyGlitchEffect() {
@@ -480,12 +493,21 @@ window.TitleScreen = class TitleScreen {
       console.log('🎮 Audio system not available - cannot stop title music');
     }
     
+    this.stopAnimationLoop();
+    const hideGeneration = ++this.hideGeneration;
+    if (this.hideTimeoutHandle !== null) {
+      clearTimeout(this.hideTimeoutHandle);
+      this.hideTimeoutHandle = null;
+    }
+
     this.overlay.style.transition = 'all 1s ease-in-out';
     this.overlay.style.opacity = '0';
     this.overlay.style.transform = 'scale(1.2) rotate(5deg)';
     this.overlay.style.filter = 'blur(10px) brightness(1.5)';
     
-    setTimeout(() => {
+    this.hideTimeoutHandle = setTimeout(() => {
+      this.hideTimeoutHandle = null;
+      if (hideGeneration !== this.hideGeneration) return;
       this.overlay.classList.add('hidden');
       this.overlay.style.transition = '';
       this.overlay.style.opacity = '';
@@ -497,6 +519,11 @@ window.TitleScreen = class TitleScreen {
 
   // Show title screen with effects
   show() {
+    this.hideGeneration++;
+    if (this.hideTimeoutHandle !== null) {
+      clearTimeout(this.hideTimeoutHandle);
+      this.hideTimeoutHandle = null;
+    }
     this.overlay.classList.remove('hidden');
     this.overlay.style.opacity = '0';
     this.overlay.style.transform = 'scale(0.8) rotate(-5deg)';
@@ -520,6 +547,8 @@ window.TitleScreen = class TitleScreen {
     this.buttonRevealed = false;
     this.instructionsRevealed = false;
     
+    this.startAnimationLoop();
+
     // DO NOT auto-start music - let boot loader control it
     console.log('🎮 Title screen shown - music controlled by boot loader');
     

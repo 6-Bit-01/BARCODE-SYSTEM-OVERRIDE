@@ -108,6 +108,7 @@
     "tools/audit-syntax-all.js",
     "tools/baseline-common.js",
     "tools/check-baseline.js",
+    "tools/check-frame-ownership.js",
     "tools/check-startup-lifecycle.js",
     "tools/check-syntax.js",
     "tools/generate-baseline.js",
@@ -370,7 +371,7 @@
     {
       "global": "window.gameLoop",
       "file": "src/core/loop.js",
-      "line": 17,
+      "line": 44,
       "loaded": true
     },
     {
@@ -412,19 +413,19 @@
     {
       "global": "window.renderer",
       "file": "src/engine/renderer.js",
-      "line": 428,
+      "line": 429,
       "loaded": true
     },
     {
       "global": "window.renderer",
       "file": "src/engine/renderer.js",
-      "line": 500,
+      "line": 501,
       "loaded": true
     },
     {
       "global": "window.renderer",
       "file": "src/engine/renderer.js",
-      "line": 517,
+      "line": 518,
       "loaded": true
     },
     {
@@ -448,7 +449,7 @@
     {
       "global": "window.startGameLoop",
       "file": "src/core/loop.js",
-      "line": 87,
+      "line": 110,
       "loaded": true
     },
     {
