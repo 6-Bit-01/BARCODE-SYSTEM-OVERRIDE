@@ -2,8 +2,8 @@
 window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({
   name: 'src/core/loop.js',
-  exports: ['gameLoop', 'startGame', 'pauseGame', 'resumeGame'],
-  dependencies: []
+  exports: ['gameLoop', 'startGameLoop', 'pauseGame', 'resumeGame'],
+  dependencies: ['updateGame', 'renderGame', 'resetRenderContext']
 });
 
 // Frame timing and game state - ensure proper initialization
@@ -39,10 +39,10 @@ window.gameLoop = function(timestamp) {
     window.inputManager.update();
   }
 
-  // Update game logic
-  if (window.update) {
+  // Update game logic using coordinator system
+  if (window.updateGame) {
     try {
-      window.update(cappedDelta);
+      window.updateGame(cappedDelta);
     } catch (error) {
       console.error('Error in game update:', error?.message || error);
     }
@@ -57,10 +57,10 @@ window.gameLoop = function(timestamp) {
     }
   }
 
-  // Render frame with enhanced error handling
-  if (window.render) {
+  // Render frame using coordinator system with enhanced error handling
+  if (window.renderGame) {
     try {
-      window.render();
+      window.renderGame();
     } catch (error) {
       console.error('Error in game render:', error?.message || error);
       console.error('Render error stack:', error?.stack || 'No stack available');
@@ -83,8 +83,8 @@ window.gameLoop = function(timestamp) {
   requestAnimationFrame(window.gameLoop);
 };
 
-// Start the game
-window.startGame = function() {
+// Start the game loop (renamed to avoid conflicts with main game controller)
+window.startGameLoop = function() {
   window.lastTime = performance.now();
   window.isRunning = true;
   window.isPaused = false;

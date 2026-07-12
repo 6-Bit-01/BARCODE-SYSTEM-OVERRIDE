@@ -208,6 +208,13 @@ window.initGameState = function() {
     window.objectivesSystem.reset();
   }
   
-  // Start the game
-  window.startGame();
+  // Start the game using the main game controller
+  if (typeof window.startGame === 'function') {
+    window.startGame();
+  } else {
+    console.warn('Main game startGame function not available, using fallback');
+    if (typeof window.startGameLoop === 'function') {
+      window.startGameLoop();
+    }
+  }
 };

@@ -182,6 +182,13 @@ window.InputManager = class InputManager {
                 if (typeof window.tutorialSystem.checkObjective === 'function') {
                   window.tutorialSystem.checkObjective('rhythm_start');
                   
+                  // AUTO-SKIP: Check if we can auto-skip current dialogue after objective completion
+                  setTimeout(() => {
+                    if (window.tutorialSystem && typeof window.tutorialSystem._checkAutoSkipCurrentDialogue === 'function') {
+                      window.tutorialSystem._checkAutoSkipCurrentDialogue();
+                    }
+                  }, 200);
+                  
                   // Fallback: Force add to completed set if checkObjective fails
                   setTimeout(() => {
                     if (!window.tutorialSystem.completedObjectives.has('rhythm_start')) {
@@ -325,6 +332,17 @@ window.InputManager = class InputManager {
       
       if (e.key === 't' || e.key === 'T') {
         e.preventDefault();
+        
+        // Skip boot screen if boot loader is active (highest priority)
+        if (window.bootLoader && window.bootLoader.isActive) {
+          console.log('T pressed - skipping boot screen');
+          if (window.DEBUG && typeof window.DEBUG.skipBootScreen === 'function') {
+            const result = window.DEBUG.skipBootScreen();
+            console.log('Boot screen skip result:', result);
+          }
+          return; // Don't process tutorial skip if boot was skipped
+        }
+        
         // Skip entire tutorial and start spawning enemies
         if (window.tutorialSystem && window.tutorialSystem.isActive()) {
           console.log('T pressed - skipping entire tutorial');

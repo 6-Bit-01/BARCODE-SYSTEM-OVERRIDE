@@ -37,9 +37,14 @@ window.gameManager = {
     this.resetEnemies();
     this.resetObjectives();
     
-    // Start game loop
+    // Start game using main game controller
     if (typeof window.startGame === 'function') {
       window.startGame();
+    } else if (typeof window.startGameLoop === 'function') {
+      console.warn('Main game startGame not available, using loop startGameLoop');
+      window.startGameLoop();
+    } else {
+      console.error('No game start function available');
     }
   },
   
@@ -115,7 +120,7 @@ window.gameManager = {
     if (shouldUpdateEnemies && window.enemyManager.update) {
       window.enemyManager.update(dt, window.player);
       window.enemyManager.checkCollisions(window.player);
-      window.enemyManager.checkPlayerAttacks(window.player);
+      // Rhythm attacks only called from input.js on actual down arrow presses
     }
   },
   
@@ -184,6 +189,11 @@ window.gameManager = {
   handleGameOver() {
     this.state.gameOver = true;
     this.state.running = false;
+    
+    // Preserve completed objectives on game over
+    if (window.objectivesSystem && typeof window.objectivesSystem.onGameOver === 'function') {
+      window.objectivesSystem.onGameOver();
+    }
     
     // Play game over effects
     if (window.renderer && window.renderer.addScreenShake) {

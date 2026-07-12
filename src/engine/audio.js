@@ -130,6 +130,9 @@ window.AudioSystem = class AudioSystem {
       // Load player damage sound
       await this.loadPlayerDamageSound();
       
+      // Load enemy defeat sounds
+      await this.loadEnemyDefeatSounds();
+      
       // Load enemy sounds
       await this.loadEnemySounds();
       
@@ -1197,6 +1200,255 @@ window.AudioSystem = class AudioSystem {
       console.log('No rhythm success sounds available, using fallback');
       this.playSound('success');
     }
+  }
+  
+  // Load enemy defeat sounds
+  async loadEnemyDefeatSounds() {
+    console.log('🦠 Loading enemy defeat sounds...');
+    
+    // Load defeat sounds for each enemy type
+    const defeatUrls = {
+      virus: {
+        url: 'https://api.makko.ai/storage/v1/object/public/audio-assets/e56876ca-50d1-4b32-bcb9-1e37b7d1f822/a9fa8406-26c0-4f8d-b961-70dc99e0f52f.mp3',
+        fallback: this.createVirusDefeatFallback(),
+        soundName: 'virusDefeat'
+      },
+      corrupted: {
+        url: 'https://api.makko.ai/storage/v1/object/public/audio-assets/e56876ca-50d1-4b32-bcb9-1e37b7d1f822/e39ab293-b53e-41d9-b837-58ab36c027f1.mp3',
+        fallback: this.createCorruptedDefeatFallback(),
+        soundName: 'corruptedDefeat'
+      },
+      firewall: {
+        url: 'https://api.makko.ai/storage/v1/object/public/audio-assets/e56876ca-50d1-4b32-bcb9-1e37b7d1f822/cc0b2256-2a0e-41e7-a88f-04d68df83dd5.mp3',
+        fallback: this.createFirewallDefeatFallback(),
+        soundName: 'firewallDefeat'
+      }
+    };
+    
+    for (const [enemyType, defeatData] of Object.entries(defeatUrls)) {
+      try {
+        console.log(`Loading ${enemyType} defeat sound from: ${defeatData.url}`);
+        
+        const response = await fetch(defeatData.url, { method: 'HEAD' });
+        
+        if (response.ok) {
+          const fullResponse = await fetch(defeatData.url);
+          const arrayBuffer = await fullResponse.arrayBuffer();
+          
+          const audioBuffer = await this.context.decodeAudioData(arrayBuffer);
+          
+          this.sounds[defeatData.soundName] = () => {
+            const now = this.context.currentTime;
+            const source = this.context.createBufferSource();
+            source.buffer = audioBuffer;
+            source.connect(this.sfxGain);
+            source.start(now);
+            return now + audioBuffer.duration;
+          };
+          
+          console.log(`✓ Loaded ${enemyType} defeat sound`);
+        } else {
+          console.log(`${enemyType} defeat sound not available (HTTP ${response.status}), creating fallback`);
+          this.sounds[defeatData.soundName] = defeatData.fallback;
+        }
+      } catch (error) {
+        console.log(`Error loading ${enemyType} defeat sound:`, error?.message || 'Network error');
+        this.sounds[defeatData.soundName] = defeatData.fallback;
+      }
+    }
+  }
+  
+  // Create fallback virus defeat sound
+  createVirusDefeatFallback() {
+    return () => {
+      const now = this.context.currentTime;
+      const duration = 0.4;
+      
+      // Create digital defeat sound for virus
+      const osc = this.context.createOscillator();
+      const noise = this.context.createBufferSource();
+      
+      // Create noise buffer for static effect
+      const noiseBuffer = this.context.createBuffer(1, this.context.sampleRate * duration, this.context.sampleRate);
+      const noiseData = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < noiseData.length; i++) {
+        noiseData[i] = (Math.random() - 0.5) * 0.3;
+      }
+      noise.buffer = noiseBuffer;
+      
+      // Oscillator setup - descending pitch for defeat
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(300, now);
+      osc.frequency.exponentialRampToValueAtTime(50, now + duration);
+      
+      // Envelope for defeat sound
+      const envelope = this.context.createGain();
+      envelope.gain.setValueAtTime(0.4, now);
+      envelope.gain.exponentialRampToValueAtTime(0.01, now + duration);
+      
+      // Filter for digital character
+      const filter = this.context.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = 1500;
+      filter.Q.value = 3;
+      
+      // Connect nodes
+      osc.connect(filter);
+      noise.connect(filter);
+      filter.connect(envelope);
+      envelope.connect(this.sfxGain);
+      
+      // Play sound
+      osc.start(now);
+      noise.start(now);
+      osc.stop(now + duration);
+      noise.stop(now + duration);
+      
+      return now + duration;
+    };
+  }
+  
+  // Create fallback corrupted defeat sound
+  createCorruptedDefeatFallback() {
+    return () => {
+      const now = this.context.currentTime;
+      const duration = 0.5;
+      
+      // Create glitchy defeat sound for corrupted enemies
+      const osc1 = this.context.createOscillator();
+      const osc2 = this.context.createOscillator();
+      const noise = this.context.createBufferSource();
+      
+      // Create noise buffer
+      const noiseBuffer = this.context.createBuffer(1, this.context.sampleRate * duration, this.context.sampleRate);
+      const noiseData = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < noiseData.length; i++) {
+        noiseData[i] = (Math.random() - 0.5) * 0.4;
+      }
+      noise.buffer = noiseBuffer;
+      
+      // Oscillator 1 - glitchy descending tone
+      osc1.type = 'square';
+      osc1.frequency.setValueAtTime(400, now);
+      osc1.frequency.exponentialRampToValueAtTime(100, now + duration);
+      
+      // Oscillator 2 - rapid pulsing
+      osc2.type = 'sawtooth';
+      osc2.frequency.setValueAtTime(200, now);
+      osc2.frequency.exponentialRampToValueAtTime(50, now + 0.3);
+      
+      // Envelope for corrupted defeat
+      const envelope = this.context.createGain();
+      envelope.gain.setValueAtTime(0.5, now);
+      envelope.gain.exponentialRampToValueAtTime(0.01, now + duration);
+      
+      // Filter for glitchy character
+      const filter = this.context.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.value = 1200;
+      filter.Q.value = 5;
+      
+      // Connect nodes
+      osc1.connect(filter);
+      osc2.connect(filter);
+      noise.connect(filter);
+      filter.connect(envelope);
+      envelope.connect(this.sfxGain);
+      
+      // Play sound
+      osc1.start(now);
+      osc2.start(now);
+      noise.start(now);
+      osc1.stop(now + duration);
+      osc2.stop(now + duration);
+      noise.stop(now + duration);
+      
+      return now + duration;
+    };
+  }
+  
+  // Create fallback firewall defeat sound
+  createFirewallDefeatFallback() {
+    return () => {
+      const now = this.context.currentTime;
+      const duration = 0.6;
+      
+      // Create heavy defeat sound for firewall enemies
+      const osc1 = this.context.createOscillator();
+      const osc2 = this.context.createOscillator();
+      const noise = this.context.createBufferSource();
+      
+      // Create noise buffer for explosion effect
+      const noiseBuffer = this.context.createBuffer(1, this.context.sampleRate * duration, this.context.sampleRate);
+      const noiseData = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < noiseData.length; i++) {
+        noiseData[i] = (Math.random() - 0.5) * 0.5;
+      }
+      noise.buffer = noiseBuffer;
+      
+      // Oscillator 1 - low frequency rumble
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(80, now);
+      osc1.frequency.exponentialRampToValueAtTime(30, now + duration);
+      
+      // Oscillator 2 - heavy impact
+      osc2.type = 'triangle';
+      osc2.frequency.setValueAtTime(150, now);
+      osc2.frequency.exponentialRampToValueAtTime(60, now + 0.4);
+      
+      // Envelope for heavy defeat
+      const envelope = this.context.createGain();
+      envelope.gain.setValueAtTime(0.6, now);
+      envelope.gain.exponentialRampToValueAtTime(0.01, now + duration);
+      
+      // Filter for heavy impact
+      const filter = this.context.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = 800;
+      filter.Q.value = 2;
+      
+      // Connect nodes
+      osc1.connect(filter);
+      osc2.connect(filter);
+      noise.connect(filter);
+      filter.connect(envelope);
+      envelope.connect(this.sfxGain);
+      
+      // Play sound
+      osc1.start(now);
+      osc2.start(now);
+      noise.start(now);
+      osc1.stop(now + duration);
+      osc2.stop(now + duration);
+      noise.stop(now + duration);
+      
+      return now + duration;
+    };
+  }
+  
+  // Play enemy defeat sound based on enemy type
+  playEnemyDefeatSound(enemyType) {
+    const soundName = `${enemyType}Defeat`;
+    const fallbackSound = enemyType === 'virus' ? 'terminalBuzz' : 'synthHit';
+    
+    if (this.sounds[soundName]) {
+      try {
+        this.sounds[soundName]();
+        console.log(`🦠 Playing ${enemyType} defeat sound`);
+      } catch (error) {
+        console.error(`Error playing ${enemyType} defeat sound:`, error?.message || error);
+        // Fallback sound
+        this.playSound(fallbackSound);
+      }
+    } else {
+      // Fallback sound
+      this.playSound(fallbackSound);
+    }
+  }
+  
+  // Legacy method for backward compatibility
+  playVirusDefeatSound() {
+    this.playEnemyDefeatSound('virus');
   }
   
   // Load player damage sound

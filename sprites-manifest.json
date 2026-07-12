@@ -238,6 +238,104 @@
       "metadata": {
         "character_id": "87c97df3-0f91-4092-ba08-1186b6089d55"
       }
+    },
+    "broadcast_jammer_broadcastjammer": {
+      "animations": {
+        "broadcast_jammer_idle_idle": {
+          "fps": 12,
+          "json": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/c1bb9200-964c-4585-bcbd-4783dd7308cd/broadcast_jammer_idle_idle.json?t=1764135071672",
+          "image": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/c1bb9200-964c-4585-bcbd-4783dd7308cd/broadcast_jammer_idle_idle.webp?t=1764135071672",
+          "anchor": {
+            "x": 128,
+            "y": 214,
+            "strategy": "bottom-center",
+            "normalized": {
+              "x": 0.5,
+              "y": 0.9771689497716894
+            }
+          },
+          "priority": "medium",
+          "dimensions": {
+            "width": 256,
+            "height": 219
+          },
+          "frameCount": 48,
+          "animationLength": 4
+        }
+      },
+      "metadata": {
+        "character_id": "c28f11ef-56d0-4164-bbc9-70fb4ba18958"
+      }
+    },
+    "sector_1_boss_sector1boss": {
+      "animations": {
+        "sector_1_boss_idle_idle": {
+          "fps": 12,
+          "json": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/9e454993-1489-4f31-bd2e-1b09d01b4635/sector_1_boss_idle_idle.json?t=1764605128926",
+          "image": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/9e454993-1489-4f31-bd2e-1b09d01b4635/sector_1_boss_idle_idle.webp?t=1764605128926",
+          "anchor": {
+            "x": 128,
+            "y": 178,
+            "strategy": "bottom-center",
+            "normalized": {
+              "x": 0.5,
+              "y": 0.994413407821229
+            }
+          },
+          "priority": "medium",
+          "dimensions": {
+            "width": 256,
+            "height": 179
+          },
+          "frameCount": 48,
+          "animationLength": 4
+        },
+        "sector_1_boss_walk_walk": {
+          "fps": 12,
+          "json": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/761d5e25-3a15-4971-8000-bc3fa795d0fe/sector_1_boss_walk_walk.json?t=1764605128926",
+          "image": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/761d5e25-3a15-4971-8000-bc3fa795d0fe/sector_1_boss_walk_walk.webp?t=1764605128926",
+          "anchor": {
+            "x": 100,
+            "y": 253,
+            "strategy": "bottom-center",
+            "normalized": {
+              "x": 0.5,
+              "y": 0.98828125
+            }
+          },
+          "priority": "medium",
+          "dimensions": {
+            "width": 200,
+            "height": 256
+          },
+          "frameCount": 41,
+          "animationLength": 3.4166666666666665
+        },
+        "sector_1_boss_attack_attack": {
+          "fps": 12,
+          "json": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/59f8ac6f-2d22-47ab-b277-db335b8b7e1b/sector_1_boss_attack_attack.json?t=1764605128926",
+          "image": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/59f8ac6f-2d22-47ab-b277-db335b8b7e1b/sector_1_boss_attack_attack.webp?t=1764605128926",
+          "anchor": {
+            "x": 128,
+            "y": 154,
+            "strategy": "bottom-center",
+            "normalized": {
+              "x": 0.5,
+              "y": 0.9935483870967742
+            }
+          },
+          "priority": "medium",
+          "dimensions": {
+            "width": 256,
+            "height": 155
+          },
+          "frameCount": 48,
+          "animationLength": 4
+        }
+      },
+      "metadata": {
+        "character_id": "3f883188-ce0e-46b9-a12b-ebe6805c7352"
+      }
     }
   }
 }
