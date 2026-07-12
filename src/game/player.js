@@ -394,7 +394,7 @@ window.Player = class Player {
       }
       
       // DEBUG: Log animation status periodically
-      if (!this.lastAnimLog || Date.now() - this.lastAnimLog > 3000) {
+      if (window.BARCODE_DEBUG_FRAME_OWNERSHIP && (!this.lastAnimLog || Date.now() - this.lastAnimLog > 3000)) {
         const isPlaying = this.sprite ? this.sprite.playing : 'null';
         const frameInfo = this.animationRef ? `frame=${this.animationRef.currentFrame}/${this.animationRef.totalFrames}` : 'no-ref';
         if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log(`🎬 Animation Status: state=${this.state}, current=${this.currentAnimation}, spriteCurrent=${spriteCurrentAnim}, playing=${isPlaying}, ${frameInfo}`);
@@ -1386,13 +1386,13 @@ window.Player = class Player {
       } else if (this.facing === 1) {
         drawX -= 40; // Move idle animation TOWARD BACK 40px when facing right
       }
-      console.log('🧍 Idle animation moved up 30px and toward back 40px');
+      if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log('🧍 Idle animation moved up 30px and toward back 40px');
     } else if (this.state === 'walk') {
       drawY -= 11; // Move walk animation UP 11px from base position (7+4 more)
-      console.log('🚶 Walk animation moved up 11px');
+      if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log('🚶 Walk animation moved up 11px');
     } else if (this.state === 'rhythm') {
       drawY -= 30; // Move rhythm animation UP 30px from base position (10+20 more)
-      console.log('🎵 Rhythm animation moved up 30px');
+      if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log('🎵 Rhythm animation moved up 30px');
     }
     
     // Handle directional flipping for animations
@@ -1415,13 +1415,13 @@ window.Player = class Player {
     let animationScale = 2; // Default scale for all animations
     if (this.state === 'rhythm') {
       animationScale = 2 * (60 / 51); // Scale rhythm animation to ~60px at 2x base scale (6px bigger)
-      console.log(`🎵 Rhythm animation scaled: ${animationScale.toFixed(2)}x to ~60px`);
+      if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log(`🎵 Rhythm animation scaled: ${animationScale.toFixed(2)}x to ~60px`);
     } else if (this.state === 'walk') {
       animationScale = 2 * (71 / 66); // Scale walk animation to ~71px at 2x base scale
-      console.log(`🚶 Walk animation scaled: ${animationScale.toFixed(2)}x to ~71px`);
+      if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log(`🚶 Walk animation scaled: ${animationScale.toFixed(2)}x to ~71px`);
     } else if (this.state === 'jump') {
       animationScale = 2 * (49 / 41); // Scale jump animation to ~49px at 2x base scale (4px bigger)
-      console.log(`🦘 Jump animation scaled: ${animationScale.toFixed(2)}x to ~49px`);
+      if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log(`🦘 Jump animation scaled: ${animationScale.toFixed(2)}x to ~49px`);
     }
     
     this.sprite.draw(ctx, drawX, drawY, {
