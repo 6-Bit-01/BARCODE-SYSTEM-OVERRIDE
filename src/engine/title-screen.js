@@ -444,11 +444,34 @@ window.TitleScreen = class TitleScreen {
   hide() {
     console.log('🎮 HIDING TITLE SCREEN - STOPPING TITLE MUSIC NOW');
     
+    // CRITICAL: Block any further title screen music attempts immediately
+    window.titleScreenMusicBlocked = true;
+    console.log('🎮 titleScreenMusicBlocked = true set immediately');
+    
     // STOP title screen music IMMEDIATELY when hiding
     if (window.audioSystem) {
       console.log('🎮 STOPPING TITLE SCREEN MUSIC IMMEDIATELY');
       try {
+        // Method 1: Stop title screen music
         window.audioSystem.stopTitleScreenMusic();
+        console.log('🎮 stopTitleScreenMusic() called successfully');
+        
+        // Method 2: Force stop all title screen related audio nodes
+        if (window.audioSystem.titleScreenSource) {
+          try {
+            window.audioSystem.titleScreenSource.stop();
+            console.log('🎮 titleScreenSource.stop() called');
+          } catch (e) {
+            // Source may already be stopped
+          }
+        }
+        
+        // Method 3: Zero out title screen gain
+        if (window.audioSystem.titleScreenGain) {
+          window.audioSystem.titleScreenGain.gain.value = 0;
+          console.log('🎮 titleScreenGain set to 0');
+        }
+        
         console.log('🎮 Title screen music stopped successfully');
       } catch (error) {
         console.warn('🎮 Error stopping title screen music:', error?.message || error);

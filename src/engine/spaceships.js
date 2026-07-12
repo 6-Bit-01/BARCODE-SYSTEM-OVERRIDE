@@ -2,7 +2,7 @@
 window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({
   name: 'src/engine/spaceships.js',
-  exports: ['SpaceShipSystem', 'spaceShipSystem'],
+  exports: ['SpaceShipSystem', 'spaceShipSystem', 'initSpaceShips'],
   dependencies: ['Vector2D', 'clamp']
 });
 

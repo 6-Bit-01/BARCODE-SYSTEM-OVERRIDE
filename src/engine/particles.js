@@ -278,25 +278,11 @@ window.ParticleSystem = class ParticleSystem {
     }
   }
 
-  // Jump effect - larger smoke puff
+  // Jump effect - minimal particles (removed white smoke for regular jumps)
   jumpEffect(x, y, enemyType = null) {
-    const colors = enemyType ? this.getEnemyColors(enemyType) : ['#cccccc'];
-    
-    for (let i = 0; i < 8; i++) {
-      const color = colors[0];
-      
-      this.particles.push(new window.Particle(
-        x, y,
-        window.randomRange(-25, 25),
-        window.randomRange(-40, -15),
-        color,
-        window.randomRange(5, 8),
-        window.randomRange(400, 600),
-        'circle',
-        Math.random() * Math.PI * 2,
-        true // growAndDissipate for smoke effect
-      ));
-    }
+    // Regular jumps no longer create white particle effects
+    // Only down arrow jumps should create visual effects via stompEffect
+    return;
   }
 
   // Landing effect - larger smoke puff
@@ -365,7 +351,7 @@ window.ParticleSystem = class ParticleSystem {
         window.randomRange(-80, 80), // Wider horizontal spread
         Math.max(-50, window.randomRange(-50, -10)), // Force upward velocity only
         smokeColor,
-        window.randomRange(8, 14), // Much shorter smoke particles (42-48 → 8-14)
+        window.randomRange(4, 8), // EVEN SMALLER smoke particles (8-14 → 4-8)
         window.randomRange(600, 900), // Longer lasting smoke
         'circle',
         Math.random() * Math.PI * 2,
@@ -620,6 +606,66 @@ window.ParticleSystem = class ParticleSystem {
         window.randomRange(3, 6),
         window.randomRange(200, 400),
         'star',
+        Math.random() * Math.PI * 2
+      ));
+    }
+  }
+  
+  // Lightning effect for electrical attacks
+  createLightning(x1, y1, x2, y2, color = '#00ffff', segments = 5) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    // Create lightning segments
+    const points = [{x: x1, y: y1}];
+    
+    for (let i = 1; i < segments; i++) {
+      const t = i / segments;
+      const baseX = x1 + dx * t;
+      const baseY = y1 + dy * t;
+      
+      // Add random offset perpendicular to line
+      const perpX = -dy / distance;
+      const perpY = dx / distance;
+      const offset = (Math.random() - 0.5) * 30;
+      
+      points.push({
+        x: baseX + perpX * offset,
+        y: baseY + perpY * offset
+      });
+    }
+    
+    points.push({x: x2, y: y2});
+    
+    // Create particles along lightning path
+    for (let i = 0; i < points.length - 1; i++) {
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      const midX = (p1.x + p2.x) / 2;
+      const midY = (p1.y + p2.y) / 2;
+      
+      // Main lightning particle
+      this.particles.push(new window.Particle(
+        midX, midY,
+        window.randomRange(-10, 10),
+        window.randomRange(-10, 10),
+        color,
+        window.randomRange(2, 4),
+        window.randomRange(100, 200),
+        'circle',
+        Math.random() * Math.PI * 2
+      ));
+      
+      // Glow particles
+      this.particles.push(new window.Particle(
+        midX, midY,
+        window.randomRange(-5, 5),
+        window.randomRange(-5, 5),
+        '#ffffff',
+        window.randomRange(1, 3),
+        window.randomRange(50, 100),
+        'circle',
         Math.random() * Math.PI * 2
       ));
     }

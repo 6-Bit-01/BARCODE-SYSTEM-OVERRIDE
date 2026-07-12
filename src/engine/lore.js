@@ -2,7 +2,7 @@
 window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({
   name: 'src/engine/lore.js',
-  exports: ['LoreSystem', 'loreSystem'],
+  exports: ['LoreSystem', 'loreSystem', 'initLore'],
   dependencies: []
 });
 
@@ -107,30 +107,19 @@ window.LoreSystem = class LoreSystem {
   // Check if tutorial is completed and activate lore system
   checkTutorialComplete() {
     if (!this.isActive) {
-      // CRITICAL FIX: Only activate lore when tutorial is COMPLETELY finished
+      // FIXED: Simplified tutorial check - activate if tutorial is not active
       const tutorialExists = window.tutorialSystem;
-      const tutorialActive = tutorialExists && 
-                           typeof window.tutorialSystem.isActive === 'function' && 
-                           window.tutorialSystem.isActive();
+      let tutorialActive = false;
       
-      // Tutorial must be completely finished (not active)
-      if (!tutorialActive && tutorialExists) {
-        const tutorialCompleted = typeof window.tutorialSystem.isCompleted === 'function' && 
-                                window.tutorialSystem.isCompleted();
-        
-        // Additional check: tutorial is inactive AND completed
-        const tutorialInactive = !window.tutorialSystem.active;
-        
-        if (tutorialCompleted || tutorialInactive) {
-          this.isActive = true;
-          console.log('✅ Lore system ACTIVATED - tutorial completely finished');
-        } else {
-          console.log('📖 Lore system INACTIVE - tutorial still active or not completed');
-        }
-      } else if (!tutorialExists) {
-        // No tutorial system - activate lore immediately
+      if (tutorialExists) {
+        tutorialActive = typeof window.tutorialSystem.isActive === 'function' && 
+                        window.tutorialSystem.isActive();
+      }
+      
+      // Activate lore if tutorial doesn't exist or is not active
+      if (!tutorialExists || !tutorialActive) {
         this.isActive = true;
-        console.log('✅ Lore system activated - no tutorial present');
+        console.log('✅ Lore system ACTIVATED - tutorial not blocking');
       } else {
         console.log('📖 Lore system BLOCKED - tutorial still active');
       }
@@ -155,31 +144,26 @@ window.LoreSystem = class LoreSystem {
   
   // Display specific lore message (called by fragment collection)
   displayLoreMessage(loreText) {
-    // IMMEDIATE DISPLAY: Show lore immediately upon fragment pickup
-    console.log('📖 LORE IMMEDIATE: Displaying lore instantly upon fragment pickup');
+    // Display lore immediately
+    console.log('📖 LORE: Displaying lore from fragment collection');
     
-    // Display lore immediately with no delay
     this.currentLore = loreText;
     this.displayTime = Date.now();
-    this.targetOpacity = 0; // Start invisible for fade-in
+    this.targetOpacity = 0;
     this.targetBoxHeight = this.calculateBoxHeight();
-    this.displayDuration = 12000; // 12 seconds display
+    this.displayDuration = 12000; // 12 seconds for collected lore
     
-    // Add glitch effect for drama
+    // Add stronger glitch effect for collected lore
     this.glitchIntensity = 0.3 + Math.random() * 0.2;
     
-    // Clear any pending lore
-    this.pendingLore = null;
-    this.loreScheduled = false;
-    
-    console.log(`📖 NOW DISPLAYING lore: ${this.currentLore.substring(0, 50)}...`);
+    console.log(`📖 DISPLAYING collected lore: ${this.currentLore.substring(0, 50)}...`);
     
     return true;
   }
   
   // Legacy method - no longer displays random lore
   startLoreDisplay() {
-    console.log('📖 Random lore display disabled - use displayLoreMessage instead');
+    console.log('📖 Random lore display disabled - lore only from fragment collection');
   }
   
   // Calculate box height based on text
@@ -214,27 +198,26 @@ window.LoreSystem = class LoreSystem {
     };
   }
   
-  // Update lore system - immediate display with smooth fade-in
+  // Update lore system - only for fragment-triggered display
   update(deltaTime) {
     const currentTime = Date.now();
     
-    // LORE DISPLAY REMOVED: No more 1-minute delay system
-    // Lore now displays immediately when displayLoreMessage() is called
-    // This section is no longer needed but kept for reference
+    // Check if tutorial is complete and activate if needed
+    this.checkTutorialComplete();
     
-    // Only update visual effects for currently displayed lore
+    // Only update visual effects for currently displayed lore (from fragment collection)
     if (this.currentLore) {
       const elapsed = currentTime - this.displayTime;
       
-      // SLOW FADE-IN: 3 second fade in (was 0.5 seconds)
-      if (elapsed < 3000) {
-        this.targetOpacity = Math.min(1, elapsed / 3000); // 3 second fade
+      // Fade in
+      if (elapsed < 1000) {
+        this.targetOpacity = Math.min(1, elapsed / 1000);
       }
       // Hold
       else if (elapsed < this.displayDuration - 1000) {
         this.targetOpacity = 1;
       }
-      // FADE OUT: 1 second fade out
+      // Fade out
       else if (elapsed < this.displayDuration) {
         this.targetOpacity = Math.max(0, 1 - (elapsed - (this.displayDuration - 1000)) / 1000);
       }
@@ -246,9 +229,9 @@ window.LoreSystem = class LoreSystem {
         this.glitchIntensity = 0;
       }
       
-      // Update visual effects with SMOOTHER transitions
-      this.textOpacity += (this.targetOpacity - this.textOpacity) * 0.01; // Slower fade speed
-      this.boxHeight += (this.targetBoxHeight - this.boxHeight) * 0.05; // Smoother box animation
+      // Update visual effects
+      this.textOpacity += (this.targetOpacity - this.textOpacity) * this.fadeSpeed;
+      this.boxHeight += (this.targetBoxHeight - this.boxHeight) * 0.1;
       
       // Update CRT effects
       this.glitchOffset += deltaTime / 50;
@@ -434,4 +417,62 @@ window.activateLoreSystem = function() {
   }
   console.log('⚠️ Lore system already active or not available');
   return false;
+};
+
+// Debug function to test lore display immediately
+window.testLoreDisplay = function(message = 'Test lore message - this should appear at the bottom of the screen with purple glow effects') {
+  if (!window.loreSystem) {
+    console.log('❌ Lore system not initialized');
+    return false;
+  }
+  
+  // Force activate lore system
+  window.loreSystem.isActive = true;
+  
+  // Display test message immediately
+  const success = window.loreSystem.displayLoreMessage(message);
+  
+  console.log(`🧪 TEST: Displaying lore message: "${message.substring(0, 50)}..."`);
+  console.log(`🧪 Lore system active: ${window.loreSystem.isActive}`);
+  console.log(`🧪 Current lore: ${window.loreSystem.currentLore ? window.loreSystem.currentLore.substring(0, 30) + '...' : 'None'}`);
+  console.log(`🧪 Display time: ${new Date(window.loreSystem.displayTime).toISOString()}`);
+  
+  return success;
+};
+
+// Debug function to check lore system status
+window.checkLoreSystemStatus = function() {
+  if (!window.loreSystem) {
+    console.log('❌ Lore system not initialized');
+    return;
+  }
+  
+  const tutorialActive = window.tutorialSystem && 
+                       typeof window.tutorialSystem.isActive === 'function' && 
+                       window.tutorialSystem.isActive();
+  
+  const tutorialCompleted = window.tutorialSystem && 
+                          typeof window.tutorialSystem.isCompleted === 'function' && 
+                          window.tutorialSystem.isCompleted();
+  
+  console.log('=== LORE SYSTEM STATUS ===');
+  console.log(`✅ Lore system initialized: ${window.loreSystem ? 'YES' : 'NO'}`);
+  console.log(`📖 Lore system active: ${window.loreSystem.isActive}`);
+  console.log(`🎓 Tutorial active: ${tutorialActive}`);
+  console.log(`🎓 Tutorial completed: ${tutorialCompleted}`);
+  console.log(`💬 Currently displaying: ${window.loreSystem.currentLore ? window.loreSystem.currentLore.substring(0, 50) + '...' : 'Nothing'}`);
+  console.log(`⏱️ Display started: ${window.loreSystem.displayTime ? new Date(window.loreSystem.displayTime).toLocaleTimeString() : 'Never'}`);
+  console.log(`🎭 Text opacity: ${window.loreSystem.textOpacity.toFixed(3)}`);
+  console.log(`🎯 Target opacity: ${window.loreSystem.targetOpacity.toFixed(3)}`);
+  console.log(`📦 Box height: ${window.loreSystem.boxHeight.toFixed(1)}px`);
+  console.log(`🎚️ Canvas size: ${window.loreSystem.canvasWidth}x${window.loreSystem.canvasHeight}`);
+  
+  if (window.loreSystem.currentLore) {
+    const elapsed = Date.now() - window.loreSystem.displayTime;
+    const remaining = Math.max(0, window.loreSystem.displayDuration - elapsed);
+    console.log(`⏳ Time elapsed: ${(elapsed/1000).toFixed(1)}s`);
+    console.log(`⏳ Time remaining: ${(remaining/1000).toFixed(1)}s`);
+  }
+  
+  console.log('=== END LORE STATUS ===');
 };

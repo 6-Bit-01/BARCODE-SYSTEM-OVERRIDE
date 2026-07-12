@@ -151,11 +151,44 @@ window.CutsceneSystem = class CutsceneSystem {
       console.warn('⚠️ Some images failed to load, continuing with fallbacks');
     }
     
-    // Stop any title screen music before starting cutscene music
-    if (window.audioSystem && typeof window.audioSystem.stopTitleScreenMusic === 'function') {
-      window.audioSystem.stopTitleScreenMusic();
-      console.log('🎬 Stopped title screen music before cutscene');
+    // CRITICAL: Force stop any title screen music immediately before starting cutscene
+    console.log('🎬 FORCE STOPPING all title screen music before cutscene...');
+    
+    if (window.audioSystem) {
+      try {
+        // Method 1: Stop title screen music
+        if (typeof window.audioSystem.stopTitleScreenMusic === 'function') {
+          window.audioSystem.stopTitleScreenMusic();
+          console.log('🎬 stopTitleScreenMusic() called successfully');
+        }
+        
+        // Method 2: Force stop all title screen related audio nodes
+        if (window.audioSystem.titleScreenSource) {
+          try {
+            window.audioSystem.titleScreenSource.stop();
+            console.log('🎬 titleScreenSource.stop() called');
+          } catch (e) {
+            // Source may already be stopped
+          }
+        }
+        
+        // Method 3: Zero out title screen gain
+        if (window.audioSystem.titleScreenGain) {
+          window.audioSystem.titleScreenGain.gain.value = 0;
+          console.log('🎬 titleScreenGain set to 0');
+        }
+        
+        // Method 4: Block any further title screen music attempts
+        window.titleScreenMusicBlocked = true;
+        console.log('🎬 titleScreenMusicBlocked = true set');
+        
+      } catch (error) {
+        console.warn('🎬 Error stopping title screen music:', error?.message || error);
+      }
     }
+    
+    // Additional delay to ensure title music is fully stopped
+    await new Promise(resolve => setTimeout(resolve, 100));
     
     // Start cutscene music
     if (window.audioSystem && typeof window.audioSystem.playCutsceneMusic === 'function') {
@@ -741,10 +774,10 @@ window.CutsceneSystem = class CutsceneSystem {
   endCutscene() {
     if (!this.isActive) return;
     
-    console.log('🎬 Cutscene ended');
+    console.log('🎬 Cutscene ended - starting game audio transition');
     
     // CRITICAL: DO NOT stop cutscene music immediately - keep it playing for smooth fade out
-    console.log('🎬 Cutscene ended - keeping cutscene music playing for smooth fade out');
+    console.log('🎬 Keeping cutscene music playing for smooth fade out');
     
     // Clear any pending timer
     if (this.nextImageTimer) {
@@ -875,6 +908,13 @@ window.CutsceneSystem = class CutsceneSystem {
           window.rhythmSystem.startBackgroundRhythm(146);
           console.log('🎬 Rhythm beat tracking now active - synchronized with fresh music start');
         }
+        
+        // CRITICAL: Clear the title screen music block AFTER game music starts
+        // This prevents any race conditions where title music could restart
+        setTimeout(() => {
+          window.titleScreenMusicBlocked = false;
+          console.log('🎬 titleScreenMusicBlocked cleared - game music now active');
+        }, 1000);
       }, fadeDuration * 1000);
     } else {
       console.log('🎬 Cutscene source not available or volume too low, skipping fade');

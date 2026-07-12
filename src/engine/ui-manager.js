@@ -2,7 +2,7 @@
 window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({
   name: 'src/engine/ui-manager.js',
-  exports: ['uiManager', 'updateUI', 'drawGameUI'],
+  exports: ['uiManager', 'updateUI'],
   dependencies: []
 });
 
@@ -116,8 +116,16 @@ window.uiManager = {
       objectivesHTML += `<div>Defeat ${enemiesDefeated}/${enemiesRequired} enemies</div>`;
     }
     
-    // Jammer objective
-    if (window.sector1Progression && window.sector1Progression.broadcastJammerDestroyed) {
+    // Jammer objective - check for jammer enemy instead of broadcastJammer
+    let jammerDestroyed = window.sector1Progression && window.sector1Progression.broadcastJammerDestroyed;
+    // Also check if no active jammer enemies exist
+    if (!jammerDestroyed && window.enemyManager && window.enemyManager.enemies) {
+      const jammerEnemy = window.enemyManager.enemies.find(e => e.type === 'jammer' && e.active);
+      jammerDestroyed = !jammerEnemy;
+    }
+    if (jammerDestroyed) {
+      objectivesHTML += '<div>✓ Destroy the jammer (R key)</div>';
+    } else if (window.sector1Progression && window.sector1Progression.enemiesDefeated >= 20) {
       objectivesHTML += '<div>Destroy the jammer (R key)</div>';
     }
     

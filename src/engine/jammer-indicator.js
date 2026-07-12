@@ -2,7 +2,7 @@
 window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({
   name: 'src/engine/jammer-indicator.js',
-  exports: ['JammerIndicator', 'jammerIndicator'],
+  exports: ['JammerIndicator', 'jammerIndicator', 'initJammerIndicator'],
   dependencies: ['Vector2D', 'distance', 'clamp']
 });
 
@@ -36,6 +36,13 @@ window.JammerIndicator = class JammerIndicator {
   }
   
   update(deltaTime, jammerPosition, playerX, playerY) {
+    // Enhanced parameter validation
+    if (!deltaTime || deltaTime < 0) return;
+    if (!playerX || !playerY) {
+      playerX = playerX || 960;
+      playerY = playerY || 750;
+    }
+    
     const dt = deltaTime / 1000;
     this.animationTime += deltaTime;
     
@@ -67,7 +74,8 @@ window.JammerIndicator = class JammerIndicator {
   }
   
   isJammerOnScreen(playerX, playerY) {
-    if (!this.targetPosition) return false;
+    // Enhanced input validation
+    if (!this.targetPosition || !playerX || !playerY) return false;
     
     // Get current zoom level from renderer if available
     const zoomLevel = window.renderer ? window.renderer.getZoomLevel() : 1.0;
@@ -92,19 +100,30 @@ window.JammerIndicator = class JammerIndicator {
   }
   
   calculateArrowPosition(playerX, playerY) {
-    if (!this.targetPosition) return;
+    // Enhanced input validation
+    if (!this.targetPosition || !playerX || !playerY) return;
     
     // Calculate angle from player to jammer
     const dx = this.targetPosition.x - playerX;
     const dy = this.targetPosition.y - playerY;
     this.angle = Math.atan2(dy, dx);
     
-    // Calculate arrow position at screen edge
-    // We want the arrow to point from screen edge toward the jammer
+    // Calculate camera position for side-scrolling
+    const canvasWidth = 1920;
+    const worldWidth = 4096;
+    const halfCanvas = canvasWidth / 2;
     
-    // Calculate intersection with screen bounds
-    const screenCenterX = 960;
-    const screenCenterY = 540;
+    let cameraX = playerX;
+    cameraX = window.clamp?.(cameraX, halfCanvas, worldWidth - halfCanvas) || playerX;
+    const cameraOffsetX = 960 - cameraX;
+    
+    // Convert world position to screen position
+    const playerScreenX = 960; // Player is always centered horizontally
+    const playerScreenY = playerY;
+    
+    // Calculate arrow position at screen edge relative to camera
+    const screenCenterX = playerScreenX;
+    const screenCenterY = playerScreenY;
     
     // Create direction vector
     const dirX = Math.cos(this.angle);
@@ -140,7 +159,11 @@ window.JammerIndicator = class JammerIndicator {
     });
     
     if (closestPoint) {
-      this.indicatorPosition = closestPoint;
+      // Convert screen position back to world position
+      this.indicatorPosition = {
+        x: closestPoint.x - cameraOffsetX,
+        y: closestPoint.y
+      };
     }
   }
   
@@ -159,6 +182,47 @@ window.JammerIndicator = class JammerIndicator {
     }
     
     return null;
+  }
+  
+  placeArrowAtNearestEdge() {
+    // Fallback method if line intersection fails
+    const angle = this.angle;
+    const centerX = 960;
+    const centerY = 540;
+    
+    // Determine which edge the arrow should be on based on angle
+    const normalizedAngle = ((angle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+    
+    // Calculate position on the edge based on angle for more precise placement
+    if (normalizedAngle >= -Math.PI/4 && normalizedAngle < Math.PI/4) {
+      // Right side (0 degrees ± 45 degrees)
+      const yOffset = Math.tan(normalizedAngle) * (this.safeArea.right - centerX);
+      this.indicatorPosition = { 
+        x: this.safeArea.right, 
+        y: window.clamp(centerY + yOffset, this.safeArea.top, this.safeArea.bottom) 
+      };
+    } else if (normalizedAngle >= Math.PI/4 && normalizedAngle < 3*Math.PI/4) {
+      // Bottom side (90 degrees ± 45 degrees)
+      const xOffset = Math.tan(normalizedAngle - Math.PI/2) * (this.safeArea.bottom - centerY);
+      this.indicatorPosition = { 
+        x: window.clamp(centerX + xOffset, this.safeArea.left, this.safeArea.right), 
+        y: this.safeArea.bottom 
+      };
+    } else if (normalizedAngle >= 3*Math.PI/4 && normalizedAngle < 5*Math.PI/4) {
+      // Left side (180 degrees ± 45 degrees)
+      const yOffset = Math.tan(normalizedAngle - Math.PI) * (centerX - this.safeArea.left);
+      this.indicatorPosition = { 
+        x: this.safeArea.left, 
+        y: window.clamp(centerY + yOffset, this.safeArea.top, this.safeArea.bottom) 
+      };
+    } else {
+      // Top side (270 degrees ± 45 degrees)
+      const xOffset = Math.tan(normalizedAngle - 3*Math.PI/2) * (centerY - this.safeArea.top);
+      this.indicatorPosition = { 
+        x: window.clamp(centerX + xOffset, this.safeArea.left, this.safeArea.right), 
+        y: this.safeArea.top 
+      };
+    }
   }
   
   show() {
@@ -202,7 +266,8 @@ window.JammerIndicator = class JammerIndicator {
   }
   
   draw(ctx) {
-    if (this.alpha <= 0 || !this.active || !this.targetPosition) return;
+    // Enhanced error handling with null/undefined checks
+    if (!ctx || this.alpha <= 0 || !this.active || !this.targetPosition) return;
     
     ctx.save();
     
@@ -322,14 +387,20 @@ window.JammerIndicator = class JammerIndicator {
     }
   }
   
-  // Check if any jammer is off-screen
-  static hasOffScreenJammer(jammers, playerX, playerY) {
-    if (!jammers || jammers.length === 0) return false;
+  // Check if any jammer enemy is off-screen
+  static hasOffScreenJammer(enemies, playerX, playerY) {
+    // Enhanced parameter validation
+    if (!enemies || enemies.length === 0) return false;
+    if (!playerX || !playerY) {
+      playerX = playerX || 960;
+      playerY = playerY || 750;
+    }
     
-    return jammers.some(jammer => {
-      if (!jammer || !jammer.active || !jammer.position) return false;
+    // Filter for jammer enemies and check if any are off-screen
+    return enemies.some(enemy => {
+      if (!enemy || !enemy.active || enemy.type !== 'jammer' || !enemy.position) return false;
       
-      // Check if jammer is on-screen
+      // Check if jammer enemy is on-screen
       const zoomLevel = window.renderer ? window.renderer.getZoomLevel() : 1.0;
       const visibleWidth = 1920 / zoomLevel;
       const visibleHeight = 850 / zoomLevel;
@@ -341,28 +412,33 @@ window.JammerIndicator = class JammerIndicator {
       
       const margin = 50;
       return !(
-        jammer.position.x >= leftBound - margin &&
-        jammer.position.x <= rightBound + margin &&
-        jammer.position.y >= topBound - margin &&
-        jammer.position.y <= bottomBound + margin
+        enemy.position.x >= leftBound - margin &&
+        enemy.position.x <= rightBound + margin &&
+        enemy.position.y >= topBound - margin &&
+        enemy.position.y <= bottomBound + margin
       );
     });
   }
   
-  // Get the nearest off-screen jammer
-  static getNearestOffScreenJammer(jammers, playerX, playerY) {
-    if (!jammers || jammers.length === 0) return null;
+  // Get the nearest off-screen jammer enemy
+  static getNearestOffScreenJammer(enemies, playerX, playerY) {
+    // Enhanced parameter validation
+    if (!enemies || enemies.length === 0) return null;
+    if (!playerX || !playerY) {
+      playerX = playerX || 960;
+      playerY = playerY || 750;
+    }
     
     let nearestJammer = null;
     let minDistance = Infinity;
     
-    jammers.forEach(jammer => {
-      if (!jammer || !jammer.active || !jammer.position) return;
+    enemies.forEach(enemy => {
+      if (!enemy || !enemy.active || enemy.type !== 'jammer' || !enemy.position) return;
       
-      const dist = window.distance(playerX, playerY, jammer.position.x, jammer.position.y);
+      const dist = window.distance(playerX, playerY, enemy.position.x, enemy.position.y);
       
       if (dist < minDistance) {
-        // Check if this jammer is off-screen
+        // Check if this jammer enemy is off-screen
         const zoomLevel = window.renderer ? window.renderer.getZoomLevel() : 1.0;
         const visibleWidth = 1920 / zoomLevel;
         const visibleHeight = 850 / zoomLevel;
@@ -374,15 +450,15 @@ window.JammerIndicator = class JammerIndicator {
         
         const margin = 50;
         const isOnScreen = (
-          jammer.position.x >= leftBound - margin &&
-          jammer.position.x <= rightBound + margin &&
-          jammer.position.y >= topBound - margin &&
-          jammer.position.y <= bottomBound + margin
+          enemy.position.x >= leftBound - margin &&
+          enemy.position.x <= rightBound + margin &&
+          enemy.position.y >= topBound - margin &&
+          enemy.position.y <= bottomBound + margin
         );
         
         if (!isOnScreen) {
           minDistance = dist;
-          nearestJammer = jammer;
+          nearestJammer = enemy;
         }
       }
     });
