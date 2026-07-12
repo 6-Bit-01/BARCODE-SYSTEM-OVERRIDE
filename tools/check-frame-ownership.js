@@ -29,6 +29,7 @@ const update = read('src/game/update-coordinator.js');
 const title = read('src/engine/title-screen.js');
 const parallax = read('src/engine/parallax.js');
 const player = read('src/game/player.js');
+const spaceships = read('src/engine/spaceships.js');
 const index = read('index.html');
 const design = read('docs/design/LEVEL_01_VERTICAL_SLICE.md');
 const jammerPatch = read('jammer-fix-patch.js');
@@ -108,6 +109,31 @@ for (const [name, source] of [['parallax', parallax], ['player', player], ['inde
   if (/console\.log\((?:`|')?(?:🔧 Parallax draw called|Drawing layer|🎬 Animation Status|Game state:)/.test(source) && !source.includes('BARCODE_DEBUG_FRAME_OWNERSHIP')) {
     fail(`${name} high-frequency diagnostics must be gated behind BARCODE_DEBUG_FRAME_OWNERSHIP.`);
   }
+}
+for (const marker of [
+  'Idle animation moved up 30px',
+  'Walk animation moved up 11px',
+  'Rhythm animation moved up 30px',
+  'Rhythm animation scaled:',
+  'Walk animation scaled:',
+  'Jump animation scaled:'
+]) {
+  const line = player.split(/\r?\n/).find((entry) => entry.includes(marker));
+  if (!line || !line.includes('BARCODE_DEBUG_FRAME_OWNERSHIP')) {
+    fail(`player draw-loop diagnostic must be explicitly debug-gated: ${marker}`);
+  }
+}
+if (!player.includes('if (window.BARCODE_DEBUG_FRAME_OWNERSHIP && (!this.lastAnimLog || Date.now() - this.lastAnimLog > 3000))')) {
+  fail('player periodic animation diagnostic work must be disabled during normal play.');
+}
+for (const marker of ['Drawing ship ${ship.shipType + 1} with GIF', 'Drawing fallback ship at']) {
+  const line = spaceships.split(/\r?\n/).find((entry) => entry.includes(marker));
+  if (!line || !line.includes('BARCODE_DEBUG_FRAME_OWNERSHIP')) {
+    fail(`spaceship draw-loop diagnostic must be explicitly debug-gated: ${marker}`);
+  }
+}
+if (!spaceships.includes('if (window.BARCODE_DEBUG_FRAME_OWNERSHIP && (!this.lastDebugLog || Date.now() - this.lastDebugLog > 1000))')) {
+  fail('spaceship recurring status work must be disabled during normal play.');
 }
 if (index.includes('gameStateDebugInterval = setInterval') && (!index.includes("window.addEventListener('beforeunload'") || !index.includes('clearInterval(window.gameStateDebugInterval)'))) {
   fail('debug gameStateDebugInterval must have explicit beforeunload cleanup.');
