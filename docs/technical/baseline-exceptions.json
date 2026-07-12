@@ -1,0 +1,26 @@
+{
+  "exceptions": [
+    {
+      "id": "missing-makko-runtime",
+      "type": "missing-first-party-reference",
+      "path": "/lib/MakkoEngine.min.js",
+      "source": "index.html",
+      "classification": ["confirmed repository fact", "owner/Makko verification required"],
+      "reason": "index.html loads this host/runtime path, but the file is absent from the repository. It may be supplied by Makko or hosting infrastructure."
+    },
+    {
+      "id": "inactive-syntax-src-core-boot",
+      "type": "inactive-javascript-syntax-failure",
+      "path": "src/core/boot.js",
+      "classification": ["confirmed repository fact", "not runtime-tested"],
+      "reason": "The file is not loaded by index.html and currently fails static JavaScript syntax inspection. PR-001 documents rather than fixes it."
+    },
+    {
+      "id": "inactive-syntax-src-core-game-game-manager",
+      "type": "inactive-javascript-syntax-failure",
+      "path": "src/core/game/game-manager.js",
+      "classification": ["confirmed repository fact", "not runtime-tested"],
+      "reason": "The file is not loaded by index.html and currently fails static JavaScript syntax inspection. PR-001 documents rather than fixes it."
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "barcode-system-override-baseline",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Static validation baseline for BARCODE: System Override.",
+  "scripts": {
+    "check:syntax": "node tools/check-syntax.js",
+    "audit:syntax:all": "node tools/audit-syntax-all.js --audit",
+    "check:syntax:all": "node tools/audit-syntax-all.js --check",
+    "audit:paths": "node tools/audit-paths.js",
+    "audit:globals": "node tools/audit-globals.js",
+    "audit:external-assets": "node tools/audit-external-assets.js",
+    "baseline:generate": "node tools/generate-baseline.js",
+    "baseline:check": "node tools/check-baseline.js",
+    "test": "npm run check:syntax && npm run audit:paths && npm run audit:globals && npm run audit:external-assets && npm run baseline:check"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

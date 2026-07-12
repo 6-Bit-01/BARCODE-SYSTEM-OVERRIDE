@@ -1,0 +1,543 @@
+{
+  "repository": "6-Bit-01/BARCODE-SYSTEM-OVERRIDE",
+  "baseCommit": "a2f1e81b61d0fde4fdabc41c597bf44910911c2f",
+  "generationDate": "deterministic-pr001-baseline",
+  "generatorVersion": "1.0.0",
+  "entryHtml": "index.html",
+  "externalScriptOrder": [
+    "/lib/MakkoEngine.min.js",
+    "src/utils/math.js",
+    "src/core/fullscreen.js",
+    "src/core/input.js",
+    "src/engine/audio.js",
+    "src/engine/boot-loader.js",
+    "src/engine/particles.js",
+    "src/engine/renderer.js",
+    "src/engine/parallax.js",
+    "src/engine/spaceships.js",
+    "src/engine/lore.js",
+    "src/engine/jammer-indicator.js",
+    "src/engine/jammer-arrow-indicator.js",
+    "src/engine/title-screen.js",
+    "src/game/objectives.js",
+    "src/engine/cutscene.js",
+    "src/core/loop.js",
+    "src/game/player.js",
+    "src/game/enemies.js",
+    "src/game/jammer-spawn-logic.js",
+    "src/game/hacking.js",
+    "src/game/rhythm.js",
+    "src/game/tutorial.js",
+    "src/game/post-tutorial-objectives.js",
+    "src/game/lost-data.js",
+    "src/game/sector1-progression.js",
+    "src/game/game-state.js",
+    "src/game/update-coordinator.js",
+    "src/game/render-coordinator.js",
+    "src/game/ui-manager.js",
+    "src/game/game-initializer.js",
+    "src/game/dependency-validator.js",
+    "src/game/debug-commands.js",
+    "jammer-fix-patch.js",
+    "src/game/collision-fix.js",
+    "src/game/main-new.js",
+    "[inline]"
+  ],
+  "loadedRepositoryJs": [
+    "src/utils/math.js",
+    "src/core/fullscreen.js",
+    "src/core/input.js",
+    "src/engine/audio.js",
+    "src/engine/boot-loader.js",
+    "src/engine/particles.js",
+    "src/engine/renderer.js",
+    "src/engine/parallax.js",
+    "src/engine/spaceships.js",
+    "src/engine/lore.js",
+    "src/engine/jammer-indicator.js",
+    "src/engine/jammer-arrow-indicator.js",
+    "src/engine/title-screen.js",
+    "src/game/objectives.js",
+    "src/engine/cutscene.js",
+    "src/core/loop.js",
+    "src/game/player.js",
+    "src/game/enemies.js",
+    "src/game/jammer-spawn-logic.js",
+    "src/game/hacking.js",
+    "src/game/rhythm.js",
+    "src/game/tutorial.js",
+    "src/game/post-tutorial-objectives.js",
+    "src/game/lost-data.js",
+    "src/game/sector1-progression.js",
+    "src/game/game-state.js",
+    "src/game/update-coordinator.js",
+    "src/game/render-coordinator.js",
+    "src/game/ui-manager.js",
+    "src/game/game-initializer.js",
+    "src/game/dependency-validator.js",
+    "src/game/debug-commands.js",
+    "jammer-fix-patch.js",
+    "src/game/collision-fix.js",
+    "src/game/main-new.js"
+  ],
+  "unloadedRepositoryJs": [
+    "final-verification-test.js",
+    "jammer-audio-patch.js",
+    "src/core/boot.js",
+    "src/core/game-manager.js",
+    "src/core/game/game-manager.js",
+    "src/engine/game-logic.js",
+    "src/engine/ui-manager.js",
+    "src/game/broadcast-jammer.js",
+    "src/game/jammer-arrow.js",
+    "src/game/jammer-arrows.js",
+    "src/game/jammer-simple.js",
+    "src/game/jammer.js",
+    "src/game/main-legacy-backup.js",
+    "src/game/main-legacy-removed.js",
+    "src/game/main.js",
+    "src/game/music-controls.js",
+    "src/game/rhythm-fixed.js",
+    "src/game/simple-jammer.js",
+    "test-jammer-spawn-fix.js",
+    "test-jammer-spawn.js",
+    "test-rhythm-functionality.js",
+    "test-rhythm-system-verification.js",
+    "tools/audit-external-assets.js",
+    "tools/audit-globals.js",
+    "tools/audit-paths.js",
+    "tools/audit-syntax-all.js",
+    "tools/baseline-common.js",
+    "tools/check-baseline.js",
+    "tools/check-syntax.js",
+    "tools/generate-baseline.js",
+    "verify-jammer-autospawn.js"
+  ],
+  "loadedAndInlineSyntaxStatus": {
+    "loadedFiles": [
+      {
+        "file": "src/utils/math.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/core/fullscreen.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/core/input.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/engine/audio.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/engine/boot-loader.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/engine/particles.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/engine/renderer.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/engine/parallax.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/engine/spaceships.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/engine/lore.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/engine/jammer-indicator.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/engine/jammer-arrow-indicator.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/engine/title-screen.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/objectives.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/engine/cutscene.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/core/loop.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/player.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/enemies.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/jammer-spawn-logic.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/hacking.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/rhythm.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/tutorial.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/post-tutorial-objectives.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/lost-data.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/sector1-progression.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/game-state.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/update-coordinator.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/render-coordinator.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/ui-manager.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/game-initializer.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/dependency-validator.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/debug-commands.js",
+        "status": "pass"
+      },
+      {
+        "file": "jammer-fix-patch.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/collision-fix.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/main-new.js",
+        "status": "pass"
+      }
+    ],
+    "inlineScripts": [
+      {
+        "index": 37,
+        "status": "pass"
+      }
+    ]
+  },
+  "inactiveSyntaxFailures": [
+    {
+      "file": "src/core/boot.js",
+      "message": "Unexpected identifier 'queueInit'",
+      "line": null
+    },
+    {
+      "file": "src/core/game/game-manager.js",
+      "message": "Unexpected identifier 'handlePlayerDamage'",
+      "line": null
+    }
+  ],
+  "missingFirstPartyReferences": [
+    {
+      "source": "final-verification-test.js",
+      "reference": "src/game/enhanced-broadcast-jammer.js",
+      "normalizedPath": "src/game/enhanced-broadcast-jammer.js",
+      "kind": "string-reference"
+    },
+    {
+      "source": "index.html",
+      "reference": "/lib/MakkoEngine.min.js",
+      "normalizedPath": "lib/MakkoEngine.min.js",
+      "kind": "script"
+    }
+  ],
+  "externalHosts": [
+    {
+      "host": "api.makko.ai",
+      "sourceFiles": [
+        "audio-manifest.json",
+        "jammer-fix-patch.js",
+        "sprites-manifest.json",
+        "src/engine/audio.js",
+        "src/game/enemies.js"
+      ]
+    },
+    {
+      "host": "dcnmwoxzefwqmvvkpqap.supabase.co",
+      "sourceFiles": [
+        "sprites-manifest.json",
+        "src/engine/audio.js"
+      ]
+    },
+    {
+      "host": "fonts.googleapis.com",
+      "sourceFiles": [
+        "index.html"
+      ]
+    },
+    {
+      "host": "i.postimg.cc",
+      "sourceFiles": [
+        "src/engine/cutscene.js",
+        "src/engine/parallax.js",
+        "src/engine/spaceships.js",
+        "src/engine/title-screen.js",
+        "src/game/broadcast-jammer.js",
+        "src/game/lost-data.js"
+      ]
+    }
+  ],
+  "criticalGlobalAssignments": [
+    {
+      "global": "window.Enemy",
+      "file": "jammer-fix-patch.js",
+      "line": 12,
+      "loaded": true
+    },
+    {
+      "global": "window.EnemyManager",
+      "file": "jammer-fix-patch.js",
+      "line": 1307,
+      "loaded": true
+    },
+    {
+      "global": "window.enemyManager",
+      "file": "jammer-fix-patch.js",
+      "line": 1770,
+      "loaded": true
+    },
+    {
+      "global": "window.EnemyManager",
+      "file": "src/game/enemies.js",
+      "line": 1259,
+      "loaded": true
+    },
+    {
+      "global": "window.enemyManager",
+      "file": "src/game/enemies.js",
+      "line": 1722,
+      "loaded": true
+    },
+    {
+      "global": "window.Enemy",
+      "file": "src/game/enemies.js",
+      "line": 12,
+      "loaded": true
+    },
+    {
+      "global": "window.gameLoop",
+      "file": "src/core/loop.js",
+      "line": 17,
+      "loaded": true
+    },
+    {
+      "global": "window.gameState",
+      "file": "src/core/boot.js",
+      "line": 185,
+      "loaded": false
+    },
+    {
+      "global": "window.gameState",
+      "file": "src/game/game-state.js",
+      "line": 10,
+      "loaded": true
+    },
+    {
+      "global": "window.gameState",
+      "file": "src/game/game-state.js",
+      "line": 36,
+      "loaded": true
+    },
+    {
+      "global": "window.gameState",
+      "file": "src/game/lost-data.js",
+      "line": 539,
+      "loaded": true
+    },
+    {
+      "global": "window.gameState",
+      "file": "src/game/main-new.js",
+      "line": 17,
+      "loaded": true
+    },
+    {
+      "global": "window.gameState",
+      "file": "src/game/main.js",
+      "line": 14,
+      "loaded": false
+    },
+    {
+      "global": "window.player",
+      "file": "src/game/player.js",
+      "line": 1948,
+      "loaded": true
+    },
+    {
+      "global": "window.renderer",
+      "file": "src/engine/renderer.js",
+      "line": 428,
+      "loaded": true
+    },
+    {
+      "global": "window.renderer",
+      "file": "src/engine/renderer.js",
+      "line": 500,
+      "loaded": true
+    },
+    {
+      "global": "window.renderer",
+      "file": "src/engine/renderer.js",
+      "line": 517,
+      "loaded": true
+    },
+    {
+      "global": "window.renderGame",
+      "file": "src/game/render-coordinator.js",
+      "line": 16,
+      "loaded": true
+    },
+    {
+      "global": "window.startGameInitialization",
+      "file": "src/game/game-initializer.js",
+      "line": 177,
+      "loaded": true
+    },
+    {
+      "global": "window.startGameInitialization",
+      "file": "src/game/main.js",
+      "line": 2258,
+      "loaded": false
+    },
+    {
+      "global": "window.startGameLoop",
+      "file": "src/core/loop.js",
+      "line": 87,
+      "loaded": true
+    },
+    {
+      "global": "window.startGame",
+      "file": "src/game/main-new.js",
+      "line": 10,
+      "loaded": true
+    },
+    {
+      "global": "window.startGame",
+      "file": "src/game/main.js",
+      "line": 29,
+      "loaded": false
+    },
+    {
+      "global": "window.startNewGame",
+      "file": "src/game/main-new.js",
+      "line": 119,
+      "loaded": true
+    },
+    {
+      "global": "window.updateGame",
+      "file": "src/game/update-coordinator.js",
+      "line": 10,
+      "loaded": true
+    }
+  ],
+  "candidateDiagnosticLegacyFiles": [
+    "final-verification-test.js",
+    "jammer-audio-patch.js",
+    "jammer-fix-patch.js",
+    "src/core/boot.js",
+    "src/core/game-manager.js",
+    "src/core/game/game-manager.js",
+    "src/game/broadcast-jammer.js",
+    "src/game/main-legacy-backup.js",
+    "src/game/main-legacy-removed.js",
+    "src/game/main.js",
+    "src/game/rhythm-fixed.js",
+    "test-jammer-spawn-fix.js",
+    "test-jammer-spawn.js",
+    "test-rhythm-functionality.js",
+    "test-rhythm-system-verification.js",
+    "verify-jammer-autospawn.js"
+  ],
+  "filesLoadedAtRuntime": [
+    "style.css",
+    "/lib/MakkoEngine.min.js",
+    "src/utils/math.js",
+    "src/core/fullscreen.js",
+    "src/core/input.js",
+    "src/engine/audio.js",
+    "src/engine/boot-loader.js",
+    "src/engine/particles.js",
+    "src/engine/renderer.js",
+    "src/engine/parallax.js",
+    "src/engine/spaceships.js",
+    "src/engine/lore.js",
+    "src/engine/jammer-indicator.js",
+    "src/engine/jammer-arrow-indicator.js",
+    "src/engine/title-screen.js",
+    "src/game/objectives.js",
+    "src/engine/cutscene.js",
+    "src/core/loop.js",
+    "src/game/player.js",
+    "src/game/enemies.js",
+    "src/game/jammer-spawn-logic.js",
+    "src/game/hacking.js",
+    "src/game/rhythm.js",
+    "src/game/tutorial.js",
+    "src/game/post-tutorial-objectives.js",
+    "src/game/lost-data.js",
+    "src/game/sector1-progression.js",
+    "src/game/game-state.js",
+    "src/game/update-coordinator.js",
+    "src/game/render-coordinator.js",
+    "src/game/ui-manager.js",
+    "src/game/game-initializer.js",
+    "src/game/dependency-validator.js",
+    "src/game/debug-commands.js",
+    "jammer-fix-patch.js",
+    "src/game/collision-fix.js",
+    "src/game/main-new.js",
+    "[inline script]"
+  ],
+  "explicitlyUnverifiedRuntimeClaims": [
+    "Browser gameplay was not runtime-tested by Codex.",
+    "Makko project import/open was not tested by Codex.",
+    "Feature completion, controller support, boss flow, audio behavior, and full-game behavior are not verified by this baseline."
+  ]
+}
