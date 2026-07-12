@@ -760,8 +760,16 @@
             let loadingIndicator;
 
             try {
-                // Show loading indicator
+                // Reset any stale retry failure presentation before hiding the title.
                 loadingIndicator = document.getElementById('loadingIndicator');
+                if (loadingIndicator) {
+                    loadingIndicator.textContent = 'INITIALIZING SYSTEM...';
+                    loadingIndicator.style.color = '';
+                    loadingIndicator.classList.remove('visible');
+                }
+                this.disabled = false;
+                this.textContent = 'START SYSTEM';
+
                 // Use title screen transition if available
                 if (window.titleScreen && typeof window.titleScreen.hide === 'function') {
                     window.titleScreen.hide();
@@ -976,6 +984,13 @@
                     });
                 }
             }, 5000);
+
+            window.addEventListener('beforeunload', () => {
+                if (window.gameStateDebugInterval) {
+                    clearInterval(window.gameStateDebugInterval);
+                    window.gameStateDebugInterval = null;
+                }
+            });
         }
     </script>
 </body>

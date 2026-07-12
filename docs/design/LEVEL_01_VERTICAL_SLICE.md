@@ -54,7 +54,7 @@ Known missing assets that must be listed honestly before the vertical slice is c
 ## Deferred debt notes
 
 - PR-004 should replace ad hoc rhythm timing with an authoritative music-derived beat, bar, and phrase clock.
-- PR-005 should tune 6 Bit feel without adding double-jump, slide, or a functional dash to the base movement contract.
+- PR-005 should evaluate and tune 6 Bit’s existing movement kit—including dash, stomp, and fast-fall—against the rhythm-combat direction. This document does not pre-approve or forbid additional movement options.
 - PR-006 should make enemy timing and telegraphs readable against the music without redesigning all combat at once.
 - PR-007 should remove reliance on kill quotas or jammer destruction as progression gates in favor of authored spatial/musical milestones.
 - PR-008 should introduce an owner-approved Level 1 boss identity and transition that grows naturally from the final arena.

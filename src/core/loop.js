@@ -16,7 +16,7 @@ window.gameLoopRafHandle = window.gameLoopRafHandle || null;
 
 // requestAnimationFrame ownership lives here only for active gameplay frames.
 function scheduleNextGameplayFrame() {
-  if (!window.isRunning || window.gameLoopRafHandle !== null) return;
+  if (!window.isRunning || window.isPaused || window.gameLoopRafHandle !== null) return;
   window.gameLoopRafHandle = requestAnimationFrame(window.gameLoop);
 }
 
@@ -47,7 +47,6 @@ window.gameLoop = function(timestamp) {
   if (!window.isRunning) return;
 
   if (window.isPaused) {
-    scheduleNextGameplayFrame();
     return;
   }
 
@@ -109,6 +108,9 @@ window.gameLoop = function(timestamp) {
 
 // Start the game loop (renamed to avoid conflicts with main game controller)
 window.startGameLoop = function() {
+  if (window.isRunning && !window.isPaused) return;
+
+  cancelScheduledGameplayFrame();
   window.isRunning = true;
   window.isPaused = false;
   window.lastTime = performance.now();
@@ -118,11 +120,14 @@ window.startGameLoop = function() {
 // Pause the game
 window.pauseGame = function() {
   window.isPaused = true;
+  cancelScheduledGameplayFrame();
 };
 
 // Resume the game
 window.resumeGame = function() {
-  if (!window.isRunning) return;
+  if (!window.isRunning || !window.isPaused) return;
+
+  cancelScheduledGameplayFrame();
   window.isPaused = false;
   window.lastTime = performance.now();
   scheduleNextGameplayFrame();
@@ -130,7 +135,8 @@ window.resumeGame = function() {
 
 // Stop the game
 window.stopGame = function() {
+  cancelScheduledGameplayFrame();
   window.isRunning = false;
   window.isPaused = false;
-  cancelScheduledGameplayFrame();
+  window.lastTime = 0;
 };

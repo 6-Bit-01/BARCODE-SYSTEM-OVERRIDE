@@ -8,6 +8,21 @@ const fail = (message) => {
   process.exitCode = 1;
 };
 const count = (source, pattern) => (source.match(pattern) || []).length;
+const functionBody = (source, name) => {
+  const marker = source.indexOf(name);
+  if (marker === -1) return '';
+  const open = source.indexOf('{', marker);
+  if (open === -1) return '';
+  let depth = 0;
+  for (let i = open; i < source.length; i++) {
+    if (source[i] === '{') depth++;
+    if (source[i] === '}') {
+      depth--;
+      if (depth === 0) return source.slice(open + 1, i);
+    }
+  }
+  return '';
+};
 
 const loop = read('src/core/loop.js');
 const update = read('src/game/update-coordinator.js');
@@ -16,8 +31,23 @@ const parallax = read('src/engine/parallax.js');
 const player = read('src/game/player.js');
 const index = read('index.html');
 const design = read('docs/design/LEVEL_01_VERTICAL_SLICE.md');
+const jammerPatch = read('jammer-fix-patch.js');
+const knownIssues = read('docs/technical/KNOWN_ISSUES.md');
 
-if (!loop.includes('window.gameLoopRafHandle') || !loop.includes('function scheduleNextGameplayFrame()') || !loop.includes('function cancelScheduledGameplayFrame()')) {
+const enemiesScriptIndex = index.indexOf('<script src="src/game/enemies.js"></script>');
+const jammerPatchScriptIndex = index.indexOf('<script src="jammer-fix-patch.js"></script>');
+if (enemiesScriptIndex === -1 || jammerPatchScriptIndex === -1 || enemiesScriptIndex > jammerPatchScriptIndex) {
+  fail('index.html must load jammer-fix-patch.js after src/game/enemies.js so active enemy ownership is explicit.');
+}
+
+const scheduleBody = functionBody(loop, 'function scheduleNextGameplayFrame()');
+const pauseBody = functionBody(loop, 'window.' + 'pauseGame = function()');
+const resumeBody = functionBody(loop, 'window.' + 'resumeGame = function()');
+const startBody = functionBody(loop, 'window.' + 'startGameLoop = function()');
+const stopBody = functionBody(loop, 'window.' + 'stopGame = function()');
+const gameLoopBody = functionBody(loop, 'window.' + 'gameLoop = function(timestamp)');
+
+if (!loop.includes('window.gameLoopRafHandle') || !scheduleBody || !loop.includes('function cancelScheduledGameplayFrame()')) {
   fail('src/core/loop.js must explicitly own gameplay RAF scheduling and cancellation.');
 }
 if (count(loop, /requestAnimationFrame\(/g) !== 1) {
@@ -25,6 +55,28 @@ if (count(loop, /requestAnimationFrame\(/g) !== 1) {
 }
 if (count(loop, /cancelAnimationFrame\(/g) !== 1) {
   fail('src/core/loop.js should have exactly one cancelAnimationFrame call site.');
+}
+if (!/window\.isPaused/.test(scheduleBody)) {
+  fail('scheduleNextGameplayFrame must not schedule while paused.');
+}
+if (!/window\.isRunning\s*&&\s*!window\.isPaused/.test(startBody) || !/return;/.test(startBody)) {
+  fail('startGameLoop must be a no-op when already running and unpaused.');
+}
+if (!/cancelScheduledGameplayFrame\(\)/.test(startBody) || !/window\.lastTime\s*=\s*performance\.now\(\)/.test(startBody)) {
+  fail('startGameLoop must clear stale RAF state and reset timing before scheduling.');
+}
+if (!/window\.isPaused\s*=\s*true/.test(pauseBody) || !/cancelScheduledGameplayFrame\(\)/.test(pauseBody)) {
+  fail('pauseGame must set paused and cancel the scheduled gameplay RAF.');
+}
+if (!/!window\.isRunning\s*\|\|\s*!window\.isPaused/.test(resumeBody) || !/cancelScheduledGameplayFrame\(\)/.test(resumeBody) || !/scheduleNextGameplayFrame\(\)/.test(resumeBody)) {
+  fail('resumeGame must only resume from paused running state and schedule through the sole scheduler.');
+}
+if (!/cancelScheduledGameplayFrame\(\)/.test(stopBody) || !/window\.lastTime\s*=\s*0/.test(stopBody)) {
+  fail('stopGame must cancel stale RAF handles and reset timing.');
+}
+const pausedBranchMatch = gameLoopBody.match(/if \(window\.isPaused\) \{([\s\S]*?)\n  \}/);
+if (!pausedBranchMatch || /scheduleNextGameplayFrame/.test(pausedBranchMatch[1]) || !/return;/.test(pausedBranchMatch[1])) {
+  fail('the paused gameLoop branch must return without scheduling another frame.');
 }
 if (count(update, /renderer\.update\s*\(/g) !== 0) {
   fail('renderer.update must not be duplicated inside update-coordinator.js.');
@@ -34,6 +86,11 @@ if (count(loop, /renderer\.update\s*\(/g) !== 1) {
 }
 if (count(update, /enemyManager\.checkCollisions\s*\(/g) !== 0) {
   fail('update-coordinator.js must not call enemyManager.checkCollisions after EnemyManager.update.');
+}
+const managerSection = jammerPatch.slice(jammerPatch.indexOf('window.' + 'EnemyManager = class EnemyManager'));
+const managerUpdateBody = functionBody(managerSection, 'update(deltaTime, player)');
+if (!managerUpdateBody || count(managerUpdateBody, /this\.checkCollisions\s*\(\s*player\s*\)/g) !== 1) {
+  fail('the active jammer-fix-patch.js EnemyManager.update must invoke player collision orchestration exactly once.');
 }
 if (!update.includes('EnemyManager.update() owns enemy/enemy and enemy/player collision orchestration')) {
   fail('collision orchestration ownership should be documented at the removed duplicate call site.');
@@ -52,6 +109,9 @@ for (const [name, source] of [['parallax', parallax], ['player', player], ['inde
     fail(`${name} high-frequency diagnostics must be gated behind BARCODE_DEBUG_FRAME_OWNERSHIP.`);
   }
 }
+if (index.includes('gameStateDebugInterval = setInterval') && (!index.includes("window.addEventListener('beforeunload'") || !index.includes('clearInterval(window.gameStateDebugInterval)'))) {
+  fail('debug gameStateDebugInterval must have explicit beforeunload cleanup.');
+}
 for (const phrase of [
   'Level 1 is centered on 6 Bit',
   'There is no kill-quota gate',
@@ -61,6 +121,21 @@ for (const phrase of [
   'PR-008 — new boss and complete vertical slice'
 ]) {
   if (!design.includes(phrase)) fail(`Level 1 design contract is missing: ${phrase}`);
+}
+if (/without adding double-jump, slide, or a functional dash/.test(design)) {
+  fail('design contract must not forbid unapproved movement options.');
+}
+if (!design.includes('existing movement kit—including dash, stomp, and fast-fall') || !design.includes('does not pre-approve or forbid additional movement options')) {
+  fail('design contract must direct PR-005 to evaluate existing movement without pre-approving or forbidding options.');
+}
+for (const phrase of [
+  'jammer-fix-patch.js` after `src/game/enemies.js`',
+  'active enemy classes and manager',
+  'base `Enemy.update()` position integration',
+  'virus entrance, corrupted entrance, and firewall movement',
+  'assigned to PR-006'
+]) {
+  if (!knownIssues.includes(phrase)) fail(`KNOWN_ISSUES.md must document active enemy physics debt: ${phrase}`);
 }
 
 if (process.exitCode) process.exit(process.exitCode);

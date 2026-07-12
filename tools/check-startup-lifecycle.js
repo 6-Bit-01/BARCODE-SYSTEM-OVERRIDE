@@ -46,6 +46,16 @@ if (!startHandlerMatch) {
   if (firstTitleHide !== -1 && firstTry > firstTitleHide) {
     fail('title screen hiding must be protected by the start-button try/catch/finally.');
   }
+
+  const resetText = body.indexOf("loadingIndicator.textContent = 'INITIALIZING SYSTEM...';");
+  const resetColor = body.indexOf("loadingIndicator.style.color = '';");
+  const resetVisible = body.indexOf("loadingIndicator.classList.remove('visible');");
+  const resetButtonText = body.indexOf("this.textContent = 'START SYSTEM';");
+  if (resetText === -1 || resetColor === -1 || resetVisible === -1 || resetButtonText === -1) {
+    fail('startButton retry path must reset stale failure text, color, visibility, and button text before hiding the title.');
+  } else if (firstTitleHide !== -1 && Math.max(resetText, resetColor, resetVisible, resetButtonText) > firstTitleHide) {
+    fail('startButton retry reset must happen before title screen hiding.');
+  }
   if (!body.includes('if (gameStartInProgress || gameInitialized)')) {
     fail('startButton click handler must ignore reentrant start attempts.');
   }
