@@ -37,8 +37,9 @@
 33. `src/game/debug-commands.js`
 34. `jammer-fix-patch.js`
 35. `src/game/collision-fix.js`
-36. `src/game/main-new.js`
-37. inline script block
+36. inline script block: `window.autoStartDisabled = true`
+37. `src/game/main-new.js`
+38. inline script block
 
 ## Confirmed repository fact: loaded/unloaded status
 
@@ -56,8 +57,10 @@ Loaded and unloaded JavaScript files are listed in `baseline-inventory.json`.
 
 ## Static code inference: startup path candidates
 
-- Inline `index.html` starts boot-loader monitoring on `DOMContentLoaded` and calls `window.startGame()` from the start button flow.
-- `src/game/main-new.js` defines `autoInitGame`, but static inspection shows inline `index.html` sets `window.autoStartDisabled = true` at the end of the inline block.
+- Inline `index.html` sets `window.autoStartDisabled = true` before `src/game/main-new.js` loads, starts boot-loader monitoring on `DOMContentLoaded`, and calls `window.startGame()` from the start button flow.
+- `src/game/main-new.js` defines `autoInitGame`, but static inspection shows the active lifecycle owner is the `index.html` start-button flow because auto-start is disabled before that file evaluates.
+- The active start-button flow is single-flight guarded before its first `await`; reentrant click/Space attempts are ignored while startup is in progress or already initialized.
+- `src/game/game-initializer.js` coalesces overlapping `initSprites`, `initAudio`, and `startGameInitialization` calls with in-flight promises; successful full-system initialization is reusable and failed attempts clear the in-flight promise for retry.
 - Inactive files contain older boot/start paths and should be re-audited before use.
 
 ## Static code inference: update/render/collision ownership candidates
@@ -68,7 +71,7 @@ Loaded and unloaded JavaScript files are listed in `baseline-inventory.json`.
 
 ## Confirmed repository fact: timer/interval/listener hotspots
 
-Hotspots include inline `index.html`, `src/engine/audio.js`, `src/engine/boot-loader.js`, `src/engine/cutscene.js`, `src/engine/particles.js`, `src/engine/renderer.js`, `src/engine/title-screen.js`, `src/game/game-initializer.js`, `src/game/game-state.js`, `src/game/player.js`, `src/game/enemies.js`, `jammer-fix-patch.js`, `src/game/hacking.js`, `src/game/rhythm.js`, `src/game/tutorial.js`, `src/game/jammer-spawn-logic.js`, `src/game/collision-fix.js`, `src/core/input.js`, `src/core/fullscreen.js`, `src/core/loop.js`, and `src/game/main-new.js`.
+Hotspots include inline `index.html` (including boot-monitor cleanup ownership), `src/engine/audio.js`, `src/engine/boot-loader.js`, `src/engine/cutscene.js`, `src/engine/particles.js`, `src/engine/renderer.js`, `src/engine/title-screen.js`, `src/game/game-initializer.js`, `src/game/game-state.js`, `src/game/player.js`, `src/game/enemies.js`, `jammer-fix-patch.js`, `src/game/hacking.js`, `src/game/rhythm.js`, `src/game/tutorial.js`, `src/game/jammer-spawn-logic.js`, `src/game/collision-fix.js`, `src/core/input.js`, `src/core/fullscreen.js`, `src/core/loop.js`, and `src/game/main-new.js`.
 
 ## Inventory only: diagnostic/legacy candidates
 

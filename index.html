@@ -612,6 +612,7 @@
     <script src="src/game/collision-fix.js"></script>
 
     <!-- Main Game (Modular Structure) -->
+    <script>window.autoStartDisabled = true;</script>
     <script src="src/game/main-new.js"></script>
     <!-- Legacy main.js removed - now using modular structure -->
 
@@ -675,31 +676,57 @@
         });
         
         // Monitor asset loading progress
+        let assetLoadingMonitor = null;
         function monitorAssetLoading() {
+            if (assetLoadingMonitor) {
+                console.log('Asset loading monitor already active');
+                return assetLoadingMonitor;
+            }
+
+            const cleanupMonitor = () => {
+                if (!assetLoadingMonitor) {
+                    return;
+                }
+                clearInterval(assetLoadingMonitor.audioInterval);
+                clearInterval(assetLoadingMonitor.spriteInterval);
+                clearTimeout(assetLoadingMonitor.fallbackTimeout);
+                assetLoadingMonitor = null;
+            };
+
+            const completeIfReady = () => {
+                if (window.bootLoader && window.bootLoader.audioLoaded && window.bootLoader.spritesLoaded) {
+                    cleanupMonitor();
+                }
+            };
+
+            assetLoadingMonitor = { cleanup: cleanupMonitor };
+
             // Check audio loading
-            const checkAudioLoading = setInterval(() => {
+            assetLoadingMonitor.audioInterval = setInterval(() => {
                 if (window.audioSystem && window.audioSystem.isInitialized()) {
                     console.log('🎵 Audio system loaded');
                     if (window.bootLoader) {
                         window.bootLoader.setAudioLoaded(true);
                     }
-                    clearInterval(checkAudioLoading);
+                    clearInterval(assetLoadingMonitor.audioInterval);
+                    completeIfReady();
                 }
             }, 100);
             
             // Check sprite loading
-            const checkSpriteLoading = setInterval(() => {
+            assetLoadingMonitor.spriteInterval = setInterval(() => {
                 if (window.MakkoEngine && window.MakkoEngine.isLoaded()) {
                     console.log('🎮 Sprite system loaded');
                     if (window.bootLoader) {
                         window.bootLoader.setSpritesLoaded(true);
                     }
-                    clearInterval(checkSpriteLoading);
+                    clearInterval(assetLoadingMonitor.spriteInterval);
+                    completeIfReady();
                 }
             }, 100);
             
             // Timeout fallbacks with graceful handling
-            setTimeout(() => {
+            assetLoadingMonitor.fallbackTimeout = setTimeout(() => {
                 if (window.bootLoader && !window.bootLoader.audioLoaded) {
                     console.log('⚠️ Audio loading timeout - will proceed without audio');
                     window.bootLoader.setAudioLoaded(true);
@@ -708,7 +735,10 @@
                     console.log('⚠️ Sprite loading timeout - proceeding with fallback graphics');
                     window.bootLoader.setSpritesLoaded(true);
                 }
+                cleanupMonitor();
             }, 15000); // Increased to 15 second timeout to match other systems
+
+            return assetLoadingMonitor;
         }
         
         // ========================================
@@ -716,10 +746,17 @@
         // ========================================
         
         let gameInitialized = false;
+        let gameStartInProgress = false;
         let titleScreenMusicBlocked = false; // Prevent title music from starting after game start
         
         // START BUTTON HANDLER - STARTS GAME IN FULLSCREEN
         document.getElementById('startButton').addEventListener('click', async function() {
+            if (gameStartInProgress || gameInitialized) {
+                console.log('Start request ignored - initialization already in progress or complete');
+                return;
+            }
+            gameStartInProgress = true;
+
             // Use title screen transition if available
             if (window.titleScreen && typeof window.titleScreen.hide === 'function') {
                 window.titleScreen.hide();
@@ -856,6 +893,10 @@
                 loadingIndicator.classList.remove('visible');
                 
                 gameInitialized = true;
+                gameStartInProgress = false;
+                if (assetLoadingMonitor) {
+                    assetLoadingMonitor.cleanup();
+                }
                 
                 console.log('✓ GAME STARTED SUCCESSFULLY IN FULLSCREEN!');
                 
@@ -864,6 +905,11 @@
                 console.error('Error stack:', error?.stack || 'No stack available');
                 console.error('Error type:', typeof error);
                 
+                gameStartInProgress = false;
+                if (assetLoadingMonitor) {
+                    assetLoadingMonitor.cleanup();
+                }
+
                 // Show error state
                 this.textContent = 'ERROR - RETRY';
                 this.disabled = false;
@@ -906,10 +952,6 @@
                 console.log('🎮 Fullscreen error:', error?.message || error);
             });
         }
-        
-        // Prevent any game initialization before start button
-        // Override any auto-start behaviors
-        window.autoStartDisabled = true;
         
         // Monitor game state for debugging
         setInterval(() => {

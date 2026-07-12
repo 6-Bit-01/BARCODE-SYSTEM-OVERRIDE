@@ -12,6 +12,7 @@
 - `src/core/loop.js` directly updates `window.renderer`, while update coordination also owns visual-system updates; this may represent competing per-frame ownership.
 - Enemy collision checks appear in the update coordinator and inside the enemy manager implementation; this may represent competing collision ownership.
 - Several inactive files contain older lifecycle paths that should not be treated as current authority without re-audit.
+- Static inspection identifies `index.html` as the active lifecycle owner for boot monitoring and the start-button sequence; the single-flight guard and monitor cleanup reduce duplicate-start risk but do not replace Owner/Makko verification.
 
 ## Not runtime-tested
 
@@ -21,3 +22,4 @@
 ## Owner/Makko verification required
 
 - Confirm title presentation, prologue, gameplay feel, audio, camera, sprites, and restart are unchanged after importing this branch into a duplicate Makko project.
+- Specifically test rapid start-button clicks/Space presses, failed-start retry UI, prologue presentation, gameplay entry, and restart behavior.

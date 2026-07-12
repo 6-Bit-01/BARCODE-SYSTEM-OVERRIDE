@@ -12,7 +12,8 @@
     "audit:external-assets": "node tools/audit-external-assets.js",
     "baseline:generate": "node tools/generate-baseline.js",
     "baseline:check": "node tools/check-baseline.js",
-    "test": "npm run check:syntax && npm run audit:paths && npm run audit:globals && npm run audit:external-assets && npm run baseline:check"
+    "test": "npm run check:syntax && npm run audit:paths && npm run audit:globals && npm run audit:external-assets && npm run check:startup-lifecycle && npm run baseline:check",
+    "check:startup-lifecycle": "node tools/check-startup-lifecycle.js"
   },
   "dependencies": {},
   "devDependencies": {}
