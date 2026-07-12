@@ -2,7 +2,7 @@
 window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({
   name: 'src/game/lost-data.js',
-  exports: ['LostDataSystem', 'lostDataSystem'],
+  exports: ['LostDataSystem', 'lostDataSystem', 'initLostData'],
   dependencies: ['Vector2D', 'distance', 'clamp', 'randomRange']
 });
 
@@ -13,12 +13,12 @@ window.LostDataSystem = class LostDataSystem {
     this.spawnTimer = 0;
     this.nextSpawnTime = this.getRandomSpawnTime();
     this.maxFragments = 1; // Maximum 1 fragment at once
-    this.maxTotalLore = 3; // FIXED: Maximum 3 lore pieces for the entire level
+    this.maxTotalLore = 3; // Maximum 3 lore pieces for the entire level
     this.player = null;
     
     // Collection cooldown system
     this.collectionCooldownTimer = 0;
-    this.collectionCooldownDuration = 60000; // 60 seconds minimum between spawns
+    this.collectionCooldownDuration = 60000; // 60 seconds between fragment spawns
     this.lastCollectionTime = 0;
     
     // Global chaos seed to prevent long-term patterns
@@ -128,7 +128,7 @@ window.LostDataSystem = class LostDataSystem {
   // Initialize the system
   init(player) {
     this.player = player;
-    this.nextSpawnTime = 3000 + Math.random() * 4000; // 3-7 seconds with randomization
+    this.nextSpawnTime = 20000; // 20 seconds after tutorial ends for first fragment
     
     // ENHANCED: Multiple entropy sources for true first-spawn randomization
     const timeEntropy = Date.now() % 10000;
@@ -145,24 +145,20 @@ window.LostDataSystem = class LostDataSystem {
     console.log(`💎 First fragment will spawn in ${(this.nextSpawnTime/1000).toFixed(1)} seconds`);
   }
   
-  // Get random spawn time (3-8 seconds between fragments - much faster for testing)
+  // Get random spawn time (fixed timing for level progression)
   getRandomSpawnTime() {
-    return 3000 + Math.random() * 5000; // 3-8 seconds
+    return 60000; // 60 seconds - fixed between spawns
   }
   
   // Update the system
   update(deltaTime) {
-    // CRITICAL FIX: Completely disable during tutorial
+    // FIXED: Only block during active tutorial - allow fragments after tutorial ends
     const tutorialActive = window.tutorialSystem && 
-                         typeof window.tutorialSystem.isActive === 'function' && 
-                         window.tutorialSystem.isActive();
+                          typeof window.tutorialSystem.isActive === 'function' && 
+                          window.tutorialSystem.isActive();
     
-    const tutorialCompleted = window.tutorialSystem && 
-                            typeof window.tutorialSystem.isCompleted === 'function' && 
-                            window.tutorialSystem.isCompleted();
-    
-    // BLOCK ALL ACTIVITY during tutorial
-    if (tutorialActive || (window.tutorialSystem && !tutorialCompleted)) {
+    // Block ONLY during active tutorial
+    if (tutorialActive) {
       // Clear any existing fragments during tutorial
       if (this.fragments.length > 0) {
         this.fragments = [];
@@ -178,15 +174,8 @@ window.LostDataSystem = class LostDataSystem {
     }
     
     if (!this.player) {
-      console.log('⚠️ Lost Data system: No player reference - using fallback');
-      this.player = { position: { x: 960, y: 400 } };
-    }
-    
-    this.spawnTimer += deltaTime;
-    
-    // DEBUG: Log spawn status every 5 seconds
-    if (Math.floor(this.spawnTimer / 5000) !== Math.floor((this.spawnTimer - deltaTime) / 5000)) {
-      console.log(`💎 Lost Data Status - Timer: ${(this.spawnTimer/1000).toFixed(1)}s, Next: ${(this.nextSpawnTime/1000).toFixed(1)}s, Fragments: ${this.fragments.length}/${this.maxFragments}, Available Lore: ${this.getUncollectedLoreCount()}, Cooldown: ${(this.collectionCooldownTimer/1000).toFixed(1)}s`);
+      // Silent fail during frames where player isn't ready
+      return;
     }
     
     // Update collection cooldown
@@ -195,32 +184,60 @@ window.LostDataSystem = class LostDataSystem {
       
       // Log cooldown status every 10 seconds
       if (Math.floor(this.collectionCooldownTimer / 10000) !== Math.floor((this.collectionCooldownTimer + deltaTime) / 10000)) {
-        console.log(`💎 COLLECTION COOLDOWN: ${(this.collectionCooldownTimer/1000).toFixed(1)}s remaining`);
+        console.log(`💎 ⏱️ FRAGMENT SPAWN COOLDOWN: ${(this.collectionCooldownTimer/1000).toFixed(1)}s remaining`);
       }
+    } else {
+        // FIXED: Only increment spawn timer if NOT in cooldown
+        // This prevents the "Double Wait" bug where spawn tries to fire while cooldown is still 0.001ms active
+        this.spawnTimer += deltaTime;
     }
     
-    // FIXED: Spawn new fragment if conditions are met AND we haven't reached max lore limit AND cooldown is finished
+    // Log when cooldown ends and more fragments are available
+    if (this.collectionCooldownTimer <= 0 && 
+        this.collectionCooldownTimer + deltaTime > 0 && 
+        this.collectedLore.size > 0 && 
+        this.collectedLore.size < 3) {
+      console.log(`💎 ✅ COOLDOWN ENDED - Ready to spawn fragment ${this.collectedLore.size + 1}/3 in ${(this.nextSpawnTime/1000).toFixed(1)}s`);
+    }
+
+    // DEBUG: Log spawn status every 5 seconds
+    if (Math.floor(this.spawnTimer / 5000) !== Math.floor((this.spawnTimer - deltaTime) / 5000)) {
+      console.log(`💎 STATUS - Timer: ${(this.spawnTimer/1000).toFixed(1)}s, Next: ${(this.nextSpawnTime/1000).toFixed(1)}s, Active: ${this.fragments.length}, Collected: ${this.collectedLore.size}/3, Available Lore: ${this.getUncollectedLoreCount()}, Cooldown: ${(this.collectionCooldownTimer/1000).toFixed(1)}s`);
+    }
+    
+    // FIXED: Spawn new fragment if conditions are met
     const loreCollected = this.collectedLore.size;
     const loreLimitReached = loreCollected >= this.maxTotalLore;
     const cooldownActive = this.collectionCooldownTimer > 0;
+    const spawnTimeReached = this.spawnTimer >= this.nextSpawnTime;
     
-    if (this.spawnTimer >= this.nextSpawnTime && 
-        this.fragments.length < this.maxFragments &&
-        this.getUncollectedLoreCount() > 0 &&
-        !loreLimitReached &&
-        !cooldownActive) {
-      console.log('💎 All spawn conditions met - spawning fragment');
-      this.spawnFragment();
-      this.spawnTimer = 0;
-      this.nextSpawnTime = this.getRandomSpawnTime();
-    } else if (this.spawnTimer >= this.nextSpawnTime) {
-      // Log why we're not spawning
-      console.log(`💎 Spawn time reached but conditions not met:`);
-      console.log(`  - Fragments: ${this.fragments.length}/${this.maxFragments}`);
-      console.log(`  - Available Lore: ${this.getUncollectedLoreCount()}`);
-      console.log(`  - Lore Collected: ${loreCollected}/${this.maxTotalLore}`);
-      console.log(`  - Lore Limit Reached: ${loreLimitReached}`);
-      console.log(`  - Cooldown Active: ${cooldownActive} (${(this.collectionCooldownTimer/1000).toFixed(1)}s remaining)`);
+    if (spawnTimeReached) {
+        // Double check conditions before spawning
+        if (this.fragments.length < this.maxFragments &&
+            this.getUncollectedLoreCount() > 0 &&
+            !loreLimitReached &&
+            !cooldownActive) {
+            
+            const currentCount = this.collectedLore.size + 1;
+            console.log(`💎 🎉 SPAWNING FRAGMENT ${currentCount}/3!`);
+            this.spawnFragment();
+            
+            // Reset for next cycle
+            this.spawnTimer = 0;
+            this.nextSpawnTime = this.getRandomSpawnTime();
+            console.log(`💎 Next fragment will spawn in ${this.nextSpawnTime/1000} seconds`);
+        } 
+        else if (loreLimitReached) {
+             // Stop checking if we are done
+             this.spawnTimer = 0;
+        }
+        else {
+            // Something blocked it, but time was reached. Reset to try again shortly.
+            // If it was just cooldown (which shouldn't happen due to fix above), we retry fast.
+            console.log(`💎 ❌ SPAWN BLOCKED - Retrying in 5s. (Limit: ${loreLimitReached}, Cooldown: ${cooldownActive}, Count: ${this.fragments.length})`);
+            this.spawnTimer = 0;
+            this.nextSpawnTime = 5000; 
+        }
     }
     
     // Update existing fragments
@@ -421,17 +438,13 @@ window.LostDataSystem = class LostDataSystem {
   
   // Check if player collected any fragments - DISABLED during tutorial
   checkCollection() {
-    // CRITICAL FIX: Check tutorial status before checking collection
+    // FIXED: Only block during active tutorial
     const tutorialActive = window.tutorialSystem && 
-                         typeof window.tutorialSystem.isActive === 'function' && 
-                         window.tutorialSystem.isActive();
+                          typeof window.tutorialSystem.isActive === 'function' && 
+                          window.tutorialSystem.isActive();
     
-    const tutorialCompleted = window.tutorialSystem && 
-                            typeof window.tutorialSystem.isCompleted === 'function' && 
-                            window.tutorialSystem.isCompleted();
-    
-    // BLOCK ALL COLLECTION during tutorial
-    if (tutorialActive || (window.tutorialSystem && !tutorialCompleted)) {
+    // Block ONLY during active tutorial
+    if (tutorialActive) {
       return; // Don't check collection during tutorial
     }
     
@@ -450,24 +463,8 @@ window.LostDataSystem = class LostDataSystem {
       
       const dist = window.distance(playerX, playerY, fragmentX, fragmentY);
       
-      // Increased collection radius and added magnetic effect
+      // Increased collection radius
       const collectionRadius = 120; // Increased from 80 to 120
-      
-      // DISABLED: Magnetic collection - fragments should stay in spawn position
-      // This was causing fragments to move toward player, making them appear in same place
-      // if (dist < collectionRadius * 1.5 && dist > collectionRadius) {
-      //   // Pull fragment toward player
-      //   const pullForce = 0.15; // Gentle pull
-      //   const dx = playerX - fragmentX;
-      //   const dy = playerY - fragmentY;
-      //   const pullX = (dx / dist) * pullForce * dist;
-      //   const pullY = (dy / dist) * pullForce * dist;
-      //   
-      //   fragment.position.x += pullX;
-      //   fragment.position.y += pullY;
-      //   
-      //   console.log(`🧲 Magnetic pull: Fragment moving toward player. Distance: ${dist.toFixed(1)}`);
-      // }
       
       // DEBUG: Log distance check less frequently
       if (Math.floor(this.spawnTimer / 1000) % 3 === 0) { // Log every 3 seconds
@@ -488,9 +485,14 @@ window.LostDataSystem = class LostDataSystem {
     // Start collection cooldown - prevent next spawn for 60 seconds
     this.collectionCooldownTimer = this.collectionCooldownDuration;
     this.lastCollectionTime = Date.now();
-    this.spawnTimer = 0; // Reset spawn timer
     
-    console.log(`💎 COLLECTION COOLDOWN STARTED: No fragments for ${this.collectionCooldownDuration/1000} seconds`);
+    // FIXED: Do NOT match the spawn timer to the cooldown. 
+    // Instead, reset spawn timer to 0 and give a small delay (2s) AFTER cooldown ends.
+    // The Update loop now pauses spawnTimer while Cooldown is active.
+    this.spawnTimer = 0;
+    this.nextSpawnTime = 2000; // 2 seconds after cooldown finishes
+    
+    console.log(`💎 Fragment collected! Cooldown for ${this.collectionCooldownDuration/1000} seconds`);
     
     // Get uncollected lore
     const uncollectedIndices = [];
@@ -543,39 +545,30 @@ window.LostDataSystem = class LostDataSystem {
     console.log(`🎯 ${message}`);
   }
   
-  // Display lore message - FIXED to allow lore immediately
+  // Display lore message - allow immediately when fragments are collected
   displayLore(loreText) {
-    // FIXED: Allow lore display immediately - remove tutorial blocking
-    // Players should see lore when they collect fragments
-    console.log('💎 LORE ENABLED: Displaying lore immediately - no tutorial blocking');
-    
-    // Always allow lore to be displayed - remove tutorial blocking
+    // Allow lore display when fragments are collected - no tutorial blocking
+    console.log('💎 LORE: Displaying lore from fragment collection');
     
     if (window.loreSystem) {
-      // Use the new proper method to display collected lore
       window.loreSystem.displayLoreMessage(loreText);
-      
       console.log(`📖 Lore revealed: ${loreText.substring(0, 50)}...`);
     }
   }
   
   // Draw all fragments - DISABLED during tutorial
   draw(ctx) {
-    // CRITICAL FIX: Check tutorial status before drawing
+    // FIXED: Only block during active tutorial
     const tutorialActive = window.tutorialSystem && 
-                         typeof window.tutorialSystem.isActive === 'function' && 
-                         window.tutorialSystem.isActive();
+                          typeof window.tutorialSystem.isActive === 'function' && 
+                          window.tutorialSystem.isActive();
     
-    const tutorialCompleted = window.tutorialSystem && 
-                            typeof window.tutorialSystem.isCompleted === 'function' && 
-                            window.tutorialSystem.isCompleted();
-    
-    // BLOCK ALL DRAWING during tutorial
-    if (tutorialActive || (window.tutorialSystem && !tutorialCompleted)) {
+    // Block ONLY during active tutorial
+    if (tutorialActive) {
       return; // Don't draw anything during tutorial
     }
     
-    // Only draw after tutorial is complete
+    // Draw fragments after tutorial ends
     this.fragments.forEach(fragment => {
       fragment.draw(ctx);
     });
@@ -592,7 +585,7 @@ window.LostDataSystem = class LostDataSystem {
   getProgress() {
     return {
       collected: this.collectedLore.size,
-      total: this.maxTotalLore, // FIXED: Show max total lore for level (3), not total available
+      total: this.maxTotalLore, 
       activeFragments: this.fragments.length,
       remainingLore: Math.max(0, this.maxTotalLore - this.collectedLore.size),
       cooldownActive: this.collectionCooldownTimer > 0,
@@ -803,73 +796,6 @@ window.LostDataFragment = class LostDataFragment {
       }
     }
   }
-  
-  // drawCrystal method removed - using sprite instead
-  
-  drawFallbackVisual(ctx) {
-    // Draw a VERY VISIBLE glowing data crystal as fallback
-    // Make it BIGGER and BRIGHTER
-    const actualSize = this.size * 1.5; // Make it 50% bigger
-    
-    // Draw bright outer glow first
-    const glowGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, actualSize * 2);
-    glowGradient.addColorStop(0, 'rgba(147, 51, 234, 0.8)');
-    glowGradient.addColorStop(0.5, 'rgba(59, 130, 246, 0.4)');
-    glowGradient.addColorStop(1, 'rgba(147, 51, 234, 0)');
-    ctx.fillStyle = glowGradient;
-    ctx.fillRect(-actualSize * 2, -actualSize * 2, actualSize * 4, actualSize * 4);
-    
-    // Draw star shape instead of hexagon - more visible
-    ctx.beginPath();
-    for (let i = 0; i < 8; i++) {
-      const angle = (Math.PI * 2 * i) / 8;
-      const radius = i % 2 === 0 ? actualSize : actualSize * 0.5;
-      const x = Math.cos(angle) * radius;
-      const y = Math.sin(angle) * radius;
-      
-      if (i === 0) {
-        ctx.moveTo(x, y);
-      } else {
-        ctx.lineTo(x, y);
-      }
-    }
-    ctx.closePath();
-    
-    // Fill with bright gradient
-    const gradient = ctx.createLinearGradient(
-      -actualSize, -actualSize,
-      actualSize, actualSize
-    );
-    gradient.addColorStop(0, 'rgba(255, 215, 0, 1)'); // Gold
-    gradient.addColorStop(0.5, 'rgba(255, 255, 255, 1)'); // White
-    gradient.addColorStop(1, 'rgba(255, 215, 0, 1)'); // Gold
-    
-    ctx.fillStyle = gradient;
-    ctx.fill();
-    
-    // Draw thick white border
-    ctx.strokeStyle = 'rgba(255, 255, 255, 1)';
-    ctx.lineWidth = 3;
-    ctx.stroke();
-    
-    // Draw bright inner glow
-    const innerGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, actualSize * 0.3);
-    innerGradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-    innerGradient.addColorStop(0.5, 'rgba(255, 215, 0, 0.8)');
-    innerGradient.addColorStop(1, 'rgba(147, 51, 234, 0.4)');
-    
-    ctx.fillStyle = innerGradient;
-    ctx.beginPath();
-    ctx.arc(0, 0, actualSize * 0.3, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Add pulsing ring
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(0, 0, actualSize * 0.8, 0, Math.PI * 2);
-    ctx.stroke();
-  }
 };
 
 // Initialize global lost data system
@@ -885,8 +811,6 @@ window.initLostData = function(player) {
     window.lostDataSystem.init(player || { position: { x: 960, y: 400 } });
     
     console.log('✅✅✅ LOST DATA SYSTEM SUCCESSFULLY CREATED!!!');
-    console.log('System active:', window.lostDataSystem);
-    console.log('Fragments array:', window.lostDataSystem.fragments);
     
     return true;
   } catch (error) {
@@ -914,157 +838,22 @@ window.checkLostDataStatus = function() {
     console.log(`  Cooldown Remaining: ${progress.cooldownRemaining.toFixed(1)}s`);
   }
   console.log(`  Player Reference: ${window.lostDataSystem.player ? '✅' : '❌'}`);
-  
-  // List active fragment positions
-  if (window.lostDataSystem.fragments.length > 0) {
-    console.log('  Active Fragments Positions:');
-    window.lostDataSystem.fragments.forEach((fragment, index) => {
-      console.log(`    Fragment ${index}: (${fragment.position.x.toFixed(1)}, ${fragment.position.y.toFixed(1)}) - Active: ${fragment.active}`);
-    });
-  }
 };
 
 // Debug function to manually spawn fragment at player position
 window.spawnLoreFragmentAtPlayer = function() {
-  if (!window.lostDataSystem) {
-    console.log('❌ Lost Data system not initialized');
-    return false;
-  }
-  
-  if (!window.player) {
-    console.log('❌ Player not available');
-    return false;
-  }
+  if (!window.lostDataSystem || !window.player) return false;
   
   const playerX = window.player.position.x;
   const playerY = window.player.position.y;
   
-  // Spawn fragment at player position for testing
   const fragment = new window.LostDataFragment(playerX, playerY);
   window.lostDataSystem.fragments.push(fragment);
   
   console.log(`💎 Manual lore fragment spawned at player position: (${playerX}, ${playerY})`);
   
-  // Create spawn effect
   if (window.particleSystem) {
     window.particleSystem.dataFragmentEffect(playerX, playerY);
-  }
-  
-  return true;
-};
-
-// Debug function to spawn fragment at opposite side for testing
-window.spawnLoreFragmentOpposite = function() {
-  if (!window.lostDataSystem) {
-    console.log('❌ Lost Data system not initialized');
-    return false;
-  }
-  
-  if (!window.player) {
-    console.log('❌ Player not available');
-    return false;
-  }
-  
-  console.log('💎 Forcing opposite side spawn for testing...');
-  return window.lostDataSystem.spawnFragment();
-};
-
-// Debug function to test collection immediately
-window.testLoreCollection = function() {
-  if (!window.lostDataSystem || !window.player) {
-    console.log('❌ Lost Data system or player not available');
-    return false;
-  }
-  
-  // Spawn fragment directly at player position
-  const playerX = window.player.position.x;
-  const playerY = window.player.position.y;
-  
-  const fragment = new window.LostDataFragment(playerX, playerY);
-  window.lostDataSystem.fragments.push(fragment);
-  
-  console.log('🧪 TEST: Fragment spawned at player position - should collect immediately');
-  console.log(`🧪 Player position: (${playerX}, ${playerY})`);
-  console.log(`🧪 Fragment position: (${fragment.position.x}, ${fragment.position.y})`);
-  console.log(`🧪 Distance: ${window.distance(playerX, playerY, fragment.position.x, fragment.position.y).toFixed(1)} (should be 0)`);
-  
-  return true;
-};
-
-// Debug function to list all fragments in world space
-window.listAllFragments = function() {
-  if (!window.lostDataSystem) {
-    console.log('❌ Lost Data system not initialized');
-    return;
-  }
-  
-  console.log(`=== LOST DATA FRAGMENTS ===`);
-  console.log(`Total fragments: ${window.lostDataSystem.fragments.length}`);
-  console.log(`Max allowed: ${window.lostDataSystem.maxFragments}`);
-  console.log(`Uncollected lore available: ${window.lostDataSystem.getUncollectedLoreCount()}`);
-  
-  if (window.lostDataSystem.fragments.length === 0) {
-    console.log('No fragments currently active.');
-    return;
-  }
-  
-  window.lostDataSystem.fragments.forEach((fragment, index) => {
-    console.log(`Fragment ${index + 1}:`);
-    console.log(`  Position: (${fragment.position.x.toFixed(1)}, ${fragment.position.y.toFixed(1)})`);
-    console.log(`  Active: ${fragment.active}`);
-    console.log(`  Image loaded: ${fragment.imageLoaded}`);
-    console.log(`  Size: ${fragment.size}`);
-    console.log(`  Scale: ${fragment.scale.toFixed(2)}`);
-  });
-  
-  console.log(`=== END FRAGMENTS ===`);
-};
-
-// NEW: Test function to spawn fragment at specific known positions
-window.testLoreAtKnownPosition = function(position = 'farRight') {
-  if (!window.lostDataSystem) {
-    console.log('❌ Lost Data system not initialized');
-    return false;
-  }
-  
-  let testX, testY;
-  
-  switch(position) {
-    case 'farRight':
-      testX = 3600; // Very far right
-      testY = 500;
-      console.log('🧪 TESTING: Spawning fragment at FAR RIGHT (3600, 500)');
-      break;
-    case 'farLeft':
-      testX = 400; // Very far left
-      testY = 500;
-      console.log('🧪 TESTING: Spawning fragment at FAR LEFT (400, 500)');
-      break;
-    case 'center':
-      testX = 2048; // Map center
-      testY = 500;
-      console.log('🧪 TESTING: Spawning fragment at CENTER (2048, 500)');
-      break;
-    default:
-      testX = 3600;
-      testY = 500;
-  }
-  
-  // Clear existing fragments for clean test
-  window.lostDataSystem.fragments = [];
-  
-  // Create fragment at exact position
-  const fragment = new window.LostDataFragment(testX, testY);
-  window.lostDataSystem.fragments.push(fragment);
-  
-  console.log(`🧪 TEST FRAGMENT SPAWNED at (${testX}, ${testY})`);
-  console.log(`🧪 Player position: ${window.player ? `(${window.player.position.x.toFixed(1)}, ${window.player.position.y.toFixed(1)})` : 'Unknown'}`);
-  console.log(`🧪 Distance from player: ${window.player ? window.distance(window.player.position.x, window.player.position.y, testX, testY).toFixed(1) : 'Unknown'}px`);
-  console.log(`🧪 Actual fragment position: (${fragment.position.x.toFixed(1)}, ${fragment.position.y.toFixed(1)})`);
-  
-  // Create spawn effect at test position
-  if (window.particleSystem) {
-    window.particleSystem.dataFragmentEffect(testX, testY);
   }
   
   return true;

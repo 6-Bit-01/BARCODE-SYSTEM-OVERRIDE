@@ -2,11 +2,13 @@
 window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({
   name: 'src/game/enemies.js',
-  exports: ['Enemy', 'EnemyManager', 'enemyManager'],
+  exports: ['Enemy', 'JammerEnemy', 'EnemyManager', 'enemyManager'],
   dependencies: ['Vector2D', 'distance', 'clamp', 'randomRange']
 });
 
-// Base Enemy class
+// ==========================================
+// 1. BASE ENEMY CLASS (Moved to Top)
+// ==========================================
 window.Enemy = class Enemy {
   constructor(x, y, type = 'virus') {
     this.position = new window.Vector2D(x, y);
@@ -20,16 +22,17 @@ window.Enemy = class Enemy {
     this.setupByType();
     
     // AI state
-    this.state = 'entrance'; // Start with entrance state
+    this.state = 'entrance'; 
     this.target = null;
     this.stateTimer = 0;
     this.animationTime = 0;
     
     // Entrance animation properties
     this.entrancePhase = 0;
-    this.entranceComplete = true; // Firewalls have no entrance phase - start immediately
+    this.entranceComplete = (type === 'firewall'); // Firewalls start ready
     this.originalSpawnX = x;
     this.originalSpawnY = y;
+    this._dropEdge = (type === 'virus') ? 'top' : null;
     
     // Firewall-specific properties
     this.shieldActive = false;
@@ -37,25 +40,48 @@ window.Enemy = class Enemy {
     this.attackAnimationPlaying = false;
     this.attackAnimationDuration = 0;
     this.attackAnimationTimer = 0;
+    this.aiState = 'walking'; 
     
-    // Enhanced animation properties
-    this.idlePauseTimer = 0;
-    this.idlePauseDuration = 0;
-    this.idlePauseChance = 0.002; // 0.2% chance per frame to pause
-    this.isIdlePaused = false;
-    this.lastAnimationState = 'idle';
-    this.animationTransitionCooldown = 0;
+    // Personality behavior properties
+    this.personalityTimer = Math.random() * 1000;
+    this.behaviorState = 'normal';
+    this.behaviorTimer = 0;
+    
+    // Corrupted Behavior State (New "Stop and Stare")
+    this._corruptedState = null; 
+    this._corruptedTimer = 0;
+    this._nextPauseTime = 0;
+    
+    // Virus Hover properties (New "Size Up")
+    this.hoverState = 'none';
+    this.hoverTimer = 0;
+    this.hoverPosition = null;
+    this._groupBehaviorTimer = 0;
+    
+    // Firewall lunge behavior
+    this.lungeCooldown = 0;
+    this.lungePreparationTime = 0;
+    this.isLunging = false;
+    this.proximityDetectionRadius = 400;
+    this._idleAnimationTimer = 0;
+    this._inFullIdle = false;
+    
+    // Enhanced firewall properties (only used when type === 'firewall')
+    this.proximityAttackRange = 250;
+    this.glideDistance = 80;
+    this.glideDuration = 0.8;
+    this.fullAttackDuration = 4.9;
+    this.attackStartTime = 0;
     
     // MakkoEngine sprite properties
     this.sprite = null;
     this.spriteReady = false;
     this.currentAnimation = null;
-    this.facing = 1; // 1 for right, -1 for left
+    this.facing = 1; 
     
     // Movement variations
     this.phaseOffset = Math.random() * Math.PI * 2;
     this.movementSeed = Math.random() * 1000;
-    this.personalityTimer = Math.random() * 1000;
     
     // Collision cooldowns
     this.lastCollisionTime = 0;
@@ -67,17 +93,16 @@ window.Enemy = class Enemy {
     this.spawnProtectionDuration = 2000;
     
     // Initialize sprite
-    if (['virus', 'corrupted', 'firewall'].includes(this.type)) {
+    if (['virus', 'corrupted', 'firewall', 'jammer'].includes(this.type)) {
       setTimeout(() => {
         this.initSprite();
       }, 100);
     }
     
-    // Trigger entrance animation
+    // Trigger entrance logic
     this.startEntrance();
     
     if (window.particleSystem) {
-      console.log(`🌟 Creating ${this.type} spawn effect at (${this.position.x}, ${this.position.y})`);
       window.particleSystem.enemySpawnEffect(this.position.x, this.position.y, this.type);
     }
   }
@@ -91,30 +116,29 @@ window.Enemy = class Enemy {
         this.damage = 1;
         this.color = '#9900ff';
         this.patrolRadius = 100;
-        this.detectionRadius = 300;
+        this.detectionRadius = 250;
         break;
-        
       case 'corrupted':
         this.width = 64;
         this.height = 77;
-        this.speed = 200;
+        this.speed = 200; // Fast speed
         this.damage = 2;
         this.color = '#00ff88';
         this.patrolRadius = 80;
-        this.detectionRadius = 400;
+        this.detectionRadius = 350;
         break;
-        
       case 'firewall':
-        this.width = 120;
-        this.height = 120;
-        this.speed = 25;
-        this.damage = 1;
+        this.width = 140;
+        this.height = 140;
+        this.speed = 35;
+        this.damage = 2;
         this.color = '#ff9900';
         this.patrolRadius = 100;
-        this.detectionRadius = 300;
+        this.detectionRadius = 450;
         this.attackAnimationDuration = 6000;
+        this.lungeCooldown = 6000 + Math.random() * 4000;
+        this.maxAttackDistance = 500;
         break;
-        
       default:
         this.width = 40;
         this.height = 40;
@@ -128,40 +152,8 @@ window.Enemy = class Enemy {
     switch(this.type) {
       case 'virus': return 2;
       case 'corrupted': return 4;
-      case 'firewall': return 6;
+      case 'firewall': return 12; 
       default: return 3;
-    }
-  }
-
-  performCoordinatedJump() {
-    if (this.type !== 'virus' || !this.isOnGround) return;
-    
-    const nearbyEnemies = window.enemyManager?.getActiveEnemies().filter(other => 
-      other !== this && 
-      other.type === 'virus' && 
-      other.isOnGround &&
-      window.distance(this.position.x, this.position.y, other.position.x, other.position.y) < 100
-    ) || [];
-    
-    if (nearbyEnemies.length > 0) {
-      const targetEnemy = nearbyEnemies[0];
-      const dx = targetEnemy.position.x - this.position.x;
-      const distance = Math.abs(dx);
-      
-      if (distance > 30) {
-        this.velocity.y = -this.speed * 0.08;
-        const jumpSpeed = Math.abs(dx) * 0.004;
-        this.velocity.x = dx > 0 ? jumpSpeed : -jumpSpeed;
-        this.isCoordinatedJump = true;
-        this.jumpTarget = targetEnemy;
-        
-        const moveDirection = dx > 0 ? -1 : 1;
-        targetEnemy.velocity.x = moveDirection * this.speed * 0.15;
-      } else {
-        this.velocity.y = -this.speed * 0.06;
-      }
-    } else {
-      this.velocity.y = -this.speed * 0.06;
     }
   }
 
@@ -175,46 +167,32 @@ window.Enemy = class Enemy {
     // Track if enemy is on ground
     this.isOnGround = this.position.y >= 750;
     
-    // Gravity for falling viruses
-    if (this.type === 'virus' && this.position.y < 750) {
-      this.velocity.y += 600 * dt;
-      this.position.y += this.velocity.y * dt;
-      if (this.position.y >= 750) {
-        this.position.y = 750;
-        this.velocity.y = 0;
+    // Gravity
+    if (this.position.y < 750) {
+      if (this.type !== 'firewall' || this.position.y < 700) {
+         this.velocity.y += 600 * dt;
       }
     }
     
-    // Update AI
+    // Update AI - Traffic Controller
     this.updateAI(player, dt);
     
-    // Update sprite animation
-    if (['virus', 'corrupted', 'firewall'].includes(this.type) && this.spriteReady && this.sprite) {
-      this.updateSpriteAnimation(deltaTime);
-      
-      // Emergency animation check
-      const currentAnim = this.sprite.getCurrentAnimation();
-      if (!currentAnim) {
-        this.playAnimation('idle');
-      }
+    // Update Animation
+    if (this.spriteReady && this.sprite) {
+      this.sprite.update(deltaTime);
+      this.forceCorrectAnimationState();
     }
     
     // Physics Application
-    let gravity = 600;
-    if (this.type === 'firewall') gravity = 1200;
-    else if (this.type === 'corrupted') gravity = 800;
-
-    this.velocity.y += gravity * dt;
     this.position = this.position.add(this.velocity.multiply(dt));
 
-    // Ground Clamping & World Boundaries
+    // Ground Clamping
     const worldLeft = this.width/2;
     const worldRight = 4096 - this.width/2;
     this.position.x = window.clamp(this.position.x, worldLeft, worldRight);
 
     if (this.position.y >= 750) {
       this.position.y = 750;
-      // Firewalls and Corrupted get stricter ground clamping to prevent floating/bouncing
       if (this.type === 'firewall' || this.type === 'corrupted') {
           this.velocity.y = Math.min(0, this.velocity.y); 
       } else {
@@ -225,174 +203,211 @@ window.Enemy = class Enemy {
     // Friction
     const tutorialMode = window.tutorialSystem && window.tutorialSystem.isActive();
     if (tutorialMode && this.type === 'virus') {
-      this.velocity.x *= 0.98;
-    } else {
-      this.velocity.x *= 0.95;
+        this.velocity.x *= 0.98;
+    } else if (this.type !== 'firewall') { 
+        this.velocity.x *= 0.95;
     }
   }
 
   updateAI(player, dt) {
-    const distToPlayer = window.distance(
-      this.position.x, this.position.y,
-      player.position.x, player.position.y
-    );
-    
-    // Virus AI with proper state transitions
+    // 1. Firewall Specific Logic
+    if (this.type === 'firewall') {
+        this.firewallPersonalityBehavior(dt, player);
+        return;
+    }
+
+    // 2. Corrupted Specific Logic
+    if (this.type === 'corrupted') {
+        if (!this.entranceComplete) {
+            this.corruptedEntrance(dt);
+        } else {
+            this.corruptedPersonalityBehavior(dt, player);
+        }
+        return;
+    }
+
+    // 3. Virus / Generic Logic
     if (this.type === 'virus') {
-      switch(this.state) {
-        case 'entrance':
-          // Handle entrance animation
-          if (this._dropEdge) {
+        if (!this.entranceComplete) {
             this.virusDropEntrance(dt);
-          } else {
-            // No drop edge set, immediately transition to patrol
-            console.log(`🦠 Virus has no drop edge - forcing transition to patrol`);
-            this.state = 'patrol';
-            this.entranceComplete = true;
-          }
-          break;
-          
-        case 'patrol':
-          // Debug state every few seconds
-          if (Math.floor(this.stateTimer / 1000) % 3 === 0 && this.stateTimer % 1000 < 16) {
-            console.log(`🦠 Virus PATROL state - position: (${this.position.x.toFixed(1)}, ${this.position.y.toFixed(1)}), velocity: (${this.velocity.x.toFixed(1)}, ${this.velocity.y.toFixed(1)})`);
-          }
-          
-          this.patrol(dt);
-          
-          // Transition to chase if player is nearby
-          if (distToPlayer <= 9999) {
-            console.log(`🦠 Virus transitioning from PATROL to CHASE - player distance: ${distToPlayer.toFixed(1)}`);
-            this.state = 'chase';
-            this.target = player;
-            this.stateTimer = 0;
-          }
-          break;
-          
-        case 'chase':
-          // Debug chase state
-          if (Math.floor(this.stateTimer / 1000) % 3 === 0 && this.stateTimer % 1000 < 16) {
-            console.log(`🦠 Virus CHASE state - player distance: ${distToPlayer.toFixed(1)}, velocity: (${this.velocity.x.toFixed(1)}, ${this.velocity.y.toFixed(1)})`);
-          }
-          
-          if (distToPlayer > this.detectionRadius * 1.5) {
-            console.log(`🦠 Virus transitioning from CHASE to PATROL - player too far: ${distToPlayer.toFixed(1)}`);
-            this.state = 'patrol';
-            this.target = null;
-          } else {
-            this.chase(player, dt);
-          }
-          break;
-          
-        default:
-          console.warn(`🦠 Virus in unknown state: ${this.state} - forcing to patrol`);
-          this.state = 'patrol';
-          this.entranceComplete = true;
-          break;
-      }
-    } else {
-      // Standard State Machine
-      switch(this.state) {
-        case 'entrance':
-          this.entrance(dt);
-          if (this.entranceComplete) {
-            this.state = 'patrol';
-            this.stateTimer = 0;
-          }
-          break;
-        case 'patrol':
-          this.patrol(dt);
-          if (distToPlayer <= 9999) {
-            this.state = 'chase';
-            this.target = player;
-            this.stateTimer = 0;
-          }
-          break;
-        case 'chase':
-          if (distToPlayer > this.detectionRadius * 1.5) {
-            this.state = 'patrol';
-            this.target = null;
-          } else {
-            this.chase(player, dt);
-          }
-          break;
-      }
+        } else {
+            const dist = window.distance(this.position.x, this.position.y, player.position.x, player.position.y);
+            this.virusPersonalityBehavior(dt, player, dist);
+        }
+        return;
     }
   }
 
   startEntrance() {
-    switch(this.type) {
-      case 'virus':
-        // Handle dropping from screen edges
-        if (this._dropEdge) {
-          this.entranceComplete = false;
-          this.state = 'entrance';
-          console.log(`🦠 Virus starting entrance from ${this._dropEdge} edge at position (${this.position.x}, ${this.position.y})`);
-        } else {
-          // Normal spawn behavior - start in patrol immediately
-          this.entranceComplete = true;
-          this.state = 'patrol';
-          console.log(`🦠 Virus starting normal patrol at position (${this.position.x}, ${this.position.y})`);
-        }
-        break;
-        
-      case 'corrupted':
+    if (this.type === 'corrupted') {
         const corruptedSpawnX = 4500 + window.randomRange(-50, 0);
-        const corruptedSpawnY = window.randomRange(200, 700);
-        
         this.position.x = corruptedSpawnX;
-        this.position.y = corruptedSpawnY;
-        
+        this.position.y = window.randomRange(200, 700);
         this.velocity.x = -(80 + Math.random() * 40);
         this.velocity.y = 50 + Math.random() * 50;
-        
-        this.entrancePhase = 'throwing';
         this.entranceComplete = false;
-        break;
-        
-      case 'firewall':
-        this.position.x = 5120;
+        this.entrancePhase = 'throwing';
+    } else if (this.type === 'firewall') {
+        // FIX: ALWAYS spawn from right (off-screen)
+        this.position.x = 4500; 
         this.position.y = 750;
-        this.velocity.x = 0;
-        this.velocity.y = 0;
-        this.entrancePhase = 'pursuing';
-        
+        this.velocity.x = -40; // Start moving left
+        this.entranceComplete = true; // Firewalls always ready
         this.aiState = 'walking';
-        this.aiStateTimer = 0;
         
-        this.lungeCooldown = 2000 + Math.random() * 2000;
-        this.nextLungeTime = 1500 + Math.random() * 3000;
-        this.minAttackDistance = 200;
-        this.maxAttackDistance = 400;
-        this.baseAttackInterval = 4000 + Math.random() * 4000;
-        this.lungeDirection = 1;
+        // Initialize Firewall Behavior State
+        this.behaviorState = 'normal';
+        this.behaviorTimer = 0;
+        this.lungeCooldown = 1000 + Math.random() * 3000;
+        this.isLunging = false;
+        this.proximityDetectionRadius = 400 + Math.random() * 300;
         
-        this.attackAnimationDuration = 6000;
-        this.attackAnimationTimer = 0;
-        this.attackAnimationPlaying = false;
-        
+    } else if (this.type === 'virus') {
+        if (this._dropEdge) {
+            this.entranceComplete = false;
+            this.state = 'entrance';
+        } else {
+            this.entranceComplete = true;
+            this.state = 'patrol';
+        }
+    }
+  }
+
+  // --- BEHAVIOR SYSTEMS ---
+
+  // 1. VIRUS BEHAVIOR (Hover + Swoop)
+  virusDropEntrance(dt) {
+    if (this._dropEdge === 'top') {
+        this.velocity.y += 600 * dt;
+    }
+    this.position.x += this.velocity.x * dt;
+    this.position.y += this.velocity.y * dt;
+    
+    if (this.position.y >= 750) {
+        this.position.y = 750;
+        this.velocity.y = 0;
         this.entranceComplete = true;
-        this.state = 'chase';
+        this.state = 'patrol';
+        this.isOnGround = true;
+        if (window.particleSystem) window.particleSystem.impact(this.position.x, this.position.y, '#9900ff', 15);
+    }
+  }
+
+  virusPersonalityBehavior(dt, player, distToPlayer) {
+    const angleToPlayer = Math.atan2(
+      player.position.y - this.position.y,
+      player.position.x - this.position.x
+    );
+    
+    // Group Logic
+    const nearbyViruses = window.enemyManager?.getActiveEnemies().filter(other => 
+      other !== this && other.type === 'virus' && other.active &&
+      window.distance(this.position.x, this.position.y, other.position.x, other.position.y) < 200
+    ) || [];
+    
+    if (nearbyViruses.length > 0) {
+      this._groupBehaviorTimer += dt;
+      if (this._groupBehaviorTimer > (2000 + Math.random() * 1000)) {
+        this._groupBehaviorTimer = 0;
+        const groupAction = Math.random();
+        if (groupAction < 0.4) {
+          // Synchronized hop attack
+          nearbyViruses.forEach(virus => {
+            virus.velocity.y = -this.speed * 0.1;
+            virus.velocity.x = Math.cos(angleToPlayer + (Math.random() - 0.5) * 0.5) * this.speed * 1.2;
+          });
+          this.velocity.y = -this.speed * 0.1;
+          this.velocity.x = Math.cos(angleToPlayer) * this.speed * 1.2;
+        } else if (groupAction < 0.7) {
+          // Fan out formation
+          const fanAngle = (Math.PI * 2) / (nearbyViruses.length + 1);
+          nearbyViruses.forEach((virus, index) => {
+            const targetAngle = angleToPlayer - Math.PI/4 + fanAngle * index;
+            virus.velocity.x = Math.cos(targetAngle) * this.speed * 0.8;
+          });
+        }
+      }
+    }
+    
+    if (distToPlayer < 9999) {
+      // Check if should enter hover mode
+      if (distToPlayer < 250 && this.hoverState === 'none' && this.isOnGround) {
+        this.hoverState = 'approach';
+        this.hoverTimer = 0;
+        this.hoverPosition = { x: this.position.x, y: this.position.y };
+        console.log('🦘 Virus entering hover mode to size up player');
+      }
+      
+      // Handle hover behavior
+      if (this.hoverState !== 'none') {
+        this.updateVirusHoverBehavior(dt, player);
+      } else {
+        // Normal approach
+        const speedBoost = distToPlayer < 300 ? 2.5 : 1.5;
+        this.velocity.x = Math.cos(angleToPlayer) * this.speed * speedBoost;
+        
+        // Flanking
+        if (nearbyViruses.length > 2) {
+          const flankAngle = angleToPlayer + (Math.random() > 0.5 ? Math.PI/3 : -Math.PI/3);
+          this.velocity.x = Math.cos(flankAngle) * this.speed * 1.3;
+        }
+        
+        // Hop attack with timing delay
+        if (distToPlayer < 200 && this.isOnGround && Math.random() > 0.7) {
+          if (!this._hopDelay) {
+            this._hopDelay = 300 + Math.random() * 500; 
+            this._hopTimer = 0;
+          }
+          this._hopTimer += dt;
+          if (this._hopTimer >= this._hopDelay) {
+            this.velocity.y = -this.speed * 0.09; 
+            this.velocity.x = Math.cos(angleToPlayer) * this.speed * 1.1; 
+            this._hopDelay = 800 + Math.random() * 1000; 
+            this._hopTimer = 0;
+          }
+        }
+      }
+    }
+  }
+
+  updateVirusHoverBehavior(dt, player) {
+    this.hoverTimer += dt;
+    switch(this.hoverState) {
+      case 'approach':
+        const dx = this.hoverPosition.x - this.position.x;
+        const dy = this.hoverPosition.y - this.position.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist > 10) {
+          this.velocity.x = (dx / dist) * 100;
+          this.velocity.y = (dy / dist) * 50;
+        } else {
+          this.hoverState = 'hovering';
+          this.hoverTimer = 0;
+        }
+        break;
+      case 'hovering':
+        this.velocity.x *= 0.9; // Slow horizontal movement
+        // Bounce up and down
+        const bounceHeight = 30 + Math.sin(this.hoverTimer * 0.008) * 20;
+        this.velocity.y = Math.sin(this.hoverTimer * 0.01) * 200 - bounceHeight;
+        // Face the player
+        const playerDx = player.position.x - this.position.x;
+        this.facing = playerDx > 0 ? 1 : -1;
+        // Exit hover after 2-3 seconds
+        if (this.hoverTimer > 2.0 + Math.random() * 1.0) {
+          this.hoverState = 'exit';
+        }
+        break;
+      case 'exit':
+        this.hoverState = 'none';
+        this.velocity.y = -this.speed * 0.1; // Swooping hop exit
         break;
     }
   }
-  
-  entrance(dt) {
-    switch(this.type) {
-      case 'virus':
-        this.virusDropEntrance(dt);
-        break;
-      case 'corrupted':
-        this.corruptedEntrance(dt);
-        break;
-      case 'firewall':
-        this.firewallEntrance(dt);
-        break;
-    }
-  }
-  
+
+  // 2. CORRUPTED BEHAVIOR (New: Chase -> Stop & Stare -> Chase)
   corruptedEntrance(dt) {
-    this.entrancePhase = 'throwing';
     this.velocity.y += 800 * dt;
     this.position.x += this.velocity.x * dt;
     this.position.y += this.velocity.y * dt;
@@ -400,18 +415,10 @@ window.Enemy = class Enemy {
     if (this.position.y >= 750) {
       this.position.y = 750;
       this.velocity.y = 0;
-      this.velocity.x *= 0.3;
-      this.originalSpawnY = 750;
-      
-      if (window.particleSystem) {
-        window.particleSystem.impact(this.position.x, this.position.y, '#00ff88', 20);
-      }
-      
-      if (window.renderer?.addScreenShake) {
-        window.renderer.addScreenShake(4, 150);
-      }
-      
-      this.entranceComplete = true;
+      this.velocity.x = 0;
+      this.entranceComplete = true; 
+      if (window.particleSystem) window.particleSystem.impact(this.position.x, this.position.y, '#00ff88', 20);
+      if (window.renderer?.addScreenShake) window.renderer.addScreenShake(4, 150);
     }
     
     if (this.position.x < -100 || this.position.x > 2020) {
@@ -419,493 +426,314 @@ window.Enemy = class Enemy {
       this.velocity.x *= -0.5;
     }
   }
-  
-  virusDropEntrance(dt) {
-    // Apply gravity for vertical drops
-    if (this._dropEdge === 'top' || this._dropEdge === 'bottom') {
-      this.velocity.y += 600 * dt;
+
+  corruptedPersonalityBehavior(dt, player) {
+    const dx = player.position.x - this.position.x;
+    const dy = player.position.y - this.position.y;
+    const angleToPlayer = Math.atan2(dy, dx);
+    
+    // Initialize behavior state
+    if (!this._corruptedState) {
+        this._corruptedState = 'chase'; 
+        this._corruptedTimer = 0;
+        this._nextPauseTime = Date.now() + 1000 + Math.random() * 2000;
     }
     
-    // Update position
-    this.position.x += this.velocity.x * dt;
-    this.position.y += this.velocity.y * dt;
+    const currentTime = Date.now();
     
-    // Check if enemy has reached ground level or reasonable stop point
-    let reachedTarget = false;
-    
-    switch(this._dropEdge) {
-      case 'top':
-        reachedTarget = this.position.y >= 750;
-        break;
-      case 'bottom':
-        // Jumping up enemies - stop when velocity becomes negative
-        reachedTarget = this.velocity.y <= 0;
-        break;
-      case 'left':
-      case 'right':
-        // Horizontal movement - stop when close to player area or slow enough
-        const playerX = window.player?.position?.x || 960;
-        const distToPlayer = Math.abs(this.position.x - playerX);
-        reachedTarget = distToPlayer < 400 || Math.abs(this.velocity.x) < 50;
-        break;
-    }
-    
-    if (reachedTarget) {
-      // Clamp to valid positions
-      this.position.y = 750;
-      this.velocity.y = 0;
-      this.velocity.x *= 0.5;
-      
-      // Create landing effect
-      if (window.particleSystem) {
-        window.particleSystem.impact(this.position.x, this.position.y, '#9900ff', 15);
-      }
-      
-      if (window.renderer?.addScreenShake) {
-        window.renderer.addScreenShake(2, 100);
-      }
-      
-      // CRITICAL FIX: Force state transition to patrol
-      this.entranceComplete = true;
-      this.state = 'patrol';
-      this.isOnGround = true;
-      
-      console.log(`🦠 Virus completed entrance from ${this._dropEdge} edge - transitioning to PATROL state`);
-      console.log(`🦠 Virus final position: (${this.position.x}, ${this.position.y}), state: ${this.state}, entranceComplete: ${this.entranceComplete}`);
-    }
-    
-    // Boundary protection
-    this.position.x = window.clamp(this.position.x, 50, 4046);
-    this.position.y = window.clamp(this.position.y, 50, 850);
-  }
-  
-  firewallEntrance(dt) {
-    // Firewall "Entrance" is actually just its AI loop running
-    this.aiStateTimer += dt;
-    
-    switch(this.aiState) {
-      case 'walking':
-        const distToPlayer = window.distance(
-          this.position.x, this.position.y,
-          window.player?.position?.x || 960,
-          window.player?.position?.y || 750
-        );
+    if (this._corruptedState === 'chase') {
+        // Chase the player
+        const speed = this.speed * 1.2; // Fast pursuit
+        this.velocity.x = Math.cos(angleToPlayer) * speed;
         
-        // Walk toward player
-        const walkDx = (window.player?.position?.x || 960) - this.position.x;
-        const angleToPlayer = Math.atan2((window.player?.position?.y || 750) - this.position.y, walkDx);
-        
-        this.velocity.x = Math.cos(angleToPlayer) * 80;
-        this.position.x += this.velocity.x * dt;
-        this.position.y = 750;
-        
-        this.lungeCooldown -= dt;
-        if (this.lungeCooldown <= 0) {
-          if (distToPlayer < 400) {
-            this.aiState = 'preparing_lunge';
-            this.aiStateTimer = 0;
-            this.lungeChargeTime = 800;
+        // Randomly decide to stop and stare
+        if (currentTime > this._nextPauseTime) {
+            this._corruptedState = 'pause';
+            this._corruptedTimer = Date.now(); // Start pause timer
+            // Pause up to 1 second
+            this._pauseDuration = 200 + Math.random() * 800; 
+            this.velocity.x = 0; // Stop immediately
             
-            // Set lunge direction
-            this.lungeDirection = walkDx > 0 ? 1 : -1;
-          } else {
-            this.aiState = 'walking';
-            this.lungeCooldown = 2000;
-          }
+            // Force idle animation
+            if (this.spriteReady && this.sprite) {
+                this.playAnimation('idle');
+            }
         }
-        break;
-        
-      case 'preparing_lunge':
-        this.aiStateTimer += dt;
+    } else if (this._corruptedState === 'pause') {
+        // Frozen in place - NO TWITCHING
         this.velocity.x = 0;
-        this.position.y = 750 + Math.sin(Date.now() * 0.008) * 5;
+        this.velocity.y = 0; 
         
-        if (this.aiStateTimer % 80 < 40 && window.renderer?.addScreenShake) {
-          window.renderer.addScreenShake(2, 60);
+        // Resume chase after duration
+        if (Date.now() - this._corruptedTimer > this._pauseDuration) {
+            this._corruptedState = 'chase';
+            this._nextPauseTime = currentTime + 1000 + Math.random() * 2000; // Schedule next pause
         }
-        
-        if (!this.attackAnimationPlaying && this.spriteReady && this.sprite) {
-          this.playAnimation('attack');
-          this.attackAnimationPlaying = true;
-          this.attackAnimationTimer = this.attackAnimationDuration;
-        }
-        
-        if (this.aiStateTimer >= this.lungeChargeTime) {
-          this.aiState = 'lunging';
-          this.aiStateTimer = 0;
-          
-          // Lunge execution
-          const lungeForce = 96;
-          const lungeDx = (window.player?.position?.x || 960) - this.position.x;
-          const lungeDy = (window.player?.position?.y || 750) - this.position.y;
-          const lungeAngle = Math.atan2(lungeDy, lungeDx);
-          
-          this.velocity.x = Math.cos(lungeAngle) * lungeForce;
-          this.velocity.y = -120;
-          
-          if (window.renderer?.addScreenShake) {
-            window.renderer.addScreenShake(8, 300);
-          }
-        }
-        break;
-        
-      case 'lunging':
-        this.aiStateTimer += dt;
-        
-        if (this.attackAnimationPlaying && this.spriteReady && this.sprite) {
-          const currentAnim = this.sprite.getCurrentAnimation();
-          if (!currentAnim || !currentAnim.includes('attack')) {
-            this.playAnimation('attack');
-          }
-        }
-        
-        this.position.x += this.velocity.x * dt;
-        this.position.y += this.velocity.y * dt;
-        this.velocity.y += 800 * dt;
-        this.velocity.x *= 0.85;
-        
-        if (this.position.y >= 750) {
-          this.position.y = 750;
-          this.velocity.y = 0;
-        }
-        
-        if (Math.abs(this.velocity.x) < 10 || this.aiStateTimer > 1200) {
-          this.aiState = 'recovering';
-          this.aiStateTimer = 0;
-          this.velocity.x = 0;
-          this.velocity.y = 0;
-          
-          if (this.spriteReady && this.sprite) {
-            this.playAnimation('idle');
-            this.attackAnimationPlaying = false;
-            this.shieldActive = false;
-            this.preparingAttack = false;
-          }
-        }
-        break;
-        
-      case 'recovering':
-        this.position.y = 750 + Math.sin(Date.now() * 0.002) * 3;
-        this.position.x = Math.max(100, Math.min(2900, this.position.x));
-        
-        if (this.aiStateTimer > 1200) {
-          this.aiState = 'walking';
-          this.aiStateTimer = 0;
-          this.velocity.x = 0;
-          this.lungeCooldown = 4000 + Math.random() * 2000;
-        }
-        break;
-    }
-  }
-  
-  createGlitchParticles(type) {
-    if (window.particleSystem && this.type === 'corrupted') {
-      for (let i = 0; i < 3; i++) {
-        const particleX = this.position.x + (Math.random() - 0.5) * 20;
-        const particleY = this.position.y - this.height/2 + (Math.random() - 0.5) * 20;
-        window.particleSystem.damageEffect(particleX, particleY, '#00ff88', 2);
-      }
     }
   }
 
-  patrol(dt) {
-    const player = window.player;
-    if (!player) {
-      this.basicPatrol(dt);
-      return;
+  // 3. ENHANCED FIREWALL BEHAVIOR (Proximity Attack with Full Animation)
+  firewallPersonalityBehavior(dt, player) {
+    const distToPlayer = window.distance(this.position.x, this.position.y, player.position.x, player.position.y);
+    const currentTime = Date.now();
+    
+    // Init
+    if (!this._behaviorInit) {
+      this._behaviorInit = true;
+      this._nextIdlePause = currentTime + 2000 + Math.random() * 4000;
+      this._idleChance = 0.003;
+      this._aggressionLevel = 1.5;
+      this._idleAnimationTimer = 0;
+      this._fullIdleChance = 0.015;
+      this._inFullIdle = false;
+      this._fullIdleDuration = 0;
+      console.log('🔥 Enhanced Firewall behavior initialized');
     }
     
-    const distToPlayer = window.distance(
-      this.position.x, this.position.y,
-      player.position.x, player.position.y
-    );
+    this._aggressionLevel = Math.min(2.0, this._aggressionLevel + 0.00003);
     
-    // Global Pursuit Logic
-    switch(this.type) {
-      case 'virus':
-        const angleToPlayer = Math.atan2(
-          player.position.y - this.position.y,
-          player.position.x - this.position.x
-        );
-        
-        if (distToPlayer < 9999) {
-          const speedBoost = distToPlayer < 300 ? 2.5 : 1.5;
-          this.velocity.x = Math.cos(angleToPlayer) * this.speed * speedBoost;
-          
-          // Jump attack
-          if (distToPlayer < 150 && this.isOnGround && Math.random() > 0.6) {
-            this.velocity.y = -this.speed * 0.08;
-            this.velocity.x = Math.cos(angleToPlayer) * this.speed * 1.2;
-          }
+    // Attack Logic
+    if (distToPlayer <= this.proximityAttackRange && !this.isLunging && this.lungeCooldown <= 0) {
+      if (Math.random() < 0.9) {
+        this.startProximityAttack(player);
         }
-        break;
-        
-      case 'corrupted':
-        const corruptedAngle = Math.atan2(
-          player.position.y - this.position.y,
-          player.position.x - this.position.x
-        );
-        
-        // CRITICAL FIX: Remove teleport ability - make corrupted enemies anxious
-        // Randomly stop and play idle animations
-        const currentTime = Date.now();
-        
-        // Initialize anxiety timers if not set
-        if (!this._anxiousPauseEnd) {
-          this._anxiousPauseEnd = 0;
-          this._nextAnxiousPause = currentTime + 500 + Math.random() * 2000; // Next pause in 0.5-2.5s
-        }
-        
-        // Check if it's time to start an anxious pause
-        if (currentTime >= this._nextAnxiousPause && this._anxiousPauseEnd === 0) {
-          // Start anxious pause
-          this._anxiousPauseEnd = currentTime + 300 + Math.random() * 700; // Pause for 0.3-1.0s
-          console.log('😰 Corrupted enemy starting anxious pause');
-        }
-        
-        if (currentTime >= this._nextAnxiousPause && currentTime < this._anxiousPauseEnd) {
-          // Currently in anxious pause - stop movement
-          this.velocity.x = 0;
-          this.velocity.y = 0;
-          
-          // Add visual trembling during anxiety
-          const tremorAmount = 2 + Math.sin(currentTime * 0.02) * 1;
-          this.position.x += (Math.random() - 0.5) * tremorAmount;
-          this.position.y += (Math.random() - 0.5) * tremorAmount * 0.5;
-          
-          // Force idle animation during pause
-          if (this.spriteReady && this.sprite) {
-            const currentAnim = this.sprite.getCurrentAnimation();
-            if (!currentAnim || !currentAnim.includes('idle')) {
-              this.playAnimation('idle');
+    }
+    if (this.lungeCooldown > 0) this.lungeCooldown -= dt;
+    
+    // Idle Pause Logic
+    if (currentTime >= this._nextIdlePause && this.behaviorState === 'normal') {
+        this.behaviorState = 'idle_pause';
+        this.behaviorTimer = 0;
+        this._idlePauseDuration = 1000 + Math.random() * 1500;
+        this._nextIdlePause = currentTime + 4000 + Math.random() * 3000;
+    }
+    
+    switch(this.behaviorState) {
+        case 'normal':
+            const dx = player.position.x - this.position.x;
+            const walkSpeed = (60 + Math.random() * 20) * this._aggressionLevel;
+            this.velocity.x = (dx > 0 ? 1 : -1) * walkSpeed;
+            this.position.x += this.velocity.x * dt;
+            this.position.y = 750;
+            this.facing = dx > 0 ? 1 : -1;
+            
+            if (this.spriteReady && this.sprite) {
+                const anim = this.sprite.getCurrentAnimation();
+                if (!anim || !anim.includes('walk')) this.playAnimation('walk');
             }
-          }
-          
-          // Create occasional anxiety particles (green tremor)
-          if (Math.random() < 0.03) { // 3% chance per frame during anxiety
-            if (window.particleSystem) {
-              const tremorX = this.position.x + (Math.random() - 0.5) * 40;
-              const tremorY = this.position.y - 30 + (Math.random() - 0.5) * 20;
-              window.particleSystem.damageEffect(tremorX, tremorY, '#00ff88', 3);
+            break;
+            
+        case 'idle_pause':
+            this.velocity.x = 0;
+            this.behaviorTimer += dt;
+            this._idleAnimationTimer += dt;
+            
+            // Occasional FULL Idle Animation (plays ~5s loop)
+            if (!this._inFullIdle && this._idleAnimationTimer > 0.3 && Math.random() < this._fullIdleChance) {
+                this._inFullIdle = true;
+                const loopCount = 1 + Math.floor(Math.random() * 3); // 1-3 loops
+                this._fullIdleDuration = loopCount * 5.17; // seconds
+                this._idleAnimationTimer = 0;
+                this._idleAnimationTimer = 0;
+                console.log('🔥 Firewall entering full idle');
             }
-          }
-        } else if (currentTime >= this._anxiousPauseEnd && this._anxiousPauseEnd > 0) {
-          // Resume movement after pause - add nervous energy burst
-          const nervousSpeed = this.speed * 1.1 + Math.random() * 50; // Sometimes move faster due to anxiety
-          this.velocity.x = Math.cos(corruptedAngle) * nervousSpeed;
-          
-          // Schedule next anxious pause
-          this._anxiousPauseEnd = 0;
-          this._nextAnxiousPause = currentTime + 1000 + Math.random() * 3000; // Next pause in 1-4s
-          
-          console.log('😰 Corrupted enemy resuming movement with nervous energy');
-          
-          // Resume walk animation
-          if (this.spriteReady && this.sprite) {
-            const currentAnim = this.sprite.getCurrentAnimation();
-            if (!currentAnim || currentAnim.includes('idle')) {
-              this.playAnimation('walk');
+            
+            if (this._inFullIdle) {
+                if (this._idleAnimationTimer > this._fullIdleDuration) {
+                    this._inFullIdle = false;
+                    this._idleAnimationTimer = 0;
+                }
+                // Force play idle
+                if (this.spriteReady && this.sprite) {
+                    const anim = this.sprite.getCurrentAnimation();
+                    if (!anim || !anim.includes('idle')) this.playAnimation('idle');
+                }
+            } else {
+                // Normal short idle
+                if (this.spriteReady && this.sprite) {
+                    const anim = this.sprite.getCurrentAnimation();
+                    if (!anim || !anim.includes('idle')) this.playAnimation('idle');
+                }
             }
-          }
-          
-          // Create burst of anxiety particles when resuming
-          if (Math.random() < 0.5) { // 50% chance when resuming
-            if (window.particleSystem) {
-              for (let i = 0; i < 5; i++) {
-                const burstX = this.position.x + (Math.random() - 0.5) * 30;
-                const burstY = this.position.y - 20 + (Math.random() - 0.5) * 15;
-                window.particleSystem.damageEffect(burstX, burstY, '#00ff88', 2);
+            
+            // Exit pause if done (and not forced in full idle)
+            if (!this._inFullIdle && this.behaviorTimer > (this._idlePauseDuration / 1000)) {
+                this.behaviorState = 'normal';
+                this.behaviorTimer = 0;
+            }
+            break;
+            
+        case 'lunging':
+            this.behaviorTimer += dt;
+            // Drag
+            // Enhanced glide physics
+            if (this.behaviorTimer < this.glideDuration) {
+              // Active gliding phase
+              this.velocity.x *= 0.95; // Maintain forward momentum
+            } else {
+              // Post-glide deceleration
+              this.velocity.x *= 0.85;
+            }
+            
+            // Gravity during attack
+            if (this.position.y < 750) {
+              this.velocity.y += 400 * dt;
+            } else {
+              this.velocity.y = 0;
+              this.position.y = 750;
+            }
+            
+            if (this.spriteReady && this.sprite) {
+                const anim = this.sprite.getCurrentAnimation();
+              if (!anim || !anim.includes('attack')) {
+                this.playAnimation('attack');
               }
             }
-          }
-        } else {
-          // Normal movement when not anxious
-          this.velocity.x = Math.cos(corruptedAngle) * this.speed * 1.1;
-        }
-        break;
-        
-      case 'firewall':
-        this.firewallAI(dt * 1000, player);
-        break;
+            
+            // Check for full animation completion
+            const attackElapsed = (Date.now() - this.attackStartTime) / 1000;
+            if (attackElapsed > this.fullAttackDuration) {
+                this.behaviorState = 'normal';
+                this.behaviorTimer = 0;
+                this.isLunging = false;
+                this.lungeCooldown = 3000 + Math.random() * 2000;
+                this.attackStartTime = 0;
+                console.log('🔥 Enhanced Firewall proximity attack completed');
+            }
+            
+            // Safety timeout
+            if (this.behaviorTimer > 5.5) {
+              console.log('🔥 Enhanced Firewall attack timeout - forcing exit');
+              this.behaviorState = 'normal';
+              this.behaviorTimer = 0;
+              this.isLunging = false;
+              this.lungeCooldown = 2000;
+              this.attackStartTime = 0;
+            }
+            break;
     }
   }
   
-  basicPatrol(dt) {
-    // Fallback patrol when no player
-    const moveTimer = Date.now() / 1000 + this.phaseOffset;
-    this.velocity.x = Math.sin(moveTimer) * this.speed;
-  }
-
-  firewallAI(deltaTimeMs, player) {
-    const dt = deltaTimeMs / 1000;
-    if (!this.aiState) {
-      this.aiState = 'walking';
-      this.aiStateTimer = 0;
-      this.baseAttackInterval = 4000 + Math.random() * 4000;
-      this.lungeCooldown = this.baseAttackInterval;
+  // Enhanced proximity attack with full animation and 80px glide
+  startProximityAttack(player) {
+    this.isLunging = true;
+    this.behaviorState = 'lunging';
+    this.behaviorTimer = 0;
+    this.attackStartTime = Date.now();
+    
+    // Calculate direction to player
+    const dx = player.position.x - this.position.x;
+    const direction = dx > 0 ? 1 : -1;
+    this.facing = direction;
+    
+    // Execute 80px glide
+    const glideVelocity = this.glideDistance / this.glideDuration;
+    this.velocity.x = glideVelocity * direction;
+    this.velocity.y = -50; // Small hop during glide
+    
+    // Play full attack animation
+    if (this.spriteReady && this.sprite) {
+      this.playAnimation('attack');
     }
     
-    // Delegate to the entrance method which contains the full state machine
-    this.firewallEntrance(dt);
-  }
-
-  chase(target, dt) {
-    // Wrapper for updateAI logic
-    this.patrol(dt);
-  }
-
-  takeDamage(amount) {
-    this.health -= amount;
-    
+    // Enhanced visual effects
     if (window.particleSystem) {
-      let particleColor = this.type === 'corrupted' ? 'corrupted' : this.type;
-      window.particleSystem.damageEffect(this.position.x, this.position.y - this.height/2, particleColor, 10);
+      window.particleSystem.enemySpawnEffect(this.position.x, this.position.y - 30, 'firewall');
+    }
+    if (window.renderer?.addScreenShake) {
+      window.renderer.addScreenShake(6, 200);
     }
     
-    if (this.health <= 0) {
-      this.active = false;
-      
-      if (window.particleSystem) {
-        let particleColor = this.type === 'corrupted' ? 'corrupted' : this.type;
-        window.particleSystem.explosion(this.position.x, this.position.y - this.height/2, particleColor, 25);
-      }
-      
-      if (window.gameState) {
-        const points = this.getPointValue();
-        window.gameState.score += points;
+    console.log('🔥 Enhanced Firewall proximity attack initiated - 80px glide with full 4.9s animation');
+  }
+
+  // --- ANIMATION CONTROLLER ---
+  forceCorrectAnimationState() {
+    // Firewall logic handles its own animation in firewallPersonalityBehavior
+    if (this.type === 'firewall') return;
+    
+    if (!this.spriteReady || !this.sprite) return;
+    
+    const currentAnim = this.sprite.getCurrentAnimation();
+    let target = 'idle';
+    
+    if (this.type === 'virus') {
+      target = 'idle';
+    } else if (this.type === 'corrupted') {
+      target = Math.abs(this.velocity.x) > 2 ? 'walk' : 'idle';
+      if (target === 'walk') this.facing = this.velocity.x > 0 ? 1 : -1;
+    }
+    
+    const map = {
+      'virus': { 'idle': 'virus_idle_idle' },
+      'corrupted': { 'idle': 'corrupted_idle_idle', 'walk': 'corrupted_walk_walk' }
+    };
+    
+    if (map[this.type]) {
+      const fullName = map[this.type][target];
+      if (!currentAnim || !currentAnim.includes(target)) {
+        this.playAnimation(target);
       }
     }
   }
   
-  getPointValue() {
-    switch(this.type) {
-      case 'virus': return 100;
-      case 'corrupted': return 200;
-      case 'firewall': return 300;
-      default: return 100;
-    }
-  }
-
-  getHitbox() {
-    // 1. Sprite-based Hitbox
-    if (['virus', 'corrupted', 'firewall'].includes(this.type) && this.spriteReady && this.sprite) {
-      
-      // Custom scale/offset logic based on type & animation
-      let drawScale = 0.8; 
-      let drawOffset = 60;
-      
-      if (this.type === 'corrupted') {
-        drawScale = 1.2;
-        drawOffset = 80;
-      } else if (this.type === 'firewall') {
-        // Dynamic firewall hitbox sizing
-        if (this.currentAnimation === 'firewall_idle_idle') {
-          drawScale = 2.0 * 1.13;
-          drawOffset = 100 - 14;
-        } else if (this.currentAnimation === 'firewall_walk_walk') {
-          drawScale = 2.0;
-          drawOffset = 100 + 4;
-        } else if (this.currentAnimation === 'firewall_attack_default') {
-          drawScale = 2.0 * 1.3;
-          drawOffset = 100 - 36;
-        } else {
-          drawScale = 2.0;
-          drawOffset = 100;
-        }
-      }
-      
-      // Get hitbox from engine
-      const worldHitbox = this.sprite.getHitboxWorld(this.position.x, this.position.y, {
-        scale: drawScale,
-        flipH: this.facing === -1
-      });
-      
-      if (worldHitbox) {
-        // Apply strict margins
-        const marginReduction = 0.05;
-        const tightWidth = worldHitbox.width * (1 - marginReduction * 2);
-        const tightHeight = worldHitbox.height * (1 - marginReduction * 2);
-        
-        return {
-          x: worldHitbox.x + (worldHitbox.width - tightWidth) / 2,
-          y: worldHitbox.y + (worldHitbox.height - tightHeight) / 2,
-          width: tightWidth,
-          height: tightHeight
+  playAnimation(name) {
+    if (!this.spriteReady || !this.sprite) return;
+    
+    // Explicit Firewall Animation
+    if (this.type === 'firewall') {
+        const map = {
+            'idle': 'firewall_idle_idle',
+            'walk': 'firewall_walk_walk',
+            'attack': 'firewall_attack_default'
         };
-      }
-      
-      // Fallback Calculation if engine returns null
-      let spriteWidth = 96 * drawScale;
-      let spriteHeight = 93 * drawScale;
-      let yOffset = drawOffset;
-
-      if (this.type === 'virus') {
-         spriteWidth = 96 * drawScale;
-         spriteHeight = 93 * drawScale;
-         yOffset = drawOffset - 240;
-         
-         // Extended front hitbox for virus
-         const tightWidth = spriteWidth * 0.94;
-         const tightHeight = spriteHeight * 0.94;
-         const extraX = this.facing === 1 ? 0 : -20;
-         
-         return {
-            x: this.position.x - tightWidth/2 + extraX,
-            y: this.position.y - tightHeight + yOffset,
-            width: tightWidth + 20,
-            height: tightHeight
-         };
-      }
+        const fullName = map[name] || name;
+        const loop = name !== 'attack';
+        this.sprite.play(fullName, loop);
+        this.currentAnimation = fullName;
+        return;
     }
     
-    // 2. Default Rectangle Hitbox
-    return {
-      x: this.position.x - this.width/2,
-      y: this.position.y - this.height,
-      width: this.width,
-      height: this.height
+    // Generic Animation - NO DELAY
+    const map = {
+      'virus': { 'idle': 'virus_idle_idle' },
+      'corrupted': { 'idle': 'corrupted_idle_idle', 'walk': 'corrupted_walk_walk' }
     };
+    
+    const fullName = map[this.type][name] || name;
+    const current = this.sprite.getCurrentAnimation();
+    
+    if (current === fullName && name !== 'idle') return;
+    
+    // FIX: Removed setTimeout delay that was causing race conditions
+    const loop = !fullName.includes('attack');
+    const speed = fullName.includes('attack') ? 1.2 : (name === 'idle' ? 1.25 : 1.0);
+    this.sprite.play(fullName, loop, 0, { speed });
+    this.currentAnimation = fullName;
   }
-
-  draw(ctx) {
-    if (!this.active) return;
-    
+  
+  drawSprite(ctx) {
     ctx.save();
+    let drawY = this.position.y - 1 + 70;
+    let scale = 0.8;
     
-    if (this.type === 'firewall' && this.alpha !== undefined) {
-      ctx.globalAlpha = this.alpha;
+    if (this.type === 'corrupted') {
+      drawY = this.position.y - 1 + 60;
+      scale = 1.2;
+    } else if (this.type === 'firewall') {
+      drawY = this.position.y;
+      scale = 2.0;
+      if (this.currentAnimation === 'firewall_idle_idle') { scale *= 1.13; drawY -= 14; } 
+      if (this.currentAnimation === 'firewall_attack_default') { scale *= 1.36; drawY -= 26; }
     }
     
-    if (['virus', 'corrupted', 'firewall'].includes(this.type) && this.spriteReady && this.sprite) {
-      this.drawSprite(ctx);
-      
-      // Draw Health Bar
-      if (this.health < this.maxHealth) {
-        let healthBarY = this.position.y - this.height + 50;
-        if (this.type === 'firewall') healthBarY += 40;
-        
-        ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
-        ctx.fillRect(
-          this.position.x - this.width,
-          healthBarY,
-          this.width * 2 * (this.health / this.maxHealth),
-          4
-        );
-      }
-    } else {
-      // Fallback drawing for non-sprite or failed loads
-      if (this.type !== 'corrupted' && this.type !== 'firewall') {
-        const bodyY = this.position.y - this.height;
-        const bodyX = this.position.x - this.width/2;
-        
-        ctx.fillStyle = this.color;
-        ctx.fillRect(bodyX, bodyY, this.width, this.height);
-      }
-    }
-    
+    this.sprite.draw(ctx, this.position.x, drawY, {
+      scale: scale,
+      flipH: this.facing === -1
+    });
     ctx.restore();
   }
-
+  
   async initSprite() {
     try {
       const charMap = {
@@ -933,107 +761,508 @@ window.Enemy = class Enemy {
     }
   }
   
-  updateSpriteAnimation(deltaTime) {
-    if (!this.spriteReady || !this.sprite) return;
+  takeDamage(amount) {
+    this.health -= amount;
     
-    this.sprite.update(deltaTime);
-    this.forceCorrectAnimationState();
+    if (window.particleSystem) {
+      let particleColor = this.type === 'corrupted' ? 'corrupted' : this.type;
+      window.particleSystem.damageEffect(this.position.x, this.position.y - this.height/2, particleColor, 10);
+    }
+    
+    if (this.health <= 0) {
+      this.active = false;
+      
+      // Play defeat sound based on enemy type
+      if (window.audioSystem) {
+        if (this.type === 'virus') {
+          window.audioSystem.playVirusDefeatSound();
+        } else if (this.type === 'corrupted') {
+          window.audioSystem.playEnemyDefeatSound('corrupted');
+        } else if (this.type === 'firewall') {
+          window.audioSystem.playEnemyDefeatSound('firewall');
+        }
+      }
+
+      if (window.particleSystem) {
+        let particleColor = this.type === 'corrupted' ? 'corrupted' : this.type;
+        window.particleSystem.explosion(this.position.x, this.position.y - this.height/2, particleColor, 25);
+      }
+      
+      if (window.gameState) {
+        const points = this.getPointValue();
+        window.gameState.score += points;
+      }
+    }
   }
   
-  forceCorrectAnimationState() {
-    if (!this.spriteReady || !this.sprite) return;
-    
-    const currentAnim = this.sprite.getCurrentAnimation();
-    let target = 'idle';
-    
-    if (this.type === 'virus') {
-      target = 'idle';
-    } else if (this.type === 'corrupted') {
-      target = Math.abs(this.velocity.x) > 2 ? 'walk' : 'idle';
-      if (target === 'walk') this.facing = this.velocity.x > 0 ? 1 : -1;
-    } else if (this.type === 'firewall') {
-      if (this.attackAnimationPlaying || this.aiState === 'lunging') target = 'attack';
-      else if (Math.abs(this.velocity.x) > 1) {
-        target = 'walk';
-        this.facing = this.velocity.x > 0 ? 1 : -1;
+  getPointValue() {
+    switch(this.type) {
+      case 'virus': return 100;
+      case 'corrupted': return 200;
+      case 'firewall': return 300;
+      default: return 100;
+    }
+  }
+
+  getHitbox() {
+    if (['virus', 'corrupted', 'firewall', 'jammer'].includes(this.type) && this.spriteReady && this.sprite) {
+      
+      let drawScale = 0.8; 
+      let drawOffset = 60;
+      
+      if (this.type === 'corrupted') {
+        drawScale = 1.2;
+        drawOffset = 80;
+      } else if (this.type === 'firewall') {
+        if (this.currentAnimation === 'firewall_idle_idle') {
+          drawScale = 2.0 * 1.13; 
+          drawOffset = 100 - 14; 
+        } else if (this.currentAnimation === 'firewall_walk_walk') {
+          drawScale = 2.0;
+          drawOffset = 100 + 4;
+        } else if (this.currentAnimation === 'firewall_attack_default') {
+          drawScale = 2.0 * 1.3;
+          drawOffset = 100 - 36;
+        } else {
+          drawScale = 2.0;
+          drawOffset = 100;
+        }
+      }
+      
+      const worldHitbox = this.sprite.getHitboxWorld(this.position.x, this.position.y, {
+        scale: drawScale,
+        flipH: this.facing === -1
+      });
+      
+      if (worldHitbox) {
+        let marginReduction = 0.05;
+        if (this.type === 'virus') marginReduction = 0.15;
+        else if (this.type === 'corrupted') marginReduction = 0.12;
+        else if (this.type === 'firewall') marginReduction = 0.08;
+        
+        const tightWidth = worldHitbox.width * (1 - marginReduction * 2);
+        const tightHeight = worldHitbox.height * (1 - marginReduction * 2);
+        
+        return {
+          x: worldHitbox.x + (worldHitbox.width - tightWidth) / 2,
+          y: worldHitbox.y + (worldHitbox.height - tightHeight) / 2,
+          width: tightWidth,
+          height: tightHeight
+        };
       }
     }
     
-    // Map to full names
-    const map = {
-      'virus': { 'idle': 'virus_idle_idle' },
-      'corrupted': { 'idle': 'corrupted_idle_idle', 'walk': 'corrupted_walk_walk' },
-      'firewall': { 'idle': 'firewall_idle_idle', 'walk': 'firewall_walk_walk', 'attack': 'firewall_attack_default' }
-    };
-    
-    const fullName = map[this.type][target];
-    if (!currentAnim || !currentAnim.includes(target)) {
-      this.playAnimation(target);
-      this.currentAnimation = fullName;
+    let marginReduction = 0.05;
+    let topExtension = 0;
+    if (this.type === 'virus') {
+      marginReduction = 0.08;
+      topExtension = 15;
     }
+    
+    const tightWidth = this.width * (1 - marginReduction * 2);
+    const tightHeight = this.height * (1 - marginReduction * 2);
+    
+    return {
+      x: this.position.x - tightWidth/2,
+      y: this.position.y - tightHeight - topExtension,
+      width: tightWidth,
+      height: tightHeight + topExtension
+    };
   }
   
-  playAnimation(name) {
-    if (!this.spriteReady || !this.sprite) return;
+  getCollisionBox() {
+    const hitbox = this.getHitbox();
+    const collisionMargin = 0.05;
+    const collisionWidth = hitbox.width * (1 - collisionMargin * 2);
+    const collisionHeight = hitbox.height * (1 - collisionMargin * 2);
     
-    const map = {
-      'virus': { 'idle': 'virus_idle_idle' },
-      'corrupted': { 'idle': 'corrupted_idle_idle', 'walk': 'corrupted_walk_walk' },
-      'firewall': { 'idle': 'firewall_idle_idle', 'walk': 'firewall_walk_walk', 'attack': 'firewall_attack_default' }
+    return {
+      x: hitbox.x + (hitbox.width - collisionWidth) / 2,
+      y: hitbox.y + (hitbox.height - collisionHeight) / 2,
+      width: collisionWidth,
+      height: collisionHeight
     };
-    
-    const fullName = map[this.type][name] || name;
-    const current = this.sprite.getCurrentAnimation();
-    
-    if (current === fullName && name !== 'idle') return;
-    
-    const loop = !fullName.includes('attack');
-    const speed = fullName.includes('attack') ? 1.2 : (name === 'idle' ? 1.25 : 1.0);
-    
-    const animRef = this.sprite.play(fullName, loop, 0, { speed });
-    this.currentAnimation = fullName;
-    
-    if (!loop && animRef?.onComplete) {
-      animRef.onComplete(() => {
-        if (this.type === 'firewall') {
-          this.attackAnimationPlaying = false;
-          this.playAnimation('idle');
-        }
-      });
-    }
   }
-  
-  drawSprite(ctx) {
+
+  draw(ctx) {
+    if (!this.active) return;
+    if (!ctx) return;
+
     ctx.save();
-    let drawY = this.position.y - 1 + 70;
-    let scale = 0.8;
+    if (this.type === 'firewall' && this.alpha !== undefined) ctx.globalAlpha = this.alpha;
     
-    if (this.type === 'corrupted') {
-      drawY = this.position.y - 1 + 60;
-      scale = 1.2;
-    } else if (this.type === 'firewall') {
-      drawY = this.position.y;
-      scale = 2.0;
-      if (this.currentAnimation === 'firewall_idle_idle') { scale *= 1.13; drawY -= 14; }
-      if (this.currentAnimation === 'firewall_attack_default') { scale *= 1.36; drawY -= 26; }
+    if (['virus', 'corrupted', 'firewall', 'jammer'].includes(this.type) && this.spriteReady && this.sprite) {
+      this.drawSprite(ctx);
+      if (this.health < this.maxHealth) {
+        let healthBarY = this.position.y - this.height + 50;
+        if (this.type === 'firewall') healthBarY += 40;
+        
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
+        ctx.fillRect(this.position.x - this.width, healthBarY, this.width * 2 * (this.health / this.maxHealth), 4);
+      }
+    } else {
+      const bodyY = this.position.y - this.height;
+      const bodyX = this.position.x - this.width/2;
+      ctx.fillStyle = this.color;
+      // Don't draw pink squares for jammers
+      if (this.type !== 'jammer') {
+        ctx.fillRect(bodyX, bodyY, this.width, this.height);
+      } else {
+        // Show loading indicator for jammer instead
+        ctx.fillStyle = '#ff00ff';
+        ctx.font = '14px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('JAMMER LOADING...', this.position.x, this.position.y - this.height - 20);
+        
+        // Draw placeholder jammer indicator
+        ctx.strokeStyle = '#ff00ff';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(
+          this.position.x - this.width/2, 
+          this.position.y - this.height, 
+          this.width, 
+          this.height
+        );
+      }
     }
-    
-    this.sprite.draw(ctx, this.position.x, drawY, {
-      scale: scale,
-      flipH: this.facing === -1
-    });
     ctx.restore();
+  }
+  
+  getDrawLayer() {
+    if (this.type === 'virus') return 1;
+    if (this.type === 'corrupted') return -1; // Render behind jammers
+    if (this.type === 'firewall') return -1; // Render behind jammers
+    if (this.type === 'jammer') return 0; // Render in front of corrupted/firewall but behind player/virus
+    return 1;
   }
 };
 
-// Enemy Manager
+// ==========================================
+// 2. JAMMER ENEMY CLASS (Moved Below Base)
+// ==========================================
+// Jammer Enemy class - stationary enemy with rhythm damage only
+window.JammerEnemy = class JammerEnemy extends window.Enemy {
+  constructor(x, y) {
+    // Call parent constructor with 'jammer' type
+    super(x, y, 'jammer');
+    
+    // Override jammer-specific properties
+    this.setupJammerProperties();
+    
+    // Initialize sprite
+    setTimeout(() => {
+      this.initSprite();
+    }, 100);
+  }
+  
+  setupJammerProperties() {
+    // Jammer-specific stats
+    this.width = 256;
+    this.height = 219;
+    this.speed = 0; // Stationary
+    this.damage = 0; // No contact damage
+    this.color = '#ff00ff';
+    this.health = 16; // Doubled from 8 to 16 health
+    this.maxHealth = 16;
+    
+    // Jammer is always ready (no entrance animation)
+    this.entranceComplete = true;
+    this.state = 'active';
+    
+    // Visual properties
+    this.drawScale = 0.7;  // Reduced from 0.9 (additional 20% smaller)
+    this.drawOffset = 190;  // 320px lower (closer to ground, moved up 80px total)
+    
+    // Audio properties
+    this.audioElement = null;
+    this.baseVolume = 0.3;
+    this.maxDistance = 800; // Maximum hearing distance
+    this.audioUrl = 'https://api.makko.ai/storage/v1/object/public/audio-assets/e56876ca-50d1-4b32-bcb9-1e37b7d1f822/9db7167d-8742-41cd-aae1-1206e230970c.mp3';
+    this.audioInitialized = false;
+  }
+  
+  // Override setupByType to handle jammer type
+  setupByType() {
+    if (this.type === 'jammer') {
+      // Properties already set in setupJammerProperties()
+      return;
+    }
+    // Call parent setup for other types
+    super.setupByType();
+  }
+  
+  // Override getMaxHealth for jammer
+  getMaxHealth() {
+    if (this.type === 'jammer') return 16;
+    return super.getMaxHealth();
+  }
+  
+  // Override updateAI - jammer does nothing (stationary)
+  updateAI(player, dt) {
+    if (this.type === 'jammer') {
+      // Jammer is stationary - no AI behavior
+      this.velocity.x = 0;
+      this.velocity.y = 0;
+      return;
+    }
+    // Call parent AI for other types
+    super.updateAI(player, dt);
+  }
+  
+  // Override update to make jammer completely immovable
+  update(deltaTime, player) {
+    if (this.type === 'jammer') {
+      // Jammer never moves - completely stationary
+      this.velocity.x = 0;
+      this.velocity.y = 0;
+      
+      // Only update sprite animation
+      if (this.spriteReady && this.sprite) {
+        this.sprite.update(deltaTime);
+      }
+      
+      // Update proximity-based audio
+      if (this.updateProximityAudio) {
+        this.updateProximityAudio(player);
+      }
+      return;
+    }
+    // Call parent update for other types
+    super.update(deltaTime, player);
+  }
+  
+  // Override takeDamage - only rhythm damage allowed
+  takeDamage(amount, source = 'rhythm') {
+    if (this.type === 'jammer') {
+      // Only allow rhythm damage
+      if (source !== 'rhythm') {
+        console.log('Jammer only takes rhythm damage!');
+        return;
+      }
+      
+      this.health -= amount;
+      console.log(`📡 Jammer took ${amount} damage! Health: ${this.health}/${this.maxHealth}`);
+      
+      if (window.particleSystem) {
+        window.particleSystem.damageEffect(this.position.x, this.position.y - this.height/2, 'jammer', 15);
+      }
+      
+      if (this.health <= 0) {
+        this.active = false;
+        if (window.particleSystem) {
+          window.particleSystem.explosion(this.position.x, this.position.y - this.height/2, 'jammer', 40);
+        }
+        if (window.gameState) {
+          window.gameState.score += 500; // High point value for jammer
+        }
+        
+        // Enhanced electronic explosion effects
+        if (window.particleSystem) {
+          // Main explosion
+          window.particleSystem.explosion(this.position.x, this.position.y - this.height/2, 'jammer', 60);
+          
+          // Electronic particle burst
+          for (let i = 0; i < 20; i++) {
+            const angle = (Math.PI * 2 * i) / 20;
+            const speed = 300 + Math.random() * 200;
+            const vx = Math.cos(angle) * speed;
+            const vy = Math.sin(angle) * speed;
+            
+            if (window.particleSystem.createParticle) {
+              window.particleSystem.createParticle(
+                this.position.x, 
+                this.position.y - this.height/2, 
+                vx, vy, 
+                '#ff00ff', 
+                1500 + Math.random() * 500,
+                4 + Math.random() * 4
+              );
+            }
+          }
+          
+          // Digital fragment particles
+          for (let i = 0; i < 15; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 150 + Math.random() * 150;
+            const vx = Math.cos(angle) * speed;
+            const vy = Math.sin(angle) * speed - 100;
+            
+            if (window.particleSystem.createParticle) {
+              window.particleSystem.createParticle(
+                this.position.x, 
+                this.position.y - this.height/2, 
+                vx, vy, 
+                '#00ffff', 
+                2000 + Math.random() * 1000,
+                2 + Math.random() * 2
+              );
+            }
+          }
+        }
+        
+        // Screen effects
+        if (window.renderer) {
+          if (window.renderer.addScreenShake) {
+            window.renderer.addScreenShake(15, 800);
+          }
+          if (window.renderer.addGlitch) {
+            window.renderer.addGlitch(0.8, 1200);
+          }
+        }
+        
+        // Stop jammer audio if it's playing
+        if (this.audioElement) {
+          this.audioElement.pause();
+          this.audioElement = null;
+        }
+        
+        // Remove jammer from arrow tracking
+        if (window.jammerArrowIndicator) {
+          window.jammerArrowIndicator.setTarget(null);
+        }
+        
+        console.log('📡💥 Broadcast Jammer destroyed with electronic explosion!');
+      }
+      return;
+    }
+    // Call parent takeDamage for other types
+    super.takeDamage(amount);
+  }
+  
+  // Override sprite initialization for jammer
+  async initSprite() {
+    if (this.type === 'jammer') {
+      try {
+        if (!window.MakkoEngine?.isLoaded()) {
+          setTimeout(() => this.initSprite(), 100);
+          return;
+        }
+        
+        this.sprite = window.MakkoEngine.sprite('broadcast_jammer_broadcastjammer');
+        
+        if (this.sprite && this.sprite.isLoaded()) {
+          this.spriteReady = true;
+          this.playAnimation('idle');
+        } else {
+          setTimeout(() => this.initSprite(), 100);
+        }
+      } catch (e) {
+        console.error('Jammer sprite init failed:', e);
+        this.spriteReady = false;
+      }
+      return;
+    }
+    // Call parent initSprite for other types
+    super.initSprite();
+  }
+  
+  // Override animation playing for jammer
+  playAnimation(name) {
+    if (this.type === 'jammer') {
+      if (!this.spriteReady || !this.sprite) return;
+      
+      const animMap = {
+        'idle': 'broadcast_jammer_idle_idle'
+      };
+      
+      const fullName = animMap[name] || name;
+      const current = this.sprite.getCurrentAnimation();
+      
+      if (current === fullName) return;
+      
+      this.sprite.play(fullName, true); // Jammer always loops idle
+      this.currentAnimation = fullName;
+      return;
+    }
+    // Call parent playAnimation for other types
+    super.playAnimation(name);
+  }
+  
+  // Override drawing for jammer
+  drawSprite(ctx) {
+    if (this.type === 'jammer') {
+      ctx.save();
+      const drawY = this.position.y + this.drawOffset;
+      
+      this.sprite.draw(ctx, this.position.x, drawY, {
+        scale: this.drawScale,
+        flipH: this.facing === -1
+      });
+      
+      // Draw health bar if damaged
+      if (this.health < this.maxHealth) {
+        const healthBarY = this.position.y - this.height + 100;
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
+        ctx.fillRect(this.position.x - this.width/2, healthBarY, this.width * (this.health / this.maxHealth), 6);
+        
+        // Health bar border
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(this.position.x - this.width/2, healthBarY, this.width, 6);
+      }
+      
+      ctx.restore();
+      return;
+    }
+    // Call parent drawSprite for other types
+    super.drawSprite(ctx);
+  }
+  
+  // Override hitbox for jammer
+  getHitbox() {
+    if (this.type === 'jammer' && this.spriteReady && this.sprite) {
+      const worldHitbox = this.sprite.getHitboxWorld(this.position.x, this.position.y, {
+        scale: this.drawScale,
+        flipH: this.facing === -1
+      });
+      
+      if (worldHitbox) {
+        // Tighten hitbox for better gameplay
+        const marginReduction = 0.1;
+        const tightWidth = worldHitbox.width * (1 - marginReduction * 2);
+        const tightHeight = worldHitbox.height * (1 - marginReduction * 2);
+        
+        return {
+          x: worldHitbox.x + (worldHitbox.width - tightWidth) / 2,
+          y: worldHitbox.y + (worldHitbox.height - tightHeight) / 2,
+          width: tightWidth,
+          height: tightHeight
+        };
+      }
+    }
+    
+    // Fallback hitbox
+    return {
+      x: this.position.x - this.width/2,
+      y: this.position.y - this.height,
+      width: this.width,
+      height: this.height
+    };
+  }
+  
+  // Override point value for jammer
+  getPointValue() {
+    if (this.type === 'jammer') return 500;
+    return super.getPointValue();
+  }
+  
+  // Override draw layer for jammer (render behind other enemies)
+  getDrawLayer() {
+    if (this.type === 'jammer') return 0; // Render in front of corrupted/firewall but behind player/virus
+    return super.getDrawLayer();
+  }
+};
+
+// ==========================================
+// 3. ENEMY MANAGER
+// ==========================================
 window.EnemyManager = class EnemyManager {
   constructor() {
     this.enemies = [];
     this.minEnemies = 2;
-    this.maxEnemies = 12;
+    this.maxEnemies = 8;
     this.spawnTimer = 0;
-    this.nextSpawnTime = 1500;
+    this.nextSpawnTime = 800 + Math.random() * 1200;
     this.defeatedCount = 0;
     
     this.spawnLocations = this.generateSpawnLocations();
@@ -1041,7 +1270,7 @@ window.EnemyManager = class EnemyManager {
     this.spawnAvoidanceRadius = 150;
     
     this.lastFirewallSpawnTime = 0;
-    this.firewallSpawnCooldown = 3000;
+    this.firewallSpawnCooldown = 4000;
     this.activeFirewallCount = 0;
     
     this.spawnFlowState = 'building';
@@ -1052,9 +1281,16 @@ window.EnemyManager = class EnemyManager {
     this.currentSpawnZone = 'right';
     this.zoneRotationTimer = 0;
     this.zoneRotationInterval = 15000;
+
+    // Crowd mechanics system (Restored from previous version to prevent crash)
+    this.crowdGroups = [];
+    this.crowdCheckTimer = 0;
+    this.crowdCheckInterval = 500;
   }
 
   update(deltaTime, player) {
+    if (!player) return;
+
     this.updateSpawnFlow(deltaTime);
     this.updateSpawnZones(deltaTime);
     
@@ -1065,43 +1301,13 @@ window.EnemyManager = class EnemyManager {
     this.enemies.forEach(enemy => {
       enemy.update(deltaTime, player);
       
-      // Tutorial Freeze Logic (Virus specific)
+      // Tutorial Freeze Logic
       if (enemy.type === 'virus' && tutorialWaiting && enemy.active) {
         if (enemy.state !== 'patrol') enemy.state = 'patrol';
         if (enemy.position.y > 750) enemy.position.y = 750;
-        
-        // CRITICAL FIX: Give tutorial viruses proper movement in patrol state
-        // Use small but meaningful velocity for patrol movement, not just idle wobble
-        const player = window.player;
-        if (player && enemy.entranceComplete) {
-          const distToPlayer = window.distance(
-            enemy.position.x, enemy.position.y,
-            player.position.x, player.position.y
-          );
-          
-          // Tutorial viruses should actively patrol and chase the player
-          if (distToPlayer < 9999) {
-            const angleToPlayer = Math.atan2(
-              player.position.y - enemy.position.y,
-              player.position.x - enemy.position.x
-            );
-            
-            // Slower but deliberate movement for tutorial
-            const tutorialSpeed = enemy.speed * 0.4; // 40% speed for tutorial
-            enemy.velocity.x = Math.cos(angleToPlayer) * tutorialSpeed;
-            
-            // Occasional jump attacks during tutorial
-            if (distToPlayer < 200 && enemy.isOnGround && Math.random() > 0.95) {
-              enemy.velocity.y = -enemy.speed * 0.06; // Small jump
-              enemy.velocity.x = Math.cos(angleToPlayer) * tutorialSpeed * 1.5;
-            }
-          } else {
-            // Idle wobble when player is far
-            enemy.velocity.x = Math.sin(Date.now() / 1000 + enemy.phaseOffset) * 10;
-          }
-        } else {
-          // Fallback to idle wobble if no player
-          enemy.velocity.x = Math.sin(Date.now() / 1000 + enemy.phaseOffset) * 10;
+        const playerRef = window.player;
+        if (playerRef && enemy.entranceComplete) {
+           enemy.velocity.x = Math.sin(Date.now() / 1000 + enemy.phaseOffset) * 20;
         }
       }
     });
@@ -1111,37 +1317,47 @@ window.EnemyManager = class EnemyManager {
     
     // Clean up dead enemies
     const newlyDefeated = this.enemies.filter(e => !e.active && e.health <= 0);
+    
     if (newlyDefeated.length > 0) {
         this.defeatedCount += newlyDefeated.length;
         
-        // CRITICAL FIX: Track tutorial enemy defeats separately
+        if (window.sector1Progression && typeof window.sector1Progression.onEnemyDefeated === 'function') {
+             newlyDefeated.forEach(() => window.sector1Progression.onEnemyDefeated());
+        }
+        
+        // Jammer spawning is now handled exclusively by objectives.js
+             if (window.objectivesSystem && typeof window.objectivesSystem.spawnBroadcastJammer === 'function') {
+                 // window.objectivesSystem.spawnBroadcastJammer(); // Removed - handled by objectives.js
+             }
+        }
+        
         const tutorialDefeated = newlyDefeated.filter(e => e._isTutorialEnemy === true);
         if (tutorialDefeated.length > 0 && tutorial?.isActive() && tutorial.storyChapter === 1) {
             tutorial._tutorialEnemiesDefeated = (tutorial._tutorialEnemiesDefeated || 0) + tutorialDefeated.length;
-            console.log(`📚 Tutorial enemies defeated: ${tutorial._tutorialEnemiesDefeated}/3`);
+            if (tutorial._tutorialEnemiesDefeated >= 3) {
+                tutorial.checkObjective('combat');
+            }
         }
-        
-        if (window.sector1Progression?.onEnemyDefeated) {
-             newlyDefeated.forEach(() => window.sector1Progression.onEnemyDefeated());
-        }
-        if (tutorial?.isActive()) {
-            tutorial.checkObjective('combat');
-        }
-    }
+    
     
     this.enemies = this.enemies.filter(e => e.active);
     this.activeFirewallCount = this.enemies.filter(e => e.type === 'firewall').length;
     
-    // Spawning Logic
+    // ENHANCED Spacing Check
+    if (!this.hasAdequateSpacing(player)) return;
+    
     const isMainGame = !tutorial || !tutorial.isActive();
     if (isMainGame && this.shouldSpawnEnemy(this.enemies.length)) {
         this.spawnTimer += deltaTime;
-        if (this.spawnTimer >= (this.nextSpawnTime / this.baseSpawnRate)) {
+        if (this.spawnTimer >= this.nextSpawnTime) {
             this.spawnFlowEnemy(player);
             this.spawnTimer = 0;
-            this.nextSpawnTime = this.getFlowSpawnTime();
+            this.nextSpawnTime = 1000 + Math.random() * 2000;
         }
     }
+
+    // Update crowd mechanics
+    this.updateCrowdMechanics(deltaTime, player);
   }
 
   checkEnemyCollisions() {
@@ -1150,62 +1366,91 @@ window.EnemyManager = class EnemyManager {
         for (let j = i + 1; j < active.length; j++) {
             const e1 = active[i];
             const e2 = active[j];
+            const box1 = e1.getCollisionBox();
+            const box2 = e2.getCollisionBox();
             
-            // Corrupted/Firewall Pass-through
-            if ((e1.type === 'corrupted' && e2.type === 'firewall') || (e1.type === 'firewall' && e2.type === 'corrupted')) {
-                continue; // Allow pass through
-            }
-            
-            // Standard Separation
-            const dx = e2.position.x - e1.position.x;
-            const dy = e2.position.y - e1.position.y;
-            const dist = Math.sqrt(dx*dx + dy*dy);
-            const minSep = (e1.width + e2.width) / 2;
-            
-            if (dist < minSep && dist > 0) {
-                const force = (minSep - dist) * 0.5;
-                const pushX = (dx / dist) * force;
+            if (this.simpleAABBcollision(box1, box2)) {
+                // Skip collision if either enemy is a jammer (jammers are immovable)
+                if (e1.type === 'jammer' || e2.type === 'jammer') {
+                    return;
+                }
+                const e1CX = box1.x + box1.width/2;
+                const e1CY = box1.y + box1.height/2;
+                const e2CX = box2.x + box2.width/2;
+                const e2CY = box2.y + box2.height/2;
                 
-                e1.position.x -= pushX;
-                e2.position.x += pushX;
+                const dx = e2CX - e1CX;
+                const dy = e2CY - e1CY;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                
+                let minSep = 40, sepForce = 0.8;
+                if (e1.type === e2.type) {
+                    minSep = e1.type === 'firewall' ? 160 : 55;
+                    sepForce = 1.0;
+                }
+                
+                if (dist < minSep && dist > 0) {
+                    const force = (minSep - dist) * sepForce;
+                    const pushX = (dx/dist) * force;
+                    const pushY = (dy/dist) * force * 0.4;
+                    
+                    e1.position.x -= pushX;
+                    e1.position.y -= pushY;
+                    e2.position.x += pushX;
+                    e2.position.y += pushY;
+                    
+                    e1.velocity.x *= 0.7;
+                    e2.velocity.x *= 0.7;
+                }
             }
         }
     }
   }
 
   checkCollisions(player) {
-      if (player.controlsDisabled) return;
+      if (player.controlsDisabled || player.isStomping) return;
       
       const playerBox = player.getHitbox();
+      
       this.enemies.forEach(enemy => {
+          if (!enemy.active) return;
           const enemyBox = enemy.getHitbox();
           
-          // Stomp Detection
-          const isStomp = player.velocity.y > 0 && 
-                         (playerBox.y + playerBox.height) < (enemyBox.y + enemyBox.height/2) &&
-                         this.simpleAABBcollision(playerBox, enemyBox);
-                         
-          if (isStomp) {
-              enemy.takeDamage(999);
-              player.velocity.y = -400; // Bounce
-              if (window.particleSystem) window.particleSystem.impact(enemy.position.x, enemy.position.y, '#00ffff', 20);
-          } else if (this.simpleAABBcollision(playerBox, enemyBox)) {
-              // Player hit logic
+          // Push player away
+          const dx = player.position.x - enemy.position.x;
+          const dy = player.position.y - enemy.position.y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist > 0 && dist < 60) {
+              const push = (60 - dist) * 0.5;
+              player.position.x += (dx/dist) * push;
+              player.position.y += (dy/dist) * push * 0.5;
+          }
+          
+          // Check for Stomp (skip jammers - they only take rhythm damage)
+          if (enemy.type !== 'jammer') {
+            const playerBottom = playerBox.y + playerBox.height;
+            const enemyTop = enemyBox.y;
+            const enemyTopHalf = enemyBox.y + enemyBox.height/2;
+            const isStompPos = playerBottom > enemyTop && playerBottom < enemyTopHalf;
+            const isMovingDown = player.velocity.y >= -100;
+            
+            if (isStompPos && isMovingDown && this.simpleAABBcollision(playerBox, enemyBox)) {
+                enemy.takeDamage(999);
+                player.velocity.y = -550;
+                player.velocity.x = (dx/dist) * 300;
+                if (window.particleSystem) window.particleSystem.impact(enemy.position.x, enemy.position.y, '#00ffff', 20);
+                player.invulnerableUntil = Date.now() + 400;
+                return;
+            }
+          }
+          
+          // Check for Damage (skip jammers - they deal no contact damage)
+          if (enemy.type !== 'jammer' && this.simpleAABBcollision(playerBox, enemyBox)) {
               if (!player.invulnerableUntil || Date.now() > player.invulnerableUntil) {
-                 // Calculate directional knockback based on enemy position
-                 const dx = player.position.x - enemy.position.x;
-                 const dy = player.position.y - enemy.position.y;
-                 const distance = Math.sqrt(dx * dx + dy * dy);
-                 
-                 // Normalize direction vector and apply knockback force
-                 const knockbackForce = 400;
-                 const knockbackUp = -250; // Upward bounce
-                 
-                 const knockbackX = (dx / distance) * knockbackForce;
-                 const knockbackY = knockbackUp;
-                 
-                 // Apply enhanced knockback to player and pass enemy position for facing
-                 player.takeDamageWithKnockback(enemy.damage, knockbackX, knockbackY, enemy.position);
+                  if (!enemy.lastPlayerHitTime || Date.now() - enemy.lastPlayerHitTime > 1500) {
+                      enemy.lastPlayerHitTime = Date.now();
+                      player.takeDamageWithKnockback(enemy.damage, (dx/dist)*450, -300, enemy.position);
+                  }
               }
           }
       });
@@ -1216,7 +1461,15 @@ window.EnemyManager = class EnemyManager {
              r1.y < r2.y + r2.height && r1.y + r1.height > r2.y;
   }
 
-  // Spawning Helpers
+  hasAdequateSpacing(player) {
+    const pX = player?.position?.x || 960;
+    let tooClose = 0;
+    this.enemies.forEach(e => {
+        if (e.active && window.distance(e.position.x, e.position.y, pX, 750) < 400) tooClose++;
+    });
+    return tooClose < 2;
+  }
+
   generateSpawnLocations() {
       const locs = [];
       for(let i=0; i<4; i++) locs.push({x: 50, y: 200+i*150, edge: 'left'});
@@ -1227,7 +1480,6 @@ window.EnemyManager = class EnemyManager {
   updateSpawnFlow(dt) {
       this.flowTimer += dt;
       const count = this.enemies.length;
-      
       if (this.spawnFlowState === 'building' && count >= this.maxEnemies -1) {
           this.spawnFlowState = 'peak';
           this.flowTimer = 0;
@@ -1259,202 +1511,197 @@ window.EnemyManager = class EnemyManager {
       return true;
   }
   
-  getFlowSpawnTime() {
-      let time = 1000 + Math.random() * 2000;
-      if (this.spawnFlowState === 'peak') time *= 0.6;
-      if (this.spawnFlowState === 'recovery') time *= 1.5;
-      return Math.max(1000, time);
-  }
-  
   spawnFlowEnemy(player) {
       if (this.enemies.length >= this.maxEnemies) return;
       
       const types = ['virus', 'corrupted', 'firewall'];
       let type = types[Math.floor(Math.random() * types.length)];
       
-      if (type === 'firewall' && this.activeFirewallCount >= 3) type = 'corrupted';
-      
-      let x, y;
-      
-      // Special spawning for virus enemies - drop from above-left of player (post-tutorial only)
-      if (type === 'virus') {
-        const tutorial = window.tutorialSystem;
-        const isTutorialActive = tutorial && tutorial.isActive();
-        
-        if (!isTutorialActive) {
-          // After tutorial: always spawn from left side (off-screen)
-          const xOffset = window.randomRange(-800, -400); // Further left for off-screen feel
-          x = player.position.x + xOffset;
-          y = -50 - Math.random() * 200; // Above screen with height variation
-          
-          // Clamp to world bounds but ensure left of player and off-screen
-          x = window.clamp(x, -200, player.position.x - 300); // Allow spawning off left edge
-          y = window.clamp(y, -250, -50);
+      // Enhanced firewall spawning - all firewalls now use enhanced behavior
+      if (type === 'firewall') {
+        if (this.activeFirewallCount >= 1) { // Only 1 firewall at a time
+          type = 'corrupted';
         } else {
-          // During tutorial: spawn from both sides (handled by tutorial system)
-          const xOffset = window.randomRange(-600, -200);
-          x = player.position.x + xOffset;
-          y = -50 - Math.random() * 200;
-          x = window.clamp(x, 100, player.position.x - 150);
-          y = window.clamp(y, -250, -50);
+          this.lastFirewallSpawnTime = Date.now();
+          console.log('🔥 Spawning enhanced firewall with built-in proximity attack system');
         }
+      }
+      
+      let x, y = 200;
+      if (type === 'virus') {
+          x = -50; // Always spawn from left, off-screen
+          y = -50;
       } else {
-        // Normal spawning for corrupted and firewall
-        x = 100;
-        if (this.currentSpawnZone === 'right') x = 3900;
-        else if (this.currentSpawnZone === 'center') x = player.position.x + (Math.random() > 0.5 ? 400 : -400);
-        else if (this.currentSpawnZone === 'both') x = Math.random() > 0.5 ? 100 : 3900;
-        
-        // Safe checks for non-virus types
-        if (Math.abs(x - player.position.x) < 300) x = player.position.x + 400;
-        y = 200;
+          if (type === 'firewall') x = 4500;
+          else x = Math.random() > 0.5 ? 100 : 3900;
+          
+          if (Math.abs(x - player.position.x) < 600) {
+              x = player.position.x + (x > player.position.x ? 600 : -600);
+          }
       }
       
       const enemy = new window.Enemy(x, y, type);
-      
-      // Special setup for virus drop behavior
       if (type === 'virus') {
-        enemy._dropEdge = 'top'; // Enable drop entrance behavior
+        enemy._dropEdge = 'top';
         enemy.entranceComplete = false;
         enemy.state = 'entrance';
-        enemy.velocity.x = 50; // Gentle drift right toward player
-        enemy.velocity.y = 120; // Fall speed
+        enemy.velocity.x = 50 + Math.random() * 30; // Randomize to prevent overlap
+        enemy.velocity.y = 120 + Math.random() * 30;
         enemy.isOnGround = false;
       }
-      
       this.enemies.push(enemy);
   }
 
   getActiveEnemies() { return this.enemies; }
-  draw(ctx) { this.enemies.forEach(e => e.draw(ctx)); }
-  
-  // Spawn enemy at random position
-  spawnEnemy() {
-    if (this.enemies.length >= this.maxEnemies) return;
-    
-    const types = ['virus', 'corrupted', 'firewall'];
-    let type = types[Math.floor(Math.random() * types.length)];
-    
-    if (type === 'firewall' && this.activeFirewallCount >= 1) {
-      type = 'corrupted'; // Limit firewall spawns
-    }
-    
-    const playerX = window.player?.position?.x || 960;
-    let x, y;
-    
-    // Special spawning for virus enemies - check tutorial state
-    if (type === 'virus') {
-      const tutorial = window.tutorialSystem;
-      const isTutorialActive = tutorial && tutorial.isActive();
-      
-      if (!isTutorialActive) {
-        // After tutorial: always spawn from left side (off-screen)
-        const xOffset = window.randomRange(-800, -400); // Further left for off-screen feel
-        x = playerX + xOffset;
-        y = -50 - Math.random() * 200; // Above screen with height variation
-        
-        // Clamp to world bounds but ensure left of player and off-screen
-        x = window.clamp(x, -200, playerX - 300); // Allow spawning off left edge
-        y = window.clamp(y, -250, -50);
-      } else {
-        // During tutorial: spawn from both sides (handled by tutorial system)
-        const xOffset = window.randomRange(-600, -200);
-        x = playerX + xOffset;
-        y = -50 - Math.random() * 200;
-        x = window.clamp(x, 100, playerX - 300);
-        y = window.clamp(y, -250, -50);
-      }
-    } else {
-      // Normal spawning for corrupted and firewall
-      x = 100;
-      if (this.currentSpawnZone === 'right') x = 3900;
-      else if (this.currentSpawnZone === 'center') {
-        x = playerX + (Math.random() > 0.5 ? 400 : -400);
-      } else if (this.currentSpawnZone === 'both') {
-        x = Math.random() > 0.5 ? 100 : 3900;
-      }
-      
-      // Ensure minimum distance from player for non-virus types
-      if (window.player && Math.abs(x - window.player.position.x) < 300) {
-        x = window.player.position.x + (x > window.player.position.x ? 400 : -400);
-      }
-      
-      // Clamp to world bounds
-      x = Math.max(100, Math.min(3900, x));
-      y = 200;
-    }
-    
-    const enemy = new window.Enemy(x, y, type);
-    
-    // Special setup for virus drop behavior
-    if (type === 'virus') {
-      enemy._dropEdge = 'top'; // Enable drop entrance behavior
-      enemy.entranceComplete = false;
-      enemy.state = 'entrance';
-      enemy.velocity.x = 50; // Gentle drift right toward player
-      enemy.velocity.y = 120; // Fall speed
-      enemy.isOnGround = false;
-    }
-    
-    this.enemies.push(enemy);
+  draw(ctx) { 
+    const sorted = [...this.enemies].sort((a, b) => a.getDrawLayer() - b.getDrawLayer());
+    sorted.forEach(e => e.draw(ctx)); 
   }
   
-  // Spawn enemy at specific position
+  spawnEnemy() { this.spawnFlowEnemy(window.player || {position:{x:960,y:750}}); }
+  
   spawnEnemyAt(x, y) {
     if (this.enemies.length >= this.maxEnemies) return;
-    
-    const types = ['virus', 'corrupted']; // Only spawn basic types at specific positions
+    const types = ['virus', 'corrupted'];
     const type = types[Math.floor(Math.random() * types.length)];
-    
     const enemy = new window.Enemy(x, y, type);
-    
-    // Special setup for virus drop behavior (if spawning virus at custom position)
     if (type === 'virus' && y < 500) {
-      const tutorial = window.tutorialSystem;
-      const isTutorialActive = tutorial && tutorial.isActive();
-      const playerX = window.player?.position?.x || 960;
-      
-      enemy._dropEdge = 'top'; // Enable drop entrance behavior
-      enemy.entranceComplete = false;
-      enemy.state = 'entrance';
-      
-      if (!isTutorialActive) {
-        // After tutorial: always drift right (from left side)
-        enemy.velocity.x = 50; // Gentle drift right toward player
-      } else {
-        // During tutorial: could drift either way based on spawn position
-        enemy.velocity.x = x > playerX ? -50 : 50; // Drift toward player
-      }
-      
-      enemy.velocity.y = 120; // Fall speed
-      enemy.isOnGround = false;
+        enemy._dropEdge = 'top';
+        enemy.entranceComplete = false;
+        enemy.state = 'entrance';
+        enemy.velocity.y = 120;
+        enemy.isOnGround = false;
     }
-    
     this.enemies.push(enemy);
   }
   
-  // Check player rhythm attacks
   checkPlayerAttacks(player, rhythmResult = null) {
-    if (!player || !player.rhythmActive) return;
-    
-    const attackRadius = 300;
-    const playerX = player.position.x;
-    const playerY = player.position.y;
+    if (!player || !window.rhythmSystem || !window.rhythmSystem.isActive()) return;
+    let attackRadius = window.rhythmSystem.getDamageRadius ? window.rhythmSystem.getDamageRadius() : 300;
     
     this.enemies.forEach(enemy => {
       if (!enemy.active) return;
-      
-      const dist = window.distance(playerX, playerY, enemy.position.x, enemy.position.y);
-      
+      const dist = window.distance(player.position.x, player.position.y, enemy.position.x, enemy.position.y);
       if (dist <= attackRadius) {
-        // Apply damage based on rhythm result or default damage
-        const damage = rhythmResult && rhythmResult.damage ? rhythmResult.damage : 1;
-        enemy.takeDamage(damage);
-        
-        // Create hit effect
-        if (window.particleSystem) {
-          window.particleSystem.impact(enemy.position.x, enemy.position.y, '#00ffff', 15);
+        let damage = 1;
+        if (rhythmResult) {
+          if (rhythmResult.timing === 'perfect') damage = 3;
+          else if (rhythmResult.timing === 'excellent') damage = 2;
         }
+        if (window.rhythmSystem.combo > 0) damage = Math.floor(damage * (1 + window.rhythmSystem.combo * 0.1));
+        // Pass 'rhythm' source for jammer damage validation
+        if (enemy.type === 'jammer') {
+          // Jammers always take exactly 1 damage per hit (no combo multiplier, no timing bonuses)
+          enemy.takeDamage(1, 'rhythm');
+        } else {
+          enemy.takeDamage(damage);
+        }
+        if (window.particleSystem) window.particleSystem.impact(enemy.position.x, enemy.position.y, '#00ffff', 20);
+      }
+    });
+  }
+
+  // Restored Crowd Mechanics methods
+  updateCrowdMechanics(deltaTime, player) {
+    this.crowdCheckTimer += deltaTime;
+    if (this.crowdCheckTimer >= this.crowdCheckInterval) {
+      this.crowdCheckTimer = 0;
+      this.detectCrowds();
+    }
+    
+    // Apply crowd behaviors
+    this.crowdGroups.forEach(group => {
+      this.applyCrowdBehavior(group, player, deltaTime);
+    });
+  }
+  
+  detectCrowds() {
+    this.crowdGroups = [];
+    const activeEnemies = this.enemies.filter(e => e.active && e.entranceComplete);
+    const processed = new Set();
+    
+    activeEnemies.forEach(enemy => {
+      if (processed.has(enemy)) return;
+      
+      const group = this.findNearbyEnemies(enemy, activeEnemies, 120); 
+      if (group.length >= 3) { 
+        this.crowdGroups.push(group);
+        group.forEach(e => processed.add(e));
+        this.applyCrowdEffects(group);
+      }
+    });
+  }
+  
+  findNearbyEnemies(centerEnemy, allEnemies, radius) {
+    const group = [centerEnemy];
+    allEnemies.forEach(enemy => {
+      if (enemy === centerEnemy) return;
+      const dist = window.distance(centerEnemy.position.x, centerEnemy.position.y, enemy.position.x, enemy.position.y);
+      if (dist <= radius) {
+        group.push(enemy);
+      }
+    });
+    return group;
+  }
+  
+  applyCrowdEffects(group) {
+    group.forEach(enemy => {
+      enemy._inCrowd = true;
+      enemy._crowdSize = group.length;
+      
+      if (group.length >= 5) {
+        enemy._crowdSpeed = 0.7; 
+        enemy._crowdAggression = 1.5; 
+      } else if (group.length >= 3) {
+        enemy._crowdSpeed = 0.85;
+        enemy._crowdAggression = 1.2;
+      }
+      
+      if (window.particleSystem && Math.random() < 0.1) {
+        // visual indicator removed to reduce noise, logic remains
+      }
+    });
+  }
+  
+  applyCrowdBehavior(group, player, deltaTime) {
+    if (group.length < 3) return;
+    
+    const groupCenter = {
+      x: group.reduce((sum, e) => sum + e.position.x, 0) / group.length,
+      y: group.reduce((sum, e) => sum + e.position.y, 0) / group.length
+    };
+    
+    const distToPlayer = window.distance(groupCenter.x, groupCenter.y, player.position.x, player.position.y);
+    
+    group.forEach((enemy, index) => {
+      if (!enemy._inCrowd) return;
+      
+      const time = Date.now() / 1000;
+      const phaseShift = (index / group.length) * Math.PI * 2;
+      
+      if (distToPlayer < 400) {
+        const angleToPlayer = Math.atan2(player.position.y - groupCenter.y, player.position.x - groupCenter.x);
+        const spreadAngle = angleToPlayer + Math.sin(time + phaseShift) * 0.3;
+        
+        if (enemy.type === 'virus') {
+          enemy.velocity.x = Math.cos(spreadAngle) * enemy.speed * (enemy._crowdSpeed || 1) * 1.3;
+          if (Math.sin(time * 2 + phaseShift) > 0.8 && enemy.isOnGround) {
+            enemy.velocity.y = -enemy.speed * 0.15;
+          }
+        } else if (enemy.type === 'corrupted') {
+          enemy.velocity.x = Math.cos(spreadAngle) * enemy.speed * (enemy._crowdSpeed || 1) * 1.2;
+        }
+        
+        if (enemy._crowdAggression && Math.random() < 0.01 * enemy._crowdAggression) {
+          enemy.speed *= 1.2;
+          setTimeout(() => { if (enemy.speed) enemy.speed /= 1.2; }, 2000);
+        }
+      } else {
+        const formationAngle = Math.atan2(enemy.position.y - groupCenter.y, enemy.position.x - groupCenter.x);
+        const orbitSpeed = 0.5;
+        
+        enemy.velocity.x = Math.cos(formationAngle + Math.PI/2) * enemy.speed * orbitSpeed;
+        enemy.velocity.y = Math.sin(formationAngle + Math.PI/2) * enemy.speed * orbitSpeed * 0.3;
       }
     });
   }
@@ -1463,14 +1710,8 @@ window.EnemyManager = class EnemyManager {
     this.enemies = [];
     this.defeatedCount = 0;
     this.spawnTimer = 0;
-    this.nextSpawnTime = 1500;
-    this.lastFirewallSpawnTime = 0;
-    this.activeFirewallCount = 0;
     this.spawnFlowState = 'building';
-    this.flowTimer = 0;
-    this.enemySpawnWaves = 0;
-    this.currentSpawnZone = 'right';
-    this.zoneRotationTimer = 0;
+    this.crowdGroups = [];
     console.log('✓ Enemy Manager cleared');
   }
 };

@@ -2,8 +2,8 @@
 window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({
   name: 'src/game/debug-commands.js',
-  exports: ['DEBUG', 'CHECK_JAMMER_STATUS'],
-  dependencies: ['sector1Progression', 'BroadcastJammerSystem', 'enemyManager']
+  exports: ['DEBUG', 'CHECK_JAMMER_STATUS', 'EMERGENCY_JAMMER_SPAWN', 'ULTIMATE_JAMMER_SPAWN', 'handleGameAction'],
+  dependencies: ['sector1Progression', 'enemyManager', 'tutorialSystem', 'gameState', 'hackingSystem', 'rhythmSystem', 'bootLoader']
 });
 
 // DEBUG: Global debug commands for troubleshooting
@@ -28,13 +28,19 @@ window.DEBUG = {
       return null;
     }
     
+    // Check for jammer enemy instead of broadcastJammer
+    let jammerEnemy = null;
+    if (window.enemyManager && window.enemyManager.enemies) {
+      jammerEnemy = window.enemyManager.enemies.find(e => e.type === 'jammer' && e.active);
+    }
+    
     const status = {
       enemiesDefeated: window.sector1Progression.enemiesDefeated || 0,
       requiredEnemies: window.sector1Progression.requiredEnemyKills || 20,
       jammerRevealed: window.sector1Progression.jammerRevealed || false,
-      jammerActive: window.sector1Progression.jammerActive || false,
-      jammerExists: !!window.sector1Progression.broadcastJammer,
-      jammerHealth: window.sector1Progression.broadcastJammer?.health || 0
+      jammerActive: !!jammerEnemy,
+      jammerExists: !!jammerEnemy,
+      jammerHealth: jammerEnemy ? jammerEnemy.health : 0
     };
     
     console.log('📡 Jammer Status:', status);
@@ -47,13 +53,19 @@ window.DEBUG = {
       return '❌ Sector 1 progression not available';
     }
     
+    // Check for jammer enemy instead of broadcastJammer
+    let jammerEnemy = null;
+    if (window.enemyManager && window.enemyManager.enemies) {
+      jammerEnemy = window.enemyManager.enemies.find(e => e.type === 'jammer' && e.active);
+    }
+    
     const status = {
       revealed: window.sector1Progression.jammerRevealed,
-      active: window.sector1Progression.jammerActive,
-      broadcastJammerExists: !!window.sector1Progression.broadcastJammer,
-      jammerActive: window.sector1Progression.broadcastJammer?.active || false,
-      jammerPosition: window.sector1Progression.broadcastJammer?.position || null,
-      jammerHealth: window.sector1Progression.broadcastJammer?.health || 0,
+      active: !!jammerEnemy,
+      broadcastJammerExists: !!jammerEnemy,
+      jammerActive: !!jammerEnemy,
+      jammerPosition: jammerEnemy ? jammerEnemy.position : null,
+      jammerHealth: jammerEnemy ? jammerEnemy.health : 0,
       enemiesDefeated: window.sector1Progression.enemiesDefeated || 0,
       requiredEnemies: window.sector1Progression.requiredEnemyKills || 20
     };
@@ -64,25 +76,68 @@ window.DEBUG = {
   
   // Force destroy jammer
   destroyJammer: function() {
-    if (!window.sector1Progression || !window.sector1Progression.broadcastJammer) {
+    if (!window.enemyManager || !window.enemyManager.enemies) {
+      return '❌ No enemy manager available';
+    }
+    
+    const jammerEnemy = window.enemyManager.enemies.find(e => e.type === 'jammer' && e.active);
+    if (!jammerEnemy) {
       return '❌ No jammer to destroy';
     }
     
-    window.sector1Progression.broadcastJammer.destroy();
+    jammerEnemy.takeDamage(1000, 'debug'); // Use debug source
     return '✅ Jammer destroyed';
   },
   
   // Test rhythm hit on jammer
   testRhythmHit: function() {
-    if (!window.BroadcastJammerSystem || !window.BroadcastJammerSystem.jammer) {
+    if (!window.enemyManager || !window.enemyManager.enemies) {
+      return '❌ No enemy manager available';
+    }
+    
+    const jammerEnemy = window.enemyManager.enemies.find(e => e.type === 'jammer' && e.active);
+    if (!jammerEnemy) {
       return '❌ No jammer to test rhythm hit on';
     }
     
-    if (typeof window.BroadcastJammerSystem.onRhythmHit === 'function') {
-      window.BroadcastJammerSystem.onRhythmHit();
-      return '✅ Rhythm hit test successful';
+    // Use the enemy's rhythm damage method
+    jammerEnemy.takeDamage(1, 'rhythm');
+    return '✅ Rhythm hit test successful';
+  },
+  
+  // Skip boot screen immediately
+  skipBootScreen: function() {
+    console.log('🔧 DEBUG: Skipping boot screen immediately...');
+    
+    if (window.bootLoader && typeof window.bootLoader.forceHide === 'function') {
+      // Force hide boot screen
+      window.bootLoader.forceHide();
+      console.log('✅ Boot screen skipped successfully');
+      
+      // Set assets as loaded to prevent loading issues
+      window.bootLoader.setAudioLoaded(true);
+      window.bootLoader.setSpritesLoaded(true);
+      window.bootLoader.setAssetsLoaded(true);
+      
+      // Show title screen if not already visible
+      const startOverlay = document.getElementById('startOverlay');
+      if (startOverlay) {
+        startOverlay.style.display = 'flex';
+        startOverlay.style.opacity = '1';
+        console.log('✅ Title screen shown immediately');
+      }
+      
+      // Remove sound popup if it exists
+      const soundPopup = document.getElementById('soundEnablePopup');
+      if (soundPopup && soundPopup.parentNode) {
+        soundPopup.parentNode.removeChild(soundPopup);
+        console.log('✅ Sound popup removed');
+      }
+      
+      return '✅ Boot screen skipped - title screen ready';
     } else {
-      return '❌ Jammer does not have onRhythmHit method';
+      console.error('❌ Boot loader not available');
+      return '❌ Failed to skip boot screen - boot loader not available';
     }
   }
 };
@@ -94,14 +149,20 @@ window.CHECK_JAMMER_STATUS = function() {
     return;
   }
   
+  // Check for jammer enemy instead of broadcastJammer
+  let jammerEnemy = null;
+  if (window.enemyManager && window.enemyManager.enemies) {
+    jammerEnemy = window.enemyManager.enemies.find(e => e.type === 'jammer' && e.active);
+  }
+  
   const status = {
     enemiesDefeated: window.sector1Progression.enemiesDefeated || 0,
     requiredEnemies: window.sector1Progression.requiredEnemyKills || 20,
     jammerRevealed: window.sector1Progression.jammerRevealed || false,
-    jammerActive: window.sector1Progression.jammerActive || false,
-    jammerExists: !!window.sector1Progression.broadcastJammer,
-    jammerHealth: window.sector1Progression.broadcastJammer?.health || 0,
-    jammerPosition: window.sector1Progression.broadcastJammer?.position || null,
+    jammerActive: !!jammerEnemy,
+    jammerExists: !!jammerEnemy,
+    jammerHealth: jammerEnemy ? jammerEnemy.health : 0,
+    jammerPosition: jammerEnemy ? jammerEnemy.position : null,
     tutorialActive: window.tutorialSystem && typeof window.tutorialSystem.isActive === 'function' && window.tutorialSystem.isActive(),
     tutorialCompleted: window.tutorialSystem && typeof window.tutorialSystem.isCompleted === 'function' && window.tutorialSystem.isCompleted()
   };
@@ -122,68 +183,51 @@ window.CHECK_JAMMER_STATUS = function() {
   return status;
 };
 
-// CLEAN jammer debug commands
-window.DEBUG.spawnCleanJammer = function() {
-  console.log('🔧 DEBUG: Force spawning CLEAN jammer');
-  if (window.BroadcastJammerSystem && typeof window.BroadcastJammerSystem.forceSpawn === 'function') {
-    window.BroadcastJammerSystem.forceSpawn(2800, 750);
-    console.log('✅ CLEAN jammer force-spawned successfully');
-    return '✅ CLEAN jammer force-spawned successfully';
+// Jammer debug commands (using sector1Progression system)
+window.DEBUG.spawnJammer = function() {
+  console.log('🔧 DEBUG: Force spawning jammer');
+  if (window.sector1Progression && typeof window.sector1Progression.revealJammer === 'function') {
+    window.sector1Progression.enemiesDefeated = 20;
+    window.sector1Progression.revealJammer();
+    console.log('✅ Jammer force-spawned successfully');
+    return '✅ Jammer force-spawned successfully';
   } else {
-    console.error('❌ Broadcast jammer system not available');
-    return '❌ Failed to spawn clean jammer - broadcast system not available';
+    console.error('❌ Sector 1 progression not available');
+    return '❌ Failed to spawn jammer - sector progression not available';
   }
 };
 
-window.DEBUG.checkCleanJammer = function() {
-  if (window.BroadcastJammerSystem && typeof window.BroadcastJammerSystem.getStatus === 'function') {
-    const status = window.BroadcastJammerSystem.getStatus();
-    console.log('📡 CLEAN jammer status:', status);
-    return status;
-  } else {
-    console.error('❌ Broadcast jammer system not available');
-    return null;
-  }
-};
-
-// Legacy debug commands (redirect to clean system)
-window.DEBUG.spawnJammer = window.DEBUG.spawnCleanJammer;
-window.DEBUG.checkJammer = window.DEBUG.checkCleanJammer;
-
-// CLEAN JAMMER EMERGENCY SPAWN
-window.EMERGENCY_JAMMER_SPAWN = function() {
-  console.log('🚨 EMERGENCY JAMMER SPAWN - Using clean broadcast system!');
-  if (window.BroadcastJammerSystem && typeof window.BroadcastJammerSystem.forceSpawn === 'function') {
-    return window.BroadcastJammerSystem.forceSpawn(2800, 750);
-  } else {
-    console.error('❌ Broadcast jammer system not available');
-    return null;
-  }
-};
-
-window.ULTIMATE_JAMMER_SPAWN = window.EMERGENCY_JAMMER_SPAWN; // Alias for compatibility
+// CLEAN JAMMER EMERGENCY SPAWN (now declared above with proper fallback)
+// EMERGENCY_JAMMER_SPAWN and ULTIMATE_JAMMER_SPAWN are now declared at the bottom of the file
 
 window.DEBUG.destroyJammer = function() {
-  if (!window.sector1Progression || !window.sector1Progression.broadcastJammer) {
+  if (!window.enemyManager || !window.enemyManager.enemies) {
+    return '❌ No enemy manager available';
+  }
+  
+  const jammerEnemy = window.enemyManager.enemies.find(e => e.type === 'jammer' && e.active);
+  if (!jammerEnemy) {
     return '❌ No jammer to destroy';
   }
   
-  window.sector1Progression.broadcastJammer.destroy();
+  jammerEnemy.takeDamage(1000, 'debug'); // Use debug source
   return '✅ Jammer destroyed';
 };
 
 window.DEBUG.testRhythmHit = function() {
-  if (!window.BroadcastJammerSystem || !window.BroadcastJammerSystem.jammer) {
+  if (!window.enemyManager || !window.enemyManager.enemies) {
+    return '❌ No enemy manager available';
+  }
+  
+  const jammerEnemy = window.enemyManager.enemies.find(e => e.type === 'jammer' && e.active);
+  if (!jammerEnemy) {
     return '❌ No jammer to test rhythm hit on';
   }
   
-  if (typeof window.BroadcastJammerSystem.onRhythmHit === 'function') {
-    window.BroadcastJammerSystem.onRhythmHit();
-    console.log('✅ Rhythm hit test successful');
-    return '✅ Rhythm hit test successful';
-  } else {
-    return '❌ Jammer does not have onRhythmHit method';
-  }
+  // Use the enemy's rhythm damage method
+  jammerEnemy.takeDamage(1, 'rhythm');
+  console.log('✅ Rhythm hit test successful');
+  return '✅ Rhythm hit test successful';
 };
 
 // Handle special game actions
@@ -199,8 +243,40 @@ window.handleGameAction = function(action) {
         console.log('Force spawning enemies after tutorial skip');
         window.gameState.hasSpawnedInitialEnemies = true;
         setTimeout(() => {
+          let firewallSpawned = false;
           for (let i = 0; i < 3; i++) {
-            window.enemyManager.spawnEnemy();
+            // Check current firewall count before spawning
+            const currentFirewallCount = window.enemyManager.enemies.filter(e => e.type === 'firewall' && e.active).length;
+            
+            // If we already have a firewall, force non-firewall type
+            if (currentFirewallCount >= 1 || firewallSpawned) {
+              const types = ['virus', 'corrupted'];
+              const type = types[Math.floor(Math.random() * types.length)];
+              
+              let x, y = 200;
+              if (type === 'virus') {
+                x = -50 + Math.random() * 100;
+                y = -50 + Math.random() * 50;
+              } else {
+                x = Math.random() > 0.5 ? 100 : 3900;
+              }
+              
+              const enemy = new window.Enemy(x, y, type);
+              if (type === 'virus') {
+                enemy._dropEdge = 'top';
+                enemy.entranceComplete = false;
+                enemy.state = 'entrance';
+                enemy.velocity.x = 50 + Math.random() * 30;
+                enemy.velocity.y = 120 + Math.random() * 30;
+                enemy.isOnGround = false;
+              }
+              window.enemyManager.enemies.push(enemy);
+            } else {
+              window.enemyManager.spawnEnemy();
+              if (window.enemyManager.enemies.some(e => e.type === 'firewall' && e.active)) {
+                firewallSpawned = true;
+              }
+            }
           }
         }, 500);
       }
@@ -279,9 +355,32 @@ window.handleGameAction = function(action) {
     case 'restart':
       console.log('handleGameAction restart - gameOver:', window.gameState.gameOver, 'victory:', window.gameState.victory);
       if (window.gameState.gameOver || window.gameState.victory) {
-        console.log('Restart conditions met, calling startGame');
-        console.log('🎵 CRITICAL: Game restart - rhythm system will preserve beat timing');
-        window.startGame();
+        console.log('Restart conditions met - respawning player only');
+        
+        // Only respawn player, don't reset the world
+        if (window.gameState.gameOver) {
+          // Game over: just respawn player, preserve everything else
+          if (window.player) {
+            window.player.health = window.player.maxHealth;
+            window.player.position = new window.Vector2D(200, 500);
+            window.player.velocity = new window.Vector2D(0, 0);
+            
+            // Start entrance animation
+            if (typeof window.player.startEntranceAnimation === 'function') {
+              window.player.startEntranceAnimation();
+            }
+          }
+          
+          // Reset game over state but keep everything else
+          window.gameState.gameOver = false;
+          window.gameState.running = true;
+          
+          console.log('✅ Player respawned - world state preserved');
+        } else if (window.gameState.victory) {
+          // Victory: full restart
+          console.log('🎵 CRITICAL: Victory restart - rhythm system will preserve beat timing');
+          window.startGame();
+        }
       } else {
         console.log('Restart conditions not met');
       }
@@ -294,6 +393,27 @@ console.log('  DEBUG.spawnJammer() - Force jammer spawn immediately');
 console.log('  DEBUG.checkJammer() - Check jammer status and conditions');
 console.log('  DEBUG.destroyJammer() - Destroy current jammer');
 console.log('  DEBUG.testRhythmHit() - Test rhythm hit on jammer');
+console.log('  DEBUG.skipBootScreen() - Skip boot screen immediately');
+console.log('  T key - Skip boot screen (when active) or tutorial');
 
 // Make debug commands available globally
 window.DEBUG = window.DEBUG || {};
+
+// Additional essential helper functions for modular system
+window.DEBUG_HITBOXES = window.DEBUG_HITBOXES || false; // Enable/disable hitbox visualization
+
+// Essential utility function for emergency jammer spawning
+window.EMERGENCY_JAMMER_SPAWN = window.EMERGENCY_JAMMER_SPAWN || function() {
+  console.log('🚨 EMERGENCY JAMMER SPAWN - Using jammer system!');
+  if (window.sector1Progression && typeof window.sector1Progression.revealJammer === 'function') {
+    window.sector1Progression.enemiesDefeated = 20;
+    window.sector1Progression.revealJammer();
+    return '✅ Emergency jammer spawned successfully';
+  } else {
+    console.error('❌ Sector 1 progression not available');
+    return null;
+  }
+};
+
+// Alias for compatibility
+window.ULTIMATE_JAMMER_SPAWN = window.ULTIMATE_JAMMER_SPAWN || window.EMERGENCY_JAMMER_SPAWN;

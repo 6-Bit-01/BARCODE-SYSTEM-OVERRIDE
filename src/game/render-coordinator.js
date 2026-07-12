@@ -3,7 +3,7 @@ window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({
   name: 'src/game/render-coordinator.js',
   exports: ['renderGame', 'resetRenderContext'],
-  dependencies: ['renderer', 'player', 'enemyManager', 'BroadcastJammerSystem', 'sector1Progression', 'lostDataSystem', 'spaceShipSystem', 'parallaxBackground', 'particleSystem', 'rhythmSystem', 'hackingSystem', 'tutorialSystem', 'objectivesSystem', 'loreSystem', 'jammerIndicator', 'drawGameUI', 'clamp']
+  dependencies: ['renderer', 'player', 'enemyManager', 'sector1Progression', 'lostDataSystem', 'spaceShipSystem', 'parallaxBackground', 'particleSystem', 'rhythmSystem', 'hackingSystem', 'tutorialSystem', 'objectivesSystem', 'loreSystem', 'jammerIndicator', 'drawGameUI', 'clamp']
 });
 
 // Cache canvas context to prevent repeated creation
@@ -206,6 +206,9 @@ function drawGameElements(ctx) {
   // Draw game entities
   drawGameEntities(ctx);
   
+  // Draw jammer indicator (should move with camera)
+  drawJammerIndicator(ctx);
+  
   // Draw rhythm effects behind player
   drawRhythmEffectsBehindPlayer(ctx);
   
@@ -366,14 +369,8 @@ function drawGameEntities(ctx) {
     }
   }
   
-  // Draw Broadcast Jammer System - INTEGRATED: Draw jammer spawned by ObjectivesSystem
-  if (window.BroadcastJammerSystem && typeof window.BroadcastJammerSystem.draw === 'function') {
-    try {
-      window.BroadcastJammerSystem.draw(ctx);
-    } catch (error) {
-      console.error('Error drawing Broadcast Jammer System:', error?.message || error);
-    }
-  }
+  // Jammer enemies are now drawn through the regular EnemyManager
+  // No separate jammer system drawing needed
   
   // Draw sector progression elements
   if (window.sector1Progression) {
@@ -390,6 +387,17 @@ function drawGameEntities(ctx) {
       window.lostDataSystem.draw(ctx);
     } catch (error) {
       console.error('Error drawing lost data system:', error?.message || error);
+    }
+  }
+}
+
+// Draw jammer indicator (moves with camera)
+function drawJammerIndicator(ctx) {
+  if (window.jammerIndicator && typeof window.jammerIndicator.draw === 'function') {
+    try {
+      window.jammerIndicator.draw(ctx);
+    } catch (error) {
+      console.error('Error drawing jammer indicator:', error?.message || error);
     }
   }
 }

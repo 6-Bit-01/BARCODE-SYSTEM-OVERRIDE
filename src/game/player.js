@@ -62,6 +62,12 @@ window.Player = class Player {
     // Fast-fall mechanic
     this.fastFallMultiplier = 2.5; // 2.5x gravity when holding down
     
+    // Enhanced stomp mechanics
+    this.stompDamageRadius = 200; // Area-of-effect damage radius
+    this.stompKnockbackRadius = 300; // Knockback effect radius
+    this.stompDamage = 999; // Instant kill damage for stomp
+    this.isStomping = false; // Track stomping state
+    
     // Control disable system (for collision knockback)
     this.controlsDisabled = false;
     this.controlsDisabledUntil = 0;
@@ -199,9 +205,8 @@ window.Player = class Player {
           const isFastFalling = window.inputManager && window.inputManager.isKey('arrowdown');
           
           if (isFastFalling && this.fastFallInvincible) {
-            // Use stomp effect for down arrow attacks - account for facing direction
-            window.particleSystem.stompEffect(this.position.x, this.position.y + 100, null, this.facing);
-            console.log('💥 Stomp effect triggered by fast-fall landing');
+            // ENHANCED: Perform powerful stomp attack with area-of-effect
+            this.performPowerfulStomp();
           } else {
             // Use regular landing effect
             // Move landing smoke 10px toward front of player
@@ -422,8 +427,8 @@ window.Player = class Player {
       
       const fullAnimationName = animationMap[animationName] || animationName;
       
-      // CRITICAL FIX: Avoid restarting the same animation repeatedly
-      // EXCEPT for jump animations that need to restart on new jumps
+      // CRITICAL FIX: Force animation restart when transitioning from rhythm/hack mode or after damage
+      // This prevents walk animations from getting stuck
       const currentSpriteAnim = this.sprite.getCurrentAnimation();
       const shouldRestartJump = animationName === 'jump' && !this.jumpAnimationStarted;
       
@@ -434,7 +439,13 @@ window.Player = class Player {
         this.wasJumping === false && !this.grounded
       );
       
-      if (currentSpriteAnim === fullAnimationName && this.animationRef && !this.animationRef.isInterrupted && !shouldRestartJump && !isJumpRestartAllowed) {
+      // CRITICAL FIX: Always restart walk animation to prevent getting stuck
+      const shouldForceRestart = (
+        animationName === 'walk' || 
+        (currentSpriteAnim === '6_bit_walk_walk' && animationName !== 'walk')
+      );
+      
+      if (currentSpriteAnim === fullAnimationName && this.animationRef && !this.animationRef.isInterrupted && !shouldRestartJump && !isJumpRestartAllowed && !shouldForceRestart) {
         // Animation is already playing correctly - don't restart it
         console.log(`🎬 SKIPPING: ${fullAnimationName} already playing`);
         return;
@@ -583,6 +594,29 @@ window.Player = class Player {
     this.playAnimation('rhythm');
   }
   
+  // CRITICAL FIX: Force animation reset to prevent stuck walk animations
+  forceAnimationReset() {
+    console.log('🔄 Forcing animation state reset');
+    
+    // Clear current animation to force fresh start
+    this.currentAnimation = null;
+    if (this.sprite) {
+      this.sprite.stop();
+    }
+    this.animationRef = null;
+    
+    // Reset jump animation tracking
+    this.jumpAnimationStarted = false;
+    
+    // Force immediate state update to determine correct animation
+    this.updateState();
+    
+    // Play the correct animation for the current state
+    if (this.state && this.spriteReady) {
+      this.playAnimation(this.state);
+    }
+  }
+  
   // DEBUG: Force rhythm animation for testing
   forceRhythmAnimation() {
     console.log('🔧 DEBUG: forceRhythmAnimation() called');
@@ -628,6 +662,10 @@ window.Player = class Player {
       console.log('💥 Player hit - deactivating hack mode');
       window.hackingSystem.cancel();
     }
+    
+    // CRITICAL FIX: Force animation state reset after taking damage
+    // This prevents walk animations from getting stuck when hit while holding arrow keys
+    this.forceAnimationReset();
     
     // Play hurt animation if available
     // this.playAnimation('hurt'); // Not in current sprite set
@@ -724,6 +762,10 @@ window.Player = class Player {
       console.log('💥 Player hit - deactivating hack mode');
       window.hackingSystem.cancel();
     }
+    
+    // CRITICAL FIX: Force animation state reset after taking damage with knockback
+    // This prevents walk animations from getting stuck when hit while holding arrow keys
+    this.forceAnimationReset();
     
     // Disable controls briefly during knockback
     this.controlsDisabled = true;
@@ -1338,8 +1380,13 @@ window.Player = class Player {
     // CRITICAL FIX: Adjust animation positioning for proper ground alignment
     if (this.state === 'idle') {
       drawY += 4; // Move idle animation UP 30px (from 34px down to 4px down)
-      drawX -= 20; // Move idle animation BACK 20px horizontally (toward back of player)
-      console.log('🧍 Idle animation moved up 30px and back 20px');
+      // CRITICAL FIX: Move idle animation toward back 40px when facing left or right
+      if (this.facing === -1) {
+        drawX += 40; // Move idle animation TOWARD BACK 40px when facing left
+      } else if (this.facing === 1) {
+        drawX -= 40; // Move idle animation TOWARD BACK 40px when facing right
+      }
+      console.log('🧍 Idle animation moved up 30px and toward back 40px');
     } else if (this.state === 'walk') {
       drawY -= 11; // Move walk animation UP 11px from base position (7+4 more)
       console.log('🚶 Walk animation moved up 11px');
@@ -1683,6 +1730,172 @@ window.Player = class Player {
     }
   }
   
+  // ENHANCED: Perform powerful stomp attack with area-of-effect damage and knockback
+  performPowerfulStomp() {
+    // CRITICAL: Set stomping state IMMEDIATELY to prevent collision damage
+    this.isStomping = true;
+    console.log('💥 POWERFUL STOMP ATTACK! Area-of-effect damage and knockback!');
+    
+    // Enhanced stomp visual effects
+    window.particleSystem.stompEffect(this.position.x, this.position.y + 100, null, this.facing);
+    
+    // Create massive impact explosion at stomp point
+    if (window.particleSystem) {
+      // Main impact crater - larger and more intense
+      for (let i = 0; i < 25; i++) {
+        const angle = (Math.PI * 2 * i) / 25;
+        const speed = 150 + Math.random() * 200;
+        const size = 4 + Math.random() * 6;
+        
+        window.particleSystem.particles.push(new window.Particle(
+          this.position.x,
+          this.position.y + 100,
+          Math.cos(angle) * speed,
+          Math.sin(angle) * speed - 100, // Upward bias
+          '#ffff00', // Bright yellow for stomp impact
+          size,
+          800 + Math.random() * 400,
+          'circle',
+          Math.random() * Math.PI * 2
+        ));
+      }
+      
+      // Secondary shockwave ring
+      for (let i = 0; i < 16; i++) {
+        const angle = (Math.PI * 2 * i) / 16;
+        const speed = 250;
+        
+        window.particleSystem.particles.push(new window.Particle(
+          this.position.x,
+          this.position.y + 100,
+          Math.cos(angle) * speed,
+          Math.sin(angle) * speed,
+          '#ff8800', // Orange shockwave
+          3,
+          600,
+          'triangle',
+          angle
+        ));
+      }
+      
+      // Ground crack effects
+      for (let i = 0; i < 12; i++) {
+        const crackAngle = Math.random() * Math.PI * 2;
+        const crackDistance = 50 + Math.random() * 150;
+        const crackX = this.position.x + Math.cos(crackAngle) * crackDistance;
+        const crackY = this.position.y + 100 + Math.sin(crackAngle) * crackDistance * 0.3;
+        
+        window.particleSystem.particles.push(new window.Particle(
+          crackX,
+          crackY,
+          0,
+          -20 - Math.random() * 30,
+          '#888888', // Gray ground cracks
+          2 + Math.random() * 3,
+          400 + Math.random() * 300,
+          'rectangle'
+        ));
+      }
+    }
+    
+    // Enhanced screen shake for powerful stomp
+    if (window.renderer?.addScreenShake) {
+      window.renderer.addScreenShake(12, 400); // Much stronger and longer shake
+    }
+    
+    // Area-of-effect damage to enemies
+    if (window.enemyManager) {
+      const enemies = window.enemyManager.getActiveEnemies();
+      let enemiesHit = 0;
+      let enemiesKnockedBack = 0;
+      
+      enemies.forEach(enemy => {
+        if (!enemy.active) return;
+        
+        const distance = window.distance(
+          this.position.x, this.position.y + 100,
+          enemy.position.x, enemy.position.y
+        );
+        
+        // Direct damage zone - can defeat up to 2 enemies
+        if (distance <= this.stompDamageRadius && enemiesHit < 2) {
+          enemy.takeDamage(this.stompDamage);
+          enemiesHit++;
+          
+          // Create impact effect on hit enemy
+          if (window.particleSystem) {
+            window.particleSystem.impact(enemy.position.x, enemy.position.y, '#ffff00', 30);
+            
+            // Extra explosion for defeated enemy
+            for (let i = 0; i < 10; i++) {
+              const angle = (Math.PI * 2 * i) / 10;
+              const speed = 100 + Math.random() * 100;
+              
+              window.particleSystem.particles.push(new window.Particle(
+                enemy.position.x,
+                enemy.position.y,
+                Math.cos(angle) * speed,
+                Math.sin(angle) * speed - 50,
+                '#ffaa00', // Golden explosion
+                3 + Math.random() * 3,
+                600,
+                'triangle'
+              ));
+            }
+          }
+          
+          console.log(`💥 Stomp directly hit ${enemy.type} enemy!`);
+        }
+        
+        // Knockback zone - affects all enemies in larger radius
+        if (distance <= this.stompKnockbackRadius) {
+          // Calculate knockback direction away from stomp center (the impact point)
+          const stompCenterX = this.position.x;
+          const stompCenterY = this.position.y + 100; // Stomp impact point
+          const dx = enemy.position.x - stompCenterX;
+          const dy = enemy.position.y - stompCenterY;
+          const knockbackDistance = Math.sqrt(dx * dx + dy * dy);
+          
+          if (knockbackDistance > 0) {
+            // Calculate knockback force based on distance (stronger when closer)
+            const knockbackStrength = (1 - distance / this.stompKnockbackRadius) * 400;
+            // CRITICAL FIX: Ensure knockback direction is AWAY from stomp center
+            const knockbackX = (dx / knockbackDistance) * knockbackStrength;
+            const knockbackY = (dy / knockbackDistance) * knockbackStrength - 200; // Add upward force
+            
+            // Apply knockback to enemy
+            enemy.velocity.x = knockbackX;
+            enemy.velocity.y = knockbackY;
+            
+            // Create knockback effect
+            if (window.particleSystem) {
+              window.particleSystem.damageEffect(enemy.position.x, enemy.position.y - 30, '#00ffff', 8);
+            }
+            
+            enemiesKnockedBack++;
+            console.log(`💨 Stomp knocked back ${enemy.type} enemy with force ${knockbackStrength.toFixed(0)}`);
+          }
+        }
+      });
+      
+      console.log(`💥 Stomp attack completed: ${enemiesHit} enemies defeated, ${enemiesKnockedBack} enemies knocked back`);
+    }
+    
+    // Play enhanced stomp sound if available
+    if (window.audioSystem && typeof window.audioSystem.playSound === 'function') {
+      window.audioSystem.playSound('stomp', 0.8); // Play stomp sound at 80% volume
+    }
+    
+    // Grant temporary invulnerability after powerful stomp
+    this.invulnerableUntil = Date.now() + 800; // Extended to 800ms protection after stomp
+    
+    // Reset stomp state after a brief moment
+    setTimeout(() => {
+      this.isStomping = false;
+      console.log('🛡️ Enhanced stomp completed - collision checks restored');
+    }, 200);
+  }
+
   // Create final entrance explosion
   createEntranceExplosion() {
     if (!window.particleSystem) return;

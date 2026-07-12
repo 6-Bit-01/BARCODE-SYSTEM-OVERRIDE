@@ -3,7 +3,7 @@ window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({
   name: 'src/game/game-initializer.js',
   exports: ['initAudio', 'initSprites', 'startGameInitialization'],
-  dependencies: ['player', 'enemyManager', 'hackingSystem', 'rhythmSystem', 'objectivesSystem', 'tutorialSystem', 'sector1Progression', 'BroadcastJammerSystem', 'jammerIndicator', 'lostDataSystem', 'spaceShipSystem', 'loreSystem']
+  dependencies: ['player', 'enemyManager', 'hackingSystem', 'rhythmSystem', 'initObjectives', 'tutorialSystem', 'initSector1Progression', 'initJammerIndicator', 'initLostData', 'initSpaceShips', 'initLore']
 });
 
 // Initialize audio system first
@@ -196,15 +196,6 @@ window.startGameInitialization = async function() {
     console.log('Initializing lore system...');
     window.initLore();
     console.log('✓ Lore system initialized');
-    
-    // Initialize Broadcast Jammer System
-    console.log('Initializing Broadcast Jammer System...');
-    if (window.BroadcastJammerSystem && typeof window.BroadcastJammerSystem.init === 'function') {
-      window.BroadcastJammerSystem.init();
-      console.log('✓ Broadcast Jammer System initialized successfully');
-    } else {
-      console.warn('⚠️ Broadcast Jammer System not available');
-    }
     
     // Initialize jammer indicator system
     console.log('Initializing jammer indicator system...');

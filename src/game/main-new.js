@@ -2,8 +2,8 @@
 window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({
   name: 'src/game/main-new.js',
-  exports: ['update', 'render', 'startGame', 'initGame', 'startNewGame'],
-  dependencies: ['gameState', 'initGameState', 'checkGameConditions', 'updateGame', 'renderGame', 'resetRenderContext', 'startGameInitialization', 'player', 'enemyManager', 'objectivesSystem']
+  exports: ['startGame', 'autoInitGame', 'startNewGame'],
+  dependencies: ['updateGame', 'renderGame', 'resetRenderContext', 'startGameInitialization', 'gameState', 'initGameState', 'checkGameConditions', 'player', 'enemyManager', 'objectivesSystem']
 });
 
 // Initialize game - Enhanced with error handling
@@ -71,11 +71,16 @@ window.startGame = function() {
     window.rhythmSystem.restart();
   }
   
-  // Start game loop
+  // Start game loop using the dedicated loop function
   if (!window.isRunning) {
-    window.isRunning = true;
-    window.isPaused = false;
-    requestAnimationFrame(window.gameLoop);
+    if (typeof window.startGameLoop === 'function') {
+      window.startGameLoop();
+    } else {
+      // Fallback if startGameLoop not available
+      window.isRunning = true;
+      window.isPaused = false;
+      requestAnimationFrame(window.gameLoop);
+    }
   }
   
     console.log('✓ BARCODE: System Override started successfully');
@@ -86,15 +91,15 @@ window.startGame = function() {
   }
 };
 
-// Initialize game when ready - Only define ONCE
-window.initGame = function() {
+// Auto-initialize game when ready - Only define ONCE
+window.autoInitGame = function() {
   try {
     if (window.autoStartDisabled) {
       console.log('🛑 Auto-start disabled - waiting for start button');
       return;
     }
     
-    console.log('=== AUTO INITIALIZING GAME (LEGACY MODE) ===');
+    console.log('=== AUTO INITIALIZING GAME ===');
     
     // Start game initialization sequence
     if (typeof window.startGameInitialization === 'function') {
@@ -121,6 +126,13 @@ window.startNewGame = async function() {
     // Initialize game state
     window.initGameState();
     
+    // Check if we should restore progress
+    const hasSavedProgress = window.gameState.progressSaved;
+    if (hasSavedProgress) {
+      console.log('🔄 Found saved progress - attempting to restore...');
+      window.restoreProgress();
+    }
+    
     // Start the game
     window.startGame();
     
@@ -129,11 +141,10 @@ window.startNewGame = async function() {
   }
 };
 
-// Main update function - delegates to update coordinator
-window.update = window.updateGame;
-
-// Main render function - delegates to render coordinator  
-window.render = window.renderGame;
+// Update and render functions are handled by the coordinator system:
+// - window.updateGame (update-coordinator.js) 
+// - window.renderGame (render-coordinator.js)
+// The game loop (loop.js) calls these coordinator functions directly
 
 // Global error handlers
 window.addEventListener('error', function(event) {
@@ -177,10 +188,10 @@ window.addEventListener('unhandledrejection', function(event) {
 if (!window.autoStartDisabled) {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-      setTimeout(window.initGame, 100);
+      setTimeout(window.autoInitGame, 100);
     });
   } else {
-    setTimeout(window.initGame, 100);
+    setTimeout(window.autoInitGame, 100);
   }
 } else {
   console.log('🛑 Auto-initialization disabled - waiting for start button');
