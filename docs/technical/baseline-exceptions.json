@@ -1,0 +1,39 @@
+{
+  "exceptions": [
+    {
+      "id": "missing-makko-runtime",
+      "type": "missing-first-party-reference",
+      "path": "/lib/MakkoEngine.min.js",
+      "source": "index.html",
+      "classification": [
+        "confirmed repository fact",
+        "owner/Makko verification required"
+      ],
+      "reason": "index.html loads this host/runtime path, but the file is absent from the repository. It may be supplied by Makko or hosting infrastructure."
+    },
+    {
+      "id": "inactive-syntax-src-core-boot",
+      "type": "archived-inactive-javascript-syntax-failure",
+      "path": "docs/archive/pre-pr001/inactive-source/src/core/boot.js.txt",
+      "classification": [
+        "confirmed repository fact",
+        "owner/Makko compatibility follow-up",
+        "not runtime-loaded"
+      ],
+      "reason": "Owner Makko testing found Makko parses every .js file even when index.html does not load it. This inactive syntax-failing source was confirmed not loaded by index.html and archived byte-for-byte with a .txt extension so Makko will not parse it as JavaScript.",
+      "originalPath": "src/core/boot.js"
+    },
+    {
+      "id": "inactive-syntax-src-core-game-game-manager",
+      "type": "archived-inactive-javascript-syntax-failure",
+      "path": "docs/archive/pre-pr001/inactive-source/src/core/game/game-manager.js.txt",
+      "classification": [
+        "confirmed repository fact",
+        "owner/Makko compatibility follow-up",
+        "not runtime-loaded"
+      ],
+      "reason": "Owner Makko testing found Makko parses every .js file even when index.html does not load it. This inactive syntax-failing source was confirmed not loaded by index.html and archived byte-for-byte with a .txt extension so Makko will not parse it as JavaScript.",
+      "originalPath": "src/core/game/game-manager.js"
+    }
+  ]
+}
