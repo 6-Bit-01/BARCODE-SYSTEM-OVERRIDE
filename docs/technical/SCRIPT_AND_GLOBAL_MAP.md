@@ -47,7 +47,7 @@ Loaded and unloaded JavaScript files are listed in `baseline-inventory.json`.
 ## Confirmed repository fact: critical globals
 
 - `window.startGame`: loaded owner `src/game/main-new.js`; inactive competing owner `src/game/main.js`.
-- `window.startNewGame`: loaded owner `src/game/main-new.js`; inactive manager method in `src/core/game-manager.js`.
+- `window.startNewGame`: loaded owner `src/game/main-new.js`; inactive manager method remains in `src/core/game-manager.js`. The separate syntax-failing inactive file `src/core/game/game-manager.js` was archived as `docs/archive/pre-pr001/inactive-source/src/core/game/game-manager.js.txt` after owner Makko testing confirmed Makko parses repository `.js` files even when they are not loaded by `index.html`.
 - `window.startGameInitialization`: loaded owner `src/game/game-initializer.js`; inactive competing owner `src/game/main.js`.
 - `window.gameLoop` and `window.startGameLoop`: loaded owner `src/core/loop.js`.
 - `window.updateGame`: loaded owner `src/game/update-coordinator.js`.

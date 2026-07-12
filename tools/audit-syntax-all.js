@@ -8,4 +8,5 @@ for (const file of jsFiles()) {
   if (err) { failures++; console.log(`FAIL ${loaded.has(file) ? 'loaded' : 'inactive'} ${file}: ${err.message}`); }
 }
 console.log(`Syntax failures: ${failures}`);
+if (failures === 0) console.log('All repository JavaScript syntax checks passed.');
 if (mode === 'check' && failures) process.exit(1);

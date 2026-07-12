@@ -83,9 +83,7 @@
   "unloadedRepositoryJs": [
     "final-verification-test.js",
     "jammer-audio-patch.js",
-    "src/core/boot.js",
     "src/core/game-manager.js",
-    "src/core/game/game-manager.js",
     "src/engine/game-logic.js",
     "src/engine/ui-manager.js",
     "src/game/broadcast-jammer.js",
@@ -263,18 +261,7 @@
       }
     ]
   },
-  "inactiveSyntaxFailures": [
-    {
-      "file": "src/core/boot.js",
-      "message": "Unexpected identifier 'queueInit'",
-      "line": null
-    },
-    {
-      "file": "src/core/game/game-manager.js",
-      "message": "Unexpected identifier 'handlePlayerDamage'",
-      "line": null
-    }
-  ],
+  "inactiveSyntaxFailures": [],
   "missingFirstPartyReferences": [
     {
       "source": "final-verification-test.js",
@@ -379,12 +366,6 @@
       "file": "src/core/loop.js",
       "line": 17,
       "loaded": true
-    },
-    {
-      "global": "window.gameState",
-      "file": "src/core/boot.js",
-      "line": 185,
-      "loaded": false
     },
     {
       "global": "window.gameState",
@@ -493,9 +474,7 @@
     "final-verification-test.js",
     "jammer-audio-patch.js",
     "jammer-fix-patch.js",
-    "src/core/boot.js",
     "src/core/game-manager.js",
-    "src/core/game/game-manager.js",
     "src/game/broadcast-jammer.js",
     "src/game/main-legacy-backup.js",
     "src/game/main-legacy-removed.js",

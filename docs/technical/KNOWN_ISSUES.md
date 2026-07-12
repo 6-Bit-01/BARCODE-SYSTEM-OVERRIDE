@@ -3,8 +3,8 @@
 ## Confirmed repository fact
 
 - Missing first-party runtime path: `/lib/MakkoEngine.min.js` from `index.html`.
-- Inactive syntax failure: `src/core/boot.js`.
-- Inactive syntax failure: `src/core/game/game-manager.js`.
+- Archived inactive syntax failure: `src/core/boot.js` was not loaded by `index.html` and, after owner Makko testing found Makko parses every `.js` file, was moved byte-for-byte to `docs/archive/pre-pr001/inactive-source/src/core/boot.js.txt`.
+- Archived inactive syntax failure: `src/core/game/game-manager.js` was not loaded by `index.html` and, after owner Makko testing found Makko parses every `.js` file, was moved byte-for-byte to `docs/archive/pre-pr001/inactive-source/src/core/game/game-manager.js.txt`.
 - Loaded duplicate enemy globals: `src/game/enemies.js` and `jammer-fix-patch.js` both define `window.Enemy`, `window.EnemyManager`, and initialize `window.enemyManager`.
 
 ## Static code inference

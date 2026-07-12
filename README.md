@@ -31,7 +31,7 @@ npm run baseline:generate
 npm run baseline:check
 ```
 
-`npm test` validates the active static runtime surface and deterministic baseline. `npm run audit:syntax:all` prints inactive syntax failures in report-only mode. `npm run check:syntax:all` is expected to fail while the documented inactive syntax errors remain.
+`npm test` validates the active static runtime surface and deterministic baseline. After owner Makko testing found that Makko parses every `.js` file in the repository, the two syntax-failing inactive JavaScript files were archived as `.txt` files under `docs/archive/pre-pr001/inactive-source/`. `npm run audit:syntax:all` and `npm run check:syntax:all` are now expected to pass with zero JavaScript syntax failures.
 
 ## Codex + owner workflow
 
