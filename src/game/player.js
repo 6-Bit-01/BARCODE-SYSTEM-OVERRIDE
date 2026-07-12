@@ -257,7 +257,7 @@ window.Player = class Player {
     const justStartedJumping = this.wasJumping === false && !this.grounded;
     if (justStartedJumping) {
       this.jumpAnimationStarted = false; // Force animation restart on new jump
-      console.log('🦘 Character just left ground - jump animation will restart');
+      if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log('🦘 Character just left ground - jump animation will restart');
     }
     
     // Priority order: Rhythm > Jump (if up held) > Walk > Idle
@@ -276,7 +276,7 @@ window.Player = class Player {
     
     // Debug state changes (reduced logging)
     if (oldState !== this.state) {
-      console.log(`🔄 Player state: ${oldState} → ${this.state} (upHeld: ${upKeyHeld}, newJump: ${justStartedJumping})`);
+      if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log(`🔄 Player state: ${oldState} → ${this.state} (upHeld: ${upKeyHeld}, newJump: ${justStartedJumping})`);
     }
   }
 
@@ -389,7 +389,7 @@ window.Player = class Player {
       );
       
       if (needsAnimationChange || isRhythmStuck || shouldRestartJump) {
-        console.log(`🔄 Animation change needed: state=${this.state}, current=${this.currentAnimation}, expected=${expectedAnimation}, stuck=${isRhythmStuck}, restartJump=${shouldRestartJump}`);
+        if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log(`🔄 Animation change needed: state=${this.state}, current=${this.currentAnimation}, expected=${expectedAnimation}, stuck=${isRhythmStuck}, restartJump=${shouldRestartJump}`);
         this.playAnimation(this.state);
       }
       
@@ -397,7 +397,7 @@ window.Player = class Player {
       if (!this.lastAnimLog || Date.now() - this.lastAnimLog > 3000) {
         const isPlaying = this.sprite ? this.sprite.playing : 'null';
         const frameInfo = this.animationRef ? `frame=${this.animationRef.currentFrame}/${this.animationRef.totalFrames}` : 'no-ref';
-        console.log(`🎬 Animation Status: state=${this.state}, current=${this.currentAnimation}, spriteCurrent=${spriteCurrentAnim}, playing=${isPlaying}, ${frameInfo}`);
+        if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log(`🎬 Animation Status: state=${this.state}, current=${this.currentAnimation}, spriteCurrent=${spriteCurrentAnim}, playing=${isPlaying}, ${frameInfo}`);
         this.lastAnimLog = Date.now();
       }
       

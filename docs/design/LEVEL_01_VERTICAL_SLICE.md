@@ -1,0 +1,60 @@
+# Level 01 Vertical Slice Direction
+
+## Authority and scope
+
+This document is the authoritative Level 1 direction for the PR-004 through PR-008 overhaul sequence. PR-003 only establishes frame ownership and runtime cleanup; it does not add mechanics, levels, bosses, playable characters, artwork, dialogue, lore, or audio replacements.
+
+Level 1 is centered on 6 Bit. The game direction is a side-scrolling 16-bit rhythm platformer/beat-em-up where traversal alternates with compact combat arenas.
+
+Only 6 Bit, DJ Floppydisc, Cache Back, and Mac Modem are playable characters. This PR does not add, expose, or prototype the other playable characters.
+
+## Core play contract
+
+- Attacks always function.
+- Accurate beat timing improves damage, stagger, combo, signal recovery, or another owner-approved combat reward.
+- Music supplies the authoritative beat, bar, and phrase clock.
+- Enemies and hazards telegraph using musical timing.
+- The stage advances through authored spatial and musical milestones.
+- Traversal spaces should lead naturally into compact combat arenas, then back into traversal.
+- The boss transition occurs naturally at the final arena.
+- Hacking is optional/secondary and must remain short enough not to break musical flow.
+
+## Gates and non-authoritative legacy concepts
+
+- There is no kill-quota gate.
+- There is no jammer-destruction gate.
+- The jammer is not an enemy and does not need a forced replacement object.
+- “City Scrambler” is not authoritative Level 1 boss design.
+- Existing boss art may only be repurposed if the owner approves the resulting identity.
+- 9 Bit and *Observer Not Found* are not automatically Level 1 boss material.
+
+## Visual and asset direction
+
+The visual direction is damaged public-access television, VHS, obsolete computing, underground hip-hop, and 16-bit grime—not generic neon cyberpunk.
+
+Existing approved player, enemy, parallax, particle, audio, dialogue, and UI assets should be reused intelligently where they support this direction and do not contradict locked prologue/art guidance.
+
+Known missing assets that must be listed honestly before the vertical slice is complete:
+
+- Owner-approved Level 1 boss identity and any required final boss art.
+- Authoritative beat/bar/phrase timing data for the chosen Level 1 music.
+- Final authored Level 1 spatial layout and arena boundaries.
+- Any new or adjusted enemy telegraph visuals needed for musical timing.
+- Any approved jammer presentation changes if the jammer remains as a non-enemy stage element.
+
+## Planned PR sequence
+
+1. PR-003 — frame ownership and runtime cleanup.
+2. PR-004 — authoritative beat clock.
+3. PR-005 — 6 Bit movement and beat-combat feel.
+4. PR-006 — enemies and encounter direction.
+5. PR-007 — rebuilt Level 1 stage, parallax, and progression.
+6. PR-008 — new boss and complete vertical slice.
+
+## Deferred debt notes
+
+- PR-004 should replace ad hoc rhythm timing with an authoritative music-derived beat, bar, and phrase clock.
+- PR-005 should tune 6 Bit feel without adding double-jump, slide, or a functional dash to the base movement contract.
+- PR-006 should make enemy timing and telegraphs readable against the music without redesigning all combat at once.
+- PR-007 should remove reliance on kill quotas or jammer destruction as progression gates in favor of authored spatial/musical milestones.
+- PR-008 should introduce an owner-approved Level 1 boss identity and transition that grows naturally from the final arena.

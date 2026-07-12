@@ -34,7 +34,8 @@ window.Renderer = class Renderer {
     
     this.width = canvas.width;
     this.height = canvas.height;
-    this.postEffects = true;
+    window.BARCODE_RENDER_QUALITY = window.BARCODE_RENDER_QUALITY || {};
+    this.postEffects = window.BARCODE_RENDER_QUALITY.crtPostEffects !== false;
     this.screenShake = { x: 0, y: 0, intensity: 0, duration: 0 };
     
     // CRT effect properties
@@ -131,7 +132,7 @@ window.Renderer = class Renderer {
 
   // Apply post-processing effects
   applyPostEffects() {
-    if (!this.postEffects) return;
+    if (!this.postEffects || (window.BARCODE_RENDER_QUALITY && window.BARCODE_RENDER_QUALITY.crtPostEffects === false)) return;
     
     // Validate context and canvas
     if (!this.ctx || !this.canvas) {

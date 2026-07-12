@@ -131,7 +131,7 @@ window.ParallaxBackground = class ParallaxBackground {
   // Draw a single layer
   drawLayer(ctx, layer) {
     if (!layer.loaded) {
-      console.log('Layer not loaded, skipping');
+      if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log('Layer not loaded, skipping');
       return;
     }
     
@@ -148,7 +148,7 @@ window.ParallaxBackground = class ParallaxBackground {
     // Calculate parallax offset
     const offset = this.getParallaxOffset(layer);
     
-    console.log('Drawing layer:', {
+    if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log('Drawing layer:', {
       loaded: layer.loaded,
       hasImage: !!layer.imgElement,
       repeatX: layer.repeatX,
@@ -304,10 +304,10 @@ window.ParallaxBackground = class ParallaxBackground {
   
   // Draw all layers (call this in your render loop)
   draw(ctx) {
-    console.log('🔧 Parallax draw called with', this.layers.length, 'layers');
+    if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log('🔧 Parallax draw called with', this.layers.length, 'layers');
     // Draw layers in order (back to front)
     this.layers.forEach((layer, index) => {
-      console.log('Drawing layer', index);
+      if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log('Drawing layer', index);
       this.drawLayer(ctx, layer);
     });
   }

@@ -2,7 +2,7 @@
 window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({
   name: 'src/core/loop.js',
-  exports: ['gameLoop', 'startGameLoop', 'pauseGame', 'resumeGame'],
+  exports: ['gameLoop', 'startGameLoop', 'pauseGame', 'resumeGame', 'stopGame'],
   dependencies: ['updateGame', 'renderGame', 'resetRenderContext']
 });
 
@@ -12,13 +12,42 @@ window.maxFPS = window.maxFPS || 60;
 window.frameDelay = 1000 / window.maxFPS;
 window.isPaused = window.isPaused || false;
 window.isRunning = window.isRunning || false;
+window.gameLoopRafHandle = window.gameLoopRafHandle || null;
+
+// requestAnimationFrame ownership lives here only for active gameplay frames.
+function scheduleNextGameplayFrame() {
+  if (!window.isRunning || window.gameLoopRafHandle !== null) return;
+  window.gameLoopRafHandle = requestAnimationFrame(window.gameLoop);
+}
+
+function cancelScheduledGameplayFrame() {
+  if (window.gameLoopRafHandle !== null) {
+    cancelAnimationFrame(window.gameLoopRafHandle);
+    window.gameLoopRafHandle = null;
+  }
+}
+
+function updateRendererState(deltaTime) {
+  if (!window.renderer || typeof window.renderer.update !== 'function') return;
+
+  try {
+    if (window.player && typeof window.player.position === 'object' && typeof window.renderer.updateZoomFromPlayer === 'function') {
+      window.renderer.updateZoomFromPlayer(window.player.position.x, window.player.position.y);
+    }
+    window.renderer.update(deltaTime);
+  } catch (error) {
+    console.error('Error in renderer update:', error?.message || error);
+  }
+}
 
 // Main game loop with delta time
 window.gameLoop = function(timestamp) {
-  if (!window.isRunning || window.isPaused) {
-    if (window.isRunning) {
-      requestAnimationFrame(window.gameLoop);
-    }
+  window.gameLoopRafHandle = null;
+
+  if (!window.isRunning) return;
+
+  if (window.isPaused) {
+    scheduleNextGameplayFrame();
     return;
   }
 
@@ -27,7 +56,7 @@ window.gameLoop = function(timestamp) {
 
   // Cap at 60 fps - skip frame if running too fast
   if (deltaTime < window.frameDelay) {
-    requestAnimationFrame(window.gameLoop);
+    scheduleNextGameplayFrame();
     return;
   }
 
@@ -48,14 +77,8 @@ window.gameLoop = function(timestamp) {
     }
   }
 
-  // Update renderer effects
-  if (window.renderer) {
-    try {
-      window.renderer.update(cappedDelta);
-    } catch (error) {
-      console.error('Error in renderer update:', error?.message || error);
-    }
-  }
+  // Update renderer effects once per active gameplay frame.
+  updateRendererState(cappedDelta);
 
   // Render frame using coordinator system with enhanced error handling
   if (window.renderGame) {
@@ -80,15 +103,16 @@ window.gameLoop = function(timestamp) {
   }
 
   window.lastTime = timestamp;
-  requestAnimationFrame(window.gameLoop);
+  // The next gameplay frame is scheduled from this single location.
+  scheduleNextGameplayFrame();
 };
 
 // Start the game loop (renamed to avoid conflicts with main game controller)
 window.startGameLoop = function() {
-  window.lastTime = performance.now();
   window.isRunning = true;
   window.isPaused = false;
-  requestAnimationFrame(window.gameLoop);
+  window.lastTime = performance.now();
+  scheduleNextGameplayFrame();
 };
 
 // Pause the game
@@ -98,13 +122,15 @@ window.pauseGame = function() {
 
 // Resume the game
 window.resumeGame = function() {
+  if (!window.isRunning) return;
   window.isPaused = false;
   window.lastTime = performance.now();
-  requestAnimationFrame(window.gameLoop);
+  scheduleNextGameplayFrame();
 };
 
 // Stop the game
 window.stopGame = function() {
-    window.isRunning = false;
+  window.isRunning = false;
   window.isPaused = false;
+  cancelScheduledGameplayFrame();
 };

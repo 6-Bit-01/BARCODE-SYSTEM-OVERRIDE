@@ -963,18 +963,20 @@
             });
         }
         
-        // Monitor game state for debugging
-        setInterval(() => {
-            if (gameInitialized && window.gameState) {
-                console.log('Game state:', {
-                    running: window.gameState.running,
-                    audioReady: !!(window.audioSystem && window.audioSystem.isInitialized()),
-                    playerReady: !!window.player,
-                    rhythmActive: !!(window.rhythmSystem && window.rhythmSystem.isActive && window.rhythmSystem.isActive()),
-                    fullscreen: !!document.fullscreenElement
-                });
-            }
-        }, 5000);
+        // Optional recurring state monitor. Disabled by default to avoid normal-play log churn.
+        if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) {
+            window.gameStateDebugInterval = setInterval(() => {
+                if (gameInitialized && window.gameState) {
+                    console.log('Game state:', {
+                        running: window.gameState.running,
+                        audioReady: !!(window.audioSystem && window.audioSystem.isInitialized()),
+                        playerReady: !!window.player,
+                        rhythmActive: !!(window.rhythmSystem && window.rhythmSystem.isActive && window.rhythmSystem.isActive()),
+                        fullscreen: !!document.fullscreenElement
+                    });
+                }
+            }, 5000);
+        }
     </script>
 </body>
 </html>

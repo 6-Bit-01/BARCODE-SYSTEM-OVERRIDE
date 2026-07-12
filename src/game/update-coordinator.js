@@ -81,9 +81,7 @@ function updateEnemies(deltaTime) {
         window.enemyManager.update(deltaTime, window.player);
       }
       
-      if (typeof window.enemyManager.checkCollisions === 'function') {
-        window.enemyManager.checkCollisions(window.player);
-      }
+      // EnemyManager.update() owns enemy/enemy and enemy/player collision orchestration.
       // Rhythm attacks only called from input.js on actual down arrow presses
     } catch (error) {
       console.error('Error updating enemy manager:', error?.message || error);
@@ -113,19 +111,7 @@ function updateGameSystems(deltaTime, hackingActive, rhythmActive) {
     }
   }
   
-  // Update renderer effects
-  if (window.renderer && typeof window.renderer.update === 'function') {
-    try {
-      if (window.player && typeof window.player.position === 'object' && typeof window.renderer.updateZoomFromPlayer === 'function') {
-        const playerScreenX = window.player.position.x;
-        const playerScreenY = window.player.position.y;
-        window.renderer.updateZoomFromPlayer(playerScreenX, playerScreenY);
-      }
-      window.renderer.update(deltaTime);
-    } catch (error) {
-      console.error('Error updating renderer:', error?.message || error);
-    }
-  }
+  // Renderer state is updated once by src/core/loop.js after simulation.
 }
 
 // Update visual and effects systems
