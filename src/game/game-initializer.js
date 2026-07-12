@@ -6,8 +6,13 @@ window.FILE_MANIFEST.push({
   dependencies: ['player', 'enemyManager', 'hackingSystem', 'rhythmSystem', 'initObjectives', 'tutorialSystem', 'initSector1Progression', 'initJammerIndicator', 'initLostData', 'initSpaceShips', 'initLore']
 });
 
+let initAudioInFlight = null;
+let initSpritesInFlight = null;
+let startGameInitializationInFlight = null;
+let startGameInitializationComplete = false;
+
 // Initialize audio system first
-window.initAudio = async function() {
+async function performInitAudio() {
   console.log('=== INITIALIZING AUDIO SYSTEM ===');
   
   if (!window.audioSystem) {
@@ -76,10 +81,27 @@ window.initAudio = async function() {
     console.log('⚠️ Audio system initialization failed:', error);
     console.error('Error details:', error?.stack || 'No stack available');
   }
+}
+
+window.initAudio = function() {
+  if (window.audioSystem && window.audioSystem.isInitialized()) {
+    console.log('Audio system already initialized');
+    return Promise.resolve();
+  }
+
+  if (!initAudioInFlight) {
+    initAudioInFlight = performInitAudio().finally(() => {
+      initAudioInFlight = null;
+    });
+  } else {
+    console.log('Audio initialization already in progress - joining existing attempt');
+  }
+
+  return initAudioInFlight;
 };
 
 // Initialize sprite system with MakkoEngine
-window.initSprites = async function() {
+async function performInitSprites() {
   console.log('=== INITIALIZING SPRITE SYSTEM ===');
   
   try {
@@ -171,10 +193,27 @@ window.initSprites = async function() {
   }
   
   return Promise.resolve();
+}
+
+window.initSprites = function() {
+  if (window.MakkoEngine && typeof window.MakkoEngine.isLoaded === 'function' && window.MakkoEngine.isLoaded()) {
+    console.log('Sprite system already initialized');
+    return Promise.resolve();
+  }
+
+  if (!initSpritesInFlight) {
+    initSpritesInFlight = performInitSprites().finally(() => {
+      initSpritesInFlight = null;
+    });
+  } else {
+    console.log('Sprite initialization already in progress - joining existing attempt');
+  }
+
+  return initSpritesInFlight;
 };
 
 // New initialization function that starts from button
-window.startGameInitialization = async function() {
+async function performStartGameInitialization() {
   console.log('=== INITIALIZING GAME SYSTEMS ===');
   
   // Enable debug hitbox visualization
@@ -260,4 +299,25 @@ window.startGameInitialization = async function() {
     // Re-throw with more descriptive message
     throw new Error(`Game initialization failed: ${errorMessage}`);
   }
+}
+
+window.startGameInitialization = function() {
+  if (startGameInitializationComplete) {
+    console.log('Game systems already initialized');
+    return Promise.resolve();
+  }
+
+  if (!startGameInitializationInFlight) {
+    startGameInitializationInFlight = performStartGameInitialization()
+      .then(() => {
+        startGameInitializationComplete = true;
+      })
+      .finally(() => {
+        startGameInitializationInFlight = null;
+      });
+  } else {
+    console.log('Game system initialization already in progress - joining existing attempt');
+  }
+
+  return startGameInitializationInFlight;
 };

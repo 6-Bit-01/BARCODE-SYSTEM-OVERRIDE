@@ -40,6 +40,7 @@
     "src/game/debug-commands.js",
     "jammer-fix-patch.js",
     "src/game/collision-fix.js",
+    "[inline]",
     "src/game/main-new.js",
     "[inline]"
   ],
@@ -107,6 +108,7 @@
     "tools/audit-syntax-all.js",
     "tools/baseline-common.js",
     "tools/check-baseline.js",
+    "tools/check-startup-lifecycle.js",
     "tools/check-syntax.js",
     "tools/generate-baseline.js",
     "verify-jammer-autospawn.js"
@@ -256,7 +258,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 37,
+        "index": 36,
+        "status": "pass"
+      },
+      {
+        "index": 38,
         "status": "pass"
       }
     ]
@@ -430,7 +436,7 @@
     {
       "global": "window.startGameInitialization",
       "file": "src/game/game-initializer.js",
-      "line": 177,
+      "line": 304,
       "loaded": true
     },
     {
@@ -523,6 +529,7 @@
     "src/game/debug-commands.js",
     "jammer-fix-patch.js",
     "src/game/collision-fix.js",
+    "[inline script]",
     "src/game/main-new.js",
     "[inline script]"
   ],
