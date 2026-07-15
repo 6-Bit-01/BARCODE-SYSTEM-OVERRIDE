@@ -3,7 +3,7 @@ window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({
   name: 'src/engine/audio.js',
   exports: ['AudioSystem', 'audioSystem'],
-  dependencies: []
+  dependencies: ['MusicClock', 'musicClock']
 });
 
 window.AudioSystem = class AudioSystem {
@@ -35,14 +35,11 @@ window.AudioSystem = class AudioSystem {
     this.loopCheckInterval = null;
     this.isLooping = false; // Track if we're currently restarting the loop
     
-    // Rhythm beat generation
-    this.beatScheduler = null;
-    this.nextBeatTime = 0;
+    // Rhythm beat timing is owned by window.musicClock.
     this.beatInterval = 0;
     this.currentBeat = 0;
     this.beatSyncActive = false;
-    this.syncBeatCount = 0; // Track sync calls for logging
-    this.firstBeatTime = null; // Fixed reference point for precise timing
+    this.syncBeatCount = 0; // Compatibility diagnostics only
     
     // Audio visualization
     this.analyser = null;
@@ -555,8 +552,10 @@ window.AudioSystem = class AudioSystem {
         this.context.resume();
       }
       
-      this.scheduleBeats();
-      console.log(`Rhythm beat scheduler started at ${bpm} BPM`);
+      if (window.musicClock) {
+        window.musicClock.startFallback({ bpm });
+      }
+      console.log(`Rhythm fallback transport requested at ${bpm} BPM`);
     } else {
       console.log('Layers active - using layer beat sync instead of scheduler');
     }
@@ -564,10 +563,6 @@ window.AudioSystem = class AudioSystem {
 
   // Stop rhythm beat track
   stopRhythm() {
-    if (this.beatScheduler) {
-      clearTimeout(this.beatScheduler);
-    }
-    this.beatScheduler = null;
     this.currentBeat = 0;
   }
   
@@ -583,65 +578,12 @@ window.AudioSystem = class AudioSystem {
 
   // Schedule beat patterns
   scheduleBeats() {
-    if (!this.initialized) return;
-    
-    // Don't run automatic beat scheduler when layers are active
-    // Layers provide their own rhythm/melody content
-    // CRITICAL: Skip beat scheduler when layers are active
-    // Layer beat sync provides the timing for rhythm system
-    // Beat scheduler would create duplicate sync calls
-    
-    // CRITICAL: Only run beat scheduler if layers are NOT active
-    // When layers are active, layer beat sync handles all timing
-    if (!this.layersStarted) {
-      // Schedule beats up to 2 seconds ahead
-      while (this.nextBeatTime < this.context.currentTime + 2) {
-        this.scheduleBeat(this.nextBeatTime, this.currentBeat);
-        this.nextBeatTime += this.beatInterval / 4; // 16th notes
-        this.currentBeat++;
-      }
-      
-      // Continue scheduling
-      this.beatScheduler = setTimeout(() => this.scheduleBeats(), 100);
-    } else {
-      console.log('🎵 Skipping beat scheduler - layer beat sync is active');
-    }
+    console.log('🎵 Legacy scheduleBeats disabled - musicClock is authoritative');
   }
 
-  // Schedule individual beat
+  // Schedule individual beat (legacy synthetic rhythm path only; no rhythm-system timing authority).
   scheduleBeat(time, beat) {
-    const beatInMeasure = beat % 16;
-    
-    // ALWAYS sync with rhythm system if it exists and is running - regardless of visual state
-    if (window.rhythmSystem && window.rhythmSystem.isRunning()) {
-      console.log('🎵 Audio beat - syncing with rhythm system');
-      // Don't play automatic beats during rhythm mode - let user input drive the sound
-      // Only sync rhythm system for beat timing
-      
-      // CRITICAL: Always call syncWithAudioBeat - it handles tempo establishment internally
-      setTimeout(() => {
-        if (window.rhythmSystem) {
-          window.rhythmSystem.syncWithAudioBeat();
-        }
-      }, (time - this.context.currentTime) * 1000);
-    } else {
-      console.log('🎵 Audio beat - rhythm system not running, no sync');
-      // Default beat patterns: kick on 1, 5, 9, 13; snare on 5, 13; hihats on others
-      if (beatInMeasure === 0 || beatInMeasure === 4 || beatInMeasure === 8 || beatInMeasure === 12) {
-        // Kick drum
-        setTimeout(() => this.playSound('kick'), (time - this.context.currentTime) * 1000);
-      }
-      
-      if (beatInMeasure === 4 || beatInMeasure === 12) {
-        // Snare drum  
-        setTimeout(() => this.playSound('snare'), (time - this.context.currentTime) * 1000);
-      }
-      
-      if (beatInMeasure % 2 === 1) {
-        // Hi-hats on off-beats
-        setTimeout(() => this.playSound('hihat'), (time - this.context.currentTime) * 1000);
-      }
-    }
+    console.log('🎵 Legacy scheduleBeat disabled for rhythm synchronization; musicClock owns timing');
   }
 
   // Play rhythm attack sound
@@ -2056,6 +1998,12 @@ window.AudioSystem = class AudioSystem {
     
     console.log('Creating perfectly synchronized layers...');
     console.log(`Sync time: ${syncTime}`);
+
+    if (window.musicClock) {
+      window.musicClock.configure({ bpm: 146, beatOffset: 0 });
+      window.musicClock.reanchor({ context: this.context, anchorTime: syncTime });
+      console.log(`🎵 musicClock anchored to synchronized source start: ${syncTime}`);
+    }
     
     // Create all sources and start them at exactly the same time
     layerNames.forEach(layerName => {
@@ -2218,7 +2166,12 @@ window.AudioSystem = class AudioSystem {
     console.log('🎵 === 3:31 AUTOMATIC LOOP RESTART ===');
     console.log('🎵 Music layers and rhythm beat counter synchronized reset');
     
-    // Step 1: Prepare and reset rhythm system beat counter immediately
+    if (window.musicClock) {
+      window.musicClock.stop();
+      console.log('🎵 musicClock stopped while sources are intentionally between loop epochs');
+    }
+
+    // Step 1: Prepare rhythm compatibility UI for upcoming loop restart
     if (window.rhythmSystem) {
       console.log('🎵 Step 1: Preparing rhythm system for 3:31 loop restart');
       
@@ -2226,9 +2179,6 @@ window.AudioSystem = class AudioSystem {
       window.rhythmSystem.prepareForLoopRestart();
       console.log('🎵 Step 1a: Rhythm system prepared for loop restart');
       
-      // Reset beat counter for seamless loop
-      window.rhythmSystem.resetBeatCounter();
-      console.log('🎵 Step 1b: Rhythm beat counter reset for seamless loop');
     }
     
     // Step 2: Pause all layers for 1 second
@@ -2298,21 +2248,17 @@ window.AudioSystem = class AudioSystem {
         
         this.layersStarted = true;
         this.loopStartTime = restartTime;
+        if (window.musicClock) {
+          window.musicClock.reanchor({ context: this.context, anchorTime: restartTime });
+          console.log(`🎵 musicClock reanchored to loop restart source start: ${restartTime}`);
+        }
         
-        // Step 5: Restart rhythm system completely for fresh 3:31 loop
+        // Step 5: Refresh rhythm compatibility state for fresh 3:31 loop
         if (window.rhythmSystem && window.rhythmSystem.isRunning()) {
           console.log('🎵 Step 5: Restarting rhythm system for fresh 3:31 loop');
           
-          // Restart rhythm system for new loop
           window.rhythmSystem.restartForLoop();
-          console.log('🎵 Step 5a: Rhythm system restarted for new loop');
-          
-          // Restart beat sync with fresh timing
-          this.beatSyncActive = true;
-          this.syncBeatCount = 0;
-          this.firstBeatTime = null;
-          this.scheduleNextBeatSync();
-          console.log('🎵 Step 5b: Beat sync restarted with fresh timing');
+          console.log('🎵 Step 5a: Rhythm compatibility state refreshed for new loop');
         }
         
         this.isLooping = false;
@@ -2797,78 +2743,29 @@ window.AudioSystem = class AudioSystem {
   
   // Start layer beat sync for rhythm system
   startLayerBeatSync() {
-    if (this.layerBeatSyncInterval) {
-      clearInterval(this.layerBeatSyncInterval);
-    }
-    
-    // CRITICAL FIX: Use Web Audio API precise timing instead of setInterval to prevent drift
-    // 146 BPM = 146/60 = 2.4333 beats per second = 1/2.4333 = 0.411 seconds per beat
-    const beatIntervalSeconds = 60 / 146; // 0.41096 seconds - PRECISE
-    
-    console.log(`🎵 Starting PRECISE beat sync: ${beatIntervalSeconds * 1000}ms intervals (146 BPM)`);
-    
-    // CRITICAL: Activate beat sync flag
     this.beatSyncActive = true;
-    
-    // CRITICAL: Use Web Audio API's precise timing instead of setInterval
-    // setInterval accumulates timing errors that cause UI drift
-    this.scheduleNextBeatSync();
-  }
-  
-  // CRITICAL FIX: More precise beat sync scheduling
-  scheduleNextBeatSync() {
-    if (!this.context || !window.rhythmSystem || !window.rhythmSystem.isRunning() || !this.beatSyncActive) {
-      return;
-    }
-    
-    const beatIntervalSeconds = 60 / 146; // 0.41096 seconds - PRECISE
-    const currentTime = this.context.currentTime;
-    
-    // CRITICAL FIX: Use EXACT timing alignment to prevent any drift
-    // Schedule the next beat at PRECISE intervals from a fixed reference point
-    if (!this.firstBeatTime) {
-      this.firstBeatTime = currentTime;
-    }
-    
-    // Calculate beats elapsed since first beat
-    const beatsElapsed = Math.floor((currentTime - this.firstBeatTime) / beatIntervalSeconds);
-    const nextBeatTime = this.firstBeatTime + ((beatsElapsed + 1) * beatIntervalSeconds);
-    
-    // Calculate exact delay until next beat
-    const delaySeconds = nextBeatTime - currentTime;
-    const delayMs = Math.max(1, delaySeconds * 1000); // Minimum 1ms to prevent issues
-    
-    // Reduced logging for performance - only log every 16 beats
-    if (this.syncBeatCount % 16 === 0) {
-      console.log(`🎵 PRECISE SYNC: Beat ${this.syncBeatCount} scheduled in ${delayMs.toFixed(1)}ms`);
-    }
-    
-    this.syncBeatCount++;
-    
-    // Schedule the sync call using setTimeout for the next beat
-    setTimeout(() => {
-      if (window.rhythmSystem && window.rhythmSystem.isRunning() && this.beatSyncActive) {
-        window.rhythmSystem.syncWithAudioBeat();
-        // Recursively schedule the next beat
-        this.scheduleNextBeatSync();
+    this.syncBeatCount = 0;
+    if (window.musicClock) {
+      window.musicClock.configure({ bpm: 146 });
+      if (!this.layersStarted && (!window.musicClock.getSnapshot || window.musicClock.getSnapshot().mode === 'stopped')) {
+        window.musicClock.startFallback({ bpm: 146 });
       }
-    }, delayMs);
-  }
-  
-  // Stop layer beat sync
-  stopLayerBeatSync() {
-    // Clear interval if exists (legacy support)
-    if (this.layerBeatSyncInterval) {
-      clearInterval(this.layerBeatSyncInterval);
-      this.layerBeatSyncInterval = null;
     }
-    
-    // CRITICAL: Cancel the recursive scheduling
-    this.beatSyncActive = false;
-    this.syncBeatCount = 0; // Reset counter
-    console.log('Stopped layer beat sync');
+    console.log('🎵 Layer beat sync compatibility wrapper using authoritative musicClock');
   }
-  
+
+  // Retired recursive beat-sync scheduler. Kept as a no-op compatibility method.
+  scheduleNextBeatSync() {
+    console.log('🎵 scheduleNextBeatSync retired - musicClock samples Web Audio time');
+  }
+
+  // Stop layer beat sync compatibility state only. Do not stop the global transport.
+  stopLayerBeatSync() {
+    this.beatSyncActive = false;
+    this.syncBeatCount = 0;
+    console.log('Stopped layer beat sync compatibility wrapper; musicClock continues');
+  }
+
   // Check if initialized
   isInitialized() {
     return this.initialized;

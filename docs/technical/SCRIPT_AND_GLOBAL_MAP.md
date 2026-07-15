@@ -6,37 +6,38 @@
 2. `src/utils/math.js`
 3. `src/core/fullscreen.js`
 4. `src/core/input.js`
-5. `src/engine/audio.js`
-6. `src/engine/boot-loader.js`
-7. `src/engine/particles.js`
-8. `src/engine/renderer.js`
-9. `src/engine/parallax.js`
-10. `src/engine/spaceships.js`
-11. `src/engine/lore.js`
-12. `src/engine/jammer-indicator.js`
-13. `src/engine/jammer-arrow-indicator.js`
-14. `src/engine/title-screen.js`
-15. `src/game/objectives.js`
-16. `src/engine/cutscene.js`
-17. `src/core/loop.js`
-18. `src/game/player.js`
-19. `src/game/enemies.js`
-20. `src/game/jammer-spawn-logic.js`
-21. `src/game/hacking.js`
-22. `src/game/rhythm.js`
-23. `src/game/tutorial.js`
-24. `src/game/post-tutorial-objectives.js`
-25. `src/game/lost-data.js`
-26. `src/game/sector1-progression.js`
-27. `src/game/game-state.js`
-28. `src/game/update-coordinator.js`
-29. `src/game/render-coordinator.js`
-30. `src/game/ui-manager.js`
-31. `src/game/game-initializer.js`
-32. `src/game/dependency-validator.js`
-33. `src/game/debug-commands.js`
-34. `jammer-fix-patch.js`
-35. `src/game/collision-fix.js`
+5. `src/engine/music-clock.js`
+6. `src/engine/audio.js`
+7. `src/engine/boot-loader.js`
+8. `src/engine/particles.js`
+9. `src/engine/renderer.js`
+10. `src/engine/parallax.js`
+11. `src/engine/spaceships.js`
+12. `src/engine/lore.js`
+13. `src/engine/jammer-indicator.js`
+14. `src/engine/jammer-arrow-indicator.js`
+15. `src/engine/title-screen.js`
+16. `src/game/objectives.js`
+17. `src/engine/cutscene.js`
+18. `src/core/loop.js`
+19. `src/game/player.js`
+20. `src/game/enemies.js`
+21. `src/game/jammer-spawn-logic.js`
+22. `src/game/hacking.js`
+23. `src/game/rhythm.js`
+24. `src/game/tutorial.js`
+25. `src/game/post-tutorial-objectives.js`
+26. `src/game/lost-data.js`
+27. `src/game/sector1-progression.js`
+28. `src/game/game-state.js`
+29. `src/game/update-coordinator.js`
+30. `src/game/render-coordinator.js`
+31. `src/game/ui-manager.js`
+32. `src/game/game-initializer.js`
+33. `src/game/dependency-validator.js`
+34. `src/game/debug-commands.js`
+35. `jammer-fix-patch.js`
+36. `src/game/collision-fix.js`
 36. inline script block: `window.autoStartDisabled = true`
 37. `src/game/main-new.js`
 38. inline script block
@@ -71,7 +72,7 @@ Loaded and unloaded JavaScript files are listed in `baseline-inventory.json`.
 
 ## Confirmed repository fact: timer/interval/listener hotspots
 
-Hotspots include inline `index.html` (including boot-monitor cleanup ownership), `src/engine/audio.js`, `src/engine/boot-loader.js`, `src/engine/cutscene.js`, `src/engine/particles.js`, `src/engine/renderer.js`, `src/engine/title-screen.js`, `src/game/game-initializer.js`, `src/game/game-state.js`, `src/game/player.js`, `src/game/enemies.js`, `jammer-fix-patch.js`, `src/game/hacking.js`, `src/game/rhythm.js`, `src/game/tutorial.js`, `src/game/jammer-spawn-logic.js`, `src/game/collision-fix.js`, `src/core/input.js`, `src/core/fullscreen.js`, `src/core/loop.js`, and `src/game/main-new.js`.
+Hotspots include inline `index.html` (including boot-monitor cleanup ownership), `src/engine/music-clock.js`, `src/engine/audio.js`, `src/engine/boot-loader.js`, `src/engine/cutscene.js`, `src/engine/particles.js`, `src/engine/renderer.js`, `src/engine/title-screen.js`, `src/game/game-initializer.js`, `src/game/game-state.js`, `src/game/player.js`, `src/game/enemies.js`, `jammer-fix-patch.js`, `src/game/hacking.js`, `src/game/rhythm.js`, `src/game/tutorial.js`, `src/game/jammer-spawn-logic.js`, `src/game/collision-fix.js`, `src/core/input.js`, `src/core/fullscreen.js`, `src/core/loop.js`, and `src/game/main-new.js`.
 
 ## Inventory only: diagnostic/legacy candidates
 
@@ -80,3 +81,8 @@ The generated inventory lists candidate diagnostic/legacy files. This is invento
 ## Not runtime-tested
 
 No browser or Makko execution was performed by Codex.
+
+
+## PR-004 music transport ownership
+
+`src/engine/music-clock.js` exports `MusicClock` and `musicClock` before `src/engine/audio.js` loads. `audio.js` anchors the transport to synchronized source start times; `rhythm.js` derives compatibility beat/bar/phrase fields and input judgment from `musicClock` instead of incrementing an independent musical clock.

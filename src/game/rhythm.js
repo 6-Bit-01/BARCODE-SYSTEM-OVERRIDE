@@ -4,7 +4,7 @@ window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({
   name: 'src/game/rhythm.js',
   exports: ['RhythmSystem', 'rhythmSystem'],
-  dependencies: ['randomRange', 'clamp']
+  dependencies: ['randomRange', 'clamp', 'musicClock']
 });
 
 window.RhythmSystem = class RhythmSystem {
@@ -41,7 +41,7 @@ window.RhythmSystem = class RhythmSystem {
       excellent: 100   // ±50ms for excellent timing (shorter)
       // GOOD REMOVED - anything beyond excellent is now a miss
     };
-    this.timingOffset = -20;         // Shift timing windows 20ms left (earlier)
+    this.timingOffset = 0;          // Calibration in ms; default preserves current live no-compensation judgment
     
     // Beat patterns and rhythm gameplay
     this.beatPatterns = [
@@ -101,7 +101,46 @@ window.RhythmSystem = class RhythmSystem {
     // Track last successful hit to prevent duplicate arcs
     this.lastSuccessfulHitTime = 0;  // Prevents multiple arcs per beat press
     
-    console.log('Rhythm System initialized with 4-bar progress system');
+    this.musicClockUnsubscribe = null;
+    this.lastClockBeatEffect = -1;
+    this.fallbackWarningShown = false;
+    this.attachMusicClock();
+    console.log('Rhythm System initialized with musicClock-derived 4-bar progress system');
+  }
+
+  attachMusicClock() {
+    if (!window.musicClock || this.musicClockUnsubscribe) return;
+    this.musicClockUnsubscribe = window.musicClock.on('beat', event => {
+      if (!this.running || event.epoch !== window.musicClock.getSnapshot().epoch) return;
+      this.refreshFromMusicClock(event.snapshot);
+      if (this.lastClockBeatEffect !== event.beat) {
+        this.lastClockBeatEffect = event.beat;
+        this.triggerBeat();
+      }
+    });
+  }
+
+  refreshFromMusicClock(snapshot) {
+    if (!window.musicClock) return null;
+    const clockSnapshot = snapshot || window.musicClock.sample();
+    this.bpm = clockSnapshot.bpm;
+    this.beatInterval = clockSnapshot.beatDuration * 1000;
+    this.currentBeat = clockSnapshot.beatWithinBar;
+    this.currentBar = clockSnapshot.barWithinPhrase;
+    this.globalBeatCount = clockSnapshot.completedBeatCount;
+    this.barProgress = clockSnapshot.beatPhase;
+    this.phraseProgress = clockSnapshot.phrasePhase;
+    this.trackStarted = clockSnapshot.firstDownbeatOccurred && clockSnapshot.valid;
+    this.trackStartTime = clockSnapshot.anchorTime;
+    this.lastBeatTime = (clockSnapshot.transportTime - (clockSnapshot.beatPhase * clockSnapshot.beatDuration)) * 1000;
+    this.beatStartTime = this.lastBeatTime;
+    this.currentTempoBeat = Math.min(this.tempoEstablishmentBeats, clockSnapshot.completedBeatCount + (clockSnapshot.firstDownbeatOccurred ? 1 : 0));
+    this.tempoEstablished = this.currentTempoBeat >= this.tempoEstablishmentBeats;
+    if (clockSnapshot.mode === 'fallback' && !this.fallbackWarningShown) {
+      this.fallbackWarningShown = true;
+      console.warn('RhythmSystem using degraded MusicClock fallback timing.');
+    }
+    return clockSnapshot;
   }
   
   // Start rhythm mode (visual + audio)
@@ -161,10 +200,13 @@ window.RhythmSystem = class RhythmSystem {
     
     console.log('🔄 COMBO RESET: Fresh rhythm mode started - combo = 0');
     
-    // LOCKED: Always start audio sync - guaranteed perfect background progress
-    if (window.audioSystem && window.audioSystem.isInitialized()) {
-      window.audioSystem.startLayerBeatSync();
-      console.log('🎵 LOCKED Audio beat sync started - PERFECT progress tracking GUARANTEED');
+    this.attachMusicClock();
+    if (window.musicClock) {
+      window.musicClock.configure({ bpm: this.bpm });
+      if (window.musicClock.getSnapshot().mode === 'stopped') {
+        window.musicClock.startFallback({ bpm: this.bpm });
+      }
+      this.refreshFromMusicClock();
     }
     
     console.log(`🎵 LOCKED Rhythm mode started: ${this.bpm} BPM, beatInterval=${this.beatInterval.toFixed(1)}ms - PERFECT timing`);
@@ -174,17 +216,12 @@ window.RhythmSystem = class RhythmSystem {
   show() {
     console.log('🎵 RHYTHM SHOW() CALLED - setting active=true');
     
-    // CRITICAL FIX: Only activate if first beat has been counted
-    if (!this.trackStarted || this.currentTempoBeat === 0) {
-      console.log('🚫 RHYTHM MODE BLOCKED: Waiting for first beat to be counted');
-      console.log('🚫 trackStarted:', this.trackStarted, 'currentTempoBeat:', this.currentTempoBeat);
-      return; // Block activation until first beat is established
-    }
-    
-    this.active = true;
+    this.attachMusicClock();
     if (!this.running) {
-      this.startBackgroundRhythm(32); // Start background progress if not running
+      this.startBackgroundRhythm(146);
     }
+    this.refreshFromMusicClock();
+    this.active = true;
     // CRITICAL: Don't restart progress if already running
     // Progress tracking continues in background independently of R key
     console.log('Rhythm visualization shown - background progress continues');
@@ -293,10 +330,13 @@ window.RhythmSystem = class RhythmSystem {
     this.currentTempoBeat = 0;
     this.tempoEstablished = false;
     
-    // Start audio beat sync - progress tracking continues in background
-    if (window.audioSystem && window.audioSystem.isInitialized()) {
-      window.audioSystem.startLayerBeatSync();
-      console.log('Audio beat sync started for background progress');
+    this.attachMusicClock();
+    if (window.musicClock) {
+      window.musicClock.configure({ bpm: this.bpm });
+      if (window.musicClock.getSnapshot().mode === 'stopped') {
+        window.musicClock.startFallback({ bpm: this.bpm });
+      }
+      this.refreshFromMusicClock();
     }
     
     console.log(`Background rhythm ready: ${bpm} BPM - waiting for audio beats`);
@@ -344,21 +384,9 @@ window.RhythmSystem = class RhythmSystem {
   update(deltaTime) {
     if (!this.running || !deltaTime) return;
     
-    const currentTime = performance.now();
-    
-    // CRITICAL: Audio system is sole authority for beat timing
-    // Update progress indicators exactly once - NEVER trigger beats here
-    // Only audio sync should advance beat counters to prevent skipping
-    if (this.trackStarted && this.lastBeatTime > 0 && !this.loopRestartMode) {
-      const timeSinceBeat = currentTime - this.lastBeatTime;
-      
-      // Update progress indicators exactly once
-      this.barProgress = Math.min(1.0, timeSinceBeat / this.beatInterval);
-      const beatsIntoPhrase = (this.currentBar * 4) + this.currentBeat;
-      this.phraseProgress = (beatsIntoPhrase + this.barProgress) / 16.0;
-      
-      // CRITICAL: NEVER trigger beats in update() - only audio sync controls beats
-      // This prevents double-beat increments and beat skipping
+    this.attachMusicClock();
+    if (window.musicClock && !this.loopRestartMode) {
+      this.refreshFromMusicClock();
     }
     
     // Update visual effects only if active
@@ -413,9 +441,9 @@ window.RhythmSystem = class RhythmSystem {
   
   // Trigger when beat occurs (regular beats after tempo established)
   triggerBeat() {
-    const currentTime = performance.now();
+    this.refreshFromMusicClock();
     
-    // CRITICAL FIX: tempo establishment beats already incremented in syncWithAudioBeat()
+    // Tempo establishment display is derived from musicClock
     // This function now only handles visual effects and gameplay logic
     if (this.currentTempoBeat < this.tempoEstablishmentBeats) {
       this.triggerTempoEstablishmentBeat();
@@ -423,29 +451,9 @@ window.RhythmSystem = class RhythmSystem {
     }
     
     // Regular beat handling after tempo established
-    // CRITICAL: Only increment if we haven't already counted this beat
-    const expectedBeat = (this.currentBeat + 1) % 4;
-    const expectedBar = this.currentBeat === 3 ? (this.currentBar + 1) % 4 : this.currentBar;
-    
-    // Check for duplicate beat detection
-    if (this.currentBeat === expectedBeat && this.currentBar === expectedBar) {
-      console.log(`⚠️ DUPLICATE REGULAR BEAT DETECTED: Already at beat ${this.currentBeat}, skipping increment`);
-      return; // Skip duplicate
-    }
-    
-    this.lastBeatTime = currentTime;
-    this.beatStartTime = currentTime;
-    this.barProgress = 0;
-    
     // CRITICAL FIX: Beat counting already handled in syncWithAudioBeat()
     // This function now only handles visual effects and gameplay logic
     console.log(`🎵 REGULAR BEAT EFFECTS: ${this.currentBeat}/4 in BAR ${this.currentBar + 1}/4 - Global: ${this.globalBeatCount}`);
-    
-    // CRITICAL: Reset timing every 30 beats to prevent drift
-    if (this.globalBeatCount % 30 === 0) {
-      console.log('🔄 TIMING RESET: 30-beat cycle complete - resetting hit windows to prevent drift');
-      this.resetHitWindows();
-    }
     
     // Check if this is a hit beat in pattern
     const patternBeat = this.beatPatterns[this.currentPattern][this.patternIndex];
@@ -475,177 +483,59 @@ window.RhythmSystem = class RhythmSystem {
     });
   }
   
-  // Sync with audio system beat
+  // Legacy sync hook retained for compatibility; musicClock owns beat position.
   syncWithAudioBeat() {
-    // CRITICAL: Prevent duplicate sync calls within same beat interval
-    const currentTime = performance.now();
-    const minSyncInterval = this.beatInterval * 0.7; // 70% of beat interval (more permissive)
-    
-    if (this.lastSyncTime && (currentTime - this.lastSyncTime) < minSyncInterval) {
-      return; // Silently block duplicate syncs
-    }
-    
-    this.lastSyncTime = currentTime;
-    
-    // CRITICAL: Always sync if running, regardless of visual state
-    // Progress tracking is independent of R key toggle
-    if (!this.running) {
-      return; // Silently block if not running
-    }
-    
-    // CRITICAL FIX: Exit loop restart mode immediately when first beat arrives
-    if (this.loopRestartMode) {
-      console.log('🎵 LOOP RESTART EXIT: First beat arrived - exiting loop restart mode');
-      this.loopRestartMode = false;
-      console.log('🎵 LOOP RESTART EXIT: Transitioning to tempo establishment beat counter');
-    }
-    
-    // CRITICAL FIX: IMMEDIATE first beat count when sync is called
-    // The first audio sync call should immediately count as beat 1
-    if (!this.trackStarted) {
-      this.trackStarted = true;
-      this.trackStartTime = currentTime;
-      this.lastBeatTime = currentTime;
-      this.beatStartTime = currentTime;
-      this.expectedBeatTime = currentTime + this.beatInterval;
-      
-      // CRITICAL: Initialize progress to start state BEFORE first beat
-      this.barProgress = 0;
-      this.phraseProgress = 0;
-      this.currentBar = 0;
-      this.currentBeat = 0;
-      this.globalBeatCount = 0;
-      
-      // CRITICAL: Initialize tempo establishment to 0 BEFORE first beat
-      this.tempoEstablishmentBeats = 32;
-      this.currentTempoBeat = 0;
-      this.tempoEstablished = false;
-      
-      // CRITICAL FIX: IMMEDIATELY increment to beat 1 - no delay
-      // The audio system calling syncWithAudioBeat() IS the first beat
-      this.currentTempoBeat = 1;
-      this.globalBeatCount = 1;
-      
-      console.log('🎵 FIRST BEAT: Audio sync called - immediate count to beat 1');
-      console.log(`🎵 TEMPO BEAT 1/${this.tempoEstablishmentBeats} - first beat established instantly`);
-    } else {
-      // CRITICAL FIX: Remove drift correction entirely - it was causing the timing drift
-      // The drift correction system was accumulating errors over time
-      // Instead, use absolute timing from audio sync calls
-      
-      // CRITICAL FIX: Trust the audio sync timing and increment immediately
-      // This prevents accumulated timing errors that cause drift
-      this.lastBeatTime = currentTime;
-      this.beatStartTime = currentTime;
-      this.expectedBeatTime = currentTime + this.beatInterval;
-      
-      // CRITICAL FIX: Increment beat count BEFORE triggering beat logic
-      // The audio sync call IS the beat happening now
-      if (this.currentTempoBeat < this.tempoEstablishmentBeats) {
-        this.currentTempoBeat++;
-        this.globalBeatCount++;
-        console.log(`🎵 TEMPO BEAT ${this.currentTempoBeat}/${this.tempoEstablishmentBeats} - sync incremented`);
-        
-        // CRITICAL FIX: Check for completion immediately after increment
-        if (this.currentTempoBeat >= this.tempoEstablishmentBeats && !this.tempoEstablished) {
-          this.tempoEstablished = true;
-          console.log('🎵 TEMPO ESTABLISHED! Sync function detected completion - switching to progress bars');
-          console.log('🎵 SWITCHING TO PROGRESS BARS - tempo establishment complete');
-        }
-      } else {
-        // Regular beat handling after tempo established
-        this.currentBeat = (this.currentBeat + 1) % 4;
-        if (this.currentBeat === 0) {
-          this.currentBar = (this.currentBar + 1) % 4;
-        }
-        this.globalBeatCount++;
-        console.log(`🎵 REGULAR BEAT ${this.currentBeat}/4 in BAR ${this.currentBar + 1}/4 - Global: ${this.globalBeatCount}`);
-      }
-      
-      // Trigger beat effects and gameplay logic
-      this.triggerBeat();
-    }
+    this.refreshFromMusicClock();
   }
-  
+
   // Handle rhythm input
   handleInput(action = 'attack') {
     if (!this.active) return { hit: false, timing: 'inactive', combo: this.combo };
     
-    // Block input until track starts
+    this.refreshFromMusicClock();
+    // Block input until transport starts
     if (!this.trackStarted) {
       return { hit: false, timing: 'waiting', combo: this.combo };
     }
     
     const currentTime = performance.now();
-    
-    // Input cooldown
+
+    // Input cooldown remains monotonic UI/gameplay throttling, not musical authority.
     if (currentTime - this.lastInputTime < this.inputCooldown) {
       return { hit: false, timing: 'cooldown', combo: this.combo };
     }
     this.lastInputTime = currentTime;
-    
-    // CRITICAL: Calculate distance to NEXT BEAT for proper alignment
-    // The beat just happened at lastBeatTime, so we need to measure from there
-    if (this.lastBeatTime === 0) {
-      console.log('NO BEAT TIMING YET - MISS!');
+
+    if (!window.musicClock || !this.trackStarted) {
+      console.log('NO MUSIC CLOCK TIMING YET - MISS!');
       this.combo = 0;
       this.createMissEffect();
       return { hit: false, timing: 'miss', combo: 0, target: null };
     }
-    
-    // CRITICAL FIX: Calculate distance to nearest beat - NO DRIFT COMPENSATION
-    // We want to be ON the beat, so we measure distance to the closest beat
-    const timeSinceLastBeat = currentTime - this.lastBeatTime;
-    const timeToNextBeat = this.beatInterval - timeSinceLastBeat;
-    
-    // NO DRIFT COMPENSATION - timing must be precise
-    const distanceToNearestBeat = Math.min(timeSinceLastBeat, timeToNextBeat);
-    console.log(`BEAT ALIGNMENT: timeSinceLastBeat=${timeSinceLastBeat.toFixed(0)}ms, timeToNextBeat=${timeToNextBeat.toFixed(0)}ms, distanceToNearest=${distanceToNearestBeat.toFixed(0)}ms`);
-    
-    // CRITICAL FIX: Use distance to nearest beat for timing windows - NO COMPENSATION
-    // Hit when distance to nearest beat is within timing window
-    const effectiveExcellentWindow = this.timingWindows.excellent;
-    const isMiss = distanceToNearestBeat > effectiveExcellentWindow;
-    
-    console.log(`TIMING DEBUG: distanceToNearestBeat=${distanceToNearestBeat.toFixed(0)}ms, threshold=${effectiveExcellentWindow}ms, isMiss=${isMiss}`);
-    
-    // CRITICAL: Always reset combo on misses - no exceptions
+
+    const judgment = window.musicClock.judgeNearestBeat(undefined, this.timingOffset);
+    const distanceToNearestBeat = judgment.absoluteOffsetMs;
+    console.log(`BEAT ALIGNMENT: signedOffset=${judgment.signedOffsetMs.toFixed(0)}ms, distanceToNearest=${distanceToNearestBeat.toFixed(0)}ms, mode=${judgment.mode}`);
+
+    const isMiss = !judgment.valid || judgment.timing === 'miss';
+    console.log(`TIMING DEBUG: distanceToNearestBeat=${distanceToNearestBeat.toFixed(0)}ms, threshold=${this.timingWindows.excellent}ms, isMiss=${isMiss}`);
+
     if (isMiss) {
       console.log(`❌ MISSED BEAT: ${distanceToNearestBeat.toFixed(0)}ms > ${this.timingWindows.excellent}ms threshold - COMBO RESET!`);
-      
-      // ✅ FIXED: Reset combo IMMEDIATELY on incorrect press
       this.combo = 0;
       console.log(`🔄 IMMEDIATE COMBO RESET: Combo set to 0 instantly on miss`);
-      
-      // Also reset arc growth level immediately
       this.arcGrowthLevel = 0;
       console.log(`🔄 ARC GROWTH RESET: Arc growth set to 0 instantly on miss`);
-      
       this.createMissEffect();
-      
       if (window.audioSystem) {
         window.audioSystem.playSound('synthHit', 0.3);
       }
-      
-      // MISSED BEATS don't damage any enemies
       return { hit: false, timing: 'miss', combo: 0 };
     }
-    
-    // CRITICAL FIX: Use distance to nearest beat for timing determination - NO COMPENSATION
-    let timing = 'miss';
-    let isHit = false;
-    
-    const effectivePerfectWindow = this.timingWindows.perfect; // No compensation
-    
-    if (distanceToNearestBeat <= effectivePerfectWindow) {
-      timing = 'perfect';
-      isHit = true;
-    } else if (distanceToNearestBeat <= effectiveExcellentWindow) {
-      timing = 'excellent';
-      isHit = true;
-    }
-    // GOOD REMOVED - anything beyond excellent is now a miss
-    
+
+    let timing = judgment.timing;
+    let isHit = timing === 'perfect' || timing === 'excellent';
+
     // Check attack window bonus (only for successful hits)
     const attackBonus = this.checkAttackWindow();
     
@@ -1300,11 +1190,7 @@ window.RhythmSystem = class RhythmSystem {
     this.currentTempoBeat = 0;
     this.tempoEstablished = false;
     
-    // CRITICAL: IMMEDIATE first tempo establishment beat
-    setTimeout(() => {
-      this.triggerTempoEstablishmentBeat();
-    }, 0);
-    
+    // Visual beat effects are emitted by musicClock boundary events.
     console.log('🔥 FORCE SYNC COMPLETE: Rhythm system locked to exact master time');
   }
   

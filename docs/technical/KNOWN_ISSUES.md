@@ -24,3 +24,8 @@
 
 - Confirm title presentation, prologue, gameplay feel, audio, camera, sprites, and restart are unchanged after importing this branch into a duplicate Makko project.
 - Specifically test rapid start-button clicks/Space presses, failed-start retry UI, prologue presentation, gameplay entry, pause/resume, and restart behavior.
+
+
+## Music stem duration mismatch
+
+PR-004 preserves the existing 211-second audible loop restart for safety, but observed source durations differ: foundation ~212.088s, bass layer ~210.442s, and FX layer ~212.088s. The mismatch is audio asset debt. Do not change loop endpoints without owner-approved matched stems or explicit loop metadata.

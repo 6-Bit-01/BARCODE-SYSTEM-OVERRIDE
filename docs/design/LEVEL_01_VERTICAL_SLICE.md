@@ -67,3 +67,8 @@ Known missing assets that must be listed honestly before the vertical slice is c
 - PR-006 should make enemy timing and telegraphs readable against the music without redesigning all combat at once.
 - PR-007 should remove reliance on kill quotas or jammer destruction as progression gates in favor of authored spatial/musical milestones.
 - PR-008 should introduce an owner-approved Level 1 boss identity and transition that grows naturally from the final arena.
+
+
+## PR-004 music transport note
+
+Level 01 beat-reactive design should consume `window.musicClock` snapshots or boundary events. PR-004 does not change enemies, stage geometry, parallax, flying cars, boss behavior, art, music, or progression; it only establishes the transport infrastructure future PRs can consume.
