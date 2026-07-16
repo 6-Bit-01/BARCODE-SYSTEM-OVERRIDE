@@ -2091,6 +2091,14 @@ window.AudioSystem = class AudioSystem {
       return this.musicStartState;
     }
 
+
+    const transport = window.BARCODE && window.BARCODE.MusicTransport;
+    if (!transport || typeof transport.start !== 'function') {
+      console.error(`[audio-startup] MusicTransport unavailable for ${profile.profileId}; synchronized music/rhythm startup aborted.`);
+      this.musicStartState = { ok: false, reason: 'transport-unavailable', profileId: profile.profileId };
+      return this.musicStartState;
+    }
+
     const syncTime = this.context.currentTime + 0.01;
     console.log('Creating perfectly synchronized layers...');
     console.log(`Sync time: ${syncTime}`);
@@ -2134,23 +2142,20 @@ window.AudioSystem = class AudioSystem {
       return this.musicStartState;
     }
 
-    let transportResult = null;
-    if (window.BARCODE && window.BARCODE.MusicTransport) {
-      transportResult = window.BARCODE.MusicTransport.start({ sourceAnchorAudioSec: syncTime, sourceOffsetTrackSec: profile.playback.startTrackSec || 0 });
-      if (!transportResult || transportResult.status !== 'ok') {
-        console.error(`[audio-startup] MusicTransport failed to start for ${profile.profileId}: ${transportResult && transportResult.reason || 'unknown'}`);
-        usableSources.forEach(sourceInfo => {
-          const track = this.musicTracks[sourceInfo.sourceId];
-          if (track && track.source) {
-            try { track.source.stop(); } catch (error) { console.log(`Error stopping ${sourceInfo.sourceId}:`, error); }
-            track.source = null;
-            track.isPlaying = false;
-            track.gain = null;
-          }
-        });
-        this.musicStartState = { ok: false, reason: 'transport-start-failed', profileId: profile.profileId, transport: transportResult };
-        return this.musicStartState;
-      }
+    const transportResult = transport.start({ sourceAnchorAudioSec: syncTime, sourceOffsetTrackSec: profile.playback.startTrackSec || 0 });
+    if (!transportResult || transportResult.status !== 'ok' || transportResult.running !== true) {
+      console.error(`[audio-startup] MusicTransport failed to start for ${profile.profileId}: ${transportResult && transportResult.reason || 'not-running'}`);
+      usableSources.forEach(sourceInfo => {
+        const track = this.musicTracks[sourceInfo.sourceId];
+        if (track && track.source) {
+          try { track.source.stop(); } catch (error) { console.log(`Error stopping ${sourceInfo.sourceId}:`, error); }
+          track.source = null;
+          track.isPlaying = false;
+          track.gain = null;
+        }
+      });
+      this.musicStartState = { ok: false, reason: 'transport-start-failed', profileId: profile.profileId, transport: transportResult };
+      return this.musicStartState;
     }
 
     this.layersStarted = true;

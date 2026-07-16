@@ -48,12 +48,14 @@ window.BARCODE = window.BARCODE || {};
       console.error('[music-profile] Failed to select exact Level 1 music profile level-01.main before audio loading.');
       return { ok: false, reason: 'selection-failed', profileId: LEVEL_01_PROFILE_ID };
     }
-    if (transport && typeof transport.load === 'function') {
-      const loadResult = transport.load(LEVEL_01_PROFILE_ID);
-      if (!loadResult || loadResult.status !== 'ok' || loadResult.profileId !== LEVEL_01_PROFILE_ID) {
-        console.error('[music-profile] Failed to load exact Level 1 profile level-01.main into MusicTransport.');
-        return { ok: false, reason: 'transport-load-failed', profileId: LEVEL_01_PROFILE_ID };
-      }
+    if (!transport || typeof transport.load !== 'function') {
+      console.error('[music-profile] MusicTransport unavailable; cannot load exact Level 1 profile level-01.main.');
+      return { ok: false, reason: 'transport-unavailable', profileId: LEVEL_01_PROFILE_ID };
+    }
+    const loadResult = transport.load(LEVEL_01_PROFILE_ID);
+    if (!loadResult || loadResult.status !== 'ok' || loadResult.profileId !== LEVEL_01_PROFILE_ID) {
+      console.error('[music-profile] Failed to load exact Level 1 profile level-01.main into MusicTransport.');
+      return { ok: false, reason: 'transport-load-failed', profileId: LEVEL_01_PROFILE_ID };
     }
     return { ok: true, profileId: LEVEL_01_PROFILE_ID };
   };

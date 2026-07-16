@@ -45,6 +45,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
     this.spawnInterval = 4000; // Spawn ships every 4 seconds (more reasonable rate)
     this.canvasWidth = 1920;
     this.canvasHeight = 1080;
+    this.shipAssetStateKey = '';
 
     // Load ship GIFs
     this.loadShipImages();
@@ -70,6 +71,27 @@ window.SpaceShipSystem = class SpaceShipSystem {
         this.imagesLoaded[index] = false;
       });
     });
+  }
+
+  getReadyShipTypes() {
+    return this.imagesLoaded.map((loaded, index) => loaded ? index : null).filter(index => index !== null);
+  }
+
+  chooseShipTypeForSpawn() {
+    const readyShipTypes = this.getReadyShipTypes();
+    const stateKey = readyShipTypes.join('|') || 'fallback';
+    if (this.shipAssetStateKey !== stateKey) {
+      this.shipAssetStateKey = stateKey;
+      if (readyShipTypes.length) {
+        console.log(`[asset-load] Space ship imagery ready for types: ${readyShipTypes.map(index => index + 1).join(', ')}`);
+      } else {
+        console.log('[asset-load] Space ship imagery not ready; using fallback rectangle rendering');
+      }
+    }
+    if (readyShipTypes.length) {
+      return readyShipTypes[Math.floor(Math.random() * readyShipTypes.length)];
+    }
+    return Math.floor(Math.random() * this.shipImages.length);
   }
 
   // Create fallback ship (rectangle)
@@ -160,12 +182,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
     const baseHeight = -400; // Start higher to ensure top half only
     startY = Math.random() * spawnHeight + baseHeight; // Between -400 and 0 pixels from top (top half only)
 
-    const readyShipTypes = this.imagesLoaded.map((loaded, index) => loaded ? index : null).filter(index => index !== null);
-    if (!readyShipTypes.length) {
-      console.log('[asset-load] Ship spawn skipped until optional ship imagery is ready');
-      return;
-    }
-    const selectedShipType = readyShipTypes[Math.floor(Math.random() * readyShipTypes.length)];
+    const selectedShipType = this.chooseShipTypeForSpawn();
 
     const ship = {
       x: startX,
@@ -266,12 +283,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
     const baseHeight = -400;
     startY = Math.random() * spawnHeight + baseHeight;
 
-    const readyShipTypes = this.imagesLoaded.map((loaded, index) => loaded ? index : null).filter(index => index !== null);
-    if (!readyShipTypes.length) {
-      console.log('[asset-load] Foreground ship spawn skipped until optional ship imagery is ready');
-      return;
-    }
-    const selectedShipType = readyShipTypes[Math.floor(Math.random() * readyShipTypes.length)];
+    const selectedShipType = this.chooseShipTypeForSpawn();
 
     const ship = {
       x: startX,
