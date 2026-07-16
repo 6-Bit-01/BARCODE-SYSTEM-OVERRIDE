@@ -15,6 +15,10 @@ let startGameInitializationComplete = false;
 async function performInitAudio() {
   console.log('=== INITIALIZING AUDIO SYSTEM ===');
   
+  if (window.BARCODE && window.BARCODE.MusicProfiles) {
+    window.BARCODE.MusicProfiles.select(window.BARCODE.LEVEL_01_MUSIC_PROFILE_ID);
+    if (window.BARCODE.MusicTransport) window.BARCODE.MusicTransport.load(window.BARCODE.LEVEL_01_MUSIC_PROFILE_ID);
+  }
   if (!window.audioSystem) {
     console.log('Creating audio system...');
     if (window.AudioContext || window.webkitAudioContext) {

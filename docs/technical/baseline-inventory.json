@@ -9,6 +9,9 @@
     "src/utils/math.js",
     "src/core/fullscreen.js",
     "src/core/input.js",
+    "src/engine/music-profiles.js",
+    "src/engine/music-transport.js",
+    "src/engine/level-01-music-profile.js",
     "src/engine/audio.js",
     "src/engine/boot-loader.js",
     "src/engine/particles.js",
@@ -48,6 +51,9 @@
     "src/utils/math.js",
     "src/core/fullscreen.js",
     "src/core/input.js",
+    "src/engine/music-profiles.js",
+    "src/engine/music-transport.js",
+    "src/engine/level-01-music-profile.js",
     "src/engine/audio.js",
     "src/engine/boot-loader.js",
     "src/engine/particles.js",
@@ -109,6 +115,7 @@
     "tools/baseline-common.js",
     "tools/check-baseline.js",
     "tools/check-frame-ownership.js",
+    "tools/check-music-profiles.js",
     "tools/check-startup-lifecycle.js",
     "tools/check-syntax.js",
     "tools/generate-baseline.js",
@@ -126,6 +133,18 @@
       },
       {
         "file": "src/core/input.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/engine/music-profiles.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/engine/music-transport.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/engine/level-01-music-profile.js",
         "status": "pass"
       },
       {
@@ -259,11 +278,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 36,
+        "index": 39,
         "status": "pass"
       },
       {
-        "index": 38,
+        "index": 41,
         "status": "pass"
       }
     ]
@@ -310,7 +329,8 @@
       "host": "dcnmwoxzefwqmvvkpqap.supabase.co",
       "sourceFiles": [
         "sprites-manifest.json",
-        "src/engine/audio.js"
+        "src/engine/level-01-music-profile.js",
+        "tools/check-music-profiles.js"
       ]
     },
     {
@@ -437,7 +457,7 @@
     {
       "global": "window.startGameInitialization",
       "file": "src/game/game-initializer.js",
-      "line": 304,
+      "line": 308,
       "loaded": true
     },
     {
@@ -499,6 +519,9 @@
     "src/utils/math.js",
     "src/core/fullscreen.js",
     "src/core/input.js",
+    "src/engine/music-profiles.js",
+    "src/engine/music-transport.js",
+    "src/engine/level-01-music-profile.js",
     "src/engine/audio.js",
     "src/engine/boot-loader.js",
     "src/engine/particles.js",

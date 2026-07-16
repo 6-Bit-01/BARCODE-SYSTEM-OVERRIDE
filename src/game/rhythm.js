@@ -4,7 +4,7 @@ window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({
   name: 'src/game/rhythm.js',
   exports: ['RhythmSystem', 'rhythmSystem'],
-  dependencies: ['randomRange', 'clamp']
+  dependencies: ['randomRange', 'clamp', 'BARCODE.MusicProfiles', 'BARCODE.MusicTransport']
 });
 
 window.RhythmSystem = class RhythmSystem {
@@ -13,18 +13,20 @@ window.RhythmSystem = class RhythmSystem {
     this.active = false;           // Visual visibility (R key toggle)
     this.running = false;          // Background rhythm processing
     this.trackStarted = false;     // Track has actually started playing
-    this.bpm = 146;               // Standard tempo (146 = ~411ms per beat)
-    this.beatInterval = 60000 / this.bpm; // ~411ms per beat at 146 BPM
+    const profile = window.BARCODE && window.BARCODE.MusicProfiles && window.BARCODE.MusicProfiles.getActive();
+    const grid = profile && profile.timeline && profile.timeline.fixedGrid;
+    this.bpm = grid ? grid.quarterBpm : 0;
+    this.beatInterval = grid ? 60000 / grid.quarterBpm : 0;
     
     // 4-Bar Progress System
-    this.barsPerPhrase = 4;        // 4 bars per musical phrase
-    this.beatsPerBar = 4;          // 4 beats per bar (4/4 time)
+    this.barsPerPhrase = profile && profile.phrasePresentation ? profile.phrasePresentation.barsPerPhrase : 0;
+    this.beatsPerBar = grid ? grid.beatsPerBar : 0;
     this.currentBar = 0;           // Current bar in phrase (0-3)
     this.currentBeat = 0;          // Current beat in bar (0-3)
     this.globalBeatCount = 0;       // Total beats since start
     
     // Tempo Establishment System (32 distinctive beats)
-    this.tempoEstablishmentBeats = 32; // First 32 beats establish song tempo
+    this.tempoEstablishmentBeats = profile && profile.legacyCompatibility ? profile.legacyCompatibility.establishmentBeatCount : 0;
     this.currentTempoBeat = 0;        // Current tempo establishment beat (1-33)
     this.tempoEstablished = false;     // Tempo established after 33 beats
     
@@ -37,11 +39,11 @@ window.RhythmSystem = class RhythmSystem {
     
     // Shortened timing windows for more challenging gameplay
     this.timingWindows = {
-      perfect: 60,     // ±30ms for perfect timing
-      excellent: 100   // ±50ms for excellent timing (shorter)
+      perfect: profile && profile.judgmentRules[0] ? profile.judgmentRules[0].windowsMs.perfect : 0,
+      excellent: profile && profile.judgmentRules[0] ? profile.judgmentRules[0].windowsMs.excellent : 0
       // GOOD REMOVED - anything beyond excellent is now a miss
     };
-    this.timingOffset = -20;         // Shift timing windows 20ms left (earlier)
+    this.timingOffset = 0;          // Input calibration is separate; dead -20ms compensation is not applied
     
     // Beat patterns and rhythm gameplay
     this.beatPatterns = [
@@ -105,14 +107,13 @@ window.RhythmSystem = class RhythmSystem {
   }
   
   // Start rhythm mode (visual + audio)
-  start(bpm = 146) {
+  start(profileId) {
     if (this.running) {
       this.show(); // Just show if already running
       return;
     }
     
-    this.bpm = bpm;
-    this.beatInterval = 60000 / this.bpm;
+    this.applySelectedProfile(profileId);
     this.running = true;
     this.active = true;
     
@@ -128,7 +129,7 @@ window.RhythmSystem = class RhythmSystem {
     this.trackStartTime = 0;
     
     // LOCKED: 32-beat tempo establishment for consistency
-    this.tempoEstablishmentBeats = 32;
+    this.tempoEstablishmentBeats = (window.BARCODE && window.BARCODE.MusicProfiles && window.BARCODE.MusicProfiles.getActive() && window.BARCODE.MusicProfiles.getActive().legacyCompatibility) ? window.BARCODE.MusicProfiles.getActive().legacyCompatibility.establishmentBeatCount : this.tempoEstablishmentBeats;
     this.currentTempoBeat = 0;
     this.tempoEstablished = false;
     
@@ -170,6 +171,30 @@ window.RhythmSystem = class RhythmSystem {
     console.log(`🎵 LOCKED Rhythm mode started: ${this.bpm} BPM, beatInterval=${this.beatInterval.toFixed(1)}ms - PERFECT timing`);
   }
   
+
+  applySelectedProfile(profileId) {
+    const registry = window.BARCODE && window.BARCODE.MusicProfiles;
+    const profile = profileId ? registry.select(profileId) : registry.getActive();
+    if (!profile || profile.timeline.mode !== 'fixed-tempo') {
+      this.bpm = 0;
+      this.beatInterval = 0;
+      this.beatsPerBar = 0;
+      this.barsPerPhrase = 0;
+      this.tempoEstablishmentBeats = 0;
+      this.timingWindows = { perfect: 0, excellent: 0 };
+      if (window.BARCODE && window.BARCODE.MusicTransport) window.BARCODE.MusicTransport.load(profileId);
+      return;
+    }
+    if (window.BARCODE && window.BARCODE.MusicTransport) window.BARCODE.MusicTransport.load(profile.profileId);
+    this.bpm = profile.timeline.fixedGrid.quarterBpm;
+    this.beatInterval = 60000 / this.bpm;
+    this.beatsPerBar = profile.timeline.fixedGrid.beatsPerBar;
+    this.barsPerPhrase = profile.phrasePresentation ? profile.phrasePresentation.barsPerPhrase : 0;
+    this.tempoEstablishmentBeats = profile.legacyCompatibility ? profile.legacyCompatibility.establishmentBeatCount : 0;
+    const rule = profile.judgmentRules[0];
+    this.timingWindows = rule ? { perfect: rule.windowsMs.perfect, excellent: rule.windowsMs.excellent } : { perfect: 0, excellent: 0 };
+  }
+
   // Show/hide rhythm visualization (R key toggle)
   show() {
     console.log('🎵 RHYTHM SHOW() CALLED - setting active=true');
@@ -183,7 +208,7 @@ window.RhythmSystem = class RhythmSystem {
     
     this.active = true;
     if (!this.running) {
-      this.startBackgroundRhythm(32); // Start background progress if not running
+      this.startBackgroundRhythm(); // Start background progress if not running
     }
     // CRITICAL: Don't restart progress if already running
     // Progress tracking continues in background independently of R key
@@ -239,7 +264,7 @@ window.RhythmSystem = class RhythmSystem {
   }
   
   // Alias for show() - needed for compatibility with input.js calls
-  showRhythmMode(bpm = 146) {
+  showRhythmMode() {
     this.show();
   }
   
@@ -266,7 +291,7 @@ window.RhythmSystem = class RhythmSystem {
   }
   
   // Start background rhythm processing (runs continuously)
-  startBackgroundRhythm(bpm = 146) {
+  startBackgroundRhythm(profileId) {
     if (this.running) return; // Already running
     
     console.log('🎵 Starting background rhythm system');
@@ -274,8 +299,7 @@ window.RhythmSystem = class RhythmSystem {
     this.running = true;
     this.active = false; // Start in background only (no visuals)
     
-    this.bpm = bpm;
-    this.beatInterval = 60000 / this.bpm;
+    this.applySelectedProfile(profileId);
     
     // Reset timing state
     this.currentBar = 0;
@@ -289,7 +313,7 @@ window.RhythmSystem = class RhythmSystem {
     this.trackStartTime = 0;
     
     // 32-beat tempo establishment
-    this.tempoEstablishmentBeats = 32;
+    this.tempoEstablishmentBeats = (window.BARCODE && window.BARCODE.MusicProfiles && window.BARCODE.MusicProfiles.getActive() && window.BARCODE.MusicProfiles.getActive().legacyCompatibility) ? window.BARCODE.MusicProfiles.getActive().legacyCompatibility.establishmentBeatCount : this.tempoEstablishmentBeats;
     this.currentTempoBeat = 0;
     this.tempoEstablished = false;
     
@@ -299,7 +323,7 @@ window.RhythmSystem = class RhythmSystem {
       console.log('Audio beat sync started for background progress');
     }
     
-    console.log(`Background rhythm ready: ${bpm} BPM - waiting for audio beats`);
+    console.log(`Background rhythm ready: ${this.bpm} BPM - waiting for audio beats`);
   }
   
   // Hide visual elements only - NEVER stop continuous rhythm loop
@@ -344,6 +368,10 @@ window.RhythmSystem = class RhythmSystem {
   update(deltaTime) {
     if (!this.running || !deltaTime) return;
     
+    if (window.BARCODE && window.BARCODE.MusicTransport && window.audioSystem && window.audioSystem.context) {
+      const batch = window.BARCODE.MusicTransport.poll(window.audioSystem.context.currentTime);
+      batch.events.forEach(() => this.syncWithAudioBeat());
+    }
     const currentTime = performance.now();
     
     // CRITICAL: Audio system is sole authority for beat timing
@@ -354,8 +382,9 @@ window.RhythmSystem = class RhythmSystem {
       
       // Update progress indicators exactly once
       this.barProgress = Math.min(1.0, timeSinceBeat / this.beatInterval);
-      const beatsIntoPhrase = (this.currentBar * 4) + this.currentBeat;
-      this.phraseProgress = (beatsIntoPhrase + this.barProgress) / 16.0;
+      const beatsIntoPhrase = (this.currentBar * this.beatsPerBar) + this.currentBeat;
+      const phraseBeats = Math.max(1, this.barsPerPhrase * this.beatsPerBar);
+      this.phraseProgress = (beatsIntoPhrase + this.barProgress) / phraseBeats;
       
       // CRITICAL: NEVER trigger beats in update() - only audio sync controls beats
       // This prevents double-beat increments and beat skipping
@@ -424,8 +453,8 @@ window.RhythmSystem = class RhythmSystem {
     
     // Regular beat handling after tempo established
     // CRITICAL: Only increment if we haven't already counted this beat
-    const expectedBeat = (this.currentBeat + 1) % 4;
-    const expectedBar = this.currentBeat === 3 ? (this.currentBar + 1) % 4 : this.currentBar;
+    const expectedBeat = (this.currentBeat + 1) % this.beatsPerBar;
+    const expectedBar = this.currentBeat === this.beatsPerBar - 1 ? (this.currentBar + 1) % 4 : this.currentBar;
     
     // Check for duplicate beat detection
     if (this.currentBeat === expectedBeat && this.currentBar === expectedBar) {
@@ -439,7 +468,7 @@ window.RhythmSystem = class RhythmSystem {
     
     // CRITICAL FIX: Beat counting already handled in syncWithAudioBeat()
     // This function now only handles visual effects and gameplay logic
-    console.log(`🎵 REGULAR BEAT EFFECTS: ${this.currentBeat}/4 in BAR ${this.currentBar + 1}/4 - Global: ${this.globalBeatCount}`);
+    console.log(`🎵 REGULAR BEAT EFFECTS: ${this.currentBeat}/${this.beatsPerBar} in BAR ${this.currentBar + 1}/4 - Global: ${this.globalBeatCount}`);
     
     // CRITICAL: Reset timing every 30 beats to prevent drift
     if (this.globalBeatCount % 30 === 0) {
@@ -458,7 +487,7 @@ window.RhythmSystem = class RhythmSystem {
     this.patternIndex = (this.patternIndex + 1) % this.beatPatterns[this.currentPattern].length;
     
     // Occasionally change pattern
-    if (this.globalBeatCount % 32 === 0) {
+    if (this.tempoEstablishmentBeats && this.globalBeatCount % this.tempoEstablishmentBeats === 0) {
       this.currentPattern = (this.currentPattern + 1) % this.beatPatterns.length;
       console.log(`Pattern changed to ${this.currentPattern}`);
     }
@@ -517,7 +546,7 @@ window.RhythmSystem = class RhythmSystem {
       this.globalBeatCount = 0;
       
       // CRITICAL: Initialize tempo establishment to 0 BEFORE first beat
-      this.tempoEstablishmentBeats = 32;
+      this.tempoEstablishmentBeats = (window.BARCODE && window.BARCODE.MusicProfiles && window.BARCODE.MusicProfiles.getActive() && window.BARCODE.MusicProfiles.getActive().legacyCompatibility) ? window.BARCODE.MusicProfiles.getActive().legacyCompatibility.establishmentBeatCount : this.tempoEstablishmentBeats;
       this.currentTempoBeat = 0;
       this.tempoEstablished = false;
       
@@ -554,12 +583,12 @@ window.RhythmSystem = class RhythmSystem {
         }
       } else {
         // Regular beat handling after tempo established
-        this.currentBeat = (this.currentBeat + 1) % 4;
+        this.currentBeat = (this.currentBeat + 1) % this.beatsPerBar;
         if (this.currentBeat === 0) {
-          this.currentBar = (this.currentBar + 1) % 4;
+          this.currentBar = (this.currentBar + 1) % this.barsPerPhrase;
         }
         this.globalBeatCount++;
-        console.log(`🎵 REGULAR BEAT ${this.currentBeat}/4 in BAR ${this.currentBar + 1}/4 - Global: ${this.globalBeatCount}`);
+        console.log(`🎵 REGULAR BEAT ${this.currentBeat}/${this.beatsPerBar} in BAR ${this.currentBar + 1}/4 - Global: ${this.globalBeatCount}`);
       }
       
       // Trigger beat effects and gameplay logic
@@ -1296,7 +1325,7 @@ window.RhythmSystem = class RhythmSystem {
     this.phraseProgress = 0;
     
     // CRITICAL: 32 distinctive beats for tempo establishment
-    this.tempoEstablishmentBeats = 32;
+    this.tempoEstablishmentBeats = (window.BARCODE && window.BARCODE.MusicProfiles && window.BARCODE.MusicProfiles.getActive() && window.BARCODE.MusicProfiles.getActive().legacyCompatibility) ? window.BARCODE.MusicProfiles.getActive().legacyCompatibility.establishmentBeatCount : this.tempoEstablishmentBeats;
     this.currentTempoBeat = 0;
     this.tempoEstablished = false;
     
@@ -2282,7 +2311,7 @@ window.RhythmSystem = class RhythmSystem {
     this.phraseProgress = 0;
     
     // CRITICAL: Reset tempo establishment to start fresh
-    this.tempoEstablishmentBeats = 32;
+    this.tempoEstablishmentBeats = (window.BARCODE && window.BARCODE.MusicProfiles && window.BARCODE.MusicProfiles.getActive() && window.BARCODE.MusicProfiles.getActive().legacyCompatibility) ? window.BARCODE.MusicProfiles.getActive().legacyCompatibility.establishmentBeatCount : this.tempoEstablishmentBeats;
     this.currentTempoBeat = 0; // Start at 0, will increment to 1 on first beat
     this.tempoEstablished = false;
     

@@ -2148,7 +2148,7 @@ window.handleGameAction = function(action) {
           window.rhythmSystem.show(); // Just show visual elements, don't restart timing
           console.log('🎵 CRITICAL: Rhythm mode activated - preserving continuous beat timing');
         } else if (typeof window.rhythmSystem.showRhythmMode === 'function') {
-          window.rhythmSystem.showRhythmMode(146 + window.gameState.level * 5);
+          window.rhythmSystem.showRhythmMode();
         }
         // Track tutorial objective
         if (window.tutorialSystem && window.tutorialSystem.isActive()) {
