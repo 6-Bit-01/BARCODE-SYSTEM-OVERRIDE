@@ -16,7 +16,7 @@ window.RhythmSystem = class RhythmSystem {
     const profile = window.BARCODE && window.BARCODE.MusicProfiles && window.BARCODE.MusicProfiles.getActive();
     const grid = profile && profile.timeline && profile.timeline.fixedGrid;
     this.bpm = grid ? grid.quarterBpm : 0;
-    this.beatInterval = grid ? 60000 / grid.quarterBpm : 0;
+    this.beatInterval = grid ? (60000 / grid.quarterBpm) * (4 / grid.beatUnit) : 0;
     
     // 4-Bar Progress System
     this.barsPerPhrase = profile && profile.phrasePresentation ? profile.phrasePresentation.barsPerPhrase : 0;
@@ -44,6 +44,9 @@ window.RhythmSystem = class RhythmSystem {
       // GOOD REMOVED - anything beyond excellent is now a miss
     };
     this.timingOffset = 0;          // Input calibration is separate; dead -20ms compensation is not applied
+    this.judgmentRuleId = profile && profile.judgmentRules[0] ? profile.judgmentRules[0].id : null;
+    this.lastProcessedTransportBeatKey = null;
+    this.processedTransportBeatKeys = {}
     
     // Beat patterns and rhythm gameplay
     this.beatPatterns = [
@@ -174,24 +177,40 @@ window.RhythmSystem = class RhythmSystem {
 
   applySelectedProfile(profileId) {
     const registry = window.BARCODE && window.BARCODE.MusicProfiles;
+    const transport = window.BARCODE && window.BARCODE.MusicTransport;
+    if (!registry) return;
     const profile = profileId ? registry.select(profileId) : registry.getActive();
-    if (!profile || profile.timeline.mode !== 'fixed-tempo') {
+    if (!profile) {
       this.bpm = 0;
       this.beatInterval = 0;
       this.beatsPerBar = 0;
       this.barsPerPhrase = 0;
       this.tempoEstablishmentBeats = 0;
       this.timingWindows = { perfect: 0, excellent: 0 };
-      if (window.BARCODE && window.BARCODE.MusicTransport) window.BARCODE.MusicTransport.load(profileId);
+      this.judgmentRuleId = null;
+      if (transport && profileId) transport.load(profileId);
       return;
     }
-    if (window.BARCODE && window.BARCODE.MusicTransport) window.BARCODE.MusicTransport.load(profile.profileId);
+    if (transport && transport.getProfileId && transport.getProfileId() !== profile.profileId) {
+      transport.load(profile.profileId);
+    }
+    if (profile.timeline.mode !== 'fixed-tempo') {
+      this.bpm = 0;
+      this.beatInterval = 0;
+      this.beatsPerBar = 0;
+      this.barsPerPhrase = 0;
+      this.tempoEstablishmentBeats = 0;
+      this.timingWindows = { perfect: 0, excellent: 0 };
+      this.judgmentRuleId = null;
+      return;
+    }
     this.bpm = profile.timeline.fixedGrid.quarterBpm;
-    this.beatInterval = 60000 / this.bpm;
+    this.beatInterval = (60000 / this.bpm) * (4 / profile.timeline.fixedGrid.beatUnit);
     this.beatsPerBar = profile.timeline.fixedGrid.beatsPerBar;
     this.barsPerPhrase = profile.phrasePresentation ? profile.phrasePresentation.barsPerPhrase : 0;
     this.tempoEstablishmentBeats = profile.legacyCompatibility ? profile.legacyCompatibility.establishmentBeatCount : 0;
-    const rule = profile.judgmentRules[0];
+    const rule = profile.judgmentRules.find(candidate => candidate.id === 'level-01.attack') || null;
+    this.judgmentRuleId = rule ? rule.id : null;
     this.timingWindows = rule ? { perfect: rule.windowsMs.perfect, excellent: rule.windowsMs.excellent } : { perfect: 0, excellent: 0 };
   }
 
@@ -368,26 +387,24 @@ window.RhythmSystem = class RhythmSystem {
   update(deltaTime) {
     if (!this.running || !deltaTime) return;
     
+    let transportSnapshot = null;
     if (window.BARCODE && window.BARCODE.MusicTransport && window.audioSystem && window.audioSystem.context) {
       const batch = window.BARCODE.MusicTransport.poll(window.audioSystem.context.currentTime);
-      batch.events.forEach(() => this.syncWithAudioBeat());
+      transportSnapshot = batch.snapshot;
+      batch.events.forEach(event => this.processTransportBeatEvent(event));
     }
     const currentTime = performance.now();
     
-    // CRITICAL: Audio system is sole authority for beat timing
-    // Update progress indicators exactly once - NEVER trigger beats here
-    // Only audio sync should advance beat counters to prevent skipping
-    if (this.trackStarted && this.lastBeatTime > 0 && !this.loopRestartMode) {
-      const timeSinceBeat = currentTime - this.lastBeatTime;
-      
-      // Update progress indicators exactly once
-      this.barProgress = Math.min(1.0, timeSinceBeat / this.beatInterval);
-      const beatsIntoPhrase = (this.currentBar * this.beatsPerBar) + this.currentBeat;
-      const phraseBeats = Math.max(1, this.barsPerPhrase * this.beatsPerBar);
-      this.phraseProgress = (beatsIntoPhrase + this.barProgress) / phraseBeats;
-      
-      // CRITICAL: NEVER trigger beats in update() - only audio sync controls beats
-      // This prevents double-beat increments and beat skipping
+    // CRITICAL: Audio system is sole authority for beat timing.
+    // Progress comes from the transport snapshot/grid, not elapsed wall-clock time.
+    if (transportSnapshot && transportSnapshot.grid && this.trackStarted && !this.loopRestartMode) {
+      const beatFraction = transportSnapshot.grid.beatFloat - Math.floor(transportSnapshot.grid.beatFloat);
+      this.barProgress = Math.min(1.0, Math.max(0.0, beatFraction));
+      const phraseBeats = Math.max(1, (this.barsPerPhrase || 0) * (this.beatsPerBar || 0));
+      const beatsIntoPhrase = transportSnapshot.grid.beatFloat % phraseBeats;
+      this.phraseProgress = beatsIntoPhrase / phraseBeats;
+      this.currentBeat = transportSnapshot.grid.beatInBar;
+      this.currentBar = this.barsPerPhrase ? (Math.floor(transportSnapshot.grid.beatIndex / this.beatsPerBar) % this.barsPerPhrase) : 0;
     }
     
     // Update visual effects only if active
@@ -504,14 +521,29 @@ window.RhythmSystem = class RhythmSystem {
     });
   }
   
+  processTransportBeatEvent(event) {
+    if (!event || event.type !== 'beat') return false;
+    const transport = window.BARCODE && window.BARCODE.MusicTransport;
+    const latest = transport && transport.getLastSample ? transport.getLastSample() : null;
+    if (latest && event.generation !== latest.generation) return false;
+    const key = `${event.profileId}:${event.generation}:${event.beatIndex}`;
+    if (this.processedTransportBeatKeys[key]) return false;
+    this.processedTransportBeatKeys[key] = true;
+    this.lastProcessedTransportBeatKey = key;
+    this.syncWithAudioBeat({ transportEvent: event });
+    return true;
+  }
+
   // Sync with audio system beat
-  syncWithAudioBeat() {
-    // CRITICAL: Prevent duplicate sync calls within same beat interval
+  syncWithAudioBeat(options) {
+    options = options || {};
     const currentTime = performance.now();
-    const minSyncInterval = this.beatInterval * 0.7; // 70% of beat interval (more permissive)
-    
-    if (this.lastSyncTime && (currentTime - this.lastSyncTime) < minSyncInterval) {
-      return; // Silently block duplicate syncs
+    if (!options.transportEvent) {
+      // Legacy non-transport sync calls keep the old duplicate guard.
+      const minSyncInterval = this.beatInterval * 0.7; // 70% of beat interval (more permissive)
+      if (this.lastSyncTime && (currentTime - this.lastSyncTime) < minSyncInterval) {
+        return; // Silently block duplicate legacy syncs
+      }
     }
     
     this.lastSyncTime = currentTime;
@@ -607,40 +639,21 @@ window.RhythmSystem = class RhythmSystem {
     
     const currentTime = performance.now();
     
-    // Input cooldown
+    // Input cooldown is still wall-clock UI gating; musical judgment is transport-owned.
     if (currentTime - this.lastInputTime < this.inputCooldown) {
       return { hit: false, timing: 'cooldown', combo: this.combo };
     }
     this.lastInputTime = currentTime;
+
+    const transport = window.BARCODE && window.BARCODE.MusicTransport;
+    const audioTimeSec = window.audioSystem && window.audioSystem.context ? window.audioSystem.context.currentTime : null;
+    const judgment = transport && Number.isFinite(audioTimeSec) && this.judgmentRuleId ? transport.judgeInput(this.judgmentRuleId, audioTimeSec) : { available: false, timing: 'unavailable' };
+    const isMiss = !judgment.available || judgment.timing === 'miss';
+    console.log(`TRANSPORT JUDGMENT: rule=${this.judgmentRuleId || 'none'}, timing=${judgment.timing}, distanceMs=${judgment.distanceMs == null ? 'n/a' : judgment.distanceMs.toFixed(0)}`);
     
-    // CRITICAL: Calculate distance to NEXT BEAT for proper alignment
-    // The beat just happened at lastBeatTime, so we need to measure from there
-    if (this.lastBeatTime === 0) {
-      console.log('NO BEAT TIMING YET - MISS!');
-      this.combo = 0;
-      this.createMissEffect();
-      return { hit: false, timing: 'miss', combo: 0, target: null };
-    }
-    
-    // CRITICAL FIX: Calculate distance to nearest beat - NO DRIFT COMPENSATION
-    // We want to be ON the beat, so we measure distance to the closest beat
-    const timeSinceLastBeat = currentTime - this.lastBeatTime;
-    const timeToNextBeat = this.beatInterval - timeSinceLastBeat;
-    
-    // NO DRIFT COMPENSATION - timing must be precise
-    const distanceToNearestBeat = Math.min(timeSinceLastBeat, timeToNextBeat);
-    console.log(`BEAT ALIGNMENT: timeSinceLastBeat=${timeSinceLastBeat.toFixed(0)}ms, timeToNextBeat=${timeToNextBeat.toFixed(0)}ms, distanceToNearest=${distanceToNearestBeat.toFixed(0)}ms`);
-    
-    // CRITICAL FIX: Use distance to nearest beat for timing windows - NO COMPENSATION
-    // Hit when distance to nearest beat is within timing window
-    const effectiveExcellentWindow = this.timingWindows.excellent;
-    const isMiss = distanceToNearestBeat > effectiveExcellentWindow;
-    
-    console.log(`TIMING DEBUG: distanceToNearestBeat=${distanceToNearestBeat.toFixed(0)}ms, threshold=${effectiveExcellentWindow}ms, isMiss=${isMiss}`);
-    
-    // CRITICAL: Always reset combo on misses - no exceptions
+    // CRITICAL: Always reset combo on misses/unavailable transport - no exceptions
     if (isMiss) {
-      console.log(`❌ MISSED BEAT: ${distanceToNearestBeat.toFixed(0)}ms > ${this.timingWindows.excellent}ms threshold - COMBO RESET!`);
+      console.log(`❌ MISSED BEAT: transport timing=${judgment.timing} - COMBO RESET!`);
       
       // ✅ FIXED: Reset combo IMMEDIATELY on incorrect press
       this.combo = 0;
@@ -660,19 +673,8 @@ window.RhythmSystem = class RhythmSystem {
       return { hit: false, timing: 'miss', combo: 0 };
     }
     
-    // CRITICAL FIX: Use distance to nearest beat for timing determination - NO COMPENSATION
-    let timing = 'miss';
-    let isHit = false;
-    
-    const effectivePerfectWindow = this.timingWindows.perfect; // No compensation
-    
-    if (distanceToNearestBeat <= effectivePerfectWindow) {
-      timing = 'perfect';
-      isHit = true;
-    } else if (distanceToNearestBeat <= effectiveExcellentWindow) {
-      timing = 'excellent';
-      isHit = true;
-    }
+    let timing = judgment.timing;
+    let isHit = timing === 'perfect' || timing === 'excellent';
     // GOOD REMOVED - anything beyond excellent is now a miss
     
     // Check attack window bonus (only for successful hits)

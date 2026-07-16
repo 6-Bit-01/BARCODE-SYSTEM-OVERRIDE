@@ -329,8 +329,7 @@
       "host": "dcnmwoxzefwqmvvkpqap.supabase.co",
       "sourceFiles": [
         "sprites-manifest.json",
-        "src/engine/level-01-music-profile.js",
-        "tools/check-music-profiles.js"
+        "src/engine/level-01-music-profile.js"
       ]
     },
     {

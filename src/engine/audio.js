@@ -181,7 +181,8 @@ window.AudioSystem = class AudioSystem {
       console.log('Available tracks:', Object.keys(this.musicTracks));
       
       // CRITICAL: Do NOT start music during initialization - wait for game start after cutscenes
-      if (this.musicTracks['foundation']) {
+      const primarySource = activeProfile && activeProfile.arrangement.sources[0];
+      if (primarySource && this.musicTracks[primarySource.sourceId]) {
         console.log('Music tracks loaded - waiting for game start after cutscenes');
         
         // CRITICAL: Do NOT start rhythm system yet - wait for game start
@@ -2074,13 +2075,13 @@ window.AudioSystem = class AudioSystem {
       // Create new source
       const source = this.context.createBufferSource();
       source.buffer = track.buffer;
-      source.loop = true;
+      const sourceProfile = profile.arrangement.sources.find(source => source.sourceId === layerName);
+      source.loop = sourceProfile ? sourceProfile.nativeLoop : false;
       
       // Create gain
       const layerGain = this.context.createGain();
       
       // Set profile-authored initial source gain.
-      const sourceProfile = profile.arrangement.sources.find(source => source.sourceId === layerName);
       let targetVolume = sourceProfile ? sourceProfile.gain : 0;
       
       layerGain.gain.value = targetVolume;
@@ -2090,7 +2091,7 @@ window.AudioSystem = class AudioSystem {
       layerGain.connect(this.musicGain);
       
       // Start at exact sync time
-      source.start(syncTime, 0);
+      source.start(syncTime, sourceProfile ? sourceProfile.offsetSec : 0);
       
       // Update track info
       track.source = source;
@@ -2179,8 +2180,10 @@ window.AudioSystem = class AudioSystem {
     }
     
     // CRITICAL: Don't check loops if no layers are playing
-    if (!this.layersStarted || !this.musicTracks['foundation'] || !this.musicTracks['foundation'].isPlaying) {
-      return; // No active music to loop
+    const activeProfile = window.BARCODE && window.BARCODE.MusicProfiles && window.BARCODE.MusicProfiles.getActive();
+    const primarySource = activeProfile && activeProfile.arrangement.sources[0];
+    if (!this.layersStarted || !primarySource || !this.musicTracks[primarySource.sourceId] || !this.musicTracks[primarySource.sourceId].isPlaying) {
+      return; // No active profile source to loop
     }
     
     // CRITICAL FIX: Only restart when tracks have ACTUALLY completed their full duration
@@ -2276,7 +2279,8 @@ window.AudioSystem = class AudioSystem {
           
           const source = this.context.createBufferSource();
           source.buffer = track.buffer;
-          source.loop = true;
+          const sourceProfile = profile && profile.arrangement.sources.find(source => source.sourceId === layerName);
+          source.loop = sourceProfile ? sourceProfile.nativeLoop : false;
           
           const layerGain = this.context.createGain();
           const targetVolume = this.getCurrentLayerVolume(layerName);
@@ -2287,7 +2291,7 @@ window.AudioSystem = class AudioSystem {
           
           source.connect(layerGain);
           layerGain.connect(this.musicGain);
-          source.start(restartTime, 0);
+          source.start(restartTime, sourceProfile ? sourceProfile.offsetSec : 0);
           
           track.source = source;
           track.startTime = restartTime;
@@ -2375,14 +2379,16 @@ window.AudioSystem = class AudioSystem {
     // For synchronization: try to sync with existing layers if they're playing
     let startTime = this.context.currentTime;
     
-    // If other layers are already playing, try to sync this layer with them
+    // If other layers are already playing, try to sync this layer with the active profile's primary source.
     if (this.layersStarted) {
-      const foundationTrack = this.musicTracks['foundation'];
-      if (foundationTrack && foundationTrack.isPlaying && foundationTrack.startTime) {
-        // Calculate offset to sync with foundation layer
-        const elapsed = (this.context.currentTime - foundationTrack.startTime) % foundationTrack.buffer.duration;
-        startTime = foundationTrack.startTime + elapsed;
-        console.log(`Syncing ${layerName} with foundation layer at offset ${elapsed}`);
+      const activeProfile = window.BARCODE && window.BARCODE.MusicProfiles && window.BARCODE.MusicProfiles.getActive();
+      const primarySource = activeProfile && activeProfile.arrangement.sources[0];
+      const primaryTrack = primarySource && this.musicTracks[primarySource.sourceId];
+      if (primaryTrack && primaryTrack.isPlaying && primaryTrack.startTime) {
+        // Calculate offset to sync with the profile primary layer.
+        const elapsed = (this.context.currentTime - primaryTrack.startTime) % primaryTrack.buffer.duration;
+        startTime = primaryTrack.startTime + elapsed;
+        console.log(`Syncing ${layerName} with ${primarySource.sourceId} at offset ${elapsed}`);
       }
     }
     
@@ -2401,7 +2407,9 @@ window.AudioSystem = class AudioSystem {
     // Create new source
     const source = this.context.createBufferSource();
     source.buffer = track.buffer;
-    source.loop = true;
+    const activeProfile = window.BARCODE && window.BARCODE.MusicProfiles && window.BARCODE.MusicProfiles.getActive();
+    const sourceProfile = activeProfile && activeProfile.arrangement.sources.find(sourceInfo => sourceInfo.sourceId === layerName);
+    source.loop = sourceProfile ? sourceProfile.nativeLoop : false;
     
     // Create individual gain for this layer
     const layerGain = this.context.createGain();
@@ -2412,7 +2420,7 @@ window.AudioSystem = class AudioSystem {
     layerGain.connect(this.musicGain);
     
     try {
-      source.start(startTime, 0); // Start at calculated time, offset 0
+      source.start(startTime, sourceProfile ? sourceProfile.offsetSec : 0); // Start at profile-authored offset
       console.log(`Started music layer: ${layerName} at volume ${volume}, synced to time ${startTime}`);
     } catch (error) {
       console.error(`Failed to start music layer ${layerName}:`, error?.message || error?.toString() || 'Unknown error');

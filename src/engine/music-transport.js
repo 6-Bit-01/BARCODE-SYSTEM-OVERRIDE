@@ -14,7 +14,7 @@ window.BARCODE = window.BARCODE || {};
   const clone = namespace.MusicProfiles.cloneProfile;
 
   function makeNoProfile(reason, generation) {
-    return freeze({ status: 'no-profile', reason, profileId: null, generation, running: false, trackTimeSec: null, grid: null, judgmentAvailable: false });
+    return freeze({ status: 'no-profile', reason, profileId: null, generation, running: false, audioTimeSec: null, sourceAnchorAudioSec: null, sourceOffsetTrackSec: 0, trackTimeSec: null, grid: null, judgmentAvailable: false });
   }
 
   function createTransport() {
@@ -28,16 +28,31 @@ window.BARCODE = window.BARCODE || {};
     let lastBoundaryBeat = null;
     let hitches = 0;
 
+    function currentProfileId() { return profile ? profile.profileId : null; }
+
     function load(profileId) {
       const next = namespace.MusicProfiles.get(profileId);
       if (!next) {
         if (profile || running) generation++;
-        profile = null; running = false; sourceAnchorAudioSec = null; sourceOffsetTrackSec = 0; lastBoundaryBeat = null;
+        profile = null;
+        running = false;
+        sourceAnchorAudioSec = null;
+        sourceOffsetTrackSec = 0;
+        lastBoundaryBeat = null;
+        lastSample = null;
         return makeNoProfile('unknown-or-invalid-profile-id', generation);
       }
-      if (!profile || profile.profileId !== next.profileId) generation++;
-      profile = next; running = false; sourceAnchorAudioSec = null; sourceOffsetTrackSec = next.playback.startTrackSec || 0; lastBoundaryBeat = null;
-      return sample(sourceAnchorAudioSec || 0);
+      if (profile && profile.profileId === next.profileId) {
+        return lastSample || sample(sourceAnchorAudioSec || 0);
+      }
+      generation++;
+      profile = next;
+      running = false;
+      sourceAnchorAudioSec = null;
+      sourceOffsetTrackSec = next.playback.startTrackSec || 0;
+      lastBoundaryBeat = null;
+      lastSample = null;
+      return sample(0);
     }
 
     function start(options) {
@@ -45,23 +60,38 @@ window.BARCODE = window.BARCODE || {};
       if (!profile) return makeNoProfile('no-profile-loaded', generation);
       const anchor = options.sourceAnchorAudioSec;
       const offset = options.sourceOffsetTrackSec != null ? options.sourceOffsetTrackSec : profile.playback.startTrackSec || 0;
+      if (!Number.isFinite(anchor)) return makeNoProfile('invalid-source-anchor', generation);
       if (running && sourceAnchorAudioSec === anchor && sourceOffsetTrackSec === offset) return sample(anchor);
-      if (!running || sourceAnchorAudioSec !== anchor || sourceOffsetTrackSec !== offset) generation++;
-      running = true; sourceAnchorAudioSec = anchor; sourceOffsetTrackSec = offset; lastBoundaryBeat = null;
+      generation++;
+      running = true;
+      sourceAnchorAudioSec = anchor;
+      sourceOffsetTrackSec = offset;
+      lastBoundaryBeat = null;
       return sample(anchor);
     }
 
     function stop() {
-      if (running || profile) generation++;
-      running = false; sourceAnchorAudioSec = null; lastBoundaryBeat = null;
+      if (!running) return lastSample || sample(0);
+      generation++;
+      running = false;
+      sourceAnchorAudioSec = null;
+      lastBoundaryBeat = null;
       return sample(0);
     }
 
     function coordinatedRestart(anchor) {
       if (!profile) return makeNoProfile('no-profile-loaded', generation);
+      if (!Number.isFinite(anchor)) return makeNoProfile('invalid-source-anchor', generation);
       generation++;
-      running = true; sourceAnchorAudioSec = anchor; sourceOffsetTrackSec = profile.playback.startTrackSec || 0; lastBoundaryBeat = null;
+      running = true;
+      sourceAnchorAudioSec = anchor;
+      sourceOffsetTrackSec = profile.playback.startTrackSec || 0;
+      lastBoundaryBeat = null;
       return sample(anchor);
+    }
+
+    function beatDurationSec(grid) {
+      return (60 / grid.quarterBpm) * (4 / grid.beatUnit);
     }
 
     function fixedGrid(trackTimeSec) {
@@ -69,16 +99,18 @@ window.BARCODE = window.BARCODE || {};
       const grid = profile.timeline.fixedGrid;
       const gridTime = trackTimeSec - profile.timeline.gridOriginTrackSec;
       if (gridTime < 0) return null;
-      const beatDurationSec = 60 / grid.quarterBpm;
-      const beatFloat = gridTime / beatDurationSec;
+      const duration = beatDurationSec(grid);
+      const beatFloat = gridTime / duration;
       const beatIndex = Math.floor(beatFloat);
-      return freeze({ beatDurationSec, beatFloat, beatIndex, beatInBar: beatIndex % grid.beatsPerBar, barIndex: Math.floor(beatIndex / grid.beatsPerBar), beatsPerBar: grid.beatsPerBar, phraseBeatCount: profile.phrasePresentation && profile.phrasePresentation.beatCount || null, establishmentBeatCount: profile.legacyCompatibility && profile.legacyCompatibility.establishmentBeatCount || null });
+      const phraseBeatCount = profile.phrasePresentation && profile.phrasePresentation.beatCount || null;
+      return freeze({ beatDurationSec: duration, beatFloat, beatIndex, beatInBar: beatIndex % grid.beatsPerBar, barIndex: Math.floor(beatIndex / grid.beatsPerBar), beatsPerBar: grid.beatsPerBar, beatUnit: grid.beatUnit, phraseBeatCount, phraseProgress: phraseBeatCount ? ((beatFloat % phraseBeatCount) / phraseBeatCount) : null, establishmentBeatCount: profile.legacyCompatibility && profile.legacyCompatibility.establishmentBeatCount || null });
     }
 
     function sample(audioTimeSec) {
       if (!profile) return makeNoProfile('no-profile-loaded', generation);
       const trackTimeSec = running && sourceAnchorAudioSec != null ? (audioTimeSec - sourceAnchorAudioSec) + sourceOffsetTrackSec : sourceOffsetTrackSec;
-      const snapshot = freeze({ status: 'ok', profileId: profile.profileId, metadataStatus: profile.metadataStatus, generation, running, audioTimeSec, sourceAnchorAudioSec, sourceOffsetTrackSec, trackTimeSec, grid: fixedGrid(trackTimeSec), judgmentAvailable: profile.timeline.mode === 'fixed-tempo' && profile.judgmentRules.length > 0 });
+      const grid = running ? fixedGrid(trackTimeSec) : null;
+      const snapshot = freeze({ status: 'ok', profileId: profile.profileId, metadataStatus: profile.metadataStatus, generation, running, audioTimeSec, sourceAnchorAudioSec, sourceOffsetTrackSec, trackTimeSec, grid, judgmentAvailable: running && !!grid && profile.judgmentRules.length > 0 });
       lastSample = snapshot;
       return snapshot;
     }
@@ -86,7 +118,7 @@ window.BARCODE = window.BARCODE || {};
     function poll(audioTimeSec) {
       const snapshot = sample(audioTimeSec);
       const events = [];
-      if (snapshot.grid) {
+      if (snapshot.running && snapshot.grid) {
         const beat = snapshot.grid.beatIndex;
         if (lastBoundaryBeat == null) lastBoundaryBeat = beat;
         if (beat > lastBoundaryBeat) {
@@ -103,7 +135,7 @@ window.BARCODE = window.BARCODE || {};
 
     function judgeInput(ruleId, audioTimeSec) {
       const snapshot = sample(audioTimeSec);
-      if (!snapshot.judgmentAvailable || !snapshot.grid) return freeze({ available: false, timing: 'unavailable', generation: snapshot.generation });
+      if (!snapshot.running || !snapshot.judgmentAvailable || !snapshot.grid) return freeze({ available: false, timing: 'unavailable', generation: snapshot.generation });
       const rule = profile.judgmentRules.find(candidate => candidate.id === ruleId);
       if (!rule) return freeze({ available: false, timing: 'unavailable', generation: snapshot.generation });
       const beatMs = snapshot.grid.beatDurationSec * 1000;
@@ -112,10 +144,10 @@ window.BARCODE = window.BARCODE || {};
       let timing = 'miss';
       if (distanceMs <= rule.windowsMs.perfect) timing = 'perfect';
       else if (distanceMs <= rule.windowsMs.excellent) timing = 'excellent';
-      return freeze({ available: true, timing, distanceMs, generation: snapshot.generation });
+      return freeze({ available: true, timing, distanceMs, ruleId: rule.id, generation: snapshot.generation });
     }
 
-    return freeze({ load, start, stop, coordinatedRestart, sample, poll, judgeInput, onBoundary: function(type, listener) { boundaryListeners.push(listener); return function(){ boundaryListeners = boundaryListeners.filter(item => item !== listener); }; }, getListenerCount: function(){ return boundaryListeners.length; }, getLastSample: function(){ return clone(lastSample); } });
+    return freeze({ load, start, stop, coordinatedRestart, sample, poll, judgeInput, getProfileId: currentProfileId, onBoundary: function(type, listener) { boundaryListeners.push(listener); return function(){ boundaryListeners = boundaryListeners.filter(item => item !== listener); }; }, getListenerCount: function(){ return boundaryListeners.length; }, getLastSample: function(){ return clone(lastSample); } });
   }
 
   namespace.MusicTransport = createTransport();
