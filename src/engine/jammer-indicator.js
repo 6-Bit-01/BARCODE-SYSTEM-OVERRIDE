@@ -387,84 +387,24 @@ window.JammerIndicator = class JammerIndicator {
     }
   }
   
-  // Check if any jammer enemy is off-screen
-  static hasOffScreenJammer(enemies, playerX, playerY) {
-    // Enhanced parameter validation
-    if (!enemies || enemies.length === 0) return false;
-    if (!playerX || !playerY) {
-      playerX = playerX || 960;
-      playerY = playerY || 750;
-    }
-    
-    // Filter for jammer enemies and check if any are off-screen
-    return enemies.some(enemy => {
-      if (!enemy || !enemy.active || enemy.type !== 'jammer' || !enemy.position) return false;
-      
-      // Check if jammer enemy is on-screen
-      const zoomLevel = window.renderer ? window.renderer.getZoomLevel() : 1.0;
-      const visibleWidth = 1920 / zoomLevel;
-      const visibleHeight = 850 / zoomLevel;
-      
-      const leftBound = playerX - visibleWidth / 2;
-      const rightBound = playerX + visibleWidth / 2;
-      const topBound = playerY - visibleHeight / 2;
-      const bottomBound = playerY + visibleHeight / 2;
-      
-      const margin = 50;
-      return !(
-        enemy.position.x >= leftBound - margin &&
-        enemy.position.x <= rightBound + margin &&
-        enemy.position.y >= topBound - margin &&
-        enemy.position.y <= bottomBound + margin
-      );
-    });
+  // Check whether the environmental Jammer is off-screen. The Jammer is not an enemy.
+  static hasOffScreenJammer(_enemies, playerX, playerY) {
+    const position = window.BARCODE && window.BARCODE.JammerEnvironment ? window.BARCODE.JammerEnvironment.getPosition() : null;
+    if (!position) return false;
+    const temp = new window.JammerIndicator();
+    temp.targetPosition = position;
+    return !temp.isJammerOnScreen(playerX, playerY);
   }
-  
-  // Get the nearest off-screen jammer enemy
-  static getNearestOffScreenJammer(enemies, playerX, playerY) {
-    // Enhanced parameter validation
-    if (!enemies || enemies.length === 0) return null;
-    if (!playerX || !playerY) {
-      playerX = playerX || 960;
-      playerY = playerY || 750;
-    }
-    
-    let nearestJammer = null;
-    let minDistance = Infinity;
-    
-    enemies.forEach(enemy => {
-      if (!enemy || !enemy.active || enemy.type !== 'jammer' || !enemy.position) return;
-      
-      const dist = window.distance(playerX, playerY, enemy.position.x, enemy.position.y);
-      
-      if (dist < minDistance) {
-        // Check if this jammer enemy is off-screen
-        const zoomLevel = window.renderer ? window.renderer.getZoomLevel() : 1.0;
-        const visibleWidth = 1920 / zoomLevel;
-        const visibleHeight = 850 / zoomLevel;
-        
-        const leftBound = playerX - visibleWidth / 2;
-        const rightBound = playerX + visibleWidth / 2;
-        const topBound = playerY - visibleHeight / 2;
-        const bottomBound = playerY + visibleHeight / 2;
-        
-        const margin = 50;
-        const isOnScreen = (
-          enemy.position.x >= leftBound - margin &&
-          enemy.position.x <= rightBound + margin &&
-          enemy.position.y >= topBound - margin &&
-          enemy.position.y <= bottomBound + margin
-        );
-        
-        if (!isOnScreen) {
-          minDistance = dist;
-          nearestJammer = enemy;
-        }
-      }
-    });
-    
-    return nearestJammer;
+
+  // Get the environmental Jammer target when it is off-screen.
+  static getNearestOffScreenJammer(_enemies, playerX, playerY) {
+    const position = window.BARCODE && window.BARCODE.JammerEnvironment ? window.BARCODE.JammerEnvironment.getPosition() : null;
+    if (!position) return null;
+    const temp = new window.JammerIndicator();
+    temp.targetPosition = position;
+    return temp.isJammerOnScreen(playerX, playerY) ? null : { position, environmental: true, active: true };
   }
+
 };
 
 // Initialize global jammer indicator

@@ -67,3 +67,12 @@ Known missing assets that must be listed honestly before the vertical slice is c
 - PR-006 should make enemy timing and telegraphs readable against the music without redesigning all combat at once.
 - PR-007 should remove reliance on kill quotas or jammer destruction as progression gates in favor of authored spatial/musical milestones.
 - PR-008 should introduce an owner-approved Level 1 boss identity and transition that grows naturally from the final arena.
+
+
+## PR #8 enemy/Jammer ownership note
+
+PR #8 establishes the single active enemy owner in `src/game/enemies.js`. Virus, Corrupted, and Firewall remain the only active enemy archetypes, with approximate prototype feel preserved pending final encounter tuning. Enemy defeats are an authoritative `EnemyManager` event and are not summed with sector or game-state projections.
+
+The Broadcast Jammer is owned by `BARCODE.JammerEnvironment`. It is an environmental trigger/presentation object, not an enemy, not a kill gate, and not destroyable. It exposes reveal/trigger/reset/dispose/status operations for future stage code, while the final Relay Stage sequence, boss transition, authored objectives, checkpoints, and final audiovisual choreography remain deferred to the authored Level 1 stage PR.
+
+Enemy simulation uses milliseconds at manager/API boundaries with explicit seconds conversion for position integration. Enemy/enemy and enemy/player collision orchestration is owned by `EnemyManager.update()`, including finite fallback directions for exact-overlap separation.

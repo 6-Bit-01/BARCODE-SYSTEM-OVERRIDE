@@ -1,51 +1,20 @@
 # Known Issues
 
-## Confirmed repository fact
+## Resolved in PR #8 scope
 
-- Missing first-party runtime path: `/lib/MakkoEngine.min.js` from `index.html`.
-- Archived inactive syntax failure: `src/core/boot.js` was not loaded by `index.html` and, after owner Makko testing found Makko parses every `.js` file, was moved byte-for-byte to `docs/archive/pre-pr001/inactive-source/src/core/boot.js.txt`.
-- Archived inactive syntax failure: `src/core/game/game-manager.js` was not loaded by `index.html` and, after owner Makko testing found Makko parses every `.js` file, was moved byte-for-byte to `docs/archive/pre-pr001/inactive-source/src/core/game/game-manager.js.txt`.
-- Loaded duplicate enemy globals: `src/game/enemies.js` and `jammer-fix-patch.js` both define `window.Enemy`, `window.EnemyManager`, and initialize `window.enemyManager`.
-- Active enemy override order: `index.html` loads `jammer-fix-patch.js` after `src/game/enemies.js`, so the late-loaded `jammer-fix-patch.js` definitions are the active enemy classes and manager.
-- Confirmed active enemy movement debt: the active `jammer-fix-patch.js` enemy implementation applies base `Enemy.update()` position integration and also contains behavior-level position integration for virus entrance, corrupted entrance, and firewall movement. PR-003 intentionally preserves this behavior to avoid an untested enemy tuning change.
+- Duplicate active enemy globals were consolidated into the single active enemy owner in `src/game/enemies.js`.
+- The active Jammer is now `BARCODE.JammerEnvironment`, not an enemy.
+- Enemy defeats now flow through one authoritative defeat event owned by `EnemyManager.recordDefeat()` and projected to legacy counters instead of adding manager, sector, and game-state totals together.
+- Enemy/Jammer lifecycle diagnostics are exposed through `RuntimeLifecycle.getDiagnostics()`.
 
-## Static code inference
+## Remaining known debt
 
-- Several inactive files contain older lifecycle paths that should not be treated as current authority without re-audit.
-- Static inspection identifies `index.html` as the active lifecycle owner for boot monitoring and the start-button sequence; the single-flight guard and monitor cleanup reduce duplicate-start risk but do not replace Owner/Makko verification.
-- Enemy movement consolidation should be assigned to PR-006, where enemy behavior and encounter direction can be tested together with any single-integration refactor.
+- Enemy tuning, final combat controls, final authored Level 1 stage geometry, Relay Stage choreography, boss transition, and campaign/save routing are deferred to later owner-approved PRs.
+- Virus, Corrupted, and Firewall art/feel are preserved approximately from the prototype; final encounter pacing remains asset/feel debt for the authored Level 1 stage PR.
+- The current time convention for enemy simulation is milliseconds at manager/API boundaries with explicit per-frame seconds conversion for integration; older non-enemy systems may still contain wall-clock compatibility code outside this PR's scope.
+- The Jammer environmental presentation is a compatibility presentation only. Final signal-distortion sequence, Relay gate retune, boss lead-in, and checkpoint behavior are intentionally deferred to the authored Level 1 stage PR.
 
-## Not runtime-tested
 
-- The practical gameplay feel of the active duplicate enemy integration has not been measured in Makko/browser.
-- External asset reachability was not network-validated; hosts were inventoried statically only.
+## Lifecycle validation notes
 
-## Owner/Makko verification required
-
-- Confirm title presentation, prologue, gameplay feel, audio, camera, sprites, and restart are unchanged after importing this branch into a duplicate Makko project.
-- Specifically test rapid start-button clicks/Space presses, failed-start retry UI, prologue presentation, gameplay entry, pause/resume, and restart behavior.
-
-## PR #7 deferred lifecycle/resource debt
-
-- `RuntimeLifecycle` now owns first Start, retry, pause/resume, game-over restart, explicit stop, compatibility state projection, and non-polling diagnostics, but it deliberately does not claim every historical transient gameplay timer in the repository is globally leak-free.
-- The v4 source pack lifecycle card was originally numbered PR #6; in repository history this branch is PR #7 because PR #6 was the approved Makko music-profile/rhythm startup hotfix.
-- The broad inactive `src/game/main.js` action handler remains legacy evidence only and is not loaded or revived. Future action-input work should replace raw-key gameplay routing rather than expanding the legacy handler.
-- Enemy ownership, duplicate enemy globals, jammer semantics, and behavior-level double integration remain deferred to the later single-enemy-owner PR.
-
-## PR #7 review-fix ownership classification
-
-Application-lifetime singletons intentionally retained across runs: decoded/shared image and audio assets, `AudioContext`, registered music profiles, the global input manager, parallax/lore/lost-data/objective/sector/jammer singleton objects when their init functions return an existing live instance, and the boot asset monitor while boot loading is active.
-
-Run-owned resources that now reset, dispose, or generation-invalidate lifecycle work: gameplay RAF, gameplay music source sets, MusicTransport running state, layer beat synchronization, cutscene timers/listeners/fade callbacks, hacking puzzle/tutorial timeouts, pending spaceship foreground-spawn timeouts, transient particles, rhythm/hacking overlays, and restart-owned audio resynchronization.
-
-Static validators assert structural guards for these fixes, but they do not prove Makko/browser runtime behavior. Owner smoke testing remains required for pause/resume, restart from running, restart from paused, cutscene-fade interruption, and full stop followed by delayed observation.
-
-## PR #7 follow-up correction notes
-
-Game-over Space restart is lifecycle-owned: restart keeps saved progress policy intact, clears only runtime terminal flags (`gameOver` and `victory`), resets player health/position/velocity through the existing run reset, and invalidates pending initial-enemy spawns before the next running generation.
-
-Validation scripts are now source-inspection only for music-profile coverage. `tools/check-music-profiles.js` no longer executes browser runtime files in a VM; syntax tooling uses `node --check` on temporary files instead of `vm.Script`.
-
-Audio runtime callbacks that can mutate gameplay music after stop/restart are now generation-owned and registered through AudioSystem runtime timeout tracking. Application-lifetime browser-policy listeners and asset-loading timeouts remain outside that run-owned registry unless they mutate stopped gameplay audio.
-
-Fresh lifecycle restart intentionally differs from pause/resume: pause/resume preserves rhythm continuity, while a fresh gameplay music restart calls the rhythm restart hook so beat counters and tempo-establishment state re-anchor to the new MusicTransport generation.
+Runtime lifecycle owner remains `BARCODE.RuntimeLifecycle`, preserving the PR #7 single-flight start/retry/restart behavior. Static inspection remains the automated proof layer; Owner/Makko browser testing is still required before merge for title, intro, gameplay feel, audio, camera, sprites, restart, and environmental Jammer smoke checks.

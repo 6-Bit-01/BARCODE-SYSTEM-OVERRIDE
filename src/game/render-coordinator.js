@@ -369,8 +369,10 @@ function drawGameEntities(ctx) {
     }
   }
   
-  // Jammer enemies are now drawn through the regular EnemyManager
-  // No separate jammer system drawing needed
+  // Environmental Jammer is drawn outside EnemyManager.
+  if (window.BARCODE && window.BARCODE.JammerEnvironment && typeof window.BARCODE.JammerEnvironment.draw === 'function') {
+    window.BARCODE.JammerEnvironment.draw(ctx);
+  }
   
   // Draw sector progression elements
   if (window.sector1Progression) {

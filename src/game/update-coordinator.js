@@ -134,28 +134,21 @@ function updateVisualSystems(deltaTime) {
     }
   }
   
-  // Jammer enemies are now handled through the regular EnemyManager
-  // No separate jammer system update needed
-  
-  // Update jammer indicator system
+  // Update environmental Jammer owner; it is not part of enemy simulation.
+  if (window.BARCODE && window.BARCODE.JammerEnvironment && typeof window.BARCODE.JammerEnvironment.update === 'function') {
+    try {
+      window.BARCODE.JammerEnvironment.update(deltaTime);
+    } catch (error) {
+      console.error('Error updating jammer environment:', error?.message || error);
+    }
+  }
+
+  // Update jammer indicator system from environmental state.
   if (window.jammerIndicator && typeof window.jammerIndicator.update === 'function') {
     try {
       const playerX = window.player ? window.player.position.x : 960;
       const playerY = window.player ? window.player.position.y : 750;
-      
-      // Check for active jammer enemy
-      let jammerPosition = null;
-      
-      if (window.enemyManager && window.enemyManager.enemies) {
-        const jammerEnemy = window.enemyManager.enemies.find(e => e.type === 'jammer' && e.active);
-        if (jammerEnemy) {
-          jammerPosition = {
-            x: jammerEnemy.position.x,
-            y: jammerEnemy.position.y
-          };
-        }
-      }
-      
+      const jammerPosition = window.BARCODE && window.BARCODE.JammerEnvironment ? window.BARCODE.JammerEnvironment.getPosition() : null;
       window.jammerIndicator.update(deltaTime, jammerPosition, playerX, playerY);
     } catch (error) {
       console.error('Error updating jammer indicator:', error?.message || error);
@@ -173,8 +166,7 @@ function updateSectorProgression(deltaTime) {
         typeof window.tutorialSystem.isCompleted === 'function' && 
         window.tutorialSystem.isCompleted();
       
-      // NOTE: Removed redundant jammer reveal calls - objectives system handles this exclusively
-      // The objectives system will handle jammer spawning when 20 enemies are defeated
+      // Jammer reveal/trigger is owned by BARCODE.JammerEnvironment and explicit stage/debug calls.
     } catch (error) {
       console.error('Error updating Sector 1 progression:', error?.message || error);
     }

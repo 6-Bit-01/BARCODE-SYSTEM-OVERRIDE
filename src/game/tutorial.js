@@ -139,7 +139,7 @@ window.TutorialSystem = class TutorialSystem {
         this.addDialogue('Your mission: Find 9 Bit and restore the BARCODE Network.', 'guide', 4000);
         this.addDialogue('The fate of the digital world is in your hands.', 'guide', 4000);
         this.addDialogue('Good luck, hacker-rapper.', 'guide', 0);
-        this.addObjective('Eliminate 20 enemies to reveal jammer', 'level_clear');
+        this.addObjective('Practice movement, rhythm, and hacking in the sandbox', 'level_clear');
         
         // CRITICAL FIX: Complete tutorial immediately when final chapter starts
         // Chapter 4 has no objectives to complete, so we need to trigger completion manually
