@@ -322,7 +322,7 @@ window.handleGameAction = function(action) {
           window.rhythmSystem.show();
           console.log('🎵 CRITICAL: Rhythm mode activated - preserving continuous beat timing');
         } else if (typeof window.rhythmSystem.showRhythmMode === 'function') {
-          window.rhythmSystem.showRhythmMode(146 + window.gameState.level * 5);
+          window.rhythmSystem.showRhythmMode();
         }
         if (window.tutorialSystem && window.tutorialSystem.isActive()) {
           if (typeof window.tutorialSystem.checkObjective === 'function') {

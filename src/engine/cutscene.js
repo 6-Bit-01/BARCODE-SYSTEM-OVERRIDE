@@ -824,7 +824,7 @@ window.CutsceneSystem = class CutsceneSystem {
         audioSystem.startMusicSystem();
       }
       if (window.rhythmSystem && typeof window.rhythmSystem.startBackgroundRhythm === 'function') {
-        window.rhythmSystem.startBackgroundRhythm(146);
+        window.rhythmSystem.startBackgroundRhythm();
       }
       return;
     }
@@ -844,7 +844,7 @@ window.CutsceneSystem = class CutsceneSystem {
         audioSystem.startMusicSystem();
       }
       if (window.rhythmSystem && typeof window.rhythmSystem.startBackgroundRhythm === 'function') {
-        window.rhythmSystem.startBackgroundRhythm(146);
+        window.rhythmSystem.startBackgroundRhythm();
       }
       return;
     }
@@ -905,7 +905,7 @@ window.CutsceneSystem = class CutsceneSystem {
         // This ensures beat tracking only begins when music restarts
         if (window.rhythmSystem && typeof window.rhythmSystem.startBackgroundRhythm === 'function') {
           console.log('🎬 Starting rhythm system background tracking with fresh music');
-          window.rhythmSystem.startBackgroundRhythm(146);
+          window.rhythmSystem.startBackgroundRhythm();
           console.log('🎬 Rhythm beat tracking now active - synchronized with fresh music start');
         }
         
@@ -924,7 +924,7 @@ window.CutsceneSystem = class CutsceneSystem {
         audioSystem.startMusicSystem();
       }
       if (window.rhythmSystem && typeof window.rhythmSystem.startBackgroundRhythm === 'function') {
-        window.rhythmSystem.startBackgroundRhythm(146);
+        window.rhythmSystem.startBackgroundRhythm();
       }
     }
   }

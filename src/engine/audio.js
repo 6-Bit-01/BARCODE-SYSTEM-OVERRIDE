@@ -3,7 +3,7 @@ window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({
   name: 'src/engine/audio.js',
   exports: ['AudioSystem', 'audioSystem'],
-  dependencies: []
+  dependencies: ['BARCODE.MusicProfiles', 'BARCODE.MusicTransport']
 });
 
 window.AudioSystem = class AudioSystem {
@@ -156,7 +156,8 @@ window.AudioSystem = class AudioSystem {
       
       // CRITICAL: Force create ALL fallback tracks first, then start layers
       console.log('Creating fallback tracks for all missing audio...');
-      const requiredTracks = ['foundation', 'bass-layer', 'fx-layer'];
+      const activeProfile = window.BARCODE && window.BARCODE.MusicProfiles && window.BARCODE.MusicProfiles.getActive();
+      const requiredTracks = activeProfile ? activeProfile.arrangement.sources.map(source => source.sourceId) : [];
       
       for (const trackName of requiredTracks) {
         if (!this.musicTracks[trackName]) {
@@ -180,7 +181,8 @@ window.AudioSystem = class AudioSystem {
       console.log('Available tracks:', Object.keys(this.musicTracks));
       
       // CRITICAL: Do NOT start music during initialization - wait for game start after cutscenes
-      if (this.musicTracks['foundation']) {
+      const primarySource = activeProfile && activeProfile.arrangement.sources[0];
+      if (primarySource && this.musicTracks[primarySource.sourceId]) {
         console.log('Music tracks loaded - waiting for game start after cutscenes');
         
         // CRITICAL: Do NOT start rhythm system yet - wait for game start
@@ -1831,11 +1833,15 @@ window.AudioSystem = class AudioSystem {
   
   // Load music tracks
   async loadMusicTracks() {
-    const trackUrls = {
-      'foundation': 'https://dcnmwoxzefwqmvvkpqap.supabase.co/storage/v1/object/public/audio-assets/e56876ca-50d1-4b32-bcb9-1e37b7d1f822/2133657a-6dbe-47c0-b4c3-4cb9849b3c58.mp3',
-      'bass-layer': 'https://dcnmwoxzefwqmvvkpqap.supabase.co/storage/v1/object/public/audio-assets/e56876ca-50d1-4b32-bcb9-1e37b7d1f822/5089debd-8927-4409-88f1-785be8508686.mp3',
-      'fx-layer': 'https://dcnmwoxzefwqmvvkpqap.supabase.co/storage/v1/object/public/audio-assets/e56876ca-50d1-4b32-bcb9-1e37b7d1f822/1e86d080-84ac-45df-b591-5e433ae5ec8f.mp3'
-    };
+    const profile = window.BARCODE && window.BARCODE.MusicProfiles && window.BARCODE.MusicProfiles.getActive();
+    if (!profile) {
+      console.warn('No exact music profile selected; music loading is degraded and will not fall back to Level 1.');
+      return;
+    }
+    const trackUrls = {};
+    profile.arrangement.sources.forEach(source => {
+      if (source.url) trackUrls[source.sourceId] = source.url;
+    });
     
     for (const [name, url] of Object.entries(trackUrls)) {
       let trackLoaded = false;
@@ -2023,7 +2029,8 @@ window.AudioSystem = class AudioSystem {
     // CRITICAL: Start loop detection when music starts
     this.startLoopDetection();
     
-    const layerNames = ['foundation', 'bass-layer', 'fx-layer'];
+    const profile = window.BARCODE && window.BARCODE.MusicProfiles && window.BARCODE.MusicProfiles.getActive();
+    const layerNames = profile ? profile.arrangement.sources.map(source => source.sourceId) : [];
     
     // Find the shortest buffer length to use as sync reference
     let shortestDuration = Infinity;
@@ -2068,24 +2075,14 @@ window.AudioSystem = class AudioSystem {
       // Create new source
       const source = this.context.createBufferSource();
       source.buffer = track.buffer;
-      source.loop = true;
+      const sourceProfile = profile.arrangement.sources.find(source => source.sourceId === layerName);
+      source.loop = sourceProfile ? sourceProfile.nativeLoop : false;
       
       // Create gain
       const layerGain = this.context.createGain();
       
-      // Set appropriate volume
-      let targetVolume = 0;
-      switch(layerName) {
-        case 'foundation':
-          targetVolume = 0.8;
-          break;
-        case 'bass-layer':
-          targetVolume = 0; // Silent initially
-          break;
-        case 'fx-layer':
-          targetVolume = 0; // Silent initially
-          break;
-      }
+      // Set profile-authored initial source gain.
+      let targetVolume = sourceProfile ? sourceProfile.gain : 0;
       
       layerGain.gain.value = targetVolume;
       
@@ -2094,7 +2091,7 @@ window.AudioSystem = class AudioSystem {
       layerGain.connect(this.musicGain);
       
       // Start at exact sync time
-      source.start(syncTime, 0);
+      source.start(syncTime, sourceProfile ? sourceProfile.offsetSec : 0);
       
       // Update track info
       track.source = source;
@@ -2107,6 +2104,9 @@ window.AudioSystem = class AudioSystem {
     });
     
     this.layersStarted = true;
+    if (window.BARCODE && window.BARCODE.MusicTransport) {
+      window.BARCODE.MusicTransport.start({ sourceAnchorAudioSec: syncTime, sourceOffsetTrackSec: profile.playback.startTrackSec || 0 });
+    }
     
     // Initialize layer system after sync
     setTimeout(() => {
@@ -2147,11 +2147,11 @@ window.AudioSystem = class AudioSystem {
   calculateLoopDuration() {
     // CRITICAL FIX: Use fixed duration of 3 minutes and 31 seconds (211 seconds)
     // This prevents premature restarts and ensures consistent timing
-    const targetLoopDuration = 3 * 60 + 31; // 3 minutes and 31 seconds = 211 seconds
+    const profile = window.BARCODE && window.BARCODE.MusicProfiles && window.BARCODE.MusicProfiles.getActive();
+    const targetLoopDuration = profile && profile.playback.legacyManualRestartSec; // Level 1 legacy manual restart seconds
     
     let durationDetails = [];
-    
-    const layerNames = ['foundation', 'bass-layer', 'fx-layer'];
+    const layerNames = profile ? profile.arrangement.sources.map(source => source.sourceId) : [];
     layerNames.forEach(layerName => {
       const track = this.musicTracks[layerName];
       if (track && track.buffer && track.buffer.duration) {
@@ -2180,8 +2180,10 @@ window.AudioSystem = class AudioSystem {
     }
     
     // CRITICAL: Don't check loops if no layers are playing
-    if (!this.layersStarted || !this.musicTracks['foundation'] || !this.musicTracks['foundation'].isPlaying) {
-      return; // No active music to loop
+    const activeProfile = window.BARCODE && window.BARCODE.MusicProfiles && window.BARCODE.MusicProfiles.getActive();
+    const primarySource = activeProfile && activeProfile.arrangement.sources[0];
+    if (!this.layersStarted || !primarySource || !this.musicTracks[primarySource.sourceId] || !this.musicTracks[primarySource.sourceId].isPlaying) {
+      return; // No active profile source to loop
     }
     
     // CRITICAL FIX: Only restart when tracks have ACTUALLY completed their full duration
@@ -2232,7 +2234,8 @@ window.AudioSystem = class AudioSystem {
     }
     
     // Step 2: Pause all layers for 1 second
-    const layerNames = ['foundation', 'bass-layer', 'fx-layer'];
+    const profile = window.BARCODE && window.BARCODE.MusicProfiles && window.BARCODE.MusicProfiles.getActive();
+    const layerNames = profile ? profile.arrangement.sources.map(source => source.sourceId) : [];
     
     // Fade out layers gradually
     layerNames.forEach(layerName => {
@@ -2276,7 +2279,8 @@ window.AudioSystem = class AudioSystem {
           
           const source = this.context.createBufferSource();
           source.buffer = track.buffer;
-          source.loop = true;
+          const sourceProfile = profile && profile.arrangement.sources.find(source => source.sourceId === layerName);
+          source.loop = sourceProfile ? sourceProfile.nativeLoop : false;
           
           const layerGain = this.context.createGain();
           const targetVolume = this.getCurrentLayerVolume(layerName);
@@ -2287,7 +2291,7 @@ window.AudioSystem = class AudioSystem {
           
           source.connect(layerGain);
           layerGain.connect(this.musicGain);
-          source.start(restartTime, 0);
+          source.start(restartTime, sourceProfile ? sourceProfile.offsetSec : 0);
           
           track.source = source;
           track.startTime = restartTime;
@@ -2298,6 +2302,9 @@ window.AudioSystem = class AudioSystem {
         
         this.layersStarted = true;
         this.loopStartTime = restartTime;
+        if (window.BARCODE && window.BARCODE.MusicTransport) {
+          window.BARCODE.MusicTransport.coordinatedRestart(restartTime);
+        }
         
         // Step 5: Restart rhythm system completely for fresh 3:31 loop
         if (window.rhythmSystem && window.rhythmSystem.isRunning()) {
@@ -2311,8 +2318,7 @@ window.AudioSystem = class AudioSystem {
           this.beatSyncActive = true;
           this.syncBeatCount = 0;
           this.firstBeatTime = null;
-          this.scheduleNextBeatSync();
-          console.log('🎵 Step 5b: Beat sync restarted with fresh timing');
+          console.log('🎵 Step 5b: Beat sync will be pumped by the frame-owned transport polling');
         }
         
         this.isLooping = false;
@@ -2373,14 +2379,16 @@ window.AudioSystem = class AudioSystem {
     // For synchronization: try to sync with existing layers if they're playing
     let startTime = this.context.currentTime;
     
-    // If other layers are already playing, try to sync this layer with them
+    // If other layers are already playing, try to sync this layer with the active profile's primary source.
     if (this.layersStarted) {
-      const foundationTrack = this.musicTracks['foundation'];
-      if (foundationTrack && foundationTrack.isPlaying && foundationTrack.startTime) {
-        // Calculate offset to sync with foundation layer
-        const elapsed = (this.context.currentTime - foundationTrack.startTime) % foundationTrack.buffer.duration;
-        startTime = foundationTrack.startTime + elapsed;
-        console.log(`Syncing ${layerName} with foundation layer at offset ${elapsed}`);
+      const activeProfile = window.BARCODE && window.BARCODE.MusicProfiles && window.BARCODE.MusicProfiles.getActive();
+      const primarySource = activeProfile && activeProfile.arrangement.sources[0];
+      const primaryTrack = primarySource && this.musicTracks[primarySource.sourceId];
+      if (primaryTrack && primaryTrack.isPlaying && primaryTrack.startTime) {
+        // Calculate offset to sync with the profile primary layer.
+        const elapsed = (this.context.currentTime - primaryTrack.startTime) % primaryTrack.buffer.duration;
+        startTime = primaryTrack.startTime + elapsed;
+        console.log(`Syncing ${layerName} with ${primarySource.sourceId} at offset ${elapsed}`);
       }
     }
     
@@ -2399,7 +2407,9 @@ window.AudioSystem = class AudioSystem {
     // Create new source
     const source = this.context.createBufferSource();
     source.buffer = track.buffer;
-    source.loop = true;
+    const activeProfile = window.BARCODE && window.BARCODE.MusicProfiles && window.BARCODE.MusicProfiles.getActive();
+    const sourceProfile = activeProfile && activeProfile.arrangement.sources.find(sourceInfo => sourceInfo.sourceId === layerName);
+    source.loop = sourceProfile ? sourceProfile.nativeLoop : false;
     
     // Create individual gain for this layer
     const layerGain = this.context.createGain();
@@ -2410,7 +2420,7 @@ window.AudioSystem = class AudioSystem {
     layerGain.connect(this.musicGain);
     
     try {
-      source.start(startTime, 0); // Start at calculated time, offset 0
+      source.start(startTime, sourceProfile ? sourceProfile.offsetSec : 0); // Start at profile-authored offset
       console.log(`Started music layer: ${layerName} at volume ${volume}, synced to time ${startTime}`);
     } catch (error) {
       console.error(`Failed to start music layer ${layerName}:`, error?.message || error?.toString() || 'Unknown error');
@@ -2451,7 +2461,8 @@ window.AudioSystem = class AudioSystem {
     // CRITICAL: Pause music during cutscenes
     if (window.cutsceneSystem && typeof window.cutsceneSystem.isPlaying === 'function' && window.cutsceneSystem.isPlaying()) {
       // Mute all layers during cutscene
-      const layerNames = ['foundation', 'bass-layer', 'fx-layer'];
+      const profile = window.BARCODE && window.BARCODE.MusicProfiles && window.BARCODE.MusicProfiles.getActive();
+      const layerNames = profile ? profile.arrangement.sources.map(source => source.sourceId) : [];
       layerNames.forEach(layerName => {
         const track = this.musicTracks[layerName];
         if (track && track.gain) {
@@ -2675,7 +2686,8 @@ window.AudioSystem = class AudioSystem {
     this.stopCutsceneMusic();
     
     // Force stop all existing layers first
-    const layerNames = ['foundation', 'bass-layer', 'fx-layer'];
+    const profile = window.BARCODE && window.BARCODE.MusicProfiles && window.BARCODE.MusicProfiles.getActive();
+    const layerNames = profile ? profile.arrangement.sources.map(source => source.sourceId) : [];
     layerNames.forEach(layerName => {
       const track = this.musicTracks[layerName];
       if (track && track.source) {
@@ -2797,62 +2809,13 @@ window.AudioSystem = class AudioSystem {
   
   // Start layer beat sync for rhythm system
   startLayerBeatSync() {
-    if (this.layerBeatSyncInterval) {
-      clearInterval(this.layerBeatSyncInterval);
-    }
-    
-    // CRITICAL FIX: Use Web Audio API precise timing instead of setInterval to prevent drift
-    // 146 BPM = 146/60 = 2.4333 beats per second = 1/2.4333 = 0.411 seconds per beat
-    const beatIntervalSeconds = 60 / 146; // 0.41096 seconds - PRECISE
-    
-    console.log(`🎵 Starting PRECISE beat sync: ${beatIntervalSeconds * 1000}ms intervals (146 BPM)`);
-    
-    // CRITICAL: Activate beat sync flag
     this.beatSyncActive = true;
-    
-    // CRITICAL: Use Web Audio API's precise timing instead of setInterval
-    // setInterval accumulates timing errors that cause UI drift
-    this.scheduleNextBeatSync();
+    console.log('🎵 Beat sync armed; frame-owned rhythm update polls BARCODE.MusicTransport');
   }
   
-  // CRITICAL FIX: More precise beat sync scheduling
+  // Legacy recursive beat scheduling is disabled; transport polling owns beat boundaries.
   scheduleNextBeatSync() {
-    if (!this.context || !window.rhythmSystem || !window.rhythmSystem.isRunning() || !this.beatSyncActive) {
-      return;
-    }
-    
-    const beatIntervalSeconds = 60 / 146; // 0.41096 seconds - PRECISE
-    const currentTime = this.context.currentTime;
-    
-    // CRITICAL FIX: Use EXACT timing alignment to prevent any drift
-    // Schedule the next beat at PRECISE intervals from a fixed reference point
-    if (!this.firstBeatTime) {
-      this.firstBeatTime = currentTime;
-    }
-    
-    // Calculate beats elapsed since first beat
-    const beatsElapsed = Math.floor((currentTime - this.firstBeatTime) / beatIntervalSeconds);
-    const nextBeatTime = this.firstBeatTime + ((beatsElapsed + 1) * beatIntervalSeconds);
-    
-    // Calculate exact delay until next beat
-    const delaySeconds = nextBeatTime - currentTime;
-    const delayMs = Math.max(1, delaySeconds * 1000); // Minimum 1ms to prevent issues
-    
-    // Reduced logging for performance - only log every 16 beats
-    if (this.syncBeatCount % 16 === 0) {
-      console.log(`🎵 PRECISE SYNC: Beat ${this.syncBeatCount} scheduled in ${delayMs.toFixed(1)}ms`);
-    }
-    
-    this.syncBeatCount++;
-    
-    // Schedule the sync call using setTimeout for the next beat
-    setTimeout(() => {
-      if (window.rhythmSystem && window.rhythmSystem.isRunning() && this.beatSyncActive) {
-        window.rhythmSystem.syncWithAudioBeat();
-        // Recursively schedule the next beat
-        this.scheduleNextBeatSync();
-      }
-    }, delayMs);
+    return;
   }
   
   // Stop layer beat sync
