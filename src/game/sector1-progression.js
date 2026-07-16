@@ -79,7 +79,7 @@ window.Sector1Progression = class Sector1Progression {
 
 window.initSector1Progression = function(player) {
   if (window.sector1Progression) {
-    return window.sector1Progression; // idempotent lifecycle init: retain the live instance
+    return window.sector1Progression;
   }
   window.sector1Progression = new window.Sector1Progression();
   window.sector1Progression.init(player);

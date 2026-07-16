@@ -50,6 +50,13 @@ window.CutsceneSystem = class CutsceneSystem {
     this.nextImageTimer = null;
     this.inputDisabled = false;
     this.inputDisableTimer = null;
+    this.cutsceneGeneration = 0;
+    this.ownedTimeouts = new Set();
+    this.ownedIntervals = new Set();
+    this.containerRemovalTimer = null;
+    this.fadeCompletionTimer = null;
+    this.titleMusicUnblockTimer = null;
+    this.fadeCheckInterval = null;
     
     // Hold to skip system
     this.skipHoldTimer = null;
@@ -81,6 +88,48 @@ window.CutsceneSystem = class CutsceneSystem {
     ];
   }
   
+  trackTimeout(callback, delay) {
+    const generation = this.cutsceneGeneration;
+    const handle = setTimeout(() => {
+      this.ownedTimeouts.delete(handle);
+      if (generation === this.cutsceneGeneration) callback();
+    }, delay);
+    this.ownedTimeouts.add(handle);
+    return handle;
+  }
+
+  trackInterval(callback, delay) {
+    const generation = this.cutsceneGeneration;
+    const handle = setInterval(() => {
+      if (generation !== this.cutsceneGeneration) {
+        clearInterval(handle);
+        this.ownedIntervals.delete(handle);
+        return;
+      }
+      callback();
+    }, delay);
+    this.ownedIntervals.add(handle);
+    return handle;
+  }
+
+  clearOwnedCallbacks() {
+    this.ownedTimeouts.forEach(handle => clearTimeout(handle));
+    this.ownedIntervals.forEach(handle => clearInterval(handle));
+    this.ownedTimeouts.clear();
+    this.ownedIntervals.clear();
+    this.nextImageTimer = null;
+    this.inputDisableTimer = null;
+    this.containerRemovalTimer = null;
+    this.fadeCompletionTimer = null;
+    this.titleMusicUnblockTimer = null;
+    this.fadeCheckInterval = null;
+    this.skipHoldProgressInterval = null;
+  }
+
+  getDiagnostics() {
+    return { active: !!this.isActive, generation: this.cutsceneGeneration, timeouts: this.ownedTimeouts.size, intervals: this.ownedIntervals.size, listenersAttached: !!this.skipHandler, hasContainer: !!this.cutsceneContainer };
+  }
+
   // Preload all cutscene images
   async preloadImages() {
     console.log('🎬 Preloading cutscene images...');
@@ -204,7 +253,7 @@ window.CutsceneSystem = class CutsceneSystem {
     }
     
     // Additional delay to ensure title music is fully stopped
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => this.trackTimeout(resolve, 100));
     
     // Start cutscene music
     if (window.audioSystem && typeof window.audioSystem.playCutsceneMusic === 'function') {
@@ -214,6 +263,8 @@ window.CutsceneSystem = class CutsceneSystem {
       console.log('🎬 Cutscene music not available');
     }
     
+    this.cutsceneGeneration++;
+    this.clearOwnedCallbacks();
     this.isActive = true;
     this.currentImageIndex = 0;
     this.createCutsceneContainer();
@@ -400,7 +451,7 @@ window.CutsceneSystem = class CutsceneSystem {
     document.body.appendChild(this.cutsceneContainer);
     
     // Force container to front in fullscreen mode
-    setTimeout(() => {
+    this.trackTimeout(() => {
       if (this.cutsceneContainer) {
         this.cutsceneContainer.style.zIndex = '99999';
         // Force reflow to ensure visibility
@@ -505,7 +556,7 @@ window.CutsceneSystem = class CutsceneSystem {
     `;
     
     // Fade in new image and subtitle
-    setTimeout(() => {
+    this.trackTimeout(() => {
       if (this.currentImageElement) {
         this.currentImageElement.style.opacity = '1';
       }
@@ -626,7 +677,7 @@ window.CutsceneSystem = class CutsceneSystem {
       clearTimeout(this.inputDisableTimer);
     }
     
-    this.inputDisableTimer = setTimeout(() => {
+    this.inputDisableTimer = this.trackTimeout(() => {
       this.inputDisabled = false;
       console.log('✅ Input re-enabled after temporary disable');
     }, duration);
@@ -697,7 +748,7 @@ window.CutsceneSystem = class CutsceneSystem {
     }
     
     // Start progress update interval
-    this.skipHoldProgressInterval = setInterval(() => {
+    this.skipHoldProgressInterval = this.trackInterval(() => {
       this.updateSkipHoldProgress();
     }, 50); // Update every 50ms for smooth progress
   }
@@ -812,11 +863,12 @@ window.CutsceneSystem = class CutsceneSystem {
       this.cutsceneContainer.style.transition = 'opacity 0.5s ease-out';
       this.cutsceneContainer.style.opacity = '0';
       
-      setTimeout(() => {
-        if (this.cutsceneContainer && this.cutsceneContainer.parentNode) {
-          this.cutsceneContainer.remove();
+      const removalContainer = this.cutsceneContainer;
+      this.containerRemovalTimer = this.trackTimeout(() => {
+        if (this.cutsceneContainer === removalContainer && removalContainer && removalContainer.parentNode) {
+          removalContainer.remove();
+          this.cutsceneContainer = null;
         }
-        this.cutsceneContainer = null;
       }, 500);
     }
     
@@ -874,7 +926,7 @@ window.CutsceneSystem = class CutsceneSystem {
       audioSystem.cutsceneGain.gain.exponentialRampToValueAtTime(0.001, fadeStartTime + fadeDuration);
       
       // Log fade progress
-      const fadeCheckInterval = setInterval(() => {
+      this.fadeCheckInterval = this.trackInterval(() => {
         const currentTime = audioSystem.context.currentTime;
         const currentGain = audioSystem.cutsceneGain.gain.value;
         const elapsed = currentTime - fadeStartTime;
@@ -886,8 +938,8 @@ window.CutsceneSystem = class CutsceneSystem {
       }, 500);
       
       // Wait for fade to complete, then cleanup and start gameplay music
-      setTimeout(() => {
-        clearInterval(fadeCheckInterval);
+      this.fadeCompletionTimer = this.trackTimeout(() => {
+        if (this.fadeCheckInterval) { clearInterval(this.fadeCheckInterval); this.ownedIntervals.delete(this.fadeCheckInterval); this.fadeCheckInterval = null; }
         
         const finalVolume = audioSystem.cutsceneGain.gain.value;
         console.log(`🎬 FADE COMPLETE: Final volume ${finalVolume.toFixed(4)} at 100%`);
@@ -910,7 +962,7 @@ window.CutsceneSystem = class CutsceneSystem {
         
         // CRITICAL: Clear the title screen music block AFTER game music starts
         // This prevents any race conditions where title music could restart
-        setTimeout(() => {
+        this.titleMusicUnblockTimer = this.trackTimeout(() => {
           window.titleScreenMusicBlocked = false;
           console.log('🎬 titleScreenMusicBlocked cleared - game music now active');
         }, 1000);
@@ -929,21 +981,16 @@ window.CutsceneSystem = class CutsceneSystem {
   }
 
   destroy() {
+    this.cutsceneGeneration++;
     this.isActive = false;
     this.removeEventListeners();
-    if (this.nextImageTimer) {
-      clearTimeout(this.nextImageTimer);
-      this.nextImageTimer = null;
-    }
-    if (this.inputDisableTimer) {
-      clearTimeout(this.inputDisableTimer);
-      this.inputDisableTimer = null;
-    }
+    this.clearOwnedCallbacks();
     this.endSkipHold();
     if (this.cutsceneContainer && this.cutsceneContainer.parentNode) {
       this.cutsceneContainer.remove();
     }
     this.cutsceneContainer = null;
+    this.currentImageElement = null;
     this.onComplete = null;
   }
 };
@@ -955,7 +1002,7 @@ window.cutsceneSystem = null;
 window.initCutscene = function() {
   try {
     if (window.cutsceneSystem) {
-      return true; // idempotent lifecycle init: retain the live instance
+      return true;
     }
     window.cutsceneSystem = new window.CutsceneSystem();
     console.log('✓ Cutscene system initialized');

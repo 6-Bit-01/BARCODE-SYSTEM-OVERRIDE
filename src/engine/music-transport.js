@@ -99,7 +99,7 @@ window.BARCODE = window.BARCODE || {};
       if (!Number.isFinite(audioTimeSec)) return makeNoProfile('invalid-resume-audio-time', generation);
       generation++;
       running = true;
-      sourceAnchorAudioSec = audioTimeSec - sourceOffsetTrackSec;
+      sourceAnchorAudioSec = audioTimeSec;
       const grid = fixedGrid(sourceOffsetTrackSec);
       lastBoundaryBeat = grid ? grid.beatIndex : null;
       return sample(audioTimeSec);

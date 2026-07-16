@@ -90,3 +90,9 @@ No browser or Makko execution was performed by Codex.
 - `src/core/loop.js` remains the only active gameplay `requestAnimationFrame` owner. RuntimeLifecycle calls `startGameLoop`, `pauseGame`, `resumeGame`, and `stopGame` without adding another frame scheduler.
 - `src/core/input.js` routes active `P` pause/resume and game-over Space restart directly to `RuntimeLifecycle` instead of relying on the broad legacy `window.handleGameAction` implementation in inactive `src/game/main.js`.
 - The lifecycle feature card named PR #6 in the v4 source pack is implemented as PR #7 because PR #6 became the approved Makko music/rhythm hotfix.
+
+## PR #7 review-fix lifecycle notes
+
+- Runtime pause is audio-first and atomic: gameplay frames are not canceled until `AudioSystem.pauseRuntimeAudio()` has either fully paused audio/transport or rolled back partial audio state.
+- Restart from `running` and from `paused` uses `AudioSystem.prepareRestartAudio()` to resume a suspended context if needed, stop old gameplay sources, stop stale transport state, and then start one fresh gameplay music/rhythm session through the lifecycle restart initializer.
+- Cutscene, hacking, and spaceship systems expose diagnostics for lifecycle-owned delayed callbacks so the owner can inspect whether stale timers/listeners remain after stop/restart cycles.

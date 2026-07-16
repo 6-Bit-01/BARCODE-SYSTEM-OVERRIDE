@@ -136,6 +136,12 @@ window.BARCODE = window.BARCODE || {};
     }
 
     resetRunState({ preserveProgress: !!options.restart });
+    if (options.restart && window.audioSystem && typeof window.audioSystem.startRuntimeGameplayMusic === 'function') {
+      const musicResult = window.audioSystem.startRuntimeGameplayMusic();
+      if (!musicResult || musicResult.ok === false) {
+        throw new Error(`Restart music startup failed: ${musicResult && musicResult.reason || 'unknown'}`);
+      }
+    }
     if (typeof window.startGameLoop === 'function') window.startGameLoop();
     return { ok: true, status: 'started', state, generation };
   }
@@ -187,7 +193,11 @@ window.BARCODE = window.BARCODE || {};
     if (joined) return joined;
     if (state !== STATES.RUNNING && state !== STATES.PAUSED) return Promise.resolve({ ok: false, status: 'invalid-restart-state', state, generation });
     const promise = (async function() {
-      const stopResult = await stop('restart', { restart: true, stopMusic: false });
+      if (window.audioSystem && typeof window.audioSystem.prepareRestartAudio === 'function') {
+        const audioReady = await window.audioSystem.prepareRestartAudio();
+        if (!audioReady || audioReady.ok === false) return { ok: false, status: 'restart-audio-failed', state, generation, diagnostic: audioReady };
+      }
+      const stopResult = await stop('restart', { restart: true, stopMusic: true });
       if (!stopResult.ok) return stopResult;
       options.internal = true;
       return start(options);
@@ -196,25 +206,47 @@ window.BARCODE = window.BARCODE || {};
     return promise;
   }
 
-  async function pause(reason) {
-    if (state === STATES.PAUSED) return { ok: true, status: 'already-paused', state, generation };
-    if (state !== STATES.RUNNING) return { ok: false, status: 'invalid-pause-state', state, generation };
-    if (typeof window.pauseGame === 'function') window.pauseGame();
-    try {
-      if (window.audioSystem && typeof window.audioSystem.pauseRuntimeAudio === 'function') await window.audioSystem.pauseRuntimeAudio();
-    } catch (error) { return { ok: false, status: 'audio-pause-failed', state, generation, diagnostic: serializeError(error) }; }
-    return transition(STATES.PAUSED, reason || 'pause');
+  function pause(reason) {
+    const joined = joinOrReject('pause', 'pause');
+    if (joined) return joined;
+    if (state === STATES.PAUSED) return Promise.resolve({ ok: true, status: 'already-paused', state, generation });
+    if (state !== STATES.RUNNING) return Promise.resolve({ ok: false, status: 'invalid-pause-state', state, generation });
+    const promise = (async function() {
+      const audioResult = window.audioSystem && typeof window.audioSystem.pauseRuntimeAudio === 'function'
+        ? await window.audioSystem.pauseRuntimeAudio()
+        : { ok: true, reason: 'no-audio-system' };
+      if (!audioResult || audioResult.ok === false) {
+        if (typeof window.resumeGame === 'function' && window.isPaused) window.resumeGame();
+        projectCompatibility();
+        return { ok: false, status: 'audio-pause-failed-rolled-back', state, generation, diagnostic: audioResult };
+      }
+      if (typeof window.pauseGame === 'function') window.pauseGame();
+      return transition(STATES.PAUSED, reason || 'pause');
+    })().finally(() => { transitionInFlight = null; });
+    transitionInFlight = { kind: 'pause', generation, promise };
+    return promise;
   }
 
-  async function resume(reason) {
-    if (state === STATES.RUNNING) return { ok: true, status: 'already-running', state, generation };
-    if (state !== STATES.PAUSED) return { ok: false, status: 'invalid-resume-state', state, generation };
-    try {
-      if (window.audioSystem && typeof window.audioSystem.resumeRuntimeAudio === 'function') await window.audioSystem.resumeRuntimeAudio();
-    } catch (error) { return { ok: false, status: 'audio-resume-failed', state, generation, diagnostic: serializeError(error) }; }
-    const result = transition(STATES.RUNNING, reason || 'resume');
-    if (result.ok && typeof window.resumeGame === 'function') window.resumeGame();
-    return result;
+  function resume(reason) {
+    const joined = joinOrReject('resume', 'resume');
+    if (joined) return joined;
+    if (state === STATES.RUNNING) return Promise.resolve({ ok: true, status: 'already-running', state, generation });
+    if (state !== STATES.PAUSED) return Promise.resolve({ ok: false, status: 'invalid-resume-state', state, generation });
+    const promise = (async function() {
+      const audioResult = window.audioSystem && typeof window.audioSystem.resumeRuntimeAudio === 'function'
+        ? await window.audioSystem.resumeRuntimeAudio()
+        : { ok: true, reason: 'no-audio-system' };
+      if (!audioResult || audioResult.ok === false) {
+        if (typeof window.pauseGame === 'function') window.pauseGame();
+        projectCompatibility();
+        return { ok: false, status: 'audio-resume-failed-still-paused', state, generation, diagnostic: audioResult };
+      }
+      const result = transition(STATES.RUNNING, reason || 'resume');
+      if (result.ok && typeof window.resumeGame === 'function') window.resumeGame();
+      return result;
+    })().finally(() => { transitionInFlight = null; });
+    transitionInFlight = { kind: 'resume', generation, promise };
+    return promise;
   }
 
   function togglePause() { return state === STATES.PAUSED ? resume('toggle') : pause('toggle'); }
@@ -222,8 +254,9 @@ window.BARCODE = window.BARCODE || {};
   function stopOwnedResources(options) {
     options = options || {};
     if (typeof window.stopGame === 'function') window.stopGame();
-    if (window.assetLoadingMonitor && typeof window.assetLoadingMonitor.cleanup === 'function') window.assetLoadingMonitor.cleanup();
+    if (namespace.AssetMonitor && typeof namespace.AssetMonitor.cleanup === 'function') namespace.AssetMonitor.cleanup();
     if (window.cutsceneSystem && typeof window.cutsceneSystem.destroy === 'function') window.cutsceneSystem.destroy();
+    if (window.spaceShipSystem && typeof window.spaceShipSystem.dispose === 'function') window.spaceShipSystem.dispose();
     if (window.rhythmSystem && typeof window.rhythmSystem.hideRhythmMode === 'function') window.rhythmSystem.hideRhythmMode();
     if (window.hackingSystem && typeof window.hackingSystem.reset === 'function') window.hackingSystem.reset();
     if (window.audioSystem && typeof window.audioSystem.stopRuntimeAudio === 'function') window.audioSystem.stopRuntimeAudio({ stopMusic: options.stopMusic !== false });
@@ -248,9 +281,9 @@ window.BARCODE = window.BARCODE || {};
       gameplayLoop: { running: !!window.isRunning, paused: !!window.isPaused, rafScheduled: window.gameLoopRafHandle !== null },
       musicTransport: transport,
       audioContextState: window.audioSystem && typeof window.audioSystem.getContextState === 'function' ? window.audioSystem.getContextState() : 'unavailable',
-      ownedCounts: { cleanups: cleanupRegistry.length },
-      active: { title: !!(window.titleScreen && window.titleScreen.isVisible), cutscene: !!(window.cutsceneSystem && window.cutsceneSystem.isPlaying), rhythm: !!(window.rhythmSystem && window.rhythmSystem.isActive && window.rhythmSystem.isActive()), gameplayMusic: !!(window.audioSystem && window.audioSystem.layersStarted) },
-      instances: { parallax: window.parallaxBackground ? 1 : 0, spaceships: window.spaceShipSystem ? 1 : 0, lore: window.loreSystem ? 1 : 0, lostData: window.lostDataSystem ? 1 : 0, objectives: window.objectivesSystem ? 1 : 0, tutorial: window.tutorialSystem ? 1 : 0, hacking: window.hackingSystem ? 1 : 0, sectorProgression: window.sector1Progression ? 1 : 0, jammerIndicator: window.jammerIndicator ? 1 : 0 }
+      audio: window.audioSystem && typeof window.audioSystem.getRuntimeDiagnostics === 'function' ? window.audioSystem.getRuntimeDiagnostics() : null,
+      active: { title: !!(window.titleScreen && window.titleScreen.animationFrameHandle), cutscene: !!(window.cutsceneSystem && typeof window.cutsceneSystem.isPlaying === 'function' && window.cutsceneSystem.isPlaying()), rhythm: !!(window.rhythmSystem && window.rhythmSystem.isActive && window.rhythmSystem.isActive()), gameplayMusic: !!(window.audioSystem && window.audioSystem.layersStarted) },
+      resources: { cutscene: window.cutsceneSystem && typeof window.cutsceneSystem.getDiagnostics === 'function' ? window.cutsceneSystem.getDiagnostics() : null, spaceships: window.spaceShipSystem && typeof window.spaceShipSystem.getDiagnostics === 'function' ? window.spaceShipSystem.getDiagnostics() : null, hacking: window.hackingSystem && typeof window.hackingSystem.getDiagnostics === 'function' ? window.hackingSystem.getDiagnostics() : null, assetMonitor: namespace.AssetMonitor && typeof namespace.AssetMonitor.getDiagnostics === 'function' ? namespace.AssetMonitor.getDiagnostics() : null }
     }));
   }
 

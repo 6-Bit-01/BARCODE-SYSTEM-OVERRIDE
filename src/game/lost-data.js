@@ -805,7 +805,7 @@ window.lostDataSystem = null;
 window.initLostData = function(player) {
   try {
     if (window.lostDataSystem) {
-      return true; // idempotent lifecycle init: retain the live instance
+      return true;
     }
     console.log('🔥🔥🔥 CREATING LOST DATA SYSTEM!!!');
     window.lostDataSystem = new window.LostDataSystem();

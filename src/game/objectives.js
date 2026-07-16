@@ -348,7 +348,7 @@ window.ObjectivesSystem = class ObjectivesSystem {
 window.initObjectives = function() {
   try {
     if (window.objectivesSystem) {
-      return true; // idempotent lifecycle init: retain the live instance
+      return true;
     }
     window.objectivesSystem = new window.ObjectivesSystem();
     console.log('✅ Objectives system initialized');

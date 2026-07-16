@@ -474,7 +474,7 @@ window.jammerIndicator = null;
 window.initJammerIndicator = function() {
   try {
     if (window.jammerIndicator) {
-      return true; // idempotent lifecycle init: retain the live instance
+      return true;
     }
     window.jammerIndicator = new window.JammerIndicator();
     console.log('✅ Jammer indicator initialized');

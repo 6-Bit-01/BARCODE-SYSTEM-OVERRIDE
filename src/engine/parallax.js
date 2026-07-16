@@ -349,7 +349,7 @@ window.parallaxBackground = null;
 window.initParallax = function() {
   try {
     if (window.parallaxBackground) {
-      return true; // idempotent lifecycle init: retain the live instance
+      return true;
     }
     window.parallaxBackground = new window.ParallaxBackground();
     

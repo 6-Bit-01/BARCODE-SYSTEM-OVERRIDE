@@ -322,6 +322,9 @@ window.InputManager = class InputManager {
       
       if (e.key === 'p' || e.key === 'P') {
         e.preventDefault();
+        if (e.repeat) {
+          return;
+        }
         if (window.BARCODE && window.BARCODE.RuntimeLifecycle) {
           window.BARCODE.RuntimeLifecycle.togglePause();
         }

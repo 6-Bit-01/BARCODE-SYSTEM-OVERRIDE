@@ -24,7 +24,15 @@ window.autoInitGame = function() {
 
 window.startNewGame = function(options) {
   if (window.BARCODE && window.BARCODE.RuntimeLifecycle) {
-    return window.BARCODE.RuntimeLifecycle.restart(options || { compatibility: 'startNewGame' });
+    const lifecycle = window.BARCODE.RuntimeLifecycle;
+    const state = lifecycle.getState();
+    if (state === 'running' || state === 'paused') {
+      return lifecycle.restart(options || { compatibility: 'startNewGame' });
+    }
+    if (state === 'failed') {
+      return lifecycle.retry();
+    }
+    return lifecycle.start(options || { compatibility: 'startNewGame' });
   }
   throw new Error('RuntimeLifecycle is not available');
 };

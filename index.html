@@ -695,6 +695,10 @@
                 clearInterval(assetLoadingMonitor.spriteInterval);
                 clearTimeout(assetLoadingMonitor.fallbackTimeout);
                 assetLoadingMonitor = null;
+                if (window.BARCODE && window.BARCODE.AssetMonitor) {
+                    window.BARCODE.AssetMonitor.active = false;
+                    window.BARCODE.AssetMonitor.monitor = null;
+                }
             };
 
             const completeIfReady = () => {
@@ -704,6 +708,8 @@
             };
 
             assetLoadingMonitor = { cleanup: cleanupMonitor };
+            window.BARCODE = window.BARCODE || {};
+            window.BARCODE.AssetMonitor = { active: true, monitor: assetLoadingMonitor, cleanup: cleanupMonitor, getDiagnostics: () => ({ active: !!assetLoadingMonitor }) };
 
             // Check audio loading
             assetLoadingMonitor.audioInterval = setInterval(() => {
@@ -749,9 +755,7 @@
         // INTRO SCENE MANAGEMENT
         // ========================================
         
-        let gameInitialized = false;
-        let gameStartInProgress = false;
-        let titleScreenMusicBlocked = false; // Prevent title music from starting after game start
+        window.titleScreenMusicBlocked = !!window.titleScreenMusicBlocked; // Prevent title music from starting after game start
         
         // START BUTTON HANDLER - USER GESTURE ADAPTER ONLY
         document.getElementById('startButton').addEventListener('click', async function() {
@@ -826,8 +830,10 @@
         // Optional recurring state monitor. Disabled by default to avoid normal-play log churn.
         if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) {
             window.gameStateDebugInterval = setInterval(() => {
-                if (gameInitialized && window.gameState) {
+                const lifecycle = window.BARCODE && window.BARCODE.RuntimeLifecycle;
+                if (lifecycle && window.gameState) {
                     console.log('Game state:', {
+                        lifecycle: lifecycle.getState(),
                         running: window.gameState.running,
                         audioReady: !!(window.audioSystem && window.audioSystem.isInitialized()),
                         playerReady: !!window.player,

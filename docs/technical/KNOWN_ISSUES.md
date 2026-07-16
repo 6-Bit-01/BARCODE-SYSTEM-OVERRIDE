@@ -31,3 +31,11 @@
 - The v4 source pack lifecycle card was originally numbered PR #6; in repository history this branch is PR #7 because PR #6 was the approved Makko music-profile/rhythm startup hotfix.
 - The broad inactive `src/game/main.js` action handler remains legacy evidence only and is not loaded or revived. Future action-input work should replace raw-key gameplay routing rather than expanding the legacy handler.
 - Enemy ownership, duplicate enemy globals, jammer semantics, and behavior-level double integration remain deferred to the later single-enemy-owner PR.
+
+## PR #7 review-fix ownership classification
+
+Application-lifetime singletons intentionally retained across runs: decoded/shared image and audio assets, `AudioContext`, registered music profiles, the global input manager, parallax/lore/lost-data/objective/sector/jammer singleton objects when their init functions return an existing live instance, and the boot asset monitor while boot loading is active.
+
+Run-owned resources that now reset, dispose, or generation-invalidate lifecycle work: gameplay RAF, gameplay music source sets, MusicTransport running state, layer beat synchronization, cutscene timers/listeners/fade callbacks, hacking puzzle/tutorial timeouts, pending spaceship foreground-spawn timeouts, transient particles, rhythm/hacking overlays, and restart-owned audio resynchronization.
+
+Static validators assert structural guards for these fixes, but they do not prove Makko/browser runtime behavior. Owner smoke testing remains required for pause/resume, restart from running, restart from paused, cutscene-fade interruption, and full stop followed by delayed observation.

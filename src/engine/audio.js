@@ -2906,29 +2906,69 @@ window.AudioSystem = class AudioSystem {
     if (!this.context) return { ok: true, reason: 'no-context' };
     const transport = window.BARCODE && window.BARCODE.MusicTransport;
     const audioTime = this.context.currentTime;
-    if (transport && typeof transport.pause === 'function') {
-      transport.pause(audioTime);
+    const wasBeatSyncActive = !!this.beatSyncActive;
+    let transportPaused = false;
+
+    try {
+      if (transport && typeof transport.pause === 'function') {
+        const pauseResult = transport.pause(audioTime);
+        transportPaused = !!(pauseResult && pauseResult.status === 'ok');
+      }
+      this.stopBeatTrack();
+      if (this.context.state === 'running' && typeof this.context.suspend === 'function') {
+        await this.context.suspend();
+      }
+      return { ok: true, reason: 'paused', contextState: this.context.state };
+    } catch (error) {
+      if (transportPaused && transport && typeof transport.resume === 'function') {
+        try { transport.resume(this.context.currentTime); } catch (resumeError) {}
+      }
+      if (wasBeatSyncActive) {
+        this.startLayerBeatSync();
+      }
+      return { ok: false, reason: 'pause-failed-rolled-back', contextState: this.context.state, error: error && error.message || String(error) };
     }
-    this.stopBeatTrack();
-    if (this.context.state === 'running' && typeof this.context.suspend === 'function') {
-      await this.context.suspend();
-    }
-    return { ok: true, reason: 'paused', contextState: this.context.state };
   }
 
   async resumeRuntimeAudio() {
     if (!this.context) return { ok: true, reason: 'no-context' };
+    try {
+      if (this.context.state === 'suspended' && typeof this.context.resume === 'function') {
+        await this.context.resume();
+      }
+      const transport = window.BARCODE && window.BARCODE.MusicTransport;
+      if (transport && typeof transport.resume === 'function') {
+        transport.resume(this.context.currentTime);
+      }
+      if (this.layersStarted) {
+        this.startLayerBeatSync();
+      }
+      return { ok: true, reason: 'resumed', contextState: this.context.state };
+    } catch (error) {
+      return { ok: false, reason: 'resume-failed', contextState: this.context.state, error: error && error.message || String(error) };
+    }
+  }
+
+  async prepareRestartAudio() {
+    if (!this.context) return { ok: true, reason: 'no-context' };
     if (this.context.state === 'suspended' && typeof this.context.resume === 'function') {
-      await this.context.resume();
+      try {
+        await this.context.resume();
+      } catch (error) {
+        return { ok: false, reason: 'context-resume-failed', contextState: this.context.state, error: error && error.message || String(error) };
+      }
     }
-    const transport = window.BARCODE && window.BARCODE.MusicTransport;
-    if (transport && typeof transport.resume === 'function') {
-      transport.resume(this.context.currentTime);
+    this.stopRuntimeAudio({ stopMusic: true });
+    return { ok: true, reason: 'restart-audio-ready', contextState: this.context.state };
+  }
+
+  startRuntimeGameplayMusic() {
+    if (typeof this.startMusicSystem !== 'function') return { ok: false, reason: 'startMusicSystem-missing' };
+    const result = this.startMusicSystem();
+    if (result && result.ok && typeof this.startBackgroundRhythmIfTransportRunning === 'function') {
+      this.startBackgroundRhythmIfTransportRunning(result);
     }
-    if (this.layersStarted) {
-      this.startLayerBeatSync();
-    }
-    return { ok: true, reason: 'resumed', contextState: this.context.state };
+    return result;
   }
 
   stopRuntimeAudio(options) {
@@ -2957,6 +2997,23 @@ window.AudioSystem = class AudioSystem {
     this.stopTitleScreenMusic();
     this.stopCutsceneMusic();
     return { ok: true, reason: 'stopped' };
+  }
+
+  getRuntimeDiagnostics() {
+    const activeMusicSources = Object.keys(this.musicTracks || {}).filter(trackId => {
+      const track = this.musicTracks[trackId];
+      return !!(track && track.source && track.isPlaying);
+    }).length;
+    return {
+      contextState: this.getContextState(),
+      layersStarted: !!this.layersStarted,
+      beatSyncActive: !!this.beatSyncActive,
+      loopCheckActive: !!this.loopCheckInterval,
+      beatSchedulerActive: !!this.beatScheduler,
+      activeMusicSources,
+      cutsceneSourceActive: !!this.cutsceneSource,
+      titleSourceActive: !!this.titleSource
+    };
   }
   
   // Check if initialized
