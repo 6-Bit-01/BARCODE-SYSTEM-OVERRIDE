@@ -347,6 +347,9 @@ window.ObjectivesSystem = class ObjectivesSystem {
 // Initialize objectives system
 window.initObjectives = function() {
   try {
+    if (window.objectivesSystem) {
+      return true;
+    }
     window.objectivesSystem = new window.ObjectivesSystem();
     console.log('✅ Objectives system initialized');
     return true;

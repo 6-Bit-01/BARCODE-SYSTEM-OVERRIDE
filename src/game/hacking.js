@@ -18,6 +18,8 @@ window.HackingSystem = class HackingSystem {
     this.maxDisplayTime = 2000; // 2 seconds max display
     this.puzzleComplete = false;
     this.puzzleTimeout = null;
+    this.ownedTimeouts = new Set();
+    this.runGeneration = 0;
     this.terminalLines = [];
     this.terminalHistory = [];
     this.cursorBlink = 0;
@@ -33,6 +35,26 @@ window.HackingSystem = class HackingSystem {
     console.log('Terminal Hacking System initialized');
   }
   
+  trackTimeout(callback, delay) {
+    const generation = this.runGeneration;
+    const handle = setTimeout(() => {
+      this.ownedTimeouts.delete(handle);
+      if (generation === this.runGeneration) callback();
+    }, delay);
+    this.ownedTimeouts.add(handle);
+    return handle;
+  }
+
+  clearOwnedTimeouts() {
+    this.ownedTimeouts.forEach(handle => clearTimeout(handle));
+    this.ownedTimeouts.clear();
+    this.puzzleTimeout = null;
+  }
+
+  getDiagnostics() {
+    return { active: !!this.active, ownedTimeouts: this.ownedTimeouts.size, hasPuzzleTimeout: !!this.puzzleTimeout, runGeneration: this.runGeneration };
+  }
+
   // Start hacking mode with a random puzzle
   start() {
     if (this.active) {
@@ -43,10 +65,8 @@ window.HackingSystem = class HackingSystem {
     console.log('=== INITIATING TERMINAL HACK ===');
     
     // Clear any existing timeout first
-    if (this.puzzleTimeout) {
-      clearTimeout(this.puzzleTimeout);
-      this.puzzleTimeout = null;
-    }
+    this.clearOwnedTimeouts();
+    this.runGeneration++;
     
     // Reset failure tracking for new attempt
     this._lastResultFailed = false;
@@ -69,7 +89,7 @@ window.HackingSystem = class HackingSystem {
     console.log(`Starting puzzle type ${this.puzzleType}`);
     
     // Generate puzzle based on type
-    setTimeout(() => {
+    this.trackTimeout(() => {
       switch(this.puzzleType) {
         case 1:
           this.generatePortPuzzle();
@@ -84,7 +104,7 @@ window.HackingSystem = class HackingSystem {
     this.displayTime = this.puzzleType === 2 ? 3000 : window.randomRange(1500, 2500);
     this.maxDisplayTime = this.displayTime + 500;
     
-    setTimeout(() => {
+    this.trackTimeout(() => {
       if (this.active && !this.puzzleComplete) {
         this.hidePuzzle();
       }
@@ -94,7 +114,7 @@ window.HackingSystem = class HackingSystem {
     this._startTime = Date.now();
     
     // Auto-fail after 8 seconds if not solved
-    this.puzzleTimeout = setTimeout(() => {
+    this.puzzleTimeout = this.trackTimeout(() => {
       if (this.active && !this.puzzleComplete) {
         this.timeoutFailPuzzle();
       }
@@ -288,10 +308,8 @@ window.HackingSystem = class HackingSystem {
     this.active = false;
     
     // Clear timeout
-    if (this.puzzleTimeout) {
-      clearTimeout(this.puzzleTimeout);
-      this.puzzleTimeout = null;
-    }
+    this.runGeneration++;
+    this.clearOwnedTimeouts();
     
     // Update terminal with success message
     this.terminalLines = [
@@ -337,7 +355,7 @@ window.HackingSystem = class HackingSystem {
         }
         
         // MULTIPLE FALLBACKS - ensure completion
-        setTimeout(() => {
+        this.trackTimeout(() => {
           console.log('🔐 FALLBACK 1: Checking hack_start completion status');
           if (!window.tutorialSystem.completedObjectives.has('hack_start')) {
             console.log('🔐 FALLBACK 1: Adding hack_start to completed set');
@@ -353,7 +371,7 @@ window.HackingSystem = class HackingSystem {
           console.log('🔐 FALLBACK 1: hack_start completion status:', window.tutorialSystem.completedObjectives.has('hack_start'));
         }, 100);
         
-        setTimeout(() => {
+        this.trackTimeout(() => {
           console.log('🔐 FALLBACK 2: Double-checking hack_start completion');
           if (!window.tutorialSystem.completedObjectives.has('hack_start')) {
             console.log('🔐 FALLBACK 2: Final forced completion of hack_start');
@@ -377,7 +395,7 @@ window.HackingSystem = class HackingSystem {
         }
         
         // MULTIPLE FALLBACKS - ensure completion
-        setTimeout(() => {
+        this.trackTimeout(() => {
           console.log('🔐 FALLBACK 1: Checking hack_complete completion status (SUCCESS)');
           if (!window.tutorialSystem.completedObjectives.has('hack_complete')) {
             console.log('🔐 FALLBACK 1: Adding hack_complete to completed set (SUCCESS)');
@@ -393,7 +411,7 @@ window.HackingSystem = class HackingSystem {
           console.log('🔐 FALLBACK 1: hack_complete completion status (SUCCESS):', window.tutorialSystem.completedObjectives.has('hack_complete'));
         }, 150);
         
-        setTimeout(() => {
+        this.trackTimeout(() => {
           console.log('🔐 FALLBACK 2: Double-checking hack_complete completion (SUCCESS)');
           if (!window.tutorialSystem.completedObjectives.has('hack_complete')) {
             console.log('🔐 FALLBACK 2: Final forced completion of hack_complete (SUCCESS)');
@@ -407,7 +425,7 @@ window.HackingSystem = class HackingSystem {
       }
       
       // CRITICAL: Log final status
-      setTimeout(() => {
+      this.trackTimeout(() => {
         console.log('🔐 FINAL STATUS - Completed objectives after hack:', Array.from(window.tutorialSystem.completedObjectives));
         console.log('🔐 FINAL STATUS - Objective array states:', window.tutorialSystem.objectives.map(obj => ({id: obj.id, text: obj.text, completed: obj.completed})));
       }, 1000);
@@ -427,10 +445,8 @@ window.HackingSystem = class HackingSystem {
     this.active = false;
     
     // Clear timeout
-    if (this.puzzleTimeout) {
-      clearTimeout(this.puzzleTimeout);
-      this.puzzleTimeout = null;
-    }
+    this.runGeneration++;
+    this.clearOwnedTimeouts();
     
     // Update terminal with failure message
     this.terminalLines = [
@@ -467,10 +483,8 @@ window.HackingSystem = class HackingSystem {
     this.puzzleComplete = true;
     
     // Clear timeout
-    if (this.puzzleTimeout) {
-      clearTimeout(this.puzzleTimeout);
-      this.puzzleTimeout = null;
-    }
+    this.runGeneration++;
+    this.clearOwnedTimeouts();
     
     // Update terminal with cancel message
     this.terminalLines = [
@@ -516,10 +530,8 @@ window.HackingSystem = class HackingSystem {
     this.active = false;
     
     // Clear timeout
-    if (this.puzzleTimeout) {
-      clearTimeout(this.puzzleTimeout);
-      this.puzzleTimeout = null;
-    }
+    this.runGeneration++;
+    this.clearOwnedTimeouts();
     
     // Update terminal with timeout error message
     this.terminalLines = [
@@ -756,10 +768,8 @@ window.HackingSystem = class HackingSystem {
     this.terminalLines = [];
     this.terminalHistory = [];
     
-    if (this.puzzleTimeout) {
-      clearTimeout(this.puzzleTimeout);
-      this.puzzleTimeout = null;
-    }
+    this.runGeneration++;
+    this.clearOwnedTimeouts();
     
     this.tutorialMode = false;
     this.tutorialObjective = null;
@@ -774,6 +784,9 @@ window.HackingSystem = class HackingSystem {
 
 // Create global hacking system instance
 function createHackingSystem() {
+  if (window.hackingSystem) {
+    return;
+  }
   if (window.randomRange && window.clamp) {
     window.hackingSystem = new window.HackingSystem();
     console.log('Terminal Hacking System created');

@@ -28,6 +28,29 @@ window.gameState = {
   requiredForProgress: 20
 };
 
+window.initialEnemySpawnHandle = null;
+window.initialEnemySpawnGeneration = 0;
+
+window.cancelInitialEnemySpawn = function() {
+  window.initialEnemySpawnGeneration++;
+  if (window.initialEnemySpawnHandle) {
+    clearTimeout(window.initialEnemySpawnHandle);
+    window.initialEnemySpawnHandle = null;
+  }
+};
+
+window.getInitialEnemySpawnDiagnostics = function() {
+  return { pending: !!window.initialEnemySpawnHandle, generation: window.initialEnemySpawnGeneration };
+};
+
+window.resetRuntimeTerminalFlags = function() {
+  if (!window.gameState) return;
+  window.gameState.gameOver = false;
+  window.gameState.victory = false;
+  window.gameState.running = true;
+  window.gameState.paused = false;
+};
+
 // Initialize game state
 window.initGameState = function() {
   try {
@@ -39,6 +62,7 @@ window.initGameState = function() {
     window.gameState.running = true;
     window.gameState.paused = false;
     window.gameState.gameOver = false;
+    window.gameState.victory = false;
     window.gameState.level = 1;
     window.gameState.score = 0;
     window.gameState.gameTime = 0;
@@ -233,7 +257,13 @@ window.checkGameConditions = function() {
       console.log('Tutorial completed or not active - spawning initial enemies');
       window.gameState.hasSpawnedInitialEnemies = true;
       // Spawn initial wave of enemies with firewall limit
-      setTimeout(() => {
+      window.cancelInitialEnemySpawn();
+      const spawnGeneration = window.initialEnemySpawnGeneration;
+      window.initialEnemySpawnHandle = setTimeout(() => {
+        window.initialEnemySpawnHandle = null;
+        if (spawnGeneration !== window.initialEnemySpawnGeneration || !window.gameState || window.gameState.gameOver || !window.gameState.running) {
+          return;
+        }
         let firewallSpawned = false;
         for (let i = 0; i < 3; i++) {
           // Check current firewall count before spawning

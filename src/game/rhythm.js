@@ -2332,6 +2332,22 @@ window.RhythmSystem = class RhythmSystem {
     console.log('🎵 RHYTHM: Loop restart complete - ready for fresh tempo establishment');
   }
   
+  resetForFreshRuntimeRestart(profileId) {
+    console.log('🎵 RHYTHM: Fresh lifecycle restart - resetting background rhythm to new transport generation');
+    this.running = true;
+    this.active = false;
+    this.loopRestartMode = false;
+    this.applySelectedProfile(profileId);
+    this.restartForLoop();
+  }
+
+  getDiagnostics() {
+    const transport = window.BARCODE && window.BARCODE.MusicTransport && typeof window.BARCODE.MusicTransport.getDiagnostics === 'function'
+      ? window.BARCODE.MusicTransport.getDiagnostics()
+      : null;
+    return { running: !!this.running, active: !!this.active, trackStarted: !!this.trackStarted, currentTempoBeat: this.currentTempoBeat, tempoEstablished: !!this.tempoEstablished, transportGeneration: transport && transport.generation, profileId: transport && transport.profileId };
+  }
+
   // Getters for game state
   isActive() { return this.active; }
   isRunning() { return this.running; }

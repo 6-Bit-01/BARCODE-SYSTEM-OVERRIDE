@@ -348,6 +348,9 @@ window.parallaxBackground = null;
 // Initialize parallax system
 window.initParallax = function() {
   try {
+    if (window.parallaxBackground) {
+      return true;
+    }
     window.parallaxBackground = new window.ParallaxBackground();
     
     // Add background layer (backmost) - slower parallax for depth

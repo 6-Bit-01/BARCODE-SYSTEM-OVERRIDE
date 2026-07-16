@@ -15,3 +15,17 @@ PR #5 supports only playback with no grid and playback with one fixed-tempo/fixe
 Only `level-01.main` is registered at runtime. It is marked `legacy-compatibility`, not verified and not reusable by other levels. Its compatibility values preserve the current three source IDs/URLs/gains/native loops, `146` BPM, `4/4`, `32` establishment beats, `16`-beat/four-bar phrase presentation, `60`/`100` ms named `level-01.attack` judgment windows with no `-20` ms compensation, and the Level-1-only `legacyManualRestartSec: 211`. The unequal-stem debt remains: native source lengths differ and the existing manual fade/wait/restart is preserved rather than reinterpreted as a verified loop endpoint.
 
 Future songs must supply their own profile metadata or deliberately choose no grid. They must not receive Level 1 tempo, meter, phrase, source count, judgment, or restart defaults.
+
+## PR #7 lifecycle pause/resume contract
+
+`MusicTransport.pause(audioTimeSec)` freezes the current track position using Web Audio time and advances transport generation so stale boundary events from the pre-pause generation cannot affect the resumed run. `resume(audioTimeSec)` re-anchors `sourceAnchorAudioSec` from the preserved track position and the resumed AudioContext time, also advancing generation. The boundary cursor is re-seeded at the frozen/resumed beat so paused time does not emit catch-up beats. `stop()` remains the explicit full-session invalidation path.
+
+Runtime pause/resume does not introduce wall-clock musical authority, timers, RAF, fallback BPM, new sources, or profile changes. The selected profile ID, Level 1's `146` BPM compatibility metadata, `4/4` meter, `32` establishment beats, `60`/`100` ms judgment windows, source URLs/gains, and 211-second coordinated restart behavior remain profile-owned and unchanged.
+
+### Pause/resume invariant guarded after PR #7 review
+
+The transport representation after pause/resume is: pause stores the current track position in `sourceOffsetTrackSec`; resume sets `sourceAnchorAudioSec` to the current Web Audio time without subtracting that offset. Therefore, starting at audio time `100` with track offset `10`, pausing at audio time `105` freezes track time `15`, resuming at audio time `200` samples track time `15`, and sampling at audio time `201` gives track time `16`. The runtime lifecycle static guard rejects the old subtract-offset resume formula.
+
+### Static validation scope after PR #7 follow-up
+
+Music-profile validation is dependency-free static source inspection. It checks exact Level 1 IDs, URLs, gains, native-loop flags, fallback roles, `146` BPM, `4/4`, `legacyManualRestartSec: 211`, judgment windows, transport structure, resume anchoring, and no transport-owned timer/RAF/wall-clock authority. Runtime musical behavior remains an owner Makko/browser smoke-test responsibility.

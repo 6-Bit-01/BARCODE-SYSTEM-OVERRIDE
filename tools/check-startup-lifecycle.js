@@ -29,65 +29,30 @@ if (!startHandlerMatch) {
     fail('index.html should register exactly one active startButton click handler.');
   }
   const body = startHandlerMatch[1];
-  const guardSet = body.indexOf('gameStartInProgress = true;');
-  const firstTry = body.indexOf('try {');
+  const fullscreen = body.indexOf('fullscreenManager.enter()');
+  const lifecycleStart = body.indexOf('lifecycle.start');
+  const lifecycleRetry = body.indexOf('lifecycle.retry');
   const firstAwait = body.indexOf('await ');
-  const firstTitleHide = body.indexOf('window.titleScreen.hide();');
-  if (guardSet === -1 || firstAwait === -1 || guardSet > firstAwait) {
-    fail('startButton click handler must set its single-flight guard before the first await.');
+  if (!body.includes('RuntimeLifecycle') || lifecycleStart === -1 || lifecycleRetry === -1) {
+    fail('startButton click handler must delegate first start and retry to RuntimeLifecycle.');
   }
-  if (firstTry === -1 || firstTry < guardSet) {
-    fail('startButton click handler must begin recovery handling after setting its single-flight guard.');
+  if (fullscreen === -1 || firstAwait === -1 || fullscreen > firstAwait) {
+    fail('fullscreen request must stay synchronously in the start-button user gesture before the first await.');
   }
-  const betweenGuardAndTry = body.slice(guardSet + 'gameStartInProgress = true;'.length, firstTry);
-  if (/\bawait\b/.test(betweenGuardAndTry) || betweenGuardAndTry.includes('window.titleScreen.hide();')) {
-    fail('startButton recovery handling must begin before title hiding and before the first await.');
+  for (const forbidden of ['window.initParallax', 'window.initSpaceShips', 'window.initLore', 'window.initLostData', 'window.initCutscene', 'window.startGameInitialization']) {
+    if (body.includes(forbidden)) {
+      fail(`startButton handler must not retain manual initialization call ${forbidden}.`);
+    }
   }
-  if (firstTitleHide !== -1 && firstTry > firstTitleHide) {
-    fail('title screen hiding must be protected by the start-button try/catch/finally.');
+  if (!body.includes('resetStartRetryPresentation();')) {
+    fail('startButton retry path must reset stale failure presentation before lifecycle delegation.');
   }
+}
 
-  const resetText = body.indexOf("loadingIndicator.textContent = 'INITIALIZING SYSTEM...';");
-  const resetColor = body.indexOf("loadingIndicator.style.color = '';");
-  const resetVisible = body.indexOf("loadingIndicator.classList.remove('visible');");
-  const resetButtonText = body.indexOf("this.textContent = 'START SYSTEM';");
-  if (resetText === -1 || resetColor === -1 || resetVisible === -1 || resetButtonText === -1) {
-    fail('startButton retry path must reset stale failure text, color, visibility, and button text before hiding the title.');
-  } else if (firstTitleHide !== -1 && Math.max(resetText, resetColor, resetVisible, resetButtonText) > firstTitleHide) {
-    fail('startButton retry reset must happen before title screen hiding.');
-  }
-  if (!body.includes('if (gameStartInProgress || gameInitialized)')) {
-    fail('startButton click handler must ignore reentrant start attempts.');
-  }
-  const finallyIndex = body.indexOf('finally {');
-  if (finallyIndex === -1) {
-    fail('startButton click handler must use finally for cleanup.');
-  } else {
-    const finallyBody = body.slice(finallyIndex);
-    if (!finallyBody.includes('gameStartInProgress = false;')) {
-      fail('startButton click handler must reset its guard in finally.');
-    }
-    if (!finallyBody.includes('assetLoadingMonitor.cleanup();')) {
-      fail('startButton click handler must clean up the asset monitor in finally.');
-    }
-  }
-  const catchIndex = body.indexOf('catch (error) {');
-  if (catchIndex === -1 || (finallyIndex !== -1 && catchIndex > finallyIndex)) {
-    fail('startButton click handler must keep an error recovery catch before finally.');
-  } else {
-    const catchBody = body.slice(catchIndex, finallyIndex === -1 ? undefined : finallyIndex);
-    for (const token of [
-      'window.titleScreen.show();',
-      "startOverlay.classList.remove('hidden');",
-      "startOverlay.style.display = '';",
-      "this.textContent = 'ERROR - RETRY';",
-      'this.disabled = false;',
-      "this.textContent = 'START SYSTEM';"
-    ]) {
-      if (!catchBody.includes(token)) {
-        fail(`startButton failure recovery must include ${token}`);
-      }
-    }
+const runtimeLifecycle = read('src/core/runtime-lifecycle.js');
+for (const token of ['transitionInFlight', 'generation', 'restoreRetryUi', 'cleanupFailedGeneration', 'runInitializer']) {
+  if (!runtimeLifecycle.includes(token)) {
+    fail(`RuntimeLifecycle is missing startup lifecycle token ${token}.`);
   }
 }
 

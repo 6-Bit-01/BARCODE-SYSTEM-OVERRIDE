@@ -56,7 +56,7 @@ function blockFrom(text, startNeedle, endNeedle) {
   const transportStart = indexOfOrFail(startBlock, 'const transportResult = transport.start', 'transport startup');
   const layersStarted = indexOfOrFail(startBlock, 'this.layersStarted = true', 'layersStarted assignment');
   const loopDetection = indexOfOrFail(startBlock, 'this.startLoopDetection()', 'loop detection startup');
-  const deferredLayerTimer = indexOfOrFail(startBlock, 'setTimeout(() => {\n      this.updateLayers()', 'deferred layer timer');
+  const deferredLayerTimer = indexOfOrFail(startBlock, 'this.scheduleRuntimeTimeout(() => {\n      this.updateLayers()', 'deferred layer timer');
   assert(transportStart < layersStarted, 'layersStarted must be set only after transport start attempt');
   assert(startBlock.indexOf("transportResult.running !== true") < layersStarted, 'layersStarted must be after running transport check');
   assert(layersStarted < loopDetection, 'loop detection must start after successful layersStarted assignment');

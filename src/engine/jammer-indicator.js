@@ -473,6 +473,9 @@ window.jammerIndicator = null;
 // Initialize jammer indicator
 window.initJammerIndicator = function() {
   try {
+    if (window.jammerIndicator) {
+      return true;
+    }
     window.jammerIndicator = new window.JammerIndicator();
     console.log('✅ Jammer indicator initialized');
     return true;

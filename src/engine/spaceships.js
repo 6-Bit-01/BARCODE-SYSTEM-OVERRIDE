@@ -46,9 +46,42 @@ window.SpaceShipSystem = class SpaceShipSystem {
     this.canvasWidth = 1920;
     this.canvasHeight = 1080;
     this.shipAssetStateKey = '';
+    this.pendingSpawnTimeouts = new Set();
+    this.disposed = false;
 
     // Load ship GIFs
     this.loadShipImages();
+  }
+
+  trackSpawnTimeout(callback, delay) {
+    const handle = setTimeout(() => {
+      this.pendingSpawnTimeouts.delete(handle);
+      if (!this.disposed) callback();
+    }, delay);
+    this.pendingSpawnTimeouts.add(handle);
+    return handle;
+  }
+
+  clearPendingSpawnTimeouts() {
+    this.pendingSpawnTimeouts.forEach(handle => clearTimeout(handle));
+    this.pendingSpawnTimeouts.clear();
+  }
+
+  resetRuntime() {
+    this.clearPendingSpawnTimeouts();
+    this.ships = [];
+    this.lastSpawnTime = 0;
+    this.disposed = false;
+  }
+
+  dispose() {
+    this.disposed = true;
+    this.clearPendingSpawnTimeouts();
+    this.ships = [];
+  }
+
+  getDiagnostics() {
+    return { activeShips: this.ships.length, pendingSpawnTimeouts: this.pendingSpawnTimeouts.size, disposed: !!this.disposed };
   }
 
   // Load multiple ship images directly (simplified approach)
@@ -114,7 +147,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
 
     // Play whoosh sound 3 seconds BEFORE spawning foreground ship
     if (isForegroundShip) {
-      setTimeout(() => {
+      this.trackSpawnTimeout(() => {
         if (window.audioSystem && window.audioSystem.isInitialized && window.audioSystem.playRandomWhoosh) {
           try {
             window.audioSystem.playRandomWhoosh();
@@ -132,7 +165,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
       }, 0); // Play whoosh sound immediately
 
       // Actually spawn the ship after 3 seconds
-      setTimeout(() => {
+      this.trackSpawnTimeout(() => {
         this.createForegroundShip();
       }, 3000);
 
@@ -465,6 +498,10 @@ window.spaceShipSystem = null;
 // Initialize space ship system
 window.initSpaceShips = function() {
   try {
+    if (window.spaceShipSystem) {
+      if (typeof window.spaceShipSystem.resetRuntime === 'function') window.spaceShipSystem.resetRuntime();
+      return true;
+    }
     window.spaceShipSystem = new window.SpaceShipSystem();
     console.log('✓ Space ship system initialized');
     return true;

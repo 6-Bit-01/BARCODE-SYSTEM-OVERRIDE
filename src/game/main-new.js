@@ -6,139 +6,35 @@ window.FILE_MANIFEST.push({
   dependencies: ['updateGame', 'renderGame', 'resetRenderContext', 'startGameInitialization', 'gameState', 'initGameState', 'checkGameConditions', 'player', 'enemyManager', 'objectivesSystem']
 });
 
-// Initialize game - Enhanced with error handling
-window.startGame = function() {
-  try {
-    console.log('🎮 Game started - press Shift+F to toggle fullscreen');
-    
-    // Ensure game state exists
-    if (!window.gameState) {
-      console.warn('Game state not found, creating it');
-      window.gameState = {};
-    }
-  
-  window.gameState.running = true;
-  window.gameState.paused = false;
-  window.gameState.gameOver = false;
-  window.gameState.level = 1;
-  window.gameState.score = 0;
-  window.gameState.gameTime = 0;
-  
-  // Reset tutorial tracking
-  if (window.inputManager) {
-    window.inputManager.hasTrackedMovement = false;
-    window.inputManager.hasTrackedJump = false;
+// Compatibility entrypoints delegate to the authoritative lifecycle owner.
+window.startGame = function(options) {
+  if (window.BARCODE && window.BARCODE.RuntimeLifecycle) {
+    return window.BARCODE.RuntimeLifecycle.start(options || { compatibility: 'startGame' });
   }
-  
-  // Reset player position and health
-  if (window.player) {
-    window.player.health = window.player.maxHealth;
-    window.player.position = new window.Vector2D(200, 500);
-    window.player.velocity = new window.Vector2D(0, 0);
-    
-    // Trigger entrance animation on restart
-    if (typeof window.player.startEntranceAnimation === 'function') {
-      window.player.startEntranceAnimation();
-    }
-  }
-  
-  // Reset enemy manager
-  if (window.enemyManager) {
-    window.enemyManager.clear();
-  }
-  
-  // Reset objectives system
-  if (window.objectivesSystem) {
-    window.objectivesSystem.reset();
-    if (window.objectivesSystem.objectiveUI) {
-      window.objectivesSystem.objectiveUI.visible = true;
-    }
-    window.objectivesSystem.active = true;
-  }
-  
-  // Reset other systems
-  if (window.sector1Progression && typeof window.sector1Progression.reset === 'function') {
-    const currentEnemyCount = window.sector1Progression.enemiesDefeated || 0;
-    const shouldPreserveProgress = currentEnemyCount >= 20;
-    window.sector1Progression.reset(shouldPreserveProgress);
-  }
-  
-  if (window.hackingSystem && typeof window.hackingSystem.reset === 'function') {
-    window.hackingSystem.reset();
-  }
-  
-  if (window.rhythmSystem && typeof window.rhythmSystem.restart === 'function') {
-    window.rhythmSystem.restart();
-  }
-  
-  // Start game loop using the dedicated loop function
-  if (!window.isRunning) {
-    if (typeof window.startGameLoop === 'function') {
-      window.startGameLoop();
-    } else {
-      // Fallback if startGameLoop not available
-      window.isRunning = true;
-      window.isPaused = false;
-      requestAnimationFrame(window.gameLoop);
-    }
-  }
-  
-    console.log('✓ BARCODE: System Override started successfully');
-  } catch (error) {
-    console.error('❌ Error starting game:', error?.message || error?.toString() || 'Unknown error');
-    console.error('Start game error stack:', error?.stack || 'No stack available');
-    throw new Error(`Game start failed: ${error?.message || 'Unknown error'}`);
-  }
+  throw new Error('RuntimeLifecycle is not available');
 };
 
-// Auto-initialize game when ready - Only define ONCE
 window.autoInitGame = function() {
-  try {
-    if (window.autoStartDisabled) {
-      console.log('🛑 Auto-start disabled - waiting for start button');
-      return;
-    }
-    
-    console.log('=== AUTO INITIALIZING GAME ===');
-    
-    // Start game initialization sequence
-    if (typeof window.startGameInitialization === 'function') {
-      window.startGameInitialization();
-    } else {
-      console.error('❌ startGameInitialization function not available');
-      throw new Error('startGameInitialization function is not available');
-    }
-  } catch (error) {
-    console.error('❌ Error in initGame:', error?.message || error?.toString() || 'Unknown error');
-    console.error('initGame error stack:', error?.stack || 'No stack available');
-    throw error;
+  if (window.autoStartDisabled) {
+    console.log('🛑 Auto-start disabled - waiting for start button');
+    return;
   }
+  return window.startGame({ compatibility: 'autoInitGame' });
 };
 
-// New initialization function that starts from button
-window.startNewGame = async function() {
-  console.log('=== STARTING NEW GAME ===');
-  
-  try {
-    // Initialize all game systems
-    await window.startGameInitialization();
-    
-    // Initialize game state
-    window.initGameState();
-    
-    // Check if we should restore progress
-    const hasSavedProgress = window.gameState.progressSaved;
-    if (hasSavedProgress) {
-      console.log('🔄 Found saved progress - attempting to restore...');
-      window.restoreProgress();
+window.startNewGame = function(options) {
+  if (window.BARCODE && window.BARCODE.RuntimeLifecycle) {
+    const lifecycle = window.BARCODE.RuntimeLifecycle;
+    const state = lifecycle.getState();
+    if (state === 'running' || state === 'paused') {
+      return lifecycle.restart(options || { compatibility: 'startNewGame' });
     }
-    
-    // Start the game
-    window.startGame();
-    
-  } catch (error) {
-    console.error('❌ Failed to start new game:', error);
+    if (state === 'failed') {
+      return lifecycle.retry();
+    }
+    return lifecycle.start(options || { compatibility: 'startNewGame' });
   }
+  throw new Error('RuntimeLifecycle is not available');
 };
 
 // Update and render functions are handled by the coordinator system:

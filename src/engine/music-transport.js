@@ -79,6 +79,32 @@ window.BARCODE = window.BARCODE || {};
       return sample(0);
     }
 
+    function pause(audioTimeSec) {
+      if (!profile) return makeNoProfile('no-profile-loaded', generation);
+      if (!running) return lastSample || sample(Number.isFinite(audioTimeSec) ? audioTimeSec : 0);
+      if (!Number.isFinite(audioTimeSec)) return makeNoProfile('invalid-pause-audio-time', generation);
+      const frozenTrackTimeSec = (audioTimeSec - sourceAnchorAudioSec) + sourceOffsetTrackSec;
+      generation++;
+      running = false;
+      sourceAnchorAudioSec = null;
+      sourceOffsetTrackSec = frozenTrackTimeSec;
+      const grid = fixedGrid(frozenTrackTimeSec);
+      lastBoundaryBeat = grid ? grid.beatIndex : null;
+      return sample(audioTimeSec);
+    }
+
+    function resume(audioTimeSec) {
+      if (!profile) return makeNoProfile('no-profile-loaded', generation);
+      if (running) return sample(Number.isFinite(audioTimeSec) ? audioTimeSec : sourceAnchorAudioSec);
+      if (!Number.isFinite(audioTimeSec)) return makeNoProfile('invalid-resume-audio-time', generation);
+      generation++;
+      running = true;
+      sourceAnchorAudioSec = audioTimeSec;
+      const grid = fixedGrid(sourceOffsetTrackSec);
+      lastBoundaryBeat = grid ? grid.beatIndex : null;
+      return sample(audioTimeSec);
+    }
+
     function coordinatedRestart(anchor) {
       if (!profile) return makeNoProfile('no-profile-loaded', generation);
       if (!Number.isFinite(anchor)) return makeNoProfile('invalid-source-anchor', generation);
@@ -147,7 +173,11 @@ window.BARCODE = window.BARCODE || {};
       return freeze({ available: true, timing, distanceMs, ruleId: rule.id, generation: snapshot.generation });
     }
 
-    return freeze({ load, start, stop, coordinatedRestart, sample, poll, judgeInput, getProfileId: currentProfileId, onBoundary: function(type, listener) { boundaryListeners.push(listener); return function(){ boundaryListeners = boundaryListeners.filter(item => item !== listener); }; }, getListenerCount: function(){ return boundaryListeners.length; }, getLastSample: function(){ return clone(lastSample); } });
+    function getDiagnostics() {
+      return freeze({ profileId: currentProfileId(), generation, running, sourceAnchorAudioSec, sourceOffsetTrackSec, listenerCount: boundaryListeners.length, lastSample: clone(lastSample) });
+    }
+
+    return freeze({ load, start, stop, pause, resume, coordinatedRestart, sample, poll, judgeInput, getProfileId: currentProfileId, getDiagnostics, onBoundary: function(type, listener) { boundaryListeners.push(listener); return function(){ boundaryListeners = boundaryListeners.filter(item => item !== listener); }; }, getListenerCount: function(){ return boundaryListeners.length; }, getLastSample: function(){ return clone(lastSample); } });
   }
 
   namespace.MusicTransport = createTransport();
