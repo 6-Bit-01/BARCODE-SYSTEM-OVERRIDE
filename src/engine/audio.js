@@ -57,6 +57,10 @@ window.AudioSystem = class AudioSystem {
     this.cutsceneMusic = null;
     this.cutsceneSource = null;
     this.cutsceneGain = null;
+    this.assetLoadPromises = {};
+    this.assetLoadDiagnostics = {};
+    this.layerLogState = { enemyCount: null, activeLayers: '', gains: '' };
+    this.musicStartState = { ok: false, reason: 'not-started' };
   }
 
   async init() {
@@ -191,7 +195,7 @@ window.AudioSystem = class AudioSystem {
           console.log('🎵 Rhythm system also waiting - will start simultaneously with music');
         }, 200);
       } else {
-        console.error('CRITICAL: Foundation track still not available after fallback creation');
+        console.error('[audio-startup] Missing required source after remote load/fallback creation:', primarySource ? primarySource.sourceId : 'no selected profile');
       }
       
       this.initialized = true;
@@ -1831,9 +1835,47 @@ window.AudioSystem = class AudioSystem {
     }
   }
   
+  getActiveMusicProfile() {
+    return window.BARCODE && window.BARCODE.MusicProfiles && window.BARCODE.MusicProfiles.getActive();
+  }
+
+  getConfiguredSources(profile) {
+    return profile && profile.arrangement && Array.isArray(profile.arrangement.sources) ? profile.arrangement.sources : [];
+  }
+
+  getOrCreateAssetPromise(assetId, loader) {
+    if (!assetId) return loader();
+    if (this.assetLoadPromises[assetId]) return this.assetLoadPromises[assetId];
+    const started = Date.now();
+    this.assetLoadPromises[assetId] = Promise.resolve().then(loader).then(result => {
+      if (!this.assetLoadDiagnostics[assetId]) {
+        this.assetLoadDiagnostics[assetId] = true;
+        console.log(`[asset-load] ${assetId} loaded in ${Date.now() - started}ms`);
+      }
+      return result;
+    }).catch(error => {
+      delete this.assetLoadPromises[assetId];
+      if (!this.assetLoadDiagnostics[assetId]) {
+        this.assetLoadDiagnostics[assetId] = true;
+        console.warn(`[asset-load] ${assetId} failed in ${Date.now() - started}ms: ${error?.message || error}`);
+      }
+      throw error;
+    });
+    return this.assetLoadPromises[assetId];
+  }
+
+  startBackgroundRhythmIfTransportRunning(startResult) {
+    if (!startResult || !startResult.transport || startResult.transport.status !== 'ok' || !startResult.transport.running) return false;
+    if (window.rhythmSystem && typeof window.rhythmSystem.startBackgroundRhythm === 'function') {
+      window.rhythmSystem.startBackgroundRhythm();
+      return true;
+    }
+    return false;
+  }
+
   // Load music tracks
   async loadMusicTracks() {
-    const profile = window.BARCODE && window.BARCODE.MusicProfiles && window.BARCODE.MusicProfiles.getActive();
+    const profile = this.getActiveMusicProfile();
     if (!profile) {
       console.warn('No exact music profile selected; music loading is degraded and will not fall back to Level 1.');
       return;
@@ -1853,7 +1895,8 @@ window.AudioSystem = class AudioSystem {
       
       try {
         // Race between fetch and timeout
-        await Promise.race([this.fetchMusicTrack(name, url), timeoutPromise]);
+        const source = this.getConfiguredSources(profile).find(item => item.sourceId === name);
+        await Promise.race([this.getOrCreateAssetPromise(source && source.assetId || `audio.level-01.${name}`, () => this.fetchMusicTrack(name, url)), timeoutPromise]);
         trackLoaded = true;
       } catch (error) {
         // Handle timeout gracefully
@@ -2017,102 +2060,114 @@ window.AudioSystem = class AudioSystem {
   startAllLayersSimultaneously() {
     if (!this.initialized) {
       console.log('Audio system not initialized - cannot start layers');
-      return;
+      this.musicStartState = { ok: false, reason: 'not-initialized' };
+      return this.musicStartState;
     }
-    
-    // Prevent duplicate simultaneous starts
+
     if (this.layersStarted) {
       console.log('Layers already started simultaneously');
-      return;
+      return this.musicStartState.ok ? this.musicStartState : { ok: true, reason: 'already-started' };
     }
-    
-    // CRITICAL: Start loop detection when music starts
-    this.startLoopDetection();
-    
-    const profile = window.BARCODE && window.BARCODE.MusicProfiles && window.BARCODE.MusicProfiles.getActive();
-    const layerNames = profile ? profile.arrangement.sources.map(source => source.sourceId) : [];
-    
-    // Find the shortest buffer length to use as sync reference
-    let shortestDuration = Infinity;
-    layerNames.forEach(layerName => {
-      const track = this.musicTracks[layerName];
-      if (track && track.buffer) {
-        shortestDuration = Math.min(shortestDuration, track.buffer.duration);
-      }
-    });
-    
-    // PERFECT SYNC: Clean restart with exact synchronization
-    
-    // Stop all existing sources first
-    layerNames.forEach(layerName => {
-      const track = this.musicTracks[layerName];
+
+    const profile = this.getActiveMusicProfile();
+    if (!profile) {
+      console.error('[audio-startup] Missing music profile selection; cannot start synchronized layers or rhythm.');
+      this.musicStartState = { ok: false, reason: 'missing-profile-selection' };
+      return this.musicStartState;
+    }
+
+    const sources = this.getConfiguredSources(profile);
+    if (!sources.length) {
+      console.error(`[audio-startup] Music profile ${profile.profileId} has no configured sources.`);
+      this.musicStartState = { ok: false, reason: 'missing-profile-sources', profileId: profile.profileId };
+      return this.musicStartState;
+    }
+
+    const usableSources = sources.filter(source => this.musicTracks[source.sourceId] && this.musicTracks[source.sourceId].buffer);
+    const missingRequired = sources.filter(source => source.required && !usableSources.some(usable => usable.sourceId === source.sourceId));
+    if (missingRequired.length || usableSources.length === 0) {
+      console.error(`[audio-startup] Missing required source for ${profile.profileId}: ${missingRequired.map(source => source.sourceId).join(', ') || 'no usable sources'}.`);
+      this.musicStartState = { ok: false, reason: 'missing-required-source', profileId: profile.profileId };
+      return this.musicStartState;
+    }
+
+
+    const transport = window.BARCODE && window.BARCODE.MusicTransport;
+    if (!transport || typeof transport.start !== 'function') {
+      console.error(`[audio-startup] MusicTransport unavailable for ${profile.profileId}; synchronized music/rhythm startup aborted.`);
+      this.musicStartState = { ok: false, reason: 'transport-unavailable', profileId: profile.profileId };
+      return this.musicStartState;
+    }
+
+    const syncTime = this.context.currentTime + 0.01;
+    console.log('Creating perfectly synchronized layers...');
+    console.log(`Sync time: ${syncTime}`);
+
+    sources.forEach(sourceInfo => {
+      const track = this.musicTracks[sourceInfo.sourceId];
       if (track && track.source) {
         try {
           track.source.stop();
-          track.source = null;
-          track.isPlaying = false;
-          track.gain = null;
         } catch (error) {
-          console.log(`Error stopping source for ${layerName}:`, error);
+          console.log(`Error stopping source for ${sourceInfo.sourceId}:`, error);
         }
+        track.source = null;
+        track.isPlaying = false;
+        track.gain = null;
       }
     });
-    
-    // Get exact start time for perfect sync
-    const syncTime = this.context.currentTime + 0.01; // 10ms preparation
-    
-    console.log('Creating perfectly synchronized layers...');
-    console.log(`Sync time: ${syncTime}`);
-    
-    // Create all sources and start them at exactly the same time
-    layerNames.forEach(layerName => {
-      const track = this.musicTracks[layerName];
-      if (!track || !track.buffer) {
-        console.log(`Track ${layerName} not available`);
-        return;
-      }
-      
-      // Create new source
+
+    let scheduledCount = 0;
+    usableSources.forEach(sourceInfo => {
+      const track = this.musicTracks[sourceInfo.sourceId];
       const source = this.context.createBufferSource();
       source.buffer = track.buffer;
-      const sourceProfile = profile.arrangement.sources.find(source => source.sourceId === layerName);
-      source.loop = sourceProfile ? sourceProfile.nativeLoop : false;
-      
-      // Create gain
+      source.loop = !!sourceInfo.nativeLoop;
       const layerGain = this.context.createGain();
-      
-      // Set profile-authored initial source gain.
-      let targetVolume = sourceProfile ? sourceProfile.gain : 0;
-      
-      layerGain.gain.value = targetVolume;
-      
-      // Connect nodes
+      layerGain.gain.value = sourceInfo.gain;
       source.connect(layerGain);
       layerGain.connect(this.musicGain);
-      
-      // Start at exact sync time
-      source.start(syncTime, sourceProfile ? sourceProfile.offsetSec : 0);
-      
-      // Update track info
+      source.start(syncTime, sourceInfo.offsetSec || 0);
       track.source = source;
       track.startTime = syncTime;
       track.gain = layerGain;
       track.isPlaying = true;
-      track.volume = targetVolume;
-      
-      console.log(`Perfect sync start: ${layerName} at ${syncTime} with volume ${targetVolume}`);
+      track.volume = sourceInfo.gain;
+      scheduledCount++;
+      console.log(`Perfect sync start: ${sourceInfo.sourceId} at ${syncTime} with volume ${sourceInfo.gain}`);
     });
-    
-    this.layersStarted = true;
-    if (window.BARCODE && window.BARCODE.MusicTransport) {
-      window.BARCODE.MusicTransport.start({ sourceAnchorAudioSec: syncTime, sourceOffsetTrackSec: profile.playback.startTrackSec || 0 });
+
+    if (scheduledCount < 1) {
+      this.musicStartState = { ok: false, reason: 'no-scheduled-sources', profileId: profile.profileId };
+      return this.musicStartState;
     }
-    
-    // Initialize layer system after sync
+
+    const transportResult = transport.start({ sourceAnchorAudioSec: syncTime, sourceOffsetTrackSec: profile.playback.startTrackSec || 0 });
+    if (!transportResult || transportResult.status !== 'ok' || transportResult.running !== true) {
+      console.error(`[audio-startup] MusicTransport failed to start for ${profile.profileId}: ${transportResult && transportResult.reason || 'not-running'}`);
+      usableSources.forEach(sourceInfo => {
+        const track = this.musicTracks[sourceInfo.sourceId];
+        if (track && track.source) {
+          try { track.source.stop(); } catch (error) { console.log(`Error stopping ${sourceInfo.sourceId}:`, error); }
+          track.source = null;
+          track.isPlaying = false;
+          track.gain = null;
+        }
+      });
+      this.musicStartState = { ok: false, reason: 'transport-start-failed', profileId: profile.profileId, transport: transportResult };
+      return this.musicStartState;
+    }
+
+    this.layersStarted = true;
+    this.musicStartState = { ok: true, reason: 'started', profileId: profile.profileId, scheduledCount, transport: transportResult };
+    this.startLoopDetection();
+
     setTimeout(() => {
       this.updateLayers();
       console.log('Layer system activated after perfect synchronization');
     }, 100);
+
+    return this.musicStartState;
   }
   
   // ========================================
@@ -2234,8 +2289,13 @@ window.AudioSystem = class AudioSystem {
     }
     
     // Step 2: Pause all layers for 1 second
-    const profile = window.BARCODE && window.BARCODE.MusicProfiles && window.BARCODE.MusicProfiles.getActive();
-    const layerNames = profile ? profile.arrangement.sources.map(source => source.sourceId) : [];
+    const profile = this.getActiveMusicProfile();
+    if (!profile) {
+      console.error('[audio-startup] Missing music profile selection; music system start aborted.');
+      this.musicStartState = { ok: false, reason: 'missing-profile-selection' };
+      return this.musicStartState;
+    }
+    const layerNames = this.getConfiguredSources(profile).map(source => source.sourceId);
     
     // Fade out layers gradually
     layerNames.forEach(layerName => {
@@ -2476,12 +2536,6 @@ window.AudioSystem = class AudioSystem {
     const activeLayers = this.determineActiveLayers();
     const availableLayers = Object.keys(this.musicTracks);
     
-    // Debug logging to track bass layer issue
-    const bassTrack = this.musicTracks['bass-layer'];
-    if (bassTrack) {
-      console.log('Bass Layer Debug - isPlaying:', bassTrack.isPlaying, 'hasGain:', !!bassTrack.gain, 'currentVolume:', bassTrack.volume, 'gainValue:', bassTrack.gain?.gain?.value);
-    }
-    
     // Update volumes instead of starting/stopping tracks (since they're already synchronized)
     availableLayers.forEach(layerName => {
       const shouldBeActive = activeLayers.includes(layerName);
@@ -2521,27 +2575,34 @@ window.AudioSystem = class AudioSystem {
     // Enemy detection - add bass layer if enemies present
     if (window.enemyManager) {
       const enemyCount = window.enemyManager.getActiveEnemies().length;
-      console.log('Enemy detection - count:', enemyCount);
+      if (this.layerLogState.enemyCount !== enemyCount) {
+        this.layerLogState.enemyCount = enemyCount;
+        console.log('Enemy detection - count:', enemyCount);
+      }
       
       if (enemyCount > 0) {
         layers.push('bass-layer');
-        console.log('Adding bass-layer due to enemies');
+
       }
     }
     
     // Rhythm mode - add FX layer for rhythm intensity
     if (window.rhythmSystem && window.rhythmSystem.isActive()) {
       layers.push('fx-layer');
-      console.log('Adding fx-layer for rhythm mode');
+
     }
     
     // Hacking mode - add FX layer for hacking atmosphere
     if (window.hackingSystem && window.hackingSystem.isActive()) {
       layers.push('fx-layer');
-      console.log('Adding fx-layer for hacking mode');
+
     }
     
-    console.log('Final active layers:', layers);
+    const activeLayerKey = layers.join('|');
+    if (this.layerLogState.activeLayers !== activeLayerKey) {
+      this.layerLogState.activeLayers = activeLayerKey;
+      console.log('Final active layers:', layers);
+    }
     return layers;
   }
   
@@ -2686,8 +2747,13 @@ window.AudioSystem = class AudioSystem {
     this.stopCutsceneMusic();
     
     // Force stop all existing layers first
-    const profile = window.BARCODE && window.BARCODE.MusicProfiles && window.BARCODE.MusicProfiles.getActive();
-    const layerNames = profile ? profile.arrangement.sources.map(source => source.sourceId) : [];
+    const profile = this.getActiveMusicProfile();
+    if (!profile) {
+      console.error('[audio-startup] Missing music profile selection; music system start aborted.');
+      this.musicStartState = { ok: false, reason: 'missing-profile-selection' };
+      return this.musicStartState;
+    }
+    const layerNames = this.getConfiguredSources(profile).map(source => source.sourceId);
     layerNames.forEach(layerName => {
       const track = this.musicTracks[layerName];
       if (track && track.source) {
@@ -2710,7 +2776,11 @@ window.AudioSystem = class AudioSystem {
     this.loopStartTime = this.context.currentTime;
     
     console.log('🎵 Starting music system with FRESH RESTART from beginning');
-    this.startAllLayersSimultaneously();
+    const result = this.startAllLayersSimultaneously();
+    if (!result || !result.ok) {
+      console.error(`[audio-startup] Music system did not start: ${result && result.reason || 'unknown'}`);
+    }
+    return result;
   }
   
   // Play cutscene music

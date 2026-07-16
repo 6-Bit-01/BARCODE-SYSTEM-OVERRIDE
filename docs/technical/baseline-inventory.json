@@ -115,6 +115,7 @@
     "tools/baseline-common.js",
     "tools/check-baseline.js",
     "tools/check-frame-ownership.js",
+    "tools/check-makko-hotfix.js",
     "tools/check-music-profiles.js",
     "tools/check-startup-lifecycle.js",
     "tools/check-syntax.js",
@@ -456,7 +457,7 @@
     {
       "global": "window.startGameInitialization",
       "file": "src/game/game-initializer.js",
-      "line": 308,
+      "line": 314,
       "loaded": true
     },
     {
