@@ -589,6 +589,7 @@
     <script src="src/game/objectives.js"></script>
     <script src="src/engine/cutscene.js"></script>
     <script src="src/core/loop.js"></script>
+    <script src="src/core/runtime-lifecycle.js"></script>
 
     <!-- Game Systems -->
     <script src="src/game/player.js"></script>
@@ -752,199 +753,47 @@
         let gameStartInProgress = false;
         let titleScreenMusicBlocked = false; // Prevent title music from starting after game start
         
-        // START BUTTON HANDLER - STARTS GAME IN FULLSCREEN
+        // START BUTTON HANDLER - USER GESTURE ADAPTER ONLY
         document.getElementById('startButton').addEventListener('click', async function() {
-            if (gameStartInProgress || gameInitialized) {
-                console.log('Start request ignored - initialization already in progress or complete');
+            resetStartRetryPresentation();
+
+            // Fullscreen must remain synchronous inside the user gesture.
+            if (window.fullscreenManager) {
+                window.fullscreenManager.enter().catch(err => {
+                    if (err.name === 'TypeError' && err.message && err.message.includes('Permissions check failed')) {
+                        return;
+                    }
+                    console.log('🎮 Fullscreen request declined on start:', err.message);
+                });
+            }
+
+            if (!window.BARCODE || !window.BARCODE.RuntimeLifecycle) {
+                console.error('RuntimeLifecycle unavailable; cannot start game.');
                 return;
             }
-            gameStartInProgress = true;
 
-            let loadingIndicator;
-
-            try {
-                // Reset any stale retry failure presentation before hiding the title.
-                loadingIndicator = document.getElementById('loadingIndicator');
-                if (loadingIndicator) {
-                    loadingIndicator.textContent = 'INITIALIZING SYSTEM...';
-                    loadingIndicator.style.color = '';
-                    loadingIndicator.classList.remove('visible');
-                }
-                this.disabled = false;
-                this.textContent = 'START SYSTEM';
-
-                // Use title screen transition if available
-                if (window.titleScreen && typeof window.titleScreen.hide === 'function') {
-                    window.titleScreen.hide();
-                }
-                console.log('=== START BUTTON CLICKED - INITIALIZING GAME ===');
-
-                // STEP 0: Enter fullscreen immediately (using new fullscreen manager)
-                console.log('Step 0: Entering fullscreen mode...');
-                if (window.fullscreenManager) {
-                    window.fullscreenManager.enter().catch(err => {
-                        // Silently handle permissions check failures
-                        if (err.name === 'TypeError' && err.message && err.message.includes('Permissions check failed')) {
-                            return;
-                        }
-                        console.log('🎮 Fullscreen request declined on start:', err.message);
-                    });
-                }
-
-                // Small delay to ensure fullscreen is active
-                await new Promise(resolve => setTimeout(resolve, 200));
-
-                // Disable button to prevent multiple clicks
-                this.disabled = true;
-                this.textContent = 'INITIALIZING...';
-
-                loadingIndicator.classList.add('visible');
-                // STEP 1: Initialize all game systems
-                console.log('Step 1: Initializing game systems...');
-                
-                // Sprite and audio systems are already loaded by boot loader
-                console.log('✓ Assets already loaded by boot sequence');
-                
-                // Initialize sprite system (if needed)
-                if (typeof window.initSprites === 'function') {
-                    await window.initSprites();
-                }
-                
-                // Initialize audio system (if needed)
-                if (typeof window.initAudio === 'function') {
-                    await window.initAudio();
-                }
-                
-                // CRITICAL: Stop title screen music when game starts
-                if (window.audioSystem && typeof window.audioSystem.stopTitleScreenMusic === 'function') {
-                    window.audioSystem.stopTitleScreenMusic();
-                    console.log('🔇 Stopped title screen music - starting game');
-                }
-                
-                // Block title screen music from starting after game start
-                titleScreenMusicBlocked = true;
-                
-                // Initialize parallax background
-                console.log('Initializing parallax background...');
-                window.initParallax();
-                console.log('✓ Parallax background initialized');
-                
-                // Initialize space ship system
-                console.log('Initializing space ship system...');
-                window.initSpaceShips();
-                console.log('✓ Space ship system initialized');
-                
-                // Initialize lore system
-                console.log('Initializing lore system...');
-                window.initLore();
-                console.log('✓ Lore system initialized');
-                
-                // 🔥🔥🔥 FORCE INIT LOST DATA SYSTEM
-                console.log('🔥🔥🔥 FORCE INITIALIZING LOST DATA SYSTEM...');
-                try {
-                    window.initLostData(null); // Force init without player
-                    console.log('✅✅✅ LOST DATA SYSTEM FORCE INITIALIZED!!!');
-                    
-                    // REMOVED: Forced first fragment spawn at player position
-                    // Let the natural spawn system handle the first fragment with proper randomization
-                    console.log('🎲 First fragment will spawn naturally with random positioning');
-                } catch (error) {
-                    console.error('❌❌❌ FAILED TO FORCE INIT LOST DATA:', error);
-                }
-                
-                // Initialize cutscene system
-                console.log('Initializing cutscene system...');
-                window.initCutscene();
-                console.log('✓ Cutscene system initialized');
-                
-                // REMOVED: Old broadcast jammer system initialization
-                // Jammer system now uses regular enemy-based JammerEnemy class
-                
-                // Do NOT start rhythm system - wait until game starts
-                console.log('Rhythm system waiting - will start with game');
-                
-                // STEP 2: Hide start screen interface
-                console.log('Step 2: Hiding start interface...');
-                document.getElementById('startOverlay').classList.add('hidden');
-                
-                // Hide game interface (canvas) during cutscene - cutscene will show images
-                document.getElementById('gameCanvas').style.display = 'none';
-                
-                // STEP 3: Play intro cutscene BEFORE starting the game
-                console.log('Step 3: Playing intro cutscene...');
-                try {
-                    if (window.cutsceneSystem) {
-                        await window.cutsceneSystem.start();
-                        console.log('✓ Intro cutscene completed');
-                    }
-                } catch (error) {
-                    console.warn('⚠️ Cutscene failed, continuing to game:', error?.message || error);
-                }
-                
-                // STEP 4: Show full game interface after cutscene
-                console.log('Step 4: Showing complete game interface...');
-                document.getElementById('gameCanvas').style.display = 'block';
-                document.querySelector('.topbar').style.display = 'flex';
-                document.querySelector('.hint').style.display = 'block';
-                
-                // STEP 5: Initialize and start tutorial
-                console.log('Step 5: Starting tutorial system...');
-                if (window.tutorialSystem) {
-                    if (typeof window.tutorialSystem.startTutorial === 'function') {
-                        window.tutorialSystem.startTutorial();
-                    }
-                }
-                
-                // STEP 6: Start the game (AFTER cutscene)
-                console.log('Step 6: Starting game...');
-                if (typeof window.startGame === 'function') {
-                    window.startGame();
-                }
-                
-                // Hide loading indicator
-                loadingIndicator.classList.remove('visible');
-                
-                gameInitialized = true;
-                
-                console.log('✓ GAME STARTED SUCCESSFULLY IN FULLSCREEN!');
-                
-            } catch (error) {
-                console.error('❌ FATAL ERROR INITIALIZING GAME:', error?.message || error?.toString() || 'Unknown error');
-                console.error('Error stack:', error?.stack || 'No stack available');
-                console.error('Error type:', typeof error);
-                
-                // Restore visible retry surface
-                if (window.titleScreen && typeof window.titleScreen.show === 'function') {
-                    window.titleScreen.show();
-                }
-                const startOverlay = document.getElementById('startOverlay');
-                startOverlay.classList.remove('hidden');
-                startOverlay.style.display = '';
-                startOverlay.style.opacity = '';
-
-                // Show error state
-                this.textContent = 'ERROR - RETRY';
-                this.disabled = false;
-                if (loadingIndicator) {
-                    loadingIndicator.textContent = 'INITIALIZATION FAILED';
-                    loadingIndicator.style.color = '#ff0000';
-                }
-                
-                // Allow retry after delay
-                setTimeout(() => {
-                    this.textContent = 'START SYSTEM';
-                    if (loadingIndicator) {
-                        loadingIndicator.classList.remove('visible');
-                    }
-                }, 3000);
-            } finally {
-                gameStartInProgress = false;
-                if (assetLoadingMonitor) {
-                    assetLoadingMonitor.cleanup();
-                }
+            const lifecycle = window.BARCODE.RuntimeLifecycle;
+            const state = lifecycle.getState();
+            const result = state === 'failed' ? await lifecycle.retry() : await lifecycle.start({ initialStart: true });
+            if (!result || result.ok === false) {
+                console.warn('Runtime lifecycle start request did not complete:', result);
             }
         });
-        
+
+        function resetStartRetryPresentation() {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            if (loadingIndicator) {
+                loadingIndicator.textContent = 'INITIALIZING SYSTEM...';
+                loadingIndicator.style.color = '';
+                loadingIndicator.classList.remove('visible');
+            }
+            const startButton = document.getElementById('startButton');
+            if (startButton) {
+                startButton.disabled = false;
+                startButton.textContent = 'START SYSTEM';
+            }
+        }
+
         // Add keyboard support for start button
         document.addEventListener('keydown', function(event) {
             if (event.code === 'Space' && !document.getElementById('startOverlay').classList.contains('hidden')) {

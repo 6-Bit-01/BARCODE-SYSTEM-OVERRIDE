@@ -25,6 +25,7 @@
     "src/game/objectives.js",
     "src/engine/cutscene.js",
     "src/core/loop.js",
+    "src/core/runtime-lifecycle.js",
     "src/game/player.js",
     "src/game/enemies.js",
     "src/game/jammer-spawn-logic.js",
@@ -67,6 +68,7 @@
     "src/game/objectives.js",
     "src/engine/cutscene.js",
     "src/core/loop.js",
+    "src/core/runtime-lifecycle.js",
     "src/game/player.js",
     "src/game/enemies.js",
     "src/game/jammer-spawn-logic.js",
@@ -117,6 +119,7 @@
     "tools/check-frame-ownership.js",
     "tools/check-makko-hotfix.js",
     "tools/check-music-profiles.js",
+    "tools/check-runtime-lifecycle.js",
     "tools/check-startup-lifecycle.js",
     "tools/check-syntax.js",
     "tools/generate-baseline.js",
@@ -201,6 +204,10 @@
         "status": "pass"
       },
       {
+        "file": "src/core/runtime-lifecycle.js",
+        "status": "pass"
+      },
+      {
         "file": "src/game/player.js",
         "status": "pass"
       },
@@ -279,11 +286,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 39,
+        "index": 40,
         "status": "pass"
       },
       {
-        "index": 41,
+        "index": 42,
         "status": "pass"
       }
     ]
@@ -414,12 +421,6 @@
     },
     {
       "global": "window.gameState",
-      "file": "src/game/main-new.js",
-      "line": 17,
-      "loaded": true
-    },
-    {
-      "global": "window.gameState",
       "file": "src/game/main.js",
       "line": 14,
       "loaded": false
@@ -487,7 +488,7 @@
     {
       "global": "window.startNewGame",
       "file": "src/game/main-new.js",
-      "line": 119,
+      "line": 25,
       "loaded": true
     },
     {
@@ -535,6 +536,7 @@
     "src/game/objectives.js",
     "src/engine/cutscene.js",
     "src/core/loop.js",
+    "src/core/runtime-lifecycle.js",
     "src/game/player.js",
     "src/game/enemies.js",
     "src/game/jammer-spawn-logic.js",

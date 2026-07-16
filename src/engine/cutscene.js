@@ -927,6 +927,25 @@ window.CutsceneSystem = class CutsceneSystem {
   isPlaying() {
     return this.isActive;
   }
+
+  destroy() {
+    this.isActive = false;
+    this.removeEventListeners();
+    if (this.nextImageTimer) {
+      clearTimeout(this.nextImageTimer);
+      this.nextImageTimer = null;
+    }
+    if (this.inputDisableTimer) {
+      clearTimeout(this.inputDisableTimer);
+      this.inputDisableTimer = null;
+    }
+    this.endSkipHold();
+    if (this.cutsceneContainer && this.cutsceneContainer.parentNode) {
+      this.cutsceneContainer.remove();
+    }
+    this.cutsceneContainer = null;
+    this.onComplete = null;
+  }
 };
 
 // Initialize global cutscene system
@@ -935,6 +954,9 @@ window.cutsceneSystem = null;
 // Initialize cutscene system
 window.initCutscene = function() {
   try {
+    if (window.cutsceneSystem) {
+      return true; // idempotent lifecycle init: retain the live instance
+    }
     window.cutsceneSystem = new window.CutsceneSystem();
     console.log('✓ Cutscene system initialized');
     return true;

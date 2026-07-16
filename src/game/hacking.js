@@ -774,6 +774,9 @@ window.HackingSystem = class HackingSystem {
 
 // Create global hacking system instance
 function createHackingSystem() {
+  if (window.hackingSystem) {
+    return; // idempotent lifecycle init: retain the live instance
+  }
   if (window.randomRange && window.clamp) {
     window.hackingSystem = new window.HackingSystem();
     console.log('Terminal Hacking System created');

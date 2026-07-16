@@ -26,6 +26,16 @@ window.InputManager = class InputManager {
     window.addEventListener('keydown', (e) => {
       const key = e.key.toLowerCase();
       
+      // Runtime pause suppresses gameplay-mutating input while preserving resume/fullscreen controls.
+      if (window.BARCODE && window.BARCODE.RuntimeLifecycle && window.BARCODE.RuntimeLifecycle.getState() === 'paused') {
+        const allowedPausedKeys = ['p', 'f', 'escape'];
+        if (!allowedPausedKeys.includes(key)) {
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
+      }
+
       // GAME OVER KEY RESTRICTION: Only allow Space, Shift+F, and Esc
       if (window.gameState && window.gameState.gameOver) {
         // Only allow specific keys during game over
@@ -60,13 +70,11 @@ window.InputManager = class InputManager {
         // Check for game over restart first (highest priority)
         if (window.gameState && window.gameState.gameOver) {
           console.log('Restart detected - game over:', window.gameState.gameOver);
-          if (window.handleGameAction) {
-            console.log('Calling handleGameAction restart');
-            window.handleGameAction('restart');
+          if (window.BARCODE && window.BARCODE.RuntimeLifecycle) {
+            window.BARCODE.RuntimeLifecycle.restart({ source: 'game-over-space' });
             return;
-          } else {
-            console.warn('handleGameAction not available');
           }
+          console.warn('RuntimeLifecycle not available for restart');
         }
         
         // Handle tutorial dialogue second
@@ -314,8 +322,8 @@ window.InputManager = class InputManager {
       
       if (e.key === 'p' || e.key === 'P') {
         e.preventDefault();
-        if (window.handleGameAction) {
-          window.handleGameAction('pause');
+        if (window.BARCODE && window.BARCODE.RuntimeLifecycle) {
+          window.BARCODE.RuntimeLifecycle.togglePause();
         }
       }
       

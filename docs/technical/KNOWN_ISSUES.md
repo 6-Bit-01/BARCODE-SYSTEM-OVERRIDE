@@ -24,3 +24,10 @@
 
 - Confirm title presentation, prologue, gameplay feel, audio, camera, sprites, and restart are unchanged after importing this branch into a duplicate Makko project.
 - Specifically test rapid start-button clicks/Space presses, failed-start retry UI, prologue presentation, gameplay entry, pause/resume, and restart behavior.
+
+## PR #7 deferred lifecycle/resource debt
+
+- `RuntimeLifecycle` now owns first Start, retry, pause/resume, game-over restart, explicit stop, compatibility state projection, and non-polling diagnostics, but it deliberately does not claim every historical transient gameplay timer in the repository is globally leak-free.
+- The v4 source pack lifecycle card was originally numbered PR #6; in repository history this branch is PR #7 because PR #6 was the approved Makko music-profile/rhythm startup hotfix.
+- The broad inactive `src/game/main.js` action handler remains legacy evidence only and is not loaded or revived. Future action-input work should replace raw-key gameplay routing rather than expanding the legacy handler.
+- Enemy ownership, duplicate enemy globals, jammer semantics, and behavior-level double integration remain deferred to the later single-enemy-owner PR.

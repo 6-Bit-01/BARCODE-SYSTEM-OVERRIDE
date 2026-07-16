@@ -465,6 +465,9 @@ window.spaceShipSystem = null;
 // Initialize space ship system
 window.initSpaceShips = function() {
   try {
+    if (window.spaceShipSystem) {
+      return true; // idempotent lifecycle init: retain the live instance
+    }
     window.spaceShipSystem = new window.SpaceShipSystem();
     console.log('✓ Space ship system initialized');
     return true;

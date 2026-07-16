@@ -397,6 +397,9 @@ window.loreSystem = null;
 // Initialize lore system
 window.initLore = function() {
   try {
+    if (window.loreSystem) {
+      return true; // idempotent lifecycle init: retain the live instance
+    }
     window.loreSystem = new window.LoreSystem();
     console.log('✓ Lore system initialized');
     console.log(`📖 Loaded ${window.loreSystem.loreMessages.length} lore messages`);

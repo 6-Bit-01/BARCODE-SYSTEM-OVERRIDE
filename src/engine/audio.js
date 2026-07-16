@@ -2901,6 +2901,63 @@ window.AudioSystem = class AudioSystem {
     this.syncBeatCount = 0; // Reset counter
     console.log('Stopped layer beat sync');
   }
+
+  async pauseRuntimeAudio() {
+    if (!this.context) return { ok: true, reason: 'no-context' };
+    const transport = window.BARCODE && window.BARCODE.MusicTransport;
+    const audioTime = this.context.currentTime;
+    if (transport && typeof transport.pause === 'function') {
+      transport.pause(audioTime);
+    }
+    this.stopBeatTrack();
+    if (this.context.state === 'running' && typeof this.context.suspend === 'function') {
+      await this.context.suspend();
+    }
+    return { ok: true, reason: 'paused', contextState: this.context.state };
+  }
+
+  async resumeRuntimeAudio() {
+    if (!this.context) return { ok: true, reason: 'no-context' };
+    if (this.context.state === 'suspended' && typeof this.context.resume === 'function') {
+      await this.context.resume();
+    }
+    const transport = window.BARCODE && window.BARCODE.MusicTransport;
+    if (transport && typeof transport.resume === 'function') {
+      transport.resume(this.context.currentTime);
+    }
+    if (this.layersStarted) {
+      this.startLayerBeatSync();
+    }
+    return { ok: true, reason: 'resumed', contextState: this.context.state };
+  }
+
+  stopRuntimeAudio(options) {
+    options = options || {};
+    this.stopBeatTrack();
+    this.stopLayerBeatSync();
+    if (this.loopCheckInterval) {
+      clearInterval(this.loopCheckInterval);
+      this.loopCheckInterval = null;
+    }
+    if (options.stopMusic !== false) {
+      Object.keys(this.musicTracks || {}).forEach(trackId => {
+        const track = this.musicTracks[trackId];
+        if (track && track.source) {
+          try { track.source.stop(); } catch (error) {}
+          track.source = null;
+          track.isPlaying = false;
+          track.gain = null;
+        }
+      });
+      this.layersStarted = false;
+      if (window.BARCODE && window.BARCODE.MusicTransport && typeof window.BARCODE.MusicTransport.stop === 'function') {
+        window.BARCODE.MusicTransport.stop();
+      }
+    }
+    this.stopTitleScreenMusic();
+    this.stopCutsceneMusic();
+    return { ok: true, reason: 'stopped' };
+  }
   
   // Check if initialized
   isInitialized() {

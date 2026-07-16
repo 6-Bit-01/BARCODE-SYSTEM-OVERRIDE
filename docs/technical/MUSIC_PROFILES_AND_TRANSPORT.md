@@ -15,3 +15,9 @@ PR #5 supports only playback with no grid and playback with one fixed-tempo/fixe
 Only `level-01.main` is registered at runtime. It is marked `legacy-compatibility`, not verified and not reusable by other levels. Its compatibility values preserve the current three source IDs/URLs/gains/native loops, `146` BPM, `4/4`, `32` establishment beats, `16`-beat/four-bar phrase presentation, `60`/`100` ms named `level-01.attack` judgment windows with no `-20` ms compensation, and the Level-1-only `legacyManualRestartSec: 211`. The unequal-stem debt remains: native source lengths differ and the existing manual fade/wait/restart is preserved rather than reinterpreted as a verified loop endpoint.
 
 Future songs must supply their own profile metadata or deliberately choose no grid. They must not receive Level 1 tempo, meter, phrase, source count, judgment, or restart defaults.
+
+## PR #7 lifecycle pause/resume contract
+
+`MusicTransport.pause(audioTimeSec)` freezes the current track position using Web Audio time and advances transport generation so stale boundary events from the pre-pause generation cannot affect the resumed run. `resume(audioTimeSec)` re-anchors `sourceAnchorAudioSec` from the preserved track position and the resumed AudioContext time, also advancing generation. The boundary cursor is re-seeded at the frozen/resumed beat so paused time does not emit catch-up beats. `stop()` remains the explicit full-session invalidation path.
+
+Runtime pause/resume does not introduce wall-clock musical authority, timers, RAF, fallback BPM, new sources, or profile changes. The selected profile ID, Level 1's `146` BPM compatibility metadata, `4/4` meter, `32` establishment beats, `60`/`100` ms judgment windows, source URLs/gains, and 211-second coordinated restart behavior remain profile-owned and unchanged.

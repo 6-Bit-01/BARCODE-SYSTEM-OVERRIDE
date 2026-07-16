@@ -80,3 +80,13 @@ The generated inventory lists candidate diagnostic/legacy files. This is invento
 ## Not runtime-tested
 
 No browser or Makko execution was performed by Codex.
+
+## PR #7 runtime lifecycle ownership update
+
+- `window.BARCODE.RuntimeLifecycle`: loaded owner `src/core/runtime-lifecycle.js`; authoritative runtime states are `idle`, `starting`, `running`, `paused`, `stopping`, and `failed` with an explicit allowed-transition table.
+- The `index.html` start button is now a user-gesture adapter: it resets visible retry text, requests fullscreen synchronously, and delegates first Start or failed retry to `RuntimeLifecycle`. It no longer owns the manual parallax/spaceship/lore/lost-data/cutscene initialization sequence.
+- `src/game/game-initializer.js` remains the single-flight shared initializer for sprites/audio/base systems; `RuntimeLifecycle` is the caller that decides when that initializer participates in first Start, retry, or restart.
+- `src/game/main-new.js` retains `window.startGame`, `window.autoInitGame`, and `window.startNewGame` only as compatibility delegates to `RuntimeLifecycle`; they do not schedule frames or initialize gameplay independently.
+- `src/core/loop.js` remains the only active gameplay `requestAnimationFrame` owner. RuntimeLifecycle calls `startGameLoop`, `pauseGame`, `resumeGame`, and `stopGame` without adding another frame scheduler.
+- `src/core/input.js` routes active `P` pause/resume and game-over Space restart directly to `RuntimeLifecycle` instead of relying on the broad legacy `window.handleGameAction` implementation in inactive `src/game/main.js`.
+- The lifecycle feature card named PR #6 in the v4 source pack is implemented as PR #7 because PR #6 became the approved Makko music/rhythm hotfix.
