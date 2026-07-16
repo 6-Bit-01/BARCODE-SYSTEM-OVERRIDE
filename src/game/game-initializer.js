@@ -11,14 +11,19 @@ let initSpritesInFlight = null;
 let startGameInitializationInFlight = null;
 let startGameInitializationComplete = false;
 
+function ensureLevel01MusicProfileForAudio() {
+  if (window.BARCODE && typeof window.BARCODE.ensureLevel01MusicProfileSelected === 'function') {
+    return window.BARCODE.ensureLevel01MusicProfileSelected();
+  }
+  console.error('[music-profile] Level 1 profile initializer missing; cannot select level-01.main before audio loading.');
+  return { ok: false, reason: 'initializer-missing', profileId: 'level-01.main' };
+}
+
 // Initialize audio system first
 async function performInitAudio() {
   console.log('=== INITIALIZING AUDIO SYSTEM ===');
   
-  if (window.BARCODE && window.BARCODE.MusicProfiles) {
-    window.BARCODE.MusicProfiles.select(window.BARCODE.LEVEL_01_MUSIC_PROFILE_ID);
-    if (window.BARCODE.MusicTransport) window.BARCODE.MusicTransport.load(window.BARCODE.LEVEL_01_MUSIC_PROFILE_ID);
-  }
+  ensureLevel01MusicProfileForAudio();
   if (!window.audioSystem) {
     console.log('Creating audio system...');
     if (window.AudioContext || window.webkitAudioContext) {
@@ -89,6 +94,7 @@ async function performInitAudio() {
 
 window.initAudio = function() {
   if (window.audioSystem && window.audioSystem.isInitialized()) {
+    ensureLevel01MusicProfileForAudio();
     console.log('Audio system already initialized');
     return Promise.resolve();
   }

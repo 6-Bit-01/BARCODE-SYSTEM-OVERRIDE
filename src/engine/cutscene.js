@@ -6,6 +6,22 @@ window.FILE_MANIFEST.push({
   dependencies: []
 });
 
+
+function startGameplayMusicAndRhythm(audioSystem) {
+  if (!audioSystem || typeof audioSystem.startMusicSystem !== 'function') return { ok: false, reason: 'missing-audio-system' };
+  const result = audioSystem.startMusicSystem();
+  if (!result || !result.ok) {
+    console.error(`[cutscene] Gameplay music/rhythm startup did not complete: ${result && result.reason || 'unknown'}`);
+    return result || { ok: false, reason: 'unknown-start-failure' };
+  }
+  if (typeof audioSystem.startBackgroundRhythmIfTransportRunning === 'function') {
+    audioSystem.startBackgroundRhythmIfTransportRunning(result);
+  } else if (window.rhythmSystem && typeof window.rhythmSystem.startBackgroundRhythm === 'function' && result.transport && result.transport.status === 'ok' && result.transport.running) {
+    window.rhythmSystem.startBackgroundRhythm();
+  }
+  return result;
+}
+
 window.CutsceneSystem = class CutsceneSystem {
   constructor() {
     this.cutsceneImages = [
@@ -820,12 +836,7 @@ window.CutsceneSystem = class CutsceneSystem {
     if (!audioSystem || !audioSystem.cutsceneSource || !audioSystem.cutsceneGain) {
       console.log('🎬 Cutscene audio not available, skipping fade');
       // Start gameplay music immediately
-      if (audioSystem && typeof audioSystem.startMusicSystem === 'function') {
-        audioSystem.startMusicSystem();
-      }
-      if (window.rhythmSystem && typeof window.rhythmSystem.startBackgroundRhythm === 'function') {
-        window.rhythmSystem.startBackgroundRhythm();
-      }
+      startGameplayMusicAndRhythm(audioSystem);
       return;
     }
     
@@ -840,12 +851,7 @@ window.CutsceneSystem = class CutsceneSystem {
     if (!audioSystem.cutsceneGain) {
       console.log('🎬 Cutscene gain lost, cannot fade');
       // Start gameplay music immediately
-      if (audioSystem && typeof audioSystem.startMusicSystem === 'function') {
-        audioSystem.startMusicSystem();
-      }
-      if (window.rhythmSystem && typeof window.rhythmSystem.startBackgroundRhythm === 'function') {
-        window.rhythmSystem.startBackgroundRhythm();
-      }
+      startGameplayMusicAndRhythm(audioSystem);
       return;
     }
     
@@ -895,17 +901,10 @@ window.CutsceneSystem = class CutsceneSystem {
         
         // CRITICAL: Start music system and rhythm system simultaneously after fade
         // This ensures all layers and beat counter start at exactly the same time
-        if (typeof audioSystem.startMusicSystem === 'function') {
-          console.log('🎬 Starting music system - tracks will restart from beginning');
-          audioSystem.startMusicSystem();
+        console.log('🎬 Starting music system - tracks will restart from beginning');
+        const startupResult = startGameplayMusicAndRhythm(audioSystem);
+        if (startupResult && startupResult.ok) {
           console.log('🎬 ALL MUSIC LAYERS RESTARTED FROM BEGINNING');
-        }
-        
-        // CRITICAL: Start rhythm system background tracking after fade
-        // This ensures beat tracking only begins when music restarts
-        if (window.rhythmSystem && typeof window.rhythmSystem.startBackgroundRhythm === 'function') {
-          console.log('🎬 Starting rhythm system background tracking with fresh music');
-          window.rhythmSystem.startBackgroundRhythm();
           console.log('🎬 Rhythm beat tracking now active - synchronized with fresh music start');
         }
         
@@ -920,12 +919,7 @@ window.CutsceneSystem = class CutsceneSystem {
       console.log('🎬 Cutscene source not available or volume too low, skipping fade');
       
       // Start gameplay music immediately
-      if (typeof audioSystem.startMusicSystem === 'function') {
-        audioSystem.startMusicSystem();
-      }
-      if (window.rhythmSystem && typeof window.rhythmSystem.startBackgroundRhythm === 'function') {
-        window.rhythmSystem.startBackgroundRhythm();
-      }
+      startGameplayMusicAndRhythm(audioSystem);
     }
   }
   

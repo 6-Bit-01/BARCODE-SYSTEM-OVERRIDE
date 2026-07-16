@@ -11,6 +11,7 @@ window.BARCODE = window.BARCODE || {};
 (function(namespace) {
   'use strict';
   namespace.LEVEL_01_MUSIC_PROFILE_ID = 'level-01.main';
+  const LEVEL_01_PROFILE_ID = 'level-01.main';
   namespace.MusicProfiles.register({
     profileId: 'level-01.main',
     levelId: 'level-01',
@@ -28,4 +29,32 @@ window.BARCODE = window.BARCODE || {};
     judgmentRules: [{ id: 'level-01.attack', target: 'quarter-note', windowsMs: { perfect: 60, excellent: 100 }, calibrationOffsetMs: 0 }],
     legacyCompatibility: { firstBoundaryOffsetBeats: 0, establishmentBeatCount: 32, phraseCycleBeats: 16, deadCompensationMsNotApplied: -20, unequalStemDebt: 'foundation/fx about 212.088s, bass about 210.442s; runtime preserves native loops plus coordinated 211s manual restart.' }
   });
+
+
+  namespace.ensureLevel01MusicProfileSelected = function ensureLevel01MusicProfileSelected() {
+    const registry = namespace.MusicProfiles;
+    const transport = namespace.MusicTransport;
+    if (!registry || typeof registry.get !== 'function' || typeof registry.select !== 'function') {
+      console.error('[music-profile] Missing MusicProfiles registry; Level 1 cannot select level-01.main before audio loading.');
+      return { ok: false, reason: 'missing-registry', profileId: LEVEL_01_PROFILE_ID };
+    }
+    const registered = registry.get(LEVEL_01_PROFILE_ID);
+    if (!registered) {
+      console.error('[music-profile] Missing registration for level-01.main; verify src/engine/level-01-music-profile.js executed in the hosted script path before audio initialization.');
+      return { ok: false, reason: 'missing-registration', profileId: LEVEL_01_PROFILE_ID };
+    }
+    const selected = registry.select(LEVEL_01_PROFILE_ID);
+    if (!selected || selected.profileId !== LEVEL_01_PROFILE_ID) {
+      console.error('[music-profile] Failed to select exact Level 1 music profile level-01.main before audio loading.');
+      return { ok: false, reason: 'selection-failed', profileId: LEVEL_01_PROFILE_ID };
+    }
+    if (transport && typeof transport.load === 'function') {
+      const loadResult = transport.load(LEVEL_01_PROFILE_ID);
+      if (!loadResult || loadResult.status !== 'ok' || loadResult.profileId !== LEVEL_01_PROFILE_ID) {
+        console.error('[music-profile] Failed to load exact Level 1 profile level-01.main into MusicTransport.');
+        return { ok: false, reason: 'transport-load-failed', profileId: LEVEL_01_PROFILE_ID };
+      }
+    }
+    return { ok: true, profileId: LEVEL_01_PROFILE_ID };
+  };
 })(window.BARCODE);
