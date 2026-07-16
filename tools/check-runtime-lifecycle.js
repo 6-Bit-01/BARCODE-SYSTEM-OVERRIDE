@@ -73,6 +73,10 @@ assert(gameState.includes('resetRuntimeTerminalFlags') && gameState.includes('ga
 assert(gameState.includes('cancelInitialEnemySpawn') && gameState.includes('initialEnemySpawnGeneration') && gameState.includes('spawnGeneration !== window.initialEnemySpawnGeneration'), 'initial enemy spawn timeout must be generation/cancel guarded');
 assert(lifecycle.includes('resetRuntimeTerminalFlags') && lifecycle.includes('cancelInitialEnemySpawn'), 'RuntimeLifecycle must own game-over flag reset and initial-spawn invalidation');
 assert(rhythm.includes('resetForFreshRuntimeRestart') && audio.includes('resetForFreshRuntimeRestart'), 'fresh music restart must explicitly reset/re-anchor rhythm background state');
+const startRuntimeMusic = blockFrom(audio, 'startRuntimeGameplayMusic()', 'stopRuntimeAudio(options)');
+const ensureBeatSync = blockFrom(audio, 'ensureLayerBeatSyncForTransport(startResult)', 'startRuntimeGameplayMusic()');
+assert(startRuntimeMusic.includes('resetForFreshRuntimeRestart') && startRuntimeMusic.includes('ensureLayerBeatSyncForTransport(result)') && startRuntimeMusic.includes('beat-sync-not-armed'), 'fresh restart music path must explicitly require beat-sync arming after rhythm reset');
+assert(ensureBeatSync.includes('startResult.transport.running !== true') && ensureBeatSync.includes('this.startLayerBeatSync()') && ensureBeatSync.includes('beatSyncActive: !!this.beatSyncActive'), 'fresh restart beat-sync helper must require a running transport and arm layer beat sync idempotently');
 assert(!/idempotent lifecycle init/.test(spaceships + hacking + cutscene), 'validators must not accept idempotent marker comments as cleanup proof');
 
 const diag = blockFrom(lifecycle, 'function getDiagnostics()', 'namespace.RuntimeLifecycle');

@@ -2989,11 +2989,25 @@ window.AudioSystem = class AudioSystem {
     return { ok: true, reason: 'restart-audio-ready', contextState: this.context.state };
   }
 
+  ensureLayerBeatSyncForTransport(startResult) {
+    if (!startResult || !startResult.ok || !startResult.transport || startResult.transport.status !== 'ok' || startResult.transport.running !== true) {
+      return { ok: false, reason: 'transport-not-running' };
+    }
+    this.startLayerBeatSync();
+    return { ok: true, reason: 'beat-sync-armed', beatSyncActive: !!this.beatSyncActive };
+  }
+
   startRuntimeGameplayMusic() {
     if (typeof this.startMusicSystem !== 'function') return { ok: false, reason: 'startMusicSystem-missing' };
     const result = this.startMusicSystem();
     if (result && result.ok && window.rhythmSystem && typeof window.rhythmSystem.resetForFreshRuntimeRestart === 'function') {
       window.rhythmSystem.resetForFreshRuntimeRestart(result.profileId);
+    }
+    if (result && result.ok && typeof this.ensureLayerBeatSyncForTransport === 'function') {
+      const beatSyncResult = this.ensureLayerBeatSyncForTransport(result);
+      if (!beatSyncResult.ok || this.beatSyncActive !== true) {
+        return Object.assign({}, result, { ok: false, reason: 'beat-sync-not-armed', beatSync: beatSyncResult });
+      }
     }
     if (result && result.ok && typeof this.startBackgroundRhythmIfTransportRunning === 'function') {
       this.startBackgroundRhythmIfTransportRunning(result);
