@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const vm = require('vm');
 const { execFileSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..');
@@ -69,7 +68,25 @@ function missingFirstPartyReferences() {
   }
   return refs.sort((a,b)=>(a.source+a.reference).localeCompare(b.source+b.reference));
 }
-function syntaxCheckSource(code, filename) { try { new vm.Script(code, { filename }); return null; } catch (e) { return { message:e.message, line:e.lineNumber || null }; } }
+
+function syntaxCheckSource(code, filename) {
+  const tempDir = path.join(ROOT, '.tmp-syntax-check');
+  fs.mkdirSync(tempDir, { recursive: true });
+  const safeName = filename.replace(/[^A-Za-z0-9_.-]/g, '_') + '.js';
+  const tempFile = path.join(tempDir, safeName);
+  fs.writeFileSync(tempFile, code);
+  try {
+    execFileSync(process.execPath, ['--check', tempFile], { stdio: 'pipe' });
+    return null;
+  } catch (e) {
+    const stderr = e.stderr ? String(e.stderr) : (e.message || String(e));
+    const lineMatch = /:(\d+)\n/.exec(stderr);
+    return { message: stderr.split('\n')[0] || 'syntax check failed', line: lineMatch ? Number(lineMatch[1]) : null };
+  } finally {
+    try { fs.unlinkSync(tempFile); } catch (_) {}
+  }
+}
+
 function checkFileSyntax(file) { return syntaxCheckSource(read(file), file); }
 function allSyntaxFailures() { return jsFiles().map(file => ({ file, error:checkFileSyntax(file), loaded: loadedRepoJs().includes(file) })).filter(x=>x.error); }
 function externalAssets() {
@@ -122,4 +139,4 @@ function generateInventory() {
   };
 }
 function stableStringify(value) { return JSON.stringify(value, null, 2) + '\n'; }
-module.exports = { ROOT, ENTRY_HTML, BASE_COMMIT, loadedRepoJs, jsFiles, parseScripts, missingFirstPartyReferences, checkFileSyntax, allSyntaxFailures, externalAssets, globalAssignments, generateInventory, stableStringify };
+module.exports = { ROOT, ENTRY_HTML, BASE_COMMIT, loadedRepoJs, jsFiles, parseScripts, missingFirstPartyReferences, syntaxCheckSource, checkFileSyntax, allSyntaxFailures, externalAssets, globalAssignments, generateInventory, stableStringify };

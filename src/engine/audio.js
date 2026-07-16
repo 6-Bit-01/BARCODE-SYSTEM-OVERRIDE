@@ -61,6 +61,33 @@ window.AudioSystem = class AudioSystem {
     this.assetLoadDiagnostics = {};
     this.layerLogState = { enemyCount: null, activeLayers: '', gains: '' };
     this.musicStartState = { ok: false, reason: 'not-started' };
+    this.runtimeAudioGeneration = 0;
+    this.runtimeTimeouts = new Set();
+  }
+
+  scheduleRuntimeTimeout(callback, delay) {
+    const generation = this.runtimeAudioGeneration;
+    const handle = setTimeout(() => {
+      this.runtimeTimeouts.delete(handle);
+      if (generation === this.runtimeAudioGeneration) callback();
+    }, Math.max(0, delay));
+    this.runtimeTimeouts.add(handle);
+    return handle;
+  }
+
+  clearRuntimeTimeouts() {
+    this.runtimeTimeouts.forEach(handle => clearTimeout(handle));
+    this.runtimeTimeouts.clear();
+    if (this.beatScheduler) {
+      clearTimeout(this.beatScheduler);
+      this.beatScheduler = null;
+    }
+  }
+
+  beginRuntimeAudioGeneration() {
+    this.runtimeAudioGeneration++;
+    this.clearRuntimeTimeouts();
+    return this.runtimeAudioGeneration;
   }
 
   async init() {
@@ -608,7 +635,7 @@ window.AudioSystem = class AudioSystem {
       }
       
       // Continue scheduling
-      this.beatScheduler = setTimeout(() => this.scheduleBeats(), 100);
+      this.beatScheduler = this.scheduleRuntimeTimeout(() => this.scheduleBeats(), 100);
     } else {
       console.log('🎵 Skipping beat scheduler - layer beat sync is active');
     }
@@ -625,7 +652,7 @@ window.AudioSystem = class AudioSystem {
       // Only sync rhythm system for beat timing
       
       // CRITICAL: Always call syncWithAudioBeat - it handles tempo establishment internally
-      setTimeout(() => {
+      this.scheduleRuntimeTimeout(() => {
         if (window.rhythmSystem) {
           window.rhythmSystem.syncWithAudioBeat();
         }
@@ -635,17 +662,17 @@ window.AudioSystem = class AudioSystem {
       // Default beat patterns: kick on 1, 5, 9, 13; snare on 5, 13; hihats on others
       if (beatInMeasure === 0 || beatInMeasure === 4 || beatInMeasure === 8 || beatInMeasure === 12) {
         // Kick drum
-        setTimeout(() => this.playSound('kick'), (time - this.context.currentTime) * 1000);
+        this.scheduleRuntimeTimeout(() => this.playSound('kick'), (time - this.context.currentTime) * 1000);
       }
       
       if (beatInMeasure === 4 || beatInMeasure === 12) {
         // Snare drum  
-        setTimeout(() => this.playSound('snare'), (time - this.context.currentTime) * 1000);
+        this.scheduleRuntimeTimeout(() => this.playSound('snare'), (time - this.context.currentTime) * 1000);
       }
       
       if (beatInMeasure % 2 === 1) {
         // Hi-hats on off-beats
-        setTimeout(() => this.playSound('hihat'), (time - this.context.currentTime) * 1000);
+        this.scheduleRuntimeTimeout(() => this.playSound('hihat'), (time - this.context.currentTime) * 1000);
       }
     }
   }
@@ -2162,7 +2189,7 @@ window.AudioSystem = class AudioSystem {
     this.musicStartState = { ok: true, reason: 'started', profileId: profile.profileId, scheduledCount, transport: transportResult };
     this.startLoopDetection();
 
-    setTimeout(() => {
+    this.scheduleRuntimeTimeout(() => {
       this.updateLayers();
       console.log('Layer system activated after perfect synchronization');
     }, 100);
@@ -2307,7 +2334,7 @@ window.AudioSystem = class AudioSystem {
     });
     
     // Step 3: After fade, stop all layers and wait 1 second
-    setTimeout(() => {
+    this.scheduleRuntimeTimeout(() => {
       layerNames.forEach(layerName => {
         const track = this.musicTracks[layerName];
         if (track && track.source) {
@@ -2325,7 +2352,7 @@ window.AudioSystem = class AudioSystem {
       this.layersStarted = false;
       
       // Step 4: Wait 1 second, then restart all layers
-      setTimeout(() => {
+      this.scheduleRuntimeTimeout(() => {
         console.log('🎵 Step 4: Restarting all layers simultaneously');
         
         const restartTime = this.context.currentTime + 0.01;
@@ -2560,7 +2587,7 @@ window.AudioSystem = class AudioSystem {
         
         // Verify change stuck
         if (layerName === 'bass-layer') {
-          setTimeout(() => {
+          this.scheduleRuntimeTimeout(() => {
             console.log('Bass layer verification - after update:', track.volume, 'gain value:', track.gain.gain.value);
           }, 50);
         }
@@ -2866,7 +2893,7 @@ window.AudioSystem = class AudioSystem {
     this.cutsceneGain.gain.exponentialRampToValueAtTime(0.001, currentTime + fadeDuration); // 0.001 instead of 0 to avoid audio issues
     
     return new Promise((resolve) => {
-      setTimeout(() => {
+      this.scheduleRuntimeTimeout(() => {
         // Set to exactly 0 after the ramp completes
         if (this.cutsceneGain) {
           this.cutsceneGain.gain.value = 0;
@@ -2965,6 +2992,9 @@ window.AudioSystem = class AudioSystem {
   startRuntimeGameplayMusic() {
     if (typeof this.startMusicSystem !== 'function') return { ok: false, reason: 'startMusicSystem-missing' };
     const result = this.startMusicSystem();
+    if (result && result.ok && window.rhythmSystem && typeof window.rhythmSystem.resetForFreshRuntimeRestart === 'function') {
+      window.rhythmSystem.resetForFreshRuntimeRestart(result.profileId);
+    }
     if (result && result.ok && typeof this.startBackgroundRhythmIfTransportRunning === 'function') {
       this.startBackgroundRhythmIfTransportRunning(result);
     }
@@ -2973,6 +3003,8 @@ window.AudioSystem = class AudioSystem {
 
   stopRuntimeAudio(options) {
     options = options || {};
+    this.runtimeAudioGeneration++;
+    this.clearRuntimeTimeouts();
     this.stopBeatTrack();
     this.stopLayerBeatSync();
     if (this.loopCheckInterval) {
@@ -3011,8 +3043,10 @@ window.AudioSystem = class AudioSystem {
       loopCheckActive: !!this.loopCheckInterval,
       beatSchedulerActive: !!this.beatScheduler,
       activeMusicSources,
+      runtimeAudioGeneration: this.runtimeAudioGeneration,
+      ownedRuntimeTimeouts: this.runtimeTimeouts.size,
       cutsceneSourceActive: !!this.cutsceneSource,
-      titleSourceActive: !!this.titleSource
+      titleSourceActive: !!(this.titleScreenMusic && this.titleScreenMusic.source)
     };
   }
   

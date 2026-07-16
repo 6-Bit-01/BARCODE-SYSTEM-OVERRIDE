@@ -39,3 +39,13 @@ Application-lifetime singletons intentionally retained across runs: decoded/shar
 Run-owned resources that now reset, dispose, or generation-invalidate lifecycle work: gameplay RAF, gameplay music source sets, MusicTransport running state, layer beat synchronization, cutscene timers/listeners/fade callbacks, hacking puzzle/tutorial timeouts, pending spaceship foreground-spawn timeouts, transient particles, rhythm/hacking overlays, and restart-owned audio resynchronization.
 
 Static validators assert structural guards for these fixes, but they do not prove Makko/browser runtime behavior. Owner smoke testing remains required for pause/resume, restart from running, restart from paused, cutscene-fade interruption, and full stop followed by delayed observation.
+
+## PR #7 follow-up correction notes
+
+Game-over Space restart is lifecycle-owned: restart keeps saved progress policy intact, clears only runtime terminal flags (`gameOver` and `victory`), resets player health/position/velocity through the existing run reset, and invalidates pending initial-enemy spawns before the next running generation.
+
+Validation scripts are now source-inspection only for music-profile coverage. `tools/check-music-profiles.js` no longer executes browser runtime files in a VM; syntax tooling uses `node --check` on temporary files instead of `vm.Script`.
+
+Audio runtime callbacks that can mutate gameplay music after stop/restart are now generation-owned and registered through AudioSystem runtime timeout tracking. Application-lifetime browser-policy listeners and asset-loading timeouts remain outside that run-owned registry unless they mutate stopped gameplay audio.
+
+Fresh lifecycle restart intentionally differs from pause/resume: pause/resume preserves rhythm continuity, while a fresh gameplay music restart calls the rhythm restart hook so beat counters and tempo-establishment state re-anchor to the new MusicTransport generation.

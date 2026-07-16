@@ -22,6 +22,8 @@ const audio = read('src/engine/audio.js');
 const cutscene = read('src/engine/cutscene.js');
 const spaceships = read('src/engine/spaceships.js');
 const hacking = read('src/game/hacking.js');
+const gameState = read('src/game/game-state.js');
+const rhythm = read('src/game/rhythm.js');
 
 assert(lifecycle.includes('namespace.RuntimeLifecycle'), 'RuntimeLifecycle must exist under window.BARCODE namespace');
 for (const state of ['idle','starting','running','paused','stopping','failed']) assert(lifecycle.includes(`'${state}'`), `missing lifecycle state ${state}`);
@@ -57,6 +59,7 @@ const lifecycleRestart = blockFrom(lifecycle, 'function restart(options)', 'func
 assert(lifecycleRestart.includes('prepareRestartAudio') && lifecycleRestart.includes('stopMusic: true'), 'restart must prepare/resume audio and stop old music sources');
 assert(lifecycle.includes('startRuntimeGameplayMusic'), 'restart initializer must restart gameplay music/rhythm under lifecycle ownership');
 assert(audio.includes('prepareRestartAudio') && audio.includes('startRuntimeGameplayMusic'), 'AudioSystem restart policy hooks must exist');
+assert(audio.includes('runtimeAudioGeneration') && audio.includes('scheduleRuntimeTimeout') && audio.includes('clearRuntimeTimeouts') && audio.includes('ownedRuntimeTimeouts'), 'AudioSystem must expose/cancel run-owned timeout generation');
 
 for (const token of ['containerRemovalTimer', 'fadeCompletionTimer', 'titleMusicUnblockTimer', 'fadeCheckInterval', 'trackTimeout', 'trackInterval', 'clearOwnedCallbacks']) {
   assert(cutscene.includes(token), `cutscene must track ${token}`);
@@ -66,17 +69,22 @@ assert(cutscene.includes('startGameplayMusicAndRhythm(audioSystem)') && cutscene
 
 assert(spaceships.includes('pendingSpawnTimeouts') && spaceships.includes('trackSpawnTimeout') && spaceships.includes('dispose()') && spaceships.includes('getDiagnostics()'), 'SpaceShipSystem must track and dispose delayed foreground spawns');
 assert(hacking.includes('ownedTimeouts') && hacking.includes('trackTimeout') && hacking.includes('clearOwnedTimeouts') && hacking.includes('getDiagnostics()'), 'HackingSystem must track/reset delayed callbacks');
+assert(gameState.includes('resetRuntimeTerminalFlags') && gameState.includes('gameState.gameOver = false') && gameState.includes('gameState.victory = false'), 'game-over restart must clear terminal game flags without resetting saved progress');
+assert(gameState.includes('cancelInitialEnemySpawn') && gameState.includes('initialEnemySpawnGeneration') && gameState.includes('spawnGeneration !== window.initialEnemySpawnGeneration'), 'initial enemy spawn timeout must be generation/cancel guarded');
+assert(lifecycle.includes('resetRuntimeTerminalFlags') && lifecycle.includes('cancelInitialEnemySpawn'), 'RuntimeLifecycle must own game-over flag reset and initial-spawn invalidation');
+assert(rhythm.includes('resetForFreshRuntimeRestart') && audio.includes('resetForFreshRuntimeRestart'), 'fresh music restart must explicitly reset/re-anchor rhythm background state');
 assert(!/idempotent lifecycle init/.test(spaceships + hacking + cutscene), 'validators must not accept idempotent marker comments as cleanup proof');
 
 const diag = blockFrom(lifecycle, 'function getDiagnostics()', 'namespace.RuntimeLifecycle');
 assert(diag.includes('cutsceneSystem.isPlaying()') || diag.includes('cutsceneSystem.isPlaying && window.cutsceneSystem.isPlaying()'), 'diagnostics must call cutscene isPlaying() instead of treating method object as boolean');
 assert(!diag.includes('titleScreen.isVisible'), 'diagnostics must not reference nonexistent titleScreen.isVisible');
 assert(!diag.includes('ownedCounts: { cleanups: cleanupRegistry.length }'), 'diagnostics must not expose meaningless cleanup registry counts');
-assert(diag.includes('gameLoopRafHandle') && diag.includes('musicTransport') && audio.includes('activeMusicSources') && diag.includes('assetMonitor'), 'diagnostics must expose concrete resource state');
+assert(diag.includes('gameLoopRafHandle') && diag.includes('musicTransport') && audio.includes('activeMusicSources') && diag.includes('assetMonitor') && diag.includes('initialEnemySpawn') && diag.includes('gameOver') && diag.includes('victory') && diag.includes('rhythm'), 'diagnostics must expose concrete resource state');
+assert(audio.includes('titleScreenMusic && this.titleScreenMusic.source') && !audio.includes('titleSourceActive: !!this.titleSource'), 'Audio diagnostics must report real titleScreenMusic source state');
 
 for (const file of fs.readdirSync(path.join(root, 'tools')).filter(f => f.endsWith('.js') && f !== 'check-runtime-lifecycle.js')) {
   const src = read(`tools/${file}`);
-  assert(!/require\(['"]\.\.\/src\//.test(src) && !/eval\s*\(/.test(src) && !/jsdom/i.test(src), `${file} must not execute browser runtime code`);
+  assert(!/require\(['"]vm['"]\)/.test(src) && !/vm\.runInContext|vm\.runInNewContext|vm\.createContext/.test(src) && !/new Function\s*\(/.test(src) && !/eval\s*\(/.test(src) && !/jsdom/i.test(src) && !/require\(['"]\.\.\/src\//.test(src) && !/import\s+.*['"]\.\.\/src\//.test(src), `${file} must not execute browser runtime code`);
 }
 assert(read('tools/check-music-profiles.js').includes('level-01.main'), 'PR #5 music profile guard remains present');
 assert(read('tools/check-makko-hotfix.js').includes('transport.start'), 'PR #6 Makko hotfix guard remains present');

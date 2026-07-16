@@ -1,5 +1,4 @@
-const { loadedRepoJs, parseScripts, checkFileSyntax } = require('./baseline-common');
-const vm = require('vm');
+const { loadedRepoJs, parseScripts, checkFileSyntax, syntaxCheckSource } = require('./baseline-common');
 let failed = false;
 console.log('Checking loaded repository JavaScript and inline scripts...');
 for (const file of loadedRepoJs()) {
@@ -8,7 +7,8 @@ for (const file of loadedRepoJs()) {
   if (err) { console.log(`  ${err.message}`); failed = true; }
 }
 for (const script of parseScripts().filter(s => s.type === 'inline')) {
-  try { new vm.Script(script.content, { filename: `index.html inline script ${script.index}` }); console.log(`PASS index.html inline script ${script.index}`); }
-  catch (err) { console.log(`FAIL index.html inline script ${script.index}`); console.log(`  ${err.message}`); failed = true; }
+  const err = syntaxCheckSource(script.content, `index.html inline script ${script.index}`);
+  console.log(`${err ? 'FAIL' : 'PASS'} index.html inline script ${script.index}`);
+  if (err) { console.log(`  ${err.message}`); failed = true; }
 }
 if (failed) process.exit(1);

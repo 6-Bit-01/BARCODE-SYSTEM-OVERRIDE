@@ -96,3 +96,9 @@ No browser or Makko execution was performed by Codex.
 - Runtime pause is audio-first and atomic: gameplay frames are not canceled until `AudioSystem.pauseRuntimeAudio()` has either fully paused audio/transport or rolled back partial audio state.
 - Restart from `running` and from `paused` uses `AudioSystem.prepareRestartAudio()` to resume a suspended context if needed, stop old gameplay sources, stop stale transport state, and then start one fresh gameplay music/rhythm session through the lifecycle restart initializer.
 - Cutscene, hacking, and spaceship systems expose diagnostics for lifecycle-owned delayed callbacks so the owner can inspect whether stale timers/listeners remain after stop/restart cycles.
+
+## PR #7 follow-up correction map
+
+- `src/game/game-state.js` owns terminal gameplay flags and pending initial-enemy spawn handles; RuntimeLifecycle calls its narrow reset/cancel helpers during restart/stop instead of re-running full `initGameState()` when progress should be preserved.
+- `src/engine/audio.js` owns run-audio generation and run-timeout registration for delayed beat, layer-update, verification, fade, and 211-second restart callbacks.
+- `tools/check-music-profiles.js` is static-only source inspection; it must not execute `src/` browser runtime files.

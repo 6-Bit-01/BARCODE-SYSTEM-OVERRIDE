@@ -86,6 +86,8 @@ window.BARCODE = window.BARCODE || {};
   function resetRunState(options) {
     options = options || {};
     if (typeof window.initGameState === 'function' && !options.preserveProgress) window.initGameState();
+    if (typeof window.resetRuntimeTerminalFlags === 'function') window.resetRuntimeTerminalFlags();
+    else if (window.gameState) { window.gameState.gameOver = false; window.gameState.victory = false; }
     if (window.inputManager) { window.inputManager.hasTrackedMovement = false; window.inputManager.hasTrackedJump = false; }
     if (window.player) {
       window.player.health = window.player.maxHealth;
@@ -254,6 +256,7 @@ window.BARCODE = window.BARCODE || {};
   function stopOwnedResources(options) {
     options = options || {};
     if (typeof window.stopGame === 'function') window.stopGame();
+    if (typeof window.cancelInitialEnemySpawn === 'function') window.cancelInitialEnemySpawn();
     if (namespace.AssetMonitor && typeof namespace.AssetMonitor.cleanup === 'function') namespace.AssetMonitor.cleanup();
     if (window.cutsceneSystem && typeof window.cutsceneSystem.destroy === 'function') window.cutsceneSystem.destroy();
     if (window.spaceShipSystem && typeof window.spaceShipSystem.dispose === 'function') window.spaceShipSystem.dispose();
@@ -283,7 +286,9 @@ window.BARCODE = window.BARCODE || {};
       audioContextState: window.audioSystem && typeof window.audioSystem.getContextState === 'function' ? window.audioSystem.getContextState() : 'unavailable',
       audio: window.audioSystem && typeof window.audioSystem.getRuntimeDiagnostics === 'function' ? window.audioSystem.getRuntimeDiagnostics() : null,
       active: { title: !!(window.titleScreen && window.titleScreen.animationFrameHandle), cutscene: !!(window.cutsceneSystem && typeof window.cutsceneSystem.isPlaying === 'function' && window.cutsceneSystem.isPlaying()), rhythm: !!(window.rhythmSystem && window.rhythmSystem.isActive && window.rhythmSystem.isActive()), gameplayMusic: !!(window.audioSystem && window.audioSystem.layersStarted) },
-      resources: { cutscene: window.cutsceneSystem && typeof window.cutsceneSystem.getDiagnostics === 'function' ? window.cutsceneSystem.getDiagnostics() : null, spaceships: window.spaceShipSystem && typeof window.spaceShipSystem.getDiagnostics === 'function' ? window.spaceShipSystem.getDiagnostics() : null, hacking: window.hackingSystem && typeof window.hackingSystem.getDiagnostics === 'function' ? window.hackingSystem.getDiagnostics() : null, assetMonitor: namespace.AssetMonitor && typeof namespace.AssetMonitor.getDiagnostics === 'function' ? namespace.AssetMonitor.getDiagnostics() : null }
+      rhythm: window.rhythmSystem && typeof window.rhythmSystem.getDiagnostics === 'function' ? window.rhythmSystem.getDiagnostics() : null,
+      gameState: window.gameState ? { gameOver: !!window.gameState.gameOver, victory: !!window.gameState.victory, running: !!window.gameState.running, paused: !!window.gameState.paused } : null,
+      resources: { cutscene: window.cutsceneSystem && typeof window.cutsceneSystem.getDiagnostics === 'function' ? window.cutsceneSystem.getDiagnostics() : null, spaceships: window.spaceShipSystem && typeof window.spaceShipSystem.getDiagnostics === 'function' ? window.spaceShipSystem.getDiagnostics() : null, hacking: window.hackingSystem && typeof window.hackingSystem.getDiagnostics === 'function' ? window.hackingSystem.getDiagnostics() : null, initialEnemySpawn: typeof window.getInitialEnemySpawnDiagnostics === 'function' ? window.getInitialEnemySpawnDiagnostics() : null, assetMonitor: namespace.AssetMonitor && typeof namespace.AssetMonitor.getDiagnostics === 'function' ? namespace.AssetMonitor.getDiagnostics() : null }
     }));
   }
 

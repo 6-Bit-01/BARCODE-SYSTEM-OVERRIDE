@@ -25,3 +25,7 @@ Runtime pause/resume does not introduce wall-clock musical authority, timers, RA
 ### Pause/resume invariant guarded after PR #7 review
 
 The transport representation after pause/resume is: pause stores the current track position in `sourceOffsetTrackSec`; resume sets `sourceAnchorAudioSec` to the current Web Audio time without subtracting that offset. Therefore, starting at audio time `100` with track offset `10`, pausing at audio time `105` freezes track time `15`, resuming at audio time `200` samples track time `15`, and sampling at audio time `201` gives track time `16`. The runtime lifecycle static guard rejects the old subtract-offset resume formula.
+
+### Static validation scope after PR #7 follow-up
+
+Music-profile validation is dependency-free static source inspection. It checks exact Level 1 IDs, URLs, gains, native-loop flags, fallback roles, `146` BPM, `4/4`, `legacyManualRestartSec: 211`, judgment windows, transport structure, resume anchoring, and no transport-owned timer/RAF/wall-clock authority. Runtime musical behavior remains an owner Makko/browser smoke-test responsibility.
