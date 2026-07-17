@@ -962,10 +962,10 @@ window.EnemyManager = class EnemyManager {
   update(deltaTime, player) {
     if (!player) return;
 
-    this.simulationTimeMs += deltaTime;
     const progression = window.sector1Progression;
     const suppressMissionSimulation = progression && progression.isGameplaySuppressed && progression.isGameplaySuppressed();
     if (suppressMissionSimulation) return;
+    this.simulationTimeMs += deltaTime;
 
     this.updateSpawnFlow(deltaTime);
     this.updateSpawnZones(deltaTime);
@@ -1369,11 +1369,22 @@ window.EnemyManager = class EnemyManager {
   }
 
   purgeForCinematic() {
-    this.enemies.forEach(e => { e._purgedByCinematic = true; e._defeatRecorded = true; e.active = false; e._disposed = true; });
-    this.enemies = [];
+    if (this._cinematicPurgeComplete) return false;
+    this._cinematicPurgeComplete = true;
+    const activeEnemies = this.enemies.filter(e => e && e.active && !e._purgedByCinematic);
+    if (activeEnemies.length && window.audioSystem && typeof window.audioSystem.playSound === 'function') window.audioSystem.playSound('synthHit', 0.2);
+    activeEnemies.forEach(e => {
+      e.velocity.x = 0; e.velocity.y = 0; e._purgedByCinematic = true; e._defeatRecorded = true;
+      if (window.particleSystem) {
+        if (typeof window.particleSystem.impact === 'function') window.particleSystem.impact(e.position.x, e.position.y, '#ff00ff', 28);
+        if (typeof window.particleSystem.enemyDeathEffect === 'function') window.particleSystem.enemyDeathEffect(e.position.x, e.position.y, e.type);
+      }
+      e.active = false; e._disposed = true; e._generation = (e._generation || 0) + 1;
+    });
+    this.enemies = this.enemies.filter(e => !e._purgedByCinematic && e.active);
     this.crowdGroups = [];
     this.activeFirewallCount = 0;
-    return true;
+    return activeEnemies.length > 0;
   }
 
   getDiagnostics() {
@@ -1391,6 +1402,7 @@ window.EnemyManager = class EnemyManager {
     this.spawnTimer = 0;
     this.spawnFlowState = 'building';
     this.crowdGroups = [];
+    this._cinematicPurgeComplete = false;
     if (!options.preserveDefeats) this.simulationTimeMs = 0;
     if (typeof window.syncEnemyDefeatProjections === 'function') window.syncEnemyDefeatProjections(this.defeatedCount);
     console.log('✓ Enemy Manager cleared');

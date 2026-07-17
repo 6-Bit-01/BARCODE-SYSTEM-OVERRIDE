@@ -349,7 +349,7 @@
     {
       "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 1404,
+      "line": 1416,
       "loaded": true
     },
     {
@@ -439,7 +439,7 @@
     {
       "global": "window.player",
       "file": "src/game/player.js",
-      "line": 1664,
+      "line": 1671,
       "loaded": true
     },
     {

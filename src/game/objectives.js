@@ -100,7 +100,7 @@ window.ObjectivesSystem = class ObjectivesSystem {
   draw(ctx) {
     if (!this.objectiveUI.visible) return;
     ctx.save();
-    const x = 1300; const y = 120; const w = 500; const h = 160;
+    const x = 1300; const y = 120; const w = 500; const visibleObjectives = this.objectives.filter(obj => obj.visible); const h = Math.max(160, 60 + visibleObjectives.length * 50);
     ctx.fillStyle = 'rgba(0, 20, 40, 0.95)';
     ctx.fillRect(x, y, w, h);
     ctx.strokeStyle = '#00ffff';
@@ -116,7 +116,7 @@ window.ObjectivesSystem = class ObjectivesSystem {
     ctx.fillText(`DEFEATS: ${defeated}`, x + w - 15, y + 25);
     ctx.textAlign = 'left';
     let yOffset = 60;
-    this.objectives.forEach(obj => {
+    visibleObjectives.forEach(obj => {
       if (!obj.visible) return;
       ctx.fillStyle = obj.completed ? '#00ff00' : '#ffffff';
       ctx.font = 'bold 14px monospace';

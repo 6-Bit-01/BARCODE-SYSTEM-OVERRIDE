@@ -41,7 +41,7 @@ assert(!/enemiesDefeated\s*\+\s*.*defeatedCount|defeatedCount\s*\+\s*.*enemiesDe
 assert(/getCurrentRunDefeats/.test(gameState) && /syncEnemyDefeatProjections/.test(gameState), 'game-state exposes projection sync instead of duplicate totals');
 assert(/preserveDefeats/.test(runtime) && !/currentEnemyCount/.test(runtime), 'RuntimeLifecycle uses explicit preserveDefeats policy without quota inference');
 assert(/reset\(options = \{\}\)/.test(sector) && /JammerEnvironment\.reset/.test(sector), 'Sector1Progression reset explicitly cleans mission state');
-assert(/draw\(ctx\) \{ this\.drawGeometry\(ctx\); this\.drawBoss\(ctx\); \}/.test(sector), 'Sector1Progression draw owns authored geometry and boss-intro presentation');
+assert(/draw\(ctx\) \{ this\.drawStageSurfaces\(ctx\); this\.drawEncounterGates\(ctx\); this\.drawBoss\(ctx\); \}/.test(sector), 'Sector1Progression draw owns authored geometry and boss-intro presentation');
 assert(/window\.sector1Progression && typeof window\.sector1Progression\.draw === 'function'/.test(render), 'render coordinator checks Sector1Progression draw contract before calling');
 const drawGameEntitiesBody = (render.match(/function drawGameEntities\(ctx\) \{([\s\S]*?)\n\}/) || [null, ''])[1];
 assert(drawGameEntitiesBody.indexOf('JammerEnvironment.draw(ctx)') !== -1 && drawGameEntitiesBody.indexOf('window.enemyManager.draw(ctx)') !== -1 && drawGameEntitiesBody.indexOf('JammerEnvironment.draw(ctx)') < drawGameEntitiesBody.indexOf('window.enemyManager.draw(ctx)'), 'JammerEnvironment draws before enemyManager in drawGameEntities');

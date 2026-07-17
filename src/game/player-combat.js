@@ -43,7 +43,7 @@ window.FILE_MANIFEST.push({
         if (window.particleSystem && typeof window.particleSystem.impact === 'function') window.particleSystem.impact(target.position.x, target.position.y, '#00ffff', 20);
         result.targets.push({ type: target.type || 'target', damage: result.damage, x: target.position && target.position.x, y: target.position && target.position.y });
       });
-      result.ok = true; result.reason = targets.length ? 'hit' : 'no-target';
+      result.ok = true; result.reason = (targets.length || jammerHit.ok) ? 'hit' : 'no-target';
       return result;
     }
     gameplayActive() { const gs = window.gameState || {}; return !(window.isPaused || window.isRunning === false || gs.paused || gs.gameOver || gs.victory || gs.running === false); }

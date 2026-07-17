@@ -52,7 +52,8 @@ window.BARCODE = window.BARCODE || {};
     spriteRequested: false,
     spriteRequestGeneration: -1,
     spriteRequestCount: 0,
-    audio: null
+    audio: null,
+    destructionEffectStarted: false
   };
 
   function pollSpriteReady() {
@@ -111,7 +112,6 @@ window.BARCODE = window.BARCODE || {};
   }
 
   function reset() {
-    if (!state.revealed && !state.triggered && !state.spriteRequested && !state.spriteReady) return cloneStatus(state);
     state.generation += 1;
     state.revealed = false;
     state.triggered = false;
@@ -120,6 +120,7 @@ window.BARCODE = window.BARCODE || {};
     state.destroyed = false;
     state.destructionNotified = false;
     state.lastDamageSequence = null;
+    state.destructionEffectStarted = false;
     state.disposed = false;
     invalidatePresentation();
     return cloneStatus(state);
@@ -153,6 +154,11 @@ window.BARCODE = window.BARCODE || {};
       state.destroyed = true;
       state.targetable = false;
       state.revealed = false;
+      if (!state.destructionEffectStarted && window.particleSystem) {
+        state.destructionEffectStarted = true;
+        if (typeof window.particleSystem.impact === 'function') window.particleSystem.impact(state.position.x, state.position.y, '#ff00ff', 40);
+        if (typeof window.particleSystem.spawnEffect === 'function') window.particleSystem.spawnEffect(state.position.x, state.position.y);
+      }
       if (window.jammerArrowIndicator && typeof window.jammerArrowIndicator.setTarget === 'function') window.jammerArrowIndicator.setTarget(null);
       if (!state.destructionNotified) {
         state.destructionNotified = true;
@@ -163,7 +169,7 @@ window.BARCODE = window.BARCODE || {};
   }
 
   function draw(ctx) {
-    if (!ctx || ((!state.revealed && !state.destroyed) || state.disposed)) return;
+    if (!ctx || state.destroyed || !state.revealed || state.disposed) return;
     ctx.save();
     if (state.spriteReady && state.sprite && typeof state.sprite.draw === 'function') {
       const drawY = state.position.y + state.presentation.drawOffsetY;

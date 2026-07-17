@@ -78,6 +78,8 @@ window.Player = class Player {
       this.allowMovement = allowMovement;
       
       const dt = deltaTime / 1000; // Convert to seconds
+      const previousFootY = this.position.y;
+      const previousX = this.position.x;
       
       // Update entrance animation
       this.updateEntranceAnimation(deltaTime);
@@ -116,6 +118,11 @@ window.Player = class Player {
         this.position = this.position.add?.(this.velocity.multiply?.(dt) || this.position);
       }
       
+      let landedOnStageSurface = false;
+      if (window.sector1Progression && typeof window.sector1Progression.applyPlayerStageCollision === 'function') {
+        landedOnStageSurface = window.sector1Progression.applyPlayerStageCollision(this, { previousFootY, currentFootY: this.position.y, previousX });
+      }
+
       // Ground collision (character feet at ground line y=750 - raised up
       const wasGrounded = this.grounded;
       if (this.position.y >= 750) {
@@ -136,7 +143,7 @@ window.Player = class Player {
           const landingX = this.position.x + this.facing * 10;
           window.particleSystem.landingEffect(landingX, this.position.y + 100, null);
         }
-      } else {
+      } else if (!landedOnStageSurface) {
         this.grounded = false;
       }
       
