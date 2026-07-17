@@ -434,8 +434,7 @@ function drawPlayer(ctx) {
     try {
       const currentTime = Date.now();
       const isPlayerInvulnerable = (
-        (window.player.invulnerableUntil && currentTime < window.player.invulnerableUntil) ||
-        (window.player.fastFallInvincibleUntil && currentTime < window.player.fastFallInvincibleUntil)
+        (window.player.invulnerableUntil && currentTime < window.player.invulnerableUntil)
       );
       
       if (isPlayerInvulnerable) {

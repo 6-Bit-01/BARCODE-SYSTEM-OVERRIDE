@@ -700,28 +700,11 @@ window.RhythmSystem = class RhythmSystem {
       
       console.log(`${timing.toUpperCase()} HIT! Combo: ${this.combo}`);
       
-      // Apply rhythm damage to all enemies in range
-      if (window.enemyManager && window.enemyManager.checkPlayerAttacks) {
-        const rhythmResult = { hit: true, timing: timing, combo: this.combo };
-        window.enemyManager.checkPlayerAttacks(window.player, rhythmResult);
-      }
+      // RhythmSystem now returns judgment/feedback only; PlayerCombat owns damage.
+      const rhythmResult = { hit: true, timing: timing, combo: this.combo };
+      this.lastJudgment = rhythmResult;
       
-      // DAMAGE BOSS if in boss fight
-      if (window.sector1Progression && window.sector1Progression.boss && window.sector1Progression.boss.active && window.sector1Progression.bossFightStarted) {
-        let bossDamage = 1;
-        if (timing === 'perfect') {
-          bossDamage = 3;
-        } else if (timing === 'excellent') {
-          bossDamage = 2;
-        }
-        
-        if (attackBonus) {
-          bossDamage = Math.floor(bossDamage * 1.5);
-        }
-        
-        window.sector1Progression.damageBoss(bossDamage);
-        console.log(`💀 Boss damaged! -${bossDamage} HP (${timing})`);
-      }
+      // Boss and future targets must use BARCODE.PlayerCombat transaction boundary.
       
       console.log(`🎵 RHYTHM HIT RESULT: hit=true, timing=${timing}, combo=${this.combo}`);
       return { hit: true, timing: timing, combo: this.combo };

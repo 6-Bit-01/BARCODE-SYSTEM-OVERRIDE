@@ -50,23 +50,7 @@ window.Player = class Player {
       this.startEntranceAnimation();
     }
     
-    // Abilities
-    this.canDash = true;
-    this.dashCooldown = 0;
-    this.dashSpeed = 800;
-    this.dashDuration = 200;
-    this.isDashing = false;
-    this.dashTime = 0;
     this.invulnerable = false;
-    
-    // Fast-fall mechanic
-    this.fastFallMultiplier = 2.5; // 2.5x gravity when holding down
-    
-    // Enhanced stomp mechanics
-    this.stompDamageRadius = 200; // Area-of-effect damage radius
-    this.stompKnockbackRadius = 300; // Knockback effect radius
-    this.stompDamage = 999; // Instant kill damage for stomp
-    this.isStomping = false; // Track stomping state
     
     // Control disable system (for collision knockback)
     this.controlsDisabled = false;
@@ -75,11 +59,7 @@ window.Player = class Player {
     // Damage invulnerability system
     this.invulnerableUntil = 0;
     
-    // Fast-fall invincibility system
-    this.fastFallInvincible = false;
-    this.fastFallInvincibleUntil = 0;
-    
-    // Wind effects for fast-fall
+    // Wind effects (legacy visual helper; inactive)
     this.windEffects = [];
     this.lastWindEffectTime = 0;
     
@@ -101,28 +81,10 @@ window.Player = class Player {
       // Update entrance animation
       this.updateEntranceAnimation(deltaTime);
       
-      // Update cooldowns
-      if (this.dashCooldown > 0) {
-        this.dashCooldown -= deltaTime;
-      }
-      
-      // Handle dash
-      if (this.isDashing) {
-        this.dashTime -= deltaTime;
-        if (this.dashTime <= 0) {
-          this.isDashing = false;
-          this.velocity = this.velocity.normalize?.().multiply?.(this.speed) || this.velocity;
-        }
-      }
-      
       // Apply gravity with variable rates (only if movement is allowed)
       if (!this.grounded && this.allowMovement) {
         // Track jump time for variable gravity
         this.jumpTime += deltaTime;
-        
-        // Check for fast-fall input (disabled during rhythm mode)
-        const isFastFalling = this.state !== 'rhythm' && window.inputManager && window.inputManager.isKey('arrowdown');
-        const currentTime = Date.now();
         
         let gravity = 0;
         if (this.jumpTime < 100) {
@@ -136,35 +98,9 @@ window.Player = class Player {
           gravity = 2000;
         }
         
-        // Apply fast-fall multiplier if holding down and falling
-        if (isFastFalling && this.velocity.y > 0) {
-          gravity *= this.fastFallMultiplier;
-          
-          // Activate fast-fall invincibility
-          if (!this.fastFallInvincible) {
-            this.fastFallInvincible = true;
-            this.fastFallInvincibleUntil = currentTime + 1000; // 1 second of invincibility while fast-falling
-            console.log('🛡️ Fast-fall invincibility activated');
-          }
-          
-          // Generate wind effects during fast-fall
-          if (currentTime - this.lastWindEffectTime > 50) { // Create wind every 50ms
-            this.createWindEffect();
-            this.lastWindEffectTime = currentTime;
-          }
-        } else {
-          // Deactivate fast-fall invincibility when not fast-falling
-          if (this.fastFallInvincible) {
-            this.fastFallInvincible = false;
-            this.fastFallInvincibleUntil = 0;
-            console.log('🛡️ Fast-fall invincibility deactivated');
-          }
-        }
-        
         this.velocity.y += gravity * dt;
         
-        // Terminal velocity (higher for fast-fall)
-        const terminalVelocity = isFastFalling && this.velocity.y > 0 ? 1800 : 1200;
+        const terminalVelocity = 1200;
         this.velocity.y = Math.min(this.velocity.y, terminalVelocity);
       } else {
         this.jumpTime = 0; // Reset jump time when grounded
@@ -201,18 +137,9 @@ window.Player = class Player {
         
         // Landing particles moved way down
         if (!wasGrounded && window.particleSystem) {
-          // Check if player was fast-falling (holding down arrow)
-          const isFastFalling = window.inputManager && window.inputManager.isKey('arrowdown');
-          
-          if (isFastFalling && this.fastFallInvincible) {
-            // ENHANCED: Perform powerful stomp attack with area-of-effect
-            this.performPowerfulStomp();
-          } else {
-            // Use regular landing effect
-            // Move landing smoke 10px toward front of player
-            const landingX = this.position.x + this.facing * 10;
-            window.particleSystem.landingEffect(landingX, this.position.y + 100, null);
-          }
+          // Move landing smoke 10px toward front of player
+          const landingX = this.position.x + this.facing * 10;
+          window.particleSystem.landingEffect(landingX, this.position.y + 100, null);
         }
       } else {
         this.grounded = false;
@@ -500,14 +427,13 @@ window.Player = class Player {
   }
 
   moveLeft() {
-    // CRITICAL FIX: Disable movement during rhythm mode to prevent gliding glitch
-    if (this.state === 'rhythm' || this.isEntering || !this.allowMovement) {
-      return; // No movement allowed during rhythm mode, entrance animation, or when movement is disabled
+    if (this.isEntering || !this.allowMovement) {
+      return;
     }
     
     this.facing = -1; // Face left
-    if (!this.isDashing) {
-      this.velocity.x = -this.speed;
+    this.velocity.x = -this.speed;
+    {
       
       // White smoke/dust trail particles behind player
       if (window.particleSystem && this.grounded) {
@@ -520,14 +446,13 @@ window.Player = class Player {
   }
 
   moveRight() {
-    // CRITICAL FIX: Disable movement during rhythm mode to prevent gliding glitch
-    if (this.state === 'rhythm' || this.isEntering || !this.allowMovement) {
-      return; // No movement allowed during rhythm mode, entrance animation, or when movement is disabled
+    if (this.isEntering || !this.allowMovement) {
+      return;
     }
     
     this.facing = 1; // Face right
-    if (!this.isDashing) {
-      this.velocity.x = this.speed;
+    this.velocity.x = this.speed;
+    {
       
       // White smoke/dust trail particles behind player
       if (window.particleSystem && this.grounded) {
@@ -540,21 +465,17 @@ window.Player = class Player {
   }
 
   stopHorizontal() {
-    // CRITICAL FIX: Disable movement during rhythm mode to prevent gliding glitch
-    if (this.state === 'rhythm' || this.isEntering || !this.allowMovement) {
-      return; // No movement allowed during rhythm mode, entrance animation, or when movement is disabled
+    if (this.isEntering || !this.allowMovement) {
+      return;
     }
     
-    if (!this.isDashing) {
-      this.velocity.x = 0;
-      // Keep facing direction - don't change when stopping
-    }
+    this.velocity.x = 0;
+    // Keep facing direction - don't change when stopping
   }
 
   jump() {
-    // Disable jumping during rhythm mode to maintain combat focus
-    if (this.state === 'rhythm' || this.isEntering || !this.allowMovement) {
-      return false; // No jumping allowed during rhythm mode, entrance animation, or when movement is disabled
+    if (this.isEntering || !this.allowMovement) {
+      return false;
     }
     
     if (this.grounded) {
@@ -633,11 +554,6 @@ window.Player = class Player {
       return; // No damage while invulnerable
     }
     
-    // Check if player is invulnerable from fast-fall
-    if (this.fastFallInvincibleUntil && currentTime < this.fastFallInvincibleUntil) {
-      return; // No damage while fast-falling
-    }
-    
     this.health = Math.max(0, this.health - amount);
     
     // CRITICAL: Play player damage sound
@@ -689,11 +605,6 @@ window.Player = class Player {
     const currentTime = Date.now();
     if (this.invulnerableUntil && currentTime < this.invulnerableUntil) {
       return; // No damage while invulnerable
-    }
-    
-    // Check if player is invulnerable from fast-fall
-    if (this.fastFallInvincibleUntil && currentTime < this.fastFallInvincibleUntil) {
-      return; // No damage while fast-falling
     }
     
     this.health = Math.max(0, this.health - amount);
@@ -1086,12 +997,6 @@ window.Player = class Player {
     // Check for damage invulnerability (fast flashing)
     if (this.invulnerableUntil && currentTime < this.invulnerableUntil) {
       return 0.5 + Math.sin(Date.now() * 0.02) * 0.4; // Fast flash
-    }
-    
-    // Fast-fall invincibility has no visual transparency - uses wind effects instead
-    // Keep player fully visible during fast-fall
-    if (this.fastFallInvincibleUntil && currentTime < this.fastFallInvincibleUntil) {
-      return 1.0; // Fully visible - visual effects handled separately
     }
     
     return 1.0; // Fully visible when not invincible
@@ -1728,216 +1633,6 @@ window.Player = class Player {
         200 + Math.random() * 200,
         'triangle',
         Math.random() * Math.PI * 2
-      ));
-    }
-  }
-  
-  // ENHANCED: Perform powerful stomp attack with area-of-effect damage and knockback
-  performPowerfulStomp() {
-    // CRITICAL: Set stomping state IMMEDIATELY to prevent collision damage
-    this.isStomping = true;
-    console.log('💥 POWERFUL STOMP ATTACK! Area-of-effect damage and knockback!');
-    
-    // Enhanced stomp visual effects
-    window.particleSystem.stompEffect(this.position.x, this.position.y + 100, null, this.facing);
-    
-    // Create massive impact explosion at stomp point
-    if (window.particleSystem) {
-      // Main impact crater - larger and more intense
-      for (let i = 0; i < 25; i++) {
-        const angle = (Math.PI * 2 * i) / 25;
-        const speed = 150 + Math.random() * 200;
-        const size = 4 + Math.random() * 6;
-        
-        window.particleSystem.particles.push(new window.Particle(
-          this.position.x,
-          this.position.y + 100,
-          Math.cos(angle) * speed,
-          Math.sin(angle) * speed - 100, // Upward bias
-          '#ffff00', // Bright yellow for stomp impact
-          size,
-          800 + Math.random() * 400,
-          'circle',
-          Math.random() * Math.PI * 2
-        ));
-      }
-      
-      // Secondary shockwave ring
-      for (let i = 0; i < 16; i++) {
-        const angle = (Math.PI * 2 * i) / 16;
-        const speed = 250;
-        
-        window.particleSystem.particles.push(new window.Particle(
-          this.position.x,
-          this.position.y + 100,
-          Math.cos(angle) * speed,
-          Math.sin(angle) * speed,
-          '#ff8800', // Orange shockwave
-          3,
-          600,
-          'triangle',
-          angle
-        ));
-      }
-      
-      // Ground crack effects
-      for (let i = 0; i < 12; i++) {
-        const crackAngle = Math.random() * Math.PI * 2;
-        const crackDistance = 50 + Math.random() * 150;
-        const crackX = this.position.x + Math.cos(crackAngle) * crackDistance;
-        const crackY = this.position.y + 100 + Math.sin(crackAngle) * crackDistance * 0.3;
-        
-        window.particleSystem.particles.push(new window.Particle(
-          crackX,
-          crackY,
-          0,
-          -20 - Math.random() * 30,
-          '#888888', // Gray ground cracks
-          2 + Math.random() * 3,
-          400 + Math.random() * 300,
-          'rectangle'
-        ));
-      }
-    }
-    
-    // Enhanced screen shake for powerful stomp
-    if (window.renderer?.addScreenShake) {
-      window.renderer.addScreenShake(12, 400); // Much stronger and longer shake
-    }
-    
-    // Area-of-effect damage to enemies
-    if (window.enemyManager) {
-      const enemies = window.enemyManager.getActiveEnemies();
-      let enemiesHit = 0;
-      let enemiesKnockedBack = 0;
-      
-      enemies.forEach(enemy => {
-        if (!enemy.active) return;
-        
-        const distance = window.distance(
-          this.position.x, this.position.y + 100,
-          enemy.position.x, enemy.position.y
-        );
-        
-        // Direct damage zone - can defeat up to 2 enemies
-        if (distance <= this.stompDamageRadius && enemiesHit < 2) {
-          enemy.takeDamage(this.stompDamage);
-          enemiesHit++;
-          
-          // Create impact effect on hit enemy
-          if (window.particleSystem) {
-            window.particleSystem.impact(enemy.position.x, enemy.position.y, '#ffff00', 30);
-            
-            // Extra explosion for defeated enemy
-            for (let i = 0; i < 10; i++) {
-              const angle = (Math.PI * 2 * i) / 10;
-              const speed = 100 + Math.random() * 100;
-              
-              window.particleSystem.particles.push(new window.Particle(
-                enemy.position.x,
-                enemy.position.y,
-                Math.cos(angle) * speed,
-                Math.sin(angle) * speed - 50,
-                '#ffaa00', // Golden explosion
-                3 + Math.random() * 3,
-                600,
-                'triangle'
-              ));
-            }
-          }
-          
-          console.log(`💥 Stomp directly hit ${enemy.type} enemy!`);
-        }
-        
-        // Knockback zone - affects all enemies in larger radius
-        if (distance <= this.stompKnockbackRadius) {
-          // Calculate knockback direction away from stomp center (the impact point)
-          const stompCenterX = this.position.x;
-          const stompCenterY = this.position.y + 100; // Stomp impact point
-          const dx = enemy.position.x - stompCenterX;
-          const dy = enemy.position.y - stompCenterY;
-          const knockbackDistance = Math.sqrt(dx * dx + dy * dy);
-          
-          if (knockbackDistance > 0) {
-            // Calculate knockback force based on distance (stronger when closer)
-            const knockbackStrength = (1 - distance / this.stompKnockbackRadius) * 400;
-            // CRITICAL FIX: Ensure knockback direction is AWAY from stomp center
-            const knockbackX = (dx / knockbackDistance) * knockbackStrength;
-            const knockbackY = (dy / knockbackDistance) * knockbackStrength - 200; // Add upward force
-            
-            // Apply knockback to enemy
-            enemy.velocity.x = knockbackX;
-            enemy.velocity.y = knockbackY;
-            
-            // Create knockback effect
-            if (window.particleSystem) {
-              window.particleSystem.damageEffect(enemy.position.x, enemy.position.y - 30, '#00ffff', 8);
-            }
-            
-            enemiesKnockedBack++;
-            console.log(`💨 Stomp knocked back ${enemy.type} enemy with force ${knockbackStrength.toFixed(0)}`);
-          }
-        }
-      });
-      
-      console.log(`💥 Stomp attack completed: ${enemiesHit} enemies defeated, ${enemiesKnockedBack} enemies knocked back`);
-    }
-    
-    // Play enhanced stomp sound if available
-    if (window.audioSystem && typeof window.audioSystem.playSound === 'function') {
-      window.audioSystem.playSound('stomp', 0.8); // Play stomp sound at 80% volume
-    }
-    
-    // Grant temporary invulnerability after powerful stomp
-    this.invulnerableUntil = Date.now() + 800; // Extended to 800ms protection after stomp
-    
-    // Reset stomp state after a brief moment
-    setTimeout(() => {
-      this.isStomping = false;
-      console.log('🛡️ Enhanced stomp completed - collision checks restored');
-    }, 200);
-  }
-
-  // Create final entrance explosion
-  createEntranceExplosion() {
-    if (!window.particleSystem) return;
-    
-    console.log('🎆 Creating final entrance explosion');
-    
-    // Create large final black and green explosion at target position
-    for (let i = 0; i < 40; i++) {
-      const angle = (Math.PI * 2 * i) / 40;
-      const speed = 150 + Math.random() * 250;
-      const size = 3 + Math.random() * 5;
-      
-      window.particleSystem.particles.push(new window.Particle(
-        this.position.x,
-        this.position.y,
-        Math.cos(angle) * speed,
-        Math.sin(angle) * speed - 80,
-        Math.random() < 0.5 ? '#ffffff' : '#00ff00', // White and green
-        size,
-        1000 + Math.random() * 500,
-        'triangle', // Triangular shape
-        Math.random() * Math.PI * 2
-      ));
-    }
-    
-    // Add golden ring effect
-    for (let i = 0; i < 24; i++) {
-      const angle = (Math.PI * 2 * i) / 24;
-      const speed = 200;
-      
-      window.particleSystem.particles.push(new window.Particle(
-        this.position.x,
-        this.position.y,
-        Math.cos(angle) * speed,
-        Math.sin(angle) * speed,
-        Math.random() < 0.5 ? '#ffffff' : '#00ff00', // White and green
-        4,
-        800,
-        'triangle',
-        angle
       ));
     }
   }

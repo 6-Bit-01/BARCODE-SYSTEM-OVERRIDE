@@ -8,6 +8,7 @@
     "/lib/MakkoEngine.min.js",
     "src/utils/math.js",
     "src/core/fullscreen.js",
+    "src/core/action-input.js",
     "src/core/input.js",
     "src/engine/music-profiles.js",
     "src/engine/music-transport.js",
@@ -49,6 +50,7 @@
   "loadedRepositoryJs": [
     "src/utils/math.js",
     "src/core/fullscreen.js",
+    "src/core/action-input.js",
     "src/core/input.js",
     "src/engine/music-profiles.js",
     "src/engine/music-transport.js",
@@ -96,6 +98,7 @@
     "src/game/main-legacy-removed.js",
     "src/game/main.js",
     "src/game/music-controls.js",
+    "src/game/player-combat.js",
     "src/game/rhythm-fixed.js",
     "src/game/simple-jammer.js",
     "test-rhythm-functionality.js",
@@ -105,6 +108,7 @@
     "tools/audit-paths.js",
     "tools/audit-syntax-all.js",
     "tools/baseline-common.js",
+    "tools/check-action-combat.js",
     "tools/check-baseline.js",
     "tools/check-enemy-ownership.js",
     "tools/check-frame-ownership.js",
@@ -123,6 +127,10 @@
       },
       {
         "file": "src/core/fullscreen.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/core/action-input.js",
         "status": "pass"
       },
       {
@@ -268,11 +276,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 38,
+        "index": 39,
         "status": "pass"
       },
       {
-        "index": 40,
+        "index": 41,
         "status": "pass"
       }
     ]
@@ -335,7 +343,7 @@
     {
       "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 1403,
+      "line": 1391,
       "loaded": true
     },
     {
@@ -383,7 +391,7 @@
     {
       "global": "window.player",
       "file": "src/game/player.js",
-      "line": 1950,
+      "line": 1645,
       "loaded": true
     },
     {
@@ -419,7 +427,7 @@
     {
       "global": "window.startGameInitialization",
       "file": "src/game/main.js",
-      "line": 2258,
+      "line": 2246,
       "loaded": false
     },
     {
@@ -467,6 +475,7 @@
     "/lib/MakkoEngine.min.js",
     "src/utils/math.js",
     "src/core/fullscreen.js",
+    "src/core/action-input.js",
     "src/core/input.js",
     "src/engine/music-profiles.js",
     "src/engine/music-transport.js",

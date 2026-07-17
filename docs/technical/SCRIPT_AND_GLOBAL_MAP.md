@@ -23,3 +23,13 @@ The Jammer is not in `enemyManager.enemies`, is not returned by `getActiveEnemie
 ## Runtime lifecycle integration
 
 `BARCODE.RuntimeLifecycle` clears/disposes enemy state and resets/disposes `BARCODE.JammerEnvironment` during reset, stop, failure cleanup, and restart paths. Diagnostics include enemy manager counts and Jammer environmental status.
+
+## PR-009 semantic action and combat ownership
+
+- `window.BARCODE.ActionInput` is the authoritative Level 1 gameplay action boundary. It maps keyboard and standard gamepad input to `move_left`, `move_right`, `jump`, `primary`, `interact`, `pause`, and optional `rhythm_visual` diagnostics.
+- Default keyboard bindings are Left/Right or A/D for movement, Space/Up/W for one normal jump, Down Arrow for primary attack, H for interact, P for pause, and R for optional rhythm visualization.
+- Default standard gamepad bindings are left stick or D-pad for movement, A/button 0 for jump, X/button 2 for primary, Y/button 3 for interact, and Start/button 9 for pause.
+- `window.BARCODE.playerCombat` is the single authoritative primary-attack transaction. Input requests a semantic primary press, RhythmSystem may supply timing feedback, and PlayerCombat resolves targets and applies damage once per eligible target.
+- Normal primary attacks always work while gameplay accepts input and the attack cooldown is ready. Music judgment is a bounded bonus only: excellent is capped at 1.25x damage and perfect is capped at 1.5x damage; miss, unavailable, no-grid, degraded, or not-ready timing remains 1.0x base damage.
+- Dash and fast-fall/stomp are removed from active production controls. Down Arrow is the primary attack, not fast-fall. Hacking requires an explicit nearby interaction target; global H no longer starts hacking anywhere in the level.
+- Final attack art, hitbox tuning, range tuning, and encounter feel remain deferred to the authored Level 1 presentation pass.

@@ -36,7 +36,7 @@ assert(clickBody.includes('fullscreenManager.enter()') && clickBody.indexOf('ful
 assert(clickBody.includes('RuntimeLifecycle') && !clickBody.includes('initParallax') && !clickBody.includes('startGameInitialization'), 'start-button handler must be thin and delegate to RuntimeLifecycle');
 assert(!index.includes('let gameInitialized') && !index.includes('let gameStartInProgress') && !index.includes('let titleScreenMusicBlocked'), 'obsolete split lifecycle flags must be removed from index.html');
 assert(index.includes('window.BARCODE.AssetMonitor') && lifecycle.includes('namespace.AssetMonitor.cleanup'), 'asset monitor cleanup must reference the real registered monitor');
-assert(input.includes('RuntimeLifecycle.restart') && input.includes('RuntimeLifecycle.togglePause') && input.includes('if (e.repeat)'), 'pause/restart input must route to lifecycle and ignore held P repeats');
+assert(input.includes('RuntimeLifecycle.restart') && input.includes('RuntimeLifecycle.togglePause') && read('src/core/action-input.js').includes("EDGE_ACTIONS") && read('src/core/action-input.js').includes("pause"), 'pause/restart input must route to lifecycle and semantic edge state ignores held P repeats');
 assert(!index.includes('src/game/main.js'), 'src/game/main.js must not be newly loaded');
 assert(mainNew.includes("state === 'running' || state === 'paused'") && mainNew.includes('lifecycle.retry()') && mainNew.includes('lifecycle.start'), 'startNewGame compatibility must be state-aware');
 assert(!/requestAnimationFrame\s*\(/.test(lifecycle), 'lifecycle module must not call requestAnimationFrame');
