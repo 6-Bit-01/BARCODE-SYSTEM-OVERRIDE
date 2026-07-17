@@ -428,7 +428,7 @@ window.TitleScreen = class TitleScreen {
     // Initialize audio system
     if (window.audioSystem && !window.audioSystem.isInitialized()) {
       console.log('🎮 Initializing audio system...');
-      window.audioSystem.init().then(() => {
+      (window.initAudio ? window.initAudio() : window.audioSystem.init()).then(() => {
         setTimeout(() => {
           if (window.audioSystem.titleScreenMusic && window.audioSystem.titleScreenMusic.isLoaded) {
             console.log('🎮 Playing title screen music!');

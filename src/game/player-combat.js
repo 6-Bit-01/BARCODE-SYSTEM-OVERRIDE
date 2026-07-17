@@ -1,0 +1,63 @@
+// Authoritative 6 Bit primary rhythm-attack transaction.
+window.FILE_MANIFEST = window.FILE_MANIFEST || [];
+window.FILE_MANIFEST.push({
+  name: 'src/game/player-combat.js',
+  exports: ['BARCODE.PlayerCombat'],
+  dependencies: ['EnemyManager', 'BARCODE.MusicTransport', 'BARCODE.MusicProfiles', 'rhythmSystem']
+});
+
+(function() {
+  const BARCODE = window.BARCODE = window.BARCODE || {};
+  const SUCCESS_DAMAGE = { perfect: 3, excellent: 2 };
+  class PlayerCombat {
+    constructor(options = {}) { this.cooldownMs = options.cooldownMs ?? 250; this.range = options.range ?? 300; this.lastAttackAt = -Infinity; this.sequence = 0; }
+    reset() { this.lastAttackAt = -Infinity; this.sequence = 0; }
+    canAttack(now = Date.now()) { return now - this.lastAttackAt >= this.cooldownMs; }
+    resolvePrimary({ player = window.player, enemyManager = window.enemyManager, now = Date.now(), timing = null } = {}) {
+      const result = { ok: false, action: 'primary', sequence: ++this.sequence, reason: '', timing: null, damage: 0, targets: [] };
+      if (!this.gameplayActive()) { result.reason = 'gameplay-inactive'; return result; }
+      if (!player) { result.reason = 'player-unavailable'; return result; }
+      const rhythm = window.rhythmSystem;
+      if (!rhythm || typeof rhythm.isActive !== 'function' || !rhythm.isActive()) { result.reason = 'rhythm-inactive'; return result; }
+      if (!rhythm.trackStarted || rhythm.currentTempoBeat === 0) { result.reason = 'rhythm-not-ready'; result.timing = { available: false, timing: 'waiting' }; this.applyFeedback(result.timing); return result; }
+      if (!this.canAttack(now)) { result.reason = 'cooldown'; result.timing = { available: false, timing: 'cooldown' }; return result; }
+      this.lastAttackAt = now;
+      const judgment = timing || this.getTimingJudgment();
+      result.timing = judgment;
+      if (!judgment || !judgment.available || !SUCCESS_DAMAGE[judgment.timing]) {
+        result.reason = judgment && judgment.timing ? judgment.timing : 'unavailable';
+        this.applyFeedback(judgment || { available: false, timing: 'unavailable' });
+        return result;
+      }
+      result.damage = SUCCESS_DAMAGE[judgment.timing];
+      this.playAttackAnimation(player);
+      this.applyFeedback(judgment);
+      const targets = this.findTargets(player, enemyManager);
+      const hitIds = new Set();
+      targets.forEach(target => {
+        if (!target || !target.active || hitIds.has(target)) return;
+        hitIds.add(target);
+        if (typeof target.takeDamage === 'function') target.takeDamage(result.damage);
+        if (window.particleSystem && typeof window.particleSystem.impact === 'function') window.particleSystem.impact(target.position.x, target.position.y, '#00ffff', 20);
+        result.targets.push({ type: target.type || 'target', damage: result.damage, x: target.position && target.position.x, y: target.position && target.position.y });
+      });
+      result.ok = true; result.reason = targets.length ? 'hit' : 'no-target';
+      return result;
+    }
+    gameplayActive() { const gs = window.gameState || {}; return !(window.isPaused || window.isRunning === false || gs.paused || gs.gameOver || gs.victory || gs.running === false); }
+    getTimingJudgment() {
+      const transport = BARCODE.MusicTransport;
+      const profile = BARCODE.MusicProfiles && BARCODE.MusicProfiles.getActive ? BARCODE.MusicProfiles.getActive() : null;
+      const rule = profile && profile.judgmentRules && profile.judgmentRules.find(r => r.target === 'quarter-note' || /attack/.test(r.id)) || null;
+      const audioTimeSec = window.audioSystem && window.audioSystem.context ? window.audioSystem.context.currentTime : null;
+      if (!transport || typeof transport.judgeInput !== 'function' || !rule || !Number.isFinite(audioTimeSec)) return { available: false, timing: 'unavailable' };
+      return transport.judgeInput(rule.id, audioTimeSec) || { available: false, timing: 'unavailable' };
+    }
+    playAttackAnimation(player) { if (player && typeof player.startPrimaryAttackAnimation === 'function') player.startPrimaryAttackAnimation(); else if (player && typeof player.playAnimation === 'function') player.playAnimation('rhythm'); }
+    applyFeedback(judgment) { if (window.rhythmSystem && typeof window.rhythmSystem.applyResolvedAttackFeedback === 'function') window.rhythmSystem.applyResolvedAttackFeedback(judgment); }
+    findTargets(player, enemyManager) { const enemies = enemyManager && Array.isArray(enemyManager.enemies) ? enemyManager.enemies : []; return enemies.filter(enemy => enemy.active && window.distance(player.position.x, player.position.y, enemy.position.x, enemy.position.y) <= this.range); }
+    diagnostics() { return { cooldownMs: this.cooldownMs, range: this.range, sequence: this.sequence, lastAttackAt: this.lastAttackAt }; }
+  }
+  BARCODE.PlayerCombat = PlayerCombat;
+  BARCODE.playerCombat = BARCODE.playerCombat || new PlayerCombat();
+})();

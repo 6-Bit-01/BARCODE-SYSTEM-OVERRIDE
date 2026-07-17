@@ -76,3 +76,11 @@ PR #8 establishes the single active enemy owner in `src/game/enemies.js`. Virus,
 The Broadcast Jammer is owned by `BARCODE.JammerEnvironment`. It is an environmental trigger/presentation object, not an enemy, not a kill gate, and not destroyable. The compatibility presentation preserves the approved Makko sprite placement at `drawScale = 0.7` and `drawOffsetY = 190` from the environmental position. It exposes reveal/trigger/reset/dispose/status operations for future stage code, while the final Relay Stage sequence, boss transition, authored objectives, checkpoints, and final audiovisual choreography remain deferred to the authored Level 1 stage PR.
 
 Enemy simulation uses milliseconds at manager/API boundaries with explicit seconds conversion for position integration and behavior-local countdowns. Firewall lunge, glide, attack animation, idle-pause, and cooldown fields are named with `Seconds` suffixes when decremented by per-frame `dt`; simulation timestamp fields use `Ms`. Enemy/enemy and enemy/player collision orchestration is owned by `EnemyManager.update()`, including finite fallback directions for exact-overlap separation.
+
+## PR-009 combat foundation controls
+
+The Level 1 foundation now uses `window.BARCODE.ActionInput` for semantic input and `window.BARCODE.playerCombat` for the primary attack transaction. The approved 6 Bit movement kit for this foundation is left/right plus one normal jump; no double jump, dash, slide, air dash, fast-fall, stomp, or ground-pound requirement is active.
+
+Default controls are: Left/Right or A/D to move, Space/Up/W to jump, Down Arrow to primary attack, H to interact with an explicit nearby terminal target, P to pause, and R to show or hide optional rhythm visualization. Standard gamepad defaults are left stick/D-pad movement, A/button 0 jump, X/button 2 primary, Y/button 3 interact, and Start/button 9 pause.
+
+Primary attacks are always available when gameplay accepts input and the single attack cooldown is ready. Level 1 music timing can improve resolved damage, but it never authorizes whether the attack exists: excellent is bounded to 1.25x, perfect is bounded to 1.5x, and miss/unavailable/no-grid/not-ready judgment deals normal base damage. Final range, hitbox, animation readability, and encounter tuning are intentionally deferred.

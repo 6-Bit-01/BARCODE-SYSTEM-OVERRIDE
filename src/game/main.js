@@ -341,10 +341,6 @@ window.update = function(deltaTime) {
       if (typeof window.enemyManager.checkCollisions === 'function') {
         window.enemyManager.checkCollisions(window.player);
       }
-      if (typeof window.enemyManager.checkPlayerAttacks === 'function') {
-        window.enemyManager.checkPlayerAttacks(window.player);
-      }
-      
       // Jammer collisions are handled by BroadcastJammerSystem
       
       // Jammer rhythm attacks are handled by BroadcastJammerSystem
@@ -909,8 +905,7 @@ function drawGameElements(ctx) {
       // Check if player is invulnerable and force render order
       const currentTime = Date.now();
       const isPlayerInvulnerable = (
-        (window.player.invulnerableUntil && currentTime < window.player.invulnerableUntil) ||
-        (window.player.fastFallInvincibleUntil && currentTime < window.player.fastFallInvincibleUntil)
+        (window.player.invulnerableUntil && currentTime < window.player.invulnerableUntil)
       );
       
       // If player is invulnerable, save context state to ensure proper layering
@@ -2156,13 +2151,6 @@ window.handleGameAction = function(action) {
             window.tutorialSystem.checkObjective('rhythm_start');
           }
         }
-      }
-      break;
-      
-    case 'dash':
-      if ((!window.hackingSystem || typeof window.hackingSystem.isActive !== 'function' || !window.hackingSystem.isActive()) && 
-          (!window.rhythmSystem || typeof window.rhythmSystem.isActive !== 'function' || !window.rhythmSystem.isActive())) {
-        window.player.dash();
       }
       break;
       

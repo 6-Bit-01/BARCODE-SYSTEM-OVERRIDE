@@ -63,6 +63,7 @@ window.AudioSystem = class AudioSystem {
     this.musicStartState = { ok: false, reason: 'not-started' };
     this.runtimeAudioGeneration = 0;
     this.runtimeTimeouts = new Set();
+    this.activeProfilePreparationInFlight = null;
   }
 
   scheduleRuntimeTimeout(callback, delay) {
@@ -221,8 +222,10 @@ window.AudioSystem = class AudioSystem {
           console.log('🎵 Music system waiting - will start after cutscenes complete');
           console.log('🎵 Rhythm system also waiting - will start simultaneously with music');
         }, 200);
-      } else {
+      } else if (activeProfile) {
         console.error('[audio-startup] Missing required source after remote load/fallback creation:', primarySource ? primarySource.sourceId : 'no selected profile');
+      } else {
+        console.log('[audio-startup] Gameplay music profile not selected during title-only audio initialization; gameplay preparation is deferred.');
       }
       
       this.initialized = true;
@@ -1868,6 +1871,30 @@ window.AudioSystem = class AudioSystem {
 
   getConfiguredSources(profile) {
     return profile && profile.arrangement && Array.isArray(profile.arrangement.sources) ? profile.arrangement.sources : [];
+  }
+
+  prepareActiveMusicProfile() {
+    if (this.activeProfilePreparationInFlight) return this.activeProfilePreparationInFlight;
+    this.activeProfilePreparationInFlight = (async () => {
+      const profile = this.getActiveMusicProfile();
+      if (!profile) return { ok: false, reason: 'missing-profile-selection' };
+      const sources = this.getConfiguredSources(profile);
+      if (!sources.length) return { ok: false, reason: 'missing-profile-sources', profileId: profile.profileId };
+      await this.loadMusicTracks();
+      for (const source of sources) {
+        const existing = this.musicTracks[source.sourceId];
+        if (!existing || !existing.buffer) {
+          const fallback = this.createFallbackMusic(source.sourceId);
+          if (fallback && fallback.buffer) this.musicTracks[source.sourceId] = fallback;
+        }
+      }
+      const missingRequired = sources.filter(source => source.required && !(this.musicTracks[source.sourceId] && this.musicTracks[source.sourceId].buffer));
+      if (missingRequired.length) {
+        return { ok: false, reason: 'missing-required-source', profileId: profile.profileId, missing: missingRequired.map(source => source.sourceId) };
+      }
+      return { ok: true, profileId: profile.profileId, preparedSources: sources.map(source => source.sourceId) };
+    })().finally(() => { this.activeProfilePreparationInFlight = null; });
+    return this.activeProfilePreparationInFlight;
   }
 
   getOrCreateAssetPromise(assetId, loader) {

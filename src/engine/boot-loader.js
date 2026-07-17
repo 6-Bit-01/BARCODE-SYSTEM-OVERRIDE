@@ -330,7 +330,7 @@ window.BootLoader = class BootLoader {
               // Initialize audio system if needed (no delays for faster boot)
               if (!window.audioSystem.isInitialized()) {
                 console.log('🎵 Initializing audio system...');
-                window.audioSystem.init().then(() => {
+                (window.initAudio ? window.initAudio() : window.audioSystem.init()).then(() => {
                   console.log('🎵 Audio system initialized, playing title music immediately...');
                   playTitleMusic(); // Remove delay for immediate playback
                 }).catch(error => {

@@ -82,11 +82,12 @@ const uniqueActions = [...new Set(dispatchedActions)];
 for (const action of uniqueActions) {
   assert(new RegExp(`case ['"]${action}['"]`).test(debugCommands), `input-dispatched action has an explicit route: ${action}`);
 }
-assert(uniqueActions.includes('jump') && uniqueActions.includes('dash') && uniqueActions.includes('skip_tutorial') && uniqueActions.includes('hack'), 'live input actions are audited');
+assert(uniqueActions.includes('jump'), 'live input jump action is audited');
+assert(!uniqueActions.includes('dash') && !uniqueActions.includes('hack'), 'removed dash/global hack actions are not dispatched by input');
 assert(/case 'jump':[\s\S]*routeJumpAction\(\)/.test(debugCommands), 'Space/input jump routes through routeJumpAction');
 assert(/window\.player\.jump\(\)/.test(debugCommands), 'jump route invokes player.jump()');
-assert(/jumpResult && jumpResult\.ok[\s\S]*checkObjective\('jump'\)/.test(inputSource), 'tutorial jump progress is conditional on successful jump result');
-assert(/case 'dash':[\s\S]*routeDashAction\(\)/.test(debugCommands) && /window\.player\.dash\(\)/.test(debugCommands), 'dash action is recognized and routed to player.dash()');
+assert(/r && r\.ok[\s\S]*checkObjective\('jump'\)/.test(inputSource), 'tutorial jump progress is conditional on successful jump result');
+assert(!/case 'dash'|routeDashAction|window\.player\.dash\(\)/.test(debugCommands), 'dash action is not recognized or routed');
 assert(/case 'skip_tutorial':[\s\S]*routeSkipTutorialAction\(\)/.test(debugCommands), 'skip_tutorial action has an explicit tutorial completion route');
 assert(/cancelInitialEnemySpawn\(\)/.test(debugCommands) && /hasSpawnedInitialEnemies = false/.test(debugCommands), 'tutorial skip uses authoritative initial-spawn path without duplicate manual spawn');
 assert(!/RuntimeLifecycle\.(pause|resume|restart|stop)/.test(debugCommands), 'handleGameAction does not own pause/resume/restart/stop');

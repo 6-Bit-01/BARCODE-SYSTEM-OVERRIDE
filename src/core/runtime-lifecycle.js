@@ -88,7 +88,12 @@ window.BARCODE = window.BARCODE || {};
     if (typeof window.initGameState === 'function' && !options.preserveProgress) window.initGameState();
     if (typeof window.resetRuntimeTerminalFlags === 'function') window.resetRuntimeTerminalFlags();
     else if (window.gameState) { window.gameState.gameOver = false; window.gameState.victory = false; }
-    if (window.inputManager) { window.inputManager.hasTrackedMovement = false; window.inputManager.hasTrackedJump = false; }
+    if (window.inputManager) {
+      window.inputManager.hasTrackedMovement = false;
+      window.inputManager.hasTrackedJump = false;
+      if (typeof window.inputManager.resetActionEdges === 'function') window.inputManager.resetActionEdges();
+    }
+    if (window.BARCODE && window.BARCODE.playerCombat && typeof window.BARCODE.playerCombat.reset === 'function') window.BARCODE.playerCombat.reset();
     if (window.player) {
       window.player.health = window.player.maxHealth;
       window.player.position = new window.Vector2D(200, 500);
@@ -257,6 +262,8 @@ window.BARCODE = window.BARCODE || {};
 
   function stopOwnedResources(options) {
     options = options || {};
+    if (window.inputManager && typeof window.inputManager.resetActionEdges === 'function') window.inputManager.resetActionEdges();
+    if (window.BARCODE && window.BARCODE.playerCombat && typeof window.BARCODE.playerCombat.reset === 'function') window.BARCODE.playerCombat.reset();
     if (typeof window.stopGame === 'function') window.stopGame();
     if (typeof window.cancelInitialEnemySpawn === 'function') window.cancelInitialEnemySpawn();
     if (namespace.AssetMonitor && typeof namespace.AssetMonitor.cleanup === 'function') namespace.AssetMonitor.cleanup();

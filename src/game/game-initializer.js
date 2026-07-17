@@ -19,6 +19,15 @@ function ensureLevel01MusicProfileForAudio() {
   return { ok: false, reason: 'initializer-missing', profileId: 'level-01.main' };
 }
 
+async function prepareLevel01MusicSources() {
+  const selection = ensureLevel01MusicProfileForAudio();
+  if (!selection || selection.ok === false) return selection;
+  if (window.audioSystem && typeof window.audioSystem.prepareActiveMusicProfile === 'function') {
+    return window.audioSystem.prepareActiveMusicProfile();
+  }
+  return { ok: true, reason: 'no-profile-preparer' };
+}
+
 // Initialize audio system first
 async function performInitAudio() {
   console.log('=== INITIALIZING AUDIO SYSTEM ===');
@@ -73,13 +82,15 @@ async function performInitAudio() {
   
   if (window.audioSystem.isInitialized()) {
     console.log('Audio system already initialized');
-    return;
+    return prepareLevel01MusicSources();
   }
   
   console.log('=== INITIALIZING AUDIO SYSTEM ===');
   
   try {
     await window.audioSystem.init();
+    const prepResult = await prepareLevel01MusicSources();
+    if (!prepResult || prepResult.ok === false) throw new Error(`Level 1 music source preparation failed: ${prepResult && prepResult.reason || 'unknown'}`);
     console.log('✓ Audio system initialized successfully');
     console.log('✓ Audio context state:', window.audioSystem.getContextState());
     console.log('✓ Master gain value:', window.audioSystem.masterGain?.gain?.value || 'undefined');
@@ -94,9 +105,8 @@ async function performInitAudio() {
 
 window.initAudio = function() {
   if (window.audioSystem && window.audioSystem.isInitialized()) {
-    ensureLevel01MusicProfileForAudio();
     console.log('Audio system already initialized');
-    return Promise.resolve();
+    return prepareLevel01MusicSources();
   }
 
   if (!initAudioInFlight) {

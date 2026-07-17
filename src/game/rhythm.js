@@ -628,6 +628,24 @@ window.RhythmSystem = class RhythmSystem {
     }
   }
   
+  // Feedback-only hook for PlayerCombat's already-resolved primary attack judgment.
+  applyResolvedAttackFeedback(judgment = {}) {
+    const timing = judgment && judgment.timing ? judgment.timing : 'unavailable';
+    this.lastJudgment = { hit: timing === 'perfect' || timing === 'excellent', timing, combo: this.combo };
+    if (timing === 'perfect' || timing === 'excellent') {
+      this.combo++;
+      this.maxCombo = Math.max(this.maxCombo, this.combo);
+      this.triggerPowerArc(timing, false);
+      this.createHitEffect(timing, false);
+      if (window.audioSystem) window.audioSystem.playRhythmAttack(timing);
+    } else {
+      this.combo = 0;
+      this.arcGrowthLevel = 0;
+      this.createMissEffect();
+    }
+    return this.lastJudgment;
+  }
+
   // Handle rhythm input
   handleInput(action = 'attack') {
     if (!this.active) return { hit: false, timing: 'inactive', combo: this.combo };
@@ -700,28 +718,11 @@ window.RhythmSystem = class RhythmSystem {
       
       console.log(`${timing.toUpperCase()} HIT! Combo: ${this.combo}`);
       
-      // Apply rhythm damage to all enemies in range
-      if (window.enemyManager && window.enemyManager.checkPlayerAttacks) {
-        const rhythmResult = { hit: true, timing: timing, combo: this.combo };
-        window.enemyManager.checkPlayerAttacks(window.player, rhythmResult);
-      }
+      // RhythmSystem now returns judgment/feedback only; PlayerCombat owns damage.
+      const rhythmResult = { hit: true, timing: timing, combo: this.combo };
+      this.lastJudgment = rhythmResult;
       
-      // DAMAGE BOSS if in boss fight
-      if (window.sector1Progression && window.sector1Progression.boss && window.sector1Progression.boss.active && window.sector1Progression.bossFightStarted) {
-        let bossDamage = 1;
-        if (timing === 'perfect') {
-          bossDamage = 3;
-        } else if (timing === 'excellent') {
-          bossDamage = 2;
-        }
-        
-        if (attackBonus) {
-          bossDamage = Math.floor(bossDamage * 1.5);
-        }
-        
-        window.sector1Progression.damageBoss(bossDamage);
-        console.log(`💀 Boss damaged! -${bossDamage} HP (${timing})`);
-      }
+      // Boss and future targets must use BARCODE.PlayerCombat transaction boundary.
       
       console.log(`🎵 RHYTHM HIT RESULT: hit=true, timing=${timing}, combo=${this.combo}`);
       return { hit: true, timing: timing, combo: this.combo };
