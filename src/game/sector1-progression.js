@@ -5,7 +5,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
 window.Sector1Progression = class Sector1Progression {
   constructor(player) {
     this.player = player;
-    this.enemiesDefeated = 0; // projection of EnemyManager's authoritative run count
+    this.enemiesDefeated = 0;
+    this.tutorialEnemiesDefeated = 0;
     this.jammerRevealed = false;
     this.jammerTriggered = false;
     this.sectorComplete = false;
@@ -16,6 +17,7 @@ window.Sector1Progression = class Sector1Progression {
 
   onEnemyDefeated(authoritativeTotal) {
     this.enemiesDefeated = Number.isFinite(authoritativeTotal) ? authoritativeTotal : (window.enemyManager ? window.enemyManager.defeatedCount || 0 : this.enemiesDefeated);
+    if (window.gameState) window.gameState.enemiesDefeated = this.enemiesDefeated;
     console.log(`📊 Sector 1 defeat projection: ${this.enemiesDefeated}`);
   }
 
@@ -34,8 +36,10 @@ window.Sector1Progression = class Sector1Progression {
     if (window.BARCODE && window.BARCODE.JammerEnvironment) window.BARCODE.JammerEnvironment.trigger({ position });
   }
 
-  reset(preserveDefeats = false) {
-    if (!preserveDefeats) this.enemiesDefeated = window.enemyManager ? window.enemyManager.defeatedCount || 0 : 0;
+  reset(options = {}) {
+    const preserveDefeats = !!(options && options.preserveDefeats);
+    this.enemiesDefeated = preserveDefeats && window.enemyManager ? window.enemyManager.defeatedCount || 0 : 0;
+    if (window.gameState) window.gameState.enemiesDefeated = this.enemiesDefeated;
     this.jammerRevealed = false;
     this.jammerTriggered = false;
     this.sectorComplete = false;

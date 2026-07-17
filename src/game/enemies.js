@@ -90,16 +90,16 @@ window.Enemy = class Enemy {
     this.collisionCooldown = 200;
     this.recentlyCollidedWith = new Set();
 
-    // Spawn protection
-    this.spawnTime = Date.now();
+    // Spawn protection and simulation-time state (milliseconds).
+    this.simulationTimeMs = 0;
+    this.spawnTimeMs = 0;
     this.spawnProtectionDuration = 2000;
-
-    // Initialize sprite
-    if (['virus', 'corrupted', 'firewall'].includes(this.type)) {
-      setTimeout(() => {
-        this.initSprite();
-      }, 100);
-    }
+    this.lastPlayerHitTimeMs = -Infinity;
+    this._disposed = false;
+    this._generation = 0;
+    this._spriteRequested = false;
+    this._spriteId = null;
+    this._spritePolls = 0;
 
     // Trigger entrance logic
     this.startEntrance();
@@ -159,8 +159,10 @@ window.Enemy = class Enemy {
     }
   }
 
-  update(deltaTime, player) {
-    if (!this.active) return;
+  update(deltaTime, player, simulationTimeMs) {
+    if (!this.active || this._disposed) return;
+    this.simulationTimeMs = Number.isFinite(simulationTimeMs) ? simulationTimeMs : (this.simulationTimeMs + deltaTime);
+    this.pollSpriteReady();
 
     const dt = deltaTime / 1000;
     this.stateTimer += deltaTime;
@@ -438,10 +440,10 @@ window.Enemy = class Enemy {
     if (!this._corruptedState) {
         this._corruptedState = 'chase';
         this._corruptedTimer = 0;
-        this._nextPauseTime = Date.now() + 1000 + Math.random() * 2000;
+        this._nextPauseTime = this.simulationTimeMs + 1000 + Math.random() * 2000;
     }
 
-    const currentTime = Date.now();
+    const currentTime = this.simulationTimeMs;
 
     if (this._corruptedState === 'chase') {
         // Chase the player
@@ -451,7 +453,7 @@ window.Enemy = class Enemy {
         // Randomly decide to stop and stare
         if (currentTime > this._nextPauseTime) {
             this._corruptedState = 'pause';
-            this._corruptedTimer = Date.now(); // Start pause timer
+            this._corruptedTimer = this.simulationTimeMs; // Start pause timer
             // Pause up to 1 second
             this._pauseDuration = 200 + Math.random() * 800;
             this.velocity.x = 0; // Stop immediately
@@ -467,7 +469,7 @@ window.Enemy = class Enemy {
         this.velocity.y = 0;
 
         // Resume chase after duration
-        if (Date.now() - this._corruptedTimer > this._pauseDuration) {
+        if (this.simulationTimeMs - this._corruptedTimer > this._pauseDuration) {
             this._corruptedState = 'chase';
             this._nextPauseTime = currentTime + 1000 + Math.random() * 2000; // Schedule next pause
         }
@@ -477,7 +479,7 @@ window.Enemy = class Enemy {
   // 3. ENHANCED FIREWALL BEHAVIOR (Proximity Attack with Full Animation)
   firewallPersonalityBehavior(dt, player) {
     const distToPlayer = window.distance(this.position.x, this.position.y, player.position.x, player.position.y);
-    const currentTime = Date.now();
+    const currentTime = this.simulationTimeMs;
 
     // Init
     if (!this._behaviorInit) {
@@ -593,7 +595,7 @@ window.Enemy = class Enemy {
             }
 
             // Check for full animation completion
-            const attackElapsed = (Date.now() - this.attackStartTime) / 1000;
+            const attackElapsed = this.behaviorTimer;
             if (attackElapsed > this.fullAttackDuration) {
                 this.behaviorState = 'normal';
                 this.behaviorTimer = 0;
@@ -621,7 +623,7 @@ window.Enemy = class Enemy {
     this.isLunging = true;
     this.behaviorState = 'lunging';
     this.behaviorTimer = 0;
-    this.attackStartTime = Date.now();
+    this.attackStartTime = this.simulationTimeMs;
 
     // Calculate direction to player
     const dx = player.position.x - this.position.x;
@@ -736,30 +738,28 @@ window.Enemy = class Enemy {
     ctx.restore();
   }
 
-  async initSprite() {
-    try {
-      const charMap = {
-        'virus': 'virus_virus',
-        'corrupted': 'corrupted_corrupted',
-        'firewall': 'firewall_firewall'
-      };
+  initSprite() {
+    if (this._disposed || this._spriteRequested) return;
+    this._spriteRequested = true;
+    this.pollSpriteReady();
+  }
 
-      if (!window.MakkoEngine?.isLoaded()) {
-        setTimeout(() => this.initSprite(), 100);
-        return;
-      }
-
-      this.sprite = window.MakkoEngine.sprite(charMap[this.type]);
-
-      if (this.sprite && this.sprite.isLoaded()) {
-        this.spriteReady = true;
-        this.playAnimation('idle');
-      } else {
-        setTimeout(() => this.initSprite(), 100);
-      }
-    } catch (e) {
-      console.error(`Sprite init failed for ${this.type}`);
-      this.spriteReady = false;
+  pollSpriteReady() {
+    if (this._disposed || this.spriteReady || !['virus', 'corrupted', 'firewall'].includes(this.type)) return;
+    const charMap = {
+      'virus': 'virus_virus',
+      'corrupted': 'corrupted_corrupted',
+      'firewall': 'firewall_firewall'
+    };
+    if (!window.MakkoEngine || !window.MakkoEngine.isLoaded || !window.MakkoEngine.isLoaded()) return;
+    if (!this.sprite) {
+      this._spriteId = charMap[this.type];
+      this.sprite = window.MakkoEngine.sprite(this._spriteId);
+      this._spritePolls += 1;
+    }
+    if (this.sprite && this.sprite.isLoaded && this.sprite.isLoaded() && !this._disposed) {
+      this.spriteReady = true;
+      this.playAnimation('idle');
     }
   }
 
@@ -956,11 +956,13 @@ window.EnemyManager = class EnemyManager {
     this.crowdGroups = [];
     this.crowdCheckTimer = 0;
     this.crowdCheckInterval = 500;
+    this.simulationTimeMs = 0;
   }
 
   update(deltaTime, player) {
     if (!player) return;
 
+    this.simulationTimeMs += deltaTime;
     this.updateSpawnFlow(deltaTime);
     this.updateSpawnZones(deltaTime);
 
@@ -969,7 +971,7 @@ window.EnemyManager = class EnemyManager {
 
     // Update Enemies
     this.enemies.forEach(enemy => {
-      enemy.update(deltaTime, player);
+      enemy.update(deltaTime, player, this.simulationTimeMs);
 
       // Tutorial Freeze Logic
       if (enemy.type === 'virus' && tutorialWaiting && enemy.active) {
@@ -977,7 +979,7 @@ window.EnemyManager = class EnemyManager {
         if (enemy.position.y > 750) enemy.position.y = 750;
         const playerRef = window.player;
         if (playerRef && enemy.entranceComplete) {
-           enemy.velocity.x = Math.sin(Date.now() / 1000 + enemy.phaseOffset) * 20;
+           enemy.velocity.x = Math.sin(this.simulationTimeMs / 1000 + enemy.phaseOffset) * 20;
         }
       }
     });
@@ -1093,16 +1095,16 @@ window.EnemyManager = class EnemyManager {
                 player.velocity.y = -550;
                 player.velocity.x = nx * 300;
                 if (window.particleSystem) window.particleSystem.impact(enemy.position.x, enemy.position.y, '#00ffff', 20);
-                player.invulnerableUntil = Date.now() + 400;
+                player._enemyInvulnerableUntilMs = this.simulationTimeMs + 400;
                 return;
             }
           }
 
           // Check for Damage
           if (this.simpleAABBcollision(playerBox, enemyBox)) {
-              if (!player.invulnerableUntil || Date.now() > player.invulnerableUntil) {
-                  if (!enemy.lastPlayerHitTime || Date.now() - enemy.lastPlayerHitTime > 1500) {
-                      enemy.lastPlayerHitTime = Date.now();
+              if (!player._enemyInvulnerableUntilMs || this.simulationTimeMs > player._enemyInvulnerableUntilMs) {
+                  if (!Number.isFinite(enemy.lastPlayerHitTimeMs) || this.simulationTimeMs - enemy.lastPlayerHitTimeMs > 1500) {
+                      enemy.lastPlayerHitTimeMs = this.simulationTimeMs;
                       player.takeDamageWithKnockback(enemy.damage, nx * 450, -300, enemy.position);
                   }
               }
@@ -1176,7 +1178,7 @@ window.EnemyManager = class EnemyManager {
         if (this.activeFirewallCount >= 1) { // Only 1 firewall at a time
           type = 'corrupted';
         } else {
-          this.lastFirewallSpawnTime = Date.now();
+          this.lastFirewallSpawnTime = this.simulationTimeMs;
           console.log('🔥 Spawning enhanced firewall with built-in proximity attack system');
         }
       }
@@ -1330,7 +1332,7 @@ window.EnemyManager = class EnemyManager {
     group.forEach((enemy, index) => {
       if (!enemy._inCrowd) return;
 
-      const time = Date.now() / 1000;
+      const time = this.simulationTimeMs / 1000;
       const phaseShift = (index / group.length) * Math.PI * 2;
 
       if (distToPlayer < 400) {
@@ -1374,20 +1376,22 @@ window.EnemyManager = class EnemyManager {
   }
 
   getDiagnostics() {
-    return { activeEnemies: this.getActiveEnemies().length, totalEnemies: this.enemies.length, defeatedCount: this.defeatedCount, crowdGroups: this.crowdGroups.length };
+    return { activeEnemies: this.getActiveEnemies().length, totalEnemies: this.enemies.length, defeatedCount: this.defeatedCount, crowdGroups: this.crowdGroups.length, simulationTimeMs: this.simulationTimeMs, pendingSpritePolls: this.enemies.filter(e => e._spriteRequested && !e.spriteReady && !e._disposed).length };
   }
 
-  reset() { this.clear(); }
+  reset(options = {}) { this.clear(options); }
 
-  dispose() { this.clear(); this._disposed = true; }
+  dispose(options = {}) { this.clear(options); this._disposed = true; }
 
   clear(options = {}) {
-    this.enemies.forEach(e => { e.active = false; e._crowdBurstTimer = 0; e._crowdBurstMultiplier = 1; });
+    this.enemies.forEach(e => { e.active = false; e._disposed = true; e._generation = (e._generation || 0) + 1; e._crowdBurstTimer = 0; e._crowdBurstMultiplier = 1; });
     this.enemies = [];
     if (!options.preserveDefeats) this.defeatedCount = 0;
     this.spawnTimer = 0;
     this.spawnFlowState = 'building';
     this.crowdGroups = [];
+    if (!options.preserveDefeats) this.simulationTimeMs = 0;
+    if (typeof window.syncEnemyDefeatProjections === 'function') window.syncEnemyDefeatProjections(this.defeatedCount);
     console.log('✓ Enemy Manager cleared');
   }
 };
@@ -1401,8 +1405,7 @@ function createEnemyManager() {
     }
     return window.enemyManager;
   } else {
-    console.warn('Enemy manager dependencies not ready, retrying...');
-    setTimeout(createEnemyManager, 100);
+    console.warn('Enemy manager dependencies not ready; script order should load math utilities before enemies.');
   }
 }
 

@@ -86,12 +86,8 @@
     "src/game/main-new.js"
   ],
   "unloadedRepositoryJs": [
-    "final-verification-test.js",
-    "jammer-audio-patch.js",
     "src/core/game-manager.js",
     "src/engine/game-logic.js",
-    "src/engine/ui-manager.js",
-    "src/game/broadcast-jammer.js",
     "src/game/jammer-arrow.js",
     "src/game/jammer-arrows.js",
     "src/game/jammer-simple.js",
@@ -102,8 +98,6 @@
     "src/game/music-controls.js",
     "src/game/rhythm-fixed.js",
     "src/game/simple-jammer.js",
-    "test-jammer-spawn-fix.js",
-    "test-jammer-spawn.js",
     "test-rhythm-functionality.js",
     "test-rhythm-system-verification.js",
     "tools/audit-external-assets.js",
@@ -119,8 +113,7 @@
     "tools/check-runtime-lifecycle.js",
     "tools/check-startup-lifecycle.js",
     "tools/check-syntax.js",
-    "tools/generate-baseline.js",
-    "verify-jammer-autospawn.js"
+    "tools/generate-baseline.js"
   ],
   "loadedAndInlineSyntaxStatus": {
     "loadedFiles": [
@@ -287,12 +280,6 @@
   "inactiveSyntaxFailures": [],
   "missingFirstPartyReferences": [
     {
-      "source": "final-verification-test.js",
-      "reference": "src/game/enhanced-broadcast-jammer.js",
-      "normalizedPath": "src/game/enhanced-broadcast-jammer.js",
-      "kind": "string-reference"
-    },
-    {
       "source": "index.html",
       "reference": "/lib/MakkoEngine.min.js",
       "normalizedPath": "lib/MakkoEngine.min.js",
@@ -340,7 +327,6 @@
         "src/engine/parallax.js",
         "src/engine/spaceships.js",
         "src/engine/title-screen.js",
-        "src/game/broadcast-jammer.js",
         "src/game/lost-data.js"
       ]
     }
@@ -349,7 +335,7 @@
     {
       "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 1399,
+      "line": 1403,
       "loaded": true
     },
     {
@@ -373,13 +359,13 @@
     {
       "global": "window.gameState",
       "file": "src/game/game-state.js",
-      "line": 10,
+      "line": 64,
       "loaded": true
     },
     {
       "global": "window.gameState",
       "file": "src/game/game-state.js",
-      "line": 59,
+      "line": 9,
       "loaded": true
     },
     {
@@ -468,19 +454,13 @@
     }
   ],
   "candidateDiagnosticLegacyFiles": [
-    "final-verification-test.js",
-    "jammer-audio-patch.js",
     "src/core/game-manager.js",
-    "src/game/broadcast-jammer.js",
     "src/game/main-legacy-backup.js",
     "src/game/main-legacy-removed.js",
     "src/game/main.js",
     "src/game/rhythm-fixed.js",
-    "test-jammer-spawn-fix.js",
-    "test-jammer-spawn.js",
     "test-rhythm-functionality.js",
-    "test-rhythm-system-verification.js",
-    "verify-jammer-autospawn.js"
+    "test-rhythm-system-verification.js"
   ],
   "filesLoadedAtRuntime": [
     "style.css",

@@ -19,12 +19,10 @@ window.ObjectivesSystem = class ObjectivesSystem {
   }
 
   initializeMissionObjectives() {
-    // Normal play no longer advertises the superseded kill-20 / destroy-Jammer gate.
-    // The authored Level 1 stage PR will add final spatial/musical objectives.
     this.objectives = [{
       id: 'sandbox_training',
       title: 'Explore Dead Air District',
-      description: 'Training and sandbox systems are active pending authored stage objectives.',
+      description: 'Survey the district and stay online.',
       priority: 'INFO',
       completed: false,
       visible: true,
@@ -107,7 +105,6 @@ window.ObjectivesSystem = class ObjectivesSystem {
 
   reset() {
     this.initializeMissionObjectives();
-    if (window.BARCODE && window.BARCODE.JammerEnvironment) window.BARCODE.JammerEnvironment.reset();
   }
 
   onGameOver() {}

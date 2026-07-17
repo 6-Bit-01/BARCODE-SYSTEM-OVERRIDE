@@ -20,6 +20,9 @@ window.BARCODE = window.BARCODE || {};
       generation: state.generation,
       position: Object.freeze({ x: state.position.x, y: state.position.y }),
       hasSprite: !!state.sprite,
+      spriteReady: !!state.spriteReady,
+      spriteRequested: !!state.spriteRequested,
+      spriteRequestCount: state.spriteRequestCount,
       hasAudio: !!state.audio
     });
   }
@@ -33,13 +36,22 @@ window.BARCODE = window.BARCODE || {};
     position: { x: 3400, y: 750 },
     sprite: null,
     spriteReady: false,
+    spriteRequested: false,
+    spriteRequestGeneration: -1,
+    spriteRequestCount: 0,
     audio: null
   };
 
-  function initSprite() {
+  function pollSpriteReady() {
+    if (state.disposed || !state.initialized) return;
     if (!window.MakkoEngine || !window.MakkoEngine.isLoaded || !window.MakkoEngine.isLoaded()) return;
-    if (state.spriteReady) return;
-    state.sprite = window.MakkoEngine.sprite('broadcast_jammer_broadcastjammer');
+    if (!state.spriteRequested) {
+      state.spriteRequested = true;
+      state.spriteRequestGeneration = state.generation;
+      state.spriteRequestCount += 1;
+      state.sprite = window.MakkoEngine.sprite('broadcast_jammer_broadcastjammer');
+    }
+    if (state.spriteRequestGeneration !== state.generation || state.disposed) return;
     if (state.sprite && state.sprite.isLoaded && state.sprite.isLoaded()) {
       state.spriteReady = true;
       if (state.sprite.play) state.sprite.play('broadcast_jammer_idle_idle', true);
@@ -48,12 +60,12 @@ window.BARCODE = window.BARCODE || {};
 
   function initialize(options) {
     options = options || {};
-    state.disposed = false;
+    if (state.disposed) state.disposed = false;
     state.initialized = true;
     if (options.position) {
       state.position = { x: Number(options.position.x) || state.position.x, y: Number(options.position.y) || state.position.y };
     }
-    initSprite();
+    pollSpriteReady();
     return cloneStatus(state);
   }
 
@@ -72,29 +84,37 @@ window.BARCODE = window.BARCODE || {};
     return cloneStatus(state);
   }
 
+  function invalidatePresentation() {
+    state.sprite = null;
+    state.spriteReady = false;
+    state.spriteRequested = false;
+    state.spriteRequestGeneration = -1;
+    if (state.audio && typeof state.audio.pause === 'function') state.audio.pause();
+    state.audio = null;
+    if (window.jammerArrowIndicator && typeof window.jammerArrowIndicator.setTarget === 'function') window.jammerArrowIndicator.setTarget(null);
+  }
+
   function reset() {
+    if (!state.revealed && !state.triggered && !state.spriteRequested && !state.spriteReady) return cloneStatus(state);
     state.generation += 1;
     state.revealed = false;
     state.triggered = false;
     state.disposed = false;
-    if (state.audio && typeof state.audio.pause === 'function') state.audio.pause();
-    if (window.jammerArrowIndicator && typeof window.jammerArrowIndicator.setTarget === 'function') window.jammerArrowIndicator.setTarget(null);
+    invalidatePresentation();
     return cloneStatus(state);
   }
 
   function dispose() {
+    if (state.disposed && !state.initialized && !state.revealed && !state.triggered && !state.spriteRequested) return cloneStatus(state);
     reset();
     state.disposed = true;
     state.initialized = false;
-    state.sprite = null;
-    state.spriteReady = false;
-    state.audio = null;
     return cloneStatus(state);
   }
 
   function update(deltaTime) {
     if (!state.revealed || state.disposed) return cloneStatus(state);
-    if (!state.spriteReady) initSprite();
+    pollSpriteReady();
     if (state.spriteReady && state.sprite && typeof state.sprite.update === 'function') state.sprite.update(deltaTime);
     return cloneStatus(state);
   }
