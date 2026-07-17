@@ -20,7 +20,8 @@ window.updateGame = function(deltaTime) {
   // CRITICAL FIX: Always update player animation even during rhythm/hacking modes
   if (window.player && typeof window.player.update === 'function') {
     try {
-      const allowMovement = !hackingActive;
+      const progressionSuppressesGameplay = window.sector1Progression && window.sector1Progression.isGameplaySuppressed && window.sector1Progression.isGameplaySuppressed();
+      const allowMovement = !hackingActive && !progressionSuppressesGameplay;
       window.player.update(deltaTime, allowMovement);
     } catch (error) {
       console.error('Error updating player:', error?.message || error);

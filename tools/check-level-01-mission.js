@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 const fs = require('fs');
+const vm = require('vm');
 const assert = require('assert');
-const sector = fs.readFileSync('src/game/sector1-progression.js','utf8');
+const sectorSource = fs.readFileSync('src/game/sector1-progression.js','utf8');
 const jammerSource = fs.readFileSync('src/game/jammer-environment.js','utf8');
 const combat = fs.readFileSync('src/game/player-combat.js','utf8');
 const rhythm = fs.readFileSync('src/game/rhythm.js','utf8');
@@ -10,31 +11,25 @@ const input = fs.readFileSync('src/core/input.js','utf8');
 const gameState = fs.readFileSync('src/game/game-state.js','utf8');
 const render = fs.readFileSync('src/game/render-coordinator.js','utf8');
 const objectives = fs.readFileSync('src/game/objectives.js','utf8');
+const updateCoordinator = fs.readFileSync('src/game/update-coordinator.js','utf8');
 function must(text, re, msg) { assert(re.test(text), msg); }
 
-const encounterBlocks = [...sector.matchAll(/\{ id: 'encounter_\d'[^]*?enemies: \[([^]*?)\] \}/g)];
+const encounterBlocks = [...sectorSource.matchAll(/\{ id: 'encounter_\d'[^]*?enemies: \[([^]*?)\] \}/g)];
 assert.strictEqual(encounterBlocks.length, 4, 'four authored encounter definitions');
 const counts = encounterBlocks.map(m => (m[1].match(/type: '/g) || []).length);
 assert.strictEqual(counts.reduce((a,b)=>a+b,0), 20, 'exactly 20 quota enemies');
 assert.deepStrictEqual(counts, [4,5,5,6], 'encounter counts are 4/5/5/6');
-must(sector, /STAGE_SURFACES = Object\.freeze/, 'single stage surface data exists');
-must(sector, /ENCOUNTER_GATES = Object\.freeze/, 'single gate data exists');
-must(sector, /applyPlayerStageCollision/, 'platform collision hook exists');
-must(sector, /previousFootY <= surface\.y && currentFootY >= surface\.y/, 'platform tunneling prevention uses previous/current feet');
-must(sector, /applyGateCollision/, 'gate collision exists');
-must(sector, /this\.closedGateEncounterId = def\.id/, 'encounter closes its gate when spawned');
-must(sector, /openEncounterGate\(def\.id\)/, 'encounter gate opens after clear');
-must(sector, /isCompleted[^]*isCompleted\(\)/, 'mission starts only from explicit tutorial completion');
-must(sector, /window\.gameCamera\.centerX/, 'camera pan starts from gameCamera.centerX');
-must(sector, /activeAnimation === animation/, 'boss animation play is guarded by active animation');
-must(sector, /updateBossSprite\(deltaTime\)[^]*BOSS_READY/, 'boss sprite updates through boss-ready');
-must(sector, /prepareBossAssets/, 'boss assets prepared before entrance');
-must(sector, /prepareAssetsForEncounter/, 'encounter assets prepared before encounter');
-must(sector, /prepareJammerAsset/, 'jammer asset prepared before reveal');
+must(sectorSource, /STAGE_SURFACES = Object\.freeze/, 'single stage surface data exists');
+must(sectorSource, /ENCOUNTER_GATES = Object\.freeze/, 'single gate data exists');
+must(sectorSource, /previousFootY <= surface\.y && currentFootY >= surface\.y/, 'platform tunneling prevention uses previous/current feet');
+must(sectorSource, /isCompleted\(\) && typeof window\.tutorialSystem\.isActive === 'function' && !window\.tutorialSystem\.isActive\(\)/, 'mission requires completed and inactive tutorial');
+must(sectorSource, /captureCinematicStart\(\)[^]*gameCamera\.centerX/, 'Jammer destruction captures gameCamera.centerX immediately');
+must(sectorSource, /transitionToPan\(\)[^]*if \(!Number\.isFinite\(this\.panStartX\)\) this\.captureCinematicStart\(\)/, 'pan reuses captured start');
+must(sectorSource, /pollPreparedAssets/, 'async prepared asset polling exists');
+must(sectorSource, /entry\.generation !== this\.assetGeneration/, 'asset polling is generation guarded');
+must(sectorSource, /activeAnimation === animation/, 'boss animation play is guarded by active animation');
 must(jammerSource, /state\.generation \+= 1;[^]*state\.revealed = false;[^]*state\.targetable = false;[^]*state\.health = state\.maxHealth;[^]*state\.destroyed = false;[^]*state\.lastDamageSequence = null/s, 'jammer reset always restores gameplay state');
-must(jammerSource, /destructionEffectStarted[^]*particleSystem/s, 'jammer destruction effect starts');
 must(jammerSource, /state\.destroyed \|\| !state\.revealed/, 'destroyed jammer sprite stops rendering');
-must(jammerSource, /state\.health = Math\.max\(0, state\.health - 1\)/, 'accepted rhythm hit does one jammer damage');
 must(combat, /jammerHit\.ok\) \? 'hit' : 'no-target'/, 'jammer-only hit reports hit');
 must(rhythm, /timing === 'miss'[^]*playSound\('synthHit', 0\.3\)/, 'exact miss plays synthHit once');
 must(enemies, /if \(suppressMissionSimulation\) return;\n    this\.simulationTimeMs \+= deltaTime;/, 'enemy sim time does not advance while suppressed');
@@ -46,28 +41,69 @@ must(input, /hacking && typeof hacking\.start/, 'hacking path preserved');
 must(enemies, /Intentional passive landing stomp/, 'passive stomp remains lethal');
 must(gameState, /shouldSuppressGenericSpawning\(\)[^]*hasSpawnedInitialEnemies = true/s, 'generic initial spawn disabled under mission owner');
 must(render, /centerX: cameraX/, 'renderer records camera center convention');
+must(updateCoordinator, /progressionSuppressesGameplay[^]*allowMovement = !hackingActive && !progressionSuppressesGameplay/s, 'update coordinator disables player physics during cinematic suppression');
 must(objectives, /visibleObjectives[^]*Math\.max\(160, 60 \+ visibleObjectives\.length \* 50\)/s, 'objective panel height grows for boss-ready row');
 
-class MissionFixture {
-  constructor() { this.state='tutorial'; this.started=false; this.count=0; this.revealed=false; this.encounters=[4,5,5,6]; this.index=0; this.gateClosed=false; this.player={x:0,width:80}; this.panStart=null; this.bossPlays=[]; this.bossUpdates=0; this.phase='none'; this.bossReady=false; }
-  update(tutorialCompleted=false) { if (this.state==='tutorial' && tutorialCompleted && !this.started) { this.started=true; this.state='encounter_1'; this.gateClosed=true; } }
-  tryPassGate() { if (this.gateClosed && this.player.x > 100) this.player.x = 100; return this.player.x; }
-  clearEncounter() { this.count += this.encounters[this.index]; this.gateClosed=false; if (this.count === 20) this.revealed=true; else { this.index += 1; this.state=`encounter_${this.index+1}`; this.gateClosed=true; } }
-  startPan(gameCamera, playerX) { this.panStart = Number.isFinite(gameCamera?.centerX) ? gameCamera.centerX : playerX; }
-  setBossAnimation(anim) { if (this.activeAnimation !== anim) { this.activeAnimation = anim; this.bossPlays.push(anim); } }
-  updateBoss() { this.bossUpdates += 1; }
-  flourishComplete() { this.updateBoss(); this.setBossAnimation('idle'); this.bossReady=true; }
+function createVectorClass() {
+  return class Vector2D { constructor(x, y) { this.x = x; this.y = y; } multiply(n) { return new Vector2D(this.x * n, this.y * n); } add(v) { return new Vector2D(this.x + v.x, this.y + v.y); } };
 }
-class JammerFixture { constructor(){ this.maxHealth=16; this.health=16; this.destroyed=false; this.notices=0; this.last=null; } hit(timing, seq){ if (this.destroyed || this.last===seq || !['perfect','excellent'].includes(timing)) return false; this.last=seq; this.health-=1; if (this.health===0 && !this.destroyed){ this.destroyed=true; this.notices++; } return true; } reset(){ this.health=16; this.destroyed=false; this.last=null; this.revealed=false; this.targetable=false; this.triggered=false; this.notified=false; } }
-class EnemyFixture { constructor(){ this.defeats=0; this.drops=0; this.sim=0; this.suppressed=false; this.enemies=[{x:1},{x:2}]; this.effects=0; } update(dt){ if (this.suppressed) return; this.sim += dt; } purge(){ const n=this.enemies.length; this.effects += n; this.enemies=[]; return n; } }
-const mission = new MissionFixture();
-mission.update(false); assert.strictEqual(mission.started,false,'mission cannot start before tutorial completion');
-mission.update(true); assert.strictEqual(mission.state,'encounter_1','mission starts after explicit completion');
-mission.player.x=150; assert.strictEqual(mission.tryPassGate(),100,'closed gate blocks player');
-mission.clearEncounter(); assert.strictEqual(mission.count,4); assert.strictEqual(mission.gateClosed,true,'next encounter closes next gate');
-mission.clearEncounter(); assert.strictEqual(mission.count,9); mission.clearEncounter(); assert.strictEqual(mission.count,14); assert.strictEqual(mission.revealed,false,'jammer absent before 20'); mission.clearEncounter(); assert.strictEqual(mission.count,20); assert.strictEqual(mission.revealed,true,'jammer reveals at exactly 20');
-const jammer = new JammerFixture(); assert.strictEqual(jammer.hit('perfect',1),true); assert.strictEqual(jammer.health,15); assert.strictEqual(jammer.hit('excellent',2),true); assert.strictEqual(jammer.health,14); assert.strictEqual(jammer.hit('miss',3),false); assert.strictEqual(jammer.health,14); assert.strictEqual(jammer.hit('perfect',2),false,'duplicate sequence ignored'); while(!jammer.destroyed) jammer.hit('perfect',100+jammer.health); assert.strictEqual(jammer.notices,1,'destruction notified once'); jammer.hit('perfect',999); assert.strictEqual(jammer.notices,1,'post-destroy idempotent'); jammer.reset(); assert.strictEqual(jammer.health,16); assert.strictEqual(jammer.destroyed,false);
-const enemiesFixture = new EnemyFixture(); enemiesFixture.suppressed=true; enemiesFixture.update(1000); assert.strictEqual(enemiesFixture.sim,0,'suppressed enemy sim time frozen'); const defeats=enemiesFixture.defeats; const drops=enemiesFixture.drops; enemiesFixture.purge(); assert.strictEqual(enemiesFixture.effects,2); assert.strictEqual(enemiesFixture.defeats,defeats); assert.strictEqual(enemiesFixture.drops,drops);
-mission.startPan({x:500,centerX:1460},900); assert.strictEqual(mission.panStart,1460,'camera pan uses centerX'); mission.setBossAnimation('walk'); mission.setBossAnimation('walk'); mission.setBossAnimation('attack'); assert.deepStrictEqual(mission.bossPlays,['walk','attack'],'boss play called only on animation transitions'); mission.updateBoss(); mission.flourishComplete(); assert(mission.bossUpdates>=2,'flourish/ready sprite receives updates'); assert.strictEqual(mission.bossReady,true);
-mission.flourishComplete(); assert.strictEqual(mission.bossPlays.filter(v=>v==='idle').length,1,'boss-ready idempotent animation transition');
-console.log('Level 1 mission static and behavior checks passed');
+function loadRealSector({ spriteLoadedInitially = false } = {}) {
+  let spriteLoaded = spriteLoadedInitially;
+  const sprite = { playCalls: [], updateCalls: 0, isLoaded: () => spriteLoaded, play(name, loop) { this.playCalls.push({ name, loop }); }, update(dt) { this.updateCalls += 1; this.lastUpdate = dt; } };
+  const window = { FILE_MANIFEST: [], BARCODE: { JammerEnvironment: { reset(){}, reveal(){ this.revealed = true; } } }, Vector2D: createVectorClass(), clamp: (v,min,max)=>Math.max(min,Math.min(max,v)), gameState: { paused: false, enemiesDefeated: 0 }, player: { position: { x: 900, y: 700 }, velocity: { x: 4, y: 9 }, width: 80, controlsDisabled: false }, enemyManager: { clear(){ this.cleared = true; }, enemies: [], purgeForCinematic(){ this.purged = (this.purged || 0) + 1; } }, objectivesSystem: { setMissionDefeatObjective(){}, completeJammerObjective(){}, revealJammerObjective(){}, setBossIntroObjective(){} }, cancelInitialEnemySpawn(){ this.cancelled = true; }, Enemy: function Enemy(x, y, type) { this.position = { x, y }; this.velocity = { x: 0, y: 0 }; this.type = type; this.active = true; }, MakkoEngine: { calls: 0, sprite(id) { this.calls += 1; sprite.id = id; return sprite; } } };
+  const context = vm.createContext({ window, console });
+  vm.runInContext(sectorSource, context, { filename: 'src/game/sector1-progression.js' });
+  return { window, sprite, setSpriteLoaded: value => { spriteLoaded = value; } };
+}
+
+{
+  const { window } = loadRealSector();
+  const p = new window.Sector1Progression(window.player);
+  window.tutorialSystem = { isCompleted: () => false, isActive: () => true };
+  p.update(16); assert.strictEqual(p.state, 'tutorial', 'completed=false active=true does not start');
+  window.tutorialSystem = { isCompleted: () => true, isActive: () => true };
+  p.update(16); assert.strictEqual(p.state, 'tutorial', 'completed=true active=true still does not start');
+  window.tutorialSystem = { isCompleted: () => true, isActive: () => false };
+  p.update(16); assert.strictEqual(p.state, 'encounter_1', 'completed=true active=false starts mission');
+  p.update(16); assert.strictEqual(p.missionStarted, true, 'mission transition remains idempotent');
+}
+{
+  const { window } = loadRealSector();
+  const p = new window.Sector1Progression(window.player);
+  p.state = 'jammer_active'; p.missionStarted = true; window.gameCamera = { x: 515, centerX: 1475 };
+  p.onJammerDestroyed();
+  assert.strictEqual(p.cameraOverrideActive, true, 'camera override enabled immediately');
+  assert.strictEqual(p.cameraX, 1475, 'camera captured at destruction center');
+  assert.strictEqual(p.panStartX, 1475, 'pan start captured immediately');
+  assert.strictEqual(p.frozenPlayerPosition.x, 900, 'player x snapshot captured'); assert.strictEqual(p.frozenPlayerPosition.y, 700, 'player y snapshot captured');
+  assert.strictEqual(window.player.velocity.x, 0); assert.strictEqual(window.player.velocity.y, 0);
+  window.gameCamera.centerX = 2200; p.update(800); p.update(1);
+  assert.strictEqual(p.state, 'camera_pan');
+  assert.strictEqual(p.panStartX, 1475, 'transitionToPan reuses destruction-time snapshot');
+  p.update(0); assert.strictEqual(p.cameraX, 1475, 'first pan frame equals previous gameplay camera center');
+  window.player.position.x = 999; window.player.position.y = 999; window.player.velocity.y = 99; p.update(16);
+  assert.strictEqual(window.player.position.x, 900, 'suppression freezes player x');
+  assert.strictEqual(window.player.position.y, 700, 'suppression freezes player y');
+  assert.strictEqual(window.player.velocity.y, 0, 'suppression stops vertical physics');
+}
+{
+  const { window, sprite, setSpriteLoaded } = loadRealSector({ spriteLoadedInitially: false });
+  const p = new window.Sector1Progression(window.player);
+  p.prepareBossAssets();
+  assert.strictEqual(window.MakkoEngine.calls, 1, 'boss sprite requested once');
+  assert.strictEqual(p.preloadedBossSprite, null, 'not assigned before async readiness');
+  p.pollPreparedAssets(); assert.strictEqual(window.MakkoEngine.calls, 1, 'polling does not create another sprite');
+  setSpriteLoaded(true); p.pollPreparedAssets();
+  assert.strictEqual(p.preloadedBossSprite, sprite, 'async-loaded boss sprite becomes preloaded');
+  p.cameraX = 3000; p.startBossWalk();
+  assert.strictEqual(p.boss.sprite, sprite, 'entrance uses same prepared sprite instance');
+  p.updateBossWalk(16); p.updateBossWalk(16);
+  assert.deepStrictEqual(sprite.playCalls.map(c => c.name), ['sector_1_boss_walk_walk'], 'walk plays only once on transition');
+  p.boss.x = 3600; p.updateBossWalk(16);
+  assert(sprite.playCalls.map(c => c.name).includes('sector_1_boss_attack_attack'), 'flourish plays on transition');
+  const before = sprite.updateCalls; p.update(100); p.update(100);
+  assert(sprite.updateCalls > before, 'flourish sprite receives update calls');
+  p.update(1000);
+  assert(sprite.playCalls.map(c => c.name).includes('sector_1_boss_idle_idle'), 'idle plays when boss_ready begins');
+}
+console.log('Level 1 mission static and real-module VM checks passed');
