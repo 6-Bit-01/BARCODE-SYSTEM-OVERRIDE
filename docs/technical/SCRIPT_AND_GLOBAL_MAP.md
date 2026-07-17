@@ -26,10 +26,12 @@ The Jammer is not in `enemyManager.enemies`, is not returned by `getActiveEnemie
 
 ## PR-009 semantic action and combat ownership
 
-- `window.BARCODE.ActionInput` is the authoritative Level 1 gameplay action boundary. It maps keyboard and standard gamepad input to `move_left`, `move_right`, `jump`, `primary`, `interact`, `pause`, and optional `rhythm_visual` diagnostics.
-- Default keyboard bindings are Left/Right or A/D for movement, Space/Up/W for one normal jump, Down Arrow for primary attack, H for interact, P for pause, and R for optional rhythm visualization.
+- `window.BARCODE.ActionInput` is the authoritative Level 1 gameplay action boundary. It maps keyboard and standard gamepad input to `move_left`, `move_right`, `jump`, `primary`, `interact`, `pause`, and `rhythm_mode`.
+- Default keyboard bindings are Left/Right or A/D for movement, Space/Up/W for one normal jump, Down Arrow for primary attack, H for interact, P for pause, and R for actual Rhythm Combat Mode.
 - Default standard gamepad bindings are left stick or D-pad for movement, A/button 0 for jump, X/button 2 for primary, Y/button 3 for interact, and Start/button 9 for pause.
 - `window.BARCODE.playerCombat` is the single authoritative primary-attack transaction. Input requests a semantic primary press, RhythmSystem may supply timing feedback, and PlayerCombat resolves targets and applies damage once per eligible target.
-- Normal primary attacks always work while gameplay accepts input and the attack cooldown is ready. Music judgment is a bounded bonus only: excellent is capped at 1.25x damage and perfect is capped at 1.5x damage; miss, unavailable, no-grid, degraded, or not-ready timing remains 1.0x base damage.
+- Down Arrow rhythm attacks are beat-gated: Rhythm Combat Mode must be active, the track/transport must be ready, and only successful approved judgments damage targets. Miss, unavailable, no-grid, degraded, not-ready, inactive, or cooldown inputs deal zero damage.
 - Dash and fast-fall/stomp are removed from active production controls. Down Arrow is the primary attack, not fast-fall. Hacking requires an explicit nearby interaction target; global H no longer starts hacking anywhere in the level.
 - Final attack art, hitbox tuning, range tuning, and encounter feel remain deferred to the authored Level 1 presentation pass.
+
+- Tutorial Space and jump are mutually exclusive while the tutorial is active; Space is consumed by tutorial dialogue/objective handling and Up/W remain jump inputs. Each level entry path explicitly selects its own music profile rather than relying on a global Level 1 fallback. Passive top-down landing stomp is intentional and lethal.

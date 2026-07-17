@@ -83,7 +83,7 @@ window.TutorialSystem = class TutorialSystem {
         this.addDialogue('Your signal strength is shown in the top-left. If it drops to zero, your connection will collapse.', 'guide', 2000);
         this.addDialogue('Your first line of defense is close-quarters combat.', 'guide', 2000);
         this.addDialogue('Jump on corrupted entities to disrupt their code and deal damage.', 'guide', 2000);
-        this.addObjective('Defeat 3 viruses by landing on them', 'combat');
+        this.addObjective('Defeat 3 viruses using basic movement', 'combat');
         
         this.spawnCombatEnemies();
         this.combatEnemiesPaused = true;
@@ -112,19 +112,22 @@ window.TutorialSystem = class TutorialSystem {
         this.addObjective('Press R to activate Rhythm Combat', 'rhythm_start');
         this.addDialogue('Use the Down Arrow key to time your attacks with the beat!', 'guide', 3000);
         this.addDialogue('Only successful timing hits damage enemies; misses are feedback only.', 'guide', 2000);
+        this.addObjective('Achieve a 5+ combo in rhythm mode', 'rhythm_combo');
         const rhythmCompleteDialogue = this.addDialogue('Complete the task to continue...', 'guide', 0);
-        rhythmCompleteDialogue.requiresObjectives = ['rhythm_start'];
+        rhythmCompleteDialogue.requiresObjectives = ['rhythm_start', 'rhythm_combo'];
         break;
         
       case 3:
-        const hackDialogue1 = this.addDialogue('Some terminals can be hacked when you stand near them.', 'guide', 2000);
-        hackDialogue1.requiresObjectives = ['combat'];
+        const hackDialogue1 = this.addDialogue('Your rhythm attacks are strong. Now for your true power.', 'guide', 2000);
+        hackDialogue1.requiresObjectives = ['rhythm_combo'];
         
-        this.addDialogue('Press H to interact with a visible terminal. No terminal is required in this tutorial route.', 'guide', 3000);
-        this.addDialogue('Successful hacks restore 1 bar of signal strength when a valid terminal exists.', 'guide', 3000);
+        this.addDialogue('Press H to access terminals and hack the system.', 'guide', 2000);
+        this.addObjective('Press H to start hacking', 'hack_start');
+        this.addDialogue('Successful hacks restore 1 bar of signal strength.', 'guide', 3000);
+        this.addObjective('Complete the hacking puzzle', 'hack_complete');
         
-        const hackCompleteDialogue = this.addDialogue('No terminal target is required here. Continue when ready.', 'guide', 0);
-        hackCompleteDialogue.requiresObjectives = ['combat'];
+        const hackCompleteDialogue = this.addDialogue('Complete the task to continue...', 'guide', 0);
+        hackCompleteDialogue.requiresObjectives = ['hack_start', 'hack_complete'];
         break;
         
       case 4:

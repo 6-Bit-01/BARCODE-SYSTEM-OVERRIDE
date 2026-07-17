@@ -214,25 +214,38 @@ window.RhythmSystem = class RhythmSystem {
     this.timingWindows = rule ? { perfect: rule.windowsMs.perfect, excellent: rule.windowsMs.excellent } : { perfect: 0, excellent: 0 };
   }
 
-  // Show/hide rhythm visualization (R key toggle)
+  // Show/hide real Rhythm Combat Mode (R key toggle)
+  canEnterRhythmMode() {
+    const gameState = window.gameState || {};
+    if (window.isPaused || window.isRunning === false || gameState.paused || gameState.gameOver || gameState.victory || gameState.running === false) return { ok: false, reason: 'gameplay-inactive' };
+    if (window.cutsceneSystem && window.cutsceneSystem.active) return { ok: false, reason: 'cutscene-active' };
+    if (window.hackingSystem && typeof window.hackingSystem.isActive === 'function' && window.hackingSystem.isActive()) return { ok: false, reason: 'hacking-active' };
+    if (window.player && window.player.grounded === false) return { ok: false, reason: 'airborne' };
+    if (!this.trackStarted || this.currentTempoBeat === 0) return { ok: false, reason: 'rhythm-not-ready' };
+    return { ok: true };
+  }
+
   show() {
-    console.log('🎵 RHYTHM SHOW() CALLED - setting active=true');
-    
-    // CRITICAL FIX: Only activate if first beat has been counted
-    if (!this.trackStarted || this.currentTempoBeat === 0) {
-      console.log('🚫 RHYTHM MODE BLOCKED: Waiting for first beat to be counted');
-      console.log('🚫 trackStarted:', this.trackStarted, 'currentTempoBeat:', this.currentTempoBeat);
-      return; // Block activation until first beat is established
+    console.log('🎵 RHYTHM SHOW() CALLED - requesting active Rhythm Combat Mode');
+    const allowed = this.canEnterRhythmMode();
+    if (!allowed.ok) {
+      console.log('🚫 RHYTHM MODE BLOCKED:', allowed.reason);
+      return allowed;
     }
-    
+
     this.active = true;
+    if (window.player && typeof window.player.stopHorizontal === 'function') {
+      const previousState = window.player.state;
+      window.player.state = previousState === 'rhythm' ? previousState : 'idle';
+      window.player.stopHorizontal();
+      window.player.state = 'rhythm';
+    }
     if (!this.running) {
       this.startBackgroundRhythm(); // Start background progress if not running
     }
-    // CRITICAL: Don't restart progress if already running
-    // Progress tracking continues in background independently of R key
-    console.log('Rhythm visualization shown - background progress continues');
+    console.log('Rhythm Combat Mode active - background progress continues');
     console.log(`🎵 After show(): active=${this.active}, running=${this.running}`);
+    return { ok: true, reason: 'activated' };
   }
   
   // CRITICAL: Gameplay-only restart for when rhythm mode is reactivated
@@ -284,14 +297,15 @@ window.RhythmSystem = class RhythmSystem {
   
   // Alias for show() - needed for compatibility with input.js calls
   showRhythmMode() {
-    this.show();
+    return this.show();
   }
   
   // Alias for hide() - needed for compatibility with input.js calls  
   hideRhythmMode() {
     if (typeof this.hide === 'function') {
-      this.hide();
+      return this.hide();
     }
+    return { ok: false, reason: 'hide-unavailable' };
   }
   
   hide() {
@@ -305,8 +319,9 @@ window.RhythmSystem = class RhythmSystem {
       this.combo = 0;
     }
     
-    console.log('Rhythm visualization hidden, background continues');
+    console.log('Rhythm Combat Mode hidden, background continues');
     console.log(`🎵 After hide(): active=${this.active}, running=${this.running}`);
+    return { ok: true, reason: 'deactivated' };
   }
   
   // Start background rhythm processing (runs continuously)
@@ -638,6 +653,7 @@ window.RhythmSystem = class RhythmSystem {
       this.triggerPowerArc(timing, false);
       this.createHitEffect(timing, false);
       if (window.audioSystem) window.audioSystem.playRhythmAttack(timing);
+      if (this.combo >= 5 && window.tutorialSystem && window.tutorialSystem.isActive && window.tutorialSystem.isActive() && window.tutorialSystem.checkObjective) window.tutorialSystem.checkObjective('rhythm_combo');
     } else {
       this.combo = 0;
       this.arcGrowthLevel = 0;

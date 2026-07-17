@@ -94,12 +94,13 @@ window.InputManager = class InputManager {
 
   routeActions(actions, options = {}) {
     if (actions.pause.pressed && window.BARCODE && window.BARCODE.RuntimeLifecycle) window.BARCODE.RuntimeLifecycle.togglePause();
-    if (actions.rhythm_visual && actions.rhythm_visual.pressed && window.rhythmSystem) {
+    if (actions.rhythm_mode && actions.rhythm_mode.pressed && window.rhythmSystem) {
       if (window.rhythmSystem.isActive && window.rhythmSystem.isActive()) {
         if (window.rhythmSystem.hideRhythmMode) window.rhythmSystem.hideRhythmMode(); else if (window.rhythmSystem.hide) window.rhythmSystem.hide();
       } else {
-        if (window.rhythmSystem.showRhythmMode) window.rhythmSystem.showRhythmMode(); else if (window.rhythmSystem.show) window.rhythmSystem.show();
-        if (window.tutorialSystem && window.tutorialSystem.isActive && window.tutorialSystem.isActive() && window.tutorialSystem.checkObjective) window.tutorialSystem.checkObjective('rhythm_start');
+        const activation = window.rhythmSystem.showRhythmMode ? window.rhythmSystem.showRhythmMode() : (window.rhythmSystem.show ? window.rhythmSystem.show() : { ok: false, reason: 'unavailable' });
+        const active = window.rhythmSystem.isActive && window.rhythmSystem.isActive();
+        if (activation && activation.ok && active && window.tutorialSystem && window.tutorialSystem.isActive && window.tutorialSystem.isActive() && window.tutorialSystem.checkObjective) window.tutorialSystem.checkObjective('rhythm_start');
       }
     }
     if (options.inputOnly || !this.acceptsGameplay()) return;

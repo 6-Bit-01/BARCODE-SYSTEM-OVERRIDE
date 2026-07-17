@@ -8,8 +8,8 @@ window.FILE_MANIFEST.push({
 
 (function() {
   const BARCODE = window.BARCODE = window.BARCODE || {};
-  const ACTIONS = ['move_left', 'move_right', 'jump', 'primary', 'interact', 'pause', 'rhythm_visual'];
-  const EDGE_ACTIONS = new Set(['jump', 'primary', 'interact', 'pause', 'rhythm_visual']);
+  const ACTIONS = ['move_left', 'move_right', 'jump', 'primary', 'interact', 'pause', 'rhythm_mode'];
+  const EDGE_ACTIONS = new Set(['jump', 'primary', 'interact', 'pause', 'rhythm_mode']);
   const DEFAULT_KEYBOARD = {
     move_left: ['arrowleft', 'a'],
     move_right: ['arrowright', 'd'],
@@ -17,7 +17,7 @@ window.FILE_MANIFEST.push({
     primary: ['arrowdown'],
     interact: ['h'],
     pause: ['p'],
-    rhythm_visual: ['r']
+    rhythm_mode: ['r']
   };
   const DEFAULT_GAMEPAD = {
     move_left: [{ axis: 0, dir: -1 }, { button: 14 }],
@@ -61,8 +61,7 @@ window.FILE_MANIFEST.push({
       ACTIONS.forEach(action => {
         const wasHeld = !!this.previousHeld[action];
         const nowHeld = !!held[action];
-        const mutating = action !== 'rhythm_visual';
-        const suppressed = mutating && this.isSuppressed(action);
+        const suppressed = this.isSuppressed(action);
         this.state[action] = { held: suppressed ? false : nowHeld, pressed: suppressed ? false : (nowHeld && !wasHeld), released: suppressed ? false : (!nowHeld && wasHeld), suppressed };
       });
       this.previousHeld = held;

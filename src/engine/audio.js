@@ -64,6 +64,7 @@ window.AudioSystem = class AudioSystem {
     this.runtimeAudioGeneration = 0;
     this.runtimeTimeouts = new Set();
     this.activeProfilePreparationInFlight = null;
+    this.activeProfilePreparationKey = null;
   }
 
   scheduleRuntimeTimeout(callback, delay) {
@@ -1874,9 +1875,11 @@ window.AudioSystem = class AudioSystem {
   }
 
   prepareActiveMusicProfile() {
-    if (this.activeProfilePreparationInFlight) return this.activeProfilePreparationInFlight;
+    const profile = this.getActiveMusicProfile();
+    const profileKey = profile && profile.profileId ? profile.profileId : 'missing-profile-selection';
+    if (this.activeProfilePreparationInFlight && this.activeProfilePreparationKey === profileKey) return this.activeProfilePreparationInFlight;
+    this.activeProfilePreparationKey = profileKey;
     this.activeProfilePreparationInFlight = (async () => {
-      const profile = this.getActiveMusicProfile();
       if (!profile) return { ok: false, reason: 'missing-profile-selection' };
       const sources = this.getConfiguredSources(profile);
       if (!sources.length) return { ok: false, reason: 'missing-profile-sources', profileId: profile.profileId };
@@ -1893,7 +1896,7 @@ window.AudioSystem = class AudioSystem {
         return { ok: false, reason: 'missing-required-source', profileId: profile.profileId, missing: missingRequired.map(source => source.sourceId) };
       }
       return { ok: true, profileId: profile.profileId, preparedSources: sources.map(source => source.sourceId) };
-    })().finally(() => { this.activeProfilePreparationInFlight = null; });
+    })().finally(() => { this.activeProfilePreparationInFlight = null; this.activeProfilePreparationKey = null; });
     return this.activeProfilePreparationInFlight;
   }
 
