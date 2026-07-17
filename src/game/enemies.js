@@ -962,7 +962,11 @@ window.EnemyManager = class EnemyManager {
   update(deltaTime, player) {
     if (!player) return;
 
+    const progression = window.sector1Progression;
+    const suppressMissionSimulation = progression && progression.isGameplaySuppressed && progression.isGameplaySuppressed();
+    if (suppressMissionSimulation) return;
     this.simulationTimeMs += deltaTime;
+
     this.updateSpawnFlow(deltaTime);
     this.updateSpawnZones(deltaTime);
 
@@ -996,8 +1000,9 @@ window.EnemyManager = class EnemyManager {
     // ENHANCED Spacing Check
     if (!this.hasAdequateSpacing(player)) return;
 
+    const missionSuppressesGenericSpawning = window.sector1Progression && window.sector1Progression.shouldSuppressGenericSpawning && window.sector1Progression.shouldSuppressGenericSpawning();
     const isMainGame = !tutorial || !tutorial.isActive();
-    if (isMainGame && this.shouldSpawnEnemy(this.enemies.length)) {
+    if (isMainGame && !missionSuppressesGenericSpawning && this.shouldSpawnEnemy(this.enemies.length)) {
         this.spawnTimer += deltaTime;
         if (this.spawnTimer >= this.nextSpawnTime) {
             this.spawnFlowEnemy(player);
@@ -1355,12 +1360,31 @@ window.EnemyManager = class EnemyManager {
     enemy._defeatRecorded = true;
     this.defeatedCount += 1;
     if (window.gameState) window.gameState.enemiesDefeated = this.defeatedCount;
-    if (window.sector1Progression && typeof window.sector1Progression.onEnemyDefeated === 'function') window.sector1Progression.onEnemyDefeated(this.defeatedCount);
+    if (window.sector1Progression && typeof window.sector1Progression.onEnemyDefeated === 'function') window.sector1Progression.onEnemyDefeated(this.defeatedCount, enemy);
     if (enemy._isTutorialEnemy && window.tutorialSystem && window.tutorialSystem.isActive && window.tutorialSystem.isActive() && window.tutorialSystem.storyChapter === 1) {
       window.tutorialSystem._tutorialEnemiesDefeated = (window.tutorialSystem._tutorialEnemiesDefeated || 0) + 1;
       if (window.tutorialSystem._tutorialEnemiesDefeated >= 3) window.tutorialSystem.checkObjective('combat');
     }
     return true;
+  }
+
+  purgeForCinematic() {
+    if (this._cinematicPurgeComplete) return false;
+    this._cinematicPurgeComplete = true;
+    const activeEnemies = this.enemies.filter(e => e && e.active && !e._purgedByCinematic);
+    if (activeEnemies.length && window.audioSystem && typeof window.audioSystem.playSound === 'function') window.audioSystem.playSound('synthHit', 0.2);
+    activeEnemies.forEach(e => {
+      e.velocity.x = 0; e.velocity.y = 0; e._purgedByCinematic = true; e._defeatRecorded = true;
+      if (window.particleSystem) {
+        if (typeof window.particleSystem.impact === 'function') window.particleSystem.impact(e.position.x, e.position.y, '#ff00ff', 28);
+        if (typeof window.particleSystem.enemyDeathEffect === 'function') window.particleSystem.enemyDeathEffect(e.position.x, e.position.y, e.type);
+      }
+      e.active = false; e._disposed = true; e._generation = (e._generation || 0) + 1;
+    });
+    this.enemies = this.enemies.filter(e => !e._purgedByCinematic && e.active);
+    this.crowdGroups = [];
+    this.activeFirewallCount = 0;
+    return activeEnemies.length > 0;
   }
 
   getDiagnostics() {
@@ -1378,6 +1402,7 @@ window.EnemyManager = class EnemyManager {
     this.spawnTimer = 0;
     this.spawnFlowState = 'building';
     this.crowdGroups = [];
+    this._cinematicPurgeComplete = false;
     if (!options.preserveDefeats) this.simulationTimeMs = 0;
     if (typeof window.syncEnemyDefeatProjections === 'function') window.syncEnemyDefeatProjections(this.defeatedCount);
     console.log('✓ Enemy Manager cleared');

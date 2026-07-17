@@ -34,18 +34,19 @@ assert(!index.includes('jammer-fix-patch.js') && !index.includes('jammer-spawn-l
 assert(!exists('jammer-fix-patch.js') && !exists('src/game/' + 'jammer-spawn-logic.js') && !exists('src/game/' + 'collision-fix.js'), 'obsolete patch files are deleted');
 assert(rootDiagnostics.length === 0, `obsolete executable root diagnostics must be archived, still present: ${rootDiagnostics.join(', ')}`);
 
-const forbiddenGate = /requiredForProgress|requiredEnemyKills|savedEnemiesDefeated|broadcastJammerDestroyed|getTotalEnemiesDefeated|Defeat 20 enemies|Eliminate 20 hostile|Destroy the Broadcast Jammer|destroy_jammer|spawnBroadcastJammer|20 ENEMIES|set enemy count to 20|currentEnemyCount\s*>=\s*20/;
-assert(!forbiddenGate.test(gameState + tutorial + runtime + sector + objectives + debug + loadedText + rootDiagnosticText), 'active/diagnostic code must not contain twenty-kill or destructive-Jammer gate behavior');
+const forbiddenGate = /requiredForProgress|savedEnemiesDefeated|broadcastJammerDestroyed|getTotalEnemiesDefeated|Eliminate 20 hostile|destroy_jammer|spawnBroadcastJammer|20 ENEMIES|set enemy count to 20|currentEnemyCount\s*>=\s*20/;
+assert(!forbiddenGate.test(gameState + tutorial + runtime + debug + rootDiagnosticText), 'legacy competing quota/Jammer gate behavior is not present outside the mission owner');
+assert(/requiredEnemyKills = totalQuota\(\)/.test(sector) && /Defeat 20 enemies/.test(objectives), 'Sector1Progression owns the approved 20-enemy mission gate');
 assert(!/enemiesDefeated\s*\+\s*.*defeatedCount|defeatedCount\s*\+\s*.*enemiesDefeated/.test(gameState + sector), 'defeat projections must not be added together');
 assert(/getCurrentRunDefeats/.test(gameState) && /syncEnemyDefeatProjections/.test(gameState), 'game-state exposes projection sync instead of duplicate totals');
 assert(/preserveDefeats/.test(runtime) && !/currentEnemyCount/.test(runtime), 'RuntimeLifecycle uses explicit preserveDefeats policy without quota inference');
-assert(/reset\(options = \{\}\)/.test(sector) && /preserveDefeats/.test(sector), 'Sector1Progression reset accepts explicit preservation intent');
-assert(/draw\(ctx\) \{\n\s*void ctx;\n\s*\}/.test(sector), 'Sector1Progression exposes a safe no-op draw method');
+assert(/reset\(options = \{\}\)/.test(sector) && /JammerEnvironment\.reset/.test(sector), 'Sector1Progression reset explicitly cleans mission state');
+assert(/draw\(ctx\) \{ this\.drawStageSurfaces\(ctx\); this\.drawEncounterGates\(ctx\); this\.drawBoss\(ctx\); \}/.test(sector), 'Sector1Progression draw owns authored geometry and boss-intro presentation');
 assert(/window\.sector1Progression && typeof window\.sector1Progression\.draw === 'function'/.test(render), 'render coordinator checks Sector1Progression draw contract before calling');
 const drawGameEntitiesBody = (render.match(/function drawGameEntities\(ctx\) \{([\s\S]*?)\n\}/) || [null, ''])[1];
 assert(drawGameEntitiesBody.indexOf('JammerEnvironment.draw(ctx)') !== -1 && drawGameEntitiesBody.indexOf('window.enemyManager.draw(ctx)') !== -1 && drawGameEntitiesBody.indexOf('JammerEnvironment.draw(ctx)') < drawGameEntitiesBody.indexOf('window.enemyManager.draw(ctx)'), 'JammerEnvironment draws before enemyManager in drawGameEntities');
 assert(!/JammerEnvironment\.reset\(\)/.test(objectives), 'ObjectivesSystem reset must not compete for JammerEnvironment ownership');
-assert(!/health|takeDamage|kill|point value/i.test(jammer), 'Jammer environment has no health/damage/kill/point semantics');
+assert(/health: 16/.test(jammer) && /applyRhythmDamage/.test(jammer) && !/class\s+JammerEnemy|extends\s+Enemy/.test(jammer), 'JammerEnvironment is the approved destructible stage target, not a normal enemy');
 
 assert(/drawScale:\s*0\.7/.test(jammer) && /drawOffsetY:\s*190/.test(jammer), 'JammerEnvironment preserves approved draw scale 0.7 and +190 Y offset');
 assert(/state\.position\.y \+ state\.presentation\.drawOffsetY/.test(jammer), 'JammerEnvironment draws sprite/fallback from approved Y offset');
@@ -113,9 +114,9 @@ class DefeatOwnerFixture {
 
 
 class SectorProgressionFixture {
-  constructor() { this.enemiesDefeated = 3; this.jammerRevealed = true; this.jammerTriggered = false; this.sectorComplete = false; }
-  snapshot() { return JSON.stringify(this); }
-  draw(ctx) { void ctx; }
+  constructor() { this.enemiesDefeated = 3; this.jammerRevealed = true; this.jammerTriggered = false; this.sectorComplete = false; this.drawCount = 0; }
+  snapshot() { return JSON.stringify({ enemiesDefeated: this.enemiesDefeated, jammerRevealed: this.jammerRevealed, jammerTriggered: this.jammerTriggered, sectorComplete: this.sectorComplete }); }
+  draw(ctx) { void ctx; this.drawCount += 1; }
 }
 
 class CollisionFixture {
@@ -175,7 +176,7 @@ class JammerFixture {
 const sectorFixture = new SectorProgressionFixture();
 const sectorBefore = sectorFixture.snapshot();
 sectorFixture.draw({});
-assert(sectorFixture.snapshot() === sectorBefore, 'fixture: Sector1Progression no-op draw does not mutate progression state');
+assert(sectorFixture.snapshot() === sectorBefore && sectorFixture.drawCount === 1, 'fixture: Sector1Progression draw presentation does not mutate progression state');
 
 const owner = new DefeatOwnerFixture();
 const enemy = { recorded: false };

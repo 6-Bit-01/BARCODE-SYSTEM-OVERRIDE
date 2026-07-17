@@ -179,6 +179,8 @@ function drawGameElements(ctx) {
   
   let cameraX = playerX;
   cameraX = window.clamp?.(cameraX, halfCanvas, worldWidth - halfCanvas) || cameraX;
+  if (window.sector1Progression && typeof window.sector1Progression.getCameraX === 'function') cameraX = window.sector1Progression.getCameraX(cameraX);
+  window.gameCamera = { x: cameraX - halfCanvas, y: 0, centerX: cameraX };
   const cameraOffsetX = 960 - cameraX;
   
   // Draw parallax background layer (BG)
@@ -328,6 +330,8 @@ function drawGround(ctx) {
   
   let cameraX = playerX;
   cameraX = window.clamp?.(cameraX, halfCanvas, worldWidth - halfCanvas) || cameraX;
+  if (window.sector1Progression && typeof window.sector1Progression.getCameraX === 'function') cameraX = window.sector1Progression.getCameraX(cameraX);
+  window.gameCamera = { x: cameraX - halfCanvas, y: 0, centerX: cameraX };
   
   const groundStartX = -2000;
   const groundEndX = worldWidth + 2000;

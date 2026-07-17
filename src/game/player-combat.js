@@ -33,6 +33,8 @@ window.FILE_MANIFEST.push({
       this.playAttackAnimation(player);
       this.applyFeedback(judgment);
       const targets = this.findTargets(player, enemyManager);
+      const jammerHit = this.tryDamageJammer(player, judgment, result.sequence);
+      if (jammerHit.ok) result.targets.push(jammerHit.target);
       const hitIds = new Set();
       targets.forEach(target => {
         if (!target || !target.active || hitIds.has(target)) return;
@@ -41,7 +43,7 @@ window.FILE_MANIFEST.push({
         if (window.particleSystem && typeof window.particleSystem.impact === 'function') window.particleSystem.impact(target.position.x, target.position.y, '#00ffff', 20);
         result.targets.push({ type: target.type || 'target', damage: result.damage, x: target.position && target.position.x, y: target.position && target.position.y });
       });
-      result.ok = true; result.reason = targets.length ? 'hit' : 'no-target';
+      result.ok = true; result.reason = (targets.length || jammerHit.ok) ? 'hit' : 'no-target';
       return result;
     }
     gameplayActive() { const gs = window.gameState || {}; return !(window.isPaused || window.isRunning === false || gs.paused || gs.gameOver || gs.victory || gs.running === false); }
@@ -56,6 +58,16 @@ window.FILE_MANIFEST.push({
     playAttackAnimation(player) { if (player && typeof player.startPrimaryAttackAnimation === 'function') player.startPrimaryAttackAnimation(); else if (player && typeof player.playAnimation === 'function') player.playAnimation('rhythm'); }
     applyFeedback(judgment) { if (window.rhythmSystem && typeof window.rhythmSystem.applyResolvedAttackFeedback === 'function') window.rhythmSystem.applyResolvedAttackFeedback(judgment); }
     findTargets(player, enemyManager) { const enemies = enemyManager && Array.isArray(enemyManager.enemies) ? enemyManager.enemies : []; return enemies.filter(enemy => enemy.active && window.distance(player.position.x, player.position.y, enemy.position.x, enemy.position.y) <= this.range); }
+    tryDamageJammer(player, judgment, sequence) {
+      const env = BARCODE.JammerEnvironment;
+      if (!env || !env.canReceiveRhythmDamage || !env.applyRhythmDamage) return { ok: false };
+      if (!judgment || !(judgment.timing === 'perfect' || judgment.timing === 'excellent')) return { ok: false };
+      const status = env.getStatus();
+      const position = status && status.position;
+      if (!position || window.distance(player.position.x, player.position.y, position.x, position.y) > this.range) return { ok: false };
+      const damaged = env.applyRhythmDamage({ amount: 1, timing: judgment.timing, sequence });
+      return damaged.ok ? { ok: true, target: { type: 'broadcast_jammer', damage: 1, x: position.x, y: position.y } } : { ok: false };
+    }
     diagnostics() { return { cooldownMs: this.cooldownMs, range: this.range, sequence: this.sequence, lastAttackAt: this.lastAttackAt }; }
   }
   BARCODE.PlayerCombat = PlayerCombat;

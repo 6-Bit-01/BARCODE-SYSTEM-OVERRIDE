@@ -13,7 +13,7 @@
 - Prologue wording/images and existing approved art are locked.
 - Never call 6 Bit/the player “the virus” in game-facing text.
 - *Observer Not Found* is separate and supplies no automatic canon.
-- City Scrambler, the 20-kill jammer gate, fast-fall/stomp code, dormant boss hooks, and README claims are not automatic future-design authority.
+- City Scrambler, fast-fall code, dormant boss hooks, and README claims are not automatic future-design authority.
 
 ## PR-001 non-change rule
 
@@ -57,3 +57,16 @@ Review for accidental gameplay/art/dialogue changes, baseline blind spots, valid
 - Passive top-down landing stomp is intentional and lethal.
 - Passive stomp approval does not approve Down-key fast-fall or dash.
 - Each level explicitly selects its own song/profile; Level 1 may select `level-01.main`, but it is not a global fallback for future levels.
+
+
+## Level 1 mission owner decisions
+
+- The 20-enemy post-tutorial objective is intentional.
+- Tutorial kills do not count toward the Level 1 mission counter.
+- The 20 enemies are delivered through four authored encounter groups.
+- At 20 mission defeats, the Broadcast Jammer appears once in the world half opposite the player.
+- The Broadcast Jammer has 16 health and accepts exactly one damage per successful rhythm attack.
+- The Broadcast Jammer is not hacked with `H` and is not damaged by passive stomp.
+- Broadcast Jammer destruction triggers the freeze, enemy purge, rightward camera pan, boss walk-in, flourish, and `boss_ready` handoff.
+- Boss combat is the next milestone after the `boss_ready` handoff.
+- Backend ownership changes are not permission to remove approved mechanics.
