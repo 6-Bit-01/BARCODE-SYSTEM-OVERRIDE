@@ -223,18 +223,11 @@ function drawBasicUI(ctx) {
   // Draw level and progression progress
   let progressText = 'SECTOR 1: THE CITY';
   
-  if (window.sector1Progression) {
-    // Check for jammer enemy instead of broadcastJammer
-    let jammerDestroyed = window.sector1Progression.broadcastJammerDestroyed;
-    // Also check if no active jammer enemies exist
-    if (!jammerDestroyed && window.enemyManager && window.enemyManager.enemies) {
-      const jammerEnemy = window.enemyManager.enemies.find(e => e.type === 'jammer' && e.active);
-      jammerDestroyed = !jammerEnemy;
-    }
-    const jammerStatus = jammerDestroyed ? '✓' : '📡';
-    const enemyStatus = `${window.sector1Progression.enemiesDefeated}/${window.sector1Progression.requiredEnemyKills}`;
-    progressText += ` | ${jammerStatus} Jammer | ${enemyStatus} Enemies`;
+  if (window.enemyManager) {
+    progressText += ` | Defeats ${window.enemyManager.defeatedCount || 0}`;
   }
+  const jammerStatus = window.BARCODE && window.BARCODE.JammerEnvironment ? window.BARCODE.JammerEnvironment.getStatus() : null;
+  if (jammerStatus && jammerStatus.revealed) progressText += ` | Jammer ${jammerStatus.triggered ? 'triggered' : 'revealed'}`;
   
   if (window.renderer && typeof window.renderer.drawGlowText === 'function') {
     try {
@@ -287,126 +280,20 @@ function drawBasicUI(ctx) {
 
 // Draw objectives panel
 function drawObjectives(ctx) {
-  // Force objectives system to be always active after tutorial initialization
-  if (window.objectivesSystem) {
+  if (window.objectivesSystem && typeof window.objectivesSystem.draw === 'function') {
     window.objectivesSystem.active = true;
-    try {
-      if (window.objectivesSystem.objectiveUI) {
-        window.objectivesSystem.objectiveUI.visible = true;
-      }
-    } catch (error) {
-      console.warn('⚠️ Failed to set objectives UI visibility:', error?.message || error);
-    }
+    window.objectivesSystem.draw(ctx);
+    return;
   }
-  
-  // Save context state to avoid affecting other UI elements
   ctx.save();
-  
-  // Draw objectives panel directly
-  const objX = 1300;
-  const objY = 120;
-  const objWidth = 500;
-  const objHeight = 200;
-  
-  // Panel background
   ctx.fillStyle = 'rgba(0, 20, 40, 0.95)';
-  ctx.fillRect(objX, objY, objWidth, objHeight);
-  
-  // Panel border
+  ctx.fillRect(1300, 120, 500, 160);
   ctx.strokeStyle = '#00ffff';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(objX, objY, objWidth, objHeight);
-  
-  // Header
-  ctx.fillStyle = '#00ffff';
-  ctx.font = 'bold 16px monospace';
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
-  ctx.fillText('MISSION OBJECTIVES', objX + 15, objY + 10);
-  
-  // Get enemy count
-  let enemiesDefeated = 0;
-  let requiredEnemies = 20;
-  
-  if (window.sector1Progression) {
-    enemiesDefeated = window.sector1Progression.enemiesDefeated || 0;
-    requiredEnemies = window.sector1Progression.requiredEnemyKills || 20;
-  } else if (window.enemyManager) {
-    enemiesDefeated = window.enemyManager.defeatedCount || 0;
-  }
-  
-  // Enemy counter in header
-  ctx.fillStyle = enemiesDefeated >= requiredEnemies ? '#00ff00' : '#ff9900';
-  ctx.font = 'bold 14px monospace';
-  ctx.textAlign = 'right';
-  ctx.fillText(`ENEMIES: ${enemiesDefeated}/${requiredEnemies}`, objX + objWidth - 15, objY + 12);
-  
-  // Draw objectives list
-  let yOffset = 40;
-  
-  // Enemy objective
-  ctx.fillStyle = enemiesDefeated >= requiredEnemies ? '#00ff00' : '#ff9900';
-  ctx.font = 'bold 14px monospace';
-  ctx.textAlign = 'left';
-  const enemyPrefix = enemiesDefeated >= requiredEnemies ? '✓' : '›';
-  ctx.fillText(`${enemyPrefix} Defeat 20 enemies`, objX + 15, objY + yOffset);
-  
-  ctx.fillStyle = enemiesDefeated >= requiredEnemies ? '#00ff00' : '#cccccc';
-  ctx.font = '12px monospace';
-  ctx.fillText(`Progress: ${enemiesDefeated}/${requiredEnemies}`, objX + 30, objY + yOffset + 18);
-  yOffset += 45;
-  
-  // Jammer objective (show after 20 enemies)
-  if (enemiesDefeated >= requiredEnemies) {
-    // Check for jammer enemy instead of broadcastJammer
-    let jammerDestroyed = window.sector1Progression && window.sector1Progression.broadcastJammerDestroyed;
-    // Also check if no active jammer enemies exist
-    if (!jammerDestroyed && window.enemyManager && window.enemyManager.enemies) {
-      const jammerEnemy = window.enemyManager.enemies.find(e => e.type === 'jammer' && e.active);
-      jammerDestroyed = !jammerEnemy;
-    }
-    ctx.fillStyle = jammerDestroyed ? '#00ff00' : '#ff9900';
-    ctx.font = 'bold 14px monospace';
-    ctx.textAlign = 'left';
-    const jammerPrefix = jammerDestroyed ? '✓' : '›';
-    ctx.fillText(`${jammerPrefix} Destroy the jammer`, objX + 15, objY + yOffset);
-    
-    ctx.fillStyle = jammerDestroyed ? '#00ff00' : '#cccccc';
-    ctx.font = '12px monospace';
-    ctx.fillText('Use rhythm attacks (R key)', objX + 30, objY + yOffset + 18);
-    yOffset += 45;
-  }
-  
-  // Progress bar at bottom
-  const barY = objY + objHeight - 40;
-  const barHeight = 20;
-  const barWidth = objWidth - 60;
-  const progress = Math.min(1.0, enemiesDefeated / requiredEnemies);
-  
-  ctx.fillStyle = '#333333';
-  ctx.fillRect(objX + 30, barY, barWidth, barHeight);
-  
-  if (progress >= 1.0) {
-    ctx.fillStyle = '#00ff00';
-  } else if (progress >= 0.5) {
-    ctx.fillStyle = '#ffff00';
-  } else {
-    ctx.fillStyle = '#ff9900';
-  }
-  
-  const fillWidth = barWidth * progress;
-  ctx.fillRect(objX + 30, barY, fillWidth, barHeight);
-  
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = 1;
-  ctx.strokeRect(objX + 30, barY, barWidth, barHeight);
-  
+  ctx.strokeRect(1300, 120, 500, 160);
   ctx.fillStyle = '#ffffff';
   ctx.font = 'bold 14px monospace';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(`ENEMIES DEFEATED: ${enemiesDefeated}/${requiredEnemies}`, objX + objWidth/2, barY + barHeight/2);
-  
+  ctx.textAlign = 'left';
+  ctx.fillText('› Explore Dead Air District', 1315, 180);
   ctx.restore();
 }
 

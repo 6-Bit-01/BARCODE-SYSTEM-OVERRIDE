@@ -554,7 +554,7 @@ window.Player = class Player {
   jump() {
     // Disable jumping during rhythm mode to maintain combat focus
     if (this.state === 'rhythm' || this.isEntering || !this.allowMovement) {
-      return; // No jumping allowed during rhythm mode, entrance animation, or when movement is disabled
+      return false; // No jumping allowed during rhythm mode, entrance animation, or when movement is disabled
     }
     
     if (this.grounded) {
@@ -580,12 +580,14 @@ window.Player = class Player {
         const jumpX = this.position.x + this.facing * 12;
         window.particleSystem.jumpEffect(jumpX, this.position.y + 100, null);
       }
+      return true;
     }
+    return false;
   }
 
   dash() {
-    // Dash ability removed - no longer available
-    return;
+    // Dash ability removed - no longer available, but the action route is intentionally recognized.
+    return false;
   }
 
   // Perform rhythm attack

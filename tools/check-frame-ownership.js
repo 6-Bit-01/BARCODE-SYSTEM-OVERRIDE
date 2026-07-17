@@ -32,13 +32,12 @@ const player = read('src/game/player.js');
 const spaceships = read('src/engine/spaceships.js');
 const index = read('index.html');
 const design = read('docs/design/LEVEL_01_VERTICAL_SLICE.md');
-const jammerPatch = read('jammer-fix-patch.js');
+const enemies = read('src/game/enemies.js');
 const knownIssues = read('docs/technical/KNOWN_ISSUES.md');
 
 const enemiesScriptIndex = index.indexOf('<script src="src/game/enemies.js"></script>');
-const jammerPatchScriptIndex = index.indexOf('<script src="jammer-fix-patch.js"></script>');
-if (enemiesScriptIndex === -1 || jammerPatchScriptIndex === -1 || enemiesScriptIndex > jammerPatchScriptIndex) {
-  fail('index.html must load jammer-fix-patch.js after src/game/enemies.js so active enemy ownership is explicit.');
+if (enemiesScriptIndex === -1 || index.includes('jammer-fix-patch.js') || index.includes('src/game/' + 'jammer-spawn-logic.js') || index.includes('src/game/' + 'collision-fix.js')) {
+  fail('index.html must load canonical enemies.js and must not load late enemy patch scripts.');
 }
 
 const scheduleBody = functionBody(loop, 'function scheduleNextGameplayFrame()');
@@ -88,10 +87,10 @@ if (count(loop, /renderer\.update\s*\(/g) !== 1) {
 if (count(update, /enemyManager\.checkCollisions\s*\(/g) !== 0) {
   fail('update-coordinator.js must not call enemyManager.checkCollisions after EnemyManager.update.');
 }
-const managerSection = jammerPatch.slice(jammerPatch.indexOf('window.' + 'EnemyManager = class EnemyManager'));
+const managerSection = enemies.slice(enemies.indexOf('window.' + 'EnemyManager = class EnemyManager'));
 const managerUpdateBody = functionBody(managerSection, 'update(deltaTime, player)');
 if (!managerUpdateBody || count(managerUpdateBody, /this\.checkCollisions\s*\(\s*player\s*\)/g) !== 1) {
-  fail('the active jammer-fix-patch.js EnemyManager.update must invoke player collision orchestration exactly once.');
+  fail('the canonical enemies.js EnemyManager.update must invoke player collision orchestration exactly once.');
 }
 if (!update.includes('EnemyManager.update() owns enemy/enemy and enemy/player collision orchestration')) {
   fail('collision orchestration ownership should be documented at the removed duplicate call site.');
@@ -155,11 +154,11 @@ if (!design.includes('existing movement kit—including dash, stomp, and fast-fa
   fail('design contract must direct PR-005 to evaluate existing movement without pre-approving or forbidding options.');
 }
 for (const phrase of [
-  'jammer-fix-patch.js` after `src/game/enemies.js`',
-  'active enemy classes and manager',
-  'base `Enemy.update()` position integration',
-  'virus entrance, corrupted entrance, and firewall movement',
-  'assigned to PR-006'
+  'single active enemy owner',
+  'authoritative defeat event',
+  'JammerEnvironment',
+  'milliseconds at manager/API boundaries',
+  'authored Level 1 stage PR'
 ]) {
   if (!knownIssues.includes(phrase)) fail(`KNOWN_ISSUES.md must document active enemy physics debt: ${phrase}`);
 }

@@ -10,7 +10,7 @@
 ## Static code inference
 
 - The repository contains active global-script runtime code plus inactive legacy/diagnostic files.
-- `jammer-fix-patch.js` substantially overlaps the loaded enemy system and redefines enemy globals after `src/game/enemies.js`.
+- The former late enemy patch substantially overlapped the loaded enemy system and redefined enemy globals after `src/game/enemies.js`; PR #8 removed that loaded override chain.
 
 ## Not runtime-tested
 

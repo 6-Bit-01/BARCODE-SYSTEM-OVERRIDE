@@ -95,15 +95,17 @@ window.BARCODE = window.BARCODE || {};
       window.player.velocity = new window.Vector2D(0, 0);
       if (typeof window.player.startEntranceAnimation === 'function') window.player.startEntranceAnimation();
     }
-    if (window.enemyManager && typeof window.enemyManager.clear === 'function') window.enemyManager.clear();
+    const preserveDefeats = !!options.preserveProgress;
+    if (window.enemyManager && typeof window.enemyManager.clear === 'function') window.enemyManager.clear({ preserveDefeats });
+    if (typeof window.syncEnemyDefeatProjections === 'function') window.syncEnemyDefeatProjections();
+    if (window.BARCODE && window.BARCODE.JammerEnvironment && typeof window.BARCODE.JammerEnvironment.reset === 'function') window.BARCODE.JammerEnvironment.reset();
     if (window.objectivesSystem) {
       if (typeof window.objectivesSystem.reset === 'function') window.objectivesSystem.reset();
       if (window.objectivesSystem.objectiveUI) window.objectivesSystem.objectiveUI.visible = true;
       window.objectivesSystem.active = true;
     }
     if (window.sector1Progression && typeof window.sector1Progression.reset === 'function') {
-      const currentEnemyCount = window.sector1Progression.enemiesDefeated || 0;
-      window.sector1Progression.reset(currentEnemyCount >= 20);
+      window.sector1Progression.reset({ preserveDefeats });
     }
     if (window.hackingSystem && typeof window.hackingSystem.reset === 'function') window.hackingSystem.reset();
   }
@@ -260,6 +262,9 @@ window.BARCODE = window.BARCODE || {};
     if (namespace.AssetMonitor && typeof namespace.AssetMonitor.cleanup === 'function') namespace.AssetMonitor.cleanup();
     if (window.cutsceneSystem && typeof window.cutsceneSystem.destroy === 'function') window.cutsceneSystem.destroy();
     if (window.spaceShipSystem && typeof window.spaceShipSystem.dispose === 'function') window.spaceShipSystem.dispose();
+    const preserveDefeats = !!options.restart || !!options.preserveProgress;
+    if (window.enemyManager && typeof window.enemyManager.dispose === 'function') window.enemyManager.dispose({ preserveDefeats });
+    if (window.BARCODE && window.BARCODE.JammerEnvironment && typeof window.BARCODE.JammerEnvironment.dispose === 'function') window.BARCODE.JammerEnvironment.dispose();
     if (window.rhythmSystem && typeof window.rhythmSystem.hideRhythmMode === 'function') window.rhythmSystem.hideRhythmMode();
     if (window.hackingSystem && typeof window.hackingSystem.reset === 'function') window.hackingSystem.reset();
     if (window.audioSystem && typeof window.audioSystem.stopRuntimeAudio === 'function') window.audioSystem.stopRuntimeAudio({ stopMusic: options.stopMusic !== false });
@@ -288,7 +293,7 @@ window.BARCODE = window.BARCODE || {};
       active: { title: !!(window.titleScreen && window.titleScreen.animationFrameHandle), cutscene: !!(window.cutsceneSystem && typeof window.cutsceneSystem.isPlaying === 'function' && window.cutsceneSystem.isPlaying()), rhythm: !!(window.rhythmSystem && window.rhythmSystem.isActive && window.rhythmSystem.isActive()), gameplayMusic: !!(window.audioSystem && window.audioSystem.layersStarted) },
       rhythm: window.rhythmSystem && typeof window.rhythmSystem.getDiagnostics === 'function' ? window.rhythmSystem.getDiagnostics() : null,
       gameState: window.gameState ? { gameOver: !!window.gameState.gameOver, victory: !!window.gameState.victory, running: !!window.gameState.running, paused: !!window.gameState.paused } : null,
-      resources: { cutscene: window.cutsceneSystem && typeof window.cutsceneSystem.getDiagnostics === 'function' ? window.cutsceneSystem.getDiagnostics() : null, spaceships: window.spaceShipSystem && typeof window.spaceShipSystem.getDiagnostics === 'function' ? window.spaceShipSystem.getDiagnostics() : null, hacking: window.hackingSystem && typeof window.hackingSystem.getDiagnostics === 'function' ? window.hackingSystem.getDiagnostics() : null, initialEnemySpawn: typeof window.getInitialEnemySpawnDiagnostics === 'function' ? window.getInitialEnemySpawnDiagnostics() : null, assetMonitor: namespace.AssetMonitor && typeof namespace.AssetMonitor.getDiagnostics === 'function' ? namespace.AssetMonitor.getDiagnostics() : null }
+      resources: { cutscene: window.cutsceneSystem && typeof window.cutsceneSystem.getDiagnostics === 'function' ? window.cutsceneSystem.getDiagnostics() : null, spaceships: window.spaceShipSystem && typeof window.spaceShipSystem.getDiagnostics === 'function' ? window.spaceShipSystem.getDiagnostics() : null, hacking: window.hackingSystem && typeof window.hackingSystem.getDiagnostics === 'function' ? window.hackingSystem.getDiagnostics() : null, enemies: window.enemyManager && typeof window.enemyManager.getDiagnostics === 'function' ? window.enemyManager.getDiagnostics() : null, jammerEnvironment: window.BARCODE && window.BARCODE.JammerEnvironment && typeof window.BARCODE.JammerEnvironment.getDiagnostics === 'function' ? window.BARCODE.JammerEnvironment.getDiagnostics() : null, initialEnemySpawn: typeof window.getInitialEnemySpawnDiagnostics === 'function' ? window.getInitialEnemySpawnDiagnostics() : null, assetMonitor: namespace.AssetMonitor && typeof namespace.AssetMonitor.getDiagnostics === 'function' ? namespace.AssetMonitor.getDiagnostics() : null }
     }));
   }
 

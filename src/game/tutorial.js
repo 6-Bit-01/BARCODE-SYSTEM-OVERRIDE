@@ -139,7 +139,7 @@ window.TutorialSystem = class TutorialSystem {
         this.addDialogue('Your mission: Find 9 Bit and restore the BARCODE Network.', 'guide', 4000);
         this.addDialogue('The fate of the digital world is in your hands.', 'guide', 4000);
         this.addDialogue('Good luck, hacker-rapper.', 'guide', 0);
-        this.addObjective('Eliminate 20 enemies to reveal jammer', 'level_clear');
+        this.addObjective('Practice movement, rhythm, and hacking in the sandbox', 'level_clear');
         
         // CRITICAL FIX: Complete tutorial immediately when final chapter starts
         // Chapter 4 has no objectives to complete, so we need to trigger completion manually
@@ -493,21 +493,17 @@ window.TutorialSystem = class TutorialSystem {
     // This prevents conflicts and ensures objectives stay visible
     console.log('✅ Tutorial complete - main objectives system will handle all objectives');
     
-    // CRITICAL FIX: Reset mission enemy counter when tutorial completes
-    // This ensures the counter starts at 0 for the main mission
-    if (window.sector1Progression) {
-      window.sector1Progression.enemiesDefeated = 0; // Reset mission counter to 0
-      window.sector1Progression.tutorialEnemiesDefeated = 0; // Also reset tutorial counter
-      window.sector1Progression.requiredEnemyKills = 20;
-      console.log('🔄 RESET: Mission enemy counter reset to 0 at tutorial completion');
-      console.log(`📊 Counter status: Mission=${window.sector1Progression.enemiesDefeated}, Tutorial=${window.sector1Progression.tutorialEnemiesDefeated}`);
+    // Reset tutorial-only combat statistics so the sandbox defeat statistic starts at 0.
+    if (window.enemyManager && typeof window.enemyManager.clear === 'function') {
+      window.enemyManager.clear({ preserveDefeats: false });
     }
-    
-    // CRITICAL FIX: Also reset enemy manager counter to ensure UI displays correctly
-    if (window.enemyManager) {
-      window.enemyManager.defeatedCount = 0; // Reset enemy manager's display counter
-      console.log('🔄 RESET: Enemy manager defeatedCount reset to 0 at tutorial completion');
+    if (typeof window.syncEnemyDefeatProjections === 'function') {
+      window.syncEnemyDefeatProjections(0);
+    } else {
+      if (window.gameState) window.gameState.enemiesDefeated = 0;
+      if (window.sector1Progression) window.sector1Progression.enemiesDefeated = 0;
     }
+    if (window.sector1Progression) window.sector1Progression.tutorialEnemiesDefeated = 0;
     
     // CRITICAL FIX: Force objectives system to stay visible and permanently active
     if (window.objectivesSystem) {
@@ -530,9 +526,7 @@ window.TutorialSystem = class TutorialSystem {
     
     // Show on-screen message
     if (window.loreSystem) {
-      window.loreSystem.displayLoreMessage(
-        'NEW OBJECTIVES: Eliminate 20 hostile entities, then destroy the Broadcast Jammer to confront the source of corruption.'
-      );
+      window.loreSystem.displayLoreMessage('Explore Dead Air District.');
     }
   }
   

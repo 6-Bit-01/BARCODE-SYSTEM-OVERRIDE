@@ -28,7 +28,7 @@
     "src/core/runtime-lifecycle.js",
     "src/game/player.js",
     "src/game/enemies.js",
-    "src/game/jammer-spawn-logic.js",
+    "src/game/jammer-environment.js",
     "src/game/hacking.js",
     "src/game/rhythm.js",
     "src/game/tutorial.js",
@@ -42,8 +42,6 @@
     "src/game/game-initializer.js",
     "src/game/dependency-validator.js",
     "src/game/debug-commands.js",
-    "jammer-fix-patch.js",
-    "src/game/collision-fix.js",
     "[inline]",
     "src/game/main-new.js",
     "[inline]"
@@ -71,7 +69,7 @@
     "src/core/runtime-lifecycle.js",
     "src/game/player.js",
     "src/game/enemies.js",
-    "src/game/jammer-spawn-logic.js",
+    "src/game/jammer-environment.js",
     "src/game/hacking.js",
     "src/game/rhythm.js",
     "src/game/tutorial.js",
@@ -85,17 +83,11 @@
     "src/game/game-initializer.js",
     "src/game/dependency-validator.js",
     "src/game/debug-commands.js",
-    "jammer-fix-patch.js",
-    "src/game/collision-fix.js",
     "src/game/main-new.js"
   ],
   "unloadedRepositoryJs": [
-    "final-verification-test.js",
-    "jammer-audio-patch.js",
     "src/core/game-manager.js",
     "src/engine/game-logic.js",
-    "src/engine/ui-manager.js",
-    "src/game/broadcast-jammer.js",
     "src/game/jammer-arrow.js",
     "src/game/jammer-arrows.js",
     "src/game/jammer-simple.js",
@@ -106,8 +98,6 @@
     "src/game/music-controls.js",
     "src/game/rhythm-fixed.js",
     "src/game/simple-jammer.js",
-    "test-jammer-spawn-fix.js",
-    "test-jammer-spawn.js",
     "test-rhythm-functionality.js",
     "test-rhythm-system-verification.js",
     "tools/audit-external-assets.js",
@@ -116,14 +106,14 @@
     "tools/audit-syntax-all.js",
     "tools/baseline-common.js",
     "tools/check-baseline.js",
+    "tools/check-enemy-ownership.js",
     "tools/check-frame-ownership.js",
     "tools/check-makko-hotfix.js",
     "tools/check-music-profiles.js",
     "tools/check-runtime-lifecycle.js",
     "tools/check-startup-lifecycle.js",
     "tools/check-syntax.js",
-    "tools/generate-baseline.js",
-    "verify-jammer-autospawn.js"
+    "tools/generate-baseline.js"
   ],
   "loadedAndInlineSyntaxStatus": {
     "loadedFiles": [
@@ -216,7 +206,7 @@
         "status": "pass"
       },
       {
-        "file": "src/game/jammer-spawn-logic.js",
+        "file": "src/game/jammer-environment.js",
         "status": "pass"
       },
       {
@@ -272,37 +262,23 @@
         "status": "pass"
       },
       {
-        "file": "jammer-fix-patch.js",
-        "status": "pass"
-      },
-      {
-        "file": "src/game/collision-fix.js",
-        "status": "pass"
-      },
-      {
         "file": "src/game/main-new.js",
         "status": "pass"
       }
     ],
     "inlineScripts": [
       {
-        "index": 40,
+        "index": 38,
         "status": "pass"
       },
       {
-        "index": 42,
+        "index": 40,
         "status": "pass"
       }
     ]
   },
   "inactiveSyntaxFailures": [],
   "missingFirstPartyReferences": [
-    {
-      "source": "final-verification-test.js",
-      "reference": "src/game/enhanced-broadcast-jammer.js",
-      "normalizedPath": "src/game/enhanced-broadcast-jammer.js",
-      "kind": "string-reference"
-    },
     {
       "source": "index.html",
       "reference": "/lib/MakkoEngine.min.js",
@@ -327,10 +303,8 @@
       "host": "api.makko.ai",
       "sourceFiles": [
         "audio-manifest.json",
-        "jammer-fix-patch.js",
         "sprites-manifest.json",
-        "src/engine/audio.js",
-        "src/game/enemies.js"
+        "src/engine/audio.js"
       ]
     },
     {
@@ -353,46 +327,27 @@
         "src/engine/parallax.js",
         "src/engine/spaceships.js",
         "src/engine/title-screen.js",
-        "src/game/broadcast-jammer.js",
         "src/game/lost-data.js"
       ]
     }
   ],
   "criticalGlobalAssignments": [
     {
-      "global": "window.Enemy",
-      "file": "jammer-fix-patch.js",
-      "line": 12,
-      "loaded": true
-    },
-    {
-      "global": "window.EnemyManager",
-      "file": "jammer-fix-patch.js",
-      "line": 1307,
-      "loaded": true
-    },
-    {
       "global": "window.enemyManager",
-      "file": "jammer-fix-patch.js",
-      "line": 1770,
+      "file": "src/game/enemies.js",
+      "line": 1403,
       "loaded": true
     },
     {
       "global": "window.EnemyManager",
       "file": "src/game/enemies.js",
-      "line": 1259,
-      "loaded": true
-    },
-    {
-      "global": "window.enemyManager",
-      "file": "src/game/enemies.js",
-      "line": 1722,
+      "line": 929,
       "loaded": true
     },
     {
       "global": "window.Enemy",
       "file": "src/game/enemies.js",
-      "line": 12,
+      "line": 13,
       "loaded": true
     },
     {
@@ -404,13 +359,13 @@
     {
       "global": "window.gameState",
       "file": "src/game/game-state.js",
-      "line": 10,
+      "line": 64,
       "loaded": true
     },
     {
       "global": "window.gameState",
       "file": "src/game/game-state.js",
-      "line": 59,
+      "line": 9,
       "loaded": true
     },
     {
@@ -428,7 +383,7 @@
     {
       "global": "window.player",
       "file": "src/game/player.js",
-      "line": 1948,
+      "line": 1950,
       "loaded": true
     },
     {
@@ -499,20 +454,13 @@
     }
   ],
   "candidateDiagnosticLegacyFiles": [
-    "final-verification-test.js",
-    "jammer-audio-patch.js",
-    "jammer-fix-patch.js",
     "src/core/game-manager.js",
-    "src/game/broadcast-jammer.js",
     "src/game/main-legacy-backup.js",
     "src/game/main-legacy-removed.js",
     "src/game/main.js",
     "src/game/rhythm-fixed.js",
-    "test-jammer-spawn-fix.js",
-    "test-jammer-spawn.js",
     "test-rhythm-functionality.js",
-    "test-rhythm-system-verification.js",
-    "verify-jammer-autospawn.js"
+    "test-rhythm-system-verification.js"
   ],
   "filesLoadedAtRuntime": [
     "style.css",
@@ -539,7 +487,7 @@
     "src/core/runtime-lifecycle.js",
     "src/game/player.js",
     "src/game/enemies.js",
-    "src/game/jammer-spawn-logic.js",
+    "src/game/jammer-environment.js",
     "src/game/hacking.js",
     "src/game/rhythm.js",
     "src/game/tutorial.js",
@@ -553,8 +501,6 @@
     "src/game/game-initializer.js",
     "src/game/dependency-validator.js",
     "src/game/debug-commands.js",
-    "jammer-fix-patch.js",
-    "src/game/collision-fix.js",
     "[inline script]",
     "src/game/main-new.js",
     "[inline script]"

@@ -91,9 +91,9 @@ window.InputManager = class InputManager {
         
         // Normal game actions last
         if (window.handleGameAction) {
-          window.handleGameAction('jump');
-          // Track jump objective when actually jumping
-          if (window.tutorialSystem && window.tutorialSystem.isActive() && !this.hasTrackedJump) {
+          const jumpResult = window.handleGameAction('jump');
+          // Track jump objective only when the action boundary reports an accepted jump.
+          if (jumpResult && jumpResult.ok && window.tutorialSystem && window.tutorialSystem.isActive() && !this.hasTrackedJump) {
             this.hasTrackedJump = true;
             if (typeof window.tutorialSystem.checkObjective === 'function') {
               window.tutorialSystem.checkObjective('jump');
@@ -243,14 +243,12 @@ window.InputManager = class InputManager {
       
       if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
         e.preventDefault();
-        // Use Up Arrow for tutorial jump tracking (as mentioned in tutorial text)
-        if (window.tutorialSystem && window.tutorialSystem.isActive() && !this.hasTrackedJump) {
+        const jumpResult = window.handleGameAction ? window.handleGameAction('jump') : { ok: !!(window.player && window.player.jump && window.player.jump()) };
+        if (jumpResult && jumpResult.ok && window.tutorialSystem && window.tutorialSystem.isActive() && !this.hasTrackedJump) {
           this.hasTrackedJump = true;
           if (typeof window.tutorialSystem.checkObjective === 'function') {
             window.tutorialSystem.checkObjective('jump');
           }
-          // Also trigger the actual jump
-          window.player.jump();
         }
       }
       
