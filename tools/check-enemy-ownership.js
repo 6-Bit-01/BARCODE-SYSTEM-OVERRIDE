@@ -22,6 +22,7 @@ const runtime = read('src/core/runtime-lifecycle.js');
 const sector = read('src/game/sector1-progression.js');
 const objectives = read('src/game/objectives.js');
 const debug = read('src/game/debug-commands.js');
+const render = read('src/game/render-coordinator.js');
 const docs = ['docs/technical/SCRIPT_AND_GLOBAL_MAP.md', 'docs/technical/KNOWN_ISSUES.md', 'docs/design/LEVEL_01_VERTICAL_SLICE.md'].filter(exists).map(read).join('\n');
 
 assert(loadedScripts.includes('src/game/enemies.js') && loadedScripts.includes('src/game/jammer-environment.js'), 'index loads canonical enemies and JammerEnvironment');
@@ -39,6 +40,10 @@ assert(!/enemiesDefeated\s*\+\s*.*defeatedCount|defeatedCount\s*\+\s*.*enemiesDe
 assert(/getCurrentRunDefeats/.test(gameState) && /syncEnemyDefeatProjections/.test(gameState), 'game-state exposes projection sync instead of duplicate totals');
 assert(/preserveDefeats/.test(runtime) && !/currentEnemyCount/.test(runtime), 'RuntimeLifecycle uses explicit preserveDefeats policy without quota inference');
 assert(/reset\(options = \{\}\)/.test(sector) && /preserveDefeats/.test(sector), 'Sector1Progression reset accepts explicit preservation intent');
+assert(/draw\(ctx\) \{\n\s*void ctx;\n\s*\}/.test(sector), 'Sector1Progression exposes a safe no-op draw method');
+assert(/window\.sector1Progression && typeof window\.sector1Progression\.draw === 'function'/.test(render), 'render coordinator checks Sector1Progression draw contract before calling');
+const drawGameEntitiesBody = (render.match(/function drawGameEntities\(ctx\) \{([\s\S]*?)\n\}/) || [null, ''])[1];
+assert(drawGameEntitiesBody.indexOf('JammerEnvironment.draw(ctx)') !== -1 && drawGameEntitiesBody.indexOf('window.enemyManager.draw(ctx)') !== -1 && drawGameEntitiesBody.indexOf('JammerEnvironment.draw(ctx)') < drawGameEntitiesBody.indexOf('window.enemyManager.draw(ctx)'), 'JammerEnvironment draws before enemyManager in drawGameEntities');
 assert(!/JammerEnvironment\.reset\(\)/.test(objectives), 'ObjectivesSystem reset must not compete for JammerEnvironment ownership');
 assert(!/health|takeDamage|kill|point value/i.test(jammer), 'Jammer environment has no health/damage/kill/point semantics');
 
@@ -105,6 +110,13 @@ class DefeatOwnerFixture {
   }
 }
 
+
+class SectorProgressionFixture {
+  constructor() { this.enemiesDefeated = 3; this.jammerRevealed = true; this.jammerTriggered = false; this.sectorComplete = false; }
+  snapshot() { return JSON.stringify(this); }
+  draw(ctx) { void ctx; }
+}
+
 class CollisionFixture {
   static separate(a, b) {
     const dx = b.x - a.x;
@@ -157,6 +169,12 @@ class JammerFixture {
   reset() { if (!this.revealed && !this.triggered && !this.spriteRequested && !this.spriteReady) return; this.generation += 1; this.revealed = false; this.triggered = false; this.spriteRequested = false; this.spriteReady = false; }
   dispose() { if (this.disposed && !this.revealed && !this.triggered && !this.spriteRequested) return; this.reset(); this.disposed = true; }
 }
+
+
+const sectorFixture = new SectorProgressionFixture();
+const sectorBefore = sectorFixture.snapshot();
+sectorFixture.draw({});
+assert(sectorFixture.snapshot() === sectorBefore, 'fixture: Sector1Progression no-op draw does not mutate progression state');
 
 const owner = new DefeatOwnerFixture();
 const enemy = { recorded: false };

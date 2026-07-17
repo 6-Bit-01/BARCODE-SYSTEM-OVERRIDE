@@ -15,6 +15,10 @@ window.Sector1Progression = class Sector1Progression {
 
   update() {}
 
+  draw(ctx) {
+    void ctx;
+  }
+
   onEnemyDefeated(authoritativeTotal) {
     this.enemiesDefeated = Number.isFinite(authoritativeTotal) ? authoritativeTotal : (window.enemyManager ? window.enemyManager.defeatedCount || 0 : this.enemiesDefeated);
     if (window.gameState) window.gameState.enemiesDefeated = this.enemiesDefeated;

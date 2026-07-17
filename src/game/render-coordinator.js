@@ -360,6 +360,15 @@ function drawGround(ctx) {
 
 // Draw game entities
 function drawGameEntities(ctx) {
+  // Environmental Jammer is drawn outside EnemyManager and behind active enemies.
+  if (window.BARCODE && window.BARCODE.JammerEnvironment && typeof window.BARCODE.JammerEnvironment.draw === 'function') {
+    try {
+      window.BARCODE.JammerEnvironment.draw(ctx);
+    } catch (error) {
+      console.error('Error drawing environmental Jammer:', error?.message || error);
+    }
+  }
+
   // Draw enemies
   if (window.enemyManager && typeof window.enemyManager.draw === 'function') {
     try {
@@ -368,14 +377,9 @@ function drawGameEntities(ctx) {
       console.error('Error drawing enemies:', error?.message || error);
     }
   }
-  
-  // Environmental Jammer is drawn outside EnemyManager.
-  if (window.BARCODE && window.BARCODE.JammerEnvironment && typeof window.BARCODE.JammerEnvironment.draw === 'function') {
-    window.BARCODE.JammerEnvironment.draw(ctx);
-  }
-  
+
   // Draw sector progression elements
-  if (window.sector1Progression) {
+  if (window.sector1Progression && typeof window.sector1Progression.draw === 'function') {
     try {
       window.sector1Progression.draw(ctx);
     } catch (error) {
