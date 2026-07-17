@@ -33,6 +33,8 @@ assert(files.index.indexOf('src/core/action-input.js') < files.index.indexOf('sr
 assert(files.action.includes('rhythm_mode') && !files.action.includes('rhythm_visual'), 'semantic action is rhythm_mode, not rhythm_visual');
 assert(files.input.includes('actions.rhythm_mode') && !files.input.includes('actions.rhythm_visual'), 'InputManager routes rhythm_mode');
 assert(files.tutorial.includes("'rhythm_combo'") && files.tutorial.includes("'hack_start'") && files.tutorial.includes("'hack_complete'"), 'existing rhythm_combo/hack_start/hack_complete objectives remain present');
+assert(!/optional_timing_removed|terminal_interact_optional|terminal_hack_optional/.test(files.tutorial), 'obsolete optional tutorial objective identifiers are absent');
+assert(!files.input.includes('findInteractionTarget'), 'H hacking route does not depend on nonexistent BARCODE.findInteractionTarget');
 assert(!/window\.audioSystem\.init\(\)\.then/.test(files.boot + files.title), 'Boot/title paths do not call audioSystem.init().then directly');
 assert(files.init.includes("window.initAudio({ profileId: 'level-01.main' })"), 'Level 1 startup explicitly requests level-01.main');
 
@@ -80,6 +82,57 @@ pass('script order and PlayerCombat routing');
   s.__listeners.keydown[0](keyEvent(' ')); manager.update(); assert(jumped === 2, 'Outside tutorial Space jumps again after release and landing');
 }
 pass('tutorial Space ownership and repeated jumping');
+
+// Tutorial rhythm-combo and hacking progression use real objective identifiers.
+{
+  const s = sandbox();
+  load(s, 'src/game/tutorial.js');
+  const tutorial = new s.window.TutorialSystem();
+  tutorial.active = true;
+  tutorial.startChapter(2);
+  tutorial.completedObjectives.add('rhythm_start');
+  const rhythmGateIndex = tutorial.dialogue.findIndex(d => d.requiresObjectives && d.requiresObjectives.includes('rhythm_combo'));
+  tutorial.currentDialogue = rhythmGateIndex;
+  tutorial.readyToAdvance = true;
+  s.window.rhythmSystem = { combo: 5, maxCombo: 5, getCombo(){ return 5; }, hide(){ this.hidden = true; } };
+  tutorial.update(16);
+  const rhythmObj = tutorial.objectives.find(obj => obj.id === 'rhythm_combo');
+  assert(tutorial.completedObjectives.has('rhythm_combo') && rhythmObj && rhythmObj.completed, 'Chapter 2 combo >= 5 completes rhythm_combo UI objective');
+  assert(tutorial.canAdvanceDialogueWithInput(), 'Chapter 2 gate can advance after rhythm_start and rhythm_combo');
+
+  let started = 0;
+  const hacking = { active:false, complete:false, _lastResultFailed:false, start(){ started++; this.active = true; }, isActive(){ return this.active; }, isComplete(){ return this.complete; }, processInput(){} };
+  s.window.hackingSystem = hacking;
+  s.window.rhythmSystem = { isActive: () => false };
+  s.window.BARCODE = { RuntimeLifecycle:{ togglePause(){} }, findInteractionTarget(){ throw new Error('findInteractionTarget must not be used'); } };
+  s.window.gameState = { running:true, paused:false, gameOver:false, victory:false };
+  s.window.player = { grounded:true, jump(){ return true; }, moveLeft(){}, moveRight(){}, stopHorizontal(){} };
+  tutorial.startChapter(3);
+  const hackGateIndex = tutorial.dialogue.findIndex(d => d.requiresObjectives && d.requiresObjectives.includes('hack_complete'));
+  tutorial.currentDialogue = hackGateIndex;
+  tutorial.readyToAdvance = true;
+  s.window.tutorialSystem = tutorial;
+  load(s, 'src/core/action-input.js'); load(s, 'src/game/player-combat.js'); load(s, 'src/core/input.js');
+  const manager = new s.window.InputManager();
+  s.__listeners.keydown[0](keyEvent('h')); manager.update();
+  assert(started === 1 && hacking.active, 'H starts the existing hacking system without target resolver dependency');
+  assert(tutorial.completedObjectives.has('hack_start'), 'hack_start completes only after hacking becomes active');
+  hacking.complete = true; tutorial.update(16);
+  const hackObj = tutorial.objectives.find(obj => obj.id === 'hack_complete');
+  assert(tutorial.completedObjectives.has('hack_complete') && hackObj && hackObj.completed, 'Successful hacking completion completes hack_complete');
+  assert(tutorial.canAdvanceDialogueWithInput(), 'Chapter 3 gate can advance after hack_start and hack_complete');
+
+  hacking.active = false; hacking.complete = false; started = 0; tutorial.completedObjectives.delete('hack_start');
+  s.__listeners.keyup[0](keyEvent('h')); manager.update();
+  s.window.player.grounded = false;
+  s.__listeners.keydown[0](keyEvent('h')); manager.update();
+  assert(started === 0 && !hacking.active, 'H does not start hacking while airborne');
+  s.__listeners.keyup[0](keyEvent('h')); manager.update();
+  s.window.player.grounded = true; s.window.rhythmSystem = { isActive: () => true };
+  s.__listeners.keydown[0](keyEvent('h')); manager.update();
+  assert(started === 0 && !hacking.active, 'H does not start hacking while Rhythm Combat Mode is active');
+}
+pass('tutorial rhythm/hacking objective progression');
 
 // Rhythm Mode restrictions, objective completion, and deactivation.
 {

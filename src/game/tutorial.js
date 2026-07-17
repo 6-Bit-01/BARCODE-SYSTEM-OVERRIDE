@@ -291,7 +291,7 @@ window.TutorialSystem = class TutorialSystem {
           currentCombo = window.rhythmSystem.maxCombo;
         }
         
-        if (currentCombo >= 5 && !this.completedObjectives.has('optional_timing_removed')) {
+        if (currentCombo >= 5 && !this.completedObjectives.has('rhythm_combo')) {
           console.log('🎵🎵🎵 RHYTHM COMBO DETECTED! Player achieved combo of', currentCombo);
           this.forceCompleteRhythmCombo();
           this.deactivateRhythmModeOnComboComplete();
@@ -303,17 +303,17 @@ window.TutorialSystem = class TutorialSystem {
         const hackingActive = window.hackingSystem.isActive();
         const hackingComplete = window.hackingSystem.isComplete();
         
-        if (hackingActive && !this.completedObjectives.has('terminal_interact_optional')) {
+        if (hackingActive && !this.completedObjectives.has('hack_start')) {
           console.log('🔐 HACKING STARTED - Player activated terminal!');
-          this.checkObjective('terminal_interact_optional');
+          this.checkObjective('hack_start');
           // Check if we can auto-skip current dialogue
           this._checkAutoSkipCurrentDialogue();
         }
         
-        if (hackingComplete && !this.completedObjectives.has('terminal_hack_optional') &&
-            this.completedObjectives.has('terminal_interact_optional') && !window.hackingSystem._lastResultFailed) {
+        if (hackingComplete && !this.completedObjectives.has('hack_complete') &&
+            this.completedObjectives.has('hack_start') && !window.hackingSystem._lastResultFailed) {
           console.log('🔐 HACKING COMPLETED SUCCESSFULLY - Player solved the puzzle!');
-          this.checkObjective('terminal_hack_optional');
+          this.checkObjective('hack_complete');
         }
       }
       
@@ -430,7 +430,7 @@ window.TutorialSystem = class TutorialSystem {
           }
           break;
           
-        case 'optional_timing_removed':
+        case 'rhythm_combo':
           console.log('✓ RHYTHM_COMBO OBJECTIVE COMPLETED!');
           this.deactivateRhythmModeOnComboComplete();
           
@@ -450,12 +450,12 @@ window.TutorialSystem = class TutorialSystem {
           }
           break;
           
-        case 'terminal_hack_optional':
+        case 'hack_complete':
           const currentHackDialogue = this.dialogue[this.currentDialogue];
           if (currentHackDialogue && currentHackDialogue.text === 'Complete the task to continue...') {
-            // AUTO-SKIP: Check if terminal_interact_optional is also completed
+            // AUTO-SKIP: Check if hack_start is also completed
             setTimeout(() => {
-              const hasHackStart = this.completedObjectives.has('terminal_interact_optional');
+              const hasHackStart = this.completedObjectives.has('hack_start');
               if (hasHackStart) {
                 console.log('⏩ AUTO-SKIP: All hacking objectives completed - advancing to final chapter');
                 this.startChapter(4);
@@ -784,7 +784,7 @@ window.TutorialSystem = class TutorialSystem {
     }
     
     if (deactivationSuccess) {
-      console.log('🎵 SUCCESS: Optional timing visualization deactivated');
+      console.log('🎵 SUCCESS: Rhythm Combat Mode deactivated');
       
       if (window.audioSystem && typeof window.audioSystem.playSound === 'function') {
         window.audioSystem.playSound('success', 0.5);
@@ -795,16 +795,16 @@ window.TutorialSystem = class TutorialSystem {
   forceCompleteRhythmCombo() {
     console.log('🎵🎵🎵 FORCE COMPLETE RHYTHM COMBO');
     
-    if (!this.completedObjectives.has('optional_timing_removed')) {
-      this.completedObjectives.add('optional_timing_removed');
+    if (!this.completedObjectives.has('rhythm_combo')) {
+      this.completedObjectives.add('rhythm_combo');
     }
     
-    const rhythmObj = this.objectives.find(obj => obj.id === 'optional_timing_removed');
+    const rhythmObj = this.objectives.find(obj => obj.id === 'rhythm_combo');
     if (rhythmObj && !rhythmObj.completed) {
       rhythmObj.completed = true;
     }
     
-    this.checkObjective('optional_timing_removed');
+    this.checkObjective('rhythm_combo');
   }
   
   spawnCombatEnemies() {

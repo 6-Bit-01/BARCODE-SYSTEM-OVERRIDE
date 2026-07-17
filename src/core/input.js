@@ -116,9 +116,20 @@ window.InputManager = class InputManager {
   }
 
   routeInteract() {
-    const target = window.BARCODE && window.BARCODE.findInteractionTarget ? window.BARCODE.findInteractionTarget(window.player) : null;
-    if (target && typeof target.interact === 'function') return target.interact(window.player);
-    return { ok: false, action: 'interact', reason: 'no-target' };
+    if (window.rhythmSystem && typeof window.rhythmSystem.isActive === 'function' && window.rhythmSystem.isActive()) return { ok: false, action: 'interact', reason: 'rhythm-active' };
+    if (window.player && window.player.grounded === false) return { ok: false, action: 'interact', reason: 'airborne' };
+    const hacking = window.hackingSystem;
+    if (hacking && typeof hacking.isActive === 'function' && hacking.isActive()) {
+      if (typeof hacking.processInput === 'function') hacking.processInput('h');
+      return { ok: true, action: 'interact', reason: 'hacking-active' };
+    }
+    if (hacking && typeof hacking.start === 'function') {
+      hacking.start();
+      const active = typeof hacking.isActive === 'function' ? hacking.isActive() : !!hacking.active;
+      if (active && window.tutorialSystem && window.tutorialSystem.isActive && window.tutorialSystem.isActive() && window.tutorialSystem.checkObjective) window.tutorialSystem.checkObjective('hack_start');
+      return { ok: !!active, action: 'interact', reason: active ? 'hack-started' : 'hack-not-started' };
+    }
+    return { ok: false, action: 'interact', reason: 'hacking-unavailable' };
   }
   acceptsGameplay() { return !(window.isPaused || window.isRunning === false || (window.gameState && (window.gameState.paused || window.gameState.gameOver || window.gameState.victory || window.gameState.running === false)) || (window.hackingSystem && window.hackingSystem.isActive && window.hackingSystem.isActive())); }
 };
