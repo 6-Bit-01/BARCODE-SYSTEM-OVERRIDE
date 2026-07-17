@@ -32,7 +32,7 @@ window.InputManager = class InputManager {
         this.resetActionEdges();
         return;
       }
-      if (e.key === ' ' && window.tutorialSystem && typeof window.tutorialSystem.canAdvanceDialogueWithInput === 'function' && window.tutorialSystem.canAdvanceDialogueWithInput()) {
+      if (e.key === ' ' && window.tutorialSystem && typeof window.tutorialSystem.isActive === 'function' && window.tutorialSystem.isActive()) {
         e.preventDefault();
         if (!e.repeat && typeof window.tutorialSystem.handleSpacePress === 'function') window.tutorialSystem.handleSpacePress();
         this.resetActionEdges();
@@ -94,9 +94,14 @@ window.InputManager = class InputManager {
 
   routeActions(actions, options = {}) {
     if (actions.pause.pressed && window.BARCODE && window.BARCODE.RuntimeLifecycle) window.BARCODE.RuntimeLifecycle.togglePause();
-    if (actions.rhythm_visual && actions.rhythm_visual.pressed && window.rhythmSystem) {
-      if (window.rhythmSystem.isActive && window.rhythmSystem.isActive()) { if (window.rhythmSystem.hideRhythmMode) window.rhythmSystem.hideRhythmMode(); else if (window.rhythmSystem.hide) window.rhythmSystem.hide(); }
-      else { if (window.rhythmSystem.showRhythmMode) window.rhythmSystem.showRhythmMode(); else if (window.rhythmSystem.show) window.rhythmSystem.show(); }
+    if (actions.rhythm_mode && actions.rhythm_mode.pressed && window.rhythmSystem) {
+      if (window.rhythmSystem.isActive && window.rhythmSystem.isActive()) {
+        if (window.rhythmSystem.hideRhythmMode) window.rhythmSystem.hideRhythmMode(); else if (window.rhythmSystem.hide) window.rhythmSystem.hide();
+      } else {
+        const activation = window.rhythmSystem.showRhythmMode ? window.rhythmSystem.showRhythmMode() : (window.rhythmSystem.show ? window.rhythmSystem.show() : { ok: false, reason: 'unavailable' });
+        const active = window.rhythmSystem.isActive && window.rhythmSystem.isActive();
+        if (activation && activation.ok && active && window.tutorialSystem && window.tutorialSystem.isActive && window.tutorialSystem.isActive() && window.tutorialSystem.checkObjective) window.tutorialSystem.checkObjective('rhythm_start');
+      }
     }
     if (options.inputOnly || !this.acceptsGameplay()) return;
     if (window.player) {
@@ -111,9 +116,20 @@ window.InputManager = class InputManager {
   }
 
   routeInteract() {
-    const target = window.BARCODE && window.BARCODE.findInteractionTarget ? window.BARCODE.findInteractionTarget(window.player) : null;
-    if (target && typeof target.interact === 'function') return target.interact(window.player);
-    return { ok: false, action: 'interact', reason: 'no-target' };
+    if (window.rhythmSystem && typeof window.rhythmSystem.isActive === 'function' && window.rhythmSystem.isActive()) return { ok: false, action: 'interact', reason: 'rhythm-active' };
+    if (window.player && window.player.grounded === false) return { ok: false, action: 'interact', reason: 'airborne' };
+    const hacking = window.hackingSystem;
+    if (hacking && typeof hacking.isActive === 'function' && hacking.isActive()) {
+      if (typeof hacking.processInput === 'function') hacking.processInput('h');
+      return { ok: true, action: 'interact', reason: 'hacking-active' };
+    }
+    if (hacking && typeof hacking.start === 'function') {
+      hacking.start();
+      const active = typeof hacking.isActive === 'function' ? hacking.isActive() : !!hacking.active;
+      if (active && window.tutorialSystem && window.tutorialSystem.isActive && window.tutorialSystem.isActive() && window.tutorialSystem.checkObjective) window.tutorialSystem.checkObjective('hack_start');
+      return { ok: !!active, action: 'interact', reason: active ? 'hack-started' : 'hack-not-started' };
+    }
+    return { ok: false, action: 'interact', reason: 'hacking-unavailable' };
   }
   acceptsGameplay() { return !(window.isPaused || window.isRunning === false || (window.gameState && (window.gameState.paused || window.gameState.gameOver || window.gameState.victory || window.gameState.running === false)) || (window.hackingSystem && window.hackingSystem.isActive && window.hackingSystem.isActive())); }
 };

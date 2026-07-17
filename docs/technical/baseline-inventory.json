@@ -9,6 +9,7 @@
     "src/utils/math.js",
     "src/core/fullscreen.js",
     "src/core/action-input.js",
+    "src/game/player-combat.js",
     "src/core/input.js",
     "src/engine/music-profiles.js",
     "src/engine/music-transport.js",
@@ -51,6 +52,7 @@
     "src/utils/math.js",
     "src/core/fullscreen.js",
     "src/core/action-input.js",
+    "src/game/player-combat.js",
     "src/core/input.js",
     "src/engine/music-profiles.js",
     "src/engine/music-transport.js",
@@ -98,7 +100,6 @@
     "src/game/main-legacy-removed.js",
     "src/game/main.js",
     "src/game/music-controls.js",
-    "src/game/player-combat.js",
     "src/game/rhythm-fixed.js",
     "src/game/simple-jammer.js",
     "test-rhythm-functionality.js",
@@ -131,6 +132,10 @@
       },
       {
         "file": "src/core/action-input.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/player-combat.js",
         "status": "pass"
       },
       {
@@ -276,11 +281,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 39,
+        "index": 40,
         "status": "pass"
       },
       {
-        "index": 41,
+        "index": 42,
         "status": "pass"
       }
     ]
@@ -343,7 +348,7 @@
     {
       "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 1373,
+      "line": 1391,
       "loaded": true
     },
     {
@@ -355,7 +360,13 @@
     {
       "global": "window.enemyManager",
       "file": "tools/check-action-combat.js",
-      "line": 132,
+      "line": 163,
+      "loaded": false
+    },
+    {
+      "global": "window.enemyManager",
+      "file": "tools/check-action-combat.js",
+      "line": 48,
       "loaded": false
     },
     {
@@ -397,37 +408,67 @@
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 126,
+      "line": 108,
       "loaded": false
     },
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 55,
+      "line": 142,
       "loaded": false
     },
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 88,
+      "line": 160,
+      "loaded": false
+    },
+    {
+      "global": "window.gameState",
+      "file": "tools/check-action-combat.js",
+      "line": 44,
+      "loaded": false
+    },
+    {
+      "global": "window.gameState",
+      "file": "tools/check-action-combat.js",
+      "line": 63,
       "loaded": false
     },
     {
       "global": "window.player",
       "file": "src/game/player.js",
-      "line": 1642,
+      "line": 1664,
       "loaded": true
     },
     {
       "global": "window.player",
       "file": "tools/check-action-combat.js",
-      "line": 127,
+      "line": 109,
       "loaded": false
     },
     {
       "global": "window.player",
       "file": "tools/check-action-combat.js",
-      "line": 89,
+      "line": 143,
+      "loaded": false
+    },
+    {
+      "global": "window.player",
+      "file": "tools/check-action-combat.js",
+      "line": 161,
+      "loaded": false
+    },
+    {
+      "global": "window.player",
+      "file": "tools/check-action-combat.js",
+      "line": 46,
+      "loaded": false
+    },
+    {
+      "global": "window.player",
+      "file": "tools/check-action-combat.js",
+      "line": 64,
       "loaded": false
     },
     {
@@ -457,7 +498,7 @@
     {
       "global": "window.startGameInitialization",
       "file": "src/game/game-initializer.js",
-      "line": 314,
+      "line": 331,
       "loaded": true
     },
     {
@@ -512,6 +553,7 @@
     "src/utils/math.js",
     "src/core/fullscreen.js",
     "src/core/action-input.js",
+    "src/game/player-combat.js",
     "src/core/input.js",
     "src/engine/music-profiles.js",
     "src/engine/music-transport.js",

@@ -1082,6 +1082,24 @@ window.EnemyManager = class EnemyManager {
               player.position.y += ny * push * 0.5;
           }
 
+          // Intentional passive landing stomp: top-half descending collision defeats once and bounces player.
+          {
+            const playerBottom = playerBox.y + playerBox.height;
+            const enemyTop = enemyBox.y;
+            const enemyTopHalf = enemyBox.y + enemyBox.height/2;
+            const isStompPos = playerBottom > enemyTop && playerBottom < enemyTopHalf;
+            const isMovingDown = player.velocity.y >= -100;
+
+            if (isStompPos && isMovingDown && this.simpleAABBcollision(playerBox, enemyBox)) {
+                enemy.takeDamage(999);
+                player.velocity.y = -550;
+                player.velocity.x = nx * 300;
+                if (window.particleSystem) window.particleSystem.impact(enemy.position.x, enemy.position.y, '#00ffff', 20);
+                player._enemyInvulnerableUntilMs = this.simulationTimeMs + 400;
+                return;
+            }
+          }
+
           // Check for Damage
           if (this.simpleAABBcollision(playerBox, enemyBox)) {
               if (!player._enemyInvulnerableUntilMs || this.simulationTimeMs > player._enemyInvulnerableUntilMs) {

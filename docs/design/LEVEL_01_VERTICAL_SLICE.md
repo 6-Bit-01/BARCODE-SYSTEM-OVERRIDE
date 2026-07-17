@@ -10,7 +10,7 @@ Only 6 Bit, DJ Floppydisc, Cache Back, and Mac Modem are playable characters. Th
 
 ## Core play contract
 
-- Attacks always function.
+- Down Arrow rhythm attacks require active Rhythm Combat Mode and a successful rhythm judgment.
 - Accurate beat timing improves damage, stagger, combo, signal recovery, or another owner-approved combat reward.
 - Music supplies the authoritative beat, bar, and phrase clock.
 - Enemies and hazards telegraph using musical timing.
@@ -81,6 +81,8 @@ Enemy simulation uses milliseconds at manager/API boundaries with explicit secon
 
 The Level 1 foundation now uses `window.BARCODE.ActionInput` for semantic input and `window.BARCODE.playerCombat` for the primary attack transaction. The approved 6 Bit movement kit for this foundation is left/right plus one normal jump; no double jump, dash, slide, air dash, fast-fall, stomp, or ground-pound requirement is active.
 
-Default controls are: Left/Right or A/D to move, Space/Up/W to jump, Down Arrow to primary attack, H to interact with an explicit nearby terminal target, P to pause, and R to show or hide optional rhythm visualization. Standard gamepad defaults are left stick/D-pad movement, A/button 0 jump, X/button 2 primary, Y/button 3 interact, and Start/button 9 pause.
+Default controls are: Left/Right or A/D to move, Space/Up/W to jump, Down Arrow to primary attack, H to start the existing hacking system when gameplay accepts the action, P to pause, and R to activate/deactivate actual Rhythm Combat Mode. Standard gamepad defaults are left stick/D-pad movement, A/button 0 jump, X/button 2 primary, Y/button 3 interact, and Start/button 9 pause.
 
-Primary attacks are always available when gameplay accepts input and the single attack cooldown is ready. Level 1 music timing can improve resolved damage, but it never authorizes whether the attack exists: excellent is bounded to 1.25x, perfect is bounded to 1.5x, and miss/unavailable/no-grid/not-ready judgment deals normal base damage. Final range, hitbox, animation readability, and encounter tuning are intentionally deferred.
+H is blocked while airborne or while Rhythm Combat Mode is active. Explicit nearby-terminal targeting is deferred to a future scoped implementation.
+
+Down Arrow is the Level 1 rhythm attack. It deals damage only while Rhythm Combat Mode is active and the active music profile/transport returns a successful authored judgment; miss, unavailable, no-grid, not-ready, inactive, or cooldown inputs deal zero damage. Passive top-down landing stomp remains intentional and lethal. Final range, hitbox, animation readability, and encounter tuning are intentionally deferred.

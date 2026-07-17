@@ -167,6 +167,10 @@ window.Player = class Player {
   updateState() {
     const oldState = this.state;
     
+    const rhythmSystemExists = !!window.rhythmSystem;
+    const hasIsActive = rhythmSystemExists && typeof window.rhythmSystem.isActive === 'function';
+    const rhythmActive = hasIsActive && window.rhythmSystem.isActive();
+
     // Check if up key is held for continuous jump animation
     const upKeyHeld = window.inputManager && window.inputManager.isKey('arrowup');
     
@@ -177,8 +181,8 @@ window.Player = class Player {
       if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log('🦘 Character just left ground - jump animation will restart');
     }
     
-    // Priority order: transient primary attack > Jump (if up held) > Walk > Idle
-    if (this.primaryAttackAnimationMs > 0) {
+    // Priority order: Rhythm Mode/transient attack > Jump (if up held) > Walk > Idle
+    if (rhythmActive || this.primaryAttackAnimationMs > 0) {
       this.state = 'rhythm';
     } else if (!this.grounded || upKeyHeld) {
       this.state = 'jump'; // Stay in jump state if up key is held (even when grounded)
@@ -424,7 +428,7 @@ window.Player = class Player {
   }
 
   moveLeft() {
-    if (this.isEntering || !this.allowMovement) {
+    if (this.state === 'rhythm' || this.isEntering || !this.allowMovement) {
       return;
     }
     
@@ -443,7 +447,7 @@ window.Player = class Player {
   }
 
   moveRight() {
-    if (this.isEntering || !this.allowMovement) {
+    if (this.state === 'rhythm' || this.isEntering || !this.allowMovement) {
       return;
     }
     
@@ -462,7 +466,7 @@ window.Player = class Player {
   }
 
   stopHorizontal() {
-    if (this.isEntering || !this.allowMovement) {
+    if (this.state === 'rhythm' || this.isEntering || !this.allowMovement) {
       return;
     }
     
@@ -471,7 +475,7 @@ window.Player = class Player {
   }
 
   jump() {
-    if (this.isEntering || !this.allowMovement) {
+    if (this.state === 'rhythm' || this.isEntering || !this.allowMovement) {
       return false;
     }
     
@@ -1633,6 +1637,24 @@ window.Player = class Player {
       ));
     }
   }
+
+  // Create final entrance explosion
+  createEntranceExplosion() {
+    if (!window.particleSystem || !Array.isArray(window.particleSystem.particles) || !window.Particle) return;
+    console.log('🎆 Creating final entrance explosion');
+    for (let i = 0; i < 40; i++) {
+      const angle = (Math.PI * 2 * i) / 40;
+      const speed = 150 + Math.random() * 250;
+      const size = 3 + Math.random() * 5;
+      window.particleSystem.particles.push(new window.Particle(this.position.x, this.position.y, Math.cos(angle) * speed, Math.sin(angle) * speed - 80, Math.random() < 0.5 ? '#ffffff' : '#00ff00', size, 1000 + Math.random() * 500, 'triangle', Math.random() * Math.PI * 2));
+    }
+    for (let i = 0; i < 24; i++) {
+      const angle = (Math.PI * 2 * i) / 24;
+      const speed = 200;
+      window.particleSystem.particles.push(new window.Particle(this.position.x, this.position.y, Math.cos(angle) * speed, Math.sin(angle) * speed, Math.random() < 0.5 ? '#ffffff' : '#00ff00', 4, 800, 'triangle', angle));
+    }
+  }
+
 };
 
 // Create player instance - wait for dependencies to be ready

@@ -82,8 +82,8 @@ window.TutorialSystem = class TutorialSystem {
         this.addDialogue('They react to movement, clean frequencies, and anything rebooting itself.', 'guide', 2000);
         this.addDialogue('Your signal strength is shown in the top-left. If it drops to zero, your connection will collapse.', 'guide', 2000);
         this.addDialogue('Your first line of defense is close-quarters combat.', 'guide', 2000);
-        this.addDialogue('Press Down Arrow for your primary attack. Musical timing can improve it, but a normal attack always works.', 'guide', 2000);
-        this.addObjective('Defeat 3 viruses with primary attacks', 'combat');
+        this.addDialogue('Jump on corrupted entities to disrupt their code and deal damage.', 'guide', 2000);
+        this.addObjective('Defeat 3 viruses using basic movement', 'combat');
         
         this.spawnCombatEnemies();
         this.combatEnemiesPaused = true;
@@ -108,21 +108,26 @@ window.TutorialSystem = class TutorialSystem {
         rhythmDialogue1.requiresObjectives = ['combat'];
         
         this.addDialogue('As a hacker-rapper, your strength flows through rhythm.', 'guide', 3000);
-        this.addDialogue('Press R if you want to show timing visualization; movement, jump, and primary attacks still work without it.', 'guide', 3000);
-        this.addDialogue('Perfect timing can add up to 1.5× damage and excellent timing up to 1.25×, but misses still allow normal attacks.', 'guide', 3000);
-        const rhythmCompleteDialogue = this.addDialogue('Timing is optional. Continue when ready.', 'guide', 0);
-        rhythmCompleteDialogue.requiresObjectives = ['combat'];
+        this.addDialogue('Press R to enter Rhythm Combat mode.', 'guide', 2000);
+        this.addObjective('Press R to activate Rhythm Combat', 'rhythm_start');
+        this.addDialogue('Use the Down Arrow key to time your attacks with the beat!', 'guide', 3000);
+        this.addDialogue('Only successful timing hits damage enemies; misses are feedback only.', 'guide', 2000);
+        this.addObjective('Achieve a 5+ combo in rhythm mode', 'rhythm_combo');
+        const rhythmCompleteDialogue = this.addDialogue('Complete the task to continue...', 'guide', 0);
+        rhythmCompleteDialogue.requiresObjectives = ['rhythm_start', 'rhythm_combo'];
         break;
         
       case 3:
-        const hackDialogue1 = this.addDialogue('Some terminals can be hacked when you stand near them.', 'guide', 2000);
-        hackDialogue1.requiresObjectives = ['combat'];
+        const hackDialogue1 = this.addDialogue('Your rhythm attacks are strong. Now for your true power.', 'guide', 2000);
+        hackDialogue1.requiresObjectives = ['rhythm_combo'];
         
-        this.addDialogue('Press H to interact with a visible terminal. No terminal is required in this tutorial route.', 'guide', 3000);
-        this.addDialogue('Successful hacks restore 1 bar of signal strength when a valid terminal exists.', 'guide', 3000);
+        this.addDialogue('Press H to access terminals and hack the system.', 'guide', 2000);
+        this.addObjective('Press H to start hacking', 'hack_start');
+        this.addDialogue('Successful hacks restore 1 bar of signal strength.', 'guide', 3000);
+        this.addObjective('Complete the hacking puzzle', 'hack_complete');
         
-        const hackCompleteDialogue = this.addDialogue('No terminal target is required here. Continue when ready.', 'guide', 0);
-        hackCompleteDialogue.requiresObjectives = ['combat'];
+        const hackCompleteDialogue = this.addDialogue('Complete the task to continue...', 'guide', 0);
+        hackCompleteDialogue.requiresObjectives = ['hack_start', 'hack_complete'];
         break;
         
       case 4:
@@ -286,7 +291,7 @@ window.TutorialSystem = class TutorialSystem {
           currentCombo = window.rhythmSystem.maxCombo;
         }
         
-        if (currentCombo >= 5 && !this.completedObjectives.has('optional_timing_removed')) {
+        if (currentCombo >= 5 && !this.completedObjectives.has('rhythm_combo')) {
           console.log('🎵🎵🎵 RHYTHM COMBO DETECTED! Player achieved combo of', currentCombo);
           this.forceCompleteRhythmCombo();
           this.deactivateRhythmModeOnComboComplete();
@@ -298,17 +303,17 @@ window.TutorialSystem = class TutorialSystem {
         const hackingActive = window.hackingSystem.isActive();
         const hackingComplete = window.hackingSystem.isComplete();
         
-        if (hackingActive && !this.completedObjectives.has('terminal_interact_optional')) {
+        if (hackingActive && !this.completedObjectives.has('hack_start')) {
           console.log('🔐 HACKING STARTED - Player activated terminal!');
-          this.checkObjective('terminal_interact_optional');
+          this.checkObjective('hack_start');
           // Check if we can auto-skip current dialogue
           this._checkAutoSkipCurrentDialogue();
         }
         
-        if (hackingComplete && !this.completedObjectives.has('terminal_hack_optional') &&
-            this.completedObjectives.has('terminal_interact_optional') && !window.hackingSystem._lastResultFailed) {
+        if (hackingComplete && !this.completedObjectives.has('hack_complete') &&
+            this.completedObjectives.has('hack_start') && !window.hackingSystem._lastResultFailed) {
           console.log('🔐 HACKING COMPLETED SUCCESSFULLY - Player solved the puzzle!');
-          this.checkObjective('terminal_hack_optional');
+          this.checkObjective('hack_complete');
         }
       }
       
@@ -425,7 +430,7 @@ window.TutorialSystem = class TutorialSystem {
           }
           break;
           
-        case 'optional_timing_removed':
+        case 'rhythm_combo':
           console.log('✓ RHYTHM_COMBO OBJECTIVE COMPLETED!');
           this.deactivateRhythmModeOnComboComplete();
           
@@ -445,12 +450,12 @@ window.TutorialSystem = class TutorialSystem {
           }
           break;
           
-        case 'terminal_hack_optional':
+        case 'hack_complete':
           const currentHackDialogue = this.dialogue[this.currentDialogue];
           if (currentHackDialogue && currentHackDialogue.text === 'Complete the task to continue...') {
-            // AUTO-SKIP: Check if terminal_interact_optional is also completed
+            // AUTO-SKIP: Check if hack_start is also completed
             setTimeout(() => {
-              const hasHackStart = this.completedObjectives.has('terminal_interact_optional');
+              const hasHackStart = this.completedObjectives.has('hack_start');
               if (hasHackStart) {
                 console.log('⏩ AUTO-SKIP: All hacking objectives completed - advancing to final chapter');
                 this.startChapter(4);
@@ -779,7 +784,7 @@ window.TutorialSystem = class TutorialSystem {
     }
     
     if (deactivationSuccess) {
-      console.log('🎵 SUCCESS: Optional timing visualization deactivated');
+      console.log('🎵 SUCCESS: Rhythm Combat Mode deactivated');
       
       if (window.audioSystem && typeof window.audioSystem.playSound === 'function') {
         window.audioSystem.playSound('success', 0.5);
@@ -790,16 +795,16 @@ window.TutorialSystem = class TutorialSystem {
   forceCompleteRhythmCombo() {
     console.log('🎵🎵🎵 FORCE COMPLETE RHYTHM COMBO');
     
-    if (!this.completedObjectives.has('optional_timing_removed')) {
-      this.completedObjectives.add('optional_timing_removed');
+    if (!this.completedObjectives.has('rhythm_combo')) {
+      this.completedObjectives.add('rhythm_combo');
     }
     
-    const rhythmObj = this.objectives.find(obj => obj.id === 'optional_timing_removed');
+    const rhythmObj = this.objectives.find(obj => obj.id === 'rhythm_combo');
     if (rhythmObj && !rhythmObj.completed) {
       rhythmObj.completed = true;
     }
     
-    this.checkObjective('optional_timing_removed');
+    this.checkObjective('rhythm_combo');
   }
   
   spawnCombatEnemies() {

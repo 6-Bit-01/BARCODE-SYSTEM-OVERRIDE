@@ -47,3 +47,13 @@ Codex static checks do not replace owner Makko testing. The owner must test Makk
 ## Focused review guidance
 
 Review for accidental gameplay/art/dialogue changes, baseline blind spots, validation that hides failures, undocumented runtime paths, and any claim not backed by static inspection or owner Makko testing.
+
+
+## Newest owner control decisions
+
+- Active tutorial owns Space exclusively; no simultaneous tutorial advance/jump from the same Space press.
+- `R` is actual Rhythm Combat Mode, not merely a visual overlay.
+- Down Arrow damage requires a successful rhythm judgment while Rhythm Combat Mode is active.
+- Passive top-down landing stomp is intentional and lethal.
+- Passive stomp approval does not approve Down-key fast-fall or dash.
+- Each level explicitly selects its own song/profile; Level 1 may select `level-01.main`, but it is not a global fallback for future levels.
