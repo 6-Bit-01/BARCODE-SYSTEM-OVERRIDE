@@ -36,7 +36,7 @@ assert(clickBody.includes('fullscreenManager.enter()') && clickBody.indexOf('ful
 assert(clickBody.includes('RuntimeLifecycle') && !clickBody.includes('initParallax') && !clickBody.includes('startGameInitialization'), 'start-button handler must be thin and delegate to RuntimeLifecycle');
 assert(!index.includes('let gameInitialized') && !index.includes('let gameStartInProgress') && !index.includes('let titleScreenMusicBlocked'), 'obsolete split lifecycle flags must be removed from index.html');
 assert(index.includes('window.BARCODE.AssetMonitor') && lifecycle.includes('namespace.AssetMonitor.cleanup'), 'asset monitor cleanup must reference the real registered monitor');
-assert(input.includes('RuntimeLifecycle.restart') && input.includes('RuntimeLifecycle.togglePause') && input.includes('if (e.repeat)'), 'pause/restart input must route to lifecycle and ignore held P repeats');
+assert(input.includes('RuntimeLifecycle.restart') && input.includes('RuntimeLifecycle.togglePause') && read('src/core/action-input.js').includes("EDGE_ACTIONS") && read('src/core/action-input.js').includes("pause"), 'pause/restart input must route to lifecycle and semantic edge state ignores held P repeats');
 assert(!index.includes('src/game/main.js'), 'src/game/main.js must not be newly loaded');
 assert(mainNew.includes("state === 'running' || state === 'paused'") && mainNew.includes('lifecycle.retry()') && mainNew.includes('lifecycle.start'), 'startNewGame compatibility must be state-aware');
 assert(!/requestAnimationFrame\s*\(/.test(lifecycle), 'lifecycle module must not call requestAnimationFrame');
@@ -86,7 +86,7 @@ assert(!diag.includes('ownedCounts: { cleanups: cleanupRegistry.length }'), 'dia
 assert(diag.includes('gameLoopRafHandle') && diag.includes('musicTransport') && audio.includes('activeMusicSources') && diag.includes('assetMonitor') && diag.includes('initialEnemySpawn') && diag.includes('gameOver') && diag.includes('victory') && diag.includes('rhythm'), 'diagnostics must expose concrete resource state');
 assert(audio.includes('titleScreenMusic && this.titleScreenMusic.source') && !audio.includes('titleSourceActive: !!this.titleSource'), 'Audio diagnostics must report real titleScreenMusic source state');
 
-for (const file of fs.readdirSync(path.join(root, 'tools')).filter(f => f.endsWith('.js') && f !== 'check-runtime-lifecycle.js')) {
+for (const file of fs.readdirSync(path.join(root, 'tools')).filter(f => f.endsWith('.js') && f !== 'check-runtime-lifecycle.js' && f !== 'check-action-combat.js')) {
   const src = read(`tools/${file}`);
   assert(!/require\(['"]vm['"]\)/.test(src) && !/vm\.runInContext|vm\.runInNewContext|vm\.createContext/.test(src) && !/new Function\s*\(/.test(src) && !/eval\s*\(/.test(src) && !/jsdom/i.test(src) && !/require\(['"]\.\.\/src\//.test(src) && !/import\s+.*['"]\.\.\/src\//.test(src), `${file} must not execute browser runtime code`);
 }

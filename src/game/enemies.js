@@ -1061,7 +1061,7 @@ window.EnemyManager = class EnemyManager {
   }
 
   checkCollisions(player) {
-      if (player.controlsDisabled || player.isStomping) return;
+      if (player.controlsDisabled) return;
 
       const playerBox = player.getHitbox();
 
@@ -1080,24 +1080,6 @@ window.EnemyManager = class EnemyManager {
               const push = (60 - dist) * 0.5;
               player.position.x += nx * push;
               player.position.y += ny * push * 0.5;
-          }
-
-          // Check for Stomp
-          {
-            const playerBottom = playerBox.y + playerBox.height;
-            const enemyTop = enemyBox.y;
-            const enemyTopHalf = enemyBox.y + enemyBox.height/2;
-            const isStompPos = playerBottom > enemyTop && playerBottom < enemyTopHalf;
-            const isMovingDown = player.velocity.y >= -100;
-
-            if (isStompPos && isMovingDown && this.simpleAABBcollision(playerBox, enemyBox)) {
-                enemy.takeDamage(999);
-                player.velocity.y = -550;
-                player.velocity.x = nx * 300;
-                if (window.particleSystem) window.particleSystem.impact(enemy.position.x, enemy.position.y, '#00ffff', 20);
-                player._enemyInvulnerableUntilMs = this.simulationTimeMs + 400;
-                return;
-            }
           }
 
           // Check for Damage
@@ -1231,24 +1213,12 @@ window.EnemyManager = class EnemyManager {
     this.enemies.push(enemy);
   }
 
-  checkPlayerAttacks(player, rhythmResult = null) {
-    if (!player || !window.rhythmSystem || !window.rhythmSystem.isActive()) return;
-    let attackRadius = window.rhythmSystem.getDamageRadius ? window.rhythmSystem.getDamageRadius() : 300;
-
-    this.enemies.forEach(enemy => {
-      if (!enemy.active) return;
-      const dist = window.distance(player.position.x, player.position.y, enemy.position.x, enemy.position.y);
-      if (dist <= attackRadius) {
-        let damage = 1;
-        if (rhythmResult) {
-          if (rhythmResult.timing === 'perfect') damage = 3;
-          else if (rhythmResult.timing === 'excellent') damage = 2;
-        }
-        if (window.rhythmSystem.combo > 0) damage = Math.floor(damage * (1 + window.rhythmSystem.combo * 0.1));
-        enemy.takeDamage(damage);
-        if (window.particleSystem) window.particleSystem.impact(enemy.position.x, enemy.position.y, '#00ffff', 20);
-      }
-    });
+  checkPlayerAttacks(player, attackTransaction = null) {
+    // Deprecated compatibility shim: BARCODE.PlayerCombat is the only production damage owner.
+    if (attackTransaction && attackTransaction.__fromPlayerCombat === true && window.BARCODE && window.BARCODE.playerCombat) {
+      return window.BARCODE.playerCombat.resolvePrimary({ player, enemyManager: this, timing: attackTransaction.timing });
+    }
+    return { ok: false, action: 'primary', reason: 'combat-owned-by-player-combat', targets: [] };
   }
 
   // Restored Crowd Mechanics methods

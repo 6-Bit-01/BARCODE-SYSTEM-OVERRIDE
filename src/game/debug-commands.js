@@ -3,7 +3,7 @@ window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({
   name: 'src/game/debug-commands.js',
   exports: ['DEBUG', 'CHECK_JAMMER_STATUS', 'handleGameAction'],
-  dependencies: ['enemyManager', 'tutorialSystem', 'gameState', 'hackingSystem', 'rhythmSystem', 'bootLoader', 'BARCODE.JammerEnvironment']
+  dependencies: ['enemyManager', 'tutorialSystem', 'gameState', 'hackingSystem', 'rhythmSystem', 'bootLoader', 'BARCODE.JammerEnvironment', 'BARCODE.PlayerCombat']
 });
 
 function jammerEnv() { return window.BARCODE && window.BARCODE.JammerEnvironment; }
@@ -62,29 +62,22 @@ function routeJumpAction() {
   if (!gameplayAcceptsAction()) return { ok: false, action: 'jump', reason: 'gameplay-inactive' };
   if (!window.player || typeof window.player.jump !== 'function') return { ok: false, action: 'jump', reason: 'player-unavailable' };
   if (window.hackingSystem && typeof window.hackingSystem.isActive === 'function' && window.hackingSystem.isActive()) return { ok: false, action: 'jump', reason: 'hacking-active' };
-  if (window.rhythmSystem && typeof window.rhythmSystem.isActive === 'function' && window.rhythmSystem.isActive()) return { ok: false, action: 'jump', reason: 'rhythm-active' };
   const wasGrounded = !!window.player.grounded;
   const result = window.player.jump();
   const accepted = result === true || (wasGrounded && window.player.grounded === false);
   return { ok: accepted, action: 'jump', reason: accepted ? 'jumped' : 'jump-rejected' };
 }
 
-function routeDashAction() {
-  if (!gameplayAcceptsAction()) return { ok: false, action: 'dash', reason: 'gameplay-inactive' };
-  if (!window.player || typeof window.player.dash !== 'function') return { ok: false, action: 'dash', reason: 'player-unavailable' };
-  const result = window.player.dash();
-  return { ok: result === true, action: 'dash', reason: result === true ? 'dash-accepted' : 'dash-routed-noop' };
+function routeInteractAction() {
+  if (!gameplayAcceptsAction()) return { ok: false, action: 'interact', reason: 'gameplay-inactive' };
+  const target = window.BARCODE && window.BARCODE.findInteractionTarget ? window.BARCODE.findInteractionTarget(window.player) : null;
+  if (target && typeof target.interact === 'function') return target.interact(window.player);
+  return { ok: false, action: 'interact', reason: 'no-target' };
 }
 
-function routeHackAction() {
-  if (!gameplayAcceptsAction()) return { ok: false, action: 'hack', reason: 'gameplay-inactive' };
-  if (window.rhythmSystem && typeof window.rhythmSystem.isActive === 'function' && window.rhythmSystem.isActive()) return { ok: false, action: 'hack', reason: 'rhythm-active' };
-  if (window.player && !window.player.grounded) return { ok: false, action: 'hack', reason: 'player-airborne' };
-  if (window.hackingSystem && typeof window.hackingSystem.start === 'function') {
-    window.hackingSystem.start();
-    return { ok: true, action: 'hack', reason: 'hacking-started' };
-  }
-  return { ok: false, action: 'hack', reason: 'hacking-unavailable' };
+function routePrimaryAction() {
+  if (!window.BARCODE || !window.BARCODE.playerCombat) return { ok: false, action: 'primary', reason: 'combat-unavailable' };
+  return window.BARCODE.playerCombat.resolvePrimary({ player: window.player, enemyManager: window.enemyManager });
 }
 
 function routeSkipTutorialAction() {
@@ -100,8 +93,8 @@ function routeSkipTutorialAction() {
 window.handleGameAction = function(action) {
   switch (action) {
     case 'jump': return routeJumpAction();
-    case 'dash': return routeDashAction();
-    case 'hack': return routeHackAction();
+    case 'primary': return routePrimaryAction();
+    case 'interact': return routeInteractAction();
     case 'skip_tutorial': return routeSkipTutorialAction();
     case 'reveal_jammer': return { ok: true, action, status: window.DEBUG.revealJammer() };
     case 'trigger_jammer': return { ok: true, action, status: window.DEBUG.triggerJammer() };
