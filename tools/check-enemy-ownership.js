@@ -54,6 +54,8 @@ assert(/lungeCooldownSeconds\s*=\s*Math\.max\(0, this\.lungeCooldownSeconds - dt
 assert(!/lungeCooldown\s*=\s*(6000|3000|2000|1000)/.test(enemies), 'no millisecond-sized lungeCooldown assignments remain');
 assert(!/\b(lungeCooldown|lungePreparationTime|behaviorTimer|glideDuration|fullAttackDuration|attackAnimationDuration|attackAnimationTimer|attackStartTime)\b(?!Seconds|Ms)/.test(enemies), 'ambiguous Firewall timer names are suffixed with Seconds or Ms');
 assert(/spriteRequested/.test(jammer) && /spriteRequestGeneration/.test(jammer), 'JammerEnvironment tracks one sprite request per generation');
+assert(/!state\.spriteReady && state\.sprite && state\.sprite\.isLoaded/.test(jammer), 'JammerEnvironment starts idle animation only on readiness transition');
+assert(/state\.sprite\.play\('broadcast_jammer_idle_idle', true\)/.test(jammer), 'JammerEnvironment starts the approved idle animation when ready');
 assert(/_spriteRequested/.test(enemies) && /pollSpriteReady/.test(enemies), 'Enemy sprites use request/poll readiness state');
 assert(!/setTimeout\(\(\) => \{\s*this\.initSprite/.test(enemies) && !/setTimeout\(\(\) => this\.initSprite/.test(enemies), 'enemy sprite retries must not use recursive untracked setTimeout');
 assert(!/Date\.now\(/.test(enemies), 'enemy-owned gameplay timing must not use wall-clock Date.now');
@@ -147,10 +149,11 @@ class ActionRouterFixture {
 }
 
 class JammerFixture {
-  constructor() { this.generation = 0; this.revealed = false; this.triggered = false; this.disposed = false; this.spriteRequested = false; this.spriteReady = false; this.allocations = 0; }
+  constructor() { this.generation = 0; this.revealed = false; this.triggered = false; this.disposed = false; this.spriteRequested = false; this.spriteReady = false; this.allocations = 0; this.playStarts = 0; }
   reveal() { this.disposed = false; this.revealed = true; this.poll(false); }
   trigger() { this.reveal(); this.triggered = true; }
-  poll(ready) { if (this.disposed) return; if (!this.spriteRequested) { this.spriteRequested = true; this.allocations += 1; } if (ready && !this.disposed) this.spriteReady = true; }
+  poll(ready) { if (this.disposed) return; if (!this.spriteRequested) { this.spriteRequested = true; this.allocations += 1; } if (!this.spriteReady && ready && !this.disposed) { this.spriteReady = true; this.playStarts += 1; } }
+  update(deltaMs, ready) { if (!this.revealed || this.disposed) return; this.poll(ready); this.lastDeltaMs = deltaMs; }
   reset() { if (!this.revealed && !this.triggered && !this.spriteRequested && !this.spriteReady) return; this.generation += 1; this.revealed = false; this.triggered = false; this.spriteRequested = false; this.spriteReady = false; }
   dispose() { if (this.disposed && !this.revealed && !this.triggered && !this.spriteRequested) return; this.reset(); this.disposed = true; }
 }
@@ -197,10 +200,14 @@ assert(zeroDeltaFirewall.lungeCooldownSeconds === 3, 'fixture: zero delta does n
 const jammerFixture = new JammerFixture();
 jammerFixture.reveal(); jammerFixture.poll(false); jammerFixture.trigger();
 assert(jammerFixture.allocations === 1, 'fixture: Jammer reveal/trigger does not duplicate pending sprite allocation');
+jammerFixture.poll(true); jammerFixture.poll(true); jammerFixture.update(16, true); jammerFixture.update(0, true);
+assert(jammerFixture.playStarts === 1, 'fixture: repeated Jammer readiness polling/update starts playback once');
 const gen = jammerFixture.generation; jammerFixture.reset(); jammerFixture.reset();
 assert(jammerFixture.generation === gen + 1 && !jammerFixture.revealed && !jammerFixture.triggered, 'fixture: repeated Jammer reset is idempotent');
-jammerFixture.reveal(); jammerFixture.dispose(); jammerFixture.dispose(); jammerFixture.poll(true);
-assert(jammerFixture.disposed && !jammerFixture.spriteReady, 'fixture: stale Jammer readiness does nothing after disposal');
+jammerFixture.reveal(); jammerFixture.poll(true); jammerFixture.update(0, true);
+assert(jammerFixture.playStarts === 2, 'fixture: reset followed by new load allows exactly one new playback start');
+jammerFixture.dispose(); jammerFixture.dispose(); jammerFixture.poll(true);
+assert(jammerFixture.disposed && !jammerFixture.spriteReady && jammerFixture.playStarts === 2, 'fixture: stale Jammer readiness does nothing after disposal');
 
 if (failed) process.exit(1);
 console.log('enemy ownership check passed.');

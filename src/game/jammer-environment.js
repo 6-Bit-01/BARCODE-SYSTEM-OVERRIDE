@@ -54,7 +54,7 @@ window.BARCODE = window.BARCODE || {};
       state.sprite = window.MakkoEngine.sprite('broadcast_jammer_broadcastjammer');
     }
     if (state.spriteRequestGeneration !== state.generation || state.disposed) return;
-    if (state.sprite && state.sprite.isLoaded && state.sprite.isLoaded()) {
+    if (!state.spriteReady && state.sprite && state.sprite.isLoaded && state.sprite.isLoaded()) {
       state.spriteReady = true;
       if (state.sprite.play) state.sprite.play('broadcast_jammer_idle_idle', true);
     }
