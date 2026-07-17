@@ -113,6 +113,7 @@
     "tools/check-baseline.js",
     "tools/check-enemy-ownership.js",
     "tools/check-frame-ownership.js",
+    "tools/check-level-01-mission.js",
     "tools/check-makko-hotfix.js",
     "tools/check-music-profiles.js",
     "tools/check-runtime-lifecycle.js",
@@ -348,7 +349,7 @@
     {
       "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 1391,
+      "line": 1404,
       "loaded": true
     },
     {

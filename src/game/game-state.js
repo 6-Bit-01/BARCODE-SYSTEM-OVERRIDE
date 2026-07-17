@@ -110,6 +110,8 @@ window.checkGameConditions = function() {
     }
   }
 
+  if (window.sector1Progression && window.sector1Progression.shouldSuppressGenericSpawning && window.sector1Progression.shouldSuppressGenericSpawning()) { window.gameState.hasSpawnedInitialEnemies = true; }
+
   if (!window.gameState.hasSpawnedInitialEnemies) {
     const shouldSpawn = !window.tutorialSystem ||
       typeof window.tutorialSystem.isActive !== 'function' ||

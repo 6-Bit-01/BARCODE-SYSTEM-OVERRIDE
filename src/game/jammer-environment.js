@@ -16,6 +16,11 @@ window.BARCODE = window.BARCODE || {};
       initialized: state.initialized,
       revealed: state.revealed,
       triggered: state.triggered,
+      targetable: state.targetable,
+      health: state.health,
+      maxHealth: state.maxHealth,
+      destroyed: state.destroyed,
+      destructionNotified: state.destructionNotified,
       disposed: state.disposed,
       generation: state.generation,
       position: Object.freeze({ x: state.position.x, y: state.position.y }),
@@ -32,6 +37,12 @@ window.BARCODE = window.BARCODE || {};
     initialized: false,
     revealed: false,
     triggered: false,
+    targetable: false,
+    health: 16,
+    maxHealth: 16,
+    destroyed: false,
+    destructionNotified: false,
+    lastDamageSequence: null,
     disposed: false,
     generation: 0,
     position: { x: 3400, y: 750 },
@@ -74,6 +85,9 @@ window.BARCODE = window.BARCODE || {};
   function reveal(options) {
     initialize(options);
     state.revealed = true;
+    state.targetable = true;
+    state.destroyed = false;
+    state.health = state.maxHealth;
     if (window.jammerArrowIndicator && typeof window.jammerArrowIndicator.setTarget === 'function') {
       window.jammerArrowIndicator.setTarget({ position: state.position, active: true, environmental: true });
     }
@@ -101,6 +115,11 @@ window.BARCODE = window.BARCODE || {};
     state.generation += 1;
     state.revealed = false;
     state.triggered = false;
+    state.targetable = false;
+    state.health = state.maxHealth;
+    state.destroyed = false;
+    state.destructionNotified = false;
+    state.lastDamageSequence = null;
     state.disposed = false;
     invalidatePresentation();
     return cloneStatus(state);
@@ -121,8 +140,30 @@ window.BARCODE = window.BARCODE || {};
     return cloneStatus(state);
   }
 
+  function canReceiveRhythmDamage() { return state.initialized && state.revealed && state.targetable && !state.destroyed && !state.disposed; }
+
+  function applyRhythmDamage(options) {
+    options = options || {};
+    if (!canReceiveRhythmDamage()) return { ok: false, reason: 'not-targetable', status: cloneStatus(state) };
+    if (options.sequence !== undefined && state.lastDamageSequence === options.sequence) return { ok: false, reason: 'duplicate-sequence', status: cloneStatus(state) };
+    if (!(options.timing === 'perfect' || options.timing === 'excellent')) return { ok: false, reason: 'bad-timing', status: cloneStatus(state) };
+    state.lastDamageSequence = options.sequence;
+    state.health = Math.max(0, state.health - 1);
+    if (state.health === 0 && !state.destroyed) {
+      state.destroyed = true;
+      state.targetable = false;
+      state.revealed = false;
+      if (window.jammerArrowIndicator && typeof window.jammerArrowIndicator.setTarget === 'function') window.jammerArrowIndicator.setTarget(null);
+      if (!state.destructionNotified) {
+        state.destructionNotified = true;
+        if (window.sector1Progression && typeof window.sector1Progression.onJammerDestroyed === 'function') window.sector1Progression.onJammerDestroyed();
+      }
+    }
+    return { ok: true, damage: 1, destroyed: state.destroyed, status: cloneStatus(state) };
+  }
+
   function draw(ctx) {
-    if (!ctx || !state.revealed || state.disposed) return;
+    if (!ctx || ((!state.revealed && !state.destroyed) || state.disposed)) return;
     ctx.save();
     if (state.spriteReady && state.sprite && typeof state.sprite.draw === 'function') {
       const drawY = state.position.y + state.presentation.drawOffsetY;
@@ -139,6 +180,13 @@ window.BARCODE = window.BARCODE || {};
       ctx.textAlign = 'center';
       ctx.fillText('BROADCAST JAMMER', state.position.x, fallbackY - fallbackHeight - 10);
     }
+    if (state.targetable) {
+      const barW = 140; const barH = 12; const hp = state.health / state.maxHealth; const barY = state.position.y + 65;
+      ctx.fillStyle = 'rgba(0,0,0,0.75)'; ctx.fillRect(state.position.x - barW / 2, barY, barW, barH);
+      ctx.fillStyle = '#ff00ff'; ctx.fillRect(state.position.x - barW / 2, barY, barW * hp, barH);
+      ctx.strokeStyle = '#00ffff'; ctx.strokeRect(state.position.x - barW / 2, barY, barW, barH);
+      ctx.fillStyle = '#ffffff'; ctx.font = '12px monospace'; ctx.textAlign = 'center'; ctx.fillText(`${state.health}/${state.maxHealth}`, state.position.x, barY - 4);
+    }
     ctx.restore();
   }
 
@@ -146,5 +194,5 @@ window.BARCODE = window.BARCODE || {};
   function getDiagnostics() { return cloneStatus(state); }
   function getPosition() { return state.revealed && !state.disposed ? { x: state.position.x, y: state.position.y } : null; }
 
-  namespace.JammerEnvironment = Object.freeze({ initialize, reveal, trigger, reset, dispose, update, draw, getStatus, getDiagnostics, getPosition });
+  namespace.JammerEnvironment = Object.freeze({ initialize, reveal, trigger, reset, dispose, update, draw, canReceiveRhythmDamage, applyRhythmDamage, getStatus, getDiagnostics, getPosition });
 })(window.BARCODE);

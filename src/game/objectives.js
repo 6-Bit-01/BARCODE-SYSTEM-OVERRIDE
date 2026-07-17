@@ -31,6 +31,32 @@ window.ObjectivesSystem = class ObjectivesSystem {
     }];
   }
 
+  setMissionDefeatObjective(progress = 0, required = 20) {
+    this.objectives = [{ id: 'defeat_20_enemies', title: 'Defeat 20 enemies', description: `${progress}/${required} mission enemies defeated.`, priority: 'PRIMARY', completed: false, visible: true, progress, required }];
+  }
+
+  updateMissionDefeatProgress(progress = 0, required = 20) {
+    let obj = this.objectives.find(o => o.id === 'defeat_20_enemies');
+    if (!obj) { this.setMissionDefeatObjective(progress, required); obj = this.objectives.find(o => o.id === 'defeat_20_enemies'); }
+    obj.progress = progress; obj.required = required; obj.description = `${progress}/${required} mission enemies defeated.`; if (progress >= required) obj.completed = true;
+  }
+
+  revealJammerObjective() {
+    this.updateMissionDefeatProgress(20, 20);
+    if (!this.objectives.some(o => o.id === 'destroy_broadcast_jammer')) this.objectives.push({ id: 'destroy_broadcast_jammer', title: 'Find and destroy Broadcast Jammer', description: 'Successful rhythm attacks damage the Jammer.', priority: 'PRIMARY', completed: false, visible: true, progress: 0, required: 16 });
+  }
+
+  completeJammerObjective() {
+    this.revealJammerObjective();
+    const obj = this.objectives.find(o => o.id === 'destroy_broadcast_jammer');
+    if (obj) { obj.completed = true; obj.progress = obj.required; obj.description = 'Broadcast Jammer destroyed. Boss signal incoming.'; }
+  }
+
+  setBossIntroObjective() {
+    this.completeJammerObjective();
+    if (!this.objectives.some(o => o.id === 'boss_ready_handoff')) this.objectives.push({ id: 'boss_ready_handoff', title: 'Boss signal acquired', description: 'Stand by for the Sector 1 boss battle.', priority: 'INFO', completed: false, visible: true, progress: 0, required: 0 });
+  }
+
   update() {
     this.checkLoreCollectionStatus();
     this.checkCompletedObjectives();

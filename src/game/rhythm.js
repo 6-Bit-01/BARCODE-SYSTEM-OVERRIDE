@@ -658,6 +658,7 @@ window.RhythmSystem = class RhythmSystem {
       this.combo = 0;
       this.arcGrowthLevel = 0;
       this.createMissEffect();
+      if (timing === 'miss' && window.audioSystem && typeof window.audioSystem.playSound === 'function') window.audioSystem.playSound('synthHit', 0.3);
     }
     return this.lastJudgment;
   }
