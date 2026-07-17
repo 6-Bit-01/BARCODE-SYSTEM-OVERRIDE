@@ -40,14 +40,14 @@ window.Enemy = class Enemy {
     this.shieldActive = false;
     this.preparingAttack = false;
     this.attackAnimationPlaying = false;
-    this.attackAnimationDuration = 0;
-    this.attackAnimationTimer = 0;
+    this.attackAnimationDurationSeconds = 0;
+    this.attackAnimationTimerSeconds = 0;
     this.aiState = 'walking';
 
     // Personality behavior properties
     this.personalityTimer = Math.random() * 1000;
     this.behaviorState = 'normal';
-    this.behaviorTimer = 0;
+    this.behaviorTimerSeconds = 0;
 
     // Corrupted Behavior State (New "Stop and Stare")
     this._corruptedState = null;
@@ -61,8 +61,8 @@ window.Enemy = class Enemy {
     this._groupBehaviorTimer = 0;
 
     // Firewall lunge behavior
-    this.lungeCooldown = 0;
-    this.lungePreparationTime = 0;
+    this.lungeCooldownSeconds = 0;
+    this.lungePreparationTimeSeconds = 0;
     this.isLunging = false;
     this.proximityDetectionRadius = 400;
     this._idleAnimationTimer = 0;
@@ -71,9 +71,9 @@ window.Enemy = class Enemy {
     // Enhanced firewall properties (only used when type === 'firewall')
     this.proximityAttackRange = 250;
     this.glideDistance = 80;
-    this.glideDuration = 0.8;
-    this.fullAttackDuration = 4.9;
-    this.attackStartTime = 0;
+    this.glideDurationSeconds = 0.8;
+    this.fullAttackDurationSeconds = 4.9;
+    this.attackStartTimeMs = 0;
 
     // MakkoEngine sprite properties
     this.sprite = null;
@@ -137,8 +137,8 @@ window.Enemy = class Enemy {
         this.color = '#ff9900';
         this.patrolRadius = 100;
         this.detectionRadius = 450;
-        this.attackAnimationDuration = 6000;
-        this.lungeCooldown = 6000 + Math.random() * 4000;
+        this.attackAnimationDurationSeconds = 6;
+        this.lungeCooldownSeconds = 6 + Math.random() * 4;
         this.maxAttackDistance = 500;
         break;
       default:
@@ -261,8 +261,8 @@ window.Enemy = class Enemy {
 
         // Initialize Firewall Behavior State
         this.behaviorState = 'normal';
-        this.behaviorTimer = 0;
-        this.lungeCooldown = 1000 + Math.random() * 3000;
+        this.behaviorTimerSeconds = 0;
+        this.lungeCooldownSeconds = 1 + Math.random() * 3;
         this.isLunging = false;
         this.proximityDetectionRadius = 400 + Math.random() * 300;
 
@@ -497,18 +497,18 @@ window.Enemy = class Enemy {
     this._aggressionLevel = Math.min(2.0, this._aggressionLevel + 0.00003);
 
     // Attack Logic
-    if (distToPlayer <= this.proximityAttackRange && !this.isLunging && this.lungeCooldown <= 0) {
+    if (distToPlayer <= this.proximityAttackRange && !this.isLunging && this.lungeCooldownSeconds <= 0) {
       if (Math.random() < 0.9) {
         this.startProximityAttack(player);
         }
     }
-    if (this.lungeCooldown > 0) this.lungeCooldown -= dt;
+    if (this.lungeCooldownSeconds > 0) this.lungeCooldownSeconds = Math.max(0, this.lungeCooldownSeconds - dt);
 
     // Idle Pause Logic
     if (currentTime >= this._nextIdlePause && this.behaviorState === 'normal') {
         this.behaviorState = 'idle_pause';
-        this.behaviorTimer = 0;
-        this._idlePauseDuration = 1000 + Math.random() * 1500;
+        this.behaviorTimerSeconds = 0;
+        this._idlePauseDurationSeconds = 1 + Math.random() * 1.5;
         this._nextIdlePause = currentTime + 4000 + Math.random() * 3000;
     }
 
@@ -529,7 +529,7 @@ window.Enemy = class Enemy {
 
         case 'idle_pause':
             this.velocity.x = 0;
-            this.behaviorTimer += dt;
+            this.behaviorTimerSeconds += dt;
             this._idleAnimationTimer += dt;
 
             // Occasional FULL Idle Animation (plays ~5s loop)
@@ -561,17 +561,17 @@ window.Enemy = class Enemy {
             }
 
             // Exit pause if done (and not forced in full idle)
-            if (!this._inFullIdle && this.behaviorTimer > (this._idlePauseDuration / 1000)) {
+            if (!this._inFullIdle && this.behaviorTimerSeconds > this._idlePauseDurationSeconds) {
                 this.behaviorState = 'normal';
-                this.behaviorTimer = 0;
+                this.behaviorTimerSeconds = 0;
             }
             break;
 
         case 'lunging':
-            this.behaviorTimer += dt;
+            this.behaviorTimerSeconds += dt;
             // Drag
             // Enhanced glide physics
-            if (this.behaviorTimer < this.glideDuration) {
+            if (this.behaviorTimerSeconds < this.glideDurationSeconds) {
               // Active gliding phase
               this.velocity.x *= 0.95; // Maintain forward momentum
             } else {
@@ -595,24 +595,24 @@ window.Enemy = class Enemy {
             }
 
             // Check for full animation completion
-            const attackElapsed = this.behaviorTimer;
-            if (attackElapsed > this.fullAttackDuration) {
+            const attackElapsed = this.behaviorTimerSeconds;
+            if (attackElapsed > this.fullAttackDurationSeconds) {
                 this.behaviorState = 'normal';
-                this.behaviorTimer = 0;
+                this.behaviorTimerSeconds = 0;
                 this.isLunging = false;
-                this.lungeCooldown = 3000 + Math.random() * 2000;
-                this.attackStartTime = 0;
+                this.lungeCooldownSeconds = 3 + Math.random() * 2;
+                this.attackStartTimeMs = 0;
                 console.log('🔥 Enhanced Firewall proximity attack completed');
             }
 
             // Safety timeout
-            if (this.behaviorTimer > 5.5) {
+            if (this.behaviorTimerSeconds > 5.5) {
               console.log('🔥 Enhanced Firewall attack timeout - forcing exit');
               this.behaviorState = 'normal';
-              this.behaviorTimer = 0;
+              this.behaviorTimerSeconds = 0;
               this.isLunging = false;
-              this.lungeCooldown = 2000;
-              this.attackStartTime = 0;
+              this.lungeCooldownSeconds = 2;
+              this.attackStartTimeMs = 0;
             }
             break;
     }
@@ -622,8 +622,8 @@ window.Enemy = class Enemy {
   startProximityAttack(player) {
     this.isLunging = true;
     this.behaviorState = 'lunging';
-    this.behaviorTimer = 0;
-    this.attackStartTime = this.simulationTimeMs;
+    this.behaviorTimerSeconds = 0;
+    this.attackStartTimeMs = this.simulationTimeMs;
 
     // Calculate direction to player
     const dx = player.position.x - this.position.x;
@@ -631,7 +631,7 @@ window.Enemy = class Enemy {
     this.facing = direction;
 
     // Execute 80px glide
-    const glideVelocity = this.glideDistance / this.glideDuration;
+    const glideVelocity = this.glideDistance / this.glideDurationSeconds;
     this.velocity.x = glideVelocity * direction;
     this.velocity.y = -50; // Small hop during glide
 

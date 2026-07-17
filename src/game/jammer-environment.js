@@ -23,7 +23,8 @@ window.BARCODE = window.BARCODE || {};
       spriteReady: !!state.spriteReady,
       spriteRequested: !!state.spriteRequested,
       spriteRequestCount: state.spriteRequestCount,
-      hasAudio: !!state.audio
+      hasAudio: !!state.audio,
+      presentation: Object.freeze({ drawScale: state.presentation.drawScale, drawOffsetY: state.presentation.drawOffsetY })
     });
   }
 
@@ -34,6 +35,7 @@ window.BARCODE = window.BARCODE || {};
     disposed: false,
     generation: 0,
     position: { x: 3400, y: 750 },
+    presentation: Object.freeze({ drawScale: 0.7, drawOffsetY: 190 }),
     sprite: null,
     spriteReady: false,
     spriteRequested: false,
@@ -123,15 +125,19 @@ window.BARCODE = window.BARCODE || {};
     if (!ctx || !state.revealed || state.disposed) return;
     ctx.save();
     if (state.spriteReady && state.sprite && typeof state.sprite.draw === 'function') {
-      state.sprite.draw(ctx, state.position.x, state.position.y + 20, { scale: 1, flipH: false });
+      const drawY = state.position.y + state.presentation.drawOffsetY;
+      state.sprite.draw(ctx, state.position.x, drawY, { scale: state.presentation.drawScale, flipH: false });
     } else {
       ctx.strokeStyle = '#ff00ff';
       ctx.lineWidth = 3;
-      ctx.strokeRect(state.position.x - 45, state.position.y - 120, 90, 120);
+      const fallbackY = state.position.y + state.presentation.drawOffsetY;
+      const fallbackWidth = 90 * state.presentation.drawScale;
+      const fallbackHeight = 120 * state.presentation.drawScale;
+      ctx.strokeRect(state.position.x - fallbackWidth / 2, fallbackY - fallbackHeight, fallbackWidth, fallbackHeight);
       ctx.fillStyle = '#ff00ff';
       ctx.font = '14px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText('BROADCAST JAMMER', state.position.x, state.position.y - 130);
+      ctx.fillText('BROADCAST JAMMER', state.position.x, fallbackY - fallbackHeight - 10);
     }
     ctx.restore();
   }

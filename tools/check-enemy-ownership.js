@@ -41,6 +41,18 @@ assert(/preserveDefeats/.test(runtime) && !/currentEnemyCount/.test(runtime), 'R
 assert(/reset\(options = \{\}\)/.test(sector) && /preserveDefeats/.test(sector), 'Sector1Progression reset accepts explicit preservation intent');
 assert(!/JammerEnvironment\.reset\(\)/.test(objectives), 'ObjectivesSystem reset must not compete for JammerEnvironment ownership');
 assert(!/health|takeDamage|kill|point value/i.test(jammer), 'Jammer environment has no health/damage/kill/point semantics');
+
+assert(/drawScale:\s*0\.7/.test(jammer) && /drawOffsetY:\s*190/.test(jammer), 'JammerEnvironment preserves approved draw scale 0.7 and +190 Y offset');
+assert(/state\.position\.y \+ state\.presentation\.drawOffsetY/.test(jammer), 'JammerEnvironment draws sprite/fallback from approved Y offset');
+assert(/scale:\s*state\.presentation\.drawScale/.test(jammer), 'JammerEnvironment draws Makko sprite with approved presentation scale');
+assert(/presentation: Object\.freeze/.test(jammer), 'Jammer presentation values are diagnostics/status state, not mutable competing owners');
+assert(/lungeCooldownSeconds\s*=\s*6 \+ Math\.random\(\) \* 4/.test(enemies), 'Firewall initial lunge cooldown is seconds, not milliseconds');
+assert(/lungeCooldownSeconds\s*=\s*1 \+ Math\.random\(\) \* 3/.test(enemies), 'Firewall reset lunge cooldown is seconds, not milliseconds');
+assert(/lungeCooldownSeconds\s*=\s*3 \+ Math\.random\(\) \* 2/.test(enemies), 'Firewall post-attack cooldown is seconds, not milliseconds');
+assert(/lungeCooldownSeconds\s*=\s*2/.test(enemies), 'Firewall timeout cooldown is seconds, not milliseconds');
+assert(/lungeCooldownSeconds\s*=\s*Math\.max\(0, this\.lungeCooldownSeconds - dt\)/.test(enemies), 'Firewall cooldown decremented by dt seconds with clamp');
+assert(!/lungeCooldown\s*=\s*(6000|3000|2000|1000)/.test(enemies), 'no millisecond-sized lungeCooldown assignments remain');
+assert(!/\b(lungeCooldown|lungePreparationTime|behaviorTimer|glideDuration|fullAttackDuration|attackAnimationDuration|attackAnimationTimer|attackStartTime)\b(?!Seconds|Ms)/.test(enemies), 'ambiguous Firewall timer names are suffixed with Seconds or Ms');
 assert(/spriteRequested/.test(jammer) && /spriteRequestGeneration/.test(jammer), 'JammerEnvironment tracks one sprite request per generation');
 assert(/_spriteRequested/.test(enemies) && /pollSpriteReady/.test(enemies), 'Enemy sprites use request/poll readiness state');
 assert(!/setTimeout\(\(\) => \{\s*this\.initSprite/.test(enemies) && !/setTimeout\(\(\) => this\.initSprite/.test(enemies), 'enemy sprite retries must not use recursive untracked setTimeout');
@@ -120,6 +132,14 @@ class SimulationClockFixture {
   update(deltaMs) { this.simulationTimeMs += deltaMs; }
 }
 
+
+class FirewallCooldownFixture {
+  constructor(cooldownSeconds) { this.lungeCooldownSeconds = cooldownSeconds; }
+  update(dtSeconds) {
+    if (this.lungeCooldownSeconds > 0) this.lungeCooldownSeconds = Math.max(0, this.lungeCooldownSeconds - dtSeconds);
+  }
+}
+
 class ActionRouterFixture {
   constructor() { this.player = { grounded: true, jumped: false, dashed: false, jump() { this.jumped = true; this.grounded = false; return true; }, dash() { this.dashed = true; return false; } }; this.tutorialChecked = false; }
   jump() { const result = this.player.jump(); return { ok: result === true }; }
@@ -165,6 +185,14 @@ const rejectedJump = rejectedActionFixture.jump();
 rejectedActionFixture.trackJump(rejectedJump);
 assert(!rejectedActionFixture.tutorialChecked, 'fixture: rejected jump does not track tutorial');
 assert(rejectedActionFixture.player.dash() === false && rejectedActionFixture.player.dashed, 'fixture: dash route can be recognized while remaining current no-op design');
+
+
+const firewallCooldown = new FirewallCooldownFixture(6);
+for (let i = 0; i < 6; i += 1) firewallCooldown.update(1);
+assert(firewallCooldown.lungeCooldownSeconds === 0, 'fixture: Firewall cooldown reaches zero after intended simulated seconds');
+const zeroDeltaFirewall = new FirewallCooldownFixture(3);
+zeroDeltaFirewall.update(0);
+assert(zeroDeltaFirewall.lungeCooldownSeconds === 3, 'fixture: zero delta does not advance Firewall cooldown');
 
 const jammerFixture = new JammerFixture();
 jammerFixture.reveal(); jammerFixture.poll(false); jammerFixture.trigger();
