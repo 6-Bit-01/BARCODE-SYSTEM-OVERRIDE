@@ -68,6 +68,7 @@ window.Player = class Player {
     this.lastArcTime = 0;
     this.arcPulsePhase = 0;
     this.arcActive = false;
+    this.primaryAttackAnimationMs = 0;
   }
 
   update(deltaTime, allowMovement = true) {
@@ -106,14 +107,8 @@ window.Player = class Player {
         this.jumpTime = 0; // Reset jump time when grounded
       }
       
-      // CRITICAL: Apply extra friction in rhythm mode to prevent gliding
-      if (this.state === 'rhythm') {
-        this.velocity.x *= 0.85; // Strong friction in rhythm mode
-        this.velocity.y *= 0.85;
-        
-        // Stop tiny velocities completely in rhythm mode
-        if (Math.abs(this.velocity.x) < 10) this.velocity.x = 0;
-        if (Math.abs(this.velocity.y) < 10) this.velocity.y = 0;
+      if (this.primaryAttackAnimationMs > 0) {
+        this.primaryAttackAnimationMs = Math.max(0, this.primaryAttackAnimationMs - deltaTime);
       }
       
       // Update position only if movement is allowed
@@ -172,11 +167,6 @@ window.Player = class Player {
   updateState() {
     const oldState = this.state;
     
-    // Check rhythm system state
-    const rhythmSystemExists = !!window.rhythmSystem;
-    const hasIsActive = rhythmSystemExists && typeof window.rhythmSystem.isActive === 'function';
-    const rhythmActive = hasIsActive && window.rhythmSystem.isActive();
-    
     // Check if up key is held for continuous jump animation
     const upKeyHeld = window.inputManager && window.inputManager.isKey('arrowup');
     
@@ -187,8 +177,8 @@ window.Player = class Player {
       if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log('🦘 Character just left ground - jump animation will restart');
     }
     
-    // Priority order: Rhythm > Jump (if up held) > Walk > Idle
-    if (rhythmActive) {
+    // Priority order: transient primary attack > Jump (if up held) > Walk > Idle
+    if (this.primaryAttackAnimationMs > 0) {
       this.state = 'rhythm';
     } else if (!this.grounded || upKeyHeld) {
       this.state = 'jump'; // Stay in jump state if up key is held (even when grounded)
@@ -205,6 +195,13 @@ window.Player = class Player {
     if (oldState !== this.state) {
       if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log(`🔄 Player state: ${oldState} → ${this.state} (upHeld: ${upKeyHeld}, newJump: ${justStartedJumping})`);
     }
+  }
+
+
+  startPrimaryAttackAnimation(durationMs = 180) {
+    this.primaryAttackAnimationMs = Math.max(this.primaryAttackAnimationMs || 0, durationMs);
+    this.state = 'rhythm';
+    if (typeof this.playAnimation === 'function') this.playAnimation('rhythm');
   }
 
   // Initialize sprite character with MakkoEngine

@@ -14,9 +14,9 @@ window.isPaused = window.isPaused || false;
 window.isRunning = window.isRunning || false;
 window.gameLoopRafHandle = window.gameLoopRafHandle || null;
 
-// requestAnimationFrame ownership lives here only for active gameplay frames.
+// requestAnimationFrame ownership lives here for active gameplay and input-only paused polling.
 function scheduleNextGameplayFrame() {
-  if (!window.isRunning || window.isPaused || window.gameLoopRafHandle !== null) return;
+  if (!window.isRunning || window.gameLoopRafHandle !== null) return;
   window.gameLoopRafHandle = requestAnimationFrame(window.gameLoop);
 }
 
@@ -47,6 +47,10 @@ window.gameLoop = function(timestamp) {
   if (!window.isRunning) return;
 
   if (window.isPaused) {
+    if (window.inputManager && typeof window.inputManager.updatePausedInput === 'function') {
+      window.inputManager.updatePausedInput();
+    }
+    scheduleNextGameplayFrame();
     return;
   }
 
@@ -121,6 +125,7 @@ window.startGameLoop = function() {
 window.pauseGame = function() {
   window.isPaused = true;
   cancelScheduledGameplayFrame();
+  scheduleNextGameplayFrame();
 };
 
 // Resume the game

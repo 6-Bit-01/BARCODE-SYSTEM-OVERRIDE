@@ -62,7 +62,6 @@ function routeJumpAction() {
   if (!gameplayAcceptsAction()) return { ok: false, action: 'jump', reason: 'gameplay-inactive' };
   if (!window.player || typeof window.player.jump !== 'function') return { ok: false, action: 'jump', reason: 'player-unavailable' };
   if (window.hackingSystem && typeof window.hackingSystem.isActive === 'function' && window.hackingSystem.isActive()) return { ok: false, action: 'jump', reason: 'hacking-active' };
-  if (window.rhythmSystem && typeof window.rhythmSystem.isActive === 'function' && window.rhythmSystem.isActive()) return { ok: false, action: 'jump', reason: 'rhythm-active' };
   const wasGrounded = !!window.player.grounded;
   const result = window.player.jump();
   const accepted = result === true || (wasGrounded && window.player.grounded === false);

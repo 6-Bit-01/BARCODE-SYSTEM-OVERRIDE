@@ -702,28 +702,18 @@ window.TutorialSystem = class TutorialSystem {
     return this.active;
   }
   
-  handleSpacePress() {
-    if (!this.active || !this.readyToAdvance) {
-      return;
-    }
-    
+  canAdvanceDialogueWithInput() {
+    if (!this.active || !this.readyToAdvance) return false;
     const currentDialogue = this.dialogue[this.currentDialogue];
-    if (!currentDialogue) {
+    if (!currentDialogue) return false;
+    if (!currentDialogue.requiresObjectives) return true;
+    return Array.isArray(currentDialogue.requiresObjectives) && currentDialogue.requiresObjectives.every(objId => this.completedObjectives.has(objId));
+  }
+
+  handleSpacePress() {
+    if (!this.canAdvanceDialogueWithInput()) {
       return;
     }
-    
-    // Check if dialogue requires objectives to be completed
-    if (currentDialogue.requiresObjectives && Array.isArray(currentDialogue.requiresObjectives)) {
-      const allObjectivesComplete = currentDialogue.requiresObjectives.every(objId => 
-        this.completedObjectives.has(objId)
-      );
-      
-      if (!allObjectivesComplete) {
-        console.log('Objectives not yet complete for this dialogue');
-        return;
-      }
-    }
-    
     this.advanceDialogue();
   }
   

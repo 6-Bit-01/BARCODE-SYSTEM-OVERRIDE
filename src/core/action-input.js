@@ -44,7 +44,7 @@ window.FILE_MANIFEST.push({
       this.suppression = { gameplayActive: true, paused: false, gameOver: false, cutscene: false, dialogue: false, stopped: false };
       this._keydown = e => this.handleKeyDown(e);
       this._keyup = e => this.handleKeyUp(e);
-      if (options.attach !== false) this.attach();
+      if (options.attach === true) this.attach();
     }
     attach() { if (this.attached || !window.addEventListener) return; window.addEventListener('keydown', this._keydown); window.addEventListener('keyup', this._keyup); this.attached = true; this.listenerCount = 2; }
     dispose() { if (this.attached && window.removeEventListener) { window.removeEventListener('keydown', this._keydown); window.removeEventListener('keyup', this._keyup); } this.attached = false; this.listenerCount = 0; this.disposed = true; this.reset(); }
@@ -87,10 +87,13 @@ window.FILE_MANIFEST.push({
         stopped: !!(context.stopped || runtimeState === 'stopped'),
         gameOver: !!(context.gameOver || gameState.gameOver),
         cutscene: !!(context.cutscene || (window.cutsceneSystem && window.cutsceneSystem.active)),
-        dialogue: !!(context.dialogue || (tutorial && tutorial.awaitingInput))
+        dialogue: !!(context.dialogue || (tutorial && typeof tutorial.canAdvanceDialogueWithInput === 'function' && tutorial.canAdvanceDialogueWithInput()))
       };
     }
-    isSuppressed(action) { return this.suppression.paused || this.suppression.stopped || this.suppression.gameOver || this.suppression.cutscene || this.suppression.dialogue || !this.suppression.gameplayActive; }
+    isSuppressed(action) {
+      if (action === 'pause') return this.suppression.stopped || this.suppression.gameOver || this.suppression.cutscene || !this.suppression.gameplayActive;
+      return this.suppression.paused || this.suppression.stopped || this.suppression.gameOver || this.suppression.cutscene || this.suppression.dialogue || !this.suppression.gameplayActive;
+    }
     pressed(action) { return !!(this.state[action] && this.state[action].pressed); }
     held(action) { return !!(this.state[action] && this.state[action].held); }
     released(action) { return !!(this.state[action] && this.state[action].released); }

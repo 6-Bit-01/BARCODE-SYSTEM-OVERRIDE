@@ -343,7 +343,7 @@
     {
       "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 1391,
+      "line": 1373,
       "loaded": true
     },
     {
@@ -351,6 +351,12 @@
       "file": "src/game/enemies.js",
       "line": 929,
       "loaded": true
+    },
+    {
+      "global": "window.enemyManager",
+      "file": "tools/check-action-combat.js",
+      "line": 132,
+      "loaded": false
     },
     {
       "global": "window.Enemy",
@@ -389,10 +395,40 @@
       "loaded": false
     },
     {
+      "global": "window.gameState",
+      "file": "tools/check-action-combat.js",
+      "line": 126,
+      "loaded": false
+    },
+    {
+      "global": "window.gameState",
+      "file": "tools/check-action-combat.js",
+      "line": 55,
+      "loaded": false
+    },
+    {
+      "global": "window.gameState",
+      "file": "tools/check-action-combat.js",
+      "line": 88,
+      "loaded": false
+    },
+    {
       "global": "window.player",
       "file": "src/game/player.js",
-      "line": 1645,
+      "line": 1642,
       "loaded": true
+    },
+    {
+      "global": "window.player",
+      "file": "tools/check-action-combat.js",
+      "line": 127,
+      "loaded": false
+    },
+    {
+      "global": "window.player",
+      "file": "tools/check-action-combat.js",
+      "line": 89,
+      "loaded": false
     },
     {
       "global": "window.renderer",
@@ -433,7 +469,7 @@
     {
       "global": "window.startGameLoop",
       "file": "src/core/loop.js",
-      "line": 110,
+      "line": 114,
       "loaded": true
     },
     {

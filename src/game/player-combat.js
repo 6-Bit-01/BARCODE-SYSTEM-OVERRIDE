@@ -40,14 +40,18 @@ window.FILE_MANIFEST.push({
     getTimingJudgment() {
       const transport = BARCODE.MusicTransport;
       const profile = BARCODE.MusicProfiles && BARCODE.MusicProfiles.getActive ? BARCODE.MusicProfiles.getActive() : null;
-      const rule = profile && profile.judgmentRules && profile.judgmentRules.find(r => r.id === 'level-01.attack');
+      const rule = profile && profile.judgmentRules && profile.judgmentRules.find(r => r.target === 'quarter-note' || /attack/.test(r.id)) || null;
       const audioTimeSec = window.audioSystem && window.audioSystem.context ? window.audioSystem.context.currentTime : null;
-      if (!transport || !transport.isReady || !transport.isReady() || !rule || !Number.isFinite(audioTimeSec)) return { available: false, timing: 'unavailable' };
+      if (!transport || typeof transport.judgeInput !== 'function' || !rule || !Number.isFinite(audioTimeSec)) return { available: false, timing: 'unavailable' };
       const judged = transport.judgeInput(rule.id, audioTimeSec);
       if (!judged || !judged.available || judged.timing === 'miss') return { available: false, timing: judged && judged.timing ? judged.timing : 'miss' };
       return judged;
     }
-    playAttackAnimation(player, judgment) { if (window.rhythmSystem && typeof window.rhythmSystem.handleInput === 'function') window.rhythmSystem.handleInput('feedback-only'); if (player && typeof player.playAnimation === 'function') player.playAnimation('rhythm'); }
+    playAttackAnimation(player, judgment) {
+      if (window.rhythmSystem && typeof window.rhythmSystem.applyResolvedAttackFeedback === 'function') window.rhythmSystem.applyResolvedAttackFeedback(judgment);
+      if (player && typeof player.startPrimaryAttackAnimation === 'function') player.startPrimaryAttackAnimation();
+      else if (player && typeof player.playAnimation === 'function') player.playAnimation('rhythm');
+    }
     findTargets(player, enemyManager) { const enemies = enemyManager && Array.isArray(enemyManager.enemies) ? enemyManager.enemies : []; return enemies.filter(enemy => enemy.active && window.distance(player.position.x, player.position.y, enemy.position.x, enemy.position.y) <= this.range); }
     diagnostics() { return { cooldownMs: this.cooldownMs, baseDamage: this.baseDamage, range: this.range, sequence: this.sequence, lastAttackAt: this.lastAttackAt }; }
   }

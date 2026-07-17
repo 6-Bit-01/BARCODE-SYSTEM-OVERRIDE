@@ -12,7 +12,7 @@ window.InputManager = class InputManager {
     this.vibrationEnabled = true;
     this.hasTrackedMovement = false;
     this.hasTrackedJump = false;
-    this.actionInput = window.BARCODE && window.BARCODE.ActionInput ? new window.BARCODE.ActionInput() : null;
+    this.actionInput = window.BARCODE && window.BARCODE.ActionInput ? new window.BARCODE.ActionInput({ attach: false }) : null;
     this.init();
   }
 
@@ -25,15 +25,20 @@ window.InputManager = class InputManager {
       if (window.hackingSystem && window.hackingSystem.isActive && window.hackingSystem.isActive()) {
         if (typeof window.hackingSystem.processInput === 'function') window.hackingSystem.processInput(e.key);
       }
-      if (e.shiftKey && e.key === 'F') { e.preventDefault(); if (window.fullscreenManager) window.fullscreenManager.toggle(); }
+      if (e.shiftKey && e.key === 'F') { e.preventDefault(); if (window.fullscreenManager) window.fullscreenManager.toggle(); return; }
       if (e.key === ' ' && window.gameState && window.gameState.gameOver) {
         e.preventDefault();
         if (window.BARCODE && window.BARCODE.RuntimeLifecycle) window.BARCODE.RuntimeLifecycle.restart({ source: 'game-over-space' });
+        this.resetActionEdges();
+        return;
       }
-      if (e.key === ' ' && window.tutorialSystem && window.tutorialSystem.isActive && window.tutorialSystem.isActive() && window.tutorialSystem.awaitingInput) {
+      if (e.key === ' ' && window.tutorialSystem && typeof window.tutorialSystem.canAdvanceDialogueWithInput === 'function' && window.tutorialSystem.canAdvanceDialogueWithInput()) {
         e.preventDefault();
-        if (typeof window.tutorialSystem.handleSpacePress === 'function') window.tutorialSystem.handleSpacePress();
+        if (!e.repeat && typeof window.tutorialSystem.handleSpacePress === 'function') window.tutorialSystem.handleSpacePress();
+        this.resetActionEdges();
+        return;
       }
+      if (this.actionInput) this.actionInput.handleKeyDown(e);
       if (e.key === 'Escape' || e.key === 'ESC') {
         e.preventDefault();
         if (window.rhythmSystem && window.rhythmSystem.isActive && window.rhythmSystem.isActive()) {
@@ -43,7 +48,7 @@ window.InputManager = class InputManager {
       }
       if (window.DEBUG_KEYBOARD_ENABLED === true) this.handleDebugKey(e);
     });
-    window.addEventListener('keyup', (e) => { this.keys[e.key.toLowerCase()] = false; this.releasedKeys.add(e.key.toLowerCase()); });
+    window.addEventListener('keyup', (e) => { this.keys[e.key.toLowerCase()] = false; this.releasedKeys.add(e.key.toLowerCase()); if (this.actionInput) this.actionInput.handleKeyUp(e); });
     window.addEventListener('mousemove', (e) => { this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
     window.addEventListener('mousedown', () => { this.mouse.pressed = true; this.mouse.clicked = true; });
     window.addEventListener('mouseup', () => { this.mouse.pressed = false; });
@@ -67,22 +72,33 @@ window.InputManager = class InputManager {
   getGamepadMovement() { return this.getMovement(); }
   vibrate(intensity = 0.5, duration = 100) { if (this.vibrationEnabled && this.gamepad && this.gamepad.vibrationActuator) this.gamepad.vibrationActuator.playEffect('dual-rumble', { startDelay: 0, duration, weakMagnitude: intensity, strongMagnitude: intensity }); }
 
-  update() {
+  update(options = {}) {
     this.updateGamepad();
-    const actions = this.actionInput ? this.actionInput.update() : null;
-    if (actions) this.routeActions(actions);
+    const actions = this.actionInput ? this.actionInput.update(options.context || {}) : null;
+    if (actions) this.routeActions(actions, options);
     this.pressedKeys.clear();
     this.releasedKeys.clear();
     this.mouse.clicked = false;
   }
 
-  routeActions(actions) {
+  updatePausedInput() {
+    this.update({ inputOnly: true, context: { paused: true } });
+  }
+
+  resetActionEdges() {
+    this.pressedKeys.clear();
+    this.releasedKeys.clear();
+    this.keys = {};
+    if (this.actionInput && typeof this.actionInput.reset === 'function') this.actionInput.reset();
+  }
+
+  routeActions(actions, options = {}) {
     if (actions.pause.pressed && window.BARCODE && window.BARCODE.RuntimeLifecycle) window.BARCODE.RuntimeLifecycle.togglePause();
     if (actions.rhythm_visual && actions.rhythm_visual.pressed && window.rhythmSystem) {
       if (window.rhythmSystem.isActive && window.rhythmSystem.isActive()) { if (window.rhythmSystem.hideRhythmMode) window.rhythmSystem.hideRhythmMode(); else if (window.rhythmSystem.hide) window.rhythmSystem.hide(); }
       else { if (window.rhythmSystem.showRhythmMode) window.rhythmSystem.showRhythmMode(); else if (window.rhythmSystem.show) window.rhythmSystem.show(); }
     }
-    if (!this.acceptsGameplay()) return;
+    if (options.inputOnly || !this.acceptsGameplay()) return;
     if (window.player) {
       if (actions.move_left.held) window.player.moveLeft();
       else if (actions.move_right.held) window.player.moveRight();
@@ -90,7 +106,7 @@ window.InputManager = class InputManager {
       if ((actions.move_left.held || actions.move_right.held) && window.tutorialSystem && window.tutorialSystem.isActive && window.tutorialSystem.isActive() && !this.hasTrackedMovement) { this.hasTrackedMovement = true; window.tutorialSystem.checkObjective && window.tutorialSystem.checkObjective('movement'); }
       if (actions.jump.pressed) { const r = window.handleGameAction ? window.handleGameAction('jump') : { ok: window.player.jump() }; if (r && r.ok && window.tutorialSystem && window.tutorialSystem.checkObjective && !this.hasTrackedJump) { this.hasTrackedJump = true; window.tutorialSystem.checkObjective('jump'); } }
     }
-    if (actions.primary.pressed && window.BARCODE && window.BARCODE.playerCombat) { const result = window.BARCODE.playerCombat.resolvePrimary({ player: window.player, enemyManager: window.enemyManager }); if (window.tutorialSystem && window.tutorialSystem.checkObjective) window.tutorialSystem.checkObjective('combat'); if (result.ok && result.targets.length) this.vibrate(0.35, 80); }
+    if (actions.primary.pressed && window.BARCODE && window.BARCODE.playerCombat) { const result = window.BARCODE.playerCombat.resolvePrimary({ player: window.player, enemyManager: window.enemyManager }); if (result.ok && result.targets.length) this.vibrate(0.35, 80); }
     if (actions.interact.pressed) this.routeInteract();
   }
 

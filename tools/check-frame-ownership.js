@@ -56,8 +56,8 @@ if (count(loop, /requestAnimationFrame\(/g) !== 1) {
 if (count(loop, /cancelAnimationFrame\(/g) !== 1) {
   fail('src/core/loop.js should have exactly one cancelAnimationFrame call site.');
 }
-if (!/window\.isPaused/.test(scheduleBody)) {
-  fail('scheduleNextGameplayFrame must not schedule while paused.');
+if (!/!window\.isRunning/.test(scheduleBody) || !/window\.gameLoopRafHandle !== null/.test(scheduleBody)) {
+  fail('scheduleNextGameplayFrame must schedule only through the sole RAF handle while running.');
 }
 if (!/window\.isRunning\s*&&\s*!window\.isPaused/.test(startBody) || !/return;/.test(startBody)) {
   fail('startGameLoop must be a no-op when already running and unpaused.');
@@ -75,8 +75,8 @@ if (!/cancelScheduledGameplayFrame\(\)/.test(stopBody) || !/window\.lastTime\s*=
   fail('stopGame must cancel stale RAF handles and reset timing.');
 }
 const pausedBranchMatch = gameLoopBody.match(/if \(window\.isPaused\) \{([\s\S]*?)\n  \}/);
-if (!pausedBranchMatch || /scheduleNextGameplayFrame/.test(pausedBranchMatch[1]) || !/return;/.test(pausedBranchMatch[1])) {
-  fail('the paused gameLoop branch must return without scheduling another frame.');
+if (!pausedBranchMatch || !/updatePausedInput/.test(pausedBranchMatch[1]) || !/scheduleNextGameplayFrame/.test(pausedBranchMatch[1]) || !/return;/.test(pausedBranchMatch[1])) {
+  fail('the paused gameLoop branch must poll input only, reschedule through the sole RAF owner, and return before simulation/render.');
 }
 if (count(update, /renderer\.update\s*\(/g) !== 0) {
   fail('renderer.update must not be duplicated inside update-coordinator.js.');

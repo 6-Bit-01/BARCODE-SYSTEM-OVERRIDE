@@ -628,6 +628,24 @@ window.RhythmSystem = class RhythmSystem {
     }
   }
   
+  // Feedback-only hook for PlayerCombat's already-resolved primary attack judgment.
+  applyResolvedAttackFeedback(judgment = {}) {
+    const timing = judgment && judgment.timing ? judgment.timing : 'unavailable';
+    this.lastJudgment = { hit: timing === 'perfect' || timing === 'excellent', timing, combo: this.combo };
+    if (timing === 'perfect' || timing === 'excellent') {
+      this.combo++;
+      this.maxCombo = Math.max(this.maxCombo, this.combo);
+      this.triggerPowerArc(timing, false);
+      this.createHitEffect(timing, false);
+      if (window.audioSystem) window.audioSystem.playRhythmAttack(timing);
+    } else if (timing === 'miss' || timing === 'unavailable') {
+      this.combo = 0;
+      this.arcGrowthLevel = 0;
+      this.createMissEffect();
+    }
+    return this.lastJudgment;
+  }
+
   // Handle rhythm input
   handleInput(action = 'attack') {
     if (!this.active) return { hit: false, timing: 'inactive', combo: this.combo };
