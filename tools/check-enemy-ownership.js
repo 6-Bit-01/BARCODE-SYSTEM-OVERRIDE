@@ -54,6 +54,24 @@ assert(/_tutorialEnemiesDefeated >= 3/.test(enemies), 'tutorial three-enemy path
 assert(!/requestAnimationFrame\(/.test(enemies + jammer + runtime), 'enemy/Jammer/lifecycle changes create no competing RAF');
 assert(/single active enemy owner/.test(docs) && /JammerEnvironment/.test(docs) && /authoritative defeat/.test(docs), 'documentation records new ownership model');
 
+const debugCommands = read('src/game/debug-commands.js');
+const inputSource = read('src/core/input.js');
+const activeHandleDefinitions = Object.entries(loadedSources).filter(([, source]) => /window\.handleGameAction\s*=\s*function/.test(source));
+assert(activeHandleDefinitions.length === 1 && activeHandleDefinitions[0][0] === 'src/game/debug-commands.js', 'exactly one active handleGameAction definition exists');
+const dispatchedActions = [...inputSource.matchAll(/handleGameAction\(['"]([^'"]+)['"]\)/g)].map(match => match[1]);
+const uniqueActions = [...new Set(dispatchedActions)];
+for (const action of uniqueActions) {
+  assert(new RegExp(`case ['"]${action}['"]`).test(debugCommands), `input-dispatched action has an explicit route: ${action}`);
+}
+assert(uniqueActions.includes('jump') && uniqueActions.includes('dash') && uniqueActions.includes('skip_tutorial') && uniqueActions.includes('hack'), 'live input actions are audited');
+assert(/case 'jump':[\s\S]*routeJumpAction\(\)/.test(debugCommands), 'Space/input jump routes through routeJumpAction');
+assert(/window\.player\.jump\(\)/.test(debugCommands), 'jump route invokes player.jump()');
+assert(/jumpResult && jumpResult\.ok[\s\S]*checkObjective\('jump'\)/.test(inputSource), 'tutorial jump progress is conditional on successful jump result');
+assert(/case 'dash':[\s\S]*routeDashAction\(\)/.test(debugCommands) && /window\.player\.dash\(\)/.test(debugCommands), 'dash action is recognized and routed to player.dash()');
+assert(/case 'skip_tutorial':[\s\S]*routeSkipTutorialAction\(\)/.test(debugCommands), 'skip_tutorial action has an explicit tutorial completion route');
+assert(/cancelInitialEnemySpawn\(\)/.test(debugCommands) && /hasSpawnedInitialEnemies = false/.test(debugCommands), 'tutorial skip uses authoritative initial-spawn path without duplicate manual spawn');
+assert(!/RuntimeLifecycle\.(pause|resume|restart|stop)/.test(debugCommands), 'handleGameAction does not own pause/resume/restart/stop');
+
 
 // Controlled fixtures model the contracts enforced above without executing browser runtime files.
 class DefeatOwnerFixture {
@@ -102,6 +120,12 @@ class SimulationClockFixture {
   update(deltaMs) { this.simulationTimeMs += deltaMs; }
 }
 
+class ActionRouterFixture {
+  constructor() { this.player = { grounded: true, jumped: false, dashed: false, jump() { this.jumped = true; this.grounded = false; return true; }, dash() { this.dashed = true; return false; } }; this.tutorialChecked = false; }
+  jump() { const result = this.player.jump(); return { ok: result === true }; }
+  trackJump(result) { if (result && result.ok) this.tutorialChecked = true; }
+}
+
 class JammerFixture {
   constructor() { this.generation = 0; this.revealed = false; this.triggered = false; this.disposed = false; this.spriteRequested = false; this.spriteReady = false; this.allocations = 0; }
   reveal() { this.disposed = false; this.revealed = true; this.poll(false); }
@@ -131,6 +155,17 @@ owner.defeatedCount = 7; owner.clear({ preserveDefeats: true });
 assert(owner.defeatedCount === 7 && owner.projections.gameState === 7 && owner.projections.sector === 7, 'fixture: restart preservation keeps projections synchronized');
 owner.clear({ preserveDefeats: false });
 assert(owner.defeatedCount === 0 && owner.projections.gameState === 0 && owner.projections.sector === 0, 'fixture: full-stop clearing resets projections');
+const actionFixture = new ActionRouterFixture();
+const jumpResult = actionFixture.jump();
+actionFixture.trackJump(jumpResult);
+assert(actionFixture.player.jumped && actionFixture.tutorialChecked, 'fixture: successful jump routes to player.jump and tracks tutorial');
+const rejectedActionFixture = new ActionRouterFixture();
+rejectedActionFixture.player.jump = () => false;
+const rejectedJump = rejectedActionFixture.jump();
+rejectedActionFixture.trackJump(rejectedJump);
+assert(!rejectedActionFixture.tutorialChecked, 'fixture: rejected jump does not track tutorial');
+assert(rejectedActionFixture.player.dash() === false && rejectedActionFixture.player.dashed, 'fixture: dash route can be recognized while remaining current no-op design');
+
 const jammerFixture = new JammerFixture();
 jammerFixture.reveal(); jammerFixture.poll(false); jammerFixture.trigger();
 assert(jammerFixture.allocations === 1, 'fixture: Jammer reveal/trigger does not duplicate pending sprite allocation');

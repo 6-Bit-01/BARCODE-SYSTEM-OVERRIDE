@@ -52,21 +52,71 @@ window.DEBUG = {
 
 window.CHECK_JAMMER_STATUS = function() { return window.DEBUG.checkJammer(); };
 
+function gameplayAcceptsAction() {
+  if (window.isPaused || !window.isRunning) return false;
+  if (window.gameState && (window.gameState.paused || window.gameState.gameOver || window.gameState.victory || window.gameState.running === false)) return false;
+  return true;
+}
+
+function routeJumpAction() {
+  if (!gameplayAcceptsAction()) return { ok: false, action: 'jump', reason: 'gameplay-inactive' };
+  if (!window.player || typeof window.player.jump !== 'function') return { ok: false, action: 'jump', reason: 'player-unavailable' };
+  if (window.hackingSystem && typeof window.hackingSystem.isActive === 'function' && window.hackingSystem.isActive()) return { ok: false, action: 'jump', reason: 'hacking-active' };
+  if (window.rhythmSystem && typeof window.rhythmSystem.isActive === 'function' && window.rhythmSystem.isActive()) return { ok: false, action: 'jump', reason: 'rhythm-active' };
+  const wasGrounded = !!window.player.grounded;
+  const result = window.player.jump();
+  const accepted = result === true || (wasGrounded && window.player.grounded === false);
+  return { ok: accepted, action: 'jump', reason: accepted ? 'jumped' : 'jump-rejected' };
+}
+
+function routeDashAction() {
+  if (!gameplayAcceptsAction()) return { ok: false, action: 'dash', reason: 'gameplay-inactive' };
+  if (!window.player || typeof window.player.dash !== 'function') return { ok: false, action: 'dash', reason: 'player-unavailable' };
+  const result = window.player.dash();
+  return { ok: result === true, action: 'dash', reason: result === true ? 'dash-accepted' : 'dash-routed-noop' };
+}
+
+function routeHackAction() {
+  if (!gameplayAcceptsAction()) return { ok: false, action: 'hack', reason: 'gameplay-inactive' };
+  if (window.rhythmSystem && typeof window.rhythmSystem.isActive === 'function' && window.rhythmSystem.isActive()) return { ok: false, action: 'hack', reason: 'rhythm-active' };
+  if (window.player && !window.player.grounded) return { ok: false, action: 'hack', reason: 'player-airborne' };
+  if (window.hackingSystem && typeof window.hackingSystem.start === 'function') {
+    window.hackingSystem.start();
+    return { ok: true, action: 'hack', reason: 'hacking-started' };
+  }
+  return { ok: false, action: 'hack', reason: 'hacking-unavailable' };
+}
+
+function routeSkipTutorialAction() {
+  if (!window.tutorialSystem || typeof window.tutorialSystem.isActive !== 'function' || !window.tutorialSystem.isActive()) return { ok: false, action: 'skip_tutorial', reason: 'tutorial-inactive' };
+  if (typeof window.tutorialSystem.completeTutorial === 'function') window.tutorialSystem.completeTutorial();
+  window.tutorialSystem.completed = true;
+  window.tutorialSystem.active = false;
+  if (window.gameState) window.gameState.hasSpawnedInitialEnemies = false;
+  if (typeof window.cancelInitialEnemySpawn === 'function') window.cancelInitialEnemySpawn();
+  return { ok: true, action: 'skip_tutorial', reason: 'tutorial-completed' };
+}
+
 window.handleGameAction = function(action) {
   switch (action) {
-    case 'reveal_jammer': return window.DEBUG.revealJammer();
-    case 'trigger_jammer': return window.DEBUG.triggerJammer();
-    case 'reset_jammer': return window.DEBUG.resetJammer();
-    case 'check_jammer': return window.DEBUG.checkJammer();
+    case 'jump': return routeJumpAction();
+    case 'dash': return routeDashAction();
+    case 'hack': return routeHackAction();
+    case 'skip_tutorial': return routeSkipTutorialAction();
+    case 'reveal_jammer': return { ok: true, action, status: window.DEBUG.revealJammer() };
+    case 'trigger_jammer': return { ok: true, action, status: window.DEBUG.triggerJammer() };
+    case 'reset_jammer': return { ok: true, action, status: window.DEBUG.resetJammer() };
+    case 'check_jammer': return { ok: true, action, status: window.DEBUG.checkJammer() };
     case 'spawn_enemy':
-      if (window.enemyManager && typeof window.enemyManager.spawnEnemy === 'function') { window.enemyManager.spawnEnemy(); return '✅ Enemy spawned'; }
-      return '❌ Enemy manager unavailable';
+      if (window.enemyManager && typeof window.enemyManager.spawnEnemy === 'function') { window.enemyManager.spawnEnemy(); return { ok: true, action }; }
+      return { ok: false, action, reason: 'enemy-manager-unavailable' };
     case 'toggle_rhythm':
-      if (window.rhythmSystem && typeof window.rhythmSystem.toggle === 'function') return window.rhythmSystem.toggle();
-      return '❌ Rhythm system unavailable';
+      if (window.rhythmSystem && typeof window.rhythmSystem.toggle === 'function') return { ok: true, action, status: window.rhythmSystem.toggle() };
+      return { ok: false, action, reason: 'rhythm-unavailable' };
     default:
-      return `⚠️ Unknown debug action: ${action}`;
+      console.warn(`⚠️ Unknown debug action: ${action}`);
+      return { ok: false, action, reason: 'unknown-action' };
   }
 };
 
-console.log('🔧 Debug Commands: DEBUG.revealJammer(), DEBUG.triggerJammer(), DEBUG.resetJammer(), DEBUG.checkJammer()');
+console.log('🔧 Debug Commands: DEBUG.revealJammer(), DEBUG.triggerJammer(), DEBUG.resetJammer(), DEBUG.checkJammer(); live actions route through handleGameAction().');
