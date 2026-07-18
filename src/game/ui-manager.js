@@ -6,6 +6,189 @@ window.FILE_MANIFEST.push({
   dependencies: ['renderer', 'gameState', 'player', 'sector1Progression', 'lostDataSystem', 'hackingSystem', 'rhythmSystem', 'objectivesSystem', 'loreSystem', 'jammerIndicator', 'tutorialSystem']
 });
 
+// Boss-intro presentation is intentionally derived from the progression owner's
+// public state. UI visibility is never stored here, so objectives and diagnostics
+// return automatically on the first frame after the camera-return phase ends.
+const BOSS_CINEMATIC_PRESENTATION_STATES = new Set([
+  'jammer_destroyed_freeze',
+  'enemy_purge',
+  'camera_pan',
+  'boss_walk_in',
+  'boss_close_up',
+  'boss_flourish',
+  'boss_hold',
+  'camera_return',
+  'boss_camera_return'
+]);
+
+const isBossCinematicPresentationActive = () => {
+  const progression = window.sector1Progression;
+  if (!progression) return false;
+
+  if (typeof progression.isBossCinematicActive === 'function') {
+    return progression.isBossCinematicActive();
+  }
+  if (typeof progression.isBossIntroCinematicActive === 'function') {
+    return progression.isBossIntroCinematicActive();
+  }
+
+  const state = String(progression.state || '');
+  if (BOSS_CINEMATIC_PRESENTATION_STATES.has(state)) return true;
+
+  // Keep compatibility with a named return phase supplied by the progression
+  // owner without coupling the UI to its exact implementation spelling.
+  return progression.jammerDestroyedNotified === true &&
+    /(?:camera.*return|return.*camera|cinematic.*return)/.test(state);
+};
+
+const encounterPresentation = (() => {
+  const presentation = {
+    owner: null,
+    lastState: '',
+    lastActiveEncounterId: null,
+    clearedEncounterIds: new Set(),
+    cue: null
+  };
+
+  const now = () => Number.isFinite(window.gameState?.gameTime)
+    ? window.gameState.gameTime
+    : (window.performance && typeof window.performance.now === 'function' ? window.performance.now() : Date.now());
+
+  const definitions = () => Array.isArray(window.Sector1Progression?.ENCOUNTERS)
+    ? window.Sector1Progression.ENCOUNTERS
+    : [];
+
+  const definitionFor = id => definitions().find(encounter => encounter.id === id) || null;
+
+  const waveNumberFor = id => {
+    const index = definitions().findIndex(encounter => encounter.id === id);
+    return index >= 0 ? index + 1 : null;
+  };
+
+  const reset = owner => {
+    presentation.owner = owner || null;
+    presentation.lastState = owner?.state || '';
+    presentation.lastActiveEncounterId = null;
+    presentation.clearedEncounterIds.clear();
+    presentation.cue = null;
+  };
+
+  const beginCue = (kind, encounterId) => {
+    const definition = definitionFor(encounterId);
+    const wave = waveNumberFor(encounterId);
+    if (!definition || !wave) return;
+    presentation.cue = {
+      kind,
+      label: definition.label,
+      wave,
+      total: definitions().length,
+      startedAt: now(),
+      duration: kind === 'start' ? 1600 : 850
+    };
+  };
+
+  const update = owner => {
+    if (owner !== presentation.owner) reset(owner);
+    if (!owner || !owner.missionStarted || owner.state === 'tutorial') {
+      if (presentation.lastActiveEncounterId || presentation.cue) reset(owner);
+      return;
+    }
+
+    const currentState = String(owner.state || '');
+    const previousState = presentation.lastState;
+    const activeEncounterId = /^encounter_\d+$/.test(String(owner.activeEncounterId || ''))
+      ? owner.activeEncounterId
+      : null;
+
+    if (previousState && previousState !== currentState &&
+        presentation.lastActiveEncounterId === previousState &&
+        !presentation.clearedEncounterIds.has(previousState)) {
+      presentation.clearedEncounterIds.add(previousState);
+      beginCue('clear', previousState);
+    }
+
+    if (activeEncounterId && activeEncounterId !== presentation.lastActiveEncounterId) {
+      presentation.lastActiveEncounterId = activeEncounterId;
+      beginCue('start', activeEncounterId);
+    }
+
+    presentation.lastState = currentState;
+  };
+
+  const cueAlpha = (elapsed, duration) => {
+    const fadeIn = Math.min(1, elapsed / 160);
+    const fadeOut = Math.min(1, Math.max(0, duration - elapsed) / 260);
+    return Math.max(0, Math.min(fadeIn, fadeOut));
+  };
+
+  const drawStartCue = (ctx, cue, elapsed, alpha) => {
+    const easedY = 148 - Math.max(0, 1 - elapsed / 260) * 10;
+    const width = 500;
+    const height = 62;
+    const x = (1920 - width) / 2;
+
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = 'rgba(0, 12, 28, 0.88)';
+    ctx.fillRect(x, easedY, width, height);
+    ctx.strokeStyle = '#00ffff';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x, easedY, width, height);
+
+    ctx.fillStyle = '#00ffff';
+    ctx.font = 'bold 13px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText(`WAVE ${cue.wave} / ${cue.total}`, 960, easedY + 9);
+
+    ctx.shadowColor = '#ff00ff';
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = '#ffffff';
+    ctx.font = "bold 22px 'Orbitron', monospace";
+    ctx.fillText(String(cue.label || '').toUpperCase(), 960, easedY + 29);
+  };
+
+  const drawClearCue = (ctx, cue, elapsed, alpha) => {
+    const progress = Math.max(0, Math.min(1, elapsed / cue.duration));
+    const halfLine = 90 + 180 * Math.sin(Math.PI * progress);
+    const y = 172;
+
+    ctx.globalAlpha = alpha * 0.78;
+    ctx.strokeStyle = '#00ffff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(960 - halfLine, y + 28);
+    ctx.lineTo(960 + halfLine, y + 28);
+    ctx.stroke();
+
+    ctx.globalAlpha = alpha;
+    ctx.shadowColor = '#00ffff';
+    ctx.shadowBlur = 8;
+    ctx.fillStyle = '#bfffff';
+    ctx.font = "bold 18px 'Orbitron', monospace";
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText(`${String(cue.label || '').toUpperCase()} CLEARED`, 960, y);
+  };
+
+  const draw = ctx => {
+    const cue = presentation.cue;
+    if (!ctx || !cue) return;
+    const elapsed = now() - cue.startedAt;
+    if (elapsed >= cue.duration) {
+      presentation.cue = null;
+      return;
+    }
+
+    const alpha = cueAlpha(elapsed, cue.duration);
+    ctx.save();
+    if (cue.kind === 'clear') drawClearCue(ctx, cue, elapsed, alpha);
+    else drawStartCue(ctx, cue, elapsed, alpha);
+    ctx.restore();
+  };
+
+  return { update, draw };
+})();
+
 // Main UI drawing function
 window.drawGameUI = function(ctx) {
   // CRITICAL: Reset text alignment to default at start of drawUI
@@ -22,12 +205,15 @@ window.drawGameUI = function(ctx) {
   } else if (window.tutorialSystem.completed && !window.tutorialSystem.active) {
     tutorialCompleted = true;
   }
+
+  const bossCinematicActive = isBossCinematicPresentationActive();
+  encounterPresentation.update(window.sector1Progression);
   
   // Draw health and basic UI elements
   drawBasicUI(ctx);
   
   // Draw objectives after tutorial completion
-  if (tutorialCompleted) {
+  if (tutorialCompleted && !bossCinematicActive) {
     drawObjectives(ctx);
   }
   
@@ -42,6 +228,10 @@ window.drawGameUI = function(ctx) {
   // Draw collection message
   if (window.gameState.collectionMessage && window.gameState.collectionMessage.timer > 0) {
     drawCollectionMessage(ctx);
+  }
+
+  if (!bossCinematicActive) {
+    encounterPresentation.draw(ctx);
   }
   
   // Draw game over screen
@@ -58,7 +248,7 @@ window.drawGameUI = function(ctx) {
   drawLoreMessages(ctx);
   
   // Draw jammer indicator
-  if (window.jammerIndicator && typeof window.jammerIndicator.draw === 'function') {
+  if (!bossCinematicActive && window.jammerIndicator && typeof window.jammerIndicator.draw === 'function') {
     try {
       window.jammerIndicator.draw(ctx);
     } catch (error) {
@@ -68,7 +258,7 @@ window.drawGameUI = function(ctx) {
 
   // Session-only Makko diagnostics. This stays in the UI pass so the overlay uses
   // the same world-to-screen projection without changing gameplay rendering.
-  if (window.DEBUG?.level1?.drawOverlay) {
+  if (!bossCinematicActive && window.DEBUG?.level1?.drawOverlay) {
     try {
       window.DEBUG.level1.drawOverlay(ctx);
     } catch (error) {

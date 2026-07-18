@@ -30,6 +30,7 @@ const title = read('src/engine/title-screen.js');
 const parallax = read('src/engine/parallax.js');
 const player = read('src/game/player.js');
 const spaceships = read('src/engine/spaceships.js');
+const renderer = read('src/engine/renderer.js');
 const index = read('index.html');
 const design = read('docs/design/LEVEL_01_VERTICAL_SLICE.md');
 const enemies = read('src/game/enemies.js');
@@ -80,6 +81,15 @@ if (!pausedBranchMatch || !/updatePausedInput/.test(pausedBranchMatch[1]) || !/s
 }
 if (count(update, /renderer\.update\s*\(/g) !== 0) {
   fail('renderer.update must not be duplicated inside update-coordinator.js.');
+}
+const postEffectsBody = functionBody(renderer, 'applyPostEffects()');
+if (!postEffectsBody || /getImageData\s*\(/.test(postEffectsBody) || /putImageData\s*\(/.test(postEffectsBody)) {
+  fail('Renderer.applyPostEffects must use a bounded composited overlay, not full-frame pixel readback.');
+}
+for (const api of ['setCinematicZoomOverride', 'getCinematicZoomOverride', 'clearCinematicZoomOverride']) {
+  if (!renderer.includes(`${api}(`)) {
+    fail(`renderer must expose the cinematic zoom ownership API: ${api}.`);
+  }
 }
 if (count(loop, /renderer\.update\s*\(/g) !== 1) {
   fail('src/core/loop.js must be the single active renderer.update orchestration site.');

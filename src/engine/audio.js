@@ -6,6 +6,8 @@ window.FILE_MANIFEST.push({
   dependencies: ['BARCODE.MusicProfiles', 'BARCODE.MusicTransport']
 });
 
+const ADAPTIVE_STEM_GAIN_RAMP_SEC = 0.18;
+
 window.AudioSystem = class AudioSystem {
   constructor() {
     this.context = null;
@@ -84,6 +86,47 @@ window.AudioSystem = class AudioSystem {
       clearTimeout(this.beatScheduler);
       this.beatScheduler = null;
     }
+  }
+
+  rampAdaptiveStemGain(track, targetVolume, durationSec = ADAPTIVE_STEM_GAIN_RAMP_SEC) {
+    const gainParam = track && track.gain && track.gain.gain;
+    if (!gainParam) return false;
+
+    const target = Math.max(0, Number.isFinite(targetVolume) ? targetVolume : 0);
+    const now = this.context && Number.isFinite(this.context.currentTime) ? this.context.currentTime : null;
+    const duration = Math.max(0, Number.isFinite(durationSec) ? durationSec : ADAPTIVE_STEM_GAIN_RAMP_SEC);
+
+    try {
+      const canHold = now !== null && typeof gainParam.cancelAndHoldAtTime === 'function';
+      const canCancelAndAnchor = now !== null &&
+        typeof gainParam.cancelScheduledValues === 'function' &&
+        typeof gainParam.setValueAtTime === 'function';
+      const canRamp = now !== null && typeof gainParam.linearRampToValueAtTime === 'function';
+
+      if (canRamp && (canHold || canCancelAndAnchor)) {
+        if (canHold) {
+          gainParam.cancelAndHoldAtTime(now);
+        } else {
+          const currentValue = Number.isFinite(gainParam.value)
+            ? gainParam.value
+            : (Number.isFinite(track.volume) ? track.volume : target);
+          gainParam.cancelScheduledValues(now);
+          gainParam.setValueAtTime(currentValue, now);
+        }
+        gainParam.linearRampToValueAtTime(target, now + duration);
+      } else {
+        gainParam.value = target;
+      }
+    } catch (error) {
+      // Older or partial Web Audio implementations may expose scheduling methods
+      // without supporting them reliably. A direct assignment keeps music usable.
+      try { gainParam.value = target; } catch (fallbackError) {}
+    }
+
+    // This records the requested mix state. The AudioParam itself owns the short
+    // transition, so synchronized sources are never stopped or recreated.
+    track.volume = target;
+    return true;
   }
 
   beginRuntimeAudioGeneration() {
@@ -2493,8 +2536,7 @@ window.AudioSystem = class AudioSystem {
     // If already playing but volume changed, just update volume
     if (track.source && track.isPlaying && track.gain) {
       console.log(`Audio: ${layerName} volume update - current: ${track.volume}, target: ${volume}`);
-      track.gain.gain.value = volume;
-      track.volume = volume;
+      this.rampAdaptiveStemGain(track, volume);
       return;
     }
     
@@ -2535,7 +2577,7 @@ window.AudioSystem = class AudioSystem {
     
     // Create individual gain for this layer
     const layerGain = this.context.createGain();
-    layerGain.gain.value = volume;
+    layerGain.gain.value = 0;
     
     // Connect layer gain to music gain
     source.connect(layerGain);
@@ -2555,7 +2597,8 @@ window.AudioSystem = class AudioSystem {
     track.pauseTime = 0;
     track.isPlaying = true;
     track.gain = layerGain;
-    track.volume = volume;
+    track.volume = 0;
+    this.rampAdaptiveStemGain(track, volume);
   }
   
   // Stop individual layer
@@ -2587,9 +2630,8 @@ window.AudioSystem = class AudioSystem {
       const layerNames = profile ? profile.arrangement.sources.map(source => source.sourceId) : [];
       layerNames.forEach(layerName => {
         const track = this.musicTracks[layerName];
-        if (track && track.gain) {
-          track.gain.gain.value = 0;
-          track.volume = 0;
+        if (track && track.gain && Math.abs((track.volume || 0) - 0) > 0.01) {
+          this.rampAdaptiveStemGain(track, 0);
         }
       });
       return;
@@ -2617,15 +2659,7 @@ window.AudioSystem = class AudioSystem {
       // Only update if volume needs to change
       if (Math.abs(track.volume - targetVolume) > 0.01) {
         console.log(`Updating ${layerName} volume from ${track.volume} to ${targetVolume}`);
-        track.gain.gain.value = targetVolume;
-        track.volume = targetVolume;
-        
-        // Verify change stuck
-        if (layerName === 'bass-layer') {
-          this.scheduleRuntimeTimeout(() => {
-            console.log('Bass layer verification - after update:', track.volume, 'gain value:', track.gain.gain.value);
-          }, 50);
-        }
+        this.rampAdaptiveStemGain(track, targetVolume);
       }
     });
   }
@@ -2708,8 +2742,7 @@ window.AudioSystem = class AudioSystem {
       return;
     }
     
-    track.gain.gain.value = volume;
-    track.volume = volume;
+    this.rampAdaptiveStemGain(track, volume);
   }
   
   // Set layer volume (alias for updateLayerVolume)
@@ -2733,8 +2766,7 @@ window.AudioSystem = class AudioSystem {
       return;
     }
     
-    track.gain.gain.value = volume;
-    track.volume = volume;
+    this.rampAdaptiveStemGain(track, volume);
   }
   
   // Determine appropriate music state

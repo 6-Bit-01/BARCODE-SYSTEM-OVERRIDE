@@ -9,6 +9,7 @@ const BASE_COMMIT = 'a2f1e81b61d0fde4fdabc41c597bf44910911c2f';
 const CRITICAL_GLOBALS = [
   'startGame','startNewGame','startGameInitialization','gameLoop','startGameLoop','updateGame','renderGame','Enemy','EnemyManager','enemyManager','gameState','player','renderer'
 ];
+let syntaxCheckSequence = 0;
 
 function rel(p) { return path.relative(ROOT, p).split(path.sep).join('/'); }
 function read(relPath) { return fs.readFileSync(path.join(ROOT, relPath), 'utf8'); }
@@ -16,7 +17,7 @@ function exists(relPath) { return fs.existsSync(path.join(ROOT, relPath)); }
 function walk(dir = ROOT) {
   const out = [];
   for (const name of fs.readdirSync(dir).sort()) {
-    if (name === '.git' || name === 'node_modules') continue;
+    if (name === '.git' || name === 'node_modules' || name === '.tmp-syntax-check') continue;
     const full = path.join(dir, name);
     const st = fs.statSync(full);
     if (st.isDirectory()) out.push(...walk(full));
@@ -72,7 +73,7 @@ function missingFirstPartyReferences() {
 function syntaxCheckSource(code, filename) {
   const tempDir = path.join(ROOT, '.tmp-syntax-check');
   fs.mkdirSync(tempDir, { recursive: true });
-  const safeName = filename.replace(/[^A-Za-z0-9_.-]/g, '_') + '.js';
+  const safeName = `${process.pid}-${syntaxCheckSequence++}-${filename.replace(/[^A-Za-z0-9_.-]/g, '_')}.js`;
   const tempFile = path.join(tempDir, safeName);
   fs.writeFileSync(tempFile, code);
   try {

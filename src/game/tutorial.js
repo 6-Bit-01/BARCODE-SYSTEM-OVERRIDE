@@ -8,7 +8,7 @@ window.FILE_MANIFEST.push({
 
 window.TutorialSystem = class TutorialSystem {
   constructor() {
-    this.active = false;
+    this._active = false;
     this.combatEnemiesPaused = false;
     this.enemyCountDisplay = 0;
     this.currentStep = 0;
@@ -38,14 +38,27 @@ window.TutorialSystem = class TutorialSystem {
     this.isFinalMessage = false;
     this._finalMessageSequenceArmed = false;
 
-    // Tutorial enemy spawns are delayed, but they must never outlive the
-    // chapter which scheduled them.
-    this._tutorialEnemyTimerGeneration = 0;
-    this._pendingTutorialEnemyTimers = new Set();
+    // Tutorial callbacks are delayed, but they must never outlive the chapter,
+    // tutorial run, or runtime lifecycle generation which scheduled them.
+    this._tutorialTimerGeneration = 0;
+    this._pendingTutorialTimers = new Set();
+  }
+
+  get active() {
+    return this._active;
+  }
+
+  set active(value) {
+    const nextActive = !!value;
+    const wasActive = this._active;
+    this._active = nextActive;
+    if (wasActive && !nextActive && this._pendingTutorialTimers?.size) {
+      this._cancelPendingTutorialTimers();
+    }
   }
   
   startTutorial() {
-    this._cancelPendingTutorialEnemyTimers();
+    this._cancelPendingTutorialTimers();
     if (this.completed) return;
     
     this.active = true;
@@ -63,7 +76,7 @@ window.TutorialSystem = class TutorialSystem {
   }
   
   startChapter(chapter) {
-    this._cancelPendingTutorialEnemyTimers();
+    this._cancelPendingTutorialTimers();
 
     if (chapter > 4) {
       console.log('Tutorial complete - no more chapters to start');
@@ -103,7 +116,7 @@ window.TutorialSystem = class TutorialSystem {
         this.combatEnemiesPaused = true;
         console.log('Combat tutorial enemies paused at start');
         
-        this._scheduleTutorialEnemyTimer(() => {
+        this._scheduleTutorialTimer(() => {
           if (this.active && this.storyChapter === 1 && this.combatEnemiesPaused) {
             console.log('Auto-bringing enemies to ground');
             this.bringEnemiesToGround();
@@ -436,7 +449,7 @@ window.TutorialSystem = class TutorialSystem {
           return;
         }
         console.log('Chapter complete! Advancing to chapter:', this.storyChapter + 1);
-        setTimeout(() => {
+        this._scheduleTutorialTimer(() => {
           this.startChapter(this.storyChapter + 1);
         }, 1000);
       }
@@ -474,7 +487,7 @@ window.TutorialSystem = class TutorialSystem {
             
             // AUTO-SKIP: Immediately advance to next chapter
             console.log('⏩ AUTO-SKIP: Combat objective completed early - skipping to next chapter');
-            setTimeout(() => {
+            this._scheduleTutorialTimer(() => {
               this.startChapter(2);
             }, 1000); // Brief pause for visual feedback
             return;
@@ -488,7 +501,7 @@ window.TutorialSystem = class TutorialSystem {
           const currentRhythmDialogue = this.dialogue[this.currentDialogue];
           if (currentRhythmDialogue && currentRhythmDialogue.text === 'Complete the task to continue...') {
             // AUTO-SKIP: Check if rhythm_start is also completed
-            setTimeout(() => {
+            this._scheduleTutorialTimer(() => {
               const hasRhythmStart = this.completedObjectives.has('rhythm_start');
               if (hasRhythmStart) {
                 console.log('⏩ AUTO-SKIP: All rhythm objectives completed - advancing to hacking chapter');
@@ -505,14 +518,14 @@ window.TutorialSystem = class TutorialSystem {
           const currentHackDialogue = this.dialogue[this.currentDialogue];
           if (currentHackDialogue && currentHackDialogue.text === 'Complete the task to continue...') {
             // AUTO-SKIP: Check if hack_start is also completed
-            setTimeout(() => {
+            this._scheduleTutorialTimer(() => {
               const hasHackStart = this.completedObjectives.has('hack_start');
               if (hasHackStart) {
                 console.log('⏩ AUTO-SKIP: All hacking objectives completed - advancing to final chapter');
                 this.startChapter(4);
               } else {
                 this.addDialogue('System breached! You\'ve still got your skills.', 'guide', 0);
-                setTimeout(() => {
+                this._scheduleTutorialTimer(() => {
                   this.advanceDialogue();
                 }, 100);
               }
@@ -535,7 +548,7 @@ window.TutorialSystem = class TutorialSystem {
   }
   
   completeTutorial() {
-    this._cancelPendingTutorialEnemyTimers();
+    this._cancelPendingTutorialTimers();
     this.completed = true;
     console.log('Tutorial marked complete after the final message presentation');
     
@@ -814,7 +827,7 @@ window.TutorialSystem = class TutorialSystem {
       this.readyToAdvance = true;
       
       // Auto-advance after brief delay for player to see completion
-      setTimeout(() => {
+      this._scheduleTutorialTimer(() => {
         if (this.active && allRequiredComplete) {
           this.advanceDialogue();
         }
@@ -864,25 +877,38 @@ window.TutorialSystem = class TutorialSystem {
     this.checkObjective('rhythm_combo');
   }
 
-  _cancelPendingTutorialEnemyTimers() {
-    this._tutorialEnemyTimerGeneration += 1;
-    if (!this._pendingTutorialEnemyTimers) {
-      this._pendingTutorialEnemyTimers = new Set();
-      return;
-    }
-    this._pendingTutorialEnemyTimers.forEach(timerId => clearTimeout(timerId));
-    this._pendingTutorialEnemyTimers.clear();
+  _getRuntimeLifecycleGeneration() {
+    const lifecycle = window.BARCODE && window.BARCODE.RuntimeLifecycle;
+    const snapshot = lifecycle && typeof lifecycle.getSnapshot === 'function' ? lifecycle.getSnapshot() : null;
+    return snapshot && Number.isFinite(snapshot.generation) ? snapshot.generation : null;
   }
 
-  _scheduleTutorialEnemyTimer(callback, delay, generation = this._tutorialEnemyTimerGeneration) {
-    if (!this._pendingTutorialEnemyTimers) this._pendingTutorialEnemyTimers = new Set();
+  _cancelPendingTutorialTimers() {
+    this._tutorialTimerGeneration += 1;
+    if (!this._pendingTutorialTimers) {
+      this._pendingTutorialTimers = new Set();
+      return;
+    }
+    this._pendingTutorialTimers.forEach(timerId => clearTimeout(timerId));
+    this._pendingTutorialTimers.clear();
+  }
+
+  _scheduleTutorialTimer(callback, delay, generation = this._tutorialTimerGeneration) {
+    if (!this._pendingTutorialTimers) this._pendingTutorialTimers = new Set();
+    const runtimeGeneration = this._getRuntimeLifecycleGeneration();
     const timerId = setTimeout(() => {
-      this._pendingTutorialEnemyTimers.delete(timerId);
-      if (generation !== this._tutorialEnemyTimerGeneration) return;
+      this._pendingTutorialTimers.delete(timerId);
+      if (generation !== this._tutorialTimerGeneration || !this.active) return;
+      const currentRuntimeGeneration = this._getRuntimeLifecycleGeneration();
+      if (runtimeGeneration !== null && currentRuntimeGeneration !== runtimeGeneration) return;
       callback();
     }, delay);
-    this._pendingTutorialEnemyTimers.add(timerId);
+    this._pendingTutorialTimers.add(timerId);
     return timerId;
+  }
+
+  cancelPendingTimers() {
+    this._cancelPendingTutorialTimers();
   }
 
   _settleTutorialEnemyOnGround(enemy) {
@@ -905,8 +931,8 @@ window.TutorialSystem = class TutorialSystem {
   spawnCombatEnemies() {
     if (!window.enemyManager) return;
 
-    this._cancelPendingTutorialEnemyTimers();
-    const generation = this._tutorialEnemyTimerGeneration;
+    this._cancelPendingTutorialTimers();
+    const generation = this._tutorialTimerGeneration;
     
     // Check current enemy count before spawning
     const currentEnemyCount = window.enemyManager.getActiveEnemies().length;
@@ -925,8 +951,8 @@ window.TutorialSystem = class TutorialSystem {
     this._tutorialEnemiesDefeated = 0;
     
     for (let i = 0; i < enemiesToSpawn; i++) {
-      this._scheduleTutorialEnemyTimer(() => {
-        if (!this.active || this.storyChapter !== 1 || generation !== this._tutorialEnemyTimerGeneration) return;
+      this._scheduleTutorialTimer(() => {
+        if (!this.active || this.storyChapter !== 1 || generation !== this._tutorialTimerGeneration) return;
         const progression = window.sector1Progression;
         if (!progression || typeof progression.spawnTutorialEnemy !== 'function') {
           console.warn('Tutorial enemy spawn skipped: Sector1Progression.spawnTutorialEnemy is unavailable');
@@ -952,8 +978,8 @@ window.TutorialSystem = class TutorialSystem {
       
       this.combatEnemiesPaused = false;
       
-      const generation = this._tutorialEnemyTimerGeneration;
-      this._scheduleTutorialEnemyTimer(() => {
+      const generation = this._tutorialTimerGeneration;
+      this._scheduleTutorialTimer(() => {
         if (this.active && this.storyChapter === 1) {
           this.combatEnemiesPaused = false;
           console.log('🌟 Combat enemies unpaused - they should move now!');

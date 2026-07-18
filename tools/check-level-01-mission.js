@@ -10,10 +10,12 @@ const enemies = fs.readFileSync('src/game/enemies.js','utf8');
 const input = fs.readFileSync('src/core/input.js','utf8');
 const gameState = fs.readFileSync('src/game/game-state.js','utf8');
 const render = fs.readFileSync('src/game/render-coordinator.js','utf8');
+const loopSource = fs.readFileSync('src/core/loop.js','utf8');
 const objectives = fs.readFileSync('src/game/objectives.js','utf8');
 const updateCoordinator = fs.readFileSync('src/game/update-coordinator.js','utf8');
 const indicatorSource = fs.readFileSync('src/engine/jammer-indicator.js','utf8');
 const debugSource = fs.readFileSync('src/game/level-01-debug.js','utf8');
+const uiSource = fs.readFileSync('src/game/ui-manager.js','utf8');
 const indexSource = fs.readFileSync('index.html','utf8');
 function must(text, re, msg) { assert(re.test(text), msg); }
 function approximately(actual, expected, message, epsilon = 0.000001) { assert(Math.abs(actual - expected) <= epsilon, `${message}: expected ${expected}, received ${actual}`); }
@@ -31,6 +33,12 @@ must(enemies, /updateAuthoredEntrance\(deltaTime\)[^]*keepEntranceTargetSafe\(th
 must(sectorSource, /isCompleted\(\) && typeof window\.tutorialSystem\.isActive === 'function' && !window\.tutorialSystem\.isActive\(\)/, 'mission requires completed and inactive tutorial');
 must(sectorSource, /captureCinematicStart\(\)[^]*gameCamera\.centerX/, 'Jammer destruction captures gameCamera.centerX immediately');
 must(sectorSource, /transitionToPan\(\)[^]*if \(!Number\.isFinite\(this\.panStartX\)\) this\.captureCinematicStart\(\)/, 'pan reuses captured start');
+must(sectorSource, /getForegroundCoverageZoomFloor[^]*leftFloor[^]*rightFloor/, 'cinematic camera derives a locked-foreground coverage floor for both screen edges');
+must(sectorSource, /updatePan\(delta\)[^]*Math\.max\(desiredZoom, getForegroundCoverageZoomFloor\(this\.cameraX\)\)/, 'pan couples camera motion to a seam-safe zoom floor');
+must(sectorSource, /updateCameraReturn\(delta\)[^]*Math\.max\(desiredZoom, getForegroundCoverageZoomFloor\(this\.cameraX\)\)/, 'camera return keeps intermediate frames seam-safe');
+must(sectorSource, /isBossCinematicActive\(\)/, 'boss cinematic exposes a semantic activity query for presentation owners');
+must(loopSource, /getCinematicZoomOverride[^]*setCinematicZoomOverride/, 'game loop routes the authored cinematic zoom into the renderer override');
+must(loopSource, /!hasCinematicZoom[^]*updateZoomFromPlayer/, 'automatic player zoom cannot overwrite an active cinematic zoom');
 must(sectorSource, /pollPreparedAssets/, 'async prepared asset polling exists');
 must(sectorSource, /entry\.generation !== this\.assetGeneration/, 'asset polling is generation guarded');
 must(sectorSource, /activeAnimation === animation/, 'boss animation play is guarded by active animation');
@@ -50,6 +58,14 @@ must(gameState, /shouldSuppressGenericSpawning\(\)[^]*hasSpawnedInitialEnemies =
 must(render, /centerX: cameraX/, 'renderer records camera center convention');
 must(updateCoordinator, /progressionSuppressesGameplay[^]*allowMovement = !hackingActive && !progressionSuppressesGameplay/s, 'update coordinator disables player physics during cinematic suppression');
 must(objectives, /visibleObjectives[^]*Math\.max\(160, 60 \+ visibleObjectives\.length \* 50\)/s, 'objective panel height grows for boss-ready row');
+must(debugSource, /handleCanvasPointer\(event\) \{\s*if \(isBossCinematicActive\(\)\) return;/, 'hidden Level 1 debug controls cannot receive pointer actions during the boss cinematic');
+must(debugSource, /drawOverlay\(ctx\) \{\s*if \(!ctx \|\| isBossCinematicActive\(\)\) return;/, 'Level 1 debug overlay stays hidden for the full boss cinematic');
+must(indexSource, /R<\/span> - Rhythm Mode[^]*Down Arrow<\/span> - Beat Attack/, 'visible controls distinguish Rhythm Mode from the Down Arrow beat attack');
+must(uiSource, /tutorialCompleted && !bossCinematicActive/, 'mission objectives hide during the boss cinematic and restore afterward');
+must(uiSource, /!bossCinematicActive && window\.jammerIndicator/, 'Jammer guidance hides during the boss cinematic');
+must(uiSource, /!bossCinematicActive && window\.DEBUG\?\.level1\?\.drawOverlay/, 'Level 1 DEV presentation hides during the boss cinematic');
+must(uiSource, /WAVE \$\{cue\.wave\} \/ \$\{cue\.total\}/, 'authored encounter wave labels are presented');
+must(uiSource, /CLEARED`/, 'encounter completion receives a restrained clear cue');
 
 function createVectorClass() {
   return class Vector2D { constructor(x, y) { this.x = x; this.y = y; } multiply(n) { return new Vector2D(this.x * n, this.y * n); } add(v) { return new Vector2D(this.x + v.x, this.y + v.y); } };
@@ -262,20 +278,110 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   const { window } = loadRealSector();
   const p = new window.Sector1Progression(window.player);
   p.state = 'jammer_active'; p.missionStarted = true; window.gameCamera = { x: 515, centerX: 1475 };
+  window.renderer = { zoomLevel: 0.735, getZoomLevel() { return this.zoomLevel; }, getCinematicZoomOverride() { return null; } };
   p.onJammerDestroyed();
   assert.strictEqual(p.cameraOverrideActive, true, 'camera override enabled immediately');
   assert.strictEqual(p.cameraX, 1475, 'camera captured at destruction center');
   assert.strictEqual(p.panStartX, 1475, 'pan start captured immediately');
+  assert.strictEqual(p.cinematicStartZoom, 0.735, 'cinematic captures the exact effective pre-pan zoom');
+  assert.strictEqual(p.getCinematicZoomOverride(), 0.735, 'freeze holds the exact captured zoom instead of allowing player auto-zoom drift');
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(p.cinematicStartPlayerPosition)), { x: 900, y: 700 }, 'cinematic captures the exact player origin');
   assert.strictEqual(p.frozenPlayerPosition.x, 900, 'player x snapshot captured'); assert.strictEqual(p.frozenPlayerPosition.y, 700, 'player y snapshot captured');
   assert.strictEqual(window.player.velocity.x, 0); assert.strictEqual(window.player.velocity.y, 0);
   window.gameCamera.centerX = 2200; p.update(800); p.update(1);
   assert.strictEqual(p.state, 'camera_pan');
+  assert.strictEqual(p.isBossCinematicActive(), true, 'semantic cinematic flag covers the active pan');
   assert.strictEqual(p.panStartX, 1475, 'transitionToPan reuses destruction-time snapshot');
   p.update(0); assert.strictEqual(p.cameraX, 1475, 'first pan frame equals previous gameplay camera center');
   window.player.position.x = 999; window.player.position.y = 999; window.player.velocity.y = 99; p.update(16);
   assert.strictEqual(window.player.position.x, 900, 'suppression freezes player x');
   assert.strictEqual(window.player.position.y, 700, 'suppression freezes player y');
   assert.strictEqual(window.player.velocity.y, 0, 'suppression stops vertical physics');
+
+  const foregroundScreenEdges = () => ({
+    left: 960 + p.getCinematicZoomOverride() * (-152 - p.cameraX),
+    right: 960 + p.getCinematicZoomOverride() * (4248 - p.cameraX)
+  });
+  p.update(984);
+  let edges = foregroundScreenEdges();
+  assert(edges.left <= 0 && edges.right >= 1920, 'mid-pan zoom override keeps both locked-foreground edges beyond the viewport');
+  p.update(1000);
+  assert.strictEqual(p.state, 'boss_walk_in', 'the liked two-second pan still hands off to the boss walk-in');
+  approximately(p.cameraX, 3136, 'boss reveal retains the authored far-right camera frame');
+  assert(p.getCinematicZoomOverride() >= 0.92, 'wide boss reveal uses the seam-safe zoom floor');
+  edges = foregroundScreenEdges();
+  assert(edges.left <= 0 && edges.right >= 1920, 'wide boss reveal cannot expose the background behind the foreground edge');
+
+  p.boss.x = 3480;
+  p.updateBossWalk(0);
+  assert.strictEqual(p.state, 'boss_close_up', 'boss reaching its mark begins the close-up before the flourish');
+  approximately(960 + p.getCinematicZoomOverride() * (p.boss.x - p.cameraX), 1276.48, 'wide reveal frames the boss in the right third before the close-up');
+  p.update(500);
+  assert.strictEqual(p.state, 'boss_flourish', 'close-up completes into the flourish');
+  approximately(p.getCinematicZoomOverride(), 1.08, 'close-up reaches the authored cinematic zoom');
+  approximately(960 + p.getCinematicZoomOverride() * (p.boss.x - p.cameraX), 1331.52, 'close-up keeps the boss comfortably inside the right edge');
+  p.update(900);
+  assert.strictEqual(p.state, 'boss_hold', 'flourish receives its full authored animation window');
+  p.update(250);
+  assert.strictEqual(p.state, 'camera_return', 'pose hold completes into the camera return');
+
+  p.update(800);
+  edges = foregroundScreenEdges();
+  assert(edges.left <= 0 && edges.right >= 1920, 'mid-return zoom floor keeps the locked foreground covering the viewport');
+  const midReturnBossScreenX = 960 + p.getCinematicZoomOverride() * (p.boss.x - p.cameraX);
+  assert(midReturnBossScreenX >= 1380 && midReturnBossScreenX <= 1540, 'boss carries with the returning camera on the right side of the frame');
+  p.update(800);
+  assert.strictEqual(p.state, 'boss_ready', 'return hands off to the non-combat boss-ready staging state');
+  approximately(p.cameraX, 1475, 'return lands on the exact captured pre-pan camera center');
+  approximately(p.getCinematicZoomOverride(), 0.735, 'return lands on the exact captured pre-pan zoom');
+  approximately(960 + p.getCinematicZoomOverride() * (p.boss.x - p.cameraX), 1440, 'boss ends visible at the authored right-side screen position');
+  assert.deepStrictEqual({ x: window.player.position.x, y: window.player.position.y }, { x: 900, y: 700 }, 'player returns to the exact captured arena position');
+  assert.strictEqual(window.player.controlsDisabled, false, 'player controls release after the completed return');
+  assert.strictEqual(p.cameraOverrideActive, false, 'camera ownership releases after the completed return');
+  assert.strictEqual(p.isGameplaySuppressed(), false, 'boss_ready no longer permanently suppresses gameplay');
+  assert.strictEqual(p.isBossCinematicActive(), false, 'semantic cinematic flag clears on boss_ready');
+  assert.strictEqual(p.boss.canDealDamage, false, 'camera handoff does not falsely enable unwired boss damage');
+  assert.strictEqual(p.boss.canReceiveDamage, false, 'camera handoff does not falsely enable unwired boss damage reception');
+  p.update(0);
+  assert.strictEqual(p.getCinematicZoomOverride(), null, 'cinematic zoom ownership releases one frame after exact restoration');
+}
+{
+  const cameraScenarios = [
+    { cameraX: 960, playerX: 420, zoom: 0.926 },
+    { cameraX: 2048, playerX: 2048, zoom: 0.625 },
+    { cameraX: 3136, playerX: 3670, zoom: 0.926 }
+  ];
+
+  for (const scenario of cameraScenarios) {
+    const { window } = loadRealSector();
+    window.player.position.x = scenario.playerX;
+    window.player.position.y = 700;
+    window.gameCamera = { centerX: scenario.cameraX };
+    window.renderer = {
+      getZoomLevel: () => scenario.zoom,
+      getCinematicZoomOverride: () => null
+    };
+    const p = new window.Sector1Progression(window.player);
+    p.state = 'jammer_active';
+    p.missionStarted = true;
+    p.onJammerDestroyed();
+    p.update(800);
+    p.update(1);
+    p.update(2000);
+    p.boss.x = window.Sector1Progression.CINEMATIC.bossStopX;
+    p.updateBossWalk(0);
+    p.update(500);
+    p.update(900);
+    p.update(250);
+    p.update(1600);
+
+    assert.strictEqual(p.state, 'boss_ready', `camera return completes from ${scenario.cameraX}`);
+    approximately(p.cameraX, scenario.cameraX, `camera center restores from ${scenario.cameraX}`);
+    approximately(p.getCinematicZoomOverride(), scenario.zoom, `effective zoom restores from ${scenario.cameraX}`);
+    approximately(960 + scenario.zoom * (p.boss.x - scenario.cameraX), 1440, `boss arrives in the original arena from ${scenario.cameraX}`);
+    assert.strictEqual(window.player.position.x, scenario.playerX, `player position restores from ${scenario.cameraX}`);
+    assert.strictEqual(window.player.controlsDisabled, false, `controls release from ${scenario.cameraX}`);
+  }
 }
 {
   const { window } = loadRealSector();
@@ -285,13 +391,20 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   p.state = 'boss_ready';
   p.cameraOverrideActive = true;
   p.cameraX = 3136;
+  p.cinematicZoomOverride = 1.08;
+  p.cinematicZoomReleasePending = true;
   p.frozenPlayerPosition = { x: 1, y: 2 };
   p.jammerDestroyedNotified = true;
   p.boss = { active: true };
+  let clearedRendererOverrides = 0;
+  window.renderer = { clearCinematicZoomOverride() { clearedRendererOverrides += 1; } };
   p.debugGotoEncounter(2);
   assert.strictEqual(p.state, 'encounter_2', 'debug encounter jump selects the requested encounter');
   assert.strictEqual(p.cameraOverrideActive, false, 'debug encounter jump releases a previous boss camera override');
   assert.strictEqual(p.frozenPlayerPosition, null, 'debug encounter jump clears a previous cinematic player lock');
+  assert.strictEqual(p.getCinematicZoomOverride(), null, 'debug encounter jump clears the progression cinematic zoom');
+  assert.strictEqual(p.cinematicZoomReleasePending, false, 'debug encounter jump clears a pending one-frame zoom release');
+  assert.strictEqual(clearedRendererOverrides, 1, 'debug encounter jump immediately clears the renderer cinematic zoom');
   assert.strictEqual(p.jammerDestroyedNotified, false, 'debug encounter jump resets the Jammer destruction latch');
   assert.strictEqual(p.boss, null, 'debug encounter jump removes the previous boss presentation');
   p.debugCompleteEncounter();
@@ -308,6 +421,7 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   assert.strictEqual(p.state, 'jammer_active', 'debug Jammer jump remains reusable after a prior cinematic');
   assert.strictEqual(p.jammerDestroyedNotified, false, 'debug Jammer jump rearms the boss-intro destruction latch');
   assert.strictEqual(p.cameraOverrideActive, false, 'debug Jammer jump starts from the normal player camera');
+  assert.strictEqual(p.getCinematicZoomOverride(), null, 'debug Jammer jump cannot retain a stale cinematic zoom');
 }
 {
   const { window, sprite, setSpriteLoaded } = loadRealSector({ spriteLoadedInitially: false });
@@ -318,7 +432,7 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   p.pollPreparedAssets(); assert.strictEqual(window.MakkoEngine.calls, 1, 'polling does not create another sprite');
   setSpriteLoaded(true); p.pollPreparedAssets();
   assert.strictEqual(p.preloadedBossSprite, sprite, 'async-loaded boss sprite becomes preloaded');
-  p.cameraX = 3000; p.startBossWalk();
+  p.cameraX = 3000; p.cinematicStartCameraX = 1475; p.cinematicStartZoom = 0.735; p.cinematicZoomOverride = 0.92; p.startBossWalk();
   assert.strictEqual(p.boss.sprite, sprite, 'entrance uses same prepared sprite instance');
   const presentationFrames = [
     { state: 'walk', animation: 'sector_1_boss_walk_walk', sourceAnchorY: 253, expectedScale: 0.8 },
@@ -338,12 +452,16 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   p.boss.activeAnimation = 'sector_1_boss_walk_walk';
   p.updateBossWalk(16); p.updateBossWalk(16);
   assert.deepStrictEqual(sprite.playCalls.map(c => c.name), ['sector_1_boss_walk_walk'], 'walk plays only once on transition');
-  p.boss.x = 3600; p.updateBossWalk(16);
-  assert(sprite.playCalls.map(c => c.name).includes('sector_1_boss_attack_attack'), 'flourish plays on transition');
-  const before = sprite.updateCalls; p.update(100); p.update(100);
-  assert(sprite.updateCalls > before, 'flourish sprite receives update calls');
-  p.update(1000);
-  assert(sprite.playCalls.map(c => c.name).includes('sector_1_boss_idle_idle'), 'idle plays when boss_ready begins');
+  p.boss.x = 3480; p.updateBossWalk(16);
+  assert(sprite.playCalls.map(c => c.name).includes('sector_1_boss_idle_idle'), 'close-up switches from walk to an idle presentation');
+  const before = sprite.updateCalls; p.update(500);
+  assert(sprite.updateCalls > before, 'close-up keeps the prepared boss sprite updating');
+  assert(sprite.playCalls.map(c => c.name).includes('sector_1_boss_attack_attack'), 'flourish plays after the close-up reaches its mark');
+  p.update(900); p.update(250);
+  assert.strictEqual(p.state, 'camera_return', 'animation sequence advances through flourish and hold into return');
+  p.update(1600);
+  assert.strictEqual(p.state, 'boss_ready', 'animation sequence finishes at boss_ready after returning');
+  assert.strictEqual(sprite.playCalls.at(-1).name, 'sector_1_boss_idle_idle', 'idle plays when boss_ready begins');
 }
 {
   const window = {
