@@ -6,10 +6,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
   const WORLD_WIDTH = 4096;
   const CANVAS_WIDTH = 1920;
   const GROUND_Y = 750;
-  // Normalize each Makko frame's bottom-center manifest anchor so its visible
-  // foot contact is 100 world pixels below Player.position.y (physics ground
-  // 750 -> the locked foreground's authored sidewalk contact at 850).
-  const PLAYER_VISUAL_FOOT_OFFSET = 100;
+  // Player.position.y and boss.y already represent the authored foot-contact
+  // line (physics ground 750 -> foreground sidewalk 750). Per-frame sprite
+  // compensation resolves to that line without a second world-space offset.
+  const PLAYER_VISUAL_FOOT_OFFSET = 0;
   const CAMERA_MIN = CANVAS_WIDTH / 2;
   const CAMERA_MAX = WORLD_WIDTH - CANVAS_WIDTH / 2;
 
