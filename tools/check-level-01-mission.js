@@ -135,6 +135,7 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
 {
   const { window } = loadRealSector();
   const p = new window.Sector1Progression(window.player);
+  window.BARCODE.DEBUG_LEVEL_1_ENABLED = true;
   p.debugGotoJammer();
   assert.strictEqual(p.state, 'jammer_active', 'debug goto jammer sets jammer active');
   assert.strictEqual(p.missionDefeats, 20, 'debug goto jammer synchronizes 20/20');

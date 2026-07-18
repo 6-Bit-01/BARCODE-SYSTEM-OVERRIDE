@@ -7,51 +7,114 @@ window.FILE_MANIFEST.push({
 });
 
 
-function drawGlowText(text, x, y, options = {}) {
-  const ctx = window.__activeUICtx;
-  if (!ctx) return;
+function drawGlowText(ctx, text, x, y, options = {}) {
+  const size = options.size || 20;
+  const color = options.color || '#ffffff';
+  const align = options.align || 'left';
   ctx.save();
-  ctx.font = `${options.bold === false ? '' : 'bold '}${options.size || 18}px ${options.font || 'monospace'}`;
-  ctx.textAlign = options.align || 'center';
+  ctx.font = `${size}px monospace`;
+  ctx.textAlign = align;
   ctx.textBaseline = options.baseline || 'top';
-  ctx.shadowColor = options.glow || options.color || '#00ffff';
-  ctx.shadowBlur = options.blur || 12;
-  ctx.fillStyle = options.color || '#00ffff';
+  ctx.shadowColor = color;
+  ctx.shadowBlur = options.blur || 10;
+  ctx.fillStyle = color;
   ctx.fillText(text, x, y);
   ctx.restore();
 }
 
-function drawHealthBar(x, y, width, height, current, max) {
-  const ctx = window.__activeUICtx;
-  if (!ctx) return;
-  const pct = Math.max(0, Math.min(1, max ? current / max : 0));
+function drawHealthBar(ctx, x, y, width, height, current, max) {
   ctx.save();
-  ctx.fillStyle = 'rgba(0,0,0,0.75)';
+  ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
   ctx.fillRect(x, y, width, height);
-  ctx.fillStyle = '#ff0044';
-  ctx.fillRect(x, y, width * pct, height);
-  ctx.strokeStyle = '#00ffff';
+  const healthPercent = Math.max(0, Math.min(1, max ? current / max : 0));
+  ctx.fillStyle = `rgba(0, 255, 0, ${0.5 + healthPercent * 0.5})`;
+  ctx.fillRect(x, y, width * healthPercent, height);
+  ctx.strokeStyle = '#00ff00';
   ctx.lineWidth = 2;
   ctx.strokeRect(x, y, width, height);
   ctx.restore();
 }
 
-function drawBasicUI(ctx) {
-  window.__activeUICtx = ctx;
-  const player = window.player || { health: 0, maxHealth: 1 };
-  if (window.renderer && typeof window.renderer.drawHealthBar === 'function') {
-    try { window.renderer.drawHealthBar(50, 50, 300, 30, player.health, player.maxHealth); }
-    catch (_) { drawHealthBar(50, 50, 300, 30, player.health, player.maxHealth); }
-  } else {
-    drawHealthBar(50, 50, 300, 30, player.health, player.maxHealth);
-  }
-  const score = window.gameState && Number.isFinite(window.gameState.score) ? window.gameState.score : 0;
+function drawRendererGlowText(ctx, text, x, y, options) {
   if (window.renderer && typeof window.renderer.drawGlowText === 'function') {
-    try { window.renderer.drawGlowText(`SCORE: ${score}`, 1720, 50, { color: '#00ffff', size: 18, align: 'center' }); }
-    catch (_) { drawGlowText(`SCORE: ${score}`, 1720, 50, { color: '#00ffff', size: 18 }); }
-  } else {
-    drawGlowText(`SCORE: ${score}`, 1720, 50, { color: '#00ffff', size: 18 });
+    try { window.renderer.drawGlowText(text, x, y, options); return; } catch (_) {}
   }
+  drawGlowText(ctx, text, x, y, options);
+}
+
+function drawRendererHealthBar(ctx, x, y, width, height, current, max) {
+  if (window.renderer && typeof window.renderer.drawHealthBar === 'function') {
+    try { window.renderer.drawHealthBar(x, y, width, height, current, max); return; } catch (_) {}
+  }
+  drawHealthBar(ctx, x, y, width, height, current, max);
+}
+
+function drawLoreCounter(ctx) {
+  if (!window.lostDataSystem) return;
+  try {
+    const loreProgress = window.lostDataSystem.getProgress();
+    const loreX = 50;
+    const loreY = 100;
+    const loreWidth = 300;
+    const loreHeight = 30;
+    const allCollected = loreProgress.collected >= loreProgress.total && loreProgress.total > 0;
+    ctx.fillStyle = 'rgba(40, 0, 60, 0.95)';
+    ctx.fillRect(loreX, loreY, loreWidth, loreHeight);
+    ctx.strokeStyle = '#9333ea';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(loreX, loreY, loreWidth, loreHeight);
+    ctx.fillStyle = allCollected ? '#00ff00' : '#ffffff';
+    ctx.font = 'bold 16px monospace';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`LORE: ${loreProgress.collected}/${loreProgress.total}`, loreX + 15, loreY + loreHeight / 2);
+    const barWidth = loreWidth - 30;
+    const barHeight = 4;
+    const barX = loreX + 15;
+    const barY = loreY + loreHeight - 8;
+    const progress = loreProgress.total > 0 ? loreProgress.collected / loreProgress.total : 0;
+    ctx.fillStyle = '#333333';
+    ctx.fillRect(barX, barY, barWidth, barHeight);
+    ctx.fillStyle = allCollected ? '#00ff00' : '#9333ea';
+    ctx.fillRect(barX, barY, barWidth * progress, barHeight);
+  } catch (error) {
+    console.error('Error drawing lore counter:', error?.message || error);
+  }
+}
+
+function drawBasicUI(ctx) {
+  const player = window.player || { health: 0, maxHealth: 1 };
+  ctx.save();
+  ctx.fillStyle = 'rgba(0, 20, 40, 0.95)';
+  ctx.fillRect(30, 30, 340, 60);
+  ctx.strokeStyle = '#000000';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(30, 30, 340, 60);
+  ctx.restore();
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(40, 0, 60, 0.95)';
+  ctx.fillRect(760, 30, 400, 50);
+  ctx.strokeStyle = '#000000';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(760, 30, 400, 50);
+  ctx.restore();
+
+  drawRendererHealthBar(ctx, 50, 50, 300, 30, player.health, player.maxHealth);
+  drawLoreCounter(ctx);
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  drawRendererGlowText(ctx, 'SIGNAL STRENGTH', 200, 40, { align: 'center', color: '#00ffff', size: 16 });
+
+  let progressText = 'SECTOR 1: THE CITY';
+  if (window.enemyManager) progressText += ` | Defeats ${window.enemyManager.defeatedCount || 0}`;
+  const jammerStatus = window.BARCODE && window.BARCODE.JammerEnvironment ? window.BARCODE.JammerEnvironment.getStatus() : null;
+  if (jammerStatus && jammerStatus.revealed) progressText += ` | Jammer ${jammerStatus.triggered ? 'triggered' : 'revealed'}`;
+  drawRendererGlowText(ctx, progressText, 960, 50, { align: 'center', color: '#ff00ff', size: 20 });
+
+  const score = window.gameState && Number.isFinite(window.gameState.score) ? window.gameState.score : 0;
+  drawRendererGlowText(ctx, `SCORE: ${score}`, 1920 - 200, 50, { align: 'right', color: '#00ffff', size: 20 });
 }
 
 // Main UI drawing function
@@ -109,149 +172,7 @@ window.drawGameUI = function(ctx) {
   drawHackTimeoutMessage(ctx);
 
   // Jammer indicator is owned by render-coordinator UI pass.
-
-  // Health bar is drawn by drawBasicUI above.
-
-  // Draw lore counter
-  if (window.lostDataSystem) {
-    try {
-      const loreProgress = window.lostDataSystem.getProgress();
-      const loreX = 50;
-      const loreY = 100;
-      const loreWidth = 300;
-      const loreHeight = 30;
-
-      const allCollected = loreProgress.collected >= loreProgress.total && loreProgress.total > 0;
-
-      ctx.fillStyle = 'rgba(40, 0, 60, 0.95)';
-      ctx.fillRect(loreX, loreY, loreWidth, loreHeight);
-
-      ctx.strokeStyle = '#9333ea';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(loreX, loreY, loreWidth, loreHeight);
-
-      ctx.fillStyle = allCollected ? '#00ff00' : '#ffffff';
-      ctx.font = 'bold 16px monospace';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(`LORE: ${loreProgress.collected}/${loreProgress.total}`, loreX + 15, loreY + loreHeight/2);
-
-      const barWidth = loreWidth - 30;
-      const barHeight = 4;
-      const barX = loreX + 15;
-      const barY = loreY + loreHeight - 8;
-      const progress = loreProgress.total > 0 ? loreProgress.collected / loreProgress.total : 0;
-
-      ctx.fillStyle = '#333333';
-      ctx.fillRect(barX, barY, barWidth, barHeight);
-
-      ctx.fillStyle = allCollected ? '#00ff00' : '#9333ea';
-      ctx.fillRect(barX, barY, barWidth * progress, barHeight);
-
-      if (allCollected) {
-        ctx.fillStyle = '#00ff00';
-        ctx.font = 'bold 14px monospace';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'top';
-        ctx.fillText('ALL LORE RETRIEVED', loreX + 15, loreY + loreHeight + 8);
-
-        const pulse = Math.sin(Date.now() * 0.003) * 0.3 + 0.7;
-        ctx.globalAlpha = pulse;
-        ctx.font = '12px monospace';
-        ctx.fillStyle = '#88ff88';
-        ctx.fillText('All fragments collected', loreX + 15, loreY + loreHeight + 26);
-        ctx.globalAlpha = 1.0;
-      }
-
-    } catch (error) {
-      console.error('Error drawing lore counter:', error?.message || error);
-    }
-  }
-
-  // Reset text alignment before drawing UI text
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'top';
-
-  // Draw "SIGNAL STRENGTH" label
-  if (window.renderer && typeof window.renderer.drawGlowText === 'function') {
-    try {
-      window.renderer.drawGlowText('SIGNAL STRENGTH', 200, 40, {
-        align: 'center',
-        color: '#00ffff',
-        size: 16
-      });
-    } catch (error) {
-      drawGlowText('SIGNAL STRENGTH', 200, 40, {
-        align: 'center',
-        color: '#00ffff',
-        size: 16
-      });
-    }
-  } else {
-    drawGlowText('SIGNAL STRENGTH', 200, 40, {
-      align: 'center',
-      color: '#00ffff',
-      size: 16
-    });
-  }
-
-  // Draw level and progression progress
-  let progressText = 'SECTOR 1: THE CITY';
-
-  if (window.enemyManager) {
-    progressText += ` | Defeats ${window.enemyManager.defeatedCount || 0}`;
-  }
-  const jammerStatus = window.BARCODE && window.BARCODE.JammerEnvironment ? window.BARCODE.JammerEnvironment.getStatus() : null;
-  if (jammerStatus && jammerStatus.revealed) progressText += ` | Jammer ${jammerStatus.triggered ? 'triggered' : 'revealed'}`;
-
-  if (window.renderer && typeof window.renderer.drawGlowText === 'function') {
-    try {
-      window.renderer.drawGlowText(progressText, 960, 50, {
-        align: 'center',
-        color: '#ff00ff',
-        size: 20
-      });
-    } catch (error) {
-      drawGlowText(progressText, 960, 50, {
-        align: 'center',
-        color: '#ff00ff',
-        size: 20
-      });
-    }
-  } else {
-    drawGlowText(progressText, 960, 50, {
-      align: 'center',
-      color: '#ff00ff',
-      size: 20
-    });
-  }
-
-  // Draw score
-  ctx.textAlign = 'right';
-  ctx.textBaseline = 'top';
-
-  if (window.renderer && typeof window.renderer.drawGlowText === 'function') {
-    try {
-      window.renderer.drawGlowText(`SCORE: ${window.gameState.score}`, 1920 - 200, 50, {
-        align: 'right',
-        color: '#00ffff',
-        size: 20
-      });
-    } catch (error) {
-      drawGlowText(`SCORE: ${window.gameState.score}`, 1920 - 200, 50, {
-        align: 'right',
-        color: '#00ffff',
-        size: 20
-      });
-    }
-  } else {
-    drawGlowText(`SCORE: ${window.gameState.score}`, 1920 - 200, 50, {
-      align: 'right',
-      color: '#00ffff',
-      size: 20
-    });
-  }
-}
+};
 
 // Draw objectives panel
 function drawObjectives(ctx) {

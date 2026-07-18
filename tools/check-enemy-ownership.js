@@ -41,10 +41,9 @@ assert(!/enemiesDefeated\s*\+\s*.*defeatedCount|defeatedCount\s*\+\s*.*enemiesDe
 assert(/getCurrentRunDefeats/.test(gameState) && /syncEnemyDefeatProjections/.test(gameState), 'game-state exposes projection sync instead of duplicate totals');
 assert(/preserveDefeats/.test(runtime) && !/currentEnemyCount/.test(runtime), 'RuntimeLifecycle uses explicit preserveDefeats policy without quota inference');
 assert(/reset\(options = \{\}\)/.test(sector) && /JammerEnvironment\.reset/.test(sector), 'Sector1Progression reset explicitly cleans mission state');
-assert(/draw\(ctx\) \{ this\.drawStageSurfaces\(ctx\); this\.drawEncounterGates\(ctx\); this\.drawBoss\(ctx\); \}/.test(sector), 'Sector1Progression draw owns authored geometry and boss-intro presentation');
-assert(/window\.sector1Progression && typeof window\.sector1Progression\.draw === 'function'/.test(render), 'render coordinator checks Sector1Progression draw contract before calling');
-const drawGameEntitiesBody = (render.match(/function drawGameEntities\(ctx\) \{([\s\S]*?)\n\}/) || [null, ''])[1];
-assert(drawGameEntitiesBody.indexOf('JammerEnvironment.draw(ctx)') !== -1 && drawGameEntitiesBody.indexOf('window.enemyManager.draw(ctx)') !== -1 && drawGameEntitiesBody.indexOf('JammerEnvironment.draw(ctx)') < drawGameEntitiesBody.indexOf('window.enemyManager.draw(ctx)'), 'JammerEnvironment draws before enemyManager in drawGameEntities');
+assert(/drawWorldGeometry\(ctx\) \{ this\.drawStageSurfaces\(ctx\); \}/.test(sector) && /drawActors\(ctx\) \{ this\.drawBoss\(ctx\); this\.drawEncounterGates\(ctx\); \}/.test(sector), 'Sector1Progression splits platform geometry behind actors from boss/gate presentation');
+assert(/drawSectorStageGeometry/.test(render) && /drawSectorActors/.test(render), 'render coordinator uses split Sector1Progression world/actor draw contracts');
+assert(render.indexOf('drawSectorStageGeometry(ctx)') < render.indexOf('drawEnvironmentalJammer(ctx)') && render.indexOf('drawEnvironmentalJammer(ctx)') < render.indexOf('drawEnemies(ctx)'), 'platforms draw before Jammer and Jammer draws before enemyManager');
 assert(!/JammerEnvironment\.reset\(\)/.test(objectives), 'ObjectivesSystem reset must not compete for JammerEnvironment ownership');
 assert(/health: 16/.test(jammer) && /applyRhythmDamage/.test(jammer) && !/class\s+JammerEnemy|extends\s+Enemy/.test(jammer), 'JammerEnvironment is the approved destructible stage target, not a normal enemy');
 

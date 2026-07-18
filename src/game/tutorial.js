@@ -38,6 +38,34 @@ window.TutorialSystem = class TutorialSystem {
     this.isFinalMessage = false;
   }
   
+  debugResetTutorial() {
+    this.active = false;
+    this.combatEnemiesPaused = false;
+    this.enemyCountDisplay = 0;
+    this.currentStep = 0;
+    this.completed = false;
+    this.dialogue = [];
+    this.currentDialogue = 0;
+    this.timer = 0;
+    this.typingSpeed = 50;
+    this.currentText = '';
+    this.targetText = '';
+    this.characterIndex = 0;
+    this.readyToAdvance = false;
+    this.storyChapter = 0;
+    this.hasShownIntro = false;
+    this.objectives = [];
+    this.completedObjectives = new Set();
+    this.finalMessageTimer = 0;
+    this.finalMessageFadeStart = 0;
+    this.finalMessageOpacity = 1.0;
+    this.isFinalMessage = false;
+    this._objectiveDialogueIndex = null;
+    this._tutorialEnemiesDefeated = 0;
+    this.startTutorial();
+    return { ok: true, active: this.active, completed: this.completed, storyChapter: this.storyChapter, currentDialogue: this.currentDialogue };
+  }
+
   startTutorial() {
     if (this.completed) return;
     

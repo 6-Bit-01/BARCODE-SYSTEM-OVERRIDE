@@ -245,7 +245,7 @@ async function performStartGameInitialization() {
   
   // Enable debug hitbox visualization
   window.DEBUG_HITBOXES = false;
-  console.log('✓ Debug hitboxes enabled');
+  console.log('✓ Debug hitboxes disabled by default');
   
   try {
     // Initialize sprites first
@@ -288,8 +288,9 @@ async function performStartGameInitialization() {
     // Initialize Sector 1 progression system
     console.log('Initializing Sector 1 progression system...');
     if (window.player && typeof window.initSector1Progression === 'function') {
-      window.initSector1Progression(window.player);
-      console.log('✓ Sector 1 progression system initialized');
+      const progression = window.initSector1Progression(window.player);
+      if (progression && typeof progression.prewarmLevel1Assets === 'function') progression.prewarmLevel1Assets();
+      console.log('✓ Sector 1 progression system initialized and Level 1 assets prewarmed');
     } else {
       console.warn('Player not available for Sector 1 progression initialization');
     }

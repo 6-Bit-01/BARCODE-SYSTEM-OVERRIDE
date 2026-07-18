@@ -203,20 +203,23 @@ function drawGameElements(ctx) {
   // Draw smoke particles BEHIND ground layer
   drawSmokeParticles(ctx);
 
-  // Draw ground
+  // Draw ground and authored platform geometry before actors.
   drawGround(ctx);
+  drawSectorStageGeometry(ctx);
 
-  // Draw remaining particle effects on top
+  // Environmental Jammer and active enemies render above platforms.
+  drawEnvironmentalJammer(ctx);
+  drawEnemies(ctx);
+  drawSectorActors(ctx);
+
+  // Draw remaining particle effects and rhythm effects around the player.
   drawOtherParticles(ctx);
-
-  // Draw game entities
-  drawGameEntities(ctx);
-
-  // Draw rhythm effects behind player
   drawRhythmEffectsBehindPlayer(ctx);
 
   // Draw player
   drawPlayer(ctx);
+
+  drawLostData(ctx);
 
   // Restore camera transform
   ctx.restore();
@@ -363,9 +366,19 @@ function drawGround(ctx) {
   }
 }
 
-// Draw game entities
-function drawGameEntities(ctx) {
-  // Environmental Jammer is drawn outside EnemyManager and behind active enemies.
+// Draw authored world geometry behind actors
+function drawSectorStageGeometry(ctx) {
+  if (window.sector1Progression) {
+    try {
+      if (typeof window.sector1Progression.drawWorldGeometry === 'function') window.sector1Progression.drawWorldGeometry(ctx);
+      else if (typeof window.sector1Progression.drawStageSurfaces === 'function') window.sector1Progression.drawStageSurfaces(ctx);
+    } catch (error) {
+      console.error('Error drawing Sector 1 world geometry:', error?.message || error);
+    }
+  }
+}
+
+function drawEnvironmentalJammer(ctx) {
   if (window.BARCODE && window.BARCODE.JammerEnvironment && typeof window.BARCODE.JammerEnvironment.draw === 'function') {
     try {
       window.BARCODE.JammerEnvironment.draw(ctx);
@@ -373,8 +386,9 @@ function drawGameEntities(ctx) {
       console.error('Error drawing environmental Jammer:', error?.message || error);
     }
   }
+}
 
-  // Draw enemies
+function drawEnemies(ctx) {
   if (window.enemyManager && typeof window.enemyManager.draw === 'function') {
     try {
       window.enemyManager.draw(ctx);
@@ -382,17 +396,20 @@ function drawGameEntities(ctx) {
       console.error('Error drawing enemies:', error?.message || error);
     }
   }
+}
 
-  // Draw sector progression elements
-  if (window.sector1Progression && typeof window.sector1Progression.draw === 'function') {
+function drawSectorActors(ctx) {
+  if (window.sector1Progression) {
     try {
-      window.sector1Progression.draw(ctx);
+      if (typeof window.sector1Progression.drawActors === 'function') window.sector1Progression.drawActors(ctx);
+      else if (typeof window.sector1Progression.drawBoss === 'function') window.sector1Progression.drawBoss(ctx);
     } catch (error) {
-      console.error('Error drawing Sector 1 progression:', error?.message || error);
+      console.error('Error drawing Sector 1 actors:', error?.message || error);
     }
   }
+}
 
-  // Draw lost data fragments
+function drawLostData(ctx) {
   if (window.lostDataSystem && typeof window.lostDataSystem.draw === 'function') {
     try {
       window.lostDataSystem.draw(ctx);

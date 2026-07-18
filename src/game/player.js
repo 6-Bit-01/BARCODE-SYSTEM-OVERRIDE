@@ -141,7 +141,7 @@ window.Player = class Player {
         if (!wasGrounded && window.particleSystem) {
           // Move landing smoke 10px toward front of player
           const landingX = this.position.x + this.facing * 10;
-          window.particleSystem.landingEffect(landingX, this.position.y + 100, null);
+          window.particleSystem.landingEffect(landingX, this.getFootEffectY(), null);
         }
       } else if (!landedOnStageSurface) {
         this.grounded = false;
@@ -447,7 +447,7 @@ window.Player = class Player {
       if (window.particleSystem && this.grounded) {
         // Position particles 8px behind player and 12px toward front (offset from -20 to -8)
         const trailX = this.position.x - this.facing * 8; // 8px behind player (12px toward front)
-        const trailY = this.position.y + 100; // Move down 100px from middle
+        const trailY = this.getFootEffectY(); // Foot-relative effect position
         window.particleSystem.trail(trailX, trailY, null, 2);
       }
     }
@@ -466,7 +466,7 @@ window.Player = class Player {
       if (window.particleSystem && this.grounded) {
         // Position particles behind player based on facing direction
         const trailX = this.position.x - this.facing * 20; // 20px behind player
-        const trailY = this.position.y + 100; // Move down 100px from middle
+        const trailY = this.getFootEffectY(); // Foot-relative effect position
         window.particleSystem.trail(trailX, trailY, null, 2);
       }
     }
@@ -507,11 +507,17 @@ window.Player = class Player {
       if (window.particleSystem) {
         // Move particles 12px toward front of player (same as movement trail)
         const jumpX = this.position.x + this.facing * 12;
-        window.particleSystem.jumpEffect(jumpX, this.position.y + 100, null);
+        window.particleSystem.jumpEffect(jumpX, this.getFootEffectY(), null);
       }
       return true;
     }
     return false;
+  }
+
+  getFootEffectY(offset = 0) {
+    const groundY = window.BARCODE?.LEVEL_01_LAYOUT?.GROUND_Y || 890;
+    const footY = Number.isFinite(this.position?.y) ? this.position.y : groundY;
+    return Math.min(footY + offset, groundY);
   }
 
   getGameplayBody() {

@@ -36,24 +36,35 @@ window.BARCODE = window.BARCODE || {};
   ]);
 
   const PRESENTATION = Object.freeze({
-    player: Object.freeze({ targetHeight: 192, bodyWidth: 70, bodyHeight: 156, manifests: Object.freeze({ idle: Object.freeze({ width: 86, height: 96 }), jump: Object.freeze({ width: 41, height: 96 }), walk: Object.freeze({ width: 66, height: 96 }), rhythm: Object.freeze({ width: 51, height: 96 }) }) }),
+    player: Object.freeze({ targetHeight: 192, bodyWidth: 70, bodyHeight: 156, manifests: Object.freeze({
+      idle: Object.freeze({ width: 86, height: 96, anchorX: 43, anchorY: 95 }),
+      jump: Object.freeze({ width: 41, height: 96, anchorX: 21, anchorY: 95 }),
+      walk: Object.freeze({ width: 66, height: 96, anchorX: 33, anchorY: 94 }),
+      rhythm: Object.freeze({ width: 51, height: 96, anchorX: 26, anchorY: 95 })
+    }) }),
     enemies: Object.freeze({
-      virus: Object.freeze({ targetHeight: 74, bodyWidth: 42, bodyHeight: 50, manifests: Object.freeze({ idle: Object.freeze({ width: 96, height: 93 }), default: Object.freeze({ width: 96, height: 93 }) }) }),
-      corrupted: Object.freeze({ targetHeight: 122, bodyWidth: 70, bodyHeight: 92, manifests: Object.freeze({ idle: Object.freeze({ width: 80, height: 96 }), walk: Object.freeze({ width: 74, height: 96 }), default: Object.freeze({ width: 80, height: 96 }) }) }),
-      firewall: Object.freeze({ targetHeight: 176, bodyWidth: 132, bodyHeight: 142, manifests: Object.freeze({ idle: Object.freeze({ width: 96, height: 93 }), walk: Object.freeze({ width: 68, height: 96 }), attack: Object.freeze({ width: 96, height: 67 }), default: Object.freeze({ width: 96, height: 93 }) }) })
+      virus: Object.freeze({ targetHeight: 74, bodyWidth: 42, bodyHeight: 50, manifests: Object.freeze({ idle: Object.freeze({ width: 96, height: 93, anchorX: 48, anchorY: 92 }), default: Object.freeze({ width: 96, height: 93, anchorX: 48, anchorY: 92 }) }) }),
+      corrupted: Object.freeze({ targetHeight: 122, bodyWidth: 70, bodyHeight: 92, manifests: Object.freeze({ idle: Object.freeze({ width: 80, height: 96, anchorX: 40, anchorY: 84 }), walk: Object.freeze({ width: 74, height: 96, anchorX: 37, anchorY: 95 }), default: Object.freeze({ width: 80, height: 96, anchorX: 40, anchorY: 84 }) }) }),
+      firewall: Object.freeze({ targetHeight: 176, bodyWidth: 132, bodyHeight: 142, manifests: Object.freeze({ idle: Object.freeze({ width: 96, height: 93, anchorX: 48, anchorY: 92 }), walk: Object.freeze({ width: 68, height: 96, anchorX: 34, anchorY: 95 }), attack: Object.freeze({ width: 96, height: 67, anchorX: 48, anchorY: 66 }), default: Object.freeze({ width: 96, height: 93, anchorX: 48, anchorY: 92 }) }) })
     }),
-    jammer: Object.freeze({ targetHeight: 168, bodyWidth: 118, bodyHeight: 150, manifest: Object.freeze({ width: 256, height: 219 }), damageRange: 520 }),
-    boss: Object.freeze({ targetHeight: 260, manifests: Object.freeze({ walk: Object.freeze({ width: 200, height: 256 }), idle: Object.freeze({ width: 256, height: 179 }), flourish: Object.freeze({ width: 256, height: 155 }), attack: Object.freeze({ width: 256, height: 155 }) }) })
+    jammer: Object.freeze({ targetHeight: 168, bodyWidth: 118, bodyHeight: 150, manifest: Object.freeze({ width: 256, height: 219, anchorX: 128, anchorY: 214 }), damageRange: 520 }),
+    boss: Object.freeze({ targetHeight: 260, manifests: Object.freeze({ walk: Object.freeze({ width: 200, height: 256, anchorX: 100, anchorY: 253 }), idle: Object.freeze({ width: 256, height: 179, anchorX: 128, anchorY: 178 }), flourish: Object.freeze({ width: 256, height: 155, anchorX: 128, anchorY: 154 }), attack: Object.freeze({ width: 256, height: 155, anchorX: 128, anchorY: 154 }) }) })
   });
+
+  const FOREGROUND = Object.freeze({ nativeWidth: 1279, nativeHeight: 462, renderedWidth: WORLD_WIDTH, renderedHeight: 1479, footPlaneNativeY: 400, footPlaneRatio: 400 / 462 });
 
   const SPAWN = Object.freeze({ offscreenPadding: 140, playerExclusionRadius: 350, recentSpawnRadius: 180, protectionMs: 700, staggerMs: 350, jammerReinforcementCap: 4, jammerCadenceMinMs: 3000, jammerCadenceMaxMs: 4500 });
   const CINEMATIC = Object.freeze({ freezeMs: 800, panMs: 2000, flourishMs: 900, bossFrameX: 3136, bossStopX: 3650, bossGroundY: GROUND_Y, bossSpeed: 140 });
 
   function transform(foot, manifest, targetHeight, facing) {
-    const scale = targetHeight / manifest.height;
+    const anchorY = Number.isFinite(manifest.anchorY) ? manifest.anchorY : manifest.height;
+    const anchorX = Number.isFinite(manifest.anchorX) ? manifest.anchorX : manifest.width / 2;
+    const scale = targetHeight / anchorY;
     const width = manifest.width * scale;
     const height = manifest.height * scale;
-    return Object.freeze({ x: foot.x - width / 2, y: foot.y - height, width, height, scale, flipH: facing < 0, foot: Object.freeze({ x: foot.x, y: foot.y }) });
+    const x = foot.x - anchorX * scale;
+    const y = foot.y - anchorY * scale;
+    return Object.freeze({ x, y, width, height, scale, flipH: facing < 0, foot: Object.freeze({ x: foot.x, y: foot.y }), anchorX: anchorX * scale, anchorY: anchorY * scale, source: manifest });
   }
   function body(foot, width, height) { return Object.freeze({ x: foot.x - width / 2, y: foot.y - height, w: width, h: height, left: foot.x - width / 2, right: foot.x + width / 2, top: foot.y - height, bottom: foot.y }); }
   function playerManifestKey(player) { return player && player.state === 'walk' ? 'walk' : player && player.state === 'jump' ? 'jump' : player && player.state === 'rhythm' ? 'rhythm' : 'idle'; }
@@ -76,10 +87,12 @@ window.BARCODE = window.BARCODE || {};
     return clamp(playerX, min, max);
   }
   function foregroundDrawX(cameraCenter) { const min = VIEWPORT.width / 2; const max = WORLD_WIDTH - VIEWPORT.width / 2; const center = Number.isFinite(cameraCenter) ? clamp(cameraCenter, min, max) : getCameraCenter(); return VIEWPORT.width / 2 - center; }
-  function visibleWorldBounds(cameraCenter, zoom) { const z = Math.max(0.1, Number.isFinite(zoom) ? zoom : getZoom()); const min = VIEWPORT.width / 2; const max = WORLD_WIDTH - VIEWPORT.width / 2; const center = Number.isFinite(cameraCenter) ? clamp(cameraCenter, min, max) : getCameraCenter(); const half = VIEWPORT.width / 2 / z; return Object.freeze({ left: Math.max(0, center - half), right: Math.min(WORLD_WIDTH, center + half), top: 0, bottom: VIEWPORT.height / z, center, zoom: z }); }
-  function worldToScreen(point, options) { options = options || {}; const z = Math.max(0.1, Number.isFinite(options.zoom) ? options.zoom : getZoom()); const min = VIEWPORT.width / 2; const max = WORLD_WIDTH - VIEWPORT.width / 2; const center = Number.isFinite(options.cameraCenter) ? clamp(options.cameraCenter, min, max) : getCameraCenter(); return Object.freeze({ x: VIEWPORT.width / 2 + (point.x - center) * z, y: point.y * z, cameraCenter: center, zoom: z }); }
+  const RENDER_TRANSFORM = Object.freeze({ centerX: VIEWPORT.width / 2, centerY: 850 / 2, verticalOffsetScale: 100 / 0.4 });
+  function zoomVerticalOffset(zoom) { return (1 - zoom) * RENDER_TRANSFORM.verticalOffsetScale; }
+  function visibleWorldBounds(cameraCenter, zoom) { const z = Math.max(0.1, Number.isFinite(zoom) ? zoom : getZoom()); const min = VIEWPORT.width / 2; const max = WORLD_WIDTH - VIEWPORT.width / 2; const center = Number.isFinite(cameraCenter) ? clamp(cameraCenter, min, max) : getCameraCenter(); const halfX = VIEWPORT.width / 2 / z; const top = RENDER_TRANSFORM.centerY - (RENDER_TRANSFORM.centerY + zoomVerticalOffset(z)) / z; const bottom = top + VIEWPORT.height / z; return Object.freeze({ left: Math.max(0, center - halfX), right: Math.min(WORLD_WIDTH, center + halfX), top, bottom, center, zoom: z }); }
+  function worldToScreen(point, options) { options = options || {}; const z = Math.max(0.1, Number.isFinite(options.zoom) ? options.zoom : getZoom()); const min = VIEWPORT.width / 2; const max = WORLD_WIDTH - VIEWPORT.width / 2; const center = Number.isFinite(options.cameraCenter) ? clamp(options.cameraCenter, min, max) : getCameraCenter(); return Object.freeze({ x: RENDER_TRANSFORM.centerX + (point.x - center) * z, y: RENDER_TRANSFORM.centerY + zoomVerticalOffset(z) + (point.y - RENDER_TRANSFORM.centerY) * z, cameraCenter: center, zoom: z }); }
 
-  namespace.LEVEL_01_LAYOUT = Object.freeze({ WORLD_WIDTH, VIEWPORT, GROUND_Y, STAGE_SURFACES, ENCOUNTER_GATES, ENCOUNTERS, PRESENTATION, SPAWN, CINEMATIC, JAMMER_CANDIDATES: Object.freeze([{ x: 620, y: GROUND_Y }, { x: 3520, y: GROUND_Y }]) });
+  namespace.LEVEL_01_LAYOUT = Object.freeze({ WORLD_WIDTH, VIEWPORT, GROUND_Y, STAGE_SURFACES, ENCOUNTER_GATES, ENCOUNTERS, PRESENTATION, FOREGROUND, SPAWN, CINEMATIC, RENDER_TRANSFORM, JAMMER_CANDIDATES: Object.freeze([{ x: 620, y: GROUND_Y }, { x: 3520, y: GROUND_Y }]) });
   namespace.Level01Presentation = Object.freeze({ transform, body, playerTransform, playerBody, enemyTransform, enemyBody, jammerBounds, bossTransform, playerManifestKey, enemyManifestKey });
-  namespace.Level01Camera = Object.freeze({ getCameraCenter, foregroundDrawX, visibleWorldBounds, worldToScreen, getZoom });
+  namespace.Level01Camera = Object.freeze({ getCameraCenter, foregroundDrawX, visibleWorldBounds, worldToScreen, zoomVerticalOffset, getZoom });
 })(window.BARCODE);

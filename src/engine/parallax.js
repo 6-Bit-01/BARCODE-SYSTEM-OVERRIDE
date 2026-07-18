@@ -27,7 +27,8 @@ window.ParallaxBackground = class ParallaxBackground {
       opacity = 1.0,
       blendMode = 'source-over',
       repeatX = false, // Tile horizontally
-      repeatY = false  // Tile vertically
+      repeatY = false,  // Tile vertically
+      role = 'background'
     } = options;
 
     const layer = {
@@ -43,6 +44,7 @@ window.ParallaxBackground = class ParallaxBackground {
       blendMode: blendMode,
       repeatX: repeatX,
       repeatY: repeatY,
+      role: role,
       loaded: false,
       imgElement: null
     };
@@ -180,33 +182,22 @@ window.ParallaxBackground = class ParallaxBackground {
         // Draw tiled pattern
         this.drawTiledLayer(ctx, layer, offset);
       } else {
-        // Draw the image at native high resolution (4096x1479)
-        ctx.save();
-        // Set highest quality rendering
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        // Draw at 4x size while maintaining quality
-        ctx.save();
-        // Set highest quality rendering
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        // Draw at 30% smaller size (70% of 4x = 2.8x)
-        ctx.save();
-        // Set highest quality rendering
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        // Foreground is mapped 1:1 to the Level 1 world; background layers keep parallax separately.
-        const layout = window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT;
-        const newWidth = layer.width || (layout && layout.WORLD_WIDTH) || 4096;
-        const newHeight = layer.height || 1589;
-        const streetSourceY = layer.streetSourceY || 1140;
-        const groundY = (layout && layout.GROUND_Y) || 890;
-        const drawX = (window.BARCODE && window.BARCODE.Level01Camera && window.BARCODE.Level01Camera.foregroundDrawX) ? window.BARCODE.Level01Camera.foregroundDrawX(this.cameraX) : ((layout && layout.VIEWPORT ? layout.VIEWPORT.width : 1920) / 2 - this.cameraX);
-        const drawY = groundY - streetSourceY;
-        ctx.drawImage(layer.imgElement, drawX, drawY, newWidth, newHeight);
-        ctx.restore();
-        ctx.restore();
-        ctx.restore();
+        if (layer.role === 'foreground') {
+          const layout = window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT;
+          const foreground = layout && layout.FOREGROUND;
+          const drawWidth = (foreground && foreground.renderedWidth) || (layout && layout.WORLD_WIDTH) || layer.width || 4096;
+          const drawHeight = (foreground && foreground.renderedHeight) || layer.height || 1479;
+          const footRatio = (foreground && foreground.footPlaneRatio) || (400 / 462);
+          const logicalFootPlaneY = drawHeight * footRatio;
+          const groundY = (layout && layout.GROUND_Y) || 890;
+          const drawX = (window.BARCODE && window.BARCODE.Level01Camera && window.BARCODE.Level01Camera.foregroundDrawX) ? window.BARCODE.Level01Camera.foregroundDrawX(this.cameraX) : 960 - this.cameraX;
+          const drawY = groundY - logicalFootPlaneY;
+          ctx.drawImage(layer.imgElement, drawX, drawY, drawWidth, drawHeight);
+        } else {
+          const drawX = layer.x - offset.x;
+          const drawY = layer.y - offset.y;
+          ctx.drawImage(layer.imgElement, drawX, drawY, layer.width, layer.height);
+        }
       }
     }
 
@@ -366,7 +357,8 @@ window.initParallax = function() {
       x: 0, // Start from left edge
       y: -100, // Position for background layer
       width: 4096,
-      height: 1479
+      height: 1479,
+      role: 'background'
     });
 
     // Add foreground layer (frontmost) - side-scroller camera follows player
@@ -380,7 +372,8 @@ window.initParallax = function() {
       x: 0, // Start from left edge
       y: -200, // Show upper portion
       width: 4096,
-      height: 1479
+      height: 1479,
+      role: 'foreground'
     });
 
     console.log('✓ Parallax background initialized with 2 layers (BG + FG)');

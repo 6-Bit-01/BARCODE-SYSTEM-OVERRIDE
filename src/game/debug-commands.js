@@ -8,22 +8,27 @@ window.FILE_MANIFEST.push({
 
 function jammerEnv() { return window.BARCODE && window.BARCODE.JammerEnvironment; }
 function jammerStatus() { return jammerEnv() ? jammerEnv().getStatus() : null; }
+function level1DebugAllowed() { return !!(window.BARCODE && window.BARCODE.DEBUG_LEVEL_1_ENABLED === true); }
+function debugDisabled(action) { return { ok: false, action, reason: 'debug-disabled' }; }
 
 window.DEBUG = window.DEBUG || {};
 Object.assign(window.DEBUG, {
   revealJammer(position) {
+    if (!level1DebugAllowed()) return debugDisabled('revealJammer');
     if (!jammerEnv()) return '❌ Jammer environment unavailable';
     const status = jammerEnv().reveal({ position });
     console.log('📡 Environmental Jammer revealed:', status);
     return status;
   },
   triggerJammer(position) {
+    if (!level1DebugAllowed()) return debugDisabled('triggerJammer');
     if (!jammerEnv()) return '❌ Jammer environment unavailable';
     const status = jammerEnv().trigger({ position });
     console.log('📡 Environmental Jammer triggered:', status);
     return status;
   },
   resetJammer() {
+    if (!level1DebugAllowed()) return debugDisabled('resetJammer');
     if (!jammerEnv()) return '❌ Jammer environment unavailable';
     const status = jammerEnv().reset();
     console.log('📡 Environmental Jammer reset:', status);
@@ -98,11 +103,12 @@ window.handleGameAction = function(action) {
     case 'primary': return routePrimaryAction();
     case 'interact': return routeInteractAction();
     case 'skip_tutorial': return routeSkipTutorialAction();
-    case 'reveal_jammer': return { ok: true, action, status: window.DEBUG.revealJammer() };
-    case 'trigger_jammer': return { ok: true, action, status: window.DEBUG.triggerJammer() };
-    case 'reset_jammer': return { ok: true, action, status: window.DEBUG.resetJammer() };
+    case 'reveal_jammer': if (!level1DebugAllowed()) return debugDisabled(action); return { ok: true, action, status: window.DEBUG.revealJammer() };
+    case 'trigger_jammer': if (!level1DebugAllowed()) return debugDisabled(action); return { ok: true, action, status: window.DEBUG.triggerJammer() };
+    case 'reset_jammer': if (!level1DebugAllowed()) return debugDisabled(action); return { ok: true, action, status: window.DEBUG.resetJammer() };
     case 'check_jammer': return { ok: true, action, status: window.DEBUG.checkJammer() };
     case 'spawn_enemy':
+      if (!level1DebugAllowed()) return debugDisabled(action);
       if (window.enemyManager && typeof window.enemyManager.spawnEnemy === 'function') { window.enemyManager.spawnEnemy(); return { ok: true, action }; }
       return { ok: false, action, reason: 'enemy-manager-unavailable' };
     case 'toggle_rhythm':

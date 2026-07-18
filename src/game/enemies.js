@@ -798,7 +798,8 @@ window.Enemy = class Enemy {
 
     if (window.particleSystem) {
       let particleColor = this.type === 'corrupted' ? 'corrupted' : this.type;
-      window.particleSystem.damageEffect(this.position.x, this.position.y - this.height/2, particleColor, 10);
+      const vb = this.getVisualBounds();
+      window.particleSystem.damageEffect(vb.x + vb.width / 2, vb.y + vb.height / 2, particleColor, 10);
     }
 
     if (this.health <= 0) {
@@ -817,7 +818,8 @@ window.Enemy = class Enemy {
 
       if (window.particleSystem) {
         let particleColor = this.type === 'corrupted' ? 'corrupted' : this.type;
-        window.particleSystem.explosion(this.position.x, this.position.y - this.height/2, particleColor, 25);
+        const vb = this.getVisualBounds();
+        window.particleSystem.explosion(vb.x + vb.width / 2, vb.y + vb.height / 2, particleColor, 25);
       }
 
       if (window.gameState && !this._scoreApplied) {
@@ -868,11 +870,18 @@ window.Enemy = class Enemy {
     if (['virus', 'corrupted', 'firewall'].includes(this.type) && this.spriteReady && this.sprite) {
       this.drawSprite(ctx);
       if (this.health < this.maxHealth) {
-        let healthBarY = this.position.y - this.height + 50;
-        if (this.type === 'firewall') healthBarY += 40;
-
-        ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
-        ctx.fillRect(this.position.x - this.width, healthBarY, this.width * 2 * (this.health / this.maxHealth), 4);
+        const visual = this.getVisualBounds();
+        const healthWidth = Math.max(34, Math.min(120, visual.width * 0.75));
+        const healthX = visual.x + (visual.width - healthWidth) / 2;
+        const healthY = visual.y - 12;
+        const pct = Math.max(0, Math.min(1, this.health / this.maxHealth));
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+        ctx.fillRect(healthX - 1, healthY - 1, healthWidth + 2, 6);
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.85)';
+        ctx.fillRect(healthX, healthY, healthWidth * pct, 4);
+        ctx.strokeStyle = '#00ffff';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(healthX, healthY, healthWidth, 4);
       }
     } else {
       const bodyY = this.position.y - this.height;
