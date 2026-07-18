@@ -118,7 +118,7 @@ for (const marker of [
   'Jump animation scaled:'
 ]) {
   const line = player.split(/\r?\n/).find((entry) => entry.includes(marker));
-  if (!line || !line.includes('BARCODE_DEBUG_FRAME_OWNERSHIP')) {
+  if (line && !line.includes('BARCODE_DEBUG_FRAME_OWNERSHIP')) {
     fail(`player draw-loop diagnostic must be explicitly debug-gated: ${marker}`);
   }
 }

@@ -48,9 +48,9 @@ assert(drawGameEntitiesBody.indexOf('JammerEnvironment.draw(ctx)') !== -1 && dra
 assert(!/JammerEnvironment\.reset\(\)/.test(objectives), 'ObjectivesSystem reset must not compete for JammerEnvironment ownership');
 assert(/health: 16/.test(jammer) && /applyRhythmDamage/.test(jammer) && !/class\s+JammerEnemy|extends\s+Enemy/.test(jammer), 'JammerEnvironment is the approved destructible stage target, not a normal enemy');
 
-assert(/drawScale:\s*0\.7/.test(jammer) && /drawOffsetY:\s*190/.test(jammer), 'JammerEnvironment preserves approved draw scale 0.7 and +190 Y offset');
-assert(/state\.position\.y \+ state\.presentation\.drawOffsetY/.test(jammer), 'JammerEnvironment draws sprite/fallback from approved Y offset');
-assert(/scale:\s*state\.presentation\.drawScale/.test(jammer), 'JammerEnvironment draws Makko sprite with approved presentation scale');
+assert(/drawScale:\s*1/.test(jammer) && /drawOffsetY:\s*0/.test(jammer), 'JammerEnvironment uses bottom-centered Level 1 presentation without draw-only Y offset');
+assert(/getVisualBounds/.test(jammer) && /getAimBounds/.test(jammer), 'JammerEnvironment exposes one visual/aim bounds source');
+assert(/scale:\s*visual\.scale/.test(jammer), 'JammerEnvironment draws Makko sprite with calculated presentation scale');
 assert(/presentation: Object\.freeze/.test(jammer), 'Jammer presentation values are diagnostics/status state, not mutable competing owners');
 assert(/lungeCooldownSeconds\s*=\s*6 \+ Math\.random\(\) \* 4/.test(enemies), 'Firewall initial lunge cooldown is seconds, not milliseconds');
 assert(/lungeCooldownSeconds\s*=\s*1 \+ Math\.random\(\) \* 3/.test(enemies), 'Firewall reset lunge cooldown is seconds, not milliseconds');

@@ -16,11 +16,11 @@ const MAX_CONTEXT_ATTEMPTS = 3;
 window.renderGame = function() {
   // Check if renderer is available before use
   let rendererAvailable = window.renderer && typeof window.renderer === 'object' && window.renderer !== null && typeof window.renderer.clear === 'function';
-  
+
   if (typeof rendererAvailable === 'undefined') {
     rendererAvailable = false;
   }
-  
+
   // Use cached canvas context
   if (!renderCanvas) {
     renderCanvas = document.getElementById('gameCanvas');
@@ -29,7 +29,7 @@ window.renderGame = function() {
       return;
     }
   }
-  
+
   // Get context only once with retry limit
   if (!renderContext && contextCreationAttempts < MAX_CONTEXT_ATTEMPTS) {
     contextCreationAttempts++;
@@ -56,22 +56,22 @@ window.renderGame = function() {
       return;
     }
   }
-  
+
   if (!renderContext) {
     if (contextCreationAttempts >= MAX_CONTEXT_ATTEMPTS) {
       console.warn('Canvas context not available after multiple attempts, skipping render frame');
     }
     return;
   }
-  
+
   var ctx = renderContext;
-  
+
   // Ensure ctx is available before use
   if (!ctx) {
     console.warn('Canvas context not available, skipping render frame');
     return;
   }
-  
+
   // Set global image rendering to high-quality smooth
   try {
     ctx.imageSmoothingEnabled = true;
@@ -79,7 +79,7 @@ window.renderGame = function() {
   } catch (error) {
     // Some browsers may not support these settings
   }
-  
+
   // Clear canvas directly with fallback
   try {
     ctx.clearRect(0, 0, renderCanvas.width, renderCanvas.height);
@@ -87,7 +87,7 @@ window.renderGame = function() {
     console.error('Error clearing canvas:', error?.message || error);
     return;
   }
-  
+
   // Use renderer clear if available
   if (rendererAvailable) {
     try {
@@ -97,42 +97,42 @@ window.renderGame = function() {
       rendererAvailable = false;
     }
   }
-  
+
   // Additional safety check for ctx
   if (!ctx) {
     console.warn('Canvas context lost during render, skipping frame');
     return;
   }
-  
+
   // Apply zoom transformation to game area only
   if (rendererAvailable && window.renderer && typeof window.renderer.zoomLevel === 'number') {
     ctx.save();
-    
+
     const currentZoom = window.renderer.zoomLevel;
     const zoomAmount = 1.0 - currentZoom;
     const maxOffset = 100;
     const verticalOffset = (zoomAmount / 0.4) * maxOffset;
-    
+
     const centerX = 1920 / 2;
     const centerY = 850 / 2;
-    
+
     ctx.translate(centerX, centerY + verticalOffset);
     ctx.scale(currentZoom, currentZoom);
     ctx.translate(-centerX, -centerY);
-    
+
     if (window.renderer.screenShake.x || window.renderer.screenShake.y) {
       ctx.translate(window.renderer.screenShake.x, window.renderer.screenShake.y);
     }
   }
-  
+
   // Draw game elements first (within zoomed area)
   drawGameElements(ctx);
-  
+
   // Restore context to remove zoom transformation before drawing UI
   if (rendererAvailable && window.renderer && typeof window.renderer.zoomLevel === 'number') {
     ctx.restore();
   }
-  
+
   // Draw tutorial UI on top - NOT affected by zoom
   if (window.tutorialSystem && typeof window.tutorialSystem.isActive === 'function' && window.tutorialSystem.isActive()) {
     ctx.save();
@@ -143,7 +143,7 @@ window.renderGame = function() {
     }
     ctx.restore();
   }
-  
+
   // Draw game UI elements - NOT affected by zoom
   if (typeof window.drawGameUI === 'function') {
     try {
@@ -152,7 +152,7 @@ window.renderGame = function() {
       console.error('Error drawing UI:', error?.message || error);
     }
   }
-  
+
   // Apply post-processing effects (if available)
   if (rendererAvailable) {
     try {
@@ -170,56 +170,58 @@ window.renderGame = function() {
 function drawGameElements(ctx) {
   // Draw fallback background first
   drawBackground(ctx);
-  
+
   // Set up side-scroller camera
   const playerX = window.player ? window.player.position.x : 960;
   const canvasWidth = 1920;
-  const worldWidth = 4096;
+  const worldWidth = (window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.WORLD_WIDTH) || 4096;
   const halfCanvas = canvasWidth / 2;
-  
+
   let cameraX = playerX;
   cameraX = window.clamp?.(cameraX, halfCanvas, worldWidth - halfCanvas) || cameraX;
   if (window.sector1Progression && typeof window.sector1Progression.getCameraX === 'function') cameraX = window.sector1Progression.getCameraX(cameraX);
   window.gameCamera = { x: cameraX - halfCanvas, y: 0, centerX: cameraX };
   const cameraOffsetX = 960 - cameraX;
-  
+
   // Draw parallax background layer (BG)
   drawParallaxBackground(ctx, cameraX);
-  
+
   // Draw space ships (between BG and FG layers)
   drawSpaceShips(ctx);
-  
+
   // Draw parallax foreground layer (FG)
   drawParallaxForeground(ctx);
-  
+
   // Apply camera transform to all game objects
   ctx.save();
   ctx.translate(cameraOffsetX, 0);
-  
+
   // Draw smoke particles BEHIND ground layer
   drawSmokeParticles(ctx);
-  
+
   // Draw ground
   drawGround(ctx);
-  
+
   // Draw remaining particle effects on top
   drawOtherParticles(ctx);
-  
+
   // Draw game entities
   drawGameEntities(ctx);
-  
-  // Draw jammer indicator (should move with camera)
-  drawJammerIndicator(ctx);
-  
+
   // Draw rhythm effects behind player
   drawRhythmEffectsBehindPlayer(ctx);
-  
+
   // Draw player
   drawPlayer(ctx);
-  
+
   // Restore camera transform
   ctx.restore();
-  
+
+  // Draw Jammer indicator once in the restored UI pass.
+  drawJammerIndicator(ctx);
+
+  if (window.DEBUG?.level1 && typeof window.DEBUG.level1.drawOverlay === 'function') window.DEBUG.level1.drawOverlay(ctx);
+
   // Draw foreground space ships
   drawForegroundSpaceShips(ctx);
 }
@@ -231,7 +233,7 @@ function drawBackground(ctx) {
   gradient.addColorStop(1, '#1a0a2a');
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, 1920, 1080);
-  
+
   // Grid pattern
   ctx.strokeStyle = 'rgba(0, 255, 255, 0.05)';
   ctx.lineWidth = 1;
@@ -252,9 +254,9 @@ function drawBackground(ctx) {
 // Draw parallax layers
 function drawParallaxBackground(ctx, cameraX) {
   if (window.parallaxBackground) {
-    const groundY = 890;
+    const groundY = (window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y) || 890;
     window.parallaxBackground.updateCamera(cameraX, groundY);
-    
+
     try {
       const bgLayer = window.parallaxBackground.getLayer(0);
       if (bgLayer) {
@@ -321,30 +323,30 @@ function drawOtherParticles(ctx) {
 
 // Draw ground
 function drawGround(ctx) {
-  const groundY = 890;
-  
+  const groundY = (window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y) || 890;
+
   const playerX = window.player ? window.player.position.x : 960;
   const canvasWidth = 1920;
-  const worldWidth = 4096;
+  const worldWidth = (window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.WORLD_WIDTH) || 4096;
   const halfCanvas = canvasWidth / 2;
-  
+
   let cameraX = playerX;
   cameraX = window.clamp?.(cameraX, halfCanvas, worldWidth - halfCanvas) || cameraX;
   if (window.sector1Progression && typeof window.sector1Progression.getCameraX === 'function') cameraX = window.sector1Progression.getCameraX(cameraX);
   window.gameCamera = { x: cameraX - halfCanvas, y: 0, centerX: cameraX };
-  
+
   const groundStartX = -2000;
   const groundEndX = worldWidth + 2000;
   const screenWidth = groundEndX - groundStartX;
-  
+
   const groundGradient = ctx.createLinearGradient(0, groundY, 0, 1080);
   groundGradient.addColorStop(0, '#2a0a4a');
   groundGradient.addColorStop(0.5, '#1a053a');
   groundGradient.addColorStop(1, '#0a022a');
-  
+
   ctx.fillStyle = groundGradient;
   ctx.fillRect(groundStartX, groundY, screenWidth, 1080 - groundY);
-  
+
   ctx.strokeStyle = '#ff00ff';
   ctx.lineWidth = 2;
   ctx.shadowColor = '#ff00ff';
@@ -354,7 +356,7 @@ function drawGround(ctx) {
   ctx.lineTo(groundEndX, groundY);
   ctx.stroke();
   ctx.shadowBlur = 0;
-  
+
   ctx.fillStyle = 'rgba(0, 255, 255, 0.1)';
   const patternStart = Math.floor(groundStartX / 100) * 100;
   for (let x = patternStart; x < groundEndX; x += 100) {
@@ -390,7 +392,7 @@ function drawGameEntities(ctx) {
       console.error('Error drawing Sector 1 progression:', error?.message || error);
     }
   }
-  
+
   // Draw lost data fragments
   if (window.lostDataSystem && typeof window.lostDataSystem.draw === 'function') {
     try {
@@ -401,7 +403,7 @@ function drawGameEntities(ctx) {
   }
 }
 
-// Draw jammer indicator (moves with camera)
+// Draw jammer indicator in final screen coordinates
 function drawJammerIndicator(ctx) {
   if (window.jammerIndicator && typeof window.jammerIndicator.draw === 'function') {
     try {
@@ -418,13 +420,13 @@ function drawRhythmEffectsBehindPlayer(ctx) {
     try {
       const playerX = window.player ? window.player.position.x : 960;
       const playerY = window.player ? window.player.position.y : 500;
-      
+
       ctx.save();
-      
+
       if (typeof window.rhythmSystem.drawElectricalArcs === 'function') {
         window.rhythmSystem.drawElectricalArcs(ctx, playerX, playerY);
       }
-      
+
       ctx.restore();
     } catch (error) {
       console.error('Error drawing rhythm effects:', error?.message || error);
@@ -440,14 +442,14 @@ function drawPlayer(ctx) {
       const isPlayerInvulnerable = (
         (window.player.invulnerableUntil && currentTime < window.player.invulnerableUntil)
       );
-      
+
       if (isPlayerInvulnerable) {
         ctx.save();
         ctx.globalCompositeOperation = 'source-over';
       }
-      
+
       window.player.draw(ctx);
-      
+
       if (isPlayerInvulnerable) {
         ctx.restore();
       }

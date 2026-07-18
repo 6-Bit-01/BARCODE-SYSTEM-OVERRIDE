@@ -22,7 +22,6 @@
     "src/engine/spaceships.js",
     "src/engine/lore.js",
     "src/engine/jammer-indicator.js",
-    "src/engine/jammer-arrow-indicator.js",
     "src/engine/title-screen.js",
     "src/game/objectives.js",
     "src/engine/cutscene.js",
@@ -36,7 +35,9 @@
     "src/game/tutorial.js",
     "src/game/post-tutorial-objectives.js",
     "src/game/lost-data.js",
+    "src/game/level-01-layout.js",
     "src/game/sector1-progression.js",
+    "src/game/level-01-debug.js",
     "src/game/game-state.js",
     "src/game/update-coordinator.js",
     "src/game/render-coordinator.js",
@@ -65,7 +66,6 @@
     "src/engine/spaceships.js",
     "src/engine/lore.js",
     "src/engine/jammer-indicator.js",
-    "src/engine/jammer-arrow-indicator.js",
     "src/engine/title-screen.js",
     "src/game/objectives.js",
     "src/engine/cutscene.js",
@@ -79,7 +79,9 @@
     "src/game/tutorial.js",
     "src/game/post-tutorial-objectives.js",
     "src/game/lost-data.js",
+    "src/game/level-01-layout.js",
     "src/game/sector1-progression.js",
+    "src/game/level-01-debug.js",
     "src/game/game-state.js",
     "src/game/update-coordinator.js",
     "src/game/render-coordinator.js",
@@ -92,6 +94,7 @@
   "unloadedRepositoryJs": [
     "src/core/game-manager.js",
     "src/engine/game-logic.js",
+    "src/engine/jammer-arrow-indicator.js",
     "src/game/jammer-arrow.js",
     "src/game/jammer-arrows.js",
     "src/game/jammer-simple.js",
@@ -188,10 +191,6 @@
         "status": "pass"
       },
       {
-        "file": "src/engine/jammer-arrow-indicator.js",
-        "status": "pass"
-      },
-      {
         "file": "src/engine/title-screen.js",
         "status": "pass"
       },
@@ -244,7 +243,15 @@
         "status": "pass"
       },
       {
+        "file": "src/game/level-01-layout.js",
+        "status": "pass"
+      },
+      {
         "file": "src/game/sector1-progression.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/level-01-debug.js",
         "status": "pass"
       },
       {
@@ -282,11 +289,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 40,
+        "index": 41,
         "status": "pass"
       },
       {
-        "index": 42,
+        "index": 43,
         "status": "pass"
       }
     ]
@@ -349,13 +356,13 @@
     {
       "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 1416,
+      "line": 1360,
       "loaded": true
     },
     {
       "global": "window.EnemyManager",
       "file": "src/game/enemies.js",
-      "line": 929,
+      "line": 873,
       "loaded": true
     },
     {
@@ -439,7 +446,7 @@
     {
       "global": "window.player",
       "file": "src/game/player.js",
-      "line": 1671,
+      "line": 1601,
       "loaded": true
     },
     {
@@ -567,7 +574,6 @@
     "src/engine/spaceships.js",
     "src/engine/lore.js",
     "src/engine/jammer-indicator.js",
-    "src/engine/jammer-arrow-indicator.js",
     "src/engine/title-screen.js",
     "src/game/objectives.js",
     "src/engine/cutscene.js",
@@ -581,7 +587,9 @@
     "src/game/tutorial.js",
     "src/game/post-tutorial-objectives.js",
     "src/game/lost-data.js",
+    "src/game/level-01-layout.js",
     "src/game/sector1-progression.js",
+    "src/game/level-01-debug.js",
     "src/game/game-state.js",
     "src/game/update-coordinator.js",
     "src/game/render-coordinator.js",

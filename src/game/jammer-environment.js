@@ -29,7 +29,8 @@ window.BARCODE = window.BARCODE || {};
       spriteRequested: !!state.spriteRequested,
       spriteRequestCount: state.spriteRequestCount,
       hasAudio: !!state.audio,
-      presentation: Object.freeze({ drawScale: state.presentation.drawScale, drawOffsetY: state.presentation.drawOffsetY })
+      presentation: Object.freeze({ drawScale: state.presentation.drawScale, drawOffsetY: state.presentation.drawOffsetY }),
+      visualBounds: Object.freeze(getVisualBounds())
     });
   }
 
@@ -45,8 +46,8 @@ window.BARCODE = window.BARCODE || {};
     lastDamageSequence: null,
     disposed: false,
     generation: 0,
-    position: { x: 3400, y: 750 },
-    presentation: Object.freeze({ drawScale: 0.7, drawOffsetY: 190 }),
+    position: { x: 3400, y: ((window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y) || 890) },
+    presentation: Object.freeze({ drawScale: 1, drawOffsetY: 0 }),
     sprite: null,
     spriteReady: false,
     spriteRequested: false,
@@ -89,9 +90,6 @@ window.BARCODE = window.BARCODE || {};
     state.targetable = true;
     state.destroyed = false;
     state.health = state.maxHealth;
-    if (window.jammerArrowIndicator && typeof window.jammerArrowIndicator.setTarget === 'function') {
-      window.jammerArrowIndicator.setTarget({ position: state.position, active: true, environmental: true });
-    }
     return cloneStatus(state);
   }
 
@@ -108,7 +106,6 @@ window.BARCODE = window.BARCODE || {};
     state.spriteRequestGeneration = -1;
     if (state.audio && typeof state.audio.pause === 'function') state.audio.pause();
     state.audio = null;
-    if (window.jammerArrowIndicator && typeof window.jammerArrowIndicator.setTarget === 'function') window.jammerArrowIndicator.setTarget(null);
   }
 
   function reset() {
@@ -159,7 +156,6 @@ window.BARCODE = window.BARCODE || {};
         if (typeof window.particleSystem.impact === 'function') window.particleSystem.impact(state.position.x, state.position.y, '#ff00ff', 40);
         if (typeof window.particleSystem.spawnEffect === 'function') window.particleSystem.spawnEffect(state.position.x, state.position.y);
       }
-      if (window.jammerArrowIndicator && typeof window.jammerArrowIndicator.setTarget === 'function') window.jammerArrowIndicator.setTarget(null);
       if (!state.destructionNotified) {
         state.destructionNotified = true;
         if (window.sector1Progression && typeof window.sector1Progression.onJammerDestroyed === 'function') window.sector1Progression.onJammerDestroyed();
@@ -172,14 +168,15 @@ window.BARCODE = window.BARCODE || {};
     if (!ctx || state.destroyed || !state.revealed || state.disposed) return;
     ctx.save();
     if (state.spriteReady && state.sprite && typeof state.sprite.draw === 'function') {
-      const drawY = state.position.y + state.presentation.drawOffsetY;
-      state.sprite.draw(ctx, state.position.x, drawY, { scale: state.presentation.drawScale, flipH: false });
+      const visual = getVisualBounds();
+      state.sprite.draw(ctx, state.position.x, state.position.y, { scale: visual.scale, flipH: false });
     } else {
       ctx.strokeStyle = '#ff00ff';
       ctx.lineWidth = 3;
-      const fallbackY = state.position.y + state.presentation.drawOffsetY;
-      const fallbackWidth = 90 * state.presentation.drawScale;
-      const fallbackHeight = 120 * state.presentation.drawScale;
+      const visual = getVisualBounds();
+      const fallbackY = state.position.y;
+      const fallbackWidth = visual.width;
+      const fallbackHeight = visual.height;
       ctx.strokeRect(state.position.x - fallbackWidth / 2, fallbackY - fallbackHeight, fallbackWidth, fallbackHeight);
       ctx.fillStyle = '#ff00ff';
       ctx.font = '14px monospace';
@@ -187,7 +184,7 @@ window.BARCODE = window.BARCODE || {};
       ctx.fillText('BROADCAST JAMMER', state.position.x, fallbackY - fallbackHeight - 10);
     }
     if (state.targetable) {
-      const barW = 140; const barH = 12; const hp = state.health / state.maxHealth; const barY = state.position.y + 65;
+      const visual = getVisualBounds(); const barW = 140; const barH = 12; const hp = state.health / state.maxHealth; const barY = visual.y - 22;
       ctx.fillStyle = 'rgba(0,0,0,0.75)'; ctx.fillRect(state.position.x - barW / 2, barY, barW, barH);
       ctx.fillStyle = '#ff00ff'; ctx.fillRect(state.position.x - barW / 2, barY, barW * hp, barH);
       ctx.strokeStyle = '#00ffff'; ctx.strokeRect(state.position.x - barW / 2, barY, barW, barH);
@@ -196,9 +193,11 @@ window.BARCODE = window.BARCODE || {};
     ctx.restore();
   }
 
+  function getVisualBounds() { return window.BARCODE?.Level01Presentation?.jammerBounds ? window.BARCODE.Level01Presentation.jammerBounds(state.position) : { x: state.position.x - 45, y: state.position.y - 120, width: 90, height: 120, scale: 1 }; }
+  function getAimBounds() { return getVisualBounds(); }
   function getStatus() { return cloneStatus(state); }
   function getDiagnostics() { return cloneStatus(state); }
   function getPosition() { return state.revealed && !state.disposed ? { x: state.position.x, y: state.position.y } : null; }
 
-  namespace.JammerEnvironment = Object.freeze({ initialize, reveal, trigger, reset, dispose, update, draw, canReceiveRhythmDamage, applyRhythmDamage, getStatus, getDiagnostics, getPosition });
+  namespace.JammerEnvironment = Object.freeze({ initialize, reveal, trigger, reset, dispose, update, draw, canReceiveRhythmDamage, applyRhythmDamage, getStatus, getDiagnostics, getPosition, getVisualBounds, getAimBounds });
 })(window.BARCODE);

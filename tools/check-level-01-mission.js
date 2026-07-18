@@ -2,6 +2,7 @@
 const fs = require('fs');
 const vm = require('vm');
 const assert = require('assert');
+const layoutSource = fs.readFileSync('src/game/level-01-layout.js','utf8');
 const sectorSource = fs.readFileSync('src/game/sector1-progression.js','utf8');
 const jammerSource = fs.readFileSync('src/game/jammer-environment.js','utf8');
 const combat = fs.readFileSync('src/game/player-combat.js','utf8');
@@ -14,14 +15,23 @@ const objectives = fs.readFileSync('src/game/objectives.js','utf8');
 const updateCoordinator = fs.readFileSync('src/game/update-coordinator.js','utf8');
 function must(text, re, msg) { assert(re.test(text), msg); }
 
-const encounterBlocks = [...sectorSource.matchAll(/\{ id: 'encounter_\d'[^]*?enemies: \[([^]*?)\] \}/g)];
+const encounterBlocks = [...layoutSource.matchAll(/\{ id: 'encounter_\d'[^]*?enemies: \[([^]*?)\] \}/g)];
 assert.strictEqual(encounterBlocks.length, 4, 'four authored encounter definitions');
 const counts = encounterBlocks.map(m => (m[1].match(/type: '/g) || []).length);
 assert.strictEqual(counts.reduce((a,b)=>a+b,0), 20, 'exactly 20 quota enemies');
 assert.deepStrictEqual(counts, [4,5,5,6], 'encounter counts are 4/5/5/6');
-must(sectorSource, /STAGE_SURFACES = Object\.freeze/, 'single stage surface data exists');
-must(sectorSource, /ENCOUNTER_GATES = Object\.freeze/, 'single gate data exists');
+must(layoutSource, /const STAGE_SURFACES = Object\.freeze/, 'single stage surface data exists');
+must(layoutSource, /const ENCOUNTER_GATES = Object\.freeze/, 'single gate data exists');
 must(sectorSource, /previousFootY <= surface\.y && currentFootY >= surface\.y/, 'platform tunneling prevention uses previous/current feet');
+must(layoutSource, /WORLD_WIDTH = 4096/, 'world width centralized in layout');
+must(layoutSource, /GROUND_Y = 890/, 'ground street line centralized in layout');
+must(layoutSource, /targetHeight: 192/, 'player target height centralized');
+must(layoutSource, /targetHeight: 260/, 'boss target height centralized');
+must(layoutSource, /playerExclusionRadius: 350/, 'spawn exclusion radius centralized');
+must(sectorSource, /shouldSuppressGenericSpawning\(\) \{ return this\.state !== STATES\.JAMMER_ACTIVE; \}/, 'generic spawner remains suppressed except controlled jammer phase');
+must(sectorSource, /updateJammerReinforcements/, 'controlled jammer reinforcements exist');
+must(sectorSource, /planSpawn/, 'safe spawn planner exists');
+must(sectorSource, /debugGotoJammer/, 'progression-owned debug goto jammer exists');
 must(sectorSource, /isCompleted\(\) && typeof window\.tutorialSystem\.isActive === 'function' && !window\.tutorialSystem\.isActive\(\)/, 'mission requires completed and inactive tutorial');
 must(sectorSource, /captureCinematicStart\(\)[^]*gameCamera\.centerX/, 'Jammer destruction captures gameCamera.centerX immediately');
 must(sectorSource, /transitionToPan\(\)[^]*if \(!Number\.isFinite\(this\.panStartX\)\) this\.captureCinematicStart\(\)/, 'pan reuses captured start');
@@ -52,6 +62,7 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   const sprite = { playCalls: [], updateCalls: 0, isLoaded: () => spriteLoaded, play(name, loop) { this.playCalls.push({ name, loop }); }, update(dt) { this.updateCalls += 1; this.lastUpdate = dt; } };
   const window = { FILE_MANIFEST: [], BARCODE: { JammerEnvironment: { reset(){}, reveal(){ this.revealed = true; } } }, Vector2D: createVectorClass(), clamp: (v,min,max)=>Math.max(min,Math.min(max,v)), gameState: { paused: false, enemiesDefeated: 0 }, player: { position: { x: 900, y: 700 }, velocity: { x: 4, y: 9 }, width: 80, controlsDisabled: false }, enemyManager: { clear(){ this.cleared = true; }, enemies: [], purgeForCinematic(){ this.purged = (this.purged || 0) + 1; } }, objectivesSystem: { setMissionDefeatObjective(){}, completeJammerObjective(){}, revealJammerObjective(){}, setBossIntroObjective(){} }, cancelInitialEnemySpawn(){ this.cancelled = true; }, Enemy: function Enemy(x, y, type) { this.position = { x, y }; this.velocity = { x: 0, y: 0 }; this.type = type; this.active = true; }, MakkoEngine: { calls: 0, sprite(id) { this.calls += 1; sprite.id = id; return sprite; } } };
   const context = vm.createContext({ window, console });
+  vm.runInContext(layoutSource, context, { filename: 'src/game/level-01-layout.js' });
   vm.runInContext(sectorSource, context, { filename: 'src/game/sector1-progression.js' });
   return { window, sprite, setSpriteLoaded: value => { spriteLoaded = value; } };
 }
@@ -105,5 +116,38 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   assert(sprite.updateCalls > before, 'flourish sprite receives update calls');
   p.update(1000);
   assert(sprite.playCalls.map(c => c.name).includes('sector_1_boss_idle_idle'), 'idle plays when boss_ready begins');
+}
+
+{
+  const { window } = loadRealSector();
+  const p = new window.Sector1Progression(window.player);
+  p.startMission();
+  window.player.position.x = 10;
+  let spawn = p.planSpawn({ type: 'corrupted', y: window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y });
+  assert(spawn.x > 960, 'left-edge camera spawns from safe right side');
+  window.player.position.x = 2048;
+  spawn = p.planSpawn({ type: 'firewall', y: window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y });
+  assert(Math.abs(spawn.x - window.player.position.x) >= 350, 'center spawn respects player exclusion radius');
+  window.player.position.x = 4080;
+  spawn = p.planSpawn({ type: 'virus', y: window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y });
+  assert(spawn.x < 3200, 'right-edge camera spawns from safe left side');
+}
+{
+  const { window } = loadRealSector();
+  const p = new window.Sector1Progression(window.player);
+  p.debugGotoJammer();
+  assert.strictEqual(p.state, 'jammer_active', 'debug goto jammer sets jammer active');
+  assert.strictEqual(p.missionDefeats, 20, 'debug goto jammer synchronizes 20/20');
+  assert.strictEqual(p.shouldSuppressGenericSpawning(), false, 'jammer active is the only unsuppressed state for controlled reinforcements');
+  window.BARCODE.JammerEnvironment.getStatus = () => ({ revealed: true, destroyed: false, position: { x: 3520, y: window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y } });
+  p.updateJammerReinforcements(5000);
+  assert.strictEqual(window.enemyManager.enemies.filter(e => e._jammerReinforcement).length, 1, 'jammer reinforcement spawns through planner');
+  assert.strictEqual(p.missionDefeats, 20, 'reinforcements do not increase mission quota');
+}
+{
+  const { window } = loadRealSector();
+  const bossStates = ['walk', 'flourish', 'idle'];
+  const heights = bossStates.map(state => window.BARCODE.Level01Presentation.bossTransform({ x: 0, y: 890, state }).height);
+  heights.forEach(h => assert(Math.abs(h - 260) <= 8, 'boss apparent height within about 3%'));
 }
 console.log('Level 1 mission static and real-module VM checks passed');
