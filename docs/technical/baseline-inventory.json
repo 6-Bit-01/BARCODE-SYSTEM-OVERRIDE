@@ -363,13 +363,13 @@
     {
       "global": "window.enemyManager",
       "file": "tools/check-action-combat.js",
-      "line": 171,
+      "line": 246,
       "loaded": false
     },
     {
       "global": "window.enemyManager",
       "file": "tools/check-action-combat.js",
-      "line": 223,
+      "line": 298,
       "loaded": false
     },
     {
@@ -417,25 +417,25 @@
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 111,
+      "line": 186,
       "loaded": false
     },
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 202,
+      "line": 277,
       "loaded": false
     },
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 220,
+      "line": 295,
       "loaded": false
     },
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 275,
+      "line": 350,
       "loaded": false
     },
     {
@@ -451,33 +451,39 @@
       "loaded": false
     },
     {
+      "global": "window.gameState",
+      "file": "tools/check-action-combat.js",
+      "line": 94,
+      "loaded": false
+    },
+    {
       "global": "window.player",
       "file": "src/game/player.js",
-      "line": 1671,
+      "line": 1717,
       "loaded": true
     },
     {
       "global": "window.player",
       "file": "tools/check-action-combat.js",
-      "line": 112,
+      "line": 187,
       "loaded": false
     },
     {
       "global": "window.player",
       "file": "tools/check-action-combat.js",
-      "line": 170,
+      "line": 245,
       "loaded": false
     },
     {
       "global": "window.player",
       "file": "tools/check-action-combat.js",
-      "line": 203,
+      "line": 278,
       "loaded": false
     },
     {
       "global": "window.player",
       "file": "tools/check-action-combat.js",
-      "line": 221,
+      "line": 296,
       "loaded": false
     },
     {
@@ -513,37 +519,37 @@
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 175,
+      "line": 288,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 202,
+      "line": 315,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 263,
+      "line": 376,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 281,
+      "line": 394,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 360,
+      "line": 475,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 400,
+      "line": 515,
       "loaded": false
     },
     {

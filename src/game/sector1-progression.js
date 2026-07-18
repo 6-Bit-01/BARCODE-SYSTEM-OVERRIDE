@@ -6,6 +6,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
   const WORLD_WIDTH = 4096;
   const CANVAS_WIDTH = 1920;
   const GROUND_Y = 750;
+  // Normalize each Makko frame's bottom-center manifest anchor so its visible
+  // foot contact is 100 world pixels below Player.position.y (physics ground
+  // 750 -> the locked foreground's authored sidewalk contact at 850).
+  const PLAYER_VISUAL_FOOT_OFFSET = 100;
   const CAMERA_MIN = CANVAS_WIDTH / 2;
   const CAMERA_MAX = WORLD_WIDTH - CANVAS_WIDTH / 2;
 
@@ -23,13 +27,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     { id: 'encounter_4', triggerX: 3050, label: 'Broadcast Gate', enemies: [{ type: 'virus', x: 3180, y: 650 }, { type: 'corrupted', x: 3320, y: 650 }, { type: 'virus', x: 3460, y: 650 }, { type: 'firewall', x: 3600, y: 650 }, { type: 'corrupted', x: 3740, y: 650 }, { type: 'virus', x: 3880, y: 650 }] }
   ]);
 
-  // Calibrated against the locked Level 1 foreground image using the renderer's
-  // 4400x1589 draw at (-152, -550). These are the actual architectural ledges,
-  // not approximate screen-space rectangles.
+  // Calibrated against the locked 1279x462 Level 1 foreground image using the
+  // renderer's 4400x1589 draw at (-152, -550). The added storefront/sign steps
+  // use visible architectural top edges to connect the existing roof route
+  // without placing walkable surfaces inside the HUD or above the viewport.
   const STAGE_SURFACES = Object.freeze([
+    { id: 'signal-storefront', x: 752, y: 578, w: 485, h: 8 },
     { id: 'signal-awning', x: 701, y: 492, w: 561, h: 8 },
     { id: 'cache-bridge', x: 1492, y: 337, w: 337, h: 8 },
+    { id: 'firewall-storefront', x: 1964, y: 781, w: 375, h: 8 },
     { id: 'firewall-deck', x: 2002, y: 506, w: 513, h: 8 },
+    { id: 'firewall-sign', x: 2645, y: 413, w: 492, h: 8 },
+    { id: 'broadcast-storefront', x: 3305, y: 643, w: 440, h: 8 },
     { id: 'broadcast-ramp', x: 3295, y: 506, w: 461, h: 8 }
   ]);
 
@@ -44,7 +53,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     freezeMs: 800,
     panMs: 2000,
     closeUpMs: 500,
-    flourishMs: 900,
+    flourishMs: 4000,
     holdMs: 250,
     returnMs: 1600,
     wideZoomFloor: 0.92,
@@ -67,9 +76,41 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
   });
   const BOSS_PRESENTATION = Object.freeze({
     targetAnchorHeight: 253 * 0.8,
-    walk: Object.freeze({ width: 200, height: 256, anchorX: 100, anchorY: 253 }),
-    flourish: Object.freeze({ width: 256, height: 155, anchorX: 128, anchorY: 154 }),
-    idle: Object.freeze({ width: 256, height: 179, anchorX: 128, anchorY: 178 })
+    walk: Object.freeze({
+      width: 200,
+      height: 256,
+      anchorX: 100,
+      anchorY: 253,
+      footRows: Object.freeze([
+        253, 250, 248, 246, 242, 241, 244, 244, 243, 241, 244, 247, 250, 254,
+        254, 251, 247, 246, 244, 244, 245, 245, 241, 241, 244, 249, 251, 253,
+        252, 250, 248, 243, 241, 243, 245, 244, 243, 247, 248, 251, 253
+      ])
+    }),
+    flourish: Object.freeze({
+      width: 256,
+      height: 155,
+      anchorX: 128,
+      anchorY: 154,
+      footRows: Object.freeze([
+        126, 126, 125, 120, 119, 117, 118, 118, 119, 119, 119, 119, 119, 119,
+        119, 119, 119, 119, 116, 115, 117, 120, 120, 120, 120, 120, 120, 120,
+        120, 120, 154, 154, 148, 146, 130, 119, 119, 119, 119, 119, 119, 120,
+        124, 125, 126, 126, 126, 126
+      ])
+    }),
+    idle: Object.freeze({
+      width: 256,
+      height: 179,
+      anchorX: 128,
+      anchorY: 178,
+      footRows: Object.freeze([
+        178, 178, 178, 178, 178, 173, 167, 165, 161, 157, 157, 157, 157, 157,
+        160, 165, 167, 170, 173, 173, 173, 173, 173, 173, 173, 173, 173, 169,
+        168, 165, 162, 161, 159, 157, 157, 157, 157, 157, 157, 160, 162, 165,
+        171, 173, 176, 177, 177, 177
+      ])
+    })
   });
 
   function totalQuota() { return ENCOUNTERS.reduce((sum, e) => sum + e.enemies.length, 0); }
@@ -93,6 +134,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     static get ENCOUNTERS() { return ENCOUNTERS; }
     static get GEOMETRY() { return STAGE_SURFACES; }
     static get STAGE_SURFACES() { return STAGE_SURFACES; }
+    static get PLAYER_VISUAL_FOOT_OFFSET() { return PLAYER_VISUAL_FOOT_OFFSET; }
     static get ENCOUNTER_GATES() { return ENCOUNTER_GATES; }
     static get CINEMATIC() { return CINEMATIC; }
     static get STATES() { return STATES; }
@@ -145,10 +187,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     purgeEnemies() { if (window.enemyManager?.purgeForCinematic) window.enemyManager.purgeForCinematic(); else if (window.enemyManager) window.enemyManager.enemies = []; }
     transitionToPan() { this.state = STATES.CAMERA_PAN; this.phaseElapsed = 0; if (!Number.isFinite(this.panStartX)) this.captureCinematicStart(); this.panTargetX = clampCamera(CINEMATIC.bossFrameX); this.cameraX = this.panStartX; this.cinematicZoomOverride = this.cinematicStartZoom; this.cameraOverrideActive = true; }
     updatePan(delta) { this.phaseElapsed += delta; const t = Math.min(1, this.phaseElapsed / CINEMATIC.panMs); const eased = smoothStep(t); this.cameraX = clampCamera(lerp(this.panStartX, this.panTargetX, eased)); const desiredZoom = lerp(this.cinematicStartZoom, this.cinematicWideZoom, eased); this.cinematicZoomOverride = Math.max(desiredZoom, getForegroundCoverageZoomFloor(this.cameraX)); if (t >= 1) { this.cameraX = this.panTargetX; this.cinematicZoomOverride = Math.max(this.cinematicWideZoom, getForegroundCoverageZoomFloor(this.cameraX)); this.startBossWalk(); } }
-    startBossWalk() { this.state = STATES.BOSS_WALK_IN; this.phaseElapsed = 0; this.boss = { x: this.cameraX + CANVAS_WIDTH / 2 + 180, y: CINEMATIC.bossGroundY, state: 'walk', active: true, sprite: this.preloadedBossSprite || null, spriteReady: false, fallbackLocked: !this.preloadedBossSprite, activeAnimation: null, playedAnimation: null, flourishPlayed: false, canDealDamage: false, canReceiveDamage: false }; this.setBossAnimation('sector_1_boss_walk_walk', true); }
+    startBossWalk() { this.state = STATES.BOSS_WALK_IN; this.phaseElapsed = 0; this.boss = { x: this.cameraX + CANVAS_WIDTH / 2 + 180, y: CINEMATIC.bossGroundY, state: 'walk', active: true, sprite: this.preloadedBossSprite || null, spriteReady: false, fallbackLocked: !this.preloadedBossSprite, activeAnimation: null, playedAnimation: null, animationRef: null, flourishPlayed: false, canDealDamage: false, canReceiveDamage: false }; this.setBossAnimation('sector_1_boss_walk_walk', true); }
     prepareBossAssets() { if (this.bossAssetsRequested) return; this.bossAssetsRequested = true; this.requestSpriteOnce('boss', 'sector_1_boss_sector1boss', sprite => { this.preloadedBossSprite = sprite; this.preparedBossAnimations = ['sector_1_boss_walk_walk', 'sector_1_boss_attack_attack', 'sector_1_boss_idle_idle']; }); }
-    prepareBossSprite() { if (!this.boss) return; if (!this.boss.sprite && this.preloadedBossSprite && !this.boss.fallbackLocked) this.boss.sprite = this.preloadedBossSprite; if (this.boss.sprite?.isLoaded?.()) { this.boss.spriteReady = true; if (this.boss.activeAnimation && this.boss.playedAnimation !== this.boss.activeAnimation && this.boss.sprite.play) { this.boss.sprite.play(this.boss.activeAnimation, this.boss.activeAnimation !== 'sector_1_boss_attack_attack'); this.boss.playedAnimation = this.boss.activeAnimation; } } }
-    setBossAnimation(animation, loop) { this.prepareBossSprite(); if (!this.boss || this.boss.activeAnimation === animation) return; this.boss.activeAnimation = animation; if (this.boss.spriteReady && this.boss.sprite?.play) { this.boss.sprite.play(animation, loop); this.boss.playedAnimation = animation; } }
+    prepareBossSprite() { if (!this.boss) return; if (!this.boss.sprite && this.preloadedBossSprite && !this.boss.fallbackLocked) this.boss.sprite = this.preloadedBossSprite; if (this.boss.sprite?.isLoaded?.()) { this.boss.spriteReady = true; if (this.boss.activeAnimation && this.boss.playedAnimation !== this.boss.activeAnimation && this.boss.sprite.play) { this.boss.animationRef = this.boss.sprite.play(this.boss.activeAnimation, this.boss.activeAnimation !== 'sector_1_boss_attack_attack') || null; this.boss.playedAnimation = this.boss.activeAnimation; } } }
+    setBossAnimation(animation, loop) { this.prepareBossSprite(); if (!this.boss || this.boss.activeAnimation === animation) return this.boss?.animationRef || null; this.boss.activeAnimation = animation; this.boss.animationRef = null; if (this.boss.spriteReady && this.boss.sprite?.play) { this.boss.animationRef = this.boss.sprite.play(animation, loop) || null; this.boss.playedAnimation = animation; } return this.boss.animationRef; }
     updateBossSprite(delta) { this.prepareBossSprite(); if (this.boss?.spriteReady && this.boss.sprite?.update) this.boss.sprite.update(delta); }
     updateBossWalk(delta) { this.setBossAnimation('sector_1_boss_walk_walk', true); this.boss.x -= CINEMATIC.bossSpeed * (delta / 1000); this.updateBossSprite(delta); if (this.boss.x <= CINEMATIC.bossStopX) { this.boss.x = CINEMATIC.bossStopX; this.startBossCloseUp(); if (window.gameState) window.gameState.collectionMessage = { text: 'SIGNAL RESTORED. BOSS APPROACHING.', timer: 160 }; } }
     startBossCloseUp() { this.state = STATES.BOSS_CLOSE_UP; this.phaseElapsed = 0; this.closeUpStartZoom = this.cinematicZoomOverride; this.boss.state = 'idle'; this.setBossAnimation('sector_1_boss_idle_idle', true); }
@@ -164,13 +206,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     drawStageSurfaces(ctx) { if (!ctx) return; ctx.save(); STAGE_SURFACES.forEach(g => { ctx.shadowColor = '#00ffff'; ctx.shadowBlur = 8; ctx.fillStyle = 'rgba(0,255,255,0.34)'; ctx.fillRect(g.x, g.y - 2, g.w, g.h); ctx.shadowBlur = 0; ctx.strokeStyle = 'rgba(0,255,255,0.92)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(g.x, g.y); ctx.lineTo(g.x + g.w, g.y); ctx.stroke(); }); ctx.restore(); }
     drawEncounterGates(ctx) { if (!ctx) return; const gate = this.getCurrentGate(); if (!gate) return; ctx.save(); ctx.globalAlpha = 0.9; ctx.fillStyle = 'rgba(255,0,255,0.55)'; ctx.fillRect(gate.x, gate.y, gate.w, gate.h); ctx.strokeStyle = '#ff00ff'; ctx.lineWidth = 3; ctx.strokeRect(gate.x, gate.y, gate.w, gate.h); ctx.restore(); }
     getBossPresentationKey() { if (this.boss?.state === 'idle' || this.boss?.activeAnimation === 'sector_1_boss_idle_idle') return 'idle'; if (this.boss?.state === 'flourish' || this.boss?.activeAnimation === 'sector_1_boss_attack_attack') return 'flourish'; return 'walk'; }
-    getBossVisualBounds() { if (!this.boss) return null; const frame = BOSS_PRESENTATION[this.getBossPresentationKey()]; const scale = BOSS_PRESENTATION.targetAnchorHeight / frame.anchorY; const anchorY = this.boss.y + 110; return { x: this.boss.x - frame.anchorX * scale, y: anchorY - frame.anchorY * scale, width: frame.width * scale, height: frame.height * scale, scale, anchorX: this.boss.x, anchorY }; }
+    getBossVisualBounds() { if (!this.boss) return null; const frame = BOSS_PRESENTATION[this.getBossPresentationKey()]; const scale = BOSS_PRESENTATION.targetAnchorHeight / frame.anchorY; const rawFrame = Number.isFinite(this.boss.animationRef?.currentFrame) ? this.boss.animationRef.currentFrame : 0; const frameIndex = Math.max(0, Math.trunc(rawFrame)) % frame.footRows.length; const footRow = frame.footRows[frameIndex] ?? frame.anchorY; const targetFootY = this.boss.y + PLAYER_VISUAL_FOOT_OFFSET; const anchorY = targetFootY + (frame.anchorY - footRow) * scale; return { x: this.boss.x - frame.anchorX * scale, y: anchorY - frame.anchorY * scale, width: frame.width * scale, height: frame.height * scale, scale, anchorX: this.boss.x, anchorY, frameIndex, footRow, targetFootY, visibleFootY: anchorY + (footRow - frame.anchorY) * scale }; }
     drawBoss(ctx) { if (!ctx || !this.boss?.active) return; const visual = this.getBossVisualBounds(); ctx.save(); if (this.boss.spriteReady && this.boss.sprite?.draw) this.boss.sprite.draw(ctx, visual.anchorX, visual.anchorY, { scale: visual.scale, flipH: true }); else { ctx.fillStyle = '#ff3300'; ctx.fillRect(visual.x, visual.y, visual.width, visual.height); ctx.fillStyle = '#fff'; ctx.fillText('SECTOR 1 BOSS', visual.x, visual.y - 20); } ctx.restore(); }
     isGateClosed(encounterId) { return this.closedGateEncounterId === encounterId; }
     openEncounterGate(encounterId) { if (this.closedGateEncounterId === encounterId) this.closedGateEncounterId = null; }
     getCurrentGate() { return ENCOUNTER_GATES.find(g => g.encounterId === this.closedGateEncounterId) || null; }
     applyGateCollision() { const gate = this.getCurrentGate(); const player = this.player || window.player; if (!gate || !player) return; const half = player.width ? player.width / 2 : 40; if (player.position.x + half > gate.x && player.position.x < gate.x + gate.w) { player.position.x = gate.x - half; if (player.velocity) player.velocity.x = Math.min(0, player.velocity.x || 0); } }
-    applyPlayerStageCollision(player, movement = {}) { if (!player || !player.velocity || player.velocity.y < 0) return false; const previousFootY = Number.isFinite(movement.previousFootY) ? movement.previousFootY : player.position.y; const currentFootY = Number.isFinite(movement.currentFootY) ? movement.currentFootY : player.position.y; const previousX = Number.isFinite(movement.previousX) ? movement.previousX : player.position.x; const footHalfWidth = 18; for (const surface of STAGE_SURFACES) { if (previousFootY > surface.y || currentFootY < surface.y) continue; const verticalTravel = currentFootY - previousFootY; const crossingT = verticalTravel > 0 ? Math.max(0, Math.min(1, (surface.y - previousFootY) / verticalTravel)) : 1; const crossingX = previousX + (player.position.x - previousX) * crossingT; const overlapsX = crossingX + footHalfWidth > surface.x && crossingX - footHalfWidth < surface.x + surface.w; if (overlapsX) { player.position.y = surface.y; player.velocity.y = 0; player.grounded = true; return true; } } return false; }
+    applyPlayerStageCollision(player, movement = {}) { if (!player || !player.velocity || player.velocity.y < 0) return false; const previousAnchorY = Number.isFinite(movement.previousFootY) ? movement.previousFootY : player.position.y; const currentAnchorY = Number.isFinite(movement.currentFootY) ? movement.currentFootY : player.position.y; const previousVisualFootY = previousAnchorY + PLAYER_VISUAL_FOOT_OFFSET; const currentVisualFootY = currentAnchorY + PLAYER_VISUAL_FOOT_OFFSET; const previousX = Number.isFinite(movement.previousX) ? movement.previousX : player.position.x; const footHalfWidth = 18; const verticalTravel = currentVisualFootY - previousVisualFootY; let landing = null; for (const surface of STAGE_SURFACES) { if (previousVisualFootY > surface.y || currentVisualFootY < surface.y) continue; const crossingT = verticalTravel > 0 ? Math.max(0, Math.min(1, (surface.y - previousVisualFootY) / verticalTravel)) : 1; const crossingX = previousX + (player.position.x - previousX) * crossingT; const overlapsX = crossingX + footHalfWidth > surface.x && crossingX - footHalfWidth < surface.x + surface.w; if (overlapsX && (!landing || crossingT < landing.crossingT)) landing = { surface, crossingT }; } if (!landing) return false; player.position.y = landing.surface.y - PLAYER_VISUAL_FOOT_OFFSET; player.velocity.y = 0; player.grounded = true; return true; }
     getPriorEncounterKills(number) { return [0, 0, 4, 9, 14][Math.max(1, Math.min(4, Number(number) || 1))] || 0; }
     debugPrepareMission() { if (!debugAllowed()) return debugDisabled(); this.reset(); if (window.enemyManager?.clear) window.enemyManager.clear(); if (window.objectivesSystem?.reset) window.objectivesSystem.reset(); if (window.tutorialSystem) { window.tutorialSystem.completed = true; window.tutorialSystem.active = false; } if (this.player) { this.player.controlsDisabled = false; if (this.player.velocity) { this.player.velocity.x = 0; this.player.velocity.y = 0; } } this.startMission(); return this.getDiagnostics(); }
     debugSkipTutorial() { return this.debugPrepareMission(); }
