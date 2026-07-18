@@ -124,7 +124,7 @@ pass('boss cinematic Rhythm Mode ownership');
     for (let frame = 0; frame < presentation.footRows.length; frame++) {
       player.animationRef = { currentFrame: frame };
       const anchor = player.getVisualAnchor();
-      assert(Math.abs(anchor.visibleFootY - 600) < 0.000001, `${state} frame ${frame} resolves to physics y + 100 visual foot line`);
+      assert(Math.abs(anchor.visibleFootY - 500) < 0.000001, `${state} frame ${frame} resolves to the existing physics contact line`);
       assert(anchor.x === player.position.x, `${state} frame ${frame} remains horizontally centered on the physics anchor`);
     }
     const hitbox = player.getHitbox();

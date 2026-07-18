@@ -30,7 +30,7 @@ must(sectorSource, /STAGE_SURFACES = Object\.freeze/, 'single stage surface data
 must(sectorSource, /ENCOUNTER_GATES = Object\.freeze/, 'single gate data exists');
 must(sectorSource, /previousVisualFootY > surface\.y \|\| currentVisualFootY < surface\.y[^]*crossingT[^]*crossingX/, 'platform tunneling prevention resolves the horizontal visual-foot position at the vertical crossing');
 must(sectorSource, /const footHalfWidth = 18;/, 'platform collision uses the narrow player foot probe');
-must(sectorSource, /const PLAYER_VISUAL_FOOT_OFFSET = 100;/, 'Level 1 platforms share the canonical +100 visual-foot presentation offset');
+must(sectorSource, /const PLAYER_VISUAL_FOOT_OFFSET = 0;/, 'Level 1 platforms share the existing physics contact line');
 must(sectorSource, /player\.position\.y = landing\.surface\.y - PLAYER_VISUAL_FOOT_OFFSET;/, 'platform landing keeps art y separate from the player physics anchor');
 must(sectorSource, /!landing \|\| crossingT < landing\.crossingT/, 'multi-surface descent resolves the earliest crossed ledge');
 must(playerSource, /this\.speed = 300;/, 'Level 1 route contract uses the locked 300px\/s player speed');
@@ -116,7 +116,7 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
     { id: 'broadcast-storefront', x: 3305, y: 643, w: 440, h: 8 },
     { id: 'broadcast-ramp', x: 3295, y: 506, w: 461, h: 8 }
   ], 'Level 1 platform rectangles stay calibrated to the locked foreground ledges');
-  assert.strictEqual(window.Sector1Progression.PLAYER_VISUAL_FOOT_OFFSET, 100, 'Level 1 publishes one canonical visual-foot offset');
+  assert.strictEqual(window.Sector1Progression.PLAYER_VISUAL_FOOT_OFFSET, 0, 'Level 1 publishes the existing physics contact line');
 }
 {
   const { window } = loadRealSector();
@@ -149,7 +149,7 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
 
   function descendingCrossingTime(fromY, toY) {
     // Simulate Player.position.y, including its real top-of-world clamp. Surface
-    // coordinates are visual-foot lines, so convert through the +100 contract.
+    // coordinates and the physics anchor share the same visible-foot line.
     let anchorY = fromY - window.Sector1Progression.PLAYER_VISUAL_FOOT_OFFSET;
     let velocityY = -physics.jumpPower;
     let jumpTime = 0;
@@ -573,8 +573,8 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
       approximately(visual.scale * profile.sourceAnchorY, 253 * 0.8, `${profile.state} animation uses the normalized anchor height`);
       assert.strictEqual(visual.frameIndex, frameIndex, `${profile.state} frame index follows the Makko animation reference`);
       assert.strictEqual(visual.footRow, profile.footRows[frameIndex], `${profile.state} frame ${frameIndex} uses the audited visible-foot row`);
-      approximately(visual.targetFootY, 850, `${profile.state} frame ${frameIndex} targets the authored sidewalk contact`);
-      approximately(visual.visibleFootY, 850, `${profile.state} frame ${frameIndex} stays grounded without sprite-sheet wobble`);
+      approximately(visual.targetFootY, 750, `${profile.state} frame ${frameIndex} targets the authored sidewalk contact`);
+      approximately(visual.visibleFootY, 750, `${profile.state} frame ${frameIndex} stays grounded without sprite-sheet wobble`);
     }
   }
   p.boss.state = 'walk';

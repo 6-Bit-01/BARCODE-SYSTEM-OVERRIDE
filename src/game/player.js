@@ -9,10 +9,10 @@ window.FILE_MANIFEST.push({
 // MakkoEngine draws each animation around the bottom-center manifest anchor.
 // These presentation records retain the approved sprite sizes while anchoring
 // the lowest visible foot pixel to one canonical presentation line on every
-// frame. Physics intentionally keeps its historical anchor 100px above the
-// visible sidewalk/roof contact, so this is presentation only; movement and
-// jump physics still use Player.position.y.
-const PLAYER_VISUAL_FOOT_OFFSET_Y = 100;
+// frame. Player.position.y is already the historical sidewalk/roof contact
+// line, so frame compensation resolves back to that exact physics anchor; it
+// must not add another world-space offset.
+const PLAYER_VISUAL_FOOT_OFFSET_Y = 0;
 const PLAYER_ANIMATION_PRESENTATION = Object.freeze({
   idle: Object.freeze({
     animation: '6_bit_idle_idle',
