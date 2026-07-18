@@ -31,7 +31,7 @@ async function prepareLevel01MusicSources() {
 // Initialize audio system first
 async function performInitAudio(options = {}) {
   console.log('=== INITIALIZING AUDIO SYSTEM ===');
-
+  
   if (!window.audioSystem) {
     console.log('Creating audio system...');
     if (window.AudioContext || window.webkitAudioContext) {
@@ -42,7 +42,7 @@ async function performInitAudio(options = {}) {
       return;
     }
   }
-
+  
   if (!window.audioSystem) {
     console.log('Audio system not available - waiting for initialization...');
     await new Promise(resolve => {
@@ -59,7 +59,7 @@ async function performInitAudio(options = {}) {
     }).catch(error => {
       console.warn('Audio system initialization promise rejected:', error?.message || error);
     });
-
+    
     if (!window.audioSystem || !window.audioSystem.isInitialized()) {
       console.log('Audio system failed to load after timeout');
       if (!window.audioSystem) {
@@ -73,20 +73,20 @@ async function performInitAudio(options = {}) {
       return;
     }
   }
-
+  
   if (!window.audioSystem.musicTracks) {
     window.audioSystem.musicTracks = {};
     console.log('Created musicTracks object');
   }
-
+  
   if (window.audioSystem.isInitialized()) {
     console.log('Audio system already initialized');
     if (options.profileId === 'level-01.main' || options.prepareLevel01 === true) return prepareLevel01MusicSources();
     return { ok: true, reason: 'base-audio-ready' };
   }
-
+  
   console.log('=== INITIALIZING AUDIO SYSTEM ===');
-
+  
   try {
     await window.audioSystem.init();
     if (options.profileId === 'level-01.main' || options.prepareLevel01 === true) {
@@ -98,7 +98,7 @@ async function performInitAudio(options = {}) {
     console.log('✓ Master gain value:', window.audioSystem.masterGain?.gain?.value || 'undefined');
     console.log('✓ Music gain value:', window.audioSystem.musicGain?.gain?.value || 'undefined');
     console.log('✓ Available music tracks:', Object.keys(window.audioSystem.musicTracks));
-
+    
   } catch (error) {
     console.log('⚠️ Audio system initialization failed:', error);
     console.error('Error details:', error?.stack || 'No stack available');
@@ -130,7 +130,7 @@ window.initAudio = function(options = {}) {
 // Initialize sprite system with MakkoEngine
 async function performInitSprites() {
   console.log('=== INITIALIZING SPRITE SYSTEM ===');
-
+  
   try {
     if (!window.MakkoEngine) {
       console.warn('MakkoEngine not loaded - waiting...');
@@ -141,14 +141,14 @@ async function performInitSprites() {
         throw new Error('MakkoEngine not available after timeout');
       }
     }
-
+    
     console.log('Loading sprites manifest...');
-
+    
     // Create timeout promise for sprite loading
     const spriteTimeoutPromise = new Promise((_, reject) => {
       setTimeout(() => reject(new Error('Sprite loading timeout')), 15000); // 15 second timeout
     });
-
+    
     const spriteLoadPromise = window.MakkoEngine.init('sprites-manifest.json', {
       onProgress: (loaded, total) => {
         console.log(`Loading sprites: ${loaded}/${total}`);
@@ -160,7 +160,7 @@ async function performInitSprites() {
         console.error('Sprite loading error:', error?.message || error?.toString() || 'Unknown error');
       }
     });
-
+    
     try {
       // Race between sprite loading and timeout
       await Promise.race([spriteLoadPromise, spriteTimeoutPromise]);
@@ -180,10 +180,10 @@ async function performInitSprites() {
       }
       throw initError;
     }
-
+    
     console.log('✓ MakkoEngine initialized successfully');
     console.log('Available characters:', window.MakkoEngine.getCharacters());
-
+    
     // Verify character availability
     const characters = ['6_bit_main', 'virus_virus', 'corrupted_corrupted', 'firewall_firewall'];
     characters.forEach(charName => {
@@ -195,21 +195,21 @@ async function performInitSprites() {
         console.error(`❌ ${charName} character not found in manifest`);
       }
     });
-
+    
     window.useFallbackGraphics = false;
-
+    
   } catch (error) {
     const errorMessage = error?.message || error?.toString() || 'Unknown error';
-
+    
     // Only log as error if it's not a timeout
     if (!error?.message || !error.message.includes('timeout')) {
       console.error('❌ Failed to initialize MakkoEngine:', errorMessage);
       console.error('MakkoEngine error stack:', error?.stack || 'No stack available');
     }
-
+    
     console.warn('Falling back to placeholder graphics');
     window.useFallbackGraphics = true;
-
+    
     window.MakkoEngine = {
       isLoaded: () => false,
       sprite: () => null,
@@ -218,7 +218,7 @@ async function performInitSprites() {
       init: async () => { throw new Error('MakkoEngine fallback - no real engine available'); }
     };
   }
-
+  
   return Promise.resolve();
 }
 
@@ -242,27 +242,27 @@ window.initSprites = function() {
 // New initialization function that starts from button
 async function performStartGameInitialization() {
   console.log('=== INITIALIZING GAME SYSTEMS ===');
-
+  
   // Enable debug hitbox visualization
   window.DEBUG_HITBOXES = false;
   console.log('✓ Debug hitboxes enabled');
-
+  
   try {
     // Initialize sprites first
     console.log('Loading sprites...');
     await window.initSprites();
     console.log('✓ Sprite initialization complete');
-
+    
     // Initialize space ship system
     console.log('Initializing space ship system...');
     window.initSpaceShips();
     console.log('✓ Space ship system initialized');
-
+    
     // Initialize lore system
     console.log('Initializing lore system...');
     window.initLore();
     console.log('✓ Lore system initialized');
-
+    
     // Initialize jammer indicator system
     console.log('Initializing jammer indicator system...');
     if (typeof window.initJammerIndicator === 'function') {
@@ -275,7 +275,7 @@ async function performStartGameInitialization() {
     } else {
       console.warn('⚠️ initJammerIndicator function not found');
     }
-
+    
     // FORCE INIT LOST DATA SYSTEM REGARDLESS OF PLAYER
     console.log('🔥 FORCE INITIALIZING LOST DATA SYSTEM...');
     try {
@@ -284,7 +284,7 @@ async function performStartGameInitialization() {
     } catch (error) {
       console.error('FAILED TO FORCE INIT LOST DATA:', error);
     }
-
+    
     // Initialize Sector 1 progression system
     console.log('Initializing Sector 1 progression system...');
     if (window.player && typeof window.initSector1Progression === 'function') {
@@ -293,13 +293,13 @@ async function performStartGameInitialization() {
     } else {
       console.warn('Player not available for Sector 1 progression initialization');
     }
-
+    
     // Initialize objectives system
     console.log('Initializing objectives system...');
     if (typeof window.initObjectives === 'function') {
       window.initObjectives();
       console.log('✓ Objectives system initialized');
-
+      
       if (window.objectivesSystem) {
         if (window.objectivesSystem.objectiveUI) {
           window.objectivesSystem.objectiveUI.visible = true;
@@ -308,21 +308,21 @@ async function performStartGameInitialization() {
         console.log('✅ Objectives system forced visible on initialization');
       }
     }
-
+    
     // Initialize audio system
     console.log('Initializing audio system...');
     await window.initAudio({ profileId: 'level-01.main' });
     console.log('✓ Audio initialization complete');
-
+    
     console.log('✓ All systems initialized successfully');
-
+    
   } catch (error) {
     const errorMessage = error?.message || error?.toString() || 'Unknown error';
     console.error('❌ Initialization failed:', errorMessage);
     console.error('Initialization error stack:', error?.stack || 'No stack available');
     console.error('Error type:', typeof error);
     console.error('Error object:', error);
-
+    
     // Re-throw with more descriptive message
     throw new Error(`Game initialization failed: ${errorMessage}`);
   }

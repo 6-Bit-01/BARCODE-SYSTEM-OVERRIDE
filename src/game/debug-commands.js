@@ -9,7 +9,8 @@ window.FILE_MANIFEST.push({
 function jammerEnv() { return window.BARCODE && window.BARCODE.JammerEnvironment; }
 function jammerStatus() { return jammerEnv() ? jammerEnv().getStatus() : null; }
 
-window.DEBUG = {
+window.DEBUG = window.DEBUG || {};
+Object.assign(window.DEBUG, {
   revealJammer(position) {
     if (!jammerEnv()) return '❌ Jammer environment unavailable';
     const status = jammerEnv().reveal({ position });
@@ -48,7 +49,7 @@ window.DEBUG = {
     }
     return '❌ Failed to skip boot screen - boot loader not available';
   }
-};
+});
 
 window.CHECK_JAMMER_STATUS = function() { return window.DEBUG.checkJammer(); };
 

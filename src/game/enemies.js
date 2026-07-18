@@ -159,6 +159,35 @@ window.Enemy = class Enemy {
     }
   }
 
+  updateAuthoredEntrance(deltaTime) {
+    if (!this._authoredEntranceActive || !this._entranceTarget) return false;
+    const dt = deltaTime / 1000;
+    const dx = this._entranceTarget.x - this.position.x;
+    const dy = this._entranceTarget.y - this.position.y;
+    const speed = Math.max(160, Math.abs(this.velocity.x || 0), this.speed || 120);
+    const step = speed * dt;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    this.state = 'authored_entrance';
+    this.entranceComplete = false;
+    if (dist <= Math.max(4, step)) {
+      this.position.x = this._entranceTarget.x;
+      this.position.y = this._entranceTarget.y;
+      this.velocity.x = 0;
+      this.velocity.y = 0;
+      this.entranceComplete = true;
+      this._authoredEntranceActive = false;
+      this.state = 'patrol';
+      this.spawnTimeMs = this.simulationTimeMs;
+      this.isOnGround = true;
+    } else {
+      this.velocity.x = (dx / dist) * speed;
+      this.velocity.y = (dy / dist) * speed;
+      this.position.x += this.velocity.x * dt;
+      this.position.y += this.velocity.y * dt;
+    }
+    return true;
+  }
+
   update(deltaTime, player, simulationTimeMs) {
     if (!this.active || this._disposed) return;
     this.simulationTimeMs = Number.isFinite(simulationTimeMs) ? simulationTimeMs : (this.simulationTimeMs + deltaTime);
@@ -167,6 +196,13 @@ window.Enemy = class Enemy {
     const dt = deltaTime / 1000;
     this.stateTimer += deltaTime;
     this.animationTime += deltaTime;
+
+    if (this.updateAuthoredEntrance(deltaTime)) {
+      if (this.spriteReady && this.sprite) { this.sprite.update(deltaTime); this.forceCorrectAnimationState(); }
+      return;
+    }
+
+    const previousFootY = this.position.y;
 
     // Track if enemy is on ground
     this.isOnGround = this.position.y >= ((window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y) || 890);
@@ -181,21 +217,7 @@ window.Enemy = class Enemy {
     // Update AI - Traffic Controller
     this.updateAI(player, dt);
 
-    if (!this.entranceComplete && this._entranceTarget) {
-      const dx = this._entranceTarget.x - this.position.x;
-      if (Math.abs(dx) <= Math.max(8, Math.abs(this.velocity.x * dt))) {
-        this.position.x = this._entranceTarget.x;
-        this.position.y = this._entranceTarget.y;
-        this.velocity.x = 0;
-        this.velocity.y = 0;
-        this.entranceComplete = true;
-        this.state = 'patrol';
-        this.spawnTimeMs = this.simulationTimeMs;
-      } else {
-        this.velocity.x = Math.sign(dx) * Math.max(120, Math.abs(this.velocity.x || 0));
-        this.position.y = this._entranceTarget.y;
-      }
-    }
+
 
     // Update Animation
     if (this.spriteReady && this.sprite) {
@@ -208,7 +230,7 @@ window.Enemy = class Enemy {
 
     // Ground Clamping
     const worldLeft = this.width/2;
-    const worldRight = 4096 - this.width/2;
+    const worldRight = (((window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.WORLD_WIDTH) || 4096) - this.width/2);
     this.position.x = window.clamp(this.position.x, worldLeft, worldRight);
 
     if (this.position.y >= ((window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y) || 890)) {
@@ -218,6 +240,9 @@ window.Enemy = class Enemy {
       } else {
           this.velocity.y = 0;
       }
+    }
+    if (window.sector1Progression && typeof window.sector1Progression.applyEnemyStageCollision === 'function') {
+      window.sector1Progression.applyEnemyStageCollision(this, { previousFootY, currentFootY: this.position.y });
     }
 
     // Friction
@@ -522,7 +547,6 @@ window.Enemy = class Enemy {
             const dx = player.position.x - this.position.x;
             const walkSpeed = (60 + Math.random() * 20) * this._aggressionLevel;
             this.velocity.x = (dx > 0 ? 1 : -1) * walkSpeed;
-            this.position.x += this.velocity.x * dt;
             this.position.y = ((window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y) || 890);
             this.facing = dx > 0 ? 1 : -1;
 

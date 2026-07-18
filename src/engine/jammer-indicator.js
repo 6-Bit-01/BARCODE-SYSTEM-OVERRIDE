@@ -13,18 +13,17 @@ window.FILE_MANIFEST.push({ name: 'src/engine/jammer-indicator.js', exports: ['J
       if (!status || !status.revealed || status.destroyed) return null;
       const bounds = env.getAimBounds ? env.getAimBounds() : { x: status.position.x - 45, y: status.position.y - 120, width: 90, height: 120 };
       const canvas = document.getElementById('gameCanvas') || { width: 1920, height: 1080 };
-      const zoom = window.renderer && typeof window.renderer.getZoomLevel === 'function' ? window.renderer.getZoomLevel() : (window.renderer && window.renderer.zoomLevel) || 1;
-      const playerX = window.player?.position?.x || status.position.x;
-      const cameraX = this.getCameraCenter(playerX);
-      const screenX = canvas.width / 2 + (bounds.x + bounds.width / 2 - cameraX) * zoom;
-      const screenY = canvas.height / 2 + (bounds.y + bounds.height / 2 - ((window.BARCODE?.LEVEL_01_LAYOUT?.VIEWPORT?.height || 1080) / 2)) * zoom;
-      const left = canvas.width / 2 + (bounds.x - cameraX) * zoom;
-      const right = canvas.width / 2 + (bounds.x + bounds.width - cameraX) * zoom;
-      const top = canvas.height / 2 + (bounds.y - ((window.BARCODE?.LEVEL_01_LAYOUT?.VIEWPORT?.height || 1080) / 2)) * zoom;
-      const bottom = canvas.height / 2 + (bounds.y + bounds.height - ((window.BARCODE?.LEVEL_01_LAYOUT?.VIEWPORT?.height || 1080) / 2)) * zoom;
-      const onscreen = right >= 0 && left <= canvas.width && bottom >= 0 && top <= canvas.height;
-      return { screenX, screenY, onscreen, canvas, cameraX, zoom, bounds };
+      const camera = window.BARCODE && window.BARCODE.Level01Camera;
+      const zoom = camera && camera.getZoom ? camera.getZoom() : (window.renderer && typeof window.renderer.getZoomLevel === 'function' ? window.renderer.getZoomLevel() : (window.renderer && window.renderer.zoomLevel) || 1);
+      const cameraX = camera && camera.getCameraCenter ? camera.getCameraCenter(window.player) : this.getCameraCenter(window.player?.position?.x || status.position.x);
+      const centerWorld = { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 };
+      const projectedCenter = camera && camera.worldToScreen ? camera.worldToScreen(centerWorld, { cameraCenter: cameraX, zoom }) : { x: canvas.width / 2 + (centerWorld.x - cameraX) * zoom, y: centerWorld.y * zoom };
+      const leftTop = camera && camera.worldToScreen ? camera.worldToScreen({ x: bounds.x, y: bounds.y }, { cameraCenter: cameraX, zoom }) : { x: canvas.width / 2 + (bounds.x - cameraX) * zoom, y: bounds.y * zoom };
+      const rightBottom = camera && camera.worldToScreen ? camera.worldToScreen({ x: bounds.x + bounds.width, y: bounds.y + bounds.height }, { cameraCenter: cameraX, zoom }) : { x: canvas.width / 2 + (bounds.x + bounds.width - cameraX) * zoom, y: (bounds.y + bounds.height) * zoom };
+      const onscreen = rightBottom.x >= 0 && leftTop.x <= canvas.width && rightBottom.y >= 0 && leftTop.y <= canvas.height;
+      return { screenX: projectedCenter.x, screenY: projectedCenter.y, onscreen, canvas, cameraX, zoom, bounds, screenBounds: { left: leftTop.x, top: leftTop.y, right: rightBottom.x, bottom: rightBottom.y } };
     }
+
     update() { const p = this.getProjection(); this.lastProjection = p; this.visible = !!(p && !p.onscreen); return this.visible; }
     draw(ctx) {
       const p = this.getProjection(); this.lastProjection = p; this.visible = !!(p && !p.onscreen);

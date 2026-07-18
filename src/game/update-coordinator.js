@@ -9,14 +9,14 @@ window.FILE_MANIFEST.push({
 // Main update function called from game loop
 window.updateGame = function(deltaTime) {
   if (!window.gameState.running || window.gameState.paused) return;
-
+  
   const dt = deltaTime / 1000;
   window.gameState.gameTime += deltaTime;
-
+  
   // Update player
   const hackingActive = window.hackingSystem && typeof window.hackingSystem.isActive === 'function' && window.hackingSystem.isActive();
   const rhythmActive = window.rhythmSystem && typeof window.rhythmSystem.isActive === 'function' && window.rhythmSystem.isActive();
-
+  
   // CRITICAL FIX: Always update player animation even during rhythm/hacking modes
   if (window.player && typeof window.player.update === 'function') {
     try {
@@ -27,61 +27,61 @@ window.updateGame = function(deltaTime) {
       console.error('Error updating player:', error?.message || error);
     }
   }
-
+  
   // Update enemies
   updateEnemies(deltaTime);
-
+  
   // Update systems
   updateGameSystems(deltaTime, hackingActive, rhythmActive);
-
+  
   // Update effects and visual systems
   updateVisualSystems(deltaTime);
-
+  
   // Update sector progression
   updateSectorProgression(deltaTime);
-
+  
   // Update objectives
   updateObjectives(deltaTime);
-
+  
   // Update audio
   updateAudio(deltaTime);
-
+  
   // Update tutorial
   updateTutorial(deltaTime);
-
+  
   // Update lost data system (fragments)
   updateLostDataSystem(deltaTime);
-
+  
   // Update lore system
   updateLoreSystem(deltaTime);
-
+  
   // Check game conditions
   window.checkGameConditions();
 };
 
 // Update enemies with tutorial awareness
 function updateEnemies(deltaTime) {
-  const allowEnemiesInTutorial = window.tutorialSystem &&
-    typeof window.tutorialSystem.isActive === 'function' &&
-    window.tutorialSystem.isActive() &&
+  const allowEnemiesInTutorial = window.tutorialSystem && 
+    typeof window.tutorialSystem.isActive === 'function' && 
+    window.tutorialSystem.isActive() && 
     window.tutorialSystem.storyChapter === 1;
-
-  const isTutorialCompleted = window.tutorialSystem &&
-    typeof window.tutorialSystem.isCompleted === 'function' &&
+    
+  const isTutorialCompleted = window.tutorialSystem && 
+    typeof window.tutorialSystem.isCompleted === 'function' && 
     window.tutorialSystem.isCompleted();
-
-  const shouldUpdateEnemies = !window.tutorialSystem ||
-    typeof window.tutorialSystem.isActive !== 'function' ||
-    !window.tutorialSystem.isActive() ||
-    isTutorialCompleted ||
+    
+  const shouldUpdateEnemies = !window.tutorialSystem || 
+    typeof window.tutorialSystem.isActive !== 'function' || 
+    !window.tutorialSystem.isActive() || 
+    isTutorialCompleted || 
     allowEnemiesInTutorial;
-
+    
   if (shouldUpdateEnemies && window.enemyManager) {
     try {
       if (typeof window.enemyManager.update === 'function') {
         window.enemyManager.update(deltaTime, window.player);
       }
-
+      
       // EnemyManager.update() owns enemy/enemy and enemy/player collision orchestration.
       // Rhythm attacks only called from input.js on actual down arrow presses
     } catch (error) {
@@ -93,7 +93,7 @@ function updateEnemies(deltaTime) {
 // Update core game systems
 function updateGameSystems(deltaTime, hackingActive, rhythmActive) {
   // Update hacking system
-  if (window.hackingSystem && typeof window.hackingSystem.update === 'function' &&
+  if (window.hackingSystem && typeof window.hackingSystem.update === 'function' && 
       (!window.hackingSystem.isActive || typeof window.hackingSystem.isActive !== 'function' || window.hackingSystem.isActive())) {
     try {
       window.hackingSystem.update(deltaTime);
@@ -101,9 +101,9 @@ function updateGameSystems(deltaTime, hackingActive, rhythmActive) {
       console.error('Error updating hacking system:', error?.message || error);
     }
   }
-
+  
   // Update rhythm system regardless of visual visibility
-  if (window.rhythmSystem && typeof window.rhythmSystem.update === 'function' &&
+  if (window.rhythmSystem && typeof window.rhythmSystem.update === 'function' && 
       (!window.rhythmSystem.isRunning || typeof window.rhythmSystem.isRunning !== 'function' || window.rhythmSystem.isRunning())) {
     try {
       window.rhythmSystem.update(deltaTime);
@@ -111,7 +111,7 @@ function updateGameSystems(deltaTime, hackingActive, rhythmActive) {
       console.error('Error updating rhythm system:', error?.message || error);
     }
   }
-
+  
   // Renderer state is updated once by src/core/loop.js after simulation.
 }
 
@@ -125,7 +125,7 @@ function updateVisualSystems(deltaTime) {
       console.error('Error updating particle system:', error?.message || error);
     }
   }
-
+  
   // Update space ships
   if (window.spaceShipSystem && typeof window.spaceShipSystem.update === 'function') {
     try {
@@ -134,7 +134,7 @@ function updateVisualSystems(deltaTime) {
       console.error('Error updating space ship system:', error?.message || error);
     }
   }
-
+  
   // Update environmental Jammer owner; it is not part of enemy simulation.
   if (window.BARCODE && window.BARCODE.JammerEnvironment && typeof window.BARCODE.JammerEnvironment.update === 'function') {
     try {
@@ -162,11 +162,11 @@ function updateSectorProgression(deltaTime) {
   if (window.sector1Progression) {
     try {
       window.sector1Progression.update(deltaTime);
-
-      const tutorialCompleted = window.tutorialSystem &&
-        typeof window.tutorialSystem.isCompleted === 'function' &&
+      
+      const tutorialCompleted = window.tutorialSystem && 
+        typeof window.tutorialSystem.isCompleted === 'function' && 
         window.tutorialSystem.isCompleted();
-
+      
       // Jammer reveal/trigger is owned by BARCODE.JammerEnvironment and explicit stage/debug calls.
     } catch (error) {
       console.error('Error updating Sector 1 progression:', error?.message || error);
@@ -187,14 +187,14 @@ function updateObjectives(deltaTime) {
 
 // Update lore system
 function updateLoreSystem(deltaTime) {
-  const tutorialActive = window.tutorialSystem &&
-                       typeof window.tutorialSystem.isActive === 'function' &&
+  const tutorialActive = window.tutorialSystem && 
+                       typeof window.tutorialSystem.isActive === 'function' && 
                        window.tutorialSystem.isActive();
-
-  const tutorialCompleted = window.tutorialSystem &&
-                          typeof window.tutorialSystem.isCompleted === 'function' &&
+  
+  const tutorialCompleted = window.tutorialSystem && 
+                          typeof window.tutorialSystem.isCompleted === 'function' && 
                           window.tutorialSystem.isCompleted();
-
+  
   if (!tutorialActive && (tutorialCompleted || !window.tutorialSystem) && window.loreSystem && typeof window.loreSystem.update === 'function') {
     try {
       window.loreSystem.update(deltaTime);
@@ -214,7 +214,7 @@ function updateAudio(deltaTime) {
       if (typeof window.audioSystem.updateLayers === 'function') {
         window.audioSystem.updateLayers();
       }
-
+      
       if (typeof window.audioSystem.updateEnemyProximitySounds === 'function') {
         const playerX = window.player ? window.player.position.x : 960;
         const playerY = window.player ? window.player.position.y : ((window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y) || 890);
@@ -229,7 +229,7 @@ function updateAudio(deltaTime) {
 
 // Update tutorial system
 function updateTutorial(deltaTime) {
-  if (window.tutorialSystem && typeof window.tutorialSystem.update === 'function' &&
+  if (window.tutorialSystem && typeof window.tutorialSystem.update === 'function' && 
       typeof window.tutorialSystem.active === 'boolean' && window.tutorialSystem.active) {
     try {
       window.tutorialSystem.update(deltaTime);

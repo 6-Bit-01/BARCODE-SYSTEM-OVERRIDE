@@ -15,10 +15,10 @@ window.BARCODE = window.BARCODE || {};
   const GROUND_Y = 890;
 
   const STAGE_SURFACES = Object.freeze([
-    { id: 'signal-awning', x: 650, y: 790, w: 430, h: 26 },
-    { id: 'cache-bridge', x: 1390, y: 765, w: 520, h: 26 },
-    { id: 'firewall-deck', x: 2230, y: 790, w: 620, h: 26 },
-    { id: 'broadcast-ramp', x: 3150, y: 765, w: 620, h: 26 }
+    { id: 'signal-awning', x: 650, y: 650, w: 430, h: 26 },
+    { id: 'cache-bridge', x: 1390, y: 625, w: 520, h: 26 },
+    { id: 'firewall-deck', x: 2230, y: 650, w: 620, h: 26 },
+    { id: 'broadcast-ramp', x: 3150, y: 625, w: 620, h: 26 }
   ]);
 
   const ENCOUNTER_GATES = Object.freeze([
@@ -36,13 +36,13 @@ window.BARCODE = window.BARCODE || {};
   ]);
 
   const PRESENTATION = Object.freeze({
-    player: Object.freeze({ targetHeight: 192, bodyWidth: 70, bodyHeight: 156, manifest: Object.freeze({ width: 128, height: 128 }) }),
+    player: Object.freeze({ targetHeight: 192, bodyWidth: 70, bodyHeight: 156, manifests: Object.freeze({ idle: Object.freeze({ width: 86, height: 96 }), jump: Object.freeze({ width: 41, height: 96 }), walk: Object.freeze({ width: 66, height: 96 }), rhythm: Object.freeze({ width: 51, height: 96 }) }) }),
     enemies: Object.freeze({
-      virus: Object.freeze({ targetHeight: 74, bodyWidth: 42, bodyHeight: 50, manifest: Object.freeze({ width: 64, height: 64 }) }),
-      corrupted: Object.freeze({ targetHeight: 122, bodyWidth: 70, bodyHeight: 92, manifest: Object.freeze({ width: 96, height: 96 }) }),
-      firewall: Object.freeze({ targetHeight: 176, bodyWidth: 132, bodyHeight: 142, manifest: Object.freeze({ width: 160, height: 160 }) })
+      virus: Object.freeze({ targetHeight: 74, bodyWidth: 42, bodyHeight: 50, manifests: Object.freeze({ idle: Object.freeze({ width: 96, height: 93 }), default: Object.freeze({ width: 96, height: 93 }) }) }),
+      corrupted: Object.freeze({ targetHeight: 122, bodyWidth: 70, bodyHeight: 92, manifests: Object.freeze({ idle: Object.freeze({ width: 80, height: 96 }), walk: Object.freeze({ width: 74, height: 96 }), default: Object.freeze({ width: 80, height: 96 }) }) }),
+      firewall: Object.freeze({ targetHeight: 176, bodyWidth: 132, bodyHeight: 142, manifests: Object.freeze({ idle: Object.freeze({ width: 96, height: 93 }), walk: Object.freeze({ width: 68, height: 96 }), attack: Object.freeze({ width: 96, height: 67 }), default: Object.freeze({ width: 96, height: 93 }) }) })
     }),
-    jammer: Object.freeze({ targetHeight: 168, bodyWidth: 118, bodyHeight: 150, manifest: Object.freeze({ width: 120, height: 160 }), damageRange: 520 }),
+    jammer: Object.freeze({ targetHeight: 168, bodyWidth: 118, bodyHeight: 150, manifest: Object.freeze({ width: 256, height: 219 }), damageRange: 520 }),
     boss: Object.freeze({ targetHeight: 260, manifests: Object.freeze({ walk: Object.freeze({ width: 200, height: 256 }), idle: Object.freeze({ width: 256, height: 179 }), flourish: Object.freeze({ width: 256, height: 155 }), attack: Object.freeze({ width: 256, height: 155 }) }) })
   });
 
@@ -56,13 +56,30 @@ window.BARCODE = window.BARCODE || {};
     return Object.freeze({ x: foot.x - width / 2, y: foot.y - height, width, height, scale, flipH: facing < 0, foot: Object.freeze({ x: foot.x, y: foot.y }) });
   }
   function body(foot, width, height) { return Object.freeze({ x: foot.x - width / 2, y: foot.y - height, w: width, h: height, left: foot.x - width / 2, right: foot.x + width / 2, top: foot.y - height, bottom: foot.y }); }
-  function playerTransform(player) { return transform(player.position, PRESENTATION.player.manifest, PRESENTATION.player.targetHeight, player.facing || 1); }
+  function playerManifestKey(player) { return player && player.state === 'walk' ? 'walk' : player && player.state === 'jump' ? 'jump' : player && player.state === 'rhythm' ? 'rhythm' : 'idle'; }
+  function enemyManifestKey(enemy) { const anim = enemy && (enemy.currentAnimation || enemy.state || ''); if (/attack/.test(anim)) return 'attack'; if (/walk|patrol|chase|normal/.test(anim)) return 'walk'; return 'idle'; }
+  function playerTransform(player) { const manifest = PRESENTATION.player.manifests[playerManifestKey(player)] || PRESENTATION.player.manifests.idle; return transform(player.position, manifest, PRESENTATION.player.targetHeight, player.facing || 1); }
   function playerBody(player) { return body(player.position, PRESENTATION.player.bodyWidth, PRESENTATION.player.bodyHeight); }
-  function enemyTransform(enemy) { const p = PRESENTATION.enemies[enemy.type] || PRESENTATION.enemies.virus; return transform(enemy.position, p.manifest, p.targetHeight, enemy.facing || 1); }
+  function enemyTransform(enemy) { const p = PRESENTATION.enemies[enemy.type] || PRESENTATION.enemies.virus; const manifest = p.manifests[enemyManifestKey(enemy)] || p.manifests.default || p.manifests.idle; return transform(enemy.position, manifest, p.targetHeight, enemy.facing || 1); }
   function enemyBody(enemy) { const p = PRESENTATION.enemies[enemy.type] || PRESENTATION.enemies.virus; return body(enemy.position, p.bodyWidth, p.bodyHeight); }
   function jammerBounds(position) { return transform(position, PRESENTATION.jammer.manifest, PRESENTATION.jammer.targetHeight, 1); }
   function bossTransform(boss) { const key = boss && boss.state === 'idle' ? 'idle' : boss && boss.state === 'flourish' ? 'flourish' : 'walk'; return transform({ x: boss.x, y: boss.y }, PRESENTATION.boss.manifests[key], PRESENTATION.boss.targetHeight, -1); }
 
+  function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
+  function getZoom() { return window.renderer && typeof window.renderer.getZoomLevel === 'function' ? window.renderer.getZoomLevel() : (window.renderer && Number.isFinite(window.renderer.zoomLevel) ? window.renderer.zoomLevel : 1); }
+  function getCameraCenter(fallbackPlayer) {
+    const min = VIEWPORT.width / 2;
+    const max = WORLD_WIDTH - VIEWPORT.width / 2;
+    if (window.sector1Progression && window.sector1Progression.cameraOverrideActive && Number.isFinite(window.sector1Progression.cameraX)) return clamp(window.sector1Progression.cameraX, min, max);
+    if (window.gameCamera && Number.isFinite(window.gameCamera.centerX)) return clamp(window.gameCamera.centerX, min, max);
+    const playerX = fallbackPlayer && fallbackPlayer.position ? fallbackPlayer.position.x : (window.player && window.player.position ? window.player.position.x : min);
+    return clamp(playerX, min, max);
+  }
+  function foregroundDrawX(cameraCenter) { const min = VIEWPORT.width / 2; const max = WORLD_WIDTH - VIEWPORT.width / 2; const center = Number.isFinite(cameraCenter) ? clamp(cameraCenter, min, max) : getCameraCenter(); return VIEWPORT.width / 2 - center; }
+  function visibleWorldBounds(cameraCenter, zoom) { const z = Math.max(0.1, Number.isFinite(zoom) ? zoom : getZoom()); const min = VIEWPORT.width / 2; const max = WORLD_WIDTH - VIEWPORT.width / 2; const center = Number.isFinite(cameraCenter) ? clamp(cameraCenter, min, max) : getCameraCenter(); const half = VIEWPORT.width / 2 / z; return Object.freeze({ left: Math.max(0, center - half), right: Math.min(WORLD_WIDTH, center + half), top: 0, bottom: VIEWPORT.height / z, center, zoom: z }); }
+  function worldToScreen(point, options) { options = options || {}; const z = Math.max(0.1, Number.isFinite(options.zoom) ? options.zoom : getZoom()); const min = VIEWPORT.width / 2; const max = WORLD_WIDTH - VIEWPORT.width / 2; const center = Number.isFinite(options.cameraCenter) ? clamp(options.cameraCenter, min, max) : getCameraCenter(); return Object.freeze({ x: VIEWPORT.width / 2 + (point.x - center) * z, y: point.y * z, cameraCenter: center, zoom: z }); }
+
   namespace.LEVEL_01_LAYOUT = Object.freeze({ WORLD_WIDTH, VIEWPORT, GROUND_Y, STAGE_SURFACES, ENCOUNTER_GATES, ENCOUNTERS, PRESENTATION, SPAWN, CINEMATIC, JAMMER_CANDIDATES: Object.freeze([{ x: 620, y: GROUND_Y }, { x: 3520, y: GROUND_Y }]) });
-  namespace.Level01Presentation = Object.freeze({ transform, body, playerTransform, playerBody, enemyTransform, enemyBody, jammerBounds, bossTransform });
+  namespace.Level01Presentation = Object.freeze({ transform, body, playerTransform, playerBody, enemyTransform, enemyBody, jammerBounds, bossTransform, playerManifestKey, enemyManifestKey });
+  namespace.Level01Camera = Object.freeze({ getCameraCenter, foregroundDrawX, visibleWorldBounds, worldToScreen, getZoom });
 })(window.BARCODE);

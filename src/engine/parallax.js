@@ -201,7 +201,7 @@ window.ParallaxBackground = class ParallaxBackground {
         const newHeight = layer.height || 1589;
         const streetSourceY = layer.streetSourceY || 1140;
         const groundY = (layout && layout.GROUND_Y) || 890;
-        const drawX = -offset.x;
+        const drawX = (window.BARCODE && window.BARCODE.Level01Camera && window.BARCODE.Level01Camera.foregroundDrawX) ? window.BARCODE.Level01Camera.foregroundDrawX(this.cameraX) : ((layout && layout.VIEWPORT ? layout.VIEWPORT.width : 1920) / 2 - this.cameraX);
         const drawY = groundY - streetSourceY;
         ctx.drawImage(layer.imgElement, drawX, drawY, newWidth, newHeight);
         ctx.restore();

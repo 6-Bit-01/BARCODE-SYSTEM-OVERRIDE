@@ -12,7 +12,7 @@
     "audit:external-assets": "node tools/audit-external-assets.js",
     "baseline:generate": "node tools/generate-baseline.js",
     "baseline:check": "node tools/check-baseline.js",
-    "test": "npm run check:syntax && npm run audit:paths && npm run audit:globals && npm run audit:external-assets && npm run check:startup-lifecycle && npm run check:frame-ownership && npm run check:music-profiles && npm run check:makko-hotfix && npm run check:runtime-lifecycle && npm run check:enemy-ownership && npm run check:action-combat && npm run baseline:check && npm run check:level-01-mission",
+    "test": "npm run check:syntax && npm run audit:paths && npm run audit:globals && npm run audit:external-assets && npm run check:startup-lifecycle && npm run check:frame-ownership && npm run check:music-profiles && npm run check:makko-hotfix && npm run check:runtime-lifecycle && npm run check:enemy-ownership && npm run check:action-combat && npm run baseline:check && npm run check:level-01-mission && npm run check:level-01-runtime",
     "check:startup-lifecycle": "node tools/check-startup-lifecycle.js",
     "check:frame-ownership": "node tools/check-frame-ownership.js",
     "check:music-profiles": "node tools/check-music-profiles.js",
@@ -20,7 +20,8 @@
     "check:runtime-lifecycle": "node tools/check-runtime-lifecycle.js",
     "check:enemy-ownership": "node tools/check-enemy-ownership.js",
     "check:action-combat": "node tools/check-action-combat.js",
-    "check:level-01-mission": "node tools/check-level-01-mission.js"
+    "check:level-01-mission": "node tools/check-level-01-mission.js",
+    "check:level-01-runtime": "node tools/check-level-01-runtime.js"
   },
   "dependencies": {},
   "devDependencies": {}

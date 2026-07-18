@@ -28,7 +28,7 @@ must(layoutSource, /GROUND_Y = 890/, 'ground street line centralized in layout')
 must(layoutSource, /targetHeight: 192/, 'player target height centralized');
 must(layoutSource, /targetHeight: 260/, 'boss target height centralized');
 must(layoutSource, /playerExclusionRadius: 350/, 'spawn exclusion radius centralized');
-must(sectorSource, /shouldSuppressGenericSpawning\(\) \{ return this\.state !== STATES\.JAMMER_ACTIVE; \}/, 'generic spawner remains suppressed except controlled jammer phase');
+must(sectorSource, /shouldSuppressGenericSpawning\(\) \{ return this\.missionStarted \|\| this\.state === STATES\.TUTORIAL; \}/, 'legacy generic spawner remains suppressed while Level 1 progression owns gameplay');
 must(sectorSource, /updateJammerReinforcements/, 'controlled jammer reinforcements exist');
 must(sectorSource, /planSpawn/, 'safe spawn planner exists');
 must(sectorSource, /debugGotoJammer/, 'progression-owned debug goto jammer exists');
@@ -138,7 +138,7 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   p.debugGotoJammer();
   assert.strictEqual(p.state, 'jammer_active', 'debug goto jammer sets jammer active');
   assert.strictEqual(p.missionDefeats, 20, 'debug goto jammer synchronizes 20/20');
-  assert.strictEqual(p.shouldSuppressGenericSpawning(), false, 'jammer active is the only unsuppressed state for controlled reinforcements');
+  assert.strictEqual(p.shouldSuppressGenericSpawning(), true, 'legacy generic spawner remains suppressed during controlled reinforcements');
   window.BARCODE.JammerEnvironment.getStatus = () => ({ revealed: true, destroyed: false, position: { x: 3520, y: window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y } });
   p.updateJammerReinforcements(5000);
   assert.strictEqual(window.enemyManager.enemies.filter(e => e._jammerReinforcement).length, 1, 'jammer reinforcement spawns through planner');

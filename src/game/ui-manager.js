@@ -6,8 +6,57 @@ window.FILE_MANIFEST.push({
   dependencies: ['renderer', 'gameState', 'player', 'sector1Progression', 'lostDataSystem', 'hackingSystem', 'rhythmSystem', 'objectivesSystem', 'loreSystem', 'jammerIndicator', 'tutorialSystem']
 });
 
+
+function drawGlowText(text, x, y, options = {}) {
+  const ctx = window.__activeUICtx;
+  if (!ctx) return;
+  ctx.save();
+  ctx.font = `${options.bold === false ? '' : 'bold '}${options.size || 18}px ${options.font || 'monospace'}`;
+  ctx.textAlign = options.align || 'center';
+  ctx.textBaseline = options.baseline || 'top';
+  ctx.shadowColor = options.glow || options.color || '#00ffff';
+  ctx.shadowBlur = options.blur || 12;
+  ctx.fillStyle = options.color || '#00ffff';
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}
+
+function drawHealthBar(x, y, width, height, current, max) {
+  const ctx = window.__activeUICtx;
+  if (!ctx) return;
+  const pct = Math.max(0, Math.min(1, max ? current / max : 0));
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,0.75)';
+  ctx.fillRect(x, y, width, height);
+  ctx.fillStyle = '#ff0044';
+  ctx.fillRect(x, y, width * pct, height);
+  ctx.strokeStyle = '#00ffff';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x, y, width, height);
+  ctx.restore();
+}
+
+function drawBasicUI(ctx) {
+  window.__activeUICtx = ctx;
+  const player = window.player || { health: 0, maxHealth: 1 };
+  if (window.renderer && typeof window.renderer.drawHealthBar === 'function') {
+    try { window.renderer.drawHealthBar(50, 50, 300, 30, player.health, player.maxHealth); }
+    catch (_) { drawHealthBar(50, 50, 300, 30, player.health, player.maxHealth); }
+  } else {
+    drawHealthBar(50, 50, 300, 30, player.health, player.maxHealth);
+  }
+  const score = window.gameState && Number.isFinite(window.gameState.score) ? window.gameState.score : 0;
+  if (window.renderer && typeof window.renderer.drawGlowText === 'function') {
+    try { window.renderer.drawGlowText(`SCORE: ${score}`, 1720, 50, { color: '#00ffff', size: 18, align: 'center' }); }
+    catch (_) { drawGlowText(`SCORE: ${score}`, 1720, 50, { color: '#00ffff', size: 18 }); }
+  } else {
+    drawGlowText(`SCORE: ${score}`, 1720, 50, { color: '#00ffff', size: 18 });
+  }
+}
+
 // Main UI drawing function
 window.drawGameUI = function(ctx) {
+  window.__activeUICtx = ctx;
   // CRITICAL: Reset text alignment to default at start of drawUI
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
@@ -57,18 +106,11 @@ window.drawGameUI = function(ctx) {
   // Draw lore messages
   drawLoreMessages(ctx);
 
+  drawHackTimeoutMessage(ctx);
+
   // Jammer indicator is owned by render-coordinator UI pass.
 
-  // Draw health bar
-  if (window.renderer && typeof window.renderer.drawHealthBar === 'function') {
-    try {
-      window.renderer.drawHealthBar(50, 50, 300, 30, window.player.health, window.player.maxHealth);
-    } catch (error) {
-      drawHealthBar(50, 50, 300, 30, window.player.health, window.player.maxHealth);
-    }
-  } else {
-    drawHealthBar(50, 50, 300, 30, window.player.health, window.player.maxHealth);
-  }
+  // Health bar is drawn by drawBasicUI above.
 
   // Draw lore counter
   if (window.lostDataSystem) {

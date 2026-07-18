@@ -153,6 +153,10 @@ window.renderGame = function() {
     }
   }
 
+  // Draw Jammer indicator and debug overlay exactly once after the outer zoom transform is restored.
+  drawJammerIndicator(ctx);
+  if (window.DEBUG?.level1 && typeof window.DEBUG.level1.drawOverlay === 'function') window.DEBUG.level1.drawOverlay(ctx);
+
   // Apply post-processing effects (if available)
   if (rendererAvailable) {
     try {
@@ -216,11 +220,6 @@ function drawGameElements(ctx) {
 
   // Restore camera transform
   ctx.restore();
-
-  // Draw Jammer indicator once in the restored UI pass.
-  drawJammerIndicator(ctx);
-
-  if (window.DEBUG?.level1 && typeof window.DEBUG.level1.drawOverlay === 'function') window.DEBUG.level1.drawOverlay(ctx);
 
   // Draw foreground space ships
   drawForegroundSpaceShips(ctx);

@@ -37,7 +37,6 @@
     "src/game/lost-data.js",
     "src/game/level-01-layout.js",
     "src/game/sector1-progression.js",
-    "src/game/level-01-debug.js",
     "src/game/game-state.js",
     "src/game/update-coordinator.js",
     "src/game/render-coordinator.js",
@@ -45,6 +44,7 @@
     "src/game/game-initializer.js",
     "src/game/dependency-validator.js",
     "src/game/debug-commands.js",
+    "src/game/level-01-debug.js",
     "[inline]",
     "src/game/main-new.js",
     "[inline]"
@@ -81,7 +81,6 @@
     "src/game/lost-data.js",
     "src/game/level-01-layout.js",
     "src/game/sector1-progression.js",
-    "src/game/level-01-debug.js",
     "src/game/game-state.js",
     "src/game/update-coordinator.js",
     "src/game/render-coordinator.js",
@@ -89,6 +88,7 @@
     "src/game/game-initializer.js",
     "src/game/dependency-validator.js",
     "src/game/debug-commands.js",
+    "src/game/level-01-debug.js",
     "src/game/main-new.js"
   ],
   "unloadedRepositoryJs": [
@@ -117,6 +117,7 @@
     "tools/check-enemy-ownership.js",
     "tools/check-frame-ownership.js",
     "tools/check-level-01-mission.js",
+    "tools/check-level-01-runtime.js",
     "tools/check-makko-hotfix.js",
     "tools/check-music-profiles.js",
     "tools/check-runtime-lifecycle.js",
@@ -251,10 +252,6 @@
         "status": "pass"
       },
       {
-        "file": "src/game/level-01-debug.js",
-        "status": "pass"
-      },
-      {
         "file": "src/game/game-state.js",
         "status": "pass"
       },
@@ -280,6 +277,10 @@
       },
       {
         "file": "src/game/debug-commands.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/level-01-debug.js",
         "status": "pass"
       },
       {
@@ -356,13 +357,13 @@
     {
       "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 1360,
+      "line": 1384,
       "loaded": true
     },
     {
       "global": "window.EnemyManager",
       "file": "src/game/enemies.js",
-      "line": 873,
+      "line": 897,
       "loaded": true
     },
     {
@@ -589,7 +590,6 @@
     "src/game/lost-data.js",
     "src/game/level-01-layout.js",
     "src/game/sector1-progression.js",
-    "src/game/level-01-debug.js",
     "src/game/game-state.js",
     "src/game/update-coordinator.js",
     "src/game/render-coordinator.js",
@@ -597,6 +597,7 @@
     "src/game/game-initializer.js",
     "src/game/dependency-validator.js",
     "src/game/debug-commands.js",
+    "src/game/level-01-debug.js",
     "[inline script]",
     "src/game/main-new.js",
     "[inline script]"

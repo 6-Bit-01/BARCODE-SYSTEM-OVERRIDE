@@ -86,7 +86,7 @@ assert(!diag.includes('ownedCounts: { cleanups: cleanupRegistry.length }'), 'dia
 assert(diag.includes('gameLoopRafHandle') && diag.includes('musicTransport') && audio.includes('activeMusicSources') && diag.includes('assetMonitor') && diag.includes('initialEnemySpawn') && diag.includes('gameOver') && diag.includes('victory') && diag.includes('rhythm'), 'diagnostics must expose concrete resource state');
 assert(audio.includes('titleScreenMusic && this.titleScreenMusic.source') && !audio.includes('titleSourceActive: !!this.titleSource'), 'Audio diagnostics must report real titleScreenMusic source state');
 
-for (const file of fs.readdirSync(path.join(root, 'tools')).filter(f => f.endsWith('.js') && f !== 'check-runtime-lifecycle.js' && f !== 'check-action-combat.js' && f !== 'check-level-01-mission.js')) {
+for (const file of fs.readdirSync(path.join(root, 'tools')).filter(f => f.endsWith('.js') && f !== 'check-runtime-lifecycle.js' && f !== 'check-action-combat.js' && f !== 'check-level-01-mission.js' && f !== 'check-level-01-runtime.js')) {
   const src = read(`tools/${file}`);
   assert(!/require\(['"]vm['"]\)/.test(src) && !/vm\.runInContext|vm\.runInNewContext|vm\.createContext/.test(src) && !/new Function\s*\(/.test(src) && !/eval\s*\(/.test(src) && !/jsdom/i.test(src) && !/require\(['"]\.\.\/src\//.test(src) && !/import\s+.*['"]\.\.\/src\//.test(src), `${file} must not execute browser runtime code`);
 }
