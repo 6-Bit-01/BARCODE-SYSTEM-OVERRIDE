@@ -16,6 +16,7 @@ const updateCoordinator = fs.readFileSync('src/game/update-coordinator.js','utf8
 const indicatorSource = fs.readFileSync('src/engine/jammer-indicator.js','utf8');
 const debugSource = fs.readFileSync('src/game/level-01-debug.js','utf8');
 const uiSource = fs.readFileSync('src/game/ui-manager.js','utf8');
+const playerSource = fs.readFileSync('src/game/player.js','utf8');
 const indexSource = fs.readFileSync('index.html','utf8');
 function must(text, re, msg) { assert(re.test(text), msg); }
 function approximately(actual, expected, message, epsilon = 0.000001) { assert(Math.abs(actual - expected) <= epsilon, `${message}: expected ${expected}, received ${actual}`); }
@@ -27,8 +28,14 @@ assert.strictEqual(counts.reduce((a,b)=>a+b,0), 20, 'exactly 20 quota enemies');
 assert.deepStrictEqual(counts, [4,5,5,6], 'encounter counts are 4/5/5/6');
 must(sectorSource, /STAGE_SURFACES = Object\.freeze/, 'single stage surface data exists');
 must(sectorSource, /ENCOUNTER_GATES = Object\.freeze/, 'single gate data exists');
-must(sectorSource, /previousFootY > surface\.y \|\| currentFootY < surface\.y[^]*crossingT[^]*crossingX/, 'platform tunneling prevention resolves the horizontal foot position at the vertical crossing');
+must(sectorSource, /previousVisualFootY > surface\.y \|\| currentVisualFootY < surface\.y[^]*crossingT[^]*crossingX/, 'platform tunneling prevention resolves the horizontal visual-foot position at the vertical crossing');
 must(sectorSource, /const footHalfWidth = 18;/, 'platform collision uses the narrow player foot probe');
+must(sectorSource, /const PLAYER_VISUAL_FOOT_OFFSET = 100;/, 'Level 1 platforms share the canonical +100 visual-foot presentation offset');
+must(sectorSource, /player\.position\.y = landing\.surface\.y - PLAYER_VISUAL_FOOT_OFFSET;/, 'platform landing keeps art y separate from the player physics anchor');
+must(sectorSource, /!landing \|\| crossingT < landing\.crossingT/, 'multi-surface descent resolves the earliest crossed ledge');
+must(playerSource, /this\.speed = 300;/, 'Level 1 route contract uses the locked 300px\/s player speed');
+must(playerSource, /this\.jumpPower = 800;/, 'Level 1 route contract uses the locked single-jump impulse');
+must(playerSource, /this\.jumpTime < 100[^]*gravity = 100[^]*this\.jumpTime < 200[^]*gravity = 400[^]*gravity = 2000/s, 'Level 1 route contract uses the current three-phase jump gravity');
 must(enemies, /updateAuthoredEntrance\(deltaTime\)[^]*keepEntranceTargetSafe\(this\)[^]*const dx = this\._entranceTarget\.x - this\.position\.x;/, 'authored entrances revalidate their target against the live player position');
 must(sectorSource, /isCompleted\(\) && typeof window\.tutorialSystem\.isActive === 'function' && !window\.tutorialSystem\.isActive\(\)/, 'mission requires completed and inactive tutorial');
 must(sectorSource, /captureCinematicStart\(\)[^]*gameCamera\.centerX/, 'Jammer destruction captures gameCamera.centerX immediately');
@@ -72,7 +79,7 @@ function createVectorClass() {
 }
 function loadRealSector({ spriteLoadedInitially = false } = {}) {
   let spriteLoaded = spriteLoadedInitially;
-  const sprite = { playCalls: [], updateCalls: 0, isLoaded: () => spriteLoaded, play(name, loop) { this.playCalls.push({ name, loop }); }, update(dt) { this.updateCalls += 1; this.lastUpdate = dt; } };
+  const sprite = { playCalls: [], updateCalls: 0, currentRef: null, isLoaded: () => spriteLoaded, play(name, loop) { this.playCalls.push({ name, loop }); this.currentRef = { currentFrame: 0, totalFrames: name === 'sector_1_boss_walk_walk' ? 41 : 48, isInterrupted: false }; return this.currentRef; }, update(dt) { this.updateCalls += 1; this.lastUpdate = dt; } };
   const jammerStatus = { revealed: false, destroyed: false, health: 16, position: { x: 3520, y: 750 } };
   const jammerEnvironment = {
     reset() { jammerStatus.revealed = false; jammerStatus.destroyed = false; jammerStatus.health = 16; },
@@ -100,40 +107,146 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
 {
   const { window } = loadRealSector();
   assert.deepStrictEqual(JSON.parse(JSON.stringify(window.Sector1Progression.STAGE_SURFACES)), [
+    { id: 'signal-storefront', x: 752, y: 578, w: 485, h: 8 },
     { id: 'signal-awning', x: 701, y: 492, w: 561, h: 8 },
     { id: 'cache-bridge', x: 1492, y: 337, w: 337, h: 8 },
+    { id: 'firewall-storefront', x: 1964, y: 781, w: 375, h: 8 },
     { id: 'firewall-deck', x: 2002, y: 506, w: 513, h: 8 },
+    { id: 'firewall-sign', x: 2645, y: 413, w: 492, h: 8 },
+    { id: 'broadcast-storefront', x: 3305, y: 643, w: 440, h: 8 },
     { id: 'broadcast-ramp', x: 3295, y: 506, w: 461, h: 8 }
   ], 'Level 1 platform rectangles stay calibrated to the locked foreground ledges');
+  assert.strictEqual(window.Sector1Progression.PLAYER_VISUAL_FOOT_OFFSET, 100, 'Level 1 publishes one canonical visual-foot offset');
+}
+{
+  const { window } = loadRealSector();
+  const surfaces = new Map(window.Sector1Progression.STAGE_SURFACES.map(surface => [surface.id, surface]));
+  const foreground = { sourceWidth: 1279, sourceHeight: 462, drawWidth: 4400, drawHeight: 1589, drawX: -152, drawY: -550 };
+  const visualContracts = [
+    { id: 'signal-storefront', left: 263, right: 404, top: 328 },
+    { id: 'signal-awning', left: 248, right: 411, top: 303 },
+    { id: 'cache-bridge', left: 478, right: 576, top: 258 },
+    { id: 'firewall-storefront', left: 615, right: 724, top: 387 },
+    { id: 'firewall-deck', left: 626, right: 775, top: 307 },
+    { id: 'firewall-sign', left: 813, right: 956, top: 280 },
+    { id: 'broadcast-storefront', left: 1005, right: 1133, top: 347 },
+    { id: 'broadcast-ramp', left: 1002, right: 1136, top: 307 }
+  ];
+  const projectX = sourceX => sourceX * foreground.drawWidth / foreground.sourceWidth + foreground.drawX;
+  const projectY = sourceY => sourceY * foreground.drawHeight / foreground.sourceHeight + foreground.drawY;
+  visualContracts.forEach(contract => {
+    const surface = surfaces.get(contract.id);
+    assert(surface, `${contract.id} visual platform exists`);
+    approximately(surface.x, projectX(contract.left), `${contract.id} starts on its foreground ledge`, 1);
+    approximately(surface.x + surface.w, projectX(contract.right), `${contract.id} ends on its foreground ledge`, 1);
+    approximately(surface.y, projectY(contract.top), `${contract.id} feet line matches its foreground top edge`, 1);
+  });
+}
+{
+  const { window } = loadRealSector();
+  const surfaces = new Map(window.Sector1Progression.STAGE_SURFACES.map(surface => [surface.id, surface]));
+  const physics = { speed: 300, jumpPower: 800, footHalfWidth: 18, frameMs: 16 };
+
+  function descendingCrossingTime(fromY, toY) {
+    // Simulate Player.position.y, including its real top-of-world clamp. Surface
+    // coordinates are visual-foot lines, so convert through the +100 contract.
+    let anchorY = fromY - window.Sector1Progression.PLAYER_VISUAL_FOOT_OFFSET;
+    let velocityY = -physics.jumpPower;
+    let jumpTime = 0;
+    let elapsed = 0;
+    for (let frame = 0; frame < 180; frame++) {
+      const previousVisualFootY = anchorY + window.Sector1Progression.PLAYER_VISUAL_FOOT_OFFSET;
+      jumpTime += physics.frameMs;
+      const gravity = jumpTime < 100 ? 100 : jumpTime < 200 ? 400 : 2000;
+      velocityY += gravity * (physics.frameMs / 1000);
+      anchorY = Math.max(0, anchorY + velocityY * (physics.frameMs / 1000));
+      const visualFootY = anchorY + window.Sector1Progression.PLAYER_VISUAL_FOOT_OFFSET;
+      elapsed += physics.frameMs;
+      if (velocityY >= 0 && previousVisualFootY <= toY && visualFootY >= toY) return elapsed / 1000;
+    }
+    return null;
+  }
+
+  function edgeProbeGap(from, to) {
+    // Runtime landing accepts any overlap of the 36px foot probe. Model the
+    // farthest supported takeoff and the first valid pixel of landing overlap.
+    if (to.x >= from.x + from.w) return Math.max(0, to.x - (from.x + from.w) - physics.footHalfWidth * 2 + 2);
+    if (from.x >= to.x + to.w) return Math.max(0, from.x - (to.x + to.w) - physics.footHalfWidth * 2 + 2);
+    return 0;
+  }
+
+  function assertReachable(fromId, toId, routeName) {
+    const from = surfaces.get(fromId);
+    const to = surfaces.get(toId);
+    assert(from && to, `${routeName}: authored endpoints exist`);
+    const airTime = descendingCrossingTime(from.y, to.y);
+    assert.notStrictEqual(airTime, null, `${routeName}: ${fromId} can reach ${toId}'s height with the locked single jump`);
+    const availableTravel = physics.speed * airTime;
+    const requiredTravel = edgeProbeGap(from, to);
+    const controlTolerance = physics.speed * physics.frameMs / 1000 * 2;
+    assert(requiredTravel + controlTolerance <= availableTravel, `${routeName}: ${fromId} -> ${toId} needs ${requiredTravel.toFixed(1)}px plus ${controlTolerance.toFixed(1)}px control tolerance but the locked jump covers ${availableTravel.toFixed(1)}px`);
+  }
+
+  const mainRoute = [
+    ['signal-storefront', 'signal-awning'],
+    ['signal-awning', 'cache-bridge'],
+    ['cache-bridge', 'firewall-deck'],
+    ['firewall-deck', 'firewall-sign'],
+    ['firewall-sign', 'broadcast-ramp']
+  ];
+  mainRoute.forEach(([from, to]) => {
+    assertReachable(from, to, 'forward roof route');
+    assertReachable(to, from, 'reverse roof route');
+  });
+  [
+    ['firewall-storefront', 'firewall-deck'],
+    ['broadcast-storefront', 'broadcast-ramp']
+  ].forEach(([from, to]) => {
+    assertReachable(from, to, 'street entry route');
+    assertReachable(to, from, 'street return route');
+  });
+
+  const groundVisualFoot = { id: 'ground', x: 0, y: 750 + window.Sector1Progression.PLAYER_VISUAL_FOOT_OFFSET, w: 4096 };
+  ['signal-storefront', 'firewall-storefront', 'broadcast-storefront'].forEach(id => {
+    const target = surfaces.get(id);
+    assert.notStrictEqual(descendingCrossingTime(groundVisualFoot.y, target.y), null, `${id} is reachable from ground with the locked single jump`);
+  });
 }
 {
   const { window } = loadRealSector();
   const p = new window.Sector1Progression(window.player);
   const surface = window.Sector1Progression.STAGE_SURFACES[0];
+  const visualFootOffset = window.Sector1Progression.PLAYER_VISUAL_FOOT_OFFSET;
   const makePlayer = (x, velocityY = 8) => ({
-    position: { x, y: surface.y + 20 },
+    position: { x, y: surface.y - visualFootOffset + 20 },
     velocity: { x: 0, y: velocityY },
     width: 180,
     grounded: false,
     getHitbox: () => ({ x: surface.x - 200, y: 0, width: 400, height: 100 })
   });
   const landing = makePlayer(surface.x + surface.w / 2);
-  assert.strictEqual(p.applyPlayerStageCollision(landing, { previousFootY: surface.y - 20, currentFootY: surface.y + 20 }), true, 'descending player lands when the foot probe crosses an authored ledge');
-  assert.strictEqual(landing.position.y, surface.y, 'landing snaps the player feet to the authored ledge y');
+  assert.strictEqual(p.applyPlayerStageCollision(landing, { previousFootY: surface.y - visualFootOffset - 20, currentFootY: surface.y - visualFootOffset + 20 }), true, 'descending player lands when the visual-foot probe crosses an authored ledge');
+  assert.strictEqual(landing.position.y, surface.y - visualFootOffset, 'landing snaps the physics anchor so visible feet meet the authored ledge y');
   assert.strictEqual(landing.velocity.y, 0, 'landing clears downward velocity');
   assert.strictEqual(landing.grounded, true, 'landing marks the player grounded');
 
   const outside = makePlayer(surface.x - 18);
-  assert.strictEqual(p.applyPlayerStageCollision(outside, { previousFootY: surface.y - 20, currentFootY: surface.y + 20 }), false, 'a broad visual hitbox cannot catch a ledge when the 36px foot probe is outside it');
+  assert.strictEqual(p.applyPlayerStageCollision(outside, { previousFootY: surface.y - visualFootOffset - 20, currentFootY: surface.y - visualFootOffset + 20 }), false, 'a broad visual hitbox cannot catch a ledge when the 36px foot probe is outside it');
   const edge = makePlayer(surface.x - 17);
-  assert.strictEqual(p.applyPlayerStageCollision(edge, { previousFootY: surface.y - 20, currentFootY: surface.y + 20 }), true, 'one pixel of foot-probe overlap can land on the ledge edge');
+  assert.strictEqual(p.applyPlayerStageCollision(edge, { previousFootY: surface.y - visualFootOffset - 20, currentFootY: surface.y - visualFootOffset + 20 }), true, 'one pixel of foot-probe overlap can land on the ledge edge');
   const rising = makePlayer(surface.x + 40, -8);
-  assert.strictEqual(p.applyPlayerStageCollision(rising, { previousFootY: surface.y + 20, currentFootY: surface.y - 20 }), false, 'one-way ledges remain passable from below while rising');
+  assert.strictEqual(p.applyPlayerStageCollision(rising, { previousFootY: surface.y - visualFootOffset + 20, currentFootY: surface.y - visualFootOffset - 20 }), false, 'one-way ledges remain passable from below while rising');
 
   const enteringAfterCrossing = makePlayer(surface.x + 20);
-  assert.strictEqual(p.applyPlayerStageCollision(enteringAfterCrossing, { previousFootY: surface.y - 10, currentFootY: surface.y + 20, previousX: surface.x - 40 }), false, 'moving onto a ledge only after passing its height cannot edge-snag');
+  assert.strictEqual(p.applyPlayerStageCollision(enteringAfterCrossing, { previousFootY: surface.y - visualFootOffset - 10, currentFootY: surface.y - visualFootOffset + 20, previousX: surface.x - 40 }), false, 'moving onto a ledge only after passing its height cannot edge-snag');
   const leavingAfterCrossing = makePlayer(surface.x + surface.w + 40);
-  assert.strictEqual(p.applyPlayerStageCollision(leavingAfterCrossing, { previousFootY: surface.y - 10, currentFootY: surface.y + 20, previousX: surface.x + surface.w - 10 }), true, 'moving off a ledge after crossing its height still records the valid landing');
+  assert.strictEqual(p.applyPlayerStageCollision(leavingAfterCrossing, { previousFootY: surface.y - visualFootOffset - 10, currentFootY: surface.y - visualFootOffset + 20, previousX: surface.x + surface.w - 10 }), true, 'moving off a ledge after crossing its height still records the valid landing');
+
+  const firstContactSurface = window.Sector1Progression.STAGE_SURFACES.find(candidate => candidate.id === 'signal-awning');
+  const multiSurfaceFall = makePlayer(900);
+  multiSurfaceFall.position.y = 600 - visualFootOffset;
+  assert.strictEqual(p.applyPlayerStageCollision(multiSurfaceFall, { previousFootY: 450 - visualFootOffset, currentFootY: 600 - visualFootOffset, previousX: 900 }), true, 'large descent crossing two overlapping ledges still lands');
+  assert.strictEqual(multiSurfaceFall.position.y, firstContactSurface.y - visualFootOffset, 'large descent chooses the earliest crossed ledge instead of array order');
 }
 {
   const { window } = loadRealSector();
@@ -320,8 +433,10 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   assert.strictEqual(p.state, 'boss_flourish', 'close-up completes into the flourish');
   approximately(p.getCinematicZoomOverride(), 1.08, 'close-up reaches the authored cinematic zoom');
   approximately(960 + p.getCinematicZoomOverride() * (p.boss.x - p.cameraX), 1331.52, 'close-up keeps the boss comfortably inside the right edge');
-  p.update(900);
-  assert.strictEqual(p.state, 'boss_hold', 'flourish receives its full authored animation window');
+  p.update(3999);
+  assert.strictEqual(p.state, 'boss_flourish', 'flourish keeps the complete one-shot animation on screen');
+  p.update(1);
+  assert.strictEqual(p.state, 'boss_hold', 'flourish advances only after all 48 frames at 12fps');
   p.update(250);
   assert.strictEqual(p.state, 'camera_return', 'pose hold completes into the camera return');
 
@@ -371,7 +486,7 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
     p.boss.x = window.Sector1Progression.CINEMATIC.bossStopX;
     p.updateBossWalk(0);
     p.update(500);
-    p.update(900);
+    p.update(4000);
     p.update(250);
     p.update(1600);
 
@@ -435,18 +550,32 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   p.cameraX = 3000; p.cinematicStartCameraX = 1475; p.cinematicStartZoom = 0.735; p.cinematicZoomOverride = 0.92; p.startBossWalk();
   assert.strictEqual(p.boss.sprite, sprite, 'entrance uses same prepared sprite instance');
   const presentationFrames = [
-    { state: 'walk', animation: 'sector_1_boss_walk_walk', sourceAnchorY: 253, expectedScale: 0.8 },
-    { state: 'flourish', animation: 'sector_1_boss_attack_attack', sourceAnchorY: 154 },
-    { state: 'idle', animation: 'sector_1_boss_idle_idle', sourceAnchorY: 178 }
+    {
+      state: 'walk', animation: 'sector_1_boss_walk_walk', sourceAnchorY: 253, expectedScale: 0.8,
+      footRows: [253,250,248,246,242,241,244,244,243,241,244,247,250,254,254,251,247,246,244,244,245,245,241,241,244,249,251,253,252,250,248,243,241,243,245,244,243,247,248,251,253]
+    },
+    {
+      state: 'flourish', animation: 'sector_1_boss_attack_attack', sourceAnchorY: 154,
+      footRows: [126,126,125,120,119,117,118,118,119,119,119,119,119,119,119,119,119,119,116,115,117,120,120,120,120,120,120,120,120,120,154,154,148,146,130,119,119,119,119,119,119,120,124,125,126,126,126,126]
+    },
+    {
+      state: 'idle', animation: 'sector_1_boss_idle_idle', sourceAnchorY: 178,
+      footRows: [178,178,178,178,178,173,167,165,161,157,157,157,157,157,160,165,167,170,173,173,173,173,173,173,173,173,173,169,168,165,162,161,159,157,157,157,157,157,157,160,162,165,171,173,176,177,177,177]
+    }
   ];
-  for (const frame of presentationFrames) {
-    p.boss.state = frame.state;
-    p.boss.activeAnimation = frame.animation;
-    const visual = p.getBossVisualBounds();
-    if (frame.expectedScale !== undefined) approximately(visual.scale, frame.expectedScale, 'boss walk scale remains at the reverted baseline');
-    approximately(visual.scale * frame.sourceAnchorY, 253 * 0.8, `${frame.state} animation uses the normalized anchor height`);
-    assert.strictEqual(visual.anchorY, p.boss.y + 110, `${frame.state} animation preserves the reverted +110 ground presentation offset`);
-    assert.strictEqual(visual.anchorY, 860, `${frame.state} animation remains anchored at y=860 when boss.y=750`);
+  for (const profile of presentationFrames) {
+    p.boss.state = profile.state;
+    p.boss.activeAnimation = profile.animation;
+    for (let frameIndex = 0; frameIndex < profile.footRows.length; frameIndex++) {
+      p.boss.animationRef = { currentFrame: frameIndex };
+      const visual = p.getBossVisualBounds();
+      if (profile.expectedScale !== undefined) approximately(visual.scale, profile.expectedScale, 'boss walk scale remains at the approved baseline');
+      approximately(visual.scale * profile.sourceAnchorY, 253 * 0.8, `${profile.state} animation uses the normalized anchor height`);
+      assert.strictEqual(visual.frameIndex, frameIndex, `${profile.state} frame index follows the Makko animation reference`);
+      assert.strictEqual(visual.footRow, profile.footRows[frameIndex], `${profile.state} frame ${frameIndex} uses the audited visible-foot row`);
+      approximately(visual.targetFootY, 850, `${profile.state} frame ${frameIndex} targets the authored sidewalk contact`);
+      approximately(visual.visibleFootY, 850, `${profile.state} frame ${frameIndex} stays grounded without sprite-sheet wobble`);
+    }
   }
   p.boss.state = 'walk';
   p.boss.activeAnimation = 'sector_1_boss_walk_walk';
@@ -457,7 +586,9 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   const before = sprite.updateCalls; p.update(500);
   assert(sprite.updateCalls > before, 'close-up keeps the prepared boss sprite updating');
   assert(sprite.playCalls.map(c => c.name).includes('sector_1_boss_attack_attack'), 'flourish plays after the close-up reaches its mark');
-  p.update(900); p.update(250);
+  p.update(3999);
+  assert.strictEqual(p.state, 'boss_flourish', 'prepared one-shot is not cut off before its final frame');
+  p.update(1); p.update(250);
   assert.strictEqual(p.state, 'camera_return', 'animation sequence advances through flourish and hold into return');
   p.update(1600);
   assert.strictEqual(p.state, 'boss_ready', 'animation sequence finishes at boss_ready after returning');

@@ -119,18 +119,25 @@ for (const [name, source] of [['parallax', parallax], ['player', player], ['inde
     fail(`${name} high-frequency diagnostics must be gated behind BARCODE_DEBUG_FRAME_OWNERSHIP.`);
   }
 }
-for (const marker of [
-  'Idle animation moved up 30px',
-  'Walk animation moved up 11px',
-  'Rhythm animation moved up 30px',
-  'Rhythm animation scaled:',
-  'Walk animation scaled:',
-  'Jump animation scaled:'
-]) {
-  const line = player.split(/\r?\n/).find((entry) => entry.includes(marker));
-  if (!line || !line.includes('BARCODE_DEBUG_FRAME_OWNERSHIP')) {
-    fail(`player draw-loop diagnostic must be explicitly debug-gated: ${marker}`);
-  }
+const playerDrawBody = functionBody(player, '  drawSprite(ctx) {');
+if (!player.includes('const PLAYER_VISUAL_FOOT_OFFSET_Y = 100;') ||
+    !player.includes('PLAYER_ANIMATION_PRESENTATION') ||
+    !player.includes('visibleFootY: drawY + (footRow - presentation.anchorY) * presentation.scale')) {
+  fail('player presentation must resolve audited source-frame feet to the canonical physics-y + 100 visual contact line.');
+}
+if (!playerDrawBody || /\bdraw[XY]\s*[+-]=/.test(playerDrawBody) || !/getVisualAnchor\(\)/.test(playerDrawBody)) {
+  fail('player drawing must use the frame-aware visual anchor without state-specific magic X/Y shifts.');
+}
+if (!player.includes('isBossCinematicActive') || !player.includes('if (!this.cinematicPoseActive) this.sprite.update(deltaTime);')) {
+  fail('player animation ownership must freeze a neutral pose during the boss cinematic.');
+}
+if (/this\.sprite\.(pause|resume)\(/.test(player)) {
+  fail('cinematic pose ownership must not depend on optional Makko sprite pause/resume methods.');
+}
+if (!player.includes('let spriteWidth, spriteHeight, yOffset;') ||
+    !player.includes('const spriteTop = this.position.y - spriteHeight - 1 + yOffset;') ||
+    !player.includes('y: spriteTop + 60')) {
+  fail('player alignment changes must preserve the established stomp/contact combat hull.');
 }
 if (!player.includes('if (window.BARCODE_DEBUG_FRAME_OWNERSHIP && (!this.lastAnimLog || Date.now() - this.lastAnimLog > 3000))')) {
   fail('player periodic animation diagnostic work must be disabled during normal play.');

@@ -86,6 +86,81 @@ pass('script order and PlayerCombat routing');
 }
 pass('tutorial Space ownership and repeated jumping');
 
+// The boss cinematic preserves whichever Rhythm Mode state triggered it.
+{
+  const s = sandbox();
+  let hidden = 0;
+  s.window.BARCODE = { RuntimeLifecycle:{ togglePause(){} } };
+  s.window.gameState = { running:true, paused:false, gameOver:false };
+  s.window.rhythmSystem = { isActive: () => true, hideRhythmMode(){ hidden++; } };
+  s.window.sector1Progression = { isGameplaySuppressed: () => true };
+  load(s, 'src/core/action-input.js'); load(s, 'src/game/player-combat.js'); load(s, 'src/core/input.js');
+  const manager = new s.window.InputManager();
+  const actions = { pause:{ pressed:false }, rhythm_mode:{ pressed:true } };
+  manager.routeActions(actions, { inputOnly:true });
+  assert(hidden === 0, 'R cannot mutate active Rhythm Mode while the boss cinematic owns presentation');
+  s.window.sector1Progression.isGameplaySuppressed = () => false;
+  manager.routeActions(actions, { inputOnly:true });
+  assert(hidden === 1, 'R keeps its normal toggle behavior after cinematic ownership releases');
+}
+pass('boss cinematic Rhythm Mode ownership');
+
+// Player presentation keeps every source frame on one visible foot line and
+// hands a live Rhythm Mode through the boss cinematic without mutating it.
+{
+  const s = sandbox();
+  load(s, 'src/game/player.js');
+  const player = new s.window.Player(960, 500);
+  const states = ['idle', 'walk', 'jump', 'rhythm'];
+  const establishedCombatHulls = {
+    idle: { width: 154.8, bottom: 543.8 },
+    walk: { width: 118.8, bottom: 528.8 },
+    jump: { width: 73.8, bottom: 539.8 },
+    rhythm: { width: 91.8, bottom: 509.8 }
+  };
+  for (const state of states) {
+    player.state = state;
+    const presentation = player.getAnimationPresentation(state);
+    for (let frame = 0; frame < presentation.footRows.length; frame++) {
+      player.animationRef = { currentFrame: frame };
+      const anchor = player.getVisualAnchor();
+      assert(Math.abs(anchor.visibleFootY - 600) < 0.000001, `${state} frame ${frame} resolves to physics y + 100 visual foot line`);
+      assert(anchor.x === player.position.x, `${state} frame ${frame} remains horizontally centered on the physics anchor`);
+    }
+    const hitbox = player.getHitbox();
+    assert(Math.abs(hitbox.width - establishedCombatHulls[state].width) < 0.000001, `${state} keeps its established combat-hull width`);
+    assert(Math.abs(hitbox.y + hitbox.height - establishedCombatHulls[state].bottom) < 0.000001, `${state} keeps its established stomp/contact boundary`);
+  }
+
+  let cinematicActive = true;
+  const rhythm = { active:true, isActive(){ return this.active; } };
+  s.window.rhythmSystem = rhythm;
+  s.window.sector1Progression = { isBossCinematicActive: () => cinematicActive };
+  player.grounded = true;
+  const spriteCalls = { played:[], updated:0 };
+  let spriteAnimation = '6_bit_r__h_mode_rhmode';
+  player.spriteReady = true;
+  player.currentAnimation = spriteAnimation;
+  player.animationRef = { currentFrame: 12, isInterrupted:false, elapsedTime:0, onCycle(){} };
+  player.sprite = {
+    playing:true,
+    getCurrentAnimation: () => spriteAnimation,
+    update(){ spriteCalls.updated++; },
+    stop(){ this.playing = false; },
+    play(name){ spriteAnimation = name; spriteCalls.played.push(name); this.playing = true; return { currentFrame:0, isInterrupted:false, elapsedTime:0, onCycle(){} }; }
+  };
+  player.updateState();
+  assert(player.state === 'idle' && rhythm.active, 'boss cinematic selects a neutral player pose without stopping Rhythm Mode');
+  player.updateSpriteAnimation(16);
+  assert(spriteCalls.played.at(-1) === '6_bit_idle_idle' && spriteCalls.updated === 0, 'cinematic replaces the attack frame with a frozen neutral frame without requiring optional sprite pause APIs');
+  cinematicActive = false;
+  player.updateState();
+  player.updateSpriteAnimation(16);
+  assert(player.state === 'rhythm' && rhythm.active, 'active Rhythm Mode presentation resumes after the cinematic');
+  assert(spriteCalls.played.at(-1) === '6_bit_r__h_mode_rhmode' && spriteCalls.updated === 1, 'cinematic release resumes the approved Rhythm Mode animation through the normal update path');
+}
+pass('frame-aware player foot anchoring and cinematic rhythm handoff');
+
 // Tutorial rhythm-combo and hacking progression use real objective identifiers.
 {
   const s = sandbox();

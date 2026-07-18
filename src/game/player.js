@@ -6,6 +6,56 @@ window.FILE_MANIFEST.push({
   dependencies: ['Vector2D', 'clamp', 'distance']
 });
 
+// MakkoEngine draws each animation around the bottom-center manifest anchor.
+// These presentation records retain the approved sprite sizes while anchoring
+// the lowest visible foot pixel to one canonical presentation line on every
+// frame. Physics intentionally keeps its historical anchor 100px above the
+// visible sidewalk/roof contact, so this is presentation only; movement and
+// jump physics still use Player.position.y.
+const PLAYER_VISUAL_FOOT_OFFSET_Y = 100;
+const PLAYER_ANIMATION_PRESENTATION = Object.freeze({
+  idle: Object.freeze({
+    animation: '6_bit_idle_idle',
+    scale: 2,
+    anchorY: 95,
+    footRows: Object.freeze([
+      93, 93, 93, 93, 93, 93, 93, 93, 93, 93, 93, 93, 94,
+      95, 95, 95, 95, 95, 94, 93, 93, 93, 93, 93, 93, 93
+    ])
+  }),
+  walk: Object.freeze({
+    animation: '6_bit_walk_walk',
+    scale: 2 * (71 / 66),
+    anchorY: 94,
+    footRows: Object.freeze([
+      92, 92, 92, 93, 95, 95, 95, 93, 93, 93, 94, 95,
+      95, 95, 95, 94, 93, 92, 93, 93, 95, 95, 95, 95,
+      93, 92, 92, 93, 95, 95, 93, 93, 93, 95, 95, 95,
+      95, 95, 93, 93, 93, 95, 95, 95, 95, 95, 95, 95
+    ])
+  }),
+  jump: Object.freeze({
+    animation: '6_bit_jump_jump',
+    scale: 2 * (49 / 41),
+    anchorY: 95,
+    footRows: Object.freeze([
+      77, 79, 83, 88, 89, 84, 77, 74, 69, 69, 70, 75, 83, 85,
+      88, 89, 88, 84, 79, 77, 77, 79, 80, 83, 87, 88, 89
+    ])
+  }),
+  rhythm: Object.freeze({
+    animation: '6_bit_r__h_mode_rhmode',
+    scale: 2 * (60 / 51),
+    anchorY: 95,
+    footRows: Object.freeze([
+      84, 84, 84, 85, 85, 84, 82, 81, 76, 69, 68, 67,
+      67, 68, 70, 77, 79, 84, 93, 95, 95, 88, 85, 84,
+      82, 80, 77, 72, 72, 77, 84, 85, 89, 95, 94, 88,
+      81, 79, 76, 72, 73, 79, 84, 85, 87, 91, 91, 89
+    ])
+  })
+});
+
 window.Player = class Player {
   constructor(x, y) {
     this.position = new window.Vector2D(x, y);
@@ -69,6 +119,7 @@ window.Player = class Player {
     this.arcPulsePhase = 0;
     this.arcActive = false;
     this.primaryAttackAnimationMs = 0;
+    this.cinematicPoseActive = false;
   }
 
   update(deltaTime, allowMovement = true) {
@@ -141,7 +192,7 @@ window.Player = class Player {
         if (!wasGrounded && window.particleSystem) {
           // Move landing smoke 10px toward front of player
           const landingX = this.position.x + this.facing * 10;
-          window.particleSystem.landingEffect(landingX, this.position.y + 100, null);
+          window.particleSystem.landingEffect(landingX, this.getVisualAnchor().targetFootY, null);
         }
       } else if (!landedOnStageSurface) {
         this.grounded = false;
@@ -177,6 +228,12 @@ window.Player = class Player {
     const rhythmSystemExists = !!window.rhythmSystem;
     const hasIsActive = rhythmSystemExists && typeof window.rhythmSystem.isActive === 'function';
     const rhythmActive = hasIsActive && window.rhythmSystem.isActive();
+    const bossCinematicActive = !!(
+      window.sector1Progression &&
+      typeof window.sector1Progression.isBossCinematicActive === 'function' &&
+      window.sector1Progression.isBossCinematicActive()
+    );
+    this.cinematicPoseActive = bossCinematicActive;
 
     // Check if up key is held for continuous jump animation
     const upKeyHeld = window.inputManager && window.inputManager.isKey('arrowup');
@@ -188,8 +245,12 @@ window.Player = class Player {
       if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log('🦘 Character just left ground - jump animation will restart');
     }
     
+    // The cinematic owns presentation only. Rhythm Mode itself remains active,
+    // so its approved timing and combat state resume after the camera returns.
+    if (bossCinematicActive) {
+      this.state = 'idle';
     // Priority order: Rhythm Mode/transient attack > Jump (if up held) > Walk > Idle
-    if (rhythmActive || this.primaryAttackAnimationMs > 0) {
+    } else if (rhythmActive || this.primaryAttackAnimationMs > 0) {
       this.state = 'rhythm';
     } else if (!this.grounded || upKeyHeld) {
       this.state = 'jump'; // Stay in jump state if up key is held (even when grounded)
@@ -213,6 +274,31 @@ window.Player = class Player {
     this.primaryAttackAnimationMs = Math.max(this.primaryAttackAnimationMs || 0, durationMs);
     this.state = 'rhythm';
     if (typeof this.playAnimation === 'function') this.playAnimation('rhythm');
+  }
+
+  getAnimationPresentation(state = this.state) {
+    return PLAYER_ANIMATION_PRESENTATION[state] || PLAYER_ANIMATION_PRESENTATION.idle;
+  }
+
+  getVisualAnchor() {
+    const presentation = this.getAnimationPresentation();
+    const frameCount = presentation.footRows.length;
+    const rawFrame = Number.isFinite(this.animationRef?.currentFrame) ? this.animationRef.currentFrame : 0;
+    const frameIndex = frameCount > 0 ? Math.max(0, Math.trunc(rawFrame)) % frameCount : 0;
+    const footRow = presentation.footRows[frameIndex] ?? presentation.anchorY;
+    const targetFootY = this.position.y + PLAYER_VISUAL_FOOT_OFFSET_Y;
+    const drawY = targetFootY + (presentation.anchorY - footRow) * presentation.scale;
+
+    return {
+      x: this.position.x,
+      y: drawY,
+      scale: presentation.scale,
+      anchorY: presentation.anchorY,
+      footRow,
+      frameIndex,
+      targetFootY,
+      visibleFootY: drawY + (footRow - presentation.anchorY) * presentation.scale
+    };
   }
 
   // Initialize sprite character with MakkoEngine
@@ -283,19 +369,16 @@ window.Player = class Player {
     }
     
     try {
-      // CRITICAL FIX: Update sprite animation FIRST, then check for state changes
-      // This ensures the animation advances properly before we potentially restart it
-      this.sprite.update(deltaTime);
+      // A Jammer-destruction cinematic always presents a clean, frozen neutral
+      // pose instead of preserving a random attack frame. No RhythmSystem state
+      // is stopped or reset here.
+      // Makko animation time in this project advances only through update().
+      // Withholding that call freezes the selected neutral frame without
+      // depending on optional sprite pause/resume methods.
+      if (!this.cinematicPoseActive) this.sprite.update(deltaTime);
       
       // Check if we need to play different animation based on state
-      const animationMap = {
-        'idle': '6_bit_idle_idle',
-        'walk': '6_bit_walk_walk',
-        'jump': '6_bit_jump_jump',
-        'rhythm': '6_bit_r__h_mode_rhmode'
-      };
-      
-      const expectedAnimation = animationMap[this.state];
+      const expectedAnimation = PLAYER_ANIMATION_PRESENTATION[this.state]?.animation;
       
       // CRITICAL FIX: Only change animation if current animation is actually different
       // AND only if the sprite is stuck or not playing the right animation
@@ -327,7 +410,7 @@ window.Player = class Player {
         if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log(`🔄 Animation change needed: state=${this.state}, current=${this.currentAnimation}, expected=${expectedAnimation}, stuck=${isRhythmStuck}, restartJump=${shouldRestartJump}`);
         this.playAnimation(this.state);
       }
-      
+
       // DEBUG: Log animation status periodically
       if (window.BARCODE_DEBUG_FRAME_OWNERSHIP && (!this.lastAnimLog || Date.now() - this.lastAnimLog > 3000)) {
         const isPlaying = this.sprite ? this.sprite.playing : 'null';
@@ -353,14 +436,7 @@ window.Player = class Player {
     
     try {
       // Map animation names if needed
-      const animationMap = {
-        'idle': '6_bit_idle_idle',
-        'walk': '6_bit_walk_walk',
-        'jump': '6_bit_jump_jump',
-        'rhythm': '6_bit_r__h_mode_rhmode'
-      };
-      
-      const fullAnimationName = animationMap[animationName] || animationName;
+      const fullAnimationName = PLAYER_ANIMATION_PRESENTATION[animationName]?.animation || animationName;
       
       // CRITICAL FIX: Force animation restart when transitioning from rhythm/hack mode or after damage
       // This prevents walk animations from getting stuck
@@ -447,7 +523,7 @@ window.Player = class Player {
       if (window.particleSystem && this.grounded) {
         // Position particles 8px behind player and 12px toward front (offset from -20 to -8)
         const trailX = this.position.x - this.facing * 8; // 8px behind player (12px toward front)
-        const trailY = this.position.y + 100; // Move down 100px from middle
+        const trailY = this.getVisualAnchor().targetFootY;
         window.particleSystem.trail(trailX, trailY, null, 2);
       }
     }
@@ -466,7 +542,7 @@ window.Player = class Player {
       if (window.particleSystem && this.grounded) {
         // Position particles behind player based on facing direction
         const trailX = this.position.x - this.facing * 20; // 20px behind player
-        const trailY = this.position.y + 100; // Move down 100px from middle
+        const trailY = this.getVisualAnchor().targetFootY;
         window.particleSystem.trail(trailX, trailY, null, 2);
       }
     }
@@ -507,7 +583,7 @@ window.Player = class Player {
       if (window.particleSystem) {
         // Move particles 12px toward front of player (same as movement trail)
         const jumpX = this.position.x + this.facing * 12;
-        window.particleSystem.jumpEffect(jumpX, this.position.y + 100, null);
+        window.particleSystem.jumpEffect(jumpX, this.getVisualAnchor().targetFootY, null);
       }
       return true;
     }
@@ -1201,7 +1277,9 @@ window.Player = class Player {
   }
 
   getHitbox() {
-    // TIGHT hitbox that matches actual sprite dimensions with animation-specific adjustments
+    // Keep the established combat hull unchanged. Stage landing uses its own
+    // narrow visual-foot probe, so presentation alignment cannot alter stomp
+    // or enemy-contact timing.
     let spriteWidth, spriteHeight, yOffset;
     
     // Use exact sprite dimensions from manifest with current scale
@@ -1209,22 +1287,22 @@ window.Player = class Player {
       case 'idle':
         spriteWidth = 86 * 2;    // 86px * 2x scale = 172px
         spriteHeight = 96 * 2;   // 96px * 2x scale = 192px
-        yOffset = 4;              // Match idle animation positioning
+        yOffset = 4;
         break;
       case 'walk':
         spriteWidth = 66 * 2;    // 66px * 2x scale = 132px  
         spriteHeight = 96 * 2;   // 96px * 2x scale = 192px
-        yOffset = -11;             // Match walk animation positioning (raised 11px)
+        yOffset = -11;
         break;
       case 'jump':
         spriteWidth = 41 * 2;    // 41px * 2x scale = 82px
         spriteHeight = 96 * 2;   // 96px * 2x scale = 192px
-        yOffset = 0;              // No offset for jump (base positioning)
+        yOffset = 0;
         break;
       case 'rhythm':
         spriteWidth = 51 * 2;    // 51px * 2x scale = 102px
         spriteHeight = 96 * 2;   // 96px * 2x scale = 192px
-        yOffset = -30;             // Match rhythm animation positioning (raised 30px)
+        yOffset = -30;
         break;
       default:
         // Fallback to idle dimensions
@@ -1238,14 +1316,13 @@ window.Player = class Player {
     const hitboxWidth = spriteWidth * (1 - marginReduction * 2);
     const hitboxHeight = spriteHeight * (1 - marginReduction * 2);
     
-    // Sprite is drawn with anchor at bottom, so top is at position.y - spriteHeight - 1 + yOffset
     const spriteTop = this.position.y - spriteHeight - 1 + yOffset;
     
     return {
       x: this.position.x - hitboxWidth/2,   // Center horizontally with tight margins
-      y: spriteTop + 60,                   // EXTENDED DOWN: Move hitbox position down 60px
+      y: spriteTop + 60,
       width: hitboxWidth,                  // Tight width with 5% margins
-      height: hitboxHeight                 // Keep same height - extends further down
+      height: hitboxHeight
     };
   }
   
@@ -1286,29 +1363,9 @@ window.Player = class Player {
   // Draw sprite-based character
   drawSprite(ctx) {
     ctx.save();
-    
-    // Draw sprite with proper positioning and orientation
-    // Position is the anchor point (character's feet)
-    let drawY = this.position.y - 1; // Base positioning: raise sprite up 1 pixel from anchor
-    let drawX = this.position.x; // Base X position
-    
-    // CRITICAL FIX: Adjust animation positioning for proper ground alignment
-    if (this.state === 'idle') {
-      drawY += 4; // Move idle animation UP 30px (from 34px down to 4px down)
-      // CRITICAL FIX: Move idle animation toward back 40px when facing left or right
-      if (this.facing === -1) {
-        drawX += 40; // Move idle animation TOWARD BACK 40px when facing left
-      } else if (this.facing === 1) {
-        drawX -= 40; // Move idle animation TOWARD BACK 40px when facing right
-      }
-      if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log('🧍 Idle animation moved up 30px and toward back 40px');
-    } else if (this.state === 'walk') {
-      drawY -= 11; // Move walk animation UP 11px from base position (7+4 more)
-      if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log('🚶 Walk animation moved up 11px');
-    } else if (this.state === 'rhythm') {
-      drawY -= 30; // Move rhythm animation UP 30px from base position (10+20 more)
-      if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log('🎵 Rhythm animation moved up 30px');
-    }
+    const visualAnchor = this.getVisualAnchor();
+    const drawY = visualAnchor.y;
+    const drawX = visualAnchor.x;
     
     // Handle directional flipping for animations
     let shouldFlip = false;
@@ -1325,22 +1382,8 @@ window.Player = class Player {
       shouldFlip = this.facing === -1;
     }
     
-    // CRITICAL FIX: Scale specific animations to desired sizes
-    // Rhythm animation: 51px → ~60px, Walk animation: 66px → ~71px, Jump animation: 41px → ~49px
-    let animationScale = 2; // Default scale for all animations
-    if (this.state === 'rhythm') {
-      animationScale = 2 * (60 / 51); // Scale rhythm animation to ~60px at 2x base scale (6px bigger)
-      if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log(`🎵 Rhythm animation scaled: ${animationScale.toFixed(2)}x to ~60px`);
-    } else if (this.state === 'walk') {
-      animationScale = 2 * (71 / 66); // Scale walk animation to ~71px at 2x base scale
-      if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log(`🚶 Walk animation scaled: ${animationScale.toFixed(2)}x to ~71px`);
-    } else if (this.state === 'jump') {
-      animationScale = 2 * (49 / 41); // Scale jump animation to ~49px at 2x base scale (4px bigger)
-      if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log(`🦘 Jump animation scaled: ${animationScale.toFixed(2)}x to ~49px`);
-    }
-    
     this.sprite.draw(ctx, drawX, drawY, {
-      scale: animationScale, // Dynamic scale based on animation type
+      scale: visualAnchor.scale,
       flipH: shouldFlip, // Animation-specific flipping logic
       flipV: false,
       alpha: this.getInvincibilityAlpha(), // Dynamic alpha based on invincibility type
@@ -1479,6 +1522,9 @@ window.Player = class Player {
   // Draw loading placeholder
   drawLoadingPlaceholder(ctx) {
     ctx.save();
+    const visualFootY = this.getVisualAnchor().targetFootY;
+    const placeholderWidth = PLAYER_ANIMATION_PRESENTATION.idle.scale * 86;
+    const placeholderHeight = PLAYER_ANIMATION_PRESENTATION.idle.scale * 96;
     
     // Flip character based on facing direction
     if (this.facing === -1) {
@@ -1489,8 +1535,8 @@ window.Player = class Player {
     
     // Draw loading placeholder
     const gradient = ctx.createLinearGradient(
-      this.position.x - this.width/2, this.position.y - this.height,
-      this.position.x + this.width/2, this.position.y
+      this.position.x - placeholderWidth / 2, visualFootY - placeholderHeight,
+      this.position.x + placeholderWidth / 2, visualFootY
     );
     
     gradient.addColorStop(0, '#666666');
@@ -1498,10 +1544,10 @@ window.Player = class Player {
     
     ctx.fillStyle = gradient;
     ctx.fillRect(
-      this.position.x - this.width/2,
-      this.position.y - this.height,
-      this.width,
-      this.height
+      this.position.x - placeholderWidth / 2,
+      visualFootY - placeholderHeight,
+      placeholderWidth,
+      placeholderHeight
     );
     
     // Draw loading text
@@ -1509,7 +1555,7 @@ window.Player = class Player {
     ctx.font = '14px monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('LOADING', this.position.x, this.position.y - this.height/2);
+    ctx.fillText('LOADING', this.position.x, visualFootY - placeholderHeight / 2);
     
     ctx.restore();
   }
