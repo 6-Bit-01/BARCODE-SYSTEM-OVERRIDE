@@ -23,6 +23,7 @@ const sector = read('src/game/sector1-progression.js');
 const objectives = read('src/game/objectives.js');
 const debug = read('src/game/debug-commands.js');
 const render = read('src/game/render-coordinator.js');
+const ui = read('src/game/ui-manager.js');
 const docs = ['docs/technical/SCRIPT_AND_GLOBAL_MAP.md', 'docs/technical/KNOWN_ISSUES.md', 'docs/design/LEVEL_01_VERTICAL_SLICE.md'].filter(exists).map(read).join('\n');
 
 assert(loadedScripts.includes('src/game/enemies.js') && loadedScripts.includes('src/game/jammer-environment.js'), 'index loads canonical enemies and JammerEnvironment');
@@ -43,6 +44,9 @@ assert(/preserveDefeats/.test(runtime) && !/currentEnemyCount/.test(runtime), 'R
 assert(/reset\(options = \{\}\)/.test(sector) && /JammerEnvironment\.reset/.test(sector), 'Sector1Progression reset explicitly cleans mission state');
 assert(/draw\(ctx\) \{ this\.drawStageSurfaces\(ctx\); this\.drawEncounterGates\(ctx\); this\.drawBoss\(ctx\); \}/.test(sector), 'Sector1Progression draw owns authored geometry and boss-intro presentation');
 assert(/window\.sector1Progression && typeof window\.sector1Progression\.draw === 'function'/.test(render), 'render coordinator checks Sector1Progression draw contract before calling');
+assert(!loadedScripts.includes('src/engine/jammer-arrow-indicator.js'), 'legacy Jammer arrow renderer is not loaded');
+assert(count(render, /window\.jammerIndicator\.draw\(ctx\)/g) === 0, 'world/zoom render pass does not draw the screen-space Jammer indicator');
+assert(count(ui, /window\.jammerIndicator\.draw\(ctx\)/g) === 1, 'UI pass is the single active Jammer indicator draw owner');
 const drawGameEntitiesBody = (render.match(/function drawGameEntities\(ctx\) \{([\s\S]*?)\n\}/) || [null, ''])[1];
 assert(drawGameEntitiesBody.indexOf('JammerEnvironment.draw(ctx)') !== -1 && drawGameEntitiesBody.indexOf('window.enemyManager.draw(ctx)') !== -1 && drawGameEntitiesBody.indexOf('JammerEnvironment.draw(ctx)') < drawGameEntitiesBody.indexOf('window.enemyManager.draw(ctx)'), 'JammerEnvironment draws before enemyManager in drawGameEntities');
 assert(!/JammerEnvironment\.reset\(\)/.test(objectives), 'ObjectivesSystem reset must not compete for JammerEnvironment ownership');
@@ -67,7 +71,8 @@ assert(!/setTimeout\(\(\) => \{\s*this\.initSprite/.test(enemies) && !/setTimeou
 assert(!/Date\.now\(/.test(enemies), 'enemy-owned gameplay timing must not use wall-clock Date.now');
 assert(!/setTimeout\(/.test(enemies), 'enemy owner must not create untracked timers');
 assert(/simulationTimeMs/.test(enemies), 'enemy manager/entity simulation time exists');
-assert(/JammerEnvironment\.getPosition\(\)/.test(read('src/game/update-coordinator.js')), 'indicator tracks environmental Jammer state');
+const updateCoordinator = read('src/game/update-coordinator.js');
+assert(/jammerEnvironment\.getAimBounds\(\)/.test(updateCoordinator) && /jammerEnvironment\?\.getPosition\?\.\(\)/.test(updateCoordinator), 'indicator tracks the environmental Jammer presentation bounds with a position fallback');
 assert(/JammerEnvironment\.dispose/.test(runtime) && /jammerEnvironment:/.test(runtime), 'RuntimeLifecycle owns Jammer teardown and diagnostics');
 assert(/enemies: window\.enemyManager/.test(runtime), 'RuntimeLifecycle exposes enemy diagnostics');
 assert(/_tutorialEnemiesDefeated >= 3/.test(enemies), 'tutorial three-enemy path remains represented');

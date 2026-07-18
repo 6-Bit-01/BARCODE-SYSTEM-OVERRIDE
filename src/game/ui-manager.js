@@ -65,6 +65,16 @@ window.drawGameUI = function(ctx) {
       console.error('Error drawing jammer indicator:', error?.message || error);
     }
   }
+
+  // Session-only Makko diagnostics. This stays in the UI pass so the overlay uses
+  // the same world-to-screen projection without changing gameplay rendering.
+  if (window.DEBUG?.level1?.drawOverlay) {
+    try {
+      window.DEBUG.level1.drawOverlay(ctx);
+    } catch (error) {
+      console.error('Error drawing Level 1 debug overlay:', error?.message || error);
+    }
+  }
   
   // Draw hack timeout message
   drawHackTimeoutMessage(ctx);

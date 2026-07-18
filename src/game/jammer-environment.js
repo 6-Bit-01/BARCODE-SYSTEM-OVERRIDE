@@ -89,9 +89,6 @@ window.BARCODE = window.BARCODE || {};
     state.targetable = true;
     state.destroyed = false;
     state.health = state.maxHealth;
-    if (window.jammerArrowIndicator && typeof window.jammerArrowIndicator.setTarget === 'function') {
-      window.jammerArrowIndicator.setTarget({ position: state.position, active: true, environmental: true });
-    }
     return cloneStatus(state);
   }
 
@@ -108,7 +105,6 @@ window.BARCODE = window.BARCODE || {};
     state.spriteRequestGeneration = -1;
     if (state.audio && typeof state.audio.pause === 'function') state.audio.pause();
     state.audio = null;
-    if (window.jammerArrowIndicator && typeof window.jammerArrowIndicator.setTarget === 'function') window.jammerArrowIndicator.setTarget(null);
   }
 
   function reset() {
@@ -159,7 +155,6 @@ window.BARCODE = window.BARCODE || {};
         if (typeof window.particleSystem.impact === 'function') window.particleSystem.impact(state.position.x, state.position.y, '#ff00ff', 40);
         if (typeof window.particleSystem.spawnEffect === 'function') window.particleSystem.spawnEffect(state.position.x, state.position.y);
       }
-      if (window.jammerArrowIndicator && typeof window.jammerArrowIndicator.setTarget === 'function') window.jammerArrowIndicator.setTarget(null);
       if (!state.destructionNotified) {
         state.destructionNotified = true;
         if (window.sector1Progression && typeof window.sector1Progression.onJammerDestroyed === 'function') window.sector1Progression.onJammerDestroyed();
@@ -199,6 +194,17 @@ window.BARCODE = window.BARCODE || {};
   function getStatus() { return cloneStatus(state); }
   function getDiagnostics() { return cloneStatus(state); }
   function getPosition() { return state.revealed && !state.disposed ? { x: state.position.x, y: state.position.y } : null; }
+  function getAimBounds() {
+    if (!state.revealed || state.destroyed || state.disposed) return null;
+    const scale = state.presentation.drawScale;
+    const anchorY = state.position.y + state.presentation.drawOffsetY;
+    return {
+      x: state.position.x - 128 * scale,
+      y: anchorY - 214 * scale,
+      width: 256 * scale,
+      height: 219 * scale
+    };
+  }
 
-  namespace.JammerEnvironment = Object.freeze({ initialize, reveal, trigger, reset, dispose, update, draw, canReceiveRhythmDamage, applyRhythmDamage, getStatus, getDiagnostics, getPosition });
+  namespace.JammerEnvironment = Object.freeze({ initialize, reveal, trigger, reset, dispose, update, draw, canReceiveRhythmDamage, applyRhythmDamage, getStatus, getDiagnostics, getPosition, getAimBounds });
 })(window.BARCODE);

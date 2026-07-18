@@ -149,8 +149,11 @@ function updateVisualSystems(deltaTime) {
     try {
       const playerX = window.player ? window.player.position.x : 960;
       const playerY = window.player ? window.player.position.y : 750;
-      const jammerPosition = window.BARCODE && window.BARCODE.JammerEnvironment ? window.BARCODE.JammerEnvironment.getPosition() : null;
-      window.jammerIndicator.update(deltaTime, jammerPosition, playerX, playerY);
+      const jammerEnvironment = window.BARCODE && window.BARCODE.JammerEnvironment;
+      const jammerTarget = jammerEnvironment && typeof jammerEnvironment.getAimBounds === 'function'
+        ? jammerEnvironment.getAimBounds()
+        : jammerEnvironment?.getPosition?.();
+      window.jammerIndicator.update(deltaTime, jammerTarget, playerX, playerY);
     } catch (error) {
       console.error('Error updating jammer indicator:', error?.message || error);
     }

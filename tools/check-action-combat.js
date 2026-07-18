@@ -180,17 +180,45 @@ pass('beat-gated PlayerCombat damage');
 
 // Entrance and passive stomp.
 {
-  const s = sandbox(); s.window.Particle = class Particle {}; s.window.particleSystem = { particles:[], impact(){ this.impacted = (this.impacted || 0) + 1; } };
+  const s = sandbox(); s.window.Particle = class Particle {}; s.window.particleSystem = { particles:[], enemySpawnEffect(){}, impact(){ this.impacted = (this.impacted || 0) + 1; } };
   load(s, 'src/game/player.js'); const player = new s.window.Player(200, 500);
   assert(typeof player.createEntranceExplosion === 'function', 'Player.createEntranceExplosion exists');
   player.isEntering = true; player.entranceStartTime = Date.now() - player.entranceDuration - 1; player.updateEntranceAnimation(16); assert(!player.isEntering, 'Entrance completion does not throw');
-  load(s, 'src/game/enemies.js'); const manager = new s.window.EnemyManager(); manager.simulationTimeMs = 1000; let defeats = 0;
-  const enemy = { active:true, _isTutorialEnemy:true, type:'virus', position:{x:0,y:0}, lastPlayerHitTimeMs:-Infinity, getHitbox: () => ({ x:-20, y:0, width:40, height:40 }), takeDamage(d){ assert(d === 999, 'Stomp damage is lethal'); this.active = false; manager.recordDefeat(this); } };
+  load(s, 'src/game/enemies.js');
+
+  const entering = new s.window.Enemy(0, 650, 'virus');
+  entering._sector1MissionEnemy = true;
+  entering._authoredEntranceActive = true;
+  entering._entranceTarget = { x: 840, y: 650 };
+  entering._authoredEntranceSpeed = 420;
+  entering.entranceComplete = false;
+  entering.update(1000, { position:{ x:1200, y:750 } }, 1000);
+  assert(entering.position.x === 420 && entering.position.y === 650 && entering._authoredEntranceActive, 'Authored off-screen entrance integrates exactly once per update');
+  entering.update(1000, { position:{ x:1200, y:750 } }, 2000);
+  assert(entering.position.x === 840 && entering.position.y === 650 && entering.entranceComplete && !entering._authoredEntranceActive, 'Authored entrance reaches its stage target and releases normal AI');
+
+  const manager = new s.window.EnemyManager(); manager.simulationTimeMs = 1000; let defeats = 0;
+  const enemy = { active:true, _isTutorialEnemy:true, type:'virus', position:{x:0,y:0}, lastPlayerHitTimeMs:-Infinity, isSpawnProtected: () => true, getHitbox: () => ({ x:-20, y:0, width:40, height:40 }), takeDamage(d){ assert(d === 999, 'Stomp damage is lethal'); this.active = false; manager.recordDefeat(this); } };
   manager.enemies = [enemy]; manager.recordDefeat = e => { if (e._recorded) return false; e._recorded = true; defeats++; return true; };
   const stomper = { controlsDisabled:false, position:{x:0,y:15}, velocity:{x:0,y:100}, getHitbox: () => ({ x:-10, y:-30, width:20, height:45 }), takeDamageWithKnockback(){ throw new Error('stomp should not damage player'); } };
   manager.checkCollisions(stomper); assert(defeats === 1 && stomper.velocity.y === -550 && stomper._enemyInvulnerableUntilMs === 1400 && s.window.particleSystem.impacted === 1, 'Passive landing stomp kills once and bounces');
+
+  let contactDamage = 0;
+  const protectedEnemy = { active:true, type:'corrupted', position:{x:0,y:0}, isSpawnProtected: () => true, getHitbox: () => ({ x:-20, y:0, width:40, height:40 }) };
+  const protectedPlayer = { controlsDisabled:false, position:{x:0,y:0}, velocity:{x:0,y:0}, getHitbox: () => ({ x:-10, y:10, width:20, height:30 }), takeDamageWithKnockback(){ contactDamage++; } };
+  manager.enemies = [protectedEnemy];
+  manager.checkCollisions(protectedPlayer);
+  assert(protectedPlayer.position.x === 0 && protectedPlayer.position.y === 0 && contactDamage === 0, 'Protected authored entrance cannot spawn-push or contact-damage the player');
+
+  const quotaManager = new s.window.EnemyManager();
+  quotaManager.defeatedCount = 20;
+  s.window.gameState = { enemiesDefeated:20 };
+  let missionCallbacks = 0;
+  s.window.sector1Progression = { onEnemyDefeated(){ missionCallbacks++; } };
+  assert(quotaManager.recordDefeat({ _jammerReinforcement:true }), 'Jammer reinforcement defeat is recorded once for cleanup');
+  assert(quotaManager.defeatedCount === 20 && s.window.gameState.enemiesDefeated === 20 && missionCallbacks === 0, 'Jammer reinforcements never inflate the completed 20-kill quota');
 }
-pass('entrance and passive stomp');
+pass('authored entrances, spawn protection, passive stomp, and reinforcement quota isolation');
 
 // Audio profile ownership and profile-keyed preparation.
 {

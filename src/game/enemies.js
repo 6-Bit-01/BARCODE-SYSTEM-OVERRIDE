@@ -159,6 +159,39 @@ window.Enemy = class Enemy {
     }
   }
 
+  updateAuthoredEntrance(deltaTime) {
+    if (!this._authoredEntranceActive || !this._entranceTarget) return false;
+    const dt = deltaTime / 1000;
+    const dx = this._entranceTarget.x - this.position.x;
+    const dy = this._entranceTarget.y - this.position.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const speed = Math.max(1, this._authoredEntranceSpeed || 420);
+    const step = speed * dt;
+
+    this.state = 'authored_entrance';
+    this.entranceComplete = false;
+    if (this.type === 'firewall' && this.spriteReady && this.currentAnimation !== 'firewall_walk_walk') this.playAnimation('walk');
+
+    if (distance <= Math.max(4, step)) {
+      this.position.x = this._entranceTarget.x;
+      this.position.y = this._entranceTarget.y;
+      this.velocity.x = 0;
+      this.velocity.y = 0;
+      this._authoredEntranceActive = false;
+      this.entranceComplete = true;
+      this.state = 'patrol';
+      this.spawnTimeMs = this.simulationTimeMs;
+      this.isOnGround = this.position.y >= 750;
+      if (this.type === 'firewall' && this.spriteReady) this.playAnimation('idle');
+    } else {
+      this.velocity.x = (dx / distance) * speed;
+      this.velocity.y = (dy / distance) * speed;
+      this.position.x += this.velocity.x * dt;
+      this.position.y += this.velocity.y * dt;
+    }
+    return true;
+  }
+
   update(deltaTime, player, simulationTimeMs) {
     if (!this.active || this._disposed) return;
     this.simulationTimeMs = Number.isFinite(simulationTimeMs) ? simulationTimeMs : (this.simulationTimeMs + deltaTime);
@@ -167,6 +200,15 @@ window.Enemy = class Enemy {
     const dt = deltaTime / 1000;
     this.stateTimer += deltaTime;
     this.animationTime += deltaTime;
+
+    // Authored Level 1 entrances own their integration until the actor reaches its stage target.
+    if (this.updateAuthoredEntrance(deltaTime)) {
+      if (this.spriteReady && this.sprite) {
+        this.sprite.update(deltaTime);
+        this.forceCorrectAnimationState();
+      }
+      return;
+    }
 
     // Track if enemy is on ground
     this.isOnGround = this.position.y >= 750;
@@ -716,6 +758,11 @@ window.Enemy = class Enemy {
     this.currentAnimation = fullName;
   }
 
+  isSpawnProtected() {
+    if (!this._sector1MissionEnemy && !this._jammerReinforcement) return false;
+    return !!this._authoredEntranceActive || !this.entranceComplete || ((this.simulationTimeMs || 0) - (this.spawnTimeMs || 0) < (this.spawnProtectionDuration || 0));
+  }
+
   drawSprite(ctx) {
     ctx.save();
     let drawY = this.position.y - 1 + 70;
@@ -1073,6 +1120,7 @@ window.EnemyManager = class EnemyManager {
       this.enemies.forEach(enemy => {
           if (!enemy.active) return;
           const enemyBox = enemy.getHitbox();
+          const spawnProtected = typeof enemy.isSpawnProtected === 'function' && enemy.isSpawnProtected();
 
           // Push player away
           const dx = player.position.x - enemy.position.x;
@@ -1081,7 +1129,7 @@ window.EnemyManager = class EnemyManager {
           let nx = dx / dist;
           let ny = dy / dist;
           if (!Number.isFinite(dist) || dist === 0) { dist = 0.0001; nx = 1; ny = 0; }
-          if (dist < 60) {
+          if (!spawnProtected && dist < 60) {
               const push = (60 - dist) * 0.5;
               player.position.x += nx * push;
               player.position.y += ny * push * 0.5;
@@ -1102,8 +1150,11 @@ window.EnemyManager = class EnemyManager {
                 if (window.particleSystem) window.particleSystem.impact(enemy.position.x, enemy.position.y, '#00ffff', 20);
                 player._enemyInvulnerableUntilMs = this.simulationTimeMs + 400;
                 return;
-            }
+              }
           }
+
+          // Entrance protection blocks contact/push damage only; the approved passive stomp remains lethal.
+          if (spawnProtected) return;
 
           // Check for Damage
           if (this.simpleAABBcollision(playerBox, enemyBox)) {
@@ -1358,9 +1409,12 @@ window.EnemyManager = class EnemyManager {
   recordDefeat(enemy) {
     if (!enemy || enemy._defeatRecorded) return false;
     enemy._defeatRecorded = true;
-    this.defeatedCount += 1;
-    if (window.gameState) window.gameState.enemiesDefeated = this.defeatedCount;
-    if (window.sector1Progression && typeof window.sector1Progression.onEnemyDefeated === 'function') window.sector1Progression.onEnemyDefeated(this.defeatedCount, enemy);
+    const countsTowardDefeatProjection = !enemy._jammerReinforcement;
+    if (countsTowardDefeatProjection) {
+      this.defeatedCount += 1;
+      if (window.gameState) window.gameState.enemiesDefeated = this.defeatedCount;
+      if (window.sector1Progression && typeof window.sector1Progression.onEnemyDefeated === 'function') window.sector1Progression.onEnemyDefeated(this.defeatedCount, enemy);
+    }
     if (enemy._isTutorialEnemy && window.tutorialSystem && window.tutorialSystem.isActive && window.tutorialSystem.isActive() && window.tutorialSystem.storyChapter === 1) {
       window.tutorialSystem._tutorialEnemiesDefeated = (window.tutorialSystem._tutorialEnemiesDefeated || 0) + 1;
       if (window.tutorialSystem._tutorialEnemiesDefeated >= 3) window.tutorialSystem.checkObjective('combat');
