@@ -54,12 +54,18 @@ assert(lifecyclePause.includes('audio-pause-failed-rolled-back') && lifecyclePau
 assert(lifecyclePause.includes("transitionInFlight = { kind: 'pause'"), 'pause requests must be guarded against overlap');
 const audioPause = blockFrom(audio, 'async pauseRuntimeAudio()', 'async resumeRuntimeAudio()');
 assert(audioPause.includes('pause-failed-rolled-back') && audioPause.includes('transport.resume') && audioPause.includes('wasBeatSyncActive'), 'Audio pause must roll back partial transport/beat changes on failure');
+const stopBeatTrack = blockFrom(audio, '  stopBeatTrack() {', '  stopLoopDetection() {');
+assert(stopBeatTrack.includes('return this.stopRhythm();'), 'AudioSystem stopBeatTrack compatibility seam must delegate to the existing stopRhythm implementation');
 
 const lifecycleRestart = blockFrom(lifecycle, 'function restart(options)', 'function pause(reason)');
 assert(lifecycleRestart.includes('prepareRestartAudio') && lifecycleRestart.includes('stopMusic: true'), 'restart must prepare/resume audio and stop old music sources');
 assert(lifecycle.includes('startRuntimeGameplayMusic'), 'restart initializer must restart gameplay music/rhythm under lifecycle ownership');
 assert(audio.includes('prepareRestartAudio') && audio.includes('startRuntimeGameplayMusic'), 'AudioSystem restart policy hooks must exist');
 assert(audio.includes('runtimeAudioGeneration') && audio.includes('scheduleRuntimeTimeout') && audio.includes('clearRuntimeTimeouts') && audio.includes('ownedRuntimeTimeouts'), 'AudioSystem must expose/cancel run-owned timeout generation');
+const prepareRestartAudio = blockFrom(audio, 'async prepareRestartAudio()', 'ensureLayerBeatSyncForTransport(startResult)');
+assert(prepareRestartAudio.includes('this.stopRuntimeAudio({ stopMusic: true })') && prepareRestartAudio.includes("reason: 'runtime-audio-stop-failed'"), 'Audio restart preparation must convert runtime audio cleanup exceptions into a structured failure');
+const stopRuntimeAudio = blockFrom(audio, 'stopRuntimeAudio(options)', 'getRuntimeDiagnostics()');
+assert(stopRuntimeAudio.includes('this.stopBeatTrack();'), 'Runtime audio cleanup must stop the legacy beat scheduler through the compatibility seam');
 
 for (const token of ['containerRemovalTimer', 'fadeCompletionTimer', 'titleMusicUnblockTimer', 'fadeCheckInterval', 'trackTimeout', 'trackInterval', 'clearOwnedCallbacks']) {
   assert(cutscene.includes(token), `cutscene must track ${token}`);

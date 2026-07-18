@@ -25,7 +25,9 @@ assert.strictEqual(counts.reduce((a,b)=>a+b,0), 20, 'exactly 20 quota enemies');
 assert.deepStrictEqual(counts, [4,5,5,6], 'encounter counts are 4/5/5/6');
 must(sectorSource, /STAGE_SURFACES = Object\.freeze/, 'single stage surface data exists');
 must(sectorSource, /ENCOUNTER_GATES = Object\.freeze/, 'single gate data exists');
-must(sectorSource, /previousFootY <= surface\.y && currentFootY >= surface\.y/, 'platform tunneling prevention uses previous/current feet');
+must(sectorSource, /previousFootY > surface\.y \|\| currentFootY < surface\.y[^]*crossingT[^]*crossingX/, 'platform tunneling prevention resolves the horizontal foot position at the vertical crossing');
+must(sectorSource, /const footHalfWidth = 18;/, 'platform collision uses the narrow player foot probe');
+must(enemies, /updateAuthoredEntrance\(deltaTime\)[^]*keepEntranceTargetSafe\(this\)[^]*const dx = this\._entranceTarget\.x - this\.position\.x;/, 'authored entrances revalidate their target against the live player position');
 must(sectorSource, /isCompleted\(\) && typeof window\.tutorialSystem\.isActive === 'function' && !window\.tutorialSystem\.isActive\(\)/, 'mission requires completed and inactive tutorial');
 must(sectorSource, /captureCinematicStart\(\)[^]*gameCamera\.centerX/, 'Jammer destruction captures gameCamera.centerX immediately');
 must(sectorSource, /transitionToPan\(\)[^]*if \(!Number\.isFinite\(this\.panStartX\)\) this\.captureCinematicStart\(\)/, 'pan reuses captured start');
@@ -82,11 +84,58 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
 {
   const { window } = loadRealSector();
   assert.deepStrictEqual(JSON.parse(JSON.stringify(window.Sector1Progression.STAGE_SURFACES)), [
-    { id: 'signal-awning', x: 650, y: 650, w: 430, h: 26 },
-    { id: 'cache-bridge', x: 1390, y: 625, w: 520, h: 26 },
-    { id: 'firewall-deck', x: 2230, y: 650, w: 620, h: 26 },
-    { id: 'broadcast-ramp', x: 3150, y: 625, w: 620, h: 26 }
-  ], 'authored Level 1 platform rectangles remain at the reverted baseline');
+    { id: 'signal-awning', x: 701, y: 492, w: 561, h: 8 },
+    { id: 'cache-bridge', x: 1492, y: 337, w: 337, h: 8 },
+    { id: 'firewall-deck', x: 2002, y: 506, w: 513, h: 8 },
+    { id: 'broadcast-ramp', x: 3295, y: 506, w: 461, h: 8 }
+  ], 'Level 1 platform rectangles stay calibrated to the locked foreground ledges');
+}
+{
+  const { window } = loadRealSector();
+  const p = new window.Sector1Progression(window.player);
+  const surface = window.Sector1Progression.STAGE_SURFACES[0];
+  const makePlayer = (x, velocityY = 8) => ({
+    position: { x, y: surface.y + 20 },
+    velocity: { x: 0, y: velocityY },
+    width: 180,
+    grounded: false,
+    getHitbox: () => ({ x: surface.x - 200, y: 0, width: 400, height: 100 })
+  });
+  const landing = makePlayer(surface.x + surface.w / 2);
+  assert.strictEqual(p.applyPlayerStageCollision(landing, { previousFootY: surface.y - 20, currentFootY: surface.y + 20 }), true, 'descending player lands when the foot probe crosses an authored ledge');
+  assert.strictEqual(landing.position.y, surface.y, 'landing snaps the player feet to the authored ledge y');
+  assert.strictEqual(landing.velocity.y, 0, 'landing clears downward velocity');
+  assert.strictEqual(landing.grounded, true, 'landing marks the player grounded');
+
+  const outside = makePlayer(surface.x - 18);
+  assert.strictEqual(p.applyPlayerStageCollision(outside, { previousFootY: surface.y - 20, currentFootY: surface.y + 20 }), false, 'a broad visual hitbox cannot catch a ledge when the 36px foot probe is outside it');
+  const edge = makePlayer(surface.x - 17);
+  assert.strictEqual(p.applyPlayerStageCollision(edge, { previousFootY: surface.y - 20, currentFootY: surface.y + 20 }), true, 'one pixel of foot-probe overlap can land on the ledge edge');
+  const rising = makePlayer(surface.x + 40, -8);
+  assert.strictEqual(p.applyPlayerStageCollision(rising, { previousFootY: surface.y + 20, currentFootY: surface.y - 20 }), false, 'one-way ledges remain passable from below while rising');
+
+  const enteringAfterCrossing = makePlayer(surface.x + 20);
+  assert.strictEqual(p.applyPlayerStageCollision(enteringAfterCrossing, { previousFootY: surface.y - 10, currentFootY: surface.y + 20, previousX: surface.x - 40 }), false, 'moving onto a ledge only after passing its height cannot edge-snag');
+  const leavingAfterCrossing = makePlayer(surface.x + surface.w + 40);
+  assert.strictEqual(p.applyPlayerStageCollision(leavingAfterCrossing, { previousFootY: surface.y - 10, currentFootY: surface.y + 20, previousX: surface.x + surface.w - 10 }), true, 'moving off a ledge after crossing its height still records the valid landing');
+}
+{
+  const { window } = loadRealSector();
+  const p = new window.Sector1Progression(window.player);
+  const fills = [];
+  const strokes = [];
+  const ctx = {
+    save() {}, restore() {},
+    fillRect(...args) { fills.push(args); },
+    strokeRect(...args) { strokes.push(args); }
+  };
+  p.closedGateEncounterId = 'encounter_2';
+  p.drawEncounterGates(ctx);
+  assert.deepStrictEqual(fills, [[2110, 620, 34, 270]], 'only the currently closed encounter gate is filled');
+  assert.deepStrictEqual(strokes, [[2110, 620, 34, 270]], 'only the currently closed encounter gate is outlined');
+  p.closedGateEncounterId = null;
+  p.drawEncounterGates(ctx);
+  assert.strictEqual(fills.length, 1, 'open gates leave no translucent collision-looking rectangles behind');
 }
 
 {
@@ -129,6 +178,42 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   }
   const virus = p.spawnMissionEnemy({ type: 'virus', x: 3000, y: 650 }, 'virus-height', 0, { origin: { x:3333, y:650 } });
   assert.strictEqual(virus._entranceTarget.y, 650, 'Virus preserves its authored airborne entrance height');
+}
+{
+  const { window } = loadRealSector();
+  window.player.position.x = 2048;
+  window.player.position.y = 700;
+  window.renderer = { getZoomLevel: () => 1 };
+  const p = new window.Sector1Progression(window.player);
+  const bounds = p.getVisibleWorldBounds();
+  const tutorialEnemy = p.spawnTutorialEnemy(0);
+  const half = p.getSpawnBodyHalfWidth(tutorialEnemy.type);
+  assert(tutorialEnemy.position.x + half <= bounds.left - 140 || tutorialEnemy.position.x - half >= bounds.right + 140, 'tutorial enemy is created fully beyond a horizontal camera edge');
+  assert.strictEqual(tutorialEnemy.position.y, 750, 'tutorial enemy starts on the authored ground instead of dropping over the player');
+  assert.strictEqual(tutorialEnemy._dropEdge, null, 'tutorial enemy does not use a legacy top-drop entrance');
+  assert.strictEqual(tutorialEnemy._isTutorialEnemy, true, 'tutorial enemy is explicitly identified');
+  assert.strictEqual(tutorialEnemy._sector1MissionEnemy, false, 'tutorial enemy is excluded from the 20-kill mission quota');
+  assert.strictEqual(tutorialEnemy._jammerReinforcement, false, 'tutorial enemy is not mislabeled as a Jammer reinforcement');
+  assert.strictEqual(window.enemyManager.enemies.includes(tutorialEnemy), true, 'tutorial enemy enters through the shared enemy manager');
+  assert(Math.abs(tutorialEnemy._entranceTarget.x - window.player.position.x) >= 350 + half, 'tutorial entrance target starts outside the live player exclusion radius');
+  p.missionStarted = true;
+  p.missionDefeats = 5;
+  p.onEnemyDefeated(999, tutorialEnemy);
+  assert.strictEqual(p.missionDefeats, 5, 'defeating a tutorial enemy cannot advance mission progress');
+
+  const movingPlayerEnemy = p.spawnMissionEnemy({ type: 'corrupted', x: 3000, y: 650 }, 'live-target', 2, { origin: { x: 900, y: 750, side: 'left' } });
+  const initialTargetX = movingPlayerEnemy._entranceTarget.x;
+  window.player.position.x = initialTargetX;
+  p.keepEntranceTargetSafe(movingPlayerEnemy);
+  const requiredClearance = 350 + p.getSpawnBodyHalfWidth(movingPlayerEnemy.type);
+  assert.notStrictEqual(movingPlayerEnemy._entranceTarget.x, initialTargetX, 'entrance target moves when the player enters it after spawn');
+  assert(Math.abs(movingPlayerEnemy._entranceTarget.x - window.player.position.x) >= requiredClearance, 'revalidated entrance target clears the player by the required live exclusion radius');
+  assert(movingPlayerEnemy._entranceTarget.x < window.player.position.x, 'revalidated entrance remains on the enemy approach side instead of crossing through the player');
+
+  window.player.position.x = 960;
+  const edgeTutorialEnemy = p.spawnTutorialEnemy(0);
+  assert(edgeTutorialEnemy.position.x > window.player.position.x, 'near the left world edge, tutorial spawn uses the available right offscreen edge');
+  assert(edgeTutorialEnemy._entranceTarget.x > window.player.position.x + 350, 'near a world edge, the entrance target stays on its spawn side and cannot cross through the player');
 }
 {
   const { window } = loadRealSector();
@@ -287,6 +372,21 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
 }
 {
   const listeners = {};
+  const canvasListeners = {};
+  const canvas = {
+    width: 1920,
+    height: 1080,
+    addEventListener(type, listener) { canvasListeners[type] = listener; },
+    removeEventListener(type) { delete canvasListeners[type]; },
+    getBoundingClientRect() { return { left: 0, top: 0, width: 1920, height: 1080 }; }
+  };
+  const drawnText = [];
+  const ctx = {
+    canvas,
+    save() {}, restore() {}, beginPath() {}, moveTo() {}, lineTo() {}, stroke() {},
+    fillRect() {}, strokeRect() {},
+    fillText(value) { drawnText.push(String(value)); }
+  };
   const elements = new Map();
   const body = { appendChild(element) { if (element.id) elements.set(element.id, element); } };
   const document = {
@@ -301,6 +401,8 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
     DEBUG: {},
     document,
     sector1Progression: {
+      state: 'test', missionDefeats: 0,
+      debugSkipTutorial() { routed += 1; return { ok: true, state: 'encounter_1', missionDefeats: 0 }; },
       debugGotoJammer() { routed += 1; return { ok: true }; },
       getDiagnostics() { return { state: 'test' }; }
     },
@@ -315,8 +417,27 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   assert.strictEqual(window.BARCODE.DEBUG_LEVEL_1_SESSION, false, 'F1 alone cannot unlock Level 1 debug');
   listeners.keydown(event(true));
   assert.strictEqual(window.BARCODE.DEBUG_LEVEL_1_SESSION, true, 'Shift+F1 unlocks Level 1 debug for the current session');
+  window.DEBUG.level1.drawOverlay(ctx);
+  assert(drawnText.includes('DEV ▲'), 'canvas debug launcher renders inside Makko/fullscreen instead of as a hidden DOM sibling');
+  assert(drawnText.includes('Skip Tutorial'), 'unlocked canvas debug panel renders its action buttons');
+  assert.strictEqual(typeof canvasListeners.pointerdown, 'function', 'drawing the debug launcher attaches a canvas-native pointer route');
+  canvasListeners.pointerdown({ button: 0, currentTarget: canvas, clientX: 40, clientY: 767, preventDefault() {}, stopPropagation() {} });
+  assert.strictEqual(routed, 1, 'clicking a canvas debug action invokes the real progression method');
   assert.strictEqual(window.DEBUG.level1.gotoJammer().ok, true, 'unlocked debug action routes to Sector1Progression');
-  assert.strictEqual(routed, 1, 'debug action routes exactly once');
+  assert.strictEqual(routed, 2, 'direct and canvas debug actions each route exactly once');
+  const makkoShortcut = { key: 'd', code: 'KeyD', shiftKey: true, ctrlKey: true, preventDefault() {}, stopPropagation() {} };
+  listeners.keydown(makkoShortcut);
+  drawnText.length = 0;
+  window.DEBUG.level1.drawOverlay(ctx);
+  assert(!drawnText.includes('Skip Tutorial'), 'Ctrl+Shift+D closes the canvas panel without disabling debug');
+  listeners.keydown(makkoShortcut);
+  drawnText.length = 0;
+  window.DEBUG.level1.drawOverlay(ctx);
+  assert(drawnText.includes('Skip Tutorial'), 'Ctrl+Shift+D reopens the canvas panel in Makko');
+  listeners.keydown({ ...makkoShortcut, repeat: true });
+  drawnText.length = 0;
+  window.DEBUG.level1.drawOverlay(ctx);
+  assert(drawnText.includes('Skip Tutorial'), 'held debug shortcuts cannot repeatedly flicker the Makko panel open and closed');
   assert(!/localStorage|sessionStorage|location|URLSearchParams/.test(debugSource), 'Level 1 debug does not persist or require URL parameters');
   assert.strictEqual((indexSource.match(/src\/game\/level-01-debug\.js/g) || []).length, 1, 'index loads Level 1 debug exactly once');
   assert(indexSource.indexOf('src/game/debug-commands.js') < indexSource.indexOf('src/game/level-01-debug.js'), 'Level 1 debug loads after canonical debug commands');

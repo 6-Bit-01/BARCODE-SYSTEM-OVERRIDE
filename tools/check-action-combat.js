@@ -9,7 +9,9 @@ function pass(msg) { console.log(`✓ ${msg}`); }
 function fakeAudioContext() { return { currentTime: 4, sampleRate: 44100, state: 'running', createGain(){ return { gain:{ value:1, setValueAtTime(){}, linearRampToValueAtTime(){}, exponentialRampToValueAtTime(){} }, connect(){} }; }, createOscillator(){ return { frequency:{ value:0, setValueAtTime(){}, exponentialRampToValueAtTime(){} }, connect(){}, start(){}, stop(){}, type:'sine' }; }, createBuffer(){ return { getChannelData(){ return new Float32Array(16); } }; }, createBufferSource(){ return { connect(){}, start(){}, stop(){}, buffer:null, loop:false }; }, createAnalyser(){ return { connect(){}, frequencyBinCount: 8, getByteFrequencyData(){} }; }, decodeAudioData: async () => ({ decoded:true }) }; }
 function sandbox() {
   const listeners = { keydown: [], keyup: [], mousemove: [], mousedown: [], mouseup: [], gamepadconnected: [], gamepaddisconnected: [], DOMContentLoaded: [] };
-  const s = { console, setTimeout(fn){ return 1; }, clearTimeout(){}, setInterval(){ return 1; }, clearInterval(){}, Date, Math, Promise, Float32Array, ArrayBuffer, performance:{ now: () => 1000 }, navigator:{ getGamepads: () => [] } };
+  let nextTimerId = 1;
+  const timers = new Map();
+  const s = { console, setTimeout(fn, delay = 0){ const id = nextTimerId++; timers.set(id, { fn, delay }); return id; }, clearTimeout(id){ timers.delete(id); }, setInterval(){ return 1; }, clearInterval(){}, Date, Math, Promise, Float32Array, ArrayBuffer, performance:{ now: () => 1000 }, navigator:{ getGamepads: () => [] } };
   s.window = s; s.document = { readyState:'loading', addEventListener(type, fn){ (listeners[type] ||= []).push(fn); } };
   s.window.addEventListener = (type, fn) => { (listeners[type] ||= []).push(fn); };
   s.window.removeEventListener = () => {};
@@ -18,6 +20,7 @@ function sandbox() {
   s.window.distance = (x1,y1,x2,y2) => Math.hypot(x2-x1, y2-y1);
   s.window.clamp = (v,min,max) => Math.max(min, Math.min(max, v));
   s.window.Vector2D = class Vector2D { constructor(x,y){ this.x=x; this.y=y; } add(v){ return new s.window.Vector2D(this.x+v.x,this.y+v.y); } multiply(n){ return new s.window.Vector2D(this.x*n,this.y*n); } };
+  s.__timers = timers;
   return vm.createContext(s);
 }
 function load(s, rel) { vm.runInContext(read(rel), s, { filename: rel }); }
@@ -134,6 +137,63 @@ pass('tutorial Space ownership and repeated jumping');
 }
 pass('tutorial rhythm/hacking objective progression');
 
+// Tutorial's final line owns its complete hold/fade, and delayed enemies use the live shared spawn path.
+{
+  const s = sandbox();
+  load(s, 'src/game/tutorial.js');
+  const tutorial = new s.window.TutorialSystem();
+  tutorial.active = true;
+  tutorial.startChapter(4);
+  tutorial.currentDialogue = tutorial.dialogue.length - 1;
+  tutorial.startNextDialogue();
+  tutorial.characterIndex = tutorial.targetText.length - 0.5;
+  tutorial.currentText = tutorial.targetText.slice(0, -1);
+  tutorial.readyToAdvance = false;
+  tutorial.update(20);
+  assert(!tutorial.completed && !tutorial.isFinalMessage, 'Chapter 4 cannot begin its final hold before the last line finishes typing');
+  tutorial.update(10);
+  assert(!tutorial.completed && tutorial.isFinalMessage && tutorial.finalMessageTimer === 0, 'fully typed final line arms its presentation without prematurely exposing post-tutorial UI');
+  tutorial.handleSpacePress();
+  assert(tutorial.active, 'Space cannot dismiss the fully typed final line before its timed hold');
+  tutorial.update(9999);
+  assert(tutorial.active && tutorial.finalMessageOpacity === 1 && tutorial.finalMessageTimer === 9999, 'final line remains fully visible for its complete ten-second hold');
+  tutorial.update(1);
+  tutorial.update(1999);
+  assert(tutorial.active && tutorial.finalMessageOpacity > 0, 'final line remains active until its complete fade duration elapses');
+  tutorial.update(1);
+  assert(!tutorial.active && tutorial.completed && tutorial.finalMessageOpacity === 0, 'tutorial completes and deactivates only after the full final-line fade');
+
+  const spawnTutorial = new s.window.TutorialSystem();
+  spawnTutorial.active = true;
+  const enemies = [];
+  const spawnCalls = [];
+  s.window.player = { position: { x: 600, y: 750 } };
+  s.window.enemyManager = {
+    defeatedCount: 0,
+    enemies,
+    getActiveEnemies: () => enemies.filter(enemy => enemy.active !== false),
+    clear() { enemies.length = 0; }
+  };
+  s.window.sector1Progression = {
+    spawnTutorialEnemy(index) {
+      spawnCalls.push({ index, playerX: s.window.player.position.x });
+      const enemy = { active: true, type: 'virus', position: { x: 0, y: 750 }, velocity: { x: 0, y: 0 }, _authoredEntranceActive: true };
+      enemies.push(enemy);
+      return enemy;
+    }
+  };
+  spawnTutorial.startChapter(1);
+  const firstSpawnTimer = [...s.__timers.entries()].find(([, timer]) => timer.delay === 0);
+  assert(firstSpawnTimer, 'combat tutorial schedules its first enemy through a tracked callback');
+  s.window.player.position.x = 1800;
+  s.__timers.delete(firstSpawnTimer[0]);
+  firstSpawnTimer[1].fn();
+  assert(JSON.stringify(spawnCalls) === JSON.stringify([{ index: 0, playerX: 1800 }]), 'delayed tutorial spawn resolves through Sector1Progression using the live player position');
+  spawnTutorial.startChapter(2);
+  assert(s.__timers.size === 0, 'leaving the combat chapter cancels every pending tutorial spawn/grounding callback');
+}
+pass('tutorial final-message timing and delayed spawn ownership');
+
 // Rhythm Mode restrictions, objective completion, and deactivation.
 {
   const s = sandbox(); load(s, 'src/game/rhythm.js');
@@ -232,6 +292,10 @@ pass('authored entrances, spawn protection, passive stomp, and reinforcement quo
   assert(prepared.ok && prepared.profileId === 'level-01.main', 'Level 1 active profile preparation succeeds');
   for (const id of ['foundation','bass-layer','fx-layer']) assert(audio.musicTracks[id] && audio.musicTracks[id].buffer, `${id} has usable buffer after preparation`);
   activeProfile = profile('level-02.synthetic'); const p3 = audio.prepareActiveMusicProfile(); assert(p3 !== p1, 'Different selected profile does not reuse stale in-flight promise'); await p3; assert(loadCount >= 2, 'Different profile preparation runs its own load path');
+  audio.beatScheduler = s.setTimeout(() => {}, 500);
+  const restartReady = await audio.prepareRestartAudio();
+  assert(restartReady.ok && restartReady.reason === 'restart-audio-ready', 'game-over audio preparation stops runtime audio without rejecting');
+  assert(audio.beatScheduler === null, 'game-over audio preparation clears the legacy rhythm scheduler through stopBeatTrack');
 }
 pass('audio profile ownership');
 

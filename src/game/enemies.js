@@ -161,6 +161,9 @@ window.Enemy = class Enemy {
 
   updateAuthoredEntrance(deltaTime) {
     if (!this._authoredEntranceActive || !this._entranceTarget) return false;
+    if (window.sector1Progression && typeof window.sector1Progression.keepEntranceTargetSafe === 'function') {
+      window.sector1Progression.keepEntranceTargetSafe(this);
+    }
     const dt = deltaTime / 1000;
     const dx = this._entranceTarget.x - this.position.x;
     const dy = this._entranceTarget.y - this.position.y;
