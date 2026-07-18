@@ -159,35 +159,6 @@ window.Enemy = class Enemy {
     }
   }
 
-  updateAuthoredEntrance(deltaTime) {
-    if (!this._authoredEntranceActive || !this._entranceTarget) return false;
-    const dt = deltaTime / 1000;
-    const dx = this._entranceTarget.x - this.position.x;
-    const dy = this._entranceTarget.y - this.position.y;
-    const speed = Math.max(160, Math.abs(this.velocity.x || 0), this.speed || 120);
-    const step = speed * dt;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    this.state = 'authored_entrance';
-    this.entranceComplete = false;
-    if (dist <= Math.max(4, step)) {
-      this.position.x = this._entranceTarget.x;
-      this.position.y = this._entranceTarget.y;
-      this.velocity.x = 0;
-      this.velocity.y = 0;
-      this.entranceComplete = true;
-      this._authoredEntranceActive = false;
-      this.state = 'patrol';
-      this.spawnTimeMs = this.simulationTimeMs;
-      this.isOnGround = true;
-    } else {
-      this.velocity.x = (dx / dist) * speed;
-      this.velocity.y = (dy / dist) * speed;
-      this.position.x += this.velocity.x * dt;
-      this.position.y += this.velocity.y * dt;
-    }
-    return true;
-  }
-
   update(deltaTime, player, simulationTimeMs) {
     if (!this.active || this._disposed) return;
     this.simulationTimeMs = Number.isFinite(simulationTimeMs) ? simulationTimeMs : (this.simulationTimeMs + deltaTime);
@@ -197,18 +168,11 @@ window.Enemy = class Enemy {
     this.stateTimer += deltaTime;
     this.animationTime += deltaTime;
 
-    if (this.updateAuthoredEntrance(deltaTime)) {
-      if (this.spriteReady && this.sprite) { this.sprite.update(deltaTime); this.forceCorrectAnimationState(); }
-      return;
-    }
-
-    const previousFootY = this.position.y;
-
     // Track if enemy is on ground
-    this.isOnGround = this.position.y >= ((window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y) || 890);
+    this.isOnGround = this.position.y >= 750;
 
     // Gravity
-    if (this.position.y < ((window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y) || 890)) {
+    if (this.position.y < 750) {
       if (this.type !== 'firewall' || this.position.y < 700) {
          this.velocity.y += 600 * dt;
       }
@@ -216,8 +180,6 @@ window.Enemy = class Enemy {
 
     // Update AI - Traffic Controller
     this.updateAI(player, dt);
-
-
 
     // Update Animation
     if (this.spriteReady && this.sprite) {
@@ -230,19 +192,16 @@ window.Enemy = class Enemy {
 
     // Ground Clamping
     const worldLeft = this.width/2;
-    const worldRight = (((window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.WORLD_WIDTH) || 4096) - this.width/2);
+    const worldRight = 4096 - this.width/2;
     this.position.x = window.clamp(this.position.x, worldLeft, worldRight);
 
-    if (this.position.y >= ((window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y) || 890)) {
-      this.position.y = ((window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y) || 890);
+    if (this.position.y >= 750) {
+      this.position.y = 750;
       if (this.type === 'firewall' || this.type === 'corrupted') {
           this.velocity.y = Math.min(0, this.velocity.y);
       } else {
           this.velocity.y = 0;
       }
-    }
-    if (window.sector1Progression && typeof window.sector1Progression.applyEnemyStageCollision === 'function') {
-      window.sector1Progression.applyEnemyStageCollision(this, { previousFootY, currentFootY: this.position.y });
     }
 
     // Friction
@@ -285,13 +244,18 @@ window.Enemy = class Enemy {
 
   startEntrance() {
     if (this.type === 'corrupted') {
-        this.velocity.x = this.velocity.x || -(80 + Math.random() * 40);
-        this.velocity.y = this.velocity.y || (50 + Math.random() * 50);
+        const corruptedSpawnX = 4500 + window.randomRange(-50, 0);
+        this.position.x = corruptedSpawnX;
+        this.position.y = window.randomRange(200, 700);
+        this.velocity.x = -(80 + Math.random() * 40);
+        this.velocity.y = 50 + Math.random() * 50;
         this.entranceComplete = false;
         this.entrancePhase = 'throwing';
     } else if (this.type === 'firewall') {
-        // Respect caller-provided spawn coordinates; planner owns safe origins.
-        this.velocity.x = this.velocity.x || -40; // Start moving left
+        // FIX: ALWAYS spawn from right (off-screen)
+        this.position.x = 4500;
+        this.position.y = 750;
+        this.velocity.x = -40; // Start moving left
         this.entranceComplete = true; // Firewalls always ready
         this.aiState = 'walking';
 
@@ -320,8 +284,11 @@ window.Enemy = class Enemy {
     if (this._dropEdge === 'top') {
         this.velocity.y += 600 * dt;
     }
-    if (this.position.y >= ((window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y) || 890)) {
-        this.position.y = ((window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y) || 890);
+    this.position.x += this.velocity.x * dt;
+    this.position.y += this.velocity.y * dt;
+
+    if (this.position.y >= 750) {
+        this.position.y = 750;
         this.velocity.y = 0;
         this.entranceComplete = true;
         this.state = 'patrol';
@@ -446,8 +413,11 @@ window.Enemy = class Enemy {
   // 2. CORRUPTED BEHAVIOR (New: Chase -> Stop & Stare -> Chase)
   corruptedEntrance(dt) {
     this.velocity.y += 800 * dt;
-    if (this.position.y >= ((window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y) || 890)) {
-      this.position.y = ((window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y) || 890);
+    this.position.x += this.velocity.x * dt;
+    this.position.y += this.velocity.y * dt;
+
+    if (this.position.y >= 750) {
+      this.position.y = 750;
       this.velocity.y = 0;
       this.velocity.x = 0;
       this.entranceComplete = true;
@@ -547,7 +517,8 @@ window.Enemy = class Enemy {
             const dx = player.position.x - this.position.x;
             const walkSpeed = (60 + Math.random() * 20) * this._aggressionLevel;
             this.velocity.x = (dx > 0 ? 1 : -1) * walkSpeed;
-            this.position.y = ((window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y) || 890);
+            this.position.x += this.velocity.x * dt;
+            this.position.y = 750;
             this.facing = dx > 0 ? 1 : -1;
 
             if (this.spriteReady && this.sprite) {
@@ -609,11 +580,11 @@ window.Enemy = class Enemy {
             }
 
             // Gravity during attack
-            if (this.position.y < ((window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y) || 890)) {
+            if (this.position.y < 750) {
               this.velocity.y += 400 * dt;
             } else {
               this.velocity.y = 0;
-              this.position.y = ((window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y) || 890);
+              this.position.y = 750;
             }
 
             if (this.spriteReady && this.sprite) {
@@ -745,23 +716,23 @@ window.Enemy = class Enemy {
     this.currentAnimation = fullName;
   }
 
-  getGameplayBody() {
-    return window.BARCODE?.Level01Presentation?.enemyBody ? window.BARCODE.Level01Presentation.enemyBody(this) : { x: this.position.x - this.width / 2, y: this.position.y - this.height, w: this.width, h: this.height, left: this.position.x - this.width / 2, right: this.position.x + this.width / 2, top: this.position.y - this.height, bottom: this.position.y };
-  }
-
-  getVisualBounds() {
-    return window.BARCODE?.Level01Presentation?.enemyTransform ? window.BARCODE.Level01Presentation.enemyTransform(this) : this.getGameplayBody();
-  }
-
-  isSpawnProtected() {
-    return !this.entranceComplete || ((this.simulationTimeMs || 0) - (this.spawnTimeMs || 0) < (this.spawnProtectionDuration || 0));
-  }
-
   drawSprite(ctx) {
     ctx.save();
-    const visual = this.getVisualBounds();
-    this.sprite.draw(ctx, this.position.x, this.position.y, {
-      scale: visual.scale || 1,
+    let drawY = this.position.y - 1 + 70;
+    let scale = 0.8;
+
+    if (this.type === 'corrupted') {
+      drawY = this.position.y - 1 + 60;
+      scale = 1.2;
+    } else if (this.type === 'firewall') {
+      drawY = this.position.y;
+      scale = 2.0;
+      if (this.currentAnimation === 'firewall_idle_idle') { scale *= 1.13; drawY -= 14; }
+      if (this.currentAnimation === 'firewall_attack_default') { scale *= 1.36; drawY -= 26; }
+    }
+
+    this.sprite.draw(ctx, this.position.x, drawY, {
+      scale: scale,
       flipH: this.facing === -1
     });
     ctx.restore();
@@ -798,8 +769,7 @@ window.Enemy = class Enemy {
 
     if (window.particleSystem) {
       let particleColor = this.type === 'corrupted' ? 'corrupted' : this.type;
-      const vb = this.getVisualBounds();
-      window.particleSystem.damageEffect(vb.x + vb.width / 2, vb.y + vb.height / 2, particleColor, 10);
+      window.particleSystem.damageEffect(this.position.x, this.position.y - this.height/2, particleColor, 10);
     }
 
     if (this.health <= 0) {
@@ -818,8 +788,7 @@ window.Enemy = class Enemy {
 
       if (window.particleSystem) {
         let particleColor = this.type === 'corrupted' ? 'corrupted' : this.type;
-        const vb = this.getVisualBounds();
-        window.particleSystem.explosion(vb.x + vb.width / 2, vb.y + vb.height / 2, particleColor, 25);
+        window.particleSystem.explosion(this.position.x, this.position.y - this.height/2, particleColor, 25);
       }
 
       if (window.gameState && !this._scoreApplied) {
@@ -842,8 +811,69 @@ window.Enemy = class Enemy {
   }
 
   getHitbox() {
-    const b = this.getGameplayBody();
-    return { x: b.x, y: b.y, width: b.w, height: b.h };
+    if (['virus', 'corrupted', 'firewall'].includes(this.type) && this.spriteReady && this.sprite) {
+
+      let drawScale = 0.8;
+      let drawOffset = 60;
+
+      if (this.type === 'corrupted') {
+        drawScale = 1.2;
+        drawOffset = 80;
+      } else if (this.type === 'firewall') {
+        if (this.currentAnimation === 'firewall_idle_idle') {
+          drawScale = 2.0 * 1.13;
+          drawOffset = 100 - 14;
+        } else if (this.currentAnimation === 'firewall_walk_walk') {
+          drawScale = 2.0;
+          drawOffset = 100 + 4;
+        } else if (this.currentAnimation === 'firewall_attack_default') {
+          drawScale = 2.0 * 1.3;
+          drawOffset = 100 - 36;
+        } else {
+          drawScale = 2.0;
+          drawOffset = 100;
+        }
+      }
+
+      const worldHitbox = this.sprite.getHitboxWorld(this.position.x, this.position.y, {
+        scale: drawScale,
+        flipH: this.facing === -1
+      });
+
+      if (worldHitbox) {
+        let marginReduction = 0.05;
+        if (this.type === 'virus') marginReduction = 0.15;
+        else if (this.type === 'corrupted') marginReduction = 0.12;
+        else if (this.type === 'firewall') marginReduction = 0.08;
+
+        const tightWidth = worldHitbox.width * (1 - marginReduction * 2);
+        const tightHeight = worldHitbox.height * (1 - marginReduction * 2);
+
+        return {
+          x: worldHitbox.x + (worldHitbox.width - tightWidth) / 2,
+          y: worldHitbox.y + (worldHitbox.height - tightHeight) / 2,
+          width: tightWidth,
+          height: tightHeight
+        };
+      }
+    }
+
+    let marginReduction = 0.05;
+    let topExtension = 0;
+    if (this.type === 'virus') {
+      marginReduction = 0.08;
+      topExtension = 15;
+    }
+
+    const tightWidth = this.width * (1 - marginReduction * 2);
+    const tightHeight = this.height * (1 - marginReduction * 2);
+
+    return {
+      x: this.position.x - tightWidth/2,
+      y: this.position.y - tightHeight - topExtension,
+      width: tightWidth,
+      height: tightHeight + topExtension
+    };
   }
 
   getCollisionBox() {
@@ -870,18 +900,11 @@ window.Enemy = class Enemy {
     if (['virus', 'corrupted', 'firewall'].includes(this.type) && this.spriteReady && this.sprite) {
       this.drawSprite(ctx);
       if (this.health < this.maxHealth) {
-        const visual = this.getVisualBounds();
-        const healthWidth = Math.max(34, Math.min(120, visual.width * 0.75));
-        const healthX = visual.x + (visual.width - healthWidth) / 2;
-        const healthY = visual.y - 12;
-        const pct = Math.max(0, Math.min(1, this.health / this.maxHealth));
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-        ctx.fillRect(healthX - 1, healthY - 1, healthWidth + 2, 6);
-        ctx.fillStyle = 'rgba(255, 0, 0, 0.85)';
-        ctx.fillRect(healthX, healthY, healthWidth * pct, 4);
-        ctx.strokeStyle = '#00ffff';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(healthX, healthY, healthWidth, 4);
+        let healthBarY = this.position.y - this.height + 50;
+        if (this.type === 'firewall') healthBarY += 40;
+
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
+        ctx.fillRect(this.position.x - this.width, healthBarY, this.width * 2 * (this.health / this.maxHealth), 4);
       }
     } else {
       const bodyY = this.position.y - this.height;
@@ -957,7 +980,7 @@ window.EnemyManager = class EnemyManager {
       // Tutorial Freeze Logic
       if (enemy.type === 'virus' && tutorialWaiting && enemy.active) {
         if (enemy.state !== 'patrol') enemy.state = 'patrol';
-        if (enemy.position.y > ((window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y) || 890)) enemy.position.y = ((window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y) || 890);
+        if (enemy.position.y > 750) enemy.position.y = 750;
         const playerRef = window.player;
         if (playerRef && enemy.entranceComplete) {
            enemy.velocity.x = Math.sin(this.simulationTimeMs / 1000 + enemy.phaseOffset) * 20;
@@ -1048,7 +1071,7 @@ window.EnemyManager = class EnemyManager {
       const playerBox = player.getHitbox();
 
       this.enemies.forEach(enemy => {
-          if (!enemy.active || (enemy.isSpawnProtected && enemy.isSpawnProtected())) return;
+          if (!enemy.active) return;
           const enemyBox = enemy.getHitbox();
 
           // Push player away
@@ -1103,7 +1126,7 @@ window.EnemyManager = class EnemyManager {
     const pX = player?.position?.x || 960;
     let tooClose = 0;
     this.enemies.forEach(e => {
-        if (e.active && window.distance(e.position.x, e.position.y, pX, ((window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y) || 890)) < 400) tooClose++;
+        if (e.active && window.distance(e.position.x, e.position.y, pX, 750) < 400) tooClose++;
     });
     return tooClose < 2;
   }
@@ -1196,7 +1219,7 @@ window.EnemyManager = class EnemyManager {
     sorted.forEach(e => e.draw(ctx));
   }
 
-  spawnEnemy() { this.spawnFlowEnemy(window.player || {position:{x:960,y:((window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y) || 890)}}); }
+  spawnEnemy() { this.spawnFlowEnemy(window.player || {position:{x:960,y:750}}); }
 
   spawnEnemyAt(x, y) {
     if (this.enemies.length >= this.maxEnemies) return;

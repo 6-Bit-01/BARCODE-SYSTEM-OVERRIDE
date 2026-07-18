@@ -148,7 +148,7 @@ function updateVisualSystems(deltaTime) {
   if (window.jammerIndicator && typeof window.jammerIndicator.update === 'function') {
     try {
       const playerX = window.player ? window.player.position.x : 960;
-      const playerY = window.player ? window.player.position.y : ((window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y) || 890);
+      const playerY = window.player ? window.player.position.y : 750;
       const jammerPosition = window.BARCODE && window.BARCODE.JammerEnvironment ? window.BARCODE.JammerEnvironment.getPosition() : null;
       window.jammerIndicator.update(deltaTime, jammerPosition, playerX, playerY);
     } catch (error) {
@@ -217,7 +217,7 @@ function updateAudio(deltaTime) {
       
       if (typeof window.audioSystem.updateEnemyProximitySounds === 'function') {
         const playerX = window.player ? window.player.position.x : 960;
-        const playerY = window.player ? window.player.position.y : ((window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y) || 890);
+        const playerY = window.player ? window.player.position.y : 750;
         const enemies = window.enemyManager ? window.enemyManager.getActiveEnemies() : [];
         window.audioSystem.updateEnemyProximitySounds(playerX, playerY, enemies);
       }

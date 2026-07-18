@@ -38,34 +38,6 @@ window.TutorialSystem = class TutorialSystem {
     this.isFinalMessage = false;
   }
   
-  debugResetTutorial() {
-    this.active = false;
-    this.combatEnemiesPaused = false;
-    this.enemyCountDisplay = 0;
-    this.currentStep = 0;
-    this.completed = false;
-    this.dialogue = [];
-    this.currentDialogue = 0;
-    this.timer = 0;
-    this.typingSpeed = 50;
-    this.currentText = '';
-    this.targetText = '';
-    this.characterIndex = 0;
-    this.readyToAdvance = false;
-    this.storyChapter = 0;
-    this.hasShownIntro = false;
-    this.objectives = [];
-    this.completedObjectives = new Set();
-    this.finalMessageTimer = 0;
-    this.finalMessageFadeStart = 0;
-    this.finalMessageOpacity = 1.0;
-    this.isFinalMessage = false;
-    this._objectiveDialogueIndex = null;
-    this._tutorialEnemiesDefeated = 0;
-    this.startTutorial();
-    return { ok: true, active: this.active, completed: this.completed, storyChapter: this.storyChapter, currentDialogue: this.currentDialogue };
-  }
-
   startTutorial() {
     if (this.completed) return;
     
@@ -855,7 +827,7 @@ window.TutorialSystem = class TutorialSystem {
     this._tutorialEnemiesDefeated = 0;
     
     const playerX = window.player?.position?.x || 960;
-    const playerY = window.player?.position?.y || ((window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y) || 890);
+    const playerY = window.player?.position?.y || 750;
     
     // Spawn at least 800px away from player on random sides
     const spawnPositions = [];
@@ -946,7 +918,7 @@ window.TutorialSystem = class TutorialSystem {
         enemy.entranceComplete = true;
         enemy.state = 'patrol';
         enemy.stateTimer = 0;
-        enemy.position.y = ((window.BARCODE && window.BARCODE.LEVEL_01_LAYOUT && window.BARCODE.LEVEL_01_LAYOUT.GROUND_Y) || 890);
+        enemy.position.y = 750;
         enemy.velocity.y = 0;
         enemy.velocity.x = 0; // CRITICAL: Reset velocity to let AI control movement
         enemy.isOnGround = true;
