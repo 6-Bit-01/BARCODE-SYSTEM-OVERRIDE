@@ -607,6 +607,11 @@ window.AudioSystem = class AudioSystem {
     this.beatScheduler = null;
     this.currentBeat = 0;
   }
+
+  // Runtime lifecycle compatibility alias for the legacy rhythm scheduler.
+  stopBeatTrack() {
+    return this.stopRhythm();
+  }
   
   // Stop loop detection system
   stopLoopDetection() {
@@ -3015,7 +3020,11 @@ window.AudioSystem = class AudioSystem {
         return { ok: false, reason: 'context-resume-failed', contextState: this.context.state, error: error && error.message || String(error) };
       }
     }
-    this.stopRuntimeAudio({ stopMusic: true });
+    try {
+      this.stopRuntimeAudio({ stopMusic: true });
+    } catch (error) {
+      return { ok: false, reason: 'runtime-audio-stop-failed', contextState: this.context.state, error: error && error.message || String(error) };
+    }
     return { ok: true, reason: 'restart-audio-ready', contextState: this.context.state };
   }
 

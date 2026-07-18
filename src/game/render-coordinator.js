@@ -208,9 +208,6 @@ function drawGameElements(ctx) {
   // Draw game entities
   drawGameEntities(ctx);
   
-  // Draw jammer indicator (should move with camera)
-  drawJammerIndicator(ctx);
-  
   // Draw rhythm effects behind player
   drawRhythmEffectsBehindPlayer(ctx);
   
@@ -397,17 +394,6 @@ function drawGameEntities(ctx) {
       window.lostDataSystem.draw(ctx);
     } catch (error) {
       console.error('Error drawing lost data system:', error?.message || error);
-    }
-  }
-}
-
-// Draw jammer indicator (moves with camera)
-function drawJammerIndicator(ctx) {
-  if (window.jammerIndicator && typeof window.jammerIndicator.draw === 'function') {
-    try {
-      window.jammerIndicator.draw(ctx);
-    } catch (error) {
-      console.error('Error drawing jammer indicator:', error?.message || error);
     }
   }
 }

@@ -22,7 +22,6 @@
     "src/engine/spaceships.js",
     "src/engine/lore.js",
     "src/engine/jammer-indicator.js",
-    "src/engine/jammer-arrow-indicator.js",
     "src/engine/title-screen.js",
     "src/game/objectives.js",
     "src/engine/cutscene.js",
@@ -44,6 +43,7 @@
     "src/game/game-initializer.js",
     "src/game/dependency-validator.js",
     "src/game/debug-commands.js",
+    "src/game/level-01-debug.js",
     "[inline]",
     "src/game/main-new.js",
     "[inline]"
@@ -65,7 +65,6 @@
     "src/engine/spaceships.js",
     "src/engine/lore.js",
     "src/engine/jammer-indicator.js",
-    "src/engine/jammer-arrow-indicator.js",
     "src/engine/title-screen.js",
     "src/game/objectives.js",
     "src/engine/cutscene.js",
@@ -87,11 +86,13 @@
     "src/game/game-initializer.js",
     "src/game/dependency-validator.js",
     "src/game/debug-commands.js",
+    "src/game/level-01-debug.js",
     "src/game/main-new.js"
   ],
   "unloadedRepositoryJs": [
     "src/core/game-manager.js",
     "src/engine/game-logic.js",
+    "src/engine/jammer-arrow-indicator.js",
     "src/game/jammer-arrow.js",
     "src/game/jammer-arrows.js",
     "src/game/jammer-simple.js",
@@ -188,10 +189,6 @@
         "status": "pass"
       },
       {
-        "file": "src/engine/jammer-arrow-indicator.js",
-        "status": "pass"
-      },
-      {
         "file": "src/engine/title-screen.js",
         "status": "pass"
       },
@@ -276,6 +273,10 @@
         "status": "pass"
       },
       {
+        "file": "src/game/level-01-debug.js",
+        "status": "pass"
+      },
+      {
         "file": "src/game/main-new.js",
         "status": "pass"
       }
@@ -349,25 +350,31 @@
     {
       "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 1416,
+      "line": 1473,
       "loaded": true
     },
     {
       "global": "window.EnemyManager",
       "file": "src/game/enemies.js",
-      "line": 929,
+      "line": 979,
       "loaded": true
     },
     {
       "global": "window.enemyManager",
       "file": "tools/check-action-combat.js",
-      "line": 163,
+      "line": 171,
       "loaded": false
     },
     {
       "global": "window.enemyManager",
       "file": "tools/check-action-combat.js",
-      "line": 48,
+      "line": 223,
+      "loaded": false
+    },
+    {
+      "global": "window.enemyManager",
+      "file": "tools/check-action-combat.js",
+      "line": 51,
       "loaded": false
     },
     {
@@ -409,31 +416,37 @@
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 108,
+      "line": 111,
       "loaded": false
     },
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 142,
+      "line": 202,
       "loaded": false
     },
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 160,
+      "line": 220,
       "loaded": false
     },
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 44,
+      "line": 275,
       "loaded": false
     },
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 63,
+      "line": 47,
+      "loaded": false
+    },
+    {
+      "global": "window.gameState",
+      "file": "tools/check-action-combat.js",
+      "line": 66,
       "loaded": false
     },
     {
@@ -445,31 +458,37 @@
     {
       "global": "window.player",
       "file": "tools/check-action-combat.js",
-      "line": 109,
+      "line": 112,
       "loaded": false
     },
     {
       "global": "window.player",
       "file": "tools/check-action-combat.js",
-      "line": 143,
+      "line": 170,
       "loaded": false
     },
     {
       "global": "window.player",
       "file": "tools/check-action-combat.js",
-      "line": 161,
+      "line": 203,
       "loaded": false
     },
     {
       "global": "window.player",
       "file": "tools/check-action-combat.js",
-      "line": 46,
+      "line": 221,
       "loaded": false
     },
     {
       "global": "window.player",
       "file": "tools/check-action-combat.js",
-      "line": 64,
+      "line": 49,
+      "loaded": false
+    },
+    {
+      "global": "window.player",
+      "file": "tools/check-action-combat.js",
+      "line": 67,
       "loaded": false
     },
     {
@@ -489,6 +508,24 @@
       "file": "src/engine/renderer.js",
       "line": 518,
       "loaded": true
+    },
+    {
+      "global": "window.renderer",
+      "file": "tools/check-level-01-mission.js",
+      "line": 159,
+      "loaded": false
+    },
+    {
+      "global": "window.renderer",
+      "file": "tools/check-level-01-mission.js",
+      "line": 186,
+      "loaded": false
+    },
+    {
+      "global": "window.renderer",
+      "file": "tools/check-level-01-mission.js",
+      "line": 247,
+      "loaded": false
     },
     {
       "global": "window.renderGame",
@@ -567,7 +604,6 @@
     "src/engine/spaceships.js",
     "src/engine/lore.js",
     "src/engine/jammer-indicator.js",
-    "src/engine/jammer-arrow-indicator.js",
     "src/engine/title-screen.js",
     "src/game/objectives.js",
     "src/engine/cutscene.js",
@@ -589,6 +625,7 @@
     "src/game/game-initializer.js",
     "src/game/dependency-validator.js",
     "src/game/debug-commands.js",
+    "src/game/level-01-debug.js",
     "[inline script]",
     "src/game/main-new.js",
     "[inline script]"

@@ -36,9 +36,16 @@ window.TutorialSystem = class TutorialSystem {
     this.finalMessageFadeStart = 0;
     this.finalMessageOpacity = 1.0;
     this.isFinalMessage = false;
+    this._finalMessageSequenceArmed = false;
+
+    // Tutorial enemy spawns are delayed, but they must never outlive the
+    // chapter which scheduled them.
+    this._tutorialEnemyTimerGeneration = 0;
+    this._pendingTutorialEnemyTimers = new Set();
   }
   
   startTutorial() {
+    this._cancelPendingTutorialEnemyTimers();
     if (this.completed) return;
     
     this.active = true;
@@ -46,11 +53,18 @@ window.TutorialSystem = class TutorialSystem {
     this.currentDialogue = 0;
     this.dialogue = [];
     this.completedObjectives.clear();
+    this.isFinalMessage = false;
+    this._finalMessageSequenceArmed = false;
+    this.finalMessageTimer = 0;
+    this.finalMessageFadeStart = 0;
+    this.finalMessageOpacity = 1.0;
     
     this.startChapter(0);
   }
   
   startChapter(chapter) {
+    this._cancelPendingTutorialEnemyTimers();
+
     if (chapter > 4) {
       console.log('Tutorial complete - no more chapters to start');
       this.active = false;
@@ -89,8 +103,8 @@ window.TutorialSystem = class TutorialSystem {
         this.combatEnemiesPaused = true;
         console.log('Combat tutorial enemies paused at start');
         
-        setTimeout(() => {
-          if (this.combatEnemiesPaused) {
+        this._scheduleTutorialEnemyTimer(() => {
+          if (this.active && this.storyChapter === 1 && this.combatEnemiesPaused) {
             console.log('Auto-bringing enemies to ground');
             this.bringEnemiesToGround();
           }
@@ -140,12 +154,13 @@ window.TutorialSystem = class TutorialSystem {
         this.addDialogue('Good luck, hacker-rapper.', 'guide', 0);
         this.addObjective('Practice movement, rhythm, and hacking in the sandbox', 'level_clear');
         
-        // CRITICAL FIX: Complete tutorial immediately when final chapter starts
-        // Chapter 4 has no objectives to complete, so we need to trigger completion manually
-        console.log('🎯 FINAL CHAPTER STARTED - IMMEDIATELY COMPLETING TUTORIAL');
-        this.completed = true;
-        this.completeTutorial();
-        this._startFinalMessageSequence();
+        // Completion is armed only after the final line has fully typed. This
+        // keeps the last message readable and leaves Space owned by tutorial.
+        this.isFinalMessage = false;
+        this._finalMessageSequenceArmed = false;
+        this.finalMessageTimer = 0;
+        this.finalMessageFadeStart = 0;
+        this.finalMessageOpacity = 1.0;
         break;
     }
     
@@ -224,6 +239,22 @@ window.TutorialSystem = class TutorialSystem {
       this.bringEnemiesToGround();
     }
   }
+
+  _isFinalChapterDialogue() {
+    return this.storyChapter === 4 &&
+      this.dialogue.length > 0 &&
+      this.currentDialogue === this.dialogue.length - 1;
+  }
+
+  _armFinalMessageSequence() {
+    if (!this._isFinalChapterDialogue() || !this.readyToAdvance || this._finalMessageSequenceArmed) {
+      return false;
+    }
+
+    const started = this._startFinalMessageSequence();
+    if (started) this._finalMessageSequenceArmed = true;
+    return started;
+  }
   
   update(deltaTime) {
     try {
@@ -241,6 +272,10 @@ window.TutorialSystem = class TutorialSystem {
         this.active = false;
         return;
       }
+
+      // If the final line becomes complete during this update, its full hold
+      // starts on the following update rather than charging the typing frame.
+      const finalMessageWasActive = this.isFinalMessage;
       
       this.timer += deltaTime;
       
@@ -262,7 +297,7 @@ window.TutorialSystem = class TutorialSystem {
         
         if (this.combatEnemiesPaused && tutorialEnemies.length > 0) {
           const frozenEnemies = tutorialEnemies.filter(enemy => 
-            enemy.state !== 'patrol' && enemy.state !== 'chase'
+            !enemy._authoredEntranceActive && enemy.state !== 'patrol' && enemy.state !== 'chase'
           );
           
           if (frozenEnemies.length > 0) {
@@ -318,15 +353,21 @@ window.TutorialSystem = class TutorialSystem {
       }
       
       if (this.characterIndex < this.targetText.length) {
-        this.characterIndex += deltaTime / this.typingSpeed;
+        this.characterIndex = Math.min(this.targetText.length, this.characterIndex + deltaTime / this.typingSpeed);
         this.currentText = this.targetText.substring(0, Math.floor(this.characterIndex));
-      } else {
+      }
+
+      if (this.characterIndex >= this.targetText.length) {
         this.currentText = this.targetText;
         this.readyToAdvance = true;
       }
+
+      if (this._isFinalChapterDialogue() && this.readyToAdvance) {
+        this._armFinalMessageSequence();
+      }
       
       // Handle final message timing and fade
-      if (this.isFinalMessage && this.completed) {
+      if (finalMessageWasActive && this.isFinalMessage) {
         this.finalMessageTimer += deltaTime;
         
         if (this.finalMessageTimer >= this.finalMessageHoldTime && this.finalMessageFadeStart === 0) {
@@ -339,7 +380,15 @@ window.TutorialSystem = class TutorialSystem {
           this.finalMessageOpacity = Math.max(0.0, 1.0 - fadeProgress);
           
           if (this.finalMessageOpacity <= 0) {
+            // Commit completion only when the final tutorial presentation is
+            // actually gone, so mission UI cannot appear behind it.
             this.active = false;
+            this.completed = true;
+            try {
+              this.completeTutorial();
+            } catch (completionError) {
+              console.error('Tutorial completion cleanup failed:', completionError?.message || completionError);
+            }
             console.log('Tutorial final message fully faded out - tutorial deactivated');
           }
         }
@@ -358,8 +407,10 @@ window.TutorialSystem = class TutorialSystem {
     if (this.currentDialogue >= this.dialogue.length - 1) {
       console.log('At end of chapter, advancing to next chapter');
       if (this.storyChapter >= 4) {
-        console.log('Tutorial complete - no more chapters to advance to');
-        this.active = false;
+        // The final line owns Space until it finishes typing. Once readable,
+        // the timed hold/fade owns completion; repeated Space presses are a
+        // harmless no-op and cannot dismiss it.
+        this._armFinalMessageSequence();
         return;
       }
       this.currentDialogue = 0;
@@ -474,16 +525,19 @@ window.TutorialSystem = class TutorialSystem {
   }
   
   _startFinalMessageSequence() {
+    if (this.isFinalMessage) return false;
     this.isFinalMessage = true;
     this.finalMessageTimer = 0;
     this.finalMessageFadeStart = 0;
     this.finalMessageOpacity = 1.0;
     console.log('Starting final message sequence - holding for 10 seconds then fading');
+    return true;
   }
   
   completeTutorial() {
+    this._cancelPendingTutorialEnemyTimers();
     this.completed = true;
-    console.log('Tutorial marked as complete - final message sequence will handle fade-out');
+    console.log('Tutorial marked complete after the final message presentation');
     
     console.log('🎯 Ensuring original objectives system is active...');
     
@@ -597,8 +651,11 @@ window.TutorialSystem = class TutorialSystem {
       if (this.currentText.length >= this.targetText.length) {
         const canAdvance = !dialogue.requiresObjectives || 
           (Array.isArray(dialogue.requiresObjectives) && dialogue.requiresObjectives.every(objId => this.completedObjectives.has(objId)));
+        const finalHoldActive = this._isFinalChapterDialogue() && this._finalMessageSequenceArmed;
         
-        if (canAdvance) {
+        if (finalHoldActive) {
+          // The fully typed final line remains unobstructed during its hold.
+        } else if (canAdvance) {
           ctx.fillStyle = '#00ffff';
           ctx.font = '16px Orbitron';
           ctx.textAlign = 'left';
@@ -806,9 +863,50 @@ window.TutorialSystem = class TutorialSystem {
     
     this.checkObjective('rhythm_combo');
   }
+
+  _cancelPendingTutorialEnemyTimers() {
+    this._tutorialEnemyTimerGeneration += 1;
+    if (!this._pendingTutorialEnemyTimers) {
+      this._pendingTutorialEnemyTimers = new Set();
+      return;
+    }
+    this._pendingTutorialEnemyTimers.forEach(timerId => clearTimeout(timerId));
+    this._pendingTutorialEnemyTimers.clear();
+  }
+
+  _scheduleTutorialEnemyTimer(callback, delay, generation = this._tutorialEnemyTimerGeneration) {
+    if (!this._pendingTutorialEnemyTimers) this._pendingTutorialEnemyTimers = new Set();
+    const timerId = setTimeout(() => {
+      this._pendingTutorialEnemyTimers.delete(timerId);
+      if (generation !== this._tutorialEnemyTimerGeneration) return;
+      callback();
+    }, delay);
+    this._pendingTutorialEnemyTimers.add(timerId);
+    return timerId;
+  }
+
+  _settleTutorialEnemyOnGround(enemy) {
+    if (!enemy) return;
+    enemy._authoredEntranceActive = false;
+    enemy._entranceTarget = null;
+    enemy._authoredEntranceSpeed = 0;
+    enemy._dropEdge = null;
+    enemy.entranceComplete = true;
+    enemy.state = 'patrol';
+    enemy.stateTimer = 0;
+    enemy.position.y = 750;
+    enemy.velocity.y = 0;
+    enemy.velocity.x = 0;
+    enemy.isOnGround = true;
+
+    if (enemy.spriteReady && enemy.sprite) enemy.playAnimation('idle');
+  }
   
   spawnCombatEnemies() {
     if (!window.enemyManager) return;
+
+    this._cancelPendingTutorialEnemyTimers();
+    const generation = this._tutorialEnemyTimerGeneration;
     
     // Check current enemy count before spawning
     const currentEnemyCount = window.enemyManager.getActiveEnemies().length;
@@ -826,85 +924,21 @@ window.TutorialSystem = class TutorialSystem {
     this._tutorialEnemyCount = 0;
     this._tutorialEnemiesDefeated = 0;
     
-    const playerX = window.player?.position?.x || 960;
-    const playerY = window.player?.position?.y || 750;
-    
-    // Spawn at least 800px away from player on random sides
-    const spawnPositions = [];
-    const minDistance = 800; // Minimum distance from player
-    const maxDistance = 1500; // Maximum distance to keep enemies visible
-    
     for (let i = 0; i < enemiesToSpawn; i++) {
-      // Choose random side: left, right, or both
-      const sides = ['left', 'right'];
-      const chosenSide = sides[Math.floor(Math.random() * sides.length)];
-      
-      let xOffset, vx, spawnSide;
-      
-      if (chosenSide === 'left') {
-        // Spawn on left side, at least 800px away
-        xOffset = -window.randomRange(minDistance, Math.min(maxDistance, 1200));
-        vx = 80; // Drift right toward player
-        spawnSide = 'left';
-      } else {
-        // Spawn on right side, at least 800px away
-        xOffset = window.randomRange(minDistance, Math.min(maxDistance, 1200));
-        vx = -80; // Drift left toward player
-        spawnSide = 'right';
-      }
-      
-      const x = playerX + xOffset;
-      const y = -100 - (i * 150); // Higher spawn point with more stagger
-      
-      // Ensure within world bounds (canvas is 1920 wide)
-      const safeX = window.clamp(x, 50, 1870);
-      
-      // Verify minimum distance is maintained
-      const actualDistance = Math.abs(safeX - playerX);
-      const finalX = actualDistance >= minDistance ? safeX : 
-                    (safeX < playerX ? playerX - minDistance : playerX + minDistance);
-      
-      spawnPositions.push({ 
-        x: finalX, 
-        y: y,
-        vx: vx, // Directional drift toward player
-        vy: 150, // Faster fall for more dramatic entrance
-        edge: spawnSide === 'left' ? 'top-left' : 'top-right',
-        side: spawnSide
-      });
-    }
-    
-    spawnPositions.forEach((pos, index) => {
-      setTimeout(() => {
-        // CRITICAL FIX: Force spawn virus type and mark as tutorial enemy
-        const enemy = new window.Enemy(pos.x, pos.y, 'virus');
-        enemy._isTutorialEnemy = true; // Mark as tutorial enemy
-        enemy.entranceComplete = false; // Enable entrance animation
-        enemy.state = 'entrance'; // Start in entrance state for dropping effect
-        enemy.position.x = pos.x;
-        enemy.position.y = pos.y;
-        enemy.velocity.x = pos.vx;
-        enemy.velocity.y = pos.vy;
-        enemy.isOnGround = false; // Not on ground initially
-        
-        // Set entrance behavior for top drop
-        enemy._dropEdge = 'top';
-        
-        // Create spawn particle effect using established system
-        if (window.particleSystem) {
-          console.log(`🌟 Creating virus spawn effect at (${pos.x.toFixed(0)}, ${pos.y.toFixed(0)})`);
-          window.particleSystem.enemySpawnEffect(pos.x, pos.y, 'virus');
+      this._scheduleTutorialEnemyTimer(() => {
+        if (!this.active || this.storyChapter !== 1 || generation !== this._tutorialEnemyTimerGeneration) return;
+        const progression = window.sector1Progression;
+        if (!progression || typeof progression.spawnTutorialEnemy !== 'function') {
+          console.warn('Tutorial enemy spawn skipped: Sector1Progression.spawnTutorialEnemy is unavailable');
+          return;
         }
-        
-        window.enemyManager.enemies.push(enemy);
+
+        const enemy = progression.spawnTutorialEnemy(i);
+        if (!enemy) return;
         this._tutorialEnemyCount++;
-        
-        const distToPlayer = window.distance(pos.x, pos.y, playerX, playerY);
-        console.log(`🎯 SPAWNED TUTORIAL enemy #${index + 1} at X:${pos.x.toFixed(0)} on ${pos.side} side`);
-        console.log(`   Distance from player: ${distToPlayer.toFixed(0)}px (Min required: ${minDistance}px)`);
-        console.log(`   Safe distance check: ${distToPlayer >= minDistance ? '✅ SAFE' : '⚠️ TOO CLOSE'}`);
-      }, index * 1000); // Longer delay for better visual pacing
-    });
+        if (!this.combatEnemiesPaused) this._settleTutorialEnemyOnGround(enemy);
+      }, i * 1000, generation);
+    }
   }
   
   bringEnemiesToGround() {
@@ -914,27 +948,17 @@ window.TutorialSystem = class TutorialSystem {
       const enemies = window.enemyManager.getActiveEnemies();
       console.log(`Found ${enemies.length} enemies to bring to ground`);
       
-      enemies.forEach((enemy, index) => {
-        enemy.entranceComplete = true;
-        enemy.state = 'patrol';
-        enemy.stateTimer = 0;
-        enemy.position.y = 750;
-        enemy.velocity.y = 0;
-        enemy.velocity.x = 0; // CRITICAL: Reset velocity to let AI control movement
-        enemy.isOnGround = true;
-        
-        // CRITICAL FIX: Force sprite to correct animation state
-        if (enemy.spriteReady && enemy.sprite) {
-          enemy.playAnimation('idle');
-        }
-      });
+      enemies.forEach(enemy => this._settleTutorialEnemyOnGround(enemy));
       
       this.combatEnemiesPaused = false;
       
-      setTimeout(() => {
-        this.combatEnemiesPaused = false;
-        console.log('🌟 Combat enemies unpaused - they should move now!');
-      }, 100);
+      const generation = this._tutorialEnemyTimerGeneration;
+      this._scheduleTutorialEnemyTimer(() => {
+        if (this.active && this.storyChapter === 1) {
+          this.combatEnemiesPaused = false;
+          console.log('🌟 Combat enemies unpaused - they should move now!');
+        }
+      }, 100, generation);
     }
   }
 };

@@ -12,7 +12,11 @@ const gameState = fs.readFileSync('src/game/game-state.js','utf8');
 const render = fs.readFileSync('src/game/render-coordinator.js','utf8');
 const objectives = fs.readFileSync('src/game/objectives.js','utf8');
 const updateCoordinator = fs.readFileSync('src/game/update-coordinator.js','utf8');
+const indicatorSource = fs.readFileSync('src/engine/jammer-indicator.js','utf8');
+const debugSource = fs.readFileSync('src/game/level-01-debug.js','utf8');
+const indexSource = fs.readFileSync('index.html','utf8');
 function must(text, re, msg) { assert(re.test(text), msg); }
+function approximately(actual, expected, message, epsilon = 0.000001) { assert(Math.abs(actual - expected) <= epsilon, `${message}: expected ${expected}, received ${actual}`); }
 
 const encounterBlocks = [...sectorSource.matchAll(/\{ id: 'encounter_\d'[^]*?enemies: \[([^]*?)\] \}/g)];
 assert.strictEqual(encounterBlocks.length, 4, 'four authored encounter definitions');
@@ -21,13 +25,16 @@ assert.strictEqual(counts.reduce((a,b)=>a+b,0), 20, 'exactly 20 quota enemies');
 assert.deepStrictEqual(counts, [4,5,5,6], 'encounter counts are 4/5/5/6');
 must(sectorSource, /STAGE_SURFACES = Object\.freeze/, 'single stage surface data exists');
 must(sectorSource, /ENCOUNTER_GATES = Object\.freeze/, 'single gate data exists');
-must(sectorSource, /previousFootY <= surface\.y && currentFootY >= surface\.y/, 'platform tunneling prevention uses previous/current feet');
+must(sectorSource, /previousFootY > surface\.y \|\| currentFootY < surface\.y[^]*crossingT[^]*crossingX/, 'platform tunneling prevention resolves the horizontal foot position at the vertical crossing');
+must(sectorSource, /const footHalfWidth = 18;/, 'platform collision uses the narrow player foot probe');
+must(enemies, /updateAuthoredEntrance\(deltaTime\)[^]*keepEntranceTargetSafe\(this\)[^]*const dx = this\._entranceTarget\.x - this\.position\.x;/, 'authored entrances revalidate their target against the live player position');
 must(sectorSource, /isCompleted\(\) && typeof window\.tutorialSystem\.isActive === 'function' && !window\.tutorialSystem\.isActive\(\)/, 'mission requires completed and inactive tutorial');
 must(sectorSource, /captureCinematicStart\(\)[^]*gameCamera\.centerX/, 'Jammer destruction captures gameCamera.centerX immediately');
 must(sectorSource, /transitionToPan\(\)[^]*if \(!Number\.isFinite\(this\.panStartX\)\) this\.captureCinematicStart\(\)/, 'pan reuses captured start');
 must(sectorSource, /pollPreparedAssets/, 'async prepared asset polling exists');
 must(sectorSource, /entry\.generation !== this\.assetGeneration/, 'asset polling is generation guarded');
 must(sectorSource, /activeAnimation === animation/, 'boss animation play is guarded by active animation');
+must(sectorSource, /const GROUND_Y = 750;/, 'Level 1 physics ground remains at the reverted baseline');
 must(jammerSource, /state\.generation \+= 1;[^]*state\.revealed = false;[^]*state\.targetable = false;[^]*state\.health = state\.maxHealth;[^]*state\.destroyed = false;[^]*state\.lastDamageSequence = null/s, 'jammer reset always restores gameplay state');
 must(jammerSource, /state\.destroyed \|\| !state\.revealed/, 'destroyed jammer sprite stops rendering');
 must(combat, /jammerHit\.ok\) \? 'hit' : 'no-target'/, 'jammer-only hit reports hit');
@@ -50,10 +57,85 @@ function createVectorClass() {
 function loadRealSector({ spriteLoadedInitially = false } = {}) {
   let spriteLoaded = spriteLoadedInitially;
   const sprite = { playCalls: [], updateCalls: 0, isLoaded: () => spriteLoaded, play(name, loop) { this.playCalls.push({ name, loop }); }, update(dt) { this.updateCalls += 1; this.lastUpdate = dt; } };
-  const window = { FILE_MANIFEST: [], BARCODE: { JammerEnvironment: { reset(){}, reveal(){ this.revealed = true; } } }, Vector2D: createVectorClass(), clamp: (v,min,max)=>Math.max(min,Math.min(max,v)), gameState: { paused: false, enemiesDefeated: 0 }, player: { position: { x: 900, y: 700 }, velocity: { x: 4, y: 9 }, width: 80, controlsDisabled: false }, enemyManager: { clear(){ this.cleared = true; }, enemies: [], purgeForCinematic(){ this.purged = (this.purged || 0) + 1; } }, objectivesSystem: { setMissionDefeatObjective(){}, completeJammerObjective(){}, revealJammerObjective(){}, setBossIntroObjective(){} }, cancelInitialEnemySpawn(){ this.cancelled = true; }, Enemy: function Enemy(x, y, type) { this.position = { x, y }; this.velocity = { x: 0, y: 0 }; this.type = type; this.active = true; }, MakkoEngine: { calls: 0, sprite(id) { this.calls += 1; sprite.id = id; return sprite; } } };
+  const jammerStatus = { revealed: false, destroyed: false, health: 16, position: { x: 3520, y: 750 } };
+  const jammerEnvironment = {
+    reset() { jammerStatus.revealed = false; jammerStatus.destroyed = false; jammerStatus.health = 16; },
+    reveal(options = {}) { jammerStatus.revealed = true; jammerStatus.destroyed = false; jammerStatus.position = { ...(options.position || jammerStatus.position) }; return this.getStatus(); },
+    getStatus() { return { ...jammerStatus, position: { ...jammerStatus.position } }; }
+  };
+  const window = {
+    FILE_MANIFEST: [],
+    BARCODE: { JammerEnvironment: jammerEnvironment },
+    Vector2D: createVectorClass(),
+    clamp: (v,min,max)=>Math.max(min,Math.min(max,v)),
+    gameState: { paused: false, enemiesDefeated: 0 },
+    player: { position: { x: 900, y: 700 }, velocity: { x: 4, y: 9 }, width: 80, controlsDisabled: false },
+    enemyManager: { clear(){ this.cleared = true; this.enemies = []; }, enemies: [], purgeForCinematic(){ this.purged = (this.purged || 0) + 1; } },
+    objectivesSystem: { setMissionDefeatObjective(){}, completeJammerObjective(){}, revealJammerObjective(){}, setBossIntroObjective(){}, updateMissionDefeatProgress(){} },
+    cancelInitialEnemySpawn(){ this.cancelled = true; },
+    Enemy: function Enemy(x, y, type) { this.position = type === 'virus' ? { x, y } : { x: 4500, y: 250 }; this.velocity = { x: 0, y: 0 }; this.type = type; this.active = true; },
+    MakkoEngine: { calls: 0, sprite(id) { this.calls += 1; sprite.id = id; return sprite; } }
+  };
   const context = vm.createContext({ window, console });
   vm.runInContext(sectorSource, context, { filename: 'src/game/sector1-progression.js' });
-  return { window, sprite, setSpriteLoaded: value => { spriteLoaded = value; } };
+  return { window, sprite, jammerStatus, setSpriteLoaded: value => { spriteLoaded = value; } };
+}
+
+{
+  const { window } = loadRealSector();
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(window.Sector1Progression.STAGE_SURFACES)), [
+    { id: 'signal-awning', x: 701, y: 492, w: 561, h: 8 },
+    { id: 'cache-bridge', x: 1492, y: 337, w: 337, h: 8 },
+    { id: 'firewall-deck', x: 2002, y: 506, w: 513, h: 8 },
+    { id: 'broadcast-ramp', x: 3295, y: 506, w: 461, h: 8 }
+  ], 'Level 1 platform rectangles stay calibrated to the locked foreground ledges');
+}
+{
+  const { window } = loadRealSector();
+  const p = new window.Sector1Progression(window.player);
+  const surface = window.Sector1Progression.STAGE_SURFACES[0];
+  const makePlayer = (x, velocityY = 8) => ({
+    position: { x, y: surface.y + 20 },
+    velocity: { x: 0, y: velocityY },
+    width: 180,
+    grounded: false,
+    getHitbox: () => ({ x: surface.x - 200, y: 0, width: 400, height: 100 })
+  });
+  const landing = makePlayer(surface.x + surface.w / 2);
+  assert.strictEqual(p.applyPlayerStageCollision(landing, { previousFootY: surface.y - 20, currentFootY: surface.y + 20 }), true, 'descending player lands when the foot probe crosses an authored ledge');
+  assert.strictEqual(landing.position.y, surface.y, 'landing snaps the player feet to the authored ledge y');
+  assert.strictEqual(landing.velocity.y, 0, 'landing clears downward velocity');
+  assert.strictEqual(landing.grounded, true, 'landing marks the player grounded');
+
+  const outside = makePlayer(surface.x - 18);
+  assert.strictEqual(p.applyPlayerStageCollision(outside, { previousFootY: surface.y - 20, currentFootY: surface.y + 20 }), false, 'a broad visual hitbox cannot catch a ledge when the 36px foot probe is outside it');
+  const edge = makePlayer(surface.x - 17);
+  assert.strictEqual(p.applyPlayerStageCollision(edge, { previousFootY: surface.y - 20, currentFootY: surface.y + 20 }), true, 'one pixel of foot-probe overlap can land on the ledge edge');
+  const rising = makePlayer(surface.x + 40, -8);
+  assert.strictEqual(p.applyPlayerStageCollision(rising, { previousFootY: surface.y + 20, currentFootY: surface.y - 20 }), false, 'one-way ledges remain passable from below while rising');
+
+  const enteringAfterCrossing = makePlayer(surface.x + 20);
+  assert.strictEqual(p.applyPlayerStageCollision(enteringAfterCrossing, { previousFootY: surface.y - 10, currentFootY: surface.y + 20, previousX: surface.x - 40 }), false, 'moving onto a ledge only after passing its height cannot edge-snag');
+  const leavingAfterCrossing = makePlayer(surface.x + surface.w + 40);
+  assert.strictEqual(p.applyPlayerStageCollision(leavingAfterCrossing, { previousFootY: surface.y - 10, currentFootY: surface.y + 20, previousX: surface.x + surface.w - 10 }), true, 'moving off a ledge after crossing its height still records the valid landing');
+}
+{
+  const { window } = loadRealSector();
+  const p = new window.Sector1Progression(window.player);
+  const fills = [];
+  const strokes = [];
+  const ctx = {
+    save() {}, restore() {},
+    fillRect(...args) { fills.push(args); },
+    strokeRect(...args) { strokes.push(args); }
+  };
+  p.closedGateEncounterId = 'encounter_2';
+  p.drawEncounterGates(ctx);
+  assert.deepStrictEqual(fills, [[2110, 620, 34, 270]], 'only the currently closed encounter gate is filled');
+  assert.deepStrictEqual(strokes, [[2110, 620, 34, 270]], 'only the currently closed encounter gate is outlined');
+  p.closedGateEncounterId = null;
+  p.drawEncounterGates(ctx);
+  assert.strictEqual(fills.length, 1, 'open gates leave no translucent collision-looking rectangles behind');
 }
 
 {
@@ -66,6 +148,115 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   window.tutorialSystem = { isCompleted: () => true, isActive: () => false };
   p.update(16); assert.strictEqual(p.state, 'encounter_1', 'completed=true active=false starts mission');
   p.update(16); assert.strictEqual(p.missionStarted, true, 'mission transition remains idempotent');
+}
+{
+  const { window } = loadRealSector();
+  const p = new window.Sector1Progression(window.player);
+  for (const center of [960, 2048, 3136]) {
+    for (const zoom of [1, 0.8, 0.625]) {
+      window.player.position.x = center;
+      window.gameCamera = { centerX: center === 960 ? 3136 : 960 };
+      window.renderer = { getZoomLevel: () => zoom };
+      const bounds = p.getVisibleWorldBounds();
+      assert.strictEqual(bounds.center, center, 'normal gameplay spawn planning follows the clamped player camera center');
+      for (const type of ['virus', 'corrupted', 'firewall']) {
+        const origin = p.planSpawn({ type, x: center, y: 650 });
+        const half = p.getSpawnBodyHalfWidth(type);
+        assert(origin.x + half <= bounds.left - 140 || origin.x - half >= bounds.right + 140, `${type} spawn is fully outside the camera at center=${center}, zoom=${zoom}`);
+        assert(Math.abs(origin.x - center) >= 350 + half, `${type} spawn respects the player exclusion radius at center=${center}, zoom=${zoom}`);
+        assert(origin.x >= half && origin.x <= 4096 - half, `${type} spawn remains inside world bounds at center=${center}, zoom=${zoom}`);
+      }
+    }
+  }
+
+  for (const type of ['corrupted', 'firewall']) {
+    const origin = { x: 3333, y: 650 };
+    const enemy = p.spawnMissionEnemy({ type, x: 3000, y: 650 }, 'restore-origin', 0, { origin });
+    assert.deepStrictEqual({ x: enemy.position.x, y: enemy.position.y }, origin, `${type} constructor rewrite cannot replace the authored spawn origin`);
+    assert.deepStrictEqual({ x: enemy.originalSpawnX, y: enemy.originalSpawnY }, origin, `${type} original spawn metadata uses the authored origin`);
+    assert.strictEqual(enemy._entranceTarget.y, 750, `${type} enters on the physics ground instead of air-walking at the authored Virus height`);
+  }
+  const virus = p.spawnMissionEnemy({ type: 'virus', x: 3000, y: 650 }, 'virus-height', 0, { origin: { x:3333, y:650 } });
+  assert.strictEqual(virus._entranceTarget.y, 650, 'Virus preserves its authored airborne entrance height');
+}
+{
+  const { window } = loadRealSector();
+  window.player.position.x = 2048;
+  window.player.position.y = 700;
+  window.renderer = { getZoomLevel: () => 1 };
+  const p = new window.Sector1Progression(window.player);
+  const bounds = p.getVisibleWorldBounds();
+  const tutorialEnemy = p.spawnTutorialEnemy(0);
+  const half = p.getSpawnBodyHalfWidth(tutorialEnemy.type);
+  assert(tutorialEnemy.position.x + half <= bounds.left - 140 || tutorialEnemy.position.x - half >= bounds.right + 140, 'tutorial enemy is created fully beyond a horizontal camera edge');
+  assert.strictEqual(tutorialEnemy.position.y, 750, 'tutorial enemy starts on the authored ground instead of dropping over the player');
+  assert.strictEqual(tutorialEnemy._dropEdge, null, 'tutorial enemy does not use a legacy top-drop entrance');
+  assert.strictEqual(tutorialEnemy._isTutorialEnemy, true, 'tutorial enemy is explicitly identified');
+  assert.strictEqual(tutorialEnemy._sector1MissionEnemy, false, 'tutorial enemy is excluded from the 20-kill mission quota');
+  assert.strictEqual(tutorialEnemy._jammerReinforcement, false, 'tutorial enemy is not mislabeled as a Jammer reinforcement');
+  assert.strictEqual(window.enemyManager.enemies.includes(tutorialEnemy), true, 'tutorial enemy enters through the shared enemy manager');
+  assert(Math.abs(tutorialEnemy._entranceTarget.x - window.player.position.x) >= 350 + half, 'tutorial entrance target starts outside the live player exclusion radius');
+  p.missionStarted = true;
+  p.missionDefeats = 5;
+  p.onEnemyDefeated(999, tutorialEnemy);
+  assert.strictEqual(p.missionDefeats, 5, 'defeating a tutorial enemy cannot advance mission progress');
+
+  const movingPlayerEnemy = p.spawnMissionEnemy({ type: 'corrupted', x: 3000, y: 650 }, 'live-target', 2, { origin: { x: 900, y: 750, side: 'left' } });
+  const initialTargetX = movingPlayerEnemy._entranceTarget.x;
+  window.player.position.x = initialTargetX;
+  p.keepEntranceTargetSafe(movingPlayerEnemy);
+  const requiredClearance = 350 + p.getSpawnBodyHalfWidth(movingPlayerEnemy.type);
+  assert.notStrictEqual(movingPlayerEnemy._entranceTarget.x, initialTargetX, 'entrance target moves when the player enters it after spawn');
+  assert(Math.abs(movingPlayerEnemy._entranceTarget.x - window.player.position.x) >= requiredClearance, 'revalidated entrance target clears the player by the required live exclusion radius');
+  assert(movingPlayerEnemy._entranceTarget.x < window.player.position.x, 'revalidated entrance remains on the enemy approach side instead of crossing through the player');
+
+  window.player.position.x = 960;
+  const edgeTutorialEnemy = p.spawnTutorialEnemy(0);
+  assert(edgeTutorialEnemy.position.x > window.player.position.x, 'near the left world edge, tutorial spawn uses the available right offscreen edge');
+  assert(edgeTutorialEnemy._entranceTarget.x > window.player.position.x + 350, 'near a world edge, the entrance target stays on its spawn side and cannot cross through the player');
+}
+{
+  const { window } = loadRealSector();
+  const p = new window.Sector1Progression(window.player);
+  p.startMission();
+  const first = window.Sector1Progression.ENCOUNTERS[0];
+  p.spawnEncounter(first);
+  assert.strictEqual(p.pendingSpawns.length, 4, 'encounter 1 queues all four authored actors');
+  assert.strictEqual(p.activeEncounterEnemies.length, 0, 'queued encounter has no actors before its first stagger tick');
+  p.updateEncounter();
+  assert.strictEqual(p.state, 'encounter_1', 'an encounter cannot complete while its spawn queue is pending');
+  p.updatePendingSpawns(0);
+  assert.strictEqual(p.activeEncounterEnemies.length, 1, 'the first encounter actor spawns immediately');
+  assert.strictEqual(p.pendingSpawns.length, 3, 'the remaining encounter actors stay staggered');
+  p.activeEncounterEnemies[0].active = false;
+  p.activeEncounterEnemies[0]._defeatRecorded = true;
+  p.updateEncounter();
+  assert.strictEqual(p.state, 'encounter_1', 'defeating the first actor cannot skip pending encounter spawns');
+  p.updatePendingSpawns(1050);
+  assert.strictEqual(p.activeEncounterEnemies.length, 4, 'all authored actors enter after the full stagger window');
+  p.activeEncounterEnemies.forEach(enemy => { enemy.active = false; enemy._defeatRecorded = true; });
+  p.updateEncounter();
+  assert.strictEqual(p.state, 'encounter_2', 'the gate opens only after the complete encounter queue is defeated');
+}
+{
+  const { window } = loadRealSector();
+  const p = new window.Sector1Progression(window.player);
+  p.missionStarted = true;
+  p.missionDefeats = 20;
+  window.gameCamera = { centerX: 960 };
+  window.renderer = { getZoomLevel: () => 1 };
+  p.revealJammer();
+  p.updateJammerReinforcements(0);
+  assert.strictEqual(window.enemyManager.enemies.filter(enemy => enemy._jammerReinforcement).length, 1, 'Jammer phase starts one reinforcement after reveal');
+  assert(p.nextJammerSpawnMs >= 3000 && p.nextJammerSpawnMs <= 4500, 'Jammer reinforcement cadence is bounded');
+  p.updateJammerReinforcements(0);
+  assert.strictEqual(window.enemyManager.enemies.filter(enemy => enemy._jammerReinforcement).length, 1, 'Jammer cadence prevents an immediate second reinforcement');
+  for (let i = 0; i < 8; i++) p.updateJammerReinforcements(5000);
+  const reinforcements = window.enemyManager.enemies.filter(enemy => enemy.active && enemy._jammerReinforcement);
+  assert.strictEqual(reinforcements.length, 4, 'Jammer reinforcements are capped at four active actors');
+  assert(reinforcements.every(enemy => enemy._sector1MissionEnemy === false), 'Jammer reinforcements never become mission-quota enemies');
+  p.onEnemyDefeated(999, reinforcements[0]);
+  assert.strictEqual(p.missionDefeats, 20, 'Jammer reinforcements cannot advance the 20-kill mission quota');
 }
 {
   const { window } = loadRealSector();
@@ -87,6 +278,38 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   assert.strictEqual(window.player.velocity.y, 0, 'suppression stops vertical physics');
 }
 {
+  const { window } = loadRealSector();
+  const p = new window.Sector1Progression(window.player);
+  window.BARCODE.DEBUG_LEVEL_1_SESSION = true;
+  window.tutorialSystem = { completed: false, active: true };
+  p.state = 'boss_ready';
+  p.cameraOverrideActive = true;
+  p.cameraX = 3136;
+  p.frozenPlayerPosition = { x: 1, y: 2 };
+  p.jammerDestroyedNotified = true;
+  p.boss = { active: true };
+  p.debugGotoEncounter(2);
+  assert.strictEqual(p.state, 'encounter_2', 'debug encounter jump selects the requested encounter');
+  assert.strictEqual(p.cameraOverrideActive, false, 'debug encounter jump releases a previous boss camera override');
+  assert.strictEqual(p.frozenPlayerPosition, null, 'debug encounter jump clears a previous cinematic player lock');
+  assert.strictEqual(p.jammerDestroyedNotified, false, 'debug encounter jump resets the Jammer destruction latch');
+  assert.strictEqual(p.boss, null, 'debug encounter jump removes the previous boss presentation');
+  p.debugCompleteEncounter();
+  assert.strictEqual(p.state, 'encounter_3', 'debug encounter completion advances instead of leaving a closed empty gate');
+  assert.strictEqual(p.missionDefeats, 9, 'debug encounter completion applies the authored cumulative quota');
+  assert.strictEqual(window.enemyManager.defeatedCount, 9, 'debug encounter completion keeps the defeat projection in sync');
+  p.debugGotoEncounter(4);
+  p.debugCompleteEncounter();
+  assert.strictEqual(p.state, 'jammer_active', 'completing the final debug encounter reveals the real Jammer phase');
+  assert.strictEqual(p.missionDefeats, 20, 'final debug encounter completion reaches the authoritative 20-kill gate');
+  p.jammerDestroyedNotified = true;
+  p.cameraOverrideActive = true;
+  p.debugGotoJammer();
+  assert.strictEqual(p.state, 'jammer_active', 'debug Jammer jump remains reusable after a prior cinematic');
+  assert.strictEqual(p.jammerDestroyedNotified, false, 'debug Jammer jump rearms the boss-intro destruction latch');
+  assert.strictEqual(p.cameraOverrideActive, false, 'debug Jammer jump starts from the normal player camera');
+}
+{
   const { window, sprite, setSpriteLoaded } = loadRealSector({ spriteLoadedInitially: false });
   const p = new window.Sector1Progression(window.player);
   p.prepareBossAssets();
@@ -97,6 +320,22 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   assert.strictEqual(p.preloadedBossSprite, sprite, 'async-loaded boss sprite becomes preloaded');
   p.cameraX = 3000; p.startBossWalk();
   assert.strictEqual(p.boss.sprite, sprite, 'entrance uses same prepared sprite instance');
+  const presentationFrames = [
+    { state: 'walk', animation: 'sector_1_boss_walk_walk', sourceAnchorY: 253, expectedScale: 0.8 },
+    { state: 'flourish', animation: 'sector_1_boss_attack_attack', sourceAnchorY: 154 },
+    { state: 'idle', animation: 'sector_1_boss_idle_idle', sourceAnchorY: 178 }
+  ];
+  for (const frame of presentationFrames) {
+    p.boss.state = frame.state;
+    p.boss.activeAnimation = frame.animation;
+    const visual = p.getBossVisualBounds();
+    if (frame.expectedScale !== undefined) approximately(visual.scale, frame.expectedScale, 'boss walk scale remains at the reverted baseline');
+    approximately(visual.scale * frame.sourceAnchorY, 253 * 0.8, `${frame.state} animation uses the normalized anchor height`);
+    assert.strictEqual(visual.anchorY, p.boss.y + 110, `${frame.state} animation preserves the reverted +110 ground presentation offset`);
+    assert.strictEqual(visual.anchorY, 860, `${frame.state} animation remains anchored at y=860 when boss.y=750`);
+  }
+  p.boss.state = 'walk';
+  p.boss.activeAnimation = 'sector_1_boss_walk_walk';
   p.updateBossWalk(16); p.updateBossWalk(16);
   assert.deepStrictEqual(sprite.playCalls.map(c => c.name), ['sector_1_boss_walk_walk'], 'walk plays only once on transition');
   p.boss.x = 3600; p.updateBossWalk(16);
@@ -105,5 +344,102 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   assert(sprite.updateCalls > before, 'flourish sprite receives update calls');
   p.update(1000);
   assert(sprite.playCalls.map(c => c.name).includes('sector_1_boss_idle_idle'), 'idle plays when boss_ready begins');
+}
+{
+  const window = {
+    FILE_MANIFEST: [],
+    BARCODE: {},
+    renderer: { zoomLevel: 0.625, getZoomLevel() { return this.zoomLevel; } },
+    gameCamera: { centerX: 3136 },
+    clamp: (value, min, max) => Math.max(min, Math.min(max, value))
+  };
+  const context = vm.createContext({ window, console });
+  vm.runInContext(jammerSource, context, { filename: 'src/game/jammer-environment.js' });
+  vm.runInContext(indicatorSource, context, { filename: 'src/engine/jammer-indicator.js' });
+  window.BARCODE.JammerEnvironment.reveal({ position: { x: 3520, y: 750 } });
+  const bounds = window.BARCODE.JammerEnvironment.getAimBounds();
+  const indicator = new window.JammerIndicator();
+  const projected = indicator.worldToScreen({ x: 3520, y: 750 }, 3136, 0.625);
+  approximately(projected.x, 1200, 'Jammer world x projects through the renderer camera convention');
+  approximately(projected.y, 721.875, 'Jammer world y projects through the renderer zoom offset');
+  indicator.update(500, bounds, 3136, 750);
+  assert.strictEqual(indicator.active, false, 'indicator hides when the Jammer presentation bounds are visible');
+  window.gameCamera.centerX = 960;
+  indicator.update(500, bounds, 960, 750);
+  assert.strictEqual(indicator.active, true, 'indicator activates when the Jammer presentation bounds are offscreen');
+  approximately(indicator.indicatorPosition.x, 1840, 'offscreen Jammer indicator lands on the right safe edge');
+  assert(indicator.indicatorPosition.y >= 180 && indicator.indicatorPosition.y <= 770, 'offscreen Jammer indicator remains inside the vertical safe area');
+}
+{
+  const listeners = {};
+  const canvasListeners = {};
+  const canvas = {
+    width: 1920,
+    height: 1080,
+    addEventListener(type, listener) { canvasListeners[type] = listener; },
+    removeEventListener(type) { delete canvasListeners[type]; },
+    getBoundingClientRect() { return { left: 0, top: 0, width: 1920, height: 1080 }; }
+  };
+  const drawnText = [];
+  const ctx = {
+    canvas,
+    save() {}, restore() {}, beginPath() {}, moveTo() {}, lineTo() {}, stroke() {},
+    fillRect() {}, strokeRect() {},
+    fillText(value) { drawnText.push(String(value)); }
+  };
+  const elements = new Map();
+  const body = { appendChild(element) { if (element.id) elements.set(element.id, element); } };
+  const document = {
+    body,
+    getElementById(id) { return elements.get(id) || null; },
+    createElement() { return { id: '', style: {}, children: [], appendChild(child) { this.children.push(child); }, addEventListener() {} }; }
+  };
+  let routed = 0;
+  const window = {
+    FILE_MANIFEST: [],
+    BARCODE: {},
+    DEBUG: {},
+    document,
+    sector1Progression: {
+      state: 'test', missionDefeats: 0,
+      debugSkipTutorial() { routed += 1; return { ok: true, state: 'encounter_1', missionDefeats: 0 }; },
+      debugGotoJammer() { routed += 1; return { ok: true }; },
+      getDiagnostics() { return { state: 'test' }; }
+    },
+    addEventListener(type, listener) { listeners[type] = listener; }
+  };
+  const context = vm.createContext({ window, document, console });
+  vm.runInContext(debugSource, context, { filename: 'src/game/level-01-debug.js' });
+  assert.strictEqual(window.BARCODE.DEBUG_LEVEL_1_SESSION, false, 'Level 1 debug starts disabled every session');
+  assert.strictEqual(window.DEBUG.level1.gotoJammer().reason, 'debug-disabled', 'debug actions are rejected before session unlock');
+  const event = shiftKey => ({ key: 'F1', shiftKey, preventDefault() {}, stopPropagation() {} });
+  listeners.keydown(event(false));
+  assert.strictEqual(window.BARCODE.DEBUG_LEVEL_1_SESSION, false, 'F1 alone cannot unlock Level 1 debug');
+  listeners.keydown(event(true));
+  assert.strictEqual(window.BARCODE.DEBUG_LEVEL_1_SESSION, true, 'Shift+F1 unlocks Level 1 debug for the current session');
+  window.DEBUG.level1.drawOverlay(ctx);
+  assert(drawnText.includes('DEV ▲'), 'canvas debug launcher renders inside Makko/fullscreen instead of as a hidden DOM sibling');
+  assert(drawnText.includes('Skip Tutorial'), 'unlocked canvas debug panel renders its action buttons');
+  assert.strictEqual(typeof canvasListeners.pointerdown, 'function', 'drawing the debug launcher attaches a canvas-native pointer route');
+  canvasListeners.pointerdown({ button: 0, currentTarget: canvas, clientX: 40, clientY: 767, preventDefault() {}, stopPropagation() {} });
+  assert.strictEqual(routed, 1, 'clicking a canvas debug action invokes the real progression method');
+  assert.strictEqual(window.DEBUG.level1.gotoJammer().ok, true, 'unlocked debug action routes to Sector1Progression');
+  assert.strictEqual(routed, 2, 'direct and canvas debug actions each route exactly once');
+  const makkoShortcut = { key: 'd', code: 'KeyD', shiftKey: true, ctrlKey: true, preventDefault() {}, stopPropagation() {} };
+  listeners.keydown(makkoShortcut);
+  drawnText.length = 0;
+  window.DEBUG.level1.drawOverlay(ctx);
+  assert(!drawnText.includes('Skip Tutorial'), 'Ctrl+Shift+D closes the canvas panel without disabling debug');
+  listeners.keydown(makkoShortcut);
+  drawnText.length = 0;
+  window.DEBUG.level1.drawOverlay(ctx);
+  assert(drawnText.includes('Skip Tutorial'), 'Ctrl+Shift+D reopens the canvas panel in Makko');
+  listeners.keydown({ ...makkoShortcut, repeat: true });
+  drawnText.length = 0;
+  window.DEBUG.level1.drawOverlay(ctx);
+  assert(drawnText.includes('Skip Tutorial'), 'held debug shortcuts cannot repeatedly flicker the Makko panel open and closed');
+  assert(!/localStorage|sessionStorage|location|URLSearchParams/.test(debugSource), 'Level 1 debug does not persist or require URL parameters');
+  assert.strictEqual((indexSource.match(/src\/game\/level-01-debug\.js/g) || []).length, 1, 'index loads Level 1 debug exactly once');
+  assert(indexSource.indexOf('src/game/debug-commands.js') < indexSource.indexOf('src/game/level-01-debug.js'), 'Level 1 debug loads after canonical debug commands');
 }
 console.log('Level 1 mission static and real-module VM checks passed');
