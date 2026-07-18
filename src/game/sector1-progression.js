@@ -12,7 +12,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
   const STATES = Object.freeze({
     TUTORIAL: 'tutorial', ENCOUNTER_1: 'encounter_1', ENCOUNTER_2: 'encounter_2', ENCOUNTER_3: 'encounter_3', ENCOUNTER_4: 'encounter_4',
     JAMMER_ACTIVE: 'jammer_active', FREEZE: 'jammer_destroyed_freeze', ENEMY_PURGE: 'enemy_purge', CAMERA_PAN: 'camera_pan',
-    BOSS_WALK_IN: 'boss_walk_in', BOSS_FLOURISH: 'boss_flourish', BOSS_READY: 'boss_ready'
+    BOSS_WALK_IN: 'boss_walk_in', BOSS_CLOSE_UP: 'boss_close_up', BOSS_FLOURISH: 'boss_flourish', BOSS_HOLD: 'boss_hold',
+    CAMERA_RETURN: 'camera_return', BOSS_READY: 'boss_ready'
   });
 
   const ENCOUNTERS = Object.freeze([
@@ -39,7 +40,21 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     { id: 'gate_4', encounterId: 'encounter_4', x: 4010, y: 620, w: 34, h: 270 }
   ]);
 
-  const CINEMATIC = Object.freeze({ freezeMs: 800, panMs: 2000, flourishMs: 900, bossFrameX: 3136, bossStopX: 3650, bossGroundY: 750, bossSpeed: 140 });
+  const CINEMATIC = Object.freeze({
+    freezeMs: 800,
+    panMs: 2000,
+    closeUpMs: 500,
+    flourishMs: 900,
+    holdMs: 250,
+    returnMs: 1600,
+    wideZoomFloor: 0.92,
+    closeZoom: 1.08,
+    bossFrameX: 3136,
+    bossStopX: 3480,
+    bossArenaScreenX: 1440,
+    bossGroundY: 750,
+    bossSpeed: 140
+  });
   const SPAWN = Object.freeze({
     offscreenPadding: 140,
     playerExclusionRadius: 350,
@@ -59,6 +74,17 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
 
   function totalQuota() { return ENCOUNTERS.reduce((sum, e) => sum + e.enemies.length, 0); }
   function clampCamera(x) { return window.clamp ? window.clamp(x, CAMERA_MIN, CAMERA_MAX) : Math.max(CAMERA_MIN, Math.min(CAMERA_MAX, x)); }
+  function clampWorldX(x) { return Math.max(160, Math.min(WORLD_WIDTH - 160, x)); }
+  function lerp(from, to, amount) { return from + (to - from) * amount; }
+  function smoothStep(t) { return t * t * (3 - 2 * t); }
+  function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+  // The locked foreground is rendered 4400px wide around the 1920px canvas.
+  // Keep both image edges beyond the viewport throughout an overridden camera move.
+  function getForegroundCoverageZoomFloor(cameraX) {
+    const leftFloor = (CANVAS_WIDTH / 2) / Math.max(1, cameraX + 152);
+    const rightFloor = (CANVAS_WIDTH / 2) / Math.max(1, 4248 - cameraX);
+    return Math.min(1.2, Math.max(leftFloor, rightFloor) + 0.02);
+  }
   function debugAllowed() { return !!(window.BARCODE && window.BARCODE.DEBUG_LEVEL_1_SESSION === true); }
   function debugDisabled() { return { ok: false, reason: 'debug-disabled' }; }
 
@@ -72,8 +98,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     static get STATES() { return STATES; }
     isAuthoritativeMissionActive() { return this.state !== STATES.TUTORIAL && this.state !== STATES.BOSS_READY; }
     shouldSuppressGenericSpawning() { return true; }
-    isGameplaySuppressed() { return [STATES.FREEZE, STATES.ENEMY_PURGE, STATES.CAMERA_PAN, STATES.BOSS_WALK_IN, STATES.BOSS_FLOURISH, STATES.BOSS_READY].includes(this.state); }
+    isBossCinematicActive() { return [STATES.FREEZE, STATES.ENEMY_PURGE, STATES.CAMERA_PAN, STATES.BOSS_WALK_IN, STATES.BOSS_CLOSE_UP, STATES.BOSS_FLOURISH, STATES.BOSS_HOLD, STATES.CAMERA_RETURN].includes(this.state); }
+    isGameplaySuppressed() { return this.isBossCinematicActive(); }
     getCameraX(fallback) { return this.cameraOverrideActive ? clampCamera(this.cameraX) : fallback; }
+    getCinematicZoomOverride() { return Number.isFinite(this.cinematicZoomOverride) ? this.cinematicZoomOverride : null; }
     update(deltaTime = 0) {
       if (window.gameState && window.gameState.paused) return;
       this.player = this.player || window.player;
@@ -87,8 +115,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       else if (this.state === STATES.ENEMY_PURGE) this.transitionToPan();
       else if (this.state === STATES.CAMERA_PAN) this.updatePan(deltaTime);
       else if (this.state === STATES.BOSS_WALK_IN) this.updateBossWalk(deltaTime);
-      else if (this.state === STATES.BOSS_FLOURISH) { this.updateBossSprite(deltaTime); this.advanceTimed(deltaTime, CINEMATIC.flourishMs, STATES.BOSS_READY, () => this.enterBossReady()); }
-      else if (this.state === STATES.BOSS_READY) this.updateBossSprite(deltaTime);
+      else if (this.state === STATES.BOSS_CLOSE_UP) this.updateBossCloseUp(deltaTime);
+      else if (this.state === STATES.BOSS_FLOURISH) this.updateBossFlourish(deltaTime);
+      else if (this.state === STATES.BOSS_HOLD) this.updateBossHold(deltaTime);
+      else if (this.state === STATES.CAMERA_RETURN) this.updateCameraReturn(deltaTime);
+      else if (this.state === STATES.BOSS_READY) { this.updateBossSprite(deltaTime); if (this.cinematicZoomReleasePending) { this.cinematicZoomReleasePending = false; this.cinematicZoomOverride = null; } }
     }
     startMission() { this.state = STATES.ENCOUNTER_1; this.missionStarted = true; this.missionDefeats = 0; this.countedEnemies.clear(); this.spawnedEncounterIds.clear(); this.activeEncounterId = null; this.enemyManagerReset(); if (window.objectivesSystem?.setMissionDefeatObjective) window.objectivesSystem.setMissionDefeatObjective(0, this.requiredEnemyKills); }
     enemyManagerReset() { if (window.cancelInitialEnemySpawn) window.cancelInitialEnemySpawn(); if (window.enemyManager) window.enemyManager.clear(); if (window.gameState) { window.gameState.enemiesDefeated = 0; window.gameState.hasSpawnedInitialEnemies = true; } this.prepareAssetsForEncounter(0); }
@@ -107,19 +138,28 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     revealJammer() { this.state = STATES.JAMMER_ACTIVE; this.nextJammerSpawnMs = 0; this.jammerReinforcementCount = 0; this.jammerRevealed = true; this.closedGateEncounterId = null; const position = this.chooseJammerPosition(); window.BARCODE?.JammerEnvironment?.reveal({ position }); if (window.objectivesSystem?.revealJammerObjective) window.objectivesSystem.revealJammerObjective(); this.prepareBossAssets(); }
     updateJammerReinforcements(deltaTime) { const environment = window.BARCODE?.JammerEnvironment; const status = environment?.getStatus?.(); if (!status || !status.revealed || status.destroyed) return; this.nextJammerSpawnMs = Number.isFinite(this.nextJammerSpawnMs) ? this.nextJammerSpawnMs - deltaTime : 0; const activeReinforcements = (window.enemyManager?.enemies || []).filter(enemy => enemy && enemy.active && enemy._jammerReinforcement); if (activeReinforcements.length >= SPAWN.jammerReinforcementCap || this.nextJammerSpawnMs > 0) return; const types = ['virus', 'corrupted', 'virus', 'firewall']; const type = types[this.jammerReinforcementCount % types.length]; this.jammerReinforcementCount += 1; const jammerX = status.position?.x || this.chooseJammerPosition().x; const targetX = Math.max(180, Math.min(WORLD_WIDTH - 180, jammerX + (jammerX < WORLD_WIDTH / 2 ? 240 : -240))); this.spawnMissionEnemy({ type, x: targetX, y: GROUND_Y }, 'jammer_reinforcement', this.jammerReinforcementCount, { jammerReinforcement: true }); this.nextJammerSpawnMs = SPAWN.jammerCadenceMinMs + Math.random() * (SPAWN.jammerCadenceMaxMs - SPAWN.jammerCadenceMinMs); }
     onJammerDestroyed() { this.nextJammerSpawnMs = Infinity; if (this.jammerDestroyedNotified) return; this.jammerDestroyedNotified = true; this.captureCinematicStart(); this.freezePlayerForCinematic(); if (window.objectivesSystem?.completeJammerObjective) window.objectivesSystem.completeJammerObjective(); this.state = STATES.FREEZE; this.phaseElapsed = 0; this.cinematicStartedCount++; }
-    captureCinematicStart() { const playerX = this.player?.position?.x || CAMERA_MIN; this.cinematicStartCameraX = clampCamera((window.gameCamera && Number.isFinite(window.gameCamera.centerX)) ? window.gameCamera.centerX : playerX); this.panStartX = this.cinematicStartCameraX; this.cameraX = this.cinematicStartCameraX; this.cameraOverrideActive = true; }
-    freezePlayerForCinematic() { const player = this.player || window.player; if (!player) return; this.frozenPlayerPosition = { x: player.position.x, y: player.position.y }; if (player.velocity) { player.velocity.x = 0; player.velocity.y = 0; } player.controlsDisabled = true; }
+    getCurrentRendererZoom() { const renderer = window.renderer; const override = renderer && typeof renderer.getCinematicZoomOverride === 'function' ? renderer.getCinematicZoomOverride() : null; const current = Number.isFinite(override) ? override : (renderer && typeof renderer.getZoomLevel === 'function' ? renderer.getZoomLevel() : renderer?.zoomLevel); return Math.max(0.1, Number.isFinite(current) ? current : 1); }
+    captureCinematicStart() { const player = this.player || window.player; const playerX = Number.isFinite(player?.position?.x) ? player.position.x : CAMERA_MIN; const playerY = Number.isFinite(player?.position?.y) ? player.position.y : GROUND_Y; this.cinematicStartCameraX = clampCamera((window.gameCamera && Number.isFinite(window.gameCamera.centerX)) ? window.gameCamera.centerX : playerX); this.cinematicStartPlayerPosition = { x: playerX, y: playerY }; this.cinematicStartZoom = this.getCurrentRendererZoom(); this.cinematicWideZoom = Math.max(CINEMATIC.wideZoomFloor, Math.min(1, this.cinematicStartZoom)); this.cinematicCloseZoom = Math.max(CINEMATIC.closeZoom, this.cinematicWideZoom); this.cinematicZoomOverride = this.cinematicStartZoom; this.cinematicZoomReleasePending = false; this.panStartX = this.cinematicStartCameraX; this.cameraX = this.cinematicStartCameraX; this.cameraOverrideActive = true; }
+    freezePlayerForCinematic() { const player = this.player || window.player; if (!player) return; const captured = this.cinematicStartPlayerPosition || { x: player.position.x, y: player.position.y }; this.frozenPlayerPosition = { x: captured.x, y: captured.y }; if (player.velocity) { player.velocity.x = 0; player.velocity.y = 0; } player.controlsDisabled = true; }
     advanceTimed(delta, duration, next, callback) { this.phaseElapsed += delta; if (this.phaseElapsed >= duration) { this.state = next; this.phaseElapsed = 0; if (callback) callback(); } }
     purgeEnemies() { if (window.enemyManager?.purgeForCinematic) window.enemyManager.purgeForCinematic(); else if (window.enemyManager) window.enemyManager.enemies = []; }
-    transitionToPan() { this.state = STATES.CAMERA_PAN; this.phaseElapsed = 0; if (!Number.isFinite(this.panStartX)) this.captureCinematicStart(); this.panTargetX = clampCamera(CINEMATIC.bossFrameX); this.cameraX = this.panStartX; this.cameraOverrideActive = true; }
-    updatePan(delta) { this.phaseElapsed += delta; const t = Math.min(1, this.phaseElapsed / CINEMATIC.panMs); const eased = t * t * (3 - 2 * t); this.cameraX = clampCamera(this.panStartX + (this.panTargetX - this.panStartX) * eased); if (t >= 1) this.startBossWalk(); }
-    startBossWalk() { this.state = STATES.BOSS_WALK_IN; this.boss = { x: this.cameraX + CANVAS_WIDTH / 2 + 180, y: CINEMATIC.bossGroundY, state: 'walk', active: true, sprite: this.preloadedBossSprite || null, spriteReady: false, fallbackLocked: !this.preloadedBossSprite, activeAnimation: null, playedAnimation: null, flourishPlayed: false, canDealDamage: false, canReceiveDamage: false }; this.setBossAnimation('sector_1_boss_walk_walk', true); }
+    transitionToPan() { this.state = STATES.CAMERA_PAN; this.phaseElapsed = 0; if (!Number.isFinite(this.panStartX)) this.captureCinematicStart(); this.panTargetX = clampCamera(CINEMATIC.bossFrameX); this.cameraX = this.panStartX; this.cinematicZoomOverride = this.cinematicStartZoom; this.cameraOverrideActive = true; }
+    updatePan(delta) { this.phaseElapsed += delta; const t = Math.min(1, this.phaseElapsed / CINEMATIC.panMs); const eased = smoothStep(t); this.cameraX = clampCamera(lerp(this.panStartX, this.panTargetX, eased)); const desiredZoom = lerp(this.cinematicStartZoom, this.cinematicWideZoom, eased); this.cinematicZoomOverride = Math.max(desiredZoom, getForegroundCoverageZoomFloor(this.cameraX)); if (t >= 1) { this.cameraX = this.panTargetX; this.cinematicZoomOverride = Math.max(this.cinematicWideZoom, getForegroundCoverageZoomFloor(this.cameraX)); this.startBossWalk(); } }
+    startBossWalk() { this.state = STATES.BOSS_WALK_IN; this.phaseElapsed = 0; this.boss = { x: this.cameraX + CANVAS_WIDTH / 2 + 180, y: CINEMATIC.bossGroundY, state: 'walk', active: true, sprite: this.preloadedBossSprite || null, spriteReady: false, fallbackLocked: !this.preloadedBossSprite, activeAnimation: null, playedAnimation: null, flourishPlayed: false, canDealDamage: false, canReceiveDamage: false }; this.setBossAnimation('sector_1_boss_walk_walk', true); }
     prepareBossAssets() { if (this.bossAssetsRequested) return; this.bossAssetsRequested = true; this.requestSpriteOnce('boss', 'sector_1_boss_sector1boss', sprite => { this.preloadedBossSprite = sprite; this.preparedBossAnimations = ['sector_1_boss_walk_walk', 'sector_1_boss_attack_attack', 'sector_1_boss_idle_idle']; }); }
     prepareBossSprite() { if (!this.boss) return; if (!this.boss.sprite && this.preloadedBossSprite && !this.boss.fallbackLocked) this.boss.sprite = this.preloadedBossSprite; if (this.boss.sprite?.isLoaded?.()) { this.boss.spriteReady = true; if (this.boss.activeAnimation && this.boss.playedAnimation !== this.boss.activeAnimation && this.boss.sprite.play) { this.boss.sprite.play(this.boss.activeAnimation, this.boss.activeAnimation !== 'sector_1_boss_attack_attack'); this.boss.playedAnimation = this.boss.activeAnimation; } } }
     setBossAnimation(animation, loop) { this.prepareBossSprite(); if (!this.boss || this.boss.activeAnimation === animation) return; this.boss.activeAnimation = animation; if (this.boss.spriteReady && this.boss.sprite?.play) { this.boss.sprite.play(animation, loop); this.boss.playedAnimation = animation; } }
     updateBossSprite(delta) { this.prepareBossSprite(); if (this.boss?.spriteReady && this.boss.sprite?.update) this.boss.sprite.update(delta); }
-    updateBossWalk(delta) { this.setBossAnimation('sector_1_boss_walk_walk', true); this.boss.x -= CINEMATIC.bossSpeed * (delta / 1000); this.updateBossSprite(delta); if (this.boss.x <= CINEMATIC.bossStopX) { this.boss.x = CINEMATIC.bossStopX; this.state = STATES.BOSS_FLOURISH; this.phaseElapsed = 0; this.boss.state = 'flourish'; this.boss.flourishPlayed = true; this.setBossAnimation('sector_1_boss_attack_attack', false); if (window.gameState) window.gameState.collectionMessage = { text: 'SIGNAL RESTORED. BOSS APPROACHING.', timer: 160 }; } }
-    enterBossReady() { this.boss.state = 'idle'; this.setBossAnimation('sector_1_boss_idle_idle', true); this.bossReadyEmitted = true; if (window.objectivesSystem?.setBossIntroObjective) window.objectivesSystem.setBossIntroObjective(); }
+    updateBossWalk(delta) { this.setBossAnimation('sector_1_boss_walk_walk', true); this.boss.x -= CINEMATIC.bossSpeed * (delta / 1000); this.updateBossSprite(delta); if (this.boss.x <= CINEMATIC.bossStopX) { this.boss.x = CINEMATIC.bossStopX; this.startBossCloseUp(); if (window.gameState) window.gameState.collectionMessage = { text: 'SIGNAL RESTORED. BOSS APPROACHING.', timer: 160 }; } }
+    startBossCloseUp() { this.state = STATES.BOSS_CLOSE_UP; this.phaseElapsed = 0; this.closeUpStartZoom = this.cinematicZoomOverride; this.boss.state = 'idle'; this.setBossAnimation('sector_1_boss_idle_idle', true); }
+    updateBossCloseUp(delta) { this.phaseElapsed += delta; const t = Math.min(1, this.phaseElapsed / CINEMATIC.closeUpMs); this.cinematicZoomOverride = lerp(this.closeUpStartZoom, this.cinematicCloseZoom, easeOutCubic(t)); this.updateBossSprite(delta); if (t >= 1) { this.cinematicZoomOverride = this.cinematicCloseZoom; this.startBossFlourish(); } }
+    startBossFlourish() { this.state = STATES.BOSS_FLOURISH; this.phaseElapsed = 0; this.boss.state = 'flourish'; this.boss.flourishPlayed = true; this.setBossAnimation('sector_1_boss_attack_attack', false); }
+    updateBossFlourish(delta) { this.updateBossSprite(delta); this.advanceTimed(delta, CINEMATIC.flourishMs, STATES.BOSS_HOLD, () => { this.boss.state = 'flourish'; }); }
+    updateBossHold(delta) { this.updateBossSprite(delta); this.advanceTimed(delta, CINEMATIC.holdMs, STATES.CAMERA_RETURN, () => this.startCameraReturn()); }
+    getBossArenaTargetX() { const zoom = Math.max(0.1, this.cinematicStartZoom || 1); return clampWorldX(this.cinematicStartCameraX + (CINEMATIC.bossArenaScreenX - CANVAS_WIDTH / 2) / zoom); }
+    startCameraReturn() { this.state = STATES.CAMERA_RETURN; this.phaseElapsed = 0; this.returnStartCameraX = this.cameraX; this.returnStartZoom = this.cinematicZoomOverride; this.returnStartBossX = this.boss.x; this.returnBossTargetX = this.getBossArenaTargetX(); this.boss.state = 'walk'; this.setBossAnimation('sector_1_boss_walk_walk', true); }
+    updateCameraReturn(delta) { this.phaseElapsed += delta; const t = Math.min(1, this.phaseElapsed / CINEMATIC.returnMs); const eased = smoothStep(t); this.cameraX = clampCamera(lerp(this.returnStartCameraX, this.cinematicStartCameraX, eased)); const desiredZoom = lerp(this.returnStartZoom, this.cinematicStartZoom, eased); this.cinematicZoomOverride = t < 1 ? Math.max(desiredZoom, getForegroundCoverageZoomFloor(this.cameraX)) : this.cinematicStartZoom; this.boss.x = lerp(this.returnStartBossX, this.returnBossTargetX, eased); this.updateBossSprite(delta); if (t >= 1) { this.cameraX = this.cinematicStartCameraX; this.cinematicZoomOverride = this.cinematicStartZoom; this.boss.x = this.returnBossTargetX; this.enterBossReady(); } }
+    enterBossReady() { this.state = STATES.BOSS_READY; this.boss.state = 'idle'; this.boss.canDealDamage = false; this.boss.canReceiveDamage = false; this.setBossAnimation('sector_1_boss_idle_idle', true); this.bossReadyEmitted = true; this.cameraOverrideActive = false; this.frozenPlayerPosition = null; this.cinematicZoomReleasePending = true; if (this.player) { this.player.controlsDisabled = false; if (this.player.velocity) { this.player.velocity.x = 0; this.player.velocity.y = 0; } } /* Boss combat is intentionally not enabled until a later authoritative PlayerCombat/EnemyManager pass. */ if (window.objectivesSystem?.setBossIntroObjective) window.objectivesSystem.setBossIntroObjective(); }
     draw(ctx) { this.drawStageSurfaces(ctx); this.drawEncounterGates(ctx); this.drawBoss(ctx); }
     drawStageSurfaces(ctx) { if (!ctx) return; ctx.save(); STAGE_SURFACES.forEach(g => { ctx.shadowColor = '#00ffff'; ctx.shadowBlur = 8; ctx.fillStyle = 'rgba(0,255,255,0.34)'; ctx.fillRect(g.x, g.y - 2, g.w, g.h); ctx.shadowBlur = 0; ctx.strokeStyle = 'rgba(0,255,255,0.92)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(g.x, g.y); ctx.lineTo(g.x + g.w, g.y); ctx.stroke(); }); ctx.restore(); }
     drawEncounterGates(ctx) { if (!ctx) return; const gate = this.getCurrentGate(); if (!gate) return; ctx.save(); ctx.globalAlpha = 0.9; ctx.fillStyle = 'rgba(255,0,255,0.55)'; ctx.fillRect(gate.x, gate.y, gate.w, gate.h); ctx.strokeStyle = '#ff00ff'; ctx.lineWidth = 3; ctx.strokeRect(gate.x, gate.y, gate.w, gate.h); ctx.restore(); }
@@ -148,8 +188,21 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     pollPreparedAssets() { if (!this.preparedAssets) return; Object.values(this.preparedAssets).forEach(entry => { if (entry && entry.sprite) this.pollPreparedAsset(entry); }); }
     pollPreparedAsset(entry) { if (!entry || entry.ready || entry.generation !== this.assetGeneration) return; try { if (!entry.sprite.isLoaded || entry.sprite.isLoaded()) { entry.ready = true; if (entry.onReady) entry.onReady(entry.sprite); } } catch (error) { if (!entry.diagnosticRecorded) { entry.diagnosticRecorded = true; this.recordAssetDiagnostic(entry.key, error); } } }
     recordAssetDiagnostic(key, error) { this.assetDiagnostics = this.assetDiagnostics || []; if (!this.assetDiagnostics.some(entry => entry.key === key)) this.assetDiagnostics.push({ key, message: String(error && error.message || error) }); }
-    reset(options = {}) { this.missionStarted = false; this.missionDefeats = 0; this.enemiesDefeated = 0; this.jammerRevealed = false; this.jammerDestroyedNotified = false; this.cinematicStartedCount = 0; this.phaseElapsed = 0; this.cameraOverrideActive = false; this.cameraX = null; this.cinematicStartCameraX = null; this.frozenPlayerPosition = null; this.panStartX = null; this.panTargetX = null; this.boss = null; this.bossReadyEmitted = false; this.assetGeneration = (this.assetGeneration || 0) + 1; this.preparedAssets = {}; this.preloadedBossSprite = null; this.bossAssetsRequested = false; this.countedEnemies = new Set(); this.spawnedEncounterIds = new Set(); this.activeEncounterId = null; this.activeEncounterEnemies = []; this.closedGateEncounterId = null; this.pendingSpawns = []; this.nextJammerSpawnMs = Infinity; this.jammerReinforcementCount = 0; this.debugDamageSequence = 0; this.lastSpawnPlan = null; this.state = options && options.preserveTutorial ? STATES.TUTORIAL : STATES.TUTORIAL; if (window.BARCODE?.JammerEnvironment?.reset) window.BARCODE.JammerEnvironment.reset(); if (this.player) this.player.controlsDisabled = false; }
-    getDiagnostics() { const activeReinforcements = (window.enemyManager?.enemies || []).filter(enemy => enemy && enemy.active && enemy._jammerReinforcement).length; return { state: this.state, missionDefeats: this.missionDefeats, requiredEnemyKills: this.requiredEnemyKills, encounters: ENCOUNTERS, stageSurfaces: STAGE_SURFACES, pendingSpawns: this.pendingSpawns.length, lastSpawnPlan: this.lastSpawnPlan, activeReinforcements, jammerRevealed: this.jammerRevealed, cinematicStartedCount: this.cinematicStartedCount, cameraX: this.cameraX, boss: this.boss && { x: this.boss.x, state: this.boss.state, flourishPlayed: this.boss.flourishPlayed, visual: this.getBossVisualBounds(), canDealDamage: false, canReceiveDamage: false }, bossReadyEmitted: this.bossReadyEmitted, assetDiagnostics: this.assetDiagnostics || [] }; }
+    reset(options = {}) {
+      this.missionStarted = false; this.missionDefeats = 0; this.enemiesDefeated = 0; this.jammerRevealed = false; this.jammerDestroyedNotified = false;
+      this.cinematicStartedCount = 0; this.phaseElapsed = 0; this.cameraOverrideActive = false; this.cameraX = null;
+      this.cinematicStartCameraX = null; this.cinematicStartPlayerPosition = null; this.cinematicStartZoom = null; this.cinematicWideZoom = null; this.cinematicCloseZoom = null;
+      this.cinematicZoomOverride = null; this.cinematicZoomReleasePending = false; this.closeUpStartZoom = null; this.frozenPlayerPosition = null;
+      this.panStartX = null; this.panTargetX = null; this.returnStartCameraX = null; this.returnStartZoom = null; this.returnStartBossX = null; this.returnBossTargetX = null;
+      this.boss = null; this.bossReadyEmitted = false; this.assetGeneration = (this.assetGeneration || 0) + 1; this.preparedAssets = {}; this.preloadedBossSprite = null; this.bossAssetsRequested = false;
+      this.countedEnemies = new Set(); this.spawnedEncounterIds = new Set(); this.activeEncounterId = null; this.activeEncounterEnemies = []; this.closedGateEncounterId = null; this.pendingSpawns = [];
+      this.nextJammerSpawnMs = Infinity; this.jammerReinforcementCount = 0; this.debugDamageSequence = 0; this.lastSpawnPlan = null;
+      this.state = options && options.preserveTutorial ? STATES.TUTORIAL : STATES.TUTORIAL;
+      if (window.renderer && typeof window.renderer.clearCinematicZoomOverride === 'function') window.renderer.clearCinematicZoomOverride();
+      if (window.BARCODE?.JammerEnvironment?.reset) window.BARCODE.JammerEnvironment.reset();
+      if (this.player) this.player.controlsDisabled = false;
+    }
+    getDiagnostics() { const activeReinforcements = (window.enemyManager?.enemies || []).filter(enemy => enemy && enemy.active && enemy._jammerReinforcement).length; return { state: this.state, missionDefeats: this.missionDefeats, requiredEnemyKills: this.requiredEnemyKills, encounters: ENCOUNTERS, stageSurfaces: STAGE_SURFACES, pendingSpawns: this.pendingSpawns.length, lastSpawnPlan: this.lastSpawnPlan, activeReinforcements, jammerRevealed: this.jammerRevealed, cinematicStartedCount: this.cinematicStartedCount, cameraX: this.cameraX, cinematic: { startCameraX: this.cinematicStartCameraX, startPlayerPosition: this.cinematicStartPlayerPosition, startZoom: this.cinematicStartZoom, zoomOverride: this.getCinematicZoomOverride(), cameraOverrideActive: this.cameraOverrideActive, returnBossTargetX: this.returnBossTargetX }, boss: this.boss && { x: this.boss.x, state: this.boss.state, flourishPlayed: this.boss.flourishPlayed, visual: this.getBossVisualBounds(), canDealDamage: false, canReceiveDamage: false, combatPending: true }, bossReadyEmitted: this.bossReadyEmitted, assetDiagnostics: this.assetDiagnostics || [] }; }
   };
   window.initSector1Progression = function(player) { if (!window.sector1Progression) window.sector1Progression = new window.Sector1Progression(player); else window.sector1Progression.player = player || window.sector1Progression.player; return window.sector1Progression; };
 })();

@@ -22,6 +22,10 @@ window.FILE_MANIFEST.push({
 
   function isUnlocked() { return window.BARCODE.DEBUG_LEVEL_1_SESSION === true; }
   function progression() { return window.sector1Progression || window.initSector1Progression?.(window.player); }
+  function isBossCinematicActive() {
+    const owner = window.sector1Progression;
+    return !!(owner && typeof owner.isBossCinematicActive === 'function' && owner.isBossCinematicActive());
+  }
   function disabled() { return { ok: false, reason: 'debug-disabled' }; }
   function call(method, ...args) {
     if (!isUnlocked()) return disabled();
@@ -278,6 +282,7 @@ window.FILE_MANIFEST.push({
   }
 
   function handleCanvasPointer(event) {
+    if (isBossCinematicActive()) return;
     if (Number.isFinite(event.button) && event.button !== 0) return;
     const canvas = event.currentTarget || uiState.pointerCanvas;
     const point = eventToCanvasPoint(event, canvas);
@@ -373,7 +378,7 @@ window.FILE_MANIFEST.push({
   }
 
   function drawOverlay(ctx) {
-    if (!ctx) return;
+    if (!ctx || isBossCinematicActive()) return;
     if (isUnlocked() && overlayState.enabled) {
       try {
         drawGeometryOverlay(ctx);
@@ -405,6 +410,7 @@ window.FILE_MANIFEST.push({
     const backquote = key === '`' || key === '~' || code === 'Backquote';
     const unlockedF1 = isUnlocked() && key === 'F1';
     if (!shiftF1 && !ctrlShiftD && !backquote && !unlockedF1) return;
+    if (isBossCinematicActive()) return;
     if (event.repeat) return;
     consumeEvent(event);
     togglePanel();

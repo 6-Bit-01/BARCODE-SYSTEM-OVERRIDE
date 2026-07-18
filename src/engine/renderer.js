@@ -40,6 +40,7 @@ window.Renderer = class Renderer {
     
     // CRT effect properties
     this.scanlineOffset = 0;
+    this.scanlinePattern = null;
     this.glitchIntensity = 0;
     this.chromaticAberration = 0;
     
@@ -47,6 +48,7 @@ window.Renderer = class Renderer {
     this.zoomLevel = 1.0; // Current zoom level (1.0 = normal, 0.625 = 37.5% zoomed out)
     this.targetZoomLevel = 1.0;
     this.zoomSpeed = 0.05; // Much smoother zoom transition speed (reduced from 0.1)
+    this.cinematicZoomOverride = null;
   }
 
   // Clear canvas with dark background
@@ -139,81 +141,50 @@ window.Renderer = class Renderer {
       return;
     }
 
-    // Check if canvas is tainted before attempting getImageData
-    if (this.isCanvasTainted()) {
-      // Disable post effects for tainted canvas to prevent cross-origin errors
-      this.postEffects = false;
-      return;
-    }
-
-    let imageData;
-    try {
-      imageData = this.ctx.getImageData(0, 0, this.width, this.height);
-    } catch (error) {
-      // Disable post effects permanently on first failure to prevent repeated errors
-      this.postEffects = false;
-      return;
-    }
-    
-    if (!imageData || !imageData.data) {
-      console.warn('Invalid image data for post effects');
-      return;
-    }
-    
-    const data = imageData.data;
-
-    // Apply scanline effect
+    // Draw the CRT treatment as a composited overlay. The previous implementation
+    // read and rewrote every canvas pixel each frame, which was especially costly
+    // in Makko at the game's 1920x1080 internal resolution.
     this.scanlineOffset = (this.scanlineOffset + 1) % 4;
-    
-    for (let y = 0; y < this.height; y++) {
-      // Scanlines
-      if (y % 4 !== this.scanlineOffset) {
-        const scanlineAlpha = 0.9;
-        for (let x = 0; x < this.width; x++) {
-          const index = (y * this.width + x) * 4;
-          data[index] *= scanlineAlpha;     // R
-          data[index + 1] *= scanlineAlpha; // G
-          data[index + 2] *= scanlineAlpha; // B
-        }
-      }
-      
-      // VHS distortion effect - much reduced frequency
-      const distortion = Math.sin(y * 0.02) * 1;
-      if (Math.random() > 0.995) { // Much less frequent
-        const glitchLine = y * this.width * 4;
-        const glitchIntensity = 0.3 + Math.random() * 0.7;
-        for (let x = 0; x < this.width * 4; x += 4) {
-          if (glitchLine + x < data.length - 3) {
-            data[glitchLine + x] = Math.floor(data[glitchLine + x] * glitchIntensity);
-            data[glitchLine + x + 1] = Math.floor(data[glitchLine + x + 1] * glitchIntensity);
-            data[glitchLine + x + 2] = Math.floor(data[glitchLine + x + 2] * glitchIntensity);
-          }
-        }
+    this.ctx.save();
+
+    if (!this.scanlinePattern) {
+      const tile = document.createElement('canvas');
+      tile.width = 4;
+      tile.height = 4;
+      const tileContext = tile.getContext('2d');
+      if (tileContext) {
+        // Match the old treatment: three rows darkened by roughly ten percent,
+        // followed by one clear row, without touching the underlying pixels.
+        tileContext.fillStyle = 'rgba(0, 0, 0, 0.10)';
+        tileContext.fillRect(0, 0, 4, 3);
+        this.scanlinePattern = this.ctx.createPattern(tile, 'repeat');
       }
     }
 
-    // Color channel separation for glitch effect - much reduced
-    if (this.glitchIntensity > 0.5 && Math.random() > 0.95) {
-      // Use fallback if randomRange is not available
-      let offset;
-      if (typeof window.randomRange === 'function') {
-        offset = Math.floor(window.randomRange(1, 3)); // Smaller offset
-      } else {
-        offset = Math.floor(Math.random() * 3) + 1; // Fallback: 1-3
-      }
-      for (let i = 0; i < data.length - 12; i += 4) {
-        if (Math.random() > 0.8) {
-          data[i] = Math.min(255, data[i] + offset * 10); // Red channel shift
-          data[i + 2] = Math.max(0, data[i + 2] - offset * 10); // Blue channel shift
-        }
+    if (this.scanlinePattern) {
+      this.ctx.translate(0, this.scanlineOffset);
+      this.ctx.fillStyle = this.scanlinePattern;
+      this.ctx.fillRect(0, -this.scanlineOffset, this.width, this.height + 4);
+      this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+    }
+
+    // Preserve the occasional VHS instability with a handful of cheap bands.
+    // These are deliberately bounded draw calls rather than a full-frame readback.
+    const activeGlitch = Math.max(this.glitchIntensity, this.chromaticAberration * 0.5);
+    const bandCount = activeGlitch > 0.15 ? Math.min(3, 1 + Math.floor(activeGlitch * 2)) : (Math.random() > 0.985 ? 1 : 0);
+    for (let i = 0; i < bandCount; i++) {
+      const y = Math.floor(Math.random() * this.height);
+      const height = 1 + Math.floor(Math.random() * 3);
+      const alpha = activeGlitch > 0.15 ? Math.min(0.18, 0.04 + activeGlitch * 0.08) : 0.05;
+      this.ctx.fillStyle = `rgba(0, 255, 255, ${alpha})`;
+      this.ctx.fillRect(0, y, this.width, height);
+      if (activeGlitch > 0.5) {
+        this.ctx.fillStyle = `rgba(255, 0, 255, ${alpha * 0.75})`;
+        this.ctx.fillRect(0, Math.min(this.height - 1, y + height + 1), this.width, 1);
       }
     }
 
-    try {
-      this.ctx.putImageData(imageData, 0, 0);
-    } catch (error) {
-      // Silently handle putImageData errors to prevent console spam
-    }
+    this.ctx.restore();
   }
 
   // Draw text with glow effect
@@ -329,8 +300,13 @@ window.Renderer = class Renderer {
         this.chromaticAberration = Math.max(0, this.chromaticAberration - deltaTime * 0.01);
       }
       
-      // Smooth zoom level transitions
-      if (Math.abs(this.zoomLevel - this.targetZoomLevel) > 0.001) {
+      if (this.cinematicZoomOverride !== null) {
+        // Sector1Progression supplies its own eased cinematic curve. Apply it
+        // exactly so a second smoothing pass cannot expose the foreground edge.
+        this.zoomLevel = this.cinematicZoomOverride;
+        this.targetZoomLevel = this.cinematicZoomOverride;
+      } else if (Math.abs(this.zoomLevel - this.targetZoomLevel) > 0.001) {
+        // Smooth ordinary player-owned zoom transitions.
         this.zoomLevel += (this.targetZoomLevel - this.zoomLevel) * this.zoomSpeed;
       }
     } catch (error) {
@@ -372,6 +348,10 @@ window.Renderer = class Renderer {
   
   // Update camera zoom based on player position
   updateZoomFromPlayer(playerX, playerY) {
+    if (this.cinematicZoomOverride !== null) {
+      return;
+    }
+
     // For side-scroller, we want zoom based on player's position in the FOREGROUND image
     // The FG image is 4096px wide, and we want maximum zoom when player is at center of FG (2048px)
     const fgCenter = 2048; // Center of the 4096px wide foreground image
@@ -409,6 +389,25 @@ window.Renderer = class Renderer {
   // Get current zoom level
   getZoomLevel() {
     return this.zoomLevel;
+  }
+
+  getTargetZoomLevel() {
+    return this.targetZoomLevel;
+  }
+
+  setCinematicZoomOverride(level) {
+    if (!Number.isFinite(level)) {
+      return;
+    }
+    this.cinematicZoomOverride = Math.max(0.625, Math.min(1.2, level));
+  }
+
+  getCinematicZoomOverride() {
+    return this.cinematicZoomOverride;
+  }
+
+  clearCinematicZoomOverride() {
+    this.cinematicZoomOverride = null;
   }
   
   // Set zoom level manually
@@ -554,6 +553,11 @@ function createFallbackRenderer() {
     update: () => {},
     addScreenShake: () => {},
     addGlitch: () => {},
+    getZoomLevel: () => 1,
+    getTargetZoomLevel: () => 1,
+    setCinematicZoomOverride: () => {},
+    getCinematicZoomOverride: () => null,
+    clearCinematicZoomOverride: () => {},
     width: 1920,
     height: 1080,
     ctx: cachedContext || null,

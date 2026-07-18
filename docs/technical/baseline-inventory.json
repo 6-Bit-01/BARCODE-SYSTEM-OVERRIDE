@@ -115,6 +115,7 @@
     "tools/check-enemy-ownership.js",
     "tools/check-frame-ownership.js",
     "tools/check-level-01-mission.js",
+    "tools/check-level-01-smoothing.js",
     "tools/check-makko-hotfix.js",
     "tools/check-music-profiles.js",
     "tools/check-runtime-lifecycle.js",
@@ -386,7 +387,7 @@
     {
       "global": "window.gameLoop",
       "file": "src/core/loop.js",
-      "line": 44,
+      "line": 60,
       "loaded": true
     },
     {
@@ -494,37 +495,55 @@
     {
       "global": "window.renderer",
       "file": "src/engine/renderer.js",
-      "line": 429,
+      "line": 428,
       "loaded": true
     },
     {
       "global": "window.renderer",
       "file": "src/engine/renderer.js",
-      "line": 501,
+      "line": 500,
       "loaded": true
     },
     {
       "global": "window.renderer",
       "file": "src/engine/renderer.js",
-      "line": 518,
+      "line": 517,
       "loaded": true
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 159,
+      "line": 175,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 186,
+      "line": 202,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 247,
+      "line": 263,
+      "loaded": false
+    },
+    {
+      "global": "window.renderer",
+      "file": "tools/check-level-01-mission.js",
+      "line": 281,
+      "loaded": false
+    },
+    {
+      "global": "window.renderer",
+      "file": "tools/check-level-01-mission.js",
+      "line": 360,
+      "loaded": false
+    },
+    {
+      "global": "window.renderer",
+      "file": "tools/check-level-01-mission.js",
+      "line": 400,
       "loaded": false
     },
     {
@@ -548,7 +567,7 @@
     {
       "global": "window.startGameLoop",
       "file": "src/core/loop.js",
-      "line": 114,
+      "line": 130,
       "loaded": true
     },
     {

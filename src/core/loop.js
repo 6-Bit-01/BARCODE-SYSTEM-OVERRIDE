@@ -31,7 +31,23 @@ function updateRendererState(deltaTime) {
   if (!window.renderer || typeof window.renderer.update !== 'function') return;
 
   try {
-    if (window.player && typeof window.player.position === 'object' && typeof window.renderer.updateZoomFromPlayer === 'function') {
+    const cinematicZoom = window.sector1Progression && typeof window.sector1Progression.getCinematicZoomOverride === 'function'
+      ? window.sector1Progression.getCinematicZoomOverride()
+      : null;
+    const hasCinematicZoom = Number.isFinite(cinematicZoom);
+
+    if (hasCinematicZoom && typeof window.renderer.setCinematicZoomOverride === 'function') {
+      window.renderer.setCinematicZoomOverride(cinematicZoom);
+    } else {
+      const rendererOverride = typeof window.renderer.getCinematicZoomOverride === 'function'
+        ? window.renderer.getCinematicZoomOverride()
+        : null;
+      if (rendererOverride !== null && rendererOverride !== undefined && typeof window.renderer.clearCinematicZoomOverride === 'function') {
+        window.renderer.clearCinematicZoomOverride();
+      }
+    }
+
+    if (!hasCinematicZoom && window.player && typeof window.player.position === 'object' && typeof window.renderer.updateZoomFromPlayer === 'function') {
       window.renderer.updateZoomFromPlayer(window.player.position.x, window.player.position.y);
     }
     window.renderer.update(deltaTime);
