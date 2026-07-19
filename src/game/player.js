@@ -6,52 +6,55 @@ window.FILE_MANIFEST.push({
   dependencies: ['Vector2D', 'clamp', 'distance']
 });
 
-// MakkoEngine draws each animation around the bottom-center manifest anchor.
-// These presentation records retain the approved sprite sizes while anchoring
-// the lowest visible foot pixel to one canonical presentation line on every
-// frame. Player.position.y is already the historical sidewalk/roof contact
-// line, so frame compensation resolves back to that exact physics anchor; it
-// must not add another world-space offset.
+// These foot rows are untrimmed source-frame coordinates (all four source
+// sheets use a 96px-tall canvas). They retain the approved sprite sizes while
+// anchoring the lowest visible foot pixel to one canonical presentation line
+// on every frame. Player.position.y is already the sidewalk/roof contact line;
+// presentation alignment must not add another world-space physics offset.
 const PLAYER_VISUAL_FOOT_OFFSET_Y = 0;
 const PLAYER_ANIMATION_PRESENTATION = Object.freeze({
   idle: Object.freeze({
     animation: '6_bit_idle_idle',
     scale: 2,
+    anchorX: 43,
     anchorY: 95,
     footRows: Object.freeze([
-      93, 93, 93, 93, 93, 93, 93, 93, 93, 93, 93, 93, 94,
-      95, 95, 95, 95, 95, 94, 93, 93, 93, 93, 93, 93, 93
+      95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95,
+      95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95
     ])
   }),
   walk: Object.freeze({
     animation: '6_bit_walk_walk',
     scale: 2 * (71 / 66),
+    anchorX: 33,
     anchorY: 94,
     footRows: Object.freeze([
-      92, 92, 92, 93, 95, 95, 95, 93, 93, 93, 94, 95,
-      95, 95, 95, 94, 93, 92, 93, 93, 95, 95, 95, 95,
-      93, 92, 92, 93, 95, 95, 93, 93, 93, 95, 95, 95,
-      95, 95, 93, 93, 93, 95, 95, 95, 95, 95, 95, 95
+      94, 93, 93, 93, 94, 95, 94, 94, 95, 95, 95, 94,
+      94, 94, 94, 94, 94, 94, 93, 93, 93, 94, 94, 93,
+      93, 93, 93, 93, 93, 95, 94, 95, 95, 95, 94, 94,
+      94, 94, 94, 93, 93, 94, 95, 95, 95, 95, 95, 95
     ])
   }),
   jump: Object.freeze({
     animation: '6_bit_jump_jump',
     scale: 2 * (49 / 41),
+    anchorX: 21,
     anchorY: 95,
     footRows: Object.freeze([
-      77, 79, 83, 88, 89, 84, 77, 74, 69, 69, 70, 75, 83, 85,
-      88, 89, 88, 84, 79, 77, 77, 79, 80, 83, 87, 88, 89
+      94, 94, 94, 94, 91, 86, 76, 73, 68, 68, 69, 74, 82, 84,
+      89, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 93
     ])
   }),
   rhythm: Object.freeze({
     animation: '6_bit_r__h_mode_rhmode',
     scale: 2 * (60 / 51),
+    anchorX: 26,
     anchorY: 95,
     footRows: Object.freeze([
-      84, 84, 84, 85, 85, 84, 82, 81, 76, 69, 68, 67,
-      67, 68, 70, 77, 79, 84, 93, 95, 95, 88, 85, 84,
-      82, 80, 77, 72, 72, 77, 84, 85, 89, 95, 94, 88,
-      81, 79, 76, 72, 73, 79, 84, 85, 87, 91, 91, 89
+      95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95,
+      95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95,
+      95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95,
+      95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95
     ])
   })
 });
@@ -280,24 +283,102 @@ window.Player = class Player {
     return PLAYER_ANIMATION_PRESENTATION[state] || PLAYER_ANIMATION_PRESENTATION.idle;
   }
 
-  getVisualAnchor() {
+  getMakkoRenderMetrics(presentation = this.getAnimationPresentation(), flipH = false) {
+    // Makko has two anchor paths. A manifest anchor is multiplied by the final
+    // frame scale before Character.draw subtracts it. Its legacy fallback
+    // subtracts the source anchor unscaled even though the frame pixels still
+    // scale. Read the active sheet so the inverse positioning below matches
+    // the path the runtime will actually use instead of assuming one schema.
+    const spriteSheet = this.sprite?.currentSprite || this.sprite?._currentSprite || null;
+    const runtimeAnchor = typeof spriteSheet?.getAnchorPoint === 'function'
+      ? spriteSheet.getAnchorPoint()
+      : null;
+    const hasRuntimeAnchorX = Number.isFinite(runtimeAnchor?.x);
+    const hasRuntimeAnchorY = Number.isFinite(runtimeAnchor?.y);
+    const hasRuntimeAnchor = hasRuntimeAnchorX || hasRuntimeAnchorY;
+    const sourceAnchorX = hasRuntimeAnchorX
+      ? runtimeAnchor.x
+      : presentation.anchorX;
+    const sourceAnchorY = hasRuntimeAnchorY
+      ? runtimeAnchor.y
+      : presentation.anchorY;
+
+    let usesScaledAnchor = true;
+    if (spriteSheet) {
+      if (!hasRuntimeAnchor) {
+        usesScaledAnchor = false;
+      } else if (typeof spriteSheet.hasManifestAnchor === 'function') {
+        usesScaledAnchor = !!spriteSheet.hasManifestAnchor();
+      } else if (spriteSheet.manifestMetadata) {
+        usesScaledAnchor = !!spriteSheet.manifestMetadata.anchor;
+      } else {
+        usesScaledAnchor = false;
+      }
+    }
+
+    const reportedManifestScale = typeof spriteSheet?.getManifestScale === 'function'
+      ? spriteSheet.getManifestScale()
+      : spriteSheet?.manifestMetadata?.scale;
+    const manifestScale = Number.isFinite(reportedManifestScale) && reportedManifestScale > 0
+      ? reportedManifestScale
+      : 1;
+    const frameScale = presentation.scale * manifestScale;
+    const anchorMultiplier = usesScaledAnchor ? frameScale : 1;
+    const anchorOffsetX = spriteSheet && !hasRuntimeAnchorX ? 0 : sourceAnchorX * anchorMultiplier;
+    const anchorOffsetY = spriteSheet && !hasRuntimeAnchorY ? 0 : sourceAnchorY * anchorMultiplier;
+
+    return {
+      sourceAnchorX,
+      sourceAnchorY,
+      hasRuntimeAnchor,
+      hasRuntimeAnchorX,
+      hasRuntimeAnchorY,
+      usesScaledAnchor,
+      manifestScale,
+      frameScale,
+      flipSignX: flipH ? -1 : 1,
+      anchorOffsetX,
+      anchorOffsetY
+    };
+  }
+
+  getVisualAnchor(flipH = false) {
     const presentation = this.getAnimationPresentation();
     const frameCount = presentation.footRows.length;
     const rawFrame = Number.isFinite(this.animationRef?.currentFrame) ? this.animationRef.currentFrame : 0;
     const frameIndex = frameCount > 0 ? Math.max(0, Math.trunc(rawFrame)) % frameCount : 0;
     const footRow = presentation.footRows[frameIndex] ?? presentation.anchorY;
     const targetFootY = this.position.y + PLAYER_VISUAL_FOOT_OFFSET_Y;
-    const drawY = targetFootY + (presentation.anchorY - footRow) * presentation.scale;
+    const render = this.getMakkoRenderMetrics(presentation, flipH);
+    // Character.draw ultimately renders the visible foot at:
+    // inputY - anchorOffsetY + footRow * frameScale. Solve that expression
+    // backwards so both Makko anchor paths land on the same physics target.
+    const drawY = targetFootY + render.anchorOffsetY - footRow * render.frameScale;
+    // The same legacy mismatch affects X and is mirrored when flipH is active.
+    // Keep the source anchor column on position.x in either facing direction.
+    const drawX = this.position.x + render.flipSignX * (
+      render.anchorOffsetX - render.sourceAnchorX * render.frameScale
+    );
 
     return {
-      x: this.position.x,
+      x: drawX,
       y: drawY,
       scale: presentation.scale,
-      anchorY: presentation.anchorY,
+      anchorX: render.sourceAnchorX,
+      anchorY: render.sourceAnchorY,
       footRow,
       frameIndex,
       targetFootY,
-      visibleFootY: drawY + (footRow - presentation.anchorY) * presentation.scale
+      manifestScale: render.manifestScale,
+      frameScale: render.frameScale,
+      usesScaledAnchor: render.usesScaledAnchor,
+      flipSignX: render.flipSignX,
+      anchorOffsetX: render.anchorOffsetX,
+      anchorOffsetY: render.anchorOffsetY,
+      visibleAnchorX: drawX + render.flipSignX * (
+        render.sourceAnchorX * render.frameScale - render.anchorOffsetX
+      ),
+      visibleFootY: drawY - render.anchorOffsetY + footRow * render.frameScale
     };
   }
 
@@ -1363,10 +1444,7 @@ window.Player = class Player {
   // Draw sprite-based character
   drawSprite(ctx) {
     ctx.save();
-    const visualAnchor = this.getVisualAnchor();
-    const drawY = visualAnchor.y;
-    const drawX = visualAnchor.x;
-    
+
     // Handle directional flipping for animations
     let shouldFlip = false;
     
@@ -1381,6 +1459,10 @@ window.Player = class Player {
       // Use same logic as idle: flip when facing left
       shouldFlip = this.facing === -1;
     }
+
+    const visualAnchor = this.getVisualAnchor(shouldFlip);
+    const drawY = visualAnchor.y;
+    const drawX = visualAnchor.x;
     
     this.sprite.draw(ctx, drawX, drawY, {
       scale: visualAnchor.scale,
