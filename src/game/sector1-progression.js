@@ -28,15 +28,16 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
   ]);
 
   // Calibrated against the locked 1279x462 Level 1 foreground image using the
-  // renderer's 4400x1589 draw at (-152, -550). Each architectural mass owns one
-  // walkable awning or rooftop; facade/window/door trim is intentionally not
-  // collidable so the route never creates stacked invisible steps.
+  // renderer's 4400x1589 draw at (-152, -550). Every collider follows a real
+  // awning or rooftop; the tower intentionally exposes both its upper roof and
+  // lower striped awning, while facade/window/door trim remains non-collidable.
   const STAGE_SURFACES = Object.freeze([
     { id: 'signal-awning', x: 736, y: 492, w: 529, h: 8 },
     { id: 'cache-awning', x: 1534, y: 330, w: 278, h: 8 },
     { id: 'firewall-canopy', x: 1936, y: 358, w: 582, h: 8 },
     { id: 'relay-rooftop', x: 2580, y: 196, w: 574, h: 8 },
     { id: 'tower-rooftop', x: 3154, y: 275, w: 609, h: 8 },
+    { id: 'tower-awning', x: 3292, y: 502, w: 402, h: 8 },
     { id: 'broadcast-awning', x: 3777, y: 502, w: 319, h: 8 }
   ]);
 

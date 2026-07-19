@@ -30,6 +30,7 @@ function keyEvent(key, repeat=false) { return { key, repeat, preventDefault(){ t
 const files = {
   index: read('index.html'), input: read('src/core/input.js'), action: read('src/core/action-input.js'), combat: read('src/game/player-combat.js'), rhythm: read('src/game/rhythm.js'), enemy: read('src/game/enemies.js'), player: read('src/game/player.js'), audio: read('src/engine/audio.js'), init: read('src/game/game-initializer.js'), tutorial: read('src/game/tutorial.js'), boot: read('src/engine/boot-loader.js'), title: read('src/engine/title-screen.js')
 };
+const spriteManifest = JSON.parse(read('sprites-manifest.json'));
 const playerCombatScripts = [...files.index.matchAll(/<script\s+src="src\/game\/player-combat\.js"><\/script>/g)];
 assert(playerCombatScripts.length === 1, 'index.html loads src/game/player-combat.js exactly once');
 assert(files.index.indexOf('src/core/action-input.js') < files.index.indexOf('src/game/player-combat.js') && files.index.indexOf('src/game/player-combat.js') < files.index.indexOf('src/core/input.js'), 'player-combat loads after ActionInput and before InputManager');
@@ -112,6 +113,13 @@ pass('boss cinematic Rhythm Mode ownership');
   load(s, 'src/game/player.js');
   const player = new s.window.Player(960, 500);
   const states = ['idle', 'walk', 'jump', 'rhythm'];
+  const playerAnimations = spriteManifest.characters['6_bit_main'].animations;
+  const manifestAnchors = {
+    idle: { animation: '6_bit_idle_idle', x: 43, y: 95 },
+    walk: { animation: '6_bit_walk_walk', x: 33, y: 94 },
+    jump: { animation: '6_bit_jump_jump', x: 21, y: 95 },
+    rhythm: { animation: '6_bit_r__h_mode_rhmode', x: 26, y: 95 }
+  };
   const establishedCombatHulls = {
     idle: { width: 154.8, bottom: 543.8 },
     walk: { width: 118.8, bottom: 528.8 },
@@ -121,10 +129,17 @@ pass('boss cinematic Rhythm Mode ownership');
   for (const state of states) {
     player.state = state;
     const presentation = player.getAnimationPresentation(state);
+    const expectedManifest = manifestAnchors[state];
+    const animationEntry = playerAnimations[expectedManifest.animation];
+    assert(animationEntry.metadata?.anchor, `${state} publishes its anchor through the Makko animation metadata schema`);
+    assert(animationEntry.metadata.anchor.x === expectedManifest.x && animationEntry.metadata.anchor.y === expectedManifest.y, `${state} metadata preserves the audited player anchor`);
+    assert(JSON.stringify(animationEntry.metadata.anchor) === JSON.stringify(animationEntry.anchor), `${state} compatibility anchor cannot drift from Makko metadata`);
     for (let frame = 0; frame < presentation.footRows.length; frame++) {
       player.animationRef = { currentFrame: frame };
       const anchor = player.getVisualAnchor();
       assert(Math.abs(anchor.visibleFootY - 500) < 0.000001, `${state} frame ${frame} resolves to the existing physics contact line`);
+      const makkoRenderedFootY = anchor.y - animationEntry.metadata.anchor.y * anchor.scale + presentation.footRows[frame] * anchor.scale;
+      assert(Math.abs(makkoRenderedFootY - 500) < 0.000001, `${state} frame ${frame} remains on the contact line after Makko scales its manifest anchor`);
       assert(anchor.x === player.position.x, `${state} frame ${frame} remains horizontally centered on the physics anchor`);
     }
     const hitbox = player.getHitbox();
