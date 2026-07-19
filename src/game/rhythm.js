@@ -220,7 +220,6 @@ window.RhythmSystem = class RhythmSystem {
     if (window.isPaused || window.isRunning === false || gameState.paused || gameState.gameOver || gameState.victory || gameState.running === false) return { ok: false, reason: 'gameplay-inactive' };
     if (window.cutsceneSystem && window.cutsceneSystem.active) return { ok: false, reason: 'cutscene-active' };
     if (window.hackingSystem && typeof window.hackingSystem.isActive === 'function' && window.hackingSystem.isActive()) return { ok: false, reason: 'hacking-active' };
-    if (window.player && window.player.grounded === false) return { ok: false, reason: 'airborne' };
     if (!this.trackStarted || this.currentTempoBeat === 0) return { ok: false, reason: 'rhythm-not-ready' };
     return { ok: true };
   }
@@ -234,12 +233,7 @@ window.RhythmSystem = class RhythmSystem {
     }
 
     this.active = true;
-    if (window.player && typeof window.player.stopHorizontal === 'function') {
-      const previousState = window.player.state;
-      window.player.state = previousState === 'rhythm' ? previousState : 'idle';
-      window.player.stopHorizontal();
-      window.player.state = 'rhythm';
-    }
+    if (window.player) window.player.state = 'rhythm';
     if (!this.running) {
       this.startBackgroundRhythm(); // Start background progress if not running
     }
@@ -248,6 +242,13 @@ window.RhythmSystem = class RhythmSystem {
     return { ok: true, reason: 'activated' };
   }
   
+
+  getAuthoritativeDamageRadius() {
+    const combo = typeof this.getCombo === 'function' ? this.getCombo() : (this.combo || 0);
+    const t = Math.max(0, Math.min(1, combo / 10));
+    return this.baseDamageRadius + (this.maxDamageRadius - this.baseDamageRadius) * t;
+  }
+
   // CRITICAL: Gameplay-only restart for when rhythm mode is reactivated
   restart() {
     console.log('🔄 RESTARTING RHYTHM MODE - GAMEPLAY RESET ONLY');

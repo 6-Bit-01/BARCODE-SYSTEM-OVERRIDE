@@ -22,6 +22,9 @@ window.HackingSystem = class HackingSystem {
     this.runGeneration = 0;
     this.terminalLines = [];
     this.terminalHistory = [];
+    this.guardHitsRemaining = 1;
+    this.previousRhythmModeActive = !!(window.rhythmSystem?.isActive?.());
+    if (this.previousRhythmModeActive && window.rhythmSystem?.hideRhythmMode) window.rhythmSystem.hideRhythmMode();
     this.cursorBlink = 0;
     
     // Tutorial integration
@@ -31,6 +34,11 @@ window.HackingSystem = class HackingSystem {
     
     // Track last result to prevent incorrect tutorial completion
     this._lastResultFailed = false;
+    this.cooldownMs = 10000;
+    this.cooldownUntil = 0;
+    this.guardHitsRemaining = 0;
+    this.previousRhythmModeActive = false;
+    this.puzzleReadyAt = 0;
     
     console.log('Terminal Hacking System initialized');
   }
@@ -57,15 +65,19 @@ window.HackingSystem = class HackingSystem {
 
   // Start hacking mode with a random puzzle
   start() {
-    if (this.active) {
-      console.log('Hacking already active, ignoring start request');
-      return;
-    }
+    if (this.active) { console.log('Hacking already active, ignoring start request'); return; }
+    const tutorialActive = window.tutorialSystem && typeof window.tutorialSystem.isActive === 'function' && window.tutorialSystem.isActive();
+    if (!tutorialActive && Date.now() < this.cooldownUntil) { console.log('Hacking cooldown active'); return; }
+    if (window.player && window.player.grounded === false) { console.log('Hacking requires ground/support'); return; }
     
     console.log('=== INITIATING TERMINAL HACK ===');
     
     // Clear any existing timeout first
     this.clearOwnedTimeouts();
+    this.cooldownUntil = 0;
+    this.guardHitsRemaining = 0;
+    this.previousRhythmModeActive = false;
+    this.finishTacticalFocus(true);
     this.runGeneration++;
     
     // Reset failure tracking for new attempt
@@ -90,6 +102,8 @@ window.HackingSystem = class HackingSystem {
     
     // Generate puzzle based on type
     this.trackTimeout(() => {
+      this.puzzleReadyAt = Date.now();
+      this._startTime = this.puzzleReadyAt;
       switch(this.puzzleType) {
         case 1:
           this.generatePortPuzzle();
@@ -110,15 +124,15 @@ window.HackingSystem = class HackingSystem {
       }
     }, this.displayTime);
     
-    // Record start time for timeout tracking
-    this._startTime = Date.now();
+    // Timer starts only when puzzle is generated and visible.
+    this._startTime = 0;
     
-    // Auto-fail after 8 seconds if not solved
+    // Auto-fail after approximately 4 seconds of answer time
     this.puzzleTimeout = this.trackTimeout(() => {
       if (this.active && !this.puzzleComplete) {
         this.timeoutFailPuzzle();
       }
-    }, 8000);
+    }, 4000);
     
     // Check tutorial objectives
     if (window.tutorialSystem && typeof window.tutorialSystem.isActive === 'function' && window.tutorialSystem.isActive()) {
@@ -310,6 +324,7 @@ window.HackingSystem = class HackingSystem {
     // Clear timeout
     this.runGeneration++;
     this.clearOwnedTimeouts();
+    this.finishTacticalFocus(true);
     
     // Update terminal with success message
     this.terminalLines = [
@@ -439,6 +454,19 @@ window.HackingSystem = class HackingSystem {
     this.showSuccessFeedback();
   }
   
+  finishTacticalFocus(success) {
+    this.cooldownUntil = Date.now() + this.cooldownMs;
+    this.guardHitsRemaining = 0;
+    if (this.previousRhythmModeActive && window.rhythmSystem?.showRhythmMode) window.rhythmSystem.showRhythmMode();
+    else if (this.previousRhythmModeActive && window.rhythmSystem?.show) window.rhythmSystem.show();
+    this.previousRhythmModeActive = false;
+    if (success) this.emitOverridePulse();
+  }
+
+  absorbGuardHit() { if (!this.active || this.guardHitsRemaining <= 0) return false; this.guardHitsRemaining -= 1; this.feedback = { text: 'SIGNAL GUARD ABSORBED', type: 'success', timer: 45, opacity: 1 }; return true; }
+
+  emitOverridePulse() { const beatMs = window.rhythmSystem?.beatInterval || 500; const stunMs = beatMs * 4; (window.enemyManager?.enemies || []).forEach(enemy => { if (enemy && enemy.active && enemy.type !== 'broadcast_jammer') enemy._stunnedUntilMs = Date.now() + stunMs; }); }
+
   // Handle failed puzzle
   failPuzzle() {
     this.puzzleComplete = true;
@@ -447,6 +475,7 @@ window.HackingSystem = class HackingSystem {
     // Clear timeout
     this.runGeneration++;
     this.clearOwnedTimeouts();
+    this.finishTacticalFocus(false);
     
     // Update terminal with failure message
     this.terminalLines = [
@@ -514,6 +543,19 @@ window.HackingSystem = class HackingSystem {
     };
   }
   
+  finishTacticalFocus(success) {
+    this.cooldownUntil = Date.now() + this.cooldownMs;
+    this.guardHitsRemaining = 0;
+    if (this.previousRhythmModeActive && window.rhythmSystem?.showRhythmMode) window.rhythmSystem.showRhythmMode();
+    else if (this.previousRhythmModeActive && window.rhythmSystem?.show) window.rhythmSystem.show();
+    this.previousRhythmModeActive = false;
+    if (success) this.emitOverridePulse();
+  }
+
+  absorbGuardHit() { if (!this.active || this.guardHitsRemaining <= 0) return false; this.guardHitsRemaining -= 1; this.feedback = { text: 'SIGNAL GUARD ABSORBED', type: 'success', timer: 45, opacity: 1 }; return true; }
+
+  emitOverridePulse() { const beatMs = window.rhythmSystem?.beatInterval || 500; const stunMs = beatMs * 4; (window.enemyManager?.enemies || []).forEach(enemy => { if (enemy && enemy.active && !enemy._jammerReinforcement && enemy.type !== 'broadcast_jammer') enemy._stunnedUntilMs = Date.now() + stunMs; }); }
+
   // Show failure feedback
   showFailureFeedback() {
     this.feedback = {
@@ -532,6 +574,7 @@ window.HackingSystem = class HackingSystem {
     // Clear timeout
     this.runGeneration++;
     this.clearOwnedTimeouts();
+    this.finishTacticalFocus(false);
     
     // Update terminal with timeout error message
     this.terminalLines = [
@@ -646,7 +689,7 @@ window.HackingSystem = class HackingSystem {
     // Show timer when active
     if (this.active && this._startTime) {
       const elapsed = Date.now() - this._startTime;
-      const remaining = Math.max(0, Math.ceil((8000 - elapsed) / 1000));
+      const remaining = Math.max(0, Math.ceil((4000 - elapsed) / 1000));
       ctx.fillStyle = remaining <= 3 ? '#ff0000' : '#ffff00';
       ctx.font = '12px monospace';
       ctx.fillText(`TIME: ${remaining}s`, 1500, 250);

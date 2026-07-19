@@ -1023,9 +1023,11 @@ window.EnemyManager = class EnemyManager {
     const tutorial = window.tutorialSystem;
     const tutorialWaiting = tutorial && tutorial.isActive() && tutorial.storyChapter === 1 && tutorial.combatEnemiesPaused;
 
-    // Update Enemies
+    // Update Enemies; tactical hack focus slows hostile simulation without pausing art/audio.
+    const hostileScale = window.hackingSystem?.isActive?.() ? 0.25 : 1;
     this.enemies.forEach(enemy => {
-      enemy.update(deltaTime, player, this.simulationTimeMs);
+      if (enemy._stunnedUntilMs && this.simulationTimeMs < enemy._stunnedUntilMs) return;
+      enemy.update(deltaTime * hostileScale, player, this.simulationTimeMs);
 
       // Tutorial Freeze Logic
       if (enemy.type === 'virus' && tutorialWaiting && enemy.active) {
@@ -1148,7 +1150,8 @@ window.EnemyManager = class EnemyManager {
 
             if (isStompPos && isMovingDown && this.simpleAABBcollision(playerBox, enemyBox)) {
                 enemy.takeDamage(999);
-                player.velocity.y = -550;
+                if (typeof player.stompRebound === 'function') player.stompRebound();
+                else player.velocity.y = -550;
                 player.velocity.x = nx * 300;
                 if (window.particleSystem) window.particleSystem.impact(enemy.position.x, enemy.position.y, '#00ffff', 20);
                 player._enemyInvulnerableUntilMs = this.simulationTimeMs + 400;
@@ -1164,6 +1167,7 @@ window.EnemyManager = class EnemyManager {
               if (!player._enemyInvulnerableUntilMs || this.simulationTimeMs > player._enemyInvulnerableUntilMs) {
                   if (!Number.isFinite(enemy.lastPlayerHitTimeMs) || this.simulationTimeMs - enemy.lastPlayerHitTimeMs > 1500) {
                       enemy.lastPlayerHitTimeMs = this.simulationTimeMs;
+                      if (window.hackingSystem?.absorbGuardHit?.()) return;
                       player.takeDamageWithKnockback(enemy.damage, nx * 450, -300, enemy.position);
                   }
               }

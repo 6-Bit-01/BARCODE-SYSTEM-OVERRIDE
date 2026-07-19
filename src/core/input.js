@@ -117,7 +117,6 @@ window.InputManager = class InputManager {
   }
 
   routeInteract() {
-    if (window.rhythmSystem && typeof window.rhythmSystem.isActive === 'function' && window.rhythmSystem.isActive()) return { ok: false, action: 'interact', reason: 'rhythm-active' };
     if (window.player && window.player.grounded === false) return { ok: false, action: 'interact', reason: 'airborne' };
     const hacking = window.hackingSystem;
     if (hacking && typeof hacking.isActive === 'function' && hacking.isActive()) {

@@ -32,7 +32,8 @@ window.FILE_MANIFEST.push({
       result.damage = SUCCESS_DAMAGE[judgment.timing];
       this.playAttackAnimation(player);
       this.applyFeedback(judgment);
-      const targets = this.findTargets(player, enemyManager);
+      if (window.sector1Progression && typeof window.sector1Progression.chargeSignalLift === 'function') window.sector1Progression.chargeSignalLift();
+      const targets = this.findTargets(player, enemyManager, judgment);
       const jammerHit = this.tryDamageJammer(player, judgment, result.sequence);
       if (jammerHit.ok) result.targets.push(jammerHit.target);
       const hitIds = new Set();
@@ -57,14 +58,15 @@ window.FILE_MANIFEST.push({
     }
     playAttackAnimation(player) { if (player && typeof player.startPrimaryAttackAnimation === 'function') player.startPrimaryAttackAnimation(); else if (player && typeof player.playAnimation === 'function') player.playAnimation('rhythm'); }
     applyFeedback(judgment) { if (window.rhythmSystem && typeof window.rhythmSystem.applyResolvedAttackFeedback === 'function') window.rhythmSystem.applyResolvedAttackFeedback(judgment); }
-    findTargets(player, enemyManager) { const enemies = enemyManager && Array.isArray(enemyManager.enemies) ? enemyManager.enemies : []; return enemies.filter(enemy => enemy.active && window.distance(player.position.x, player.position.y, enemy.position.x, enemy.position.y) <= this.range); }
+    getAuthoritativeRange(judgment = null, { jammer = false } = {}) { if (jammer) return this.range; const rhythmRange = window.rhythmSystem && typeof window.rhythmSystem.getAuthoritativeDamageRadius === 'function' ? window.rhythmSystem.getAuthoritativeDamageRadius() : this.range; const ampCharges = window.BARCODE && Number(window.BARCODE.signalAmpCharges || 0); const ampOk = ampCharges > 0 && judgment && (judgment.timing === 'perfect' || judgment.timing === 'excellent'); return ampOk ? 430 : rhythmRange; }
+    findTargets(player, enemyManager, judgment = null) { const enemies = enemyManager && Array.isArray(enemyManager.enemies) ? enemyManager.enemies : []; const range = this.getAuthoritativeRange(judgment); const targets = enemies.filter(enemy => enemy.active && window.distance(player.position.x, player.position.y, enemy.position.x, enemy.position.y) <= range); if (targets.length && window.BARCODE && window.BARCODE.signalAmpCharges > 0 && judgment && (judgment.timing === 'perfect' || judgment.timing === 'excellent')) window.BARCODE.signalAmpCharges -= 1; return targets; }
     tryDamageJammer(player, judgment, sequence) {
       const env = BARCODE.JammerEnvironment;
       if (!env || !env.canReceiveRhythmDamage || !env.applyRhythmDamage) return { ok: false };
       if (!judgment || !(judgment.timing === 'perfect' || judgment.timing === 'excellent')) return { ok: false };
       const status = env.getStatus();
       const position = status && status.position;
-      if (!position || window.distance(player.position.x, player.position.y, position.x, position.y) > this.range) return { ok: false };
+      if (!position || window.distance(player.position.x, player.position.y, position.x, position.y) > this.getAuthoritativeRange(judgment, { jammer: true })) return { ok: false };
       const damaged = env.applyRhythmDamage({ amount: 1, timing: judgment.timing, sequence });
       return damaged.ok ? { ok: true, target: { type: 'broadcast_jammer', damage: 1, x: position.x, y: position.y } } : { ok: false };
     }

@@ -163,6 +163,9 @@ window.FILE_MANIFEST.push({
 
   const PANEL_ACTIONS = [
     { label: 'Skip Tutorial', run: () => window.DEBUG.level1.skipTutorial() },
+    { label: 'Go / Reset Lift', run: () => window.DEBUG.level1.resetSignalLift() },
+    { label: 'Charge Lift', run: () => window.DEBUG.level1.chargeSignalLift() },
+    { label: 'Give Signal Amp', run: () => window.DEBUG.level1.giveSignalAmp() },
     { label: 'Encounter 1', run: () => window.DEBUG.level1.gotoEncounter(1) },
     { label: 'Encounter 2', run: () => window.DEBUG.level1.gotoEncounter(2) },
     { label: 'Encounter 3', run: () => window.DEBUG.level1.gotoEncounter(3) },
@@ -170,7 +173,8 @@ window.FILE_MANIFEST.push({
     { label: 'Complete Encounter', run: () => window.DEBUG.level1.completeEncounter() },
     { label: 'Go to Jammer (20)', run: () => window.DEBUG.level1.gotoJammer() },
     { label: 'Damage Jammer', run: () => window.DEBUG.level1.damageJammer(1) },
-    { label: 'Destroy / Boss Intro', run: () => window.DEBUG.level1.destroyJammer() },
+    { label: 'Destroy Jammer', run: () => window.DEBUG.level1.destroyJammer() },
+    { label: 'Play Boss Intro', run: () => window.DEBUG.level1.playBossIntro() },
     { get label() { return overlayState.enabled ? 'Geometry Overlay: ON' : 'Geometry Overlay: OFF'; }, run: () => window.DEBUG.level1.toggleOverlay() },
     { label: 'Reset Mission', run: () => window.DEBUG.level1.resetMission() }
   ];
@@ -397,6 +401,10 @@ window.FILE_MANIFEST.push({
     gotoJammer: () => call('debugGotoJammer'),
     damageJammer: (amount = 1) => call('debugDamageJammer', amount),
     destroyJammer: () => call('debugDestroyJammer'),
+    resetSignalLift: () => call('debugResetSignalLift'),
+    chargeSignalLift: () => call('debugChargeSignalLift'),
+    giveSignalAmp: () => call('debugGiveSignalAmp'),
+    playBossIntro: () => call('debugPlayBossIntro'),
     resetMission: () => call('debugResetMission'),
     toggleOverlay,
     drawOverlay

@@ -13,6 +13,12 @@ window.LostDataSystem = class LostDataSystem {
     this.spawnTimer = 0;
     this.nextSpawnTime = this.getRandomSpawnTime();
     this.maxFragments = 1; // Maximum 1 fragment at once
+    this.authoredLevel1Placements = [
+      { id: 'signal-awning-fragment', x: 980, y: 450, unlockKills: 4 },
+      { id: 'middle-roof-fragment', x: 2220, y: 316, unlockKills: 9 },
+      { id: 'upper-route-fragment', x: 3460, y: 460, unlockKills: 14 }
+    ];
+    this.authoredPlacementIndex = 0;
     this.maxTotalLore = 3; // Maximum 3 lore pieces for the entire level
     this.player = null;
     
@@ -255,87 +261,17 @@ window.LostDataSystem = class LostDataSystem {
     return this.lorePieces.filter((_, index) => !this.collectedLore.has(index)).length;
   }
   
-  // Spawn a new fragment randomly within walk/jump range of player
+  // Spawn a new fragment on an authored Level 1 rooftop/awning surface.
   spawnFragment() {
-    // Update player reference for current position
-    if (window.player && window.player.position) {
-      this.player = window.player;
-    }
-    
-    const playerX = this.player.position.x;
-    const playerY = this.player.position.y;
-    
-    // SPAWN ON DRAMATICALLY OPPOSITE SIDE of world from player position
-    // Use extreme positions for maximum visibility
-    let spawnX, spawnY;
-    
-    // Determine which half of the map the player is in
-    const mapCenter = 2048; // Center of 4096px map
-    
-    // Update global chaos seed every 2 minutes to prevent long-term patterns
-    if (Date.now() - this.lastChaosUpdate > 120000) {
-      this.globalChaosSeed = Math.random() * 1000;
-      this.lastChaosUpdate = Date.now();
-      console.log('🎲 Global chaos seed updated:', this.globalChaosSeed.toFixed(2));
-    }
-    
-    // TRULY UNPREDICTABLE chaos system
-    // Use multiple entropy sources
-    const timeSeed = Date.now() % 1000;
-    const globalChaos = this.globalChaosSeed;
-    const performanceSeed = performance.now() % 1000;
-    const randomEntropy = Math.random() * 1000;
-    const chaosFactor = ((timeSeed + globalChaos + performanceSeed + randomEntropy) % 1000) / 1000 * 200;
-    
-    console.log(`🎲 Entropy sources - Time: ${timeSeed}, Global: ${globalChaos.toFixed(1)}, Performance: ${performanceSeed.toFixed(1)}, Random: ${randomEntropy.toFixed(1)}`);
-    
-    // ENHANCED: Randomized opposite half spawning with chaos
-    const fragmentsSpawned = this.collectedLore.size;
-    
-    if (playerX < mapCenter) {
-      // Player is on left half - spawn on right half with randomization
-      const rightHalfMin = mapCenter + 200;
-      const rightHalfMax = 3800;
-      
-      // Add chaos-based offset for first spawn
-      if (fragmentsSpawned === 0) {
-        // Maximum chaos for first spawn
-        const chaosOffset = (Math.sin(this.globalChaosSeed) * 200) + (Math.random() - 0.5) * 300;
-        spawnX = window.randomRange(rightHalfMin + chaosOffset, rightHalfMax + chaosOffset);
-        spawnY = window.randomRange(400, 700) + (Math.random() - 0.5) * 200;
-        console.log(`🎲 FIRST SPAWN CHAOS: Player left -> RIGHT random (${spawnX.toFixed(1)}, ${spawnY.toFixed(1)})`);
-      } else {
-        // Normal randomization for subsequent spawns
-        spawnX = window.randomRange(rightHalfMin, rightHalfMax);
-        spawnY = window.randomRange(400, 700);
-        console.log(`📍 Normal spawn: Player left -> RIGHT random (${spawnX.toFixed(1)}, ${spawnY.toFixed(1)})`);
-      }
-    } else {
-      // Player is on right half - spawn on left half with randomization
-      const leftHalfMin = 300;
-      const leftHalfMax = mapCenter - 200;
-      
-      // Add chaos-based offset for first spawn
-      if (fragmentsSpawned === 0) {
-        // Maximum chaos for first spawn
-        const chaosOffset = (Math.cos(this.globalChaosSeed) * 200) + (Math.random() - 0.5) * 300;
-        spawnX = window.randomRange(leftHalfMin + chaosOffset, leftHalfMax + chaosOffset);
-        spawnY = window.randomRange(400, 700) + (Math.random() - 0.5) * 200;
-        console.log(`🎲 FIRST SPAWN CHAOS: Player right -> LEFT random (${spawnX.toFixed(1)}, ${spawnY.toFixed(1)})`);
-      } else {
-        // Normal randomization for subsequent spawns
-        spawnX = window.randomRange(leftHalfMin, leftHalfMax);
-        spawnY = window.randomRange(400, 700);
-        console.log(`📍 Normal spawn: Player right -> LEFT random (${spawnX.toFixed(1)}, ${spawnY.toFixed(1)})`);
-      }
-    }
-    
-    // Clamp to valid bounds
-    spawnX = window.clamp(spawnX, 300, 3800);
-    spawnY = window.clamp(spawnY, 350, 900);
-    
-    console.log(`🎲 FINAL RANDOMIZED SPAWN POSITION: (${spawnX.toFixed(1)}, ${spawnY.toFixed(1)})`);
-    
+    if (window.player && window.player.position) this.player = window.player;
+    const missionKills = window.sector1Progression?.missionDefeats || 0;
+    let placement = this.authoredLevel1Placements.find((candidate, index) => index >= this.authoredPlacementIndex && missionKills >= candidate.unlockKills);
+    if (!placement) placement = this.authoredLevel1Placements[this.authoredPlacementIndex] || this.authoredLevel1Placements.at(-1);
+    this.authoredPlacementIndex = Math.min(this.authoredLevel1Placements.length, this.authoredLevel1Placements.indexOf(placement) + 1);
+    let spawnX = placement.x;
+    let spawnY = placement.y;
+    console.log(`💎 Authored Level 1 Lost Data placement ${placement.id}: (${spawnX}, ${spawnY})`);
+
     // Check if this spawn location is too close to existing fragments
     let tooClose = false;
     const minDistanceFromOthers = 400; // Minimum distance between fragments
