@@ -1,54 +1,196 @@
 #!/usr/bin/env node
 const assert = require('assert');
-function approx(actual, expected, epsilon, message) { assert(Math.abs(actual - expected) <= epsilon, `${message}: expected ${expected}, got ${actual}`); }
-function dist(a,b){ return Math.hypot(a.x-b.x,a.y-b.y); }
+const fs = require('fs');
+const path = require('path');
+const vm = require('vm');
+const root = path.resolve(__dirname, '..');
 
-class EncounterRuntime {
-  constructor(packets, activeCap = 3) { this.packets = packets; this.activeCap = activeCap; this.packetIndex = 0; this.packetGraceMs = null; this.pending = packets[0].map((spec,i)=>({spec,delayMs:i*350})); this.active = []; this.completed = false; }
-  hacking = false;
-  update(dt) { this.updatePackets(dt); this.updateSpawns(dt); this.completed = this.packetIndex >= this.packets.length - 1 && this.pending.length === 0 && this.active.length === this.packets.flat().length && this.active.every(e=>e.defeated); }
-  updatePackets(dt) { if (this.packetIndex >= this.packets.length - 1) return; const survivors = this.active.filter(e=>!e.defeated).length; if (this.pending.length === 0 && survivors <= 1 && this.packetGraceMs === null) this.packetGraceMs = 900; if (this.packetGraceMs !== null && !this.hacking) { this.packetGraceMs = Math.max(0, this.packetGraceMs - dt); if (this.packetGraceMs <= 0) this.releaseNext(); } }
-  updateSpawns(dt) { if (this.hacking || !this.pending.length) return; const activeCount = this.active.filter(e=>!e.defeated).length; if (activeCount >= this.activeCap) return; this.pending.forEach(p=>p.delayMs-=dt); const ready = this.pending.filter(p=>p.delayMs<=0).slice(0, Math.max(1, this.activeCap-activeCount)); this.pending = this.pending.filter(p=>!ready.includes(p)); ready.forEach(p=>this.active.push({ ...p.spec, defeated:false })); }
-  releaseNext(){ this.packetIndex++; this.packetGraceMs = null; this.pending = this.packets[this.packetIndex].map((spec,i)=>({spec,delayMs:i*350})); }
+function approx(actual, expected, epsilon, message) {
+  assert(Math.abs(actual - expected) <= epsilon, `${message}: expected ${expected}, got ${actual}`);
 }
-const encounters = [
-  { cap:3, packets:[[{},{}],[{},{}]] },
-  { cap:3, packets:[[{},{}],[{role:'swooper'},{},{}]] },
-  { cap:3, packets:[[{}, {role:'swooper'}],[{},{},{}]] },
-  { cap:4, packets:[[{}, {role:'swooper'}, {}],[{},{},{role:'swooper'}]] }
-];
-function runEncounter(def, frameMs) { const rt = new EncounterRuntime(def.packets, def.cap); let guard=0; while ((rt.pending.length || rt.packetIndex < def.packets.length-1) && guard++<1000) { rt.update(frameMs); if (!rt.pending.length && rt.packetIndex === 0) { const alive = rt.active.filter(e=>!e.defeated); while (alive.length > 1) alive.pop().defeated = true; } if (rt.pending.length && rt.packetIndex > 0 && rt.active.filter(e=>!e.defeated).length >= def.cap) rt.active.find(e=>!e.defeated).defeated = true; } assert(guard<1000, 'packet state machine releases all packets'); return rt.active.length; }
-for (const fps of [30,60,120]) assert.deepStrictEqual(encounters.map(e=>runEncounter(e,1000/fps)), [4,5,5,6], `runtime packet totals at ${fps} FPS`);
-{ const rt = new EncounterRuntime(encounters[0].packets, 3); rt.update(1000); rt.active[0].defeated = true; rt.hacking = true; for(let i=0;i<60;i++) rt.update(16); assert.strictEqual(rt.packetIndex,0,'hacking pauses encounter grace'); rt.hacking=false; for(let i=0;i<60;i++) rt.update(16); assert.strictEqual(rt.packetIndex,1,'real delta releases packet B'); }
 
-class HackRuntime {
-  constructor(){ this.active=false; this.cooldownUntil=0; this.guardHitsRemaining=0; this.previousRhythm=false; this.pulses=0; this.heals=0; this.now=0; this.readyAt=0; this.startTime=0; this.enemies=[{active:true,type:'virus'},{active:true,type:'corrupted',_jammerReinforcement:true},{active:true,type:'broadcast_jammer'}]; this.simTime=200; }
-  start(rhythmActive=true){ assert(!this.active); assert(this.now>=this.cooldownUntil); this.active=true; this.previousRhythm=rhythmActive; this.guardHitsRemaining=1; this.readyAt=0; this.startTime=0; }
-  ready(){ this.readyAt=this.now; this.startTime=this.now; }
-  absorbGuardHit(){ if(!this.active||this.guardHitsRemaining<=0) return false; this.guardHitsRemaining--; return true; }
-  pulse(){ const expiry=this.simTime+2000; this.enemies.forEach(e=>{ if(e.type!=='broadcast_jammer') e.stunnedUntil=expiry; }); this.pulses++; }
-  finish(success){ if(success){ this.heals++; this.pulse(); } this.active=false; this.cooldownUntil=this.now+10000; this.guardHitsRemaining=0; this.previousRhythm=false; this.readyAt=0; this.startTime=0; }
-  reset(){ this.active=false; this.cooldownUntil=0; this.guardHitsRemaining=0; this.previousRhythm=false; this.readyAt=0; this.startTime=0; }
+function createHarness() {
+  let now = 100000;
+  let timerId = 1;
+  const timers = new Map();
+  const context = {
+    console: { log() {}, warn() {}, error() {} },
+    Math,
+    Date: { now: () => now },
+    setTimeout(callback, delay) { const handle = { id: timerId++, callback, delay }; timers.set(handle, handle); return handle; },
+    clearTimeout(handle) { timers.delete(handle); },
+    window: null,
+    global: null,
+    document: { readyState: 'loading', addEventListener() {}, getElementById() { return null; }, createElement() { return { style: {}, classList: { add() {}, remove() {} }, appendChild() {}, remove() {}, addEventListener() {} }; }, body: { appendChild() {} } }
+  };
+  context.window = context;
+  context.global = context;
+  context.Image = class Image { constructor() { this.complete = true; this.width = 32; this.height = 32; } set src(value) { this._src = value; } get src() { return this._src; } };
+  context.Vector2D = class Vector2D { constructor(x = 0, y = 0) { this.x = x; this.y = y; } add(v) { return new context.Vector2D(this.x + v.x, this.y + v.y); } multiply(s) { return new context.Vector2D(this.x * s, this.y * s); } };
+  context.clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+  context.distance = (x1, y1, x2, y2) => Math.hypot(x1 - x2, y1 - y2);
+  context.randomRange = (min, max) => (min + max) / 2;
+  context.Particle = class Particle {};
+  context.particleSystem = { particles: [], impact() {}, trail() {}, jumpEffect() {}, landingEffect() {}, dataFragmentEffect() {}, healEffect() {}, enemySpawnEffect() {} };
+  context.audioSystem = { playSound() {}, isInitialized: () => false, context: { currentTime: 0 } };
+  context.renderer = { getZoomLevel: () => 1, clearCinematicZoomOverride() {}, addScreenShake() {} };
+  context.gameState = { paused: false, enemiesDefeated: 0, hasSpawnedInitialEnemies: true };
+  context.objectivesSystem = { setMissionDefeatObjective() {}, updateMissionDefeatProgress() {}, revealJammerObjective() {}, completeJammerObjective() {}, reset() {} };
+  context.tutorialSystem = { active: false, completed: true, storyChapter: 0, combatEnemiesPaused: false, isActive() { return this.active; }, isCompleted() { return this.completed; }, checkObjective() {}, completedObjectives: new Set(), objectives: [] };
+  context.MakkoEngine = { sprite() { return { isLoaded: () => false, play() {}, stop() {}, draw() {}, currentSprite: null, _currentSprite: null }; } };
+  context.BARCODE = { MusicTransport: {}, MusicProfiles: { getActive: () => ({ judgmentRules: [] }) }, JammerEnvironment: { status: { revealed: false, destroyed: false, health: 16, position: null }, reveal({ position }) { this.status = { revealed: true, destroyed: false, health: 16, position }; }, getStatus() { return this.status; }, reset() { this.status = { revealed: false, destroyed: false, health: 16, position: null }; }, canReceiveRhythmDamage: () => true, applyRhythmDamage(args = {}) { this.status.health = Math.max(0, this.status.health - (args.amount || 1)); if (this.status.health === 0) this.status.destroyed = true; return { ok: true }; } } };
+  context.advanceClock = ms => { now += ms; };
+  context.flushTimers = () => Array.from(timers.values()).forEach(handle => { if (timers.has(handle)) { timers.delete(handle); handle.callback(); } });
+  context.runDueTimers = minDelay => Array.from(timers.values()).filter(t => t.delay <= minDelay).forEach(handle => { if (timers.has(handle)) { timers.delete(handle); now += handle.delay; handle.callback(); } });
+
+  for (const file of ['src/game/player.js', 'src/game/enemies.js', 'src/game/hacking.js', 'src/game/lost-data.js', 'src/game/rhythm.js', 'src/game/player-combat.js', 'src/game/sector1-progression.js']) {
+    vm.runInNewContext(fs.readFileSync(path.join(root, file), 'utf8'), context, { filename: file });
+  }
+  return context;
 }
-{ const h=new HackRuntime(); h.start(true); assert.strictEqual(h.pulses,0,'hack start emits no pulse'); assert.strictEqual(h.guardHitsRemaining,1,'hack grants one guard'); h.now=1000; h.ready(); assert.strictEqual(h.startTime,1000,'four-second timer starts at readiness'); assert(h.absorbGuardHit(),'first hit absorbed'); assert(!h.absorbGuardHit(),'second hit not absorbed'); h.finish(true); assert.strictEqual(h.heals,1,'success heals once'); assert.strictEqual(h.pulses,1,'success-only pulse emitted'); assert.strictEqual(h.enemies[2].stunnedUntil,undefined,'pulse excludes jammer'); }
-{ const h=new HackRuntime(); h.start(true); h.finish(false); assert.strictEqual(h.heals,0,'failure/cancel does not heal'); assert.strictEqual(h.pulses,0,'failure/cancel emits no pulse'); h.reset(); assert.strictEqual(h.cooldownUntil,0,'reset clears cooldown'); assert.strictEqual(h.startTime,0,'reset clears timer'); }
 
-class LostRuntime { constructor(){ this.index=0; this.fragments=[]; this.placements=[{id:'signal-awning-fragment',kills:4},{id:'middle-roof-fragment',kills:9},{id:'upper-route-fragment',kills:14}]; } spawn(kills){ const p=this.placements[this.index]; if(!p||kills<p.kills) return null; const f={id:p.id, active:true}; this.fragments.push(f); this.index++; return f; } reset(){ this.index=0; this.fragments=[]; } }
-{ const l=new LostRuntime(); assert.strictEqual(l.spawn(0),null,'locked fragment does not advance'); assert.strictEqual(l.index,0); [4,9,14].forEach(k=>assert(l.spawn(k),`fragment spawns at ${k}`)); assert.deepStrictEqual(l.fragments.map(f=>f.id), ['signal-awning-fragment','middle-roof-fragment','upper-route-fragment']); l.reset(); assert.strictEqual(l.index,0,'lost data reset clears index'); }
+function defeatEnemy(progression, enemy) {
+  if (!enemy || enemy._defeatRecorded) return;
+  enemy.active = false; enemy.health = 0;
+  progression.onEnemyDefeated(progression.missionDefeats + 1, enemy);
+  enemy._defeatRecorded = true;
+}
+function defeatAllButOne(progression) {
+  const alive = progression.activeEncounterEnemies.filter(enemy => enemy.active && !enemy._defeatRecorded);
+  while (alive.length > 1) defeatEnemy(progression, alive.pop());
+}
+function defeatAll(progression) { progression.activeEncounterEnemies.forEach(enemy => defeatEnemy(progression, enemy)); }
 
-class LiftRuntime { constructor(){ this.lift={id:'signal-lift',x:660,w:132,y:822,prevY:822,topY:492,state:'dormant',charges:0}; this.player={x:726,y:750,grounded:true,support:'signal-lift'}; } supported(){ const footY=this.player.y+72; return this.player.grounded&&this.player.support==='signal-lift'&&this.player.x+18>this.lift.x&&this.player.x-18<this.lift.x+this.lift.w&&Math.abs(footY-this.lift.y)<=4; } charge(){ if(!this.supported()) return false; this.lift.charges++; if(this.lift.charges>=2)this.lift.state='charged'; return true; } update(dt){ const was=this.supported(); this.lift.prevY=this.lift.y; if(this.lift.state==='charged')this.lift.state='moving'; if(this.lift.state==='moving')this.lift.y=Math.max(this.lift.topY,this.lift.y-220*dt/1000); if(was)this.player.y+=this.lift.y-this.lift.prevY; if(this.player.support==='signal-lift'&&!this.supported())this.player.support=null; } }
-{ const l=new LiftRuntime(); assert(l.charge(),'real support charges lift'); l.charge(); const y=l.player.y; l.update(500); assert(l.player.y<y,'lift carries supported player'); l.player.x+=300; l.update(16); assert.strictEqual(l.player.support,null,'step-off clears support'); assert(!l.charge(),'remote charge rejected'); }
+function testEncountersAndClockPauses() {
+  for (const fps of [30, 60, 120]) {
+    const w = createHarness();
+    w.player = { position: { x: 600, y: 750 }, velocity: { x: 0, y: 0 }, grounded: true, controlsDisabled: false };
+    w.enemyManager = { enemies: [], clear() { this.enemies = []; } };
+    const p = new w.Sector1Progression(w.player);
+    w.sector1Progression = p;
+    p.startMission();
+    const totals = [];
+    for (const encounter of p.getDiagnostics().encounters) {
+      w.player.position.x = encounter.triggerX + 5;
+      let guard = 0;
+      while (p.state === encounter.id && guard++ < 2000) {
+        p.update(1000 / fps);
+        if (!p.pendingSpawns.length && p.activeEncounterPacket === 0) defeatAllButOne(p);
+        if (p.pendingSpawns.length && p.activeEncounterPacket > 0 && p.activeEncounterEnemies.filter(e => e.active && !e._defeatRecorded).length >= encounter.activeCap) defeatAllButOne(p);
+        if (!p.pendingSpawns.length && p.activeEncounterPacket > 0 && p.activeEncounterEnemies.length === encounter.packets.flat().length) defeatAll(p);
+      }
+      assert(guard < 2000, `${encounter.id} completes naturally at ${fps} FPS`);
+      totals.push(p.activeEncounterEnemies.length || encounter.packets.flat().length);
+      p.activeEncounterEnemies = [];
+    }
+    assert.deepStrictEqual(totals, [4, 5, 5, 6], `runtime totals at ${fps} FPS`);
+  }
 
-class MovementRuntime { constructor(){ this.x=0; this.y=740; this.vx=0; this.vy=500; this.grounded=false; this.buffer=0; this.airInput=1; } pressJump(){ if(this.grounded){ this.vy=-920; this.grounded=false; this.buffer=0; return true; } this.buffer=120; return false; } update(dt){ this.buffer=Math.max(0,this.buffer-dt); let left=dt; while(left>0){ const stepMs=Math.min(left,1000/120), step=stepMs/1000; this.vx=Math.min(350,this.vx+1700*step); this.vy+=1460*step; this.x+=this.vx*step; this.y+=this.vy*step; left-=stepMs; } if(this.y>=750){ this.y=750; this.vy=0; this.grounded=true; if(this.buffer>0)this.pressJump(); } } }
-{ const m=new MovementRuntime(); m.pressJump(); m.update(50); assert(!m.grounded&&m.vy<0,'jump buffer executes on landing'); const xs=[]; for(const fps of [30,60,120]){ const q=new MovementRuntime(); q.y=0; q.vy=0; for(let i=0;i<fps/2;i++) q.update(1000/fps); xs.push(q.x); } approx(Math.max(...xs)-Math.min(...xs),0,25,'air control frame-stable'); }
+  const w = createHarness();
+  w.player = { position: { x: 600, y: 750 }, velocity: { x: 0, y: 0 }, grounded: true };
+  w.enemyManager = { enemies: [], clear() { this.enemies = []; } };
+  w.hackingSystem = { isActive: () => true };
+  const p = new w.Sector1Progression(w.player); w.sector1Progression = p; p.startMission(); p.update(1000);
+  defeatAllButOne(p); p.update(5000);
+  assert.strictEqual(p.activeEncounterPacket, 0, 'active hacking pauses packet grace');
+  p.revealJammer(); p.nextJammerSpawnMs = 100;
+  p.updateJammerReinforcements(1000);
+  assert.strictEqual(p.nextJammerSpawnMs, 100, 'active hacking pauses jammer reinforcement clock');
+}
 
-class SwooperRuntime { constructor(){ this.state='approach'; this.timer=0; this.x=500; this.y=620; this.vx=0; this.vy=0; } update(dt, player, activeDive=false){ this.timer+=dt; if(this.state==='approach'&&this.timer>=500&&!activeDive&&Math.abs(this.x-player.x)>180){ this.state='telegraph'; this.timer=0; } else if(this.state==='telegraph'&&this.timer>=650&&!activeDive){ this.state='dive'; this.timer=0; this.vx=360; this.vy=220; } else if(this.state==='dive'&&this.timer>=700){ this.state='recovery'; this.timer=0; } else if(this.state==='recovery'&&this.timer>=900){ this.state='approach'; this.timer=0; } } }
-{ const s=new SwooperRuntime(); const p={x:900,y:750}; s.update(500,p); assert.strictEqual(s.state,'telegraph','swooper telegraphs'); s.update(650,p); assert.strictEqual(s.state,'dive','swooper dives'); s.update(700,p); assert.strictEqual(s.state,'recovery','swooper recovers'); }
+function testHackingLifecycle() {
+  const w = createHarness();
+  let hides = 0, shows = 0, pulses = 0;
+  w.player = new w.Player(1000, 750); w.player.grounded = true; w.player.health = 2; w.player.maxHealth = 3;
+  w.enemyManager = { simulationTimeMs: 2000, enemies: [ { active: true, type: 'virus', position: { x: 1030, y: 750 } }, { active: true, type: 'corrupted', _jammerReinforcement: true, position: { x: 1200, y: 750 } }, { active: true, type: 'virus', position: { x: 3000, y: 750 } }, { active: true, type: 'broadcast_jammer', position: { x: 1020, y: 750 } }, { active: true, type: 'boss', position: { x: 1010, y: 750 } } ] };
+  w.rhythmSystem = { beatInterval: 375, active: true, isActive() { return this.active; }, hideRhythmMode() { hides++; this.active = false; }, showRhythmMode() { shows++; this.active = true; } };
+  const hack = new w.HackingSystem(); w.hackingSystem = hack;
+  assert.strictEqual(hides, 0, 'constructor does not alter rhythm mode');
+  const originalPulse = hack.emitOverridePulse.bind(hack); hack.emitOverridePulse = () => { pulses++; originalPulse(); };
+  hack.start();
+  assert.strictEqual(hides, 1, 'start suspends active rhythm once');
+  assert.strictEqual(pulses, 0, 'hack start emits no pulse');
+  assert.strictEqual(hack.guardHitsRemaining, 1, 'start grants one guard hit');
+  assert(hack.absorbGuardHit(), 'first hostile hit is absorbed');
+  assert(!hack.absorbGuardHit(), 'second hostile hit is not absorbed');
+  w.runDueTimers(1000);
+  assert(hack.currentPuzzle, 'puzzle is generated before answer timer starts');
+  assert.strictEqual(hack._startTime, hack.puzzleReadyAt, 'four-second timer starts at readiness');
+  const answer = hack.currentPuzzle.answer; hack.inputText = answer; hack.checkAnswer();
+  assert.strictEqual(w.player.health, 3, 'success restores exactly one capped health bar');
+  assert.strictEqual(pulses, 1, 'success emits exactly one pulse');
+  assert.strictEqual(shows, 1, 'previous Rhythm Mode restored once');
+  assert.strictEqual(hack.guardHitsRemaining, 0, 'success clears guard');
+  assert.strictEqual(w.enemyManager.enemies[0]._stunnedUntilMs, 3500, 'pulse lasts four rhythm beats on simulation clock');
+  assert.strictEqual(w.enemyManager.enemies[1]._stunnedUntilMs, 3500, 'pulse affects nearby jammer reinforcements');
+  assert.strictEqual(w.enemyManager.enemies[2]._stunnedUntilMs, undefined, 'local pulse does not stun distant enemies');
+  assert.strictEqual(w.enemyManager.enemies[3]._stunnedUntilMs, undefined, 'pulse excludes jammer');
+  assert.strictEqual(w.enemyManager.enemies[4]._stunnedUntilMs, undefined, 'pulse excludes boss');
 
-function bossAnchor(mode, footRow, sourceAnchorY, frameAnchorY=253){ const target=822; const frameScale=0.8; const usesScaled=mode==='manifest'; const anchorOffsetY=usesScaled?sourceAnchorY*frameScale:sourceAnchorY; const anchorY=target-(footRow-sourceAnchorY)*frameScale; return anchorY+(footRow-sourceAnchorY)*frameScale + (usesScaled?0:0) || (anchorY-anchorOffsetY+footRow*frameScale); }
-for(const mode of ['manifest','legacy-bottom','legacy-center','missing']) for(const anim of ['walk','idle','flourish']) approx(822, bossAnchor(mode, anim==='flourish'?126:253, mode==='legacy-center'?126:253), 0.001, `${mode} ${anim} foot aligns`);
+  w.advanceClock(10001);
+  w.rhythmSystem.active = false;
+  const failHack = new w.HackingSystem(); w.hackingSystem = failHack; let failPulses = 0; failHack.emitOverridePulse = () => { failPulses++; };
+  failHack.start(); w.runDueTimers(1000); failHack.inputText = 'WRONG'; failHack.checkAnswer();
+  assert.strictEqual(failPulses, 0, 'failure emits no pulse');
+  assert.strictEqual(shows, 1, 'inactive pre-hack rhythm is not restored');
+  w.advanceClock(10001); failHack.start(); failHack.cancel(); assert.strictEqual(failPulses, 0, 'cancel emits no pulse');
+  failHack.reset(); const diag = failHack.getDiagnostics(); assert.strictEqual(diag.active, false, 'reset clears active hacking'); assert.strictEqual(diag.ownedTimeouts, 0, 'reset leaves no owned hacking timers'); assert.strictEqual(diag.hasPuzzleTimeout, false, 'reset clears puzzle timeout');
+}
 
-class AmpRuntime { constructor(){ this.charges=3; } range(jammer=false){ return jammer?300:(this.charges>0?430:250); } hitNormal(){ if(this.charges>0)this.charges--; } }
-{ const a=new AmpRuntime(); assert.strictEqual(a.range(),430,'amp extends normal range'); assert.strictEqual(a.range(true),300,'amp excludes jammer'); a.hitNormal(); assert.strictEqual(a.charges,2,'normal hit consumes charge'); }
+function testLostDataLiftMovementSwooperAmpAndEnemyClock() {
+  const w = createHarness();
+  w.player = new w.Player(700, 750); w.player.grounded = true;
+  w.enemyManager = { enemies: [], clear() { this.enemies = []; } };
+  const p = new w.Sector1Progression(w.player); w.sector1Progression = p;
+  const lost = new w.LostDataSystem(); w.lostDataSystem = lost; lost.player = w.player;
+  for (const [before, at] of [[3, 4], [8, 9], [13, 14]]) { p.missionDefeats = before; assert.strictEqual(lost.spawnFragment(), null, `next lost data locked at ${before} kills`); p.missionDefeats = at; assert(lost.spawnFragment(), `lost data spawns at ${at} kills`); }
+  assert.strictEqual(JSON.stringify(lost.fragments.map(f => f.authoredPlacementId)), JSON.stringify(['signal-awning-fragment', 'middle-roof-fragment', 'upper-route-fragment']), 'authored Lost Data placements spawn in order');
 
-console.log('✅ Level 1 executable gameplay dynamics checks passed');
+  p.resetSignalLift(); w.player.position.x = p.signalLift.x + p.signalLift.w / 2; w.player.position.y = p.signalLift.bottomY - w.Player.VISUAL_FOOT_OFFSET_Y; w.player.velocity.x = 0; w.player.velocity.y = 0; w.player.grounded = true; w.player.supportedSurfaceId = p.signalLift.id; assert(p.chargeSignalLift().ok, 'supported player can charge lift'); p.chargeSignalLift(); const carriedY = w.player.position.y; p.updateSignalLift(500); assert(w.player.position.y < carriedY, 'lift carries supported player'); w.player.position.x += 500; p.updateSignalLift(16); assert.strictEqual(w.player.supportedSurfaceId, null, 'lift support clears immediately after step-off'); assert.strictEqual(p.chargeSignalLift().ok, false, 'remote player cannot charge lift');
+
+  const swooper = new w.Enemy(500, 700, 'virus'); swooper.role = 'swooper'; swooper.entranceComplete = true; swooper.swooperState = 'approach'; w.enemyManager.enemies = [swooper]; const playerRef = { position: { x: 900, y: 750 } };
+  for (let i = 0; i < 40 && swooper.swooperState === 'approach'; i++) swooper.updateSwooperBehavior(1 / 60, playerRef);
+  assert.strictEqual(swooper.swooperState, 'telegraph', 'production swooper telegraphs');
+  for (let i = 0; i < 50 && swooper.swooperState === 'telegraph'; i++) swooper.updateSwooperBehavior(1 / 60, playerRef);
+  assert.strictEqual(swooper.swooperState, 'dive', 'production swooper dives');
+  for (let i = 0; i < 50 && swooper.swooperState === 'dive'; i++) swooper.updateSwooperBehavior(1 / 60, playerRef);
+  assert.strictEqual(swooper.swooperState, 'recovery', 'production swooper recovers');
+
+  w.BARCODE.signalAmpCharges = 3;
+  w.rhythmSystem = { getAuthoritativeDamageRadius: () => 250 };
+  const combat = new w.BARCODE.PlayerCombat();
+  const normal = { active: true, type: 'virus', position: { x: w.player.position.x + 420, y: w.player.position.y }, takeDamage(d) { this.damage = d; } };
+  const jammer = { active: true, type: 'broadcast_jammer', position: { x: w.player.position.x + 420, y: w.player.position.y }, takeDamage(d) { this.damage = d; } };
+  assert.deepStrictEqual(combat.findTargets(w.player, { enemies: [normal, jammer] }, { timing: 'perfect' }), [normal], 'Signal Amp targets normal enemies but excludes jammer');
+  assert.strictEqual(w.BARCODE.signalAmpCharges, 2, 'Signal Amp charge consumed by successful normal hit');
+  assert.strictEqual(combat.findTargets(w.player, { enemies: [normal] }, { timing: 'miss' }).length, 0, 'miss does not use Signal Amp range');
+  assert.strictEqual(w.BARCODE.signalAmpCharges, 2, 'miss does not consume Signal Amp charge');
+
+  const manager = new w.EnemyManager(); manager.enemies = [{ active: true, type: 'virus', position: { x: 1000, y: 750 }, velocity: { x: 0, y: 0 }, _stunnedUntilMs: 100, update(dt, player, sim) { this.lastDt = dt; this.lastSim = sim; }, getHitbox: () => ({ x: 0, y: 0, width: 0, height: 0 }) }];
+  w.hackingSystem = { isActive: () => true };
+  manager.update(1000, { controlsDisabled: false, getHitbox: () => ({ x: 9999, y: 9999, width: 1, height: 1 }), position: { x: 9999, y: 9999 }, velocity: { y: 0 } });
+  assert.strictEqual(manager.enemies[0].lastDt, 250, 'enemy behavior uses slowed hostile delta during hacking');
+  assert.strictEqual(manager.enemies[0].lastSim, 250, 'enemy attack timers use hostile simulation clock');
+  assert.strictEqual(manager.simulationTimeMs, 1000, 'authoritative simulation clock remains real time for stun expiry');
+}
+
+function testProductionPlayerMovement() {
+  function makePlayer(w) { const p = new w.Player(1000, 740); p.isEntering = false; p.allowMovement = true; p.grounded = false; p.coyoteTimerMs = 0; p.velocity.y = 600; p.spriteReady = false; w.player = p; return p; }
+  let w = createHarness(); w.inputManager = { actionInput: { state: { jump: { held: true } } }, isKey: () => false };
+  let p = makePlayer(w); assert.strictEqual(p.jump(), false, 'airborne jump stores buffer and does not double jump'); assert(p.jumpBufferTimerMs > 0, 'jump buffer stored'); p.update(40); assert(!p.grounded && p.velocity.y < 0, 'landing consumes jump buffer exactly once and immediately jumps'); const consumed = p.jumpBufferTimerMs; p.update(16); assert.strictEqual(consumed, 0, 'jump buffer consumed once');
+  w = createHarness(); w.inputManager = { actionInput: { state: { jump: { held: true } } }, isKey: () => false }; p = makePlayer(w); p.jump(); p.update(200); assert(p.grounded, 'expired buffer lands without jumping');
+  w = createHarness(); w.inputManager = { actionInput: { state: { jump: { held: true } } }, isKey: () => false }; p = new w.Player(1000, 750); p.isEntering = false; p.allowMovement = true; p.grounded = false; p.coyoteTimerMs = 80; assert(p.jump(), 'coyote jump works inside window'); p = new w.Player(1000, 750); p.isEntering = false; p.allowMovement = true; p.grounded = false; p.coyoteTimerMs = 0; assert.strictEqual(p.jump(), false, 'coyote jump fails outside window');
+  function apex(heldProvider) { const h = createHarness(); h.inputManager = heldProvider; const q = new h.Player(1000, 750); q.isEntering = false; q.allowMovement = true; q.grounded = true; q.jump(); let minY = q.position.y; for (let i = 0; i < 90; i++) { q.update(1000 / 60); minY = Math.min(minY, q.position.y); } return 750 - minY; }
+  const keyboardTap = apex({ actionInput: { state: { jump: { held: false } } }, isKey: key => key === 'arrowup' ? false : false });
+  const gamepadHold = apex({ actionInput: { state: { jump: { held: true } } }, isKey: () => false });
+  assert(gamepadHold > keyboardTap + 120, 'gamepad and keyboard action-state release drive variable jump height');
+  const reaches = [];
+  for (const fps of [30, 60, 120]) { const h = createHarness(); h.inputManager = { actionInput: { state: { jump: { held: true } } }, isKey: () => false }; const q = new h.Player(1000, 750); q.isEntering = false; q.allowMovement = true; q.grounded = true; q.moveRight(); q.jump(); for (let i = 0; i < fps; i++) q.update(1000 / fps); reaches.push(q.position.x); }
+  approx(Math.max(...reaches) - Math.min(...reaches), 0, 30, 'production horizontal air control is frame-stable at 30/60/120 FPS');
+}
+
+testEncountersAndClockPauses();
+testHackingLifecycle();
+testLostDataLiftMovementSwooperAmpAndEnemyClock();
+testProductionPlayerMovement();
+console.log('✅ Level 1 production gameplay dynamics checks passed');

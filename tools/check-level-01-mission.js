@@ -58,7 +58,7 @@ must(jammerSource, /state\.generation \+= 1;[^]*state\.revealed = false;[^]*stat
 must(jammerSource, /state\.destroyed \|\| !state\.revealed/, 'destroyed jammer sprite stops rendering');
 must(combat, /jammerHit\.ok\) \? 'hit' : 'no-target'/, 'jammer-only hit reports hit');
 must(rhythm, /timing === 'miss'[^]*playSound\('synthHit', 0\.3\)/, 'exact miss plays synthHit once');
-must(enemies, /if \(suppressMissionSimulation\) return;\n    this\.simulationTimeMs \+= deltaTime;/, 'enemy sim time does not advance while suppressed');
+must(enemies, /if \(suppressMissionSimulation\) return;[^]*this\.simulationTimeMs \+= deltaTime;/, 'enemy sim time does not advance while suppressed');
 must(enemies, /purgeForCinematic\(\)[^]*_defeatRecorded = true[^]*particleSystem[^]*this\.enemies = this\.enemies\.filter/s, 'purge starts visible effects and avoids defeat credit');
 must(input, /tutorialSystem\.handleSpacePress/, 'tutorial Space ownership preserved');
 must(input, /actions\.jump\.pressed/, 'jump action path preserved');

@@ -1064,6 +1064,7 @@ window.EnemyManager = class EnemyManager {
     this.crowdCheckTimer = 0;
     this.crowdCheckInterval = 500;
     this.simulationTimeMs = 0;
+    this.hostileSimulationTimeMs = 0;
   }
 
   update(deltaTime, player) {
@@ -1072,7 +1073,10 @@ window.EnemyManager = class EnemyManager {
     const progression = window.sector1Progression;
     const suppressMissionSimulation = progression && progression.isGameplaySuppressed && progression.isGameplaySuppressed();
     if (suppressMissionSimulation) return;
+    const hostileScale = window.hackingSystem?.isActive?.() ? 0.25 : 1;
+    const hostileDeltaTime = deltaTime * hostileScale;
     this.simulationTimeMs += deltaTime;
+    this.hostileSimulationTimeMs = Number.isFinite(this.hostileSimulationTimeMs) ? this.hostileSimulationTimeMs + hostileDeltaTime : this.simulationTimeMs;
 
     this.updateSpawnFlow(deltaTime);
     this.updateSpawnZones(deltaTime);
@@ -1081,10 +1085,9 @@ window.EnemyManager = class EnemyManager {
     const tutorialWaiting = tutorial && tutorial.isActive() && tutorial.storyChapter === 1 && tutorial.combatEnemiesPaused;
 
     // Update Enemies; tactical hack focus slows hostile simulation without pausing art/audio.
-    const hostileScale = window.hackingSystem?.isActive?.() ? 0.25 : 1;
     this.enemies.forEach(enemy => {
       if (enemy._stunnedUntilMs && this.simulationTimeMs < enemy._stunnedUntilMs) return;
-      enemy.update(deltaTime * hostileScale, player, this.simulationTimeMs);
+      enemy.update(hostileDeltaTime, player, this.hostileSimulationTimeMs);
 
       // Tutorial Freeze Logic
       if (enemy.type === 'virus' && tutorialWaiting && enemy.active) {
@@ -1211,7 +1214,8 @@ window.EnemyManager = class EnemyManager {
                 else player.velocity.y = -550;
                 player.velocity.x = nx * 300;
                 if (window.particleSystem) window.particleSystem.impact(enemy.position.x, enemy.position.y, '#00ffff', 20);
-                player._enemyInvulnerableUntilMs = this.simulationTimeMs + 400;
+                const hostileNow = window.hackingSystem?.isActive?.() && Number.isFinite(this.hostileSimulationTimeMs) ? this.hostileSimulationTimeMs : this.simulationTimeMs;
+                player._enemyInvulnerableUntilMs = hostileNow + 400;
                 return;
               }
           }
@@ -1221,9 +1225,10 @@ window.EnemyManager = class EnemyManager {
 
           // Check for Damage
           if (this.simpleAABBcollision(playerBox, enemyBox)) {
-              if (!player._enemyInvulnerableUntilMs || this.simulationTimeMs > player._enemyInvulnerableUntilMs) {
-                  if (!Number.isFinite(enemy.lastPlayerHitTimeMs) || this.simulationTimeMs - enemy.lastPlayerHitTimeMs > 1500) {
-                      enemy.lastPlayerHitTimeMs = this.simulationTimeMs;
+              const hostileNow = window.hackingSystem?.isActive?.() && Number.isFinite(this.hostileSimulationTimeMs) ? this.hostileSimulationTimeMs : this.simulationTimeMs;
+              if (!player._enemyInvulnerableUntilMs || hostileNow > player._enemyInvulnerableUntilMs) {
+                  if (!Number.isFinite(enemy.lastPlayerHitTimeMs) || hostileNow - enemy.lastPlayerHitTimeMs > 1500) {
+                      enemy.lastPlayerHitTimeMs = hostileNow;
                       if (window.hackingSystem?.absorbGuardHit?.()) return;
                       player.takeDamageWithKnockback(enemy.damage, nx * 450, -300, enemy.position);
                   }
@@ -1521,7 +1526,7 @@ window.EnemyManager = class EnemyManager {
     this.spawnFlowState = 'building';
     this.crowdGroups = [];
     this._cinematicPurgeComplete = false;
-    if (!options.preserveDefeats) this.simulationTimeMs = 0;
+    if (!options.preserveDefeats) { this.simulationTimeMs = 0; this.hostileSimulationTimeMs = 0; }
     if (typeof window.syncEnemyDefeatProjections === 'function') window.syncEnemyDefeatProjections(this.defeatedCount);
     console.log('✓ Enemy Manager cleared');
   }

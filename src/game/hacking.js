@@ -13,6 +13,7 @@ window.HackingSystem = class HackingSystem {
     this.cooldownUntil = 0;
     this.guardHitsRemaining = 0;
     this.previousRhythmModeActive = false;
+    this.suspendedRhythmMode = false;
     this._startTime = 0;
     this.puzzleReadyAt = 0;
     this.currentPuzzle = null;
@@ -27,9 +28,6 @@ window.HackingSystem = class HackingSystem {
     this.runGeneration = 0;
     this.terminalLines = [];
     this.terminalHistory = [];
-    this.guardHitsRemaining = 1;
-    this.previousRhythmModeActive = !!(window.rhythmSystem?.isActive?.());
-    if (this.previousRhythmModeActive && window.rhythmSystem?.hideRhythmMode) window.rhythmSystem.hideRhythmMode();
     this.cursorBlink = 0;
     
     // Tutorial integration
@@ -40,10 +38,7 @@ window.HackingSystem = class HackingSystem {
     // Track last result to prevent incorrect tutorial completion
     this._lastResultFailed = false;
     this.cooldownMs = 10000;
-    this.cooldownUntil = 0;
-    this.guardHitsRemaining = 0;
-    this.previousRhythmModeActive = false;
-    this.puzzleReadyAt = 0;
+    this.overridePulseRadius = 520;
     
     console.log('Terminal Hacking System initialized');
   }
@@ -113,6 +108,7 @@ window.HackingSystem = class HackingSystem {
     const tutorialActive = window.tutorialSystem && typeof window.tutorialSystem.isActive === 'function' && window.tutorialSystem.isActive();
     if (!tutorialActive && Date.now() < this.cooldownUntil) { console.log('Hacking cooldown active'); return; }
     if (window.player && window.player.grounded === false) { console.log('Hacking requires ground/support'); return; }
+    if (window.sector1Progression?.isGameplaySuppressed?.()) { console.log('Hacking suppressed by cinematic'); return; }
 
     console.log('=== INITIATING TERMINAL HACK ===');
     this.runGeneration++;
@@ -128,9 +124,13 @@ window.HackingSystem = class HackingSystem {
     this.guardHitsRemaining = 1;
     this.puzzleReadyAt = 0;
     this._startTime = 0;
+    this.suspendedRhythmMode = false;
     this.previousRhythmModeActive = !!(window.rhythmSystem?.isActive?.());
-    if (this.previousRhythmModeActive && window.rhythmSystem?.hideRhythmMode) window.rhythmSystem.hideRhythmMode();
-    else if (this.previousRhythmModeActive && window.rhythmSystem?.hide) window.rhythmSystem.hide();
+    if (this.previousRhythmModeActive) {
+      if (window.rhythmSystem?.hideRhythmMode) window.rhythmSystem.hideRhythmMode();
+      else if (window.rhythmSystem?.hide) window.rhythmSystem.hide();
+      this.suspendedRhythmMode = true;
+    }
 
     this.initializeTerminal();
     this.puzzleType = Math.floor(Math.random() * 2) + 1;
@@ -212,9 +212,10 @@ window.HackingSystem = class HackingSystem {
     this.guardHitsRemaining = 0;
     this._startTime = 0;
     this.puzzleReadyAt = 0;
-    if (this.previousRhythmModeActive && window.rhythmSystem?.showRhythmMode) window.rhythmSystem.showRhythmMode();
-    else if (this.previousRhythmModeActive && window.rhythmSystem?.show) window.rhythmSystem.show();
+    if (this.suspendedRhythmMode && this.previousRhythmModeActive && window.rhythmSystem?.showRhythmMode) window.rhythmSystem.showRhythmMode();
+    else if (this.suspendedRhythmMode && this.previousRhythmModeActive && window.rhythmSystem?.show) window.rhythmSystem.show();
     this.previousRhythmModeActive = false;
+    this.suspendedRhythmMode = false;
     if (success) this.emitOverridePulse();
   }
 
@@ -229,8 +230,11 @@ window.HackingSystem = class HackingSystem {
     const beatMs = window.rhythmSystem?.beatInterval || 500;
     const stunMs = beatMs * 4;
     const now = window.enemyManager?.simulationTimeMs || 0;
+    const player = window.player;
     (window.enemyManager?.enemies || []).forEach(enemy => {
-      if (enemy && enemy.active && enemy.type !== 'broadcast_jammer' && enemy.canReceiveDamage !== false) enemy._stunnedUntilMs = now + stunMs;
+      if (!enemy || !enemy.active || enemy.type === 'broadcast_jammer' || enemy.type === 'boss' || enemy.canReceiveDamage === false) return;
+      if (player?.position && enemy.position && window.distance && window.distance(player.position.x, player.position.y, enemy.position.x, enemy.position.y) > this.overridePulseRadius) return;
+      enemy._stunnedUntilMs = now + stunMs;
     });
   }
 
@@ -513,6 +517,7 @@ window.HackingSystem = class HackingSystem {
     this.cooldownUntil = 0;
     this.guardHitsRemaining = 0;
     this.previousRhythmModeActive = false;
+    this.suspendedRhythmMode = false;
     this._startTime = 0;
     this.puzzleReadyAt = 0;
     this.currentPuzzle = null;
