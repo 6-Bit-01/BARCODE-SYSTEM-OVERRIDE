@@ -18,6 +18,7 @@ const debugSource = fs.readFileSync('src/game/level-01-debug.js','utf8');
 const uiSource = fs.readFileSync('src/game/ui-manager.js','utf8');
 const playerSource = fs.readFileSync('src/game/player.js','utf8');
 const indexSource = fs.readFileSync('index.html','utf8');
+const spriteManifest = JSON.parse(fs.readFileSync('sprites-manifest.json','utf8'));
 function must(text, re, msg) { assert(re.test(text), msg); }
 function approximately(actual, expected, message, epsilon = 0.000001) { assert(Math.abs(actual - expected) <= epsilon, `${message}: expected ${expected}, received ${actual}`); }
 
@@ -112,8 +113,9 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
     { id: 'firewall-canopy', x: 1936, y: 358, w: 582, h: 8 },
     { id: 'relay-rooftop', x: 2580, y: 196, w: 574, h: 8 },
     { id: 'tower-rooftop', x: 3154, y: 275, w: 609, h: 8 },
+    { id: 'tower-awning', x: 3292, y: 502, w: 402, h: 8 },
     { id: 'broadcast-awning', x: 3777, y: 502, w: 319, h: 8 }
-  ], 'Level 1 platform rectangles stay calibrated to one real awning or rooftop per building mass');
+  ], 'Level 1 platform rectangles stay calibrated to real awnings and rooftops');
   assert.strictEqual(window.Sector1Progression.PLAYER_VISUAL_FOOT_OFFSET, 0, 'Level 1 publishes the existing physics contact line');
 }
 {
@@ -126,6 +128,7 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
     { id: 'firewall-canopy', left: 607, right: 776, top: 264 },
     { id: 'relay-rooftop', left: 794, right: 961, top: 217 },
     { id: 'tower-rooftop', left: 961, right: 1138, top: 240 },
+    { id: 'tower-awning', left: 1001, right: 1118, top: 306 },
     { id: 'broadcast-awning', left: 1142, right: 1278, top: 306 }
   ];
   const projectX = sourceX => sourceX * foreground.drawWidth / foreground.sourceWidth + foreground.drawX;
@@ -138,14 +141,23 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
     approximately(surface.y, projectY(contract.top), `${contract.id} feet line matches its foreground top edge`, 1);
   });
   const authoredSurfaces = [...surfaces.values()];
+  const intentionalVerticalPairs = new Set(['tower-awning|tower-rooftop']);
+  const observedVerticalPairs = new Set();
   for (let leftIndex = 0; leftIndex < authoredSurfaces.length; leftIndex++) {
     for (let rightIndex = leftIndex + 1; rightIndex < authoredSurfaces.length; rightIndex++) {
       const left = authoredSurfaces[leftIndex];
       const right = authoredSurfaces[rightIndex];
       const horizontalOverlap = Math.min(left.x + left.w, right.x + right.w) - Math.max(left.x, right.x);
-      assert(horizontalOverlap <= 0, `${left.id} and ${right.id} authored rectangles do not stack horizontally`);
+      if (horizontalOverlap <= 0) continue;
+      const pair = [left.id, right.id].sort().join('|');
+      observedVerticalPairs.add(pair);
+      assert(intentionalVerticalPairs.has(pair), `${pair} is not an approved real roof/awning pair`);
     }
   }
+  assert.deepStrictEqual([...observedVerticalPairs].sort(), [...intentionalVerticalPairs].sort(), 'the tower roof and striped awning are the only vertically paired platforms');
+  const towerRoof = surfaces.get('tower-rooftop');
+  const towerAwning = surfaces.get('tower-awning');
+  assert(towerAwning.x >= towerRoof.x && towerAwning.x + towerAwning.w <= towerRoof.x + towerRoof.w, 'striped awning is nested beneath its tower rooftop');
 }
 {
   const { window } = loadRealSector();
@@ -206,8 +218,15 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
     assertReachable(from, to, 'forward roof route');
     assertReachable(to, from, 'reverse roof route');
   });
+  [
+    ['tower-awning', 'tower-rooftop'],
+    ['tower-awning', 'broadcast-awning']
+  ].forEach(([from, to]) => {
+    assertReachable(from, to, 'tower awning route');
+    assertReachable(to, from, 'tower awning return route');
+  });
   const groundVisualFoot = { id: 'ground', x: 0, y: 750 + window.Sector1Progression.PLAYER_VISUAL_FOOT_OFFSET, w: 4096 };
-  ['signal-awning', 'broadcast-awning'].forEach(id => {
+  ['signal-awning', 'tower-awning', 'broadcast-awning'].forEach(id => {
     const target = surfaces.get(id);
     supportedFrameStepsMs.forEach(frameMs => {
       assert.notStrictEqual(descendingCrossingTime(groundVisualFoot.y, target.y, frameMs), null, `${id} is reachable from ground with the locked single jump at ${frameMs}ms frames`);
@@ -568,19 +587,25 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   assert.strictEqual(p.boss.sprite, sprite, 'entrance uses same prepared sprite instance');
   const presentationFrames = [
     {
-      state: 'walk', animation: 'sector_1_boss_walk_walk', sourceAnchorY: 253, expectedScale: 0.8,
+      state: 'walk', animation: 'sector_1_boss_walk_walk', sourceAnchorX: 100, sourceAnchorY: 253, expectedScale: 0.8,
       footRows: [253,250,248,246,242,241,244,244,243,241,244,247,250,254,254,251,247,246,244,244,245,245,241,241,244,249,251,253,252,250,248,243,241,243,245,244,243,247,248,251,253]
     },
     {
-      state: 'flourish', animation: 'sector_1_boss_attack_attack', sourceAnchorY: 154,
+      state: 'flourish', animation: 'sector_1_boss_attack_attack', sourceAnchorX: 128, sourceAnchorY: 154,
       footRows: [126,126,125,120,119,117,118,118,119,119,119,119,119,119,119,119,119,119,116,115,117,120,120,120,120,120,120,120,120,120,154,154,148,146,130,119,119,119,119,119,119,120,124,125,126,126,126,126]
     },
     {
-      state: 'idle', animation: 'sector_1_boss_idle_idle', sourceAnchorY: 178,
+      state: 'idle', animation: 'sector_1_boss_idle_idle', sourceAnchorX: 128, sourceAnchorY: 178,
       footRows: [178,178,178,178,178,173,167,165,161,157,157,157,157,157,160,165,167,170,173,173,173,173,173,173,173,173,173,169,168,165,162,161,159,157,157,157,157,157,157,160,162,165,171,173,176,177,177,177]
     }
   ];
+  const bossAnimations = spriteManifest.characters['sector_1_boss_sector1boss'].animations;
   for (const profile of presentationFrames) {
+    const animationEntry = bossAnimations[profile.animation];
+    assert(animationEntry.metadata?.anchor, `${profile.state} boss animation publishes its anchor through the Makko metadata schema`);
+    assert.strictEqual(animationEntry.metadata.anchor.x, profile.sourceAnchorX, `${profile.state} boss metadata preserves the audited horizontal anchor`);
+    assert.strictEqual(animationEntry.metadata.anchor.y, profile.sourceAnchorY, `${profile.state} boss metadata preserves the audited foot anchor`);
+    assert.deepStrictEqual(animationEntry.metadata.anchor, animationEntry.anchor, `${profile.state} boss compatibility anchor cannot drift from Makko metadata`);
     p.boss.state = profile.state;
     p.boss.activeAnimation = profile.animation;
     for (let frameIndex = 0; frameIndex < profile.footRows.length; frameIndex++) {
@@ -592,6 +617,8 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
       assert.strictEqual(visual.footRow, profile.footRows[frameIndex], `${profile.state} frame ${frameIndex} uses the audited visible-foot row`);
       approximately(visual.targetFootY, 750, `${profile.state} frame ${frameIndex} targets the authored sidewalk contact`);
       approximately(visual.visibleFootY, 750, `${profile.state} frame ${frameIndex} stays grounded without sprite-sheet wobble`);
+      const makkoRenderedFootY = visual.anchorY - animationEntry.metadata.anchor.y * visual.scale + visual.footRow * visual.scale;
+      approximately(makkoRenderedFootY, 750, `${profile.state} frame ${frameIndex} stays grounded after Makko scales its manifest anchor`);
     }
   }
   p.boss.state = 'walk';

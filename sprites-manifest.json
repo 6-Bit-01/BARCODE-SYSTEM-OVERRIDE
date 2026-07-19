@@ -16,6 +16,17 @@
               "y": 0.9895833333333334
             }
           },
+          "metadata": {
+            "anchor": {
+              "x": 43,
+              "y": 95,
+              "strategy": "bottom-center",
+              "normalized": {
+                "x": 0.5,
+                "y": 0.9895833333333334
+              }
+            }
+          },
           "priority": "medium",
           "dimensions": {
             "width": 86,
@@ -35,6 +46,17 @@
             "normalized": {
               "x": 0.5121951219512195,
               "y": 0.9895833333333334
+            }
+          },
+          "metadata": {
+            "anchor": {
+              "x": 21,
+              "y": 95,
+              "strategy": "bottom-center",
+              "normalized": {
+                "x": 0.5121951219512195,
+                "y": 0.9895833333333334
+              }
             }
           },
           "priority": "medium",
@@ -58,6 +80,17 @@
               "y": 0.9791666666666666
             }
           },
+          "metadata": {
+            "anchor": {
+              "x": 33,
+              "y": 94,
+              "strategy": "bottom-center",
+              "normalized": {
+                "x": 0.5,
+                "y": 0.9791666666666666
+              }
+            }
+          },
           "priority": "medium",
           "dimensions": {
             "width": 66,
@@ -77,6 +110,17 @@
             "normalized": {
               "x": 0.5098039215686274,
               "y": 0.9895833333333334
+            }
+          },
+          "metadata": {
+            "anchor": {
+              "x": 26,
+              "y": 95,
+              "strategy": "bottom-center",
+              "normalized": {
+                "x": 0.5098039215686274,
+                "y": 0.9895833333333334
+              }
             }
           },
           "priority": "medium",
@@ -282,6 +326,17 @@
               "y": 0.994413407821229
             }
           },
+          "metadata": {
+            "anchor": {
+              "x": 128,
+              "y": 178,
+              "strategy": "bottom-center",
+              "normalized": {
+                "x": 0.5,
+                "y": 0.994413407821229
+              }
+            }
+          },
           "priority": "medium",
           "dimensions": {
             "width": 256,
@@ -303,6 +358,17 @@
               "y": 0.98828125
             }
           },
+          "metadata": {
+            "anchor": {
+              "x": 100,
+              "y": 253,
+              "strategy": "bottom-center",
+              "normalized": {
+                "x": 0.5,
+                "y": 0.98828125
+              }
+            }
+          },
           "priority": "medium",
           "dimensions": {
             "width": 200,
@@ -322,6 +388,17 @@
             "normalized": {
               "x": 0.5,
               "y": 0.9935483870967742
+            }
+          },
+          "metadata": {
+            "anchor": {
+              "x": 128,
+              "y": 154,
+              "strategy": "bottom-center",
+              "normalized": {
+                "x": 0.5,
+                "y": 0.9935483870967742
+              }
             }
           },
           "priority": "medium",
