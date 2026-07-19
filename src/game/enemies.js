@@ -1177,6 +1177,11 @@ window.EnemyManager = class EnemyManager {
     }
   }
 
+  getHostileClockNow() {
+      if (Number.isFinite(this.hostileSimulationTimeMs) && (this.hostileSimulationTimeMs !== 0 || this.simulationTimeMs === 0)) return this.hostileSimulationTimeMs;
+      return this.simulationTimeMs;
+  }
+
   checkCollisions(player) {
       if (player.controlsDisabled) return;
 
@@ -1214,7 +1219,7 @@ window.EnemyManager = class EnemyManager {
                 else player.velocity.y = -550;
                 player.velocity.x = nx * 300;
                 if (window.particleSystem) window.particleSystem.impact(enemy.position.x, enemy.position.y, '#00ffff', 20);
-                const hostileNow = window.hackingSystem?.isActive?.() && Number.isFinite(this.hostileSimulationTimeMs) ? this.hostileSimulationTimeMs : this.simulationTimeMs;
+                const hostileNow = this.getHostileClockNow();
                 player._enemyInvulnerableUntilMs = hostileNow + 400;
                 return;
               }
@@ -1225,7 +1230,7 @@ window.EnemyManager = class EnemyManager {
 
           // Check for Damage
           if (this.simpleAABBcollision(playerBox, enemyBox)) {
-              const hostileNow = window.hackingSystem?.isActive?.() && Number.isFinite(this.hostileSimulationTimeMs) ? this.hostileSimulationTimeMs : this.simulationTimeMs;
+              const hostileNow = this.getHostileClockNow();
               if (!player._enemyInvulnerableUntilMs || hostileNow > player._enemyInvulnerableUntilMs) {
                   if (!Number.isFinite(enemy.lastPlayerHitTimeMs) || hostileNow - enemy.lastPlayerHitTimeMs > 1500) {
                       enemy.lastPlayerHitTimeMs = hostileNow;
