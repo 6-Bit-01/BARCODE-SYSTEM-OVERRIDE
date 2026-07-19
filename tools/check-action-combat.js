@@ -284,8 +284,8 @@ pass('boss cinematic Rhythm Mode ownership');
   cinematicActive = false;
   player.updateState();
   player.updateSpriteAnimation(16);
-  assert(player.state === 'rhythm' && rhythm.active, 'active Rhythm Mode presentation resumes after the cinematic');
-  assert(spriteCalls.played.at(-1) === '6_bit_r__h_mode_rhmode' && spriteCalls.updated === 1, 'cinematic release resumes the approved Rhythm Mode animation through the normal update path');
+  assert(player.state === 'idle' && rhythm.active, 'active Rhythm Mode resumes without locking locomotion into the rhythm pose');
+  assert(spriteCalls.played.at(-1) === '6_bit_idle_idle' && spriteCalls.updated === 1, 'cinematic release resumes locomotion-owned animation through the normal update path');
 }
 pass('frame-aware player foot anchoring and cinematic rhythm handoff');
 
@@ -336,7 +336,7 @@ pass('frame-aware player foot anchoring and cinematic rhythm handoff');
   s.__listeners.keyup[0](keyEvent('h')); manager.update();
   s.window.player.grounded = true; s.window.rhythmSystem = { isActive: () => true };
   s.__listeners.keydown[0](keyEvent('h')); manager.update();
-  assert(started === 0 && !hacking.active, 'H does not start hacking while Rhythm Combat Mode is active');
+  assert(started === 1 && hacking.active, 'H can start hacking while Rhythm Combat Mode is active');
 }
 pass('tutorial rhythm/hacking objective progression');
 
@@ -404,7 +404,7 @@ pass('tutorial final-message timing and delayed spawn ownership');
   let completed = 0; s.window.tutorialSystem = { isActive: () => true, checkObjective(id){ if (id === 'rhythm_start') completed++; } };
   s.window.rhythmSystem = rhythm; s.window.gameState = { running:true, paused:false, gameOver:false, victory:false };
   s.window.player = { grounded:false, state:'jump', velocity:{x:50}, stopHorizontal(){ this.velocity.x = 0; } };
-  assert(!rhythm.show().ok && !rhythm.isActive(), 'R cannot activate while airborne');
+  assert(rhythm.show().ok && rhythm.isActive(), 'R can activate without disabling airborne locomotion'); rhythm.hideRhythmMode();
   s.window.player.grounded = true; s.window.hackingSystem = { isActive: () => true }; assert(!rhythm.show().ok, 'R cannot activate while hacking');
   s.window.hackingSystem = { isActive: () => false }; s.window.isPaused = true; assert(!rhythm.show().ok, 'R cannot activate while paused');
   s.window.isPaused = false; s.window.isRunning = false; assert(!rhythm.show().ok, 'R cannot activate while stopped');
@@ -412,7 +412,7 @@ pass('tutorial final-message timing and delayed spawn ownership');
   s.window.gameState.gameOver = false; s.window.cutsceneSystem = { active:true }; assert(!rhythm.show().ok, 'R cannot activate during cutscene');
   assert(completed === 0, 'Blocked R presses do not complete rhythm_start');
   s.window.cutsceneSystem.active = false; s.window.player.velocity.x = 50;
-  const ok = rhythm.show(); assert(ok.ok && rhythm.isActive() && s.window.player.velocity.x === 0, 'Successful R activation enters real Rhythm Mode and stops horizontal movement');
+  const ok = rhythm.show(); assert(ok.ok && rhythm.isActive() && s.window.player.velocity.x === 50, 'Successful R activation enters real Rhythm Mode without stopping locomotion');
   rhythm.hideRhythmMode(); assert(!rhythm.isActive(), 'R deactivation exits Rhythm Mode and restores action eligibility');
 }
 pass('Rhythm Mode restrictions');

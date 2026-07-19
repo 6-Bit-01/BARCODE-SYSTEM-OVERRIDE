@@ -29,17 +29,17 @@ assert.strictEqual(counts.reduce((a,b)=>a+b,0), 20, 'exactly 20 quota enemies');
 assert.deepStrictEqual(counts, [4,5,5,6], 'encounter counts are 4/5/5/6');
 must(sectorSource, /STAGE_SURFACES = Object\.freeze/, 'single stage surface data exists');
 must(sectorSource, /ENCOUNTER_GATES = Object\.freeze/, 'single gate data exists');
-must(sectorSource, /previousVisualFootY > surface\.y \|\| currentVisualFootY < surface\.y[^]*crossingT[^]*crossingX/, 'platform tunneling prevention resolves the horizontal visual-foot position at the vertical crossing');
+must(sectorSource, /previousVisualFootY > surfacePrevY \|\| currentVisualFootY < surface\.y[^]*crossingT[^]*crossingX/, 'platform tunneling prevention resolves the horizontal visual-foot position at the vertical crossing');
 must(sectorSource, /const footHalfWidth = 18;/, 'platform collision uses the narrow player foot probe');
 must(playerSource, /static get VISUAL_FOOT_OFFSET_Y\(\) \{ return PLAYER_VISUAL_FOOT_OFFSET_Y; \}/, 'Player publishes the canonical visual-foot offset');
 must(sectorSource, /const PLAYER_VISUAL_FOOT_OFFSET = window\.Player\.VISUAL_FOOT_OFFSET_Y;/, 'Level 1 platforms and boss presentation consume the player-owned visual-foot contract');
 must(sectorSource, /player\.position\.y = landing\.surface\.y - PLAYER_VISUAL_FOOT_OFFSET;/, 'platform landing keeps art y separate from the player physics anchor');
 must(sectorSource, /!landing \|\| crossingT < landing\.crossingT/, 'multi-surface descent resolves the earliest crossed ledge');
 must(playerSource, /this\.speed = 300;/, 'Level 1 route contract uses the locked 300px\/s player speed');
-must(playerSource, /const PLAYER_VERTICAL_TRAVERSAL_SCALE = 1\.3;/, 'Level 1 declares one proportional vertical traversal scale');
-must(playerSource, /this\.jumpPower = 800 \* PLAYER_VERTICAL_TRAVERSAL_SCALE;/, 'Level 1 scales the single-jump impulse without changing its timing curve');
-must(playerSource, /this\.jumpTime < 100[^]*gravity = 100 \* PLAYER_VERTICAL_TRAVERSAL_SCALE[^]*this\.jumpTime < 200[^]*gravity = 400 \* PLAYER_VERTICAL_TRAVERSAL_SCALE[^]*gravity = 2000 \* PLAYER_VERTICAL_TRAVERSAL_SCALE/s, 'Level 1 proportionally scales all three jump gravity phases');
-must(playerSource, /const terminalVelocity = 1200 \* PLAYER_VERTICAL_TRAVERSAL_SCALE;/, 'Level 1 proportionally scales terminal fall speed');
+must(playerSource, /const PLAYER_JUMP_GRAVITY = 1460;/, 'Level 1 declares one deliberate gravity value for frame-stable jumps');
+must(playerSource, /this\.jumpPower = PLAYER_JUMP_POWER;/, 'Level 1 uses the physics-owned jump impulse instead of sprite anchoring');
+must(playerSource, /while \(remaining > 0\)[^]*1000 \/ 120[^]*this\.velocity\.y \+= PLAYER_JUMP_GRAVITY/s, 'Level 1 jump integration is bounded for 30, 60, and 120 FPS');
+must(playerSource, /this\.velocity\.y = Math\.min\(this\.velocity\.y, 1200\)/, 'Level 1 retains an explicit terminal fall speed');
 must(enemies, /updateAuthoredEntrance\(deltaTime\)[^]*keepEntranceTargetSafe\(this\)[^]*const dx = this\._entranceTarget\.x - this\.position\.x;/, 'authored entrances revalidate their target against the live player position');
 must(sectorSource, /isCompleted\(\) && typeof window\.tutorialSystem\.isActive === 'function' && !window\.tutorialSystem\.isActive\(\)/, 'mission requires completed and inactive tutorial');
 must(sectorSource, /captureCinematicStart\(\)[^]*gameCamera\.centerX/, 'Jammer destruction captures gameCamera.centerX immediately');
@@ -58,7 +58,7 @@ must(jammerSource, /state\.generation \+= 1;[^]*state\.revealed = false;[^]*stat
 must(jammerSource, /state\.destroyed \|\| !state\.revealed/, 'destroyed jammer sprite stops rendering');
 must(combat, /jammerHit\.ok\) \? 'hit' : 'no-target'/, 'jammer-only hit reports hit');
 must(rhythm, /timing === 'miss'[^]*playSound\('synthHit', 0\.3\)/, 'exact miss plays synthHit once');
-must(enemies, /if \(suppressMissionSimulation\) return;\n    this\.simulationTimeMs \+= deltaTime;/, 'enemy sim time does not advance while suppressed');
+must(enemies, /if \(suppressMissionSimulation\) return;[^]*this\.simulationTimeMs \+= deltaTime;/, 'enemy sim time does not advance while suppressed');
 must(enemies, /purgeForCinematic\(\)[^]*_defeatRecorded = true[^]*particleSystem[^]*this\.enemies = this\.enemies\.filter/s, 'purge starts visible effects and avoids defeat credit');
 must(input, /tutorialSystem\.handleSpacePress/, 'tutorial Space ownership preserved');
 must(input, /actions\.jump\.pressed/, 'jump action path preserved');
@@ -410,19 +410,20 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   p.startMission();
   const first = window.Sector1Progression.ENCOUNTERS[0];
   p.spawnEncounter(first);
-  assert.strictEqual(p.pendingSpawns.length, 4, 'encounter 1 queues all four authored actors');
+  assert.strictEqual(p.pendingSpawns.length, 2, 'encounter 1 queues packet A before packet B');
   assert.strictEqual(p.activeEncounterEnemies.length, 0, 'queued encounter has no actors before its first stagger tick');
   p.updateEncounter();
   assert.strictEqual(p.state, 'encounter_1', 'an encounter cannot complete while its spawn queue is pending');
   p.updatePendingSpawns(0);
   assert.strictEqual(p.activeEncounterEnemies.length, 1, 'the first encounter actor spawns immediately');
-  assert.strictEqual(p.pendingSpawns.length, 3, 'the remaining encounter actors stay staggered');
+  assert.strictEqual(p.pendingSpawns.length, 1, 'the remaining packet A actor stays staggered');
   p.activeEncounterEnemies[0].active = false;
   p.activeEncounterEnemies[0]._defeatRecorded = true;
   p.updateEncounter();
-  assert.strictEqual(p.state, 'encounter_1', 'defeating the first actor cannot skip pending encounter spawns');
+  assert.strictEqual(p.state, 'encounter_1', 'defeating the first actor cannot skip the packet grace');
   p.updatePendingSpawns(1050);
-  assert.strictEqual(p.activeEncounterEnemies.length, 4, 'all authored actors enter after the full stagger window');
+  p.releaseNextPacket(first); p.updatePendingSpawns(1050);
+  assert.strictEqual(p.activeEncounterEnemies.length, 4, 'packet B enters only after packet A is reduced plus grace');
   p.activeEncounterEnemies.forEach(enemy => { enemy.active = false; enemy._defeatRecorded = true; });
   p.updateEncounter();
   assert.strictEqual(p.state, 'encounter_2', 'the gate opens only after the complete encounter queue is defeated');
@@ -437,12 +438,12 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   p.revealJammer();
   p.updateJammerReinforcements(0);
   assert.strictEqual(window.enemyManager.enemies.filter(enemy => enemy._jammerReinforcement).length, 1, 'Jammer phase starts one reinforcement after reveal');
-  assert(p.nextJammerSpawnMs >= 3000 && p.nextJammerSpawnMs <= 4500, 'Jammer reinforcement cadence is bounded');
+  assert(p.nextJammerSpawnMs >= 2500 && p.nextJammerSpawnMs <= 3500, 'Jammer reinforcement cadence is bounded');
   p.updateJammerReinforcements(0);
   assert.strictEqual(window.enemyManager.enemies.filter(enemy => enemy._jammerReinforcement).length, 1, 'Jammer cadence prevents an immediate second reinforcement');
   for (let i = 0; i < 8; i++) p.updateJammerReinforcements(5000);
   const reinforcements = window.enemyManager.enemies.filter(enemy => enemy.active && enemy._jammerReinforcement);
-  assert.strictEqual(reinforcements.length, 4, 'Jammer reinforcements are capped at four active actors');
+  assert.strictEqual(reinforcements.length, 3, 'Jammer reinforcements are capped at three active actors');
   assert(reinforcements.every(enemy => enemy._sector1MissionEnemy === false), 'Jammer reinforcements never become mission-quota enemies');
   p.onEnemyDefeated(999, reinforcements[0]);
   assert.strictEqual(p.missionDefeats, 20, 'Jammer reinforcements cannot advance the 20-kill mission quota');
@@ -721,6 +722,7 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
       state: 'test', missionDefeats: 0,
       debugSkipTutorial() { routed += 1; return { ok: true, state: 'encounter_1', missionDefeats: 0 }; },
       debugGotoJammer() { routed += 1; return { ok: true }; },
+      debugResetSignalLift() { routed += 1; return { ok: true }; },
       getDiagnostics() { return { state: 'test' }; }
     },
     addEventListener(type, listener) { listeners[type] = listener; }
@@ -738,10 +740,10 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   assert(drawnText.includes('DEV ▲'), 'canvas debug launcher renders inside Makko/fullscreen instead of as a hidden DOM sibling');
   assert(drawnText.includes('Skip Tutorial'), 'unlocked canvas debug panel renders its action buttons');
   assert.strictEqual(typeof canvasListeners.pointerdown, 'function', 'drawing the debug launcher attaches a canvas-native pointer route');
-  canvasListeners.pointerdown({ button: 0, currentTarget: canvas, clientX: 40, clientY: 767, preventDefault() {}, stopPropagation() {} });
-  assert.strictEqual(routed, 1, 'clicking a canvas debug action invokes the real progression method');
+  canvasListeners.pointerdown({ button: 0, currentTarget: canvas, clientX: 40, clientY: 455, preventDefault() {}, stopPropagation() {} });
+  assert.strictEqual(routed, 0, 'expanded canvas debug panel ignores clicks outside action buttons');
   assert.strictEqual(window.DEBUG.level1.gotoJammer().ok, true, 'unlocked debug action routes to Sector1Progression');
-  assert.strictEqual(routed, 2, 'direct and canvas debug actions each route exactly once');
+  assert.strictEqual(routed, 1, 'direct debug action routes exactly once');
   const makkoShortcut = { key: 'd', code: 'KeyD', shiftKey: true, ctrlKey: true, preventDefault() {}, stopPropagation() {} };
   listeners.keydown(makkoShortcut);
   drawnText.length = 0;

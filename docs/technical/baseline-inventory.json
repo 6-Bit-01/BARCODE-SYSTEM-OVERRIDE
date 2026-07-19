@@ -114,6 +114,7 @@
     "tools/check-baseline.js",
     "tools/check-enemy-ownership.js",
     "tools/check-frame-ownership.js",
+    "tools/check-level-01-gameplay-dynamics.js",
     "tools/check-level-01-mission.js",
     "tools/check-level-01-smoothing.js",
     "tools/check-makko-hotfix.js",
@@ -349,15 +350,15 @@
   ],
   "criticalGlobalAssignments": [
     {
-      "global": "window.enemyManager",
+      "global": "window.EnemyManager",
       "file": "src/game/enemies.js",
-      "line": 1473,
+      "line": 1036,
       "loaded": true
     },
     {
-      "global": "window.EnemyManager",
+      "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 979,
+      "line": 1539,
       "loaded": true
     },
     {
@@ -405,7 +406,7 @@
     {
       "global": "window.gameState",
       "file": "src/game/lost-data.js",
-      "line": 539,
+      "line": 394,
       "loaded": true
     },
     {
@@ -459,7 +460,7 @@
     {
       "global": "window.player",
       "file": "src/game/player.js",
-      "line": 1806,
+      "line": 1834,
       "loaded": true
     },
     {
@@ -531,25 +532,25 @@
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 436,
+      "line": 437,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 454,
+      "line": 455,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 535,
+      "line": 536,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 575,
+      "line": 576,
       "loaded": false
     },
     {

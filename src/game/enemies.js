@@ -100,6 +100,11 @@ window.Enemy = class Enemy {
     this._spriteRequested = false;
     this._spriteId = null;
     this._spritePolls = 0;
+    this.role = null;
+    this.swooperState = 'none';
+    this.swooperTimerMs = 0;
+    this.swooperTargetY = y;
+    this.swooperDiveDirection = 1;
 
     // Trigger entrance logic
     this.startEntrance();
@@ -277,6 +282,7 @@ window.Enemy = class Enemy {
 
     // 3. Virus / Generic Logic
     if (this.type === 'virus') {
+        if (this.role === 'swooper' && this.entranceComplete) { this.updateSwooperBehavior(dt, player); return; }
         if (!this.entranceComplete) {
             this.virusDropEntrance(dt);
         } else {
@@ -356,7 +362,7 @@ window.Enemy = class Enemy {
 
     if (nearbyViruses.length > 0) {
       this._groupBehaviorTimer += dt;
-      if (this._groupBehaviorTimer > (2000 + Math.random() * 1000)) {
+      if (this._groupBehaviorTimer > (2 + Math.random() * 1)) {
         this._groupBehaviorTimer = 0;
         const groupAction = Math.random();
         if (groupAction < 0.4) {
@@ -407,7 +413,7 @@ window.Enemy = class Enemy {
             this._hopDelay = 300 + Math.random() * 500;
             this._hopTimer = 0;
           }
-          this._hopTimer += dt;
+          this._hopTimer += dt * 1000;
           if (this._hopTimer >= this._hopDelay) {
             this.velocity.y = -this.speed * 0.09;
             this.velocity.x = Math.cos(angleToPlayer) * this.speed * 1.1;
@@ -452,6 +458,57 @@ window.Enemy = class Enemy {
         this.hoverState = 'none';
         this.velocity.y = -this.speed * 0.1; // Swooping hop exit
         break;
+    }
+  }
+
+
+  updateSwooperBehavior(dt, player) {
+    const manager = window.enemyManager;
+    const activeDive = manager && manager.enemies && manager.enemies.some(enemy => enemy !== this && enemy.active && enemy.role === 'swooper' && enemy.swooperState === 'dive');
+    const playerFootY = player.position.y + (window.Player?.VISUAL_FOOT_OFFSET_Y || 72);
+    const targetSurfaceY = Math.max(260, Math.min(750, playerFootY - 120));
+    this.swooperTimerMs += dt * 1000;
+    if (this.swooperState === 'none') {
+      this.swooperState = 'approach';
+      this.swooperTimerMs = 0;
+      this.swooperDiveDirection = this.position.x < player.position.x ? 1 : -1;
+    }
+    if (this.swooperState === 'approach') {
+      this.swooperTargetY = targetSurfaceY;
+      const targetX = player.position.x - this.swooperDiveDirection * 220;
+      this.velocity.x = Math.max(-this.speed * 1.8, Math.min(this.speed * 1.8, (targetX - this.position.x) * 1.4));
+      this.velocity.y = Math.max(-180, Math.min(180, (this.swooperTargetY - this.position.y) * 2));
+      if (Math.abs(this.position.x - player.position.x) > 180 && Math.abs(this.position.y - this.swooperTargetY) < 35 && this.swooperTimerMs >= 450 && !activeDive) {
+        this.swooperState = 'telegraph';
+        this.swooperTimerMs = 0;
+        this.velocity.x = 0;
+        this.velocity.y = 0;
+      }
+    } else if (this.swooperState === 'telegraph') {
+      this.velocity.x = 0;
+      this.velocity.y = Math.sin(this.swooperTimerMs / 60) * 35;
+      if (this.swooperTimerMs >= 650 && Math.abs(this.position.x - player.position.x) > 120 && !activeDive) {
+        this.swooperState = 'dive';
+        this.swooperTimerMs = 0;
+        const dx = player.position.x - this.position.x;
+        this.swooperDiveDirection = dx >= 0 ? 1 : -1;
+        this.velocity.x = this.swooperDiveDirection * 360;
+        this.velocity.y = Math.max(160, Math.min(310, (player.position.y - this.position.y) * 1.5));
+      }
+    } else if (this.swooperState === 'dive') {
+      if (this.swooperTimerMs >= 700 || this.position.y >= 750) {
+        this.swooperState = 'recovery';
+        this.swooperTimerMs = 0;
+        this.velocity.x *= 0.45;
+        this.velocity.y = -180;
+      }
+    } else if (this.swooperState === 'recovery') {
+      this.velocity.x *= 0.97;
+      this.velocity.y = Math.min(this.velocity.y + 500 * dt, 80);
+      if (this.swooperTimerMs >= 900) {
+        this.swooperState = 'approach';
+        this.swooperTimerMs = 0;
+      }
     }
   }
 
@@ -1007,6 +1064,7 @@ window.EnemyManager = class EnemyManager {
     this.crowdCheckTimer = 0;
     this.crowdCheckInterval = 500;
     this.simulationTimeMs = 0;
+    this.hostileSimulationTimeMs = 0;
   }
 
   update(deltaTime, player) {
@@ -1015,7 +1073,10 @@ window.EnemyManager = class EnemyManager {
     const progression = window.sector1Progression;
     const suppressMissionSimulation = progression && progression.isGameplaySuppressed && progression.isGameplaySuppressed();
     if (suppressMissionSimulation) return;
+    const hostileScale = window.hackingSystem?.isActive?.() ? 0.25 : 1;
+    const hostileDeltaTime = deltaTime * hostileScale;
     this.simulationTimeMs += deltaTime;
+    this.hostileSimulationTimeMs = Number.isFinite(this.hostileSimulationTimeMs) ? this.hostileSimulationTimeMs + hostileDeltaTime : this.simulationTimeMs;
 
     this.updateSpawnFlow(deltaTime);
     this.updateSpawnZones(deltaTime);
@@ -1023,9 +1084,10 @@ window.EnemyManager = class EnemyManager {
     const tutorial = window.tutorialSystem;
     const tutorialWaiting = tutorial && tutorial.isActive() && tutorial.storyChapter === 1 && tutorial.combatEnemiesPaused;
 
-    // Update Enemies
+    // Update Enemies; tactical hack focus slows hostile simulation without pausing art/audio.
     this.enemies.forEach(enemy => {
-      enemy.update(deltaTime, player, this.simulationTimeMs);
+      if (enemy._stunnedUntilMs && this.simulationTimeMs < enemy._stunnedUntilMs) return;
+      enemy.update(hostileDeltaTime, player, this.hostileSimulationTimeMs);
 
       // Tutorial Freeze Logic
       if (enemy.type === 'virus' && tutorialWaiting && enemy.active) {
@@ -1148,10 +1210,12 @@ window.EnemyManager = class EnemyManager {
 
             if (isStompPos && isMovingDown && this.simpleAABBcollision(playerBox, enemyBox)) {
                 enemy.takeDamage(999);
-                player.velocity.y = -550;
+                if (typeof player.stompRebound === 'function') player.stompRebound();
+                else player.velocity.y = -550;
                 player.velocity.x = nx * 300;
                 if (window.particleSystem) window.particleSystem.impact(enemy.position.x, enemy.position.y, '#00ffff', 20);
-                player._enemyInvulnerableUntilMs = this.simulationTimeMs + 400;
+                const hostileNow = window.hackingSystem?.isActive?.() && Number.isFinite(this.hostileSimulationTimeMs) ? this.hostileSimulationTimeMs : this.simulationTimeMs;
+                player._enemyInvulnerableUntilMs = hostileNow + 400;
                 return;
               }
           }
@@ -1161,9 +1225,11 @@ window.EnemyManager = class EnemyManager {
 
           // Check for Damage
           if (this.simpleAABBcollision(playerBox, enemyBox)) {
-              if (!player._enemyInvulnerableUntilMs || this.simulationTimeMs > player._enemyInvulnerableUntilMs) {
-                  if (!Number.isFinite(enemy.lastPlayerHitTimeMs) || this.simulationTimeMs - enemy.lastPlayerHitTimeMs > 1500) {
-                      enemy.lastPlayerHitTimeMs = this.simulationTimeMs;
+              const hostileNow = window.hackingSystem?.isActive?.() && Number.isFinite(this.hostileSimulationTimeMs) ? this.hostileSimulationTimeMs : this.simulationTimeMs;
+              if (!player._enemyInvulnerableUntilMs || hostileNow > player._enemyInvulnerableUntilMs) {
+                  if (!Number.isFinite(enemy.lastPlayerHitTimeMs) || hostileNow - enemy.lastPlayerHitTimeMs > 1500) {
+                      enemy.lastPlayerHitTimeMs = hostileNow;
+                      if (window.hackingSystem?.absorbGuardHit?.()) return;
                       player.takeDamageWithKnockback(enemy.damage, nx * 450, -300, enemy.position);
                   }
               }
@@ -1460,7 +1526,7 @@ window.EnemyManager = class EnemyManager {
     this.spawnFlowState = 'building';
     this.crowdGroups = [];
     this._cinematicPurgeComplete = false;
-    if (!options.preserveDefeats) this.simulationTimeMs = 0;
+    if (!options.preserveDefeats) { this.simulationTimeMs = 0; this.hostileSimulationTimeMs = 0; }
     if (typeof window.syncEnemyDefeatProjections === 'function') window.syncEnemyDefeatProjections(this.defeatedCount);
     console.log('✓ Enemy Manager cleared');
   }

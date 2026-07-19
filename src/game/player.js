@@ -16,7 +16,17 @@ const PLAYER_VISUAL_FOOT_OFFSET_Y = 72;
 // The real sidewalk-to-awning rise is taller than the legacy physics-space
 // gap. Scale every vertical jump term together so the route gains height while
 // preserving the established takeoff/apex/landing timing.
-const PLAYER_VERTICAL_TRAVERSAL_SCALE = 1.3;
+const PLAYER_VERTICAL_TRAVERSAL_SCALE = 1;
+const PLAYER_JUMP_GRAVITY = 1460;
+const PLAYER_JUMP_POWER = 920;
+const PLAYER_MIN_JUMP_HOLD_MS = 60;
+const PLAYER_JUMP_CUT_MULTIPLIER = 0.48;
+const PLAYER_COYOTE_MS = 100;
+const PLAYER_BUFFER_MS = 120;
+const PLAYER_AIR_ACCEL = 1700;
+const PLAYER_AIR_DRAG = 420;
+const PLAYER_DIRECTIONAL_AIR_SPEED = 350;
+const PLAYER_STOMP_REBOUND = 560;
 const PLAYER_ANIMATION_PRESENTATION = Object.freeze({
   idle: Object.freeze({
     animation: '6_bit_idle_idle',
@@ -80,7 +90,8 @@ window.Player = class Player {
     this.width = 86;  // Based on sprite dimensions
     this.height = 96; // Based on sprite dimensions
     this.speed = 300; // pixels per second
-    this.jumpPower = 800 * PLAYER_VERTICAL_TRAVERSAL_SCALE;
+    this.airSpeed = PLAYER_DIRECTIONAL_AIR_SPEED;
+    this.jumpPower = PLAYER_JUMP_POWER;
     this.jumpTime = 0;
     this.maxJumpTime = 200; // Max jump duration in ms
     this.health = 3;
@@ -130,6 +141,11 @@ window.Player = class Player {
     this.arcActive = false;
     this.primaryAttackAnimationMs = 0;
     this.cinematicPoseActive = false;
+    this.coyoteTimerMs = 0;
+    this.jumpBufferTimerMs = 0;
+    this.jumpHeldMs = 0;
+    this.jumpReleaseQueued = false;
+    this.supportedSurfaceId = null;
   }
 
   update(deltaTime, allowMovement = true) {
@@ -145,38 +161,40 @@ window.Player = class Player {
       // Update entrance animation
       this.updateEntranceAnimation(deltaTime);
       
-      // Apply gravity with variable rates (only if movement is allowed)
-      if (!this.grounded && this.allowMovement) {
-        // Track jump time for variable gravity
-        this.jumpTime += deltaTime;
-        
-        let gravity = 0;
-        if (this.jumpTime < 100) {
-          // Ultra-fast ascent phase - almost no gravity
-          gravity = 100 * PLAYER_VERTICAL_TRAVERSAL_SCALE;
-        } else if (this.jumpTime < 200) {
-          // Minimal float phase - light gravity
-          gravity = 400 * PLAYER_VERTICAL_TRAVERSAL_SCALE;
-        } else {
-          // Very quick descent - heavy gravity
-          gravity = 2000 * PLAYER_VERTICAL_TRAVERSAL_SCALE;
+      if (this.jumpBufferTimerMs > 0) this.jumpBufferTimerMs = Math.max(0, this.jumpBufferTimerMs - deltaTime);
+      if (this.grounded) this.coyoteTimerMs = PLAYER_COYOTE_MS;
+      else this.coyoteTimerMs = Math.max(0, this.coyoteTimerMs - deltaTime);
+      const jumpHeld = this.isJumpHeld();
+      if (!jumpHeld) this.queueJumpRelease();
+      if (!this.grounded && this.velocity.y < 0) this.jumpHeldMs += deltaTime;
+
+      // Frame-rate-stable bounded substep physics. Sprite anchoring is solved
+      // later by getVisualAnchor(); this block owns only locomotion.
+      if (this.allowMovement) {
+        let remaining = Math.max(0, deltaTime);
+        while (remaining > 0) {
+          const stepMs = Math.min(remaining, 1000 / 120);
+          const step = stepMs / 1000;
+          if (!this.grounded) {
+            this.applyAirControlStep(step);
+            this.velocity.y += PLAYER_JUMP_GRAVITY * step;
+            this.velocity.y = Math.min(this.velocity.y, 1200);
+            if (this.jumpReleaseQueued && this.jumpHeldMs >= PLAYER_MIN_JUMP_HOLD_MS && this.velocity.y < 0) {
+              this.velocity.y *= PLAYER_JUMP_CUT_MULTIPLIER;
+              this.jumpReleaseQueued = false;
+            }
+          } else {
+            this.jumpTime = 0;
+            this.jumpHeldMs = 0;
+            this.jumpReleaseQueued = false;
+          }
+          this.position = this.position.add?.(this.velocity.multiply?.(step) || this.position);
+          remaining -= stepMs;
         }
-        
-        this.velocity.y += gravity * dt;
-        
-        const terminalVelocity = 1200 * PLAYER_VERTICAL_TRAVERSAL_SCALE;
-        this.velocity.y = Math.min(this.velocity.y, terminalVelocity);
-      } else {
-        this.jumpTime = 0; // Reset jump time when grounded
       }
-      
+
       if (this.primaryAttackAnimationMs > 0) {
         this.primaryAttackAnimationMs = Math.max(0, this.primaryAttackAnimationMs - deltaTime);
-      }
-      
-      // Update position only if movement is allowed
-      if (this.allowMovement) {
-        this.position = this.position.add?.(this.velocity.multiply?.(dt) || this.position);
       }
       
       let landedOnStageSurface = false;
@@ -190,6 +208,7 @@ window.Player = class Player {
         this.position.y = 750;
         this.velocity.y = 0;
         this.grounded = true;
+        this.supportedSurfaceId = null;
         
         // CRITICAL FIX: Reset jump animation tracking when landing
         // This ensures next jump will restart animation from beginning
@@ -206,8 +225,10 @@ window.Player = class Player {
         }
       } else if (!landedOnStageSurface) {
         this.grounded = false;
+        this.supportedSurfaceId = null;
       }
       
+      if (this.grounded && this.jumpBufferTimerMs > 0 && this.velocity.y === 0) this.consumeBufferedJumpIfReady();
       // Side-scroller world boundaries (background is 4096px wide)
       const worldLeft = this.width/2;
       const worldRight = 4096 - this.width/2;
@@ -259,8 +280,8 @@ window.Player = class Player {
     // so its approved timing and combat state resume after the camera returns.
     if (bossCinematicActive) {
       this.state = 'idle';
-    // Priority order: Rhythm Mode/transient attack > Jump (if up held) > Walk > Idle
-    } else if (rhythmActive || this.primaryAttackAnimationMs > 0) {
+    // Priority order: transient attack overlay > Jump > Walk > Idle; Rhythm Mode itself does not lock the pose.
+    } else if (this.primaryAttackAnimationMs > 0) {
       this.state = 'rhythm';
     } else if (!this.grounded || upKeyHeld) {
       this.state = 'jump'; // Stay in jump state if up key is held (even when grounded)
@@ -599,12 +620,10 @@ window.Player = class Player {
   }
 
   moveLeft() {
-    if (this.state === 'rhythm' || this.isEntering || !this.allowMovement) {
-      return;
-    }
-    
-    this.facing = -1; // Face left
-    this.velocity.x = -this.speed;
+    if (this.isEntering || !this.allowMovement) { return; }
+    this.facing = -1;
+    if (this.grounded) this.velocity.x = -this.speed;
+    else this.airInput = -1;
     {
       
       // White smoke/dust trail particles behind player
@@ -618,12 +637,10 @@ window.Player = class Player {
   }
 
   moveRight() {
-    if (this.state === 'rhythm' || this.isEntering || !this.allowMovement) {
-      return;
-    }
-    
-    this.facing = 1; // Face right
-    this.velocity.x = this.speed;
+    if (this.isEntering || !this.allowMovement) { return; }
+    this.facing = 1;
+    if (this.grounded) this.velocity.x = this.speed;
+    else this.airInput = 1;
     {
       
       // White smoke/dust trail particles behind player
@@ -637,22 +654,23 @@ window.Player = class Player {
   }
 
   stopHorizontal() {
-    if (this.state === 'rhythm' || this.isEntering || !this.allowMovement) {
-      return;
-    }
-    
-    this.velocity.x = 0;
+    if (this.isEntering || !this.allowMovement) { return; }
+    if (this.grounded) this.velocity.x = 0;
+    else this.airInput = 0;
     // Keep facing direction - don't change when stopping
   }
 
   jump() {
-    if (this.state === 'rhythm' || this.isEntering || !this.allowMovement) {
-      return false;
-    }
-    
-    if (this.grounded) {
+    if (this.isEntering || !this.allowMovement) { return false; }
+    this.jumpBufferTimerMs = PLAYER_BUFFER_MS;
+    if (this.grounded || this.coyoteTimerMs > 0) {
       this.velocity.y = -this.jumpPower;
       this.grounded = false;
+      this.supportedSurfaceId = null;
+      this.coyoteTimerMs = 0;
+      this.jumpBufferTimerMs = 0;
+      this.jumpHeldMs = 0;
+      this.jumpReleaseQueued = false;
       this.jumpTime = 0; // Reset jump timer
       
       // CRITICAL FIX: Always reset jump animation tracking for new jump
@@ -677,6 +695,16 @@ window.Player = class Player {
     }
     return false;
   }
+
+  isJumpHeld() { const action = window.inputManager?.actionInput?.state?.jump; if (action && typeof action.held === 'boolean') return action.held; return !!(window.inputManager && (window.inputManager.isKey?.('arrowup') || window.inputManager.isKey?.('w') || window.inputManager.isKey?.(' '))); }
+
+  applyAirControlStep(step) { const input = Number.isFinite(this.airInput) ? this.airInput : 0; if (input) this.velocity.x = window.clamp ? window.clamp(this.velocity.x + input * PLAYER_AIR_ACCEL * step, -this.airSpeed, this.airSpeed) : Math.max(-this.airSpeed, Math.min(this.airSpeed, this.velocity.x + input * PLAYER_AIR_ACCEL * step)); else { const drag = PLAYER_AIR_DRAG * step; this.velocity.x = Math.abs(this.velocity.x) <= drag ? 0 : this.velocity.x - Math.sign(this.velocity.x) * drag; } }
+
+  consumeBufferedJumpIfReady() { if (this.jumpBufferTimerMs > 0 && this.grounded) return this.jump(); return false; }
+
+  queueJumpRelease() { this.jumpReleaseQueued = true; }
+
+  stompRebound() { this.velocity.y = -PLAYER_STOMP_REBOUND; this.grounded = false; this.coyoteTimerMs = 0; this.jumpBufferTimerMs = 0; this.jumpHeldMs = 0; this.jumpReleaseQueued = false; }
 
   dash() {
     // Dash ability removed - no longer available, but the action route is intentionally recognized.
