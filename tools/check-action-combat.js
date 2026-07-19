@@ -120,6 +120,28 @@ pass('boss cinematic Rhythm Mode ownership');
     jump: { animation: '6_bit_jump_jump', x: 21, y: 95 },
     rhythm: { animation: '6_bit_r__h_mode_rhmode', x: 26, y: 95 }
   };
+  const auditedSourceFootRows = {
+    idle: [
+      95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95,
+      95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95
+    ],
+    walk: [
+      94, 93, 93, 93, 94, 95, 94, 94, 95, 95, 95, 94,
+      94, 94, 94, 94, 94, 94, 93, 93, 93, 94, 94, 93,
+      93, 93, 93, 93, 93, 95, 94, 95, 95, 95, 94, 94,
+      94, 94, 94, 93, 93, 94, 95, 95, 95, 95, 95, 95
+    ],
+    jump: [
+      94, 94, 94, 94, 91, 86, 76, 73, 68, 68, 69, 74, 82, 84,
+      89, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 93
+    ],
+    rhythm: [
+      95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95,
+      95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95,
+      95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95,
+      95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95
+    ]
+  };
   const establishedCombatHulls = {
     idle: { width: 154.8, bottom: 543.8 },
     walk: { width: 118.8, bottom: 528.8 },
@@ -134,17 +156,108 @@ pass('boss cinematic Rhythm Mode ownership');
     assert(animationEntry.metadata?.anchor, `${state} publishes its anchor through the Makko animation metadata schema`);
     assert(animationEntry.metadata.anchor.x === expectedManifest.x && animationEntry.metadata.anchor.y === expectedManifest.y, `${state} metadata preserves the audited player anchor`);
     assert(JSON.stringify(animationEntry.metadata.anchor) === JSON.stringify(animationEntry.anchor), `${state} compatibility anchor cannot drift from Makko metadata`);
+    assert(JSON.stringify(presentation.footRows) === JSON.stringify(auditedSourceFootRows[state]), `${state} uses the audited untrimmed source-frame foot rows`);
+
+    player.sprite = {
+      currentSprite: {
+        getAnchorPoint: () => animationEntry.metadata.anchor,
+        hasManifestAnchor: () => true,
+        getManifestScale: () => 1
+      }
+    };
     for (let frame = 0; frame < presentation.footRows.length; frame++) {
       player.animationRef = { currentFrame: frame };
       const anchor = player.getVisualAnchor();
       assert(Math.abs(anchor.visibleFootY - 500) < 0.000001, `${state} frame ${frame} resolves to the existing physics contact line`);
-      const makkoRenderedFootY = anchor.y - animationEntry.metadata.anchor.y * anchor.scale + presentation.footRows[frame] * anchor.scale;
+      assert(anchor.usesScaledAnchor, `${state} frame ${frame} detects Makko's manifest-anchor path`);
+      const makkoRenderedFootY = anchor.y - animationEntry.metadata.anchor.y * anchor.frameScale + presentation.footRows[frame] * anchor.frameScale;
       assert(Math.abs(makkoRenderedFootY - 500) < 0.000001, `${state} frame ${frame} remains on the contact line after Makko scales its manifest anchor`);
       assert(anchor.x === player.position.x, `${state} frame ${frame} remains horizontally centered on the physics anchor`);
     }
+
+    player.sprite = {
+      currentSprite: {
+        getAnchorPoint: () => animationEntry.metadata.anchor,
+        hasManifestAnchor: () => false,
+        getManifestScale: () => 1
+      }
+    };
+    for (let frame = 0; frame < presentation.footRows.length; frame++) {
+      player.animationRef = { currentFrame: frame };
+      const anchor = player.getVisualAnchor();
+      assert(!anchor.usesScaledAnchor, `${state} frame ${frame} detects Makko's legacy-anchor path`);
+      const makkoRenderedFootY = anchor.y - animationEntry.metadata.anchor.y + presentation.footRows[frame] * anchor.frameScale;
+      assert(Math.abs(makkoRenderedFootY - 500) < 0.000001, `${state} frame ${frame} remains on the contact line when Makko subtracts its fallback anchor unscaled`);
+      assert(Math.abs(anchor.visibleFootY - 500) < 0.000001, `${state} fallback frame ${frame} reports the rendered foot at the physics contact line`);
+    }
+
+    player.sprite = {
+      currentSprite: {
+        getAnchorPoint: () => ({ x: 0, y: 48 }),
+        hasManifestAnchor: () => false,
+        getManifestScale: () => 1
+      }
+    };
+    for (let frame = 0; frame < presentation.footRows.length; frame++) {
+      player.animationRef = { currentFrame: frame };
+      const anchor = player.getVisualAnchor();
+      const makkoRenderedFootY = anchor.y - 48 + presentation.footRows[frame] * anchor.frameScale;
+      assert(Math.abs(makkoRenderedFootY - 500) < 0.000001, `${state} frame ${frame} remains grounded when an older Makko runtime supplies a center fallback`);
+    }
+
+    player.sprite = {
+      currentSprite: {
+        getAnchorPoint: () => null,
+        hasManifestAnchor: () => false,
+        getManifestScale: () => 1
+      }
+    };
+    player.animationRef = { currentFrame: 0 };
+    const noAnchor = player.getVisualAnchor();
+    const noAnchorRenderedFootY = noAnchor.y + presentation.footRows[0] * noAnchor.frameScale;
+    assert(noAnchor.anchorOffsetY === 0, `${state} does not invent an anchor subtraction when Makko reports no anchor`);
+    assert(Math.abs(noAnchorRenderedFootY - 500) < 0.000001, `${state} remains grounded when Makko draws an unanchored source frame from its top-left`);
     const hitbox = player.getHitbox();
     assert(Math.abs(hitbox.width - establishedCombatHulls[state].width) < 0.000001, `${state} keeps its established combat-hull width`);
     assert(Math.abs(hitbox.y + hitbox.height - establishedCombatHulls[state].bottom) < 0.000001, `${state} keeps its established stomp/contact boundary`);
+  }
+
+  const drawContext = { save(){}, restore(){} };
+  for (const state of states) {
+    player.state = state;
+    player.animationRef = { currentFrame: 0 };
+    const presentation = player.getAnimationPresentation(state);
+    const animationEntry = playerAnimations[manifestAnchors[state].animation];
+    const runtimeCases = [
+      { name: 'manifest bottom', anchor: animationEntry.metadata.anchor, manifest: true },
+      { name: 'legacy bottom', anchor: animationEntry.metadata.anchor, manifest: false },
+      { name: 'legacy center', anchor: { x: animationEntry.dimensions.width / 2, y: animationEntry.dimensions.height / 2 }, manifest: false }
+    ];
+    for (const runtimeCase of runtimeCases) {
+      for (const facing of [-1, 1]) {
+        const drawCalls = [];
+        player.facing = facing;
+        player.sprite = {
+          currentSprite: {
+            getAnchorPoint: () => runtimeCase.anchor,
+            hasManifestAnchor: () => runtimeCase.manifest,
+            getManifestScale: () => 1
+          },
+          draw(ctx, x, y, options) { drawCalls.push({ x, y, options }); }
+        };
+        player.drawSprite(drawContext);
+        assert(drawCalls.length === 1, `${state} ${runtimeCase.name} draws exactly once while facing ${facing}`);
+        const call = drawCalls[0];
+        const flipSign = call.options.flipH ? -1 : 1;
+        const frameScale = presentation.scale;
+        const anchorOffsetX = runtimeCase.anchor.x * (runtimeCase.manifest ? frameScale : 1);
+        const anchorOffsetY = runtimeCase.anchor.y * (runtimeCase.manifest ? frameScale : 1);
+        const renderedAnchorColumnX = call.x + flipSign * (runtimeCase.anchor.x * frameScale - anchorOffsetX);
+        const renderedFootY = call.y - anchorOffsetY + presentation.footRows[0] * frameScale;
+        assert(Math.abs(renderedAnchorColumnX - player.position.x) < 0.000001, `${state} ${runtimeCase.name} keeps the source anchor column centered while facing ${facing}`);
+        assert(Math.abs(renderedFootY - player.position.y) < 0.000001, `${state} ${runtimeCase.name} keeps the visible foot on the physics line while facing ${facing}`);
+      }
+    }
   }
 
   let cinematicActive = true;
