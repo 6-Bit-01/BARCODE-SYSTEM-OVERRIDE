@@ -6,10 +6,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
   const WORLD_WIDTH = 4096;
   const CANVAS_WIDTH = 1920;
   const GROUND_Y = 750;
-  // Player.position.y and boss.y already represent the authored foot-contact
-  // line (physics ground 750 -> foreground sidewalk 750). Per-frame sprite
-  // compensation resolves to that line without a second world-space offset.
-  const PLAYER_VISUAL_FOOT_OFFSET = 0;
+  // Player.position.y and boss.y retain the historical physics ground at 750.
+  // Their visible feet are authored 72px lower on the locked foreground
+  // (physics 750 -> sidewalk contact 822). Stage surfaces store visible-foot Y.
+  const PLAYER_VISUAL_FOOT_OFFSET = window.Player.VISUAL_FOOT_OFFSET_Y;
   const CAMERA_MIN = CANVAS_WIDTH / 2;
   const CAMERA_MAX = WORLD_WIDTH - CANVAS_WIDTH / 2;
 

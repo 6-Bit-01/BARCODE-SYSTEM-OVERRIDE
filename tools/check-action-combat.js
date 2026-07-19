@@ -168,10 +168,10 @@ pass('boss cinematic Rhythm Mode ownership');
     for (let frame = 0; frame < presentation.footRows.length; frame++) {
       player.animationRef = { currentFrame: frame };
       const anchor = player.getVisualAnchor();
-      assert(Math.abs(anchor.visibleFootY - 500) < 0.000001, `${state} frame ${frame} resolves to the existing physics contact line`);
+      assert(Math.abs(anchor.visibleFootY - 572) < 0.000001, `${state} frame ${frame} resolves to physics y + 72 visual foot line`);
       assert(anchor.usesScaledAnchor, `${state} frame ${frame} detects Makko's manifest-anchor path`);
       const makkoRenderedFootY = anchor.y - animationEntry.metadata.anchor.y * anchor.frameScale + presentation.footRows[frame] * anchor.frameScale;
-      assert(Math.abs(makkoRenderedFootY - 500) < 0.000001, `${state} frame ${frame} remains on the contact line after Makko scales its manifest anchor`);
+      assert(Math.abs(makkoRenderedFootY - 572) < 0.000001, `${state} frame ${frame} remains on the visual contact line after Makko scales its manifest anchor`);
       assert(anchor.x === player.position.x, `${state} frame ${frame} remains horizontally centered on the physics anchor`);
     }
 
@@ -187,8 +187,8 @@ pass('boss cinematic Rhythm Mode ownership');
       const anchor = player.getVisualAnchor();
       assert(!anchor.usesScaledAnchor, `${state} frame ${frame} detects Makko's legacy-anchor path`);
       const makkoRenderedFootY = anchor.y - animationEntry.metadata.anchor.y + presentation.footRows[frame] * anchor.frameScale;
-      assert(Math.abs(makkoRenderedFootY - 500) < 0.000001, `${state} frame ${frame} remains on the contact line when Makko subtracts its fallback anchor unscaled`);
-      assert(Math.abs(anchor.visibleFootY - 500) < 0.000001, `${state} fallback frame ${frame} reports the rendered foot at the physics contact line`);
+      assert(Math.abs(makkoRenderedFootY - 572) < 0.000001, `${state} frame ${frame} remains on the visual contact line when Makko subtracts its fallback anchor unscaled`);
+      assert(Math.abs(anchor.visibleFootY - 572) < 0.000001, `${state} fallback frame ${frame} reports the rendered foot at physics y + 72`);
     }
 
     player.sprite = {
@@ -202,7 +202,7 @@ pass('boss cinematic Rhythm Mode ownership');
       player.animationRef = { currentFrame: frame };
       const anchor = player.getVisualAnchor();
       const makkoRenderedFootY = anchor.y - 48 + presentation.footRows[frame] * anchor.frameScale;
-      assert(Math.abs(makkoRenderedFootY - 500) < 0.000001, `${state} frame ${frame} remains grounded when an older Makko runtime supplies a center fallback`);
+      assert(Math.abs(makkoRenderedFootY - 572) < 0.000001, `${state} frame ${frame} remains grounded when an older Makko runtime supplies a center fallback`);
     }
 
     player.sprite = {
@@ -216,7 +216,7 @@ pass('boss cinematic Rhythm Mode ownership');
     const noAnchor = player.getVisualAnchor();
     const noAnchorRenderedFootY = noAnchor.y + presentation.footRows[0] * noAnchor.frameScale;
     assert(noAnchor.anchorOffsetY === 0, `${state} does not invent an anchor subtraction when Makko reports no anchor`);
-    assert(Math.abs(noAnchorRenderedFootY - 500) < 0.000001, `${state} remains grounded when Makko draws an unanchored source frame from its top-left`);
+    assert(Math.abs(noAnchorRenderedFootY - 572) < 0.000001, `${state} remains grounded when Makko draws an unanchored source frame from its top-left`);
     const hitbox = player.getHitbox();
     assert(Math.abs(hitbox.width - establishedCombatHulls[state].width) < 0.000001, `${state} keeps its established combat-hull width`);
     assert(Math.abs(hitbox.y + hitbox.height - establishedCombatHulls[state].bottom) < 0.000001, `${state} keeps its established stomp/contact boundary`);
@@ -255,7 +255,7 @@ pass('boss cinematic Rhythm Mode ownership');
         const renderedAnchorColumnX = call.x + flipSign * (runtimeCase.anchor.x * frameScale - anchorOffsetX);
         const renderedFootY = call.y - anchorOffsetY + presentation.footRows[0] * frameScale;
         assert(Math.abs(renderedAnchorColumnX - player.position.x) < 0.000001, `${state} ${runtimeCase.name} keeps the source anchor column centered while facing ${facing}`);
-        assert(Math.abs(renderedFootY - player.position.y) < 0.000001, `${state} ${runtimeCase.name} keeps the visible foot on the physics line while facing ${facing}`);
+        assert(Math.abs(renderedFootY - (player.position.y + 72)) < 0.000001, `${state} ${runtimeCase.name} keeps the visible foot 72px below the physics anchor while facing ${facing}`);
       }
     }
   }

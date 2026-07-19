@@ -9,9 +9,14 @@ window.FILE_MANIFEST.push({
 // These foot rows are untrimmed source-frame coordinates (all four source
 // sheets use a 96px-tall canvas). They retain the approved sprite sizes while
 // anchoring the lowest visible foot pixel to one canonical presentation line
-// on every frame. Player.position.y is already the sidewalk/roof contact line;
-// presentation alignment must not add another world-space physics offset.
-const PLAYER_VISUAL_FOOT_OFFSET_Y = 0;
+// on every frame. Player.position.y is the historical physics anchor, always
+// 72px above the visible foot-contact line. Keep that world-space contract
+// separate from Makko's source-frame anchor compensation below.
+const PLAYER_VISUAL_FOOT_OFFSET_Y = 72;
+// The real sidewalk-to-awning rise is taller than the legacy physics-space
+// gap. Scale every vertical jump term together so the route gains height while
+// preserving the established takeoff/apex/landing timing.
+const PLAYER_VERTICAL_TRAVERSAL_SCALE = 1.3;
 const PLAYER_ANIMATION_PRESENTATION = Object.freeze({
   idle: Object.freeze({
     animation: '6_bit_idle_idle',
@@ -60,6 +65,8 @@ const PLAYER_ANIMATION_PRESENTATION = Object.freeze({
 });
 
 window.Player = class Player {
+  static get VISUAL_FOOT_OFFSET_Y() { return PLAYER_VISUAL_FOOT_OFFSET_Y; }
+
   constructor(x, y) {
     this.position = new window.Vector2D(x, y);
     
@@ -73,7 +80,7 @@ window.Player = class Player {
     this.width = 86;  // Based on sprite dimensions
     this.height = 96; // Based on sprite dimensions
     this.speed = 300; // pixels per second
-    this.jumpPower = 800; // Higher, faster jump
+    this.jumpPower = 800 * PLAYER_VERTICAL_TRAVERSAL_SCALE;
     this.jumpTime = 0;
     this.maxJumpTime = 200; // Max jump duration in ms
     this.health = 3;
@@ -146,18 +153,18 @@ window.Player = class Player {
         let gravity = 0;
         if (this.jumpTime < 100) {
           // Ultra-fast ascent phase - almost no gravity
-          gravity = 100;
+          gravity = 100 * PLAYER_VERTICAL_TRAVERSAL_SCALE;
         } else if (this.jumpTime < 200) {
           // Minimal float phase - light gravity
-          gravity = 400;
+          gravity = 400 * PLAYER_VERTICAL_TRAVERSAL_SCALE;
         } else {
           // Very quick descent - heavy gravity
-          gravity = 2000;
+          gravity = 2000 * PLAYER_VERTICAL_TRAVERSAL_SCALE;
         }
         
         this.velocity.y += gravity * dt;
         
-        const terminalVelocity = 1200;
+        const terminalVelocity = 1200 * PLAYER_VERTICAL_TRAVERSAL_SCALE;
         this.velocity.y = Math.min(this.velocity.y, terminalVelocity);
       } else {
         this.jumpTime = 0; // Reset jump time when grounded
