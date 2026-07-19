@@ -39,9 +39,18 @@ function createHarness() {
   context.tutorialSystem = { active: false, completed: true, storyChapter: 0, combatEnemiesPaused: false, isActive() { return this.active; }, isCompleted() { return this.completed; }, checkObjective() {}, completedObjectives: new Set(), objectives: [] };
   context.MakkoEngine = { sprite() { return { isLoaded: () => false, play() {}, stop() {}, draw() {}, currentSprite: null, _currentSprite: null }; } };
   context.BARCODE = { MusicTransport: {}, MusicProfiles: { getActive: () => ({ judgmentRules: [] }) }, JammerEnvironment: { status: { revealed: false, destroyed: false, health: 16, position: null }, reveal({ position }) { this.status = { revealed: true, destroyed: false, health: 16, position }; }, getStatus() { return this.status; }, reset() { this.status = { revealed: false, destroyed: false, health: 16, position: null }; }, canReceiveRhythmDamage: () => true, applyRhythmDamage(args = {}) { this.status.health = Math.max(0, this.status.health - (args.amount || 1)); if (this.status.health === 0) this.status.destroyed = true; return { ok: true }; } } };
+  context.__timers = timers;
   context.advanceClock = ms => { now += ms; };
   context.flushTimers = () => Array.from(timers.values()).forEach(handle => { if (timers.has(handle)) { timers.delete(handle); handle.callback(); } });
   context.runDueTimers = minDelay => Array.from(timers.values()).filter(t => t.delay <= minDelay).forEach(handle => { if (timers.has(handle)) { timers.delete(handle); now += handle.delay; handle.callback(); } });
+  context.runNextTimer = () => {
+    const handle = Array.from(timers.values()).sort((a, b) => a.delay - b.delay)[0];
+    if (!handle) return false;
+    timers.delete(handle);
+    now += handle.delay;
+    handle.callback();
+    return true;
+  };
 
   for (const file of ['src/game/player.js', 'src/game/enemies.js', 'src/game/hacking.js', 'src/game/lost-data.js', 'src/game/rhythm.js', 'src/game/player-combat.js', 'src/game/sector1-progression.js']) {
     vm.runInNewContext(fs.readFileSync(path.join(root, file), 'utf8'), context, { filename: file });
@@ -137,6 +146,49 @@ function testHackingLifecycle() {
   failHack.reset(); const diag = failHack.getDiagnostics(); assert.strictEqual(diag.active, false, 'reset clears active hacking'); assert.strictEqual(diag.ownedTimeouts, 0, 'reset leaves no owned hacking timers'); assert.strictEqual(diag.hasPuzzleTimeout, false, 'reset clears puzzle timeout');
 }
 
+
+
+function testHackingMemoryTimingAndRhythmRestore() {
+  const w = createHarness();
+  w.player = new w.Player(1000, 750); w.player.grounded = true; w.player.health = 2; w.player.maxHealth = 3;
+  let shows = 0, hides = 0;
+  w.rhythmSystem = { active: true, isActive() { return this.active; }, hideRhythmMode() { hides++; this.active = false; }, showRhythmMode() { shows++; this.active = true; } };
+  w.Math = Object.create(Math); w.Math.random = () => 0.75;
+  const hack = new w.HackingSystem(); w.hackingSystem = hack;
+  hack.start();
+  w.runNextTimer();
+  assert.strictEqual(hack.puzzleType, 2, 'fixture starts a memory puzzle');
+  assert(hack.currentPuzzle, 'memory puzzle is generated after terminal startup');
+  assert.strictEqual(hack._startTime, 0, 'memory answer clock has not started during memorization');
+  assert.strictEqual(hack.puzzleTimeout, null, 'memory puzzle owns no answer timeout during memorization');
+  assert.strictEqual(hack.active, true, 'memory puzzle cannot timeout during memorization');
+  w.runNextTimer();
+  assert(hack.terminalLines.includes('> INPUT WINDOW ACTIVE'), 'memory puzzle hides before input window opens');
+  assert.strictEqual(hack._startTime, w.Date.now(), 'memory answer clock starts only after hiding');
+  assert.strictEqual(hack.__unused, undefined, 'fixture sanity');
+  assert.strictEqual(hack.getDiagnostics().ownedTimeouts, 1, 'only one answer timeout exists after memory hiding');
+  w.advanceClock(3999); assert.strictEqual(hack.active, true, 'memory retains almost the full four-second answer window after hiding');
+  hack.timeoutFailPuzzle();
+  assert.strictEqual(shows, 1, 'timeout restores suspended Rhythm Mode once');
+  hack.reset(); hack.reset();
+  assert.strictEqual(shows, 1, 'repeated reset is idempotent after timeout restoration');
+
+  function finish(method, activeBefore = true) {
+    const h = new w.HackingSystem(); w.hackingSystem = h; w.rhythmSystem.active = activeBefore; h.start(); w.runNextTimer(); h.currentPuzzle = h.currentPuzzle || { answer: 'OPEN' }; h.inputText = h.currentPuzzle.answer;
+    const before = shows;
+    if (method === 'success') h.successPuzzle();
+    else if (method === 'failure') { h.inputText = 'WRONG'; h.failPuzzle(); }
+    else if (method === 'cancel') h.cancel();
+    else if (method === 'reset') h.reset();
+    return shows - before;
+  }
+  w.advanceClock(20000); assert.strictEqual(finish('reset', true), 1, 'reset restores Rhythm Mode suspended by this session');
+  w.advanceClock(20000); assert.strictEqual(finish('reset', false), 0, 'reset never enables Rhythm Mode from normal mode');
+  w.advanceClock(20000); assert.strictEqual(finish('cancel', true), 1, 'cancel restores suspended Rhythm Mode');
+  w.advanceClock(20000); assert.strictEqual(finish('failure', true), 1, 'failure restores suspended Rhythm Mode');
+  w.advanceClock(20000); assert.strictEqual(finish('success', true), 1, 'success restores suspended Rhythm Mode');
+}
+
 function testLostDataLiftMovementSwooperAmpAndEnemyClock() {
   const w = createHarness();
   w.player = new w.Player(700, 750); w.player.grounded = true;
@@ -172,7 +224,21 @@ function testLostDataLiftMovementSwooperAmpAndEnemyClock() {
   assert.strictEqual(manager.enemies[0].lastDt, 250, 'enemy behavior uses slowed hostile delta during hacking');
   assert.strictEqual(manager.enemies[0].lastSim, 250, 'enemy attack timers use hostile simulation clock');
   assert.strictEqual(manager.simulationTimeMs, 1000, 'authoritative simulation clock remains real time for stun expiry');
+
+  const contactManager = new w.EnemyManager();
+  let contactHits = 0;
+  const contactEnemy = { active: true, type: 'virus', damage: 1, position: { x: 1000, y: 750 }, velocity: { x: 0, y: 0 }, lastPlayerHitTimeMs: -Infinity, update() {}, isSpawnProtected: () => false, getHitbox: () => ({ x: 980, y: 730, width: 40, height: 40 }) };
+  contactManager.enemies = [contactEnemy];
+  w.hackingSystem = { isActive: () => true, absorbGuardHit: () => false };
+  const contactPlayer = { controlsDisabled: false, position: { x: 1000, y: 750 }, velocity: { y: -200 }, getHitbox: () => ({ x: 990, y: 740, width: 20, height: 20 }), takeDamageWithKnockback() { contactHits++; } };
+  contactManager.update(16, contactPlayer);
+  assert.strictEqual(contactHits, 1, 'initial contact damage lands during tactical focus');
+  contactManager.update(1500, contactPlayer);
+  assert.strictEqual(contactHits, 1, 'contact damage cannot repeat after only 1.5 seconds of normal time during tactical focus');
+  for (let i = 0; i < 5; i++) contactManager.update(1000, contactPlayer);
+  assert.strictEqual(contactHits, 2, 'contact damage repeats after sufficient slowed hostile time');
 }
+
 
 function testProductionPlayerMovement() {
   function makePlayer(w) { const p = new w.Player(1000, 740); p.isEntering = false; p.allowMovement = true; p.grounded = false; p.coyoteTimerMs = 0; p.velocity.y = 600; p.spriteReady = false; w.player = p; return p; }
@@ -191,6 +257,7 @@ function testProductionPlayerMovement() {
 
 testEncountersAndClockPauses();
 testHackingLifecycle();
+testHackingMemoryTimingAndRhythmRestore();
 testLostDataLiftMovementSwooperAmpAndEnemyClock();
 testProductionPlayerMovement();
 console.log('✅ Level 1 production gameplay dynamics checks passed');

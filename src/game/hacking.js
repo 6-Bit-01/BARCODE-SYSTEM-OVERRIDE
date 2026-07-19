@@ -59,6 +59,28 @@ window.HackingSystem = class HackingSystem {
     this.puzzleTimeout = null;
   }
 
+  beginAnswerWindow() {
+    if (!this.active || this.puzzleComplete || !this.currentPuzzle) return;
+    if (this.puzzleTimeout) clearTimeout(this.puzzleTimeout);
+    this.puzzleTimeout = null;
+    this.puzzleReadyAt = Date.now();
+    this._startTime = this.puzzleReadyAt;
+    this.puzzleTimeout = this.trackTimeout(() => {
+      if (this.active && !this.puzzleComplete) this.timeoutFailPuzzle();
+    }, 4000);
+  }
+
+  restoreSuspendedRhythmMode() {
+    const shouldRestore = !!(this.suspendedRhythmMode && this.previousRhythmModeActive);
+    if (shouldRestore) {
+      if (window.rhythmSystem?.showRhythmMode) window.rhythmSystem.showRhythmMode();
+      else if (window.rhythmSystem?.show) window.rhythmSystem.show();
+    }
+    this.previousRhythmModeActive = false;
+    this.suspendedRhythmMode = false;
+    return shouldRestore;
+  }
+
   getDiagnostics() {
     return { active: !!this.active, ownedTimeouts: this.ownedTimeouts.size, hasPuzzleTimeout: !!this.puzzleTimeout, runGeneration: this.runGeneration };
   }
@@ -143,14 +165,17 @@ window.HackingSystem = class HackingSystem {
         case 1: this.generatePortPuzzle(); break;
         case 2: this.generateMemoryPuzzle(); break;
       }
-      this.puzzleReadyAt = Date.now();
-      this._startTime = this.puzzleReadyAt;
-      this.puzzleTimeout = this.trackTimeout(() => {
-        if (this.active && !this.puzzleComplete) this.timeoutFailPuzzle();
-      }, 4000);
-      this.trackTimeout(() => {
-        if (this.active && !this.puzzleComplete) this.hidePuzzle();
-      }, this.displayTime);
+      if (this.puzzleType === 2) {
+        this.puzzleReadyAt = 0;
+        this._startTime = 0;
+        this.trackTimeout(() => {
+          if (!this.active || this.puzzleComplete) return;
+          this.hidePuzzle();
+          this.beginAnswerWindow();
+        }, this.displayTime);
+      } else {
+        this.beginAnswerWindow();
+      }
     }, 1000);
 
     if (window.tutorialSystem && typeof window.tutorialSystem.isActive === 'function' && window.tutorialSystem.isActive()) {
@@ -212,10 +237,7 @@ window.HackingSystem = class HackingSystem {
     this.guardHitsRemaining = 0;
     this._startTime = 0;
     this.puzzleReadyAt = 0;
-    if (this.suspendedRhythmMode && this.previousRhythmModeActive && window.rhythmSystem?.showRhythmMode) window.rhythmSystem.showRhythmMode();
-    else if (this.suspendedRhythmMode && this.previousRhythmModeActive && window.rhythmSystem?.show) window.rhythmSystem.show();
-    this.previousRhythmModeActive = false;
-    this.suspendedRhythmMode = false;
+    this.restoreSuspendedRhythmMode();
     if (success) this.emitOverridePulse();
   }
 
@@ -516,8 +538,7 @@ window.HackingSystem = class HackingSystem {
     this.active = false;
     this.cooldownUntil = 0;
     this.guardHitsRemaining = 0;
-    this.previousRhythmModeActive = false;
-    this.suspendedRhythmMode = false;
+    this.restoreSuspendedRhythmMode();
     this._startTime = 0;
     this.puzzleReadyAt = 0;
     this.currentPuzzle = null;
