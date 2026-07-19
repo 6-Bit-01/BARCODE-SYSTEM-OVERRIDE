@@ -31,12 +31,15 @@ must(sectorSource, /STAGE_SURFACES = Object\.freeze/, 'single stage surface data
 must(sectorSource, /ENCOUNTER_GATES = Object\.freeze/, 'single gate data exists');
 must(sectorSource, /previousVisualFootY > surface\.y \|\| currentVisualFootY < surface\.y[^]*crossingT[^]*crossingX/, 'platform tunneling prevention resolves the horizontal visual-foot position at the vertical crossing');
 must(sectorSource, /const footHalfWidth = 18;/, 'platform collision uses the narrow player foot probe');
-must(sectorSource, /const PLAYER_VISUAL_FOOT_OFFSET = 0;/, 'Level 1 platforms share the existing physics contact line');
+must(playerSource, /static get VISUAL_FOOT_OFFSET_Y\(\) \{ return PLAYER_VISUAL_FOOT_OFFSET_Y; \}/, 'Player publishes the canonical visual-foot offset');
+must(sectorSource, /const PLAYER_VISUAL_FOOT_OFFSET = window\.Player\.VISUAL_FOOT_OFFSET_Y;/, 'Level 1 platforms and boss presentation consume the player-owned visual-foot contract');
 must(sectorSource, /player\.position\.y = landing\.surface\.y - PLAYER_VISUAL_FOOT_OFFSET;/, 'platform landing keeps art y separate from the player physics anchor');
 must(sectorSource, /!landing \|\| crossingT < landing\.crossingT/, 'multi-surface descent resolves the earliest crossed ledge');
 must(playerSource, /this\.speed = 300;/, 'Level 1 route contract uses the locked 300px\/s player speed');
-must(playerSource, /this\.jumpPower = 800;/, 'Level 1 route contract uses the locked single-jump impulse');
-must(playerSource, /this\.jumpTime < 100[^]*gravity = 100[^]*this\.jumpTime < 200[^]*gravity = 400[^]*gravity = 2000/s, 'Level 1 route contract uses the current three-phase jump gravity');
+must(playerSource, /const PLAYER_VERTICAL_TRAVERSAL_SCALE = 1\.3;/, 'Level 1 declares one proportional vertical traversal scale');
+must(playerSource, /this\.jumpPower = 800 \* PLAYER_VERTICAL_TRAVERSAL_SCALE;/, 'Level 1 scales the single-jump impulse without changing its timing curve');
+must(playerSource, /this\.jumpTime < 100[^]*gravity = 100 \* PLAYER_VERTICAL_TRAVERSAL_SCALE[^]*this\.jumpTime < 200[^]*gravity = 400 \* PLAYER_VERTICAL_TRAVERSAL_SCALE[^]*gravity = 2000 \* PLAYER_VERTICAL_TRAVERSAL_SCALE/s, 'Level 1 proportionally scales all three jump gravity phases');
+must(playerSource, /const terminalVelocity = 1200 \* PLAYER_VERTICAL_TRAVERSAL_SCALE;/, 'Level 1 proportionally scales terminal fall speed');
 must(enemies, /updateAuthoredEntrance\(deltaTime\)[^]*keepEntranceTargetSafe\(this\)[^]*const dx = this\._entranceTarget\.x - this\.position\.x;/, 'authored entrances revalidate their target against the live player position');
 must(sectorSource, /isCompleted\(\) && typeof window\.tutorialSystem\.isActive === 'function' && !window\.tutorialSystem\.isActive\(\)/, 'mission requires completed and inactive tutorial');
 must(sectorSource, /captureCinematicStart\(\)[^]*gameCamera\.centerX/, 'Jammer destruction captures gameCamera.centerX immediately');
@@ -90,6 +93,7 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   const window = {
     FILE_MANIFEST: [],
     BARCODE: { JammerEnvironment: jammerEnvironment },
+    Player: { VISUAL_FOOT_OFFSET_Y: 72 },
     Vector2D: createVectorClass(),
     clamp: (v,min,max)=>Math.max(min,Math.min(max,v)),
     gameState: { paused: false, enemiesDefeated: 0 },
@@ -116,7 +120,7 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
     { id: 'tower-awning', x: 3292, y: 502, w: 402, h: 8 },
     { id: 'broadcast-awning', x: 3777, y: 502, w: 319, h: 8 }
   ], 'Level 1 platform rectangles stay calibrated to real awnings and rooftops');
-  assert.strictEqual(window.Sector1Progression.PLAYER_VISUAL_FOOT_OFFSET, 0, 'Level 1 publishes the existing physics contact line');
+  assert.strictEqual(window.Sector1Progression.PLAYER_VISUAL_FOOT_OFFSET, 72, 'Level 1 publishes the canonical visual-foot offset');
 }
 {
   const { window } = loadRealSector();
@@ -162,12 +166,12 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
 {
   const { window } = loadRealSector();
   const surfaces = new Map(window.Sector1Progression.STAGE_SURFACES.map(surface => [surface.id, surface]));
-  const physics = { speed: 300, jumpPower: 800, footHalfWidth: 18, frameMs: 16 };
+  const physics = { speed: 300, verticalScale: 1.3, jumpPower: 800 * 1.3, footHalfWidth: 18, frameMs: 16 };
   const supportedFrameStepsMs = [8, 16, 20, 24, 1000 / 30];
 
   function descendingCrossingTime(fromY, toY, frameMs = physics.frameMs) {
     // Simulate Player.position.y through the authored jump. Surface coordinates
-    // and the physics anchor share the same visible-foot line.
+    // are visible-foot lines, 72px below the historical physics anchor.
     let anchorY = fromY - window.Sector1Progression.PLAYER_VISUAL_FOOT_OFFSET;
     let velocityY = -physics.jumpPower;
     let jumpTime = 0;
@@ -175,12 +179,29 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
     for (let frame = 0; frame < 180; frame++) {
       const previousVisualFootY = anchorY + window.Sector1Progression.PLAYER_VISUAL_FOOT_OFFSET;
       jumpTime += frameMs;
-      const gravity = jumpTime < 100 ? 100 : jumpTime < 200 ? 400 : 2000;
+      const gravity = (jumpTime < 100 ? 100 : jumpTime < 200 ? 400 : 2000) * physics.verticalScale;
       velocityY += gravity * (frameMs / 1000);
       anchorY += velocityY * (frameMs / 1000);
       const visualFootY = anchorY + window.Sector1Progression.PLAYER_VISUAL_FOOT_OFFSET;
       elapsed += frameMs;
       if (velocityY >= 0 && previousVisualFootY <= toY && visualFootY >= toY) return elapsed / 1000;
+    }
+    return null;
+  }
+
+  function groundReturnTime(verticalScale, frameMs) {
+    let displacementY = 0;
+    let velocityY = -800 * verticalScale;
+    let jumpTime = 0;
+    let elapsed = 0;
+    for (let frame = 0; frame < 180; frame++) {
+      const previousDisplacementY = displacementY;
+      jumpTime += frameMs;
+      const gravity = (jumpTime < 100 ? 100 : jumpTime < 200 ? 400 : 2000) * verticalScale;
+      velocityY = Math.min(velocityY + gravity * (frameMs / 1000), 1200 * verticalScale);
+      displacementY += velocityY * (frameMs / 1000);
+      elapsed += frameMs;
+      if (previousDisplacementY < 0 && displacementY >= 0) return elapsed;
     }
     return null;
   }
@@ -226,6 +247,9 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
     assertReachable(to, from, 'tower awning return route');
   });
   const groundVisualFoot = { id: 'ground', x: 0, y: 750 + window.Sector1Progression.PLAYER_VISUAL_FOOT_OFFSET, w: 4096 };
+  supportedFrameStepsMs.forEach(frameMs => {
+    assert.strictEqual(groundReturnTime(physics.verticalScale, frameMs), groundReturnTime(1, frameMs), `proportional vertical scaling preserves jump airtime at ${frameMs}ms frames`);
+  });
   ['signal-awning', 'tower-awning', 'broadcast-awning'].forEach(id => {
     const target = surfaces.get(id);
     supportedFrameStepsMs.forEach(frameMs => {
@@ -615,10 +639,10 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
       approximately(visual.scale * profile.sourceAnchorY, 253 * 0.8, `${profile.state} animation uses the normalized anchor height`);
       assert.strictEqual(visual.frameIndex, frameIndex, `${profile.state} frame index follows the Makko animation reference`);
       assert.strictEqual(visual.footRow, profile.footRows[frameIndex], `${profile.state} frame ${frameIndex} uses the audited visible-foot row`);
-      approximately(visual.targetFootY, 750, `${profile.state} frame ${frameIndex} targets the authored sidewalk contact`);
-      approximately(visual.visibleFootY, 750, `${profile.state} frame ${frameIndex} stays grounded without sprite-sheet wobble`);
+      approximately(visual.targetFootY, 822, `${profile.state} frame ${frameIndex} targets the authored sidewalk contact`);
+      approximately(visual.visibleFootY, 822, `${profile.state} frame ${frameIndex} stays grounded without sprite-sheet wobble`);
       const makkoRenderedFootY = visual.anchorY - animationEntry.metadata.anchor.y * visual.scale + visual.footRow * visual.scale;
-      approximately(makkoRenderedFootY, 750, `${profile.state} frame ${frameIndex} stays grounded after Makko scales its manifest anchor`);
+      approximately(makkoRenderedFootY, 822, `${profile.state} frame ${frameIndex} stays grounded after Makko scales its manifest anchor`);
     }
   }
   p.boss.state = 'walk';

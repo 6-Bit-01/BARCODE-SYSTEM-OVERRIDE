@@ -120,11 +120,11 @@ for (const [name, source] of [['parallax', parallax], ['player', player], ['inde
   }
 }
 const playerDrawBody = functionBody(player, '  drawSprite(ctx) {');
-if (!player.includes('const PLAYER_VISUAL_FOOT_OFFSET_Y = 0;') ||
+if (!player.includes('const PLAYER_VISUAL_FOOT_OFFSET_Y = 72;') ||
     !player.includes('PLAYER_ANIMATION_PRESENTATION') ||
     !player.includes('getMakkoRenderMetrics') ||
     !player.includes('visibleFootY: drawY - render.anchorOffsetY + footRow * render.frameScale')) {
-  fail('player presentation must resolve audited source-frame feet to the existing physics contact line.');
+  fail('player presentation must resolve audited source-frame feet to the canonical physics y + 72 visual contact line.');
 }
 if (!playerDrawBody || /\bdraw[XY]\s*[+-]=/.test(playerDrawBody) || !/getVisualAnchor\(shouldFlip\)/.test(playerDrawBody)) {
   fail('player drawing must use the frame-aware visual anchor without state-specific magic X/Y shifts.');
