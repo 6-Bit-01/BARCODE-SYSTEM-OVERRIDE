@@ -68,7 +68,9 @@ function createCanvasSpy() {
     globalAlpha: 1, shadowBlur: 0, shadowColor: '#000000', lineWidth: 1,
     save() { saved.push({ fillStyle: this.fillStyle, strokeStyle: this.strokeStyle, font: this.font, textAlign: this.textAlign, globalAlpha: this.globalAlpha, shadowBlur: this.shadowBlur, shadowColor: this.shadowColor, lineWidth: this.lineWidth }); },
     restore() { Object.assign(this, saved.pop() || {}); },
-    fillRect() {}, strokeRect() {},
+    fillRect(x, y, w, h) { calls.push({ kind:'fillRect', x, y, w, h, fillStyle:this.fillStyle }); },
+    strokeRect(x, y, w, h) { calls.push({ kind:'strokeRect', x, y, w, h, strokeStyle:this.strokeStyle }); },
+    beginPath() {}, moveTo() {}, lineTo() {}, stroke() {},
     fillText(text, x, y) { calls.push({ text: String(text), x, y, fillStyle: this.fillStyle, font: this.font, globalAlpha: this.globalAlpha }); },
     measureText(text) { return { width: String(text).length * 14 }; }
   };
@@ -269,7 +271,7 @@ function testHackingPresentationInputAndRecovery() {
   const code = memoryHack.currentPuzzle.answer;
   const memoryCanvas = createCanvasSpy();
   memoryHack.draw(memoryCanvas);
-  const codeLine = memoryCanvas.calls.find(call => call.text.trim() === code);
+  const codeLine = memoryCanvas.calls.find(call => call.text?.trim() === code);
   assert(codeLine && codeLine.fillStyle === '#ffff00' && /38px/.test(codeLine.font), 'memory code is large and yellow');
   memoryHack.update(memoryHack.displayTime);
   assert(!memoryHack.terminalLines.some(line => line.includes(code)), 'memory answer is genuinely removed when the input window opens');
@@ -387,9 +389,6 @@ function testLostDataMovementSwooperAmpAndEnemyClock() {
   w.player = new w.Player(700, 750); w.player.grounded = true;
   w.enemyManager = { enemies: [], clear() { this.enemies = []; } };
   const p = new w.Sector1Progression(w.player); w.sector1Progression = p;
-  assert.strictEqual(typeof p.chargeSignalLift, 'undefined', 'unfinished Signal Lift has no production charge API');
-  assert.strictEqual(typeof p.updateSignalLift, 'undefined', 'unfinished Signal Lift has no production update path');
-  assert(!w.Sector1Progression.STAGE_SURFACES.some(surface => surface.id === 'signal-lift'), 'unfinished Signal Lift is not a stage collider');
   const lost = new w.LostDataSystem(); w.lostDataSystem = lost; lost.player = w.player;
   for (const [before, at] of [[3, 4], [8, 9], [13, 14]]) { p.missionDefeats = before; assert.strictEqual(lost.spawnFragment(), null, `next lost data locked at ${before} kills`); p.missionDefeats = at; assert(lost.spawnFragment(), `lost data spawns at ${at} kills`); }
   assert.strictEqual(JSON.stringify(lost.fragments.map(f => f.authoredPlacementId)), JSON.stringify(['signal-awning-fragment', 'middle-roof-fragment', 'upper-route-fragment']), 'authored Lost Data placements spawn in order');
@@ -434,6 +433,125 @@ function testLostDataMovementSwooperAmpAndEnemyClock() {
   assert.strictEqual(contactHits, 1, 'contact damage cannot repeat after only 1.5 seconds of normal time during tactical focus');
   for (let i = 0; i < 5; i++) contactManager.update(1000, contactPlayer);
   assert.strictEqual(contactHits, 2, 'contact damage repeats after sufficient slowed hostile time');
+
+  const realContactManager = new w.EnemyManager();
+  const realContactEnemy = { active: true, type: 'virus', damage: 1, position: { x: 1000, y: 750 }, velocity: { x: 0, y: 0 }, lastPlayerHitTimeMs: -Infinity, isSpawnProtected: () => false, getHitbox: () => ({ x: 980, y: 730, width: 40, height: 40 }) };
+  realContactManager.enemies = [realContactEnemy];
+  const realContactPlayer = new w.Player(1000, 750);
+  realContactPlayer.isEntering = false;
+  realContactPlayer.controlsDisabled = false;
+  realContactPlayer.velocity.y = -200;
+  realContactPlayer.getHitbox = () => ({ x: 990, y: 740, width: 20, height: 20 });
+  w.rhythmSystem = { isActive: () => false };
+  w.hackingSystem = { isActive: () => false, absorbGuardHit: () => false };
+  realContactManager.simulationTimeMs = 16;
+  realContactManager.hostileSimulationTimeMs = 16;
+  realContactManager.checkCollisions(realContactPlayer);
+  const firstContactStamp = realContactEnemy.lastPlayerHitTimeMs;
+  assert.strictEqual(realContactPlayer.health, 2, 'real player takes the first overlapping enemy contact hit');
+  realContactPlayer.controlsDisabled = false;
+  realContactPlayer.position.x = 1000;
+  realContactPlayer.position.y = 750;
+  realContactPlayer.velocity.y = -200;
+  realContactManager.simulationTimeMs = 1600;
+  realContactManager.hostileSimulationTimeMs = 1600;
+  realContactManager.checkCollisions(realContactPlayer);
+  assert.strictEqual(realContactPlayer.health, 2, 'player invulnerability rejects overlap even after the enemy cadence becomes eligible');
+  assert.strictEqual(realContactEnemy.lastPlayerHitTimeMs, firstContactStamp, 'rejected overlap does not consume the enemy contact cadence');
+  w.advanceClock(2001);
+  realContactPlayer.controlsDisabled = false;
+  realContactPlayer.position.x = 1000;
+  realContactPlayer.position.y = 750;
+  realContactPlayer.velocity.y = -200;
+  realContactManager.simulationTimeMs = 2017;
+  realContactManager.hostileSimulationTimeMs = 2017;
+  realContactManager.checkCollisions(realContactPlayer);
+  assert.strictEqual(realContactPlayer.health, 1, 'contact damage lands immediately when both player invulnerability and enemy cadence are eligible');
+}
+
+
+function testSignalLiftAndBackgroundRhythm() {
+  const liftEndpoints = [];
+  for (const fps of [30, 60, 120]) {
+    const w = createHarness();
+    const liftConfig = w.Sector1Progression.SIGNAL_LIFT;
+    const player = new w.Player(liftConfig.x + liftConfig.w / 2, 750);
+    player.isEntering = false;
+    player.spriteReady = false;
+    player.grounded = true;
+    player.velocity.x = 0;
+    player.velocity.y = 0;
+    w.player = player;
+    w.enemyManager = { enemies: [], clear() { this.enemies = []; } };
+    const progression = new w.Sector1Progression(player);
+    w.sector1Progression = progression;
+    const dt = 1000 / fps;
+
+    player.update(dt);
+    assert.strictEqual(progression.isSignalLiftAvailable(), false, `Signal Lift stays unavailable during tutorial at ${fps} FPS`);
+    assert.strictEqual(player.supportedSurfaceId, null, `tutorial player remains on ordinary ground rather than a hidden lift at ${fps} FPS`);
+
+    progression.startMission();
+    progression.state = w.Sector1Progression.STATES.JAMMER_ACTIVE;
+    player.position.x = liftConfig.x + liftConfig.w / 2;
+    player.position.y = 750;
+    player.velocity.x = 0;
+    player.velocity.y = 0;
+    player.grounded = true;
+    player.supportedSurfaceId = null;
+    player.update(dt);
+    assert.strictEqual(player.supportedSurfaceId, liftConfig.id, `production player lands on the available lift at ${fps} FPS`);
+    approx(player.getVisualAnchor().visibleFootY, liftConfig.bottomY, 0.001, `lift bottom uses the player's visible-foot contract at ${fps} FPS`);
+    const liftCanvas = createCanvasSpy();
+    progression.drawSignalLift(liftCanvas);
+    const liftBody = liftCanvas.calls.find(call => call.kind === 'fillRect' && call.x === progression.signalLift.x && call.w === progression.signalLift.w && call.h === 14);
+    assert(liftBody && liftBody.y === progression.signalLift.y, `rendered lift top equals its collision/contact line at ${fps} FPS`);
+
+    w.rhythmSystem = { active: true, trackStarted: true, currentTempoBeat: 1, isActive() { return this.active; }, applyResolvedAttackFeedback() {} };
+    const combat = new w.BARCODE.PlayerCombat({ cooldownMs: 0 });
+    combat.resolvePrimary({ player, enemyManager: w.enemyManager, now: 100, timing: { available: true, timing: 'perfect' } });
+    assert.strictEqual(progression.signalLift.charges, 1, `first successful beat gives exactly one lift charge at ${fps} FPS`);
+    combat.resolvePrimary({ player, enemyManager: w.enemyManager, now: 101, timing: { available: true, timing: 'excellent' } });
+    assert.strictEqual(progression.signalLift.state, 'charged', `second successful beat arms the lift at ${fps} FPS`);
+
+    w.hackingSystem = { isActive: () => true };
+    w.gameState.running = true;
+    w.gameState.gameTime = 0;
+    w.checkGameConditions = () => {};
+    const liftStartY = progression.signalLift.y;
+    for (let frame = 0; frame < fps; frame += 1) w.updateGame(dt);
+    approx(liftStartY - progression.signalLift.y, liftConfig.speed, 0.001, `Signal Lift uses unscaled real-time traversal during one second of tactical focus at ${fps} FPS`);
+    let frames = 0;
+    while (progression.signalLift.y > liftConfig.topY && frames++ < fps * 4) {
+      w.updateGame(dt);
+    }
+    assert(frames < fps * 4, `lift reaches its upper stop at ${fps} FPS`);
+    w.updateGame(dt);
+    assert.strictEqual(player.supportedSurfaceId, 'signal-awning', `lift hands the player to the authored awning at ${fps} FPS`);
+    approx(player.getVisualAnchor().visibleFootY, liftConfig.topY, 0.001, `player visible feet meet the awning/lift top at ${fps} FPS`);
+    const playerTopY = player.position.y;
+
+    frames = 0;
+    while (progression.signalLift.y < liftConfig.bottomY && frames++ < fps * 5) {
+      w.updateGame(dt);
+    }
+    assert(frames < fps * 5, `unoccupied lift returns to its lower stop at ${fps} FPS`);
+    approx(progression.signalLift.y, liftConfig.bottomY, 0.001, `lift lower stop is frame-stable at ${fps} FPS`);
+    approx(player.position.y, playerTopY, 0.001, `returning lift does not drag the player off the awning at ${fps} FPS`);
+    assert.strictEqual(progression.signalLift.charges, 0, `returned lift clears charges at ${fps} FPS`);
+    liftEndpoints.push(progression.signalLift.y);
+  }
+  approx(Math.max(...liftEndpoints) - Math.min(...liftEndpoints), 0, 0.001, 'Signal Lift endpoint is identical at 30/60/120 FPS');
+
+  const background = createHarness();
+  let backgroundUpdates = 0;
+  background.tutorialSystem.active = true;
+  background.tutorialSystem.completed = false;
+  background.tutorialSystem.storyChapter = 1;
+  background.rhythmSystem = { active: false, running: true, isActive: () => false, isRunning: () => true, update(deltaTime) { backgroundUpdates += deltaTime; } };
+  background.hackingSystem = { update() {} };
+  background.updateGameSystems(16, false, false);
+  assert.strictEqual(backgroundUpdates, 16, 'production coordinator advances background rhythm while player-facing Rhythm Mode is tutorial-locked');
 }
 
 
@@ -458,5 +576,6 @@ testHackingMemoryTimingAndRhythmRestore();
 testHackingPresentationInputAndRecovery();
 testHackEscapeKeyOwnership();
 testLostDataMovementSwooperAmpAndEnemyClock();
+testSignalLiftAndBackgroundRhythm();
 testProductionPlayerMovement();
 console.log('✅ Level 1 production gameplay dynamics checks passed');

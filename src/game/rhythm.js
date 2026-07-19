@@ -220,6 +220,10 @@ window.RhythmSystem = class RhythmSystem {
     if (window.isPaused || window.isRunning === false || gameState.paused || gameState.gameOver || gameState.victory || gameState.running === false) return { ok: false, reason: 'gameplay-inactive' };
     if (window.cutsceneSystem && window.cutsceneSystem.active) return { ok: false, reason: 'cutscene-active' };
     if (window.hackingSystem && typeof window.hackingSystem.isActive === 'function' && window.hackingSystem.isActive()) return { ok: false, reason: 'hacking-active' };
+    // Lock only the player-facing mode until its authored tutorial chapter.
+    // Background transport, beat polling, tempo establishment, and sync remain
+    // running because this guard does not call stop(), hide(), or reset timing.
+    if (window.tutorialSystem?.isActive?.() && Number(window.tutorialSystem.storyChapter) < 2) return { ok: false, reason: 'tutorial-rhythm-locked' };
     if (!this.trackStarted || this.currentTempoBeat === 0) return { ok: false, reason: 'rhythm-not-ready' };
     return { ok: true };
   }

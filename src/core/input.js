@@ -128,15 +128,19 @@ window.InputManager = class InputManager {
       } else {
         const activation = window.rhythmSystem.showRhythmMode ? window.rhythmSystem.showRhythmMode() : (window.rhythmSystem.show ? window.rhythmSystem.show() : { ok: false, reason: 'unavailable' });
         const active = window.rhythmSystem.isActive && window.rhythmSystem.isActive();
-        if (activation && activation.ok && active && window.tutorialSystem && window.tutorialSystem.isActive && window.tutorialSystem.isActive() && window.tutorialSystem.checkObjective) window.tutorialSystem.checkObjective('rhythm_start');
+        if (activation && activation.ok && active && window.tutorialSystem && window.tutorialSystem.isActive && window.tutorialSystem.isActive() && Number(window.tutorialSystem.storyChapter) === 2 && window.tutorialSystem.checkObjective) window.tutorialSystem.checkObjective('rhythm_start');
       }
     }
     if (options.inputOnly || !this.acceptsGameplay()) return;
     if (window.player) {
-      if (actions.move_left.held) window.player.moveLeft();
-      else if (actions.move_right.held) window.player.moveRight();
+      // Opposing directions cancel each other. This preserves the original
+      // controller contract: pressing both directions is neutral, and
+      // releasing either one immediately resumes the direction still held.
+      const horizontal = Number(!!actions.move_right?.held) - Number(!!actions.move_left?.held);
+      if (horizontal < 0) window.player.moveLeft();
+      else if (horizontal > 0) window.player.moveRight();
       else window.player.stopHorizontal();
-      if ((actions.move_left.held || actions.move_right.held) && window.tutorialSystem && window.tutorialSystem.isActive && window.tutorialSystem.isActive() && !this.hasTrackedMovement) { this.hasTrackedMovement = true; window.tutorialSystem.checkObjective && window.tutorialSystem.checkObjective('movement'); }
+      if (horizontal !== 0 && window.tutorialSystem && window.tutorialSystem.isActive && window.tutorialSystem.isActive() && !this.hasTrackedMovement) { this.hasTrackedMovement = true; window.tutorialSystem.checkObjective && window.tutorialSystem.checkObjective('movement'); }
       if (actions.jump.pressed) { const r = window.handleGameAction ? window.handleGameAction('jump') : { ok: window.player.jump() }; if (r && r.ok && window.tutorialSystem && window.tutorialSystem.checkObjective && !this.hasTrackedJump) { this.hasTrackedJump = true; window.tutorialSystem.checkObjective('jump'); } }
     }
     if (actions.primary.pressed && window.BARCODE && window.BARCODE.playerCombat) { const result = window.BARCODE.playerCombat.resolvePrimary({ player: window.player, enemyManager: window.enemyManager }); if (result.ok && result.targets.length) this.vibrate(0.35, 80); }
@@ -157,7 +161,7 @@ window.InputManager = class InputManager {
     if (hacking && typeof hacking.start === 'function') {
       hacking.start();
       const active = typeof hacking.isActive === 'function' ? hacking.isActive() : !!hacking.active;
-      if (active && window.tutorialSystem && window.tutorialSystem.isActive && window.tutorialSystem.isActive() && window.tutorialSystem.checkObjective) window.tutorialSystem.checkObjective('hack_start');
+      if (active && window.tutorialSystem && window.tutorialSystem.isActive && window.tutorialSystem.isActive() && Number(window.tutorialSystem.storyChapter) === 3 && window.tutorialSystem.checkObjective) window.tutorialSystem.checkObjective('hack_start');
       return { ok: !!active, action: 'interact', reason: active ? 'hack-started' : 'hack-not-started' };
     }
     return { ok: false, action: 'interact', reason: 'hacking-unavailable' };
