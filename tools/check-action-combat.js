@@ -87,6 +87,38 @@ pass('script order and PlayerCombat routing');
 }
 pass('tutorial Space ownership and repeated jumping');
 
+// Simultaneous opposite directions are neutral and releasing either key
+// immediately restores the direction that remains held.
+{
+  const s = sandbox();
+  const movement = [];
+  const objectives = [];
+  s.window.BARCODE = { RuntimeLifecycle:{ togglePause(){} } };
+  s.window.gameState = { running:true, paused:false, gameOver:false };
+  s.window.player = {
+    grounded:true,
+    moveLeft(){ movement.push('left'); },
+    moveRight(){ movement.push('right'); },
+    stopHorizontal(){ movement.push('stop'); },
+    jump(){ return true; }
+  };
+  s.window.tutorialSystem = { isActive: () => true, checkObjective(id){ objectives.push(id); } };
+  load(s, 'src/core/action-input.js'); load(s, 'src/game/player-combat.js'); load(s, 'src/core/input.js');
+  const manager = new s.window.InputManager();
+  const down = key => s.__listeners.keydown[0](keyEvent(key));
+  const up = key => s.__listeners.keyup[0](keyEvent(key));
+
+  down('ArrowRight'); down('ArrowLeft'); manager.update();
+  assert(movement.at(-1) === 'stop' && objectives.length === 0, 'Left+Right is neutral and cannot falsely complete movement tutorial credit');
+  up('ArrowLeft'); manager.update();
+  assert(movement.at(-1) === 'right' && objectives.filter(id => id === 'movement').length === 1, 'Releasing Left immediately restores held Right');
+  down('ArrowLeft'); manager.update();
+  assert(movement.at(-1) === 'stop', 'Pressing Left while Right remains held stays neutral instead of overriding Right');
+  up('ArrowRight'); manager.update();
+  assert(movement.at(-1) === 'left', 'Releasing Right immediately restores held Left');
+}
+pass('simultaneous-direction neutral input contract');
+
 // The boss cinematic preserves whichever Rhythm Mode state triggered it.
 {
   const s = sandbox();
@@ -401,10 +433,25 @@ pass('tutorial final-message timing and delayed spawn ownership');
 {
   const s = sandbox(); load(s, 'src/game/rhythm.js');
   const rhythm = new s.window.RhythmSystem(); rhythm.running = true; rhythm.trackStarted = true; rhythm.currentTempoBeat = 1;
-  let completed = 0; s.window.tutorialSystem = { isActive: () => true, checkObjective(id){ if (id === 'rhythm_start') completed++; } };
+  let completed = 0;
+  s.window.tutorialSystem = { active:true, storyChapter:1, isActive(){ return this.active; }, checkObjective(id){ if (id === 'rhythm_start') completed++; } };
   s.window.rhythmSystem = rhythm; s.window.gameState = { running:true, paused:false, gameOver:false, victory:false };
   s.window.player = { grounded:false, state:'jump', velocity:{x:50}, stopHorizontal(){ this.velocity.x = 0; } };
-  assert(rhythm.show().ok && rhythm.isActive(), 'R can activate without disabling airborne locomotion'); rhythm.hideRhythmMode();
+  const timingBeforeLock = { running:rhythm.running, trackStarted:rhythm.trackStarted, currentTempoBeat:rhythm.currentTempoBeat, globalBeatCount:rhythm.globalBeatCount };
+  const locked = rhythm.show();
+  assert(!locked.ok && locked.reason === 'tutorial-rhythm-locked' && !rhythm.isActive(), 'R is player-facing locked before the authored rhythm chapter');
+  assert(JSON.stringify(timingBeforeLock) === JSON.stringify({ running:rhythm.running, trackStarted:rhythm.trackStarted, currentTempoBeat:rhythm.currentTempoBeat, globalBeatCount:rhythm.globalBeatCount }), 'Blocked R leaves background rhythm transport and timing state untouched');
+  rhythm.beatsPerBar = 4; rhythm.barsPerPhrase = 4; rhythm.beatInterval = 500; rhythm.tempoEstablishmentBeats = 32;
+  s.window.audioSystem = { context:{ currentTime: 4 } };
+  s.window.BARCODE = s.window.BARCODE || {};
+  s.window.BARCODE.MusicTransport = {
+    poll(){ return { snapshot:{ grid:{ beatFloat:1.25, beatInBar:1, beatIndex:1 } }, events:[{ type:'beat', profileId:'level-01.main', generation:1, beatIndex:1 }] }; },
+    getLastSample(){ return { generation:1 }; }
+  };
+  rhythm.update(16);
+  assert(!rhythm.isActive() && rhythm.currentTempoBeat === 2 && rhythm.globalBeatCount === 1, 'real RhythmSystem consumes transport beats in the background while player-facing mode is locked');
+  s.window.tutorialSystem.storyChapter = 2;
+  assert(rhythm.show().ok && rhythm.isActive(), 'R unlocks in the authored rhythm chapter without disabling airborne locomotion'); rhythm.hideRhythmMode();
   s.window.player.grounded = true; s.window.hackingSystem = { isActive: () => true }; assert(!rhythm.show().ok, 'R cannot activate while hacking');
   s.window.hackingSystem = { isActive: () => false }; s.window.isPaused = true; assert(!rhythm.show().ok, 'R cannot activate while paused');
   s.window.isPaused = false; s.window.isRunning = false; assert(!rhythm.show().ok, 'R cannot activate while stopped');
@@ -414,6 +461,15 @@ pass('tutorial final-message timing and delayed spawn ownership');
   s.window.cutsceneSystem.active = false; s.window.player.velocity.x = 50;
   const ok = rhythm.show(); assert(ok.ok && rhythm.isActive() && s.window.player.velocity.x === 50, 'Successful R activation enters real Rhythm Mode without stopping locomotion');
   rhythm.hideRhythmMode(); assert(!rhythm.isActive(), 'R deactivation exits Rhythm Mode and restores action eligibility');
+
+  load(s, 'src/core/action-input.js'); load(s, 'src/game/player-combat.js'); load(s, 'src/core/input.js');
+  const manager = new s.window.InputManager();
+  manager.routeActions({ pause:{pressed:false}, rhythm_mode:{pressed:true} }, { inputOnly:true });
+  assert(rhythm.isActive() && completed === 1, 'Chapter 2 R activation completes rhythm_start through the real input route');
+  rhythm.hideRhythmMode();
+  s.window.tutorialSystem.active = false;
+  s.window.tutorialSystem.storyChapter = 1;
+  assert(rhythm.show().ok && rhythm.isActive(), 'Completed/inactive tutorial permits R even with a stale chapter value');
 }
 pass('Rhythm Mode restrictions');
 
@@ -422,22 +478,23 @@ pass('Rhythm Mode restrictions');
   const s = sandbox(); load(s, 'src/game/player-combat.js');
   s.window.gameState = { running:true, paused:false, gameOver:false }; s.window.audioSystem = { context:{ currentTime: 4 } };
   s.window.player = { position:{x:0,y:0}, startPrimaryAttackAnimation(){} };
-  let damageCalls = 0, judgments = 0;
+  let damageCalls = 0, judgments = 0, liftCharges = 0;
   s.window.enemyManager = { enemies:[{ active:true, position:{x:10,y:0}, takeDamage(d){ damageCalls++; this.damage = d; } }] };
   s.window.BARCODE.MusicProfiles = { getActive: () => ({ judgmentRules:[{ id:'attack', target:'quarter-note' }] }) };
   s.window.BARCODE.MusicTransport = { judgeInput(){ judgments++; return { available:true, timing:'miss' }; } };
   s.window.rhythmSystem = { active:false, trackStarted:true, currentTempoBeat:1, isActive(){ return this.active; }, applyResolvedAttackFeedback(j){ this.last = j; } };
+  s.window.sector1Progression = { chargeSignalLift(){ liftCharges++; return { ok:true }; } };
   const combat = new s.window.BARCODE.PlayerCombat({ cooldownMs: 10 });
   combat.resolvePrimary({ now: 100 }); assert(damageCalls === 0 && judgments === 0, 'Down while inactive causes zero judgment and zero damage');
   s.window.rhythmSystem.active = true;
   for (const timing of ['miss','unavailable','stopped']) { s.window.BARCODE.MusicTransport.judgeInput = () => { judgments++; return { available: timing === 'miss', timing }; }; combat.lastAttackAt = -Infinity; combat.resolvePrimary({ now: 100 }); }
-  assert(damageCalls === 0, 'Miss/unavailable/stopped cause zero damage');
+  assert(damageCalls === 0 && liftCharges === 0, 'Miss/unavailable/stopped cause zero damage and zero Signal Lift charge');
   s.window.rhythmSystem.trackStarted = false; combat.lastAttackAt = -Infinity; combat.resolvePrimary({ now: 200 }); assert(damageCalls === 0, 'Waiting track causes zero damage');
   s.window.rhythmSystem.trackStarted = true; combat.lastAttackAt = 250; combat.resolvePrimary({ now: 255 }); assert(damageCalls === 0, 'Cooldown causes zero damage');
   s.window.BARCODE.MusicTransport.judgeInput = () => { judgments++; return { available:true, timing:'perfect' }; }; combat.lastAttackAt = -Infinity; combat.resolvePrimary({ now: 300 });
-  assert(damageCalls === 1 && s.window.enemyManager.enemies[0].damage === 3, 'Perfect applies one transaction per target');
+  assert(damageCalls === 1 && s.window.enemyManager.enemies[0].damage === 3 && liftCharges === 1, 'Perfect applies one damage transaction and one Signal Lift charge attempt');
   s.window.BARCODE.MusicTransport.judgeInput = () => { judgments++; return { available:true, timing:'excellent' }; }; combat.lastAttackAt = -Infinity; combat.resolvePrimary({ now: 400 });
-  assert(damageCalls === 2 && s.window.enemyManager.enemies[0].damage === 2, 'Excellent applies one transaction per target');
+  assert(damageCalls === 2 && s.window.enemyManager.enemies[0].damage === 2 && liftCharges === 2, 'Excellent applies one damage transaction and one Signal Lift charge attempt');
 }
 pass('beat-gated PlayerCombat damage');
 

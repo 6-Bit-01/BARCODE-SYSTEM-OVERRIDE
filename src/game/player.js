@@ -204,7 +204,11 @@ window.Player = class Player {
 
       // Ground collision (character feet at ground line y=750 - raised up
       const wasGrounded = this.grounded;
-      if (this.position.y >= 750) {
+      // A dynamic stage surface may share the historical physics-ground
+      // anchor (the Signal Lift does at its bottom stop). Once that surface
+      // has accepted the landing it owns support for this frame; generic
+      // ground must not immediately erase it.
+      if (!landedOnStageSurface && this.position.y >= 750) {
         this.position.y = 750;
         this.velocity.y = 0;
         this.grounded = true;
@@ -750,9 +754,7 @@ window.Player = class Player {
   takeDamage(amount) {
     // Check if player is currently invulnerable from recent damage
     const currentTime = Date.now();
-    if (this.invulnerableUntil && currentTime < this.invulnerableUntil) {
-      return; // No damage while invulnerable
-    }
+    if (this.isDamageInvulnerable(currentTime)) return false;
     
     this.health = Math.max(0, this.health - amount);
     
@@ -798,14 +800,17 @@ window.Player = class Player {
         this.invulnerable = false;
       }
     }, 2000); // 2 seconds of invulnerability for visual effects
+    return true;
+  }
+
+  isDamageInvulnerable(now = Date.now()) {
+    return !!(this.invulnerableUntil && now < this.invulnerableUntil);
   }
   
   takeDamageWithKnockback(amount, knockbackX, knockbackY, enemyPosition = null) {
     // Check if player is currently invulnerable from recent damage
     const currentTime = Date.now();
-    if (this.invulnerableUntil && currentTime < this.invulnerableUntil) {
-      return; // No damage while invulnerable
-    }
+    if (this.isDamageInvulnerable(currentTime)) return false;
     
     this.health = Math.max(0, this.health - amount);
     
@@ -902,6 +907,7 @@ window.Player = class Player {
     }, 2000); // 2 seconds of invulnerability for visual effects
     
     console.log(`💥 Player took ${amount} damage with knockback: (${knockbackX.toFixed(0)}, ${knockbackY.toFixed(0)})`);
+    return true;
   }
 
   // Create wind effect particles for fast-fall

@@ -97,8 +97,9 @@ window.FILE_MANIFEST.push({
     const owner = progression();
     ctx.save();
 
-    const groundLeft = worldToScreen({ x: 0, y: 750 });
-    const groundRight = worldToScreen({ x: 4096, y: 750 });
+    const visualGroundY = 750 + (window.Player?.VISUAL_FOOT_OFFSET_Y || 72);
+    const groundLeft = worldToScreen({ x: 0, y: visualGroundY });
+    const groundRight = worldToScreen({ x: 4096, y: visualGroundY });
     ctx.strokeStyle = '#00ffff';
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -107,13 +108,19 @@ window.FILE_MANIFEST.push({
     ctx.stroke();
 
     (window.Sector1Progression?.STAGE_SURFACES || []).forEach(surface => drawWorldRect(ctx, surface, '#00ffff', surface.id));
+    if (owner?.isSignalLiftAvailable?.() && owner.signalLift) {
+      drawWorldRect(ctx, { x: owner.signalLift.x, y: owner.signalLift.y, w: owner.signalLift.w, h: owner.signalLift.h }, '#00ffff', 'signal-lift');
+    }
     if (window.player?.getHitbox) drawWorldRect(ctx, window.player.getHitbox(), '#00ff66', 'player hitbox');
-    if (window.player?.position) drawWorldPoint(ctx, window.player.position, '#ffff00', 'player foot');
+    if (window.player?.position) {
+      const visualFootY = window.player.getVisualAnchor?.().visibleFootY ?? (window.player.position.y + (window.Player?.VISUAL_FOOT_OFFSET_Y || 72));
+      drawWorldPoint(ctx, { x: window.player.position.x, y: visualFootY }, '#ffff00', 'player visible foot');
+    }
 
     (window.enemyManager?.enemies || []).forEach((enemy, index) => {
       if (!enemy?.active) return;
       if (typeof enemy.getHitbox === 'function') drawWorldRect(ctx, enemy.getHitbox(), enemy.isSpawnProtected?.() ? '#ffffff' : '#ff9900', `${enemy.type} ${index}`);
-      drawWorldPoint(ctx, enemy.position, '#ff00ff', 'foot');
+      drawWorldPoint(ctx, enemy.position, '#ff00ff', 'enemy anchor');
       if (enemy._entranceTarget) drawWorldPoint(ctx, enemy._entranceTarget, '#00ff88', 'entrance target');
     });
 
@@ -163,6 +170,8 @@ window.FILE_MANIFEST.push({
 
   const PANEL_ACTIONS = [
     { label: 'Skip Tutorial', run: () => window.DEBUG.level1.skipTutorial() },
+    { label: 'Go / Reset Lift', run: () => window.DEBUG.level1.resetSignalLift() },
+    { label: 'Charge Lift', run: () => window.DEBUG.level1.chargeSignalLift() },
     { label: 'Give Signal Amp', run: () => window.DEBUG.level1.giveSignalAmp() },
     { label: 'Encounter 1', run: () => window.DEBUG.level1.gotoEncounter(1) },
     { label: 'Encounter 2', run: () => window.DEBUG.level1.gotoEncounter(2) },
@@ -399,6 +408,8 @@ window.FILE_MANIFEST.push({
     gotoJammer: () => call('debugGotoJammer'),
     damageJammer: (amount = 1) => call('debugDamageJammer', amount),
     destroyJammer: () => call('debugDestroyJammer'),
+    resetSignalLift: () => call('debugResetSignalLift'),
+    chargeSignalLift: () => call('debugChargeSignalLift'),
     giveSignalAmp: () => call('debugGiveSignalAmp'),
     playBossIntro: () => call('debugPlayBossIntro'),
     resetMission: () => call('debugResetMission'),

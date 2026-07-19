@@ -241,7 +241,9 @@ window.HackingSystem = class HackingSystem {
       });
     }
 
-    this.tutorialMode = tutorialActive;
+    // Once the authored lock above has released H, only a hack actually
+    // started in chapter 3 may satisfy the tutorial's hacking objectives.
+    this.tutorialMode = tutorialActive && Number(window.tutorialSystem?.storyChapter) === 3;
     this.tutorialObjective = 'hack_start';
     this.tutorialCompleteObjective = 'hack_complete';
     return true;

@@ -73,6 +73,19 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     jammerCadenceMinMs: 2500,
     jammerCadenceMaxMs: 3500
   });
+  // Rhythm-powered access from street level to the first authored awning.
+  // Platform coordinates use the same visible-foot space as STAGE_SURFACES.
+  const SIGNAL_LIFT = Object.freeze({
+    id: 'signal-lift',
+    x: 660,
+    w: 132,
+    h: 10,
+    bottomY: GROUND_Y + PLAYER_VISUAL_FOOT_OFFSET,
+    topY: 492,
+    speed: 220,
+    returnDelayMs: 900,
+    requiredCharges: 2
+  });
   const SIGNAL_AMP = Object.freeze({ id: 'signal-amp', x: 2868, y: 154, radius: 36, charges: 3, range: 430 });
 
   const BOSS_PRESENTATION = Object.freeze({
@@ -138,6 +151,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     static get STAGE_SURFACES() { return STAGE_SURFACES; }
     static get PLAYER_VISUAL_FOOT_OFFSET() { return PLAYER_VISUAL_FOOT_OFFSET; }
     static get ENCOUNTER_GATES() { return ENCOUNTER_GATES; }
+    static get SIGNAL_LIFT() { return SIGNAL_LIFT; }
     static get SIGNAL_AMP() { return SIGNAL_AMP; }
     static get CINEMATIC() { return CINEMATIC; }
     static get STATES() { return STATES; }
@@ -153,6 +167,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       this.pollPreparedAssets();
       const tutorialDone = !!(window.tutorialSystem && typeof window.tutorialSystem.isCompleted === 'function' && window.tutorialSystem.isCompleted() && typeof window.tutorialSystem.isActive === 'function' && !window.tutorialSystem.isActive());
       if (this.state === STATES.TUTORIAL && tutorialDone && !this.missionStarted) this.startMission();
+      // The lift is traversal, not a hostile system, so tactical focus must
+      // never slow or freeze its carry motion.
+      this.updateSignalLift(deltaTime);
       this.updateSignalAmp();
       if (this.isGameplaySuppressed() && this.player) { this.player.supportedSurfaceId = null; this.player.controlsDisabled = true; if (this.frozenPlayerPosition) { this.player.position.x = this.frozenPlayerPosition.x; this.player.position.y = this.frozenPlayerPosition.y; } this.player.velocity.x = 0; this.player.velocity.y = 0; }
       const tacticalDeltaTime = window.BARCODE?.TacticalFocusClock?.scaleDelta?.(deltaTime) ?? deltaTime;
@@ -168,7 +185,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       else if (this.state === STATES.CAMERA_RETURN) this.updateCameraReturn(deltaTime);
       else if (this.state === STATES.BOSS_READY) { this.updateBossSprite(deltaTime); if (this.cinematicZoomReleasePending) { this.cinematicZoomReleasePending = false; this.cinematicZoomOverride = null; } }
     }
-    startMission() { this.state = STATES.ENCOUNTER_1; this.missionStarted = true; this.missionDefeats = 0; this.countedEnemies.clear(); this.spawnedEncounterIds.clear(); this.activeEncounterId = null; this.enemyManagerReset(); if (window.objectivesSystem?.setMissionDefeatObjective) window.objectivesSystem.setMissionDefeatObjective(0, this.requiredEnemyKills); }
+    startMission() { this.state = STATES.ENCOUNTER_1; this.missionStarted = true; this.missionDefeats = 0; this.countedEnemies.clear(); this.spawnedEncounterIds.clear(); this.activeEncounterId = null; this.resetSignalLift(); this.enemyManagerReset(); if (window.objectivesSystem?.setMissionDefeatObjective) window.objectivesSystem.setMissionDefeatObjective(0, this.requiredEnemyKills); }
     enemyManagerReset() { if (window.cancelInitialEnemySpawn) window.cancelInitialEnemySpawn(); if (window.enemyManager) window.enemyManager.clear(); if (window.gameState) { window.gameState.enemiesDefeated = 0; window.gameState.hasSpawnedInitialEnemies = true; } this.prepareAssetsForEncounter(0); }
     updateEncounter(deltaTime = 0) { const index = ENCOUNTERS.findIndex(e => e.id === this.state); const def = ENCOUNTERS[index]; if (!def) return; const px = this.player?.position?.x || 0; if (!this.spawnedEncounterIds.has(def.id) && px >= def.triggerX) this.spawnEncounter(def); if (this.activeEncounterId === def.id) this.updateEncounterPackets(def, deltaTime); const noPendingSpawns = !this.pendingSpawns || this.pendingSpawns.length === 0; const allPacketsReleased = this.activeEncounterPacket >= ((def.packets?.length || 1) - 1); const allDefeated = this.activeEncounterEnemies.length === encounterSpecs(def).length && this.activeEncounterEnemies.every(e => !e.active || e._defeatRecorded); if (this.activeEncounterId === def.id && allPacketsReleased && noPendingSpawns && allDefeated) { this.openEncounterGate(def.id); if (index < ENCOUNTERS.length - 1) { this.state = ENCOUNTERS[index + 1].id; this.activeEncounterId = null; this.activeEncounterEnemies = []; this.closedGateEncounterId = null; this.prepareAssetsForEncounter(index + 1); } } }
     updateEncounterPackets(def, deltaTime = 0) { const packets = def.packets || [def.enemies || []]; if (this.activeEncounterPacket >= packets.length - 1) return; const survivors = this.activeEncounterEnemies.filter(e => e && e.active && !e._defeatRecorded).length; const noPendingSpawns = !this.pendingSpawns || this.pendingSpawns.length === 0; if (noPendingSpawns && survivors <= 1 && this.packetGraceMs === null) this.packetGraceMs = 900; if (this.packetGraceMs !== null) { this.packetGraceMs = Math.max(0, this.packetGraceMs - deltaTime); if (this.packetGraceMs <= 0) this.releaseNextPacket(def); } }
@@ -210,11 +227,101 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     updateCameraReturn(delta) { this.phaseElapsed += delta; const t = Math.min(1, this.phaseElapsed / CINEMATIC.returnMs); const eased = smoothStep(t); this.cameraX = clampCamera(lerp(this.returnStartCameraX, this.cinematicStartCameraX, eased)); const desiredZoom = lerp(this.returnStartZoom, this.cinematicStartZoom, eased); this.cinematicZoomOverride = t < 1 ? Math.max(desiredZoom, getForegroundCoverageZoomFloor(this.cameraX)) : this.cinematicStartZoom; this.boss.x = lerp(this.returnStartBossX, this.returnBossTargetX, eased); this.updateBossSprite(delta); if (t >= 1) { this.cameraX = this.cinematicStartCameraX; this.cinematicZoomOverride = this.cinematicStartZoom; this.boss.x = this.returnBossTargetX; this.enterBossReady(); } }
     enterBossReady() { this.state = STATES.BOSS_READY; this.boss.state = 'idle'; this.boss.canDealDamage = false; this.boss.canReceiveDamage = false; this.setBossAnimation('sector_1_boss_idle_idle', true); this.bossReadyEmitted = true; this.cameraOverrideActive = false; this.frozenPlayerPosition = null; this.cinematicZoomReleasePending = true; if (this.player) { this.player.controlsDisabled = false; if (this.player.velocity) { this.player.velocity.x = 0; this.player.velocity.y = 0; } } /* Boss combat is intentionally not enabled until a later authoritative PlayerCombat/EnemyManager pass. */ if (window.objectivesSystem?.setBossIntroObjective) window.objectivesSystem.setBossIntroObjective(); }
     draw(ctx) { this.drawStageSurfaces(ctx); this.drawEncounterGates(ctx); this.drawBoss(ctx); }
-    drawStageSurfaces(ctx) { if (!ctx) return; this.drawSignalAmp(ctx); ctx.save(); STAGE_SURFACES.forEach(g => { ctx.shadowColor = '#00ffff'; ctx.shadowBlur = 8; ctx.fillStyle = 'rgba(0,255,255,0.34)'; ctx.fillRect(g.x, g.y - 2, g.w, g.h); ctx.shadowBlur = 0; ctx.strokeStyle = 'rgba(0,255,255,0.92)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(g.x, g.y); ctx.lineTo(g.x + g.w, g.y); ctx.stroke(); }); ctx.restore(); }
+    drawStageSurfaces(ctx) { if (!ctx) return; this.drawSignalLift(ctx); this.drawSignalAmp(ctx); ctx.save(); STAGE_SURFACES.forEach(g => { ctx.shadowColor = '#00ffff'; ctx.shadowBlur = 8; ctx.fillStyle = 'rgba(0,255,255,0.34)'; ctx.fillRect(g.x, g.y - 2, g.w, g.h); ctx.shadowBlur = 0; ctx.strokeStyle = 'rgba(0,255,255,0.92)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(g.x, g.y); ctx.lineTo(g.x + g.w, g.y); ctx.stroke(); }); ctx.restore(); }
+    drawSignalLift(ctx) {
+      if (!ctx || !this.signalLift || !this.isSignalLiftAvailable()) return;
+      const lift = this.signalLift;
+      const charged = lift.charges >= SIGNAL_LIFT.requiredCharges;
+      const pulse = 0.72 + Math.sin(Date.now() / 150) * 0.12;
+      ctx.save();
+      // Rails make the platform read as a deliberate street elevator instead
+      // of an unexplained floating collision bar.
+      ctx.strokeStyle = 'rgba(0, 255, 255, 0.42)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(lift.x + 18, SIGNAL_LIFT.topY);
+      ctx.lineTo(lift.x + 18, SIGNAL_LIFT.bottomY);
+      ctx.moveTo(lift.x + lift.w - 18, SIGNAL_LIFT.topY);
+      ctx.lineTo(lift.x + lift.w - 18, SIGNAL_LIFT.bottomY);
+      ctx.stroke();
+      ctx.shadowColor = charged ? '#ff00ff' : '#00ffff';
+      ctx.shadowBlur = charged ? 18 : 10;
+      ctx.fillStyle = charged ? `rgba(255, 0, 255, ${pulse})` : 'rgba(0, 24, 38, 0.94)';
+      // lift.y is the authoritative contact line. Render the platform body
+      // below it so the player's visible feet meet the top instead of sinking
+      // into a graphic whose collision lived near its bottom edge.
+      ctx.fillRect(lift.x, lift.y, lift.w, 14);
+      ctx.strokeStyle = charged ? '#ffffff' : '#00ffff';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(lift.x, lift.y, lift.w, 14);
+      ctx.shadowBlur = 0;
+      for (let index = 0; index < SIGNAL_LIFT.requiredCharges; index += 1) {
+        ctx.fillStyle = index < lift.charges ? '#ff00ff' : '#15394b';
+        ctx.fillRect(lift.x + 10 + index * 15, lift.y + 4, 9, 5);
+      }
+      ctx.fillStyle = '#a8ffff';
+      ctx.font = 'bold 9px monospace';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('RHYTHM LIFT', lift.x + lift.w - 8, lift.y + 7);
+      ctx.restore();
+    }
     drawSignalAmp(ctx) { if (!ctx || this.signalAmpCollected) return; ctx.save(); ctx.fillStyle = '#ff00ff'; ctx.strokeStyle = '#00ffff'; ctx.beginPath(); ctx.arc(SIGNAL_AMP.x, SIGNAL_AMP.y, 18, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.restore(); }
     drawEncounterGates(ctx) { if (!ctx) return; const gate = this.getCurrentGate(); if (!gate) return; ctx.save(); ctx.globalAlpha = 0.9; ctx.fillStyle = 'rgba(255,0,255,0.55)'; ctx.fillRect(gate.x, gate.y, gate.w, gate.h); ctx.strokeStyle = '#ff00ff'; ctx.lineWidth = 3; ctx.strokeRect(gate.x, gate.y, gate.w, gate.h); ctx.restore(); }
     updateSignalAmp() { const player = this.player || window.player; if (!player || this.signalAmpCollected) return; if (window.distance && window.distance(player.position.x, player.position.y + PLAYER_VISUAL_FOOT_OFFSET, SIGNAL_AMP.x, SIGNAL_AMP.y) <= SIGNAL_AMP.radius) this.giveSignalAmp(); }
     giveSignalAmp() { this.signalAmpCollected = true; window.BARCODE = window.BARCODE || {}; window.BARCODE.signalAmpCharges = SIGNAL_AMP.charges; if (window.audioSystem?.playSound) window.audioSystem.playSound('rhythmSuccess', 0.35); return { ok:true, charges: window.BARCODE.signalAmpCharges }; }
+    isSignalLiftAvailable() { return !!(this.missionStarted && this.state !== STATES.TUTORIAL); }
+    isPlayerSupportedByLift(player = this.player || window.player) {
+      if (!this.isSignalLiftAvailable() || !player || !this.signalLift || !player.grounded || player.supportedSurfaceId !== SIGNAL_LIFT.id) return false;
+      const footY = player.position.y + PLAYER_VISUAL_FOOT_OFFSET;
+      const footHalfWidth = 18;
+      return player.position.x + footHalfWidth > this.signalLift.x &&
+        player.position.x - footHalfWidth < this.signalLift.x + this.signalLift.w &&
+        Math.abs(footY - this.signalLift.y) <= 4;
+    }
+    updateSignalLift(deltaTime = 0) {
+      if (!this.signalLift) this.resetSignalLift();
+      const lift = this.signalLift;
+      lift.prevY = lift.y;
+      const player = this.player || window.player;
+      if (!this.isSignalLiftAvailable()) {
+        if (player?.supportedSurfaceId === SIGNAL_LIFT.id) player.supportedSurfaceId = null;
+        return;
+      }
+      if (this.isGameplaySuppressed()) return;
+      let supported = this.isPlayerSupportedByLift(player);
+      if (player?.supportedSurfaceId === SIGNAL_LIFT.id && !supported) player.supportedSurfaceId = null;
+      if (lift.state === 'charged') lift.state = 'moving';
+      if (lift.state === 'moving') lift.y = Math.max(SIGNAL_LIFT.topY, lift.y - SIGNAL_LIFT.speed * deltaTime / 1000);
+      else if (lift.state === 'returning') lift.y = Math.min(SIGNAL_LIFT.bottomY, lift.y + SIGNAL_LIFT.speed * deltaTime / 1000);
+      if (lift.state === 'moving' && lift.y <= SIGNAL_LIFT.topY) lift.state = 'dormant';
+      if (lift.state === 'returning' && lift.y >= SIGNAL_LIFT.bottomY) {
+        lift.state = 'dormant';
+        lift.charges = 0;
+      }
+      if (!supported && lift.y <= SIGNAL_LIFT.topY + 1) {
+        lift.returnTimerMs = (lift.returnTimerMs || SIGNAL_LIFT.returnDelayMs) - deltaTime;
+        if (lift.returnTimerMs <= 0) lift.state = 'returning';
+      } else {
+        lift.returnTimerMs = SIGNAL_LIFT.returnDelayMs;
+      }
+      const dy = lift.y - lift.prevY;
+      if (supported && dy && player) player.position.y += dy;
+    }
+    resetSignalLift() {
+      this.signalLift = { ...SIGNAL_LIFT, y: SIGNAL_LIFT.bottomY, prevY: SIGNAL_LIFT.bottomY, state: 'dormant', charges: 0, returnTimerMs: SIGNAL_LIFT.returnDelayMs };
+      const player = this.player || window.player;
+      if (player?.supportedSurfaceId === SIGNAL_LIFT.id) player.supportedSurfaceId = null;
+    }
+    chargeSignalLift() {
+      if (!this.signalLift) this.resetSignalLift();
+      if (!this.isSignalLiftAvailable()) return { ok: false, reason: 'unavailable' };
+      const player = this.player || window.player;
+      if (!this.isPlayerSupportedByLift(player)) return { ok: false, reason: 'not-supported' };
+      this.signalLift.charges = Math.min(SIGNAL_LIFT.requiredCharges, this.signalLift.charges + 1);
+      this.signalLift.state = this.signalLift.charges >= SIGNAL_LIFT.requiredCharges ? 'charged' : 'charging';
+      return { ok: true, charges: this.signalLift.charges, state: this.signalLift.state };
+    }
     getBossPresentationKey() { if (this.boss?.state === 'idle' || this.boss?.activeAnimation === 'sector_1_boss_idle_idle') return 'idle'; if (this.boss?.state === 'flourish' || this.boss?.activeAnimation === 'sector_1_boss_attack_attack') return 'flourish'; return 'walk'; }
     getBossRuntimeAnchorMetrics(frame, flipH = true) { const spriteSheet = this.boss?.sprite?.currentSprite || this.boss?.sprite?._currentSprite || null; const runtimeAnchor = typeof spriteSheet?.getAnchorPoint === 'function' ? spriteSheet.getAnchorPoint() : null; const hasAnchorX = Number.isFinite(runtimeAnchor?.x); const hasAnchorY = Number.isFinite(runtimeAnchor?.y); const sourceAnchorX = hasAnchorX ? runtimeAnchor.x : frame.anchorX; const sourceAnchorY = hasAnchorY ? runtimeAnchor.y : frame.anchorY; let usesScaledAnchor = true; if (spriteSheet) { if (!hasAnchorX && !hasAnchorY) usesScaledAnchor = false; else if (typeof spriteSheet.hasManifestAnchor === 'function') usesScaledAnchor = !!spriteSheet.hasManifestAnchor(); else if (spriteSheet.manifestMetadata) usesScaledAnchor = !!spriteSheet.manifestMetadata.anchor; else usesScaledAnchor = false; } const reportedManifestScale = typeof spriteSheet?.getManifestScale === 'function' ? spriteSheet.getManifestScale() : spriteSheet?.manifestMetadata?.scale; const manifestScale = Number.isFinite(reportedManifestScale) && reportedManifestScale > 0 ? reportedManifestScale : 1; const drawScale = BOSS_PRESENTATION.targetAnchorHeight / frame.anchorY; const frameScale = drawScale * manifestScale; const anchorMultiplier = usesScaledAnchor ? frameScale : 1; const anchorOffsetX = (hasAnchorX || !spriteSheet) ? sourceAnchorX * anchorMultiplier : 0; const anchorOffsetY = (hasAnchorY || !spriteSheet) ? sourceAnchorY * anchorMultiplier : 0; return { spriteSheet, sourceAnchorX, sourceAnchorY, usesScaledAnchor, manifestScale, frameScale, drawScale, anchorOffsetX, anchorOffsetY, flipSignX: flipH ? -1 : 1 }; }
     getBossVisualBounds(options = {}) { if (!this.boss) return null; const frame = BOSS_PRESENTATION[this.getBossPresentationKey()]; const rawFrame = Number.isFinite(this.boss.animationRef?.currentFrame) ? this.boss.animationRef.currentFrame : 0; const frameIndex = Math.max(0, Math.trunc(rawFrame)) % frame.footRows.length; const footRow = frame.footRows[frameIndex] ?? frame.anchorY; const targetFootY = this.boss.y + PLAYER_VISUAL_FOOT_OFFSET; const metrics = this.getBossRuntimeAnchorMetrics(frame, options.flipH !== false); const footDeltaFromRuntimeAnchor = (footRow - metrics.sourceAnchorY) * metrics.frameScale; const anchorY = targetFootY - footDeltaFromRuntimeAnchor; const drawX = this.boss.x - metrics.anchorOffsetX; const drawY = anchorY - metrics.anchorOffsetY; return { x: drawX, y: drawY, width: frame.width * metrics.frameScale, height: frame.height * metrics.frameScale, scale: metrics.drawScale, frameScale: metrics.frameScale, manifestScale: metrics.manifestScale, usesScaledAnchor: metrics.usesScaledAnchor, sourceAnchorX: metrics.sourceAnchorX, sourceAnchorY: metrics.sourceAnchorY, anchorX: this.boss.x, anchorY, frameIndex, footRow, targetFootY, visibleFootY: anchorY + footDeltaFromRuntimeAnchor }; }
@@ -223,7 +330,42 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     openEncounterGate(encounterId) { if (this.closedGateEncounterId === encounterId) this.closedGateEncounterId = null; }
     getCurrentGate() { return ENCOUNTER_GATES.find(g => g.encounterId === this.closedGateEncounterId) || null; }
     applyGateCollision() { const gate = this.getCurrentGate(); const player = this.player || window.player; if (!gate || !player) return; const half = player.width ? player.width / 2 : 40; if (player.position.x + half > gate.x && player.position.x < gate.x + gate.w) { player.position.x = gate.x - half; if (player.velocity) player.velocity.x = Math.min(0, player.velocity.x || 0); } }
-    applyPlayerStageCollision(player, movement = {}) { if (!player || !player.velocity || player.velocity.y < 0) return false; const previousAnchorY = Number.isFinite(movement.previousFootY) ? movement.previousFootY : player.position.y; const currentAnchorY = Number.isFinite(movement.currentFootY) ? movement.currentFootY : player.position.y; const previousVisualFootY = previousAnchorY + PLAYER_VISUAL_FOOT_OFFSET; const currentVisualFootY = currentAnchorY + PLAYER_VISUAL_FOOT_OFFSET; const previousX = Number.isFinite(movement.previousX) ? movement.previousX : player.position.x; const footHalfWidth = 18; const verticalTravel = currentVisualFootY - previousVisualFootY; let landing = null; for (const surface of STAGE_SURFACES) { const surfacePrevY = Number.isFinite(surface.previousY) ? surface.previousY : surface.y; if (previousVisualFootY > surfacePrevY || currentVisualFootY < surface.y) continue; const crossingT = verticalTravel > 0 ? Math.max(0, Math.min(1, (surface.y - previousVisualFootY) / verticalTravel)) : 1; const crossingX = previousX + (player.position.x - previousX) * crossingT; const overlapsX = crossingX + footHalfWidth > surface.x && crossingX - footHalfWidth < surface.x + surface.w; if (overlapsX && (!landing || crossingT < landing.crossingT)) landing = { surface, crossingT }; } if (!landing) return false; player.position.y = landing.surface.y - PLAYER_VISUAL_FOOT_OFFSET; player.velocity.y = 0; player.grounded = true; player.supportedSurfaceId = landing.surface.id; return true; }
+    applyPlayerStageCollision(player, movement = {}) {
+      if (!player || !player.velocity || player.velocity.y < 0) return false;
+      const previousAnchorY = Number.isFinite(movement.previousFootY) ? movement.previousFootY : player.position.y;
+      const currentAnchorY = Number.isFinite(movement.currentFootY) ? movement.currentFootY : player.position.y;
+      const previousVisualFootY = previousAnchorY + PLAYER_VISUAL_FOOT_OFFSET;
+      const currentVisualFootY = currentAnchorY + PLAYER_VISUAL_FOOT_OFFSET;
+      const previousX = Number.isFinite(movement.previousX) ? movement.previousX : player.position.x;
+      const footHalfWidth = 18;
+      const verticalTravel = currentVisualFootY - previousVisualFootY;
+      let landing = null;
+      const movingSurfaces = this.isSignalLiftAvailable() && this.signalLift ? [{
+        id: SIGNAL_LIFT.id,
+        x: this.signalLift.x,
+        previousY: this.signalLift.prevY,
+        y: this.signalLift.y,
+        w: this.signalLift.w,
+        h: this.signalLift.h,
+        moving: true
+      }] : [];
+      // Static geometry intentionally wins at the top overlap so stepping
+      // right transfers support from the lift to the signal awning.
+      for (const surface of STAGE_SURFACES.concat(movingSurfaces)) {
+        const surfacePrevY = Number.isFinite(surface.previousY) ? surface.previousY : surface.y;
+        if (previousVisualFootY > surfacePrevY || currentVisualFootY < surface.y) continue;
+        const crossingT = verticalTravel > 0 ? Math.max(0, Math.min(1, (surface.y - previousVisualFootY) / verticalTravel)) : 1;
+        const crossingX = previousX + (player.position.x - previousX) * crossingT;
+        const overlapsX = crossingX + footHalfWidth > surface.x && crossingX - footHalfWidth < surface.x + surface.w;
+        if (overlapsX && (!landing || crossingT < landing.crossingT)) landing = { surface, crossingT };
+      }
+      if (!landing) return false;
+      player.position.y = landing.surface.y - PLAYER_VISUAL_FOOT_OFFSET;
+      player.velocity.y = 0;
+      player.grounded = true;
+      player.supportedSurfaceId = landing.surface.id;
+      return true;
+    }
     getPriorEncounterKills(number) { return [0, 0, 4, 9, 14][Math.max(1, Math.min(4, Number(number) || 1))] || 0; }
     debugPrepareMission() { if (!debugAllowed()) return debugDisabled(); this.reset(); if (window.enemyManager?.clear) window.enemyManager.clear(); if (window.objectivesSystem?.reset) window.objectivesSystem.reset(); if (window.tutorialSystem) { window.tutorialSystem.completed = true; window.tutorialSystem.active = false; } if (this.player) { this.player.controlsDisabled = false; if (this.player.velocity) { this.player.velocity.x = 0; this.player.velocity.y = 0; } } this.startMission(); return this.getDiagnostics(); }
     debugSkipTutorial() { return this.debugPrepareMission(); }
@@ -234,6 +376,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     debugGotoJammer() { if (!debugAllowed()) return debugDisabled(); this.debugPrepareMission(); this.debugClearEnemies(); this.spawnedEncounterIds = new Set(ENCOUNTERS.map(encounter => encounter.id)); this.debugSetMissionKills(this.requiredEnemyKills); this.revealJammer(); return this.getDiagnostics(); }
     debugDamageJammer(amount = 1) { if (!debugAllowed()) return debugDisabled(); if (!this.jammerRevealed) this.debugGotoJammer(); const environment = window.BARCODE?.JammerEnvironment; const status = environment?.getStatus?.(); const hits = Math.min(Math.max(1, Number(amount) || 1), Math.max(0, status?.health || 0)); let result = { ok: false, reason: 'jammer-unavailable' }; for (let i = 0; i < hits; i++) { this.debugDamageSequence += 1; result = environment.applyRhythmDamage({ timing: 'perfect', sequence: `level1-debug-${this.debugDamageSequence}` }); } return result; }
     debugDestroyJammer() { if (!debugAllowed()) return debugDisabled(); if (!this.jammerRevealed) this.debugGotoJammer(); const remaining = window.BARCODE?.JammerEnvironment?.getStatus?.().health || 0; if (remaining > 0) this.debugDamageJammer(remaining); return this.getDiagnostics(); }
+    debugResetSignalLift() { if (!debugAllowed()) return debugDisabled(); if (!this.missionStarted) this.debugPrepareMission(); this.resetSignalLift(); if (this.player) { this.player.position.x = SIGNAL_LIFT.x + SIGNAL_LIFT.w / 2; this.player.position.y = SIGNAL_LIFT.bottomY - PLAYER_VISUAL_FOOT_OFFSET; this.player.velocity.x = 0; this.player.velocity.y = 0; this.player.grounded = true; this.player.supportedSurfaceId = null; } return this.getDiagnostics(); }
+    debugChargeSignalLift() { if (!debugAllowed()) return debugDisabled(); return this.chargeSignalLift(); }
     debugGiveSignalAmp() { if (!debugAllowed()) return debugDisabled(); return this.giveSignalAmp(); }
     debugPlayBossIntro() { if (!debugAllowed()) return debugDisabled(); if (!this.jammerRevealed) this.debugGotoJammer(); this.captureCinematicStart(); this.transitionToPan(); return this.getDiagnostics(); }
     debugResetMission() { if (!debugAllowed()) return debugDisabled(); this.debugPrepareMission(); if (this.player) { this.player.position.x = 200; this.player.position.y = GROUND_Y; this.player.velocity.x = 0; this.player.velocity.y = 0; if (Number.isFinite(this.player.maxHealth)) this.player.health = this.player.maxHealth; } return this.getDiagnostics(); }
@@ -251,7 +395,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       this.panStartX = null; this.panTargetX = null; this.returnStartCameraX = null; this.returnStartZoom = null; this.returnStartBossX = null; this.returnBossTargetX = null;
       this.boss = null; this.bossReadyEmitted = false; this.assetGeneration = (this.assetGeneration || 0) + 1; this.preparedAssets = {}; this.preloadedBossSprite = null; this.bossAssetsRequested = false;
       this.countedEnemies = new Set(); this.spawnedEncounterIds = new Set(); this.activeEncounterId = null; this.activeEncounterEnemies = []; this.closedGateEncounterId = null; this.pendingSpawns = [];
-      this.nextJammerSpawnMs = Infinity; this.jammerReinforcementCount = 0; this.debugDamageSequence = 0; this.lastSpawnPlan = null; this.signalAmpCollected = false; if (window.BARCODE) window.BARCODE.signalAmpCharges = 0;
+      this.nextJammerSpawnMs = Infinity; this.jammerReinforcementCount = 0; this.debugDamageSequence = 0; this.lastSpawnPlan = null; this.resetSignalLift(); this.signalAmpCollected = false; if (window.BARCODE) window.BARCODE.signalAmpCharges = 0;
       this.state = options && options.preserveTutorial ? STATES.TUTORIAL : STATES.TUTORIAL;
       if (window.renderer && typeof window.renderer.clearCinematicZoomOverride === 'function') window.renderer.clearCinematicZoomOverride();
       if (window.BARCODE?.JammerEnvironment?.reset) window.BARCODE.JammerEnvironment.reset();
@@ -259,7 +403,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (window.hackingSystem?.reset) window.hackingSystem.reset();
       if (this.player) this.player.controlsDisabled = false;
     }
-    getDiagnostics() { const activeReinforcements = (window.enemyManager?.enemies || []).filter(enemy => enemy && enemy.active && enemy._jammerReinforcement).length; return { state: this.state, missionDefeats: this.missionDefeats, requiredEnemyKills: this.requiredEnemyKills, encounters: ENCOUNTERS, stageSurfaces: STAGE_SURFACES, pendingSpawns: this.pendingSpawns.length, lastSpawnPlan: this.lastSpawnPlan, activeReinforcements, jammerRevealed: this.jammerRevealed, cinematicStartedCount: this.cinematicStartedCount, cameraX: this.cameraX, cinematic: { startCameraX: this.cinematicStartCameraX, startPlayerPosition: this.cinematicStartPlayerPosition, startZoom: this.cinematicStartZoom, zoomOverride: this.getCinematicZoomOverride(), cameraOverrideActive: this.cameraOverrideActive, returnBossTargetX: this.returnBossTargetX }, boss: this.boss && { x: this.boss.x, state: this.boss.state, flourishPlayed: this.boss.flourishPlayed, visual: this.getBossVisualBounds(), canDealDamage: false, canReceiveDamage: false, combatPending: true }, bossReadyEmitted: this.bossReadyEmitted, assetDiagnostics: this.assetDiagnostics || [] }; }
+    getDiagnostics() { const activeReinforcements = (window.enemyManager?.enemies || []).filter(enemy => enemy && enemy.active && enemy._jammerReinforcement).length; return { state: this.state, missionDefeats: this.missionDefeats, requiredEnemyKills: this.requiredEnemyKills, encounters: ENCOUNTERS, stageSurfaces: STAGE_SURFACES, signalLift: this.signalLift && { available: this.isSignalLiftAvailable(), x: this.signalLift.x, y: this.signalLift.y, state: this.signalLift.state, charges: this.signalLift.charges, requiredCharges: SIGNAL_LIFT.requiredCharges }, pendingSpawns: this.pendingSpawns.length, lastSpawnPlan: this.lastSpawnPlan, activeReinforcements, jammerRevealed: this.jammerRevealed, cinematicStartedCount: this.cinematicStartedCount, cameraX: this.cameraX, cinematic: { startCameraX: this.cinematicStartCameraX, startPlayerPosition: this.cinematicStartPlayerPosition, startZoom: this.cinematicStartZoom, zoomOverride: this.getCinematicZoomOverride(), cameraOverrideActive: this.cameraOverrideActive, returnBossTargetX: this.returnBossTargetX }, boss: this.boss && { x: this.boss.x, state: this.boss.state, flourishPlayed: this.boss.flourishPlayed, visual: this.getBossVisualBounds(), canDealDamage: false, canReceiveDamage: false, combatPending: true }, bossReadyEmitted: this.bossReadyEmitted, assetDiagnostics: this.assetDiagnostics || [] }; }
   };
   window.initSector1Progression = function(player) { if (!window.sector1Progression) window.sector1Progression = new window.Sector1Progression(player); else window.sector1Progression.player = player || window.sector1Progression.player; return window.sector1Progression; };
 })();

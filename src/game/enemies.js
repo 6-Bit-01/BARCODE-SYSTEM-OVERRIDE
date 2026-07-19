@@ -1236,9 +1236,16 @@ window.EnemyManager = class EnemyManager {
               const hostileNow = this.getHostileClockNow();
               if (!player._enemyInvulnerableUntilMs || hostileNow > player._enemyInvulnerableUntilMs) {
                   if (!Number.isFinite(enemy.lastPlayerHitTimeMs) || hostileNow - enemy.lastPlayerHitTimeMs > 1500) {
-                      enemy.lastPlayerHitTimeMs = hostileNow;
-                      if (window.hackingSystem?.absorbGuardHit?.()) return;
-                      player.takeDamageWithKnockback(enemy.damage, nx * 450, -300, enemy.position);
+                      // Player i-frames and the per-enemy hostile cadence are
+                      // separate clocks. An overlap rejected by player
+                      // i-frames must not consume this enemy's next real hit.
+                      if (typeof player.isDamageInvulnerable === 'function' && player.isDamageInvulnerable()) return;
+                      if (window.hackingSystem?.absorbGuardHit?.()) {
+                          enemy.lastPlayerHitTimeMs = hostileNow;
+                          return;
+                      }
+                      const damaged = player.takeDamageWithKnockback(enemy.damage, nx * 450, -300, enemy.position);
+                      if (damaged !== false) enemy.lastPlayerHitTimeMs = hostileNow;
                   }
               }
           }
