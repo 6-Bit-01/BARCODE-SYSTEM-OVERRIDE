@@ -107,15 +107,13 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
 {
   const { window } = loadRealSector();
   assert.deepStrictEqual(JSON.parse(JSON.stringify(window.Sector1Progression.STAGE_SURFACES)), [
-    { id: 'signal-storefront', x: 752, y: 578, w: 485, h: 8 },
-    { id: 'signal-awning', x: 701, y: 492, w: 561, h: 8 },
-    { id: 'cache-bridge', x: 1492, y: 337, w: 337, h: 8 },
-    { id: 'firewall-storefront', x: 1964, y: 781, w: 375, h: 8 },
-    { id: 'firewall-deck', x: 2002, y: 506, w: 513, h: 8 },
-    { id: 'firewall-sign', x: 2645, y: 413, w: 492, h: 8 },
-    { id: 'broadcast-storefront', x: 3305, y: 643, w: 440, h: 8 },
-    { id: 'broadcast-ramp', x: 3295, y: 506, w: 461, h: 8 }
-  ], 'Level 1 platform rectangles stay calibrated to the locked foreground ledges');
+    { id: 'signal-awning', x: 736, y: 492, w: 529, h: 8 },
+    { id: 'cache-awning', x: 1534, y: 330, w: 278, h: 8 },
+    { id: 'firewall-canopy', x: 1936, y: 358, w: 582, h: 8 },
+    { id: 'relay-rooftop', x: 2580, y: 196, w: 574, h: 8 },
+    { id: 'tower-rooftop', x: 3154, y: 275, w: 609, h: 8 },
+    { id: 'broadcast-awning', x: 3777, y: 502, w: 319, h: 8 }
+  ], 'Level 1 platform rectangles stay calibrated to one real awning or rooftop per building mass');
   assert.strictEqual(window.Sector1Progression.PLAYER_VISUAL_FOOT_OFFSET, 0, 'Level 1 publishes the existing physics contact line');
 }
 {
@@ -123,14 +121,12 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   const surfaces = new Map(window.Sector1Progression.STAGE_SURFACES.map(surface => [surface.id, surface]));
   const foreground = { sourceWidth: 1279, sourceHeight: 462, drawWidth: 4400, drawHeight: 1589, drawX: -152, drawY: -550 };
   const visualContracts = [
-    { id: 'signal-storefront', left: 263, right: 404, top: 328 },
-    { id: 'signal-awning', left: 248, right: 411, top: 303 },
-    { id: 'cache-bridge', left: 478, right: 576, top: 258 },
-    { id: 'firewall-storefront', left: 615, right: 724, top: 387 },
-    { id: 'firewall-deck', left: 626, right: 775, top: 307 },
-    { id: 'firewall-sign', left: 813, right: 956, top: 280 },
-    { id: 'broadcast-storefront', left: 1005, right: 1133, top: 347 },
-    { id: 'broadcast-ramp', left: 1002, right: 1136, top: 307 }
+    { id: 'signal-awning', left: 258, right: 412, top: 303 },
+    { id: 'cache-awning', left: 490, right: 571, top: 256 },
+    { id: 'firewall-canopy', left: 607, right: 776, top: 264 },
+    { id: 'relay-rooftop', left: 794, right: 961, top: 217 },
+    { id: 'tower-rooftop', left: 961, right: 1138, top: 240 },
+    { id: 'broadcast-awning', left: 1142, right: 1278, top: 306 }
   ];
   const projectX = sourceX => sourceX * foreground.drawWidth / foreground.sourceWidth + foreground.drawX;
   const projectY = sourceY => sourceY * foreground.drawHeight / foreground.sourceHeight + foreground.drawY;
@@ -138,30 +134,40 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
     const surface = surfaces.get(contract.id);
     assert(surface, `${contract.id} visual platform exists`);
     approximately(surface.x, projectX(contract.left), `${contract.id} starts on its foreground ledge`, 1);
-    approximately(surface.x + surface.w, projectX(contract.right), `${contract.id} ends on its foreground ledge`, 1);
+    approximately(surface.x + surface.w, Math.min(4096, projectX(contract.right)), `${contract.id} ends on its foreground ledge or the world boundary`, 1);
     approximately(surface.y, projectY(contract.top), `${contract.id} feet line matches its foreground top edge`, 1);
   });
+  const authoredSurfaces = [...surfaces.values()];
+  for (let leftIndex = 0; leftIndex < authoredSurfaces.length; leftIndex++) {
+    for (let rightIndex = leftIndex + 1; rightIndex < authoredSurfaces.length; rightIndex++) {
+      const left = authoredSurfaces[leftIndex];
+      const right = authoredSurfaces[rightIndex];
+      const horizontalOverlap = Math.min(left.x + left.w, right.x + right.w) - Math.max(left.x, right.x);
+      assert(horizontalOverlap <= 0, `${left.id} and ${right.id} authored rectangles do not stack horizontally`);
+    }
+  }
 }
 {
   const { window } = loadRealSector();
   const surfaces = new Map(window.Sector1Progression.STAGE_SURFACES.map(surface => [surface.id, surface]));
   const physics = { speed: 300, jumpPower: 800, footHalfWidth: 18, frameMs: 16 };
+  const supportedFrameStepsMs = [8, 16, 20, 24, 1000 / 30];
 
-  function descendingCrossingTime(fromY, toY) {
-    // Simulate Player.position.y, including its real top-of-world clamp. Surface
-    // coordinates and the physics anchor share the same visible-foot line.
+  function descendingCrossingTime(fromY, toY, frameMs = physics.frameMs) {
+    // Simulate Player.position.y through the authored jump. Surface coordinates
+    // and the physics anchor share the same visible-foot line.
     let anchorY = fromY - window.Sector1Progression.PLAYER_VISUAL_FOOT_OFFSET;
     let velocityY = -physics.jumpPower;
     let jumpTime = 0;
     let elapsed = 0;
     for (let frame = 0; frame < 180; frame++) {
       const previousVisualFootY = anchorY + window.Sector1Progression.PLAYER_VISUAL_FOOT_OFFSET;
-      jumpTime += physics.frameMs;
+      jumpTime += frameMs;
       const gravity = jumpTime < 100 ? 100 : jumpTime < 200 ? 400 : 2000;
-      velocityY += gravity * (physics.frameMs / 1000);
-      anchorY = Math.max(0, anchorY + velocityY * (physics.frameMs / 1000));
+      velocityY += gravity * (frameMs / 1000);
+      anchorY += velocityY * (frameMs / 1000);
       const visualFootY = anchorY + window.Sector1Progression.PLAYER_VISUAL_FOOT_OFFSET;
-      elapsed += physics.frameMs;
+      elapsed += frameMs;
       if (velocityY >= 0 && previousVisualFootY <= toY && visualFootY >= toY) return elapsed / 1000;
     }
     return null;
@@ -179,37 +185,33 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
     const from = surfaces.get(fromId);
     const to = surfaces.get(toId);
     assert(from && to, `${routeName}: authored endpoints exist`);
-    const airTime = descendingCrossingTime(from.y, to.y);
-    assert.notStrictEqual(airTime, null, `${routeName}: ${fromId} can reach ${toId}'s height with the locked single jump`);
-    const availableTravel = physics.speed * airTime;
     const requiredTravel = edgeProbeGap(from, to);
-    const controlTolerance = physics.speed * physics.frameMs / 1000 * 2;
-    assert(requiredTravel + controlTolerance <= availableTravel, `${routeName}: ${fromId} -> ${toId} needs ${requiredTravel.toFixed(1)}px plus ${controlTolerance.toFixed(1)}px control tolerance but the locked jump covers ${availableTravel.toFixed(1)}px`);
+    supportedFrameStepsMs.forEach(frameMs => {
+      const airTime = descendingCrossingTime(from.y, to.y, frameMs);
+      assert.notStrictEqual(airTime, null, `${routeName}: ${fromId} can reach ${toId}'s height with the locked single jump at ${frameMs}ms frames`);
+      const availableTravel = physics.speed * airTime;
+      const controlTolerance = physics.speed * frameMs / 1000 * 2;
+      assert(requiredTravel + controlTolerance <= availableTravel, `${routeName}: ${fromId} -> ${toId} needs ${requiredTravel.toFixed(1)}px plus ${controlTolerance.toFixed(1)}px control tolerance but the locked jump covers ${availableTravel.toFixed(1)}px at ${frameMs}ms frames`);
+    });
   }
 
   const mainRoute = [
-    ['signal-storefront', 'signal-awning'],
-    ['signal-awning', 'cache-bridge'],
-    ['cache-bridge', 'firewall-deck'],
-    ['firewall-deck', 'firewall-sign'],
-    ['firewall-sign', 'broadcast-ramp']
+    ['signal-awning', 'cache-awning'],
+    ['cache-awning', 'firewall-canopy'],
+    ['firewall-canopy', 'relay-rooftop'],
+    ['relay-rooftop', 'tower-rooftop'],
+    ['tower-rooftop', 'broadcast-awning']
   ];
   mainRoute.forEach(([from, to]) => {
     assertReachable(from, to, 'forward roof route');
     assertReachable(to, from, 'reverse roof route');
   });
-  [
-    ['firewall-storefront', 'firewall-deck'],
-    ['broadcast-storefront', 'broadcast-ramp']
-  ].forEach(([from, to]) => {
-    assertReachable(from, to, 'street entry route');
-    assertReachable(to, from, 'street return route');
-  });
-
   const groundVisualFoot = { id: 'ground', x: 0, y: 750 + window.Sector1Progression.PLAYER_VISUAL_FOOT_OFFSET, w: 4096 };
-  ['signal-storefront', 'firewall-storefront', 'broadcast-storefront'].forEach(id => {
+  ['signal-awning', 'broadcast-awning'].forEach(id => {
     const target = surfaces.get(id);
-    assert.notStrictEqual(descendingCrossingTime(groundVisualFoot.y, target.y), null, `${id} is reachable from ground with the locked single jump`);
+    supportedFrameStepsMs.forEach(frameMs => {
+      assert.notStrictEqual(descendingCrossingTime(groundVisualFoot.y, target.y, frameMs), null, `${id} is reachable from ground with the locked single jump at ${frameMs}ms frames`);
+    });
   });
 }
 {
@@ -242,11 +244,26 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   const leavingAfterCrossing = makePlayer(surface.x + surface.w + 40);
   assert.strictEqual(p.applyPlayerStageCollision(leavingAfterCrossing, { previousFootY: surface.y - visualFootOffset - 10, currentFootY: surface.y - visualFootOffset + 20, previousX: surface.x + surface.w - 10 }), true, 'moving off a ledge after crossing its height still records the valid landing');
 
-  const firstContactSurface = window.Sector1Progression.STAGE_SURFACES.find(candidate => candidate.id === 'signal-awning');
-  const multiSurfaceFall = makePlayer(900);
-  multiSurfaceFall.position.y = 600 - visualFootOffset;
-  assert.strictEqual(p.applyPlayerStageCollision(multiSurfaceFall, { previousFootY: 450 - visualFootOffset, currentFootY: 600 - visualFootOffset, previousX: 900 }), true, 'large descent crossing two overlapping ledges still lands');
-  assert.strictEqual(multiSurfaceFall.position.y, firstContactSurface.y - visualFootOffset, 'large descent chooses the earliest crossed ledge instead of array order');
+  window.Sector1Progression.STAGE_SURFACES.forEach(authoredSurface => {
+    const surfaceLanding = makePlayer(authoredSurface.x + authoredSurface.w / 2);
+    surfaceLanding.position.y = authoredSurface.y - visualFootOffset + 20;
+    assert.strictEqual(p.applyPlayerStageCollision(surfaceLanding, {
+      previousFootY: authoredSurface.y - visualFootOffset - 20,
+      currentFootY: authoredSurface.y - visualFootOffset + 20,
+      previousX: authoredSurface.x + authoredSurface.w / 2
+    }), true, `${authoredSurface.id} accepts a descending visible-foot crossing`);
+    assert.strictEqual(surfaceLanding.position.y + visualFootOffset, authoredSurface.y, `${authoredSurface.id} settles the visible foot exactly on its authored pixel line`);
+  });
+
+  const relayRoof = window.Sector1Progression.STAGE_SURFACES.find(candidate => candidate.id === 'relay-rooftop');
+  const seamFall = makePlayer(relayRoof.x + relayRoof.w);
+  seamFall.position.y = 300 - visualFootOffset;
+  assert.strictEqual(p.applyPlayerStageCollision(seamFall, {
+    previousFootY: 150 - visualFootOffset,
+    currentFootY: 300 - visualFootOffset,
+    previousX: relayRoof.x + relayRoof.w
+  }), true, 'a foot probe spanning an architectural seam still finds a valid landing');
+  assert.strictEqual(seamFall.position.y + visualFootOffset, relayRoof.y, 'a seam-crossing fall lands on the earliest surface crossed');
 }
 {
   const { window } = loadRealSector();
