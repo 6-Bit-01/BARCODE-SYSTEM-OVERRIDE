@@ -132,6 +132,10 @@ window.renderGame = function() {
   if (rendererAvailable && window.renderer && typeof window.renderer.zoomLevel === 'number') {
     ctx.restore();
   }
+
+  // Tactical focus is a scene treatment, not part of the terminal or HUD. Draw
+  // it after the world zoom has been restored and before any interface layer.
+  drawTacticalFocusCue(ctx);
   
   // Draw tutorial UI on top - NOT affected by zoom
   if (window.tutorialSystem && typeof window.tutorialSystem.isActive === 'function' && window.tutorialSystem.isActive()) {
@@ -165,6 +169,45 @@ window.renderGame = function() {
     }
   }
 };
+
+function drawTacticalFocusCue(ctx) {
+  const focusClock = window.BARCODE && window.BARCODE.TacticalFocusClock;
+  if (!focusClock || typeof focusClock.isActive !== 'function' || !focusClock.isActive()) return;
+
+  const width = renderCanvas?.width || 1920;
+  const height = renderCanvas?.height || 1080;
+
+  ctx.save();
+  try {
+    const vignette = ctx.createRadialGradient(
+      width * 0.5,
+      height * 0.46,
+      Math.min(width, height) * 0.18,
+      width * 0.5,
+      height * 0.46,
+      Math.max(width, height) * 0.72
+    );
+    vignette.addColorStop(0, 'rgba(0, 12, 22, 0)');
+    vignette.addColorStop(0.72, 'rgba(0, 20, 32, 0.08)');
+    vignette.addColorStop(1, 'rgba(0, 5, 12, 0.34)');
+    ctx.fillStyle = vignette;
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.strokeStyle = 'rgba(0, 255, 255, 0.34)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(8, 8, width - 16, height - 16);
+
+    ctx.translate(24, height * 0.62);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillStyle = 'rgba(0, 255, 255, 0.72)';
+    ctx.font = '600 15px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('TACTICAL FOCUS // 40%', 0, 0);
+  } catch (error) {
+    console.error('Error drawing tactical focus cue:', error?.message || error);
+  }
+  ctx.restore();
+}
 
 // Draw game elements with camera transform
 function drawGameElements(ctx) {

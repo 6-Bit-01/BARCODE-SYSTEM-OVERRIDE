@@ -358,7 +358,7 @@
     {
       "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 1544,
+      "line": 1547,
       "loaded": true
     },
     {
@@ -598,7 +598,7 @@
     {
       "global": "window.updateGame",
       "file": "src/game/update-coordinator.js",
-      "line": 10,
+      "line": 34,
       "loaded": true
     }
   ],

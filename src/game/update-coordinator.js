@@ -6,6 +6,30 @@ window.FILE_MANIFEST.push({
   dependencies: ['gameState', 'checkGameConditions', 'player', 'enemyManager', 'hackingSystem', 'rhythmSystem', 'renderer', 'particleSystem', 'spaceShipSystem', 'tutorialSystem', 'jammerIndicator', 'sector1Progression', 'objectivesSystem', 'loreSystem', 'lostDataSystem', 'audioSystem']
 });
 
+// One clock owns tactical-focus timing. Systems that represent hostile gameplay
+// may opt into its scaled delta while presentation, input, music, camera, and
+// parallax continue to receive the unmodified frame delta.
+window.BARCODE = window.BARCODE || {};
+window.BARCODE.TacticalFocusClock = Object.freeze({
+  scale: 0.4,
+
+  isActive() {
+    return !!(
+      window.hackingSystem &&
+      typeof window.hackingSystem.isActive === 'function' &&
+      window.hackingSystem.isActive()
+    );
+  },
+
+  getScale() {
+    return this.isActive() ? this.scale : 1;
+  },
+
+  scaleDelta(deltaTime) {
+    return deltaTime * this.getScale();
+  }
+});
+
 // Main update function called from game loop
 window.updateGame = function(deltaTime) {
   if (!window.gameState.running || window.gameState.paused) return;
@@ -92,9 +116,9 @@ function updateEnemies(deltaTime) {
 
 // Update core game systems
 function updateGameSystems(deltaTime, hackingActive, rhythmActive) {
-  // Update hacking system
-  if (window.hackingSystem && typeof window.hackingSystem.update === 'function' && 
-      (!window.hackingSystem.isActive || typeof window.hackingSystem.isActive !== 'function' || window.hackingSystem.isActive())) {
+  // Update hacking every frame so post-session feedback and cursor state can
+  // finish cleanly after terminal input ownership has already been released.
+  if (window.hackingSystem && typeof window.hackingSystem.update === 'function') {
     try {
       window.hackingSystem.update(deltaTime);
     } catch (error) {

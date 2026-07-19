@@ -12,6 +12,9 @@ window.InputManager = class InputManager {
     this.vibrationEnabled = true;
     this.hasTrackedMovement = false;
     this.hasTrackedJump = false;
+    // Escape cancels a hack on keydown. Keep ownership until keyup so the
+    // browser's held-key repeat cannot immediately toggle restored Rhythm Mode.
+    this.hackEscapeLatched = false;
     this.actionInput = window.BARCODE && window.BARCODE.ActionInput ? new window.BARCODE.ActionInput({ attach: false }) : null;
     this.init();
   }
@@ -19,12 +22,25 @@ window.InputManager = class InputManager {
   init() {
     window.addEventListener('keydown', (e) => {
       const key = e.key.toLowerCase();
+
+      if (this.hackEscapeLatched && key === 'escape') {
+        e.preventDefault();
+        return;
+      }
+
+      const hacking = window.hackingSystem;
+      if (hacking && hacking.isActive && hacking.isActive()) {
+        e.preventDefault();
+        if (key === 'escape') this.hackEscapeLatched = true;
+        // The terminal is the exclusive keyboard owner while active. Do not
+        // leak terminal keys into ActionInput, tutorial Space, debug, or the
+        // global Escape/Rhythm handler.
+        if (typeof hacking.processInput === 'function') hacking.processInput(e.key);
+        return;
+      }
+
       this.keys[key] = true;
       this.pressedKeys.add(key);
-
-      if (window.hackingSystem && window.hackingSystem.isActive && window.hackingSystem.isActive()) {
-        if (typeof window.hackingSystem.processInput === 'function') window.hackingSystem.processInput(e.key);
-      }
       if (e.shiftKey && e.key === 'F') { e.preventDefault(); if (window.fullscreenManager) window.fullscreenManager.toggle(); return; }
       if (e.key === ' ' && window.gameState && window.gameState.gameOver) {
         e.preventDefault();
@@ -48,7 +64,18 @@ window.InputManager = class InputManager {
       }
       if (window.DEBUG_KEYBOARD_ENABLED === true) this.handleDebugKey(e);
     });
-    window.addEventListener('keyup', (e) => { this.keys[e.key.toLowerCase()] = false; this.releasedKeys.add(e.key.toLowerCase()); if (this.actionInput) this.actionInput.handleKeyUp(e); });
+    window.addEventListener('keyup', (e) => {
+      const key = e.key.toLowerCase();
+      const terminalOwnsKey = !!(window.hackingSystem?.isActive?.() || (this.hackEscapeLatched && key === 'escape'));
+      this.keys[key] = false;
+      if (this.actionInput) this.actionInput.handleKeyUp(e);
+      if (key === 'escape') this.hackEscapeLatched = false;
+      if (terminalOwnsKey) {
+        if (e.preventDefault) e.preventDefault();
+        return;
+      }
+      this.releasedKeys.add(key);
+    });
     window.addEventListener('mousemove', (e) => { this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
     window.addEventListener('mousedown', () => { this.mouse.pressed = true; this.mouse.clicked = true; });
     window.addEventListener('mouseup', () => { this.mouse.pressed = false; });
@@ -122,6 +149,10 @@ window.InputManager = class InputManager {
     if (hacking && typeof hacking.isActive === 'function' && hacking.isActive()) {
       if (typeof hacking.processInput === 'function') hacking.processInput('h');
       return { ok: true, action: 'interact', reason: 'hacking-active' };
+    }
+    const tutorialActive = !!window.tutorialSystem?.isActive?.();
+    if (tutorialActive && Number(window.tutorialSystem.storyChapter) < 3) {
+      return { ok: false, action: 'interact', reason: 'tutorial-hack-locked' };
     }
     if (hacking && typeof hacking.start === 'function') {
       hacking.start();

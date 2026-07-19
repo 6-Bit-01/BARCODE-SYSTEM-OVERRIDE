@@ -1073,13 +1073,16 @@ window.EnemyManager = class EnemyManager {
     const progression = window.sector1Progression;
     const suppressMissionSimulation = progression && progression.isGameplaySuppressed && progression.isGameplaySuppressed();
     if (suppressMissionSimulation) return;
-    const hostileScale = window.hackingSystem?.isActive?.() ? 0.25 : 1;
-    const hostileDeltaTime = deltaTime * hostileScale;
+
+    const tacticalFocusClock = window.BARCODE && window.BARCODE.TacticalFocusClock;
+    const hostileDeltaTime = tacticalFocusClock && typeof tacticalFocusClock.scaleDelta === 'function'
+      ? tacticalFocusClock.scaleDelta(deltaTime)
+      : deltaTime;
     this.simulationTimeMs += deltaTime;
     this.hostileSimulationTimeMs = Number.isFinite(this.hostileSimulationTimeMs) ? this.hostileSimulationTimeMs + hostileDeltaTime : this.simulationTimeMs;
 
-    this.updateSpawnFlow(deltaTime);
-    this.updateSpawnZones(deltaTime);
+    this.updateSpawnFlow(hostileDeltaTime);
+    this.updateSpawnZones(hostileDeltaTime);
 
     const tutorial = window.tutorialSystem;
     const tutorialWaiting = tutorial && tutorial.isActive() && tutorial.storyChapter === 1 && tutorial.combatEnemiesPaused;
@@ -1095,7 +1098,7 @@ window.EnemyManager = class EnemyManager {
         if (enemy.position.y > 750) enemy.position.y = 750;
         const playerRef = window.player;
         if (playerRef && enemy.entranceComplete) {
-           enemy.velocity.x = Math.sin(this.simulationTimeMs / 1000 + enemy.phaseOffset) * 20;
+           enemy.velocity.x = Math.sin(this.hostileSimulationTimeMs / 1000 + enemy.phaseOffset) * 20;
         }
       }
     });
@@ -1115,7 +1118,7 @@ window.EnemyManager = class EnemyManager {
     const missionSuppressesGenericSpawning = window.sector1Progression && window.sector1Progression.shouldSuppressGenericSpawning && window.sector1Progression.shouldSuppressGenericSpawning();
     const isMainGame = !tutorial || !tutorial.isActive();
     if (isMainGame && !missionSuppressesGenericSpawning && this.shouldSpawnEnemy(this.enemies.length)) {
-        this.spawnTimer += deltaTime;
+        this.spawnTimer += hostileDeltaTime;
         if (this.spawnTimer >= this.nextSpawnTime) {
             this.spawnFlowEnemy(player);
             this.spawnTimer = 0;
@@ -1124,7 +1127,7 @@ window.EnemyManager = class EnemyManager {
     }
 
     // Update crowd mechanics
-    this.updateCrowdMechanics(deltaTime, player);
+    this.updateCrowdMechanics(hostileDeltaTime, player);
   }
 
   checkEnemyCollisions() {
@@ -1450,7 +1453,7 @@ window.EnemyManager = class EnemyManager {
     group.forEach((enemy, index) => {
       if (!enemy._inCrowd) return;
 
-      const time = this.simulationTimeMs / 1000;
+      const time = this.getHostileClockNow() / 1000;
       const phaseShift = (index / group.length) * Math.PI * 2;
 
       if (distToPlayer < 400) {
