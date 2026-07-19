@@ -32,7 +32,6 @@ window.FILE_MANIFEST.push({
       result.damage = SUCCESS_DAMAGE[judgment.timing];
       this.playAttackAnimation(player);
       this.applyFeedback(judgment);
-      if (window.sector1Progression && typeof window.sector1Progression.chargeSignalLift === 'function') window.sector1Progression.chargeSignalLift();
       const targets = this.findTargets(player, enemyManager, judgment);
       const jammerHit = this.tryDamageJammer(player, judgment, result.sequence);
       if (jammerHit.ok) result.targets.push(jammerHit.target);

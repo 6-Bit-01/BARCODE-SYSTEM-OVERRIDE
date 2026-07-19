@@ -163,8 +163,6 @@ window.FILE_MANIFEST.push({
 
   const PANEL_ACTIONS = [
     { label: 'Skip Tutorial', run: () => window.DEBUG.level1.skipTutorial() },
-    { label: 'Go / Reset Lift', run: () => window.DEBUG.level1.resetSignalLift() },
-    { label: 'Charge Lift', run: () => window.DEBUG.level1.chargeSignalLift() },
     { label: 'Give Signal Amp', run: () => window.DEBUG.level1.giveSignalAmp() },
     { label: 'Encounter 1', run: () => window.DEBUG.level1.gotoEncounter(1) },
     { label: 'Encounter 2', run: () => window.DEBUG.level1.gotoEncounter(2) },
@@ -401,8 +399,6 @@ window.FILE_MANIFEST.push({
     gotoJammer: () => call('debugGotoJammer'),
     damageJammer: (amount = 1) => call('debugDamageJammer', amount),
     destroyJammer: () => call('debugDestroyJammer'),
-    resetSignalLift: () => call('debugResetSignalLift'),
-    chargeSignalLift: () => call('debugChargeSignalLift'),
     giveSignalAmp: () => call('debugGiveSignalAmp'),
     playBossIntro: () => call('debugPlayBossIntro'),
     resetMission: () => call('debugResetMission'),
