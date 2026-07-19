@@ -95,7 +95,7 @@ window.InputManager = class InputManager {
   routeActions(actions, options = {}) {
     if (actions.pause.pressed && window.BARCODE && window.BARCODE.RuntimeLifecycle) window.BARCODE.RuntimeLifecycle.togglePause();
     const progressionSuppressesGameplay = !!(window.sector1Progression && window.sector1Progression.isGameplaySuppressed && window.sector1Progression.isGameplaySuppressed());
-    if (!progressionSuppressesGameplay && actions.rhythm_mode && actions.rhythm_mode.pressed && window.rhythmSystem) {
+    if (!progressionSuppressesGameplay && actions.rhythm_mode && actions.rhythm_mode.pressed && window.rhythmSystem && !(window.hackingSystem && window.hackingSystem.isActive && window.hackingSystem.isActive())) {
       if (window.rhythmSystem.isActive && window.rhythmSystem.isActive()) {
         if (window.rhythmSystem.hideRhythmMode) window.rhythmSystem.hideRhythmMode(); else if (window.rhythmSystem.hide) window.rhythmSystem.hide();
       } else {

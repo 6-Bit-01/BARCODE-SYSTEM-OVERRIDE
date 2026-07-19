@@ -350,15 +350,15 @@
   ],
   "criticalGlobalAssignments": [
     {
-      "global": "window.enemyManager",
+      "global": "window.EnemyManager",
       "file": "src/game/enemies.js",
-      "line": 1477,
+      "line": 1036,
       "loaded": true
     },
     {
-      "global": "window.EnemyManager",
+      "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 979,
+      "line": 1534,
       "loaded": true
     },
     {
@@ -406,7 +406,7 @@
     {
       "global": "window.gameState",
       "file": "src/game/lost-data.js",
-      "line": 475,
+      "line": 394,
       "loaded": true
     },
     {
@@ -460,7 +460,7 @@
     {
       "global": "window.player",
       "file": "src/game/player.js",
-      "line": 1827,
+      "line": 1834,
       "loaded": true
     },
     {

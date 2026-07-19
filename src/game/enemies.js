@@ -100,6 +100,11 @@ window.Enemy = class Enemy {
     this._spriteRequested = false;
     this._spriteId = null;
     this._spritePolls = 0;
+    this.role = null;
+    this.swooperState = 'none';
+    this.swooperTimerMs = 0;
+    this.swooperTargetY = y;
+    this.swooperDiveDirection = 1;
 
     // Trigger entrance logic
     this.startEntrance();
@@ -277,6 +282,7 @@ window.Enemy = class Enemy {
 
     // 3. Virus / Generic Logic
     if (this.type === 'virus') {
+        if (this.role === 'swooper' && this.entranceComplete) { this.updateSwooperBehavior(dt, player); return; }
         if (!this.entranceComplete) {
             this.virusDropEntrance(dt);
         } else {
@@ -356,7 +362,7 @@ window.Enemy = class Enemy {
 
     if (nearbyViruses.length > 0) {
       this._groupBehaviorTimer += dt;
-      if (this._groupBehaviorTimer > (2000 + Math.random() * 1000)) {
+      if (this._groupBehaviorTimer > (2 + Math.random() * 1)) {
         this._groupBehaviorTimer = 0;
         const groupAction = Math.random();
         if (groupAction < 0.4) {
@@ -407,7 +413,7 @@ window.Enemy = class Enemy {
             this._hopDelay = 300 + Math.random() * 500;
             this._hopTimer = 0;
           }
-          this._hopTimer += dt;
+          this._hopTimer += dt * 1000;
           if (this._hopTimer >= this._hopDelay) {
             this.velocity.y = -this.speed * 0.09;
             this.velocity.x = Math.cos(angleToPlayer) * this.speed * 1.1;
@@ -452,6 +458,57 @@ window.Enemy = class Enemy {
         this.hoverState = 'none';
         this.velocity.y = -this.speed * 0.1; // Swooping hop exit
         break;
+    }
+  }
+
+
+  updateSwooperBehavior(dt, player) {
+    const manager = window.enemyManager;
+    const activeDive = manager && manager.enemies && manager.enemies.some(enemy => enemy !== this && enemy.active && enemy.role === 'swooper' && enemy.swooperState === 'dive');
+    const playerFootY = player.position.y + (window.Player?.VISUAL_FOOT_OFFSET_Y || 72);
+    const targetSurfaceY = Math.max(260, Math.min(750, playerFootY - 120));
+    this.swooperTimerMs += dt * 1000;
+    if (this.swooperState === 'none') {
+      this.swooperState = 'approach';
+      this.swooperTimerMs = 0;
+      this.swooperDiveDirection = this.position.x < player.position.x ? 1 : -1;
+    }
+    if (this.swooperState === 'approach') {
+      this.swooperTargetY = targetSurfaceY;
+      const targetX = player.position.x - this.swooperDiveDirection * 220;
+      this.velocity.x = Math.max(-this.speed * 1.8, Math.min(this.speed * 1.8, (targetX - this.position.x) * 1.4));
+      this.velocity.y = Math.max(-180, Math.min(180, (this.swooperTargetY - this.position.y) * 2));
+      if (Math.abs(this.position.x - player.position.x) > 180 && Math.abs(this.position.y - this.swooperTargetY) < 35 && this.swooperTimerMs >= 450 && !activeDive) {
+        this.swooperState = 'telegraph';
+        this.swooperTimerMs = 0;
+        this.velocity.x = 0;
+        this.velocity.y = 0;
+      }
+    } else if (this.swooperState === 'telegraph') {
+      this.velocity.x = 0;
+      this.velocity.y = Math.sin(this.swooperTimerMs / 60) * 35;
+      if (this.swooperTimerMs >= 650 && Math.abs(this.position.x - player.position.x) > 120 && !activeDive) {
+        this.swooperState = 'dive';
+        this.swooperTimerMs = 0;
+        const dx = player.position.x - this.position.x;
+        this.swooperDiveDirection = dx >= 0 ? 1 : -1;
+        this.velocity.x = this.swooperDiveDirection * 360;
+        this.velocity.y = Math.max(160, Math.min(310, (player.position.y - this.position.y) * 1.5));
+      }
+    } else if (this.swooperState === 'dive') {
+      if (this.swooperTimerMs >= 700 || this.position.y >= 750) {
+        this.swooperState = 'recovery';
+        this.swooperTimerMs = 0;
+        this.velocity.x *= 0.45;
+        this.velocity.y = -180;
+      }
+    } else if (this.swooperState === 'recovery') {
+      this.velocity.x *= 0.97;
+      this.velocity.y = Math.min(this.velocity.y + 500 * dt, 80);
+      if (this.swooperTimerMs >= 900) {
+        this.swooperState = 'approach';
+        this.swooperTimerMs = 0;
+      }
     }
   }
 

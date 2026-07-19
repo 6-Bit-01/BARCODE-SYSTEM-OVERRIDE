@@ -9,6 +9,7 @@ window.FILE_MANIFEST.push({
 window.LostDataSystem = class LostDataSystem {
   constructor() {
     this.fragments = [];
+    this.authoredPlacementIndex = 0;
     this.collectedLore = new Set(); // Track which lore has been given
     this.spawnTimer = 0;
     this.nextSpawnTime = this.getRandomSpawnTime();
@@ -264,114 +265,32 @@ window.LostDataSystem = class LostDataSystem {
   // Spawn a new fragment on an authored Level 1 rooftop/awning surface.
   spawnFragment() {
     if (window.player && window.player.position) this.player = window.player;
+    if (!this.player || this.collectedLore.size >= this.maxTotalLore) return null;
     const missionKills = window.sector1Progression?.missionDefeats || 0;
-    let placement = this.authoredLevel1Placements.find((candidate, index) => index >= this.authoredPlacementIndex && missionKills >= candidate.unlockKills);
-    if (!placement) placement = this.authoredLevel1Placements[this.authoredPlacementIndex] || this.authoredLevel1Placements.at(-1);
-    this.authoredPlacementIndex = Math.min(this.authoredLevel1Placements.length, this.authoredLevel1Placements.indexOf(placement) + 1);
-    let spawnX = placement.x;
-    let spawnY = placement.y;
-    console.log(`💎 Authored Level 1 Lost Data placement ${placement.id}: (${spawnX}, ${spawnY})`);
+    const placement = this.authoredLevel1Placements[this.authoredPlacementIndex];
+    if (!placement) return null;
+    if (missionKills < placement.unlockKills) {
+      console.log(`💎 Authored Lost Data ${placement.id} locked until ${placement.unlockKills} mission defeats (${missionKills} current)`);
+      return null;
+    }
 
-    // Check if this spawn location is too close to existing fragments
-    let tooClose = false;
-    const minDistanceFromOthers = 400; // Minimum distance between fragments
-    
-    for (const existingFragment of this.fragments) {
-      if (existingFragment.active) {
-        const distanceFromExisting = window.distance(spawnX, spawnY, existingFragment.position.x, existingFragment.position.y);
-        if (distanceFromExisting < minDistanceFromOthers) {
-          tooClose = true;
-          console.log(`🚫 Spawn location too close to existing fragment (${distanceFromExisting.toFixed(1)} < ${minDistanceFromOthers})`);
-          break;
-        }
-      }
-    }
-    
-    // If too close to existing fragments, try again with different position
-    if (tooClose) {
-      console.log('🔄 Respawn attempt due to proximity conflict - maintaining opposite half rule');
-      
-      // Respawn on the same opposite half with chaos system
-      const timeSeed = Date.now() % 1000;
-      
-      if (playerX < mapCenter) {
-        // Still spawn on right half with chaos
-        const baseMin = mapCenter + 100;
-        const baseMax = 3800;
-        const chaoticMin = baseMin + Math.random() * 100 - 50;
-        const chaoticMax = baseMax - Math.random() * 100;
-        spawnX = window.randomRange(chaoticMin, chaoticMax);
-      } else {
-        // Still spawn on left half with chaos
-        const baseMin = 300;
-        const baseMax = mapCenter - 100;
-        const chaoticMin = baseMin + Math.random() * 100;
-        const chaoticMax = baseMax - Math.random() * 100 - 50;
-        spawnX = window.randomRange(chaoticMin, chaoticMax);
-      }
-      
-      // Apply time-based offset
-      spawnX += (Math.sin(Date.now() / 500) * 50);
-      
-      // EXTRA CHAOS for respawn as well
-      const fragmentsSpawned = this.collectedLore.size;
-      if (fragmentsSpawned === 0) {
-        spawnX += (Math.random() - 0.5) * 300;
-        spawnY += (Math.random() - 0.5) * 200;
-        console.log('🎲 MAXIMUM CHAOS for first respawn!');
-      } else if (fragmentsSpawned < 3) {
-        spawnX += (Math.random() - 0.5) * 150;
-        spawnY += (Math.random() - 0.5) * 100;
-        console.log(`🎲 Extra chaos for respawn #${fragmentsSpawned + 1}`);
-      }
-      
-      // Use same zone system for Y
-      const spawnZone = Math.floor(Math.random() * 4);
-      let zoneOffset = 0;
-      
-      switch(spawnZone) {
-        case 0: zoneOffset = -200; break;
-        case 1: zoneOffset = -67; break;
-        case 2: zoneOffset = 67; break;
-        case 3: zoneOffset = 200; break;
-      }
-      
-      spawnY = window.randomRange(350, 900) + zoneOffset + window.randomRange(-100, 100);
-      
-      // Clamp to bounds after all chaos
-      spawnY = window.clamp(spawnY, 350, 900);
-    }
-    
-    // Calculate distance from player
-    const distance = window.distance(playerX, playerY, spawnX, spawnY);
-    
-    console.log(`💎 SPAWN DEBUG - Raw spawn position calculated: (${spawnX.toFixed(1)}, ${spawnY.toFixed(1)})`);
-    console.log(`💎 Opposite half spawn: Player(${playerX}, ${playerY}) -> Fragment(${spawnX}, ${spawnY}) Distance: ${distance.toFixed(1)}`);
-    
-    // Add random visual properties for variety
+    const spawnX = placement.x;
+    const spawnY = placement.y;
     const fragment = new window.LostDataFragment(spawnX, spawnY);
-    
-    // DEBUG: Log the actual fragment position after creation
-    console.log(`💎 FRAGMENT CREATED - Actual position: (${fragment.position.x.toFixed(1)}, ${fragment.position.y.toFixed(1)})`);
-    
-    // Randomize some visual properties for each fragment
+    fragment.authoredPlacementId = placement.id;
     fragment.visualVariation = {
-      hueShift: Math.random() * 60 - 30, // -30 to +30 hue shift
-      sizeMultiplier: 0.8 + Math.random() * 0.4, // 0.8 to 1.2 size
-      rotationSpeedMultiplier: 0.7 + Math.random() * 0.6, // 0.7 to 1.3 rotation speed
-      glowIntensityMultiplier: 0.7 + Math.random() * 0.6 // 0.7 to 1.3 glow intensity
+      hueShift: 0,
+      sizeMultiplier: 1,
+      rotationSpeedMultiplier: 1,
+      glowIntensityMultiplier: 1
     };
-    
     this.fragments.push(fragment);
-    
-    console.log(`💎 Lost Data fragment spawned on opposite half: (${spawnX}, ${spawnY}) with variation ID: ${fragment.visualVariation.hueShift.toFixed(1)}`);
-    
-    // Create spawn effect
-    if (window.particleSystem) {
-      window.particleSystem.dataFragmentEffect(spawnX, spawnY);
-    }
+    this.authoredPlacementIndex += 1;
+    console.log(`💎 Authored Level 1 Lost Data placement ${placement.id}: (${spawnX}, ${spawnY})`);
+    if (window.particleSystem) window.particleSystem.dataFragmentEffect(spawnX, spawnY);
+    return fragment;
   }
-  
+
   // Check if player collected any fragments - DISABLED during tutorial
   checkCollection() {
     // FIXED: Only block during active tutorial
@@ -529,6 +448,15 @@ window.LostDataSystem = class LostDataSystem {
     };
   }
   
+
+  reset() {
+    this.fragments = [];
+    this.spawnTimer = 0;
+    this.nextSpawnTime = this.getRandomSpawnTime();
+    this.collectionCooldownTimer = 0;
+    this.authoredPlacementIndex = 0;
+  }
+
   // Manual spawn for testing
   forceSpawnFragment() {
     const loreCollected = this.collectedLore.size;
@@ -732,6 +660,14 @@ window.LostDataFragment = class LostDataFragment {
       }
     }
   }
+  reset() {
+    this.fragments = [];
+    this.spawnTimer = 0;
+    this.nextSpawnTime = this.getRandomSpawnTime();
+    this.collectionCooldownTimer = 0;
+    this.authoredPlacementIndex = 0;
+  }
+
 };
 
 // Initialize global lost data system

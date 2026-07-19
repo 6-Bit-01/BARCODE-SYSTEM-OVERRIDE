@@ -164,7 +164,7 @@ window.Player = class Player {
       if (this.jumpBufferTimerMs > 0) this.jumpBufferTimerMs = Math.max(0, this.jumpBufferTimerMs - deltaTime);
       if (this.grounded) this.coyoteTimerMs = PLAYER_COYOTE_MS;
       else this.coyoteTimerMs = Math.max(0, this.coyoteTimerMs - deltaTime);
-      const jumpHeld = !!(window.inputManager && (window.inputManager.isKey?.('arrowup') || window.inputManager.isKey?.('w') || window.inputManager.isKey?.(' ')));
+      const jumpHeld = this.isJumpHeld();
       if (!jumpHeld) this.queueJumpRelease();
       if (!this.grounded && this.velocity.y < 0) this.jumpHeldMs += deltaTime;
 
@@ -176,6 +176,7 @@ window.Player = class Player {
           const stepMs = Math.min(remaining, 1000 / 120);
           const step = stepMs / 1000;
           if (!this.grounded) {
+            this.applyAirControlStep(step);
             this.velocity.y += PLAYER_JUMP_GRAVITY * step;
             this.velocity.y = Math.min(this.velocity.y, 1200);
             if (this.jumpReleaseQueued && this.jumpHeldMs >= PLAYER_MIN_JUMP_HOLD_MS && this.velocity.y < 0) {
@@ -207,6 +208,7 @@ window.Player = class Player {
         this.position.y = 750;
         this.velocity.y = 0;
         this.grounded = true;
+        this.supportedSurfaceId = null;
         
         // CRITICAL FIX: Reset jump animation tracking when landing
         // This ensures next jump will restart animation from beginning
@@ -223,8 +225,10 @@ window.Player = class Player {
         }
       } else if (!landedOnStageSurface) {
         this.grounded = false;
+        this.supportedSurfaceId = null;
       }
       
+      if (this.grounded && this.jumpBufferTimerMs > 0 && this.velocity.y === 0) this.consumeBufferedJumpIfReady();
       // Side-scroller world boundaries (background is 4096px wide)
       const worldLeft = this.width/2;
       const worldRight = 4096 - this.width/2;
@@ -276,8 +280,8 @@ window.Player = class Player {
     // so its approved timing and combat state resume after the camera returns.
     if (bossCinematicActive) {
       this.state = 'idle';
-    // Priority order: Rhythm Mode/transient attack > Jump (if up held) > Walk > Idle
-    } else if (rhythmActive || this.primaryAttackAnimationMs > 0) {
+    // Priority order: transient attack overlay > Jump > Walk > Idle; Rhythm Mode itself does not lock the pose.
+    } else if (this.primaryAttackAnimationMs > 0) {
       this.state = 'rhythm';
     } else if (!this.grounded || upKeyHeld) {
       this.state = 'jump'; // Stay in jump state if up key is held (even when grounded)
@@ -619,7 +623,7 @@ window.Player = class Player {
     if (this.isEntering || !this.allowMovement) { return; }
     this.facing = -1;
     if (this.grounded) this.velocity.x = -this.speed;
-    else this.velocity.x = Math.max(-this.airSpeed, this.velocity.x - PLAYER_AIR_ACCEL * (1/60));
+    else this.airInput = -1;
     {
       
       // White smoke/dust trail particles behind player
@@ -636,7 +640,7 @@ window.Player = class Player {
     if (this.isEntering || !this.allowMovement) { return; }
     this.facing = 1;
     if (this.grounded) this.velocity.x = this.speed;
-    else this.velocity.x = Math.min(this.airSpeed, this.velocity.x + PLAYER_AIR_ACCEL * (1/60));
+    else this.airInput = 1;
     {
       
       // White smoke/dust trail particles behind player
@@ -652,10 +656,7 @@ window.Player = class Player {
   stopHorizontal() {
     if (this.isEntering || !this.allowMovement) { return; }
     if (this.grounded) this.velocity.x = 0;
-    else {
-      const drag = PLAYER_AIR_DRAG * (1/60);
-      this.velocity.x = Math.abs(this.velocity.x) <= drag ? 0 : this.velocity.x - Math.sign(this.velocity.x) * drag;
-    }
+    else this.airInput = 0;
     // Keep facing direction - don't change when stopping
   }
 
@@ -694,6 +695,12 @@ window.Player = class Player {
     }
     return false;
   }
+
+  isJumpHeld() { const action = window.inputManager?.actionInput?.state?.jump; if (action && typeof action.held === 'boolean') return action.held; return !!(window.inputManager && (window.inputManager.isKey?.('arrowup') || window.inputManager.isKey?.('w') || window.inputManager.isKey?.(' '))); }
+
+  applyAirControlStep(step) { const input = Number.isFinite(this.airInput) ? this.airInput : 0; if (input) this.velocity.x = window.clamp ? window.clamp(this.velocity.x + input * PLAYER_AIR_ACCEL * step, -this.airSpeed, this.airSpeed) : Math.max(-this.airSpeed, Math.min(this.airSpeed, this.velocity.x + input * PLAYER_AIR_ACCEL * step)); else { const drag = PLAYER_AIR_DRAG * step; this.velocity.x = Math.abs(this.velocity.x) <= drag ? 0 : this.velocity.x - Math.sign(this.velocity.x) * drag; } }
+
+  consumeBufferedJumpIfReady() { if (this.jumpBufferTimerMs > 0 && this.grounded) return this.jump(); return false; }
 
   queueJumpRelease() { this.jumpReleaseQueued = true; }
 

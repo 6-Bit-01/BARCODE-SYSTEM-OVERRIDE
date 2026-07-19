@@ -284,8 +284,8 @@ pass('boss cinematic Rhythm Mode ownership');
   cinematicActive = false;
   player.updateState();
   player.updateSpriteAnimation(16);
-  assert(player.state === 'rhythm' && rhythm.active, 'active Rhythm Mode presentation resumes after the cinematic');
-  assert(spriteCalls.played.at(-1) === '6_bit_r__h_mode_rhmode' && spriteCalls.updated === 1, 'cinematic release resumes the approved Rhythm Mode animation through the normal update path');
+  assert(player.state === 'idle' && rhythm.active, 'active Rhythm Mode resumes without locking locomotion into the rhythm pose');
+  assert(spriteCalls.played.at(-1) === '6_bit_idle_idle' && spriteCalls.updated === 1, 'cinematic release resumes locomotion-owned animation through the normal update path');
 }
 pass('frame-aware player foot anchoring and cinematic rhythm handoff');
 

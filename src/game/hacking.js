@@ -10,6 +10,11 @@ window.FILE_MANIFEST.push({
 window.HackingSystem = class HackingSystem {
   constructor() {
     this.active = false;
+    this.cooldownUntil = 0;
+    this.guardHitsRemaining = 0;
+    this.previousRhythmModeActive = false;
+    this._startTime = 0;
+    this.puzzleReadyAt = 0;
     this.currentPuzzle = null;
     this.puzzleType = null;
     this.answer = null;
@@ -63,27 +68,56 @@ window.HackingSystem = class HackingSystem {
     return { active: !!this.active, ownedTimeouts: this.ownedTimeouts.size, hasPuzzleTimeout: !!this.puzzleTimeout, runGeneration: this.runGeneration };
   }
 
+
+  initializeTerminal() {
+    this.terminalLines = ['> BARCODE NETWORK TERMINAL', '> SYNCING SIGNAL...', '> AUTH REQUIRED'];
+  }
+
+  generatePortPuzzle() {
+    const port = 1000 + Math.floor(Math.random() * 9000);
+    const open = Math.random() >= 0.5;
+    this.currentPuzzle = { question: `PORT ${port}: ${open ? 'OPEN' : 'CLOSED'}`, answer: open ? 'OPEN' : 'CLOSED' };
+    this.answer = this.currentPuzzle.answer;
+    this.terminalLines.push(`> ${this.currentPuzzle.question}`);
+    this.terminalLines.push('> TYPE OPEN OR CLOSED');
+    return this.currentPuzzle;
+  }
+
+  generateMemoryPuzzle() {
+    const code = String(100 + Math.floor(Math.random() * 900));
+    this.currentPuzzle = { question: `CODE ${code}`, answer: code };
+    this.answer = code;
+    this.terminalLines.push(`> ${this.currentPuzzle.question}`);
+    this.terminalLines.push('> REPEAT CODE');
+    return this.currentPuzzle;
+  }
+
+  hidePuzzle() {
+    if (!this.currentPuzzle) return;
+    this.terminalLines.push('> INPUT WINDOW ACTIVE');
+  }
+
+  processInput(input) {
+    if (!this.active) return;
+    const value = String(input || '').toUpperCase();
+    if (value === 'ENTER') return this.checkAnswer();
+    if (value === 'BACKSPACE') { this.inputText = this.inputText.slice(0, -1); return; }
+    if (value === 'H' && this.inputText.length === 0) return;
+    if (/^[A-Z0-9]$/.test(value)) this.inputText += value;
+    if (this.currentPuzzle && this.inputText.length >= String(this.currentPuzzle.answer).length) this.checkAnswer();
+  }
+
   // Start hacking mode with a random puzzle
   start() {
     if (this.active) { console.log('Hacking already active, ignoring start request'); return; }
     const tutorialActive = window.tutorialSystem && typeof window.tutorialSystem.isActive === 'function' && window.tutorialSystem.isActive();
     if (!tutorialActive && Date.now() < this.cooldownUntil) { console.log('Hacking cooldown active'); return; }
     if (window.player && window.player.grounded === false) { console.log('Hacking requires ground/support'); return; }
-    
+
     console.log('=== INITIATING TERMINAL HACK ===');
-    
-    // Clear any existing timeout first
-    this.clearOwnedTimeouts();
-    this.cooldownUntil = 0;
-    this.guardHitsRemaining = 0;
-    this.previousRhythmModeActive = false;
-    this.finishTacticalFocus(true);
     this.runGeneration++;
-    
-    // Reset failure tracking for new attempt
+    this.clearOwnedTimeouts();
     this._lastResultFailed = false;
-    
-    // Reset all state variables
     this.active = true;
     this.inputText = '';
     this.puzzleComplete = false;
@@ -91,50 +125,34 @@ window.HackingSystem = class HackingSystem {
     this.currentPuzzle = null;
     this.terminalLines = [];
     this.terminalHistory = [];
-    
-    // Initialize terminal with boot sequence
+    this.guardHitsRemaining = 1;
+    this.puzzleReadyAt = 0;
+    this._startTime = 0;
+    this.previousRhythmModeActive = !!(window.rhythmSystem?.isActive?.());
+    if (this.previousRhythmModeActive && window.rhythmSystem?.hideRhythmMode) window.rhythmSystem.hideRhythmMode();
+    else if (this.previousRhythmModeActive && window.rhythmSystem?.hide) window.rhythmSystem.hide();
+
     this.initializeTerminal();
-    
-    // Randomly select puzzle type (1 or 2)
     this.puzzleType = Math.floor(Math.random() * 2) + 1;
-    
-    console.log(`Starting puzzle type ${this.puzzleType}`);
-    
-    // Generate puzzle based on type
-    this.trackTimeout(() => {
-      this.puzzleReadyAt = Date.now();
-      this._startTime = this.puzzleReadyAt;
-      switch(this.puzzleType) {
-        case 1:
-          this.generatePortPuzzle();
-          break;
-        case 2:
-          this.generateMemoryPuzzle();
-          break;
-      }
-    }, 1000);
-    
-    // Display time will be set per puzzle type
     this.displayTime = this.puzzleType === 2 ? 3000 : window.randomRange(1500, 2500);
     this.maxDisplayTime = this.displayTime + 500;
-    
+
     this.trackTimeout(() => {
-      if (this.active && !this.puzzleComplete) {
-        this.hidePuzzle();
+      if (!this.active || this.puzzleComplete) return;
+      switch(this.puzzleType) {
+        case 1: this.generatePortPuzzle(); break;
+        case 2: this.generateMemoryPuzzle(); break;
       }
-    }, this.displayTime);
-    
-    // Timer starts only when puzzle is generated and visible.
-    this._startTime = 0;
-    
-    // Auto-fail after approximately 4 seconds of answer time
-    this.puzzleTimeout = this.trackTimeout(() => {
-      if (this.active && !this.puzzleComplete) {
-        this.timeoutFailPuzzle();
-      }
-    }, 4000);
-    
-    // Check tutorial objectives
+      this.puzzleReadyAt = Date.now();
+      this._startTime = this.puzzleReadyAt;
+      this.puzzleTimeout = this.trackTimeout(() => {
+        if (this.active && !this.puzzleComplete) this.timeoutFailPuzzle();
+      }, 4000);
+      this.trackTimeout(() => {
+        if (this.active && !this.puzzleComplete) this.hidePuzzle();
+      }, this.displayTime);
+    }, 1000);
+
     if (window.tutorialSystem && typeof window.tutorialSystem.isActive === 'function' && window.tutorialSystem.isActive()) {
       this.tutorialMode = true;
       this.tutorialObjective = 'hack_start';
@@ -142,419 +160,109 @@ window.HackingSystem = class HackingSystem {
       console.log('Tutorial mode: hacking objective active');
     }
   }
-  
-  // Initialize terminal with boot sequence
-  initializeTerminal() {
-    this.terminalLines = [
-      '> INITIATING BARCODE NETWORK ACCESS...',
-      '> AUTHENTICATING USER: 6_BIT',
-      '> SCANNING NETWORK VULNERABILITIES...',
-      '> ESTABLISHING SECURE CONNECTION...',
-      '> ACCESS GRANTED - LOADING PUZZLE MATRIX...'
-    ];
-    
-    this.terminalHistory = [...this.terminalLines];
-  }
-  
-  // Puzzle Type 1: Port Status (OPEN/CLOSED) - Exactly 3 options
-  generatePortPuzzle() {
-    // Generate exactly 3 different port numbers
-    const ports = [];
-    const usedNumbers = new Set();
-    
-    for (let i = 0; i < 3; i++) {
-      let portNum;
-      do {
-        const range = Math.floor(Math.random() * 4);
-        switch(range) {
-          case 0: portNum = Math.floor(window.randomRange(20, 100)); break;    // Standard ports
-          case 1: portNum = Math.floor(window.randomRange(1024, 5000)); break; // User ports
-          case 2: portNum = Math.floor(window.randomRange(8000, 9000)); break; // Alternative ports
-          case 3: portNum = Math.floor(window.randomRange(49152, 65535)); break; // Dynamic ports
-        }
-      } while (usedNumbers.has(portNum));
-      
-      usedNumbers.add(portNum);
-      ports.push({
-        number: portNum,
-        status: 'CLOSED'
-      });
-    }
-    
-    // Choose exactly 1 port to be OPEN
-    const openIndex = Math.floor(Math.random() * 3);
-    ports[openIndex].status = 'OPEN';
-    
-    // Create terminal display with clear formatting
-    const portDisplay = ports.map((p, i) => {
-      const status = p.status === 'OPEN' ? 'OPEN' : 'CLOSED';
-      const color = p.status === 'OPEN' ? '#00ff00' : '#ff6600';
-      return `PORT ${p.number}: ${status}`;
-    }).join('\n');
-    
-    this.terminalLines.push('> SCAN RESULTS:');
-    this.terminalLines.push('');
-    
-    // Add each port as a separate line with clear coloring in draw method
-    ports.forEach((p, i) => {
-      const status = p.status === 'OPEN' ? 'OPEN' : 'CLOSED';
-      this.terminalLines.push(`  ${i + 1}. PORT ${p.number}: ${status}`);
-    });
-    
-    this.terminalLines.push('');
-    this.terminalLines.push('> WHICH PORT IS OPEN?');
-    
-    this.currentPuzzle = {
-      type: 1,
-      display: portDisplay,
-      answer: ports[openIndex].number.toString(),
-      ports: ports,
-      openIndex: openIndex,
-      displayTime: this.displayTime
-    };
-    
-    console.log(`Port Puzzle: ${ports[openIndex].number} is OPEN, answer: ${this.currentPuzzle.answer}`);
-  }
-  
-  // Puzzle Type 2: Memory Sequence (3-5 digits) - 3 second display
-  generateMemoryPuzzle() {
-    const codeLength = Math.floor(window.randomRange(3, 6)); // 3-5 digits
-    let code = '';
-    for (let i = 0; i < codeLength; i++) {
-      code += Math.floor(window.randomRange(0, 10)).toString();
-    }
-    
-    this.terminalLines.push('> MEMORY SEQUENCE TRANSMITTED:');
-    this.terminalLines.push('');
-    this.terminalLines.push(`     ${code}`); // Centered and spaced for visibility
-    this.terminalLines.push('');
-    this.terminalLines.push('> MEMORIZE CODE - 3 SECONDS');
-    
-    this.currentPuzzle = {
-      type: 2,
-      display: code,
-      answer: code,
-      displayTime: 3000 // Fixed 3 seconds
-    };
-    
-    // Override display time to 3 seconds for memory puzzles
-    this.displayTime = 3000;
-    this.maxDisplayTime = 3500;
-    
-    console.log(`Memory Puzzle: ${codeLength}-digit code: ${code} (display for 3 seconds)`);
-  }
-  
-  // Hide puzzle display after timeout
-  hidePuzzle() {
-    if (this.currentPuzzle) {
-      this.currentPuzzle.hidden = true;
-      
-      // Update terminal to show puzzle is hidden
-      if (this.puzzleType === 1) {
-        this.terminalLines = [
-          '> PORT SCAN HIDDEN',
-          '> MEMORY RETENTION REQUIRED',
-          '> WHICH PORT WAS OPEN?',
-          '> INPUT PORT NUMBER:'
-        ];
-      } else {
-        this.terminalLines = [
-          '> MEMORY SEQUENCE HIDDEN',
-          '> MEMORY RETENTION REQUIRED',
-          '> WHAT WAS THE CODE?',
-          '> INPUT MEMORY SEQUENCE:'
-        ];
-      }
-      
-      console.log('Puzzle hidden - player must answer from memory');
-    }
-  }
-  
-  // Process keyboard input
-  processInput(key) {
-    if (!this.active || this.puzzleComplete) return;
-    
-    // Handle Enter key
-    if (key === 'Enter') {
-      this.checkAnswer();
-      return;
-    }
-    
-    // Handle Backspace
-    if (key === 'Backspace') {
-      this.inputText = this.inputText.slice(0, -1);
-      return;
-    }
-    
-    // Handle Escape to cancel
-    if (key === 'Escape') {
-      this.cancel();
-      return;
-    }
-    
-    // Only accept digits for input
-    if (key.length === 1 && /[0-9]/.test(key)) {
-      this.inputText += key;
-    }
-  }
-  
+
   // Check if answer is correct
   checkAnswer() {
     if (!this.currentPuzzle || !this.currentPuzzle.answer) return;
-    
     const isCorrect = this.inputText === this.currentPuzzle.answer;
-    
     console.log('=== VERIFYING INPUT ===');
     console.log('User input:', this.inputText);
     console.log('Expected answer:', this.currentPuzzle.answer);
     console.log('Result:', isCorrect ? 'ACCEPTED' : 'REJECTED');
-    
-    if (isCorrect) {
-      this.successPuzzle();
-    } else {
-      this.failPuzzle();
+    if (isCorrect) this.successPuzzle(); else this.failPuzzle();
+  }
+
+  completeTutorialObjectivesOnSuccess() {
+    if (!this.tutorialMode || !window.tutorialSystem) return;
+    if (typeof window.tutorialSystem.checkObjective === 'function') {
+      window.tutorialSystem.checkObjective('hack_start');
+      window.tutorialSystem.checkObjective('hack_complete');
+    }
+    if (window.tutorialSystem.completedObjectives) {
+      window.tutorialSystem.completedObjectives.add('hack_start');
+      window.tutorialSystem.completedObjectives.add('hack_complete');
+    }
+    if (Array.isArray(window.tutorialSystem.objectives)) {
+      window.tutorialSystem.objectives.forEach(obj => { if (obj.id === 'hack_start' || obj.id === 'hack_complete') obj.completed = true; });
     }
   }
-  
+
   // Handle successful puzzle
   successPuzzle() {
+    if (!this.active) return;
     this.puzzleComplete = true;
     this.active = false;
-    
-    // Clear timeout
     this.runGeneration++;
     this.clearOwnedTimeouts();
-    this.finishTacticalFocus(true);
-    
-    // Update terminal with success message
-    this.terminalLines = [
-      '> ACCESS GRANTED',
-      '> AUTHENTICATION SUCCESSFUL',
-      '> NETWORK BREACH ACHIEVED',
-      '> SIGNAL STRENGTH RESTORED',
-      '> TERMINATING SESSION...'
-    ];
-    
-    console.log(`✓ Terminal hack successful! Answer: ${this.currentPuzzle.answer}`);
-    
-    // Mark last result as successful
+    this.terminalLines = ['> ACCESS GRANTED', '> AUTHENTICATION SUCCESSFUL', '> NETWORK BREACH ACHIEVED', '> SIGNAL STRENGTH RESTORED', '> TERMINATING SESSION...'];
+    console.log(`✓ Terminal hack successful! Answer: ${this.currentPuzzle?.answer}`);
     this._lastResultFailed = false;
-    
-    // Play terminal success beep
-    if (window.audioSystem) {
-      window.audioSystem.playSound('terminalBeep', 0.5);
-    }
-    
-    // Restore 1 health bar for successful hack
-    if (window.player && typeof window.player.restoreHealth === 'function') {
-      const wasHealthRestored = window.player.restoreHealth(1);
-      if (wasHealthRestored) {
-        console.log('✓ Signal strength restored by 1 bar for successful hack');
-      }
-    }
-    
-    // Tutorial completion check
-    if (this.tutorialMode && window.tutorialSystem) {
-      console.log('🔐 HACKING PUZZLE SOLVED - checking tutorial objectives');
-      console.log('🔐 Tutorial system active:', window.tutorialSystem.isActive());
-      console.log('🔐 Current chapter:', window.tutorialSystem.storyChapter);
-      console.log('🔐 Completed objectives before:', Array.from(window.tutorialSystem.completedObjectives));
-      
-      // CRITICAL: Complete hack_start objective first
-      if (this.tutorialObjective === 'hack_start') {
-        console.log('🔐 === COMPLETING hack_start OBJECTIVE ===');
-        
-        if (typeof window.tutorialSystem.checkObjective === 'function') {
-          console.log('🔐 Calling checkObjective for hack_start');
-          window.tutorialSystem.checkObjective('hack_start');
-        }
-        
-        // MULTIPLE FALLBACKS - ensure completion
-        this.trackTimeout(() => {
-          console.log('🔐 FALLBACK 1: Checking hack_start completion status');
-          if (!window.tutorialSystem.completedObjectives.has('hack_start')) {
-            console.log('🔐 FALLBACK 1: Adding hack_start to completed set');
-            window.tutorialSystem.completedObjectives.add('hack_start');
-          }
-          
-          const hackStartObj = window.tutorialSystem.objectives.find(obj => obj.id === 'hack_start');
-          if (hackStartObj && !hackStartObj.completed) {
-            console.log('🔐 FALLBACK 1: Marking hack_start as completed in array');
-            hackStartObj.completed = true;
-          }
-          
-          console.log('🔐 FALLBACK 1: hack_start completion status:', window.tutorialSystem.completedObjectives.has('hack_start'));
-        }, 100);
-        
-        this.trackTimeout(() => {
-          console.log('🔐 FALLBACK 2: Double-checking hack_start completion');
-          if (!window.tutorialSystem.completedObjectives.has('hack_start')) {
-            console.log('🔐 FALLBACK 2: Final forced completion of hack_start');
-            window.tutorialSystem.completedObjectives.add('hack_start');
-            const finalHackStartObj = window.tutorialSystem.objectives.find(obj => obj.id === 'hack_start');
-            if (finalHackStartObj) {
-              finalHackStartObj.completed = true;
-            }
-          }
-        }, 500);
-      }
-      
-      // CRITICAL: Complete hack_complete objective ONLY ON SUCCESS
-      if (this.tutorialCompleteObjective === 'hack_complete') {
-        console.log('🔐 === COMPLETING hack_complete OBJECTIVE (SUCCESSFUL HACK) ===');
-        console.log('🔐 This should only be called for successful hacks!');
-        
-        if (typeof window.tutorialSystem.checkObjective === 'function') {
-          console.log('🔐 Calling checkObjective for hack_complete (SUCCESS)');
-          window.tutorialSystem.checkObjective('hack_complete');
-        }
-        
-        // MULTIPLE FALLBACKS - ensure completion
-        this.trackTimeout(() => {
-          console.log('🔐 FALLBACK 1: Checking hack_complete completion status (SUCCESS)');
-          if (!window.tutorialSystem.completedObjectives.has('hack_complete')) {
-            console.log('🔐 FALLBACK 1: Adding hack_complete to completed set (SUCCESS)');
-            window.tutorialSystem.completedObjectives.add('hack_complete');
-          }
-          
-          const hackCompleteObj = window.tutorialSystem.objectives.find(obj => obj.id === 'hack_complete');
-          if (hackCompleteObj && !hackCompleteObj.completed) {
-            console.log('🔐 FALLBACK 1: Marking hack_complete as completed in array (SUCCESS)');
-            hackCompleteObj.completed = true;
-          }
-          
-          console.log('🔐 FALLBACK 1: hack_complete completion status (SUCCESS):', window.tutorialSystem.completedObjectives.has('hack_complete'));
-        }, 150);
-        
-        this.trackTimeout(() => {
-          console.log('🔐 FALLBACK 2: Double-checking hack_complete completion (SUCCESS)');
-          if (!window.tutorialSystem.completedObjectives.has('hack_complete')) {
-            console.log('🔐 FALLBACK 2: Final forced completion of hack_complete (SUCCESS)');
-            window.tutorialSystem.completedObjectives.add('hack_complete');
-            const finalHackCompleteObj = window.tutorialSystem.objectives.find(obj => obj.id === 'hack_complete');
-            if (finalHackCompleteObj) {
-              finalHackCompleteObj.completed = true;
-            }
-          }
-        }, 600);
-      }
-      
-      // CRITICAL: Log final status
-      this.trackTimeout(() => {
-        console.log('🔐 FINAL STATUS - Completed objectives after hack:', Array.from(window.tutorialSystem.completedObjectives));
-        console.log('🔐 FINAL STATUS - Objective array states:', window.tutorialSystem.objectives.map(obj => ({id: obj.id, text: obj.text, completed: obj.completed})));
-      }, 1000);
-      
-      this.tutorialMode = false;
-      this.tutorialObjective = null;
-      this.tutorialCompleteObjective = null;
-    }
-    
-    // Show success feedback
+    if (window.audioSystem) window.audioSystem.playSound('terminalBeep', 0.5);
+    if (window.player && typeof window.player.restoreHealth === 'function') window.player.restoreHealth(1);
+    this.completeTutorialObjectivesOnSuccess();
+    this.finishTacticalFocus(true);
+    this.tutorialMode = false;
+    this.tutorialObjective = null;
+    this.tutorialCompleteObjective = null;
     this.showSuccessFeedback();
   }
-  
+
   finishTacticalFocus(success) {
     this.cooldownUntil = Date.now() + this.cooldownMs;
     this.guardHitsRemaining = 0;
+    this._startTime = 0;
+    this.puzzleReadyAt = 0;
     if (this.previousRhythmModeActive && window.rhythmSystem?.showRhythmMode) window.rhythmSystem.showRhythmMode();
     else if (this.previousRhythmModeActive && window.rhythmSystem?.show) window.rhythmSystem.show();
     this.previousRhythmModeActive = false;
     if (success) this.emitOverridePulse();
   }
 
-  absorbGuardHit() { if (!this.active || this.guardHitsRemaining <= 0) return false; this.guardHitsRemaining -= 1; this.feedback = { text: 'SIGNAL GUARD ABSORBED', type: 'success', timer: 45, opacity: 1 }; return true; }
+  absorbGuardHit() {
+    if (!this.active || this.guardHitsRemaining <= 0) return false;
+    this.guardHitsRemaining -= 1;
+    this.feedback = { text: 'SIGNAL GUARD ABSORBED', type: 'success', timer: 45, opacity: 1 };
+    return true;
+  }
 
-  emitOverridePulse() { const beatMs = window.rhythmSystem?.beatInterval || 500; const stunMs = beatMs * 4; (window.enemyManager?.enemies || []).forEach(enemy => { if (enemy && enemy.active && enemy.type !== 'broadcast_jammer') enemy._stunnedUntilMs = Date.now() + stunMs; }); }
+  emitOverridePulse() {
+    const beatMs = window.rhythmSystem?.beatInterval || 500;
+    const stunMs = beatMs * 4;
+    const now = window.enemyManager?.simulationTimeMs || 0;
+    (window.enemyManager?.enemies || []).forEach(enemy => {
+      if (enemy && enemy.active && enemy.type !== 'broadcast_jammer' && enemy.canReceiveDamage !== false) enemy._stunnedUntilMs = now + stunMs;
+    });
+  }
 
-  // Handle failed puzzle
   failPuzzle() {
+    if (!this.active) return;
     this.puzzleComplete = true;
     this.active = false;
-    
-    // Clear timeout
+    this.runGeneration++;
+    this.clearOwnedTimeouts();
+    this.terminalLines = ['> ACCESS DENIED', '> AUTHENTICATION FAILED', '> NETWORK BREACH ATTEMPTED', '> INTRUSION DETECTED', '> TERMINATING SESSION...'];
+    console.log(`✗ Terminal hack failed! Input: "${this.inputText}", Expected: "${this.currentPuzzle?.answer}"`);
+    if (window.audioSystem) window.audioSystem.playSound('terminalBuzz', 0.3);
+    this.finishTacticalFocus(false);
+    this.showFailureFeedback();
+    this._lastResultFailed = true;
+  }
+
+  cancel() {
+    if (!this.active) return;
+    this.active = false;
+    this.puzzleComplete = true;
     this.runGeneration++;
     this.clearOwnedTimeouts();
     this.finishTacticalFocus(false);
-    
-    // Update terminal with failure message
-    this.terminalLines = [
-      '> ACCESS DENIED',
-      '> AUTHENTICATION FAILED',
-      '> NETWORK BREACH ATTEMPTED',
-      '> INTRUCTION DETECTED',
-      '> TERMINATING SESSION...'
-    ];
-    
-    console.log(`✗ Terminal hack failed! Input: "${this.inputText}", Expected: "${this.currentPuzzle.answer}"`);
-    
-    // Play terminal buzz sound
-    if (window.audioSystem) {
-      window.audioSystem.playSound('terminalBuzz', 0.3);
-    }
-    
-    // Show failure feedback
-    this.showFailureFeedback();
-    
-    // CRITICAL: DO NOT complete tutorial objectives on failure
-    console.log('🔐 HACK FAILED - tutorial objectives NOT completed');
-    if (this.tutorialMode && window.tutorialSystem) {
-      console.log('🔐 Tutorial mode active but hack failed - no objective completion');
-    }
-    
-    // Mark last result as failed
-    this._lastResultFailed = true;
-  }
-  
-  // Cancel hacking mode
-  cancel() {
-    this.active = false;
-    this.puzzleComplete = true;
-    
-    // Clear timeout
-    this.runGeneration++;
-    this.clearOwnedTimeouts();
-    
-    // Update terminal with cancel message
-    this.terminalLines = [
-      '> SESSION CANCELLED BY USER',
-      '> TERMINATING CONNECTION...',
-      '> NETWORK ACCESS REVOKED'
-    ];
-    
+    this.terminalLines = ['> SESSION CANCELLED BY USER', '> TERMINATING CONNECTION...', '> NETWORK ACCESS REVOKED'];
     console.log('Terminal hack cancelled by player');
-    
-    // CRITICAL: DO NOT complete tutorial objectives on cancel
-    if (this.tutorialMode && window.tutorialSystem) {
-      console.log('🔐 Tutorial mode active but hack cancelled - no objective completion');
-    }
-    
-    // Mark last result as failed
     this._lastResultFailed = true;
   }
-  
-  // Show success feedback
+
   showSuccessFeedback() {
-    this.feedback = {
-      type: 'success',
-      text: 'ACCESS GRANTED',
-      opacity: 1.0,
-      timer: 60
-    };
+    this.feedback = { type: 'success', text: 'ACCESS GRANTED', opacity: 1.0, timer: 60 };
   }
-  
-  finishTacticalFocus(success) {
-    this.cooldownUntil = Date.now() + this.cooldownMs;
-    this.guardHitsRemaining = 0;
-    if (this.previousRhythmModeActive && window.rhythmSystem?.showRhythmMode) window.rhythmSystem.showRhythmMode();
-    else if (this.previousRhythmModeActive && window.rhythmSystem?.show) window.rhythmSystem.show();
-    this.previousRhythmModeActive = false;
-    if (success) this.emitOverridePulse();
-  }
-
-  absorbGuardHit() { if (!this.active || this.guardHitsRemaining <= 0) return false; this.guardHitsRemaining -= 1; this.feedback = { text: 'SIGNAL GUARD ABSORBED', type: 'success', timer: 45, opacity: 1 }; return true; }
-
-  emitOverridePulse() { const beatMs = window.rhythmSystem?.beatInterval || 500; const stunMs = beatMs * 4; (window.enemyManager?.enemies || []).forEach(enemy => { if (enemy && enemy.active && !enemy._jammerReinforcement && enemy.type !== 'broadcast_jammer') enemy._stunnedUntilMs = Date.now() + stunMs; }); }
 
   // Show failure feedback
   showFailureFeedback() {
@@ -584,7 +292,7 @@ window.HackingSystem = class HackingSystem {
       '> TERMINATING SESSION...'
     ];
     
-    console.log('✗ Terminal hack timed out after 8 seconds');
+    console.log('✗ Terminal hack timed out after 4 seconds');
     
     // Play terminal buzz sound
     if (window.audioSystem) {
@@ -802,6 +510,11 @@ window.HackingSystem = class HackingSystem {
     console.log('=== TERMINAL SYSTEM RESET ===');
     
     this.active = false;
+    this.cooldownUntil = 0;
+    this.guardHitsRemaining = 0;
+    this.previousRhythmModeActive = false;
+    this._startTime = 0;
+    this.puzzleReadyAt = 0;
     this.currentPuzzle = null;
     this.puzzleType = null;
     this.answer = null;
