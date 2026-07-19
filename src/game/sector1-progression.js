@@ -28,18 +28,16 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
   ]);
 
   // Calibrated against the locked 1279x462 Level 1 foreground image using the
-  // renderer's 4400x1589 draw at (-152, -550). The added storefront/sign steps
-  // use visible architectural top edges to connect the existing roof route
-  // without placing walkable surfaces inside the HUD or above the viewport.
+  // renderer's 4400x1589 draw at (-152, -550). Each architectural mass owns one
+  // walkable awning or rooftop; facade/window/door trim is intentionally not
+  // collidable so the route never creates stacked invisible steps.
   const STAGE_SURFACES = Object.freeze([
-    { id: 'signal-storefront', x: 752, y: 578, w: 485, h: 8 },
-    { id: 'signal-awning', x: 701, y: 492, w: 561, h: 8 },
-    { id: 'cache-bridge', x: 1492, y: 337, w: 337, h: 8 },
-    { id: 'firewall-storefront', x: 1964, y: 781, w: 375, h: 8 },
-    { id: 'firewall-deck', x: 2002, y: 506, w: 513, h: 8 },
-    { id: 'firewall-sign', x: 2645, y: 413, w: 492, h: 8 },
-    { id: 'broadcast-storefront', x: 3305, y: 643, w: 440, h: 8 },
-    { id: 'broadcast-ramp', x: 3295, y: 506, w: 461, h: 8 }
+    { id: 'signal-awning', x: 736, y: 492, w: 529, h: 8 },
+    { id: 'cache-awning', x: 1534, y: 330, w: 278, h: 8 },
+    { id: 'firewall-canopy', x: 1936, y: 358, w: 582, h: 8 },
+    { id: 'relay-rooftop', x: 2580, y: 196, w: 574, h: 8 },
+    { id: 'tower-rooftop', x: 3154, y: 275, w: 609, h: 8 },
+    { id: 'broadcast-awning', x: 3777, y: 502, w: 319, h: 8 }
   ]);
 
   const ENCOUNTER_GATES = Object.freeze([
