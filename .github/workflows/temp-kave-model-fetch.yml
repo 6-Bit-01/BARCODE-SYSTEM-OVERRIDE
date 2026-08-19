@@ -13,31 +13,20 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Download and verify medium English Whisper model
+      - name: Download and verify Whisper Large v3 Turbo Q4_0
         shell: bash
         run: |
           set -euo pipefail
           curl --fail --location --retry 5 --retry-delay 3 \
-            -o ggml-medium.en-q5_0.bin \
-            'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium.en-q5_0.bin?download=true'
-          echo '76733e26ad8fe1c7a5bf7531a9d41917b2adc0f20f2e4f5531688a8c6cd88eb0  ggml-medium.en-q5_0.bin' | sha256sum --check
-          split -b 300000000 -d -a 2 ggml-medium.en-q5_0.bin medium.part.
-          test "$(cat medium.part.00 medium.part.01 | sha256sum | cut -d' ' -f1)" = '76733e26ad8fe1c7a5bf7531a9d41917b2adc0f20f2e4f5531688a8c6cd88eb0'
+            -o ggml-large-v3-turbo-q4_0.bin \
+            'https://huggingface.co/Pomni/whisper-large-v3-turbo-ggml-allquants/resolve/main/ggml-large-v3-turbo-q4_0.bin?download=true'
+          echo '2ceb779ca61ce46ed6e9aa43c4a0f8a89a37f683df3c0ba3119238fcd5852155  ggml-large-v3-turbo-q4_0.bin' | sha256sum --check
 
-      - name: Upload medium model part 00
+      - name: Upload Large v3 Turbo Q4_0
         uses: actions/upload-artifact@v4
         with:
-          name: whisper-medium-en-q5_0-part-00
-          path: medium.part.00
-          if-no-files-found: error
-          compression-level: 0
-          retention-days: 1
-
-      - name: Upload medium model part 01
-        uses: actions/upload-artifact@v4
-        with:
-          name: whisper-medium-en-q5_0-part-01
-          path: medium.part.01
+          name: whisper-large-v3-turbo-q4_0
+          path: ggml-large-v3-turbo-q4_0.bin
           if-no-files-found: error
           compression-level: 0
           retention-days: 1
