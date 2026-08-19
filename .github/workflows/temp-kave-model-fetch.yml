@@ -9,38 +9,35 @@ permissions:
   contents: read
 
 jobs:
-  fetch-models:
+  fetch-model:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Download English Whisper models
+      - name: Download and verify medium English Whisper model
         shell: bash
         run: |
           set -euo pipefail
           curl --fail --location --retry 5 --retry-delay 3 \
-            -o ggml-small.en-q5_1.bin \
-            'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.en-q5_1.bin?download=true'
-          echo 'bfdff4894dcb76bbf647d56263ea2a96645423f1669176f4844a1bf8e478ad30  ggml-small.en-q5_1.bin' | sha256sum --check
-
-          curl --fail --location --retry 5 --retry-delay 3 \
             -o ggml-medium.en-q5_0.bin \
             'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium.en-q5_0.bin?download=true'
           echo '76733e26ad8fe1c7a5bf7531a9d41917b2adc0f20f2e4f5531688a8c6cd88eb0  ggml-medium.en-q5_0.bin' | sha256sum --check
+          split -b 300000000 -d -a 2 ggml-medium.en-q5_0.bin medium.part.
+          test "$(cat medium.part.00 medium.part.01 | sha256sum | cut -d' ' -f1)" = '76733e26ad8fe1c7a5bf7531a9d41917b2adc0f20f2e4f5531688a8c6cd88eb0'
 
-      - name: Upload small English model
+      - name: Upload medium model part 00
         uses: actions/upload-artifact@v4
         with:
-          name: whisper-small-en-q5_1
-          path: ggml-small.en-q5_1.bin
+          name: whisper-medium-en-q5_0-part-00
+          path: medium.part.00
           if-no-files-found: error
           compression-level: 0
           retention-days: 1
 
-      - name: Upload medium English model
+      - name: Upload medium model part 01
         uses: actions/upload-artifact@v4
         with:
-          name: whisper-medium-en-q5_0
-          path: ggml-medium.en-q5_0.bin
+          name: whisper-medium-en-q5_0-part-01
+          path: medium.part.01
           if-no-files-found: error
           compression-level: 0
           retention-days: 1
