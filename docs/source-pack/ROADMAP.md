@@ -1,5 +1,7 @@
 # Roadmap
 
+Current checkpoint: PR #28 is merged; owner reports a much better experience but excessive boss difficulty and an endless-bounce exploit. The approved `agent/level1-musical-combat` pass addresses boss balance, music boundaries, enemy commitments and feedback before a fresh acceptance run. Standalone migration is the next recommended separate infrastructure milestone, preserving this build as the comparison baseline. The historical milestone table below remains the campaign production sequence.
+
 Development order serves playable progress and risk reduction. It does not settle the final campaign order.
 
 | Milestone | Deliverable | Exit evidence | Status at v5 creation |

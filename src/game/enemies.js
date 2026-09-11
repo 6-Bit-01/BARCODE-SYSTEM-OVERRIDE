@@ -105,6 +105,10 @@ window.Enemy = class Enemy {
     this.swooperTimerMs = 0;
     this.swooperTargetY = y;
     this.swooperDiveDirection = 1;
+    this.combatPattern = 'approach';
+    this.combatPatternMs = 0;
+    this.committedDirection = 1;
+    this.hitFlashMs = 0;
 
     // Trigger entrance logic
     this.startEntrance();
@@ -208,6 +212,7 @@ window.Enemy = class Enemy {
     const dt = deltaTime / 1000;
     this.stateTimer += deltaTime;
     this.animationTime += deltaTime;
+    this.hitFlashMs = Math.max(0, this.hitFlashMs - deltaTime);
 
     // Authored Level 1 entrances own their integration until the actor reaches its stage target.
     if (this.updateAuthoredEntrance(deltaTime)) {
@@ -264,6 +269,13 @@ window.Enemy = class Enemy {
   }
 
   updateAI(player, dt) {
+    // Authored combat gets deterministic, readable commitments. Tutorial and
+    // legacy entrances retain their established behavior and damage rules.
+    if ((this._sector1MissionEnemy || this._jammerReinforcement) && this.entranceComplete &&
+        (this.type === 'corrupted' || this.type === 'firewall')) {
+      this.updateAuthoredCombatPattern(dt, player);
+      return;
+    }
     // 1. Firewall Specific Logic
     if (this.type === 'firewall') {
         this.firewallPersonalityBehavior(dt, player);
@@ -290,6 +302,56 @@ window.Enemy = class Enemy {
             this.virusPersonalityBehavior(dt, player, dist);
         }
         return;
+    }
+  }
+
+  updateAuthoredCombatPattern(dt, player) {
+    const firewall = this.type === 'firewall';
+    const dx = player.position.x - this.position.x;
+    const range = firewall ? 250 : 340;
+    const warningMs = firewall ? 950 : 650;
+    this.combatPatternMs += dt * 1000;
+    if (this.combatPattern === 'approach') {
+      this.facing = dx >= 0 ? 1 : -1;
+      this.velocity.x = this.facing * (firewall ? 85 : 155);
+      if (this.combatPatternMs >= 800 && Math.abs(dx) <= range && Math.abs(player.position.y - this.position.y) < 160) {
+        this.combatPattern = 'brace';
+        this.combatPatternMs = 0;
+        this.committedDirection = this.facing;
+        this.velocity.x = 0;
+      }
+    } else if (this.combatPattern === 'brace') {
+      this.velocity.x = 0;
+      if (this.combatPatternMs >= warningMs) {
+        this.combatPattern = 'attack';
+        this.combatPatternMs = 0;
+        this.facing = this.committedDirection;
+        if (firewall) {
+          // Keep the original complete attack clip and its 80px glide.
+          this.startProximityAttack({ position: { x: this.position.x + this.committedDirection, y: this.position.y } });
+        }
+      }
+    }
+    if (this.combatPattern === 'attack') {
+      this.velocity.x = this.committedDirection * (firewall ? 100 : 340);
+      if (this.combatPatternMs >= (firewall ? 800 : 420)) {
+        this.combatPattern = 'recovery';
+        this.combatPatternMs = 0;
+        this.velocity.x = 0;
+      }
+    } else if (this.combatPattern === 'recovery') {
+      this.velocity.x = 0;
+      const duration = firewall ? this.fullAttackDurationSeconds * 1000 - 800 : 950;
+      if (this.combatPatternMs >= duration) {
+        this.combatPattern = 'approach';
+        this.combatPatternMs = 0;
+        this.isLunging = false;
+        this.behaviorState = 'normal';
+      }
+    }
+    if (firewall && this.spriteReady && this.sprite) {
+      const animation = this.combatPattern === 'approach' ? 'walk' : this.combatPattern === 'brace' ? 'idle' : 'attack';
+      if (!this.currentAnimation?.includes(animation)) this.playAnimation(animation);
     }
   }
 
@@ -481,19 +543,23 @@ window.Enemy = class Enemy {
       if (Math.abs(this.position.x - player.position.x) > 180 && Math.abs(this.position.y - this.swooperTargetY) < 35 && this.swooperTimerMs >= 450 && !activeDive) {
         this.swooperState = 'telegraph';
         this.swooperTimerMs = 0;
+        // Lock the intended lane before the warning. Dodging it must work;
+        // the dive cannot silently retarget at the end of its telegraph.
+        this.swooperAim = { x: player.position.x, y: player.position.y };
         this.velocity.x = 0;
         this.velocity.y = 0;
       }
     } else if (this.swooperState === 'telegraph') {
       this.velocity.x = 0;
       this.velocity.y = Math.sin(this.swooperTimerMs / 60) * 35;
-      if (this.swooperTimerMs >= 650 && Math.abs(this.position.x - player.position.x) > 120 && !activeDive) {
+      if (this.swooperTimerMs >= 650 && !activeDive) {
         this.swooperState = 'dive';
         this.swooperTimerMs = 0;
-        const dx = player.position.x - this.position.x;
+        const aim = this.swooperAim || player.position;
+        const dx = aim.x - this.position.x;
         this.swooperDiveDirection = dx >= 0 ? 1 : -1;
         this.velocity.x = this.swooperDiveDirection * 360;
-        this.velocity.y = Math.max(160, Math.min(310, (player.position.y - this.position.y) * 1.5));
+        this.velocity.y = Math.max(160, Math.min(310, (aim.y - this.position.y) * 1.5));
       }
     } else if (this.swooperState === 'dive') {
       if (this.swooperTimerMs >= 700 || this.position.y >= 750) {
@@ -871,6 +937,7 @@ window.Enemy = class Enemy {
   takeDamage(amount) {
     if (!this.active || this._defeatRecorded) return false;
     this.health -= amount;
+    this.hitFlashMs = 130;
 
     if (window.particleSystem) {
       let particleColor = this.type === 'corrupted' ? 'corrupted' : this.type;
@@ -980,6 +1047,7 @@ window.Enemy = class Enemy {
     if (!ctx) return;
 
     ctx.save();
+    if (this.hitFlashMs > 0) { ctx.shadowColor = '#ffffff'; ctx.shadowBlur = 10; }
     if (this.type === 'firewall' && this.alpha !== undefined) ctx.globalAlpha = this.alpha;
 
     if (['virus', 'corrupted', 'firewall'].includes(this.type) && this.spriteReady && this.sprite) {
@@ -997,7 +1065,36 @@ window.Enemy = class Enemy {
       ctx.fillStyle = this.color;
       ctx.fillRect(bodyX, bodyY, this.width, this.height);
     }
+    ctx.shadowBlur = 0;
+    this.drawCombatCue(ctx);
     ctx.restore();
+  }
+
+  drawCombatCue(ctx) {
+    if (!this.entranceComplete || !(this._sector1MissionEnemy || this._jammerReinforcement)) return;
+    const swooper = this.role === 'swooper';
+    const phase = swooper ? this.swooperState : this.combatPattern;
+    if (!swooper && !['corrupted', 'firewall'].includes(this.type)) return;
+    if (!['brace', 'telegraph', 'attack', 'dive', 'recovery'].includes(phase)) return;
+    const box = this.getHitbox();
+    const warning = phase === 'brace' || phase === 'telegraph';
+    const recovery = phase === 'recovery';
+    const label = recovery ? 'RECOVERING' : swooper ? (warning ? 'DIVE WINDUP' : 'DIVE') : this.type === 'firewall' ? (warning ? 'BRACING' : 'SWEEP') : (warning ? 'CHARGE WINDUP' : 'CHARGE');
+    ctx.fillStyle = 'rgba(0, 8, 16, 0.86)';
+    ctx.fillRect(this.position.x - 67, box.y - 33, 134, 24);
+    ctx.fillStyle = recovery ? '#00ffff' : '#ffbd70';
+    ctx.textAlign = 'center'; ctx.font = 'bold 12px monospace';
+    ctx.fillText(label, this.position.x, box.y - 17);
+    if (warning) {
+      const elapsed = swooper ? this.swooperTimerMs : this.combatPatternMs;
+      const duration = this.type === 'firewall' ? 950 : 650;
+      ctx.fillRect(this.position.x - 60, box.y - 8, 120 * Math.min(1, elapsed / duration), 3);
+      if (swooper && this.swooperAim) {
+        ctx.strokeStyle = 'rgba(255, 189, 112, 0.6)'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(this.position.x, box.y + box.height / 2);
+        ctx.lineTo(this.swooperAim.x, this.swooperAim.y); ctx.stroke();
+      }
+    }
   }
 
   getDrawLayer() {
@@ -1196,6 +1293,8 @@ window.EnemyManager = class EnemyManager {
 
             if (isStompPos && isMovingDown && this.simpleAABBcollision(playerBox, enemyBox)) {
                 enemy.takeDamage(999);
+                window.audioSystem?.playSound?.('kick');
+                window.renderer?.addScreenShake?.(2, 80);
                 if (typeof player.stompRebound === 'function') player.stompRebound();
                 else player.velocity.y = -550;
                 player.velocity.x = nx * 300;

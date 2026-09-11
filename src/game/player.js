@@ -240,6 +240,10 @@ window.Player = class Player {
         this.grounded = false;
         this.supportedSurfaceId = null;
       }
+      if (this.grounded) {
+        this.bossReboundMs = 0;
+        if (window.sector1Progression?.isBossCombatLive?.()) window.sector1Progression.boss.stompArmed = true;
+      }
       
       if (this.grounded && this.jumpBufferTimerMs > 0 && this.velocity.y === 0) this.consumeBufferedJumpIfReady();
       // Side-scroller world boundaries (background is 4096px wide)
@@ -711,13 +715,27 @@ window.Player = class Player {
 
   isJumpHeld() { const action = window.inputManager?.actionInput?.state?.jump; if (action && typeof action.held === 'boolean') return action.held; return !!(window.inputManager && (window.inputManager.isKey?.('arrowup') || window.inputManager.isKey?.('w') || window.inputManager.isKey?.(' '))); }
 
-  applyAirControlStep(step) { const input = Number.isFinite(this.airInput) ? this.airInput : 0; if (input) this.velocity.x = window.clamp ? window.clamp(this.velocity.x + input * PLAYER_AIR_ACCEL * step, -this.airSpeed, this.airSpeed) : Math.max(-this.airSpeed, Math.min(this.airSpeed, this.velocity.x + input * PLAYER_AIR_ACCEL * step)); else { const drag = PLAYER_AIR_DRAG * step; this.velocity.x = Math.abs(this.velocity.x) <= drag ? 0 : this.velocity.x - Math.sign(this.velocity.x) * drag; } }
+  applyAirControlStep(step) {
+    if (this.bossReboundMs > 0) {
+      this.bossReboundMs = Math.max(0, this.bossReboundMs - step * 1000);
+      this.velocity.x = this.bossReboundDirection * 360;
+      return;
+    }
+    const input = Number.isFinite(this.airInput) ? this.airInput : 0;
+    if (input) this.velocity.x = window.clamp ? window.clamp(this.velocity.x + input * PLAYER_AIR_ACCEL * step, -this.airSpeed, this.airSpeed) : Math.max(-this.airSpeed, Math.min(this.airSpeed, this.velocity.x + input * PLAYER_AIR_ACCEL * step));
+    else { const drag = PLAYER_AIR_DRAG * step; this.velocity.x = Math.abs(this.velocity.x) <= drag ? 0 : this.velocity.x - Math.sign(this.velocity.x) * drag; }
+  }
 
   consumeBufferedJumpIfReady() { if (this.jumpBufferTimerMs > 0 && this.grounded) return this.jump(); return false; }
 
   queueJumpRelease() { this.jumpReleaseQueued = true; }
 
-  stompRebound() { this.velocity.y = -PLAYER_STOMP_REBOUND; this.grounded = false; this.coyoteTimerMs = 0; this.jumpBufferTimerMs = 0; this.jumpHeldMs = 0; this.jumpReleaseQueued = false; }
+  stompRebound(bossDirection = 0) {
+    this.velocity.y = -PLAYER_STOMP_REBOUND; this.grounded = false; this.coyoteTimerMs = 0; this.jumpBufferTimerMs = 0; this.jumpHeldMs = 0; this.jumpReleaseQueued = false;
+    this.bossReboundDirection = Math.sign(bossDirection);
+    this.bossReboundMs = bossDirection ? 260 : 0;
+    if (bossDirection) this.velocity.x = this.bossReboundDirection * 360;
+  }
 
   dash() {
     // Dash ability removed - no longer available, but the action route is intentionally recognized.
@@ -782,6 +800,7 @@ window.Player = class Player {
     // CRITICAL: Deactivate rhythm mode when hit
     if (window.rhythmSystem && window.rhythmSystem.isActive()) {
       console.log('💥 Player hit - deactivating rhythm mode');
+      window.BARCODE?.playerCombat?.notifyRhythmLost?.();
       window.rhythmSystem.hide();
       window.rhythmSystem.stop();
     }
@@ -820,6 +839,7 @@ window.Player = class Player {
     // Check if player is currently invulnerable from recent damage
     const currentTime = Date.now();
     if (this.isDamageInvulnerable(currentTime)) return false;
+    this.bossReboundMs = 0;
     
     this.health = Math.max(0, this.health - amount);
     
@@ -880,6 +900,7 @@ window.Player = class Player {
     // CRITICAL: Deactivate rhythm mode when hit
     if (window.rhythmSystem && window.rhythmSystem.isActive()) {
       console.log('💥 Player hit - deactivating rhythm mode');
+      window.BARCODE?.playerCombat?.notifyRhythmLost?.();
       window.rhythmSystem.hide();
       window.rhythmSystem.stop();
     }

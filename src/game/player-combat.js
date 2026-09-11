@@ -11,7 +11,7 @@ window.FILE_MANIFEST.push({
   const SUCCESS_DAMAGE = { perfect: 3, excellent: 2 };
   class PlayerCombat {
     constructor(options = {}) { this.cooldownMs = options.cooldownMs ?? 250; this.range = options.range ?? 300; this.lastAttackAt = -Infinity; this.sequence = 0; this.feedback = null; }
-    reset() { this.lastAttackAt = -Infinity; this.sequence = 0; this.feedback = null; }
+    reset() { this.lastAttackAt = -Infinity; this.sequence = 0; this.feedback = null; this.rhythmLostUntil = 0; }
     canAttack(now = Date.now()) { return now - this.lastAttackAt >= this.cooldownMs; }
     resolvePrimary({ player = window.player, enemyManager = window.enemyManager, now = Date.now(), timing = null } = {}) {
       const result = { ok: false, action: 'primary', sequence: ++this.sequence, reason: '', timing: null, damage: 0, targets: [] };
@@ -68,19 +68,54 @@ window.FILE_MANIFEST.push({
         const damage = result.targets.reduce((sum, target) => sum + target.damage, 0);
         text = `${result.timing.timing.toUpperCase()} — ${result.targets.length > 1 ? result.targets.length + ' TARGETS · ' : ''}${damage} DAMAGE`;
         color = '#00ffff';
+        window.audioSystem?.playSound?.('synthHit');
+        window.renderer?.addScreenShake?.(result.timing.timing === 'perfect' ? 2 : 1, 70);
       } else if (Number.isFinite(result.liftCharges)) {
         text = `LIFT CHARGED ${result.liftCharges}/2`;
         color = '#00ffff';
       } else if (result.reason === 'rhythm-inactive') text = 'PRESS R TO ENTER RHYTHM MODE';
       else if (result.reason === 'rhythm-not-ready') text = 'LISTEN FOR THE BEAT';
-      else if (result.reason === 'miss') text = 'OFF BEAT — MATCH THE PULSE';
-      else if (result.bossReason === 'boss-guarded') text = 'ON BEAT — BOSS GUARDED; WAIT FOR CYAN';
+      else if (result.reason === 'miss') text = Number.isFinite(result.timing?.signedOffsetMs) ? `${result.timing.signedOffsetMs < 0 ? 'EARLY' : 'LATE'} — MATCH THE PULSE` : 'OFF BEAT — MATCH THE PULSE';
+      else if (result.bossReason === 'boss-guarded') { text = 'ON BEAT — BOSS GUARDED; WAIT FOR CYAN'; window.audioSystem?.playSound?.('hihat'); }
       else if (result.reason === 'no-target') text = 'ON BEAT — MOVE CLOSER TO A TARGET';
       else text = 'RHYTHM TIMING NOT READY';
       this.feedback = { text, color, expiresAt: (window.gameState?.gameTime || 0) + 1000 };
     }
     getFeedback() {
       return this.feedback && (window.gameState?.gameTime || 0) < this.feedback.expiresAt ? { ...this.feedback } : null;
+    }
+    notifyRhythmLost() {
+      this.rhythmLostUntil = (window.gameState?.gameTime || 0) + 2200;
+      this.feedback = { text: 'RHYTHM MODE LOST — PRESS R TO RE-ENTER', color: '#ffbd70', expiresAt: this.rhythmLostUntil };
+    }
+    drawPlayerTimingCue(ctx, player) {
+      if (!ctx || !player || !this.gameplayActive() || window.hackingSystem?.isActive?.() || window.tutorialSystem?.isActive?.()) return;
+      const active = window.rhythmSystem?.isActive?.();
+      const lost = !active && (window.gameState?.gameTime || 0) < (this.rhythmLostUntil || 0);
+      if (!active && !lost) return;
+      const x = player.position.x;
+      const y = player.position.y - 120;
+      ctx.save();
+      ctx.fillStyle = 'rgba(0, 8, 16, 0.88)'; ctx.fillRect(x - 70, y - 25, 140, 38);
+      ctx.textAlign = 'center'; ctx.font = 'bold 12px monospace';
+      ctx.fillStyle = lost ? '#ffbd70' : '#ffffff';
+      ctx.fillText(lost ? 'PRESS R — RHYTHM OFF' : 'DOWN ON BEAT', x, y - 10);
+      if (active) {
+        const time = window.audioSystem?.context?.currentTime;
+        const sample = Number.isFinite(time) ? BARCODE.MusicTransport?.sample?.(time) : null;
+        if (sample?.running && sample.grid) {
+          const fraction = sample.grid.beatFloat % 1;
+          const profile = BARCODE.MusicProfiles?.getActive?.();
+          const rule = profile?.judgmentRules?.find(r => r.target === 'quarter-note' || /attack/.test(r.id));
+          const onBeat = Math.min(fraction, 1 - fraction) * sample.grid.beatDurationSec * 1000 <= (rule?.windowsMs?.perfect ?? 0);
+          ctx.fillStyle = '#657887'; ctx.fillRect(x - 54, y + 2, 108, 2);
+          ctx.fillStyle = onBeat ? '#00ffff' : '#ffffff';
+          ctx.fillRect(x - 3, y - 1, 6, 8);
+          const travel = 52 * (1 - fraction);
+          ctx.fillRect(x - travel - 2, y, 4, 6); ctx.fillRect(x + travel - 2, y, 4, 6);
+        }
+      }
+      ctx.restore();
     }
     gameplayActive() { const gs = window.gameState || {}; return !(window.sector1Progression?.isGameplaySuppressed?.() || window.isPaused || window.isRunning === false || gs.paused || gs.gameOver || gs.victory || gs.running === false); }
     getTimingJudgment() {

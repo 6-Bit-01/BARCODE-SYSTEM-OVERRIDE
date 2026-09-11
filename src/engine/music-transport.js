@@ -167,10 +167,11 @@ window.BARCODE = window.BARCODE || {};
       const beatMs = snapshot.grid.beatDurationSec * 1000;
       const phaseMs = (snapshot.grid.beatFloat - Math.floor(snapshot.grid.beatFloat)) * beatMs;
       const distanceMs = Math.min(phaseMs, beatMs - phaseMs);
+      const signedOffsetMs = phaseMs <= beatMs / 2 ? phaseMs : phaseMs - beatMs;
       let timing = 'miss';
       if (distanceMs <= rule.windowsMs.perfect) timing = 'perfect';
       else if (distanceMs <= rule.windowsMs.excellent) timing = 'excellent';
-      return freeze({ available: true, timing, distanceMs, ruleId: rule.id, generation: snapshot.generation });
+      return freeze({ available: true, timing, distanceMs, signedOffsetMs, ruleId: rule.id, generation: snapshot.generation });
     }
 
     function getDiagnostics() {

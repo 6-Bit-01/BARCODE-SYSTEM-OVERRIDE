@@ -1,5 +1,28 @@
 # Current State
 
+## Current gameplay pass — September 11, 2026
+
+Baseline: merged PR #28, `05c1404f5805e9e17dc5eac015abd7fe0a8c2aa1`. The owner reports a major improvement and a boss win, but found the fight too difficult and won by staying in an endless safe head-bounce loop. This is positive playtest feedback with an unresolved exploit/balance issue, not blanket acceptance.
+
+Current branch: `agent/level1-musical-combat`. This pass is **unmerged and awaiting owner Makko testing**; the generated manifest names its exact revision and PR. It implements the approved combined recommendations 1–5, 8 and 9. Later ideas and a standalone migration are not silently included.
+
+- Boss: 10 health, 1.8-second ready grace, 1.6-second warning, 3-second minimum recovery. After the first cycle, six health introduces a second pulse without reducing those windows. Only after two cycles, at three health, warning/recovery shorten to 1.3/2.5 seconds. These are provisional playtest tuning values.
+- Attacks, the second pulse and counter-window boundaries sample the existing MusicTransport. They wait for a beat crossing after their minimum hostile-time duration, with no second scheduler. H still scales hostile time to 0.4 and leaves music running. No-grid/silent development hosts use the existing timer-based phase fallback; this cannot grant offbeat rhythm damage.
+- Pulse speed is 560 world pixels/second; approach distance 230. Each pulse retains one damage latch and existing player invulnerability. The second pulse waits at least 410 ms and a music boundary; recovery waits at least 700 ms after the last pulse, then a boundary.
+- Boss head landings remain safe, but impart a 260 ms outward horizontal impulse at 360 pixels/second, then return to ordinary air control. A floor/platform landing rearms stomp counter damage; changing boss cycles alone does not. Only one stomp damages each cyan cycle. World-edge rebounds point inward; retry clears impulse state. Ordinary enemy stomps remain lethal.
+- Authored Corrupted enemies approach, show a 650 ms charge warning, commit to one direction for 420 ms, then recover for 950 ms. Authored Firewalls brace for 950 ms, perform the existing 80-pixel glide and complete attack clip, then approach again. They retain contact damage and normal stomp eligibility. Tutorial behavior and authored entrances are preserved.
+- Swoopers advertise and retain the player position captured when their warning begins. They cannot retarget a successful dodge at release. Existing one-dive-at-a-time coordination remains.
+- Enemy windup/recovery labels and bars, a marked swooper lane, actual-hit flash, distinct existing hit/guard/stomp sounds and restrained shake improve feedback. No art/asset URLs, music arrangement, transport speed or new effects timers were added.
+- Rhythm uses the same authoritative judgment to show EARLY/LATE. A compact player-local cue shows the beat and Down input; taking damage announces the loss of Rhythm Mode and the R command immediately. Reset removes stale messages.
+
+Verification and limits: see `test-evidence.json` for the exact revision and results. Production-module tests cover no-input bounce behavior, genuine double-pulse jumps at 30/60/120 FPS, beat alignment, generation changes, damage/reset, enemy commitments and cue lifetime. They do not establish Makko appearance, audible sync or subjective difficulty. These remain owner playtest items.
+
+Next: accept/refine this Level 1 build, then scope the standalone migration as a separate milestone. Preserve the current engine/art as the comparison baseline; campaign foundations and the Contra-style prototype follow. Persistent saves, new genres, settings, new lore prose and environmental expansion are not implemented in this pass.
+
+## Historical implementation notes
+
+The entries below preserve the sequence of earlier work. Their branch status and tuning describe those earlier passes; the current section and generated manifest supersede them.
+
 Updated: September 11, 2026. See `SOURCE_MANIFEST.json` for this export's exact branch/head/review status; this document's baseline section deliberately remains historical.
 
 ## Verified merged starting point

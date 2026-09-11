@@ -90,10 +90,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
   // Encounter tuning is intentionally local to Level 1. MusicTransport keeps
   // the rhythm judgment; this owner's hostile delta controls enemy actions.
   const BOSS_COMBAT = Object.freeze({
-    maxHealth: 12, readyMs: 1400, approachSpeed: 180, approachRange: 280,
-    telegraphMs: 1200, fastTelegraphMs: 900, sweepMs: 600,
-    recoveryMs: 1900, fastRecoveryMs: 1650, secondPulseMs: 280,
-    pulseSpeed: 700, pulseRange: 1050, pulseWidth: 64, pulseHeight: 56,
+    maxHealth: 10, readyMs: 1800, approachSpeed: 180, approachRange: 230,
+    telegraphMs: 1600, fastTelegraphMs: 1300, sweepMs: 700,
+    recoveryMs: 3000, fastRecoveryMs: 2500, secondPulseMs: 410,
+    pulseSpeed: 560, pulseRange: 1050, pulseWidth: 64, pulseHeight: 56,
     hitboxWidth: 110, hitboxHeight: 202.4
   });
 
@@ -192,9 +192,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       const defeated = started ? this.activeEncounterEnemies.filter(enemy => !enemy.active || enemy._defeatRecorded).length : 0;
       const hints = [
         'Land on enemies or use R + Down on beat.',
-        'Watch the air. Leave yourself room to jump.',
-        'Watch Firewall lunges. Keep your rhythm range.',
-        'Mix stomps and rhythm to clear the final group.'
+        'Dodge the marked dive. Jump committed charges.',
+        'Firewall braces, sweeps, then recovers. Counter at range.',
+        'Read the windups. Mix stomps and rhythm during recovery.'
       ];
       return { label: encounter.label, number: index + 1, total: ENCOUNTERS.length,
         started, defeated, required: encounterSpecs(encounter).length, hint: hints[index] };
@@ -274,7 +274,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       this.state = STATES.BOSS_READY;
       Object.assign(this.boss, { state: 'idle', active: true, phase: 'ready', phaseElapsedMs: 0,
         health: BOSS_COMBAT.maxHealth, maxHealth: BOSS_COMBAT.maxHealth, facing: -1,
-        canDealDamage: false, canReceiveDamage: false, cycle: 0, stompCycle: -1,
+        canDealDamage: false, canReceiveDamage: false, cycle: 0, stompCycle: -1, stompArmed: true,
+        phaseBeatWait: null, secondPulseBeatWait: null, latePhase: false,
         hitSequences: new Set(), pulses: [], pulseSequence: 0, hitFlashMs: 0, guardBounceMs: 0, defeated: false });
       this.setBossAnimation('sector_1_boss_idle_idle', true);
       this.bossReadyEmitted = true;
@@ -283,6 +284,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       this.cinematicZoomReleasePending = true;
       if (this.player) {
         this.player.controlsDisabled = false;
+        this.player.bossReboundMs = 0;
+        this.player.bossReboundDirection = 0;
         if (this.player.velocity) { this.player.velocity.x = 0; this.player.velocity.y = 0; }
       }
       if (!this.bossCheckpoint) {
@@ -309,16 +312,39 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (!boss) return;
       boss.phase = phase;
       boss.phaseElapsedMs = 0;
+      boss.phaseBeatWait = null;
       boss.canReceiveDamage = phase === 'recovery';
       boss.canDealDamage = phase === 'sweep' || boss.pulses.some(pulse => !pulse.hit);
       boss.state = phase === 'approach' ? 'walk' : phase === 'sweep' ? 'flourish' : 'idle';
       this.setBossAnimation(phase === 'approach' ? 'sector_1_boss_walk_walk' : phase === 'sweep' ? 'sector_1_boss_attack_attack' : 'sector_1_boss_idle_idle', phase !== 'sweep');
       if (phase === 'telegraph') {
         boss.cycle += 1;
-        boss.doublePulse = boss.health <= boss.maxHealth / 2;
+        // Learn the double pulse before the final speed increase. The opening
+        // cycle stays a demonstration even if development tools change health.
+        boss.doublePulse = boss.cycle > 1 && boss.health <= 6;
+        boss.latePhase = boss.cycle > 2 && boss.health <= 3;
         boss.secondPulseEmitted = false;
+        boss.secondPulseBeatWait = null;
       }
       if (phase === 'sweep') this.emitBossPulse();
+    }
+    getBossMusicSample() {
+      const time = window.audioSystem?.context?.currentTime;
+      const sample = Number.isFinite(time) ? window.BARCODE?.MusicTransport?.sample?.(time) : null;
+      return sample?.running && sample.grid && Number.isFinite(sample.grid.beatFloat) ? sample : null;
+    }
+    bossBoundaryReady(minimumMs, key = 'phaseBeatWait') {
+      const sample = this.getBossMusicSample();
+      // Silent/no-grid development hosts retain a finishable stomp encounter.
+      // Live music always owns the boundary; no extra timer or beat scheduler.
+      if (!sample) { this.boss[key] = null; return this.boss.phaseElapsedMs >= minimumMs; }
+      const previous = this.boss[key];
+      const beat = sample.grid.beatIndex;
+      this.boss[key] = { generation: sample.generation, beat };
+      const crossed = previous?.generation === sample.generation && beat > previous.beat;
+      // Sampling a crossing (rather than waiting for an exact floating point
+      // time) works at 30/60/120 FPS and cannot replay a backlog after a hitch.
+      return this.boss.phaseElapsedMs >= minimumMs && (crossed || Math.abs(sample.grid.beatFloat - beat) < 0.000001);
     }
     emitBossPulse() {
       this.boss.pulses.push({ id: ++this.boss.pulseSequence, originX: this.boss.x,
@@ -329,6 +355,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (!this.isBossCombatLive()) return;
       const boss = this.boss;
       const delta = Math.max(0, deltaTime);
+      if (this.player.grounded) boss.stompArmed = true;
       boss.phaseElapsedMs += delta;
       boss.hitFlashMs = Math.max(0, boss.hitFlashMs - delta);
       boss.guardBounceMs = Math.max(0, (boss.guardBounceMs || 0) - delta);
@@ -340,17 +367,19 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
           boss.x = clampWorldX(boss.x + boss.facing * distance);
         } else this.setBossCombatPhase('telegraph');
       } else if (boss.phase === 'telegraph') {
-        const duration = boss.doublePulse ? BOSS_COMBAT.fastTelegraphMs : BOSS_COMBAT.telegraphMs;
-        if (boss.phaseElapsedMs >= duration) this.setBossCombatPhase('sweep');
+        const duration = boss.latePhase ? BOSS_COMBAT.fastTelegraphMs : BOSS_COMBAT.telegraphMs;
+        if (this.bossBoundaryReady(duration)) this.setBossCombatPhase('sweep');
       } else if (boss.phase === 'sweep') {
-        if (boss.doublePulse && !boss.secondPulseEmitted && boss.phaseElapsedMs >= BOSS_COMBAT.secondPulseMs) {
+        if (boss.doublePulse && !boss.secondPulseEmitted && this.bossBoundaryReady(BOSS_COMBAT.secondPulseMs, 'secondPulseBeatWait')) {
           boss.secondPulseEmitted = true;
+          boss.lastPulseAtMs = boss.phaseElapsedMs;
           this.emitBossPulse();
         }
-        if (boss.phaseElapsedMs >= BOSS_COMBAT.sweepMs) this.setBossCombatPhase('recovery');
+        const duration = boss.doublePulse ? (boss.lastPulseAtMs || 0) + BOSS_COMBAT.sweepMs : BOSS_COMBAT.sweepMs;
+        if ((!boss.doublePulse || boss.secondPulseEmitted) && this.bossBoundaryReady(duration)) this.setBossCombatPhase('recovery');
       } else if (boss.phase === 'recovery') {
-        const duration = boss.doublePulse ? BOSS_COMBAT.fastRecoveryMs : BOSS_COMBAT.recoveryMs;
-        if (boss.phaseElapsedMs >= duration) this.setBossCombatPhase('approach');
+        const duration = boss.latePhase ? BOSS_COMBAT.fastRecoveryMs : BOSS_COMBAT.recoveryMs;
+        if (this.bossBoundaryReady(duration)) this.setBossCombatPhase('approach');
       }
       this.updateBossPulses(delta);
       boss.canDealDamage = boss.phase === 'sweep' || boss.pulses.some(pulse => !pulse.hit);
@@ -389,10 +418,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (!this.isBossCombatLive()) return { ok: false, reason: 'boss-inactive' };
       if (window.hackingSystem?.isActive?.()) return { ok: false, reason: 'hacking-active' };
       if (!judgment?.available || !['perfect', 'excellent'].includes(judgment.timing)) return { ok: false, reason: 'offbeat' };
-      if (!this.boss.canReceiveDamage || this.boss.phase !== 'recovery') return { ok: false, reason: 'boss-guarded' };
-      if (sequence === undefined || sequence === null || this.boss.hitSequences.has(sequence)) return { ok: false, reason: 'duplicate-attack' };
       if (!player?.position || !Number.isFinite(range) || range <= 0 ||
         Math.hypot(player.position.x - this.boss.x, player.position.y - this.boss.y) > range) return { ok: false, reason: 'out-of-range' };
+      if (!this.boss.canReceiveDamage || this.boss.phase !== 'recovery') return { ok: false, reason: 'boss-guarded' };
+      if (sequence === undefined || sequence === null || this.boss.hitSequences.has(sequence)) return { ok: false, reason: 'duplicate-attack' };
       this.boss.hitSequences.add(sequence);
       return this.damageBoss('rhythm');
     }
@@ -408,10 +437,19 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       const previousX = Number.isFinite(movement.previousX) ? movement.previousX : player.position.x;
       const crossingX = previousX + (player.position.x - previousX) * t;
       if (crossingX + 18 <= box.x || crossingX - 18 >= box.x + box.width) return false;
-      const canCounter = this.boss.canReceiveDamage && this.boss.stompCycle !== this.boss.cycle;
+      const canCounter = this.boss.canReceiveDamage && this.boss.stompArmed && this.boss.stompCycle !== this.boss.cycle;
+      this.boss.stompArmed = false;
       player.position.y = box.y - PLAYER_VISUAL_FOOT_OFFSET;
       player.supportedSurfaceId = null;
-      player.stompRebound?.();
+      // Resolve ties using the incoming side; near a world edge, send the
+      // player toward open space. A short impulse clears the head before air
+      // control resumes. Another stomp counter requires landing on a surface.
+      let direction = Math.sign(crossingX - this.boss.x) || -this.boss.facing || -1;
+      if (this.boss.x < 260) direction = 1;
+      if (this.boss.x > WORLD_WIDTH - 260) direction = -1;
+      player.stompRebound?.(direction);
+      window.audioSystem?.playSound?.(canCounter ? 'kick' : 'hihat');
+      window.particleSystem?.impact?.(crossingX, box.y, canCounter ? '#00ffff' : '#ffbd70', 8);
       if (canCounter) {
         this.boss.stompCycle = this.boss.cycle;
         this.damageBoss('stomp');
@@ -424,6 +462,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (!this.isBossCombatLive() || !this.boss.canReceiveDamage) return { ok: false, reason: 'boss-guarded' };
       this.boss.health = Math.max(0, this.boss.health - 1);
       this.boss.hitFlashMs = 160;
+      window.renderer?.addScreenShake?.(2, 80);
       window.particleSystem?.impact?.(this.boss.x, this.boss.y - 70, '#00ffff', 16);
       window.objectivesSystem?.setBossCombatObjective?.(this.boss.health, this.boss.maxHealth);
       const target = { type: 'boss', damage: 1, x: this.boss.x, y: this.boss.y, source };
@@ -491,7 +530,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (!boss) return null;
       return { phase: boss.phase || 'intro', phaseElapsedMs: boss.phaseElapsedMs || 0,
         health: boss.health ?? BOSS_COMBAT.maxHealth, maxHealth: boss.maxHealth || BOSS_COMBAT.maxHealth,
-        cycle: boss.cycle || 0, doublePulse: !!boss.doublePulse, defeated: !!boss.defeated,
+        cycle: boss.cycle || 0, doublePulse: !!boss.doublePulse, latePhase: !!boss.latePhase,
+        stompArmed: !!boss.stompArmed, defeated: !!boss.defeated,
         canDealDamage: !!boss.canDealDamage, canReceiveDamage: !!boss.canReceiveDamage,
         pulses: (boss.pulses || []).map(pulse => ({ ...pulse })), hitbox: this.getBossHitbox(),
         checkpointAvailable: !!this.bossCheckpoint, retryAvailable: this.canRetryBossCheckpoint() };
@@ -646,7 +686,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       ctx.save();
       if (this.state === STATES.BOSS_COMBAT) {
         if (boss.phase === 'telegraph') {
-          const duration = boss.doublePulse ? BOSS_COMBAT.fastTelegraphMs : BOSS_COMBAT.telegraphMs;
+          const duration = boss.latePhase ? BOSS_COMBAT.fastTelegraphMs : BOSS_COMBAT.telegraphMs;
           const progress = Math.min(1, boss.phaseElapsedMs / duration);
           const width = BOSS_COMBAT.pulseRange * 2;
           ctx.fillStyle = 'rgba(255, 80, 30, 0.12)';
@@ -676,12 +716,21 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       else { ctx.fillStyle = '#ff3300'; ctx.fillRect(visual.x, visual.y, visual.width, visual.height); }
       ctx.shadowBlur = 0;
       if (this.state === STATES.BOSS_COMBAT) {
-        const cue = boss.guardBounceMs > 0 ? 'GUARDED — COUNTER WHEN CYAN' : boss.phase === 'telegraph' ? (boss.doublePulse ? 'TWO PULSES — JUMP' : 'GROUND PULSE — JUMP') :
-          boss.canReceiveDamage ? 'COUNTER: RHYTHM / STOMP' : 'SECTOR 1 BOSS';
+        const cue = boss.phase === 'telegraph' ? (boss.doublePulse ? 'TWO PULSES — JUMP' : 'GROUND PULSE — JUMP') :
+          boss.canReceiveDamage ? (boss.stompArmed ? 'COUNTER: RHYTHM / STOMP' : 'COUNTER: RHYTHM — LAND TO REARM STOMP') :
+          boss.guardBounceMs > 0 ? 'GUARDED — LAND, THEN COUNTER' : 'SECTOR 1 BOSS';
         ctx.fillStyle = boss.canReceiveDamage ? '#00ffff' : '#ffffff';
         ctx.font = 'bold 17px monospace';
         ctx.textAlign = 'center';
         ctx.fillText(cue, boss.x, this.getBossHitbox().y - 26);
+        if (boss.phase === 'telegraph' || boss.canReceiveDamage) {
+          const sample = this.getBossMusicSample();
+          const fraction = sample ? sample.grid.beatFloat % 1 : 0;
+          ctx.fillStyle = 'rgba(0, 8, 16, 0.85)';
+          ctx.fillRect(boss.x - 48, this.getBossHitbox().y - 17, 96, 6);
+          ctx.fillStyle = boss.canReceiveDamage ? '#00ffff' : '#ffbd70';
+          ctx.fillRect(boss.x - 48, this.getBossHitbox().y - 17, 96 * fraction, 6);
+        }
       }
       ctx.restore();
     }

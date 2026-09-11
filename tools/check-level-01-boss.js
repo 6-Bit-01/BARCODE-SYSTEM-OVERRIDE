@@ -35,9 +35,9 @@ function createRig() {
     },
     gameCamera: { centerX: 1475 },
     renderer: { zoomLevel: 0.735, getZoomLevel() { return this.zoomLevel; }, getCinematicZoomOverride() { return null; }, clearCinematicZoomOverride() {}, addScreenShake() {}, addGlitch() {} },
-    MakkoEngine: { isLoaded: () => true, sprite() { return { isLoaded: () => true, play: () => ({ currentFrame: 0, totalFrames: 48 }), update() {} }; } },
+    MakkoEngine: { isLoaded: () => true, sprite() { let animation = null; return { isLoaded: () => true, play(name) { animation = name; return { currentFrame: 0, totalFrames: 48 }; }, getCurrentAnimation: () => animation, getHitboxWorld: () => null, update() {}, stop() {} }; } },
     Particle: class Particle {},
-    particleSystem: { particles: [], impact() {}, damageEffect() {}, spawnEffect() {}, enemySpawnEffect() {} },
+    particleSystem: { particles: [], impact() {}, damageEffect() {}, spawnEffect() {}, enemySpawnEffect() {}, landingEffect() {}, jumpEffect() {} },
     tutorialSystem: { active: false, completed: true, isActive() { return this.active; }, isCompleted() { return this.completed; }, checkObjective() {} },
     hackingSystem: { active: false, isActive() { return this.active; }, reset() { this.active = false; }, cancel() { this.active = false; } },
     lostDataSystem: { collected: ['level-01.fragment-1'], reset() {}, fragments: [] },
@@ -85,7 +85,7 @@ function createRig() {
   w.rhythmSystem.show();
   w.rhythmSystem.update(1); // Establish the transport's first boundary sample.
   const p = w.sector1Progression;
-  function tick(ms = 25) { now += ms; p.update(ms); }
+  function tick(ms = 25) { now += ms; if (!w.gameState.paused && !w.isPaused) w.audioSystem.context.currentTime += ms / 1000; p.update(ms); }
   function until(predicate, label, limitMs = 30000) {
     for (let elapsed = 0; !predicate() && elapsed < limitMs; elapsed += 25) tick();
     assert(predicate(), `${label}; progression=${p.state}, boss=${p.boss && p.boss.phase}`);
@@ -136,7 +136,7 @@ async function main() {
     const { w, p, beat } = createRig();
     const combat = w.BARCODE.playerCombat;
     beat('miss');
-    assert.match(combat.getFeedback().text, /OFF BEAT/, 'timing failure explains timing rather than target contact');
+    assert.match(combat.getFeedback().text, /EARLY|LATE/, 'timing failure explains timing rather than target contact');
     beat();
     assert.match(combat.getFeedback().text, /MOVE CLOSER/, 'perfect timing without a target never claims damage');
     const enemy = new w.Enemy(1000, 750, 'firewall');
@@ -636,6 +636,163 @@ async function main() {
     w.checkGameConditions();
     lifecycle.projectCompatibility();
     assert.strictEqual(w.gameState.running, false, 'lifecycle projection preserves the death boundary as well');
+    assert.deepStrictEqual(rig.calls.errors, []);
+  }
+
+
+  // The owner reproduced a zero-input boss-head loop. Exercise the real
+  // player's integration, landing/rearm and boss phases across frame rates.
+  for (const fps of [30, 60, 120]) {
+    const rig = createRig();
+    const { w, p, tick } = rig;
+    rig.reachReady(); reachRecovery(rig);
+    const health = p.boss.health;
+    const generation = w.BARCODE.MusicTransport.getDiagnostics().generation;
+    const box = p.getBossHitbox();
+    w.player.position.x = p.boss.x;
+    w.player.position.y = box.y - w.Player.VISUAL_FOOT_OFFSET_Y - 2;
+    w.player.velocity.x = 0; w.player.velocity.y = 400;
+    w.player.grounded = false; w.player.airInput = 0;
+    w.player.invulnerableUntil = 1e9; // Isolate the exploit from pulse deaths.
+    w.player.update(1000 / fps, true);
+    assert.strictEqual(p.boss.health, health - 1, 'first valid counter stomp still deals damage');
+    const departureX = w.player.position.x;
+    for (let i = 0; i < fps * 8; i++) {
+      w.player.update(1000 / fps, true); tick(1000 / fps);
+      if (i === Math.ceil(fps * 0.3)) assert(Math.abs(w.player.position.x - departureX) > 85, `${fps} FPS rebound clears the head with no input`);
+    }
+    assert.strictEqual(p.boss.health, health - 1, `${fps} FPS: hands-off bouncing cannot damage another cycle`);
+    assert(w.player.grounded && p.boss.stompArmed, 'a real floor landing rearms the next intentional stomp');
+    assert.strictEqual(w.BARCODE.MusicTransport.getDiagnostics().generation, generation, 'impact/rebound never restarts the music');
+    assert.deepStrictEqual(rig.calls.errors, []);
+  }
+
+  {
+    const rig = createRig(); const { w, p } = rig;
+    rig.reachReady(); p.beginBossCombat(); p.setBossCombatPhase('recovery');
+    const hitbox = p.getBossHitbox(); const offset = w.Player.VISUAL_FOOT_OFFSET_Y;
+    const land = () => {
+      w.player.grounded = false; w.player.velocity.y = 200; w.player.position.x = p.boss.x;
+      return p.applyBossStomp(w.player, { previousX: p.boss.x, previousFootY: hitbox.y - offset - 10, currentFootY: hitbox.y - offset + 10 });
+    };
+    land(); const health = p.boss.health;
+    p.setBossCombatPhase('telegraph'); p.setBossCombatPhase('recovery'); land();
+    assert.strictEqual(p.boss.health, health, 'a new cyan cycle alone does not rearm a hovering stomp');
+    for (const [x, direction] of [[160, 1], [3936, -1]]) {
+      p.boss.x = x; land();
+      assert.strictEqual(w.player.bossReboundDirection, direction, 'wall-adjacent rebound always aims into playable space');
+    }
+    w.gameState.gameOver = true;
+    assert(p.retryBossCheckpoint().ok);
+    assert.strictEqual(w.player.bossReboundMs, 0, 'retry clears any unfinished horizontal impulse');
+    assert.strictEqual(p.boss.stompArmed, true);
+  }
+
+  for (const fps of [30, 60, 120]) {
+    const rig = createRig(); const { w, p, tick } = rig;
+    rig.reachReady(); p.beginBossCombat();
+    w.player.position.x = p.boss.x - 150; w.player.invulnerableUntil = 1e9;
+    const openings = [];
+    for (let i = 0; i < fps * 24; i++) {
+      const before = p.boss.phase;
+      tick(1000 / fps);
+      if (before !== p.boss.phase && ['sweep', 'recovery'].includes(p.boss.phase)) {
+        const sample = p.getBossMusicSample();
+        const fraction = sample.grid.beatFloat % 1;
+        assert(fraction * sample.grid.beatDurationSec <= 1 / fps + 0.00001, 'attack and counter opening follow a real transport boundary');
+        if (p.boss.phase === 'recovery') openings.push(w.audioSystem.context.currentTime);
+      }
+    }
+    assert(openings.length >= 2, 'musical phases keep advancing without a second scheduler');
+    p.boss.health = 6; p.setBossCombatPhase('telegraph');
+    assert(p.boss.doublePulse && !p.boss.latePhase, 'double pulse arrives while retaining the generous warning/recovery');
+    p.boss.health = 3; p.setBossCombatPhase('telegraph');
+    assert(p.boss.latePhase, 'only the last three health enable the faster warning/recovery');
+    p.setBossCombatPhase('sweep');
+    const pulseCount = p.boss.pulseSequence;
+    for (let i = 0; i < fps * 3 && p.boss.phase === 'sweep'; i++) tick(1000 / fps);
+    assert.strictEqual(p.boss.pulseSequence, pulseCount + 1, 'double attack emits exactly one additional pulse');
+    assert.strictEqual(p.boss.phase, 'recovery', 'double pulse still earns a counter opening');
+    const t = w.BARCODE.MusicTransport;
+    p.setBossCombatPhase('telegraph'); tick(200);
+    t.pause(w.audioSystem.context.currentTime); t.resume(w.audioSystem.context.currentTime);
+    rig.until(() => p.boss.phase === 'recovery', 'transport generation changes do not strand the fight');
+  }
+
+  {
+    const { w, p, beat } = createRig();
+    const combat = w.BARCODE.playerCombat;
+    const generation = w.BARCODE.MusicTransport.getDiagnostics().generation;
+    w.player.takeDamageWithKnockback(1, 20, -20);
+    assert.match(combat.getFeedback().text, /RHYTHM MODE LOST/);
+    assert.strictEqual(w.rhythmSystem.running, true);
+    assert.strictEqual(w.BARCODE.MusicTransport.getDiagnostics().generation, generation);
+    const texts = [];
+    const ctx = { save() {}, restore() {}, fillRect() {}, fillText(t) { texts.push(t); } };
+    combat.drawPlayerTimingCue(ctx, w.player);
+    assert(texts.includes('PRESS R — RHYTHM OFF'), 'mode loss has an immediate player-local cue');
+    w.rhythmSystem.show(); texts.length = 0; combat.drawPlayerTimingCue(ctx, w.player);
+    assert(texts.includes('DOWN ON BEAT'));
+    const seconds = p.getBossMusicSample().grid.beatDurationSec;
+    const rule = w.BARCODE.MusicProfiles.getActive().judgmentRules[0].id;
+    const early = w.BARCODE.MusicTransport.judgeInput(rule, seconds * 60 - 0.15);
+    const late = w.BARCODE.MusicTransport.judgeInput(rule, seconds * 60 + 0.15);
+    assert(early.signedOffsetMs < 0 && late.signedOffsetMs > 0, 'early/late derives from the same authoritative grid');
+    combat.reset(); w.rhythmSystem.hideRhythmMode(); texts.length = 0;
+    combat.drawPlayerTimingCue(ctx, w.player);
+    assert.strictEqual(texts.length, 0, 'reset removes the previous attempt’s mode-loss cue');
+  }
+
+  for (const type of ['corrupted', 'firewall']) {
+    const { w, calls } = createRig();
+    const enemy = new w.Enemy(1400, 750, type);
+    enemy.position.x = 1400; enemy.position.y = 750; enemy.entranceComplete = true;
+    enemy._sector1MissionEnemy = true; enemy.spriteReady = false;
+    w.player.position.x = 1600;
+    for (let i = 0; i < 60 && enemy.combatPattern !== 'brace'; i++) enemy.update(1000 / 60, w.player);
+    assert.strictEqual(enemy.combatPattern, 'brace');
+    const x = enemy.position.x; const direction = enemy.committedDirection;
+    w.player.position.x = enemy.position.x - 200; // Dodge behind during warning.
+    enemy.update(300, w.player);
+    assert.strictEqual(enemy.position.x, x, 'warning is a real stationary interval');
+    for (let i = 0; i < 90 && enemy.combatPattern !== 'attack'; i++) enemy.update(1000 / 60, w.player);
+    assert.strictEqual(enemy.combatPattern, 'attack');
+    assert.strictEqual(Math.sign(enemy.velocity.x), direction, 'committed attack does not retarget the dodging player');
+    for (let i = 0; i < 60 && enemy.combatPattern !== 'recovery'; i++) enemy.update(1000 / 60, w.player);
+    assert.strictEqual(enemy.combatPattern, 'recovery');
+    enemy.update(200, w.player); assert.strictEqual(enemy.velocity.x, 0, 'recovery creates a usable stationary counter opportunity');
+    const texts = [];
+    enemy.drawCombatCue({ fillRect() {}, fillText(t) { texts.push(t); } });
+    assert(texts.includes('RECOVERING'));
+    assert.deepStrictEqual(calls.errors, []);
+  }
+
+  {
+    const { w } = createRig();
+    const e = new w.Enemy(500, 700, 'virus');
+    e.position.x = 500; e.position.y = 700; e.entranceComplete = true;
+    e.role = 'swooper'; e.swooperState = 'approach'; e._sector1MissionEnemy = true;
+    w.enemyManager.enemies = [e]; w.player.position.x = 900;
+    for (let i = 0; i < 60 && e.swooperState !== 'telegraph'; i++) e.updateSwooperBehavior(1 / 60, w.player);
+    assert.strictEqual(e.swooperAim.x, 900);
+    w.player.position.x = 200;
+    for (let i = 0; i < 60 && e.swooperState !== 'dive'; i++) e.updateSwooperBehavior(1 / 60, w.player);
+    assert.strictEqual(e.swooperState, 'dive');
+    assert.strictEqual(e.swooperDiveDirection, 1, 'swooper follows its advertised lane instead of snapping to the new player location');
+  }
+
+  for (const fps of [30, 60, 120]) {
+    const rig = createRig(); const { w, p, tick } = rig;
+    rig.reachReady(); p.beginBossCombat();
+    p.boss.health = 6; p.boss.cycle = 1; p.setBossCombatPhase('telegraph');
+    w.player.position.x = p.boss.x - 230; w.player.position.y = 750;
+    w.player.grounded = true; w.player.allowMovement = true; w.player.invulnerableUntil = 0;
+    w.inputManager = { actionInput: { state: { jump: { held: true } } }, isKey: () => false };
+    rig.until(() => p.boss.phase === 'sweep', 'double pulse begins');
+    assert(w.player.jump(), 'ordinary single jump begins without an assist');
+    for (let i = 0; i < fps * 2; i++) { w.player.update(1000 / fps, true); tick(1000 / fps); }
+    assert.strictEqual(w.player.health, 3, `${fps} FPS: a normal held jump clears the double pulse without invulnerability`);
+    assert.strictEqual(p.boss.health, 6, 'jumping the wave did not secretly stomp the boss');
     assert.deepStrictEqual(rig.calls.errors, []);
   }
 
