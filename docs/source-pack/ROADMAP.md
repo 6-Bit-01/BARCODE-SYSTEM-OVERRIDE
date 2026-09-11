@@ -1,6 +1,6 @@
 # Roadmap
 
-Current checkpoint: PR #28 is merged; owner reports a much better experience but excessive boss difficulty and an endless-bounce exploit. The approved `agent/level1-musical-combat` pass addresses boss balance, music boundaries, enemy commitments and feedback before a fresh acceptance run. Standalone migration is the next recommended separate infrastructure milestone, preserving this build as the comparison baseline. The historical milestone table below remains the campaign production sequence.
+Current checkpoint: PR #31 is merged. The interrupted animation/stance/hacking and first-five-effects pass has been checked against the original selection. The next combined build continues the planned district-restoration payoff and includes the omitted live stomp effect. See `SELECTED_PASS_CHECK.md` for the exact mapping, sequence and playtest. Standalone migration remains the next infrastructure milestone; other proposals remain recorded separately. The historical table below is the campaign production sequence, not the current pass's checklist.
 
 Development order serves playable progress and risk reduction. It does not settle the final campaign order.
 

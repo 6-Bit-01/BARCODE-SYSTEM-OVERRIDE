@@ -1,5 +1,13 @@
 # Changelog
 
+## September 11, 2026 — District restoration and selected-pass completion
+
+- Check merged PR #31 against the original selection; preserve the exact item mapping in `SELECTED_PASS_CHECK.md`.
+- Continue the planned district payoff: encounter clears stabilize local displays, four-hit Jammer milestones reduce interference, and destruction sends one world-anchored restoration wave through the existing boss cinematic.
+- Keep the district restored on boss retry/rematch, reset it on full restart, and freeze its effects during pause. Eleven measured foreground overlays reuse existing artwork and the music clock.
+- Connect the missing heavier stomp burst to actual ordinary-enemy and successful cyan boss head contacts. Keep guarded effects small and preserve damage/rebound/timing rules.
+- Add production checks for the four encounter clears, Jammer stages, wave/pause/retry/reset and draw transforms, plus contact placement, one defeat/burst and guarded repeats. Base/rollback: merged PR #31 (`b9d7ac4`). Branch: `agent/level1-district-restoration`; Makko acceptance pending. No new assets, audio or dependencies. The stomp correction is included in this combined build, not published separately.
+
 ## September 11, 2026 — Animation, mode and effects pass (draft review)
 
 - Continue the owner-approved next pass from merged PR #30 (`1897c4e`).

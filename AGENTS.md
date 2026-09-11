@@ -2,6 +2,8 @@
 
 ## Current authority and scope
 
+Current follow-up: preserve merged PR #31's selected animation/stance/hacking plus five-effects pass and continue with the district-restoration payoff scheduled immediately after it. Read `docs/source-pack/SELECTED_PASS_CHECK.md` for the exact conversation selection and sequence. The omitted heavier stomp effect belongs in this combined district build, not a separate PR. Preserve the existing mission, controls, art, music and boss balance; do not substitute the earlier PR #29 numbered list for this scope.
+
 The owner's newest direct instruction controls design. `docs/source-pack/DECISION_REGISTER.md` records the retained decisions and the September 11, 2026 approval of the next development direction. Source Pack v5 supersedes conflicting v2–v4 instructions. Git history and the archive's generated manifest establish implementation state, not approval of accidental behavior.
 
 The owner approved progressing from the existing Level 1 boss entrance to a finishable encounter, preserving working mechanics, and regularly updating the source ZIP. The active milestone is Level 1 boss combat, a quick retry checkpoint, and a real completion endpoint. Later level names, character assignments, boss identities, exact dialogue and ending resolution remain provisional where marked.

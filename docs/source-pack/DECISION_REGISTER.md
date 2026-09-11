@@ -1,5 +1,9 @@
 # Decision Register
 
+## Selected-pass verification after the interruption
+
+The owner asked to check the PR against what was selected and proceed with that plan. `SELECTED_PASS_CHECK.md` anchors the exact conversation and implementation. The original recommendation scheduled district restoration after the animation/stance/hacking and five named effects. After the owner rejected a separate PR for the small stomp omission, the current build combines that correction with the district follow-on. Preserve all of PR #31; the earlier PR #29 selection (1–5, 8 and 9) and main overhaul headings are not substitutes for those five effects. New combo systems, settings, lore and standalone migration remain separately scheduled.
+
 ## September 11 animation, mode and effects approval
 
 The owner said "Proceed with the next pass" after the recommendation to implement animation transitions, a planted rhythm stance, hacking presentation and the first inexpensive effects, then confirmed merging PR #30. This authorizes the scoped `agent/level1-animation-effects` pass: grounded R entry, explicit exit for traversal, preserved lift/forced motion, continuous background timing, existing hack rules/rewards, contact shadows, landing/stomp/attack effects, lift energy and subtle sign pulses. It does not approve replacement assets, new movement abilities, altered boss balance or all remaining proposals. Makko acceptance is separate.
