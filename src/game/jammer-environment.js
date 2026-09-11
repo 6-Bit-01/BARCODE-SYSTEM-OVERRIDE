@@ -23,6 +23,7 @@ window.BARCODE = window.BARCODE || {};
       destructionNotified: state.destructionNotified,
       disposed: state.disposed,
       generation: state.generation,
+      stage: getStage(),
       position: Object.freeze({ x: state.position.x, y: state.position.y }),
       hasSprite: !!state.sprite,
       spriteReady: !!state.spriteReady,
@@ -55,6 +56,13 @@ window.BARCODE = window.BARCODE || {};
     audio: null,
     destructionEffectStarted: false
   };
+
+  function getStage() {
+    if (state.destroyed) return { index: 4, label: 'SIGNAL RESTORED', color: '#00ffff' };
+    const index = Math.min(3, Math.floor((state.maxHealth - state.health) / 4));
+    return { index, label: ['SIGNAL BLOCKED', 'CARRIER CRACKING', 'INTERFERENCE FAILING', 'SIGNAL BREAKTHROUGH'][index],
+      color: ['#ff00ff', '#c05dff', '#5b9dff', '#00ffff'][index] };
+  }
 
   function pollSpriteReady() {
     if (state.disposed || !state.initialized) return;
@@ -145,7 +153,11 @@ window.BARCODE = window.BARCODE || {};
     if (options.sequence !== undefined && state.lastDamageSequence === options.sequence) return { ok: false, reason: 'duplicate-sequence', status: cloneStatus(state) };
     if (!(options.timing === 'perfect' || options.timing === 'excellent')) return { ok: false, reason: 'bad-timing', status: cloneStatus(state) };
     state.lastDamageSequence = options.sequence;
+    const previousStage = getStage().index;
     state.health = Math.max(0, state.health - 1);
+    if (state.health > 0 && getStage().index !== previousStage) {
+      window.particleSystem?.impact?.(state.position.x, state.position.y + 65, getStage().color, 14);
+    }
     if (state.health === 0 && !state.destroyed) {
       state.destroyed = true;
       state.targetable = false;
@@ -166,6 +178,7 @@ window.BARCODE = window.BARCODE || {};
   function draw(ctx) {
     if (!ctx || state.destroyed || !state.revealed || state.disposed) return;
     ctx.save();
+    const stage = getStage();
     if (state.spriteReady && state.sprite && typeof state.sprite.draw === 'function') {
       const drawY = state.position.y + state.presentation.drawOffsetY;
       state.sprite.draw(ctx, state.position.x, drawY, { scale: state.presentation.drawScale, flipH: false });
@@ -184,9 +197,21 @@ window.BARCODE = window.BARCODE || {};
     if (state.targetable) {
       const barW = 140; const barH = 12; const hp = state.health / state.maxHealth; const barY = state.position.y + 65;
       ctx.fillStyle = 'rgba(0,0,0,0.75)'; ctx.fillRect(state.position.x - barW / 2, barY, barW, barH);
-      ctx.fillStyle = '#ff00ff'; ctx.fillRect(state.position.x - barW / 2, barY, barW * hp, barH);
+      ctx.fillStyle = stage.color; ctx.fillRect(state.position.x - barW / 2, barY, barW * hp, barH);
       ctx.strokeStyle = '#00ffff'; ctx.strokeRect(state.position.x - barW / 2, barY, barW, barH);
       ctx.fillStyle = '#ffffff'; ctx.font = '12px monospace'; ctx.textAlign = 'center'; ctx.fillText(`${state.health}/${state.maxHealth}`, state.position.x, barY - 4);
+      // Four relay segments light as interference breaks, without resizing or
+      // moving the sprite or interrupting the independent music transport.
+      for (let segment = 0; segment < 4; segment++) {
+        ctx.fillStyle = segment < stage.index ? '#00ffff' : '#263245';
+        ctx.fillRect(state.position.x - barW / 2 + segment * 36, barY + 18, 30, 5);
+      }
+      ctx.fillStyle = stage.color;
+      ctx.font = 'bold 14px monospace';
+      ctx.fillText(stage.label, state.position.x, barY - 26);
+      ctx.fillStyle = '#c4f8ff';
+      ctx.font = '12px monospace';
+      ctx.fillText('R + DOWN ON BEAT', state.position.x, barY + 42);
     }
     ctx.restore();
   }

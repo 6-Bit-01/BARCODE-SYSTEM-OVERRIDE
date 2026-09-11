@@ -35,10 +35,21 @@ No sprite URLs, source artwork, music, mission quota, Jammer health or ordinary-
 
 `ACCEPTANCE.md` records the focused retest. Production-module checks verify deterministic behavior and the draw-call anchor contract; they do not run Makko's renderer or verify live audio.
 
+## General Level 1 polish before the next playtest
+
+The owner asked for a general game improvement pass before testing, beyond focused boss repairs. This is included in the same PR #28 branch.
+
+- Ordinary enemy rendering and Makko hitbox lookup now share the exact position, animation scale and facing. This removes the previous 59–69 pixel offset discrepancies and the Firewall attack scale mismatch while retaining existing contact margins and lethal stomp rules. This affects contact feel and must be checked with the visible sprites in Makko.
+- Primary attacks now display separate short feedback for missed timing, correct timing without contact, actual damage, a guarded boss and lift charging. Feedback follows the existing game clock and clears on combat reset; it adds no timers or listeners.
+- Objectives show the active encounter's own defeat progress, a matching play hint and a direction to the next encounter. Completed objectives remain recorded but stop covering the active fight. The Jammer objective follows actual remaining health.
+- The Jammer now changes signal color/label and lights relay segments after 4, 8 and 12 hits, with one restrained impact at each transition. Destruction still occurs at exactly 16 hits and starts the existing cinematic once. Music and source artwork are unchanged.
+
+Encounter counts, packet timing and enemy attack behavior are unchanged; this pass improves the readability of their existing variety. Musical enemy telegraphs, deeper encounter tuning and persistent authored lore remain future work.
+
 ## Next after acceptance
 
 1. Merge the accepted milestone and rebuild the current source archive at the actual merged SHA.
 2. Add campaign/save and deterministic lore foundations; repair source-role mixing before introducing another song.
 3. Build a short Contra-style prototype, then prove road/first-person rendering before commissioning the corresponding assets.
 
-Follow-on polish includes differentiated attack feedback, measured enemy contact corrections, musical telegraphs and Jammer presentation escalation. It is approved direction, not a claim that every improvement lands in the first boss patch.
+Follow-on work includes musical enemy telegraphs and deeper encounter tuning informed by the next playtest. Campaign/save/lore work follows Level 1 acceptance.

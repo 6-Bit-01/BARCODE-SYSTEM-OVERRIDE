@@ -122,7 +122,9 @@ window.ObjectivesSystem = class ObjectivesSystem {
   draw(ctx) {
     if (!this.objectiveUI.visible) return;
     ctx.save();
-    const x = 1300; const y = 120; const w = 500; const visibleObjectives = this.objectives.filter(obj => obj.visible); const h = Math.max(160, 60 + visibleObjectives.length * 50);
+    const encounter = window.sector1Progression?.getEncounterStatus?.();
+    const jammer = window.BARCODE?.JammerEnvironment?.getStatus?.();
+    const x = 1300; const y = 120; const w = 500; const visibleObjectives = this.objectives.filter(obj => obj.visible && !obj.completed); const h = Math.max(160, 60 + visibleObjectives.length * 50);
     ctx.fillStyle = 'rgba(0, 20, 40, 0.95)';
     ctx.fillRect(x, y, w, h);
     ctx.strokeStyle = '#00ffff';
@@ -145,9 +147,22 @@ window.ObjectivesSystem = class ObjectivesSystem {
       ctx.fillText(`${obj.completed ? '✓' : '›'} ${obj.title}`, x + 15, y + yOffset);
       ctx.fillStyle = '#cccccc';
       ctx.font = '12px monospace';
-      ctx.fillText(obj.description, x + 30, y + yOffset + 20);
+      let description = obj.description;
+      if (obj.id === 'defeat_20_enemies' && encounter) {
+        description = encounter.started
+          ? `${encounter.label}: ${encounter.defeated}/${encounter.required} cleared`
+          : `MOVE RIGHT → ${encounter.label}`;
+      } else if (obj.id === 'destroy_broadcast_jammer' && jammer?.revealed) {
+        description = `${jammer.health}/${jammer.maxHealth} integrity — R + Down on beat`;
+      }
+      ctx.fillText(description, x + 30, y + yOffset + 20, w - 60);
       yOffset += 50;
     });
+    if (encounter) {
+      ctx.fillStyle = '#a8ffff';
+      ctx.font = '12px monospace';
+      ctx.fillText(encounter.started ? encounter.hint : 'The next encounter waits ahead.', x + 15, y + h - 18, w - 30);
+    }
     ctx.restore();
   }
 

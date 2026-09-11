@@ -235,6 +235,18 @@ window.drawGameUI = function(ctx) {
   }
   
   drawSector1BossUI(ctx);
+  const attackFeedback = window.BARCODE?.playerCombat?.getFeedback?.();
+  if (attackFeedback && !bossCinematicActive && !window.gameState.gameOver && !window.gameState.victory && !window.hackingSystem?.isActive?.()) {
+    ctx.save();
+    ctx.fillStyle = 'rgba(0, 8, 16, 0.92)';
+    ctx.fillRect(620, 220, 680, 38);
+    ctx.fillStyle = attackFeedback.color;
+    ctx.font = 'bold 17px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(attackFeedback.text, 960, 239, 650);
+    ctx.restore();
+  }
 
   // Draw game over screen
   if (window.gameState.gameOver) {

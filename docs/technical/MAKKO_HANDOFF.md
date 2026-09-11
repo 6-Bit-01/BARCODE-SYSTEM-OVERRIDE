@@ -13,6 +13,10 @@ The branch preserves the existing intro and Level 1 mission, then extends the bo
 5. Read the nearby R + Down on-beat lift prompt. Charge/ride the Signal Lift with two successful rhythm hits. Check feet/roof contact and camera coverage against the approved art.
 6. Complete the normal mission at least once: 20 post-tutorial defeats, opposite-half Jammer, sixteen rhythm hits and the established boss entrance. The Jammer attack area must be clear of the lift.
 
+## General improvements in this build
+
+During that same run, judge ordinary enemy hitboxes against visible contact, successful damage versus off-beat/out-of-range feedback, each encounter's local progress/hint and the route to the next encounter. The Jammer now visibly weakens at 12, 8 and 4 health. Completed objectives stop covering the current fight. No extra full playthrough is required for these observations.
+
 ## Current boss controls and first-pass behavior
 
 The generic boss starts at 12 health after a 1.4-second ready pause. It warns before an outward ground-pulse attack, then exposes a cyan recovery window. Successful rhythm attacks deal one health in that window; a descending stomp can also deal one health, at most once per recovery, and rebounds the player. Guarded/repeated top landings also rebound safely without boss damage. At half health or lower the warning/recovery tighten and a second pulse follows. These are first-pass tuning values awaiting playtest, not final balance approval. Signal Amp remains an ordinary-enemy effect.

@@ -353,13 +353,13 @@
     {
       "global": "window.EnemyManager",
       "file": "src/game/enemies.js",
-      "line": 1036,
+      "line": 1014,
       "loaded": true
     },
     {
       "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 1554,
+      "line": 1532,
       "loaded": true
     },
     {

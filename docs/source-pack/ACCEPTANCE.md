@@ -16,6 +16,10 @@ The current `agent/level1-playtest-repairs` branch addresses these reports and a
 
 Use the existing **Go / Reset Boss** development control for repeated boss checks after one normal route. No repeated full mission grind is needed for every animation check.
 
+## Added general-play checks
+
+During the same normal run, check ordinary enemy contact and stomps against their visible bodies; note whether attack messages make timing versus range clear. Follow the encounter-specific progress/hints and watch the Jammer change stage at 12, 8 and 4 health remaining. Completed objectives should leave the active objective visible. Judge the overall flow and readability as well as the original five repair items.
+
 ## Required checks
 
 | Check | Expected result | Evidence owner |

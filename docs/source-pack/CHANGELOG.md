@@ -1,5 +1,14 @@
 # Changelog
 
+## v5 general polish — September 11, 2026 — before the next playtest
+
+- Owner expanded the request to improvements across Level 1, beyond focused boss/test helpers. Added this pass to PR #28.
+- Unified ordinary enemy sprite and hitbox transforms without changing contact margins; fixed the existing Firewall attack scale mismatch.
+- Added clear attack-result feedback, encounter-local progress/hints and route direction; hid completed objectives while retaining their completion records.
+- Added four Jammer signal stages and milestone impacts across the existing sixteen-hit sequence.
+- Extended production-module checks for sprite/hitbox transform agreement in both facings, actual attack outcomes, feedback expiry/reset, objective progress and stage/destruction deduplication.
+- Kept existing movement, enemy behavior/packet timing, art, music and progression requirements. Live Makko contact and presentation acceptance remain pending.
+
 ## v5 repair — September 11, 2026 — first owner playtest
 
 - Recorded merged PR #27 at `a69384e5c647e0f1f457564ccbb3c29cd37e2059` and the owner’s failed acceptance findings.

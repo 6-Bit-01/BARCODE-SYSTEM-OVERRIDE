@@ -41,4 +41,6 @@ Statuses: **LOCKED** = explicit retained requirement; **APPROVED DIRECTION** = S
 | D-034 | LOCKED | Jammer placement must keep its attack positions clear of the elevator. Retain and explain the two-hit rhythm-powered lift. |
 | D-035 | APPROVED DIRECTION | Boss top landings safely rebound outside cyan windows; only the cyan counter damages it. Verify the reported instant death in Makko. |
 
+| D-036 | APPROVED DIRECTION | September 11: general Level 1 improvement pass before the next playtest, covering contact, combat feedback, encounter/route readability and Jammer presentation. Keep the repaired mechanics and established project direction. |
+
 Do not treat an approved production direction as a claim that it has been implemented or visually accepted. Source trace: uploaded v2/v3/v4 packs; the owner's later control/mission corrections retained in repository guidance and merged PR #25; September 11 project assessment and direct approval. This is a decision synthesis, not a claim to reproduce every private conversation verbatim.
