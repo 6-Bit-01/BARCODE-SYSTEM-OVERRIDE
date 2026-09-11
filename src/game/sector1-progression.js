@@ -155,6 +155,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (window.isPaused || window.gameState?.paused || window.gameState?.gameOver || window.gameState?.victory) return;
       this.player = this.player || window.player;
       this.pollPreparedAssets();
+      this.updateDistrictSignal(deltaTime);
       const tutorialDone = !!(window.tutorialSystem && typeof window.tutorialSystem.isCompleted === 'function' && window.tutorialSystem.isCompleted() && typeof window.tutorialSystem.isActive === 'function' && !window.tutorialSystem.isActive());
       if (this.state === STATES.TUTORIAL && tutorialDone && !this.missionStarted) this.startMission();
       if (this.state === STATES.TUTORIAL) this.applyGateCollision();
@@ -182,7 +183,41 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       }
       else if (this.state === STATES.BOSS_COMBAT) this.updateBossCombat(tacticalDeltaTime);
     }
-    startMission() { this.state = STATES.ENCOUNTER_1; this.missionStarted = true; this.missionDefeats = 0; this.countedEnemies.clear(); this.spawnedEncounterIds.clear(); this.activeEncounterId = null; this.applyGateCollision(); this.resetSignalLift(); this.enemyManagerReset(); if (window.objectivesSystem?.setMissionDefeatObjective) window.objectivesSystem.setMissionDefeatObjective(0, this.requiredEnemyKills); }
+    startMission() { this.state = STATES.ENCOUNTER_1; this.missionStarted = true; this.missionDefeats = 0; this.resetDistrictSignal(); this.countedEnemies.clear(); this.spawnedEncounterIds.clear(); this.activeEncounterId = null; this.applyGateCollision(); this.resetSignalLift(); this.enemyManagerReset(); if (window.objectivesSystem?.setMissionDefeatObjective) window.objectivesSystem.setMissionDefeatObjective(0, this.requiredEnemyKills); }
+    resetDistrictSignal() {
+      this.districtSignal = { elapsedMs: 0, interference: 1,
+        clearedAtMs: ENCOUNTERS.map(() => null), restoration: null };
+    }
+    restoreEncounterSignal(encounterId) {
+      const index = ENCOUNTERS.findIndex(encounter => encounter.id === encounterId);
+      if (index < 0 || this.districtSignal.clearedAtMs[index] !== null) return;
+      this.districtSignal.clearedAtMs[index] = this.districtSignal.elapsedMs;
+    }
+    updateDistrictSignal(deltaTime) {
+      if (!this.missionStarted && !this.jammerDestroyedNotified) return;
+      const signal = this.districtSignal;
+      // Presentation uses the existing, pause-gated frame delta. Hacking slows
+      // hostile actions, not the district's recovery or the music transport.
+      const delta = Math.max(0, Number.isFinite(deltaTime) ? deltaTime : 0);
+      signal.elapsedMs += delta;
+      const stage = window.BARCODE?.JammerEnvironment?.getStatus?.().stage?.index || 0;
+      const target = 1 - Math.min(3, stage) / 4;
+      signal.interference += Math.sign(target - signal.interference) *
+        Math.min(Math.abs(target - signal.interference), delta / 1600);
+    }
+    getDistrictSignalState() {
+      const signal = this.districtSignal;
+      const restoration = signal.restoration;
+      const elapsed = restoration ? signal.elapsedMs - restoration.startedAtMs : 0;
+      const radius = elapsed * 1.4;
+      const complete = !!restoration && radius >= restoration.distance + 200;
+      return { active: this.missionStarted || this.jammerDestroyedNotified,
+        elapsedMs: signal.elapsedMs, interference: complete ? 0 : signal.interference,
+        zones: signal.clearedAtMs.map((time, index) => ({ id: ENCOUNTERS[index].id,
+          cleared: time !== null, recovery: time === null ? 0 : smoothStep(Math.min(1, (signal.elapsedMs - time) / 900)) })),
+        restored: complete,
+        wave: restoration && !complete ? { originX: restoration.originX, radius } : null };
+    }
     enemyManagerReset() { if (window.cancelInitialEnemySpawn) window.cancelInitialEnemySpawn(); if (window.enemyManager) window.enemyManager.clear(); if (window.gameState) { window.gameState.enemiesDefeated = 0; window.gameState.hasSpawnedInitialEnemies = true; } this.prepareAssetsForEncounter(0); }
     getEncounterStatus() {
       const index = ENCOUNTERS.findIndex(encounter => encounter.id === this.state);
@@ -223,12 +258,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       const x = candidates[Math.min(candidates.length - 1, Math.floor(Math.random() * candidates.length))];
       return { x, y: GROUND_Y };
     }
-    revealJammer() { this.state = STATES.JAMMER_ACTIVE; this.nextJammerSpawnMs = 0; this.jammerReinforcementCount = 0; this.jammerRevealed = true; this.closedGateEncounterId = null; const position = this.chooseJammerPosition(); window.BARCODE?.JammerEnvironment?.reveal({ position }); if (window.objectivesSystem?.revealJammerObjective) window.objectivesSystem.revealJammerObjective(); this.prepareBossAssets(); }
+    revealJammer() { this.state = STATES.JAMMER_ACTIVE; this.nextJammerSpawnMs = 0; this.jammerReinforcementCount = 0; this.jammerRevealed = true; this.closedGateEncounterId = null; ENCOUNTERS.forEach(encounter => this.restoreEncounterSignal(encounter.id)); const position = this.chooseJammerPosition(); window.BARCODE?.JammerEnvironment?.reveal({ position }); if (window.objectivesSystem?.revealJammerObjective) window.objectivesSystem.revealJammerObjective(); this.prepareBossAssets(); }
     updateJammerReinforcements(deltaTime) { const environment = window.BARCODE?.JammerEnvironment; const status = environment?.getStatus?.(); if (!status || !status.revealed || status.destroyed) return; this.nextJammerSpawnMs = Number.isFinite(this.nextJammerSpawnMs) ? this.nextJammerSpawnMs - deltaTime : 0; const activeReinforcements = (window.enemyManager?.enemies || []).filter(enemy => enemy && enemy.active && (enemy._jammerReinforcement || !enemy._sector1MissionEnemy)); if (activeReinforcements.length >= SPAWN.jammerReinforcementCap || this.nextJammerSpawnMs > 0) return; const types = ['virus', 'corrupted', 'virus', 'firewall']; const type = types[this.jammerReinforcementCount % types.length]; this.jammerReinforcementCount += 1; const jammerX = status.position?.x || this.chooseJammerPosition().x; const targetX = Math.max(180, Math.min(WORLD_WIDTH - 180, jammerX + (jammerX < WORLD_WIDTH / 2 ? 240 : -240))); this.spawnMissionEnemy({ type, x: targetX, y: GROUND_Y }, 'jammer_reinforcement', this.jammerReinforcementCount, { jammerReinforcement: true }); this.nextJammerSpawnMs = SPAWN.jammerCadenceMinMs + Math.random() * (SPAWN.jammerCadenceMaxMs - SPAWN.jammerCadenceMinMs); }
     onJammerDestroyed() {
       this.nextJammerSpawnMs = Infinity;
       if (this.jammerDestroyedNotified) return;
       this.jammerDestroyedNotified = true;
+      const originX = window.BARCODE?.JammerEnvironment?.getStatus?.().position?.x ?? this.player?.position?.x ?? 2048;
+      this.districtSignal.restoration = { originX, startedAtMs: this.districtSignal.elapsedMs,
+        distance: Math.max(originX + 152, 4248 - originX) };
       this.state = STATES.FREEZE;
       // End the combat mode at the destruction event, not at camera handoff.
       // hide() preserves the running music transport and background beat state.
@@ -464,11 +502,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (this.boss.x > WORLD_WIDTH - 260) direction = -1;
       player.stompRebound?.(direction);
       window.audioSystem?.playSound?.(canCounter ? 'kick' : 'hihat');
-      window.particleSystem?.impact?.(crossingX, box.y, canCounter ? '#00ffff' : '#ffbd70', 8);
       if (canCounter) {
+        window.particleSystem?.stompEffect?.(crossingX, box.y, null, player.facing || 1);
         this.boss.stompCycle = this.boss.cycle;
         this.damageBoss('stomp');
       } else {
+        window.particleSystem?.impact?.(crossingX, box.y, '#ffbd70', 8);
         this.boss.guardBounceMs = 700;
       }
       return true;
@@ -765,7 +804,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       ctx.restore();
     }
     isGateClosed(encounterId) { return this.closedGateEncounterId === encounterId; }
-    openEncounterGate(encounterId) { if (this.closedGateEncounterId === encounterId) this.closedGateEncounterId = null; }
+    openEncounterGate(encounterId) { if (this.closedGateEncounterId === encounterId) this.closedGateEncounterId = null; this.restoreEncounterSignal(encounterId); }
     getCurrentGate() {
       if (this.closedGateEncounterId) return ENCOUNTER_GATES.find(g => g.encounterId === this.closedGateEncounterId) || null;
       if (this.state === STATES.TUTORIAL) return ENCOUNTER_GATES[0];
@@ -857,6 +896,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     pollPreparedAsset(entry) { if (!entry || entry.ready || entry.generation !== this.assetGeneration) return; try { if (!entry.sprite.isLoaded || entry.sprite.isLoaded()) { entry.ready = true; if (entry.onReady) entry.onReady(entry.sprite); } } catch (error) { if (!entry.diagnosticRecorded) { entry.diagnosticRecorded = true; this.recordAssetDiagnostic(entry.key, error); } } }
     recordAssetDiagnostic(key, error) { this.assetDiagnostics = this.assetDiagnostics || []; if (!this.assetDiagnostics.some(entry => entry.key === key)) this.assetDiagnostics.push({ key, message: String(error && error.message || error) }); }
     reset(options = {}) {
+      this.resetDistrictSignal();
       this.missionStarted = false; this.missionDefeats = 0; this.enemiesDefeated = 0; this.jammerRevealed = false; this.jammerDestroyedNotified = false;
       this.cinematicStartedCount = 0; this.phaseElapsed = 0; this.cameraOverrideActive = false; this.cameraX = null;
       this.cinematicStartCameraX = null; this.cinematicStartPlayerPosition = null; this.cinematicStartZoom = null; this.cinematicWideZoom = null; this.cinematicCloseZoom = null;

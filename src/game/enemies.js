@@ -1298,7 +1298,8 @@ window.EnemyManager = class EnemyManager {
                 if (typeof player.stompRebound === 'function') player.stompRebound();
                 else player.velocity.y = -550;
                 player.velocity.x = nx * 300;
-                if (window.particleSystem) window.particleSystem.impact(enemy.position.x, enemy.position.y, '#00ffff', 20);
+                const contactX = Math.max(enemyBox.x, Math.min(enemyBox.x + enemyBox.width, player.position.x));
+                window.particleSystem?.stompEffect?.(contactX, enemyTop, enemy.type, player.facing || 1);
                 const hostileNow = this.getHostileClockNow();
                 player._enemyInvulnerableUntilMs = hostileNow + 400;
                 return;

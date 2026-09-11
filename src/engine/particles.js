@@ -298,55 +298,23 @@ window.ParticleSystem = class ParticleSystem {
       window.randomRange(-90, 90), -15, '#b5b7cc', 4, 280, 'circle', 0, true));
   }
 
-  // Enhanced stomp effect
+  // Successful head contact: a heavier, short burst anchored to the actual
+  // surface. The existing particle update owns its entire lifetime.
   stompEffect(x, y, enemyType = null, facing = 1) {
-    const colors = enemyType ? this.getEnemyColors(enemyType) : ['#ff6600'];
-    const particleCount = 16;
-    
-    // Move origin 20px in front of player based on facing direction
-    const offsetX = facing * 20;
-    
-    // Stomp particles - increased by 80px total (240-290 → 320-370)
-    for (let i = 0; i < particleCount; i++) {
-      const angle = (Math.PI * 2 * i) / particleCount;
-      const speed = window.randomRange(320, 370); // Increased by 20px more
-      const color = colors[0];
-      const shape = enemyType ? this.getRandomShape(enemyType) : 'square';
-      
-      this.particles.push(new window.Particle(
-        x + offsetX, y, // Move based on facing direction
-        Math.cos(angle) * speed,
-        Math.sin(angle) * speed * 0.4, // Gentle outward spread
-        color,
-        window.randomRange(4, 8),
-        window.randomRange(300, 500),
-        shape,
-        Math.random() * Math.PI * 2
-      ));
+    const colors = enemyType ? this.getEnemyColors(enemyType) : ['#90e8df', '#ffffff'];
+    const contactY = Math.min(y - 2, 883);
+    for (let i = 0; i < 16; i++) {
+      const angle = (Math.PI * 2 * i) / 16;
+      const speed = window.randomRange(220, 320);
+      this.particles.push(new window.Particle(x, contactY,
+        Math.cos(angle) * speed + Math.sign(facing) * 25,
+        -Math.abs(Math.sin(angle)) * speed * 0.45 - 20,
+        colors[i % colors.length], window.randomRange(4, 7), window.randomRange(250, 400),
+        i % 2 ? 'square' : 'triangle', Math.random() * Math.PI * 2));
     }
-    
-    // Add landing smoke particles behind stomp effects
-    const smokeColors = enemyType ? this.getEnemyColors(enemyType) : ['#cccccc'];
-    const smokeParticleCount = 12;
-    
-    // Position smoke 30px toward front of the player from stomp origin
-    const smokeOffsetX = x + facing * 10; // 30px toward front (was 40px behind, now 10px in front)
-    
-    for (let i = 0; i < smokeParticleCount; i++) {
-      const smokeColor = smokeColors[0];
-      
-      this.particles.push(new window.Particle(
-        smokeOffsetX, Math.min(y + 20, 880), // Force smoke to spawn above ground
-        window.randomRange(-80, 80), // Wider horizontal spread
-        Math.max(-50, window.randomRange(-50, -10)), // Force upward velocity only
-        smokeColor,
-        window.randomRange(4, 8), // EVEN SMALLER smoke particles (8-14 → 4-8)
-        window.randomRange(600, 900), // Longer lasting smoke
-        'circle',
-        Math.random() * Math.PI * 2,
-        true // growAndDissipate for natural smoke effect
-      ));
-    }
+    for (let i = 0; i < 6; i++) this.particles.push(new window.Particle(x, contactY,
+      window.randomRange(-120, 120), -window.randomRange(15, 40), '#b5b7cc',
+      window.randomRange(4, 6), 400, 'circle', 0, true));
   }
 
   // Trail effect for movement - WHITE smoke/dust for player

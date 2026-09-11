@@ -360,7 +360,7 @@
     {
       "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 1631,
+      "line": 1632,
       "loaded": true
     },
     {
@@ -450,7 +450,7 @@
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 537,
+      "line": 539,
       "loaded": false
     },
     {

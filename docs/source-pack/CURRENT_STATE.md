@@ -1,5 +1,20 @@
 # Current State
 
+## District restoration and selected-pass completion — September 11, 2026
+
+PR #31 is merged at `b9d7ac46f1a3f6eaaf09d28b2508cfd8105ba045`. The owner requested a check against the original selected pass after interruption-related scope confusion. `SELECTED_PASS_CHECK.md` records the exact commitment and maps all eight selected items to code.
+
+Current branch: `agent/level1-district-restoration`, based on merged #31. This continues the original sequence: animation/stance/hacking and five effects, **then district restoration**. The owner rejected fragmenting the remaining small correction into a separate PR.
+
+- Each cleared encounter stabilizes its own storefront displays; recovery traces settle into steady light. Eleven display/window interiors are aligned to the approved foreground image.
+- The Jammer's existing four-hit stages gradually reduce localized interference. Its final hit sends one restoration wave outward from its actual world position, lighting displays and traveling along the curb during the existing cinematic. It settles before the boss fight, where musical decoration is quieter.
+- Restoration uses the existing pause-gated frame update. Boss retry/rematch preserves the recovered district; full restart resets it. It adds no timers, listeners, audio sources or replacement artwork.
+- The audit found that the heavier stomp burst had no live callers. This combined build connects it to successful ordinary-enemy and cyan boss head contacts, retaining smaller guarded effects. Damage, rebound, mission credit and music rules are unchanged.
+
+Production-module checks cover all four real encounter packet completions, the final-defeat transition, sixteen Jammer hits, staged interference, single-wave/pause behavior, cinematic handoff, boss retry, full restart, foreground transforms and clock ownership. Existing combat checks cover stomp contact and guarded repeats. Local Canvas inspection uses the actual foreground; live Makko appearance, audio and readability remain owner acceptance items. The generated manifest/receipt identify the exact review revision and results. Rollback: merged #31.
+
+Older sections below are historical and do not override this scope/status.
+
 ## Current animation, mode and effects pass — September 11, 2026
 
 Base: merged PR #30, `1897c4eaade80ca156f4fe6e33828a8bcd59304b`. Review branch: `agent/level1-animation-effects`. The owner approved proceeding with the recommended next pass and confirmed merging #30. The generated manifest records this branch's exact revision and draft PR. This build has not been accepted in Makko.

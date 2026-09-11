@@ -1,4 +1,6 @@
-# Stronger Level 1 Overhaul — Scoped First Pass in Review
+# Stronger Level 1 Overhaul — Selected Pass and District Follow-on
+
+Current update: PR #31 is merged. `SELECTED_PASS_CHECK.md` records the exact selected scope. The following district-restoration pass is now implemented on `agent/level1-district-restoration`, including the missing live heavier-stomp effect. The rest of this document preserves the broader proposal; its older branch/status wording is historical. See the newest CURRENT_STATE and ACCEPTANCE sections for this build.
 
 September 11 update: the owner approved the recommended next pass and merged PR #30. Animation transition cleanup, the grounded rhythm stance, hacking presentation, contact shadows, landing/attack/stomp effects, lift charging and subtle sign pulses are now implemented on `agent/level1-animation-effects`, pending Makko acceptance. `CURRENT_STATE.md` and `ACCEPTANCE.md` define the current build. The remaining concepts below are a historical proposal and remain deferred; they are not a claim that every listed idea was implemented.
 

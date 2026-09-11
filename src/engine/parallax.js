@@ -11,6 +11,14 @@ window.ParallaxBackground = class ParallaxBackground {
     this.layers = [];
     this.cameraX = 960; // Default camera center
     this.cameraY = 540;
+    // Display interiors on the locked 1279x462 foreground; final value is the
+    // encounter that restores this part of the street. No replacement artwork.
+    this.signalDisplays = [
+      [96, 158, 69, 21, 0], [99, 273, 79, 13, 0], [270, 271, 74, 9, 0],
+      [512, 159, 62, 67, 1], [488, 335, 53, 54, 1],
+      [626, 215, 87, 32, 2], [632, 320, 124, 70, 2], [839, 240, 92, 16, 2],
+      [1183, 185, 43, 60, 3], [1012, 350, 91, 41, 3], [1167, 344, 42, 46, 3]
+    ];
   }
   
   // Add a parallax layer
@@ -213,7 +221,10 @@ window.ParallaxBackground = class ParallaxBackground {
   }
   
   drawSignalLights(ctx, layer, x, y, width, height) {
-    if (layer !== this.layers[1] || !layer.imgElement || window.sector1Progression?.isGameplaySuppressed?.()) return;
+    if (layer !== this.layers[1] || !layer.imgElement) return;
+    const district = window.sector1Progression?.getDistrictSignalState?.();
+    if (district?.active) { this.drawDistrictSignals(ctx, x, y, width, height, district); return; }
+    if (window.sector1Progression?.isGameplaySuppressed?.()) return;
     const time = window.audioSystem?.context?.currentTime;
     const sample = Number.isFinite(time) ? window.BARCODE?.MusicTransport?.sample?.(time) : null;
     if (!sample?.running || !sample.grid || sample.profileId !== 'level-01.main') return;
@@ -233,6 +244,61 @@ window.ParallaxBackground = class ParallaxBackground {
       ctx.fillStyle = `rgba(${accent}, ${pulse * 0.12 * combatScale})`;
       ctx.fillRect(screenX, y + top * sy, w * sx, h * sy);
     });
+    ctx.restore();
+  }
+
+  drawDistrictSignals(ctx, x, y, width, height, district) {
+    const sx = width / 1279, sy = height / 462;
+    const time = window.audioSystem?.context?.currentTime;
+    const sample = Number.isFinite(time) ? window.BARCODE?.MusicTransport?.sample?.(time) : null;
+    const pulse = sample?.running && sample.grid && sample.profileId === 'level-01.main'
+      ? Math.pow(1 - sample.grid.beatFloat % 1, 3) : 0;
+    const quiet = window.sector1Progression?.isBossCombatLive?.() ? 0.45 : 1;
+    const restoredAt = worldX => district.restored ? 1 : district.wave
+      ? Math.max(0, Math.min(1, (district.wave.radius - Math.abs(worldX - district.wave.originX)) / 200)) : 0;
+    ctx.save();
+    ctx.translate(x, y); ctx.scale(sx, sy); ctx.shadowBlur = 0;
+    this.signalDisplays.forEach(([left, top, w, h, zone], index) => {
+      if (x + (left + w) * sx < -400 || x + left * sx > 2320) return;
+      const recovery = district.zones[zone].recovery;
+      const restored = restoredAt(-152 + (left + w / 2) * 4400 / 1279);
+      const interference = district.interference * (1 - recovery * 0.65) * (1 - restored);
+      // Opaque art remains visible. Corruption is a few slow, localized broken
+      // scan lines; clearing the encounter brings steady light underneath them.
+      ctx.fillStyle = `rgba(4, 8, 29, ${0.22 * interference})`;
+      ctx.fillRect(left, top, w, h);
+      ctx.fillStyle = `rgba(113, 255, 229, ${(recovery * 0.12 + restored * 0.08 + pulse * 0.055) * quiet})`;
+      ctx.fillRect(left, top, w, h);
+      const scan = (district.elapsedMs / 180 + index * 7) % h;
+      ctx.fillStyle = `rgba(214, 122, 246, ${0.22 * interference * quiet})`;
+      for (let line = 0; line < 3 && interference > 0; line++) {
+        const lineY = (scan + line * h / 3) % h;
+        const lineX = left + (index * 11 + line * 13) % Math.max(1, w * 0.35);
+        ctx.fillRect(lineX, top + lineY, w * 0.55, Math.min(1, h - lineY));
+      }
+      // A short recovery trace crosses each display, then settles. The final
+      // wave lights these same displays in world order through the camera pan.
+      const trace = Math.max(Math.sin(recovery * Math.PI), Math.sin(restored * Math.PI));
+      if (trace > 0.001) {
+        ctx.fillStyle = `rgba(176, 255, 239, ${trace * 0.55})`;
+        ctx.fillRect(left, top + h - 2, w * Math.max(recovery, restored), 1.5);
+      }
+    });
+    // Travel along the existing curb. Only two bounded fronts are drawn; the
+    // wave is scenery behind actors, hazards and HUD, never a screen flash.
+    if (district.wave) {
+      const origin = (district.wave.originX + 152) * 1279 / 4400;
+      const radius = district.wave.radius * 1279 / 4400;
+      for (const direction of [-1, 1]) {
+        const front = origin + direction * radius;
+        if (front < 0 || front > 1279) continue;
+        for (let segment = 0; segment < 8; segment++) {
+          const left = front - direction * segment * 8;
+          ctx.fillStyle = `rgba(142, 255, 227, ${(1 - segment / 8) * 0.65})`;
+          ctx.fillRect(Math.max(0, Math.min(1275, left)), 412, 4, 2);
+        }
+      }
+    }
     ctx.restore();
   }
 

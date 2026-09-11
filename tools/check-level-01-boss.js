@@ -436,6 +436,8 @@ async function main() {
     const { w, p } = rig;
     rig.reachReady(); reachRecovery(rig);
     const hitbox = p.getBossHitbox();
+    const stompBursts = [];
+    w.particleSystem.stompEffect = (...args) => stompBursts.push(args);
     const footOffset = w.Player.VISUAL_FOOT_OFFSET_Y;
     const health = p.boss.health;
     w.player.allowMovement = true;
@@ -457,9 +459,12 @@ async function main() {
     assert.strictEqual(p.boss.health, health - 1, 'one valid boss stomp costs one health');
     assert(w.player.velocity.y < 0 && !w.player.grounded, 'the production player receives its ordinary stomp rebound');
     assert.strictEqual(w.player.position.y + footOffset, hitbox.y, 'the rebound begins at the visible boss top');
+    assert.strictEqual(stompBursts.length, 1, 'a successful cyan stomp emits the dedicated heavy burst');
+    assert.strictEqual(stompBursts[0][1], hitbox.y, 'the stomp burst stays at the boss head contact');
     w.player.velocity.y = 200;
     assert.strictEqual(p.applyBossStomp(w.player, movement), true, 'a repeated landing bounces safely even after the cycle counter was spent');
     assert.strictEqual(p.boss.health, health - 1);
+    assert.strictEqual(stompBursts.length, 1, 'a guarded repeat keeps its smaller guard effect');
   }
 
   {

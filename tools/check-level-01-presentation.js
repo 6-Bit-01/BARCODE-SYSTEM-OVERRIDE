@@ -99,4 +99,77 @@ for (const fps of [30, 60, 120]) {
   assert.strictEqual(w.BARCODE.MusicTransport.getDiagnostics().generation, before.generation);
   assert.strictEqual(w.BARCODE.MusicTransport.getDiagnostics().listenerCount, before.listenerCount, 'light rendering owns no clock listeners');
 }
-console.log('Level 1 animation, stance, hack and effect checks passed');
+{
+  const { w, p, tick, beat, until, context, timers } = createRig();
+  w.audioSystem.playVirusDefeatSound = () => {};
+  w.audioSystem.playEnemyDefeatSound = () => {};
+  w.particleSystem.explosion = () => {};
+  p.startMission();
+  const music = w.BARCODE.MusicTransport.getDiagnostics();
+  const timerCount = timers.size;
+  for (const [index, encounter] of w.Sector1Progression.ENCOUNTERS.entries()) {
+    w.player.position.x = encounter.triggerX;
+    for (let elapsed = 0; p.state === encounter.id && elapsed < 10000; elapsed += 100) {
+      tick(100);
+      for (const enemy of w.enemyManager.enemies) {
+        if (!enemy.active) continue;
+        enemy.active = false;
+        w.enemyManager.recordDefeat(enemy);
+      }
+    }
+    assert.notStrictEqual(p.state, encounter.id, 'real encounter packets clear');
+    assert.deepStrictEqual(Array.from(p.getDistrictSignalState().zones, zone => zone.cleared),
+      [0, 1, 2, 3].map(zone => zone <= index), 'only the completed part of the district stabilizes');
+  }
+  assert.strictEqual(p.missionDefeats, 20, 'restoration does not change mission credit');
+  assert.strictEqual(p.state, 'jammer_active', 'the final defeat restores Broadcast Gate even with immediate Jammer reveal');
+  const clearedAt = Array.from(p.districtSignal.clearedAtMs);
+  p.openEncounterGate('encounter_1'); tick(1000);
+  assert.deepStrictEqual(Array.from(p.districtSignal.clearedAtMs), clearedAt, 'repeated gate callbacks cannot replay the local effect');
+  const jammer = w.BARCODE.JammerEnvironment;
+  w.player.position.x = jammer.getStatus().position.x - 150;
+  for (let stage = 0; stage < 4; stage++) {
+    tick(450);
+    assert.strictEqual(p.getDistrictSignalState().interference, 1 - stage / 4, 'each four-hit Jammer stage settles to less interference');
+    for (let hit = 0; hit < 4; hit++) beat();
+  }
+  assert.strictEqual(jammer.getStatus().health, 0);
+  assert(!w.rhythmSystem.isActive(), 'the restoration payoff preserves Jammer mode exit');
+  const origin = p.getDistrictSignalState().wave.originX;
+  assert.strictEqual(origin, jammer.getStatus().position.x, 'wave starts at the actual randomized Jammer');
+  tick(300);
+  const wave = JSON.stringify(p.getDistrictSignalState().wave);
+  w.gameState.paused = true; tick(1200);
+  assert.strictEqual(JSON.stringify(p.getDistrictSignalState().wave), wave, 'pause freezes the wave');
+  w.gameState.paused = false;
+  p.onJammerDestroyed();
+  assert.strictEqual(JSON.stringify(p.getDistrictSignalState().wave), wave, 'duplicate destruction never restarts the wave');
+  until(() => p.state === 'boss_ready', 'district restoration accompanies the existing cinematic');
+  assert(p.getDistrictSignalState().restored);
+  assert.strictEqual(p.getDistrictSignalState().wave, null, 'bounded wave finishes before boss combat');
+  assert.strictEqual(p.getDistrictSignalState().interference, 0);
+  w.gameState.gameOver = true;
+  assert(p.retryBossCheckpoint().ok);
+  assert(p.getDistrictSignalState().restored, 'boss retry keeps the district restored');
+  assert.strictEqual(p.getDistrictSignalState().wave, null, 'retry does not replay restoration');
+
+  load(context, 'src/engine/parallax.js');
+  const bg = new w.ParallaxBackground(), layer = { imgElement: {} }; bg.layers = [{}, layer];
+  const operations = [], paints = [];
+  const ctx = { save() {}, restore() {}, translate(...v) { operations.push(['translate', ...v]); },
+    scale(...v) { operations.push(['scale', ...v]); }, fillRect(...v) { paints.push([this.fillStyle, ...v]); } };
+  bg.drawSignalLights(ctx, layer, -380, -550, 4400, 1589);
+  assert.deepStrictEqual(operations, [['translate', -380, -550], ['scale', 4400 / 1279, 1589 / 462]],
+    'district lighting inherits the same foreground translation and scale as the art');
+  assert(paints.length > 0 && paints.length <= bg.signalDisplays.length * 2, 'restored displays have steady light with no animated interference');
+  assert.strictEqual(w.BARCODE.MusicTransport.getDiagnostics().generation, music.generation);
+  assert.strictEqual(w.BARCODE.MusicTransport.getDiagnostics().listenerCount, music.listenerCount);
+  assert.strictEqual(timers.size, timerCount, 'district restoration adds no timers');
+  p.reset();
+  assert(!p.getDistrictSignalState().active);
+  p.startMission();
+  assert(p.getDistrictSignalState().zones.every(zone => !zone.cleared));
+  assert.strictEqual(p.getDistrictSignalState().interference, 1, 'full restart restores the original corrupted district');
+  assert.strictEqual(p.getDistrictSignalState().wave, null);
+}
+console.log('Level 1 animation, stance, hack, effects and district-restoration checks passed');

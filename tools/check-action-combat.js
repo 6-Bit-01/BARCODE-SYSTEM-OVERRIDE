@@ -502,7 +502,7 @@ pass('beat-gated PlayerCombat damage');
 
 // Entrance and passive stomp.
 {
-  const s = sandbox(); s.window.Particle = class Particle {}; s.window.particleSystem = { particles:[], enemySpawnEffect(){}, impact(){ this.impacted = (this.impacted || 0) + 1; } };
+  const s = sandbox(); s.window.Particle = class Particle {}; s.window.particleSystem = { particles:[], enemySpawnEffect(){}, impact(){ this.impacted = (this.impacted || 0) + 1; }, stompEffect(...args){ this.stomps = [...(this.stomps || []), args]; } };
   load(s, 'src/game/player.js'); const player = new s.window.Player(200, 500);
   assert(typeof player.createEntranceExplosion === 'function', 'Player.createEntranceExplosion exists');
   player.isEntering = true; player.entranceStartTime = Date.now() - player.entranceDuration - 1; player.updateEntranceAnimation(16); assert(!player.isEntering, 'Entrance completion does not throw');
@@ -523,7 +523,9 @@ pass('beat-gated PlayerCombat damage');
   const enemy = { active:true, _isTutorialEnemy:true, type:'virus', position:{x:0,y:0}, lastPlayerHitTimeMs:-Infinity, isSpawnProtected: () => true, getHitbox: () => ({ x:-20, y:0, width:40, height:40 }), takeDamage(d){ assert(d === 999, 'Stomp damage is lethal'); this.active = false; manager.recordDefeat(this); } };
   manager.enemies = [enemy]; manager.recordDefeat = e => { if (e._recorded) return false; e._recorded = true; defeats++; return true; };
   const stomper = { controlsDisabled:false, position:{x:0,y:15}, velocity:{x:0,y:100}, getHitbox: () => ({ x:-10, y:-30, width:20, height:45 }), takeDamageWithKnockback(){ throw new Error('stomp should not damage player'); } };
-  manager.checkCollisions(stomper); assert(defeats === 1 && stomper.velocity.y === -550 && stomper._enemyInvulnerableUntilMs === 1400 && s.window.particleSystem.impacted === 1, 'Passive landing stomp kills once and bounces');
+  manager.checkCollisions(stomper); assert(defeats === 1 && stomper.velocity.y === -550 && stomper._enemyInvulnerableUntilMs === 1400, 'Passive landing stomp kills once and bounces');
+  assert(JSON.stringify(s.window.particleSystem.stomps?.[0]?.slice(0, 3)) === JSON.stringify([0, 0, 'virus']), 'successful stomp uses its dedicated burst at the contacted enemy top');
+  manager.checkCollisions(stomper); assert(s.window.particleSystem.stomps.length === 1, 'the defeated enemy cannot emit another stomp burst');
 
   let contactDamage = 0;
   const protectedEnemy = { active:true, type:'corrupted', position:{x:0,y:0}, isSpawnProtected: () => true, getHitbox: () => ({ x:-20, y:0, width:40, height:40 }) };
