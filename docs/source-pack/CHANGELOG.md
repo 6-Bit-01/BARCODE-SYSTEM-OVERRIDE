@@ -1,5 +1,14 @@
 # Changelog
 
+## September 11, 2026 — Jammer Rhythm Mode exit repair (review)
+
+- Owner found active Rhythm Mode bleeding through Jammer destruction into the next section.
+- End active mode and clear the final attack pose at destruction; preserve background rhythm/music.
+- Reuse progression suppression for rhythm entry through the cinematic and level completion.
+- Extend boss integration coverage through every cinematic phase and subsequent fresh activation; align the isolated pose test with the new owner requirement.
+- Record requested broader animation, rhythm, hacking, effects and inexpensive improvements in `OVERHAUL_PROPOSAL.md`; these are not silently implemented.
+- Base: merged PR #29 (`45441e1`). No art/audio changes. Unmerged review; owner Makko acceptance pending. Rollback: return to the base revision, which retains the reported mode leak.
+
 ## v5 musical combat pass — September 11, 2026
 
 - Owner approved the combined boss/ordinary-enemy/feedback pass after a positive PR #28 playtest exposed an endless-bounce exploit and excessive boss difficulty.

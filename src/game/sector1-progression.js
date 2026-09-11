@@ -225,7 +225,22 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     }
     revealJammer() { this.state = STATES.JAMMER_ACTIVE; this.nextJammerSpawnMs = 0; this.jammerReinforcementCount = 0; this.jammerRevealed = true; this.closedGateEncounterId = null; const position = this.chooseJammerPosition(); window.BARCODE?.JammerEnvironment?.reveal({ position }); if (window.objectivesSystem?.revealJammerObjective) window.objectivesSystem.revealJammerObjective(); this.prepareBossAssets(); }
     updateJammerReinforcements(deltaTime) { const environment = window.BARCODE?.JammerEnvironment; const status = environment?.getStatus?.(); if (!status || !status.revealed || status.destroyed) return; this.nextJammerSpawnMs = Number.isFinite(this.nextJammerSpawnMs) ? this.nextJammerSpawnMs - deltaTime : 0; const activeReinforcements = (window.enemyManager?.enemies || []).filter(enemy => enemy && enemy.active && (enemy._jammerReinforcement || !enemy._sector1MissionEnemy)); if (activeReinforcements.length >= SPAWN.jammerReinforcementCap || this.nextJammerSpawnMs > 0) return; const types = ['virus', 'corrupted', 'virus', 'firewall']; const type = types[this.jammerReinforcementCount % types.length]; this.jammerReinforcementCount += 1; const jammerX = status.position?.x || this.chooseJammerPosition().x; const targetX = Math.max(180, Math.min(WORLD_WIDTH - 180, jammerX + (jammerX < WORLD_WIDTH / 2 ? 240 : -240))); this.spawnMissionEnemy({ type, x: targetX, y: GROUND_Y }, 'jammer_reinforcement', this.jammerReinforcementCount, { jammerReinforcement: true }); this.nextJammerSpawnMs = SPAWN.jammerCadenceMinMs + Math.random() * (SPAWN.jammerCadenceMaxMs - SPAWN.jammerCadenceMinMs); }
-    onJammerDestroyed() { this.nextJammerSpawnMs = Infinity; if (this.jammerDestroyedNotified) return; this.jammerDestroyedNotified = true; this.captureCinematicStart(); this.freezePlayerForCinematic(); if (window.objectivesSystem?.completeJammerObjective) window.objectivesSystem.completeJammerObjective(); this.state = STATES.FREEZE; this.phaseElapsed = 0; this.cinematicStartedCount++; }
+    onJammerDestroyed() {
+      this.nextJammerSpawnMs = Infinity;
+      if (this.jammerDestroyedNotified) return;
+      this.jammerDestroyedNotified = true;
+      this.state = STATES.FREEZE;
+      // End the combat mode at the destruction event, not at camera handoff.
+      // hide() preserves the running music transport and background beat state.
+      window.rhythmSystem?.hideRhythmMode?.();
+      const player = this.player || window.player;
+      if (player) { player.primaryAttackAnimationMs = 0; player.state = 'idle'; }
+      this.captureCinematicStart();
+      this.freezePlayerForCinematic();
+      window.objectivesSystem?.completeJammerObjective?.();
+      this.phaseElapsed = 0;
+      this.cinematicStartedCount++;
+    }
     getCurrentRendererZoom() { const renderer = window.renderer; const override = renderer && typeof renderer.getCinematicZoomOverride === 'function' ? renderer.getCinematicZoomOverride() : null; const current = Number.isFinite(override) ? override : (renderer && typeof renderer.getZoomLevel === 'function' ? renderer.getZoomLevel() : renderer?.zoomLevel); return Math.max(0.1, Number.isFinite(current) ? current : 1); }
     captureCinematicStart() { const player = this.player || window.player; const playerX = Number.isFinite(player?.position?.x) ? player.position.x : CAMERA_MIN; const playerY = Number.isFinite(player?.position?.y) ? player.position.y : GROUND_Y; this.cinematicStartCameraX = clampCamera((window.gameCamera && Number.isFinite(window.gameCamera.centerX)) ? window.gameCamera.centerX : playerX); this.cinematicStartPlayerPosition = { x: playerX, y: playerY }; this.cinematicStartZoom = this.getCurrentRendererZoom(); this.cinematicWideZoom = Math.max(CINEMATIC.wideZoomFloor, Math.min(1, this.cinematicStartZoom)); this.cinematicCloseZoom = Math.max(CINEMATIC.closeZoom, this.cinematicWideZoom); this.cinematicZoomOverride = this.cinematicStartZoom; this.cinematicZoomReleasePending = false; this.panStartX = this.cinematicStartCameraX; this.cameraX = this.cinematicStartCameraX; this.cameraOverrideActive = true; }
     freezePlayerForCinematic() { const player = this.player || window.player; if (!player) return; const captured = this.cinematicStartPlayerPosition || { x: player.position.x, y: player.position.y }; this.frozenPlayerPosition = { x: captured.x, y: captured.y }; if (player.velocity) { player.velocity.x = 0; player.velocity.y = 0; } player.controlsDisabled = true; }

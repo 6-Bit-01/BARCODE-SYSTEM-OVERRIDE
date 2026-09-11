@@ -219,6 +219,7 @@ window.RhythmSystem = class RhythmSystem {
     const gameState = window.gameState || {};
     if (window.isPaused || window.isRunning === false || gameState.paused || gameState.gameOver || gameState.victory || gameState.running === false) return { ok: false, reason: 'gameplay-inactive' };
     if (window.cutsceneSystem && window.cutsceneSystem.active) return { ok: false, reason: 'cutscene-active' };
+    if (window.sector1Progression?.isGameplaySuppressed?.()) return { ok: false, reason: 'progression-suppressed' };
     if (window.hackingSystem && typeof window.hackingSystem.isActive === 'function' && window.hackingSystem.isActive()) return { ok: false, reason: 'hacking-active' };
     // Lock only the player-facing mode until its authored tutorial chapter.
     // Background transport, beat polling, tempo establishment, and sync remain

@@ -293,8 +293,8 @@ window.Player = class Player {
       if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log('🦘 Character just left ground - jump animation will restart');
     }
     
-    // The cinematic owns presentation only. Rhythm Mode itself remains active,
-    // so its approved timing and combat state resume after the camera returns.
+    // Progression ends Rhythm Combat Mode at Jammer destruction while the
+    // background beat clock continues. Presentation holds a neutral pose here.
     if (bossCinematicActive) {
       this.state = 'idle';
     // Priority order: transient attack overlay > Jump > Walk > Idle; Rhythm Mode itself does not lock the pose.

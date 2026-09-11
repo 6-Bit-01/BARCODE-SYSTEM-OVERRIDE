@@ -1,5 +1,15 @@
 # Current State
 
+## Current Jammer transition repair — September 11, 2026
+
+Base: merged PR #29, `45441e1` (full base/head recorded by the generated manifest). Branch: `agent/jammer-rhythm-exit`; unmerged, awaiting owner Makko verification. Owner response to the musical combat build: “Not bad!” with a new report that Rhythm Mode survives Jammer destruction and leaks into the next section. This is not blanket playtest acceptance.
+
+Jammer destruction now immediately exits the active mode, clears the final attack pose, and freezes the player. Rhythm entry uses the existing progression suppression rule, so R cannot reopen it during the cinematic or level completion. Boss handoff restores normal controls with Rhythm Mode still off; a fresh R press enables it. The background transport, beat progress and track readiness remain running. No assets, timing windows, movement rules, boss balance or hack rewards changed.
+
+Focused production-module checks exercise the real final attack, all eight cinematic phases, beat advancement, unchanged transport generation and fresh activation at handoff. Full required verification is recorded in the generated archive's test receipt. Automated checks do not prove Makko visuals or audible timing.
+
+`OVERHAUL_PROPOSAL.md` records the requested stronger animation/rhythm/hack/effects ideas as proposals, not implementation approval. Standalone migration remains a separately scoped infrastructure milestone.
+
 ## Current gameplay pass — September 11, 2026
 
 Baseline: merged PR #28, `05c1404f5805e9e17dc5eac015abd7fe0a8c2aa1`. The owner reports a major improvement and a boss win, but found the fight too difficult and won by staying in an endless safe head-bounce loop. This is positive playtest feedback with an unresolved exploit/balance issue, not blanket acceptance.

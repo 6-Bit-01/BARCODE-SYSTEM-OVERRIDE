@@ -19,6 +19,7 @@ The owner approved progressing from the existing Level 1 boss entrance to a fini
 - Preserve the two-hit rhythm-powered lift, authored rooftops, and approved player/contact geometry. Backend ownership changes are not permission to remove mechanics.
 - Level 1 requires 20 post-tutorial mission defeats through four authored encounter groups. Tutorial kills do not count.
 - At 20 mission defeats the Broadcast Jammer appears once in the opposite world half. It has 16 health and accepts one damage per successful rhythm attack; H and passive stomp do not damage it. It remains an environmental object owned by `BARCODE.JammerEnvironment`, not an ordinary enemy.
+- Jammer destruction immediately ends active Rhythm Combat Mode; it cannot reactivate during the cinematic or automatically resume at handoff. Preserve the background rhythm/music clock.
 - Jammer destruction leads through the existing freeze, purge, camera pan, boss entrance/flourish and control handoff into the boss encounter. Reuse that presentation; do not casually rename its boss or change its identity.
 - Each level selects its own song/profile. Level 1's compatibility timing and source names are never a campaign fallback. Other genres choose their own musical interaction and need not gate their ordinary inputs by rhythm.
 - Lore: 28 one-time pieces distributed `3 / 4 / 5 / 4 / 5 / 4 / 3`; deterministic IDs, authored purposes and eventual persistent collection. Random legacy prose is not approved canon.

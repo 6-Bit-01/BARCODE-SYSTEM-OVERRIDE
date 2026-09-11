@@ -50,3 +50,9 @@ Do not treat an approved production direction as a claim that it has been implem
 The owner replied “Lets goooooooo!” to the recommendation to combine proposals 1–5, 8 and 9. This authorizes boss balance/musical openings/safe outward rebounds, stronger ordinary-enemy behavior and combat/rhythm feedback. Exact tuning remains subject to playtesting. Their preceding report explicitly identifies endless head bouncing as an exploit; the prior safe-landing repair is not approval of that win loop.
 
 The broader optional rooftop, district-reaction, settings, lore and ending ideas remain proposals for later passes. Standalone migration is the next recommended infrastructure milestone; no migration is bundled into this gameplay PR.
+
+## September 11 Jammer exit correction
+
+LOCKED: Rhythm Combat Mode automatically ends when the Jammer is destroyed. It must not survive the cinematic or return automatically at boss handoff. The background music/rhythm clock continues; a new R activation remains available once normal gameplay returns. This supersedes earlier commentary/tests preserving the active mode through the cinematic.
+
+The owner requested recommendations for a stronger overall animation/rhythm/hack pass, including effects and inexpensive opportunities. See `OVERHAUL_PROPOSAL.md`; proposed redesigns are not approved changes to mechanics.
