@@ -1,5 +1,14 @@
 # Changelog
 
+## v5 musical combat pass — September 11, 2026
+
+- Owner approved the combined boss/ordinary-enemy/feedback pass after a positive PR #28 playtest exposed an endless-bounce exploit and excessive boss difficulty.
+- Rebalanced the boss and separated escalation; musical phase boundaries use the existing transport. Safe outward rebounds plus landing-based stomp rearm close the passive win loop.
+- Added authored charge/brace/recovery patterns, committed swooper warnings and enemy cues. Existing sprites, music, tutorial rules, mission structure, lift and Jammer are preserved.
+- Added player-local timing, authoritative EARLY/LATE feedback, immediate Rhythm Mode loss notice and bounded hit/guard/stomp feedback.
+- Extended production-module coverage for physics/frame-rate behavior, musical boundaries, actual single-jump double-pulse clearance, enemy commitment and lifecycle reset. Baseline inventory updates reflect inspected source-line movement only.
+- Unmerged playtest branch; Makko visual/audio/balance acceptance pending. Standalone migration remains a subsequent milestone.
+
 ## v5 general polish — September 11, 2026 — before the next playtest
 
 - Owner expanded the request to improvements across Level 1, beyond focused boss/test helpers. Added this pass to PR #28.

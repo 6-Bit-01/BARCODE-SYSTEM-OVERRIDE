@@ -44,3 +44,9 @@ Statuses: **LOCKED** = explicit retained requirement; **APPROVED DIRECTION** = S
 | D-036 | APPROVED DIRECTION | September 11: general Level 1 improvement pass before the next playtest, covering contact, combat feedback, encounter/route readability and Jammer presentation. Keep the repaired mechanics and established project direction. |
 
 Do not treat an approved production direction as a claim that it has been implemented or visually accepted. Source trace: uploaded v2/v3/v4 packs; the owner's later control/mission corrections retained in repository guidance and merged PR #25; September 11 project assessment and direct approval. This is a decision synthesis, not a claim to reproduce every private conversation verbatim.
+
+## September 11 musical combat approval
+
+The owner replied “Lets goooooooo!” to the recommendation to combine proposals 1–5, 8 and 9. This authorizes boss balance/musical openings/safe outward rebounds, stronger ordinary-enemy behavior and combat/rhythm feedback. Exact tuning remains subject to playtesting. Their preceding report explicitly identifies endless head bouncing as an exploit; the prior safe-landing repair is not approval of that win loop.
+
+The broader optional rooftop, district-reaction, settings, lore and ending ideas remain proposals for later passes. Standalone migration is the next recommended infrastructure milestone; no migration is bundled into this gameplay PR.

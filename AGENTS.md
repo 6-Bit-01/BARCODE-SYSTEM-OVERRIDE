@@ -26,6 +26,10 @@ The owner approved progressing from the existing Level 1 boss entrance to a fini
 - Existing prologue images/wording and approved art are locked. Never call 6 Bit/the player “the virus.” Mac Modem's established metaphor is character-specific.
 - *Observer Not Found* is separate. City Scrambler, obsolete boss hooks and legacy README claims supply no automatic future-design authority.
 
+## Current musical combat pass
+
+The September 11 owner approved combined recommendations 1–5, 8 and 9 after reporting that PR #28 was substantially better but the boss was too hard and could be won through endless head bouncing. Implement fair musical boss windows, separated difficulty escalation, safe outward rebounds requiring a landing to rearm stomp counters, authored enemy commitments and clear combat/rhythm feedback. Preserve ordinary lethal stomps and all locked mechanics. Exact timings are provisional; Makko-before-merge remains required. Read the top current sections of source-pack CURRENT_STATE and ACCEPTANCE before historical entries. Standalone migration and the other optional ideas belong to later milestones.
+
 ## Engineering and validation
 
 - `index.html` remains the browser entrypoint. Keep Makko compatibility and all JavaScript syntax valid, including files outside the active script graph.

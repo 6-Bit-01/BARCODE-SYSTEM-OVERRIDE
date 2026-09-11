@@ -476,6 +476,7 @@ function drawPlayer(ctx) {
       }
       
       window.player.draw(ctx);
+      window.BARCODE?.playerCombat?.drawPlayerTimingCue?.(ctx, window.player);
       
       if (isPlayerInvulnerable) {
         ctx.restore();
