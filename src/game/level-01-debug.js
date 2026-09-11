@@ -128,6 +128,8 @@ window.FILE_MANIFEST.push({
     if (jammerBounds) drawWorldRect(ctx, jammerBounds, '#ff00ff', 'jammer aim bounds');
     const bossBounds = owner?.getBossVisualBounds?.();
     if (bossBounds) drawWorldRect(ctx, bossBounds, '#ff3300', 'boss visual bounds');
+    const bossHitbox = owner?.getBossHitbox?.();
+    if (bossHitbox) drawWorldRect(ctx, bossHitbox, '#ffff00', 'boss combat hull');
     if (owner?.lastSpawnPlan?.accepted) drawWorldPoint(ctx, owner.lastSpawnPlan.accepted, '#00ff88', 'last spawn');
 
     const zoom = getZoom();
@@ -182,6 +184,7 @@ window.FILE_MANIFEST.push({
     { label: 'Damage Jammer', run: () => window.DEBUG.level1.damageJammer(1) },
     { label: 'Destroy Jammer', run: () => window.DEBUG.level1.destroyJammer() },
     { label: 'Play Boss Intro', run: () => window.DEBUG.level1.playBossIntro() },
+    { label: 'Go / Reset Boss', run: () => window.DEBUG.level1.gotoBoss() },
     { get label() { return overlayState.enabled ? 'Geometry Overlay: ON' : 'Geometry Overlay: OFF'; }, run: () => window.DEBUG.level1.toggleOverlay() },
     { label: 'Reset Mission', run: () => window.DEBUG.level1.resetMission() }
   ];
@@ -412,6 +415,7 @@ window.FILE_MANIFEST.push({
     chargeSignalLift: () => call('debugChargeSignalLift'),
     giveSignalAmp: () => call('debugGiveSignalAmp'),
     playBossIntro: () => call('debugPlayBossIntro'),
+    gotoBoss: () => call('debugGotoBoss'),
     resetMission: () => call('debugResetMission'),
     toggleOverlay,
     drawOverlay

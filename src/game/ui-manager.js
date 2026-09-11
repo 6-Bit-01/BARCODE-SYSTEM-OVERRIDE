@@ -234,6 +234,8 @@ window.drawGameUI = function(ctx) {
     encounterPresentation.draw(ctx);
   }
   
+  drawSector1BossUI(ctx);
+
   // Draw game over screen
   if (window.gameState.gameOver) {
     drawGameOver(ctx);
@@ -269,6 +271,56 @@ window.drawGameUI = function(ctx) {
   // Draw hack timeout message
   drawHackTimeoutMessage(ctx);
 };
+
+// Screen-space boss readability and terminal outcome use the existing UI pass.
+function drawSector1BossUI(ctx) {
+  const owner = window.sector1Progression;
+  const status = owner?.getBossStatus?.();
+  if (!status || !['boss_ready', 'boss_combat', 'level_complete'].includes(owner.state)) return;
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  if (window.gameState.victory) {
+    ctx.fillStyle = 'rgba(0, 8, 16, 0.94)';
+    ctx.fillRect(0, 0, 1920, 1080);
+    ctx.strokeStyle = '#00ffff';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(390, 285, 1140, 470);
+    ctx.fillStyle = '#00ffff';
+    ctx.font = 'bold 48px monospace';
+    ctx.fillText('SECTOR 1 COMPLETE', 960, 365);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '28px monospace';
+    ctx.fillText('DEAD AIR DISTRICT', 960, 425);
+    ctx.font = '22px monospace';
+    ctx.fillText('20 mission enemies. Jammer destroyed. Boss defeated.', 960, 500);
+    ctx.fillText(`SCORE  ${window.gameState.score || 0}`, 960, 553);
+    ctx.fillStyle = '#b9faff';
+    ctx.fillText('SPACE — Restart Level 1', 960, 638);
+    ctx.fillText('ENTER — Rematch the boss', 960, 686);
+  } else if (!window.gameState.gameOver) {
+    const x = 600, y = 24, width = 720;
+    ctx.fillStyle = 'rgba(0, 8, 16, 0.9)';
+    ctx.fillRect(x - 20, y, width + 40, 112);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 20px monospace';
+    ctx.fillText('SECTOR 1 BOSS', 960, y + 23);
+    ctx.fillStyle = '#281523';
+    ctx.fillRect(x, y + 43, width, 16);
+    ctx.fillStyle = status.canReceiveDamage ? '#00ffff' : '#ff7044';
+    ctx.fillRect(x, y + 43, width * status.health / status.maxHealth, 16);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x, y + 43, width, 16);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '17px monospace';
+    const cue = status.phase === 'ready' ? 'Get ready. Jump the ground pulse.' : status.canReceiveDamage ?
+      'COUNTER WINDOW — R: Rhythm Mode / DOWN: timed hit / Jump: stomp' : status.phase === 'telegraph' ?
+      (status.doublePulse ? 'TWO GROUND PULSES — JUMP' : 'GROUND PULSE — JUMP') : 'Evade the pulse. Counter when the boss glows cyan.';
+    ctx.fillText(cue, 960, y + 86);
+  }
+  ctx.restore();
+}
 
 // Draw basic UI elements (health, score, etc.)
 function drawBasicUI(ctx) {
@@ -687,18 +739,18 @@ function drawGameOver(ctx) {
   
   if (window.renderer && typeof window.renderer.drawGlowText === 'function') {
     try {
-      window.renderer.drawGlowText('Press SPACE to restart', 960, 700, {
+      window.renderer.drawGlowText((window.sector1Progression?.canRetryBossCheckpoint?.() ? 'SPACE: Retry boss  |  SHIFT+SPACE: Restart Level 1' : 'Press SPACE to restart'), 960, 700, {
         size: 24,
         color: '#ffffff'
       });
     } catch (error) {
-      drawGlowText('Press SPACE to restart', 960, 700, {
+      drawGlowText((window.sector1Progression?.canRetryBossCheckpoint?.() ? 'SPACE: Retry boss  |  SHIFT+SPACE: Restart Level 1' : 'Press SPACE to restart'), 960, 700, {
         size: 24,
         color: '#ffffff'
       });
     }
   } else {
-    drawGlowText('Press SPACE to restart', 960, 700, {
+    drawGlowText((window.sector1Progression?.canRetryBossCheckpoint?.() ? 'SPACE: Retry boss  |  SHIFT+SPACE: Restart Level 1' : 'Press SPACE to restart'), 960, 700, {
       size: 24,
       color: '#ffffff'
     });

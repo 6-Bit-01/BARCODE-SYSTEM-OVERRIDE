@@ -15,6 +15,7 @@ window.InputManager = class InputManager {
     // Escape cancels a hack on keydown. Keep ownership until keyup so the
     // browser's held-key repeat cannot immediately toggle restored Rhythm Mode.
     this.hackEscapeLatched = false;
+    this.terminalKeyLatched = null;
     this.actionInput = window.BARCODE && window.BARCODE.ActionInput ? new window.BARCODE.ActionInput({ attach: false }) : null;
     this.init();
   }
@@ -23,6 +24,7 @@ window.InputManager = class InputManager {
     window.addEventListener('keydown', (e) => {
       const key = e.key.toLowerCase();
 
+      if (this.terminalKeyLatched === key) { e.preventDefault(); return; }
       if (this.hackEscapeLatched && key === 'escape') {
         e.preventDefault();
         return;
@@ -42,9 +44,17 @@ window.InputManager = class InputManager {
       this.keys[key] = true;
       this.pressedKeys.add(key);
       if (e.shiftKey && e.key === 'F') { e.preventDefault(); if (window.fullscreenManager) window.fullscreenManager.toggle(); return; }
-      if (e.key === ' ' && window.gameState && window.gameState.gameOver) {
+      if (window.gameState && (window.gameState.gameOver || window.gameState.victory) && (e.key === ' ' || e.key === 'Enter')) {
         e.preventDefault();
-        if (window.BARCODE && window.BARCODE.RuntimeLifecycle) window.BARCODE.RuntimeLifecycle.restart({ source: 'game-over-space' });
+        if (e.repeat) return;
+        this.terminalKeyLatched = key;
+        const progression = window.sector1Progression;
+        const retryRequested = window.gameState.gameOver ? e.key === ' ' && !e.shiftKey : e.key === 'Enter';
+        if (retryRequested && progression?.canRetryBossCheckpoint?.()) {
+          progression.retryBossCheckpoint();
+        } else if (e.key === ' ' && window.BARCODE?.RuntimeLifecycle) {
+          window.BARCODE.RuntimeLifecycle.restart({ source: 'terminal-space' });
+        }
         this.resetActionEdges();
         return;
       }
@@ -66,6 +76,7 @@ window.InputManager = class InputManager {
     });
     window.addEventListener('keyup', (e) => {
       const key = e.key.toLowerCase();
+      if (this.terminalKeyLatched === key) this.terminalKeyLatched = null;
       const terminalOwnsKey = !!(window.hackingSystem?.isActive?.() || (this.hackEscapeLatched && key === 'escape'));
       this.keys[key] = false;
       if (this.actionInput) this.actionInput.handleKeyUp(e);
@@ -75,6 +86,15 @@ window.InputManager = class InputManager {
         return;
       }
       this.releasedKeys.add(key);
+    });
+    window.addEventListener('blur', () => {
+      // Keyup can occur outside this window after a retry or terminal cancel.
+      // Release physical-key ownership so that returning focus stays usable.
+      this.terminalKeyLatched = null;
+      this.hackEscapeLatched = false;
+      this.resetActionEdges();
+      this.mouse.pressed = false;
+      this.mouse.clicked = false;
     });
     window.addEventListener('mousemove', (e) => { this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
     window.addEventListener('mousedown', () => { this.mouse.pressed = true; this.mouse.clicked = true; });

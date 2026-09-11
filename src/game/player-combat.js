@@ -38,6 +38,13 @@ window.FILE_MANIFEST.push({
       const targets = this.findTargets(player, enemyManager, judgment);
       const jammerHit = this.tryDamageJammer(player, judgment, result.sequence);
       if (jammerHit.ok) result.targets.push(jammerHit.target);
+      const bossHit = window.sector1Progression?.applyBossRhythmDamage?.({
+        player, judgment, sequence: result.sequence,
+        range: window.rhythmSystem?.getAuthoritativeDamageRadius?.() ?? this.range
+      }) || { ok: false };
+      if (bossHit.ok) {
+        result.targets.push(bossHit.target);
+      }
       const hitIds = new Set();
       targets.forEach(target => {
         if (!target || !target.active || hitIds.has(target)) return;
@@ -46,10 +53,10 @@ window.FILE_MANIFEST.push({
         if (window.particleSystem && typeof window.particleSystem.impact === 'function') window.particleSystem.impact(target.position.x, target.position.y, '#00ffff', 20);
         result.targets.push({ type: target.type || 'target', damage: result.damage, x: target.position && target.position.x, y: target.position && target.position.y });
       });
-      result.ok = true; result.reason = (targets.length || jammerHit.ok) ? 'hit' : 'no-target';
+      result.ok = true; result.reason = result.targets.length ? 'hit' : bossHit.reason === 'boss-guarded' ? 'boss-guarded' : 'no-target';
       return result;
     }
-    gameplayActive() { const gs = window.gameState || {}; return !(window.isPaused || window.isRunning === false || gs.paused || gs.gameOver || gs.victory || gs.running === false); }
+    gameplayActive() { const gs = window.gameState || {}; return !(window.sector1Progression?.isGameplaySuppressed?.() || window.isPaused || window.isRunning === false || gs.paused || gs.gameOver || gs.victory || gs.running === false); }
     getTimingJudgment() {
       const transport = BARCODE.MusicTransport;
       const profile = BARCODE.MusicProfiles && BARCODE.MusicProfiles.getActive ? BARCODE.MusicProfiles.getActive() : null;

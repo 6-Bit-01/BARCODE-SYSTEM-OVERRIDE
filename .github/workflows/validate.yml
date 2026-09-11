@@ -15,4 +15,28 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
-      - run: npm run audit:syntax:all
+      - run: npm run check:syntax:all
+      - name: Export current source pack
+        env:
+          PACK_RECEIPT: ${{ runner.temp }}/source-pack-tests.json
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          Path(os.environ['PACK_RECEIPT']).write_text(json.dumps({
+              'revision': os.environ['GITHUB_SHA'],
+              'automatedTests': {'npm test': 'passed', 'npm run check:syntax:all': 'passed'},
+              'makkoPlaytest': 'not recorded by CI',
+              'workflowRun': os.environ['GITHUB_SERVER_URL'] + '/' + os.environ['GITHUB_REPOSITORY'] + '/actions/runs/' + os.environ['GITHUB_RUN_ID']
+          }, indent=2))
+          PY
+          if [ "$GITHUB_REF" = "refs/heads/main" ]; then
+            python3 tools/build-source-pack.py --revision "$GITHUB_SHA" --base "$GITHUB_SHA" --state merged --validation-file "$PACK_RECEIPT" --output "$RUNNER_TEMP/BARCODE-System-Override-Source-Pack-v5.zip"
+          else
+            python3 tools/build-source-pack.py --revision "$GITHUB_SHA" --state review --validation-file "$PACK_RECEIPT" --output "$RUNNER_TEMP/BARCODE-System-Override-Source-Pack-v5.zip"
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BARCODE-System-Override-Source-Pack-v5-${{ github.sha }}
+          path: ${{ runner.temp }}/BARCODE-System-Override-Source-Pack-v5.zip
+          if-no-files-found: error

@@ -57,6 +57,28 @@ window.ObjectivesSystem = class ObjectivesSystem {
     if (!this.objectives.some(o => o.id === 'boss_ready_handoff')) this.objectives.push({ id: 'boss_ready_handoff', title: 'Boss signal acquired', description: 'Stand by for the Sector 1 boss battle.', priority: 'INFO', completed: false, visible: true, progress: 0, required: 0 });
   }
 
+  setBossCombatObjective(health, maxHealth) {
+    this.completeJammerObjective();
+    this.objectives = this.objectives.filter(objective => objective.id !== 'boss_ready_handoff' && objective.id !== 'sector_1_complete');
+    let objective = this.objectives.find(item => item.id === 'defeat_sector_1_boss');
+    if (!objective) {
+      objective = { id: 'defeat_sector_1_boss', title: 'Defeat the Sector 1 Boss', priority: 'PRIMARY', visible: true };
+      this.objectives.push(objective);
+    }
+    Object.assign(objective, { description: 'Jump the ground pulse. Counter when the boss glows cyan.',
+      completed: health <= 0, progress: maxHealth - health, required: maxHealth });
+    if (health > 0) this.completedObjectives.delete('defeat_sector_1_boss');
+  }
+
+  completeLevelObjective() {
+    const boss = this.objectives.find(item => item.id === 'defeat_sector_1_boss');
+    if (boss) { boss.completed = true; boss.progress = boss.required; }
+    if (!this.objectives.some(item => item.id === 'sector_1_complete')) this.objectives.push({
+      id: 'sector_1_complete', title: 'Dead Air District complete', description: 'Sector 1 cleared.',
+      priority: 'PRIMARY', completed: true, visible: true, progress: 1, required: 1
+    });
+  }
+
   update() {
     this.checkLoreCollectionStatus();
     this.checkCompletedObjectives();

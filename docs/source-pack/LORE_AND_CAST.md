@@ -1,0 +1,40 @@
+# Lore, Cast and Community
+
+## Canon boundaries
+
+BARCODE's original four are 6 Bit, DJ Floppydisc, Cache Back and Mac Modem. They retain their artist/performer identities; game roles do not reduce them to generic software classes. The game happens inside a simulation. Who built that simulation and how it relates to the recovery story remain unresolved until the finale is deliberately written.
+
+9 Bit is formed from negative parts separated from 6 Bit. He is not a former generic debugging utility or an unrelated evil clone. Do not insert him into the locked intro. His exact trait list, motive, first direct appearance and final resolution remain draft choices.
+
+Cache Back emerged during the clearing of callembini's laptop cache, initially believing he was callembini, and became distinct. Do not substitute an unrelated inventor/origin from a random legacy string. Mac Modem's “good virus” metaphor is specific to him; never label 6 Bit or the whole player/crew that way.
+
+Approved intro artwork/wording stay. *Observer Not Found* and NUL.TV/Willy the Warg maintain their own canon boundaries. A cameo/transmission does not import a whole separate mythology.
+
+## Character design language
+
+| Character | Gameplay concept, not universal move list |
+|---|---|
+| 6 Bit | Host/artist/producer; direct action, timing, crew center |
+| DJ Floppydisc | Tempo, waveform/pattern control, supportive manipulation |
+| Cache Back | Archives, restoration, checkpoint/recovery themes |
+| Mac Modem | Access, breach, instability and risk/reward |
+
+Supporting appearances may include Miss Bit as a transmitter/teleoperator, BNL-01 as a procedural liaison without omniscience, Cliff's maintenance chaos, Sheila through voice/screens/silhouette, Studio Rats as secrets, and W3T TDDY's guaranteed ally support. Exact scenes and new dialogue remain draft work; nobody gains a fifth player slot.
+
+## Twenty-eight purposeful records
+
+Use stable IDs `lore.l01.01` through each level's assigned count, distributed `3 / 4 / 5 / 4 / 5 / 4 / 3`. Each record gets one authored placement/reward, one distinct reveal purpose and a persisted collected flag. Required comprehension lives on the main route; optional discovery adds context and personality.
+
+Suggested reveal progression: unnamed anomalous waveform; distorted familiar cadence; evidence of a rejected response profile; partial separation record; direct 9 Bit contact; full appearance/location; then final context and choice. This cadence is a proposal, not permission to invent approved dialogue or lock his first appearance without review.
+
+The active legacy pools contain contradictory origin claims and many repetitive fragments. They are quarantined as final copy: use only vetted thematic ingredients, never automatically import their strings. Changing documentation does not remove those runtime strings; deterministic lore implementation remains on the roadmap.
+
+For each future record capture ID, level, exact location/reward, mandatory/optional status, reveal purpose, canon dependencies, draft text, copy approval and collected-once behavior. Final wording must not settle an open creator/ending question accidentally.
+
+## Community texture
+
+Use names/echoes in signs, stations, diagnostic signatures, hidden channels, scoreboards, merchants, route hints and support rewards. Suggested retained motifs include LoST M4RBLES scores/marbles, OREAGANOMIX remix/shop texture, M1ND_FANATIC diagnostics, D34D1TE_ASH riddles, H3LLCAT upper-route signage, Crowline rooftops/couriers and the separate NUL.TV dead-channel feed. These are candidate placements, not approvals for voice, likeness or music use.
+
+Record final spelling, the intended joke/use and existing permission before producing a specific portrait, voice, song or functional cameo. Use collaboration/community relationships respectfully and keep the world's in-world voice; avoid filler claiming a community member caused unapproved story events.
+
+Retain the specific community boundaries from the earlier pack: do not use “Brownout,” real personal names for these echoes, or a separate Call’em Bini/Bini Easter egg because Cache Back already represents him. Community members are not villains, kill targets, humiliating jokes or capturable creatures without their explicit approval. Existing approvals remain valid; recording them is not a requirement to ask again.

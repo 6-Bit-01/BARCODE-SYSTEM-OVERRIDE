@@ -32,7 +32,6 @@ const player = read('src/game/player.js');
 const spaceships = read('src/engine/spaceships.js');
 const renderer = read('src/engine/renderer.js');
 const index = read('index.html');
-const design = read('docs/design/LEVEL_01_VERTICAL_SLICE.md');
 const enemies = read('src/game/enemies.js');
 const knownIssues = read('docs/technical/KNOWN_ISSUES.md');
 
@@ -155,30 +154,18 @@ if (!spaceships.includes('if (window.BARCODE_DEBUG_FRAME_OWNERSHIP && (!this.las
 if (index.includes('gameStateDebugInterval = setInterval') && (!index.includes("window.addEventListener('beforeunload'") || !index.includes('clearInterval(window.gameStateDebugInterval)'))) {
   fail('debug gameStateDebugInterval must have explicit beforeunload cleanup.');
 }
-for (const phrase of [
-  'Level 1 is centered on 6 Bit',
-  'There is no kill-quota gate',
-  'There is no jammer-destruction gate',
-  'The jammer is not an enemy',
-  'PR-004 — authoritative beat clock',
-  'PR-008 — new boss and complete vertical slice'
-]) {
-  if (!design.includes(phrase)) fail(`Level 1 design contract is missing: ${phrase}`);
-}
-if (/without adding double-jump, slide, or a functional dash/.test(design)) {
-  fail('design contract must not forbid unapproved movement options.');
-}
-if (!design.includes('existing movement kit—including dash, stomp, and fast-fall') || !design.includes('does not pre-approve or forbid additional movement options')) {
-  fail('design contract must direct PR-005 to evaluate existing movement without pre-approving or forbidding options.');
-}
+// Design documents are reviewed against current owner decisions. This runtime
+// ownership check deliberately does not require historical PR-plan prose: the
+// former quota/Jammer/movement assertions contradicted later approved mechanics.
+// Current enemy/environment ownership and time-boundary notes remain required;
+// the old claim that the authored stage was a future PR no longer applies.
 for (const phrase of [
   'single active enemy owner',
   'authoritative defeat event',
   'JammerEnvironment',
-  'milliseconds at manager/API boundaries',
-  'authored Level 1 stage PR'
+  'milliseconds at manager/API boundaries'
 ]) {
-  if (!knownIssues.includes(phrase)) fail(`KNOWN_ISSUES.md must document active enemy physics debt: ${phrase}`);
+  if (!knownIssues.includes(phrase)) fail(`KNOWN_ISSUES.md must document active enemy ownership: ${phrase}`);
 }
 
 if (process.exitCode) process.exit(process.exitCode);

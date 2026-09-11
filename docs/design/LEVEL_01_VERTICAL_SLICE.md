@@ -1,88 +1,48 @@
-# Level 01 Vertical Slice Direction
+# Level 01 Vertical Slice
 
-## Authority and scope
+## Authority and current milestone
 
-This document is the authoritative Level 1 direction for the PR-004 through PR-008 overhaul sequence. PR-003 only establishes frame ownership and runtime cleanup; it does not add mechanics, levels, bosses, playable characters, artwork, dialogue, lore, or audio replacements.
+Level 1 is centered on 6 Bit. Its side-scrolling platforming and rhythm combat use the existing approved city, street frontage, flying traffic, sprite animations and music. The owner approved finishing the boss encounter on September 11, 2026. The current source-pack decision register supersedes the contradictory PR-004–PR-008 plans previously collected in this file.
 
-Level 1 is centered on 6 Bit. The game direction is a side-scrolling 16-bit rhythm platformer/beat-em-up where traversal alternates with compact combat arenas.
+The verified merged baseline is PR #25, commit `7788ebfab4d6231c18229bef9571d6b97b676764`. That baseline stops at `boss_ready`; the boss cannot deal or receive damage. The current branch extends that endpoint to combat, defeat, retry and Level 1 completion. See the source archive's generated manifest for its exact revision and `docs/source-pack/ACCEPTANCE.md` for verification status. A code implementation is not a Makko pass.
 
-Only 6 Bit, DJ Floppydisc, Cache Back, and Mac Modem are playable characters. This PR does not add, expose, or prototype the other playable characters.
+## Preserved play contract
 
-## Core play contract
+- Left/Right or A/D move; opposing directions cancel. Space/Up/W jump. Preserve the single-jump kit, buffer, variable height and ledge forgiveness.
+- Active tutorial Space belongs only to tutorial advance. H/R access unlocks at their tutorial steps. Background rhythm timing continues while R is hidden or inactive.
+- `R` toggles actual Rhythm Combat Mode; Down Arrow deals damage only after a successful rhythm judgment with that mode active. Ordinary movement remains immediate. Passive landing stomp remains lethal for ordinary enemies; it is not Down-key fast-fall.
+- H uses the existing short puzzle and health reward, including existing grounded/mode restrictions.
+- Retain normal enemy damage and feedback, the two-hit Signal Lift, authored rooftops, Signal Amp and three Level 1 fragment locations.
 
-- Down Arrow rhythm attacks require active Rhythm Combat Mode and a successful rhythm judgment.
-- Accurate beat timing improves damage, stagger, combo, signal recovery, or another owner-approved combat reward.
-- Music supplies the authoritative beat, bar, and phrase clock.
-- Enemies and hazards telegraph using musical timing.
-- The stage advances through authored spatial and musical milestones.
-- Traversal spaces should lead naturally into compact combat arenas, then back into traversal.
-- The boss transition occurs naturally at the final arena.
-- Hacking is optional/secondary and must remain short enough not to break musical flow.
+## Mission and boss transition
 
-## Gates and non-authoritative legacy concepts
+The 20-enemy post-tutorial objective is intentional. Four authored groups supply 4, 5, 5 and 6 mission enemies; tutorial defeats do not count. Existing encounter gates and paced spawns support that route.
 
-- There is no kill-quota gate.
-- There is no jammer-destruction gate.
-- The jammer is not an enemy and does not need a forced replacement object.
-- “City Scrambler” is not authoritative Level 1 boss design.
-- Existing boss art may only be repurposed if the owner approves the resulting identity.
-- 9 Bit and *Observer Not Found* are not automatically Level 1 boss material.
+At 20 mission defeats, the Broadcast Jammer appears once in the world half opposite the player. The Jammer is an environmental object owned by `BARCODE.JammerEnvironment`; it has 16 health and accepts exactly one damage per successful rhythm attack. H and passive stomp do not damage it.
 
-## Visual and asset direction
+Jammer destruction preserves the freeze, enemy purge, rightward camera pan, boss walk-in, flourish, camera return and control handoff. The existing boss presentation is the art basis for this milestone. Its generic gameplay label does not decide its final story identity or make it 9 Bit.
 
-The visual direction is damaged public-access television, VHS, obsolete computing, underground hip-hop, and 16-bit grime—not generic neon cyberpunk.
+## Boss encounter direction
 
-Existing approved player, enemy, parallax, particle, audio, dialogue, and UI assets should be reused intelligently where they support this direction and do not contradict locked prologue/art guidance.
+Use readable ground pressure, a clear jump/stomp opportunity, and rhythm counter windows built from the skills taught in the level. Telegraph before damage, show recovery, then combine understood patterns as pressure rises. Damaging a boss through an intended stomp opening does not change the lethal ordinary-enemy stomp rule.
 
-### Existing Level 1 environment stack
+Retry should return the player to a fair boss checkpoint without repeating the twenty-enemy route or entrance movie. Winning should end Level 1 clearly, preserve the result for the current session, and offer an honest endpoint while later campaign levels remain unimplemented. Do not claim that a persistent campaign save or Level 2 exists because the victory screen is present.
 
-- The approved far background `BG.png` is 1280×855.
-- The approved transparent street foreground `FG.png` is 1279×462.
-- The active non-tiled parallax draw path currently forces both images to 4400×1589. This approximately preserves the foreground aspect ratio but horizontally distorts the far background.
-- Three approved animated flying-car GIFs are already active: normal traffic renders between the background and street foreground, while occasional foreground flybys render over the game world.
-- PR-007 must preserve these approved assets and URLs, maintain the foreground/player ground alignment, correct the far-background presentation without replacing its artwork, and deliberately author traffic choreography around the authoritative beat clock.
-- PR-003 does not change environment scale, traffic timing, draw order, or visual output.
+Tuning values, animation selections and exact controls are implementation details recorded by the branch and handoff, not final balance approval. Check win, loss, pause, retry, stale attacks, repeat completion and full restart.
 
-Known missing assets that must be listed honestly before the vertical slice is complete:
+## Follow-on improvements
 
-- Owner-approved Level 1 boss identity and any required final boss art.
-- Authoritative beat/bar/phrase timing data for the chosen Level 1 music.
-- Final authored Level 1 spatial layout and arena boundaries.
-- Any new or adjusted enemy telegraph visuals needed for musical timing.
-- Any approved jammer presentation changes if the jammer remains as a non-enemy stage element.
+- Give each encounter group a distinct teaching purpose while keeping all twenty enemies.
+- Use selected beat/phrase telegraphs so music is legible in enemy behavior; do not quantize normal movement.
+- Distinguish timing miss, successful timing without a target, and damage dealt.
+- Consider Jammer presentation escalation after 4/8/12/16 hits; this is an approved direction for a later polish pass, not a claim that it exists now.
+- Compare visible enemy contact with damage geometry before tuning margins. The audit identified possible sprite-offset/scale disagreement; Makko reproduction is still needed.
+- Author the three Level 1 lore texts against the 28-piece plan; random legacy strings cannot supply final canon.
 
-## Planned PR sequence
+## Art and production
 
-1. PR-003 — frame ownership and runtime cleanup.
-2. PR-004 — authoritative beat clock.
-3. PR-005 — 6 Bit movement and beat-combat feel.
-4. PR-006 — enemies and encounter direction.
-5. PR-007 — rebuilt Level 1 stage, parallax, and progression.
-6. PR-008 — new boss and complete vertical slice.
+Preserve the current foreground/platform calibration and the approved background, foreground and three flying-car assets. The older source pack's aspect-ratio warning is historical audit context, not permission to reapply old geometry over the later roof/contact repairs. Reproduce any remaining defect in the current build first.
 
-## Deferred debt notes
+The style is damaged public-access television, VHS, obsolete computing, underground hip-hop and 16-bit grime. Prefer clear platform edges, bounded effects, telegraphs and contrast adjustments around the approved art. Request new animation only after the playable encounter proves exactly what it needs.
 
-- PR-004 should replace ad hoc rhythm timing with an authoritative music-derived beat, bar, and phrase clock.
-- PR-005 should evaluate and tune 6 Bit’s existing movement kit—including dash, stomp, and fast-fall—against the rhythm-combat direction. This document does not pre-approve or forbid additional movement options.
-- PR-006 should make enemy timing and telegraphs readable against the music without redesigning all combat at once.
-- PR-007 should remove reliance on kill quotas or jammer destruction as progression gates in favor of authored spatial/musical milestones.
-- PR-008 should introduce an owner-approved Level 1 boss identity and transition that grows naturally from the final arena.
-
-
-## PR #8 enemy/Jammer ownership note
-
-PR #8 establishes the single active enemy owner in `src/game/enemies.js`. Virus, Corrupted, and Firewall remain the only active enemy archetypes, with approximate prototype feel preserved pending final encounter tuning. Enemy defeats are an authoritative `EnemyManager` event and are not summed with sector or game-state projections.
-
-The Broadcast Jammer is owned by `BARCODE.JammerEnvironment`. It is an environmental trigger/presentation object, not an enemy, not a kill gate, and not destroyable. The compatibility presentation preserves the approved Makko sprite placement at `drawScale = 0.7` and `drawOffsetY = 190` from the environmental position. It exposes reveal/trigger/reset/dispose/status operations for future stage code, while the final Relay Stage sequence, boss transition, authored objectives, checkpoints, and final audiovisual choreography remain deferred to the authored Level 1 stage PR.
-
-Enemy simulation uses milliseconds at manager/API boundaries with explicit seconds conversion for position integration and behavior-local countdowns. Firewall lunge, glide, attack animation, idle-pause, and cooldown fields are named with `Seconds` suffixes when decremented by per-frame `dt`; simulation timestamp fields use `Ms`. Enemy/enemy and enemy/player collision orchestration is owned by `EnemyManager.update()`, including finite fallback directions for exact-overlap separation.
-
-## PR-009 combat foundation controls
-
-The Level 1 foundation now uses `window.BARCODE.ActionInput` for semantic input and `window.BARCODE.playerCombat` for the primary attack transaction. The approved 6 Bit movement kit for this foundation is left/right plus one normal jump; no double jump, dash, slide, air dash, fast-fall, stomp, or ground-pound requirement is active.
-
-Default controls are: Left/Right or A/D to move, Space/Up/W to jump, Down Arrow to primary attack, H to start the existing hacking system when gameplay accepts the action, P to pause, and R to activate/deactivate actual Rhythm Combat Mode. Standard gamepad defaults are left stick/D-pad movement, A/button 0 jump, X/button 2 primary, Y/button 3 interact, and Start/button 9 pause.
-
-H is blocked while airborne or while Rhythm Combat Mode is active. Explicit nearby-terminal targeting is deferred to a future scoped implementation.
-
-Down Arrow is the Level 1 rhythm attack. It deals damage only while Rhythm Combat Mode is active and the active music profile/transport returns a successful authored judgment; miss, unavailable, no-grid, not-ready, inactive, or cooldown inputs deal zero damage. Passive top-down landing stomp remains intentional and lethal. Final range, hitbox, animation readability, and encounter tuning are intentionally deferred.
+Historical changes in PR #8 established the single active enemy owner and authoritative defeat event in `EnemyManager`; those ownership decisions remain. Its non-destructible Jammer concept was superseded by the later explicit mission approval. The old PR-009 prose that excluded stomp was likewise superseded by the passive-stomp decision. Never reinstate these old restrictions from an archive.

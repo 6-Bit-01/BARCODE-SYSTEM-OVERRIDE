@@ -114,6 +114,7 @@
     "tools/check-baseline.js",
     "tools/check-enemy-ownership.js",
     "tools/check-frame-ownership.js",
+    "tools/check-level-01-boss.js",
     "tools/check-level-01-gameplay-dynamics.js",
     "tools/check-level-01-mission.js",
     "tools/check-level-01-smoothing.js",
@@ -466,7 +467,7 @@
     {
       "global": "window.player",
       "file": "src/game/player.js",
-      "line": 1840,
+      "line": 1846,
       "loaded": true
     },
     {
@@ -532,37 +533,37 @@
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 348,
+      "line": 349,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 375,
+      "line": 376,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 437,
+      "line": 438,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 455,
+      "line": 456,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 536,
+      "line": 537,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 576,
+      "line": 577,
       "loaded": false
     },
     {

@@ -38,7 +38,9 @@ window.BARCODE = window.BARCODE || {};
     window.isRunning = running || paused;
     window.isPaused = paused;
     if (window.gameState) {
-      window.gameState.running = running;
+      // Terminal screens keep the loop alive for retry input, but resuming or
+      // re-projecting lifecycle state must not restart completed/dead gameplay.
+      window.gameState.running = running && !window.gameState.gameOver && !window.gameState.victory;
       window.gameState.paused = paused;
     }
   }
