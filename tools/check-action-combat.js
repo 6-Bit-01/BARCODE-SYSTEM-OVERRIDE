@@ -293,7 +293,7 @@ pass('boss cinematic Rhythm Mode ownership');
   }
 
   let cinematicActive = true;
-  const rhythm = { active:true, isActive(){ return this.active; } };
+  const rhythm = { active:false, isActive(){ return this.active; } };
   s.window.rhythmSystem = rhythm;
   s.window.sector1Progression = { isBossCinematicActive: () => cinematicActive };
   player.grounded = true;
@@ -310,13 +310,13 @@ pass('boss cinematic Rhythm Mode ownership');
     play(name){ spriteAnimation = name; spriteCalls.played.push(name); this.playing = true; return { currentFrame:0, isInterrupted:false, elapsedTime:0, onCycle(){} }; }
   };
   player.updateState();
-  assert(player.state === 'idle' && rhythm.active, 'boss cinematic selects a neutral player pose without stopping Rhythm Mode');
+  assert(player.state === 'idle' && !rhythm.active, 'boss cinematic selects a neutral pose after progression ends Rhythm Mode');
   player.updateSpriteAnimation(16);
   assert(spriteCalls.played.at(-1) === '6_bit_idle_idle' && spriteCalls.updated === 0, 'cinematic replaces the attack frame with a frozen neutral frame without requiring optional sprite pause APIs');
   cinematicActive = false;
   player.updateState();
   player.updateSpriteAnimation(16);
-  assert(player.state === 'idle' && rhythm.active, 'active Rhythm Mode resumes without locking locomotion into the rhythm pose');
+  assert(player.state === 'idle' && !rhythm.active, 'presentation handoff cannot reactivate Rhythm Mode');
   assert(spriteCalls.played.at(-1) === '6_bit_idle_idle' && spriteCalls.updated === 1, 'cinematic release resumes locomotion-owned animation through the normal update path');
 }
 pass('frame-aware player foot anchoring and cinematic rhythm handoff');

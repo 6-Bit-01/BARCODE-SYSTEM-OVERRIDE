@@ -1,5 +1,16 @@
 # Acceptance and Test Status
 
+## Current Jammer transition retest — September 11, 2026
+
+Review branch: `agent/jammer-rhythm-exit`, based on merged PR #29. Owner verification pending; preceding playtest results remain historical.
+
+1. Finish the Jammer with R + correctly timed Down. Rhythm UI/stance must exit immediately on hit sixteen.
+2. Press R repeatedly through freeze, purge, pan, entrance, close-up, flourish, hold and camera return. It must not reactivate; movement remains frozen for the cinematic.
+3. At control handoff, move normally. Down must require R again. Press R, then verify normal boss rhythm counters.
+4. Listen for continuous music/beat timing across the transition. No restart, duplicated music or held final-attack pose.
+
+Production-module assertions cover these lifecycle properties and transport continuity. Makko confirmation remains necessary. New overhaul/effect ideas are proposals and require a separately scoped implementation pass.
+
 ## Current test target — musical combat pass
 
 Use `agent/level1-musical-combat` at the revision in the generated manifest. PR #28 is merged. The owner's latest run was substantially better and reached victory, but the difficult boss was defeated through an endless head-bounce exploit. Current acceptance is **pending for the new branch**, and the older test sections below remain historical evidence.

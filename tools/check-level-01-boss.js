@@ -112,7 +112,26 @@ function createRig() {
       assert.strictEqual(hit.reason, 'hit', 'Jammer-only successful rhythm attack reports a hit');
     }
     assert.strictEqual(p.state, 'jammer_destroyed_freeze');
-    until(() => p.state === 'boss_ready', 'destruction cinematic reaches boss-ready');
+    assert.strictEqual(w.rhythmSystem.isActive(), false, 'the real final Jammer attack immediately ends Rhythm Mode');
+    assert.strictEqual(w.player.primaryAttackAnimationMs, 0, 'the final attack pose cannot bleed into boss handoff');
+    assert.strictEqual(w.rhythmSystem.running, true, 'destruction leaves background rhythm running');
+    assert.strictEqual(w.rhythmSystem.trackStarted, true, 'destruction preserves track readiness');
+    const beatsBefore = w.rhythmSystem.globalBeatCount;
+    const generationBefore = w.BARCODE.MusicTransport.getDiagnostics().generation;
+    const seen = new Set();
+    for (let elapsed = 0; p.state !== 'boss_ready' && elapsed < 30000; elapsed += 25) {
+      seen.add(p.state);
+      assert.strictEqual(w.rhythmSystem.showRhythmMode().reason, 'progression-suppressed', 'R cannot reactivate during any cinematic phase');
+      tick();
+      w.rhythmSystem.update(25);
+    }
+    assert.strictEqual(p.state, 'boss_ready', 'destruction cinematic reaches boss-ready');
+    assert.strictEqual(seen.size, 8, 'all eight cinematic phases were checked');
+    assert(w.rhythmSystem.globalBeatCount > beatsBefore, 'background beats advance throughout the cinematic');
+    assert.strictEqual(w.BARCODE.MusicTransport.getDiagnostics().generation, generationBefore, 'cinematic never restarts the music transport');
+    assert.strictEqual(w.rhythmSystem.isActive(), false, 'camera handoff does not restore Rhythm Mode');
+    assert.strictEqual(w.player.controlsDisabled, false, 'boss handoff restores normal controls');
+    assert.strictEqual(w.rhythmSystem.showRhythmMode().ok, true, 'a fresh R activation works at boss-ready');
     return p.boss;
   }
   return { w, p, context, calls, listeners, timers, tick, until, beat, reachReady };
