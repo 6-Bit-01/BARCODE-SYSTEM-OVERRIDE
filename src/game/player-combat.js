@@ -99,12 +99,17 @@ window.FILE_MANIFEST.push({
       ctx.fillStyle = 'rgba(0, 8, 16, 0.88)'; ctx.fillRect(x - 70, y - 25, 140, 38);
       ctx.textAlign = 'center'; ctx.font = 'bold 12px monospace';
       ctx.fillStyle = lost ? '#ffbd70' : '#ffffff';
-      ctx.fillText(lost ? 'PRESS R — RHYTHM OFF' : 'DOWN ON BEAT', x, y - 10);
+      ctx.fillText(lost ? 'PRESS R — RHYTHM OFF' : 'DOWN: BEAT · R: EXIT', x, y - 10);
       if (active) {
         const time = window.audioSystem?.context?.currentTime;
         const sample = Number.isFinite(time) ? BARCODE.MusicTransport?.sample?.(time) : null;
         if (sample?.running && sample.grid) {
           const fraction = sample.grid.beatFloat % 1;
+          const footY = player.position.y + (window.Player?.VISUAL_FOOT_OFFSET_Y || 72);
+          ctx.strokeStyle = 'rgba(0, 255, 255, 0.3)'; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.ellipse(x, footY, 46, 12, 0, 0, Math.PI * 2); ctx.stroke();
+          ctx.strokeStyle = '#7cffe2';
+          ctx.beginPath(); ctx.ellipse(x, footY, 46 + (1 - fraction) * 22, 12 + (1 - fraction) * 6, 0, 0, Math.PI * 2); ctx.stroke();
           const profile = BARCODE.MusicProfiles?.getActive?.();
           const rule = profile?.judgmentRules?.find(r => r.target === 'quarter-note' || /attack/.test(r.id));
           const onBeat = Math.min(fraction, 1 - fraction) * sample.grid.beatDurationSec * 1000 <= (rule?.windowsMs?.perfect ?? 0);

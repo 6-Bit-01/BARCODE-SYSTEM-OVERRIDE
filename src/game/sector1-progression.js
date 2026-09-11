@@ -520,13 +520,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       window.BARCODE?.playerCombat?.reset?.();
       window.inputManager?.resetActionEdges?.();
       // Reset feedback only. Do not stop, seek, or restart the music transport.
+      window.rhythmSystem?.hideRhythmMode?.();
       window.rhythmSystem?.restart?.();
       Object.assign(player.position, { x: checkpoint.playerX, y: GROUND_Y });
       Object.assign(player.velocity, { x: 0, y: 0 });
       Object.assign(player, { health: player.maxHealth, grounded: true, controlsDisabled: false,
         allowMovement: true, isEntering: false, supportedSurfaceId: null,
         invulnerable: false, invulnerableUntil: 0, _enemyInvulnerableUntilMs: 0,
-        primaryAttackAnimationMs: 0, coyoteTimerMs: 0, jumpBufferTimerMs: 0,
+        primaryAttackAnimationMs: 0, afterimageMs: 0, coyoteTimerMs: 0, jumpBufferTimerMs: 0,
         jumpHeldMs: 0, jumpReleaseQueued: false, airInput: 0 });
       this.boss.x = checkpoint.bossX;
       this.boss.y = GROUND_Y;
@@ -557,7 +558,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (!ctx || !this.signalLift || !this.isSignalLiftAvailable()) return;
       const lift = this.signalLift;
       const charged = lift.charges >= SIGNAL_LIFT.requiredCharges;
-      const pulse = 0.72 + Math.sin(Date.now() / 150) * 0.12;
+      const pulse = 0.72 + Math.sin((window.gameState?.gameTime || 0) / 150) * 0.12;
       ctx.save();
       // Rails make the platform read as a deliberate street elevator instead
       // of an unexplained floating collision bar.
@@ -589,6 +590,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       ctx.textAlign = 'right';
       ctx.textBaseline = 'middle';
       ctx.fillText('RHYTHM LIFT', lift.x + lift.w - 8, lift.y + 7);
+      if (lift.chargeFxMs > 0) {
+        const progress = 1 - lift.chargeFxMs / 520;
+        const center = lift.x + lift.w / 2;
+        ctx.strokeStyle = `rgba(124, 255, 226, ${1 - progress})`; ctx.lineWidth = 3;
+        for (const side of [-1, 1]) {
+          const startX = center + side * (16 + (1 - progress) * 65);
+          ctx.beginPath(); ctx.moveTo(startX, lift.y - (1 - progress) * 80);
+          ctx.lineTo(center + side * 12, lift.y + 7); ctx.stroke();
+        }
+        ctx.fillStyle = `rgba(255, 255, 255, ${0.35 * (1 - progress)})`;
+        ctx.fillRect(lift.x, lift.y, lift.w, 14);
+      }
       if (Math.abs((this.player?.position?.x ?? Infinity) - (lift.x + lift.w / 2)) < 220 && lift.y === SIGNAL_LIFT.bottomY) {
         ctx.font = 'bold 16px monospace';
         ctx.textAlign = 'center';
@@ -612,6 +625,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     updateSignalLift(deltaTime = 0) {
       if (!this.signalLift) this.resetSignalLift();
       const lift = this.signalLift;
+      lift.chargeFxMs = Math.max(0, (lift.chargeFxMs || 0) - deltaTime);
       lift.prevY = lift.y;
       const player = this.player || window.player;
       if (!this.isSignalLiftAvailable()) {
@@ -639,7 +653,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (supported && dy && player) player.position.y += dy;
     }
     resetSignalLift() {
-      this.signalLift = { ...SIGNAL_LIFT, y: SIGNAL_LIFT.bottomY, prevY: SIGNAL_LIFT.bottomY, state: 'dormant', charges: 0, returnTimerMs: SIGNAL_LIFT.returnDelayMs };
+      this.signalLift = { ...SIGNAL_LIFT, y: SIGNAL_LIFT.bottomY, prevY: SIGNAL_LIFT.bottomY, state: 'dormant', charges: 0, chargeFxMs: 0, returnTimerMs: SIGNAL_LIFT.returnDelayMs };
       const player = this.player || window.player;
       if (player?.supportedSurfaceId === SIGNAL_LIFT.id) player.supportedSurfaceId = null;
     }
@@ -648,6 +662,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (!this.isSignalLiftAvailable()) return { ok: false, reason: 'unavailable' };
       const player = this.player || window.player;
       if (!this.isPlayerSupportedByLift(player)) return { ok: false, reason: 'not-supported' };
+      this.signalLift.chargeFxMs = 520;
       this.signalLift.charges = Math.min(SIGNAL_LIFT.requiredCharges, this.signalLift.charges + 1);
       this.signalLift.state = this.signalLift.charges >= SIGNAL_LIFT.requiredCharges ? 'charged' : 'charging';
       return { ok: true, charges: this.signalLift.charges, state: this.signalLift.state };

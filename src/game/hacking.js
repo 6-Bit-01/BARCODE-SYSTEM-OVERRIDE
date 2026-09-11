@@ -39,6 +39,7 @@ window.HackingSystem = class HackingSystem {
     this.terminalHistory = [];
     this.cursorBlink = 0;
     this.feedback = null;
+    this.resultFx = null;
     this.tutorialMode = false;
     this.tutorialObjective = 'hack_start';
     this.tutorialCompleteObjective = 'hack_complete';
@@ -75,7 +76,7 @@ window.HackingSystem = class HackingSystem {
   }
 
   restoreSuspendedRhythmMode() {
-    const shouldRestore = !!(this.suspendedRhythmMode && this.previousRhythmModeActive);
+    const shouldRestore = !!(this.suspendedRhythmMode && this.previousRhythmModeActive && !window.gameState?.gameOver && (window.player?.health ?? 1) > 0 && !window.sector1Progression?.isGameplaySuppressed?.());
     try {
       if (shouldRestore) {
         if (window.rhythmSystem?.showRhythmMode) window.rhythmSystem.showRhythmMode();
@@ -216,6 +217,7 @@ window.HackingSystem = class HackingSystem {
     this.clearOwnedTimeouts();
     this.active = true;
     this.phase = 'boot';
+    this.resultFx = null;
     this.phaseElapsedMs = 0;
     this.sessionElapsedMs = 0;
     this._startTime = 0;
@@ -251,6 +253,10 @@ window.HackingSystem = class HackingSystem {
 
   update(deltaTime) {
     const delta = Math.max(0, Number.isFinite(deltaTime) ? deltaTime : 0);
+    if (this.resultFx) {
+      this.resultFx.elapsedMs += delta;
+      if (this.resultFx.elapsedMs >= 1000) this.resultFx = null;
+    }
     if (this.feedback) {
       this.feedback.timer -= delta / (1000 / 60);
       this.feedback.opacity = Math.max(0, Math.min(1, this.feedback.timer / 60));
@@ -339,6 +345,7 @@ window.HackingSystem = class HackingSystem {
     this.puzzleReadyAt = 0;
     this._lastResultFailed = outcome !== 'success';
     this.terminalLines = terminalLines;
+    this.resultFx = outcome === 'cancel' ? null : { outcome, elapsedMs: 0 };
     this.cooldownUntil = Date.now() + this.cooldownMs;
     this.runGeneration++;
     this.clearOwnedTimeouts();
@@ -375,7 +382,8 @@ window.HackingSystem = class HackingSystem {
     return true;
   }
 
-  cancel() {
+  cancel({ restoreRhythm = true } = {}) {
+    if (!restoreRhythm) { this.previousRhythmModeActive = false; this.suspendedRhythmMode = false; }
     return !!this.finishSession('cancel', [
       '> SESSION CANCELLED BY USER', '> TERMINATING CONNECTION...', '> NETWORK ACCESS REVOKED'
     ]);
@@ -423,93 +431,101 @@ window.HackingSystem = class HackingSystem {
 
   showSuccessFeedback() { this.feedback = { type: 'success', text: 'ACCESS GRANTED', opacity: 1, timer: 60 }; }
   showFailureFeedback() { this.feedback = { type: 'failure', text: 'ACCESS DENIED', opacity: 1, timer: 60 }; }
-  showTimeoutFeedback() {
-    window.hackTimeoutMessage = { text: 'SIGNAL TIMEOUT - TRY AGAIN', timer: 120, opacity: 1 };
+  showTimeoutFeedback() { this.feedback = { type: 'failure', text: 'SIGNAL TIMEOUT', opacity: 1, timer: 60 }; }
+
+  getPresentation() {
+    const phase = this.phase;
+    const duration = phase === 'boot' ? this.bootDurationMs : phase === 'display' ? this.displayTime : this.answerDurationMs;
+    return { phase, remainingMs: Math.max(0, duration - this.phaseElapsedMs),
+      progress: Math.max(0, Math.min(1, this.phaseElapsedMs / Math.max(1, duration))),
+      heading: phase === 'boot' ? 'ESTABLISHING UPLINK' : phase === 'display' ? 'READ THE SIGNAL' : 'RECONSTRUCT THE SIGNAL' };
   }
 
   draw(ctx) {
-    if (this.feedback) {
-      ctx.save();
-      ctx.globalAlpha = this.feedback.opacity;
-      ctx.fillStyle = this.feedback.type === 'success' ? '#00ff00' : '#ff0000';
-      ctx.font = 'bold 48px Orbitron';
-      ctx.textAlign = 'center';
-      ctx.fillText(this.feedback.text, 960, 540);
-      ctx.restore();
-      return;
-    }
-    if (!this.active) return;
-
+    if (!this.active && !this.feedback && !this.resultFx) return;
     ctx.save();
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.95)';
-    ctx.fillRect(400, 200, 1120, 440);
-    ctx.fillStyle = 'rgba(0, 255, 0, 0.02)';
-    for (let y = 200; y < 640; y += 2) ctx.fillRect(400, y, 1120, 1);
-    ctx.strokeStyle = '#00ff00';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(400, 200, 1120, 440);
-    ctx.fillStyle = '#00ff00';
-    ctx.font = 'bold 20px monospace';
-    ctx.textAlign = 'left';
-    ctx.fillText('BARCODE NETWORK TERMINAL v3.7', 420, 230);
-    ctx.font = '14px monospace';
-    ctx.textAlign = 'right';
-    ctx.fillText('STATUS: CONNECTED', 1500, 230);
-    if (this.phase === 'answer') {
-      const remaining = Math.max(0, Math.ceil((this.answerDurationMs - this.phaseElapsedMs) / 1000));
-      ctx.fillStyle = remaining <= 3 ? '#ff0000' : '#ffff00';
-      ctx.font = '12px monospace';
-      ctx.fillText(`TIME: ${remaining}s`, 1500, 250);
+    ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left'; ctx.shadowBlur = 0;
+    if (!this.active) {
+      const success = this.resultFx?.outcome === 'success' || this.feedback?.type === 'success';
+      const color = success ? '#91ffe0' : '#ffb16e';
+      ctx.globalAlpha = this.feedback?.opacity ?? 1;
+      ctx.fillStyle = 'rgba(5, 14, 25, 0.94)'; ctx.fillRect(650, 260, 620, 120);
+      ctx.fillStyle = color; ctx.fillRect(650, 260, 5, 120);
+      ctx.font = 'bold 28px monospace'; ctx.fillText(this.feedback?.text || (success ? 'ACCESS GRANTED' : 'SIGNAL INTERRUPTED'), 682, 307);
+      ctx.font = '17px monospace'; ctx.fillStyle = '#d3e4eb';
+      ctx.fillText(success ? 'REPAIR RECEIVED · SIGNAL RESTORED' : this.resultFx?.outcome === 'timeout' ? 'Time expired. Reconnect after cooldown.' : 'Code mismatch. Reconnect after cooldown.', 682, 345);
+      ctx.globalAlpha = 1;
+      this.drawResultTransfer(ctx);
+      ctx.restore(); return;
     }
-
-    ctx.textAlign = 'left';
-    const startY = 270;
-    const lineHeight = 22;
-    const maxLines = 12;
-    this.terminalLines.slice(0, maxLines).forEach((line, index) => {
-      const portMatch = line.match(/\s+(\d+)\.\s+PORT\s+(\d+):\s+(OPEN|CLOSED)/);
-      ctx.shadowColor = '#00ff00';
-      ctx.shadowBlur = 2;
-      if (portMatch?.[3] === 'OPEN') {
-        ctx.fillStyle = '#00ff00';
-        ctx.font = 'bold 25px monospace';
-      } else if (portMatch?.[3] === 'CLOSED') {
-        ctx.fillStyle = '#ff6600';
-        ctx.font = '21px monospace';
-      } else if (this.currentPuzzle?.type === 2 && !this.currentPuzzle.hidden && line.trim() === this.currentPuzzle.answer) {
-        ctx.fillStyle = '#ffff00';
-        ctx.font = 'bold 38px monospace';
-      } else if (line.includes('ERROR') || line.includes('DENIED')) {
-        ctx.fillStyle = '#ff0000';
-        ctx.font = '16px monospace';
-      } else if (line.includes('MEMORIZE')) {
-        ctx.fillStyle = '#ffff00';
-        ctx.font = 'bold 18px monospace';
-      } else {
-        ctx.fillStyle = '#00ff00';
-        ctx.font = '16px monospace';
-      }
-      ctx.fillText(line, 420, startY + index * lineHeight);
+    const presentation = this.getPresentation();
+    const urgent = this.phase === 'answer' && presentation.remainingMs <= 1500;
+    const color = urgent ? '#ffb16e' : '#91ffe0';
+    ctx.fillStyle = 'rgba(4, 13, 25, 0.92)'; ctx.fillRect(460, 190, 1000, 420);
+    ctx.strokeStyle = '#3c827f'; ctx.lineWidth = 2; ctx.strokeRect(460, 190, 1000, 420);
+    ctx.fillStyle = '#91ffe0'; ctx.font = 'bold 23px monospace'; ctx.fillText('BARCODE / SIGNAL TERMINAL', 488, 231);
+    ctx.font = '15px monospace'; ctx.fillStyle = '#aebdcc'; ctx.textAlign = 'right';
+    ctx.fillText('ESC: DISCONNECT', 1432, 231); ctx.textAlign = 'left';
+    const labels = ['01 CONNECT', '02 READ', '03 INPUT'];
+    labels.forEach((label, i) => {
+      const selected = ['boot', 'display', 'answer'][i] === this.phase;
+      ctx.fillStyle = selected ? '#91ffe0' : '#152d3a'; ctx.fillRect(488 + i * 314, 250, 298, 29);
+      ctx.fillStyle = selected ? '#071a24' : '#9ab2c2'; ctx.font = 'bold 15px monospace'; ctx.fillText(label, 500 + i * 314, 270);
     });
-
-    const inputY = startY + maxLines * lineHeight + 20;
-    ctx.fillStyle = '#00ff00';
-    ctx.font = 'bold 16px monospace';
-    ctx.fillText(this.phase === 'answer' ? '> ' : '> SECURE INPUT PENDING...', 420, inputY);
-    if (this.phase === 'answer') {
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 24px monospace';
-      ctx.fillText(this.inputText, 450, inputY);
-      if (this.cursorBlink < 30) {
-        ctx.fillStyle = '#00ff00';
-        ctx.fillRect(450 + ctx.measureText(this.inputText).width, inputY - 20, 12, 28);
+    ctx.fillStyle = '#f1f6fb'; ctx.font = 'bold 22px monospace'; ctx.fillText(presentation.heading, 488, 319);
+    ctx.textAlign = 'right'; ctx.fillStyle = color; ctx.font = 'bold 22px monospace';
+    ctx.fillText(`${(presentation.remainingMs / 1000).toFixed(1)}s`, 1432, 319); ctx.textAlign = 'left';
+    ctx.fillStyle = '#19313e'; ctx.fillRect(488, 336, 944, 5);
+    ctx.fillStyle = color; ctx.fillRect(488, 336, 944 * (1 - presentation.progress), 5);
+    if (this.phase === 'boot') {
+      ctx.fillStyle = '#adbfcd'; ctx.font = '20px monospace'; ctx.fillText('Scanning ports · negotiating secure access', 488, 388);
+      ctx.fillStyle = 'rgba(145, 255, 224, 0.28)'; ctx.fillRect(488 + presentation.progress * 920, 358, 24, 85);
+    } else if (this.phase === 'display' && !this.currentPuzzle?.hidden) {
+      if (this.currentPuzzle?.type === 1) {
+        this.currentPuzzle.ports.forEach((port, i) => {
+          const x = 488 + i * 314;
+          ctx.fillStyle = '#102431'; ctx.fillRect(x, 358, 298, 86);
+          ctx.font = 'bold 27px monospace'; ctx.fillStyle = '#f1f6fb'; ctx.fillText(String(port.number), x + 16, 391);
+          ctx.font = 'bold 16px monospace'; ctx.fillStyle = port.status === 'OPEN' ? '#91ffe0' : '#d5a18b'; ctx.fillText(port.status, x + 16, 425);
+        });
+      } else {
+        ctx.fillStyle = '#f6e9a3'; ctx.font = 'bold 46px monospace'; ctx.textAlign = 'center'; ctx.fillText(this.currentPuzzle?.display || '', 960, 418); ctx.textAlign = 'left';
       }
+    } else {
+      ctx.fillStyle = '#b7c8d4'; ctx.font = '20px monospace';
+      ctx.fillText(this.puzzleType === 1 ? 'Enter the port number marked OPEN.' : 'Enter the sequence you just saw.', 488, 393);
+      ctx.fillStyle = '#718897'; ctx.font = '16px monospace'; ctx.fillText('The scan is hidden. Your input is below.', 488, 430);
     }
-    ctx.fillStyle = '#00ff00';
-    ctx.font = '12px monospace';
-    ctx.globalAlpha = 0.7;
-    ctx.fillText('[ENTER] Submit | [ESC] Cancel | [0-9] Input', 420, inputY + 40);
+    ctx.fillStyle = '#07101c'; ctx.fillRect(488, 464, 944, 78);
+    ctx.strokeStyle = this.phase === 'answer' ? color : '#233c4a'; ctx.strokeRect(488, 464, 944, 78);
+    ctx.fillStyle = this.phase === 'answer' ? '#f1f6fb' : '#869aab'; ctx.font = 'bold 29px monospace';
+    ctx.fillText(this.phase === 'answer' ? '> ' + (this.inputText || '_____') : '> INPUT LOCKED UNTIL SCAN ENDS', 507, 513);
+    if (this.phase === 'answer' && this.cursorBlink < 30 && this.inputText) {
+      const width = ctx.measureText('> ' + this.inputText).width; ctx.fillStyle = color; ctx.fillRect(509 + width, 489, 11, 28);
+    }
+    ctx.fillStyle = '#aebdcc'; ctx.font = '16px monospace';
+    ctx.fillText(this.phase === 'answer' ? '0–9: TYPE   BACKSPACE: CORRECT   ENTER: SUBMIT' : 'Memorize the signal. Input opens automatically.', 488, 579);
+    if (this.feedback) { ctx.textAlign = 'right'; ctx.fillStyle = color; ctx.font = 'bold 14px monospace'; ctx.fillText(this.feedback.text, 1432, 597); }
     ctx.restore();
+  }
+
+  drawResultTransfer(ctx) {
+    if (!this.resultFx) return;
+    const t = this.resultFx.elapsedMs / 1000;
+    if (this.resultFx.outcome === 'success') {
+      // Screen-space repair packets return to the existing top-left health HUD.
+      for (let i = 0; i < 4; i++) {
+        const p = Math.max(0, Math.min(1, t * 1.5 - i * 0.08));
+        const x = 960 + (200 - 960) * p;
+        const y = 320 + (60 - 320) * p - Math.sin(p * Math.PI) * 75;
+        ctx.fillStyle = `rgba(145, 255, 224, ${0.85 * (1 - t)})`; ctx.fillRect(x - 5, y - 5, 10, 10);
+      }
+      ctx.strokeStyle = `rgba(145, 255, 224, ${Math.max(0, t - 0.45) * 1.3})`;
+      ctx.lineWidth = 2; ctx.strokeRect(28, 28, 344, 64);
+    } else {
+      ctx.fillStyle = `rgba(255, 177, 110, ${0.5 * (1 - t)})`;
+      for (let i = 0; i < 4; i++) ctx.fillRect(650 + ((i * 173 + t * 300) % 550), 260 + i * 30, 70, 2);
+    }
   }
 
   isActive() { return this.active; }
@@ -520,6 +536,7 @@ window.HackingSystem = class HackingSystem {
     const shouldRestore = this.active || this.suspendedRhythmMode;
     this.active = false;
     this.phase = 'idle';
+    this.resultFx = null;
     this.phaseElapsedMs = 0;
     this.sessionElapsedMs = 0;
     this.cooldownUntil = 0;

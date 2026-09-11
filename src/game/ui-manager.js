@@ -218,7 +218,7 @@ window.drawGameUI = function(ctx) {
   }
   
   // Draw hacking interface
-  if (window.hackingSystem && typeof window.hackingSystem.isActive === 'function' && window.hackingSystem.isActive()) {
+  if (!bossCinematicActive && !window.gameState.gameOver && !window.gameState.victory && window.hackingSystem && (window.hackingSystem.isActive?.() || window.hackingSystem.feedback || window.hackingSystem.resultFx)) {
     window.hackingSystem.draw(ctx);
   }
   

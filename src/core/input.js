@@ -148,6 +148,9 @@ window.InputManager = class InputManager {
       } else {
         const activation = window.rhythmSystem.showRhythmMode ? window.rhythmSystem.showRhythmMode() : (window.rhythmSystem.show ? window.rhythmSystem.show() : { ok: false, reason: 'unavailable' });
         const active = window.rhythmSystem.isActive && window.rhythmSystem.isActive();
+        if (activation?.reason === 'land-to-enter' && window.BARCODE?.playerCombat) window.BARCODE.playerCombat.feedback = {
+          text: 'LAND TO ENTER RHYTHM MODE', color: '#ffbd70', expiresAt: (window.gameState?.gameTime || 0) + 1000
+        };
         if (activation && activation.ok && active && window.tutorialSystem && window.tutorialSystem.isActive && window.tutorialSystem.isActive() && Number(window.tutorialSystem.storyChapter) === 2 && window.tutorialSystem.checkObjective) window.tutorialSystem.checkObjective('rhythm_start');
       }
     }

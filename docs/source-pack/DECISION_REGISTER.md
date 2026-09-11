@@ -1,5 +1,9 @@
 # Decision Register
 
+## September 11 animation, mode and effects approval
+
+The owner said "Proceed with the next pass" after the recommendation to implement animation transitions, a planted rhythm stance, hacking presentation and the first inexpensive effects, then confirmed merging PR #30. This authorizes the scoped `agent/level1-animation-effects` pass: grounded R entry, explicit exit for traversal, preserved lift/forced motion, continuous background timing, existing hack rules/rewards, contact shadows, landing/stomp/attack effects, lift energy and subtle sign pulses. It does not approve replacement assets, new movement abilities, altered boss balance or all remaining proposals. Makko acceptance is separate.
+
 Statuses: **LOCKED** = explicit retained requirement; **APPROVED DIRECTION** = September 11 direction approved for development, details remain tunable; **OPEN** = no final choice; **SUPERSEDED** = historical instruction to retire.
 
 | ID | Status | Decision / source |

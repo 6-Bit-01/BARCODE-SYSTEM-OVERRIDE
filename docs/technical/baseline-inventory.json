@@ -117,6 +117,7 @@
     "tools/check-level-01-boss.js",
     "tools/check-level-01-gameplay-dynamics.js",
     "tools/check-level-01-mission.js",
+    "tools/check-level-01-presentation.js",
     "tools/check-level-01-smoothing.js",
     "tools/check-makko-hotfix.js",
     "tools/check-music-profiles.js",
@@ -371,7 +372,7 @@
     {
       "global": "window.enemyManager",
       "file": "tools/check-action-combat.js",
-      "line": 482,
+      "line": 484,
       "loaded": false
     },
     {
@@ -437,19 +438,19 @@
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 479,
-      "loaded": false
-    },
-    {
-      "global": "window.gameState",
-      "file": "tools/check-action-combat.js",
       "line": 48,
       "loaded": false
     },
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 535,
+      "line": 481,
+      "loaded": false
+    },
+    {
+      "global": "window.gameState",
+      "file": "tools/check-action-combat.js",
+      "line": 537,
       "loaded": false
     },
     {
@@ -467,7 +468,7 @@
     {
       "global": "window.player",
       "file": "src/game/player.js",
-      "line": 1870,
+      "line": 1779,
       "loaded": true
     },
     {
@@ -491,7 +492,7 @@
     {
       "global": "window.player",
       "file": "tools/check-action-combat.js",
-      "line": 480,
+      "line": 482,
       "loaded": false
     },
     {
