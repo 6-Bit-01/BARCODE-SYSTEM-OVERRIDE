@@ -1,5 +1,15 @@
 # Changelog
 
+## v5 repair — September 11, 2026 — first owner playtest
+
+- Recorded merged PR #27 at `a69384e5c647e0f1f457564ccbb3c29cd37e2059` and the owner’s failed acceptance findings.
+- Prevented tutorial/pre-trigger gate bypass; kept the boss fixed in world space through camera return.
+- Recalibrated boss foot rows and neutral body scale from the existing sheets; corrected both runtime anchor paths and manifest scale handling.
+- Added safe guarded/repeated boss-stomp rebounds with cyan-only damage. The reported instant death remains a Makko verification item, not a claimed reproduced full-health kill.
+- Added six safe opposite-half Jammer slots and a readable two-beat lift prompt.
+- Extended production-module checks for boundaries, every placement slot, actual sprite draw arguments, offscreen pursuit and guarded/cyan landings at one and three health. Updated obsolete tests that explicitly required camera-carried boss motion.
+- Regenerated the baseline inventory only for inspected source-line shifts; no runtime graph or asset changes were hidden. Current repair is unmerged pending owner Makko acceptance.
+
 ## v5 — September 11, 2026 — Level 1 completion milestone
 
 Owner approval: “HELL yeah. Let's lock that in with a new source zip that you regularly update and let's proceed.”
@@ -15,7 +25,7 @@ Owner approval: “HELL yeah. Let's lock that in with a new source zip that you 
 - Retained the seven-level working map, original-four roster, simulation/9 Bit boundaries, 28-piece lore plan, Sample collection, separate Full Mix arrangement, art reuse and deliberate asset workflow. Provisional titles/identities/endings stay marked.
 - Added source-archive maintenance protocol, exact-revision manifest/hash support and preserved historical visual/asset references without nested old ZIPs.
 
-The accompanying boss implementation remains an unmerged milestone awaiting owner Makko acceptance. Its exact changes and automated result belong to the exported source and generated evidence, not this historical release note. A later update must explicitly record acceptance and the actual merged SHA before describing it as merged.
+At v5 creation, the boss implementation was unmerged and awaiting owner Makko acceptance. PR #27 subsequently merged; the repair entry above records that merge and the owner’s unsuccessful first playtest. Do not infer Makko acceptance from the merge.
 
 ## Historical context
 

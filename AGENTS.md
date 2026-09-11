@@ -15,6 +15,7 @@ The owner approved progressing from the existing Level 1 boss entrance to a fini
 - `R` is actual Rhythm Combat Mode. Down Arrow damage requires active Rhythm Combat Mode and a successful rhythm judgment. Passive top-down landing stomp remains intentional and lethal against ordinary enemies.
 - H and R retain their tutorial access locks. The rhythm/audio transport and timing state continue in the background even while the mode is hidden, locked or inactive; normal pause remains a separate lifecycle state.
 - `H` starts the existing short hack puzzle. Its existing availability rules and one-health-bar success reward remain.
+- Tutorial and pre-encounter boundaries must prevent crossing a future closed gate. Boss world position must not be tied to cinematic camera motion; animation scale/feet must remain consistent. Jammer placement must clear the lift plus its full attack range. These are September 11 owner playtest corrections.
 - Preserve the two-hit rhythm-powered lift, authored rooftops, and approved player/contact geometry. Backend ownership changes are not permission to remove mechanics.
 - Level 1 requires 20 post-tutorial mission defeats through four authored encounter groups. Tutorial kills do not count.
 - At 20 mission defeats the Broadcast Jammer appears once in the opposite world half. It has 16 health and accepts one damage per successful rhythm attack; H and passive stomp do not damage it. It remains an environmental object owned by `BARCODE.JammerEnvironment`, not an ordinary enemy.

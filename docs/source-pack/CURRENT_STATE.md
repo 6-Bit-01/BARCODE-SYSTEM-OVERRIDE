@@ -19,13 +19,21 @@ Repository: `6-Bit-01/BARCODE-SYSTEM-OVERRIDE`. Baseline commit: `7788ebfab4d623
 
 The preceding audit reported `npm test` and all-JavaScript syntax checks passing at this baseline. This is historical evidence, not the new branch's result; use the current archive's supplied test receipt for that.
 
-## Current milestone branch
+## Current playtest repair
 
-Branch: `agent/level1-boss-and-source-v5`. Milestone status: **implementation prepared for owner Makko verification; unmerged until explicitly recorded otherwise**.
+Merged PR #27: `a69384e5c647e0f1f457564ccbb3c29cd37e2059`. It added the 12-health boss, pulse warnings/cyan counters, boss retry and Level 1 completion. The owner played that build and reported blocking presentation/traversal issues; **Makko acceptance was not achieved**.
 
-Scope: reconcile outdated instructions/checks, add the boss encounter after the existing cinematic, provide a fair boss retry and a Level 1 completion endpoint, and publish this regularly maintained source archive. The first pass uses a 12-health generic boss, telegraphed jumpable ground pulses, cyan recovery counters, a second pulse at half health or lower and bounded boss-stomp damage. When the player loses to the boss, Space retries and Shift + Space restarts the level; after victory, Enter rematches and Space restarts. These are provisional tuning choices awaiting Makko, not final boss identity or balance. The exact implementation and checks are in `repository-snapshot/` and the generated manifest/evidence. Do not infer a persistent save or Level 2 from a session checkpoint/completion screen.
+Current branch: `agent/level1-playtest-repairs`, based on merged PR #27. Status: **reviewable repair; unmerged, owner verification pending**. The generated manifest records the exact export SHA.
 
-`ACCEPTANCE.md` records the required owner route. Automated testing can establish deterministic combat/lifecycle behavior but cannot establish sprite contact, audible sync, camera presentation or feel. Those remain pending until the owner records PASS/PASS WITH NOTES for the exact revision.
+- The first encounter boundary is active during the tutorial and remains active through handoff. Horizontal movement is clamped before downstream collision/camera consumers; large steps and an already-past-gate position cannot bypass it. Later pre-encounter boundaries also close the trigger gap.
+- The boss remains at world x=3480 through camera return. After the ready pause, ordinary world-space pursuit brings it toward the player, including from offscreen.
+- Boss frames were remeasured from all three existing manifest-linked sheets. Neutral body height is normalized to 202.4 world pixels (walk baseline preserved); planted-foot rows, both facing directions, legacy/scaled/absent runtime anchors and manifest scale are handled explicitly. Natural pose changes remain. The stable head contact hull matches that neutral body height.
+- Descending top contact rebounds in every combat phase. Cyan windows take one stomp damage per cycle; guarded/repeated contacts give a safe bounce and explanatory cue. Ground pulses remain one-health damage with existing player invulnerability. Full-health instant death was not reproduced; the owner's report still requires Makko retesting.
+- Jammer reveal randomly chooses one of three safe street positions in the opposite half. All six positions clear the lift plus the Jammer attack radius and player foot margin. A nearby lift prompt explains R + Down on beat and shows charge progress.
+
+No sprite URLs, source artwork, music, mission quota, Jammer health or ordinary-enemy stomp rules were changed. Boss balance and art/contact feel still require Makko. The boss checkpoint is session-only; campaign save and Level 2 remain unimplemented.
+
+`ACCEPTANCE.md` records the focused retest. Production-module checks verify deterministic behavior and the draw-call anchor contract; they do not run Makko's renderer or verify live audio.
 
 ## Next after acceptance
 

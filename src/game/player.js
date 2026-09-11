@@ -197,6 +197,9 @@ window.Player = class Player {
         this.primaryAttackAnimationMs = Math.max(0, this.primaryAttackAnimationMs - deltaTime);
       }
       
+      // Bound horizontal travel before collision/camera consumers see it.
+      window.sector1Progression?.applyGateCollision?.();
+
       // Boss landing uses the same swept physics anchors as stage geometry.
       // The mission owner bounds boss damage; ordinary enemy stomps stay lethal.
       if (this.allowMovement && window.sector1Progression?.applyBossStomp) {

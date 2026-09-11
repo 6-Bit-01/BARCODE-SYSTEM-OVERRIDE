@@ -2,9 +2,19 @@
 
 ## Status
 
-At v5 creation the boss milestone is **unmerged and awaiting owner Makko testing**. No Makko/browser gameplay pass is claimed. `SOURCE_MANIFEST.json` identifies the exported code and status. Included automated evidence is authoritative only for the exact revision it names; a missing or older receipt is not a pass.
+PR #27 is merged at `a69384e5c647e0f1f457564ccbb3c29cd37e2059`. The owner's first playtest reported: unrestricted tutorial movement past the later gate; boss size/alignment changing with animation; boss carried by camera return; immediate death after attempting a stomp; Jammer/lift interaction overlap. **This is a failed acceptance pass, not approval of those behaviors.**
 
-The preceding audit reported baseline PR #25 passing `npm test` and `npm run check:syntax:all`. Run and record both again against this milestone. Use the focused boss harness for deterministic attack timing, damage, death, retry, completion and pause/reset edge cases. VM host stubs do not render sprite frames or verify audio.
+The current `agent/level1-playtest-repairs` branch addresses these reports and awaits a new owner Makko pass. No current Makko/browser gameplay acceptance is claimed. `SOURCE_MANIFEST.json` and `test-evidence.json` identify the exact code, review status and automated receipt.
+
+## Focused repair retest
+
+1. Hold right during the opening tutorial; also try crossing the opening boundary in the air. Finish the tutorial and check that you start on the correct side with the first encounter reachable.
+2. Finish the mission once. Check that the Jammer and its attack area are well clear of the lift, and the lift explains its two on-beat charges before activation.
+3. Watch boss walk/idle/flourish transitions: feet should stay on the street and body scale remain consistent. During camera return it should stay by the building where it stopped, then walk toward you after control returns, even from offscreen.
+4. At full health, land on the boss during guarded and cyan phases. Both should bounce; only cyan should lose one boss health. Repeat at low health using retry as needed. Report player health before/after any unexpected death and whether a pulse was present.
+5. Deliberately lose/retry, win/rematch, then restart the level. Confirm that the opening boundary, mission and music reset correctly.
+
+Use the existing **Go / Reset Boss** development control for repeated boss checks after one normal route. No repeated full mission grind is needed for every animation check.
 
 ## Required checks
 

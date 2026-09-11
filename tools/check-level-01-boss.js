@@ -133,6 +133,64 @@ function reachRecovery(rig) {
 
 async function main() {
   {
+    const { w, p } = createRig();
+    w.tutorialSystem.active = true;
+    w.tutorialSystem.completed = false;
+    const gate = w.Sector1Progression.ENCOUNTER_GATES[0];
+    assert.strictEqual(p.getCurrentGate().id, gate.id, 'opening boundary exists before the tutorial ends');
+    for (const y of [750, 200]) {
+      w.player.position.x = gate.x - w.player.width / 2 - 5;
+      w.player.position.y = y;
+      w.player.velocity.x = 300;
+      w.player.update(250, true);
+      assert(w.player.position.x + w.player.width / 2 <= gate.x, 'ground and airborne movement cannot pass the tutorial boundary');
+    }
+    w.player.position.x = 4000; // An old saved/test position must not strand the mission.
+    w.tutorialSystem.active = false;
+    w.tutorialSystem.completed = true;
+    p.update(16);
+    assert.strictEqual(p.state, 'encounter_1');
+    assert(w.player.position.x + w.player.width / 2 <= gate.x, 'tutorial handoff repairs an already-past-gate position');
+    assert.strictEqual(p.missionDefeats, 0, 'boundary correction cannot award mission credit');
+    p.state = 'jammer_active';
+    p.closedGateEncounterId = null;
+    w.player.position.x = 3500;
+    p.applyGateCollision();
+    assert.strictEqual(w.player.position.x, 3500, 'the full map opens after encounters');
+    p.reset();
+    assert.strictEqual(p.getCurrentGate().id, gate.id, 'restart restores the opening boundary');
+  }
+
+  {
+    const { w, p, beat, context } = createRig();
+    p.startMission();
+    const lift = w.Sector1Progression.SIGNAL_LIFT;
+    const positions = new Set();
+    // Exercise every authored slot, including both ends of random selection.
+    for (const px of [200, 2047, 2048, 3900]) {
+      for (const value of [0, 0.34, 0.67, 0.999999]) {
+        vm.runInContext(`Math.random = () => ${value}`, context);
+        w.player.position.x = px;
+        p.revealJammer();
+        const jammer = w.BARCODE.JammerEnvironment.getStatus().position;
+        positions.add(jammer.x);
+        assert.strictEqual(jammer.x < 2048, px >= 2048, 'Jammer stays in the opposite map half');
+        for (const playerX of [lift.x - 17, lift.x + lift.w + 17]) {
+          w.player.position.x = playerX;
+          w.player.position.y = 750;
+          w.player.grounded = true;
+          w.player.supportedSurfaceId = lift.id;
+          p.resetSignalLift();
+          w.player.supportedSurfaceId = lift.id;
+          const hit = beat();
+          assert(!hit.targets.some(t => t.type === 'broadcast_jammer'), 'a beat on either lift lip cannot also hit the Jammer');
+          assert.strictEqual(w.BARCODE.JammerEnvironment.getStatus().health, 16);
+        }
+      }
+    }
+    assert.strictEqual(positions.size, 6, 'every safe random slot was exercised');
+  }
+  {
     const rig = createRig();
     const { p, w, until, beat } = rig;
     assert.strictEqual(p.retryBossCheckpoint().ok, false, 'a new session cannot invent a boss checkpoint');
@@ -268,8 +326,49 @@ async function main() {
     assert(w.player.velocity.y < 0 && !w.player.grounded, 'the production player receives its ordinary stomp rebound');
     assert.strictEqual(w.player.position.y + footOffset, hitbox.y, 'the rebound begins at the visible boss top');
     w.player.velocity.y = 200;
-    assert.strictEqual(p.applyBossStomp(w.player, movement), false, 'a repeated collision in the same recovery cannot damage twice');
+    assert.strictEqual(p.applyBossStomp(w.player, movement), true, 'a repeated landing bounces safely even after the cycle counter was spent');
     assert.strictEqual(p.boss.health, health - 1);
+  }
+
+  {
+    const rig = createRig();
+    const { w, p, tick } = rig;
+    rig.reachReady();
+    w.player.position.x = 1300;
+    p.boss.x = 3480;
+    p.beginBossCombat();
+    const cameraX = p.cameraX;
+    tick(1000);
+    assert.strictEqual(p.boss.x, 3300, 'offscreen boss walks exactly 180 world pixels per second toward the player');
+    assert.strictEqual(p.boss.facing, -1);
+    assert.strictEqual(p.cameraX, cameraX, 'boss pursuit does not drive the released cinematic camera');
+    assert.strictEqual(p.boss.phase, 'approach');
+    assert.strictEqual(p.boss.pulses.length, 0, 'offscreen approach does not launch an unannounced attack');
+  }
+
+  {
+    for (const phase of ['approach', 'telegraph', 'sweep', 'recovery']) {
+      for (const health of [1, 3]) {
+        const rig = createRig();
+        const { w, p } = rig;
+        rig.reachReady();
+        p.beginBossCombat();
+        p.setBossCombatPhase(phase);
+        w.player.health = health;
+        w.player.position.x = p.boss.x;
+        w.player.position.y = p.getBossHitbox().y - w.Player.VISUAL_FOOT_OFFSET_Y - 5;
+        w.player.velocity.x = 0;
+        w.player.velocity.y = 400;
+        w.player.grounded = false;
+        const bossHealth = p.boss.health;
+        w.player.update(50, true);
+        p.update(50);
+        assert.strictEqual(w.player.health, health, `${phase}: a top landing never drains player health`);
+        assert(w.player.velocity.y < 0, `${phase}: guarded and vulnerable tops both rebound`);
+        assert.strictEqual(p.boss.health, bossHealth - (phase === 'recovery' ? 1 : 0), 'only the cyan window takes stomp damage');
+        assert.deepStrictEqual(rig.calls.errors, []);
+      }
+    }
   }
 
   {

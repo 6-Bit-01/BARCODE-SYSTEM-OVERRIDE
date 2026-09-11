@@ -36,4 +36,9 @@ Statuses: **LOCKED** = explicit retained requirement; **APPROVED DIRECTION** = S
 | D-030 | SUPERSEDED | PR-001 documentation-only/static-only rules as perpetual project restrictions; they applied to that earlier pass. Makko verification before merge remains current. |
 | D-031 | SUPERSEDED | v4's PR #3 baseline/next-PR commands, `maxLevel: 5`, random lore as campaign delivery, and any dependency on rejected PR #4. |
 
+| D-032 | LOCKED | September 11 playtest: tutorial movement must not allow passing the encounter boundary before it activates. |
+| D-033 | LOCKED | Boss belongs to world coordinates: camera return cannot carry/teleport it; it must approach through normal movement, including offscreen. Animation scale/alignment must be consistent. |
+| D-034 | LOCKED | Jammer placement must keep its attack positions clear of the elevator. Retain and explain the two-hit rhythm-powered lift. |
+| D-035 | APPROVED DIRECTION | Boss top landings safely rebound outside cyan windows; only the cyan counter damages it. Verify the reported instant death in Makko. |
+
 Do not treat an approved production direction as a claim that it has been implemented or visually accepted. Source trace: uploaded v2/v3/v4 packs; the owner's later control/mission corrections retained in repository guidance and merged PR #25; September 11 project assessment and direct approval. This is a decision synthesis, not a claim to reproduce every private conversation verbatim.

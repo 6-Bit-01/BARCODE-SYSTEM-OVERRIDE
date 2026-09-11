@@ -467,7 +467,7 @@
     {
       "global": "window.player",
       "file": "src/game/player.js",
-      "line": 1846,
+      "line": 1849,
       "loaded": true
     },
     {
@@ -533,37 +533,37 @@
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 349,
+      "line": 351,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 376,
+      "line": 378,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 438,
+      "line": 440,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 456,
+      "line": 458,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 537,
+      "line": 538,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 577,
+      "line": 578,
       "loaded": false
     },
     {
