@@ -319,6 +319,8 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
     fillRect(...args) { fills.push(args); },
     strokeRect(...args) { strokes.push(args); }
   };
+  p.state = 'encounter_2';
+  p.spawnedEncounterIds.add('encounter_2');
   p.closedGateEncounterId = 'encounter_2';
   p.drawEncounterGates(ctx);
   assert.deepStrictEqual(fills, [[2110, 620, 34, 270]], 'only the currently closed encounter gate is filled');
@@ -505,13 +507,12 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   p.update(800);
   edges = foregroundScreenEdges();
   assert(edges.left <= 0 && edges.right >= 1920, 'mid-return zoom floor keeps the locked foreground covering the viewport');
-  const midReturnBossScreenX = 960 + p.getCinematicZoomOverride() * (p.boss.x - p.cameraX);
-  assert(midReturnBossScreenX >= 1380 && midReturnBossScreenX <= 1540, 'boss carries with the returning camera on the right side of the frame');
+  approximately(p.boss.x, 3480, 'boss stays at its world mark while the camera returns');
   p.update(800);
   assert.strictEqual(p.state, 'boss_ready', 'return hands off to the non-combat boss-ready staging state');
   approximately(p.cameraX, 1475, 'return lands on the exact captured pre-pan camera center');
   approximately(p.getCinematicZoomOverride(), 0.735, 'return lands on the exact captured pre-pan zoom');
-  approximately(960 + p.getCinematicZoomOverride() * (p.boss.x - p.cameraX), 1440, 'boss ends visible at the authored right-side screen position');
+  approximately(p.boss.x, 3480, 'camera handoff leaves the boss at its world mark');
   assert.deepStrictEqual({ x: window.player.position.x, y: window.player.position.y }, { x: 900, y: 700 }, 'player returns to the exact captured arena position');
   assert.strictEqual(window.player.controlsDisabled, false, 'player controls release after the completed return');
   assert.strictEqual(p.cameraOverrideActive, false, 'camera ownership releases after the completed return');
@@ -555,7 +556,7 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
     assert.strictEqual(p.state, 'boss_ready', `camera return completes from ${scenario.cameraX}`);
     approximately(p.cameraX, scenario.cameraX, `camera center restores from ${scenario.cameraX}`);
     approximately(p.getCinematicZoomOverride(), scenario.zoom, `effective zoom restores from ${scenario.cameraX}`);
-    approximately(960 + scenario.zoom * (p.boss.x - scenario.cameraX), 1440, `boss arrives in the original arena from ${scenario.cameraX}`);
+    approximately(p.boss.x, 3480, `camera return from ${scenario.cameraX} never relocates the boss`);
     assert.strictEqual(window.player.position.x, scenario.playerX, `player position restores from ${scenario.cameraX}`);
     assert.strictEqual(window.player.controlsDisabled, false, `controls release from ${scenario.cameraX}`);
   }
@@ -612,18 +613,12 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   p.cameraX = 3000; p.cinematicStartCameraX = 1475; p.cinematicStartZoom = 0.735; p.cinematicZoomOverride = 0.92; p.startBossWalk();
   assert.strictEqual(p.boss.sprite, sprite, 'entrance uses same prepared sprite instance');
   const presentationFrames = [
-    {
-      state: 'walk', animation: 'sector_1_boss_walk_walk', sourceAnchorX: 100, sourceAnchorY: 253, expectedScale: 0.8,
-      footRows: [253,250,248,246,242,241,244,244,243,241,244,247,250,254,254,251,247,246,244,244,245,245,241,241,244,249,251,253,252,250,248,243,241,243,245,244,243,247,248,251,253]
-    },
-    {
-      state: 'flourish', animation: 'sector_1_boss_attack_attack', sourceAnchorX: 128, sourceAnchorY: 154,
-      footRows: [126,126,125,120,119,117,118,118,119,119,119,119,119,119,119,119,119,119,116,115,117,120,120,120,120,120,120,120,120,120,154,154,148,146,130,119,119,119,119,119,119,120,124,125,126,126,126,126]
-    },
-    {
-      state: 'idle', animation: 'sector_1_boss_idle_idle', sourceAnchorX: 128, sourceAnchorY: 178,
-      footRows: [178,178,178,178,178,173,167,165,161,157,157,157,157,157,160,165,167,170,173,173,173,173,173,173,173,173,173,169,168,165,162,161,159,157,157,157,157,157,157,160,162,165,171,173,176,177,177,177]
-    }
+    { state: 'walk', animation: 'sector_1_boss_walk_walk', sourceAnchorX: 100, sourceAnchorY: 253,
+      bodyHeight: 253, expectedScale: 0.8, footRows: [253, 252, 252, 253, 246, 244, 244, 245, 244, 245, 251, 252, 253, 253, 253, 253, 252, 253, 249, 245, 245, 245, 245, 246, 251, 253, 253, 253, 252, 252, 252, 249, 246, 245, 245, 245, 246, 252, 253, 252, 253] },
+    { state: 'flourish', animation: 'sector_1_boss_attack_attack', sourceAnchorX: 128, sourceAnchorY: 154,
+      bodyHeight: 125, footRows: Array(48).fill(154) },
+    { state: 'idle', animation: 'sector_1_boss_idle_idle', sourceAnchorX: 128, sourceAnchorY: 178,
+      bodyHeight: 178, footRows: Array(48).fill(178) }
   ];
   const bossAnimations = spriteManifest.characters['sector_1_boss_sector1boss'].animations;
   for (const profile of presentationFrames) {
@@ -638,7 +633,7 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
       p.boss.animationRef = { currentFrame: frameIndex };
       const visual = p.getBossVisualBounds();
       if (profile.expectedScale !== undefined) approximately(visual.scale, profile.expectedScale, 'boss walk scale remains at the approved baseline');
-      approximately(visual.scale * profile.sourceAnchorY, 253 * 0.8, `${profile.state} animation uses the normalized anchor height`);
+      approximately(visual.scale * profile.bodyHeight, 253 * 0.8, `${profile.state} animation preserves neutral body height without counting padding or blades`);
       assert.strictEqual(visual.frameIndex, frameIndex, `${profile.state} frame index follows the Makko animation reference`);
       assert.strictEqual(visual.footRow, profile.footRows[frameIndex], `${profile.state} frame ${frameIndex} uses the audited visible-foot row`);
       approximately(visual.targetFootY, 822, `${profile.state} frame ${frameIndex} targets the authored sidewalk contact`);
@@ -647,6 +642,37 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
       approximately(makkoRenderedFootY, 822, `${profile.state} frame ${frameIndex} stays grounded after Makko scales its manifest anchor`);
     }
   }
+  // Exercise the actual inverse draw arguments against each supported Makko
+  // anchor path, not merely the diagnostic's own reported foot position.
+  for (const profile of presentationFrames) {
+    p.boss.state = profile.state;
+    p.boss.activeAnimation = profile.animation;
+    for (const mode of ['manifest', 'legacy', 'anchorless']) {
+      for (const scale of [0.5, 1, 1.7]) {
+        sprite.currentSprite = {
+          ...(mode === 'anchorless' ? {} : { getAnchorPoint: () => ({ x: 37, y: 61 }) }),
+          hasManifestAnchor: () => mode === 'manifest', getManifestScale: () => scale
+        };
+        for (const facing of [-1, 1]) {
+          p.boss.facing = facing;
+          for (let i = 0; i < profile.footRows.length; i++) {
+            p.boss.animationRef = { currentFrame: i };
+            let drawn;
+            sprite.draw = (ctx, x, y, options) => { drawn = { x, y, ...options }; };
+            p.drawBoss({ save() {}, restore() {} });
+            const pixels = drawn.scale * scale;
+            const multiplier = mode === 'manifest' ? pixels : 1;
+            const offsetX = mode === 'anchorless' ? 0 : 37 * multiplier;
+            const offsetY = mode === 'anchorless' ? 0 : 61 * multiplier;
+            approximately(drawn.y - offsetY + profile.footRows[i] * pixels, 822, `${profile.state}/${mode}/${scale}/${facing}/${i}: rendered foot`);
+            approximately(drawn.x + facing * (profile.sourceAnchorX * pixels - offsetX), p.boss.x, 'rendered body center is world-anchored in both directions');
+            approximately(profile.bodyHeight * pixels, 202.4, 'manifest scale cannot multiply boss size again');
+          }
+        }
+      }
+    }
+  }
+  delete sprite.currentSprite;
   p.boss.state = 'walk';
   p.boss.activeAnimation = 'sector_1_boss_walk_walk';
   p.updateBossWalk(16); p.updateBossWalk(16);

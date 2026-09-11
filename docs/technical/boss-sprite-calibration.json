@@ -1,0 +1,31 @@
+{
+  "measuredAt": "2026-09-11",
+  "method": "Opaque alpha >=128; foot is lower boundary of opaque body pixels. Neutral reference height is first-frame opaque head-to-foot height; raised attack blade is excluded. No source asset replacement.",
+  "targetNeutralBodyWorldHeight": 202.4,
+  "animations": {
+    "sector_1_boss_idle_idle": {
+      "jsonUrl": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/9e454993-1489-4f31-bd2e-1b09d01b4635/sector_1_boss_idle_idle.json?t=1764605128926",
+      "imageUrl": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/9e454993-1489-4f31-bd2e-1b09d01b4635/sector_1_boss_idle_idle.webp?t=1764605128926",
+      "jsonSha256": "10a7148a2b6c4798c21b11f21b8facc92a9af8ec6b35f8a13b78f1c18aa8f7cd",
+      "imageSha256": "ab7ba5182aac4eff77a0af79eb4c9321220ebd3c0977e96576612eaa674eca93",
+      "neutralBodySourceHeight": 178,
+      "footMeasurement": "all frames checked; see BOSS_PRESENTATION in sector1-progression.js"
+    },
+    "sector_1_boss_walk_walk": {
+      "jsonUrl": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/761d5e25-3a15-4971-8000-bc3fa795d0fe/sector_1_boss_walk_walk.json?t=1764605128926",
+      "imageUrl": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/761d5e25-3a15-4971-8000-bc3fa795d0fe/sector_1_boss_walk_walk.webp?t=1764605128926",
+      "jsonSha256": "cca630edb7968ebc6864ba6cf95b3972c557ebfe7db352f7630c09f50487a5eb",
+      "imageSha256": "5427a001a4c94bcb8667ec94a71866d886194be040040c7c7e4ddaaeea43e04d",
+      "neutralBodySourceHeight": 253,
+      "footMeasurement": "all frames checked; see BOSS_PRESENTATION in sector1-progression.js"
+    },
+    "sector_1_boss_attack_attack": {
+      "jsonUrl": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/59f8ac6f-2d22-47ab-b277-db335b8b7e1b/sector_1_boss_attack_attack.json?t=1764605128926",
+      "imageUrl": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/59f8ac6f-2d22-47ab-b277-db335b8b7e1b/sector_1_boss_attack_attack.webp?t=1764605128926",
+      "jsonSha256": "6fa40630f9c310f1a9c0cd557832df44b5c95e2a5c008d22b3cb6312a91b3551",
+      "imageSha256": "9d29bc01b7224ab1cd376577481ff944cdd2f7e5fc16f2fffa7ebae3795b6c6a",
+      "neutralBodySourceHeight": 125,
+      "footMeasurement": "all frames checked; see BOSS_PRESENTATION in sector1-progression.js"
+    }
+  }
+}

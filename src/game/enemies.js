@@ -823,25 +823,23 @@ window.Enemy = class Enemy {
     return !!this._authoredEntranceActive || !this.entranceComplete || ((this.simulationTimeMs || 0) - (this.spawnTimeMs || 0) < (this.spawnProtectionDuration || 0));
   }
 
-  drawSprite(ctx) {
-    ctx.save();
-    let drawY = this.position.y - 1 + 70;
+  getSpritePresentation() {
+    let y = this.position.y + 69;
     let scale = 0.8;
-
-    if (this.type === 'corrupted') {
-      drawY = this.position.y - 1 + 60;
-      scale = 1.2;
-    } else if (this.type === 'firewall') {
-      drawY = this.position.y;
-      scale = 2.0;
-      if (this.currentAnimation === 'firewall_idle_idle') { scale *= 1.13; drawY -= 14; }
-      if (this.currentAnimation === 'firewall_attack_default') { scale *= 1.36; drawY -= 26; }
+    if (this.type === 'corrupted') { y = this.position.y + 59; scale = 1.2; }
+    else if (this.type === 'firewall') {
+      y = this.position.y;
+      scale = 2;
+      if (this.currentAnimation === 'firewall_idle_idle') { scale *= 1.13; y -= 14; }
+      if (this.currentAnimation === 'firewall_attack_default') { scale *= 1.36; y -= 26; }
     }
+    return { x: this.position.x, y, scale, flipH: this.facing === -1 };
+  }
 
-    this.sprite.draw(ctx, this.position.x, drawY, {
-      scale: scale,
-      flipH: this.facing === -1
-    });
+  drawSprite(ctx) {
+    const pose = this.getSpritePresentation();
+    ctx.save();
+    this.sprite.draw(ctx, pose.x, pose.y, { scale: pose.scale, flipH: pose.flipH });
     ctx.restore();
   }
 
@@ -920,31 +918,11 @@ window.Enemy = class Enemy {
   getHitbox() {
     if (['virus', 'corrupted', 'firewall'].includes(this.type) && this.spriteReady && this.sprite) {
 
-      let drawScale = 0.8;
-      let drawOffset = 60;
-
-      if (this.type === 'corrupted') {
-        drawScale = 1.2;
-        drawOffset = 80;
-      } else if (this.type === 'firewall') {
-        if (this.currentAnimation === 'firewall_idle_idle') {
-          drawScale = 2.0 * 1.13;
-          drawOffset = 100 - 14;
-        } else if (this.currentAnimation === 'firewall_walk_walk') {
-          drawScale = 2.0;
-          drawOffset = 100 + 4;
-        } else if (this.currentAnimation === 'firewall_attack_default') {
-          drawScale = 2.0 * 1.3;
-          drawOffset = 100 - 36;
-        } else {
-          drawScale = 2.0;
-          drawOffset = 100;
-        }
-      }
-
-      const worldHitbox = this.sprite.getHitboxWorld(this.position.x, this.position.y, {
-        scale: drawScale,
-        flipH: this.facing === -1
+      // Ask Makko for the bounds of exactly the pose that drawSprite renders.
+      // Retain the existing contact margins; offsets/scales have one owner.
+      const pose = this.getSpritePresentation();
+      const worldHitbox = this.sprite.getHitboxWorld(pose.x, pose.y, {
+        scale: pose.scale, flipH: pose.flipH
       });
 
       if (worldHitbox) {

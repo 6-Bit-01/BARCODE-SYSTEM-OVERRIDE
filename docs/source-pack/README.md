@@ -1,6 +1,6 @@
 # BARCODE: SYSTEM OVERRIDE — Source Pack v5
 
-**Approved direction; active milestone: finish Level 1's boss encounter.** The owner approved this direction and requested a regularly updated source ZIP on September 11, 2026.
+**Approved direction; active milestone: Level 1 playtest repairs and general polish.** The owner approved this direction and requested a regularly updated source ZIP on September 11, 2026.
 
 This pack replaces conflicting instructions in v2–v4. It preserves the later approved mission, rhythm, movement, lift and cinematic repairs, consolidates the seven-level campaign direction, and makes current implementation/verification explicit. It is a living project handoff, not an assertion that every planned feature is implemented.
 

@@ -10,31 +10,33 @@ window.FILE_MANIFEST.push({
   const BARCODE = window.BARCODE = window.BARCODE || {};
   const SUCCESS_DAMAGE = { perfect: 3, excellent: 2 };
   class PlayerCombat {
-    constructor(options = {}) { this.cooldownMs = options.cooldownMs ?? 250; this.range = options.range ?? 300; this.lastAttackAt = -Infinity; this.sequence = 0; }
-    reset() { this.lastAttackAt = -Infinity; this.sequence = 0; }
+    constructor(options = {}) { this.cooldownMs = options.cooldownMs ?? 250; this.range = options.range ?? 300; this.lastAttackAt = -Infinity; this.sequence = 0; this.feedback = null; }
+    reset() { this.lastAttackAt = -Infinity; this.sequence = 0; this.feedback = null; }
     canAttack(now = Date.now()) { return now - this.lastAttackAt >= this.cooldownMs; }
     resolvePrimary({ player = window.player, enemyManager = window.enemyManager, now = Date.now(), timing = null } = {}) {
       const result = { ok: false, action: 'primary', sequence: ++this.sequence, reason: '', timing: null, damage: 0, targets: [] };
-      if (!this.gameplayActive()) { result.reason = 'gameplay-inactive'; return result; }
-      if (!player) { result.reason = 'player-unavailable'; return result; }
+      const finish = () => { this.recordFeedback(result); return result; };
+      if (!this.gameplayActive()) { result.reason = 'gameplay-inactive'; return finish(); }
+      if (!player) { result.reason = 'player-unavailable'; return finish(); }
       const rhythm = window.rhythmSystem;
-      if (!rhythm || typeof rhythm.isActive !== 'function' || !rhythm.isActive()) { result.reason = 'rhythm-inactive'; return result; }
-      if (!rhythm.trackStarted || rhythm.currentTempoBeat === 0) { result.reason = 'rhythm-not-ready'; result.timing = { available: false, timing: 'waiting' }; this.applyFeedback(result.timing); return result; }
-      if (!this.canAttack(now)) { result.reason = 'cooldown'; result.timing = { available: false, timing: 'cooldown' }; return result; }
+      if (!rhythm || typeof rhythm.isActive !== 'function' || !rhythm.isActive()) { result.reason = 'rhythm-inactive'; return finish(); }
+      if (!rhythm.trackStarted || rhythm.currentTempoBeat === 0) { result.reason = 'rhythm-not-ready'; result.timing = { available: false, timing: 'waiting' }; this.applyFeedback(result.timing); return finish(); }
+      if (!this.canAttack(now)) { result.reason = 'cooldown'; result.timing = { available: false, timing: 'cooldown' }; return finish(); }
       this.lastAttackAt = now;
       const judgment = timing || this.getTimingJudgment();
       result.timing = judgment;
       if (!judgment || !judgment.available || !SUCCESS_DAMAGE[judgment.timing]) {
         result.reason = judgment && judgment.timing ? judgment.timing : 'unavailable';
         this.applyFeedback(judgment || { available: false, timing: 'unavailable' });
-        return result;
+        return finish();
       }
       result.damage = SUCCESS_DAMAGE[judgment.timing];
       this.playAttackAnimation(player);
       this.applyFeedback(judgment);
       // A successful beat while standing on the Signal Lift powers traversal;
       // chargeSignalLift owns the support/availability checks.
-      if (window.sector1Progression && typeof window.sector1Progression.chargeSignalLift === 'function') window.sector1Progression.chargeSignalLift();
+      const lift = window.sector1Progression?.chargeSignalLift?.();
+      if (lift?.ok) result.liftCharges = lift.charges;
       const targets = this.findTargets(player, enemyManager, judgment);
       const jammerHit = this.tryDamageJammer(player, judgment, result.sequence);
       if (jammerHit.ok) result.targets.push(jammerHit.target);
@@ -42,6 +44,7 @@ window.FILE_MANIFEST.push({
         player, judgment, sequence: result.sequence,
         range: window.rhythmSystem?.getAuthoritativeDamageRadius?.() ?? this.range
       }) || { ok: false };
+      result.bossReason = bossHit.reason || null;
       if (bossHit.ok) {
         result.targets.push(bossHit.target);
       }
@@ -54,7 +57,30 @@ window.FILE_MANIFEST.push({
         result.targets.push({ type: target.type || 'target', damage: result.damage, x: target.position && target.position.x, y: target.position && target.position.y });
       });
       result.ok = true; result.reason = result.targets.length ? 'hit' : bossHit.reason === 'boss-guarded' ? 'boss-guarded' : 'no-target';
-      return result;
+      return finish();
+    }
+    recordFeedback(result) {
+      // Musical accuracy and actual contact are different results. Keep one
+      // short message on the existing game clock; no timer or render loop.
+      if (['gameplay-inactive', 'player-unavailable', 'cooldown'].includes(result.reason)) return;
+      let text, color = '#ffbd70';
+      if (result.targets.length) {
+        const damage = result.targets.reduce((sum, target) => sum + target.damage, 0);
+        text = `${result.timing.timing.toUpperCase()} — ${result.targets.length > 1 ? result.targets.length + ' TARGETS · ' : ''}${damage} DAMAGE`;
+        color = '#00ffff';
+      } else if (Number.isFinite(result.liftCharges)) {
+        text = `LIFT CHARGED ${result.liftCharges}/2`;
+        color = '#00ffff';
+      } else if (result.reason === 'rhythm-inactive') text = 'PRESS R TO ENTER RHYTHM MODE';
+      else if (result.reason === 'rhythm-not-ready') text = 'LISTEN FOR THE BEAT';
+      else if (result.reason === 'miss') text = 'OFF BEAT — MATCH THE PULSE';
+      else if (result.bossReason === 'boss-guarded') text = 'ON BEAT — BOSS GUARDED; WAIT FOR CYAN';
+      else if (result.reason === 'no-target') text = 'ON BEAT — MOVE CLOSER TO A TARGET';
+      else text = 'RHYTHM TIMING NOT READY';
+      this.feedback = { text, color, expiresAt: (window.gameState?.gameTime || 0) + 1000 };
+    }
+    getFeedback() {
+      return this.feedback && (window.gameState?.gameTime || 0) < this.feedback.expiresAt ? { ...this.feedback } : null;
     }
     gameplayActive() { const gs = window.gameState || {}; return !(window.sector1Progression?.isGameplaySuppressed?.() || window.isPaused || window.isRunning === false || gs.paused || gs.gameOver || gs.victory || gs.running === false); }
     getTimingJudgment() {
