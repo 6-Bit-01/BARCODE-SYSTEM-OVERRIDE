@@ -1,6 +1,8 @@
-# Stronger Level 1 Overhaul — Proposed, Not Yet Implemented
+# Stronger Level 1 Overhaul — Scoped First Pass in Review
 
-Requested September 11 after the PR #29 playtest, including effects and inexpensive improvements. Current implementation scope is only the separately documented Jammer transition repair. Preserve approved artwork, locked intro, controls, ordinary lethal stomps, lift, mission/Jammer counts, hack access/reward, musical clock and campaign direction.
+September 11 update: the owner approved the recommended next pass and merged PR #30. Animation transition cleanup, the grounded rhythm stance, hacking presentation, contact shadows, landing/attack/stomp effects, lift charging and subtle sign pulses are now implemented on `agent/level1-animation-effects`, pending Makko acceptance. `CURRENT_STATE.md` and `ACCEPTANCE.md` define the current build. The remaining concepts below are a historical proposal and remain deferred; they are not a claim that every listed idea was implemented.
+
+Originally requested September 11 after the PR #29 playtest, including effects and inexpensive improvements. Preserve approved artwork, locked intro, ordinary movement controls, ordinary lethal stomps, lift, mission/Jammer counts, hack access/reward, musical clock and campaign direction.
 
 ## Recommended next playable milestone
 

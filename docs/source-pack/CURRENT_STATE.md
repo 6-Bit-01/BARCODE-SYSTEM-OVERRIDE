@@ -1,6 +1,19 @@
 # Current State
 
-## Current Jammer transition repair — September 11, 2026
+## Current animation, mode and effects pass — September 11, 2026
+
+Base: merged PR #30, `1897c4eaade80ca156f4fe6e33828a8bcd59304b`. Review branch: `agent/level1-animation-effects`. The owner approved proceeding with the recommended next pass and confirmed merging #30. The generated manifest records this branch's exact revision and draft PR. This build has not been accepted in Makko.
+
+- Player animation requests now preserve a running clip; new jumps restart once, airborne poses take priority, and rhythm animation recovery no longer schedules delayed callbacks. Existing sheets, scales and foot anchors are retained.
+- Rhythm Mode is a grounded performance stance. Entry stops horizontal input and clears buffered jumps; walking/jumping resume after R or Escape releases it. Forced airborne motion ends the stance without stopping gravity or boss separation. The two-hit lift can carry the planted player. Background music and rhythm timing continue throughout. Retry starts outside the stance.
+- The terminal shows connect/read/input phases, larger codes and ports, a visible countdown, and short success/failure feedback. Success sends repair packets toward the health HUD. Existing puzzle rules, slowdown, guard, one-health reward and nearby-enemy stun remain. Damage cancellation cannot restore suspended Rhythm Mode; cinematic suppression still wins.
+- Added player contact shadows using street/roof/lift surfaces, landing sparks, brief attack/stomp echoes, visible lift-charge energy and subtle beat-driven light overlays aligned with the existing foreground signs. No replacement assets or new audio sources.
+
+Focused checks cover stance/input and rebound behavior at 30/60/120 FPS, animation continuity without delayed timers, lift support/effect cleanup, hacking result/damage/cinematic transitions and sign transforms. A local Canvas inspection covers six terminal draw states; this does not verify the Makko renderer or live audible timing. Full required test results are supplied in the archive receipt.
+
+Remaining: owner playtest, including repeated animation transitions, real boss rhythm/stomp play with explicit stance exit, lift/roof contact and effects at actual game scale. Broader combo, district-restoration, settings and authored-lore ideas are deferred. Standalone migration remains the recommended next infrastructure milestone. Rollback: return to merged #30, which retains the Jammer mode-exit repair.
+
+## Historical Jammer transition repair — September 11, 2026
 
 Base: merged PR #29, `45441e1` (full base/head recorded by the generated manifest). Branch: `agent/jammer-rhythm-exit`; unmerged, awaiting owner Makko verification. Owner response to the musical combat build: “Not bad!” with a new report that Rhythm Mode survives Jammer destruction and leaks into the next section. This is not blanket playtest acceptance.
 

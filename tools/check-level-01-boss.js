@@ -37,7 +37,7 @@ function createRig() {
     renderer: { zoomLevel: 0.735, getZoomLevel() { return this.zoomLevel; }, getCinematicZoomOverride() { return null; }, clearCinematicZoomOverride() {}, addScreenShake() {}, addGlitch() {} },
     MakkoEngine: { isLoaded: () => true, sprite() { let animation = null; return { isLoaded: () => true, play(name) { animation = name; return { currentFrame: 0, totalFrames: 48 }; }, getCurrentAnimation: () => animation, getHitboxWorld: () => null, update() {}, stop() {} }; } },
     Particle: class Particle {},
-    particleSystem: { particles: [], impact() {}, damageEffect() {}, spawnEffect() {}, enemySpawnEffect() {}, landingEffect() {}, jumpEffect() {} },
+    particleSystem: { particles: [], trail() {}, impact() {}, damageEffect() {}, spawnEffect() {}, enemySpawnEffect() {}, landingEffect() {}, jumpEffect() {} },
     tutorialSystem: { active: false, completed: true, isActive() { return this.active; }, isCompleted() { return this.completed; }, checkObjective() {} },
     hackingSystem: { active: false, isActive() { return this.active; }, reset() { this.active = false; }, cancel() { this.active = false; } },
     lostDataSystem: { collected: ['level-01.fragment-1'], reset() {}, fragments: [] },
@@ -747,11 +747,11 @@ async function main() {
     assert.strictEqual(w.rhythmSystem.running, true);
     assert.strictEqual(w.BARCODE.MusicTransport.getDiagnostics().generation, generation);
     const texts = [];
-    const ctx = { save() {}, restore() {}, fillRect() {}, fillText(t) { texts.push(t); } };
+    const ctx = { save() {}, restore() {}, fillRect() {}, beginPath() {}, ellipse() {}, stroke() {}, fillText(t) { texts.push(t); } };
     combat.drawPlayerTimingCue(ctx, w.player);
     assert(texts.includes('PRESS R — RHYTHM OFF'), 'mode loss has an immediate player-local cue');
     w.rhythmSystem.show(); texts.length = 0; combat.drawPlayerTimingCue(ctx, w.player);
-    assert(texts.includes('DOWN ON BEAT'));
+    assert(texts.includes('DOWN: BEAT · R: EXIT'));
     const seconds = p.getBossMusicSample().grid.beatDurationSec;
     const rule = w.BARCODE.MusicProfiles.getActive().judgmentRules[0].id;
     const early = w.BARCODE.MusicTransport.judgeInput(rule, seconds * 60 - 0.15);
@@ -808,6 +808,7 @@ async function main() {
     w.player.grounded = true; w.player.allowMovement = true; w.player.invulnerableUntil = 0;
     w.inputManager = { actionInput: { state: { jump: { held: true } } }, isKey: () => false };
     rig.until(() => p.boss.phase === 'sweep', 'double pulse begins');
+    w.rhythmSystem.hideRhythmMode(); // Exit the planted stance before evading.
     assert(w.player.jump(), 'ordinary single jump begins without an assist');
     for (let i = 0; i < fps * 2; i++) { w.player.update(1000 / fps, true); tick(1000 / fps); }
     assert.strictEqual(w.player.health, 3, `${fps} FPS: a normal held jump clears the double pulse without invulnerability`);
@@ -817,4 +818,5 @@ async function main() {
 
   console.log('Level 1 boss production-module checks passed');
 }
-main().catch(error => { console.error(error.stack || error); process.exit(1); });
+module.exports = { createRig, load };
+if (require.main === module) main().catch(error => { console.error(error.stack || error); process.exit(1); });

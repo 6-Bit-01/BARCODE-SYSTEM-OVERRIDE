@@ -140,6 +140,7 @@ window.Player = class Player {
     this.arcPulsePhase = 0;
     this.arcActive = false;
     this.primaryAttackAnimationMs = 0;
+    this.afterimageMs = 0;
     this.cinematicPoseActive = false;
     this.coyoteTimerMs = 0;
     this.jumpBufferTimerMs = 0;
@@ -157,6 +158,11 @@ window.Player = class Player {
       const dt = deltaTime / 1000; // Convert to seconds
       const previousFootY = this.position.y;
       const previousX = this.position.x;
+      const groundedAtStart = this.grounded;
+      this.afterimageMs = Math.max(0, (this.afterimageMs || 0) - deltaTime);
+      if (this.isRhythmPlanted()) { this.velocity.x = 0; this.airInput = 0; }
+      // Forced motion may unground a performance; never suspend gravity.
+      if (!this.grounded && window.rhythmSystem?.isActive?.()) window.rhythmSystem.hideRhythmMode();
       
       // Update entrance animation
       this.updateEntranceAnimation(deltaTime);
@@ -211,8 +217,7 @@ window.Player = class Player {
         landedOnStageSurface = window.sector1Progression.applyPlayerStageCollision(this, { previousFootY, currentFootY: this.position.y, previousX });
       }
 
-      // Ground collision (character feet at ground line y=750 - raised up
-      const wasGrounded = this.grounded;
+      // Ground collision uses the established physics-ground anchor at y=750.
       // A dynamic stage surface may share the historical physics-ground
       // anchor (the Signal Lift does at its bottom stop). Once that surface
       // has accepted the landing it owns support for this frame; generic
@@ -222,23 +227,13 @@ window.Player = class Player {
         this.velocity.y = 0;
         this.grounded = true;
         this.supportedSurfaceId = null;
-        
-        // CRITICAL FIX: Reset jump animation tracking when landing
-        // This ensures next jump will restart animation from beginning
-        if (!wasGrounded) {
-          this.jumpAnimationStarted = false;
-          console.log('🏁 Landed - jump animation tracking reset for next jump');
-        }
-        
-        // Landing particles moved way down
-        if (!wasGrounded && window.particleSystem) {
-          // Move landing smoke 10px toward front of player
-          const landingX = this.position.x + this.facing * 10;
-          window.particleSystem.landingEffect(landingX, this.getVisualAnchor().targetFootY, null);
-        }
       } else if (!landedOnStageSurface) {
         this.grounded = false;
         this.supportedSurfaceId = null;
+      }
+      if (!groundedAtStart && this.grounded) {
+        this.jumpAnimationStarted = false;
+        window.particleSystem?.landingEffect?.(this.position.x, this.position.y + PLAYER_VISUAL_FOOT_OFFSET_Y);
       }
       if (this.grounded) {
         this.bossReboundMs = 0;
@@ -273,9 +268,6 @@ window.Player = class Player {
   updateState() {
     const oldState = this.state;
     
-    const rhythmSystemExists = !!window.rhythmSystem;
-    const hasIsActive = rhythmSystemExists && typeof window.rhythmSystem.isActive === 'function';
-    const rhythmActive = hasIsActive && window.rhythmSystem.isActive();
     const bossCinematicActive = !!(
       window.sector1Progression &&
       typeof window.sector1Progression.isBossCinematicActive === 'function' &&
@@ -283,8 +275,8 @@ window.Player = class Player {
     );
     this.cinematicPoseActive = bossCinematicActive;
 
-    // Check if up key is held for continuous jump animation
-    const upKeyHeld = window.inputManager && window.inputManager.isKey('arrowup');
+    // Read the mapped jump action for repeated jumps and buffered input.
+    const upKeyHeld = this.isJumpHeld();
     
     // Detect new jump (was grounded, now airborne)
     const justStartedJumping = this.wasJumping === false && !this.grounded;
@@ -297,11 +289,11 @@ window.Player = class Player {
     // background beat clock continues. Presentation holds a neutral pose here.
     if (bossCinematicActive) {
       this.state = 'idle';
-    // Priority order: transient attack overlay > Jump > Walk > Idle; Rhythm Mode itself does not lock the pose.
-    } else if (this.primaryAttackAnimationMs > 0) {
+    // Airborne motion wins over stance; grounded modes own the performance pose.
+    } else if (!this.grounded) {
+      this.state = 'jump';
+    } else if (this.isRhythmPlanted() || window.hackingSystem?.isActive?.() || this.primaryAttackAnimationMs > 0) {
       this.state = 'rhythm';
-    } else if (!this.grounded || upKeyHeld) {
-      this.state = 'jump'; // Stay in jump state if up key is held (even when grounded)
     } else if (Math.abs(this.velocity.x) > 5) {
       this.state = 'walk';
     } else {
@@ -321,6 +313,7 @@ window.Player = class Player {
   startPrimaryAttackAnimation(durationMs = 180) {
     this.primaryAttackAnimationMs = Math.max(this.primaryAttackAnimationMs || 0, durationMs);
     this.state = 'rhythm';
+    this.afterimageMs = 180;
     if (typeof this.playAnimation === 'function') this.playAnimation('rhythm');
   }
 
@@ -488,155 +481,40 @@ window.Player = class Player {
     }
   }
 
-  // Update sprite animation based on current state
+  // One frame-owned transition path. Repeated requests for the same clip
+  // preserve its progress; new jumps explicitly restart the jump clip.
   updateSpriteAnimation(deltaTime) {
-    if (!this.spriteReady || !this.sprite) {
-      return;
-    }
-    
+    if (!this.spriteReady || !this.sprite) return;
     try {
-      // A Jammer-destruction cinematic always presents a clean, frozen neutral
-      // pose instead of preserving a random attack frame. No RhythmSystem state
-      // is stopped or reset here.
-      // Makko animation time in this project advances only through update().
-      // Withholding that call freezes the selected neutral frame without
-      // depending on optional sprite pause/resume methods.
+      this.playAnimation(this.state);
       if (!this.cinematicPoseActive) this.sprite.update(deltaTime);
-      
-      // Check if we need to play different animation based on state
-      const expectedAnimation = PLAYER_ANIMATION_PRESENTATION[this.state]?.animation;
-      
-      // CRITICAL FIX: Only change animation if current animation is actually different
-      // AND only if the sprite is stuck or not playing the right animation
-      const spriteCurrentAnim = this.sprite.getCurrentAnimation();
-      const needsAnimationChange = (
-        expectedAnimation && 
-        this.currentAnimation !== expectedAnimation
-      );
-      
-      // CRITICAL FIX: Additional check for stuck animations (rhythm mode specific)
-      const isRhythmStuck = (
-        this.state === 'rhythm' && 
-        spriteCurrentAnim === '6_bit_r__h_mode_rhmode' && 
-        this.animationRef && 
-        !this.animationRef.isInterrupted && 
-        this.animationRef.currentFrame === 0 && 
-        this.animationRef.elapsedTime > 500 // Stuck on first frame for more than 500ms
-      );
-      
-      // CRITICAL FIX: For jump animations, restart when character leaves ground
-      const shouldRestartJump = (
-        this.state === 'jump' && 
-        expectedAnimation === '6_bit_jump_jump' &&
-        !this.jumpAnimationStarted &&
-        this.wasJumping === false && !this.grounded // Just left ground
-      );
-      
-      if (needsAnimationChange || isRhythmStuck || shouldRestartJump) {
-        if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log(`🔄 Animation change needed: state=${this.state}, current=${this.currentAnimation}, expected=${expectedAnimation}, stuck=${isRhythmStuck}, restartJump=${shouldRestartJump}`);
-        this.playAnimation(this.state);
-      }
-
-      // DEBUG: Log animation status periodically
-      if (window.BARCODE_DEBUG_FRAME_OWNERSHIP && (!this.lastAnimLog || Date.now() - this.lastAnimLog > 3000)) {
-        const isPlaying = this.sprite ? this.sprite.playing : 'null';
-        const frameInfo = this.animationRef ? `frame=${this.animationRef.currentFrame}/${this.animationRef.totalFrames}` : 'no-ref';
-        if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log(`🎬 Animation Status: state=${this.state}, current=${this.currentAnimation}, spriteCurrent=${spriteCurrentAnim}, playing=${isPlaying}, ${frameInfo}`);
-        this.lastAnimLog = Date.now();
-      }
-      
     } catch (error) {
       console.error('Error updating sprite animation:', error?.message || error);
     }
   }
 
-  // Play a specific animation
   playAnimation(animationName) {
-    if (!this.spriteReady || !this.sprite) {
-      // Silently handle fallback mode without excessive logging
-      if (!window.useFallbackGraphics) {
-        console.log(`❌ Cannot play animation ${animationName}: sprite not ready`);
-      }
-      return;
-    }
-    
+    if (!this.spriteReady || !this.sprite) return;
+    const fullName = PLAYER_ANIMATION_PRESENTATION[animationName]?.animation || animationName;
+    const freshJump = animationName === 'jump' && !this.jumpAnimationStarted;
+    const sameClip = this.currentAnimation === fullName && this.sprite.getCurrentAnimation?.() === fullName;
+    if (sameClip && this.animationRef && !this.animationRef.isInterrupted && !freshJump) return;
     try {
-      // Map animation names if needed
-      const fullAnimationName = PLAYER_ANIMATION_PRESENTATION[animationName]?.animation || animationName;
-      
-      // CRITICAL FIX: Force animation restart when transitioning from rhythm/hack mode or after damage
-      // This prevents walk animations from getting stuck
-      const currentSpriteAnim = this.sprite.getCurrentAnimation();
-      const shouldRestartJump = animationName === 'jump' && !this.jumpAnimationStarted;
-      
-      // Special case: For jump animations, allow restart when just leaving ground
-      const isJumpRestartAllowed = (
-        animationName === 'jump' && 
-        shouldRestartJump &&
-        this.wasJumping === false && !this.grounded
-      );
-      
-      // CRITICAL FIX: Always restart walk animation to prevent getting stuck
-      const shouldForceRestart = (
-        animationName === 'walk' || 
-        (currentSpriteAnim === '6_bit_walk_walk' && animationName !== 'walk')
-      );
-      
-      if (currentSpriteAnim === fullAnimationName && this.animationRef && !this.animationRef.isInterrupted && !shouldRestartJump && !isJumpRestartAllowed && !shouldForceRestart) {
-        // Animation is already playing correctly - don't restart it
-        console.log(`🎬 SKIPPING: ${fullAnimationName} already playing`);
-        return;
-      }
-      
-      // Mark jump animation as started
-      if (animationName === 'jump') {
-        this.jumpAnimationStarted = true;
-      }
-      
-      console.log(`🎬 PLAYING: ${fullAnimationName} (state: ${this.state})`);
-      
-      // CRITICAL FIX: Jump animation should loop while jumping, but restart when character leaves ground
-      const shouldLoop = true; // All animations loop, jump restart handled separately
-      
-      // CRITICAL: Always stop current animation before playing new one
-      // This ensures rhythm animation doesn't get stuck on first frame
       this.sprite.stop();
-      
-      try {
-        this.animationRef = this.sprite.play(fullAnimationName, shouldLoop);
-        this.currentAnimation = fullAnimationName;
-      } catch (playError) {
-        console.error(`Error playing animation ${fullAnimationName}:`, playError?.message || playError);
-        return;
-      }
-      
-      // CRITICAL FIX: For rhythm animations, add extra validation and recovery
-      if (animationName === 'rhythm' && this.animationRef) {
-        // Set up stuck animation detection and recovery
-        this.animationRef.onCycle(() => {
-          console.log('🔄 Rhythm animation completed a cycle - playing properly');
-        });
-        
-        // Emergency recovery: if still stuck after 1 second, force restart
-        setTimeout(() => {
-          if (this.animationRef && this.animationRef.currentFrame === 0 && this.state === 'rhythm') {
-            console.warn('⚠️ Rhythm animation stuck detected - forcing restart');
-            this.sprite.stop();
-            this.animationRef = this.sprite.play(fullAnimationName, shouldLoop);
-          }
-        }, 1000);
-      }
-      
-      // All animations now loop - no onComplete handling needed
-      
-      console.log(`✅ Animation ${fullAnimationName} started successfully`);
-      
+      this.animationRef = this.sprite.play(fullName, true);
+      this.currentAnimation = fullName;
+      if (animationName === 'jump') this.jumpAnimationStarted = true;
     } catch (error) {
       console.error('Error playing animation:', error?.message || error);
     }
   }
 
+  isRhythmPlanted() {
+    return this.grounded && !!window.rhythmSystem?.isActive?.();
+  }
+
   moveLeft() {
+    if (this.isRhythmPlanted()) { this.velocity.x = 0; this.airInput = 0; return; }
     if (this.isEntering || !this.allowMovement) { return; }
     this.facing = -1;
     if (this.grounded) this.velocity.x = -this.speed;
@@ -654,6 +532,7 @@ window.Player = class Player {
   }
 
   moveRight() {
+    if (this.isRhythmPlanted()) { this.velocity.x = 0; this.airInput = 0; return; }
     if (this.isEntering || !this.allowMovement) { return; }
     this.facing = 1;
     if (this.grounded) this.velocity.x = this.speed;
@@ -678,6 +557,7 @@ window.Player = class Player {
   }
 
   jump() {
+    if (this.isRhythmPlanted()) return false;
     if (this.isEntering || !this.allowMovement) { return false; }
     this.jumpBufferTimerMs = PLAYER_BUFFER_MS;
     if (this.grounded || this.coyoteTimerMs > 0) {
@@ -693,14 +573,6 @@ window.Player = class Player {
       // CRITICAL FIX: Always reset jump animation tracking for new jump
       // This ensures the animation restarts every time jump() is called
       this.jumpAnimationStarted = false;
-      
-      // CRITICAL FIX: Force animation restart immediately when jumping
-      if (this.spriteReady && this.sprite) {
-        console.log('🦘 Force restarting jump animation on jump()');
-        this.sprite.stop();
-        this.currentAnimation = null; // Force restart
-        this.animationRef = null;
-      }
       
       // Jump particles moved way down and toward front
       if (window.particleSystem) {
@@ -731,6 +603,9 @@ window.Player = class Player {
   queueJumpRelease() { this.jumpReleaseQueued = true; }
 
   stompRebound(bossDirection = 0) {
+    window.rhythmSystem?.hideRhythmMode?.();
+    this.afterimageMs = 220;
+    this.jumpAnimationStarted = false;
     this.velocity.y = -PLAYER_STOMP_REBOUND; this.grounded = false; this.coyoteTimerMs = 0; this.jumpBufferTimerMs = 0; this.jumpHeldMs = 0; this.jumpReleaseQueued = false;
     this.bossReboundDirection = Math.sign(bossDirection);
     this.bossReboundMs = bossDirection ? 260 : 0;
@@ -808,9 +683,11 @@ window.Player = class Player {
     // CRITICAL: Deactivate hack mode when hit
     if (window.hackingSystem && window.hackingSystem.isActive()) {
       console.log('💥 Player hit - deactivating hack mode');
-      window.hackingSystem.cancel();
+      window.hackingSystem.cancel({ restoreRhythm: false });
     }
     
+    this.primaryAttackAnimationMs = 0;
+    this.afterimageMs = 0;
     // CRITICAL FIX: Force animation state reset after taking damage
     // This prevents walk animations from getting stuck when hit while holding arrow keys
     this.forceAnimationReset();
@@ -908,9 +785,11 @@ window.Player = class Player {
     // CRITICAL: Deactivate hack mode when hit
     if (window.hackingSystem && window.hackingSystem.isActive()) {
       console.log('💥 Player hit - deactivating hack mode');
-      window.hackingSystem.cancel();
+      window.hackingSystem.cancel({ restoreRhythm: false });
     }
     
+    this.primaryAttackAnimationMs = 0;
+    this.afterimageMs = 0;
     // CRITICAL FIX: Force animation state reset after taking damage with knockback
     // This prevents walk animations from getting stuck when hit while holding arrow keys
     this.forceAnimationReset();
@@ -1499,6 +1378,7 @@ window.Player = class Player {
 
   draw(ctx) {
     try {
+      this.drawContactShadow(ctx);
       if (this.spriteReady && this.sprite) {
         // Draw sprite-based character
         this.drawSprite(ctx);
@@ -1510,6 +1390,28 @@ window.Player = class Player {
       console.error('Error drawing player:', error?.message || error);
       this.drawLoadingPlaceholder(ctx);
     }
+  }
+
+  getContactShadow() {
+    const footY = this.position.y + PLAYER_VISUAL_FOOT_OFFSET_Y;
+    const surfaces = [...(window.Sector1Progression?.STAGE_SURFACES || [])];
+    const progression = window.sector1Progression;
+    if (progression?.isSignalLiftAvailable?.() && progression.signalLift) surfaces.push(progression.signalLift);
+    let groundY = 750 + PLAYER_VISUAL_FOOT_OFFSET_Y;
+    for (const surface of surfaces) {
+      if (this.position.x >= surface.x && this.position.x <= surface.x + surface.w && surface.y >= footY - 2) groundY = Math.min(groundY, surface.y);
+    }
+    const height = Math.max(0, groundY - footY);
+    return { x: this.position.x, y: groundY + 2, width: Math.max(12, 34 - height * 0.035), alpha: Math.max(0.08, 0.3 - height * 0.0004) };
+  }
+
+  drawContactShadow(ctx) {
+    if (this.isEntering) return;
+    const shadow = this.getContactShadow();
+    ctx.save();
+    ctx.fillStyle = `rgba(0, 4, 14, ${shadow.alpha})`;
+    ctx.beginPath(); ctx.ellipse(shadow.x, shadow.y, shadow.width, 6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
   }
 
   // Draw sprite-based character
@@ -1535,6 +1437,13 @@ window.Player = class Player {
     const drawY = visualAnchor.y;
     const drawX = visualAnchor.x;
     
+    // Two brief offset echoes; no snapshots, timers, filters or extra updates.
+    if (this.afterimageMs > 0 && !this.cinematicPoseActive) {
+      for (const distance of [24, 12]) this.sprite.draw(ctx, drawX - this.facing * distance, drawY, {
+        scale: visualAnchor.scale, flipH: shouldFlip, flipV: false,
+        alpha: (this.afterimageMs / 220) * (distance === 24 ? 0.09 : 0.17), debug: false
+      });
+    }
     this.sprite.draw(ctx, drawX, drawY, {
       scale: visualAnchor.scale,
       flipH: shouldFlip, // Animation-specific flipping logic

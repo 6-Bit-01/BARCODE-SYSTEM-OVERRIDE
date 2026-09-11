@@ -225,6 +225,7 @@ window.RhythmSystem = class RhythmSystem {
     // Background transport, beat polling, tempo establishment, and sync remain
     // running because this guard does not call stop(), hide(), or reset timing.
     if (window.tutorialSystem?.isActive?.() && Number(window.tutorialSystem.storyChapter) < 2) return { ok: false, reason: 'tutorial-rhythm-locked' };
+    if (window.player?.grounded === false) return { ok: false, reason: 'land-to-enter' };
     if (!this.trackStarted || this.currentTempoBeat === 0) return { ok: false, reason: 'rhythm-not-ready' };
     return { ok: true };
   }
@@ -238,7 +239,12 @@ window.RhythmSystem = class RhythmSystem {
     }
 
     this.active = true;
-    if (window.player) window.player.state = 'rhythm';
+    if (window.player) {
+      window.player.state = 'rhythm';
+      if (window.player.velocity) window.player.velocity.x = 0;
+      window.player.airInput = 0;
+      window.player.jumpBufferTimerMs = 0;
+    }
     if (!this.running) {
       this.startBackgroundRhythm(); // Start background progress if not running
     }
@@ -317,6 +323,7 @@ window.RhythmSystem = class RhythmSystem {
   hide() {
     console.log('🎵 RHYTHM HIDE() CALLED - setting active=false');
     this.active = false;
+    if (window.player) window.player.primaryAttackAnimationMs = 0;
     this.maxCombo = Math.max(this.maxCombo, this.combo);
     
     // Reset combo when hiding rhythm mode

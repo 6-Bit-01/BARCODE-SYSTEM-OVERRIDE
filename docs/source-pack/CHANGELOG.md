@@ -1,5 +1,15 @@
 # Changelog
 
+## September 11, 2026 — Animation, mode and effects pass (draft review)
+
+- Continue the owner-approved next pass from merged PR #30 (`1897c4e`).
+- Consolidate player clip transitions; remove delayed rhythm-animation restart callbacks and repeated same-clip walk restarts. Preserve calibrated sprite geometry.
+- Add the grounded Rhythm Mode stance, immediate R exit, airborne-entry feedback and foot-level beat ring. Lift travel and forced rebounds remain functional; retry starts outside the stance and the Jammer exit fix remains intact.
+- Redesign terminal presentation with distinct phases, readable codes, countdown and repair/failure feedback. Prevent damage cancellation from restoring suspended Rhythm Mode; preserve the existing hack rewards and enemy slowdown.
+- Add surface-aware contact shadows, landing sparks, temporary attack/stomp echoes, lift-charge energy and restrained foreground sign pulses using the existing clock/art.
+- Add focused production-module coverage; update superseded airborne/locomotion assertions to test grounded entry and preserved ordinary movement. Baseline inventory changes are limited to the new test file and inspected source-line locations; runtime script graph, external hosts and syntax debt are unchanged.
+- Existing art/audio unchanged. Makko acceptance pending. Rollback to merged #30. Larger environment/combo/settings/lore work and standalone migration are deferred.
+
 ## September 11, 2026 — Jammer Rhythm Mode exit repair (review)
 
 - Owner found active Rhythm Mode bleeding through Jammer destruction into the next section.

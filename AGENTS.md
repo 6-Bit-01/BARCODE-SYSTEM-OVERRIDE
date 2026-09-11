@@ -33,6 +33,8 @@ The September 11 owner approved combined recommendations 1–5, 8 and 9 after re
 
 ## Engineering and validation
 
+Current authorized follow-up: after PR #30 the owner approved the recommended animation/rhythm/hack/effects pass. Rhythm Mode now uses grounded, stationary entry and explicit R/Escape exit for traversal; forced airborne motion ends the stance, the lift can carry it, and background timing continues. Preserve ordinary single-jump movement outside the stance, existing hack rules/rewards, sprite calibration and the Jammer mode-exit repair. Read the newest source-pack current-state and acceptance sections before historical reports. This implementation is awaiting Makko acceptance.
+
 - `index.html` remains the browser entrypoint. Keep Makko compatibility and all JavaScript syntax valid, including files outside the active script graph.
 - Do not introduce a bundler/ES-module rewrite or replace asset URLs without a concrete scoped reason. Validation remains dependency-free unless a later task approves a dependency.
 - Use existing lifecycle and input owners. New level timers, listeners, animation loops and audio sources must be disposed on exit; avoid stacking future genres onto Level 1 globals.

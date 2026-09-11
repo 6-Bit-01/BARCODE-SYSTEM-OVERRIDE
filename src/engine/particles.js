@@ -287,26 +287,15 @@ window.ParticleSystem = class ParticleSystem {
 
   // Landing effect - larger smoke puff
   landingEffect(x, y, enemyType = null) {
-    const colors = enemyType ? this.getEnemyColors(enemyType) : ['#cccccc'];
-    
-    // Force spawn position to be above ground level
-    const spawnY = Math.min(y, 885); // Never spawn below 885px (5px above ground)
-    
+    const colors = enemyType ? this.getEnemyColors(enemyType) : ['#90e8df', '#b6a4ce'];
     for (let i = 0; i < 10; i++) {
-      const color = colors[0];
-      
-      this.particles.push(new window.Particle(
-        x, spawnY,
-        window.randomRange(-130, 130), // 20px wider than previous (-110,110) → (-130,130)
-        Math.max(-25, window.randomRange(-25, -5)), // Force upward velocity to prevent falling
-        color,
-        window.randomRange(6, 10),
-        window.randomRange(500, 800),
-        'circle',
-        Math.random() * Math.PI * 2,
-        true // growAndDissipate for smoke effect
-      ));
+      const side = i % 2 ? 1 : -1;
+      this.particles.push(new window.Particle(x + side * 5, Math.min(y - 2, 883),
+        side * window.randomRange(65, 155), -window.randomRange(15, 65), colors[i % colors.length],
+        window.randomRange(2, 4), window.randomRange(180, 320), i % 3 ? 'square' : 'triangle'));
     }
+    for (let i = 0; i < 4; i++) this.particles.push(new window.Particle(x, Math.min(y, 883),
+      window.randomRange(-90, 90), -15, '#b5b7cc', 4, 280, 'circle', 0, true));
   }
 
   // Enhanced stomp effect

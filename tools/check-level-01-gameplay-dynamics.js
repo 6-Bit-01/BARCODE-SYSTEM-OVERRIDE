@@ -242,10 +242,11 @@ function testHackingPresentationInputAndRecovery() {
 
   const portCanvas = createCanvasSpy();
   portHack.draw(portCanvas);
-  const openLine = portCanvas.calls.find(call => /PORT\s+\d+:\s+OPEN/.test(call.text));
-  const closedLine = portCanvas.calls.find(call => /PORT\s+\d+:\s+CLOSED/.test(call.text));
-  assert(openLine && openLine.fillStyle === '#00ff00' && /25px/.test(openLine.font), 'OPEN port restores the original large bright-green treatment');
-  assert(closedLine && closedLine.fillStyle === '#ff6600' && /21px/.test(closedLine.font), 'CLOSED ports restore the original large orange treatment');
+  const openLine = portCanvas.calls.find(call => call.text === 'OPEN');
+  const closedLine = portCanvas.calls.find(call => call.text === 'CLOSED');
+  assert(openLine && openLine.fillStyle === '#91ffe0', 'OPEN port has distinct bright mint status');
+  assert(closedLine && closedLine.fillStyle === '#d5a18b', 'CLOSED port has distinct muted amber status');
+  for (const port of portHack.currentPuzzle.ports) assert(portCanvas.calls.some(call => call.text === String(port.number) && /27px/.test(call.font)), 'all port numbers remain prominent and readable');
 
   const answer = portHack.currentPuzzle.answer;
   assert.strictEqual(portHack.processInput(answer[0]), false, 'visible answer cannot be pre-filled during display phase');
@@ -272,7 +273,7 @@ function testHackingPresentationInputAndRecovery() {
   const memoryCanvas = createCanvasSpy();
   memoryHack.draw(memoryCanvas);
   const codeLine = memoryCanvas.calls.find(call => call.text?.trim() === code);
-  assert(codeLine && codeLine.fillStyle === '#ffff00' && /38px/.test(codeLine.font), 'memory code is large and yellow');
+  assert(codeLine && codeLine.fillStyle === '#f6e9a3' && /46px/.test(codeLine.font), 'memory code is large and warm yellow');
   memoryHack.update(memoryHack.displayTime);
   assert(!memoryHack.terminalLines.some(line => line.includes(code)), 'memory answer is genuinely removed when the input window opens');
 

@@ -202,6 +202,7 @@ window.ParallaxBackground = class ParallaxBackground {
         const drawX = 1920/2 - newWidth/2 - offset.x; // Center background and apply camera offset
         const drawY = -550; // Moved up 50px
         ctx.drawImage(layer.imgElement, drawX, drawY, newWidth, newHeight);
+        this.drawSignalLights(ctx, layer, drawX, drawY, newWidth, newHeight);
         ctx.restore();
         ctx.restore();
         ctx.restore();
@@ -211,6 +212,30 @@ window.ParallaxBackground = class ParallaxBackground {
     ctx.restore();
   }
   
+  drawSignalLights(ctx, layer, x, y, width, height) {
+    if (layer !== this.layers[1] || !layer.imgElement || window.sector1Progression?.isGameplaySuppressed?.()) return;
+    const time = window.audioSystem?.context?.currentTime;
+    const sample = Number.isFinite(time) ? window.BARCODE?.MusicTransport?.sample?.(time) : null;
+    if (!sample?.running || !sample.grid || sample.profileId !== 'level-01.main') return;
+    // Sign interiors measured in the approved 1279x462 foreground source.
+    // Reuse the exact draw transform so camera motion cannot detach the light.
+    const signs = [[99, 273, 79, 13], [270, 271, 74, 9], [626, 215, 87, 32],
+      [839, 240, 92, 16], [1183, 185, 43, 60]];
+    const sx = width / 1279, sy = height / 462;
+    const fraction = sample.grid.beatFloat % 1;
+    const pulse = Math.pow(1 - fraction, 3);
+    const combatScale = window.sector1Progression?.isBossCombatLive?.() ? 0.35 : 1;
+    ctx.save(); ctx.shadowBlur = 0;
+    signs.forEach(([left, top, w, h], i) => {
+      const screenX = x + left * sx;
+      if (screenX + w * sx < -400 || screenX > 2320) return;
+      const accent = i % 2 ? '204, 125, 255' : '113, 255, 229';
+      ctx.fillStyle = `rgba(${accent}, ${pulse * 0.12 * combatScale})`;
+      ctx.fillRect(screenX, y + top * sy, w * sx, h * sy);
+    });
+    ctx.restore();
+  }
+
   // Draw tiled fallback (when image fails to load)
   drawTiledFallback(ctx, layer, offset) {
     const canvasWidth = 1920;
