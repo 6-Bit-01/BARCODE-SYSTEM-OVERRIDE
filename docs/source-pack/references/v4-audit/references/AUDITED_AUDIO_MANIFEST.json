@@ -1,0 +1,29 @@
+{
+  "version": "1.0",
+  "audio": {
+    "kling_20251126_Text_to_Audio_A_digital_3627_3": {
+      "url": "https://api.makko.ai/storage/v1/object/public/audio-assets/e56876ca-50d1-4b32-bcb9-1e37b7d1f822/9db7167d-8742-41cd-aae1-1206e230970c.mp3?t=1764566167998",
+      "name": "kling_20251126_Text_to_Audio_A_digital__3627_3.mp3",
+      "format": "MPEG",
+      "duration": 10.057063
+    },
+    "Defeat1": {
+      "url": "https://api.makko.ai/storage/v1/object/public/audio-assets/e56876ca-50d1-4b32-bcb9-1e37b7d1f822/a9fa8406-26c0-4f8d-b961-70dc99e0f52f.mp3?t=1764563746359",
+      "name": "Defeat1.mp3",
+      "format": "MPEG",
+      "duration": 0.660907
+    },
+    "Defeat2": {
+      "url": "https://api.makko.ai/storage/v1/object/public/audio-assets/e56876ca-50d1-4b32-bcb9-1e37b7d1f822/e39ab293-b53e-41d9-b837-58ab36c027f1.mp3?t=1764563923430",
+      "name": "Defeat2.mp3",
+      "format": "MPEG",
+      "duration": 0.473469
+    },
+    "Defeat3": {
+      "url": "https://api.makko.ai/storage/v1/object/public/audio-assets/e56876ca-50d1-4b32-bcb9-1e37b7d1f822/cc0b2256-2a0e-41e7-a88f-04d68df83dd5.mp3?t=1764563926438",
+      "name": "Defeat3.mp3",
+      "format": "MPEG",
+      "duration": 10.057063
+    }
+  }
+}

@@ -56,7 +56,8 @@ must(sectorSource, /activeAnimation === animation/, 'boss animation play is guar
 must(sectorSource, /const GROUND_Y = 750;/, 'Level 1 physics ground remains at the reverted baseline');
 must(jammerSource, /state\.generation \+= 1;[^]*state\.revealed = false;[^]*state\.targetable = false;[^]*state\.health = state\.maxHealth;[^]*state\.destroyed = false;[^]*state\.lastDamageSequence = null/s, 'jammer reset always restores gameplay state');
 must(jammerSource, /state\.destroyed \|\| !state\.revealed/, 'destroyed jammer sprite stops rendering');
-must(combat, /jammerHit\.ok\) \? 'hit' : 'no-target'/, 'jammer-only hit reports hit');
+// Jammer-only and boss-only hit results are exercised through PlayerCombat in
+// check-level-01-boss.js so adding a target cannot break a source-text pattern.
 must(rhythm, /timing === 'miss'[^]*playSound\('synthHit', 0\.3\)/, 'exact miss plays synthHit once');
 must(enemies, /if \(suppressMissionSimulation\) return;[^]*this\.simulationTimeMs \+= deltaTime;/, 'enemy sim time does not advance while suppressed');
 must(enemies, /purgeForCinematic\(\)[^]*_defeatRecorded = true[^]*particleSystem[^]*this\.enemies = this\.enemies\.filter/s, 'purge starts visible effects and avoids defeat credit');

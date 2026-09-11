@@ -197,6 +197,12 @@ window.Player = class Player {
         this.primaryAttackAnimationMs = Math.max(0, this.primaryAttackAnimationMs - deltaTime);
       }
       
+      // Boss landing uses the same swept physics anchors as stage geometry.
+      // The mission owner bounds boss damage; ordinary enemy stomps stay lethal.
+      if (this.allowMovement && window.sector1Progression?.applyBossStomp) {
+        window.sector1Progression.applyBossStomp(this, { previousFootY, currentFootY: this.position.y, previousX });
+      }
+
       let landedOnStageSurface = false;
       if (window.sector1Progression && typeof window.sector1Progression.applyPlayerStageCollision === 'function') {
         landedOnStageSurface = window.sector1Progression.applyPlayerStageCollision(this, { previousFootY, currentFootY: this.position.y, previousX });

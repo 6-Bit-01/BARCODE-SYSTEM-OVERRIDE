@@ -99,7 +99,7 @@ window.checkGameConditions = function() {
 
   window.syncEnemyDefeatProjections();
 
-  if (window.player.health <= 0) {
+  if (window.player.health <= 0 && !window.gameState.gameOver && !window.gameState.victory) {
     if (window.tutorialSystem && typeof window.tutorialSystem.isActive === 'function' && window.tutorialSystem.isActive()) {
       respawnPlayerInTutorial();
     } else {

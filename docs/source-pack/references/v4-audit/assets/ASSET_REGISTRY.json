@@ -1,0 +1,76 @@
+{
+  "version": "4.0.0-audit",
+  "registryType": "verified-audit-inventory-not-production-ready",
+  "pathBase": "pack-root",
+  "auditDate": "2026-07-15",
+  "productionReady": false,
+  "policy": {
+    "stableIds": true,
+    "recordApprovalBeforeShipping": true,
+    "remoteOnlyAssetsNeedLocalFallback": true,
+    "lockedIntroMayBeVerifiedButNotRedesigned": true
+  },
+  "repositoryManifests": [
+    {"path":"references/AUDITED_SPRITES_MANIFEST.json","repositoryPath":"sprites-manifest.json","sha256":"d1a267cb59399664a8b79330c3f902e5966a9143c9bed46c4bbf273ae3377f78","contents":"Exact JSON/WebP URLs and 14 named Makko animations across 6 Bit, Virus, Corrupted, Firewall, Broadcast Jammer, and Sector 1 Boss","status":"audited-mirror"},
+    {"path":"references/AUDITED_AUDIO_MANIFEST.json","repositoryPath":"audio-manifest.json","sha256":"e686096fff117c489898642739d2f3ad76503b422cbf43dc605972293c7c7e45","contents":"Exact URLs and metadata for four Makko-hosted effect records","status":"audited-mirror"}
+  ],
+  "visualAssets": [
+    {"id":"title.main","url":"https://i.postimg.cc/g2pD1DgH/openart-89f2eee5-980d-4652-96af-7a1634e44485.png","dimensions":"1280x860","downloadedAuditCopySha256":"22321834fb3e659e6e951621d37215bf8d850af22be5613e6c7729d78fb4d592","localFallback":false,"status":"approved-existing-remote-only","lock":"preserve"},
+    {"id":"level01.background.far","url":"https://i.postimg.cc/4yJ2CdJK/BG.png","dimensions":"1280x855","downloadedAuditCopySha256":"ed90872aea0e08b4dcf5cf95b39bf3432706c859f6ca39a7ae8c3dc2dbca9a98","localFallback":false,"status":"approved-existing-remote-only","note":"Do not force to foreground aspect ratio; crop/extend intentionally."},
+    {"id":"level01.background.street","url":"https://i.postimg.cc/gJT4gs1Q/FG.png","dimensions":"1279x462","downloadedAuditCopySha256":"dba7c87f29b4114fa5e8a77b6e70615567423b0a8fa1b9ad42fbabb604be02c3","localFallback":false,"status":"approved-existing-remote-only","note":"Transparent foreground row; use authored collision overlay."},
+    {"id":"level01.traffic.ship01","url":"https://i.postimg.cc/xj3VcRP3/Ship1.gif","dimensions":"1280x727","frames":81,"bytes":7743305,"downloadedAuditCopySha256":"4d8db67c9af0a8f2b65a85409a9aa2fcca3664f92688723aebf91e2665e7ef4d","localFallback":false,"status":"approved-existing-remote-only","note":"Transcode/resize after visual comparison."},
+    {"id":"level01.traffic.ship02","url":"https://i.postimg.cc/T1LNxnfz/Ship2.gif","dimensions":"800x800","frames":122,"bytes":5111233,"downloadedAuditCopySha256":"e3db09fdae1e393d83ea90d0ef8ba6187219201fe208e1c4fd485d121b069553","localFallback":false,"status":"approved-existing-remote-only","note":"Transcode/resize after visual comparison."},
+    {"id":"level01.traffic.ship03","url":"https://i.postimg.cc/1zM9TVmz/Ship3.gif","dimensions":"1265x383","frames":122,"bytes":21230651,"downloadedAuditCopySha256":"67315d7e63e481ea64691b0e43fd0811ca1e60a45d83a1392e42c8d5d97db43e","localFallback":false,"status":"approved-existing-remote-only","note":"Highest compression priority."},
+    {"id":"collectible.lore","url":"https://i.postimg.cc/2yvHCQhj/Lore.png","dimensions":"332x294","downloadedAuditCopySha256":"245ef8da8c6d6e66f58a53eb054bd1dcf19820a963e35e2b3e930f8996e687f9","localFallback":false,"status":"approved-existing-remote-only","note":"Reuse visual with 28 deterministic data IDs."},
+    {"id":"level01.jammer.presentation","url":"https://i.postimg.cc/RhfPv7K0/Jammer.png","dimensions":"592x698","downloadedAuditCopySha256":"e24715da17b8b9cc3b871fd4e3b4563437a8e5689a06badb56d95b8cff01c270","localFallback":false,"status":"approved-existing-remote-only","note":"Jammer is an environmental trigger, never an enemy."}
+  ],
+  "lockedIntro": [
+    {"id":"intro.so1","url":"https://i.postimg.cc/28xQSmxK/SO1.png","dimensions":"1248x832","downloadedAuditCopySha256":"ff39b9e3f735f45269a8d33596eb9d8274457bd3418cd7df4dc33752d5b68311","localFallback":false,"status":"locked-remote-only"},
+    {"id":"intro.so2","url":"https://i.postimg.cc/bNRxw8RF/SO2.png","dimensions":"1248x832","downloadedAuditCopySha256":"c29787beb55afbd535145255f89a7e6b922b57a4ac795280744b1483c021c351","localFallback":false,"status":"locked-remote-only"},
+    {"id":"intro.so3","url":"https://i.postimg.cc/fTvcRZvC/SO3.png","dimensions":"1248x832","downloadedAuditCopySha256":"11eafd4afc092682965c0ffb907b643fa08d8711d4fd0eab37ae088c93e7542f","localFallback":false,"status":"locked-remote-only"},
+    {"id":"intro.so4","url":"https://i.postimg.cc/dt92Vv9n/SO4.png","dimensions":"1248x832","downloadedAuditCopySha256":"6708282358d74112532c6525063b15e9deeeb7292350e2396e5f63d267b6ba6f","localFallback":false,"status":"locked-remote-only"},
+    {"id":"intro.so5","url":"https://i.postimg.cc/vHvrZMv3/SO5.png","dimensions":"1248x832","downloadedAuditCopySha256":"d012c2de7808a16662ac5ef57b7b4f3a1123c4d5d3117d4c95d3374f81645d0e","localFallback":false,"status":"locked-remote-only"},
+    {"id":"intro.so6","url":"https://i.postimg.cc/Yqx6Ckx3/SO6.png","dimensions":"1248x832","downloadedAuditCopySha256":"83ce50560d8fe5c943a4537cfe1c83529f046b71b9331fb571a1fd59407dab6d","localFallback":false,"status":"locked-remote-only"},
+    {"id":"intro.so7","url":"https://i.postimg.cc/TYcV3Gcr/SO7.png","dimensions":"1248x832","downloadedAuditCopySha256":"8588f6baf9db9a3a0c8ee3813255fe912b1d5fc2fd145bdc26c8713caf1035be","localFallback":false,"status":"locked-remote-only"},
+    {"id":"intro.so8","url":"https://i.postimg.cc/QxqQdsqQ/SO8.png","dimensions":"1248x832","downloadedAuditCopySha256":"bee350311353a658d38d022e7618c12b8da9bf867578ee4c6b5fa10d4d523daa","localFallback":false,"status":"locked-remote-only","runtimeOccurrences":3},
+    {"id":"intro.so10","url":"https://i.postimg.cc/65hrpwhV/SO10.png","dimensions":"1248x832","downloadedAuditCopySha256":"0b81eefce0164daadc2c4a0a4b9ccbeebec566e8a09c3489efab160e632809f9","localFallback":false,"status":"locked-remote-only"}
+  ],
+  "audioAssets": [
+    {"id":"sfx.kling_digital_3627_3","repositoryId":"kling_20251126_Text_to_Audio_A_digital_3627_3","url":"https://api.makko.ai/storage/v1/object/public/audio-assets/e56876ca-50d1-4b32-bcb9-1e37b7d1f822/9db7167d-8742-41cd-aae1-1206e230970c.mp3?t=1764566167998","format":"MPEG","durationSec":10.057063,"sha256":null,"localFallback":false,"status":"audited-metadata-runtime-approval-required"},
+    {"id":"sfx.defeat01","repositoryId":"Defeat1","url":"https://api.makko.ai/storage/v1/object/public/audio-assets/e56876ca-50d1-4b32-bcb9-1e37b7d1f822/a9fa8406-26c0-4f8d-b961-70dc99e0f52f.mp3?t=1764563746359","format":"MPEG","durationSec":0.660907,"sha256":null,"localFallback":false,"status":"audited-metadata-runtime-approval-required"},
+    {"id":"sfx.defeat02","repositoryId":"Defeat2","url":"https://api.makko.ai/storage/v1/object/public/audio-assets/e56876ca-50d1-4b32-bcb9-1e37b7d1f822/e39ab293-b53e-41d9-b837-58ab36c027f1.mp3?t=1764563923430","format":"MPEG","durationSec":0.473469,"sha256":null,"localFallback":false,"status":"audited-metadata-runtime-approval-required"},
+    {"id":"sfx.defeat03","repositoryId":"Defeat3","url":"https://api.makko.ai/storage/v1/object/public/audio-assets/e56876ca-50d1-4b32-bcb9-1e37b7d1f822/cc0b2256-2a0e-41e7-a88f-04d68df83dd5.mp3?t=1764563926438","format":"MPEG","durationSec":10.057063,"sha256":null,"localFallback":false,"status":"audited-metadata-runtime-approval-required"}
+  ],
+  "makkoAuditDefaults": {
+    "exactJsonAndWebpUrls": "references/AUDITED_SPRITES_MANIFEST.json",
+    "hitbox": "not-recorded-in-checked-in-manifest; runtime API can report it and production cards must record it",
+    "localFallback": false,
+    "approval": "existing reference; owner Makko/browser scale and animation recheck required",
+    "productionBlocker": "record local fallback, hash, runtime hitbox, and rights/credit before shipping"
+  },
+  "makkoAnimationSummary": [
+    {"id":"6_bit_idle_idle","frame":"86x96","frames":26,"fps":12,"durationSec":2.166667,"anchor":"43,95"},
+    {"id":"6_bit_jump_jump","frame":"41x96","frames":27,"fps":12,"durationSec":2.25,"anchor":"21,95"},
+    {"id":"6_bit_walk_walk","frame":"66x96","frames":48,"fps":12,"durationSec":4,"anchor":"33,94"},
+    {"id":"6_bit_r__h_mode_rhmode","frame":"51x96","frames":48,"fps":12,"durationSec":4,"anchor":"26,95"},
+    {"id":"virus_idle_idle","frame":"96x93","frames":51,"fps":12,"durationSec":4.25,"anchor":"48,92"},
+    {"id":"corrupted_idle_idle","frame":"80x96","frames":51,"fps":12,"durationSec":4.25,"anchor":"40,84"},
+    {"id":"corrupted_walk_walk","frame":"74x96","frames":46,"fps":12,"durationSec":3.833333,"anchor":"37,95"},
+    {"id":"firewall_idle_idle","frame":"96x93","frames":62,"fps":12,"durationSec":5.166667,"anchor":"48,92"},
+    {"id":"firewall_walk_walk","frame":"68x96","frames":33,"fps":12,"durationSec":2.75,"anchor":"34,95"},
+    {"id":"firewall_attack_default","frame":"96x67","frames":59,"fps":12,"durationSec":4.916667,"anchor":"48,66"},
+    {"id":"broadcast_jammer_idle_idle","frame":"256x219","frames":48,"fps":12,"durationSec":4,"anchor":"128,214"},
+    {"id":"sector_1_boss_idle_idle","frame":"256x179","frames":48,"fps":12,"durationSec":4,"anchor":"128,178"},
+    {"id":"sector_1_boss_walk_walk","frame":"200x256","frames":41,"fps":12,"durationSec":3.416667,"anchor":"100,253"},
+    {"id":"sector_1_boss_attack_attack","frame":"256x155","frames":48,"fps":12,"durationSec":4,"anchor":"128,154"}
+  ],
+  "knownGaps": [
+    "6 Bit attack/hurt/defeat presentation",
+    "DJ Floppydisc, Cache Back, and Mac Modem gameplay animation sets",
+    "Level 1 modular stage props and readable collision overlays",
+    "genre-specific assets for Levels 2 through 7",
+    "local or repository-backed fallbacks for every remote-only critical asset",
+    "seven distinct gameplay songs with independent verified music profiles",
+    "Level 7 Full Mix layers exported as one separate compatible arrangement"
+  ]
+}

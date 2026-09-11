@@ -17,7 +17,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     TUTORIAL: 'tutorial', ENCOUNTER_1: 'encounter_1', ENCOUNTER_2: 'encounter_2', ENCOUNTER_3: 'encounter_3', ENCOUNTER_4: 'encounter_4',
     JAMMER_ACTIVE: 'jammer_active', FREEZE: 'jammer_destroyed_freeze', ENEMY_PURGE: 'enemy_purge', CAMERA_PAN: 'camera_pan',
     BOSS_WALK_IN: 'boss_walk_in', BOSS_CLOSE_UP: 'boss_close_up', BOSS_FLOURISH: 'boss_flourish', BOSS_HOLD: 'boss_hold',
-    CAMERA_RETURN: 'camera_return', BOSS_READY: 'boss_ready'
+    CAMERA_RETURN: 'camera_return', BOSS_READY: 'boss_ready', BOSS_COMBAT: 'boss_combat', LEVEL_COMPLETE: 'level_complete'
   });
 
   const ENCOUNTERS = Object.freeze([
@@ -88,6 +88,16 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
   });
   const SIGNAL_AMP = Object.freeze({ id: 'signal-amp', x: 2868, y: 154, radius: 36, charges: 3, range: 430 });
 
+  // Encounter tuning is intentionally local to Level 1. MusicTransport keeps
+  // the rhythm judgment; this owner's hostile delta controls enemy actions.
+  const BOSS_COMBAT = Object.freeze({
+    maxHealth: 12, readyMs: 1400, approachSpeed: 180, approachRange: 280,
+    telegraphMs: 1200, fastTelegraphMs: 900, sweepMs: 600,
+    recoveryMs: 1900, fastRecoveryMs: 1650, secondPulseMs: 280,
+    pulseSpeed: 700, pulseRange: 1050, pulseWidth: 64, pulseHeight: 56,
+    hitboxWidth: 110, hitboxHeight: 174
+  });
+
   const BOSS_PRESENTATION = Object.freeze({
     targetAnchorHeight: 253 * 0.8,
     walk: Object.freeze({
@@ -155,14 +165,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     static get SIGNAL_AMP() { return SIGNAL_AMP; }
     static get CINEMATIC() { return CINEMATIC; }
     static get STATES() { return STATES; }
-    isAuthoritativeMissionActive() { return this.state !== STATES.TUTORIAL && this.state !== STATES.BOSS_READY; }
+    static get BOSS_COMBAT() { return BOSS_COMBAT; }
+    isAuthoritativeMissionActive() { return this.state !== STATES.TUTORIAL && this.state !== STATES.LEVEL_COMPLETE; }
     shouldSuppressGenericSpawning() { return true; }
     isBossCinematicActive() { return [STATES.FREEZE, STATES.ENEMY_PURGE, STATES.CAMERA_PAN, STATES.BOSS_WALK_IN, STATES.BOSS_CLOSE_UP, STATES.BOSS_FLOURISH, STATES.BOSS_HOLD, STATES.CAMERA_RETURN].includes(this.state); }
-    isGameplaySuppressed() { return this.isBossCinematicActive(); }
+    isGameplaySuppressed() { return this.isBossCinematicActive() || this.state === STATES.LEVEL_COMPLETE; }
     getCameraX(fallback) { return this.cameraOverrideActive ? clampCamera(this.cameraX) : fallback; }
     getCinematicZoomOverride() { return Number.isFinite(this.cinematicZoomOverride) ? this.cinematicZoomOverride : null; }
     update(deltaTime = 0) {
-      if (window.gameState && window.gameState.paused) return;
+      if (window.isPaused || window.gameState?.paused || window.gameState?.gameOver || window.gameState?.victory) return;
       this.player = this.player || window.player;
       this.pollPreparedAssets();
       const tutorialDone = !!(window.tutorialSystem && typeof window.tutorialSystem.isCompleted === 'function' && window.tutorialSystem.isCompleted() && typeof window.tutorialSystem.isActive === 'function' && !window.tutorialSystem.isActive());
@@ -183,7 +194,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       else if (this.state === STATES.BOSS_FLOURISH) this.updateBossFlourish(deltaTime);
       else if (this.state === STATES.BOSS_HOLD) this.updateBossHold(deltaTime);
       else if (this.state === STATES.CAMERA_RETURN) this.updateCameraReturn(deltaTime);
-      else if (this.state === STATES.BOSS_READY) { this.updateBossSprite(deltaTime); if (this.cinematicZoomReleasePending) { this.cinematicZoomReleasePending = false; this.cinematicZoomOverride = null; } }
+      else if (this.state === STATES.BOSS_READY) {
+        this.updateBossSprite(deltaTime);
+        if (this.cinematicZoomReleasePending) { this.cinematicZoomReleasePending = false; this.cinematicZoomOverride = null; }
+        this.boss.phaseElapsedMs += tacticalDeltaTime;
+        if (this.boss.phaseElapsedMs >= BOSS_COMBAT.readyMs) this.beginBossCombat();
+      }
+      else if (this.state === STATES.BOSS_COMBAT) this.updateBossCombat(tacticalDeltaTime);
     }
     startMission() { this.state = STATES.ENCOUNTER_1; this.missionStarted = true; this.missionDefeats = 0; this.countedEnemies.clear(); this.spawnedEncounterIds.clear(); this.activeEncounterId = null; this.resetSignalLift(); this.enemyManagerReset(); if (window.objectivesSystem?.setMissionDefeatObjective) window.objectivesSystem.setMissionDefeatObjective(0, this.requiredEnemyKills); }
     enemyManagerReset() { if (window.cancelInitialEnemySpawn) window.cancelInitialEnemySpawn(); if (window.enemyManager) window.enemyManager.clear(); if (window.gameState) { window.gameState.enemiesDefeated = 0; window.gameState.hasSpawnedInitialEnemies = true; } this.prepareAssetsForEncounter(0); }
@@ -225,7 +242,228 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     getBossArenaTargetX() { const zoom = Math.max(0.1, this.cinematicStartZoom || 1); return clampWorldX(this.cinematicStartCameraX + (CINEMATIC.bossArenaScreenX - CANVAS_WIDTH / 2) / zoom); }
     startCameraReturn() { this.state = STATES.CAMERA_RETURN; this.phaseElapsed = 0; this.returnStartCameraX = this.cameraX; this.returnStartZoom = this.cinematicZoomOverride; this.returnStartBossX = this.boss.x; this.returnBossTargetX = this.getBossArenaTargetX(); this.boss.state = 'walk'; this.setBossAnimation('sector_1_boss_walk_walk', true); }
     updateCameraReturn(delta) { this.phaseElapsed += delta; const t = Math.min(1, this.phaseElapsed / CINEMATIC.returnMs); const eased = smoothStep(t); this.cameraX = clampCamera(lerp(this.returnStartCameraX, this.cinematicStartCameraX, eased)); const desiredZoom = lerp(this.returnStartZoom, this.cinematicStartZoom, eased); this.cinematicZoomOverride = t < 1 ? Math.max(desiredZoom, getForegroundCoverageZoomFloor(this.cameraX)) : this.cinematicStartZoom; this.boss.x = lerp(this.returnStartBossX, this.returnBossTargetX, eased); this.updateBossSprite(delta); if (t >= 1) { this.cameraX = this.cinematicStartCameraX; this.cinematicZoomOverride = this.cinematicStartZoom; this.boss.x = this.returnBossTargetX; this.enterBossReady(); } }
-    enterBossReady() { this.state = STATES.BOSS_READY; this.boss.state = 'idle'; this.boss.canDealDamage = false; this.boss.canReceiveDamage = false; this.setBossAnimation('sector_1_boss_idle_idle', true); this.bossReadyEmitted = true; this.cameraOverrideActive = false; this.frozenPlayerPosition = null; this.cinematicZoomReleasePending = true; if (this.player) { this.player.controlsDisabled = false; if (this.player.velocity) { this.player.velocity.x = 0; this.player.velocity.y = 0; } } /* Boss combat is intentionally not enabled until a later authoritative PlayerCombat/EnemyManager pass. */ if (window.objectivesSystem?.setBossIntroObjective) window.objectivesSystem.setBossIntroObjective(); }
+    enterBossReady() {
+      if (!this.boss) return false;
+      this.state = STATES.BOSS_READY;
+      Object.assign(this.boss, { state: 'idle', active: true, phase: 'ready', phaseElapsedMs: 0,
+        health: BOSS_COMBAT.maxHealth, maxHealth: BOSS_COMBAT.maxHealth, facing: -1,
+        canDealDamage: false, canReceiveDamage: false, cycle: 0, stompCycle: -1,
+        hitSequences: new Set(), pulses: [], pulseSequence: 0, hitFlashMs: 0, defeated: false });
+      this.setBossAnimation('sector_1_boss_idle_idle', true);
+      this.bossReadyEmitted = true;
+      this.cameraOverrideActive = false;
+      this.frozenPlayerPosition = null;
+      this.cinematicZoomReleasePending = true;
+      if (this.player) {
+        this.player.controlsDisabled = false;
+        if (this.player.velocity) { this.player.velocity.x = 0; this.player.velocity.y = 0; }
+      }
+      if (!this.bossCheckpoint) {
+        const playerX = this.player?.position?.x ?? 960;
+        this.bossCheckpoint = { playerX, bossX: this.boss.x,
+          score: window.gameState?.score || 0, signalAmpCharges: window.BARCODE?.signalAmpCharges || 0 };
+      }
+      window.objectivesSystem?.setBossCombatObjective?.(this.boss.health, this.boss.maxHealth);
+      return true;
+    }
+    beginBossCombat() {
+      if (this.state !== STATES.BOSS_READY || !this.boss || this.boss.defeated) return false;
+      this.state = STATES.BOSS_COMBAT;
+      this.setBossCombatPhase('approach');
+      return true;
+    }
+    isBossCombatLive() {
+      return this.state === STATES.BOSS_COMBAT && !!this.boss?.active && !this.boss.defeated &&
+        window.isRunning !== false && !window.isPaused && !window.gameState?.paused && !window.gameState?.gameOver &&
+        !window.gameState?.victory && window.gameState?.running !== false && (this.player?.health ?? 1) > 0;
+    }
+    setBossCombatPhase(phase) {
+      const boss = this.boss;
+      if (!boss) return;
+      boss.phase = phase;
+      boss.phaseElapsedMs = 0;
+      boss.canReceiveDamage = phase === 'recovery';
+      boss.canDealDamage = phase === 'sweep' || boss.pulses.some(pulse => !pulse.hit);
+      boss.state = phase === 'approach' ? 'walk' : phase === 'sweep' ? 'flourish' : 'idle';
+      this.setBossAnimation(phase === 'approach' ? 'sector_1_boss_walk_walk' : phase === 'sweep' ? 'sector_1_boss_attack_attack' : 'sector_1_boss_idle_idle', phase !== 'sweep');
+      if (phase === 'telegraph') {
+        boss.cycle += 1;
+        boss.doublePulse = boss.health <= boss.maxHealth / 2;
+        boss.secondPulseEmitted = false;
+      }
+      if (phase === 'sweep') this.emitBossPulse();
+    }
+    emitBossPulse() {
+      this.boss.pulses.push({ id: ++this.boss.pulseSequence, originX: this.boss.x,
+        radius: 0, previousRadius: 0, hit: false });
+      window.renderer?.addScreenShake?.(3, 120);
+    }
+    updateBossCombat(deltaTime) {
+      if (!this.isBossCombatLive()) return;
+      const boss = this.boss;
+      const delta = Math.max(0, deltaTime);
+      boss.phaseElapsedMs += delta;
+      boss.hitFlashMs = Math.max(0, boss.hitFlashMs - delta);
+      if (boss.phase === 'approach') {
+        const dx = this.player.position.x - boss.x;
+        boss.facing = dx < 0 ? -1 : 1;
+        if (Math.abs(dx) > BOSS_COMBAT.approachRange) {
+          const distance = Math.min(Math.abs(dx) - BOSS_COMBAT.approachRange, BOSS_COMBAT.approachSpeed * delta / 1000);
+          boss.x = clampWorldX(boss.x + boss.facing * distance);
+        } else this.setBossCombatPhase('telegraph');
+      } else if (boss.phase === 'telegraph') {
+        const duration = boss.doublePulse ? BOSS_COMBAT.fastTelegraphMs : BOSS_COMBAT.telegraphMs;
+        if (boss.phaseElapsedMs >= duration) this.setBossCombatPhase('sweep');
+      } else if (boss.phase === 'sweep') {
+        if (boss.doublePulse && !boss.secondPulseEmitted && boss.phaseElapsedMs >= BOSS_COMBAT.secondPulseMs) {
+          boss.secondPulseEmitted = true;
+          this.emitBossPulse();
+        }
+        if (boss.phaseElapsedMs >= BOSS_COMBAT.sweepMs) this.setBossCombatPhase('recovery');
+      } else if (boss.phase === 'recovery') {
+        const duration = boss.doublePulse ? BOSS_COMBAT.fastRecoveryMs : BOSS_COMBAT.recoveryMs;
+        if (boss.phaseElapsedMs >= duration) this.setBossCombatPhase('approach');
+      }
+      this.updateBossPulses(delta);
+      boss.canDealDamage = boss.phase === 'sweep' || boss.pulses.some(pulse => !pulse.hit);
+      this.updateBossSprite(delta);
+    }
+    updateBossPulses(deltaTime) {
+      const boss = this.boss;
+      const player = this.player;
+      const footY = player.position.y + PLAYER_VISUAL_FOOT_OFFSET;
+      const ground = GROUND_Y + PLAYER_VISUAL_FOOT_OFFSET;
+      boss.pulses.forEach(pulse => {
+        pulse.previousRadius = pulse.radius;
+        pulse.radius += BOSS_COMBAT.pulseSpeed * deltaTime / 1000;
+        if (pulse.hit || footY < ground - BOSS_COMBAT.pulseHeight || footY > ground + 24) return;
+        const distance = Math.abs(player.position.x - pulse.originX);
+        const halfWidth = BOSS_COMBAT.pulseWidth / 2 + 24;
+        // Swept annulus contact prevents a low-frame-rate pulse tunneling
+        // through the player. The two directions share one damage latch.
+        if (distance + halfWidth < pulse.previousRadius || distance - halfWidth > pulse.radius) return;
+        pulse.hit = true;
+        if (player.isDamageInvulnerable?.()) return;
+        if (window.hackingSystem?.absorbGuardHit?.()) return;
+        player.takeDamage?.(1);
+      });
+      boss.pulses = boss.pulses.filter(pulse => pulse.radius < BOSS_COMBAT.pulseRange);
+    }
+    getBossHitbox() {
+      if (!this.boss?.active) return null;
+      // A stable hull in visible-foot space; breathing animation never moves
+      // the collision plane away from the locked sprite's sidewalk contact.
+      return { x: this.boss.x - BOSS_COMBAT.hitboxWidth / 2,
+        y: this.boss.y + PLAYER_VISUAL_FOOT_OFFSET - BOSS_COMBAT.hitboxHeight,
+        width: BOSS_COMBAT.hitboxWidth, height: BOSS_COMBAT.hitboxHeight };
+    }
+    applyBossRhythmDamage({ player = this.player, judgment, sequence, range = 300 } = {}) {
+      if (!this.isBossCombatLive()) return { ok: false, reason: 'boss-inactive' };
+      if (window.hackingSystem?.isActive?.()) return { ok: false, reason: 'hacking-active' };
+      if (!judgment?.available || !['perfect', 'excellent'].includes(judgment.timing)) return { ok: false, reason: 'offbeat' };
+      if (!this.boss.canReceiveDamage || this.boss.phase !== 'recovery') return { ok: false, reason: 'boss-guarded' };
+      if (sequence === undefined || sequence === null || this.boss.hitSequences.has(sequence)) return { ok: false, reason: 'duplicate-attack' };
+      if (!player?.position || !Number.isFinite(range) || range <= 0 ||
+        Math.hypot(player.position.x - this.boss.x, player.position.y - this.boss.y) > range) return { ok: false, reason: 'out-of-range' };
+      this.boss.hitSequences.add(sequence);
+      return this.damageBoss('rhythm');
+    }
+    applyBossStomp(player, movement = {}) {
+      if (!this.isBossCombatLive() || player !== this.player || player.allowMovement === false ||
+        window.hackingSystem?.isActive?.() || !this.boss.canReceiveDamage ||
+        this.boss.stompCycle === this.boss.cycle || player.velocity.y <= 0) return false;
+      const box = this.getBossHitbox();
+      const previousFootY = movement.previousFootY + PLAYER_VISUAL_FOOT_OFFSET;
+      const currentFootY = movement.currentFootY + PLAYER_VISUAL_FOOT_OFFSET;
+      if (!Number.isFinite(previousFootY) || !Number.isFinite(currentFootY) ||
+        previousFootY > box.y || currentFootY < box.y || currentFootY <= previousFootY) return false;
+      const t = (box.y - previousFootY) / (currentFootY - previousFootY);
+      const previousX = Number.isFinite(movement.previousX) ? movement.previousX : player.position.x;
+      const crossingX = previousX + (player.position.x - previousX) * t;
+      if (crossingX + 18 <= box.x || crossingX - 18 >= box.x + box.width) return false;
+      this.boss.stompCycle = this.boss.cycle;
+      player.position.y = box.y - PLAYER_VISUAL_FOOT_OFFSET;
+      player.supportedSurfaceId = null;
+      player.stompRebound?.();
+      this.damageBoss('stomp');
+      return true;
+    }
+    damageBoss(source) {
+      if (!this.isBossCombatLive() || !this.boss.canReceiveDamage) return { ok: false, reason: 'boss-guarded' };
+      this.boss.health = Math.max(0, this.boss.health - 1);
+      this.boss.hitFlashMs = 160;
+      window.particleSystem?.impact?.(this.boss.x, this.boss.y - 70, '#00ffff', 16);
+      window.objectivesSystem?.setBossCombatObjective?.(this.boss.health, this.boss.maxHealth);
+      const target = { type: 'boss', damage: 1, x: this.boss.x, y: this.boss.y, source };
+      if (this.boss.health === 0) this.completeLevel();
+      return { ok: true, target, health: this.boss.health };
+    }
+    completeLevel() {
+      if (this.boss?.defeated || this.state === STATES.LEVEL_COMPLETE || !this.boss) return false;
+      this.boss.health = 0;
+      this.boss.defeated = true;
+      this.boss.canDealDamage = false;
+      this.boss.canReceiveDamage = false;
+      this.boss.pulses = [];
+      this.boss.phase = 'defeated';
+      this.boss.state = 'idle';
+      this.setBossAnimation('sector_1_boss_idle_idle', true);
+      this.state = STATES.LEVEL_COMPLETE;
+      this.levelCompletionCount += 1;
+      if (this.player?.velocity) { this.player.velocity.x = 0; this.player.velocity.y = 0; }
+      if (this.player) this.player.controlsDisabled = true;
+      window.hackingSystem?.reset?.();
+      window.inputManager?.resetActionEdges?.();
+      window.objectivesSystem?.completeLevelObjective?.();
+      if (window.gameState) { window.gameState.victory = true; window.gameState.gameOver = false; window.gameState.running = false; }
+      return true;
+    }
+    canRetryBossCheckpoint() {
+      const runtimeState = window.BARCODE?.RuntimeLifecycle?.getState?.();
+      return !!(this.bossCheckpoint && this.boss && (window.gameState?.gameOver || window.gameState?.victory) &&
+        (!runtimeState || runtimeState === 'running') && !window.isPaused && !window.gameState?.paused);
+    }
+    retryBossCheckpoint() {
+      if (!this.canRetryBossCheckpoint()) return { ok: false, reason: 'checkpoint-unavailable' };
+      const checkpoint = this.bossCheckpoint;
+      const player = this.player;
+      if (!player) return { ok: false, reason: 'player-unavailable' };
+      window.hackingSystem?.reset?.();
+      window.enemyManager?.clear?.({ preserveDefeats: true });
+      window.cancelInitialEnemySpawn?.();
+      window.BARCODE?.playerCombat?.reset?.();
+      window.inputManager?.resetActionEdges?.();
+      // Reset feedback only. Do not stop, seek, or restart the music transport.
+      window.rhythmSystem?.restart?.();
+      Object.assign(player.position, { x: checkpoint.playerX, y: GROUND_Y });
+      Object.assign(player.velocity, { x: 0, y: 0 });
+      Object.assign(player, { health: player.maxHealth, grounded: true, controlsDisabled: false,
+        allowMovement: true, isEntering: false, supportedSurfaceId: null,
+        invulnerable: false, invulnerableUntil: 0, _enemyInvulnerableUntilMs: 0,
+        primaryAttackAnimationMs: 0, coyoteTimerMs: 0, jumpBufferTimerMs: 0,
+        jumpHeldMs: 0, jumpReleaseQueued: false, airInput: 0 });
+      this.boss.x = checkpoint.bossX;
+      this.boss.y = GROUND_Y;
+      this.cinematicZoomOverride = null;
+      this.cameraOverrideActive = false;
+      this.frozenPlayerPosition = null;
+      window.renderer?.clearCinematicZoomOverride?.();
+      if (window.BARCODE) window.BARCODE.signalAmpCharges = checkpoint.signalAmpCharges;
+      Object.assign(window.gameState, { running: true, gameOver: false, victory: false,
+        paused: false, score: checkpoint.score, collectionMessage: null, lorePendingMessage: null });
+      this.enterBossReady();
+      return { ok: true, state: this.state };
+    }
+    getBossStatus() {
+      const boss = this.boss;
+      if (!boss) return null;
+      return { phase: boss.phase || 'intro', phaseElapsedMs: boss.phaseElapsedMs || 0,
+        health: boss.health ?? BOSS_COMBAT.maxHealth, maxHealth: boss.maxHealth || BOSS_COMBAT.maxHealth,
+        cycle: boss.cycle || 0, doublePulse: !!boss.doublePulse, defeated: !!boss.defeated,
+        canDealDamage: !!boss.canDealDamage, canReceiveDamage: !!boss.canReceiveDamage,
+        pulses: (boss.pulses || []).map(pulse => ({ ...pulse })), hitbox: this.getBossHitbox(),
+        checkpointAvailable: !!this.bossCheckpoint, retryAvailable: this.canRetryBossCheckpoint() };
+    }
     draw(ctx) { this.drawStageSurfaces(ctx); this.drawEncounterGates(ctx); this.drawBoss(ctx); }
     drawStageSurfaces(ctx) { if (!ctx) return; this.drawSignalLift(ctx); this.drawSignalAmp(ctx); ctx.save(); STAGE_SURFACES.forEach(g => { ctx.shadowColor = '#00ffff'; ctx.shadowBlur = 8; ctx.fillStyle = 'rgba(0,255,255,0.34)'; ctx.fillRect(g.x, g.y - 2, g.w, g.h); ctx.shadowBlur = 0; ctx.strokeStyle = 'rgba(0,255,255,0.92)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(g.x, g.y); ctx.lineTo(g.x + g.w, g.y); ctx.stroke(); }); ctx.restore(); }
     drawSignalLift(ctx) {
@@ -325,7 +563,53 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     getBossPresentationKey() { if (this.boss?.state === 'idle' || this.boss?.activeAnimation === 'sector_1_boss_idle_idle') return 'idle'; if (this.boss?.state === 'flourish' || this.boss?.activeAnimation === 'sector_1_boss_attack_attack') return 'flourish'; return 'walk'; }
     getBossRuntimeAnchorMetrics(frame, flipH = true) { const spriteSheet = this.boss?.sprite?.currentSprite || this.boss?.sprite?._currentSprite || null; const runtimeAnchor = typeof spriteSheet?.getAnchorPoint === 'function' ? spriteSheet.getAnchorPoint() : null; const hasAnchorX = Number.isFinite(runtimeAnchor?.x); const hasAnchorY = Number.isFinite(runtimeAnchor?.y); const sourceAnchorX = hasAnchorX ? runtimeAnchor.x : frame.anchorX; const sourceAnchorY = hasAnchorY ? runtimeAnchor.y : frame.anchorY; let usesScaledAnchor = true; if (spriteSheet) { if (!hasAnchorX && !hasAnchorY) usesScaledAnchor = false; else if (typeof spriteSheet.hasManifestAnchor === 'function') usesScaledAnchor = !!spriteSheet.hasManifestAnchor(); else if (spriteSheet.manifestMetadata) usesScaledAnchor = !!spriteSheet.manifestMetadata.anchor; else usesScaledAnchor = false; } const reportedManifestScale = typeof spriteSheet?.getManifestScale === 'function' ? spriteSheet.getManifestScale() : spriteSheet?.manifestMetadata?.scale; const manifestScale = Number.isFinite(reportedManifestScale) && reportedManifestScale > 0 ? reportedManifestScale : 1; const drawScale = BOSS_PRESENTATION.targetAnchorHeight / frame.anchorY; const frameScale = drawScale * manifestScale; const anchorMultiplier = usesScaledAnchor ? frameScale : 1; const anchorOffsetX = (hasAnchorX || !spriteSheet) ? sourceAnchorX * anchorMultiplier : 0; const anchorOffsetY = (hasAnchorY || !spriteSheet) ? sourceAnchorY * anchorMultiplier : 0; return { spriteSheet, sourceAnchorX, sourceAnchorY, usesScaledAnchor, manifestScale, frameScale, drawScale, anchorOffsetX, anchorOffsetY, flipSignX: flipH ? -1 : 1 }; }
     getBossVisualBounds(options = {}) { if (!this.boss) return null; const frame = BOSS_PRESENTATION[this.getBossPresentationKey()]; const rawFrame = Number.isFinite(this.boss.animationRef?.currentFrame) ? this.boss.animationRef.currentFrame : 0; const frameIndex = Math.max(0, Math.trunc(rawFrame)) % frame.footRows.length; const footRow = frame.footRows[frameIndex] ?? frame.anchorY; const targetFootY = this.boss.y + PLAYER_VISUAL_FOOT_OFFSET; const metrics = this.getBossRuntimeAnchorMetrics(frame, options.flipH !== false); const footDeltaFromRuntimeAnchor = (footRow - metrics.sourceAnchorY) * metrics.frameScale; const anchorY = targetFootY - footDeltaFromRuntimeAnchor; const drawX = this.boss.x - metrics.anchorOffsetX; const drawY = anchorY - metrics.anchorOffsetY; return { x: drawX, y: drawY, width: frame.width * metrics.frameScale, height: frame.height * metrics.frameScale, scale: metrics.drawScale, frameScale: metrics.frameScale, manifestScale: metrics.manifestScale, usesScaledAnchor: metrics.usesScaledAnchor, sourceAnchorX: metrics.sourceAnchorX, sourceAnchorY: metrics.sourceAnchorY, anchorX: this.boss.x, anchorY, frameIndex, footRow, targetFootY, visibleFootY: anchorY + footDeltaFromRuntimeAnchor }; }
-    drawBoss(ctx) { if (!ctx || !this.boss?.active) return; const visual = this.getBossVisualBounds(); ctx.save(); if (this.boss.spriteReady && this.boss.sprite?.draw) this.boss.sprite.draw(ctx, visual.anchorX, visual.anchorY, { scale: visual.scale, flipH: true }); else { ctx.fillStyle = '#ff3300'; ctx.fillRect(visual.x, visual.y, visual.width, visual.height); ctx.fillStyle = '#fff'; ctx.fillText('SECTOR 1 BOSS', visual.x, visual.y - 20); } ctx.restore(); }
+    drawBoss(ctx) {
+      if (!ctx || !this.boss?.active) return;
+      const boss = this.boss;
+      const visual = this.getBossVisualBounds();
+      const ground = GROUND_Y + PLAYER_VISUAL_FOOT_OFFSET;
+      ctx.save();
+      if (this.state === STATES.BOSS_COMBAT) {
+        if (boss.phase === 'telegraph') {
+          const duration = boss.doublePulse ? BOSS_COMBAT.fastTelegraphMs : BOSS_COMBAT.telegraphMs;
+          const progress = Math.min(1, boss.phaseElapsedMs / duration);
+          const width = BOSS_COMBAT.pulseRange * 2;
+          ctx.fillStyle = 'rgba(255, 80, 30, 0.12)';
+          ctx.fillRect(boss.x - width / 2, ground - BOSS_COMBAT.pulseHeight, width, BOSS_COMBAT.pulseHeight);
+          ctx.strokeStyle = '#ff7844';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(boss.x - width / 2 * progress, ground - 2);
+          ctx.lineTo(boss.x + width / 2 * progress, ground - 2);
+          ctx.stroke();
+        }
+        (boss.pulses || []).forEach(pulse => {
+          ctx.fillStyle = pulse.hit ? 'rgba(255,100,30,0.45)' : '#ff6433';
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
+          [-1, 1].forEach(direction => {
+            const x = pulse.originX + direction * pulse.radius - BOSS_COMBAT.pulseWidth / 2;
+            ctx.fillRect(x, ground - BOSS_COMBAT.pulseHeight, BOSS_COMBAT.pulseWidth, BOSS_COMBAT.pulseHeight);
+            ctx.strokeRect(x, ground - BOSS_COMBAT.pulseHeight, BOSS_COMBAT.pulseWidth, BOSS_COMBAT.pulseHeight);
+          });
+        });
+        if (boss.canReceiveDamage) { ctx.shadowColor = '#00ffff'; ctx.shadowBlur = 24; }
+        if (boss.hitFlashMs > 0) { ctx.shadowColor = '#ffffff'; ctx.shadowBlur = 32; }
+      }
+      if (boss.defeated) ctx.globalAlpha = 0.35;
+      if (boss.spriteReady && boss.sprite?.draw) boss.sprite.draw(ctx, visual.anchorX, visual.anchorY, { scale: visual.scale, flipH: boss.facing === undefined || boss.facing < 0 });
+      else { ctx.fillStyle = '#ff3300'; ctx.fillRect(visual.x, visual.y, visual.width, visual.height); }
+      ctx.shadowBlur = 0;
+      if (this.state === STATES.BOSS_COMBAT) {
+        const cue = boss.phase === 'telegraph' ? (boss.doublePulse ? 'TWO PULSES — JUMP' : 'GROUND PULSE — JUMP') :
+          boss.canReceiveDamage ? 'COUNTER: RHYTHM / STOMP' : 'SECTOR 1 BOSS';
+        ctx.fillStyle = boss.canReceiveDamage ? '#00ffff' : '#ffffff';
+        ctx.font = 'bold 17px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(cue, boss.x, this.getBossHitbox().y - 26);
+      }
+      ctx.restore();
+    }
     isGateClosed(encounterId) { return this.closedGateEncounterId === encounterId; }
     openEncounterGate(encounterId) { if (this.closedGateEncounterId === encounterId) this.closedGateEncounterId = null; }
     getCurrentGate() { return ENCOUNTER_GATES.find(g => g.encounterId === this.closedGateEncounterId) || null; }
@@ -380,6 +664,32 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     debugChargeSignalLift() { if (!debugAllowed()) return debugDisabled(); return this.chargeSignalLift(); }
     debugGiveSignalAmp() { if (!debugAllowed()) return debugDisabled(); return this.giveSignalAmp(); }
     debugPlayBossIntro() { if (!debugAllowed()) return debugDisabled(); if (!this.jammerRevealed) this.debugGotoJammer(); this.captureCinematicStart(); this.transitionToPan(); return this.getDiagnostics(); }
+    debugGotoBoss() {
+      if (!debugAllowed()) return debugDisabled();
+      if (window.gameState) Object.assign(window.gameState, { running: true, paused: false, gameOver: false, victory: false });
+      this.debugGotoJammer();
+      if (this.player) {
+        Object.assign(this.player, { health: this.player.maxHealth, invulnerable: false,
+          invulnerableUntil: 0, _enemyInvulnerableUntilMs: 0, isEntering: false,
+          grounded: true, supportedSurfaceId: null, allowMovement: true,
+          jumpBufferTimerMs: 0, coyoteTimerMs: 0, airInput: 0 });
+        this.player.position.y = GROUND_Y;
+        this.player.velocity.x = 0;
+        this.player.velocity.y = 0;
+      }
+      this.debugDamageJammer(16);
+      this.purgeEnemies();
+      this.prepareBossAssets();
+      this.cameraX = clampCamera(this.player?.position?.x || 960);
+      this.startBossWalk();
+      this.boss.fallbackLocked = false;
+      this.boss.x = clampWorldX((this.player?.position?.x || 960) + 440);
+      if (Math.abs(this.boss.x - this.player.position.x) < 260) this.boss.x = clampWorldX(this.player.position.x - 440);
+      this.boss.y = GROUND_Y;
+      this.cinematicZoomOverride = null;
+      this.enterBossReady();
+      return this.getDiagnostics();
+    }
     debugResetMission() { if (!debugAllowed()) return debugDisabled(); this.debugPrepareMission(); if (this.player) { this.player.position.x = 200; this.player.position.y = GROUND_Y; this.player.velocity.x = 0; this.player.velocity.y = 0; if (Number.isFinite(this.player.maxHealth)) this.player.health = this.player.maxHealth; } return this.getDiagnostics(); }
     prepareAssetsForEncounter(index) { const def = ENCOUNTERS[index]; if (!def) return; this.assetDiagnostics = this.assetDiagnostics || []; const types = [...new Set(encounterSpecs(def).map(e => e.type))]; types.forEach(type => this.requestSpriteOnce(`enemy:${type}`, type === 'firewall' ? 'firewall_firewall' : type === 'corrupted' ? 'corrupted_corrupted' : 'virus_virus')); if (index >= ENCOUNTERS.length - 1) this.prepareJammerAsset(); }
     prepareJammerAsset() { this.requestSpriteOnce('jammer', 'broadcast_jammer_broadcastjammer'); }
@@ -393,6 +703,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       this.cinematicStartCameraX = null; this.cinematicStartPlayerPosition = null; this.cinematicStartZoom = null; this.cinematicWideZoom = null; this.cinematicCloseZoom = null;
       this.cinematicZoomOverride = null; this.cinematicZoomReleasePending = false; this.closeUpStartZoom = null; this.frozenPlayerPosition = null;
       this.panStartX = null; this.panTargetX = null; this.returnStartCameraX = null; this.returnStartZoom = null; this.returnStartBossX = null; this.returnBossTargetX = null;
+      this.bossCheckpoint = null; this.levelCompletionCount = 0;
       this.boss = null; this.bossReadyEmitted = false; this.assetGeneration = (this.assetGeneration || 0) + 1; this.preparedAssets = {}; this.preloadedBossSprite = null; this.bossAssetsRequested = false;
       this.countedEnemies = new Set(); this.spawnedEncounterIds = new Set(); this.activeEncounterId = null; this.activeEncounterEnemies = []; this.closedGateEncounterId = null; this.pendingSpawns = [];
       this.nextJammerSpawnMs = Infinity; this.jammerReinforcementCount = 0; this.debugDamageSequence = 0; this.lastSpawnPlan = null; this.resetSignalLift(); this.signalAmpCollected = false; if (window.BARCODE) window.BARCODE.signalAmpCharges = 0;
@@ -403,7 +714,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (window.hackingSystem?.reset) window.hackingSystem.reset();
       if (this.player) this.player.controlsDisabled = false;
     }
-    getDiagnostics() { const activeReinforcements = (window.enemyManager?.enemies || []).filter(enemy => enemy && enemy.active && enemy._jammerReinforcement).length; return { state: this.state, missionDefeats: this.missionDefeats, requiredEnemyKills: this.requiredEnemyKills, encounters: ENCOUNTERS, stageSurfaces: STAGE_SURFACES, signalLift: this.signalLift && { available: this.isSignalLiftAvailable(), x: this.signalLift.x, y: this.signalLift.y, state: this.signalLift.state, charges: this.signalLift.charges, requiredCharges: SIGNAL_LIFT.requiredCharges }, pendingSpawns: this.pendingSpawns.length, lastSpawnPlan: this.lastSpawnPlan, activeReinforcements, jammerRevealed: this.jammerRevealed, cinematicStartedCount: this.cinematicStartedCount, cameraX: this.cameraX, cinematic: { startCameraX: this.cinematicStartCameraX, startPlayerPosition: this.cinematicStartPlayerPosition, startZoom: this.cinematicStartZoom, zoomOverride: this.getCinematicZoomOverride(), cameraOverrideActive: this.cameraOverrideActive, returnBossTargetX: this.returnBossTargetX }, boss: this.boss && { x: this.boss.x, state: this.boss.state, flourishPlayed: this.boss.flourishPlayed, visual: this.getBossVisualBounds(), canDealDamage: false, canReceiveDamage: false, combatPending: true }, bossReadyEmitted: this.bossReadyEmitted, assetDiagnostics: this.assetDiagnostics || [] }; }
+    getDiagnostics() { const activeReinforcements = (window.enemyManager?.enemies || []).filter(enemy => enemy && enemy.active && enemy._jammerReinforcement).length; return { state: this.state, missionDefeats: this.missionDefeats, requiredEnemyKills: this.requiredEnemyKills, encounters: ENCOUNTERS, stageSurfaces: STAGE_SURFACES, signalLift: this.signalLift && { available: this.isSignalLiftAvailable(), x: this.signalLift.x, y: this.signalLift.y, state: this.signalLift.state, charges: this.signalLift.charges, requiredCharges: SIGNAL_LIFT.requiredCharges }, pendingSpawns: this.pendingSpawns.length, lastSpawnPlan: this.lastSpawnPlan, activeReinforcements, jammerRevealed: this.jammerRevealed, cinematicStartedCount: this.cinematicStartedCount, cameraX: this.cameraX, cinematic: { startCameraX: this.cinematicStartCameraX, startPlayerPosition: this.cinematicStartPlayerPosition, startZoom: this.cinematicStartZoom, zoomOverride: this.getCinematicZoomOverride(), cameraOverrideActive: this.cameraOverrideActive, returnBossTargetX: this.returnBossTargetX }, boss: this.boss && { x: this.boss.x, state: this.boss.state, flourishPlayed: this.boss.flourishPlayed, visual: this.getBossVisualBounds(), ...this.getBossStatus(), combatPending: this.isBossCinematicActive() }, levelCompletionCount: this.levelCompletionCount, bossReadyEmitted: this.bossReadyEmitted, assetDiagnostics: this.assetDiagnostics || [] }; }
   };
   window.initSector1Progression = function(player) { if (!window.sector1Progression) window.sector1Progression = new window.Sector1Progression(player); else window.sector1Progression.player = player || window.sector1Progression.player; return window.sector1Progression; };
 })();
