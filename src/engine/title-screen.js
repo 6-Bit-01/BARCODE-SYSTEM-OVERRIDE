@@ -150,6 +150,7 @@ window.TitleScreen = class TitleScreen {
   animate() {
     this.animationFrameHandle = null;
     if (this.overlay.classList.contains('hidden')) return;
+    window.inputManager?.updateFrontend?.('title');
     // Update scanlines
     this.scanlineOffset += 2;
     if (this.scanlineOffset > 10) this.scanlineOffset = 0;

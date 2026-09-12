@@ -1,5 +1,10 @@
 # Production Canvas verification
 
+## Stage B diagnostics
+
+`stage-b-crew.webp` is a four-panel contact sheet using the exact existing prologue images. `stage-b-hud.webp` uses the production world/HUD drawing with host fixture graphics; the loading block is the fixture, not a new player asset. `stage-b-calibration.webp`, `stage-b-pause.webp` and `stage-b-controller-hack.webp` show production menu/terminal layouts. These were generated with `tools/render-level-01-story-controls.cjs`, checked for text bounds and visually inspected. They are not live Makko screenshots or audio/controller-feel evidence.
+
+
 `lore-archive-unrecovered.png`, `lore-archive-record-1.png`, `lore-archive-record-2.png`, `lore-archive-record-3.png`, `lore-archive-pause.png` and `lore-archive-pickup.png` render the production catalog, archive/pause UI and collection notice with explicit saved-ID fixtures. The three complete records and replies fit measured native Canvas text bounds. These are diagnostic renders, not live Makko screenshots or an audio/input acceptance test. Reproduce with `node tools/render-level-01-lore-archive.cjs` when `@napi-rs/canvas` and DejaVu fonts are available; no game or CI dependency is added. The separate production regression in `check:level-01-lore-archive` covers actual menu/save/input ownership.
 
 

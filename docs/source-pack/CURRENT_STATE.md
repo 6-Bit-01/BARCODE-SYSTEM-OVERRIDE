@@ -1,5 +1,22 @@
 # Current State
 
+## Stage B — current combined review
+
+PR #38 is merged at `0d1882f6b6eebf6fc5704d8a3270f2a6b1fb7354`. The owner then authorized proceeding. `STORY_CONTROLS_PASS.md` records the implemented scope, control map, timing semantics, validation limits and Makko route. Branch: `agent/level1-story-controls`; exact exported head/PR is in the manifest.
+
+The new four-panel crew link runs after the tutorial, uses existing SO6/SO8/SO10 art and ties the original four to the twenty-defeat/Jammer objective. Cliff/Sheila use the intercom. The optional panel-margin inspection gets a Studio Rats response and a run-only results callback; later campaign persistence/payoffs remain planned. Original prologue copy/art and all three authored lore records/IDs are retained.
+
+Standard gamepad routing now covers title, intro, tutorial (A advance / RB jump), B Rhythm Mode, both existing hack puzzles, pause/archive/manual timing calibration and retry/results. The scene and menus use the existing lifecycle/input owners; background rhythm continues through the safe scene and terminal results. Gameplay stops cleanly on normal pause. Browser audio activation and actual controller comfort need owner testing.
+
+Crowd steering respects authored attack commitments including reinforcements; boss stomp cues share the actual cycle/rearm rule. HUD information is grouped without duplicate objective/large rhythm panels. The restrained follow camera yields to the existing boss cinematic and never changes collision/world positions. Saved input and visual offsets default to zero, have separate effects and never widen judgment windows or change the music source clock.
+
+Production logic and native Canvas layout checks cover these changes. The full suite/all-file syntax result and exact test revision are in the generated receipt. No live Makko/controller/audio PASS is claimed. No new runtime art URLs, music or dependencies; no campaign save-schema rewrite, new playable stage or ending rule. Next after Makko acceptance: Stage C campaign adapter, compatible save extension and second-song mixer proof.
+
+## Historical planning checkpoint
+
+The following planning-only description belongs to merged PR #38; Stage B above supersedes its “next/not implemented” wording.
+
+
 ## Campaign continuity planning — current review
 
 Verified main: `38732933713c4f9ec22666e49b728a0626a85f25`, merged PR #37 on September 12, 2026. GitHub's static-validation check succeeded on that merge. No open PRs were present at the initial continuation check. The generated manifest identifies this documentation review revision; older review-build headings below describe historical PRs.

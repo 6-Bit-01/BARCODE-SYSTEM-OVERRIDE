@@ -704,7 +704,7 @@ window.RhythmSystem = class RhythmSystem {
 
     const transport = window.BARCODE && window.BARCODE.MusicTransport;
     const audioTimeSec = window.audioSystem && window.audioSystem.context ? window.audioSystem.context.currentTime : null;
-    const judgment = transport && Number.isFinite(audioTimeSec) && this.judgmentRuleId ? transport.judgeInput(this.judgmentRuleId, audioTimeSec) : { available: false, timing: 'unavailable' };
+    const judgment = transport && Number.isFinite(audioTimeSec) && this.judgmentRuleId ? transport.judgeInput(this.judgmentRuleId, audioTimeSec, window.BARCODE?.Preferences?.values.inputOffsetMs || 0) : { available: false, timing: 'unavailable' };
     const isMiss = !judgment.available || judgment.timing === 'miss';
     if (window.DEBUG_RHYTHM) console.log(`TRANSPORT JUDGMENT: rule=${this.judgmentRuleId || 'none'}, timing=${judgment.timing}, distanceMs=${judgment.distanceMs == null ? 'n/a' : judgment.distanceMs.toFixed(0)}`);
     
@@ -1017,6 +1017,30 @@ window.RhythmSystem = class RhythmSystem {
   }
   
   // Draw enhanced 4-bar progress visualization
+  drawCompactHUD(ctx) {
+    const time = window.audioSystem?.context?.currentTime;
+    const offset = window.BARCODE?.Preferences?.values.visualOffsetMs || 0;
+    const sample = Number.isFinite(time) ? window.BARCODE?.MusicTransport?.sample?.(time - offset / 1000) : null;
+    const beat = sample?.grid?.beatFloat;
+    const ready = sample?.running && Number.isFinite(beat);
+    const beatIndex = ready ? Math.floor(beat) : 0;
+    const fraction = ready ? beat - beatIndex : 1;
+    const meter = sample?.grid?.beatsPerBar || 4;
+    ctx.save(); ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+    ctx.fillStyle = 'rgba(7,20,34,0.94)'; ctx.fillRect(600, 150, 720, 70);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#91ffe0'; ctx.font = 'bold 18px monospace';
+    const label = !ready ? 'WAITING FOR BEAT' : !this.tempoEstablished ? `ESTABLISHING TEMPO ${this.currentTempoBeat}/${this.tempoEstablishmentBeats}` : 'RHYTHM / FOLLOW THE PULSE';
+    ctx.fillText(label, 620, 169);
+    ctx.font = '16px monospace'; ctx.fillStyle = '#cbaaff'; ctx.textAlign = 'right';
+    ctx.fillText(`COMBO ${this.combo} · ARC ${this.arcGrowthLevel}/${this.maxArcGrowthLevel}`, 1300, 169);
+    for (let i = 0; i < meter; i++) {
+      const x = 620 + i * 680 / meter, width = 680 / meter - 8;
+      ctx.fillStyle = ready && beatIndex % meter === i ? '#91ffe0' : '#304257'; ctx.fillRect(x, 190, width, 8);
+      if (ready && beatIndex % meter === i) { ctx.fillStyle = '#e5fff5'; ctx.fillRect(x, 205, width * fraction, 3); }
+    }
+    ctx.restore();
+  }
+
   draw4BarProgress(ctx) {
     // PRIORITY ORDER: Loop restart > Tempo establishment > Normal progress > Waiting message
     

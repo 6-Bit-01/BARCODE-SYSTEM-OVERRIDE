@@ -122,7 +122,7 @@ const encounterPresentation = (() => {
   };
 
   const drawStartCue = (ctx, cue, elapsed, alpha) => {
-    const easedY = 148 - Math.max(0, 1 - elapsed / 260) * 10;
+    const easedY = 278 - Math.max(0, 1 - elapsed / 260) * 10;
     const width = 500;
     const height = 62;
     const x = (1920 - width) / 2;
@@ -150,7 +150,7 @@ const encounterPresentation = (() => {
   const drawClearCue = (ctx, cue, elapsed, alpha) => {
     const progress = Math.max(0, Math.min(1, elapsed / cue.duration));
     const halfLine = 90 + 180 * Math.sin(Math.PI * progress);
-    const y = 172;
+    const y = 290;
 
     ctx.globalAlpha = alpha * 0.78;
     ctx.strokeStyle = '#00ffff';
@@ -215,7 +215,7 @@ window.drawGameUI = function(ctx) {
   window.BARCODE?.combatFX?.drawAmpHUD(ctx);
   
   // Draw objectives after tutorial completion
-  if (tutorialCompleted && !bossCinematicActive) {
+  if (tutorialCompleted && !bossCinematicActive && !['boss_ready', 'boss_combat', 'level_complete'].includes(window.sector1Progression?.state)) {
     drawObjectives(ctx);
   }
   
@@ -225,7 +225,7 @@ window.drawGameUI = function(ctx) {
   }
   
   // Draw rhythm UI elements
-  drawRhythmUI(ctx);
+  if (!window.hackingSystem?.isActive?.()) drawRhythmUI(ctx);
   
   // Draw collection message
   if (window.gameState.collectionMessage && window.gameState.collectionMessage.timer > 0) {
@@ -233,7 +233,7 @@ window.drawGameUI = function(ctx) {
   }
 
   if (!bossCinematicActive) {
-    encounterPresentation.draw(ctx);
+    if (!window.hackingSystem?.isActive?.()) encounterPresentation.draw(ctx);
   }
   
   drawSector1BossUI(ctx);
@@ -286,6 +286,7 @@ window.drawGameUI = function(ctx) {
   
   // Draw hack timeout message
   drawHackTimeoutMessage(ctx);
+  window.BARCODE?.CrewTransmission?.draw(ctx);
 };
 
 // Screen-space boss readability and terminal outcome use the existing UI pass.
@@ -322,8 +323,12 @@ function drawSector1BossUI(ctx) {
     });
     ctx.fillStyle = '#b9faff';
     ctx.font = '22px monospace';
-    ctx.fillText('SPACE — Restart Level 1', 960, 718);
-    ctx.fillText('ENTER — Rematch the boss', 960, 766);
+    ctx.fillText(window.BARCODE?.GamepadUI?.connected ? 'X — Restart Level 1' : 'SPACE — Restart Level 1', 960, 718);
+    ctx.fillText(window.BARCODE?.GamepadUI?.connected ? 'A — Rematch the boss' : 'ENTER — Rematch the boss', 960, 766);
+    if (window.BARCODE?.CrewTransmission?.inspectedGutter) {
+      ctx.font = '18px monospace'; ctx.fillStyle = '#cbaaff';
+      ctx.fillText('STUDIO RATS: Carrier restored. We are keeping the caption.', 960, 865);
+    }
   } else if (!window.gameState.gameOver) {
     const x = 600, y = 24, width = 720;
     ctx.fillStyle = 'rgba(0, 8, 16, 0.9)';
@@ -341,223 +346,36 @@ function drawSector1BossUI(ctx) {
     ctx.fillStyle = '#ffffff';
     ctx.font = '17px monospace';
     const cue = status.phase === 'ready' ? 'Get ready. Jump the ground pulse.' : status.canReceiveDamage ?
-      'COUNTER WINDOW — R: Rhythm Mode / DOWN: timed hit / Jump: stomp' : status.phase === 'telegraph' ?
+      (status.canStompCounter ? 'COUNTER WINDOW — Timed rhythm hit or landing stomp' : 'COUNTER WINDOW — Timed rhythm hit; stomp unavailable') : status.phase === 'telegraph' ?
       (status.doublePulse ? 'TWO GROUND PULSES — JUMP' : 'GROUND PULSE — JUMP') : 'Evade the pulse. Counter when the boss glows cyan.';
     ctx.fillText(cue, 960, y + 86);
   }
   ctx.restore();
 }
 
-// Draw basic UI elements (health, score, etc.)
+// A stable top band: player / current objective / score and Amp.
 function drawBasicUI(ctx) {
-  // Helper functions
-  function drawGlowText(text, x, y, options = {}) {
-    const size = options.size || 20;
-    const color = options.color || '#ffffff';
-    const align = options.align || 'left';
-    
-    ctx.save();
-    ctx.font = `${size}px monospace`;
-    ctx.textAlign = align;
-    ctx.textBaseline = 'top';
-    
-    ctx.shadowColor = color;
-    ctx.shadowBlur = 10;
-    ctx.fillStyle = color;
-    ctx.fillText(text, x, y);
-    
-    ctx.restore();
+  const player = window.player, rhythm = window.rhythmSystem, pad = window.BARCODE?.GamepadUI?.connected;
+  const progress = window.lostDataSystem?.getProgress?.();
+  ctx.save(); ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+  ctx.fillStyle = 'rgba(7,20,34,0.95)'; ctx.fillRect(30, 24, 340, 148); ctx.fillRect(1530, 24, 360, 62);
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.font = 'bold 17px monospace'; ctx.fillStyle = '#91ffe0';
+  ctx.fillText('6 BIT / SIGNAL STRENGTH', 50, 38);
+  ctx.fillStyle = '#422634'; ctx.fillRect(50, 50, 300, 30);
+  ctx.fillStyle = '#91ffe0'; ctx.fillRect(50, 50, 300 * Math.max(0, Math.min(1, (player?.health || 0) / (player?.maxHealth || 1))), 30);
+  ctx.strokeStyle = '#a2c1ce'; ctx.lineWidth = 1; ctx.strokeRect(50, 50, 300, 30);
+  ctx.fillStyle = '#142a33';
+  for (let i = 1; i < (player?.maxHealth || 1); i++) ctx.fillRect(50 + 300 * i / player.maxHealth - 1, 50, 2, 30);
+  ctx.fillStyle = '#dfd3f7'; ctx.font = '18px monospace';
+  ctx.fillText(`LORE: ${progress?.collected || 0}/${progress?.total || 3}`, 50, 104);
+  ctx.fillStyle = rhythm?.isActive?.() ? '#91ffe0' : '#afbacf';
+  ctx.fillText(rhythm?.isActive?.() ? (pad ? 'RHYTHM ON / B: EXIT' : 'RHYTHM ON / R: EXIT') : (pad ? 'TRAVERSAL / B: RHYTHM' : 'TRAVERSAL / R: RHYTHM'), 50, 137);
+  if (progress?.saved === false) { ctx.font = '12px monospace'; ctx.fillStyle = '#ffc68a'; ctx.fillText('ARCHIVE SAVE UNAVAILABLE — KEEP TAB OPEN', 50, 184); }
+  ctx.textAlign = 'right'; ctx.fillStyle = '#91ffe0'; ctx.font = 'bold 22px monospace'; ctx.fillText(`SCORE ${window.gameState.score}`, 1865, 53);
+  if (window.tutorialSystem?.isActive?.()) {
+    ctx.textAlign = 'center'; ctx.fillStyle = '#cbaaff'; ctx.font = '22px monospace'; ctx.fillText('DEAD AIR DISTRICT / CREW TRAINING', 960, 53);
   }
-  
-  function drawHealthBar(x, y, width, height, current, max) {
-    ctx.save();
-    
-    ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
-    ctx.fillRect(x, y, width, height);
-    
-    const healthPercent = Math.max(0, Math.min(1, current / max));
-    ctx.fillStyle = `rgba(0, 255, 0, ${0.5 + healthPercent * 0.5})`;
-    ctx.fillRect(x, y, width * healthPercent, height);
-    
-    ctx.strokeStyle = '#00ff00';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(x, y, width, height);
-    
-    ctx.restore();
-  }
-  
-  // Health bar background panel
-  ctx.save();
-  ctx.fillStyle = 'rgba(0, 20, 40, 0.95)';
-  ctx.fillRect(30, 30, 340, 60);
-  ctx.strokeStyle = '#000000';
-  ctx.lineWidth = 4;
-  ctx.strokeRect(30, 30, 340, 60);
   ctx.restore();
-  
-  // Level progress background panel
-  ctx.save();
-  ctx.fillStyle = 'rgba(40, 0, 60, 0.95)';
-  ctx.fillRect(760, 30, 400, 50);
-  ctx.strokeStyle = '#000000';
-  ctx.lineWidth = 4;
-  ctx.strokeRect(760, 30, 400, 50);
-  ctx.restore();
-  
-  // Draw health bar
-  if (window.renderer && typeof window.renderer.drawHealthBar === 'function') {
-    try {
-      window.renderer.drawHealthBar(50, 50, 300, 30, window.player.health, window.player.maxHealth);
-    } catch (error) {
-      drawHealthBar(50, 50, 300, 30, window.player.health, window.player.maxHealth);
-    }
-  } else {
-    drawHealthBar(50, 50, 300, 30, window.player.health, window.player.maxHealth);
-  }
-  
-  // Draw lore counter
-  if (window.lostDataSystem) {
-    try {
-      const loreProgress = window.lostDataSystem.getProgress();
-      const loreX = 50;
-      const loreY = 100;
-      const loreWidth = 300;
-      const loreHeight = 30;
-      
-      const allCollected = loreProgress.collected >= loreProgress.total && loreProgress.total > 0;
-      
-      ctx.fillStyle = 'rgba(40, 0, 60, 0.95)';
-      ctx.fillRect(loreX, loreY, loreWidth, loreHeight);
-      
-      ctx.strokeStyle = '#9333ea';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(loreX, loreY, loreWidth, loreHeight);
-      
-      ctx.fillStyle = allCollected ? '#00ff00' : '#ffffff';
-      ctx.font = 'bold 16px monospace';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(`LORE: ${loreProgress.collected}/${loreProgress.total}`, loreX + 15, loreY + loreHeight/2);
-      if (loreProgress.saved === false) {
-        ctx.fillStyle = '#ffc68a'; ctx.font = 'bold 12px monospace';
-        ctx.fillText('ARCHIVE SAVE UNAVAILABLE — KEEP TAB OPEN', loreX + 15, loreY + 78);
-      }
-      
-      const barWidth = loreWidth - 30;
-      const barHeight = 4;
-      const barX = loreX + 15;
-      const barY = loreY + loreHeight - 8;
-      const progress = loreProgress.total > 0 ? loreProgress.collected / loreProgress.total : 0;
-      
-      ctx.fillStyle = '#333333';
-      ctx.fillRect(barX, barY, barWidth, barHeight);
-      
-      ctx.fillStyle = allCollected ? '#00ff00' : '#9333ea';
-      ctx.fillRect(barX, barY, barWidth * progress, barHeight);
-      
-      if (allCollected) {
-        ctx.fillStyle = '#00ff00';
-        ctx.font = 'bold 14px monospace';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'top';
-        ctx.fillText('ALL LORE RETRIEVED', loreX + 15, loreY + loreHeight + 8);
-        
-        const pulse = Math.sin(Date.now() * 0.003) * 0.3 + 0.7;
-        ctx.globalAlpha = pulse;
-        ctx.font = '12px monospace';
-        ctx.fillStyle = '#88ff88';
-        ctx.fillText('All fragments collected', loreX + 15, loreY + loreHeight + 26);
-        ctx.globalAlpha = 1.0;
-      }
-      
-    } catch (error) {
-      console.error('Error drawing lore counter:', error?.message || error);
-    }
-  }
-  
-  // Reset text alignment before drawing UI text
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'top';
-  
-  // Draw "SIGNAL STRENGTH" label
-  if (window.renderer && typeof window.renderer.drawGlowText === 'function') {
-    try {
-      window.renderer.drawGlowText('SIGNAL STRENGTH', 200, 40, {
-        align: 'center',
-        color: '#00ffff',
-        size: 16
-      });
-    } catch (error) {
-      drawGlowText('SIGNAL STRENGTH', 200, 40, {
-        align: 'center',
-        color: '#00ffff',
-        size: 16
-      });
-    }
-  } else {
-    drawGlowText('SIGNAL STRENGTH', 200, 40, {
-      align: 'center',
-      color: '#00ffff',
-      size: 16
-    });
-  }
-  
-  // Draw level and progression progress
-  let progressText = 'SECTOR 1: THE CITY';
-  
-  if (window.enemyManager) {
-    progressText += ` | Defeats ${window.enemyManager.defeatedCount || 0}`;
-  }
-  const jammerStatus = window.BARCODE && window.BARCODE.JammerEnvironment ? window.BARCODE.JammerEnvironment.getStatus() : null;
-  if (jammerStatus && jammerStatus.revealed) progressText += ` | Jammer ${jammerStatus.triggered ? 'triggered' : 'revealed'}`;
-  
-  if (window.renderer && typeof window.renderer.drawGlowText === 'function') {
-    try {
-      window.renderer.drawGlowText(progressText, 960, 50, {
-        align: 'center',
-        color: '#ff00ff',
-        size: 20
-      });
-    } catch (error) {
-      drawGlowText(progressText, 960, 50, {
-        align: 'center',
-        color: '#ff00ff',
-        size: 20
-      });
-    }
-  } else {
-    drawGlowText(progressText, 960, 50, {
-      align: 'center',
-      color: '#ff00ff',
-      size: 20
-    });
-  }
-  
-  // Draw score
-  ctx.textAlign = 'right';
-  ctx.textBaseline = 'top';
-  
-  if (window.renderer && typeof window.renderer.drawGlowText === 'function') {
-    try {
-      window.renderer.drawGlowText(`SCORE: ${window.gameState.score}`, 1920 - 200, 50, {
-        align: 'right',
-        color: '#00ffff',
-        size: 20
-      });
-    } catch (error) {
-      drawGlowText(`SCORE: ${window.gameState.score}`, 1920 - 200, 50, {
-        align: 'right',
-        color: '#00ffff',
-        size: 20
-      });
-    }
-  } else {
-    drawGlowText(`SCORE: ${window.gameState.score}`, 1920 - 200, 50, {
-      align: 'right',
-      color: '#00ffff',
-      size: 20
-    });
-  }
 }
 
 // Draw objectives panel
@@ -569,13 +387,13 @@ function drawObjectives(ctx) {
   }
   ctx.save();
   ctx.fillStyle = 'rgba(0, 20, 40, 0.95)';
-  ctx.fillRect(1300, 120, 500, 160);
+  ctx.fillRect(420, 24, 1060, 104);
   ctx.strokeStyle = '#00ffff';
-  ctx.strokeRect(1300, 120, 500, 160);
+  ctx.strokeRect(420, 24, 1060, 104);
   ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 14px monospace';
+  ctx.font = 'bold 20px monospace';
   ctx.textAlign = 'left';
-  ctx.fillText('› Explore Dead Air District', 1315, 180);
+  ctx.fillText('› Explore Dead Air District', 440, 70);
   ctx.restore();
 }
 
@@ -585,9 +403,7 @@ function drawRhythmUI(ctx) {
     try {
       ctx.save();
       
-      if (typeof window.rhythmSystem.draw4BarProgress === 'function') {
-        window.rhythmSystem.draw4BarProgress(ctx);
-      }
+      window.rhythmSystem.drawCompactHUD?.(ctx);
       
       if (window.rhythmSystem.beatEffects) {
         window.rhythmSystem.beatEffects.forEach(effect => {
@@ -623,9 +439,7 @@ function drawRhythmUI(ctx) {
         });
       }
       
-      if (typeof window.rhythmSystem.drawUI === 'function') {
-        window.rhythmSystem.drawUI(ctx);
-      }
+
       
       ctx.restore();
     } catch (error) {
@@ -661,7 +475,7 @@ function drawCollectionMessage(ctx) {
   const boxWidth = textMetrics.width + padding * 2;
   const boxHeight = 60;
   const boxX = (1920 - boxWidth) / 2;
-  const boxY = 200;
+  const boxY = 350;
   
   ctx.fillStyle = 'rgba(0, 20, 40, 0.9)';
   ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
@@ -680,15 +494,6 @@ function drawCollectionMessage(ctx) {
 
 // Draw game over screen
 function drawGameOver(ctx) {
-  // CRITICAL: Continue rhythm system updates during game over
-  if (window.rhythmSystem && typeof window.rhythmSystem.update === 'function') {
-    try {
-      window.rhythmSystem.update(16);
-    } catch (error) {
-      console.error('Error updating rhythm system during game over:', error);
-    }
-  }
-  
   function drawGlowText(text, x, y, options = {}) {
     const size = options.size || 20;
     const color = options.color || '#ffffff';
@@ -769,31 +574,24 @@ function drawGameOver(ctx) {
   
   if (window.renderer && typeof window.renderer.drawGlowText === 'function') {
     try {
-      window.renderer.drawGlowText((window.sector1Progression?.canRetryBossCheckpoint?.() ? 'SPACE: Retry boss  |  SHIFT+SPACE: Restart Level 1' : 'Press SPACE to restart'), 960, 700, {
+      window.renderer.drawGlowText((window.BARCODE?.GamepadUI?.connected ? (window.sector1Progression?.canRetryBossCheckpoint?.() ? 'A: Retry boss  |  X: Restart Level 1' : 'A / X: Restart Level 1') : window.sector1Progression?.canRetryBossCheckpoint?.() ? 'SPACE: Retry boss  |  SHIFT+SPACE: Restart Level 1' : 'Press SPACE to restart'), 960, 700, {
         size: 24,
         color: '#ffffff'
       });
     } catch (error) {
-      drawGlowText((window.sector1Progression?.canRetryBossCheckpoint?.() ? 'SPACE: Retry boss  |  SHIFT+SPACE: Restart Level 1' : 'Press SPACE to restart'), 960, 700, {
+      drawGlowText((window.BARCODE?.GamepadUI?.connected ? (window.sector1Progression?.canRetryBossCheckpoint?.() ? 'A: Retry boss  |  X: Restart Level 1' : 'A / X: Restart Level 1') : window.sector1Progression?.canRetryBossCheckpoint?.() ? 'SPACE: Retry boss  |  SHIFT+SPACE: Restart Level 1' : 'Press SPACE to restart'), 960, 700, {
         size: 24,
         color: '#ffffff'
       });
     }
   } else {
-    drawGlowText((window.sector1Progression?.canRetryBossCheckpoint?.() ? 'SPACE: Retry boss  |  SHIFT+SPACE: Restart Level 1' : 'Press SPACE to restart'), 960, 700, {
+    drawGlowText((window.BARCODE?.GamepadUI?.connected ? (window.sector1Progression?.canRetryBossCheckpoint?.() ? 'A: Retry boss  |  X: Restart Level 1' : 'A / X: Restart Level 1') : window.sector1Progression?.canRetryBossCheckpoint?.() ? 'SPACE: Retry boss  |  SHIFT+SPACE: Restart Level 1' : 'Press SPACE to restart'), 960, 700, {
       size: 24,
       color: '#ffffff'
     });
   }
   
-  // CRITICAL: Draw rhythm progress even during game over
-  if (window.rhythmSystem && typeof window.rhythmSystem.draw === 'function') {
-    try {
-      window.rhythmSystem.draw(ctx, 960, 500);
-    } catch (error) {
-      console.error('Error drawing rhythm system during game over:', error);
-    }
-  }
+
 }
 
 // Draw pause screen

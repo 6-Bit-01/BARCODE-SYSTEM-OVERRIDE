@@ -25,6 +25,14 @@ window.InputManager = class InputManager {
       const key = e.key.toLowerCase();
 
       if (window.BARCODE?.PauseMenu?.keyDown(e)) { e.preventDefault(); return; }
+      if (window.BARCODE?.CrewTransmission?.active && key === 'p') {
+        e.preventDefault(); if (!e.repeat) window.BARCODE.RuntimeLifecycle?.togglePause(); return;
+      }
+      if (window.BARCODE?.CrewTransmission?.active && key !== 'p') {
+        e.preventDefault();
+        if (!e.repeat) window.BARCODE.CrewTransmission.input(key);
+        return;
+      }
 
       if (this.terminalKeyLatched === key) { e.preventDefault(); return; }
       if (this.hackEscapeLatched && key === 'escape') {
@@ -118,13 +126,18 @@ window.InputManager = class InputManager {
   isKeyPressed(key) { return this.pressedKeys.has(key.toLowerCase()); }
   isKeyReleased(key) { return this.releasedKeys.has(key.toLowerCase()); }
   getMovement() { const state = this.actionInput ? this.actionInput.state : {}; return { x: (state.move_right && state.move_right.held ? 1 : 0) - (state.move_left && state.move_left.held ? 1 : 0), y: 0 }; }
-  updateGamepad() { const gamepads = navigator.getGamepads ? navigator.getGamepads() : []; this.gamepad = gamepads[0] || this.gamepad; }
+  updateGamepad() { const gamepads = navigator.getGamepads ? navigator.getGamepads() : []; this.gamepad = Array.from(gamepads).find(pad => pad && pad.connected !== false) || null; }
   isGamepadButton(buttonIndex) { return this.gamepad && this.gamepad.buttons[buttonIndex] && this.gamepad.buttons[buttonIndex].pressed; }
   getGamepadMovement() { return this.getMovement(); }
   vibrate(intensity = 0.5, duration = 100) { if (this.vibrationEnabled && this.gamepad && this.gamepad.vibrationActuator) this.gamepad.vibrationActuator.playEffect('dual-rumble', { startDelay: 0, duration, weakMagnitude: intensity, strongMagnitude: intensity }); }
 
   update(options = {}) {
     this.updateGamepad();
+    if (this.routeGamepadUI()) {
+      this.actionInput?.reset();
+      this.pressedKeys.clear(); this.releasedKeys.clear(); this.mouse.clicked = false;
+      return;
+    }
     const actions = this.actionInput ? this.actionInput.update(options.context || {}) : null;
     if (actions) this.routeActions(actions, options);
     this.pressedKeys.clear();
@@ -141,7 +154,70 @@ window.InputManager = class InputManager {
     this.pressedKeys.clear();
     this.releasedKeys.clear();
     this.keys = {};
+    window.BARCODE?.GamepadUI?.reset();
     if (this.actionInput && typeof this.actionInput.reset === 'function') this.actionInput.reset();
+  }
+
+  updateFrontend(owner) {
+    const input = window.BARCODE?.GamepadUI?.poll(owner);
+    if (!input) return;
+    const pressed = input.pressed;
+    if (owner === 'title' && (pressed.b0 || pressed.b9)) {
+      const button = document.getElementById('startButton');
+      if (button && !button.disabled) button.click();
+    } else if (owner === 'intro') {
+      if (pressed.b0) window.cutsceneSystem?.skipCutscene?.();
+      // Retain the intro's existing five-second skip hold and its cleanup.
+      if (pressed.b1) window.cutsceneSystem?.startSkipHold?.();
+      if (!input.held.b1) window.cutsceneSystem?.endSkipHold?.();
+    }
+  }
+
+  routeGamepadUI() {
+    const BARCODE = window.BARCODE, menu = BARCODE?.PauseMenu;
+    const owner = (window.isPaused || window.gameState?.paused) ? 'pause' : window.hackingSystem?.isActive?.() ? 'hack' :
+      BARCODE?.CrewTransmission?.active ? 'crew' : (window.gameState?.gameOver || window.gameState?.victory) ? 'results' :
+      window.tutorialSystem?.isActive?.() ? 'tutorial' : 'gameplay';
+    const input = BARCODE?.GamepadUI?.poll(owner);
+    if (!input) return false;
+    const p = input.pressed;
+    if (input.changed) this.actionInput?.blockGamepadUntilRelease();
+    if (owner === 'pause') {
+      const key = p.b9 ? 'p' : p.b1 ? 'escape' : p.b0 ? 'enter' : p.up ? 'arrowup' : p.down ? 'arrowdown' : p.left ? 'arrowleft' : p.right ? 'arrowright' : null;
+      if (key) { menu?.keyDown({ key, repeat: false, preventDefault() {} }); menu?.keyUp({ key }); }
+      return true;
+    }
+    if (owner === 'hack') {
+      // Ten direct digits preserve both puzzles and their four-second answer
+      // window. The terminal shows this layout during the scan as well.
+      const digits = { b12: '8', b13: '2', b14: '4', b15: '6', b0: '1', b1: '3', b2: '7', b3: '9', b4: '5', b5: '0' };
+      if (p.b11) window.hackingSystem.processInput('Escape');
+      else if (p.b8) window.hackingSystem.processInput('Backspace');
+      else {
+        for (const [button, digit] of Object.entries(digits)) if (p[button]) window.hackingSystem.processInput(digit);
+        if (p.b9) window.hackingSystem.processInput('Enter');
+      }
+      return true;
+    }
+    if (owner === 'crew') {
+      if (p.b9) BARCODE.RuntimeLifecycle?.togglePause();
+      else if (p.b1) BARCODE.CrewTransmission.input('escape');
+      else if (p.b0) BARCODE.CrewTransmission.input(' ');
+      else if (p.left) BARCODE.CrewTransmission.input('arrowleft');
+      return true;
+    }
+    if (owner === 'results') {
+      if (p.b0) {
+        if (window.sector1Progression?.canRetryBossCheckpoint?.()) window.sector1Progression.retryBossCheckpoint();
+        else BARCODE.RuntimeLifecycle?.restart({ source: 'controller-result' });
+      } else if (p.b2) BARCODE.RuntimeLifecycle?.restart({ source: 'controller-result' });
+      if (p.b0 || p.b2) this.resetActionEdges();
+      return true;
+    }
+    if (owner === 'tutorial' && p.b0) {
+      window.tutorialSystem.handleSpacePress?.(); this.resetActionEdges(); return true;
+    }
+    return false;
   }
 
   routeActions(actions, options = {}) {

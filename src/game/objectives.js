@@ -121,48 +121,21 @@ window.ObjectivesSystem = class ObjectivesSystem {
 
   draw(ctx) {
     if (!this.objectiveUI.visible) return;
-    ctx.save();
     const encounter = window.sector1Progression?.getEncounterStatus?.();
     const jammer = window.BARCODE?.JammerEnvironment?.getStatus?.();
-    const x = 1300; const y = 120; const w = 500; const visibleObjectives = this.objectives.filter(obj => obj.visible && !obj.completed); const h = Math.max(160, 60 + visibleObjectives.length * 50);
-    ctx.fillStyle = 'rgba(0, 20, 40, 0.95)';
-    ctx.fillRect(x, y, w, h);
-    ctx.strokeStyle = '#00ffff';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(x, y, w, h);
-    ctx.fillStyle = '#00ffff';
-    ctx.font = 'bold 16px monospace';
-    ctx.textAlign = 'left';
-    ctx.fillText('MISSION OBJECTIVES', x + 15, y + 25);
-    const defeated = window.enemyManager ? window.enemyManager.defeatedCount || 0 : 0;
-    ctx.textAlign = 'right';
-    ctx.fillStyle = '#ff9900';
-    ctx.fillText(`DEFEATS: ${defeated}`, x + w - 15, y + 25);
-    ctx.textAlign = 'left';
-    let yOffset = 60;
-    visibleObjectives.forEach(obj => {
-      if (!obj.visible) return;
-      ctx.fillStyle = obj.completed ? '#00ff00' : '#ffffff';
-      ctx.font = 'bold 14px monospace';
-      ctx.fillText(`${obj.completed ? '✓' : '›'} ${obj.title}`, x + 15, y + yOffset);
-      ctx.fillStyle = '#cccccc';
-      ctx.font = '12px monospace';
-      let description = obj.description;
-      if (obj.id === 'defeat_20_enemies' && encounter) {
-        description = encounter.started
-          ? `${encounter.label}: ${encounter.defeated}/${encounter.required} cleared`
-          : `MOVE RIGHT → ${encounter.label}`;
-      } else if (obj.id === 'destroy_broadcast_jammer' && jammer?.revealed) {
-        description = `${jammer.health}/${jammer.maxHealth} integrity — R + Down on beat`;
-      }
-      ctx.fillText(description, x + 30, y + yOffset + 20, w - 60);
-      yOffset += 50;
-    });
-    if (encounter) {
-      ctx.fillStyle = '#a8ffff';
-      ctx.font = '12px monospace';
-      ctx.fillText(encounter.started ? encounter.hint : 'The next encounter waits ahead.', x + 15, y + h - 18, w - 30);
-    }
+    const objective = this.objectives.find(item => item.visible && !item.completed);
+    if (!objective) return;
+    let detail = objective.description;
+    if (objective.id === 'defeat_20_enemies' && encounter) detail = encounter.started ? `${encounter.label}: ${encounter.defeated}/${encounter.required} cleared` : `MOVE RIGHT → ${encounter.label}`;
+    if (objective.id === 'destroy_broadcast_jammer' && jammer?.revealed) detail = `${jammer.health}/${jammer.maxHealth} integrity — successful rhythm hits damage it`;
+    ctx.save(); ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+    ctx.fillStyle = 'rgba(7,20,34,0.95)'; ctx.fillRect(420, 24, 1060, 104);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.font = 'bold 20px monospace'; ctx.fillStyle = '#91ffe0';
+    ctx.fillText(objective.title.toUpperCase(), 440, 48, 800);
+    ctx.textAlign = 'right'; ctx.font = '18px monospace'; ctx.fillStyle = '#cbaaff';
+    if (objective.id === 'defeat_20_enemies') ctx.fillText(`${window.sector1Progression?.missionDefeats || 0} / 20`, 1458, 48);
+    ctx.textAlign = 'left'; ctx.font = '20px monospace'; ctx.fillStyle = '#eef4fb'; ctx.fillText(detail, 440, 80, 1015);
+    if (encounter && objective.id === 'defeat_20_enemies') { ctx.font = '16px monospace'; ctx.fillStyle = '#b8c6db'; ctx.fillText(encounter.started ? encounter.hint : 'The next encounter waits ahead.', 440, 111, 1015); }
     ctx.restore();
   }
 

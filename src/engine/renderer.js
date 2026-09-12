@@ -49,6 +49,29 @@ window.Renderer = class Renderer {
     this.targetZoomLevel = 1.0;
     this.zoomSpeed = 0.05; // Much smoother zoom transition speed (reduced from 0.1)
     this.cinematicZoomOverride = null;
+    this.followCenterX = null;
+    this.followLookAhead = 0;
+  }
+
+  resetFollowCamera(x = window.player?.position.x) {
+    this.followCenterX = Math.max(960, Math.min(3136, Number.isFinite(x) ? x : 960));
+    this.followLookAhead = 0;
+  }
+
+  getFollowCameraX(fallback = 960) { return Number.isFinite(this.followCenterX) ? this.followCenterX : Math.max(960, Math.min(3136, fallback)); }
+
+  updateFollowCamera(ms) {
+    const player = window.player, owner = window.sector1Progression;
+    if (!player || window.isPaused || window.gameState?.paused || window.BARCODE?.CrewTransmission?.active || !Number.isFinite(ms) || ms < 0) return;
+    if (!Number.isFinite(this.followCenterX)) this.resetFollowCamera(player.position.x);
+    if (owner?.cameraOverrideActive) { this.followCenterX = owner.getCameraX(this.followCenterX); this.followLookAhead = 0; return; }
+    if (Math.abs(player.position.x - this.followCenterX) > 1000) this.resetFollowCamera(player.position.x);
+    const blend = 1 - Math.exp(-Math.min(ms, 100) / 1000 * 9);
+    const lead = Math.max(-160, Math.min(160, (player.velocity?.x || 0) * 0.4));
+    this.followLookAhead += (lead - this.followLookAhead) * blend;
+    const delta = player.position.x + this.followLookAhead - this.followCenterX;
+    const target = this.followCenterX + Math.sign(delta) * Math.max(0, Math.abs(delta) - 90);
+    this.followCenterX = Math.max(960, Math.min(3136, this.followCenterX + (target - this.followCenterX) * blend));
   }
 
   // Clear canvas with dark background
@@ -298,6 +321,7 @@ window.Renderer = class Renderer {
   // Update effect properties
   update(deltaTime) {
     try {
+      this.updateFollowCamera?.(deltaTime);
       this.applyScreenShake?.(deltaTime);
       // Gradually reduce glitch effect
       if (this.glitchIntensity > 0) {

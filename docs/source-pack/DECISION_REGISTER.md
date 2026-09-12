@@ -1,5 +1,10 @@
 # Decision Register
 
+## Stage B implementation authority — after merged #38
+
+The owner confirmed “Merged. Lets proceed.” The campaign map/instruction reconciliation is now merged at `0d1882f6b6eebf6fc5704d8a3270f2a6b1fb7354`. This authorizes the next combined Stage B implementation described in CONTINUATION_PLAN. `STORY_CONTROLS_PASS.md` records the reviewable scene, input mapping, calibration semantics and gameplay boundary. Specific new dialogue, controller ergonomics and camera/HUD feel remain subject to Makko review. This does not approve merging without that gate or silently implementing Stage C–F.
+
+
 ## Latest owner direction: map the whole campaign, then implement
 
 After merging PR #37, the owner approved the broader improvement direction, corrected the cast, required mapping the whole story rather than isolated intro material, and explicitly added Easter eggs to the games/things inspiring System Override. The September 12 continuation asks to carry all established work forward carefully. `CONTINUATION_PLAN.md` traces evidence, completed work and remaining implementation; `CAMPAIGN_STORY_MAP.md` is the new working treatment, including all 28 record purposes. `EASTER_EGGS_AND_CAMEOS.md` and `ASSET_AND_PLATFORM_PLAN.md` carry the corrected roster, influence bank and production dependencies.

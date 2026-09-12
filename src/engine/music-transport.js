@@ -159,10 +159,14 @@ window.BARCODE = window.BARCODE || {};
       return batch;
     }
 
-    function judgeInput(ruleId, audioTimeSec) {
-      const snapshot = sample(audioTimeSec);
+    function judgeInput(ruleId, audioTimeSec, inputOffsetMs = 0) {
+      const rule = profile?.judgmentRules?.find(candidate => candidate.id === ruleId);
+      // Positive user offset compensates a late physical tap. Source metadata
+      // and the saved user setting are applied once, before grid sampling.
+      const userOffset = Number.isFinite(inputOffsetMs) ? Math.max(-200, Math.min(200, inputOffsetMs)) : 0;
+      const offset = (rule?.calibrationOffsetMs || 0) + userOffset;
+      const snapshot = sample(audioTimeSec - offset / 1000);
       if (!snapshot.running || !snapshot.judgmentAvailable || !snapshot.grid) return freeze({ available: false, timing: 'unavailable', generation: snapshot.generation });
-      const rule = profile.judgmentRules.find(candidate => candidate.id === ruleId);
       if (!rule) return freeze({ available: false, timing: 'unavailable', generation: snapshot.generation });
       const beatMs = snapshot.grid.beatDurationSec * 1000;
       const phaseMs = (snapshot.grid.beatFloat - Math.floor(snapshot.grid.beatFloat)) * beatMs;
@@ -171,7 +175,7 @@ window.BARCODE = window.BARCODE || {};
       let timing = 'miss';
       if (distanceMs <= rule.windowsMs.perfect) timing = 'perfect';
       else if (distanceMs <= rule.windowsMs.excellent) timing = 'excellent';
-      return freeze({ available: true, timing, distanceMs, signedOffsetMs, ruleId: rule.id, generation: snapshot.generation });
+      return freeze({ available: true, timing, distanceMs, signedOffsetMs, calibrationOffsetMs: offset, ruleId: rule.id, generation: snapshot.generation });
     }
 
     function getDiagnostics() {

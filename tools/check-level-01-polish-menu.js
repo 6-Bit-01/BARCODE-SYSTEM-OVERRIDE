@@ -30,7 +30,7 @@ async function main() {
     const before = copy({ position: w.player.position, time: w.gameState.gameTime, combo: w.rhythmSystem.combo, transport: w.BARCODE.MusicTransport.sample() });
     const generation = w.BARCODE.MusicTransport.getDiagnostics().generation;
     menu.render();
-    assert(menu.open); assert.strictEqual(menu.focus, 6);
+    assert(menu.open); assert.strictEqual(menu.focus, 7);
     const drawCount = screen.getContext().operations.length;
     menu.render(); assert.strictEqual(screen.getContext().operations.length, drawCount, 'unchanged paused screen is not redrawn');
     down('ArrowDown'); up('ArrowDown'); // Defaults row.
@@ -42,7 +42,7 @@ async function main() {
     listeners.mousedown[0](point(1355, 391));
     listeners.mousemove[0](point(1260, 391)); listeners.mouseup[0](point(1260, 391));
     assert.strictEqual(prefs.values.music, 0, 'pointer slider respects actual CSS-scaled canvas bounds and permits mute');
-    listeners.mousedown[0](point(1200, 595)); listeners.mouseup[0](point(1200, 595));
+    listeners.mousedown[0](point(1200, 551)); listeners.mouseup[0](point(1200, 551));
     assert.strictEqual(prefs.values.flashes, false);
     let spaces = 0; w.tutorialSystem.active = true; w.tutorialSystem.handleSpacePress = () => spaces++;
     down(' '); up(' '); down('r'); up('r'); down('h'); up('h');

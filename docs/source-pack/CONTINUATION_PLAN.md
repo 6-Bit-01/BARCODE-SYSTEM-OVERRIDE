@@ -1,5 +1,10 @@
 # Campaign continuation — September 12, 2026
 
+## Current stage update
+
+Stage A is merged as PR #38 at `0d1882f6b6eebf6fc5704d8a3270f2a6b1fb7354`. The owner confirmed the merge and asked to proceed. Stage B is now implemented in the combined review described by `STORY_CONTROLS_PASS.md`; the source manifest identifies its exact head. Its scene/camera/controller ergonomics still require Makko acceptance. Stage C remains the next implementation stage after that gate. The original plan and evidence below remain the historical planning record; its “next” wording is not an instruction to redo Stage B.
+
+
 ## The actual handoff
 
 Start from main at **38732933713c4f9ec22666e49b728a0626a85f25**, merged PR #37. This pass completes the campaign planning and instruction reconciliation requested after that merge. It changes development documents, not the playable build. New scene and Easter-egg treatments below are working designs for review, not quotations of a lost transcript or claims of shipped content.

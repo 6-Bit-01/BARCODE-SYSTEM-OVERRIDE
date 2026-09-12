@@ -132,7 +132,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
       const charges = Math.max(0, Math.min(3, BARCODE.signalAmpCharges || 0));
       if (!charges && !window.sector1Progression?.signalAmpCollected && !this.ampNotice) return;
       const notice = this.ampNotice;
-      const x = 1440, y = 92;
+      const x = 1560, y = 92;
       ctx.save(); ctx.fillStyle = 'rgba(9,16,32,0.94)'; ctx.fillRect(x, y, 300, 72);
       ctx.strokeStyle = charges ? '#a875bb' : '#435163'; ctx.lineWidth = 1; ctx.strokeRect(x, y, 300, 72);
       this.drawAmpIcon(ctx, x + 30, y + 35, 0.65, charges);
@@ -153,7 +153,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
     }
     beat() {
       const time = window.audioSystem?.context?.currentTime;
-      const sample = Number.isFinite(time) ? BARCODE.MusicTransport?.sample?.(time) : null;
+      const sample = Number.isFinite(time) ? BARCODE.MusicTransport?.sample?.(time - (BARCODE.Preferences?.values.visualOffsetMs || 0) / 1000) : null;
       return sample?.running && sample.grid ? { fraction: sample.grid.beatFloat % 1, index: Math.floor(sample.grid.beatFloat) } : { fraction: 1, index: 0 };
     }
     visible(x, y, radius = 100) {
