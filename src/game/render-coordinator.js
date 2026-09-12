@@ -170,6 +170,8 @@ window.renderGame = function() {
     }
   }
   
+  window.BARCODE?.BroadcastComic?.draw(ctx);
+
   // Apply post-processing effects (if available)
   if (rendererAvailable) {
     try {

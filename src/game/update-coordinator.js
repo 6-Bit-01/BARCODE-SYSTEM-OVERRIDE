@@ -78,6 +78,9 @@ window.updateGame = function(deltaTime) {
   
   // Update lore system
   updateLoreSystem(deltaTime);
+
+  // Calls follow the final gameplay state for this frame and yield to threats.
+  window.BARCODE?.BroadcastComic?.update(deltaTime);
   
   // Check game conditions
   window.checkGameConditions();

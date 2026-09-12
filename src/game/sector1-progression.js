@@ -185,6 +185,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     }
     startMission() { this.state = STATES.ENCOUNTER_1; this.missionStarted = true; this.missionDefeats = 0; this.resetDistrictSignal(); this.countedEnemies.clear(); this.spawnedEncounterIds.clear(); this.activeEncounterId = null; this.applyGateCollision(); this.resetSignalLift(); this.enemyManagerReset(); if (window.objectivesSystem?.setMissionDefeatObjective) window.objectivesSystem.setMissionDefeatObjective(0, this.requiredEnemyKills); }
     resetDistrictSignal() {
+      window.BARCODE?.BroadcastComic?.reset();
       this.districtSignal = { elapsedMs: 0, interference: 1,
         clearedAtMs: ENCOUNTERS.map(() => null), restoration: null };
     }
@@ -909,7 +910,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       ctx.restore();
     }
     isGateClosed(encounterId) { return this.closedGateEncounterId === encounterId; }
-    openEncounterGate(encounterId) { if (this.closedGateEncounterId === encounterId) this.closedGateEncounterId = null; this.restoreEncounterSignal(encounterId); }
+    openEncounterGate(encounterId) {
+      const firstClear = encounterId === 'encounter_1' && this.districtSignal.clearedAtMs[0] === null;
+      if (this.closedGateEncounterId === encounterId) this.closedGateEncounterId = null;
+      this.restoreEncounterSignal(encounterId);
+      if (firstClear) window.BARCODE?.BroadcastComic?.queueFirstBlock(encounterId);
+    }
     getCurrentGate() {
       if (this.closedGateEncounterId) return ENCOUNTER_GATES.find(g => g.encounterId === this.closedGateEncounterId) || null;
       if (this.state === STATES.TUTORIAL) return ENCOUNTER_GATES[0];

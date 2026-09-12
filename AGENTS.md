@@ -2,6 +2,10 @@
 
 ## Current authority and scope
 
+Newest owner-approved piece: `docs/source-pack/COMIC_BROADCAST_PASS.md`, based on merged PR #37 (`38732933713c4f9ec22666e49b728a0626a85f25`). The owner accepted a storyboard from the opening through the first restored block and one representative comic/crew prototype using existing assets. Implement that bounded checkpoint, preserve the larger 1–6 selection in the document, and keep one combined branch/eventual draft. The latest corrected cameo roster supersedes all earlier inclusion requirements. The owner has opened the intro/story for revision; this checkpoint drafts the recut while retaining the live intro until that follow-on. Keep original-four identities, save IDs, secret collection purpose and working gameplay. Update the same v5 pack. Owner Makko acceptance remains necessary before merge.
+
+Earlier scope statements and intro/cameo locks below are historical wherever this newest owner direction supersedes them.
+
 Newest owner-approved work: `docs/source-pack/LORE_ARCHIVE_PASS.md`, based on merged PR #36 (`58b6abe6179ce6b7e8996c4d4099c9eff674f35f`). The owner approved the pause-menu archive and then explicitly requested implementing and improving the actual unlocked lore using BARCODE and 6 Bit context. Three authored records now replace the provisional copy, share one catalog with collection notices, and remain readable from persisted IDs. This authorizes new in-game writing based on established canon; it does not settle later campaign revelations. Preserve save compatibility, the original four, the locked prologue and secret collection purpose. One combined draft and the same maintained v5 pack; owner Makko acceptance before merge.
 
 The following scopes are historical milestones; the newest section above controls the current pass.

@@ -1,5 +1,9 @@
 # Decision Register
 
+## Latest owner direction: storyboard and comic/crew proof
+
+After the next-pass review and corrected cameo roster, the owner said “Lets proceed” to the recommendation to storyboard the opening through the first restored block, then build one representative comic/crew moment with existing assets. COMIC_BROADCAST_PASS.md records the exact roster, draft opening, implemented first-clear exchange, small art brief and retained larger 1–6 selection. Base is merged PR #37. The latest roster exclusions supersede older guaranteed cameos; intro revision is now open for design work. This bounded checkpoint leaves the live prologue unchanged while the new copy is reviewed. Maintain one combined branch/eventual draft and the same v5 archive; Makko acceptance remains necessary before merge.
+
 ## Latest owner direction: implement and improve the lore
 
 After the archive/three-record follow-up was offered, the owner said "Proceed" and added: "We also have to actually implement and improve the lore. Use all context from BARCODE and 6 Bit to make, confirm, edit, and/or add to the current unlocked lore". This is approval to write and implement substantive entries, not leave placeholder text behind a new menu. The source audit uses the current repository decisions, attached v4 reveal purposes, BARCODE Bibles and World Overview. `LORE_ARCHIVE_PASS.md` distinguishes established facts from newly authored in-game dialogue; `LEVEL_01_LORE.md` preserves the exact implemented copy.

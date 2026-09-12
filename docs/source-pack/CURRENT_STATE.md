@@ -1,5 +1,13 @@
 # Current State
 
+## Comic broadcast — storyboard and first playable scene
+
+Base: merged PR #37 (`38732933713c4f9ec22666e49b728a0626a85f25`). Branch: `agent/level1-comic-broadcast`. Read COMIC_BROADCAST_PASS.md first; its roster supersedes old cameo requirements. The generated manifest gives the exact checkpoint and publication state.
+
+The first actual gate clear now queues a 6 Bit/Cliff/Sheila exchange: a leftover restriction stamp breaks off with its frame corner. The scene uses existing update/draw ownership, yields to gameplay/reading/menus, respects reduced flashes and leaves movement, damage, rewards and music untouched. Full restart/teardown clears it. The opening-to-Level-1 storyboard and small asset brief are recorded; the live intro remains unchanged in this first proof. Other selected improvements and cameos remain in the retained 1–6 plan, not falsely marked complete.
+
+A browser scene preview lives at `tools/preview-comic-broadcast.html`; `verification/comic-broadcast-scene.webp` shows the actual production draw method with existing street art and supplied clear-state fixtures. Neither is a live Makko playthrough. Focused and required test outcomes are recorded in the generated receipt. Owner Makko/tone acceptance is pending; no merge is authorized by this automated validation.
+
 ## Authored lore and pause archive — current review build
 
 PR #36 is merged at `58b6abe6179ce6b7e8996c4d4099c9eff674f35f`, the base and rollback for `agent/level1-lore-archive`. The owner approved the archive and explicitly requested actual lore improvement using BARCODE and 6 Bit context. `LORE_ARCHIVE_PASS.md` records the source audit and scope; `LEVEL_01_LORE.md` contains the complete implemented text. The generated manifest identifies the exact checkpoint, publication status and PR.

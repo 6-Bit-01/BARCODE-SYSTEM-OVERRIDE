@@ -20,6 +20,7 @@
     "src/engine/boot-loader.js",
     "src/engine/particles.js",
     "src/game/combat-fx.js",
+    "src/game/broadcast-comic.js",
     "src/engine/renderer.js",
     "src/engine/parallax.js",
     "src/engine/traffic-sheets.js",
@@ -68,6 +69,7 @@
     "src/engine/boot-loader.js",
     "src/engine/particles.js",
     "src/game/combat-fx.js",
+    "src/game/broadcast-comic.js",
     "src/engine/renderer.js",
     "src/engine/parallax.js",
     "src/engine/traffic-sheets.js",
@@ -125,6 +127,7 @@
     "tools/check-enemy-ownership.js",
     "tools/check-frame-ownership.js",
     "tools/check-level-01-boss.js",
+    "tools/check-level-01-broadcast-comic.js",
     "tools/check-level-01-discovery.js",
     "tools/check-level-01-gameplay-dynamics.js",
     "tools/check-level-01-lore-archive.js",
@@ -199,6 +202,10 @@
       },
       {
         "file": "src/game/combat-fx.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/broadcast-comic.js",
         "status": "pass"
       },
       {
@@ -324,11 +331,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 45,
+        "index": 46,
         "status": "pass"
       },
       {
-        "index": 47,
+        "index": 48,
         "status": "pass"
       }
     ]
@@ -675,6 +682,7 @@
     "src/engine/boot-loader.js",
     "src/engine/particles.js",
     "src/game/combat-fx.js",
+    "src/game/broadcast-comic.js",
     "src/engine/renderer.js",
     "src/engine/parallax.js",
     "src/engine/traffic-sheets.js",

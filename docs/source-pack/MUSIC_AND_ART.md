@@ -18,7 +18,7 @@ Reuse approved title/prologue, Level 1 skyline and street frontage, flying traff
 
 The visual language combines damaged public-access television, obsolete hardware, VHS, underground hip-hop and 16-bit grime. Improve silhouette/foreground contrast, platform edges and attack anticipation before adding more effects. Bound shake/flash/particles and preserve legibility in full combat.
 
-Use the approved character export/reference directly. 6 Bit's cap, hair, glasses, eye/makeup design and white facial markings must remain consistent; never substitute a skull mask or combine him with DJ Floppydisc. Sheila stays a silhouette when shown. Intro images remain unchanged.
+Use the approved character export/reference directly. 6 Bit's cap, hair, glasses, eye/makeup design and white facial markings must remain consistent; never substitute a skull mask or combine him with DJ Floppydisc. Sheila stays a silhouette when shown. The owner reopened the intro for story/presentation review; COMIC_BROADCAST_PASS.md drafts a recut using the existing images. This first scene checkpoint adds no replacement artwork.
 
 Historical references included here carry their original audit dates. The exact snapshot's sprite/audio manifests are implementation authority. No new remote availability or dimensions audit is implied by copying an old contact sheet.
 

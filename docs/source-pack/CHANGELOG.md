@@ -1,5 +1,12 @@
 # Changelog
 
+## September 12, 2026 — Comic broadcast first checkpoint
+
+- Record the owner-corrected full cameo roster, a five-beat opening-to-district storyboard, and a bounded art brief. Preserve the complete larger 1–6 selection and defer migration/mobile to the planned proof.
+- Attach one 6 Bit/Cliff/Sheila comic exchange to the real first-gate clear. The old restriction stamp and upper frame corner detach; no new portrait, voice or asset URL is needed.
+- Keep presentation on the existing loop, freeze/hide reading during higher-priority gameplay/UI, respect reduced flashes and reset with the run/teardown. No movement, rewards, damage, save IDs or music changes.
+- Add a replayable browser preview, real Canvas layout diagnostic and production timing/event/lifecycle regression checks. Live prologue recut, further cameos and the remainder of the combined pass are still pending.
+
 ## September 12, 2026 — Authored Level 1 lore and persistent reading archive
 
 - Replace the three provisional lines with complete records voiced by Cache Back, DJ Floppydisc and Mac Modem, each with a brief 6 Bit response. Verify original-four history, Cache Back's corrected origin, artist voices and unresolved reveal boundaries against the retained BARCODE sources.

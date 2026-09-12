@@ -12,7 +12,7 @@ The September 11 approval locks in the recommended direction and continued imple
 
 ## Preserve the game the owner approved
 
-Use only the original four as playable characters. Preserve the simulation premise, 9 Bit's origin, the locked intro/art and the separate *Observer Not Found* boundary. Retain the twenty-enemy mission, sixteen-hit environmental Jammer, lethal ordinary-enemy landing stomp, single-jump kit, two-hit lift, real Rhythm Combat Mode and H/R tutorial locks with timing running in the background.
+Use only the original four as playable characters. Preserve the simulation premise, 9 Bit's origin and the separate *Observer Not Found* boundary. The owner reopened intro/story review and approved the bounded storyboard/comic-scene piece in COMIC_BROADCAST_PASS.md; its corrected cameo roster overrides older candidates. Reuse the current art and retain the live intro during this first prototype. Retain the twenty-enemy mission, sixteen-hit environmental Jammer, lethal ordinary-enemy landing stomp, single-jump kit, two-hit lift, real Rhythm Combat Mode and H/R tutorial locks with timing running in the background.
 
 Future musical interactions vary by genre. Level 1 intentionally gates Down attack damage by rhythm; the older blanket “all normal attacks always work off beat” instruction no longer applies to that attack. It does not follow that racing, puzzle, gunplay or RPG inputs must also be beat-gated.
 

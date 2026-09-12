@@ -1,5 +1,16 @@
 # Acceptance and Test Status
 
+## Current checkpoint: storyboard and first comic/crew scene
+
+Use the published `agent/level1-comic-broadcast` checkpoint identified by SOURCE_MANIFEST.json. Review the storyboard and art brief in COMIC_BROADCAST_PASS.md. The replayable `tools/preview-comic-broadcast.html` uses the production scene with supplied states; it is useful for writing/layout review before a full Makko import.
+
+1. Clear all four Signal Alley enemies. Its gate opens immediately. Exit Rhythm Mode and allow the existing clear cue to finish; the Cliff/Sheila caption-repair exchange should appear once.
+2. Move toward the next encounter while the call is open. New threats must hide it immediately. Hacking, Rhythm Mode, pickup/record notices and player overlap also take priority. Movement and the musical clock remain responsive.
+3. Pause/resume mid-line, compare reduced flashes, then restart the run. Reading resumes at the same place after an interruption and starts fresh only with a new first clear. Repeated clear callbacks and boss retry must not invent another scene.
+4. Judge the joke, voice, font size and panel location in the actual Makko viewport. Review the proposed opening copy separately; this checkpoint has not changed the live prologue or added new portraits.
+
+Preserve the established full-run checks for movement/contact, lift, rhythm/hack, audio, boss win/loss/retry, saved lore and restart. The receipt records automated checks; owner Makko and tone acceptance remain pending. Rollback is merged PR #37, `38732933713c4f9ec22666e49b728a0626a85f25`.
+
 ## Current target: authored lore and archive — September 12, 2026
 
 Review `agent/level1-lore-archive`, based on merged PR #36 (`58b6abe6179ce6b7e8996c4d4099c9eff674f35f`). The generated manifest/receipt ties required tests to the exact draft revision. Native Canvas renders verify complete text fit and production drawing; they do not establish live Makko rendering, audio or hosted storage. Owner acceptance remains pending.

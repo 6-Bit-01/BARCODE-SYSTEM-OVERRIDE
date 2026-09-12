@@ -271,6 +271,7 @@ window.BARCODE = window.BARCODE || {};
     if (namespace.AssetMonitor && typeof namespace.AssetMonitor.cleanup === 'function') namespace.AssetMonitor.cleanup();
     if (window.cutsceneSystem && typeof window.cutsceneSystem.destroy === 'function') window.cutsceneSystem.destroy();
     if (window.spaceShipSystem && typeof window.spaceShipSystem.dispose === 'function') window.spaceShipSystem.dispose();
+    window.BARCODE?.BroadcastComic?.reset();
     const preserveDefeats = !!options.restart || !!options.preserveProgress;
     if (window.enemyManager && typeof window.enemyManager.dispose === 'function') window.enemyManager.dispose({ preserveDefeats });
     if (window.BARCODE && window.BARCODE.JammerEnvironment && typeof window.BARCODE.JammerEnvironment.dispose === 'function') window.BARCODE.JammerEnvironment.dispose();

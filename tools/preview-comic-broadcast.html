@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BARCODE — Signal Alley scene preview</title>
+<style>
+  :root { color-scheme: dark; font: 16px/1.5 system-ui, sans-serif; background: #081214; color: #e9eee7; }
+  body { max-width: 1120px; margin: 28px auto; padding: 0 18px; }
+  h1 { font-size: 25px; margin: 0 0 4px; } p { color: #b5c9c5; }
+  canvas { display: block; width: 100%; background: #0a151e; border: 1px solid #355a4d; }
+  .controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 16px 0; }
+  button { background: #b4ef93; color: #101b14; border: 0; padding: 11px 17px; font: inherit; cursor: pointer; }
+  label { display: inline-flex; gap: 6px; align-items: center; }
+  #status { min-height: 24px; color: #b4ef93; }
+</style>
+<h1>Signal Alley — caption repair</h1>
+<p>The first gate has opened. Cliff has one more thing to fix.</p>
+<canvas id="scene" width="1920" height="1080" aria-label="Animated first-block crew scene"></canvas>
+<div class="controls">
+  <button id="replay">Replay scene</button>
+  <label><input id="paused" type="checkbox"> Pause</label>
+  <label><input id="threat" type="checkbox"> Enemy present</label>
+  <label><input id="reduced" type="checkbox"> Reduced flashes</label>
+</div>
+<p id="status" aria-live="polite"></p>
+<p>Presentation preview using the game's actual scene module and existing street art. The clear/enemy state is supplied for this preview; this is not a full Makko playthrough. During gameplay, reading yields to enemies, menus, Rhythm Mode, hacking and discoveries.</p>
+<script src="../src/game/broadcast-comic.js"></script>
+<script>
+  const canvas = document.getElementById('scene'), ctx = canvas.getContext('2d');
+  const status = document.getElementById('status');
+  window.gameState = { running: true, paused: false };
+  window.sector1Progression = { missionStarted: true, state: 'encounter_2', pendingSpawns: [], activeEncounterId: null };
+  window.enemyManager = { enemies: [] };
+  window.BARCODE_RENDER_QUALITY = { flashes: true };
+  const scene = window.BARCODE.BroadcastComic;
+  const foreground = new Image();
+  foreground.src = 'https://i.postimg.cc/gJT4gs1Q/FG.png';
+  foreground.onerror = () => { status.textContent = 'Street art could not load. The scene can still be previewed.'; };
+  function replay() {
+    document.getElementById('paused').checked = false;
+    document.getElementById('threat').checked = false;
+    window.gameState.paused = false; window.enemyManager.enemies = [];
+    scene.reset(); scene.queueFirstBlock('encounter_1');
+  }
+  document.getElementById('replay').onclick = replay;
+  document.getElementById('paused').onchange = event => { window.gameState.paused = event.target.checked; };
+  document.getElementById('threat').onchange = event => { window.enemyManager.enemies = event.target.checked ? [{ active: true }] : []; };
+  document.getElementById('reduced').onchange = event => { window.BARCODE_RENDER_QUALITY.flashes = !event.target.checked; };
+  let previous = null;
+  let lastStatus = '';
+  function frame(time) {
+    const delta = previous === null ? 0 : Math.min(100, time - previous); previous = time;
+    scene.update(delta);
+    ctx.fillStyle = '#09131f'; ctx.fillRect(0, 0, 1920, 1080);
+    if (foreground.complete && foreground.naturalWidth) ctx.drawImage(foreground, 0, 385, 1920, 695);
+    ctx.fillStyle = '#a5c1b6'; ctx.font = '22px monospace';
+    ctx.fillText('BARCODE / DEAD AIR DISTRICT', 54, 69);
+    ctx.fillStyle = '#b4ef93'; ctx.font = 'bold 34px monospace'; ctx.fillText('SIGNAL ALLEY CLEARED', 54, 116);
+    scene.draw(ctx);
+    const text = window.gameState.paused ? 'Paused — the line will resume.' : window.enemyManager.enemies.length ? 'Call held while enemies are present.' : scene.played ? 'Scene complete. Replay to compare the quieter transition.' : 'Playing the first-clear scene.';
+    if (text !== lastStatus) { status.textContent = text; lastStatus = text; }
+    requestAnimationFrame(frame);
+  }
+  document.addEventListener('visibilitychange', () => { previous = null; });
+  replay(); requestAnimationFrame(frame);
+</script>
+</html>
