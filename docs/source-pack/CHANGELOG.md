@@ -1,5 +1,13 @@
 # Changelog
 
+## September 12, 2026 — intro host repair and crew-channel continuity
+
+- Repair PR #40's repeated intro context acquisition: one cached context, no per-paint request or retry loop, and readable fallback if the host refuses creation.
+- Add verified public, commit-pinned delivery for the same eight approved images, with bounded bundled fallback and generation-safe loading/cleanup.
+- Replace detached dialogue rows/side crops with full-width scene art, individually placed ink/cream speech balloons and colored offscreen comms cards; retain the displaced recovery caption and independent S/B skip.
+- Rewrite the real Level 1 tutorial as the continuation of the open crew channel. Preserve tutorial gates, stable IDs, final hold/fade, mission count reset, 9 Bit disclosure boundaries and all gameplay/lore mechanics. Decouple completion checks from literal waiting-line copy.
+- Add restrictive context-budget, fallback-load and complete normal/skip-to-tutorial-to-mission checks; refresh inspected production layouts and maintain one combined review/source pack. Exact verification/publication is in the generated receipt; owner Makko review remains pending.
+
 ## September 12, 2026 — actual intro correction after #39
 
 - Replace the actual opening slideshow with eight comic pages covering the mapped five beats. Give each original crew member an active role; establish the local objective and one plot-linked displaced caption. Following the owner’s model uploads, eight new bundled scene illustrations replace the old art/crops; preserve title, soundtrack and 9 Bit disclosure. Only the five supplied characters appear visibly, with Cliff limited to one maintenance cameo.

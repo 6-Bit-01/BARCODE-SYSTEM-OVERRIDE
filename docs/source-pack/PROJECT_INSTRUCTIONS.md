@@ -20,7 +20,7 @@ Future musical interactions vary by genre. Level 1 intentionally gates Down atta
 
 Codex implements the current bounded milestone and produces a reviewable branch/source archive. Use existing assets and host interfaces; no wholesale engine conversion. Test the production logic with the established dependency-free tooling and state exactly what host stubs omit. The owner plays the supplied revision in a duplicate Makko project before merge. Keep the known-good project available.
 
-The campaign map is merged in #38 and the first Stage B implementation in #39. Correcting the missed actual intro and broken S skip is the current review in INTRO_OVERHAUL.md. The owner's latest order is intro first, HUD/rhythm presentation and attack variety second, campaign infrastructure afterward. Preserve earlier controls/gameplay while reviewing the opening. The completed boss/polish/discovery/lore work must not be redone. Standalone migration remains deferred.
+The campaign map is merged in #38, the first Stage B implementation in #39, and the eight-scene opening in #40. The current owner-reported context-limit/missing-art repair, scene-placed dialogue styling and rewritten first-level continuation are governed by INTRO_REPAIR.md. The owner's order remains intro first, HUD/rhythm presentation and attack variety second, campaign infrastructure afterward. Preserve earlier gameplay and completed lore; standalone migration remains deferred.
 
 For each milestone report base/head SHAs, intentional behavior changes, validation, Makko status, asset changes, known limitations, rollback and the next step. Keep the source ZIP current using `UPDATE_PROTOCOL.md`; retain one current downloadable archive identity and Git history for older states.
 

@@ -4,6 +4,8 @@ window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({ name: 'src/engine/intro-sequence.js', exports: ['BARCODE.IntroSequence'], dependencies: [] });
 (function() {
   const BARCODE = window.BARCODE = window.BARCODE || {};
+  // Immutable public copies survive Makko imports without a binary asset root.
+  const assetRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a747b58411650146bdc003a529d0470167d275db/';
   const panels = Object.freeze([
     { beat: 'O1', title: 'LEAVE THE ROOM NOISE IN', image: 0, asset: 'assets/intro/intro-01-broadcast.webp', layout: 'room', visual: '6 Bit and DJ Floppydisc work the mixing desk in a warm, lived-in studio.', stamp: 'BARCODE / ON AIR', lines: [
       ['DJ FLOPPYDISC', 'One more pass. Leave the room noise in.'],
@@ -29,12 +31,42 @@ window.FILE_MANIFEST.push({ name: 'src/engine/intro-sequence.js', exports: ['BAR
     { beat: 'O5', title: 'DEAD AIR DISTRICT', image: 7, asset: 'assets/intro/intro-08-keep-it-open.webp', layout: 'handoff', visual: '6 Bit steps into the district, listening to the crew. All four channels remain connected.', stamp: 'RESTORE THE LOCAL SIGNAL. FIND THE JAMMER.', lines: [
       ['CACHE BACK', 'We are still here, 6. Keep us on the line.'],
       ['6 BIT', 'All four of us. Leave it open.']] }
-  ].map(panel => Object.freeze({ ...panel, lines: Object.freeze(panel.lines.map(line => Object.freeze(line))) })));
-  const ink = '#080b19', paper = '#ddd7ed', mint = '#95ffe0', pink = '#f696d9';
-  const crew = ['6 BIT', 'DJ FLOPPYDISC', 'CACHE BACK', 'MAC MODEM'];
+  ].map(panel => Object.freeze({ ...panel, hostedAsset: assetRoot + panel.asset, lines: Object.freeze(panel.lines.map(line => Object.freeze(line))) })));
+  const ink = '#090b15', paper = '#f1eadd', mint = '#95ffe0', pink = '#f696d9';
   const crewColors = { '6 BIT': '#e6e5ee', 'DJ FLOPPYDISC': '#83e9ff', 'CACHE BACK': '#ffd65c', 'MAC MODEM': '#ff929c' };
-  const text = (ctx, line, x, y, size = 24, color = paper, bold = false) => {
-    ctx.font = `${bold ? 'bold ' : ''}${size}px monospace`; ctx.fillStyle = color;
+  const frame = Object.freeze({ x: 48, y: 140, w: 1824, h: 828 });
+  // Authored against the actual illustrations. Tails end below the speaking
+  // face; offscreen voices use a receiver card instead of a false face pointer.
+  // These coordinates deliberately leave the tape lock, scope, door hand,
+  // tower, Cliff's face and the four supplied likenesses visible.
+  const compositions = [
+    { stamp: [90, 176, 420], balloons: [
+      { x: 1060, y: 644, w: 736, tail: [1260, 524] },
+      { x: 132, y: 794, w: 790, tail: [635, 618] }] },
+    { stamp: [90, 176, 350], balloons: [
+      { x: 104, y: 752, w: 744, tail: [593, 594] },
+      { x: 1098, y: 788, w: 700, tail: [1370, 674] }] },
+    { stamp: [104, 616, 526], balloons: [
+      { x: 646, y: 676, w: 540, tail: [868, 602] },
+      { x: 1254, y: 798, w: 556, tail: [1390, 626] }] },
+    { stamp: [748, 838, 412], balloons: [
+      { x: 92, y: 766, w: 610, tail: [459, 634] },
+      { x: 1188, y: 742, w: 628, tail: [1408, 610] }] },
+    { stamp: [980, 178, 630], balloons: [
+      { x: 94, y: 750, w: 746, tail: [620, 612] },
+      { x: 1184, y: 786, w: 632, radio: true }] },
+    { stamp: [110, 526, 626], balloons: [
+      { x: 1044, y: 672, w: 758, tail: [1212, 584] },
+      { x: 104, y: 770, w: 732, radio: true }] },
+    { stamp: [1340, 870, 464], balloons: [
+      { x: 768, y: 180, w: 512, radio: true },
+      { x: 660, y: 698, w: 750, tail: [518, 520] }] },
+    { stamp: [1090, 858, 714], balloons: [
+      { x: 1128, y: 672, w: 674, radio: true },
+      { x: 140, y: 796, w: 752, tail: [662, 582] }] }
+  ];
+  const text = (ctx, line, x, y, size = 24, color = paper, bold = false, family = 'monospace') => {
+    ctx.font = `${bold ? 'bold ' : ''}${size}px ${family}`; ctx.fillStyle = color;
     ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText(line, x, y);
   };
   function wrap(ctx, value, width) {
@@ -47,50 +79,73 @@ window.FILE_MANIFEST.push({ name: 'src/engine/intro-sequence.js', exports: ['BAR
     if (line) lines.push(line);
     return lines;
   }
-  function art(ctx, images, index, x, y, width, height, crop = null) {
-    ctx.fillStyle = '#152235'; ctx.fillRect(x, y, width, height);
-    const source = images?.[index]?.element;
+  function polygon(ctx, points) {
+    ctx.beginPath(); points.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath();
+  }
+  function cutBox(ctx, x, y, w, h, cut = 16) {
+    polygon(ctx, [[x + cut, y], [x + w, y], [x + w, y + h - cut], [x + w - cut, y + h], [x, y + h], [x, y + cut]]);
+  }
+  function drawArt(ctx, images, index) {
+    const { x, y, w, h } = frame;
+    ctx.fillStyle = '#152235'; ctx.fillRect(x, y, w, h);
+    const item = images?.[index], source = item?.element;
     const sw = source?.naturalWidth || source?.width, sh = source?.naturalHeight || source?.height;
     if (sw && sh) {
-      const area = crop || [0, 0, 1, 1];
-      const scale = Math.min(width / (sw * area[2]), height / (sh * area[3]));
-      const dw = sw * area[2] * scale, dh = sh * area[3] * scale;
-      ctx.drawImage(source, sw * area[0], sh * area[1], sw * area[2], sh * area[3], x + (width - dw) / 2, y + (height - dh) / 2, dw, dh);
+      const scale = Math.min(w / sw, h / sh), dw = sw * scale, dh = sh * scale;
+      ctx.drawImage(source, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
     } else {
-      text(ctx, 'CHANNEL IMAGE UNAVAILABLE', x + 24, y + 34, 19, '#a4afc9');
+      text(ctx, item?.status === 'unavailable' ? 'SCENE ART UNAVAILABLE' : 'TUNING THE PICTURE...', 730, 466, 28, mint, true);
     }
-    ctx.strokeStyle = paper; ctx.lineWidth = 5; ctx.strokeRect(x, y, width, height);
+    ctx.strokeStyle = paper; ctx.lineWidth = 4; ctx.strokeRect(x, y, w, h);
+    ctx.strokeStyle = '#282235'; ctx.lineWidth = 2; ctx.strokeRect(x - 9, y - 9, w + 18, h + 18);
   }
-  function signalDetail(ctx, x, y, listening, elapsedMs, reduced) {
-    ctx.fillStyle = '#101e29'; ctx.fillRect(x, y, 512, 246);
-    ctx.strokeStyle = paper; ctx.lineWidth = 5; ctx.strokeRect(x, y, 512, 246);
-    text(ctx, listening ? 'UNDER THE STATIC' : 'RETURN CHANNEL', x + 24, y + 22, 23, listening ? mint : pink, true);
-    ctx.strokeStyle = '#24404a'; ctx.lineWidth = 1;
-    for (let row = 0; row < 4; row++) { ctx.beginPath(); ctx.moveTo(x + 24, y + 84 + row * 32); ctx.lineTo(x + 488, y + 84 + row * 32); ctx.stroke(); }
-    // A restrained presentation cue, not a second audio/rhythm clock. The
-    // two opposing traces seed the later record comparison without naming it.
-    const phase = reduced ? 0 : Math.min(2000, elapsedMs) / 600;
-    const traces = listening ? [1, -1] : [0];
-    traces.forEach((sign, row) => {
-      ctx.strokeStyle = row ? pink : mint; ctx.lineWidth = 2; ctx.beginPath();
-      for (let i = 0; i <= 116; i++) {
-        const wave = sign * (Math.sin(i * 0.22 + phase) + Math.sin(i * 0.66 + phase) * 0.25) * 18;
-        const px = x + 24 + i * 4, py = y + (listening ? 112 + row * 64 : 144) + wave;
-        if (i) ctx.lineTo(px, py); else ctx.moveTo(px, py);
-      }
-      ctx.stroke();
-    });
-    text(ctx, listening ? 'STILL HERE.' : 'A MOMENT AGO: LIVE.', x + 24, y + 211, 18, '#a8bec8');
+  function balloonLayout(ctx, dialogue, placement) {
+    ctx.font = 'bold 30px sans-serif';
+    const lines = wrap(ctx, dialogue, placement.w - 60);
+    return { ...placement, h: 78 + lines.length * 36, lines };
   }
-  function crewDetail(ctx, panel, y) {
-    ctx.fillStyle = '#171b2b'; ctx.fillRect(1312, y, 512, 246);
-    ctx.strokeStyle = paper; ctx.lineWidth = 5; ctx.strokeRect(1312, y, 512, 246);
-    text(ctx, 'FOUR CHANNELS / ONE BROADCAST', 1336, y + 20, 22, paper, true);
-    crew.forEach((name, i) => {
-      const speaking = panel.lines.some(line => line[0] === name);
-      ctx.fillStyle = crewColors[name]; ctx.fillRect(1338, y + 71 + i * 40, speaking ? 12 : 6, 8);
-      text(ctx, name, 1364, y + 65 + i * 40, 24, crewColors[name]);
-    });
+  function balloon(ctx, speaker, layout, serial) {
+    const { x, y, w, h, tail, radio, lines } = layout;
+    const accent = crewColors[speaker], fill = radio ? '#101a2b' : paper;
+    ctx.save(); ctx.lineJoin = 'round';
+    if (tail) {
+      const baseX = Math.max(x + 54, Math.min(x + w - 68, tail[0]));
+      polygon(ctx, [[baseX - 22, y + 8], tail, [baseX + 20, y + 8]]);
+      ctx.fillStyle = fill; ctx.strokeStyle = ink; ctx.lineWidth = 10; ctx.stroke(); ctx.fill();
+    }
+    cutBox(ctx, x + 9, y + 10, w, h); ctx.fillStyle = ink; ctx.fill();
+    cutBox(ctx, x, y, w, h); ctx.strokeStyle = ink; ctx.lineWidth = 10; ctx.stroke(); ctx.fillStyle = fill; ctx.fill();
+    ctx.strokeStyle = radio ? accent : '#c8bfaf'; ctx.lineWidth = 2; ctx.stroke();
+    // Printed channel tab + small reading-order marker, with actual dialogue
+    // in larger proportional lettering instead of terminal body copy.
+    ctx.font = 'bold 21px monospace';
+    const label = radio ? `${speaker} / COMMS` : speaker;
+    const labelWidth = ctx.measureText(label).width + 38;
+    cutBox(ctx, x + 22, y - 17, labelWidth, 39, 7); ctx.fillStyle = accent; ctx.fill();
+    text(ctx, label, x + 40, y - 9, 21, ink, true);
+    text(ctx, `0${serial}`, x + w - 58, y + 22, 17, radio ? accent : '#716b65', true);
+    if (radio) {
+      ctx.fillStyle = accent;
+      for (let i = 0; i < 4; i++) ctx.fillRect(x + w - 71 + i * 9, y - 12 - i * 4, 5, 10 + i * 4);
+      ctx.fillRect(x + 13, y + 38, 3, h - 65);
+    }
+    lines.forEach((line, i) => text(ctx, line, x + 30, y + 45 + i * 36, 30, radio ? paper : ink, true, 'sans-serif'));
+    // Two short registration marks give the card a printed, imperfect edge.
+    ctx.strokeStyle = accent; ctx.lineWidth = 3; ctx.beginPath();
+    ctx.moveTo(x - 13, y + 34); ctx.lineTo(x - 13, y + 57);
+    ctx.moveTo(x + w - 46, y + h + 16); ctx.lineTo(x + w - 15, y + h + 16); ctx.stroke();
+    ctx.restore();
+  }
+  function stamp(ctx, panel, placement, elapsedMs, reduced) {
+    let [x, y, w] = placement;
+    if (panel.layout === 'refusal') x -= 52 * (reduced ? 1 : Math.min(1, elapsedMs / 650));
+    const accent = ['failure', 'refusal', 'archive'].includes(panel.layout) ? pink : mint;
+    ctx.font = 'bold 21px monospace';
+    const lines = wrap(ctx, panel.stamp, w - 36), h = 26 + lines.length * 27;
+    ctx.fillStyle = ink; ctx.fillRect(x + 6, y + 7, w, h);
+    ctx.fillStyle = accent; ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = ink; ctx.lineWidth = 3; ctx.strokeRect(x, y, w, h);
+    lines.forEach((line, i) => text(ctx, line, x + 18, y + 13 + i * 27, 21, ink, true));
   }
   BARCODE.IntroSequence = {
     panels, inspectedGutter: false,
@@ -100,78 +155,34 @@ window.FILE_MANIFEST.push({ name: 'src/engine/intro-sequence.js', exports: ['BAR
       const panel = panels[index];
       return panel ? `${panel.title}. ${panel.visual} ${panel.stamp}. ${panel.lines.map(line => line.join(': ')).join(' ')}` : '';
     },
+    getDialogueLayouts(ctx, index) {
+      return panels[index]?.lines.map((line, i) => balloonLayout(ctx, line[1], compositions[index].balloons[i])) || [];
+    },
     draw(ctx, { index = 0, elapsedMs = 0, images = [], pad = false, skipProgress = 0, holding = false } = {}) {
       const panel = panels[index]; if (!ctx || !panel) return;
+      const reduced = window.BARCODE_RENDER_QUALITY?.flashes === false;
       ctx.save(); ctx.globalAlpha = 1; ctx.shadowBlur = 0;
       ctx.fillStyle = ink; ctx.fillRect(0, 0, 1920, 1080);
-      // The supplied models govern every visible character in these eight
-      // scenes. Printed frames and details bridge their art into pixel play.
-      ctx.fillStyle = '#241e36';
-      for (let y = 18; y < 1040; y += 18) for (const x of [28, 44, 1876, 1892]) ctx.fillRect(x, y, 3, 3);
-      ctx.fillStyle = pink; ctx.fillRect(96, 48, 130, 31);
-      text(ctx, 'BARCODE', 108, 52, 22, ink, true);
-      text(ctx, 'SYSTEM OVERRIDE / OPENING TRANSMISSION', 248, 54, 21, '#a9b4ca');
-      text(ctx, `${String(index + 1).padStart(2, '0')} / ${String(panels.length).padStart(2, '0')}`, 1680, 54, 24, mint);
-      text(ctx, panel.title, 96, 103, 36, paper, true);
-      art(ctx, images, panel.image, 96, 166, 1168, 532);
-      const right = (image, y, crop) => art(ctx, images, image, 1312, y, 512, 246, crop);
-      if (panel.layout === 'links') {
-        right(1, 166, [0.16, 0.01, 0.27, 0.40]); right(1, 452, [0.59, 0.02, 0.34, 0.46]);
-      } else if (panel.layout === 'archive') {
-        right(3, 166, [0.28, 0.48, 0.29, 0.39]); right(3, 452, [0.60, 0.02, 0.36, 0.49]);
-      } else if (panel.layout === 'failure') {
-        signalDetail(ctx, 1312, 166, false, elapsedMs, true);
-        right(2, 452, [0.57, 0.01, 0.35, 0.47]);
-      } else if (panel.layout === 'refusal') {
-        right(3, 166, [0.63, 0.02, 0.34, 0.46]); right(5, 452, [0.015, 0.13, 0.33, 0.45]);
-      } else if (panel.layout === 'tower') {
-        right(6, 166, [0.59, 0.02, 0.29, 0.44]);
-        ctx.fillStyle = '#191e32'; ctx.fillRect(1312, 452, 512, 246);
-        ctx.strokeStyle = paper; ctx.lineWidth = 5; ctx.strokeRect(1312, 452, 512, 246);
-        text(ctx, 'FIRST: THE NEIGHBORHOOD', 1340, 482, 24, mint, true);
-        text(ctx, 'Open the street.', 1340, 534, 26);
-        text(ctx, 'Find the Jammer.', 1340, 574, 26);
-        text(ctx, 'Keep the crew connected.', 1340, 636, 20, '#bdabda');
-      } else if (panel.layout === 'listen') {
-        signalDetail(ctx, 1312, 166, true, elapsedMs, window.BARCODE_RENDER_QUALITY?.flashes === false);
-        crewDetail(ctx, panel, 452);
-      } else {
-        if (panel.layout === 'handoff') right(1, 166, [0.59, 0.02, 0.34, 0.46]);
-        else right(0, 166, [0.51, 0.015, 0.34, 0.46]);
-        crewDetail(ctx, panel, 452);
+      ctx.fillStyle = pink; ctx.fillRect(48, 25, 163, 38);
+      text(ctx, 'BARCODE', 62, 30, 26, ink, true);
+      text(ctx, 'SYSTEM OVERRIDE / OPENING TRANSMISSION', 235, 35, 20, '#a9b4ca');
+      text(ctx, panel.title, 48, 77, 36, paper, true, 'sans-serif');
+      text(ctx, `${String(index + 1).padStart(2, '0')} / 08`, 1710, 32, 27, mint, true);
+      for (let i = 0; i < panels.length; i++) {
+        ctx.fillStyle = i <= index ? mint : '#2b3040'; ctx.fillRect(1698 + i * 22, 86, 14, i === index ? 15 : 5);
       }
-      // One plot-linked breach: the recovery order slides out of its panel
-      // when 6 Bit rejects it. Reduced effects preserve its displaced endpoint.
-      const displace = panel.layout === 'refusal' ? 84 * (window.BARCODE_RENDER_QUALITY?.flashes === false ? 1 : Math.min(1, elapsedMs / 650)) : 0;
-      const sx = 140 - displace, sy = 620;
-      ctx.fillStyle = ink; ctx.fillRect(sx + 7, sy + 8, 1040, 54);
-      ctx.fillStyle = panel.layout === 'failure' || panel.layout === 'refusal' ? pink : mint;
-      ctx.fillRect(sx, sy, 1040, 54);
-      text(ctx, panel.stamp, sx + 20, sy + 15, 23, ink, true);
-      if (panel.layout === 'handoff') {
-        ctx.fillStyle = mint;
-        for (let i = 0; i < 10; i++) ctx.fillRect(1246 + (i % 3) * 12, 190 + i * 46, 8, 8);
-      }
-      panel.lines.forEach(([speaker, dialogue], i) => {
-        const x = 96 + i * 884;
-        const accent = crewColors[speaker];
-        ctx.fillStyle = '#030611'; ctx.fillRect(x + 7, 751, 844, 194);
-        ctx.fillStyle = '#131b29'; ctx.fillRect(x, 744, 844, 194);
-        ctx.strokeStyle = paper; ctx.lineWidth = 2; ctx.strokeRect(x, 744, 844, 194);
-        ctx.font = 'bold 22px monospace';
-        ctx.fillStyle = accent; ctx.fillRect(x + 16, 752, ctx.measureText(speaker).width + 32, 37);
-        text(ctx, speaker, x + 32, 760, 22, ink, true);
-        ctx.font = '29px monospace';
-        wrap(ctx, dialogue, 796).forEach((line, j) => text(ctx, line, x + 24, 804 + j * 36, 29));
-      });
-      if (panel.layout === 'refusal') text(ctx, this.inspectedGutter ? 'MARGIN NOTE: "WAIT" IS NOT A PLAN.' : `${pad ? 'D-pad Left' : 'Left Arrow'}: inspect the displaced caption`, 96, 963, 20, '#e4cb93');
+      drawArt(ctx, images, panel.image);
+      stamp(ctx, panel, compositions[index].stamp, elapsedMs, reduced);
+      this.getDialogueLayouts(ctx, index).forEach((layout, i) => balloon(ctx, panel.lines[i][0], layout, i + 1));
+      if (panel.layout === 'refusal') text(ctx, this.inspectedGutter ? 'MARGIN NOTE: "WAIT" IS NOT A PLAN.' : `${pad ? 'D-pad Left' : 'Left Arrow'}: inspect the displaced recovery order`, 48, 990, 20, '#e4cb93');
+      else text(ctx, index < 2 ? 'STUDIO FEED / ORIGINAL TAKE' : index < 6 ? 'SIGNAL LOST. CREW STILL HERE.' : 'NEXT STOP / DEAD AIR DISTRICT', 48, 990, 19, '#9daabc');
       const next = index === panels.length - 1 ? 'Enter Dead Air District' : 'Next panel';
-      text(ctx, pad ? `A: ${next}    Hold B / S for 5s: Skip intro` : `Space / Enter / Click: ${next}    Hold S for 5s: Skip intro`, 96, 1016, 21, '#bcc8db');
+      text(ctx, pad ? `A: ${next}` : `Space / Enter / Click: ${next}`, 48, 1030, 22, paper);
       if (holding) {
-        ctx.fillStyle = '#42284d'; ctx.fillRect(1376, 978, 448, 12);
-        ctx.fillStyle = pink; ctx.fillRect(1376, 978, 448 * skipProgress, 12);
-        text(ctx, `SKIPPING IN ${(5 * (1 - skipProgress)).toFixed(1)}s / RELEASE TO CANCEL`, 1376, 1000, 16, pink);
-      }
+        ctx.fillStyle = '#42284d'; ctx.fillRect(1340, 1015, 528, 9);
+        ctx.fillStyle = pink; ctx.fillRect(1340, 1015, 528 * skipProgress, 9);
+        text(ctx, `SKIPPING IN ${(5 * (1 - skipProgress)).toFixed(1)}s / RELEASE TO CANCEL`, 1340, 1034, 17, pink);
+      } else text(ctx, pad ? 'Hold B / S for 5s: Skip intro' : 'Hold S for 5s: Skip intro', 1370, 1032, 22, '#b5bdcd');
       ctx.restore();
     },
     getDiagnostics() { return { panels: panels.length, inspected: this.inspectedGutter ? ['egg.comic.gutter'] : [] }; }
