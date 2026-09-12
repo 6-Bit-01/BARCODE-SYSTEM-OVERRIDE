@@ -128,8 +128,20 @@ if (!player.includes('const PLAYER_VISUAL_FOOT_OFFSET_Y = 72;') ||
 if (!playerDrawBody || /\bdraw[XY]\s*[+-]=/.test(playerDrawBody) || !/getVisualAnchor\(shouldFlip\)/.test(playerDrawBody)) {
   fail('player drawing must use the frame-aware visual anchor without state-specific magic X/Y shifts.');
 }
-if (!player.includes('isBossCinematicActive') || !player.includes('if (!this.cinematicPoseActive && !held) this.sprite.update(deltaTime);')) {
+if (!player.includes('isBossCinematicActive')) {
   fail('player animation ownership must freeze a neutral pose during the boss cinematic.');
+}
+{
+  const { createRig } = require('./check-level-01-boss');
+  const { createSprite, playerClips } = require('./makko-animation-fixture');
+  const { w, calls } = createRig();
+  const actor = w.player;
+  actor.spriteReady = true; actor.sprite = createSprite(playerClips);
+  actor.state = 'idle'; actor.cinematicPoseActive = true;
+  for (let i = 0; i < 30; i++) actor.updateSpriteAnimation(100);
+  if (actor.animationRef.currentFrame !== 0 || calls.errors.length) fail('cinematic must hold the actual neutral sprite frame without host errors.');
+  actor.cinematicPoseActive = false; actor.updateSpriteAnimation(100);
+  if (actor.animationRef.currentFrame === 0) fail('normal animation must resume after the cinematic releases ownership.');
 }
 if (/this\.sprite\.(pause|resume)\(/.test(player)) {
   fail('cinematic pose ownership must not depend on optional Makko sprite pause/resume methods.');

@@ -1,5 +1,13 @@
 # Current State
 
+## Makko health repair — September 12, 2026
+
+PR #33 is merged at `8d0cf73a223494b355d850930f4ac8047353804f`. The owner reports better effects/flow but a stuck landing jump, intermittent enemy clipping/unfair damage and missing rhythm/action SFX. Current repair branch: `agent/level1-makko-health-repair`; exact draft/head and test receipt are generated in the archive manifest. Owner Makko acceptance is pending.
+
+The repair removes writes to Makko's getter-only animation frame, advances landing recovery independently, and restores full animated enemy collision updates. Original rhythm/damage samples return, per-voice gain replaces whole-channel ducking, and action cues use actual SFX-graph readiness with stronger envelopes. Selected visuals, movement/progression, music and art are preserved. Expanded checks run against actual official Makko animation classes; audio loudness and contact feel remain owner checks.
+
+Read `MAKKO_HEALTH_CHECK.md` for what stuck/failed, evidence, limitations, focused testing, diagnostics and post-merge deployment. Sections below describe historical builds; the latest failed playtest supersedes their pending acceptance status.
+
 ## Responsive combat and visible musical scenery — September 11, 2026
 
 Base/rollback: merged PR #32, `97198270dabd9b917d58f6499c2d0668d186eb12`. Branch: `agent/level1-responsive-combat`. The owner reports uncertain hitboxes and rhythm/background effects that were hard to notice. This is the selected **1–8 responsive-combat pass plus stronger musical scenery**, documented in `RESPONSIVE_COMBAT_PASS.md`. Earlier numbered proposals below are historical. Exact review SHA/PR and validation are generated in the archive manifest and receipt. Makko acceptance is pending. The owner explicitly authorized uploading this completed pass to `6-Bit-01/BARCODE-SYSTEM-OVERRIDE` and opening its combined draft PR on September 12. The preceding local review was `3ec6427`; publication changes only these status documents, with gameplay and verification code identical. `PR_DESCRIPTION.md` records the review scope; the generated manifest supplies the published revision and PR link.
