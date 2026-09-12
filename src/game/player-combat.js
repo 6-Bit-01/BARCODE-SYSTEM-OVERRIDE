@@ -11,7 +11,7 @@ window.FILE_MANIFEST.push({
   const SUCCESS_DAMAGE = { perfect: 3, excellent: 2 };
   class PlayerCombat {
     constructor(options = {}) { this.cooldownMs = options.cooldownMs ?? 250; this.range = options.range ?? 300; this.lastAttackAt = -Infinity; this.sequence = 0; this.feedback = null; }
-    reset() { this.lastAttackAt = -Infinity; this.sequence = 0; this.feedback = null; this.rhythmLostUntil = 0; BARCODE.combatFX?.reset(); window.audioSystem?.stopCombatCues?.(); }
+    reset() { this.lastAttackAt = -Infinity; this.sequence = 0; this.feedback = null; this.rhythmLostUntil = 0; BARCODE.combatFX?.reset(); window.renderer?.clearScreenShake?.(); window.audioSystem?.stopCombatCues?.(); }
     canAttack(now = Date.now()) { return now - this.lastAttackAt >= this.cooldownMs; }
     resolvePrimary({ player = window.player, enemyManager = window.enemyManager, now = Date.now(), timing = null, audioTimeSec = null } = {}) {
       const result = { ok: false, action: 'primary', sequence: ++this.sequence, reason: '', timing: null, damage: 0, targets: [] };
@@ -137,7 +137,16 @@ window.FILE_MANIFEST.push({
     playAttackAnimation(player) { if (player && typeof player.startPrimaryAttackAnimation === 'function') player.startPrimaryAttackAnimation(); else if (player && typeof player.playAnimation === 'function') player.playAnimation('rhythm'); }
     applyFeedback(judgment) { if (window.rhythmSystem && typeof window.rhythmSystem.applyResolvedAttackFeedback === 'function') window.rhythmSystem.applyResolvedAttackFeedback(judgment); }
     getAuthoritativeRange(judgment = null, { jammer = false } = {}) { if (jammer) return this.range; const rhythmRange = window.rhythmSystem && typeof window.rhythmSystem.getAuthoritativeDamageRadius === 'function' ? window.rhythmSystem.getAuthoritativeDamageRadius() : this.range; const ampCharges = window.BARCODE && Number(window.BARCODE.signalAmpCharges || 0); const ampOk = ampCharges > 0 && judgment && (judgment.timing === 'perfect' || judgment.timing === 'excellent'); return ampOk ? 430 : rhythmRange; }
-    findTargets(player, enemyManager, judgment = null) { const enemies = enemyManager && Array.isArray(enemyManager.enemies) ? enemyManager.enemies : []; const range = this.getAuthoritativeRange(judgment); const targets = enemies.filter(enemy => enemy.active && enemy.type !== 'broadcast_jammer' && enemy.type !== 'boss' && window.distance(player.position.x, player.position.y, enemy.position.x, enemy.position.y) <= range); if (targets.length && window.BARCODE && window.BARCODE.signalAmpCharges > 0 && judgment && (judgment.timing === 'perfect' || judgment.timing === 'excellent')) window.BARCODE.signalAmpCharges -= 1; return targets; }
+    findTargets(player, enemyManager, judgment = null) {
+      const enemies = enemyManager && Array.isArray(enemyManager.enemies) ? enemyManager.enemies : [];
+      const range = this.getAuthoritativeRange(judgment);
+      const targets = enemies.filter(enemy => enemy.active && enemy.type !== 'broadcast_jammer' && enemy.type !== 'boss' && window.distance(player.position.x, player.position.y, enemy.position.x, enemy.position.y) <= range);
+      if (targets.length && BARCODE.signalAmpCharges > 0 && judgment && (judgment.timing === 'perfect' || judgment.timing === 'excellent')) {
+        BARCODE.signalAmpCharges -= 1;
+        BARCODE.combatFX?.ampChanged('use', BARCODE.signalAmpCharges, player);
+      }
+      return targets;
+    }
     tryDamageJammer(player, judgment, sequence) {
       const env = BARCODE.JammerEnvironment;
       if (!env || !env.canReceiveRhythmDamage || !env.applyRhythmDamage) return { ok: false };

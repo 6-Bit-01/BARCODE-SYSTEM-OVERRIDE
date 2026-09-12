@@ -61,6 +61,7 @@ window.RhythmSystem = class RhythmSystem {
     // Combo system (score removed)
     this.combo = 0;
     this.maxCombo = 0;
+    this.runBestCombo = 0;
     
     // Input management
     this.lastInputTime = 0;
@@ -327,6 +328,7 @@ window.RhythmSystem = class RhythmSystem {
     this.active = false;
     if (window.player) window.player.primaryAttackAnimationMs = 0;
     this.maxCombo = Math.max(this.maxCombo, this.combo);
+    this.runBestCombo = Math.max(this.runBestCombo || 0, this.combo);
     
     // Reset combo when hiding rhythm mode
     if (this.combo > 0) {
@@ -388,6 +390,7 @@ window.RhythmSystem = class RhythmSystem {
     
     // Save max combo
     this.maxCombo = Math.max(this.maxCombo, this.combo);
+    this.runBestCombo = Math.max(this.runBestCombo || 0, this.combo);
     
     // Reset combo when hiding rhythm mode
     if (this.combo > 0) {
@@ -665,6 +668,7 @@ window.RhythmSystem = class RhythmSystem {
     if (timing === 'perfect' || timing === 'excellent') {
       this.combo++;
       this.maxCombo = Math.max(this.maxCombo, this.combo);
+      this.runBestCombo = Math.max(this.runBestCombo || 0, this.combo);
       this.triggerPowerArc(timing, false);
       this.createHitEffect(timing, false);
       window.audioSystem?.playRhythmAttack?.(timing);
@@ -738,6 +742,7 @@ window.RhythmSystem = class RhythmSystem {
       // Handle successful hit
       this.combo++;
       this.maxCombo = Math.max(this.maxCombo, this.combo);
+      this.runBestCombo = Math.max(this.runBestCombo || 0, this.combo);
       
       // Score calculation removed
       

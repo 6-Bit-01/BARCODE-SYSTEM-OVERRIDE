@@ -455,7 +455,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         pulse.hit = true;
         if (player.isDamageInvulnerable?.()) return;
         if (window.hackingSystem?.absorbGuardHit?.()) return;
-        player.takeDamage?.(1);
+        player.takeDamage?.(1, { x: pulse.originX, y: player.position.y });
       });
       boss.pulses = boss.pulses.filter(pulse => pulse.radius < BOSS_COMBAT.pulseRange);
     }
@@ -541,8 +541,25 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       window.hackingSystem?.reset?.();
       window.inputManager?.resetActionEdges?.();
       window.objectivesSystem?.completeLevelObjective?.();
+      this.completion = { elapsedMs: 0, score: window.gameState?.score || 0,
+        bestCombo: window.rhythmSystem?.runBestCombo || 0,
+        fragments: window.lostDataSystem?.getProgress?.().collected || 0,
+        totalFragments: window.lostDataSystem?.maxTotalLore || 3 };
       if (window.gameState) { window.gameState.victory = true; window.gameState.gameOver = false; window.gameState.running = false; }
       return true;
+    }
+    updateCompletionPresentation(deltaTime = 0) {
+      if (!this.completion || this.state !== STATES.LEVEL_COMPLETE || !window.gameState?.victory || window.isPaused || window.gameState?.paused) return;
+      this.completion.elapsedMs = Math.min(1600, this.completion.elapsedMs + Math.max(0, Number(deltaTime) || 0));
+    }
+    getCompletionPresentation() {
+      if (!this.completion) return null;
+      const result = this.completion;
+      return ['score', 'bestCombo', 'fragments'].map((key, index) => {
+        const progress = Math.max(0, Math.min(1, (result.elapsedMs - index * 220) / 760));
+        return { key, value: Math.round(result[key] * (1 - Math.pow(1 - progress, 3))), finalValue: result[key], progress,
+          total: key === 'fragments' ? result.totalFragments : null };
+      });
     }
     canRetryBossCheckpoint() {
       const runtimeState = window.BARCODE?.RuntimeLifecycle?.getState?.();
@@ -552,6 +569,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     retryBossCheckpoint() {
       if (!this.canRetryBossCheckpoint()) return { ok: false, reason: 'checkpoint-unavailable' };
       const checkpoint = this.bossCheckpoint;
+      this.completion = null;
       const player = this.player;
       if (!player) return { ok: false, reason: 'player-unavailable' };
       window.hackingSystem?.reset?.();
@@ -649,10 +667,74 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       }
       ctx.restore();
     }
-    drawSignalAmp(ctx) { if (!ctx || this.signalAmpCollected) return; ctx.save(); ctx.fillStyle = '#ff00ff'; ctx.strokeStyle = '#00ffff'; ctx.beginPath(); ctx.arc(SIGNAL_AMP.x, SIGNAL_AMP.y, 18, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.restore(); }
-    drawEncounterGates(ctx) { if (!ctx) return; const gate = this.getCurrentGate(); if (!gate) return; ctx.save(); ctx.globalAlpha = 0.9; ctx.fillStyle = 'rgba(255,0,255,0.55)'; ctx.fillRect(gate.x, gate.y, gate.w, gate.h); ctx.strokeStyle = '#ff00ff'; ctx.lineWidth = 3; ctx.strokeRect(gate.x, gate.y, gate.w, gate.h); ctx.restore(); }
+    drawSignalAmp(ctx) {
+      if (!ctx || this.signalAmpCollected) return;
+      const fx = window.BARCODE?.combatFX;
+      if (fx && !fx.visible(SIGNAL_AMP.x, SIGNAL_AMP.y, 90)) return;
+      const bob = Math.sin((fx?.timeMs || 0) / 280) * 4;
+      ctx.save();
+      ctx.fillStyle = 'rgba(213,127,255,0.16)';
+      ctx.beginPath(); ctx.ellipse(SIGNAL_AMP.x, SIGNAL_AMP.y + 40, 36, 6, 0, 0, Math.PI * 2); ctx.fill();
+      if (fx) fx.drawAmpIcon(ctx, SIGNAL_AMP.x, SIGNAL_AMP.y + bob);
+      else { ctx.strokeStyle = '#efa0ff'; ctx.lineWidth = 3; ctx.strokeRect(SIGNAL_AMP.x - 22, SIGNAL_AMP.y - 22, 44, 44); }
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = 'bold 14px monospace';
+      ctx.fillStyle = '#0a1526'; ctx.fillRect(SIGNAL_AMP.x - 65, SIGNAL_AMP.y - 55, 130, 20);
+      ctx.fillStyle = '#f4c1ff'; ctx.fillText('SIGNAL AMP', SIGNAL_AMP.x, SIGNAL_AMP.y - 45);
+      ctx.restore();
+    }
+    getGatePresentation() {
+      const closed = this.getCurrentGate();
+      const time = this.districtSignal.elapsedMs;
+      return ENCOUNTER_GATES.flatMap((gate, index) => {
+        if (gate === closed) return [{ gate, progress: 0, opening: false }];
+        const clearedAt = this.districtSignal.clearedAtMs[index];
+        const age = clearedAt === null ? Infinity : Math.max(0, time - clearedAt);
+        return age < 650 ? [{ gate, progress: age / 650, opening: true }] : [];
+      });
+    }
+    drawEncounterGates(ctx) {
+      if (!ctx) return;
+      const fx = window.BARCODE?.combatFX;
+      const time = fx?.timeMs ?? this.districtSignal.elapsedMs;
+      const animate = window.BARCODE_RENDER_QUALITY?.flashes !== false;
+      for (const { gate, progress, opening } of this.getGatePresentation()) {
+        if (fx && !fx.visible(gate.x, gate.y + gate.h / 2, gate.h / 2 + 60)) continue;
+        const fade = 1 - progress;
+        const height = gate.h * fade * fade;
+        const top = gate.y + gate.h - height;
+        ctx.save(); ctx.globalAlpha = fade;
+        ctx.fillStyle = opening ? 'rgba(98,255,221,0.1)' : 'rgba(174,66,215,0.12)';
+        ctx.fillRect(gate.x, top, gate.w, height);
+        const flicker = animate ? 0.06 * Math.sin(time / 83) * Math.sin(time / 127) : 0;
+        ctx.fillStyle = `rgba(${opening ? '137,255,224' : '232,129,255'},${0.38 + flicker})`;
+        for (let bar = 0; bar < 7; bar++) {
+          const left = gate.x + 3 + bar * 4;
+          ctx.fillRect(left, top, bar % 3 ? 1.5 : 3, height);
+        }
+        ctx.fillStyle = '#a6ffe8'; ctx.fillRect(gate.x - 1, top, 2, height); ctx.fillRect(gate.x + gate.w - 1, top, 2, height);
+        ctx.fillStyle = opening ? '#c9fff1' : '#eda6ff';
+        const scanY = top + (animate ? (time / 850) % 1 : 0.5) * Math.max(0, height - 3);
+        ctx.fillRect(gate.x - 3, scanY, gate.w + 6, 3);
+        if (opening) {
+          // Dissolve the barcode outward as its field contracts to the base.
+          for (let i = 0; i < 10; i++) {
+            const side = i % 2 ? 1 : -1;
+            ctx.fillRect(gate.x + gate.w / 2 + side * progress * (20 + i * 4), top - progress * (i % 3) * 18, i % 3 ? 2 : 4, 9 * fade);
+          }
+        }
+        ctx.restore();
+      }
+    }
     updateSignalAmp() { const player = this.player || window.player; if (!player || this.signalAmpCollected) return; if (window.distance && window.distance(player.position.x, player.position.y + PLAYER_VISUAL_FOOT_OFFSET, SIGNAL_AMP.x, SIGNAL_AMP.y) <= SIGNAL_AMP.radius) this.giveSignalAmp(); }
-    giveSignalAmp() { this.signalAmpCollected = true; window.BARCODE = window.BARCODE || {}; window.BARCODE.signalAmpCharges = SIGNAL_AMP.charges; if (window.audioSystem?.playCombatCue) window.audioSystem.playCombatCue('pickup'); else window.audioSystem?.playSound?.('rhythmSuccess', 0.35); return { ok:true, charges: window.BARCODE.signalAmpCharges }; }
+    giveSignalAmp() {
+      this.signalAmpCollected = true;
+      window.BARCODE = window.BARCODE || {};
+      window.BARCODE.signalAmpCharges = SIGNAL_AMP.charges;
+      window.BARCODE.combatFX?.ampChanged('pickup', SIGNAL_AMP.charges, this.player || window.player);
+      if (window.audioSystem?.playCombatCue) window.audioSystem.playCombatCue('pickup');
+      else window.audioSystem?.playSound?.('rhythmSuccess', 0.35);
+      return { ok:true, charges: window.BARCODE.signalAmpCharges };
+    }
     isSignalLiftAvailable() { return !!(this.missionStarted && this.state !== STATES.TUTORIAL); }
     isPlayerSupportedByLift(player = this.player || window.player) {
       if (!this.isSignalLiftAvailable() || !player || !this.signalLift || !player.grounded || player.supportedSurfaceId !== SIGNAL_LIFT.id) return false;
@@ -904,6 +986,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       this.cinematicZoomOverride = null; this.cinematicZoomReleasePending = false; this.closeUpStartZoom = null; this.frozenPlayerPosition = null;
       this.panStartX = null; this.panTargetX = null; this.returnStartCameraX = null; this.returnStartZoom = null; this.returnStartBossX = null;
       this.bossCheckpoint = null; this.levelCompletionCount = 0;
+      this.completion = null;
+      if (!options.preserveDefeats && window.rhythmSystem) window.rhythmSystem.runBestCombo = 0;
       this.boss = null; this.bossReadyEmitted = false; this.assetGeneration = (this.assetGeneration || 0) + 1; this.preparedAssets = {}; this.preloadedBossSprite = null; this.bossAssetsRequested = false;
       this.countedEnemies = new Set(); this.spawnedEncounterIds = new Set(); this.activeEncounterId = null; this.activeEncounterEnemies = []; this.closedGateEncounterId = null; this.pendingSpawns = [];
       this.nextJammerSpawnMs = Infinity; this.jammerReinforcementCount = 0; this.debugDamageSequence = 0; this.lastSpawnPlan = null; this.resetSignalLift(); this.signalAmpCollected = false; if (window.BARCODE) window.BARCODE.signalAmpCharges = 0;

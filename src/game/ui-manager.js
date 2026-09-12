@@ -211,6 +211,8 @@ window.drawGameUI = function(ctx) {
   
   // Draw health and basic UI elements
   drawBasicUI(ctx);
+  window.BARCODE?.combatFX?.drawDamageHUD(ctx, window.player, 50, 50, 300, 30);
+  window.BARCODE?.combatFX?.drawAmpHUD(ctx);
   
   // Draw objectives after tutorial completion
   if (tutorialCompleted && !bossCinematicActive) {
@@ -247,6 +249,8 @@ window.drawGameUI = function(ctx) {
     ctx.fillText(attackFeedback.text, 960, 239, 650);
     ctx.restore();
   }
+
+  window.BARCODE?.combatFX?.drawFragmentFlights(ctx);
 
   // Draw game over screen
   if (window.gameState.gameOver) {
@@ -297,7 +301,7 @@ function drawSector1BossUI(ctx) {
     ctx.fillRect(0, 0, 1920, 1080);
     ctx.strokeStyle = '#00ffff';
     ctx.lineWidth = 3;
-    ctx.strokeRect(390, 285, 1140, 470);
+    ctx.strokeRect(390, 265, 1140, 560);
     ctx.fillStyle = '#00ffff';
     ctx.font = 'bold 48px monospace';
     ctx.fillText('SECTOR 1 COMPLETE', 960, 365);
@@ -305,11 +309,21 @@ function drawSector1BossUI(ctx) {
     ctx.font = '28px monospace';
     ctx.fillText('DEAD AIR DISTRICT', 960, 425);
     ctx.font = '22px monospace';
-    ctx.fillText('20 mission enemies. Jammer destroyed. Boss defeated.', 960, 500);
-    ctx.fillText(`SCORE  ${window.gameState.score || 0}`, 960, 553);
+    ctx.fillText('20 mission enemies. Jammer destroyed. Boss defeated.', 960, 475);
+    const rows = owner.getCompletionPresentation?.() || [];
+    rows.forEach((row, index) => {
+      const x = 465 + index * 340;
+      ctx.fillStyle = '#112a3b'; ctx.fillRect(x, 525, 310, 132);
+      ctx.fillStyle = '#c6a0ff'; ctx.font = '20px monospace';
+      ctx.fillText(['SCORE', 'BEST COMBO', 'LOST DATA'][index], x + 155, 552);
+      ctx.fillStyle = '#a0ffe4'; ctx.font = 'bold 38px monospace';
+      ctx.fillText(row.total === null ? String(row.value) : `${row.value} / ${row.total}`, x + 155, 601);
+      ctx.fillRect(x, 653, 310 * row.progress, 4);
+    });
     ctx.fillStyle = '#b9faff';
-    ctx.fillText('SPACE — Restart Level 1', 960, 638);
-    ctx.fillText('ENTER — Rematch the boss', 960, 686);
+    ctx.font = '22px monospace';
+    ctx.fillText('SPACE — Restart Level 1', 960, 718);
+    ctx.fillText('ENTER — Rematch the boss', 960, 766);
   } else if (!window.gameState.gameOver) {
     const x = 600, y = 24, width = 720;
     ctx.fillStyle = 'rgba(0, 8, 16, 0.9)';
@@ -780,6 +794,7 @@ function drawGameOver(ctx) {
 
 // Draw pause screen
 function drawPauseScreen(ctx) {
+  if (window.BARCODE?.PauseMenu) { window.BARCODE.PauseMenu.draw(ctx); return; }
   function drawGlowText(text, x, y, options = {}) {
     const size = options.size || 20;
     const color = options.color || '#ffffff';

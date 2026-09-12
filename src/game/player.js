@@ -669,12 +669,14 @@ window.Player = class Player {
     this.playAnimation('rhythm');
   }
 
-  takeDamage(amount) {
+  takeDamage(amount, sourcePosition = null) {
     // Check if player is currently invulnerable from recent damage
     const currentTime = Date.now();
     if (this.isDamageInvulnerable(currentTime)) return false;
     
+    const previousHealth = this.health;
     this.health = Math.max(0, this.health - amount);
+    window.BARCODE?.combatFX?.playerDamaged(this, previousHealth, sourcePosition);
     
     // CRITICAL: Play player damage sound
     if (window.audioSystem && typeof window.audioSystem.playPlayerDamageSound === 'function') {
@@ -734,7 +736,12 @@ window.Player = class Player {
     if (this.isDamageInvulnerable(currentTime)) return false;
     this.bossReboundMs = 0;
     
+    const previousHealth = this.health;
     this.health = Math.max(0, this.health - amount);
+    // The source is authoritative when supplied; otherwise the horizontal
+    // impulse identifies the side the blow came from without using facing.
+    const sourcePosition = enemyPosition || (knockbackX ? { x: this.position.x - Math.sign(knockbackX), y: this.position.y } : null);
+    window.BARCODE?.combatFX?.playerDamaged(this, previousHealth, sourcePosition);
     
     // Apply directional knockback
     this.velocity.x = knockbackX;

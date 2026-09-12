@@ -200,7 +200,7 @@ window.LostDataSystem = class LostDataSystem {
     }
     
     // Log when cooldown ends and more fragments are available
-    if (this.collectionCooldownTimer <= 0 && 
+    if (window.DEBUG_PARTICLES && this.collectionCooldownTimer <= 0 &&
         this.collectionCooldownTimer + deltaTime > 0 && 
         this.collectedLore.size > 0 && 
         this.collectedLore.size < 3) {
@@ -208,7 +208,7 @@ window.LostDataSystem = class LostDataSystem {
     }
 
     // DEBUG: Log spawn status every 5 seconds
-    if (Math.floor(this.spawnTimer / 5000) !== Math.floor((this.spawnTimer - deltaTime) / 5000)) {
+    if (window.DEBUG_PARTICLES && Math.floor(this.spawnTimer / 5000) !== Math.floor((this.spawnTimer - deltaTime) / 5000)) {
       console.log(`💎 STATUS - Timer: ${(this.spawnTimer/1000).toFixed(1)}s, Next: ${(this.nextSpawnTime/1000).toFixed(1)}s, Active: ${this.fragments.length}, Collected: ${this.collectedLore.size}/3, Available Lore: ${this.getUncollectedLoreCount()}, Cooldown: ${(this.collectionCooldownTimer/1000).toFixed(1)}s`);
     }
     
@@ -321,11 +321,6 @@ window.LostDataSystem = class LostDataSystem {
       // Increased collection radius
       const collectionRadius = 120; // Increased from 80 to 120
       
-      // DEBUG: Log distance check less frequently
-      if (Math.floor(this.spawnTimer / 1000) % 3 === 0) { // Log every 3 seconds
-        console.log(`🎯 Collection check: Player(${playerX.toFixed(1)}, ${playerY.toFixed(1)}) <-> Fragment(${fragmentX.toFixed(1)}, ${fragmentY.toFixed(1)}) Distance: ${dist.toFixed(1)} (Need < ${collectionRadius})`);
-      }
-      
       if (dist < collectionRadius) { // Collection radius
         console.log(`💥 COLLECTION TRIGGERED! Distance: ${dist.toFixed(1)} < ${collectionRadius}`);
         this.collectFragment(fragment);
@@ -335,6 +330,7 @@ window.LostDataSystem = class LostDataSystem {
   
   // Collect a fragment and give lore
   collectFragment(fragment) {
+    if (!fragment?.active) return false;
     fragment.active = false;
     
     // Start collection cooldown - prevent next spawn for 60 seconds
@@ -376,18 +372,23 @@ window.LostDataSystem = class LostDataSystem {
     this.displayLore(loreText);
     
     // Create collection effect
-    if (window.particleSystem) {
+    if (window.BARCODE?.combatFX) {
+      window.BARCODE.combatFX.dataCollected(fragment);
+    } else if (window.particleSystem) {
       window.particleSystem.dataFragmentCollected(fragment.position.x, fragment.position.y);
     }
     
     // Award points
     if (window.gameState) {
       window.gameState.score += 500;
+      // A fragment found after boss handoff is still part of this run on retry.
+      if (window.sector1Progression?.bossCheckpoint) window.sector1Progression.bossCheckpoint.score += 500;
       console.log(`💎 Lost Data collected! +500 points. Total: ${window.gameState.score}`);
     }
     
     console.log(`💎 Collected Lost Data fragment! Lore piece ${loreIndex + 1}/${this.lorePieces.length}`);
     console.log(`📖 Remaining lore: ${this.getUncollectedLoreCount()} pieces`);
+    return true;
   }
   
   // Show collection message
@@ -451,6 +452,7 @@ window.LostDataSystem = class LostDataSystem {
   
 
   reset() {
+    this.collectedLore.clear();
     this.fragments = [];
     this.spawnTimer = 0;
     this.nextSpawnTime = this.getRandomSpawnTime();
@@ -559,7 +561,7 @@ window.LostDataFragment = class LostDataFragment {
     this.particleTimer += deltaTime;
     if (this.particleTimer >= this.particleInterval) {
       this.particleTimer = 0;
-      if (window.particleSystem) {
+      if (window.particleSystem && (!window.BARCODE?.combatFX || window.BARCODE.combatFX.visible(this.position.x, this.position.y, 200))) {
         window.particleSystem.dataFragmentGlow(this.position.x, this.position.y);
       }
     }
@@ -567,11 +569,13 @@ window.LostDataFragment = class LostDataFragment {
   
   draw(ctx) {
     if (!this.active) return;
+    if (window.BARCODE?.combatFX && !window.BARCODE.combatFX.visible(this.position.x, this.position.y, 210)) return;
     
     ctx.save();
     
     // Draw glow effect first (behind sprite)
     this.drawGlow(ctx);
+    this.drawBeacon(ctx);
     
     // Apply transformations for sprite
     ctx.translate(this.position.x, this.position.y);
@@ -600,66 +604,63 @@ window.LostDataFragment = class LostDataFragment {
     
     ctx.restore();
   }
+
+  drawBeacon(ctx) {
+    const x = this.position.x;
+    const top = this.baseY - 118;
+    const pulse = 0.65 + Math.sin(this.animationTime / 500) * 0.15;
+    ctx.save();
+    ctx.fillStyle = 'rgba(8,13,30,0.88)'; ctx.fillRect(x - 55, top - 12, 110, 24);
+    ctx.fillStyle = '#e6c7ff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = 'bold 15px monospace';
+    ctx.fillText('LOST DATA', x, top);
+    for (let bar = 0; bar < 5; bar++) {
+      ctx.fillStyle = `rgba(${bar % 2 ? '144,255,227' : '202,161,255'},${pulse * (bar === 2 ? 0.3 : 0.12)})`;
+      ctx.fillRect(x - 10 + bar * 5, top + 18, bar % 2 ? 1 : 2, 58);
+    }
+    ctx.strokeStyle = '#d9b7ff'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x - 10, top + 17); ctx.lineTo(x, top + 26); ctx.lineTo(x + 10, top + 17); ctx.stroke();
+    ctx.restore();
+  }
   
   drawGlow(ctx) {
-    // Draw much more prominent glow with color shifting
-    const glowSize = this.size * 3; // Larger glow area
-    
-    // Color-shifting glow based on time
-    const colorShift = Math.sin(this.colorShiftTimer / 500) * 0.5 + 0.5; // 0 to 1
-    const hue1 = 270 + colorShift * 60; // Purple to pink range
-    const hue2 = 200 + colorShift * 40; // Blue to cyan range
-    
-    // Multi-layer glow for more impact
-    // Outer glow layer
-    const outerGradient = ctx.createRadialGradient(
-      this.position.x, this.position.y, 0,
-      this.position.x, this.position.y, glowSize
-    );
-    outerGradient.addColorStop(0, `hsla(${hue1}, 100%, 60%, ${this.glowIntensity * 0.3})`);
-    outerGradient.addColorStop(0.5, `hsla(${hue2}, 100%, 50%, ${this.glowIntensity * 0.2})`);
-    outerGradient.addColorStop(1, 'hsla(280, 100%, 40%, 0)');
-    
-    ctx.fillStyle = outerGradient;
-    ctx.fillRect(
-      this.position.x - glowSize,
-      this.position.y - glowSize,
-      glowSize * 2,
-      glowSize * 2
-    );
-    
-    // Inner bright glow
-    const innerGradient = ctx.createRadialGradient(
-      this.position.x, this.position.y, 0,
-      this.position.x, this.position.y, this.size
-    );
-    innerGradient.addColorStop(0, `hsla(${hue1}, 100%, 80%, ${this.glowIntensity * 0.6})`);
-    innerGradient.addColorStop(0.7, `hsla(${hue2}, 100%, 70%, ${this.glowIntensity * 0.4})`);
-    innerGradient.addColorStop(1, 'hsla(280, 100%, 60%, 0)');
-    
-    ctx.fillStyle = innerGradient;
-    ctx.fillRect(
-      this.position.x - this.size,
-      this.position.y - this.size,
-      this.size * 2,
-      this.size * 2
-    );
-    
-    // Add pulsing rings
-    const ringCount = 3;
-    for (let i = 0; i < ringCount; i++) {
+    const sprites = window.LostDataFragment.getGlowSprites();
+    const strength = Math.max(0, Math.min(1, this.glowIntensity));
+    const colorShift = Math.sin(this.colorShiftTimer / 500) * 0.5 + 0.5;
+    ctx.save();
+    for (let i = 0; i < sprites.length; i++) {
+      const radius = this.size * (i ? 1.2 : 3);
+      ctx.globalAlpha = strength * (i ? 0.35 + colorShift * 0.15 : 0.28 - colorShift * 0.06);
+      ctx.drawImage(sprites[i], this.position.x - radius, this.position.y - radius, radius * 2, radius * 2);
+    }
+    ctx.globalAlpha = 1;
+    for (let i = 0; i < 3; i++) {
       const ringPhase = (this.glowPulseTimer / 1000 + i * 0.3) % 2;
       if (ringPhase < 1) {
         const ringRadius = this.size * (1 + ringPhase * 2);
-        const ringAlpha = (1 - ringPhase) * this.glowIntensity * 0.3;
-        
-        ctx.strokeStyle = `hsla(${hue1}, 100%, 70%, ${ringAlpha})`;
+        const ringAlpha = (1 - ringPhase) * strength * 0.3;
+        ctx.strokeStyle = `rgba(199,148,255,${ringAlpha})`;
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.arc(this.position.x, this.position.y, ringRadius, 0, Math.PI * 2);
         ctx.stroke();
       }
     }
+    ctx.restore();
+  }
+  static getGlowSprites() {
+    if (this.glowSprites) return this.glowSprites;
+    this.glowSprites = [];
+    if (typeof window.document?.createElement !== 'function') return this.glowSprites;
+    for (const color of ['179,114,255', '110,220,255']) {
+      const canvas = window.document.createElement('canvas'); canvas.width = 96; canvas.height = 96;
+      const ctx = canvas.getContext?.('2d');
+      if (!ctx?.createRadialGradient) continue;
+      const glow = ctx.createRadialGradient(48, 48, 0, 48, 48, 48);
+      glow.addColorStop(0, `rgba(${color},1)`); glow.addColorStop(0.5, `rgba(${color},0.4)`); glow.addColorStop(1, `rgba(${color},0)`);
+      ctx.fillStyle = glow; ctx.fillRect(0, 0, 96, 96);
+      this.glowSprites.push(canvas);
+    }
+    return this.glowSprites;
   }
   reset() {
     this.fragments = [];

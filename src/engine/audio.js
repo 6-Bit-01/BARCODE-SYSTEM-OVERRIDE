@@ -162,6 +162,7 @@ window.AudioSystem = class AudioSystem {
       this.rhythmGain = this.context.createGain();
       this.sfxGain = this.context.createGain();
       this.musicGain = this.context.createGain();
+      this.musicVolumeGain = this.context.createGain();
       
       // Create analyser for visualization
       this.analyser = this.context.createAnalyser();
@@ -189,11 +190,13 @@ window.AudioSystem = class AudioSystem {
       this.masterGain.connect(this.context.destination);
       this.rhythmGain.connect(this.masterGain);
       this.sfxGain.connect(this.masterGain);
-      this.musicGain.connect(this.masterGain);
+      this.musicGain.connect(this.musicVolumeGain);
+      this.musicVolumeGain.connect(this.masterGain);
       this.masterGain.connect(this.analyser);
       
       // Set initial music volume
       this.musicGain.gain.value = 0.8; // Higher volume for audible background music
+      window.BARCODE?.Preferences?.apply(this);
       
       // Generate synthetic sounds
       await this.generateSounds();
@@ -1857,7 +1860,7 @@ window.AudioSystem = class AudioSystem {
       
       // Connect and play
       this.titleScreenMusic.source.connect(this.titleScreenMusic.gain);
-      this.titleScreenMusic.gain.connect(this.masterGain);
+      this.titleScreenMusic.gain.connect(this.musicVolumeGain || this.masterGain);
       this.titleScreenMusic.source.start(0);
       
       console.log('🎵 Title screen music started successfully after boot!');
@@ -2855,8 +2858,9 @@ window.AudioSystem = class AudioSystem {
   
   // Set music volume
   setMusicVolume(volume) {
-    if (this.musicGain) {
-      this.musicGain.gain.value = Math.max(0, Math.min(1, volume));
+    const bus = this.musicVolumeGain || this.musicGain;
+    if (bus) {
+      bus.gain.value = Math.max(0, Math.min(1, volume));
     }
   }
   
@@ -2954,7 +2958,7 @@ window.AudioSystem = class AudioSystem {
     
     // Connect to master gain (bypass music gain since it's muted during cutscenes)
     this.cutsceneSource.connect(this.cutsceneGain);
-    this.cutsceneGain.connect(this.masterGain);
+    this.cutsceneGain.connect(this.musicVolumeGain || this.masterGain);
     
     // Start playing
     this.cutsceneSource.start(0);
@@ -3213,6 +3217,8 @@ function createAudioSystem() {
 // Resume audio context on user interaction (fixes browser restrictions)
 function setupAudioContextResume() {
   const resumeAudio = async () => {
+    // Menu interaction cannot bypass the lifecycle's deliberate audio pause.
+    if (window.isPaused || window.gameState?.paused) return;
     if (!window.audioSystem || !window.audioSystem.context) {
       return;
     }

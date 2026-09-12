@@ -1,5 +1,11 @@
 # Decision Register
 
+## Current locked selection — September 12, 2026
+
+The owner accepted the latest nine-item recommendation: "Agreed. Lets lock it in. Update or make a new source file pack and keep it updated. Then lets continue with the plan". `POLISH_PASS.md` preserves the exact 1–9 mapping and particle/logging cleanup. Deliver the complete selection in one draft PR from merged #34, with source-pack checkpoints and an updated review archive. Implementation approval is not Makko acceptance. The existing merged-PR pack maintenance automation remains enabled (ID `6aa4396731548191b1b9323614dc49e3`), verified September 12; its latest run refreshed #34.
+
+Traffic animation (10), target previews (11), and the authored persistent lore archive (12) remain follow-ons. Do not substitute numbers from historical proposals.
+
 ## Current responsive combat selection — September 11, 2026
 
 The owner asked for improvements including FX, reported questionable hitboxes and said the earlier Rhythm Mode/background effects were barely noticeable, then requested continuation. The selected next build is items **1–8 from the latest sixteen-item review**, plus a stronger visible musical response in the existing scenery. `RESPONSIVE_COMBAT_PASS.md` records the exact mapping. This approves correcting the previous pose-dependent collision geometry, timestamp capture, frame pacing, attack/contact/combo FX, animation phase selection and bounded action sounds. It does not mean the older PR #29 or #31 numbered selections. One combined PR; Makko-before-merge remains.

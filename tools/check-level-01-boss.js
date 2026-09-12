@@ -786,7 +786,7 @@ async function main() {
     assert.strictEqual(enemy.combatPattern, 'recovery');
     enemy.update(200, w.player); assert.strictEqual(enemy.velocity.x, 0, 'recovery creates a usable stationary counter opportunity');
     const texts = [];
-    enemy.drawCombatCue({ fillRect() {}, fillText(t) { texts.push(t); } });
+    enemy.drawCombatCue({ save() {}, restore() {}, beginPath() {}, arc() {}, stroke() {}, fillRect() {}, fillText(t) { texts.push(t); } });
     assert(texts.includes('RECOVERING'));
     assert.deepStrictEqual(calls.errors, []);
   }

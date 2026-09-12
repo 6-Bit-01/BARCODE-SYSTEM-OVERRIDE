@@ -8,21 +8,148 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
   const colors = { virus: '#efffff', corrupted: '#ff65e8', firewall: '#ffac48', boss: '#77ffe1', broadcast_jammer: '#92fff1' };
   class CombatFX {
     constructor() { this.reset(); }
-    reset() { this.events = []; this.timeMs = 0; this.sceneKick = 0; this.serial = 0; this.lastCombo = 0; }
+    reset() { this.events = []; this.timeMs = 0; this.sceneKick = 0; this.sceneSample = null; this.serial = 0; this.lastCombo = 0; this.damageFeedback = null; this.ampNotice = null; }
     add(event) {
       if (!Number.isFinite(event.x) || !Number.isFinite(event.y)) return;
       if (this.events.length >= 96) this.events.shift();
       this.events.push({ age: 0, duration: 420, color: '#77ffe1', id: ++this.serial, ...event });
     }
     update(ms) {
+      if (!Number.isFinite(ms) || ms < 0 || window.isPaused || window.gameState?.paused) return;
       this.timeMs += ms;
+      const audioTime = window.audioSystem?.context?.currentTime;
+      this.sceneSample = Number.isFinite(audioTime) ? BARCODE.MusicTransport?.sample?.(audioTime) : null;
       this.sceneKick = Math.max(0, this.sceneKick - ms / 600);
+      for (const key of ['damageFeedback', 'ampNotice']) {
+        if (this[key]) {
+          this[key].age += ms;
+          if (this[key].age >= this[key].duration) this[key] = null;
+        }
+      }
       let write = 0;
       for (const event of this.events) {
         event.age += ms;
         if (event.age < event.duration) this.events[write++] = event;
       }
       this.events.length = write;
+    }
+    playerDamaged(player, previousHealth, sourcePosition = null) {
+      if (!player || !Number.isFinite(previousHealth) || !Number.isFinite(player.health) || player.health >= previousHealth) return;
+      const dx = Number.isFinite(sourcePosition?.x) ? sourcePosition.x - player.position.x : 0;
+      const dy = Number.isFinite(sourcePosition?.y) ? sourcePosition.y - player.position.y : 0;
+      const angle = dx || dy ? Math.atan2(dy, dx) : null;
+      this.damageFeedback = { player, from: previousHealth, to: player.health, direction: Math.sign(dx), age: 0, duration: 950 };
+      this.add({ kind: 'hurt', x: player.position.x, y: player.position.y - 12, angle, color: '#ff987b', duration: 340 });
+      window.renderer?.addScreenShake?.(4, 180);
+    }
+    ampChanged(kind, charges, player = window.player) {
+      const empty = kind === 'use' && charges === 0;
+      this.ampNotice = { kind: empty ? 'empty' : kind, charges, age: 0, duration: empty || kind === 'pickup' ? 2400 : 500 };
+      if (player && (empty || kind === 'pickup')) {
+        this.add({ kind: empty ? 'amp-empty' : 'amp-pickup', x: player.position.x, y: player.position.y + 40, color: '#efa0ff', duration: 650 });
+      }
+    }
+    dataCollected(fragment) {
+      this.add({ kind: 'data-flight', x: fragment.position.x, y: fragment.position.y, duration: 1400, color: '#c6a0ff' });
+    }
+    fragmentFlightPose(event, project) {
+      const source = project({ x: event.x, y: event.y });
+      const assembly = Math.min(1, event.age / 320);
+      const travel = Math.max(0, Math.min(1, (event.age - 320) / 760));
+      const eased = travel * travel * (3 - 2 * travel);
+      return { x: source.x + (200 - source.x) * eased,
+        y: source.y + (115 - source.y) * eased - Math.sin(travel * Math.PI) * 65,
+        assembly, travel, scale: 1.4 - travel * 0.75,
+        alpha: event.age <= 1080 ? 1 : Math.max(0, (1400 - event.age) / 320) };
+    }
+    drawFragmentFlights(ctx) {
+      const projection = BARCODE.sceneProjection;
+      if (!projection) return;
+      for (const event of this.events) {
+        if (event.kind !== 'data-flight') continue;
+        const pose = this.fragmentFlightPose(event, point => projection.worldToScreen(point));
+        ctx.save(); ctx.globalAlpha = pose.alpha;
+        if (pose.travel === 1) {
+          ctx.strokeStyle = '#c6a0ff'; ctx.lineWidth = 2;
+          ctx.strokeRect(50 - (1 - pose.alpha) * 5, 100 - (1 - pose.alpha) * 3, 300 + (1 - pose.alpha) * 10, 30 + (1 - pose.alpha) * 6);
+        }
+        ctx.translate(pose.x, pose.y); ctx.scale(pose.scale, pose.scale);
+        const offset = (1 - pose.assembly) * 20;
+        for (const sideX of [-1, 1]) for (const sideY of [-1, 1]) {
+          ctx.fillStyle = '#131e37'; ctx.strokeStyle = sideX === sideY ? '#d0a7ff' : '#91ffe5'; ctx.lineWidth = 1.5;
+          const x = sideX * (8 + offset) - 7, y = sideY * (8 + offset) - 7;
+          ctx.fillRect(x, y, 14, 14); ctx.strokeRect(x, y, 14, 14);
+          ctx.fillStyle = ctx.strokeStyle;
+          for (let bar = 0; bar < 3; bar++) ctx.fillRect(x + 3 + bar * 3, y + 3, bar === 1 ? 1 : 2, 8);
+        }
+        ctx.restore();
+      }
+    }
+    drawAmpIcon(ctx, x, y, size = 1, chargeCount = 3) {
+      const pulse = 0.5 + 0.5 * Math.sin(this.timeMs / 160);
+      ctx.save(); ctx.translate(x, y); ctx.scale(size, size);
+      ctx.fillStyle = '#0a1526'; ctx.strokeStyle = '#efa0ff'; ctx.lineWidth = 2;
+      ctx.fillRect(-22, -22, 44, 44); ctx.strokeRect(-22, -22, 44, 44);
+      ctx.strokeStyle = '#a3ffee'; ctx.strokeRect(-9, -28, 18, 6);
+      for (let i = 0; i < 9; i++) {
+        const height = 9 + (1 + Math.sin(i * 1.8 + this.timeMs / 160)) * 4;
+        ctx.fillStyle = i % 3 ? '#efa0ff' : '#a3ffee';
+        ctx.fillRect(-17 + i * 4, -16, i % 3 ? 2 : 3, height);
+      }
+      for (let i = 0; i < 3; i++) {
+        ctx.fillStyle = i < chargeCount ? '#a3ffee' : '#354555'; ctx.fillRect(-15 + i * 11, 11, 8, 4);
+      }
+      ctx.globalAlpha *= 0.3 + pulse * 0.35; ctx.strokeStyle = '#efa0ff';
+      ctx.beginPath(); ctx.arc(0, 0, 30 + pulse * 4, -0.5, 0.5); ctx.stroke();
+      ctx.beginPath(); ctx.arc(0, 0, 30 + pulse * 4, Math.PI - 0.5, Math.PI + 0.5); ctx.stroke();
+      ctx.restore();
+    }
+    drawDamageHUD(ctx, player, x, y, width, height) {
+      const hit = this.damageFeedback;
+      if (!hit || hit.player !== player || !(player.maxHealth > 0)) return;
+      const fade = Math.min(1, (hit.duration - hit.age) / 450);
+      const segmentWidth = width / player.maxHealth;
+      ctx.save(); ctx.globalAlpha = fade; ctx.strokeStyle = '#ff987b'; ctx.lineWidth = 3;
+      for (let i = Math.ceil(hit.to); i < Math.min(player.maxHealth, Math.ceil(hit.from)); i++) {
+        if (i < player.health) continue; // Healing must not look like new damage.
+        if (window.BARCODE_RENDER_QUALITY?.flashes !== false) {
+          ctx.fillStyle = `rgba(255,125,100,${0.45 * (1 - hit.age / hit.duration)})`;
+          ctx.fillRect(x + i * segmentWidth + 2, y + 2, segmentWidth - 2, height - 4);
+        }
+        ctx.strokeRect(x + i * segmentWidth + 2, y + 2, segmentWidth - 2, height - 4);
+      }
+      // A short inward chevron identifies the source side. Unknown sources
+      // show the actual loss without inventing a direction.
+      if (hit.direction) {
+        const edge = hit.direction < 0 ? x - 30 : x + width + 30;
+        ctx.beginPath(); ctx.moveTo(edge, y + 5); ctx.lineTo(edge - hit.direction * 10, y + height / 2); ctx.lineTo(edge, y + height - 5); ctx.stroke();
+      }
+      ctx.fillStyle = '#ffb49c'; ctx.font = 'bold 16px monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.fillText(`−${hit.from - hit.to} SIGNAL`, x + width + 44, y + height / 2);
+      ctx.restore();
+    }
+    drawAmpHUD(ctx) {
+      const charges = Math.max(0, Math.min(3, BARCODE.signalAmpCharges || 0));
+      if (!charges && !window.sector1Progression?.signalAmpCollected && !this.ampNotice) return;
+      const notice = this.ampNotice;
+      const x = 1440, y = 92;
+      ctx.save(); ctx.fillStyle = 'rgba(9,16,32,0.94)'; ctx.fillRect(x, y, 300, 72);
+      ctx.strokeStyle = charges ? '#a875bb' : '#435163'; ctx.lineWidth = 1; ctx.strokeRect(x, y, 300, 72);
+      this.drawAmpIcon(ctx, x + 30, y + 35, 0.65, charges);
+      ctx.fillStyle = charges ? '#f4c1ff' : '#a0afc0'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.font = 'bold 16px monospace';
+      ctx.fillText(charges ? 'SIGNAL AMP' : 'AMP EMPTY', x + 60, y + 18);
+      for (let i = 0; i < 3; i++) {
+        ctx.fillStyle = i < charges ? '#91ffe5' : '#1b2939'; ctx.fillRect(x + 60 + i * 32, y + 33, 24, 8);
+        ctx.strokeStyle = '#51677b'; ctx.strokeRect(x + 60 + i * 32, y + 33, 24, 8);
+        if (notice?.kind === 'use' && i === charges) {
+          ctx.strokeStyle = `rgba(239,160,255,${1 - notice.age / notice.duration})`;
+          ctx.strokeRect(x + 58 + i * 32, y + 31, 28, 12);
+        }
+      }
+      ctx.font = '12px monospace'; ctx.fillStyle = '#c2cfdc';
+      const message = notice?.kind === 'pickup' ? 'ACQUIRED · 3 BOOSTED HITS' : notice?.kind === 'empty' ? 'DEPLETED · NORMAL REACH' : charges ? 'PERFECT / EXCELLENT: REACH +' : 'NORMAL REACH';
+      ctx.fillText(message, x + 60, y + 56);
+      ctx.restore();
     }
     beat() {
       const time = window.audioSystem?.context?.currentTime;
@@ -103,12 +230,26 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
     }
     draw(ctx) {
       for (const e of this.events) {
+        if (e.kind === 'data-flight') continue; // Draw once in HUD coordinates.
         if (!this.visible(e.x, e.y, e.radius || (e.tx ? Math.abs(e.tx - e.x) + 80 : 200))) continue;
         const t = e.age / e.duration, fade = 1 - t;
         ctx.save(); ctx.globalAlpha = fade; ctx.strokeStyle = e.color; ctx.fillStyle = e.color; ctx.lineWidth = e.perfect ? 4 : 2;
         if (e.kind === 'entry') {
           ctx.beginPath(); ctx.ellipse(e.x, e.y, 30 + t * e.radius, 8 + t * 32, 0, 0, TAU); ctx.stroke();
           for (let i = 0; i < 12; i++) ctx.fillRect(e.x - 58 + i * 10, e.y - 6 - Math.sin(i * 1.8) * 8 - t * 65, i % 3 ? 3 : 5, 12 * fade);
+        } else if (e.kind === 'hurt') {
+          ctx.lineWidth = 4;
+          if (e.angle !== null) {
+            ctx.beginPath(); ctx.arc(e.x, e.y, 56 + 16 * t, e.angle - 0.6, e.angle + 0.6); ctx.stroke();
+          } else {
+            ctx.strokeRect(e.x - 36 - 12 * t, e.y - 44 - 12 * t, 72 + 24 * t, 88 + 24 * t);
+          }
+        } else if (e.kind === 'amp-pickup' || e.kind === 'amp-empty') {
+          for (let i = 0; i < 12; i++) {
+            const angle = i * TAU / 12;
+            const radius = e.kind === 'amp-empty' ? 28 + t * 62 : 70 * (1 - t);
+            ctx.fillRect(e.x + Math.cos(angle) * radius, e.y + Math.sin(angle) * radius * 0.5 - t * 45, i % 3 ? 3 : 6, 14 * fade);
+          }
         } else if (e.kind === 'pulse') {
           ctx.globalAlpha = fade * 0.55;
           ctx.beginPath(); ctx.arc(e.x, e.y, e.radius * (0.7 + 0.3 * t), 0, TAU); ctx.stroke();

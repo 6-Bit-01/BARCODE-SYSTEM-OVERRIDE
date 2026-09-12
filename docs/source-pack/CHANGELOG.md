@@ -1,5 +1,41 @@
 # Changelog
 
+## September 12, 2026 — Publish the combined polish review
+
+- Publish all three implementation checkpoints together on `agent/level1-combined-polish` for one draft PR. Main still matches merged #34; gameplay/test hashes match the fully validated `e0d4eee` checkpoint.
+- Update review/handoff documents and source-pack publication metadata. The combined six-step Makko checklist is ready; owner acceptance remains required before merge.
+
+## September 12, 2026 — Polish checkpoint 3: items 8–9 and cleanup
+
+- Add pause controls, rhythm-exit reminder, keyboard/pointer Music/SFX sliders and saved shake/flash/CRT preferences. Reuse input/RAF/lifecycle owners and redraw a cached paused scene only when needed. Prevent held menu/gamepad actions from firing on resume.
+- Preserve the original mix beneath a user music bus for gameplay/title/cutscene music, route both effect buses through the SFX setting and block generic autoplay gestures while deliberately paused. Storage failure does not prevent gameplay.
+- Animate completed-run score, best combo and Lost Data totals from a completed-run snapshot. Retain run best/collection and post-checkpoint fragment rewards across boss retry; clear run totals on full restart. No lore rewrite/archive.
+- Remove routine particle logs, per-draw filtered arrays and the leftover startup test burst; retain bounded/cached decoration from prior chunks.
+- Add production menu/settings/retry tests and Canvas layout diagnostics; refresh the inventory for the new module/test and moved script/declaration positions. Full combined validation is recorded in the source receipt. All 1–9 plus cleanup are implemented; publish one combined draft next. Makko remains pending.
+
+## September 12, 2026 — Polish checkpoint 2: items 4–7
+
+- Save the next manageable checkpoint: all four scanning barcode gates collapse from actual unlock timestamps without delaying collision/progression.
+- Vary storefront equalizers across four patterns, strengthen downbeat/combo accents and move curb lights using the existing music clock. Preserve district restoration, quiet boss scenery and frozen paused redraws.
+- Add measured vent steam, dust, cable sparks and neon pavement spill with cached textures, finite lifetimes/culling and reduced intensity near attack warnings.
+- Add rooftop Lost Data beacons and assembled barcode pieces flying through the actual camera/zoom projection to the counter. Keep rewards and lore in the real one-time collection path; cache glows, skip offscreen ambient emission and remove per-frame collection logging.
+- Extend production-owner checks for gate clear/pause/reset, music/atmosphere bounds and collection/flight lifecycle. Refresh only moved baseline declaration lines and add source-art Canvas diagnostics. No new assets, dependencies, Makko PASS or separate PR.
+- Items 1–7 are now implemented. Next: 8–9, remaining particle/logging cleanup, full validation and the one combined draft PR.
+
+## September 12, 2026 — Polish checkpoint 1: items 1–3
+
+- Follow the owner's request for manageable pieces while preserving the one combined 1–9 PR scope. Save an unpublished checkpoint for damage/impact feedback, enemy warnings and Signal Amp presentation; 4–9 and remaining cleanup follow.
+- Reconnect elapsed-time shake through the existing RAF renderer owner, cap requests, protect stronger impacts and clear shake on combat reset. Record health-loss/source indicators only from accepted damage calls, including boss pulses.
+- Draw warning symbols, committed ground arrows and Swooper aim markers from existing AI state; no changed attack timings or contact rules.
+- Replace the Amp circle with an animated amplifier/barcode, collection announcement, actual charge pips and depletion feedback. Preserve range/consumption, pickup sound, checkpoint charges and full reset.
+- Add focused production-owner checks, preserve the Makko animation/SFX repairs, extend the existing warning Canvas test boundary and refresh the inventory for the new test/declaration positions. Add a diagnostic Canvas preview with explicitly labeled fallback bodies. No new dependencies, external assets or Makko PASS claim.
+
+## September 12, 2026 — Lock the combined polish scope
+
+- Record the owner's approval of exactly items 1–9 and particle/logging cleanup in `POLISH_PASS.md`.
+- Start from merged PR #34 with successful main CI and identical tested source tree.
+- Preserve one combined draft PR and the existing v5 archive identity/merge maintenance. This checkpoint records approval, not completed implementation or Makko acceptance.
+
 ## September 12, 2026 — Repair failed PR #33 Makko playtest
 
 - Record positive effects/flow feedback and failed animation/contact/audio acceptance against merged `8d0cf73`.

@@ -140,7 +140,7 @@ window.ParticleSystem = class ParticleSystem {
   constructor() {
     this.particles = [];
     this.maxParticles = 500;
-    console.log('✅ ParticleSystem initialized with enhanced features');
+    if (window.DEBUG_PARTICLES) console.log('✅ ParticleSystem initialized with enhanced features');
   }
 
   update(deltaTime) {
@@ -162,15 +162,9 @@ window.ParticleSystem = class ParticleSystem {
   draw(ctx) {
     try {
       // Only draw particles that are above ground level (890px)
-      const visibleParticles = this.particles.filter(particle => particle.position.y <= 890);
-      const hiddenParticles = this.particles.filter(particle => particle.position.y > 890);
-      
-      // Debug logging to verify masking is working
-      if (hiddenParticles.length > 0) {
-        console.log(`🎭 Particle mask: hiding ${hiddenParticles.length} particles below ground, showing ${visibleParticles.length} above ground`);
+      for (const particle of this.particles) {
+        if (particle.position.y <= 890 && (!window.BARCODE?.combatFX || window.BARCODE.combatFX.visible(particle.position.x, particle.position.y, particle.size * 2))) particle.draw(ctx);
       }
-      
-      visibleParticles.forEach(particle => particle.draw(ctx));
     } catch (error) {
       console.error('Error drawing particle system:', error?.message || error);
     }
@@ -212,7 +206,7 @@ window.ParticleSystem = class ParticleSystem {
 
   // Enemy-specific spawn effects
   enemySpawnEffect(x, y, enemyType) {
-    console.log(`🌟 Creating spawn effect for ${enemyType} at (${x}, ${y})`);
+    if (window.DEBUG_PARTICLES) console.log(`🌟 Creating spawn effect for ${enemyType} at (${x}, ${y})`);
     const colors = this.getEnemyColors(enemyType);
     const particleCount = enemyType === 'firewall' ? 25 : enemyType === 'corrupted' ? 20 : 15;
     
@@ -422,7 +416,7 @@ window.ParticleSystem = class ParticleSystem {
 
   // Clear all particles
   clear() {
-    console.log(`🧹 Clearing ${this.particles.length} particles`);
+    if (window.DEBUG_PARTICLES) console.log(`🧹 Clearing ${this.particles.length} particles`);
     this.particles = [];
   }
   
@@ -430,7 +424,7 @@ window.ParticleSystem = class ParticleSystem {
   
   // Data fragment spawn effect
   dataFragmentEffect(x, y) {
-    console.log(`💎 Creating data fragment spawn effect at (${x}, ${y})`);
+    if (window.DEBUG_PARTICLES) console.log(`💎 Creating data fragment spawn effect at (${x}, ${y})`);
     const colors = ['#9333ea', '#3b82f6', '#a855f7']; // Purple, blue, violet
     
     // Create crystalline spawn effect
@@ -468,7 +462,7 @@ window.ParticleSystem = class ParticleSystem {
   
   // Data fragment collected effect
   dataFragmentCollected(x, y) {
-    console.log(`💫 Creating data fragment collection effect at (${x}, ${y})`);
+    if (window.DEBUG_PARTICLES) console.log(`💫 Creating data fragment collection effect at (${x}, ${y})`);
     const colors = ['#fbbf24', '#f59e0b', '#f97316']; // Golden colors
     
     // Create explosive collection effect
@@ -534,7 +528,7 @@ window.ParticleSystem = class ParticleSystem {
   
   // Rhythm hit effect for jammer attacks
   rhythmHit(x, y) {
-    console.log(`🎵 Creating rhythm hit effect at (${x}, ${y})`);
+    if (window.DEBUG_PARTICLES) console.log(`🎵 Creating rhythm hit effect at (${x}, ${y})`);
     const colors = ['#00ff00', '#00ffff', '#ffff00']; // Green, cyan, yellow for rhythm hits
     
     // Create impact burst
@@ -633,7 +627,7 @@ window.ParticleSystem = class ParticleSystem {
   
   // Spawn effect for new jammers
   spawnEffect(x, y) {
-    console.log(`📡 Creating jammer spawn effect at (${x}, ${y})`);
+    if (window.DEBUG_PARTICLES) console.log(`📡 Creating jammer spawn effect at (${x}, ${y})`);
     const colors = ['#ff6600', '#ff9900', '#ffaa00']; // Orange colors for jammer
     
     // Create spiral spawn effect
@@ -665,15 +659,8 @@ window.ParticleSystem = class ParticleSystem {
 function createParticleSystem() {
   if (window.Vector2D && window.randomRange) {
     window.particleSystem = new window.ParticleSystem();
-    console.log('✅ Global particle system created successfully');
+    if (window.DEBUG_PARTICLES) console.log('✅ Global particle system created successfully');
     
-    // Simple test - create a few particles to verify it's working
-    setTimeout(() => {
-      if (window.particleSystem) {
-        console.log('🧪 Creating test particles...');
-        window.particleSystem.explosion(960, 400, 'virus', 3); // Test purple triangles
-      }
-    }, 1000);
   } else {
     console.warn('Particle system dependencies not ready, retrying...');
     setTimeout(createParticleSystem, 100);

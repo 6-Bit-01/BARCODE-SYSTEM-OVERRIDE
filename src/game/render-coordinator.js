@@ -2,7 +2,7 @@
 window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({
   name: 'src/game/render-coordinator.js',
-  exports: ['renderGame', 'resetRenderContext'],
+  exports: ['renderGame', 'resetRenderContext', 'BARCODE.sceneProjection'],
   dependencies: ['renderer', 'player', 'enemyManager', 'sector1Progression', 'lostDataSystem', 'spaceShipSystem', 'parallaxBackground', 'particleSystem', 'rhythmSystem', 'hackingSystem', 'tutorialSystem', 'objectivesSystem', 'loreSystem', 'jammerIndicator', 'drawGameUI', 'clamp']
 });
 
@@ -11,6 +11,24 @@ let renderCanvas = null;
 let renderContext = null;
 let contextCreationAttempts = 0;
 const MAX_CONTEXT_ATTEMPTS = 3;
+
+// The HUD flight uses the actual world-view matrix, including zoom and shake,
+// plus the same camera offset applied to actors. This is presentation only.
+window.BARCODE = window.BARCODE || {};
+window.BARCODE.sceneProjection = {
+  matrix: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
+  capture(ctx, zoom = 1, shake = { x: 0, y: 0 }) {
+    const matrix = ctx.getTransform?.() || { a: zoom, b: 0, c: 0, d: zoom,
+      e: 960 * (1 - zoom) + (shake?.x || 0) * zoom,
+      f: 675 * (1 - zoom) + (shake?.y || 0) * zoom };
+    this.matrix = { a: matrix.a, b: matrix.b, c: matrix.c, d: matrix.d, e: matrix.e, f: matrix.f };
+  },
+  worldToScreen(point) {
+    const x = point.x + 960 - (window.gameCamera?.centerX ?? 960);
+    const { a, b, c, d, e, f } = this.matrix;
+    return { x: a * x + c * point.y + e, y: b * x + d * point.y + f };
+  }
+};
 
 // Main render function
 window.renderGame = function() {
@@ -117,6 +135,9 @@ window.renderGame = function() {
     }
   }
   
+  window.BARCODE.sceneProjection.capture(ctx, rendererAvailable ? window.renderer.zoomLevel : 1,
+    rendererAvailable ? window.renderer.screenShake : null);
+
   // Draw game elements first (within zoomed area)
   drawGameElements(ctx);
   

@@ -313,21 +313,20 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   const { window } = loadRealSector();
   const p = new window.Sector1Progression(window.player);
   const fills = [];
-  const strokes = [];
   const ctx = {
     save() {}, restore() {},
-    fillRect(...args) { fills.push(args); },
-    strokeRect(...args) { strokes.push(args); }
+    fillRect(...args) { fills.push(args); }
   };
   p.state = 'encounter_2';
   p.spawnedEncounterIds.add('encounter_2');
   p.closedGateEncounterId = 'encounter_2';
   p.drawEncounterGates(ctx);
-  assert.deepStrictEqual(fills, [[2110, 620, 34, 270]], 'only the currently closed encounter gate is filled');
-  assert.deepStrictEqual(strokes, [[2110, 620, 34, 270]], 'only the currently closed encounter gate is outlined');
+  assert.deepStrictEqual(fills.filter(([, , width, height]) => width === 34 && height === 270), [[2110, 620, 34, 270]], 'only the currently closed gate receives a complete field');
+  assert(fills.every(([x, y, width, height]) => x >= 2107 && x + width <= 2147 && y >= 620 && y + height <= 890), 'barcode rails and scanning accents stay at the closed gate; future gates remain absent');
+  const closedDrawCount = fills.length;
   p.closedGateEncounterId = null;
   p.drawEncounterGates(ctx);
-  assert.strictEqual(fills.length, 1, 'open gates leave no translucent collision-looking rectangles behind');
+  assert.strictEqual(fills.length, closedDrawCount, 'open gates without an active clear animation leave no collision-looking rectangles behind');
 }
 
 {
