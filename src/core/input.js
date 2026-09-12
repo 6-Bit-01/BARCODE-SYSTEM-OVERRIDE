@@ -24,16 +24,8 @@ window.InputManager = class InputManager {
     window.addEventListener('keydown', (e) => {
       const key = e.key.toLowerCase();
 
+      if (window.cutsceneSystem?.isActive) return; // The opening owns its document handlers.
       if (window.BARCODE?.PauseMenu?.keyDown(e)) { e.preventDefault(); return; }
-      if (window.BARCODE?.CrewTransmission?.active && key === 'p') {
-        e.preventDefault(); if (!e.repeat) window.BARCODE.RuntimeLifecycle?.togglePause(); return;
-      }
-      if (window.BARCODE?.CrewTransmission?.active && key !== 'p') {
-        e.preventDefault();
-        if (!e.repeat) window.BARCODE.CrewTransmission.input(key);
-        return;
-      }
-
       if (this.terminalKeyLatched === key) { e.preventDefault(); return; }
       if (this.hackEscapeLatched && key === 'escape') {
         e.preventDefault();
@@ -168,15 +160,16 @@ window.InputManager = class InputManager {
     } else if (owner === 'intro') {
       if (pressed.b0) window.cutsceneSystem?.skipCutscene?.();
       // Retain the intro's existing five-second skip hold and its cleanup.
-      if (pressed.b1) window.cutsceneSystem?.startSkipHold?.();
-      if (!input.held.b1) window.cutsceneSystem?.endSkipHold?.();
+      if (pressed.left) window.cutsceneSystem?.inspectCaption?.();
+      if (pressed.b1) window.cutsceneSystem?.startSkipHold?.('gamepad');
+      if (!input.held.b1) window.cutsceneSystem?.endSkipHold?.('gamepad');
     }
   }
 
   routeGamepadUI() {
     const BARCODE = window.BARCODE, menu = BARCODE?.PauseMenu;
     const owner = (window.isPaused || window.gameState?.paused) ? 'pause' : window.hackingSystem?.isActive?.() ? 'hack' :
-      BARCODE?.CrewTransmission?.active ? 'crew' : (window.gameState?.gameOver || window.gameState?.victory) ? 'results' :
+      (window.gameState?.gameOver || window.gameState?.victory) ? 'results' :
       window.tutorialSystem?.isActive?.() ? 'tutorial' : 'gameplay';
     const input = BARCODE?.GamepadUI?.poll(owner);
     if (!input) return false;
@@ -197,13 +190,6 @@ window.InputManager = class InputManager {
         for (const [button, digit] of Object.entries(digits)) if (p[button]) window.hackingSystem.processInput(digit);
         if (p.b9) window.hackingSystem.processInput('Enter');
       }
-      return true;
-    }
-    if (owner === 'crew') {
-      if (p.b9) BARCODE.RuntimeLifecycle?.togglePause();
-      else if (p.b1) BARCODE.CrewTransmission.input('escape');
-      else if (p.b0) BARCODE.CrewTransmission.input(' ');
-      else if (p.left) BARCODE.CrewTransmission.input('arrowleft');
       return true;
     }
     if (owner === 'results') {

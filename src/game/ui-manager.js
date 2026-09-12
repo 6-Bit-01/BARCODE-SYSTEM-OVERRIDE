@@ -286,7 +286,6 @@ window.drawGameUI = function(ctx) {
   
   // Draw hack timeout message
   drawHackTimeoutMessage(ctx);
-  window.BARCODE?.CrewTransmission?.draw(ctx);
 };
 
 // Screen-space boss readability and terminal outcome use the existing UI pass.
@@ -325,7 +324,7 @@ function drawSector1BossUI(ctx) {
     ctx.font = '22px monospace';
     ctx.fillText(window.BARCODE?.GamepadUI?.connected ? 'X — Restart Level 1' : 'SPACE — Restart Level 1', 960, 718);
     ctx.fillText(window.BARCODE?.GamepadUI?.connected ? 'A — Rematch the boss' : 'ENTER — Rematch the boss', 960, 766);
-    if (window.BARCODE?.CrewTransmission?.inspectedGutter) {
+    if (window.BARCODE?.IntroSequence?.inspectedGutter) {
       ctx.font = '18px monospace'; ctx.fillStyle = '#cbaaff';
       ctx.fillText('STUDIO RATS: Carrier restored. We are keeping the caption.', 960, 865);
     }

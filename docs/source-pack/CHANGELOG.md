@@ -1,5 +1,14 @@
 # Changelog
 
+## September 12, 2026 — actual intro correction after #39
+
+- Replace the actual opening slideshow with eight comic pages covering the mapped five beats. Give each original crew member an active role; establish the local objective and one plot-linked displaced caption. Existing art/crops, title and soundtrack; no new 9 Bit disclosure.
+- Fix S skip: controller polling previously called the shared hold-cancel every 50ms whenever B was not held. Each physical input now owns its own five-second hold; release/disconnect cannot cancel another source. Add repeat, blur/tab and cleanup guards.
+- Remove the incorrectly placed post-tutorial crew scene. Keep its optional run-only discovery/results callback, with inspection now on opening page 6.
+- Keep rendering, polling, loading and audio handoff under CutsceneSystem; cancellation during startup cannot launch the tutorial/game loop later. Replace the unrelated signal-integrity RAF and orphan twelfth caption with reachable page data.
+- Add production opening/lifecycle regression checks and visually inspect eight-page/skip/reduced-effects Canvas renders. Required suite, syntax, publication and export evidence belong to the generated receipt; Makko acceptance remains pending.
+- Preserve the current HUD/combat in this correction. Owner order is intro first, then HUD/rhythm/attack variety, then campaign services.
+
 ## September 12, 2026 — Stage B crew link and controls
 
 - Continue from merged #38 as one combined implementation review, preserving the established whole-campaign plan and all earlier Level 1 repairs.

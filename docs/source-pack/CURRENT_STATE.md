@@ -1,16 +1,16 @@
 # Current State
 
-## Stage B — current combined review
+## Intro correction — current review
 
-PR #38 is merged at `0d1882f6b6eebf6fc5704d8a3270f2a6b1fb7354`. The owner then authorized proceeding. `STORY_CONTROLS_PASS.md` records the implemented scope, control map, timing semantics, validation limits and Makko route. Branch: `agent/level1-story-controls`; exact exported head/PR is in the manifest.
+PR #39 is merged at `510342ed21692fd85f9b99ef6b29990a5694132d`. It added a crew scene after the tutorial while leaving the actual opening unchanged. The owner explicitly corrected that omission and reported that holding S did not skip. Branch `agent/intro-overhaul` now replaces the actual CutsceneSystem opening with the eight-page treatment in `INTRO_OVERHAUL.md`, using the five beats established by the merged campaign map. The generated manifest identifies the exact review head and PR.
 
-The new four-panel crew link runs after the tutorial, uses existing SO6/SO8/SO10 art and ties the original four to the twenty-defeat/Jammer objective. Cliff/Sheila use the intercom. The optional panel-margin inspection gets a Studio Rats response and a run-only results callback; later campaign persistence/payoffs remain planned. Original prologue copy/art and all three authored lore records/IDs are retained.
+The original four make a broadcast, its return signal fails, the Network's report conflicts with their experience, Cache protects the original, DJ listens, Mac finds access, and 6 Bit chooses to restore Dead Air District. One recovery caption crosses a panel boundary as he refuses to wait. Existing images and selected monitor crops support the sequence. No new likeness, cameo introduction, 9 Bit revelation, art URL or music is added.
 
-Standard gamepad routing now covers title, intro, tutorial (A advance / RB jump), B Rhythm Mode, both existing hack puzzles, pause/archive/manual timing calibration and retry/results. The scene and menus use the existing lifecycle/input owners; background rhythm continues through the safe scene and terminal results. Gameplay stops cleanly on normal pause. Browser audio activation and actual controller comfort need owner testing.
+Keyboard S and controller B now have independent continuous five-second holds. Release cancels that input's hold; controller polling/disconnect cannot cancel S. Blur/hidden-tab cancellation, held-input consumption, cancellable image loading and startup teardown are checked through the production owners. The existing intro-song fade/gameplay-music handoff remains. The extra post-tutorial scene is removed; the tutorial enters the mission directly. Optional `egg.comic.gutter` inspection moves to opening page 6 and retains its run-only results callback.
 
-Crowd steering respects authored attack commitments including reinforcements; boss stomp cues share the actual cycle/rearm rule. HUD information is grouped without duplicate objective/large rhythm panels. The restrained follow camera yields to the existing boss cinematic and never changes collision/world positions. Saved input and visual offsets default to zero, have separate effects and never widen judgment windows or change the music source clock.
+All prior Level 1 controls, HUD, rhythm combat, calibration, camera, lore, mission, lift, Jammer and boss behavior are retained in this intro correction. The owner dislikes the PR #39 HUD and prefers aspects of the older rhythm presentation, and has asked for less repetitive threshold-based attacks. **Latest work order: finish this intro first; then address HUD/rhythm presentation and attack variety, before Stage C.** No HUD/combat redesign is claimed in this intro branch.
 
-Production logic and native Canvas layout checks cover these changes. The full suite/all-file syntax result and exact test revision are in the generated receipt. No live Makko/controller/audio PASS is claimed. No new runtime art URLs, music or dependencies; no campaign save-schema rewrite, new playable stage or ending rule. Next after Makko acceptance: Stage C campaign adapter, compatible save extension and second-song mixer proof.
+Production tests and native Canvas renders check control/lifecycle behavior and text layout. See the generated receipt for exact verification. Makko presentation, audible fade and physical-device acceptance remain pending. Base/rollback is the merge above.
 
 ## Historical planning checkpoint
 

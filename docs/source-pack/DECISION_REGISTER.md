@@ -1,5 +1,9 @@
 # Decision Register
 
+## Owner correction after merged #39 — intro first
+
+The owner repeatedly requested the actual intro, then reported that holding S did not work and criticized the HUD/rhythm presentation. Their latest explicit order is: “Stick to the intro work and then do that.” The opening correction in INTRO_OVERHAUL.md therefore comes first, based on `510342ed21692fd85f9b99ef6b29990a5694132d`; the HUD/rhythm/threshold-attack request is the next authorized follow-up. Stage C does not take its place. This authorizes concrete replacement opening copy/presentation using the established campaign arc and existing images. It does not authorize a new 9 Bit origin/reveal, guest cast expansion, mass redraw, or claim of owner Makko acceptance.
+
 ## Stage B implementation authority — after merged #38
 
 The owner confirmed “Merged. Lets proceed.” The campaign map/instruction reconciliation is now merged at `0d1882f6b6eebf6fc5704d8a3270f2a6b1fb7354`. This authorizes the next combined Stage B implementation described in CONTINUATION_PLAN. `STORY_CONTROLS_PASS.md` records the reviewable scene, input mapping, calibration semantics and gameplay boundary. Specific new dialogue, controller ergonomics and camera/HUD feel remain subject to Makko review. This does not approve merging without that gate or silently implementing Stage C–F.

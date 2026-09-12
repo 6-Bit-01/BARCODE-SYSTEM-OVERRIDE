@@ -4,7 +4,7 @@ const { createRig, load } = require('./check-level-01-boss');
 const plain = value => JSON.parse(JSON.stringify(value));
 function controls(rig) {
   const { w, context } = rig;
-  for (const file of ['src/game/pause-menu.js', 'src/core/action-input.js', 'src/core/gamepad-ui.js', 'src/core/input.js', 'src/game/crew-transmission.js']) load(context, file);
+  for (const file of ['src/game/pause-menu.js', 'src/core/action-input.js', 'src/core/gamepad-ui.js', 'src/core/input.js', 'src/engine/intro-sequence.js']) load(context, file);
   const pad = { mapping: 'standard', connected: true, buttons: Array.from({ length: 17 }, () => ({ pressed: false })), axes: [0, 0] };
   w.navigator.getGamepads = () => [null, pad]; // A valid pad need not occupy slot zero.
   w.inputManager = new w.InputManager();
@@ -18,24 +18,12 @@ async function main() {
   {
     const rig = createRig(), { w, p } = rig;
     controls(rig);
-    const scene = w.BARCODE.CrewTransmission;
-    p.update(16);
-    assert(scene.active); assert(!p.missionStarted); assert(p.isGameplaySuppressed());
-    const before = plain({ position: w.player.position, time: w.gameState.gameTime, enemies: w.enemyManager.enemies.length });
     const generation = w.BARCODE.MusicTransport.getDiagnostics().generation;
-    const beatBefore = w.rhythmSystem.globalBeatCount;
-    for (let i = 0; i < 30; i++) { w.audioSystem.context.currentTime += 0.1; w.updateGame(100); }
-    assert.deepStrictEqual(plain({ position: w.player.position, time: w.gameState.gameTime, enemies: w.enemyManager.enemies.length }), before);
-    assert(w.rhythmSystem.globalBeatCount > beatBefore, 'music boundaries continue while scene owns the world');
+    p.update(16); assert(p.missionStarted, 'the completed tutorial hands directly to the mission');
+    const enemies = w.enemyManager.enemies.length;
+    p.update(16); assert.strictEqual(w.enemyManager.enemies.length, enemies, 'no duplicate mission entry');
     assert.strictEqual(w.BARCODE.MusicTransport.getDiagnostics().generation, generation);
-    assert.strictEqual(w.rhythmSystem.showRhythmMode().reason, 'progression-suppressed');
-    scene.input(' '); assert.strictEqual(scene.index, 1);
-    scene.input(' '); assert.strictEqual(scene.index, 1, 'transition consumes rapid repeat');
-    scene.update(300); scene.input(' '); scene.input('arrowleft');
-    assert.deepStrictEqual(plain(scene.getDiagnostics().inspected), ['egg.comic.gutter']);
-    scene.input('escape'); assert(!scene.active);
-    p.update(16); assert(p.missionStarted); p.update(16); assert(!scene.active, 'handoff plays once per run');
-    p.reset(); assert(!scene.inspectedGutter); assert(!p.crewLinkPresented);
+
   }
   {
     const rig = createRig(), { w, context } = rig, { pad, frame, tap } = controls(rig);
@@ -66,9 +54,10 @@ async function main() {
       assert.strictEqual(w.player.velocity.y, 0, 'terminal digits do not jump');
     }
     w.hackingSystem.cooldownUntil = 0; w.hackingSystem.start(); frame(); tap(11); assert(!w.hackingSystem.active, 'R3 cancels the terminal');
-    // No fresh gameplay action on a button still held across scene ownership.
-    w.BARCODE.CrewTransmission.start(); frame(); pad.buttons[1].pressed = true; frame(); assert(!w.BARCODE.CrewTransmission.active);
-    frame(); assert(!w.rhythmSystem.isActive(), 'held scene cancel cannot enter Rhythm Mode');
+    // Frontend ownership consumes held buttons before gameplay resumes.
+    w.inputManager.updateFrontend('intro'); pad.buttons[1].pressed = true;
+    w.inputManager.updateFrontend('intro'); w.inputManager.resetActionEdges();
+    frame(); assert(!w.rhythmSystem.isActive(), 'held intro skip cannot enter Rhythm Mode');
     pad.buttons[1].pressed = false; frame();
     w.navigator.getGamepads = () => []; frame(); assert.strictEqual(w.inputManager.gamepad, null, 'disconnect drops stale pad');
   }
@@ -153,6 +142,6 @@ async function main() {
     const pad = w.navigator.getGamepads()[1]; pad.buttons[0].pressed = true; w.inputManager.update();
     assert(!w.gameState.gameOver); assert.strictEqual(p.state, 'boss_ready', 'controller A uses the actual boss retry checkpoint');
   }
-  console.log('Stage B: crew/music isolation, controller ownership, both real hack puzzles, pause/archive/calibration, saved offsets, follow camera, crowd commitments and boss counter/retry passed.');
+  console.log('Stage B: direct tutorial handoff, controller ownership, both real hack puzzles, pause/archive/calibration, saved offsets, follow camera, crowd commitments and boss counter/retry passed.');
 }
 if (require.main === module) main().catch(error => { console.error(error); process.exitCode = 1; });

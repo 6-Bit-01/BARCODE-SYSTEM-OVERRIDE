@@ -1,17 +1,18 @@
 # Acceptance and Test Status
 
-## Stage B — current owner review gate
+## Intro correction — current owner review gate
 
-Base/rollback: merged PR #38 at `0d1882f6b6eebf6fc5704d8a3270f2a6b1fb7354`. Read `STORY_CONTROLS_PASS.md` for the exact controller map and the six-step Makko route. Review the exported revision identified by the source manifest. **Makko acceptance is pending.**
+Base/rollback: merged PR #39, `510342ed21692fd85f9b99ef6b29990a5694132d`. Review the exact exported revision in a duplicate Makko project. `INTRO_OVERHAUL.md` contains the complete script and reference images. **Makko acceptance is pending.**
 
-- Title/prologue, controller A vs tutorial RB, B/Y tutorial locks, fresh-press behavior and disconnect/reconnect.
-- Crew link after tutorial, optional margin inspection, skip/pause/resume, uninterrupted music, and exactly one mission start.
-- Both hack puzzles with direct pad digits, erase/cancel/timeout, unchanged four-second answer window and one-health-bar reward; decide whether the direct mapping is comfortable.
-- Health/mode/objective/rhythm/Amp/lore readability; rooftop/lift movement and modest camera follow at both ends; no shifted boss during the cinematic.
-- Independent saved input/visual timing adjustments, zero reset, and no scoring-window or source-clock change.
-- Committed enemy warnings/dive lanes, truthful spent-stomp cue, twenty mission defeats, sixteen-hit Jammer, boss loss/retry and win/rematch, full restart and persisted lore.
+1. Start from the title. The new eight-page opening must appear before any tutorial or mission. Read the original four's contributions and the broadcast failure/recovery disagreement. Confirm images, names, dialogue, borders and page counter fit at your actual window/fullscreen size.
+2. Advance with Space/Enter/click and controller A. Holding/repeating advance must not race through pages. The final page enters the tutorial once; a held A cannot jump/advance the tutorial as well. With an actual connected controller, hold keyboard S for five seconds. Repeat with no controller. Both must skip the entire opening, not just one page.
+3. Release S early and confirm the skip cancels. Repeat with B, disconnect during a B hold, and hold/release S and B in different orders. One input must not cancel the other. Switching window/tab cancels unattended holds.
+4. On page 6, inspect the displaced caption with Left Arrow or D-pad Left. Review its static endpoint with reduced effects. Finish normally or skip; the optional results callback should remain in that run. A fresh run clears it; persistent lore remains.
+5. Listen through the existing four-second intro-song fade and gameplay start. Confirm one soundtrack/beat clock, no title-song overlap, no second crew scene after tutorial, and one mission entry. Spot-check existing tutorial H/R locks, movement, both hacks, pause/archive/calibration, lift, 20-defeat mission, 16-hit Jammer, boss/retry and full restart.
 
-Record the exact head, Makko project/origin, browser/controller and PASS/FAIL. Native Canvas images are layout diagnostics with explicit host fixture boundaries, not screenshots of a certified Makko run. Automated checks and publication are recorded in the generated receipt; the prior game's good behavior must still survive this focused route. Next after acceptance and merge: Stage C services and second-song proof.
+Record exact head, Makko project/origin, browser/controller and PASS/FAIL. Native Canvas renders are production-layout diagnostics, not certified Makko/audio captures. Tests specifically cover the reported S regression, all-page reachability, controller ownership, fade scheduling and stale startup cleanup. Full required suite/syntax and exported revision are recorded in the receipt.
+
+The owner's next requested work is HUD/rhythm presentation and threshold-based attack variety. That follow-up follows the intro; Stage C is no longer the immediate next task.
 
 ## Historical acceptance records
 

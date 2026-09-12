@@ -29,6 +29,7 @@
     "src/engine/jammer-indicator.js",
     "src/engine/title-screen.js",
     "src/game/objectives.js",
+    "src/engine/intro-sequence.js",
     "src/engine/cutscene.js",
     "src/core/loop.js",
     "src/core/runtime-lifecycle.js",
@@ -42,7 +43,6 @@
     "src/game/lore-collection.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
-    "src/game/crew-transmission.js",
     "src/game/game-state.js",
     "src/game/update-coordinator.js",
     "src/game/render-coordinator.js",
@@ -79,6 +79,7 @@
     "src/engine/jammer-indicator.js",
     "src/engine/title-screen.js",
     "src/game/objectives.js",
+    "src/engine/intro-sequence.js",
     "src/engine/cutscene.js",
     "src/core/loop.js",
     "src/core/runtime-lifecycle.js",
@@ -92,7 +93,6 @@
     "src/game/lore-collection.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
-    "src/game/crew-transmission.js",
     "src/game/game-state.js",
     "src/game/update-coordinator.js",
     "src/game/render-coordinator.js",
@@ -128,6 +128,7 @@
     "tools/check-baseline.js",
     "tools/check-enemy-ownership.js",
     "tools/check-frame-ownership.js",
+    "tools/check-intro.js",
     "tools/check-level-01-boss.js",
     "tools/check-level-01-discovery.js",
     "tools/check-level-01-gameplay-dynamics.js",
@@ -243,6 +244,10 @@
         "status": "pass"
       },
       {
+        "file": "src/engine/intro-sequence.js",
+        "status": "pass"
+      },
+      {
         "file": "src/engine/cutscene.js",
         "status": "pass"
       },
@@ -292,10 +297,6 @@
       },
       {
         "file": "src/game/sector1-progression.js",
-        "status": "pass"
-      },
-      {
-        "file": "src/game/crew-transmission.js",
         "status": "pass"
       },
       {
@@ -697,6 +698,7 @@
     "src/engine/jammer-indicator.js",
     "src/engine/title-screen.js",
     "src/game/objectives.js",
+    "src/engine/intro-sequence.js",
     "src/engine/cutscene.js",
     "src/core/loop.js",
     "src/core/runtime-lifecycle.js",
@@ -710,7 +712,6 @@
     "src/game/lore-collection.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
-    "src/game/crew-transmission.js",
     "src/game/game-state.js",
     "src/game/update-coordinator.js",
     "src/game/render-coordinator.js",

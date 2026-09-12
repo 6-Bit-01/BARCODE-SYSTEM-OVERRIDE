@@ -14,7 +14,7 @@ window.BARCODE = window.BARCODE || {};
   const STATES = Object.freeze({ IDLE: 'idle', STARTING: 'starting', RUNNING: 'running', PAUSED: 'paused', STOPPING: 'stopping', FAILED: 'failed' });
   const ALLOWED_TRANSITIONS = Object.freeze({
     idle: Object.freeze(['starting']),
-    starting: Object.freeze(['running', 'failed']),
+    starting: Object.freeze(['running', 'failed', 'stopping']),
     running: Object.freeze(['paused', 'stopping']),
     paused: Object.freeze(['running', 'stopping']),
     failed: Object.freeze(['starting', 'stopping']),
@@ -119,6 +119,7 @@ window.BARCODE = window.BARCODE || {};
 
   async function runInitializer(options) {
     options = options || {};
+    const initializerGeneration = generation;
     if (!options.restart) resetRetryUi();
     if (!options.restart && window.titleScreen && typeof window.titleScreen.hide === 'function') window.titleScreen.hide();
     const loading = document.getElementById('loadingIndicator');
@@ -127,6 +128,7 @@ window.BARCODE = window.BARCODE || {};
     if (button && !options.restart) { button.disabled = true; button.textContent = 'INITIALIZING...'; }
 
     if (typeof window.startGameInitialization === 'function') await window.startGameInitialization({ restart: !!options.restart });
+    if (generation !== initializerGeneration || state !== STATES.STARTING) return;
     if (window.audioSystem && typeof window.audioSystem.stopTitleScreenMusic === 'function') window.audioSystem.stopTitleScreenMusic();
     window.titleScreenMusicBlocked = true;
     initRuntimeSystems();
@@ -137,6 +139,7 @@ window.BARCODE = window.BARCODE || {};
       const canvas = document.getElementById('gameCanvas');
       if (canvas) canvas.style.display = 'none';
       if (window.cutsceneSystem && typeof window.cutsceneSystem.start === 'function') await window.cutsceneSystem.start();
+      if (generation !== initializerGeneration || state !== STATES.STARTING) return;
       if (canvas) canvas.style.display = 'block';
       const topbar = document.querySelector('.topbar');
       const hint = document.querySelector('.hint');
@@ -264,7 +267,7 @@ window.BARCODE = window.BARCODE || {};
 
   function stopOwnedResources(options) {
     options = options || {};
-    namespace.CrewTransmission?.reset();
+    namespace.IntroSequence?.reset();
     if (window.inputManager && typeof window.inputManager.resetActionEdges === 'function') window.inputManager.resetActionEdges();
     if (window.BARCODE && window.BARCODE.playerCombat && typeof window.BARCODE.playerCombat.reset === 'function') window.BARCODE.playerCombat.reset();
     if (typeof window.stopGame === 'function') window.stopGame();
