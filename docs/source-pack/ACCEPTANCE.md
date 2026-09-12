@@ -1,5 +1,23 @@
 # Acceptance and Test Status
 
+## Stage B — current owner review gate
+
+Base/rollback: merged PR #38 at `0d1882f6b6eebf6fc5704d8a3270f2a6b1fb7354`. Read `STORY_CONTROLS_PASS.md` for the exact controller map and the six-step Makko route. Review the exported revision identified by the source manifest. **Makko acceptance is pending.**
+
+- Title/prologue, controller A vs tutorial RB, B/Y tutorial locks, fresh-press behavior and disconnect/reconnect.
+- Crew link after tutorial, optional margin inspection, skip/pause/resume, uninterrupted music, and exactly one mission start.
+- Both hack puzzles with direct pad digits, erase/cancel/timeout, unchanged four-second answer window and one-health-bar reward; decide whether the direct mapping is comfortable.
+- Health/mode/objective/rhythm/Amp/lore readability; rooftop/lift movement and modest camera follow at both ends; no shifted boss during the cinematic.
+- Independent saved input/visual timing adjustments, zero reset, and no scoring-window or source-clock change.
+- Committed enemy warnings/dive lanes, truthful spent-stomp cue, twenty mission defeats, sixteen-hit Jammer, boss loss/retry and win/rematch, full restart and persisted lore.
+
+Record the exact head, Makko project/origin, browser/controller and PASS/FAIL. Native Canvas images are layout diagnostics with explicit host fixture boundaries, not screenshots of a certified Makko run. Automated checks and publication are recorded in the generated receipt; the prior game's good behavior must still survive this focused route. Next after acceptance and merge: Stage C services and second-song proof.
+
+## Historical acceptance records
+
+Older checklists below describe their own review milestones, not a replacement for the current gate.
+
+
 ## Current campaign planning review — after merged PR #37
 
 This pass changes development documents only. It does not create a new gameplay/Makko acceptance claim. Validate the exact committed review with the existing repository suite and all-file syntax check, inspect the diff for source/asset changes, and check the new plan's counts/references. The generated export receipt records commands, exit status and revision; historical reports below retain their original limits.

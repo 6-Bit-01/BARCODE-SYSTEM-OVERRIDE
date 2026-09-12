@@ -264,6 +264,7 @@ window.BARCODE = window.BARCODE || {};
 
   function stopOwnedResources(options) {
     options = options || {};
+    namespace.CrewTransmission?.reset();
     if (window.inputManager && typeof window.inputManager.resetActionEdges === 'function') window.inputManager.resetActionEdges();
     if (window.BARCODE && window.BARCODE.playerCombat && typeof window.BARCODE.playerCombat.reset === 'function') window.BARCODE.playerCombat.reset();
     if (typeof window.stopGame === 'function') window.stopGame();

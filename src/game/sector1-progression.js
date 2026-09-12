@@ -148,7 +148,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     isAuthoritativeMissionActive() { return this.state !== STATES.TUTORIAL && this.state !== STATES.LEVEL_COMPLETE; }
     shouldSuppressGenericSpawning() { return true; }
     isBossCinematicActive() { return [STATES.FREEZE, STATES.ENEMY_PURGE, STATES.CAMERA_PAN, STATES.BOSS_WALK_IN, STATES.BOSS_CLOSE_UP, STATES.BOSS_FLOURISH, STATES.BOSS_HOLD, STATES.CAMERA_RETURN].includes(this.state); }
-    isGameplaySuppressed() { return this.isBossCinematicActive() || this.state === STATES.LEVEL_COMPLETE; }
+    isGameplaySuppressed() { return !!window.BARCODE?.CrewTransmission?.active || this.isBossCinematicActive() || this.state === STATES.LEVEL_COMPLETE; }
     getCameraX(fallback) { return this.cameraOverrideActive ? clampCamera(this.cameraX) : fallback; }
     getCinematicZoomOverride() { return Number.isFinite(this.cinematicZoomOverride) ? this.cinematicZoomOverride : null; }
     update(deltaTime = 0) {
@@ -157,7 +157,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       this.pollPreparedAssets();
       this.updateDistrictSignal(deltaTime);
       const tutorialDone = !!(window.tutorialSystem && typeof window.tutorialSystem.isCompleted === 'function' && window.tutorialSystem.isCompleted() && typeof window.tutorialSystem.isActive === 'function' && !window.tutorialSystem.isActive());
-      if (this.state === STATES.TUTORIAL && tutorialDone && !this.missionStarted) this.startMission();
+      if (this.state === STATES.TUTORIAL && tutorialDone && !this.missionStarted) {
+        if (!this.crewLinkPresented && window.BARCODE?.CrewTransmission) {
+          this.crewLinkPresented = true; window.BARCODE.CrewTransmission.start(); return;
+        }
+        if (window.BARCODE?.CrewTransmission?.active) return;
+        this.startMission();
+      }
       if (this.state === STATES.TUTORIAL) this.applyGateCollision();
       // The lift is traversal, not a hostile system, so tactical focus must
       // never slow or freeze its carry motion.
@@ -496,7 +502,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       const previousX = Number.isFinite(movement.previousX) ? movement.previousX : player.position.x;
       const crossingX = previousX + (player.position.x - previousX) * t;
       if (crossingX + 18 <= box.x || crossingX - 18 >= box.x + box.width) return false;
-      const canCounter = this.boss.canReceiveDamage && this.boss.stompArmed && this.boss.stompCycle !== this.boss.cycle;
+      const canCounter = this.canStompCounter();
       this.boss.stompArmed = false;
       player.position.y = box.y - PLAYER_VISUAL_FOOT_OFFSET;
       player.supportedSurfaceId = null;
@@ -587,6 +593,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       window.rhythmSystem?.hideRhythmMode?.();
       window.rhythmSystem?.restart?.();
       Object.assign(player.position, { x: checkpoint.playerX, y: GROUND_Y });
+      window.renderer?.resetFollowCamera?.(checkpoint.playerX);
       Object.assign(player.velocity, { x: 0, y: 0 });
       Object.assign(player, { health: player.maxHealth, grounded: true, controlsDisabled: false,
         allowMovement: true, isEntering: false, supportedSurfaceId: null,
@@ -611,11 +618,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       return { phase: boss.phase || 'intro', phaseElapsedMs: boss.phaseElapsedMs || 0,
         health: boss.health ?? BOSS_COMBAT.maxHealth, maxHealth: boss.maxHealth || BOSS_COMBAT.maxHealth,
         cycle: boss.cycle || 0, doublePulse: !!boss.doublePulse, latePhase: !!boss.latePhase,
-        stompArmed: !!boss.stompArmed, defeated: !!boss.defeated,
+        stompArmed: !!boss.stompArmed, canStompCounter: this.canStompCounter(), defeated: !!boss.defeated,
         canDealDamage: !!boss.canDealDamage, canReceiveDamage: !!boss.canReceiveDamage,
         pulses: (boss.pulses || []).map(pulse => ({ ...pulse })), hitbox: this.getBossHitbox(),
         checkpointAvailable: !!this.bossCheckpoint, retryAvailable: this.canRetryBossCheckpoint() };
     }
+    canStompCounter() { return !!(this.boss?.canReceiveDamage && this.boss.stompArmed && this.boss.stompCycle !== this.boss.cycle); }
     draw(ctx) { this.drawStageSurfaces(ctx); this.drawEncounterGates(ctx); this.drawBoss(ctx); }
     drawStageSurfaces(ctx) { if (!ctx) return; this.drawSignalLift(ctx); this.drawSignalAmp(ctx); ctx.save(); STAGE_SURFACES.forEach(g => { ctx.shadowColor = '#00ffff'; ctx.shadowBlur = 8; ctx.fillStyle = 'rgba(0,255,255,0.34)'; ctx.fillRect(g.x, g.y - 2, g.w, g.h); ctx.shadowBlur = 0; ctx.strokeStyle = 'rgba(0,255,255,0.92)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(g.x, g.y); ctx.lineTo(g.x + g.w, g.y); ctx.stroke(); }); ctx.restore(); }
     drawSignalLift(ctx) {
@@ -891,7 +899,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       ctx.shadowBlur = 0;
       if (this.state === STATES.BOSS_COMBAT) {
         const cue = boss.phase === 'telegraph' ? (boss.doublePulse ? 'TWO PULSES — JUMP' : 'GROUND PULSE — JUMP') :
-          boss.canReceiveDamage ? (boss.stompArmed ? 'COUNTER: RHYTHM / STOMP' : 'COUNTER: RHYTHM — LAND TO REARM STOMP') :
+          boss.canReceiveDamage ? (this.canStompCounter() ? 'COUNTER: RHYTHM / STOMP' : boss.stompCycle === boss.cycle ? 'COUNTER: RHYTHM — STOMP SPENT THIS CYCLE' : 'COUNTER: RHYTHM — LAND TO REARM STOMP') :
           boss.guardBounceMs > 0 ? 'GUARDED — LAND, THEN COUNTER' : 'SECTOR 1 BOSS';
         ctx.fillStyle = boss.canReceiveDamage ? '#00ffff' : '#ffffff';
         ctx.font = 'bold 17px monospace';
@@ -1001,6 +1009,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     pollPreparedAsset(entry) { if (!entry || entry.ready || entry.generation !== this.assetGeneration) return; try { if (!entry.sprite.isLoaded || entry.sprite.isLoaded()) { entry.ready = true; if (entry.onReady) entry.onReady(entry.sprite); } } catch (error) { if (!entry.diagnosticRecorded) { entry.diagnosticRecorded = true; this.recordAssetDiagnostic(entry.key, error); } } }
     recordAssetDiagnostic(key, error) { this.assetDiagnostics = this.assetDiagnostics || []; if (!this.assetDiagnostics.some(entry => entry.key === key)) this.assetDiagnostics.push({ key, message: String(error && error.message || error) }); }
     reset(options = {}) {
+      this.crewLinkPresented = false;
+      window.BARCODE?.CrewTransmission?.reset();
+      window.renderer?.resetFollowCamera?.(this.player?.position.x);
       this.resetDistrictSignal();
       this.missionStarted = false; this.missionDefeats = 0; this.enemiesDefeated = 0; this.jammerRevealed = false; this.jammerDestroyedNotified = false;
       this.cinematicStartedCount = 0; this.phaseElapsed = 0; this.cameraOverrideActive = false; this.cameraX = null;

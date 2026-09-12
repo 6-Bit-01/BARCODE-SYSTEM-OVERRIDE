@@ -103,10 +103,11 @@ window.FILE_MANIFEST.push({
       ctx.fillStyle = 'rgba(0, 8, 16, 0.88)'; ctx.fillRect(x - 70, y - 25, 140, 38);
       ctx.textAlign = 'center'; ctx.font = 'bold 12px monospace';
       ctx.fillStyle = lost ? '#ffbd70' : '#ffffff';
-      ctx.fillText(lost ? 'PRESS R — RHYTHM OFF' : 'DOWN: BEAT · R: EXIT', x, y - 10);
+      const pad = BARCODE.GamepadUI?.connected;
+      ctx.fillText(lost ? (pad ? 'PRESS B — RHYTHM OFF' : 'PRESS R — RHYTHM OFF') : (pad ? 'X: BEAT · B: EXIT' : 'DOWN: BEAT · R: EXIT'), x, y - 10);
       if (active) {
         const time = window.audioSystem?.context?.currentTime;
-        const sample = Number.isFinite(time) ? BARCODE.MusicTransport?.sample?.(time) : null;
+        const sample = Number.isFinite(time) ? BARCODE.MusicTransport?.sample?.(time - (BARCODE.Preferences?.values.visualOffsetMs || 0) / 1000) : null;
         if (sample?.running && sample.grid) {
           const fraction = sample.grid.beatFloat % 1;
           const footY = player.position.y + (window.Player?.VISUAL_FOOT_OFFSET_Y || 72);
@@ -133,7 +134,7 @@ window.FILE_MANIFEST.push({
       const rule = profile && profile.judgmentRules && profile.judgmentRules.find(r => r.target === 'quarter-note' || /attack/.test(r.id)) || null;
       const audioTimeSec = Number.isFinite(capturedAudioTimeSec) ? capturedAudioTimeSec : window.audioSystem?.context?.currentTime;
       if (!transport || typeof transport.judgeInput !== 'function' || !rule || !Number.isFinite(audioTimeSec)) return { available: false, timing: 'unavailable' };
-      return transport.judgeInput(rule.id, audioTimeSec) || { available: false, timing: 'unavailable' };
+      return transport.judgeInput(rule.id, audioTimeSec, BARCODE.Preferences?.values.inputOffsetMs || 0) || { available: false, timing: 'unavailable' };
     }
     playAttackAnimation(player) { if (player && typeof player.startPrimaryAttackAnimation === 'function') player.startPrimaryAttackAnimation(); else if (player && typeof player.playAnimation === 'function') player.playAnimation('rhythm'); }
     applyFeedback(judgment) { if (window.rhythmSystem && typeof window.rhythmSystem.applyResolvedAttackFeedback === 'function') window.rhythmSystem.applyResolvedAttackFeedback(judgment); }

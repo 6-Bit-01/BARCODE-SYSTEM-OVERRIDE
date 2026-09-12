@@ -1,5 +1,16 @@
 # Changelog
 
+## September 12, 2026 — Stage B crew link and controls
+
+- Continue from merged #38 as one combined implementation review, preserving the established whole-campaign plan and all earlier Level 1 repairs.
+- Add an existing-art tutorial-to-street crew sequence, optional `egg.comic.gutter` inspection and run-only results callback; keep the original prologue and persisted lore intact.
+- Complete standard-pad action/menu routing and help text through title/intro/tutorial/hacks/pause/archive/calibration/retry/results, including held-input consumption and intro poll cleanup.
+- Protect committed crowd motion including Jammer reinforcements; make boss stomp cues agree with actual cycle/rearm eligibility.
+- Consolidate desktop HUD, add a restrained elapsed-time follow camera under cinematic priority, and separate saved input compensation from visual beat delay in a manual calibration screen.
+- Add focused production checks and five native Canvas diagnostic images. Update the baseline for new script owners/indices, and update layout-dependent assertions to the new UI without removing existing gameplay/save checks.
+- Full verification/export/publication evidence is generated from the reviewed revision. Owner Makko/controller/audio acceptance remains pending; Stage C is next.
+
+
 ## September 12, 2026 — campaign continuity and full-story plan
 
 - Reconcile current main at merged PR #37 and retain completed combat/animation/audio, polish, discovery/traffic/targets and written lore/archive work.

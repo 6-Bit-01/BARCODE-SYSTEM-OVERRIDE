@@ -22,10 +22,11 @@ window.FILE_MANIFEST.push({
   const DEFAULT_GAMEPAD = {
     move_left: [{ axis: 0, dir: -1 }, { button: 14 }],
     move_right: [{ axis: 0, dir: 1 }, { button: 15 }],
-    jump: [{ button: 0 }],
+    jump: [{ button: 0 }, { button: 5 }],
     primary: [{ button: 2 }],
     interact: [{ button: 3 }],
-    pause: [{ button: 9 }]
+    pause: [{ button: 9 }],
+    rhythm_mode: [{ button: 1 }]
   };
 
   function clone(value) { return JSON.parse(JSON.stringify(value)); }
@@ -51,6 +52,9 @@ window.FILE_MANIFEST.push({
     dispose() { if (this.attached && window.removeEventListener) { window.removeEventListener('keydown', this._keydown); window.removeEventListener('keyup', this._keyup); } this.attached = false; this.listenerCount = 0; this.disposed = true; this.reset(); }
     reset() {
       this.keysHeld.clear(); this.previousHeld = {}; this.pendingPresses = {}; this.state = stateTemplate();
+      this.blockGamepadUntilRelease();
+    }
+    blockGamepadUntilRelease() {
       const pads = navigator.getGamepads ? Array.from(navigator.getGamepads()).filter(Boolean) : [];
       this.gamepadReleaseRequired = new Set(ACTIONS.filter(action => this.gamepadHeld(action, pads)));
     }
@@ -117,7 +121,7 @@ window.FILE_MANIFEST.push({
         paused: !!(context.paused || window.isPaused || gameState.paused || runtimeState === 'paused'),
         stopped: !!(context.stopped || runtimeState === 'stopped'),
         gameOver: !!(context.gameOver || gameState.gameOver),
-        cutscene: !!(context.cutscene || (window.cutsceneSystem && window.cutsceneSystem.active)),
+        cutscene: !!(context.cutscene || window.cutsceneSystem?.isActive),
         dialogue: !!context.dialogue
       };
     }

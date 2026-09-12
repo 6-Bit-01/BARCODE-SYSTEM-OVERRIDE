@@ -8,7 +8,7 @@
 4. Current source and Git/PR history establish what is implemented. The generated manifest establishes exactly what was exported.
 5. v2–v4 and older conversations provide history only where retained. Obsolete prompts, raw lore, comments and README claims cannot override later approval.
 
-The latest post-PR #37 approval requires a full campaign/story map, corrected cameos and inspiration Easter eggs before isolated intro work. Read `CONTINUATION_PLAN.md` and its linked story/cameo/asset documents first. They distinguish retained decisions from new working treatments. Approval of direction does not retroactively mark gameplay as tested or choose every candidate boss/title/ending.
+The post-PR #37 approval required a full campaign/story map, corrected cameos and inspiration Easter eggs before isolated intro work. Read `CONTINUATION_PLAN.md` and its linked story/cameo/asset documents first. They distinguish retained decisions from new working treatments. Approval of direction does not retroactively mark gameplay as tested or choose every candidate boss/title/ending.
 
 ## Preserve the game the owner approved
 
@@ -20,7 +20,7 @@ Future musical interactions vary by genre. Level 1 intentionally gates Down atta
 
 Codex implements the current bounded milestone and produces a reviewable branch/source archive. Use existing assets and host interfaces; no wholesale engine conversion. Test the production logic with the established dependency-free tooling and state exactly what host stubs omit. The owner plays the supplied revision in a duplicate Makko project before merge. Keep the known-good project available.
 
-Progress follows the current continuation sequence: complete the map/instruction reconciliation, prototype the connected presentation and remaining Level 1 usability, then campaign infrastructure and compact genre proofs. The boss/polish/discovery/lore milestones through #37 are implemented; do not redo them. Standalone migration is deferred. Avoid broad retuning or asset orders before the relevant proof.
+The campaign map is merged in #38. The current combined Stage B implementation is recorded in STORY_CONTROLS_PASS.md and awaits Makko acceptance. Next comes Stage C campaign infrastructure and second-song proof, followed by compact genre proofs. The boss/polish/discovery/lore milestones through #37 are implemented; do not redo them. Standalone migration is deferred. Avoid broad retuning or asset orders before the relevant proof.
 
 For each milestone report base/head SHAs, intentional behavior changes, validation, Makko status, asset changes, known limitations, rollback and the next step. Keep the source ZIP current using `UPDATE_PROTOCOL.md`; retain one current downloadable archive identity and Git history for older states.
 

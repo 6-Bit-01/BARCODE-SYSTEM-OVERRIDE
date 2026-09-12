@@ -1,5 +1,10 @@
 # Art, presentation and platform production plan
 
+## Stage B asset status
+
+The representative sequence now reuses existing SO6/SO8/SO10 elements from the loaded prologue. No runtime art, asset URLs, portraits, music or dependencies are added/replaced. Sheila is intercom-only. Code-native panels and a loose caption provide the first prototype; native Canvas layout diagnostics are review evidence rather than new game assets. Browser standard-pad coverage is implemented for Level 1; physical devices, mobile and standalone remain unverified/deferred as described below.
+
+
 ## Existing assets first
 
 The original intro and Level 1 contact sheets in attached v4 were visually inspected for this continuation. They identify a usable control-room/screen/interference/6 Bit/tower sequence and the established skyline, street frontage, three traffic types, fragment, Jammer and title art. These historical sheets are not a current host-availability test, not a complete frame inventory and not proof of every needed crew pose.

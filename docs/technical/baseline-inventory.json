@@ -11,6 +11,7 @@
     "src/game/lore-records.js",
     "src/game/pause-menu.js",
     "src/core/action-input.js",
+    "src/core/gamepad-ui.js",
     "src/game/player-combat.js",
     "src/core/input.js",
     "src/engine/music-profiles.js",
@@ -41,6 +42,7 @@
     "src/game/lore-collection.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
+    "src/game/crew-transmission.js",
     "src/game/game-state.js",
     "src/game/update-coordinator.js",
     "src/game/render-coordinator.js",
@@ -59,6 +61,7 @@
     "src/game/lore-records.js",
     "src/game/pause-menu.js",
     "src/core/action-input.js",
+    "src/core/gamepad-ui.js",
     "src/game/player-combat.js",
     "src/core/input.js",
     "src/engine/music-profiles.js",
@@ -89,6 +92,7 @@
     "src/game/lore-collection.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
+    "src/game/crew-transmission.js",
     "src/game/game-state.js",
     "src/game/update-coordinator.js",
     "src/game/render-coordinator.js",
@@ -134,6 +138,7 @@
     "tools/check-level-01-presentation.js",
     "tools/check-level-01-responsive-combat.js",
     "tools/check-level-01-smoothing.js",
+    "tools/check-level-01-story-controls.js",
     "tools/check-level-01-targets-traffic.js",
     "tools/check-makko-hotfix.js",
     "tools/check-music-profiles.js",
@@ -163,6 +168,10 @@
       },
       {
         "file": "src/core/action-input.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/core/gamepad-ui.js",
         "status": "pass"
       },
       {
@@ -286,6 +295,10 @@
         "status": "pass"
       },
       {
+        "file": "src/game/crew-transmission.js",
+        "status": "pass"
+      },
+      {
         "file": "src/game/game-state.js",
         "status": "pass"
       },
@@ -324,11 +337,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 45,
+        "index": 47,
         "status": "pass"
       },
       {
-        "index": 47,
+        "index": 49,
         "status": "pass"
       }
     ]
@@ -399,7 +412,7 @@
     {
       "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 1659,
+      "line": 1664,
       "loaded": true
     },
     {
@@ -549,55 +562,55 @@
     {
       "global": "window.renderer",
       "file": "src/engine/renderer.js",
-      "line": 438,
+      "line": 462,
       "loaded": true
     },
     {
       "global": "window.renderer",
       "file": "src/engine/renderer.js",
-      "line": 510,
+      "line": 534,
       "loaded": true
     },
     {
       "global": "window.renderer",
       "file": "src/engine/renderer.js",
-      "line": 527,
+      "line": 551,
       "loaded": true
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 350,
+      "line": 359,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 377,
+      "line": 386,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 439,
+      "line": 448,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 457,
+      "line": 466,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 537,
+      "line": 546,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 577,
+      "line": 586,
       "loaded": false
     },
     {
@@ -666,6 +679,7 @@
     "src/game/lore-records.js",
     "src/game/pause-menu.js",
     "src/core/action-input.js",
+    "src/core/gamepad-ui.js",
     "src/game/player-combat.js",
     "src/core/input.js",
     "src/engine/music-profiles.js",
@@ -696,6 +710,7 @@
     "src/game/lore-collection.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
+    "src/game/crew-transmission.js",
     "src/game/game-state.js",
     "src/game/update-coordinator.js",
     "src/game/render-coordinator.js",

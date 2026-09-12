@@ -465,7 +465,7 @@ window.HackingSystem = class HackingSystem {
     ctx.strokeStyle = '#3c827f'; ctx.lineWidth = 2; ctx.strokeRect(460, 190, 1000, 420);
     ctx.fillStyle = '#91ffe0'; ctx.font = 'bold 23px monospace'; ctx.fillText('BARCODE / SIGNAL TERMINAL', 488, 231);
     ctx.font = '15px monospace'; ctx.fillStyle = '#aebdcc'; ctx.textAlign = 'right';
-    ctx.fillText('ESC: DISCONNECT', 1432, 231); ctx.textAlign = 'left';
+    ctx.fillText(window.BARCODE?.GamepadUI?.connected ? 'R3: DISCONNECT' : 'ESC: DISCONNECT', 1432, 231); ctx.textAlign = 'left';
     const labels = ['01 CONNECT', '02 READ', '03 INPUT'];
     labels.forEach((label, i) => {
       const selected = ['boot', 'display', 'answer'][i] === this.phase;
@@ -504,7 +504,11 @@ window.HackingSystem = class HackingSystem {
       const width = ctx.measureText('> ' + this.inputText).width; ctx.fillStyle = color; ctx.fillRect(509 + width, 489, 11, 28);
     }
     ctx.fillStyle = '#aebdcc'; ctx.font = '16px monospace';
-    ctx.fillText(this.phase === 'answer' ? '0–9: TYPE   BACKSPACE: CORRECT   ENTER: SUBMIT' : 'Memorize the signal. Input opens automatically.', 488, 579);
+    if (window.BARCODE?.GamepadUI?.connected) {
+      ctx.font = '17px monospace';
+      ctx.fillText('D-pad ↑8 ↓2 ←4 →6   A:1  B:3  X:7  Y:9   LB:5  RB:0', 488, 566);
+      ctx.fillText('View: Erase   Start: Submit   R3: Disconnect', 488, 592);
+    } else ctx.fillText(this.phase === 'answer' ? '0–9: TYPE   BACKSPACE: CORRECT   ENTER: SUBMIT' : 'Memorize the signal. Input opens automatically.', 488, 579);
     if (this.feedback) { ctx.textAlign = 'right'; ctx.fillStyle = color; ctx.font = 'bold 14px monospace'; ctx.fillText(this.feedback.text, 1432, 597); }
     ctx.restore();
   }

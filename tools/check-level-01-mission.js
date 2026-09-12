@@ -69,7 +69,16 @@ must(enemies, /enemy\.takeDamage\(999,/, 'passive stomp remains lethal; swept be
 must(gameState, /shouldSuppressGenericSpawning\(\)[^]*hasSpawnedInitialEnemies = true/s, 'generic initial spawn disabled under mission owner');
 must(render, /centerX: cameraX/, 'renderer records camera center convention');
 must(updateCoordinator, /progressionSuppressesGameplay[^]*allowMovement = !hackingActive && !progressionSuppressesGameplay/s, 'update coordinator disables player physics during cinematic suppression');
-must(objectives, /visibleObjectives[^]*Math\.max\(160, 60 \+ visibleObjectives\.length \* 50\)/s, 'objective panel height grows for boss-ready row');
+{
+  const host = { FILE_MANIFEST: [], console }; host.window = host;
+  vm.runInNewContext(objectives, host);
+  const owner = new host.ObjectivesSystem(); owner.setBossIntroObjective();
+  const labels = [], panels = [];
+  owner.draw({ save() {}, restore() {}, fillRect(...args) { panels.push(args); }, fillText(text) { labels.push(text); } });
+  assert(labels.includes('BOSS SIGNAL ACQUIRED'), 'the current unfinished objective remains readable');
+  assert(!labels.includes('DEFEAT 20 ENEMIES'), 'completed objectives do not duplicate the mission HUD');
+  assert(panels.every(([x, y, width, height]) => x >= 420 && x + width <= 1480 && y + height <= 128), 'objective stays inside its reserved top band');
+}
 must(debugSource, /handleCanvasPointer\(event\) \{\s*if \(isBossCinematicActive\(\)\) return;/, 'hidden Level 1 debug controls cannot receive pointer actions during the boss cinematic');
 must(debugSource, /drawOverlay\(ctx\) \{\s*if \(!ctx \|\| isBossCinematicActive\(\)\) return;/, 'Level 1 debug overlay stays hidden for the full boss cinematic');
 must(indexSource, /R<\/span> - Rhythm Mode[^]*Down Arrow<\/span> - Beat Attack/, 'visible controls distinguish Rhythm Mode from the Down Arrow beat attack');

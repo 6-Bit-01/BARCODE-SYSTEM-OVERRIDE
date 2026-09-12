@@ -373,7 +373,7 @@ window.CutsceneSystem = class CutsceneSystem {
     // Skip instruction text
     const skipText = document.createElement('div');
     skipText.id = 'skip-instruction';
-    skipText.innerHTML = 'Press SPACE or CLICK to skip<br><span style="color: #ffaa00; font-size: 12px;">Hold S for 5s to skip all</span>';
+    skipText.innerHTML = this.skipInstructionText();
     skipContainer.appendChild(skipText);
     
     // Skip hold progress bar - CENTERED INSIDE THE BOX
@@ -616,6 +616,7 @@ window.CutsceneSystem = class CutsceneSystem {
   
   // Add event listeners for skipping
   addEventListeners() {
+    this.controllerPoll = this.trackInterval(() => window.inputManager?.updateFrontend?.('intro'), 50);
     this.skipHandler = (e) => {
       if ((e.code === 'Space' || e.type === 'click') && !this.inputDisabled) {
         e.preventDefault();
@@ -646,6 +647,7 @@ window.CutsceneSystem = class CutsceneSystem {
   
   // Remove event listeners
   removeEventListeners() {
+    if (this.controllerPoll) { clearInterval(this.controllerPoll); this.ownedIntervals.delete(this.controllerPoll); this.controllerPoll = null; }
     if (this.skipHandler) {
       document.removeEventListener('keydown', this.skipHandler);
       document.removeEventListener('keydown', this.skipHoldStartHandler);
@@ -720,6 +722,10 @@ window.CutsceneSystem = class CutsceneSystem {
   }
   
   // Start skip hold timer
+  skipInstructionText() {
+    return window.BARCODE?.GamepadUI?.connected ? 'A: Next panel<br><span style="color: #ffaa00; font-size: 12px;">Hold B for 5s to skip all</span>' : 'Press SPACE or CLICK to skip<br><span style="color: #ffaa00; font-size: 12px;">Hold S for 5s to skip all</span>';
+  }
+
   startSkipHold() {
     if (this.isSkipHoldActive) return; // Already holding
     
@@ -742,9 +748,9 @@ window.CutsceneSystem = class CutsceneSystem {
     if (skipHoldBar) skipHoldBar.style.display = 'block';
     if (skipHoldTimer) skipHoldTimer.style.display = 'block';
     if (skipInstruction) {
-      skipInstruction.innerHTML = '<span style="color: #ffaa00;">HOLDING S - ' + 
+      skipInstruction.innerHTML = '<span style="color: #ffaa00;">HOLD TO SKIP - ' +
         '<span id="hold-time">5.0</span>s to skip all</span><br>' +
-        '<span style="color: rgba(255, 255, 255, 0.8); font-size: 12px;">Press SPACE or CLICK to skip single</span>';
+        '<span style="color: rgba(255, 255, 255, 0.8); font-size: 12px;">Release to cancel</span>';
     }
     
     // Start progress update interval
@@ -780,7 +786,7 @@ window.CutsceneSystem = class CutsceneSystem {
     if (skipHoldBar) skipHoldBar.style.display = 'none';
     if (skipHoldTimer) skipHoldTimer.style.display = 'none';
     if (skipInstruction) {
-      skipInstruction.innerHTML = 'Press SPACE or CLICK to skip<br><span style="color: #ffaa00; font-size: 12px;">Hold S for 5s to skip all</span>';
+      skipInstruction.innerHTML = this.skipInstructionText();
     }
     
     // Reset progress bar
@@ -857,6 +863,7 @@ window.CutsceneSystem = class CutsceneSystem {
     
     this.isActive = false;
     this.removeEventListeners();
+    window.inputManager?.resetActionEdges?.();
     
     // Fade out and remove container
     if (this.cutsceneContainer) {

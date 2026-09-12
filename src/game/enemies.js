@@ -1564,6 +1564,11 @@ window.EnemyManager = class EnemyManager {
 
     group.forEach((enemy, index) => {
       if (!enemy._inCrowd) return;
+      // A shown warning commits to its authored aim through attack/recovery.
+      // Separation still resolves bodies in the manager; formation steering
+      // must not write another velocity over that commitment afterwards.
+      if (enemy.role === 'swooper' && ['telegraph', 'dive', 'recovery'].includes(enemy.swooperState)) return;
+      if ((enemy._sector1MissionEnemy || enemy._jammerReinforcement) && ['brace', 'attack', 'recovery'].includes(enemy.combatPattern)) return;
 
       const time = this.getHostileClockNow() / 1000;
       const phaseShift = (index / group.length) * Math.PI * 2;

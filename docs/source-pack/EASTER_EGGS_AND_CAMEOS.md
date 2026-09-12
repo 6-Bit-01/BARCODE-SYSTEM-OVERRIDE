@@ -1,5 +1,10 @@
 # Easter eggs, cameos and player-aware presentation
 
+## Stage B prototype status
+
+`egg.comic.gutter` now has an existing-art, code-drawn Level 1 setup: inspect the loose caption in crew-link panel 3 for a Studio Rats reply, then get a small results callback. The record is run-only and reset-safe. No rat sprite is commissioned, no campaign save field is added and no later-level payoff is claimed. The L4/L7 ideas below remain planned. `STORY_CONTROLS_PASS.md` records exact review scope and preserves all cast corrections.
+
+
 ## What is approved and what this file adds
 
 The owner explicitly requested Easter eggs to the games and other influences behind System Override. The cast corrections below are direct instructions. The placements, gags and IDs in this file are **working production proposals**, not shipped features or final dialogue. They retain the older bank without silently promoting every candidate to approved content.

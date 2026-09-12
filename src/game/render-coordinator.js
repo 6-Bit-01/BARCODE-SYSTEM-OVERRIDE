@@ -233,7 +233,7 @@ function drawGameElements(ctx) {
   const worldWidth = 4096;
   const halfCanvas = canvasWidth / 2;
   
-  let cameraX = playerX;
+  let cameraX = window.renderer?.getFollowCameraX?.(playerX) ?? playerX;
   cameraX = window.clamp?.(cameraX, halfCanvas, worldWidth - halfCanvas) || cameraX;
   if (window.sector1Progression && typeof window.sector1Progression.getCameraX === 'function') cameraX = window.sector1Progression.getCameraX(cameraX);
   window.gameCamera = { x: cameraX - halfCanvas, y: 0, centerX: cameraX };
@@ -374,16 +374,7 @@ function drawOtherParticles(ctx) {
 // Draw ground
 function drawGround(ctx) {
   const groundY = 890;
-  
-  const playerX = window.player ? window.player.position.x : 960;
-  const canvasWidth = 1920;
   const worldWidth = 4096;
-  const halfCanvas = canvasWidth / 2;
-  
-  let cameraX = playerX;
-  cameraX = window.clamp?.(cameraX, halfCanvas, worldWidth - halfCanvas) || cameraX;
-  if (window.sector1Progression && typeof window.sector1Progression.getCameraX === 'function') cameraX = window.sector1Progression.getCameraX(cameraX);
-  window.gameCamera = { x: cameraX - halfCanvas, y: 0, centerX: cameraX };
   
   const groundStartX = -2000;
   const groundEndX = worldWidth + 2000;

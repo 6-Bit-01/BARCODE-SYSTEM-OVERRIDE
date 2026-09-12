@@ -4,7 +4,8 @@ window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.Preferences', 'BARCODE.PauseMenu'], dependencies: ['BARCODE.LoreRecords'] });
 (function() {
   const BARCODE = window.BARCODE = window.BARCODE || {};
-  const defaults = Object.freeze({ music: 1, sfx: 1, screenShake: true, flashes: true, crtPostEffects: true });
+  const defaults = Object.freeze({ music: 1, sfx: 1, screenShake: true, flashes: true, crtPostEffects: true, inputOffsetMs: 0, visualOffsetMs: 0 });
+  const normalize = (key, value) => key.endsWith('OffsetMs') ? Math.round(Math.max(-200, Math.min(200, value))) : Math.round(Math.max(0, Math.min(1, value)) * 100) / 100;
   const storageKey = 'barcode.presentation.v1';
   const preferences = BARCODE.Preferences = {
     values: { ...defaults }, saved: true,
@@ -13,7 +14,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
         const data = JSON.parse(window.localStorage?.getItem(storageKey) || '{}');
         for (const key of Object.keys(defaults)) {
           if (typeof defaults[key] === 'boolean' && typeof data?.[key] === 'boolean') this.values[key] = data[key];
-          if (typeof defaults[key] === 'number' && Number.isFinite(data?.[key])) this.values[key] = Math.max(0, Math.min(1, data[key]));
+          if (typeof defaults[key] === 'number' && Number.isFinite(data?.[key])) this.values[key] = normalize(key, data[key]);
         }
       } catch (_) { /* A blocked/corrupt store never prevents playing. */ }
       this.apply();
@@ -38,7 +39,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
     },
     set(key, value) {
       if (!(key in defaults) || typeof value !== typeof defaults[key]) return;
-      if (typeof value === 'number') { if (!Number.isFinite(value)) return; value = Math.round(Math.max(0, Math.min(1, value)) * 100) / 100; }
+      if (typeof value === 'number') { if (!Number.isFinite(value)) return; value = normalize(key, value); }
       this.values[key] = value; this.apply(); this.save();
     },
     restoreDefaults() { this.values = { ...defaults }; this.apply(); this.save(); }
@@ -46,12 +47,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
   const rows = [
     ['music', 'Music'], ['sfx', 'SFX'], ['screenShake', 'Screen shake'],
     ['flashes', 'Flash accents'], ['crtPostEffects', 'CRT effect'],
-    ['archive', 'Lore archive'], ['resume', 'Resume game'], ['defaults', 'Reset settings']
+    ['timing', 'Timing calibration'], ['archive', 'Lore archive'], ['resume', 'Resume game'], ['defaults', 'Reset settings']
   ];
-  const rowTop = 365, rowStep = 60;
+  const rowTop = 365, rowStep = 54;
   const menu = BARCODE.PauseMenu = {
     open: false, dirty: false, focus: 0, drag: null, heldKeys: new Set(), snapshot: null, resumePending: false, message: '',
-    view: 'settings', archiveFocus: 0, archiveIndex: 0,
+    view: 'settings', archiveFocus: 0, archiveIndex: 0, timingFocus: 0,
     isPaused() { return !!(window.isPaused || window.gameState?.paused); },
     sync() {
       const paused = this.isPaused();
@@ -81,6 +82,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       const key = rows[this.focus][0];
       if (key === 'resume') { this.resume(); return; }
       if (key === 'archive') { this.openArchive(); return; }
+      if (key === 'timing') { this.view = 'timing'; this.timingFocus = 0; this.dirty = true; return; }
       if (key === 'defaults') preferences.restoreDefaults();
       else if (typeof defaults[key] === 'boolean') preferences.set(key, !preferences.values[key]);
       else preferences.set(key, preferences.values[key] + direction * 0.05);
@@ -122,6 +124,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       const key = event.key.toLowerCase();
       if (!this.open) return this.heldKeys.has(key);
       this.heldKeys.add(key); event.preventDefault?.();
+      if (this.view === 'timing') {
+        if (key === 'p' && !event.repeat) this.resume();
+        else if (key === 'escape' && !event.repeat) this.closeTiming();
+        else if (key === 'arrowup' || key === 'arrowdown' || key === 'tab') {
+          this.timingFocus = (this.timingFocus + (key === 'arrowup' || (key === 'tab' && event.shiftKey) ? 4 : 1)) % 5; this.dirty = true;
+        } else if (key === 'arrowleft' || key === 'arrowright') { if (this.timingFocus < 2) this.activateTiming(key === 'arrowleft' ? -1 : 1); }
+        else if ((key === 'enter' || key === ' ') && !event.repeat) this.activateTiming();
+        return true;
+      }
       if (this.view === 'archive') {
         if (key === 'p' && !event.repeat) this.resume();
         else if (key === 'escape' && !event.repeat) this.closeArchive();
@@ -154,6 +165,16 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       const canvas = document.getElementById('gameCanvas'), rect = canvas?.getBoundingClientRect?.();
       if (!rect?.width || !rect?.height) return true;
       const x = (event.clientX - rect.left) * 1920 / rect.width, y = (event.clientY - rect.top) * 1080 / rect.height;
+      if (this.view === 'timing') {
+        if (phase === 'down') {
+          const index = Math.floor((y - 430) / 86);
+          if (x < 440 || x > 1480 || index < 0 || index > 4 || y > 430 + index * 86 + 62) return true;
+          this.timingFocus = index; this.dirty = true;
+          if (index < 2) this.drag = index; else this.activateTiming();
+        }
+        if (this.drag !== null) { preferences.set(['inputOffsetMs', 'visualOffsetMs'][this.drag], Math.round(((x - 1130) / 260 * 400 - 200) / 5) * 5); this.dirty = true; }
+        return true;
+      }
       if (this.view === 'archive') {
         if (phase !== 'down' || x < 420 || x > 840) return true;
         const index = Math.floor((y - 366) / 104), count = BARCODE.LoreRecords.level1.length;
@@ -164,7 +185,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       }
       if (phase === 'down') {
         const index = Math.floor((y - rowTop) / rowStep);
-        if (x < 1020 || x > 1500 || index < 0 || index >= rows.length || y > rowTop + index * rowStep + 52) return true;
+        if (x < 1020 || x > 1500 || index < 0 || index >= rows.length || y > rowTop + index * rowStep + 48) return true;
         this.focus = index; this.dirty = true;
         if (index < 2) this.drag = index; else this.activate();
       }
@@ -179,6 +200,35 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
       if (this.snapshot) ctx.drawImage(this.snapshot, 0, 0); else { ctx.fillStyle = '#081321'; ctx.fillRect(0, 0, 1920, 1080); }
       this.draw(ctx); ctx.restore(); this.dirty = false;
+    },
+    closeTiming() { this.view = 'settings'; this.focus = rows.findIndex(row => row[0] === 'timing'); this.drag = null; this.dirty = true; },
+    activateTiming(direction = 1) {
+      const key = ['inputOffsetMs', 'visualOffsetMs'][this.timingFocus];
+      if (key) preferences.set(key, preferences.values[key] + direction * 5);
+      else if (this.timingFocus === 2) { preferences.set('inputOffsetMs', 0); preferences.set('visualOffsetMs', 0); }
+      else if (this.timingFocus === 3) this.resume();
+      else this.closeTiming();
+      this.dirty = true;
+    },
+    drawTiming(ctx, text) {
+      text('TIMING CALIBRATION', 440, 250, 42, '#a0ffe4');
+      text('Use small steps, then test on the beat in Rhythm Mode.', 440, 320, 23);
+      text('Audio keeps its original timing. Scoring windows stay the same.', 440, 360, 21, '#cfa2ff');
+      ['Input compensation', 'Visual beat delay', 'Reset timing to zero', 'Test in play / Resume', 'Back to pause'].forEach((label, index) => {
+        const y = 430 + index * 86;
+        ctx.fillStyle = index === this.timingFocus ? '#16394b' : '#0d2032'; ctx.fillRect(440, y, 1040, 62);
+        if (index === this.timingFocus) { ctx.strokeStyle = '#94ffe3'; ctx.strokeRect(440, y, 1040, 62); }
+        text(label, 464, y + (index < 2 ? 19 : 31), 23, '#edf3ff');
+        if (index < 2) {
+          const value = preferences.values[index ? 'visualOffsetMs' : 'inputOffsetMs'];
+          text(index ? '+ delays HUD/rings; − shows them sooner.' : 'Consistently LATE? Increase. EARLY? Decrease.', 464, y + 46, 18, '#cfa2ff');
+          ctx.fillStyle = '#334358'; ctx.fillRect(1130, y + 27, 260, 8);
+          ctx.fillStyle = '#94ffe3'; ctx.fillRect(1127 + (value + 200) / 400 * 260, y + 20, 6, 22);
+          text(`${value > 0 ? '+' : ''}${value} ms`, 1404, y + 31, 17);
+        }
+      });
+      text(this.message || (preferences.saved ? 'Saved on this device. Range: −200 to +200 ms. Step: 5 ms.' : 'Applied this session; saving is unavailable.'), 440, 880, 19, '#cfa2ff');
+      text(BARCODE.GamepadUI?.connected ? 'D-pad: Select / Adjust    A: Choose    B: Back    Start: Resume' : 'Arrows: Select / Adjust    Enter: Choose    Esc: Back    P: Resume', 440, 920, 19);
     },
     drawArchive(ctx, text) {
       const { records, count, saved } = this.archiveState();
@@ -222,7 +272,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
         text(saved ? 'Records stay on this device.' : 'Saving unavailable on this device.', 440, 704, 18, saved ? '#a0ffe4' : '#ffc68a');
         if (!saved) text('These records remain in this session.', 440, 728, 17, '#ffc68a');
       }
-      text('Arrows / Tab: Select   Enter: Choose   Esc: Back   P: Resume', 440, 916, 20);
+      text(BARCODE.GamepadUI?.connected ? 'D-pad: Select   A: Choose   B: Back   Start: Resume' : 'Arrows / Tab: Select   Enter: Choose   Esc: Back   P: Resume', 440, 916, 20);
     },
     draw(ctx) {
       ctx.save(); ctx.globalAlpha = 1; ctx.shadowBlur = 0;
@@ -231,16 +281,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       ctx.strokeStyle = '#74f7d2'; ctx.lineWidth = 2; ctx.strokeRect(380, 180, 1160, 765);
       const text = (value, x, y, size = 22, color = '#d4dfec') => { ctx.font = `${size}px monospace`; ctx.fillStyle = color; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(value, x, y); };
       if (this.view === 'archive') { this.drawArchive(ctx, text); ctx.restore(); return; }
+      if (this.view === 'timing') { this.drawTiming(ctx, text); ctx.restore(); return; }
       text('PAUSED', 440, 250, 46, '#a0ffe4');
       text('Take a breath. Keep your signal.', 440, 307, 22);
       text('CONTROLS', 440, 392, 24, '#cfa2ff');
-      ['A / D or Left / Right: Move', 'Space / W / Up: Jump', 'R: Enter Rhythm Mode', 'Down: Attack on the beat', 'H: Hack when unlocked', 'P: Pause'].forEach((line, i) => text(line, 440, 448 + i * 46, 21));
+      const controls = BARCODE.GamepadUI?.connected ? ['Stick / D-pad: Move', 'A / RB: Jump (tutorial: RB)', 'B: Enter / Exit Rhythm Mode', 'X: Attack on the beat', 'Y: Hack when unlocked', 'Start: Pause · A: Menu confirm'] : ['A / D or Left / Right: Move', 'Space / W / Up: Jump', 'R: Enter Rhythm Mode', 'Down: Attack on the beat', 'H: Hack when unlocked', 'P: Pause'];
+      controls.forEach((line, i) => text(line, 440, 448 + i * 46, 21));
       text('RHYTHM MODE HOLDS YOUR STANCE', 440, 772, 20, '#a0ffe4');
-      text('R or Escape exits so you can move.', 440, 810, 20);
+      text(BARCODE.GamepadUI?.connected ? 'B exits so you can move.' : 'R or Escape exits so you can move.', 440, 810, 20);
       rows.forEach(([key, label], index) => {
         const y = rowTop + index * rowStep, selected = index === this.focus;
-        ctx.fillStyle = selected ? '#16394b' : '#0d2032'; ctx.fillRect(1020, y, 480, 52);
-        if (selected) { ctx.strokeStyle = '#94ffe3'; ctx.strokeRect(1020, y, 480, 52); }
+        ctx.fillStyle = selected ? '#16394b' : '#0d2032'; ctx.fillRect(1020, y, 480, 48);
+        if (selected) { ctx.strokeStyle = '#94ffe3'; ctx.strokeRect(1020, y, 480, 48); }
         text(label, 1038, y + 26, 20);
         if (index < 2) {
           ctx.fillStyle = '#334358'; ctx.fillRect(1260, y + 22, 190, 8);
@@ -251,7 +303,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
         else if (key === 'archive') text('L', 1460, y + 26, 20, '#cfa2ff');
       });
       text(this.message || (preferences.saved ? 'Settings save automatically.' : 'Settings apply now; saving is unavailable here.'), 440, 874, 19, '#cfa2ff');
-      text('Tab / Up / Down: Select   Left / Right: Adjust   Enter: Choose   P / Esc: Resume', 440, 914, 18);
+      text(BARCODE.GamepadUI?.connected ? 'D-pad: Select / Adjust    A: Choose    B / Start: Resume' : 'Tab / Up / Down: Select   Left / Right: Adjust   Enter: Choose   P / Esc: Resume', 440, 914, 18);
       ctx.restore();
     }
   };

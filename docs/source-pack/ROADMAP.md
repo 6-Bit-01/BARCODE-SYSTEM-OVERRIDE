@@ -1,19 +1,19 @@
-# Roadmap — after merged PR #37
+# Roadmap — Stage B after merged PR #38
 
-Runtime baseline: **38732933713c4f9ec22666e49b728a0626a85f25**. Finishable Level 1, combat/animation/audio repairs, combined polish, discovery/traffic/targets and written lore/archive are merged. Their old checklists are history, not the next tasks.
+Base: **0d1882f6b6eebf6fc5704d8a3270f2a6b1fb7354**, merged #38; runtime through #37 is retained. Finishable Level 1, combat/animation/audio repairs, combined polish, discovery/traffic/targets and written lore/archive are merged. Their old checklists are history, not the next tasks.
 
 `CONTINUATION_PLAN.md` is the detailed current checklist/evidence trail. `CAMPAIGN_STORY_MAP.md` carries the full working story; `EASTER_EGGS_AND_CAMEOS.md` and `ASSET_AND_PLATFORM_PLAN.md` carry supporting requirements.
 
 | Order | Deliverable | Exit evidence | State |
 |---|---|---|---|
-| A | Full story/cast/reveal/collectible/inspiration map and current handoff | Seven connected levels, 28 stable lore purposes, corrected cast, required/optional payoffs, exact source status | This document review |
-| B | Representative existing-art crew/panel sequence; remaining controller, committed-enemy, boss-cue, HUD, camera and calibration improvements | Connected scene with later payoff, production logic checks and focused owner Makko route | Next implementation checkpoints |
+| A | Full story/cast/reveal/collectible/inspiration map and current handoff | Seven connected levels, 28 stable lore purposes, corrected cast, required/optional payoffs, exact source status | Merged in #38 |
+| B | Representative existing-art crew/panel sequence; remaining controller, committed-enemy, boss-cue, HUD, camera and calibration improvements | Connected scene with later payoff, production logic checks and focused owner Makko route | Implemented in current combined review; Makko pending |
 | C | Campaign adapter, extend existing save, keys/modules/results/intermissions and second-song mixer proof | Clean leave/re-enter, old discoveries survive, resume progress, no resource leaks, independent source roles | Before full new genres |
 | D | Contra slice first; road and first-person proofs; puzzle and capped Sample-party loops | Roughly five-minute useful proofs with threat/music relationship, pause/exit/save-return and measured asset geometry | Planned; production order differs from story order |
 | E | Complete compact stages with story bridges, crew roles, selected eggs, lore/rewards and appropriate music | Finishable stages, required plot on main route, persistent discoveries | Planned |
 | F | Finale preparation, prior-item/crew payoffs, 9 Bit, authored resolution and full-game acceptance | Zero-module win route, recoverable final save, transitions and ending paths checked | Exact outcomes unresolved |
 
-Use coherent combined reviews, not a separate PR per tiny effect. Stage A changes documents only. Exact scenes/assets and ending/puzzle/device choices are resolved when concrete designs are ready; retained decisions need not be reapproved.
+Use coherent combined reviews, not a separate PR per tiny effect. Stage A changed documents only; Stage B is now implemented as documented in STORY_CONTROLS_PASS.md. Exact scenes/assets and ending/puzzle/device choices are resolved when concrete designs are ready; retained decisions need not be reapproved.
 
 ## Infrastructure and performance
 

@@ -672,12 +672,12 @@ window.TutorialSystem = class TutorialSystem {
           ctx.fillStyle = '#00ffff';
           ctx.font = '16px Orbitron';
           ctx.textAlign = 'left';
-          ctx.fillText('Press SPACE to continue...', 50, boxY + 150);
+          ctx.fillText(window.BARCODE?.GamepadUI?.connected ? 'A: Continue · RB: Jump · B: Rhythm · X: Attack · Y: Hack' : 'Press SPACE to continue...', 50, boxY + 150);
         } else {
           ctx.fillStyle = '#ff6666';
           ctx.font = '16px Orbitron';
           ctx.textAlign = 'left';
-          ctx.fillText('Complete tasks to continue...', 50, boxY + 150);
+          ctx.fillText(window.BARCODE?.GamepadUI?.connected ? 'Complete tasks · Stick: Move · RB: Jump · B: Rhythm · X: Attack · Y: Hack' : 'Complete tasks to continue...', 50, boxY + 150);
         }
       }
     }
