@@ -66,6 +66,7 @@ window.gameLoop = function(timestamp) {
     if (window.inputManager && typeof window.inputManager.updatePausedInput === 'function') {
       window.inputManager.updatePausedInput();
     }
+    window.BARCODE?.PauseMenu?.render();
     scheduleNextGameplayFrame();
     return;
   }
@@ -83,6 +84,10 @@ window.gameLoop = function(timestamp) {
 
   // Cap delta time to prevent spiral of death (if tab was inactive)
   const cappedDelta = Math.min(deltaTime, 100); // Max 100ms (10fps minimum)
+  window.BARCODE?.PauseMenu?.sync();
+  // Completion presentation advances through this same RAF even after gameplay
+  // stops. Its owner ignores this delta outside the completed state.
+  window.sector1Progression?.updateCompletionPresentation?.(cappedDelta);
 
   // Update input state at start of frame
   if (window.inputManager) {

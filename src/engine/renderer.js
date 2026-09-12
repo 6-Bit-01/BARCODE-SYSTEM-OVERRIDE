@@ -36,7 +36,7 @@ window.Renderer = class Renderer {
     this.height = canvas.height;
     window.BARCODE_RENDER_QUALITY = window.BARCODE_RENDER_QUALITY || {};
     this.postEffects = window.BARCODE_RENDER_QUALITY.crtPostEffects !== false;
-    this.screenShake = { x: 0, y: 0, intensity: 0, duration: 0 };
+    this.clearScreenShake();
     
     // CRT effect properties
     this.scanlineOffset = 0;
@@ -65,30 +65,38 @@ window.Renderer = class Renderer {
     this.ctx.fillRect(0, 0, this.width, this.height);
   }
 
-  // Apply screen shake effect
-  applyScreenShake() {
-    if (this.screenShake.duration > 0) {
-      // Use fallback if randomRange is not available
-      if (typeof window.randomRange === 'function') {
-        this.screenShake.x = window.randomRange(-this.screenShake.intensity, this.screenShake.intensity);
-        this.screenShake.y = window.randomRange(-this.screenShake.intensity, this.screenShake.intensity);
-      } else {
-        // Fallback to Math.random
-        const range = this.screenShake.intensity;
-        this.screenShake.x = (Math.random() * 2 - 1) * range;
-        this.screenShake.y = (Math.random() * 2 - 1) * range;
-      }
-      this.screenShake.duration -= 16; // ~60fps
-    } else {
-      this.screenShake.x = 0;
-      this.screenShake.y = 0;
+  // Called only from the existing renderer update. Both the envelope and
+  // motion sample elapsed time, so a 144 Hz display does not shorten impacts.
+  applyScreenShake(deltaTime = 0) {
+    if (!this.screenShake || window.isPaused || window.gameState?.paused) return;
+    const shake = this.screenShake;
+    if (shake.duration <= 0 || window.BARCODE_RENDER_QUALITY?.screenShake === false) {
+      this.clearScreenShake();
+      return;
     }
+    if (!Number.isFinite(deltaTime) || deltaTime < 0) return;
+    shake.elapsedMs += deltaTime;
+    shake.duration = Math.max(0, shake.totalDuration - shake.elapsedMs);
+    if (shake.duration < 0.000001) { this.clearScreenShake(); return; }
+    const amplitude = shake.intensity * Math.pow(shake.duration / shake.totalDuration, 2);
+    shake.x = Math.sin(shake.elapsedMs * 0.11) * amplitude;
+    shake.y = Math.sin(shake.elapsedMs * 0.137) * amplitude * 0.65;
   }
 
-  // Trigger screen shake
+  clearScreenShake() {
+    this.screenShake = { x: 0, y: 0, intensity: 0, duration: 0, totalDuration: 0, elapsedMs: 0 };
+  }
+
+  // Never stack offsets or let a small hit erase a stronger impact. Legacy
+  // victory/death requests also pass through the same short, restrained cap.
   addScreenShake(intensity, duration) {
-    this.screenShake.intensity = intensity;
-    this.screenShake.duration = duration;
+    if (!Number.isFinite(intensity) || !Number.isFinite(duration) || intensity <= 0 || duration <= 0) return;
+    if (window.BARCODE_RENDER_QUALITY?.screenShake === false) return;
+    intensity = Math.min(6, intensity);
+    duration = Math.min(300, duration);
+    const shake = this.screenShake;
+    if (shake.duration > 0 && (intensity < shake.intensity || (intensity === shake.intensity && duration <= shake.duration))) return;
+    this.screenShake = { x: 0, y: 0, intensity, duration, totalDuration: duration, elapsedMs: 0 };
   }
 
   // Get transformed context with effects
@@ -171,7 +179,7 @@ window.Renderer = class Renderer {
     // Preserve the occasional VHS instability with a handful of cheap bands.
     // These are deliberately bounded draw calls rather than a full-frame readback.
     const activeGlitch = Math.max(this.glitchIntensity, this.chromaticAberration * 0.5);
-    const bandCount = activeGlitch > 0.15 ? Math.min(3, 1 + Math.floor(activeGlitch * 2)) : (Math.random() > 0.985 ? 1 : 0);
+    const bandCount = window.BARCODE_RENDER_QUALITY?.flashes === false ? 0 : activeGlitch > 0.15 ? Math.min(3, 1 + Math.floor(activeGlitch * 2)) : (Math.random() > 0.985 ? 1 : 0);
     for (let i = 0; i < bandCount; i++) {
       const y = Math.floor(Math.random() * this.height);
       const height = 1 + Math.floor(Math.random() * 3);
@@ -290,6 +298,7 @@ window.Renderer = class Renderer {
   // Update effect properties
   update(deltaTime) {
     try {
+      this.applyScreenShake?.(deltaTime);
       // Gradually reduce glitch effect
       if (this.glitchIntensity > 0) {
         this.glitchIntensity = Math.max(0, this.glitchIntensity - deltaTime * 0.001);
@@ -330,12 +339,13 @@ window.Renderer = class Renderer {
   resetPostEffects() {
     // Re-enable post effects if canvas might be clean
     if (!this.isCanvasTainted()) {
-      this.postEffects = true;
+      this.postEffects = window.BARCODE_RENDER_QUALITY?.crtPostEffects !== false;
     }
   }
 
   // Trigger glitch effect
   addGlitch(intensity, duration) {
+    if (window.BARCODE_RENDER_QUALITY?.flashes === false) return;
     this.glitchIntensity = intensity;
     this.chromaticAberration = intensity * 2;
     

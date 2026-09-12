@@ -8,6 +8,7 @@
     "/lib/MakkoEngine.min.js",
     "src/utils/math.js",
     "src/core/fullscreen.js",
+    "src/game/pause-menu.js",
     "src/core/action-input.js",
     "src/game/player-combat.js",
     "src/core/input.js",
@@ -52,6 +53,7 @@
   "loadedRepositoryJs": [
     "src/utils/math.js",
     "src/core/fullscreen.js",
+    "src/game/pause-menu.js",
     "src/core/action-input.js",
     "src/game/player-combat.js",
     "src/core/input.js",
@@ -119,6 +121,8 @@
     "tools/check-level-01-boss.js",
     "tools/check-level-01-gameplay-dynamics.js",
     "tools/check-level-01-mission.js",
+    "tools/check-level-01-polish-menu.js",
+    "tools/check-level-01-polish.js",
     "tools/check-level-01-presentation.js",
     "tools/check-level-01-responsive-combat.js",
     "tools/check-level-01-smoothing.js",
@@ -138,6 +142,10 @@
       },
       {
         "file": "src/core/fullscreen.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/pause-menu.js",
         "status": "pass"
       },
       {
@@ -295,11 +303,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 41,
+        "index": 42,
         "status": "pass"
       },
       {
-        "index": 43,
+        "index": 44,
         "status": "pass"
       }
     ]
@@ -362,13 +370,13 @@
     {
       "global": "window.EnemyManager",
       "file": "src/game/enemies.js",
-      "line": 1143,
+      "line": 1191,
       "loaded": true
     },
     {
       "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 1611,
+      "line": 1659,
       "loaded": true
     },
     {
@@ -416,7 +424,7 @@
     {
       "global": "window.gameState",
       "file": "src/game/lost-data.js",
-      "line": 395,
+      "line": 396,
       "loaded": true
     },
     {
@@ -476,7 +484,7 @@
     {
       "global": "window.player",
       "file": "src/game/player.js",
-      "line": 1748,
+      "line": 1755,
       "loaded": true
     },
     {
@@ -524,61 +532,61 @@
     {
       "global": "window.renderer",
       "file": "src/engine/renderer.js",
-      "line": 428,
+      "line": 438,
       "loaded": true
     },
     {
       "global": "window.renderer",
       "file": "src/engine/renderer.js",
-      "line": 500,
+      "line": 510,
       "loaded": true
     },
     {
       "global": "window.renderer",
       "file": "src/engine/renderer.js",
-      "line": 517,
+      "line": 527,
       "loaded": true
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 351,
+      "line": 350,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 378,
+      "line": 377,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 440,
+      "line": 439,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 458,
+      "line": 457,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 538,
+      "line": 537,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 578,
+      "line": 577,
       "loaded": false
     },
     {
       "global": "window.renderGame",
       "file": "src/game/render-coordinator.js",
-      "line": 16,
+      "line": 34,
       "loaded": true
     },
     {
@@ -596,7 +604,7 @@
     {
       "global": "window.startGameLoop",
       "file": "src/core/loop.js",
-      "line": 132,
+      "line": 137,
       "loaded": true
     },
     {
@@ -638,6 +646,7 @@
     "/lib/MakkoEngine.min.js",
     "src/utils/math.js",
     "src/core/fullscreen.js",
+    "src/game/pause-menu.js",
     "src/core/action-input.js",
     "src/game/player-combat.js",
     "src/core/input.js",

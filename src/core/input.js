@@ -24,6 +24,8 @@ window.InputManager = class InputManager {
     window.addEventListener('keydown', (e) => {
       const key = e.key.toLowerCase();
 
+      if (window.BARCODE?.PauseMenu?.keyDown(e)) { e.preventDefault(); return; }
+
       if (this.terminalKeyLatched === key) { e.preventDefault(); return; }
       if (this.hackEscapeLatched && key === 'escape') {
         e.preventDefault();
@@ -76,6 +78,7 @@ window.InputManager = class InputManager {
     });
     window.addEventListener('keyup', (e) => {
       const key = e.key.toLowerCase();
+      window.BARCODE?.PauseMenu?.keyUp(e);
       if (this.terminalKeyLatched === key) this.terminalKeyLatched = null;
       const terminalOwnsKey = !!(window.hackingSystem?.isActive?.() || (this.hackEscapeLatched && key === 'escape'));
       this.keys[key] = false;
@@ -95,10 +98,11 @@ window.InputManager = class InputManager {
       this.resetActionEdges();
       this.mouse.pressed = false;
       this.mouse.clicked = false;
+      if (window.BARCODE?.PauseMenu) { window.BARCODE.PauseMenu.heldKeys.clear(); window.BARCODE.PauseMenu.drag = null; }
     });
-    window.addEventListener('mousemove', (e) => { this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
-    window.addEventListener('mousedown', () => { this.mouse.pressed = true; this.mouse.clicked = true; });
-    window.addEventListener('mouseup', () => { this.mouse.pressed = false; });
+    window.addEventListener('mousemove', (e) => { if (window.BARCODE?.PauseMenu?.pointer(e, 'move')) return; this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
+    window.addEventListener('mousedown', (e) => { if (window.BARCODE?.PauseMenu?.pointer(e, 'down')) return; this.mouse.pressed = true; this.mouse.clicked = true; });
+    window.addEventListener('mouseup', (e) => { window.BARCODE?.PauseMenu?.pointer(e, 'up'); this.mouse.pressed = false; });
     window.addEventListener('gamepadconnected', (e) => { this.gamepad = e.gamepad; });
     window.addEventListener('gamepaddisconnected', () => { this.gamepad = null; });
   }
@@ -129,6 +133,7 @@ window.InputManager = class InputManager {
   }
 
   updatePausedInput() {
+    window.BARCODE?.PauseMenu?.sync();
     this.update({ inputOnly: true, context: { paused: true } });
   }
 

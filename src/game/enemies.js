@@ -1102,31 +1102,79 @@ window.Enemy = class Enemy {
     ctx.restore();
   }
 
-  drawCombatCue(ctx) {
-    if (!this.entranceComplete || !(this._sector1MissionEnemy || this._jammerReinforcement)) return;
+  getCombatCue() {
+    if (!this.active || !this.entranceComplete || !(this._sector1MissionEnemy || this._jammerReinforcement)) return null;
     const swooper = this.role === 'swooper';
     const phase = swooper ? this.swooperState : this.combatPattern;
-    if (!swooper && !['corrupted', 'firewall'].includes(this.type)) return;
-    if (!['brace', 'telegraph', 'attack', 'dive', 'recovery'].includes(phase)) return;
-    const box = this.getStompBox();
+    if (!swooper && !['corrupted', 'firewall'].includes(this.type)) return null;
+    if (!['brace', 'telegraph', 'attack', 'dive', 'recovery'].includes(phase)) return null;
     const warning = phase === 'brace' || phase === 'telegraph';
     const recovery = phase === 'recovery';
+    const elapsed = swooper ? this.swooperTimerMs : this.combatPatternMs;
+    const duration = this.type === 'firewall' ? 950 : 650;
+    return { phase, swooper, warning, recovery,
+      progress: Math.max(0, Math.min(1, elapsed / duration)),
+      direction: this.committedDirection,
+      aim: swooper && this.swooperAim ? { ...this.swooperAim } : null };
+  }
+
+  drawCombatCue(ctx) {
+    const cue = this.getCombatCue();
+    if (!ctx || !cue) return;
+    const { swooper, warning, recovery } = cue;
+    const box = this.getStompBox();
+    const color = recovery ? '#8fffe3' : '#ffbd70';
     const label = recovery ? 'RECOVERING' : swooper ? (warning ? 'DIVE WINDUP' : 'DIVE') : this.type === 'firewall' ? (warning ? 'BRACING' : 'SWEEP') : (warning ? 'CHARGE WINDUP' : 'CHARGE');
-    ctx.fillStyle = 'rgba(0, 8, 16, 0.86)';
-    ctx.fillRect(this.position.x - 67, box.y - 33, 134, 24);
-    ctx.fillStyle = recovery ? '#00ffff' : '#ffbd70';
-    ctx.textAlign = 'center'; ctx.font = 'bold 12px monospace';
-    ctx.fillText(label, this.position.x, box.y - 17);
+    const x = this.position.x, y = box.y - 25;
+    ctx.save(); ctx.fillStyle = 'rgba(0, 8, 16, 0.92)';
+    ctx.fillRect(x - 90, y - 17, 172, 31);
+    ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 2;
+    // Redundant shapes remain readable without relying on tiny text or color.
+    const iconX = x - 72;
+    ctx.beginPath();
+    if (recovery) {
+      ctx.arc(iconX, y - 1, 10, 0.3, Math.PI * 1.8); ctx.stroke();
+      ctx.fillRect(iconX - 2, y - 6, 4, 10);
+    } else if (swooper) {
+      ctx.moveTo(iconX - 10, y - 8); ctx.lineTo(iconX, y + 3); ctx.lineTo(iconX + 10, y - 8); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(iconX - 7, y); ctx.lineTo(iconX, y + 8); ctx.lineTo(iconX + 7, y); ctx.stroke();
+    } else {
+      if (this.type === 'firewall') {
+        ctx.moveTo(iconX - 10, y - 11); ctx.lineTo(iconX + 10, y - 11); ctx.lineTo(iconX + 8, y + 3); ctx.lineTo(iconX, y + 10); ctx.lineTo(iconX - 8, y + 3);
+      } else {
+        ctx.moveTo(iconX, y - 12); ctx.lineTo(iconX + 12, y + 9); ctx.lineTo(iconX - 12, y + 9);
+      }
+      ctx.closePath(); ctx.stroke(); ctx.fillRect(iconX - 1.5, y - 6, 3, 7); ctx.fillRect(iconX - 1.5, y + 4, 3, 3);
+    }
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = 'bold 13px monospace';
+    ctx.fillText(label, x + 11, y - 1);
     if (warning) {
-      const elapsed = swooper ? this.swooperTimerMs : this.combatPatternMs;
-      const duration = this.type === 'firewall' ? 950 : 650;
-      ctx.fillRect(this.position.x - 60, box.y - 8, 120 * Math.min(1, elapsed / duration), 3);
-      if (swooper && this.swooperAim) {
-        ctx.strokeStyle = 'rgba(255, 189, 112, 0.6)'; ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.moveTo(this.position.x, box.y + box.height / 2);
-        ctx.lineTo(this.swooperAim.x, this.swooperAim.y); ctx.stroke();
+      ctx.fillStyle = '#304253'; ctx.fillRect(x - 88, y + 16, 168, 4);
+      ctx.fillStyle = color; ctx.fillRect(x - 88, y + 16, 168 * cue.progress, 4);
+    }
+    if (!recovery) {
+      if (swooper && cue.aim) {
+        ctx.strokeStyle = 'rgba(255,189,112,0.7)'; ctx.setLineDash([7, 7]);
+        ctx.beginPath(); ctx.moveTo(x, this.position.y); ctx.lineTo(cue.aim.x, cue.aim.y); ctx.stroke(); ctx.setLineDash([]);
+        ctx.strokeStyle = color; ctx.beginPath();
+        ctx.moveTo(cue.aim.x, cue.aim.y - 13); ctx.lineTo(cue.aim.x + 13, cue.aim.y); ctx.lineTo(cue.aim.x, cue.aim.y + 13); ctx.lineTo(cue.aim.x - 13, cue.aim.y); ctx.closePath(); ctx.stroke();
+      } else if (!swooper) {
+        // Direction cue, not an extra hitbox. It stays committed even if the
+        // player crosses behind the enemy during its windup.
+        const foot = this.position.y + (window.Player?.VISUAL_FOOT_OFFSET_Y || 72) + 5;
+        const start = x + cue.direction * 18;
+        const end = x + cue.direction * (this.type === 'firewall' ? 85 : 130);
+        ctx.strokeStyle = color; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(start, foot); ctx.lineTo(end, foot);
+        ctx.moveTo(end - cue.direction * 14, foot - 8); ctx.lineTo(end, foot); ctx.lineTo(end - cue.direction * 14, foot + 8); ctx.stroke();
+        ctx.globalAlpha = 0.45;
+        for (let i = 0; i < 3; i++) {
+          const chevron = start + (end - start) * (i + 1) / 4;
+          ctx.beginPath(); ctx.moveTo(chevron - cue.direction * 5, foot - 5); ctx.lineTo(chevron, foot); ctx.lineTo(chevron - cue.direction * 5, foot + 5); ctx.stroke();
+        }
       }
     }
+    ctx.restore();
   }
 
   getDrawLayer() {

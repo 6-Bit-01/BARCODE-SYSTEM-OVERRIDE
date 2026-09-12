@@ -118,6 +118,7 @@ for (const fps of [30, 60, 120]) {
       }
     }
     assert.notStrictEqual(p.state, encounter.id, 'real encounter packets clear');
+    assert(p.getGatePresentation().some(view => view.gate.encounterId === encounter.id && view.opening), 'each real encounter clear starts its gate collapse, including final Jammer reveal');
     assert.deepStrictEqual(Array.from(p.getDistrictSignalState().zones, zone => zone.cleared),
       [0, 1, 2, 3].map(zone => zone <= index), 'only the completed part of the district stabilizes');
   }

@@ -1,5 +1,13 @@
 # Responsive-combat verification
 
+`polish-chunk-3-pause.png` and `polish-chunk-3-results.png` are native Canvas renders of the production pause UI and completion HUD. Slider values and run totals are explicit fixture data for layout inspection. They verify text/controls composition and error-free drawing, not live Makko input, audio, appearance or measured performance. The full-suite receipt includes separate production ownership/lifecycle assertions.
+
+`polish-chunk-2-scene.png` runs the complete production render coordinator at 0.82 zoom with the existing foreground and Lore artwork, including gate/scenery/atmosphere/beacon drawing. `polish-chunk-2-details.png` shows storefronts, pavement, gate collapse and collection assembly/flight/arrival. They use native Canvas with fallback player/enemy bodies, a plain sky (the background host could not be fetched for this diagnostic) and CRT disabled. Game asset URLs and sprite loading remain unchanged. These images verify composition and transforms, not live Makko rendering, audio or hardware performance. The production-owner tests and exact executed results are recorded in the checkpoint's export receipt.
+
+`polish-chunk-1-preview.png` is the later 1920×1080 checkpoint-1 Canvas diagnostic. It runs the production health/Amp HUD, warning, pickup and effect drawing, with flat fallback enemy bodies and a plain diagnostic background. It verifies shape/text composition, not sprite/art integration, Makko rendering, audible audio or combat feel. No replacement artwork is introduced. Checkpoint 1's automated acceptance is `npm run check:level-01-polish`; the export receipt identifies exact results.
+
+The two earlier responsive-combat images below are separate, historical art-integration diagnostics:
+
 These PNGs use the approved remote sprite sheets and the existing foreground artwork, drawn with the production player, enemy, parallax and CombatFX code. A small Canvas sprite adapter supplies atlas/anchor drawing at the host boundary. They are **diagnostic renders, not live Makko screenshots**. The scene uses 0.82 game zoom, then scales the 1920-pixel view to 1440 pixels for comparison.
 
 - `responsive-combat-preview.png`: exploration, planted Rhythm Mode, and a resolved perfect hit at combo ten. The same foreground/camera is used in all panels. Scenery remains behind actors and warnings.

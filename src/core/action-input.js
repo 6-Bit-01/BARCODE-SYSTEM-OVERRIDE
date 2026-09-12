@@ -49,7 +49,11 @@ window.FILE_MANIFEST.push({
     }
     attach() { if (this.attached || !window.addEventListener) return; window.addEventListener('keydown', this._keydown); window.addEventListener('keyup', this._keyup); this.attached = true; this.listenerCount = 2; }
     dispose() { if (this.attached && window.removeEventListener) { window.removeEventListener('keydown', this._keydown); window.removeEventListener('keyup', this._keyup); } this.attached = false; this.listenerCount = 0; this.disposed = true; this.reset(); }
-    reset() { this.keysHeld.clear(); this.previousHeld = {}; this.pendingPresses = {}; this.state = stateTemplate(); }
+    reset() {
+      this.keysHeld.clear(); this.previousHeld = {}; this.pendingPresses = {}; this.state = stateTemplate();
+      const pads = navigator.getGamepads ? Array.from(navigator.getGamepads()).filter(Boolean) : [];
+      this.gamepadReleaseRequired = new Set(ACTIONS.filter(action => this.gamepadHeld(action, pads)));
+    }
     remap(action, bindings) { if (!ACTIONS.includes(action)) throw new Error(`Unknown action: ${action}`); this.keyboardBindings[action] = bindings.map(k => String(k).toLowerCase()); }
     capturePress(event) {
       const monotonicNow = window.performance?.now?.() ?? 0;
@@ -76,7 +80,11 @@ window.FILE_MANIFEST.push({
       this.suppression = this.computeSuppression(context);
       const held = {};
       const pads = navigator.getGamepads ? Array.from(navigator.getGamepads()).filter(Boolean) : [];
-      ACTIONS.forEach(action => { held[action] = this.keyboardHeld(action) || this.gamepadHeld(action, pads); });
+      ACTIONS.forEach(action => {
+        const padHeld = this.gamepadHeld(action, pads);
+        if (!padHeld) this.gamepadReleaseRequired?.delete(action);
+        held[action] = this.keyboardHeld(action) || (padHeld && !this.gamepadReleaseRequired?.has(action));
+      });
       this.state = stateTemplate();
       ACTIONS.forEach(action => {
         const wasHeld = !!this.previousHeld[action];

@@ -12,7 +12,7 @@
     "audit:external-assets": "node tools/audit-external-assets.js",
     "baseline:generate": "node tools/generate-baseline.js",
     "baseline:check": "node tools/check-baseline.js",
-    "test": "npm run check:syntax && npm run audit:paths && npm run audit:globals && npm run audit:external-assets && npm run check:startup-lifecycle && npm run check:frame-ownership && npm run check:music-profiles && npm run check:makko-hotfix && npm run check:runtime-lifecycle && npm run check:enemy-ownership && npm run check:action-combat && npm run baseline:check && npm run check:level-01-mission && npm run check:level-01-smoothing && npm run check:level-01-gameplay-dynamics && npm run check:level-01-boss && npm run check:level-01-presentation && npm run check:level-01-responsive-combat",
+    "test": "npm run check:syntax && npm run audit:paths && npm run audit:globals && npm run audit:external-assets && npm run check:startup-lifecycle && npm run check:frame-ownership && npm run check:music-profiles && npm run check:makko-hotfix && npm run check:runtime-lifecycle && npm run check:enemy-ownership && npm run check:action-combat && npm run baseline:check && npm run check:level-01-mission && npm run check:level-01-smoothing && npm run check:level-01-gameplay-dynamics && npm run check:level-01-boss && npm run check:level-01-presentation && npm run check:level-01-responsive-combat && npm run check:level-01-polish && npm run check:level-01-polish-menu",
     "check:startup-lifecycle": "node tools/check-startup-lifecycle.js",
     "check:frame-ownership": "node tools/check-frame-ownership.js",
     "check:music-profiles": "node tools/check-music-profiles.js",
@@ -25,7 +25,9 @@
     "check:level-01-gameplay-dynamics": "node tools/check-level-01-gameplay-dynamics.js",
     "check:level-01-boss": "node tools/check-level-01-boss.js",
     "check:level-01-presentation": "node tools/check-level-01-presentation.js",
-    "check:level-01-responsive-combat": "node tools/check-level-01-responsive-combat.js"
+    "check:level-01-responsive-combat": "node tools/check-level-01-responsive-combat.js",
+    "check:level-01-polish": "node tools/check-level-01-polish.js",
+    "check:level-01-polish-menu": "node tools/check-level-01-polish-menu.js"
   },
   "dependencies": {},
   "devDependencies": {}

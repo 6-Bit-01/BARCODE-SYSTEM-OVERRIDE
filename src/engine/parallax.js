@@ -19,6 +19,12 @@ window.ParallaxBackground = class ParallaxBackground {
       [626, 215, 87, 32, 2], [632, 320, 124, 70, 2], [839, 240, 92, 16, 2],
       [1183, 185, 43, 60, 3], [1012, 350, 91, 41, 3], [1167, 344, 42, 46, 3]
     ];
+    // Measured source-image positions: curb grilles, cable junctions and
+    // shopfront pavement. The existing foreground transform owns placement.
+    this.atmosphereVents = [[218, 440], [508, 440], [851, 440]];
+    this.atmosphereCables = [[390, 214], [785, 201]];
+    this.neonSpills = [[137, 404, 40], [305, 404, 49], [682, 404, 62], [1058, 404, 47], [1206, 404, 35]];
+    this.atmosphereSprites = null;
   }
   
   // Add a parallax layer
@@ -211,6 +217,7 @@ window.ParallaxBackground = class ParallaxBackground {
         const drawY = -550; // Moved up 50px
         ctx.drawImage(layer.imgElement, drawX, drawY, newWidth, newHeight);
         this.drawSignalLights(ctx, layer, drawX, drawY, newWidth, newHeight);
+        this.drawAtmosphere(ctx, layer, drawX, drawY, newWidth, newHeight);
         ctx.restore();
         ctx.restore();
         ctx.restore();
@@ -249,20 +256,13 @@ window.ParallaxBackground = class ParallaxBackground {
 
   drawDistrictSignals(ctx, x, y, width, height, district) {
     const sx = width / 1279, sy = height / 462;
-    const time = window.audioSystem?.context?.currentTime;
-    const sample = Number.isFinite(time) ? window.BARCODE?.MusicTransport?.sample?.(time) : null;
-    const pulse = sample?.running && sample.grid && sample.profileId === 'level-01.main'
-      ? Math.pow(1 - sample.grid.beatFloat % 1, 3) : 0;
-    const quiet = window.sector1Progression?.isBossCombatLive?.() ? 0.55 : 1;
-    const performing = !!window.rhythmSystem?.isActive?.();
-    const kick = window.BARCODE?.combatFX?.sceneKick || 0;
-    const energy = performing ? 0.2 + pulse * 0.7 + kick * 0.3 : pulse * 0.1;
+    const { pulse, downbeat, beatFloat, quiet, performing, kick, combo, energy } = this.getSceneMusic();
     const restoredAt = worldX => district.restored ? 1 : district.wave
       ? Math.max(0, Math.min(1, (district.wave.radius - Math.abs(worldX - district.wave.originX)) / 200)) : 0;
     ctx.save();
     ctx.translate(x, y); ctx.scale(sx, sy); ctx.shadowBlur = 0;
     this.signalDisplays.forEach(([left, top, w, h, zone], index) => {
-      if (x + (left + w) * sx < -400 || x + left * sx > 2320) return;
+      if (!this.decorationVisible(left, w, x, sx)) return;
       const recovery = district.zones[zone].recovery;
       const restored = restoredAt(-152 + (left + w / 2) * 4400 / 1279);
       const interference = district.interference * (1 - recovery * 0.65) * (1 - restored);
@@ -275,12 +275,17 @@ window.ParallaxBackground = class ParallaxBackground {
       if (performing || kick > 0) {
         // Small equalizer bars stay inside the real sign interiors. Attacks
         // brighten the scene briefly; the beat alone never implies damage.
-        ctx.fillStyle = `rgba(${index % 2 ? '224,139,255' : '129,255,231'}, ${(0.24 + energy * 0.38) * quiet})`;
-        for (let bar = 0; bar < 6; bar++) {
-          const barHeight = Math.min(h * 0.62, (0.2 + energy * 0.7) * h * (0.35 + Math.abs(Math.sin(bar * 1.7 + index)) * 0.65));
-          ctx.fillRect(left + 3 + bar * (w - 6) / 6, top + h - 2 - barHeight, Math.max(1, (w - 6) / 9), barHeight);
+        ctx.fillStyle = `rgba(${(index + Math.floor(combo * 2)) % 2 ? '224,139,255' : '129,255,231'}, ${Math.min(0.8, 0.22 + energy * 0.32) * quiet})`;
+        for (let bar = 0; bar < 8; bar++) {
+          const level = this.equalizerLevel(index, bar, beatFloat, pulse);
+          const barHeight = Math.min(h - 3, h * level * (0.6 + combo * 0.28 + energy * 0.2));
+          ctx.fillRect(left + 2 + bar * (w - 4) / 8, top + h - 1.5 - barHeight, Math.max(1, (w - 4) / 11), barHeight);
         }
         ctx.fillRect(left, top + h - 1.5, w, 1.5);
+        if (downbeat > 0.02) {
+          ctx.fillStyle = `rgba(193,255,240,${downbeat * (0.28 + combo * 0.12) * quiet})`;
+          ctx.fillRect(left, top, w, Math.min(1.5, h / 8));
+        }
       }
       const scan = (district.elapsedMs / 180 + index * 7) % h;
       ctx.fillStyle = `rgba(214, 122, 246, ${0.22 * interference * quiet})`;
@@ -300,10 +305,12 @@ window.ParallaxBackground = class ParallaxBackground {
     if (performing || kick > 0) {
       // Repeated curb segments make the musical reaction visible at full game
       // scale without tinting the whole screen or covering combat warnings.
-      ctx.fillStyle = `rgba(109,255,229,${(0.15 + energy * 0.48) * quiet})`;
       for (let left = 8; left < 1279; left += 24) {
-        if (x + (left + 15) * sx < -400 || x + left * sx > 2320) continue;
-        ctx.fillRect(left, 412, 15, 1.2 + energy);
+        if (!this.decorationVisible(left, 15, x, sx)) continue;
+        const tail = Math.max(0, 1 - ((Math.floor(left / 24) - beatFloat * 2) % 8 + 8) % 8 / 3);
+        const accent = combo >= 0.5 && Math.floor(left / 192) % 2 ? '213,144,255' : '109,255,229';
+        ctx.fillStyle = `rgba(${accent},${Math.min(0.8, 0.12 + energy * 0.22 + tail * 0.4 + downbeat * 0.15) * quiet})`;
+        ctx.fillRect(left, 412, 15, 1.2 + tail * 1.2 + combo * 0.5);
       }
     }
     // Travel along the existing curb. Only two bounded fronts are drawn; the
@@ -318,6 +325,120 @@ window.ParallaxBackground = class ParallaxBackground {
           const left = front - direction * segment * 8;
           ctx.fillStyle = `rgba(142, 255, 227, ${(1 - segment / 8) * 0.65})`;
           ctx.fillRect(Math.max(0, Math.min(1275, left)), 412, 4, 2);
+        }
+      }
+    }
+    ctx.restore();
+  }
+
+  // Four distinct, bounded sign patterns sampled from the existing music
+  // transport. No listener, independent beat timer or randomness in drawing.
+  equalizerLevel(display, bar, beat, pulse) {
+    const pattern = display % 4;
+    if (pattern === 0) return 0.12 + 0.56 * (1 - Math.abs(bar - 3.5) / 4) * (0.4 + pulse * 0.6);
+    if (pattern === 1) return 0.12 + 0.52 * Math.abs(Math.sin((bar % 4 + 1) * 0.48 + beat * 0.8));
+    if (pattern === 2) return 0.14 + 0.5 * (0.5 + 0.5 * Math.sin(bar * 2.1 + Math.floor(beat / 2) * 1.7));
+    return 0.12 + 0.56 * (0.5 + 0.5 * Math.sin(bar * 0.85 - beat * 1.4));
+  }
+
+  getSceneMusic() {
+    const time = window.audioSystem?.context?.currentTime;
+    // CombatFX retains the last active frame's snapshot during pause, even
+    // though the paused transport intentionally exposes no judgment grid.
+    const sample = window.BARCODE?.combatFX?.sceneSample ??
+      (Number.isFinite(time) ? window.BARCODE?.MusicTransport?.sample?.(time) : null);
+    const grid = sample?.running && sample.profileId === 'level-01.main' ? sample.grid : null;
+    const animate = window.BARCODE_RENDER_QUALITY?.flashes !== false;
+    const pulse = grid ? (animate ? Math.pow(1 - grid.beatFloat % 1, 3) : 0.18) : 0;
+    const downbeat = animate && grid?.beatInBar === 0 ? pulse : 0;
+    const performing = !!window.rhythmSystem?.isActive?.();
+    const combo = performing ? Math.min(1, Math.max(0, (window.rhythmSystem.combo || 0) - 4) / 6) : 0;
+    const quiet = window.sector1Progression?.isBossCombatLive?.() ? 0.4 : 1;
+    const kick = animate ? window.BARCODE?.combatFX?.sceneKick || 0 : 0;
+    const energy = performing ? 0.18 + pulse * 0.52 + downbeat * 0.22 + kick * 0.18 + combo * 0.2 : pulse * 0.08;
+    return { pulse, downbeat, beatFloat: grid?.beatFloat || 0, quiet, performing, kick, combo, energy };
+  }
+
+  decorationVisible(left, width, imageX, scaleX) {
+    const halfView = 960 / Math.max(0.4, window.renderer?.zoomLevel || 1);
+    return imageX + (left + width) * scaleX >= 960 - halfView - 50 && imageX + left * scaleX <= 960 + halfView + 50;
+  }
+
+  prepareAtmosphereSprites() {
+    if (this.atmosphereSprites !== null) return;
+    this.atmosphereSprites = {};
+    // Three tiny radial textures are reused for the lifetime of this owner.
+    // A canvas-less diagnostic host can still draw the sparse solid details.
+    if (typeof window.document?.createElement !== 'function') return;
+    for (const [name, color] of [['steam', '192,213,225'], ['mint', '105,255,228'], ['purple', '214,132,255']]) {
+      const canvas = window.document.createElement('canvas'); canvas.width = 64; canvas.height = 64;
+      const ctx = canvas.getContext?.('2d');
+      if (!ctx?.createRadialGradient) continue;
+      const glow = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+      glow.addColorStop(0, `rgba(${color},1)`); glow.addColorStop(0.45, `rgba(${color},0.4)`); glow.addColorStop(1, `rgba(${color},0)`);
+      ctx.fillStyle = glow; ctx.fillRect(0, 0, 64, 64);
+      this.atmosphereSprites[name] = canvas;
+    }
+  }
+
+  atmosphereQuietAt(sourceX) {
+    const worldX = -152 + sourceX * 4400 / 1279;
+    for (const enemy of window.enemyManager?.enemies || []) {
+      if (!enemy.active || Math.abs(enemy.position.x - worldX) > 240) continue;
+      if (['brace', 'attack'].includes(enemy.combatPattern) || ['telegraph', 'dive'].includes(enemy.swooperState)) return 0.25;
+    }
+    return 1;
+  }
+
+  drawAtmosphere(ctx, layer, x, y, width, height) {
+    if (layer !== this.layers[1] || !layer.imgElement) return;
+    this.prepareAtmosphereSprites();
+    const sx = width / 1279, sy = height / 462;
+    const time = window.BARCODE?.combatFX?.timeMs ?? window.sector1Progression?.districtSignal?.elapsedMs ?? 0;
+    const music = this.getSceneMusic();
+    const sprites = this.atmosphereSprites;
+    ctx.save(); ctx.translate(x, y); ctx.scale(sx, sy);
+    for (const [index, [left, top, radius]] of this.neonSpills.entries()) {
+      if (!this.decorationVisible(left - radius, radius * 2, x, sx)) continue;
+      const sprite = sprites[index % 2 ? 'purple' : 'mint'];
+      if (sprite) {
+        ctx.globalAlpha = (0.14 + music.energy * 0.07) * music.quiet;
+        ctx.drawImage(sprite, left - radius, top - 5, radius * 2, 16);
+      }
+    }
+    for (const [index, [left, top]] of this.atmosphereVents.entries()) {
+      if (!sprites.steam || !this.decorationVisible(left - 26, 62, x, sx)) continue;
+      const quiet = music.quiet * this.atmosphereQuietAt(left);
+      // Three finite puffs per vent, analytically sampled rather than emitted
+      // into the gameplay particle array. Low puffs are occluded by the road.
+      for (let puff = 0; puff < 3; puff++) {
+        const phase = ((time + index * 1730 + puff * 980) % 7000) / 4200;
+        if (phase >= 1) continue;
+        const radius = 7 + phase * 18;
+        ctx.globalAlpha = Math.sin(phase * Math.PI) * 0.18 * quiet;
+        const drift = Math.sin(index * 2 + phase * 3) * 9;
+        ctx.drawImage(sprites.steam, left + drift - radius, top - phase * 66 - radius, radius * 2, radius * 2);
+      }
+    }
+    ctx.fillStyle = '#b7cdcf';
+    for (let i = 0; i < 12; i++) {
+      const left = (i * 109 + time * (0.0015 + i % 3 * 0.0003)) % 1279;
+      if (!this.decorationVisible(left, 2, x, sx)) continue;
+      ctx.globalAlpha = 0.14 * music.quiet * this.atmosphereQuietAt(left);
+      ctx.fillRect(left, 395 + i % 4 * 4 + Math.sin(time / 2300 + i) * 4, 0.7, 0.7);
+    }
+    if (window.BARCODE_RENDER_QUALITY?.flashes !== false) {
+      for (const [index, [left, top]] of this.atmosphereCables.entries()) {
+        if (!this.decorationVisible(left - 12, 24, x, sx)) continue;
+        const age = (time + index * 4700) % 11000;
+        if (age >= 220) continue;
+        const t = age / 220;
+        ctx.globalAlpha = Math.sin(t * Math.PI) * 0.65 * music.quiet;
+        ctx.strokeStyle = '#adfff0'; ctx.lineWidth = 0.7;
+        for (let spark = 0; spark < 5; spark++) {
+          const angle = spark * 2.4;
+          ctx.beginPath(); ctx.moveTo(left + Math.cos(angle) * t * 8, top + Math.sin(angle) * t * 8);
+          ctx.lineTo(left + Math.cos(angle) * (t * 8 + 2), top + Math.sin(angle) * (t * 8 + 2) + t * t * 5); ctx.stroke();
         }
       }
     }
