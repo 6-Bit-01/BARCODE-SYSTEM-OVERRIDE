@@ -1,5 +1,7 @@
 # Campaign and Finale Concepts
 
+Current expansion: `CAMPAIGN_STORY_MAP.md` develops this working framework into the whole-story treatment requested after PR #37, with causal transitions, all 28 lore purposes and setup/payoff tracking. `CONTINUATION_PLAN.md` supplies implementation order. Exact new scenes and unresolved canon remain working proposals.
+
 ## The playable identity
 
 BARCODE: SYSTEM OVERRIDE behaves like a damaged multi-game cartridge transmitted through BARCODE Network. Seven sectors inside the simulation load different old-game rules. Short corrupted public-access transitions, familiar crew voices, visual motifs and musical phrases make the changes feel intentional. Only the original four are playable throughout.
@@ -33,7 +35,7 @@ Recommended optional module IDs: `module.beat_anchor`, `module.phase_capacitor`,
 | Crew Link | Deeper shared context and an extra coordinated assist |
 | Root Credential | Map/control access and one removable arena hazard |
 
-W3T TDDY helps reveal/present the route as a guaranteed ally. His support never adds a seventh missable gate. Save stable IDs and meaningful checkpoints, not live object references.
+The latest owner correction removes W3T TDDY. The six guaranteed keys and the crew's recovered connection reveal/present the route; no replacement guest or seventh missable gate is required. Save stable IDs and meaningful checkpoints, not live object references.
 
 ## Finale structure
 

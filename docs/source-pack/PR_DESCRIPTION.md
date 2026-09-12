@@ -1,22 +1,17 @@
-# Write the three Level 1 lore records and add a persistent pause archive
+# Map the full campaign and reconcile the current project plan
 
-PR #36 made all three fragments available and saved their identities, but their text was still provisional and there was no way to reread a recovered entry. This follow-up implements the owner's request to improve the actual BARCODE lore and make it readable after collection.
+The game has progressed through merged PR #37, but active planning still points at older implementation passes, an absolute intro lock and cameos the owner has removed. That stale handoff risks restarting completed work or building isolated beginning scenes without a coherent campaign.
 
-- Adds complete records by Cache Back, DJ Floppydisc and Mac Modem, with distinct voices and brief 6 Bit responses. They develop original-four history, the unresolved inverted waveform and the Jammer's effect on the neighborhood. LEVEL_01_LORE contains the exact copy and LORE_ARCHIVE_PASS traces the established canon.
-- Adds P → Lore archive using the existing persistent IDs. Previous saves display the expanded text automatically; unrecovered titles/content stay hidden. Reading cannot unlock records or award score.
-- Uses the existing pause/input/audio owners for keyboard and scaled-pointer navigation. Esc returns to pause; P/Resume returns to play. Saving failures remain visible without losing session records.
-- Queues rapid pickup notices, freezes them during paused/suppressed gameplay and clears them on full reset. Removes the contradictory legacy random lore pool. Collection notices and the reader share one catalog.
+This combined documentation pass:
 
-The 4/9/14 defeat unlocks, collection geometry, 500-point run reward, existing save schema and original prologue remain. No changed game assets, asset URLs, dependency, combat balance or music transport.
+- Maps the opening, all seven genre levels, causal transitions, crew contributions, reveals, setup/payoff and all 28 lore-record purposes.
+- Records the latest cameo inclusions/exclusions, removes the obsolete W3T TDDY route dependency and preserves the original four as the only playable characters.
+- Adds proposed Easter eggs for the current inspirations plus a clearly labeled historical candidate bank.
+- Carries forward controller completeness, committed-enemy steering, truthful boss cues, HUD/camera/calibration, campaign/save/mixer dependencies, genre proofs, targeted assets and bounded mobile feasibility; migration stays deferred.
+- Corrects the active README, roadmap, cast, decisions and source-pack handoff. Intro/story development is reopened through a representative existing-art prototype. Exact scenes, copy, later-level choices and endings remain working proposals.
 
-Validation: the source receipt records `npm test` (including the new production archive regression) and `npm run check:syntax:all` against the exact revision. Targeted checks cover existing/blocked saves, hidden unrecovered content, scaled pointers, pause/input ownership, repeated drawing without progression changes, rapid collection/reset and failed audio resume. Six native Canvas diagnostics verify complete text fit and drawing. These checks do not replace live Makko rendering, hosted storage, audible audio or voice review.
+Base/rollback: merged PR #37, `38732933713c4f9ec22666e49b728a0626a85f25`. This pass changes Markdown documents only. Runtime, existing tests, art/audio, dependencies, mechanics, current lore and saved IDs are unchanged. The complete last-chat transcript was not available; visible owner instructions, retrieved review summaries and inspected source are distinguished in CONTINUATION_PLAN rather than presented as verbatim recovery.
 
-Makko acceptance before merge:
+Validation is recorded against the published revision in the source-pack receipt: existing `npm test`, all-file syntax, diff checks and focused document/reference/lore-count inspection. No new tests mirror the plan, and no Makko/mobile/device performance PASS is claimed. CI exports the same v5 source pack from its exact checked-out revision.
 
-1. On the same project/origin as PR #36, open P → Lore archive. Existing discoveries should show the revised text without recollection. Unrecovered entries hide their titles and contents.
-2. Read all recovered entries using arrows/Tab/Enter and pointer clicks. Review crew voices and 6 Bit replies. Esc returns to pause; P/Resume resumes. No held menu action should become a jump/attack, and world/music remain paused while reading.
-3. Take a fast route and collect the three placements after 4/9/14 defeats. Collect two quickly; their notices should queue and both records should be immediately readable. Check one reward per record per run.
-4. Reload, boss-retry and full-restart; durable discoveries remain and stale notices do not carry over. Reset Settings must not erase lore. If saving is blocked, the archive explains the session-only state.
-5. Smoke-test opening/landing/contact/SFX, tutorial locks, lift, rooftop Amp prompt/pickup/charges, target brackets/traffic, Jammer cinematic and boss lose/retry/win. Record SHA, project/origin, device and PASS/FAIL.
-
-Base/rollback: `58b6abe6179ce6b7e8996c4d4099c9eff674f35f` (merged PR #36). The generated manifest/receipt identify the exact published head and PR. Keep this draft until owner acceptance; after merge, import the actual main merge revision and repeat the archive/save/pause checks.
+Review the complete map and production sequence using the current ACCEPTANCE section. Next gameplay checkpoint is a connected crew/panel prototype with current assets and remaining Level 1 control/readability work, followed by campaign services and new-genre proofs. Keep gameplay changes subject to the established Makko review; this draft does not merge or deploy them.

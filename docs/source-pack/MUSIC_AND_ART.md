@@ -1,5 +1,7 @@
 # Music, Art and Production
 
+Current production sequence is in `ASSET_AND_PLATFORM_PLAN.md`: a representative story/panel sequence using current assets, followed by only the missing scene-specific art; no mass redraw or engine/mobile migration. The attached historical intro and Level 1 contact sheets were inspected for the September 12 continuation, without implying a fresh host availability audit.
+
 ## Independent songs
 
 Each level owns an explicit song profile: source IDs, gains/roles, timing metadata or a deliberate no-grid choice, sections/cues, loop/end policy and any judgment rules. Unknown data stays unknown. Level 1's compatibility values are preserved for its current build; 146 BPM, 4/4, source names, judgment windows and 211-second restart must not become defaults for future songs.
@@ -18,7 +20,7 @@ Reuse approved title/prologue, Level 1 skyline and street frontage, flying traff
 
 The visual language combines damaged public-access television, obsolete hardware, VHS, underground hip-hop and 16-bit grime. Improve silhouette/foreground contrast, platform edges and attack anticipation before adding more effects. Bound shake/flash/particles and preserve legibility in full combat.
 
-Use the approved character export/reference directly. 6 Bit's cap, hair, glasses, eye/makeup design and white facial markings must remain consistent; never substitute a skull mask or combine him with DJ Floppydisc. Sheila stays a silhouette when shown. Intro images remain unchanged.
+Use the approved character export/reference directly. 6 Bit's cap, hair, glasses, eye/makeup design and white facial markings must remain consistent; never substitute a skull mask or combine him with DJ Floppydisc. Sheila stays a silhouette when shown. Intro images remain the live baseline while the newly approved story/intro prototype explores selective changes; exact replacement scenes/art require concrete review.
 
 Historical references included here carry their original audit dates. The exact snapshot's sprite/audio manifests are implementation authority. No new remote availability or dimensions audit is implied by copying an old contact sheet.
 

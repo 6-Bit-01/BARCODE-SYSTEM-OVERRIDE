@@ -1,5 +1,21 @@
 # Current State
 
+## Campaign continuity planning — current review
+
+Verified main: `38732933713c4f9ec22666e49b728a0626a85f25`, merged PR #37 on September 12, 2026. GitHub's static-validation check succeeded on that merge. No open PRs were present at the initial continuation check. The generated manifest identifies this documentation review revision; older review-build headings below describe historical PRs.
+
+The current change completes a whole-campaign working story map, all 28 record purposes, latest cameo corrections, primary and historical inspiration Easter-egg bank, representative intro/art plan, remaining control/readability work, campaign/music/save dependencies and mobile/standalone disposition. Read `CONTINUATION_PLAN.md` first. Stale active roadmap/cast/intro instructions and the repository README are reconciled. Newly drafted scenes/placements are proposals; the final simulation/ending questions remain open.
+
+No runtime, tests, art, asset URLs or dependencies are changed in this pass. All three implemented Level 1 lore records and saved IDs remain exactly as in #37, together with prior polish/traffic/targets and combat/audio repairs. Full campaign routing/resume and Levels 2–7 remain future implementation. Existing save/settings/discovery work is not relabeled missing.
+
+The source investigation independently confirmed a missing default controller Rhythm Mode binding, crowd steering writes that can conflict with committed attacks, and a boss cue that omits the stomp-cycle condition used by damage. These are next-pass findings, not claimed fixes. Automated verification is recorded against the exact exported commit; no new Makko gameplay, audio, device or mobile PASS is claimed.
+
+Next implementation: use the map to script/prototype a representative existing-art crew/panel transition tied to Level 1 and a later payoff, with coherent checkpoints for the remaining controls/readability work. Continue with campaign services and genre proofs afterward. No engine migration or mass art order is approved here.
+
+## Historical implementation reports
+
+The following entries preserve earlier build/acceptance reports. Their branch and pending-review wording describes those checkpoints. Current merge status and the manifest control present state; a merged PR alone does not prove the owner's currently imported Makko SHA.
+
 ## Authored lore and pause archive — current review build
 
 PR #36 is merged at `58b6abe6179ce6b7e8996c4d4099c9eff674f35f`, the base and rollback for `agent/level1-lore-archive`. The owner approved the archive and explicitly requested actual lore improvement using BARCODE and 6 Bit context. `LORE_ARCHIVE_PASS.md` records the source audit and scope; `LEVEL_01_LORE.md` contains the complete implemented text. The generated manifest identifies the exact checkpoint, publication status and PR.
