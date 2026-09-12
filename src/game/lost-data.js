@@ -3,7 +3,7 @@ window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({
   name: 'src/game/lost-data.js',
   exports: ['LostDataSystem', 'lostDataSystem', 'initLostData'],
-  dependencies: ['Vector2D', 'distance', 'clamp', 'randomRange', 'BARCODE.LoreCollection']
+  dependencies: ['Vector2D', 'distance', 'clamp', 'randomRange', 'BARCODE.LoreCollection', 'BARCODE.LoreRecords']
 });
 
 window.LostDataSystem = class LostDataSystem {
@@ -15,13 +15,10 @@ window.LostDataSystem = class LostDataSystem {
     this.maxTotalLore = 3;
     this.player = null;
     this.authoredLevel1Placements = [
-      { id: 'signal-awning-fragment', loreId: 'lore.l01.01', x: 980, y: 450, surfaceY: 492, unlockKills: 4,
-        text: 'ARCHIVE 01 // Local copy recovered. The record survived the interference.' },
-      { id: 'middle-roof-fragment', loreId: 'lore.l01.02', x: 2220, y: 316, surfaceY: 358, unlockKills: 9,
-        text: 'ARCHIVE 02 // Two waveforms occupy the same channel. One runs in reverse phase.' },
-      { id: 'upper-route-fragment', loreId: 'lore.l01.03', x: 3460, y: 460, surfaceY: 502, unlockKills: 14,
-        text: 'ARCHIVE 03 // Interference source isolated: Broadcast Jammer. Its signal reaches beyond this block.' }
-    ];
+      { id: 'signal-awning-fragment', loreId: 'lore.l01.01', x: 980, y: 450, surfaceY: 492, unlockKills: 4 },
+      { id: 'middle-roof-fragment', loreId: 'lore.l01.02', x: 2220, y: 316, surfaceY: 358, unlockKills: 9 },
+      { id: 'upper-route-fragment', loreId: 'lore.l01.03', x: 3460, y: 460, surfaceY: 502, unlockKills: 14 }
+    ].map(record => ({ ...record, text: window.BARCODE.LoreRecords.preview(record.loreId) }));
   }
   init(player) { this.player = player; }
   isBlocked() {
@@ -82,7 +79,8 @@ window.LostDataSystem = class LostDataSystem {
     this.archive.collect(record.loreId);
     this.showCollectionMessage('LORE FRAGMENT COLLECTED');
     window.audioSystem?.playCombatCue?.('pickup');
-    this.displayLore(record.text);
+    this.lastCollectedLoreId = record.loreId;
+    this.displayLore(record.text, record.loreId);
     if (window.BARCODE?.combatFX) window.BARCODE.combatFX.dataCollected(fragment);
     else window.particleSystem?.dataFragmentCollected?.(fragment.position.x, fragment.position.y);
     if (window.gameState) {
@@ -94,7 +92,7 @@ window.LostDataSystem = class LostDataSystem {
   showCollectionMessage(message) {
     if (window.gameState) window.gameState.collectionMessage = { text: message, timer: 180, alpha: 1 };
   }
-  displayLore(text) { window.loreSystem?.displayLoreMessage?.(text); }
+  displayLore(text, id = null) { window.loreSystem?.displayLoreMessage?.(text, id); }
   draw(ctx) {
     if (window.tutorialSystem?.isActive?.()) return;
     for (const fragment of this.fragments) if (fragment.active) fragment.draw(ctx);
@@ -111,6 +109,8 @@ window.LostDataSystem = class LostDataSystem {
     // survives retries, level restarts and reloads and cannot be farmed.
     this.collectedLore.clear();
     this.fragments = [];
+    this.lastCollectedLoreId = null;
+    window.loreSystem?.reset?.();
   }
   forceSpawnFragment() { return !!this.spawnFragment(); }
 };

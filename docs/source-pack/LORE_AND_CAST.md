@@ -2,9 +2,9 @@
 
 ## Canon boundaries
 
-BARCODE's original four are 6 Bit, DJ Floppydisc, Cache Back and Mac Modem. They retain their artist/performer identities; game roles do not reduce them to generic software classes. The game happens inside a simulation. Who built that simulation and how it relates to the recovery story remain unresolved until the finale is deliberately written.
+BARCODE's original four are 6 Bit, DJ Floppydisc, Cache Back and Mac Modem. The collective predates the Network; the Network grew around its signal. They retain their artist/performer identities; game roles do not reduce them to generic software classes. The game happens inside a simulation. Who built that simulation and how it relates to the recovery story remain unresolved until the finale is deliberately written.
 
-9 Bit is formed from negative parts separated from 6 Bit. He is not a former generic debugging utility or an unrelated evil clone. Do not insert him into the locked intro. His exact trait list, motive, first direct appearance and final resolution remain draft choices.
+9 Bit is formed from negative parts separated from 6 Bit. He is not a former generic debugging utility or the later corporate imitation of 6 Bit described in the World Overview. Do not add a new appearance to the locked intro. Existing title/tutorial material already names 9 Bit; preserving that material is not proof that his identity is currently hidden everywhere. His exact trait list, motive, first direct appearance and final resolution remain draft choices.
 
 Cache Back emerged during the clearing of callembini's laptop cache, initially believing he was callembini, and became distinct. Do not substitute an unrelated inventor/origin from a random legacy string. Mac Modem's “good virus” metaphor is specific to him; never label 6 Bit or the whole player/crew that way.
 
@@ -27,7 +27,7 @@ Use stable IDs `lore.l01.01` through each level's assigned count, distributed `3
 
 Suggested reveal progression: unnamed anomalous waveform; distorted familiar cadence; evidence of a rejected response profile; partial separation record; direct 9 Bit contact; full appearance/location; then final context and choice. This cadence is a proposal, not permission to invent approved dialogue or lock his first appearance without review.
 
-The active legacy pools contain contradictory origin claims and many repetitive fragments. They are quarantined as final copy: use only vetted thematic ingredients, never automatically import their strings. Changing documentation does not remove those runtime strings; deterministic lore implementation remains on the roadmap.
+Current implementation: `src/game/lore-records.js` holds the complete three Level 1 entries, displayed by both collection notices and P → Lore archive. The owner explicitly authorized writing and improving the lore. `LEVEL_01_LORE.md` contains the exact new copy; `LORE_ARCHIVE_PASS.md` records canon sources and creative boundaries. Existing stable IDs and the canonical persistent collection unlock the updated text without migration. Unrecovered story text stays hidden. The legacy random pool has been removed from the active engine, not merely quarantined in documentation. The other 25 records and later campaign implementation remain future work.
 
 For each future record capture ID, level, exact location/reward, mandatory/optional status, reveal purpose, canon dependencies, draft text, copy approval and collected-once behavior. Final wording must not settle an open creator/ending question accidentally.
 

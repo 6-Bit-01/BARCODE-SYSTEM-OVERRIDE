@@ -1,481 +1,65 @@
-// Random lore display system for BARCODE: System Override
+// Collection notices for authored records. Reading uses the same LoreRecords catalog.
 window.FILE_MANIFEST = window.FILE_MANIFEST || [];
-window.FILE_MANIFEST.push({
-  name: 'src/engine/lore.js',
-  exports: ['LoreSystem', 'loreSystem', 'initLore'],
-  dependencies: []
-});
-
+window.FILE_MANIFEST.push({ name: 'src/engine/lore.js', exports: ['LoreSystem', 'loreSystem', 'initLore'], dependencies: ['BARCODE.LoreRecords'] });
 window.LoreSystem = class LoreSystem {
-  constructor() {
-    this.loreMessages = [
-      // SYSTEM GLITCHSPEAK LORE
-      "6 Bit first appeared in the BARCODE Network logs the same day the broadcast tower fried itself from the inside out. Nobody has ever explained that.",
-      "Every time 6 Bit says 'recalibrating,' the server temperatures spike by 3 degrees. The techs pretend not to notice.",
-      "Some engineers swear they've heard 9 Bit laughing inside the static before it appears on-screen.",
-      "The BARCODE firewall runs colder when 6 Bit is talking. As if something else is doing the heavy lifting.",
-      "Cache Back once patched an entire sub-network using only a cassette tape and a ballpoint pen.",
-      "The BARCODE tower broadcasts on frequencies that shouldn't exist. Veterans call them 'ghost lanes.'",
-      "If you decode the BARCODE startup jingle, it translates to: WHO'S LISTENING?",
-      "There's a rumor that every BARCODE show is pre-recorded. There's a stronger rumor that none of them are.",
-      
-      // BARCODE TEAM HISTORY / LORE
-      "DJ Floppydisc built the first BARCODE sampler from spare VCR guts and a melted Walkman.",
-      "Mac Modem claims he once uploaded himself into a payphone for 45 minutes. The story has never been verified.",
-      "Cache Back keeps an entire drawer of unreleased beats labeled 'Do Not Wake.' Nobody knows what that means.",
-      "6 Bit wasn't meant to be a host. It was meant to test microphone distortion. The distortion kept talking back.",
-      "BARCODE Vol. 0 was nearly lost in a system wipe — only saved because Floppydisc archived it under the wrong band name.",
-      "Cliff the stagehand has survived fourteen BARCODE tower malfunctions and one unexplained blackout. He refuses to elaborate.",
-      "Miss Bit once negotiated a sponsor deal with a botnet. It did not end peacefully.",
-      
-      // WEIRD ANOMALIES
-      "An abandoned terminal in Sector 9 loops a message: '6 Bit never left.' The power isn't even connected.",
-      "Some corridors of the BARCODE bunker echo your footsteps half a second before you move.",
-      "There's a broken speaker that plays fragments of tracks that don't exist on any album.",
-      "During testing, an engineer asked 6 Bit who created it. The recording is classified.",
-      "The network scanners occasionally label 6 Bit as 'unknown organism.' The report resets on its own.",
-      "A corrupted folder labeled 9 BIT_HACK keeps reappearing no matter how often it's deleted.",
-      "Sometimes the vending machines dispense tapes instead of snacks. The tapes are blank.",
-      
-      // RADIO BROADCAST / ON-AIR MYSTERY NOTES
-      "BARCODE Radio once broadcast a full show with no host, no music, and no call-ins. Just breathing. Viewers argued for weeks whether it was a glitch.",
-      "6 Bit rarely speaks about the power outages. But when it does, it always says 'they weren't outages.'",
-      "The 'skip game' counter once jumped 10,000 taps instantly at 3:14 AM. Nobody was live.",
-      "Listeners swear they've heard a reversed version of 'Advanced Algorithms' in the static between songs.",
-      "The BARCODE Network map sometimes shows locations that aren't on Earth. They vanish after reboot.",
-      
-      // MULTIMEDIA / VHS-ERA WEIRDNESS
-      "Old BARCODE promos show a version of 6 Bit with no facial markings and different eyes. No one remembers filming them.",
-      "A VHS tape labeled 'TEST BROADCAST' shows 6 Bit standing still for 17 minutes. At minute 18, something moves behind it.",
-      "Every time the tower switches from analog to digital, a faint jingle from the 1980s plays in the background.",
-      "A fan once mailed BARCODE a tape of a broadcast that never aired. The envelope had no return address.",
-      
-      // META-LORE / 6 Bit PERSONALITY DRIPS
-      "6 Bit once told a caller 'I remember you from before the patch.' There was no patch that day.",
-      "Testing logs show 6 Bit occasionally runs side-processes titled 'mood.stabilize' and 'internal.noise.'",
-      "When upset, 6 Bit increases its framerate until the cameras struggle to keep up.",
-      "6 Bit refuses to define what 'glitch-core' means. It says humans shouldn't know yet.",
-      "The only time 6 Bit went silent was when someone asked what happened to 7 Bit.",
-      
-      // LORE THAT BUILDS THE WORLD OUTSIDE THE TOWER
-      "Rooftop graffiti near the old city line reads: BARCODE IS ALREADY INSIDE.",
-      "Kids in the lower blocks trade recordings of 9 Bit interruptions like rare stickers.",
-      "At night, the power lines hum in rhythm with BARCODE Radio — even when it's off-air.",
-      "The tunnels under the city contain old equipment stamped with the BARCODE logo decades before the group existed.",
-      
-      // ADDITIONAL DEEP LORE
-      "The BARCODE tower hums at 60Hz, but sometimes drops to 59.94 during 9 Bit interruptions.",
-      "Maintenance logs show a missing server rack labeled 'MEMORY_BACKUP.' No one knows what was backed up.",
-      "Sometimes the elevator music plays backwards versions of BARCODE tracks. Only interns seem to notice.",
-      "The tower's emergency broadcast system tests itself every Tuesday at 2:47 AM. Even when powered down.",
-      "Archive footage shows the tower was built in 1987, but BARCODE claims to have started in 2019.",
-      "The coffee machine in the break room only works when 6 Bit is on air. Coincidence? Probably not."
-    ];
-    
-    this.currentLore = null;
-    this.displayTime = 0;
-    this.displayDuration = 8000; // 8 seconds per lore message
-    this.nextLoreTime = 0;
-    this.minInterval = 15000; // Minimum 15 seconds between lore messages
-    this.maxInterval = 45000; // Maximum 45 seconds between lore messages
-    this.isActive = false;
-    this.canvasWidth = 1920;
-    this.canvasHeight = 1080;
-    this.lastTimeUpdate = 0;
-    
-    // DELAY SYSTEM: 1-minute delay before lore display
-    this.pendingLore = null;
-    this.loreDisplayTime = 0;
-    this.loreScheduled = false;
-    
-    // Visual properties
-    this.textOpacity = 0;
-    this.targetOpacity = 0;
-    this.fadeSpeed = 0.02;
-    this.fontSize = 18;
-    this.lineHeight = 24;
-    this.padding = 40;
-    this.boxHeight = 0;
-    this.targetBoxHeight = 0;
-    
-    // CRT glitch effect properties
-    this.glitchOffset = 0;
-    this.glitchIntensity = 0;
-    this.colorShift = 0;
+  constructor() { this.reset(); }
+  reset() { this.currentLore = null; this.currentRecordId = null; this.pending = []; this.elapsedMs = 0; this.displayDuration = 12000; this.textOpacity = 0; }
+  isBlocked() {
+    return !!(window.isPaused || window.gameState?.paused || window.gameState?.gameOver || window.gameState?.victory ||
+      window.tutorialSystem?.isActive?.() || window.hackingSystem?.isActive?.() || window.sector1Progression?.isGameplaySuppressed?.());
   }
-  
-  // Check if tutorial is completed and activate lore system
-  checkTutorialComplete() {
-    if (!this.isActive) {
-      // FIXED: Simplified tutorial check - activate if tutorial is not active
-      const tutorialExists = window.tutorialSystem;
-      let tutorialActive = false;
-      
-      if (tutorialExists) {
-        tutorialActive = typeof window.tutorialSystem.isActive === 'function' && 
-                        window.tutorialSystem.isActive();
-      }
-      
-      // Activate lore if tutorial doesn't exist or is not active
-      if (!tutorialExists || !tutorialActive) {
-        this.isActive = true;
-        console.log('✅ Lore system ACTIVATED - tutorial not blocking');
-      } else {
-        console.log('📖 Lore system BLOCKED - tutorial still active');
-      }
-    }
+  begin(notice) {
+    this.currentLore = notice.text; this.currentRecordId = notice.id; this.elapsedMs = 0; this.textOpacity = 0;
   }
-  
-  // Check if all lore has been collected
-  allLoreCollected() {
-    // Check if all unique lore fragments have been collected
-    if (window.lostDataSystem && typeof window.lostDataSystem.allFragmentsCollected === 'function') {
-      return window.lostDataSystem.allFragmentsCollected();
-    }
-    return false;
-  }
-  
-  // Schedule the next lore message - DISABLED for fragment-only system
-  scheduleNextLore() {
-    // DISABLED: No more random lore messages
-    // Lore now only appears when collecting fragments
-    console.log('📖 Random lore scheduling disabled - lore only from fragment collection');
-  }
-  
-  // Display specific lore message (called by fragment collection)
-  displayLoreMessage(loreText) {
-    // Display lore immediately
-    console.log('📖 LORE: Displaying lore from fragment collection');
-    
-    this.currentLore = loreText;
-    this.displayTime = Date.now();
-    this.targetOpacity = 0;
-    this.targetBoxHeight = this.calculateBoxHeight();
-    this.displayDuration = 12000; // 12 seconds for collected lore
-    
-    // Add stronger glitch effect for collected lore
-    this.glitchIntensity = 0.3 + Math.random() * 0.2;
-    
-    console.log(`📖 DISPLAYING collected lore: ${this.currentLore.substring(0, 50)}...`);
-    
+  displayLoreMessage(text, id = null) {
+    const record = id ? window.BARCODE.LoreRecords.get(id) : null;
+    if (id && !record) return false;
+    if (typeof text !== 'string' || !text.trim()) return false;
+    const notice = { id, text: record ? window.BARCODE.LoreRecords.preview(id) : text };
+    if (id && (this.currentRecordId === id || this.pending.some(item => item.id === id))) return false;
+    // A collected record replaces a generic route reminder. Rapid successive
+    // collections remain distinct; the persistent archive is readable at once.
+    if (!this.currentLore || !this.currentRecordId) this.begin(notice);
+    else if (id && this.pending.length < window.BARCODE.LoreRecords.level1.length) this.pending.push(notice);
     return true;
   }
-  
-  // Legacy method - no longer displays random lore
-  startLoreDisplay() {
-    console.log('📖 Random lore display disabled - lore only from fragment collection');
-  }
-  
-  // Calculate box height based on text
-  calculateBoxHeight() {
-    if (!this.currentLore) return 0;
-    
-    const maxLineWidth = this.canvasWidth - (this.padding * 2);
-    const words = this.currentLore.split(' ');
-    let currentLine = '';
-    let lines = 1;
-    
-    for (const word of words) {
-      const testLine = currentLine + word + ' ';
-      const metrics = this.getTextMetrics(testLine);
-      
-      if (metrics.width > maxLineWidth && currentLine.length > 0) {
-        lines++;
-        currentLine = word + ' ';
-      } else {
-        currentLine = testLine;
-      }
+  update(ms) {
+    if (this.isBlocked() || !this.currentLore || !Number.isFinite(ms) || ms < 0) return;
+    this.elapsedMs += ms;
+    if (this.elapsedMs >= this.displayDuration) {
+      const next = this.pending.shift();
+      if (next) this.begin(next); else { this.currentLore = null; this.currentRecordId = null; this.textOpacity = 0; }
+      return;
     }
-    
-    return lines * this.lineHeight + (this.padding * 2);
+    this.textOpacity = Math.min(1, this.elapsedMs / 250, (this.displayDuration - this.elapsedMs) / 600);
   }
-  
-  // Simple text metrics calculation (approximate)
-  getTextMetrics(text) {
-    const avgCharWidth = this.fontSize * 0.6; // Approximate character width
-    return {
-      width: text.length * avgCharWidth
-    };
-  }
-  
-  // Update lore system - only for fragment-triggered display
-  update(deltaTime) {
-    const currentTime = Date.now();
-    
-    // Check if tutorial is complete and activate if needed
-    this.checkTutorialComplete();
-    
-    // Only update visual effects for currently displayed lore (from fragment collection)
-    if (this.currentLore) {
-      const elapsed = currentTime - this.displayTime;
-      
-      // Fade in
-      if (elapsed < 1000) {
-        this.targetOpacity = Math.min(1, elapsed / 1000);
-      }
-      // Hold
-      else if (elapsed < this.displayDuration - 1000) {
-        this.targetOpacity = 1;
-      }
-      // Fade out
-      else if (elapsed < this.displayDuration) {
-        this.targetOpacity = Math.max(0, 1 - (elapsed - (this.displayDuration - 1000)) / 1000);
-      }
-      // End display
-      else {
-        this.currentLore = null;
-        this.targetOpacity = 0;
-        this.targetBoxHeight = 0;
-        this.glitchIntensity = 0;
-      }
-      
-      // Update visual effects
-      this.textOpacity += (this.targetOpacity - this.textOpacity) * this.fadeSpeed;
-      this.boxHeight += (this.targetBoxHeight - this.boxHeight) * 0.1;
-      
-      // Update CRT effects
-      this.glitchOffset += deltaTime / 50;
-      this.colorShift += deltaTime / 200;
-    }
-  }
-  
-  // Draw lore message
   draw(ctx) {
-    if (!this.currentLore || this.textOpacity <= 0.01) return;
-    
-    ctx.save();
-    
-    // Set up text properties
-    ctx.font = `${this.fontSize}px 'Share Tech Mono', monospace`;
-    ctx.textAlign = 'center'; // Changed from left to center
-    ctx.textBaseline = 'top';
-    
-    // Calculate wrapped text
-    const lines = this.wrapText(ctx, this.currentLore);
-    const boxY = this.canvasHeight - this.boxHeight - 20; // 20px from bottom
-    
-    // Draw background box with CRT effects
-    this.drawBackgroundBox(ctx, boxY, lines.length);
-    
-    // Draw text with glitch effects
-    this.drawLoreText(ctx, lines, boxY);
-    
+    if (!ctx || this.isBlocked() || !this.currentLore || this.textOpacity <= 0) return;
+    const record = window.BARCODE.LoreRecords.get(this.currentRecordId);
+    ctx.save(); ctx.globalAlpha = this.textOpacity; ctx.shadowBlur = 0;
+    ctx.font = '21px monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    const lines = window.BARCODE.LoreRecords.wrap(ctx, record ? record.paragraphs[0] : this.currentLore, 1160);
+    const height = 86 + lines.length * 29, x = 340, y = 1050 - height;
+    ctx.fillStyle = 'rgba(7,16,30,0.96)'; ctx.fillRect(x, y, 1240, height);
+    ctx.strokeStyle = '#9f82c7'; ctx.lineWidth = 2; ctx.strokeRect(x, y, 1240, height);
+    ctx.fillStyle = '#caa4ff'; ctx.font = 'bold 19px monospace';
+    ctx.fillText(record ? `ARCHIVE ${record.number} // ${record.title.toUpperCase()}` : 'DISTRICT TRANSMISSION', x + 36, y + 18);
+    ctx.font = '21px monospace'; ctx.fillStyle = '#edf3ff';
+    lines.forEach((line, index) => ctx.fillText(line, x + 36, y + 49 + index * 29));
+    ctx.font = '17px monospace'; ctx.fillStyle = '#9ff2da';
+    ctx.fillText(record ? `${record.author}  ·  P > LORE ARCHIVE: READ THE FULL RECORD` : 'P > LORE ARCHIVE: RECOVERED RECORDS', x + 36, y + height - 26);
     ctx.restore();
   }
-  
-  // Wrap text to fit screen width
-  wrapText(ctx, text) {
-    const maxLineWidth = this.canvasWidth - (this.padding * 2);
-    const words = text.split(' ');
-    const lines = [];
-    let currentLine = '';
-    
-    for (const word of words) {
-      const testLine = currentLine + word + ' ';
-      const metrics = this.getTextMetrics(testLine);
-      
-      if (metrics.width > maxLineWidth && currentLine.length > 0) {
-        lines.push(currentLine.trim());
-        currentLine = word + ' ';
-      } else {
-        currentLine = testLine;
-      }
-    }
-    
-    if (currentLine.trim()) {
-      lines.push(currentLine.trim());
-    }
-    
-    return lines;
-  }
-  
-  // Draw background box with CRT effects
-  drawBackgroundBox(ctx, y, lineCount) {
-    const boxHeight = lineCount * this.lineHeight + (this.padding * 2);
-    
-    // Apply glitch offset
-    const glitchX = Math.sin(this.glitchOffset) * this.glitchIntensity * 2;
-    
-    // Draw shadow with glitch
-    ctx.fillStyle = `rgba(0, 0, 0, ${this.textOpacity * 0.8})`;
-    ctx.fillRect(
-      this.padding + glitchX + 2,
-      y + 2,
-      this.canvasWidth - (this.padding * 2),
-      boxHeight
-    );
-    
-    // Draw main background
-    const gradient = ctx.createLinearGradient(0, y, 0, y + boxHeight);
-    gradient.addColorStop(0, `rgba(16, 18, 24, ${this.textOpacity * 0.95})`);
-    gradient.addColorStop(1, `rgba(32, 36, 48, ${this.textOpacity * 0.95})`);
-    ctx.fillStyle = gradient;
-    ctx.fillRect(
-      this.padding + glitchX,
-      y,
-      this.canvasWidth - (this.padding * 2),
-      boxHeight
-    );
-    
-    // Draw border with color shift effect
-    const hueShift = Math.sin(this.colorShift) * 30;
-    ctx.strokeStyle = `hsla(${180 + hueShift}, 100%, 50%, ${this.textOpacity * 0.6})`;
-    ctx.lineWidth = 2;
-    ctx.strokeRect(
-      this.padding + glitchX,
-      y,
-      this.canvasWidth - (this.padding * 2),
-      boxHeight
-    );
-    
-    // Add scanline effect
-    for (let i = 0; i < boxHeight; i += 2) {
-      ctx.fillStyle = `rgba(0, 255, 255, ${this.textOpacity * 0.02})`;
-      ctx.fillRect(
-        this.padding + glitchX,
-        y + i,
-        this.canvasWidth - (this.padding * 2),
-        1
-      );
-    }
-  }
-  
-  // Draw lore text with effects
-  drawLoreText(ctx, lines, boxY) {
-    lines.forEach((line, index) => {
-      const y = boxY + this.padding + (index * this.lineHeight);
-      
-      // Apply subtle character glitch effect
-      if (Math.random() < this.glitchIntensity * 0.1) {
-        // Glitch individual characters
-        const chars = line.split('');
-        // Calculate starting X position for center-aligned text
-        const lineWidth = ctx.measureText(line).width;
-        let x = (this.canvasWidth / 2) - (lineWidth / 2);
-        
-        ctx.textAlign = 'left'; // Switch to left for character-by-character
-        chars.forEach((char, charIndex) => {
-          if (Math.random() < 0.1) {
-            // Glitch this character
-            ctx.fillStyle = `hsla(${Math.random() * 360}, 100%, 70%, ${this.textOpacity * 0.8})`;
-            ctx.save();
-            ctx.translate(x, y + Math.random() * 4 - 2);
-            ctx.fillText(char, 0, 0);
-            ctx.restore();
-          } else {
-            // Normal character
-            ctx.fillStyle = `rgba(255, 0, 255, ${this.textOpacity * 0.9})`;
-            ctx.fillText(char, x, y);
-          }
-          x += ctx.measureText(char).width;
-        });
-        ctx.textAlign = 'center'; // Reset to center for next line
-      } else {
-        // Normal line with glow effect
-        ctx.shadowColor = 'rgba(255, 0, 255, 0.8)';
-        ctx.shadowBlur = 10;
-        ctx.fillStyle = `rgba(255, 0, 255, ${this.textOpacity})`;
-        ctx.fillText(line, this.canvasWidth / 2, y);
-        
-        // Secondary color for variety
-        ctx.shadowColor = 'rgba(0, 255, 255, 0.6)';
-        ctx.shadowBlur = 8;
-        ctx.fillStyle = `rgba(0, 255, 255, ${this.textOpacity * 0.8})`;
-        ctx.fillText(line, this.canvasWidth / 2, y);
-      }
-    });
-    
-    // Reset shadow
-    ctx.shadowColor = 'transparent';
-    ctx.shadowBlur = 0;
-  }
+  // Compatibility entrypoints never schedule or select random lore.
+  scheduleNextLore() {}
+  startLoreDisplay() {}
+  allLoreCollected() { return !!window.lostDataSystem?.allFragmentsCollected?.(); }
+  diagnostics() { return { currentRecordId: this.currentRecordId, queued: this.pending.map(item => item.id), elapsedMs: this.elapsedMs, blocked: this.isBlocked() }; }
 };
-
-// Initialize global lore system
 window.loreSystem = null;
-
-// Initialize lore system
-window.initLore = function() {
-  try {
-    if (window.loreSystem) {
-      return true;
-    }
-    window.loreSystem = new window.LoreSystem();
-    console.log('✓ Lore system initialized');
-    console.log(`📖 Loaded ${window.loreSystem.loreMessages.length} lore messages`);
-    return true;
-  } catch (error) {
-    console.error('Failed to initialize lore system:', error?.message || error);
-    return false;
-  }
+window.initLore = function() { window.loreSystem ||= new window.LoreSystem(); return true; };
+window.activateLoreSystem = function() { return !!window.loreSystem; };
+window.testLoreDisplay = function(message = 'Archive display diagnostic') {
+  return window.BARCODE?.DEBUG_LEVEL_1_SESSION ? !!window.loreSystem?.displayLoreMessage(message) : false;
 };
-
-// Manual activation for debugging or player choice
-window.activateLoreSystem = function() {
-  if (window.loreSystem && !window.loreSystem.isActive) {
-    window.loreSystem.isActive = true;
-    window.loreSystem.scheduleNextLore();
-    console.log('📖 Lore system manually activated');
-    return true;
-  }
-  console.log('⚠️ Lore system already active or not available');
-  return false;
-};
-
-// Debug function to test lore display immediately
-window.testLoreDisplay = function(message = 'Test lore message - this should appear at the bottom of the screen with purple glow effects') {
-  if (!window.loreSystem) {
-    console.log('❌ Lore system not initialized');
-    return false;
-  }
-  
-  // Force activate lore system
-  window.loreSystem.isActive = true;
-  
-  // Display test message immediately
-  const success = window.loreSystem.displayLoreMessage(message);
-  
-  console.log(`🧪 TEST: Displaying lore message: "${message.substring(0, 50)}..."`);
-  console.log(`🧪 Lore system active: ${window.loreSystem.isActive}`);
-  console.log(`🧪 Current lore: ${window.loreSystem.currentLore ? window.loreSystem.currentLore.substring(0, 30) + '...' : 'None'}`);
-  console.log(`🧪 Display time: ${new Date(window.loreSystem.displayTime).toISOString()}`);
-  
-  return success;
-};
-
-// Debug function to check lore system status
-window.checkLoreSystemStatus = function() {
-  if (!window.loreSystem) {
-    console.log('❌ Lore system not initialized');
-    return;
-  }
-  
-  const tutorialActive = window.tutorialSystem && 
-                       typeof window.tutorialSystem.isActive === 'function' && 
-                       window.tutorialSystem.isActive();
-  
-  const tutorialCompleted = window.tutorialSystem && 
-                          typeof window.tutorialSystem.isCompleted === 'function' && 
-                          window.tutorialSystem.isCompleted();
-  
-  console.log('=== LORE SYSTEM STATUS ===');
-  console.log(`✅ Lore system initialized: ${window.loreSystem ? 'YES' : 'NO'}`);
-  console.log(`📖 Lore system active: ${window.loreSystem.isActive}`);
-  console.log(`🎓 Tutorial active: ${tutorialActive}`);
-  console.log(`🎓 Tutorial completed: ${tutorialCompleted}`);
-  console.log(`💬 Currently displaying: ${window.loreSystem.currentLore ? window.loreSystem.currentLore.substring(0, 50) + '...' : 'Nothing'}`);
-  console.log(`⏱️ Display started: ${window.loreSystem.displayTime ? new Date(window.loreSystem.displayTime).toLocaleTimeString() : 'Never'}`);
-  console.log(`🎭 Text opacity: ${window.loreSystem.textOpacity.toFixed(3)}`);
-  console.log(`🎯 Target opacity: ${window.loreSystem.targetOpacity.toFixed(3)}`);
-  console.log(`📦 Box height: ${window.loreSystem.boxHeight.toFixed(1)}px`);
-  console.log(`🎚️ Canvas size: ${window.loreSystem.canvasWidth}x${window.loreSystem.canvasHeight}`);
-  
-  if (window.loreSystem.currentLore) {
-    const elapsed = Date.now() - window.loreSystem.displayTime;
-    const remaining = Math.max(0, window.loreSystem.displayDuration - elapsed);
-    console.log(`⏳ Time elapsed: ${(elapsed/1000).toFixed(1)}s`);
-    console.log(`⏳ Time remaining: ${(remaining/1000).toFixed(1)}s`);
-  }
-  
-  console.log('=== END LORE STATUS ===');
-};
+window.checkLoreSystemStatus = function() { return window.loreSystem?.diagnostics?.() || null; };

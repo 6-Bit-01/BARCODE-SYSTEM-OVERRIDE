@@ -52,7 +52,7 @@ function createHarness() {
     return true;
   };
 
-  for (const file of ['src/game/player.js', 'src/game/enemies.js', 'src/game/hacking.js', 'src/game/lore-collection.js', 'src/game/lost-data.js', 'src/game/rhythm.js', 'src/game/player-combat.js', 'src/game/sector1-progression.js', 'src/game/update-coordinator.js']) {
+  for (const file of ['src/game/player.js', 'src/game/enemies.js', 'src/game/hacking.js', 'src/game/lore-records.js', 'src/game/lore-collection.js', 'src/game/lost-data.js', 'src/game/rhythm.js', 'src/game/player-combat.js', 'src/game/sector1-progression.js', 'src/game/update-coordinator.js']) {
     vm.runInNewContext(fs.readFileSync(path.join(root, file), 'utf8'), context, { filename: file });
   }
   return context;
