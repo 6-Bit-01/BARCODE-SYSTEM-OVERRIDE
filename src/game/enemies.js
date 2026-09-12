@@ -244,9 +244,8 @@ window.Enemy = class Enemy {
     if (this.spriteReady && this.sprite) {
       const held = (this.impactHoldMs || 0) > 0;
       this.impactHoldMs = Math.max(0, (this.impactHoldMs || 0) - deltaTime);
-      if (!held) this.sprite.update(deltaTime);
       this.forceCorrectAnimationState();
-      if (!held) this.updateCombatPose();
+      if (!held && !this.updateCombatPose()) this.sprite.update(deltaTime);
     }
 
     // Physics Application
@@ -897,13 +896,21 @@ window.Enemy = class Enemy {
   }
 
   updateCombatPose() {
-    if (!this.animationRef || !this.combatPattern) return;
+    if (!this.sprite || !this.animationRef || !this.combatPattern) return false;
+    let frame = null;
     // The punch occupies the committed attack, then visibly returns to rest.
     if (this.type === 'firewall' && this.currentAnimation === 'firewall_attack_default') {
-      this.animationRef.currentFrame = this.combatPattern === 'attack'
+      frame = this.combatPattern === 'attack'
         ? Math.min(31, 5 + Math.floor(this.combatPatternMs / 800 * 26))
         : Math.min(58, 32 + Math.floor(this.combatPatternMs / 4100 * 26));
-    } else if (this.type === 'corrupted' && this.combatPattern === 'brace') this.animationRef.currentFrame = 0;
+    } else if (this.type === 'corrupted' && this.combatPattern === 'brace') frame = 0;
+    if (frame === null) return false;
+    // AnimationReference.currentFrame is a getter in Makko. Use the public
+    // start-frame argument, and leave this committed pose on the AI clock.
+    if (this.animationRef.currentFrame !== frame || this.animationRef.isInterrupted) {
+      this.animationRef = this.sprite.play(this.currentAnimation, !this.currentAnimation.includes('attack'), frame);
+    }
+    return true;
   }
 
   getSpritePresentation() {

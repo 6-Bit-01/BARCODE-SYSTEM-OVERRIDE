@@ -496,37 +496,43 @@ window.Player = class Player {
   // One frame-owned transition path. Repeated requests for the same clip
   // preserve its progress; new jumps explicitly restart the jump clip.
   updateSpriteAnimation(deltaTime) {
+    const landingMs = this.landingPoseMs || 0;
+    const landing = !this.cinematicPoseActive && this.state === 'idle' && this.grounded && landingMs > 0;
+    this.landingPoseActive = landing;
+    // Recovery belongs to the game clock, even if the host sprite is absent
+    // or fails. An animation error must never latch the landing pose.
+    this.landingPoseMs = Math.max(0, landingMs - deltaTime);
+    const held = (this.impactHoldMs || 0) > 0;
+    this.impactHoldMs = Math.max(0, (this.impactHoldMs || 0) - deltaTime);
     if (!this.spriteReady || !this.sprite) return;
     try {
-      const landing = !this.cinematicPoseActive && this.state === 'idle' && this.grounded && this.landingPoseMs > 0;
-      this.landingPoseActive = landing;
-      this.playAnimation(landing ? 'jump' : this.state);
-      const held = (this.impactHoldMs || 0) > 0;
-      this.impactHoldMs = Math.max(0, (this.impactHoldMs || 0) - deltaTime);
-      if (!this.cinematicPoseActive && !held) this.sprite.update(deltaTime);
       // The existing jump frames cover takeoff, tuck, descent and recovery.
-      // Select by physics phase rather than looping a 2.25-second movie.
-      if (this.state === 'jump' && this.animationRef && !this.cinematicPoseActive) {
+      // Makko's currentFrame is read-only. Select through play's startFrame;
+      // phase-controlled clips do not also advance on the sprite clock.
+      let frame = null;
+      if (this.state === 'jump' && !this.cinematicPoseActive && !held) {
         const vy = this.velocity.y;
-        this.animationRef.currentFrame = vy < -160 ? Math.min(8, 4 + Math.floor((920 + vy) / 180))
+        frame = vy < -160 ? Math.min(8, 4 + Math.floor((920 + vy) / 180))
           : vy < 160 ? 10 : Math.min(16, 13 + Math.floor((vy - 160) / 230));
       }
-      if (landing && this.animationRef && !this.cinematicPoseActive) this.animationRef.currentFrame = Math.min(21, 17 + Math.floor((90 - this.landingPoseMs) / 18));
-      this.landingPoseMs = Math.max(0, (this.landingPoseMs || 0) - deltaTime);
+      if (landing && !held) frame = Math.min(21, 17 + Math.floor((90 - landingMs) / 18));
+      this.playAnimation(landing ? 'jump' : this.state, frame);
+      if (!this.cinematicPoseActive && !held && frame === null) this.sprite.update(deltaTime);
     } catch (error) {
       console.error('Error updating sprite animation:', error?.message || error);
     }
   }
 
-  playAnimation(animationName) {
+  playAnimation(animationName, frame = null) {
     if (!this.spriteReady || !this.sprite) return;
     const fullName = PLAYER_ANIMATION_PRESENTATION[animationName]?.animation || animationName;
     const freshJump = animationName === 'jump' && !this.jumpAnimationStarted;
     const sameClip = this.currentAnimation === fullName && this.sprite.getCurrentAnimation?.() === fullName;
-    if (sameClip && this.animationRef && !this.animationRef.isInterrupted && !freshJump) return;
+    const sameFrame = frame === null || this.animationRef?.currentFrame === frame;
+    if (sameClip && sameFrame && this.animationRef && !this.animationRef.isInterrupted && !freshJump) return;
     try {
       this.sprite.stop();
-      this.animationRef = this.sprite.play(fullName, true);
+      this.animationRef = this.sprite.play(fullName, true, frame === null ? 0 : Math.max(0, frame));
       this.currentAnimation = fullName;
       if (animationName === 'jump') this.jumpAnimationStarted = true;
     } catch (error) {

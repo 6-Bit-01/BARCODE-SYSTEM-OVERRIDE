@@ -2,6 +2,8 @@
 
 ## Current authority and scope
 
+September 12 follow-up: PR #33 is merged. The owner reports improved effects/flow but a stuck landing jump, intermittent enemy clipping/unfair contact and missing SFX, including a getter-only `currentFrame` error. Current scope is the combined repair in `docs/source-pack/MAKKO_HEALTH_CHECK.md`. Preserve the successful responsive/visual work below; verify Makko's actual animation boundary and restore audio. Existing push/draft authorization persists; owner Makko acceptance is required before this repair merges.
+
 Current follow-up: the responsive combat pass based on merged PR #32. Read `docs/source-pack/RESPONSIVE_COMBAT_PASS.md` for the selected 1–8 scope plus stronger visible rhythm/scenery feedback. This explicitly authorizes stable body geometry and swept ordinary stomps, input timestamps, frame pacing, attack/contact/combo FX, phase-driven animation and bounded action sounds. Older selections below are historical; do not substitute their numbering. One combined PR, preserving mission/art/music/boss balance. Makko acceptance remains required.
 
 The owner's newest direct instruction controls design. `docs/source-pack/DECISION_REGISTER.md` records the retained decisions and the September 11, 2026 approval of the next development direction. Source Pack v5 supersedes conflicting v2–v4 instructions. Git history and the archive's generated manifest establish implementation state, not approval of accidental behavior.

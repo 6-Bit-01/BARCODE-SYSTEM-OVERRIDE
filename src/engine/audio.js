@@ -580,7 +580,12 @@ window.AudioSystem = class AudioSystem {
   // Short musical effects share the existing context and SFX bus. Voice
   // count and per-cue cadence are bounded even during multi-target attacks.
   playCombatCue(kind, options = {}) {
-    if (!this.initialized || !this.context || !this.sfxGain || this.context.state === 'suspended') return false;
+    // The graph can be ready while unrelated remote music assets still load.
+    // Check the actual playback boundary, not the all-assets init flag.
+    if (!this.context || !this.sfxGain || this.context.state !== 'running') {
+      this.lastSFXCue = { kind, reason: this.context?.state || 'not-ready' };
+      return false;
+    }
     const profiles = {
       enter: [220, 440, 0.18, 'triangle'], exit: [330, 165, 0.10, 'triangle'],
       jump: [180, 520, 0.12, 'triangle'], land: [130, 55, 0.09, 'triangle'],
@@ -614,11 +619,37 @@ window.AudioSystem = class AudioSystem {
       osc.frequency.setValueAtTime(profile[0] * tone * materialPitch, now);
       osc.frequency.exponentialRampToValueAtTime(profile[1] * tone * materialPitch, now + duration);
       gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime((kind === 'empty' ? 0.022 : 0.065) / tones.length, now + 0.006);
+      const peak = (kind === 'empty' ? 0.06 : 0.18) / tones.length;
+      gain.gain.linearRampToValueAtTime(peak, now + 0.006);
+      gain.gain.setValueAtTime(peak, now + duration * 0.3);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
       osc.connect(gain); gain.connect(this.sfxGain);
       osc.start(now); osc.stop(now + duration + 0.01);
     }
+    this.lastSFXCue = { kind, reason: 'scheduled', audioTimeSec: now };
+    return true;
+  }
+
+  playSFXBuffer(buffer, volume = 1, kind = 'sample') {
+    if (!this.context || !this.sfxGain || this.context.state !== 'running') {
+      this.lastSFXCue = { kind, reason: this.context?.state || 'not-ready' };
+      return false;
+    }
+    this.combatVoices ||= new Set();
+    while (this.combatVoices.size >= 12) this.combatVoices.values().next().value.dispose();
+    const source = this.context.createBufferSource(), gain = this.context.createGain();
+    source.buffer = buffer;
+    gain.gain.value = volume;
+    source.connect(gain); gain.connect(this.sfxGain);
+    const voice = { dispose: () => {
+      if (!this.combatVoices.delete(voice)) return;
+      source.onended = null;
+      try { source.stop(); } catch (error) {}
+      source.disconnect(); gain.disconnect();
+    } };
+    this.combatVoices.add(voice); source.onended = voice.dispose;
+    source.start(this.context.currentTime);
+    this.lastSFXCue = { kind, reason: 'scheduled', audioTimeSec: this.context.currentTime };
     return true;
   }
 
@@ -1261,14 +1292,7 @@ window.AudioSystem = class AudioSystem {
           const audioBuffer = await this.context.decodeAudioData(arrayBuffer);
           
           // Create sound function for this success sound
-          this.sounds[soundData.name] = () => {
-            const now = this.context.currentTime;
-            const source = this.context.createBufferSource();
-            source.buffer = audioBuffer;
-            source.connect(this.sfxGain);
-            source.start(now);
-            return now + audioBuffer.duration;
-          };
+          this.sounds[soundData.name] = () => this.playSFXBuffer(audioBuffer, 0.9, 'rhythm-success');
           
           // Add to success sounds array for random selection
           this.rhythmSuccessSounds.push(soundData.name);
@@ -1285,7 +1309,7 @@ window.AudioSystem = class AudioSystem {
     // If no rhythm success sounds loaded, create fallback
     if (this.rhythmSuccessSounds.length === 0) {
       console.log('No rhythm success sounds loaded, using fallback');
-      this.sounds.rhythmSuccess = this.createSuccessSound();
+      this.sounds.rhythmSuccess = () => this.playCombatCue('perfect');
       this.rhythmSuccessSounds = ['rhythmSuccess'];
     } else {
       console.log(`✓ Loaded ${this.rhythmSuccessSounds.length} rhythm success sounds: [${this.rhythmSuccessSounds.join(', ')}]`);
@@ -1301,40 +1325,22 @@ window.AudioSystem = class AudioSystem {
         const randomSound = this.rhythmSuccessSounds[Math.floor(Math.random() * this.rhythmSuccessSounds.length)];
         
         if (this.sounds[randomSound]) {
-          // Play with 10% reduced volume by creating a temporary gain node
-          const now = this.context.currentTime;
-          const tempGain = this.context.createGain();
-          tempGain.gain.value = 0.9; // 10% volume reduction
-          
-          // Create source from the sound function
-          const soundFunction = this.sounds[randomSound];
-          soundFunction(); // This creates and connects to sfxGain
-          
-          // Reduce sfxGain temporarily for 10% volume reduction
-          const originalSFXVolume = this.sfxGain.gain.value;
-          this.sfxGain.gain.value = originalSFXVolume * 0.9;
-          
-          // Restore original volume after a short delay
-          setTimeout(() => {
-            if (this.sfxGain && originalSFXVolume !== undefined) {
-              this.sfxGain.gain.value = originalSFXVolume;
-            }
-          }, 500);
-          
-          console.log(`🎵 Playing random rhythm success sound with 10% reduced volume: ${randomSound}`);
+          // Volume belongs to this voice. Never duck the entire SFX channel
+          // or restore an obsolete bus value from a delayed callback.
+          this.sounds[randomSound]();
         } else {
           console.warn(`Selected rhythm sound ${randomSound} not found, using fallback`);
-          this.playSound('success');
+          this.playCombatCue('perfect');
         }
       } catch (error) {
         console.error('Error playing rhythm success sound:', error?.message || error);
         // Fallback to regular success sound
-        this.playSound('success');
+        this.playCombatCue('perfect');
       }
     } else {
       // Fallback to regular success sound if no rhythm sounds loaded
       console.log('No rhythm success sounds available, using fallback');
-      this.playSound('success');
+      this.playCombatCue('perfect');
     }
   }
   
@@ -1604,23 +1610,16 @@ window.AudioSystem = class AudioSystem {
         
         const audioBuffer = await this.context.decodeAudioData(arrayBuffer);
         
-        this.sounds.playerDamage = () => {
-          const now = this.context.currentTime;
-          const source = this.context.createBufferSource();
-          source.buffer = audioBuffer;
-          source.connect(this.sfxGain);
-          source.start(now);
-          return now + audioBuffer.duration;
-        };
+        this.sounds.playerDamage = () => this.playSFXBuffer(audioBuffer, 1, 'player-damage');
         
         console.log('✓ Loaded player damage sound');
       } else {
         console.log(`Player damage sound not available (HTTP ${response.status}), creating fallback`);
-        this.sounds.playerDamage = this.createPlayerDamageFallback();
+        this.sounds.playerDamage = () => this.playCombatCue('damage');
       }
     } catch (error) {
       console.log(`Error loading player damage sound:`, error?.message || 'Network error');
-      this.sounds.playerDamage = this.createPlayerDamageFallback();
+      this.sounds.playerDamage = () => this.playCombatCue('damage');
     }
   }
   
@@ -1684,7 +1683,10 @@ window.AudioSystem = class AudioSystem {
   }
   
   // Play player damage sound
-  playPlayerDamageSound() { this.playCombatCue('damage'); }
+  playPlayerDamageSound() {
+    if (this.sounds.playerDamage) return this.sounds.playerDamage();
+    return this.playCombatCue('damage');
+  }
 
   // Create synthetic whoosh sound fallback
   createWhooshFallback() {
@@ -3166,6 +3168,14 @@ window.AudioSystem = class AudioSystem {
       loopCheckActive: !!this.loopCheckInterval,
       beatSchedulerActive: !!this.beatScheduler,
       activeMusicSources,
+      sfx: {
+        initialized: this.initialized,
+        masterGain: this.masterGain?.gain?.value ?? null,
+        busGain: this.sfxGain?.gain?.value ?? null,
+        activeVoices: this.combatVoices?.size || 0,
+        rhythmSounds: [...(this.rhythmSuccessSounds || [])],
+        lastCue: this.lastSFXCue || null
+      },
       runtimeAudioGeneration: this.runtimeAudioGeneration,
       ownedRuntimeTimeouts: this.runtimeTimeouts.size,
       cutsceneSourceActive: !!this.cutsceneSource,

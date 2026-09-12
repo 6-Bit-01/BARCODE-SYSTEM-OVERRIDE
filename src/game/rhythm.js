@@ -667,7 +667,7 @@ window.RhythmSystem = class RhythmSystem {
       this.maxCombo = Math.max(this.maxCombo, this.combo);
       this.triggerPowerArc(timing, false);
       this.createHitEffect(timing, false);
-      if (window.audioSystem && !window.BARCODE?.combatFX) window.audioSystem.playRhythmAttack(timing);
+      window.audioSystem?.playRhythmAttack?.(timing);
       if (this.combo >= 5 && window.tutorialSystem && window.tutorialSystem.isActive && window.tutorialSystem.isActive() && window.tutorialSystem.checkObjective) window.tutorialSystem.checkObjective('rhythm_combo');
     } else {
       this.combo = 0;
@@ -748,9 +748,7 @@ window.RhythmSystem = class RhythmSystem {
       this.createHitEffect(timing, attackBonus);
       
       // Audio feedback
-      if (window.audioSystem) {
-        if (!window.BARCODE?.combatFX) window.audioSystem.playRhythmAttack(timing);
-      }
+      window.audioSystem?.playRhythmAttack?.(timing);
       
       if (window.DEBUG_RHYTHM) console.log(`${timing.toUpperCase()} HIT! Combo: ${this.combo}`);
       

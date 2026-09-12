@@ -1,5 +1,13 @@
 # Changelog
 
+## September 12, 2026 — Repair failed PR #33 Makko playtest
+
+- Record positive effects/flow feedback and failed animation/contact/audio acceptance against merged `8d0cf73`.
+- Use public Makko start-frame selection. Landing recovery cannot latch on sprite errors; Corrupted/Firewall updates again reach collision resolution.
+- Restore rhythm/damage samples, per-voice volume and bounded cleanup; remove delayed whole-SFX-channel restoration. Use actual graph readiness and stronger cue envelopes. Final Makko mix remains pending.
+- Add getter-only and optional actual-Makko animation coverage, full animated contact/landing checks across four frame rates, audio routing/bus/reset checks and executed cinematic ownership checks.
+- Preserve visuals/flow, calibrated geometry, health/boss balance, mission, art and music. Add focused health report/diagnostics/handoff and refresh the exact-review archive. No gameplay PASS is claimed.
+
 ## September 12, 2026 — Publish the completed combined pass
 
 - Owner explicitly authorized pushing the completed responsive-combat/visible-rhythm build to the existing GitHub repository and opening one draft PR.

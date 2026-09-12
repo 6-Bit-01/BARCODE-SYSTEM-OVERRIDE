@@ -127,7 +127,8 @@
     "tools/check-runtime-lifecycle.js",
     "tools/check-startup-lifecycle.js",
     "tools/check-syntax.js",
-    "tools/generate-baseline.js"
+    "tools/generate-baseline.js",
+    "tools/makko-animation-fixture.js"
   ],
   "loadedAndInlineSyntaxStatus": {
     "loadedFiles": [
@@ -361,13 +362,13 @@
     {
       "global": "window.EnemyManager",
       "file": "src/game/enemies.js",
-      "line": 1136,
+      "line": 1143,
       "loaded": true
     },
     {
       "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 1604,
+      "line": 1611,
       "loaded": true
     },
     {
@@ -475,7 +476,7 @@
     {
       "global": "window.player",
       "file": "src/game/player.js",
-      "line": 1742,
+      "line": 1748,
       "loaded": true
     },
     {
