@@ -73,8 +73,10 @@ window.gameLoop = function(timestamp) {
   // Calculate delta time in milliseconds
   const deltaTime = timestamp - window.lastTime;
 
-  // Cap at 60 fps - skip frame if running too fast
-  if (deltaTime < window.frameDelay) {
+  // Follow the display clock. Comparing each RAF interval against 1000/60
+  // discarded valid frames (especially with floating-point timestamps) and
+  // also delayed input. Physics already uses bounded integration substeps.
+  if (deltaTime <= 0) {
     scheduleNextGameplayFrame();
     return;
   }

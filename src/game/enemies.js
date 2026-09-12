@@ -4,12 +4,14 @@ window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({
   name: 'src/game/enemies.js',
   exports: ['Enemy', 'EnemyManager', 'enemyManager'],
-  dependencies: ['Vector2D', 'distance', 'clamp', 'randomRange']
+  dependencies: ['Vector2D', 'distance', 'clamp', 'randomRange', 'Player']
 });
 
 // ==========================================
 // 1. BASE ENEMY CLASS (Moved to Top)
 // ==========================================
+const ENEMY_CONTACT_PRESENTATION = {"virus_idle_idle":{"scale":0.8,"anchorX":48,"anchorY":92,"footRows":[92,92,92,92,92,92,92,92,92,92,92,92,92,91,91,91,91,91,91,92,92,92,92,92,92,92,92,92,91,91,91,91,91,91,92,92,92,92,92,92,92,92,91,91,91,91,91,91,92,91,92],"headRows":[2,2,2,2,2,2,3,3,3,3,3,3,2,2,1,0,0,0,1,2,2,2,3,3,3,3,2,2,1,1,0,1,1,1,2,2,3,3,3,3,2,2,1,1,0,0,1,1,2,1,2]},"corrupted_idle_idle":{"scale":1.2,"anchorX":40,"anchorY":84,"footRows":[83,83,83,85,85,85,85,85,85,85,85,85,85,86,86,86,86,86,86,86,86,86,87,87,88,89,90,90,90,90,90,91,91,91,91,91,91,91,91,91,91,91,91,91,91,91,92,92,92,85,85],"headRows":[3,3,3,3,3,4,4,4,4,5,4,4,3,3,4,4,3,3,4,4,4,3,4,4,4,3,3,4,3,3,3,3,3,2,2,2,2,2,3,3,2,2,2,1,1,1,1,1,1,3,3]},"corrupted_walk_walk":{"scale":1.2,"anchorX":37,"anchorY":95,"footRows":[94,87,86,86,94,95,94,88,86,86,94,95,95,88,86,87,94,95,94,87,86,86,95,95,94,87,86,88,95,95,93,86,85,88,95,95,90,87,87,93,95,94,89,86,86,91],"headRows":[9,1,0,2,8,10,12,3,2,2,8,10,11,3,1,2,9,11,10,2,1,2,10,11,8,1,1,4,11,12,8,1,1,4,11,10,5,2,3,7,12,10,4,1,2,6]},"firewall_idle_idle":{"scale":2.26,"anchorX":48,"anchorY":92,"footRows":[91,91,91,91,91,91,91,91,91,91,91,91,91,91,92,92,92,92,92,92,92,92,92,92,92,92,92,92,92,92,92,92,92,92,92,92,92,92,92,92,92,92,92,92,92,92,92,92,92,92,91,91,91,91,91,91,91,91,91,91,91,91],"headRows":[13,13,13,5,5,2,1,3,2,1,2,2,1,5,4,2,2,2,4,3,3,2,5,3,5,4,3,1,2,3,2,2,2,3,4,2,3,1,5,3,3,4,5,4,2,3,3,3,2,4,2,2,1,3,2,1,2,5,5,13,13,13]},"firewall_walk_walk":{"scale":2,"anchorX":34,"anchorY":95,"footRows":[94,94,94,94,94,93,92,92,92,92,94,94,94,94,94,94,94,94,94,95,95,94,92,92,92,92,93,94,94,94,94,94,94],"headRows":[0,1,2,3,3,3,2,1,1,1,2,3,3,2,2,1,1,1,1,3,3,3,2,1,1,1,1,2,3,3,2,1,1]},"firewall_attack_default":{"scale":2.72,"anchorX":48,"anchorY":66,"footRows":[66,66,66,66,66,65,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,65,66,66,66,66],"headRows":[0,0,0,1,1,2,3,3,4,7,8,10,12,12,13,13,13,13,13,13,13,13,13,13,13,13,9,6,6,7,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,11,10,0,0,0,1,1,1,2,3,3,4,7]}};
+
 window.Enemy = class Enemy {
   constructor(x, y, type = 'virus') {
     this.position = new window.Vector2D(x, y);
@@ -209,6 +211,8 @@ window.Enemy = class Enemy {
     this.simulationTimeMs = Number.isFinite(simulationTimeMs) ? simulationTimeMs : (this.simulationTimeMs + deltaTime);
     this.pollSpriteReady();
 
+    this.previousContactBox = this.getHitbox();
+    this.previousStompBox = this.getStompBox();
     const dt = deltaTime / 1000;
     this.stateTimer += deltaTime;
     this.animationTime += deltaTime;
@@ -238,8 +242,11 @@ window.Enemy = class Enemy {
 
     // Update Animation
     if (this.spriteReady && this.sprite) {
-      this.sprite.update(deltaTime);
+      const held = (this.impactHoldMs || 0) > 0;
+      this.impactHoldMs = Math.max(0, (this.impactHoldMs || 0) - deltaTime);
+      if (!held) this.sprite.update(deltaTime);
       this.forceCorrectAnimationState();
+      if (!held) this.updateCombatPose();
     }
 
     // Physics Application
@@ -262,9 +269,9 @@ window.Enemy = class Enemy {
     // Friction
     const tutorialMode = window.tutorialSystem && window.tutorialSystem.isActive();
     if (tutorialMode && this.type === 'virus') {
-        this.velocity.x *= 0.98;
+        this.velocity.x *= Math.pow(0.98, dt * 60);
     } else if (this.type !== 'firewall') {
-        this.velocity.x *= 0.95;
+        this.velocity.x *= Math.pow(0.95, dt * 60);
     }
   }
 
@@ -741,7 +748,7 @@ window.Enemy = class Enemy {
             // Enhanced glide physics
             if (this.behaviorTimerSeconds < this.glideDurationSeconds) {
               // Active gliding phase
-              this.velocity.x *= 0.95; // Maintain forward momentum
+              this.velocity.x *= Math.pow(0.95, dt * 60); // Maintain forward momentum
             } else {
               // Post-glide deceleration
               this.velocity.x *= 0.85;
@@ -861,7 +868,7 @@ window.Enemy = class Enemy {
         };
         const fullName = map[name] || name;
         const loop = name !== 'attack';
-        this.sprite.play(fullName, loop);
+        this.animationRef = this.sprite.play(fullName, loop);
         this.currentAnimation = fullName;
         return;
     }
@@ -880,7 +887,7 @@ window.Enemy = class Enemy {
     // FIX: Removed setTimeout delay that was causing race conditions
     const loop = !fullName.includes('attack');
     const speed = fullName.includes('attack') ? 1.2 : (name === 'idle' ? 1.25 : 1.0);
-    this.sprite.play(fullName, loop, 0, { speed });
+    this.animationRef = this.sprite.play(fullName, loop, 0, { speed });
     this.currentAnimation = fullName;
   }
 
@@ -889,17 +896,26 @@ window.Enemy = class Enemy {
     return !!this._authoredEntranceActive || !this.entranceComplete || ((this.simulationTimeMs || 0) - (this.spawnTimeMs || 0) < (this.spawnProtectionDuration || 0));
   }
 
+  updateCombatPose() {
+    if (!this.animationRef || !this.combatPattern) return;
+    // The punch occupies the committed attack, then visibly returns to rest.
+    if (this.type === 'firewall' && this.currentAnimation === 'firewall_attack_default') {
+      this.animationRef.currentFrame = this.combatPattern === 'attack'
+        ? Math.min(31, 5 + Math.floor(this.combatPatternMs / 800 * 26))
+        : Math.min(58, 32 + Math.floor(this.combatPatternMs / 4100 * 26));
+    } else if (this.type === 'corrupted' && this.combatPattern === 'brace') this.animationRef.currentFrame = 0;
+  }
+
   getSpritePresentation() {
-    let y = this.position.y + 69;
-    let scale = 0.8;
-    if (this.type === 'corrupted') { y = this.position.y + 59; scale = 1.2; }
-    else if (this.type === 'firewall') {
-      y = this.position.y;
-      scale = 2;
-      if (this.currentAnimation === 'firewall_idle_idle') { scale *= 1.13; y -= 14; }
-      if (this.currentAnimation === 'firewall_attack_default') { scale *= 1.36; y -= 26; }
-    }
-    return { x: this.position.x, y, scale, flipH: this.facing === -1 };
+    const presentation = ENEMY_CONTACT_PRESENTATION[this.currentAnimation] || ENEMY_CONTACT_PRESENTATION[
+      this.type === 'firewall' ? 'firewall_idle_idle' : this.type === 'corrupted' ? 'corrupted_idle_idle' : 'virus_idle_idle'];
+    const flipH = this.facing === -1;
+    const render = window.Player.prototype.getMakkoRenderMetrics.call(this, presentation, flipH);
+    const index = Math.max(0, Math.floor(this.animationRef?.currentFrame || 0)) % presentation.footRows.length;
+    const footRow = presentation.footRows[index];
+    return { x: this.position.x + render.flipSignX * (render.anchorOffsetX - render.sourceAnchorX * render.frameScale),
+      y: this.position.y + 72 + render.anchorOffsetY - footRow * render.frameScale,
+      scale: presentation.scale, flipH };
   }
 
   drawSprite(ctx) {
@@ -934,12 +950,15 @@ window.Enemy = class Enemy {
     }
   }
 
-  takeDamage(amount) {
+  takeDamage(amount, contact = {}) {
     if (!this.active || this._defeatRecorded) return false;
     this.health -= amount;
     this.hitFlashMs = 130;
+    this.impactHoldMs = contact.perfect ? 45 : 25;
+    const body = this.getHitbox();
+    window.BARCODE?.combatFX?.contact(this.type, contact.x ?? this.position.x, contact.y ?? (body.y + body.height * 0.45), contact.direction || 1, this.health <= 0, !!contact.perfect);
 
-    if (window.particleSystem) {
+    if (!window.BARCODE?.combatFX && window.particleSystem) {
       let particleColor = this.type === 'corrupted' ? 'corrupted' : this.type;
       window.particleSystem.damageEffect(this.position.x, this.position.y - this.height/2, particleColor, 10);
     }
@@ -947,18 +966,9 @@ window.Enemy = class Enemy {
     if (this.health <= 0) {
       this.active = false;
 
-      // Play defeat sound based on enemy type
-      if (window.audioSystem) {
-        if (this.type === 'virus') {
-          window.audioSystem.playVirusDefeatSound();
-        } else if (this.type === 'corrupted') {
-          window.audioSystem.playEnemyDefeatSound('corrupted');
-        } else if (this.type === 'firewall') {
-          window.audioSystem.playEnemyDefeatSound('firewall');
-        }
-      }
+      window.audioSystem?.playCombatCue?.('defeat', { material: this.type });
 
-      if (window.particleSystem) {
+      if (!window.BARCODE?.combatFX && window.particleSystem) {
         let particleColor = this.type === 'corrupted' ? 'corrupted' : this.type;
         window.particleSystem.explosion(this.position.x, this.position.y - this.height/2, particleColor, 25);
       }
@@ -982,7 +992,7 @@ window.Enemy = class Enemy {
     }
   }
 
-  getHitbox() {
+  getVisualBounds() {
     if (['virus', 'corrupted', 'firewall'].includes(this.type) && this.spriteReady && this.sprite) {
 
       // Ask Makko for the bounds of exactly the pose that drawSprite renders.
@@ -1028,6 +1038,24 @@ window.Enemy = class Enemy {
     };
   }
 
+  getHitbox() {
+    const [width, height] = this.type === 'firewall' ? [90, 124] : this.type === 'corrupted' ? [46, 92] : [54, 60];
+    return { x: this.position.x - width / 2, y: this.position.y + 68 - height, width, height };
+  }
+
+  getStompBox() {
+    const body = this.getHitbox();
+    const pose = ENEMY_CONTACT_PRESENTATION[this.currentAnimation];
+    if (!pose) return body;
+    const frame = Math.max(0, Math.floor(this.animationRef?.currentFrame || 0)) % pose.footRows.length;
+    // Feet contact the visible silhouette above the torso. Ignore the tall
+    // decorative flames on a standing Firewall; follow its crouched head.
+    const visibleTop = this.position.y + 72 - (pose.footRows[frame] - pose.headRows[frame]) * pose.scale;
+    const highestHead = this.type === 'firewall' ? this.position.y + 68 - 166 : body.y;
+    const top = Math.max(highestHead, Math.min(body.y, visibleTop));
+    return { x: body.x, y: top, width: body.width, height: body.y + body.height - top };
+  }
+
   getCollisionBox() {
     const hitbox = this.getHitbox();
     const collisionMargin = 0.05;
@@ -1053,17 +1081,14 @@ window.Enemy = class Enemy {
     if (['virus', 'corrupted', 'firewall'].includes(this.type) && this.spriteReady && this.sprite) {
       this.drawSprite(ctx);
       if (this.health < this.maxHealth) {
-        let healthBarY = this.position.y - this.height + 50;
-        if (this.type === 'firewall') healthBarY += 40;
-
+        const body = this.getHitbox();
         ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
-        ctx.fillRect(this.position.x - this.width, healthBarY, this.width * 2 * (this.health / this.maxHealth), 4);
+        ctx.fillRect(body.x, this.getStompBox().y - 8, body.width * (this.health / this.maxHealth), 4);
       }
     } else {
-      const bodyY = this.position.y - this.height;
-      const bodyX = this.position.x - this.width/2;
+      const body = this.getHitbox();
       ctx.fillStyle = this.color;
-      ctx.fillRect(bodyX, bodyY, this.width, this.height);
+      ctx.fillRect(body.x, body.y, body.width, body.height);
     }
     ctx.shadowBlur = 0;
     this.drawCombatCue(ctx);
@@ -1076,7 +1101,7 @@ window.Enemy = class Enemy {
     const phase = swooper ? this.swooperState : this.combatPattern;
     if (!swooper && !['corrupted', 'firewall'].includes(this.type)) return;
     if (!['brace', 'telegraph', 'attack', 'dive', 'recovery'].includes(phase)) return;
-    const box = this.getHitbox();
+    const box = this.getStompBox();
     const warning = phase === 'brace' || phase === 'telegraph';
     const recovery = phase === 'recovery';
     const label = recovery ? 'RECOVERING' : swooper ? (warning ? 'DIVE WINDUP' : 'DIVE') : this.type === 'firewall' ? (warning ? 'BRACING' : 'SWEEP') : (warning ? 'CHARGE WINDUP' : 'CHARGE');
@@ -1206,52 +1231,17 @@ window.EnemyManager = class EnemyManager {
   }
 
   checkEnemyCollisions() {
-    const active = this.enemies;
-    for (let i = 0; i < active.length; i++) {
-        for (let j = i + 1; j < active.length; j++) {
-            const e1 = active[i];
-            const e2 = active[j];
-            const box1 = e1.getCollisionBox();
-            const box2 = e2.getCollisionBox();
-
-            if (this.simpleAABBcollision(box1, box2)) {
-                const e1CX = box1.x + box1.width/2;
-                const e1CY = box1.y + box1.height/2;
-                const e2CX = box2.x + box2.width/2;
-                const e2CY = box2.y + box2.height/2;
-
-                const dx = e2CX - e1CX;
-                const dy = e2CY - e1CY;
-                let dist = Math.sqrt(dx*dx + dy*dy);
-                let nx = dx / dist;
-                let ny = dy / dist;
-                if (!Number.isFinite(dist) || dist === 0) {
-                    dist = 0.0001;
-                    nx = (i <= j) ? 1 : -1;
-                    ny = 0;
-                }
-
-                let minSep = 40, sepForce = 0.8;
-                if (e1.type === e2.type) {
-                    minSep = e1.type === 'firewall' ? 160 : 55;
-                    sepForce = 1.0;
-                }
-
-                if (dist < minSep) {
-                    const force = (minSep - dist) * sepForce;
-                    const pushX = nx * force;
-                    const pushY = ny * force * 0.4;
-
-                    e1.position.x -= pushX;
-                    e1.position.y -= pushY;
-                    e2.position.x += pushX;
-                    e2.position.y += pushY;
-
-                    e1.velocity.x *= 0.7;
-                    e2.velocity.x *= 0.7;
-                }
-            }
-        }
+    for (let i = 0; i < this.enemies.length; i++) for (let j = i + 1; j < this.enemies.length; j++) {
+      const a = this.enemies[i], b = this.enemies[j];
+      if (!a.active || !b.active || a.isSpawnProtected() || b.isSpawnProtected()) continue;
+      const ab = a.getCollisionBox(), bb = b.getCollisionBox();
+      if (!this.simpleAABBcollision(ab, bb)) continue;
+      const overlap = Math.min(ab.x + ab.width - bb.x, bb.x + bb.width - ab.x);
+      const direction = a.position.x <= b.position.x ? 1 : -1;
+      // Horizontal separation only: crowd contact cannot levitate actors or
+      // turn a body overlap into a head landing. No per-frame velocity damping.
+      a.position.x -= direction * overlap / 2;
+      b.position.x += direction * overlap / 2;
     }
   }
 
@@ -1261,73 +1251,51 @@ window.EnemyManager = class EnemyManager {
   }
 
   checkCollisions(player) {
-      if (player.controlsDisabled) return;
-
-      const playerBox = player.getHitbox();
-
-      this.enemies.forEach(enemy => {
-          if (!enemy.active) return;
-          const enemyBox = enemy.getHitbox();
-          const spawnProtected = typeof enemy.isSpawnProtected === 'function' && enemy.isSpawnProtected();
-
-          // Push player away
-          const dx = player.position.x - enemy.position.x;
-          const dy = player.position.y - enemy.position.y;
-          let dist = Math.sqrt(dx*dx + dy*dy);
-          let nx = dx / dist;
-          let ny = dy / dist;
-          if (!Number.isFinite(dist) || dist === 0) { dist = 0.0001; nx = 1; ny = 0; }
-          if (!spawnProtected && dist < 60) {
-              const push = (60 - dist) * 0.5;
-              player.position.x += nx * push;
-              player.position.y += ny * push * 0.5;
-          }
-
-          // Intentional passive landing stomp: top-half descending collision defeats once and bounces player.
-          {
-            const playerBottom = playerBox.y + playerBox.height;
-            const enemyTop = enemyBox.y;
-            const enemyTopHalf = enemyBox.y + enemyBox.height/2;
-            const isStompPos = playerBottom > enemyTop && playerBottom < enemyTopHalf;
-            const isMovingDown = player.velocity.y >= -100;
-
-            if (isStompPos && isMovingDown && this.simpleAABBcollision(playerBox, enemyBox)) {
-                enemy.takeDamage(999);
-                window.audioSystem?.playSound?.('kick');
-                window.renderer?.addScreenShake?.(2, 80);
-                if (typeof player.stompRebound === 'function') player.stompRebound();
-                else player.velocity.y = -550;
-                player.velocity.x = nx * 300;
-                const contactX = Math.max(enemyBox.x, Math.min(enemyBox.x + enemyBox.width, player.position.x));
-                window.particleSystem?.stompEffect?.(contactX, enemyTop, enemy.type, player.facing || 1);
-                const hostileNow = this.getHostileClockNow();
-                player._enemyInvulnerableUntilMs = hostileNow + 400;
-                return;
-              }
-          }
-
-          // Entrance protection blocks contact/push damage only; the approved passive stomp remains lethal.
-          if (spawnProtected) return;
-
-          // Check for Damage
-          if (this.simpleAABBcollision(playerBox, enemyBox)) {
-              const hostileNow = this.getHostileClockNow();
-              if (!player._enemyInvulnerableUntilMs || hostileNow > player._enemyInvulnerableUntilMs) {
-                  if (!Number.isFinite(enemy.lastPlayerHitTimeMs) || hostileNow - enemy.lastPlayerHitTimeMs > 1500) {
-                      // Player i-frames and the per-enemy hostile cadence are
-                      // separate clocks. An overlap rejected by player
-                      // i-frames must not consume this enemy's next real hit.
-                      if (typeof player.isDamageInvulnerable === 'function' && player.isDamageInvulnerable()) return;
-                      if (window.hackingSystem?.absorbGuardHit?.()) {
-                          enemy.lastPlayerHitTimeMs = hostileNow;
-                          return;
-                      }
-                      const damaged = player.takeDamageWithKnockback(enemy.damage, nx * 450, -300, enemy.position);
-                      if (damaged !== false) enemy.lastPlayerHitTimeMs = hostileNow;
-                  }
-              }
-          }
-      });
+    if (player.controlsDisabled) { player.contactSweep = null; return; }
+    const sweep = player.contactSweep;
+    player.contactSweep = null;
+    let landing = null;
+    if (sweep && sweep.currentFootY > sweep.previousFootY && player.velocity.y >= 0) {
+      for (const enemy of this.enemies) {
+        if (!enemy.active) continue;
+        const box = enemy.getStompBox?.() || enemy.getHitbox(), previous = enemy.previousStompBox || box;
+        const before = sweep.previousFootY - previous.y;
+        const after = sweep.currentFootY - box.y;
+        if (before > 6 || after < 0 || after <= before) continue;
+        const t = Math.max(0, Math.min(1, -before / (after - before)));
+        const x = sweep.previousX + (sweep.currentX - sweep.previousX) * t;
+        const left = previous.x + (box.x - previous.x) * t;
+        if (x + 18 <= left || x - 18 >= left + box.width) continue;
+        if (!landing || t < landing.t) landing = { enemy, box, x, t };
+      }
+    }
+    if (landing) {
+      const { enemy, box, x } = landing;
+      const direction = Math.sign(player.position.x - enemy.position.x) || player.facing || 1;
+      enemy.takeDamage(999, { x, y: box.y, direction });
+      player.position.y = box.y - 72;
+      window.audioSystem?.playCombatCue?.('stomp');
+      window.renderer?.addScreenShake?.(2, 80);
+      if (typeof player.stompRebound === 'function') player.stompRebound();
+      else player.velocity.y = -550;
+      player.velocity.x = direction * 300;
+      window.particleSystem?.stompEffect?.(x, box.y, enemy.type, direction);
+      player._enemyInvulnerableUntilMs = this.getHostileClockNow() + 400;
+      return;
+    }
+    for (const enemy of this.enemies) {
+      if (!enemy.active || enemy.isSpawnProtected?.()) continue;
+      // Query after each real hit/knockback; never use a cached pre-push box.
+      if (!this.simpleAABBcollision(player.getHitbox(), enemy.getHitbox())) continue;
+      const now = this.getHostileClockNow();
+      if (player._enemyInvulnerableUntilMs && now <= player._enemyInvulnerableUntilMs) continue;
+      if (Number.isFinite(enemy.lastPlayerHitTimeMs) && now - enemy.lastPlayerHitTimeMs <= 1500) continue;
+      if (player.isDamageInvulnerable?.()) continue;
+      if (window.hackingSystem?.absorbGuardHit?.()) { enemy.lastPlayerHitTimeMs = now; continue; }
+      const direction = Math.sign(player.position.x - enemy.position.x) || player.facing || 1;
+      const damaged = player.takeDamageWithKnockback(enemy.damage, direction * 450, -300, enemy.position);
+      if (damaged !== false) enemy.lastPlayerHitTimeMs = now;
+    }
   }
 
   simpleAABBcollision(r1, r2) {
@@ -1428,8 +1396,12 @@ window.EnemyManager = class EnemyManager {
 
   getActiveEnemies() { return this.enemies; }
   draw(ctx) {
-    const sorted = [...this.enemies].sort((a, b) => a.getDrawLayer() - b.getDrawLayer());
-    sorted.forEach(e => e.draw(ctx));
+    // Stable drawing layers, without a copied/sorted array each frame.
+    for (const layer of [-1, 1]) for (const enemy of this.enemies) {
+      if (enemy.getDrawLayer() !== layer || !enemy.active) continue;
+      if (window.BARCODE?.combatFX && !window.BARCODE.combatFX.visible(enemy.position.x, enemy.position.y, 300)) continue;
+      enemy.draw(ctx);
+    }
   }
 
   spawnEnemy() { this.spawnFlowEnemy(window.player || {position:{x:960,y:750}}); }

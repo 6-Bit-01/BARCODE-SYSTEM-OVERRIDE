@@ -370,6 +370,7 @@ window.LostDataSystem = class LostDataSystem {
     
     // Show collection message
     this.showCollectionMessage('LORE FRAGMENT COLLECTED');
+    window.audioSystem?.playCombatCue?.('pickup');
     
     // Display the lore
     this.displayLore(loreText);

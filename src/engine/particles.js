@@ -28,7 +28,8 @@ window.Particle = class Particle {
     this.age += deltaTime;
     
     // Update position
-    this.position = this.position.add(this.velocity.multiply(dt));
+    this.position.x += this.velocity.x * dt;
+    this.position.y += this.velocity.y * dt;
     
     // Apply ground level mask - destroy particles that go below or touch ground (890px)
     if (this.position.y >= 885) { // More aggressive - destroy 5px before ground
@@ -47,7 +48,7 @@ window.Particle = class Particle {
       this.size = this.originalSize * (1 + progress * 3); // Grow to 4x original size
     } else {
       // Normal size fade
-      this.size *= 0.98;
+      this.size = this.originalSize * Math.pow(0.98, this.age / (1000 / 60));
     }
     
     // Apply gravity to heavy particles (orange/firewall colors)
@@ -145,7 +146,9 @@ window.ParticleSystem = class ParticleSystem {
   update(deltaTime) {
     try {
       // Update all particles and remove dead ones
-      this.particles = this.particles.filter(particle => particle.update(deltaTime));
+      let write = 0;
+      for (const particle of this.particles) if (particle.update(deltaTime)) this.particles[write++] = particle;
+      this.particles.length = write;
       
       // Limit particle count
       if (this.particles.length > this.maxParticles) {

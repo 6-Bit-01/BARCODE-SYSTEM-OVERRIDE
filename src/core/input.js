@@ -166,7 +166,13 @@ window.InputManager = class InputManager {
       if (horizontal !== 0 && window.tutorialSystem && window.tutorialSystem.isActive && window.tutorialSystem.isActive() && !this.hasTrackedMovement) { this.hasTrackedMovement = true; window.tutorialSystem.checkObjective && window.tutorialSystem.checkObjective('movement'); }
       if (actions.jump.pressed) { const r = window.handleGameAction ? window.handleGameAction('jump') : { ok: window.player.jump() }; if (r && r.ok && window.tutorialSystem && window.tutorialSystem.checkObjective && !this.hasTrackedJump) { this.hasTrackedJump = true; window.tutorialSystem.checkObjective('jump'); } }
     }
-    if (actions.primary.pressed && window.BARCODE && window.BARCODE.playerCombat) { const result = window.BARCODE.playerCombat.resolvePrimary({ player: window.player, enemyManager: window.enemyManager }); if (result.ok && result.targets.length) this.vibrate(0.35, 80); }
+    if (actions.primary.pressed && window.BARCODE?.playerCombat) {
+      for (const press of actions.primary.presses?.length ? actions.primary.presses : [{}]) {
+        const result = window.BARCODE.playerCombat.resolvePrimary({ player: window.player, enemyManager: window.enemyManager,
+          now: press.wallTimeMs ?? Date.now(), audioTimeSec: press.audioTimeSec });
+        if (result.ok && result.targets.length) this.vibrate(0.35, 80);
+      }
+    }
     if (actions.interact.pressed) this.routeInteract();
   }
 

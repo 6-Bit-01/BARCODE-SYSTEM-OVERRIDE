@@ -131,6 +131,7 @@ window.AudioSystem = class AudioSystem {
 
   beginRuntimeAudioGeneration() {
     this.runtimeAudioGeneration++;
+    this.stopCombatCues();
     this.clearRuntimeTimeouts();
     return this.runtimeAudioGeneration;
   }
@@ -576,6 +577,56 @@ window.AudioSystem = class AudioSystem {
   }
 
   // Play a sound effect
+  // Short musical effects share the existing context and SFX bus. Voice
+  // count and per-cue cadence are bounded even during multi-target attacks.
+  playCombatCue(kind, options = {}) {
+    if (!this.initialized || !this.context || !this.sfxGain || this.context.state === 'suspended') return false;
+    const profiles = {
+      enter: [220, 440, 0.18, 'triangle'], exit: [330, 165, 0.10, 'triangle'],
+      jump: [180, 520, 0.12, 'triangle'], land: [130, 55, 0.09, 'triangle'],
+      stomp: [240, 48, 0.18, 'square'], hit: [360, 120, 0.10, 'triangle'],
+      perfect: [660, 990, 0.14, 'triangle'], guard: [780, 260, 0.08, 'square'],
+      empty: [240, 200, 0.07, 'sine'], miss: [150, 90, 0.10, 'triangle'],
+      damage: [170, 45, 0.23, 'sawtooth'], lift: [330, 660, 0.20, 'triangle'],
+      pickup: [660, 1320, 0.25, 'sine'], combo5: [440, 880, 0.24, 'triangle'],
+      combo10: [660, 1320, 0.32, 'triangle'], defeat: [260, 65, 0.20, 'square']
+    };
+    const profile = profiles[kind];
+    if (!profile) return false;
+    this.combatVoices ||= new Set(); this.combatCueTimes ||= {};
+    const now = this.context.currentTime;
+    if (now - (this.combatCueTimes[kind] ?? -Infinity) < 0.035) return false;
+    this.combatCueTimes[kind] = now;
+    const tones = kind === 'combo5' || kind === 'combo10' || kind === 'pickup' ? [1, 1.5] : [1];
+    const materialPitch = options.material === 'virus' ? 1.8 : options.material === 'firewall' ? 0.65 : 1;
+    for (const tone of tones) {
+      while (this.combatVoices.size >= 12) this.combatVoices.values().next().value.dispose();
+      const osc = this.context.createOscillator(), gain = this.context.createGain();
+      const duration = profile[2];
+      const voice = { dispose: () => {
+        if (!this.combatVoices.delete(voice)) return;
+        osc.onended = null;
+        try { osc.stop(); } catch (error) {}
+        osc.disconnect(); gain.disconnect();
+      } };
+      this.combatVoices.add(voice); osc.onended = voice.dispose;
+      osc.type = profile[3];
+      osc.frequency.setValueAtTime(profile[0] * tone * materialPitch, now);
+      osc.frequency.exponentialRampToValueAtTime(profile[1] * tone * materialPitch, now + duration);
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime((kind === 'empty' ? 0.022 : 0.065) / tones.length, now + 0.006);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+      osc.connect(gain); gain.connect(this.sfxGain);
+      osc.start(now); osc.stop(now + duration + 0.01);
+    }
+    return true;
+  }
+
+  stopCombatCues() {
+    for (const voice of this.combatVoices || []) voice.dispose();
+    this.combatCueTimes = {};
+  }
+
   playSound(soundName, volume = 1.0) {
     if (!this.initialized || !this.sounds[soundName]) return;
     
@@ -1633,22 +1684,8 @@ window.AudioSystem = class AudioSystem {
   }
   
   // Play player damage sound
-  playPlayerDamageSound() {
-    if (this.sounds.playerDamage) {
-      try {
-        this.sounds.playerDamage();
-        console.log('💥 Playing player damage sound');
-      } catch (error) {
-        console.error('Error playing player damage sound:', error?.message || error);
-        // Fallback to terminal buzz sound
-        this.playSound('terminalBuzz');
-      }
-    } else {
-      // Fallback to terminal buzz sound
-      this.playSound('terminalBuzz');
-    }
-  }
-  
+  playPlayerDamageSound() { this.playCombatCue('damage'); }
+
   // Create synthetic whoosh sound fallback
   createWhooshFallback() {
     return () => {
@@ -3089,6 +3126,7 @@ window.AudioSystem = class AudioSystem {
   stopRuntimeAudio(options) {
     options = options || {};
     this.runtimeAudioGeneration++;
+    this.stopCombatCues();
     this.clearRuntimeTimeouts();
     this.stopBeatTrack();
     this.stopLayerBeatSync();

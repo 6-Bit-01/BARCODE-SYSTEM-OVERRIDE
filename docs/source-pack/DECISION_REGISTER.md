@@ -1,5 +1,11 @@
 # Decision Register
 
+## Current responsive combat selection — September 11, 2026
+
+The owner asked for improvements including FX, reported questionable hitboxes and said the earlier Rhythm Mode/background effects were barely noticeable, then requested continuation. The selected next build is items **1–8 from the latest sixteen-item review**, plus a stronger visible musical response in the existing scenery. `RESPONSIVE_COMBAT_PASS.md` records the exact mapping. This approves correcting the previous pose-dependent collision geometry, timestamp capture, frame pacing, attack/contact/combo FX, animation phase selection and bounded action sounds. It does not mean the older PR #29 or #31 numbered selections. One combined PR; Makko-before-merge remains.
+
+New collision sizes, effect intensities and cue levels are provisional playtest tuning. Preserve the locked mission, single jump, grounded R, hack rewards, musical transport, sixteen-hit Jammer, two-hit lift, boss balance, intro and asset URLs. Items 9–16 and migration remain follow-ons.
+
 ## Selected-pass verification after the interruption
 
 The owner asked to check the PR against what was selected and proceed with that plan. `SELECTED_PASS_CHECK.md` anchors the exact conversation and implementation. The original recommendation scheduled district restoration after the animation/stance/hacking and five named effects. After the owner rejected a separate PR for the small stomp omission, the current build combines that correction with the district follow-on. Preserve all of PR #31; the earlier PR #29 selection (1–5, 8 and 9) and main overhaul headings are not substitutes for those five effects. New combo systems, settings, lore and standalone migration remain separately scheduled.

@@ -241,7 +241,7 @@ window.ParallaxBackground = class ParallaxBackground {
       const screenX = x + left * sx;
       if (screenX + w * sx < -400 || screenX > 2320) return;
       const accent = i % 2 ? '204, 125, 255' : '113, 255, 229';
-      ctx.fillStyle = `rgba(${accent}, ${pulse * 0.12 * combatScale})`;
+      ctx.fillStyle = `rgba(${accent}, ${(pulse * (window.rhythmSystem?.isActive?.() ? 0.38 : 0.12)) * combatScale})`;
       ctx.fillRect(screenX, y + top * sy, w * sx, h * sy);
     });
     ctx.restore();
@@ -253,7 +253,10 @@ window.ParallaxBackground = class ParallaxBackground {
     const sample = Number.isFinite(time) ? window.BARCODE?.MusicTransport?.sample?.(time) : null;
     const pulse = sample?.running && sample.grid && sample.profileId === 'level-01.main'
       ? Math.pow(1 - sample.grid.beatFloat % 1, 3) : 0;
-    const quiet = window.sector1Progression?.isBossCombatLive?.() ? 0.45 : 1;
+    const quiet = window.sector1Progression?.isBossCombatLive?.() ? 0.55 : 1;
+    const performing = !!window.rhythmSystem?.isActive?.();
+    const kick = window.BARCODE?.combatFX?.sceneKick || 0;
+    const energy = performing ? 0.2 + pulse * 0.7 + kick * 0.3 : pulse * 0.1;
     const restoredAt = worldX => district.restored ? 1 : district.wave
       ? Math.max(0, Math.min(1, (district.wave.radius - Math.abs(worldX - district.wave.originX)) / 200)) : 0;
     ctx.save();
@@ -267,8 +270,18 @@ window.ParallaxBackground = class ParallaxBackground {
       // scan lines; clearing the encounter brings steady light underneath them.
       ctx.fillStyle = `rgba(4, 8, 29, ${0.22 * interference})`;
       ctx.fillRect(left, top, w, h);
-      ctx.fillStyle = `rgba(113, 255, 229, ${(recovery * 0.12 + restored * 0.08 + pulse * 0.055) * quiet})`;
+      ctx.fillStyle = `rgba(113, 255, 229, ${(recovery * 0.14 + restored * 0.1 + energy * 0.24) * quiet})`;
       ctx.fillRect(left, top, w, h);
+      if (performing || kick > 0) {
+        // Small equalizer bars stay inside the real sign interiors. Attacks
+        // brighten the scene briefly; the beat alone never implies damage.
+        ctx.fillStyle = `rgba(${index % 2 ? '224,139,255' : '129,255,231'}, ${(0.24 + energy * 0.38) * quiet})`;
+        for (let bar = 0; bar < 6; bar++) {
+          const barHeight = Math.min(h * 0.62, (0.2 + energy * 0.7) * h * (0.35 + Math.abs(Math.sin(bar * 1.7 + index)) * 0.65));
+          ctx.fillRect(left + 3 + bar * (w - 6) / 6, top + h - 2 - barHeight, Math.max(1, (w - 6) / 9), barHeight);
+        }
+        ctx.fillRect(left, top + h - 1.5, w, 1.5);
+      }
       const scan = (district.elapsedMs / 180 + index * 7) % h;
       ctx.fillStyle = `rgba(214, 122, 246, ${0.22 * interference * quiet})`;
       for (let line = 0; line < 3 && interference > 0; line++) {
@@ -284,6 +297,15 @@ window.ParallaxBackground = class ParallaxBackground {
         ctx.fillRect(left, top + h - 2, w * Math.max(recovery, restored), 1.5);
       }
     });
+    if (performing || kick > 0) {
+      // Repeated curb segments make the musical reaction visible at full game
+      // scale without tinting the whole screen or covering combat warnings.
+      ctx.fillStyle = `rgba(109,255,229,${(0.15 + energy * 0.48) * quiet})`;
+      for (let left = 8; left < 1279; left += 24) {
+        if (x + (left + 15) * sx < -400 || x + left * sx > 2320) continue;
+        ctx.fillRect(left, 412, 15, 1.2 + energy);
+      }
+    }
     // Travel along the existing curb. Only two bounded fronts are drawn; the
     // wave is scenery behind actors, hazards and HUD, never a screen flash.
     if (district.wave) {

@@ -2,7 +2,7 @@
 
 ## Current authority and scope
 
-Current follow-up: preserve merged PR #31's selected animation/stance/hacking plus five-effects pass and continue with the district-restoration payoff scheduled immediately after it. Read `docs/source-pack/SELECTED_PASS_CHECK.md` for the exact conversation selection and sequence. The omitted heavier stomp effect belongs in this combined district build, not a separate PR. Preserve the existing mission, controls, art, music and boss balance; do not substitute the earlier PR #29 numbered list for this scope.
+Current follow-up: the responsive combat pass based on merged PR #32. Read `docs/source-pack/RESPONSIVE_COMBAT_PASS.md` for the selected 1–8 scope plus stronger visible rhythm/scenery feedback. This explicitly authorizes stable body geometry and swept ordinary stomps, input timestamps, frame pacing, attack/contact/combo FX, phase-driven animation and bounded action sounds. Older selections below are historical; do not substitute their numbering. One combined PR, preserving mission/art/music/boss balance. Makko acceptance remains required.
 
 The owner's newest direct instruction controls design. `docs/source-pack/DECISION_REGISTER.md` records the retained decisions and the September 11, 2026 approval of the next development direction. Source Pack v5 supersedes conflicting v2–v4 instructions. Git history and the archive's generated manifest establish implementation state, not approval of accidental behavior.
 
@@ -18,7 +18,7 @@ The owner approved progressing from the existing Level 1 boss entrance to a fini
 - H and R retain their tutorial access locks. The rhythm/audio transport and timing state continue in the background even while the mode is hidden, locked or inactive; normal pause remains a separate lifecycle state.
 - `H` starts the existing short hack puzzle. Its existing availability rules and one-health-bar success reward remain.
 - Tutorial and pre-encounter boundaries must prevent crossing a future closed gate. Boss world position must not be tied to cinematic camera motion; animation scale/feet must remain consistent. Jammer placement must clear the lift plus its full attack range. These are September 11 owner playtest corrections.
-- Preserve the two-hit rhythm-powered lift, authored rooftops, and approved player/contact geometry. Backend ownership changes are not permission to remove mechanics.
+- Preserve the two-hit rhythm-powered lift, authored rooftops, and the currently approved stable body/swept-foot geometry. Backend ownership changes are not permission to remove mechanics.
 - Level 1 requires 20 post-tutorial mission defeats through four authored encounter groups. Tutorial kills do not count.
 - At 20 mission defeats the Broadcast Jammer appears once in the opposite world half. It has 16 health and accepts one damage per successful rhythm attack; H and passive stomp do not damage it. It remains an environmental object owned by `BARCODE.JammerEnvironment`, not an ordinary enemy.
 - Jammer destruction immediately ends active Rhythm Combat Mode; it cannot reactivate during the cinematic or automatically resume at handoff. Preserve the background rhythm/music clock.

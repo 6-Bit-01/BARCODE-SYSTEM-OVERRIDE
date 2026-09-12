@@ -209,8 +209,8 @@ async function main() {
           }
         };
         enemy.drawSprite({ save() {}, restore() {} });
-        const box = enemy.getHitbox();
-        assert.deepStrictEqual(queried, drawn, `${type}/${animation}/${facing}: hitbox uses the exact rendered sprite transform`);
+        const box = enemy.getVisualBounds();
+        assert.deepStrictEqual(queried, drawn, `${type}/${animation}/${facing}: visual diagnostics use the exact rendered sprite transform`);
         assert(Math.abs(box.width - 100 * drawn.scale * (1 - margin * 2)) < 1e-8, 'existing contact margin is preserved');
         assert(Math.abs((box.y + box.height / 2) - (drawn.y - 50 * drawn.scale)) < 1e-8, 'tightened hitbox stays centered on the visible body');
       }
