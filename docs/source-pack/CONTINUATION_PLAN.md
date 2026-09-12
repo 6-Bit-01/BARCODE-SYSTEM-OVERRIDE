@@ -2,7 +2,7 @@
 
 ## Current stage update
 
-Stage A is merged as PR #38 and Stage B as PR #39. The owner then corrected the missing actual intro and reported the S-skip bug. `INTRO_OVERHAUL.md` is the current implemented review based on #39. Latest order: finish the opening/skip correction first, then revise the HUD/rhythm presentation and add meaningful attack variety, then continue Stage C. Prior Stage B scene/camera/HUD choices are not assumed accepted merely because the PR merged. The historical planning record below does not override this order.
+Stage A is merged as PR #38 and Stage B as PR #39. The owner then corrected the missing actual intro and reported the S-skip bug. `INTRO_OVERHAUL.md` is the current implemented review based on #39. The owner subsequently supplied the five character models and authorized the missing scene images; INTRO_ART_DIRECTION.md records eight generated and integrated scenes. Latest order: finish the opening/art/skip correction first, then revise the HUD/rhythm presentation and add meaningful attack variety, then continue Stage C. Prior Stage B scene/camera/HUD choices are not assumed accepted merely because the PR merged. The historical planning record below does not override this order.
 
 
 ## The actual handoff

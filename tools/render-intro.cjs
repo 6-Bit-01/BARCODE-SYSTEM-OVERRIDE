@@ -8,12 +8,12 @@ const { openingRig } = require('./check-intro');
 GlobalFonts.registerFromPath('/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf', 'monospace');
 GlobalFonts.registerFromPath('/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf', 'monospace');
 async function main() {
-  const assetDir = process.argv[2];
-  if (!assetDir) throw new Error('Pass the folder containing the existing SO1–SO4, SO6–SO8 and SO10 images.');
+  const root = path.resolve(__dirname, '..');
   const { w, scene } = openingRig();
   for (const item of scene.cutsceneImages) {
-    const file = path.join(assetDir, item.url.split('/').pop());
-    if (fs.existsSync(file)) { item.element = await loadImage(file); item.loaded = true; }
+    const file = path.join(root, item.url);
+    assert(fs.existsSync(file), `Bundled opening art is missing: ${item.url}`);
+    item.element = await loadImage(file); item.loaded = true;
   }
   const out = path.resolve(__dirname, '../docs/source-pack/verification'); fs.mkdirSync(out, { recursive: true });
   const canvas = createCanvas(1920, 1080), raw = canvas.getContext('2d'), labels = [];

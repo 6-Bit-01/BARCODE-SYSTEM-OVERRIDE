@@ -24,19 +24,11 @@ function startGameplayMusicAndRhythm(audioSystem) {
 
 window.CutsceneSystem = class CutsceneSystem {
   constructor() {
-    this.cutsceneImages = [
-      { url: 'https://i.postimg.cc/28xQSmxK/SO1.png', loaded: false, element: null },
-      { url: 'https://i.postimg.cc/bNRxw8RF/SO2.png', loaded: false, element: null },
-      { url: 'https://i.postimg.cc/fTvcRZvC/SO3.png', loaded: false, element: null },
-      { url: 'https://i.postimg.cc/dt92Vv9n/SO4.png', loaded: false, element: null },
-      { url: 'https://i.postimg.cc/vHvrZMv3/SO5.png', loaded: false, element: null },
-      { url: 'https://i.postimg.cc/Yqx6Ckx3/SO6.png', loaded: false, element: null },
-      { url: 'https://i.postimg.cc/TYcV3Gcr/SO7.png', loaded: false, element: null },
-      { url: 'https://i.postimg.cc/QxqQdsqQ/SO8.png', loaded: false, element: null },
-      { url: 'https://i.postimg.cc/QxqQdsqQ/SO8.png', loaded: false, element: null }, // Duplicate image for Mac Modem
-      { url: 'https://i.postimg.cc/QxqQdsqQ/SO8.png', loaded: false, element: null }, // Duplicate image for Cache Back
-      { url: 'https://i.postimg.cc/65hrpwhV/SO10.png', loaded: false, element: null }
-    ];
+    // One bundled scene per authored page; no remote or obsolete-likeness
+    // fallback. Failed loads retain the readable script and working skip.
+    this.cutsceneImages = window.BARCODE.IntroSequence.panels.map(panel => ({
+      url: panel.asset, loaded: false, element: null
+    }));
     
 
     this.currentImageIndex = 0;

@@ -20,6 +20,6 @@ Use `repository-snapshot/` as the project root for source review or Makko import
 
 Canonical project: https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE
 
-The historical v5 starting point was merged PR #25, `7788ebfab4d6231c18229bef9571d6b97b676764`. The current implementation starts from merged #38; the generated manifest identifies this archive's exact branch/head and review status. PR #4 was rejected and remains excluded; its global music-clock implementation is not a prerequisite.
+The historical v5 starting point was merged PR #25, `7788ebfab4d6231c18229bef9571d6b97b676764`. The current intro implementation starts from merged #39; the generated manifest identifies this archive's exact branch/head and review status. PR #4 was rejected and remains excluded; its global music-clock implementation is not a prerequisite.
 
 Historical asset registries/contact sheets are retained under `references/` for identification and visual continuity. Their audit dates remain historical. Current runtime asset metadata lives in the exact repository snapshot; do not overwrite it from an older reference.

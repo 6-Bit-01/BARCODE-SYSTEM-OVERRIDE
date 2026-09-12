@@ -5,33 +5,34 @@ window.FILE_MANIFEST.push({ name: 'src/engine/intro-sequence.js', exports: ['BAR
 (function() {
   const BARCODE = window.BARCODE = window.BARCODE || {};
   const panels = Object.freeze([
-    { beat: 'O1', title: 'LEAVE THE ROOM NOISE IN', image: 0, layout: 'room', stamp: 'BARCODE / ON AIR', lines: [
+    { beat: 'O1', title: 'LEAVE THE ROOM NOISE IN', image: 0, asset: 'assets/intro/intro-01-broadcast.webp', layout: 'room', visual: '6 Bit and DJ Floppydisc work the mixing desk in a warm, lived-in studio.', stamp: 'BARCODE / ON AIR', lines: [
       ['DJ FLOPPYDISC', 'One more pass. Leave the room noise in.'],
       ['6 BIT', "That's the part that proves somebody's here."]] },
-    { beat: 'O1', title: 'KEEP THE TAKE', image: 0, layout: 'links', stamp: 'DEAD AIR DISTRICT / LIVE', lines: [
+    { beat: 'O1', title: 'KEEP THE TAKE', image: 1, asset: 'assets/intro/intro-02-keep-the-take.webp', layout: 'links', visual: 'Mac connects the patch bay while Cache records. Behind them, Cliff checks a cable beneath a coffee mug, clipboard in hand.', stamp: 'DEAD AIR DISTRICT / LIVE', lines: [
       ['MAC MODEM', "Street relays are open. You're reaching the whole district."],
       ['CACHE BACK', 'Rolling. Names, mistakes, everything. This one stays.']] },
-    { beat: 'O2', title: 'THEN THE RETURN GOES QUIET', image: 1, layout: 'failure', stamp: 'NO BROADCAST DETECTED', lines: [
+    { beat: 'O2', title: 'THEN THE RETURN GOES QUIET', image: 2, asset: 'assets/intro/intro-03-dead-return.webp', layout: 'failure', visual: 'The receiver falls to a flat trace and static. 6 Bit leans toward it; DJ stops at the faders.', stamp: 'NO BROADCAST DETECTED', lines: [
       ['DJ FLOPPYDISC', 'We were on the air a second ago.'],
       ['6 BIT', 'Then your detector needs a new job.']] },
-    { beat: 'O3', title: 'SAVE THE PART IT WANTS GONE', image: 5, layout: 'archive', stamp: 'RECOVERY REQUEST: DISCARD UNREADABLE AUDIO', lines: [
+    { beat: 'O3', title: 'SAVE THE PART IT WANTS GONE', image: 3, asset: 'assets/intro/intro-04-preserve.webp', layout: 'archive', visual: 'Cache locks the original recording against overwriting. Mac opens the outside access circuit.', stamp: 'RECOVERY REQUEST: DISCARD UNREADABLE AUDIO', lines: [
       ['CACHE BACK', "It wants a clean copy. I've locked the original."],
       ['MAC MODEM', "The outside route is still there. I'm getting you access."]] },
-    { beat: 'O3', title: 'LISTEN UNDER THE STATIC', image: 6, layout: 'listen', stamp: 'CREW CHANNEL / STILL OPEN', lines: [
+    { beat: 'O3', title: 'LISTEN UNDER THE STATIC', image: 4, asset: 'assets/intro/intro-05-listen.webp', layout: 'listen', visual: 'DJ isolates a faint surviving signal. Two traces remain on the scope beneath the noise.', stamp: 'CREW CHANNEL / STILL OPEN', lines: [
       ['DJ FLOPPYDISC', "There's still something under that noise. Don't wipe it."],
       ['6 BIT', 'Keep listening. Tell me when it changes.']] },
-    { beat: 'O4', title: '6 BIT HAS OTHER PLANS', image: 3, layout: 'refusal', stamp: 'PLEASE WAIT FOR AUTOMATIC RECOVERY', lines: [
+    { beat: 'O4', title: '6 BIT HAS OTHER PLANS', image: 5, asset: 'assets/intro/intro-06-refusal.webp', layout: 'refusal', visual: '6 Bit pushes open the studio door and looks back toward his crew as the recovery caption slips out of its frame.', stamp: 'PLEASE WAIT FOR AUTOMATIC RECOVERY', lines: [
       ['6 BIT', "Automatic recovery can wait. I'm going outside."],
       ['MAC MODEM', "Good. I can open the way. I can't walk it for you."]] },
-    { beat: 'O5', title: 'START WITH THIS DISTRICT', image: 10, layout: 'tower', stamp: 'TOWER UPLINK / BLOCKED', lines: [
+    { beat: 'O5', title: 'START WITH THIS DISTRICT', image: 6, asset: 'assets/intro/intro-07-district.webp', layout: 'tower', visual: 'Beyond 6 Bit, a wet street of shuttered music shops leads toward the distant lattice broadcast tower.', stamp: 'TOWER UPLINK / BLOCKED', lines: [
       ['MAC MODEM', 'The interference runs toward the tower. Street level is jammed.'],
       ['6 BIT', 'Then we get the neighborhood talking first. The tower can hear us coming.']] },
-    { beat: 'O5', title: 'DEAD AIR DISTRICT', image: 2, layout: 'handoff', stamp: 'RESTORE THE LOCAL SIGNAL. FIND THE JAMMER.', lines: [
+    { beat: 'O5', title: 'DEAD AIR DISTRICT', image: 7, asset: 'assets/intro/intro-08-keep-it-open.webp', layout: 'handoff', visual: '6 Bit steps into the district, listening to the crew. All four channels remain connected.', stamp: 'RESTORE THE LOCAL SIGNAL. FIND THE JAMMER.', lines: [
       ['CACHE BACK', 'We are still here, 6. Keep us on the line.'],
       ['6 BIT', 'All four of us. Leave it open.']] }
   ].map(panel => Object.freeze({ ...panel, lines: Object.freeze(panel.lines.map(line => Object.freeze(line))) })));
   const ink = '#080b19', paper = '#ddd7ed', mint = '#95ffe0', pink = '#f696d9';
   const crew = ['6 BIT', 'DJ FLOPPYDISC', 'CACHE BACK', 'MAC MODEM'];
+  const crewColors = { '6 BIT': '#e6e5ee', 'DJ FLOPPYDISC': '#83e9ff', 'CACHE BACK': '#ffd65c', 'MAC MODEM': '#ff929c' };
   const text = (ctx, line, x, y, size = 24, color = paper, bold = false) => {
     ctx.font = `${bold ? 'bold ' : ''}${size}px monospace`; ctx.fillStyle = color;
     ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText(line, x, y);
@@ -60,23 +61,51 @@ window.FILE_MANIFEST.push({ name: 'src/engine/intro-sequence.js', exports: ['BAR
     }
     ctx.strokeStyle = paper; ctx.lineWidth = 5; ctx.strokeRect(x, y, width, height);
   }
-  // These are the already approved monitor labels, not invented portraits.
-  const macCrop = [0.351, 0.26, 0.155, 0.166];
-  const cacheCrop = [0.352, 0.432, 0.157, 0.183];
+  function signalDetail(ctx, x, y, listening, elapsedMs, reduced) {
+    ctx.fillStyle = '#101e29'; ctx.fillRect(x, y, 512, 246);
+    ctx.strokeStyle = paper; ctx.lineWidth = 5; ctx.strokeRect(x, y, 512, 246);
+    text(ctx, listening ? 'UNDER THE STATIC' : 'RETURN CHANNEL', x + 24, y + 22, 23, listening ? mint : pink, true);
+    ctx.strokeStyle = '#24404a'; ctx.lineWidth = 1;
+    for (let row = 0; row < 4; row++) { ctx.beginPath(); ctx.moveTo(x + 24, y + 84 + row * 32); ctx.lineTo(x + 488, y + 84 + row * 32); ctx.stroke(); }
+    // A restrained presentation cue, not a second audio/rhythm clock. The
+    // two opposing traces seed the later record comparison without naming it.
+    const phase = reduced ? 0 : Math.min(2000, elapsedMs) / 600;
+    const traces = listening ? [1, -1] : [0];
+    traces.forEach((sign, row) => {
+      ctx.strokeStyle = row ? pink : mint; ctx.lineWidth = 2; ctx.beginPath();
+      for (let i = 0; i <= 116; i++) {
+        const wave = sign * (Math.sin(i * 0.22 + phase) + Math.sin(i * 0.66 + phase) * 0.25) * 18;
+        const px = x + 24 + i * 4, py = y + (listening ? 112 + row * 64 : 144) + wave;
+        if (i) ctx.lineTo(px, py); else ctx.moveTo(px, py);
+      }
+      ctx.stroke();
+    });
+    text(ctx, listening ? 'STILL HERE.' : 'A MOMENT AGO: LIVE.', x + 24, y + 211, 18, '#a8bec8');
+  }
+  function crewDetail(ctx, panel, y) {
+    ctx.fillStyle = '#171b2b'; ctx.fillRect(1312, y, 512, 246);
+    ctx.strokeStyle = paper; ctx.lineWidth = 5; ctx.strokeRect(1312, y, 512, 246);
+    text(ctx, 'FOUR CHANNELS / ONE BROADCAST', 1336, y + 20, 22, paper, true);
+    crew.forEach((name, i) => {
+      const speaking = panel.lines.some(line => line[0] === name);
+      ctx.fillStyle = crewColors[name]; ctx.fillRect(1338, y + 71 + i * 40, speaking ? 12 : 6, 8);
+      text(ctx, name, 1364, y + 65 + i * 40, 24, crewColors[name]);
+    });
+  }
   BARCODE.IntroSequence = {
     panels, inspectedGutter: false,
     reset() { this.inspectedGutter = false; },
     inspect(index) { if (panels[index]?.layout !== 'refusal') return false; this.inspectedGutter = true; return true; },
     transcript(index) {
       const panel = panels[index];
-      return panel ? `${panel.title}. ${panel.stamp}. ${panel.lines.map(line => line.join(': ')).join(' ')}` : '';
+      return panel ? `${panel.title}. ${panel.visual} ${panel.stamp}. ${panel.lines.map(line => line.join(': ')).join(' ')}` : '';
     },
     draw(ctx, { index = 0, elapsedMs = 0, images = [], pad = false, skipProgress = 0, holding = false } = {}) {
       const panel = panels[index]; if (!ctx || !panel) return;
       ctx.save(); ctx.globalAlpha = 1; ctx.shadowBlur = 0;
       ctx.fillStyle = ink; ctx.fillRect(0, 0, 1920, 1080);
-      // Printed page marks and thick panel borders bridge the illustrated
-      // broadcast into the pixel game without claiming new character art.
+      // The supplied models govern every visible character in these eight
+      // scenes. Printed frames and details bridge their art into pixel play.
       ctx.fillStyle = '#241e36';
       for (let y = 18; y < 1040; y += 18) for (const x of [28, 44, 1876, 1892]) ctx.fillRect(x, y, 3, 3);
       ctx.fillStyle = pink; ctx.fillRect(96, 48, 130, 31);
@@ -86,30 +115,30 @@ window.FILE_MANIFEST.push({ name: 'src/engine/intro-sequence.js', exports: ['BAR
       text(ctx, panel.title, 96, 103, 36, paper, true);
       art(ctx, images, panel.image, 96, 166, 1168, 532);
       const right = (image, y, crop) => art(ctx, images, image, 1312, y, 512, 246, crop);
-      if (['links', 'archive'].includes(panel.layout)) {
-        right(7, 166, macCrop); right(7, 452, cacheCrop);
+      if (panel.layout === 'links') {
+        right(1, 166, [0.16, 0.01, 0.27, 0.40]); right(1, 452, [0.59, 0.02, 0.34, 0.46]);
+      } else if (panel.layout === 'archive') {
+        right(3, 166, [0.28, 0.48, 0.29, 0.39]); right(3, 452, [0.60, 0.02, 0.36, 0.49]);
       } else if (panel.layout === 'failure') {
-        right(5, 166); right(2, 452, [0.18, 0.12, 0.65, 0.58]);
+        signalDetail(ctx, 1312, 166, false, elapsedMs, true);
+        right(2, 452, [0.57, 0.01, 0.35, 0.47]);
       } else if (panel.layout === 'refusal') {
-        right(7, 166, macCrop); right(5, 452);
-      } else if (panel.layout === 'tower' || panel.layout === 'handoff') {
-        right(panel.layout === 'handoff' ? 10 : 5, 166);
+        right(3, 166, [0.63, 0.02, 0.34, 0.46]); right(5, 452, [0.015, 0.13, 0.33, 0.45]);
+      } else if (panel.layout === 'tower') {
+        right(6, 166, [0.59, 0.02, 0.29, 0.44]);
         ctx.fillStyle = '#191e32'; ctx.fillRect(1312, 452, 512, 246);
         ctx.strokeStyle = paper; ctx.lineWidth = 5; ctx.strokeRect(1312, 452, 512, 246);
         text(ctx, 'FIRST: THE NEIGHBORHOOD', 1340, 482, 24, mint, true);
         text(ctx, 'Open the street.', 1340, 534, 26);
         text(ctx, 'Find the Jammer.', 1340, 574, 26);
         text(ctx, 'Keep the crew connected.', 1340, 636, 20, '#bdabda');
+      } else if (panel.layout === 'listen') {
+        signalDetail(ctx, 1312, 166, true, elapsedMs, window.BARCODE_RENDER_QUALITY?.flashes === false);
+        crewDetail(ctx, panel, 452);
       } else {
-        right(panel.layout === 'listen' ? 1 : 6, 166);
-        ctx.fillStyle = '#191e32'; ctx.fillRect(1312, 452, 512, 246);
-        ctx.strokeStyle = paper; ctx.lineWidth = 5; ctx.strokeRect(1312, 452, 512, 246);
-        text(ctx, 'FOUR CHANNELS / ONE BROADCAST', 1336, 472, 22, pink, true);
-        crew.forEach((name, i) => {
-          const speaking = panel.lines.some(line => line[0] === name);
-          ctx.fillStyle = speaking ? mint : '#566578'; ctx.fillRect(1338, 523 + i * 40, 8, 8);
-          text(ctx, name, 1364, 517 + i * 40, 24, speaking ? mint : '#bdc6d8');
-        });
+        if (panel.layout === 'handoff') right(1, 166, [0.59, 0.02, 0.34, 0.46]);
+        else right(0, 166, [0.51, 0.015, 0.34, 0.46]);
+        crewDetail(ctx, panel, 452);
       }
       // One plot-linked breach: the recovery order slides out of its panel
       // when 6 Bit rejects it. Reduced effects preserve its displaced endpoint.
@@ -125,9 +154,13 @@ window.FILE_MANIFEST.push({ name: 'src/engine/intro-sequence.js', exports: ['BAR
       }
       panel.lines.forEach(([speaker, dialogue], i) => {
         const x = 96 + i * 884;
-        ctx.fillStyle = i ? '#211b31' : '#112932'; ctx.fillRect(x, 744, 844, 194);
-        ctx.strokeStyle = i ? pink : mint; ctx.lineWidth = 2; ctx.strokeRect(x, 744, 844, 194);
-        text(ctx, speaker, x + 24, 762, 22, i ? pink : mint, true);
+        const accent = crewColors[speaker];
+        ctx.fillStyle = '#030611'; ctx.fillRect(x + 7, 751, 844, 194);
+        ctx.fillStyle = '#131b29'; ctx.fillRect(x, 744, 844, 194);
+        ctx.strokeStyle = paper; ctx.lineWidth = 2; ctx.strokeRect(x, 744, 844, 194);
+        ctx.font = 'bold 22px monospace';
+        ctx.fillStyle = accent; ctx.fillRect(x + 16, 752, ctx.measureText(speaker).width + 32, 37);
+        text(ctx, speaker, x + 32, 760, 22, ink, true);
         ctx.font = '29px monospace';
         wrap(ctx, dialogue, 796).forEach((line, j) => text(ctx, line, x + 24, 804 + j * 36, 29));
       });
