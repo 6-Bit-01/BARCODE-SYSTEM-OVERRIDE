@@ -1,6 +1,22 @@
 # Decision Register
 
-## Latest owner direction: implement and improve the lore
+## Latest owner direction: map the whole campaign, then implement
+
+After merging PR #37, the owner approved the broader improvement direction, corrected the cast, required mapping the whole story rather than isolated intro material, and explicitly added Easter eggs to the games/things inspiring System Override. The September 12 continuation asks to carry all established work forward carefully. `CONTINUATION_PLAN.md` traces evidence, completed work and remaining implementation; `CAMPAIGN_STORY_MAP.md` is the new working treatment, including all 28 record purposes. `EASTER_EGGS_AND_CAMEOS.md` and `ASSET_AND_PLATFORM_PLAN.md` carry the corrected roster, influence bank and production dependencies.
+
+Specific new scenes, placements, captions, reveal order and asset requests in those documents are proposals for review, not recovered verbatim approvals or installed content. The complete last-chat transcript/review file was not available; the visible owner instructions, retrieved review summaries and inspected source are explicitly distinguished. Base: merged #37 at `38732933713c4f9ec22666e49b728a0626a85f25`.
+
+| ID | Status | Latest decision |
+|---|---|---|
+| D-037 | LOCKED | Map the complete campaign and setup/payoff chain before implementing isolated beginning scenes. |
+| D-038 | LOCKED | Include Cliff, Sheila, Studio Rats, WittyF0x, Kave, SKELLA and Dr3wBaby; Sheila remains silhouette-only if depicted. |
+| D-039 | LOCKED | Exclude Mind Fanatic/M1ND_FANATIC, Emerald/EMRLD, Crowline and W3T TDDY from active plans; retire W3T TDDY's old Tower support requirement. |
+| D-040 | APPROVED DIRECTION | Stronger Comix Zone-style panels/impacts and Metal Gear-style comms/reveals/player-aware moments; story-led Easter eggs to the established inspirations. |
+| D-041 | APPROVED DIRECTION | Reopen intro/story development; prototype a representative sequence with current assets, then request targeted missing art. This supersedes an absolute no-reconsideration rule, not the current playable baseline or review of exact changes. |
+| D-042 | APPROVED DIRECTION | Retain remaining controller, committed-enemy steering, truthful boss cue, HUD, camera and calibration work from the recovered review; implement with the existing lifecycle/timing owners. |
+| D-043 | APPROVED DIRECTION | Retain bounded mobile feasibility; standalone migration and a full mobile/engine conversion remain deferred. |
+
+## Historical owner direction: implement and improve the lore
 
 After the archive/three-record follow-up was offered, the owner said "Proceed" and added: "We also have to actually implement and improve the lore. Use all context from BARCODE and 6 Bit to make, confirm, edit, and/or add to the current unlocked lore". This is approval to write and implement substantive entries, not leave placeholder text behind a new menu. The source audit uses the current repository decisions, attached v4 reveal purposes, BARCODE Bibles and World Overview. `LORE_ARCHIVE_PASS.md` distinguishes established facts from newly authored in-game dialogue; `LEVEL_01_LORE.md` preserves the exact implemented copy.
 
@@ -39,7 +55,7 @@ Statuses: **LOCKED** = explicit retained requirement; **APPROVED DIRECTION** = S
 | D-001 | LOCKED | Seven major levels; each changes its mechanical identity. Prior owner campaign request retained. |
 | D-002 | LOCKED | Only 6 Bit, DJ Floppydisc, Cache Back and Mac Modem playable. Guests are cameos/support. |
 | D-003 | LOCKED | Takes place in a simulation. 9 Bit is formed from the negative parts separated from 6 Bit. |
-| D-004 | LOCKED | Preserve approved prologue wording/images and existing art. No 9 Bit insertion. *Observer Not Found* stays separate. |
+| D-004 | UPDATED BY D-041 | Preserve current prologue/art as the live baseline; latest owner direction reopens selective intro/story design and prototype review. No incidental 9 Bit insertion. *Observer Not Found* stays separate. |
 | D-005 | LOCKED | Required later homages: Rad Racer, Contra, Tetris/Dr. Mario, Pokémon and DOOM. First-person RPG finale confronts 9 Bit and uses prior-level finds. |
 | D-006 | LOCKED | Level 1 movement: left/right, opposing directions cancel, single jump; no dash/slide/double jump/Down fast-fall. |
 | D-007 | LOCKED | Active tutorial owns Space. H/R retain tutorial locks; background music/rhythm timing continues with R hidden or inactive. |
@@ -49,7 +65,7 @@ Statuses: **LOCKED** = explicit retained requirement; **APPROVED DIRECTION** = S
 | D-011 | LOCKED | Preserve Jammer-to-boss freeze/purge/pan/entrance/flourish/handoff and rhythm-powered two-hit lift. |
 | D-012 | LOCKED | 28 one-time lore records, distribution 3/4/5/4/5/4/3. Random legacy text is not final canon. |
 | D-013 | LOCKED | Each level selects its own song/profile. No inherited Level 1 BPM/stems/grid/restart policy. Musical input judgment is chosen per genre. |
-| D-014 | LOCKED | W3T TDDY is an ally; any route/Tower support is guaranteed and cannot create another missable gate. Retained source-pack requirement. |
+| D-014 | SUPERSEDED BY D-039 | Old W3T TDDY ally/Tower support instruction is retired. Six guaranteed keys and the crew's recovered route provide finale access without a replacement cameo gate. |
 | D-015 | APPROVED DIRECTION | Finish Level 1 now: learnable boss patterns, quick fair retry, victory and a real completion endpoint. |
 | D-016 | APPROVED DIRECTION | Reconcile documentation/tests; strengthen encounter teaching, feedback/readability, selected musical telegraphs and Jammer escalation. Implement in focused passes. |
 | D-017 | APPROVED DIRECTION | Small campaign adapter and versioned persistent progress before full new genres; prove independent-song mixer behavior. |
@@ -62,7 +78,7 @@ Statuses: **LOCKED** = explicit retained requirement; **APPROVED DIRECTION** = S
 | D-024 | OPEN | Level 1 boss's final identity/name; current existing sprite is an implementation basis, not approval of “Program Director,” “City Scrambler” or 9 Bit. |
 | D-025 | OPEN | Later tracks and verified music metadata; final art/animation requests follow prototypes. |
 | D-026 | OPEN | Simulation creator, full 9 Bit reveal/dialogue/trait list, exact ending thresholds, outcomes and presentation; collection affects the result under the latest owner direction. |
-| D-027 | OPEN | Platform/minimum-device target, final controller/touch scope, assist/calibration settings and Level 7 combat cadence. |
+| D-027 | OPEN, WITH D-042/D-043 DIRECTION | Final supported devices/controller/touch scope and Level 7 combat cadence remain open. Remaining controller/calibration improvements and a bounded mobile proof have a recorded production direction. |
 | D-028 | SUPERSEDED | v4's no-quota/non-destructible-Jammer and its rejection of the 20-enemy route. Later owner decisions explicitly restore/approve this mission. |
 | D-029 | SUPERSEDED | v4's universal off-beat attack permission, old no-stomp prose, and tests requiring those old design statements. |
 | D-030 | SUPERSEDED | PR-001 documentation-only/static-only rules as perpetual project restrictions; they applied to that earlier pass. Makko verification before merge remains current. |

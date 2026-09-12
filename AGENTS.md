@@ -2,6 +2,16 @@
 
 ## Current authority and scope
 
+**Current work after merged PR #37: whole-campaign continuity and planning.** Main was verified at `38732933713c4f9ec22666e49b728a0626a85f25`. Read `docs/source-pack/CONTINUATION_PLAN.md`, `CAMPAIGN_STORY_MAP.md`, `EASTER_EGGS_AND_CAMEOS.md` and `ASSET_AND_PLATFORM_PLAN.md` first. The owner approved the broader improvement direction, then explicitly required the whole story to be mapped before isolated intro changes and added inspiration Easter eggs. This documentation pass records the complete working treatment and implementation order; it does not claim new runtime features or finalized scene/ending copy. Keep one combined review and the maintained v5 pack.
+
+The latest owner cast correction includes Cliff, Sheila, Studio Rats, WittyF0x, Kave, SKELLA and Dr3wBaby; excludes Mind Fanatic/M1ND_FANATIC, Emerald/EMRLD, Crowline and W3T TDDY. Retire the old W3T TDDY route dependency. Only the original four remain playable. Sheila remains a silhouette when depicted.
+
+The owner reopened intro/story development. This supersedes the old absolute prohibition on reconsidering the prologue **for the approved design/prototype work**. Existing images, wording, title and working gameplay remain the live baseline until a concrete replacement sequence is written, demonstrated and reviewed. Do not infer approval of an art overhaul, new 9 Bit reveal, or mass rewrite. Specific new scenes in the map are working proposals. Standalone migration is deferred; mobile remains a bounded feasibility question.
+
+## Historical scope records
+
+The milestone descriptions below preserve earlier selections. Their old “current,” “next,” draft and acceptance wording is historical; the current plan and generated revision status take precedence. Do not redo completed PRs #27–#37 or substitute an earlier numbered selection.
+
 Newest owner-approved work: `docs/source-pack/LORE_ARCHIVE_PASS.md`, based on merged PR #36 (`58b6abe6179ce6b7e8996c4d4099c9eff674f35f`). The owner approved the pause-menu archive and then explicitly requested implementing and improving the actual unlocked lore using BARCODE and 6 Bit context. Three authored records now replace the provisional copy, share one catalog with collection notices, and remain readable from persisted IDs. This authorizes new in-game writing based on established canon; it does not settle later campaign revelations. Preserve save compatibility, the original four, the locked prologue and secret collection purpose. One combined draft and the same maintained v5 pack; owner Makko acceptance before merge.
 
 The following scopes are historical milestones; the newest section above controls the current pass.
@@ -37,8 +47,8 @@ The owner approved progressing from the existing Level 1 boss entrance to a fini
 - Jammer destruction leads through the existing freeze, purge, camera pan, boss entrance/flourish and control handoff into the boss encounter. Reuse that presentation; do not casually rename its boss or change its identity.
 - Each level selects its own song/profile. Level 1's compatibility timing and source names are never a campaign fallback. Other genres choose their own musical interaction and need not gate their ordinary inputs by rhythm.
 - Lore: 28 one-time pieces distributed `3 / 4 / 5 / 4 / 5 / 4 / 3`; deterministic IDs, authored purposes and eventual persistent collection. Random legacy prose is not approved canon.
-- 9 Bit is the byproduct of negative parts separated from 6 Bit; do not insert him into the locked prologue.
-- Existing prologue images/wording and approved art are locked. Never call 6 Bit/the player “the virus.” Mac Modem's established metaphor is character-specific.
+- 9 Bit is the byproduct of negative parts separated from 6 Bit. His future reveal and the revised intro must be developed together; the title/tutorial already disclose his name/presence. Do not invent a new prologue appearance as an incidental change.
+- Existing prologue images/wording and approved art are the current live baseline. The newest approved whole-story/intro prototype may propose selective revisions; exact replacement scenes/art remain reviewable. Never call 6 Bit/the player “the virus.” Mac Modem's established metaphor is character-specific.
 - *Observer Not Found* is separate. City Scrambler, obsolete boss hooks and legacy README claims supply no automatic future-design authority.
 
 ## Current musical combat pass

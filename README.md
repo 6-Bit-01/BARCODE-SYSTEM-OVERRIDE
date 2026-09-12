@@ -1,53 +1,27 @@
 # BARCODE: System Override
 
-BARCODE: System Override is in a repository-baseline/revival state. This branch documents what is present in Git, adds dependency-free static validation, and avoids gameplay or asset changes.
+A BARCODE simulation built around seven distinct retro game genres and the original four: 6 Bit, DJ Floppydisc, Cache Back and Mac Modem.
 
-## Entrypoint
+## Current state
 
-The browser entrypoint is `index.html`. It loads legacy global scripts directly with `<script>` tags; there is no bundler and no ES module conversion in this baseline.
+The main runtime through merged PR #37 contains a finishable Level 1: tutorial and authored encounters, rhythm combat/hacking, rooftops and lift, Jammer-to-boss transition, retry/completion, musical scenery and combat feedback, animated traffic, saved pause settings, three persistent lore discoveries and their reading archive. Levels 2–7 and full campaign routing/resume are planned, not implemented.
 
-## Runtime dependency uncertainty
+The current documentation review maps the full campaign and reconciles the owner's latest story, cameo and inspiration-Easter-egg direction. Start with [the continuation plan](docs/source-pack/CONTINUATION_PLAN.md), [whole-story map](docs/source-pack/CAMPAIGN_STORY_MAP.md), [cameos and Easter eggs](docs/source-pack/EASTER_EGGS_AND_CAMEOS.md), and [asset/platform plan](docs/source-pack/ASSET_AND_PLATFORM_PLAN.md). New scene treatments are working proposals. See [current state](docs/source-pack/CURRENT_STATE.md), [decisions](docs/source-pack/DECISION_REGISTER.md) and [roadmap](docs/source-pack/ROADMAP.md) for status and retained constraints.
 
-`index.html` references `/lib/MakkoEngine.min.js`, but that file is not present in this repository. Static checks report this as a missing first-party runtime path. It may be supplied by Makko or the host environment, but Codex has not runtime-verified that.
+## Runtime and checks
 
-## Loaded architecture, statically observed
-
-The active page loads utility/core files, engine systems, game systems, `jammer-fix-patch.js`, `src/game/collision-fix.js`, and `src/game/main-new.js`. Static inspection identifies coordinator-style ownership for the frame loop, update pass, render pass, and game start path.
-
-Known duplicate or competing global ownership is documented in `docs/technical/SCRIPT_AND_GLOBAL_MAP.md` and the generated inventory.
-
-## Validation commands
+The browser entrypoint is `index.html`, loading namespaced/global JavaScript without a bundler. Makko supplies `/lib/MakkoEngine.min.js`, which is not in Git. External artwork/audio remain host dependencies; the repository is not a standalone offline build.
 
 ```bash
 npm ci
 npm test
-npm run check:syntax
-npm run audit:syntax:all
 npm run check:syntax:all
-npm run audit:paths
-npm run audit:globals
-npm run audit:external-assets
-npm run baseline:generate
-npm run baseline:check
 ```
 
-`npm test` validates the active static runtime surface and deterministic baseline. After owner Makko testing found that Makko parses every `.js` file in the repository, the two syntax-failing inactive JavaScript files were archived as `.txt` files under `docs/archive/pre-pr001/inactive-source/`. `npm run audit:syntax:all` and `npm run check:syntax:all` are now expected to pass with zero JavaScript syntax failures.
+The dependency-free suite exercises production logic through explicit host boundaries and audits source/lifecycle/input/combat/music/discovery behavior. All JavaScript, including inactive files, must parse for Makko. Automated checks do not establish live rendering, audio synchronization, control feel or supported-device performance.
 
-## Codex + owner workflow
+## Development and source pack
 
-Codex prepares static, non-destructive repository changes. The owner duplicates/tests the Makko project and reports `PASS`, `FAIL`, or `PASS WITH NOTES` before merge. Codex has not verified browser/Makko gameplay in this baseline.
+Read [AGENTS.md](AGENTS.md) and [project instructions](docs/source-pack/PROJECT_INSTRUCTIONS.md). Codex implements coherent reviewable milestones; the owner tests gameplay changes in Makko before merge. Preserve the current mechanics and discoveries. A documentation-only review does not claim a new gameplay PASS.
 
-## Technical baseline
-
-- `docs/technical/LEGACY_BASELINE.md`
-- `docs/technical/KNOWN_ISSUES.md`
-- `docs/technical/MAKKO_HANDOFF.md`
-- `docs/technical/SCRIPT_AND_GLOBAL_MAP.md`
-- `docs/technical/baseline-inventory.json`
-- `docs/technical/baseline-exceptions.json`
-
-Historical root summaries from before PR-001 are preserved under `docs/archive/pre-pr001/`.
-
-## What this baseline does not claim
-
-This README does not claim that features, controller support, boss flow, audio, Makko import, browser gameplay, or the full game have been runtime-verified. It also does not make design authority out of current drift such as City Scrambler, the 20-kill jammer gate, fast-fall/stomp code, dormant boss hooks, or prior README claims.
+The maintained [v5 source pack](docs/source-pack/README.md) exports an exact committed tree through `tools/build-source-pack.py`; CI publishes a revision-named archive artifact. [The update protocol](docs/source-pack/UPDATE_PROTOCOL.md) governs the current downloadable archive and merge receipts. Attached v2–v4 packs and old audit reports are provenance, not current implementation commands. Historical technical records remain under `docs/technical/` and `docs/archive/`.

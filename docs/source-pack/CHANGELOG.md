@@ -1,5 +1,14 @@
 # Changelog
 
+## September 12, 2026 — campaign continuity and full-story plan
+
+- Reconcile current main at merged PR #37 and retain completed combat/animation/audio, polish, discovery/traffic/targets and written lore/archive work.
+- Add a whole-campaign working treatment, causal transitions, setup/payoff map and all 28 record purposes; retain the three implemented records without source changes.
+- Apply latest cameo inclusions/exclusions, retire the obsolete guest-based Tower dependency, and record reopened intro/story development with an existing-art prototype before asset production.
+- Add primary-inspiration Easter eggs and a separately labeled historical candidate bank, crew/world callbacks and persistence/lifecycle requirements.
+- Carry forward remaining controller, committed-enemy, truthful boss-cue, HUD, camera and calibration work; campaign adapter/save/mixer dependencies; genre proofs; targeted assets; bounded mobile feasibility and deferred migration.
+- Correct stale active README/roadmap/cast/decision headings. New scenes and unresolved ending/canon details are working proposals. This pass changes documents only; validation/export/publication state is in the generated receipt/manifest.
+
 ## September 12, 2026 — Authored Level 1 lore and persistent reading archive
 
 - Replace the three provisional lines with complete records voiced by Cache Back, DJ Floppydisc and Mac Modem, each with a brief 6 Bit response. Verify original-four history, Cache Back's corrected origin, artist voices and unresolved reveal boundaries against the retained BARCODE sources.
