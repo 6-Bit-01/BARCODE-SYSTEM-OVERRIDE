@@ -1,5 +1,19 @@
 # Current State
 
+## Responsive combat and visible musical scenery — September 11, 2026
+
+Base/rollback: merged PR #32, `97198270dabd9b917d58f6499c2d0668d186eb12`. Branch: `agent/level1-responsive-combat`. The owner reports uncertain hitboxes and rhythm/background effects that were hard to notice. This is the selected **1–8 responsive-combat pass plus stronger musical scenery**, documented in `RESPONSIVE_COMBAT_PASS.md`. Earlier numbered proposals below are historical. Exact review SHA/PR and validation are generated in the archive manifest and receipt. Makko acceptance is pending. The owner explicitly authorized uploading this completed pass to `6-Bit-01/BARCODE-SYSTEM-OVERRIDE` and opening its combined draft PR on September 12. The preceding local review was `3ec6427`; publication changes only these status documents, with gameplay and verification code identical. `PR_DESCRIPTION.md` records the review scope; the generated manifest supplies the published revision and PR link.
+
+- Player and ordinary-enemy damage bodies stay stable across animation/facing. Player feet have their own swept landing probe; enemy head-contact planes follow audited silhouettes above the torso. Rising or side contact cannot become a stomp. Crowd separation is horizontal and no longer pushes a player before testing overlap. Existing ordinary lethality and boss counter/rebound rules remain.
+- Fast input taps survive between frames and retain their capture-time musical judgment. RAF uses each display callback instead of the old fractional-threshold limiter. Particle shrink, trails and zoom depend on elapsed time; offscreen particles/enemies/effects are culled. The new FX owner replaces unused random player-arc work and gates legacy rhythm diagnostics. The synthetic 30/60/120/144 Hz check confirms callback ownership and elapsed time, not hardware FPS.
+- R produces a visible entry burst, a compact electric stance and a thin actual-radius guide. Correct hits connect to actual damaged targets; empty beats and guarded hits have distinct feedback. Five/ten-hit milestones add barcode bursts, echoes and accents. Impacts/deaths use directional data strips, hot pieces or pixels, with bounded lifetime and at most a 45 ms local animation hold. Music, input and physics continue.
+- Existing sign interiors now show visible beat equalizers and an illuminated curb while performing. Successful attacks briefly brighten the scenery; boss decoration remains reduced. The previous encounter/Jammer restoration persists, including retry/reset behavior.
+- Existing jump frames follow ascent/apex/descent and brief idle landing recovery. Firewall attack/recovery poses follow their committed phases. Ordinary-enemy feet use audited frame rows and Makko's actual anchor convention at their retained scales. The new short synthetic cues share the existing SFX bus, with a twelve-voice cap and source cleanup; no music, intro, sprite URL or dependency changes.
+
+`verification/responsive-combat-preview.png` and `verification/responsive-contact-preview.png` show actual artwork drawn through the production Canvas owners with a boundary sprite renderer. They are diagnostic renders, not Makko screenshots. `enemy-contact-calibration.json` records measured source rows. The baseline inventory was intentionally refreshed for the new loaded FX module, its focused check, and moved declarations; prior ownership/asset findings remain.
+
+Next: owner retest below. Settings, new lore/exploration/content, campaign changes and standalone migration remain follow-ons.
+
 ## District restoration and selected-pass completion — September 11, 2026
 
 PR #31 is merged at `b9d7ac46f1a3f6eaaf09d28b2508cfd8105ba045`. The owner requested a check against the original selected pass after interruption-related scope confusion. `SELECTED_PASS_CHECK.md` records the exact commitment and maps all eight selected items to code.

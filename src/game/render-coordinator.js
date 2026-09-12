@@ -80,24 +80,16 @@ window.renderGame = function() {
     // Some browsers may not support these settings
   }
   
-  // Clear canvas directly with fallback
+  // One opaque clear per frame. Use the direct context only if the renderer
+  // is unavailable or fails; clearing both discarded the same pixels twice.
   try {
-    ctx.clearRect(0, 0, renderCanvas.width, renderCanvas.height);
+    if (rendererAvailable) window.renderer.clear();
+    else ctx.clearRect(0, 0, renderCanvas.width, renderCanvas.height);
   } catch (error) {
-    console.error('Error clearing canvas:', error?.message || error);
-    return;
+    rendererAvailable = false;
+    ctx.clearRect(0, 0, renderCanvas.width, renderCanvas.height);
   }
-  
-  // Use renderer clear if available
-  if (rendererAvailable) {
-    try {
-      window.renderer.clear();
-    } catch (error) {
-      console.error('Error in renderer.clear():', error?.message || error);
-      rendererAvailable = false;
-    }
-  }
-  
+
   // Additional safety check for ctx
   if (!ctx) {
     console.warn('Canvas context lost during render, skipping frame');
@@ -249,10 +241,11 @@ function drawGameElements(ctx) {
   drawOtherParticles(ctx);
   
   // Draw game entities
+  window.BARCODE?.combatFX?.draw(ctx);
+  drawRhythmEffectsBehindPlayer(ctx);
   drawGameEntities(ctx);
   
-  // Draw rhythm effects behind player
-  drawRhythmEffectsBehindPlayer(ctx);
+  // Rhythm field is already drawn behind enemies and their warning labels.
   
   // Draw player
   drawPlayer(ctx);
@@ -344,8 +337,7 @@ function drawForegroundSpaceShips(ctx) {
 function drawSmokeParticles(ctx) {
   if (window.particleSystem) {
     ctx.save();
-    const smokeParticles = window.particleSystem.particles.filter(p => p.growAndDissipate === true);
-    smokeParticles.forEach(particle => particle.draw(ctx));
+    for (const p of window.particleSystem.particles) if (p.growAndDissipate === true && (!window.BARCODE?.combatFX || window.BARCODE.combatFX.visible(p.position.x, p.position.y, p.size * 2))) p.draw(ctx);
     ctx.restore();
   }
 }
@@ -353,8 +345,7 @@ function drawSmokeParticles(ctx) {
 function drawOtherParticles(ctx) {
   if (window.particleSystem) {
     ctx.save();
-    const otherParticles = window.particleSystem.particles.filter(p => p.growAndDissipate !== true);
-    otherParticles.forEach(particle => particle.draw(ctx));
+    for (const p of window.particleSystem.particles) if (p.growAndDissipate !== true && (!window.BARCODE?.combatFX || window.BARCODE.combatFX.visible(p.position.x, p.position.y, p.size * 2))) p.draw(ctx);
     ctx.restore();
   }
 }

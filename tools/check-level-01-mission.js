@@ -65,7 +65,7 @@ must(input, /tutorialSystem\.handleSpacePress/, 'tutorial Space ownership preser
 must(input, /actions\.jump\.pressed/, 'jump action path preserved');
 must(input, /resolvePrimary/, 'rhythm attack path preserved');
 must(input, /hacking && typeof hacking\.start/, 'hacking path preserved');
-must(enemies, /Intentional passive landing stomp/, 'passive stomp remains lethal');
+must(enemies, /enemy\.takeDamage\(999,/, 'passive stomp remains lethal; swept behavior is exercised by the responsive-combat check');
 must(gameState, /shouldSuppressGenericSpawning\(\)[^]*hasSpawnedInitialEnemies = true/s, 'generic initial spawn disabled under mission owner');
 must(render, /centerX: cameraX/, 'renderer records camera center convention');
 must(updateCoordinator, /progressionSuppressesGameplay[^]*allowMovement = !hackingActive && !progressionSuppressesGameplay/s, 'update coordinator disables player physics during cinematic suppression');

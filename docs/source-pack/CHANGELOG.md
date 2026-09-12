@@ -1,5 +1,19 @@
 # Changelog
 
+## September 12, 2026 — Publish the completed combined pass
+
+- Owner explicitly authorized pushing the completed responsive-combat/visible-rhythm build to the existing GitHub repository and opening one draft PR.
+- Refresh publication status and archive metadata. Gameplay, assets, test code and tools match the tested local review at `3ec6427`; Makko acceptance remains pending.
+
+## September 11, 2026 — Responsive combat and visible rhythm pass
+
+- Complete the selected eight-item pass together, plus the owner's request for stronger Rhythm Mode and scenery response. Scope is pinned in `RESPONSIVE_COMBAT_PASS.md`.
+- Replace animation-dependent body contact and overlap-only stomps with stable torsos, audited head planes and swept foot crossings; calibrate existing enemy feet without replacing sheets/scales.
+- Capture quick taps and their audio timestamps, remove the frame-dropping limiter, use elapsed-time particle/trail/zoom behavior and cull offscreen drawing.
+- Add honest attack-range/contact FX, directional material breakup, perfect-hit/5/10-combo feedback, phase-driven jump/enemy poses and bounded action sounds on the existing audio bus.
+- Make existing sign interiors and curb visibly follow the beat in R; retain all previous district restoration, Jammer handoff and boss retry behavior.
+- Add production checks, source calibration and diagnostic Canvas previews. Update old hull expectations to the newly approved geometry while retaining real behavioral coverage. Archive results identify the exact review SHA; live Makko acceptance remains pending. Base/rollback is merged #32 (`9719827`).
+
 ## September 11, 2026 — District restoration and selected-pass completion
 
 - Check merged PR #31 against the original selection; preserve the exact item mapping in `SELECTED_PASS_CHECK.md`.

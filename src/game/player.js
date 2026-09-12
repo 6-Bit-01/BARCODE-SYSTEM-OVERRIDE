@@ -158,6 +158,7 @@ window.Player = class Player {
       const dt = deltaTime / 1000; // Convert to seconds
       const previousFootY = this.position.y;
       const previousX = this.position.x;
+      this.contactSweep = { previousX, previousFootY: previousFootY + PLAYER_VISUAL_FOOT_OFFSET_Y };
       const groundedAtStart = this.grounded;
       this.afterimageMs = Math.max(0, (this.afterimageMs || 0) - deltaTime);
       if (this.isRhythmPlanted()) { this.velocity.x = 0; this.airInput = 0; }
@@ -233,6 +234,8 @@ window.Player = class Player {
       }
       if (!groundedAtStart && this.grounded) {
         this.jumpAnimationStarted = false;
+        this.landingPoseMs = 90;
+        window.audioSystem?.playCombatCue?.('land');
         window.particleSystem?.landingEffect?.(this.position.x, this.position.y + PLAYER_VISUAL_FOOT_OFFSET_Y);
       }
       if (this.grounded) {
@@ -246,6 +249,8 @@ window.Player = class Player {
       const worldRight = 4096 - this.width/2;
       this.position.x = window.clamp?.(this.position.x, worldLeft, worldRight) || this.position.x;
       this.position.y = window.clamp?.(this.position.y, 0, 1080 - this.height/2) || this.position.y;
+      this.contactSweep.currentX = this.position.x;
+      this.contactSweep.currentFootY = this.position.y + PLAYER_VISUAL_FOOT_OFFSET_Y;
       
       // Update animation
       this.animationTime += deltaTime;
@@ -254,6 +259,13 @@ window.Player = class Player {
       // Update sprite animation with proper deltaTime
       this.updateSpriteAnimation(deltaTime);
       
+      this.trailMs = (this.trailMs || 0) + deltaTime;
+      if (this.grounded && Math.abs(this.velocity.x) > 50 && this.allowMovement && !this.isRhythmPlanted()) {
+        if (this.trailMs >= 45) {
+          window.particleSystem?.trail?.(this.position.x - this.facing * 16, this.position.y + PLAYER_VISUAL_FOOT_OFFSET_Y, null, 2);
+          this.trailMs %= 45;
+        }
+      } else this.trailMs = 0;
       // Update wind effects
       this.updateWindEffects(deltaTime);
       
@@ -318,7 +330,7 @@ window.Player = class Player {
   }
 
   getAnimationPresentation(state = this.state) {
-    return PLAYER_ANIMATION_PRESENTATION[state] || PLAYER_ANIMATION_PRESENTATION.idle;
+    return PLAYER_ANIMATION_PRESENTATION[state === 'idle' && this.grounded && this.landingPoseActive ? 'jump' : state] || PLAYER_ANIMATION_PRESENTATION.idle;
   }
 
   getMakkoRenderMetrics(presentation = this.getAnimationPresentation(), flipH = false) {
@@ -486,8 +498,21 @@ window.Player = class Player {
   updateSpriteAnimation(deltaTime) {
     if (!this.spriteReady || !this.sprite) return;
     try {
-      this.playAnimation(this.state);
-      if (!this.cinematicPoseActive) this.sprite.update(deltaTime);
+      const landing = !this.cinematicPoseActive && this.state === 'idle' && this.grounded && this.landingPoseMs > 0;
+      this.landingPoseActive = landing;
+      this.playAnimation(landing ? 'jump' : this.state);
+      const held = (this.impactHoldMs || 0) > 0;
+      this.impactHoldMs = Math.max(0, (this.impactHoldMs || 0) - deltaTime);
+      if (!this.cinematicPoseActive && !held) this.sprite.update(deltaTime);
+      // The existing jump frames cover takeoff, tuck, descent and recovery.
+      // Select by physics phase rather than looping a 2.25-second movie.
+      if (this.state === 'jump' && this.animationRef && !this.cinematicPoseActive) {
+        const vy = this.velocity.y;
+        this.animationRef.currentFrame = vy < -160 ? Math.min(8, 4 + Math.floor((920 + vy) / 180))
+          : vy < 160 ? 10 : Math.min(16, 13 + Math.floor((vy - 160) / 230));
+      }
+      if (landing && this.animationRef && !this.cinematicPoseActive) this.animationRef.currentFrame = Math.min(21, 17 + Math.floor((90 - this.landingPoseMs) / 18));
+      this.landingPoseMs = Math.max(0, (this.landingPoseMs || 0) - deltaTime);
     } catch (error) {
       console.error('Error updating sprite animation:', error?.message || error);
     }
@@ -519,16 +544,7 @@ window.Player = class Player {
     this.facing = -1;
     if (this.grounded) this.velocity.x = -this.speed;
     else this.airInput = -1;
-    {
-      
-      // White smoke/dust trail particles behind player
-      if (window.particleSystem && this.grounded) {
-        // Position particles 8px behind player and 12px toward front (offset from -20 to -8)
-        const trailX = this.position.x - this.facing * 8; // 8px behind player (12px toward front)
-        const trailY = this.getVisualAnchor().targetFootY;
-        window.particleSystem.trail(trailX, trailY, null, 2);
-      }
-    }
+
   }
 
   moveRight() {
@@ -537,16 +553,7 @@ window.Player = class Player {
     this.facing = 1;
     if (this.grounded) this.velocity.x = this.speed;
     else this.airInput = 1;
-    {
-      
-      // White smoke/dust trail particles behind player
-      if (window.particleSystem && this.grounded) {
-        // Position particles behind player based on facing direction
-        const trailX = this.position.x - this.facing * 20; // 20px behind player
-        const trailY = this.getVisualAnchor().targetFootY;
-        window.particleSystem.trail(trailX, trailY, null, 2);
-      }
-    }
+
   }
 
   stopHorizontal() {
@@ -580,6 +587,7 @@ window.Player = class Player {
         const jumpX = this.position.x + this.facing * 12;
         window.particleSystem.jumpEffect(jumpX, this.getVisualAnchor().targetFootY, null);
       }
+      window.audioSystem?.playCombatCue?.('jump');
       return true;
     }
     return false;
@@ -642,7 +650,9 @@ window.Player = class Player {
     
     // Play the correct animation for the current state
     if (this.state && this.spriteReady) {
-      this.playAnimation(this.state);
+      const landing = !this.cinematicPoseActive && this.state === 'idle' && this.grounded && this.landingPoseMs > 0;
+      this.landingPoseActive = landing;
+      this.playAnimation(landing ? 'jump' : this.state);
     }
   }
   
@@ -901,6 +911,7 @@ window.Player = class Player {
   
   // Update electrical arcs during rhythm mode
   updateElectricalArcs(deltaTime) {
+    if (window.BARCODE?.combatFX) { this.electricalArcs.length = 0; this.arcActive = false; return; }
     const dt = deltaTime / 1000;
     const currentTime = Date.now();
     
@@ -1308,55 +1319,11 @@ window.Player = class Player {
   }
 
   getHitbox() {
-    // Keep the established combat hull unchanged. Stage landing uses its own
-    // narrow visual-foot probe, so presentation alignment cannot alter stomp
-    // or enemy-contact timing.
-    let spriteWidth, spriteHeight, yOffset;
-    
-    // Use exact sprite dimensions from manifest with current scale
-    switch(this.state) {
-      case 'idle':
-        spriteWidth = 86 * 2;    // 86px * 2x scale = 172px
-        spriteHeight = 96 * 2;   // 96px * 2x scale = 192px
-        yOffset = 4;
-        break;
-      case 'walk':
-        spriteWidth = 66 * 2;    // 66px * 2x scale = 132px  
-        spriteHeight = 96 * 2;   // 96px * 2x scale = 192px
-        yOffset = -11;
-        break;
-      case 'jump':
-        spriteWidth = 41 * 2;    // 41px * 2x scale = 82px
-        spriteHeight = 96 * 2;   // 96px * 2x scale = 192px
-        yOffset = 0;
-        break;
-      case 'rhythm':
-        spriteWidth = 51 * 2;    // 51px * 2x scale = 102px
-        spriteHeight = 96 * 2;   // 96px * 2x scale = 192px
-        yOffset = -30;
-        break;
-      default:
-        // Fallback to idle dimensions
-        spriteWidth = 86 * 2;
-        spriteHeight = 96 * 2;
-        yOffset = 4;
-    }
-    
-    // Apply tight margins - only cut 5% from each side for precision
-    const marginReduction = 0.05; // 5% margin
-    const hitboxWidth = spriteWidth * (1 - marginReduction * 2);
-    const hitboxHeight = spriteHeight * (1 - marginReduction * 2);
-    
-    const spriteTop = this.position.y - spriteHeight - 1 + yOffset;
-    
-    return {
-      x: this.position.x - hitboxWidth/2,   // Center horizontally with tight margins
-      y: spriteTop + 60,
-      width: hitboxWidth,                  // Tight width with 5% margins
-      height: hitboxHeight
-    };
+    // Stable torso/body contact. Hands, instruments and animation padding do
+    // not change damage bounds. Landing uses the separate visible-foot sweep.
+    return { x: this.position.x - 32, y: this.position.y + PLAYER_VISUAL_FOOT_OFFSET_Y - 146, width: 64, height: 142 };
   }
-  
+
   // Debug method to visualize hitbox
   drawHitbox(ctx) {
     const hitbox = this.getHitbox();
@@ -1370,10 +1337,6 @@ window.Player = class Player {
     ctx.fillRect(this.position.x - 2, this.position.y - 2, 4, 4);
     ctx.restore();
     
-    // DEBUG: Draw hitbox for visualization
-    if (window.DEBUG_HITBOXES) {
-      this.drawHitbox(ctx);
-    }
   }
 
   draw(ctx) {

@@ -141,6 +141,7 @@ function updateGameSystems(deltaTime, hackingActive, rhythmActive) {
 
 // Update visual and effects systems
 function updateVisualSystems(deltaTime) {
+  window.BARCODE?.combatFX?.update(deltaTime);
   // Update particles
   if (window.particleSystem && typeof window.particleSystem.update === 'function') {
     try {

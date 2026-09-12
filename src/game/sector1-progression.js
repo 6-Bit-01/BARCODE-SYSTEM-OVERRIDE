@@ -501,7 +501,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (this.boss.x < 260) direction = 1;
       if (this.boss.x > WORLD_WIDTH - 260) direction = -1;
       player.stompRebound?.(direction);
-      window.audioSystem?.playSound?.(canCounter ? 'kick' : 'hihat');
+      if (window.audioSystem?.playCombatCue) window.audioSystem.playCombatCue(canCounter ? 'stomp' : 'guard');
+      else window.audioSystem?.playSound?.(canCounter ? 'kick' : 'hihat');
       if (canCounter) {
         window.particleSystem?.stompEffect?.(crossingX, box.y, null, player.facing || 1);
         this.boss.stompCycle = this.boss.cycle;
@@ -651,7 +652,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     drawSignalAmp(ctx) { if (!ctx || this.signalAmpCollected) return; ctx.save(); ctx.fillStyle = '#ff00ff'; ctx.strokeStyle = '#00ffff'; ctx.beginPath(); ctx.arc(SIGNAL_AMP.x, SIGNAL_AMP.y, 18, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.restore(); }
     drawEncounterGates(ctx) { if (!ctx) return; const gate = this.getCurrentGate(); if (!gate) return; ctx.save(); ctx.globalAlpha = 0.9; ctx.fillStyle = 'rgba(255,0,255,0.55)'; ctx.fillRect(gate.x, gate.y, gate.w, gate.h); ctx.strokeStyle = '#ff00ff'; ctx.lineWidth = 3; ctx.strokeRect(gate.x, gate.y, gate.w, gate.h); ctx.restore(); }
     updateSignalAmp() { const player = this.player || window.player; if (!player || this.signalAmpCollected) return; if (window.distance && window.distance(player.position.x, player.position.y + PLAYER_VISUAL_FOOT_OFFSET, SIGNAL_AMP.x, SIGNAL_AMP.y) <= SIGNAL_AMP.radius) this.giveSignalAmp(); }
-    giveSignalAmp() { this.signalAmpCollected = true; window.BARCODE = window.BARCODE || {}; window.BARCODE.signalAmpCharges = SIGNAL_AMP.charges; if (window.audioSystem?.playSound) window.audioSystem.playSound('rhythmSuccess', 0.35); return { ok:true, charges: window.BARCODE.signalAmpCharges }; }
+    giveSignalAmp() { this.signalAmpCollected = true; window.BARCODE = window.BARCODE || {}; window.BARCODE.signalAmpCharges = SIGNAL_AMP.charges; if (window.audioSystem?.playCombatCue) window.audioSystem.playCombatCue('pickup'); else window.audioSystem?.playSound?.('rhythmSuccess', 0.35); return { ok:true, charges: window.BARCODE.signalAmpCharges }; }
     isSignalLiftAvailable() { return !!(this.missionStarted && this.state !== STATES.TUTORIAL); }
     isPlayerSupportedByLift(player = this.player || window.player) {
       if (!this.isSignalLiftAvailable() || !player || !this.signalLift || !player.grounded || player.supportedSurfaceId !== SIGNAL_LIFT.id) return false;

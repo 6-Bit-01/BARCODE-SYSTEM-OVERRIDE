@@ -106,7 +106,7 @@ window.RhythmSystem = class RhythmSystem {
     // Track last successful hit to prevent duplicate arcs
     this.lastSuccessfulHitTime = 0;  // Prevents multiple arcs per beat press
     
-    console.log('Rhythm System initialized with 4-bar progress system');
+    if (window.DEBUG_RHYTHM) console.log('Rhythm System initialized with 4-bar progress system');
   }
   
   // Start rhythm mode (visual + audio)
@@ -145,7 +145,7 @@ window.RhythmSystem = class RhythmSystem {
     this.arcGrowthLevel = 0;
     this.beatPressCount = 0;
     this.colorVariationSeed = 0;
-    console.log('🔄 ARC GROWTH RESET: Starting fresh - arcs will grow with each beat press');
+    if (window.DEBUG_RHYTHM) console.log('🔄 ARC GROWTH RESET: Starting fresh - arcs will grow with each beat press');
     
     // CRITICAL: Reset max combo tracking for fresh session
     this.maxCombo = 0;
@@ -163,15 +163,15 @@ window.RhythmSystem = class RhythmSystem {
     // CRITICAL: Reset input timing for fresh start
     this.lastInputTime = 0;
     
-    console.log('🔄 COMBO RESET: Fresh rhythm mode started - combo = 0');
+    if (window.DEBUG_RHYTHM) console.log('🔄 COMBO RESET: Fresh rhythm mode started - combo = 0');
     
     // LOCKED: Always start audio sync - guaranteed perfect background progress
     if (window.audioSystem && window.audioSystem.isInitialized()) {
       window.audioSystem.startLayerBeatSync();
-      console.log('🎵 LOCKED Audio beat sync started - PERFECT progress tracking GUARANTEED');
+      if (window.DEBUG_RHYTHM) console.log('🎵 LOCKED Audio beat sync started - PERFECT progress tracking GUARANTEED');
     }
     
-    console.log(`🎵 LOCKED Rhythm mode started: ${this.bpm} BPM, beatInterval=${this.beatInterval.toFixed(1)}ms - PERFECT timing`);
+    if (window.DEBUG_RHYTHM) console.log(`🎵 LOCKED Rhythm mode started: ${this.bpm} BPM, beatInterval=${this.beatInterval.toFixed(1)}ms - PERFECT timing`);
   }
   
 
@@ -231,13 +231,14 @@ window.RhythmSystem = class RhythmSystem {
   }
 
   show() {
-    console.log('🎵 RHYTHM SHOW() CALLED - requesting active Rhythm Combat Mode');
+    if (window.DEBUG_RHYTHM) console.log('🎵 RHYTHM SHOW() CALLED - requesting active Rhythm Combat Mode');
     const allowed = this.canEnterRhythmMode();
     if (!allowed.ok) {
-      console.log('🚫 RHYTHM MODE BLOCKED:', allowed.reason);
+      if (window.DEBUG_RHYTHM) console.log('🚫 RHYTHM MODE BLOCKED:', allowed.reason);
       return allowed;
     }
 
+    if (!this.active) window.BARCODE?.combatFX?.mode(true);
     this.active = true;
     if (window.player) {
       window.player.state = 'rhythm';
@@ -248,8 +249,8 @@ window.RhythmSystem = class RhythmSystem {
     if (!this.running) {
       this.startBackgroundRhythm(); // Start background progress if not running
     }
-    console.log('Rhythm Combat Mode active - background progress continues');
-    console.log(`🎵 After show(): active=${this.active}, running=${this.running}`);
+    if (window.DEBUG_RHYTHM) console.log('Rhythm Combat Mode active - background progress continues');
+    if (window.DEBUG_RHYTHM) console.log(`🎵 After show(): active=${this.active}, running=${this.running}`);
     return { ok: true, reason: 'activated' };
   }
   
@@ -262,8 +263,8 @@ window.RhythmSystem = class RhythmSystem {
 
   // CRITICAL: Gameplay-only restart for when rhythm mode is reactivated
   restart() {
-    console.log('🔄 RESTARTING RHYTHM MODE - GAMEPLAY RESET ONLY');
-    console.log('🔄 PRESERVING ALL: tempo establishment, beat timing, and continuous loop');
+    if (window.DEBUG_RHYTHM) console.log('🔄 RESTARTING RHYTHM MODE - GAMEPLAY RESET ONLY');
+    if (window.DEBUG_RHYTHM) console.log('🔄 PRESERVING ALL: tempo establishment, beat timing, and continuous loop');
     
     // CRITICAL: PRESERVE EVERYTHING - NEVER interrupt continuous beat timing
     // Don't reset: currentTempoBeat, tempoEstablished, trackStarted, lastBeatTime, beatStartTime
@@ -298,9 +299,9 @@ window.RhythmSystem = class RhythmSystem {
     this.powerArcIntensity = 0;
     this.powerArcDuration = 0;
     
-    console.log('🔄 COMBO RESET: Gameplay elements reset - combo = 0');
-    console.log('🔄 PRESERVED: ALL beat timing, tempo establishment, and continuous loop');
-    console.log('🔄 CONTINUOUS LOOP UNINTERRUPTED: Rhythm system never stops');
+    if (window.DEBUG_RHYTHM) console.log('🔄 COMBO RESET: Gameplay elements reset - combo = 0');
+    if (window.DEBUG_RHYTHM) console.log('🔄 PRESERVED: ALL beat timing, tempo establishment, and continuous loop');
+    if (window.DEBUG_RHYTHM) console.log('🔄 CONTINUOUS LOOP UNINTERRUPTED: Rhythm system never stops');
     
     // CRITICAL: DO NOT restart audio sync - preserve continuous beat continuity
     // CRITICAL: DO NOT stop background rhythm - preserve continuous loop
@@ -321,19 +322,20 @@ window.RhythmSystem = class RhythmSystem {
   }
   
   hide() {
-    console.log('🎵 RHYTHM HIDE() CALLED - setting active=false');
+    if (window.DEBUG_RHYTHM) console.log('🎵 RHYTHM HIDE() CALLED - setting active=false');
+    if (this.active) window.BARCODE?.combatFX?.mode(false);
     this.active = false;
     if (window.player) window.player.primaryAttackAnimationMs = 0;
     this.maxCombo = Math.max(this.maxCombo, this.combo);
     
     // Reset combo when hiding rhythm mode
     if (this.combo > 0) {
-      console.log('🔄 COMBO RESET: Hiding rhythm mode - resetting combo from', this.combo, 'to 0');
+      if (window.DEBUG_RHYTHM) console.log('🔄 COMBO RESET: Hiding rhythm mode - resetting combo from', this.combo, 'to 0');
       this.combo = 0;
     }
     
-    console.log('Rhythm Combat Mode hidden, background continues');
-    console.log(`🎵 After hide(): active=${this.active}, running=${this.running}`);
+    if (window.DEBUG_RHYTHM) console.log('Rhythm Combat Mode hidden, background continues');
+    if (window.DEBUG_RHYTHM) console.log(`🎵 After hide(): active=${this.active}, running=${this.running}`);
     return { ok: true, reason: 'deactivated' };
   }
   
@@ -341,7 +343,7 @@ window.RhythmSystem = class RhythmSystem {
   startBackgroundRhythm(profileId) {
     if (this.running) return; // Already running
     
-    console.log('🎵 Starting background rhythm system');
+    if (window.DEBUG_RHYTHM) console.log('🎵 Starting background rhythm system');
     
     this.running = true;
     this.active = false; // Start in background only (no visuals)
@@ -367,15 +369,15 @@ window.RhythmSystem = class RhythmSystem {
     // Start audio beat sync - progress tracking continues in background
     if (window.audioSystem && window.audioSystem.isInitialized()) {
       window.audioSystem.startLayerBeatSync();
-      console.log('Audio beat sync started for background progress');
+      if (window.DEBUG_RHYTHM) console.log('Audio beat sync started for background progress');
     }
     
-    console.log(`Background rhythm ready: ${this.bpm} BPM - waiting for audio beats`);
+    if (window.DEBUG_RHYTHM) console.log(`Background rhythm ready: ${this.bpm} BPM - waiting for audio beats`);
   }
   
   // Hide visual elements only - NEVER stop continuous rhythm loop
   stop() {
-    console.log('🔄 HIDING RHYTHM MODE VISUALS - continuous loop preserved');
+    if (window.DEBUG_RHYTHM) console.log('🔄 HIDING RHYTHM MODE VISUALS - continuous loop preserved');
     
     // Only hide visual elements - NEVER stop the continuous rhythm system
     this.active = false;
@@ -389,7 +391,7 @@ window.RhythmSystem = class RhythmSystem {
     
     // Reset combo when hiding rhythm mode
     if (this.combo > 0) {
-      console.log('🔄 COMBO RESET: Hiding rhythm mode - resetting combo from', this.combo, 'to 0');
+      if (window.DEBUG_RHYTHM) console.log('🔄 COMBO RESET: Hiding rhythm mode - resetting combo from', this.combo, 'to 0');
       this.combo = 0;
     }
     
@@ -398,7 +400,7 @@ window.RhythmSystem = class RhythmSystem {
     //   window.audioSystem.stopLayerBeatSync();
     // }
     
-    console.log('Rhythm mode visuals hidden - continuous loop preserved');
+    if (window.DEBUG_RHYTHM) console.log('Rhythm mode visuals hidden - continuous loop preserved');
     
     // Reset growth when hiding visuals only
     this.arcGrowthLevel = 0;
@@ -408,7 +410,7 @@ window.RhythmSystem = class RhythmSystem {
     this.powerArcIntensity = 0;
     this.powerArcDuration = 0;
     
-    console.log('🔄 CONTINUOUS LOOP PRESERVED: Beat timing continues in background');
+    if (window.DEBUG_RHYTHM) console.log('🔄 CONTINUOUS LOOP PRESERVED: Beat timing continues in background');
   }
   
   // Main update loop
@@ -460,9 +462,9 @@ window.RhythmSystem = class RhythmSystem {
     
     // CRITICAL FIX: Don't increment here - syncWithAudioBeat() already incremented
     // This function now only handles visual effects and timing updates
-    console.log(`🎵 TEMPO BEAT ${this.currentTempoBeat}/${this.tempoEstablishmentBeats} - visual effects triggered`);
+    if (window.DEBUG_RHYTHM) console.log(`🎵 TEMPO BEAT ${this.currentTempoBeat}/${this.tempoEstablishmentBeats} - visual effects triggered`);
     
-    console.log(`🎵 TEMPO BEAT ${this.currentTempoBeat}/${this.tempoEstablishmentBeats} - establishing song tempo`);
+    if (window.DEBUG_RHYTHM) console.log(`🎵 TEMPO BEAT ${this.currentTempoBeat}/${this.tempoEstablishmentBeats} - establishing song tempo`);
     
     // Enhanced visual for tempo establishment beats - distinctive appearance
     this.beatEffects.push({
@@ -478,10 +480,10 @@ window.RhythmSystem = class RhythmSystem {
     // CRITICAL FIX: Check if tempo establishment is complete - trigger at exactly 32 beats
     if (this.currentTempoBeat >= this.tempoEstablishmentBeats && !this.tempoEstablished) {
       this.tempoEstablished = true;
-      console.log('🎵 TEMPO ESTABLISHED! 32 distinctive beats completed - song tempo locked');
-      console.log('🎵 Regular beat progression starts now - tempo set for remainder of song');
-      console.log('🎵 SWITCHING TO PROGRESS BARS - tempo establishment complete');
-      console.log(`🎵 FINAL TEMPO BEAT: ${this.currentTempoBeat}/${this.tempoEstablishmentBeats} - transition to progress bars`);
+      if (window.DEBUG_RHYTHM) console.log('🎵 TEMPO ESTABLISHED! 32 distinctive beats completed - song tempo locked');
+      if (window.DEBUG_RHYTHM) console.log('🎵 Regular beat progression starts now - tempo set for remainder of song');
+      if (window.DEBUG_RHYTHM) console.log('🎵 SWITCHING TO PROGRESS BARS - tempo establishment complete');
+      if (window.DEBUG_RHYTHM) console.log(`🎵 FINAL TEMPO BEAT: ${this.currentTempoBeat}/${this.tempoEstablishmentBeats} - transition to progress bars`);
     }
   }
   
@@ -503,7 +505,7 @@ window.RhythmSystem = class RhythmSystem {
     
     // Check for duplicate beat detection
     if (this.currentBeat === expectedBeat && this.currentBar === expectedBar) {
-      console.log(`⚠️ DUPLICATE REGULAR BEAT DETECTED: Already at beat ${this.currentBeat}, skipping increment`);
+      if (window.DEBUG_RHYTHM) console.log(`⚠️ DUPLICATE REGULAR BEAT DETECTED: Already at beat ${this.currentBeat}, skipping increment`);
       return; // Skip duplicate
     }
     
@@ -513,11 +515,11 @@ window.RhythmSystem = class RhythmSystem {
     
     // CRITICAL FIX: Beat counting already handled in syncWithAudioBeat()
     // This function now only handles visual effects and gameplay logic
-    console.log(`🎵 REGULAR BEAT EFFECTS: ${this.currentBeat}/${this.beatsPerBar} in BAR ${this.currentBar + 1}/4 - Global: ${this.globalBeatCount}`);
+    if (window.DEBUG_RHYTHM) console.log(`🎵 REGULAR BEAT EFFECTS: ${this.currentBeat}/${this.beatsPerBar} in BAR ${this.currentBar + 1}/4 - Global: ${this.globalBeatCount}`);
     
     // CRITICAL: Reset timing every 30 beats to prevent drift
     if (this.globalBeatCount % 30 === 0) {
-      console.log('🔄 TIMING RESET: 30-beat cycle complete - resetting hit windows to prevent drift');
+      if (window.DEBUG_RHYTHM) console.log('🔄 TIMING RESET: 30-beat cycle complete - resetting hit windows to prevent drift');
       this.resetHitWindows();
     }
     
@@ -534,7 +536,7 @@ window.RhythmSystem = class RhythmSystem {
     // Occasionally change pattern
     if (this.tempoEstablishmentBeats && this.globalBeatCount % this.tempoEstablishmentBeats === 0) {
       this.currentPattern = (this.currentPattern + 1) % this.beatPatterns.length;
-      console.log(`Pattern changed to ${this.currentPattern}`);
+      if (window.DEBUG_RHYTHM) console.log(`Pattern changed to ${this.currentPattern}`);
     }
     
     // Visual feedback
@@ -584,9 +586,9 @@ window.RhythmSystem = class RhythmSystem {
     
     // CRITICAL FIX: Exit loop restart mode immediately when first beat arrives
     if (this.loopRestartMode) {
-      console.log('🎵 LOOP RESTART EXIT: First beat arrived - exiting loop restart mode');
+      if (window.DEBUG_RHYTHM) console.log('🎵 LOOP RESTART EXIT: First beat arrived - exiting loop restart mode');
       this.loopRestartMode = false;
-      console.log('🎵 LOOP RESTART EXIT: Transitioning to tempo establishment beat counter');
+      if (window.DEBUG_RHYTHM) console.log('🎵 LOOP RESTART EXIT: Transitioning to tempo establishment beat counter');
     }
     
     // CRITICAL FIX: IMMEDIATE first beat count when sync is called
@@ -615,8 +617,8 @@ window.RhythmSystem = class RhythmSystem {
       this.currentTempoBeat = 1;
       this.globalBeatCount = 1;
       
-      console.log('🎵 FIRST BEAT: Audio sync called - immediate count to beat 1');
-      console.log(`🎵 TEMPO BEAT 1/${this.tempoEstablishmentBeats} - first beat established instantly`);
+      if (window.DEBUG_RHYTHM) console.log('🎵 FIRST BEAT: Audio sync called - immediate count to beat 1');
+      if (window.DEBUG_RHYTHM) console.log(`🎵 TEMPO BEAT 1/${this.tempoEstablishmentBeats} - first beat established instantly`);
     } else {
       // CRITICAL FIX: Remove drift correction entirely - it was causing the timing drift
       // The drift correction system was accumulating errors over time
@@ -633,13 +635,13 @@ window.RhythmSystem = class RhythmSystem {
       if (this.currentTempoBeat < this.tempoEstablishmentBeats) {
         this.currentTempoBeat++;
         this.globalBeatCount++;
-        console.log(`🎵 TEMPO BEAT ${this.currentTempoBeat}/${this.tempoEstablishmentBeats} - sync incremented`);
+        if (window.DEBUG_RHYTHM) console.log(`🎵 TEMPO BEAT ${this.currentTempoBeat}/${this.tempoEstablishmentBeats} - sync incremented`);
         
         // CRITICAL FIX: Check for completion immediately after increment
         if (this.currentTempoBeat >= this.tempoEstablishmentBeats && !this.tempoEstablished) {
           this.tempoEstablished = true;
-          console.log('🎵 TEMPO ESTABLISHED! Sync function detected completion - switching to progress bars');
-          console.log('🎵 SWITCHING TO PROGRESS BARS - tempo establishment complete');
+          if (window.DEBUG_RHYTHM) console.log('🎵 TEMPO ESTABLISHED! Sync function detected completion - switching to progress bars');
+          if (window.DEBUG_RHYTHM) console.log('🎵 SWITCHING TO PROGRESS BARS - tempo establishment complete');
         }
       } else {
         // Regular beat handling after tempo established
@@ -648,7 +650,7 @@ window.RhythmSystem = class RhythmSystem {
           this.currentBar = (this.currentBar + 1) % this.barsPerPhrase;
         }
         this.globalBeatCount++;
-        console.log(`🎵 REGULAR BEAT ${this.currentBeat}/${this.beatsPerBar} in BAR ${this.currentBar + 1}/4 - Global: ${this.globalBeatCount}`);
+        if (window.DEBUG_RHYTHM) console.log(`🎵 REGULAR BEAT ${this.currentBeat}/${this.beatsPerBar} in BAR ${this.currentBar + 1}/4 - Global: ${this.globalBeatCount}`);
       }
       
       // Trigger beat effects and gameplay logic
@@ -665,13 +667,16 @@ window.RhythmSystem = class RhythmSystem {
       this.maxCombo = Math.max(this.maxCombo, this.combo);
       this.triggerPowerArc(timing, false);
       this.createHitEffect(timing, false);
-      if (window.audioSystem) window.audioSystem.playRhythmAttack(timing);
+      if (window.audioSystem && !window.BARCODE?.combatFX) window.audioSystem.playRhythmAttack(timing);
       if (this.combo >= 5 && window.tutorialSystem && window.tutorialSystem.isActive && window.tutorialSystem.isActive() && window.tutorialSystem.checkObjective) window.tutorialSystem.checkObjective('rhythm_combo');
     } else {
       this.combo = 0;
       this.arcGrowthLevel = 0;
       this.createMissEffect();
-      if (timing === 'miss' && window.audioSystem && typeof window.audioSystem.playSound === 'function') window.audioSystem.playSound('synthHit', 0.3);
+      if (timing === 'miss' && window.audioSystem) {
+        if (window.audioSystem.playCombatCue) window.audioSystem.playCombatCue('miss');
+        else window.audioSystem.playSound?.('synthHit', 0.3);
+      }
     }
     return this.lastJudgment;
   }
@@ -697,24 +702,25 @@ window.RhythmSystem = class RhythmSystem {
     const audioTimeSec = window.audioSystem && window.audioSystem.context ? window.audioSystem.context.currentTime : null;
     const judgment = transport && Number.isFinite(audioTimeSec) && this.judgmentRuleId ? transport.judgeInput(this.judgmentRuleId, audioTimeSec) : { available: false, timing: 'unavailable' };
     const isMiss = !judgment.available || judgment.timing === 'miss';
-    console.log(`TRANSPORT JUDGMENT: rule=${this.judgmentRuleId || 'none'}, timing=${judgment.timing}, distanceMs=${judgment.distanceMs == null ? 'n/a' : judgment.distanceMs.toFixed(0)}`);
+    if (window.DEBUG_RHYTHM) console.log(`TRANSPORT JUDGMENT: rule=${this.judgmentRuleId || 'none'}, timing=${judgment.timing}, distanceMs=${judgment.distanceMs == null ? 'n/a' : judgment.distanceMs.toFixed(0)}`);
     
     // CRITICAL: Always reset combo on misses/unavailable transport - no exceptions
     if (isMiss) {
-      console.log(`❌ MISSED BEAT: transport timing=${judgment.timing} - COMBO RESET!`);
+      if (window.DEBUG_RHYTHM) console.log(`❌ MISSED BEAT: transport timing=${judgment.timing} - COMBO RESET!`);
       
       // ✅ FIXED: Reset combo IMMEDIATELY on incorrect press
       this.combo = 0;
-      console.log(`🔄 IMMEDIATE COMBO RESET: Combo set to 0 instantly on miss`);
+      if (window.DEBUG_RHYTHM) console.log(`🔄 IMMEDIATE COMBO RESET: Combo set to 0 instantly on miss`);
       
       // Also reset arc growth level immediately
       this.arcGrowthLevel = 0;
-      console.log(`🔄 ARC GROWTH RESET: Arc growth set to 0 instantly on miss`);
+      if (window.DEBUG_RHYTHM) console.log(`🔄 ARC GROWTH RESET: Arc growth set to 0 instantly on miss`);
       
       this.createMissEffect();
       
       if (window.audioSystem) {
-        window.audioSystem.playSound('synthHit', 0.3);
+        if (window.audioSystem.playCombatCue) window.audioSystem.playCombatCue('miss');
+        else window.audioSystem.playSound('synthHit', 0.3);
       }
       
       // MISSED BEATS don't damage any enemies
@@ -743,10 +749,10 @@ window.RhythmSystem = class RhythmSystem {
       
       // Audio feedback
       if (window.audioSystem) {
-        window.audioSystem.playRhythmAttack(timing);
+        if (!window.BARCODE?.combatFX) window.audioSystem.playRhythmAttack(timing);
       }
       
-      console.log(`${timing.toUpperCase()} HIT! Combo: ${this.combo}`);
+      if (window.DEBUG_RHYTHM) console.log(`${timing.toUpperCase()} HIT! Combo: ${this.combo}`);
       
       // RhythmSystem now returns judgment/feedback only; PlayerCombat owns damage.
       const rhythmResult = { hit: true, timing: timing, combo: this.combo };
@@ -754,13 +760,13 @@ window.RhythmSystem = class RhythmSystem {
       
       // Boss and future targets must use BARCODE.PlayerCombat transaction boundary.
       
-      console.log(`🎵 RHYTHM HIT RESULT: hit=true, timing=${timing}, combo=${this.combo}`);
+      if (window.DEBUG_RHYTHM) console.log(`🎵 RHYTHM HIT RESULT: hit=true, timing=${timing}, combo=${this.combo}`);
       return { hit: true, timing: timing, combo: this.combo };
     }
     
     // NOTE: We should never reach here because misses are handled above
     // This is just safety fallback
-    console.log('SAFETY FALLBACK - Should never reach here!');
+    if (window.DEBUG_RHYTHM) console.log('SAFETY FALLBACK - Should never reach here!');
     return { hit: false, timing: 'miss', combo: this.combo };
   }
   
@@ -1057,11 +1063,11 @@ window.RhythmSystem = class RhythmSystem {
     // CRITICAL FIX: Check tempo establishment state properly
     if (this.running && !this.tempoEstablished) {
       // DEBUG: Log current state for debugging
-      console.log(`🎵 DEBUG: Tempo establishment active - currentTempoBeat=${this.currentTempoBeat}, tempoEstablished=${this.tempoEstablished}, tempoEstablishmentBeats=${this.tempoEstablishmentBeats}`);
+      if (window.DEBUG_RHYTHM) console.log(`🎵 DEBUG: Tempo establishment active - currentTempoBeat=${this.currentTempoBeat}, tempoEstablished=${this.tempoEstablished}, tempoEstablishmentBeats=${this.tempoEstablishmentBeats}`);
       
       // CRITICAL FIX: Force completion if we've reached or exceeded the beat count
       if (this.currentTempoBeat >= this.tempoEstablishmentBeats) {
-        console.log('🎵 DEBUG: Forcing tempo establishment completion in draw function');
+        if (window.DEBUG_RHYTHM) console.log('🎵 DEBUG: Forcing tempo establishment completion in draw function');
         this.tempoEstablished = true;
       }
       ctx.fillStyle = '#ffaa00'; // Orange for tempo establishment
@@ -1340,8 +1346,8 @@ window.RhythmSystem = class RhythmSystem {
   
   // CRITICAL: Force exact synchronization with master audio time
   forceExactSync(masterSyncTime) {
-    console.log('🔥 FORCE SYNC: Aligning rhythm system to master sync time');
-    console.log(`🔥 MASTER SYNC TIME: ${masterSyncTime}`);
+    if (window.DEBUG_RHYTHM) console.log('🔥 FORCE SYNC: Aligning rhythm system to master sync time');
+    if (window.DEBUG_RHYTHM) console.log(`🔥 MASTER SYNC TIME: ${masterSyncTime}`);
     
     // CRITICAL: Reset ALL timing to exact same moment
     this.trackStarted = true;
@@ -1367,7 +1373,7 @@ window.RhythmSystem = class RhythmSystem {
       this.triggerTempoEstablishmentBeat();
     }, 0);
     
-    console.log('🔥 FORCE SYNC COMPLETE: Rhythm system locked to exact master time');
+    if (window.DEBUG_RHYTHM) console.log('🔥 FORCE SYNC COMPLETE: Rhythm system locked to exact master time');
   }
   
   // Draw center screen pulsing circle (red to green based on beat progress)
@@ -1425,6 +1431,7 @@ window.RhythmSystem = class RhythmSystem {
   
   // Draw electrical arcs shooting FROM player outward
   drawElectricalArcs(ctx, playerX, playerY) {
+    if (window.BARCODE?.combatFX) { window.BARCODE.combatFX.drawRhythmField(ctx, playerX, playerY); return; }
     const attackRadius = 300;
     const currentTime = performance.now();
     
@@ -1533,7 +1540,7 @@ window.RhythmSystem = class RhythmSystem {
       if (this.powerArcActive) {
         // POWER ARC MODE - intensity based on combo growth
         intensity = this.powerArcIntensity * 0.8; // Scale down slightly for visual balance
-        console.log(`⚡ POWER ARC ACTIVE: ${intensity.toFixed(1)}x intensity`);
+        if (window.DEBUG_RHYTHM) console.log(`⚡ POWER ARC ACTIVE: ${intensity.toFixed(1)}x intensity`);
       } else {
         // REGULAR BEAT MODE - background arcs stay blue and light, no growth
         intensity = 0.25; // Slightly stronger for background arcs
@@ -2167,10 +2174,10 @@ window.RhythmSystem = class RhythmSystem {
     // Clear any accumulated timing offset
     this.timingOffset = 0;
     
-    console.log('🔧 HIT WINDOWS RESET: All timing aligned to absolute current time');
-    console.log(`🔧 New lastBeatTime: ${this.lastBeatTime.toFixed(1)}ms`);
-    console.log(`🔧 New expectedBeatTime: ${this.expectedBeatTime.toFixed(1)}ms`);
-    console.log('🔧 Timing drift eliminated - perfect synchronization restored');
+    if (window.DEBUG_RHYTHM) console.log('🔧 HIT WINDOWS RESET: All timing aligned to absolute current time');
+    if (window.DEBUG_RHYTHM) console.log(`🔧 New lastBeatTime: ${this.lastBeatTime.toFixed(1)}ms`);
+    if (window.DEBUG_RHYTHM) console.log(`🔧 New expectedBeatTime: ${this.expectedBeatTime.toFixed(1)}ms`);
+    if (window.DEBUG_RHYTHM) console.log('🔧 Timing drift eliminated - perfect synchronization restored');
   }
   
   // Calculate damage radius based on combo growth (weaker start, gradual growth)
@@ -2256,10 +2263,10 @@ window.RhythmSystem = class RhythmSystem {
     this.powerArcDuration = duration;
     
     const currentRadius = this.getDamageRadius();
-    console.log(`⚡ POWER ARC TRIGGERED: ${timing} (Combo ${this.arcGrowthLevel}/${this.maxArcGrowthLevel}, ${growthMultiplier.toFixed(1)}x power, ${currentRadius.toFixed(0)}px radius, ${intensityMultiplier.toFixed(1)}x intensity for ${duration}ms)`);
+    if (window.DEBUG_RHYTHM) console.log(`⚡ POWER ARC TRIGGERED: ${timing} (Combo ${this.arcGrowthLevel}/${this.maxArcGrowthLevel}, ${growthMultiplier.toFixed(1)}x power, ${currentRadius.toFixed(0)}px radius, ${intensityMultiplier.toFixed(1)}x intensity for ${duration}ms)`);
     
     if (oldGrowthLevel !== this.arcGrowthLevel) {
-      console.log(`🌟 ARC GROWTH: Combo ${this.arcGrowthLevel} - damage radius: ${currentRadius.toFixed(0)}px`);
+      if (window.DEBUG_RHYTHM) console.log(`🌟 ARC GROWTH: Combo ${this.arcGrowthLevel} - damage radius: ${currentRadius.toFixed(0)}px`);
     }
   }
   
@@ -2271,14 +2278,14 @@ window.RhythmSystem = class RhythmSystem {
       if (this.powerArcDuration <= 0) {
         this.powerArcActive = false;
         this.powerArcIntensity = 0;
-        console.log('⚡ Power arc ended');
+        if (window.DEBUG_RHYTHM) console.log('⚡ Power arc ended');
       }
     }
   }
   
   // Simple beat counter reset for seamless loops
   resetBeatCounter() {
-    console.log('🔄 RHYTHM: Beat counter reset for seamless loop');
+    if (window.DEBUG_RHYTHM) console.log('🔄 RHYTHM: Beat counter reset for seamless loop');
     
     // Reset beat counters to start fresh
     this.currentBar = 0;
@@ -2298,7 +2305,7 @@ window.RhythmSystem = class RhythmSystem {
     this.lastSyncTime = 0;
     
     // Keep running state - don't stop background tracking
-    console.log('🔄 RHYTHM: Beat counter reset complete - continuing background tracking');
+    if (window.DEBUG_RHYTHM) console.log('🔄 RHYTHM: Beat counter reset complete - continuing background tracking');
   }
   
   // Jammer handling removed - jammers are now regular enemies handled by EnemyManager
@@ -2309,24 +2316,24 @@ window.RhythmSystem = class RhythmSystem {
   
   // Prepare rhythm system for upcoming loop restart
   prepareForLoopRestart() {
-    console.log('🎵 RHYTHM: Preparing for loop restart');
-    console.log('🎵 RHYTHM: Current state before restart - tempoEstablished:', this.tempoEstablished, 'currentTempoBeat:', this.currentTempoBeat);
+    if (window.DEBUG_RHYTHM) console.log('🎵 RHYTHM: Preparing for loop restart');
+    if (window.DEBUG_RHYTHM) console.log('🎵 RHYTHM: Current state before restart - tempoEstablished:', this.tempoEstablished, 'currentTempoBeat:', this.currentTempoBeat);
     
     // Switch to loop restart mode (show beat counter instead of progress bars)
     this.loopRestartMode = true;
     
     // Don't reset anything yet - just prepare for the restart
     // Keep current tempo establishment state so we can resume smoothly
-    console.log('🎵 RHYTHM: Loop restart mode activated - progress bars hidden, beat counter will show during restart');
+    if (window.DEBUG_RHYTHM) console.log('🎵 RHYTHM: Loop restart mode activated - progress bars hidden, beat counter will show during restart');
   }
   
   // Restart rhythm system for new loop (called exactly when music restarts)
   restartForLoop() {
-    console.log('🎵 RHYTHM: Restarting for new loop');
+    if (window.DEBUG_RHYTHM) console.log('🎵 RHYTHM: Restarting for new loop');
     
     // Increment loop counter
     this.loopRestartCount++;
-    console.log(`🎵 RHYTHM: Loop #${this.loopRestartCount} starting`);
+    if (window.DEBUG_RHYTHM) console.log(`🎵 RHYTHM: Loop #${this.loopRestartCount} starting`);
     
     // CRITICAL: Reset ALL timing state to start fresh BEFORE music restart
     // This ensures we're ready for the first audio beat
@@ -2353,18 +2360,18 @@ window.RhythmSystem = class RhythmSystem {
     
     // CRITICAL: Stay in loop restart mode until first beat actually arrives
     // This prevents showing slow/frozen progress during transition
-    console.log('🎵 RHYTHM: All timing reset - waiting for first beat of new loop');
-    console.log('🎵 RHYTHM: Staying in loop restart mode until first audio beat arrives');
+    if (window.DEBUG_RHYTHM) console.log('🎵 RHYTHM: All timing reset - waiting for first beat of new loop');
+    if (window.DEBUG_RHYTHM) console.log('🎵 RHYTHM: Staying in loop restart mode until first audio beat arrives');
     
     // CRITICAL FIX: Don't exit loop restart mode immediately
     // Wait for the first actual audio beat to transition out
-    console.log('🎵 RHYTHM: Loop restart mode active - will exit on first beat');
+    if (window.DEBUG_RHYTHM) console.log('🎵 RHYTHM: Loop restart mode active - will exit on first beat');
     
-    console.log('🎵 RHYTHM: Loop restart complete - ready for fresh tempo establishment');
+    if (window.DEBUG_RHYTHM) console.log('🎵 RHYTHM: Loop restart complete - ready for fresh tempo establishment');
   }
   
   resetForFreshRuntimeRestart(profileId) {
-    console.log('🎵 RHYTHM: Fresh lifecycle restart - resetting background rhythm to new transport generation');
+    if (window.DEBUG_RHYTHM) console.log('🎵 RHYTHM: Fresh lifecycle restart - resetting background rhythm to new transport generation');
     this.running = true;
     this.active = false;
     this.loopRestartMode = false;
@@ -2394,7 +2401,7 @@ window.RhythmSystem = class RhythmSystem {
 function createRhythmSystem() {
   if (window.randomRange && window.clamp) {
     window.rhythmSystem = new window.RhythmSystem();
-    console.log('Enhanced Rhythm System created with 4-bar progress visualization');
+    if (window.DEBUG_RHYTHM) console.log('Enhanced Rhythm System created with 4-bar progress visualization');
   } else {
     console.warn('Rhythm system dependencies not ready, retrying...');
     setTimeout(createRhythmSystem, 100);

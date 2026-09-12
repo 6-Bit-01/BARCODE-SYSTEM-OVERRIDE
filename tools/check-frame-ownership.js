@@ -128,16 +128,14 @@ if (!player.includes('const PLAYER_VISUAL_FOOT_OFFSET_Y = 72;') ||
 if (!playerDrawBody || /\bdraw[XY]\s*[+-]=/.test(playerDrawBody) || !/getVisualAnchor\(shouldFlip\)/.test(playerDrawBody)) {
   fail('player drawing must use the frame-aware visual anchor without state-specific magic X/Y shifts.');
 }
-if (!player.includes('isBossCinematicActive') || !player.includes('if (!this.cinematicPoseActive) this.sprite.update(deltaTime);')) {
+if (!player.includes('isBossCinematicActive') || !player.includes('if (!this.cinematicPoseActive && !held) this.sprite.update(deltaTime);')) {
   fail('player animation ownership must freeze a neutral pose during the boss cinematic.');
 }
 if (/this\.sprite\.(pause|resume)\(/.test(player)) {
   fail('cinematic pose ownership must not depend on optional Makko sprite pause/resume methods.');
 }
-if (!player.includes('let spriteWidth, spriteHeight, yOffset;') ||
-    !player.includes('const spriteTop = this.position.y - spriteHeight - 1 + yOffset;') ||
-    !player.includes('y: spriteTop + 60')) {
-  fail('player alignment changes must preserve the established stomp/contact combat hull.');
+if (!player.includes('this.contactSweep = { previousX') || !player.includes('width: 64, height: 142')) {
+  fail('player collision must use a stable torso and a separate frame-owned foot sweep.');
 }
 if (player.includes('this.lastAnimLog') && !player.includes('if (window.BARCODE_DEBUG_FRAME_OWNERSHIP && (!this.lastAnimLog || Date.now() - this.lastAnimLog > 3000))')) {
   fail('player periodic animation diagnostic work must be disabled during normal play.');

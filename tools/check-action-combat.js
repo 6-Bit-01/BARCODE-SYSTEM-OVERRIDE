@@ -174,12 +174,7 @@ pass('boss cinematic Rhythm Mode ownership');
       95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95
     ]
   };
-  const establishedCombatHulls = {
-    idle: { width: 154.8, bottom: 543.8 },
-    walk: { width: 118.8, bottom: 528.8 },
-    jump: { width: 73.8, bottom: 539.8 },
-    rhythm: { width: 91.8, bottom: 509.8 }
-  };
+  const establishedCombatHulls = Object.fromEntries(['idle', 'walk', 'jump', 'rhythm'].map(state => [state, { width:64, bottom:568 }]));
   for (const state of states) {
     player.state = state;
     const presentation = player.getAnimationPresentation(state);
@@ -250,8 +245,8 @@ pass('boss cinematic Rhythm Mode ownership');
     assert(noAnchor.anchorOffsetY === 0, `${state} does not invent an anchor subtraction when Makko reports no anchor`);
     assert(Math.abs(noAnchorRenderedFootY - 572) < 0.000001, `${state} remains grounded when Makko draws an unanchored source frame from its top-left`);
     const hitbox = player.getHitbox();
-    assert(Math.abs(hitbox.width - establishedCombatHulls[state].width) < 0.000001, `${state} keeps its established combat-hull width`);
-    assert(Math.abs(hitbox.y + hitbox.height - establishedCombatHulls[state].bottom) < 0.000001, `${state} keeps its established stomp/contact boundary`);
+    assert(Math.abs(hitbox.width - establishedCombatHulls[state].width) < 0.000001, `${state} uses the stable torso width`);
+    assert(Math.abs(hitbox.y + hitbox.height - establishedCombatHulls[state].bottom) < 0.000001, `${state} uses the same foot-relative damage boundary`);
   }
 
   const drawContext = { save(){}, restore(){} };
@@ -522,7 +517,7 @@ pass('beat-gated PlayerCombat damage');
   const manager = new s.window.EnemyManager(); manager.simulationTimeMs = 1000; let defeats = 0;
   const enemy = { active:true, _isTutorialEnemy:true, type:'virus', position:{x:0,y:0}, lastPlayerHitTimeMs:-Infinity, isSpawnProtected: () => true, getHitbox: () => ({ x:-20, y:0, width:40, height:40 }), takeDamage(d){ assert(d === 999, 'Stomp damage is lethal'); this.active = false; manager.recordDefeat(this); } };
   manager.enemies = [enemy]; manager.recordDefeat = e => { if (e._recorded) return false; e._recorded = true; defeats++; return true; };
-  const stomper = { controlsDisabled:false, position:{x:0,y:15}, velocity:{x:0,y:100}, getHitbox: () => ({ x:-10, y:-30, width:20, height:45 }), takeDamageWithKnockback(){ throw new Error('stomp should not damage player'); } };
+  const stomper = { contactSweep:{ previousX:0, currentX:0, previousFootY:-15, currentFootY:15 }, controlsDisabled:false, position:{x:0,y:15}, velocity:{x:0,y:100}, getHitbox: () => ({ x:-10, y:-30, width:20, height:45 }), takeDamageWithKnockback(){ throw new Error('stomp should not damage player'); } };
   manager.checkCollisions(stomper); assert(defeats === 1 && stomper.velocity.y === -550 && stomper._enemyInvulnerableUntilMs === 1400, 'Passive landing stomp kills once and bounces');
   assert(JSON.stringify(s.window.particleSystem.stomps?.[0]?.slice(0, 3)) === JSON.stringify([0, 0, 'virus']), 'successful stomp uses its dedicated burst at the contacted enemy top');
   manager.checkCollisions(stomper); assert(s.window.particleSystem.stomps.length === 1, 'the defeated enemy cannot emit another stomp burst');

@@ -307,7 +307,7 @@ window.Renderer = class Renderer {
         this.targetZoomLevel = this.cinematicZoomOverride;
       } else if (Math.abs(this.zoomLevel - this.targetZoomLevel) > 0.001) {
         // Smooth ordinary player-owned zoom transitions.
-        this.zoomLevel += (this.targetZoomLevel - this.zoomLevel) * this.zoomSpeed;
+        this.zoomLevel += (this.targetZoomLevel - this.zoomLevel) * (1 - Math.pow(1 - this.zoomSpeed, deltaTime / (1000 / 60)));
       }
     } catch (error) {
       console.error('Error updating renderer:', error?.message || error);

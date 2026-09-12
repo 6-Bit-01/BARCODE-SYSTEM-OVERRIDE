@@ -17,6 +17,7 @@
     "src/engine/audio.js",
     "src/engine/boot-loader.js",
     "src/engine/particles.js",
+    "src/game/combat-fx.js",
     "src/engine/renderer.js",
     "src/engine/parallax.js",
     "src/engine/spaceships.js",
@@ -60,6 +61,7 @@
     "src/engine/audio.js",
     "src/engine/boot-loader.js",
     "src/engine/particles.js",
+    "src/game/combat-fx.js",
     "src/engine/renderer.js",
     "src/engine/parallax.js",
     "src/engine/spaceships.js",
@@ -118,6 +120,7 @@
     "tools/check-level-01-gameplay-dynamics.js",
     "tools/check-level-01-mission.js",
     "tools/check-level-01-presentation.js",
+    "tools/check-level-01-responsive-combat.js",
     "tools/check-level-01-smoothing.js",
     "tools/check-makko-hotfix.js",
     "tools/check-music-profiles.js",
@@ -170,6 +173,10 @@
       },
       {
         "file": "src/engine/particles.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/combat-fx.js",
         "status": "pass"
       },
       {
@@ -287,11 +294,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 40,
+        "index": 41,
         "status": "pass"
       },
       {
-        "index": 42,
+        "index": 43,
         "status": "pass"
       }
     ]
@@ -354,25 +361,25 @@
     {
       "global": "window.EnemyManager",
       "file": "src/game/enemies.js",
-      "line": 1111,
+      "line": 1136,
       "loaded": true
     },
     {
       "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 1632,
+      "line": 1604,
       "loaded": true
     },
     {
       "global": "window.enemyManager",
       "file": "tools/check-action-combat.js",
-      "line": 406,
+      "line": 401,
       "loaded": false
     },
     {
       "global": "window.enemyManager",
       "file": "tools/check-action-combat.js",
-      "line": 484,
+      "line": 479,
       "loaded": false
     },
     {
@@ -384,7 +391,7 @@
     {
       "global": "window.Enemy",
       "file": "src/game/enemies.js",
-      "line": 13,
+      "line": 15,
       "loaded": true
     },
     {
@@ -408,7 +415,7 @@
     {
       "global": "window.gameState",
       "file": "src/game/lost-data.js",
-      "line": 394,
+      "line": 395,
       "loaded": true
     },
     {
@@ -426,13 +433,19 @@
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 346,
+      "line": 341,
       "loaded": false
     },
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 438,
+      "line": 433,
+      "loaded": false
+    },
+    {
+      "global": "window.gameState",
+      "file": "tools/check-action-combat.js",
+      "line": 476,
       "loaded": false
     },
     {
@@ -444,13 +457,7 @@
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 481,
-      "loaded": false
-    },
-    {
-      "global": "window.gameState",
-      "file": "tools/check-action-combat.js",
-      "line": 539,
+      "line": 534,
       "loaded": false
     },
     {
@@ -468,31 +475,31 @@
     {
       "global": "window.player",
       "file": "src/game/player.js",
-      "line": 1779,
+      "line": 1742,
       "loaded": true
     },
     {
       "global": "window.player",
       "file": "tools/check-action-combat.js",
-      "line": 347,
+      "line": 342,
       "loaded": false
     },
     {
       "global": "window.player",
       "file": "tools/check-action-combat.js",
-      "line": 405,
+      "line": 400,
       "loaded": false
     },
     {
       "global": "window.player",
       "file": "tools/check-action-combat.js",
-      "line": 439,
+      "line": 434,
       "loaded": false
     },
     {
       "global": "window.player",
       "file": "tools/check-action-combat.js",
-      "line": 482,
+      "line": 477,
       "loaded": false
     },
     {
@@ -588,7 +595,7 @@
     {
       "global": "window.startGameLoop",
       "file": "src/core/loop.js",
-      "line": 130,
+      "line": 132,
       "loaded": true
     },
     {
@@ -639,6 +646,7 @@
     "src/engine/audio.js",
     "src/engine/boot-loader.js",
     "src/engine/particles.js",
+    "src/game/combat-fx.js",
     "src/engine/renderer.js",
     "src/engine/parallax.js",
     "src/engine/spaceships.js",

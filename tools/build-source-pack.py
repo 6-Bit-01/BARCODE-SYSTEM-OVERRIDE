@@ -72,7 +72,8 @@ def build(args):
         "repository": "6-Bit-01/BARCODE-SYSTEM-OVERRIDE",
         "repositoryUrl": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE",
         "revision": revision,
-        "revisionUrl": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/tree/" + revision,
+        "revisionUrl": None if args.unpublished else "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/tree/" + revision,
+        "publicationStatus": "unpublished-local-review" if args.unpublished else "github",
         "verifiedMainBase": base,
         "implementationStatus": args.state,
         "pullRequestUrl": args.pr_url,
@@ -124,8 +125,11 @@ if __name__ == "__main__":
     parser.add_argument("--output", required=True, help="Absolute ZIP path outside the repository.")
     parser.add_argument("--state", choices=("review", "merged"), default="review")
     parser.add_argument("--pr-url", default=None)
+    parser.add_argument("--unpublished", action="store_true", help="Label a tested local review snapshot without inventing a GitHub revision URL.")
     parser.add_argument("--validation-file", help="JSON test receipt with matching revision.")
     arguments = parser.parse_args()
     if arguments.state == "merged" and not arguments.base:
         parser.error("--state merged requires --base naming the verified current main commit")
+    if arguments.unpublished and (arguments.state == "merged" or arguments.pr_url):
+        parser.error("--unpublished cannot be combined with merged state or a PR URL")
     build(arguments)
