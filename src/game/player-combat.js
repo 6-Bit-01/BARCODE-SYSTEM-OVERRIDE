@@ -96,6 +96,7 @@ window.FILE_MANIFEST.push({
       const active = window.rhythmSystem?.isActive?.();
       const lost = !active && (window.gameState?.gameTime || 0) < (this.rhythmLostUntil || 0);
       if (!active && !lost) return;
+      if (active) this.drawTargetPreview(ctx, player);
       const x = player.position.x;
       const y = player.position.y - 120;
       ctx.save();
@@ -136,16 +137,61 @@ window.FILE_MANIFEST.push({
     }
     playAttackAnimation(player) { if (player && typeof player.startPrimaryAttackAnimation === 'function') player.startPrimaryAttackAnimation(); else if (player && typeof player.playAnimation === 'function') player.playAnimation('rhythm'); }
     applyFeedback(judgment) { if (window.rhythmSystem && typeof window.rhythmSystem.applyResolvedAttackFeedback === 'function') window.rhythmSystem.applyResolvedAttackFeedback(judgment); }
-    getAuthoritativeRange(judgment = null, { jammer = false } = {}) { if (jammer) return this.range; const rhythmRange = window.rhythmSystem && typeof window.rhythmSystem.getAuthoritativeDamageRadius === 'function' ? window.rhythmSystem.getAuthoritativeDamageRadius() : this.range; const ampCharges = window.BARCODE && Number(window.BARCODE.signalAmpCharges || 0); const ampOk = ampCharges > 0 && judgment && (judgment.timing === 'perfect' || judgment.timing === 'excellent'); return ampOk ? 430 : rhythmRange; }
-    findTargets(player, enemyManager, judgment = null) {
+    getAuthoritativeRange(judgment = null, { jammer = false, nextSuccess = false } = {}) { if (jammer) return this.range; const rhythmRange = window.rhythmSystem && typeof window.rhythmSystem.getAuthoritativeDamageRadius === 'function' ? window.rhythmSystem.getAuthoritativeDamageRadius({ nextSuccess }) : this.range; const ampCharges = window.BARCODE && Number(window.BARCODE.signalAmpCharges || 0); const ampOk = ampCharges > 0 && judgment && (judgment.timing === 'perfect' || judgment.timing === 'excellent'); return ampOk ? 430 : rhythmRange; }
+    findTargets(player, enemyManager, judgment = null, { consumeAmp = true, nextSuccess = false } = {}) {
       const enemies = enemyManager && Array.isArray(enemyManager.enemies) ? enemyManager.enemies : [];
-      const range = this.getAuthoritativeRange(judgment);
+      const range = this.getAuthoritativeRange(judgment, { nextSuccess });
       const targets = enemies.filter(enemy => enemy.active && enemy.type !== 'broadcast_jammer' && enemy.type !== 'boss' && window.distance(player.position.x, player.position.y, enemy.position.x, enemy.position.y) <= range);
-      if (targets.length && BARCODE.signalAmpCharges > 0 && judgment && (judgment.timing === 'perfect' || judgment.timing === 'excellent')) {
+      if (consumeAmp && targets.length && BARCODE.signalAmpCharges > 0 && judgment && (judgment.timing === 'perfect' || judgment.timing === 'excellent')) {
         BARCODE.signalAmpCharges -= 1;
         BARCODE.combatFX?.ampChanged('use', BARCODE.signalAmpCharges, player);
       }
       return targets;
+    }
+    getTargetPreview(player = window.player, enemyManager = window.enemyManager) {
+      const rhythm = window.rhythmSystem;
+      if (!player?.position || !this.gameplayActive() || window.hackingSystem?.isActive?.() ||
+        window.tutorialSystem?.isActive?.() || !rhythm?.isActive?.() || !rhythm.trackStarted || !rhythm.currentTempoBeat) return [];
+      // Preview reach for the next successful beat. The exact same query owns
+      // attack selection; reading it cannot spend charges or advance timing.
+      const judgment = { available: true, timing: 'perfect' };
+      const normalRange = rhythm.getAuthoritativeDamageRadius?.({ nextSuccess: true }) ?? this.range;
+      const result = this.findTargets(player, enemyManager, judgment, { consumeAmp: false, nextSuccess: true }).map(enemy => ({
+        kind: 'enemy', target: enemy, guarded: false,
+        boosted: Math.hypot(player.position.x - enemy.position.x, player.position.y - enemy.position.y) > normalRange,
+        bounds: enemy.getHitbox?.() || { x: enemy.position.x - 32, y: enemy.position.y - 74, width: 64, height: 142 }
+      }));
+      const env = BARCODE.JammerEnvironment;
+      if (env?.canReceiveRhythmDamage?.()) {
+        const status = env.getStatus();
+        if (status?.position && Math.hypot(player.position.x - status.position.x, player.position.y - status.position.y) <= this.range) {
+          const position = status.position;
+          result.push({ kind: 'jammer', guarded: false, boosted: false,
+            bounds: env.getAimBounds?.() || { x: position.x - 40, y: position.y - 80, width: 80, height: 80 } });
+        }
+      }
+      const boss = window.sector1Progression?.getBossRhythmTarget?.(player, normalRange);
+      if (boss?.inRange) result.push({ kind: 'boss', guarded: boss.guarded, boosted: false, bounds: boss.bounds });
+      return result;
+    }
+    drawTargetPreview(ctx, player) {
+      for (const target of this.getTargetPreview(player)) {
+        const b = target.bounds;
+        if (!b || ![b.x, b.y, b.width, b.height].every(Number.isFinite)) continue;
+        const x = b.x - 8, y = b.y - 8, w = b.width + 16, h = b.height + 16, corner = 10;
+        if (BARCODE.combatFX && !BARCODE.combatFX.visible(x + w / 2, y + h / 2, h / 2 + w / 2)) continue;
+        ctx.save(); ctx.strokeStyle = target.guarded ? '#ffc278' : target.boosted ? '#e6a1ff' : '#83ffe4'; ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (const [left, top, sx, sy] of [[x, y, 1, 1], [x + w, y, -1, 1], [x, y + h, 1, -1], [x + w, y + h, -1, -1]]) {
+          ctx.moveTo(left + sx * corner, top); ctx.lineTo(left, top); ctx.lineTo(left, top + sy * corner);
+        }
+        ctx.stroke();
+        if (target.kind === 'boss' || target.boosted) {
+          ctx.fillStyle = ctx.strokeStyle; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
+          ctx.fillText(target.guarded ? 'GUARDED' : target.boosted ? 'AMP +' : 'OPEN', x + w / 2, y - 7);
+        }
+        ctx.restore();
+      }
     }
     tryDamageJammer(player, judgment, sequence) {
       const env = BARCODE.JammerEnvironment;

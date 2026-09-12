@@ -467,13 +467,19 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         y: this.boss.y + PLAYER_VISUAL_FOOT_OFFSET - BOSS_COMBAT.hitboxHeight,
         width: BOSS_COMBAT.hitboxWidth, height: BOSS_COMBAT.hitboxHeight };
     }
+    getBossRhythmTarget(player = this.player, range = 300) {
+      if (!this.isBossCombatLive() || window.hackingSystem?.isActive?.()) return null;
+      return { inRange: !!(player?.position && Number.isFinite(range) && range > 0 &&
+        Math.hypot(player.position.x - this.boss.x, player.position.y - this.boss.y) <= range),
+        guarded: !this.boss.canReceiveDamage || this.boss.phase !== 'recovery', bounds: this.getBossHitbox() };
+    }
     applyBossRhythmDamage({ player = this.player, judgment, sequence, range = 300 } = {}) {
       if (!this.isBossCombatLive()) return { ok: false, reason: 'boss-inactive' };
       if (window.hackingSystem?.isActive?.()) return { ok: false, reason: 'hacking-active' };
       if (!judgment?.available || !['perfect', 'excellent'].includes(judgment.timing)) return { ok: false, reason: 'offbeat' };
-      if (!player?.position || !Number.isFinite(range) || range <= 0 ||
-        Math.hypot(player.position.x - this.boss.x, player.position.y - this.boss.y) > range) return { ok: false, reason: 'out-of-range' };
-      if (!this.boss.canReceiveDamage || this.boss.phase !== 'recovery') return { ok: false, reason: 'boss-guarded' };
+      const target = this.getBossRhythmTarget(player, range);
+      if (!target?.inRange) return { ok: false, reason: 'out-of-range' };
+      if (target.guarded) return { ok: false, reason: 'boss-guarded' };
       if (sequence === undefined || sequence === null || this.boss.hitSequences.has(sequence)) return { ok: false, reason: 'duplicate-attack' };
       this.boss.hitSequences.add(sequence);
       return this.damageBoss('rhythm');
@@ -680,6 +686,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = 'bold 14px monospace';
       ctx.fillStyle = '#0a1526'; ctx.fillRect(SIGNAL_AMP.x - 65, SIGNAL_AMP.y - 55, 130, 20);
       ctx.fillStyle = '#f4c1ff'; ctx.fillText('SIGNAL AMP', SIGNAL_AMP.x, SIGNAL_AMP.y - 45);
+      if (Math.abs((this.player?.position.x ?? Infinity) - SIGNAL_AMP.x) < 230) {
+        ctx.font = '12px monospace'; ctx.fillStyle = 'rgba(10,21,38,0.94)';
+        ctx.fillRect(SIGNAL_AMP.x - 122, SIGNAL_AMP.y - 98, 244, 37);
+        ctx.fillStyle = '#ffffff'; ctx.fillText('TOUCH TO COLLECT', SIGNAL_AMP.x, SIGNAL_AMP.y - 87);
+        ctx.fillStyle = '#e9bfff'; ctx.fillText('3 RHYTHM HITS: LONGER REACH', SIGNAL_AMP.x, SIGNAL_AMP.y - 71);
+      }
       ctx.restore();
     }
     getGatePresentation() {
@@ -725,7 +737,17 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         ctx.restore();
       }
     }
-    updateSignalAmp() { const player = this.player || window.player; if (!player || this.signalAmpCollected) return; if (window.distance && window.distance(player.position.x, player.position.y + PLAYER_VISUAL_FOOT_OFFSET, SIGNAL_AMP.x, SIGNAL_AMP.y) <= SIGNAL_AMP.radius) this.giveSignalAmp(); }
+    updateSignalAmp() {
+      const player = this.player || window.player;
+      if (!player || this.signalAmpCollected || this.isGameplaySuppressed() || window.tutorialSystem?.isActive?.()) return;
+      const box = player.getHitbox?.();
+      // The Amp floats above the relay roof. Test the visible body, while
+      // preserving roof access: it cannot be collected through the underside.
+      if (!box || player.position.y + PLAYER_VISUAL_FOOT_OFFSET > 202) return;
+      const x = Math.max(box.x, Math.min(SIGNAL_AMP.x, box.x + box.width));
+      const y = Math.max(box.y, Math.min(SIGNAL_AMP.y, box.y + box.height));
+      if (Math.hypot(x - SIGNAL_AMP.x, y - SIGNAL_AMP.y) <= SIGNAL_AMP.radius) this.giveSignalAmp();
+    }
     giveSignalAmp() {
       this.signalAmpCollected = true;
       window.BARCODE = window.BARCODE || {};

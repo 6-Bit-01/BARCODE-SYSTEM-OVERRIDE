@@ -40,6 +40,8 @@ window.SpaceShipSystem = class SpaceShipSystem {
   constructor() {
     this.ships = [];
     this.shipImages = [null, null, null]; // Array for multiple ship types
+    this.shipSheets = [null, null, null];
+    this.elapsedMs = 0;
     this.imagesLoaded = [false, false, false];
     this.lastSpawnTime = 0;
     this.spawnInterval = 4000; // Spawn ships every 4 seconds (more reasonable rate)
@@ -72,6 +74,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
     this.ships = [];
     this.lastSpawnTime = 0;
     this.disposed = false;
+    this.elapsedMs = 0;
   }
 
   dispose() {
@@ -81,7 +84,8 @@ window.SpaceShipSystem = class SpaceShipSystem {
   }
 
   getDiagnostics() {
-    return { activeShips: this.ships.length, pendingSpawnTimeouts: this.pendingSpawnTimeouts.size, disposed: !!this.disposed };
+    return { activeShips: this.ships.length, pendingSpawnTimeouts: this.pendingSpawnTimeouts.size, disposed: !!this.disposed,
+      animatedTypes: this.shipSheets.filter(Boolean).length };
   }
 
   // Load multiple ship images directly (simplified approach)
@@ -93,8 +97,14 @@ window.SpaceShipSystem = class SpaceShipSystem {
     ];
 
     shipUrls.forEach((url, index) => {
-      loadSharedImageAsset(`image.level-01.ship-${index + 1}`, url).then(img => {
+      const sheet = window.BARCODE.trafficSheets?.[index];
+      const loadOriginal = () => loadSharedImageAsset(`image.level-01.ship-${index + 1}`, url).then(image => ({ image, sheet: null }));
+      const loading = sheet ? loadSharedImageAsset(`image.level-01.ship-${index + 1}.atlas.${sheet.atlasSHA256}`, sheet.image)
+        .then(image => ({ image, sheet })).catch(loadOriginal) : loadOriginal();
+      loading.then(({ image: img, sheet: loadedSheet }) => {
+        if (this.disposed) return;
         this.shipImages[index] = img;
+        this.shipSheets[index] = loadedSheet;
         this.imagesLoaded[index] = true;
         console.log(`✓ Space ship ${index + 1} loaded successfully`);
         console.log(`Ship ${index + 1} dimensions: ${img.width}x${img.height}`);
@@ -245,8 +255,10 @@ window.SpaceShipSystem = class SpaceShipSystem {
 
   // Update all ships
   update(deltaTime) {
-    const dt = deltaTime / 1000;
-    const currentTime = Date.now();
+    if (this.disposed || window.isPaused || window.gameState?.paused) return;
+    const elapsed = Math.max(0, Number(deltaTime) || 0);
+    const dt = elapsed / 1000;
+    this.elapsedMs += elapsed;
 
     // Spawn new ships periodically
     this.spawnShip();
@@ -257,12 +269,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
       ship.x += ship.speed * dt * 60; // 60fps normalization
 
       // Gentle bobbing motion
-      const bobPhase = currentTime / 1000 + ship.bobOffset;
-      const bobY = Math.sin(bobPhase * 2) * ship.bobAmount;
-
-      // Update animation frame - no longer needed for GIF images
-      // GIFs animate automatically, so we don't need to manually update frames
-      ship.lastAnimationUpdate = currentTime;
+      ship.animationElapsedMs = (ship.animationElapsedMs || 0) + elapsed;
 
       // CRITICAL FIX: Match despawn boundaries with spawn distances for seamless transitions
       const baseDespawnDistance = ship.size * 3; // Base 3x ship size
@@ -342,6 +349,26 @@ window.SpaceShipSystem = class SpaceShipSystem {
   }
 
   // Draw a single ship
+  getAnimationFrame(ship) {
+    const sheet = this.shipSheets[ship.shipType];
+    if (!sheet) return 0;
+    const time = (Math.max(0, ship.animationElapsedMs || 0) + 0.000001) % sheet.durationMs;
+    let end = 0;
+    for (let frame = 0; frame < sheet.frameCount; frame++) {
+      end += sheet.durationsMs[frame];
+      if (time < end) return frame;
+    }
+    return 0;
+  }
+  drawShipImage(ctx, ship, image, width, height) {
+    const sheet = this.shipSheets[ship.shipType];
+    if (!sheet) { ctx.drawImage(image, -width / 2, -height / 2, width, height); return; }
+    const frame = this.getAnimationFrame(ship), trim = sheet.trim;
+    ctx.drawImage(image, frame % sheet.columns * sheet.frameWidth, Math.floor(frame / sheet.columns) * sheet.frameHeight,
+      sheet.frameWidth, sheet.frameHeight,
+      -width / 2 + trim.x / sheet.sourceWidth * width, -height / 2 + trim.y / sheet.sourceHeight * height,
+      trim.width / sheet.sourceWidth * width, trim.height / sheet.sourceHeight * height);
+  }
   drawShip(ctx, ship) {
     ctx.save();
 
@@ -349,7 +376,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
     // ctx.globalAlpha = ship.opacity; // Removed transparency
 
     // Move to ship position
-    const bobY = Math.sin(Date.now() / 1000 + ship.bobOffset) * ship.bobAmount;
+    const bobY = Math.sin(this.elapsedMs / 1000 + ship.bobOffset) * ship.bobAmount;
     ctx.translate(ship.x, ship.y + bobY);
 
     // Apply horizontal flip for right-to-left ships
@@ -378,26 +405,14 @@ window.SpaceShipSystem = class SpaceShipSystem {
         ctx.scale(-1, 1); // Flip horizontally
 
         // Canvas, video, or regular image - just draw the whole thing
-        ctx.drawImage(
-          shipImage,
-          -width / 2,
-          -height / 2,
-          width,
-          height
-        );
+        this.drawShipImage(ctx, ship, shipImage, width, height);
         ctx.restore();
       } else {
         // Normal drawing for Ship1 and Ship2
         // Canvas, video, or regular image - just draw the whole thing
-        ctx.drawImage(
-          shipImage,
-          -ship.size / 2,
-          -ship.size / 2,
-          ship.size,
-          ship.size
-        );
+        this.drawShipImage(ctx, ship, shipImage, ship.size, ship.size);
       }
-      if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log(`🚀 Drawing ship ${ship.shipType + 1} with GIF at (${ship.x.toFixed(1)}, ${ship.y.toFixed(1)}) size ${ship.size.toFixed(1)}`);
+      if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log(`🚀 Drawing ship ${ship.shipType + 1} frame ${this.getAnimationFrame(ship)}`);
     } else {
       // Draw fallback ship (rectangle with details)
       ctx.fillStyle = '#4a5568';

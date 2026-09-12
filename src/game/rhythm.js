@@ -256,9 +256,9 @@ window.RhythmSystem = class RhythmSystem {
   }
   
 
-  getAuthoritativeDamageRadius() {
+  getAuthoritativeDamageRadius({ nextSuccess = false } = {}) {
     const combo = typeof this.getCombo === 'function' ? this.getCombo() : (this.combo || 0);
-    const t = Math.max(0, Math.min(1, combo / 10));
+    const t = Math.max(0, Math.min(1, (combo + (nextSuccess ? 1 : 0)) / 10));
     return this.baseDamageRadius + (this.maxDamageRadius - this.baseDamageRadius) * t;
   }
 

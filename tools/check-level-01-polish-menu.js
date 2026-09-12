@@ -95,13 +95,13 @@ async function main() {
   {
     const rig = createRig(), { w, p, context } = rig;
     load(context, 'src/game/combat-fx.js');
-    load(context, 'src/game/lost-data.js');
+    load(context, 'src/game/lore-collection.js'); load(context, 'src/game/lost-data.js');
     const lost = new w.LostDataSystem(); w.lostDataSystem = lost; lost.player = w.player;
     rig.reachReady();
     w.rhythmSystem.combo = 23; w.rhythmSystem.hide(); w.rhythmSystem.show();
     assert.strictEqual(w.rhythmSystem.runBestCombo, 23, 'best combo spans Rhythm Mode entries');
     const scoreBefore = w.gameState.score;
-    const fragment = { active: true, position: { x: 3100, y: 250 } };
+    const fragment = { active: true, loreId: 'lore.l01.03', position: { x: 3100, y: 250 } };
     lost.collectFragment(fragment); assert.strictEqual(w.gameState.score, scoreBefore + 500);
     w.gameState.gameOver = true; w.gameState.running = false;
     assert(p.retryBossCheckpoint().ok);

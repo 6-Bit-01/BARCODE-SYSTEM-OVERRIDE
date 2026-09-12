@@ -1,5 +1,9 @@
 # Decision Register
 
+## Latest owner direction: discovery follow-up
+
+The owner approved the two remaining suggestions (rhythm target brackets and animated existing traffic), requested repair of late lore availability and the uncollectible rooftop Signal Amp, and deferred migration. Collection contributes to the eventual ending and the test is secret; no player-facing explanation may expose that relationship. Persist stable discoveries without inventing unapproved thresholds. `DISCOVERY_PASS.md` is the combined scope. PR #35 is merged; its merge revision is the new base.
+
 ## Current locked selection — September 12, 2026
 
 The owner accepted the latest nine-item recommendation: "Agreed. Lets lock it in. Update or make a new source file pack and keep it updated. Then lets continue with the plan". `POLISH_PASS.md` preserves the exact 1–9 mapping and particle/logging cleanup. Deliver the complete selection in one draft PR from merged #34, with source-pack checkpoints and an updated review archive. Implementation approval is not Makko acceptance. The existing merged-PR pack maintenance automation remains enabled (ID `6aa4396731548191b1b9323614dc49e3`), verified September 12; its latest run refreshed #34.
@@ -49,7 +53,7 @@ Statuses: **LOCKED** = explicit retained requirement; **APPROVED DIRECTION** = S
 | D-023 | OPEN | Final shipping titles, exact later order/lead assignments, Dr. Mario versus Tetris rules and L2–L6 boss identities. Use the recorded map as a working plan. |
 | D-024 | OPEN | Level 1 boss's final identity/name; current existing sprite is an implementation basis, not approval of “Program Director,” “City Scrambler” or 9 Bit. |
 | D-025 | OPEN | Later tracks and verified music metadata; final art/animation requests follow prototypes. |
-| D-026 | OPEN | Simulation creator, full 9 Bit reveal/dialogue/trait list, ending resolution and whether endings are choices or knowledge-driven. |
+| D-026 | OPEN | Simulation creator, full 9 Bit reveal/dialogue/trait list, exact ending thresholds, outcomes and presentation; collection affects the result under the latest owner direction. |
 | D-027 | OPEN | Platform/minimum-device target, final controller/touch scope, assist/calibration settings and Level 7 combat cadence. |
 | D-028 | SUPERSEDED | v4's no-quota/non-destructible-Jammer and its rejection of the 20-enemy route. Later owner decisions explicitly restore/approve this mission. |
 | D-029 | SUPERSEDED | v4's universal off-beat attack permission, old no-stomp prose, and tests requiring those old design statements. |
