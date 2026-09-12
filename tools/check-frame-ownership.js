@@ -152,7 +152,7 @@ if (!player.includes('this.contactSweep = { previousX') || !player.includes('wid
 if (player.includes('this.lastAnimLog') && !player.includes('if (window.BARCODE_DEBUG_FRAME_OWNERSHIP && (!this.lastAnimLog || Date.now() - this.lastAnimLog > 3000))')) {
   fail('player periodic animation diagnostic work must be disabled during normal play.');
 }
-for (const marker of ['Drawing ship ${ship.shipType + 1} with GIF', 'Drawing fallback ship at']) {
+for (const marker of ['Drawing ship ${ship.shipType + 1}', 'Drawing fallback ship at']) {
   const line = spaceships.split(/\r?\n/).find((entry) => entry.includes(marker));
   if (!line || !line.includes('BARCODE_DEBUG_FRAME_OWNERSHIP')) {
     fail(`spaceship draw-loop diagnostic must be explicitly debug-gated: ${marker}`);

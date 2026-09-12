@@ -1,5 +1,15 @@
 # Changelog
 
+## September 12, 2026 — Discovery, target previews and existing traffic
+
+- Remove the initial lore wait, minute-long collection cooldown and one-active limit. Three deterministic Level 1 records unlock with 4/9/14 mission defeats and remain available together, with stable IDs and provisional authored text.
+- Persist unique discoveries with verified single-slot writes, backup recovery, version protection and visible failure status. Keep current-run score/collection separate so replay cannot inflate saved totals.
+- Fix Signal Amp/body contact on the real relay roof and explain its existing three-use ordinary-enemy reach bonus.
+- Add pure target brackets following next-success combo reach, Amp extension, fixed environmental range and boss guarded/open state without consuming charges.
+- Recover all 325 frames from the existing traffic GIFs in three compact shared atlases, preserving authored timing/framing and static-art fallback. Advance animation through existing update ownership and freeze during pause.
+- Add production collection/storage, targeting and traffic checks, preserve the full existing regression suite and inspect native Canvas diagnostics. Publish one combined draft with a focused six-step Makko checklist and update the same v5 source pack. Live Makko acceptance remains pending.
+
+
 ## September 12, 2026 — Publish the combined polish review
 
 - Publish all three implementation checkpoints together on `agent/level1-combined-polish` for one draft PR. Main still matches merged #34; gameplay/test hashes match the fully validated `e0d4eee` checkpoint.

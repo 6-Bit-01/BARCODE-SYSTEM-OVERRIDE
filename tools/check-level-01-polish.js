@@ -127,7 +127,7 @@ for (const type of ['corrupted', 'firewall']) {
   const { w, p, fx, beat, reachReady, drawing } = createRig();
   const amp = w.Sector1Progression.SIGNAL_AMP;
   const sounds = []; w.audioSystem.playCombatCue = kind => sounds.push(kind);
-  w.player.position.x = amp.x; w.player.position.y = amp.y - 72;
+  w.player.position.x = amp.x; w.player.position.y = 196 - 72;
   p.updateSignalAmp(); p.updateSignalAmp();
   assert.strictEqual(w.BARCODE.signalAmpCharges, 3); assert.strictEqual(sounds.filter(s => s === 'pickup').length, 1);
   assert.strictEqual(fx.ampNotice.kind, 'pickup');
@@ -236,7 +236,7 @@ console.log('Polish chunk 1: elapsed shake, accepted damage HUD, committed warni
 {
   const { w, p, fx, context, drawing, timers } = createRig();
   w.Image = class Image {};
-  load(context, 'src/game/lost-data.js'); load(context, 'src/game/render-coordinator.js');
+  load(context, 'src/game/lore-collection.js'); load(context, 'src/game/lost-data.js'); load(context, 'src/game/render-coordinator.js');
   const lost = new w.LostDataSystem(); w.lostDataSystem = lost; lost.player = w.player;
   w.particleSystem.dataFragmentEffect = () => {}; w.particleSystem.dataFragmentGlow = () => {};
   let collectedSounds = 0, loreMessages = 0;
@@ -247,7 +247,8 @@ console.log('Polish chunk 1: elapsed shake, accepted damage HUD, committed warni
   assert(lost.collectFragment(fragment)); assert(!lost.collectFragment(fragment));
   assert.strictEqual(w.gameState.score, initialScore + 500); assert.strictEqual(lost.collectedLore.size, 1);
   assert.strictEqual(loreMessages, 1); assert.strictEqual(collectedSounds, 1);
-  assert.strictEqual(lost.collectionCooldownTimer, 60000);
+  assert.strictEqual(lost.getProgress().cooldownActive, false);
+  assert(lost.collectedLore.has('lore.l01.01'), 'pickup preserves its stable identity');
   const flight = fx.events.find(e => e.kind === 'data-flight'); assert(flight);
   assert.strictEqual(fx.events.filter(e => e.kind === 'data-flight').length, 1);
   const projection = w.BARCODE.sceneProjection;

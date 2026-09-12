@@ -21,6 +21,7 @@
     "src/game/combat-fx.js",
     "src/engine/renderer.js",
     "src/engine/parallax.js",
+    "src/engine/traffic-sheets.js",
     "src/engine/spaceships.js",
     "src/engine/lore.js",
     "src/engine/jammer-indicator.js",
@@ -36,6 +37,7 @@
     "src/game/rhythm.js",
     "src/game/tutorial.js",
     "src/game/post-tutorial-objectives.js",
+    "src/game/lore-collection.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
     "src/game/game-state.js",
@@ -66,6 +68,7 @@
     "src/game/combat-fx.js",
     "src/engine/renderer.js",
     "src/engine/parallax.js",
+    "src/engine/traffic-sheets.js",
     "src/engine/spaceships.js",
     "src/engine/lore.js",
     "src/engine/jammer-indicator.js",
@@ -81,6 +84,7 @@
     "src/game/rhythm.js",
     "src/game/tutorial.js",
     "src/game/post-tutorial-objectives.js",
+    "src/game/lore-collection.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
     "src/game/game-state.js",
@@ -119,6 +123,7 @@
     "tools/check-enemy-ownership.js",
     "tools/check-frame-ownership.js",
     "tools/check-level-01-boss.js",
+    "tools/check-level-01-discovery.js",
     "tools/check-level-01-gameplay-dynamics.js",
     "tools/check-level-01-mission.js",
     "tools/check-level-01-polish-menu.js",
@@ -126,6 +131,7 @@
     "tools/check-level-01-presentation.js",
     "tools/check-level-01-responsive-combat.js",
     "tools/check-level-01-smoothing.js",
+    "tools/check-level-01-targets-traffic.js",
     "tools/check-makko-hotfix.js",
     "tools/check-music-profiles.js",
     "tools/check-runtime-lifecycle.js",
@@ -197,6 +203,10 @@
         "status": "pass"
       },
       {
+        "file": "src/engine/traffic-sheets.js",
+        "status": "pass"
+      },
+      {
         "file": "src/engine/spaceships.js",
         "status": "pass"
       },
@@ -257,6 +267,10 @@
         "status": "pass"
       },
       {
+        "file": "src/game/lore-collection.js",
+        "status": "pass"
+      },
+      {
         "file": "src/game/lost-data.js",
         "status": "pass"
       },
@@ -303,11 +317,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 42,
+        "index": 44,
         "status": "pass"
       },
       {
-        "index": 44,
+        "index": 46,
         "status": "pass"
       }
     ]
@@ -362,7 +376,9 @@
         "src/engine/parallax.js",
         "src/engine/spaceships.js",
         "src/engine/title-screen.js",
-        "src/game/lost-data.js"
+        "src/engine/traffic-sheets.js",
+        "src/game/lost-data.js",
+        "tools/check-level-01-targets-traffic.js"
       ]
     }
   ],
@@ -419,12 +435,6 @@
       "global": "window.gameState",
       "file": "src/game/game-state.js",
       "line": 9,
-      "loaded": true
-    },
-    {
-      "global": "window.gameState",
-      "file": "src/game/lost-data.js",
-      "line": 396,
       "loaded": true
     },
     {
@@ -659,6 +669,7 @@
     "src/game/combat-fx.js",
     "src/engine/renderer.js",
     "src/engine/parallax.js",
+    "src/engine/traffic-sheets.js",
     "src/engine/spaceships.js",
     "src/engine/lore.js",
     "src/engine/jammer-indicator.js",
@@ -674,6 +685,7 @@
     "src/game/rhythm.js",
     "src/game/tutorial.js",
     "src/game/post-tutorial-objectives.js",
+    "src/game/lore-collection.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
     "src/game/game-state.js",

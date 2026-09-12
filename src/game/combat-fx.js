@@ -147,7 +147,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
         }
       }
       ctx.font = '12px monospace'; ctx.fillStyle = '#c2cfdc';
-      const message = notice?.kind === 'pickup' ? 'ACQUIRED · 3 BOOSTED HITS' : notice?.kind === 'empty' ? 'DEPLETED · NORMAL REACH' : charges ? 'PERFECT / EXCELLENT: REACH +' : 'NORMAL REACH';
+      const message = notice?.kind === 'pickup' ? '3 HITS · LONGER ENEMY REACH' : notice?.kind === 'empty' ? 'DEPLETED · NORMAL REACH' : charges ? 'ON-BEAT HITS: ENEMY REACH +' : 'NORMAL REACH';
       ctx.fillText(message, x + 60, y + 56);
       ctx.restore();
     }

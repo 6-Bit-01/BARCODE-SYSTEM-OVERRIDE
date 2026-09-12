@@ -1,5 +1,15 @@
 # Current State
 
+## Discovery follow-up — completed review build
+
+PR #35 is merged at `c346e16e24c00b46611e6328d6f0fd6158cf315a`. The owner selected rhythm target brackets and animated existing traffic, reported missing late lore and the uncollectible rooftop Signal Amp, and deferred migration. `DISCOVERY_PASS.md` is the current scope. Branch: `agent/level1-discovery-traffic`; generated manifest identifies the exact checkpoint.
+
+Collection/Amp repair is implemented and passes focused production checks. Three records unlock at 4/9/14 mission defeats without elapsed-time or collection-order gates. Stable `lore.l01.01`–`.03` identities and the canonical single-slot save preserve unique discoveries across level replays/reloads. Run counters/score reset separately. Pickup geometry uses the real body on/above the authored roof; the Amp explains its three-use ordinary-enemy reach bonus. Provisional record text replaces the quarantined random pool and awaits owner review. Exact ending rules and full campaign resume remain unimplemented.
+
+The two selected follow-ons are implemented in the same pass. Read-only target brackets use actual ordinary-enemy/Amp, environmental and boss rules, including the next successful hit’s combo growth and guarded/open distinction. All 325 original traffic frames now play from three shared lossless WebP sheets (about 3 MB transfer, less than 50 MiB decoded) using elapsed time. Existing framing/travel and original-art fallback remain.
+
+Required `npm test` and all-file syntax passed, as did the responsive-combat checks with the actual Makko animation classes. Native Canvas inspection covers atlas cropping, normal/Amp brackets, boss phase cues and Amp prompts. The baseline changes add two runtime modules and two test scripts, shift inline indices, and remove the obsolete LostData gameState assignment; prior asset/ownership findings remain. The generated manifest and receipt identify the exact published head/PR and test evidence. Owner Makko import, live asset delivery/performance, persistence on the actual host, and provisional three-record text review are pending. Use the current `PR_DESCRIPTION.md` checklist before merge. Historical sections below describe their own milestones.
+
 ## Combined polish pass — September 12, 2026
 
 Approved scope: **1–9 plus particle/logging cleanup**, recorded in `POLISH_PASS.md`. Base/rollback: PR #34 merged at `85a0b32c530d9fc04fab91ef4e3d18ef88ee8249`. Branch: `agent/level1-combined-polish`. The owner asked to work in manageable pieces after repeated interruptions. **Checkpoint 3 implements all approved items 1–9 plus particle/logging cleanup.** The completed pass is prepared for one combined draft review. The generated manifest records its exact publication status, commit and PR; owner Makko acceptance is pending.

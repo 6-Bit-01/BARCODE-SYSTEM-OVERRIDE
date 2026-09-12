@@ -438,6 +438,10 @@ function drawBasicUI(ctx) {
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
       ctx.fillText(`LORE: ${loreProgress.collected}/${loreProgress.total}`, loreX + 15, loreY + loreHeight/2);
+      if (loreProgress.saved === false) {
+        ctx.fillStyle = '#ffc68a'; ctx.font = 'bold 12px monospace';
+        ctx.fillText('ARCHIVE SAVE UNAVAILABLE — KEEP TAB OPEN', loreX + 15, loreY + 78);
+      }
       
       const barWidth = loreWidth - 30;
       const barHeight = 4;

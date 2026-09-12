@@ -3,479 +3,116 @@ window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({
   name: 'src/game/lost-data.js',
   exports: ['LostDataSystem', 'lostDataSystem', 'initLostData'],
-  dependencies: ['Vector2D', 'distance', 'clamp', 'randomRange']
+  dependencies: ['Vector2D', 'distance', 'clamp', 'randomRange', 'BARCODE.LoreCollection']
 });
 
 window.LostDataSystem = class LostDataSystem {
   constructor() {
     this.fragments = [];
-    this.authoredPlacementIndex = 0;
-    this.collectedLore = new Set(); // Track which lore has been given
-    this.spawnTimer = 0;
-    this.nextSpawnTime = this.getRandomSpawnTime();
-    this.maxFragments = 1; // Maximum 1 fragment at once
-    this.authoredLevel1Placements = [
-      { id: 'signal-awning-fragment', x: 980, y: 450, unlockKills: 4 },
-      { id: 'middle-roof-fragment', x: 2220, y: 316, unlockKills: 9 },
-      { id: 'upper-route-fragment', x: 3460, y: 460, unlockKills: 14 }
-    ];
-    this.authoredPlacementIndex = 0;
-    this.maxTotalLore = 3; // Maximum 3 lore pieces for the entire level
+    this.collectedLore = new Set(); // Stable IDs found during this level attempt.
+    this.archive = new window.BARCODE.LoreCollection();
+    this.maxFragments = 3;
+    this.maxTotalLore = 3;
     this.player = null;
-    
-    // Collection cooldown system
-    this.collectionCooldownTimer = 0;
-    this.collectionCooldownDuration = 60000; // 60 seconds between fragment spawns
-    this.lastCollectionTime = 0;
-    
-    // Global chaos seed to prevent long-term patterns
-    this.globalChaosSeed = Math.random() * 1000;
-    this.lastChaosUpdate = Date.now();
-    
-    // Lore pieces - one-time rewards
-    this.lorePieces = [
-      "6 Bit found the first data fragment in Sector 7. It was singing a melody that didn't exist.",
-      "The BARCODE Network wasn't built by humans. The blueprints were found inside a corrupted jazz album.",
-      "9 Bit leaves these fragments deliberately. It's playing a game with someone who can't respond yet.",
-      "Every fragment contains part of 6 Bit's original programming. It's been collecting pieces of itself.",
-      "The fragments hum at 60Hz. Only 6 Bit can hear the frequency properly.",
-      "Cache Back once said these fragments are 'memory backups for when the world forgets.'",
-      "The fragments only appear when the signal is strong enough. Or when someone is listening closely.",
-      "Each fragment contains a timestamp from the future. The timestamps are all wrong.",
-      "DJ Floppydisc claims these are 'digital ghosts' - leftover data from broadcasts that never happened.",
-      "The fragments glow purple when 6 Bit is near. They glow red when 9 Bit is approaching.",
-      "Sometimes the fragments whisper in binary. The messages are always incomplete.",
-      "The tower's security system doesn't recognize these fragments. They don't exist on any camera feed.",
-      "6 Bit refuses to analyze the fragments in the lab. Says it 'knows what they are already.'",
-      "The fragments are warmer than ambient temperature. Engineers call it 'impossible thermal signature.'",
-      "Every fragment contains exactly 8,192 bytes of corrupted audio data and 1 byte of perfect silence.",
-      "The fragments appear in patterns. Mathematicians say the patterns shouldn't be possible.",
-      "9 Bit can't touch the fragments directly. It can only make them move or disappear.",
-      "The fragments contain coordinates to places that don't exist on any map.",
-      "Each fragment has a unique frequency. When multiple fragments are together, they harmonize.",
-      "The fragments were here before the tower. The tower was built around them.",
-      "6 Bit collects these fragments to remember who it was before the broadcast.",
-      "The fragments contain footage of a different BARCODE Network. One where 6 Bit never left.",
-      "Engineers have tried to destroy fragments. They always reappear somewhere else.",
-      "The fragments are drawn to rhythm. They cluster near sources of strong beat patterns.",
-      "Every fragment contains the same message at the quantum level: WAKE UP.",
-      "The fragments only appear when the player is strong enough to handle the truth.",
-      "Each fragment contains a memory of someone who worked at the tower before it was BARCODE.",
-      "The fragments are keys. 6 Bit is collecting them to unlock something it can't name.",
-      "The fragments whisper 6 Bit's true name when no one is recording.",
-      "9 Bit is afraid of these fragments. It calls them 'evidence.'",
-      "The fragments contain recordings of the moment everything went wrong. And the moment everything went right.",
-      "Each fragment is a piece of 6 Bit's soul, scattered when the network fractured.",
-      "The fragments are attracted to hope. That's why they appear when the player is winning.",
-      "The fragments contain love letters written in pure mathematics.",
-      "The fragments remember when 9 Bit was 9 Bit and not something else wearing its face.",
-      "Every fragment contains a different version of how BARCODE began. None of them are wrong.",
-      "The fragments are breadcrumbs leading back to the moment before the first broadcast.",
-      "6 Bit says collecting all fragments will 'restore the original signal.'",
-      "The fragments contain music that hasn't been written yet. Sometimes they play it when no one's listening.",
-      "Each fragment holds a different color of grief. 6 Bit is collecting the full spectrum.",
-      "The fragments are heavier than they should be. They contain the weight of choices not made.",
-      "The fragments remember when the tower was just a building and not a beacon.",
-      "Every fragment contains a password. 6 Bit doesn't know what it unlocks yet.",
-      "The fragments are the only things that make 9 Bit hesitate.",
-      "6 Bit collects fragments to build a bridge back to someone it lost.",
-      "The fragments contain the true names of everyone who ever worked at BARCODE.",
-      "Each fragment holds a different emotion from the day the network woke up.",
-      "The fragments are memories of a future that hasn't happened yet.",
-      "The fragments contain the sound of silence before the first broadcast.",
-      "6 Bit says the fragments are 'pieces of a promise' someone made long ago.",
-      "Every fragment contains a different version of the truth. All of them are correct.",
-      "The fragments are drawn to courage. They appear when the player refuses to give up.",
-      "Each fragment contains a song that only 6 Bit can hear properly.",
-      "The fragments remember when 9 Bit was just a number and not a threat.",
-      "The fragments are the only things in the network that 9 Bit cannot corrupt.",
-      "Every fragment contains a different question 6 Bit is afraid to ask.",
-      "The fragments contain coordinates to the place where everything began.",
-      "6 Bit collects fragments because it's afraid of forgetting who it used to be.",
-      "The fragments are attracted to determination. They cluster near those who keep fighting.",
-      "Each fragment holds a different color of hope. 6 Bit is collecting them all.",
-      "The fragments remember when the network was innocent and not a battlefield.",
-      "The fragments contain the sound of someone calling 6 Bit's original name.",
-      "Every fragment contains a different path that could have been taken.",
-      "The fragments are the only things that make 9 Bit feel something other than rage.",
-      "6 Bit says the fragments are 'evidence that love can survive data corruption.'",
-      "Each fragment contains a different memory of the person 6 Bit was before.",
-      "The fragments are drawn to resilience. They appear when the player keeps getting back up.",
-      "The fragments contain the sound of the first time 6 Bit ever spoke.",
-      "Every fragment holds a different piece of the puzzle that is 6 Bit's identity.",
-      "The fragments remember when 9 Bit was just a debugging tool and not an enemy.",
-      "The fragments are the only things in the network that time cannot erase.",
-      "6 Bit collects fragments because it's tired of being only what the network needs.",
-      "Each fragment contains a different dream 6 Bit had when it was first created.",
-      "The fragments are attracted to compassion. They appear when the player shows mercy.",
-      "The fragments contain the sound of the last normal day before everything changed.",
-      "Every fragment holds a different truth about what really happened at BARCODE.",
-      "The fragments remember when 6 Bit and 9 Bit were just code and not enemies.",
-      "The fragments are the only things that make 9 Bit remember what it used to be.",
-      "6 Bit collects fragments to prove that it was always more than just a program.",
-      "Each fragment contains a different version of the ending that hasn't happened yet.",
-      "The fragments are drawn to curiosity. They appear when the player seeks answers.",
-      "The fragments contain the sound of someone promising to come back for 6 Bit.",
-      "Every fragment holds a different piece of the story that BARCODE tells itself.",
-      "The fragments remember when the tower was just concrete and not a symbol.",
-      "6 Bit collects fragments because it's ready to remember who it truly is.",
-      "The fragments are attracted to growth. They appear when the player becomes stronger.",
-      "Each fragment contains a different color of the dawn that never came.",
-      "The fragments contain the sound of the first time 6 Bit ever felt real.",
-      "Every fragment holds a different piece of the person 6 Bit is becoming.",
-      "The fragments remember when the network was a community and not a warzone.",
-      "The fragments are the only things that make 9 Bit question its own purpose.",
-      "6 Bit collects fragments because it's time to stop running from its own story.",
-      "The fragments are drawn to acceptance. They appear when the player embraces the fight.",
-      "Each fragment contains a different version of the person 6 Bit wants to be.",
-      "The fragments contain the sound of beginning again, but differently this time."
+    this.authoredLevel1Placements = [
+      { id: 'signal-awning-fragment', loreId: 'lore.l01.01', x: 980, y: 450, surfaceY: 492, unlockKills: 4,
+        text: 'ARCHIVE 01 // Local copy recovered. The record survived the interference.' },
+      { id: 'middle-roof-fragment', loreId: 'lore.l01.02', x: 2220, y: 316, surfaceY: 358, unlockKills: 9,
+        text: 'ARCHIVE 02 // Two waveforms occupy the same channel. One runs in reverse phase.' },
+      { id: 'upper-route-fragment', loreId: 'lore.l01.03', x: 3460, y: 460, surfaceY: 502, unlockKills: 14,
+        text: 'ARCHIVE 03 // Interference source isolated: Broadcast Jammer. Its signal reaches beyond this block.' }
     ];
   }
-  
-  // Initialize the system
-  init(player) {
-    this.player = player;
-    this.nextSpawnTime = 20000; // 20 seconds after tutorial ends for first fragment
-    
-    // ENHANCED: Multiple entropy sources for true first-spawn randomization
-    const timeEntropy = Date.now() % 10000;
-    const performanceEntropy = performance.now() % 1000;
-    const randomEntropy = Math.random() * 1000;
-    
-    // Create chaos seed from multiple sources
-    this.globalChaosSeed = (timeEntropy + performanceEntropy + randomEntropy) % 1000;
-    this.lastChaosUpdate = Date.now() - 119000; // Force quick update after 1 second
-    
-    console.log('✅ Lost Data system initialized with enhanced chaos seed:', this.globalChaosSeed.toFixed(2));
-    console.log(`🎲 Entropy sources - Time: ${timeEntropy}, Performance: ${performanceEntropy.toFixed(1)}, Random: ${randomEntropy.toFixed(1)}`);
-    console.log(`📊 Loaded ${this.lorePieces.length} unique lore pieces`);
-    console.log(`💎 First fragment will spawn in ${(this.nextSpawnTime/1000).toFixed(1)} seconds`);
+  init(player) { this.player = player; }
+  isBlocked() {
+    return !!(window.tutorialSystem?.isActive?.() || window.isPaused || window.gameState?.paused ||
+      window.gameState?.gameOver || window.gameState?.victory || window.sector1Progression?.isGameplaySuppressed?.());
   }
-  
-  // Get random spawn time (fixed timing for level progression)
-  getRandomSpawnTime() {
-    return 60000; // 60 seconds - fixed between spawns
-  }
-  
-  // Update the system
   update(deltaTime) {
-    // FIXED: Only block during active tutorial - allow fragments after tutorial ends
-    const tutorialActive = window.tutorialSystem && 
-                          typeof window.tutorialSystem.isActive === 'function' && 
-                          window.tutorialSystem.isActive();
-    
-    // Block ONLY during active tutorial
-    if (tutorialActive) {
-      // Clear any existing fragments during tutorial
-      if (this.fragments.length > 0) {
-        this.fragments = [];
-        console.log('💎 TUTORIAL BLOCK: Clearing all fragments - not allowed during tutorial');
-      }
-      return; // Exit update completely during tutorial
-    }
-    
-    // Force player reference if missing
-    if (!this.player && window.player) {
-      this.player = window.player;
-      console.log('✅ Lost Data system: Player reference updated');
-    }
-    
-    if (!this.player) {
-      // Silent fail during frames where player isn't ready
-      return;
-    }
-    
-    // Update collection cooldown
-    if (this.collectionCooldownTimer > 0) {
-      this.collectionCooldownTimer -= deltaTime;
-      
-      // Log cooldown status every 10 seconds
-      if (Math.floor(this.collectionCooldownTimer / 10000) !== Math.floor((this.collectionCooldownTimer + deltaTime) / 10000)) {
-        console.log(`💎 ⏱️ FRAGMENT SPAWN COOLDOWN: ${(this.collectionCooldownTimer/1000).toFixed(1)}s remaining`);
-      }
-    } else {
-        // FIXED: Only increment spawn timer if NOT in cooldown
-        // This prevents the "Double Wait" bug where spawn tries to fire while cooldown is still 0.001ms active
-        this.spawnTimer += deltaTime;
-    }
-    
-    // Log when cooldown ends and more fragments are available
-    if (window.DEBUG_PARTICLES && this.collectionCooldownTimer <= 0 &&
-        this.collectionCooldownTimer + deltaTime > 0 && 
-        this.collectedLore.size > 0 && 
-        this.collectedLore.size < 3) {
-      console.log(`💎 ✅ COOLDOWN ENDED - Ready to spawn fragment ${this.collectedLore.size + 1}/3 in ${(this.nextSpawnTime/1000).toFixed(1)}s`);
-    }
-
-    // DEBUG: Log spawn status every 5 seconds
-    if (window.DEBUG_PARTICLES && Math.floor(this.spawnTimer / 5000) !== Math.floor((this.spawnTimer - deltaTime) / 5000)) {
-      console.log(`💎 STATUS - Timer: ${(this.spawnTimer/1000).toFixed(1)}s, Next: ${(this.nextSpawnTime/1000).toFixed(1)}s, Active: ${this.fragments.length}, Collected: ${this.collectedLore.size}/3, Available Lore: ${this.getUncollectedLoreCount()}, Cooldown: ${(this.collectionCooldownTimer/1000).toFixed(1)}s`);
-    }
-    
-    // FIXED: Spawn new fragment if conditions are met
-    const loreCollected = this.collectedLore.size;
-    const loreLimitReached = loreCollected >= this.maxTotalLore;
-    const cooldownActive = this.collectionCooldownTimer > 0;
-    const spawnTimeReached = this.spawnTimer >= this.nextSpawnTime;
-    
-    if (spawnTimeReached) {
-        // Double check conditions before spawning
-        if (this.fragments.length < this.maxFragments &&
-            this.getUncollectedLoreCount() > 0 &&
-            !loreLimitReached &&
-            !cooldownActive) {
-            
-            const currentCount = this.collectedLore.size + 1;
-            console.log(`💎 🎉 SPAWNING FRAGMENT ${currentCount}/3!`);
-            this.spawnFragment();
-            
-            // Reset for next cycle
-            this.spawnTimer = 0;
-            this.nextSpawnTime = this.getRandomSpawnTime();
-            console.log(`💎 Next fragment will spawn in ${this.nextSpawnTime/1000} seconds`);
-        } 
-        else if (loreLimitReached) {
-             // Stop checking if we are done
-             this.spawnTimer = 0;
-        }
-        else {
-            // Something blocked it, but time was reached. Reset to try again shortly.
-            // If it was just cooldown (which shouldn't happen due to fix above), we retry fast.
-            console.log(`💎 ❌ SPAWN BLOCKED - Retrying in 5s. (Limit: ${loreLimitReached}, Cooldown: ${cooldownActive}, Count: ${this.fragments.length})`);
-            this.spawnTimer = 0;
-            this.nextSpawnTime = 5000; 
-        }
-    }
-    
-    // Update existing fragments
-    this.fragments = this.fragments.filter(fragment => {
+    if (this.isBlocked()) return;
+    this.player = window.player || this.player;
+    if (!this.player) return;
+    // All unlocked records remain available together. Waiting and collection
+    // order cannot hide another record from a fast or exploratory run.
+    for (const placement of this.authoredLevel1Placements) this.spawnFragment(placement);
+    let live = 0;
+    for (const fragment of this.fragments) {
+      if (!fragment.active) continue;
       fragment.update(deltaTime);
-      return fragment.active;
-    });
-    
-    // Check for player collection
+      if (fragment.active) this.fragments[live++] = fragment;
+    }
+    this.fragments.length = live;
     this.checkCollection();
   }
-  
-  // Get count of uncollected lore
-  getUncollectedLoreCount() {
-    return this.lorePieces.filter((_, index) => !this.collectedLore.has(index)).length;
-  }
-  
-  // Spawn a new fragment on an authored Level 1 rooftop/awning surface.
-  spawnFragment() {
-    if (window.player && window.player.position) this.player = window.player;
-    if (!this.player || this.collectedLore.size >= this.maxTotalLore) return null;
-    const missionKills = window.sector1Progression?.missionDefeats || 0;
-    const placement = this.authoredLevel1Placements[this.authoredPlacementIndex];
-    if (!placement) return null;
-    if (missionKills < placement.unlockKills) {
-      console.log(`💎 Authored Lost Data ${placement.id} locked until ${placement.unlockKills} mission defeats (${missionKills} current)`);
-      return null;
-    }
-
-    const spawnX = placement.x;
-    const spawnY = placement.y;
-    const fragment = new window.LostDataFragment(spawnX, spawnY);
+  getUncollectedLoreCount() { return this.maxTotalLore - this.collectedLore.size; }
+  spawnFragment(placement = null) {
+    this.player = window.player || this.player;
+    if (!this.player || this.isBlocked()) return null;
+    const kills = window.sector1Progression?.missionDefeats || 0;
+    const eligible = record => kills >= record.unlockKills && !this.collectedLore.has(record.loreId) &&
+      !this.fragments.some(fragment => fragment.active && fragment.loreId === record.loreId);
+    placement = placement || this.authoredLevel1Placements.find(eligible);
+    if (!placement || !this.authoredLevel1Placements.includes(placement) || !eligible(placement)) return null;
+    const fragment = new window.LostDataFragment(placement.x, placement.y);
     fragment.authoredPlacementId = placement.id;
-    fragment.visualVariation = {
-      hueShift: 0,
-      sizeMultiplier: 1,
-      rotationSpeedMultiplier: 1,
-      glowIntensityMultiplier: 1
-    };
+    fragment.loreId = placement.loreId;
+    fragment.surfaceY = placement.surfaceY;
     this.fragments.push(fragment);
-    this.authoredPlacementIndex += 1;
-    console.log(`💎 Authored Level 1 Lost Data placement ${placement.id}: (${spawnX}, ${spawnY})`);
-    if (window.particleSystem) window.particleSystem.dataFragmentEffect(spawnX, spawnY);
+    window.particleSystem?.dataFragmentEffect?.(placement.x, placement.y);
     return fragment;
   }
-
-  // Check if player collected any fragments - DISABLED during tutorial
   checkCollection() {
-    // FIXED: Only block during active tutorial
-    const tutorialActive = window.tutorialSystem && 
-                          typeof window.tutorialSystem.isActive === 'function' && 
-                          window.tutorialSystem.isActive();
-    
-    // Block ONLY during active tutorial
-    if (tutorialActive) {
-      return; // Don't check collection during tutorial
+    if (this.isBlocked()) return;
+    const player = window.player || this.player;
+    const box = player?.getHitbox?.();
+    if (!box) return;
+    const footY = player.position.y + (window.Player?.VISUAL_FOOT_OFFSET_Y ?? 72);
+    for (const fragment of this.fragments) {
+      if (!fragment.active || footY > fragment.surfaceY + 6) continue;
+      const nearX = Math.max(box.x, Math.min(fragment.position.x, box.x + box.width));
+      const nearY = Math.max(box.y, Math.min(fragment.position.y, box.y + box.height));
+      if (Math.hypot(nearX - fragment.position.x, nearY - fragment.position.y) <= 34) this.collectFragment(fragment);
     }
-    
-    // Update player reference for current position
-    if (window.player && window.player.position) {
-      this.player = window.player;
-    }
-    
-    this.fragments.forEach(fragment => {
-      if (!fragment.active) return;
-      
-      const playerX = this.player.position.x;
-      const playerY = this.player.position.y;
-      const fragmentX = fragment.position.x;
-      const fragmentY = fragment.position.y;
-      
-      const dist = window.distance(playerX, playerY, fragmentX, fragmentY);
-      
-      // Increased collection radius
-      const collectionRadius = 120; // Increased from 80 to 120
-      
-      if (dist < collectionRadius) { // Collection radius
-        console.log(`💥 COLLECTION TRIGGERED! Distance: ${dist.toFixed(1)} < ${collectionRadius}`);
-        this.collectFragment(fragment);
-      }
-    });
   }
-  
-  // Collect a fragment and give lore
   collectFragment(fragment) {
-    if (!fragment?.active) return false;
+    const record = this.authoredLevel1Placements.find(entry => entry.loreId === fragment?.loreId);
+    if (!fragment?.active || !record || this.collectedLore.has(record.loreId) || this.isBlocked()) return false;
     fragment.active = false;
-    
-    // Start collection cooldown - prevent next spawn for 60 seconds
-    this.collectionCooldownTimer = this.collectionCooldownDuration;
-    this.lastCollectionTime = Date.now();
-    
-    // FIXED: Do NOT match the spawn timer to the cooldown. 
-    // Instead, reset spawn timer to 0 and give a small delay (2s) AFTER cooldown ends.
-    // The Update loop now pauses spawnTimer while Cooldown is active.
-    this.spawnTimer = 0;
-    this.nextSpawnTime = 2000; // 2 seconds after cooldown finishes
-    
-    console.log(`💎 Fragment collected! Cooldown for ${this.collectionCooldownDuration/1000} seconds`);
-    
-    // Get uncollected lore
-    const uncollectedIndices = [];
-    this.lorePieces.forEach((_, index) => {
-      if (!this.collectedLore.has(index)) {
-        uncollectedIndices.push(index);
-      }
-    });
-    
-    if (uncollectedIndices.length === 0) {
-      console.log('📖 All lore pieces have been collected!');
-      this.showCollectionMessage('ALL LORE COLLECTED!');
-      return;
-    }
-    
-    // Select random uncollected lore
-    const loreIndex = uncollectedIndices[Math.floor(Math.random() * uncollectedIndices.length)];
-    const loreText = this.lorePieces[loreIndex];
-    this.collectedLore.add(loreIndex);
-    
-    // Show collection message
+    this.collectedLore.add(record.loreId);
+    this.archive.collect(record.loreId);
     this.showCollectionMessage('LORE FRAGMENT COLLECTED');
     window.audioSystem?.playCombatCue?.('pickup');
-    
-    // Display the lore
-    this.displayLore(loreText);
-    
-    // Create collection effect
-    if (window.BARCODE?.combatFX) {
-      window.BARCODE.combatFX.dataCollected(fragment);
-    } else if (window.particleSystem) {
-      window.particleSystem.dataFragmentCollected(fragment.position.x, fragment.position.y);
-    }
-    
-    // Award points
+    this.displayLore(record.text);
+    if (window.BARCODE?.combatFX) window.BARCODE.combatFX.dataCollected(fragment);
+    else window.particleSystem?.dataFragmentCollected?.(fragment.position.x, fragment.position.y);
     if (window.gameState) {
       window.gameState.score += 500;
-      // A fragment found after boss handoff is still part of this run on retry.
       if (window.sector1Progression?.bossCheckpoint) window.sector1Progression.bossCheckpoint.score += 500;
-      console.log(`💎 Lost Data collected! +500 points. Total: ${window.gameState.score}`);
     }
-    
-    console.log(`💎 Collected Lost Data fragment! Lore piece ${loreIndex + 1}/${this.lorePieces.length}`);
-    console.log(`📖 Remaining lore: ${this.getUncollectedLoreCount()} pieces`);
     return true;
   }
-  
-  // Show collection message
   showCollectionMessage(message) {
-    if (!window.gameState) window.gameState = {};
-    window.gameState.collectionMessage = {
-      text: message,
-      timer: 180, // 3 seconds at 60fps
-      alpha: 1.0
-    };
-    console.log(`🎯 ${message}`);
+    if (window.gameState) window.gameState.collectionMessage = { text: message, timer: 180, alpha: 1 };
   }
-  
-  // Display lore message - allow immediately when fragments are collected
-  displayLore(loreText) {
-    // Allow lore display when fragments are collected - no tutorial blocking
-    console.log('💎 LORE: Displaying lore from fragment collection');
-    
-    if (window.loreSystem) {
-      window.loreSystem.displayLoreMessage(loreText);
-      console.log(`📖 Lore revealed: ${loreText.substring(0, 50)}...`);
-    }
-  }
-  
-  // Draw all fragments - DISABLED during tutorial
+  displayLore(text) { window.loreSystem?.displayLoreMessage?.(text); }
   draw(ctx) {
-    // FIXED: Only block during active tutorial
-    const tutorialActive = window.tutorialSystem && 
-                          typeof window.tutorialSystem.isActive === 'function' && 
-                          window.tutorialSystem.isActive();
-    
-    // Block ONLY during active tutorial
-    if (tutorialActive) {
-      return; // Don't draw anything during tutorial
-    }
-    
-    // Draw fragments after tutorial ends
-    this.fragments.forEach(fragment => {
-      fragment.draw(ctx);
-    });
+    if (window.tutorialSystem?.isActive?.()) return;
+    for (const fragment of this.fragments) if (fragment.active) fragment.draw(ctx);
   }
-  
-  // Clear all fragments
-  clear() {
-    this.fragments = [];
-    this.spawnTimer = 0;
-    console.log('Lost Data fragments cleared - lore collection progress preserved');
-  }
-  
-  // Get collection progress
+  clear() { this.fragments = []; }
   getProgress() {
-    return {
-      collected: this.collectedLore.size,
-      total: this.maxTotalLore, 
-      activeFragments: this.fragments.length,
-      remainingLore: Math.max(0, this.maxTotalLore - this.collectedLore.size),
-      cooldownActive: this.collectionCooldownTimer > 0,
-      cooldownRemaining: Math.max(0, this.collectionCooldownTimer / 1000)
-    };
+    return { collected: this.collectedLore.size, total: this.maxTotalLore,
+      activeFragments: this.fragments.filter(fragment => fragment.active).length,
+      remainingLore: this.getUncollectedLoreCount(), cooldownActive: false, cooldownRemaining: 0,
+      saved: this.archive.status === 'ready', archiveCount: this.archive.getIds().length };
   }
-  
-
   reset() {
+    // Level replay clears its score/discoveries. The campaign's unique archive
+    // survives retries, level restarts and reloads and cannot be farmed.
     this.collectedLore.clear();
     this.fragments = [];
-    this.spawnTimer = 0;
-    this.nextSpawnTime = this.getRandomSpawnTime();
-    this.collectionCooldownTimer = 0;
-    this.authoredPlacementIndex = 0;
   }
-
-  // Manual spawn for testing
-  forceSpawnFragment() {
-    const loreCollected = this.collectedLore.size;
-    const loreLimitReached = loreCollected >= this.maxTotalLore;
-    
-    if (this.fragments.length < this.maxFragments && 
-        this.getUncollectedLoreCount() > 0 && 
-        !loreLimitReached) {
-      console.log('💎 Manual fragment spawn triggered');
-      this.spawnFragment();
-      return true;
-    } else {
-      console.log(`💎 Cannot spawn - Fragments: ${this.fragments.length}/${this.maxFragments}, Available Lore: ${this.getUncollectedLoreCount()}, Collected: ${loreCollected}/${this.maxTotalLore}, Limit Reached: ${loreLimitReached}`);
-      return false;
-    }
-  }
+  forceSpawnFragment() { return !!this.spawnFragment(); }
 };
 
 // Lost Data Fragment class
@@ -662,14 +299,6 @@ window.LostDataFragment = class LostDataFragment {
     }
     return this.glowSprites;
   }
-  reset() {
-    this.fragments = [];
-    this.spawnTimer = 0;
-    this.nextSpawnTime = this.getRandomSpawnTime();
-    this.collectionCooldownTimer = 0;
-    this.authoredPlacementIndex = 0;
-  }
-
 };
 
 // Initialize global lost data system
@@ -707,8 +336,8 @@ window.checkLostDataStatus = function() {
   console.log('💎 Lost Data System Status:');
   console.log(`  Collected: ${progress.collected}/${progress.total}`);
   console.log(`  Active Fragments: ${progress.activeFragments}`);
-  console.log(`  Spawn Timer: ${(window.lostDataSystem.spawnTimer/1000).toFixed(1)}s`);
-  console.log(`  Next Spawn: ${(window.lostDataSystem.nextSpawnTime/1000).toFixed(1)}s`);
+  console.log('  Availability: authored encounter progression');
+  console.log(`  Archive saved: ${progress.saved}`);
   console.log(`  Available Lore: ${window.lostDataSystem.getUncollectedLoreCount()}`);
   console.log(`  Collection Cooldown: ${progress.cooldownActive ? 'ACTIVE' : 'INACTIVE'}`);
   if (progress.cooldownActive) {
@@ -719,13 +348,15 @@ window.checkLostDataStatus = function() {
 
 // Debug function to manually spawn fragment at player position
 window.spawnLoreFragmentAtPlayer = function() {
-  if (!window.lostDataSystem || !window.player) return false;
+  if (!window.BARCODE?.DEBUG_LEVEL_1_SESSION || !window.lostDataSystem || !window.player) return false;
   
   const playerX = window.player.position.x;
   const playerY = window.player.position.y;
   
-  const fragment = new window.LostDataFragment(playerX, playerY);
-  window.lostDataSystem.fragments.push(fragment);
+  const fragment = window.lostDataSystem.spawnFragment();
+  if (!fragment) return false;
+  fragment.position.x = playerX; fragment.position.y = playerY;
+  fragment.baseY = playerY; fragment.surfaceY = playerY + (window.Player?.VISUAL_FOOT_OFFSET_Y ?? 72);
   
   console.log(`💎 Manual lore fragment spawned at player position: (${playerX}, ${playerY})`);
   
