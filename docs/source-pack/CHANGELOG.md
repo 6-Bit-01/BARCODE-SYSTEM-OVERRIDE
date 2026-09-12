@@ -1,5 +1,13 @@
 # Changelog
 
+## September 12, 2026 — Authored Level 1 lore and persistent reading archive
+
+- Replace the three provisional lines with complete records voiced by Cache Back, DJ Floppydisc and Mac Modem, each with a brief 6 Bit response. Verify original-four history, Cache Back's corrected origin, artist voices and unresolved reveal boundaries against the retained BARCODE sources.
+- Add one immutable lore catalog used by pickups and the pause reader. Preserve existing IDs, saved unlocks, run rewards, collection geometry and 4/9/14 defeat unlocks.
+- Add P → Lore archive with keyboard/scaled-pointer navigation, hidden unrecovered content and session-only/save-failure feedback. Reading does not mutate progression, score, settings or transport. Esc returns to pause; P/Resume retains the existing audio/input lifecycle.
+- Replace the contradictory dormant random lore pool with queued, elapsed-time collection notices. Pause freezes them; full run reset clears notices while durable discoveries remain.
+- Add production save/input/pause regression coverage and six native Canvas diagnostics. Refresh the baseline only for the new catalog/check script, changed script indices; no removed asset or ownership findings. Required command results and exact publication state are in the source receipt. Makko acceptance remains pending.
+
 ## September 12, 2026 — Discovery, target previews and existing traffic
 
 - Remove the initial lore wait, minute-long collection cooldown and one-active limit. Three deterministic Level 1 records unlock with 4/9/14 mission defeats and remain available together, with stable IDs and provisional authored text.

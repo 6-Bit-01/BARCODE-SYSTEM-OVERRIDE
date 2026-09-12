@@ -1,5 +1,15 @@
 # Current State
 
+## Authored lore and pause archive — current review build
+
+PR #36 is merged at `58b6abe6179ce6b7e8996c4d4099c9eff674f35f`, the base and rollback for `agent/level1-lore-archive`. The owner approved the archive and explicitly requested actual lore improvement using BARCODE and 6 Bit context. `LORE_ARCHIVE_PASS.md` records the source audit and scope; `LEVEL_01_LORE.md` contains the complete implemented text. The generated manifest identifies the exact checkpoint, publication status and PR.
+
+All three current records now have titles, three paragraphs, a crew author/source and a brief 6 Bit response: Cache Back's **Four Names on the Tape**, DJ Floppydisc's **The Other Side of Silence**, and Mac Modem's **A Whole Block on Mute**. They develop crew history, the unresolved inverted waveform and the Jammer's environmental reach. These are new in-game records based on established canon, replacing the previous placeholder lines. The contradictory legacy random pool is removed from the runtime.
+
+P → Lore archive reads the same catalog using the existing persistent collection. Existing PR #36 saves reveal the revised entries automatically; browsing cannot unlock entries or award score. Unrecovered titles/body text remain hidden. Keyboard and scaled pointer controls use the existing input owner; Esc returns to pause and P resumes. Sequential pickup notices queue, freeze with paused gameplay, and point to the full record. Reset clears transient notices and run counters without erasing discoveries. No save schema, placement, 4/9/14 defeat threshold, reward, asset URL or dependency change.
+
+Focused production checks and native Canvas text/layout inspection pass. The export receipt records the full required suite and all-file syntax results against the exact exported revision. Owner Makko import, hosted persistence, reading/voice review, live audio and gameplay acceptance remain pending. Use the current PR_DESCRIPTION and ACCEPTANCE checklists. Historical sections below describe earlier milestones, including copy that this pass supersedes.
+
 ## Discovery follow-up — completed review build
 
 PR #35 is merged at `c346e16e24c00b46611e6328d6f0fd6158cf315a`. The owner selected rhythm target brackets and animated existing traffic, reported missing late lore and the uncollectible rooftop Signal Amp, and deferred migration. `DISCOVERY_PASS.md` is the current scope. Branch: `agent/level1-discovery-traffic`; generated manifest identifies the exact checkpoint.

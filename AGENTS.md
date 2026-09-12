@@ -2,6 +2,10 @@
 
 ## Current authority and scope
 
+Newest owner-approved work: `docs/source-pack/LORE_ARCHIVE_PASS.md`, based on merged PR #36 (`58b6abe6179ce6b7e8996c4d4099c9eff674f35f`). The owner approved the pause-menu archive and then explicitly requested implementing and improving the actual unlocked lore using BARCODE and 6 Bit context. Three authored records now replace the provisional copy, share one catalog with collection notices, and remain readable from persisted IDs. This authorizes new in-game writing based on established canon; it does not settle later campaign revelations. Preserve save compatibility, the original four, the locked prologue and secret collection purpose. One combined draft and the same maintained v5 pack; owner Makko acceptance before merge.
+
+The following scopes are historical milestones; the newest section above controls the current pass.
+
 Newest owner-approved work: `docs/source-pack/DISCOVERY_PASS.md`, based on merged PR #35. Implement the two selected follow-ons (rhythm target brackets, animated existing traffic) together with the reported Lost Data availability/persistence and rooftop Signal Amp repairs. Collection contributes to a secret eventual ending test; preserve durable facts without inventing thresholds or exposing that purpose in player-facing text. Migration is deferred. The combined implementation and required regression checks are complete; exact publication status is in the source manifest. One combined draft PR and maintained v5 pack; Makko acceptance remains required.
 
 Historical polish checkpoint (now merged as PR #35): all approved polish items 1–9 plus particle/logging cleanup are implemented and validated on `agent/level1-combined-polish`, as one combined draft review. Three implementation checkpoints and their test evidence are preserved; the generated source manifest/receipt identifies exact publication status, head and PR URL. Next: owner Makko acceptance using `docs/source-pack/PR_DESCRIPTION.md` and ACCEPTANCE, then merge and re-import the actual main merge SHA. Do not redo implementation or split this pass into separate PRs. Keep the same v5 archive updated.

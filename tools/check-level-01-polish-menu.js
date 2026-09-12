@@ -30,7 +30,7 @@ async function main() {
     const before = copy({ position: w.player.position, time: w.gameState.gameTime, combo: w.rhythmSystem.combo, transport: w.BARCODE.MusicTransport.sample() });
     const generation = w.BARCODE.MusicTransport.getDiagnostics().generation;
     menu.render();
-    assert(menu.open); assert.strictEqual(menu.focus, 5);
+    assert(menu.open); assert.strictEqual(menu.focus, 6);
     const drawCount = screen.getContext().operations.length;
     menu.render(); assert.strictEqual(screen.getContext().operations.length, drawCount, 'unchanged paused screen is not redrawn');
     down('ArrowDown'); up('ArrowDown'); // Defaults row.

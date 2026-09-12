@@ -1,4 +1,7 @@
-# Responsive-combat verification
+# Production Canvas verification
+
+`lore-archive-unrecovered.png`, `lore-archive-record-1.png`, `lore-archive-record-2.png`, `lore-archive-record-3.png`, `lore-archive-pause.png` and `lore-archive-pickup.png` render the production catalog, archive/pause UI and collection notice with explicit saved-ID fixtures. The three complete records and replies fit measured native Canvas text bounds. These are diagnostic renders, not live Makko screenshots or an audio/input acceptance test. Reproduce with `node tools/render-level-01-lore-archive.cjs` when `@napi-rs/canvas` and DejaVu fonts are available; no game or CI dependency is added. The separate production regression in `check:level-01-lore-archive` covers actual menu/save/input ownership.
+
 
 `polish-chunk-3-pause.png` and `polish-chunk-3-results.png` are native Canvas renders of the production pause UI and completion HUD. Slider values and run totals are explicit fixture data for layout inspection. They verify text/controls composition and error-free drawing, not live Makko input, audio, appearance or measured performance. The full-suite receipt includes separate production ownership/lifecycle assertions.
 

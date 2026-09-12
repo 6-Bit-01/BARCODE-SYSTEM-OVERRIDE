@@ -8,6 +8,7 @@
     "/lib/MakkoEngine.min.js",
     "src/utils/math.js",
     "src/core/fullscreen.js",
+    "src/game/lore-records.js",
     "src/game/pause-menu.js",
     "src/core/action-input.js",
     "src/game/player-combat.js",
@@ -55,6 +56,7 @@
   "loadedRepositoryJs": [
     "src/utils/math.js",
     "src/core/fullscreen.js",
+    "src/game/lore-records.js",
     "src/game/pause-menu.js",
     "src/core/action-input.js",
     "src/game/player-combat.js",
@@ -125,6 +127,7 @@
     "tools/check-level-01-boss.js",
     "tools/check-level-01-discovery.js",
     "tools/check-level-01-gameplay-dynamics.js",
+    "tools/check-level-01-lore-archive.js",
     "tools/check-level-01-mission.js",
     "tools/check-level-01-polish-menu.js",
     "tools/check-level-01-polish.js",
@@ -148,6 +151,10 @@
       },
       {
         "file": "src/core/fullscreen.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/lore-records.js",
         "status": "pass"
       },
       {
@@ -317,11 +324,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 44,
+        "index": 45,
         "status": "pass"
       },
       {
-        "index": 46,
+        "index": 47,
         "status": "pass"
       }
     ]
@@ -656,6 +663,7 @@
     "/lib/MakkoEngine.min.js",
     "src/utils/math.js",
     "src/core/fullscreen.js",
+    "src/game/lore-records.js",
     "src/game/pause-menu.js",
     "src/core/action-input.js",
     "src/game/player-combat.js",

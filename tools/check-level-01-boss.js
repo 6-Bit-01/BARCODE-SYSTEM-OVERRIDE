@@ -46,6 +46,7 @@ function createRig() {
   };
   w.window = w;
   const context = vm.createContext(w);
+  load(context, 'src/game/lore-records.js');
   load(context, 'src/engine/music-profiles.js');
   load(context, 'src/engine/level-01-music-profile.js');
   load(context, 'src/engine/music-transport.js');

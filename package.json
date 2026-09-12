@@ -12,7 +12,7 @@
     "audit:external-assets": "node tools/audit-external-assets.js",
     "baseline:generate": "node tools/generate-baseline.js",
     "baseline:check": "node tools/check-baseline.js",
-    "test": "npm run check:syntax && npm run audit:paths && npm run audit:globals && npm run audit:external-assets && npm run check:startup-lifecycle && npm run check:frame-ownership && npm run check:music-profiles && npm run check:makko-hotfix && npm run check:runtime-lifecycle && npm run check:enemy-ownership && npm run check:action-combat && npm run baseline:check && npm run check:level-01-mission && npm run check:level-01-smoothing && npm run check:level-01-gameplay-dynamics && npm run check:level-01-boss && npm run check:level-01-presentation && npm run check:level-01-responsive-combat && npm run check:level-01-polish && npm run check:level-01-polish-menu && npm run check:level-01-discovery && npm run check:level-01-targets-traffic",
+    "test": "npm run check:syntax && npm run audit:paths && npm run audit:globals && npm run audit:external-assets && npm run check:startup-lifecycle && npm run check:frame-ownership && npm run check:music-profiles && npm run check:makko-hotfix && npm run check:runtime-lifecycle && npm run check:enemy-ownership && npm run check:action-combat && npm run baseline:check && npm run check:level-01-mission && npm run check:level-01-smoothing && npm run check:level-01-gameplay-dynamics && npm run check:level-01-boss && npm run check:level-01-presentation && npm run check:level-01-responsive-combat && npm run check:level-01-polish && npm run check:level-01-polish-menu && npm run check:level-01-discovery && npm run check:level-01-targets-traffic && npm run check:level-01-lore-archive",
     "check:startup-lifecycle": "node tools/check-startup-lifecycle.js",
     "check:frame-ownership": "node tools/check-frame-ownership.js",
     "check:music-profiles": "node tools/check-music-profiles.js",
@@ -29,7 +29,8 @@
     "check:level-01-polish": "node tools/check-level-01-polish.js",
     "check:level-01-polish-menu": "node tools/check-level-01-polish-menu.js",
     "check:level-01-discovery": "node tools/check-level-01-discovery.js",
-    "check:level-01-targets-traffic": "node tools/check-level-01-targets-traffic.js"
+    "check:level-01-targets-traffic": "node tools/check-level-01-targets-traffic.js",
+    "check:level-01-lore-archive": "node tools/check-level-01-lore-archive.js"
   },
   "dependencies": {},
   "devDependencies": {}

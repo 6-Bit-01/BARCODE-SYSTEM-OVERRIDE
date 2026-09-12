@@ -1,5 +1,13 @@
 # Decision Register
 
+## Latest owner direction: implement and improve the lore
+
+After the archive/three-record follow-up was offered, the owner said "Proceed" and added: "We also have to actually implement and improve the lore. Use all context from BARCODE and 6 Bit to make, confirm, edit, and/or add to the current unlocked lore". This is approval to write and implement substantive entries, not leave placeholder text behind a new menu. The source audit uses the current repository decisions, attached v4 reveal purposes, BARCODE Bibles and World Overview. `LORE_ARCHIVE_PASS.md` distinguishes established facts from newly authored in-game dialogue; `LEVEL_01_LORE.md` preserves the exact implemented copy.
+
+Base: merged PR #36. Keep IDs and saved unlocks, original-four identities, the existing prologue and the hidden collection purpose. The three current records do not decide the simulation creator, later reveal order or final outcome rules. Migration stays deferred. Existing draft publication authorization persists; owner Makko acceptance is still required before merge.
+
+The earlier selections below remain historical records of their own passes.
+
 ## Latest owner direction: discovery follow-up
 
 The owner approved the two remaining suggestions (rhythm target brackets and animated existing traffic), requested repair of late lore availability and the uncollectible rooftop Signal Amp, and deferred migration. Collection contributes to the eventual ending and the test is secret; no player-facing explanation may expose that relationship. Persist stable discoveries without inventing unapproved thresholds. `DISCOVERY_PASS.md` is the combined scope. PR #35 is merged; its merge revision is the new base.
