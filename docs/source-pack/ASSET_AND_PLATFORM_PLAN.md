@@ -1,5 +1,9 @@
 # Art, presentation and platform production plan
 
+## Current opening production supersedes the prototype asset limit
+
+After the existing-art prototype, the owner explicitly requested the missing intro illustrations and supplied the five character models. INTRO_ART_DIRECTION.md records the resulting eight bundled WebP scenes, model mapping, production prompts and hashes. Current intro art is complete for review; the original four carry the story, Cliff appears briefly on page 2, and all other characters stay offscreen/obscured. The older existing-art-only entries below describe the earlier prototype stage, not a reason to postpone these authorized images.
+
 ## Stage B asset status
 
 The representative sequence now reuses existing SO6/SO8/SO10 elements from the loaded prologue. No runtime art, asset URLs, portraits, music or dependencies are added/replaced. Sheila is intercom-only. Code-native panels and a loose caption provide the first prototype; native Canvas layout diagnostics are review evidence rather than new game assets. Browser standard-pad coverage is implemented for Level 1; physical devices, mobile and standalone remain unverified/deferred as described below.

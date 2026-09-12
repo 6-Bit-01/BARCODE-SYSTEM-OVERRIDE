@@ -8,7 +8,7 @@ BARCODE's original four are 6 Bit, DJ Floppydisc, Cache Back and Mac Modem. The 
 
 Cache Back emerged during the clearing of callembini's laptop cache, initially believing he was callembini, and became distinct. Do not substitute an unrelated inventor/origin from a random legacy string. Mac Modem's “good virus” metaphor is specific to him; never label 6 Bit or the whole player/crew that way.
 
-Approved intro artwork/wording remain the current live baseline; the latest owner direction reopens selective story/intro development and an existing-art prototype. Exact new copy/scenes/art remain reviewable. *Observer Not Found* and NUL.TV/Willy the Warg maintain their own canon boundaries. A cameo/transmission does not import a whole separate mythology.
+The current opening review uses the script in INTRO_OVERHAUL.md and eight new scenes based on the subsequently supplied models in INTRO_ART_DIRECTION.md. Only 6 Bit, Cache Back, Cliff, DJ Floppydisc and Mac Modem appear visibly; everyone else remains offscreen/obscured. Cliff has one background cameo. The owner retains review of exact art and presentation. *Observer Not Found* and NUL.TV/Willy the Warg maintain their own canon boundaries. A cameo/transmission does not import a whole separate mythology.
 
 ## Character design language
 

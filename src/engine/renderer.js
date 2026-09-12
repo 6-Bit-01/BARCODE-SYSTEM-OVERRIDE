@@ -62,7 +62,7 @@ window.Renderer = class Renderer {
 
   updateFollowCamera(ms) {
     const player = window.player, owner = window.sector1Progression;
-    if (!player || window.isPaused || window.gameState?.paused || window.BARCODE?.CrewTransmission?.active || !Number.isFinite(ms) || ms < 0) return;
+    if (!player || window.isPaused || window.gameState?.paused || !Number.isFinite(ms) || ms < 0) return;
     if (!Number.isFinite(this.followCenterX)) this.resetFollowCamera(player.position.x);
     if (owner?.cameraOverrideActive) { this.followCenterX = owner.getCameraX(this.followCenterX); this.followLookAhead = 0; return; }
     if (Math.abs(player.position.x - this.followCenterX) > 1000) this.resetFollowCamera(player.position.x);

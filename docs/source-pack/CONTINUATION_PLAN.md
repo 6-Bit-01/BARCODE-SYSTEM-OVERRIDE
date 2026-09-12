@@ -2,7 +2,7 @@
 
 ## Current stage update
 
-Stage A is merged as PR #38 at `0d1882f6b6eebf6fc5704d8a3270f2a6b1fb7354`. The owner confirmed the merge and asked to proceed. Stage B is now implemented in the combined review described by `STORY_CONTROLS_PASS.md`; the source manifest identifies its exact head. Its scene/camera/controller ergonomics still require Makko acceptance. Stage C remains the next implementation stage after that gate. The original plan and evidence below remain the historical planning record; its “next” wording is not an instruction to redo Stage B.
+Stage A is merged as PR #38 and Stage B as PR #39. The owner then corrected the missing actual intro and reported the S-skip bug. `INTRO_OVERHAUL.md` is the current implemented review based on #39. The owner subsequently supplied the five character models and authorized the missing scene images; INTRO_ART_DIRECTION.md records eight generated and integrated scenes. Latest order: finish the opening/art/skip correction first, then revise the HUD/rhythm presentation and add meaningful attack variety, then continue Stage C. Prior Stage B scene/camera/HUD choices are not assumed accepted merely because the PR merged. The historical planning record below does not override this order.
 
 
 ## The actual handoff

@@ -19,7 +19,7 @@ The merged baseline ends at a harmless `boss_ready` handoff. This branch impleme
 | Campaign | Levels 2–7, other playable-character implementations, durable campaign progress and final ending flow remain future work. A session boss checkpoint is not a persistent campaign save. |
 | Controller support | Semantic/gamepad input exists, but complete controller coverage, glyphs and mode/end-screen navigation remain unverified. The boss handoff documents keyboard controls; do not claim full controller or touch acceptance. |
 | Assets and runtime | Remote asset availability, sprite alignment, audio playback, camera coverage and performance require the actual Makko project. Historical contact sheets are visual references, not a fresh availability audit. |
-| Prologue historical mismatch | Earlier packs recorded 11 image entries and 12 subtitles. Verify current presentation and intent before changing the locked intro; this observation does not authorize a rewrite. |
+| Opening revision | The owner explicitly reopened/repeatedly requested the intro. INTRO_OVERHAUL.md replaces the historical 11-image/12-caption slideshow with eight reachable script pages using the existing asset bank. S/B source ownership is repaired; exact presentation and audible handoff still require Makko review. |
 
 ## Preserved ownership
 

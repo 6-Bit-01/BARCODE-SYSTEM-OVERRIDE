@@ -1,5 +1,7 @@
 # Stage B — crew handoff and Level 1 controls
 
+**Historical implementation record — merged PR #39.** The crew link below was placed after the tutorial and missed the actual intro request. INTRO_OVERHAUL.md supersedes that scene/control description: it removes the link, rewrites the real opening and fixes S/B hold ownership. The remaining #39 controller, calibration, camera and gameplay fixes persist. The owner has requested a subsequent HUD/rhythm/attack-variety revision; the #39 visual choices are not assumed approved. The original review notes below are retained as history.
+
 ## Review boundary
 
 Base and rollback: merged PR #38, `0d1882f6b6eebf6fc5704d8a3270f2a6b1fb7354`. The owner said “Merged. Lets proceed” after the whole-campaign plan. This implements Stage B as one combined review on `agent/level1-story-controls`. The generated manifest/receipt identifies the exact exported head and PR. Owner Makko acceptance is pending; automatic checks do not certify controller hardware, browser audio activation or gameplay feel.

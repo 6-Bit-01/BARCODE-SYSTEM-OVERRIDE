@@ -3,7 +3,7 @@ window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({
   name: 'src/engine/cutscene.js',
   exports: ['CutsceneSystem', 'cutsceneSystem'],
-  dependencies: []
+  dependencies: ['BARCODE.IntroSequence']
 });
 
 
@@ -24,70 +24,32 @@ function startGameplayMusicAndRhythm(audioSystem) {
 
 window.CutsceneSystem = class CutsceneSystem {
   constructor() {
-    this.cutsceneImages = [
-      { url: 'https://i.postimg.cc/28xQSmxK/SO1.png', loaded: false, element: null },
-      { url: 'https://i.postimg.cc/bNRxw8RF/SO2.png', loaded: false, element: null },
-      { url: 'https://i.postimg.cc/fTvcRZvC/SO3.png', loaded: false, element: null },
-      { url: 'https://i.postimg.cc/dt92Vv9n/SO4.png', loaded: false, element: null },
-      { url: 'https://i.postimg.cc/vHvrZMv3/SO5.png', loaded: false, element: null },
-      { url: 'https://i.postimg.cc/Yqx6Ckx3/SO6.png', loaded: false, element: null },
-      { url: 'https://i.postimg.cc/TYcV3Gcr/SO7.png', loaded: false, element: null },
-      { url: 'https://i.postimg.cc/QxqQdsqQ/SO8.png', loaded: false, element: null },
-      { url: 'https://i.postimg.cc/QxqQdsqQ/SO8.png', loaded: false, element: null }, // Duplicate image for Mac Modem
-      { url: 'https://i.postimg.cc/QxqQdsqQ/SO8.png', loaded: false, element: null }, // Duplicate image for Cache Back
-      { url: 'https://i.postimg.cc/65hrpwhV/SO10.png', loaded: false, element: null }
-    ];
+    // One bundled scene per authored page; no remote or obsolete-likeness
+    // fallback. Failed loads retain the readable script and working skip.
+    this.cutsceneImages = window.BARCODE.IntroSequence.panels.map(panel => ({
+      url: panel.asset, loaded: false, element: null
+    }));
     
+
     this.currentImageIndex = 0;
     this.isActive = false;
-    this.canSkip = true; // Enable input-based progression only
-    this.imageDisplayTime = 2000; // 2 seconds per image (forced display time)
-    this.fadeTime = 500; // 0.5 second fade transition
-    this.currentImageStartTime = 0;
+    this.canSkip = true;
+    this.imageDisplayTime = 250; // Debounce a transition; reading pace belongs to the player.
     this.cutsceneContainer = null;
-    this.currentImageElement = null;
+    this.introCanvas = null;
+    this.transcriptElement = null;
     this.onComplete = null;
-    this.nextImageTimer = null;
     this.inputDisabled = false;
-    this.inputDisableTimer = null;
     this.cutsceneGeneration = 0;
     this.ownedTimeouts = new Set();
     this.ownedIntervals = new Set();
-    this.containerRemovalTimer = null;
-    this.fadeCompletionTimer = null;
-    this.titleMusicUnblockTimer = null;
-    this.fadeCheckInterval = null;
-    
-    // Hold to skip system
-    this.skipHoldTimer = null;
-    this.skipHoldStartTime = 0;
-    this.skipHoldDuration = 5000; // 5 seconds to hold
+    this.pendingImageLoads = new Set();
+    this.skipHolds = new Map();
+    this.skipHoldDuration = 5000;
     this.isSkipHoldActive = false;
     this.skipHoldProgress = 0;
-    this.skipHoldProgressInterval = null;
-    
-    // CRT effect properties
-    this.glitchIntensity = 0;
-    this.scanlineOffset = 0;
-    this.colorShift = 0;
-    
-    // Subtitle text for each image
-    this.subtitles = [
-      "\"BARCODE Network… offline.\nSignal integrity at <span id='signal-integrity'>0</span>%.\"",
-      "\"Unstable frequencies detected.\nUnknown interference rising…\"",
-      "\"…hello?\nWhy is everything so loud?\"",
-      "\"Memory blocks corrupted.\nSystems rebooting against my will—\"",
-      "\"Warning. Unauthorized access.\nSomething is forcing the signal open…\"",
-      "\"Control room integrity failing.\nBroadcast collapse imminent.\"",
-      "\"If you're hearing this… something went wrong.\nThe tower isn't safe anymore.\"",
-      "Mac Modem:\n\"The network's alive, 6.\nAnd it's scared.\"",
-      "Cache Back:\n\"We locked memories inside the system.\nProtect them.\"",
-      "Miss Bit:\n\"You're our last broadcast.\nDo not screw this up.\"",
-      "\"…Alright.\nIf the system won't save itself—\nI will.\"",
-      "6 Bit vs 9 Bit\nThe fate of the BARCODE Network hangs in the balance..."
-    ];
   }
-  
+
   trackTimeout(callback, delay) {
     const generation = this.cutsceneGeneration;
     const handle = setTimeout(() => {
@@ -102,9 +64,7 @@ window.CutsceneSystem = class CutsceneSystem {
     const generation = this.cutsceneGeneration;
     const handle = setInterval(() => {
       if (generation !== this.cutsceneGeneration) {
-        clearInterval(handle);
-        this.ownedIntervals.delete(handle);
-        return;
+        clearInterval(handle); this.ownedIntervals.delete(handle); return;
       }
       callback();
     }, delay);
@@ -115,734 +75,190 @@ window.CutsceneSystem = class CutsceneSystem {
   clearOwnedCallbacks() {
     this.ownedTimeouts.forEach(handle => clearTimeout(handle));
     this.ownedIntervals.forEach(handle => clearInterval(handle));
-    this.ownedTimeouts.clear();
-    this.ownedIntervals.clear();
-    this.nextImageTimer = null;
-    this.inputDisableTimer = null;
-    this.containerRemovalTimer = null;
-    this.fadeCompletionTimer = null;
-    this.titleMusicUnblockTimer = null;
-    this.fadeCheckInterval = null;
-    this.skipHoldProgressInterval = null;
+    this.ownedTimeouts.clear(); this.ownedIntervals.clear();
+    this.nextImageTimer = null; this.inputDisableTimer = null;
+    this.containerRemovalTimer = null; this.fadeCompletionTimer = null;
+    this.titleMusicUnblockTimer = null; this.fadeCheckInterval = null;
+    this.controllerPoll = null;
   }
 
-  getDiagnostics() {
-    return { active: !!this.isActive, generation: this.cutsceneGeneration, timeouts: this.ownedTimeouts.size, intervals: this.ownedIntervals.size, listenersAttached: !!this.skipHandler, hasContainer: !!this.cutsceneContainer };
+  cancelImageLoads() {
+    for (const cancel of [...this.pendingImageLoads]) cancel();
   }
 
-  // Preload all cutscene images
-  async preloadImages() {
-    console.log('🎬 Preloading cutscene images...');
-    
-    const loadPromises = this.cutsceneImages.map((imageData, index) => {
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        
-        img.onload = () => {
-          imageData.loaded = true;
-          imageData.element = img;
-          console.log(`✅ Cutscene image SO${index + 1} loaded`);
+  // Missing/slow art cannot prevent reading or skipping the opening. Late
+  // image callbacks cannot revive a destroyed scene or overwrite a new run.
+  preloadImages() {
+    return Promise.all(this.cutsceneImages.map(imageData => {
+      if (imageData.loaded && imageData.element) return Promise.resolve();
+      return new Promise(resolve => {
+        const img = new Image(); let settled = false;
+        const finish = loaded => {
+          if (settled) return; settled = true;
+          clearTimeout(timeout); this.ownedTimeouts.delete(timeout);
+          img.onload = null; img.onerror = null;
+          this.pendingImageLoads.delete(cancel);
+          if (loaded) { imageData.loaded = true; imageData.element = img; }
           resolve();
         };
-        
-        img.onerror = () => {
-          console.error(`❌ Failed to load cutscene image SO${index + 1}`);
-          // Create fallback colored rectangle
-          imageData.loaded = true;
-          imageData.element = this.createFallbackImage(index);
-          resolve();
-        };
-        
+        const cancel = () => { finish(false); img.src = ''; };
+        const timeout = this.trackTimeout(cancel, 10000);
+        this.pendingImageLoads.add(cancel);
+        img.crossOrigin = 'anonymous'; img.onload = () => finish(true); img.onerror = () => finish(false);
         img.src = imageData.url;
       });
-    });
-    
-    try {
-      await Promise.all(loadPromises);
-      console.log('✅ All cutscene images preloaded');
-      return true;
-    } catch (error) {
-      console.error('❌ Error preloading cutscene images:', error);
-      return false;
-    }
+    }));
   }
-  
-  // Create fallback image if loading fails - 69% larger to match new size
-  createFallbackImage(index) {
-    // Use cached canvas to prevent repeated creation
-    if (!window.cutsceneFallbackCanvas) {
-      window.cutsceneFallbackCanvas = document.createElement('canvas');
-      window.cutsceneFallbackCanvas.width = 1920;
-      window.cutsceneFallbackCanvas.height = 1080;
-    }
-    
-    const canvas = window.cutsceneFallbackCanvas;
-    const ctx = canvas.getContext('2d');
-    
-    // Clear canvas before reuse
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Create gradient background based on index
-    const gradient = ctx.createLinearGradient(0, 0, 1920, 1080);
-    const hue = (index * 36) % 360;
-    gradient.addColorStop(0, `hsl(${hue}, 70%, 20%)`);
-    gradient.addColorStop(1, `hsl(${hue + 60}, 70%, 10%)`);
-    
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 1920, 1080);
-    
-    // Add text
-    ctx.fillStyle = '#00ffff';
-    ctx.font = 'bold 48px Orbitron';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = '#00ffff';
-    ctx.shadowBlur = 20;
-    ctx.fillText(`SCENE ${index + 1}`, 960, 540);
-    
-    return canvas;
-  }
-  
-  // Start the cutscene sequence
-  async start() {
-    if (this.isActive) return;
-    
-    console.log('🎬 Starting intro cutscene...');
-    
-    // Preload images first
-    const preloaded = await this.preloadImages();
-    if (!preloaded) {
-      console.warn('⚠️ Some images failed to load, continuing with fallbacks');
-    }
-    
-    // CRITICAL: Force stop any title screen music immediately before starting cutscene
-    console.log('🎬 FORCE STOPPING all title screen music before cutscene...');
-    
-    if (window.audioSystem) {
-      try {
-        // Method 1: Stop title screen music
-        if (typeof window.audioSystem.stopTitleScreenMusic === 'function') {
-          window.audioSystem.stopTitleScreenMusic();
-          console.log('🎬 stopTitleScreenMusic() called successfully');
-        }
-        
-        // Method 2: Force stop all title screen related audio nodes
-        if (window.audioSystem.titleScreenSource) {
-          try {
-            window.audioSystem.titleScreenSource.stop();
-            console.log('🎬 titleScreenSource.stop() called');
-          } catch (e) {
-            // Source may already be stopped
-          }
-        }
-        
-        // Method 3: Zero out title screen gain
-        if (window.audioSystem.titleScreenGain) {
-          window.audioSystem.titleScreenGain.gain.value = 0;
-          console.log('🎬 titleScreenGain set to 0');
-        }
-        
-        // Method 4: Block any further title screen music attempts
-        window.titleScreenMusicBlocked = true;
-        console.log('🎬 titleScreenMusicBlocked = true set');
-        
-      } catch (error) {
-        console.warn('🎬 Error stopping title screen music:', error?.message || error);
-      }
-    }
-    
-    // Additional delay to ensure title music is fully stopped
-    await new Promise(resolve => this.trackTimeout(resolve, 100));
-    
-    // Start cutscene music
-    if (window.audioSystem && typeof window.audioSystem.playCutsceneMusic === 'function') {
-      window.audioSystem.playCutsceneMusic();
-      console.log('🎬 Cutscene music started');
-    } else {
-      console.log('🎬 Cutscene music not available');
-    }
-    
+
+  start() {
+    if (this.isActive) return this.startPromise;
     this.cutsceneGeneration++;
-    this.clearOwnedCallbacks();
-    this.isActive = true;
-    this.currentImageIndex = 0;
+    this.cancelImageLoads(); this.clearOwnedCallbacks(); this.endSkipHold();
+    const generation = this.cutsceneGeneration;
+    this.isActive = true; this.currentImageIndex = 0;
+    window.BARCODE.IntroSequence.reset();
+    window.inputManager?.resetActionEdges?.();
+    this.startPromise = new Promise(resolve => { this.onComplete = resolve; });
+    const audio = window.audioSystem;
+    audio?.stopTitleScreenMusic?.();
+    if (audio?.titleScreenSource) { try { audio.titleScreenSource.stop(); } catch (_) {} }
+    if (audio?.titleScreenGain) audio.titleScreenGain.gain.value = 0;
+    window.titleScreenMusicBlocked = true;
+    audio?.playCutsceneMusic?.();
     this.createCutsceneContainer();
-    
-    // Start displaying images
     this.showNextImage();
-    
-    return new Promise((resolve) => {
-      this.onComplete = resolve;
+    this.preloadImages().then(() => {
+      if (generation === this.cutsceneGeneration && this.isActive) this.drawCurrentPanel();
+    });
+    return this.startPromise;
+  }
+
+  createCutsceneContainer() {
+    this.cutsceneContainer?.remove();
+    const container = this.cutsceneContainer = document.createElement('div');
+    container.id = 'barcode-intro';
+    container.style.cssText = 'position:fixed;inset:0;background:#080b19;z-index:99999;display:flex;align-items:center;justify-content:center;overflow:hidden;';
+    container.setAttribute('role', 'dialog'); container.setAttribute('aria-label', 'BARCODE opening transmission');
+    const canvas = this.introCanvas = document.createElement('canvas');
+    canvas.width = 1920; canvas.height = 1080;
+    canvas.style.cssText = 'display:block;width:min(100vw,177.777778vh);height:min(100vh,56.25vw);object-fit:contain;';
+    canvas.setAttribute('aria-hidden', 'true');
+    container.appendChild(canvas);
+    const transcript = this.transcriptElement = document.createElement('div');
+    transcript.setAttribute('aria-live', 'polite');
+    transcript.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);';
+    container.appendChild(transcript);
+    const help = document.createElement('div');
+    help.textContent = 'Space, Enter or click: next panel. Hold S or controller B for five seconds to skip the intro. Release to cancel. Left Arrow or D-pad Left inspects the displaced recovery caption.';
+    help.style.cssText = transcript.style.cssText; container.appendChild(help);
+    (document.fullscreenElement || document.webkitFullscreenElement || document.body).appendChild(container);
+    this.addEventListeners();
+  }
+
+  showNextImage() {
+    if (!this.isActive) return;
+    const panels = window.BARCODE.IntroSequence.panels;
+    if (this.currentImageIndex >= panels.length) { this.endCutscene(); return; }
+    const index = this.currentImageIndex++;
+    this.currentImageStartTime = Date.now();
+    this.transcriptElement.textContent = window.BARCODE.IntroSequence.transcript(index);
+    this.disableInputTemporarily(this.imageDisplayTime);
+    this.drawCurrentPanel();
+  }
+
+  drawCurrentPanel() {
+    if (!this.isActive || !this.introCanvas) return;
+    window.BARCODE.IntroSequence.draw(this.introCanvas.getContext('2d'), {
+      index: this.currentImageIndex - 1, elapsedMs: Date.now() - this.currentImageStartTime,
+      images: this.cutsceneImages, pad: !!window.BARCODE.GamepadUI?.connected,
+      skipProgress: this.skipHoldProgress, holding: this.isSkipHoldActive
     });
   }
-  
-  // Create the cutscene overlay container
-  createCutsceneContainer() {
-    // Remove existing container if present
-    if (this.cutsceneContainer) {
-      this.cutsceneContainer.remove();
-    }
-    
-    this.cutsceneContainer = document.createElement('div');
-    this.cutsceneContainer.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: #000;
-      z-index: 9999;
-      overflow: hidden;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    `;
-    
-    // Add CRT effect overlay
-    const crtOverlay = document.createElement('div');
-    crtOverlay.style.cssText = `
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: repeating-linear-gradient(
-        0deg,
-        rgba(0, 255, 255, 0.03) 0px,
-        transparent 1px,
-        transparent 2px,
-        rgba(255, 0, 255, 0.03) 3px
-      );
-      pointer-events: none;
-      z-index: 10;
-    `;
-    this.cutsceneContainer.appendChild(crtOverlay);
-    
-    // Image container - responsive sizing for fullscreen
-    const imageContainer = document.createElement('div');
-    imageContainer.style.cssText = `
-      width: 90vw;
-      height: 90vh;
-      max-width: 1440px;
-      max-height: 1080px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: relative;
-    `;
-    
-    this.cutsceneContainer.appendChild(imageContainer);
-    
-    // Subtitle container
-    const subtitleContainer = document.createElement('div');
-    subtitleContainer.style.cssText = `
-      position: absolute;
-      bottom: 8vh;
-      left: 50%;
-      transform: translateX(-50%);
-      max-width: 70vw;
-      text-align: center;
-      z-index: 20;
-    `;
-    
-    this.cutsceneContainer.appendChild(subtitleContainer);
-    
-    // Skip instruction container with purple/black box
-    const skipContainer = document.createElement('div');
-    skipContainer.id = 'skip-container';
-    skipContainer.style.cssText = `
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background: rgba(0, 0, 0, 0.85);
-      border: 2px solid #ff00ff;
-      box-shadow: 0 0 15px rgba(255, 0, 255, 0.6), inset 0 0 10px rgba(255, 0, 255, 0.1);
-      padding: 12px 18px;
-      border-radius: 6px;
-      color: rgba(255, 255, 255, 0.9);
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 14px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      text-align: center;
-      z-index: 20;
-      width: 200px;
-    `;
-    
-    // Skip instruction text
-    const skipText = document.createElement('div');
-    skipText.id = 'skip-instruction';
-    skipText.innerHTML = this.skipInstructionText();
-    skipContainer.appendChild(skipText);
-    
-    // Skip hold progress bar - CENTERED INSIDE THE BOX
-    const skipHoldBar = document.createElement('div');
-    skipHoldBar.id = 'skip-hold-bar';
-    skipHoldBar.style.cssText = `
-      width: 100%;
-      height: 6px;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 3px;
-      overflow: hidden;
-      margin-top: 8px;
-      display: none;
-    `;
-    
-    const skipHoldProgress = document.createElement('div');
-    skipHoldProgress.id = 'skip-hold-progress';
-    skipHoldProgress.style.cssText = `
-      width: 0%;
-      height: 100%;
-      background: linear-gradient(90deg, #ff6600, #ffaa00);
-      transition: width 0.1s ease-out;
-    `;
-    
-    skipHoldBar.appendChild(skipHoldProgress);
-    skipContainer.appendChild(skipHoldBar);
-    
-    // Skip hold timer text - CENTERED INSIDE THE BOX
-    const skipHoldTimer = document.createElement('div');
-    skipHoldTimer.id = 'skip-hold-timer';
-    skipHoldTimer.textContent = '';
-    skipHoldTimer.style.cssText = `
-      color: rgba(255, 255, 255, 0.7);
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      text-align: center;
-      margin-top: 4px;
-      display: none;
-    `;
-    skipContainer.appendChild(skipHoldTimer);
-    
-    this.cutsceneContainer.appendChild(skipContainer);
-    
-    // Progress indicator
-    const progressIndicator = document.createElement('div');
-    progressIndicator.style.cssText = `
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 8px;
-      z-index: 20;
-    `;
-    
-    for (let i = 0; i < this.cutsceneImages.length; i++) {
-      const dot = document.createElement('div');
-      dot.style.cssText = `
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.2);
-        transition: all 0.3s ease;
-      `;
-      dot.id = `progress-dot-${i}`;
-      progressIndicator.appendChild(dot);
-    }
-    
-    this.cutsceneContainer.appendChild(progressIndicator);
-    
-    // Add to document and ensure fullscreen visibility
-    document.body.appendChild(this.cutsceneContainer);
-    
-    // Force container to front in fullscreen mode
-    this.trackTimeout(() => {
-      if (this.cutsceneContainer) {
-        this.cutsceneContainer.style.zIndex = '99999';
-        // Force reflow to ensure visibility
-        this.cutsceneContainer.style.display = 'flex';
-        this.cutsceneContainer.offsetHeight; // Force reflow
-        
-        // Ensure fullscreen compatibility
-        if (document.fullscreenElement || document.webkitFullscreenElement) {
-          console.log('Cutscene detected fullscreen mode - ensuring visibility');
-          // Add fullscreen-specific styles
-          this.cutsceneContainer.style.position = 'fixed';
-          this.cutsceneContainer.style.top = '0';
-          this.cutsceneContainer.style.left = '0';
-          this.cutsceneContainer.style.width = '100%';
-          this.cutsceneContainer.style.height = '100%';
-        }
-      }
-    }, 10);
-    
-    // Add event listeners
-    this.addEventListeners();
-    
-    // Start CRT effects
-    this.startCRTEffects();
+
+  inspectCaption() {
+    if (!this.isActive) return false;
+    const inspected = window.BARCODE.IntroSequence.inspect(this.currentImageIndex - 1);
+    if (inspected) this.drawCurrentPanel();
+    return inspected;
   }
-  
-  // Show the next image in sequence
-  showNextImage() {
-    console.log(`showNextImage called - active: ${this.isActive}, current index: ${this.currentImageIndex}, total: ${this.cutsceneImages.length}`);
-    
-    if (!this.isActive || this.currentImageIndex >= this.cutsceneImages.length) {
-      console.log('Ending cutscene - reached end or inactive');
-      this.endCutscene();
-      return;
-    }
-    
-    const imageData = this.cutsceneImages[this.currentImageIndex];
-    const imageContainer = this.cutsceneContainer.querySelector('div');
-    const subtitleContainer = this.cutsceneContainer.querySelector('div:nth-child(3)');
-    
-    // Remove previous image immediately (no fade out)
-    if (this.currentImageElement) {
-      if (this.currentImageElement.parentNode) {
-        this.currentImageElement.parentNode.removeChild(this.currentImageElement);
-      }
-      this.currentImageElement = null;
-    }
-    
-    // Clear any existing images in container
-    const container = this.cutsceneContainer.querySelector('div');
-    if (container) {
-      container.innerHTML = '';
-    }
-    
-    // Create new image element
-    this.currentImageElement = document.createElement('img');
-    this.currentImageElement.src = imageData.element.src || imageData.element.toDataURL();
-    this.currentImageElement.style.cssText = `
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      opacity: 0;
-      transition: opacity ${this.fadeTime}ms ease-in;
-      filter: contrast(1.1) saturate(1.2);
-      max-width: 100%;
-      max-height: 100%;
-    `;
-    
-    // Add error handling for image loading
-    this.currentImageElement.onerror = () => {
-      console.error(`Failed to display cutscene image ${this.currentImageIndex}`);
-      // Create fallback colored background
-      this.currentImageElement.style.display = 'none';
-      imageContainer.style.background = `linear-gradient(135deg, hsl(${this.currentImageIndex * 36}, 70%, 20%), hsl(${this.currentImageIndex * 36 + 60}, 70%, 10%))`;
-      imageContainer.innerHTML = `<div style="color: #00ffff; font-family: 'Orbitron', monospace; font-size: 48px; text-shadow: 0 0 20px #00ffff;">SCENE ${this.currentImageIndex}</div>`;
-    };
-    
-    imageContainer.appendChild(this.currentImageElement);
-    
-    // Add subtitle with black background and glowing purple border
-    subtitleContainer.innerHTML = `
-      <div style="
-        background: rgba(0, 0, 0, 0.9);
-        border: 2px solid #ff00ff;
-        box-shadow: 0 0 20px rgba(255, 0, 255, 0.8), inset 0 0 20px rgba(255, 0, 255, 0.2);
-        padding: 20px 30px;
-        border-radius: 8px;
-        display: inline-block;
-        opacity: 0;
-        transition: opacity ${this.fadeTime}ms ease-in;
-      ">
-        <div style="
-          color: #00ffff;
-          font-family: 'Share Tech Mono', monospace;
-          font-size: 1.3vw;
-          text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
-          letter-spacing: 1px;
-          line-height: 1.6;
-          white-space: pre-line;
-        ">${this.subtitles[this.currentImageIndex]}</div>
-      </div>
-    `;
-    
-    // Fade in new image and subtitle
-    this.trackTimeout(() => {
-      if (this.currentImageElement) {
-        this.currentImageElement.style.opacity = '1';
-      }
-      const subtitle = subtitleContainer.querySelector('div');
-      if (subtitle) {
-        subtitle.style.opacity = '1';
-      }
-      
-      // Animate signal integrity on first image only
-      if (this.currentImageIndex === 1) {
-        this.animateSignalIntegrity();
-      }
-      
-      // Update progress indicator
-      this.updateProgressIndicator();
-    }, 50);
-    
-    // Disable input for 2 seconds (forced display time)
-    this.disableInputTemporarily(this.imageDisplayTime);
-    
-    this.currentImageStartTime = Date.now();
-    this.currentImageIndex++;
-    
-    // Clear any existing timer
-    if (this.nextImageTimer) {
-      clearTimeout(this.nextImageTimer);
-      this.nextImageTimer = null;
-    }
-    
-    // Wait for player input after 2-second display time
-    console.log('Image displayed - input disabled for 2 seconds, then player can advance');
-  }
-  
-  // Update progress indicator dots
-  updateProgressIndicator() {
-    const currentIndex = this.currentImageIndex - 1;
-    for (let i = 0; i < this.cutsceneImages.length; i++) {
-      const dot = document.getElementById(`progress-dot-${i}`);
-      if (dot) {
-        if (i === currentIndex) {
-          dot.style.background = '#00ffff';
-          dot.style.boxShadow = '0 0 10px #00ffff';
-        } else if (i < currentIndex) {
-          dot.style.background = 'rgba(0, 255, 255, 0.5)';
-        } else {
-          dot.style.background = 'rgba(255, 255, 255, 0.2)';
-        }
-      }
-    }
-  }
-  
-  // Start CRT visual effects (DISABLED - causing shaking)
-  startCRTEffects() {
-    // Disabled - no more shaking or glitching
-    console.log('CRT effects disabled - preventing image shaking');
-  }
-  
-  // Add event listeners for skipping
+
   addEventListeners() {
-    this.controllerPoll = this.trackInterval(() => window.inputManager?.updateFrontend?.('intro'), 50);
-    this.skipHandler = (e) => {
-      if ((e.code === 'Space' || e.type === 'click') && !this.inputDisabled) {
-        e.preventDefault();
-        this.skipCutscene();
-      }
+    // One existing cutscene-owned poll drives controls, hold progress and the
+    // restrained caption movement. No additional animation loop is installed.
+    this.controllerPoll = this.trackInterval(() => {
+      window.inputManager?.updateFrontend?.('intro');
+      this.updateSkipHoldProgress(); this.drawCurrentPanel();
+    }, 50);
+    this.skipHandler = e => {
+      const key = e.key?.toLowerCase();
+      if (![' ', 'enter', 's', 'arrowleft'].includes(key) && e.type !== 'click') return;
+      e.preventDefault(); e.stopPropagation?.();
+      if (e.repeat) return;
+      if (key === 's') this.startSkipHold('keyboard');
+      else if (key === 'arrowleft') this.inspectCaption();
+      else this.skipCutscene();
     };
-    
-    // Hold S to skip handlers
-    this.skipHoldStartHandler = (e) => {
-      if (e.key === 's' || e.key === 'S') {
-        e.preventDefault();
-        this.startSkipHold();
-      }
-    };
-    
-    this.skipHoldEndHandler = (e) => {
-      if (e.key === 's' || e.key === 'S') {
-        e.preventDefault();
-        this.endSkipHold();
-      }
-    };
-    
+    this.skipHoldEndHandler = e => { if (e.key?.toLowerCase() === 's') { e.preventDefault(); this.endSkipHold('keyboard'); } };
+    this.blurHandler = () => this.endSkipHold();
+    this.visibilityHandler = () => { if (document.hidden) this.endSkipHold(); };
     document.addEventListener('keydown', this.skipHandler);
-    document.addEventListener('keydown', this.skipHoldStartHandler);
     document.addEventListener('keyup', this.skipHoldEndHandler);
+    document.addEventListener('visibilitychange', this.visibilityHandler);
+    window.addEventListener('blur', this.blurHandler);
     this.cutsceneContainer.addEventListener('click', this.skipHandler);
   }
-  
-  // Remove event listeners
+
   removeEventListeners() {
     if (this.controllerPoll) { clearInterval(this.controllerPoll); this.ownedIntervals.delete(this.controllerPoll); this.controllerPoll = null; }
     if (this.skipHandler) {
       document.removeEventListener('keydown', this.skipHandler);
-      document.removeEventListener('keydown', this.skipHoldStartHandler);
       document.removeEventListener('keyup', this.skipHoldEndHandler);
-      if (this.cutsceneContainer) {
-        this.cutsceneContainer.removeEventListener('click', this.skipHandler);
-      }
+      document.removeEventListener('visibilitychange', this.visibilityHandler);
+      window.removeEventListener('blur', this.blurHandler);
+      this.cutsceneContainer?.removeEventListener('click', this.skipHandler);
     }
-    
-    // Clear skip hold timers
+    this.skipHandler = null; this.skipHoldEndHandler = null;
+    this.visibilityHandler = null; this.blurHandler = null;
     this.endSkipHold();
   }
-  
-  // Skip the cutscene
+
   skipCutscene() {
-    if (!this.canSkip || !this.isActive || this.inputDisabled) return;
-    
-    console.log('⏭️ Player pressed input - advancing to next image');
-    // Don't end cutscene, just advance to next image
-    this.showNextImage();
-  }
-  
-  // Temporarily disable input for specified duration
-  disableInputTemporarily(duration) {
-    this.inputDisabled = true;
-    
-    // Clear any existing timer
-    if (this.inputDisableTimer) {
-      clearTimeout(this.inputDisableTimer);
-    }
-    
-    this.inputDisableTimer = this.trackTimeout(() => {
-      this.inputDisabled = false;
-      console.log('✅ Input re-enabled after temporary disable');
-    }, duration);
-    
-    console.log(`⏸️ Input disabled for ${duration}ms`);
-  }
-  
-  // Animate signal integrity from 0 to 26%
-  animateSignalIntegrity() {
-    const signalElement = document.getElementById('signal-integrity');
-    if (!signalElement) {
-      console.warn('Signal integrity element not found');
-      return;
-    }
-    
-    const startValue = 0;
-    const endValue = 26;
-    const duration = 1500; // 1.5 seconds to ramp up
-    const startTime = Date.now();
-    
-    const updateSignal = () => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      
-      // Ease out animation (slows down as it approaches target)
-      const easeOutProgress = 1 - Math.pow(1 - progress, 3);
-      const currentValue = Math.floor(startValue + (endValue - startValue) * easeOutProgress);
-      
-      signalElement.textContent = currentValue;
-      
-      if (progress < 1) {
-        requestAnimationFrame(updateSignal);
-      } else {
-        console.log('✅ Signal integrity animation complete: 26%');
-      }
-    };
-    
-    updateSignal();
-    console.log('📊 Starting signal integrity animation: 0% → 26%');
-  }
-  
-  // Start skip hold timer
-  skipInstructionText() {
-    return window.BARCODE?.GamepadUI?.connected ? 'A: Next panel<br><span style="color: #ffaa00; font-size: 12px;">Hold B for 5s to skip all</span>' : 'Press SPACE or CLICK to skip<br><span style="color: #ffaa00; font-size: 12px;">Hold S for 5s to skip all</span>';
+    if (this.canSkip && this.isActive && !this.inputDisabled) this.showNextImage();
   }
 
-  startSkipHold() {
-    if (this.isSkipHoldActive) return; // Already holding
-    
-    console.log('⏹️ Starting skip hold - 5 seconds to skip all cutscene');
-    
-    this.isSkipHoldActive = true;
-    this.skipHoldStartTime = Date.now();
-    this.skipHoldProgress = 0;
-    
-    // Show skip hold UI elements
-    const skipContainer = document.getElementById('skip-container');
-    const skipHoldBar = document.getElementById('skip-hold-bar');
-    const skipHoldTimer = document.getElementById('skip-hold-timer');
-    const skipInstruction = document.getElementById('skip-instruction');
-    
-    if (skipContainer) {
-      skipContainer.style.background = 'rgba(128, 0, 128, 0.9)';
-      skipContainer.style.boxShadow = '0 0 20px rgba(255, 0, 255, 0.8), inset 0 0 15px rgba(255, 0, 255, 0.2)';
-    }
-    if (skipHoldBar) skipHoldBar.style.display = 'block';
-    if (skipHoldTimer) skipHoldTimer.style.display = 'block';
-    if (skipInstruction) {
-      skipInstruction.innerHTML = '<span style="color: #ffaa00;">HOLD TO SKIP - ' +
-        '<span id="hold-time">5.0</span>s to skip all</span><br>' +
-        '<span style="color: rgba(255, 255, 255, 0.8); font-size: 12px;">Release to cancel</span>';
-    }
-    
-    // Start progress update interval
-    this.skipHoldProgressInterval = this.trackInterval(() => {
-      this.updateSkipHoldProgress();
-    }, 50); // Update every 50ms for smooth progress
+  disableInputTemporarily(duration) {
+    this.inputDisabled = true;
+    if (this.inputDisableTimer) { clearTimeout(this.inputDisableTimer); this.ownedTimeouts.delete(this.inputDisableTimer); }
+    this.inputDisableTimer = this.trackTimeout(() => { this.inputDisabled = false; this.inputDisableTimer = null; }, duration);
   }
-  
-  // End skip hold timer
-  endSkipHold() {
-    if (!this.isSkipHoldActive) return; // Not holding
-    
-    console.log('⏹️ Skip hold cancelled');
-    
-    this.isSkipHoldActive = false;
-    
-    // Clear progress interval
-    if (this.skipHoldProgressInterval) {
-      clearInterval(this.skipHoldProgressInterval);
-      this.skipHoldProgressInterval = null;
-    }
-    
-    // Hide skip hold UI elements
-    const skipContainer = document.getElementById('skip-container');
-    const skipHoldBar = document.getElementById('skip-hold-bar');
-    const skipHoldTimer = document.getElementById('skip-hold-timer');
-    const skipInstruction = document.getElementById('skip-instruction');
-    
-    if (skipContainer) {
-      skipContainer.style.background = 'rgba(0, 0, 0, 0.85)';
-      skipContainer.style.boxShadow = '0 0 15px rgba(255, 0, 255, 0.6), inset 0 0 10px rgba(255, 0, 255, 0.1)';
-    }
-    if (skipHoldBar) skipHoldBar.style.display = 'none';
-    if (skipHoldTimer) skipHoldTimer.style.display = 'none';
-    if (skipInstruction) {
-      skipInstruction.innerHTML = this.skipInstructionText();
-    }
-    
-    // Reset progress bar
-    const skipHoldProgress = document.getElementById('skip-hold-progress');
-    if (skipHoldProgress) {
-      skipHoldProgress.style.width = '0%';
-    }
+
+  // Each physical input owns its own continuous hold. A controller release or
+  // disconnect must never cancel keyboard S (the PR39 regression).
+  startSkipHold(source = 'keyboard') {
+    if (!this.isActive || this.skipHolds.has(source)) return;
+    this.skipHolds.set(source, Date.now()); this.isSkipHoldActive = true;
+    this.updateSkipHoldProgress(); this.drawCurrentPanel();
   }
-  
-  // Update skip hold progress
+
+  endSkipHold(source = null) {
+    if (source) this.skipHolds.delete(source); else this.skipHolds.clear();
+    this.isSkipHoldActive = this.skipHolds.size > 0;
+    if (!this.isSkipHoldActive) this.skipHoldProgress = 0;
+  }
+
   updateSkipHoldProgress() {
-    if (!this.isSkipHoldActive) return;
-    
-    const elapsed = Date.now() - this.skipHoldStartTime;
-    const progress = Math.min(elapsed / this.skipHoldDuration, 1.0);
-    const remaining = Math.max(0, (this.skipHoldDuration - elapsed) / 1000);
-    
-    this.skipHoldProgress = progress;
-    
-    // Update progress bar
-    const skipHoldProgress = document.getElementById('skip-hold-progress');
-    if (skipHoldProgress) {
-      skipHoldProgress.style.width = `${progress * 100}%`;
-    }
-    
-    // Update timer text
-    const holdTimeElement = document.getElementById('hold-time');
-    if (holdTimeElement) {
-      holdTimeElement.textContent = remaining.toFixed(1);
-    }
-    
-    // Check if hold is complete
-    if (progress >= 1.0) {
-      console.log('⏭️ Skip hold complete - skipping all cutscene');
-      this.endSkipHold(); // Clear the hold UI
-      this.skipAllCutscene(); // Skip everything
-    }
+    if (!this.isActive || !this.isSkipHoldActive) return;
+    const started = Math.min(...this.skipHolds.values());
+    this.skipHoldProgress = Math.min(1, (Date.now() - started) / this.skipHoldDuration);
+    if (this.skipHoldProgress >= 1) { this.endSkipHold(); this.skipAllCutscene(); }
   }
-  
-  // Skip all cutscene immediately
+
   skipAllCutscene() {
-    console.log('⏭️ SKIPPING ALL CUTSCENE - HOLD COMPLETE');
-    
-    // Clear any pending timer
-    if (this.nextImageTimer) {
-      clearTimeout(this.nextImageTimer);
-      this.nextImageTimer = null;
-    }
-    
-    // Reset to end state
-    this.currentImageIndex = this.cutsceneImages.length;
-    
-    // End cutscene immediately
+    if (!this.isActive) return;
+    this.currentImageIndex = window.BARCODE.IntroSequence.panels.length;
     this.endCutscene();
   }
-  
+
   // End the cutscene and clean up
   endCutscene() {
     if (!this.isActive) return;
@@ -862,6 +278,7 @@ window.CutsceneSystem = class CutsceneSystem {
     this.endSkipHold();
     
     this.isActive = false;
+    this.cancelImageLoads();
     this.removeEventListeners();
     window.inputManager?.resetActionEdges?.();
     
@@ -982,22 +399,23 @@ window.CutsceneSystem = class CutsceneSystem {
     }
   }
   
-  // Check if cutscene is active
-  isPlaying() {
-    return this.isActive;
+
+  isPlaying() { return this.isActive; }
+
+  getDiagnostics() {
+    return { active: this.isActive, generation: this.cutsceneGeneration,
+      panel: this.currentImageIndex, panelCount: window.BARCODE.IntroSequence.panels.length,
+      timeouts: this.ownedTimeouts.size, intervals: this.ownedIntervals.size,
+      imageLoads: this.pendingImageLoads.size, listenersAttached: !!this.skipHandler,
+      hasContainer: !!this.cutsceneContainer, skipSources: [...this.skipHolds.keys()] };
   }
 
   destroy() {
-    this.cutsceneGeneration++;
-    this.isActive = false;
-    this.removeEventListeners();
-    this.clearOwnedCallbacks();
-    this.endSkipHold();
-    if (this.cutsceneContainer && this.cutsceneContainer.parentNode) {
-      this.cutsceneContainer.remove();
-    }
-    this.cutsceneContainer = null;
-    this.currentImageElement = null;
+    this.cutsceneGeneration++; this.isActive = false;
+    this.removeEventListeners(); this.cancelImageLoads(); this.clearOwnedCallbacks();
+    this.cutsceneContainer?.remove();
+    this.cutsceneContainer = null; this.introCanvas = null; this.transcriptElement = null;
+    if (this.onComplete) this.onComplete({ cancelled: true });
     this.onComplete = null;
   }
 };

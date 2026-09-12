@@ -12,7 +12,7 @@ async function main() {
   const assetDir = process.argv[2];
   if (!assetDir) throw new Error('Pass the local folder of existing prologue assets.');
   const { w, p, context, calls } = createRig();
-  for (const file of ['src/game/pause-menu.js', 'src/game/combat-fx.js', 'src/core/gamepad-ui.js', 'src/game/crew-transmission.js', 'src/game/render-coordinator.js', 'src/game/ui-manager.js']) load(context, file);
+  for (const file of ['src/game/pause-menu.js', 'src/game/combat-fx.js', 'src/core/gamepad-ui.js', 'src/game/render-coordinator.js', 'src/game/ui-manager.js']) load(context, file);
   w.BARCODE.combatFX = new w.BARCODE.CombatFX();
   w.objectivesSystem = new w.ObjectivesSystem();
   w.cutsceneSystem = { cutsceneImages: [] };
@@ -34,17 +34,7 @@ async function main() {
   });
   const reset = () => { labels.length = 0; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#091321'; ctx.fillRect(0, 0, 1920, 1080); };
   const save = name => fs.writeFileSync(path.join(root, 'docs/source-pack/verification', name + '.webp'), canvas.toBuffer('image/webp'));
-  const scene = w.BARCODE.CrewTransmission;
-  const sheet = createCanvas(1920, 1080), sheetCtx = sheet.getContext('2d');
-  scene.start();
-  for (let index = 0; index < 4; index++) {
-    scene.index = index; scene.elapsedMs = 1000; if (index === 2) scene.input('arrowleft'); reset(); scene.draw(ctx);
-    const dialogue = labels.filter(label => label.y >= 711 && label.y < 940);
-    assert(dialogue.every(label => label.x + label.width <= 1800));
-    sheetCtx.drawImage(canvas, index % 2 * 960, Math.floor(index / 2) * 540, 960, 540);
-  }
-  fs.writeFileSync(path.join(root, 'docs/source-pack/verification/stage-b-crew.webp'), sheet.toBuffer('image/webp'));
-  scene.finish(); p.startMission(); w.player.position.x = 1150; w.player.position.y = 750; w.player.allowMovement = true;
+  p.startMission(); w.player.position.x = 1150; w.player.position.y = 750; w.player.allowMovement = true;
   w.lostDataSystem.getProgress = () => ({ collected: 2, total: 3, saved: true });
   w.gameState.score = 12480; w.BARCODE.signalAmpCharges = 2; w.rhythmSystem.show(); w.rhythmSystem.combo = 6; w.rhythmSystem.arcGrowthLevel = 2;
   reset(); w.drawGameElements(ctx); w.drawGameUI(ctx); save('stage-b-hud');
@@ -57,6 +47,6 @@ async function main() {
   reset(); w.hackingSystem.draw(ctx);
   assert(labels.filter(label => label.y >= 566).every(label => label.x + label.width <= 1434), 'controller terminal legend must fit'); save('stage-b-controller-hack');
   assert.deepStrictEqual(calls.errors, []);
-  console.log('Native Canvas: four existing-art crew panels, consolidated HUD, timing, pause and controller terminal rendered; text bounds passed. These are diagnostics, not Makko screenshots.');
+  console.log('Native Canvas: consolidated HUD, timing, pause and controller terminal rendered; text bounds passed. These are diagnostics, not Makko screenshots.');
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });

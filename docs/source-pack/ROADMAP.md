@@ -1,4 +1,4 @@
-# Roadmap — Stage B after merged PR #38
+# Roadmap — intro correction after merged PR #39
 
 Base: **0d1882f6b6eebf6fc5704d8a3270f2a6b1fb7354**, merged #38; runtime through #37 is retained. Finishable Level 1, combat/animation/audio repairs, combined polish, discovery/traffic/targets and written lore/archive are merged. Their old checklists are history, not the next tasks.
 
@@ -7,13 +7,13 @@ Base: **0d1882f6b6eebf6fc5704d8a3270f2a6b1fb7354**, merged #38; runtime through 
 | Order | Deliverable | Exit evidence | State |
 |---|---|---|---|
 | A | Full story/cast/reveal/collectible/inspiration map and current handoff | Seven connected levels, 28 stable lore purposes, corrected cast, required/optional payoffs, exact source status | Merged in #38 |
-| B | Representative existing-art crew/panel sequence; remaining controller, committed-enemy, boss-cue, HUD, camera and calibration improvements | Connected scene with later payoff, production logic checks and focused owner Makko route | Implemented in current combined review; Makko pending |
+| B | Representative existing-art crew/panel sequence; remaining controller, committed-enemy, boss-cue, HUD, camera and calibration improvements | Connected scene with later payoff, production logic checks and focused owner Makko route | Merged as #39; actual intro correction now in review, HUD/rhythm follow-up next |
 | C | Campaign adapter, extend existing save, keys/modules/results/intermissions and second-song mixer proof | Clean leave/re-enter, old discoveries survive, resume progress, no resource leaks, independent source roles | Before full new genres |
 | D | Contra slice first; road and first-person proofs; puzzle and capped Sample-party loops | Roughly five-minute useful proofs with threat/music relationship, pause/exit/save-return and measured asset geometry | Planned; production order differs from story order |
 | E | Complete compact stages with story bridges, crew roles, selected eggs, lore/rewards and appropriate music | Finishable stages, required plot on main route, persistent discoveries | Planned |
 | F | Finale preparation, prior-item/crew payoffs, 9 Bit, authored resolution and full-game acceptance | Zero-module win route, recoverable final save, transitions and ending paths checked | Exact outcomes unresolved |
 
-Use coherent combined reviews, not a separate PR per tiny effect. Stage A changed documents only; Stage B is now implemented as documented in STORY_CONTROLS_PASS.md. Exact scenes/assets and ending/puzzle/device choices are resolved when concrete designs are ready; retained decisions need not be reapproved.
+Use coherent combined reviews, not a separate PR per tiny effect. Stage A changed documents only; Stage B was implemented in #39 but missed the actual intro request. INTRO_OVERHAUL.md records that correction; the owner ordered HUD/rhythm/attack-variety work next, before Stage C. Exact scenes/assets and ending/puzzle/device choices are resolved when concrete designs are ready; retained decisions need not be reapproved.
 
 ## Infrastructure and performance
 

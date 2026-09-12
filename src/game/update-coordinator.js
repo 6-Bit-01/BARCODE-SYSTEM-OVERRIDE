@@ -37,14 +37,7 @@ window.updateGame = function(deltaTime) {
     if (window.gameState.gameOver || window.gameState.victory) window.rhythmSystem?.update?.(deltaTime);
     return;
   }
-  if (window.BARCODE?.CrewTransmission?.active) {
-    window.BARCODE.CrewTransmission.update(deltaTime);
-    // Freeze the safe scene's world and cooldown clock, not the song.
-    updateGameSystems(deltaTime, false, !!window.rhythmSystem?.isActive?.());
-    updateAudio(deltaTime);
-    return;
-  }
-  
+
   const dt = deltaTime / 1000;
   window.gameState.gameTime += deltaTime;
   
