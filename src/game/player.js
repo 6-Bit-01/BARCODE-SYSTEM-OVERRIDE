@@ -160,6 +160,7 @@ window.Player = class Player {
       const previousX = this.position.x;
       this.contactSweep = { previousX, previousFootY: previousFootY + PLAYER_VISUAL_FOOT_OFFSET_Y };
       const groundedAtStart = this.grounded;
+      const descentAtStart = this.velocity.y;
       this.afterimageMs = Math.max(0, (this.afterimageMs || 0) - deltaTime);
       if (this.isRhythmPlanted()) { this.velocity.x = 0; this.airInput = 0; }
       // Forced motion may unground a performance; never suspend gravity.
@@ -237,6 +238,11 @@ window.Player = class Player {
         this.landingPoseMs = 90;
         window.audioSystem?.playCombatCue?.('land');
         window.particleSystem?.landingEffect?.(this.position.x, this.position.y + PLAYER_VISUAL_FOOT_OFFSET_Y);
+        window.BARCODE?.combatFX?.movement('land', this, Math.max(0, descentAtStart));
+      }
+      this.stepFxMs = Math.max(0, (this.stepFxMs || 0) - deltaTime);
+      if (this.grounded && Math.abs(this.velocity.x) > 100 && this.stepFxMs === 0) {
+        this.stepFxMs = 135; window.BARCODE?.combatFX?.movement('step', this);
       }
       if (this.grounded) {
         this.bossReboundMs = 0;
@@ -594,6 +600,7 @@ window.Player = class Player {
         window.particleSystem.jumpEffect(jumpX, this.getVisualAnchor().targetFootY, null);
       }
       window.audioSystem?.playCombatCue?.('jump');
+      window.BARCODE?.combatFX?.movement('jump', this);
       return true;
     }
     return false;

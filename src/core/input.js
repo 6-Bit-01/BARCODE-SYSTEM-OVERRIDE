@@ -241,6 +241,7 @@ window.InputManager = class InputManager {
       }
     }
     if (actions.interact.pressed) this.routeInteract();
+    if (actions.inspect?.pressed) window.BARCODE?.stageFX?.inspect();
   }
 
   routeInteract() {

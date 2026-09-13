@@ -1,5 +1,18 @@
 # Easter eggs, cameos and player-aware presentation
 
+## First Level 1 discoveries — current combined draft
+
+The owner approved the four optional details below as part of all ten impact/discovery recommendations. They are now implemented for review; later candidate placements remain proposals. E / LB inspects between fights, a second press requests the short crew reply, and moving away closes the card. Facts are saved only on inspection, merge across tabs with lore, and survive restart/reload without altering lore counts or stats.
+
+| Stable ID | Actual placement | Response / presentation |
+|---|---|---|
+| `egg.l01.studio-rat` | Street x590 by the Signal Lift | Cache Back notices the stolen panel bolt; a rat crosses the bottom margin; results callback after discovery. |
+| `egg.l01.cliff-maintenance` | First roof x865, visible-foot y492 | Cliff's two-beat lift maintenance note. |
+| `egg.l01.witty-route` | Firewall canopy x2475, visible-foot y358 | WittyF0x points toward the existing Signal Amp roof. |
+| `egg.l01.venue-flyer` | Street x1840 | DJ Floppydisc's BARCODE venue flyer response. |
+
+The existing opening `egg.comic.gutter` stays run-only and retains its callback. The new durable IDs are separate facts, not replacements. No additional playable character or identifiable cameo portrait is introduced. The actor-aware framing, caption tilt and rat do not pretend to damage the real browser or save.
+
 ## Current opening setup
 
 `egg.comic.gutter` is implemented as the displaced recovery caption on opening page 6, inspected with Left Arrow/D-pad Left. It has a run-only results callback and resets on a fresh run. PR #40 removed the earlier misplaced post-tutorial panel/Studio Rats reply; that historical setup is not live. Cliff appears behind Mac/Cache on opening page 2. The L4/L7 payoffs and other candidate placements below remain planned; no campaign save field or new playable character is added.

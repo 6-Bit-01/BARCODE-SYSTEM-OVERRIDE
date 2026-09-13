@@ -12,6 +12,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
   const PLAYER_VISUAL_FOOT_OFFSET = window.Player.VISUAL_FOOT_OFFSET_Y;
   const CAMERA_MIN = CANVAS_WIDTH / 2;
   const CAMERA_MAX = WORLD_WIDTH - CANVAS_WIDTH / 2;
+  const COMPLETION_PRESENTATION = Object.freeze({ holdMs: 620, fadeMs: 240, rowMs: 760, staggerMs: 220 });
 
   const STATES = Object.freeze({
     TUTORIAL: 'tutorial', ENCOUNTER_1: 'encounter_1', ENCOUNTER_2: 'encounter_2', ENCOUNTER_3: 'encounter_3', ENCOUNTER_4: 'encounter_4',
@@ -245,7 +246,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     getSpawnBodyHalfWidth(type) { if (type === 'firewall') return 135; if (type === 'corrupted') return 50; return 40; }
     planSpawn(spec = {}) { const bounds = this.getVisibleWorldBounds(); const bodyHalf = this.getSpawnBodyHalfWidth(spec.type); const playerX = this.player?.position?.x || bounds.center; const left = { x: Math.max(bodyHalf, bounds.left - SPAWN.offscreenPadding - bodyHalf), side: 'left' }; const right = { x: Math.min(WORLD_WIDTH - bodyHalf, bounds.right + SPAWN.offscreenPadding + bodyHalf), side: 'right' }; const outside = candidate => candidate.x + bodyHalf <= bounds.left - SPAWN.offscreenPadding || candidate.x - bodyHalf >= bounds.right + SPAWN.offscreenPadding; const farFromPlayer = candidate => Math.abs(candidate.x - playerX) >= SPAWN.playerExclusionRadius + bodyHalf; const candidates = [left, right].filter(outside).sort((a, b) => Math.abs(a.x - (spec.x || playerX)) - Math.abs(b.x - (spec.x || playerX))); const accepted = candidates.find(farFromPlayer) || candidates[0] || [left, right].sort((a, b) => Math.abs(b.x - playerX) - Math.abs(a.x - playerX))[0]; this.lastSpawnPlan = { bounds, candidates, accepted: { x: accepted.x, y: Number.isFinite(spec.y) ? spec.y : GROUND_Y, side: accepted.side }, playerX, exclusionRadius: SPAWN.playerExclusionRadius, bodyHalf }; return { x: accepted.x, y: Number.isFinite(spec.y) ? spec.y : GROUND_Y, side: accepted.side }; }
     planEntranceTarget(spec = {}, origin = {}, index = 0) { const bodyHalf = this.getSpawnBodyHalfWidth(spec.type); const playerX = this.player?.position?.x || CAMERA_MIN; const clearance = SPAWN.playerExclusionRadius + bodyHalf; const authoredX = Math.max(bodyHalf, Math.min(WORLD_WIDTH - bodyHalf, Number.isFinite(spec.x) ? spec.x : playerX)); const originSide = origin.side || (origin.x < playerX ? 'left' : 'right'); const side = originSide === 'left' ? -1 : 1; const authoredStaysOnApproachSide = side < 0 ? authoredX <= playerX - clearance : authoredX >= playerX + clearance; if (authoredStaysOnApproachSide) return { x: authoredX, y: Number.isFinite(spec.y) ? spec.y : GROUND_Y }; const spread = Math.min(180, Math.max(0, Number(index) || 0) * 45); let targetX = Math.max(bodyHalf, Math.min(WORLD_WIDTH - bodyHalf, playerX + side * (clearance + spread))); if (Math.abs(targetX - playerX) < clearance) targetX = Math.max(bodyHalf, Math.min(WORLD_WIDTH - bodyHalf, playerX - side * (clearance + spread))); return { x: targetX, y: Number.isFinite(spec.y) ? spec.y : GROUND_Y }; }
-    spawnMissionEnemy(spec, encounterId, index, options = {}) { const targetY = spec.type === 'virus' && Number.isFinite(spec.y) ? spec.y : GROUND_Y; const origin = options.origin || this.planSpawn({ ...spec, y: targetY }); const target = this.planEntranceTarget({ ...spec, y: targetY }, origin, index); const enemy = new window.Enemy(origin.x, origin.y, spec.type); /* Enemy constructors have legacy entrance code that rewrites some origins, so restore the authoritative planned origin after construction. */ enemy.position.x = origin.x; enemy.position.y = origin.y; enemy.originalSpawnX = origin.x; enemy.originalSpawnY = origin.y; enemy._dropEdge = null; enemy._sector1MissionEnemy = !options.jammerReinforcement && !options.tutorialEnemy; enemy._jammerReinforcement = !!options.jammerReinforcement; enemy._isTutorialEnemy = !!options.tutorialEnemy; enemy._sector1EncounterId = encounterId; enemy._sector1Index = index; enemy.role = spec.role || null; if (enemy.role === 'swooper') { enemy.swooperState = 'approach'; enemy._dropEdge = null; } enemy._entranceTarget = target; enemy._authoredEntranceActive = true; enemy._authoredEntranceSpeed = SPAWN.entranceSpeed; enemy.entranceComplete = false; enemy.state = 'authored_entrance'; enemy.spawnTimeMs = 0; enemy.spawnProtectionDuration = SPAWN.protectionMs; enemy.velocity.x = enemy._entranceTarget.x >= origin.x ? SPAWN.entranceSpeed : -SPAWN.entranceSpeed; enemy.velocity.y = 0; if (window.enemyManager) window.enemyManager.enemies.push(enemy); return enemy; }
+    spawnMissionEnemy(spec, encounterId, index, options = {}) { const targetY = spec.type === 'virus' && Number.isFinite(spec.y) ? spec.y : GROUND_Y; const origin = options.origin || this.planSpawn({ ...spec, y: targetY }); if (!options.origin && encounterId === 'encounter_2' && spec.type === 'virus') origin.y = 330 - PLAYER_VISUAL_FOOT_OFFSET; const target = this.planEntranceTarget({ ...spec, y: targetY }, origin, index); const enemy = new window.Enemy(origin.x, origin.y, spec.type); /* Enemy constructors have legacy entrance code that rewrites some origins, so restore the authoritative planned origin after construction. */ enemy.position.x = origin.x; enemy.position.y = origin.y; enemy.originalSpawnX = origin.x; enemy.originalSpawnY = origin.y; enemy._dropEdge = null; enemy._sector1MissionEnemy = !options.jammerReinforcement && !options.tutorialEnemy; enemy._jammerReinforcement = !!options.jammerReinforcement; enemy._isTutorialEnemy = !!options.tutorialEnemy; enemy._sector1EncounterId = encounterId; enemy._sector1Index = index; enemy.role = spec.role || null; if (enemy.role === 'swooper') { enemy.swooperState = 'approach'; enemy._dropEdge = null; } enemy._entranceTarget = target; enemy._authoredEntranceActive = true; enemy._authoredEntranceSpeed = SPAWN.entranceSpeed; enemy.entranceComplete = false; enemy.state = 'authored_entrance'; enemy.spawnTimeMs = 0; enemy.spawnProtectionDuration = SPAWN.protectionMs; enemy.velocity.x = enemy._entranceTarget.x >= origin.x ? SPAWN.entranceSpeed : -SPAWN.entranceSpeed; enemy.velocity.y = 0; if (window.enemyManager) window.enemyManager.enemies.push(enemy); return enemy; }
     spawnTutorialEnemy(index = 0) { this.player = this.player || window.player; if (!window.enemyManager || !window.Enemy) return null; const playerX = this.player?.position?.x || CAMERA_MIN; const side = Number(index) % 2 === 0 ? -1 : 1; const spec = { type: 'virus', x: playerX + side * (SPAWN.playerExclusionRadius + 120 + Number(index) * 45), y: GROUND_Y }; return this.spawnMissionEnemy(spec, 'tutorial', index, { tutorialEnemy: true }); }
     keepEntranceTargetSafe(enemy) { if (!enemy?._authoredEntranceActive || !enemy._entranceTarget || !this.player?.position) return; const bodyHalf = this.getSpawnBodyHalfWidth(enemy.type); const playerX = this.player.position.x; const clearance = SPAWN.playerExclusionRadius + bodyHalf; const side = enemy.position.x < playerX ? -1 : 1; const targetStaysOnApproachSide = side < 0 ? enemy._entranceTarget.x <= playerX - clearance : enemy._entranceTarget.x >= playerX + clearance; if (targetStaysOnApproachSide) return; const spread = Math.min(180, Math.max(0, Number(enemy._sector1Index) || 0) * 45); let targetX = Math.max(bodyHalf, Math.min(WORLD_WIDTH - bodyHalf, playerX + side * (clearance + spread))); if (Math.abs(targetX - playerX) < clearance) targetX = Math.max(bodyHalf, Math.min(WORLD_WIDTH - bodyHalf, playerX - side * (clearance + spread))); enemy._entranceTarget.x = targetX; }
     onEnemyDefeated(authoritativeTotal, enemy) { if (!this.missionStarted || !enemy || !enemy._sector1MissionEnemy || this.countedEnemies.has(enemy)) return; this.countedEnemies.add(enemy); this.missionDefeats = Math.min(this.requiredEnemyKills, this.missionDefeats + 1); if (window.gameState) window.gameState.enemiesDefeated = this.missionDefeats; if (window.objectivesSystem?.updateMissionDefeatProgress) window.objectivesSystem.updateMissionDefeatProgress(this.missionDefeats, this.requiredEnemyKills); if (this.missionDefeats === this.requiredEnemyKills && !this.jammerRevealed) this.revealJammer(); }
@@ -270,6 +271,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       this.districtSignal.restoration = { originX, startedAtMs: this.districtSignal.elapsedMs,
         distance: Math.max(originX + 152, 4248 - originX) };
       this.state = STATES.FREEZE;
+      window.renderer?.impact?.('destruction');
+      window.BARCODE?.stageFX?.event('destruction', originX, { duration: 1500 });
+      window.BARCODE?.combatFX?.contact('firewall', originX, 660, 1, true, true);
+      window.BARCODE?.combatFX?.contact('corrupted', originX, 700, -1, true, true);
       // End the combat mode at the destruction event, not at camera handoff.
       // hide() preserves the running music transport and background beat state.
       window.rhythmSystem?.hideRhythmMode?.();
@@ -404,7 +409,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     emitBossPulse() {
       this.boss.pulses.push({ id: ++this.boss.pulseSequence, originX: this.boss.x,
         radius: 0, previousRadius: 0, hit: false });
-      window.renderer?.addScreenShake?.(3, 120);
+      window.renderer?.impact?.('boss');
+      window.BARCODE?.stageFX?.event('boss', this.boss.x, { duration: 650 });
     }
     updateBossCombat(deltaTime) {
       if (!this.isBossCombatLive()) return;
@@ -540,6 +546,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       this.boss.canReceiveDamage = false;
       this.boss.pulses = [];
       this.boss.phase = 'defeated';
+      window.renderer?.impact?.('victory');
+      window.BARCODE?.stageFX?.event('victory', this.boss.x, { duration: 1400 });
+      window.BARCODE?.combatFX?.contact('firewall', this.boss.x, this.boss.y, -1, true, true);
       this.boss.state = 'idle';
       this.setBossAnimation('sector_1_boss_idle_idle', true);
       this.state = STATES.LEVEL_COMPLETE;
@@ -558,13 +567,22 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     }
     updateCompletionPresentation(deltaTime = 0) {
       if (!this.completion || this.state !== STATES.LEVEL_COMPLETE || !window.gameState?.victory || window.isPaused || window.gameState?.paused) return;
-      this.completion.elapsedMs = Math.min(1600, this.completion.elapsedMs + Math.max(0, Number(deltaTime) || 0));
+      const { holdMs, fadeMs, rowMs, staggerMs } = COMPLETION_PRESENTATION;
+      this.completion.elapsedMs = Math.min(holdMs + fadeMs + rowMs + 2 * staggerMs,
+        this.completion.elapsedMs + Math.max(0, Number(deltaTime) || 0));
+    }
+    getCompletionReveal() {
+      const { holdMs, fadeMs } = COMPLETION_PRESENTATION;
+      return Math.max(0, Math.min(1, ((this.completion?.elapsedMs || 0) - holdMs) / fadeMs));
     }
     getCompletionPresentation() {
       if (!this.completion) return null;
       const result = this.completion;
+      const { holdMs, fadeMs, rowMs, staggerMs } = COMPLETION_PRESENTATION;
+      // Give every row its full count-up after the final-hit hold and card fade.
+      const visibleMs = result.elapsedMs - holdMs - fadeMs;
       return ['score', 'bestCombo', 'fragments'].map((key, index) => {
-        const progress = Math.max(0, Math.min(1, (result.elapsedMs - index * 220) / 760));
+        const progress = Math.max(0, Math.min(1, (visibleMs - index * staggerMs) / rowMs));
         return { key, value: Math.round(result[key] * (1 - Math.pow(1 - progress, 3))), finalValue: result[key], progress,
           total: key === 'fragments' ? result.totalFragments : null };
       });
@@ -1005,6 +1023,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     pollPreparedAsset(entry) { if (!entry || entry.ready || entry.generation !== this.assetGeneration) return; try { if (!entry.sprite.isLoaded || entry.sprite.isLoaded()) { entry.ready = true; if (entry.onReady) entry.onReady(entry.sprite); } } catch (error) { if (!entry.diagnosticRecorded) { entry.diagnosticRecorded = true; this.recordAssetDiagnostic(entry.key, error); } } }
     recordAssetDiagnostic(key, error) { this.assetDiagnostics = this.assetDiagnostics || []; if (!this.assetDiagnostics.some(entry => entry.key === key)) this.assetDiagnostics.push({ key, message: String(error && error.message || error) }); }
     reset(options = {}) {
+      window.BARCODE?.stageFX?.reset(this);
       window.renderer?.resetFollowCamera?.(this.player?.position.x);
       this.resetDistrictSignal();
       this.missionStarted = false; this.missionDefeats = 0; this.enemiesDefeated = 0; this.jammerRevealed = false; this.jammerDestroyedNotified = false;

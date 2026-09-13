@@ -118,7 +118,7 @@ window.renderGame = function() {
   if (rendererAvailable && window.renderer && typeof window.renderer.zoomLevel === 'number') {
     ctx.save();
     
-    const currentZoom = window.renderer.zoomLevel;
+    const currentZoom = window.renderer.zoomLevel * (window.renderer.getImpactZoom?.() || 1);
     const zoomAmount = 1.0 - currentZoom;
     const maxOffset = 100;
     const verticalOffset = (zoomAmount / 0.4) * maxOffset;
@@ -262,7 +262,7 @@ function drawGameElements(ctx) {
   drawOtherParticles(ctx);
   
   // Draw game entities
-  window.BARCODE?.combatFX?.draw(ctx);
+  window.BARCODE?.stageFX?.drawWorld(ctx);
   drawRhythmEffectsBehindPlayer(ctx);
   drawGameEntities(ctx);
   
@@ -270,6 +270,7 @@ function drawGameElements(ctx) {
   
   // Draw player
   drawPlayer(ctx);
+  window.BARCODE?.combatFX?.draw(ctx);
   
   // Restore camera transform
   ctx.restore();

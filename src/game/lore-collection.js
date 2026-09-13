@@ -5,6 +5,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/lore-collection.js', exports: ['BARC
   const BARCODE = window.BARCODE = window.BARCODE || {};
   const KEY = 'barcode.system-override.save.v1.default';
   const COUNTS = [3, 4, 5, 4, 5, 4, 3];
+  const EGGS = new Set(['egg.l01.studio-rat', 'egg.l01.cliff-maintenance', 'egg.l01.witty-route', 'egg.l01.venue-flyer']);
   const IDS = new Set(COUNTS.flatMap((count, index) => Array.from({ length: count }, (_, piece) =>
     `lore.l${String(index + 1).padStart(2, '0')}.${String(piece + 1).padStart(2, '0')}`)));
   const object = value => value && typeof value === 'object' && !Array.isArray(value);
@@ -23,6 +24,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/lore-collection.js', exports: ['BARC
       const unknown = value.progress.lore.filter(id => !IDS.has(id));
       if (unknown.length) value.integrity.unrecognizedLore = unknown;
       value.progress.lore = [...new Set(value.progress.lore.filter(id => IDS.has(id)))];
+      value.progress.easterEggs = Array.isArray(value.progress.easterEggs) ? [...new Set(value.progress.easterEggs.filter(id => typeof id === 'string'))] : [];
       return value;
     } catch (_) { return null; }
   }
@@ -54,6 +56,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/lore-collection.js', exports: ['BARC
     }
     has(id) { return this.record.progress.lore.includes(id); }
     getIds() { return [...this.record.progress.lore]; }
+    hasEgg(id) { return this.record.progress.easterEggs.includes(id); }
+    collectEgg(id) {
+      if (!EGGS.has(id)) return false;
+      const fresh = !this.hasEgg(id);
+      if (fresh) this.record.progress.easterEggs.push(id);
+      if (fresh || this.status !== 'ready') this.save();
+      return fresh;
+    }
     collect(id) {
       if (!IDS.has(id)) return false;
       const fresh = !this.has(id);
@@ -76,7 +86,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/lore-collection.js', exports: ['BARC
           if (!valid && !this.record.integrity?.recoveredFromBackup) { this.blocked = true; this.status = 'damaged'; return false; }
           if (!valid) storage.setItem(KEY + '.damaged', currentRaw);
           if (valid) this.record = { ...valid, progress: { ...valid.progress,
-            lore: [...new Set([...valid.progress.lore, ...this.record.progress.lore])] } };
+            lore: [...new Set([...valid.progress.lore, ...this.record.progress.lore])],
+            easterEggs: [...new Set([...valid.progress.easterEggs, ...this.record.progress.easterEggs])] } };
         }
         const next = JSON.parse(JSON.stringify(this.record));
         next.revision = (Number.isSafeInteger(next.revision) ? next.revision : 0) + 1;

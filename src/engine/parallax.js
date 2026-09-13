@@ -264,18 +264,19 @@ window.ParallaxBackground = class ParallaxBackground {
     this.signalDisplays.forEach(([left, top, w, h, zone], index) => {
       if (!this.decorationVisible(left, w, x, sx)) return;
       const recovery = district.zones[zone].recovery;
+      const response = window.BARCODE?.stageFX?.energyAt(-152 + (left + w / 2) * 4400 / 1279) || 0;
       const restored = restoredAt(-152 + (left + w / 2) * 4400 / 1279);
       const interference = district.interference * (1 - recovery * 0.65) * (1 - restored);
       // Opaque art remains visible. Corruption is a few slow, localized broken
       // scan lines; clearing the encounter brings steady light underneath them.
       ctx.fillStyle = `rgba(4, 8, 29, ${0.22 * interference})`;
       ctx.fillRect(left, top, w, h);
-      ctx.fillStyle = `rgba(113, 255, 229, ${(recovery * 0.14 + restored * 0.1 + energy * 0.24) * quiet})`;
+      ctx.fillStyle = `rgba(113, 255, 229, ${Math.min(0.65, recovery * 0.14 + restored * 0.16 + energy * 0.3 + response * 0.2) * quiet})`;
       ctx.fillRect(left, top, w, h);
       if (performing || kick > 0) {
         // Small equalizer bars stay inside the real sign interiors. Attacks
         // brighten the scene briefly; the beat alone never implies damage.
-        ctx.fillStyle = `rgba(${(index + Math.floor(combo * 2)) % 2 ? '224,139,255' : '129,255,231'}, ${Math.min(0.8, 0.22 + energy * 0.32) * quiet})`;
+        ctx.fillStyle = `rgba(${(index + Math.floor(combo * 2)) % 2 ? '224,139,255' : '129,255,231'}, ${Math.min(0.9, 0.3 + energy * 0.45) * quiet})`;
         for (let bar = 0; bar < 8; bar++) {
           const level = this.equalizerLevel(index, bar, beatFloat, pulse);
           const barHeight = Math.min(h - 3, h * level * (0.6 + combo * 0.28 + energy * 0.2));
@@ -286,6 +287,12 @@ window.ParallaxBackground = class ParallaxBackground {
           ctx.fillStyle = `rgba(193,255,240,${downbeat * (0.28 + combo * 0.12) * quiet})`;
           ctx.fillRect(left, top, w, Math.min(1.5, h / 8));
         }
+      }
+      // Broadcast Gate's actual glass fills toward the twenty-defeat release.
+      if (zone === 3 && !district.restored) {
+        const build = Math.max(0, Math.min(1, ((window.sector1Progression?.missionDefeats || 0) - 14) / 6));
+        ctx.fillStyle = `rgba(242,163,249,${(0.15 + build * 0.5) * quiet})`;
+        ctx.fillRect(left + 1, top + h - 4, (w - 2) * build, 2);
       }
       const scan = (district.elapsedMs / 180 + index * 7) % h;
       ctx.fillStyle = `rgba(214, 122, 246, ${0.22 * interference * quiet})`;
@@ -328,6 +335,7 @@ window.ParallaxBackground = class ParallaxBackground {
         }
       }
     }
+    window.BARCODE?.stageFX?.drawArchitecture(ctx, this.getSceneMusic(), district);
     ctx.restore();
   }
 
@@ -355,7 +363,8 @@ window.ParallaxBackground = class ParallaxBackground {
     const combo = performing ? Math.min(1, Math.max(0, (window.rhythmSystem.combo || 0) - 4) / 6) : 0;
     const quiet = window.sector1Progression?.isBossCombatLive?.() ? 0.4 : 1;
     const kick = animate ? window.BARCODE?.combatFX?.sceneKick || 0 : 0;
-    const energy = performing ? 0.18 + pulse * 0.52 + downbeat * 0.22 + kick * 0.18 + combo * 0.2 : pulse * 0.08;
+    const phrase = grid ? (Math.floor(grid.beatFloat / 4) % 4) / 3 : 0;
+    const energy = performing ? 0.2 + pulse * 0.52 + downbeat * 0.22 + kick * 0.25 + combo * (0.2 + phrase * 0.18) : pulse * 0.08;
     return { pulse, downbeat, beatFloat: grid?.beatFloat || 0, quiet, performing, kick, combo, energy };
   }
 

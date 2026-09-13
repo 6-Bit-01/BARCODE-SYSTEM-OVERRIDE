@@ -1,5 +1,22 @@
 # Acceptance and Test Status
 
+## Combined ten-item impact/discovery review — after #43
+
+Import the exact `agent/level1-impact-discovery` PR head into the duplicate Makko project. Rollback is `51b65d4cd71d369b05003ddaa83cfe6f88fe348b`. Owner Makko acceptance is required before merge. Keep the full opening/fullscreen, tutorial, movement/contact, H/R, lift, audio, mission/Jammer, boss win/loss/retry and restart smoke route from AGENTS.
+
+1. Compare normal hits, damage, heavy roof landings, stomps and destruction. Their direction/weight differs; health and the beat target stay steady. Disable Screen shake in Pause and repeat.
+2. Hit/defeat Virus, Corrupted and Firewall. Look for bright contact cores, data squares, displaced strips and hot metal. Debris continues after the enemy disappears; attacks/physics never freeze globally. Compare SFX and Flash accents off.
+3. Build combo 5 and 10: a forward waveform then short chain links become real attacks. Brackets match the next successful hit, including turning, vertical separation and Amp use. Miss resets the tier. Check that boss guard and Jammer's one-health-per-success remain intact.
+4. Perform across musical phrases: actual screen glass, curb, cable lights and pavement build with combo. Quiet traversal stays quieter. Enemy windups remain readable.
+5. Jump, land from different heights, run across roofs and stomp near the hanging sign/vents. Check foot sparks, rattle, cable swing, steam and existing vehicle light sweeps without collision changes.
+6. Play all four encounters. Signal Alley reconnects; Cache Overpass has protected descending Virus arrivals and traffic shadows; Firewall Plaza has heavier entrances; Broadcast Gate displays build to release. Confirm all 20 required defeats and unchanged gate progression. Clears visibly reframe/unlock the street.
+7. Damage and destroy the 16-health Jammer. Watch increasing strain, breakup and buildings recovering in order through the existing cinematic. Rhythm Mode exits immediately. Boss entry/major pulses have weight; the final hit stays visible briefly before results. Retry preserves the restored district without replaying clears.
+8. Read health, Amp, combo, objective and approaching beat notes at normal window size and fullscreen. The top-left target stays fixed through shake/zoom. Check keyboard/controller prompts, early/late feedback, calibration and the relocated lore-collection destination. After a successful hack, repair packets must land inside the health bar and its outline must follow that bar. On victory, watch the final impact and card fade before the score starts counting from zero; score, combo and lore must each finish at their saved totals. Pause and rematch must preserve/reset that animation cleanly.
+9. Stomp during an encounter: only its caption tilts. Inspect the Studio Rat and watch it drag a bolt through the panel margin. Check its earned results callback; no callback is granted merely by drawing or standing nearby.
+10. Between fights, backtrack to the rat at street x590; read Cliff's plate on the first roof x865; inspect WittyF0x's mark on the Firewall canopy x2475 and the venue flyer at street x1840. Use E / LB, then again for the optional crew reply; walk away to dismiss. H/Y still starts hacking. Pause, tutorial, fights and airborne states cannot inspect. Reload and revisit: facts persist, lore totals and combat stats do not change.
+
+Automated evidence covers production target/input/save/lifecycle rules, protected arrivals, camera bounds, reduced effects, victory timing and existing mission/boss regressions. Native Canvas fixtures are in `verification/impact-pass-*.webp`; they use fixed scenario states and an animation adapter. Browser CI retains the intro/fullscreen regression. Audio feel, host sprite playback, controller ergonomics and final tuning remain owner review items.
+
 ## Staged intro review — after merged #42
 
 Base/rollback: `f1831f95c187bdd5afd9c8231d2a7a10ac262671`. Import the exact head of `agent/intro-cue-staging` into the duplicate Makko project before merge. The owner confirmed the prior images are visible; this new timing/art pass needs its own review.

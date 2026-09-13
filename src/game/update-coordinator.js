@@ -35,6 +35,10 @@ window.updateGame = function(deltaTime) {
   if (window.gameState.paused || window.isPaused) return;
   if (!window.gameState.running) {
     if (window.gameState.gameOver || window.gameState.victory) window.rhythmSystem?.update?.(deltaTime);
+    if (window.gameState.victory) {
+      window.BARCODE?.combatFX?.update(deltaTime);
+      window.BARCODE?.stageFX?.update(deltaTime);
+    }
     return;
   }
 
@@ -67,6 +71,8 @@ window.updateGame = function(deltaTime) {
   
   // Update sector progression
   updateSectorProgression(deltaTime);
+  window.BARCODE?.stageFX?.update(deltaTime);
+  window.BARCODE?.encounterPresentation?.update(window.sector1Progression);
   
   // Update objectives
   updateObjectives(deltaTime);

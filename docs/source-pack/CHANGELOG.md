@@ -1,5 +1,19 @@
 # Changelog
 
+## September 13, 2026 — PR #44 final HUD/results corrections
+
+- Align hack-success packet arrival and the repair outline with the compact health bar.
+- Start the staggered score/combo/lore count-up after the final-hit hold and complete card fade. Share fade timing with the progression owner and extend its bounded clock so every row reaches its saved total.
+- Extend the production victory check for hidden/fading rows, visible count-up, pause and retry cleanup. Full local regression and syntax checks pass; add a reproducible native UI diagnostic. Preserve the complete ten-item pass in draft PR #44, with current-head browser/export evidence supplied by CI and owner Makko acceptance still pending.
+
+## September 13, 2026 — all ten Level 1 impact/discovery items
+
+- Preserve merged #43's opening and implement the approved combined scope from `LEVEL_01_IMPACT_PASS.md`.
+- Add typed camera reactions, final-hit presentation, stronger material contacts, foot impacts and real combo-5 waveform / combo-10 chain attacks with shared previews and bounded Amp behavior.
+- Connect actual screen interiors, pavement, cables, vents, sign rattle and traffic lighting to music/actions; differentiate encounter arrivals, Jammer breakup/recovery and boss impacts.
+- Consolidate the comic HUD around a fixed top-left predictive target. Add caption tilts, clear framing, four optional E/LB inspections, crew replies, rat margin animation and compatible persistent discovery facts.
+- Add consequential production-code regression coverage and native Canvas evidence; retain intro Chromium CI, all prior regression gates and one committed Source Pack v5 export. No new raster game assets, runtime dependencies, canvases, listeners or frame loops. One combined draft; no Makko acceptance or merge claimed.
+
 ## September 13, 2026 — staged intro cues after #42
 
 - Confirm merged #42 and the owner's report that the images now appear; retain its fullscreen/visibility fix.

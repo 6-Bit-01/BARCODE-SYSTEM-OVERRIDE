@@ -1,5 +1,13 @@
 # Decision Register
 
+## Current owner approval — all ten impact/discovery recommendations after #43
+
+“Alright let's proceed” authorizes the complete numbered scope in `LEVEL_01_IMPACT_PASS.md`, including actual attack variety, compact top-left predictive rhythm, FX, four encounter identities and optional fourth-wall/discovery content. Use one combined pass and draft PR; the existing push/draft authorization persists. The prior intro-first work is retained from merged #43. Stage C follows this review.
+
+Review tuning: ordinary base radius still grows 250–350; combo 5 adds a forward wave up to base+85 (470 maximum), within 90 vertical pixels; combo 10 adds at most two links of 140 pixels with total reach at most 520. Amp provides its existing 430 radius and one charge per ordinary-target transaction; the same bounded wave/link rules then apply. No multiplied boss/Jammer damage or new input is inferred. Camera peaks are 5px hit/landing, 7 hurt, 10 stomp, 12 destruction, 9 boss and 13 final-hit, with bounded decay and optional motion. These are implementation tuning choices awaiting Makko feel review, not new canon locks.
+
+E / controller LB is the separate optional Inspect action; H/Y remains hacking. The four new stable IDs are listed in EASTER_EGGS_AND_CAMEOS. Their original dialogue and presentation are authorized by this scope. They do not settle future revelations, ending evaluation, more playable characters or later level designs.
+
 ## Owner correction after merged #39 — intro first
 
 The owner repeatedly requested the actual intro, then reported that holding S did not work and criticized the HUD/rhythm presentation. Their latest explicit order is: “Stick to the intro work and then do that.” The opening correction in INTRO_OVERHAUL.md therefore comes first, based on `510342ed21692fd85f9b99ef6b29990a5694132d`; the HUD/rhythm/threshold-attack request is the next authorized follow-up. Stage C does not take its place. The owner then explicitly requested intro images, required models first, and supplied models for 6 Bit, Cache Back, Cliff, DJ Floppydisc and Mac Modem. This authorizes the eight targeted illustrations and integration in INTRO_ART_DIRECTION.md. All other intro characters remain offscreen/obscured. It does not settle a new 9 Bit origin/reveal or claim owner Makko acceptance.

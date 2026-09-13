@@ -1017,27 +1017,46 @@ window.RhythmSystem = class RhythmSystem {
   }
   
   // Draw enhanced 4-bar progress visualization
-  drawCompactHUD(ctx) {
+  getPredictiveNotes() {
     const time = window.audioSystem?.context?.currentTime;
     const offset = window.BARCODE?.Preferences?.values.visualOffsetMs || 0;
     const sample = Number.isFinite(time) ? window.BARCODE?.MusicTransport?.sample?.(time - offset / 1000) : null;
     const beat = sample?.grid?.beatFloat;
-    const ready = sample?.running && Number.isFinite(beat);
-    const beatIndex = ready ? Math.floor(beat) : 0;
-    const fraction = ready ? beat - beatIndex : 1;
-    const meter = sample?.grid?.beatsPerBar || 4;
+    if (!sample?.running || !Number.isFinite(beat)) return { ready: false, notes: [] };
+    const base = Math.floor(beat), meter = sample.grid.beatsPerBar || 4;
+    return { ready: true, fraction: beat - base, notes: Array.from({ length: 5 }, (_, i) => ({
+      x: 96 + (base + i - beat) * 82, downbeat: (base + i) % meter === 0, index: base + i
+    })).filter(note => note.x >= 73 && note.x <= 460) };
+  }
+  drawCompactHUD(ctx) {
+    const lane = this.getPredictiveNotes();
+    const pattern = window.BARCODE?.playerCombat?.getPattern({ nextSuccess: true }) || 'pulse';
+    const pad = window.BARCODE?.GamepadUI?.connected;
+    const key = pad ? 'X' : 'DOWN';
+    const color = pattern === 'discharge' ? '#ffa5ea' : pattern === 'wave' ? '#b8c7ff' : '#8cffe0';
     ctx.save(); ctx.globalAlpha = 1; ctx.shadowBlur = 0;
-    ctx.fillStyle = 'rgba(7,20,34,0.94)'; ctx.fillRect(600, 150, 720, 70);
-    ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#91ffe0'; ctx.font = 'bold 18px monospace';
-    const label = !ready ? 'WAITING FOR BEAT' : !this.tempoEstablished ? `ESTABLISHING TEMPO ${this.currentTempoBeat}/${this.tempoEstablishmentBeats}` : 'RHYTHM / FOLLOW THE PULSE';
-    ctx.fillText(label, 620, 169);
-    ctx.font = '16px monospace'; ctx.fillStyle = '#cbaaff'; ctx.textAlign = 'right';
-    ctx.fillText(`COMBO ${this.combo} · ARC ${this.arcGrowthLevel}/${this.maxArcGrowthLevel}`, 1300, 169);
-    for (let i = 0; i < meter; i++) {
-      const x = 620 + i * 680 / meter, width = 680 / meter - 8;
-      ctx.fillStyle = ready && beatIndex % meter === i ? '#91ffe0' : '#304257'; ctx.fillRect(x, 190, width, 8);
-      if (ready && beatIndex % meter === i) { ctx.fillStyle = '#e5fff5'; ctx.fillRect(x, 205, width * fraction, 3); }
+    ctx.fillStyle = '#070b15'; ctx.fillRect(36, 115, 448, 118);
+    ctx.fillStyle = '#101d2e'; ctx.fillRect(30, 109, 448, 118);
+    ctx.strokeStyle = '#a2b4c9'; ctx.lineWidth = 2; ctx.strokeRect(30, 109, 448, 118);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.font = 'bold 15px monospace'; ctx.fillStyle = '#eee6d4';
+    ctx.fillText(!lane.ready ? 'WAITING FOR MUSIC' : !this.tempoEstablished ? `FIND THE BEAT ${this.currentTempoBeat}/${this.tempoEstablishmentBeats}` : `${key} / HIT THE TARGET`, 48, 131);
+    ctx.textAlign = 'right'; ctx.fillStyle = color; ctx.fillText(`${this.combo} × ${pattern.toUpperCase()}`, 460, 131);
+    ctx.fillStyle = '#203449'; ctx.fillRect(74, 173, 386, 3);
+    ctx.fillStyle = '#304455'; ctx.fillRect(81, 153, 30, 43);
+    ctx.strokeStyle = '#eee6d4'; ctx.lineWidth = 2; ctx.strokeRect(81, 153, 30, 43);
+    // The target is fixed in HUD coordinates. Future notes travel right to left
+    // using the same transport; visual calibration never changes judgment.
+    for (const note of lane.notes) {
+      const onTarget = Math.abs(note.x - 96) < 6;
+      ctx.save(); ctx.translate(note.x, 174); ctx.rotate(Math.PI / 4);
+      ctx.fillStyle = onTarget ? '#fff9e9' : note.downbeat ? color : '#b0c8d8';
+      const size = note.downbeat ? 15 : 11; ctx.fillRect(-size / 2, -size / 2, size, size);
+      ctx.restore();
     }
+    ctx.font = '12px monospace'; ctx.textAlign = 'left'; ctx.fillStyle = '#c4d1de';
+    ctx.fillText(`${key}`, 79, 211);
+    ctx.textAlign = 'right'; ctx.fillStyle = color;
+    ctx.fillText(this.combo >= 10 ? 'CHAIN LINKS / 2 MAX' : this.combo >= 5 ? `${10 - this.combo} TO DISCHARGE` : `${5 - this.combo} TO WAVE`, 460, 211);
     ctx.restore();
   }
 

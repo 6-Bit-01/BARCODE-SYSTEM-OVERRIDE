@@ -72,7 +72,7 @@ for (const sample of samples) for (const key of ['x', 'y', 'duration', 'elapsedM
   assert(player.takeDamageWithKnockback(1, -200, -100, { x: player.position.x + 40, y: player.position.y }));
   assert.strictEqual(fx.damageFeedback.from, 3); assert.strictEqual(fx.damageFeedback.to, 2);
   assert.strictEqual(fx.damageFeedback.direction, 1);
-  assert.strictEqual(w.renderer.screenShake.intensity, 4);
+  assert.strictEqual(w.renderer.screenShake.intensity, 7);
   const before = copy(fx.damageFeedback);
   assert(!player.takeDamage(1));
   assert.deepStrictEqual(copy(fx.damageFeedback), before);
@@ -132,8 +132,8 @@ for (const type of ['corrupted', 'firewall']) {
   assert.strictEqual(w.BARCODE.signalAmpCharges, 3); assert.strictEqual(sounds.filter(s => s === 'pickup').length, 1);
   assert.strictEqual(fx.ampNotice.kind, 'pickup');
   beat('miss'); beat(); assert.strictEqual(w.BARCODE.signalAmpCharges, 3);
-  const enemy = new w.Enemy(amp.x + 380, w.player.position.y, 'corrupted');
-  enemy.position.x = amp.x + 380; enemy.position.y = w.player.position.y; enemy.health = 100;
+  const enemy = new w.Enemy(amp.x + 410, w.player.position.y, 'corrupted');
+  enemy.position.x = amp.x + 410; enemy.position.y = w.player.position.y; enemy.health = 100;
   w.enemyManager.enemies = [enemy];
   for (let left = 2; left >= 0; left--) {
     assert(beat().targets.length > 0); assert.strictEqual(w.BARCODE.signalAmpCharges, left);
@@ -267,7 +267,7 @@ console.log('Polish chunk 1: elapsed shake, accepted damage HUD, committed warni
   w.gameState.paused = true; fx.update(1000); assert.deepStrictEqual(copy(fx), before);
   w.gameState.paused = false; fx.update(760);
   const arrival = fx.fragmentFlightPose(flight, p => projection.worldToScreen(p));
-  assert.strictEqual(arrival.x, 200); assert(Math.abs(arrival.y - 115) < 1e-8);
+  assert.strictEqual(arrival.x, 1810); assert(Math.abs(arrival.y - 50) < 1e-8);
   assert.strictEqual(w.gameState.score, initialScore + 500, 'arrival never awards again');
   fx.update(320); assert(!fx.events.some(e => e.kind === 'data-flight'));
   fx.dataCollected(fragment); w.BARCODE.playerCombat.reset(); assert.strictEqual(fx.events.length, 0);

@@ -175,7 +175,6 @@ const encounterPresentation = (() => {
     if (!ctx || !cue) return;
     const elapsed = now() - cue.startedAt;
     if (elapsed >= cue.duration) {
-      presentation.cue = null;
       return;
     }
 
@@ -188,6 +187,8 @@ const encounterPresentation = (() => {
 
   return { update, draw };
 })();
+window.BARCODE = window.BARCODE || {};
+window.BARCODE.encounterPresentation = encounterPresentation;
 
 // Main UI drawing function
 window.drawGameUI = function(ctx) {
@@ -207,11 +208,11 @@ window.drawGameUI = function(ctx) {
   }
 
   const bossCinematicActive = isBossCinematicPresentationActive();
-  encounterPresentation.update(window.sector1Progression);
+
   
   // Draw health and basic UI elements
   drawBasicUI(ctx);
-  window.BARCODE?.combatFX?.drawDamageHUD(ctx, window.player, 50, 50, 300, 30);
+  window.BARCODE?.combatFX?.drawDamageHUD(ctx, window.player, 48, 62, 330, 18);
   window.BARCODE?.combatFX?.drawAmpHUD(ctx);
   
   // Draw objectives after tutorial completion
@@ -241,16 +242,17 @@ window.drawGameUI = function(ctx) {
   if (attackFeedback && !bossCinematicActive && !window.gameState.gameOver && !window.gameState.victory && !window.hackingSystem?.isActive?.()) {
     ctx.save();
     ctx.fillStyle = 'rgba(0, 8, 16, 0.92)';
-    ctx.fillRect(620, 220, 680, 38);
+    ctx.fillRect(504, 30, 700, 36);
     ctx.fillStyle = attackFeedback.color;
     ctx.font = 'bold 17px monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(attackFeedback.text, 960, 239, 650);
+    ctx.fillText(attackFeedback.text, 854, 49, 672);
     ctx.restore();
   }
 
   window.BARCODE?.combatFX?.drawFragmentFlights(ctx);
+  window.BARCODE?.stageFX?.drawHUD(ctx);
 
   // Draw game over screen
   if (window.gameState.gameOver) {
@@ -297,6 +299,9 @@ function drawSector1BossUI(ctx) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   if (window.gameState.victory) {
+    const reveal = owner.getCompletionReveal?.() || 0;
+    if (reveal === 0) { ctx.restore(); return; }
+    ctx.globalAlpha = reveal;
     ctx.fillStyle = 'rgba(0, 8, 16, 0.94)';
     ctx.fillRect(0, 0, 1920, 1080);
     ctx.strokeStyle = '#00ffff';
@@ -324,17 +329,17 @@ function drawSector1BossUI(ctx) {
     ctx.font = '22px monospace';
     ctx.fillText(window.BARCODE?.GamepadUI?.connected ? 'X — Restart Level 1' : 'SPACE — Restart Level 1', 960, 718);
     ctx.fillText(window.BARCODE?.GamepadUI?.connected ? 'A — Rematch the boss' : 'ENTER — Rematch the boss', 960, 766);
-    if (window.BARCODE?.IntroSequence?.inspectedGutter) {
+    if ((window.BARCODE?.IntroSequence?.inspectedGutter || window.BARCODE?.stageFX?.archive()?.hasEgg('egg.l01.studio-rat'))) {
       ctx.font = '18px monospace'; ctx.fillStyle = '#cbaaff';
       ctx.fillText('STUDIO RATS: Carrier restored. We are keeping the caption.', 960, 865);
     }
   } else if (!window.gameState.gameOver) {
-    const x = 600, y = 24, width = 720;
+    const x = 1230, y = 84, width = 640;
     ctx.fillStyle = 'rgba(0, 8, 16, 0.9)';
     ctx.fillRect(x - 20, y, width + 40, 112);
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 20px monospace';
-    ctx.fillText('SECTOR 1 BOSS', 960, y + 23);
+    ctx.fillText('SECTOR 1 BOSS', 1550, y + 23);
     ctx.fillStyle = '#281523';
     ctx.fillRect(x, y + 43, width, 16);
     ctx.fillStyle = status.canReceiveDamage ? '#00ffff' : '#ff7044';
@@ -343,11 +348,11 @@ function drawSector1BossUI(ctx) {
     ctx.lineWidth = 1;
     ctx.strokeRect(x, y + 43, width, 16);
     ctx.fillStyle = '#ffffff';
-    ctx.font = '17px monospace';
+    ctx.font = '14px monospace';
     const cue = status.phase === 'ready' ? 'Get ready. Jump the ground pulse.' : status.canReceiveDamage ?
       (status.canStompCounter ? 'COUNTER WINDOW — Timed rhythm hit or landing stomp' : 'COUNTER WINDOW — Timed rhythm hit; stomp unavailable') : status.phase === 'telegraph' ?
       (status.doublePulse ? 'TWO GROUND PULSES — JUMP' : 'GROUND PULSE — JUMP') : 'Evade the pulse. Counter when the boss glows cyan.';
-    ctx.fillText(cue, 960, y + 86);
+    ctx.fillText(cue, 1550, y + 86, 630);
   }
   ctx.restore();
 }
@@ -357,94 +362,44 @@ function drawBasicUI(ctx) {
   const player = window.player, rhythm = window.rhythmSystem, pad = window.BARCODE?.GamepadUI?.connected;
   const progress = window.lostDataSystem?.getProgress?.();
   ctx.save(); ctx.globalAlpha = 1; ctx.shadowBlur = 0;
-  ctx.fillStyle = 'rgba(7,20,34,0.95)'; ctx.fillRect(30, 24, 340, 148); ctx.fillRect(1530, 24, 360, 62);
-  ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.font = 'bold 17px monospace'; ctx.fillStyle = '#91ffe0';
-  ctx.fillText('6 BIT / SIGNAL STRENGTH', 50, 38);
-  ctx.fillStyle = '#422634'; ctx.fillRect(50, 50, 300, 30);
-  ctx.fillStyle = '#91ffe0'; ctx.fillRect(50, 50, 300 * Math.max(0, Math.min(1, (player?.health || 0) / (player?.maxHealth || 1))), 30);
-  ctx.strokeStyle = '#a2c1ce'; ctx.lineWidth = 1; ctx.strokeRect(50, 50, 300, 30);
-  ctx.fillStyle = '#142a33';
-  for (let i = 1; i < (player?.maxHealth || 1); i++) ctx.fillRect(50 + 300 * i / player.maxHealth - 1, 50, 2, 30);
-  ctx.fillStyle = '#dfd3f7'; ctx.font = '18px monospace';
-  ctx.fillText(`LORE: ${progress?.collected || 0}/${progress?.total || 3}`, 50, 104);
-  ctx.fillStyle = rhythm?.isActive?.() ? '#91ffe0' : '#afbacf';
-  ctx.fillText(rhythm?.isActive?.() ? (pad ? 'RHYTHM ON / B: EXIT' : 'RHYTHM ON / R: EXIT') : (pad ? 'TRAVERSAL / B: RHYTHM' : 'TRAVERSAL / R: RHYTHM'), 50, 137);
-  if (progress?.saved === false) { ctx.font = '12px monospace'; ctx.fillStyle = '#ffc68a'; ctx.fillText('ARCHIVE SAVE UNAVAILABLE — KEEP TAB OPEN', 50, 184); }
-  ctx.textAlign = 'right'; ctx.fillStyle = '#91ffe0'; ctx.font = 'bold 22px monospace'; ctx.fillText(`SCORE ${window.gameState.score}`, 1865, 53);
-  if (window.tutorialSystem?.isActive?.()) {
-    ctx.textAlign = 'center'; ctx.fillStyle = '#cbaaff'; ctx.font = '22px monospace'; ctx.fillText('DEAD AIR DISTRICT / CREW TRAINING', 960, 53);
-  }
+  ctx.fillStyle = '#070b15'; ctx.fillRect(36, 30, 448, 77); ctx.fillRect(1558, 30, 338, 51);
+  ctx.fillStyle = '#eee6d4'; ctx.fillRect(30, 24, 448, 77);
+  ctx.fillStyle = '#122132'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.font = 'bold 17px monospace';
+  ctx.fillText('6 BIT / SIGNAL', 48, 43);
+  ctx.font = '12px monospace'; ctx.textAlign = 'right';
+  ctx.fillText(rhythm?.isActive?.() ? (pad ? 'B: EXIT' : 'R: EXIT') : (pad ? 'B: RHYTHM' : 'R: RHYTHM'), 460, 43);
+  ctx.fillStyle = '#52313c'; ctx.fillRect(48, 62, 330, 18);
+  ctx.fillStyle = '#258979'; ctx.fillRect(48, 62, 330 * Math.max(0, Math.min(1, (player?.health || 0) / (player?.maxHealth || 1))), 18);
+  ctx.fillStyle = '#eee6d4';
+  for (let i = 1; i < (player?.maxHealth || 1); i++) ctx.fillRect(48 + 330 * i / player.maxHealth - 2, 62, 4, 18);
+  ctx.fillStyle = '#122132'; ctx.fillText(`${player?.health || 0}/${player?.maxHealth || 3}`, 460, 71);
+  for (let i = 0; i < 22; i++) ctx.fillRect(48 + i * 7, 87, i % 3 ? 3 : 5, 5);
+  if (progress?.saved === false) { ctx.textAlign = 'left'; ctx.font = '12px monospace'; ctx.fillStyle = '#ffc68a'; ctx.fillText('ARCHIVE SAVE UNAVAILABLE — KEEP TAB OPEN', 30, 327); }
+  ctx.fillStyle = '#101d2e'; ctx.fillRect(1552, 24, 338, 51); ctx.fillStyle = '#eee6d4'; ctx.font = 'bold 17px monospace';
+  ctx.textAlign = 'right'; ctx.fillText(`SCORE ${window.gameState.score}   LORE ${progress?.collected || 0}/${progress?.total || 3}`, 1873, 50);
+  if (window.tutorialSystem?.isActive?.()) { ctx.textAlign = 'center'; ctx.font = '18px monospace'; ctx.fillStyle = '#cbaaff'; ctx.fillText('DEAD AIR DISTRICT / CREW TRAINING', 960, 100); }
   ctx.restore();
 }
 
-// Draw objectives panel
 function drawObjectives(ctx) {
-  if (window.objectivesSystem && typeof window.objectivesSystem.draw === 'function') {
-    window.objectivesSystem.active = true;
-    window.objectivesSystem.draw(ctx);
-    return;
-  }
-  ctx.save();
-  ctx.fillStyle = 'rgba(0, 20, 40, 0.95)';
-  ctx.fillRect(420, 24, 1060, 104);
-  ctx.strokeStyle = '#00ffff';
-  ctx.strokeRect(420, 24, 1060, 104);
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 20px monospace';
-  ctx.textAlign = 'left';
-  ctx.fillText('› Explore Dead Air District', 440, 70);
+  const owner = window.sector1Progression, status = owner?.getEncounterStatus?.();
+  const jammer = window.BARCODE?.JammerEnvironment?.getStatus?.();
+  const title = status ? `${String(status.label).toUpperCase()} / ${status.number} OF 4` : jammer?.revealed && !jammer.destroyed ? 'BROADCAST JAMMER / BREAK THE SIGNAL' : 'DEAD AIR DISTRICT';
+  const detail = status ? status.started ? `${status.defeated}/${status.required} CLEARED · ${owner.missionDefeats}/20 DISTRICT` : 'FOLLOW THE STREET · EXPLORE THE HIGH ROUTE' : jammer?.revealed && !jammer.destroyed ? `${jammer.health}/16 SIGNAL LOCKS · RHYTHM HITS ONLY` : 'Explore the district';
+  const kick = window.BARCODE?.stageFX?.captionKick || 0;
+  ctx.save(); ctx.translate(1550, 120); ctx.rotate(kick * 0.038);
+  ctx.fillStyle = '#090e19'; ctx.fillRect(-334, -30, 680, 74); ctx.fillStyle = '#101d2e'; ctx.fillRect(-340, -36, 680, 74);
+  ctx.fillStyle = '#91ffe0'; ctx.fillRect(-340, -36, 5, 74); ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.font = 'bold 18px monospace';
+  ctx.fillText(title, -320, -13, 640); ctx.fillStyle = '#d3dae2'; ctx.font = '14px monospace'; ctx.fillText(detail, -320, 15, 640);
   ctx.restore();
 }
 
 // Draw rhythm UI elements
 function drawRhythmUI(ctx) {
-  if (window.rhythmSystem && typeof window.rhythmSystem.isActive === 'function' && window.rhythmSystem.isActive()) {
-    try {
-      ctx.save();
-      
-      window.rhythmSystem.drawCompactHUD?.(ctx);
-      
-      if (window.rhythmSystem.beatEffects) {
-        window.rhythmSystem.beatEffects.forEach(effect => {
-          ctx.strokeStyle = effect.color;
-          ctx.lineWidth = 3;
-          ctx.globalAlpha = effect.opacity;
-          ctx.beginPath();
-          ctx.arc(effect.x, effect.y, Math.max(0, effect.radius), 0, Math.PI * 2);
-          ctx.stroke();
-        });
-      }
-      
-      if (window.rhythmSystem.particles) {
-        window.rhythmSystem.particles.forEach(particle => {
-          ctx.fillStyle = particle.color;
-          ctx.globalAlpha = particle.life;
-          ctx.fillRect(
-            particle.x - particle.size/2,
-            particle.y - particle.size/2,
-            particle.size,
-            particle.size
-          );
-        });
-      }
-      
-      if (window.rhythmSystem.hitIndicators) {
-        window.rhythmSystem.hitIndicators.forEach(indicator => {
-          ctx.fillStyle = indicator.color;
-          ctx.globalAlpha = indicator.life;
-          ctx.font = `bold ${indicator.size}px Orbitron`;
-          ctx.textAlign = 'center';
-          ctx.fillText(indicator.text, indicator.x, indicator.y);
-        });
-      }
-      
-
-      
-      ctx.restore();
-    } catch (error) {
-      console.error('Error drawing rhythm UI:', error?.message || error);
-    }
-  }
+  if (!window.rhythmSystem?.isActive?.()) return;
+  ctx.save();
+  window.rhythmSystem.drawCompactHUD?.(ctx);
+  ctx.restore();
 }
 
 // Draw collection message

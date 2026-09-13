@@ -102,12 +102,39 @@ window.Renderer = class Renderer {
     shake.duration = Math.max(0, shake.totalDuration - shake.elapsedMs);
     if (shake.duration < 0.000001) { this.clearScreenShake(); return; }
     const amplitude = shake.intensity * Math.pow(shake.duration / shake.totalDuration, 2);
-    shake.x = Math.sin(shake.elapsedMs * 0.11) * amplitude;
-    shake.y = Math.sin(shake.elapsedMs * 0.137) * amplitude * 0.65;
+    const t = shake.elapsedMs;
+    if (shake.kind === 'hit' || shake.kind === 'hurt') {
+      shake.x = shake.direction * amplitude * Math.cos(t * 0.035);
+      shake.y = Math.sin(t * 0.07) * amplitude * 0.22;
+    } else if (shake.kind === 'land' || shake.kind === 'stomp') {
+      shake.x = Math.sin(t * 0.09) * amplitude * 0.2;
+      shake.y = Math.cos(t * 0.04) * amplitude;
+    } else {
+      const rolling = ['destruction', 'boss', 'victory'].includes(shake.kind);
+      shake.x = Math.sin(t * (rolling ? 0.043 : 0.11)) * amplitude;
+      shake.y = Math.sin(t * (rolling ? 0.067 : 0.137)) * amplitude * 0.65;
+    }
   }
 
   clearScreenShake() {
     this.screenShake = { x: 0, y: 0, intensity: 0, duration: 0, totalDuration: 0, elapsedMs: 0 };
+  }
+
+  impact(kind, options = {}) {
+    const profiles = { hit: [5, 150], hurt: [7, 210], land: [5, 180], stomp: [10, 260], destruction: [12, 600], boss: [9, 380], victory: [13, 620] };
+    const profile = profiles[kind];
+    if (!profile || window.BARCODE_RENDER_QUALITY?.screenShake === false) return;
+    const intensity = profile[0] * Math.max(0.2, Math.min(1, options.strength ?? 1));
+    const current = this.screenShake;
+    if (current?.duration > 0 && current.intensity * current.duration / current.totalDuration > intensity) return;
+    this.screenShake = { kind, direction: Math.sign(options.direction) || 1, x: 0, y: 0,
+      intensity, duration: profile[1], totalDuration: profile[1], elapsedMs: 0 };
+  }
+
+  getImpactZoom() {
+    const s = this.screenShake;
+    return s?.kind === 'victory' && window.BARCODE_RENDER_QUALITY?.screenShake !== false ?
+      1 + 0.035 * Math.sin(Math.PI * Math.min(1, s.elapsedMs / s.totalDuration)) : 1;
   }
 
   // Never stack offsets or let a small hit erase a stronger impact. Legacy
