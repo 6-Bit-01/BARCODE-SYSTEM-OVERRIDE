@@ -8,14 +8,15 @@ window.FILE_MANIFEST.push({
 
 (function() {
   const BARCODE = window.BARCODE = window.BARCODE || {};
-  const ACTIONS = ['move_left', 'move_right', 'jump', 'primary', 'interact', 'pause', 'rhythm_mode'];
-  const EDGE_ACTIONS = new Set(['jump', 'primary', 'interact', 'pause', 'rhythm_mode']);
+  const ACTIONS = ['move_left', 'move_right', 'jump', 'primary', 'interact', 'inspect', 'pause', 'rhythm_mode'];
+  const EDGE_ACTIONS = new Set(['jump', 'primary', 'interact', 'inspect', 'pause', 'rhythm_mode']);
   const DEFAULT_KEYBOARD = {
     move_left: ['arrowleft', 'a'],
     move_right: ['arrowright', 'd'],
     jump: [' ', 'arrowup', 'w'],
     primary: ['arrowdown'],
     interact: ['h'],
+    inspect: ['e'],
     pause: ['p'],
     rhythm_mode: ['r']
   };
@@ -25,6 +26,7 @@ window.FILE_MANIFEST.push({
     jump: [{ button: 0 }, { button: 5 }],
     primary: [{ button: 2 }],
     interact: [{ button: 3 }],
+    inspect: [{ button: 4 }],
     pause: [{ button: 9 }],
     rhythm_mode: [{ button: 1 }]
   };
