@@ -1,5 +1,9 @@
 # Campaign continuation — September 12, 2026
 
+## Latest implementation — impact/discovery after merged #43
+
+The ten-item owner-approved Level 1 impact/discovery pass is implemented together for draft review in `LEVEL_01_IMPACT_PASS.md`. It includes the previously outstanding compact predictive HUD, threshold attacks, physical/musical scenery, four encounter identities, boss/Jammer payoff and first optional crew discoveries. The corrected intro is retained. Current order: review this exact combined PR in Makko, merge only after owner acceptance, then Stage C campaign services. Earlier paragraphs saying HUD/attack variety or intro repair is still the next implementation are historical.
+
 ## Current stage update
 
 Stage A is merged as PR #38, Stage B as #39 and the eight-scene opening as #40. The owner reported that the opening failed in Makko and required better scene-placed text and a coherent first-level continuation. INTRO_REPAIR.md is the current combined repair, based on merged #40. Latest order: finish this intro repair, then revise the disliked HUD/rhythm presentation and add meaningful attack variety, then Stage C. The four original controls/camera/calibration/crowd/counter items in the historical table below were implemented in #39 and must not be redone. HUD/attack variety remains outstanding. Merge status is not a Makko acceptance result.

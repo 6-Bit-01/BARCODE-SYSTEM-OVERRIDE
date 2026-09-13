@@ -43,6 +43,7 @@
     "src/game/lore-collection.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
+    "src/game/level-01-stage-fx.js",
     "src/game/game-state.js",
     "src/game/update-coordinator.js",
     "src/game/render-coordinator.js",
@@ -93,6 +94,7 @@
     "src/game/lore-collection.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
+    "src/game/level-01-stage-fx.js",
     "src/game/game-state.js",
     "src/game/update-coordinator.js",
     "src/game/render-coordinator.js",
@@ -132,6 +134,7 @@
     "tools/check-level-01-boss.js",
     "tools/check-level-01-discovery.js",
     "tools/check-level-01-gameplay-dynamics.js",
+    "tools/check-level-01-impact.js",
     "tools/check-level-01-lore-archive.js",
     "tools/check-level-01-mission.js",
     "tools/check-level-01-polish-menu.js",
@@ -300,6 +303,10 @@
         "status": "pass"
       },
       {
+        "file": "src/game/level-01-stage-fx.js",
+        "status": "pass"
+      },
+      {
         "file": "src/game/game-state.js",
         "status": "pass"
       },
@@ -338,11 +345,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 47,
+        "index": 48,
         "status": "pass"
       },
       {
-        "index": 49,
+        "index": 50,
         "status": "pass"
       }
     ]
@@ -521,7 +528,7 @@
     {
       "global": "window.player",
       "file": "src/game/player.js",
-      "line": 1755,
+      "line": 1762,
       "loaded": true
     },
     {
@@ -569,19 +576,19 @@
     {
       "global": "window.renderer",
       "file": "src/engine/renderer.js",
-      "line": 462,
+      "line": 489,
       "loaded": true
     },
     {
       "global": "window.renderer",
       "file": "src/engine/renderer.js",
-      "line": 534,
+      "line": 561,
       "loaded": true
     },
     {
       "global": "window.renderer",
       "file": "src/engine/renderer.js",
-      "line": 551,
+      "line": 578,
       "loaded": true
     },
     {
@@ -718,6 +725,7 @@
     "src/game/lore-collection.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
+    "src/game/level-01-stage-fx.js",
     "src/game/game-state.js",
     "src/game/update-coordinator.js",
     "src/game/render-coordinator.js",

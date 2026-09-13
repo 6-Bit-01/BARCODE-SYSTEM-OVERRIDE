@@ -25,4 +25,14 @@ Use existing art and code-native effects. No new runtime dependencies, canvas co
 
 ## Required acceptance
 
+Intentional baseline change: one frame-owned module, `src/game/level-01-stage-fx.js`, is inserted after progression and before the coordinators; later script indices shift by one. It adds no external assets, runtime dependencies, canvas contexts, timers or listeners. Regenerate the inventory only for this reviewed graph change. Existing Amp tests now place the target at 410px, beyond the newly approved combo-5 waveform, and still require charge depletion to remove that reach. Preview cardinalities reflect the approved threshold geometry, with exact damage/preview parity retained. Damage-camera and lore-flight destination assertions follow the new 7px hurt profile and compact HUD.
+
 Full `npm test`, all-JavaScript syntax check, consequential production-code regression tests and visual fixtures. Browser intro regression must remain green. Generated fixtures are diagnostics, not proof of Makko feel or audio synchronization. Review all ten items together, then perform the AGENTS owner playtest before merge. Update the maintained Source Pack v5 from the committed revision and publish exact base/head, CI and rollback evidence.
+
+## Completed implementation and evidence
+
+All ten items are integrated in this single review. `Renderer` owns bounded typed motion; `PlayerCombat` owns pulse/wave/chain target selection and preview parity; `CombatFX` owns material and foot impacts; the existing frame updates `Level01StageFX` for scenery, encounters and discoveries. Parallax still places readouts inside the original glass. `RhythmSystem` exposes predicted note positions without changing judgment. `LoreCollection` unions independent lore/Easter-egg facts on the existing compatible save.
+
+Three implementation checkpoints cover combat/camera, reactive stage/encounters/discoveries, and compact HUD/integrated verification. Full local tests and all-JavaScript syntax passed. The new production check covers thresholds, directional reach, two-hop bounds, one-charge transactions, camera direction/decay/pause/settings, protected roof arrivals, E/LB ownership, concurrent saves, calibration, final-hit visibility and retry cleanup. Six native Canvas scenarios use the original foreground and five original sprite sheets. Their fixture adapter does not certify Makko animation or audio. Production render matrices prove the timing target is outside world zoom/shake. No intro art or source URLs changed.
+
+Scope refinements found in review: remove the old duplicate floating judgment; place boss guidance outside the attack feedback strip; leave 620ms for the final impact before the result card fades in. The maintained v5 export must come from the final committed head and record CI/Makko status accurately. Source ZIP identity refresh remains dependent on the available persistent-file connector; CI provides the exact committed export.

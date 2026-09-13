@@ -1,11 +1,14 @@
-# Stage opening dialogue and integrate monitor readouts
+Level 1's existing effects gave most actions the same small reaction, and the large HUD offered little sense of an approaching beat. This implements all ten approved impact/discovery recommendations together, preserving the corrected opening and the established mission.
 
-The images are visible after #42, but every line appears at once, monitor text floats in boxes and DJ Floppydisc's knob hand has incorrect anatomy.
+- Give hits, landings, stomps, destruction and boss attacks distinct camera/contact reactions; add material debris and a visible final-hit finish.
+- Add real combo-5 waveform and combo-10 chain attacks, with authoritative target previews, one-charge Amp spending and unchanged boss/Jammer damage rules.
+- Make the existing street react to rhythm and physical actions; distinguish all four encounters, protected roof arrivals, Jammer recovery and boss entrances.
+- Consolidate the comic HUD around a fixed top-left target with approaching notes. Add E/LB inspections, optional crew replies, persistent discoveries, caption tilts, clear framing and a Studio Rat crossing the panel margin.
 
-This pass gives each scene an authored reading order and interval. Space, Enter, click or controller A reveals the next cue immediately; earlier dialogue stays visible, and the final cue waits for manual scene advancement. Loading, blur, hidden tabs and skip holds pause the clock. Five screen readouts now follow and clip to the illustrated monitor glass. Other captions use the page margin, with page 6's displaced caption following 6 Bit's refusal.
+The exact ten-item mapping and tuning are in `docs/source-pack/LEVEL_01_IMPACT_PASS.md`. This is one combined draft with implementation checkpoints. No new game raster assets, runtime dependencies, canvas contexts, listeners or animation loops are introduced. The original four playable characters, tutorial/input ownership, 20-enemy mission, 16-health Jammer, lift/roofs, lore and boss/retry remain.
 
-A targeted built-in image edit corrects DJ's page-5 hand and preserves the character/scene. The new WebP and provenance are included; the other seven images retain their bytes. All eight pinned public URLs match the bundled assets and provide CORS access. The existing fullscreen recovery, one-context budget, independent S/B skips and tutorial/gameplay are retained.
+Validation: `npm test`, `npm run check:syntax:all`, targeted production checks and six native Canvas scenes using unchanged foreground/sprite assets. Native fixtures explicitly adapt the Makko sprite boundary; they do not certify host playback, audio sync or feel. CI also runs the retained real Chromium intro/fullscreen regression and exports Source Pack v5 from the committed revision.
 
-Base/rollback: `f1831f95c187bdd5afd9c8231d2a7a10ac262671` (merged #42). Branch: `agent/intro-cue-staging`. The generated manifest identifies the exact review head and PR. See INTRO_CUE_STAGING and the top ACCEPTANCE route for timing and owner review. One combined draft; do not merge before owner Makko acceptance.
+Makko review before merge: follow the top ten-item route in `docs/source-pack/ACCEPTANCE.md`, particularly impact strength, 5/10 thresholds, warning readability, E/LB ownership, controller/audio feel and full boss/retry/restart. The new attack reach and camera values remain review tuning. Do not merge until the owner accepts this build.
 
-Validation: production VM timing/input/lifecycle checks, full regression suite, all-file syntax, and native Canvas layout/art inspection. Chromium checks native input, fullscreen, decoded bundled art, retry and tutorial handoff in CI. Exact completed outcomes belong to the generated receipt and linked run. Its explicit initializer/gameplay/audio stubs do not certify Makko sprites, audible music or device feel. HUD/rhythm/attack variety follows intro acceptance.
+Base/rollback: `51b65d4cd71d369b05003ddaa83cfe6f88fe348b` (merged #43). Next after acceptance: Stage C campaign services.

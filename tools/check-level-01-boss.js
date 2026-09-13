@@ -757,7 +757,10 @@ async function main() {
     combat.drawPlayerTimingCue(ctx, w.player);
     assert(texts.includes('PRESS R — RHYTHM OFF'), 'mode loss has an immediate player-local cue');
     w.rhythmSystem.show(); texts.length = 0; combat.drawPlayerTimingCue(ctx, w.player);
-    assert(texts.includes('DOWN: BEAT · R: EXIT'));
+    assert(!texts.includes('DOWN: BEAT · R: EXIT'), 'active timing is consolidated in the compact HUD');
+    Object.assign(ctx, { strokeRect() {}, translate() {}, rotate() {} });
+    w.rhythmSystem.drawCompactHUD(ctx);
+    assert(texts.includes('DOWN / HIT THE TARGET'), 'active controls stay visible beside the predictive target');
     const seconds = p.getBossMusicSample().grid.beatDurationSec;
     const rule = w.BARCODE.MusicProfiles.getActive().judgmentRules[0].id;
     const early = w.BARCODE.MusicTransport.judgeInput(rule, seconds * 60 - 0.15);
