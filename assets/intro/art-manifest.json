@@ -92,8 +92,20 @@
         845
       ],
       "sourceSha256": "8d467304107c8d5b3420fe559d31e55effc5fa48376eab06818e586ecb2b13fa",
-      "sha256": "161b9f19d7ed5c6870f7459d9c9e56aea72fc193c2639dd2403eb9ebf513da53",
-      "bytes": 527756
+      "sha256": "f3d428cde3c2c77ae9911284ef69dd74daba50ec4603f7a5c31e62328f3b38ab",
+      "bytes": 511500,
+      "corrections": [
+        {
+          "date": "2026-09-13",
+          "request": "Correct the anatomically wrong hand turning the knob; preserve the rest of the scene.",
+          "method": "Built-in imagegen precise-object edit; WebP encoding only afterward.",
+          "source": "exec-af138cb1-8525-4088-b4d7-52f589f0ec52.png",
+          "sourceSha256": "dec84ac3e9c106399fd45fff76424d66b90fb7a3f8d9ed3a4c7188ad005f7b9b",
+          "previousAssetSha256": "161b9f19d7ed5c6870f7459d9c9e56aea72fc193c2639dd2403eb9ebf513da53",
+          "description": "Anatomically coherent left thumb/index pinch with three curled fingers and aligned wrist; same scene, cast, CRT and 1862x845 composition.",
+          "prompt": "Use case: precise-object-edit. Edit target: the supplied full-width BARCODE game illustration. Make ONE precise anatomical correction only: DJ Floppydisc's hand at screen-right turning the black/silver rotary knob beside the large CRT. This is his LEFT hand, attached to the forearm coming from the lower center. Redraw that hand and its wrist junction with a coherent human left-hand structure, five digits total, correct thumb placement, index finger and opposing thumb naturally pinching the rotary knob, other three fingers softly curled away from the knob. Preserve the angle of the arm, hand position, knob position, circuit-line tattoos, skin tone and warm directional lighting. Make the gesture easy to read; no extra fingers, duplicated knuckles, fused digits, reversed palm, unnatural wrist rotation, or fingers blending into the knob. Preserve EVERYTHING else: DJ's face, swept brown hair, moustache, cyan waveform visor, white rolled-sleeve shirt, black vest and bow tie, floppy-disk badge, his near hand on the mixing console, studio objects, CRT size/corners and existing two traces, camera, composition, exact very-wide 1862:845 aspect ratio, crop, detailed inked/cel-shaded graphic novel style, colors and lighting. No new text, bubbles, caption boxes, HUD, frames or watermark. Return the complete scene, full bleed, with only this corrected hand region changed."
+        }
+      ]
     },
     {
       "filename": "intro-06-refusal.webp",
