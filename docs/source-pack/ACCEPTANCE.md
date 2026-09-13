@@ -1,5 +1,16 @@
 # Acceptance and Test Status
 
+## Black-screen recovery — after merged #41
+
+Base/rollback: `897b750cf64bafe3d50746cd7c8c19379ef4fbf6`. Test the exact head of `agent/intro-fullscreen-recovery` in the duplicate Makko project before merge. The owner-reported black screen supersedes the previous unconfirmed repair status.
+
+1. Click Start normally. Page 1, its artwork, dialogue and controls must be visible immediately in fullscreen. Exit fullscreen, re-enter with Shift+F, and resize: the same page stays readable and clickable. If fullscreen is declined, it remains usable in the window.
+2. Read/advance all eight scenes with click/Space/Enter or controller A. Also take the five-second S/B skip route, including early release with a connected controller. Confirm page 6 inspection and the existing scene-placed dialogue remain.
+3. Both completion routes enter Cache's “Still with you” tutorial once. The game canvas returns, intro overlay disappears, and the existing four-second audio fade completes. Complete movement/jump, training, R and H gates; the mission starts once at zero.
+4. Check the existing movement/contact, lift, pause/archive, Jammer/boss/retry and restart smoke route. These systems were not retuned. Record exact SHA and any remaining host error.
+
+The dependency-free regression includes the production fullscreen owner and both asynchronous request orderings, denied fullscreen, exit/re-entry, pointer input and tutorial handoff. GitHub's added Chromium check supplies real layout, native fullscreen, hit testing, decoded local artwork, keyboard/pointer, resize and visible failure/retry evidence. It uses explicit initializer/gameplay/audio boundaries and does not certify Makko sprites or audible audio.
+
 ## Current intro repair review — after #40
 
 Base/rollback: `a747b58411650146bdc003a529d0470167d275db`. Review the exact manifest revision from `agent/intro-makko-repair` in the duplicate Makko project. The owner has already reported that PR #40's opening failed; the earlier checklist below is historical.

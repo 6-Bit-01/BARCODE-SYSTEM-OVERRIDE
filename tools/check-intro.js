@@ -2,7 +2,7 @@
 // image loading, device input and the clock/audio boundary are supplied here.
 const assert = require('assert');
 const { createRig, load } = require('./check-level-01-boss');
-function openingRig({ contextBudget = Infinity, contextUnavailable = false, realTutorial = false } = {}) {
+function openingRig({ contextBudget = Infinity, contextUnavailable = false, realTutorial = false, fullscreen = false } = {}) {
   const rig = createRig(), { w, context, timers, calls } = rig;
   const events = () => ({ listeners: new Map(),
     addEventListener(type, fn) { if (!this.listeners.has(type)) this.listeners.set(type, new Set()); this.listeners.get(type).add(fn); },
@@ -16,7 +16,7 @@ function openingRig({ contextBudget = Infinity, contextUnavailable = false, real
   const ctx = new Proxy({ measureText: text => ({ width: text.length * 17 }) }, { get: (target, key) => target[key] || (() => {}) });
   const canvasCalls = [];
   function node(tag = 'div') {
-    return Object.assign(events(), { tag, style: {}, children: [], classList: { add() {}, remove() {} },
+    return Object.assign(events(), { tag, tagName: tag.toUpperCase(), style: {}, children: [], classList: { add() {}, remove() {} },
       setAttribute(name, value) { this[name] = value; },
       getContext(type) {
         canvasCalls.push({ node: this, type });
@@ -28,8 +28,37 @@ function openingRig({ contextBudget = Infinity, contextUnavailable = false, real
     });
   }
   const gameCanvas = node('canvas'); gameCanvas.id = 'gameCanvas';
-  w.document = Object.assign(events(), { readyState: 'loading', body: node(), createElement: node,
+  const documentElement = node('html'), body = node('body');
+  documentElement.appendChild(body); body.appendChild(gameCanvas);
+  w.document = Object.assign(events(), { readyState: 'loading', body, documentElement, createElement: node,
     getElementById: id => id === 'gameCanvas' ? gameCanvas : null, querySelector: () => null });
+  let pendingFullscreen = null;
+  if (fullscreen) {
+    w.document.fullscreenEnabled = true;
+    for (const element of [documentElement, body, gameCanvas]) {
+      element.requestFullscreen = () => new Promise((resolve, reject) => { pendingFullscreen = { element, resolve, reject }; });
+    }
+    w.document.exitFullscreen = () => {
+      w.document.fullscreenElement = null; w.document.dispatch('fullscreenchange'); return Promise.resolve();
+    };
+  }
+  const finishFullscreen = (denied = false) => {
+    assert(pendingFullscreen, 'a user gesture requested fullscreen');
+    const { element, resolve, reject } = pendingFullscreen; pendingFullscreen = null;
+    if (denied) { reject(Object.assign(new Error('Fullscreen denied'), { name: 'NotAllowedError' })); return; }
+    w.document.fullscreenElement = element; w.document.dispatch('fullscreenchange'); resolve();
+  };
+  // DOM fixture checks ancestry only. Real layout/hit-testing is a separate
+  // browser check; canvas fallback children cannot be visible game overlays.
+  const assertPresented = element => {
+    assert(element, 'presentation exists');
+    const ancestors = [];
+    for (let node = element; node; node = node.parentNode) ancestors.push(node);
+    assert(ancestors.includes(documentElement), 'presentation is attached');
+    assert(!ancestors.some(node => node.style.display === 'none'), 'presentation is not inside a hidden element');
+    assert(!ancestors.slice(1).some(node => node.tag === 'canvas'), 'presentation is not canvas fallback content');
+    if (w.document.fullscreenElement) assert(ancestors.includes(w.document.fullscreenElement), 'presentation is within the fullscreen tree');
+  };
   const windowEvents = events();
   w.addEventListener = windowEvents.addEventListener.bind(windowEvents);
   w.removeEventListener = windowEvents.removeEventListener.bind(windowEvents);
@@ -61,7 +90,7 @@ function openingRig({ contextBudget = Infinity, contextUnavailable = false, real
   w.audioSystem.startBackgroundRhythmIfTransportRunning = () => { calls.backgroundStarts++; };
   w.tutorialSystem.active = true; w.tutorialSystem.completed = false;
   w.tutorialSystem.startTutorial = () => { calls.tutorialStarts++; };
-  for (const file of ['src/core/action-input.js', 'src/core/gamepad-ui.js', 'src/core/input.js', 'src/engine/intro-sequence.js', 'src/engine/cutscene.js', 'src/core/runtime-lifecycle.js']) load(context, file);
+  for (const file of ['src/core/fullscreen.js', 'src/core/action-input.js', 'src/core/gamepad-ui.js', 'src/core/input.js', 'src/engine/intro-sequence.js', 'src/engine/cutscene.js', 'src/core/runtime-lifecycle.js']) load(context, file);
   if (realTutorial) {
     load(context, 'src/game/hacking.js'); w.hackingSystem = new w.HackingSystem();
     load(context, 'src/game/tutorial.js'); w.tutorialSystem = new w.TutorialSystem();
@@ -71,10 +100,35 @@ function openingRig({ contextBudget = Infinity, contextUnavailable = false, real
   w.inputManager = new w.InputManager(); w.initCutscene();
   const scene = w.cutsceneSystem;
   const key = (value, type = 'keydown', repeat = false) => w.document.dispatch(type, { key: value, repeat });
-  return { ...rig, scene, pad, key, advance, images, windowEvents, gameCanvas, canvasCalls };
+  return { ...rig, scene, pad, key, advance, images, windowEvents, gameCanvas, canvasCalls, finishFullscreen, assertPresented };
 }
 const settle = () => new Promise(resolve => setImmediate(resolve));
 async function main() {
+  for (const timing of ['before-intro', 'after-intro', 'denied']) {
+    const { w, scene, advance, key, calls, gameCanvas, finishFullscreen, assertPresented } = openingRig({ fullscreen: true, realTutorial: true });
+    const requested = w.fullscreenManager.enter().catch(error => error);
+    if (timing === 'before-intro') finishFullscreen();
+    const started = w.BARCODE.RuntimeLifecycle.start(); await settle();
+    assert.strictEqual(gameCanvas.style.display, 'none');
+    if (timing !== 'before-intro') finishFullscreen(timing === 'denied');
+    await requested;
+    assertPresented(scene.cutsceneContainer);
+    assertPresented(scene.introCanvas);
+    advance(300);
+    scene.cutsceneContainer.dispatch('click'); assert.strictEqual(scene.currentImageIndex, 2);
+    await w.fullscreenManager.exit(); assertPresented(scene.cutsceneContainer);
+    const reentered = w.fullscreenManager.enter(); finishFullscreen(); await reentered;
+    assertPresented(scene.cutsceneContainer);
+    advance(300); key('Enter'); assert.strictEqual(scene.currentImageIndex, 3);
+    key('s'); advance(5000); await started; advance(500);
+    assertPresented(gameCanvas);
+    assert.strictEqual(w.tutorialSystem.storyChapter, 0);
+    assert(w.tutorialSystem.targetText.includes('Still with you'));
+    assert.strictEqual(calls.tutorialStarts, 1); assert.strictEqual(calls.loopStarts, 1);
+    assert.strictEqual(scene.cutsceneContainer, null, 'intro is removed after handoff');
+    await w.BARCODE.RuntimeLifecycle.stop('fullscreen-check');
+    assert.deepStrictEqual(calls.errors, []);
+  }
   {
     // A restrictive host boundary exposes the former 20-per-second context
     // requests. It is a supplied guard, not a claim to emulate Makko itself.
@@ -223,7 +277,7 @@ async function main() {
     assert(!diagnostic.active && !diagnostic.hasContainer && !diagnostic.listenersAttached);
     assert.strictEqual(diagnostic.timeouts, 0); assert.strictEqual(diagnostic.intervals, 0); assert.strictEqual(diagnostic.imageLoads, 0);
   }
-  console.log('Intro: eight-page opening before tutorial, keyboard/controller hold ownership, release/focus/disconnect, repeat latch, caption discovery, audio handoff and cancellation passed.');
+  console.log('Intro: fullscreen before/after startup, denied/exit/re-entry visibility, eight pages, keyboard/controller holds, release/focus/disconnect, caption discovery, tutorial/mission/audio handoff and cancellation passed.');
 }
 if (require.main === module) {
   const timeout = setTimeout(() => { console.error('Intro check did not settle its lifecycle promise.'); process.exit(1); }, 3000);

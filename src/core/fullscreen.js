@@ -176,15 +176,11 @@ window.FullscreenManager = class FullscreenManager {
     });
   }
 
-  // Get the target element for fullscreen (canvas or document)
+  // Fullscreen the shared presentation root. The gameplay canvas is hidden
+  // during the intro, and DOM overlays are not rendered as canvas children.
+  // Keeping one stable root also covers requests that settle after startup
+  // has already mounted the intro, and keeps title/retry UI visible on errors.
   getTargetElement() {
-    // Try canvas first for better experience
-    const canvas = document.getElementById('gameCanvas');
-    if (canvas) {
-      return canvas;
-    }
-
-    // Fallback to document element
     return document.documentElement;
   }
 

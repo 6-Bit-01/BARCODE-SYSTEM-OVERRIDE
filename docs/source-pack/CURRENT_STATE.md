@@ -1,5 +1,13 @@
 # Current State
 
+## Black-screen recovery after merged PR #41
+
+PR #41 is merged at `897b750cf64bafe3d50746cd7c8c19379ef4fbf6`, but the owner reports that the intro is entirely black and unusable. Its prior passing tests did not load the fullscreen manager. Start requested fullscreen on `#gameCanvas`; lifecycle startup hid that canvas, and CutsceneSystem mounted the intro inside the current fullscreen element. The intro therefore became hidden canvas fallback content. A request resolving after intro creation could also exclude a body-mounted overlay from the fullscreen tree.
+
+`agent/intro-fullscreen-recovery` fullscreens the stable document root and mounts the intro in the body. The retained eight images, scene-positioned dialogue, one-context budget, independent S/B holds, tutorial, audio and gameplay are unchanged. The new ancestry regression failed on merged #41 and passes with this fix. All existing tests and syntax checks pass locally; the added real Chromium check runs in GitHub validation and exports screenshots/results. Exact final results belong to the generated receipt and CI run. This environment could not install Chromium, and no live Makko PASS is claimed.
+
+See `INTRO_FULLSCREEN_RECOVERY.md` and the top ACCEPTANCE route. One combined draft/source export; no merge. HUD/rhythm/attack variety follows the repaired opening, then campaign services. Earlier “current” sections below describe historical checkpoints.
+
 ## Current repair after merged PR #40
 
 PR #40 is merged at `a747b58411650146bdc003a529d0470167d275db`. The owner then reported a canvas-context limit, missing opening images and a narrative mismatch with the first level, and requested styled dialogue positioned within the scenes. `INTRO_REPAIR.md` controls this combined repair on `agent/intro-makko-repair`; the generated manifest identifies its exact head and PR.

@@ -1,5 +1,12 @@
 # Changelog
 
+## September 13, 2026 — black-screen recovery after #41
+
+- Reproduce the merged intro's hidden-canvas/fullscreen defect with the production fullscreen owner included in the intro harness.
+- Fullscreen the shared document root and mount the intro in the body, preserving visibility across request timing, exit/re-entry and retry. Keep the approved art, styling, script, context cache, skip controls and Level 1 behavior.
+- Add focused ancestry/input/handoff regression coverage plus a dependency-free native Chromium check in CI, with screenshots and an explicit Makko/graphics/audio boundary. Preserve the full existing suite.
+- Maintain one combined draft and source export; owner Makko acceptance is pending. HUD/rhythm/attack variety remains next.
+
 ## September 12, 2026 — intro host repair and crew-channel continuity
 
 - Repair PR #40's repeated intro context acquisition: one cached context, no per-paint request or retry loop, and readable fallback if the host refuses creation.
