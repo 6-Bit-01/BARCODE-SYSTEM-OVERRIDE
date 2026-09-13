@@ -299,7 +299,7 @@ function drawSector1BossUI(ctx) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   if (window.gameState.victory) {
-    const reveal = Math.max(0, Math.min(1, ((owner.completion?.elapsedMs || 0) - 620) / 240));
+    const reveal = owner.getCompletionReveal?.() || 0;
     if (reveal === 0) { ctx.restore(); return; }
     ctx.globalAlpha = reveal;
     ctx.fillStyle = 'rgba(0, 8, 16, 0.94)';

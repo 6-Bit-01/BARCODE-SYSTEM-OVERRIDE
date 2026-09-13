@@ -1,5 +1,11 @@
 # Changelog
 
+## September 13, 2026 — PR #44 final HUD/results corrections
+
+- Align hack-success packet arrival and the repair outline with the compact health bar.
+- Start the staggered score/combo/lore count-up after the final-hit hold and complete card fade. Share fade timing with the progression owner and extend its bounded clock so every row reaches its saved total.
+- Extend the production victory check for hidden/fading rows, visible count-up, pause and retry cleanup. Full local regression and syntax checks pass; add a reproducible native UI diagnostic. Preserve the complete ten-item pass in draft PR #44, with current-head browser/export evidence supplied by CI and owner Makko acceptance still pending.
+
 ## September 13, 2026 — all ten Level 1 impact/discovery items
 
 - Preserve merged #43's opening and implement the approved combined scope from `LEVEL_01_IMPACT_PASS.md`.

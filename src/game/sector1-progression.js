@@ -12,6 +12,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
   const PLAYER_VISUAL_FOOT_OFFSET = window.Player.VISUAL_FOOT_OFFSET_Y;
   const CAMERA_MIN = CANVAS_WIDTH / 2;
   const CAMERA_MAX = WORLD_WIDTH - CANVAS_WIDTH / 2;
+  const COMPLETION_PRESENTATION = Object.freeze({ holdMs: 620, fadeMs: 240, rowMs: 760, staggerMs: 220 });
 
   const STATES = Object.freeze({
     TUTORIAL: 'tutorial', ENCOUNTER_1: 'encounter_1', ENCOUNTER_2: 'encounter_2', ENCOUNTER_3: 'encounter_3', ENCOUNTER_4: 'encounter_4',
@@ -566,13 +567,22 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     }
     updateCompletionPresentation(deltaTime = 0) {
       if (!this.completion || this.state !== STATES.LEVEL_COMPLETE || !window.gameState?.victory || window.isPaused || window.gameState?.paused) return;
-      this.completion.elapsedMs = Math.min(1600, this.completion.elapsedMs + Math.max(0, Number(deltaTime) || 0));
+      const { holdMs, fadeMs, rowMs, staggerMs } = COMPLETION_PRESENTATION;
+      this.completion.elapsedMs = Math.min(holdMs + fadeMs + rowMs + 2 * staggerMs,
+        this.completion.elapsedMs + Math.max(0, Number(deltaTime) || 0));
+    }
+    getCompletionReveal() {
+      const { holdMs, fadeMs } = COMPLETION_PRESENTATION;
+      return Math.max(0, Math.min(1, ((this.completion?.elapsedMs || 0) - holdMs) / fadeMs));
     }
     getCompletionPresentation() {
       if (!this.completion) return null;
       const result = this.completion;
+      const { holdMs, fadeMs, rowMs, staggerMs } = COMPLETION_PRESENTATION;
+      // Give every row its full count-up after the final-hit hold and card fade.
+      const visibleMs = result.elapsedMs - holdMs - fadeMs;
       return ['score', 'bestCombo', 'fragments'].map((key, index) => {
-        const progress = Math.max(0, Math.min(1, (result.elapsedMs - index * 220) / 760));
+        const progress = Math.max(0, Math.min(1, (visibleMs - index * staggerMs) / rowMs));
         return { key, value: Math.round(result[key] * (1 - Math.pow(1 - progress, 3))), finalValue: result[key], progress,
           total: key === 'fragments' ? result.totalFragments : null };
       });
