@@ -1,5 +1,7 @@
 # Decision Register
 
+September 13 owner correction: **Studio Rats are cats**; the name is slang, never a literal-rodent design instruction. The new asset/FX/boss-sizing pass is governed by `CAT_CHAOS_ASSET_PASS.md`, after merged PR #44. Keep the existing stable discovery IDs and saved records.
+
 ## Current owner approval — all ten impact/discovery recommendations after #43
 
 “Alright let's proceed” authorizes the complete numbered scope in `LEVEL_01_IMPACT_PASS.md`, including actual attack variety, compact top-left predictive rhythm, FX, four encounter identities and optional fourth-wall/discovery content. Use one combined pass and draft PR; the existing push/draft authorization persists. The prior intro-first work is retained from merged #43. Stage C follows this review.

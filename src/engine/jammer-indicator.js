@@ -20,8 +20,8 @@ window.JammerIndicator = class JammerIndicator {
     this.fadeInTime = 500;
     this.fadeOutTime = 300;
     this.arrowSize = 40;
-    this.indicatorColor = '#0099ff';
-    this.glowColor = '#00aaff';
+    this.indicatorColor = '#d8ff57';
+    this.glowColor = '#aeff51';
     this.safeArea = Object.freeze({ left: 80, right: 1840, top: 180, bottom: 770 });
     this.gameplayViewport = Object.freeze({ left: 0, right: 1920, top: 0, bottom: 850 });
     this.lastProjection = null;
@@ -187,6 +187,7 @@ window.JammerIndicator = class JammerIndicator {
   }
 
   drawArrow(ctx) {
+    if (window.BARCODE?.PresentationAssets?.draw('directionArrow', ctx, { width: 106 })) return;
     const size = this.arrowSize;
     const fill = ctx.createLinearGradient(-size, 0, size, 0);
     fill.addColorStop(0, this.indicatorColor + '80');

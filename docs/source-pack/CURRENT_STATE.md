@@ -1,5 +1,13 @@
 # Current State
 
+## Studio Cats, chaotic FX and boss assets — after merged #44
+
+PR #44 is merged at `4b207c5570a6bccd86b95c702c11e1e6606bbf01`, including the final hack-highlight/victory-timing corrections. Its draft wording below is historical. The owner's newest five-item follow-up is implemented on `agent/level1-cat-chaos-assets`; `CAT_CHAOS_ASSET_PASS.md` records its exact scope, asset provenance and sizing table.
+
+Studio Rats means cats. A four-frame tuxedo cat replaces the literal rodent in the street and panel-margin gag, with compatible saved discovery IDs and corrected crew copy. A reusable distressed arrow replaces the active Jammer pointer, and animated torn energy replaces the boss's orange pulse blocks. All three images use one cached loader with verified immutable URLs and bounded bundled fallbacks. Repeated effects now vary their burst shapes, scratch marks, angles, branches and fragment trajectories without consuming randomness during rendering. The boss grows 8% overall; its walk gets another 6%, with grounded frame anchors and a stable 8%-larger body core. The existing attack timings/damage remain.
+
+The full local `npm test` suite (27 commands), `npm run check:syntax:all`, the native asset diagnostic and six production scene renders pass. This is one combined review, with current-head Chromium/export status supplied by the generated receipt. Local and CI tests do not certify Makko animation playback or gameplay feel. New art/tuning require owner Makko review before merge. Stage C follows this requested asset/FX pass. Older current/next/draft sections below preserve history.
+
 ## Level 1 impact and discovery — combined review after #43
 
 PR #44 continuation: the hack-success packets now arrive at the compact health bar's center, and the repair outline follows that bar. The victory card and counters share one presentation timeline: 620ms final-hit hold, 240ms card fade, then the full staggered count-up. The completion clock now includes every row through 2060ms; pause and rematch preserve/reset the presentation correctly. These final corrections remain in the same draft. Production regression and all-JavaScript syntax checks pass locally; the native UI diagnostic is `verification/impact-pass-hud-results.webp`, reproducible with `node tools/render-impact-followup.cjs`. Current-head Chromium and source-export evidence belong to CI/the PR receipt. Makko review remains pending.

@@ -6,13 +6,24 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
   const BARCODE = window.BARCODE = window.BARCODE || {};
   const TAU = Math.PI * 2;
   const colors = { virus: '#efffff', corrupted: '#ff65e8', firewall: '#ffac48', boss: '#77ffe1', broadcast_jammer: '#92fff1' };
+  // Stateless samples from an event seed. Rendering never advances random state.
+  function noise(seed, salt) {
+    let x = (seed ^ Math.imul(salt + 1, 0x9e3779b9)) >>> 0;
+    x = Math.imul(x ^ (x >>> 16), 0x21f0aaad); x = Math.imul(x ^ (x >>> 15), 0x735a2d97);
+    return ((x ^ (x >>> 15)) >>> 0) / 4294967296;
+  }
   class CombatFX {
-    constructor() { this.reset(); }
+    constructor() { this.randomState = (Date.now() ^ Math.floor(Math.random() * 4294967296)) >>> 0 || 0x6b17; this.reset(); }
+    nextSeed() {
+      let x = this.randomState; x ^= x << 13; x ^= x >>> 17; x ^= x << 5;
+      this.randomState = x >>> 0; return this.randomState;
+    }
+    sample(seed, salt) { return noise(seed, salt); }
     reset() { this.events = []; this.timeMs = 0; this.sceneKick = 0; this.sceneSample = null; this.serial = 0; this.lastCombo = 0; this.damageFeedback = null; this.ampNotice = null; }
     add(event) {
       if (!Number.isFinite(event.x) || !Number.isFinite(event.y)) return;
       if (this.events.length >= 96) this.events.shift();
-      this.events.push({ age: 0, duration: 420, color: '#77ffe1', id: ++this.serial, ...event });
+      this.events.push({ age: 0, duration: 420, color: '#77ffe1', id: ++this.serial, seed: this.nextSeed(), ...event });
     }
     update(ms) {
       if (!Number.isFinite(ms) || ms < 0 || window.isPaused || window.gameState?.paused) return;
@@ -268,23 +279,51 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
         } else if (e.kind === 'movement') {
           const step = e.movement === 'step', radius = (step ? 24 : 110 * e.strength) * t;
           ctx.lineWidth = step ? 2 : 4 * fade;
-          ctx.beginPath(); ctx.ellipse(e.x, e.y, 10 + radius, 3 + radius * 0.17, 0, 0, TAU); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(e.x - radius, e.y);
+          for (let i = 0; i < 10; i++) ctx.lineTo(e.x + radius * (i / 4.5 - 1), e.y - noise(e.seed, i) * radius * 0.2);
+          ctx.stroke();
           for (let i = 0; i < (step ? 4 : 12); i++) {
-            const side = i % 2 ? 1 : -1, dx = side * (12 + radius * (0.6 + i % 4 / 4));
-            const dy = -Math.sin(t * Math.PI) * (step ? 12 : 20 + i % 4 * 8) * e.strength;
+            const side = i % 2 ? 1 : -1, dx = side * (12 + radius * (0.35 + noise(e.seed, i + 20)));
+            const dy = -Math.sin(t * Math.PI) * (step ? 12 : 15 + noise(e.seed, i + 40) * 50) * e.strength;
             ctx.fillRect(e.x + dx, e.y + dy, (step ? 6 : 12) * fade, 3);
           }
         } else if (e.kind === 'pulse') {
-          ctx.globalAlpha = fade * 0.75; ctx.lineWidth = 3 + fade * 6;
-          ctx.beginPath(); ctx.arc(e.x, e.y - 24, e.radius * (0.12 + 0.88 * Math.min(1, t * 2)), 0, TAU); ctx.stroke();
-          ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(e.x, e.y - 24, e.radius * (0.08 + 0.6 * t), 0, TAU); ctx.stroke();
+          const variant = e.seed % 3, rotation = noise(e.seed, 99) * TAU;
+          const radius = e.radius * (0.12 + 0.72 * Math.min(1, t * 2));
+          ctx.translate(e.x, e.y - 24); ctx.rotate(rotation);
+          const pieces = variant === 0 ? 7 : variant === 1 ? 11 : 5;
+          for (let i = 0; i < pieces; i++) {
+            const a = i * TAU / pieces + (noise(e.seed, i) - 0.5) * 0.85;
+            const inner = radius * (0.42 + noise(e.seed, i + 10) * 0.25), outer = radius * (0.8 + noise(e.seed, i + 20) * 0.35);
+            const spread = variant === 1 ? 0.08 : 0.13 + noise(e.seed, i + 40) * 0.16;
+            ctx.beginPath(); ctx.moveTo(Math.cos(a - spread) * inner, Math.sin(a - spread) * inner);
+            if (variant === 0) {
+              ctx.lineTo(Math.cos(a - spread * 0.65) * outer * 0.8, Math.sin(a - spread * 0.65) * outer * 0.8);
+              ctx.lineTo(Math.cos(a - spread * 0.3) * inner * 1.05, Math.sin(a - spread * 0.3) * inner * 1.05);
+            }
+            ctx.lineTo(Math.cos(a) * outer, Math.sin(a) * outer);
+            if (variant === 2) {
+              ctx.lineTo(Math.cos(a + spread) * outer * 0.82, Math.sin(a + spread) * outer * 0.82);
+              ctx.lineTo(Math.cos(a + spread * 0.45) * inner * 0.9, Math.sin(a + spread * 0.45) * inner * 0.9);
+            }
+            ctx.lineTo(Math.cos(a + spread) * inner, Math.sin(a + spread) * inner);
+            ctx.lineTo(Math.cos(a + 0.08) * inner * 0.8, Math.sin(a + 0.08) * inner * 0.8); ctx.closePath();
+            ctx.globalAlpha = fade * (variant === 2 ? 0.35 : 0.65); ctx.fill();
+            ctx.strokeStyle = e.color; ctx.lineWidth = 2 + fade * 3; ctx.globalAlpha = fade; ctx.stroke();
+            // Short offset scratches and splinters break the clean radial edge.
+            ctx.save(); ctx.rotate(a); ctx.fillStyle = i % 3 ? e.color : '#fff6db';
+            ctx.fillRect(outer + 6 + noise(e.seed, i + 60) * 18, -7, (8 + noise(e.seed, i + 80) * 22) * fade, 2 + noise(e.seed, i + 90) * 5);
+            if (variant === 1) { ctx.fillRect(inner * 0.8, -14, (outer - inner) * 0.7, 3); ctx.fillRect(outer * 0.9, 6, 9, 8); }
+            ctx.restore();
+          }
         } else if (e.kind === 'wave') {
           ctx.translate(e.x, e.y); ctx.scale(e.direction, 1);
           for (const offset of [-12, 0, 12]) {
             ctx.beginPath();
             for (let i = 0; i <= 40; i++) {
               const d = i / 40, px = d * e.radius * Math.min(1, t * 3);
-              const py = Math.sin(d * Math.PI * 6 - t * 9) * (24 + 48 * d) * fade + offset;
+              const py = (Math.sin(d * Math.PI * (4 + e.seed % 5) - t * 9) * (24 + 48 * d) +
+                (noise(e.seed, i) - 0.5) * 55 * d) * fade + offset;
               if (!i) ctx.moveTo(px, py); else ctx.lineTo(px, py);
             }
             ctx.lineWidth = offset ? 2 : 7; ctx.globalAlpha = fade * (offset ? 0.45 : 0.9); ctx.stroke();
@@ -293,40 +332,46 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
           if (!Number.isFinite(e.tx) || !Number.isFinite(e.ty)) { ctx.restore(); continue; }
           ctx.lineWidth = e.chain ? 7 : 4;
           ctx.beginPath(); ctx.moveTo(e.x, e.y);
-          for (let i = 1; i < 8; i++) ctx.lineTo(e.x + (e.tx - e.x) * i / 8, e.y + (e.ty - e.y) * i / 8 + Math.sin(e.id * 2 + i * 4.1) * 12 * fade);
+          for (let i = 1; i < 8; i++) ctx.lineTo(e.x + (e.tx - e.x) * i / 8, e.y + (e.ty - e.y) * i / 8 + (noise(e.seed, i) - 0.5) * (e.chain ? 72 : 46) * fade);
           ctx.lineTo(e.tx, e.ty); ctx.stroke();
           ctx.strokeStyle = '#f7ffff'; ctx.lineWidth = 1.5; ctx.stroke();
-          ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(e.tx, e.ty, 12 + t * 10, 0, TAU); ctx.stroke();
+          for (let i = 0; i < 3; i++) {
+            const d = 0.2 + i * 0.23, bx = e.x + (e.tx - e.x) * d, by = e.y + (e.ty - e.y) * d;
+            const side = noise(e.seed, i + 12) > 0.5 ? 1 : -1;
+            ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(bx + 12, by + side * 18 * fade); ctx.lineTo(bx + 30 * fade, by + side * 8 * fade); ctx.stroke();
+          }
         } else if (e.kind === 'impact') {
           const core = window.BARCODE_RENDER_QUALITY?.flashes === false ? 0 : Math.max(0, 1 - e.age / 140);
           if (core > 0) {
-            ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.direction * 0.2); ctx.globalAlpha = core;
+            ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(noise(e.seed, 100) * TAU); ctx.globalAlpha = core;
             ctx.beginPath();
             for (let i = 0; i < 16; i++) {
-              const a = i * TAU / 16, r = (i % 2 ? 15 : e.defeated ? 74 : 48) * (0.8 + 0.2 * core);
+              const a = i * TAU / 16, r = (i % 2 ? 10 + noise(e.seed, i) * 16 : (e.defeated ? 95 : 62) * (0.5 + noise(e.seed, i))) * (0.8 + 0.2 * core);
               if (!i) ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r); else ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
             }
             ctx.closePath(); ctx.fill(); ctx.fillStyle = '#fffdeb';
             ctx.beginPath(); ctx.ellipse(0, 0, 18 * core, 30 * core, -0.3, 0, TAU); ctx.fill(); ctx.restore();
           }
-          const radius = (e.defeated ? 90 : 42) * t + 5;
-          ctx.globalAlpha = fade * 0.7; ctx.beginPath(); ctx.arc(e.x, e.y, radius, 0, TAU); ctx.stroke();
-          const count = e.defeated ? 18 : 8;
+          ctx.globalAlpha = fade * 0.8;
+          const count = e.defeated ? 22 : 10;
           for (let i = 0; i < count; i++) {
-            const angle = i * 2.39996;
-            const distance = (e.defeated ? 235 : 90) * t * (0.4 + (i % 5) / 8);
+            const angle = noise(e.seed, i) * TAU;
+            const age = Math.max(0, t - noise(e.seed, i + 30) * 0.12);
+            const distance = (e.defeated ? 280 : 125) * age * (0.3 + noise(e.seed, i + 60));
             const px = e.x + Math.cos(angle) * distance + e.direction * t * 35;
             const py = e.y + Math.sin(angle) * distance + (e.material === 'firewall' ? 80 * t * t : -t * 14);
-            if (e.material === 'corrupted') { ctx.fillRect(px, py, (i % 3 + 1) * 16 * fade, 5); ctx.fillStyle = '#ffffff'; ctx.fillRect(px + 6, py - 4, 16 * fade, 2); ctx.fillStyle = e.color; }
-            else if (e.material === 'firewall') { ctx.beginPath(); ctx.moveTo(px, py - 10 * fade); ctx.lineTo(px + 12 * fade, py + 8); ctx.lineTo(px - 9 * fade, py + 5); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#fff8c5'; ctx.fillRect(px, py, 3, 3); ctx.fillStyle = e.color; }
-            else { const size = 5 + i % 3 * 3; ctx.fillRect(px, py, size, size); ctx.strokeRect(px + 3, py - 3, size, size); }
+            ctx.save(); ctx.translate(px, py); ctx.rotate(angle + age * (noise(e.seed, i + 90) - 0.5) * 9);
+            if (e.material === 'corrupted') { ctx.fillRect(0, 0, (1 + noise(e.seed, i + 120) * 4) * 16 * fade, 5); ctx.fillStyle = '#ffffff'; ctx.fillRect(6, -4, 16 * fade, 2); }
+            else if (e.material === 'firewall') { ctx.beginPath(); ctx.moveTo(0, -14 * fade); ctx.lineTo(16 * fade, 8); ctx.lineTo(-9 * fade, 5); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#fff8c5'; ctx.fillRect(0, 0, 3, 3); }
+            else { const size = 4 + noise(e.seed, i + 150) * 11; ctx.fillRect(0, 0, size, size); ctx.strokeRect(3, -3, size, size); }
+            ctx.restore();
           }
         } else if (e.kind === 'guard') {
           const angle = e.direction < 0 ? Math.PI : 0;
           ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(e.x, e.y, 65 + t * 25, angle - 0.85, angle + 0.85); ctx.stroke();
         } else if (e.kind === 'combo') {
           for (let i = 0; i < 18; i++) {
-            const angle = i * TAU / 18, radius = 55 + t * (e.tier === 10 ? 140 : 95);
+            const angle = i * TAU / 18 + noise(e.seed, i) * 0.3, radius = 45 + t * (e.tier === 10 ? 210 : 135) * (0.5 + noise(e.seed, i + 20));
             ctx.save(); ctx.translate(e.x + Math.cos(angle) * radius, e.y + Math.sin(angle) * radius * 0.7); ctx.rotate(angle);
             ctx.fillRect(0, -2, (i % 3 + 1) * 5, 4); ctx.restore();
           }

@@ -5,7 +5,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
   const B = window.BARCODE = window.BARCODE || {}, TAU = Math.PI * 2;
   const DETAILS = Object.freeze([
     { id: 'egg.l01.studio-rat', x: 590, y: 822, name: 'STUDIO RAT', speaker: 'CACHE BACK',
-      lines: ['That rat just stole a bolt from the panel border.', 'Leave it. Apparently the margins have a maintenance crew.'] },
+      lines: ['That cat just stole a bolt from the panel border.', 'Studio Rats. Four paws, no respect for production equipment.'] },
     { id: 'egg.l01.cliff-maintenance', x: 865, y: 492, name: 'MAINTENANCE PLATE', speaker: 'CLIFF',
       lines: ['Two clean beats. That is all the lift needs.', 'I fixed the wiring. You still have to do the climbing.'] },
     { id: 'egg.l01.witty-route', x: 2475, y: 358, name: 'ROUTE MARK', speaker: 'WittyF0x',
@@ -32,7 +32,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
     event(kind, x, options = {}) {
       if (!Number.isFinite(x)) return;
       if (this.events.length >= 16) this.events.shift();
-      this.events.push({ kind, x, y: 822, age: 0, duration: 1100, ...options });
+      this.events.push({ kind, x, y: 822, age: 0, duration: 1100, seed: B.combatFX?.nextSeed?.() || 1, ...options });
     }
     react(x, strength = 1, kind = 'hit') {
       if (!Number.isFinite(x)) return;
@@ -157,12 +157,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
       ctx.restore();
     }
     drawRat(ctx, x, y, scale = 1) {
+      const moving = this.ratAge !== null;
+      const frame = moving ? Math.floor(this.ratAge / 110) % 4 : 0;
+      if (B.PresentationAssets?.draw('studioCat', ctx, { x, y, width: 116 * scale, frame })) return;
       ctx.save(); ctx.translate(x, y); ctx.scale(scale, scale);
-      ctx.strokeStyle = '#b5bfd3'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-12, -5); ctx.quadraticCurveTo(-42, -30, -42, -3); ctx.stroke();
+      ctx.strokeStyle = '#b5bfd3'; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(-12, -5); ctx.quadraticCurveTo(-45, -54, -29, -47); ctx.stroke();
       ctx.fillStyle = '#262d40'; ctx.strokeStyle = '#adb9cc'; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.ellipse(0, -9, 21, 12, -0.1, 0, TAU); ctx.fill(); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(11, -14); ctx.lineTo(34, -7); ctx.lineTo(12, 0); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = '#61647f'; ctx.beginPath(); ctx.arc(11, -21, 7, 0, TAU); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(9, -15); ctx.lineTo(10, -34); ctx.lineTo(20, -25); ctx.lineTo(30, -33); ctx.lineTo(33, -10); ctx.lineTo(18, -5); ctx.closePath(); ctx.fill(); ctx.stroke();
       ctx.fillStyle = '#a4ffe8'; ctx.fillRect(22, -12, 3, 3); ctx.fillRect(-10, 1, 9, 3); ctx.fillRect(8, 1, 9, 3);
       ctx.restore();
     }
@@ -205,9 +207,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
           }
         } else if (['clear', 'destruction', 'boss', 'victory'].includes(e.kind)) {
           ctx.lineWidth = e.kind === 'clear' ? 4 : 8;
-          ctx.beginPath(); ctx.ellipse(e.x, 820, 30 + t * (e.kind === 'destruction' ? 720 : 450), 8 + t * 65, 0, 0, TAU); ctx.stroke();
+          const spread = 30 + t * (e.kind === 'destruction' ? 720 : 450);
+          for (let side = -1; side <= 1; side += 2) {
+            ctx.beginPath(); ctx.moveTo(e.x + side * spread * 0.25, 820);
+            for (let i = 1; i <= 9; i++) {
+              const jitter = B.combatFX?.sample(e.seed, i + (side + 1) * 10) ?? 0.5;
+              ctx.lineTo(e.x + side * spread * (0.25 + i / 12), 820 - Math.sin(i / 10 * Math.PI) * (10 + jitter * 45) * (1 - t));
+            }
+            ctx.stroke();
+          }
           for (let i = 0; i < 20; i++) {
-            const a = i * 2.39996, r = t * 280;
+            const a = (B.combatFX?.sample(e.seed, i + 30) ?? i / 20) * TAU;
+            const r = t * (150 + (B.combatFX?.sample(e.seed, i + 60) ?? 0.5) * 270);
             ctx.fillRect(e.x + Math.cos(a) * r, 745 + Math.sin(a) * r * 0.5 - t * 70, i % 3 ? 6 : 14, 4);
           }
         }
@@ -248,9 +259,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
         ctx.fillText(`${key} / INSPECT ${this.nearby.name}`, 48, 972);
       }
       if (this.ratAge !== null) {
-        const t = this.ratAge / 3600, x = 210 + t * 770, y = 1020 + Math.sin(t * Math.PI) * 15;
-        ctx.strokeStyle = '#eee6d4'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(25, 1022); ctx.lineTo(980, 1022); ctx.stroke();
-        ctx.fillStyle = '#080c17'; ctx.fillRect(x - 37, 1006, 81, 39); this.drawRat(ctx, x, y, 1.2);
+        const t = this.ratAge / 3600, x = 990 + t * 770, y = 1020 + Math.sin(t * Math.PI) * 15;
+        ctx.strokeStyle = '#eee6d4'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(940, 1022); ctx.lineTo(1830, 1022); ctx.stroke();
+        ctx.fillStyle = '#080c17'; ctx.fillRect(x - 69, y - 8, 138, 20); this.drawRat(ctx, x, y, 1.2);
         ctx.strokeStyle = '#a7b5c7'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x - 24, y - 4); ctx.lineTo(x - 59, y + 3); ctx.stroke();
         ctx.fillStyle = '#dbe2e8'; ctx.fillRect(x - 72, y - 4, 15, 12); ctx.fillStyle = '#15202c'; ctx.fillRect(x - 68, y - 1, 7, 6);
       }

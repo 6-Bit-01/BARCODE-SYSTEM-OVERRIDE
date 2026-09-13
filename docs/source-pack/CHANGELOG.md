@@ -1,5 +1,14 @@
 # Changelog
 
+## September 13, 2026 — Studio Cats, chaotic FX and boss art after merged #44
+
+- Verify #44 merged at `4b207c5570a6bccd86b95c702c11e1e6606bbf01`; preserve its complete ten-item pass and HUD/results corrections.
+- Correct Studio Rats to cats, retain saved IDs, and add a generated four-frame tuxedo-cat walk beside the inspection caption.
+- Add reusable barcode-arrow and animated boss-pulse assets, provenance/packing metadata and one bounded three-image cache. Publish and verify immutable art checkpoint `e35ebe3ae8bfc547815a5a93c952424fa067af5d`.
+- Replace uniform combat rings/debris with varied torn bursts, scratches, branches, angular movement waves and seeded fragment timing/trajectories. Rendering never advances the visual RNG.
+- Enlarge the boss/body core 8%, with a further 6% visual walk increase. Preserve all clip foot measurements, Makko anchor/scale compensation, pulse/damage/timing and retry rules.
+- Add focused loader/FX/consumer tests, native asset/world diagnostics and Chromium image decoding coverage. Deliberately update the baseline for one new active script. One combined draft, exact verification in its receipt; owner Makko review pending.
+
 ## September 13, 2026 — PR #44 final HUD/results corrections
 
 - Align hack-success packet arrival and the repair outline with the compact health bar.

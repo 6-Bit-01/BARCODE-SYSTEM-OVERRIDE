@@ -1,12 +1,14 @@
 # Easter eggs, cameos and player-aware presentation
 
+**Owner correction (September 13): Studio Rats means cats. All appearances use feline anatomy; existing discovery IDs remain unchanged.**
+
 ## First Level 1 discoveries — current combined draft
 
 The owner approved the four optional details below as part of all ten impact/discovery recommendations. They are now implemented for review; later candidate placements remain proposals. E / LB inspects between fights, a second press requests the short crew reply, and moving away closes the card. Facts are saved only on inspection, merge across tabs with lore, and survive restart/reload without altering lore counts or stats.
 
 | Stable ID | Actual placement | Response / presentation |
 |---|---|---|
-| `egg.l01.studio-rat` | Street x590 by the Signal Lift | Cache Back notices the stolen panel bolt; a rat crosses the bottom margin; results callback after discovery. |
+| `egg.l01.studio-rat` | Street x590 by the Signal Lift | Cache Back notices the stolen panel bolt; a Studio Cat crosses the bottom margin; results callback after discovery. |
 | `egg.l01.cliff-maintenance` | First roof x865, visible-foot y492 | Cliff's two-beat lift maintenance note. |
 | `egg.l01.witty-route` | Firewall canopy x2475, visible-foot y358 | WittyF0x points toward the existing Signal Amp roof. |
 | `egg.l01.venue-flyer` | Street x1840 | DJ Floppydisc's BARCODE venue flyer response. |
@@ -49,7 +51,7 @@ These eight references are present in the current owner direction/required genre
 
 | ID / inspiration | Proposed BARCODE discovery | Placement / payoff | Production needs |
 |---|---|---|---|
-| egg.comic.gutter / Comix Zone | A loose stage-direction caption becomes a physical scrap; a Studio Rat steals it through the panel gutter | First safe L1 transition; scrap reappears during L4 reconstruction; deliberate frame callback in L7 | Code-native panel/caption layer; optional rat frames after inspection |
+| egg.comic.gutter / Comix Zone | A loose stage-direction caption becomes a physical scrap; a Studio Rat steals it through the panel gutter | First safe L1 transition; scrap reappears during L4 reconstruction; deliberate frame callback in L7 | Code-native panel/caption layer; optional cat frames after inspection |
 | egg.comms.stage_crate / Metal Gear | A conspicuous broadcast-equipment crate interrupts an optional crew call; the reply changes after the player inspects it | Safe L3 service area or L6 maintenance room; same label in credits | Original crate prop and brief comms; no required stealth mechanic |
 | egg.comms.bound_action / Metal Gear | A caller tries to describe the controller and is corrected by a message showing the player's actual current binding | Quiet tutorial/optional terminal, once controller support is complete | Semantic binding lookup and input-safe dialogue; no fake OS/account access |
 | egg.rungun.drum_code / Contra | A hidden warm-up terminal accepts an original short drum sequence and opens an optional rehearsal/credits gag | L3 side room; optional pattern can echo in the final credits | Own pattern and art; no copied cheat code and no score/ending dependency |

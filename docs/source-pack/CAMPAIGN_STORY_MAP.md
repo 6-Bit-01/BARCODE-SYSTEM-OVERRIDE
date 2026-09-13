@@ -1,5 +1,7 @@
 # Full campaign story map — working treatment
 
+**Owner terminology correction after merged #44:** Studio Rats are cats; the term is studio slang, never a literal rodent species. The current Level 1 asset is a tuxedo cat. Interpret all later sightings and recurring physical gags below as feline behavior. Keep the existing discovery IDs and collaborator roster.
+
 ## Authority and purpose
 
 The owner approved mapping the whole game, stronger comic/player-aware presentation and inspiration Easter eggs after PR #37. The premise, original four, required genres, 9 Bit origin and collection counts are retained decisions. **The scene treatments, exact reveal placement, working titles and cameo assignments in this document are newly developed working proposals.** They are not finalized canon or installed game content.

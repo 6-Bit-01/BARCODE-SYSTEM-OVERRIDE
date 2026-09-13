@@ -26,6 +26,7 @@
     "src/engine/traffic-sheets.js",
     "src/engine/spaceships.js",
     "src/engine/lore.js",
+    "src/engine/presentation-assets.js",
     "src/engine/jammer-indicator.js",
     "src/engine/title-screen.js",
     "src/game/objectives.js",
@@ -77,6 +78,7 @@
     "src/engine/traffic-sheets.js",
     "src/engine/spaceships.js",
     "src/engine/lore.js",
+    "src/engine/presentation-assets.js",
     "src/engine/jammer-indicator.js",
     "src/engine/title-screen.js",
     "src/game/objectives.js",
@@ -146,6 +148,7 @@
     "tools/check-level-01-targets-traffic.js",
     "tools/check-makko-hotfix.js",
     "tools/check-music-profiles.js",
+    "tools/check-presentation-assets.js",
     "tools/check-runtime-lifecycle.js",
     "tools/check-startup-lifecycle.js",
     "tools/check-syntax.js",
@@ -232,6 +235,10 @@
       },
       {
         "file": "src/engine/lore.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/engine/presentation-assets.js",
         "status": "pass"
       },
       {
@@ -345,11 +352,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 48,
+        "index": 49,
         "status": "pass"
       },
       {
-        "index": 50,
+        "index": 51,
         "status": "pass"
       }
     ]
@@ -412,6 +419,7 @@
       "host": "raw.githubusercontent.com",
       "sourceFiles": [
         "src/engine/intro-sequence.js",
+        "src/engine/presentation-assets.js",
         "tools/check-intro.js"
       ]
     }
@@ -708,6 +716,7 @@
     "src/engine/traffic-sheets.js",
     "src/engine/spaceships.js",
     "src/engine/lore.js",
+    "src/engine/presentation-assets.js",
     "src/engine/jammer-indicator.js",
     "src/engine/title-screen.js",
     "src/game/objectives.js",

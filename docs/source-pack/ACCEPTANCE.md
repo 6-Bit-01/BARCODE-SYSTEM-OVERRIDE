@@ -1,5 +1,17 @@
 # Acceptance and Test Status
 
+## Studio Cat / chaotic FX / boss asset review — after merged #44
+
+Import the exact `agent/level1-cat-chaos-assets` review head. Base/rollback is merged #44, `4b207c5570a6bccd86b95c702c11e1e6606bbf01`. New art and size/FX tuning require owner Makko acceptance before merge; older draft sections below are historical.
+
+1. Inspect the cat at street x590 between encounters with E / LB. It must read as a cat, deliver the corrected crew exchange and walk beside the caption without covering text. Repeat after reload with the existing discovery saved; no new lore or duplicate discovery is granted.
+2. Reveal the Jammer and move to either side until it leaves the screen. The textured pointer must aim correctly at safe edges, retain its distance label and disappear when the target is visible/destroyed. Check windowed/fullscreen and different zooms.
+3. Compare repeated hits, combo-5 waves, combo-10 chains, landings, metal/data/strip defeats and major clears. Bursts should look noticeably different and more unruly while enemy warnings and the fixed beat target stay readable. Pause freezes their current shape; reduced flashes and shake settings still apply.
+4. Watch the entire boss entrance, idle, walk and attack. The boss should be modestly larger and the narrow walk fuller; feet must stay on the street through clip changes, mirroring and movement. Check the 8%-larger stable body core feels fair for contact and stomp counters.
+5. Watch/jump both directions of the textured ground pulse, including double pulses. The bright leading edge marks the same 64 × 56 hazard; warnings, damage and musical counter windows retain their behavior. Pause/resume, boss loss/rematch, victory and full restart must clear old effects and reuse the three images.
+
+Retain the complete AGENTS smoke route for intro/tutorial, movement/contact, lift/roofs, H/R, audio, quotas/Jammer, boss win/loss/retry and restart. Focused production tests and native `verification/cat-chaos-*.webp` diagnostics cover code/frame behavior; the CI Chromium check covers image decoding/fallback and the existing intro routes. Neither replaces Makko playback/feel review.
+
 ## Combined ten-item impact/discovery review — after #43
 
 Import the exact `agent/level1-impact-discovery` PR head into the duplicate Makko project. Rollback is `51b65d4cd71d369b05003ddaa83cfe6f88fe348b`. Owner Makko acceptance is required before merge. Keep the full opening/fullscreen, tutorial, movement/contact, H/R, lift, audio, mission/Jammer, boss win/loss/retry and restart smoke route from AGENTS.
