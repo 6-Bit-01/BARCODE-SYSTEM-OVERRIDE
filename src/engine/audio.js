@@ -597,7 +597,10 @@ window.AudioSystem = class AudioSystem {
       empty: [240, 200, 0.07, 'sine'], miss: [150, 90, 0.10, 'triangle'],
       damage: [170, 45, 0.23, 'sawtooth'], lift: [330, 660, 0.20, 'triangle'],
       pickup: [660, 1320, 0.25, 'sine'], combo5: [440, 880, 0.24, 'triangle'],
-      combo10: [660, 1320, 0.32, 'triangle'], defeat: [260, 65, 0.20, 'square']
+      combo10: [660, 1320, 0.32, 'triangle'], defeat: [260, 65, 0.20, 'square'],
+      wave: [180, 820, 0.18, 'sawtooth'], discharge: [1240, 180, 0.16, 'square'],
+      metal: [190, 38, 0.16, 'square'], tear: [860, 70, 0.11, 'sawtooth'], data: [940, 320, 0.08, 'triangle'],
+      restore: [330, 990, 0.28, 'sine'], inspect: [520, 780, 0.12, 'triangle']
     };
     const profile = profiles[kind];
     if (!profile) return false;

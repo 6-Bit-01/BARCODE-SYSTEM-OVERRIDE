@@ -40,7 +40,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
       const angle = dx || dy ? Math.atan2(dy, dx) : null;
       this.damageFeedback = { player, from: previousHealth, to: player.health, direction: Math.sign(dx), age: 0, duration: 950 };
       this.add({ kind: 'hurt', x: player.position.x, y: player.position.y - 12, angle, color: '#ff987b', duration: 340 });
-      window.renderer?.addScreenShake?.(4, 180);
+      window.renderer?.impact?.('hurt', { direction: -Math.sign(dx) });
     }
     ampChanged(kind, charges, player = window.player) {
       const empty = kind === 'use' && charges === 0;
@@ -57,8 +57,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
       const assembly = Math.min(1, event.age / 320);
       const travel = Math.max(0, Math.min(1, (event.age - 320) / 760));
       const eased = travel * travel * (3 - 2 * travel);
-      return { x: source.x + (200 - source.x) * eased,
-        y: source.y + (115 - source.y) * eased - Math.sin(travel * Math.PI) * 65,
+      return { x: source.x + (1810 - source.x) * eased,
+        y: source.y + (50 - source.y) * eased - Math.sin(travel * Math.PI) * 65,
         assembly, travel, scale: 1.4 - travel * 0.75,
         alpha: event.age <= 1080 ? 1 : Math.max(0, (1400 - event.age) / 320) };
     }
@@ -71,7 +71,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
         ctx.save(); ctx.globalAlpha = pose.alpha;
         if (pose.travel === 1) {
           ctx.strokeStyle = '#c6a0ff'; ctx.lineWidth = 2;
-          ctx.strokeRect(50 - (1 - pose.alpha) * 5, 100 - (1 - pose.alpha) * 3, 300 + (1 - pose.alpha) * 10, 30 + (1 - pose.alpha) * 6);
+          ctx.strokeRect(1552 - (1 - pose.alpha) * 5, 24 - (1 - pose.alpha) * 3, 338 + (1 - pose.alpha) * 10, 51 + (1 - pose.alpha) * 6);
         }
         ctx.translate(pose.x, pose.y); ctx.scale(pose.scale, pose.scale);
         const offset = (1 - pose.assembly) * 20;
@@ -125,30 +125,30 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
         ctx.beginPath(); ctx.moveTo(edge, y + 5); ctx.lineTo(edge - hit.direction * 10, y + height / 2); ctx.lineTo(edge, y + height - 5); ctx.stroke();
       }
       ctx.fillStyle = '#ffb49c'; ctx.font = 'bold 16px monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-      ctx.fillText(`−${hit.from - hit.to} SIGNAL`, x + width + 44, y + height / 2);
+      ctx.fillText(`−${hit.from - hit.to}`, x + width + 20, y + height + 8);
       ctx.restore();
     }
     drawAmpHUD(ctx) {
       const charges = Math.max(0, Math.min(3, BARCODE.signalAmpCharges || 0));
       if (!charges && !window.sector1Progression?.signalAmpCollected && !this.ampNotice) return;
       const notice = this.ampNotice;
-      const x = 1560, y = 92;
-      ctx.save(); ctx.fillStyle = 'rgba(9,16,32,0.94)'; ctx.fillRect(x, y, 300, 72);
-      ctx.strokeStyle = charges ? '#a875bb' : '#435163'; ctx.lineWidth = 1; ctx.strokeRect(x, y, 300, 72);
-      this.drawAmpIcon(ctx, x + 30, y + 35, 0.65, charges);
+      const x = 30, y = window.rhythmSystem?.isActive?.() ? 240 : 112;
+      ctx.save(); ctx.fillStyle = 'rgba(9,16,32,0.94)'; ctx.fillRect(x, y, 448, 62);
+      ctx.strokeStyle = charges ? '#a875bb' : '#435163'; ctx.lineWidth = 1; ctx.strokeRect(x, y, 448, 62);
+      this.drawAmpIcon(ctx, x + 30, y + 31, 0.65, charges);
       ctx.fillStyle = charges ? '#f4c1ff' : '#a0afc0'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.font = 'bold 16px monospace';
       ctx.fillText(charges ? 'SIGNAL AMP' : 'AMP EMPTY', x + 60, y + 18);
       for (let i = 0; i < 3; i++) {
-        ctx.fillStyle = i < charges ? '#91ffe5' : '#1b2939'; ctx.fillRect(x + 60 + i * 32, y + 33, 24, 8);
-        ctx.strokeStyle = '#51677b'; ctx.strokeRect(x + 60 + i * 32, y + 33, 24, 8);
+        ctx.fillStyle = i < charges ? '#91ffe5' : '#1b2939'; ctx.fillRect(x + 270 + i * 32, y + 15, 24, 8);
+        ctx.strokeStyle = '#51677b'; ctx.strokeRect(x + 270 + i * 32, y + 15, 24, 8);
         if (notice?.kind === 'use' && i === charges) {
           ctx.strokeStyle = `rgba(239,160,255,${1 - notice.age / notice.duration})`;
-          ctx.strokeRect(x + 58 + i * 32, y + 31, 28, 12);
+          ctx.strokeRect(x + 268 + i * 32, y + 13, 28, 12);
         }
       }
       ctx.font = '12px monospace'; ctx.fillStyle = '#c2cfdc';
       const message = notice?.kind === 'pickup' ? '3 HITS · LONGER ENEMY REACH' : notice?.kind === 'empty' ? 'DEPLETED · NORMAL REACH' : charges ? 'ON-BEAT HITS: ENEMY REACH +' : 'NORMAL REACH';
-      ctx.fillText(message, x + 60, y + 56);
+      ctx.fillText(message, x + 60, y + 44);
       ctx.restore();
     }
     beat() {
@@ -169,7 +169,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
       window.audioSystem?.playCombatCue?.(entering ? 'enter' : 'exit');
     }
     contact(type, x, y, direction = 1, defeated = false, perfect = false) {
-      this.add({ kind: 'impact', x, y, direction: direction || 1, material: type, defeated, perfect, color: colors[type] || '#7cffe2', duration: defeated ? 640 : 280 });
+      this.add({ kind: 'impact', x, y, direction: direction || 1, material: type, defeated, perfect, color: colors[type] || '#7cffe2', duration: defeated ? 900 : 380 });
+      window.audioSystem?.playCombatCue?.(type === 'firewall' ? 'metal' : type === 'corrupted' ? 'tear' : 'data', { material: type });
+      BARCODE.stageFX?.react?.(x, defeated ? 1 : 0.5);
+    }
+    movement(kind, player, speed = 0) {
+      if (!player) return;
+      const strength = kind === 'land' ? Math.max(0.2, Math.min(1, speed / 1000)) : kind === 'stomp' ? 1 : 0.45;
+      const x = player.position.x, y = player.position.y + 72;
+      this.add({ kind: 'movement', movement: kind, x, y, strength, direction: player.facing || 1,
+        color: player.supportedSurfaceId ? '#d8b6ff' : '#96fff0', duration: kind === 'step' ? 180 : 420 });
+      if (kind === 'stomp' || (kind === 'land' && speed > 500)) window.renderer?.impact?.(kind, { strength });
+      if (kind === 'stomp' || kind === 'land') BARCODE.stageFX?.react?.(x, strength, kind);
     }
     resolved(result, player, range) {
       if (!player || !result.timing?.available) return;
@@ -180,16 +191,20 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
       const color = result.reason === 'boss-guarded' ? '#ffbe70' : result.targets.length ? '#7cffe2' : '#8babb8';
       this.sceneKick = result.targets.length ? 1 : 0.4;
       this.add({ kind: 'pulse', x, y, radius: range, color, duration: perfect ? 340 : 270, perfect });
+      const pattern = result.pattern || 'pulse';
+      if (pattern !== 'pulse') this.add({ kind: 'wave', x, y: y - 24, radius: result.waveReach || range,
+        direction: player.facing || 1, color: pattern === 'discharge' ? '#ffa0ed' : '#7cffe2', duration: 360, perfect });
       for (const target of result.targets) {
-        this.add({ kind: 'link', x, y: y - 24, tx: target.x, ty: target.contactY ?? target.y, color: colors[target.type] || color, duration: perfect ? 200 : 150, perfect });
+        this.add({ kind: 'link', x: target.fromX ?? x, y: (target.fromY ?? y) - 24, tx: target.x, ty: target.contactY ?? target.y, chain: target.via === 'chain', color: target.via === 'chain' ? '#ffa0ed' : colors[target.type] || color, duration: perfect ? 240 : 180, perfect });
         if (target.type === 'boss' || target.type === 'broadcast_jammer') this.contact(target.type, target.x, target.contactY ?? target.y, Math.sign(target.x - x), false, perfect);
       }
-      if (result.targets.length) player.impactHoldMs = perfect ? 45 : 25;
+      if (result.targets.length) { player.impactHoldMs = perfect ? 55 : 30; BARCODE.stageFX?.react?.(x, 1, 'hit'); }
       if (result.reason === 'boss-guarded') {
         const boss = window.sector1Progression?.boss;
         if (boss) this.add({ kind: 'guard', x: boss.x, y: boss.y, duration: 260, color: '#ffbe70', direction: Math.sign(x - boss.x) || -1 });
       }
       window.audioSystem?.playCombatCue?.(Number.isFinite(result.liftCharges) ? 'lift' : result.reason === 'boss-guarded' ? 'guard' : result.targets.length ? (perfect ? 'perfect' : 'hit') : 'empty');
+      if (pattern !== 'pulse' && result.targets.length) window.audioSystem?.playCombatCue?.(pattern);
       if ((combo >= 5 && this.lastCombo < 5) || (combo >= 10 && this.lastCombo < 10)) {
         const tier = combo >= 10 ? 10 : 5;
         this.add({ kind: 'combo', x, y: y - 10, tier, duration: 540, color: tier === 10 ? '#ff8af3' : '#7cffe2' });
@@ -250,27 +265,61 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
             const radius = e.kind === 'amp-empty' ? 28 + t * 62 : 70 * (1 - t);
             ctx.fillRect(e.x + Math.cos(angle) * radius, e.y + Math.sin(angle) * radius * 0.5 - t * 45, i % 3 ? 3 : 6, 14 * fade);
           }
+        } else if (e.kind === 'movement') {
+          const step = e.movement === 'step', radius = (step ? 24 : 110 * e.strength) * t;
+          ctx.lineWidth = step ? 2 : 4 * fade;
+          ctx.beginPath(); ctx.ellipse(e.x, e.y, 10 + radius, 3 + radius * 0.17, 0, 0, TAU); ctx.stroke();
+          for (let i = 0; i < (step ? 4 : 12); i++) {
+            const side = i % 2 ? 1 : -1, dx = side * (12 + radius * (0.6 + i % 4 / 4));
+            const dy = -Math.sin(t * Math.PI) * (step ? 12 : 20 + i % 4 * 8) * e.strength;
+            ctx.fillRect(e.x + dx, e.y + dy, (step ? 6 : 12) * fade, 3);
+          }
         } else if (e.kind === 'pulse') {
-          ctx.globalAlpha = fade * 0.55;
-          ctx.beginPath(); ctx.arc(e.x, e.y, e.radius * (0.7 + 0.3 * t), 0, TAU); ctx.stroke();
+          ctx.globalAlpha = fade * 0.75; ctx.lineWidth = 3 + fade * 6;
+          ctx.beginPath(); ctx.arc(e.x, e.y - 24, e.radius * (0.12 + 0.88 * Math.min(1, t * 2)), 0, TAU); ctx.stroke();
+          ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(e.x, e.y - 24, e.radius * (0.08 + 0.6 * t), 0, TAU); ctx.stroke();
+        } else if (e.kind === 'wave') {
+          ctx.translate(e.x, e.y); ctx.scale(e.direction, 1);
+          for (const offset of [-12, 0, 12]) {
+            ctx.beginPath();
+            for (let i = 0; i <= 40; i++) {
+              const d = i / 40, px = d * e.radius * Math.min(1, t * 3);
+              const py = Math.sin(d * Math.PI * 6 - t * 9) * (24 + 48 * d) * fade + offset;
+              if (!i) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            }
+            ctx.lineWidth = offset ? 2 : 7; ctx.globalAlpha = fade * (offset ? 0.45 : 0.9); ctx.stroke();
+          }
         } else if (e.kind === 'link') {
           if (!Number.isFinite(e.tx) || !Number.isFinite(e.ty)) { ctx.restore(); continue; }
+          ctx.lineWidth = e.chain ? 7 : 4;
           ctx.beginPath(); ctx.moveTo(e.x, e.y);
           for (let i = 1; i < 8; i++) ctx.lineTo(e.x + (e.tx - e.x) * i / 8, e.y + (e.ty - e.y) * i / 8 + Math.sin(e.id * 2 + i * 4.1) * 12 * fade);
           ctx.lineTo(e.tx, e.ty); ctx.stroke();
+          ctx.strokeStyle = '#f7ffff'; ctx.lineWidth = 1.5; ctx.stroke();
           ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(e.tx, e.ty, 12 + t * 10, 0, TAU); ctx.stroke();
         } else if (e.kind === 'impact') {
+          const core = window.BARCODE_RENDER_QUALITY?.flashes === false ? 0 : Math.max(0, 1 - e.age / 140);
+          if (core > 0) {
+            ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.direction * 0.2); ctx.globalAlpha = core;
+            ctx.beginPath();
+            for (let i = 0; i < 16; i++) {
+              const a = i * TAU / 16, r = (i % 2 ? 15 : e.defeated ? 74 : 48) * (0.8 + 0.2 * core);
+              if (!i) ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r); else ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+            }
+            ctx.closePath(); ctx.fill(); ctx.fillStyle = '#fffdeb';
+            ctx.beginPath(); ctx.ellipse(0, 0, 18 * core, 30 * core, -0.3, 0, TAU); ctx.fill(); ctx.restore();
+          }
           const radius = (e.defeated ? 90 : 42) * t + 5;
           ctx.globalAlpha = fade * 0.7; ctx.beginPath(); ctx.arc(e.x, e.y, radius, 0, TAU); ctx.stroke();
           const count = e.defeated ? 18 : 8;
           for (let i = 0; i < count; i++) {
             const angle = i * 2.39996;
-            const distance = (e.defeated ? 145 : 56) * t * (0.4 + (i % 5) / 8);
+            const distance = (e.defeated ? 235 : 90) * t * (0.4 + (i % 5) / 8);
             const px = e.x + Math.cos(angle) * distance + e.direction * t * 35;
             const py = e.y + Math.sin(angle) * distance + (e.material === 'firewall' ? 80 * t * t : -t * 14);
-            if (e.material === 'corrupted') ctx.fillRect(px, py, (i % 3 + 1) * 8 * fade, 3);
-            else if (e.material === 'firewall') { ctx.beginPath(); ctx.moveTo(px, py - 5 * fade); ctx.lineTo(px + 5 * fade, py + 5); ctx.lineTo(px - 6 * fade, py + 3); ctx.closePath(); ctx.fill(); }
-            else ctx.fillRect(px, py, 3 + 4 * fade, 3 + 4 * fade);
+            if (e.material === 'corrupted') { ctx.fillRect(px, py, (i % 3 + 1) * 16 * fade, 5); ctx.fillStyle = '#ffffff'; ctx.fillRect(px + 6, py - 4, 16 * fade, 2); ctx.fillStyle = e.color; }
+            else if (e.material === 'firewall') { ctx.beginPath(); ctx.moveTo(px, py - 10 * fade); ctx.lineTo(px + 12 * fade, py + 8); ctx.lineTo(px - 9 * fade, py + 5); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#fff8c5'; ctx.fillRect(px, py, 3, 3); ctx.fillStyle = e.color; }
+            else { const size = 5 + i % 3 * 3; ctx.fillRect(px, py, size, size); ctx.strokeRect(px + 3, py - 3, size, size); }
           }
         } else if (e.kind === 'guard') {
           const angle = e.direction < 0 ? Math.PI : 0;

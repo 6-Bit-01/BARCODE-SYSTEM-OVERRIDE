@@ -26,8 +26,8 @@ for (const charges of [0, 1, 3]) for (const combo of [0, 4, 10]) {
   const preview = combat.getTargetPreview();
   for (let i = 0; i < 60; i++) combat.drawTargetPreview(ctx, w.player);
   assert.deepStrictEqual(snapshot(), before, 'preview and repeated drawing cannot transact an attack');
-  assert.strictEqual(preview.length, charges ? 3 : 1);
-  assert.strictEqual(preview.filter(t => t.boosted).length, charges ? 2 : 0);
+  assert.strictEqual(preview.length, combo >= 10 ? 4 : combo === 4 ? (charges ? 4 : 2) : charges ? 3 : 1);
+  assert.strictEqual(preview.filter(t => t.boosted).length, charges ? (combo >= 4 ? 3 : 2) : 0);
   const hit = combat.resolvePrimary({ now: 1000, timing: { available: true, timing: 'perfect' } });
   assert(hit.ok);
   assert.deepStrictEqual(plain(hit.targets.map(t => t.x)), plain(preview.map(t => t.target.position.x)), 'preview exactly matches next successful attack, including combo growth');

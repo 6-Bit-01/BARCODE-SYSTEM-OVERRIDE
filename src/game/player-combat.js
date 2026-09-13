@@ -11,7 +11,7 @@ window.FILE_MANIFEST.push({
   const SUCCESS_DAMAGE = { perfect: 3, excellent: 2 };
   class PlayerCombat {
     constructor(options = {}) { this.cooldownMs = options.cooldownMs ?? 250; this.range = options.range ?? 300; this.lastAttackAt = -Infinity; this.sequence = 0; this.feedback = null; }
-    reset() { this.lastAttackAt = -Infinity; this.sequence = 0; this.feedback = null; this.rhythmLostUntil = 0; BARCODE.combatFX?.reset(); window.renderer?.clearScreenShake?.(); window.audioSystem?.stopCombatCues?.(); }
+    reset() { this.lastAttackAt = -Infinity; this.sequence = 0; this.feedback = null; this.rhythmLostUntil = 0; BARCODE.combatFX?.reset(); BARCODE.stageFX?.reset(window.sector1Progression, { resume: true }); window.renderer?.clearScreenShake?.(); window.audioSystem?.stopCombatCues?.(); }
     canAttack(now = Date.now()) { return now - this.lastAttackAt >= this.cooldownMs; }
     resolvePrimary({ player = window.player, enemyManager = window.enemyManager, now = Date.now(), timing = null, audioTimeSec = null } = {}) {
       const result = { ok: false, action: 'primary', sequence: ++this.sequence, reason: '', timing: null, damage: 0, targets: [] };
@@ -38,7 +38,10 @@ window.FILE_MANIFEST.push({
       const lift = window.sector1Progression?.chargeSignalLift?.();
       if (lift?.ok) result.liftCharges = lift.charges;
       result.range = this.getAuthoritativeRange(judgment);
-      const targets = this.findTargets(player, enemyManager, judgment);
+      const plan = this.getAttackPlan(player, enemyManager, judgment);
+      result.pattern = plan.pattern;
+      result.waveReach = plan.waveReach;
+      const targets = this.findTargets(player, enemyManager, judgment, { plan });
       const jammerHit = this.tryDamageJammer(player, judgment, result.sequence);
       if (jammerHit.ok) result.targets.push(jammerHit.target);
       const bossHit = window.sector1Progression?.applyBossRhythmDamage?.({
@@ -57,7 +60,9 @@ window.FILE_MANIFEST.push({
         const contactY = box ? box.y + box.height * 0.45 : target.position.y;
         if (typeof target.takeDamage === 'function') target.takeDamage(result.damage, { direction: Math.sign(target.position.x - player.position.x) || player.facing, x: target.position.x, y: contactY, perfect: judgment.timing === 'perfect' });
         if (!BARCODE.combatFX && window.particleSystem && typeof window.particleSystem.impact === 'function') window.particleSystem.impact(target.position.x, target.position.y, '#00ffff', 20);
-        result.targets.push({ type: target.type || 'target', damage: result.damage, x: target.position && target.position.x, y: target.position && target.position.y, contactY });
+        const link = plan.links.find(link => link.target === target);
+        result.targets.push({ type: target.type || 'target', damage: result.damage, x: target.position && target.position.x, y: target.position && target.position.y, contactY,
+          via: link?.via || 'pulse', fromX: link?.from.position.x, fromY: link?.from.position.y });
       });
       result.ok = true; result.reason = result.targets.length ? 'hit' : bossHit.reason === 'boss-guarded' ? 'boss-guarded' : 'no-target';
       return finish();
@@ -72,7 +77,7 @@ window.FILE_MANIFEST.push({
         text = `${result.timing.timing.toUpperCase()} — ${result.targets.length > 1 ? result.targets.length + ' TARGETS · ' : ''}${damage} DAMAGE`;
         color = '#00ffff';
         if (!BARCODE.combatFX) window.audioSystem?.playSound?.('synthHit');
-        window.renderer?.addScreenShake?.(result.timing.timing === 'perfect' ? 2 : 1, 70);
+        window.renderer?.impact?.('hit', { direction: window.player?.facing, strength: result.timing.timing === 'perfect' ? 1 : 0.7 });
       } else if (Number.isFinite(result.liftCharges)) {
         text = `LIFT CHARGED ${result.liftCharges}/2`;
         color = '#00ffff';
@@ -97,35 +102,11 @@ window.FILE_MANIFEST.push({
       const lost = !active && (window.gameState?.gameTime || 0) < (this.rhythmLostUntil || 0);
       if (!active && !lost) return;
       if (active) this.drawTargetPreview(ctx, player);
-      const x = player.position.x;
-      const y = player.position.y - 120;
-      ctx.save();
-      ctx.fillStyle = 'rgba(0, 8, 16, 0.88)'; ctx.fillRect(x - 70, y - 25, 140, 38);
-      ctx.textAlign = 'center'; ctx.font = 'bold 12px monospace';
-      ctx.fillStyle = lost ? '#ffbd70' : '#ffffff';
-      const pad = BARCODE.GamepadUI?.connected;
-      ctx.fillText(lost ? (pad ? 'PRESS B — RHYTHM OFF' : 'PRESS R — RHYTHM OFF') : (pad ? 'X: BEAT · B: EXIT' : 'DOWN: BEAT · R: EXIT'), x, y - 10);
-      if (active) {
-        const time = window.audioSystem?.context?.currentTime;
-        const sample = Number.isFinite(time) ? BARCODE.MusicTransport?.sample?.(time - (BARCODE.Preferences?.values.visualOffsetMs || 0) / 1000) : null;
-        if (sample?.running && sample.grid) {
-          const fraction = sample.grid.beatFloat % 1;
-          const footY = player.position.y + (window.Player?.VISUAL_FOOT_OFFSET_Y || 72);
-          ctx.strokeStyle = 'rgba(0, 255, 255, 0.3)'; ctx.lineWidth = 2;
-          ctx.beginPath(); ctx.ellipse(x, footY, 46, 12, 0, 0, Math.PI * 2); ctx.stroke();
-          ctx.strokeStyle = '#7cffe2';
-          ctx.beginPath(); ctx.ellipse(x, footY, 46 + (1 - fraction) * 22, 12 + (1 - fraction) * 6, 0, 0, Math.PI * 2); ctx.stroke();
-          const profile = BARCODE.MusicProfiles?.getActive?.();
-          const rule = profile?.judgmentRules?.find(r => r.target === 'quarter-note' || /attack/.test(r.id));
-          const onBeat = Math.min(fraction, 1 - fraction) * sample.grid.beatDurationSec * 1000 <= (rule?.windowsMs?.perfect ?? 0);
-          ctx.fillStyle = '#657887'; ctx.fillRect(x - 54, y + 2, 108, 2);
-          ctx.fillStyle = onBeat ? '#00ffff' : '#ffffff';
-          ctx.fillRect(x - 3, y - 1, 6, 8);
-          const travel = 52 * (1 - fraction);
-          ctx.fillRect(x - travel - 2, y, 4, 6); ctx.fillRect(x + travel - 2, y, 4, 6);
-        }
+      if (lost) {
+        ctx.save(); ctx.fillStyle = '#141e2d'; ctx.fillRect(player.position.x - 85, player.position.y - 145, 170, 28);
+        ctx.font = 'bold 12px monospace'; ctx.fillStyle = '#ffc595'; ctx.textAlign = 'center';
+        ctx.fillText(BARCODE.GamepadUI?.connected ? 'PRESS B — RHYTHM OFF' : 'PRESS R — RHYTHM OFF', player.position.x, player.position.y - 127); ctx.restore();
       }
-      ctx.restore();
     }
     gameplayActive() { const gs = window.gameState || {}; return !(window.sector1Progression?.isGameplaySuppressed?.() || window.isPaused || window.isRunning === false || gs.paused || gs.gameOver || gs.victory || gs.running === false); }
     getTimingJudgment(capturedAudioTimeSec = null) {
@@ -139,10 +120,41 @@ window.FILE_MANIFEST.push({
     playAttackAnimation(player) { if (player && typeof player.startPrimaryAttackAnimation === 'function') player.startPrimaryAttackAnimation(); else if (player && typeof player.playAnimation === 'function') player.playAnimation('rhythm'); }
     applyFeedback(judgment) { if (window.rhythmSystem && typeof window.rhythmSystem.applyResolvedAttackFeedback === 'function') window.rhythmSystem.applyResolvedAttackFeedback(judgment); }
     getAuthoritativeRange(judgment = null, { jammer = false, nextSuccess = false } = {}) { if (jammer) return this.range; const rhythmRange = window.rhythmSystem && typeof window.rhythmSystem.getAuthoritativeDamageRadius === 'function' ? window.rhythmSystem.getAuthoritativeDamageRadius({ nextSuccess }) : this.range; const ampCharges = window.BARCODE && Number(window.BARCODE.signalAmpCharges || 0); const ampOk = ampCharges > 0 && judgment && (judgment.timing === 'perfect' || judgment.timing === 'excellent'); return ampOk ? 430 : rhythmRange; }
-    findTargets(player, enemyManager, judgment = null, { consumeAmp = true, nextSuccess = false } = {}) {
+    getPattern({ nextSuccess = false } = {}) {
+      const combo = (window.rhythmSystem?.combo || 0) + (nextSuccess ? 1 : 0);
+      return combo >= 10 ? 'discharge' : combo >= 5 ? 'wave' : 'pulse';
+    }
+    getAttackPlan(player, enemyManager, judgment = null, { nextSuccess = false } = {}) {
       const enemies = enemyManager && Array.isArray(enemyManager.enemies) ? enemyManager.enemies : [];
       const range = this.getAuthoritativeRange(judgment, { nextSuccess });
-      const targets = enemies.filter(enemy => enemy.active && enemy.type !== 'broadcast_jammer' && enemy.type !== 'boss' && window.distance(player.position.x, player.position.y, enemy.position.x, enemy.position.y) <= range);
+      const pattern = this.getPattern({ nextSuccess }), facing = player.facing || 1;
+      const eligible = enemies.filter(e => e?.active && e.type !== 'broadcast_jammer' && e.type !== 'boss');
+      const distance = (a, b) => Math.hypot(a.position.x - b.position.x, a.position.y - b.position.y);
+      const targets = eligible.filter(e => distance(player, e) <= range);
+      const links = targets.map(target => ({ target, from: player, via: 'pulse' }));
+      const waveReach = Math.min(470, range + 85);
+      if (pattern !== 'pulse') for (const e of eligible) {
+        const dx = (e.position.x - player.position.x) * facing, dy = Math.abs(e.position.y - player.position.y);
+        if (!targets.includes(e) && dx > 0 && dx <= waveReach && dy <= 90 && distance(player, e) <= waveReach) {
+          targets.push(e); links.push({ target: e, from: player, via: 'wave' });
+        }
+      }
+      // At most two extra ordinary targets; nearest eligible link first, stable
+      // source order on ties. Boss/Jammer never enter this graph.
+      if (pattern === 'discharge') for (let hop = 0; hop < 2; hop++) {
+        let best = null;
+        for (const from of targets) for (const target of eligible) {
+          if (targets.includes(target) || distance(player, target) > Math.min(520, range + 170)) continue;
+          const d = distance(from, target);
+          if (d <= 140 && (!best || d < best.distance)) best = { target, from, via: 'chain', distance: d };
+        }
+        if (!best) break;
+        targets.push(best.target); links.push(best);
+      }
+      return { pattern, range, waveReach, targets, links };
+    }
+    findTargets(player, enemyManager, judgment = null, { consumeAmp = true, nextSuccess = false, plan = null } = {}) {
+      const targets = (plan || this.getAttackPlan(player, enemyManager, judgment, { nextSuccess })).targets;
       if (consumeAmp && targets.length && BARCODE.signalAmpCharges > 0 && judgment && (judgment.timing === 'perfect' || judgment.timing === 'excellent')) {
         BARCODE.signalAmpCharges -= 1;
         BARCODE.combatFX?.ampChanged('use', BARCODE.signalAmpCharges, player);
@@ -157,9 +169,11 @@ window.FILE_MANIFEST.push({
       // attack selection; reading it cannot spend charges or advance timing.
       const judgment = { available: true, timing: 'perfect' };
       const normalRange = rhythm.getAuthoritativeDamageRadius?.({ nextSuccess: true }) ?? this.range;
-      const result = this.findTargets(player, enemyManager, judgment, { consumeAmp: false, nextSuccess: true }).map(enemy => ({
+      const plan = this.getAttackPlan(player, enemyManager, judgment, { nextSuccess: true });
+      const result = plan.targets.map(enemy => ({
         kind: 'enemy', target: enemy, guarded: false,
-        boosted: Math.hypot(player.position.x - enemy.position.x, player.position.y - enemy.position.y) > normalRange,
+        via: plan.links.find(link => link.target === enemy)?.via,
+        boosted: BARCODE.signalAmpCharges > 0 && Math.hypot(player.position.x - enemy.position.x, player.position.y - enemy.position.y) > normalRange,
         bounds: enemy.getHitbox?.() || { x: enemy.position.x - 32, y: enemy.position.y - 74, width: 64, height: 142 }
       }));
       const env = BARCODE.JammerEnvironment;
@@ -187,9 +201,9 @@ window.FILE_MANIFEST.push({
           ctx.moveTo(left + sx * corner, top); ctx.lineTo(left, top); ctx.lineTo(left, top + sy * corner);
         }
         ctx.stroke();
-        if (target.kind === 'boss' || target.boosted) {
+        if (target.kind === 'boss' || target.boosted || target.via === 'chain' || target.via === 'wave') {
           ctx.fillStyle = ctx.strokeStyle; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
-          ctx.fillText(target.guarded ? 'GUARDED' : target.boosted ? 'AMP +' : 'OPEN', x + w / 2, y - 7);
+          ctx.fillText(target.guarded ? 'GUARDED' : target.via === 'chain' ? 'LINK' : target.via === 'wave' ? 'WAVE' : target.boosted ? 'AMP +' : 'OPEN', x + w / 2, y - 7);
         }
         ctx.restore();
       }

@@ -1330,7 +1330,7 @@ window.EnemyManager = class EnemyManager {
       enemy.takeDamage(999, { x, y: box.y, direction });
       player.position.y = box.y - 72;
       window.audioSystem?.playCombatCue?.('stomp');
-      window.renderer?.addScreenShake?.(2, 80);
+      window.BARCODE?.combatFX?.movement('stomp', player);
       if (typeof player.stompRebound === 'function') player.stompRebound();
       else player.velocity.y = -550;
       player.velocity.x = direction * 300;
