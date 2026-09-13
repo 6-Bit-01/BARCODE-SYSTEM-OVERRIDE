@@ -5,6 +5,7 @@ const { createCanvas, loadImage, GlobalFonts } = require(require.resolve('@napi-
 const { createRig, load } = require('./check-level-01-boss');
 const root = path.resolve(__dirname, '..'), assets = path.resolve(process.argv[2] || '');
 const foregroundPath = process.argv[3];
+const catChaos = process.argv.includes('--cat-chaos');
 const out = path.join(root, 'docs/source-pack/verification');
 GlobalFonts.registerFromPath('/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf', 'monospace');
 GlobalFonts.registerFromPath('/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf', 'monospace');
@@ -30,6 +31,7 @@ async function main() {
   w.parallaxBackground = new w.ParallaxBackground();
   w.parallaxBackground.addLayer({ image: foreground, scrollFactorX: 0.5 }); // Below layer is concealed by the opaque existing foreground.
   w.parallaxBackground.addLayer({ image: foreground, scrollFactorX: 1 });
+  if (catChaos) await require('./render-cat-chaos.cjs').installArt(w, context);
   function sprite(name, frame = 0) {
     const sheet = sheets[name], anchor = sheet.config.anchor;
     return { currentSprite: { getAnchorPoint: () => anchor, hasManifestAnchor: () => true, getManifestScale: () => 1 },
@@ -71,7 +73,7 @@ async function main() {
   function capture(label, filename) {
     w.renderGame(); assert.deepStrictEqual(calls.errors, [], label + ': production drawing must complete');
     const copy = createCanvas(1920, 1080); copy.getContext('2d').drawImage(canvas, 0, 0); frames.push({ label, canvas: copy });
-    if (filename) fs.writeFileSync(path.join(out, filename + '.webp'), canvas.toBuffer('image/webp'));
+    if (filename) fs.writeFileSync(path.join(out, (catChaos ? filename.replace('impact-pass', 'cat-chaos') : filename) + '.webp'), canvas.toBuffer('image/webp'));
   }
   for (const [combo, label] of [[0, 'PULSE / DIRECT HIT'], [4, 'COMBO 5 / FORWARD WAVE'], [9, 'COMBO 10 / CHAIN DISCHARGE']]) {
     setup(combo); w.BARCODE.playerCombat.lastAttackAt = -Infinity;
@@ -81,7 +83,7 @@ async function main() {
   }
   setup(0, 865); p.state = 'encounter_2'; p.activeEncounterId = null; p.spawnedEncounterIds.delete('encounter_2'); w.enemyManager.enemies = [];
   w.rhythmSystem.hide(); playerAt(865, 420, false); w.BARCODE.stageFX.update(16); assert(w.BARCODE.stageFX.inspect().ok); capture('CLIFF / ROOFTOP INSPECTION', 'impact-pass-discovery');
-  playerAt(590, 750, false); w.BARCODE.stageFX.message = null; w.BARCODE.stageFX.update(16); assert(w.BARCODE.stageFX.inspect().ok); w.BARCODE.stageFX.update(1500); capture('STUDIO RAT / OUTSIDE THE PANEL');
+  playerAt(590, 750, false); w.BARCODE.stageFX.message = null; w.BARCODE.stageFX.update(16); assert(w.BARCODE.stageFX.inspect().ok); w.BARCODE.stageFX.update(1500); capture('STUDIO CAT / OUTSIDE THE PANEL');
   setup(9, 2100); w.enemyManager.enemies = []; w.renderGame(); w.BARCODE.JammerEnvironment.reveal({ position: { x: 2250, y: 750 } });
   for (let i = 0; i < 16; i++) w.BARCODE.JammerEnvironment.applyRhythmDamage({ amount: 1, timing: 'perfect', sequence: i + 1 });
   assert(w.BARCODE.JammerEnvironment.getStatus().destroyed); w.BARCODE.combatFX.update(180); w.BARCODE.stageFX.update(180); w.renderer.applyScreenShake(180);
@@ -92,7 +94,7 @@ async function main() {
     sc.fillStyle = '#e6ecf2'; sc.font = 'bold 19px monospace'; sc.fillText(label, x + 20, y + 32);
     sc.drawImage(canvas, x, y + 46, 960, 540);
   });
-  fs.writeFileSync(path.join(out, 'impact-pass-contact-sheet.webp'), sheet.toBuffer('image/webp'));
+  fs.writeFileSync(path.join(out, (catChaos ? 'cat-chaos-contact-sheet' : 'impact-pass-contact-sheet') + '.webp'), sheet.toBuffer('image/webp'));
   assert(targetMatrices.length >= 3);
   assert(targetMatrices.every(m => m.a === 1 && m.d === 1 && m.e === 0 && m.f === 0), 'actual render restores world shake/zoom before the fixed timing target');
   console.log('Six production Canvas scenes rendered using unchanged foreground/sprite assets; no drawing errors. Fixture timing and Makko sprite adapter, not live gameplay.');

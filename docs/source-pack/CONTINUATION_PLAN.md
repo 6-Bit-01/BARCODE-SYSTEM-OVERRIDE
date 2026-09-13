@@ -1,5 +1,9 @@
 # Campaign continuation — September 12, 2026
 
+## Latest owner follow-up — cats, FX, arrow, boss attack and size
+
+PR #44 is already merged at `4b207c5570a6bccd86b95c702c11e1e6606bbf01`. Continue from the combined `agent/level1-cat-chaos-assets` review governed by `CAT_CHAOS_ASSET_PASS.md`. All five newest requests are implemented together: Studio Rats are cats, a generated walk asset, a reusable objective arrow, animated boss pulse art, chaotic event-seeded FX, and modest boss/walk size increases. Do not revive a literal rodent, redo #44 or jump ahead to campaign work while this current presentation pass is being reviewed. Owner Makko acceptance precedes merge; Stage C remains the following milestone.
+
 ## Latest implementation — impact/discovery after merged #43
 
 The ten-item owner-approved Level 1 impact/discovery pass is implemented together for draft review in `LEVEL_01_IMPACT_PASS.md`. It includes the previously outstanding compact predictive HUD, threshold attacks, physical/musical scenery, four encounter identities, boss/Jammer payoff and first optional crew discoveries. The corrected intro is retained. Current order: review this exact combined PR in Makko, merge only after owner acceptance, then Stage C campaign services. Earlier paragraphs saying HUD/attack variety or intro repair is still the next implementation are historical.

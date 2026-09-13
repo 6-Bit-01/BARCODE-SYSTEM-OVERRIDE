@@ -21,7 +21,7 @@ const startTo = index.indexOf('// Add keyboard support for start button', startF
 assert(startFrom >= 0 && startTo > startFrom, 'production Start adapter is available');
 const styles = index.match(/<style>([\s\S]*?)<\/style>/)[0];
 const markup = index.slice(index.indexOf('<body>') + 6, index.indexOf('<!-- MakkoEngine'));
-const scripts = ['src/utils/math.js', 'src/core/fullscreen.js', 'src/engine/intro-sequence.js', 'src/engine/cutscene.js', 'src/game/tutorial.js', 'src/core/runtime-lifecycle.js'];
+const scripts = ['src/utils/math.js', 'src/core/fullscreen.js', 'src/engine/presentation-assets.js', 'src/engine/intro-sequence.js', 'src/engine/cutscene.js', 'src/game/tutorial.js', 'src/core/runtime-lifecycle.js'];
 const fixture = `<!doctype html><html><head>${styles}<link rel="stylesheet" href="/style.css"></head><body>${markup}
 <script>
 window.browserCheck = { loops: 0, contexts: 0, fail: new URLSearchParams(location.search).has('fail') };
@@ -170,9 +170,23 @@ async function main() {
   await key('s', 'KeyS'); await delay(5100); await key('s', 'KeyS', false);
   await until('BARCODE.RuntimeLifecycle.getState() === "running" && !document.getElementById("barcode-intro")', 'held S handoff');
   assert(await evaluate('tutorialSystem.targetText.includes("Still with you") && browserCheck.loops === 1'), 'skipped intro starts tutorial once');
+  // Decode and draw the new production assets through the bundled fallback,
+  // using the existing gameplay canvas after the intro releases it.
+  await until(`(() => { const ctx = gameCanvas.getContext('2d'); return ['studioCat', 'directionArrow', 'bossPulse'].every(key => BARCODE.PresentationAssets.draw(key, ctx)); })()`, 'presentation asset decoding');
+  assert(await evaluate(`(() => {
+    const ctx = gameCanvas.getContext('2d'); ctx.clearRect(0, 0, 1920, 1080);
+    for (let i = 0; i < 4; i++) {
+      BARCODE.PresentationAssets.draw('studioCat', ctx, { x: 280 + i * 380, y: 300, width: 232, frame: i });
+      ctx.save(); ctx.translate(280 + i * 380, 540); ctx.rotate(i * Math.PI / 2);
+      BARCODE.PresentationAssets.draw('directionArrow', ctx, { width: 212 }); ctx.restore();
+      BARCODE.PresentationAssets.draw('bossPulse', ctx, { x: 280 + i * 380, y: 840, width: 128, height: 112, frame: i, flip: i % 2 === 1 });
+    }
+    return [180, 450, 730].every(y => { const data = ctx.getImageData(100, y, 1650, 150).data; let filled = 0; for (let i = 3; i < data.length; i += 4) if (data[i] > 128) filled++; return filled > 1000; });
+  })()`), 'cat, arrow and pulse produce visible opaque pixels in Chromium');
+  await screenshot('08-presentation-assets');
   assert.deepEqual(errors, [], 'no browser JavaScript exceptions');
   fs.writeFileSync(path.join(output, 'result.json'), JSON.stringify({ passed: true, receipts, errors, limits: 'Real Chromium DOM/fullscreen/input and local artwork; Makko sprites, gameplay loop and audible audio are not exercised.' }, null, 2));
-  console.log(`Chromium timed cues, Space/pointer/keyboard advancement, fullscreen, resize, retry and tutorial handoff passed. Evidence: ${output}`);
+  console.log(`Chromium timed cues, advancement, fullscreen, resize, retry, tutorial handoff and presentation assets passed. Evidence: ${output}`);
 }
 main().catch(error => {
   fs.writeFileSync(path.join(output, 'result.json'), JSON.stringify({ passed: false, error: error.stack, receipts, errors }, null, 2));

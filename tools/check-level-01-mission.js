@@ -622,7 +622,7 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   assert.strictEqual(p.boss.sprite, sprite, 'entrance uses same prepared sprite instance');
   const presentationFrames = [
     { state: 'walk', animation: 'sector_1_boss_walk_walk', sourceAnchorX: 100, sourceAnchorY: 253,
-      bodyHeight: 253, expectedScale: 0.8, footRows: [253, 252, 252, 253, 246, 244, 244, 245, 244, 245, 251, 252, 253, 253, 253, 253, 252, 253, 249, 245, 245, 245, 245, 246, 251, 253, 253, 253, 252, 252, 252, 249, 246, 245, 245, 245, 246, 252, 253, 252, 253] },
+      bodyHeight: 253, expectedScale: 0.8 * 1.08 * 1.06, footRows: [253, 252, 252, 253, 246, 244, 244, 245, 244, 245, 251, 252, 253, 253, 253, 253, 252, 253, 249, 245, 245, 245, 245, 246, 251, 253, 253, 253, 252, 252, 252, 249, 246, 245, 245, 245, 246, 252, 253, 252, 253] },
     { state: 'flourish', animation: 'sector_1_boss_attack_attack', sourceAnchorX: 128, sourceAnchorY: 154,
       bodyHeight: 125, footRows: Array(48).fill(154) },
     { state: 'idle', animation: 'sector_1_boss_idle_idle', sourceAnchorX: 128, sourceAnchorY: 178,
@@ -640,8 +640,8 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
     for (let frameIndex = 0; frameIndex < profile.footRows.length; frameIndex++) {
       p.boss.animationRef = { currentFrame: frameIndex };
       const visual = p.getBossVisualBounds();
-      if (profile.expectedScale !== undefined) approximately(visual.scale, profile.expectedScale, 'boss walk scale remains at the approved baseline');
-      approximately(visual.scale * profile.bodyHeight, 253 * 0.8, `${profile.state} animation preserves neutral body height without counting padding or blades`);
+      if (profile.expectedScale !== undefined) approximately(visual.scale, profile.expectedScale, 'boss walk includes the approved shared and walk-only enlargement');
+      approximately(visual.scale * profile.bodyHeight, 253 * 0.8 * 1.08 * (profile.state === 'walk' ? 1.06 : 1), `${profile.state} animation preserves neutral body height without counting padding or blades`);
       assert.strictEqual(visual.frameIndex, frameIndex, `${profile.state} frame index follows the Makko animation reference`);
       assert.strictEqual(visual.footRow, profile.footRows[frameIndex], `${profile.state} frame ${frameIndex} uses the audited visible-foot row`);
       approximately(visual.targetFootY, 822, `${profile.state} frame ${frameIndex} targets the authored sidewalk contact`);
@@ -674,7 +674,7 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
             const offsetY = mode === 'anchorless' ? 0 : 61 * multiplier;
             approximately(drawn.y - offsetY + profile.footRows[i] * pixels, 822, `${profile.state}/${mode}/${scale}/${facing}/${i}: rendered foot`);
             approximately(drawn.x + facing * (profile.sourceAnchorX * pixels - offsetX), p.boss.x, 'rendered body center is world-anchored in both directions');
-            approximately(profile.bodyHeight * pixels, 202.4, 'manifest scale cannot multiply boss size again');
+            approximately(profile.bodyHeight * pixels, 202.4 * 1.08 * (profile.state === 'walk' ? 1.06 : 1), 'manifest scale cannot multiply boss size again');
           }
         }
       }

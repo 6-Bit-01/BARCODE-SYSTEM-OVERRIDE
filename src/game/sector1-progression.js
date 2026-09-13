@@ -95,16 +95,16 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     telegraphMs: 1600, fastTelegraphMs: 1300, sweepMs: 700,
     recoveryMs: 3000, fastRecoveryMs: 2500, secondPulseMs: 410,
     pulseSpeed: 560, pulseRange: 1050, pulseWidth: 64, pulseHeight: 56,
-    hitboxWidth: 110, hitboxHeight: 202.4
+    hitboxWidth: 110 * 1.08, hitboxHeight: 202.4 * 1.08
   });
 
   // Measured from the manifest-linked sheets (opaque alpha >= 128), September
   // 11 playtest repair. Scale the neutral BODY, not the transparent frame or
   // raised blade; retain authored breathing and limb motion within each clip.
   const BOSS_PRESENTATION = Object.freeze({
-    targetBodyHeight: 253 * 0.8,
+    targetBodyHeight: 253 * 0.8 * 1.08,
     walk: Object.freeze({
-      width: 200, height: 256, anchorX: 100, anchorY: 253, bodyHeight: 253,
+      width: 200, height: 256, anchorX: 100, anchorY: 253, bodyHeight: 253, visualScale: 1.06,
       footRows: Object.freeze([253, 252, 252, 253, 246, 244, 244, 245, 244, 245, 251, 252, 253, 253, 253, 253, 252, 253, 249, 245, 245, 245, 245, 246, 251, 253, 253, 253, 252, 252, 252, 249, 246, 245, 245, 245, 246, 252, 253, 252, 253])
     }),
     flourish: Object.freeze({
@@ -845,7 +845,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         (typeof spriteSheet.hasManifestAnchor === 'function' ? !!spriteSheet.hasManifestAnchor() : !!spriteSheet.manifestMetadata?.anchor));
       const reportedScale = spriteSheet?.getManifestScale?.() ?? spriteSheet?.manifestMetadata?.scale;
       const manifestScale = Number.isFinite(reportedScale) && reportedScale > 0 ? reportedScale : 1;
-      const frameScale = BOSS_PRESENTATION.targetBodyHeight / frame.bodyHeight;
+      const frameScale = BOSS_PRESENTATION.targetBodyHeight / frame.bodyHeight * (frame.visualScale || 1);
       // The sheet scale is already multiplied inside Makko: cancel it here.
       const drawScale = frameScale / manifestScale;
       const anchorMultiplier = usesScaledAnchor ? frameScale : 1;
@@ -900,8 +900,17 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
           ctx.lineWidth = 2;
           [-1, 1].forEach(direction => {
             const x = pulse.originX + direction * pulse.radius - BOSS_COMBAT.pulseWidth / 2;
-            ctx.fillRect(x, ground - BOSS_COMBAT.pulseHeight, BOSS_COMBAT.pulseWidth, BOSS_COMBAT.pulseHeight);
-            ctx.strokeRect(x, ground - BOSS_COMBAT.pulseHeight, BOSS_COMBAT.pulseWidth, BOSS_COMBAT.pulseHeight);
+            // The textured pulse stays inside the same dangerous rectangle.
+            // A steady hot leading edge makes the swept collision front legible.
+            const drawn = window.BARCODE?.PresentationAssets?.draw('bossPulse', ctx, {
+              x: x + BOSS_COMBAT.pulseWidth / 2, y: ground,
+              width: BOSS_COMBAT.pulseWidth, height: BOSS_COMBAT.pulseHeight,
+              frame: Math.floor(pulse.radius / BOSS_COMBAT.pulseSpeed * 1000 / 75), flip: direction < 0
+            });
+            if (!drawn) { ctx.fillRect(x, ground - BOSS_COMBAT.pulseHeight, BOSS_COMBAT.pulseWidth, BOSS_COMBAT.pulseHeight); }
+            ctx.fillStyle = pulse.hit ? '#ffba69' : '#fff0bd';
+            ctx.fillRect(direction > 0 ? x + BOSS_COMBAT.pulseWidth - 4 : x, ground - BOSS_COMBAT.pulseHeight + 4, 4, BOSS_COMBAT.pulseHeight - 4);
+            ctx.fillStyle = pulse.hit ? 'rgba(255,100,30,0.45)' : '#ff6433';
           });
         });
         if (boss.canReceiveDamage) { ctx.shadowColor = '#00ffff'; ctx.shadowBlur = 24; }
