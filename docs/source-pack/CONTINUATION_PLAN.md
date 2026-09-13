@@ -2,7 +2,7 @@
 
 ## Current stage update
 
-Stage A is merged as PR #38 and Stage B as PR #39. The owner then corrected the missing actual intro and reported the S-skip bug. `INTRO_OVERHAUL.md` is the current implemented review based on #39. The owner subsequently supplied the five character models and authorized the missing scene images; INTRO_ART_DIRECTION.md records eight generated and integrated scenes. Latest order: finish the opening/art/skip correction first, then revise the HUD/rhythm presentation and add meaningful attack variety, then continue Stage C. Prior Stage B scene/camera/HUD choices are not assumed accepted merely because the PR merged. The historical planning record below does not override this order.
+Stage A is merged as PR #38, Stage B as #39 and the eight-scene opening as #40. The owner reported that the opening failed in Makko and required better scene-placed text and a coherent first-level continuation. INTRO_REPAIR.md is the current combined repair, based on merged #40. Latest order: finish this intro repair, then revise the disliked HUD/rhythm presentation and add meaningful attack variety, then Stage C. The four original controls/camera/calibration/crowd/counter items in the historical table below were implemented in #39 and must not be redone. HUD/attack variety remains outstanding. Merge status is not a Makko acceptance result.
 
 
 ## The actual handoff
@@ -58,7 +58,7 @@ One coherent review unit per stage; adjacent fixes stay together. These are stag
 | E — Complete the compact campaign | Finish each level's gameplay, story bridge, crew scene, boss/set piece, key/module, authored lore and chosen eggs | Each level is finishable and rewards persist; direct route communicates required plot; secrets enrich it |
 | F — Finale and full-game acceptance | Preparation hub, prior-item payoffs, 9 Bit fight, deliberate resolution/collection evaluation, credits/replay; full controller and supported-device pass | Zero-optional-module route can win; final save remains recoverable; check all genre transitions and ending paths without exposing the hidden collection test |
 
-## Remaining Level 1 improvements from the recovered review
+## Historical pre-#39 Level 1 improvement list
 
 | Item | Current source evidence | Implement/check next |
 |---|---|---|

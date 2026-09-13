@@ -1,5 +1,16 @@
 # Acceptance and Test Status
 
+## Current intro repair review — after #40
+
+Base/rollback: `a747b58411650146bdc003a529d0470167d275db`. Review the exact manifest revision from `agent/intro-makko-repair` in the duplicate Makko project. The owner has already reported that PR #40's opening failed; the earlier checklist below is historical.
+
+1. Open from the title and leave page 1 running for at least two minutes. All artwork should load and remain visible without context-limit errors. Advance through all eight scenes in windowed/fullscreen views; check the new balloon pointers, comms cards, faces, tape lock, scope, door hand and tower remain readable. Compare `verification/intro-contact.webp` with the host result.
+2. Complete once by reading and once by holding S for five seconds, with a controller connected. Also test B, early release, mixed S/B holds, tab/focus cancellation and repeat/held advance. Page 6 inspection and its run-only results callback remain available.
+3. After either intro path, Cache answers “Still with you” and Mac establishes the jammed district. Read/complete all five tutorial chapters: movement/jump, three training defeats, five rhythm hits, successful hack, and the final crew line's hold/fade. Check speaker colors/names and prompts. The twenty-defeat mission begins once at zero; no second boot, tower-collapse exposition or extra post-tutorial scene appears.
+4. Listen through the existing four-second intro-song fade and gameplay music/rhythm start. Spot-check H/R locks, both hack puzzles, pause/archive, lift, Jammer cinematic, boss/retry and restart with existing saves.
+
+Record exact SHA, project/origin, browser/controller and PASS/FAIL. Tests and native Canvas previews do not establish Makko rendering/audio/feel. Public endpoint/CORS evidence is in `verification/intro-asset-delivery.json`; it does not certify a host content-security policy.
+
 ## Intro correction — current owner review gate
 
 Base/rollback: merged PR #39, `510342ed21692fd85f9b99ef6b29990a5694132d`. Review the exact exported revision in a duplicate Makko project. `INTRO_OVERHAUL.md` contains the complete script and reference images. **Makko acceptance is pending.**

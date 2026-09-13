@@ -1,5 +1,13 @@
 # Current State
 
+## Current repair after merged PR #40
+
+PR #40 is merged at `a747b58411650146bdc003a529d0470167d275db`. The owner then reported a canvas-context limit, missing opening images and a narrative mismatch with the first level, and requested styled dialogue positioned within the scenes. `INTRO_REPAIR.md` controls this combined repair on `agent/intro-makko-repair`; the generated manifest identifies its exact head and PR.
+
+The intro now acquires one drawing context per canvas, loads verified commit-pinned copies of the same eight model-based images with a bounded bundled fallback, and uses individually placed comic balloons/comms cards over full-width illustrations. The actual five-chapter tutorial now continues the open crew channel and establishes the district/Jammer task. Objective progression reads stable IDs rather than old dialogue wording. `INTRO_TO_LEVEL_01.md` contains the exact new conversation. All prior gameplay/lore saves remain.
+
+Normal and skipped openings are tested through the real tutorial into one mission. Public image bytes/CORS and native Canvas layouts are checked separately; full regression/syntax results belong to the receipt. Live Makko acceptance of this repair is pending. The prior intro report below is historical and is superseded where it claimed relative-only delivery or unchanged tutorial copy. HUD/rhythm/attack-variety work follows this repair, then Stage C.
+
 ## Intro correction — current review
 
 PR #39 is merged at `510342ed21692fd85f9b99ef6b29990a5694132d`. It added a crew scene after the tutorial while leaving the actual opening unchanged. The owner explicitly corrected that omission and reported that holding S did not skip. Branch `agent/intro-overhaul` now replaces the actual CutsceneSystem opening with the eight-page treatment in `INTRO_OVERHAUL.md`, using the five beats established by the merged campaign map. The generated manifest identifies the exact review head and PR.

@@ -1,9 +1,8 @@
 # Easter eggs, cameos and player-aware presentation
 
-## Stage B prototype status
+## Current opening setup
 
-`egg.comic.gutter` now has an existing-art, code-drawn Level 1 setup: inspect the loose caption in crew-link panel 3 for a Studio Rats reply, then get a small results callback. The record is run-only and reset-safe. No rat sprite is commissioned, no campaign save field is added and no later-level payoff is claimed. The L4/L7 ideas below remain planned. `STORY_CONTROLS_PASS.md` records exact review scope and preserves all cast corrections.
-
+`egg.comic.gutter` is implemented as the displaced recovery caption on opening page 6, inspected with Left Arrow/D-pad Left. It has a run-only results callback and resets on a fresh run. PR #40 removed the earlier misplaced post-tutorial panel/Studio Rats reply; that historical setup is not live. Cliff appears behind Mac/Cache on opening page 2. The L4/L7 payoffs and other candidate placements below remain planned; no campaign save field or new playable character is added.
 
 ## What is approved and what this file adds
 

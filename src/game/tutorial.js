@@ -90,26 +90,23 @@ window.TutorialSystem = class TutorialSystem {
     
     switch(chapter) {
       case 0:
-        this.addDialogue('SYSTEM BOOTING...', 'system', 2000);
-        this.addDialogue('Welcome back to the BARCODE Network, 6 Bit.', 'guide', 3000);
-        this.addDialogue('The tower has suffered a catastrophic collapse.', 'guide', 3000);
-        this.addDialogue('Its memories are corrupted, its frequencies unstable, and entire sectors have gone dark.', 'guide', 3000);
-        this.addDialogue('The broadcast is waking up—but it\'s terrified, and it needs you to stabilize it.', 'guide', 3000);
-        this.addDialogue('Before you can restore the lost data…', 'guide', 2000);
-        this.addDialogue('You need to re-sync your abilities.', 'guide', 2000);
+        // Continue the channel left open in the last illustrated scene. The
+        // first two lines also orient players who held S/B to skip the intro.
+        this.addDialogue('Still with you, 6. The original studio take is safe.', 'cache', 2000);
+        this.addDialogue('You are in Dead Air District. The street relays are jammed; the tower uplink is blocked.', 'mac', 3000);
+        this.addDialogue('Then we start down here. Keep talking me through it.', '6bit', 2000);
+        this.addDialogue('Check your footing before you push farther. I will watch the route.', 'mac', 2000);
         
         this.addObjective('Use Arrow Keys to move around', 'movement');
         this.addObjective('Press Up Arrow to jump', 'jump');
-        const movementDialogue = this.addDialogue('Try moving around with the Arrow Keys.', 'guide', 0);
+        const movementDialogue = this.addDialogue('Left / Right or A / D to move; Up / W to jump. On a controller, use the stick and RB while we talk.', 'mac', 0);
         movementDialogue.requiresObjectives = ['movement', 'jump'];
         break;
         
       case 1:
-        this.addDialogue('Unstable entities roam this sector—fragments of corrupted signal that manifest as hostile viruses.', 'guide', 2000);
-        this.addDialogue('They react to movement, clean frequencies, and anything rebooting itself.', 'guide', 2000);
-        this.addDialogue('Your signal strength is shown in the top-left. If it drops to zero, your connection will collapse.', 'guide', 2000);
-        this.addDialogue('Your first line of defense is close-quarters combat.', 'guide', 2000);
-        this.addDialogue('Jump on corrupted entities to disrupt their code and deal damage.', 'guide', 2000);
+        this.addDialogue('Three corrupted signals ahead. Those viruses are between you and the next block.', 'mac', 2000);
+        this.addDialogue('Watch your signal strength at the top-left. Lose it all and we lose your connection.', 'cache', 2000);
+        this.addDialogue('Jump and land on them from above. Keep clear of their sides.', 'mac', 2000);
         this.addObjective('Defeat 3 viruses using basic movement', 'combat');
         
         this.spawnCombatEnemies();
@@ -123,7 +120,7 @@ window.TutorialSystem = class TutorialSystem {
           }
         }, 1500);
         
-        const waitForObjectiveDialogue = this.addDialogue('Complete the task to continue...', 'guide', 0);
+        const waitForObjectiveDialogue = this.addDialogue('Clear these three. I am keeping the next route closed until you are ready.', 'mac', 0);
         waitForObjectiveDialogue.requiresObjectives = ['combat'];
         this._objectiveDialogueIndex = this.dialogue.length - 1;
         console.log('Set objective dialogue index:', this._objectiveDialogueIndex);
@@ -131,41 +128,38 @@ window.TutorialSystem = class TutorialSystem {
         
       case 2:
         console.log('=== STARTING RHYTHM CHAPTER ===');
-        const rhythmDialogue1 = this.addDialogue('Impressive. But basic combat won\'t be enough.', 'guide', 0);
-        rhythmDialogue1.requiresObjectives = ['combat'];
+        this.addDialogue('That is your footing. Now listen: the beat survived the interference.', 'dj', 0);
         
-        this.addDialogue('As a hacker-rapper, your strength flows through rhythm.', 'guide', 3000);
-        this.addDialogue('Press R to enter Rhythm Combat mode.', 'guide', 2000);
+        this.addDialogue('Stand still on the ground. R / controller B locks you into Rhythm Combat.', 'dj', 2000);
         this.addObjective('Press R to activate Rhythm Combat', 'rhythm_start');
-        this.addDialogue('Use the Down Arrow key to time your attacks with the beat!', 'guide', 3000);
-        this.addDialogue('Only successful timing hits damage enemies; misses are feedback only.', 'guide', 2000);
+        this.addDialogue('Hit Down Arrow / controller X on the beat. A clean hit sends the attack; a miss does no damage.', 'dj', 3000);
+        this.addDialogue('Link five hits. Use R / controller B again to leave the stance when you need to move.', 'dj', 2000);
         this.addObjective('Achieve a 5+ combo in rhythm mode', 'rhythm_combo');
-        const rhythmCompleteDialogue = this.addDialogue('Complete the task to continue...', 'guide', 0);
+        const rhythmCompleteDialogue = this.addDialogue('Five in a row. Listen for the next beat, even after a miss.', 'dj', 0);
         rhythmCompleteDialogue.requiresObjectives = ['rhythm_start', 'rhythm_combo'];
         break;
         
       case 3:
-        const hackDialogue1 = this.addDialogue('Your rhythm attacks are strong. Now for your true power.', 'guide', 2000);
-        hackDialogue1.requiresObjectives = ['rhythm_combo'];
+        this.addDialogue('Your signal is holding. I can open local access for a short hack.', 'mac', 2000);
         
-        this.addDialogue('Press H to access terminals and hack the system.', 'guide', 2000);
+        this.addDialogue('H / controller Y opens the hack. Read the puzzle and enter the answer before its timer runs out.', 'mac', 2000);
         this.addObjective('Press H to start hacking', 'hack_start');
-        this.addDialogue('Successful hacks restore 1 bar of signal strength.', 'guide', 3000);
+        this.addDialogue('A successful hack restores one bar of signal strength. Keep yourself connected.', 'cache', 3000);
         this.addObjective('Complete the hacking puzzle', 'hack_complete');
         
-        const hackCompleteDialogue = this.addDialogue('Complete the task to continue...', 'guide', 0);
+        const hackCompleteDialogue = this.addDialogue('Finish this access check. Then we can open the street.', 'mac', 0);
         hackCompleteDialogue.requiresObjectives = ['hack_start', 'hack_complete'];
         break;
         
       case 4:
         console.log('=== STARTING FINAL CHAPTER (CHAPTER 4) ===');
-        this.addDialogue('You now have all the tools you need, 6 Bit.', 'guide', 2000);
-        this.addDialogue('Movement for survival. Rhythm for power. Hacking for control.', 'guide', 3000);
-        this.addDialogue('Use them together to fight through the corrupted sectors.', 'guide', 3000);
-        this.addDialogue('Your mission: Find 9 Bit and restore the BARCODE Network.', 'guide', 4000);
-        this.addDialogue('The fate of the digital world is in your hands.', 'guide', 4000);
-        this.addDialogue('Good luck, hacker-rapper.', 'guide', 0);
-        this.addObjective('Practice movement, rhythm, and hacking in the sandbox', 'level_clear');
+        this.addDialogue('Access is clear. Twenty corrupted signals remain across the district. Clear them block by block.', 'mac', 2000);
+        this.addDialogue('With that interference gone, we can locate the Broadcast Jammer. Break it to restore the local signal.', 'mac', 3000);
+        this.addDialogue('If a lost recording surfaces, keep it. We need the originals, not a cleaned-up replacement.', 'cache', 3000);
+        this.addDialogue('The district first. Then the tower. And we find 9 Bit.', '6bit', 3000);
+        this.addDialogue('I will keep the beat underneath you. You handle the street.', 'dj', 2000);
+        this.addDialogue('Channel stays open, 6. Bring the neighborhood back.', 'cache', 0);
+        this.addObjective('Restore the district signal', 'level_clear');
         
         // Completion is armed only after the final line has fully typed. This
         // keeps the last message readable and leaves Space owned by tutorial.
@@ -475,7 +469,7 @@ window.TutorialSystem = class TutorialSystem {
           console.log('Combat objective completed!');
           
           const currentDialogue = this.dialogue[this.currentDialogue];
-          if (currentDialogue && currentDialogue.text === 'Complete the task to continue...') {
+          if (this.storyChapter === 1 && currentDialogue?.requiresObjectives?.includes('combat')) {
             const combatObj = this.objectives.find(obj => obj.id === 'combat');
             if (combatObj) {
               combatObj.completed = true;
@@ -499,7 +493,7 @@ window.TutorialSystem = class TutorialSystem {
           this.deactivateRhythmModeOnComboComplete();
           
           const currentRhythmDialogue = this.dialogue[this.currentDialogue];
-          if (currentRhythmDialogue && currentRhythmDialogue.text === 'Complete the task to continue...') {
+          if (this.storyChapter === 2 && currentRhythmDialogue?.requiresObjectives?.includes('rhythm_combo')) {
             // AUTO-SKIP: Check if rhythm_start is also completed
             this._scheduleTutorialTimer(() => {
               const hasRhythmStart = this.completedObjectives.has('rhythm_start');
@@ -516,7 +510,7 @@ window.TutorialSystem = class TutorialSystem {
           
         case 'hack_complete':
           const currentHackDialogue = this.dialogue[this.currentDialogue];
-          if (currentHackDialogue && currentHackDialogue.text === 'Complete the task to continue...') {
+          if (this.storyChapter === 3 && currentHackDialogue?.requiresObjectives?.includes('hack_complete')) {
             // AUTO-SKIP: Check if hack_start is also completed
             this._scheduleTutorialTimer(() => {
               const hasHackStart = this.completedObjectives.has('hack_start');
@@ -524,7 +518,7 @@ window.TutorialSystem = class TutorialSystem {
                 console.log('⏩ AUTO-SKIP: All hacking objectives completed - advancing to final chapter');
                 this.startChapter(4);
               } else {
-                this.addDialogue('System breached! You\'ve still got your skills.', 'guide', 0);
+                this.addDialogue('Access check passed. You still have the touch.', 'mac', 0);
                 this._scheduleTutorialTimer(() => {
                   this.advanceDialogue();
                 }, 100);
@@ -592,7 +586,7 @@ window.TutorialSystem = class TutorialSystem {
     
     // Show on-screen message
     if (window.loreSystem) {
-      window.loreSystem.displayLoreMessage('Explore Dead Air District.');
+      window.loreSystem.displayLoreMessage('Crew link open. Clear the district to locate the Broadcast Jammer.');
     }
   }
   
@@ -607,15 +601,6 @@ window.TutorialSystem = class TutorialSystem {
     if (this.isFinalMessage && this.finalMessageOpacity < 1.0) {
       ctx.globalAlpha = this.finalMessageOpacity;
     }
-    
-    // Background
-    ctx.fillStyle = 'rgba(0, 10, 20, 0.9)';
-    ctx.fillRect(0, boxY, 1920, boxHeight);
-    
-    // Border
-    ctx.strokeStyle = '#00ffff';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(0, boxY, 1920, boxHeight);
     
     // Draw current dialogue
     if (this.dialogue.length === 0) {
@@ -632,32 +617,32 @@ window.TutorialSystem = class TutorialSystem {
       }
       
       // Speaker name
-      let speakerColor = '#00ffff';
-      let speakerName = 'UNKNOWN';
-      
-      switch(dialogue.speaker) {
-        case 'guide':
-          speakerColor = '#ff00ff';
-          speakerName = 'BARCODE GUIDE';
-          break;
-        case 'system':
-          speakerColor = '#00ffff';
-          speakerName = 'SYSTEM';
-          break;
-      }
-      
+      const speakers = {
+        '6bit': ['6 BIT', '#e6e5ee'], dj: ['DJ FLOPPYDISC', '#83e9ff'],
+        cache: ['CACHE BACK', '#ffd65c'], mac: ['MAC MODEM', '#ff929c'],
+        system: ['SYSTEM', '#95ffe0'], guide: ['CREW LINK', '#95ffe0']
+      };
+      const [speakerName, speakerColor] = speakers[dialogue.speaker] || speakers.guide;
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillStyle = '#050810'; ctx.fillRect(32, boxY + 7, 1860, boxHeight - 14);
+      ctx.fillStyle = 'rgba(13, 21, 35, 0.97)'; ctx.fillRect(26, boxY, 1860, boxHeight - 14);
+      ctx.strokeStyle = speakerColor; ctx.lineWidth = 2; ctx.strokeRect(26, boxY, 1860, boxHeight - 14);
+      ctx.fillStyle = speakerColor; ctx.fillRect(26, boxY, 6, boxHeight - 14);
+      ctx.font = 'bold 21px monospace';
+      ctx.fillRect(48, boxY - 15, ctx.measureText(speakerName).width + 34, 34);
+      ctx.fillStyle = '#090b15'; ctx.textAlign = 'left';
+      ctx.fillText(speakerName, 65, boxY + 9);
       ctx.fillStyle = speakerColor;
-      ctx.font = 'bold 20px Orbitron';
-      ctx.textAlign = 'left';
-      ctx.fillText(speakerName, 50, boxY + 40);
+      ctx.font = '18px monospace';
+      ctx.fillText(dialogue.speaker === '6bit' ? 'STREET LEVEL / MIC OPEN' : 'CREW LINK / ON COMMS', 1440, boxY + 27);
       
       // Dialogue text
       ctx.fillStyle = '#ffffff';
-      ctx.font = '18px "Share Tech Mono"';
+      ctx.font = '24px sans-serif';
       ctx.textAlign = 'left';
-      const lines = this.wrapText(this.currentText, 1820, ctx);
+      const lines = this.wrapText(this.currentText, 1760, ctx);
       lines.forEach((line, index) => {
-        ctx.fillText(line, 50, boxY + 80 + (index * 25));
+        ctx.fillText(line, 56, boxY + 63 + (index * 31));
       });
       
       // Continue prompt

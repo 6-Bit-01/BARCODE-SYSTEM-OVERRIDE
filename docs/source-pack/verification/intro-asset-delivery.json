@@ -1,0 +1,87 @@
+{
+  "checkedAt": "2026-09-12T23:34:48.343664+00:00",
+  "method": "Public HTTPS GET, WebP signature, CORS header and exact byte comparison against bundled files",
+  "makkoHostTested": false,
+  "assets": [
+    {
+      "path": "assets/intro/intro-01-broadcast.webp",
+      "url": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a747b58411650146bdc003a529d0470167d275db/assets/intro/intro-01-broadcast.webp",
+      "status": 200,
+      "contentType": "image/webp",
+      "cors": "*",
+      "bytes": 623388,
+      "sha256": "c035a83b1d80ecccc9555e46c9fcdf1a8662f861f478cf46c0010f2ead6fd1f5",
+      "matchesBundledBytes": true
+    },
+    {
+      "path": "assets/intro/intro-02-keep-the-take.webp",
+      "url": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a747b58411650146bdc003a529d0470167d275db/assets/intro/intro-02-keep-the-take.webp",
+      "status": 200,
+      "contentType": "image/webp",
+      "cors": "*",
+      "bytes": 668162,
+      "sha256": "dee96b7d5f1ff6f5112cd1a0ec0d5808dfda82ebb165ebf12f4e8a1c50930462",
+      "matchesBundledBytes": true
+    },
+    {
+      "path": "assets/intro/intro-03-dead-return.webp",
+      "url": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a747b58411650146bdc003a529d0470167d275db/assets/intro/intro-03-dead-return.webp",
+      "status": 200,
+      "contentType": "image/webp",
+      "cors": "*",
+      "bytes": 646918,
+      "sha256": "ed7c3db493ccc228ea1c54ad778b8f5b988fff348cd9a78377847298c68fa834",
+      "matchesBundledBytes": true
+    },
+    {
+      "path": "assets/intro/intro-04-preserve.webp",
+      "url": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a747b58411650146bdc003a529d0470167d275db/assets/intro/intro-04-preserve.webp",
+      "status": 200,
+      "contentType": "image/webp",
+      "cors": "*",
+      "bytes": 587612,
+      "sha256": "6b85f78d01c4e31fccb967f5cb557c1ebc5a3a08f67ada3f5a2d99bd84ed2c3c",
+      "matchesBundledBytes": true
+    },
+    {
+      "path": "assets/intro/intro-05-listen.webp",
+      "url": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a747b58411650146bdc003a529d0470167d275db/assets/intro/intro-05-listen.webp",
+      "status": 200,
+      "contentType": "image/webp",
+      "cors": "*",
+      "bytes": 527756,
+      "sha256": "161b9f19d7ed5c6870f7459d9c9e56aea72fc193c2639dd2403eb9ebf513da53",
+      "matchesBundledBytes": true
+    },
+    {
+      "path": "assets/intro/intro-06-refusal.webp",
+      "url": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a747b58411650146bdc003a529d0470167d275db/assets/intro/intro-06-refusal.webp",
+      "status": 200,
+      "contentType": "image/webp",
+      "cors": "*",
+      "bytes": 723744,
+      "sha256": "17efe81e22d34becb9c29af9f871a538d37a8d8683c0b5ebfad5f4c91c9f67c3",
+      "matchesBundledBytes": true
+    },
+    {
+      "path": "assets/intro/intro-07-district.webp",
+      "url": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a747b58411650146bdc003a529d0470167d275db/assets/intro/intro-07-district.webp",
+      "status": 200,
+      "contentType": "image/webp",
+      "cors": "*",
+      "bytes": 861348,
+      "sha256": "fe75c5d599101be7e662e09fd2449e242967fcf89a07f266f34dd6131c99a740",
+      "matchesBundledBytes": true
+    },
+    {
+      "path": "assets/intro/intro-08-keep-it-open.webp",
+      "url": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a747b58411650146bdc003a529d0470167d275db/assets/intro/intro-08-keep-it-open.webp",
+      "status": 200,
+      "contentType": "image/webp",
+      "cors": "*",
+      "bytes": 794908,
+      "sha256": "aeb1845156539ce1dbb4b8825e1791b73a418ad40d4eb5cfd2a94a416761ce57",
+      "matchesBundledBytes": true
+    }
+  ]
+}

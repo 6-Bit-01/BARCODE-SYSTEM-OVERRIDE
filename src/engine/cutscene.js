@@ -24,10 +24,11 @@ function startGameplayMusicAndRhythm(audioSystem) {
 
 window.CutsceneSystem = class CutsceneSystem {
   constructor() {
-    // One bundled scene per authored page; no remote or obsolete-likeness
-    // fallback. Failed loads retain the readable script and working skip.
+    // Makko imports can omit the repository's binary paths. The pinned public
+    // copy and bundled fallback contain the same approved artwork.
     this.cutsceneImages = window.BARCODE.IntroSequence.panels.map(panel => ({
-      url: panel.asset, loaded: false, element: null
+      url: panel.asset, sources: [panel.hostedAsset, panel.asset],
+      loaded: false, element: null, status: 'loading', source: null
     }));
     
 
@@ -37,6 +38,7 @@ window.CutsceneSystem = class CutsceneSystem {
     this.imageDisplayTime = 250; // Debounce a transition; reading pace belongs to the player.
     this.cutsceneContainer = null;
     this.introCanvas = null;
+    this.introContext = null;
     this.transcriptElement = null;
     this.onComplete = null;
     this.inputDisabled = false;
@@ -92,20 +94,39 @@ window.CutsceneSystem = class CutsceneSystem {
     return Promise.all(this.cutsceneImages.map(imageData => {
       if (imageData.loaded && imageData.element) return Promise.resolve();
       return new Promise(resolve => {
-        const img = new Image(); let settled = false;
-        const finish = loaded => {
+        let img = null, timeout = null, attempt = 0, settled = false;
+        imageData.status = 'loading'; imageData.source = null;
+        const detach = () => {
+          if (timeout !== null) { clearTimeout(timeout); this.ownedTimeouts.delete(timeout); timeout = null; }
+          if (img) { img.onload = null; img.onerror = null; }
+        };
+        const finish = (loaded, cancelled = false) => {
           if (settled) return; settled = true;
-          clearTimeout(timeout); this.ownedTimeouts.delete(timeout);
-          img.onload = null; img.onerror = null;
+          detach();
           this.pendingImageLoads.delete(cancel);
-          if (loaded) { imageData.loaded = true; imageData.element = img; }
+          imageData.status = loaded ? 'ready' : cancelled ? 'cancelled' : 'unavailable';
+          if (loaded) { imageData.loaded = true; imageData.element = img; imageData.source = imageData.sources[attempt - 1]; }
+          else if (img) img.src = '';
           resolve();
         };
-        const cancel = () => { finish(false); img.src = ''; };
-        const timeout = this.trackTimeout(cancel, 10000);
+        const cancel = () => finish(false, true);
+        const nextSource = () => {
+          if (settled) return;
+          detach();
+          if (img) img.src = '';
+          const source = imageData.sources[attempt++];
+          if (!source) { finish(false); return; }
+          // Each candidate is attempted once, including on timeout. Late
+          // callbacks from a replaced image cannot settle another attempt.
+          const current = img = new Image();
+          current.crossOrigin = 'anonymous';
+          current.onload = () => { if (!settled && img === current) finish(true); };
+          current.onerror = () => { if (!settled && img === current) nextSource(); };
+          timeout = this.trackTimeout(nextSource, 8000);
+          current.src = source;
+        };
         this.pendingImageLoads.add(cancel);
-        img.crossOrigin = 'anonymous'; img.onload = () => finish(true); img.onerror = () => finish(false);
-        img.src = imageData.url;
+        nextSource();
       });
     }));
   }
@@ -143,6 +164,11 @@ window.CutsceneSystem = class CutsceneSystem {
     canvas.width = 1920; canvas.height = 1080;
     canvas.style.cssText = 'display:block;width:min(100vw,177.777778vh);height:min(100vh,56.25vw);object-fit:contain;';
     canvas.setAttribute('aria-hidden', 'true');
+    // Acquire once per canvas, never from the 20 Hz paint/input poll. Some
+    // hosts guard getContext calls even when a browser would return a cache.
+    this.introContext = null;
+    try { this.introContext = canvas.getContext('2d'); }
+    catch (error) { console.warn('[intro] Canvas unavailable; using the readable transcript.', error?.message || error); }
     container.appendChild(canvas);
     const transcript = this.transcriptElement = document.createElement('div');
     transcript.setAttribute('aria-live', 'polite');
@@ -151,6 +177,12 @@ window.CutsceneSystem = class CutsceneSystem {
     const help = document.createElement('div');
     help.textContent = 'Space, Enter or click: next panel. Hold S or controller B for five seconds to skip the intro. Release to cancel. Left Arrow or D-pad Left inspects the displaced recovery caption.';
     help.style.cssText = transcript.style.cssText; container.appendChild(help);
+    if (!this.introContext) {
+      canvas.style.display = 'none';
+      container.style.flexDirection = 'column';
+      transcript.style.cssText = 'max-width:900px;padding:32px;color:#f0eadc;font:24px/1.6 sans-serif;';
+      help.style.cssText = 'max-width:900px;padding:24px;color:#95ffe0;font:18px/1.6 monospace;';
+    }
     (document.fullscreenElement || document.webkitFullscreenElement || document.body).appendChild(container);
     this.addEventListeners();
   }
@@ -168,7 +200,7 @@ window.CutsceneSystem = class CutsceneSystem {
 
   drawCurrentPanel() {
     if (!this.isActive || !this.introCanvas) return;
-    window.BARCODE.IntroSequence.draw(this.introCanvas.getContext('2d'), {
+    window.BARCODE.IntroSequence.draw(this.introContext, {
       index: this.currentImageIndex - 1, elapsedMs: Date.now() - this.currentImageStartTime,
       images: this.cutsceneImages, pad: !!window.BARCODE.GamepadUI?.connected,
       skipProgress: this.skipHoldProgress, holding: this.isSkipHoldActive
@@ -292,6 +324,7 @@ window.CutsceneSystem = class CutsceneSystem {
         if (this.cutsceneContainer === removalContainer && removalContainer && removalContainer.parentNode) {
           removalContainer.remove();
           this.cutsceneContainer = null;
+          this.introCanvas = null; this.introContext = null; this.transcriptElement = null;
         }
       }, 500);
     }
@@ -407,6 +440,8 @@ window.CutsceneSystem = class CutsceneSystem {
       panel: this.currentImageIndex, panelCount: window.BARCODE.IntroSequence.panels.length,
       timeouts: this.ownedTimeouts.size, intervals: this.ownedIntervals.size,
       imageLoads: this.pendingImageLoads.size, listenersAttached: !!this.skipHandler,
+      hasContext: !!this.introContext,
+      assets: this.cutsceneImages.map(image => ({ path: image.url, status: image.status, source: image.source })),
       hasContainer: !!this.cutsceneContainer, skipSources: [...this.skipHolds.keys()] };
   }
 
@@ -414,7 +449,7 @@ window.CutsceneSystem = class CutsceneSystem {
     this.cutsceneGeneration++; this.isActive = false;
     this.removeEventListeners(); this.cancelImageLoads(); this.clearOwnedCallbacks();
     this.cutsceneContainer?.remove();
-    this.cutsceneContainer = null; this.introCanvas = null; this.transcriptElement = null;
+    this.cutsceneContainer = null; this.introCanvas = null; this.introContext = null; this.transcriptElement = null;
     if (this.onComplete) this.onComplete({ cancelled: true });
     this.onComplete = null;
   }

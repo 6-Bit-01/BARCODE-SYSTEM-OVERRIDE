@@ -400,6 +400,13 @@
         "src/game/lost-data.js",
         "tools/check-level-01-targets-traffic.js"
       ]
+    },
+    {
+      "host": "raw.githubusercontent.com",
+      "sourceFiles": [
+        "src/engine/intro-sequence.js",
+        "tools/check-intro.js"
+      ]
     }
   ],
   "criticalGlobalAssignments": [

@@ -2,7 +2,7 @@
 // image loading, device input and the clock/audio boundary are supplied here.
 const assert = require('assert');
 const { createRig, load } = require('./check-level-01-boss');
-function openingRig() {
+function openingRig({ contextBudget = Infinity, contextUnavailable = false, realTutorial = false } = {}) {
   const rig = createRig(), { w, context, timers, calls } = rig;
   const events = () => ({ listeners: new Map(),
     addEventListener(type, fn) { if (!this.listeners.has(type)) this.listeners.set(type, new Set()); this.listeners.get(type).add(fn); },
@@ -14,9 +14,15 @@ function openingRig() {
     }
   });
   const ctx = new Proxy({ measureText: text => ({ width: text.length * 17 }) }, { get: (target, key) => target[key] || (() => {}) });
+  const canvasCalls = [];
   function node(tag = 'div') {
     return Object.assign(events(), { tag, style: {}, children: [], classList: { add() {}, remove() {} },
-      setAttribute(name, value) { this[name] = value; }, getContext: () => ctx,
+      setAttribute(name, value) { this[name] = value; },
+      getContext(type) {
+        canvasCalls.push({ node: this, type });
+        if (canvasCalls.length > contextBudget) throw new Error('Canvas context creation limit exceeded - possible infinite loop detected');
+        return contextUnavailable ? null : ctx;
+      },
       appendChild(child) { this.children.push(child); child.parentNode = this; },
       remove() { if (this.parentNode) this.parentNode.children = this.parentNode.children.filter(child => child !== this); this.parentNode = null; }
     });
@@ -56,13 +62,96 @@ function openingRig() {
   w.tutorialSystem.active = true; w.tutorialSystem.completed = false;
   w.tutorialSystem.startTutorial = () => { calls.tutorialStarts++; };
   for (const file of ['src/core/action-input.js', 'src/core/gamepad-ui.js', 'src/core/input.js', 'src/engine/intro-sequence.js', 'src/engine/cutscene.js', 'src/core/runtime-lifecycle.js']) load(context, file);
+  if (realTutorial) {
+    load(context, 'src/game/hacking.js'); w.hackingSystem = new w.HackingSystem();
+    load(context, 'src/game/tutorial.js'); w.tutorialSystem = new w.TutorialSystem();
+    const startTutorial = w.tutorialSystem.startTutorial.bind(w.tutorialSystem);
+    w.tutorialSystem.startTutorial = () => { calls.tutorialStarts++; startTutorial(); };
+  }
   w.inputManager = new w.InputManager(); w.initCutscene();
   const scene = w.cutsceneSystem;
   const key = (value, type = 'keydown', repeat = false) => w.document.dispatch(type, { key: value, repeat });
-  return { ...rig, scene, pad, key, advance, images, windowEvents, gameCanvas };
+  return { ...rig, scene, pad, key, advance, images, windowEvents, gameCanvas, canvasCalls };
 }
 const settle = () => new Promise(resolve => setImmediate(resolve));
 async function main() {
+  {
+    // A restrictive host boundary exposes the former 20-per-second context
+    // requests. It is a supplied guard, not a claim to emulate Makko itself.
+    const { scene, advance, canvasCalls, images, key, calls } = openingRig({ contextBudget: 1 });
+    scene.start();
+    assert.strictEqual(images.length, 8);
+    assert(images.every(image => image.url.startsWith('https://raw.githubusercontent.com/')));
+    const abandonedLoads = images.map(image => image.onload);
+    for (const image of [...images]) image.onerror(); // Public origin blocked: use repository paths.
+    assert.strictEqual(images.length, 16);
+    assert(images.slice(8).every(image => image.url.startsWith('assets/intro/')));
+    for (const complete of abandonedLoads) complete();
+    assert(scene.cutsceneImages.every(image => !image.loaded), 'stale public requests cannot settle bundled attempts');
+    for (const image of images.slice(8)) image.onload();
+    advance(120000); // Enough reading time to hit the reported failure many times before this repair.
+    assert.strictEqual(canvasCalls.length, 1, 'painting and image completion reuse one acquired context');
+    assert(scene.getDiagnostics().assets.every(image => image.status === 'ready' && image.source.startsWith('assets/intro/')));
+    assert.strictEqual(scene.pendingImageLoads.size, 0); assert.strictEqual(images.length, 16);
+    key('s'); advance(5000); assert(!scene.isPlaying()); scene.destroy();
+    assert.deepStrictEqual(calls.errors, []);
+  }
+  {
+    const { scene, advance, images, key, canvasCalls } = openingRig({ contextBudget: 1, contextUnavailable: true });
+    scene.start(); advance(17000);
+    assert.strictEqual(images.length, 16, 'each timed-out source gets one bounded attempt');
+    assert(scene.getDiagnostics().assets.every(image => image.status === 'unavailable'));
+    assert.strictEqual(scene.pendingImageLoads.size, 0);
+    assert(scene.transcriptElement.textContent.includes('Leave the room noise in.'));
+    key('Enter'); advance(300); assert.strictEqual(scene.currentImageIndex, 2);
+    key('s'); advance(5000); assert(!scene.isPlaying());
+    assert.strictEqual(canvasCalls.length, 1, 'a rejected context is not retried by the paint poll'); scene.destroy();
+  }
+  for (const skip of [false, true]) {
+    const { w, p, scene, key, advance, calls } = openingRig({ realTutorial: true });
+    const started = w.BARCODE.RuntimeLifecycle.start(); await settle();
+    if (skip) { key('s'); advance(5000); }
+    else while (scene.isPlaying()) { advance(300); key('Enter'); }
+    await started;
+    const tutorial = w.tutorialSystem;
+    assert.strictEqual(calls.tutorialStarts, 1); assert.strictEqual(tutorial.storyChapter, 0);
+    assert.strictEqual(tutorial.dialogue[0].speaker, 'cache');
+    assert(tutorial.targetText.includes('Still with you'), 'the street answers the final open-channel line');
+    assert(tutorial.dialogue.some(line => /Dead Air District/.test(line.text) && /jammed/.test(line.text)), 'skip players receive the local situation too');
+    assert(!p.missionStarted, 'intro completion cannot bypass the playable tutorial');
+    assert.deepStrictEqual(Array.from(tutorial.objectives, objective => objective.id), ['movement', 'jump']);
+    const expectedObjectives = [['movement', 'jump'], ['combat'], ['rhythm_start', 'rhythm_combo'], ['hack_start', 'hack_complete']];
+    for (let chapter = 0; chapter < 4; chapter++) {
+      assert.strictEqual(tutorial.storyChapter, chapter);
+      assert.deepStrictEqual(Array.from(tutorial.objectives, objective => objective.id), expectedObjectives[chapter]);
+      assert(tutorial.dialogue.every(line => ['6bit', 'cache', 'dj', 'mac'].includes(line.speaker)));
+      while (tutorial.currentDialogue < tutorial.dialogue.length - 1) {
+        const before = tutorial.currentDialogue;
+        tutorial.update(tutorial.targetText.length * tutorial.typingSpeed + 1); tutorial.handleSpacePress();
+        assert.deepStrictEqual(calls.errors, []);
+        assert(tutorial.currentDialogue > before, `Chapter ${chapter}, dialogue ${before} did not advance: ${tutorial.targetText}`);
+      }
+      tutorial.update(tutorial.targetText.length * tutorial.typingSpeed + 1);
+      tutorial.handleSpacePress(); assert.strictEqual(tutorial.storyChapter, chapter, 'unfinished tasks keep the chapter closed');
+      for (const objective of expectedObjectives[chapter]) tutorial.completeObjective(objective);
+      advance(1000);
+      assert.strictEqual(tutorial.storyChapter, chapter + 1, 'authored copy does not control objective completion');
+      p.update(16); assert(!p.missionStarted);
+    }
+    assert.strictEqual(tutorial.storyChapter, 4);
+    assert(tutorial.dialogue.some(line => /Twenty corrupted signals/.test(line.text)));
+    assert(tutorial.dialogue.some(line => /Broadcast Jammer/.test(line.text)));
+    while (tutorial.currentDialogue < tutorial.dialogue.length - 1) {
+      const before = tutorial.currentDialogue;
+      tutorial.update(tutorial.targetText.length * tutorial.typingSpeed + 1); tutorial.handleSpacePress();
+      assert(tutorial.currentDialogue > before, `Final chapter dialogue ${before} did not advance`);
+    }
+    tutorial.update(tutorial.targetText.length * tutorial.typingSpeed + 1);
+    tutorial.update(10000); p.update(16); assert(!p.missionStarted, 'the final crew line owns its full hold and fade');
+    tutorial.update(2000); p.update(16);
+    assert(p.missionStarted); assert.strictEqual(p.missionDefeats, 0, 'training kills never populate mission progress');
+    scene.destroy();
+  }
   {
     const { w, p, calls, scene, key, advance, gameCanvas } = openingRig();
     const started = w.BARCODE.RuntimeLifecycle.start(); await settle();
