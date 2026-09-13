@@ -183,7 +183,10 @@ window.CutsceneSystem = class CutsceneSystem {
       transcript.style.cssText = 'max-width:900px;padding:32px;color:#f0eadc;font:24px/1.6 sans-serif;';
       help.style.cssText = 'max-width:900px;padding:24px;color:#95ffe0;font:18px/1.6 monospace;';
     }
-    (document.fullscreenElement || document.webkitFullscreenElement || document.body).appendChild(container);
+    // FullscreenManager owns the document root, so this stable DOM host stays
+    // visible before/after fullscreen settles and through exit/re-entry. Never
+    // put the overlay in the hidden game canvas's fallback-content subtree.
+    document.body.appendChild(container);
     this.addEventListeners();
   }
 
