@@ -5,7 +5,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/intro-sequence.js', exports: ['BAR
 (function() {
   const BARCODE = window.BARCODE = window.BARCODE || {};
   // Immutable public copies survive Makko imports without a binary asset root.
-  const assetRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a747b58411650146bdc003a529d0470167d275db/';
+  const assetRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/8180996dfc81630e0509a6ae3f0b0ec5db2934a6/';
   const panels = Object.freeze([
     { beat: 'O1', title: 'LEAVE THE ROOM NOISE IN', image: 0, asset: 'assets/intro/intro-01-broadcast.webp', layout: 'room', visual: '6 Bit and DJ Floppydisc work the mixing desk in a warm, lived-in studio.', stamp: 'BARCODE / ON AIR', lines: [
       ['DJ FLOPPYDISC', 'One more pass. Leave the room noise in.'],
@@ -35,33 +35,58 @@ window.FILE_MANIFEST.push({ name: 'src/engine/intro-sequence.js', exports: ['BAR
   const ink = '#090b15', paper = '#f1eadd', mint = '#95ffe0', pink = '#f696d9';
   const crewColors = { '6 BIT': '#e6e5ee', 'DJ FLOPPYDISC': '#83e9ff', 'CACHE BACK': '#ffd65c', 'MAC MODEM': '#ff929c' };
   const frame = Object.freeze({ x: 48, y: 140, w: 1824, h: 828 });
+  // Author the reading order, including the gaps before a reaction. A scene
+  // never turns its own page; its last cue remains until the player advances.
+  const cue = (kind, holdMs, line = null) => Object.freeze({ kind, holdMs, line });
+  const cues = Object.freeze([
+    [cue('title', 850), cue('screen', 1500), cue('dialogue', 4300, 0), cue('dialogue', 4300, 1)],
+    [cue('title', 850), cue('dialogue', 4700, 0), cue('screen', 1300), cue('dialogue', 4200, 1)],
+    [cue('title', 1100), cue('screen', 2100), cue('dialogue', 3400, 0), cue('dialogue', 3700, 1)],
+    [cue('title', 900), cue('caption', 2400), cue('dialogue', 4300, 0), cue('dialogue', 4900, 1)],
+    [cue('title', 1000), cue('screen', 1800), cue('dialogue', 4700, 0), cue('dialogue', 4000, 1)],
+    [cue('title', 900), cue('screen', 2200), cue('dialogue', 4600, 0), cue('gutter', 1400), cue('dialogue', 4400, 1)],
+    [cue('title', 1400), cue('caption', 1700), cue('dialogue', 4700, 0), cue('dialogue', 5400, 1)],
+    [cue('title', 1000), cue('dialogue', 4400, 0), cue('dialogue', 3500, 1), cue('caption', 3000)]
+  ].map(scene => Object.freeze(scene)));
+  // Glass corners in the source illustration's 1862 x 845 coordinate space,
+  // clockwise from top-left. Text is transformed and clipped to that glass;
+  // it is not another floating dialogue card. Small screens use short labels.
+  const screens = [
+    { quad: [[1699, 403], [1855, 382], [1855, 533], [1699, 545]], size: [165, 155], lines: ['BARCODE', 'ON AIR'], font: 20, y: 48 },
+    { quad: [[1730, 494], [1855, 481], [1855, 597], [1710, 620]], size: [145, 136], lines: ['DEAD AIR', 'LIVE'], font: 19, y: 32 },
+    { quad: [[160, 81], [521, 225], [512, 589], [106, 502]], size: [410, 460], lines: ['NO BROADCAST', 'DETECTED'], font: 29, y: 95, error: true },
+    null,
+    { quad: [[1352, 260], [1723, 197], [1724, 548], [1333, 569]], size: [410, 365], lines: ['CREW CHANNEL', 'STILL OPEN'], font: 24, y: 25 },
+    { quad: [[91, 201], [249, 254], [219, 391], [53, 344]], size: [210, 195], lines: ['PLEASE WAIT', 'AUTOMATIC', 'RECOVERY'], font: 21, y: 40, error: true },
+    null, null
+  ];
   // Authored against the actual illustrations. Tails end below the speaking
   // face; offscreen voices use a receiver card instead of a false face pointer.
   // These coordinates deliberately leave the tape lock, scope, door hand,
   // tower, Cliff's face and the four supplied likenesses visible.
   const compositions = [
-    { stamp: [90, 176, 420], balloons: [
+    { balloons: [
       { x: 1060, y: 644, w: 736, tail: [1260, 524] },
       { x: 132, y: 794, w: 790, tail: [635, 618] }] },
-    { stamp: [90, 176, 350], balloons: [
+    { balloons: [
       { x: 104, y: 752, w: 744, tail: [593, 594] },
       { x: 1098, y: 788, w: 700, tail: [1370, 674] }] },
-    { stamp: [104, 616, 526], balloons: [
+    { balloons: [
       { x: 646, y: 676, w: 540, tail: [868, 602] },
       { x: 1254, y: 798, w: 556, tail: [1390, 626] }] },
-    { stamp: [748, 838, 412], balloons: [
+    { balloons: [
       { x: 92, y: 766, w: 610, tail: [459, 634] },
       { x: 1188, y: 742, w: 628, tail: [1408, 610] }] },
-    { stamp: [980, 178, 630], balloons: [
+    { balloons: [
       { x: 94, y: 750, w: 746, tail: [620, 612] },
       { x: 1184, y: 786, w: 632, radio: true }] },
-    { stamp: [110, 526, 626], balloons: [
+    { balloons: [
       { x: 1044, y: 672, w: 758, tail: [1212, 584] },
       { x: 104, y: 770, w: 732, radio: true }] },
-    { stamp: [1340, 870, 464], balloons: [
+    { balloons: [
       { x: 768, y: 180, w: 512, radio: true },
       { x: 660, y: 698, w: 750, tail: [518, 520] }] },
-    { stamp: [1090, 858, 714], balloons: [
+    { balloons: [
       { x: 1128, y: 672, w: 674, radio: true },
       { x: 140, y: 796, w: 752, tail: [662, 582] }] }
   ];
@@ -136,31 +161,50 @@ window.FILE_MANIFEST.push({ name: 'src/engine/intro-sequence.js', exports: ['BAR
     ctx.moveTo(x + w - 46, y + h + 16); ctx.lineTo(x + w - 15, y + h + 16); ctx.stroke();
     ctx.restore();
   }
-  function stamp(ctx, panel, placement, elapsedMs, reduced) {
-    let [x, y, w] = placement;
-    if (panel.layout === 'refusal') x -= 52 * (reduced ? 1 : Math.min(1, elapsedMs / 650));
-    const accent = ['failure', 'refusal', 'archive'].includes(panel.layout) ? pink : mint;
-    ctx.font = 'bold 21px monospace';
-    const lines = wrap(ctx, panel.stamp, w - 36), h = 26 + lines.length * 27;
-    ctx.fillStyle = ink; ctx.fillRect(x + 6, y + 7, w, h);
-    ctx.fillStyle = accent; ctx.fillRect(x, y, w, h);
-    ctx.strokeStyle = ink; ctx.lineWidth = 3; ctx.strokeRect(x, y, w, h);
-    lines.forEach((line, i) => text(ctx, line, x + 18, y + 13 + i * 27, 21, ink, true));
+  function screenReadout(ctx, index, images) {
+    const screen = screens[index]; if (!screen) return;
+    const source = images?.[index]?.element;
+    const sw = source?.naturalWidth || source?.width, sh = source?.naturalHeight || source?.height;
+    if (!sw || !sh) return; // No floating readout over an absent illustration.
+    const scale = Math.min(frame.w / sw, frame.h / sh);
+    const ox = frame.x + (frame.w - sw * scale) / 2, oy = frame.y + (frame.h - sh * scale) / 2;
+    const quad = screen.quad.map(([x, y]) => [ox + x / 1862 * sw * scale, oy + y / 845 * sh * scale]);
+    const [a, b, , d] = quad, [w, h] = screen.size;
+    ctx.save(); polygon(ctx, quad); ctx.clip();
+    ctx.fillStyle = 'rgba(2, 13, 20, 0.56)'; ctx.fill();
+    ctx.transform((b[0] - a[0]) / w, (b[1] - a[1]) / w, (d[0] - a[0]) / h, (d[1] - a[1]) / h, a[0], a[1]);
+    const color = screen.error ? '#ff9edc' : '#b3fff1';
+    ctx.shadowColor = color; ctx.shadowBlur = 4;
+    screen.lines.forEach((line, i) => text(ctx, line, 17, screen.y + i * (screen.font + 9), screen.font, color, true));
+    ctx.shadowBlur = 0; ctx.fillStyle = 'rgba(1, 10, 15, 0.14)';
+    for (let y = 0; y < h; y += 5) ctx.fillRect(0, y, w, 1);
+    ctx.restore();
   }
   BARCODE.IntroSequence = {
     panels, inspectedGutter: false,
+    getCues(index) { return cues[index] || []; },
+    getCueState(index, cueIndex = Infinity) {
+      const shown = (cues[index] || []).slice(0, cueIndex + 1);
+      return { lines: shown.filter(cue => cue.kind === 'dialogue').map(cue => cue.line),
+        screen: shown.some(cue => cue.kind === 'screen'), caption: shown.some(cue => cue.kind === 'caption'),
+        gutter: shown.some(cue => cue.kind === 'gutter') };
+    },
+    getScreenLayout(index) { return screens[index] ? JSON.parse(JSON.stringify(screens[index])) : null; },
     reset() { this.inspectedGutter = false; },
-    inspect(index) { if (panels[index]?.layout !== 'refusal') return false; this.inspectedGutter = true; return true; },
-    transcript(index) {
+    inspect(index, cueIndex = Infinity) { if (!this.getCueState(index, cueIndex).gutter) return false; this.inspectedGutter = true; return true; },
+    transcript(index, cueIndex = Infinity) {
       const panel = panels[index];
-      return panel ? `${panel.title}. ${panel.visual} ${panel.stamp}. ${panel.lines.map(line => line.join(': ')).join(' ')}` : '';
+      if (!panel) return '';
+      const shown = this.getCueState(index, cueIndex);
+      return `${panel.title}. ${panel.visual} ${(shown.screen || shown.caption) ? panel.stamp + '. ' : ''}${shown.lines.map(i => panel.lines[i].join(': ')).join(' ')}${shown.gutter ? ' The recovery order has slipped into the page margin.' : ''}`;
     },
     getDialogueLayouts(ctx, index) {
       return panels[index]?.lines.map((line, i) => balloonLayout(ctx, line[1], compositions[index].balloons[i])) || [];
     },
-    draw(ctx, { index = 0, elapsedMs = 0, images = [], pad = false, skipProgress = 0, holding = false } = {}) {
+    draw(ctx, { index = 0, cueIndex = Infinity, cueElapsedMs = 250, images = [], pad = false, skipProgress = 0, holding = false } = {}) {
       const panel = panels[index]; if (!ctx || !panel) return;
       const reduced = window.BARCODE_RENDER_QUALITY?.flashes === false;
+      const shown = this.getCueState(index, cueIndex), current = cues[index][cueIndex];
       ctx.save(); ctx.globalAlpha = 1; ctx.shadowBlur = 0;
       ctx.fillStyle = ink; ctx.fillRect(0, 0, 1920, 1080);
       ctx.fillStyle = pink; ctx.fillRect(48, 25, 163, 38);
@@ -172,11 +216,23 @@ window.FILE_MANIFEST.push({ name: 'src/engine/intro-sequence.js', exports: ['BAR
         ctx.fillStyle = i <= index ? mint : '#2b3040'; ctx.fillRect(1698 + i * 22, 86, 14, i === index ? 15 : 5);
       }
       drawArt(ctx, images, panel.image);
-      stamp(ctx, panel, compositions[index].stamp, elapsedMs, reduced);
-      this.getDialogueLayouts(ctx, index).forEach((layout, i) => balloon(ctx, panel.lines[i][0], layout, i + 1));
-      if (panel.layout === 'refusal') text(ctx, this.inspectedGutter ? 'MARGIN NOTE: "WAIT" IS NOT A PLAN.' : `${pad ? 'D-pad Left' : 'Left Arrow'}: inspect the displaced recovery order`, 48, 990, 20, '#e4cb93');
-      else text(ctx, index < 2 ? 'STUDIO FEED / ORIGINAL TAKE' : index < 6 ? 'SIGNAL LOST. CREW STILL HERE.' : 'NEXT STOP / DEAD AIR DISTRICT', 48, 990, 19, '#9daabc');
-      const next = index === panels.length - 1 ? 'Enter Dead Air District' : 'Next panel';
+      if (shown.screen) screenReadout(ctx, index, images);
+      this.getDialogueLayouts(ctx, index).forEach((layout, i) => {
+        if (!shown.lines.includes(i)) return;
+        ctx.save();
+        if (!reduced && current?.kind === 'dialogue' && current.line === i) ctx.globalAlpha = 0.35 + 0.65 * Math.min(1, cueElapsedMs / 180);
+        balloon(ctx, panel.lines[i][0], layout, i + 1); ctx.restore();
+      });
+      if (shown.caption) text(ctx, panel.stamp, 48, 988, 21, index === 3 ? pink : mint, true);
+      if (shown.gutter) {
+        // The one authored fourth-wall breach happens after 6 Bit refuses the
+        // real screen's order. It does not pretend to be another monitor.
+        const offset = reduced || current?.kind !== 'gutter' ? 0 : 10 * (1 - Math.min(1, cueElapsedMs / 350));
+        text(ctx, 'PLEASE WAIT...', 48 + offset, 980, 20, pink, true);
+        text(ctx, this.inspectedGutter ? '"WAIT" IS NOT A PLAN.' : `${pad ? 'D-pad Left' : 'Left Arrow'}: inspect`, 280, 990, 20, '#e4cb93');
+      }
+      const complete = cueIndex >= cues[index].length - 1;
+      const next = !complete ? 'Next line / caption' : index === panels.length - 1 ? 'Enter Dead Air District' : 'Next scene';
       text(ctx, pad ? `A: ${next}` : `Space / Enter / Click: ${next}`, 48, 1030, 22, paper);
       if (holding) {
         ctx.fillStyle = '#42284d'; ctx.fillRect(1340, 1015, 528, 9);

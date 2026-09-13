@@ -34,7 +34,8 @@ async function main() {
   const sheet = createCanvas(1920, 2160), sheetCtx = sheet.getContext('2d');
   for (let index = 0; index < w.BARCODE.IntroSequence.panels.length; index++) {
     labels.length = 0; scene.currentImageIndex = index; scene.showNextImage();
-    scene.currentImageStartTime -= 1000; scene.drawCurrentPanel();
+    scene.currentCueIndex = w.BARCODE.IntroSequence.getCues(index).length - 1;
+    scene.cueElapsedMs = 1000; scene.drawCurrentPanel();
     const layouts = w.BARCODE.IntroSequence.getDialogueLayouts(ctx, index);
     for (const box of layouts) {
       assert(box.x >= 48 && box.y >= 140 && box.x + box.w <= 1872 && box.y + box.h <= 968, `Scene ${index + 1}: balloon outside image`);
@@ -51,7 +52,21 @@ async function main() {
     sheetCtx.drawImage(snapshot, index % 2 * 960, Math.floor(index / 2) * 540, 960, 540);
   }
   fs.writeFileSync(path.join(out, 'intro-contact.webp'), sheet.toBuffer('image/webp'));
+  // Actual staged frames: the art, screen message, first response and final
+  // state must remain independently readable before moving to another page.
+  for (const index of [2, 4, 5]) {
+    const cues = w.BARCODE.IntroSequence.getCues(index);
+    const stages = createCanvas(1920, Math.ceil(cues.length / 2) * 540), stageCtx = stages.getContext('2d');
+    scene.currentImageIndex = index + 1;
+    for (let cue = 0; cue < cues.length; cue++) {
+      scene.currentCueIndex = cue; scene.cueElapsedMs = 1000; scene.drawCurrentPanel();
+      const snapshot = await loadImage(canvas.toBuffer('image/png'));
+      stageCtx.drawImage(snapshot, cue % 2 * 960, Math.floor(cue / 2) * 540, 960, 540);
+    }
+    fs.writeFileSync(path.join(out, `intro-${String(index + 1).padStart(2, '0')}-cues.webp`), stages.toBuffer('image/webp'));
+  }
   scene.currentImageIndex = 6; scene.startSkipHold('keyboard'); scene.skipHoldProgress = 0.6;
+  scene.currentCueIndex = w.BARCODE.IntroSequence.getCues(5).length - 1;
   scene.drawCurrentPanel(); fs.writeFileSync(path.join(out, 'intro-skip.webp'), canvas.toBuffer('image/webp'));
   w.BARCODE_RENDER_QUALITY = { flashes: false }; scene.inspectCaption(); scene.drawCurrentPanel();
   fs.writeFileSync(path.join(out, 'intro-reduced-effects.webp'), canvas.toBuffer('image/webp'));
@@ -79,7 +94,7 @@ async function main() {
     }
   }
   fs.writeFileSync(path.join(out, 'intro-tutorial-comms.webp'), comms.toBuffer('image/webp'));
-  console.log('Eight scene-placed comic pages, hold progress and reduced-effects caption rendered; actual balloon, text and page bounds passed. Native Canvas diagnostics, not Makko captures.');
+  console.log('Eight final comic pages, three cue sheets, hold progress and reduced-effects caption rendered; actual balloon, text and page bounds passed. Native Canvas diagnostics, not Makko captures.');
   console.log('All five tutorial chapters rendered with actual copy and measured text; comms strip saved.');
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });

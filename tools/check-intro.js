@@ -115,11 +115,11 @@ async function main() {
     assertPresented(scene.cutsceneContainer);
     assertPresented(scene.introCanvas);
     advance(300);
-    scene.cutsceneContainer.dispatch('click'); assert.strictEqual(scene.currentImageIndex, 2);
+    scene.cutsceneContainer.dispatch('click'); assert.strictEqual(scene.currentImageIndex, 1); assert.strictEqual(scene.currentCueIndex, 1);
     await w.fullscreenManager.exit(); assertPresented(scene.cutsceneContainer);
     const reentered = w.fullscreenManager.enter(); finishFullscreen(); await reentered;
     assertPresented(scene.cutsceneContainer);
-    advance(300); key('Enter'); assert.strictEqual(scene.currentImageIndex, 3);
+    advance(300); key('Enter'); assert.strictEqual(scene.currentImageIndex, 1); assert.strictEqual(scene.currentCueIndex, 2);
     key('s'); advance(5000); await started; advance(500);
     assertPresented(gameCanvas);
     assert.strictEqual(w.tutorialSystem.storyChapter, 0);
@@ -128,6 +128,33 @@ async function main() {
     assert.strictEqual(scene.cutsceneContainer, null, 'intro is removed after handoff');
     await w.BARCODE.RuntimeLifecycle.stop('fullscreen-check');
     assert.deepStrictEqual(calls.errors, []);
+  }
+  {
+    const { w, scene, advance, images, key, windowEvents } = openingRig();
+    scene.start();
+    advance(3000); assert.strictEqual(scene.currentCueIndex, 0, 'automatic reading waits for the picture');
+    for (const image of images) image.onload();
+    assert(!scene.transcriptElement.textContent.includes('One more pass'), 'unrevealed dialogue is absent from the accessible transcript too');
+    advance(800); assert.strictEqual(scene.currentCueIndex, 0);
+    advance(50); assert.strictEqual(scene.currentCueIndex, 1, 'on-air screen appears first');
+    assert(scene.transcriptElement.textContent.includes('BARCODE / ON AIR'));
+    key(' '); assert.strictEqual(scene.currentCueIndex, 2, 'Space reveals exactly the next bubble');
+    key(' ', 'keydown', true); advance(300);
+    assert.strictEqual(scene.currentCueIndex, 2, 'held/repeated Space does not consume another cue');
+    assert(scene.transcriptElement.textContent.includes('One more pass'));
+    assert(!scene.transcriptElement.textContent.includes("That's the part"));
+    windowEvents.dispatch('blur'); advance(60000);
+    assert.strictEqual(scene.currentCueIndex, 2, 'focus loss freezes the reading interval');
+    windowEvents.dispatch('focus'); advance(3950); assert.strictEqual(scene.currentCueIndex, 2);
+    advance(50); assert.strictEqual(scene.currentCueIndex, 3, 'the response follows its full reading interval');
+    advance(60000); assert.strictEqual(scene.currentImageIndex, 1, 'automatic cues never turn the page');
+    key(' '); assert.strictEqual(scene.currentImageIndex, 2); assert.strictEqual(scene.currentCueIndex, 0);
+    advance(850); assert.strictEqual(scene.currentCueIndex, 1, 'Mac speaks before the recording readout on page 2');
+    w.document.hidden = true; advance(60000); assert.strictEqual(scene.currentCueIndex, 1);
+    w.document.hidden = false; w.document.dispatch('visibilitychange'); advance(4650); assert.strictEqual(scene.currentCueIndex, 1);
+    key(' '); assert.strictEqual(scene.currentCueIndex, 2); advance(50);
+    assert.strictEqual(scene.currentCueIndex, 2, 'manual advance resets the overdue automatic deadline');
+    scene.destroy(); advance(10000); assert(!scene.getDiagnostics().listenersAttached);
   }
   {
     // A restrictive host boundary exposes the former 20-per-second context
@@ -244,16 +271,17 @@ async function main() {
   {
     const { w, scene, pad, advance, key, calls } = openingRig();
     scene.start(); advance(300);
-    pad.buttons[0].pressed = true; advance(50); assert.strictEqual(scene.currentImageIndex, 2);
-    advance(1000); assert.strictEqual(scene.currentImageIndex, 2, 'held A advances once');
+    pad.buttons[0].pressed = true; advance(50); assert.strictEqual(scene.currentImageIndex, 1); assert.strictEqual(scene.currentCueIndex, 1);
+    advance(1000); assert.strictEqual(scene.currentCueIndex, 1, 'held A advances once');
     pad.buttons[0].pressed = false; advance(50);
     const seen = [w.BARCODE.IntroSequence.panels[0].beat];
     while (scene.isPlaying()) {
       const index = scene.currentImageIndex - 1;
       seen.push(w.BARCODE.IntroSequence.panels[index].beat);
       if (index === 5) {
+        const available = scene.currentCueIndex >= w.BARCODE.IntroSequence.getCues(index).findIndex(cue => cue.kind === 'gutter');
         pad.buttons[14].pressed = true; advance(50); pad.buttons[14].pressed = false; advance(50);
-        assert(w.BARCODE.IntroSequence.inspectedGutter);
+        assert.strictEqual(w.BARCODE.IntroSequence.inspectedGutter, available, 'the margin discovery cannot precede the refusal');
       }
       advance(300); key(' ', 'keydown', true); assert.strictEqual(scene.currentImageIndex - 1, index);
       key(' ');

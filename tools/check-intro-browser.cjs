@@ -108,7 +108,7 @@ async function main() {
     await send('Input.dispatchMouseEvent', { type: 'mousePressed', button: 'left', clickCount: 1, ...point });
     await send('Input.dispatchMouseEvent', { type: 'mouseReleased', button: 'left', clickCount: 1, ...point });
   };
-  const key = async (key, code, down = true) => send('Input.dispatchKeyEvent', { type: down ? 'keyDown' : 'keyUp', key, code, windowsVirtualKeyCode: key === 'Enter' ? 13 : 83 });
+  const key = async (key, code, down = true, autoRepeat = false) => send('Input.dispatchKeyEvent', { type: down ? 'keyDown' : 'keyUp', key, code, autoRepeat, windowsVirtualKeyCode: code === 'Space' ? 32 : key === 'Enter' ? 13 : 83 });
   const visibleIntro = async label => {
     const state = await evaluate(`(() => {
       const scene = window.cutsceneSystem, canvas = scene.introCanvas, r = canvas.getBoundingClientRect();
@@ -116,7 +116,7 @@ async function main() {
       const pixels = scene.introContext.getImageData(0, 0, 1920, 1080).data;
       let bright = 0; for (let i = 0; i < pixels.length; i += 400) if (pixels[i] + pixels[i+1] + pixels[i+2] > 120) bright++;
       return { label: ${JSON.stringify(label)}, fullscreen: document.fullscreenElement?.tagName || null,
-        width: r.width, height: r.height, hit: hit === canvas, bright, panel: scene.currentImageIndex,
+        width: r.width, height: r.height, hit: hit === canvas, bright, panel: scene.currentImageIndex, cue: scene.currentCueIndex,
         contexts: browserCheck.contexts, ready: scene.cutsceneImages.filter(image => image.loaded).length };
     })()`);
     receipts.push(state); await screenshot(label);
@@ -131,18 +131,25 @@ async function main() {
   await click('#startButton');
   await until('window.cutsceneSystem?.isPlaying() && cutsceneSystem.cutsceneImages.every(image => image.loaded)', 'intro artwork');
   assert(await evaluate('document.fullscreenElement === document.documentElement'), 'Start enters native fullscreen on the shared root');
+  await until('cutsceneSystem.currentCueIndex === 1', 'automatic first screen cue');
+  assert(await evaluate('!cutsceneSystem.transcriptElement.textContent.includes("One more pass")'), 'future dialogue is still hidden');
+  await key(' ', 'Space'); await key(' ', 'Space', true, true); await key(' ', 'Space', false);
+  assert(await evaluate('cutsceneSystem.currentImageIndex === 1 && cutsceneSystem.currentCueIndex === 2 && cutsceneSystem.transcriptElement.textContent.includes("One more pass") && !cutsceneSystem.transcriptElement.textContent.includes("part that proves")'), 'Space reveals one speech bubble; held repeat cannot reveal another');
+  await delay(300); await click('#barcode-intro');
+  assert(await evaluate('cutsceneSystem.currentImageIndex === 1 && cutsceneSystem.currentCueIndex === 3'), 'pointer reveals the second speech bubble on the same page');
   await visibleIntro('01-fullscreen');
   await evaluate('document.exitFullscreen()'); await until('!document.fullscreenElement', 'fullscreen exit');
   await visibleIntro('02-windowed');
-  await until('!cutsceneSystem.inputDisabled', 'first page debounce');
-  await click('#barcode-intro'); await until('cutsceneSystem.currentImageIndex === 2', 'pointer advance');
   await evaluate('fullscreenManager.enter()'); await until('!!document.fullscreenElement', 'fullscreen re-entry');
   await visibleIntro('03-reentered');
   await send('Emulation.setDeviceMetricsOverride', { width: 960, height: 540, deviceScaleFactor: 1, mobile: false });
   await visibleIntro('04-resized');
-  for (let panel = 2; panel <= 8; panel++) {
+  let presses = 0;
+  while (await evaluate('cutsceneSystem.isPlaying()')) {
+    assert(presses++ < 40, 'all cues can reach the tutorial without getting stuck');
     await delay(300); await key('Enter', 'Enter'); await key('Enter', 'Enter', false);
-    if (panel < 8) await until(`cutsceneSystem.currentImageIndex === ${panel + 1}`, 'keyboard advance');
+    const stage = await evaluate('({ active: cutsceneSystem.isPlaying(), panel: cutsceneSystem.currentImageIndex, cue: cutsceneSystem.currentCueIndex })');
+    if (stage.active && [3, 5, 6].includes(stage.panel) && [1, 2].includes(stage.cue)) await visibleIntro(`cue-${stage.panel}-${stage.cue}`);
   }
   await until('BARCODE.RuntimeLifecycle.getState() === "running" && !document.getElementById("barcode-intro")', 'tutorial handoff');
   assert(await evaluate('tutorialSystem.targetText.includes("Still with you") && browserCheck.loops === 1 && gameCanvas.getBoundingClientRect().height > 100'), 'tutorial starts visibly once');
@@ -165,7 +172,7 @@ async function main() {
   assert(await evaluate('tutorialSystem.targetText.includes("Still with you") && browserCheck.loops === 1'), 'skipped intro starts tutorial once');
   assert.deepEqual(errors, [], 'no browser JavaScript exceptions');
   fs.writeFileSync(path.join(output, 'result.json'), JSON.stringify({ passed: true, receipts, errors, limits: 'Real Chromium DOM/fullscreen/input and local artwork; Makko sprites, gameplay loop and audible audio are not exercised.' }, null, 2));
-  console.log(`Chromium intro/fullscreen, pointer/keyboard, resize, retry and tutorial handoff passed. Evidence: ${output}`);
+  console.log(`Chromium timed cues, Space/pointer/keyboard advancement, fullscreen, resize, retry and tutorial handoff passed. Evidence: ${output}`);
 }
 main().catch(error => {
   fs.writeFileSync(path.join(output, 'result.json'), JSON.stringify({ passed: false, error: error.stack, receipts, errors }, null, 2));
