@@ -1,5 +1,13 @@
 # Changelog
 
+## September 13, 2026 — staged intro cues after #42
+
+- Confirm merged #42 and the owner's report that the images now appear; retain its fullscreen/visibility fix.
+- Reveal each scene's readouts, speech and captions in authored order on a reading clock. Space/Enter/click/A advances one cue; final cues wait for manual page advancement. Pause timing on loading, blur, hidden tab and whole-intro skip hold.
+- Transform and clip five readouts to illustrated monitor glass; put the other three captions in the page margin. Reveal page 6's displaced caption only after the refusal.
+- Correct DJ Floppydisc's page-5 left-hand grip with a targeted built-in image edit. Record provenance and pin hosted assets to the published art checkpoint; retain the other seven images.
+- Extend production timing/input and real Chromium coverage; refresh final/staged native Canvas evidence. One combined draft and source export; Makko acceptance remains pending. No gameplay, HUD or campaign rewrite.
+
 ## September 13, 2026 — black-screen recovery after #41
 
 - Reproduce the merged intro's hidden-canvas/fullscreen defect with the production fullscreen owner included in the intro harness.

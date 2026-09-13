@@ -1,5 +1,18 @@
 # Acceptance and Test Status
 
+## Staged intro review — after merged #42
+
+Base/rollback: `f1831f95c187bdd5afd9c8231d2a7a10ac262671`. Import the exact head of `agent/intro-cue-staging` into the duplicate Makko project before merge. The owner confirmed the prior images are visible; this new timing/art pass needs its own review.
+
+1. Start normally and wait. Art/title appear first; readouts, dialogue and captions follow in story order. Earlier speech stays visible, and the scene does not turn its own page. Judge the reading intervals in `INTRO_CUE_STAGING.md`.
+2. Press Space once during a reading interval: exactly the next cue appears on the same scene. Hold it: no repeated advance. After the final cue, a fresh press changes scene. Check Enter, click and controller A too.
+3. On pages 1, 2, 3, 5 and 6, readouts sit within the actual monitor glass and follow its angle. Pages 4, 7 and 8 use the lower page margin. Inspect page 5's corrected thumb/index grip and wrist; check DJ's face, likeness and two scope traces remain intact. Compare the final and staged renders in `verification/`.
+4. Leave the tab or window while a line is showing, then return: its remaining reading time is preserved. Check fullscreen exit/re-entry and resize; text stays aligned and input stays usable.
+5. On page 6, inspect the displaced recovery caption only after 6 Bit's refusal. Check reduced effects, early S/B release, a full independent five-second hold and both normal/skipped tutorial entry.
+6. Complete the existing opening/tutorial into one mission; verify audible music handoff and the existing Level 1 movement, combat, lift, Jammer, boss/retry and restart route. Automated stubs cannot certify these Makko/audio/device results.
+
+VM checks exercise the actual cue clock and owners. Native Canvas renders verify production layout; Chromium checks native fullscreen, decoded bundled art and trusted inputs with explicit initializer/gameplay/audio boundaries. Exact completed results belong to the receipt and linked CI run.
+
 ## Black-screen recovery — after merged #41
 
 Base/rollback: `897b750cf64bafe3d50746cd7c8c19379ef4fbf6`. Test the exact head of `agent/intro-fullscreen-recovery` in the duplicate Makko project before merge. The owner-reported black screen supersedes the previous unconfirmed repair status.

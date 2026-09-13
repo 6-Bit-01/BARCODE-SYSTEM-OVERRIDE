@@ -33,6 +33,11 @@ window.CutsceneSystem = class CutsceneSystem {
     
 
     this.currentImageIndex = 0;
+    this.currentCueIndex = 0;
+    this.cueElapsedMs = 0;
+    this.sceneElapsedMs = 0;
+    this.lastCueTick = 0;
+    this.presentationPaused = false;
     this.isActive = false;
     this.canSkip = true;
     this.imageDisplayTime = 250; // Debounce a transition; reading pace belongs to the player.
@@ -136,7 +141,7 @@ window.CutsceneSystem = class CutsceneSystem {
     this.cutsceneGeneration++;
     this.cancelImageLoads(); this.clearOwnedCallbacks(); this.endSkipHold();
     const generation = this.cutsceneGeneration;
-    this.isActive = true; this.currentImageIndex = 0;
+    this.isActive = true; this.currentImageIndex = 0; this.presentationPaused = false;
     window.BARCODE.IntroSequence.reset();
     window.inputManager?.resetActionEdges?.();
     this.startPromise = new Promise(resolve => { this.onComplete = resolve; });
@@ -175,7 +180,7 @@ window.CutsceneSystem = class CutsceneSystem {
     transcript.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);';
     container.appendChild(transcript);
     const help = document.createElement('div');
-    help.textContent = 'Space, Enter or click: next panel. Hold S or controller B for five seconds to skip the intro. Release to cancel. Left Arrow or D-pad Left inspects the displaced recovery caption.';
+    help.textContent = 'Dialogue and captions appear in story order. Space, Enter, click or controller A reveals the next line or caption; after the last one, continue to the next scene. Hold S or controller B for five seconds to skip the intro. Release to cancel. Left Arrow or D-pad Left inspects a displaced recovery caption once it appears.';
     help.style.cssText = transcript.style.cssText; container.appendChild(help);
     if (!this.introContext) {
       canvas.style.display = 'none';
@@ -194,9 +199,11 @@ window.CutsceneSystem = class CutsceneSystem {
     if (!this.isActive) return;
     const panels = window.BARCODE.IntroSequence.panels;
     if (this.currentImageIndex >= panels.length) { this.endCutscene(); return; }
-    const index = this.currentImageIndex++;
+    this.currentImageIndex++;
     this.currentImageStartTime = Date.now();
-    this.transcriptElement.textContent = window.BARCODE.IntroSequence.transcript(index);
+    this.lastCueTick = this.currentImageStartTime;
+    this.currentCueIndex = 0; this.cueElapsedMs = 0; this.sceneElapsedMs = 0;
+    this.updateTranscript();
     this.disableInputTemporarily(this.imageDisplayTime);
     this.drawCurrentPanel();
   }
@@ -204,15 +211,39 @@ window.CutsceneSystem = class CutsceneSystem {
   drawCurrentPanel() {
     if (!this.isActive || !this.introCanvas) return;
     window.BARCODE.IntroSequence.draw(this.introContext, {
-      index: this.currentImageIndex - 1, elapsedMs: Date.now() - this.currentImageStartTime,
+      index: this.currentImageIndex - 1,
+      cueIndex: this.currentCueIndex, cueElapsedMs: this.cueElapsedMs,
       images: this.cutsceneImages, pad: !!window.BARCODE.GamepadUI?.connected,
       skipProgress: this.skipHoldProgress, holding: this.isSkipHoldActive
     });
   }
 
+  updateTranscript() {
+    if (this.transcriptElement) this.transcriptElement.textContent = window.BARCODE.IntroSequence.transcript(this.currentImageIndex - 1, this.currentCueIndex);
+  }
+
+  revealNextCue() {
+    const cues = window.BARCODE.IntroSequence.getCues(this.currentImageIndex - 1);
+    if (this.currentCueIndex >= cues.length - 1) return false;
+    this.currentCueIndex++; this.cueElapsedMs = 0; this.lastCueTick = Date.now();
+    this.updateTranscript(); this.drawCurrentPanel();
+    return true;
+  }
+
+  updatePresentation() {
+    if (!this.isActive) return;
+    const now = Date.now(), delta = Math.min(250, Math.max(0, now - this.lastCueTick));
+    this.lastCueTick = now;
+    const image = this.cutsceneImages[this.currentImageIndex - 1];
+    if (document.hidden || this.presentationPaused || this.isSkipHoldActive || (this.introContext && image?.status === 'loading')) return;
+    this.sceneElapsedMs += delta; this.cueElapsedMs += delta;
+    const cue = window.BARCODE.IntroSequence.getCues(this.currentImageIndex - 1)[this.currentCueIndex];
+    if (cue && this.cueElapsedMs >= cue.holdMs) this.revealNextCue();
+  }
+
   inspectCaption() {
     if (!this.isActive) return false;
-    const inspected = window.BARCODE.IntroSequence.inspect(this.currentImageIndex - 1);
+    const inspected = window.BARCODE.IntroSequence.inspect(this.currentImageIndex - 1, this.currentCueIndex);
     if (inspected) this.drawCurrentPanel();
     return inspected;
   }
@@ -222,7 +253,7 @@ window.CutsceneSystem = class CutsceneSystem {
     // restrained caption movement. No additional animation loop is installed.
     this.controllerPoll = this.trackInterval(() => {
       window.inputManager?.updateFrontend?.('intro');
-      this.updateSkipHoldProgress(); this.drawCurrentPanel();
+      this.updateSkipHoldProgress(); this.updatePresentation(); this.drawCurrentPanel();
     }, 50);
     this.skipHandler = e => {
       const key = e.key?.toLowerCase();
@@ -234,12 +265,14 @@ window.CutsceneSystem = class CutsceneSystem {
       else this.skipCutscene();
     };
     this.skipHoldEndHandler = e => { if (e.key?.toLowerCase() === 's') { e.preventDefault(); this.endSkipHold('keyboard'); } };
-    this.blurHandler = () => this.endSkipHold();
-    this.visibilityHandler = () => { if (document.hidden) this.endSkipHold(); };
+    this.blurHandler = () => { this.endSkipHold(); this.presentationPaused = true; this.lastCueTick = Date.now(); };
+    this.focusHandler = () => { this.presentationPaused = false; this.lastCueTick = Date.now(); };
+    this.visibilityHandler = () => { if (document.hidden) this.endSkipHold(); this.lastCueTick = Date.now(); };
     document.addEventListener('keydown', this.skipHandler);
     document.addEventListener('keyup', this.skipHoldEndHandler);
     document.addEventListener('visibilitychange', this.visibilityHandler);
     window.addEventListener('blur', this.blurHandler);
+    window.addEventListener('focus', this.focusHandler);
     this.cutsceneContainer.addEventListener('click', this.skipHandler);
   }
 
@@ -250,15 +283,20 @@ window.CutsceneSystem = class CutsceneSystem {
       document.removeEventListener('keyup', this.skipHoldEndHandler);
       document.removeEventListener('visibilitychange', this.visibilityHandler);
       window.removeEventListener('blur', this.blurHandler);
+      window.removeEventListener('focus', this.focusHandler);
       this.cutsceneContainer?.removeEventListener('click', this.skipHandler);
     }
     this.skipHandler = null; this.skipHoldEndHandler = null;
-    this.visibilityHandler = null; this.blurHandler = null;
+    this.visibilityHandler = null; this.blurHandler = null; this.focusHandler = null;
     this.endSkipHold();
   }
 
   skipCutscene() {
-    if (this.canSkip && this.isActive && !this.inputDisabled) this.showNextImage();
+    if (!this.canSkip || !this.isActive || this.inputDisabled) return;
+    // Each press owns exactly one cue. A manual reveal restarts that cue's
+    // reading interval, so an overdue automatic reveal cannot consume it too.
+    if (!this.revealNextCue()) this.showNextImage();
+    else this.disableInputTemporarily(this.imageDisplayTime);
   }
 
   disableInputTemporarily(duration) {
@@ -441,6 +479,8 @@ window.CutsceneSystem = class CutsceneSystem {
   getDiagnostics() {
     return { active: this.isActive, generation: this.cutsceneGeneration,
       panel: this.currentImageIndex, panelCount: window.BARCODE.IntroSequence.panels.length,
+      cue: this.currentCueIndex, cueElapsedMs: this.cueElapsedMs,
+      cueCount: window.BARCODE.IntroSequence.getCues(this.currentImageIndex - 1).length,
       timeouts: this.ownedTimeouts.size, intervals: this.ownedIntervals.size,
       imageLoads: this.pendingImageLoads.size, listenersAttached: !!this.skipHandler,
       hasContext: !!this.introContext,

@@ -1,11 +1,11 @@
 {
-  "checkedAt": "2026-09-12T23:34:48.343664+00:00",
+  "checkedAt": "2026-09-13T01:15:50.334574+00:00",
   "method": "Public HTTPS GET, WebP signature, CORS header and exact byte comparison against bundled files",
   "makkoHostTested": false,
   "assets": [
     {
       "path": "assets/intro/intro-01-broadcast.webp",
-      "url": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a747b58411650146bdc003a529d0470167d275db/assets/intro/intro-01-broadcast.webp",
+      "url": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/8180996dfc81630e0509a6ae3f0b0ec5db2934a6/assets/intro/intro-01-broadcast.webp",
       "status": 200,
       "contentType": "image/webp",
       "cors": "*",
@@ -15,7 +15,7 @@
     },
     {
       "path": "assets/intro/intro-02-keep-the-take.webp",
-      "url": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a747b58411650146bdc003a529d0470167d275db/assets/intro/intro-02-keep-the-take.webp",
+      "url": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/8180996dfc81630e0509a6ae3f0b0ec5db2934a6/assets/intro/intro-02-keep-the-take.webp",
       "status": 200,
       "contentType": "image/webp",
       "cors": "*",
@@ -25,7 +25,7 @@
     },
     {
       "path": "assets/intro/intro-03-dead-return.webp",
-      "url": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a747b58411650146bdc003a529d0470167d275db/assets/intro/intro-03-dead-return.webp",
+      "url": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/8180996dfc81630e0509a6ae3f0b0ec5db2934a6/assets/intro/intro-03-dead-return.webp",
       "status": 200,
       "contentType": "image/webp",
       "cors": "*",
@@ -35,7 +35,7 @@
     },
     {
       "path": "assets/intro/intro-04-preserve.webp",
-      "url": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a747b58411650146bdc003a529d0470167d275db/assets/intro/intro-04-preserve.webp",
+      "url": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/8180996dfc81630e0509a6ae3f0b0ec5db2934a6/assets/intro/intro-04-preserve.webp",
       "status": 200,
       "contentType": "image/webp",
       "cors": "*",
@@ -45,17 +45,17 @@
     },
     {
       "path": "assets/intro/intro-05-listen.webp",
-      "url": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a747b58411650146bdc003a529d0470167d275db/assets/intro/intro-05-listen.webp",
+      "url": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/8180996dfc81630e0509a6ae3f0b0ec5db2934a6/assets/intro/intro-05-listen.webp",
       "status": 200,
       "contentType": "image/webp",
       "cors": "*",
-      "bytes": 527756,
-      "sha256": "161b9f19d7ed5c6870f7459d9c9e56aea72fc193c2639dd2403eb9ebf513da53",
+      "bytes": 511500,
+      "sha256": "f3d428cde3c2c77ae9911284ef69dd74daba50ec4603f7a5c31e62328f3b38ab",
       "matchesBundledBytes": true
     },
     {
       "path": "assets/intro/intro-06-refusal.webp",
-      "url": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a747b58411650146bdc003a529d0470167d275db/assets/intro/intro-06-refusal.webp",
+      "url": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/8180996dfc81630e0509a6ae3f0b0ec5db2934a6/assets/intro/intro-06-refusal.webp",
       "status": 200,
       "contentType": "image/webp",
       "cors": "*",
@@ -65,7 +65,7 @@
     },
     {
       "path": "assets/intro/intro-07-district.webp",
-      "url": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a747b58411650146bdc003a529d0470167d275db/assets/intro/intro-07-district.webp",
+      "url": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/8180996dfc81630e0509a6ae3f0b0ec5db2934a6/assets/intro/intro-07-district.webp",
       "status": 200,
       "contentType": "image/webp",
       "cors": "*",
@@ -75,7 +75,7 @@
     },
     {
       "path": "assets/intro/intro-08-keep-it-open.webp",
-      "url": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a747b58411650146bdc003a529d0470167d275db/assets/intro/intro-08-keep-it-open.webp",
+      "url": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/8180996dfc81630e0509a6ae3f0b0ec5db2934a6/assets/intro/intro-08-keep-it-open.webp",
       "status": 200,
       "contentType": "image/webp",
       "cors": "*",

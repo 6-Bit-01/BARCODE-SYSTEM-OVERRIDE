@@ -1,5 +1,15 @@
 # Current State
 
+## Timed intro cues and screen readouts — after merged #42
+
+Verified base/rollback is `f1831f95c187bdd5afd9c8231d2a7a10ac262671`. The owner confirms the intro images now appear and requests sequential dialogue/caption timing, Space advancing one cue, messages on the illustrated screens and a correction to DJ Floppydisc's hand. `agent/intro-cue-staging` implements that focused continuation; exact head/PR and completed validation belong to the generated manifest/receipt.
+
+Each scene begins with its title/art, then reveals its authored cues on a reading clock. Space, Enter, click or controller A reveals the next cue immediately and restarts that cue's reading interval. Revealed dialogue stays available; the last cue waits for manual page advancement. Loading, hidden tabs, lost focus and whole-intro skip holds pause the reading clock. Screen messages are angled and clipped into five actual displays. Three scenes without a usable display place their caption in the page margin. Page 6's optional displaced caption appears only after 6 Bit refuses the screen's order.
+
+The page-5 knob hand is corrected using the built-in image editor, preserving the scene and model. Its new WebP/hash/prompt provenance is recorded in `assets/intro/art-manifest.json`; public images are pinned to the art checkpoint `8180996dfc81630e0509a6ae3f0b0ec5db2934a6`, which is part of this same review branch. The other seven runtime images are unchanged.
+
+Production VM checks cover timing, one-cue input, focus/visibility, held-repeat prevention, fullscreen, cleanup and tutorial/mission continuation. Native Canvas renders cover all final pages and staged pages 3/5/6, with measured dialogue bounds. The Chromium check follows native input through the staged sequence, fullscreen, retry and tutorial; final CI status is recorded separately. No live Makko acceptance is claimed. See `INTRO_CUE_STAGING.md` and the top ACCEPTANCE route. Earlier sections describe historical work. HUD/rhythm/attack variety is next after this review.
+
 ## Black-screen recovery after merged PR #41
 
 PR #41 is merged at `897b750cf64bafe3d50746cd7c8c19379ef4fbf6`, but the owner reports that the intro is entirely black and unusable. Its prior passing tests did not load the fullscreen manager. Start requested fullscreen on `#gameCanvas`; lifecycle startup hid that canvas, and CutsceneSystem mounted the intro inside the current fullscreen element. The intro therefore became hidden canvas fallback content. A request resolving after intro creation could also exclude a body-mounted overlay from the fullscreen tree.
