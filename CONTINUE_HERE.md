@@ -1,13 +1,16 @@
-# Continue here — Makko sprite loading
+# Continue here — Level 1 presentation smoothing
+
+
+Publication recovery also preserves the previously saved SpritePlayback clock, stable enemy idle references, and all jump apex/landing drawings from `375de26`. The existing PR #49 shim is replaced by these direct production owners, keeping one implementation of each effect. The twelve atlas files are the exact saved `61d691d` outputs.
 
 Updated September 14, 2026. Read this before the source-pack history.
 
+PR #49 recovery: all twelve atlas hashes and sizes are verified in immutable asset commit `1edf7fe6a011b88d511b955db9d1342f78912009`. The active initializer and manifest use that commit. The recovered playback integration includes the entrypoint, player, enemies and test rig; the complete local suite and all-file syntax checks pass. The published head and current CI result belong to PR #49 and the generated source-pack receipt; owner Makko acceptance is still pending.
+
 - Repository: 6-Bit-01/BARCODE-SYSTEM-OVERRIDE.
-- Base/rollback: merged PR #47, `8f09568eeb9726f7b80fb43e1ecb3f6e4672bea2`.
-- Current repair branch: `agent/fix-makko-sprite-loading`; its PR identifies the exact published head and CI results.
-- Owner report: new background works, but Makko still uses old player/enemy sprites. Merging #47 did not constitute acceptance of that behavior.
-- Cause: active startup accepted any loaded Makko registry and requested the host-owned relative manifest; the player could already hold an old clone. The previous model-art check inspected unused legacy startup code.
-- Done: load the immutable manifest from the #47 merge, check all twelve replacement clip URLs before reusing a registry, and rebind the pre-Start player. Clear the sprite timeout and allow sixty seconds for cold downloads. No artwork, action clocks, gameplay, HUD or city layers were changed.
-- Verification: active-startup regression covers cold, old, mixed and current registries, concurrent calls, player rebinding and timeout disposal. Actual saved Makko SDK diagnostic loads decoded atlas bytes and draws all twelve clips plus production player/enemy owners; see docs/source-pack/verification/makko-model-runtime.json and .webp. The source receipt and PR record full-suite/CI outcomes.
-- Art remains pinned to `a4c1b7cf6fec0a083a4812ae1ea76edef45a5911`. Original boss walk/flourish and traffic remain; missing final exports and Firewall flame-continuity review are unchanged.
-- Next: owner Makko import/playtest using the top route in docs/source-pack/ACCEPTANCE.md after current-head CI. Never auto-merge or restart art production.
+- Base/rollback: merged PR #48, `de9a63ea9311aba23d6a9ad6c3dca3b5e8aa50a5`.
+- Review branch: `agent/level1-presentation-smoothing-recovery`.
+- Done: move the Jammer onto the authored sidewalk contact; apply a restrained three-frame anti-flicker pass to all twelve installed replacement atlases without changing 547-frame timing, cells or anchors; split traffic lighting by foreground/background depth; move tutorial objectives below score/lore; move the Studio Cat to Cache Overpass and make its rooftop dash a one-time discovery; replace narrow gate strips with tall sidewalk-aligned digital walls.
+- Preserved: gameplay bodies, collision rules, mission/boss clocks, controls, intro, HUD ownership, original two boss clips and all saved discovery IDs.
+- Rebuild: `python3 tools/smooth-model-atlases.py` is idempotent at smoothing version 1 and records source/output hashes in `assets/sprites-v3/calibration.json`.
+- Next: review the exact PR head in Makko using the top checklist in `docs/source-pack/ACCEPTANCE.md`. Do not merge before owner acceptance.

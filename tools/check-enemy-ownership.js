@@ -24,6 +24,7 @@ const objectives = read('src/game/objectives.js');
 const debug = read('src/game/debug-commands.js');
 const render = read('src/game/render-coordinator.js');
 const ui = read('src/game/ui-manager.js');
+const stageFx = read('src/game/level-01-stage-fx.js');
 const docs = ['docs/technical/SCRIPT_AND_GLOBAL_MAP.md', 'docs/technical/KNOWN_ISSUES.md', 'docs/design/LEVEL_01_VERTICAL_SLICE.md'].filter(exists).map(read).join('\n');
 
 assert(loadedScripts.includes('src/game/enemies.js') && loadedScripts.includes('src/game/jammer-environment.js'), 'index loads canonical enemies and JammerEnvironment');
@@ -52,8 +53,17 @@ assert(drawGameEntitiesBody.indexOf('JammerEnvironment.draw(ctx)') !== -1 && dra
 assert(!/JammerEnvironment\.reset\(\)/.test(objectives), 'ObjectivesSystem reset must not compete for JammerEnvironment ownership');
 assert(/health: 16/.test(jammer) && /applyRhythmDamage/.test(jammer) && !/class\s+JammerEnemy|extends\s+Enemy/.test(jammer), 'JammerEnvironment is the approved destructible stage target, not a normal enemy');
 
-assert(/drawScale:\s*0\.7/.test(jammer) && /drawOffsetY:\s*190/.test(jammer), 'JammerEnvironment preserves approved draw scale 0.7 and +190 Y offset');
+assert(/drawScale:\s*0\.7/.test(jammer) && /drawOffsetY:\s*72/.test(jammer), 'JammerEnvironment preserves approved draw scale 0.7 and authored sidewalk contact');
 assert(/state\.position\.y \+ state\.presentation\.drawOffsetY/.test(jammer), 'JammerEnvironment draws sprite/fallback from approved Y offset');
+assert(/const objY = 220/.test(tutorial), 'tutorial objectives have a dedicated lane below the score and lore panels');
+const normalShipsAt = render.indexOf('drawSpaceShips(ctx);');
+const backgroundLightsAt = render.indexOf('drawTrafficLighting?.(ctx, { foreground: false })');
+const buildingsAt = render.indexOf('drawParallaxForeground(ctx);');
+const foregroundLightsAt = render.indexOf('drawTrafficLighting?.(ctx, { foreground: true })');
+const foregroundShipsAt = render.indexOf('drawForegroundSpaceShips(ctx);');
+assert(normalShipsAt < backgroundLightsAt && backgroundLightsAt < buildingsAt, 'background traffic lighting stays behind buildings');
+assert(buildingsAt < foregroundLightsAt && foregroundLightsAt < foregroundShipsAt, 'foreground traffic lighting stays in front of buildings and behind its car');
+assert(/drawTrafficLighting\(ctx, \{ foreground = false \} = \{\}\)/.test(stageFx), 'Level01StageFX owns depth-split traffic lighting');
 assert(/scale:\s*JAMMER_TEXTURE\.scale/.test(jammer), 'JammerEnvironment draws the larger complete texture at its measured presentation scale');
 assert(/presentation: Object\.freeze/.test(jammer), 'Jammer presentation values are diagnostics/status state, not mutable competing owners');
 assert(/lungeCooldownSeconds\s*=\s*6 \+ Math\.random\(\) \* 4/.test(enemies), 'Firewall initial lunge cooldown is seconds, not milliseconds');

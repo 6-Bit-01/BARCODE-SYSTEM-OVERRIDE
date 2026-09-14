@@ -64,10 +64,10 @@ assert.strictEqual(requests.length, 2); assert(requests.every(r => r.key === 'bo
 assert.deepStrictEqual(requests.map(r => r.flip), [true, false]);
 assert.strictEqual(requests[1].x - requests[0].x, 240);
 load(context, 'src/game/level-01-stage-fx.js');
-const stage = w.BARCODE.stageFX; requests.length = 0; stage.drawRat(ctx, 590, 822);
+const stage = w.BARCODE.stageFX; requests.length = 0; stage.drawRat(ctx, 1680, 330);
 assert.strictEqual(requests[0].key, 'studioCat');
 assert.strictEqual(w.BARCODE.Level01StageFX.DETAILS[0].id, 'egg.l01.studio-rat', 'owner terminology correction preserves saved facts');
-stage.ratAge = 220; stage.drawRat(ctx, 590, 822); assert.strictEqual(requests[1].frame, 2);
+stage.ratAge = 220; stage.drawRat(ctx, 1680, 330); assert.strictEqual(requests[1].frame, 2);
 load(context, 'src/engine/jammer-indicator.js'); requests.length = 0; new w.JammerIndicator().drawArrow(ctx);
 assert.strictEqual(requests[0].key, 'directionArrow');
 console.log('Presentation asset loading, hashes, shared consumers, varied FX and lifecycle checks passed');

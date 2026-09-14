@@ -48,7 +48,7 @@ window.BARCODE = window.BARCODE || {};
     disposed: false,
     generation: 0,
     position: { x: 3400, y: 750 },
-    presentation: Object.freeze({ drawScale: 0.7, drawOffsetY: 190 }),
+    presentation: Object.freeze({ drawScale: 0.7, drawOffsetY: 72 }),
     sprite: null,
     animationRef: null,
     spriteReady: false,
@@ -144,7 +144,10 @@ window.BARCODE = window.BARCODE || {};
   function update(deltaTime) {
     if (!state.revealed || state.disposed) return cloneStatus(state);
     pollSpriteReady();
-    if (state.spriteReady && state.sprite && typeof state.sprite.update === 'function') state.sprite.update(deltaTime);
+    if (state.spriteReady && state.sprite && typeof state.sprite.update === 'function') {
+      if (namespace.SpritePlayback) namespace.SpritePlayback.update(state.sprite, deltaTime);
+      else state.sprite.update(deltaTime);
+    }
     return cloneStatus(state);
   }
 
@@ -185,7 +188,8 @@ window.BARCODE = window.BARCODE || {};
     if (state.spriteReady && state.sprite && typeof state.sprite.draw === 'function') {
       const frame = Math.max(0, Math.trunc(state.animationRef?.currentFrame || 0)) % JAMMER_TEXTURE.footRows.length;
       const metrics = window.Player.prototype.getMakkoRenderMetrics.call({ sprite: state.sprite }, JAMMER_TEXTURE, false);
-      const targetFootY = state.position.y + 190 + (JAMMER_TEXTURE.originalFootRows[frame] - 214) * 0.7;
+      const targetFootY = state.position.y + state.presentation.drawOffsetY +
+        (JAMMER_TEXTURE.originalFootRows[frame] - 214) * state.presentation.drawScale;
       const drawY = targetFootY + metrics.anchorOffsetY - JAMMER_TEXTURE.footRows[frame] * metrics.frameScale;
       const drawX = state.position.x + metrics.anchorOffsetX - JAMMER_TEXTURE.anchorX * metrics.frameScale;
       state.sprite.draw(ctx, drawX, drawY, { scale: JAMMER_TEXTURE.scale, flipH: false });

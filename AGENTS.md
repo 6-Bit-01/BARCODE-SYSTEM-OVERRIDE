@@ -2,6 +2,8 @@
 
 ## Current authority and scope
 
+**Current review pass after merged PR #48.** Base/rollback is `de9a63ea9311aba23d6a9ad6c3dca3b5e8aa50a5`; branch is `agent/level1-presentation-smoothing-recovery`. Preserve the approved art designs and all gameplay. The scoped presentation corrections are: Jammer sidewalk placement, restrained temporal cleanup of the twelve installed replacement atlases, depth-correct traffic lighting, a separate tutorial-objective lane, a one-time rooftop Studio Cat event away from the Signal Lift, and tall sidewalk-aligned 3D encounter walls. `CONTINUE_HERE.md` and `docs/source-pack/PRESENTATION_SMOOTHING_PASS.md` govern this pass. Publish one draft PR and retain owner Makko acceptance before merge. Older current-work paragraphs below are historical.
+
 Current repair follows merged PR #47 (`8f09568eeb9726f7b80fb43e1ecb3f6e4672bea2`): the owner sees the new background but Makko still renders old character sprites. On `agent/fix-makko-sprite-loading`, fix the active initialization path, bypass the host-owned manifest, replace preloaded old templates and rebind the existing player. Preserve the saved artwork, gameplay and owner Makko review before merge. Do not restart art production. `CONTINUE_HERE.md` is the current handoff; earlier recovery status below is historical.
 
 Read `CONTINUE_HERE.md` first for this continuation. Current recovery integrates the already-approved v5 version 38 work over merged #46 on `agent/finish-model-art-hud`; historical baseline/draft wording below must not restart completed work. The existing locked mechanics and Makko-before-merge requirement remain.

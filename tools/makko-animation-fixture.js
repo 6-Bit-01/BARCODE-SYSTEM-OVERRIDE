@@ -17,7 +17,15 @@ function createSprite(animations) {
     return character;
   }
   let clip = null, frame = 0, elapsed = 0, playing = false, loop = true, speed = 1, ref = null;
+  const sheets = Object.fromEntries(Object.entries(animations).map(([name, count]) => [name, {
+    get currentFrame() { return frame; }, get playing() { return playing; },
+    get playbackSpeed() { return speed; }, get timeAccumulator() { return elapsed; },
+    currentAnimation: { frames: Array.from({ length: count }, (_, i) => String(i)) },
+    metadata: { frames: Object.fromEntries(Array.from({ length: count }, (_, i) => [String(i), { duration: 100 }])) }
+  }]));
   return {
+    get currentSprite() { return this._sheetOverride || sheets[clip]; },
+    set currentSprite(value) { this._sheetOverride = value; },
     getCurrentAnimation: () => clip,
     stop() { playing = false; }, pause() { playing = false; }, resume() { playing = true; },
     play(name, looping = true, startFrame = 0, options = {}) {

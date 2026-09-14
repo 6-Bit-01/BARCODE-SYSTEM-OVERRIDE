@@ -221,7 +221,7 @@ window.Enemy = class Enemy {
     // Authored Level 1 entrances own their integration until the actor reaches its stage target.
     if (this.updateAuthoredEntrance(deltaTime)) {
       if (this.spriteReady && this.sprite) {
-        this.sprite.update(deltaTime);
+        this.updateSpritePlayback(deltaTime);
         this.forceCorrectAnimationState();
       }
       return;
@@ -245,7 +245,7 @@ window.Enemy = class Enemy {
       const held = (this.impactHoldMs || 0) > 0;
       this.impactHoldMs = Math.max(0, (this.impactHoldMs || 0) - deltaTime);
       this.forceCorrectAnimationState();
-      if (!held && !this.updateCombatPose()) this.sprite.update(deltaTime);
+      if (!held && !this.updateCombatPose()) this.updateSpritePlayback(deltaTime);
     }
 
     // Physics Application
@@ -826,6 +826,11 @@ window.Enemy = class Enemy {
   }
 
   // --- ANIMATION CONTROLLER ---
+  updateSpritePlayback(deltaTime) {
+    if (window.BARCODE?.SpritePlayback) window.BARCODE.SpritePlayback.update(this.sprite, deltaTime);
+    else this.sprite.update(deltaTime);
+  }
+
   forceCorrectAnimationState() {
     // Firewall logic handles its own animation in firewallPersonalityBehavior
     if (this.type === 'firewall') return;
@@ -866,6 +871,8 @@ window.Enemy = class Enemy {
             'attack': 'firewall_attack_default'
         };
         const fullName = map[name] || name;
+        if (name !== 'attack' && this.sprite.getCurrentAnimation() === fullName &&
+            this.animationRef && !this.animationRef.isInterrupted) return;
         const loop = name !== 'attack';
         this.animationRef = this.sprite.play(fullName, loop);
         this.currentAnimation = fullName;
@@ -881,7 +888,7 @@ window.Enemy = class Enemy {
     const fullName = map[this.type][name] || name;
     const current = this.sprite.getCurrentAnimation();
 
-    if (current === fullName && name !== 'idle') return;
+    if (current === fullName && this.animationRef && !this.animationRef.isInterrupted) return;
 
     // FIX: Removed setTimeout delay that was causing race conditions
     const loop = !fullName.includes('attack');

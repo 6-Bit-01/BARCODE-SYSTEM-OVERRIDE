@@ -244,6 +244,7 @@ function drawGameElements(ctx) {
   
   // Draw space ships (between BG and FG layers)
   drawSpaceShips(ctx);
+  window.BARCODE?.stageFX?.drawTrafficLighting?.(ctx, { foreground: false });
   
   // Draw parallax foreground layer (FG)
   drawParallaxForeground(ctx);
@@ -276,6 +277,7 @@ function drawGameElements(ctx) {
   ctx.restore();
   
   // Draw foreground space ships
+  window.BARCODE?.stageFX?.drawTrafficLighting?.(ctx, { foreground: true });
   drawForegroundSpaceShips(ctx);
 }
 

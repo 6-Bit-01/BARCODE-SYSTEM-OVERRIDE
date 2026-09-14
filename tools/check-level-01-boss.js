@@ -46,6 +46,7 @@ function createRig() {
   };
   w.window = w;
   const context = vm.createContext(w);
+  load(context, 'src/engine/sprite-playback.js');
   load(context, 'src/game/comic-hud.js');
   load(context, 'src/game/lore-records.js');
   load(context, 'src/engine/music-profiles.js');

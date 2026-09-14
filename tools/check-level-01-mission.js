@@ -321,17 +321,21 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
 {
   const { window } = loadRealSector();
   const p = new window.Sector1Progression(window.player);
-  const fills = [];
+  const fills = [], paths = [];
   const ctx = {
     save() {}, restore() {},
+    beginPath() { paths.push(['beginPath']); }, closePath() { paths.push(['closePath']); },
+    moveTo(...args) { paths.push(['moveTo', ...args]); }, lineTo(...args) { paths.push(['lineTo', ...args]); },
+    fill() { paths.push(['fill']); }, stroke() { paths.push(['stroke']); },
     fillRect(...args) { fills.push(args); }
   };
   p.state = 'encounter_2';
   p.spawnedEncounterIds.add('encounter_2');
   p.closedGateEncounterId = 'encounter_2';
   p.drawEncounterGates(ctx);
-  assert.deepStrictEqual(fills.filter(([, , width, height]) => width === 34 && height === 270), [[2110, 620, 34, 270]], 'only the currently closed gate receives a complete field');
-  assert(fills.every(([x, y, width, height]) => x >= 2107 && x + width <= 2147 && y >= 620 && y + height <= 890), 'barcode rails and scanning accents stay at the closed gate; future gates remain absent');
+  assert.deepStrictEqual(fills.filter(([, , width, height]) => width === 58 && height === 620), [[2110, 202, 58, 620]], 'only the currently closed gate receives a complete tall field');
+  assert(paths.some(([op, x, y]) => op === 'lineTo' && x === 2280 && y === 148), 'the field extends along the sidewalk perspective');
+  assert(!fills.some(([x]) => [1320, 3000, 4010].includes(x)), 'future gate fields remain absent');
   const closedDrawCount = fills.length;
   p.closedGateEncounterId = null;
   p.drawEncounterGates(ctx);

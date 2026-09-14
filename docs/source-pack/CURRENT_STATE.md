@@ -1,5 +1,18 @@
 # Current State
 
+
+Publication recovery also preserves the previously saved SpritePlayback clock, stable enemy idle references, and all jump apex/landing drawings from `375de26`. The existing PR #49 shim is replaced by these direct production owners, keeping one implementation of each effect. The twelve atlas files are the exact saved `61d691d` outputs.
+
+## Level 1 presentation smoothing — September 14, 2026
+
+The completed recovery targets existing draft PR #49. Twelve atlas hashes and sizes are verified in immutable asset commit `1edf7fe6a011b88d511b955db9d1342f78912009`, used by both the manifest and active initializer. Restored the saved playback script loading, player/enemy integration and test fixture that were omitted during interruption. Local `npm test` and `npm run check:syntax:all` pass; current-head CI and published revision are recorded in the PR and generated archive receipt. Owner Makko acceptance remains pending.
+
+Base/rollback is merged PR #48, `de9a63ea9311aba23d6a9ad6c3dca3b5e8aa50a5`. The combined review branch is `agent/level1-presentation-smoothing-recovery`. This pass corrects presentation only: the Jammer now meets the 822 sidewalk contact; all twelve installed replacement atlases receive a restrained premultiplied-RGBA temporal pass while retaining 547 frames, 12 fps clocks, cells and anchors; background traffic lighting is composited behind buildings while foreground lighting remains in front.
+
+The tutorial objective card now sits below the score/lore stack. The saved `egg.l01.studio-rat` discovery is a Studio Cat on Cache Overpass, away from the Signal Lift, and its rooftop dash can occur only on the first collection. Encounter barriers are tall perspective digital walls aligned across the sidewalk instead of narrow vertical strips. Mission collision, unlock timing, intro, combat, boss, HUD and saves are unchanged.
+
+Automated checks cover atlas hashes/geometry/provenance, one-time discovery behavior, Jammer ownership/contact, gate form, UI lane and render order. Full suite, all-file syntax and exact published revision belong to the PR/receipt. Live Makko motion, composition and feel still require owner review before merge. See `PRESENTATION_SMOOTHING_PASS.md` and the top of `ACCEPTANCE.md`.
+
 ## Makko still showing old character sprites — September 14, 2026
 
 PR #47 is merged at `8f09568eeb9726f7b80fb43e1ecb3f6e4672bea2`. The owner confirms the background and some presentation work but reports old Makko player/enemy sprites. `agent/fix-makko-sprite-loading` repairs the active `game-initializer.js`: use the immutable published manifest URL, reuse a loaded registry only when all twelve replacement image/JSON pairs match, and rebind the player created before Start. Allow sixty seconds for cold atlas downloads and clear the timeout after completion. Existing gameplay, imagery, HUD and retained boss clips are unchanged.

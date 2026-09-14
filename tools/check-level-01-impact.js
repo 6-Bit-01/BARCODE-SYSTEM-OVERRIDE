@@ -79,7 +79,7 @@ for (const fps of [30, 60, 120, 144]) {
 // concurrent-tab discoveries. Looking, repeated rendering or blocked input do not collect.
 {
   const { w, p, context, storage } = rig(), stage = w.BARCODE.stageFX;
-  p.state = 'encounter_2'; w.rhythmSystem.hide(); w.player.position.x = 590;
+  p.state = 'encounter_2'; w.rhythmSystem.hide(); w.player.position.x = 1680; w.player.position.y = 258;
   stage.update(16); assert(stage.nearby); assert.strictEqual(storage.size, 0);
   load(context, 'src/core/action-input.js'); load(context, 'src/core/input.js');
   const input = new w.InputManager(); w.inputManager = input;
@@ -89,6 +89,8 @@ for (const fps of [30, 60, 120, 144]) {
   for (let i = 0; i < 10; i++) input.routeActions(input.actionInput.update());
   assert.strictEqual(stage.archive().record.revision, revision);
   assert(stage.inspect().ok); assert.strictEqual(stage.message.line, 1); stage.inspect(); assert(!stage.message);
+  stage.update(3601); stage.update(16); assert.strictEqual(stage.ratAge, null);
+  assert.strictEqual(stage.findNearby(), null, 'saved Studio Cat event cannot be replayed');
   const other = new w.BARCODE.LoreCollection(); other.collect('lore.l01.02');
   stage.archive().collectEgg('egg.l01.cliff-maintenance');
   const restored = new w.BARCODE.LoreCollection(); assert(restored.has('lore.l01.02')); assert(restored.hasEgg('egg.l01.studio-rat')); assert(restored.hasEgg('egg.l01.cliff-maintenance'));
@@ -104,7 +106,7 @@ for (const fps of [30, 60, 120, 144]) {
   let pads = [{ connected: true, axes: [0, 0], buttons: Array.from({ length: 16 }, (_, i) => ({ pressed: i === 4, value: i === 4 ? 1 : 0 })) }];
   w.navigator.getGamepads = () => pads; pads[0].buttons[4].pressed = false; pads[0].buttons[4].value = 0; input.actionInput.reset(); input.actionInput.update(); pads[0].buttons[4].pressed = true; pads[0].buttons[4].value = 1;
   let actions = input.actionInput.update(); assert(actions.inspect.pressed); assert(!actions.interact.pressed, 'LB inspection never triggers Y/H hacking');
-  stage.react(590, 1, 'stomp'); stage.event('clear', 590); stage.update(100);
+  stage.react(1680, 1, 'stomp'); stage.event('clear', 1680); stage.update(100);
   const snapshot = plain({ events: stage.events, time: stage.timeMs, reactions: stage.reactions, kick: stage.captionKick });
   w.gameState.paused = true; stage.update(1000); assert.deepStrictEqual(plain({ events: stage.events, time: stage.timeMs, reactions: stage.reactions, kick: stage.captionKick }), snapshot); w.gameState.paused = false;
   w.BARCODE.playerCombat.reset(); assert(!stage.message && stage.events.length === 0 && stage.reactions.length === 0);
