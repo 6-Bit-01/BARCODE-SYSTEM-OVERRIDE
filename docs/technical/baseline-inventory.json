@@ -20,6 +20,7 @@
     "src/engine/audio.js",
     "src/engine/boot-loader.js",
     "src/engine/particles.js",
+    "src/game/comic-hud.js",
     "src/game/combat-fx.js",
     "src/engine/renderer.js",
     "src/engine/parallax.js",
@@ -72,6 +73,7 @@
     "src/engine/audio.js",
     "src/engine/boot-loader.js",
     "src/engine/particles.js",
+    "src/game/comic-hud.js",
     "src/game/combat-fx.js",
     "src/engine/renderer.js",
     "src/engine/parallax.js",
@@ -147,6 +149,7 @@
     "tools/check-level-01-story-controls.js",
     "tools/check-level-01-targets-traffic.js",
     "tools/check-makko-hotfix.js",
+    "tools/check-model-art.js",
     "tools/check-music-profiles.js",
     "tools/check-presentation-assets.js",
     "tools/check-runtime-lifecycle.js",
@@ -211,6 +214,10 @@
       },
       {
         "file": "src/engine/particles.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/comic-hud.js",
         "status": "pass"
       },
       {
@@ -352,11 +359,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 49,
+        "index": 50,
         "status": "pass"
       },
       {
-        "index": 51,
+        "index": 52,
         "status": "pass"
       }
     ]
@@ -394,7 +401,6 @@
     {
       "host": "dcnmwoxzefwqmvvkpqap.supabase.co",
       "sourceFiles": [
-        "sprites-manifest.json",
         "src/engine/level-01-music-profile.js"
       ]
     },
@@ -407,7 +413,6 @@
     {
       "host": "i.postimg.cc",
       "sourceFiles": [
-        "src/engine/parallax.js",
         "src/engine/spaceships.js",
         "src/engine/title-screen.js",
         "src/engine/traffic-sheets.js",
@@ -418,7 +423,10 @@
     {
       "host": "raw.githubusercontent.com",
       "sourceFiles": [
+        "index.html",
+        "sprites-manifest.json",
         "src/engine/intro-sequence.js",
+        "src/engine/parallax.js",
         "src/engine/presentation-assets.js",
         "tools/check-intro.js"
       ]
@@ -440,13 +448,13 @@
     {
       "global": "window.enemyManager",
       "file": "tools/check-action-combat.js",
-      "line": 401,
+      "line": 375,
       "loaded": false
     },
     {
       "global": "window.enemyManager",
       "file": "tools/check-action-combat.js",
-      "line": 479,
+      "line": 453,
       "loaded": false
     },
     {
@@ -494,19 +502,19 @@
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 341,
+      "line": 315,
       "loaded": false
     },
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 433,
+      "line": 407,
       "loaded": false
     },
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 476,
+      "line": 450,
       "loaded": false
     },
     {
@@ -518,7 +526,7 @@
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 534,
+      "line": 508,
       "loaded": false
     },
     {
@@ -536,31 +544,31 @@
     {
       "global": "window.player",
       "file": "src/game/player.js",
-      "line": 1762,
+      "line": 1717,
       "loaded": true
     },
     {
       "global": "window.player",
       "file": "tools/check-action-combat.js",
-      "line": 342,
+      "line": 316,
       "loaded": false
     },
     {
       "global": "window.player",
       "file": "tools/check-action-combat.js",
-      "line": 400,
+      "line": 374,
       "loaded": false
     },
     {
       "global": "window.player",
       "file": "tools/check-action-combat.js",
-      "line": 434,
+      "line": 408,
       "loaded": false
     },
     {
       "global": "window.player",
       "file": "tools/check-action-combat.js",
-      "line": 477,
+      "line": 451,
       "loaded": false
     },
     {
@@ -710,6 +718,7 @@
     "src/engine/audio.js",
     "src/engine/boot-loader.js",
     "src/engine/particles.js",
+    "src/game/comic-hud.js",
     "src/game/combat-fx.js",
     "src/engine/renderer.js",
     "src/engine/parallax.js",

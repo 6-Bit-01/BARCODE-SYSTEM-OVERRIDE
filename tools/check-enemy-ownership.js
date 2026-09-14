@@ -54,7 +54,7 @@ assert(/health: 16/.test(jammer) && /applyRhythmDamage/.test(jammer) && !/class\
 
 assert(/drawScale:\s*0\.7/.test(jammer) && /drawOffsetY:\s*190/.test(jammer), 'JammerEnvironment preserves approved draw scale 0.7 and +190 Y offset');
 assert(/state\.position\.y \+ state\.presentation\.drawOffsetY/.test(jammer), 'JammerEnvironment draws sprite/fallback from approved Y offset');
-assert(/scale:\s*state\.presentation\.drawScale/.test(jammer), 'JammerEnvironment draws Makko sprite with approved presentation scale');
+assert(/scale:\s*JAMMER_TEXTURE\.scale/.test(jammer), 'JammerEnvironment draws the larger complete texture at its measured presentation scale');
 assert(/presentation: Object\.freeze/.test(jammer), 'Jammer presentation values are diagnostics/status state, not mutable competing owners');
 assert(/lungeCooldownSeconds\s*=\s*6 \+ Math\.random\(\) \* 4/.test(enemies), 'Firewall initial lunge cooldown is seconds, not milliseconds');
 assert(/lungeCooldownSeconds\s*=\s*1 \+ Math\.random\(\) \* 3/.test(enemies), 'Firewall reset lunge cooldown is seconds, not milliseconds');

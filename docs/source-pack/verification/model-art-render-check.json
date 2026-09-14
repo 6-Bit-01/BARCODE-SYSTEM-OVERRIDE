@@ -1,0 +1,27 @@
+{
+  "command": "node tools/render-level-01-impact.cjs --model-art",
+  "renderer": "Native Canvas; production renderGame, Renderer, ParallaxBackground, Player, Enemy, ComicHUD, RhythmSystem, CombatFX and StageFX",
+  "assets": [
+    "assets/sprites-v3/prepared",
+    "assets/world-v3/buildings.webp",
+    "assets/world-v3/far-background.webp",
+    "current PresentationAssets entries"
+  ],
+  "scenes": [
+    "PULSE / DIRECT HIT",
+    "COMBO 5 / FORWARD WAVE",
+    "COMBO 10 / CHAIN DISCHARGE",
+    "CLIFF / ROOFTOP INSPECTION",
+    "STUDIO CAT / OUTSIDE THE PANEL",
+    "JAMMER / BREAKUP AND STREET RECOVERY"
+  ],
+  "dimensions": [
+    1920,
+    1080
+  ],
+  "fixtureWorldZoom": 0.9,
+  "drawingErrors": [],
+  "fixedTargetChecks": 4,
+  "limits": "Fixture state and timing with a native Makko sprite boundary adapter; not browser, audio or live Makko acceptance.",
+  "makkoTested": false
+}

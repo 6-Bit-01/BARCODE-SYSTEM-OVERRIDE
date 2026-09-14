@@ -11,8 +11,8 @@ window.ParallaxBackground = class ParallaxBackground {
     this.layers = [];
     this.cameraX = 960; // Default camera center
     this.cameraY = 540;
-    // Display interiors on the locked 1279x462 foreground; final value is the
-    // encounter that restores this part of the street. No replacement artwork.
+    // Display positions retain the original 1279x462 source basis.
+    // The new city art uses the same world transform and encounter regions.
     this.signalDisplays = [
       [96, 158, 69, 21, 0], [99, 273, 79, 13, 0], [270, 271, 74, 9, 0],
       [512, 159, 62, 67, 1], [488, 335, 53, 54, 1],
@@ -32,6 +32,7 @@ window.ParallaxBackground = class ParallaxBackground {
     const {
       image = null,
       imageUrl = '',
+      fallbackImageUrl = '',
       x = 0,
       y = 0,
       width = 1920,
@@ -47,6 +48,7 @@ window.ParallaxBackground = class ParallaxBackground {
     const layer = {
       image: image,
       imageUrl: imageUrl,
+      fallbackImageUrl,
       x: x,
       y: y,
       width: width,
@@ -75,36 +77,13 @@ window.ParallaxBackground = class ParallaxBackground {
   
   // Load image for a layer
   loadImage(layer) {
-    const img = new Image();
-    img.crossOrigin = 'anonymous'; // Handle potential CORS issues
-    
-    img.onload = () => {
-      layer.imgElement = img;
-      layer.loaded = true;
-      // Keep canvas dimensions for proper visibility
-      console.log(`✓ Parallax layer loaded: ${layer.imageUrl}`);
-      console.log(`Native image dimensions: ${img.width}x${img.height}`);
-      console.log(`Canvas dimensions: ${layer.width}x${layer.height}`);
-    };
-    
+    const img = new Image(); img.crossOrigin = 'anonymous';
+    let fallback = false;
+    img.onload = () => { layer.imgElement = img; layer.loaded = true; img.onload = null; img.onerror = null; };
     img.onerror = () => {
-      console.error(`❌ Failed to load parallax layer: ${layer.imageUrl}`);
-      layer.loaded = false;
-      // Try loading without crossOrigin
-      console.log('Retrying without crossOrigin...');
-      const fallbackImg = new Image();
-      fallbackImg.onload = () => {
-        layer.imgElement = fallbackImg;
-        layer.loaded = true;
-        // Keep canvas dimensions for proper visibility
-        console.log(`✓ Parallax layer loaded (fallback): ${layer.imageUrl} - canvas size: ${layer.width}x${layer.height}`);
-      };
-      fallbackImg.onerror = () => {
-        console.error(`❌ Failed to load parallax layer (fallback): ${layer.imageUrl}`);
-      };
-      fallbackImg.src = layer.imageUrl;
+      if (!fallback && layer.fallbackImageUrl) { fallback = true; img.src = layer.fallbackImageUrl; }
+      else { img.onload = null; img.onerror = null; }
     };
-    
     img.src = layer.imageUrl;
   }
   
@@ -598,7 +577,8 @@ window.initParallax = function() {
     
     // Add background layer (backmost) - slower parallax for depth
     const backgroundLayer = window.parallaxBackground.addLayer({
-      imageUrl: 'https://i.postimg.cc/4yJ2CdJK/BG.png',
+      imageUrl: 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/world-v3/far-background.webp',
+      fallbackImageUrl: 'assets/world-v3/far-background.webp',
       scrollFactorX: 0.5, // Slower parallax for background depth
       scrollFactorY: 0, // No vertical movement
       opacity: 1.0, // Full opacity
@@ -612,7 +592,8 @@ window.initParallax = function() {
     
     // Add foreground layer (frontmost) - side-scroller camera follows player
     const foregroundLayer = window.parallaxBackground.addLayer({
-      imageUrl: 'https://i.postimg.cc/gJT4gs1Q/FG.png',
+      imageUrl: 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/world-v3/buildings.webp',
+      fallbackImageUrl: 'assets/world-v3/buildings.webp',
       scrollFactorX: 1.0, // Full parallax scrolling for side-scroller camera
       scrollFactorY: 0, // No vertical movement
       opacity: 1.0, // Full opacity

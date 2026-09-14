@@ -212,7 +212,8 @@ window.drawGameUI = function(ctx) {
   
   // Draw health and basic UI elements
   drawBasicUI(ctx);
-  window.BARCODE?.combatFX?.drawDamageHUD(ctx, window.player, 48, 62, 330, 18);
+  const hp = window.BARCODE.ComicHUD.health;
+  window.BARCODE?.combatFX?.drawDamageHUD(ctx, window.player, hp.x, hp.y, hp.width, hp.height);
   window.BARCODE?.combatFX?.drawAmpHUD(ctx);
   
   // Draw objectives after tutorial completion
@@ -242,12 +243,12 @@ window.drawGameUI = function(ctx) {
   if (attackFeedback && !bossCinematicActive && !window.gameState.gameOver && !window.gameState.victory && !window.hackingSystem?.isActive?.()) {
     ctx.save();
     ctx.fillStyle = 'rgba(0, 8, 16, 0.92)';
-    ctx.fillRect(504, 30, 700, 36);
+    ctx.fillRect(738, 185, 700, 36);
     ctx.fillStyle = attackFeedback.color;
     ctx.font = 'bold 17px monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(attackFeedback.text, 854, 49, 672);
+    ctx.fillText(attackFeedback.text, 1088, 204, 672);
     ctx.restore();
   }
 
@@ -334,51 +335,16 @@ function drawSector1BossUI(ctx) {
       ctx.fillText('STUDIO RATS: Carrier restored. We are keeping the caption.', 960, 865);
     }
   } else if (!window.gameState.gameOver) {
-    const x = 1230, y = 84, width = 640;
-    ctx.fillStyle = 'rgba(0, 8, 16, 0.9)';
-    ctx.fillRect(x - 20, y, width + 40, 112);
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 20px monospace';
-    ctx.fillText('SECTOR 1 BOSS', 1550, y + 23);
-    ctx.fillStyle = '#281523';
-    ctx.fillRect(x, y + 43, width, 16);
-    ctx.fillStyle = status.canReceiveDamage ? '#00ffff' : '#ff7044';
-    ctx.fillRect(x, y + 43, width * status.health / status.maxHealth, 16);
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(x, y + 43, width, 16);
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '14px monospace';
-    const cue = status.phase === 'ready' ? 'Get ready. Jump the ground pulse.' : status.canReceiveDamage ?
-      (status.canStompCounter ? 'COUNTER WINDOW — Timed rhythm hit or landing stomp' : 'COUNTER WINDOW — Timed rhythm hit; stomp unavailable') : status.phase === 'telegraph' ?
-      (status.doublePulse ? 'TWO GROUND PULSES — JUMP' : 'GROUND PULSE — JUMP') : 'Evade the pulse. Counter when the boss glows cyan.';
-    ctx.fillText(cue, 1550, y + 86, 630);
+    window.BARCODE.ComicHUD.boss(ctx, status);
   }
   ctx.restore();
 }
 
 // A stable top band: player / current objective / score and Amp.
 function drawBasicUI(ctx) {
-  const player = window.player, rhythm = window.rhythmSystem, pad = window.BARCODE?.GamepadUI?.connected;
-  const progress = window.lostDataSystem?.getProgress?.();
-  ctx.save(); ctx.globalAlpha = 1; ctx.shadowBlur = 0;
-  ctx.fillStyle = '#070b15'; ctx.fillRect(36, 30, 448, 77); ctx.fillRect(1558, 30, 338, 51);
-  ctx.fillStyle = '#eee6d4'; ctx.fillRect(30, 24, 448, 77);
-  ctx.fillStyle = '#122132'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.font = 'bold 17px monospace';
-  ctx.fillText('6 BIT / SIGNAL', 48, 43);
-  ctx.font = '12px monospace'; ctx.textAlign = 'right';
-  ctx.fillText(rhythm?.isActive?.() ? (pad ? 'B: EXIT' : 'R: EXIT') : (pad ? 'B: RHYTHM' : 'R: RHYTHM'), 460, 43);
-  ctx.fillStyle = '#52313c'; ctx.fillRect(48, 62, 330, 18);
-  ctx.fillStyle = '#258979'; ctx.fillRect(48, 62, 330 * Math.max(0, Math.min(1, (player?.health || 0) / (player?.maxHealth || 1))), 18);
-  ctx.fillStyle = '#eee6d4';
-  for (let i = 1; i < (player?.maxHealth || 1); i++) ctx.fillRect(48 + 330 * i / player.maxHealth - 2, 62, 4, 18);
-  ctx.fillStyle = '#122132'; ctx.fillText(`${player?.health || 0}/${player?.maxHealth || 3}`, 460, 71);
-  for (let i = 0; i < 22; i++) ctx.fillRect(48 + i * 7, 87, i % 3 ? 3 : 5, 5);
-  if (progress?.saved === false) { ctx.textAlign = 'left'; ctx.font = '12px monospace'; ctx.fillStyle = '#ffc68a'; ctx.fillText('ARCHIVE SAVE UNAVAILABLE — KEEP TAB OPEN', 30, 327); }
-  ctx.fillStyle = '#101d2e'; ctx.fillRect(1552, 24, 338, 51); ctx.fillStyle = '#eee6d4'; ctx.font = 'bold 17px monospace';
-  ctx.textAlign = 'right'; ctx.fillText(`SCORE ${window.gameState.score}   LORE ${progress?.collected || 0}/${progress?.total || 3}`, 1873, 50);
-  if (window.tutorialSystem?.isActive?.()) { ctx.textAlign = 'center'; ctx.font = '18px monospace'; ctx.fillStyle = '#cbaaff'; ctx.fillText('DEAD AIR DISTRICT / CREW TRAINING', 960, 100); }
-  ctx.restore();
+  window.BARCODE.ComicHUD.basic(ctx, { player: window.player, rhythm: window.rhythmSystem,
+    pad: window.BARCODE?.GamepadUI?.connected, progress: window.lostDataSystem?.getProgress?.(),
+    score: window.gameState.score, training: window.tutorialSystem?.isActive?.() });
 }
 
 function drawObjectives(ctx) {
@@ -387,11 +353,7 @@ function drawObjectives(ctx) {
   const title = status ? `${String(status.label).toUpperCase()} / ${status.number} OF 4` : jammer?.revealed && !jammer.destroyed ? 'BROADCAST JAMMER / BREAK THE SIGNAL' : 'DEAD AIR DISTRICT';
   const detail = status ? status.started ? `${status.defeated}/${status.required} CLEARED · ${owner.missionDefeats}/20 DISTRICT` : 'FOLLOW THE STREET · EXPLORE THE HIGH ROUTE' : jammer?.revealed && !jammer.destroyed ? `${jammer.health}/16 SIGNAL LOCKS · RHYTHM HITS ONLY` : 'Explore the district';
   const kick = window.BARCODE?.stageFX?.captionKick || 0;
-  ctx.save(); ctx.translate(1550, 120); ctx.rotate(kick * 0.038);
-  ctx.fillStyle = '#090e19'; ctx.fillRect(-334, -30, 680, 74); ctx.fillStyle = '#101d2e'; ctx.fillRect(-340, -36, 680, 74);
-  ctx.fillStyle = '#91ffe0'; ctx.fillRect(-340, -36, 5, 74); ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.font = 'bold 18px monospace';
-  ctx.fillText(title, -320, -13, 640); ctx.fillStyle = '#d3dae2'; ctx.font = '14px monospace'; ctx.fillText(detail, -320, 15, 640);
-  ctx.restore();
+  window.BARCODE.ComicHUD.objectives(ctx, { title, detail, kick });
 }
 
 // Draw rhythm UI elements

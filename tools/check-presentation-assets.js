@@ -11,7 +11,7 @@ w.Image = class Image {
 load(context, 'src/engine/presentation-assets.js');
 const art = w.BARCODE.PresentationAssets;
 for (let i = 0; i < 20; i++) art.preload();
-assert.strictEqual(images.length, 3, 'restarts/preload reuse three images');
+assert.strictEqual(images.length, 4, 'restarts/preload reuse four images');
 assert(images.every(im => /^https:\/\/raw\.githubusercontent\.com\/.+\/[a-f0-9]{40}\//.test(im.requests[0])), 'assets use a published immutable revision');
 const ops = [];
 const ctx = new Proxy({}, { get(target, key) { return target[key] ?? ((...args) => ops.push([key, ...args])); }, set(target, key, value) { target[key] = value; ops.push(['set', key, value]); return true; } });
@@ -24,7 +24,7 @@ assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2), [256, 256
 assert(ops.some(op => op[0] === 'scale' && op[1] === -1));
 images[1].onerror(); images[1].onerror();
 assert.strictEqual(images[1].requests.length, 2); assert.strictEqual(images[1].onerror, null);
-art.preload(); assert.strictEqual(images.length, 3, 'failed assets do not retry forever');
+art.preload(); assert.strictEqual(images.length, 4, 'failed assets do not retry forever');
 images[2].naturalWidth = images[2].naturalHeight = 512; images[2].onload();
 ops.length = 0; art.draw('bossPulse', ctx, { y: 822, width: 64, height: 56, frame: 2 });
 assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2), [10, 351, 236, 145, -32, -56, 64, 56], 'pulse fills the dangerous height and retains the ground anchor');

@@ -7,7 +7,12 @@ const root = path.resolve(__dirname, '..'), cache = path.resolve(process.argv[2]
 const output = path.join(root, 'docs/source-pack/verification/cat-chaos-assets.webp');
 GlobalFonts.registerFromPath('/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf', 'monospace');
 async function installArt(w, context) {
-  const images = await Promise.all(['studio-cat', 'direction-arrow', 'boss-pulse'].map(n => loadImage(path.join(root, 'assets/presentation', n + '.webp'))));
+  // Adapt Image loading only; the production cache and crop/anchor drawing run
+  // unchanged. Resolve the current declared files rather than a stale count.
+  const source = fs.readFileSync(path.join(root, 'src/engine/presentation-assets.js'), 'utf8');
+  const paths = Array.from(source.matchAll(/\bpath:\s*['"]([^'"]+)['"]/g), match => match[1]);
+  assert(paths.length >= 3, 'production presentation entries must be available');
+  const images = await Promise.all(paths.map(file => loadImage(path.join(root, file))));
   let index = 0;
   w.Image = class Image { constructor() {
     const im = images[index++];
@@ -15,7 +20,7 @@ async function installArt(w, context) {
     return im;
   } };
   load(context, 'src/engine/presentation-assets.js'); await Promise.resolve();
-  assert.strictEqual(index, 3);
+  assert.strictEqual(index, images.length);
 }
 async function main() {
   const { w, context, p, reachReady, calls } = createRig();

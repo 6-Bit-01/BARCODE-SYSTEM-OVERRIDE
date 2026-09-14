@@ -94,7 +94,8 @@ for (const fps of [30,60,120,144]) for (const type of ['virus','corrupted','fire
 // Audited source-frame feet, both Makko anchor paths, both facings. The inverse
 // transform must be correct independently of the collider's stable dimensions.
 {
-  const calibration=JSON.parse(fs.readFileSync(path.join(__dirname,'../docs/technical/enemy-contact-calibration.json')));
+  const all=JSON.parse(fs.readFileSync(path.join(__dirname,'../assets/sprites-v3/calibration.json')));
+  const calibration={poses:Object.fromEntries(Object.entries(all).filter(([name])=>/^(virus_|corrupted_|firewall_)/.test(name)))};
   const {w}=createRig();
   for(const [name,p] of Object.entries(calibration.poses)) for(const scaled of [true,false]) for(const facing of [-1,1]) {
     const type=name.split('_')[0],e=new w.Enemy(1400,750,type);e.position.x=1400;e.position.y=750;e.currentAnimation=name;e.facing=facing;

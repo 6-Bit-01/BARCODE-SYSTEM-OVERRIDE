@@ -1,5 +1,55 @@
 # Current State
 
+## Recovered model-art integration — September 14, 2026
+
+Current base is merged PR #46, `f3bf9ed294a2bd69fe3a7dccc02a1c50b9241db2`. That PR preserved five atlases but did not install the runtime changes. The saved v5 version 38 already contained the remaining prepared clips, calibration, new world layers and live ComicHUD; this pass restores that implementation rather than redrawing it. Continue from `CONTINUE_HERE.md`, not the historical sections below.
+
+On `agent/finish-model-art-hud`, sprites-manifest now installs twelve recovered clips / 547 full drawings, and parallax installs the new far city and building layers. Every replacement points at immutable art commit `a4c1b7cf6fec0a083a4812ae1ea76edef45a5911`. The illustrated HUD consumes the live health, score, lore, rhythm, combo, Amp and boss owners; heal/damage/lore effects follow its panels. Fixed collision bodies, original action timing, music and mechanics remain.
+
+Two original boss clips (walk and flourish/attack) and the three existing traffic animations remain because their final new exports are absent from v5. This is a recovered integration, not completion of those missing drawings. The saved source also notes three Firewall flame poses needing a continuity review. No lost artwork has been represented as recovered.
+
+Validation and publication status are recorded in CONTINUE_HERE and the generated receipt. Owner Makko playback, sound, proportions and contact review remain required before merge. Stage C follows acceptance of the art/HUD work.
+
+> **Recovery checkpoint, September 14.** Draft PR #46 exists. Twelve recovered complete-body clips (547 frames), the approved city layers and live HUD are being installed and checked on that same branch. Final boss walk/flourish and vehicle loop exports were removed by workspace maintenance before publication and could not be recovered from GitHub or the saved v5. The original working boss walk/flourish and traffic remain. Do not regenerate the approved designs, claim full completion, or merge this checkpoint. See MODEL_ART_RECOVERY.md.
+
+
+> **September 13 production checkpoint — in progress.** The owner approved integrating the model-based artwork and HUD as one combined pass on `agent/model-art-hud-integration`, from merged #45. Twelve complete-pose clips (547 frames) and the live HUD are prepared. Final two boss clips, vehicle loops, scenery/anchor calibration, delivery pins and full validation remain. No PR or Makko acceptance is claimed at this checkpoint. See `MODEL_ART_HUD_IMPLEMENTATION.md`; older review-only sections below are historical.
+
+
+## Current review — visible model-based overhaul, September 13
+
+The owner's latest correction requires a visible redraw with the actual reference model and examples across enemies, both city layers, buildings, vehicles and HUD. The original four model PNGs are now recovered and bundled. `VISUAL_OVERHAUL_REVIEW.md` records 12 complete hero poses, one 48-frame full-body headbang trial, eight enemy poses, two redrawn city layers, all three vehicle designs and an interactive three-state HUD with the correct portrait. Added frames are authorized but none have been padded into this trial.
+
+The new drawings and HUD are local review assets on `agent/visual-overhaul-review`, not installed replacements or finished versions of every animation. The active game matches merged #45 byte-for-byte in runtime source, entrypoint, manifests and package settings. The headbang needs drawing-consistency and loop review; other full sequences, platform alignment and HUD state wiring remain production work. Required code checks and actual preview validation belong to the export receipt; no new PR, push, merge, Chromium CI or Makko import is claimed. The subtle restoration and cutout directions below are historical. Continue with the current visible overhaul, then Stage C.
+
+## Historical restoration trial — quality gain rejected as insufficient
+
+The owner says the drawings improved but the separated-part animations are worse, particularly headbang, jump and attack. The cutout pass is rejected. `agent/original-motion-restoration` restores all active runtime source, original sprite bindings/facing/calibration and scenery to merged #45 (`c557c87bb0e04287e6c694d7d6559174d8b65d06`). Its cats, arrow, pulse, varied FX and boss sizes remain, together with the earlier intro/HUD/gameplay work. No new GitHub push, PR, merge or Makko import was performed.
+
+Three complete **review-only** 2x restoration trials preserve the whole original frames: 48 headbang, 27 jump and 59 Firewall attack frames. EDSR changes RGB detail; original alpha is replicated exactly, source order/durations/tags are retained, and pixel coordinates double uniformly. No limb extraction, pose replacement, interpolation or retiming is used. The synchronized comparison and full original/restored image/JSON pairs are included. Clarity gains are modest, and changing texture can still require visual review. The other eleven clips have not received this restoration pass.
+
+`ORIGINAL_MOTION_RESTORATION.md` records reproducibility, limits and the next quality review. The generated receipt records required regression and all-JavaScript syntax outcomes for this restored build; neither certifies Makko rendering. Rejected rig files and previous scenery candidates remain unused historical studies. The old publication request below is cancelled for that rejected design; do not use its hosted links or publish it as the current work.
+
+## Historical publication checkpoint — superseded by owner correction
+
+The replacement build is complete locally. Required regression, all-file syntax and native production rendering passed at `cefc1b30b00ca42d306abc64b2c71ded35a5ba67`; independent decoding confirmed all 636 head/foot measurements. Subsequent checkpoint edits change documentation only. Automatic approval review rejected publishing this exact pass to GitHub, stating that explicit authorization for the external write was missing. No replacement branch/PR was created, no merge occurred, and Chromium CI has not run for this pass. Do not claim hosted sprite delivery or Makko readiness: the pinned art URLs remain unpublished until the art ancestor and review head are pushed. All corresponding bytes and comparisons are bundled for review.
+
+The former next action was a push and combined draft PR. That action was blocked by automatic approval review and is now superseded by the owner's rejection of the animation. This historical checkpoint remains available for comparison; it must not be published as an accepted replacement.
+
+## Historical cutout pass — rejected after merged #45
+
+September 13 continuation recovered committed artwork at `1962622e7d318de92b3d1946be93ff508725709c`, with no published sprite branch/PR. It finishes the missing immutable image/JSON/scenery URLs and corrects the stale source-pack entrypoint. `ASSET_UPGRADE_STATUS.md` shows exactly what #45 already merged and what this combined review adds. The export receipt records the final published revision and actual automated outcomes; owner Makko review is still pending.
+
+The owner approved all replacements and Python cleanup/animation assembly. The complete pass is integrated on `agent/sprite-upgrade-study`, based on `c557c87bb0e04287e6c694d7d6559174d8b65d06`. It contains matching 6 Bit idle/walk/jump/rhythm rigs, a registered Virus pulse, Corrupted idle/walk, Firewall idle/walk/punch, source-preserving Jammer/boss clarity refinements, the correctly proportioned panorama, and restrained foreground/traffic polish. All 14 original clip identities, 636 frame entries, counts and 12fps clocks remain. Source-pixel anchors and presentation scales are measured again; stable damage bodies, jump/attack phase ownership, controls, music, mission and boss behavior remain.
+
+`SPRITE_REPLACEMENT_PASS.md` records provenance, implementation, limits and rebuild commands. The hero uses existing intro art as a derived reference: the original face/front/side model PNGs have not been re-inspected. Three animated before/after comparisons and two native production compositions are in `verification/sprite-upgrade-*`. The historical checkerboard candidates are superseded, retained only as unused studies. The full local production suite (28 commands), all-JavaScript syntax, native production compositions and original-alpha preservation checks pass. Exact published head and subsequent Chromium CI results belong to the source receipt/PR. No live Makko acceptance or merge is claimed. Next: review this combined build in Makko, then Stage C after acceptance.
+
+## Sprite/background upgrade studies — after merged #45
+
+PR #45 is merged at `c557c87bb0e04287e6c694d7d6559174d8b65d06`; its tree matches the tested review head. The owner's next request is to improve the existing sprites/animations and possibly the background. `SPRITE_UPGRADE_STUDY.md` records source inspection, a 6 Bit walk study, a Virus pulse study and a correctly proportioned far-background candidate on `agent/sprite-upgrade-study`.
+
+The sprite candidates have stronger visual identity but failed the alpha export check; the walk also needs gait correction. A targeted extraction attempt did not repair the flattened checkerboard. They remain clearly labeled unused studies. The background candidate passes a production-parallax composition/aspect check with the exact existing foreground. Runtime files remain the merged #45 version. The original 6 Bit face/front/side PNGs are missing here; intro pages 6/8 were used as derived references. Obtain the originals to complete a faithful matching four-clip set, then carry enemy/background work into one combined production pass. Stage C follows this presentation work. Older draft/current sections are historical.
+
 ## Studio Cats, chaotic FX and boss assets — after merged #44
 
 PR #44 is merged at `4b207c5570a6bccd86b95c702c11e1e6606bbf01`, including the final hack-highlight/victory-timing corrections. Its draft wording below is historical. The owner's newest five-item follow-up is implemented on `agent/level1-cat-chaos-assets`; `CAT_CHAOS_ASSET_PASS.md` records its exact scope, asset provenance and sizing table.
