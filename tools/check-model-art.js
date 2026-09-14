@@ -16,7 +16,7 @@ const near = (actual, expected, why) => assert(Math.abs(actual - expected) < 1e-
 const installed = json('sprites-manifest.json');
 const original = json('assets/sprites-v3/original-manifest.json');
 const calibration = json('assets/sprites-v3/calibration.json');
-const retained = new Set(['sector_1_boss_walk_walk', 'sector_1_boss_attack_attack']);
+const retained = new Set(['sector_1_boss_walk_walk']);
 const pins = new Set();
 
 function webpSize(bytes) {
@@ -62,9 +62,29 @@ for (const [character, record] of Object.entries(original.characters)) {
     }
     const cal = calibration[clip];
     assert(cal, `${clip}: production calibration exists`);
-    assert.strictEqual(cal.smoothing?.version, 1, `${clip}: temporal smoothing provenance exists`);
-    assert.strictEqual(cal.smoothing?.method, 'premultiplied-rgba-temporal-3-tap', `${clip}: approved whole-frame smoothing method`);
-    assert.deepStrictEqual(cal.smoothing?.weights, [0.09, 0.82, 0.09], `${clip}: restrained neighboring-frame blend`);
+    if (clip === 'sector_1_boss_attack_attack') {
+      assert.strictEqual(cal.clarityPolish?.version, 1, 'flourish clarity provenance exists');
+      assert.strictEqual(cal.clarityPolish?.method, 'alpha-safe-lanczos-2x-rgb-unsharp');
+      assert.strictEqual(cal.clarityPolish?.factor, 2);
+      assert.deepStrictEqual(entry.anchor.normalized, baseline.anchor.normalized, 'flourish normalized anchor preserved');
+      assert.strictEqual(entry.dimensions.width, baseline.dimensions.width * 2);
+      assert.strictEqual(entry.dimensions.height, baseline.dimensions.height * 2);
+      const source = json(`assets/sprites-v3/sources/${clip}.original.json`);
+      const prepared = json(`assets/sprites-v3/prepared/${clip}.json`);
+      assert.deepStrictEqual(Object.keys(prepared.frames), Object.keys(source.frames), 'all flourish pose keys/order retained');
+      Object.entries(source.frames).forEach(([key, item]) => {
+        assert.strictEqual(prepared.frames[key].duration, item.duration, `${key}: flourish frame duration retained`);
+      });
+    } else {
+      assert.strictEqual(cal.smoothing?.version, 1, `${clip}: temporal smoothing provenance exists`);
+      assert.strictEqual(cal.smoothing?.method, 'premultiplied-rgba-temporal-3-tap', `${clip}: approved whole-frame smoothing method`);
+      assert.deepStrictEqual(cal.smoothing?.weights, [0.09, 0.82, 0.09], `${clip}: restrained neighboring-frame blend`);
+    }
+    if (clip === '6_bit_idle_idle') {
+      const sequence = [0, 0, ...Array.from({ length: 12 }, (_, i) => i + 1), 12, ...Array.from({ length: 11 }, (_, i) => 11 - i)];
+      assert.deepStrictEqual(cal.loopPolish?.sequence, sequence, 'idle uses the saved coherent forward/return take');
+      assert.deepStrictEqual(cal.registration.map(frame => frame.selectedSourceFrame), sequence, 'registration follows the repaired loop');
+    }
     const metadata = json(localPinned(entry.json, clip, 'json'));
     const bytes = fs.readFileSync(path.join(root, localPinned(entry.image, clip, 'webp')));
     const dimensions = webpSize(bytes);
@@ -91,8 +111,8 @@ for (const [character, record] of Object.entries(original.characters)) {
     count++; frameCount += frames.length;
   }
 }
-assert.strictEqual(count, 12, 'all recovered clips installed in the actual manifest');
-assert.strictEqual(frameCount, 547, 'all recovered frames installed');
+assert.strictEqual(count, 13, 'all recovered clips and the clarified flourish installed in the actual manifest');
+assert.strictEqual(frameCount, 595, 'all recovered frames including 48 flourish poses installed');
 assert.strictEqual(pins.size, 1, 'all recovered JSON and atlases share one immutable revision');
 
 const index = read('index.html');
@@ -200,9 +220,13 @@ async function checkSpriteStartup() {
   const mixed = copy(installed);
   mixed.characters.firewall_firewall = copy(original.characters.firewall_firewall);
   await scenario(mixed, 1);
+  const oldFlourish = copy(installed);
+  oldFlourish.characters.sector_1_boss_sector1boss.animations.sector_1_boss_attack_attack =
+    copy(original.characters.sector_1_boss_sector1boss.animations.sector_1_boss_attack_attack);
+  await scenario(oldFlourish, 1);
   await scenario(installed, 0);
 }
 
 checkSpriteStartup().then(() => {
-  console.log('Model art: 12 clips / 547 frames, atlas bounds, grounded poses, live ComicHUD and active startup verified (cold, preloaded old, mixed, cached current, player rebind and concurrent calls).');
+  console.log('Model art: 13 clips / 595 frames, atlas bounds, grounded poses, idle loop, clarified flourish, live ComicHUD and active startup verified (cold, preloaded old, mixed, old flourish, cached current, player rebind and concurrent calls).');
 }).catch(error => { console.error(error); process.exitCode = 1; });

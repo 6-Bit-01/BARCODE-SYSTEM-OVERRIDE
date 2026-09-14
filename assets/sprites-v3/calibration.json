@@ -48,14 +48,14 @@
       30,
       30,
       30,
+      30,
       27,
       25,
-      21,
-      21,
-      21,
-      24,
       25,
       27,
+      30,
+      30,
+      30,
       30,
       30,
       30,
@@ -68,7 +68,7 @@
       2560,
       1280
     ],
-    "sha256": "b965ec3563af031469e8b4375328515b4833603654fd2df64bd6246739ecec89",
+    "sha256": "05ee59c6f515783769d902deb72108632103887c78eb1d187d359b6c4b48c830",
     "registration": [
       {
         "source": "assets/sprites-v3/sources/6_bit_idle_idle-1.png",
@@ -84,7 +84,25 @@
         "paste": [
           36,
           30
-        ]
+        ],
+        "selectedSourceFrame": 0
+      },
+      {
+        "source": "assets/sprites-v3/sources/6_bit_idle_idle-1.png",
+        "box": [
+          25,
+          35,
+          295,
+          339
+        ],
+        "frame": 1,
+        "originalVisibleHeight": 93,
+        "uniformScale": 0.9177631578947368,
+        "paste": [
+          36,
+          30
+        ],
+        "selectedSourceFrame": 0
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_idle_idle-1.png",
@@ -94,13 +112,14 @@
           613,
           339
         ],
-        "frame": 1,
+        "frame": 2,
         "originalVisibleHeight": 93,
         "uniformScale": 0.9177631578947368,
         "paste": [
           33,
           30
-        ]
+        ],
+        "selectedSourceFrame": 1
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_idle_idle-1.png",
@@ -110,13 +129,14 @@
           927,
           339
         ],
-        "frame": 2,
+        "frame": 3,
         "originalVisibleHeight": 93,
         "uniformScale": 0.9177631578947368,
         "paste": [
           36,
           30
-        ]
+        ],
+        "selectedSourceFrame": 2
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_idle_idle-1.png",
@@ -126,13 +146,14 @@
           1237,
           339
         ],
-        "frame": 3,
+        "frame": 4,
         "originalVisibleHeight": 93,
         "uniformScale": 0.9177631578947368,
         "paste": [
           33,
           30
-        ]
+        ],
+        "selectedSourceFrame": 3
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_idle_idle-1.png",
@@ -142,13 +163,14 @@
           1548,
           339
         ],
-        "frame": 4,
+        "frame": 5,
         "originalVisibleHeight": 93,
         "uniformScale": 0.9177631578947368,
         "paste": [
           34,
           30
-        ]
+        ],
+        "selectedSourceFrame": 4
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_idle_idle-1.png",
@@ -158,13 +180,14 @@
           1859,
           339
         ],
-        "frame": 5,
+        "frame": 6,
         "originalVisibleHeight": 93,
         "uniformScale": 0.9177631578947368,
         "paste": [
           34,
           30
-        ]
+        ],
+        "selectedSourceFrame": 5
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_idle_idle-1.png",
@@ -174,13 +197,14 @@
           2163,
           339
         ],
-        "frame": 6,
+        "frame": 7,
         "originalVisibleHeight": 93,
         "uniformScale": 0.9177631578947368,
         "paste": [
           36,
           30
-        ]
+        ],
+        "selectedSourceFrame": 6
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_idle_idle-1.png",
@@ -190,13 +214,14 @@
           301,
           693
         ],
-        "frame": 7,
+        "frame": 8,
         "originalVisibleHeight": 93,
         "uniformScale": 0.9058441558441559,
         "paste": [
           34,
           30
-        ]
+        ],
+        "selectedSourceFrame": 7
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_idle_idle-1.png",
@@ -206,13 +231,14 @@
           612,
           693
         ],
-        "frame": 8,
+        "frame": 9,
         "originalVisibleHeight": 93,
         "uniformScale": 0.9029126213592233,
         "paste": [
           34,
           30
-        ]
+        ],
+        "selectedSourceFrame": 8
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_idle_idle-1.png",
@@ -222,13 +248,14 @@
           929,
           693
         ],
-        "frame": 9,
+        "frame": 10,
         "originalVisibleHeight": 93,
         "uniformScale": 0.9029126213592233,
         "paste": [
           34,
           30
-        ]
+        ],
+        "selectedSourceFrame": 9
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_idle_idle-1.png",
@@ -238,13 +265,14 @@
           1236,
           693
         ],
-        "frame": 10,
+        "frame": 11,
         "originalVisibleHeight": 93,
         "uniformScale": 0.9029126213592233,
         "paste": [
           34,
           30
-        ]
+        ],
+        "selectedSourceFrame": 10
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_idle_idle-1.png",
@@ -254,13 +282,14 @@
           1549,
           693
         ],
-        "frame": 11,
+        "frame": 12,
         "originalVisibleHeight": 94,
         "uniformScale": 0.912621359223301,
         "paste": [
           34,
           27
-        ]
+        ],
+        "selectedSourceFrame": 11
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_idle_idle-1.png",
@@ -270,221 +299,218 @@
           1859,
           693
         ],
-        "frame": 12,
+        "frame": 13,
         "originalVisibleHeight": 95,
         "uniformScale": 0.9223300970873787,
         "paste": [
           33,
           24
-        ]
+        ],
+        "selectedSourceFrame": 12
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_idle_idle-1.png",
         "box": [
-          1899,
+          1588,
           384,
-          2159,
+          1859,
           693
         ],
-        "frame": 13,
-        "originalVisibleHeight": 96,
-        "uniformScale": 0.9320388349514563,
-        "paste": [
-          34,
-          21
-        ]
-      },
-      {
-        "source": "assets/sprites-v3/sources/6_bit_idle_idle-2.png",
-        "box": [
-          36,
-          26,
-          310,
-          348
-        ],
         "frame": 14,
-        "originalVisibleHeight": 96,
-        "uniformScale": 0.8944099378881988,
+        "originalVisibleHeight": 95,
+        "uniformScale": 0.9223300970873787,
         "paste": [
-          26,
-          21
-        ]
+          33,
+          24
+        ],
+        "selectedSourceFrame": 12
       },
       {
-        "source": "assets/sprites-v3/sources/6_bit_idle_idle-2.png",
+        "source": "assets/sprites-v3/sources/6_bit_idle_idle-1.png",
         "box": [
-          400,
-          26,
-          673,
-          348
+          1277,
+          384,
+          1549,
+          693
         ],
         "frame": 15,
-        "originalVisibleHeight": 96,
-        "uniformScale": 0.8944099378881988,
+        "originalVisibleHeight": 94,
+        "uniformScale": 0.912621359223301,
         "paste": [
-          28,
-          21
-        ]
+          34,
+          27
+        ],
+        "selectedSourceFrame": 11
       },
       {
-        "source": "assets/sprites-v3/sources/6_bit_idle_idle-2.png",
+        "source": "assets/sprites-v3/sources/6_bit_idle_idle-1.png",
         "box": [
-          761,
-          28,
-          1037,
-          348
+          964,
+          384,
+          1236,
+          693
         ],
         "frame": 16,
-        "originalVisibleHeight": 95,
-        "uniformScale": 0.890625,
+        "originalVisibleHeight": 93,
+        "uniformScale": 0.9029126213592233,
         "paste": [
-          28,
-          24
-        ]
+          34,
+          30
+        ],
+        "selectedSourceFrame": 10
       },
       {
-        "source": "assets/sprites-v3/sources/6_bit_idle_idle-2.png",
+        "source": "assets/sprites-v3/sources/6_bit_idle_idle-1.png",
         "box": [
-          1122,
-          27,
-          1399,
-          348
+          651,
+          384,
+          929,
+          693
         ],
         "frame": 17,
-        "originalVisibleHeight": 95,
-        "uniformScale": 0.8878504672897196,
+        "originalVisibleHeight": 93,
+        "uniformScale": 0.9029126213592233,
         "paste": [
-          28,
-          24
-        ]
+          34,
+          30
+        ],
+        "selectedSourceFrame": 9
       },
       {
-        "source": "assets/sprites-v3/sources/6_bit_idle_idle-2.png",
+        "source": "assets/sprites-v3/sources/6_bit_idle_idle-1.png",
         "box": [
-          35,
-          387,
-          315,
-          709
+          338,
+          384,
+          612,
+          693
         ],
         "frame": 18,
-        "originalVisibleHeight": 94,
-        "uniformScale": 0.8757763975155279,
+        "originalVisibleHeight": 93,
+        "uniformScale": 0.9029126213592233,
         "paste": [
-          30,
-          27
-        ]
+          34,
+          30
+        ],
+        "selectedSourceFrame": 8
       },
       {
-        "source": "assets/sprites-v3/sources/6_bit_idle_idle-2.png",
+        "source": "assets/sprites-v3/sources/6_bit_idle_idle-1.png",
         "box": [
-          395,
-          389,
-          676,
-          708
+          26,
+          385,
+          301,
+          693
         ],
         "frame": 19,
         "originalVisibleHeight": 93,
-        "uniformScale": 0.8746081504702194,
+        "uniformScale": 0.9058441558441559,
         "paste": [
-          29,
+          34,
           30
-        ]
+        ],
+        "selectedSourceFrame": 7
       },
       {
-        "source": "assets/sprites-v3/sources/6_bit_idle_idle-2.png",
+        "source": "assets/sprites-v3/sources/6_bit_idle_idle-1.png",
         "box": [
-          757,
-          391,
-          1039,
-          708
+          1901,
+          35,
+          2163,
+          339
         ],
         "frame": 20,
         "originalVisibleHeight": 93,
-        "uniformScale": 0.8801261829652997,
+        "uniformScale": 0.9177631578947368,
         "paste": [
-          28,
+          36,
           30
-        ]
+        ],
+        "selectedSourceFrame": 6
       },
       {
-        "source": "assets/sprites-v3/sources/6_bit_idle_idle-2.png",
+        "source": "assets/sprites-v3/sources/6_bit_idle_idle-1.png",
         "box": [
-          1121,
-          391,
-          1401,
-          708
+          1590,
+          35,
+          1859,
+          339
         ],
         "frame": 21,
         "originalVisibleHeight": 93,
-        "uniformScale": 0.8801261829652997,
+        "uniformScale": 0.9177631578947368,
         "paste": [
-          30,
+          34,
           30
-        ]
+        ],
+        "selectedSourceFrame": 5
       },
       {
-        "source": "assets/sprites-v3/sources/6_bit_idle_idle-2.png",
+        "source": "assets/sprites-v3/sources/6_bit_idle_idle-1.png",
         "box": [
+          1278,
           35,
-          749,
-          315,
-          1067
+          1548,
+          339
         ],
         "frame": 22,
         "originalVisibleHeight": 93,
-        "uniformScale": 0.8773584905660378,
+        "uniformScale": 0.9177631578947368,
         "paste": [
-          29,
+          34,
           30
-        ]
+        ],
+        "selectedSourceFrame": 4
       },
       {
-        "source": "assets/sprites-v3/sources/6_bit_idle_idle-2.png",
+        "source": "assets/sprites-v3/sources/6_bit_idle_idle-1.png",
         "box": [
-          397,
-          749,
-          677,
-          1067
+          964,
+          35,
+          1237,
+          339
         ],
         "frame": 23,
         "originalVisibleHeight": 93,
-        "uniformScale": 0.8773584905660378,
+        "uniformScale": 0.9177631578947368,
         "paste": [
-          30,
+          33,
           30
-        ]
+        ],
+        "selectedSourceFrame": 3
       },
       {
-        "source": "assets/sprites-v3/sources/6_bit_idle_idle-2.png",
+        "source": "assets/sprites-v3/sources/6_bit_idle_idle-1.png",
         "box": [
-          759,
-          749,
-          1038,
-          1067
+          659,
+          35,
+          927,
+          339
         ],
         "frame": 24,
         "originalVisibleHeight": 93,
-        "uniformScale": 0.8773584905660378,
+        "uniformScale": 0.9177631578947368,
         "paste": [
-          29,
+          36,
           30
-        ]
+        ],
+        "selectedSourceFrame": 2
       },
       {
-        "source": "assets/sprites-v3/sources/6_bit_idle_idle-2.png",
+        "source": "assets/sprites-v3/sources/6_bit_idle_idle-1.png",
         "box": [
-          1124,
-          749,
-          1400,
-          1067
+          340,
+          35,
+          613,
+          339
         ],
         "frame": 25,
         "originalVisibleHeight": 93,
-        "uniformScale": 0.8773584905660378,
+        "uniformScale": 0.9177631578947368,
         "paste": [
-          30,
+          33,
           30
-        ]
+        ],
+        "selectedSourceFrame": 1
       }
     ],
     "originalFacing": "unchanged",
@@ -500,6 +526,51 @@
       ],
       "edgePolicy": "wrap",
       "inputSha256": "5b550f74ed746c99fc87526b36dfd520760a00c4fbb1c247a3d090bca65fbcad"
+    },
+    "loopPolish": {
+      "version": 1,
+      "method": "single-take-forward-return",
+      "inputSha256": "b965ec3563af031469e8b4375328515b4833603654fd2df64bd6246739ecec89",
+      "sequence": [
+        0,
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        12,
+        11,
+        10,
+        9,
+        8,
+        7,
+        6,
+        5,
+        4,
+        3,
+        2,
+        1
+      ],
+      "removedTransitions": [
+        "12->13",
+        "13->14",
+        "25->0"
+      ],
+      "preserves": [
+        "frameCount",
+        "fps",
+        "cellGeometry",
+        "anchor",
+        "gameplayBody"
+      ]
     }
   },
   "6_bit_jump_jump": {
@@ -9975,6 +10046,144 @@
       ],
       "edgePolicy": "wrap",
       "inputSha256": "31c507ea2c550c9751a24c407d33462de7a1ef276a9feb8dcbbe5252fd803381"
+    }
+  },
+  "sector_1_boss_attack_attack": {
+    "frames": 48,
+    "factor": 2,
+    "scale": 1,
+    "anchorX": 256,
+    "anchorY": 308,
+    "width": 512,
+    "height": 310,
+    "columns": 7,
+    "footRows": [
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308,
+      308
+    ],
+    "headRows": [
+      59,
+      59,
+      60,
+      70,
+      74,
+      78,
+      76,
+      74,
+      73,
+      72,
+      72,
+      72,
+      72,
+      72,
+      72,
+      72,
+      72,
+      72,
+      78,
+      80,
+      76,
+      70,
+      70,
+      70,
+      70,
+      70,
+      70,
+      70,
+      71,
+      72,
+      1,
+      1,
+      14,
+      17,
+      54,
+      73,
+      73,
+      74,
+      73,
+      73,
+      73,
+      70,
+      63,
+      61,
+      58,
+      58,
+      58,
+      58
+    ],
+    "atlasSize": [
+      3584,
+      2170
+    ],
+    "sha256": "50f7baf51aaa8fdf8811bdc30b345c2556396ea0c1dc5f703e73848bbf830e50",
+    "originalFacing": "unchanged",
+    "productionFacing": "unchanged",
+    "sourceSignature": "9d29bc01b7224ab1cd376577481ff944cdd2f7e5fc16f2fffa7ebae3795b6c6a",
+    "clarityPolish": {
+      "version": 1,
+      "method": "alpha-safe-lanczos-2x-rgb-unsharp",
+      "inputImageSha256": "9d29bc01b7224ab1cd376577481ff944cdd2f7e5fc16f2fffa7ebae3795b6c6a",
+      "inputMetadataSha256": "6fa40630f9c310f1a9c0cd557832df44b5c95e2a5c008d22b3cb6312a91b3551",
+      "factor": 2,
+      "unsharp": {
+        "radius": 0.8,
+        "percent": 105,
+        "threshold": 2
+      },
+      "preserves": [
+        "frameCount",
+        "fps",
+        "durations",
+        "poses",
+        "normalizedAnchor",
+        "gameplayBody"
+      ]
     }
   }
 }

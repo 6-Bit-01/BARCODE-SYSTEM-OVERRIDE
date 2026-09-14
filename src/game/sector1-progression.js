@@ -108,8 +108,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       footRows: Object.freeze([253, 252, 252, 253, 246, 244, 244, 245, 244, 245, 251, 252, 253, 253, 253, 253, 252, 253, 249, 245, 245, 245, 245, 246, 251, 253, 253, 253, 252, 252, 252, 249, 246, 245, 245, 245, 246, 252, 253, 252, 253])
     }),
     flourish: Object.freeze({
-      width: 256, height: 155, anchorX: 128, anchorY: 154, bodyHeight: 125,
-      footRows: Object.freeze(Array(48).fill(154))
+      width: 512, height: 310, anchorX: 256, anchorY: 308, bodyHeight: 250,
+      footRows: Object.freeze(Array(48).fill(308))
     }),
     idle: Object.freeze({"width":416,"height":320,"anchorX":208,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308],"bodyHeight":267.0})
   });
@@ -899,6 +899,48 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         anchorX, anchorY, frameIndex, footRow, targetFootY,
         visibleFootY: anchorY - metrics.anchorOffsetY + footRow * metrics.frameScale };
     }
+    drawBossPulse(ctx, pulse, direction, ground) {
+      const center = pulse.originX + direction * pulse.radius;
+      const age = pulse.radius / BOSS_COMBAT.pulseSpeed * 1000;
+      const flicker = Math.sin(age / 110);
+      const width = 104, height = 76;
+      const artCenter = center - direction * (width - BOSS_COMBAT.pulseWidth) / 2;
+      ctx.save();
+      ctx.globalAlpha = pulse.hit ? 0.38 : 1;
+      // Larger flame and wake trail behind the unchanged swept leading edge.
+      ctx.save(); ctx.translate(artCenter - direction * 14, ground - 27); ctx.scale(1.55, 1);
+      const glow = ctx.createRadialGradient?.(0, 0, 4, 0, 0, 52 + flicker * 3);
+      if (glow?.addColorStop) {
+        glow.addColorStop(0, 'rgba(255,163,51,0.35)');
+        glow.addColorStop(0.4, 'rgba(255,82,22,0.15)');
+        glow.addColorStop(1, 'rgba(255,45,18,0)');
+        ctx.fillStyle = glow; ctx.fillRect(-56, -56, 112, 112);
+      }
+      ctx.restore();
+      ctx.fillStyle = 'rgba(255,153,45,0.10)';
+      ctx.beginPath(); ctx.ellipse(artCenter, ground - 4, 58, 7, 0, 0, Math.PI * 2); ctx.fill();
+      for (let i = 0; i < 3; i++) {
+        const y = ground - 12 - i * 17;
+        const tail = 86 + i * 12 + Math.sin(age / 130 + i) * 9;
+        ctx.strokeStyle = i === 1 ? 'rgba(255,207,105,0.64)' : 'rgba(255,100,38,0.45)';
+        ctx.lineWidth = 3 - i * 0.7;
+        ctx.beginPath(); ctx.moveTo(center - direction * 18, y);
+        ctx.quadraticCurveTo(center - direction * 52, y - flicker * 5, center - direction * tail, y + 6); ctx.stroke();
+      }
+      const phase = Math.floor(age / 75) % 6, frame = phase < 4 ? phase : 6 - phase;
+      const drawn = window.BARCODE?.PresentationAssets?.draw('bossPulse', ctx, {
+        x: artCenter, y: ground, width, height, frame, flip: direction < 0
+      });
+      if (!drawn) {
+        ctx.fillStyle = '#ff6433';
+        ctx.fillRect(center - BOSS_COMBAT.pulseWidth / 2, ground - BOSS_COMBAT.pulseHeight, BOSS_COMBAT.pulseWidth, BOSS_COMBAT.pulseHeight);
+      }
+      // The hot core still marks the actual damaging front and jump height.
+      ctx.fillStyle = '#fff0bd';
+      ctx.fillRect(center + (direction > 0 ? BOSS_COMBAT.pulseWidth / 2 - 4 : -BOSS_COMBAT.pulseWidth / 2),
+        ground - BOSS_COMBAT.pulseHeight + 4, 4, BOSS_COMBAT.pulseHeight - 4);
+      ctx.restore();
+    }
     drawBoss(ctx) {
       if (!ctx || !this.boss?.active) return;
       const boss = this.boss;
@@ -920,23 +962,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
           ctx.stroke();
         }
         (boss.pulses || []).forEach(pulse => {
-          ctx.fillStyle = pulse.hit ? 'rgba(255,100,30,0.45)' : '#ff6433';
-          ctx.strokeStyle = '#ffffff';
-          ctx.lineWidth = 2;
-          [-1, 1].forEach(direction => {
-            const x = pulse.originX + direction * pulse.radius - BOSS_COMBAT.pulseWidth / 2;
-            // The textured pulse stays inside the same dangerous rectangle.
-            // A steady hot leading edge makes the swept collision front legible.
-            const drawn = window.BARCODE?.PresentationAssets?.draw('bossPulse', ctx, {
-              x: x + BOSS_COMBAT.pulseWidth / 2, y: ground,
-              width: BOSS_COMBAT.pulseWidth, height: BOSS_COMBAT.pulseHeight,
-              frame: Math.floor(pulse.radius / BOSS_COMBAT.pulseSpeed * 1000 / 75), flip: direction < 0
-            });
-            if (!drawn) { ctx.fillRect(x, ground - BOSS_COMBAT.pulseHeight, BOSS_COMBAT.pulseWidth, BOSS_COMBAT.pulseHeight); }
-            ctx.fillStyle = pulse.hit ? '#ffba69' : '#fff0bd';
-            ctx.fillRect(direction > 0 ? x + BOSS_COMBAT.pulseWidth - 4 : x, ground - BOSS_COMBAT.pulseHeight + 4, 4, BOSS_COMBAT.pulseHeight - 4);
-            ctx.fillStyle = pulse.hit ? 'rgba(255,100,30,0.45)' : '#ff6433';
-          });
+          [-1, 1].forEach(direction => this.drawBossPulse(ctx, pulse, direction, ground));
         });
         if (boss.canReceiveDamage) { ctx.shadowColor = '#00ffff'; ctx.shadowBlur = 24; }
         if (boss.hitFlashMs > 0) { ctx.shadowColor = '#ffffff'; ctx.shadowBlur = 32; }

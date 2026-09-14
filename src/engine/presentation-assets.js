@@ -8,7 +8,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   const entries = {
     studioCat: { path: 'assets/presentation/studio-cat.webp', columns: 2, rows: 2, frames: 4, ax: 0.5, ay: 0.9375 },
     directionArrow: { path: 'assets/presentation/direction-arrow.webp', columns: 1, rows: 1, frames: 1, ax: 0.5, ay: 0.5 },
-    bossPulse: { path: 'assets/presentation/boss-pulse.webp', columns: 2, rows: 2, frames: 4, crop: [10, 95, 236, 145], ax: 0.5, ay: 1 },
+    bossPulse: { path: 'assets/presentation/boss-pulse.webp', columns: 2, rows: 2, frames: 4, crop: [10, 95, 236, 145], ax: 0.5, ay: 1, smooth: true },
     hudPortrait: { path: 'assets/studies/visual-overhaul/prepared/hud-portrait.webp', root: 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/', columns: 1, rows: 1, frames: 1, ax: 0.5, ay: 0.5, smooth: true }
   };
   const cache = {};
