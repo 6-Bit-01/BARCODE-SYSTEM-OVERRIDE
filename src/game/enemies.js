@@ -238,7 +238,8 @@ window.Enemy = class Enemy {
     }
 
     // Update AI - Traffic Controller
-    this.updateAI(player, dt);
+    if (this._hijackIdle) this.velocity.x = 0;
+    else this.updateAI(player, dt);
 
     // Update Animation
     if (this.spriteReady && this.sprite) {
@@ -425,6 +426,7 @@ window.Enemy = class Enemy {
     // Group Logic
     const nearbyViruses = window.enemyManager?.getActiveEnemies().filter(other =>
       other !== this && other.type === 'virus' && other.active &&
+      !!window.enemyManager?.isHijacked?.(other) === !!window.enemyManager?.isHijacked?.(this) &&
       window.distance(this.position.x, this.position.y, other.position.x, other.position.y) < 200
     ) || [];
 
@@ -1106,6 +1108,11 @@ window.Enemy = class Enemy {
     }
     ctx.shadowBlur = 0;
     this.drawCombatCue(ctx);
+    window.enemyManager?.drawHijackMarker?.(ctx, this);
+    if (this._repairCarrier && !this._repairDropped) {
+      const box = this.getHitbox();
+      window.Sector1Progression?.drawRepairCell?.(ctx, box.x + box.width + 16, box.y + box.height * 0.4, 0.55);
+    }
     ctx.restore();
   }
 
@@ -1230,7 +1237,7 @@ window.EnemyManager = class EnemyManager {
   }
 
   update(deltaTime, player) {
-    if (!player) return;
+    if (!player || window.isPaused || window.gameState?.paused || window.gameState?.gameOver || window.gameState?.victory) return;
 
     const progression = window.sector1Progression;
     const suppressMissionSimulation = progression && progression.isGameplaySuppressed && progression.isGameplaySuppressed();
@@ -1251,8 +1258,11 @@ window.EnemyManager = class EnemyManager {
 
     // Update Enemies; tactical hack focus slows hostile simulation without pausing art/audio.
     this.enemies.forEach(enemy => {
-      if (enemy._stunnedUntilMs && this.simulationTimeMs < enemy._stunnedUntilMs) return;
-      enemy.update(hostileDeltaTime, player, this.hostileSimulationTimeMs);
+      if (enemy._hijackedUntilMs && this.simulationTimeMs >= enemy._hijackedUntilMs) this.releaseHijack(enemy);
+      if (this.isRebooting(enemy)) { enemy.velocity.x = 0; return; }
+      const target = this.getCombatTarget(enemy, player);
+      enemy._hijackIdle = this.isHijacked(enemy) && !target;
+      enemy.update(hostileDeltaTime, target || player, this.hostileSimulationTimeMs);
 
       // Tutorial Freeze Logic
       if (enemy.type === 'virus' && tutorialWaiting && enemy.active) {
@@ -1298,6 +1308,18 @@ window.EnemyManager = class EnemyManager {
       if (!a.active || !b.active || a.isSpawnProtected() || b.isSpawnProtected()) continue;
       const ab = a.getCollisionBox(), bb = b.getCollisionBox();
       if (!this.simpleAABBcollision(ab, bb)) continue;
+      if (this.isHijacked(a) !== this.isHijacked(b) && !this.isRebooting(a) && !this.isRebooting(b)) {
+        const ally = this.isHijacked(a) ? a : b, hostile = ally === a ? b : a;
+        // Each actor's existing attack commitment owns its hit. A bounded
+        // contact clock prevents sustained overlap from dealing frame-rate damage.
+        for (const [attacker, victim, damage] of [[ally, hostile, 2], [hostile, ally, 1]]) {
+          if (!attacker.active || !victim.active || !this.isOrdinaryEnemy(victim)) continue;
+          const committed = attacker.type === 'virus' ? attacker.role !== 'swooper' || attacker.swooperState === 'dive' : attacker.combatPattern === 'attack';
+          if (!committed || this.simulationTimeMs < (attacker._nextAllegianceHitMs || 0)) continue;
+          attacker._nextAllegianceHitMs = this.simulationTimeMs + 900;
+          victim.takeDamage(damage, { x: victim.position.x, y: victim.getHitbox().y + 25, direction: Math.sign(victim.position.x - attacker.position.x) || 1 });
+        }
+      }
       const overlap = Math.min(ab.x + ab.width - bb.x, bb.x + bb.width - ab.x);
       const direction = a.position.x <= b.position.x ? 1 : -1;
       // Horizontal separation only: crowd contact cannot levitate actors or
@@ -1312,6 +1334,95 @@ window.EnemyManager = class EnemyManager {
       return this.simulationTimeMs;
   }
 
+  isOrdinaryEnemy(enemy) {
+    return !!(enemy?.active && !enemy._defeatRecorded && !enemy._disposed && ['virus', 'corrupted', 'firewall'].includes(enemy.type));
+  }
+
+  isHijacked(enemy) { return !!(enemy?.active && enemy._hijackedUntilMs > this.simulationTimeMs); }
+  isRebooting(enemy) { return !!(enemy?.active && enemy._hijackRebootUntilMs > this.simulationTimeMs); }
+  getHijackedEnemy() { return this.enemies.find(e => this.isHijacked(e)) || null; }
+
+  findHijackTarget(player = window.player) {
+    if (!player || this.getHijackedEnemy()) return null;
+    let best = null, nearest = 520;
+    for (const e of this.enemies) {
+      if (!this.isOrdinaryEnemy(e) || e._isTutorialEnemy || e._authoredEntranceActive || e.entranceComplete === false || e.isSpawnProtected?.() || this.isRebooting(e)) continue;
+      const d = Math.hypot(e.position.x - player.position.x, e.position.y - player.position.y);
+      if (d < nearest) { best = e; nearest = d; }
+    }
+    return best;
+  }
+
+  resetAllegianceMotion(enemy) {
+    Object.assign(enemy, { combatPattern: 'approach', combatPatternMs: 0, behaviorState: 'normal', isLunging: false,
+      swooperState: 'approach', swooperTimerMs: 0, swooperAim: null, hoverState: 'none', _hijackIdle: false,
+      _inCrowd: false, _crowdBurstTimer: 0, _nextAllegianceHitMs: 0, _stunnedUntilMs: 0 });
+    if (enemy.velocity) enemy.velocity.x = 0;
+  }
+
+  hijackEnemy(enemy) {
+    if (!this.enemies.includes(enemy) || !this.isOrdinaryEnemy(enemy) || enemy._isTutorialEnemy || this.getHijackedEnemy() || enemy._authoredEntranceActive || enemy.entranceComplete === false || enemy.isSpawnProtected?.()) return false;
+    this.resetAllegianceMotion(enemy);
+    enemy._hijackRebootUntilMs = 0;
+    enemy._hijackedUntilMs = this.simulationTimeMs + 8000;
+    try { window.audioSystem?.playCombatCue?.('hijack'); } catch (error) { console.warn('Hijack cue unavailable', error); }
+    return true;
+  }
+
+  releaseHijack(enemy = this.getHijackedEnemy()) {
+    if (!enemy?._hijackedUntilMs) return false;
+    enemy._hijackedUntilMs = 0;
+    enemy._hijackRebootUntilMs = this.simulationTimeMs + 1000;
+    this.resetAllegianceMotion(enemy);
+    try { window.audioSystem?.playCombatCue?.('hijackRelease'); } catch (error) { console.warn('Release cue unavailable', error); }
+    return true;
+  }
+
+  getCombatTarget(enemy, player) {
+    const ally = this.getHijackedEnemy();
+    if (enemy === ally) {
+      let best = null, nearest = Infinity;
+      for (const other of this.enemies) {
+        if (other === enemy || !this.isOrdinaryEnemy(other) || other._authoredEntranceActive || other.isSpawnProtected?.()) continue;
+        const d = Math.hypot(other.position.x - enemy.position.x, other.position.y - enemy.position.y);
+        if (d < nearest) { best = other; nearest = d; }
+      }
+      return best;
+    }
+    if (ally && this.isOrdinaryEnemy(enemy)) {
+      const d = Math.hypot(ally.position.x - enemy.position.x, ally.position.y - enemy.position.y);
+      const playerDistance = Math.hypot(player.position.x - enemy.position.x, player.position.y - enemy.position.y);
+      if (d < Math.min(600, playerDistance)) return ally;
+    }
+    return player;
+  }
+
+  drawHijackMarker(ctx, enemy) {
+    const ally = this.isHijacked(enemy), reboot = this.isRebooting(enemy), hack = window.hackingSystem;
+    const locked = hack?.active && hack.hijackTarget === enemy;
+    const ready = !hack?.active && window.player?.grounded && !window.tutorialSystem?.isActive?.() &&
+      (hack?.getCooldownRemainingMs?.() || 0) === 0 && !window.sector1Progression?.isGameplaySuppressed?.() && this.findHijackTarget() === enemy;
+    if (!ally && !reboot && !locked && !ready) return;
+    const box = enemy.getStompBox(), seconds = Math.max(0, (enemy._hijackedUntilMs - this.simulationTimeMs) / 1000);
+    const color = reboot || ally && seconds <= 2 ? '#ffc07b' : ally ? '#c0ed55' : '#a98ee9';
+    const y = box.y - 74;
+    ctx.save(); ctx.shadowBlur = 0;
+    ctx.strokeStyle = color; ctx.lineWidth = ally ? 3 : 2;
+    for (const side of [-1, 1]) {
+      const x = side < 0 ? box.x - 9 : box.x + box.width + 9;
+      ctx.beginPath(); ctx.moveTo(x - side * 12, box.y - 4); ctx.lineTo(x, box.y - 4); ctx.lineTo(x, box.y + 20); ctx.stroke();
+    }
+    ctx.fillStyle = '#0b1017'; ctx.fillRect(enemy.position.x - 100, y, 200, ally ? 45 : 27);
+    ctx.fillStyle = color; ctx.font = 'bold 17px Oxanium, monospace'; ctx.textAlign = 'center';
+    ctx.fillText(ally ? `6 BIT // ALLY ${Math.ceil(seconds)}s` : reboot ? 'REBOOTING' : locked ? 'HIJACK TARGET' : 'H / Y: HIJACK', enemy.position.x, y + 20);
+    if (ally) {
+      ctx.fillStyle = '#26353a'; ctx.fillRect(enemy.position.x - 90, y + 28, 180, 4);
+      ctx.fillStyle = color; ctx.fillRect(enemy.position.x - 90, y + 28, 180 * seconds / 8, 4);
+      ctx.font = '12px Oxanium, monospace'; ctx.fillText(seconds <= 2 ? 'CONTROL EXPIRING' : 'H / Y: RELEASE', enemy.position.x, y + 43);
+    }
+    ctx.restore();
+  }
+
   checkCollisions(player) {
     if (player.controlsDisabled) { player.contactSweep = null; return; }
     const sweep = player.contactSweep;
@@ -1319,7 +1430,7 @@ window.EnemyManager = class EnemyManager {
     let landing = null;
     if (sweep && sweep.currentFootY > sweep.previousFootY && player.velocity.y >= 0) {
       for (const enemy of this.enemies) {
-        if (!enemy.active) continue;
+        if (!enemy.active || this.isHijacked(enemy)) continue;
         const box = enemy.getStompBox?.() || enemy.getHitbox(), previous = enemy.previousStompBox || box;
         const before = sweep.previousFootY - previous.y;
         const after = sweep.currentFootY - box.y;
@@ -1346,7 +1457,7 @@ window.EnemyManager = class EnemyManager {
       return;
     }
     for (const enemy of this.enemies) {
-      if (!enemy.active || enemy.isSpawnProtected?.()) continue;
+      if (!enemy.active || this.isHijacked(enemy) || this.isRebooting(enemy) || enemy.isSpawnProtected?.()) continue;
       // Query after each real hit/knockback; never use a cached pre-push box.
       if (!this.simpleAABBcollision(player.getHitbox(), enemy.getHitbox())) continue;
       const now = this.getHostileClockNow();
@@ -1513,7 +1624,7 @@ window.EnemyManager = class EnemyManager {
 
   detectCrowds() {
     this.crowdGroups = [];
-    const activeEnemies = this.enemies.filter(e => e.active && e.entranceComplete);
+    const activeEnemies = this.enemies.filter(e => e.active && e.entranceComplete && !this.isHijacked(e) && !this.isRebooting(e));
     const processed = new Set();
 
     activeEnemies.forEach(enemy => {
@@ -1570,7 +1681,7 @@ window.EnemyManager = class EnemyManager {
     const distToPlayer = window.distance(groupCenter.x, groupCenter.y, player.position.x, player.position.y);
 
     group.forEach((enemy, index) => {
-      if (!enemy._inCrowd) return;
+      if (!enemy._inCrowd || this.isHijacked(enemy) || this.isRebooting(enemy)) return;
       // A shown warning commits to its authored aim through attack/recovery.
       // Separation still resolves bodies in the manager; formation steering
       // must not write another velocity over that commitment afterwards.
@@ -1610,6 +1721,7 @@ window.EnemyManager = class EnemyManager {
   recordDefeat(enemy) {
     if (!enemy || enemy._defeatRecorded) return false;
     enemy._defeatRecorded = true;
+    window.sector1Progression?.dropCarrierRepair?.(enemy);
     const countsTowardDefeatProjection = !enemy._jammerReinforcement;
     if (countsTowardDefeatProjection) {
       this.defeatedCount += 1;

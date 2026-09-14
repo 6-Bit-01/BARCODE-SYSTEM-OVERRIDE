@@ -1,5 +1,10 @@
 # Current State
 
+## Current review: enemy hijack and replacement repairs
+
+The owner selected enemy hijacking as H's new success reward. The scoped implementation is recorded in `ENEMY_HIJACK_REPAIR_PASS.md`: eight-second ordinary-enemy allegiance, visible lock/countdown/reboot, friendly-fire exclusion, repair cells/carrier and two physical rooftop connections. The former hack heal and area-stun success path are removed. The owner merged walk PR #52 during preparation. Verified main/base is now `66c17d1880f5de933e9b928833e5dd2bfff6a817`; its complete tree matches the original walk head `b1692f47017459011177fb779639682534c862b7`. Preserve the separately committed, tested new work in a new draft against main; no runtime conflict or lost work occurred. Exact final review/CI status is generated in the source receipt and PR. Makko remains pending; the merge is not playtest acceptance, and earlier current-state entries are history.
+
+
 ## Restrained player motion polish — September 14, 2026
 
 PR #51 is merged. Base/rollback: `ea2921960477e38c74740dda378fcb513a8f1cc1`; branch `agent/player-motion-polish`. The owner requested less fidgety 6 Bit animation and small improvements to the current game, explicitly avoiding giant changes. Health sources, rooftop expansion, cloud secrets and traffic hazards were reopened for design discussion; they are recommendations rather than implemented mechanics.

@@ -55,6 +55,8 @@ function createHarness() {
   for (const file of ['src/game/player.js', 'src/game/enemies.js', 'src/game/hacking.js', 'src/game/lore-records.js', 'src/game/lore-collection.js', 'src/game/lost-data.js', 'src/game/rhythm.js', 'src/game/player-combat.js', 'src/game/sector1-progression.js', 'src/game/update-coordinator.js']) {
     vm.runInNewContext(fs.readFileSync(path.join(root, file), 'utf8'), context, { filename: file });
   }
+  context.enemyManager = new context.EnemyManager();
+  context.enemyManager.enemies = [{ active: true, type: 'virus', position: { x: 1100, y: 750 }, velocity: { x: 0, y: 0 } }];
   return context;
 }
 
@@ -130,16 +132,16 @@ function testEncountersAndTacticalFocusClock() {
 
 function testHackingLifecycle() {
   const w = createHarness();
-  let hides = 0, shows = 0, pulses = 0;
+  let hides = 0, shows = 0, hijacks = 0;
   w.player = new w.Player(1000, 750); w.player.grounded = true; w.player.health = 2; w.player.maxHealth = 3;
-  w.enemyManager = { simulationTimeMs: 2000, enemies: [ { active: true, type: 'virus', position: { x: 1030, y: 750 } }, { active: true, type: 'corrupted', _jammerReinforcement: true, position: { x: 1200, y: 750 } }, { active: true, type: 'virus', position: { x: 3000, y: 750 } }, { active: true, type: 'broadcast_jammer', position: { x: 1020, y: 750 } }, { active: true, type: 'boss', position: { x: 1010, y: 750 } } ] };
+  w.enemyManager = Object.assign(new w.EnemyManager(), { simulationTimeMs: 2000, enemies: [ { active: true, type: 'virus', position: { x: 1030, y: 750 } }, { active: true, type: 'corrupted', _jammerReinforcement: true, position: { x: 1200, y: 750 } }, { active: true, type: 'virus', position: { x: 3000, y: 750 } }, { active: true, type: 'broadcast_jammer', position: { x: 1020, y: 750 } }, { active: true, type: 'boss', position: { x: 1010, y: 750 } } ] });
   w.rhythmSystem = { beatInterval: 375, active: true, isActive() { return this.active; }, hideRhythmMode() { hides++; this.active = false; }, showRhythmMode() { shows++; this.active = true; } };
   const hack = new w.HackingSystem(); w.hackingSystem = hack;
   assert.strictEqual(hides, 0, 'constructor does not alter rhythm mode');
-  const originalPulse = hack.emitOverridePulse.bind(hack); hack.emitOverridePulse = () => { pulses++; originalPulse(); };
+  const originalHijack = w.enemyManager.hijackEnemy.bind(w.enemyManager); w.enemyManager.hijackEnemy = enemy => { hijacks++; return originalHijack(enemy); };
   hack.start();
   assert.strictEqual(hides, 1, 'start suspends active rhythm once');
-  assert.strictEqual(pulses, 0, 'hack start emits no pulse');
+  assert.strictEqual(hijacks, 0, 'hack start does not change allegiance');
   assert.strictEqual(hack.guardHitsRemaining, 1, 'start grants one guard hit');
   assert(hack.absorbGuardHit(), 'first hostile hit is absorbed');
   assert(!hack.absorbGuardHit(), 'second hostile hit is not absorbed');
@@ -156,23 +158,23 @@ function testHackingLifecycle() {
   const answer = hack.currentPuzzle.answer;
   answer.split('').forEach(key => hack.processInput(key));
   hack.processInput('Enter');
-  assert.strictEqual(w.player.health, 3, 'success restores exactly one capped health bar');
-  assert.strictEqual(pulses, 1, 'success emits exactly one pulse');
+  assert.strictEqual(w.player.health, 2, 'success no longer heals');
+  assert.strictEqual(hijacks, 1, 'success attempts exactly one hijack');
   assert.strictEqual(shows, 1, 'previous Rhythm Mode restored once');
   assert.strictEqual(hack.guardHitsRemaining, 0, 'success clears guard');
-  assert.strictEqual(w.enemyManager.enemies[0]._stunnedUntilMs, 3500, 'pulse lasts four rhythm beats on simulation clock');
-  assert.strictEqual(w.enemyManager.enemies[1]._stunnedUntilMs, 3500, 'pulse affects nearby jammer reinforcements');
-  assert.strictEqual(w.enemyManager.enemies[2]._stunnedUntilMs, undefined, 'local pulse does not stun distant enemies');
-  assert.strictEqual(w.enemyManager.enemies[3]._stunnedUntilMs, undefined, 'pulse excludes jammer');
-  assert.strictEqual(w.enemyManager.enemies[4]._stunnedUntilMs, undefined, 'pulse excludes boss');
+  assert.strictEqual(w.enemyManager.enemies[0]._hijackedUntilMs, 10000, 'nearest target is allied for eight simulation seconds');
+  for (const e of w.enemyManager.enemies.slice(1)) assert(!w.enemyManager.isHijacked(e), 'success affects one ordinary enemy only');
+  for (const e of w.enemyManager.enemies) assert(!e._stunnedUntilMs, 'success grants no area stun');
+  w.enemyManager.enemies[0]._hijackedUntilMs = 0;
+
 
   w.advanceClock(10001);
   w.rhythmSystem.active = false;
-  const failHack = new w.HackingSystem(); w.hackingSystem = failHack; let failPulses = 0; failHack.emitOverridePulse = () => { failPulses++; };
+  const failHack = new w.HackingSystem(); w.hackingSystem = failHack; const beforeHijacks = hijacks;
   failHack.start(); failHack.update(failHack.bootDurationMs); failHack.update(failHack.displayTime); failHack.processInput('0'); failHack.processInput('Enter');
-  assert.strictEqual(failPulses, 0, 'failure emits no pulse');
+  assert.strictEqual(hijacks, beforeHijacks, 'failure grants no hijack');
   assert.strictEqual(shows, 1, 'inactive pre-hack rhythm is not restored');
-  w.advanceClock(10001); failHack.start(); failHack.cancel(); assert.strictEqual(failPulses, 0, 'cancel emits no pulse');
+  w.advanceClock(10001); failHack.start(); failHack.cancel(); assert.strictEqual(hijacks, beforeHijacks, 'cancel grants no hijack');
   failHack.reset(); const diag = failHack.getDiagnostics(); assert.strictEqual(diag.active, false, 'reset clears active hacking'); assert.strictEqual(diag.ownedTimeouts, 0, 'reset leaves no owned hacking timers'); assert.strictEqual(diag.hasPuzzleTimeout, false, 'reset clears puzzle timeout');
 }
 
@@ -316,7 +318,8 @@ function testHackingPresentationInputAndRecovery() {
   };
   const resilientHack = new throwingHarness.HackingSystem();
   throwingHarness.hackingSystem = resilientHack;
-  resilientHack.emitOverridePulse = () => { throw new Error('pulse unavailable'); };
+  throwingHarness.enemyManager.hijackEnemy = () => { throw new Error('hijack unavailable'); };
+  throwingHarness.enemyManager.enemies = []; // This tutorial exercises the training uplink.
   resilientHack.start();
   resilientHack.update(resilientHack.bootDurationMs);
   resilientHack.update(resilientHack.displayTime);
@@ -328,6 +331,7 @@ function testHackingPresentationInputAndRecovery() {
 
   throwingHarness.advanceClock(10001);
   throwingHarness.tutorialSystem.active = false;
+  throwingHarness.enemyManager.enemies = [{ active: true, type: 'virus', position: { x: 1100, y: 750 } }];
   const resilientTimeout = new throwingHarness.HackingSystem();
   throwingHarness.hackingSystem = resilientTimeout;
   resilientTimeout.start();
@@ -412,12 +416,12 @@ function testLostDataMovementSwooperAmpAndEnemyClock() {
   assert.strictEqual(combat.findTargets(w.player, { enemies: [normal] }, { timing: 'miss' }).length, 0, 'miss does not use Signal Amp range');
   assert.strictEqual(w.BARCODE.signalAmpCharges, 2, 'miss does not consume Signal Amp charge');
 
-  const manager = new w.EnemyManager(); manager.enemies = [{ active: true, type: 'virus', position: { x: 1000, y: 750 }, velocity: { x: 0, y: 0 }, _stunnedUntilMs: 100, update(dt, player, sim) { this.lastDt = dt; this.lastSim = sim; }, getHitbox: () => ({ x: 0, y: 0, width: 0, height: 0 }) }];
+  const manager = new w.EnemyManager(); manager.enemies = [{ active: true, type: 'virus', position: { x: 1000, y: 750 }, velocity: { x: 0, y: 0 }, update(dt, player, sim) { this.lastDt = dt; this.lastSim = sim; }, getHitbox: () => ({ x: 0, y: 0, width: 0, height: 0 }) }];
   w.hackingSystem = { isActive: () => true };
   manager.update(1000, { controlsDisabled: false, getHitbox: () => ({ x: 9999, y: 9999, width: 1, height: 1 }), position: { x: 9999, y: 9999 }, velocity: { y: 0 } });
   assert.strictEqual(manager.enemies[0].lastDt, 400, 'enemy behavior uses the shared 40% hostile delta during hacking');
   assert.strictEqual(manager.enemies[0].lastSim, 400, 'enemy attack timers use the shared hostile simulation clock');
-  assert.strictEqual(manager.simulationTimeMs, 1000, 'authoritative simulation clock remains real time for stun expiry');
+  assert.strictEqual(manager.simulationTimeMs, 1000, 'authoritative simulation clock remains real time for hijack expiry');
   assert.strictEqual(w.BARCODE.TacticalFocusClock.getScale(), 0.4, 'shared tactical clock exposes the visible 40% hostile scale');
   const renderSource = fs.readFileSync(path.join(root, 'src/game/render-coordinator.js'), 'utf8');
   assert(renderSource.includes('TACTICAL FOCUS //'), 'render path includes a restrained on-screen tactical focus cue');

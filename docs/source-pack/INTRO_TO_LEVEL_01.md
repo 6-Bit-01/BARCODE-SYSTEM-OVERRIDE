@@ -50,7 +50,9 @@ Objective IDs: `rhythm_start`, `rhythm_combo`.
 
 **Mac Modem:** H / controller Y opens the hack. Read the puzzle and enter the answer before its timer runs out.
 
-**Cache Back:** A successful hack restores one bar of signal strength. Keep yourself connected.
+**Mac Modem:** In the street, H locks a nearby enemy. Solve the puzzle and it fights for you for eight seconds. H again releases it.
+
+**Cache Back:** Watch the ally countdown. Repairs are the marked cells on rooftops and enemies carrying them.
 
 **Mac Modem:** Finish this access check. Then we can open the street.
 

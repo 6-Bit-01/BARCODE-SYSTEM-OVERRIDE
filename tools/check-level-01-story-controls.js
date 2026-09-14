@@ -36,7 +36,11 @@ async function main() {
     tap(5); assert(!w.player.grounded, 'RB provides the tutorial jump action');
     w.player.grounded = true; w.player.velocity.y = 0; w.tutorialSystem.active = false; frame();
     load(context, 'src/game/hacking.js'); w.hackingSystem = new w.HackingSystem();
+    const hackTarget = new w.Enemy(1000, 750, 'virus');
+    Object.assign(hackTarget.position, { x: 1000, y: 750 }); hackTarget.entranceComplete = true; hackTarget.spawnTimeMs = -10000; hackTarget.spawnProtectionDuration = 0;
+    w.enemyManager.enemies = [hackTarget];
     for (const type of [1, 2]) {
+      hackTarget._hijackedUntilMs = 0; hackTarget._hijackRebootUntilMs = 0;
       w.hackingSystem.reset(); w.hackingSystem.cooldownUntil = 0;
       assert(w.hackingSystem.start()); w.hackingSystem.puzzleType = type; frame();
       // Advance the real boot and display phases; enter the generated answer.
@@ -50,9 +54,11 @@ async function main() {
       w.player.health = 1;
       const beforeHealth = w.player.health;
       tap(9); assert(!w.hackingSystem.active); assert.strictEqual(w.hackingSystem.resultFx.outcome, 'success');
-      assert.strictEqual(w.player.health, Math.min(w.player.maxHealth, beforeHealth + 1), 'each puzzle repairs exactly one health bar');
+      assert.strictEqual(w.player.health, beforeHealth, 'puzzles do not repair health');
+      assert(w.enemyManager.isHijacked(hackTarget), 'each controller puzzle hijacks the locked enemy');
       assert.strictEqual(w.player.velocity.y, 0, 'terminal digits do not jump');
     }
+    hackTarget._hijackedUntilMs = 0; hackTarget._hijackRebootUntilMs = 0;
     w.hackingSystem.cooldownUntil = 0; w.hackingSystem.start(); frame(); tap(11); assert(!w.hackingSystem.active, 'R3 cancels the terminal');
     // Frontend ownership consumes held buttons before gameplay resumes.
     w.inputManager.updateFrontend('intro'); pad.buttons[1].pressed = true;

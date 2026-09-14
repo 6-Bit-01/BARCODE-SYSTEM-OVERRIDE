@@ -49,6 +49,29 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     { id: 'gate_4', encounterId: 'encounter_4', x: 4010, y: 202, w: 58, h: 620, depthX: 112, depthY: -54 }
   ]);
 
+  const TRAVERSAL_PROPS = Object.freeze([
+    { id: 'cache-maintenance-step', x: 1390, y: 410, w: 128, h: 14 },
+    { id: 'tower-utility-unit', x: 3150, y: 650, w: 160, h: 172 }
+  ]);
+  const REPAIRS = Object.freeze([
+    { id: 'repair.signal-awning', x: 1080, y: 450, surfaceY: 492 },
+    { id: 'repair.tower-awning', x: 3480, y: 460, surfaceY: 502 }
+  ]);
+
+  function drawRepairCell(ctx, x, y, scale = 1) {
+    // A code-native cartridge shares the illustrated HUD's ink/paper/green.
+    ctx.save(); ctx.translate(x, y); ctx.scale(scale, scale);
+    ctx.fillStyle = '#03070c'; ctx.fillRect(-24, -23, 49, 52);
+    ctx.fillStyle = '#24362c'; ctx.fillRect(-20, -25, 40, 48);
+    ctx.strokeStyle = '#eee8d6'; ctx.lineWidth = 2; ctx.strokeRect(-20, -25, 40, 48);
+    ctx.fillStyle = '#c0ed55'; ctx.fillRect(-16, -21, 32, 30);
+    ctx.fillStyle = '#0b1017'; ctx.fillRect(-12, -14, 24, 16);
+    ctx.fillStyle = '#eee8d6'; ctx.fillRect(-3, -18, 6, 24); ctx.fillRect(-11, -9, 22, 6);
+    ctx.fillStyle = '#c0ed55';
+    for (let i = 0; i < 9; i++) ctx.fillRect(-15 + i * 3.5, 13, i % 3 ? 1 : 2, 7);
+    ctx.restore();
+  }
+
   const CINEMATIC = Object.freeze({
     freezeMs: 800,
     panMs: 2000,
@@ -136,6 +159,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     static get ENCOUNTERS() { return ENCOUNTERS; }
     static get GEOMETRY() { return STAGE_SURFACES; }
     static get STAGE_SURFACES() { return STAGE_SURFACES; }
+    static get TRAVERSAL_PROPS() { return TRAVERSAL_PROPS; }
+    static get REPAIRS() { return REPAIRS; }
+    static drawRepairCell(ctx, x, y, scale) { drawRepairCell(ctx, x, y, scale); }
+    getStageSurfaces() { return this.missionStarted ? STAGE_SURFACES.concat(TRAVERSAL_PROPS) : STAGE_SURFACES; }
     static get PLAYER_VISUAL_FOOT_OFFSET() { return PLAYER_VISUAL_FOOT_OFFSET; }
     static get ENCOUNTER_GATES() { return ENCOUNTER_GATES; }
     static get SIGNAL_LIFT() { return SIGNAL_LIFT; }
@@ -163,6 +190,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       // never slow or freeze its carry motion.
       this.updateSignalLift(deltaTime);
       this.updateSignalAmp();
+      this.updateRepairs(deltaTime);
       if (this.isGameplaySuppressed() && this.player) { this.player.supportedSurfaceId = null; this.player.controlsDisabled = true; if (this.frozenPlayerPosition) { this.player.position.x = this.frozenPlayerPosition.x; this.player.position.y = this.frozenPlayerPosition.y; } this.player.velocity.x = 0; this.player.velocity.y = 0; }
       const tacticalDeltaTime = window.BARCODE?.TacticalFocusClock?.scaleDelta?.(deltaTime) ?? deltaTime;
       if (/^encounter_/.test(this.state)) { this.applyGateCollision(); this.updateEncounter(tacticalDeltaTime); this.updatePendingSpawns(tacticalDeltaTime); }
@@ -243,7 +271,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     getSpawnBodyHalfWidth(type) { if (type === 'firewall') return 135; if (type === 'corrupted') return 50; return 40; }
     planSpawn(spec = {}) { const bounds = this.getVisibleWorldBounds(); const bodyHalf = this.getSpawnBodyHalfWidth(spec.type); const playerX = this.player?.position?.x || bounds.center; const left = { x: Math.max(bodyHalf, bounds.left - SPAWN.offscreenPadding - bodyHalf), side: 'left' }; const right = { x: Math.min(WORLD_WIDTH - bodyHalf, bounds.right + SPAWN.offscreenPadding + bodyHalf), side: 'right' }; const outside = candidate => candidate.x + bodyHalf <= bounds.left - SPAWN.offscreenPadding || candidate.x - bodyHalf >= bounds.right + SPAWN.offscreenPadding; const farFromPlayer = candidate => Math.abs(candidate.x - playerX) >= SPAWN.playerExclusionRadius + bodyHalf; const candidates = [left, right].filter(outside).sort((a, b) => Math.abs(a.x - (spec.x || playerX)) - Math.abs(b.x - (spec.x || playerX))); const accepted = candidates.find(farFromPlayer) || candidates[0] || [left, right].sort((a, b) => Math.abs(b.x - playerX) - Math.abs(a.x - playerX))[0]; this.lastSpawnPlan = { bounds, candidates, accepted: { x: accepted.x, y: Number.isFinite(spec.y) ? spec.y : GROUND_Y, side: accepted.side }, playerX, exclusionRadius: SPAWN.playerExclusionRadius, bodyHalf }; return { x: accepted.x, y: Number.isFinite(spec.y) ? spec.y : GROUND_Y, side: accepted.side }; }
     planEntranceTarget(spec = {}, origin = {}, index = 0) { const bodyHalf = this.getSpawnBodyHalfWidth(spec.type); const playerX = this.player?.position?.x || CAMERA_MIN; const clearance = SPAWN.playerExclusionRadius + bodyHalf; const authoredX = Math.max(bodyHalf, Math.min(WORLD_WIDTH - bodyHalf, Number.isFinite(spec.x) ? spec.x : playerX)); const originSide = origin.side || (origin.x < playerX ? 'left' : 'right'); const side = originSide === 'left' ? -1 : 1; const authoredStaysOnApproachSide = side < 0 ? authoredX <= playerX - clearance : authoredX >= playerX + clearance; if (authoredStaysOnApproachSide) return { x: authoredX, y: Number.isFinite(spec.y) ? spec.y : GROUND_Y }; const spread = Math.min(180, Math.max(0, Number(index) || 0) * 45); let targetX = Math.max(bodyHalf, Math.min(WORLD_WIDTH - bodyHalf, playerX + side * (clearance + spread))); if (Math.abs(targetX - playerX) < clearance) targetX = Math.max(bodyHalf, Math.min(WORLD_WIDTH - bodyHalf, playerX - side * (clearance + spread))); return { x: targetX, y: Number.isFinite(spec.y) ? spec.y : GROUND_Y }; }
-    spawnMissionEnemy(spec, encounterId, index, options = {}) { const targetY = spec.type === 'virus' && Number.isFinite(spec.y) ? spec.y : GROUND_Y; const origin = options.origin || this.planSpawn({ ...spec, y: targetY }); if (!options.origin && encounterId === 'encounter_2' && spec.type === 'virus') origin.y = 330 - PLAYER_VISUAL_FOOT_OFFSET; const target = this.planEntranceTarget({ ...spec, y: targetY }, origin, index); const enemy = new window.Enemy(origin.x, origin.y, spec.type); /* Enemy constructors have legacy entrance code that rewrites some origins, so restore the authoritative planned origin after construction. */ enemy.position.x = origin.x; enemy.position.y = origin.y; enemy.originalSpawnX = origin.x; enemy.originalSpawnY = origin.y; enemy._dropEdge = null; enemy._sector1MissionEnemy = !options.jammerReinforcement && !options.tutorialEnemy; enemy._jammerReinforcement = !!options.jammerReinforcement; enemy._isTutorialEnemy = !!options.tutorialEnemy; enemy._sector1EncounterId = encounterId; enemy._sector1Index = index; enemy.role = spec.role || null; if (enemy.role === 'swooper') { enemy.swooperState = 'approach'; enemy._dropEdge = null; } enemy._entranceTarget = target; enemy._authoredEntranceActive = true; enemy._authoredEntranceSpeed = SPAWN.entranceSpeed; enemy.entranceComplete = false; enemy.state = 'authored_entrance'; enemy.spawnTimeMs = 0; enemy.spawnProtectionDuration = SPAWN.protectionMs; enemy.velocity.x = enemy._entranceTarget.x >= origin.x ? SPAWN.entranceSpeed : -SPAWN.entranceSpeed; enemy.velocity.y = 0; if (window.enemyManager) window.enemyManager.enemies.push(enemy); return enemy; }
+    spawnMissionEnemy(spec, encounterId, index, options = {}) { const targetY = spec.type === 'virus' && Number.isFinite(spec.y) ? spec.y : GROUND_Y; const origin = options.origin || this.planSpawn({ ...spec, y: targetY }); if (!options.origin && encounterId === 'encounter_2' && spec.type === 'virus') origin.y = 330 - PLAYER_VISUAL_FOOT_OFFSET; const target = this.planEntranceTarget({ ...spec, y: targetY }, origin, index); const enemy = new window.Enemy(origin.x, origin.y, spec.type); /* Enemy constructors have legacy entrance code that rewrites some origins, so restore the authoritative planned origin after construction. */ enemy.position.x = origin.x; enemy.position.y = origin.y; enemy.originalSpawnX = origin.x; enemy.originalSpawnY = origin.y; enemy._dropEdge = null; enemy._sector1MissionEnemy = !options.jammerReinforcement && !options.tutorialEnemy; enemy._jammerReinforcement = !!options.jammerReinforcement; enemy._isTutorialEnemy = !!options.tutorialEnemy; enemy._sector1EncounterId = encounterId; enemy._sector1Index = index; enemy._repairCarrier = enemy._sector1MissionEnemy && encounterId === 'encounter_2' && index === 0 && spec.type === 'corrupted'; enemy.role = spec.role || null; if (enemy.role === 'swooper') { enemy.swooperState = 'approach'; enemy._dropEdge = null; } enemy._entranceTarget = target; enemy._authoredEntranceActive = true; enemy._authoredEntranceSpeed = SPAWN.entranceSpeed; enemy.entranceComplete = false; enemy.state = 'authored_entrance'; enemy.spawnTimeMs = 0; enemy.spawnProtectionDuration = SPAWN.protectionMs; enemy.velocity.x = enemy._entranceTarget.x >= origin.x ? SPAWN.entranceSpeed : -SPAWN.entranceSpeed; enemy.velocity.y = 0; if (window.enemyManager) window.enemyManager.enemies.push(enemy); return enemy; }
     spawnTutorialEnemy(index = 0) { this.player = this.player || window.player; if (!window.enemyManager || !window.Enemy) return null; const playerX = this.player?.position?.x || CAMERA_MIN; const side = Number(index) % 2 === 0 ? -1 : 1; const spec = { type: 'virus', x: playerX + side * (SPAWN.playerExclusionRadius + 120 + Number(index) * 45), y: GROUND_Y }; return this.spawnMissionEnemy(spec, 'tutorial', index, { tutorialEnemy: true }); }
     keepEntranceTargetSafe(enemy) { if (!enemy?._authoredEntranceActive || !enemy._entranceTarget || !this.player?.position) return; const bodyHalf = this.getSpawnBodyHalfWidth(enemy.type); const playerX = this.player.position.x; const clearance = SPAWN.playerExclusionRadius + bodyHalf; const side = enemy.position.x < playerX ? -1 : 1; const targetStaysOnApproachSide = side < 0 ? enemy._entranceTarget.x <= playerX - clearance : enemy._entranceTarget.x >= playerX + clearance; if (targetStaysOnApproachSide) return; const spread = Math.min(180, Math.max(0, Number(enemy._sector1Index) || 0) * 45); let targetX = Math.max(bodyHalf, Math.min(WORLD_WIDTH - bodyHalf, playerX + side * (clearance + spread))); if (Math.abs(targetX - playerX) < clearance) targetX = Math.max(bodyHalf, Math.min(WORLD_WIDTH - bodyHalf, playerX - side * (clearance + spread))); enemy._entranceTarget.x = targetX; }
     onEnemyDefeated(authoritativeTotal, enemy) { if (!this.missionStarted || !enemy || !enemy._sector1MissionEnemy || this.countedEnemies.has(enemy)) return; this.countedEnemies.add(enemy); this.missionDefeats = Math.min(this.requiredEnemyKills, this.missionDefeats + 1); if (window.gameState) window.gameState.enemiesDefeated = this.missionDefeats; if (window.objectivesSystem?.updateMissionDefeatProgress) window.objectivesSystem.updateMissionDefeatProgress(this.missionDefeats, this.requiredEnemyKills); if (this.missionDefeats === this.requiredEnemyKills && !this.jammerRevealed) this.revealJammer(); }
@@ -635,7 +663,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         checkpointAvailable: !!this.bossCheckpoint, retryAvailable: this.canRetryBossCheckpoint() };
     }
     canStompCounter() { return !!(this.boss?.canReceiveDamage && this.boss.stompArmed && this.boss.stompCycle !== this.boss.cycle); }
-    draw(ctx) { this.drawStageSurfaces(ctx); this.drawEncounterGates(ctx); this.drawBoss(ctx); }
+    draw(ctx) { this.drawStageSurfaces(ctx); this.drawRepairRoute(ctx); this.drawEncounterGates(ctx); this.drawBoss(ctx); }
     drawStageSurfaces(ctx) { if (!ctx) return; this.drawSignalLift(ctx); this.drawSignalAmp(ctx); ctx.save(); STAGE_SURFACES.forEach(g => { ctx.shadowColor = '#00ffff'; ctx.shadowBlur = 8; ctx.fillStyle = 'rgba(0,255,255,0.34)'; ctx.fillRect(g.x, g.y - 2, g.w, g.h); ctx.shadowBlur = 0; ctx.strokeStyle = 'rgba(0,255,255,0.92)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(g.x, g.y); ctx.lineTo(g.x + g.w, g.y); ctx.stroke(); }); ctx.restore(); }
     drawSignalLift(ctx) {
       if (!ctx || !this.signalLift || !this.isSignalLiftAvailable()) return;
@@ -794,6 +822,84 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       const x = Math.max(box.x, Math.min(SIGNAL_AMP.x, box.x + box.width));
       const y = Math.max(box.y, Math.min(SIGNAL_AMP.y, box.y + box.height));
       if (Math.hypot(x - SIGNAL_AMP.x, y - SIGNAL_AMP.y) <= SIGNAL_AMP.radius) this.giveSignalAmp();
+    }
+
+    resetRepairs() {
+      this.repairs = REPAIRS.map(r => ({ ...r, collected: false }));
+      this.repairTimeMs = 0; this.repairFeedback = null;
+    }
+    dropCarrierRepair(enemy) {
+      if (!this.missionStarted || !enemy?._repairCarrier || enemy._repairDropped || enemy._purgedByCinematic || enemy.active || !(enemy.health <= 0)) return false;
+      enemy._repairDropped = true;
+      if (this.repairs.some(r => r.id === 'repair.cache-carrier')) return false;
+      this.repairs.push({ id: 'repair.cache-carrier', x: Math.max(80, Math.min(WORLD_WIDTH - 80, enemy.position.x)),
+        y: GROUND_Y + PLAYER_VISUAL_FOOT_OFFSET - 42, surfaceY: GROUND_Y + PLAYER_VISUAL_FOOT_OFFSET, collected: false });
+      return true;
+    }
+    updateRepairs(ms) {
+      if (!this.missionStarted || this.isGameplaySuppressed() || window.tutorialSystem?.isActive?.() || this.isBossCombatLive?.()) return;
+      this.repairTimeMs += ms;
+      if (this.repairFeedback) {
+        this.repairFeedback.age += ms;
+        if (this.repairFeedback.age >= 900) this.repairFeedback = null;
+      }
+      const player = this.player || window.player, box = player?.getHitbox?.();
+      if (!box || player.health <= 0 || player.health >= player.maxHealth || window.hackingSystem?.isActive?.()) return;
+      for (const cell of this.repairs) {
+        if (cell.collected || player.position.y + PLAYER_VISUAL_FOOT_OFFSET > cell.surfaceY + 12) continue;
+        const x = Math.max(box.x, Math.min(cell.x, box.x + box.width));
+        const y = Math.max(box.y, Math.min(cell.y, box.y + box.height));
+        if (Math.hypot(x - cell.x, y - cell.y) > 24) continue;
+        const oldHealth = player.health;
+        try { player.restoreHealth(1); } catch (error) { console.warn('Repair feedback unavailable', error); }
+        // Commit the pickup according to the actual health transaction even
+        // if an optional sound/particle callback fails after health changes.
+        if (player.health > oldHealth) {
+          cell.collected = true;
+          this.repairFeedback = { x: cell.x, y: cell.y, age: 0 };
+          if (player.health >= player.maxHealth) break;
+        }
+      }
+    }
+    drawRepairRoute(ctx) {
+      if (!ctx || !this.missionStarted) return;
+      ctx.save(); ctx.shadowBlur = 0;
+      for (const prop of TRAVERSAL_PROPS) {
+        ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fillRect(prop.x + 8, prop.y + 12, prop.w + 5, prop.h);
+        ctx.fillStyle = '#0b1017'; ctx.fillRect(prop.x - 3, prop.y, prop.w + 6, prop.h);
+        ctx.fillStyle = '#334046'; ctx.fillRect(prop.x + 4, prop.y + 6, prop.w - 8, prop.h - 6);
+        ctx.fillStyle = '#172129'; ctx.fillRect(prop.x + prop.w - 12, prop.y + 5, 12, prop.h - 5);
+        ctx.fillStyle = '#58686b'; ctx.fillRect(prop.x + 4, prop.y + 5, 4, prop.h - 9);
+        ctx.strokeStyle = '#82938e'; ctx.lineWidth = 2; ctx.strokeRect(prop.x, prop.y, prop.w, prop.h);
+        ctx.fillStyle = '#eee8d6'; ctx.fillRect(prop.x, prop.y - 2, prop.w, 4);
+        ctx.fillStyle = '#c0ed55';
+        for (let x = prop.x + 10; x < prop.x + prop.w - 6; x += 24) ctx.fillRect(x, prop.y + 7, 11, 3);
+        if (prop.h > 30) {
+          ctx.fillStyle = '#172129';
+          for (let y = prop.y + 24; y < prop.y + prop.h - 12; y += 18) ctx.fillRect(prop.x + 16, y, prop.w - 32, 7);
+          ctx.fillStyle = '#82938e';
+          for (const x of [prop.x + 8, prop.x + prop.w - 8]) for (const y of [prop.y + 15, prop.y + prop.h - 10]) ctx.fillRect(x - 2, y - 2, 4, 4);
+        } else {
+          ctx.strokeStyle = '#7e9292'; ctx.lineWidth = 5;
+          for (const x of [prop.x + 16, prop.x + prop.w - 16]) { ctx.beginPath(); ctx.moveTo(x, prop.y + 14); ctx.lineTo(x + 15, prop.y + 52); ctx.lineTo(x + 15, prop.y + 14); ctx.stroke(); }
+        }
+      }
+      if (!this.isBossCinematicActive() && !this.isBossCombatLive?.() && this.state !== STATES.LEVEL_COMPLETE) {
+        for (const cell of this.repairs) {
+          if (cell.collected) continue;
+          ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fillRect(cell.x - 20, cell.surfaceY - 2, 40, 4);
+          drawRepairCell(ctx, cell.x, cell.y + Math.sin(this.repairTimeMs / 480 + cell.x) * 3);
+          ctx.fillStyle = '#eee8d6'; ctx.font = 'bold 15px Oxanium, monospace'; ctx.textAlign = 'center';
+          ctx.fillText('+1 REPAIR', cell.x, cell.y - 37);
+        }
+      }
+      if (this.repairFeedback) {
+        const f = this.repairFeedback, t = f.age / 900;
+        ctx.globalAlpha = 1 - t; ctx.fillStyle = '#c0ed55'; ctx.font = 'bold 23px Oxanium, monospace'; ctx.textAlign = 'center';
+        ctx.fillText('+1 REPAIR', f.x, f.y - 30 - t * 45);
+        for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; ctx.fillRect(f.x + Math.cos(a) * t * 66, f.y + Math.sin(a) * t * 46, 3, 9); }
+      }
+      ctx.restore();
     }
     giveSignalAmp() {
       this.signalAmpCollected = true;
@@ -1020,7 +1126,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       }] : [];
       // Static geometry intentionally wins at the top overlap so stepping
       // right transfers support from the lift to the signal awning.
-      for (const surface of STAGE_SURFACES.concat(movingSurfaces)) {
+      for (const surface of this.getStageSurfaces().concat(movingSurfaces)) {
         const surfacePrevY = Number.isFinite(surface.previousY) ? surface.previousY : surface.y;
         if (previousVisualFootY > surfacePrevY || currentVisualFootY < surface.y) continue;
         const crossingT = verticalTravel > 0 ? Math.max(0, Math.min(1, (surface.y - previousVisualFootY) / verticalTravel)) : 1;
@@ -1083,6 +1189,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     pollPreparedAsset(entry) { if (!entry || entry.ready || entry.generation !== this.assetGeneration) return; try { if (!entry.sprite.isLoaded || entry.sprite.isLoaded()) { entry.ready = true; if (entry.onReady) entry.onReady(entry.sprite); } } catch (error) { if (!entry.diagnosticRecorded) { entry.diagnosticRecorded = true; this.recordAssetDiagnostic(entry.key, error); } } }
     recordAssetDiagnostic(key, error) { this.assetDiagnostics = this.assetDiagnostics || []; if (!this.assetDiagnostics.some(entry => entry.key === key)) this.assetDiagnostics.push({ key, message: String(error && error.message || error) }); }
     reset(options = {}) {
+      this.resetRepairs();
       window.BARCODE?.stageFX?.reset(this);
       window.renderer?.resetFollowCamera?.(this.player?.position.x);
       this.resetDistrictSignal();

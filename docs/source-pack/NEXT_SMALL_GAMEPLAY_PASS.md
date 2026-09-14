@@ -1,5 +1,10 @@
 # Recommendations from the current Level 1 build
 
+## Superseded by the selected hijack implementation
+
+The owner selected enemy hijack. The current implemented scope, concrete repair placements, code-native art and test route are in `ENEMY_HIJACK_REPAIR_PASS.md`. The proposals below are historical; their “keep stun” assumption is not the chosen H behavior. Puzzle-time slowdown remains separate from the new allegiance reward.
+
+
 Reviewed against merged PR #51 (`ea2921960477e38c74740dda378fcb513a8f1cc1`) and the narrow walk polish. The owner wants the existing game to look/play better, without a large redesign. These are proposals except for the walk work recorded in CURRENT_STATE.
 
 ## What the current build actually provides

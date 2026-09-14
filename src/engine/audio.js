@@ -600,6 +600,7 @@ window.AudioSystem = class AudioSystem {
       combo10: [660, 1320, 0.32, 'triangle'], defeat: [260, 65, 0.20, 'square'],
       wave: [180, 820, 0.18, 'sawtooth'], discharge: [1240, 180, 0.16, 'square'],
       metal: [190, 38, 0.16, 'square'], tear: [860, 70, 0.11, 'sawtooth'], data: [940, 320, 0.08, 'triangle'],
+      hijack: [240, 960, 0.22, 'square'], hijackRelease: [660, 220, 0.18, 'triangle'],
       restore: [330, 990, 0.28, 'sine'], inspect: [520, 780, 0.12, 'triangle']
     };
     const profile = profiles[kind];

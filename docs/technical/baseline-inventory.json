@@ -135,6 +135,7 @@
     "tools/check-action-combat.js",
     "tools/check-animation-cleanup.js",
     "tools/check-baseline.js",
+    "tools/check-enemy-hijack.js",
     "tools/check-enemy-ownership.js",
     "tools/check-frame-ownership.js",
     "tools/check-intro.js",
@@ -444,13 +445,13 @@
     {
       "global": "window.EnemyManager",
       "file": "src/game/enemies.js",
-      "line": 1198,
+      "line": 1205,
       "loaded": true
     },
     {
       "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 1671,
+      "line": 1783,
       "loaded": true
     },
     {

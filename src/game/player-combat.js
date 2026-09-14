@@ -128,7 +128,7 @@ window.FILE_MANIFEST.push({
       const enemies = enemyManager && Array.isArray(enemyManager.enemies) ? enemyManager.enemies : [];
       const range = this.getAuthoritativeRange(judgment, { nextSuccess });
       const pattern = this.getPattern({ nextSuccess }), facing = player.facing || 1;
-      const eligible = enemies.filter(e => e?.active && e.type !== 'broadcast_jammer' && e.type !== 'boss');
+      const eligible = enemies.filter(e => e?.active && !enemyManager?.isHijacked?.(e) && e.type !== 'broadcast_jammer' && e.type !== 'boss');
       const distance = (a, b) => Math.hypot(a.position.x - b.position.x, a.position.y - b.position.y);
       const targets = eligible.filter(e => distance(player, e) <= range);
       const links = targets.map(target => ({ target, from: player, via: 'pulse' }));

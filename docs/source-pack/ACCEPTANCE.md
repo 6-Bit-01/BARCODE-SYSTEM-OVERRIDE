@@ -1,5 +1,12 @@
 # Acceptance and Test Status
 
+## Enemy hijack / repair route review
+
+Use the exact new review SHA from the PR/source receipt. Walk PR #52 is already merged at `66c17d1880f5de933e9b928833e5dd2bfff6a817`; this new draft targets main directly and preserves all completed walk and hijack work. Follow `ENEMY_HIJACK_REPAIR_PASS.md`'s focused Makko route: both H puzzles, all three ordinary target types, one ally, enemy combat, player-friendly fire exclusion, target death/failure/cancel, early release, expiry/reboot, pause/restart, full-health/injured repairs, one carrier drop, both directions on the two supports, gate counts and boss retry. Preserve intro/music/lift/Cat/Amp/lore/Jammer/boss smoke checks.
+
+Capture imported SHA, PASS/FAIL and a clip covering target lock → conversion → enemy hit → expiry/reboot → repair. Automated checks and native Canvas review do not replace this owner test. After acceptance/merge re-import actual main merge SHA into a fresh Makko preview, repeat the route and record SHA/evidence. This pass's base/rollback is `66c17d1880f5de933e9b928833e5dd2bfff6a817`, retaining the merged walk; earlier pre-walk rollback is `ea2921960477e38c74740dda378fcb513a8f1cc1`. Neither merge nor automation claims a Makko PASS.
+
+
 ## Current review: stable 6 Bit walk and compact atlas
 
 Base/rollback: merged #51, `ea2921960477e38c74740dda378fcb513a8f1cc1`. Import the exact published head of `agent/player-motion-polish`, identified on its PR and generated receipt. Earlier pending #51 wording below is historical.
