@@ -474,11 +474,14 @@ window.Player = class Player {
       if (this.state === 'jump' && !this.cinematicPoseActive && !held) {
         const vy = this.velocity.y;
         frame = vy < -160 ? Math.min(8, 4 + Math.floor((920 + vy) / 180))
-          : vy < 160 ? 10 : Math.min(16, 13 + Math.floor((vy - 160) / 230));
+          : vy < 160 ? 9 + Math.floor((vy + 160) / 80) : Math.min(16, 13 + Math.floor((vy - 160) / 230));
       }
-      if (landing && !held) frame = Math.min(21, 17 + Math.floor((90 - landingMs) / 18));
+      if (landing && !held) frame = Math.min(26, 17 + Math.floor((90 - landingMs) / 9));
       this.playAnimation(landing ? 'jump' : this.state, frame);
-      if (!this.cinematicPoseActive && !held && frame === null) this.sprite.update(deltaTime);
+      if (!this.cinematicPoseActive && !held && frame === null) {
+        if (window.BARCODE?.SpritePlayback) window.BARCODE.SpritePlayback.update(this.sprite, deltaTime);
+        else this.sprite.update(deltaTime);
+      }
     } catch (error) {
       console.error('Error updating sprite animation:', error?.message || error);
     }

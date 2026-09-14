@@ -1,5 +1,10 @@
 # Recovery checkpoint — September 14
 
+- Complete the saved PR #49 recovery with all twelve verified atlas files, working immutable delivery links, direct presentation owners and the previously omitted playback integration. The complete local test suite and all-file syntax pass. Retain the exact base/rollback and owner Makko review before merge.
+
+
+Publication recovery also preserves the previously saved SpritePlayback clock, stable enemy idle references, and all jump apex/landing drawings from `375de26`. The existing PR #49 shim is replaced by these direct production owners, keeping one implementation of each effect. The twelve atlas files are the exact saved `61d691d` outputs.
+
 ## September 14, 2026 — Load the new sprites inside Makko after merged #47
 
 - Replace the active loader's relative manifest URL with the already-published immutable manifest; identify all twelve new clips before reusing a preloaded registry.
@@ -25,6 +30,15 @@
 Preserved the recovered 547-frame model-art implementation and live HUD. Draft PR #46 is open. Runtime validation and immutable delivery pins are in progress; missing final boss and vehicle exports are documented. Working originals remain for missing clips.
 
 # Changelog
+
+## September 14, 2026 — Level 1 presentation smoothing after merged #48
+
+- Place the Jammer on the authored sidewalk contact and remove its stale hard-coded vertical offset.
+- Apply a deterministic 9/82/9 premultiplied-RGBA temporal pass to all twelve installed atlases. Preserve 547 frames, action IDs, durations, cells and calibrated anchors; record input/output hashes and rebuild provenance.
+- Composite background car lighting behind buildings and foreground car lighting in front; move the tutorial objectives below score/lore.
+- Relocate the Studio Cat to Cache Overpass and make its rooftop dash a first-discovery-only event while preserving `egg.l01.studio-rat` saves.
+- Replace the narrow encounter strips with tall, sidewalk-aligned perspective digital walls without changing their collision/unlock owner.
+- Preserve gameplay, intro, HUD, music, mission and boss behavior. Publish as one draft review; owner Makko acceptance remains required before merge.
 
 > **September 13 production checkpoint — in progress.** The owner approved integrating the model-based artwork and HUD as one combined pass on `agent/model-art-hud-integration`, from merged #45. Twelve complete-pose clips (547 frames) and the live HUD are prepared. Final two boss clips, vehicle loops, scenery/anchor calibration, delivery pins and full validation remain. No PR or Makko acceptance is claimed at this checkpoint. See `MODEL_ART_HUD_IMPLEMENTATION.md`; older review-only sections below are historical.
 

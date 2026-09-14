@@ -670,7 +670,7 @@ window.TutorialSystem = class TutorialSystem {
     // Draw tutorial objectives (only during tutorial, disappears after completion)
     if (this.objectives.length > 0 && !this.completed) {
       const objX = 1450;
-      const objY = 50;
+      const objY = 220;
       const objWidth = 400;
       const objHeight = Math.min(1080, this.objectives.length * 30 + 120);
       

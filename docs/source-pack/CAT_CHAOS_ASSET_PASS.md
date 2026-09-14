@@ -2,7 +2,7 @@
 
 Owner scope after merged PR #44, base `4b207c5570a6bccd86b95c702c11e1e6606bbf01`. One combined review on `agent/level1-cat-chaos-assets`.
 
-1. **Studio Rats means cats.** Replace the literal rodent with a recognizable feline sprite and update active story references. Retain `egg.l01.studio-rat` and the existing inspection/archive facts, crew response and panel-margin gag.
+1. **Studio Rats means cats.** Replace the literal rodent with a recognizable feline sprite and update active story references. Retain `egg.l01.studio-rat` and the existing inspection/archive facts and crew response. The later presentation-smoothing pass relocates the cat to Cache Overpass and makes its rooftop dash first-discovery-only.
 2. **Reusable arrow artwork.** Replace the generic active Jammer pointer with a distressed BARCODE arrow asset. Keep one guidance owner, its projected direction, safe edges, visibility and distance rules; future targets can reuse the asset renderer.
 3. **Boss attack artwork.** Replace flat orange pulse rectangles with animated jagged energy. Preserve the warning interval, bright readable collision front, pulse geometry, musical boundaries and damage rules.
 4. **More chaotic FX.** Vary silhouettes, rotations, fragments, burst timing and branching. Sample visual randomness when an event is created; drawing must not mutate simulation, sample gameplay randomness or flicker unpredictably between identical renders. Keep bounded event/particle counts, pause/restart cleanup, steady HUD and reduced-effect settings.
@@ -12,7 +12,7 @@ Use built-in image generation for new raster assets; include final prompts, sour
 
 ## Implementation and measurements
 
-Three generated assets are published at immutable art checkpoint `e35ebe3ae8bfc547815a5a93c952424fa067af5d`: a four-frame tuxedo cat walk, one distressed cream/lime/violet barcode arrow, and four purple/cyan/amber ground-pulse frames. All three hosted byte hashes were verified against the bundled manifest. Total compressed runtime art is 365,944 bytes. The cat crosses beside the inspection caption, keeping its text legible. The saved `egg.l01.studio-rat` ID remains compatible.
+Three generated assets are published at immutable art checkpoint `e35ebe3ae8bfc547815a5a93c952424fa067af5d`: a four-frame tuxedo cat walk, one distressed cream/lime/violet barcode arrow, and four purple/cyan/amber ground-pulse frames. All three hosted byte hashes were verified against the bundled manifest. Total compressed runtime art is 365,944 bytes. The later presentation-smoothing pass moves the cat animation into the rooftop world layer and makes it one-time. The saved `egg.l01.studio-rat` ID remains compatible.
 
 | Boss clip | Source frames | Frame pixels | Neutral body pixels | Effective scale before | Effective scale now |
 | --- | --- | --- | --- | --- | --- |

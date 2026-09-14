@@ -165,7 +165,7 @@ for(const fps of [30,60,120,144]) {
   p.spriteReady=true;p.sprite=createSprite(playerClips);
   const update=p.sprite.update.bind(p.sprite);p.sprite.update=ms=>{ticks++;update(ms);};
   p.state='jump';p.grounded=false;const count=timers.size;
-  for(const [vy,lo,hi] of [[-600,4,8],[0,10,10],[700,13,16]]) {p.velocity.y=vy;p.updateSpriteAnimation(16);assert(p.animationRef.currentFrame>=lo&&p.animationRef.currentFrame<=hi);}
+  for(const [vy,lo,hi] of [[-600,4,8],[0,11,11],[700,13,16]]) {p.velocity.y=vy;p.updateSpriteAnimation(16);assert(p.animationRef.currentFrame>=lo&&p.animationRef.currentFrame<=hi);}
   p.position.y=500;p.impactHoldMs=45;p.velocity.y=200;const oldY=p.position.y,before=ticks;p.update(16);
   assert(p.position.y!==oldY,'impact does not freeze physics');assert.strictEqual(ticks,before);
   assert.strictEqual(timers.size,count);

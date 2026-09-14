@@ -43,10 +43,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
   ]);
 
   const ENCOUNTER_GATES = Object.freeze([
-    { id: 'gate_1', encounterId: 'encounter_1', x: 1320, y: 620, w: 34, h: 270 },
-    { id: 'gate_2', encounterId: 'encounter_2', x: 2110, y: 620, w: 34, h: 270 },
-    { id: 'gate_3', encounterId: 'encounter_3', x: 3000, y: 620, w: 34, h: 270 },
-    { id: 'gate_4', encounterId: 'encounter_4', x: 4010, y: 620, w: 34, h: 270 }
+    { id: 'gate_1', encounterId: 'encounter_1', x: 1320, y: 202, w: 58, h: 620, depthX: 112, depthY: -54 },
+    { id: 'gate_2', encounterId: 'encounter_2', x: 2110, y: 202, w: 58, h: 620, depthX: 112, depthY: -54 },
+    { id: 'gate_3', encounterId: 'encounter_3', x: 3000, y: 202, w: 58, h: 620, depthX: 112, depthY: -54 },
+    { id: 'gate_4', encounterId: 'encounter_4', x: 4010, y: 202, w: 58, h: 620, depthX: 112, depthY: -54 }
   ]);
 
   const CINEMATIC = Object.freeze({
@@ -294,7 +294,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     prepareBossAssets() { if (this.bossAssetsRequested) return; this.bossAssetsRequested = true; this.requestSpriteOnce('boss', 'sector_1_boss_sector1boss', sprite => { this.preloadedBossSprite = sprite; this.preparedBossAnimations = ['sector_1_boss_walk_walk', 'sector_1_boss_attack_attack', 'sector_1_boss_idle_idle']; }); }
     prepareBossSprite() { if (!this.boss) return; if (!this.boss.sprite && this.preloadedBossSprite && !this.boss.fallbackLocked) this.boss.sprite = this.preloadedBossSprite; if (this.boss.sprite?.isLoaded?.()) { this.boss.spriteReady = true; if (this.boss.activeAnimation && this.boss.playedAnimation !== this.boss.activeAnimation && this.boss.sprite.play) { this.boss.animationRef = this.boss.sprite.play(this.boss.activeAnimation, this.boss.activeAnimation !== 'sector_1_boss_attack_attack') || null; this.boss.playedAnimation = this.boss.activeAnimation; } } }
     setBossAnimation(animation, loop) { this.prepareBossSprite(); if (!this.boss || this.boss.activeAnimation === animation) return this.boss?.animationRef || null; this.boss.activeAnimation = animation; this.boss.animationRef = null; if (this.boss.spriteReady && this.boss.sprite?.play) { this.boss.animationRef = this.boss.sprite.play(animation, loop) || null; this.boss.playedAnimation = animation; } return this.boss.animationRef; }
-    updateBossSprite(delta) { this.prepareBossSprite(); if (this.boss?.spriteReady && this.boss.sprite?.update) this.boss.sprite.update(delta); }
+    updateBossSprite(delta) { this.prepareBossSprite(); if (this.boss?.spriteReady && this.boss.sprite?.update) { if (window.BARCODE?.SpritePlayback) window.BARCODE.SpritePlayback.update(this.boss.sprite, delta); else this.boss.sprite.update(delta); } }
     updateBossWalk(delta) { this.setBossAnimation('sector_1_boss_walk_walk', true); this.boss.x -= CINEMATIC.bossSpeed * (delta / 1000); this.updateBossSprite(delta); if (this.boss.x <= CINEMATIC.bossStopX) { this.boss.x = CINEMATIC.bossStopX; this.startBossCloseUp(); if (window.gameState) window.gameState.collectionMessage = { text: 'SIGNAL RESTORED. BOSS APPROACHING.', timer: 160 }; } }
     startBossCloseUp() { this.state = STATES.BOSS_CLOSE_UP; this.phaseElapsed = 0; this.closeUpStartZoom = this.cinematicZoomOverride; this.boss.state = 'idle'; this.setBossAnimation('sector_1_boss_idle_idle', true); }
     updateBossCloseUp(delta) { this.phaseElapsed += delta; const t = Math.min(1, this.phaseElapsed / CINEMATIC.closeUpMs); this.cinematicZoomOverride = lerp(this.closeUpStartZoom, this.cinematicCloseZoom, easeOutCubic(t)); this.updateBossSprite(delta); if (t >= 1) { this.cinematicZoomOverride = this.cinematicCloseZoom; this.startBossFlourish(); } }
@@ -733,7 +733,19 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         const fade = 1 - progress;
         const height = gate.h * fade * fade;
         const top = gate.y + gate.h - height;
+        const depthX = gate.depthX * fade;
+        const depthY = gate.depthY * fade;
         ctx.save(); ctx.globalAlpha = fade;
+        // A tall holographic slab crosses the sidewalk in its perspective,
+        // rather than reading as a narrow pole that the player could jump.
+        ctx.fillStyle = opening ? 'rgba(98,255,221,0.07)' : 'rgba(174,66,215,0.1)';
+        ctx.beginPath();
+        ctx.moveTo(gate.x + gate.w, top);
+        ctx.lineTo(gate.x + gate.w + depthX, top + depthY);
+        ctx.lineTo(gate.x + gate.w + depthX, top + height + depthY);
+        ctx.lineTo(gate.x + gate.w, top + height);
+        ctx.closePath();
+        ctx.fill();
         ctx.fillStyle = opening ? 'rgba(98,255,221,0.1)' : 'rgba(174,66,215,0.12)';
         ctx.fillRect(gate.x, top, gate.w, height);
         const flicker = animate ? 0.06 * Math.sin(time / 83) * Math.sin(time / 127) : 0;
@@ -743,6 +755,22 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
           ctx.fillRect(left, top, bar % 3 ? 1.5 : 3, height);
         }
         ctx.fillStyle = '#a6ffe8'; ctx.fillRect(gate.x - 1, top, 2, height); ctx.fillRect(gate.x + gate.w - 1, top, 2, height);
+        ctx.strokeStyle = opening ? '#c9fff1' : '#eda6ff';
+        ctx.lineWidth = 3;
+        for (const y of [top, top + height]) {
+          ctx.beginPath();
+          ctx.moveTo(gate.x - 4, y);
+          ctx.lineTo(gate.x + gate.w + depthX, y + depthY);
+          ctx.stroke();
+        }
+        ctx.lineWidth = 1;
+        for (let lane = 1; lane < 5; lane++) {
+          const laneT = lane / 5;
+          ctx.beginPath();
+          ctx.moveTo(gate.x + gate.w, top + height * laneT);
+          ctx.lineTo(gate.x + gate.w + depthX, top + height * laneT + depthY);
+          ctx.stroke();
+        }
         ctx.fillStyle = opening ? '#c9fff1' : '#eda6ff';
         const scanY = top + (animate ? (time / 850) % 1 : 0.5) * Math.max(0, height - 3);
         ctx.fillRect(gate.x - 3, scanY, gate.w + 6, 3);

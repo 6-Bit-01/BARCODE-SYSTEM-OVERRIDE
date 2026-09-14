@@ -7,6 +7,7 @@
   "externalScriptOrder": [
     "/lib/MakkoEngine.min.js",
     "src/utils/math.js",
+    "src/engine/sprite-playback.js",
     "src/core/fullscreen.js",
     "src/game/lore-records.js",
     "src/game/pause-menu.js",
@@ -60,6 +61,7 @@
   ],
   "loadedRepositoryJs": [
     "src/utils/math.js",
+    "src/engine/sprite-playback.js",
     "src/core/fullscreen.js",
     "src/game/lore-records.js",
     "src/game/pause-menu.js",
@@ -131,6 +133,7 @@
     "tools/audit-syntax-all.js",
     "tools/baseline-common.js",
     "tools/check-action-combat.js",
+    "tools/check-animation-cleanup.js",
     "tools/check-baseline.js",
     "tools/check-enemy-ownership.js",
     "tools/check-frame-ownership.js",
@@ -162,6 +165,10 @@
     "loadedFiles": [
       {
         "file": "src/utils/math.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/engine/sprite-playback.js",
         "status": "pass"
       },
       {
@@ -359,11 +366,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 50,
+        "index": 51,
         "status": "pass"
       },
       {
-        "index": 52,
+        "index": 53,
         "status": "pass"
       }
     ]
@@ -437,13 +444,13 @@
     {
       "global": "window.EnemyManager",
       "file": "src/game/enemies.js",
-      "line": 1191,
+      "line": 1198,
       "loaded": true
     },
     {
       "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 1664,
+      "line": 1671,
       "loaded": true
     },
     {
@@ -545,7 +552,7 @@
     {
       "global": "window.player",
       "file": "src/game/player.js",
-      "line": 1717,
+      "line": 1720,
       "loaded": true
     },
     {
@@ -611,37 +618,37 @@
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 359,
+      "line": 363,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 386,
+      "line": 390,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 448,
+      "line": 452,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 466,
+      "line": 470,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 546,
+      "line": 550,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 586,
+      "line": 590,
       "loaded": false
     },
     {
@@ -706,6 +713,7 @@
     "style.css",
     "/lib/MakkoEngine.min.js",
     "src/utils/math.js",
+    "src/engine/sprite-playback.js",
     "src/core/fullscreen.js",
     "src/game/lore-records.js",
     "src/game/pause-menu.js",

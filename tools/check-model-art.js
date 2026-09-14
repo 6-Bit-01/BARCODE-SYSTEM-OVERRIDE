@@ -62,6 +62,9 @@ for (const [character, record] of Object.entries(original.characters)) {
     }
     const cal = calibration[clip];
     assert(cal, `${clip}: production calibration exists`);
+    assert.strictEqual(cal.smoothing?.version, 1, `${clip}: temporal smoothing provenance exists`);
+    assert.strictEqual(cal.smoothing?.method, 'premultiplied-rgba-temporal-3-tap', `${clip}: approved whole-frame smoothing method`);
+    assert.deepStrictEqual(cal.smoothing?.weights, [0.09, 0.82, 0.09], `${clip}: restrained neighboring-frame blend`);
     const metadata = json(localPinned(entry.json, clip, 'json'));
     const bytes = fs.readFileSync(path.join(root, localPinned(entry.image, clip, 'webp')));
     const dimensions = webpSize(bytes);

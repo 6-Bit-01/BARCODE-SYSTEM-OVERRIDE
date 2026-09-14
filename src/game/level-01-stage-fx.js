@@ -4,8 +4,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
 (function() {
   const B = window.BARCODE = window.BARCODE || {}, TAU = Math.PI * 2;
   const DETAILS = Object.freeze([
-    { id: 'egg.l01.studio-rat', x: 590, y: 822, name: 'STUDIO RAT', speaker: 'CACHE BACK',
-      lines: ['That cat just stole a bolt from the panel border.', 'Studio Rats. Four paws, no respect for production equipment.'] },
+    { id: 'egg.l01.studio-rat', x: 1680, y: 330, name: 'STUDIO RAT', speaker: 'CACHE BACK',
+      lines: ['That cat just stole a bolt from the rooftop relay.', 'Studio Rats. Four paws, no respect for production equipment.'] },
     { id: 'egg.l01.cliff-maintenance', x: 865, y: 492, name: 'MAINTENANCE PLATE', speaker: 'CLIFF',
       lines: ['Two clean beats. That is all the lift needs.', 'I fixed the wiring. You still have to do the climbing.'] },
     { id: 'egg.l01.witty-route', x: 2475, y: 358, name: 'ROUTE MARK', speaker: 'WittyF0x',
@@ -53,7 +53,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
     findNearby() {
       if (!this.canInspect()) return null;
       const p = window.player;
-      return DETAILS.find(d => Math.abs(d.x - p.position.x) < 95 && Math.abs(d.y - (p.position.y + 72)) < 70) || null;
+      const catId = DETAILS[0].id;
+      return DETAILS.find(d => (d.id !== catId || !this.archive()?.hasEgg?.(catId) || this.message?.id === catId) &&
+        Math.abs(d.x - p.position.x) < 95 && Math.abs(d.y - (p.position.y + 72)) < 70) || null;
     }
     inspect() {
       const detail = this.findNearby();
@@ -62,7 +64,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
       if (this.message?.id === detail.id) { this.message = null; return { ok: true, reason: 'closed' }; }
       const fresh = this.archive()?.collectEgg?.(detail.id) || false;
       this.message = { ...detail, line: 0, age: 0, duration: 7200 };
-      if (detail.id === DETAILS[0].id) this.ratAge = 0;
+      if (detail.id === DETAILS[0].id && fresh) this.ratAge = 0;
       window.audioSystem?.playCombatCue?.('inspect');
       return { ok: true, reason: fresh ? 'discovered' : 'revisit', id: detail.id };
     }
@@ -168,13 +170,48 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
       ctx.fillStyle = '#a4ffe8'; ctx.fillRect(22, -12, 3, 3); ctx.fillRect(-10, 1, 9, 3); ctx.fillRect(8, 1, 9, 3);
       ctx.restore();
     }
+    drawTrafficLighting(ctx, { foreground = false } = {}) {
+      if (!ctx || !this.owner?.missionStarted) return;
+      const ships = (window.spaceShipSystem?.ships || []).filter(ship => !!ship.isForeground === !!foreground).slice(0, 3);
+      ctx.save();
+      ctx.fillStyle = '#b6e9fa';
+      ctx.globalAlpha = foreground ? 0.1 : 0.045;
+      for (const ship of ships) {
+        const direction = ship.direction || 1;
+        ctx.beginPath();
+        ctx.moveTo(ship.x, ship.y + 60);
+        ctx.lineTo(ship.x + 320 * direction, 824);
+        ctx.lineTo(ship.x + 520 * direction, 824);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.restore();
+    }
     drawWorld(ctx) {
       if (!this.owner?.missionStarted) return;
       ctx.save();
       for (const d of DETAILS) {
         if (!B.combatFX?.visible(d.x, d.y, 120)) continue;
         const found = this.archive()?.hasEgg?.(d.id);
-        if (d === DETAILS[0]) { if (this.ratAge === null) this.drawRat(ctx, d.x, d.y); }
+        if (d === DETAILS[0]) {
+          if (this.ratAge !== null) {
+            const t = Math.min(1, this.ratAge / 3600);
+            const x = d.x + t * 430;
+            const y = d.y - Math.sin(t * Math.PI) * 54;
+            ctx.save();
+            ctx.globalAlpha = Math.sin(t * Math.PI);
+            ctx.strokeStyle = '#eee6d4';
+            ctx.lineWidth = 3;
+            for (let i = 0; i < 4; i++) {
+              ctx.beginPath();
+              ctx.moveTo(x - 42 - i * 22, y - 18 + i * 9);
+              ctx.lineTo(x - 88 - i * 32, y - 18 + i * 9);
+              ctx.stroke();
+            }
+            ctx.restore();
+            this.drawRat(ctx, x, y, 1.12);
+          } else if (!found) this.drawRat(ctx, d.x, d.y);
+        }
         else {
           ctx.save(); ctx.translate(d.x, d.y - 26); ctx.rotate(d === DETAILS[3] ? -0.1 : 0);
           ctx.fillStyle = d === DETAILS[3] ? '#efe5cd' : '#142936'; ctx.strokeStyle = '#a6dfd6'; ctx.lineWidth = 2;
@@ -186,12 +223,6 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
         }
         if (!found) { ctx.strokeStyle = '#fff3c8'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(d.x, d.y - 67, 4, 0, TAU); ctx.stroke(); }
       }
-      for (const ship of (window.spaceShipSystem?.ships || []).slice(0, 3)) {
-        const x = ship.x + (window.gameCamera?.centerX || 960) - 960;
-        ctx.globalAlpha = ship.isForeground ? 0.1 : 0.045; ctx.fillStyle = '#b6e9fa';
-        ctx.beginPath(); ctx.moveTo(x, ship.y + 60); ctx.lineTo(x + 320 * ship.direction, 824); ctx.lineTo(x + 520 * ship.direction, 824); ctx.closePath(); ctx.fill();
-      }
-      ctx.globalAlpha = 1;
       for (const e of this.events) {
         const t = e.age / e.duration, fade = Math.sin(t * Math.PI);
         ctx.save(); ctx.globalAlpha = fade * 0.7; ctx.strokeStyle = COLORS[e.zone] || '#a9ffeb'; ctx.fillStyle = ctx.strokeStyle;
@@ -257,13 +288,6 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
       } else if (this.nearby) {
         ctx.fillStyle = '#eee6d4'; ctx.fillRect(30, 947, 500, 49); ctx.fillStyle = '#121c2b'; ctx.font = 'bold 18px monospace';
         ctx.fillText(`${key} / INSPECT ${this.nearby.name}`, 48, 972);
-      }
-      if (this.ratAge !== null) {
-        const t = this.ratAge / 3600, x = 990 + t * 770, y = 1020 + Math.sin(t * Math.PI) * 15;
-        ctx.strokeStyle = '#eee6d4'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(940, 1022); ctx.lineTo(1830, 1022); ctx.stroke();
-        ctx.fillStyle = '#080c17'; ctx.fillRect(x - 69, y - 8, 138, 20); this.drawRat(ctx, x, y, 1.2);
-        ctx.strokeStyle = '#a7b5c7'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x - 24, y - 4); ctx.lineTo(x - 59, y + 3); ctx.stroke();
-        ctx.fillStyle = '#dbe2e8'; ctx.fillRect(x - 72, y - 4, 15, 12); ctx.fillStyle = '#15202c'; ctx.fillRect(x - 68, y - 1, 7, 6);
       }
       ctx.restore();
     }

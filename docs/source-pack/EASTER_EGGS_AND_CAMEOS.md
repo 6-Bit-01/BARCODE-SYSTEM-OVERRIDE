@@ -8,7 +8,7 @@ The owner approved the four optional details below as part of all ten impact/dis
 
 | Stable ID | Actual placement | Response / presentation |
 |---|---|---|
-| `egg.l01.studio-rat` | Street x590 by the Signal Lift | Cache Back notices the stolen panel bolt; a Studio Cat crosses the bottom margin; results callback after discovery. |
+| `egg.l01.studio-rat` | Cache Overpass x1680 | Cache Back notices the stolen relay bolt; a Studio Cat makes one rooftop dash on first discovery; results callback after discovery. |
 | `egg.l01.cliff-maintenance` | First roof x865, visible-foot y492 | Cliff's two-beat lift maintenance note. |
 | `egg.l01.witty-route` | Firewall canopy x2475, visible-foot y358 | WittyF0x points toward the existing Signal Amp roof. |
 | `egg.l01.venue-flyer` | Street x1840 | DJ Floppydisc's BARCODE venue flyer response. |

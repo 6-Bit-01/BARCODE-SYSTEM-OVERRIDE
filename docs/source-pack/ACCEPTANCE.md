@@ -1,5 +1,19 @@
 # Acceptance and Test Status
 
+## Level 1 presentation smoothing after merged #48
+
+Base/rollback: `de9a63ea9311aba23d6a9ad6c3dca3b5e8aa50a5`. Import the exact head of `agent/level1-presentation-smoothing-recovery`; owner Makko acceptance is required before merge.
+
+1. Watch 6 Bit, Virus, Corrupted, Firewall, Jammer and boss idle through complete loops. Confirm the approved designs/actions remain recognizable, texture/silhouette flicker is reduced, and feet/contacts do not drift. Jump and Firewall attack endpoints must still read cleanly.
+2. Reveal the Jammer and confirm its visible foot sits on the same 822 sidewalk contact as the actors, without changing range, health or the destruction sequence.
+3. Traverse with normal and foreground cars. Background light cones must pass behind buildings; foreground-car light remains over the buildings and behind its car.
+4. Run the tutorial and confirm the pink objective card has its own space below score/lore. Inspect the Studio Cat on Cache Overpass: it dashes across the rooftop once, is away from the lift, retains both crew lines and does not replay after collection or reload.
+5. Enter all four encounters. Each closed barrier must read as a tall digital wall spanning the sidewalk perspective, then dissolve on the existing immediate unlock clock. Confirm jumping, collision and progression are unchanged.
+
+Automated checks preserve all atlas counts/timing/anchors, verify hashes and smoothing provenance, and exercise the presentation ownership changes. They do not certify live Makko playback, audio, or final visual feel.
+
+Recovery verification: all twelve remote atlas hashes and sizes match the saved outputs; delivery is pinned to `1edf7fe6a011b88d511b955db9d1342f78912009`. The complete local test suite and all-file syntax pass, including equal-time playback at 30/60/120/144 Hz, irregular frame deltas, native speed/pause/one-shot behavior, stable idle references and full jump apex/recovery drawings. Record the exact imported PR head plus short clips of character transitions and the Jammer-to-boss sequence during owner review. After acceptance and merge, re-import the actual new `main` merge SHA into Makko, reopen its preview, and repeat the five checks above plus title/intro, lift, H/R, audio, boss win/loss/retry and restart. Roll back by re-importing `de9a63ea9311aba23d6a9ad6c3dca3b5e8aa50a5` if required.
+
 ## Makko sprite-loading repair after merged #47
 
 Base/rollback: `8f09568eeb9726f7b80fb43e1ecb3f6e4672bea2`. Import the repair branch `agent/fix-makko-sprite-loading` at its published review head.
