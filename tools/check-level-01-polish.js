@@ -267,7 +267,7 @@ console.log('Polish chunk 1: elapsed shake, accepted damage HUD, committed warni
   w.gameState.paused = true; fx.update(1000); assert.deepStrictEqual(copy(fx), before);
   w.gameState.paused = false; fx.update(760);
   const arrival = fx.fragmentFlightPose(flight, p => projection.worldToScreen(p));
-  assert.strictEqual(arrival.x, 1810); assert(Math.abs(arrival.y - 50) < 1e-8);
+  assert.strictEqual(arrival.x, 1763.125); assert(Math.abs(arrival.y - 165.625) < 1e-8);
   assert.strictEqual(w.gameState.score, initialScore + 500, 'arrival never awards again');
   fx.update(320); assert(!fx.events.some(e => e.kind === 'data-flight'));
   fx.dataCollected(fragment); w.BARCODE.playerCombat.reset(); assert.strictEqual(fx.events.length, 0);

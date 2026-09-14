@@ -5,128 +5,132 @@
       "animations": {
         "6_bit_idle_idle": {
           "fps": 12,
-          "json": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/bb9eb111-39a1-47a8-9942-cf7dd2c6524e/6_bit_idle_idle.json?t=1762977008157",
-          "image": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/bb9eb111-39a1-47a8-9942-cf7dd2c6524e/6_bit_idle_idle.webp?t=1762977008157",
+          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/6_bit_idle_idle.json",
+          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/6_bit_idle_idle.webp",
           "anchor": {
-            "x": 43,
-            "y": 95,
-            "strategy": "bottom-center",
+            "x": 160,
+            "y": 308,
             "normalized": {
               "x": 0.5,
-              "y": 0.9895833333333334
-            }
+              "y": 0.9625
+            },
+            "strategy": "bottom-center"
           },
           "metadata": {
             "anchor": {
-              "x": 43,
-              "y": 95,
-              "strategy": "bottom-center",
+              "x": 160,
+              "y": 308,
               "normalized": {
                 "x": 0.5,
-                "y": 0.9895833333333334
-              }
-            }
+                "y": 0.9625
+              },
+              "strategy": "bottom-center"
+            },
+            "scale": 1
           },
           "priority": "medium",
           "dimensions": {
-            "width": 86,
-            "height": 96
+            "width": 320,
+            "height": 320
           },
           "frameCount": 26,
           "animationLength": 2.1666666666666665
         },
         "6_bit_jump_jump": {
           "fps": 12,
-          "json": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/ba623379-dfb3-491c-8bd1-f045d54e169c/6_bit_jump_jump.json?t=1762977008157",
-          "image": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/ba623379-dfb3-491c-8bd1-f045d54e169c/6_bit_jump_jump.webp?t=1762977008157",
+          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/6_bit_jump_jump.json",
+          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/6_bit_jump_jump.webp",
           "anchor": {
-            "x": 21,
-            "y": 95,
-            "strategy": "bottom-center",
+            "x": 96,
+            "y": 308,
             "normalized": {
-              "x": 0.5121951219512195,
-              "y": 0.9895833333333334
-            }
+              "x": 0.5,
+              "y": 0.9625
+            },
+            "strategy": "bottom-center"
           },
           "metadata": {
             "anchor": {
-              "x": 21,
-              "y": 95,
-              "strategy": "bottom-center",
+              "x": 96,
+              "y": 308,
               "normalized": {
-                "x": 0.5121951219512195,
-                "y": 0.9895833333333334
-              }
-            }
+                "x": 0.5,
+                "y": 0.9625
+              },
+              "strategy": "bottom-center"
+            },
+            "scale": 1
           },
           "priority": "medium",
           "dimensions": {
-            "width": 41,
-            "height": 96
+            "width": 192,
+            "height": 320
           },
           "frameCount": 27,
           "animationLength": 2.25
         },
         "6_bit_walk_walk": {
           "fps": 12,
-          "json": "https://dcnmwoxzefwqmvvkpqap.supabase.co/storage/v1/object/public/sprite-sheets/bbe67ae6-69c4-4f57-ac28-b63cb61221c4/6_bit_walk_walk.json?t=1762977008157",
-          "image": "https://dcnmwoxzefwqmvvkpqap.supabase.co/storage/v1/object/public/sprite-sheets/bbe67ae6-69c4-4f57-ac28-b63cb61221c4/6_bit_walk_walk.webp?t=1762977008157",
+          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/6_bit_walk_walk.json",
+          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/6_bit_walk_walk.webp",
           "anchor": {
-            "x": 33,
-            "y": 94,
-            "strategy": "bottom-center",
+            "x": 144,
+            "y": 308,
             "normalized": {
               "x": 0.5,
-              "y": 0.9791666666666666
-            }
+              "y": 0.9625
+            },
+            "strategy": "bottom-center"
           },
           "metadata": {
             "anchor": {
-              "x": 33,
-              "y": 94,
-              "strategy": "bottom-center",
+              "x": 144,
+              "y": 308,
               "normalized": {
                 "x": 0.5,
-                "y": 0.9791666666666666
-              }
-            }
+                "y": 0.9625
+              },
+              "strategy": "bottom-center"
+            },
+            "scale": 1
           },
           "priority": "medium",
           "dimensions": {
-            "width": 66,
-            "height": 96
+            "width": 288,
+            "height": 320
           },
           "frameCount": 48,
           "animationLength": 4
         },
         "6_bit_r__h_mode_rhmode": {
           "fps": 12,
-          "json": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/8f0edc47-1a83-4e56-a9f7-294529079d64/6_bit_r__h_mode_rhmode.json?t=1762977008157",
-          "image": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/8f0edc47-1a83-4e56-a9f7-294529079d64/6_bit_r__h_mode_rhmode.webp?t=1762977008157",
+          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/6_bit_r__h_mode_rhmode.json",
+          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/6_bit_r__h_mode_rhmode.webp",
           "anchor": {
-            "x": 26,
-            "y": 95,
-            "strategy": "bottom-center",
+            "x": 96,
+            "y": 308,
             "normalized": {
-              "x": 0.5098039215686274,
-              "y": 0.9895833333333334
-            }
+              "x": 0.5,
+              "y": 0.9625
+            },
+            "strategy": "bottom-center"
           },
           "metadata": {
             "anchor": {
-              "x": 26,
-              "y": 95,
-              "strategy": "bottom-center",
+              "x": 96,
+              "y": 308,
               "normalized": {
-                "x": 0.5098039215686274,
-                "y": 0.9895833333333334
-              }
-            }
+                "x": 0.5,
+                "y": 0.9625
+              },
+              "strategy": "bottom-center"
+            },
+            "scale": 1
           },
           "priority": "medium",
           "dimensions": {
-            "width": 51,
-            "height": 96
+            "width": 192,
+            "height": 320
           },
           "frameCount": 48,
           "animationLength": 4
@@ -140,24 +144,36 @@
       "animations": {
         "virus_idle_idle": {
           "fps": 12,
-          "json": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/ecddaade-7056-4ad0-8296-e210b6c74274/virus_idle_idle.json?t=1763009617082",
-          "image": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/ecddaade-7056-4ad0-8296-e210b6c74274/virus_idle_idle.webp?t=1763009617082",
+          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/virus_idle_idle.json",
+          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/virus_idle_idle.webp",
           "anchor": {
-            "x": 48,
-            "y": 92,
-            "strategy": "bottom-center",
+            "x": 192,
+            "y": 308,
             "normalized": {
               "x": 0.5,
-              "y": 0.989247311827957
-            }
+              "y": 0.9625
+            },
+            "strategy": "bottom-center"
           },
           "priority": "medium",
           "dimensions": {
-            "width": 96,
-            "height": 93
+            "width": 384,
+            "height": 320
           },
           "frameCount": 51,
-          "animationLength": 4.25
+          "animationLength": 4.25,
+          "metadata": {
+            "anchor": {
+              "x": 192,
+              "y": 308,
+              "normalized": {
+                "x": 0.5,
+                "y": 0.9625
+              },
+              "strategy": "bottom-center"
+            },
+            "scale": 1
+          }
         }
       },
       "metadata": {
@@ -168,45 +184,69 @@
       "animations": {
         "corrupted_idle_idle": {
           "fps": 12,
-          "json": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/15369875-0aa7-4b12-befe-15af51a54d36/corrupted_idle_idle.json?t=1763031461233",
-          "image": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/15369875-0aa7-4b12-befe-15af51a54d36/corrupted_idle_idle.webp?t=1763031461233",
+          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/corrupted_idle_idle.json",
+          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/corrupted_idle_idle.webp",
           "anchor": {
-            "x": 40,
-            "y": 84,
-            "strategy": "bottom-center",
+            "x": 192,
+            "y": 308,
             "normalized": {
               "x": 0.5,
-              "y": 0.875
-            }
+              "y": 0.9625
+            },
+            "strategy": "bottom-center"
           },
           "priority": "medium",
           "dimensions": {
-            "width": 80,
-            "height": 96
+            "width": 384,
+            "height": 320
           },
           "frameCount": 51,
-          "animationLength": 4.25
+          "animationLength": 4.25,
+          "metadata": {
+            "anchor": {
+              "x": 192,
+              "y": 308,
+              "normalized": {
+                "x": 0.5,
+                "y": 0.9625
+              },
+              "strategy": "bottom-center"
+            },
+            "scale": 1
+          }
         },
         "corrupted_walk_walk": {
           "fps": 12,
-          "json": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/4b80773e-42ba-4731-9c01-c8a2c3336643/corrupted_walk_walk.json?t=1763031461233",
-          "image": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/4b80773e-42ba-4731-9c01-c8a2c3336643/corrupted_walk_walk.webp?t=1763031461233",
+          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/corrupted_walk_walk.json",
+          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/corrupted_walk_walk.webp",
           "anchor": {
-            "x": 37,
-            "y": 95,
-            "strategy": "bottom-center",
+            "x": 160,
+            "y": 276,
             "normalized": {
               "x": 0.5,
-              "y": 0.9895833333333334
-            }
+              "y": 0.9583333333333334
+            },
+            "strategy": "bottom-center"
           },
           "priority": "medium",
           "dimensions": {
-            "width": 74,
-            "height": 96
+            "width": 320,
+            "height": 288
           },
           "frameCount": 46,
-          "animationLength": 3.8333333333333335
+          "animationLength": 3.8333333333333335,
+          "metadata": {
+            "anchor": {
+              "x": 160,
+              "y": 276,
+              "normalized": {
+                "x": 0.5,
+                "y": 0.9583333333333334
+              },
+              "strategy": "bottom-center"
+            },
+            "scale": 1
+          }
         }
       },
       "metadata": {
@@ -217,66 +257,102 @@
       "animations": {
         "firewall_idle_idle": {
           "fps": 12,
-          "json": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/b1fa4f69-6a11-4de3-b0ac-cc3613fda63e/firewall_idle_idle.json?t=1763100253652",
-          "image": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/b1fa4f69-6a11-4de3-b0ac-cc3613fda63e/firewall_idle_idle.webp?t=1763100253652",
+          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/firewall_idle_idle.json",
+          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/firewall_idle_idle.webp",
           "anchor": {
-            "x": 48,
-            "y": 92,
-            "strategy": "bottom-center",
+            "x": 176,
+            "y": 308,
             "normalized": {
               "x": 0.5,
-              "y": 0.989247311827957
-            }
+              "y": 0.9625
+            },
+            "strategy": "bottom-center"
           },
           "priority": "medium",
           "dimensions": {
-            "width": 96,
-            "height": 93
+            "width": 352,
+            "height": 320
           },
           "frameCount": 62,
-          "animationLength": 5.166666666666667
+          "animationLength": 5.166666666666667,
+          "metadata": {
+            "anchor": {
+              "x": 176,
+              "y": 308,
+              "normalized": {
+                "x": 0.5,
+                "y": 0.9625
+              },
+              "strategy": "bottom-center"
+            },
+            "scale": 1
+          }
         },
         "firewall_walk_walk": {
           "fps": 12,
-          "json": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/c66f404e-6ada-48f6-b651-4b33edf4916f/firewall_walk_walk.json?t=1763100253652",
-          "image": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/c66f404e-6ada-48f6-b651-4b33edf4916f/firewall_walk_walk.webp?t=1763100253652",
+          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/firewall_walk_walk.json",
+          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/firewall_walk_walk.webp",
           "anchor": {
-            "x": 34,
-            "y": 95,
-            "strategy": "bottom-center",
+            "x": 160,
+            "y": 308,
             "normalized": {
               "x": 0.5,
-              "y": 0.9895833333333334
-            }
+              "y": 0.9625
+            },
+            "strategy": "bottom-center"
           },
           "priority": "medium",
           "dimensions": {
-            "width": 68,
-            "height": 96
+            "width": 320,
+            "height": 320
           },
           "frameCount": 33,
-          "animationLength": 2.75
+          "animationLength": 2.75,
+          "metadata": {
+            "anchor": {
+              "x": 160,
+              "y": 308,
+              "normalized": {
+                "x": 0.5,
+                "y": 0.9625
+              },
+              "strategy": "bottom-center"
+            },
+            "scale": 1
+          }
         },
         "firewall_attack_default": {
           "fps": 12,
-          "json": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/4841801f-9a1c-4bfc-9e39-96665233f9b3/firewall_attack_default.json?t=1763100253652",
-          "image": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/4841801f-9a1c-4bfc-9e39-96665233f9b3/firewall_attack_default.webp?t=1763100253652",
+          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/firewall_attack_default.json",
+          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/firewall_attack_default.webp",
           "anchor": {
-            "x": 48,
-            "y": 66,
-            "strategy": "bottom-center",
+            "x": 176,
+            "y": 244,
             "normalized": {
               "x": 0.5,
-              "y": 0.9850746268656716
-            }
+              "y": 0.953125
+            },
+            "strategy": "bottom-center"
           },
           "priority": "medium",
           "dimensions": {
-            "width": 96,
-            "height": 67
+            "width": 352,
+            "height": 256
           },
           "frameCount": 59,
-          "animationLength": 4.916666666666667
+          "animationLength": 4.916666666666667,
+          "metadata": {
+            "anchor": {
+              "x": 176,
+              "y": 244,
+              "normalized": {
+                "x": 0.5,
+                "y": 0.953125
+              },
+              "strategy": "bottom-center"
+            },
+            "scale": 1
+          }
         }
       },
       "metadata": {
@@ -287,24 +363,36 @@
       "animations": {
         "broadcast_jammer_idle_idle": {
           "fps": 12,
-          "json": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/c1bb9200-964c-4585-bcbd-4783dd7308cd/broadcast_jammer_idle_idle.json?t=1764135071672",
-          "image": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/c1bb9200-964c-4585-bcbd-4783dd7308cd/broadcast_jammer_idle_idle.webp?t=1764135071672",
+          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/broadcast_jammer_idle_idle.json",
+          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/broadcast_jammer_idle_idle.webp",
           "anchor": {
-            "x": 128,
-            "y": 214,
-            "strategy": "bottom-center",
+            "x": 176,
+            "y": 340,
             "normalized": {
               "x": 0.5,
-              "y": 0.9771689497716894
-            }
+              "y": 0.9659090909090909
+            },
+            "strategy": "bottom-center"
           },
           "priority": "medium",
           "dimensions": {
-            "width": 256,
-            "height": 219
+            "width": 352,
+            "height": 352
           },
           "frameCount": 48,
-          "animationLength": 4
+          "animationLength": 4,
+          "metadata": {
+            "anchor": {
+              "x": 176,
+              "y": 340,
+              "normalized": {
+                "x": 0.5,
+                "y": 0.9659090909090909
+              },
+              "strategy": "bottom-center"
+            },
+            "scale": 1
+          }
         }
       },
       "metadata": {
@@ -315,32 +403,33 @@
       "animations": {
         "sector_1_boss_idle_idle": {
           "fps": 12,
-          "json": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/9e454993-1489-4f31-bd2e-1b09d01b4635/sector_1_boss_idle_idle.json?t=1764605128926",
-          "image": "https://api.makko.ai/storage/v1/object/public/sprite-sheets/9e454993-1489-4f31-bd2e-1b09d01b4635/sector_1_boss_idle_idle.webp?t=1764605128926",
+          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/sector_1_boss_idle_idle.json",
+          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/sector_1_boss_idle_idle.webp",
           "anchor": {
-            "x": 128,
-            "y": 178,
-            "strategy": "bottom-center",
+            "x": 208,
+            "y": 308,
             "normalized": {
               "x": 0.5,
-              "y": 0.994413407821229
-            }
+              "y": 0.9625
+            },
+            "strategy": "bottom-center"
           },
           "metadata": {
             "anchor": {
-              "x": 128,
-              "y": 178,
-              "strategy": "bottom-center",
+              "x": 208,
+              "y": 308,
               "normalized": {
                 "x": 0.5,
-                "y": 0.994413407821229
-              }
-            }
+                "y": 0.9625
+              },
+              "strategy": "bottom-center"
+            },
+            "scale": 1
           },
           "priority": "medium",
           "dimensions": {
-            "width": 256,
-            "height": 179
+            "width": 416,
+            "height": 320
           },
           "frameCount": 48,
           "animationLength": 4

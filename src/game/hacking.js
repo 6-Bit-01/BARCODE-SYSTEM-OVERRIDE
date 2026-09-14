@@ -517,15 +517,16 @@ window.HackingSystem = class HackingSystem {
     if (!this.resultFx) return;
     const t = this.resultFx.elapsedMs / 1000;
     if (this.resultFx.outcome === 'success') {
-      // Match the compact HUD's health fill at (48, 62), sized 330 x 18.
+      const hp = window.BARCODE?.ComicHUD?.health || { x:48, y:62, width:330, height:18 };
+      const healthX = hp.x + hp.width / 2, healthY = hp.y + hp.height / 2;
       for (let i = 0; i < 4; i++) {
         const p = Math.max(0, Math.min(1, t * 1.5 - i * 0.08));
-        const x = 960 + (213 - 960) * p;
-        const y = 320 + (71 - 320) * p - Math.sin(p * Math.PI) * 75;
+        const x = 960 + (healthX - 960) * p;
+        const y = 320 + (healthY - 320) * p - Math.sin(p * Math.PI) * 75;
         ctx.fillStyle = `rgba(145, 255, 224, ${0.85 * (1 - t)})`; ctx.fillRect(x - 5, y - 5, 10, 10);
       }
       ctx.strokeStyle = `rgba(145, 255, 224, ${Math.max(0, t - 0.45) * 1.3})`;
-      ctx.lineWidth = 2; ctx.strokeRect(44, 58, 338, 26);
+      ctx.lineWidth = 2; ctx.strokeRect(hp.x - 4, hp.y - 4, hp.width + 8, hp.height + 8);
     } else {
       ctx.fillStyle = `rgba(255, 177, 110, ${0.5 * (1 - t)})`;
       for (let i = 0; i < 4; i++) ctx.fillRect(650 + ((i * 173 + t * 300) % 550), 260 + i * 30, 70, 2);

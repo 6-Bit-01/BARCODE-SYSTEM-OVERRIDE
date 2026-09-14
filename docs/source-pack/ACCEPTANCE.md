@@ -1,5 +1,62 @@
 # Acceptance and Test Status
 
+## Recovered model art / live HUD — September 14, 2026
+
+Review `agent/finish-model-art-hud` at the exact head in its PR/receipt. Base/rollback: merged #46, `f3bf9ed294a2bd69fe3a7dccc02a1c50b9241db2`. Owner Makko review is still required before merge.
+
+1. Confirm the model-based 6 Bit idle, walk both directions, jump and headbang appear. Check planted feet and body fairness on street, roofs and lift.
+2. Confirm Virus, Corrupted, Firewall and Jammer use the recovered drawings; check warnings, contacts and all animation transitions. Inspect Firewall flame continuity, particularly the three previously flagged poses.
+3. Check both city layers across the whole street, including transparent gaps, building/platform alignment and seams.
+4. Check the sampler/barcode HUD in exploration, rhythm and boss play. Health, score, lore, combo, Amp and target timing must reflect actual state; healing and fragment flights must end on their panels.
+5. Complete the retained title/intro/tutorial, H/R, audio, twenty-enemy mission, Jammer, boss loss/win/retry, pause/restart and save smoke route. Boss idle is redrawn; walk/flourish and traffic deliberately remain their working original animations because the final new exports were not saved.
+
+Native Canvas and deterministic tests do not certify Makko playback, audio or game feel. Earlier routes below are historical.
+
+> **Recovery checkpoint, September 14.** Draft PR #46 exists. Twelve recovered complete-body clips (547 frames), the approved city layers and live HUD are being installed and checked on that same branch. Final boss walk/flourish and vehicle loop exports were removed by workspace maintenance before publication and could not be recovered from GitHub or the saved v5. The original working boss walk/flourish and traffic remain. Do not regenerate the approved designs, claim full completion, or merge this checkpoint. See MODEL_ART_RECOVERY.md.
+
+
+> **September 13 production checkpoint — in progress.** The owner approved integrating the model-based artwork and HUD as one combined pass on `agent/model-art-hud-integration`, from merged #45. Twelve complete-pose clips (547 frames) and the live HUD are prepared. Final two boss clips, vehicle loops, scenery/anchor calibration, delivery pins and full validation remain. No PR or Makko acceptance is claimed at this checkpoint. See `MODEL_ART_HUD_IMPLEMENTATION.md`; older review-only sections below are historical.
+
+
+## Current review — model-based art, full-body trial and new HUD
+
+This checkpoint needs visual review of bundled examples; the playable source remains merged #45. Open `repository-snapshot/docs/visual-overhaul/hud-review.html` in the ZIP and switch Explore, Rhythm and Boss. Pause/Play controls the trial. The mode values are explicit examples, not live gameplay.
+
+1. Inspect the hero sheet and actual model PNGs together: cap and green brim, glasses, face paint, exposed mouth/chin, brown hair, coat, shirt, gloves and boots.
+2. Watch `headbang-overhaul.animated.webp`: original left, model-based redraw right. All 48 original frame keys/order/durations are retained at 12 fps, but generated anatomy and details are not pixel-exact. Judge cap/coat/hair consistency, full-body fold/recovery and the midpoint/repeat seam. No duplicated filler frames are added.
+3. Compare every enemy type, all three vehicles and both city layers in the accompanying sheets. These are drawing examples; full enemy/traffic sequences and precise platform/repeat-seam mapping remain unfinished.
+4. Judge HUD legibility in quiet exploration, active rhythm and boss states: barcode health, beat target, combo, Amp, objectives and boss warnings. The preview uses fixture data and a separate renderer; no live UI/gameplay modification is claimed.
+
+`VISUAL_OVERHAUL_REVIEW.md` lists provenance, scope and production work still needed. The generated receipt records actual local checks; no real-browser/Makko acceptance or new external publication is claimed. Owner Makko review remains required before a future integrated build merges. Earlier sample/import routes below are historical.
+
+## Historical review — subtle whole-frame restoration
+
+The owner rejected the cutout animation. The active runtime, original sprite manifest, anchors/facing and scenery now match merged #45. Three complete 2x restoration trials are **not installed**; this checkpoint needs art review, not a new Makko import to view the samples.
+
+1. Watch the individual `verification/original-motion-headbang.animated.webp`, `original-motion-jump.animated.webp` and `original-motion-attack.animated.webp` comparisons: original left, restored right, matched source frame and display size, each looping its own full cycle. Compare the headbang fold/recovery, jump tuck/landing and Firewall lunge/punch. Check temporal texture flicker and whether the modest clarity gain is useful. The combined overview is useful for a glance but can interrupt a repeat of a shorter clip at its shared reset.
+2. Inspect the full original/restored image and JSON pairs in `assets/studies/original-motion/`. All 134 source frames, keys, order, durations and tags remain; all spatial coordinates are exactly doubled. The decoded restored alpha must equal the original alpha replicated 2x. These invariants are checked during generation and recorded in its manifest.
+3. Treat approval of this sample quality separately from eventual runtime acceptance. Any integration must keep original logical dimensions, foot/head anchors, facing and phase-selected frames; doubling atlas pixels alone must not double actors or collision bodies. Preserve the complete AGENTS Makko smoke route for a future integrated build.
+
+Required local regression and all-file syntax results are recorded in the export receipt. No new Chromium CI, live Makko review, hosted asset publication, PR or merge is claimed. The old cutout import route below is historical and must not be followed for this checkpoint.
+
+## Historical cutout replacement route — rejected and inactive
+
+Import the exact `agent/sprite-upgrade-study` draft head into the duplicate Makko project. Base/rollback is merged #45, `c557c87bb0e04287e6c694d7d6559174d8b65d06`. This is the complete runtime replacement described in `SPRITE_REPLACEMENT_PASS.md`; the unused-study status below is historical. Original model PNGs were unavailable, so review 6 Bit's likeness against your originals as well as the derived intro reference.
+
+1. Watch 6 Bit idle, walk both directions, turn, take off, reach the apex, descend and land repeatedly on street/roofs/lift. Enter/exit Rhythm Mode. Check cap, paint, human face and costume, continuous joints, clean alpha, readable poses and planted feet through every transition. The four source clips now face right.
+2. Watch Virus pulse, Corrupted idle/walk and Firewall idle/walk/punch. Stomp ordinary enemies, take side contact and attack/hack as before. Judge readable warnings, body fairness, correct facing and contact; check both sprite-anchor paths supported by the host.
+3. Clear all twenty mission enemies and destroy the Jammer. Check the complete boss entrance/idle/walk/pulse sequence. The existing +8% boss size and additional +6% walk increase remain. Review the subtle clarity refinement without expecting a new boss/Jammer design.
+4. Traverse the whole street and rooftops in windowed/fullscreen view. Check panorama aspect, seams, foreground windows/platform alignment, three traffic animations and their lighting. Compare quiet traversal with busy combat for clarity.
+5. Pause/resume, lose/retry the boss, win, restart and reload. Retain the full AGENTS smoke route for title/intro/tutorial, S/B skip, lift, H/R, audio, discoveries and saves. Watch for missing sheets, stale frames, duplicate loops, errors or a progressive slowdown.
+
+Record the imported commit SHA, browser/window mode, a short clip showing hero transitions and enemy contact, and a clip showing the Jammer-to-boss sequence. Report any issue with exact state/facing/frame if available. Native Canvas and VM checks explicitly adapt Makko's boundary; they do not prove live host playback, audio sync or game feel. Owner Makko acceptance remains the merge gate.
+
+## Sprite/background study status — after merged #45
+
+The current `agent/sprite-upgrade-study` work contains unused art candidates and comparisons only; the playable runtime remains merged #45 (`c557c87bb0e04287e6c694d7d6559174d8b65d06`). This is not a new Makko gameplay build. Inspect `SPRITE_UPGRADE_STUDY.md` and `verification/sprite-upgrade-comparison.gif` for actual limitations. Both sprite studies are RGB with baked checkerboards; the walk has exaggerated knee lift and needs a corrected cycle. A model-faithful final hero requires the original face/front/side PNGs, unavailable in this workspace.
+
+The panoramic background passes its aspect assertion and actual parallax composition with the unchanged foreground; owner art direction review is pending. Any eventual production sprite set must preserve foot anchors/body geometry, phase-selected jump/landing frames, flip direction, input/timing, and pass the retained gameplay/Makko route before merge. Do not treat a promising still drawing as animation/export acceptance.
+
 ## Studio Cat / chaotic FX / boss asset review — after merged #44
 
 Import the exact `agent/level1-cat-chaos-assets` review head. Base/rollback is merged #44, `4b207c5570a6bccd86b95c702c11e1e6606bbf01`. New art and size/FX tuning require owner Makko acceptance before merge; older draft sections below are historical.

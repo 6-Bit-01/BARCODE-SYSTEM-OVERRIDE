@@ -111,10 +111,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       width: 256, height: 155, anchorX: 128, anchorY: 154, bodyHeight: 125,
       footRows: Object.freeze(Array(48).fill(154))
     }),
-    idle: Object.freeze({
-      width: 256, height: 179, anchorX: 128, anchorY: 178, bodyHeight: 178,
-      footRows: Object.freeze(Array(48).fill(178))
-    })
+    idle: Object.freeze({"width":416,"height":320,"anchorX":208,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308],"bodyHeight":267.0})
   });
 
   function encounterSpecs(encounter) { return encounter && encounter.packets ? encounter.packets.flat() : (encounter?.enemies || []); }

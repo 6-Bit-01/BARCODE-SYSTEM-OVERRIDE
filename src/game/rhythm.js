@@ -1029,35 +1029,10 @@ window.RhythmSystem = class RhythmSystem {
     })).filter(note => note.x >= 73 && note.x <= 460) };
   }
   drawCompactHUD(ctx) {
-    const lane = this.getPredictiveNotes();
-    const pattern = window.BARCODE?.playerCombat?.getPattern({ nextSuccess: true }) || 'pulse';
-    const pad = window.BARCODE?.GamepadUI?.connected;
-    const key = pad ? 'X' : 'DOWN';
-    const color = pattern === 'discharge' ? '#ffa5ea' : pattern === 'wave' ? '#b8c7ff' : '#8cffe0';
-    ctx.save(); ctx.globalAlpha = 1; ctx.shadowBlur = 0;
-    ctx.fillStyle = '#070b15'; ctx.fillRect(36, 115, 448, 118);
-    ctx.fillStyle = '#101d2e'; ctx.fillRect(30, 109, 448, 118);
-    ctx.strokeStyle = '#a2b4c9'; ctx.lineWidth = 2; ctx.strokeRect(30, 109, 448, 118);
-    ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.font = 'bold 15px monospace'; ctx.fillStyle = '#eee6d4';
-    ctx.fillText(!lane.ready ? 'WAITING FOR MUSIC' : !this.tempoEstablished ? `FIND THE BEAT ${this.currentTempoBeat}/${this.tempoEstablishmentBeats}` : `${key} / HIT THE TARGET`, 48, 131);
-    ctx.textAlign = 'right'; ctx.fillStyle = color; ctx.fillText(`${this.combo} × ${pattern.toUpperCase()}`, 460, 131);
-    ctx.fillStyle = '#203449'; ctx.fillRect(74, 173, 386, 3);
-    ctx.fillStyle = '#304455'; ctx.fillRect(81, 153, 30, 43);
-    ctx.strokeStyle = '#eee6d4'; ctx.lineWidth = 2; ctx.strokeRect(81, 153, 30, 43);
-    // The target is fixed in HUD coordinates. Future notes travel right to left
-    // using the same transport; visual calibration never changes judgment.
-    for (const note of lane.notes) {
-      const onTarget = Math.abs(note.x - 96) < 6;
-      ctx.save(); ctx.translate(note.x, 174); ctx.rotate(Math.PI / 4);
-      ctx.fillStyle = onTarget ? '#fff9e9' : note.downbeat ? color : '#b0c8d8';
-      const size = note.downbeat ? 15 : 11; ctx.fillRect(-size / 2, -size / 2, size, size);
-      ctx.restore();
-    }
-    ctx.font = '12px monospace'; ctx.textAlign = 'left'; ctx.fillStyle = '#c4d1de';
-    ctx.fillText(`${key}`, 79, 211);
-    ctx.textAlign = 'right'; ctx.fillStyle = color;
-    ctx.fillText(this.combo >= 10 ? 'CHAIN LINKS / 2 MAX' : this.combo >= 5 ? `${10 - this.combo} TO DISCHARGE` : `${5 - this.combo} TO WAVE`, 460, 211);
-    ctx.restore();
+    window.BARCODE?.ComicHUD?.rhythm(ctx, { lane: this.getPredictiveNotes(),
+      pattern: window.BARCODE?.playerCombat?.getPattern({ nextSuccess: true }) || 'pulse',
+      pad: window.BARCODE?.GamepadUI?.connected, combo: this.combo, established: this.tempoEstablished,
+      tempoBeat: this.currentTempoBeat, tempoBeats: this.tempoEstablishmentBeats });
   }
 
   draw4BarProgress(ctx) {

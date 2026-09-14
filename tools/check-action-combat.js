@@ -146,34 +146,8 @@ pass('boss cinematic Rhythm Mode ownership');
   const player = new s.window.Player(960, 500);
   const states = ['idle', 'walk', 'jump', 'rhythm'];
   const playerAnimations = spriteManifest.characters['6_bit_main'].animations;
-  const manifestAnchors = {
-    idle: { animation: '6_bit_idle_idle', x: 43, y: 95 },
-    walk: { animation: '6_bit_walk_walk', x: 33, y: 94 },
-    jump: { animation: '6_bit_jump_jump', x: 21, y: 95 },
-    rhythm: { animation: '6_bit_r__h_mode_rhmode', x: 26, y: 95 }
-  };
-  const auditedSourceFootRows = {
-    idle: [
-      95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95,
-      95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95
-    ],
-    walk: [
-      94, 93, 93, 93, 94, 95, 94, 94, 95, 95, 95, 94,
-      94, 94, 94, 94, 94, 94, 93, 93, 93, 94, 94, 93,
-      93, 93, 93, 93, 93, 95, 94, 95, 95, 95, 94, 94,
-      94, 94, 94, 93, 93, 94, 95, 95, 95, 95, 95, 95
-    ],
-    jump: [
-      94, 94, 94, 94, 91, 86, 76, 73, 68, 68, 69, 74, 82, 84,
-      89, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 93
-    ],
-    rhythm: [
-      95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95,
-      95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95,
-      95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95,
-      95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95
-    ]
-  };
+  const manifestAnchors = {"idle": {"animation": "6_bit_idle_idle", "x": 160, "y": 308}, "walk": {"animation": "6_bit_walk_walk", "x": 144, "y": 308}, "jump": {"animation": "6_bit_jump_jump", "x": 96, "y": 308}, "rhythm": {"animation": "6_bit_r__h_mode_rhmode", "x": 96, "y": 308}};
+  const auditedSourceFootRows = {"idle": [308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308], "walk": [308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308], "jump": [308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308], "rhythm": [308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308]};
   const establishedCombatHulls = Object.fromEntries(['idle', 'walk', 'jump', 'rhythm'].map(state => [state, { width:64, bottom:568 }]));
   for (const state of states) {
     player.state = state;

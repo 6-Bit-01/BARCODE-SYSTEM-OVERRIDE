@@ -68,8 +68,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
       const assembly = Math.min(1, event.age / 320);
       const travel = Math.max(0, Math.min(1, (event.age - 320) / 760));
       const eased = travel * travel * (3 - 2 * travel);
-      return { x: source.x + (1810 - source.x) * eased,
-        y: source.y + (50 - source.y) * eased - Math.sin(travel * Math.PI) * 65,
+      const lore = BARCODE.ComicHUD?.lore || { x:1552, y:24, width:338, height:51 };
+      return { x: source.x + (lore.x + lore.width / 2 - source.x) * eased,
+        y: source.y + (lore.y + lore.height / 2 - source.y) * eased - Math.sin(travel * Math.PI) * 65,
         assembly, travel, scale: 1.4 - travel * 0.75,
         alpha: event.age <= 1080 ? 1 : Math.max(0, (1400 - event.age) / 320) };
     }
@@ -82,7 +83,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
         ctx.save(); ctx.globalAlpha = pose.alpha;
         if (pose.travel === 1) {
           ctx.strokeStyle = '#c6a0ff'; ctx.lineWidth = 2;
-          ctx.strokeRect(1552 - (1 - pose.alpha) * 5, 24 - (1 - pose.alpha) * 3, 338 + (1 - pose.alpha) * 10, 51 + (1 - pose.alpha) * 6);
+          const lore = BARCODE.ComicHUD?.lore || { x:1552, y:24, width:338, height:51 };
+          ctx.strokeRect(lore.x - (1 - pose.alpha) * 5, lore.y - (1 - pose.alpha) * 3, lore.width + (1 - pose.alpha) * 10, lore.height + (1 - pose.alpha) * 6);
         }
         ctx.translate(pose.x, pose.y); ctx.scale(pose.scale, pose.scale);
         const offset = (1 - pose.assembly) * 20;
@@ -141,26 +143,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
     }
     drawAmpHUD(ctx) {
       const charges = Math.max(0, Math.min(3, BARCODE.signalAmpCharges || 0));
-      if (!charges && !window.sector1Progression?.signalAmpCollected && !this.ampNotice) return;
-      const notice = this.ampNotice;
-      const x = 30, y = window.rhythmSystem?.isActive?.() ? 240 : 112;
-      ctx.save(); ctx.fillStyle = 'rgba(9,16,32,0.94)'; ctx.fillRect(x, y, 448, 62);
-      ctx.strokeStyle = charges ? '#a875bb' : '#435163'; ctx.lineWidth = 1; ctx.strokeRect(x, y, 448, 62);
-      this.drawAmpIcon(ctx, x + 30, y + 31, 0.65, charges);
-      ctx.fillStyle = charges ? '#f4c1ff' : '#a0afc0'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.font = 'bold 16px monospace';
-      ctx.fillText(charges ? 'SIGNAL AMP' : 'AMP EMPTY', x + 60, y + 18);
-      for (let i = 0; i < 3; i++) {
-        ctx.fillStyle = i < charges ? '#91ffe5' : '#1b2939'; ctx.fillRect(x + 270 + i * 32, y + 15, 24, 8);
-        ctx.strokeStyle = '#51677b'; ctx.strokeRect(x + 270 + i * 32, y + 15, 24, 8);
-        if (notice?.kind === 'use' && i === charges) {
-          ctx.strokeStyle = `rgba(239,160,255,${1 - notice.age / notice.duration})`;
-          ctx.strokeRect(x + 268 + i * 32, y + 13, 28, 12);
-        }
-      }
-      ctx.font = '12px monospace'; ctx.fillStyle = '#c2cfdc';
-      const message = notice?.kind === 'pickup' ? '3 HITS · LONGER ENEMY REACH' : notice?.kind === 'empty' ? 'DEPLETED · NORMAL REACH' : charges ? 'ON-BEAT HITS: ENEMY REACH +' : 'NORMAL REACH';
-      ctx.fillText(message, x + 60, y + 44);
-      ctx.restore();
+      BARCODE.ComicHUD?.amp(ctx, { charges, notice: this.ampNotice,
+        visible: charges || window.sector1Progression?.signalAmpCollected || this.ampNotice,
+        active: window.rhythmSystem?.isActive?.() });
     }
     beat() {
       const time = window.audioSystem?.context?.currentTime;

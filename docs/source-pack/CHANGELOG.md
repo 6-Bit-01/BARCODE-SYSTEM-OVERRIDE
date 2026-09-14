@@ -1,4 +1,65 @@
+# Recovery checkpoint — September 14
+
+## September 14, 2026 — Repair PR #47 browser cleanup
+
+- Publish the recovered integration in PR #47 with working immutable artwork links.
+- Fix the push-run `ENOTEMPTY` failure after every Chromium assertion had passed: await Chrome's close event and allow bounded retries while helper processes finish profile writes.
+- Keep assertions, runtime artwork, mechanics and the owner Makko merge gate unchanged. The parallel initial PR run passed; current-head CI results belong to the PR and generated source receipt.
+
+## September 14, 2026 — Resume the saved model-art/HUD integration
+
+- Restore v5 version 38 runtime work over merged #46, preserving all finished drawings.
+- Install twelve calibrated sprite clips and both approved city layers with immutable delivery links.
+- Activate the live sampler/barcode HUD and matching effect destinations; clear an overlapping save warning.
+- Preserve original boss walk/flourish and traffic where final new exports were lost.
+- Add runtime manifest coverage and a short root continuation record. Local checks and native diagnostics are separate from owner Makko acceptance.
+
+Preserved the recovered 547-frame model-art implementation and live HUD. Draft PR #46 is open. Runtime validation and immutable delivery pins are in progress; missing final boss and vehicle exports are documented. Working originals remain for missing clips.
+
 # Changelog
+
+> **September 13 production checkpoint — in progress.** The owner approved integrating the model-based artwork and HUD as one combined pass on `agent/model-art-hud-integration`, from merged #45. Twelve complete-pose clips (547 frames) and the live HUD are prepared. Final two boss clips, vehicle loops, scenery/anchor calibration, delivery pins and full validation remain. No PR or Makko acceptance is claimed at this checkpoint. See `MODEL_ART_HUD_IMPLEMENTATION.md`; older review-only sections below are historical.
+
+
+## September 13, 2026 — visible model-based overhaul and HUD review
+
+- Recover, inspect and bundle all four actual 6 Bit model references; the new artwork uses the cap/green brim, glasses, paint and complete clothing details.
+- Generate 12 whole hero poses, eight enemy examples, detailed far city and building/street layers, all three vehicles and a model-based HUD portrait.
+- Assemble a 48-frame whole-body headbang trial from original full-pose guides; retain original order/duration metadata. Reject an incomplete 20-pose output and regenerate the missing portion as 24 real figures.
+- Remove static aircraft from the city layer and extract transparent sprite/sky gaps. Record raw outputs, exact prompts, rejected intermediates, prepared hashes and whole-frame registration.
+- Build an interactive sampler/barcode HUD review with Explore, Rhythm and Boss states, Pause/Play, reduced-motion handling and narrow-screen HUD reflow. Add native renders and direct original/new scene comparisons.
+- Record that extra frames are allowed and subtle-only restoration is superseded. Active game remains merged #45; other complete animation sequences, host calibration and actual HUD integration remain work to do. No new push, PR or merge.
+
+## September 13, 2026 — retire cutout motion; restore original-frame workflow
+
+- Record the owner's rejection of the separated-part animations. Preserved frame counts and clocks did not preserve the original headbang, jump or attack; the previous publication request is superseded.
+- Restore the active runtime, sprite manifest/facing/anchors, scenery and traffic to merged #45. Keep its cats, arrow, pulse, varied FX and boss sizes plus every earlier intro/gameplay improvement. Retain the rejected rigs and unused scenery candidates only as history.
+- Produce three complete whole-frame EDSR 2x trials: 48 headbang, 27 jump and 59 Firewall attack frames. Preserve exact replicated alpha, source order/durations/tags and uniformly doubled geometry. Include source bytes, model hash, rebuild script and synchronized original/restored comparison. These are review samples with modest clarity gains, not installed replacements or new animation.
+- Restore the #45 runtime validation assertions and suite. Retire the cutout-specific integration gate from that suite, keeping it as historical tooling. Refresh the baseline only for inspected original-host restoration and reverted source-line positions; no runtime graph change or reduced gameplay assertion is hidden.
+- Update active handoff documents and the maintained v5 archive. Exact local checks and commit identity are in the generated receipt; no new external publication, Chromium CI or Makko acceptance is claimed.
+
+## September 13, 2026 — recover and finish replacement delivery
+
+- Preserve the completed local build after automatic approval review rejected the external GitHub push. No PR/merge/Chromium CI is claimed, and staged hosted URLs remain unpublished. The generated receipt identifies tested code and this documentation-only checkpoint separately.
+- Recover the completed, unpublished sprite/scenery commit; preserve its 14 atlases and animation calibration without restarting asset generation.
+- Finish immutable URLs for all 14 image/JSON pairs and both scenery layers using art checkpoint `1962622e7d318de92b3d1946be93ff508725709c`. Add a focused regression against the local-only delivery defect.
+- Correct the source-pack entrypoint and add the explicit merged/review asset inventory with the actual animated comparisons. Exact final automated and publication outcomes belong to the export receipt; Makko acceptance remains pending.
+
+## September 13, 2026 — complete sprite and scenery replacement
+
+- Apply the owner's approval of all assets and Python cleanup/animation assembly. Retain exact generation prompts, raw masters, cleaned parts, rejected studies and their provenance.
+- Deliver matching 6 Bit idle/walk/jump/rhythm cutout rigs, Corrupted idle/walk, Firewall idle/walk/punch and a registered Virus circuit pulse. Preserve 14 clip identities and all 636 original frame entries/fps; retain phase-selected jump and punch timing.
+- Recalibrate visible feet/heads and scales from the final alpha sheets; correct the now-right-facing hero walk. Keep stable damage bodies and gameplay owners. Refine all existing Jammer/boss frames with unchanged alpha and preserved metadata/sizing.
+- Replace the stretched far painting with the panorama; polish foreground surfaces and all three traffic sheets without changing their geometry, durations or alpha. Use immutable hosted actor/scenery assets with bundled scenery fallback.
+- Add delivered-byte, frame-table, timing, orientation and memory checks; update the intentionally changed independent source-pixel audits. Preserve all existing gameplay assertions. Supply animated comparisons and native production renders, with Makko review still pending.
+
+## September 13, 2026 — sprite and background upgrade studies
+
+- Verify #45 merged at `c557c87bb0e04287e6c694d7d6559174d8b65d06` with the tested tree unchanged.
+- Inspect current hero/enemy clips and actual background/foreground dimensions. Identify the 3:2 far-background source being stretched to nearly 2.8:1.
+- Generate a reference-based 6 Bit walk candidate, Virus pulse candidate and panoramic background refinement; preserve prompts, hashes and reference-availability limits.
+- Reject the sprite candidates for production: baked checkerboard RGB, unsuccessful alpha-extraction edit, and hero gait/phase work outstanding. Export visibly labeled animation comparisons without concealing those faults.
+- Verify the new panorama behind the unchanged foreground with production parallax drawing. No runtime, collision, input, timing, sprite manifest or active URL changes. Exact original model PNGs are needed for the next faithful production pass.
 
 ## September 13, 2026 — Studio Cats, chaotic FX and boss art after merged #44
 

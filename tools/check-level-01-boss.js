@@ -46,6 +46,7 @@ function createRig() {
   };
   w.window = w;
   const context = vm.createContext(w);
+  load(context, 'src/game/comic-hud.js');
   load(context, 'src/game/lore-records.js');
   load(context, 'src/engine/music-profiles.js');
   load(context, 'src/engine/level-01-music-profile.js');
@@ -758,9 +759,9 @@ async function main() {
     assert(texts.includes('PRESS R — RHYTHM OFF'), 'mode loss has an immediate player-local cue');
     w.rhythmSystem.show(); texts.length = 0; combat.drawPlayerTimingCue(ctx, w.player);
     assert(!texts.includes('DOWN: BEAT · R: EXIT'), 'active timing is consolidated in the compact HUD');
-    Object.assign(ctx, { strokeRect() {}, translate() {}, rotate() {} });
+    Object.assign(ctx, { strokeRect() {}, translate() {}, rotate() {}, scale() {}, moveTo() {}, lineTo() {}, closePath() {}, fill() {}, rect() {}, clip() {} });
     w.rhythmSystem.drawCompactHUD(ctx);
-    assert(texts.includes('DOWN / HIT THE TARGET'), 'active controls stay visible beside the predictive target');
+    assert(texts.includes('DOWN') && texts.includes('[R] EXIT'), 'active controls stay visible beside the predictive target');
     const seconds = p.getBossMusicSample().grid.beatDurationSec;
     const rule = w.BARCODE.MusicProfiles.getActive().judgmentRules[0].id;
     const early = w.BARCODE.MusicTransport.judgeInput(rule, seconds * 60 - 0.15);

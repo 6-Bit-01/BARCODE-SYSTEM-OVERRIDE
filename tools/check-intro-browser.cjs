@@ -56,7 +56,7 @@ const server = http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': type }); fs.createReadStream(file).pipe(res);
 });
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-let chrome, socket;
+let chrome, chromeClosed, socket;
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'barcode-chrome-'));
 const errors = [];
 const receipts = [];
@@ -64,6 +64,7 @@ async function main() {
   server.listen(0, '127.0.0.1'); await once(server, 'listening');
   const origin = `http://127.0.0.1:${server.address().port}`;
   chrome = spawn(chromePath, ['--headless=new', '--no-sandbox', '--disable-dev-shm-usage', '--no-first-run', '--remote-debugging-port=0', `--user-data-dir=${profile}`, 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] });
+  chromeClosed = new Promise(resolve => chrome.once('close', resolve));
   const debuggerUrl = await new Promise((resolve, reject) => {
     const timeout = setTimeout(() => reject(new Error('Chrome did not expose DevTools')), 10000);
     chrome.once('error', reject);
@@ -192,6 +193,11 @@ main().catch(error => {
   fs.writeFileSync(path.join(output, 'result.json'), JSON.stringify({ passed: false, error: error.stack, receipts, errors }, null, 2));
   console.error(error); process.exitCode = 1;
 }).finally(async () => {
-  socket?.close(); if (chrome && chrome.exitCode === null) { chrome.kill(); await once(chrome, 'exit'); }
-  server.close(); fs.rmSync(profile, { recursive: true, force: true });
+  socket?.close();
+  if (chrome && chrome.exitCode === null && chrome.signalCode === null) chrome.kill();
+  if (chromeClosed) await chromeClosed;
+  server.close();
+  // Chromium helpers can finish profile writes after the main process exits.
+  // Wait for closed stdio, then retry transient directory-removal races.
+  await fs.promises.rm(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
 });

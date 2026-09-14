@@ -6,8 +6,8 @@ window.FILE_MANIFEST.push({
   dependencies: ['Vector2D', 'clamp', 'distance']
 });
 
-// These foot rows are untrimmed source-frame coordinates (all four source
-// sheets use a 96px-tall canvas). They retain the approved sprite sizes while
+// These foot rows are measured from the recovered complete model frames.
+// They retain the approved world-space sprite sizes while
 // anchoring the lowest visible foot pixel to one canonical presentation line
 // on every frame. Player.position.y is the historical physics anchor, always
 // 72px above the visible foot-contact line. Keep that world-space contract
@@ -27,52 +27,7 @@ const PLAYER_AIR_ACCEL = 1700;
 const PLAYER_AIR_DRAG = 420;
 const PLAYER_DIRECTIONAL_AIR_SPEED = 350;
 const PLAYER_STOMP_REBOUND = 560;
-const PLAYER_ANIMATION_PRESENTATION = Object.freeze({
-  idle: Object.freeze({
-    animation: '6_bit_idle_idle',
-    scale: 2,
-    anchorX: 43,
-    anchorY: 95,
-    footRows: Object.freeze([
-      95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95,
-      95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95
-    ])
-  }),
-  walk: Object.freeze({
-    animation: '6_bit_walk_walk',
-    scale: 2 * (71 / 66),
-    anchorX: 33,
-    anchorY: 94,
-    footRows: Object.freeze([
-      94, 93, 93, 93, 94, 95, 94, 94, 95, 95, 95, 94,
-      94, 94, 94, 94, 94, 94, 93, 93, 93, 94, 94, 93,
-      93, 93, 93, 93, 93, 95, 94, 95, 95, 95, 94, 94,
-      94, 94, 94, 93, 93, 94, 95, 95, 95, 95, 95, 95
-    ])
-  }),
-  jump: Object.freeze({
-    animation: '6_bit_jump_jump',
-    scale: 2 * (49 / 41),
-    anchorX: 21,
-    anchorY: 95,
-    footRows: Object.freeze([
-      94, 94, 94, 94, 91, 86, 76, 73, 68, 68, 69, 74, 82, 84,
-      89, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 93
-    ])
-  }),
-  rhythm: Object.freeze({
-    animation: '6_bit_r__h_mode_rhmode',
-    scale: 2 * (60 / 51),
-    anchorX: 26,
-    anchorY: 95,
-    footRows: Object.freeze([
-      95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95,
-      95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95,
-      95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95,
-      95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 95
-    ])
-  })
-});
+const PLAYER_ANIMATION_PRESENTATION = Object.freeze({"idle":{"animation":"6_bit_idle_idle","scale":0.6666666666666666,"anchorX":160,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]},"walk":{"animation":"6_bit_walk_walk","scale":0.7171717171717171,"anchorX":144,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]},"jump":{"animation":"6_bit_jump_jump","scale":0.7967479674796748,"anchorX":96,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]},"rhythm":{"animation":"6_bit_r__h_mode_rhmode","scale":0.7843137254901961,"anchorX":96,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]}});
 
 window.Player = class Player {
   static get VISUAL_FOOT_OFFSET_Y() { return PLAYER_VISUAL_FOOT_OFFSET_Y; }
@@ -1405,8 +1360,8 @@ window.Player = class Player {
     let shouldFlip = false;
     
     if (this.state === 'walk') {
-      // Walk animation faces left by default, so flip when walking right
-      shouldFlip = this.facing === 1;
+      // The complete model walk is authored facing right
+      shouldFlip = this.facing === -1;
     } else if (this.state === 'idle' || this.state === 'jump') {
       // Idle and jump should face the direction of movement
       shouldFlip = this.facing === -1;
@@ -1568,8 +1523,8 @@ window.Player = class Player {
   drawLoadingPlaceholder(ctx) {
     ctx.save();
     const visualFootY = this.getVisualAnchor().targetFootY;
-    const placeholderWidth = PLAYER_ANIMATION_PRESENTATION.idle.scale * 86;
-    const placeholderHeight = PLAYER_ANIMATION_PRESENTATION.idle.scale * 96;
+    const placeholderWidth = 172;
+    const placeholderHeight = 192;
     
     // Flip character based on facing direction
     if (this.facing === -1) {

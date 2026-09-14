@@ -1,4 +1,4 @@
-// Shared raster cache. Three images, one bounded pinned/bundled attempt each;
+// Shared raster cache. Four images, one bounded pinned/bundled attempt each;
 // no canvases, timers, frame loops or gameplay state. Reused across restarts.
 window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: ['BARCODE.PresentationAssets'], dependencies: [] });
@@ -8,7 +8,8 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   const entries = {
     studioCat: { path: 'assets/presentation/studio-cat.webp', columns: 2, rows: 2, frames: 4, ax: 0.5, ay: 0.9375 },
     directionArrow: { path: 'assets/presentation/direction-arrow.webp', columns: 1, rows: 1, frames: 1, ax: 0.5, ay: 0.5 },
-    bossPulse: { path: 'assets/presentation/boss-pulse.webp', columns: 2, rows: 2, frames: 4, crop: [10, 95, 236, 145], ax: 0.5, ay: 1 }
+    bossPulse: { path: 'assets/presentation/boss-pulse.webp', columns: 2, rows: 2, frames: 4, crop: [10, 95, 236, 145], ax: 0.5, ay: 1 },
+    hudPortrait: { path: 'assets/studies/visual-overhaul/prepared/hud-portrait.webp', root: 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/', columns: 1, rows: 1, frames: 1, ax: 0.5, ay: 0.5, smooth: true }
   };
   const cache = {};
   function preload() {
@@ -22,7 +23,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
         if (!state.fallback) { state.fallback = true; image.src = entry.path; }
         else { image.onload = null; image.onerror = null; }
       };
-      image.src = root + entry.path;
+      image.src = (entry.root ?? root) + entry.path;
     }
   }
   function draw(key, ctx, { x = 0, y = 0, width = 96, height, frame = 0, flip = false } = {}) {
@@ -33,7 +34,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     const [sx, sy, sw, sh] = entry.crop || [0, 0, fw, fh];
     const h = height ?? width * sh / sw;
     ctx.save(); ctx.translate(x, y); if (flip) ctx.scale(-1, 1);
-    ctx.imageSmoothingEnabled = false;
+    ctx.imageSmoothingEnabled = !!entry.smooth;
     ctx.drawImage(image, index % entry.columns * fw + sx, Math.floor(index / entry.columns) * fh + sy, sw, sh,
       -width * entry.ax, -h * entry.ay, width, h);
     ctx.restore(); return true;

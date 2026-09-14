@@ -133,7 +133,7 @@ for (const fps of [30, 60, 120, 144]) {
   const before = plain({ events: stage.events, reactions: stage.reactions, msg: stage.message, revision: stage.archive().record.revision });
   for (let i = 0; i < 10; i++) { stage.drawWorld(ctx); stage.drawHUD(ctx); w.rhythmSystem.drawCompactHUD(ctx); }
   assert.deepStrictEqual(plain({ events: stage.events, reactions: stage.reactions, msg: stage.message, revision: stage.archive().record.revision }), before, 'drawing is read only');
-  assert(calls.some(c => c[0] === 'strokeRect' && c[1] === 81 && c[2] === 153), 'fixed top-left target');
+  assert(calls.some(c => c[0] === 'fillRect' && c[1] === 150.5 && c[2] === 235 && c[3] === 3 && c[4] === 68), 'fixed rhythm target in the approved HUD lane');
 }
 {
   const r = rig(), { w, p, context } = r; r.reachReady(); p.beginBossCombat();
