@@ -55,14 +55,21 @@ for (let i = 0; i < 140; i++) fx.contact('virus', 900, 700);
 assert.strictEqual(fx.events.length, 96); fx.update(1200); assert.strictEqual(fx.events.length, 0);
 fx.contact('firewall', 900, 700); fx.reset(); assert.strictEqual(fx.events.length, 0);
 
-// The live boss owner requests mirrored frames inside the existing hazard bounds.
+// The live boss owner extends the flame behind the existing damaging front.
 reachReady(); p.state = 'boss_combat'; p.boss.phase = 'sweep';
 p.boss.pulses = [{ originX: p.boss.x, radius: 120, hit: false }];
 const requests = []; w.BARCODE.PresentationAssets = { draw(key, _ctx, options) { requests.push({ key, ...options }); return true; } };
+const combatBeforeDrawing = JSON.stringify(p.boss.pulses);
 p.drawBoss(ctx);
-assert.strictEqual(requests.length, 2); assert(requests.every(r => r.key === 'bossPulse' && r.width === 64 && r.height === 56 && r.y === 822));
+assert.strictEqual(requests.length, 2); assert(requests.every(r => r.key === 'bossPulse' && r.width === 104 && r.height === 76 && r.y === 822));
 assert.deepStrictEqual(requests.map(r => r.flip), [true, false]);
-assert.strictEqual(requests[1].x - requests[0].x, 240);
+assert.strictEqual(requests[0].x - requests[0].width / 2, p.boss.x - 120 - 32, 'left flame keeps the original leading edge');
+assert.strictEqual(requests[1].x + requests[1].width / 2, p.boss.x + 120 + 32, 'right flame keeps the original leading edge');
+assert.strictEqual(JSON.stringify(p.boss.pulses), combatBeforeDrawing, 'presentation cannot advance or mutate attack state');
+assert.strictEqual(w.Sector1Progression.BOSS_COMBAT.pulseWidth, 64);
+assert.strictEqual(w.Sector1Progression.BOSS_COMBAT.pulseHeight, 56);
+assert.strictEqual(w.Sector1Progression.BOSS_COMBAT.pulseSpeed, 560);
+assert.strictEqual(w.Sector1Progression.BOSS_COMBAT.secondPulseMs, 410);
 load(context, 'src/game/level-01-stage-fx.js');
 const stage = w.BARCODE.stageFX; requests.length = 0; stage.drawRat(ctx, 1680, 330);
 assert.strictEqual(requests[0].key, 'studioCat');

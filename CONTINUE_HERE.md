@@ -1,16 +1,15 @@
-# Continue here — Level 1 presentation smoothing
+# Continue here — idle, flourish and fireball polish
 
+## Idle, flourish and fireball polish — September 14, 2026
 
-Publication recovery also preserves the previously saved SpritePlayback clock, stable enemy idle references, and all jump apex/landing drawings from `375de26`. The existing PR #49 shim is replaced by these direct production owners, keeping one implementation of each effect. The twelve atlas files are the exact saved `61d691d` outputs.
+Current work supersedes earlier recovery handoffs below. PRs #49 and #50 are merged; base/rollback is `42aebe8c19853da510c385c45606dfd3b4c7973a`. Continue on `agent/animation-fireball-polish`.
 
-Updated September 14, 2026. Read this before the source-pack history.
+The owner requested a smooth 6 Bit idle loop, a clearer boss flourish/attack, and larger, better-looking boss fireballs with existing timing and damage. The saved asset checkpoint `7f0dd0e` is reused byte-for-byte: a coherent 26-frame forward/return idle and a lossless 3584×2170 boss atlas with 48 poses. No art is regenerated. The flourish is a 2× resampling/sharpening of the retained source, not a new model redraw.
 
-PR #49 recovery: all twelve atlas hashes and sizes are verified in immutable asset commit `1edf7fe6a011b88d511b955db9d1342f78912009`. The active initializer and manifest use that commit. The recovered playback integration includes the entrypoint, player, enemies and test rig; the complete local suite and all-file syntax checks pass. The published head and current CI result belong to PR #49 and the generated source-pack receipt; owner Makko acceptance is still pending.
+All thirteen installed replacement clips (595 frames) use immutable asset commit `236e7d7b5b3c6a1dfb580f8feeac6544d8626e86`. The active loader uses verified published manifest `fab43be772cbf4d3355486e695b11898bcd959c3`, detects a stale flourish, and retains the existing registry/rebind lifecycle. Doubling flourish geometry and anchors while halving display scale preserves the same world size, feet and four-second timing. The original boss walk remains.
 
-- Repository: 6-Bit-01/BARCODE-SYSTEM-OVERRIDE.
-- Base/rollback: merged PR #48, `de9a63ea9311aba23d6a9ad6c3dca3b5e8aa50a5`.
-- Review branch: `agent/level1-presentation-smoothing-recovery`.
-- Done: move the Jammer onto the authored sidewalk contact; apply a restrained three-frame anti-flicker pass to all twelve installed replacement atlases without changing 547-frame timing, cells or anchors; split traffic lighting by foreground/background depth; move tutorial objectives below score/lore; move the Studio Cat to Cache Overpass and make its rooftop dash a one-time discovery; replace narrow gate strips with tall sidewalk-aligned digital walls.
-- Preserved: gameplay bodies, collision rules, mission/boss clocks, controls, intro, HUD ownership, original two boss clips and all saved discovery IDs.
-- Rebuild: `python3 tools/smooth-model-atlases.py` is idempotent at smoothing version 1 and records source/output hashes in `assets/sprites-v3/calibration.json`.
-- Next: review the exact PR head in Makko using the top checklist in `docs/source-pack/ACCEPTANCE.md`. Do not merge before owner acceptance.
+The fireball reuses the authored pulse art at 104×76 with a soft glow and directional wake. Its hot leading edge remains on the original 64×56 swept damage front. Speed, phase durations, second-pulse delay, damage, jump clearance, mission rules, other sprites, intro, HUD, cat discovery and walls remain unchanged. The renderer creates no timers, canvases, game state or asset downloads.
+
+Focused model/loading, presentation and boss-anchor checks pass. Native Canvas inspection uses real image bytes and the production fireball draw method. Required full-suite/syntax and current-head CI results are recorded on the PR and generated receipt. Live Makko motion, loading, audio and playtest acceptance remain owner checks.
+
+Implementation is complete. Publish the exact tested final tree as one combined draft PR, then update the same Source Pack v5 identity. Current publication/CI state belongs to the PR and generated receipt. Do not repeat asset processing or the merged #49/#50 work. Next is owner Makko acceptance using the top route in `docs/source-pack/ACCEPTANCE.md`; Stage C remains deferred.

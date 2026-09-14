@@ -627,8 +627,8 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   const presentationFrames = [
     { state: 'walk', animation: 'sector_1_boss_walk_walk', sourceAnchorX: 100, sourceAnchorY: 253,
       bodyHeight: 253, expectedScale: 0.8 * 1.08 * 1.06, footRows: [253, 252, 252, 253, 246, 244, 244, 245, 244, 245, 251, 252, 253, 253, 253, 253, 252, 253, 249, 245, 245, 245, 245, 246, 251, 253, 253, 253, 252, 252, 252, 249, 246, 245, 245, 245, 246, 252, 253, 252, 253] },
-    { state: 'flourish', animation: 'sector_1_boss_attack_attack', sourceAnchorX: 128, sourceAnchorY: 154,
-      bodyHeight: 125, footRows: Array(48).fill(154) },
+    { state: 'flourish', animation: 'sector_1_boss_attack_attack', sourceAnchorX: 256, sourceAnchorY: 308,
+      bodyHeight: 250, footRows: Array(48).fill(308) },
     {"state": "idle", "animation": "sector_1_boss_idle_idle", "sourceAnchorX": 208, "sourceAnchorY": 308, "bodyHeight": 267.0, "footRows": [308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308, 308]}
   ];
   const bossAnimations = spriteManifest.characters['sector_1_boss_sector1boss'].animations;

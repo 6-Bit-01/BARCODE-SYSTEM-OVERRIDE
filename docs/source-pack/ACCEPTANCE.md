@@ -1,5 +1,18 @@
 # Acceptance and Test Status
 
+## Current review: idle, flourish and fireball polish
+
+Base/rollback: merged PR #50, `42aebe8c19853da510c385c45606dfd3b4c7973a`. Import the exact published head of `agent/animation-fireball-polish`, recorded on the PR and source-pack receipt. Earlier pending PR #49/#50 instructions below are historical.
+
+1. Open a fresh Makko preview and Start. Watch at least three complete 6 Bit idle loops, then walk, jump/land and enter/leave R. The loop should return without the old take splice; the existing pose timing and feet should remain stable. Restart/reopen and confirm the repaired artwork is still installed without loading errors.
+2. Destroy the Jammer and watch the full boss walk → close-up → flourish → idle handoff. The clarified flourish retains 48 poses/four seconds and the same body size and ground contact. Check it again during the combat sweep.
+3. Watch fireballs in both directions and the later double pulse. Check the larger flame, soft glow, wake and steady hot front. Jump them and check the same health loss, speed, attack warnings and counter timing; paused effects must freeze and resume with gameplay.
+4. Finish one win and one loss/retry, then restart. Retain the normal title/intro, movement/contact, lift, H/R, music/audio and Jammer-to-boss smoke route.
+
+Record the imported SHA, PASS/FAIL and short clips of three idle loops and the boss flourish/fireballs; include health before/after any unexpected hit. Automated/native-Canvas checks do not establish hosted Makko acceptance. Owner acceptance remains required before merge.
+
+After acceptance and merge, re-import the actual new `main` merge SHA into Makko, open a fresh preview and repeat steps 1–4. Record that merge SHA and the same two clips. Roll back by re-importing `42aebe8c19853da510c385c45606dfd3b4c7973a` if needed. Stage C campaign services remain deferred until this presentation pass is accepted.
+
 ## Level 1 presentation smoothing after merged #48
 
 Base/rollback: `de9a63ea9311aba23d6a9ad6c3dca3b5e8aa50a5`. Import the exact head of `agent/level1-presentation-smoothing-recovery`; owner Makko acceptance is required before merge.
