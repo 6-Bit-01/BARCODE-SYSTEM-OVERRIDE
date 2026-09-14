@@ -1,5 +1,11 @@
 # Current State
 
+## Makko still showing old character sprites — September 14, 2026
+
+PR #47 is merged at `8f09568eeb9726f7b80fb43e1ecb3f6e4672bea2`. The owner confirms the background and some presentation work but reports old Makko player/enemy sprites. `agent/fix-makko-sprite-loading` repairs the active `game-initializer.js`: use the immutable published manifest URL, reuse a loaded registry only when all twelve replacement image/JSON pairs match, and rebind the player created before Start. Allow sixty seconds for cold atlas downloads and clear the timeout after completion. Existing gameplay, imagery, HUD and retained boss clips are unchanged.
+
+The model-art regression now executes active startup with cold, preloaded old, mixed and current registries, including concurrent calls and player rebinding. Its previous reference to the unused legacy `main.js` was insufficient. A separate diagnostic runs the actual saved Makko SDK with decoded local atlas bytes, replaces the old registry, and draws all twelve replacement clips plus production player/enemy owners. This proves the SDK loading/cloning/drawing path; live Makko import, browser networking, audio and playtest acceptance remain owner checks. See `verification/makko-model-runtime.json` and `.webp`.
+
 PR #47 now publishes the recovered runtime integration and immutable artwork. The first push run passed its game, syntax and Chromium assertions but failed afterward while removing Chrome's temporary profile (`ENOTEMPTY`); the simultaneous PR run passed. The follow-up waits for Chrome's close event and retries transient directory-removal races. Current-head validation is reported on PR #47 and in its generated source receipt. Owner Makko acceptance remains pending.
 
 ## Recovered model-art integration — September 14, 2026

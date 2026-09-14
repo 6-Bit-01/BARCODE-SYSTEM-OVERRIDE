@@ -428,6 +428,7 @@
         "src/engine/intro-sequence.js",
         "src/engine/parallax.js",
         "src/engine/presentation-assets.js",
+        "src/game/game-initializer.js",
         "tools/check-intro.js"
       ]
     }
@@ -652,7 +653,7 @@
     {
       "global": "window.startGameInitialization",
       "file": "src/game/game-initializer.js",
-      "line": 331,
+      "line": 363,
       "loaded": true
     },
     {

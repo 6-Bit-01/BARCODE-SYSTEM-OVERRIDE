@@ -11,6 +11,30 @@ let initSpritesInFlight = null;
 let startGameInitializationInFlight = null;
 let startGameInitializationComplete = false;
 
+// Makko can supply its own sprites-manifest.json and preload that registry.
+// Load the published game manifest explicitly, then identify all replacement clips.
+const MODEL_SPRITE_MANIFEST_URL = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/8f09568eeb9726f7b80fb43e1ecb3f6e4672bea2/sprites-manifest.json';
+const MODEL_SPRITE_ART_ROOT = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/';
+const MODEL_SPRITE_CLIPS = {
+  '6_bit_main': ['6_bit_idle_idle', '6_bit_jump_jump', '6_bit_walk_walk', '6_bit_r__h_mode_rhmode'],
+  'virus_virus': ['virus_idle_idle'],
+  'corrupted_corrupted': ['corrupted_idle_idle', 'corrupted_walk_walk'],
+  'firewall_firewall': ['firewall_idle_idle', 'firewall_walk_walk', 'firewall_attack_default'],
+  'broadcast_jammer_broadcastjammer': ['broadcast_jammer_idle_idle'],
+  'sector_1_boss_sector1boss': ['sector_1_boss_idle_idle']
+};
+
+function hasCurrentModelSprites() {
+  const engine = window.MakkoEngine;
+  if (!engine?.isLoaded?.()) return false;
+  const characters = engine.getManifest?.()?.characters;
+  return Object.entries(MODEL_SPRITE_CLIPS).every(([character, clips]) => clips.every(clip => {
+    const entry = characters?.[character]?.animations?.[clip];
+    return entry?.image === MODEL_SPRITE_ART_ROOT + clip + '.webp' &&
+      entry?.json === MODEL_SPRITE_ART_ROOT + clip + '.json';
+  }));
+}
+
 function ensureLevel01MusicProfileForAudio() {
   if (window.BARCODE && typeof window.BARCODE.ensureLevel01MusicProfileSelected === 'function') {
     return window.BARCODE.ensureLevel01MusicProfileSelected();
@@ -144,12 +168,13 @@ async function performInitSprites() {
     
     console.log('Loading sprites manifest...');
     
-    // Create timeout promise for sprite loading
+    // The recovered atlases need a cold-download allowance; clear the timer on completion.
+    let spriteTimeout;
     const spriteTimeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Sprite loading timeout')), 15000); // 15 second timeout
+      spriteTimeout = setTimeout(() => reject(new Error('Sprite loading timeout')), 60000);
     });
     
-    const spriteLoadPromise = window.MakkoEngine.init('sprites-manifest.json', {
+    const spriteLoadPromise = window.MakkoEngine.init(MODEL_SPRITE_MANIFEST_URL, {
       onProgress: (loaded, total) => {
         console.log(`Loading sprites: ${loaded}/${total}`);
       },
@@ -179,7 +204,11 @@ async function performInitSprites() {
         return Promise.resolve(); // Continue with fallback graphics
       }
       throw initError;
+    } finally {
+      clearTimeout(spriteTimeout);
     }
+
+    if (!hasCurrentModelSprites()) throw new Error('Published model sprite manifest was not installed');
     
     console.log('✓ MakkoEngine initialized successfully');
     console.log('Available characters:', window.MakkoEngine.getCharacters());
@@ -197,6 +226,9 @@ async function performInitSprites() {
     });
     
     window.useFallbackGraphics = false;
+    // Player construction can precede Start and clone Makko's old registry.
+    // Rebind that existing player after the replacement templates are ready.
+    if (window.player?.initSprite) await window.player.initSprite();
     
   } catch (error) {
     const errorMessage = error?.message || error?.toString() || 'Unknown error';
@@ -223,7 +255,7 @@ async function performInitSprites() {
 }
 
 window.initSprites = function() {
-  if (window.MakkoEngine && typeof window.MakkoEngine.isLoaded === 'function' && window.MakkoEngine.isLoaded()) {
+  if (hasCurrentModelSprites()) {
     console.log('Sprite system already initialized');
     return Promise.resolve();
   }

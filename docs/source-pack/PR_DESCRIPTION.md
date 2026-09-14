@@ -1,14 +1,12 @@
-# Finish the recovered model artwork and live HUD
+# Make Makko load the published replacement sprites
 
-PR #46 preserved five prepared sprite atlases but did not connect the replacement artwork or new HUD to the game. This continues the already-approved saved v5 implementation on merged #46.
+After merged #47, the background and HUD updates appeared but the player and enemies still used Makko's old sprites. The active initializer accepted any loaded Makko registry and requested the host-owned relative manifest. A player created before Start could also retain an old sprite clone.
 
-- Install twelve complete recovered clips (547 drawings), calibrated feet and both new city layers through immutable asset URLs.
-- Activate the illustrated health/sampler/combo/Amp/score/lore/boss HUD and matching effect destinations.
-- Preserve fixed collision bodies, action timing, all existing mechanics, intro and #45 cat/FX/pointer/pulse work.
-- Retain the original boss walk/flourish and traffic animations: their final new exports were not saved. Three Firewall flame poses still need continuity review. No artwork has been regenerated.
+- Load the existing immutable manifest from the #47 merge, with its already-published artwork URLs.
+- Reuse a loaded registry only when all twelve replacement image/JSON pairs match, then rebind the existing player after loading.
+- Give cold atlas downloads sixty seconds and clear the timeout after completion.
+- Replace the unused legacy-startup assertion with regressions against the active initializer: cold, old, mixed and current registries; concurrent startup; player rebinding; and timeout cleanup.
 
-Validation: full npm test including the actual manifest/atlas/runtime integration check; all-JavaScript syntax; six production-world Canvas scenes using current sprites, scenery and HUD. Native diagnostics explicitly adapt Makko's sprite boundary and do not certify host playback, audible timing or feel.
+The actual saved Makko SDK was also exercised with decoded local atlas bytes: old registry replacement, all twelve clips, and production player/enemy drawing passed. Diagnostic sources and a contact sheet are included. This verifies the SDK boundary but does not certify live host import, browser networking, audio or playtest feel.
 
-Only production files are published. Raw model uploads and historical/rejected art remain in the saved source-pack recovery material. Base/rollback: f3bf9ed294a2bd69fe3a7dccc02a1c50b9241db2. Art pin: a4c1b7cf6fec0a083a4812ae1ea76edef45a5911.
-
-One combined draft; owner Makko review in docs/source-pack/ACCEPTANCE.md is required before merge. CONTINUE_HERE.md records the exact continuation; Stage C follows acceptance of this art/HUD pass.
+No new artwork or gameplay changes. Existing background, HUD, mechanics and deliberately retained boss walk/flourish and traffic remain. Base/rollback: `8f09568eeb9726f7b80fb43e1ecb3f6e4672bea2`. One combined draft; owner Makko review follows the top route in `docs/source-pack/ACCEPTANCE.md` before merge. Full-suite, syntax and current-head GitHub results are recorded on the PR and generated source receipt.

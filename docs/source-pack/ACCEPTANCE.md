@@ -1,5 +1,15 @@
 # Acceptance and Test Status
 
+## Makko sprite-loading repair after merged #47
+
+Base/rollback: `8f09568eeb9726f7b80fb43e1ecb3f6e4672bea2`. Import the repair branch `agent/fix-makko-sprite-loading` at its published review head.
+
+1. Open from a fresh Makko preview, press Start and confirm 6 Bit uses the new idle, walk, jump and rhythm drawings, including the player created before startup finishes.
+2. Confirm Virus, Corrupted and Firewall use the replacement sprites throughout their actions. Check the Jammer and boss idle when reached; the two intentionally retained boss clips remain as documented below.
+3. Reopen/restart and check there are no repeated sprite downloads, duplicate initialization, shifted feet, or changes to controls, collision, rhythm, hack, intro, HUD and the updated city layers.
+
+Automated coverage includes cold/old/mixed/current registries, single-flight startup, player rebinding, cleared timeout and all twelve atlas paths. Actual saved Makko SDK drawing is recorded in `verification/makko-model-runtime.json`; its local image transport does not certify live host import or audio.
+
 ## Recovered model art / live HUD — September 14, 2026
 
 Review `agent/finish-model-art-hud` at the exact head in its PR/receipt. Base/rollback: merged #46, `f3bf9ed294a2bd69fe3a7dccc02a1c50b9241db2`. Owner Makko review is still required before merge.
