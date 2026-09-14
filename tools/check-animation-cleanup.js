@@ -6,6 +6,33 @@ const { w } = createRig();
 const update = w.BARCODE.SpritePlayback.update;
 const near = (a, b) => assert(Math.abs(a - b) < 1e-4, `${a} / ${b}`);
 
+// Exercise production playback with the real, deliberately unequal walk
+// durations, including its repeat seam and a long render interval.
+{
+  const fs = require('node:fs'), path = require('node:path');
+  const entries = Object.values(JSON.parse(fs.readFileSync(path.join(__dirname,
+    '../assets/sprites-v3/prepared/6_bit_walk_walk.json'))).frames);
+  function expected(time) {
+    let remaining = time % 4000, frame = 0;
+    while (remaining >= entries[frame].duration - 1e-7) {
+      remaining -= entries[frame].duration; frame = (frame + 1) % entries.length;
+    }
+    return { frame, remaining };
+  }
+  for (const fps of [30, 60, 120, 144]) for (const elapsed of [999, 1001, 1750, 4001]) {
+    const sprite = createSprite(playerClips), ref = sprite.play('6_bit_walk_walk', true);
+    sprite.currentSprite.metadata.frames = Object.fromEntries(entries.map((entry, i) => [String(i), entry]));
+    let remaining = elapsed;
+    while (remaining > 1e-7) { const step = Math.min(remaining, 1000 / fps); update(sprite, step); remaining -= step; }
+    const result = expected(elapsed);
+    assert.equal(ref.currentFrame, result.frame, 'stride phase is independent of rendering frequency');
+    near(sprite.currentSprite.timeAccumulator, result.remaining);
+    const before = ref.currentFrame; sprite.pause(); update(sprite, 800); assert.equal(ref.currentFrame, before);
+    sprite.resume(); update(sprite, 731);
+    assert.equal(ref.currentFrame, expected(elapsed + 731).frame, 'irregular delta preserves retimed stride');
+  }
+}
+
 // At equal elapsed time the pose must agree, including remainder and speed.
 for (const fps of [30, 60, 120, 144]) for (const speed of [0.75, 1, 1.25, 2]) {
   const sprite = createSprite(playerClips);

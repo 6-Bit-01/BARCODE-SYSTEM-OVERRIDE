@@ -63,6 +63,12 @@ def run(force=False):
     for clip, record in calibration.items():
         atlas_path = PREPARED / f"{clip}.webp"
         current_hash = sha256(atlas_path)
+        # Bespoke motion packing uses shared cells and its own registration.
+        # The generic full-sheet blend must not overwrite that later pass.
+        if record.get("motionPolish"):
+            if current_hash != record.get("sha256"):
+                raise ValueError(f"Unexpected motion-polished atlas: {clip}")
+            continue
         previous_pass = record.get("smoothing")
         if previous_pass and previous_pass.get("version") == VERSION and record.get("sha256") == current_hash and not force:
             continue

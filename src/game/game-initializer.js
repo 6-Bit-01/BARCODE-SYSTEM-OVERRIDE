@@ -13,8 +13,8 @@ let startGameInitializationComplete = false;
 
 // Makko can supply its own sprites-manifest.json and preload that registry.
 // Load the published game manifest explicitly, then identify all replacement clips.
-const MODEL_SPRITE_MANIFEST_URL = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/fab43be772cbf4d3355486e695b11898bcd959c3/sprites-manifest.json';
-const MODEL_SPRITE_ART_ROOT = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/236e7d7b5b3c6a1dfb580f8feeac6544d8626e86/assets/sprites-v3/prepared/';
+const MODEL_SPRITE_MANIFEST_URL = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/7f77b53dce9cd340bf74b33f38c673a2987a9c5d/sprites-manifest.json';
+const MODEL_SPRITE_ART_ROOT = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/39410b034c9444861f8f30836e31f9ec252d92fe/assets/sprites-v3/prepared/';
 const MODEL_SPRITE_CLIPS = {
   '6_bit_main': ['6_bit_idle_idle', '6_bit_jump_jump', '6_bit_walk_walk', '6_bit_r__h_mode_rhmode'],
   'virus_virus': ['virus_idle_idle'],

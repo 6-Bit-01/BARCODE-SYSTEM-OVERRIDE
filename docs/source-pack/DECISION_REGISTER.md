@@ -1,5 +1,9 @@
 # Decision Register
 
+## September 14: restrained motion polish and reopened health/roof design
+
+The owner requests improved existing 6 Bit animations, especially the shaky/uneven walk, while explicitly excluding giant changes now. This authorizes the narrow player-motion pass. The owner also questions hack-for-health and proposes enemy/rooftop pickups, more upper platforms, a possible cloud secret and traffic hazards. These reopen the older health/expansion locks for design discussion; they do not yet choose drop rates, enemy type, a new H behavior, added geometry or damaging traffic. See NEXT_SMALL_GAMEPLAY_PASS.md for grounded recommendations. The seven major levels, four playable characters, single jump and simulation/canon requirements remain.
+
 September 13 owner correction: **Studio Rats are cats**; the name is slang, never a literal-rodent design instruction. The new asset/FX/boss-sizing pass is governed by `CAT_CHAOS_ASSET_PASS.md`, after merged PR #44. Keep the existing stable discovery IDs and saved records.
 
 ## Current owner approval — all ten impact/discovery recommendations after #43

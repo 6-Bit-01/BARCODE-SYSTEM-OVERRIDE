@@ -75,6 +75,17 @@ for (const [character, record] of Object.entries(original.characters)) {
       Object.entries(source.frames).forEach(([key, item]) => {
         assert.strictEqual(prepared.frames[key].duration, item.duration, `${key}: flourish frame duration retained`);
       });
+    } else if (clip === '6_bit_walk_walk') {
+      assert.strictEqual(cal.motionPolish?.method, 'registered-single-stride-no-frame-blending');
+      assert.strictEqual(cal.motionPolish?.uniquePoses, 12);
+      assert(cal.motionPolish.registeredWaistSpanPx < 1, 'registered walk body stays within one source pixel');
+      assert.deepStrictEqual(cal.atlasFrameIndices, Array.from({ length: 48 }, (_, i) => i % 12));
+      const walkFrames = Object.values(json(`assets/sprites-v3/prepared/${clip}.json`).frames);
+      near(walkFrames.reduce((sum, f) => sum + f.duration, 0), 4000, 'walk retains its complete clip duration');
+      walkFrames.forEach((f, i) => {
+        assert(f.duration >= 45 && f.duration <= 135, 'bounded stride pacing');
+        near(f.duration, cal.motionPolish.frameDurationsMs[i % 12], 'all four strides share the same pacing');
+      });
     } else {
       assert.strictEqual(cal.smoothing?.version, 1, `${clip}: temporal smoothing provenance exists`);
       assert.strictEqual(cal.smoothing?.method, 'premultiplied-rgba-temporal-3-tap', `${clip}: approved whole-frame smoothing method`);
@@ -104,8 +115,9 @@ for (const [character, record] of Object.entries(original.characters)) {
       const f = item.frame;
       assert.deepStrictEqual([f.w, f.h], [cal.width, cal.height], `${clip} frame ${index}: cell size`);
       assert(f.x >= 0 && f.y >= 0 && f.x + f.w <= dimensions[0] && f.y + f.h <= dimensions[1], `${clip} frame ${index}: atlas bounds`);
-      assert.strictEqual(f.x, index % cal.columns * cal.width);
-      assert.strictEqual(f.y, Math.floor(index / cal.columns) * cal.height);
+      const cell = cal.atlasFrameIndices?.[index] ?? index;
+      assert.strictEqual(f.x, cell % cal.columns * cal.width);
+      assert.strictEqual(f.y, Math.floor(cell / cal.columns) * cal.height);
       assert(cal.headRows[index] >= 0 && cal.footRows[index] < f.h && cal.headRows[index] <= cal.footRows[index], `${clip} frame ${index}: silhouette calibration`);
     });
     count++; frameCount += frames.length;

@@ -39,7 +39,8 @@ function createSprite(animations) {
     update(ms) {
       if (!playing) return;
       elapsed += ms * speed;
-      if (elapsed >= 100) {
+      const duration = sheets[clip].metadata.frames[String(frame)]?.duration || 100;
+      if (elapsed >= duration) {
         elapsed = 0; frame++;
         if (frame >= animations[clip]) { frame = loop ? 0 : animations[clip] - 1; playing = loop; }
       }
