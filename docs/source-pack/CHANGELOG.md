@@ -1,5 +1,14 @@
 # Recovery checkpoint — September 14
 
+## Enemy hijack / repair route follow-up
+
+- The owner merged walk PR #52 during publication preparation. Verified main is `66c17d1880f5de933e9b928833e5dd2bfff6a817`, with the exact original walk tree. Preserve the tested hijack commit and publish this new draft directly against main; no implementation was lost or repeated. Makko acceptance remains pending.
+- H now locks one ordinary enemy; a correct puzzle converts it for eight seconds, with early release, a last-two-second warning and a harmless one-second reboot. Existing puzzle-time slowdown remains.
+- Replace hack healing with two +1 rooftop cells and a once-only marked Corrupted carrier drop; preserve three-bar health and boss retry.
+- Add the Cache maintenance ledge and Tower utility unit, using real production collision and existing art/Canvas owners.
+- Update tutorial, reward feedback, bounded sound cues and tests; keep the existing walk work and other campaign mechanics. See `ENEMY_HIJACK_REPAIR_PASS.md` and the generated validation receipt.
+
+
 ## Restrained player motion polish — September 14, 2026
 
 PR #51 is merged. Base/rollback: `ea2921960477e38c74740dda378fcb513a8f1cc1`; branch `agent/player-motion-polish`. The owner requested less fidgety 6 Bit animation and small improvements to the current game, explicitly avoiding giant changes. Health sources, rooftop expansion, cloud secrets and traffic hazards were reopened for design discussion; they are recommendations rather than implemented mechanics.

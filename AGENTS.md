@@ -1,5 +1,8 @@
 # Repository Guidance
 
+**Current owner-approved pass: enemy hijack, repairs and small rooftop connections.** The owner's “Enemy hijack!!!! Fuck yes!” selects H's replacement reward. `docs/source-pack/ENEMY_HIJACK_REPAIR_PASS.md` governs `agent/enemy-hijack-repairs`. The owner merged walk PR #52 during preparation: current main/base is `66c17d1880f5de933e9b928833e5dd2bfff6a817`, whose complete tree equals the original walk head `b1692f47017459011177fb779639682534c862b7`. Preserve the tested hijack work and publish one new draft directly against main; no undo or repeat implementation is needed. H's puzzle-time 40% slowdown stays; success converts one ordinary enemy for eight seconds instead of healing or the old area-stun path. Add the already-agreed two rooftop repairs, one marked carrier and two small supports. This expressly supersedes old H reward locks and the earlier undecided/stun recommendations. Preserve owner Makko review before this new PR merges; the #52 merge does not establish hosted playtest acceptance. Other locked mechanics and art remain.
+
+
 ## Current authority and scope
 
 **Current scoped follow-up after merged #51:** `agent/player-motion-polish`, base/rollback `ea2921960477e38c74740dda378fcb513a8f1cc1`. The owner asks for less fidgety 6 Bit animations and small visual/play improvements. Deliver the diagnosed walk registration/cadence repair using existing complete-body drawings and compact atlas storage. Health pickups, H redesign, extra rooftops, cloud secrets and traffic hazards are newly reopened design proposals; record recommendations without silently implementing them. `CONTINUE_HERE.md` and newest source-pack entries govern. One combined draft; retain owner Makko acceptance before merge. Earlier current-work entries below are historical.
@@ -62,7 +65,7 @@ The owner approved progressing from the existing Level 1 boss entrance to a fini
 - An active tutorial owns Space exclusively; that press cannot also jump.
 - `R` is actual Rhythm Combat Mode. Down Arrow damage requires active Rhythm Combat Mode and a successful rhythm judgment. Passive top-down landing stomp remains intentional and lethal against ordinary enemies.
 - H and R retain their tutorial access locks. The rhythm/audio transport and timing state continue in the background even while the mode is hidden, locked or inactive; normal pause remains a separate lifecycle state.
-- `H` starts the existing short hack puzzle. Its existing availability rules and one-health-bar success reward remain.
+- `H` starts the existing short hack puzzle under its tutorial/grounded access rules. The latest approved hijack pass replaces the old one-health-bar reward as specified above.
 - Tutorial and pre-encounter boundaries must prevent crossing a future closed gate. Boss world position must not be tied to cinematic camera motion; animation scale/feet must remain consistent. Jammer placement must clear the lift plus its full attack range. These are September 11 owner playtest corrections.
 - Preserve the two-hit rhythm-powered lift, authored rooftops, and the currently approved stable body/swept-foot geometry. Backend ownership changes are not permission to remove mechanics.
 - Level 1 requires 20 post-tutorial mission defeats through four authored encounter groups. Tutorial kills do not count.

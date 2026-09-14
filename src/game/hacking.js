@@ -44,7 +44,8 @@ window.HackingSystem = class HackingSystem {
     this.tutorialObjective = 'hack_start';
     this.tutorialCompleteObjective = 'hack_complete';
     this._lastResultFailed = false;
-    this.overridePulseRadius = 520;
+    this.hijackTarget = null;
+    this.resultDetail = '';
     console.log('Terminal Hacking System initialized');
   }
 
@@ -92,6 +93,8 @@ window.HackingSystem = class HackingSystem {
     }
     return shouldRestore;
   }
+
+  getCooldownRemainingMs() { return Math.max(0, this.cooldownUntil - Date.now()); }
 
   getDiagnostics() {
     return {
@@ -209,9 +212,24 @@ window.HackingSystem = class HackingSystem {
       console.log('Hacking remains locked until tutorial chapter 3');
       return false;
     }
-    if (!tutorialActive && Date.now() < this.cooldownUntil) return false;
     if (window.player && window.player.grounded === false) return false;
     if (window.sector1Progression?.isGameplaySuppressed?.()) return false;
+    if (window.isPaused || window.gameState?.paused || window.gameState?.gameOver || window.gameState?.victory) return false;
+
+    const manager = window.enemyManager;
+    if (!tutorialActive && manager?.getHijackedEnemy?.()) {
+      manager.releaseHijack();
+      this.feedback = { type: 'success', text: 'LINK RELEASED', opacity: 1, timer: 60 };
+      this.resultDetail = 'Rebooting. Stand clear before it turns hostile.';
+      return true;
+    }
+    if (!tutorialActive && Date.now() < this.cooldownUntil) return false;
+    this.hijackTarget = manager?.findHijackTarget?.() || null;
+    if (!this.hijackTarget && !(tutorialActive && Number(window.tutorialSystem.storyChapter) === 3)) {
+      this.feedback = { type: 'failure', text: 'NO HIJACK TARGET', opacity: 1, timer: 60 };
+      this.resultDetail = 'Move near an enemy with the H / Y marker.';
+      return false;
+    }
 
     this.runGeneration++;
     this.clearOwnedTimeouts();
@@ -225,6 +243,7 @@ window.HackingSystem = class HackingSystem {
     this.inputText = '';
     this.puzzleComplete = false;
     this.feedback = null;
+    this.resultDetail = '';
     this.currentPuzzle = null;
     this.answer = null;
     this.guardHitsRemaining = 1;
@@ -350,6 +369,7 @@ window.HackingSystem = class HackingSystem {
     this.runGeneration++;
     this.clearOwnedTimeouts();
     this.tutorialMode = false;
+    this.hijackTarget = null;
     this.tutorialObjective = null;
     this.tutorialCompleteObjective = null;
 
@@ -358,15 +378,24 @@ window.HackingSystem = class HackingSystem {
   }
 
   successPuzzle() {
+    if (!this.active) return false;
+    const training = this.tutorialMode && !this.hijackTarget;
+    const linked = training || this.safeInvoke('enemy hijack', () => window.enemyManager?.hijackEnemy?.(this.hijackTarget));
+    if (!linked) {
+      this.finishSession('target-lost', ['> TARGET DISCONNECTED', '> REACQUIRE A LIVE SIGNAL']);
+      this.cooldownUntil = Date.now() + 1500;
+      this.feedback = { type: 'failure', text: 'TARGET LOST', opacity: 1, timer: 60 };
+      this.resultDetail = 'The locked enemy is gone. Reacquire a live target.';
+      return false;
+    }
     const result = this.finishSession('success', [
       '> ACCESS GRANTED', '> AUTHENTICATION SUCCESSFUL', '> NETWORK BREACH ACHIEVED',
-      '> SIGNAL STRENGTH RESTORED', '> TERMINATING SESSION...'
+      training ? '> PRACTICE UPLINK COMPLETE' : '> ALLEGIANCE REWRITTEN: 6_BIT', '> TERMINATING SESSION...'
     ]);
     if (!result) return false;
     this.safeInvoke('success audio', () => window.audioSystem?.playSound?.('terminalBeep', 0.5));
-    this.safeInvoke('health restore', () => window.player?.restoreHealth?.(1));
     this.safeInvoke('tutorial completion', () => this.completeTutorialObjectivesOnSuccess(result.tutorialSession));
-    this.safeInvoke('override pulse', () => this.emitOverridePulse());
+    this.resultDetail = training ? 'UPLINK READY · H / Y locks a nearby enemy.' : 'ENEMY HIJACKED · 8 seconds · H / Y releases';
     this.showSuccessFeedback();
     return true;
   }
@@ -407,28 +436,6 @@ window.HackingSystem = class HackingSystem {
     return true;
   }
 
-  emitOverridePulse() {
-    const beatMs = window.rhythmSystem?.beatInterval || 500;
-    const stunMs = beatMs * 4;
-    const now = window.enemyManager?.simulationTimeMs || 0;
-    const player = window.player;
-    (window.enemyManager?.enemies || []).forEach(enemy => {
-      if (!enemy || !enemy.active || enemy.type === 'broadcast_jammer' || enemy.type === 'boss' || enemy.canReceiveDamage === false) return;
-      if (player?.position && enemy.position && window.distance &&
-          window.distance(player.position.x, player.position.y, enemy.position.x, enemy.position.y) > this.overridePulseRadius) return;
-      enemy._stunnedUntilMs = now + stunMs;
-    });
-  }
-
-  finishTacticalFocus(success) {
-    this.cooldownUntil = Date.now() + this.cooldownMs;
-    this.guardHitsRemaining = 0;
-    this._startTime = 0;
-    this.puzzleReadyAt = 0;
-    this.restoreSuspendedRhythmMode();
-    if (success) this.safeInvoke('override pulse', () => this.emitOverridePulse());
-  }
-
   showSuccessFeedback() { this.feedback = { type: 'success', text: 'ACCESS GRANTED', opacity: 1, timer: 60 }; }
   showFailureFeedback() { this.feedback = { type: 'failure', text: 'ACCESS DENIED', opacity: 1, timer: 60 }; }
   showTimeoutFeedback() { this.feedback = { type: 'failure', text: 'SIGNAL TIMEOUT', opacity: 1, timer: 60 }; }
@@ -453,7 +460,7 @@ window.HackingSystem = class HackingSystem {
       ctx.fillStyle = color; ctx.fillRect(650, 260, 5, 120);
       ctx.font = 'bold 28px monospace'; ctx.fillText(this.feedback?.text || (success ? 'ACCESS GRANTED' : 'SIGNAL INTERRUPTED'), 682, 307);
       ctx.font = '17px monospace'; ctx.fillStyle = '#d3e4eb';
-      ctx.fillText(success ? 'REPAIR RECEIVED · SIGNAL RESTORED' : this.resultFx?.outcome === 'timeout' ? 'Time expired. Reconnect after cooldown.' : 'Code mismatch. Reconnect after cooldown.', 682, 345);
+      ctx.fillText(this.resultDetail || (this.resultFx?.outcome === 'timeout' ? 'Time expired. Reconnect after cooldown.' : 'Code mismatch. Reconnect after cooldown.'), 682, 345);
       ctx.globalAlpha = 1;
       this.drawResultTransfer(ctx);
       ctx.restore(); return;
@@ -478,7 +485,8 @@ window.HackingSystem = class HackingSystem {
     ctx.fillStyle = '#19313e'; ctx.fillRect(488, 336, 944, 5);
     ctx.fillStyle = color; ctx.fillRect(488, 336, 944 * (1 - presentation.progress), 5);
     if (this.phase === 'boot') {
-      ctx.fillStyle = '#adbfcd'; ctx.font = '20px monospace'; ctx.fillText('Scanning ports · negotiating secure access', 488, 388);
+      ctx.fillStyle = '#adbfcd'; ctx.font = '20px monospace';
+      ctx.fillText(this.hijackTarget ? `LOCKED: ${this.hijackTarget.type.toUpperCase()} · Rewriting allegiance` : 'PRACTICE UPLINK · Learn the access sequence', 488, 388);
       ctx.fillStyle = 'rgba(145, 255, 224, 0.28)'; ctx.fillRect(488 + presentation.progress * 920, 358, 24, 85);
     } else if (this.phase === 'display' && !this.currentPuzzle?.hidden) {
       if (this.currentPuzzle?.type === 1) {
@@ -517,16 +525,11 @@ window.HackingSystem = class HackingSystem {
     if (!this.resultFx) return;
     const t = this.resultFx.elapsedMs / 1000;
     if (this.resultFx.outcome === 'success') {
-      const hp = window.BARCODE?.ComicHUD?.health || { x:48, y:62, width:330, height:18 };
-      const healthX = hp.x + hp.width / 2, healthY = hp.y + hp.height / 2;
       for (let i = 0; i < 4; i++) {
-        const p = Math.max(0, Math.min(1, t * 1.5 - i * 0.08));
-        const x = 960 + (healthX - 960) * p;
-        const y = 320 + (healthY - 320) * p - Math.sin(p * Math.PI) * 75;
-        ctx.fillStyle = `rgba(145, 255, 224, ${0.85 * (1 - t)})`; ctx.fillRect(x - 5, y - 5, 10, 10);
+        const spread = (t * 160 + i * 18);
+        ctx.strokeStyle = `rgba(192, 237, 85, ${0.6 * (1 - t)})`; ctx.lineWidth = 2;
+        ctx.strokeRect(650 - spread, 260 - spread * 0.2, 620 + spread * 2, 120 + spread * 0.4);
       }
-      ctx.strokeStyle = `rgba(145, 255, 224, ${Math.max(0, t - 0.45) * 1.3})`;
-      ctx.lineWidth = 2; ctx.strokeRect(hp.x - 4, hp.y - 4, hp.width + 8, hp.height + 8);
     } else {
       ctx.fillStyle = `rgba(255, 177, 110, ${0.5 * (1 - t)})`;
       for (let i = 0; i < 4; i++) ctx.fillRect(650 + ((i * 173 + t * 300) % 550), 260 + i * 30, 70, 2);
@@ -538,6 +541,8 @@ window.HackingSystem = class HackingSystem {
   getCurrentType() { return this.puzzleType; }
 
   reset() {
+    this.hijackTarget = null;
+    this.resultDetail = '';
     const shouldRestore = this.active || this.suspendedRhythmMode;
     this.active = false;
     this.phase = 'idle';

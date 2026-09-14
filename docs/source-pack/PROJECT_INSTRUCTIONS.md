@@ -1,5 +1,10 @@
 # Project Instructions
 
+## Current H reward and bounded route update
+
+The owner selected enemy hijack, superseding previous one-bar hack healing and assumed stun-purpose guidance. H now temporarily converts one nearby ordinary enemy after the existing slowed-time puzzle; repairs come from the scoped cells/carrier. `ENEMY_HIJACK_REPAIR_PASS.md` controls this implementation and its review. Walk PR #52 is merged; publish the preserved new work as one draft against current main. Preserve the walk, single jump, original lift, mission/Jammer/boss requirements and owner Makko acceptance.
+
+
 ## Authority and evidence
 
 1. The owner's newest direct instruction controls design and scope.

@@ -1,5 +1,10 @@
 # Decision Register
 
+## Latest decision — enemy hijack chosen
+
+The owner explicitly selected **Enemy hijack** as the replacement hacking reward. H slows enemies during its puzzle; do not conflate that assistance with the outcome. This selection supersedes the earlier unresolved H section and the assistant's assumed-stun direction. The first implementation uses one eight-second ordinary ally and preserves actual defeat credit; the previously agreed repair/rooftop scope provides replacement healing. Exact initial tuning and owner review are in `ENEMY_HIJACK_REPAIR_PASS.md`. Environmental terminals/cloud/traffic remain later ideas.
+
+
 ## September 14: restrained motion polish and reopened health/roof design
 
 The owner requests improved existing 6 Bit animations, especially the shaky/uneven walk, while explicitly excluding giant changes now. This authorizes the narrow player-motion pass. The owner also questions hack-for-health and proposes enemy/rooftop pickups, more upper platforms, a possible cloud secret and traffic hazards. These reopen the older health/expansion locks for design discussion; they do not yet choose drop rates, enemy type, a new H behavior, added geometry or damaging traffic. See NEXT_SMALL_GAMEPLAY_PASS.md for grounded recommendations. The seven major levels, four playable characters, single jump and simulation/canon requirements remain.

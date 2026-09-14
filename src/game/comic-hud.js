@@ -39,6 +39,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
       const x=157+i*segment, w=segment-8;
       polygon(c,[[x,103],[x+w,103],[x+w-8,132],[x-8,132]],i<hp?'#27372a':'#302731');
       barcode(c,x+1,106,w-10,22,i<hp?C.green:'#503c46');
+      const repair = window.sector1Progression?.repairFeedback;
+      if(repair && i===hp-1) {
+        c.save(); c.globalAlpha=(1-repair.age/900)*(0.45+0.35*Math.cos(repair.age/75));
+        c.fillStyle=C.paper;c.fillRect(x+1,106,w-10,22);c.restore();
+      }
     }
     c.fillStyle=C.purple;c.fillRect(156,146,346,3);
     plate(c,1200,23,310,76,C.paper,C.ink);

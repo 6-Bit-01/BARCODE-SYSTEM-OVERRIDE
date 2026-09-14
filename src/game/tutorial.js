@@ -140,11 +140,12 @@ window.TutorialSystem = class TutorialSystem {
         break;
         
       case 3:
-        this.addDialogue('Your signal is holding. I can open local access for a short hack.', 'mac', 2000);
+        this.addDialogue('Their commands are just code. I can open a practice uplink so you can learn to rewrite them.', 'mac', 2000);
         
         this.addDialogue('H / controller Y opens the hack. Read the puzzle and enter the answer before its timer runs out.', 'mac', 2000);
         this.addObjective('Press H to start hacking', 'hack_start');
-        this.addDialogue('A successful hack restores one bar of signal strength. Keep yourself connected.', 'cache', 3000);
+        this.addDialogue('In the street, H locks a nearby enemy. Solve the puzzle and it fights for you for eight seconds. H again releases it.', 'mac', 3000);
+        this.addDialogue('Watch the ally countdown. Repairs are the marked cells on rooftops and enemies carrying them.', 'cache', 3000);
         this.addObjective('Complete the hacking puzzle', 'hack_complete');
         
         const hackCompleteDialogue = this.addDialogue('Finish this access check. Then we can open the street.', 'mac', 0);

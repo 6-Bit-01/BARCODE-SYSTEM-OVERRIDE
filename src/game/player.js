@@ -1335,7 +1335,7 @@ window.Player = class Player {
 
   getContactShadow() {
     const footY = this.position.y + PLAYER_VISUAL_FOOT_OFFSET_Y;
-    const surfaces = [...(window.Sector1Progression?.STAGE_SURFACES || [])];
+    const surfaces = [...(window.sector1Progression?.getStageSurfaces?.() || window.Sector1Progression?.STAGE_SURFACES || [])];
     const progression = window.sector1Progression;
     if (progression?.isSignalLiftAvailable?.() && progression.signalLift) surfaces.push(progression.signalLift);
     let groundY = 750 + PLAYER_VISUAL_FOOT_OFFSET_Y;
