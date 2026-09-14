@@ -1,5 +1,11 @@
 # Recovery checkpoint — September 14
 
+## September 14, 2026 — Repair PR #47 browser cleanup
+
+- Publish the recovered integration in PR #47 with working immutable artwork links.
+- Fix the push-run `ENOTEMPTY` failure after every Chromium assertion had passed: await Chrome's close event and allow bounded retries while helper processes finish profile writes.
+- Keep assertions, runtime artwork, mechanics and the owner Makko merge gate unchanged. The parallel initial PR run passed; current-head CI results belong to the PR and generated source receipt.
+
 ## September 14, 2026 — Resume the saved model-art/HUD integration
 
 - Restore v5 version 38 runtime work over merged #46, preserving all finished drawings.

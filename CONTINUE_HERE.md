@@ -10,7 +10,8 @@ Updated September 14, 2026. Read this before long source-pack history.
 - Done: restored the existing implementation; twelve actual manifest clips / 547 drawings, calibrated anchors, new city layers and live ComicHUD. Do not regenerate or redo these.
 - Verified locally: npm test (including check:model-art), all-JavaScript syntax, six production-world native Canvas scenes. Diagnostics adapt Makko's sprite boundary; live host/audio acceptance remains untested.
 - Remaining artwork: original boss walk/flourish and original traffic stay because final new exports were absent from the saved pack; three Firewall flame poses still need visual continuity review.
-- Publication: prepared locally; read current branch/PR status before claiming remote availability.
-- Next: publish the production-only branch, verify its pinned asset URLs/CI, open one combined draft, then owner Makko review using docs/source-pack/ACCEPTANCE.md. Never auto-merge.
+- Publication: [PR #47](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/47) is open on `agent/finish-model-art-hud`. The published artwork links respond successfully.
+- CI follow-up: the first push run passed all assertions, then failed with `ENOTEMPTY` during Chromium profile cleanup; the parallel PR run passed. Cleanup now waits for Chrome's close event and retries transient profile-removal errors. This does not change artwork or gameplay.
+- Next: verify both current-head GitHub runs, then owner Makko review using docs/source-pack/ACCEPTANCE.md. Never auto-merge.
 
 Do not restart old audits, re-download old source packs, repeat art approval, or report the PR #46 checkpoint as a completed integration. Preserve controls, collision bodies, clocks, timing, mission, lift, boss rules, intro, saves and accepted #45 effects. Historical/raw/reference files are preserved separately from the public production files.

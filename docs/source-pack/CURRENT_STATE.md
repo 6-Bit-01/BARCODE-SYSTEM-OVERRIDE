@@ -1,5 +1,7 @@
 # Current State
 
+PR #47 now publishes the recovered runtime integration and immutable artwork. The first push run passed its game, syntax and Chromium assertions but failed afterward while removing Chrome's temporary profile (`ENOTEMPTY`); the simultaneous PR run passed. The follow-up waits for Chrome's close event and retries transient directory-removal races. Current-head validation is reported on PR #47 and in its generated source receipt. Owner Makko acceptance remains pending.
+
 ## Recovered model-art integration — September 14, 2026
 
 Current base is merged PR #46, `f3bf9ed294a2bd69fe3a7dccc02a1c50b9241db2`. That PR preserved five atlases but did not install the runtime changes. The saved v5 version 38 already contained the remaining prepared clips, calibration, new world layers and live ComicHUD; this pass restores that implementation rather than redrawing it. Continue from `CONTINUE_HERE.md`, not the historical sections below.
