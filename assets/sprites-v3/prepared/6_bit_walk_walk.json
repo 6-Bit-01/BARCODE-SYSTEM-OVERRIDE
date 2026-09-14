@@ -19,7 +19,7 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 45
     },
     "6_bit_walk_walk_001.png": {
       "frame": {
@@ -40,7 +40,7 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 68.70743988387893
     },
     "6_bit_walk_walk_002.png": {
       "frame": {
@@ -61,7 +61,7 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 118.68320556859763
     },
     "6_bit_walk_walk_003.png": {
       "frame": {
@@ -82,7 +82,7 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 73.12001993730644
     },
     "6_bit_walk_walk_004.png": {
       "frame": {
@@ -103,7 +103,7 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 55.940894236051385
     },
     "6_bit_walk_walk_005.png": {
       "frame": {
@@ -124,7 +124,7 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 124.50135045212781
     },
     "6_bit_walk_walk_006.png": {
       "frame": {
@@ -145,7 +145,7 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 73.05968871123845
     },
     "6_bit_walk_walk_007.png": {
       "frame": {
@@ -166,7 +166,7 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 72.64449786855126
     },
     "6_bit_walk_walk_008.png": {
       "frame": {
@@ -187,7 +187,7 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 70.71179849675968
     },
     "6_bit_walk_walk_009.png": {
       "frame": {
@@ -208,7 +208,7 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 67.84822903668088
     },
     "6_bit_walk_walk_010.png": {
       "frame": {
@@ -229,7 +229,7 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 94.78287580880755
     },
     "6_bit_walk_walk_011.png": {
       "frame": {
@@ -250,12 +250,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 135
     },
     "6_bit_walk_walk_012.png": {
       "frame": {
-        "x": 1152,
-        "y": 320,
+        "x": 0,
+        "y": 0,
         "w": 288,
         "h": 320
       },
@@ -271,12 +271,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 45
     },
     "6_bit_walk_walk_013.png": {
       "frame": {
-        "x": 1440,
-        "y": 320,
+        "x": 288,
+        "y": 0,
         "w": 288,
         "h": 320
       },
@@ -292,12 +292,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 68.70743988387893
     },
     "6_bit_walk_walk_014.png": {
       "frame": {
-        "x": 1728,
-        "y": 320,
+        "x": 576,
+        "y": 0,
         "w": 288,
         "h": 320
       },
@@ -313,11 +313,116 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 118.68320556859763
     },
     "6_bit_walk_walk_015.png": {
       "frame": {
+        "x": 864,
+        "y": 0,
+        "w": 288,
+        "h": 320
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 288,
+        "h": 320
+      },
+      "sourceSize": {
+        "w": 288,
+        "h": 320
+      },
+      "duration": 73.12001993730644
+    },
+    "6_bit_walk_walk_016.png": {
+      "frame": {
+        "x": 1152,
+        "y": 0,
+        "w": 288,
+        "h": 320
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 288,
+        "h": 320
+      },
+      "sourceSize": {
+        "w": 288,
+        "h": 320
+      },
+      "duration": 55.940894236051385
+    },
+    "6_bit_walk_walk_017.png": {
+      "frame": {
+        "x": 1440,
+        "y": 0,
+        "w": 288,
+        "h": 320
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 288,
+        "h": 320
+      },
+      "sourceSize": {
+        "w": 288,
+        "h": 320
+      },
+      "duration": 124.50135045212781
+    },
+    "6_bit_walk_walk_018.png": {
+      "frame": {
+        "x": 1728,
+        "y": 0,
+        "w": 288,
+        "h": 320
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 288,
+        "h": 320
+      },
+      "sourceSize": {
+        "w": 288,
+        "h": 320
+      },
+      "duration": 73.05968871123845
+    },
+    "6_bit_walk_walk_019.png": {
+      "frame": {
         "x": 2016,
+        "y": 0,
+        "w": 288,
+        "h": 320
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 288,
+        "h": 320
+      },
+      "sourceSize": {
+        "w": 288,
+        "h": 320
+      },
+      "duration": 72.64449786855126
+    },
+    "6_bit_walk_walk_020.png": {
+      "frame": {
+        "x": 0,
         "y": 320,
         "w": 288,
         "h": 320
@@ -334,117 +439,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
-    },
-    "6_bit_walk_walk_016.png": {
-      "frame": {
-        "x": 0,
-        "y": 640,
-        "w": 288,
-        "h": 320
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 288,
-        "h": 320
-      },
-      "sourceSize": {
-        "w": 288,
-        "h": 320
-      },
-      "duration": 83
-    },
-    "6_bit_walk_walk_017.png": {
-      "frame": {
-        "x": 288,
-        "y": 640,
-        "w": 288,
-        "h": 320
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 288,
-        "h": 320
-      },
-      "sourceSize": {
-        "w": 288,
-        "h": 320
-      },
-      "duration": 83
-    },
-    "6_bit_walk_walk_018.png": {
-      "frame": {
-        "x": 576,
-        "y": 640,
-        "w": 288,
-        "h": 320
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 288,
-        "h": 320
-      },
-      "sourceSize": {
-        "w": 288,
-        "h": 320
-      },
-      "duration": 83
-    },
-    "6_bit_walk_walk_019.png": {
-      "frame": {
-        "x": 864,
-        "y": 640,
-        "w": 288,
-        "h": 320
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 288,
-        "h": 320
-      },
-      "sourceSize": {
-        "w": 288,
-        "h": 320
-      },
-      "duration": 83
-    },
-    "6_bit_walk_walk_020.png": {
-      "frame": {
-        "x": 1152,
-        "y": 640,
-        "w": 288,
-        "h": 320
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 288,
-        "h": 320
-      },
-      "sourceSize": {
-        "w": 288,
-        "h": 320
-      },
-      "duration": 83
+      "duration": 70.71179849675968
     },
     "6_bit_walk_walk_021.png": {
       "frame": {
-        "x": 1440,
-        "y": 640,
+        "x": 288,
+        "y": 320,
         "w": 288,
         "h": 320
       },
@@ -460,12 +460,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 67.84822903668088
     },
     "6_bit_walk_walk_022.png": {
       "frame": {
-        "x": 1728,
-        "y": 640,
+        "x": 576,
+        "y": 320,
         "w": 288,
         "h": 320
       },
@@ -481,12 +481,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 94.78287580880755
     },
     "6_bit_walk_walk_023.png": {
       "frame": {
-        "x": 2016,
-        "y": 640,
+        "x": 864,
+        "y": 320,
         "w": 288,
         "h": 320
       },
@@ -502,12 +502,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 135
     },
     "6_bit_walk_walk_024.png": {
       "frame": {
         "x": 0,
-        "y": 960,
+        "y": 0,
         "w": 288,
         "h": 320
       },
@@ -523,12 +523,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 45
     },
     "6_bit_walk_walk_025.png": {
       "frame": {
         "x": 288,
-        "y": 960,
+        "y": 0,
         "w": 288,
         "h": 320
       },
@@ -544,12 +544,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 68.70743988387893
     },
     "6_bit_walk_walk_026.png": {
       "frame": {
         "x": 576,
-        "y": 960,
+        "y": 0,
         "w": 288,
         "h": 320
       },
@@ -565,12 +565,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 118.68320556859763
     },
     "6_bit_walk_walk_027.png": {
       "frame": {
         "x": 864,
-        "y": 960,
+        "y": 0,
         "w": 288,
         "h": 320
       },
@@ -586,12 +586,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 73.12001993730644
     },
     "6_bit_walk_walk_028.png": {
       "frame": {
         "x": 1152,
-        "y": 960,
+        "y": 0,
         "w": 288,
         "h": 320
       },
@@ -607,12 +607,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 55.940894236051385
     },
     "6_bit_walk_walk_029.png": {
       "frame": {
         "x": 1440,
-        "y": 960,
+        "y": 0,
         "w": 288,
         "h": 320
       },
@@ -628,12 +628,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 124.50135045212781
     },
     "6_bit_walk_walk_030.png": {
       "frame": {
         "x": 1728,
-        "y": 960,
+        "y": 0,
         "w": 288,
         "h": 320
       },
@@ -649,12 +649,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 73.05968871123845
     },
     "6_bit_walk_walk_031.png": {
       "frame": {
         "x": 2016,
-        "y": 960,
+        "y": 0,
         "w": 288,
         "h": 320
       },
@@ -670,12 +670,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 72.64449786855126
     },
     "6_bit_walk_walk_032.png": {
       "frame": {
         "x": 0,
-        "y": 1280,
+        "y": 320,
         "w": 288,
         "h": 320
       },
@@ -691,12 +691,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 70.71179849675968
     },
     "6_bit_walk_walk_033.png": {
       "frame": {
         "x": 288,
-        "y": 1280,
+        "y": 320,
         "w": 288,
         "h": 320
       },
@@ -712,12 +712,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 67.84822903668088
     },
     "6_bit_walk_walk_034.png": {
       "frame": {
         "x": 576,
-        "y": 1280,
+        "y": 320,
         "w": 288,
         "h": 320
       },
@@ -733,12 +733,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 94.78287580880755
     },
     "6_bit_walk_walk_035.png": {
       "frame": {
         "x": 864,
-        "y": 1280,
+        "y": 320,
         "w": 288,
         "h": 320
       },
@@ -754,12 +754,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 135
     },
     "6_bit_walk_walk_036.png": {
       "frame": {
-        "x": 1152,
-        "y": 1280,
+        "x": 0,
+        "y": 0,
         "w": 288,
         "h": 320
       },
@@ -775,12 +775,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 45
     },
     "6_bit_walk_walk_037.png": {
       "frame": {
-        "x": 1440,
-        "y": 1280,
+        "x": 288,
+        "y": 0,
         "w": 288,
         "h": 320
       },
@@ -796,12 +796,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 68.70743988387893
     },
     "6_bit_walk_walk_038.png": {
       "frame": {
-        "x": 1728,
-        "y": 1280,
+        "x": 576,
+        "y": 0,
         "w": 288,
         "h": 320
       },
@@ -817,12 +817,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 118.68320556859763
     },
     "6_bit_walk_walk_039.png": {
       "frame": {
-        "x": 2016,
-        "y": 1280,
+        "x": 864,
+        "y": 0,
         "w": 288,
         "h": 320
       },
@@ -838,12 +838,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 73.12001993730644
     },
     "6_bit_walk_walk_040.png": {
       "frame": {
-        "x": 0,
-        "y": 1600,
+        "x": 1152,
+        "y": 0,
         "w": 288,
         "h": 320
       },
@@ -859,12 +859,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 55.940894236051385
     },
     "6_bit_walk_walk_041.png": {
       "frame": {
-        "x": 288,
-        "y": 1600,
+        "x": 1440,
+        "y": 0,
         "w": 288,
         "h": 320
       },
@@ -880,12 +880,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 124.50135045212781
     },
     "6_bit_walk_walk_042.png": {
       "frame": {
-        "x": 576,
-        "y": 1600,
+        "x": 1728,
+        "y": 0,
         "w": 288,
         "h": 320
       },
@@ -901,12 +901,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 73.05968871123845
     },
     "6_bit_walk_walk_043.png": {
       "frame": {
-        "x": 864,
-        "y": 1600,
+        "x": 2016,
+        "y": 0,
         "w": 288,
         "h": 320
       },
@@ -922,12 +922,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 72.64449786855126
     },
     "6_bit_walk_walk_044.png": {
       "frame": {
-        "x": 1152,
-        "y": 1600,
+        "x": 0,
+        "y": 320,
         "w": 288,
         "h": 320
       },
@@ -943,12 +943,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 70.71179849675968
     },
     "6_bit_walk_walk_045.png": {
       "frame": {
-        "x": 1440,
-        "y": 1600,
+        "x": 288,
+        "y": 320,
         "w": 288,
         "h": 320
       },
@@ -964,12 +964,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 67.84822903668088
     },
     "6_bit_walk_walk_046.png": {
       "frame": {
-        "x": 1728,
-        "y": 1600,
+        "x": 576,
+        "y": 320,
         "w": 288,
         "h": 320
       },
@@ -985,12 +985,12 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 94.78287580880755
     },
     "6_bit_walk_walk_047.png": {
       "frame": {
-        "x": 2016,
-        "y": 1600,
+        "x": 864,
+        "y": 320,
         "w": 288,
         "h": 320
       },
@@ -1006,7 +1006,7 @@
         "w": 288,
         "h": 320
       },
-      "duration": 83
+      "duration": 135
     }
   },
   "meta": {
@@ -1016,7 +1016,7 @@
     "format": "RGBA8888",
     "size": {
       "w": 2304,
-      "h": 1920
+      "h": 640
     },
     "scale": 1,
     "frameTags": [
