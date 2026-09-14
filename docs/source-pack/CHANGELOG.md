@@ -6,6 +6,7 @@
 - Rebind the player cloned before Start, give cold sprite downloads sixty seconds, and clear the timeout on completion.
 - Exercise the active startup module instead of checking unused legacy code. Register that specific model-art VM regression beside the existing authorized production harnesses; retain other lifecycle assertions.
 - Verify the old-to-new registry transition and production drawing with the actual saved Makko SDK and decoded atlas bytes. No artwork was regenerated and no gameplay rules changed. Owner Makko review remains pending.
+- The push run passed, while the PR runner twice timed out before Chrome exposed DevTools. The browser launcher now allows thirty seconds, accumulates split stderr chunks, reports startup errors and detects early browser exits; the game assertions are unchanged.
 
 ## September 14, 2026 — Repair PR #47 browser cleanup
 
