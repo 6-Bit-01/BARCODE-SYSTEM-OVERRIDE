@@ -1154,60 +1154,60 @@
       308
     ],
     "headRows": [
+      34,
       36,
-      39,
-      39,
+      37,
       33,
-      30,
-      24,
       31,
-      30,
-      30,
-      27,
-      27,
-      27,
-      24,
-      25,
-      24,
-      30,
-      34,
-      33,
-      36,
-      36,
-      33,
-      27,
+      29,
+      29,
+      29,
+      29,
       28,
-      30,
-      36,
-      36,
-      36,
+      29,
+      31,
       34,
-      33,
-      27,
-      30,
-      30,
-      30,
-      24,
-      27,
-      24,
-      27,
-      30,
-      33,
       36,
+      37,
+      33,
+      31,
+      29,
+      29,
+      29,
+      29,
+      28,
+      29,
+      31,
+      34,
       36,
-      30,
-      24,
-      24,
-      24,
-      24,
-      21,
-      21
+      37,
+      33,
+      31,
+      29,
+      29,
+      29,
+      29,
+      28,
+      29,
+      31,
+      34,
+      36,
+      37,
+      33,
+      31,
+      29,
+      29,
+      29,
+      29,
+      28,
+      29,
+      31
     ],
     "atlasSize": [
       2304,
-      1920
+      640
     ],
-    "sha256": "17f99fe1d171755eecf1cc7fcb402850ee22d910ba1104c2061f2d5c1f9e59a8",
+    "sha256": "8d266c537644a6beb9e6543cb0cbad0df654d864458d17f8df123aa6664cb9e5",
     "registration": [
       {
         "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
@@ -1223,7 +1223,16 @@
         "paste": [
           30,
           36
-        ]
+        ],
+        "motionRegistration": {
+          "sourceFrame": 0,
+          "waistX": 139.5,
+          "scale": 1.0073529411764706,
+          "translate": [
+            3,
+            -2
+          ]
+        }
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
@@ -1239,7 +1248,16 @@
         "paste": [
           32,
           39
-        ]
+        ],
+        "motionRegistration": {
+          "sourceFrame": 1,
+          "waistX": 139.5,
+          "scale": 1.009913258983891,
+          "translate": [
+            3,
+            -3
+          ]
+        }
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
@@ -1255,7 +1273,16 @@
         "paste": [
           42,
           39
-        ]
+        ],
+        "motionRegistration": {
+          "sourceFrame": 2,
+          "waistX": 137.0,
+          "scale": 1.009913258983891,
+          "translate": [
+            6,
+            -3
+          ]
+        }
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
@@ -1271,7 +1298,16 @@
         "paste": [
           56,
           33
-        ]
+        ],
+        "motionRegistration": {
+          "sourceFrame": 3,
+          "waistX": 125.5,
+          "scale": 0.9987878787878789,
+          "translate": [
+            19,
+            0
+          ]
+        }
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
@@ -1287,7 +1323,16 @@
         "paste": [
           90,
           30
-        ]
+        ],
+        "motionRegistration": {
+          "sourceFrame": 4,
+          "waistX": 144.5,
+          "scale": 0.9984012789768185,
+          "translate": [
+            0,
+            1
+          ]
+        }
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
@@ -1303,7 +1348,16 @@
         "paste": [
           102,
           24
-        ]
+        ],
+        "motionRegistration": {
+          "sourceFrame": 5,
+          "waistX": 156.5,
+          "scale": 0.9839593114241002,
+          "translate": [
+            -10,
+            5
+          ]
+        }
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
@@ -1319,7 +1373,16 @@
         "paste": [
           87,
           31
-        ]
+        ],
+        "motionRegistration": {
+          "sourceFrame": 6,
+          "waistX": 152.5,
+          "scale": 1.0072202166064983,
+          "translate": [
+            -10,
+            -2
+          ]
+        }
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
@@ -1335,7 +1398,16 @@
         "paste": [
           81,
           30
-        ]
+        ],
+        "motionRegistration": {
+          "sourceFrame": 7,
+          "waistX": 156.5,
+          "scale": 1.0027977617905675,
+          "translate": [
+            -13,
+            -1
+          ]
+        }
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
@@ -1351,7 +1423,16 @@
         "paste": [
           53,
           30
-        ]
+        ],
+        "motionRegistration": {
+          "sourceFrame": 8,
+          "waistX": 150.0,
+          "scale": 1.003197442046363,
+          "translate": [
+            -6,
+            -1
+          ]
+        }
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
@@ -1367,7 +1448,16 @@
         "paste": [
           52,
           27
-        ]
+        ],
+        "motionRegistration": {
+          "sourceFrame": 9,
+          "waistX": 146.0,
+          "scale": 0.99644128113879,
+          "translate": [
+            -1,
+            1
+          ]
+        }
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
@@ -1383,7 +1473,16 @@
         "paste": [
           27,
           27
-        ]
+        ],
+        "motionRegistration": {
+          "sourceFrame": 10,
+          "waistX": 110.0,
+          "scale": 0.9952550415183867,
+          "translate": [
+            35,
+            2
+          ]
+        }
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
@@ -1399,589 +1498,972 @@
         "paste": [
           54,
           27
-        ]
+        ],
+        "motionRegistration": {
+          "sourceFrame": 11,
+          "waistX": 132.5,
+          "scale": 0.9881376037959668,
+          "translate": [
+            13,
+            4
+          ]
+        }
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
         "box": [
-          93,
-          787,
-          183,
-          1026
+          40,
+          21,
+          213,
+          253
         ],
         "frame": 12,
-        "originalVisibleHeight": 95,
-        "uniformScale": 1.1924686192468619,
+        "originalVisibleHeight": 91,
+        "uniformScale": 1.1767241379310345,
         "paste": [
-          120,
-          24
-        ]
+          30,
+          36
+        ],
+        "motionRegistration": {
+          "sourceFrame": 0,
+          "waistX": 139.5,
+          "scale": 1.0073529411764706,
+          "translate": [
+            3,
+            -2
+          ]
+        }
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
         "box": [
-          365,
-          788,
-          461,
-          1026
+          314,
+          21,
+          482,
+          255
         ],
         "frame": 13,
-        "originalVisibleHeight": 95,
-        "uniformScale": 1.1974789915966386,
-        "paste": [
-          125,
-          24
-        ]
-      },
-      {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
-        "box": [
-          612,
-          788,
-          730,
-          1028
-        ],
-        "frame": 14,
-        "originalVisibleHeight": 95,
-        "uniformScale": 1.1875,
-        "paste": [
-          134,
-          24
-        ]
-      },
-      {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
-        "box": [
-          844,
-          792,
-          998,
-          1026
-        ],
-        "frame": 15,
-        "originalVisibleHeight": 93,
-        "uniformScale": 1.1923076923076923,
-        "paste": [
-          72,
-          30
-        ]
-      },
-      {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
-        "box": [
-          43,
-          1045,
-          211,
-          1277
-        ],
-        "frame": 16,
-        "originalVisibleHeight": 92,
-        "uniformScale": 1.1896551724137931,
-        "paste": [
-          49,
-          34
-        ]
-      },
-      {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
-        "box": [
-          322,
-          1044,
-          482,
-          1276
-        ],
-        "frame": 17,
-        "originalVisibleHeight": 92,
-        "uniformScale": 1.1896551724137931,
-        "paste": [
-          45,
-          33
-        ]
-      },
-      {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
-        "box": [
-          583,
-          1045,
-          723,
-          1276
-        ],
-        "frame": 18,
-        "originalVisibleHeight": 91,
-        "uniformScale": 1.1818181818181819,
-        "paste": [
-          54,
-          36
-        ]
-      },
-      {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
-        "box": [
-          845,
-          1045,
-          975,
-          1276
-        ],
-        "frame": 19,
-        "originalVisibleHeight": 91,
-        "uniformScale": 1.1818181818181819,
+        "originalVisibleHeight": 90,
+        "uniformScale": 1.1538461538461537,
         "paste": [
           32,
-          36
-        ]
+          39
+        ],
+        "motionRegistration": {
+          "sourceFrame": 1,
+          "waistX": 139.5,
+          "scale": 1.009913258983891,
+          "translate": [
+            3,
+            -3
+          ]
+        }
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
         "box": [
-          69,
-          1295,
-          181,
-          1525
+          580,
+          21,
+          742,
+          256
         ],
-        "frame": 20,
+        "frame": 14,
+        "originalVisibleHeight": 90,
+        "uniformScale": 1.148936170212766,
+        "paste": [
+          42,
+          39
+        ],
+        "motionRegistration": {
+          "sourceFrame": 2,
+          "waistX": 137.0,
+          "scale": 1.009913258983891,
+          "translate": [
+            6,
+            -3
+          ]
+        }
+      },
+      {
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
+        "box": [
+          862,
+          21,
+          977,
+          256
+        ],
+        "frame": 15,
         "originalVisibleHeight": 92,
-        "uniformScale": 1.2,
+        "uniformScale": 1.174468085106383,
         "paste": [
-          77,
+          56,
           33
-        ]
+        ],
+        "motionRegistration": {
+          "sourceFrame": 3,
+          "waistX": 125.5,
+          "scale": 0.9987878787878789,
+          "translate": [
+            19,
+            0
+          ]
+        }
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
         "box": [
-          362,
-          1294,
-          458,
-          1525
+          85,
+          276,
+          183,
+          516
         ],
-        "frame": 21,
-        "originalVisibleHeight": 94,
-        "uniformScale": 1.2207792207792207,
+        "frame": 16,
+        "originalVisibleHeight": 93,
+        "uniformScale": 1.1625,
         "paste": [
-          108,
-          27
-        ]
+          90,
+          30
+        ],
+        "motionRegistration": {
+          "sourceFrame": 4,
+          "waistX": 144.5,
+          "scale": 0.9984012789768185,
+          "translate": [
+            0,
+            1
+          ]
+        }
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
         "box": [
-          606,
-          1292,
-          710,
-          1524
+          358,
+          276,
+          460,
+          518
         ],
-        "frame": 22,
-        "originalVisibleHeight": 94,
-        "uniformScale": 1.2155172413793103,
+        "frame": 17,
+        "originalVisibleHeight": 95,
+        "uniformScale": 1.177685950413223,
         "paste": [
-          92,
-          27
-        ]
+          102,
+          24
+        ],
+        "motionRegistration": {
+          "sourceFrame": 5,
+          "waistX": 156.5,
+          "scale": 0.9839593114241002,
+          "translate": [
+            -10,
+            5
+          ]
+        }
+      },
+      {
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
+        "box": [
+          596,
+          277,
+          744,
+          519
+        ],
+        "frame": 18,
+        "originalVisibleHeight": 93,
+        "uniformScale": 1.1528925619834711,
+        "paste": [
+          87,
+          31
+        ],
+        "motionRegistration": {
+          "sourceFrame": 6,
+          "waistX": 152.5,
+          "scale": 1.0072202166064983,
+          "translate": [
+            -10,
+            -2
+          ]
+        }
       },
       {
         "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
         "box": [
           850,
-          1293,
-          989,
-          1527
+          277,
+          999,
+          517
         ],
-        "frame": 23,
-        "originalVisibleHeight": 93,
-        "uniformScale": 1.1923076923076923,
-        "paste": [
-          88,
-          30
-        ]
-      },
-      {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-2.png",
-        "box": [
-          58,
-          14,
-          208,
-          250
-        ],
-        "frame": 24,
-        "originalVisibleHeight": 91,
-        "uniformScale": 1.1567796610169492,
-        "paste": [
-          53,
-          36
-        ]
-      },
-      {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-2.png",
-        "box": [
-          315,
-          14,
-          459,
-          251
-        ],
-        "frame": 25,
-        "originalVisibleHeight": 91,
-        "uniformScale": 1.1518987341772151,
-        "paste": [
-          51,
-          36
-        ]
-      },
-      {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-2.png",
-        "box": [
-          574,
-          13,
-          710,
-          251
-        ],
-        "frame": 26,
-        "originalVisibleHeight": 91,
-        "uniformScale": 1.1470588235294117,
-        "paste": [
-          56,
-          36
-        ]
-      },
-      {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-2.png",
-        "box": [
-          854,
-          10,
-          959,
-          250
-        ],
-        "frame": 27,
-        "originalVisibleHeight": 92,
-        "uniformScale": 1.15,
-        "paste": [
-          84,
-          34
-        ]
-      },
-      {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-2.png",
-        "box": [
-          90,
-          268,
-          187,
-          508
-        ],
-        "frame": 28,
-        "originalVisibleHeight": 92,
-        "uniformScale": 1.15,
-        "paste": [
-          108,
-          33
-        ]
-      },
-      {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-2.png",
-        "box": [
-          344,
-          269,
-          454,
-          510
-        ],
-        "frame": 29,
-        "originalVisibleHeight": 94,
-        "uniformScale": 1.170124481327801,
-        "paste": [
-          92,
-          27
-        ]
-      },
-      {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-2.png",
-        "box": [
-          587,
-          270,
-          731,
-          510
-        ],
-        "frame": 30,
+        "frame": 19,
         "originalVisibleHeight": 93,
         "uniformScale": 1.1625,
         "paste": [
-          72,
+          81,
           30
-        ]
+        ],
+        "motionRegistration": {
+          "sourceFrame": 7,
+          "waistX": 156.5,
+          "scale": 1.0027977617905675,
+          "translate": [
+            -13,
+            -1
+          ]
+        }
       },
       {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-2.png",
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
         "box": [
-          834,
-          273,
-          985,
-          511
+          51,
+          537,
+          211,
+          770
         ],
-        "frame": 31,
+        "frame": 20,
         "originalVisibleHeight": 93,
-        "uniformScale": 1.1722689075630253,
+        "uniformScale": 1.1974248927038627,
         "paste": [
-          55,
+          53,
           30
-        ]
+        ],
+        "motionRegistration": {
+          "sourceFrame": 8,
+          "waistX": 150.0,
+          "scale": 1.003197442046363,
+          "translate": [
+            -6,
+            -1
+          ]
+        }
       },
       {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-2.png",
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
         "box": [
-          58,
-          528,
-          214,
-          764
+          329,
+          536,
+          467,
+          770
         ],
-        "frame": 32,
-        "originalVisibleHeight": 93,
-        "uniformScale": 1.1822033898305084,
-        "paste": [
-          49,
-          30
-        ]
-      },
-      {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-2.png",
-        "box": [
-          328,
-          529,
-          445,
-          765
-        ],
-        "frame": 33,
-        "originalVisibleHeight": 95,
-        "uniformScale": 1.2076271186440677,
-        "paste": [
-          66,
-          24
-        ]
-      },
-      {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-2.png",
-        "box": [
-          599,
-          527,
-          703,
-          766
-        ],
-        "frame": 34,
+        "frame": 21,
         "originalVisibleHeight": 94,
-        "uniformScale": 1.1799163179916319,
+        "uniformScale": 1.205128205128205,
         "paste": [
-          76,
+          52,
           27
-        ]
+        ],
+        "motionRegistration": {
+          "sourceFrame": 9,
+          "waistX": 146.0,
+          "scale": 0.99644128113879,
+          "translate": [
+            -1,
+            1
+          ]
+        }
       },
       {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-2.png",
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
         "box": [
-          869,
-          527,
-          960,
-          766
+          594,
+          538,
+          729,
+          771
         ],
-        "frame": 35,
-        "originalVisibleHeight": 95,
-        "uniformScale": 1.1924686192468619,
-        "paste": [
-          120,
-          24
-        ]
-      },
-      {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-2.png",
-        "box": [
-          68,
-          784,
-          215,
-          1022
-        ],
-        "frame": 36,
+        "frame": 22,
         "originalVisibleHeight": 94,
-        "uniformScale": 1.184873949579832,
+        "uniformScale": 1.2103004291845494,
         "paste": [
-          84,
+          27,
           27
-        ]
+        ],
+        "motionRegistration": {
+          "sourceFrame": 10,
+          "waistX": 110.0,
+          "scale": 0.9952550415183867,
+          "translate": [
+            35,
+            2
+          ]
+        }
       },
       {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-2.png",
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
         "box": [
-          322,
-          784,
-          472,
-          1022
+          855,
+          537,
+          969,
+          771
         ],
-        "frame": 37,
-        "originalVisibleHeight": 93,
-        "uniformScale": 1.1722689075630253,
+        "frame": 23,
+        "originalVisibleHeight": 94,
+        "uniformScale": 1.205128205128205,
         "paste": [
-          78,
-          30
-        ]
+          54,
+          27
+        ],
+        "motionRegistration": {
+          "sourceFrame": 11,
+          "waistX": 132.5,
+          "scale": 0.9881376037959668,
+          "translate": [
+            13,
+            4
+          ]
+        }
       },
       {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-2.png",
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
         "box": [
-          570,
-          785,
-          732,
-          1023
+          40,
+          21,
+          213,
+          253
         ],
-        "frame": 38,
-        "originalVisibleHeight": 92,
-        "uniformScale": 1.1596638655462186,
-        "paste": [
-          43,
-          33
-        ]
-      },
-      {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-2.png",
-        "box": [
-          831,
-          782,
-          972,
-          1023
-        ],
-        "frame": 39,
+        "frame": 24,
         "originalVisibleHeight": 91,
-        "uniformScale": 1.1327800829875518,
+        "uniformScale": 1.1767241379310345,
+        "paste": [
+          30,
+          36
+        ],
+        "motionRegistration": {
+          "sourceFrame": 0,
+          "waistX": 139.5,
+          "scale": 1.0073529411764706,
+          "translate": [
+            3,
+            -2
+          ]
+        }
+      },
+      {
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
+        "box": [
+          314,
+          21,
+          482,
+          255
+        ],
+        "frame": 25,
+        "originalVisibleHeight": 90,
+        "uniformScale": 1.1538461538461537,
+        "paste": [
+          32,
+          39
+        ],
+        "motionRegistration": {
+          "sourceFrame": 1,
+          "waistX": 139.5,
+          "scale": 1.009913258983891,
+          "translate": [
+            3,
+            -3
+          ]
+        }
+      },
+      {
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
+        "box": [
+          580,
+          21,
+          742,
+          256
+        ],
+        "frame": 26,
+        "originalVisibleHeight": 90,
+        "uniformScale": 1.148936170212766,
+        "paste": [
+          42,
+          39
+        ],
+        "motionRegistration": {
+          "sourceFrame": 2,
+          "waistX": 137.0,
+          "scale": 1.009913258983891,
+          "translate": [
+            6,
+            -3
+          ]
+        }
+      },
+      {
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
+        "box": [
+          862,
+          21,
+          977,
+          256
+        ],
+        "frame": 27,
+        "originalVisibleHeight": 92,
+        "uniformScale": 1.174468085106383,
         "paste": [
           56,
-          36
-        ]
+          33
+        ],
+        "motionRegistration": {
+          "sourceFrame": 3,
+          "waistX": 125.5,
+          "scale": 0.9987878787878789,
+          "translate": [
+            19,
+            0
+          ]
+        }
       },
       {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-2.png",
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
         "box": [
-          61,
-          1039,
-          193,
-          1273
+          85,
+          276,
+          183,
+          516
         ],
-        "frame": 40,
-        "originalVisibleHeight": 91,
-        "uniformScale": 1.170940170940171,
-        "paste": [
-          60,
-          35
-        ]
-      },
-      {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-2.png",
-        "box": [
-          335,
-          1041,
-          440,
-          1273
-        ],
-        "frame": 41,
+        "frame": 28,
         "originalVisibleHeight": 93,
-        "uniformScale": 1.2025862068965518,
+        "uniformScale": 1.1625,
         "paste": [
           90,
           30
-        ]
+        ],
+        "motionRegistration": {
+          "sourceFrame": 4,
+          "waistX": 144.5,
+          "scale": 0.9984012789768185,
+          "translate": [
+            0,
+            1
+          ]
+        }
       },
       {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-2.png",
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
         "box": [
-          587,
-          1040,
-          711,
-          1274
+          358,
+          276,
+          460,
+          518
+        ],
+        "frame": 29,
+        "originalVisibleHeight": 95,
+        "uniformScale": 1.177685950413223,
+        "paste": [
+          102,
+          24
+        ],
+        "motionRegistration": {
+          "sourceFrame": 5,
+          "waistX": 156.5,
+          "scale": 0.9839593114241002,
+          "translate": [
+            -10,
+            5
+          ]
+        }
+      },
+      {
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
+        "box": [
+          596,
+          277,
+          744,
+          519
+        ],
+        "frame": 30,
+        "originalVisibleHeight": 93,
+        "uniformScale": 1.1528925619834711,
+        "paste": [
+          87,
+          31
+        ],
+        "motionRegistration": {
+          "sourceFrame": 6,
+          "waistX": 152.5,
+          "scale": 1.0072202166064983,
+          "translate": [
+            -10,
+            -2
+          ]
+        }
+      },
+      {
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
+        "box": [
+          850,
+          277,
+          999,
+          517
+        ],
+        "frame": 31,
+        "originalVisibleHeight": 93,
+        "uniformScale": 1.1625,
+        "paste": [
+          81,
+          30
+        ],
+        "motionRegistration": {
+          "sourceFrame": 7,
+          "waistX": 156.5,
+          "scale": 1.0027977617905675,
+          "translate": [
+            -13,
+            -1
+          ]
+        }
+      },
+      {
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
+        "box": [
+          51,
+          537,
+          211,
+          770
+        ],
+        "frame": 32,
+        "originalVisibleHeight": 93,
+        "uniformScale": 1.1974248927038627,
+        "paste": [
+          53,
+          30
+        ],
+        "motionRegistration": {
+          "sourceFrame": 8,
+          "waistX": 150.0,
+          "scale": 1.003197442046363,
+          "translate": [
+            -6,
+            -1
+          ]
+        }
+      },
+      {
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
+        "box": [
+          329,
+          536,
+          467,
+          770
+        ],
+        "frame": 33,
+        "originalVisibleHeight": 94,
+        "uniformScale": 1.205128205128205,
+        "paste": [
+          52,
+          27
+        ],
+        "motionRegistration": {
+          "sourceFrame": 9,
+          "waistX": 146.0,
+          "scale": 0.99644128113879,
+          "translate": [
+            -1,
+            1
+          ]
+        }
+      },
+      {
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
+        "box": [
+          594,
+          538,
+          729,
+          771
+        ],
+        "frame": 34,
+        "originalVisibleHeight": 94,
+        "uniformScale": 1.2103004291845494,
+        "paste": [
+          27,
+          27
+        ],
+        "motionRegistration": {
+          "sourceFrame": 10,
+          "waistX": 110.0,
+          "scale": 0.9952550415183867,
+          "translate": [
+            35,
+            2
+          ]
+        }
+      },
+      {
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
+        "box": [
+          855,
+          537,
+          969,
+          771
+        ],
+        "frame": 35,
+        "originalVisibleHeight": 94,
+        "uniformScale": 1.205128205128205,
+        "paste": [
+          54,
+          27
+        ],
+        "motionRegistration": {
+          "sourceFrame": 11,
+          "waistX": 132.5,
+          "scale": 0.9881376037959668,
+          "translate": [
+            13,
+            4
+          ]
+        }
+      },
+      {
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
+        "box": [
+          40,
+          21,
+          213,
+          253
+        ],
+        "frame": 36,
+        "originalVisibleHeight": 91,
+        "uniformScale": 1.1767241379310345,
+        "paste": [
+          30,
+          36
+        ],
+        "motionRegistration": {
+          "sourceFrame": 0,
+          "waistX": 139.5,
+          "scale": 1.0073529411764706,
+          "translate": [
+            3,
+            -2
+          ]
+        }
+      },
+      {
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
+        "box": [
+          314,
+          21,
+          482,
+          255
+        ],
+        "frame": 37,
+        "originalVisibleHeight": 90,
+        "uniformScale": 1.1538461538461537,
+        "paste": [
+          32,
+          39
+        ],
+        "motionRegistration": {
+          "sourceFrame": 1,
+          "waistX": 139.5,
+          "scale": 1.009913258983891,
+          "translate": [
+            3,
+            -3
+          ]
+        }
+      },
+      {
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
+        "box": [
+          580,
+          21,
+          742,
+          256
+        ],
+        "frame": 38,
+        "originalVisibleHeight": 90,
+        "uniformScale": 1.148936170212766,
+        "paste": [
+          42,
+          39
+        ],
+        "motionRegistration": {
+          "sourceFrame": 2,
+          "waistX": 137.0,
+          "scale": 1.009913258983891,
+          "translate": [
+            6,
+            -3
+          ]
+        }
+      },
+      {
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
+        "box": [
+          862,
+          21,
+          977,
+          256
+        ],
+        "frame": 39,
+        "originalVisibleHeight": 92,
+        "uniformScale": 1.174468085106383,
+        "paste": [
+          56,
+          33
+        ],
+        "motionRegistration": {
+          "sourceFrame": 3,
+          "waistX": 125.5,
+          "scale": 0.9987878787878789,
+          "translate": [
+            19,
+            0
+          ]
+        }
+      },
+      {
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
+        "box": [
+          85,
+          276,
+          183,
+          516
+        ],
+        "frame": 40,
+        "originalVisibleHeight": 93,
+        "uniformScale": 1.1625,
+        "paste": [
+          90,
+          30
+        ],
+        "motionRegistration": {
+          "sourceFrame": 4,
+          "waistX": 144.5,
+          "scale": 0.9984012789768185,
+          "translate": [
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
+        "box": [
+          358,
+          276,
+          460,
+          518
+        ],
+        "frame": 41,
+        "originalVisibleHeight": 95,
+        "uniformScale": 1.177685950413223,
+        "paste": [
+          102,
+          24
+        ],
+        "motionRegistration": {
+          "sourceFrame": 5,
+          "waistX": 156.5,
+          "scale": 0.9839593114241002,
+          "translate": [
+            -10,
+            5
+          ]
+        }
+      },
+      {
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
+        "box": [
+          596,
+          277,
+          744,
+          519
         ],
         "frame": 42,
-        "originalVisibleHeight": 95,
-        "uniformScale": 1.2179487179487178,
+        "originalVisibleHeight": 93,
+        "uniformScale": 1.1528925619834711,
         "paste": [
-          72,
-          24
-        ]
+          87,
+          31
+        ],
+        "motionRegistration": {
+          "sourceFrame": 6,
+          "waistX": 152.5,
+          "scale": 1.0072202166064983,
+          "translate": [
+            -10,
+            -2
+          ]
+        }
       },
       {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-2.png",
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
         "box": [
-          840,
-          1042,
-          975,
-          1274
+          850,
+          277,
+          999,
+          517
         ],
         "frame": 43,
-        "originalVisibleHeight": 95,
-        "uniformScale": 1.228448275862069,
+        "originalVisibleHeight": 93,
+        "uniformScale": 1.1625,
         "paste": [
-          68,
-          24
-        ]
+          81,
+          30
+        ],
+        "motionRegistration": {
+          "sourceFrame": 7,
+          "waistX": 156.5,
+          "scale": 1.0027977617905675,
+          "translate": [
+            -13,
+            -1
+          ]
+        }
       },
       {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-2.png",
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
         "box": [
-          58,
-          1289,
-          208,
-          1527
+          51,
+          537,
+          211,
+          770
         ],
         "frame": 44,
-        "originalVisibleHeight": 95,
-        "uniformScale": 1.1974789915966386,
+        "originalVisibleHeight": 93,
+        "uniformScale": 1.1974248927038627,
         "paste": [
-          20,
-          24
-        ]
+          53,
+          30
+        ],
+        "motionRegistration": {
+          "sourceFrame": 8,
+          "waistX": 150.0,
+          "scale": 1.003197442046363,
+          "translate": [
+            -6,
+            -1
+          ]
+        }
       },
       {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-2.png",
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
         "box": [
-          336,
-          1291,
-          454,
-          1527
+          329,
+          536,
+          467,
+          770
         ],
         "frame": 45,
-        "originalVisibleHeight": 95,
-        "uniformScale": 1.2076271186440677,
+        "originalVisibleHeight": 94,
+        "uniformScale": 1.205128205128205,
         "paste": [
-          80,
-          24
-        ]
+          52,
+          27
+        ],
+        "motionRegistration": {
+          "sourceFrame": 9,
+          "waistX": 146.0,
+          "scale": 0.99644128113879,
+          "translate": [
+            -1,
+            1
+          ]
+        }
       },
       {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-2.png",
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
         "box": [
-          606,
-          1291,
-          696,
-          1527
+          594,
+          538,
+          729,
+          771
         ],
         "frame": 46,
-        "originalVisibleHeight": 96,
-        "uniformScale": 1.2203389830508475,
+        "originalVisibleHeight": 94,
+        "uniformScale": 1.2103004291845494,
         "paste": [
-          111,
-          21
-        ]
+          27,
+          27
+        ],
+        "motionRegistration": {
+          "sourceFrame": 10,
+          "waistX": 110.0,
+          "scale": 0.9952550415183867,
+          "translate": [
+            35,
+            2
+          ]
+        }
       },
       {
-        "source": "assets/sprites-v3/sources/6_bit_walk_walk-2.png",
+        "source": "assets/sprites-v3/sources/6_bit_walk_walk-1.png",
         "box": [
-          857,
-          1291,
-          958,
-          1527
+          855,
+          537,
+          969,
+          771
         ],
         "frame": 47,
-        "originalVisibleHeight": 96,
-        "uniformScale": 1.2203389830508475,
+        "originalVisibleHeight": 94,
+        "uniformScale": 1.205128205128205,
         "paste": [
-          126,
-          21
-        ]
+          54,
+          27
+        ],
+        "motionRegistration": {
+          "sourceFrame": 11,
+          "waistX": 132.5,
+          "scale": 0.9881376037959668,
+          "translate": [
+            13,
+            4
+          ]
+        }
       }
     ],
     "originalFacing": "left",
     "productionFacing": "right",
     "sourceSignature": "ef1ac08d9c10de40909b1d6225da2043e9327304b52b91ba3d769264e1afd225",
-    "smoothing": {
+    "atlasFrameIndices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "previousSmoothing": {
       "version": 1,
       "method": "premultiplied-rgba-temporal-3-tap",
       "weights": [
@@ -1991,6 +2473,89 @@
       ],
       "edgePolicy": "wrap",
       "inputSha256": "65e919b8ad1858e28ed118ab417ef0941bde12aac3e03de025e34b9e1183f54c"
+    },
+    "motionPolish": {
+      "version": 1,
+      "method": "registered-single-stride-no-frame-blending",
+      "sourceRevision": "a4c1b7cf6fec0a083a4812ae1ea76edef45a5911",
+      "sourceSha256": "65e919b8ad1858e28ed118ab417ef0941bde12aac3e03de025e34b9e1183f54c",
+      "sequence": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "uniquePoses": 12,
+      "strideDurationMs": 1000,
+      "frameDurationsMs": [
+        45,
+        68.70743988387893,
+        118.68320556859763,
+        73.12001993730644,
+        55.940894236051385,
+        124.50135045212781,
+        73.05968871123845,
+        72.64449786855126,
+        70.71179849675968,
+        67.84822903668088,
+        94.78287580880755,
+        135
+      ],
+      "sourceWaistSpanPx": 46.5,
+      "registeredWaistSpanPx": 0.9546917521456919,
+      "preserves": [
+        "design",
+        "wholeBodyPoses",
+        "frameSlots",
+        "fourSecondClip",
+        "anchor",
+        "gameplayBody",
+        "movementSpeed"
+      ]
     }
   },
   "virus_idle_idle": {

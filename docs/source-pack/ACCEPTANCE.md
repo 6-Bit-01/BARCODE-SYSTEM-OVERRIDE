@@ -1,5 +1,17 @@
 # Acceptance and Test Status
 
+## Current review: stable 6 Bit walk and compact atlas
+
+Base/rollback: merged #51, `ea2921960477e38c74740dda378fcb513a8f1cc1`. Import the exact published head of `agent/player-motion-polish`, identified on its PR and generated receipt. Earlier pending #51 wording below is historical.
+
+1. Start a fresh Makko preview. Hold a direction for several full strides in both directions, including while the camera follows. Watch the body, planted feet and loop seam; confirm the earlier shake/surge and faint extra limbs are reduced. Pause mid-stride, resume and repeat after restart.
+2. Start/stop, reverse direction, jump/land while moving, and enter/leave R. Confirm instant controls, normal jump height/reach, stable idle, existing rhythm poses, contacts and ground speed.
+3. Traverse the existing lift/rooftop route and encounter walls. Retain title/intro, H/R, audio, Jammer/boss, win/loss/retry and restart checks. Health behavior, traffic collisions, platforms and cloud rooms have not changed in this PR.
+
+Record the imported SHA, PASS/FAIL, and a short clip showing both walking directions, one turn, jump/landing and pause/resume. The comparison video is a sprite diagnostic, not hosted game footage. Owner Makko acceptance remains required before merge.
+
+After acceptance and merge, import the actual new `main` merge SHA into Makko, reopen a fresh preview and repeat the same route. Record the merge SHA and the same short movement clip. Rollback: re-import `ea2921960477e38c74740dda378fcb513a8f1cc1`.
+
 ## Current review: idle, flourish and fireball polish
 
 Base/rollback: merged PR #50, `42aebe8c19853da510c385c45606dfd3b4c7973a`. Import the exact published head of `agent/animation-fireball-polish`, recorded on the PR and source-pack receipt. Earlier pending PR #49/#50 instructions below are historical.
