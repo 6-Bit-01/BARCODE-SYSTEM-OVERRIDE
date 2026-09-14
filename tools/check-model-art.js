@@ -5,6 +5,7 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const vm = require('vm');
 const { createRig, load } = require('./check-level-01-boss');
 const { createSprite } = require('./makko-animation-fixture');
 const root = path.resolve(__dirname, '..');
@@ -102,7 +103,8 @@ for (const file of ['src/game/ui-manager.js', 'src/game/rhythm.js', 'src/game/co
 for (const file of ['index.html', 'sprites-manifest.json', ...scripts.filter(file => !/^https?:/.test(file) && fs.existsSync(path.join(root, file)))]) {
   assert(!read(file).includes('MODEL_ART_REVISION'), `${file}: no unresolved runtime asset revision`);
 }
-assert(/MakkoEngine\.init\('sprites-manifest\.json'/.test(read('src/game/main.js')), 'startup consumes the checked installed manifest');
+assert(scripts.includes('src/game/game-initializer.js'), 'model sprite loading is checked in the active startup module');
+assert(!scripts.includes('src/game/main.js'), 'the legacy startup module is inactive');
 
 const { w, context } = createRig();
 const player = w.player;
@@ -143,4 +145,61 @@ const drawing = new Proxy({ fillText(value) { text.push(String(value)); } }, {
 w.drawBasicUI(drawing); w.drawObjectives(drawing);
 assert(text.includes('6 BIT'), 'live basic UI draws illustrated HUD fallback portrait label');
 assert(text.some(value => value.includes('DEAD AIR')), 'live objective UI reaches ComicHUD');
-console.log('Model art: 12 installed clips / 547 frames, immutable assets, atlas bounds, grounded poses and live ComicHUD verified.');
+
+async function checkSpriteStartup() {
+  // Model Makko's host-owned root manifest and preloaded registry separately.
+  // These cases execute the actual initializer, including its single-flight path.
+  async function scenario(initialManifest, expectedLoads) {
+    let manifest = initialManifest && copy(initialManifest), loads = 0, rebinds = 0;
+    let release;
+    const ready = new Promise(resolve => { release = resolve; });
+    const timers = new Set();
+    const engine = {
+      isLoaded: () => !!manifest,
+      getManifest: () => manifest,
+      getCharacters: () => Object.keys(manifest.characters),
+      has: name => !!manifest.characters[name],
+      getAnimations: name => Object.keys(manifest.characters[name].animations),
+      async init(url) {
+        loads++;
+        const match = /^https:\/\/raw\.githubusercontent\.com\/6-Bit-01\/BARCODE-SYSTEM-OVERRIDE\/[a-f0-9]{40}\/sprites-manifest\.json$/.exec(url);
+        assert(match, 'active startup must bypass the host-generated relative manifest');
+        await ready;
+        manifest = copy(installed);
+      }
+    };
+    const win = { MakkoEngine: engine, player: {
+      sprite: 'pre-start clone',
+      async initSprite() { rebinds++; this.sprite = manifest.characters['6_bit_main']; }
+    } };
+    const context = vm.createContext({ window: win, console: { log() {}, warn() {}, error() {} },
+      setTimeout(fn, ms) { const id = setTimeout(fn, ms); timers.add(id); return id; },
+      clearTimeout(id) { timers.delete(id); clearTimeout(id); }
+    });
+    vm.runInContext(read('src/game/game-initializer.js'), context);
+    const first = win.initSprites(), second = win.initSprites();
+    if (expectedLoads) assert.strictEqual(first, second, 'concurrent startup joins one registry replacement');
+    release();
+    await Promise.all([first, second]);
+    assert.strictEqual(loads, expectedLoads, 'only the current artwork registry may be reused');
+    assert.strictEqual(win.useFallbackGraphics, expectedLoads ? false : undefined);
+    assert.strictEqual(timers.size, 0, 'completed sprite loading clears its timeout');
+    assert.strictEqual(win.MakkoEngine, engine, 'the native Makko registry is retained');
+    if (expectedLoads) {
+      assert.strictEqual(rebinds, 1, 'the player created before Start is rebound once');
+      assert.deepStrictEqual(win.player.sprite, installed.characters['6_bit_main']);
+    }
+    await win.initSprites();
+    assert.strictEqual(loads, expectedLoads, 'repeat startup does not download the current registry again');
+  }
+  await scenario(null, 1);
+  await scenario(original, 1);
+  const mixed = copy(installed);
+  mixed.characters.firewall_firewall = copy(original.characters.firewall_firewall);
+  await scenario(mixed, 1);
+  await scenario(installed, 0);
+}
+
+checkSpriteStartup().then(() => {
+  console.log('Model art: 12 clips / 547 frames, atlas bounds, grounded poses, live ComicHUD and active startup verified (cold, preloaded old, mixed, cached current, player rebind and concurrent calls).');
+}).catch(error => { console.error(error); process.exitCode = 1; });

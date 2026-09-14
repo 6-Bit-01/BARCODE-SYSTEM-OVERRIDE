@@ -1,0 +1,91 @@
+{
+  "passed": true,
+  "sdkSha256": "f9fe349b2aa9fecb6dc5732c19e49182a8e46785402db204a7702fc7ed2b25d9",
+  "scenarios": [
+    "preloaded host manifest replaced",
+    "pre-Start player clone rebound",
+    "all twelve real SDK clips drawn",
+    "production player and three enemies drawn",
+    "concurrent and repeated startup"
+  ],
+  "samples": [
+    {
+      "character": "6_bit_main",
+      "clip": "6_bit_idle_idle",
+      "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/6_bit_idle_idle.webp",
+      "frames": 26
+    },
+    {
+      "character": "6_bit_main",
+      "clip": "6_bit_jump_jump",
+      "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/6_bit_jump_jump.webp",
+      "frames": 27
+    },
+    {
+      "character": "6_bit_main",
+      "clip": "6_bit_walk_walk",
+      "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/6_bit_walk_walk.webp",
+      "frames": 48
+    },
+    {
+      "character": "6_bit_main",
+      "clip": "6_bit_r__h_mode_rhmode",
+      "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/6_bit_r__h_mode_rhmode.webp",
+      "frames": 48
+    },
+    {
+      "character": "virus_virus",
+      "clip": "virus_idle_idle",
+      "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/virus_idle_idle.webp",
+      "frames": 51
+    },
+    {
+      "character": "corrupted_corrupted",
+      "clip": "corrupted_idle_idle",
+      "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/corrupted_idle_idle.webp",
+      "frames": 51
+    },
+    {
+      "character": "corrupted_corrupted",
+      "clip": "corrupted_walk_walk",
+      "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/corrupted_walk_walk.webp",
+      "frames": 46
+    },
+    {
+      "character": "firewall_firewall",
+      "clip": "firewall_idle_idle",
+      "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/firewall_idle_idle.webp",
+      "frames": 62
+    },
+    {
+      "character": "firewall_firewall",
+      "clip": "firewall_walk_walk",
+      "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/firewall_walk_walk.webp",
+      "frames": 33
+    },
+    {
+      "character": "firewall_firewall",
+      "clip": "firewall_attack_default",
+      "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/firewall_attack_default.webp",
+      "frames": 59
+    },
+    {
+      "character": "broadcast_jammer_broadcastjammer",
+      "clip": "broadcast_jammer_idle_idle",
+      "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/broadcast_jammer_idle_idle.webp",
+      "frames": 48
+    },
+    {
+      "character": "sector_1_boss_sector1boss",
+      "clip": "sector_1_boss_idle_idle",
+      "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/assets/sprites-v3/prepared/sector_1_boss_idle_idle.webp",
+      "frames": 48
+    }
+  ],
+  "manifestRequests": [
+    "sprites-manifest.json",
+    "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/8f09568eeb9726f7b80fb43e1ecb3f6e4672bea2/sprites-manifest.json"
+  ],
+  "imageLoads": 28,
+  "limits": "Actual saved Makko SDK, production initialization and sprite owners with decoded local atlas bytes; browser networking, host import, audio and playtest feel remain outside this diagnostic."
+}

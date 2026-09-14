@@ -2,6 +2,8 @@
 
 ## Current authority and scope
 
+Current repair follows merged PR #47 (`8f09568eeb9726f7b80fb43e1ecb3f6e4672bea2`): the owner sees the new background but Makko still renders old character sprites. On `agent/fix-makko-sprite-loading`, fix the active initialization path, bypass the host-owned manifest, replace preloaded old templates and rebind the existing player. Preserve the saved artwork, gameplay and owner Makko review before merge. Do not restart art production. `CONTINUE_HERE.md` is the current handoff; earlier recovery status below is historical.
+
 Read `CONTINUE_HERE.md` first for this continuation. Current recovery integrates the already-approved v5 version 38 work over merged #46 on `agent/finish-model-art-hud`; historical baseline/draft wording below must not restart completed work. The existing locked mechanics and Makko-before-merge requirement remain.
 
 **Current approved implementation: one combined model-art and HUD pass.** The owner's latest “Fuck yeah!!!! Let's make it happen!!!” approves carrying the reviewed artwork and HUD into production. `docs/source-pack/MODEL_ART_HUD_IMPLEMENTATION.md` governs `agent/model-art-hud-integration`, based on merged #45. Finish complete-body sequences against the original pose guides, calibrate all world art, and connect the reviewed HUD to live game state. Existing push/draft authorization and owner Makko acceptance before merge persist. The review-only paragraph below describes the preceding checkpoint; its inactivity status no longer limits this implementation. Do not revive the rejected cutout rig.

@@ -66,12 +66,23 @@ async function main() {
   chrome = spawn(chromePath, ['--headless=new', '--no-sandbox', '--disable-dev-shm-usage', '--no-first-run', '--remote-debugging-port=0', `--user-data-dir=${profile}`, 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] });
   chromeClosed = new Promise(resolve => chrome.once('close', resolve));
   const debuggerUrl = await new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => reject(new Error('Chrome did not expose DevTools')), 10000);
-    chrome.once('error', reject);
-    chrome.stderr.on('data', data => {
-      const match = String(data).match(/DevTools listening on (ws:\/\/\S+)/);
-      if (match) { clearTimeout(timeout); resolve(match[1]); }
-    });
+    let stderr = '';
+    const timeout = setTimeout(() => fail(new Error(`Chrome did not expose DevTools within 30s.\n${stderr}`)), 30000);
+    const cleanup = () => {
+      clearTimeout(timeout);
+      chrome.off('error', fail); chrome.off('close', closed);
+      chrome.stderr.off('data', readStderr);
+    };
+    const fail = error => { cleanup(); reject(error); };
+    const closed = (code, signal) => fail(new Error(`Chrome closed before DevTools (${code ?? signal}).\n${stderr}`));
+    const readStderr = data => {
+      // Pipe chunks can split the endpoint line; wait for its terminating whitespace.
+      stderr = (stderr + data).slice(-16384);
+      const match = stderr.match(/DevTools listening on (ws:\/\/\S+)\s/);
+      if (match) { cleanup(); resolve(match[1]); }
+    };
+    chrome.once('error', fail); chrome.once('close', closed);
+    chrome.stderr.on('data', readStderr);
   });
   const debuggerOrigin = new URL(debuggerUrl).origin.replace('ws:', 'http:');
   const target = await (await fetch(`${debuggerOrigin}/json/new`, { method: 'PUT' })).json();
