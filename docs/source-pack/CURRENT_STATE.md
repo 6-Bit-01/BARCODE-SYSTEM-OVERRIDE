@@ -1,5 +1,20 @@
 # Current State
 
+## Level 1 playtest improvement review — September 15, 2026
+
+Base/rollback is merged #54 `8b0a8b2af005408d137421bd3f241a080ea23627`. The approved combined pass is implemented on `agent/level1-playtest-improvements`; the PR supplies the exact review head and CI status. Owner Makko acceptance is pending. `LEVEL_01_PLAYTEST_PASS.md` records the owner corrections.
+
+Dialogue and scene actions are separate on keyboard/controller/pointer. The health capsule/carrier uses a heart with no pickup/collection text. Actor feet now share sidewalk Y=856 (physics anchor 784). Player contact clears horizontally during damage immunity, hack guard, reboot and allegiance without making enemy platforms; protected entrances remain non-pushing and receive a short contact grace at handoff. Firewall travel has one integration, stable speed/facing and a registered sixteen-pose whole-body walk drawn from the accepted atlas, with no raster replacement.
+
+Seventeen new roof/access surfaces connect the building crowns using the existing single jump; the utility box has a perspective top/side and meets the sidewalk. Existing encounter actors gain rooftop support and access logic, while aerial Viruses track upper lanes. Mission quota remains 20 across four encounters; no new enemy species or campaign level was introduced. The second existing repair and third lore fragment move to the tower crown with their original IDs; the first repair, carrier and Signal Amp remain. The camera follows vertically, including world-to-screen effects. Barriers reach above the playable crowns and attach to facade-sized emitter panels/conduits; their local contact/crossing ripples use a capped, pause-gated list. Cleared fields leave powered-down machinery.
+
+Foreground hazards use existing car artwork in world-space lanes, 2.5-second direction/height warnings, a 520 px/s pass and an inset hull for one health bar. Only one hazard is active. Keyboard/controller tutorial or hack input ownership suspends traffic; a suspended car warns again for two seconds before moving. Enemies still run at the established 40% during hacks. Background cars remain scenery. No browser timers were added for traffic or FX.
+
+The right-side hack terminal supplies a visible shared keypad: direct number typing still works, controller D-pad/stick moves, A selects, X erases, B cancels; pointer/touch taps the same tiles. Navigation has a 16-second answer budget and bounded watchdog; keyboard retains four seconds. Memorization and eight-second hijack are unchanged. Objectives receive a heading and one tutorial task; hack/traffic warnings temporarily own that attention. Pause adds instant dialogue and the four latest crew lines. A delayed last-enemy direction cue helps finish a vertical encounter.
+
+Production-code checks cover 72 ascent trials at 30/60/120 FPS, Firewall cadence, overlap clearance, rooftop support, pointer/controller puzzles and traffic lifecycle. Native Canvas review covers street/barrier, utility box, upper route and keypad. Automated/native evidence does not establish hosted Makko feel, audio, hardware controller or touch-device acceptance. CI additionally runs the real Chromium intro fixture and exports the exact review source pack. Follow the new acceptance route before merge, then import the actual merged main SHA and repeat it. Earlier status sections are historical.
+
+
 ## Wall footprint correction — September 15, 2026
 
 PR #53 is merged. Base/rollback is `685d13d4de1d56c8a39a82077460d894144bd091`; current branch is `agent/barrier-street-footprint`. The owner sees the tall barriers but reports that their flat bottoms leave the sidewalk looking passable. The wall renderer now spans forward along the existing perspective, follows the raised sidewalk, steps down the curb and reaches beyond the street artwork. Its near end/top retain slab thickness; projected ribs and the footprint share the existing collapse/fade clock, with culling expanded for the full wall.

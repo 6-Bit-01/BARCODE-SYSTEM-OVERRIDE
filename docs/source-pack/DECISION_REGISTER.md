@@ -1,5 +1,10 @@
 # Decision Register
 
+## September 15: approved novice-playtest follow-up
+
+The owner approved all eight proposed changes, explicitly removed health-pickup text, suggested building-mounted hologram emitters and required a perspective utility box and Firewall direction/jitter repair. The implemented scope and review limits are recorded in LEVEL_01_PLAYTEST_PASS and CURRENT_STATE. Existing aerial/ground enemies support the new upper routes; a new species remains optional. Single jump, eight-second hijack, 40% enemy slowdown, four encounter quotas, lift/Jammer/boss and persistent IDs remain. This new approval supersedes older ground/roof-placement locks only for the named changes.
+
+
 ## September 15: extend the wall through the sidewalk and road
 
 The owner describes the tall barriers as almost good and requests their bottoms cover the sidewalk as walls rising across the entire road, rooftops and sidewalk. Their screenshot establishes the missing foreground footprint. This authorizes a focused drawing correction with the current perspective, curb step and tall design; it does not change gate placement, collision, unlock rules, health/hijack, traffic hazards or other mechanics. PR #53 is merged and retained; exact owner Makko acceptance of this correction remains pending.

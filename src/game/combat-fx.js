@@ -155,7 +155,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
     visible(x, y, radius = 100) {
       const center = window.gameCamera?.centerX ?? ((window.gameCamera?.x || 0) + 960);
       const zoom = Math.max(0.4, window.renderer?.zoomLevel || 1);
-      return x + radius >= center - 960 / zoom && x - radius <= center + 960 / zoom && y + radius >= -500 && y - radius <= 1200;
+      return x + radius >= center - 960 / zoom && x - radius <= center + 960 / zoom && y + radius >= (window.gameCamera?.y || 0) - 300 && y - radius <= (window.gameCamera?.y || 0) + 1200;
     }
     mode(entering, player = window.player) {
       if (!player) return;

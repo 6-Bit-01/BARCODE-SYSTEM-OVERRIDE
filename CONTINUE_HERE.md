@@ -1,3 +1,7 @@
+# Continue here — Level 1 playtest improvements
+
+The current work is the owner-approved combined pass in `docs/source-pack/LEVEL_01_PLAYTEST_PASS.md`, based on merged #54 `8b0a8b2af005408d137421bd3f241a080ea23627`. Preserve the existing merged work. The implementation and local production checks are complete on `agent/level1-playtest-improvements`; owner Makko acceptance is pending. Read the top ACCEPTANCE route and the PR for exact review head/CI. Preserve this combined pass; no older animation or source-pack work needs restarting.
+
 # Continue here — wall sidewalk/street footprint
 
 PR #53 is merged at `685d13d4de1d56c8a39a82077460d894144bd091`; its walk, enemy hijack, repairs and rooftop supports are the current baseline. The owner's new screenshot identifies a visual gap at the wall's base: it stops at the walking line and only projects backward. The focused `agent/barrier-street-footprint` correction extends the same tall translucent wall forward across the sidewalk, down the curb and through the road. Existing gate positions, collisions, unlock conditions and collapse clock remain.

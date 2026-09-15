@@ -36,8 +36,8 @@ async function main() {
     tap(5); assert(!w.player.grounded, 'RB provides the tutorial jump action');
     w.player.grounded = true; w.player.velocity.y = 0; w.tutorialSystem.active = false; frame();
     load(context, 'src/game/hacking.js'); w.hackingSystem = new w.HackingSystem();
-    const hackTarget = new w.Enemy(1000, 750, 'virus');
-    Object.assign(hackTarget.position, { x: 1000, y: 750 }); hackTarget.entranceComplete = true; hackTarget.spawnTimeMs = -10000; hackTarget.spawnProtectionDuration = 0;
+    const hackTarget = new w.Enemy(1000, 784, 'virus');
+    Object.assign(hackTarget.position, { x: 1000, y: 784 }); hackTarget.entranceComplete = true; hackTarget.spawnTimeMs = -10000; hackTarget.spawnProtectionDuration = 0;
     w.enemyManager.enemies = [hackTarget];
     for (const type of [1, 2]) {
       hackTarget._hijackedUntilMs = 0; hackTarget._hijackRebootUntilMs = 0;
@@ -47,19 +47,24 @@ async function main() {
       w.hackingSystem.update(1000); w.hackingSystem.update(w.hackingSystem.displayTime);
       assert.strictEqual(w.hackingSystem.phase, 'answer');
       const answer = w.hackingSystem.currentPuzzle.answer;
-      const digitButtons = { '0': 5, '1': 0, '2': 13, '3': 1, '4': 14, '5': 4, '6': 15, '7': 2, '8': 12, '9': 3 };
-      tap(digitButtons[String(answer)[0]]); tap(8); assert.strictEqual(w.hackingSystem.inputText, '', 'View erases');
-      for (const digit of String(answer)) tap(digitButtons[digit]);
+      const select = key => {
+        const index = w.hackingSystem.getKeypad().findIndex(k => k.key === key);
+        while (Math.floor(w.hackingSystem.keypadIndex / 3) !== Math.floor(index / 3)) tap(w.hackingSystem.keypadIndex < index ? 13 : 12);
+        while (w.hackingSystem.keypadIndex % 3 !== index % 3) tap(w.hackingSystem.keypadIndex % 3 < index % 3 ? 15 : 14);
+        tap(0);
+      };
+      select(String(answer)[0]); tap(2); assert.strictEqual(w.hackingSystem.inputText, '', 'X erases');
+      for (const digit of String(answer)) select(digit);
       assert.strictEqual(w.hackingSystem.inputText, String(answer));
       w.player.health = 1;
       const beforeHealth = w.player.health;
-      tap(9); assert(!w.hackingSystem.active); assert.strictEqual(w.hackingSystem.resultFx.outcome, 'success');
+      select('Enter'); assert(!w.hackingSystem.active); assert.strictEqual(w.hackingSystem.resultFx.outcome, 'success');
       assert.strictEqual(w.player.health, beforeHealth, 'puzzles do not repair health');
       assert(w.enemyManager.isHijacked(hackTarget), 'each controller puzzle hijacks the locked enemy');
       assert.strictEqual(w.player.velocity.y, 0, 'terminal digits do not jump');
     }
     hackTarget._hijackedUntilMs = 0; hackTarget._hijackRebootUntilMs = 0;
-    w.hackingSystem.cooldownUntil = 0; w.hackingSystem.start(); frame(); tap(11); assert(!w.hackingSystem.active, 'R3 cancels the terminal');
+    w.hackingSystem.cooldownUntil = 0; w.hackingSystem.start(); frame(); tap(1); assert(!w.hackingSystem.active, 'B cancels the terminal');
     // Frontend ownership consumes held buttons before gameplay resumes.
     w.inputManager.updateFrontend('intro'); pad.buttons[1].pressed = true;
     w.inputManager.updateFrontend('intro'); w.inputManager.resetActionEdges();
@@ -71,8 +76,8 @@ async function main() {
     const rig = createRig(), { w, context } = rig, { tap, frame } = controls(rig);
     load(context, 'src/core/runtime-lifecycle.js'); await w.BARCODE.RuntimeLifecycle.start(); frame();
     await w.BARCODE.RuntimeLifecycle.pause(); frame();
-    const menu = w.BARCODE.PauseMenu; assert(menu.open); assert.strictEqual(menu.focus, 7);
-    tap(12); assert.strictEqual(menu.focus, 6); tap(0); assert.strictEqual(menu.view, 'archive');
+    const menu = w.BARCODE.PauseMenu; assert(menu.open); assert.strictEqual(menu.focus, 9);
+    tap(12); assert.strictEqual(menu.focus, 8); tap(0); assert.strictEqual(menu.view, 'archive');
     tap(15); assert.strictEqual(menu.archiveIndex, 1); tap(1); assert.strictEqual(menu.view, 'settings');
     tap(12); tap(0); assert.strictEqual(menu.view, 'timing'); tap(15); assert.strictEqual(w.BARCODE.Preferences.values.inputOffsetMs, 5);
     tap(13); tap(14); assert.strictEqual(w.BARCODE.Preferences.values.visualOffsetMs, -5);
