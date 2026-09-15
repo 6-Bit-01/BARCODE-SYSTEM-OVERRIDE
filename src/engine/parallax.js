@@ -194,7 +194,14 @@ window.ParallaxBackground = class ParallaxBackground {
         // Side-scroller camera: background moves opposite to camera
         const drawX = 1920/2 - newWidth/2 - offset.x; // Center background and apply camera offset
         const drawY = -550; // Moved up 50px
-        ctx.drawImage(layer.imgElement, drawX, drawY, newWidth, newHeight);
+        const image = layer.imgElement;
+        // The city atlas has a one-pixel opaque export seam at its top edge.
+        // It becomes visible only when following the high roofs.
+        if (layer === this.layers[1]) {
+          const iw=image.naturalWidth||image.width, ih=image.naturalHeight||image.height;
+          const inset=2, offset=inset*newHeight/ih;
+          ctx.drawImage(image,0,inset,iw,ih-inset,drawX,drawY+offset,newWidth,newHeight-offset);
+        } else ctx.drawImage(image,drawX,drawY,newWidth,newHeight);
         this.drawSignalLights(ctx, layer, drawX, drawY, newWidth, newHeight);
         this.drawAtmosphere(ctx, layer, drawX, drawY, newWidth, newHeight);
         ctx.restore();

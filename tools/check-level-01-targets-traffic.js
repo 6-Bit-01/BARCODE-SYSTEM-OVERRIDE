@@ -14,8 +14,8 @@ for (const charges of [0, 1, 3]) for (const combo of [0, 4, 10]) {
   w.rhythmSystem.combo = combo; w.BARCODE.signalAmpCharges = charges;
   const reach = w.rhythmSystem.getAuthoritativeDamageRadius({ nextSuccess: true });
   const enemies = [reach - 0.1, reach + 0.1, 429, 431].map(distance => {
-    const enemy = new w.Enemy(w.player.position.x + distance, 750, 'corrupted');
-    enemy.position.x = w.player.position.x + distance; enemy.position.y = 750; enemy.health = 100; enemy.active = true;
+    const enemy = new w.Enemy(w.player.position.x + distance, 784, 'corrupted');
+    enemy.position.x = w.player.position.x + distance; enemy.position.y = 784; enemy.health = 100; enemy.active = true;
     return enemy;
   });
   w.enemyManager.enemies = enemies;
@@ -65,7 +65,7 @@ async function trafficRig(failAtlas = false) {
   const requested = [];
   w.Image = class Image {
     set src(url) { this.url = url; requested.push(url); this.width = 2560; this.height = 2304;
-      if (failAtlas && url === 'assets/traffic/ship-1.webp') this.onerror(); else this.onload(); }
+      if (failAtlas && url.endsWith('assets/traffic/ship-1.webp')) this.onerror(); else this.onload(); }
   };
   load(context, 'src/engine/traffic-sheets.js'); load(context, 'src/engine/spaceships.js');
   const ships = new w.SpaceShipSystem();

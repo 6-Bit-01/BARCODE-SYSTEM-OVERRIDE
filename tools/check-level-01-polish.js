@@ -16,7 +16,7 @@ function createRig() {
 function makeContext() {
   const operations = [];
   const ctx = { operations, globalAlpha: 1 };
-  for (const name of ['save', 'restore', 'translate', 'scale', 'rotate', 'beginPath', 'closePath', 'fill', 'stroke', 'moveTo', 'lineTo', 'arc', 'ellipse', 'fillRect', 'strokeRect', 'fillText', 'setLineDash', 'drawImage']) {
+  for (const name of ['save', 'restore', 'translate', 'scale', 'rotate', 'beginPath', 'closePath', 'clip', 'rect', 'fill', 'stroke', 'moveTo', 'lineTo', 'arc', 'ellipse', 'fillRect', 'strokeRect', 'fillText', 'setLineDash', 'drawImage']) {
     ctx[name] = (...args) => operations.push([name, ...args]);
   }
   return ctx;
@@ -92,9 +92,9 @@ for (const sample of samples) for (const key of ['x', 'y', 'duration', 'elapsedM
 // rotate its arrow. Swoopers retain their warning-time aim through release.
 for (const type of ['corrupted', 'firewall']) {
   const { w, drawing } = createRig();
-  const e = new w.Enemy(1000, 750, type);
-  e.position.x = 1000; e.position.y = 750; e.entranceComplete = true; e._sector1MissionEnemy = true;
-  w.player.position.x = 1200; w.player.position.y = 750;
+  const e = new w.Enemy(1000, 784, type);
+  e.position.x = 1000; e.position.y = 784; e.entranceComplete = true; e._sector1MissionEnemy = true;
+  w.player.position.x = 1200; w.player.position.y = 784;
   e.updateAuthoredCombatPattern(0.8, w.player);
   assert.strictEqual(e.getCombatCue().phase, 'brace'); assert.strictEqual(e.getCombatCue().direction, 1);
   w.player.position.x = 800; e.updateAuthoredCombatPattern(0.1, w.player);
@@ -102,16 +102,16 @@ for (const type of ['corrupted', 'firewall']) {
   const state = copy(e);
   e.drawCombatCue(drawing); e.drawCombatCue(drawing);
   assert.deepStrictEqual(copy(e), state, 'drawing never advances attacks');
-  assert(drawing.operations.some(op => op[0] === 'lineTo' && op[1] > 1000 && op[2] === 827), 'ground arrow points right at the committed contact plane');
+  assert(drawing.operations.some(op => op[0] === 'lineTo' && op[1] > 1000 && op[2] === 861), 'ground arrow points right at the committed contact plane');
   e.updateAuthoredCombatPattern(1, w.player);
   assert.strictEqual(e.getCombatCue().phase, 'attack'); assert(e.velocity.x > 0);
   e.active = false; assert.strictEqual(e.getCombatCue(), null);
 }
 {
   const { w, drawing } = createRig();
-  const e = new w.Enemy(680, 702, 'virus');
+  const e = new w.Enemy(680, 646, 'virus');
   Object.assign(e, { role: 'swooper', entranceComplete: true, _sector1MissionEnemy: true, swooperState: 'approach', swooperTimerMs: 450 });
-  e.position.x = 680; e.position.y = 702; w.player.position.x = 900;
+  e.position.x = 680; e.position.y = 646; w.player.position.x = 900;
   e.updateSwooperBehavior(0.01, w.player);
   assert.strictEqual(e.getCombatCue().phase, 'telegraph');
   const aim = copy(e.getCombatCue().aim);
@@ -144,7 +144,7 @@ for (const type of ['corrupted', 'firewall']) {
   assert.deepStrictEqual(copy(fx), state); assert.strictEqual(w.BARCODE.signalAmpCharges, 0);
   w.gameState.paused = true; fx.update(1000); assert.deepStrictEqual(copy(fx), state);
   w.gameState.paused = false; fx.update(2400); assert.strictEqual(fx.ampNotice, null);
-  p.giveSignalAmp(); w.player.position.y = 750; reachReady();
+  p.giveSignalAmp(); w.player.position.y = 784; reachReady();
   assert.strictEqual(p.bossCheckpoint.signalAmpCharges, 3);
   w.BARCODE.signalAmpCharges = 0; w.gameState.gameOver = true;
   assert(p.retryBossCheckpoint().ok); assert.strictEqual(w.BARCODE.signalAmpCharges, 3);
@@ -161,7 +161,7 @@ console.log('Polish chunk 1: elapsed shake, accepted damage HUD, committed warni
   const { w, p, fx, drawing } = createRig();
   p.startMission(); p.spawnEncounter(w.Sector1Progression.ENCOUNTERS[0]);
   const gate = p.getCurrentGate();
-  assert(gate.h >= 600 && gate.depthX >= 100 && gate.depthY < 0, 'gate is a tall sidewalk-aligned 3D wall');
+  assert(gate.y <= -500 && gate.h >= 1400 && gate.depthX > 0 && gate.depthY < 0, 'gate is a tall sidewalk-aligned 3D wall');
   assert.strictEqual(p.getGatePresentation()[0].opening, false);
   p.openEncounterGate('encounter_1');
   assert.strictEqual(p.getCurrentGate(), null, 'collision opens immediately');
@@ -207,7 +207,7 @@ console.log('Polish chunk 1: elapsed shake, accepted damage HUD, committed warni
   assert.strictEqual(created, 3);
   assert(drawing.operations.filter(op => op[0] === 'drawImage').length <= 14, 'fixed atmosphere budget');
   const ventX = -152 + bg.atmosphereVents[0][0] * 4400 / 1279;
-  w.enemyManager.enemies = [{ active: true, position: { x: ventX, y: 750 }, combatPattern: 'brace' }];
+  w.enemyManager.enemies = [{ active: true, position: { x: ventX, y: 784 }, combatPattern: 'brace' }];
   assert.strictEqual(bg.atmosphereQuietAt(bg.atmosphereVents[0][0]), 0.25, 'windup area reduces steam');
   w.enemyManager.enemies = [];
   const frozen = copy(bg.getSceneMusic()); const paints = makeContext(); bg.drawAtmosphere(paints, layer, -152, -550, 4400, 1589);

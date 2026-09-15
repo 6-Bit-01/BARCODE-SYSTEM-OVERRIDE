@@ -4,7 +4,7 @@ window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.Preferences', 'BARCODE.PauseMenu'], dependencies: ['BARCODE.LoreRecords'] });
 (function() {
   const BARCODE = window.BARCODE = window.BARCODE || {};
-  const defaults = Object.freeze({ music: 1, sfx: 1, screenShake: true, flashes: true, crtPostEffects: true, inputOffsetMs: 0, visualOffsetMs: 0 });
+  const defaults = Object.freeze({ music: 1, sfx: 1, screenShake: true, flashes: true, crtPostEffects: true, instantText: false, inputOffsetMs: 0, visualOffsetMs: 0 });
   const normalize = (key, value) => key.endsWith('OffsetMs') ? Math.round(Math.max(-200, Math.min(200, value))) : Math.round(Math.max(0, Math.min(1, value)) * 100) / 100;
   const storageKey = 'barcode.presentation.v1';
   const preferences = BARCODE.Preferences = {
@@ -47,9 +47,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
   const rows = [
     ['music', 'Music'], ['sfx', 'SFX'], ['screenShake', 'Screen shake'],
     ['flashes', 'Flash accents'], ['crtPostEffects', 'CRT effect'],
-    ['timing', 'Timing calibration'], ['archive', 'Lore archive'], ['resume', 'Resume game'], ['defaults', 'Reset settings']
+    ['instantText', 'Instant dialogue'], ['crew', 'Recent crew dialogue'], ['timing', 'Timing calibration'], ['archive', 'Lore archive'], ['resume', 'Resume game'], ['defaults', 'Reset settings']
   ];
-  const rowTop = 365, rowStep = 54;
+  const rowTop = 331, rowStep = 48;
   const menu = BARCODE.PauseMenu = {
     open: false, dirty: false, focus: 0, drag: null, heldKeys: new Set(), snapshot: null, resumePending: false, message: '',
     view: 'settings', archiveFocus: 0, archiveIndex: 0, timingFocus: 0,
@@ -82,6 +82,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       const key = rows[this.focus][0];
       if (key === 'resume') { this.resume(); return; }
       if (key === 'archive') { this.openArchive(); return; }
+      if (key === 'crew') { this.view = 'crew'; this.dirty = true; return; }
       if (key === 'timing') { this.view = 'timing'; this.timingFocus = 0; this.dirty = true; return; }
       if (key === 'defaults') preferences.restoreDefaults();
       else if (typeof defaults[key] === 'boolean') preferences.set(key, !preferences.values[key]);
@@ -124,6 +125,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       const key = event.key.toLowerCase();
       if (!this.open) return this.heldKeys.has(key);
       this.heldKeys.add(key); event.preventDefault?.();
+      if (this.view === 'crew') {
+        if (key === 'p' && !event.repeat) this.resume();
+        else if (['escape','enter',' '].includes(key) && !event.repeat) { this.view = 'settings'; this.dirty = true; }
+        return true;
+      }
       if (this.view === 'timing') {
         if (key === 'p' && !event.repeat) this.resume();
         else if (key === 'escape' && !event.repeat) this.closeTiming();
@@ -165,6 +171,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       const canvas = document.getElementById('gameCanvas'), rect = canvas?.getBoundingClientRect?.();
       if (!rect?.width || !rect?.height) return true;
       const x = (event.clientX - rect.left) * 1920 / rect.width, y = (event.clientY - rect.top) * 1080 / rect.height;
+      if (this.view === 'crew') { if (phase === 'down') { this.view = 'settings'; this.dirty = true; } return true; }
       if (this.view === 'timing') {
         if (phase === 'down') {
           const index = Math.floor((y - 430) / 86);
@@ -280,6 +287,19 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       ctx.fillStyle = '#0a1827'; ctx.fillRect(380, 180, 1160, 765);
       ctx.strokeStyle = '#74f7d2'; ctx.lineWidth = 2; ctx.strokeRect(380, 180, 1160, 765);
       const text = (value, x, y, size = 22, color = '#d4dfec') => { ctx.font = `${size}px monospace`; ctx.fillStyle = color; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(value, x, y); };
+      if (this.view === 'crew') {
+        text('RECENT CREW DIALOGUE',440,250,38,'#a0ffe4');
+        const lines = (window.tutorialSystem?.recentDialogue || []).slice(-4);
+        if (!lines.length) text('Crew dialogue will appear here as you play.',440,365,22);
+        let y=340;
+        for (const line of lines) {
+          text(line.speaker.toUpperCase(),440,y,18,'#cfa2ff');y+=30;
+          let row='';
+          for (const word of line.text.split(' ')) { if ((row+' '+word).length>81) {text(row,440,y,20);y+=27;row=word;} else row+=(row?' ':'')+word; }
+          if(row)text(row,440,y,20); y+=48;
+        }
+        text(BARCODE.GamepadUI?.connected?'A / B: Back':'Enter / Esc / Click: Back',440,920,19,'#a0ffe4');ctx.restore();return;
+      }
       if (this.view === 'archive') { this.drawArchive(ctx, text); ctx.restore(); return; }
       if (this.view === 'timing') { this.drawTiming(ctx, text); ctx.restore(); return; }
       text('PAUSED', 440, 250, 46, '#a0ffe4');
@@ -299,7 +319,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
           ctx.fillStyle = '#94ffe3'; ctx.fillRect(1260, y + 22, 190 * preferences.values[key], 8);
           ctx.fillRect(1257 + 190 * preferences.values[key], y + 15, 6, 22);
           text(`${Math.round(preferences.values[key] * 100)}`, 1460, y + 26, 17);
-        } else if (index < 5) text(preferences.values[key] ? 'ON' : 'OFF', 1438, y + 26, 20, preferences.values[key] ? '#94ffe3' : '#b3a1c7');
+        } else if (typeof defaults[key] === 'boolean') text(preferences.values[key] ? 'ON' : 'OFF', 1438, y + 26, 20, preferences.values[key] ? '#94ffe3' : '#b3a1c7');
         else if (key === 'archive') text('L', 1460, y + 26, 20, '#cfa2ff');
       });
       text(this.message || (preferences.saved ? 'Settings save automatically.' : 'Settings apply now; saving is unavailable here.'), 440, 874, 19, '#cfa2ff');

@@ -152,6 +152,7 @@
     "tools/check-level-01-smoothing.js",
     "tools/check-level-01-story-controls.js",
     "tools/check-level-01-targets-traffic.js",
+    "tools/check-level1-rebuild.js",
     "tools/check-makko-hotfix.js",
     "tools/check-model-art.js",
     "tools/check-music-profiles.js",
@@ -436,6 +437,7 @@
         "src/engine/intro-sequence.js",
         "src/engine/parallax.js",
         "src/engine/presentation-assets.js",
+        "src/engine/spaceships.js",
         "src/game/game-initializer.js",
         "tools/check-intro.js"
       ]
@@ -445,13 +447,13 @@
     {
       "global": "window.EnemyManager",
       "file": "src/game/enemies.js",
-      "line": 1205,
+      "line": 1324,
       "loaded": true
     },
     {
       "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 1783,
+      "line": 1928,
       "loaded": true
     },
     {
@@ -475,7 +477,7 @@
     {
       "global": "window.Enemy",
       "file": "src/game/enemies.js",
-      "line": 15,
+      "line": 17,
       "loaded": true
     },
     {
@@ -553,7 +555,7 @@
     {
       "global": "window.player",
       "file": "src/game/player.js",
-      "line": 1720,
+      "line": 1724,
       "loaded": true
     },
     {
@@ -619,43 +621,43 @@
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 363,
+      "line": 372,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 390,
+      "line": 400,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 452,
+      "line": 462,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 470,
+      "line": 480,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 550,
+      "line": 560,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 590,
+      "line": 600,
       "loaded": false
     },
     {
       "global": "window.renderGame",
       "file": "src/game/render-coordinator.js",
-      "line": 34,
+      "line": 35,
       "loaded": true
     },
     {

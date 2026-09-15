@@ -30,7 +30,7 @@ async function main() {
     const before = copy({ position: w.player.position, time: w.gameState.gameTime, combo: w.rhythmSystem.combo, transport: w.BARCODE.MusicTransport.sample() });
     const generation = w.BARCODE.MusicTransport.getDiagnostics().generation;
     menu.render();
-    assert(menu.open); assert.strictEqual(menu.focus, 7);
+    assert(menu.open); assert.strictEqual(menu.focus, 9);
     const drawCount = screen.getContext().operations.length;
     menu.render(); assert.strictEqual(screen.getContext().operations.length, drawCount, 'unchanged paused screen is not redrawn');
     down('ArrowDown'); up('ArrowDown'); // Defaults row.
@@ -39,10 +39,10 @@ async function main() {
     down('Tab'); up('Tab'); down('ArrowLeft'); up('ArrowLeft'); assert.strictEqual(prefs.values.sfx, 0.95);
     down('Tab'); up('Tab'); down('Enter'); up('Enter'); assert.strictEqual(prefs.values.screenShake, false);
     const point = (x, y) => ({ clientX: 80 + x / 2, clientY: 40 + y / 2, preventDefault() {} });
-    listeners.mousedown[0](point(1355, 391));
-    listeners.mousemove[0](point(1260, 391)); listeners.mouseup[0](point(1260, 391));
+    listeners.mousedown[0](point(1355, 357));
+    listeners.mousemove[0](point(1260, 357)); listeners.mouseup[0](point(1260, 357));
     assert.strictEqual(prefs.values.music, 0, 'pointer slider respects actual CSS-scaled canvas bounds and permits mute');
-    listeners.mousedown[0](point(1200, 551)); listeners.mouseup[0](point(1200, 551));
+    listeners.mousedown[0](point(1200, 501)); listeners.mouseup[0](point(1200, 501));
     assert.strictEqual(prefs.values.flashes, false);
     let spaces = 0; w.tutorialSystem.active = true; w.tutorialSystem.handleSpacePress = () => spaces++;
     down(' '); up(' '); down('r'); up('r'); down('h'); up('h');

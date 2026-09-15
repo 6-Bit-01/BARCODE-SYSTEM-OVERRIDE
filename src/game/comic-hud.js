@@ -56,10 +56,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
   }
   function objectives(c,{ title, detail, kick }) {
     begin(c);c.translate(1293,218);c.rotate((kick||0)*.038);
-    plate(c,-213,-48,426,97,C.ink,C.muted);
+    plate(c,-213,-58,426,117,C.ink,C.muted);
     polygon(c,[[-211,-46],[-200,-47],[-204,47],[-210,42]],C.green);
-    text(c,title,-186,-23,22,C.paper,700,'left',378);
-    text(c,detail,-186,13,15,C.muted,600,'left',378);
+    text(c,'Objectives',-186,-37,16,C.green,700,'left',378);
+    text(c,title,-186,-9,22,C.paper,700,'left',378);
+    text(c,detail,-186,26,15,C.muted,600,'left',378);
     c.restore();
   }
   function boss(c,status) {

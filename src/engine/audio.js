@@ -590,7 +590,7 @@ window.AudioSystem = class AudioSystem {
       return false;
     }
     const profiles = {
-      enter: [220, 440, 0.18, 'triangle'], exit: [330, 165, 0.10, 'triangle'],
+      warning: [620, 880, 0.32, 'square'], enter: [220, 440, 0.18, 'triangle'], exit: [330, 165, 0.10, 'triangle'],
       jump: [180, 520, 0.12, 'triangle'], land: [130, 55, 0.09, 'triangle'],
       stomp: [240, 48, 0.18, 'square'], hit: [360, 120, 0.10, 'triangle'],
       perfect: [660, 990, 0.14, 'triangle'], guard: [780, 260, 0.08, 'square'],

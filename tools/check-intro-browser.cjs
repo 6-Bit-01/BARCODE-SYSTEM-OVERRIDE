@@ -147,6 +147,8 @@ async function main() {
   assert(await evaluate('!cutsceneSystem.transcriptElement.textContent.includes("One more pass")'), 'future dialogue is still hidden');
   await key(' ', 'Space'); await key(' ', 'Space', true, true); await key(' ', 'Space', false);
   assert(await evaluate('cutsceneSystem.currentImageIndex === 1 && cutsceneSystem.currentCueIndex === 2 && cutsceneSystem.transcriptElement.textContent.includes("One more pass") && !cutsceneSystem.transcriptElement.textContent.includes("part that proves")'), 'Space reveals one speech bubble; held repeat cannot reveal another');
+  await delay(300); await key('Enter', 'Enter'); await key('Enter', 'Enter', false);
+  assert(await evaluate('cutsceneSystem.currentImageIndex === 1 && cutsceneSystem.currentCueIndex === 2'), 'scene key cannot consume dialogue');
   await delay(300); await click('#barcode-intro');
   assert(await evaluate('cutsceneSystem.currentImageIndex === 1 && cutsceneSystem.currentCueIndex === 3'), 'pointer reveals the second speech bubble on the same page');
   await visibleIntro('01-fullscreen');
@@ -159,7 +161,10 @@ async function main() {
   let presses = 0;
   while (await evaluate('cutsceneSystem.isPlaying()')) {
     assert(presses++ < 40, 'all cues can reach the tutorial without getting stuck');
-    await delay(300); await key('Enter', 'Enter'); await key('Enter', 'Enter', false);
+    await delay(300);
+    const complete = await evaluate('cutsceneSystem.currentCueIndex >= BARCODE.IntroSequence.getCues(cutsceneSystem.currentImageIndex - 1).length - 1');
+    const advanceKey = complete ? 'Enter' : ' ', advanceCode = complete ? 'Enter' : 'Space';
+    await key(advanceKey, advanceCode); await key(advanceKey, advanceCode, false);
     const stage = await evaluate('({ active: cutsceneSystem.isPlaying(), panel: cutsceneSystem.currentImageIndex, cue: cutsceneSystem.currentCueIndex })');
     if (stage.active && [3, 5, 6].includes(stage.panel) && [1, 2].includes(stage.cue)) await visibleIntro(`cue-${stage.panel}-${stage.cue}`);
   }

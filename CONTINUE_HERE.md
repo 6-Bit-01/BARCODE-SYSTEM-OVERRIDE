@@ -1,3 +1,13 @@
+# Continue here — Level 1 rebuild after reverted #55
+
+Base/rollback: `6e3751ba1561d8694e0bdc9a623e74ac6a45624d` (merged revert #56, retaining #54). Branch: `agent/level1-rebuild-reviewed`. The owner approved the rebuilt scope after explicitly rejecting #55. The implementation and actual artwork are prepared on this branch; exact published head, PR and validation are in the generated source receipt. Do not reapply #55 wholesale or redo the older art passes.
+
+Read `docs/source-pack/LEVEL_01_REBUILD_PASS.md` and the newest `ACCEPTANCE.md` first. Three compact illustration atlases are already published in immutable asset ancestor `a155d4283a12df4dd7ea0f8cb9eb0bf985644fa8`; runtime uses that exact pin. Original cars and the merged character art remain the sources for existing actors. The new drone, machinery, roof routes, contact/Firewall fixes and controls are integrated for review.
+
+Next: owner Makko review of the exact PR head before merge. Capture the imported SHA, PASS/FAIL and short clips of street contact/Firewall, roof/drone/car play and controls. After acceptance and merge, read the actual new main merge SHA, import it into a fresh Makko preview and repeat the same route. Native Canvas footage and automated checks do not claim hosted Makko acceptance.
+
+## Historical handoff before the rejected pass
+
 # Continue here — wall sidewalk/street footprint
 
 PR #53 is merged at `685d13d4de1d56c8a39a82077460d894144bd091`; its walk, enemy hijack, repairs and rooftop supports are the current baseline. The owner's new screenshot identifies a visual gap at the wall's base: it stops at the walking line and only projects backward. The focused `agent/barrier-street-footprint` correction extends the same tall translucent wall forward across the sidewalk, down the curb and through the road. Existing gate positions, collisions, unlock conditions and collapse clock remain.
