@@ -1,5 +1,9 @@
 # Decision Register
 
+## Latest owner decisions — thin rails and original traffic
+
+The owner selected the first, thinner continuous rail example and approved proceeding with the reviewed eight-issue plan. Machinery covers the full building contact and joins a ground track across sidewalk/curb/street. Foreground cars retain original speed, altitude, size, art, direction, bob and spawn behavior; add warnings/damage to them. Thin barely noticeable landing lines are restored, superseding their prior removal. Keep text-free hearts, 3D utility props, foot masking, grounded guards, Firewall smoothing, clear Objectives and practical keypad input. Preserve the working cutscene buttons. `THIN_RAIL_TRAFFIC_CORRECTION.md` is the concrete current contract; prior car-lane tuning is rejected.
+
 ## September 15: approved rebuild after owner rejection and revert
 
 The owner says #55 was useless apart from its cutscene button changes, reports that it was reverted, and requires a plan before further work. The subsequent revised plan was explicitly approved by “Ok lets proceed.” Base is `6e3751ba1561d8694e0bdc9a623e74ac6a45624d`; the new scope is `LEVEL_01_REBUILD_PASS.md`.

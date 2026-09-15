@@ -179,7 +179,7 @@ const drawing = new Proxy({ fillText(value) { text.push(String(value)); } }, {
 });
 w.drawBasicUI(drawing); w.drawObjectives(drawing);
 assert(text.includes('6 BIT'), 'live basic UI draws illustrated HUD fallback portrait label');
-assert(text.some(value => value.includes('DEAD AIR')), 'live objective UI reaches ComicHUD');
+assert(text.includes('Objectives') && text.includes('EXPLORE THE DISTRICT'), 'live objective UI reaches ComicHUD with its heading and current action');
 
 async function checkSpriteStartup() {
   // Model Makko's host-owned root manifest and preloaded registry separately.

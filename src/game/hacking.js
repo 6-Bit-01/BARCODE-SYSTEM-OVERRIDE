@@ -14,8 +14,8 @@ window.HackingSystem = class HackingSystem {
     this.phaseElapsedMs = 0;
     this.sessionElapsedMs = 0;
     this.bootDurationMs = 1000;
-    this.answerDurationMs = 4000;
-    this.hardMaxSessionMs = 12000;
+    this.answerDurationMs = 16000;
+    this.hardMaxSessionMs = 22500;
     this.cooldownUntil = 0;
     this.cooldownMs = 10000;
     this.guardHitsRemaining = 0;
@@ -183,8 +183,6 @@ window.HackingSystem = class HackingSystem {
   useKeypad() {
     if (!this.active) return;
     this.keypadMode = true;
-    this.answerDurationMs = Math.max(this.answerDurationMs, 16000);
-    this.hardMaxSessionMs = Math.max(this.hardMaxSessionMs, this.bootDurationMs + 3500 + this.answerDurationMs + 2000);
   }
 
   getKeypad() {
@@ -274,7 +272,9 @@ window.HackingSystem = class HackingSystem {
     this.runGeneration++;
     this.clearOwnedTimeouts();
     this.active = true;
-    this.answerDurationMs = 4000; this.hardMaxSessionMs = 12000;
+    // A shared keypad is always visible, so its entry budget starts fairly for
+    // every input device. A first pointer tap must not change the deadline.
+    this.answerDurationMs = 16000; this.hardMaxSessionMs = 22500;
     this.keypadMode = false; this.keypadIndex = 4;
     if (window.BARCODE?.GamepadUI?.connected) this.useKeypad();
     this.phase = 'boot';
@@ -328,7 +328,8 @@ window.HackingSystem = class HackingSystem {
     if (!this.active) return;
 
     this.sessionElapsedMs += delta;
-    if (this.sessionElapsedMs >= this.hardMaxSessionMs) {
+    const practiceEntry = this.tutorialMode && this.phase === 'answer';
+    if (!practiceEntry && this.sessionElapsedMs >= this.hardMaxSessionMs) {
       this.timeoutFailPuzzle('watchdog');
       return;
     }
@@ -357,6 +358,7 @@ window.HackingSystem = class HackingSystem {
         continue;
       }
       if (this.phase === 'answer') {
+        if (this.tutorialMode) { this.phaseElapsedMs += remaining; break; }
         const needed = Math.max(0, this.answerDurationMs - this.phaseElapsedMs);
         if (remaining < needed) { this.phaseElapsedMs += remaining; break; }
         this.phaseElapsedMs += needed;
@@ -486,8 +488,9 @@ window.HackingSystem = class HackingSystem {
   getPresentation() {
     const phase = this.phase;
     const duration = phase === 'boot' ? this.bootDurationMs : phase === 'display' ? this.displayTime : this.answerDurationMs;
-    return { phase, remainingMs: Math.max(0, duration - this.phaseElapsedMs),
-      progress: Math.max(0, Math.min(1, this.phaseElapsedMs / Math.max(1, duration))),
+    const untimed = this.tutorialMode && phase === 'answer';
+    return { phase, untimed, remainingMs: untimed ? Infinity : Math.max(0, duration - this.phaseElapsedMs),
+      progress: untimed ? 0 : Math.max(0, Math.min(1, this.phaseElapsedMs / Math.max(1, duration))),
       heading: phase === 'boot' ? 'ESTABLISHING UPLINK' : phase === 'display' ? 'READ THE SIGNAL' : 'RECONSTRUCT THE SIGNAL' };
   }
 
@@ -524,7 +527,7 @@ window.HackingSystem = class HackingSystem {
     });
     ctx.fillStyle = '#f1f6fb'; ctx.font = 'bold 22px monospace'; ctx.fillText(presentation.heading, 1132, 319);
     ctx.textAlign = 'right'; ctx.fillStyle = color; ctx.font = 'bold 22px monospace';
-    ctx.fillText(`${(presentation.remainingMs / 1000).toFixed(1)}s`, 1865, 319); ctx.textAlign = 'left';
+    ctx.fillText(presentation.untimed ? 'PRACTICE' : `${(presentation.remainingMs / 1000).toFixed(1)}s`, 1865, 319); ctx.textAlign = 'left';
     ctx.fillStyle = '#19313e'; ctx.fillRect(1132, 336, 732, 5);
     ctx.fillStyle = color; ctx.fillRect(1132, 336, 732 * (1 - presentation.progress), 5);
     if (this.phase === 'boot') {

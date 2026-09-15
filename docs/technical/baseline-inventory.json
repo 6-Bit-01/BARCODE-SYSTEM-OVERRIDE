@@ -157,9 +157,11 @@
     "tools/check-model-art.js",
     "tools/check-music-profiles.js",
     "tools/check-presentation-assets.js",
+    "tools/check-rail-traffic-correction.js",
     "tools/check-runtime-lifecycle.js",
     "tools/check-startup-lifecycle.js",
     "tools/check-syntax.js",
+    "tools/fixtures/original-traffic-6e375.js",
     "tools/generate-baseline.js",
     "tools/makko-animation-fixture.js"
   ],
@@ -426,7 +428,8 @@
         "src/engine/title-screen.js",
         "src/engine/traffic-sheets.js",
         "src/game/lost-data.js",
-        "tools/check-level-01-targets-traffic.js"
+        "tools/check-level-01-targets-traffic.js",
+        "tools/fixtures/original-traffic-6e375.js"
       ]
     },
     {
@@ -447,13 +450,13 @@
     {
       "global": "window.EnemyManager",
       "file": "src/game/enemies.js",
-      "line": 1324,
+      "line": 1340,
       "loaded": true
     },
     {
       "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 1928,
+      "line": 1984,
       "loaded": true
     },
     {

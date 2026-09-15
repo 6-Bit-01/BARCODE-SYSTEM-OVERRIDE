@@ -1,5 +1,9 @@
 # Continue here — Level 1 rebuild after reverted #55
 
+## Continue here — thin rails and original traffic
+
+Base/rollback `f048d229a51b9ecce801cd9d736613491c4ae2f9` (merged #57). Branch `agent/thin-rails-original-traffic`. The owner selected the thin continuous facade-to-road concept and approved the reviewed eight-issue plan. Read `docs/source-pack/THIN_RAIL_TRAFFIC_CORRECTION.md` and the newest acceptance entry. Four rail parts are pinned to `08d5720f31020fd846ea6b93c76988ffef6e3fbe`; original car behavior is restored and verified against the pre-rebuild production source. Source/native checks are not Makko acceptance. Prepare/review the exact receipt head, then after acceptance and merge import the actual main merge SHA into a fresh preview. Do not redo the reverted/rejected passes or substitute another car system.
+
 Base/rollback: `6e3751ba1561d8694e0bdc9a623e74ac6a45624d` (merged revert #56, retaining #54). Branch: `agent/level1-rebuild-reviewed`. The owner approved the rebuilt scope after explicitly rejecting #55. The implementation and actual artwork are prepared on this branch; exact published head, PR and validation are in the generated source receipt. Do not reapply #55 wholesale or redo the older art passes.
 
 Read `docs/source-pack/LEVEL_01_REBUILD_PASS.md` and the newest `ACCEPTANCE.md` first. Three compact illustration atlases are already published in immutable asset ancestor `a155d4283a12df4dd7ea0f8cb9eb0bf985644fa8`; runtime uses that exact pin. Original cars and the merged character art remain the sources for existing actors. The new drone, machinery, roof routes, contact/Firewall fixes and controls are integrated for review.

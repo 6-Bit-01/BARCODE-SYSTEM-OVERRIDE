@@ -1,5 +1,9 @@
 # Acceptance and Test Status
 
+## Thin rail / original traffic correction — owner review pending
+
+Base/rollback `f048d229a51b9ecce801cd9d736613491c4ae2f9`; branch `agent/thin-rails-original-traffic`. Exact tested/published head and automated results are in the generated receipt. Import the draft head before merging. Use the complete review route in `THIN_RAIL_TRAFFIC_CORRECTION.md`: original cars both directions and protected damage, four full-height facade/curb rails and opening, faint roof edges/foot masking, 3D box/lift, Firewall turns/contact/crowds, drone warning/shot/hijack, heart rewards, both puzzles on controller/pointer with untimed practice, separate cutscene buttons, Objectives, audio, twenty defeats, Jammer and boss/retry/restart. Record SHA, PASS/FAIL and clips. After acceptance and merge, read/import the actual new main merge SHA into a fresh preview and repeat. Native footage and automated checks are not hosted gameplay acceptance.
+
 ## Level 1 rebuild after reverted #55 — owner review pending
 
 Base/rollback: `6e3751ba1561d8694e0bdc9a623e74ac6a45624d`; branch `agent/level1-rebuild-reviewed`. Exact review head and PR are in the generated source receipt. Test this head before merging. The failed #55 was reverted; earlier pending-pass instructions below are historical.

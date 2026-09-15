@@ -1,12 +1,25 @@
-# Make Makko load the published replacement sprites
+# Restore original flying cars and fit the selected thin barrier rails
 
-After merged #47, the background and HUD updates appeared but the player and enemies still used Makko's old sprites. The active initializer accepted any loaded Makko registry and requested the host-owned relative manifest. A player created before Start could also retain an old sprite clone.
+The last rebuild changed the flying cars’ size, speed, altitude and spawning, and its detached emitter boxes did not follow the wall footprint. The owner selected the first thin continuous rail concept and approved correcting the full eight-issue pass.
 
-- Load the existing immutable manifest from the #47 merge, with its already-published artwork URLs.
-- Reuse a loaded registry only when all twelve replacement image/JSON pairs match, then rebind the existing player after loading.
-- Give cold atlas downloads sixty seconds and clear the timeout after completion.
-- Replace the unused legacy-startup assertion with regressions against the active initializer: cold, old, mixed and current registries; concurrent startup; player rebinding; and timeout cleanup.
+This draft restores the original foreground car creator and movement from `6e3751b`, including its art, size, speed, height range, direction, bob and spawn cadence. Advance warnings and swept damage operate on those same cars. Pause freezes the approach; hack protection consumes contact harmlessly while cars keep moving. No new ground lanes or substitute car drawings.
 
-The actual saved Makko SDK was also exercised with decoded local atlas bytes: old registry replacement, all twelve clips, and production player/enemy drawing passed. Diagnostic sources and a contact sheet are included. This verifies the SDK boundary but does not certify live host import, browser networking, audio or playtest feel.
+Four new transparent hardware assets form continuous facade rails, pavement tracks, elbows and caps. They follow all four gate footprints, with local pressure/passage effects and power-down. Roof highlights are one muted screen pixel; the 3D utility props, foot masks, text-free heart repairs, centered sidewalk and working cutscene controls are retained.
 
-No new artwork or gameplay changes. Existing background, HUD, mechanics and deliberately retained boss walk/flourish and traffic remain. Base/rollback: `8f09568eeb9726f7b80fb43e1ecb3f6e4672bea2`. One combined draft; owner Makko review follows the top route in `docs/source-pack/ACCEPTANCE.md` before merge. Full-suite, syntax and current-head GitHub results are recorded on the PR and generated source receipt.
+Contact separation respects roof boundaries and protected recovery. Firewall walk/idle is chosen after edge clamping, avoiding repeated animation restarts. The illustrated rooftop drone’s warning and muzzle now share the shot vector, with roof interception. Objectives show the current action and remain visible above the hack keypad. Every input gets the same 16-second answer budget; practice answer entry is untimed.
+
+## Validation
+
+- `npm test` and `npm run check:syntax:all` passed locally.
+- 80 seeded comparisons execute archived original traffic alongside the new owner: matching geometry, motion and animation clocks.
+- 30/60/120 FPS checks cover approach/pause, swept contact/protection, roof-bound contact and both keypad practice puzzles. All 75 existing climb checks pass.
+- Twelve native stills and a 16-second clip exercise production drawing and actors with host image/sprite adapters. The clip scripts one original car at a valid original altitude to show contact; it does not alter production spawning. Native evidence does not certify hosted audio/controller feel.
+- Full regression coverage retains twenty mission defeats, sixteen-hit Jammer, eight-second hijack, single jump, audio ownership and boss/retry. Static fixtures were updated for moving hitboxes, Canvas transforms, current objective text and the approved answer deadline.
+
+One draft against merged #57 (`f048d229a51b9ecce801cd9d736613491c4ae2f9`). Do not merge before owner Makko acceptance. The exact published revision, CI results and source-pack receipt identify the review build.
+
+## Makko review
+
+Import the exact draft head into a fresh preview. Check all four facade-to-road rails, pressure/passage/opening, original cars in both directions and protected contact, Firewall turns/crowds, stomps and hijack expiry, roof routes/edges/feet, repairs, both puzzles with controller/pointer, cutscene controls and Objectives. Finish the twenty-defeat mission, Jammer, boss win/loss/retry and restart with audio. Record imported SHA, PASS/FAIL and short clips. After acceptance and merge, import the actual new main merge SHA into a fresh preview and repeat.
+
+Detailed scope: `docs/source-pack/THIN_RAIL_TRAFFIC_CORRECTION.md`. Native comparison: `docs/source-pack/verification/thin-rails-original-traffic.webp`.

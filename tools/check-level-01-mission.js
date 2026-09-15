@@ -331,7 +331,7 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   const p = new window.Sector1Progression(window.player);
   const fills = [], paths = [];
   const ctx = {
-    save() {}, restore() {}, arc() {}, clip() {},
+    save() {}, restore() {}, arc() {}, rect() {}, transform() {}, translate() {}, clip() {},
     beginPath() { paths.push(['beginPath']); }, closePath() { paths.push(['closePath']); },
     moveTo(...args) { paths.push(['moveTo', ...args]); }, lineTo(...args) { paths.push(['lineTo', ...args]); },
     fill() { paths.push(['fill']); }, stroke() { paths.push(['stroke']); },

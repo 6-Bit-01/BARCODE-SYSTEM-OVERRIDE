@@ -43,7 +43,7 @@ assert(!/enemiesDefeated\s*\+\s*.*defeatedCount|defeatedCount\s*\+\s*.*enemiesDe
 assert(/getCurrentRunDefeats/.test(gameState) && /syncEnemyDefeatProjections/.test(gameState), 'game-state exposes projection sync instead of duplicate totals');
 assert(/preserveDefeats/.test(runtime) && !/currentEnemyCount/.test(runtime), 'RuntimeLifecycle uses explicit preserveDefeats policy without quota inference');
 assert(/reset\(options = \{\}\)/.test(sector) && /JammerEnvironment\.reset/.test(sector), 'Sector1Progression reset explicitly cleans mission state');
-assert(/draw\(ctx\) \{ this\.drawStageSurfaces\(ctx\); this\.drawRepairRoute\(ctx\); this\.drawEncounterGates\(ctx\); this\.drawBoss\(ctx\); \}/.test(sector), 'Sector1Progression draw owns geometry, repair route and boss-intro presentation');
+assert(/draw\(ctx\) \{ this\.drawStageSurfaces\(ctx\); this\.drawEncounterGates\(ctx\); this\.drawRepairRoute\(ctx\); this\.drawBoss\(ctx\); \}/.test(sector), 'Sector1Progression draw owns geometry, repair route and boss-intro presentation');
 assert(/window\.sector1Progression && typeof window\.sector1Progression\.draw === 'function'/.test(render), 'render coordinator checks Sector1Progression draw contract before calling');
 assert(!loadedScripts.includes('src/engine/jammer-arrow-indicator.js'), 'legacy Jammer arrow renderer is not loaded');
 assert(count(render, /window\.jammerIndicator\.draw\(ctx\)/g) === 0, 'world/zoom render pass does not draw the screen-space Jammer indicator');

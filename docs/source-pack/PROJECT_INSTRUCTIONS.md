@@ -1,5 +1,9 @@
 # Project Instructions
 
+## Latest approved scope
+
+The owner selected thin continuous barrier rails and approved `THIN_RAIL_TRAFFIC_CORRECTION.md`. This supersedes detached emitter boxes, retuned foreground cars and removal of all roof lines. Preserve exact original car motion/art, add warnings/damage, restore faint roof edges, finish contact/Firewall/keypad/attention corrections and retain working separate cutscene controls. One combined draft; owner Makko review before merge.
+
 ## Current H reward and bounded route update
 
 The owner selected enemy hijack, superseding previous one-bar hack healing and assumed stun-purpose guidance. H now temporarily converts one nearby ordinary enemy after the existing slowed-time puzzle; repairs come from the scoped cells/carrier. `ENEMY_HIJACK_REPAIR_PASS.md` controls this implementation and its review. Walk PR #52 is merged; publish the preserved new work as one draft against current main. Preserve the walk, single jump, original lift, mission/Jammer/boss requirements and owner Makko acceptance.

@@ -6,13 +6,16 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   const B = window.BARCODE = window.BARCODE || {};
   const root = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/e35ebe3ae8bfc547815a5a93c952424fa067af5d/';
   const rebuildRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a155d4283a12df4dd7ea0f8cb9eb0bf985644fa8/';
+  const railRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/08d5720f31020fd846ea6b93c76988ffef6e3fbe/';
   const entries = {
     studioCat: { path: 'assets/presentation/studio-cat.webp', columns: 2, rows: 2, frames: 4, ax: 0.5, ay: 0.9375 },
     directionArrow: { path: 'assets/presentation/direction-arrow.webp', columns: 1, rows: 1, frames: 1, ax: 0.5, ay: 0.5 },
     bossPulse: { path: 'assets/presentation/boss-pulse.webp', columns: 2, rows: 2, frames: 4, crop: [10, 95, 236, 145], ax: 0.5, ay: 1, smooth: true },
     hudPortrait: { path: 'assets/studies/visual-overhaul/prepared/hud-portrait.webp', root: 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a4c1b7cf6fec0a083a4812ae1ea76edef45a5911/', columns: 1, rows: 1, frames: 1, ax: 0.5, ay: 0.5, smooth: true },
-    facadeEmitter: { path:'assets/level1-rebuild/facade-emitters.webp', root:rebuildRoot, columns:3, rows:1, frames:3, ax:0.5, ay:0.5, smooth:true },
-    floorEmitter: { path:'assets/level1-rebuild/floor-emitters.webp', root:rebuildRoot, columns:3, rows:1, frames:3, ax:0.5, ay:0.5, smooth:true },
+    thinWallRail: { path:'assets/thin-rails/wall.webp', root:railRoot, columns:1, rows:1, frames:1, ax:0.5, ay:0.5, smooth:true },
+    thinPavementRail: { path:'assets/thin-rails/pavement.webp', root:railRoot, columns:1, rows:1, frames:1, ax:0.5, ay:0.5, smooth:true },
+    thinRailElbow: { path:'assets/thin-rails/elbow.webp', root:railRoot, columns:1, rows:1, frames:1, ax:0.5, ay:0.5, smooth:true },
+    thinRailCap: { path:'assets/thin-rails/cap.webp', root:railRoot, columns:1, rows:1, frames:1, ax:0.5, ay:0.5, smooth:true },
     rooftopDrone: { path:'assets/level1-rebuild/rooftop-drone.webp', root:rebuildRoot, columns:4, rows:2, frames:8, ax:0.5, ay:0.5, smooth:true },
   };
   const cache = {};

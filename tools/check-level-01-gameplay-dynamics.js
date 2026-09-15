@@ -199,7 +199,7 @@ function testHackingMemoryTimingAndRhythmRestore() {
   assert.strictEqual(hack._startTime, hack.sessionElapsedMs, 'memory answer clock starts only after hiding');
   assert.strictEqual(hack.__unused, undefined, 'fixture sanity');
   assert.strictEqual(hack.getDiagnostics().ownedTimeouts, 0, 'answer phase owns no browser timeout');
-  hack.update(3999); assert.strictEqual(hack.active, true, 'memory retains almost the full four-second answer window after hiding');
+  hack.update(hack.answerDurationMs-1); assert.strictEqual(hack.active, true, 'memory retains its full answer budget after hiding');
   hack.update(1);
   assert.strictEqual(shows, 1, 'timeout restores suspended Rhythm Mode once');
   hack.reset(); hack.reset();
@@ -428,25 +428,27 @@ function testLostDataMovementSwooperAmpAndEnemyClock() {
 
   const contactManager = new w.EnemyManager();
   let contactHits = 0;
-  const contactEnemy = { active: true, type: 'virus', damage: 1, position: { x: 1000, y: 784 }, velocity: { x: 0, y: 0 }, lastPlayerHitTimeMs: -Infinity, update() {}, isSpawnProtected: () => false, getHitbox: () => ({ x: 980, y: 730, width: 40, height: 40 }) };
+  const contactEnemy = { active: true, type: 'virus', damage: 1, width: 40, position: { x: 1000, y: 784 }, velocity: { x: 0, y: 0 }, lastPlayerHitTimeMs: -Infinity, update() {}, isSpawnProtected: () => false, getHitbox() { return { x: this.position.x - 20, y: this.position.y - 54, width: 40, height: 40 }; } };
   contactManager.enemies = [contactEnemy];
   w.hackingSystem = { isActive: () => true, absorbGuardHit: () => false };
-  const contactPlayer = { controlsDisabled: false, position: { x: 1000, y: 784 }, velocity: { y: -200 }, getHitbox: () => ({ x: 990, y: 740, width: 20, height: 20 }), takeDamageWithKnockback() { contactHits++; } };
+  const contactPlayer = { controlsDisabled: false, width: 20, position: { x: 1000, y: 784 }, velocity: { x: 0, y: -200 }, getHitbox() { return { x: this.position.x - 10, y: this.position.y - 44, width: 20, height: 20 }; }, takeDamageWithKnockback() { contactHits++; } };
+  // Re-enter contact between samples: production separation now clears bodies.
+  const reapproach = () => { contactEnemy.position.x = contactPlayer.position.x; };
   contactManager.update(16, contactPlayer);
   assert.strictEqual(contactHits, 1, 'initial contact damage lands during tactical focus');
-  contactManager.update(1500, contactPlayer);
+  reapproach(); contactManager.update(1500, contactPlayer);
   assert.strictEqual(contactHits, 1, 'contact damage cannot repeat after only 1.5 seconds of normal time during tactical focus');
-  for (let i = 0; i < 5; i++) contactManager.update(1000, contactPlayer);
+  for (let i = 0; i < 5; i++) { reapproach(); contactManager.update(1000, contactPlayer); }
   assert.strictEqual(contactHits, 2, 'contact damage repeats after sufficient slowed hostile time');
 
   const realContactManager = new w.EnemyManager();
-  const realContactEnemy = { active: true, type: 'virus', damage: 1, position: { x: 1000, y: 784 }, velocity: { x: 0, y: 0 }, lastPlayerHitTimeMs: -Infinity, isSpawnProtected: () => false, getHitbox: () => ({ x: 980, y: 730, width: 40, height: 40 }) };
+  const realContactEnemy = { active: true, type: 'virus', damage: 1, width: 40, position: { x: 1000, y: 784 }, velocity: { x: 0, y: 0 }, lastPlayerHitTimeMs: -Infinity, isSpawnProtected: () => false, getHitbox() { return { x: this.position.x - 20, y: this.position.y - 54, width: 40, height: 40 }; } };
   realContactManager.enemies = [realContactEnemy];
   const realContactPlayer = new w.Player(1000, 784);
   realContactPlayer.isEntering = false;
   realContactPlayer.controlsDisabled = false;
   realContactPlayer.velocity.y = -200;
-  realContactPlayer.getHitbox = () => ({ x: 990, y: 740, width: 20, height: 20 });
+  realContactPlayer.getHitbox = () => ({ x: realContactPlayer.position.x - 10, y: realContactPlayer.position.y - 44, width: 20, height: 20 });
   w.rhythmSystem = { isActive: () => false };
   w.hackingSystem = { isActive: () => false, absorbGuardHit: () => false };
   realContactManager.simulationTimeMs = 16;
@@ -464,6 +466,7 @@ function testLostDataMovementSwooperAmpAndEnemyClock() {
   assert.strictEqual(realContactPlayer.health, 2, 'player invulnerability rejects overlap even after the enemy cadence becomes eligible');
   assert.strictEqual(realContactEnemy.lastPlayerHitTimeMs, firstContactStamp, 'rejected overlap does not consume the enemy contact cadence');
   w.advanceClock(2001);
+  realContactEnemy.position.x = 1000;
   realContactPlayer.controlsDisabled = false;
   realContactPlayer.position.x = 1000;
   realContactPlayer.position.y = 784;

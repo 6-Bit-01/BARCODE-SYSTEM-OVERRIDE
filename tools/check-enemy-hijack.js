@@ -68,7 +68,7 @@ function solve(h) {
   assert(h.start()); h.puzzleType = 1; h.update(1000); h.update(h.displayTime); h.processInput('0'); h.processInput('Enter');
   assert(!w.enemyManager.isHijacked(target)); assert.strictEqual(h.resultFx.outcome, 'failure');
   h.cooldownUntil = 0; assert(h.start()); h.cancel(); assert(!w.enemyManager.isHijacked(target));
-  h.cooldownUntil = 0; assert(h.start()); h.update(12000); assert.strictEqual(h.resultFx.outcome, 'timeout');
+  h.cooldownUntil = 0; assert(h.start()); h.update(h.hardMaxSessionMs); assert.strictEqual(h.resultFx.outcome, 'timeout');
   h.cooldownUntil = 0; assert(h.start()); h.reset(); assert.strictEqual(h.hijackTarget, null);
 }
 

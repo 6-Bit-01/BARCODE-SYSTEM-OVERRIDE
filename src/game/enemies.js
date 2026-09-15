@@ -245,6 +245,10 @@ window.Enemy = class Enemy {
     else this.updateAI(player, dt);
     this.stayOnSurface(supported, dt);
     if (this.type === 'firewall' && Math.abs(this.velocity.x) > 2) this.facing = Math.sign(this.velocity.x);
+    if (this.type === 'firewall' && this.combatPattern === 'approach' && this.spriteReady) {
+      const animation = Math.abs(this.velocity.x) > 2 ? 'walk' : 'idle';
+      if (!this.currentAnimation?.includes(animation)) this.playAnimation(animation);
+    }
 
     // Update Animation
     if (this.spriteReady && this.sprite) {
@@ -389,8 +393,8 @@ window.Enemy = class Enemy {
         this.behaviorState = 'normal';
       }
     }
-    if (firewall && this.spriteReady && this.sprite) {
-      const animation = this.combatPattern === 'approach' ? 'walk' : this.combatPattern === 'brace' ? 'idle' : 'attack';
+    if (firewall && this.spriteReady && this.sprite && this.combatPattern !== 'approach') {
+      const animation = this.combatPattern === 'brace' ? 'idle' : 'attack';
       if (!this.currentAnimation?.includes(animation)) this.playAnimation(animation);
     }
   }
@@ -1267,7 +1271,10 @@ window.RooftopDrone = class RooftopDrone extends window.Enemy {
         this.dronePhase='warning';this.dronePhaseMs=0;this.facing=dx>=0?1:-1;
         const body=target.getHitbox();
         const tx=body.x+body.width/2,ty=body.y+body.height/2;
-        const angle=Math.atan2(ty-(this.position.y+30),tx-this.position.x);
+        if (this.shotCrossesRoof(this.position.x+this.facing*48,this.position.y+30,tx,ty)) {
+          this.dronePhase='patrol';this.dronePhaseMs=0;this.aim=null;return;
+        }
+        const angle=Math.atan2(ty-(this.position.y+30),tx-(this.position.x+this.facing*48));
         this.aim={vx:Math.cos(angle)*490,vy:Math.sin(angle)*490};
         window.audioSystem?.playCombatCue?.('windup',{material:'corrupted'});
       }
@@ -1282,6 +1289,7 @@ window.RooftopDrone = class RooftopDrone extends window.Enemy {
     if(this.pulse){
       const shot=this.pulse;shot.ms+=deltaTime;
       const oldX=shot.x,oldY=shot.y;shot.x+=shot.vx*dt;shot.y+=shot.vy*dt;
+      if (this.shotCrossesRoof(oldX,oldY,shot.x,shot.y)) { this.pulse=null;return; }
       // Swept pulse bounds preserve contact at low frame rates.
       const box={x:Math.min(oldX,shot.x)-8,y:Math.min(oldY,shot.y)-6,width:Math.abs(shot.x-oldX)+16,height:Math.abs(shot.y-oldY)+12};
       const victims=shot.ally?(manager?.enemies||[]).filter(e=>e!==this&&manager.isOrdinaryEnemy(e)&&!manager.isHijacked(e)&&!e.isSpawnProtected?.()):[window.player,manager?.getHijackedEnemy?.()].filter(Boolean);
@@ -1298,6 +1306,14 @@ window.RooftopDrone = class RooftopDrone extends window.Enemy {
     }
   }
   getHitbox(){return {x:this.position.x-50,y:this.position.y-25,width:100,height:82};}
+  shotCrossesRoof(ax,ay,bx,by) {
+    if (Math.abs(by-ay)<.00001) return false;
+    return (window.sector1Progression?.getStageSurfaces?.() || []).some(s => {
+      const t=(s.y-ay)/(by-ay);
+      const x=ax+(bx-ax)*t;
+      return t>0 && t<=1 && x>=s.x && x<=s.x+s.w;
+    });
+  }
   getStompBox(){return this.getHitbox();}
   getVisualBounds(){return this.getHitbox();}
   getPointValue(){return 250;}
@@ -1309,7 +1325,7 @@ window.RooftopDrone = class RooftopDrone extends window.Enemy {
     window.BARCODE?.PresentationAssets?.draw('rooftopDrone',ctx,{x:this.position.x,y:this.position.y+15,width:156,height:156,frame,flip:this.facing<0});
     if(this.dronePhase==='warning'&&this.aim){
       ctx.strokeStyle='#ffcc78';ctx.lineWidth=2;ctx.setLineDash([8,8]);
-      ctx.beginPath();ctx.moveTo(this.position.x+this.facing*48,this.position.y+30);ctx.lineTo(this.position.x+this.aim.vx*.62,this.position.y+30+this.aim.vy*.62);ctx.stroke();ctx.setLineDash([]);
+      ctx.beginPath();ctx.moveTo(this.position.x+this.facing*48,this.position.y+30);ctx.lineTo(this.position.x+this.facing*48+this.aim.vx*.85,this.position.y+30+this.aim.vy*.85);ctx.stroke();ctx.setLineDash([]);
       ctx.beginPath();ctx.arc(this.position.x,this.position.y-62,12,-Math.PI/2,-Math.PI/2+Math.PI*2*Math.min(1,this.dronePhaseMs/1150));ctx.stroke();
     }
     if(this.pulse){ctx.strokeStyle='#defca6';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(this.pulse.x,this.pulse.y);ctx.lineTo(this.pulse.x-this.pulse.vx*.032,this.pulse.y-this.pulse.vy*.032);ctx.stroke();}
@@ -1531,13 +1547,19 @@ window.EnemyManager = class EnemyManager {
       const x = side < 0 ? box.x - 9 : box.x + box.width + 9;
       ctx.beginPath(); ctx.moveTo(x - side * 12, box.y - 4); ctx.lineTo(x, box.y - 4); ctx.lineTo(x, box.y + 20); ctx.stroke();
     }
+    const inputKey = window.BARCODE?.GamepadUI?.connected ? 'Y' : 'H';
+    if (ready && !ally && !reboot && !locked) {
+      ctx.fillStyle = '#0b1017'; ctx.fillRect(enemy.position.x-15,y+28,30,27);
+      ctx.fillStyle = color; ctx.font = 'bold 18px Oxanium, monospace'; ctx.textAlign = 'center';
+      ctx.fillText(inputKey,enemy.position.x,y+48); ctx.restore(); return;
+    }
     ctx.fillStyle = '#0b1017'; ctx.fillRect(enemy.position.x - 100, y, 200, ally ? 45 : 27);
     ctx.fillStyle = color; ctx.font = 'bold 17px Oxanium, monospace'; ctx.textAlign = 'center';
     ctx.fillText(ally ? `6 BIT // ALLY ${Math.ceil(seconds)}s` : reboot ? 'REBOOTING' : locked ? 'HIJACK TARGET' : 'H / Y: HIJACK', enemy.position.x, y + 20);
     if (ally) {
       ctx.fillStyle = '#26353a'; ctx.fillRect(enemy.position.x - 90, y + 28, 180, 4);
       ctx.fillStyle = color; ctx.fillRect(enemy.position.x - 90, y + 28, 180 * seconds / 8, 4);
-      ctx.font = '12px Oxanium, monospace'; ctx.fillText(seconds <= 2 ? 'CONTROL EXPIRING' : 'H / Y: RELEASE', enemy.position.x, y + 43);
+      ctx.font = '12px Oxanium, monospace'; ctx.fillText(seconds <= 2 ? 'CONTROL EXPIRING' : `${inputKey}: RELEASE`, enemy.position.x, y + 43);
     }
     ctx.restore();
   }
@@ -1580,11 +1602,18 @@ window.EnemyManager = class EnemyManager {
       if (!this.simpleAABBcollision(player.getHitbox(), enemy.getHitbox())) continue;
       const previousX = sweep?.previousX ?? player.position.x;
       const direction = Math.sign(previousX - enemy.position.x) || -player.facing || 1;
+      const now = this.getHostileClockNow();
+      const protectedContact = this.isHijacked(enemy) || this.isRebooting(enemy) || player.controlsDisabled ||
+        player.isDamageInvulnerable?.() || now <= (player._enemyInvulnerableUntilMs || -Infinity);
+      if (protectedContact) enemy._contactSafeUntilMs = Math.max(enemy._contactSafeUntilMs || 0, now + 300);
       // Body clearance is independent of damage, allegiance and recovery.
       // Horizontal resolution never creates an enemy platform or a fake stomp.
       this.separatePlayerContact(player, enemy, direction);
+      if (this.simpleAABBcollision(player.getHitbox(), enemy.getHitbox())) {
+        enemy._contactSafeUntilMs = now + 300;
+        continue;
+      }
       if (this.isHijacked(enemy) || this.isRebooting(enemy) || this.getHostileClockNow() < (enemy._contactSafeUntilMs || 0)) continue;
-      const now = this.getHostileClockNow();
       if (player.controlsDisabled || now <= (player._enemyInvulnerableUntilMs || -Infinity)) continue;
       if (Number.isFinite(enemy.lastPlayerHitTimeMs) && now - enemy.lastPlayerHitTimeMs <= 1500) continue;
       if (player.isDamageInvulnerable?.()) continue;
@@ -1592,22 +1621,49 @@ window.EnemyManager = class EnemyManager {
       const damaged = player.takeDamageWithKnockback(enemy.damage, direction * 450, -300, enemy.position);
       if (damaged !== false) enemy.lastPlayerHitTimeMs = now;
     }
+    // A later crowd member can push the player back into an earlier one.
+    // Resolve remaining geometry without attempting another damage transaction.
+    for (let pass = 0; pass < 3; pass++) {
+      let overlap = false;
+      for (const enemy of this.enemies) {
+        if (!enemy.active || enemy._authoredEntranceActive || enemy.isSpawnProtected?.() || !this.simpleAABBcollision(player.getHitbox(), enemy.getHitbox())) continue;
+        overlap = true;
+        this.separatePlayerContact(player, enemy, Math.sign(player.position.x - enemy.position.x) || -player.facing || 1);
+        enemy._contactSafeUntilMs = this.getHostileClockNow() + 300;
+      }
+      if (!overlap) break;
+    }
   }
 
   separatePlayerContact(player, enemy, direction) {
     const p = player.getHitbox(), e = enemy.getHitbox();
     const shift = direction < 0 ? e.x - (p.x + p.width) - 2 : e.x + e.width - p.x + 2;
+    const moveEnemy = amount => {
+      const before = enemy.position.x;
+      const support = window.sector1Progression?.getStageSurfaces?.().find(s => s.id === enemy.supportedSurfaceId && Math.abs(enemy.position.y + 72 - s.y) < 3);
+      const margin = support ? Math.min(45, support.w / 4) : enemy.width / 2;
+      const left = support ? support.x + margin : margin;
+      const right = support ? support.x + support.w - margin : 4096 - margin;
+      enemy.position.x = Math.max(left, Math.min(right, before + amount));
+      if (enemy.velocity.x * amount < 0) enemy.velocity.x = 0;
+      return enemy.position.x - before;
+    };
+    const movePlayer = amount => {
+      player.position.x = window.clamp(player.position.x + amount, player.width / 2, 4096 - player.width / 2);
+      window.sector1Progression?.applyGateCollision?.();
+      if (player.velocity.x * direction < 0) player.velocity.x = 0;
+    };
     // Puzzle/recovery controls may be stationary. Move the intruder away then.
     if (window.hackingSystem?.isActive?.() || player.controlsDisabled || player.isDamageInvulnerable?.()) {
-      enemy.position.x -= shift;
+      const moved = moveEnemy(-shift);
+      const remaining = shift + moved;
+      if (Math.abs(remaining) > .001) movePlayer(remaining);
     } else {
-      player.position.x += shift;
-      player.position.x = window.clamp(player.position.x, player.width / 2, 4096 - player.width / 2);
-      window.sector1Progression?.applyGateCollision?.();
+      movePlayer(shift);
       const resolved = player.getHitbox();
       if (this.simpleAABBcollision(resolved, enemy.getHitbox())) {
         const remaining = direction < 0 ? e.x - (resolved.x + resolved.width) - 2 : e.x + e.width - resolved.x + 2;
-        enemy.position.x -= remaining;
+        moveEnemy(-remaining);
       }
       if (player.velocity.x * direction < 0) player.velocity.x = 0;
     }
