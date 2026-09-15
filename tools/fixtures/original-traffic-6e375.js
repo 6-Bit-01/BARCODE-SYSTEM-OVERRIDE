@@ -42,8 +42,6 @@ window.SpaceShipSystem = class SpaceShipSystem {
     this.shipImages = [null, null, null]; // Array for multiple ship types
     this.shipSheets = [null, null, null];
     this.elapsedMs = 0;
-    this.pendingForeground = [];
-    this.previousPlayerBody = null;
     this.imagesLoaded = [false, false, false];
     this.lastSpawnTime = 0;
     this.spawnInterval = 4000; // Spawn ships every 4 seconds (more reasonable rate)
@@ -77,13 +75,10 @@ window.SpaceShipSystem = class SpaceShipSystem {
     this.lastSpawnTime = 0;
     this.disposed = false;
     this.elapsedMs = 0;
-    this.pendingForeground = [];
-    this.previousPlayerBody = null;
   }
 
   dispose() {
     this.disposed = true;
-    this.pendingForeground = [];
     this.clearPendingSpawnTimeouts();
     this.ships = [];
   }
@@ -104,7 +99,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
     shipUrls.forEach((url, index) => {
       const sheet = window.BARCODE.trafficSheets?.[index];
       const loadOriginal = () => loadSharedImageAsset(`image.level-01.ship-${index + 1}`, url).then(image => ({ image, sheet: null }));
-      const loading = sheet ? loadSharedImageAsset(`image.level-01.ship-${index + 1}.atlas.${sheet.atlasSHA256}`, 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/6e3751ba1561d8694e0bdc9a623e74ac6a45624d/' + sheet.image)
+      const loading = sheet ? loadSharedImageAsset(`image.level-01.ship-${index + 1}.atlas.${sheet.atlasSHA256}`, sheet.image)
         .then(image => ({ image, sheet })).catch(loadOriginal) : loadOriginal();
       loading.then(({ image: img, sheet: loadedSheet }) => {
         if (this.disposed) return;
@@ -133,7 +128,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
       if (readyShipTypes.length) {
         console.log(`[asset-load] Space ship imagery ready for types: ${readyShipTypes.map(index => index + 1).join(', ')}`);
       } else {
-        console.log('[asset-load] Space ship imagery not ready; waiting for existing car artwork');
+        console.log('[asset-load] Space ship imagery not ready; using fallback rectangle rendering');
       }
     }
     if (readyShipTypes.length) {
@@ -151,7 +146,6 @@ window.SpaceShipSystem = class SpaceShipSystem {
   // Spawn a new space ship
   spawnShip() {
     const currentTime = Date.now();
-    if (!this.getReadyShipTypes().length) return;
 
     // Check if it's time to spawn a new ship
     if (currentTime - this.lastSpawnTime < this.spawnInterval) {
@@ -163,7 +157,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
 
     // Play whoosh sound 3 seconds BEFORE spawning foreground ship
     if (isForegroundShip) {
-      {
+      this.trackSpawnTimeout(() => {
         if (window.audioSystem && window.audioSystem.isInitialized && window.audioSystem.playRandomWhoosh) {
           try {
             window.audioSystem.playRandomWhoosh();
@@ -178,10 +172,12 @@ window.SpaceShipSystem = class SpaceShipSystem {
             hasMethod: !!window.audioSystem?.playRandomWhoosh
           });
         }
-      } // Original pre-spawn whoosh, with no timer surviving a pause/reset.
+      }, 0); // Play whoosh sound immediately
 
       // Actually spawn the ship after 3 seconds
-      this.createForegroundShip(true);
+      this.trackSpawnTimeout(() => {
+        this.createForegroundShip();
+      }, 3000);
 
       this.lastSpawnTime = currentTime;
       return;
@@ -261,38 +257,19 @@ window.SpaceShipSystem = class SpaceShipSystem {
   update(deltaTime) {
     if (this.disposed || window.isPaused || window.gameState?.paused) return;
     const elapsed = Math.max(0, Number(deltaTime) || 0);
-    const beforeTime = this.elapsedMs;
+    const dt = elapsed / 1000;
     this.elapsedMs += elapsed;
-    const playerBody = this.getTrafficPlayerBody();
-    const previousPlayer = this.previousPlayerBody || playerBody;
-    this.previousPlayerBody = playerBody;
-
-    // Preserve the original three-second approach while freezing it on pause.
-    const arriving = [];
-    this.pendingForeground = this.pendingForeground.filter(ship => {
-      ship.launchInMs -= elapsed;
-      if (ship.launchInMs > 0) return true;
-      ship.firstDeltaMs = Math.max(0, -ship.launchInMs);
-      ship.launchInMs = 0;
-      arriving.push(ship);
-      return false;
-    });
-    this.ships.push(...arriving);
 
     // Spawn new ships periodically
     this.spawnShip();
 
     // Update existing ships
     this.ships = this.ships.filter(ship => {
-      const beforeBody = ship.isForeground ? this.getHazardBody(ship, beforeTime) : null;
-      const motionMs = ship.firstDeltaMs ?? elapsed;
-      delete ship.firstDeltaMs;
       // Move ship
-      ship.x += ship.speed * (motionMs / 1000) * 60; // Original 60fps normalization
+      ship.x += ship.speed * dt * 60; // 60fps normalization
 
       // Gentle bobbing motion
-      ship.animationElapsedMs = (ship.animationElapsedMs || 0) + motionMs;
-      if (beforeBody) this.checkTrafficContact(ship, beforeBody, previousPlayer, playerBody);
+      ship.animationElapsedMs = (ship.animationElapsedMs || 0) + elapsed;
 
       // CRITICAL FIX: Match despawn boundaries with spawn distances for seamless transitions
       const baseDespawnDistance = ship.size * 3; // Base 3x ship size
@@ -308,8 +285,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
   }
 
   // Create a foreground ship (larger, faster, appears in front)
-  createForegroundShip(queued = false) {
-    if (!this.getReadyShipTypes().length) return null;
+  createForegroundShip() {
     // Foreground ship properties - much larger and faster
     const depth = 1.2; // Beyond normal range (will render in front of FG)
     const sizeMultiplier = 2.5; // 2.5x larger than normal
@@ -368,93 +344,8 @@ window.SpaceShipSystem = class SpaceShipSystem {
       bobAmount: 5 + Math.random() * 10
     };
 
-    ship.hit = false;
-    if (queued) { ship.launchInMs = 3000; this.pendingForeground.push(ship); }
-    else this.ships.push(ship);
+    this.ships.push(ship);
     console.log(`🚀 SPAWNING FOREGROUND SHIP ${ship.shipType + 1}: size=${sizeVariation.toFixed(1)}, speed=${Math.abs(speed).toFixed(1)}, direction=${direction === 1 ? '→' : '←'}, startX=${startX.toFixed(1)}`);
-    return ship;
-  }
-
-  getTrafficPlayerBody() {
-    const player = window.player, body = player?.getHitbox?.();
-    if (!body) return null;
-    let cameraX = window.renderer?.getFollowCameraX?.(player.position.x) ?? player.position.x;
-    cameraX = Math.max(960, Math.min(3136, cameraX));
-    cameraX = window.sector1Progression?.getCameraX?.(cameraX) ?? cameraX;
-    // Cars retain their original horizontal render layer. Only the new vertical
-    // camera follows their original world altitude; its translation cancels here.
-    return { ...body, x: body.x + 960 - cameraX };
-  }
-
-  getHazardBody(ship, time = this.elapsedMs) {
-    const sheet = this.shipSheets[ship.shipType] || window.BARCODE?.trafficSheets?.[ship.shipType];
-    const width = ship.size, height = ship.shipType === 2 ? width * .35 : width;
-    const trim = sheet?.trim || { x: 0, y: 0, width: 1, height: 1 };
-    const sw = sheet?.sourceWidth || 1, sh = sheet?.sourceHeight || 1;
-    const sign = (ship.flipH ? -1 : 1) * (ship.shipType === 2 ? -1 : 1);
-    const cx = (-width / 2 + (trim.x + trim.width / 2) / sw * width) * sign;
-    const cy = -height / 2 + (trim.y + trim.height / 2) / sh * height;
-    // Inset the opaque trim to exclude exhaust and the tapered nose corners.
-    const bw = trim.width / sw * width * .74, bh = trim.height / sh * height * .62;
-    const bob = Math.sin(time / 1000 + ship.bobOffset) * ship.bobAmount;
-    return { x: ship.x + cx - bw / 2, y: ship.y + bob + cy - bh / 2, width: bw, height: bh };
-  }
-
-  trafficDamageEnabled() {
-    const p = window.sector1Progression;
-    return !!(p?.missionStarted && !p.isGameplaySuppressed?.() && !p.isBossCombatLive?.() &&
-      !window.tutorialSystem?.isActive?.() && !window.gameState?.gameOver && !window.gameState?.victory);
-  }
-
-  sweptContact(a, endA, b, endB) {
-    if (!b || !endB) return false;
-    let enter = 0, leave = 1;
-    for (const [axis, size] of [['x', 'width'], ['y', 'height']]) {
-      const motion = endA[axis] - a[axis] - (endB[axis] - b[axis]);
-      if (Math.abs(motion) < .00001) {
-        if (a[axis] + a[size] <= b[axis] || a[axis] >= b[axis] + b[size]) return false;
-      } else {
-        const t1 = (b[axis] - a[axis] - a[size]) / motion;
-        const t2 = (b[axis] + b[size] - a[axis]) / motion;
-        enter = Math.max(enter, Math.min(t1, t2));
-        leave = Math.min(leave, Math.max(t1, t2));
-      }
-    }
-    return enter <= leave;
-  }
-
-  checkTrafficContact(ship, before, previousPlayer, playerBody) {
-    if (ship.hit || !this.trafficDamageEnabled() || !this.imagesLoaded[ship.shipType]) return;
-    if (!this.sweptContact(before, this.getHazardBody(ship), previousPlayer, playerBody)) return;
-    // Consume contact even under protection: the same car cannot punish the
-    // player for exiting a puzzle or losing invulnerability inside its body.
-    ship.hit = true;
-    const player = window.player;
-    if (window.hackingSystem?.isActive?.() || player?.controlsDisabled || player?.isDamageInvulnerable?.()) return;
-    player?.takeDamageWithKnockback?.(1, ship.direction * 320, -240, { x: player.position.x - ship.direction * 100, y: ship.y });
-  }
-
-  drawTrafficWarnings(ctx) {
-    if (!this.trafficDamageEnabled()) return;
-    const zoom = window.renderer?.getZoomLevel?.() || window.renderer?.zoomLevel || 1;
-    const left = 960 - 920 / zoom, right = 960 + 920 / zoom;
-    for (const ship of this.pendingForeground.concat(this.ships.filter(s => s.isForeground))) {
-      const body = this.getHazardBody(ship);
-      if (!ship.launchInMs && (ship.direction > 0 ? body.x + body.width >= left : body.x <= right)) continue;
-      const y = body.y + body.height / 2, edge = ship.direction > 0 ? left : right;
-      ctx.save(); ctx.strokeStyle = '#ffc278'; ctx.fillStyle = '#ffc278'; ctx.lineWidth = 2 / zoom;
-      ctx.globalAlpha = .15; ctx.beginPath(); ctx.moveTo(edge, y); ctx.lineTo(edge + ship.direction * 160 / zoom, y); ctx.stroke();
-      ctx.globalAlpha = .85;
-      for (let i = 0; i < 3; i++) {
-        const x = edge + ship.direction * (24 + i * 17) / zoom;
-        ctx.beginPath(); ctx.moveTo(x - ship.direction * 6 / zoom, y - 12 / zoom);
-        ctx.lineTo(x + ship.direction * 4 / zoom, y); ctx.lineTo(x - ship.direction * 6 / zoom, y + 12 / zoom); ctx.stroke();
-      }
-      ctx.beginPath(); ctx.moveTo(edge + ship.direction * 12 / zoom, y - 40 / zoom);
-      ctx.lineTo(edge, y - 20 / zoom); ctx.lineTo(edge + ship.direction * 24 / zoom, y - 20 / zoom); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = '#17191c'; ctx.fillRect(edge + ship.direction * 12 / zoom - 1 / zoom, y - 33 / zoom, 2 / zoom, 6 / zoom);
-      ctx.fillRect(edge + ship.direction * 12 / zoom - 1 / zoom, y - 24 / zoom, 2 / zoom, 2 / zoom); ctx.restore();
-    }
   }
 
   // Draw a single ship
@@ -522,6 +413,26 @@ window.SpaceShipSystem = class SpaceShipSystem {
         this.drawShipImage(ctx, ship, shipImage, ship.size, ship.size);
       }
       if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log(`🚀 Drawing ship ${ship.shipType + 1} frame ${this.getAnimationFrame(ship)}`);
+    } else {
+      // Draw fallback ship (rectangle with details)
+      ctx.fillStyle = '#4a5568';
+      ctx.fillRect(-ship.size / 2, -ship.size / 4, ship.size, ship.size / 2);
+
+      // Cockpit
+      ctx.fillStyle = '#2d3748';
+      ctx.fillRect(-ship.size / 4, -ship.size / 8, ship.size / 2, ship.size / 4);
+
+      // Engine glow
+      if (ship.direction === 1) {
+        // Left engine glow
+        ctx.fillStyle = 'rgba(255, 100, 0, 0.8)';
+        ctx.fillRect(-ship.size / 2 - 5, -ship.size / 8, 5, ship.size / 4);
+      } else {
+        // Right engine glow
+        ctx.fillStyle = 'rgba(255, 100, 0, 0.8)';
+        ctx.fillRect(ship.size / 2, -ship.size / 8, 5, ship.size / 4);
+      }
+      if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log(`🚀 Drawing fallback ship at (${ship.x.toFixed(1)}, ${ship.y.toFixed(1)}) size ${ship.size.toFixed(1)}`);
     }
 
     ctx.restore();
@@ -582,8 +493,6 @@ window.SpaceShipSystem = class SpaceShipSystem {
   // Clear all ships
   clear() {
     this.ships = [];
-    this.pendingForeground = [];
-    this.previousPlayerBody = null;
     console.log('🚀 All space ships cleared');
   }
 

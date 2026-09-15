@@ -278,14 +278,16 @@ function drawGameElements(ctx) {
   // Draw player
   drawPlayer(ctx);
   window.BARCODE?.combatFX?.draw(ctx);
-  window.spaceShipSystem?.drawHazards?.(ctx);
   
   // Restore camera transform
   ctx.restore();
   
   // Draw foreground space ships
+  ctx.save(); ctx.translate(0, -cameraY);
   window.BARCODE?.stageFX?.drawTrafficLighting?.(ctx, { foreground: true });
+  window.spaceShipSystem?.drawTrafficWarnings?.(ctx);
   drawForegroundSpaceShips(ctx);
+  ctx.restore();
 }
 
 // Draw background elements

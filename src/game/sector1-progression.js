@@ -767,8 +767,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         checkpointAvailable: !!this.bossCheckpoint, retryAvailable: this.canRetryBossCheckpoint() };
     }
     canStompCounter() { return !!(this.boss?.canReceiveDamage && this.boss.stompArmed && this.boss.stompCycle !== this.boss.cycle); }
-    draw(ctx) { this.drawStageSurfaces(ctx); this.drawRepairRoute(ctx); this.drawEncounterGates(ctx); this.drawBoss(ctx); }
-    drawStageSurfaces(ctx) { if (!ctx) return; this.drawSignalLift(ctx); this.drawSignalAmp(ctx); }
+    draw(ctx) { this.drawStageSurfaces(ctx); this.drawEncounterGates(ctx); this.drawRepairRoute(ctx); this.drawBoss(ctx); }
+    drawStageSurfaces(ctx) {
+      if (!ctx) return;
+      this.drawSignalLift(ctx); this.drawSignalAmp(ctx);
+      const zoom = window.renderer?.getZoomLevel?.() || window.renderer?.zoomLevel || 1;
+      ctx.save(); ctx.strokeStyle = 'rgba(178,216,207,0.24)'; ctx.lineWidth = 1 / zoom; ctx.shadowBlur = 0;
+      for (const surface of STAGE_SURFACES) {
+        const lip = surface.y - (surface.maskFeet || 0);
+        ctx.beginPath(); ctx.moveTo(surface.x, lip); ctx.lineTo(surface.x + surface.w, lip); ctx.stroke();
+      }
+      ctx.restore();
+    }
     drawSignalLift(ctx) {
       if (!ctx || !this.signalLift || !this.isSignalLiftAvailable()) return;
       const lift = this.signalLift;
@@ -874,14 +884,29 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         this.touchBarrier(gate,enemy.position.y,'cross');
     }
     drawBarrierHardware(ctx,gate,opening,progress) {
-      const i=ENCOUNTER_GATES.indexOf(gate);
-      const mount={x:gate.x+gate.w+gate.depthX,y:[-20,160,330,130][i]};
-      const A=window.BARCODE?.PresentationAssets;
-      // Face rail endpoints are fitted to solid strips in each actual facade.
-      ctx.save();ctx.globalAlpha=1;
-      A?.draw('facadeEmitter',ctx,{x:mount.x,y:mount.y,width:54,height:138,frame:opening?0:1});
-      A?.draw('facadeEmitter',ctx,{x:mount.x,y:726,width:46,height:118,frame:opening?0:1});
-      A?.draw('floorEmitter',ctx,{x:gate.x+gate.w/2,y:854,width:108,height:81,frame:opening?0:1});
+      const i = ENCOUNTER_GATES.indexOf(gate), A = window.BARCODE?.PresentationAssets;
+      const x = gate.x + gate.w + gate.depthX, foot = gate.y + gate.h;
+      const roof = [-178, 50, -225, -84][i], baseY = foot + gate.depthY;
+      ctx.save(); ctx.globalAlpha = 1;
+      if (opening) ctx.filter = `saturate(${1-progress}) brightness(${1-progress*.35})`;
+      // Repeat actual narrow modules; do not stretch a small emitter up a facade.
+      const tileHeight = 174, count = Math.ceil((baseY - roof) / tileHeight);
+      const height = (baseY - roof) / count;
+      ctx.fillStyle = 'rgba(0,0,0,.32)'; ctx.fillRect(x + 9, roof, 18, baseY - roof);
+      for (let j = 0; j < count; j++) A?.draw('thinWallRail', ctx, { x, y: roof + height*(j+.5), width: 34, height: height+1 });
+      A?.draw('thinRailCap', ctx, { x, y: roof+8, width: 34, height: 58 });
+      const projectX = rise => gate.x + gate.w - rise * gate.depthX / -gate.depthY;
+      const path = [[x,baseY],[gate.x+gate.w,foot],[projectX(888-foot),888],
+        [projectX(888-foot),892],[projectX(1096-foot-4),1096]];
+      for (let j = 1; j < path.length; j++) {
+        const [ax,ay] = path[j-1], [bx,by] = path[j], dx = bx-ax, dy = by-ay, length = Math.hypot(dx,dy);
+        const pieces = Math.max(1,Math.ceil(length/188)), span = length/pieces;
+        ctx.save(); ctx.translate(ax,ay); ctx.transform(dy/length,-dx/length,dx/length,dy/length,0,0);
+        ctx.fillStyle = 'rgba(0,0,0,.32)'; ctx.fillRect(-13,4,34,length);
+        for (let k=0;k<pieces;k++) A?.draw('thinPavementRail',ctx,{x:0,y:span*(k+.5),width:30,height:span+1});
+        ctx.restore();
+      }
+      A?.draw('thinRailElbow',ctx,{x:x-9,y:baseY-5,width:51,height:63,flip:true});
       ctx.restore();
     }
     drawEncounterGates(ctx) {
@@ -913,6 +938,16 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         if (fx && !fx.visible((nearX + farX) / 2, (farTop + streetBottom) / 2,
           Math.max(farX - nearX, streetBottom - farTop) / 2 + 60)) continue;
         ctx.save(); ctx.globalAlpha = fade;
+        // Authorized enemies part the field locally; clipping leaves the city
+        // behind them intact instead of erasing pixels from the whole canvas.
+        ctx.save(); ctx.beginPath(); ctx.rect(-2000,-3000,8200,5000);
+        for (const contact of this.barrierContacts || []) if (contact.id === gate.id && contact.kind === 'cross') {
+          const t = Math.max(0,Math.min(1,(this.barrierClock-contact.start)/600));
+          const aperture = Math.sin(t*Math.PI);
+          ctx.moveTo(gate.x+gate.w/2+8+aperture*32,contact.y);
+          ctx.ellipse(gate.x+gate.w/2,contact.y,8+aperture*32,20+aperture*72,0,0,Math.PI*2);
+        }
+        ctx.clip('evenodd');
         // One continuous wall face spans the buildings, raised sidewalk,
         // vertical curb and lower road. Its opening sinks into that footprint.
         ctx.fillStyle = opening ? 'rgba(98,255,221,0.05)' : 'rgba(174,66,215,0.065)';
@@ -969,6 +1004,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
             ctx.fillRect(gate.x + gate.w / 2 + side * progress * (20 + i * 4), top - progress * (i % 3) * 18, i % 3 ? 2 : 4, 9 * fade);
           }
         }
+        ctx.restore();
         ctx.save();
         ctx.beginPath();crown.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));
         footprint.slice().reverse().forEach(([x,y])=>ctx.lineTo(x,y));ctx.closePath();ctx.clip();
@@ -976,6 +1012,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
           const t=(this.barrierClock-c.start)/600;
           ctx.globalAlpha=fade*(1-t)*0.75;ctx.strokeStyle=c.kind==='cross'?'#bdffd4':'#e3b9ff';ctx.lineWidth=2;
           ctx.beginPath();ctx.ellipse(gate.x+gate.w/2,c.y,18+t*75,30+t*85,0,0,Math.PI*2);ctx.stroke();
+          if (c.kind === 'push') for (let strand=-1;strand<=1;strand++) {
+            const x=gate.x+gate.w/2+strand*12;
+            ctx.beginPath();ctx.moveTo(x,c.y-68);
+            ctx.quadraticCurveTo(x+Math.sin(t*Math.PI)*30,c.y,x,c.y+68);ctx.stroke();
+          }
         }
         ctx.restore();
         this.drawBarrierHardware(ctx,gate,opening,progress);
@@ -1047,9 +1088,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         ctx.fillStyle = '#172129'; ctx.fillRect(prop.x + prop.w - 12, prop.y + 5, 12, prop.h - 5);
         ctx.fillStyle = '#58686b'; ctx.fillRect(prop.x + 4, prop.y + 5, 4, prop.h - 9);
         ctx.strokeStyle = '#82938e'; ctx.lineWidth = 2; ctx.strokeRect(prop.x, prop.y, prop.w, prop.h);
-        ctx.fillStyle = '#eee8d6'; ctx.fillRect(prop.x, prop.y - 2, prop.w, 4);
-        ctx.fillStyle = '#c0ed55';
-        for (let x = prop.x + 10; x < prop.x + prop.w - 6; x += 24) ctx.fillRect(x, prop.y + 7, 11, 3);
+        ctx.strokeStyle = 'rgba(188,214,202,.30)';
+        ctx.lineWidth = 1 / (window.renderer?.getZoomLevel?.() || window.renderer?.zoomLevel || 1);
+        ctx.beginPath(); ctx.moveTo(prop.x,prop.y); ctx.lineTo(prop.x+prop.w,prop.y); ctx.stroke();
         if (prop.h > 30) {
           ctx.fillStyle = '#172129';
           for (let y = prop.y + 24; y < prop.y + prop.h - 12; y += 18) ctx.fillRect(prop.x + 16, y, prop.w - 32, 7);
@@ -1065,8 +1106,6 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
           if (cell.collected) continue;
           ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fillRect(cell.x - 20, cell.surfaceY - 2, 40, 4);
           drawRepairCell(ctx, cell.x, cell.y + Math.sin(this.repairTimeMs / 480 + cell.x) * 3);
-          ctx.fillStyle = '#eee8d6'; ctx.font = 'bold 15px Oxanium, monospace'; ctx.textAlign = 'center';
-
         }
       }
       if (this.repairFeedback) {

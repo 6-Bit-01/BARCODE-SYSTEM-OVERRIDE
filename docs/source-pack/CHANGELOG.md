@@ -1,5 +1,14 @@
 # Recovery checkpoint — September 14
 
+## Thin continuous rails and original-car correction — September 15, 2026
+
+- Implement the owner-selected thin facade-to-road rail kit with fitted roof caps, continuous curb/street connection, foreground-prop occlusion and local pressure/passage effects.
+- Restore the exact original car motion/art properties and random flight band; replace the introduced ground-lane system with warnings and swept collision on those cars. Preserve motion through hacking and consume protected contact safely.
+- Restore faint roof-edge lines, quiet utility-platform highlights, preserve foot masks and three-dimensional props.
+- Constrain contact separation to supported enemy space, handle crowd clearance/recovery, and stop Firewall walk/idle restarting at roof edges. Align drone warning/projectile paths and block shots crossing roofs.
+- Show a concise action/counter under Objectives and a compact row during hacks; reduce repeated nearby H text. Start the shared sixteen-second entry budget consistently and make practice answer entry untimed.
+- Add direct comparisons with archived original traffic and meaningful protection/keypad/support checks. Refresh the static inventory only for the scoped file/reference/source-position changes. Preserve full-suite and owner Makko gates.
+
 ## Level 1 rebuild after reverted #55 — September 15, 2026
 
 - Base `6e3751ba1561d8694e0bdc9a623e74ac6a45624d` retains merged #54 after the rejected pass was reverted. Record the owner's renewed approval and explicit rejected choices.

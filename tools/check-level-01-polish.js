@@ -16,7 +16,7 @@ function createRig() {
 function makeContext() {
   const operations = [];
   const ctx = { operations, globalAlpha: 1 };
-  for (const name of ['save', 'restore', 'translate', 'scale', 'rotate', 'beginPath', 'closePath', 'clip', 'rect', 'fill', 'stroke', 'moveTo', 'lineTo', 'arc', 'ellipse', 'fillRect', 'strokeRect', 'fillText', 'setLineDash', 'drawImage']) {
+  for (const name of ['save', 'restore', 'translate', 'transform', 'scale', 'rotate', 'beginPath', 'closePath', 'clip', 'rect', 'fill', 'stroke', 'moveTo', 'lineTo', 'quadraticCurveTo', 'arc', 'ellipse', 'fillRect', 'strokeRect', 'fillText', 'setLineDash', 'drawImage']) {
     ctx[name] = (...args) => operations.push([name, ...args]);
   }
   return ctx;

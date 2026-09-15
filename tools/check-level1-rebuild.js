@@ -26,20 +26,21 @@ for(const fps of [30,60,120]){
  w.enemyManager.checkCollisions(hero);assert(!w.enemyManager.simpleAABBcollision(hero.getHitbox(),enemy.getHitbox()),'recovery overlaps resolve without taking damage');assert.strictEqual(hero.health,3);
  load(context,'src/engine/traffic-sheets.js');load(context,'src/engine/spaceships.js');w.SpaceShipSystem.prototype.loadShipImages=function(){};const traffic=new w.SpaceShipSystem();w.spaceShipSystem=traffic;
  assert.strictEqual(traffic.createForegroundShip(),null,'unavailable art creates no invisible hazard or substitute car');
- traffic.imagesLoaded[0]=true;traffic.shipImages[0]={width:1280,height:727};const car=traffic.createForegroundShip();assert(car);assert.strictEqual(car.phase,'warning');
+ traffic.imagesLoaded[0]=true;traffic.shipImages[0]={width:1280,height:727};const car=traffic.createForegroundShip(true);assert(car);assert.strictEqual(car.launchInMs,3000);
  const ops=[];const c=new Proxy({},{get:(t,k)=>t[k]??((...a)=>ops.push([k,...a])),set:(t,k,v)=>(t[k]=v,true)});
  traffic.drawShip(c,car);assert(ops.some(o=>o[0]==='drawImage'&&o.length===6),'the original GIF draws even without an atlas');assert(!ops.some(o=>o[0]==='fillRect'),'no replacement vehicle drawing');
- traffic.updateHazards(2700);assert.strictEqual(car.phase,'warning');traffic.updateHazards(100);assert.strictEqual(car.phase,'pass');
- let hits=0;hero.takeDamageWithKnockback=()=>{hits++;return true;};const b=traffic.getHazardBody(car);hero.getHitbox=()=>({...b});traffic.updateHazards(1);traffic.updateHazards(1);assert.strictEqual(hits,1,'one collision attempt per warned car');
- w.hackingSystem.active=true;const before=car.x;traffic.updateHazards(1000);assert.strictEqual(car.x,before);w.hackingSystem.active=false;traffic.updateHazards(1);assert.strictEqual(car.phase,'warning','terminal release gets another warning');traffic.resetRuntime();assert.strictEqual(traffic.hazards.length,0);
+ traffic.spawnShip=()=>{};traffic.update(2900);assert.strictEqual(traffic.ships.length,0);traffic.update(100);assert(traffic.ships.includes(car));
+ const x=car.x;w.hackingSystem.active=true;traffic.update(100);assert(Math.abs(car.x-x-car.speed*6)<.001,'original traffic continues during hacking');w.hackingSystem.active=false;
+ traffic.resetRuntime();assert.strictEqual(traffic.pendingForeground.length,0);assert.strictEqual(traffic.ships.length,0);
+
 }
 {
  const {w,p}=rig();const roof=p.getStageSurfaces().find(s=>s.id==='tower-crown'),actor={position:{x:3400,y:roof.y-72},grounded:true,supportedSurfaceId:roof.id};let clips=0;const c={beginPath(){},rect(x,y,w,h){assert.strictEqual(y+h,roof.y-roof.maskFeet);},clip(){clips++;}};
  p.clipRoofFeet(c,actor);assert.strictEqual(clips,1);actor.grounded=false;p.clipRoofFeet(c,actor);assert.strictEqual(clips,1,'airborne bodies remain visible in front of roofs');
  const ops=[];const ctx=new Proxy({},{get:(t,k)=>t[k]??((...a)=>ops.push([k,...a])),set:(t,k,v)=>(t[k]=v,true)});p.drawStageSurfaces(ctx);
- for(const surface of p.getStageSurfaces())assert(!ops.some(o=>o[0]==='lineTo'&&o[1]===surface.x+surface.w&&o[2]===surface.y),'no drawn blue platform edge');
+ for(const surface of w.Sector1Progression.STAGE_SURFACES)assert(ops.some(o=>o[0]==='lineTo'&&o[1]===surface.x+surface.w&&o[2]===surface.y-(surface.maskFeet||0)),'subtle landing edge follows painted lip');
 }
-console.log('Rebuild: 75 production jumps; grounded guards and bounded drones at 30/60/120Hz; protected contact, original GIF cars, warning/damage/reset and roof masking passed.');
+console.log('Rebuild: 75 production jumps; grounded guards and bounded drones at 30/60/120Hz; protected contact, original GIF cars, original approach/puzzle motion/reset and roof masking passed.');
 {
  const {w,p}=rig(),roof=p.getStageSurfaces().find(s=>s.id==='cache-crown');
  const ground=['firewall','corrupted','corrupted'].map((type,i)=>{const e=new w.Enemy(1500+i*60,784,type);Object.assign(e.position,{x:1500+i*60,y:784});Object.assign(e,{_sector1MissionEnemy:true,entranceComplete:true,_inCrowd:true,spawnProtectionDuration:0});e.velocity.y=0;return e;});

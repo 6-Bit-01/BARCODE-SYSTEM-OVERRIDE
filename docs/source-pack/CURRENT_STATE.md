@@ -1,5 +1,11 @@
 # Current State
 
+## Thin rail / original traffic correction — September 15, 2026
+
+Base `f048d229a51b9ecce801cd9d736613491c4ae2f9`; branch `agent/thin-rails-original-traffic`. The owner rejected #57's car retuning and detached hardware, selected the thinner continuous rail example, and approved the full correction plan. Implemented: continuous generated wall/pavement rails and caps; original car creator/spawning/motion with matching warnings and swept damage; faint painted-lip roof lines; constrained contact/recovery clearance; stable Firewall edge transitions; matching drone warning/shot with roof interception; compact Objectives/H cues; sixteen-second shared entry and untimed practice. Preserve sidewalk plane, heart repairs, 3D props, building-top routes, single jump, mission/hijack/music/Jammer/boss rules.
+
+Four rail images use asset ancestor `08d5720f31020fd846ea6b93c76988ffef6e3fbe`. `THIN_RAIL_TRAFFIC_CORRECTION.md` records the implementation, original-traffic contract and validation limits. Native scene/motion review and focused production checks are prepared; exact full-suite/CI results and review head belong to the generated receipt. Owner Makko acceptance remains pending. Earlier entries are historical.
+
 ## Level 1 rebuild after reverted #55 — September 15, 2026
 
 The owner reverted failed PR #55 via #56. Verified base/rollback is `6e3751ba1561d8694e0bdc9a623e74ac6a45624d`, whose tree preserves #54. Current branch is `agent/level1-rebuild-reviewed`. The owner approved the revised plan before implementation; the complete scope and tuning are in `LEVEL_01_REBUILD_PASS.md`. This is a fresh review over the reverted base, selectively retaining the approved cutscene/input improvements rather than restoring the failed pass.
