@@ -180,7 +180,7 @@ window.CutsceneSystem = class CutsceneSystem {
     transcript.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);';
     container.appendChild(transcript);
     const help = document.createElement('div');
-    help.textContent = 'Dialogue and captions appear in story order. Space or controller A advances dialogue. Enter or RB continues to the next scene after the final cue. The Dialogue and Next scene buttons do the same. Hold S or controller B for five seconds to skip the intro. Release to cancel. Left Arrow or D-pad Left inspects a displaced recovery caption once it appears.';
+    help.textContent = 'Dialogue and captions appear in story order. Space, Enter, click or controller A reveals the next line or caption; after the last one, continue to the next scene. Hold S or controller B for five seconds to skip the intro. Release to cancel. Left Arrow or D-pad Left inspects a displaced recovery caption once it appears.';
     help.style.cssText = transcript.style.cssText; container.appendChild(help);
     if (!this.introContext) {
       canvas.style.display = 'none';
@@ -188,17 +188,6 @@ window.CutsceneSystem = class CutsceneSystem {
       transcript.style.cssText = 'max-width:900px;padding:32px;color:#f0eadc;font:24px/1.6 sans-serif;';
       help.style.cssText = 'max-width:900px;padding:24px;color:#95ffe0;font:18px/1.6 monospace;';
     }
-    const actions = document.createElement('div');
-    actions.style.cssText = 'position:absolute;left:2.5%;bottom:1.6%;display:flex;gap:14px;';
-    for (const [action, label] of [['dialogue', 'Dialogue'], ['scene', 'Next scene']]) {
-      const button = document.createElement('button');
-      button.type = 'button'; button.textContent = label; button.dataset.introAction = action;
-      button.style.cssText = 'min-height:42px;padding:8px 16px;border:2px solid #91ffe0;background:#091722;color:#f0eadc;font:700 17px Oxanium,monospace;cursor:pointer;';
-      actions.appendChild(button);
-      if (action === 'scene') this.nextSceneButton = button;
-      else this.dialogueButton = button;
-    }
-    container.appendChild(actions);
     // FullscreenManager owns the document root, so this stable DOM host stays
     // visible before/after fullscreen settles and through exit/re-entry. Never
     // put the overlay in the hidden game canvas's fallback-content subtree.
@@ -221,9 +210,6 @@ window.CutsceneSystem = class CutsceneSystem {
 
   drawCurrentPanel() {
     if (!this.isActive || !this.introCanvas) return;
-    const complete = this.currentCueIndex >= window.BARCODE.IntroSequence.getCues(this.currentImageIndex - 1).length - 1;
-    if (this.nextSceneButton) { this.nextSceneButton.disabled = !complete; this.nextSceneButton.style.opacity = complete ? '1' : '0.4'; }
-    if (this.dialogueButton) { this.dialogueButton.disabled = complete; this.dialogueButton.style.opacity = complete ? '0.4' : '1'; }
     window.BARCODE.IntroSequence.draw(this.introContext, {
       index: this.currentImageIndex - 1,
       cueIndex: this.currentCueIndex, cueElapsedMs: this.cueElapsedMs,
@@ -276,7 +262,6 @@ window.CutsceneSystem = class CutsceneSystem {
       if (e.repeat) return;
       if (key === 's') this.startSkipHold('keyboard');
       else if (key === 'arrowleft') this.inspectCaption();
-      else if (key === 'enter' || e.type === 'click' && e.target?.dataset?.introAction === 'scene') this.nextScene();
       else this.skipCutscene();
     };
     this.skipHoldEndHandler = e => { if (e.key?.toLowerCase() === 's') { e.preventDefault(); this.endSkipHold('keyboard'); } };
@@ -310,15 +295,8 @@ window.CutsceneSystem = class CutsceneSystem {
     if (!this.canSkip || !this.isActive || this.inputDisabled) return;
     // Each press owns exactly one cue. A manual reveal restarts that cue's
     // reading interval, so an overdue automatic reveal cannot consume it too.
-    if (this.revealNextCue()) this.disableInputTemporarily(this.imageDisplayTime);
-  }
-
-  nextScene() {
-    if (!this.canSkip || !this.isActive || this.inputDisabled) return false;
-    const cues = window.BARCODE.IntroSequence.getCues(this.currentImageIndex - 1);
-    if (this.currentCueIndex < cues.length - 1) return false;
-    this.showNextImage();
-    return true;
+    if (!this.revealNextCue()) this.showNextImage();
+    else this.disableInputTemporarily(this.imageDisplayTime);
   }
 
   disableInputTemporarily(duration) {

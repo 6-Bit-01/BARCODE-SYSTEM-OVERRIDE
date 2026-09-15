@@ -56,7 +56,7 @@ function createHarness() {
     vm.runInNewContext(fs.readFileSync(path.join(root, file), 'utf8'), context, { filename: file });
   }
   context.enemyManager = new context.EnemyManager();
-  context.enemyManager.enemies = [{ active: true, type: 'virus', position: { x: 1100, y: 784 }, velocity: { x: 0, y: 0 } }];
+  context.enemyManager.enemies = [{ active: true, type: 'virus', position: { x: 1100, y: 750 }, velocity: { x: 0, y: 0 } }];
   return context;
 }
 
@@ -93,7 +93,7 @@ function defeatAll(progression) { progression.activeEncounterEnemies.forEach(ene
 function testEncountersAndTacticalFocusClock() {
   for (const fps of [30, 60, 120]) {
     const w = createHarness();
-    w.player = { position: { x: 600, y: 784 }, velocity: { x: 0, y: 0 }, grounded: true, controlsDisabled: false };
+    w.player = { position: { x: 600, y: 750 }, velocity: { x: 0, y: 0 }, grounded: true, controlsDisabled: false };
     w.enemyManager = { enemies: [], clear() { this.enemies = []; } };
     const p = new w.Sector1Progression(w.player);
     w.sector1Progression = p;
@@ -116,7 +116,7 @@ function testEncountersAndTacticalFocusClock() {
   }
 
   const w = createHarness();
-  w.player = { position: { x: 600, y: 784 }, velocity: { x: 0, y: 0 }, grounded: true };
+  w.player = { position: { x: 600, y: 750 }, velocity: { x: 0, y: 0 }, grounded: true };
   w.enemyManager = { enemies: [], clear() { this.enemies = []; } };
   w.hackingSystem = { isActive: () => true };
   const p = new w.Sector1Progression(w.player); w.sector1Progression = p; p.startMission(); p.update(1000);
@@ -133,8 +133,8 @@ function testEncountersAndTacticalFocusClock() {
 function testHackingLifecycle() {
   const w = createHarness();
   let hides = 0, shows = 0, hijacks = 0;
-  w.player = new w.Player(1000, 784); w.player.grounded = true; w.player.health = 2; w.player.maxHealth = 3;
-  w.enemyManager = Object.assign(new w.EnemyManager(), { simulationTimeMs: 2000, enemies: [ { active: true, type: 'virus', position: { x: 1030, y: 784 } }, { active: true, type: 'corrupted', _jammerReinforcement: true, position: { x: 1200, y: 784 } }, { active: true, type: 'virus', position: { x: 3000, y: 784 } }, { active: true, type: 'broadcast_jammer', position: { x: 1020, y: 784 } }, { active: true, type: 'boss', position: { x: 1010, y: 784 } } ] });
+  w.player = new w.Player(1000, 750); w.player.grounded = true; w.player.health = 2; w.player.maxHealth = 3;
+  w.enemyManager = Object.assign(new w.EnemyManager(), { simulationTimeMs: 2000, enemies: [ { active: true, type: 'virus', position: { x: 1030, y: 750 } }, { active: true, type: 'corrupted', _jammerReinforcement: true, position: { x: 1200, y: 750 } }, { active: true, type: 'virus', position: { x: 3000, y: 750 } }, { active: true, type: 'broadcast_jammer', position: { x: 1020, y: 750 } }, { active: true, type: 'boss', position: { x: 1010, y: 750 } } ] });
   w.rhythmSystem = { beatInterval: 375, active: true, isActive() { return this.active; }, hideRhythmMode() { hides++; this.active = false; }, showRhythmMode() { shows++; this.active = true; } };
   const hack = new w.HackingSystem(); w.hackingSystem = hack;
   assert.strictEqual(hides, 0, 'constructor does not alter rhythm mode');
@@ -182,7 +182,7 @@ function testHackingLifecycle() {
 
 function testHackingMemoryTimingAndRhythmRestore() {
   const w = createHarness();
-  w.player = new w.Player(1000, 784); w.player.grounded = true; w.player.health = 2; w.player.maxHealth = 3;
+  w.player = new w.Player(1000, 750); w.player.grounded = true; w.player.health = 2; w.player.maxHealth = 3;
   let shows = 0, hides = 0;
   w.rhythmSystem = { active: true, isActive() { return this.active; }, hideRhythmMode() { hides++; this.active = false; }, showRhythmMode() { shows++; this.active = true; } };
   w.Math = Object.create(Math); w.Math.random = () => 0.75;
@@ -223,7 +223,7 @@ function testHackingMemoryTimingAndRhythmRestore() {
 
 function testHackingPresentationInputAndRecovery() {
   const w = createHarness();
-  w.player = new w.Player(1000, 784); w.player.grounded = true;
+  w.player = new w.Player(1000, 750); w.player.grounded = true;
   w.rhythmSystem = { active: false, isActive() { return this.active; }, hideRhythmMode() { this.active = false; }, showRhythmMode() { this.active = true; } };
   w.tutorialSystem.active = true;
   w.tutorialSystem.completed = false;
@@ -266,7 +266,7 @@ function testHackingPresentationInputAndRecovery() {
   assert.strictEqual(portHack.feedback, null, 'production coordinator retires post-session feedback instead of covering gameplay forever');
 
   const memoryHarness = createHarness();
-  memoryHarness.player = new memoryHarness.Player(1000, 784); memoryHarness.player.grounded = true;
+  memoryHarness.player = new memoryHarness.Player(1000, 750); memoryHarness.player.grounded = true;
   memoryHarness.rhythmSystem = w.rhythmSystem;
   const memoryHack = new memoryHarness.HackingSystem(); memoryHarness.hackingSystem = memoryHack;
   memoryHack.start(); memoryHack.puzzleType = 2; memoryHack.update(memoryHack.bootDurationMs);
@@ -302,7 +302,7 @@ function testHackingPresentationInputAndRecovery() {
   assert.strictEqual(watchdogHack._lastResultFailed, true, 'watchdog recovery is recorded as a failed session');
 
   const throwingHarness = createHarness();
-  throwingHarness.player = new throwingHarness.Player(1000, 784);
+  throwingHarness.player = new throwingHarness.Player(1000, 750);
   throwingHarness.player.grounded = true;
   throwingHarness.player.restoreHealth = () => { throw new Error('health unavailable'); };
   throwingHarness.audioSystem.playSound = () => { throw new Error('audio unavailable'); };
@@ -331,7 +331,7 @@ function testHackingPresentationInputAndRecovery() {
 
   throwingHarness.advanceClock(10001);
   throwingHarness.tutorialSystem.active = false;
-  throwingHarness.enemyManager.enemies = [{ active: true, type: 'virus', position: { x: 1100, y: 784 } }];
+  throwingHarness.enemyManager.enemies = [{ active: true, type: 'virus', position: { x: 1100, y: 750 } }];
   const resilientTimeout = new throwingHarness.HackingSystem();
   throwingHarness.hackingSystem = resilientTimeout;
   resilientTimeout.start();
@@ -391,14 +391,14 @@ function testHackEscapeKeyOwnership() {
 
 function testLostDataMovementSwooperAmpAndEnemyClock() {
   const w = createHarness();
-  w.player = new w.Player(700, 784); w.player.grounded = true;
+  w.player = new w.Player(700, 750); w.player.grounded = true;
   w.enemyManager = { enemies: [], clear() { this.enemies = []; } };
   const p = new w.Sector1Progression(w.player); w.sector1Progression = p;
   const lost = new w.LostDataSystem(); w.lostDataSystem = lost; lost.player = w.player;
   for (const [before, at] of [[3, 4], [8, 9], [13, 14]]) { p.missionDefeats = before; assert.strictEqual(lost.spawnFragment(), null, `next lost data locked at ${before} kills`); p.missionDefeats = at; assert(lost.spawnFragment(), `lost data spawns at ${at} kills`); }
   assert.strictEqual(JSON.stringify(lost.fragments.map(f => f.authoredPlacementId)), JSON.stringify(['signal-awning-fragment', 'middle-roof-fragment', 'upper-route-fragment']), 'authored Lost Data placements spawn in order');
 
-  const swooper = new w.Enemy(500, 646, 'virus'); swooper.role = 'swooper'; swooper.entranceComplete = true; swooper.swooperState = 'approach'; w.enemyManager.enemies = [swooper]; const playerRef = { position: { x: 900, y: 784 } };
+  const swooper = new w.Enemy(500, 700, 'virus'); swooper.role = 'swooper'; swooper.entranceComplete = true; swooper.swooperState = 'approach'; w.enemyManager.enemies = [swooper]; const playerRef = { position: { x: 900, y: 750 } };
   for (let i = 0; i < 40 && swooper.swooperState === 'approach'; i++) swooper.updateSwooperBehavior(1 / 60, playerRef);
   assert.strictEqual(swooper.swooperState, 'telegraph', 'production swooper telegraphs');
   for (let i = 0; i < 50 && swooper.swooperState === 'telegraph'; i++) swooper.updateSwooperBehavior(1 / 60, playerRef);
@@ -416,7 +416,7 @@ function testLostDataMovementSwooperAmpAndEnemyClock() {
   assert.strictEqual(combat.findTargets(w.player, { enemies: [normal] }, { timing: 'miss' }).length, 0, 'miss does not use Signal Amp range');
   assert.strictEqual(w.BARCODE.signalAmpCharges, 2, 'miss does not consume Signal Amp charge');
 
-  const manager = new w.EnemyManager(); manager.enemies = [{ active: true, type: 'virus', position: { x: 1000, y: 784 }, velocity: { x: 0, y: 0 }, update(dt, player, sim) { this.lastDt = dt; this.lastSim = sim; }, getHitbox: () => ({ x: 0, y: 0, width: 0, height: 0 }) }];
+  const manager = new w.EnemyManager(); manager.enemies = [{ active: true, type: 'virus', position: { x: 1000, y: 750 }, velocity: { x: 0, y: 0 }, update(dt, player, sim) { this.lastDt = dt; this.lastSim = sim; }, getHitbox: () => ({ x: 0, y: 0, width: 0, height: 0 }) }];
   w.hackingSystem = { isActive: () => true };
   manager.update(1000, { controlsDisabled: false, getHitbox: () => ({ x: 9999, y: 9999, width: 1, height: 1 }), position: { x: 9999, y: 9999 }, velocity: { y: 0 } });
   assert.strictEqual(manager.enemies[0].lastDt, 400, 'enemy behavior uses the shared 40% hostile delta during hacking');
@@ -428,10 +428,10 @@ function testLostDataMovementSwooperAmpAndEnemyClock() {
 
   const contactManager = new w.EnemyManager();
   let contactHits = 0;
-  const contactEnemy = { active: true, type: 'virus', damage: 1, position: { x: 1000, y: 784 }, velocity: { x: 0, y: 0 }, lastPlayerHitTimeMs: -Infinity, update() {}, isSpawnProtected: () => false, getHitbox: () => ({ x: 980, y: 730, width: 40, height: 40 }) };
+  const contactEnemy = { active: true, type: 'virus', damage: 1, position: { x: 1000, y: 750 }, velocity: { x: 0, y: 0 }, lastPlayerHitTimeMs: -Infinity, update() {}, isSpawnProtected: () => false, getHitbox: () => ({ x: 980, y: 730, width: 40, height: 40 }) };
   contactManager.enemies = [contactEnemy];
   w.hackingSystem = { isActive: () => true, absorbGuardHit: () => false };
-  const contactPlayer = { controlsDisabled: false, position: { x: 1000, y: 784 }, velocity: { y: -200 }, getHitbox: () => ({ x: 990, y: 740, width: 20, height: 20 }), takeDamageWithKnockback() { contactHits++; } };
+  const contactPlayer = { controlsDisabled: false, position: { x: 1000, y: 750 }, velocity: { y: -200 }, getHitbox: () => ({ x: 990, y: 740, width: 20, height: 20 }), takeDamageWithKnockback() { contactHits++; } };
   contactManager.update(16, contactPlayer);
   assert.strictEqual(contactHits, 1, 'initial contact damage lands during tactical focus');
   contactManager.update(1500, contactPlayer);
@@ -440,9 +440,9 @@ function testLostDataMovementSwooperAmpAndEnemyClock() {
   assert.strictEqual(contactHits, 2, 'contact damage repeats after sufficient slowed hostile time');
 
   const realContactManager = new w.EnemyManager();
-  const realContactEnemy = { active: true, type: 'virus', damage: 1, position: { x: 1000, y: 784 }, velocity: { x: 0, y: 0 }, lastPlayerHitTimeMs: -Infinity, isSpawnProtected: () => false, getHitbox: () => ({ x: 980, y: 730, width: 40, height: 40 }) };
+  const realContactEnemy = { active: true, type: 'virus', damage: 1, position: { x: 1000, y: 750 }, velocity: { x: 0, y: 0 }, lastPlayerHitTimeMs: -Infinity, isSpawnProtected: () => false, getHitbox: () => ({ x: 980, y: 730, width: 40, height: 40 }) };
   realContactManager.enemies = [realContactEnemy];
-  const realContactPlayer = new w.Player(1000, 784);
+  const realContactPlayer = new w.Player(1000, 750);
   realContactPlayer.isEntering = false;
   realContactPlayer.controlsDisabled = false;
   realContactPlayer.velocity.y = -200;
@@ -456,7 +456,7 @@ function testLostDataMovementSwooperAmpAndEnemyClock() {
   assert.strictEqual(realContactPlayer.health, 2, 'real player takes the first overlapping enemy contact hit');
   realContactPlayer.controlsDisabled = false;
   realContactPlayer.position.x = 1000;
-  realContactPlayer.position.y = 784;
+  realContactPlayer.position.y = 750;
   realContactPlayer.velocity.y = -200;
   realContactManager.simulationTimeMs = 1600;
   realContactManager.hostileSimulationTimeMs = 1600;
@@ -466,7 +466,7 @@ function testLostDataMovementSwooperAmpAndEnemyClock() {
   w.advanceClock(2001);
   realContactPlayer.controlsDisabled = false;
   realContactPlayer.position.x = 1000;
-  realContactPlayer.position.y = 784;
+  realContactPlayer.position.y = 750;
   realContactPlayer.velocity.y = -200;
   realContactManager.simulationTimeMs = 2017;
   realContactManager.hostileSimulationTimeMs = 2017;
@@ -480,7 +480,7 @@ function testSignalLiftAndBackgroundRhythm() {
   for (const fps of [30, 60, 120]) {
     const w = createHarness();
     const liftConfig = w.Sector1Progression.SIGNAL_LIFT;
-    const player = new w.Player(liftConfig.x + liftConfig.w / 2, 784);
+    const player = new w.Player(liftConfig.x + liftConfig.w / 2, 750);
     player.isEntering = false;
     player.spriteReady = false;
     player.grounded = true;
@@ -499,7 +499,7 @@ function testSignalLiftAndBackgroundRhythm() {
     progression.startMission();
     progression.state = w.Sector1Progression.STATES.JAMMER_ACTIVE;
     player.position.x = liftConfig.x + liftConfig.w / 2;
-    player.position.y = 784;
+    player.position.y = 750;
     player.velocity.x = 0;
     player.velocity.y = 0;
     player.grounded = true;
@@ -561,17 +561,17 @@ function testSignalLiftAndBackgroundRhythm() {
 
 
 function testProductionPlayerMovement() {
-  function makePlayer(w) { const p = new w.Player(1000, 774); p.isEntering = false; p.allowMovement = true; p.grounded = false; p.coyoteTimerMs = 0; p.velocity.y = 600; p.spriteReady = false; w.player = p; return p; }
+  function makePlayer(w) { const p = new w.Player(1000, 740); p.isEntering = false; p.allowMovement = true; p.grounded = false; p.coyoteTimerMs = 0; p.velocity.y = 600; p.spriteReady = false; w.player = p; return p; }
   let w = createHarness(); w.inputManager = { actionInput: { state: { jump: { held: true } } }, isKey: () => false };
   let p = makePlayer(w); assert.strictEqual(p.jump(), false, 'airborne jump stores buffer and does not double jump'); assert(p.jumpBufferTimerMs > 0, 'jump buffer stored'); p.update(40); assert(!p.grounded && p.velocity.y < 0, 'landing consumes jump buffer exactly once and immediately jumps'); const consumed = p.jumpBufferTimerMs; p.update(16); assert.strictEqual(consumed, 0, 'jump buffer consumed once');
   w = createHarness(); w.inputManager = { actionInput: { state: { jump: { held: true } } }, isKey: () => false }; p = makePlayer(w); p.jump(); p.update(200); assert(p.grounded, 'expired buffer lands without jumping');
-  w = createHarness(); w.inputManager = { actionInput: { state: { jump: { held: true } } }, isKey: () => false }; p = new w.Player(1000, 784); p.isEntering = false; p.allowMovement = true; p.grounded = false; p.coyoteTimerMs = 80; assert(p.jump(), 'coyote jump works inside window'); p = new w.Player(1000, 784); p.isEntering = false; p.allowMovement = true; p.grounded = false; p.coyoteTimerMs = 0; assert.strictEqual(p.jump(), false, 'coyote jump fails outside window');
-  function apex(heldProvider) { const h = createHarness(); h.inputManager = heldProvider; const q = new h.Player(1000, 784); q.isEntering = false; q.allowMovement = true; q.grounded = true; q.jump(); let minY = q.position.y; for (let i = 0; i < 90; i++) { q.update(1000 / 60); minY = Math.min(minY, q.position.y); } return 784 - minY; }
+  w = createHarness(); w.inputManager = { actionInput: { state: { jump: { held: true } } }, isKey: () => false }; p = new w.Player(1000, 750); p.isEntering = false; p.allowMovement = true; p.grounded = false; p.coyoteTimerMs = 80; assert(p.jump(), 'coyote jump works inside window'); p = new w.Player(1000, 750); p.isEntering = false; p.allowMovement = true; p.grounded = false; p.coyoteTimerMs = 0; assert.strictEqual(p.jump(), false, 'coyote jump fails outside window');
+  function apex(heldProvider) { const h = createHarness(); h.inputManager = heldProvider; const q = new h.Player(1000, 750); q.isEntering = false; q.allowMovement = true; q.grounded = true; q.jump(); let minY = q.position.y; for (let i = 0; i < 90; i++) { q.update(1000 / 60); minY = Math.min(minY, q.position.y); } return 750 - minY; }
   const keyboardTap = apex({ actionInput: { state: { jump: { held: false } } }, isKey: key => key === 'arrowup' ? false : false });
   const gamepadHold = apex({ actionInput: { state: { jump: { held: true } } }, isKey: () => false });
   assert(gamepadHold > keyboardTap + 120, 'gamepad and keyboard action-state release drive variable jump height');
   const reaches = [];
-  for (const fps of [30, 60, 120]) { const h = createHarness(); h.inputManager = { actionInput: { state: { jump: { held: true } } }, isKey: () => false }; const q = new h.Player(1000, 784); q.isEntering = false; q.allowMovement = true; q.grounded = true; q.moveRight(); q.jump(); for (let i = 0; i < fps; i++) q.update(1000 / fps); reaches.push(q.position.x); }
+  for (const fps of [30, 60, 120]) { const h = createHarness(); h.inputManager = { actionInput: { state: { jump: { held: true } } }, isKey: () => false }; const q = new h.Player(1000, 750); q.isEntering = false; q.allowMovement = true; q.grounded = true; q.moveRight(); q.jump(); for (let i = 0; i < fps; i++) q.update(1000 / fps); reaches.push(q.position.x); }
   approx(Math.max(...reaches) - Math.min(...reaches), 0, 30, 'production horizontal air control is frame-stable at 30/60/120 FPS');
 }
 

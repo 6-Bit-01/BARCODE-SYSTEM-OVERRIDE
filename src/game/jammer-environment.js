@@ -47,7 +47,7 @@ window.BARCODE = window.BARCODE || {};
     lastDamageSequence: null,
     disposed: false,
     generation: 0,
-    position: { x: 3400, y: (window.Player?.GROUND_Y ?? 784) },
+    position: { x: 3400, y: 750 },
     presentation: Object.freeze({ drawScale: 0.7, drawOffsetY: 72 }),
     sprite: null,
     animationRef: null,

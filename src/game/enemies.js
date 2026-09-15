@@ -12,8 +12,6 @@ window.FILE_MANIFEST.push({
 // ==========================================
 const ENEMY_CONTACT_PRESENTATION = {"virus_idle_idle":{"scale":0.26666666666666666,"anchorX":192,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308],"headRows":[36,36,36,36,36,36,39,39,39,39,39,39,36,39,36,33,33,33,36,36,36,36,39,39,39,39,36,36,36,36,33,36,35,36,36,36,39,39,39,39,36,36,36,36,33,33,36,36,36,36,36]},"corrupted_idle_idle":{"scale":0.39999999999999997,"anchorX":192,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308],"headRows":[66,66,66,60,60,63,63,63,63,66,62,64,60,57,60,60,57,57,60,60,60,57,57,57,53,47,45,48,44,45,45,42,42,38,40,39,39,39,42,42,39,39,38,36,36,36,33,33,33,60,60]},"corrupted_walk_walk":{"scale":0.39999999999999997,"anchorX":160,"anchorY":276,"footRows":[276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276,276],"headRows":[19,16,16,22,16,19,28,19,21,22,16,19,22,19,19,19,19,22,22,19,20,22,19,21,16,16,20,22,22,25,19,18,21,22,22,19,18,19,23,16,25,22,19,19,22,19]},"firewall_idle_idle":{"scale":0.7533333333333333,"anchorX":176,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308],"headRows":[72,72,72,48,47,40,36,42,39,36,39,39,36,48,42,36,36,36,42,39,39,36,45,39,45,42,39,33,36,39,36,36,36,39,42,36,39,34,45,39,39,42,45,42,36,39,39,39,36,43,39,39,36,43,39,36,39,48,48,72,72,72]},"firewall_walk_walk":{"scale":0.6666666666666666,"anchorX":160,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308],"headRows":[24,27,30,33,32,36,36,33,32,33,30,33,33,30,30,27,27,27,27,30,29,33,36,33,33,33,30,30,33,33,30,27,27]},"firewall_attack_default":{"scale":0.9066666666666667,"anchorX":176,"anchorY":244,"footRows":[244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244,244],"headRows":[45,44,44,47,47,53,53,53,56,65,68,74,80,80,83,83,82,83,82,83,83,83,83,83,82,83,72,62,62,65,80,80,80,80,80,80,80,80,80,80,80,80,80,80,79,80,77,74,44,44,44,47,47,46,53,53,52,55,64]}};
 
-const ENEMY_GROUND_Y = window.Player?.GROUND_Y ?? 784;
-
 window.Enemy = class Enemy {
   constructor(x, y, type = 'virus') {
     this.position = new window.Vector2D(x, y);
@@ -197,11 +195,10 @@ window.Enemy = class Enemy {
       this.entranceComplete = true;
       this.state = 'patrol';
       this.spawnTimeMs = this.simulationTimeMs;
-      this.isOnGround = this.position.y >= ENEMY_GROUND_Y;
+      this.isOnGround = this.position.y >= 750;
       if (this.type === 'firewall' && this.spriteReady) this.playAnimation('idle');
     } else {
       this.velocity.x = (dx / distance) * speed;
-      if (Math.abs(this.velocity.x) > 2) this.facing = Math.sign(this.velocity.x);
       this.velocity.y = (dy / distance) * speed;
       this.position.x += this.velocity.x * dt;
       this.position.y += this.velocity.y * dt;
@@ -214,7 +211,6 @@ window.Enemy = class Enemy {
     this.simulationTimeMs = Number.isFinite(simulationTimeMs) ? simulationTimeMs : (this.simulationTimeMs + deltaTime);
     this.pollSpriteReady();
 
-    this._barrierPreviousX = this.position.x;
     this.previousContactBox = this.getHitbox();
     this.previousStompBox = this.getStompBox();
     const dt = deltaTime / 1000;
@@ -232,20 +228,18 @@ window.Enemy = class Enemy {
     }
 
     // Track if enemy is on ground
-    const previousFootY = this.position.y + 72;
-    const previousX = this.position.x;
-    const supported = window.sector1Progression?.getStageSurfaces?.().find(p => p.id === this.supportedSurfaceId && this.position.x >= p.x && this.position.x <= p.x + p.w && Math.abs(previousFootY - p.y) < 3);
-    this.isOnGround = !!supported || this.position.y >= ENEMY_GROUND_Y;
+    this.isOnGround = this.position.y >= 750;
 
     // Gravity
-    if (!this.isOnGround) this.velocity.y += 600 * dt;
+    if (this.position.y < 750) {
+      if (this.type !== 'firewall' || this.position.y < 700) {
+         this.velocity.y += 600 * dt;
+      }
+    }
 
     // Update AI - Traffic Controller
     if (this._hijackIdle) this.velocity.x = 0;
     else this.updateAI(player, dt);
-    this.steerOnPlatforms(player, supported, dt);
-    if (!this.isOnGround && this.platformHopMs > 0) this.velocity.x = this.platformHopVX;
-    if (this.type === 'firewall' && Math.abs(this.velocity.x) > 2) this.facing = Math.sign(this.velocity.x);
 
     // Update Animation
     if (this.spriteReady && this.sprite) {
@@ -258,15 +252,13 @@ window.Enemy = class Enemy {
     // Physics Application
     this.position = this.position.add(this.velocity.multiply(dt));
 
-    this.landOnPlatforms(previousFootY, previousX);
-
     // Ground Clamping
     const worldLeft = this.width/2;
     const worldRight = 4096 - this.width/2;
     this.position.x = window.clamp(this.position.x, worldLeft, worldRight);
 
-    if (this.position.y >= ENEMY_GROUND_Y) {
-      this.position.y = ENEMY_GROUND_Y; this.supportedSurfaceId = null;
+    if (this.position.y >= 750) {
+      this.position.y = 750;
       if (this.type === 'firewall' || this.type === 'corrupted') {
           this.velocity.y = Math.min(0, this.velocity.y);
       } else {
@@ -280,38 +272,6 @@ window.Enemy = class Enemy {
         this.velocity.x *= Math.pow(0.98, dt * 60);
     } else if (this.type !== 'firewall') {
         this.velocity.x *= Math.pow(0.95, dt * 60);
-    }
-  }
-
-  landOnPlatforms(previousFootY, previousX) {
-    if (this.velocity.y < 0 || this.role === 'swooper') return;
-    let support = null;
-    const currentFootY = this.position.y + 72;
-    for (const p of window.sector1Progression?.getStageSurfaces?.() || []) {
-      if (previousFootY > p.y + 2 || currentFootY < p.y) continue;
-      const t = currentFootY > previousFootY ? Math.max(0, Math.min(1, (p.y - previousFootY) / (currentFootY - previousFootY))) : 1;
-      const x = previousX + (this.position.x - previousX) * t;
-      if (x < p.x + 10 || x > p.x + p.w - 10 || support && support.y < p.y) continue;
-      support = p;
-    }
-    this.supportedSurfaceId = support?.id || null;
-    if (support) { this.position.y = support.y - 72; this.velocity.y = 0; this.isOnGround = true; }
-  }
-
-  steerOnPlatforms(target, support, dt) {
-    if (this.role === 'swooper' || this.type === 'virus' || !this.entranceComplete || !target) return;
-    this.platformHopMs = Math.max(0, (this.platformHopMs || 0) - dt * 1000);
-    if (!this.isOnGround || this.combatPattern === 'attack' || this.behaviorState === 'lunging') return;
-    const foot = this.position.y + 72, targetFoot = target.position.y + 72;
-    if (targetFoot < foot - 90 && !this.platformHopMs) {
-      const candidates = (window.sector1Progression?.getStageSurfaces?.() || []).filter(p => p.y < foot - 20 && p.y >= foot - 265 && Math.abs((p.x + p.w / 2) - this.position.x) < 330);
-      candidates.sort((a,b) => Math.abs(a.x+a.w/2-target.position.x)-Math.abs(b.x+b.w/2-target.position.x));
-      const next = candidates[0];
-      if (next) { const x = Math.max(next.x + 25, Math.min(next.x + next.w - 25, target.position.x)); this.velocity.x = Math.max(-240, Math.min(240, (x - this.position.x) / 0.8)); this.velocity.y = -580; this.isOnGround = false; this.supportedSurfaceId = null; this.platformHopMs = 1400; this.platformHopVX = this.velocity.x; }
-    }
-    if (support && this.isOnGround && (targetFoot <= foot + 90 || Math.abs(target.position.x - this.position.x) > 240)) {
-      const nextX = this.position.x + this.velocity.x * dt;
-      if (nextX < support.x + 18 || nextX > support.x + support.w - 18) this.velocity.x = 0;
     }
   }
 
@@ -359,9 +319,9 @@ window.Enemy = class Enemy {
     const warningMs = firewall ? 950 : 650;
     this.combatPatternMs += dt * 1000;
     if (this.combatPattern === 'approach') {
-      if (Math.abs(dx) > 18) this.facing = Math.sign(dx);
-      this.velocity.x = Math.abs(dx) > 18 ? this.facing * (firewall ? 85 : 155) : 0;
-      if (this.isOnGround !== false && this.combatPatternMs >= 800 && Math.abs(dx) <= range && Math.abs(player.position.y - this.position.y) < 160) {
+      this.facing = dx >= 0 ? 1 : -1;
+      this.velocity.x = this.facing * (firewall ? 85 : 155);
+      if (this.combatPatternMs >= 800 && Math.abs(dx) <= range && Math.abs(player.position.y - this.position.y) < 160) {
         this.combatPattern = 'brace';
         this.combatPatternMs = 0;
         this.committedDirection = this.facing;
@@ -414,7 +374,7 @@ window.Enemy = class Enemy {
     } else if (this.type === 'firewall') {
         // FIX: ALWAYS spawn from right (off-screen)
         this.position.x = 4500;
-        this.position.y = ENEMY_GROUND_Y;
+        this.position.y = 750;
         this.velocity.x = -40; // Start moving left
         this.entranceComplete = true; // Firewalls always ready
         this.aiState = 'walking';
@@ -447,8 +407,8 @@ window.Enemy = class Enemy {
     this.position.x += this.velocity.x * dt;
     this.position.y += this.velocity.y * dt;
 
-    if (this.position.y >= ENEMY_GROUND_Y) {
-        this.position.y = ENEMY_GROUND_Y;
+    if (this.position.y >= 750) {
+        this.position.y = 750;
         this.velocity.y = 0;
         this.entranceComplete = true;
         this.state = 'patrol';
@@ -576,7 +536,7 @@ window.Enemy = class Enemy {
     const manager = window.enemyManager;
     const activeDive = manager && manager.enemies && manager.enemies.some(enemy => enemy !== this && enemy.active && enemy.role === 'swooper' && enemy.swooperState === 'dive');
     const playerFootY = player.position.y + (window.Player?.VISUAL_FOOT_OFFSET_Y || 72);
-    const targetSurfaceY = Math.max(-470, Math.min(ENEMY_GROUND_Y, playerFootY - 210));
+    const targetSurfaceY = Math.max(260, Math.min(750, playerFootY - 120));
     this.swooperTimerMs += dt * 1000;
     if (this.swooperState === 'none') {
       this.swooperState = 'approach';
@@ -610,14 +570,14 @@ window.Enemy = class Enemy {
         this.velocity.y = Math.max(160, Math.min(310, (aim.y - this.position.y) * 1.5));
       }
     } else if (this.swooperState === 'dive') {
-      if (this.swooperTimerMs >= 700 || this.position.y >= ENEMY_GROUND_Y) {
+      if (this.swooperTimerMs >= 700 || this.position.y >= 750) {
         this.swooperState = 'recovery';
         this.swooperTimerMs = 0;
         this.velocity.x *= 0.45;
         this.velocity.y = -180;
       }
     } else if (this.swooperState === 'recovery') {
-      this.velocity.x *= Math.pow(0.97, dt * 60);
+      this.velocity.x *= 0.97;
       this.velocity.y = Math.min(this.velocity.y + 500 * dt, 80);
       if (this.swooperTimerMs >= 900) {
         this.swooperState = 'approach';
@@ -632,8 +592,8 @@ window.Enemy = class Enemy {
     this.position.x += this.velocity.x * dt;
     this.position.y += this.velocity.y * dt;
 
-    if (this.position.y >= ENEMY_GROUND_Y) {
-      this.position.y = ENEMY_GROUND_Y;
+    if (this.position.y >= 750) {
+      this.position.y = 750;
       this.velocity.y = 0;
       this.velocity.x = 0;
       this.entranceComplete = true;
@@ -710,7 +670,7 @@ window.Enemy = class Enemy {
       console.log('🔥 Enhanced Firewall behavior initialized');
     }
 
-    this._aggressionLevel = Math.min(2.0, this._aggressionLevel + 0.0018 * dt);
+    this._aggressionLevel = Math.min(2.0, this._aggressionLevel + 0.00003);
 
     // Attack Logic
     if (distToPlayer <= this.proximityAttackRange && !this.isLunging && this.lungeCooldownSeconds <= 0) {
@@ -731,9 +691,11 @@ window.Enemy = class Enemy {
     switch(this.behaviorState) {
         case 'normal':
             const dx = player.position.x - this.position.x;
-            const walkSpeed = 70 * this._aggressionLevel;
-            this.velocity.x = Math.abs(dx) > 18 ? Math.sign(dx) * walkSpeed : 0;
-            if (Math.abs(this.velocity.x) > 2) this.facing = Math.sign(this.velocity.x);
+            const walkSpeed = (60 + Math.random() * 20) * this._aggressionLevel;
+            this.velocity.x = (dx > 0 ? 1 : -1) * walkSpeed;
+            this.position.x += this.velocity.x * dt;
+            this.position.y = 750;
+            this.facing = dx > 0 ? 1 : -1;
 
             if (this.spriteReady && this.sprite) {
                 const anim = this.sprite.getCurrentAnimation();
@@ -790,15 +752,15 @@ window.Enemy = class Enemy {
               this.velocity.x *= Math.pow(0.95, dt * 60); // Maintain forward momentum
             } else {
               // Post-glide deceleration
-              this.velocity.x *= Math.pow(0.85, dt * 60);
+              this.velocity.x *= 0.85;
             }
 
             // Gravity during attack
-            if (this.position.y < ENEMY_GROUND_Y) {
+            if (this.position.y < 750) {
               this.velocity.y += 400 * dt;
             } else {
               this.velocity.y = 0;
-              this.position.y = ENEMY_GROUND_Y;
+              this.position.y = 750;
             }
 
             if (this.spriteReady && this.sprite) {
@@ -847,7 +809,7 @@ window.Enemy = class Enemy {
     // Execute 80px glide
     const glideVelocity = this.glideDistance / this.glideDurationSeconds;
     this.velocity.x = glideVelocity * direction;
-    this.velocity.y = 0; // Grounded glide; the complete drawing owns the punch motion.
+    this.velocity.y = -50; // Small hop during glide
 
     // Play full attack animation
     if (this.spriteReady && this.sprite) {
@@ -867,15 +829,6 @@ window.Enemy = class Enemy {
 
   // --- ANIMATION CONTROLLER ---
   updateSpritePlayback(deltaTime) {
-    if (this.type === 'firewall' && this.currentAnimation === 'firewall_walk_walk') {
-      // A single complete sixteen-pose stride avoids the old mixed-cycle seam.
-      // Register its torso at draw time; never rebuild or split the accepted art.
-      this.walkPhaseMs = ((this.walkPhaseMs || 0) + deltaTime * Math.min(1.6, Math.abs(this.velocity.x) / 85)) % 1328;
-      const frame = Math.floor(this.walkPhaseMs / 83);
-      if (!this.animationRef || this.animationRef.currentFrame !== frame || this.animationRef.isInterrupted)
-        this.animationRef = this.sprite.play(this.currentAnimation, true, frame);
-      return;
-    }
     if (window.BARCODE?.SpritePlayback) window.BARCODE.SpritePlayback.update(this.sprite, deltaTime);
     else this.sprite.update(deltaTime);
   }
@@ -955,7 +908,7 @@ window.Enemy = class Enemy {
     if (!this.sprite || !this.animationRef || !this.combatPattern) return false;
     let frame = null;
     // The punch occupies the committed attack, then visibly returns to rest.
-    if (this.type === 'firewall' && (this.combatPattern === 'attack' || this.combatPattern === 'recovery') && this.currentAnimation === 'firewall_attack_default') {
+    if (this.type === 'firewall' && this.currentAnimation === 'firewall_attack_default') {
       frame = this.combatPattern === 'attack'
         ? Math.min(31, 5 + Math.floor(this.combatPatternMs / 800 * 26))
         : Math.min(58, 32 + Math.floor(this.combatPatternMs / 4100 * 26));
@@ -976,9 +929,7 @@ window.Enemy = class Enemy {
     const render = window.Player.prototype.getMakkoRenderMetrics.call(this, presentation, flipH);
     const index = Math.max(0, Math.floor(this.animationRef?.currentFrame || 0)) % presentation.footRows.length;
     const footRow = presentation.footRows[index];
-    const walkTorso = this.currentAnimation === 'firewall_walk_walk'
-      ? [-5.5, 2.3, 0.7, 1.8, -4.2, -11.1, -8, -9.7, -7.7, 12, -4.5, -11.8, -10.3, -14.5, -16.3, -4.9][index % 16] : 0;
-    return { x: this.position.x + render.flipSignX * (render.anchorOffsetX - render.sourceAnchorX * render.frameScale - walkTorso * render.frameScale),
+    return { x: this.position.x + render.flipSignX * (render.anchorOffsetX - render.sourceAnchorX * render.frameScale),
       y: this.position.y + 72 + render.anchorOffsetY - footRow * render.frameScale,
       scale: presentation.scale, flipH };
   }
@@ -1316,7 +1267,7 @@ window.EnemyManager = class EnemyManager {
       // Tutorial Freeze Logic
       if (enemy.type === 'virus' && tutorialWaiting && enemy.active) {
         if (enemy.state !== 'patrol') enemy.state = 'patrol';
-        if (enemy.position.y > ENEMY_GROUND_Y) enemy.position.y = ENEMY_GROUND_Y;
+        if (enemy.position.y > 750) enemy.position.y = 750;
         const playerRef = window.player;
         if (playerRef && enemy.entranceComplete) {
            enemy.velocity.x = Math.sin(this.hostileSimulationTimeMs / 1000 + enemy.phaseOffset) * 20;
@@ -1473,7 +1424,8 @@ window.EnemyManager = class EnemyManager {
   }
 
   checkCollisions(player) {
-    const sweep = player.controlsDisabled ? null : player.contactSweep;
+    if (player.controlsDisabled) { player.contactSweep = null; return; }
+    const sweep = player.contactSweep;
     player.contactSweep = null;
     let landing = null;
     if (sweep && sweep.currentFootY > sweep.previousFootY && player.velocity.y >= 0) {
@@ -1505,41 +1457,17 @@ window.EnemyManager = class EnemyManager {
       return;
     }
     for (const enemy of this.enemies) {
-      if (!enemy.active || enemy._authoredEntranceActive || enemy.isSpawnProtected?.()) { if (enemy.active) enemy._contactWasProtected = true; continue; }
-      if (enemy._contactWasProtected) { enemy._contactWasProtected = false; enemy._contactSafeUntilMs = this.getHostileClockNow() + 300; }
+      if (!enemy.active || this.isHijacked(enemy) || this.isRebooting(enemy) || enemy.isSpawnProtected?.()) continue;
+      // Query after each real hit/knockback; never use a cached pre-push box.
       if (!this.simpleAABBcollision(player.getHitbox(), enemy.getHitbox())) continue;
-      const previousX = sweep?.previousX ?? player.position.x;
-      const direction = Math.sign(previousX - enemy.position.x) || -player.facing || 1;
-      // Body clearance is independent of damage, allegiance and recovery.
-      // Horizontal resolution never creates an enemy platform or a fake stomp.
-      this.separatePlayerContact(player, enemy, direction);
-      if (this.isHijacked(enemy) || this.isRebooting(enemy) || this.getHostileClockNow() < (enemy._contactSafeUntilMs || 0)) continue;
       const now = this.getHostileClockNow();
-      if (player.controlsDisabled || now <= (player._enemyInvulnerableUntilMs || -Infinity)) continue;
+      if (player._enemyInvulnerableUntilMs && now <= player._enemyInvulnerableUntilMs) continue;
       if (Number.isFinite(enemy.lastPlayerHitTimeMs) && now - enemy.lastPlayerHitTimeMs <= 1500) continue;
       if (player.isDamageInvulnerable?.()) continue;
       if (window.hackingSystem?.absorbGuardHit?.()) { enemy.lastPlayerHitTimeMs = now; continue; }
+      const direction = Math.sign(player.position.x - enemy.position.x) || player.facing || 1;
       const damaged = player.takeDamageWithKnockback(enemy.damage, direction * 450, -300, enemy.position);
       if (damaged !== false) enemy.lastPlayerHitTimeMs = now;
-    }
-  }
-
-  separatePlayerContact(player, enemy, direction) {
-    const p = player.getHitbox(), e = enemy.getHitbox();
-    const shift = direction < 0 ? e.x - (p.x + p.width) - 2 : e.x + e.width - p.x + 2;
-    // Puzzle/recovery controls may be stationary. Move the intruder away then.
-    if (window.hackingSystem?.isActive?.() || player.controlsDisabled) {
-      enemy.position.x -= shift;
-    } else {
-      player.position.x += shift;
-      player.position.x = window.clamp(player.position.x, player.width / 2, 4096 - player.width / 2);
-      window.sector1Progression?.applyGateCollision?.();
-      const resolved = player.getHitbox();
-      if (this.simpleAABBcollision(resolved, enemy.getHitbox())) {
-        const remaining = direction < 0 ? e.x - (resolved.x + resolved.width) - 2 : e.x + e.width - resolved.x + 2;
-        enemy.position.x -= remaining;
-      }
-      if (player.velocity.x * direction < 0) player.velocity.x = 0;
     }
   }
 
@@ -1552,7 +1480,7 @@ window.EnemyManager = class EnemyManager {
     const pX = player?.position?.x || 960;
     let tooClose = 0;
     this.enemies.forEach(e => {
-        if (e.active && window.distance(e.position.x, e.position.y, pX, ENEMY_GROUND_Y) < 400) tooClose++;
+        if (e.active && window.distance(e.position.x, e.position.y, pX, 750) < 400) tooClose++;
     });
     return tooClose < 2;
   }
@@ -1649,7 +1577,7 @@ window.EnemyManager = class EnemyManager {
     }
   }
 
-  spawnEnemy() { this.spawnFlowEnemy(window.player || {position:{x:960,y:ENEMY_GROUND_Y}}); }
+  spawnEnemy() { this.spawnFlowEnemy(window.player || {position:{x:960,y:750}}); }
 
   spawnEnemyAt(x, y) {
     if (this.enemies.length >= this.maxEnemies) return;

@@ -67,7 +67,7 @@ for (const fps of [30, 60, 120]) {
   const { w, context, p } = createRig();
   load(context, 'src/game/hacking.js'); w.hackingSystem = new w.HackingSystem();
   const h = w.hackingSystem;
-  const target = new w.Enemy(1000, 784, 'virus'); target.entranceComplete = true; Object.assign(target.position, { x: 1000, y: 784 }); target.spawnTimeMs = -10000; target.spawnProtectionDuration = 0; w.enemyManager.enemies = [target];
+  const target = new w.Enemy(1000, 750, 'virus'); target.entranceComplete = true; Object.assign(target.position, { x: 1000, y: 750 }); target.spawnTimeMs = -10000; target.spawnProtectionDuration = 0; w.enemyManager.enemies = [target];
   const generation = w.BARCODE.MusicTransport.getDiagnostics().generation;
   assert(h.start()); assert(!w.rhythmSystem.isActive());
   h.puzzleType = 2; h.update(h.bootDurationMs);
