@@ -1,5 +1,12 @@
 # Recovery checkpoint — September 14
 
+## Wall sidewalk/street footprint — September 15, 2026
+
+- Record merged PR #53 at `685d13d4de1d56c8a39a82077460d894144bd091`; preserve its completed walk/hijack/repair work.
+- Extend the existing tall gate's translucent face forward across the sidewalk and road, with a bottom contour following the curb step, a near end/top and projected grid ribs.
+- Keep the entire footprint grounded during the existing opening/fade and expand visibility bounds to cover the foreground extension. Gate physics, progress, unlock timing and other gameplay are unchanged.
+- Supply a native before/after rendering and the focused Makko route; tests/CI and exact publication belong to the source receipt. Owner hosted review remains pending.
+
 ## Enemy hijack / repair route follow-up
 
 - The owner merged walk PR #52 during publication preparation. Verified main is `66c17d1880f5de933e9b928833e5dd2bfff6a817`, with the exact original walk tree. Preserve the tested hijack commit and publish this new draft directly against main; no implementation was lost or repeated. Makko acceptance remains pending.

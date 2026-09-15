@@ -1,5 +1,9 @@
 # Decision Register
 
+## September 15: extend the wall through the sidewalk and road
+
+The owner describes the tall barriers as almost good and requests their bottoms cover the sidewalk as walls rising across the entire road, rooftops and sidewalk. Their screenshot establishes the missing foreground footprint. This authorizes a focused drawing correction with the current perspective, curb step and tall design; it does not change gate placement, collision, unlock rules, health/hijack, traffic hazards or other mechanics. PR #53 is merged and retained; exact owner Makko acceptance of this correction remains pending.
+
 ## Latest decision — enemy hijack chosen
 
 The owner explicitly selected **Enemy hijack** as the replacement hacking reward. H slows enemies during its puzzle; do not conflate that assistance with the outcome. This selection supersedes the earlier unresolved H section and the assistant's assumed-stun direction. The first implementation uses one eight-second ordinary ally and preserves actual defeat credit; the previously agreed repair/rooftop scope provides replacement healing. Exact initial tuning and owner review are in `ENEMY_HIJACK_REPAIR_PASS.md`. Environmental terminals/cloud/traffic remain later ideas.
