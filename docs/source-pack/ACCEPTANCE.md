@@ -1,5 +1,21 @@
 # Acceptance and Test Status
 
+## Level 1 rebuild after reverted #55 — owner review pending
+
+Base/rollback: `6e3751ba1561d8694e0bdc9a623e74ac6a45624d`; branch `agent/level1-rebuild-reviewed`. Exact review head and PR are in the generated source receipt. Test this head before merging. The failed #55 was reverted; earlier pending-pass instructions below are historical.
+
+1. Import the exact PR head into a fresh Makko preview. Check cold asset loading, title and all intro scenes. Rapid Space/A presses must stop at the current scene; Enter/RB and the separate Next Scene button advance only when ready. Check pointer controls, deliberate S/B hold skip and gameplay handoff.
+2. Walk and reverse beside Firewall on both sides; watch several complete strides, attack/recovery and pause/resume. Test side contact during invulnerability, hacking and crowds beside gates/boxes. Bodies must separate; clean descending ordinary stomps must still defeat and rebound. Record any unexpected damage with health before/after.
+3. Inspect the shared sidewalk foot plane, shadows, lift boarding, Jammer and boss contact. Use the utility box and service steps; their top/side must match the scene. Inspect all four barrier mounts, sidewalk/curb/road footprint, player pressure, enemy passage, opening and dormant machinery.
+4. Climb the original route and the building crowns using the existing single jump. Check landings/reversals, selected parapet masking and camera ascent/descent/return to the boss. Ground guards must stay on their own surface. Collect the heart repair while hurt, verify a full-health cell stays available, and check the carrier drops once.
+5. Fight the new Cache and Tower drones: patrol stays near its own roof, lock/shot/recovery is readable, its attack is avoidable, stomp/rhythm damage counts once, and H conversion targets hostiles. Release/expiry must clear allied shots and give the normal reboot safety. Complete all twenty mission defeats and check the last-enemy direction hint.
+6. Watch warned foreground cars from both directions and at different roof heights. They must use the existing artwork. Confirm the 2.8-second direction/height warning, safe waiting space, a single damage event, and pause/hack recovery without an unseen incoming hit.
+7. Complete both H puzzles using keyboard, controller only, and mouse/touch keypad. Navigate/select/correct/submit/cancel; verify the original slowdown, eight-second ally, cooldown and tutorial locks. Check Objectives, recent dialogue/instant text, rhythm/Amp, audio, discoveries, sixteen-hit Jammer, boss win/loss/retry and full restart.
+
+Record imported SHA, PASS/FAIL and short clips showing (a) Firewall/contact/barrier, (b) roof masking/drone/car warning and hit, and (c) dialogue separation/controller keypad. Record browser/controller and repro steps for failures. Automated checks/native Canvas renders do not certify hosted art delivery, audio or game feel.
+
+**Normal post-merge deployment:** after owner acceptance and merge, read the actual new `main` merge SHA, import that exact revision into Makko and open a fresh preview. Repeat steps 1–7 and record the deployed SHA and the same focused evidence. Do not assume the review SHA is the merge SHA. If needed, re-import base `6e3751ba1561d8694e0bdc9a623e74ac6a45624d` to restore the reverted baseline. Further campaign/cloud work follows acceptance of this rebuild.
+
 ## Wall sidewalk/street footprint review
 
 Base/rollback: merged #53, `685d13d4de1d56c8a39a82077460d894144bd091`. Import the exact new PR head from its description/source receipt into a duplicate Makko project and start a fresh preview.

@@ -5,10 +5,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
 (function() {
   const WORLD_WIDTH = 4096;
   const CANVAS_WIDTH = 1920;
-  const GROUND_Y = 750;
-  // Player.position.y and boss.y retain the historical physics ground at 750.
-  // Their visible feet are authored 72px lower on the locked foreground
-  // (physics 750 -> sidewalk contact 822). Stage surfaces store visible-foot Y.
+  const GROUND_Y = window.Player.GROUND_Y;
+  // Shared street anchor; surfaces and parapets use visible-foot coordinates.
   const PLAYER_VISUAL_FOOT_OFFSET = window.Player.VISUAL_FOOT_OFFSET_Y;
   const CAMERA_MIN = CANVAS_WIDTH / 2;
   const CAMERA_MAX = WORLD_WIDTH - CANVAS_WIDTH / 2;
@@ -39,36 +37,51 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     { id: 'relay-rooftop', x: 2580, y: 196, w: 574, h: 8 },
     { id: 'tower-rooftop', x: 3154, y: 275, w: 609, h: 8 },
     { id: 'tower-awning', x: 3292, y: 502, w: 402, h: 8 },
-    { id: 'broadcast-awning', x: 3777, y: 502, w: 319, h: 8 }
+    { id: 'broadcast-awning', x: 3777, y: 502, w: 319, h: 8 },
+    { id: 'signal-roof', x: 704, y: 254, w: 618, h: 8, maskFeet: 10 },
+    { id: 'west-crown', x: 110, y: -200, w: 512, h: 8, maskFeet: 10 },
+    { id: 'cache-crown', x: 1370, y: -169, w: 518, h: 8, maskFeet: 9 },
+    { id: 'firewall-roof', x: 1915, y: 59, w: 620, h: 8, maskFeet: 9 },
+    { id: 'tower-crown', x: 3190, y: -314, w: 555, h: 8, maskFeet: 12 },
+    { id: 'broadcast-crown', x: 3785, y: -74, w: 311, h: 8, maskFeet: 10 }
   ]);
 
   const ENCOUNTER_GATES = Object.freeze([
-    { id: 'gate_1', encounterId: 'encounter_1', x: 1320, y: 202, w: 58, h: 620, depthX: 112, depthY: -54 },
-    { id: 'gate_2', encounterId: 'encounter_2', x: 2110, y: 202, w: 58, h: 620, depthX: 112, depthY: -54 },
-    { id: 'gate_3', encounterId: 'encounter_3', x: 3000, y: 202, w: 58, h: 620, depthX: 112, depthY: -54 },
-    { id: 'gate_4', encounterId: 'encounter_4', x: 4010, y: 202, w: 58, h: 620, depthX: 112, depthY: -54 }
+    { id: 'gate_1', encounterId: 'encounter_1', x: 1320, y: -1040, w: 58, h: 1896, depthX: 112, depthY: -54 },
+    { id: 'gate_2', encounterId: 'encounter_2', x: 2110, y: -1040, w: 58, h: 1896, depthX: 112, depthY: -54 },
+    { id: 'gate_3', encounterId: 'encounter_3', x: 3000, y: -1040, w: 58, h: 1896, depthX: 112, depthY: -54 },
+    { id: 'gate_4', encounterId: 'encounter_4', x: 4010, y: -1040, w: 58, h: 1896, depthX: 112, depthY: -54 }
   ]);
 
   const TRAVERSAL_PROPS = Object.freeze([
     { id: 'cache-maintenance-step', x: 1390, y: 410, w: 128, h: 14 },
-    { id: 'tower-utility-unit', x: 3150, y: 650, w: 160, h: 172 }
+    { id: 'tower-utility-unit', x: 3150, y: 650, w: 160, h: 206 },
+    { id: 'signal-high-step', x: 642, y: 10, w: 132, h: 18 },
+    { id: 'cache-high-step', x: 1400, y: 30, w: 136, h: 18 },
+    { id: 'firewall-utility-unit', x: 1940, y: 646, w: 158, h: 210 },
+    { id: 'firewall-low-step', x: 2130, y: 430, w: 148, h: 18 },
+    { id: 'firewall-high-step', x: 2330, y: 210, w: 136, h: 18 },
+    { id: 'tower-middle-step', x: 3260, y: 50, w: 136, h: 18 },
+    { id: 'tower-high-step', x: 3420, y: -140, w: 136, h: 18 },
+    { id: 'broadcast-utility-unit', x: 3800, y: 680, w: 152, h: 176 },
+    { id: 'broadcast-low-step', x: 3930, y: 280, w: 144, h: 18 },
+    { id: 'broadcast-high-step', x: 3820, y: 60, w: 144, h: 18 }
   ]);
   const REPAIRS = Object.freeze([
     { id: 'repair.signal-awning', x: 1080, y: 450, surfaceY: 492 },
-    { id: 'repair.tower-awning', x: 3480, y: 460, surfaceY: 502 }
+    { id: 'repair.tower-awning', x: 3600, y: -356, surfaceY: -314 }
   ]);
 
   function drawRepairCell(ctx, x, y, scale = 1) {
-    // A code-native cartridge shares the illustrated HUD's ink/paper/green.
     ctx.save(); ctx.translate(x, y); ctx.scale(scale, scale);
-    ctx.fillStyle = '#03070c'; ctx.fillRect(-24, -23, 49, 52);
-    ctx.fillStyle = '#24362c'; ctx.fillRect(-20, -25, 40, 48);
-    ctx.strokeStyle = '#eee8d6'; ctx.lineWidth = 2; ctx.strokeRect(-20, -25, 40, 48);
-    ctx.fillStyle = '#c0ed55'; ctx.fillRect(-16, -21, 32, 30);
-    ctx.fillStyle = '#0b1017'; ctx.fillRect(-12, -14, 24, 16);
-    ctx.fillStyle = '#eee8d6'; ctx.fillRect(-3, -18, 6, 24); ctx.fillRect(-11, -9, 22, 6);
-    ctx.fillStyle = '#c0ed55';
-    for (let i = 0; i < 9; i++) ctx.fillRect(-15 + i * 3.5, 13, i % 3 ? 1 : 2, 7);
+    ctx.lineJoin = 'round'; ctx.lineWidth = 5; ctx.strokeStyle = '#091014';
+    ctx.fillStyle = '#edf5e8'; ctx.beginPath();
+    ctx.moveTo(-26,-18); ctx.lineTo(-16,-29); ctx.lineTo(16,-29); ctx.lineTo(26,-18);
+    ctx.lineTo(26,21); ctx.lineTo(17,29); ctx.lineTo(-17,29); ctx.lineTo(-26,21); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle='#b7f16e';ctx.fillRect(-20,-20,40,40);
+    ctx.fillStyle='#163526';ctx.beginPath();ctx.moveTo(0,19);
+    ctx.bezierCurveTo(-32,-1,-13,-24,0,-10);ctx.bezierCurveTo(13,-24,32,-1,0,19);ctx.fill();
+    ctx.strokeStyle='#eaffea';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-12,-1);ctx.lineTo(-6,-1);ctx.lineTo(-2,-8);ctx.lineTo(3,7);ctx.lineTo(7,-1);ctx.lineTo(13,-1);ctx.stroke();
     ctx.restore();
   }
 
@@ -83,7 +96,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     closeZoom: 1.08,
     bossFrameX: 3136,
     bossStopX: 3480,
-    bossGroundY: 750,
+    bossGroundY: GROUND_Y,
     bossSpeed: 140
   });
   const SPAWN = Object.freeze({
@@ -174,6 +187,26 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     shouldSuppressGenericSpawning() { return true; }
     isBossCinematicActive() { return [STATES.FREEZE, STATES.ENEMY_PURGE, STATES.CAMERA_PAN, STATES.BOSS_WALK_IN, STATES.BOSS_CLOSE_UP, STATES.BOSS_FLOURISH, STATES.BOSS_HOLD, STATES.CAMERA_RETURN].includes(this.state); }
     isGameplaySuppressed() { return this.isBossCinematicActive() || this.state === STATES.LEVEL_COMPLETE; }
+    getCameraY() { return this.cameraY || 0; }
+    updateVerticalCamera(delta) {
+      if (!this.missionStarted) return;
+      const foot = this.player.position.y + PLAYER_VISUAL_FOOT_OFFSET;
+      const current = this.cameraY || 0;
+      let desired = current;
+      if (foot-current < 600) desired = foot-600;
+      else if (foot-current > 790) desired = foot-790;
+      if (this.player.grounded && !this.player.supportedSurfaceId) desired=0;
+      if (this.isGameplaySuppressed() || this.isBossCombatLive?.()) desired=0;
+      desired=Math.max(-1040,Math.min(0,desired));
+      this.cameraY=current+(desired-current)*(1-Math.exp(-Math.max(0,delta)/180));
+    }
+    clipRoofFeet(ctx, actor) {
+      const surface=this.getStageSurfaces().find(p=>p.id===actor.supportedSurfaceId && p.maskFeet);
+      if (!surface || !(actor.grounded || actor.isOnGround) || Math.abs(actor.position.y+72-surface.y)>2) return;
+      // Clip only the few pixels behind the existing painted parapet. Actors
+      // jumping or falling in front of the facade are never masked.
+      ctx.beginPath();ctx.rect(-2000,-2500,8200,surface.y-surface.maskFeet+2500);ctx.clip();
+    }
     getCameraX(fallback) { return this.cameraOverrideActive ? clampCamera(this.cameraX) : fallback; }
     getCinematicZoomOverride() { return Number.isFinite(this.cinematicZoomOverride) ? this.cinematicZoomOverride : null; }
     update(deltaTime = 0) {
@@ -181,6 +214,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       this.player = this.player || window.player;
       this.pollPreparedAssets();
       this.updateDistrictSignal(deltaTime);
+      this.updateVerticalCamera(deltaTime);
+      this.updateBarrierContacts(deltaTime);
       const tutorialDone = !!(window.tutorialSystem && typeof window.tutorialSystem.isCompleted === 'function' && window.tutorialSystem.isCompleted() && typeof window.tutorialSystem.isActive === 'function' && !window.tutorialSystem.isActive());
       if (this.state === STATES.TUTORIAL && tutorialDone && !this.missionStarted) {
         this.startMission();
@@ -213,6 +248,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     }
     startMission() { this.state = STATES.ENCOUNTER_1; this.missionStarted = true; this.missionDefeats = 0; this.resetDistrictSignal(); this.countedEnemies.clear(); this.spawnedEncounterIds.clear(); this.activeEncounterId = null; this.applyGateCollision(); this.resetSignalLift(); this.enemyManagerReset(); if (window.objectivesSystem?.setMissionDefeatObjective) window.objectivesSystem.setMissionDefeatObjective(0, this.requiredEnemyKills); }
     resetDistrictSignal() {
+      this.lastMissionDefeatAtMs = 0;
       this.districtSignal = { elapsedMs: 0, interference: 1,
         clearedAtMs: ENCOUNTERS.map(() => null), restoration: null };
     }
@@ -253,6 +289,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       const encounter = ENCOUNTERS[index];
       const started = this.spawnedEncounterIds.has(encounter.id);
       const defeated = started ? this.activeEncounterEnemies.filter(enemy => !enemy.active || enemy._defeatRecorded).length : 0;
+      let straggler = null;
+      if (defeated === encounterSpecs(encounter).length - 1 &&
+          this.districtSignal.elapsedMs - this.lastMissionDefeatAtMs >= 6000) {
+        const remaining = this.activeEncounterEnemies.find(e => e.active && !e._defeatRecorded);
+        if (remaining && this.player?.position) {
+          const dx = remaining.position.x - this.player.position.x;
+          const dy = remaining.position.y - this.player.position.y;
+          if (dy < -180) straggler = '↑ CHECK ROOFTOPS';
+          else if (dy > 180) straggler = '↓ CHECK BELOW';
+          else if (Math.abs(dx) > 500) straggler = dx < 0 ? '← LAST ENEMY' : 'LAST ENEMY →';
+        }
+      }
       const hints = [
         'Land on enemies or use R + Down on beat.',
         'Dodge the marked dive. Jump committed charges.',
@@ -260,7 +308,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         'Read the windups. Mix stomps and rhythm during recovery.'
       ];
       return { label: encounter.label, number: index + 1, total: ENCOUNTERS.length,
-        started, defeated, required: encounterSpecs(encounter).length, hint: hints[index] };
+        started, defeated, required: encounterSpecs(encounter).length, hint: hints[index], straggler };
     }
     updateEncounter(deltaTime = 0) { const index = ENCOUNTERS.findIndex(e => e.id === this.state); const def = ENCOUNTERS[index]; if (!def) return; const px = this.player?.position?.x || 0; if (!this.spawnedEncounterIds.has(def.id) && px >= def.triggerX) this.spawnEncounter(def); if (this.activeEncounterId === def.id) this.updateEncounterPackets(def, deltaTime); const noPendingSpawns = !this.pendingSpawns || this.pendingSpawns.length === 0; const allPacketsReleased = this.activeEncounterPacket >= ((def.packets?.length || 1) - 1); const allDefeated = this.activeEncounterEnemies.length === encounterSpecs(def).length && this.activeEncounterEnemies.every(e => !e.active || e._defeatRecorded); if (this.activeEncounterId === def.id && allPacketsReleased && noPendingSpawns && allDefeated) { this.openEncounterGate(def.id); if (index < ENCOUNTERS.length - 1) { this.state = ENCOUNTERS[index + 1].id; this.activeEncounterId = null; this.activeEncounterEnemies = []; this.closedGateEncounterId = null; this.prepareAssetsForEncounter(index + 1); } } }
     updateEncounterPackets(def, deltaTime = 0) { const packets = def.packets || [def.enemies || []]; if (this.activeEncounterPacket >= packets.length - 1) return; const survivors = this.activeEncounterEnemies.filter(e => e && e.active && !e._defeatRecorded).length; const noPendingSpawns = !this.pendingSpawns || this.pendingSpawns.length === 0; if (noPendingSpawns && survivors <= 1 && this.packetGraceMs === null) this.packetGraceMs = 900; if (this.packetGraceMs !== null) { this.packetGraceMs = Math.max(0, this.packetGraceMs - deltaTime); if (this.packetGraceMs <= 0) this.releaseNextPacket(def); } }
@@ -271,10 +319,66 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     getSpawnBodyHalfWidth(type) { if (type === 'firewall') return 135; if (type === 'corrupted') return 50; return 40; }
     planSpawn(spec = {}) { const bounds = this.getVisibleWorldBounds(); const bodyHalf = this.getSpawnBodyHalfWidth(spec.type); const playerX = this.player?.position?.x || bounds.center; const left = { x: Math.max(bodyHalf, bounds.left - SPAWN.offscreenPadding - bodyHalf), side: 'left' }; const right = { x: Math.min(WORLD_WIDTH - bodyHalf, bounds.right + SPAWN.offscreenPadding + bodyHalf), side: 'right' }; const outside = candidate => candidate.x + bodyHalf <= bounds.left - SPAWN.offscreenPadding || candidate.x - bodyHalf >= bounds.right + SPAWN.offscreenPadding; const farFromPlayer = candidate => Math.abs(candidate.x - playerX) >= SPAWN.playerExclusionRadius + bodyHalf; const candidates = [left, right].filter(outside).sort((a, b) => Math.abs(a.x - (spec.x || playerX)) - Math.abs(b.x - (spec.x || playerX))); const accepted = candidates.find(farFromPlayer) || candidates[0] || [left, right].sort((a, b) => Math.abs(b.x - playerX) - Math.abs(a.x - playerX))[0]; this.lastSpawnPlan = { bounds, candidates, accepted: { x: accepted.x, y: Number.isFinite(spec.y) ? spec.y : GROUND_Y, side: accepted.side }, playerX, exclusionRadius: SPAWN.playerExclusionRadius, bodyHalf }; return { x: accepted.x, y: Number.isFinite(spec.y) ? spec.y : GROUND_Y, side: accepted.side }; }
     planEntranceTarget(spec = {}, origin = {}, index = 0) { const bodyHalf = this.getSpawnBodyHalfWidth(spec.type); const playerX = this.player?.position?.x || CAMERA_MIN; const clearance = SPAWN.playerExclusionRadius + bodyHalf; const authoredX = Math.max(bodyHalf, Math.min(WORLD_WIDTH - bodyHalf, Number.isFinite(spec.x) ? spec.x : playerX)); const originSide = origin.side || (origin.x < playerX ? 'left' : 'right'); const side = originSide === 'left' ? -1 : 1; const authoredStaysOnApproachSide = side < 0 ? authoredX <= playerX - clearance : authoredX >= playerX + clearance; if (authoredStaysOnApproachSide) return { x: authoredX, y: Number.isFinite(spec.y) ? spec.y : GROUND_Y }; const spread = Math.min(180, Math.max(0, Number(index) || 0) * 45); let targetX = Math.max(bodyHalf, Math.min(WORLD_WIDTH - bodyHalf, playerX + side * (clearance + spread))); if (Math.abs(targetX - playerX) < clearance) targetX = Math.max(bodyHalf, Math.min(WORLD_WIDTH - bodyHalf, playerX - side * (clearance + spread))); return { x: targetX, y: Number.isFinite(spec.y) ? spec.y : GROUND_Y }; }
-    spawnMissionEnemy(spec, encounterId, index, options = {}) { const targetY = spec.type === 'virus' && Number.isFinite(spec.y) ? spec.y : GROUND_Y; const origin = options.origin || this.planSpawn({ ...spec, y: targetY }); if (!options.origin && encounterId === 'encounter_2' && spec.type === 'virus') origin.y = 330 - PLAYER_VISUAL_FOOT_OFFSET; const target = this.planEntranceTarget({ ...spec, y: targetY }, origin, index); const enemy = new window.Enemy(origin.x, origin.y, spec.type); /* Enemy constructors have legacy entrance code that rewrites some origins, so restore the authoritative planned origin after construction. */ enemy.position.x = origin.x; enemy.position.y = origin.y; enemy.originalSpawnX = origin.x; enemy.originalSpawnY = origin.y; enemy._dropEdge = null; enemy._sector1MissionEnemy = !options.jammerReinforcement && !options.tutorialEnemy; enemy._jammerReinforcement = !!options.jammerReinforcement; enemy._isTutorialEnemy = !!options.tutorialEnemy; enemy._sector1EncounterId = encounterId; enemy._sector1Index = index; enemy._repairCarrier = enemy._sector1MissionEnemy && encounterId === 'encounter_2' && index === 0 && spec.type === 'corrupted'; enemy.role = spec.role || null; if (enemy.role === 'swooper') { enemy.swooperState = 'approach'; enemy._dropEdge = null; } enemy._entranceTarget = target; enemy._authoredEntranceActive = true; enemy._authoredEntranceSpeed = SPAWN.entranceSpeed; enemy.entranceComplete = false; enemy.state = 'authored_entrance'; enemy.spawnTimeMs = 0; enemy.spawnProtectionDuration = SPAWN.protectionMs; enemy.velocity.x = enemy._entranceTarget.x >= origin.x ? SPAWN.entranceSpeed : -SPAWN.entranceSpeed; enemy.velocity.y = 0; if (window.enemyManager) window.enemyManager.enemies.push(enemy); return enemy; }
+    spawnMissionEnemy(spec, encounterId, index, options = {}) {
+      const guard = !options.jammerReinforcement && !options.tutorialEnemy ? ({
+        encounter_1: { index: 2, surface: 'signal-roof' },
+        encounter_2: { index: 4, surface: 'cache-crown', drone: true },
+        encounter_3: { index: 2, surface: 'relay-rooftop' },
+        encounter_4: { index: 5, surface: 'tower-crown', drone: true }
+      })[encounterId] : null;
+      const home = guard?.index === index ? this.getStageSurfaces().find(p => p.id === guard.surface) : null;
+      const drone = !!(home && guard.drone);
+      const targetY = home ? home.y - PLAYER_VISUAL_FOOT_OFFSET - (drone ? 110 : 0)
+        : spec.type === 'virus' && Number.isFinite(spec.y) ? spec.y : GROUND_Y;
+      const origin = options.origin || this.planSpawn({ ...spec, y: targetY });
+      if (!options.origin && encounterId === 'encounter_2' && spec.type === 'virus')
+        origin.y = 330 - PLAYER_VISUAL_FOOT_OFFSET;
+      const target = this.planEntranceTarget({ ...spec, y: targetY }, origin, index);
+      const enemy = drone ? new window.RooftopDrone(home.x + home.w / 2, targetY, home)
+        : new window.Enemy(origin.x, origin.y, spec.type);
+      // Restore the authored horizontal origin after legacy constructors, then
+      // put ground actors directly on their walking plane before the entrance.
+      enemy.position.x = origin.x;
+      enemy.position.y = spec.type === 'virus' ? origin.y : GROUND_Y;
+      enemy._dropEdge = null;
+      enemy._sector1MissionEnemy = !options.jammerReinforcement && !options.tutorialEnemy;
+      enemy._jammerReinforcement = !!options.jammerReinforcement;
+      enemy._isTutorialEnemy = !!options.tutorialEnemy;
+      enemy._sector1EncounterId = encounterId;
+      enemy._sector1Index = index;
+      enemy._repairCarrier = enemy._sector1MissionEnemy && encounterId === 'encounter_2' && index === 0 && spec.type === 'corrupted';
+      enemy.role = drone ? 'rooftop' : spec.role || null;
+      if (enemy.role === 'swooper') enemy.swooperState = 'approach';
+      enemy._entranceTarget = target;
+      if (spec.type !== 'virus') enemy._entranceTarget.y = GROUND_Y;
+      enemy._authoredEntranceActive = true;
+      enemy._authoredEntranceSpeed = SPAWN.entranceSpeed;
+      enemy.entranceComplete = false;
+      enemy.state = 'authored_entrance';
+      enemy.spawnTimeMs = 0;
+      enemy.spawnProtectionDuration = SPAWN.protectionMs;
+      enemy.velocity.x = enemy._entranceTarget.x >= origin.x ? SPAWN.entranceSpeed : -SPAWN.entranceSpeed;
+      enemy.velocity.y = 0;
+      if (home) {
+        enemy.position.x = home.x + home.w / 2;
+        enemy.position.y = targetY;
+        enemy._homeSurfaceId = home.id;
+        enemy.supportedSurfaceId = drone ? null : home.id;
+        enemy._authoredEntranceActive = false;
+        enemy.entranceComplete = true;
+        enemy.state = 'patrol';
+        enemy.spawnTimeMs = window.enemyManager?.hostileSimulationTimeMs || 0;
+        enemy.velocity.x = 0;
+        enemy.isOnGround = !drone;
+      }
+      enemy.originalSpawnX = enemy.position.x;
+      enemy.originalSpawnY = enemy.position.y;
+      if (window.enemyManager) window.enemyManager.enemies.push(enemy);
+      return enemy;
+    }
     spawnTutorialEnemy(index = 0) { this.player = this.player || window.player; if (!window.enemyManager || !window.Enemy) return null; const playerX = this.player?.position?.x || CAMERA_MIN; const side = Number(index) % 2 === 0 ? -1 : 1; const spec = { type: 'virus', x: playerX + side * (SPAWN.playerExclusionRadius + 120 + Number(index) * 45), y: GROUND_Y }; return this.spawnMissionEnemy(spec, 'tutorial', index, { tutorialEnemy: true }); }
     keepEntranceTargetSafe(enemy) { if (!enemy?._authoredEntranceActive || !enemy._entranceTarget || !this.player?.position) return; const bodyHalf = this.getSpawnBodyHalfWidth(enemy.type); const playerX = this.player.position.x; const clearance = SPAWN.playerExclusionRadius + bodyHalf; const side = enemy.position.x < playerX ? -1 : 1; const targetStaysOnApproachSide = side < 0 ? enemy._entranceTarget.x <= playerX - clearance : enemy._entranceTarget.x >= playerX + clearance; if (targetStaysOnApproachSide) return; const spread = Math.min(180, Math.max(0, Number(enemy._sector1Index) || 0) * 45); let targetX = Math.max(bodyHalf, Math.min(WORLD_WIDTH - bodyHalf, playerX + side * (clearance + spread))); if (Math.abs(targetX - playerX) < clearance) targetX = Math.max(bodyHalf, Math.min(WORLD_WIDTH - bodyHalf, playerX - side * (clearance + spread))); enemy._entranceTarget.x = targetX; }
-    onEnemyDefeated(authoritativeTotal, enemy) { if (!this.missionStarted || !enemy || !enemy._sector1MissionEnemy || this.countedEnemies.has(enemy)) return; this.countedEnemies.add(enemy); this.missionDefeats = Math.min(this.requiredEnemyKills, this.missionDefeats + 1); if (window.gameState) window.gameState.enemiesDefeated = this.missionDefeats; if (window.objectivesSystem?.updateMissionDefeatProgress) window.objectivesSystem.updateMissionDefeatProgress(this.missionDefeats, this.requiredEnemyKills); if (this.missionDefeats === this.requiredEnemyKills && !this.jammerRevealed) this.revealJammer(); }
+    onEnemyDefeated(authoritativeTotal, enemy) { if (!this.missionStarted || !enemy || !enemy._sector1MissionEnemy || this.countedEnemies.has(enemy)) return; this.countedEnemies.add(enemy); this.lastMissionDefeatAtMs = this.districtSignal.elapsedMs; this.missionDefeats = Math.min(this.requiredEnemyKills, this.missionDefeats + 1); if (window.gameState) window.gameState.enemiesDefeated = this.missionDefeats; if (window.objectivesSystem?.updateMissionDefeatProgress) window.objectivesSystem.updateMissionDefeatProgress(this.missionDefeats, this.requiredEnemyKills); if (this.missionDefeats === this.requiredEnemyKills && !this.jammerRevealed) this.revealJammer(); }
     chooseJammerPosition() {
       const px = this.player?.position?.x ?? 960;
       // Keep the entire attack position range clear of lift support. A player
@@ -664,7 +768,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     }
     canStompCounter() { return !!(this.boss?.canReceiveDamage && this.boss.stompArmed && this.boss.stompCycle !== this.boss.cycle); }
     draw(ctx) { this.drawStageSurfaces(ctx); this.drawRepairRoute(ctx); this.drawEncounterGates(ctx); this.drawBoss(ctx); }
-    drawStageSurfaces(ctx) { if (!ctx) return; this.drawSignalLift(ctx); this.drawSignalAmp(ctx); ctx.save(); STAGE_SURFACES.forEach(g => { ctx.shadowColor = '#00ffff'; ctx.shadowBlur = 8; ctx.fillStyle = 'rgba(0,255,255,0.34)'; ctx.fillRect(g.x, g.y - 2, g.w, g.h); ctx.shadowBlur = 0; ctx.strokeStyle = 'rgba(0,255,255,0.92)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(g.x, g.y); ctx.lineTo(g.x + g.w, g.y); ctx.stroke(); }); ctx.restore(); }
+    drawStageSurfaces(ctx) { if (!ctx) return; this.drawSignalLift(ctx); this.drawSignalAmp(ctx); }
     drawSignalLift(ctx) {
       if (!ctx || !this.signalLift || !this.isSignalLiftAvailable()) return;
       const lift = this.signalLift;
@@ -751,6 +855,35 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         return age < 650 ? [{ gate, progress: age / 650, opening: true }] : [];
       });
     }
+    touchBarrier(gate,y,kind='push') {
+      if (!gate) return;
+      const now=this.barrierClock||0;
+      if ((this.barrierContacts||[]).some(c=>c.id===gate.id&&c.kind===kind&&now-c.start<160)) return;
+      (this.barrierContacts||=[]).push({id:gate.id,y,kind,start:now});
+      this.barrierContacts=this.barrierContacts.slice(-10);
+    }
+    updateBarrierContacts(delta) {
+      this.barrierClock=(this.barrierClock||0)+Math.max(0,delta);
+      this.barrierContacts=(this.barrierContacts||[]).filter(c=>this.barrierClock-c.start<600);
+      const gate=this.getCurrentGate();if(!gate)return;
+      const player=this.player;
+      if(Math.abs(player.position.x-(gate.x-player.width/2))<5 && player.velocity.x>=0)
+        this.touchBarrier(gate,player.position.y,'push');
+      for(const enemy of window.enemyManager?.enemies||[])if(enemy.active&&Number.isFinite(enemy._barrierPreviousX)&&
+        (enemy._barrierPreviousX-gate.x)*(enemy.position.x-gate.x)<=0&&enemy._barrierPreviousX!==enemy.position.x)
+        this.touchBarrier(gate,enemy.position.y,'cross');
+    }
+    drawBarrierHardware(ctx,gate,opening,progress) {
+      const i=ENCOUNTER_GATES.indexOf(gate);
+      const mount={x:gate.x+gate.w+gate.depthX,y:[-20,160,330,130][i]};
+      const A=window.BARCODE?.PresentationAssets;
+      // Face rail endpoints are fitted to solid strips in each actual facade.
+      ctx.save();ctx.globalAlpha=1;
+      A?.draw('facadeEmitter',ctx,{x:mount.x,y:mount.y,width:54,height:138,frame:opening?0:1});
+      A?.draw('facadeEmitter',ctx,{x:mount.x,y:726,width:46,height:118,frame:opening?0:1});
+      A?.draw('floorEmitter',ctx,{x:gate.x+gate.w/2,y:854,width:108,height:81,frame:opening?0:1});
+      ctx.restore();
+    }
     drawEncounterGates(ctx) {
       if (!ctx) return;
       const fx = window.BARCODE?.combatFX;
@@ -782,7 +915,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         ctx.save(); ctx.globalAlpha = fade;
         // One continuous wall face spans the buildings, raised sidewalk,
         // vertical curb and lower road. Its opening sinks into that footprint.
-        ctx.fillStyle = opening ? 'rgba(98,255,221,0.08)' : 'rgba(174,66,215,0.12)';
+        ctx.fillStyle = opening ? 'rgba(98,255,221,0.05)' : 'rgba(174,66,215,0.065)';
         ctx.beginPath(); crown.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
         footprint.slice().reverse().forEach(([x, y]) => ctx.lineTo(x, y));
         ctx.closePath(); ctx.fill();
@@ -836,8 +969,19 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
             ctx.fillRect(gate.x + gate.w / 2 + side * progress * (20 + i * 4), top - progress * (i % 3) * 18, i % 3 ? 2 : 4, 9 * fade);
           }
         }
+        ctx.save();
+        ctx.beginPath();crown.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));
+        footprint.slice().reverse().forEach(([x,y])=>ctx.lineTo(x,y));ctx.closePath();ctx.clip();
+        for(const c of this.barrierContacts||[])if(c.id===gate.id){
+          const t=(this.barrierClock-c.start)/600;
+          ctx.globalAlpha=fade*(1-t)*0.75;ctx.strokeStyle=c.kind==='cross'?'#bdffd4':'#e3b9ff';ctx.lineWidth=2;
+          ctx.beginPath();ctx.ellipse(gate.x+gate.w/2,c.y,18+t*75,30+t*85,0,0,Math.PI*2);ctx.stroke();
+        }
+        ctx.restore();
+        this.drawBarrierHardware(ctx,gate,opening,progress);
         ctx.restore();
       }
+      ENCOUNTER_GATES.forEach((g,i)=>{if(this.districtSignal.clearedAtMs[i]!==null && this.districtSignal.elapsedMs-this.districtSignal.clearedAtMs[i]>=650)this.drawBarrierHardware(ctx,g,true,1);});
     }
     updateSignalAmp() {
       const player = this.player || window.player;
@@ -892,6 +1036,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (!ctx || !this.missionStarted) return;
       ctx.save(); ctx.shadowBlur = 0;
       for (const prop of TRAVERSAL_PROPS) {
+        const depth=prop.h>30?34:22, rise=prop.h>30?16:10;
+        ctx.fillStyle='rgba(0,0,0,0.3)';ctx.beginPath();ctx.moveTo(prop.x,prop.y+prop.h);ctx.lineTo(prop.x+prop.w+depth,prop.y+prop.h-rise);ctx.lineTo(prop.x+prop.w+depth+15,prop.y+prop.h+7);ctx.lineTo(prop.x+8,prop.y+prop.h+15);ctx.closePath();ctx.fill();
+        ctx.fillStyle='#405057';ctx.strokeStyle='#151e27';ctx.lineWidth=3;
+        ctx.beginPath();ctx.moveTo(prop.x,prop.y);ctx.lineTo(prop.x+depth,prop.y-rise);ctx.lineTo(prop.x+prop.w+depth,prop.y-rise);ctx.lineTo(prop.x+prop.w,prop.y);ctx.closePath();ctx.fill();ctx.stroke();
+        ctx.fillStyle='#18232d';ctx.beginPath();ctx.moveTo(prop.x+prop.w,prop.y);ctx.lineTo(prop.x+prop.w+depth,prop.y-rise);ctx.lineTo(prop.x+prop.w+depth,prop.y+prop.h-rise);ctx.lineTo(prop.x+prop.w,prop.y+prop.h);ctx.closePath();ctx.fill();ctx.stroke();
         ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fillRect(prop.x + 8, prop.y + 12, prop.w + 5, prop.h);
         ctx.fillStyle = '#0b1017'; ctx.fillRect(prop.x - 3, prop.y, prop.w + 6, prop.h);
         ctx.fillStyle = '#334046'; ctx.fillRect(prop.x + 4, prop.y + 6, prop.w - 8, prop.h - 6);
@@ -917,13 +1066,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
           ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fillRect(cell.x - 20, cell.surfaceY - 2, 40, 4);
           drawRepairCell(ctx, cell.x, cell.y + Math.sin(this.repairTimeMs / 480 + cell.x) * 3);
           ctx.fillStyle = '#eee8d6'; ctx.font = 'bold 15px Oxanium, monospace'; ctx.textAlign = 'center';
-          ctx.fillText('+1 REPAIR', cell.x, cell.y - 37);
+
         }
       }
       if (this.repairFeedback) {
         const f = this.repairFeedback, t = f.age / 900;
         ctx.globalAlpha = 1 - t; ctx.fillStyle = '#c0ed55'; ctx.font = 'bold 23px Oxanium, monospace'; ctx.textAlign = 'center';
-        ctx.fillText('+1 REPAIR', f.x, f.y - 30 - t * 45);
+        drawRepairCell(ctx,f.x,f.y-t*20,0.65*(1-t));
         for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; ctx.fillRect(f.x + Math.cos(a) * t * 66, f.y + Math.sin(a) * t * 46, 3, 9); }
       }
       ctx.restore();

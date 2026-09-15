@@ -233,7 +233,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/intro-sequence.js', exports: ['BAR
       }
       const complete = cueIndex >= cues[index].length - 1;
       const next = !complete ? 'Next line / caption' : index === panels.length - 1 ? 'Enter Dead Air District' : 'Next scene';
-      text(ctx, pad ? `A: ${next}` : `Space / Enter / Click: ${next}`, 48, 1030, 22, paper);
+      text(ctx, complete ? `${pad ? 'RB' : 'Enter'}: ${next}` : `${pad ? 'A' : 'Space'}: Dialogue`, 430, 1030, 22, paper);
       if (holding) {
         ctx.fillStyle = '#42284d'; ctx.fillRect(1340, 1015, 528, 9);
         ctx.fillStyle = pink; ctx.fillRect(1340, 1015, 528 * skipProgress, 9);

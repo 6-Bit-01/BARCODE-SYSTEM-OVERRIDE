@@ -1,5 +1,15 @@
 # Current State
 
+## Level 1 rebuild after reverted #55 — September 15, 2026
+
+The owner reverted failed PR #55 via #56. Verified base/rollback is `6e3751ba1561d8694e0bdc9a623e74ac6a45624d`, whose tree preserves #54. Current branch is `agent/level1-rebuild-reviewed`. The owner approved the revised plan before implementation; the complete scope and tuning are in `LEVEL_01_REBUILD_PASS.md`. This is a fresh review over the reverted base, selectively retaining the approved cutscene/input improvements rather than restoring the failed pass.
+
+Installed: fair protected-contact separation; steady registered Firewall travel; feet at sidewalk y=856; text-free heart repairs; clearer objectives and shared hack keypad; six additional colliders on actual building crowns with foot masking; ten additional service supports alongside the two existing props; two new illustrated drones within the existing twenty-enemy quota; generated facade/floor emitter hardware on the retained street-spanning barrier geometry; and warned traffic using the existing three car drawings. Ground guards do not navigate upward. Original seven surfaces and single-jump physics remain; the renderer no longer paints blue lines across roofs.
+
+New images are pinned to verified asset ancestor `a155d4283a12df4dd7ea0f8cb9eb0bf985644fa8` (three WebP atlases, 543,482 bytes total). Existing car atlas URLs use immutable base `6e3751ba1561d8694e0bdc9a623e74ac6a45624d` with the existing image fallback. Missing car art does not create a hazard or substitute drawing. The bounded new drone uses the existing simulation, damage, defeat and hijack owners.
+
+Focused production checks exercise 75 climbs at 30/60/120 FPS, protected contact, grounded guards, bounded drone flight/conversion/projectiles, actual-image car fallback, warnings/damage/recovery and roof masking. Required full-suite/syntax and remote CI outcomes belong to the exact PR/receipt. Native review footage uses production drawing with host adapters; it is not a browser/Makko playtest. Owner Makko visual, control, audio and gameplay acceptance is still pending. Earlier current-state entries are history.
+
 ## Wall footprint correction — September 15, 2026
 
 PR #53 is merged. Base/rollback is `685d13d4de1d56c8a39a82077460d894144bd091`; current branch is `agent/barrier-street-footprint`. The owner sees the tall barriers but reports that their flat bottoms leave the sidewalk looking passable. The wall renderer now spans forward along the existing perspective, follows the raised sidewalk, steps down the curb and reaches beyond the street artwork. Its near end/top retain slab thickness; projected ribs and the footprint share the existing collapse/fade clock, with culling expanded for the full wall.

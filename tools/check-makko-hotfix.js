@@ -89,7 +89,7 @@ function blockFrom(text, startNeedle, endNeedle) {
   assert(ships.includes('if (window.BARCODE.assetLoadPromises[assetId]) return window.BARCODE.assetLoadPromises[assetId]'), 'ship image loads must reuse in-flight promise');
   assert(ships.includes('chooseShipTypeForSpawn()'), 'ship spawn must centralize ready/fallback selection');
   assert(ships.includes('return Math.floor(Math.random() * this.shipImages.length)'), 'ship fallback must still choose a valid fallback-rendered ship type');
-  assert(ships.includes('// Draw fallback ship (rectangle with details)'), 'ship fallback drawing path must remain present');
+  assert(!ships.includes('// Draw fallback ship (rectangle with details)'), 'Missing vehicle art must never create substitute cars');
   assert(!ships.includes('Ship spawn skipped until optional ship imagery is ready'), 'normal ship creation must not be skipped while GIFs load');
   assert(!ships.includes('Foreground ship spawn skipped until optional ship imagery is ready'), 'foreground ship creation must not be skipped while GIFs load');
 })();

@@ -31,6 +31,7 @@ const PLAYER_ANIMATION_PRESENTATION = Object.freeze({"idle":{"animation":"6_bit_
 
 window.Player = class Player {
   static get VISUAL_FOOT_OFFSET_Y() { return PLAYER_VISUAL_FOOT_OFFSET_Y; }
+  static get GROUND_Y() { return 784; } // Feet at 856: middle of the painted sidewalk.
 
   constructor(x, y) {
     this.position = new window.Vector2D(x, y);
@@ -174,13 +175,13 @@ window.Player = class Player {
         landedOnStageSurface = window.sector1Progression.applyPlayerStageCollision(this, { previousFootY, currentFootY: this.position.y, previousX });
       }
 
-      // Ground collision uses the established physics-ground anchor at y=750.
+      // One shared street anchor keeps feet, support and shadows together.
       // A dynamic stage surface may share the historical physics-ground
       // anchor (the Signal Lift does at its bottom stop). Once that surface
       // has accepted the landing it owns support for this frame; generic
       // ground must not immediately erase it.
-      if (!landedOnStageSurface && this.position.y >= 750) {
-        this.position.y = 750;
+      if (!landedOnStageSurface && this.position.y >= window.Player.GROUND_Y) {
+        this.position.y = window.Player.GROUND_Y;
         this.velocity.y = 0;
         this.grounded = true;
         this.supportedSurfaceId = null;
@@ -209,7 +210,7 @@ window.Player = class Player {
       const worldLeft = this.width/2;
       const worldRight = 4096 - this.width/2;
       this.position.x = window.clamp?.(this.position.x, worldLeft, worldRight) || this.position.x;
-      this.position.y = window.clamp?.(this.position.y, 0, 1080 - this.height/2) || this.position.y;
+      this.position.y = window.clamp?.(this.position.y, -700, 1080 - this.height/2) ?? this.position.y;
       this.contactSweep.currentX = this.position.x;
       this.contactSweep.currentFootY = this.position.y + PLAYER_VISUAL_FOOT_OFFSET_Y;
       
@@ -1338,7 +1339,7 @@ window.Player = class Player {
     const surfaces = [...(window.sector1Progression?.getStageSurfaces?.() || window.Sector1Progression?.STAGE_SURFACES || [])];
     const progression = window.sector1Progression;
     if (progression?.isSignalLiftAvailable?.() && progression.signalLift) surfaces.push(progression.signalLift);
-    let groundY = 750 + PLAYER_VISUAL_FOOT_OFFSET_Y;
+    let groundY = window.Player.GROUND_Y + PLAYER_VISUAL_FOOT_OFFSET_Y;
     for (const surface of surfaces) {
       if (this.position.x >= surface.x && this.position.x <= surface.x + surface.w && surface.y >= footY - 2) groundY = Math.min(groundY, surface.y);
     }
@@ -1385,6 +1386,8 @@ window.Player = class Player {
         alpha: (this.afterimageMs / 220) * (distance === 24 ? 0.09 : 0.17), debug: false
       });
     }
+    ctx.save();
+    window.sector1Progression?.clipRoofFeet?.(ctx, this);
     this.sprite.draw(ctx, drawX, drawY, {
       scale: visualAnchor.scale,
       flipH: shouldFlip, // Animation-specific flipping logic
@@ -1392,6 +1395,7 @@ window.Player = class Player {
       alpha: this.getInvincibilityAlpha(), // Dynamic alpha based on invincibility type
       debug: false // Set to true to see hitbox/anchor
     });
+    ctx.restore();
     
     // Draw wind effects (behind character)
     this.drawWindEffects(ctx);

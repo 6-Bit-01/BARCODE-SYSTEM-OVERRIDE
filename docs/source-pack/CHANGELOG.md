@@ -1,5 +1,16 @@
 # Recovery checkpoint — September 14
 
+## Level 1 rebuild after reverted #55 — September 15, 2026
+
+- Base `6e3751ba1561d8694e0bdc9a623e74ac6a45624d` retains merged #54 after the rejected pass was reverted. Record the owner's renewed approval and explicit rejected choices.
+- Separate dialogue from scene advancement across keyboard/controller/pointer; retain intentional full-intro skip and input handoff guards. Add the shared hacking keypad, quieter tutorial guidance, Objectives heading, instant text and recent dialogue in pause.
+- Separate enemy bodies during recovery/hacking; remove double/random Firewall travel and vertical crowd steering; register its existing walking drawings and tie facing to movement. Move the shared sidewalk foot plane to y=856.
+- Make repairs a heart capsule with visual/sound/HUD feedback and no floating pickup/collection label. Render utility props with top, side, thickness and shadows.
+- Add real building-top routes, selected parapet foot masks, vertical camera and grounded guards. Add a distinct illustrated rooftop drone with bounded patrol, warning, shot, recovery, normal defeat credit and H allegiance.
+- Install illustrated building/floor barrier emitters while preserving the #54 sidewalk/street footprint. Add bounded local contact/passage ripples and power-down hardware.
+- Use the existing three car artworks for warned foreground hazards; retain atlas and image paths, remove substitute-car drawing, add one-hit protection and pause/hack/reset ownership.
+- Update meaningful regression contracts for the intentional ground/roof/input changes and add 75 actual-physics route checks. Regenerate the inventory only for this scoped code/asset/tool change. Exact tests/CI/PR are in the generated receipt; owner Makko acceptance remains pending.
+
 ## Wall sidewalk/street footprint — September 15, 2026
 
 - Record merged PR #53 at `685d13d4de1d56c8a39a82077460d894144bd091`; preserve its completed walk/hijack/repair work.

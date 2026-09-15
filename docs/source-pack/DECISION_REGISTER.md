@@ -1,5 +1,13 @@
 # Decision Register
 
+## September 15: approved rebuild after owner rejection and revert
+
+The owner says #55 was useless apart from its cutscene button changes, reports that it was reverted, and requires a plan before further work. The subsequent revised plan was explicitly approved by “Ok lets proceed.” Base is `6e3751ba1561d8694e0bdc9a623e74ac6a45624d`; the new scope is `LEVEL_01_REBUILD_PASS.md`.
+
+Required corrections: health uses a clear heart silhouette without floating text; barrier machinery must be actual assets, including building-mounted emitters; utility boxes need a perspective top/side; walking belongs in the middle of the sidewalk; Firewall backward walking/jitter and unfair body overlap must be fixed. Rooftop play uses the painted building tops without blue platform lines; selected parapets hide a small part of grounded feet. Ground enemies must not float or automatically hop toward the player. Foreground hazards use existing car artwork. The approved rebuild includes a new dedicated rooftop security drone with its own illustrated states and bounded flight, plus the agreed dialogue, Objectives and keyboard/controller/pointer hacking changes.
+
+Keep H's puzzle slowdown and eight-second hijack, ordinary lethal stomps, original single jump, mission quota, Jammer/boss and existing music/art. A cloud secret and full mobile movement controls are outside this rebuild. The new drone's art and tuning remain subject to owner Makko acceptance; do not misrepresent implementation approval as playtest approval.
+
 ## September 15: extend the wall through the sidewalk and road
 
 The owner describes the tall barriers as almost good and requests their bottoms cover the sidewalk as walls rising across the entire road, rooftops and sidewalk. Their screenshot establishes the missing foreground footprint. This authorizes a focused drawing correction with the current perspective, curb step and tall design; it does not change gate placement, collision, unlock rules, health/hijack, traffic hazards or other mechanics. PR #53 is merged and retained; exact owner Makko acceptance of this correction remains pending.

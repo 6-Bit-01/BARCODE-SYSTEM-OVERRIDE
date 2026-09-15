@@ -73,7 +73,7 @@ function createRig() {
   load(context, 'src/game/sector1-progression.js');
   load(context, 'src/game/player-combat.js');
   load(context, 'src/game/update-coordinator.js');
-  w.player = new w.Player(900, 750);
+  w.player = new w.Player(900, 784);
   w.player.isEntering = false;
   w.player.grounded = true;
   w.enemyManager = new w.EnemyManager();
@@ -108,6 +108,7 @@ function createRig() {
     assert.strictEqual(p.state, 'jammer_active');
     const jammer = w.BARCODE.JammerEnvironment;
     w.player.position.x = jammer.getStatus().position.x - 150;
+    w.player.position.y = w.Player.GROUND_Y; w.player.grounded = true;
     w.gameCamera.centerX = w.clamp(w.player.position.x, 960, 3136);
     for (let i = 0; i < 16; i++) {
       const hit = beat();
@@ -147,7 +148,7 @@ function reachRecovery(rig) {
   const protection = w.player.invulnerableUntil;
   w.player.invulnerableUntil = Infinity;
   w.player.position.x = p.boss.x - 150;
-  w.player.position.y = 750;
+  w.player.position.y = 784;
   until(() => p.state === 'boss_combat' && p.boss.phase === 'recovery', 'boss opens its counter window');
   w.player.invulnerableUntil = protection;
   w.rhythmSystem.show();
@@ -161,7 +162,7 @@ async function main() {
     assert.match(combat.getFeedback().text, /EARLY|LATE/, 'timing failure explains timing rather than target contact');
     beat();
     assert.match(combat.getFeedback().text, /MOVE CLOSER/, 'perfect timing without a target never claims damage');
-    const enemy = new w.Enemy(1000, 750, 'firewall');
+    const enemy = new w.Enemy(1000, 784, 'firewall');
     enemy.position.x = w.player.position.x + 100;
     enemy.position.y = w.player.position.y;
     enemy.health = 100;
@@ -179,7 +180,7 @@ async function main() {
     p.startMission();
     const lift = w.Sector1Progression.SIGNAL_LIFT;
     w.player.position.x = lift.x + lift.w / 2;
-    w.player.position.y = 750;
+    w.player.position.y = 784;
     w.player.grounded = true;
     w.player.supportedSurfaceId = lift.id;
     beat();
@@ -196,9 +197,9 @@ async function main() {
       ['firewall', ['firewall_idle_idle', 'firewall_walk_walk', 'firewall_attack_default'], 0.08]
     ]) {
       for (const animation of animations) for (const facing of [-1, 1]) {
-        const enemy = new w.Enemy(1500, 750, type);
+        const enemy = new w.Enemy(1500, 784, type);
         enemy.position.x = 1500;
-        enemy.position.y = 750;
+        enemy.position.y = 784;
         enemy.facing = facing;
         enemy.currentAnimation = animation;
         enemy.spriteReady = true;
@@ -223,7 +224,7 @@ async function main() {
   {
     const { w, p } = createRig();
     const env = w.BARCODE.JammerEnvironment;
-    env.reveal({ position: { x: 1550, y: 750 } });
+    env.reveal({ position: { x: 1550, y: 784 } });
     const stages = [env.getStatus().stage.index];
     let hits = 0;
     w.particleSystem.impact = () => { hits++; };
@@ -258,7 +259,7 @@ async function main() {
     assert(texts.some(text => String(text).includes('Land on enemies')), 'each active encounter offers its matching play hint');
     p.state = 'jammer_active';
     objectives.revealJammerObjective();
-    w.BARCODE.JammerEnvironment.reveal({ position: { x: 1550, y: 750 } });
+    w.BARCODE.JammerEnvironment.reveal({ position: { x: 1550, y: 784 } });
     w.BARCODE.JammerEnvironment.applyRhythmDamage({ timing: 'perfect', sequence: 1 });
     texts.length = 0;
     objectives.draw(ctx);
@@ -273,7 +274,7 @@ async function main() {
     w.tutorialSystem.completed = false;
     const gate = w.Sector1Progression.ENCOUNTER_GATES[0];
     assert.strictEqual(p.getCurrentGate().id, gate.id, 'opening boundary exists before the tutorial ends');
-    for (const y of [750, 200]) {
+    for (const y of [784, 200]) {
       w.player.position.x = gate.x - w.player.width / 2 - 5;
       w.player.position.y = y;
       w.player.velocity.x = 300;
@@ -312,7 +313,7 @@ async function main() {
         assert.strictEqual(jammer.x < 2048, px >= 2048, 'Jammer stays in the opposite map half');
         for (const playerX of [lift.x - 17, lift.x + lift.w + 17]) {
           w.player.position.x = playerX;
-          w.player.position.y = 750;
+          w.player.position.y = 784;
           w.player.grounded = true;
           w.player.supportedSurfaceId = lift.id;
           p.resetSignalLift();
@@ -553,7 +554,7 @@ async function main() {
     const lifecycle = w.BARCODE.RuntimeLifecycle;
     assert.strictEqual((await lifecycle.start()).ok, true, 'real lifecycle starts the run');
     w.player.isEntering = false;
-    w.player.position.y = 750;
+    w.player.position.y = 784;
     w.rhythmSystem.show();
     w.gameState.score = 150;
     rig.reachReady(); reachRecovery(rig);
@@ -586,7 +587,7 @@ async function main() {
     assert.strictEqual(lifecycle.getSnapshot().generation, runtime.generation, 'boss retry preserves lifecycle generation');
     assert.strictEqual(w.player.health, w.player.maxHealth);
     assert.strictEqual(w.player.position.x, checkpoint.playerX);
-    assert.strictEqual(w.player.position.y, 750, 'retry restores a safe street-level starting position');
+    assert.strictEqual(w.player.position.y, 784, 'retry restores a safe street-level starting position');
     assert.strictEqual(w.player.grounded, true);
     assert.strictEqual(w.player.controlsDisabled, false);
     assert.strictEqual(w.gameState.score, checkpoint.score);
@@ -775,8 +776,8 @@ async function main() {
 
   for (const type of ['corrupted', 'firewall']) {
     const { w, calls } = createRig();
-    const enemy = new w.Enemy(1400, 750, type);
-    enemy.position.x = 1400; enemy.position.y = 750; enemy.entranceComplete = true;
+    const enemy = new w.Enemy(1400, 784, type);
+    enemy.position.x = 1400; enemy.position.y = 784; enemy.entranceComplete = true;
     enemy._sector1MissionEnemy = true; enemy.spriteReady = false;
     w.player.position.x = 1600;
     for (let i = 0; i < 60 && enemy.combatPattern !== 'brace'; i++) enemy.update(1000 / 60, w.player);
@@ -799,8 +800,8 @@ async function main() {
 
   {
     const { w } = createRig();
-    const e = new w.Enemy(500, 700, 'virus');
-    e.position.x = 500; e.position.y = 700; e.entranceComplete = true;
+    const e = new w.Enemy(500, 646, 'virus');
+    e.position.x = 500; e.position.y = 646; e.entranceComplete = true;
     e.role = 'swooper'; e.swooperState = 'approach'; e._sector1MissionEnemy = true;
     w.enemyManager.enemies = [e]; w.player.position.x = 900;
     for (let i = 0; i < 60 && e.swooperState !== 'telegraph'; i++) e.updateSwooperBehavior(1 / 60, w.player);
@@ -815,7 +816,7 @@ async function main() {
     const rig = createRig(); const { w, p, tick } = rig;
     rig.reachReady(); p.beginBossCombat();
     p.boss.health = 6; p.boss.cycle = 1; p.setBossCombatPhase('telegraph');
-    w.player.position.x = p.boss.x - 230; w.player.position.y = 750;
+    w.player.position.x = p.boss.x - 230; w.player.position.y = 784;
     w.player.grounded = true; w.player.allowMovement = true; w.player.invulnerableUntil = 0;
     w.inputManager = { actionInput: { state: { jump: { held: true } } }, isKey: () => false };
     rig.until(() => p.boss.phase === 'sweep', 'double pulse begins');

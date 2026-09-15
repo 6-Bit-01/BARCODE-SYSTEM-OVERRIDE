@@ -42,6 +42,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
     this.shipImages = [null, null, null]; // Array for multiple ship types
     this.shipSheets = [null, null, null];
     this.elapsedMs = 0;
+    this.hazards = []; this.hazardWaitMs = 6000; this.hazardSerial = 0;
     this.imagesLoaded = [false, false, false];
     this.lastSpawnTime = 0;
     this.spawnInterval = 4000; // Spawn ships every 4 seconds (more reasonable rate)
@@ -75,10 +76,12 @@ window.SpaceShipSystem = class SpaceShipSystem {
     this.lastSpawnTime = 0;
     this.disposed = false;
     this.elapsedMs = 0;
+    this.hazards = []; this.hazardWaitMs = 6000; this.hazardSerial = 0;
   }
 
   dispose() {
     this.disposed = true;
+    this.hazards = [];
     this.clearPendingSpawnTimeouts();
     this.ships = [];
   }
@@ -99,7 +102,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
     shipUrls.forEach((url, index) => {
       const sheet = window.BARCODE.trafficSheets?.[index];
       const loadOriginal = () => loadSharedImageAsset(`image.level-01.ship-${index + 1}`, url).then(image => ({ image, sheet: null }));
-      const loading = sheet ? loadSharedImageAsset(`image.level-01.ship-${index + 1}.atlas.${sheet.atlasSHA256}`, sheet.image)
+      const loading = sheet ? loadSharedImageAsset(`image.level-01.ship-${index + 1}.atlas.${sheet.atlasSHA256}`, 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/6e3751ba1561d8694e0bdc9a623e74ac6a45624d/' + sheet.image)
         .then(image => ({ image, sheet })).catch(loadOriginal) : loadOriginal();
       loading.then(({ image: img, sheet: loadedSheet }) => {
         if (this.disposed) return;
@@ -146,6 +149,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
   // Spawn a new space ship
   spawnShip() {
     const currentTime = Date.now();
+    if (!this.getReadyShipTypes().length) return;
 
     // Check if it's time to spawn a new ship
     if (currentTime - this.lastSpawnTime < this.spawnInterval) {
@@ -153,7 +157,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
     }
 
     // CRITICAL: Occasionally spawn a foreground ship (15% chance)
-    const isForegroundShip = Math.random() < 0.15; // 15% chance
+    const isForegroundShip = false; // Foreground scheduling uses the world-space warning clock below. // 15% chance
 
     // Play whoosh sound 3 seconds BEFORE spawning foreground ship
     if (isForegroundShip) {
@@ -259,6 +263,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
     const elapsed = Math.max(0, Number(deltaTime) || 0);
     const dt = elapsed / 1000;
     this.elapsedMs += elapsed;
+    this.updateHazards(elapsed);
 
     // Spawn new ships periodically
     this.spawnShip();
@@ -286,66 +291,71 @@ window.SpaceShipSystem = class SpaceShipSystem {
 
   // Create a foreground ship (larger, faster, appears in front)
   createForegroundShip() {
-    // Foreground ship properties - much larger and faster
-    const depth = 1.2; // Beyond normal range (will render in front of FG)
-    const sizeMultiplier = 2.5; // 2.5x larger than normal
-    const speedMultiplier = 4.0; // 4x faster than normal (even faster)
+    if(this.hazards.length || !this.getReadyShipTypes().length)return null;
+    const player=window.player;if(!player)return null;
+    const lanes=[770,408,164,-258,-410];
+    const foot=player.position.y+(window.Player?.VISUAL_FOOT_OFFSET_Y||72);
+    const y=lanes.reduce((best,lane)=>Math.abs(lane-(foot-85))<Math.abs(best-(foot-85))?lane:best,lanes[0]);
+    const shipType=this.chooseShipTypeForSpawn();
+    const direction=++this.hazardSerial%2?1:-1;
+    const ship={shipType,direction,flipH:direction<0,rotation:0,bobOffset:0,bobAmount:0,animationElapsedMs:0,
+      size:shipType===2?680:390,phase:'warning',remainingMs:2800,y,x:direction>0?-800:4896,hit:false,isForeground:true};
+    this.hazards.push(ship);
+    window.audioSystem?.playRandomWhoosh?.();
+    return ship;
+  }
 
-    // CRITICAL FIX: Make ships much larger and more visible
-    const baseSize = 120; // Double the base size
-
-    // Apply multipliers for foreground ships
-    const sizeVariation = baseSize * (0.5 + depth * 1.5) * sizeMultiplier;
-
-    // Speed based on depth (25% faster now)
-    const baseSpeed = 6.25; // Increased from 5 to 6.25 (25% faster)
-    const speed = baseSpeed * (0.5 + depth * 2) * speedMultiplier;
-
-    // Random direction (left to right or right to left)
-    const direction = Math.random() < 0.5 ? 1 : -1; // 1 = right, -1 = left
-
-    // CRITICAL FIX: Extend spawn edges much further to prevent abrupt appearances
-    let startX, startY;
-    const baseSpawnDistance = sizeVariation * 3; // Base 3x ship size
-    const edgeExtension = 300; // Additional 300px extension
-    const totalSpawnDistance = baseSpawnDistance + edgeExtension;
-
-    if (direction === 1) {
-      // Left to right - start far left off screen
-      startX = -totalSpawnDistance;
-    } else {
-      // Right to left - start far right off screen
-      startX = this.canvasWidth + totalSpawnDistance;
+  updateHazards(delta) {
+    const progression=window.sector1Progression;
+    if(!progression?.missionStarted||progression.isGameplaySuppressed?.()||progression.isBossCombatLive?.()||window.gameState?.gameOver||window.gameState?.victory){this.hazards=[];return;}
+    // A stationary puzzle cannot demand a dodge. Resume with a fresh approach.
+    if(window.hackingSystem?.isActive?.()) {this.hazardSuspended=true;return;}
+    if(this.hazardSuspended){this.hazardSuspended=false;for(const h of this.hazards){h.phase='warning';h.remainingMs=2800;h.x=h.direction>0?-800:4896;h.hit=false;}}
+    this.hazardWaitMs-=delta;
+    if(!this.hazards.length&&this.hazardWaitMs<=0){this.createForegroundShip();this.hazardWaitMs=14000;}
+    for(const h of this.hazards){
+      if(h.phase==='warning'){
+        h.remainingMs-=delta;
+        if(h.remainingMs<=0){h.phase='pass';const camera=window.gameCamera?.centerX??960;h.x=h.direction>0?Math.max(-800,camera-960-h.size):Math.min(4896,camera+960+h.size);}
+        continue;
+      }
+      const before=this.getHazardBody(h);h.x+=h.direction*540*delta/1000;h.animationElapsedMs+=delta;
+      const body=this.getHazardBody(h),player=window.player;
+      const swept={x:Math.min(before.x,body.x),y:body.y,width:body.width+Math.abs(body.x-before.x),height:body.height};
+      if(!h.hit&&player&&window.enemyManager?.simpleAABBcollision(swept,player.getHitbox())){
+        h.hit=true;player.takeDamageWithKnockback(1,h.direction*320,-240,{x:h.x,y:h.y});
+      }
     }
+    this.hazards=this.hazards.filter(h=>h.phase==='warning'||(h.direction>0?h.x<4896:h.x>-800));
+  }
 
-    // CRITICAL FIX: Limit spawn to top half only with more randomness
-    const spawnHeight = 400;
-    const baseHeight = -400;
-    startY = Math.random() * spawnHeight + baseHeight;
+  getHazardBody(ship) {
+    // Original source trim works for both the bundled atlas and loaded GIF.
+    const sheet=this.shipSheets[ship.shipType]||window.BARCODE?.trafficSheets?.[ship.shipType];
+    const width=ship.size,height=ship.shipType===2?ship.size*.35:ship.size;
+    const trim=sheet?.trim||{x:0,y:0,width:1,height:1};
+    const sw=sheet?.sourceWidth||1,sh=sheet?.sourceHeight||1;
+    const sign=(ship.flipH?-1:1)*(ship.shipType===2?-1:1);
+    const cx=(-width/2+(trim.x+trim.width/2)/sw*width)*sign;
+    const cy=-height/2+(trim.y+trim.height/2)/sh*height;
+    const bw=trim.width/sw*width*.74,bh=trim.height/sh*height*.62;
+    return {x:ship.x+cx-bw/2,y:ship.y+cy-bh/2,width:bw,height:bh};
+  }
 
-    const selectedShipType = this.chooseShipTypeForSpawn();
-
-    const ship = {
-      x: startX,
-      y: startY,
-      size: sizeVariation,
-      speed: speed * direction,
-      depth: depth,
-      direction: direction,
-      opacity: 1.0,
-      shipType: selectedShipType, // Choose from ready optional imagery only
-      isForeground: true, // Track if this is a foreground ship
-      animationFrame: 0,
-      animationSpeed: 0.1 + depth * 0.1,
-      lastAnimationUpdate: Date.now(),
-      rotation: 0,
-      flipH: direction === -1,
-      bobOffset: Math.random() * Math.PI * 2,
-      bobAmount: 5 + Math.random() * 10
-    };
-
-    this.ships.push(ship);
-    console.log(`🚀 SPAWNING FOREGROUND SHIP ${ship.shipType + 1}: size=${sizeVariation.toFixed(1)}, speed=${Math.abs(speed).toFixed(1)}, direction=${direction === 1 ? '→' : '←'}, startX=${startX.toFixed(1)}`);
+  drawHazards(ctx) {
+    if(this.hazardSuspended)return;
+    for(const h of this.hazards){
+      if(h.phase==='pass'){this.drawShip(ctx,h);continue;}
+      const camera=window.gameCamera?.centerX??960;
+      const left=Math.max(0,camera-890),right=Math.min(4096,camera+890);
+      const edge=h.direction>0?left:right;
+      ctx.save();ctx.strokeStyle='#ffc278';ctx.fillStyle='#ffc278';ctx.lineWidth=3;
+      ctx.setLineDash([12,18]);ctx.globalAlpha=.35;ctx.beginPath();ctx.moveTo(left,h.y);ctx.lineTo(right,h.y);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=.9;
+      for(let i=0;i<3;i++){const x=edge+h.direction*(24+i*24);ctx.beginPath();ctx.moveTo(x-h.direction*10,h.y-20);ctx.lineTo(x+h.direction*7,h.y);ctx.lineTo(x-h.direction*10,h.y+20);ctx.stroke();}
+      // Icon + direction/lane only; no extra text panel covering gameplay.
+      ctx.beginPath();ctx.moveTo(edge,h.y-62);ctx.lineTo(edge-16,h.y-35);ctx.lineTo(edge+16,h.y-35);ctx.closePath();ctx.fill();
+      ctx.fillStyle='#17191c';ctx.fillRect(edge-2,h.y-54,4,10);ctx.fillRect(edge-2,h.y-41,4,3);ctx.restore();
+    }
   }
 
   // Draw a single ship
@@ -413,26 +423,6 @@ window.SpaceShipSystem = class SpaceShipSystem {
         this.drawShipImage(ctx, ship, shipImage, ship.size, ship.size);
       }
       if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log(`🚀 Drawing ship ${ship.shipType + 1} frame ${this.getAnimationFrame(ship)}`);
-    } else {
-      // Draw fallback ship (rectangle with details)
-      ctx.fillStyle = '#4a5568';
-      ctx.fillRect(-ship.size / 2, -ship.size / 4, ship.size, ship.size / 2);
-
-      // Cockpit
-      ctx.fillStyle = '#2d3748';
-      ctx.fillRect(-ship.size / 4, -ship.size / 8, ship.size / 2, ship.size / 4);
-
-      // Engine glow
-      if (ship.direction === 1) {
-        // Left engine glow
-        ctx.fillStyle = 'rgba(255, 100, 0, 0.8)';
-        ctx.fillRect(-ship.size / 2 - 5, -ship.size / 8, 5, ship.size / 4);
-      } else {
-        // Right engine glow
-        ctx.fillStyle = 'rgba(255, 100, 0, 0.8)';
-        ctx.fillRect(ship.size / 2, -ship.size / 8, 5, ship.size / 4);
-      }
-      if (window.BARCODE_DEBUG_FRAME_OWNERSHIP) console.log(`🚀 Drawing fallback ship at (${ship.x.toFixed(1)}, ${ship.y.toFixed(1)}) size ${ship.size.toFixed(1)}`);
     }
 
     ctx.restore();
@@ -492,7 +482,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
 
   // Clear all ships
   clear() {
-    this.ships = [];
+    this.ships = []; this.hazards = [];
     console.log('🚀 All space ships cleared');
   }
 
