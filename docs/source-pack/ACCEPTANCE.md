@@ -1,21 +1,5 @@
 # Acceptance and Test Status
 
-## Current combined playtest pass
-
-Base/rollback: `8b0a8b2af005408d137421bd3f241a080ea23627`. Import the exact review head from the PR into a duplicate Makko project and open a fresh preview. Record SHA, PASS/FAIL and a short clip for any issue. The owner's earlier merge does not grant acceptance for this new work.
-
-1. Mash/repeat Space or A through an intro page: it must stop at the final cue. Enter/RB or the distinct Next scene button turns the page. Test pointer buttons, held keys, resizing/fullscreen, S/B hold/release and normal tutorial handoff.
-2. Walk into ordinary enemies, a crowd and a closed gate while injured, recovering, hacking and around ally expiry. Bodies must clear without levitation or delayed overlap damage; clean descending ordinary stomps remain lethal. Inspect Firewall both directions, its walk-to-brace-to-attack/recovery changes, upper ledges and hijacked movement.
-3. Compare all actors' feet/shadows against the middle of the sidewalk. Walk onto the three-dimensional utility box, leave it in both directions, and use the two-hit lift. Check every wall from sidewalk, road and roof; building panels should meet facades, contact/crossing FX stay local, and each field opens immediately with its encounter clear.
-4. Traverse street → service steps/awnings → actual building crowns in every encounter, then return. Confirm landing visibility and no camera pop, unreachable remaining enemy or accidental gate bypass. Collect the first repair, marked carrier drop, tower-crown repair, Signal Amp, Studio Cat and all three lore fragments. Full-health repairs remain available. The delayed last-enemy arrow should help only after progress stalls.
-5. Read a car's direction/height warning, avoid it by jumping or changing platforms, then deliberately take one collision. Expect one health bar and recovery protection, with no invisible leading hit. Pause/restart mid-warning; enter/cancel a hack during a pass and verify the two-second resumed warning. Cars should not interrupt the tutorial or boss.
-6. Solve both puzzles with keyboard, controller alone and pointer/touch tiles; test delete, cancel, wrong answer, timeout, disconnect and held-button handoff. Enemy slowdown is 40%, never a stun. Successful hacks grant one eight-second ally and never heal. Navigation gets extra input time without extending the memorization reveal.
-7. Confirm Objectives/current task clarity, no health pickup text, instant dialogue preference persistence and pause crew log. Check reduced effects and normal audio/music/transport.
-8. Complete 20 mission defeats, the 16-hit environmental Jammer and the original boss intro. Verify boss win, loss, quick retry, replay/restart and retained lore/save IDs. Complete one normal controller-only run as well as a repeat novice playtest.
-
-After acceptance and merge, re-import the actual main merge SHA into Makko, start a fresh preview, and repeat the focused route. Record deployed SHA and PASS/FAIL evidence. Re-importing the base above rolls back this pass while retaining all previously merged work. No owner Makko PASS is claimed by unit tests, native renders or CI.
-
-
 ## Wall sidewalk/street footprint review
 
 Base/rollback: merged #53, `685d13d4de1d56c8a39a82077460d894144bd091`. Import the exact new PR head from its description/source receipt into a duplicate Makko project and start a fresh preview.

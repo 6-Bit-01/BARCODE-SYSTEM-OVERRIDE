@@ -16,7 +16,7 @@ function openingRig({ contextBudget = Infinity, contextUnavailable = false, real
   const ctx = new Proxy({ measureText: text => ({ width: text.length * 17 }) }, { get: (target, key) => target[key] || (() => {}) });
   const canvasCalls = [];
   function node(tag = 'div') {
-    return Object.assign(events(), { tag, tagName: tag.toUpperCase(), style: {}, dataset: {}, children: [], classList: { add() {}, remove() {} },
+    return Object.assign(events(), { tag, tagName: tag.toUpperCase(), style: {}, children: [], classList: { add() {}, remove() {} },
       setAttribute(name, value) { this[name] = value; },
       getContext(type) {
         canvasCalls.push({ node: this, type });
@@ -119,7 +119,7 @@ async function main() {
     await w.fullscreenManager.exit(); assertPresented(scene.cutsceneContainer);
     const reentered = w.fullscreenManager.enter(); finishFullscreen(); await reentered;
     assertPresented(scene.cutsceneContainer);
-    advance(300); key('Enter'); assert.strictEqual(scene.currentImageIndex, 1); assert.strictEqual(scene.currentCueIndex, 1, 'scene action cannot reveal a cue'); key(' '); assert.strictEqual(scene.currentCueIndex, 2);
+    advance(300); key('Enter'); assert.strictEqual(scene.currentImageIndex, 1); assert.strictEqual(scene.currentCueIndex, 2);
     key('s'); advance(5000); await started; advance(500);
     assertPresented(gameCanvas);
     assert.strictEqual(w.tutorialSystem.storyChapter, 0);
@@ -148,9 +148,7 @@ async function main() {
     windowEvents.dispatch('focus'); advance(3950); assert.strictEqual(scene.currentCueIndex, 2);
     advance(50); assert.strictEqual(scene.currentCueIndex, 3, 'the response follows its full reading interval');
     advance(60000); assert.strictEqual(scene.currentImageIndex, 1, 'automatic cues never turn the page');
-    scene.skipHandler({key:' ',type:'keydown',target:scene.nextSceneButton,preventDefault(){},stopPropagation(){}});
-    assert.strictEqual(scene.currentImageIndex,1,'Space on a focused scene button still belongs to dialogue');
-    key(' '); assert.strictEqual(scene.currentImageIndex, 1, 'repeated dialogue cannot turn a page'); key('Enter'); assert.strictEqual(scene.currentImageIndex, 2); assert.strictEqual(scene.currentCueIndex, 0);
+    key(' '); assert.strictEqual(scene.currentImageIndex, 2); assert.strictEqual(scene.currentCueIndex, 0);
     advance(850); assert.strictEqual(scene.currentCueIndex, 1, 'Mac speaks before the recording readout on page 2');
     w.document.hidden = true; advance(60000); assert.strictEqual(scene.currentCueIndex, 1);
     w.document.hidden = false; w.document.dispatch('visibilitychange'); advance(4650); assert.strictEqual(scene.currentCueIndex, 1);
@@ -194,7 +192,7 @@ async function main() {
     const { w, p, scene, key, advance, calls } = openingRig({ realTutorial: true });
     const started = w.BARCODE.RuntimeLifecycle.start(); await settle();
     if (skip) { key('s'); advance(5000); }
-    else while (scene.isPlaying()) { advance(300); const complete = scene.currentCueIndex >= w.BARCODE.IntroSequence.getCues(scene.currentImageIndex - 1).length - 1; key(complete ? 'Enter' : ' '); }
+    else while (scene.isPlaying()) { advance(300); key('Enter'); }
     await started;
     const tutorial = w.tutorialSystem;
     assert.strictEqual(calls.tutorialStarts, 1); assert.strictEqual(tutorial.storyChapter, 0);
@@ -286,7 +284,7 @@ async function main() {
         assert.strictEqual(w.BARCODE.IntroSequence.inspectedGutter, available, 'the margin discovery cannot precede the refusal');
       }
       advance(300); key(' ', 'keydown', true); assert.strictEqual(scene.currentImageIndex - 1, index);
-      key('Enter');
+      key(' ');
     }
     assert.deepStrictEqual([...new Set(seen)], ['O1', 'O2', 'O3', 'O4', 'O5']);
     assert.strictEqual(scene.currentImageIndex, 8, 'all eight captions are reachable with no orphan slide');

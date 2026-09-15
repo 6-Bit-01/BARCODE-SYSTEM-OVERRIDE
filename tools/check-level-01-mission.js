@@ -53,7 +53,7 @@ must(loopSource, /!hasCinematicZoom[^]*updateZoomFromPlayer/, 'automatic player 
 must(sectorSource, /pollPreparedAssets/, 'async prepared asset polling exists');
 must(sectorSource, /entry\.generation !== this\.assetGeneration/, 'asset polling is generation guarded');
 must(sectorSource, /activeAnimation === animation/, 'boss animation play is guarded by active animation');
-must(sectorSource, /const GROUND_Y = window.Player.GROUND_Y \?\? 784;/, 'Level 1 uses the shared sidewalk-center anchor');
+must(sectorSource, /const GROUND_Y = 750;/, 'Level 1 physics ground remains at the reverted baseline');
 must(jammerSource, /state\.generation \+= 1;[^]*state\.revealed = false;[^]*state\.targetable = false;[^]*state\.health = state\.maxHealth;[^]*state\.destroyed = false;[^]*state\.lastDamageSequence = null/s, 'jammer reset always restores gameplay state');
 must(jammerSource, /state\.destroyed \|\| !state\.revealed/, 'destroyed jammer sprite stops rendering');
 // Jammer-only and boss-only hit results are exercised through PlayerCombat in
@@ -94,7 +94,7 @@ function createVectorClass() {
 function loadRealSector({ spriteLoadedInitially = false } = {}) {
   let spriteLoaded = spriteLoadedInitially;
   const sprite = { playCalls: [], updateCalls: 0, currentRef: null, isLoaded: () => spriteLoaded, play(name, loop) { this.playCalls.push({ name, loop }); this.currentRef = { currentFrame: 0, totalFrames: name === 'sector_1_boss_walk_walk' ? 41 : 48, isInterrupted: false }; return this.currentRef; }, update(dt) { this.updateCalls += 1; this.lastUpdate = dt; } };
-  const jammerStatus = { revealed: false, destroyed: false, health: 16, position: { x: 3520, y: 784 } };
+  const jammerStatus = { revealed: false, destroyed: false, health: 16, position: { x: 3520, y: 750 } };
   const jammerEnvironment = {
     reset() { jammerStatus.revealed = false; jammerStatus.destroyed = false; jammerStatus.health = 16; },
     reveal(options = {}) { jammerStatus.revealed = true; jammerStatus.destroyed = false; jammerStatus.position = { ...(options.position || jammerStatus.position) }; return this.getStatus(); },
@@ -256,21 +256,16 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
     assertReachable(from, to, 'tower awning route');
     assertReachable(to, from, 'tower awning return route');
   });
-  const groundVisualFoot = { id: 'ground', x: 0, y: 784 + window.Sector1Progression.PLAYER_VISUAL_FOOT_OFFSET, w: 4096 };
+  const groundVisualFoot = { id: 'ground', x: 0, y: 750 + window.Sector1Progression.PLAYER_VISUAL_FOOT_OFFSET, w: 4096 };
   supportedFrameStepsMs.forEach(frameMs => {
     assert.strictEqual(groundReturnTime(physics.verticalScale, frameMs), groundReturnTime(1, frameMs), `proportional vertical scaling preserves jump airtime at ${frameMs}ms frames`);
   });
-  // The lowered street is intentionally accessed through the lift or service
-  // steps. Verify those actual single-jump ascents instead of an obsolete
-  // direct street-to-awning jump that skipped the visible-foot offset.
-  const access = window.Sector1Progression.UPPER_SURFACES.concat(window.Sector1Progression.TRAVERSAL_PROPS);
-  for (const [stepId, targetId] of [['signal-street-step','signal-awning'],['tower-utility-unit','tower-awning']]) {
-    const step = access.find(p => p.id === stepId), target = surfaces.get(targetId);
+  ['signal-awning', 'tower-awning', 'broadcast-awning'].forEach(id => {
+    const target = surfaces.get(id);
     supportedFrameStepsMs.forEach(frameMs => {
-      assert.notStrictEqual(descendingCrossingTime(groundVisualFoot.y, step.y, frameMs), null, `${stepId} reachable from street`);
-      assert.notStrictEqual(descendingCrossingTime(step.y, target.y, frameMs), null, `${targetId} reachable from support`);
+      assert.notStrictEqual(descendingCrossingTime(groundVisualFoot.y, target.y, frameMs), null, `${id} is reachable from ground with the locked single jump at ${frameMs}ms frames`);
     });
-  }
+  });
 }
 {
   const { window } = loadRealSector();
@@ -328,7 +323,7 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   const p = new window.Sector1Progression(window.player);
   const fills = [], paths = [];
   const ctx = {
-    save() {}, restore() {}, arc() {},
+    save() {}, restore() {},
     beginPath() { paths.push(['beginPath']); }, closePath() { paths.push(['closePath']); },
     moveTo(...args) { paths.push(['moveTo', ...args]); }, lineTo(...args) { paths.push(['lineTo', ...args]); },
     fill() { paths.push(['fill']); }, stroke() { paths.push(['stroke']); },
@@ -338,14 +333,13 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   p.spawnedEncounterIds.add('encounter_2');
   p.closedGateEncounterId = 'encounter_2';
   p.drawEncounterGates(ctx);
-  assert.deepStrictEqual(fills.filter(([, , width, height]) => width === 58 && height === 1406), [[2110, -550, 58, 1406]], 'only the currently closed gate receives a complete tall field');
-  assert(paths.some(([op, x, y]) => op === 'lineTo' && x === 2236 && y === -584), 'the field extends along the sidewalk perspective');
+  assert.deepStrictEqual(fills.filter(([, , width, height]) => width === 58 && height === 620), [[2110, 202, 58, 620]], 'only the currently closed gate receives a complete tall field');
+  assert(paths.some(([op, x, y]) => op === 'lineTo' && x === 2280 && y === 148), 'the field extends along the sidewalk perspective');
   assert(!fills.some(([x]) => [1320, 3000, 4010].includes(x)), 'future gate fields remain absent');
   const closedDrawCount = fills.length;
   p.closedGateEncounterId = null;
   p.drawEncounterGates(ctx);
-  const afterOpen = fills.slice(closedDrawCount);
-  assert(!afterOpen.some(([, , width, height]) => width === 58 && height > 100), 'cleared gates retain only machinery, never a collision-looking field');
+  assert.strictEqual(fills.length, closedDrawCount, 'open gates without an active clear animation leave no collision-looking rectangles behind');
 }
 
 {
@@ -384,7 +378,7 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
     const enemy = p.spawnMissionEnemy({ type, x: 3000, y: 650 }, 'restore-origin', 0, { origin });
     assert.deepStrictEqual({ x: enemy.position.x, y: enemy.position.y }, origin, `${type} constructor rewrite cannot replace the authored spawn origin`);
     assert.deepStrictEqual({ x: enemy.originalSpawnX, y: enemy.originalSpawnY }, origin, `${type} original spawn metadata uses the authored origin`);
-    assert.strictEqual(enemy._entranceTarget.y, 784, `${type} enters on the physics ground instead of air-walking at the authored Virus height`);
+    assert.strictEqual(enemy._entranceTarget.y, 750, `${type} enters on the physics ground instead of air-walking at the authored Virus height`);
   }
   const virus = p.spawnMissionEnemy({ type: 'virus', x: 3000, y: 650 }, 'virus-height', 0, { origin: { x:3333, y:650 } });
   assert.strictEqual(virus._entranceTarget.y, 650, 'Virus preserves its authored airborne entrance height');
@@ -399,7 +393,7 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   const tutorialEnemy = p.spawnTutorialEnemy(0);
   const half = p.getSpawnBodyHalfWidth(tutorialEnemy.type);
   assert(tutorialEnemy.position.x + half <= bounds.left - 140 || tutorialEnemy.position.x - half >= bounds.right + 140, 'tutorial enemy is created fully beyond a horizontal camera edge');
-  assert.strictEqual(tutorialEnemy.position.y, 784, 'tutorial enemy starts on the authored ground instead of dropping over the player');
+  assert.strictEqual(tutorialEnemy.position.y, 750, 'tutorial enemy starts on the authored ground instead of dropping over the player');
   assert.strictEqual(tutorialEnemy._dropEdge, null, 'tutorial enemy does not use a legacy top-drop entrance');
   assert.strictEqual(tutorialEnemy._isTutorialEnemy, true, 'tutorial enemy is explicitly identified');
   assert.strictEqual(tutorialEnemy._sector1MissionEnemy, false, 'tutorial enemy is excluded from the 20-kill mission quota');
@@ -411,7 +405,7 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   p.onEnemyDefeated(999, tutorialEnemy);
   assert.strictEqual(p.missionDefeats, 5, 'defeating a tutorial enemy cannot advance mission progress');
 
-  const movingPlayerEnemy = p.spawnMissionEnemy({ type: 'corrupted', x: 3000, y: 650 }, 'live-target', 2, { origin: { x: 900, y: 784, side: 'left' } });
+  const movingPlayerEnemy = p.spawnMissionEnemy({ type: 'corrupted', x: 3000, y: 650 }, 'live-target', 2, { origin: { x: 900, y: 750, side: 'left' } });
   const initialTargetX = movingPlayerEnemy._entranceTarget.x;
   window.player.position.x = initialTargetX;
   p.keepEntranceTargetSafe(movingPlayerEnemy);
@@ -653,10 +647,10 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
       approximately(visual.scale * profile.bodyHeight, 253 * 0.8 * 1.08 * (profile.state === 'walk' ? 1.06 : 1), `${profile.state} animation preserves neutral body height without counting padding or blades`);
       assert.strictEqual(visual.frameIndex, frameIndex, `${profile.state} frame index follows the Makko animation reference`);
       assert.strictEqual(visual.footRow, profile.footRows[frameIndex], `${profile.state} frame ${frameIndex} uses the audited visible-foot row`);
-      approximately(visual.targetFootY, 856, `${profile.state} frame ${frameIndex} targets the authored sidewalk contact`);
-      approximately(visual.visibleFootY, 856, `${profile.state} frame ${frameIndex} stays grounded without sprite-sheet wobble`);
+      approximately(visual.targetFootY, 822, `${profile.state} frame ${frameIndex} targets the authored sidewalk contact`);
+      approximately(visual.visibleFootY, 822, `${profile.state} frame ${frameIndex} stays grounded without sprite-sheet wobble`);
       const makkoRenderedFootY = visual.anchorY - animationEntry.metadata.anchor.y * visual.scale + visual.footRow * visual.scale;
-      approximately(makkoRenderedFootY, 856, `${profile.state} frame ${frameIndex} stays grounded after Makko scales its manifest anchor`);
+      approximately(makkoRenderedFootY, 822, `${profile.state} frame ${frameIndex} stays grounded after Makko scales its manifest anchor`);
     }
   }
   // Exercise the actual inverse draw arguments against each supported Makko
@@ -681,7 +675,7 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
             const multiplier = mode === 'manifest' ? pixels : 1;
             const offsetX = mode === 'anchorless' ? 0 : 37 * multiplier;
             const offsetY = mode === 'anchorless' ? 0 : 61 * multiplier;
-            approximately(drawn.y - offsetY + profile.footRows[i] * pixels, 856, `${profile.state}/${mode}/${scale}/${facing}/${i}: rendered foot`);
+            approximately(drawn.y - offsetY + profile.footRows[i] * pixels, 822, `${profile.state}/${mode}/${scale}/${facing}/${i}: rendered foot`);
             approximately(drawn.x + facing * (profile.sourceAnchorX * pixels - offsetX), p.boss.x, 'rendered body center is world-anchored in both directions');
             approximately(profile.bodyHeight * pixels, 202.4 * 1.08 * (profile.state === 'walk' ? 1.06 : 1), 'manifest scale cannot multiply boss size again');
           }
@@ -718,16 +712,16 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   const context = vm.createContext({ window, console });
   vm.runInContext(jammerSource, context, { filename: 'src/game/jammer-environment.js' });
   vm.runInContext(indicatorSource, context, { filename: 'src/engine/jammer-indicator.js' });
-  window.BARCODE.JammerEnvironment.reveal({ position: { x: 3520, y: 784 } });
+  window.BARCODE.JammerEnvironment.reveal({ position: { x: 3520, y: 750 } });
   const bounds = window.BARCODE.JammerEnvironment.getAimBounds();
   const indicator = new window.JammerIndicator();
-  const projected = indicator.worldToScreen({ x: 3520, y: 784 }, 3136, 0.625);
+  const projected = indicator.worldToScreen({ x: 3520, y: 750 }, 3136, 0.625);
   approximately(projected.x, 1200, 'Jammer world x projects through the renderer camera convention');
-  approximately(projected.y, 743.125, 'Jammer world y projects through the renderer zoom offset');
-  indicator.update(500, bounds, 3136, 784);
+  approximately(projected.y, 721.875, 'Jammer world y projects through the renderer zoom offset');
+  indicator.update(500, bounds, 3136, 750);
   assert.strictEqual(indicator.active, false, 'indicator hides when the Jammer presentation bounds are visible');
   window.gameCamera.centerX = 960;
-  indicator.update(500, bounds, 960, 784);
+  indicator.update(500, bounds, 960, 750);
   assert.strictEqual(indicator.active, true, 'indicator activates when the Jammer presentation bounds are offscreen');
   approximately(indicator.indicatorPosition.x, 1840, 'offscreen Jammer indicator lands on the right safe edge');
   assert(indicator.indicatorPosition.y >= 180 && indicator.indicatorPosition.y <= 770, 'offscreen Jammer indicator remains inside the vertical safe area');

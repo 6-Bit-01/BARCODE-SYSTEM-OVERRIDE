@@ -42,14 +42,14 @@ const near = (a,b,why) => assert(Math.abs(a-b) < 1e-6, `${why}: ${a} / ${b}`);
     w.player.state=state; w.player.facing=facing;
     assert.deepStrictEqual(copy(w.player.getHitbox()),body);
   }
-  const enemy = new w.Enemy(965,784,'virus');
-  enemy.position.x=965; enemy.position.y=784; enemy.entranceComplete=true;
+  const enemy = new w.Enemy(965,750,'virus');
+  enemy.position.x=965; enemy.position.y=750; enemy.entranceComplete=true;
   w.enemyManager.enemies=[enemy];
   w.enemyManager.checkCollisions(w.player);
   assert.strictEqual(w.player.health,3,'nearby nonoverlapping bodies cannot cause a pre-box push or damage');
   near(w.player.position.x,900,'no phantom push');
   for (const type of ['virus','corrupted','firewall']) {
-    const e = new w.Enemy(1000,784,type); e.position.x=1000;e.position.y=784;
+    const e = new w.Enemy(1000,750,type); e.position.x=1000;e.position.y=750;
     const box=copy(e.getHitbox());
     for (const pose of ['idle','walk','attack']) { e.currentAnimation=`${type}_${pose}_${pose}`; assert.deepStrictEqual(copy(e.getHitbox()),box); }
   }
@@ -59,7 +59,7 @@ const near = (a,b,why) => assert(Math.abs(a-b) < 1e-6, `${why}: ${a} / ${b}`);
 // fast descent may pass the entire body in one frame and still lands once.
 for (const fps of [30,60,120,144]) for (const type of ['virus','corrupted','firewall']) {
   const { w,calls }=createRig(); w.rhythmSystem.hide(); w.sector1Progression=null;
-  const e=new w.Enemy(1000,784,type); e.position.x=1000;e.position.y=784;e.entranceComplete=true;
+  const e=new w.Enemy(1000,750,type); e.position.x=1000;e.position.y=750;e.entranceComplete=true;
   e.spriteReady=true;e.sprite=createSprite(enemyClips);e.playAnimation(type==='firewall'?'attack':'idle');
   e._sector1MissionEnemy=true;e.combatPattern=type==='firewall'?'attack':'brace';e.combatPatternMs=100;e.committedDirection=1;
   w.player.spriteReady=true;w.player.sprite=createSprite(playerClips);
@@ -74,7 +74,7 @@ for (const fps of [30,60,120,144]) for (const type of ['virus','corrupted','fire
 }
 {
   const { w }=createRig(); w.rhythmSystem.hide(); w.sector1Progression=null;
-  const e=new w.Enemy(1000,784,'virus'); e.position.x=1000;e.position.y=784;e.entranceComplete=true;
+  const e=new w.Enemy(1000,750,'virus'); e.position.x=1000;e.position.y=750;e.entranceComplete=true;
   w.enemyManager.enemies=[e];
   w.player.position.x=1000; w.player.position.y=e.getHitbox().y-60;
   w.player.grounded=false;w.player.velocity.y=-200;
@@ -85,10 +85,10 @@ for (const fps of [30,60,120,144]) for (const type of ['virus','corrupted','fire
 }
 {
   const { w }=createRig();
-  const a=new w.Enemy(1000,784,'firewall'),b=new w.Enemy(1000,784,'corrupted');
-  for(const e of [a,b]){e.position.x=1000;e.position.y=784;e.entranceComplete=true;}
+  const a=new w.Enemy(1000,750,'firewall'),b=new w.Enemy(1000,750,'corrupted');
+  for(const e of [a,b]){e.position.x=1000;e.position.y=750;e.entranceComplete=true;}
   w.enemyManager.enemies=[a,b];w.enemyManager.checkEnemyCollisions();
-  assert(a.position.x < b.position.x); near(a.position.y,784,'crowd separation keeps ground'); near(b.position.y,784,'crowd separation keeps ground');
+  assert(a.position.x < b.position.x); near(a.position.y,750,'crowd separation keeps ground'); near(b.position.y,750,'crowd separation keeps ground');
 }
 
 // Audited source-frame feet, both Makko anchor paths, both facings. The inverse
@@ -98,13 +98,12 @@ for (const fps of [30,60,120,144]) for (const type of ['virus','corrupted','fire
   const calibration={poses:Object.fromEntries(Object.entries(all).filter(([name])=>/^(virus_|corrupted_|firewall_)/.test(name)))};
   const {w}=createRig();
   for(const [name,p] of Object.entries(calibration.poses)) for(const scaled of [true,false]) for(const facing of [-1,1]) {
-    const type=name.split('_')[0],e=new w.Enemy(1400,784,type);e.position.x=1400;e.position.y=784;e.currentAnimation=name;e.facing=facing;
+    const type=name.split('_')[0],e=new w.Enemy(1400,750,type);e.position.x=1400;e.position.y=750;e.currentAnimation=name;e.facing=facing;
     e.sprite={currentSprite:{getAnchorPoint:()=>({x:p.anchorX,y:p.anchorY}),hasManifestAnchor:()=>scaled,getManifestScale:()=>1}};
     for(let i=0;i<p.footRows.length;i++) {
       e.animationRef={currentFrame:i}; const pose=e.getSpritePresentation();
-      near(pose.y-p.anchorY*(scaled?p.scale:1)+p.footRows[i]*p.scale,856,`${name}/${i}: foot line`);
-      const registration = name === 'firewall_walk_walk' ? [-5.5,2.3,0.7,1.8,-4.2,-11.1,-8,-9.7,-7.7,12,-4.5,-11.8,-10.3,-14.5,-16.3,-4.9][i%16]*p.scale : 0;
-      near(pose.x+(facing===-1?-1:1)*(p.anchorX*p.scale-p.anchorX*(scaled?p.scale:1)+registration),1400,`${name}: registered horizontal anchor`);
+      near(pose.y-p.anchorY*(scaled?p.scale:1)+p.footRows[i]*p.scale,822,`${name}/${i}: foot line`);
+      near(pose.x+(facing===-1?-1:1)*(p.anchorX*p.scale-p.anchorX*(scaled?p.scale:1)),1400,`${name}: horizontal anchor`);
     }
   }
 }
@@ -143,19 +142,19 @@ for(const fps of [30,60,120,144]) {
   w.rhythmSystem.hide();w.rhythmSystem.show();assert(fx.events.some(e=>e.kind==='entry'));
   beat();assert(!fx.events.some(e=>e.kind==='link'),'empty timing success never fabricates contact');
   assert.deepStrictEqual(rhythmSounds,['perfect'],'FX cannot suppress the original rhythm sound');
-  const enemy=new w.Enemy(1000,784,'firewall');enemy.position.x=1000;enemy.position.y=784;enemy.health=100;
+  const enemy=new w.Enemy(1000,750,'firewall');enemy.position.x=1000;enemy.position.y=750;enemy.health=100;
   w.enemyManager.enemies=[enemy];
   for(let i=0;i<10;i++){ fx.update(600);beat(); }
   assert.strictEqual(rhythmSounds.length,11,'one rhythm success sound per resolved success');
   assert(cues.filter(x=>x==='combo5').length===1 && cues.filter(x=>x==='combo10').length===1);
-  const link=fx.events.find(e=>e.kind==='link');assert(link && link.tx===1000 && link.ty < 784);
+  const link=fx.events.find(e=>e.kind==='link');assert(link && link.tx===1000 && link.ty < 750);
   assert(enemy.health===70,'FX do not add damage');
   fx.update(700);assert.strictEqual(fx.events.length,0);
   beat('miss');assert.strictEqual(w.rhythmSystem.combo,0);assert(!fx.events.some(e=>e.kind==='link'));
   assert.strictEqual(rhythmSounds.length,11,'miss cannot play a success sound');
   assert.strictEqual(w.BARCODE.MusicTransport.getDiagnostics().generation,generation);
   for(let i=0;i<200;i++)fx.contact('virus',1000,700);assert(fx.events.length<=96);
-  assert(!fx.visible(99999,784));w.BARCODE.playerCombat.reset();assert.strictEqual(fx.events.length,0);
+  assert(!fx.visible(99999,750));w.BARCODE.playerCombat.reset();assert.strictEqual(fx.events.length,0);
 }
 
 // Physics still advances during a short local visual hold; poses follow jump
@@ -170,7 +169,7 @@ for(const fps of [30,60,120,144]) {
   p.position.y=500;p.impactHoldMs=45;p.velocity.y=200;const oldY=p.position.y,before=ticks;p.update(16);
   assert(p.position.y!==oldY,'impact does not freeze physics');assert.strictEqual(ticks,before);
   assert.strictEqual(timers.size,count);
-  const firewall=new w.Enemy(1200,784,'firewall');firewall.spriteReady=true;firewall.sprite=createSprite(enemyClips);firewall.playAnimation('attack');
+  const firewall=new w.Enemy(1200,750,'firewall');firewall.spriteReady=true;firewall.sprite=createSprite(enemyClips);firewall.playAnimation('attack');
   firewall.combatPattern='attack';firewall.combatPatternMs=400;firewall.updateCombatPose();assert(firewall.animationRef.currentFrame<32);
   firewall.combatPattern='recovery';firewall.combatPatternMs=1000;firewall.updateCombatPose();assert(firewall.animationRef.currentFrame>=32);
   assert.deepStrictEqual(calls.errors,[],'getter-only animation handles must not throw');
@@ -189,7 +188,7 @@ for(const fps of [30,60,120,144]) {
 }
 for(const type of ['virus','corrupted','firewall']) {
   const {w,calls}=createRig();w.rhythmSystem.hide();w.sector1Progression=null;
-  const e=new w.Enemy(900,784,type);e.position.x=900;e.position.y=784;e.entranceComplete=true;
+  const e=new w.Enemy(900,750,type);e.position.x=900;e.position.y=750;e.entranceComplete=true;
   e.spriteReady=true;e.sprite=createSprite(enemyClips);e.playAnimation(type==='firewall'?'attack':'idle');
   e._sector1MissionEnemy=true;e.combatPattern=type==='firewall'?'attack':'brace';e.combatPatternMs=100;e.committedDirection=1;
   e.spawnProtectionDuration=0;

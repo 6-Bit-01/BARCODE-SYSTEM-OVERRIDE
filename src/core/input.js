@@ -100,9 +100,6 @@ window.InputManager = class InputManager {
       this.mouse.clicked = false;
       if (window.BARCODE?.PauseMenu) { window.BARCODE.PauseMenu.heldKeys.clear(); window.BARCODE.PauseMenu.drag = null; }
     });
-    window.addEventListener('pointerdown', e => {
-      if (window.hackingSystem?.isActive?.()) { e.preventDefault(); window.hackingSystem.pointerInput?.(e); }
-    }, { passive: false });
     window.addEventListener('mousemove', (e) => { if (window.BARCODE?.PauseMenu?.pointer(e, 'move')) return; this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
     window.addEventListener('mousedown', (e) => { if (window.BARCODE?.PauseMenu?.pointer(e, 'down')) return; this.mouse.pressed = true; this.mouse.clicked = true; });
     window.addEventListener('mouseup', (e) => { window.BARCODE?.PauseMenu?.pointer(e, 'up'); this.mouse.pressed = false; });
@@ -162,7 +159,6 @@ window.InputManager = class InputManager {
       if (button && !button.disabled) button.click();
     } else if (owner === 'intro') {
       if (pressed.b0) window.cutsceneSystem?.skipCutscene?.();
-      else if (pressed.b5) window.cutsceneSystem?.nextScene?.();
       // Retain the intro's existing five-second skip hold and its cleanup.
       if (pressed.left) window.cutsceneSystem?.inspectCaption?.();
       if (pressed.b1) window.cutsceneSystem?.startSkipHold?.('gamepad');
@@ -185,12 +181,15 @@ window.InputManager = class InputManager {
       return true;
     }
     if (owner === 'hack') {
-      const hack = window.hackingSystem;
-      hack.useKeypad?.();
-      if (p.b1) hack.processInput('Escape');
-      else if (p.b2) hack.processInput('Backspace');
-      else if (p.b0) hack.activateKeypad?.();
-      else if (p.up || p.down || p.left || p.right) hack.navigateKeypad?.(p.right ? 1 : p.left ? -1 : 0, p.down ? 1 : p.up ? -1 : 0);
+      // Ten direct digits preserve both puzzles and their four-second answer
+      // window. The terminal shows this layout during the scan as well.
+      const digits = { b12: '8', b13: '2', b14: '4', b15: '6', b0: '1', b1: '3', b2: '7', b3: '9', b4: '5', b5: '0' };
+      if (p.b11) window.hackingSystem.processInput('Escape');
+      else if (p.b8) window.hackingSystem.processInput('Backspace');
+      else {
+        for (const [button, digit] of Object.entries(digits)) if (p[button]) window.hackingSystem.processInput(digit);
+        if (p.b9) window.hackingSystem.processInput('Enter');
+      }
       return true;
     }
     if (owner === 'results') {

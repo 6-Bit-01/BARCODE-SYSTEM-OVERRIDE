@@ -348,11 +348,10 @@ function drawBasicUI(ctx) {
 }
 
 function drawObjectives(ctx) {
-  if (window.hackingSystem?.isActive?.() || window.spaceShipSystem?.hazards?.some(h => h.phase === 'warning')) return;
   const owner = window.sector1Progression, status = owner?.getEncounterStatus?.();
   const jammer = window.BARCODE?.JammerEnvironment?.getStatus?.();
   const title = status ? `${String(status.label).toUpperCase()} / ${status.number} OF 4` : jammer?.revealed && !jammer.destroyed ? 'BROADCAST JAMMER / BREAK THE SIGNAL' : 'DEAD AIR DISTRICT';
-  const detail = status ? status.started ? status.straggler ? `${status.defeated}/${status.required} CLEARED · ${status.straggler}` : `${status.defeated}/${status.required} CLEARED · ${owner.missionDefeats}/20 DISTRICT` : 'FOLLOW THE STREET · EXPLORE THE HIGH ROUTE' : jammer?.revealed && !jammer.destroyed ? `${jammer.health}/16 SIGNAL LOCKS · RHYTHM HITS ONLY` : 'Explore the district';
+  const detail = status ? status.started ? `${status.defeated}/${status.required} CLEARED · ${owner.missionDefeats}/20 DISTRICT` : 'FOLLOW THE STREET · EXPLORE THE HIGH ROUTE' : jammer?.revealed && !jammer.destroyed ? `${jammer.health}/16 SIGNAL LOCKS · RHYTHM HITS ONLY` : 'Explore the district';
   const kick = window.BARCODE?.stageFX?.captionKick || 0;
   window.BARCODE.ComicHUD.objectives(ctx, { title, detail, kick });
 }

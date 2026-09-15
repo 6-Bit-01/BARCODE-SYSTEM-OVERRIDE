@@ -25,9 +25,8 @@ window.BARCODE.sceneProjection = {
   },
   worldToScreen(point) {
     const x = point.x + 960 - (window.gameCamera?.centerX ?? 960);
-    const y = point.y - (window.gameCamera?.y || 0);
     const { a, b, c, d, e, f } = this.matrix;
-    return { x: a * x + c * y + e, y: b * x + d * y + f };
+    return { x: a * x + c * point.y + e, y: b * x + d * point.y + f };
   }
 };
 
@@ -237,27 +236,22 @@ function drawGameElements(ctx) {
   let cameraX = window.renderer?.getFollowCameraX?.(playerX) ?? playerX;
   cameraX = window.clamp?.(cameraX, halfCanvas, worldWidth - halfCanvas) || cameraX;
   if (window.sector1Progression && typeof window.sector1Progression.getCameraX === 'function') cameraX = window.sector1Progression.getCameraX(cameraX);
-  const cameraY = window.sector1Progression?.getCameraY?.() || 0;
-  window.gameCamera = { x: cameraX - halfCanvas, y: cameraY, centerX: cameraX };
+  window.gameCamera = { x: cameraX - halfCanvas, y: 0, centerX: cameraX };
   const cameraOffsetX = 960 - cameraX;
   
   // Draw parallax background layer (BG)
-  ctx.save(); ctx.translate(0, -cameraY * 0.3);
   drawParallaxBackground(ctx, cameraX);
-  ctx.restore();
   
   // Draw space ships (between BG and FG layers)
   drawSpaceShips(ctx);
   window.BARCODE?.stageFX?.drawTrafficLighting?.(ctx, { foreground: false });
   
   // Draw parallax foreground layer (FG)
-  ctx.save(); ctx.translate(0, -cameraY);
   drawParallaxForeground(ctx);
-  ctx.restore();
   
   // Apply camera transform to all game objects
   ctx.save();
-  ctx.translate(cameraOffsetX, -cameraY);
+  ctx.translate(cameraOffsetX, 0);
   
   // Draw smoke particles BEHIND ground layer
   drawSmokeParticles(ctx);
@@ -278,7 +272,6 @@ function drawGameElements(ctx) {
   // Draw player
   drawPlayer(ctx);
   window.BARCODE?.combatFX?.draw(ctx);
-  window.spaceShipSystem?.drawHazards?.(ctx);
   
   // Restore camera transform
   ctx.restore();

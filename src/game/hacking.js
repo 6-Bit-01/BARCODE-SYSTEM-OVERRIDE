@@ -180,49 +180,9 @@ window.HackingSystem = class HackingSystem {
     return true;
   }
 
-  useKeypad() {
-    if (!this.active) return;
-    this.keypadMode = true;
-    this.answerDurationMs = Math.max(this.answerDurationMs, 16000);
-    this.hardMaxSessionMs = Math.max(this.hardMaxSessionMs, this.bootDurationMs + 3500 + this.answerDurationMs + 2000);
-  }
-
-  getKeypad() {
-    return ['1','2','3','4','5','6','7','8','9','Backspace','0','Enter'].map((key, i) => ({
-      key, label: key === 'Backspace' ? '⌫' : key === 'Enter' ? 'Submit' : key,
-      x: 1132 + (i % 3) * 248, y: 602 + Math.floor(i / 3) * 68, w: 232, h: 58
-    }));
-  }
-
-  navigateKeypad(dx, dy) {
-    this.useKeypad();
-    const i = this.keypadIndex ?? 4;
-    this.keypadIndex = Math.max(0, Math.min(3, Math.floor(i / 3) + dy)) * 3 + Math.max(0, Math.min(2, i % 3 + dx));
-  }
-
-  activateKeypad() {
-    this.useKeypad();
-    return this.processInput(this.getKeypad()[this.keypadIndex ?? 4].key);
-  }
-
-  pointerInput(event) {
-    if (!this.active || window.isPaused || window.gameState?.paused) return false;
-    this.useKeypad();
-    const canvas = document.getElementById('gameCanvas');
-    const rect = canvas?.getBoundingClientRect?.();
-    if (!rect || !rect.width || !rect.height) return false;
-    const x = (event.clientX - rect.left) * 1920 / rect.width, y = (event.clientY - rect.top) * 1080 / rect.height;
-    if (x >= 1650 && x <= 1875 && y >= 199 && y <= 243) return this.processInput('Escape');
-    const index = this.getKeypad().findIndex(k => x >= k.x && x <= k.x + k.w && y >= k.y && y <= k.y + k.h);
-    if (index < 0) return false;
-    this.keypadIndex = index;
-    return this.activateKeypad();
-  }
-
   processInput(key) {
     if (!this.active || this.puzzleComplete) return false;
     const value = String(key || '');
-    if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(value)) { this.navigateKeypad(value === 'ArrowRight' ? 1 : value === 'ArrowLeft' ? -1 : 0, value === 'ArrowDown' ? 1 : value === 'ArrowUp' ? -1 : 0); return true; }
     if (value === 'Escape' || value === 'ESC') {
       this.cancel();
       return true;
@@ -274,9 +234,6 @@ window.HackingSystem = class HackingSystem {
     this.runGeneration++;
     this.clearOwnedTimeouts();
     this.active = true;
-    this.answerDurationMs = 4000; this.hardMaxSessionMs = 12000;
-    this.keypadMode = false; this.keypadIndex = 4;
-    if (window.BARCODE?.GamepadUI?.connected) this.useKeypad();
     this.phase = 'boot';
     this.resultFx = null;
     this.phaseElapsedMs = 0;
@@ -511,59 +468,56 @@ window.HackingSystem = class HackingSystem {
     const presentation = this.getPresentation();
     const urgent = this.phase === 'answer' && presentation.remainingMs <= 1500;
     const color = urgent ? '#ffb16e' : '#91ffe0';
-    ctx.fillStyle = 'rgba(4, 13, 25, 0.92)'; ctx.fillRect(1110, 190, 780, 710);
-    ctx.strokeStyle = '#3c827f'; ctx.lineWidth = 2; ctx.strokeRect(1110, 190, 780, 710);
-    ctx.fillStyle = '#91ffe0'; ctx.font = 'bold 22px monospace'; ctx.fillText('SIGNAL TERMINAL', 1132, 231);
+    ctx.fillStyle = 'rgba(4, 13, 25, 0.92)'; ctx.fillRect(460, 190, 1000, 420);
+    ctx.strokeStyle = '#3c827f'; ctx.lineWidth = 2; ctx.strokeRect(460, 190, 1000, 420);
+    ctx.fillStyle = '#91ffe0'; ctx.font = 'bold 23px monospace'; ctx.fillText('BARCODE / SIGNAL TERMINAL', 488, 231);
     ctx.font = '15px monospace'; ctx.fillStyle = '#aebdcc'; ctx.textAlign = 'right';
-    ctx.fillText(window.BARCODE?.GamepadUI?.connected ? 'B: Cancel' : 'Esc / Tap: Cancel', 1865, 231); ctx.textAlign = 'left';
+    ctx.fillText(window.BARCODE?.GamepadUI?.connected ? 'R3: DISCONNECT' : 'ESC: DISCONNECT', 1432, 231); ctx.textAlign = 'left';
     const labels = ['01 CONNECT', '02 READ', '03 INPUT'];
     labels.forEach((label, i) => {
       const selected = ['boot', 'display', 'answer'][i] === this.phase;
-      ctx.fillStyle = selected ? '#91ffe0' : '#152d3a'; ctx.fillRect(1132 + i * 248, 250, 232, 29);
-      ctx.fillStyle = selected ? '#071a24' : '#9ab2c2'; ctx.font = 'bold 15px monospace'; ctx.fillText(label, 1144 + i * 248, 270);
+      ctx.fillStyle = selected ? '#91ffe0' : '#152d3a'; ctx.fillRect(488 + i * 314, 250, 298, 29);
+      ctx.fillStyle = selected ? '#071a24' : '#9ab2c2'; ctx.font = 'bold 15px monospace'; ctx.fillText(label, 500 + i * 314, 270);
     });
-    ctx.fillStyle = '#f1f6fb'; ctx.font = 'bold 22px monospace'; ctx.fillText(presentation.heading, 1132, 319);
+    ctx.fillStyle = '#f1f6fb'; ctx.font = 'bold 22px monospace'; ctx.fillText(presentation.heading, 488, 319);
     ctx.textAlign = 'right'; ctx.fillStyle = color; ctx.font = 'bold 22px monospace';
-    ctx.fillText(`${(presentation.remainingMs / 1000).toFixed(1)}s`, 1865, 319); ctx.textAlign = 'left';
-    ctx.fillStyle = '#19313e'; ctx.fillRect(1132, 336, 732, 5);
-    ctx.fillStyle = color; ctx.fillRect(1132, 336, 732 * (1 - presentation.progress), 5);
+    ctx.fillText(`${(presentation.remainingMs / 1000).toFixed(1)}s`, 1432, 319); ctx.textAlign = 'left';
+    ctx.fillStyle = '#19313e'; ctx.fillRect(488, 336, 944, 5);
+    ctx.fillStyle = color; ctx.fillRect(488, 336, 944 * (1 - presentation.progress), 5);
     if (this.phase === 'boot') {
       ctx.fillStyle = '#adbfcd'; ctx.font = '20px monospace';
-      ctx.fillText(this.hijackTarget ? `LOCKED: ${this.hijackTarget.type.toUpperCase()} · Rewriting allegiance` : 'PRACTICE UPLINK · Learn the access sequence', 1132, 388);
-      ctx.fillStyle = 'rgba(145, 255, 224, 0.28)'; ctx.fillRect(1132 + presentation.progress * 710, 358, 24, 85);
+      ctx.fillText(this.hijackTarget ? `LOCKED: ${this.hijackTarget.type.toUpperCase()} · Rewriting allegiance` : 'PRACTICE UPLINK · Learn the access sequence', 488, 388);
+      ctx.fillStyle = 'rgba(145, 255, 224, 0.28)'; ctx.fillRect(488 + presentation.progress * 920, 358, 24, 85);
     } else if (this.phase === 'display' && !this.currentPuzzle?.hidden) {
       if (this.currentPuzzle?.type === 1) {
         this.currentPuzzle.ports.forEach((port, i) => {
-          const x = 1132 + i * 248;
-          ctx.fillStyle = '#102431'; ctx.fillRect(x, 358, 232, 86);
+          const x = 488 + i * 314;
+          ctx.fillStyle = '#102431'; ctx.fillRect(x, 358, 298, 86);
           ctx.font = 'bold 27px monospace'; ctx.fillStyle = '#f1f6fb'; ctx.fillText(String(port.number), x + 16, 391);
           ctx.font = 'bold 16px monospace'; ctx.fillStyle = port.status === 'OPEN' ? '#91ffe0' : '#d5a18b'; ctx.fillText(port.status, x + 16, 425);
         });
       } else {
-        ctx.fillStyle = '#f6e9a3'; ctx.font = 'bold 46px monospace'; ctx.textAlign = 'center'; ctx.fillText(this.currentPuzzle?.display || '', 1500, 418); ctx.textAlign = 'left';
+        ctx.fillStyle = '#f6e9a3'; ctx.font = 'bold 46px monospace'; ctx.textAlign = 'center'; ctx.fillText(this.currentPuzzle?.display || '', 960, 418); ctx.textAlign = 'left';
       }
     } else {
       ctx.fillStyle = '#b7c8d4'; ctx.font = '20px monospace';
-      ctx.fillText(this.puzzleType === 1 ? 'Enter the port number marked OPEN.' : 'Enter the sequence you just saw.', 1132, 393);
-      ctx.fillStyle = '#718897'; ctx.font = '16px monospace'; ctx.fillText('The scan is hidden. Your input is below.', 1132, 430);
+      ctx.fillText(this.puzzleType === 1 ? 'Enter the port number marked OPEN.' : 'Enter the sequence you just saw.', 488, 393);
+      ctx.fillStyle = '#718897'; ctx.font = '16px monospace'; ctx.fillText('The scan is hidden. Your input is below.', 488, 430);
     }
-    ctx.fillStyle = '#07101c'; ctx.fillRect(1132, 464, 732, 78);
-    ctx.strokeStyle = this.phase === 'answer' ? color : '#233c4a'; ctx.strokeRect(1132, 464, 732, 78);
+    ctx.fillStyle = '#07101c'; ctx.fillRect(488, 464, 944, 78);
+    ctx.strokeStyle = this.phase === 'answer' ? color : '#233c4a'; ctx.strokeRect(488, 464, 944, 78);
     ctx.fillStyle = this.phase === 'answer' ? '#f1f6fb' : '#869aab'; ctx.font = 'bold 29px monospace';
-    ctx.fillText(this.phase === 'answer' ? '> ' + (this.inputText || '_____') : '> INPUT LOCKED UNTIL SCAN ENDS', 1151, 513);
+    ctx.fillText(this.phase === 'answer' ? '> ' + (this.inputText || '_____') : '> INPUT LOCKED UNTIL SCAN ENDS', 507, 513);
     if (this.phase === 'answer' && this.cursorBlink < 30 && this.inputText) {
-      const width = ctx.measureText('> ' + this.inputText).width; ctx.fillStyle = color; ctx.fillRect(1153 + width, 489, 11, 28);
+      const width = ctx.measureText('> ' + this.inputText).width; ctx.fillStyle = color; ctx.fillRect(509 + width, 489, 11, 28);
     }
     ctx.fillStyle = '#aebdcc'; ctx.font = '16px monospace';
-    ctx.fillText(window.BARCODE?.GamepadUI?.connected ? 'D-pad / Stick: Move   A: Select   X: Erase   B: Cancel' : 'Type 0–9 or tap the keys. Enter submits.', 1132, 577);
-    this.getKeypad().forEach((key, index) => {
-      const focused = this.keypadMode && index === (this.keypadIndex ?? 4);
-      ctx.fillStyle = focused ? '#91ffe0' : '#142c38'; ctx.fillRect(key.x, key.y, key.w, key.h);
-      ctx.strokeStyle = focused ? '#f1f6fb' : '#628c90'; ctx.lineWidth = focused ? 3 : 1; ctx.strokeRect(key.x, key.y, key.w, key.h);
-      ctx.fillStyle = focused ? '#081921' : '#f1f6fb'; ctx.font = 'bold 26px Oxanium, monospace'; ctx.textAlign = 'center';
-      ctx.fillText(key.label, key.x + key.w / 2, key.y + 38);
-    });
-    if (this.feedback) { ctx.textAlign = 'right'; ctx.fillStyle = color; ctx.font = 'bold 14px monospace'; ctx.fillText(this.feedback.text, 1865, 891); }
+    if (window.BARCODE?.GamepadUI?.connected) {
+      ctx.font = '17px monospace';
+      ctx.fillText('D-pad ↑8 ↓2 ←4 →6   A:1  B:3  X:7  Y:9   LB:5  RB:0', 488, 566);
+      ctx.fillText('View: Erase   Start: Submit   R3: Disconnect', 488, 592);
+    } else ctx.fillText(this.phase === 'answer' ? '0–9: TYPE   BACKSPACE: CORRECT   ENTER: SUBMIT' : 'Memorize the signal. Input opens automatically.', 488, 579);
+    if (this.feedback) { ctx.textAlign = 'right'; ctx.fillStyle = color; ctx.font = 'bold 14px monospace'; ctx.fillText(this.feedback.text, 1432, 597); }
     ctx.restore();
   }
 

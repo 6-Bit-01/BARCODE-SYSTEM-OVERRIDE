@@ -58,7 +58,6 @@ window.TutorialSystem = class TutorialSystem {
   }
   
   startTutorial() {
-    this.recentDialogue = [];
     this._cancelPendingTutorialTimers();
     if (this.completed) return;
     
@@ -237,9 +236,6 @@ window.TutorialSystem = class TutorialSystem {
     }
     
     this.targetText = dialogue.text;
-    this.recentDialogue = this.recentDialogue || [];
-    if (this.recentDialogue.at(-1)?.text !== dialogue.text) this.recentDialogue.push({speaker:dialogue.speaker || 'crew',text:dialogue.text});
-    this.recentDialogue = this.recentDialogue.slice(-4);
     this.currentText = '';
     this.characterIndex = 0;
     this.readyToAdvance = false;
@@ -365,7 +361,7 @@ window.TutorialSystem = class TutorialSystem {
       }
       
       if (this.characterIndex < this.targetText.length) {
-        this.characterIndex = Math.min(this.targetText.length, this.characterIndex + (window.BARCODE?.Preferences?.values.instantText ? this.targetText.length : deltaTime / this.typingSpeed));
+        this.characterIndex = Math.min(this.targetText.length, this.characterIndex + deltaTime / this.typingSpeed);
         this.currentText = this.targetText.substring(0, Math.floor(this.characterIndex));
       }
 
@@ -662,12 +658,12 @@ window.TutorialSystem = class TutorialSystem {
           ctx.fillStyle = '#00ffff';
           ctx.font = '16px Orbitron';
           ctx.textAlign = 'left';
-          ctx.fillText(window.BARCODE?.GamepadUI?.connected ? 'A: Continue' : 'Press SPACE to continue...', 50, boxY + 150);
+          ctx.fillText(window.BARCODE?.GamepadUI?.connected ? 'A: Continue · RB: Jump · B: Rhythm · X: Attack · Y: Hack' : 'Press SPACE to continue...', 50, boxY + 150);
         } else {
           ctx.fillStyle = '#ff6666';
           ctx.font = '16px Orbitron';
           ctx.textAlign = 'left';
-          ctx.fillText(window.BARCODE?.GamepadUI?.connected ? 'Follow the objective →' : 'Complete tasks to continue...', 50, boxY + 150);
+          ctx.fillText(window.BARCODE?.GamepadUI?.connected ? 'Complete tasks · Stick: Move · RB: Jump · B: Rhythm · X: Attack · Y: Hack' : 'Complete tasks to continue...', 50, boxY + 150);
         }
       }
     }
@@ -677,8 +673,7 @@ window.TutorialSystem = class TutorialSystem {
       const objX = 1450;
       const objY = 220;
       const objWidth = 400;
-      const visibleObjectives = this.objectives.filter(o => !o.completed).slice(0, 1);
-      const objHeight = 140;
+      const objHeight = Math.min(1080, this.objectives.length * 30 + 120);
       
       ctx.fillStyle = 'rgba(0, 20, 40, 0.8)';
       ctx.fillRect(objX, objY, objWidth, objHeight);
@@ -689,15 +684,11 @@ window.TutorialSystem = class TutorialSystem {
       
       ctx.font = '16px "Share Tech Mono"';
       ctx.textAlign = 'left';
-      ctx.font = 'bold 20px Oxanium, monospace'; ctx.fillStyle = '#a9ffdb';
-      ctx.fillText('Objectives', objX + 20, objY + 28);
-      ctx.font = '16px Oxanium, monospace';
-      ctx.globalAlpha *= this.readyToAdvance ? 1 : 0.6;
-      visibleObjectives.forEach((objective, index) => {
+      this.objectives.forEach((objective, index) => {
         const color = objective.completed ? '#00ff00' : '#ffffff';
         const prefix = objective.completed ? '✓ ' : '□ ';
         ctx.fillStyle = color;
-        ctx.fillText(prefix + objective.text, objX + 20, objY + 61 + (index * 30));
+        ctx.fillText(prefix + objective.text, objX + 20, objY + 50 + (index * 30));
       });
       
       // Show enemy counter during combat tutorial
@@ -707,7 +698,7 @@ window.TutorialSystem = class TutorialSystem {
         const combatObjectiveCompleted = this.completedObjectives.has('combat');
         
         if (!combatObjectiveCompleted && defeatedCount < 3) {
-          const barY = objY + 94;
+          const barY = objY + 60 + (this.objectives.length * 25) + 10;
           const barHeight = 20;
           const progress = defeatedCount / 3;
           
@@ -915,7 +906,7 @@ window.TutorialSystem = class TutorialSystem {
     enemy.entranceComplete = true;
     enemy.state = 'patrol';
     enemy.stateTimer = 0;
-    enemy.position.y = (window.Player?.GROUND_Y ?? 784);
+    enemy.position.y = 750;
     enemy.velocity.y = 0;
     enemy.velocity.x = 0;
     enemy.isOnGround = true;
