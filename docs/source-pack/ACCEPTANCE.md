@@ -1,5 +1,15 @@
 # Acceptance and Test Status
 
+## Wall sidewalk/street footprint review
+
+Base/rollback: merged #53, `685d13d4de1d56c8a39a82077460d894144bd091`. Import the exact new PR head from its description/source receipt into a duplicate Makko project and start a fresh preview.
+
+1. At the tutorial wall, check that the bottom crosses the sidewalk in perspective, drops down the curb and reaches the street, with no strip of apparently open pavement in front. Its upper portion still reads as a tall wall through the buildings/rooftops. Compare with `Barrier-Sidewalk-Street-Review.png`.
+2. Walk/jump toward the closed boundary; check that it still stops the player at the original gate. Follow all four encounters, view their walls from the street and available rooftops, and clear each gate. The full field should collapse/fade together and movement should unlock immediately as before.
+3. Move the camera toward/away from a wall so the foreground extension enters first; check for popping/clipping. Pause during a collapse, resume, restart, and check reduced effects. Retain walking/audio, hijack/repair, lift, Jammer and boss/retry smoke checks.
+
+Record imported SHA, PASS/FAIL and one short clip showing the sidewalk/curb/street footprint, a blocked jump, gate opening and movement through it. Native drawing and automated validation do not replace owner Makko review. After acceptance and merge, import the actual new main merge SHA, open a fresh preview and repeat these same checks; record deployed SHA and evidence. Roll back this visual correction by re-importing the base above.
+
 ## Enemy hijack / repair route review
 
 Use the exact new review SHA from the PR/source receipt. Walk PR #52 is already merged at `66c17d1880f5de933e9b928833e5dd2bfff6a817`; this new draft targets main directly and preserves all completed walk and hijack work. Follow `ENEMY_HIJACK_REPAIR_PASS.md`'s focused Makko route: both H puzzles, all three ordinary target types, one ally, enemy combat, player-friendly fire exclusion, target death/failure/cancel, early release, expiry/reboot, pause/restart, full-health/injured repairs, one carrier drop, both directions on the two supports, gate counts and boss retry. Preserve intro/music/lift/Cat/Amp/lore/Jammer/boss smoke checks.

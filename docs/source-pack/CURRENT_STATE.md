@@ -1,5 +1,11 @@
 # Current State
 
+## Wall footprint correction — September 15, 2026
+
+PR #53 is merged. Base/rollback is `685d13d4de1d56c8a39a82077460d894144bd091`; current branch is `agent/barrier-street-footprint`. The owner sees the tall barriers but reports that their flat bottoms leave the sidewalk looking passable. The wall renderer now spans forward along the existing perspective, follows the raised sidewalk, steps down the curb and reaches beyond the street artwork. Its near end/top retain slab thickness; projected ribs and the footprint share the existing collapse/fade clock, with culling expanded for the full wall.
+
+This changes drawing only: original gate coordinates, collisions, unlock conditions, full-height barrier and opening duration remain. Merged walk, hijack, repairs and all gameplay remain. Native before/after review shows the actual foreground and production wall drawing; it does not establish hosted Makko acceptance. Required tests, CI and exact review head are recorded in the generated receipt/PR. Follow the top ACCEPTANCE route, then import the actual main merge revision after acceptance/merge. Earlier current-state entries are historical.
+
 ## Current review: enemy hijack and replacement repairs
 
 The owner selected enemy hijacking as H's new success reward. The scoped implementation is recorded in `ENEMY_HIJACK_REPAIR_PASS.md`: eight-second ordinary-enemy allegiance, visible lock/countdown/reboot, friendly-fire exclusion, repair cells/carrier and two physical rooftop connections. The former hack heal and area-stun success path are removed. The owner merged walk PR #52 during preparation. Verified main/base is now `66c17d1880f5de933e9b928833e5dd2bfff6a817`; its complete tree matches the original walk head `b1692f47017459011177fb779639682534c862b7`. Preserve the separately committed, tested new work in a new draft against main; no runtime conflict or lost work occurred. Exact final review/CI status is generated in the source receipt and PR. Makko remains pending; the merge is not playtest acceptance, and earlier current-state entries are history.

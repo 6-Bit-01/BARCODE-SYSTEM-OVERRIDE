@@ -757,23 +757,43 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       const time = fx?.timeMs ?? this.districtSignal.elapsedMs;
       const animate = window.BARCODE_RENDER_QUALITY?.flashes !== false;
       for (const { gate, progress, opening } of this.getGatePresentation()) {
-        if (fx && !fx.visible(gate.x, gate.y + gate.h / 2, gate.h / 2 + 60)) continue;
         const fade = 1 - progress;
         const height = gate.h * fade * fade;
         const top = gate.y + gate.h - height;
-        const depthX = gate.depthX * fade;
-        const depthY = gate.depthY * fade;
+        const groundY = gate.y + gate.h;
+        // The live road overlays the painted curb at y=890. Follow its visible
+        // lip, then continue beyond the road's y=1080 edge without a front gap.
+        // Project along the existing slab's depth, not straight down its pole.
+        const curbTop = 888, curbBottom = 892, streetBottom = 1096;
+        const curbDrop = curbBottom - curbTop;
+        const projectX = rise => gate.x + gate.w - rise * gate.depthX / -gate.depthY;
+        const nearX = projectX(streetBottom - groundY - curbDrop) - gate.w;
+        const footprint = [
+          [gate.x + gate.w + gate.depthX, groundY + gate.depthY, 0],
+          [gate.x + gate.w, groundY, 0],
+          [projectX(curbTop - groundY), curbTop, 0],
+          [projectX(curbTop - groundY), curbBottom, curbDrop],
+          [nearX + gate.w, streetBottom, curbDrop]
+        ];
+        const crown = footprint.map(([x, y, drop]) => [x, y - (gate.h + drop) * fade * fade]);
+        const farX = footprint[0][0], farTop = crown[0][1];
+        if (fx && !fx.visible((nearX + farX) / 2, (farTop + streetBottom) / 2,
+          Math.max(farX - nearX, streetBottom - farTop) / 2 + 60)) continue;
         ctx.save(); ctx.globalAlpha = fade;
-        // A tall holographic slab crosses the sidewalk in its perspective,
-        // rather than reading as a narrow pole that the player could jump.
-        ctx.fillStyle = opening ? 'rgba(98,255,221,0.07)' : 'rgba(174,66,215,0.1)';
+        // One continuous wall face spans the buildings, raised sidewalk,
+        // vertical curb and lower road. Its opening sinks into that footprint.
+        ctx.fillStyle = opening ? 'rgba(98,255,221,0.08)' : 'rgba(174,66,215,0.12)';
+        ctx.beginPath(); crown.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
+        footprint.slice().reverse().forEach(([x, y]) => ctx.lineTo(x, y));
+        ctx.closePath(); ctx.fill();
+        // A narrow top and near end retain the slab's visible thickness.
+        ctx.fillStyle = opening ? 'rgba(98,255,221,0.14)' : 'rgba(219,128,246,0.14)';
         ctx.beginPath();
-        ctx.moveTo(gate.x + gate.w, top);
-        ctx.lineTo(gate.x + gate.w + depthX, top + depthY);
-        ctx.lineTo(gate.x + gate.w + depthX, top + height + depthY);
-        ctx.lineTo(gate.x + gate.w, top + height);
-        ctx.closePath();
-        ctx.fill();
+        crown.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
+        crown.slice().reverse().forEach(([x, y]) => ctx.lineTo(x - gate.w, y));
+        ctx.closePath(); ctx.fill();
+        const nearTop = crown[crown.length - 1][1];
+        ctx.fillRect(nearX, nearTop, gate.w, streetBottom - nearTop);
         ctx.fillStyle = opening ? 'rgba(98,255,221,0.1)' : 'rgba(174,66,215,0.12)';
         ctx.fillRect(gate.x, top, gate.w, height);
         const flicker = animate ? 0.06 * Math.sin(time / 83) * Math.sin(time / 127) : 0;
@@ -785,18 +805,25 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         ctx.fillStyle = '#a6ffe8'; ctx.fillRect(gate.x - 1, top, 2, height); ctx.fillRect(gate.x + gate.w - 1, top, 2, height);
         ctx.strokeStyle = opening ? '#c9fff1' : '#eda6ff';
         ctx.lineWidth = 3;
-        for (const y of [top, top + height]) {
-          ctx.beginPath();
-          ctx.moveTo(gate.x - 4, y);
-          ctx.lineTo(gate.x + gate.w + depthX, y + depthY);
-          ctx.stroke();
+        for (const edge of [crown, footprint]) {
+          ctx.beginPath(); edge.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
+          const end = edge[edge.length - 1]; ctx.lineTo(end[0] - gate.w, end[1]); ctx.stroke();
         }
+        ctx.beginPath(); ctx.moveTo(nearX, nearTop); ctx.lineTo(nearX, streetBottom); ctx.stroke();
+        // The second ground rail and lit curb face make the raised paving read.
+        ctx.beginPath(); footprint.forEach(([x, y], i) => i ? ctx.lineTo(x - gate.w, y) : ctx.moveTo(x - gate.w, y)); ctx.stroke();
+        ctx.fillStyle = opening ? 'rgba(137,255,224,0.22)' : 'rgba(232,129,255,0.22)';
+        ctx.fillRect(footprint[2][0] - gate.w, curbTop, gate.w, curbDrop);
         ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(farX, footprint[0][1]); ctx.lineTo(farX, farTop); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(nearX + gate.w, nearTop); ctx.lineTo(nearX + gate.w, streetBottom); ctx.stroke();
         for (let lane = 1; lane < 5; lane++) {
           const laneT = lane / 5;
           ctx.beginPath();
-          ctx.moveTo(gate.x + gate.w, top + height * laneT);
-          ctx.lineTo(gate.x + gate.w + depthX, top + height * laneT + depthY);
+          footprint.forEach(([x, y], i) => {
+            const laneY = crown[i][1] + (y - crown[i][1]) * laneT;
+            if (i) ctx.lineTo(x, laneY); else ctx.moveTo(x, laneY);
+          });
           ctx.stroke();
         }
         ctx.fillStyle = opening ? '#c9fff1' : '#eda6ff';
