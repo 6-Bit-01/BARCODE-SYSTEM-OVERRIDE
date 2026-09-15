@@ -61,7 +61,7 @@ p.boss.pulses = [{ originX: p.boss.x, radius: 120, hit: false }];
 const requests = []; w.BARCODE.PresentationAssets = { draw(key, _ctx, options) { requests.push({ key, ...options }); return true; } };
 const combatBeforeDrawing = JSON.stringify(p.boss.pulses);
 p.drawBoss(ctx);
-assert.strictEqual(requests.length, 2); assert(requests.every(r => r.key === 'bossPulse' && r.width === 104 && r.height === 76 && r.y === 822));
+assert.strictEqual(requests.length, 2); assert(requests.every(r => r.key === 'bossPulse' && r.width === 104 && r.height === 76 && r.y === 856));
 assert.deepStrictEqual(requests.map(r => r.flip), [true, false]);
 assert.strictEqual(requests[0].x - requests[0].width / 2, p.boss.x - 120 - 32, 'left flame keeps the original leading edge');
 assert.strictEqual(requests[1].x + requests[1].width / 2, p.boss.x + 120 + 32, 'right flame keeps the original leading edge');

@@ -17,7 +17,7 @@ window.LostDataSystem = class LostDataSystem {
     this.authoredLevel1Placements = [
       { id: 'signal-awning-fragment', loreId: 'lore.l01.01', x: 980, y: 450, surfaceY: 492, unlockKills: 4 },
       { id: 'middle-roof-fragment', loreId: 'lore.l01.02', x: 2220, y: 316, surfaceY: 358, unlockKills: 9 },
-      { id: 'upper-route-fragment', loreId: 'lore.l01.03', x: 3460, y: 460, surfaceY: 502, unlockKills: 14 }
+      { id: 'upper-route-fragment', loreId: 'lore.l01.03', x: 3460, y: -368, surfaceY: -326, unlockKills: 14 }
     ].map(record => ({ ...record, text: window.BARCODE.LoreRecords.preview(record.loreId) }));
   }
   init(player) { this.player = player; }

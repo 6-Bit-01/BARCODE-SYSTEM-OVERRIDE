@@ -10,7 +10,7 @@ function rig() {
   r.w.hackingSystem = new r.w.HackingSystem();
   return r;
 }
-function actor(r, type, x, y = 750) {
+function actor(r, type, x, y = 784) {
   const e = new r.w.Enemy(x, y, type);
   Object.assign(e.position, { x, y });
   Object.assign(e, { entranceComplete: true, _authoredEntranceActive: false, _sector1MissionEnemy: true,
@@ -122,7 +122,7 @@ for (const type of ['virus', 'corrupted', 'firewall']) {
   w.player.health = 1; w.player.position.y = cell.surfaceY + 50; p.updateRepairs(16); assert(!cell.collected, 'cannot collect through roof');
   w.player.position.y = cell.surfaceY - 72; p.updateRepairs(16); assert(cell.collected); assert.strictEqual(w.player.health, 2);
   p.updateRepairs(16); assert.strictEqual(w.player.health, 2);
-  const carrier = p.spawnMissionEnemy({ type: 'corrupted', x: 1440, y: 750 }, 'encounter_2', 0, { origin: { x: 1440, y: 750 } });
+  const carrier = p.spawnMissionEnemy({ type: 'corrupted', x: 1440, y: 784 }, 'encounter_2', 0, { origin: { x: 1440, y: 784 } });
   assert(carrier._repairCarrier); assert(!p.dropCarrierRepair(carrier));
   carrier.takeDamage(999); w.enemyManager.recordDefeat(carrier); w.enemyManager.recordDefeat(carrier);
   assert.strictEqual(p.repairs.filter(x => x.id === 'repair.cache-carrier').length, 1);
@@ -148,10 +148,10 @@ for (const fps of [30, 60, 120]) {
   }
   jumpRoute(1230, 492, 1450, 'cache-maintenance-step');
   jumpRoute(1480, 410, 1620, 'cache-awning');
-  jumpRoute(3010, 822, 3225, 'tower-utility-unit');
+  jumpRoute(3010, 856, 3225, 'tower-utility-unit');
   jumpRoute(3280, 650, 3420, 'tower-awning');
   jumpRoute(1600, 330, 1450, 'cache-maintenance-step');
-  jumpRoute(1420, 410, 1220, 'signal-awning');
+  jumpRoute(1420, 410, 1220, 'signal-roof'); // The new higher roof now intercepts this upward jump.
   jumpRoute(3360, 502, 3225, 'tower-utility-unit', false);
   jumpRoute(3200, 650, 3000, null);
 }

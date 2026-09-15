@@ -145,6 +145,7 @@
     "tools/check-level-01-impact.js",
     "tools/check-level-01-lore-archive.js",
     "tools/check-level-01-mission.js",
+    "tools/check-level-01-playtest.js",
     "tools/check-level-01-polish-menu.js",
     "tools/check-level-01-polish.js",
     "tools/check-level-01-presentation.js",
@@ -445,13 +446,13 @@
     {
       "global": "window.EnemyManager",
       "file": "src/game/enemies.js",
-      "line": 1205,
+      "line": 1254,
       "loaded": true
     },
     {
       "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 1783,
+      "line": 1855,
       "loaded": true
     },
     {
@@ -475,7 +476,7 @@
     {
       "global": "window.Enemy",
       "file": "src/game/enemies.js",
-      "line": 15,
+      "line": 17,
       "loaded": true
     },
     {
@@ -553,7 +554,7 @@
     {
       "global": "window.player",
       "file": "src/game/player.js",
-      "line": 1720,
+      "line": 1721,
       "loaded": true
     },
     {
@@ -619,43 +620,43 @@
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 363,
+      "line": 369,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 390,
+      "line": 396,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 452,
+      "line": 458,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 470,
+      "line": 476,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 550,
+      "line": 556,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 590,
+      "line": 596,
       "loaded": false
     },
     {
       "global": "window.renderGame",
       "file": "src/game/render-coordinator.js",
-      "line": 34,
+      "line": 35,
       "loaded": true
     },
     {
