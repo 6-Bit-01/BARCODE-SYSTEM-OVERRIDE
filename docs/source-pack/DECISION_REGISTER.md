@@ -1,5 +1,9 @@
 # Decision Register
 
+## September 16 — owner-authorized solid ledges and elevator squash
+
+The owner broadens bonks to awnings and anything the player can hit, explicitly makes the elevator roof solid and rideable for the player, ordinary enemies and boss, then adds visible enemy pancaking beneath the descending elevator. The latest request supersedes the earlier cabin-only bonk and pass-through-awning direction. Use the existing sprites for the squash; retain defeat accounting and repair drops. Reposition the existing Tower middle step outward for a viable single-jump ascent. See `SOLID_LEDGES_SMUSH_PASS.md`. Existing authorization covers implementation, branch publication and one combined draft; owner Makko acceptance remains required before assistant merge.
+
 ## September 16 — owner-authorized elevator, Studio Rat and drone correction
 
 The owner asks for a larger/taller elevator, brief on-screen lift text, occasional logically justified head bumps, Studio Rat in a random place each level, a clear stomp approach to the covered enemy, and a higher lift stop aligned with the rooftop. Implement as one follow-up to merged #69. Use only the visible cabin roof for upward head contact; preserve climb-through awnings. Choose from safe supported cat perches once per fresh run, independent of saved reward credit. Move the drone's spawn and patrol together instead of breaking the established platform route. Level 1 is the currently playable level; later genre-specific cat encounters remain future work. Exact behavior and review route: `LIFT_ROOFTOP_RAT_PASS.md`. Owner review remains required before assistant merge.

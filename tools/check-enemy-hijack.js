@@ -146,7 +146,7 @@ for (const fps of [30, 60, 120]) {
     }
     assert(landed, `production jump reaches ${id} at ${fps} Hz (x=${player.position.x}, surface=${player.supportedSurfaceId})`);
   }
-  jumpRoute(1230, 492, 1450, 'cache-maintenance-step');
+  jumpRoute(1280, 254, 1450, 'cache-maintenance-step', false); // Approach from the roof; its solid lip now blocks ascent through it.
   jumpRoute(1480, 410, 1620, 'cache-awning');
   jumpRoute(480, 856, 640, 'tower-utility-unit');
   jumpRoute(690, 638, 850, 'signal-awning');

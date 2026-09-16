@@ -121,6 +121,7 @@ window.Player = class Player {
       const groundedAtStart = this.grounded;
       const descentAtStart = this.velocity.y;
       this.ceilingMotion = { head: this.getCeilingProbe(), rising: descentAtStart < 0, allowed: allowMovement && !this.isEntering };
+      this.roofMotion = window.sector1Progression?.captureRoofActor?.(this);
       this.afterimageMs = Math.max(0, (this.afterimageMs || 0) - deltaTime);
       if (this.isRhythmPlanted()) { this.velocity.x = 0; this.airInput = 0; }
       // Forced motion may unground a performance; never suspend gravity.
@@ -179,6 +180,10 @@ window.Player = class Player {
         window.sector1Progression.applyBossStomp(this, { previousFootY, currentFootY: this.position.y, previousX });
       }
 
+      if (this.allowMovement && !this.isEntering) {
+        window.sector1Progression?.applyPlayerHeadContact?.(this);
+        window.sector1Progression?.resolveLiftActor?.(this, this.roofMotion);
+      }
       let landedOnStageSurface = false;
       if (window.sector1Progression && typeof window.sector1Progression.applyPlayerStageCollision === 'function') {
         landedOnStageSurface = window.sector1Progression.applyPlayerStageCollision(this, { previousFootY, currentFootY: this.position.y, previousX });
@@ -229,6 +234,11 @@ window.Player = class Player {
       
       // Update sprite animation with proper deltaTime
       this.updateSpriteAnimation(deltaTime);
+      if (this.allowMovement && !this.isEntering) {
+        // Keep the real cap clear after the animation advances as well.
+        window.sector1Progression?.applyPlayerHeadContact?.(this);
+        window.sector1Progression?.resolveLiftActor?.(this, window.sector1Progression?.captureRoofActor?.(this));
+      }
       
       this.trailMs = (this.trailMs || 0) + deltaTime;
       if (this.grounded && Math.abs(this.velocity.x) > 50 && this.allowMovement && !this.isRhythmPlanted()) {
@@ -545,6 +555,7 @@ window.Player = class Player {
 
   dropThrough() {
     if (!this.grounded || !this.supportedSurfaceId || this.isEntering || !this.allowMovement || this.controlsDisabled) return false;
+    if (this.supportedSurfaceId === 'signal-lift-roof') return false;
     if (window.sector1Progression?.isGameplaySuppressed?.() || window.isPaused || window.gameState?.paused) return false;
     this.dropSurfaceId = this.supportedSurfaceId;
     this.dropSurfaceY = this.position.y + PLAYER_VISUAL_FOOT_OFFSET_Y;

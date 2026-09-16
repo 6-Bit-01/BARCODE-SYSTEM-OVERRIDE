@@ -131,7 +131,7 @@ for(const target of ['enemy','ally','none']) {
 console.log('Finale: boss body-edge rhythm on street/roofs, forgiving real contacts, locked difficulty/retry, per-level durable rewards, single-credit cat rescue, full fixed shaft and powered/reverse/pause lifecycle passed.');
 
 // Exercise actual jump integration and animation against the moving cabin.
-// Existing awnings remain climb-through; only the illustrated roof is solid.
+// The complete illustrated roof is solid; static ledges now bonk as well.
 const { createSprite, playerClips } = require('./makko-animation-fixture');
 function liftRig() {
   const r = rig(), {w,p} = r;
@@ -142,9 +142,9 @@ function liftRig() {
   return r;
 }
 for (const fps of [30,60,120]) {
-  for (const facing of [-1,1]) for (const scenario of ['inside','left-post','right-post','upper-route']) {
+  for (const facing of [-1,1]) for (const scenario of ['inside','left-post','right-post','clear-right','upper-route']) {
     const {w,p}=liftRig(), actor=w.player, lift=p.signalLift;
-    const x=scenario==='inside'?lift.x+lift.w/2:scenario==='left-post'?lift.x+8:scenario==='right-post'?lift.x+lift.w-8:1100;
+    const x=scenario==='inside'?lift.x+lift.w/2:scenario==='left-post'?lift.x+8:scenario==='right-post'?lift.x+lift.w-8:scenario==='clear-right'?lift.x+lift.w+100:1100;
     Object.assign(actor.position,{x,y:scenario==='upper-route'?492-72:784});
     actor.grounded=true; actor.supportedSurfaceId=scenario==='inside'?lift.id:null;
     actor.facing=facing;
@@ -159,8 +159,8 @@ for (const fps of [30,60,120]) {
       assert.equal(actor.health,health,'head contact cannot deal damage');
       assert.equal(actor.controlsDisabled,false,'head contact cannot stun');
     }
-    assert.equal(contacts,scenario==='inside'?1:0,`${fps}fps ${scenario}: only the interior roof catches an upward cap`);
-    assert(scenario==='inside'?rise<100:rise>240,`${fps}fps ${scenario}: sparse roof contact preserves other jumps (${rise})`);
+    assert.equal(contacts,['inside','left-post','right-post'].includes(scenario)?1:0,`${fps}fps ${scenario}: the entire roof catches an upward cap`);
+    assert(scenario==='clear-right'?rise>240:rise<100,`${fps}fps ${scenario}: visible overhead surfaces bonk; clear jumps retain height (${rise})`);
     assert.equal(w.gameState.gameOver,false);
   }
   // Carrying the standing player is not a jump; changing cabin position must

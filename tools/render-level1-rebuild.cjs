@@ -30,6 +30,31 @@ async function main(){
  function scene(c,cx,cy){w.gameCamera={centerX:cx,y:cy};w.renderer.zoomLevel=1;c.fillStyle='#111322';c.fillRect(0,0,1920,1080);c.drawImage(bg,0,0,1920,1080);c.save();c.translate(960-cx,-cy);c.drawImage(fg,0,2,fg.width,fg.height-2,-152,-550+2*1589/fg.height,4400,1589-2*1589/fg.height);w.drawGround(c);w.drawGameEntities(c);w.player.draw(c);c.restore();c.save();c.translate(0,-cy);w.spaceShipSystem.drawForegroundShips(c);c.restore();if(!w.tutorialSystem?.isActive?.())w.drawObjectives(c);}
  function setHero(x,foot,support){Object.assign(w.player.position,{x,y:foot-72});w.player.velocity.x=0;w.player.velocity.y=0;w.player.grounded=true;w.player.supportedSurfaceId=support||null;w.player.state='idle';w.player.airInput=0;w.player.controlsDisabled=false;w.player.invulnerableUntil=0;w.player.health=w.player.maxHealth;w.player.playAnimation('idle');}
  const canvas=createCanvas(1920,1080),c=canvas.getContext('2d');
+ if(process.env.SOLID_LEDGE_REVIEW){
+  p.state='jammer_active';p.closedGateEncounterId=null;w.enemyManager.enemies=[];
+  const movie=createCanvas(960,720),mc=movie.getContext('2d');
+  const video=spawn('ffmpeg',['-y','-loglevel','error','-f','image2pipe','-framerate','15','-i','pipe:0','-c:v','libx264','-threads','2','-pix_fmt','yuv420p','-movflags','+faststart',path.join(out,'solid-ledges-smush.mp4')],{stdio:['pipe','ignore','pipe']});
+  let errors='';video.stderr.on('data',b=>errors+=b);
+  async function emit(label,cx=2506,cy=0,name=null){
+   scene(c,cx,cy);mc.drawImage(canvas,480,330,960,720,0,0,960,720);
+   mc.fillStyle='rgba(4,12,18,.94)';mc.fillRect(12,12,936,32);mc.fillStyle='#fff';mc.font='18px Oxanium';mc.fillText(label,25,35);
+   if(name)fs.writeFileSync(path.join(out,name+'.webp'),movie.toBuffer('image/webp',90));
+   if(!video.stdin.write(movie.toBuffer('image/jpeg',85)))await once(video.stdin,'drain');
+  }
+  function enemy(type,x,foot){const e=new w.Enemy(x,foot-72,type);Object.assign(e.position,{x,y:foot-72});Object.assign(e,{entranceComplete:true,_authoredEntranceActive:false,spawnProtectionDuration:0});e.updateAI=()=>{};return e;}
+  setHero(3500,856,null);w.player.isJumpHeld=()=>true;w.player.jump();let bonk=false;
+  for(let i=0;i<23;i++){w.player.update(1000/15,true);p.updateSignalLift(1000/15);const hit=!!w.player.headContactSurfaceId;await emit('Awning bonk — jump stops at the visible underside',3500,0,hit&&!bonk?'awning-bonk':null);bonk ||= hit;}
+  p.resetSignalLift();let lift=p.signalLift;lift.y=lift.prevY=680;lift.state='moving';let roof=p.getLiftRoof();
+  setHero(roof.x+roof.w*.7,roof.topY,roof.id);const rider=enemy('corrupted',roof.x+60,roof.topY);rider.supportedSurfaceId=roof.id;w.enemyManager.enemies=[rider];
+  for(let i=0;i<30;i++){if(i<10)w.player.moveLeft();else if(i<18)w.player.moveRight();else w.player.stopHorizontal();w.player.update(1000/15,true);rider.update(1000/15,w.player,i*1000/15);p.updateSignalLift(1000/15);await emit('Solid elevator roof — walking and riding upward',2506,p.getLiftRoof().topY-660,i===20?'roof-riders':null);}
+  for(const type of ['firewall','corrupted','virus']){
+   p.resetSignalLift();lift=p.signalLift;lift.y=lift.prevY=550;lift.state='returning';setHero(lift.x-130,856,null);const victim=enemy(type,2506,856);w.enemyManager.enemies=[victim];
+   for(let i=0;i<50;i++){victim.update(1000/15,w.player,i*1000/15);p.updateSignalLift(1000/15);await emit('Descending elevator — '+type+' gets pancaked',2506,0,i===35?'pancake-'+type:i===0?'before-'+type:null);}
+  }
+  video.stdin.end();const [code]=await once(video,'close');if(code)throw new Error(errors);
+  if(calls.errors.length)throw new Error(calls.errors.join('\n'));
+  console.log('Native awning bonk, moving roof riders and three enemy pancake scenes rendered.');return;
+ }
  if(process.env.LIFT_CLEARANCE_REVIEW){
   for(const file of ['src/engine/parallax.js','src/game/lore-collection.js','src/game/level-01-stage-fx.js'])load(context,file);
   const storage=new Map();w.localStorage={getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)};

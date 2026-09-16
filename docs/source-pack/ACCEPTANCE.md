@@ -1,5 +1,9 @@
 # Acceptance and Test Status
 
+## Current review — solid ledges and elevator pancakes
+
+Automated/native evidence is in `SOLID_LEDGES_SMUSH_PASS.md` and `review-solid-ledges/`. Owner Makko acceptance is pending. Check awning and gray-step bonks, side/upward roof collisions, land/walk/ride on the roof going up and down with the player/enemies/boss, normal rooftop exit and boss pursuit around the roof. Lure an enemy beneath the returning elevator: it must flatten visibly and count once, including its carrier drop. Standing inside/on top, pause, retry and the upper climbing route must remain reliable. This replaces the previous expectation of jumping through awning undersides.
+
 ## September 16 — elevator/rooftop/Studio Rat/drone follow-up
 
 Owner follow-up on PR #70: the Firewall high step must clear the full lift shaft, and its canopy-to-roof route must remain jumpable.
