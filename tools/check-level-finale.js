@@ -100,10 +100,11 @@ for(const fps of [30,60,120]) {
 // Real enemy defeat once, no ally theft, and a border gag in a cleared room.
 for(const target of ['enemy','ally','none']) {
   const {w,p}=rig();p.startMission();p.state='encounter_2';p.closedGateEncounterId=null;
-  Object.assign(w.player.position,{x:1680,y:258});w.player.grounded=true;w.gameCamera.centerX=1680;
-  const e=enemy(w);if(target==='ally')e._hijackedUntilMs=100000;
+  const stage=w.BARCODE.stageFX;stage.reset(p);
+  Object.assign(w.player.position,{x:stage.ratSpot.x,y:stage.ratSpot.y-72});w.player.grounded=true;w.gameCamera.centerX=stage.ratSpot.x;
+  const e=enemy(w,stage.ratSpot.x+20,stage.ratSpot.y-72);if(target==='ally')e._hijackedUntilMs=100000;
   w.enemyManager.enemies=target==='none'?[]:[e];
-  const stage=w.BARCODE.stageFX;stage.reset(p);stage.update(16);assert(stage.inspect().ok);
+  stage.update(16);assert(stage.inspect().ok);
   const before=p.missionDefeats;w.gameState.paused=true;stage.update(2000);assert.equal(stage.ratAge,0);w.gameState.paused=false;
   stage.update(1700);assert.equal(p.missionDefeats,before+(target==='enemy'?1:0));
   if(target!=='enemy')assert(!stage.ratEvent.victim);
@@ -118,13 +119,146 @@ for(const target of ['enemy','ally','none']) {
   Object.assign(w.player.position,{x:lift.x+lift.w/2,y:lift.y-72});w.player.supportedSurfaceId=lift.id;w.player.grounded=true;
   let draws=[];w.BARCODE.PresentationAssets={draw:(name,ctx,options)=>{draws.push({name,...options});return true;}};
   const ctx=new Proxy({},{get:(o,k)=>o[k]??(()=>{})});let expected;
-  for(const y of [856,610,358]){lift.y=y;draws=[];p.drawSignalLift(ctx);const track=draws.filter(x=>x.name==='liftTrack').map(x=>x.y);if(expected)assert.deepStrictEqual(track,expected);expected=track;assert.equal(draws.at(-1).name,'liftCabin');assert.equal(draws.at(-1).y,y);}
+  for(const y of [856,610,358,59]){lift.y=y;draws=[];p.drawSignalLift(ctx);const track=draws.filter(x=>x.name==='liftTrack').map(x=>x.y);if(expected)assert.deepStrictEqual(track,expected);expected=track;assert.equal(draws.at(-1).name,'liftCabin');assert.equal(draws.at(-1).y,y);}
   lift.y=856;p.chargeSignalLift();assert.equal(lift.charges,1);p.chargeSignalLift();p.updateSignalLift(100);
   assert(lift.y<856&&lift.driveTimeMs>0);assert.equal(w.player.position.y+72,lift.y);
   const clock=lift.driveTimeMs;w.gameState.paused=true;p.update(100);assert.equal(lift.driveTimeMs,clock);w.gameState.paused=false;
   lift.state='returning';p.updateSignalLift(40);assert.equal(lift.driveTimeMs,clock-40);
   p.resetSignalLift();assert.equal(p.signalLift.driveTimeMs,0);
-  Object.assign(w.player.position,{x:2366,y:784});w.player.grounded=true;w.BARCODE.stageFX.reset(p);
+  Object.assign(w.player.position,{x:2300,y:784});w.player.grounded=true;w.BARCODE.stageFX.reset(p);
   assert.equal(w.BARCODE.stageFX.findNearby()?.id,'egg.l01.cliff-maintenance');
 }
 console.log('Finale: boss body-edge rhythm on street/roofs, forgiving real contacts, locked difficulty/retry, per-level durable rewards, single-credit cat rescue, full fixed shaft and powered/reverse/pause lifecycle passed.');
+
+// Exercise actual jump integration and animation against the moving cabin.
+// Existing awnings remain climb-through; only the illustrated roof is solid.
+const { createSprite, playerClips } = require('./makko-animation-fixture');
+function liftRig() {
+  const r = rig(), {w,p} = r;
+  p.startMission(); p.state='encounter_3'; p.closedGateEncounterId=null; p.spawnedEncounterIds.add(p.state);
+  w.rhythmSystem.hideRhythmMode(); w.enemyManager.enemies=[];
+  w.player.sprite=createSprite(playerClips); w.player.spriteReady=true; w.player.playAnimation('idle');
+  w.player.allowMovement=true; w.player.isJumpHeld=()=>true;
+  return r;
+}
+for (const fps of [30,60,120]) {
+  for (const facing of [-1,1]) for (const scenario of ['inside','left-post','right-post','upper-route']) {
+    const {w,p}=liftRig(), actor=w.player, lift=p.signalLift;
+    const x=scenario==='inside'?lift.x+lift.w/2:scenario==='left-post'?lift.x+8:scenario==='right-post'?lift.x+lift.w-8:1100;
+    Object.assign(actor.position,{x,y:scenario==='upper-route'?492-72:784});
+    actor.grounded=true; actor.supportedSurfaceId=scenario==='inside'?lift.id:null;
+    actor.facing=facing;
+    const health=actor.health; let contacts=0, rise=0; const start=actor.position.y;
+    assert(actor.jump());
+    for(let i=0;i<fps*.65;i++) {
+      const before=actor.liftHeadContact;
+      actor.update(1000/fps,true); p.updateSignalLift(1000/fps);
+      if(actor.liftHeadContact&&!before)contacts++;
+      rise=Math.max(rise,start-actor.position.y);
+      if(actor.liftHeadContact)assert(actor.getCeilingProbe().y>=p.getLiftRoof().y-0.001,'cap meets the real underside without clipping');
+      assert.equal(actor.health,health,'head contact cannot deal damage');
+      assert.equal(actor.controlsDisabled,false,'head contact cannot stun');
+    }
+    assert.equal(contacts,scenario==='inside'?1:0,`${fps}fps ${scenario}: only the interior roof catches an upward cap`);
+    assert(scenario==='inside'?rise<100:rise>240,`${fps}fps ${scenario}: sparse roof contact preserves other jumps (${rise})`);
+    assert.equal(w.gameState.gameOver,false);
+  }
+  // Carrying the standing player is not a jump; changing cabin position must
+  // not bump them. The floor must meet the actual roof, not the lower canopy.
+  const {w,p}=liftRig(), actor=w.player, lift=p.signalLift;
+  Object.assign(actor.position,{x:lift.x+lift.w/2,y:784});actor.grounded=true;actor.supportedSurfaceId=lift.id;
+  p.chargeSignalLift();p.chargeSignalLift();
+  for(let i=0;i<fps*4;i++){actor.update(1000/fps,true);p.updateSignalLift(1000/fps);assert(!actor.liftHeadContact);}
+  const destination=p.getStageSurfaces().find(s=>s.id==='firewall-roof');
+  assert.equal(lift.y,destination.y);assert(Math.abs(actor.position.y+72-destination.y)<0.001,'lift floor aligns with actual rooftop');
+  assert.equal(actor.supportedSurfaceId,destination.id,'standing passenger transfers onto rooftop');
+  // Real grounded movement, with no jump, carries the rider left out of the
+  // cabin; returning carriage must not pull them down through the roof.
+  for(let i=0;i<fps*.6;i++){actor.moveLeft();actor.update(1000/fps,true);p.updateSignalLift(1000/fps);assert(actor.grounded);assert.equal(actor.supportedSurfaceId,destination.id);}
+  assert(actor.position.x<lift.x-18,'passenger walks completely out of the cabin');
+  assert.equal(actor.position.y+72,destination.y);
+  for(const state of ['moving','returning']) {
+    const {w,p}=liftRig(), actor=w.player, lift=p.signalLift;
+    lift.y=lift.prevY=700;lift.state=state;
+    Object.assign(actor.position,{x:lift.x+lift.w/2,y:700-72});actor.grounded=true;actor.supportedSurfaceId=lift.id;
+    actor.jump();let contact=false;
+    for(let i=0;i<fps*.5;i++){actor.update(1000/fps,true);p.updateSignalLift(1000/fps);contact ||= !!actor.liftHeadContact;}
+    assert(contact,`${fps}fps moving roof ${state}: relative sweep catches the cap`);
+    assert.equal(actor.health,3);assert(!actor.controlsDisabled);
+  }
+}
+{
+  const {w,p}=liftRig(), actor=w.player, lift=p.signalLift, roof=p.getLiftRoof();
+  Object.assign(actor.position,{x:lift.x+lift.w/2,y:roof.topY-72-12});actor.grounded=false;actor.velocity.y=200;
+  actor.update(100,true);p.updateSignalLift(100);
+  assert.equal(actor.supportedSurfaceId,roof.id,'visible solid roof also supports a landing from above');
+  lift.state='moving';p.updateSignalLift(100);
+  assert(Math.abs(actor.position.y+72-p.getLiftRoof().topY)<0.001,'roof rider moves with the same carriage');
+  assert.equal(p.chargeSignalLift().ok,false,'roof landing does not power the cabin');
+  p.resetSignalLift();assert.equal(actor.supportedSurfaceId,null);
+}
+{
+  const {w,p}=liftRig(), lift=p.signalLift;
+  Object.assign(w.player.position,{x:lift.x+lift.w/2,y:784});w.player.grounded=true;
+  p.updateSignalLift(16);assert(lift.promptVisible,'approach produces a brief HUD prompt');
+  p.updateSignalLift(1900);assert(lift.promptVisible);
+  const age=lift.promptAgeMs;w.gameState.paused=true;p.update(1000);assert.equal(lift.promptAgeMs,age);w.gameState.paused=false;
+  p.updateSignalLift(510);assert(!lift.promptVisible,'prompt fades and expires while still aboard');
+  p.updateSignalLift(5000);assert(!lift.promptVisible,'standing nearby cannot keep flashing the text');
+  w.player.position.x=lift.x-400;p.updateSignalLift(1300);
+  w.player.position.x=lift.x+lift.w/2;p.updateSignalLift(16);assert(lift.promptVisible,'a later approach can show the instruction again');
+  w.player.position.y=-300;p.updateSignalLift(1300);assert(!lift.promptVisible,'matching X on a remote rooftop is not an approach');
+  const words=[];const ctx=new Proxy({globalAlpha:1,fillText:t=>words.push(t)},{get:(o,k)=>o[k]??(()=>{})});
+  p.drawSignalLift(ctx);assert.equal(words.length,0,'elevator artwork has no permanent label');
+  w.player.position.y=784;p.updateSignalLift(16);p.drawLiftPrompt(ctx);assert(words.includes('RHYTHM LIFT'),'instruction belongs to the HUD pass');
+  p.resetSignalLift();assert(!p.signalLift.promptVisible&&p.signalLift.promptArmed,'restart clears prompt and contact effects');
+}
+console.log('Lift clearance: 30/60/120Hz real jumps, visible cap contact, safe edge passes, preserved roof route, no damage/stun, roof landing/carry, brief altitude-aware HUD prompt and pause/reset passed.');
+
+// An old save must not remove the cat from later runs. Exercise every random
+// slot against production support geometry, plus actual inspection and save.
+{
+  const {w,p,context}=rig();p.startMission();p.state='encounter_2';p.closedGateEncounterId=null;
+  const stage=w.BARCODE.stageFX, archive=stage.archive();archive.completeStudioRatEvent('level-01');
+  const revision=archive.record.revision, positions=new Set();w.enemyManager.enemies=[];
+  w.Math=Object.create(Math);
+  for(let i=0;i<6;i++){
+    w.Math.random=()=>(i+.5)/6;
+    stage.reset(p);const spot=stage.ratSpot;positions.add(spot.x+','+spot.y);
+    const support=p.getStageSurfaces().find(s=>s.id===spot.surfaceId);
+    assert(support&&support.y===spot.y&&spot.x-60>support.x&&spot.x+60<support.x+support.w,'random perch has solid support and edge clearance');
+    Object.assign(w.player.position,{x:spot.x,y:spot.y-72});w.player.grounded=true;w.gameCamera.centerX=spot.x;
+    stage.update(16);assert.equal(stage.findNearby()?.id,'egg.l01.studio-rat','saved discovery cannot hide this run\'s cat');
+    const drawings=[];w.BARCODE.PresentationAssets={draw:(name,ctx,options)=>{drawings.push(name);return true;}};
+    const ctx=new Proxy({},{get:(o,k)=>o[k]??(()=>{})});stage.drawWorld(ctx);assert(drawings.includes('studioCatEvent'));
+    stage.reset(p,{resume:true});assert.strictEqual(stage.ratSpot,spot,'checkpoint keeps selected spot');
+    assert(stage.inspect().ok);assert(stage.ratEvent);assert(stage.ratRunConsumed);
+    assert.equal(archive.record.revision,revision,'reappearing cat never duplicates persistent discovery credit');
+    stage.update(6300);stage.message=null;assert.equal(stage.findNearby(),null,'one encounter per run');
+    stage.reset(p,{resume:true});assert.strictEqual(stage.ratSpot,spot);assert(stage.ratRunConsumed,'retry cannot farm the same event');
+    stage.reset(p);assert(!stage.ratRunConsumed,'fresh level makes the cat available again');
+  }
+  assert.equal(positions.size,6,'random selection covers the six safe perches');
+}
+// The actual mission drone starts and patrols in open air beyond the steps.
+// Its full descending stomp lane remains clear at both patrol endpoints.
+for(const fps of [30,60,120])for(const side of ['left','right']){
+  const {w,p}=liftRig();p.state='encounter_4';p.spawnedEncounterIds.add(p.state);
+  const drone=p.spawnMissionEnemy({type:'virus',x:3450},'encounter_4',1);
+  drone.spawnProtectionDuration=0;drone.spawnTimeMs=-10000;
+  assert(drone.position.x>=drone.home.left&&drone.position.x<=drone.home.right,'spawn agrees with patrol lane');
+  const obstacles=p.getStageSurfaces().filter(s=>s.y<drone.getStompBox().y&&s.y>drone.getStompBox().y-300);
+  for(let i=0;i<fps*5;i++){
+    drone.update(1000/fps,null,10000+i*1000/fps);
+    assert(obstacles.every(s=>drone.position.x+60<s.x||drone.position.x-60>s.x+s.w),'body and stomp approach clear the visible overhead steps');
+  }
+  drone.position.x=drone.home[side];
+  Object.assign(w.player.position,{x:drone.position.x,y:drone.getStompBox().y-72-100});
+  w.player.grounded=false;w.player.supportedSurfaceId=null;w.player.velocity.y=150;
+  for(let i=0;i<fps&&drone.active;i++){
+    w.player.update(1000/fps,true);w.enemyManager.checkCollisions(w.player);
+  }
+  assert(!drone.active,`${fps}fps ${side}: descending player stomps the real mission drone without a platform interception`);
+  assert(w.player.velocity.y<0,'stomp gives the normal rebound');assert.equal(w.player.health,3);
+}
+console.log('Level run repair: saved Studio Rat returns at six supported random perches, checkpoint stability/no duplicate credit, actual rooftop walk-off and clear drone patrol/stomps at 30/60/120Hz passed.');

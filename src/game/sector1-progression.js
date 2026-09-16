@@ -73,7 +73,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     { id: 'signal-high-step', x: 642, y: 10, w: 132, h: 18 },
     { id: 'cache-high-step', x: 1400, y: 30, w: 136, h: 18 },
     { id: 'firewall-low-step', x: 2130, y: 430, w: 148, h: 18 },
-    { id: 'firewall-high-step', x: 2330, y: 210, w: 136, h: 18 },
+    { id: 'firewall-high-step', x: 2160, y: 210, w: 136, h: 18 },
     { id: 'tower-middle-step', x: 3260, y: 50, w: 136, h: 18 },
     { id: 'tower-high-step', x: 3420, y: -140, w: 136, h: 18 },
     { id: 'broadcast-low-step', x: 3930, y: 280, w: 144, h: 18 },
@@ -121,18 +121,22 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     jammerCadenceMinMs: 2500,
     jammerCadenceMaxMs: 3500
   });
-  // Rhythm-powered access from the middle-right street to Firewall canopy.
+  // Rhythm-powered access from the middle-right street to the Firewall roof.
   // Platform coordinates use the same visible-foot space as STAGE_SURFACES.
   const SIGNAL_LIFT = Object.freeze({
     id: 'signal-lift',
     // Expand around the original x=2506 center so the upper roof handoff stays
     // under the rider, rather than moving the enlarged cabin beyond its edge.
-    x: 2408,
-    w: 196,
+    x: 2366,
+    w: 280,
     h: 10,
+    cabinHeight: 432,
+    footAnchor: 0.795,
+    roofUnderside: 0.249,
+    roofTop: 0.1,
     bottomY: GROUND_Y + PLAYER_VISUAL_FOOT_OFFSET,
-    topY: 358,
-    destinationSurfaceId: 'firewall-canopy',
+    topY: 59,
+    destinationSurfaceId: 'firewall-roof',
     speed: 220,
     returnDelayMs: 900,
     requiredCharges: 2
@@ -349,7 +353,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         encounter_1: { index: 2, surface: 'signal-roof' },
         encounter_2: { index: 1, surface: 'cache-awning', drone: true },
         encounter_3: { index: 2, surface: 'relay-rooftop' },
-        encounter_4: { index: 1, surface: 'tower-rooftop', drone: true }
+        // Keep this drone's whole body and stomp approach clear of the tower
+        // steps. Moving the steps would break the established climbing route.
+        encounter_4: { index: 1, surface: 'tower-rooftop', drone: true, patrol: { left: 3625, right: 3695 } }
       })[encounterId] : null;
       const home = guard?.index === index ? this.getStageSurfaces().find(p => p.id === guard.surface) : null;
       const drone = !!(home && guard.drone);
@@ -359,7 +365,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (!options.origin && encounterId === 'encounter_2' && spec.type === 'virus')
         origin.y = 330 - PLAYER_VISUAL_FOOT_OFFSET;
       const target = this.planEntranceTarget({ ...spec, y: targetY }, origin, index);
-      const enemy = drone ? new window.RooftopDrone(home.x + home.w / 2, targetY, home)
+      const homeX = guard?.patrol ? (guard.patrol.left + guard.patrol.right) / 2 : home ? home.x + home.w / 2 : origin.x;
+      const enemy = drone ? new window.RooftopDrone(homeX, targetY, home, guard.patrol)
         : new window.Enemy(origin.x, origin.y, spec.type);
       // Restore the authored horizontal origin after legacy constructors, then
       // put ground actors directly on their walking plane before the entrance.
@@ -385,7 +392,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       enemy.velocity.x = enemy._entranceTarget.x >= origin.x ? SPAWN.entranceSpeed : -SPAWN.entranceSpeed;
       enemy.velocity.y = 0;
       if (home) {
-        enemy.position.x = home.x + home.w / 2;
+        enemy.position.x = homeX;
         enemy.position.y = targetY;
         enemy._homeSurfaceId = home.id;
         enemy.supportedSurfaceId = drone ? null : home.id;
@@ -409,7 +416,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       // on either lip must never power the lift while hitting the Jammer.
       const attackRange = window.BARCODE?.playerCombat?.range ?? 300;
       const clearance = attackRange + 18 + 96;
-      const candidates = [1200, 1400, 1600, 1800, 1980, 2200, 2400, 2600, 2800]
+      const candidates = [1200, 1400, 1600, 1800, 1940, 2200, 2400, 2600, 2800]
         .filter(x => x >= JAMMER_PLACEMENT.minX && x <= JAMMER_PLACEMENT.maxX)
         .filter(x => x < SIGNAL_LIFT.x - clearance || x > SIGNAL_LIFT.x + SIGNAL_LIFT.w + clearance);
       const x = candidates[Math.min(candidates.length - 1, Math.floor(Math.random() * candidates.length))];
@@ -572,7 +579,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     }
     updateBossRoute(delta) {
       const boss = this.boss, player = this.player, current = this.getBossSurface();
-      if (player.grounded) boss.chaseSurfaceId = player.supportedSurfaceId === SIGNAL_LIFT.id ? SIGNAL_LIFT.destinationSurfaceId : (player.supportedSurfaceId || 'street');
+      if (player.grounded) boss.chaseSurfaceId = player.supportedSurfaceId === SIGNAL_LIFT.id ? SIGNAL_LIFT.destinationSurfaceId :
+        player.supportedSurfaceId === 'signal-lift-roof' ? 'firewall-roof' : (player.supportedSurfaceId || 'street');
       if (!boss.chaseSurfaceId || boss.chaseSurfaceId === current.id) return false;
       const next = this.getBossRouteStep(boss.chaseSurfaceId);
       if (!next) return false;
@@ -957,7 +965,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     drawSignalLift(ctx) {
       if (!ctx || !this.signalLift || !this.isSignalLiftAvailable()) return;
       const lift = this.signalLift, center = lift.x + lift.w / 2;
-      const cabinHeight = 258, railTop = SIGNAL_LIFT.topY - cabinHeight * 0.795;
+      const cabinHeight = SIGNAL_LIFT.cabinHeight, railTop = SIGNAL_LIFT.topY - cabinHeight * SIGNAL_LIFT.footAnchor;
       const railBottom = SIGNAL_LIFT.bottomY + 18;
       const moving = lift.state === 'moving' || lift.state === 'returning';
       const powered = moving || lift.chargeFxMs > 0;
@@ -983,34 +991,109 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         { x: lift.x, y: lift.y, width: lift.w, height: cabinHeight });
       if (!illustrated) {
         ctx.strokeStyle = '#526677'; ctx.lineWidth = 9;
-        ctx.strokeRect(lift.x + 9, lift.y - 190, lift.w - 18, 203);
-        ctx.fillStyle = '#253f48'; ctx.fillRect(lift.x, lift.y - 211, lift.w, 24);
+        const roof = this.getLiftRoof();
+        ctx.strokeRect(lift.x + 9, roof.y, lift.w - 18, lift.y - roof.y + 13);
+        ctx.fillStyle = '#253f48'; ctx.fillRect(lift.x, roof.y - 24, lift.w, 24);
         ctx.fillRect(lift.x, lift.y - 10, lift.w, 32);
       }
       // Visible floor depth surrounds the actor foot plane; the collider stays
       // on its center line, and the carriage is drawn behind the player.
-      const motorY = lift.y + 40;
+      const motorY = lift.y + cabinHeight * 0.155;
       for (const side of [-1, 1]) {
-        ctx.save(); ctx.translate(center + side * 52, motorY);
+        ctx.save(); ctx.translate(center + side * lift.w * 0.265, motorY);
         ctx.strokeStyle = powered ? '#b9ffe7' : '#425f6b'; ctx.lineWidth = 2;
         ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.stroke();
         ctx.rotate(phase * 8); ctx.beginPath(); ctx.moveTo(-5, 0); ctx.lineTo(5, 0); ctx.moveTo(0, -5); ctx.lineTo(0, 5); ctx.stroke(); ctx.restore();
       }
       for (let i = 0; i < 2; i++) {
         ctx.fillStyle = i < lift.charges ? '#b8ff88' : '#374d46';
-        ctx.beginPath(); ctx.arc(lift.x + lift.w * (i ? 0.61 : 0.28), lift.y + 27, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(lift.x + lift.w * (i ? 0.61 : 0.28), lift.y + cabinHeight * 0.105, 4, 0, Math.PI * 2); ctx.fill();
       }
-      if (Math.abs((this.player?.position?.x ?? Infinity) - center) < 280) {
-        const zoom = Math.max(0.5, window.renderer?.getZoomLevel?.() || 1);
-        const scale = 1 / zoom, top = lift.y - cabinHeight * 0.795 - 18;
-        ctx.save(); ctx.translate(center, top); ctx.scale(scale, scale);
-        ctx.fillStyle = 'rgba(7, 17, 27, 0.94)'; ctx.fillRect(-142, -48, 284, 49);
-        ctx.textAlign = 'center'; ctx.fillStyle = '#acffe4'; ctx.font = 'bold 18px Oxanium, monospace';
-        ctx.fillText('RHYTHM LIFT', 0, -27);
-        ctx.fillStyle = '#eeebd8'; ctx.font = '14px Oxanium, monospace';
-        ctx.fillText(moving ? (lift.state === 'returning' ? 'RETURNING' : 'GOING UP') : `RHYTHM MODE • ${lift.charges}/2 BEATS`, 0, -7);
-        ctx.restore();
+      const roof = this.getLiftRoof();
+      // A thin underside glint follows the actual front crossbar. Only this
+      // visible solid roof opts into head contact; painted awnings stay one-way.
+      ctx.strokeStyle = 'rgba(166,229,225,0.55)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(roof.x, roof.y); ctx.lineTo(roof.x + roof.w, roof.y); ctx.stroke();
+      if (lift.bonkFxMs > 0) {
+        ctx.globalAlpha *= lift.bonkFxMs / 180;
+        ctx.strokeStyle = '#fff5c9'; ctx.lineWidth = 2;
+        for (const side of [-1, 0, 1]) {
+          ctx.beginPath(); ctx.moveTo(lift.bonkX + side * 5, roof.y + 3);
+          ctx.lineTo(lift.bonkX + side * 13, roof.y + (side ? 11 : 16)); ctx.stroke();
+        }
       }
+      ctx.restore();
+    }
+
+    getLiftRoof() {
+      const lift = this.signalLift;
+      const offset = SIGNAL_LIFT.cabinHeight * (SIGNAL_LIFT.footAnchor - SIGNAL_LIFT.roofUnderside);
+      return { id: 'signal-lift-roof', x: lift.x + lift.w * 0.12, w: lift.w * 0.68,
+        y: lift.y - offset, previousY: lift.prevY - offset,
+        topY: lift.y - SIGNAL_LIFT.cabinHeight * (SIGNAL_LIFT.footAnchor - SIGNAL_LIFT.roofTop),
+        previousTopY: lift.prevY - SIGNAL_LIFT.cabinHeight * (SIGNAL_LIFT.footAnchor - SIGNAL_LIFT.roofTop) };
+    }
+
+    applyLiftHeadContact(player) {
+      const motion = player?.ceilingMotion;
+      if (player) player.ceilingMotion = null;
+      if (!motion || !motion.allowed || player.grounded || !this.isSignalLiftAvailable() || this.isGameplaySuppressed()) {
+        if (player) player.liftHeadContact = false;
+        return false;
+      }
+      const roof = this.getLiftRoof(), head = player.getCeilingProbe?.();
+      if (!head) return false;
+      const before = motion.head.y - roof.previousY, after = head.y - roof.y;
+      const t = Math.max(0, Math.min(1, before / (before - after || 1)));
+      const crossingX = motion.head.x + (head.x - motion.head.x) * t;
+      // Require the cap center to be inside the inset solid span at contact AND
+      // now. Brushing an edge or jumping alongside a post never catches a hand.
+      const inside = x => x > roof.x + 5 && x < roof.x + roof.w - 5;
+      const crossing = motion.rising && before >= 0 && after < 0 && inside(crossingX) && inside(head.x);
+      const restingContact = player.liftHeadContact && inside(head.x) && after < 0 && after > -70;
+      if (!crossing && !restingContact) {
+        if (!inside(head.x) || after > 60) player.liftHeadContact = false;
+        return false;
+      }
+      player.position.y += -after;
+      player.velocity.y = Math.max(0, player.velocity.y);
+      player.jumpReleaseQueued = false;
+      player.coyoteTimerMs = 0;
+      if (player.contactSweep) player.contactSweep.currentFootY = player.position.y + PLAYER_VISUAL_FOOT_OFFSET;
+      if (!player.liftHeadContact) {
+        this.signalLift.bonkX = head.x; this.signalLift.bonkFxMs = 180;
+        window.audioSystem?.playCombatCue?.('land', { strength: 0.35 });
+      }
+      player.liftHeadContact = true;
+      return true;
+    }
+
+    updateLiftPrompt(deltaTime) {
+      const lift = this.signalLift, player = this.player || window.player;
+      const foot = (player?.position?.y ?? -Infinity) + PLAYER_VISUAL_FOOT_OFFSET;
+      const near = this.isSignalLiftAvailable() && !this.isGameplaySuppressed() && player &&
+        Math.abs(player.position.x - (lift.x + lift.w / 2)) < lift.w / 2 + 130 && Math.abs(foot - lift.y) < 140;
+      if (near) {
+        lift.promptAwayMs = 0;
+        if (lift.promptArmed) { lift.promptAgeMs = 0; lift.promptArmed = false; lift.promptVisible = true; }
+        else lift.promptAgeMs += deltaTime;
+        if (lift.promptAgeMs >= 2400) lift.promptVisible = false;
+      } else {
+        lift.promptVisible = false; lift.promptAwayMs += deltaTime;
+        if (lift.promptAwayMs >= 1200) lift.promptArmed = true;
+      }
+    }
+
+    drawLiftPrompt(ctx) {
+      const lift = this.signalLift;
+      if (!ctx || !lift?.promptVisible || !this.isSignalLiftAvailable() || this.isGameplaySuppressed() ||
+          window.gameState?.gameOver || window.gameState?.victory || window.hackingSystem?.isActive?.()) return;
+      ctx.save(); ctx.globalAlpha *= Math.max(0, Math.min(1, (2400 - lift.promptAgeMs) / 500));
+      ctx.fillStyle = 'rgba(7,17,27,0.92)'; ctx.fillRect(750, 255, 420, 62);
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#acffe4'; ctx.font = 'bold 20px Oxanium, monospace';
+      ctx.fillText('RHYTHM LIFT', 960, 276);
+      ctx.fillStyle = '#eeebd8'; ctx.font = '16px Oxanium, monospace';
+      ctx.fillText(lift.state === 'moving' ? 'GOING UP' : lift.charges >= 2 ? 'POWERED' : `RHYTHM MODE · ${2 - lift.charges} BEATS TO POWER`, 960, 300);
       ctx.restore();
     }
 
@@ -1418,6 +1501,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     updateSignalLift(deltaTime = 0) {
       if (!this.signalLift) this.resetSignalLift();
       const lift = this.signalLift;
+      lift.bonkFxMs = Math.max(0, (lift.bonkFxMs || 0) - deltaTime);
       lift.chargeFxMs = Math.max(0, (lift.chargeFxMs || 0) - deltaTime);
       lift.prevY = lift.y;
       const player = this.player || window.player;
@@ -1430,7 +1514,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         lift.driveTimeMs = (lift.driveTimeMs || 0) + deltaTime * (lift.state === 'returning' ? -1 : 1);
       }
       let supported = this.isPlayerSupportedByLift(player);
+      const roof = this.getLiftRoof();
+      const roofSupported = player?.grounded && player.supportedSurfaceId === roof.id &&
+        player.position.x + 18 > roof.x && player.position.x - 18 < roof.x + roof.w &&
+        Math.abs(player.position.y + PLAYER_VISUAL_FOOT_OFFSET - roof.topY) <= 4;
       if (player?.supportedSurfaceId === SIGNAL_LIFT.id && !supported) player.supportedSurfaceId = null;
+      if (player?.supportedSurfaceId === roof.id && !roofSupported) player.supportedSurfaceId = null;
       if (lift.state === 'charged') lift.state = 'moving';
       if (lift.state === 'moving') lift.y = Math.max(SIGNAL_LIFT.topY, lift.y - SIGNAL_LIFT.speed * deltaTime / 1000);
       else if (lift.state === 'returning') lift.y = Math.min(SIGNAL_LIFT.bottomY, lift.y + SIGNAL_LIFT.speed * deltaTime / 1000);
@@ -1439,19 +1528,23 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         lift.state = 'dormant';
         lift.charges = 0;
       }
-      if (!supported && lift.y <= SIGNAL_LIFT.topY + 1) {
+      if (!supported && !roofSupported && lift.y <= SIGNAL_LIFT.topY + 1) {
         lift.returnTimerMs = (lift.returnTimerMs || SIGNAL_LIFT.returnDelayMs) - deltaTime;
         if (lift.returnTimerMs <= 0) lift.state = 'returning';
       } else {
         lift.returnTimerMs = SIGNAL_LIFT.returnDelayMs;
       }
       const dy = lift.y - lift.prevY;
-      if (supported && dy && player) player.position.y += dy;
+      if ((supported || roofSupported) && dy && player) player.position.y += dy;
+      this.applyLiftHeadContact(player);
+      this.updateLiftPrompt(deltaTime);
     }
     resetSignalLift() {
-      this.signalLift = { ...SIGNAL_LIFT, y: SIGNAL_LIFT.bottomY, prevY: SIGNAL_LIFT.bottomY, state: 'dormant', charges: 0, chargeFxMs: 0, driveTimeMs: 0, returnTimerMs: SIGNAL_LIFT.returnDelayMs };
+      this.signalLift = { ...SIGNAL_LIFT, y: SIGNAL_LIFT.bottomY, prevY: SIGNAL_LIFT.bottomY, state: 'dormant', charges: 0, chargeFxMs: 0, driveTimeMs: 0, returnTimerMs: SIGNAL_LIFT.returnDelayMs,
+        promptArmed: true, promptVisible: false, promptAgeMs: 0, promptAwayMs: 0, bonkFxMs: 0 };
       const player = this.player || window.player;
-      if (player?.supportedSurfaceId === SIGNAL_LIFT.id) player.supportedSurfaceId = null;
+      if (player) { player.liftHeadContact = false; player.ceilingMotion = null; }
+      if ([SIGNAL_LIFT.id, 'signal-lift-roof'].includes(player?.supportedSurfaceId)) player.supportedSurfaceId = null;
     }
     chargeSignalLift() {
       if (!this.signalLift) this.resetSignalLift();
@@ -1634,6 +1727,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         h: this.signalLift.h,
         moving: true
       }] : [];
+      if (movingSurfaces.length && player.dropSurfaceId !== SIGNAL_LIFT.id) {
+        const roof = this.getLiftRoof();
+        movingSurfaces.push({ id: roof.id, x: roof.x, w: roof.w, y: roof.topY, previousY: roof.previousTopY, h: 10, moving: true });
+      }
       // Static geometry intentionally wins at the top overlap so stepping
       // sideways transfers support from the lift to its destination roof.
       for (const surface of this.getStageSurfaces().concat(movingSurfaces)) {

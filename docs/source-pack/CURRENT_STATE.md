@@ -1,5 +1,13 @@
 # Current State
 
+## September 16, 2026 — elevator rooftop exit, clear drone and returning Studio Rat
+
+Base/rollback is merged #69, `3554b0a326572b86f17a66300aa5ae9d122cd9c3`; branch `agent/lift-clearance-context-prompt`. The owner reports a cramped cabin, persistent label, below-roof stop, missing cat and a platform covering the tower drone. This current combined correction supersedes older current-work entries; #69's merge does not mean those details passed owner review.
+
+The 280×432 cabin now reaches the actual Firewall rooftop at y=59, with a walk-off exit. A brief approach HUD replaces the world label. Only the illustrated cabin roof catches an upward cap; inset edges, no damage/stun and visible contact sparks keep this sparse. Existing awning ascent routes remain. The tower drone moves beyond the overhead steps. Studio Rat chooses among six reachable perches per fresh Level 1 run even with prior save credit; checkpoints preserve its location/event consumption and permanent rewards cannot duplicate. Later levels still require their own genre-specific encounters. The owner subsequently flagged the Firewall high step in the lift path: it moves 170 units left to x=2160, including its collider and illustration, while the canopy-to-roof climbing route stays reachable.
+
+Read `LIFT_ROOFTOP_RAT_PASS.md` for the implementation, native evidence, exact focused owner route and post-merge deployment instructions. Source-line baseline shifts are expected; do not alter script order or baseline exceptions. Full local/CI results and exact revision belong to the generated receipt. Publish one combined draft and refresh the established source pack. Owner Makko acceptance remains pending; preserve existing controls, music, traffic, boss, environment and save data.
+
 ## September 16, 2026 — boss fairness, full-height rhythm lift and Studio Rats
 
 Base/rollback is merged #68, `84f7471fce9bb9300cd7c6f7165a86787054ace9`; branch `agent/boss-fairness-level-rewards`. The owner authorized this combined gameplay pass, then corrected the elevator: one fixed full-height back drive with the cabin in front and powered mechanism animation. This current section supersedes historical work entries.

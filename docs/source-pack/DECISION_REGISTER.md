@@ -1,5 +1,9 @@
 # Decision Register
 
+## September 16 — owner-authorized elevator, Studio Rat and drone correction
+
+The owner asks for a larger/taller elevator, brief on-screen lift text, occasional logically justified head bumps, Studio Rat in a random place each level, a clear stomp approach to the covered enemy, and a higher lift stop aligned with the rooftop. Implement as one follow-up to merged #69. Use only the visible cabin roof for upward head contact; preserve climb-through awnings. Choose from safe supported cat perches once per fresh run, independent of saved reward credit. Move the drone's spawn and patrol together instead of breaking the established platform route. Level 1 is the currently playable level; later genre-specific cat encounters remain future work. Exact behavior and review route: `LIFT_ROOFTOP_RAT_PASS.md`. Owner review remains required before assistant merge.
+
 ## September 16 — approved follow-up to the conversation audit
 
 The owner said “Ok make the PR” for the unresolved per-building hologram mounting/perspective and empty tutorial Objectives panel. Keep the selected thin continuous facade-to-street design. Fitting the field requires its blocking boundary to follow its rendered placement; the authored positions are implementation choices awaiting visual review, not a change to encounter quotas or unlock rules. Do not restart already-implemented art, traffic, controller, background, Jammer or boss passes. The new branch and source receipt identify the review build; Makko acceptance is still required before assistant merge.

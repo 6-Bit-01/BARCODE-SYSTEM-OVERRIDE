@@ -30,6 +30,58 @@ async function main(){
  function scene(c,cx,cy){w.gameCamera={centerX:cx,y:cy};w.renderer.zoomLevel=1;c.fillStyle='#111322';c.fillRect(0,0,1920,1080);c.drawImage(bg,0,0,1920,1080);c.save();c.translate(960-cx,-cy);c.drawImage(fg,0,2,fg.width,fg.height-2,-152,-550+2*1589/fg.height,4400,1589-2*1589/fg.height);w.drawGround(c);w.drawGameEntities(c);w.player.draw(c);c.restore();c.save();c.translate(0,-cy);w.spaceShipSystem.drawForegroundShips(c);c.restore();if(!w.tutorialSystem?.isActive?.())w.drawObjectives(c);}
  function setHero(x,foot,support){Object.assign(w.player.position,{x,y:foot-72});w.player.velocity.x=0;w.player.velocity.y=0;w.player.grounded=true;w.player.supportedSurfaceId=support||null;w.player.state='idle';w.player.airInput=0;w.player.controlsDisabled=false;w.player.invulnerableUntil=0;w.player.health=w.player.maxHealth;w.player.playAnimation('idle');}
  const canvas=createCanvas(1920,1080),c=canvas.getContext('2d');
+ if(process.env.LIFT_CLEARANCE_REVIEW){
+  for(const file of ['src/engine/parallax.js','src/game/lore-collection.js','src/game/level-01-stage-fx.js'])load(context,file);
+  const storage=new Map();w.localStorage={getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)};
+  w.lostDataSystem.archive=new w.BARCODE.LoreCollection();w.BARCODE.stageFX.reset(p);
+  w.parallaxBackground=new w.ParallaxBackground();w.parallaxBackground.addLayer({image:bg,scrollFactorX:.5});w.parallaxBackground.addLayer({image:fg,scrollFactorX:1});
+  p.state='encounter_3';p.closedGateEncounterId=null;p.spawnedEncounterIds.add(p.state);w.enemyManager.enemies=[];
+  let cameraX=2538;
+  function frame(cy=0){
+   p.cameraY=cy;p.getCameraX=()=>Math.max(960,Math.min(3136,cameraX));w.renderer.zoomLevel=.625;
+   c.fillStyle='#000';c.fillRect(0,0,1920,1080);c.save();c.translate(960,675*.375+425*.625);c.scale(.625,.625);c.translate(-960,-425);
+   w.drawGameElements(c);c.restore();w.drawGameUI(c);
+  }
+  function save(name){fs.writeFileSync(path.join(out,name+'.webp'),canvas.toBuffer('image/webp',88));}
+  const center=p.signalLift.x+p.signalLift.w/2;setHero(center,856,p.signalLift.id);
+  p.updateSignalLift(16);frame();save('lift-approach');p.updateSignalLift(2500);frame();save('lift-clear-cabin');
+  const movie=createCanvas(960,540),mc=movie.getContext('2d');
+  const video=spawn('ffmpeg',['-y','-loglevel','error','-f','image2pipe','-framerate','30','-i','pipe:0','-c:v','libx264','-pix_fmt','yuv420p','-movflags','+faststart',path.join(out,'lift-clearance-review.mp4')],{stdio:['pipe','ignore','pipe']});
+  let errors='';video.stderr.on('data',b=>errors+=b);
+  async function emit(label,cy=0){frame(cy);mc.drawImage(canvas,0,0,960,540);mc.fillStyle='rgba(4,12,18,.92)';mc.fillRect(12,509,936,24);mc.fillStyle='#fff';mc.font='13px Oxanium';mc.fillText(label,24,526);if(!video.stdin.write(movie.toBuffer('image/png')))await once(video.stdin,'drain');}
+  for(let i=0;i<30;i++)await emit('Larger cabin · Clear headroom · Persistent world label removed');
+  w.player.isJumpHeld=()=>true;w.player.jump();let captured=false;
+  for(let i=0;i<36;i++){
+   w.player.update(1000/30,true);p.updateSignalLift(1000/30);
+   await emit('Actual jump update · Cap contacts the visible underside · No damage or stun');
+   if(w.player.liftHeadContact&&!captured){save('lift-visible-bump');captured=true;}
+  }
+  if(!captured)throw new Error('Native jump never contacted the roof');
+  setHero(p.signalLift.x-40,856);w.player.jump();
+  for(let i=0;i<36;i++){w.player.update(1000/30,true);p.updateSignalLift(1000/30);await emit('Jumping beside the cabin is clear · Awning climb-through behavior retained');}
+  setHero(center,856,p.signalLift.id);p.chargeSignalLift();p.chargeSignalLift();
+  for(let i=0;i<120;i++){w.player.update(1000/30,true);p.updateSignalLift(1000/30);await emit('Two-beat ascent · Lift floor reaches the actual rooftop',Math.min(0,(p.signalLift.y-856)*.65));}
+  frame(-518);save('lift-rooftop-alignment');
+  for(let i=0;i<24;i++){w.player.moveLeft();w.player.update(1000/30,true);p.updateSignalLift(1000/30);await emit('Walk straight onto the rooftop · No extra jump needed',-518);}
+  if(w.player.supportedSurfaceId!=='firewall-roof')throw new Error('Player did not walk onto the actual rooftop');
+  save('lift-rooftop-walkoff');
+  p.state='encounter_4';p.spawnedEncounterIds.add(p.state);cameraX=3450;
+  const drone=p.spawnMissionEnemy({type:'virus',x:3450},'encounter_4',1);drone.spawnProtectionDuration=0;drone.spawnTimeMs=-10000;
+  setHero(3545,275,'tower-rooftop');frame(-350);save('drone-open-stomp-lane');
+  for(let i=0;i<30;i++){drone.update(1000/30,null,10000+i*1000/30);await emit('Mission drone patrol moved beyond the overhead steps · Open stomp approach',-350);}
+  w.enemyManager.enemies=[];const stage=w.BARCODE.stageFX;
+  stage.archive().completeStudioRatEvent('level-01');
+  w.Math=Object.create(Math);
+  for(const [index,name] of [[0,'signal'],[5,'broadcast']]){
+   w.Math.random=()=>(index+.5)/6;stage.reset(p);
+   const spot=stage.ratSpot;cameraX=spot.x;setHero(spot.x-120,spot.y,spot.surfaceId);
+   for(let i=0;i<24;i++){stage.update(1000/30);await emit('Studio Rat returns despite existing save credit · Random reachable perch each run',spot.y-550);}
+   save('studio-rat-random-'+name);
+  }
+  video.stdin.end();const [code]=await once(video,'close');if(code!==0)throw new Error(errors);
+  if(calls.errors.length)throw new Error([...new Set(calls.errors)].join('\n'));
+  console.log('Native larger cabin, brief HUD, true cap/roof contact, rooftop walk-off, open drone lane and saved-cat random perches rendered.');return;
+ }
  if(process.env.FINALE_REVIEW){
   for(const file of ['src/game/lore-collection.js','src/game/level-difficulty.js','src/game/level-01-stage-fx.js','src/engine/parallax.js'])load(context,file);
   const storage=new Map();w.localStorage={getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)};
