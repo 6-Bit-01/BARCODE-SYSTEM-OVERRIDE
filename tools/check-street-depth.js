@@ -41,7 +41,7 @@ console.log('Street depth: production layering, one large prop, no ghost boxes, 
  const terminal=w.Sector1Progression.TRAVERSAL_PROPS.find(prop=>prop.asset==='broadcastTerminal');
  assert(p.getStageSurfaces().some(s=>s.id===terminal.id),'terminal support exists in training');
  assert(!p.getStageSurfaces().some(s=>s.id==='signal-high-step'),'other route unlocks are retained');
- assert.strictEqual(w.Player.GROUND_Y+72-terminal.y-terminal.h,32,'lower sidewalk remains open below the box');
+ assert.strictEqual(w.Player.GROUND_Y+72-terminal.y-terminal.h,12,'lower sidewalk remains open below the box');
  const images=[];w.BARCODE.PresentationAssets={draw(key,ctx,pose){images.push({key,pose});return true;}};
  const ctx=new Proxy({getTransform:()=>({a:1,b:0,c:0,d:1,e:0,f:0})},{get:(o,k)=>o[k]??(()=>{})});
  p.drawTraversalProps(ctx);assert.strictEqual(images.length,1);assert.strictEqual(images[0].key,'broadcastTerminal');
@@ -87,4 +87,4 @@ console.log('Street depth: production layering, one large prop, no ghost boxes, 
  const lights=ops.filter(o=>o.kind==='light');sample();assert.deepStrictEqual(ops.filter(o=>o.kind==='light'),lights,'reduced-flash setting keeps city lights steady');
  assert(low.length>0);
 }
-console.log('Terminal from training/reset, 32px walking lane, aligned landing, hologram order; 45 sky camera/zoom cases and deterministic pause/reset animation passed.');
+console.log('Terminal from training/reset, 12px walking lane, aligned landing, hologram order; 45 sky camera/zoom cases and deterministic pause/reset animation passed.');

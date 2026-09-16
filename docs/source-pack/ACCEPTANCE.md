@@ -1,5 +1,16 @@
 # Acceptance and Test Status
 
+## September 16, 2026 — repair playable traffic, terminal placement and visible city motion
+
+PR #65 failed owner review despite a successful merge. Review the new exact head in Makko before merging this repair:
+
+1. Start fresh training. The single terminal is already there; its rear meets the facade and it clears the windows. Enemies and the hologram remain in front. Jump from sidewalk to terminal to first awning.
+2. Stay still briefly: rain moves in front of the buildings, sign lights sweep and steam rises. Walk across the district and climb high roofs: the distant city keeps one scale and fills the view. Pause/resume and restart should freeze/reset atmosphere without jumps.
+3. During training and after starting the mission, encounter original foreground cars at roof height. WATCH OUT points off the correct edge at the car's actual height for three seconds before visible entry; an unprotected body overlap removes one health bar, with knockback and recovery. Check both sides. Existing fast/high/random flight remains; background cars and cars passing above/below the player cause no damage.
+4. Check Cross jump/beat ownership, Down + Jump descent, fading HACK READY, the right-side lift, drones, caches/repairs, Jammer and boss completion/retry. These systems were retained; automated results do not establish hosted acceptance.
+
+Capture the imported SHA and PASS/FAIL. After accepted merge, import the actual new main SHA and repeat the same route. Exact revision, test status and native evidence are in the generated receipt; do not use the merged #65 receipt as an acceptance record.
+
 ## September 16, 2026 — sidewalk terminal depth and animated fixed-scale background
 
 Current review branch: `agent/sidewalk-box-background`, based on merged PR #64 (`97b6367b53bc719594e77f32d89cc6bfdfbe72f7`). The owner requests a box set farther back on the sidewalk, visible from the start, with enemies and holograms in front; also a background that stops changing size while walking and has animation.
