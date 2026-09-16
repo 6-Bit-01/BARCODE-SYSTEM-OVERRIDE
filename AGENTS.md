@@ -1,5 +1,11 @@
 # Repository Guidance
 
+## September 16, 2026 — elevator roof visibility; tutorial flow review
+
+Base/rollback: merged #73, `8fc2f8ea838d1dc901b97c7b7c93581459451ddf`. Branch: `agent/elevator-roof-depth`. The owner reports enemies hidden behind the elevator deck. The physical foot plane is already correct; draw roof enemies after the cabin, including airborne transitions, while preserving existing below-roof depth and one draw per actor. No collision or platform changes. See `ELEVATOR_ROOF_DEPTH_FIX.md` and its four native artwork previews. The four-circle bonk restriction, moving support, pancakes, controls, victory protection and twelve-second allies remain.
+
+The owner also asks how to improve tutorial timing/readability and remove at least two chat bubbles while preserving story. `TUTORIAL_FLOW_PROPOSAL.md` audits the current sequence and recommends 25 → 20 bubbles with event-driven teaching and clear mapped controls. This is a design proposal; tutorial runtime/text remain unchanged in the elevator fix. Publish the tested elevator correction as one draft and refresh v5. Exact head/CI are in the receipt; owner Makko acceptance remains pending.
+
 ## September 16, 2026 — restrict bonks to the owner's red circles
 
 The owner rejects PR #71's blanket underside collisions: only the four circled objects in the three original screenshots are approved. Base/rollback: merged #72, `0c428a053225dfa68b42fbb7464708f020daba76`. Branch: `agent/circled-bonks`.

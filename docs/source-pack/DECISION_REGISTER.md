@@ -1,5 +1,9 @@
 # Decision Register
 
+## September 16 — roof enemy visibility and tutorial design question
+
+Implement the owner's report of enemies appearing behind the elevator roof as a scoped draw-order correction. Retain the existing accurate landing height and collider. The owner additionally requests recommendations for clearer tutorial controls, consistent timing and at least two fewer bubbles while retaining storyline dialogue. The concrete proposal is 25 → 20 authored chapter bubbles; its wording/flow remains a proposal and is not silently applied to this elevator fix. Preserve all prior red-circle restrictions.
+
 ## September 16 — explicit owner correction overrides blanket bonks
 
 Bonks are approved ONLY for the red-circled objects in the three supplied photos: `signal-awning`, `tower-awning`, `cache-maintenance-step`, `firewall-low-step`. The earlier interpretation of “anything the player can hit” as every stage underside was incorrect. Do not expand this list by appearance or generalize it to other roofs/steps. The separately requested moving elevator roof remains hard on every side and supports all actor types. See `CIRCLED_BONK_CORRECTION.md`; direct upward routes on unmarked platforms must remain playable.

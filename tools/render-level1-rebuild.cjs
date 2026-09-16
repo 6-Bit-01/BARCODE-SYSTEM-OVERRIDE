@@ -30,6 +30,25 @@ async function main(){
  function scene(c,cx,cy){w.gameCamera={centerX:cx,y:cy};w.renderer.zoomLevel=1;c.fillStyle='#111322';c.fillRect(0,0,1920,1080);c.drawImage(bg,0,0,1920,1080);c.save();c.translate(960-cx,-cy);c.drawImage(fg,0,2,fg.width,fg.height-2,-152,-550+2*1589/fg.height,4400,1589-2*1589/fg.height);w.drawGround(c);w.drawGameEntities(c);w.player.draw(c);c.restore();c.save();c.translate(0,-cy);w.spaceShipSystem.drawForegroundShips(c);c.restore();if(!w.tutorialSystem?.isActive?.())w.drawObjectives(c);}
  function setHero(x,foot,support){Object.assign(w.player.position,{x,y:foot-72});w.player.velocity.x=0;w.player.velocity.y=0;w.player.grounded=true;w.player.supportedSurfaceId=support||null;w.player.state='idle';w.player.airInput=0;w.player.controlsDisabled=false;w.player.invulnerableUntil=0;w.player.health=w.player.maxHealth;w.player.playAnimation('idle');}
  const canvas=createCanvas(1920,1080),c=canvas.getContext('2d');
+ if(process.env.LIFT_ROOF_DEPTH_REVIEW){
+  p.state='jammer_active';p.closedGateEncounterId=null;
+  const crop=createCanvas(720,720),cc=crop.getContext('2d');
+  for(const type of ['virus','corrupted','firewall','drone']){
+   p.resetSignalLift();const lift=p.signalLift;lift.y=lift.prevY=650;lift.state='moving';
+   const roof=p.getLiftRoof(),x=roof.x+roof.w/2;
+   setHero(x,lift.y,lift.id);
+   const e=type==='drone'?new w.RooftopDrone(x,roof.topY-57,{x:2300,w:500}):new w.Enemy(x,roof.topY-72,type);
+   Object.assign(e,{entranceComplete:true,_authoredEntranceActive:false,spawnProtectionDuration:0,supportedSurfaceId:roof.id});
+   e.position.x=x;e.position.y=roof.topY-(type==='drone'?57:72);e.updateAI=()=>{};
+   if(type!=='drone')e.playAnimation('idle');
+   w.enemyManager.enemies=[e];
+   e.update(100,w.player,100);p.updateSignalLift(100);
+   scene(c,x,p.getLiftRoof().topY-230);cc.drawImage(canvas,600,0,720,720,0,0,720,720);
+   fs.writeFileSync(path.join(out,'roof-'+type+'.webp'),crop.toBuffer('image/webp',90));
+  }
+  if(calls.errors.length)throw new Error(calls.errors.join('\n'));
+  console.log('Native roof depth review: four enemy types standing over the moving deck, player inside cabin.');return;
+ }
  if(process.env.SOLID_LEDGE_REVIEW){
   p.state='jammer_active';p.closedGateEncounterId=null;w.enemyManager.enemies=[];
   const movie=createCanvas(960,720),mc=movie.getContext('2d');

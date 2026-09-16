@@ -1,11 +1,7 @@
-The previous bonk pass made every stage underside collidable, exceeding the four objects circled in the owner's photos and blocking direct upward platform routes.
+Enemies are physically supported by the elevator roof, but its later draw covers their feet and lower bodies. Split the existing enemy render around the cabin so roof actors draw over it, including airborne approaches/departures. Other enemies retain their previous depth, culling and single draw.
 
-This correction:
+The existing landing height, collisions, platform positions, four approved static bonks and all previous gameplay remain. Four native artwork previews show the corrected foot placement with the player inside the cabin. Focused production checks cover every enemy type on rising/returning lifts, transition depth and culling; existing roof physics checks cover player/enemies/boss at 30/60/120 Hz. Full local and CI results belong to the generated receipt.
 
-- Limits static bonks to the two circled striped awnings and two circled small gray steps: `signal-awning`, `tower-awning`, `cache-maintenance-step`, and `firewall-low-step`.
-- Restores upward passage through every unmarked platform while retaining landing support. Platform positions and jump physics are unchanged.
-- Preserves the separately approved solid moving elevator roof, rider support and enemy pancakes, plus #72's controller, victory and twelve-second ally fixes.
+The owner also asked for tutorial recommendations. TUTORIAL_FLOW_PROPOSAL.md documents the current timing/readability mismatches and a concrete 25-to-20-bubble proposal preserving the story. That proposal does not modify tutorial runtime.
 
-The original three screenshots were recovered and inspected; `CIRCLED_BONK_CORRECTION.md` maps each red circle to its exact collider. Regression checks assert the independent four-object scope, every unmarked underside, direct upper routes, and 72 climbing/descent trajectories at 30/60/120 Hz. Full-suite and syntax results are recorded in the source-pack receipt.
-
-Base/rollback: merged #72, `0c428a053225dfa68b42fbb7464708f020daba76`. No new art or dependencies. Keep this draft for owner Makko/controller review using the current `ACCEPTANCE.md` route; automated checks do not claim hosted acceptance.
+Base/rollback: merged #73, 8fc2f8ea838d1dc901b97c7b7c93581459451ddf. No new runtime art or dependencies. Keep this draft for owner Makko review using ACCEPTANCE.md.

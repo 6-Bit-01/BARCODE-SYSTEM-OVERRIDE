@@ -1,6 +1,6 @@
 // Exercise production integration and geometry; only host/AI inputs are supplied.
 const assert = require('assert');
-const { createRig } = require('./check-level-01-boss');
+const { createRig, load } = require('./check-level-01-boss');
 const { createSprite, playerClips } = require('./makko-animation-fixture');
 function rig() {
   const r = createRig(), { w, p } = r;
@@ -97,6 +97,52 @@ for (const fps of [30,60,120]) {
   assert(a.dropThrough(),'existing deliberate Down+Jump remains on ordinary ledges');
 }
 console.log('Scoped bonks: exactly four red-circled objects, all unmarked undersides open, both facings, solid moving roof for all six actor types at 30/60/120Hz, pause/reset and hard-roof drop protection passed.');
+
+// Regression: physical support was correct, but the later cabin image erased
+// the lower half of roof enemies. Exercise both real render owners after motion.
+for (const type of ['virus', 'corrupted', 'firewall', 'drone']) for (const state of ['moving', 'returning']) {
+  const r = rig(), { w, p, context } = r, a = actor(r, type);
+  load(context, 'src/game/render-coordinator.js');
+  p.signalLift.y = p.signalLift.prevY = 600; p.signalLift.state = state;
+  let roof = p.getLiftRoof(); place(r, a, roof.x + roof.w / 2, roof.topY);
+  a.supportedSurfaceId = roof.id;
+  const ground = new w.Enemy(2200, 784, 'corrupted');
+  w.enemyManager.enemies.push(ground);
+  const order = [], ctx = new Proxy({globalAlpha: 1, getTransform: () => ({a:1,b:0,c:0,d:1,e:0,f:0})},
+    {get: (o, k) => o[k] ?? (() => {})});
+  a.draw = () => order.push('rider'); ground.draw = () => order.push('ground');
+  w.BARCODE.PresentationAssets = {draw: key => { if (key === 'liftCabin') order.push('lift'); return true; }};
+  function checkOrder(expected, label) {
+    order.length = 0; w.drawGameEntities(ctx);
+    assert.deepStrictEqual(order, expected, type + ' ' + state + ': ' + label);
+    assert.deepStrictEqual(r.calls.errors, []);
+  }
+  for (let frame = 0; frame < 60; frame++) {
+    a.update(1000 / 60, w.player, frame * 1000 / 60); p.updateSignalLift(1000 / 60);
+    checkOrder(['ground', 'lift', 'rider'], 'rider draws once over the moving deck');
+  }
+  roof = p.getLiftRoof(); a.supportedSurfaceId = null;
+  place(r, a, roof.x + roof.w / 2, roof.topY - 40);
+  for (const vy of [-500, 500]) {
+    a.velocity.y = vy;
+    checkOrder(['ground', 'lift', 'rider'], 'airborne approach/departure stays in front');
+  }
+  place(r, a, roof.x + roof.w / 2, roof.y + 120);
+  order.length = 0; w.drawGameEntities(ctx);
+  assert(order.indexOf('rider') < order.indexOf('lift'), 'below-roof enemy retains its previous depth');
+  place(r, a, roof.x + roof.w / 2, roof.topY);
+  a.active = false; checkOrder(['ground', 'lift'], 'inactive rider is not redrawn');
+  a.active = true;
+  w.BARCODE.combatFX = {visible: x => x !== a.position.x, drawAmpIcon() {}};
+  checkOrder(['ground', 'lift'], 'offscreen rider stays culled');
+  delete w.BARCODE.combatFX;
+  order.length = 0; w.enemyManager.draw(ctx);
+  assert.equal(order.filter(x => x === 'rider').length, 1, 'unsplit manager draw remains complete');
+  p.isSignalLiftAvailable = () => false;
+  order.length = 0; w.drawGameEntities(ctx);
+  assert.equal(order.filter(x => x === 'rider').length, 1, 'no missing or duplicate enemy without a lift');
+}
+console.log('Elevator roof depth: four enemy types, rising/returning rides, airborne transitions, below-roof depth, one draw per actor, inactive/culling and unavailable-lift cases passed.');
 
 // A descending floor squashes real enemies once, including a carrier; the
 // flattened pose persists after EnemyManager removes the defeated actor.

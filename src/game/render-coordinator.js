@@ -448,10 +448,10 @@ function drawGameEntities(ctx) {
     }
   }
   
-  // Draw enemies
+  // Draw ordinary enemies before the lift; roof actors follow its artwork.
   if (window.enemyManager && typeof window.enemyManager.draw === 'function') {
     try {
-      window.enemyManager.draw(ctx);
+      window.enemyManager.draw(ctx, false);
     } catch (error) {
       console.error('Error drawing enemies:', error?.message || error);
     }
@@ -462,6 +462,14 @@ function drawGameEntities(ctx) {
       window.sector1Progression.draw(ctx);
     } catch (error) {
       console.error('Error drawing Sector 1 progression:', error?.message || error);
+    }
+  }
+
+  if (window.enemyManager && typeof window.enemyManager.draw === 'function') {
+    try {
+      window.enemyManager.draw(ctx, true);
+    } catch (error) {
+      console.error('Error drawing elevator roof enemies:', error?.message || error);
     }
   }
 
