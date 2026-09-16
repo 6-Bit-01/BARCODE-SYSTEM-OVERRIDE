@@ -15,7 +15,13 @@ fs.mkdirSync(output, { recursive: true });
 const fixture = `<!doctype html><html><body style="margin:0;background:#10131b"><canvas id="gameCanvas" width="1920" height="1080" style="width:100vw"></canvas>
 <script>window.gameState={running:true,paused:false,gameOver:false};window.isRunning=true;window.isPaused=false;window.gameCamera={x:2048,y:0};</script>
 <script src="/src/engine/parallax.js"></script><script src="/src/core/loop.js"></script>
-<script>window.isRunning=true;initParallax();</script></body></html>`;
+<script>
+window.isRunning=true;
+// Supply only the omitted gameplay coordinator's media tick; the production
+// RAF and background owner still perform scheduling, seeking and playback.
+window.updateGame=()=>window.parallaxBackground?.syncSkyPlayback();
+initParallax();
+</script></body></html>`;
 const server = http.createServer((req, res) => {
   const pathname = new URL(req.url, 'http://localhost').pathname;
   if (pathname === '/') {
@@ -82,7 +88,8 @@ async function main() {
   };
   const until = async (expression, label) => {
     for (let i = 0; i < 100; i++) { if (await evaluate(expression)) return; await delay(50); }
-    throw new Error(`Browser timeout: ${label}`);
+    const state=await evaluate('({running:window.isRunning,game:window.gameState,ready:window.parallaxBackground?.skyVideo?.readyState,paused:window.parallaxBackground?.skyVideo?.paused,time:window.parallaxBackground?.skyVideo?.currentTime,pending:window.parallaxBackground?.skyPlayPending,blocked:window.parallaxBackground?.skyPlaybackBlocked})');
+    throw new Error(`Browser timeout: ${label}; ${JSON.stringify(state)}`);
   };
   const screenshot = async name => {
     const result = await send('Page.captureScreenshot', { format: 'png' });
@@ -109,7 +116,7 @@ async function main() {
   assert(await evaluate('parallaxBackground.skyVideo.paused'), 'terminal game state stops playback');
   await evaluate('gameState.running=true;parallaxBackground.resetSkyAnimation();parallaxBackground.syncSkyPlayback();parallaxBackground.resetSkyAnimation();parallaxBackground.syncSkyPlayback()');
   await until('parallaxBackground.skyVideo.currentTime > .1 && !parallaxBackground.skyPlayPending', 'rapid reset/resume settles pending plays');
-  await evaluate('parallaxBackground.resetSkyAnimation()');
+  await evaluate('gameState.running=false;parallaxBackground.resetSkyAnimation()');
   assert(await evaluate('parallaxBackground.skyVideo.paused && parallaxBackground.skyVideo.currentTime === 0'), 'reset starts at frame zero');
   // Decode known times using the real video, and draw through the production
   // far-background method. The scene's original fixed scale is retained.
@@ -132,7 +139,7 @@ async function main() {
   await screenshot('01-animated-sky-roof');
   await evaluate('parallaxBackground.skyVideo.currentTime=7.9');
   await until('Math.abs(parallaxBackground.skyVideo.currentTime-7.9)<.04','seek near endpoint');
-  await evaluate('parallaxBackground.syncSkyPlayback()');
+  await evaluate('gameState.running=true;parallaxBackground.syncSkyPlayback()');
   await until('parallaxBackground.skyVideo.currentTime < 1 && !parallaxBackground.skyVideo.paused','natural playback wraps seamlessly');
   await evaluate('stopGame()');
   assert(await evaluate('parallaxBackground.skyVideo.paused'),'production stop stops video');
