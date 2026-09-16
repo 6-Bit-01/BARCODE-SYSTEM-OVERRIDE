@@ -92,7 +92,7 @@ async function main() {
   await send('Network.setBlockedURLs', { urls: ['https://raw.githubusercontent.com/*'] });
   await send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 720, deviceScaleFactor: 1, mobile: false });
   await send('Page.navigate', { url: origin });
-  await until('parallaxBackground?.skyVideo?.readyState >= 2 && parallaxBackground.layers.every(layer => layer.loaded)', 'bundled video and artwork decode after hosted URL fails');
+  await until('window.parallaxBackground?.skyVideo?.readyState >= 2 && parallaxBackground.layers.every(layer => layer.loaded)', 'bundled video and artwork decode after hosted URL fails');
   const media = await evaluate(`(() => { const p=parallaxBackground,v=p.skyVideo; window.firstVideo=v;
     initParallax(); p.syncSkyPlayback(); return {same:v===p.skyVideo, muted:v.muted, inline:v.playsInline,loop:v.loop,width:v.videoWidth,height:v.videoHeight,duration:v.duration,src:v.currentSrc}; })()`);
   assert(media.same && media.muted && media.inline && media.loop, 'one muted inline looping video per background owner');
