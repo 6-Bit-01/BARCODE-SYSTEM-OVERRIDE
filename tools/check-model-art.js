@@ -55,7 +55,7 @@ for (const [character, record] of Object.entries(original.characters)) {
   assert.deepStrictEqual(Object.keys(current).sort(), Object.keys(record.animations).sort(), `${character}: action IDs preserved`);
   for (const [clip, baseline] of Object.entries(record.animations)) {
     const entry = current[clip];
-    for (const key of ['fps', 'frameCount', 'animationLength']) assert.strictEqual(entry[key], baseline[key], `${clip}: ${key} preserved`);
+    for (const key of (clip === '6_bit_walk_walk' ? ['animationLength'] : ['fps', 'frameCount', 'animationLength'])) assert.strictEqual(entry[key], baseline[key], `${clip}: ${key} preserved`);
     if (retained.has(clip)) {
       assert.deepStrictEqual(entry, baseline, `${clip}: retain complete original export until replacement bytes exist`);
       continue;
@@ -76,15 +76,16 @@ for (const [character, record] of Object.entries(original.characters)) {
         assert.strictEqual(prepared.frames[key].duration, item.duration, `${key}: flourish frame duration retained`);
       });
     } else if (clip === '6_bit_walk_walk') {
-      assert.strictEqual(cal.motionPolish?.method, 'registered-single-stride-no-frame-blending');
-      assert.strictEqual(cal.motionPolish?.uniquePoses, 12);
+      assert.strictEqual(cal.motionPolish?.method, 'complete-sixteen-pose-stride-no-frame-blending');
+      assert.strictEqual(cal.motionPolish?.uniquePoses, 16);
       assert(cal.motionPolish.registeredWaistSpanPx < 1, 'registered walk body stays within one source pixel');
-      assert.deepStrictEqual(cal.atlasFrameIndices, Array.from({ length: 48 }, (_, i) => i % 12));
+      assert.deepStrictEqual(cal.atlasFrameIndices, Array.from({ length: 64 }, (_, i) => i % 16));
       const walkFrames = Object.values(json(`assets/sprites-v3/prepared/${clip}.json`).frames);
       near(walkFrames.reduce((sum, f) => sum + f.duration, 0), 4000, 'walk retains its complete clip duration');
       walkFrames.forEach((f, i) => {
-        assert(f.duration >= 45 && f.duration <= 135, 'bounded stride pacing');
-        near(f.duration, cal.motionPolish.frameDurationsMs[i % 12], 'all four strides share the same pacing');
+        assert.equal(f.duration, 62.5, 'even sixteen-pose stride pacing');
+        assert.equal(entry.frameCount, 64); assert.equal(entry.fps, 16);
+        near(f.duration, cal.motionPolish.frameDurationsMs[i % 16], 'all four strides share the same pacing');
       });
     } else {
       assert.strictEqual(cal.smoothing?.version, 1, `${clip}: temporal smoothing provenance exists`);
@@ -124,7 +125,7 @@ for (const [character, record] of Object.entries(original.characters)) {
   }
 }
 assert.strictEqual(count, 13, 'all recovered clips and the clarified flourish installed in the actual manifest');
-assert.strictEqual(frameCount, 595, 'all recovered frames including 48 flourish poses installed');
+assert.strictEqual(frameCount, 611, 'all recovered frames including 48 flourish poses installed');
 assert.strictEqual(pins.size, 1, 'all recovered JSON and atlases share one immutable revision');
 
 const index = read('index.html');
@@ -236,9 +237,12 @@ async function checkSpriteStartup() {
   oldFlourish.characters.sector_1_boss_sector1boss.animations.sector_1_boss_attack_attack =
     copy(original.characters.sector_1_boss_sector1boss.animations.sector_1_boss_attack_attack);
   await scenario(oldFlourish, 1);
+  const oldWalk = copy(installed);
+  for (const key of ['image', 'json']) oldWalk.characters['6_bit_main'].animations['6_bit_walk_walk'][key] = installed.characters['6_bit_main'].animations['6_bit_walk_walk'][key].replace(/\/[a-f0-9]{40}\//, '/39410b034c9444861f8f30836e31f9ec252d92fe/');
+  await scenario(oldWalk, 1);
   await scenario(installed, 0);
 }
 
 checkSpriteStartup().then(() => {
-  console.log('Model art: 13 clips / 595 frames, atlas bounds, grounded poses, idle loop, clarified flourish, live ComicHUD and active startup verified (cold, preloaded old, mixed, old flourish, cached current, player rebind and concurrent calls).');
+  console.log('Model art: 13 clips / 611 frames, atlas bounds, grounded poses, idle loop, clarified flourish, live ComicHUD and active startup verified (cold, preloaded old, mixed, old flourish, cached current, player rebind and concurrent calls).');
 }).catch(error => { console.error(error); process.exitCode = 1; });

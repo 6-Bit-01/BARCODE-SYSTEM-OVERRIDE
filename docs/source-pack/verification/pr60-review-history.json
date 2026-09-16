@@ -1,0 +1,35 @@
+{
+  "revision": "cec53b0b653a4f76a1e84296acfe984973854c55",
+  "testedRuntimeRevision": "d0252918c2ec7bb55cb57c67f85cc938d6f2da63",
+  "completeTree": "341ec828fb49e7c58d70cf513b811b0f5b6ca679",
+  "base": "a4c16069b008c508a1dca60aeba3aab7e3c29b3f",
+  "pr": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/60",
+  "automatedTests": [
+    {
+      "command": "npm test",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run check:syntax:all",
+      "exitCode": 0
+    }
+  ],
+  "runtimeDiffAfterTests": [],
+  "nativeReview": "22-second production-module clip and stills inspected; scripted player placement and host image/sprite adapters",
+  "assetDelivery": "All seven lift/boss/slim-rail image files downloaded from immutable runtime URLs and SHA-256 matched",
+  "githubValidation": [
+    {
+      "runId": 35057863341,
+      "conclusion": "success",
+      "url": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35057863341"
+    },
+    {
+      "runId": 35057891493,
+      "conclusion": "success",
+      "url": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35057891493"
+    }
+  ],
+  "makkoPlaytest": "Pending owner review before merge; no hosted gameplay/performance/audio claim",
+  "normalPostMergeDeployment": "Read actual main merge SHA, import that exact revision into a fresh Makko preview, and repeat the focused acceptance route. Record SHA, PASS/FAIL and Jammer/lift/drone/boss ascent/descent clips.",
+  "githubValidationScope": "Full suite, all-JavaScript syntax, real Chromium intro visibility/input, source-pack export and artifact upload passed on the published head."
+}
