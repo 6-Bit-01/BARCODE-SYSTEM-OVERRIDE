@@ -73,7 +73,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     { id: 'signal-high-step', x: 642, y: 10, w: 132, h: 18 },
     { id: 'cache-high-step', x: 1400, y: 30, w: 136, h: 18 },
     { id: 'firewall-low-step', x: 2130, y: 430, w: 148, h: 18 },
-    { id: 'firewall-high-step', x: 2330, y: 210, w: 136, h: 18 },
+    { id: 'firewall-high-step', x: 2160, y: 210, w: 136, h: 18 },
     { id: 'tower-middle-step', x: 3260, y: 50, w: 136, h: 18 },
     { id: 'tower-high-step', x: 3420, y: -140, w: 136, h: 18 },
     { id: 'broadcast-low-step', x: 3930, y: 280, w: 144, h: 18 },
