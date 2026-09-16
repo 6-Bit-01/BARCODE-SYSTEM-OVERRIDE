@@ -1,0 +1,329 @@
+{
+  "canonicalPackVersion": 69,
+  "exportedFilesMatched": 394,
+  "previousManifest": {
+    "packVersion": "5.0",
+    "repository": "6-Bit-01/BARCODE-SYSTEM-OVERRIDE",
+    "repositoryUrl": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE",
+    "revision": "e79b30795ed825042c4bd27a28fd57e3c2da6c8f",
+    "revisionUrl": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/tree/e79b30795ed825042c4bd27a28fd57e3c2da6c8f",
+    "publicationStatus": "github",
+    "verifiedMainBase": "e79b30795ed825042c4bd27a28fd57e3c2da6c8f",
+    "implementationStatus": "merged",
+    "pullRequestUrl": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/66",
+    "generatedAtUtc": "2026-09-16T10:01:25.003364+00:00",
+    "sourceCommitDate": "2026-09-16T02:58:07-07:00",
+    "sourceMode": "committed Git tree with listed exclusions; no working-tree substitutions; pack documents additionally copied to archive root",
+    "snapshotDirectory": "repository-snapshot/",
+    "trackedFileCount": 395,
+    "exportedSourceFileCount": 394,
+    "excludedSourceFiles": [
+      {
+        "path": "project_sources/BARCODE-System-Override-Source-Pack-v4.zip",
+        "reason": "Historical source-pack input; retained in Git, omitted from current export to avoid nested obsolete packs."
+      }
+    ],
+    "packDocumentSourceDirectory": "docs/source-pack/",
+    "historicalBaseline": "7788ebfab4d6231c18229bef9571d6b97b676764 (PR #25)",
+    "supersedes": [
+      "Source Pack v2",
+      "Source Pack v3",
+      "Source Pack v4"
+    ],
+    "authority": "Newest explicit owner decisions, then current pack decisions; snapshot proves implementation, not design approval.",
+    "verification": {
+      "revision": "e79b30795ed825042c4bd27a28fd57e3c2da6c8f",
+      "base": "e79b30795ed825042c4bd27a28fd57e3c2da6c8f",
+      "pullRequest": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/66",
+      "status": "merged; owner Makko acceptance remains pending",
+      "mergedAtUtc": "2026-09-16T09:58:07Z",
+      "completeTree": "3856de80b42d0c1e6979bc986eba43c86de6ff1b",
+      "previousReviewRevision": "6623956757fe3cea7f4b26679fdeffc8414091e7",
+      "treeMatchesPreviousReviewExactly": true,
+      "implementationStatusChange": "PR #66 moved from review to merged main. The merge and saved review source trees are byte-identical.",
+      "ownerAcceptanceHistory": {
+        "pr65": {
+          "previousPR": 65,
+          "result": "failed",
+          "reported": "Terminal too far back and covering windows; WATCH OUT/car damage absent; background not visibly animated.",
+          "mergeWasNotAcceptance": true
+        },
+        "pr66": "No owner Makko acceptance was recorded before or with this merge event."
+      },
+      "diagnosis": [
+        "Traffic source is unchanged across PRs 63\u201365. Its shared warning/damage gate required missionStarted and an inactive tutorial; prior traffic tests preselected mission state.",
+        "Permanent training terminal exposed the existing mission-only vertical roof-camera gate.",
+        "Prior atmosphere was faint and largely occluded at sidewalk height.",
+        "This reproduces training failures; it does not establish the precise state of the owner's hosted session."
+      ],
+      "implementation": {
+        "terminal": "The permanent terminal is at x=560, y=638 with its back at the facade, its right edge clear of the shop windows and a 12px pavement strip before actor feet. It remains climbable from training/reset and behind actors/holograms.",
+        "traffic": "Original foreground-car WATCH OUT warnings and actual one-hit-per-car contact damage now operate during playable training as well as mission play. Actual body overlap remains required; cinematic, boss, stopped-play, hacking and damage-recovery protections remain.",
+        "camera": "The bounded vertical camera follows playable training roof travel using the same smoothing and return behavior as the mission.",
+        "animation": "Visible rain renders in front of buildings but behind actors, sign lights sweep from training onward, and pavement steam/chimney haze are stronger. These use the existing pause/reset clock; buildings and painted clouds remain fixed.",
+        "preserved": "Original car art, 15% foreground probability, random altitude/direction, scale, 4,350-unit speed, bob and three-second queued launch remain. Controls, actor art, hacking, music, mission, boss, lift, drone, cache/repair and reward logic remain."
+      },
+      "lockedRequirementsPreserved": "Single-jump movement, Cross jump/beat contexts, Down+Jump descent, 20-defeat mission, 16-hit Jammer, eight-second hijack, original four playable characters, original traffic behavior, music ownership, boss flow and Makko compatibility remain.",
+      "reviewEvidence": {
+        "revision": "6623956757fe3cea7f4b26679fdeffc8414091e7",
+        "tree": "3856de80b42d0c1e6979bc986eba43c86de6ff1b",
+        "localTestedRevision": "777f89720c50f879a7dbb6e2a3f0fc2f362c9f4c",
+        "localAndRemoteCompleteTreesMatch": true,
+        "localLogSHA256": {
+          "repair-test.log": "5e3e2c70502b14fb69b93a2da06c75c878a0ecde2f36b475c89a8f4a95349022",
+          "repair-syntax.log": "c529f936d3ff65aee4524796ae1b6e60dfe58670e8ae03962c39f76024059f35"
+        },
+        "automatedTests": {
+          "npm test": "passed",
+          "npm run check:syntax:all": "passed",
+          "git diff --check": "passed"
+        },
+        "focusedChecks": [
+          "12 full RAF/update/render trajectories: training/mission, natural seeded left/right original cars, 30/60/120Hz, rendered WATCH OUT, real health 3\u21922, early roof camera and paused clocks.",
+          "80 original-car property/motion comparisons; 18 existing warning trajectories; protected contact.",
+          "63 revised production traversal jumps and descending routes to the relocated terminal.",
+          "45 fixed-scale skyline camera cases, initial terminal/reset/layering and reduced-flash/pause checks.",
+          "Existing full controls, sprite, audio, hacking, encounter, boss, lift, drone, reward and completion checks."
+        ],
+        "retentionAudit": {
+          "baseSourcePackVersion": 67,
+          "exportedFilesCompared": 386,
+          "mismatches": [],
+          "priorManifestAndEvidence": "docs/source-pack/verification/pr65-merged-history.json",
+          "finding": "No removed controls, actor art, hacking, music, boss, lift, drone, reward or mission implementation found in scoped source comparison. Not a blanket hosted pass."
+        },
+        "nativeEvidence": [
+          "docs/source-pack/verification/repair-environment-repair-review.mp4",
+          "docs/source-pack/verification/repair-training-street-90.webp",
+          "docs/source-pack/verification/repair-watch-out-left.webp",
+          "docs/source-pack/verification/repair-watch-out-right.webp",
+          "docs/source-pack/verification/repair-traffic-hit-0.webp"
+        ],
+        "nativeLimits": "Production frame/update/render and bundled art, host image/sprite/canvas adapters; training dialogue hidden in capture. No hosted Makko, physical-controller or audio acceptance claim."
+      },
+      "githubMergeValidation": {
+        "run": {
+          "id": 35082376822,
+          "name": "validate",
+          "run_number": 298,
+          "event": "push",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "e79b30795ed825042c4bd27a28fd57e3c2da6c8f",
+          "created_at": "2026-09-16T09:58:10Z",
+          "updated_at": "2026-09-16T09:59:20Z",
+          "html_url": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35082376822"
+        },
+        "jobs": [
+          {
+            "id": 104749161205,
+            "name": "static-validation",
+            "status": "completed",
+            "conclusion": "success",
+            "steps": [
+              {
+                "number": 1,
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 2,
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 3,
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 4,
+                "name": "Run npm ci",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 5,
+                "name": "Run npm test",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 6,
+                "name": "Run npm run check:syntax:all",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 7,
+                "name": "Check intro visibility in real Chromium",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 8,
+                "name": "Upload intro browser evidence",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 9,
+                "name": "Export current source pack",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 10,
+                "name": "Run actions/upload-artifact@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 19,
+                "name": "Post Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 20,
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 21,
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success"
+              }
+            ]
+          }
+        ],
+        "codeReview": {
+          "status": "completed",
+          "revision": "6623956757fe3cea7f4b26679fdeffc8414091e7",
+          "completed_at": "2026-09-16T09:59:19.509765Z",
+          "findings_comment_present": false
+        },
+        "attribution": "Fresh GitHub push validation on the exact merge commit and completed review on the byte-identical head."
+      },
+      "makkoPlaytest": "Pending. Production-module/native-render evidence does not establish hosted Makko acceptance, and PR #65 remains a recorded owner failure.",
+      "physicalDualSense": "No new physical-controller acceptance is claimed. Earlier controller history and its failed/pending evidence remain preserved.",
+      "historicalPackEvidence": {
+        "revision": "6623956757fe3cea7f4b26679fdeffc8414091e7",
+        "base": "a8a0dfdd587906f4beea976a15c9671a40d5aac6",
+        "pullRequest": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/66",
+        "status": "draft review; owner Makko acceptance pending",
+        "tree": "3856de80b42d0c1e6979bc986eba43c86de6ff1b",
+        "localTestedRevision": "777f89720c50f879a7dbb6e2a3f0fc2f362c9f4c",
+        "localAndRemoteCompleteTreesMatch": true,
+        "ownerFeedback": {
+          "previousPR": 65,
+          "result": "failed",
+          "reported": "Terminal too far back and covering windows; WATCH OUT/car damage absent; background not visibly animated.",
+          "mergeWasNotAcceptance": true
+        },
+        "diagnosis": [
+          "Traffic source is unchanged across PRs 63\u201365. Its shared warning/damage gate required missionStarted and an inactive tutorial; prior traffic tests preselected mission state.",
+          "Permanent training terminal exposed the existing mission-only vertical roof-camera gate.",
+          "Prior atmosphere was faint and largely occluded at sidewalk height.",
+          "This reproduces training failures; it does not establish the precise state of the owner's hosted session."
+        ],
+        "implementation": {
+          "terminal": {
+            "x": 560,
+            "y": 638,
+            "width": 160,
+            "height": 206,
+            "actorFootGap": 12,
+            "alwaysPresent": true,
+            "layering": "behind actors and holograms"
+          },
+          "traffic": "Playable training and mission foreground hazards share warning and actual contact damage; original spawn/flight/art and existing cinematic/boss/hack/recovery protection retained.",
+          "camera": "Same bounded vertical follow now works during playable training.",
+          "animation": "Visible rain in front of buildings and behind actors, slow sign sweeps from training onward, stronger steam/haze. Existing fixed-scale skyline and pause/reset clock retained. Buildings and painted cloud artwork remain fixed."
+        },
+        "automatedTests": {
+          "npm test": "passed",
+          "npm run check:syntax:all": "passed",
+          "git diff --check": "passed"
+        },
+        "focusedChecks": [
+          "12 full RAF/update/render trajectories: training/mission, natural seeded left/right original cars, 30/60/120Hz, rendered WATCH OUT, real health 3\u21922, early roof camera and paused clocks.",
+          "80 original-car property/motion comparisons; 18 existing warning trajectories; protected contact.",
+          "63 revised production traversal jumps and descending routes to the relocated terminal.",
+          "45 fixed-scale skyline camera cases, initial terminal/reset/layering and reduced-flash/pause checks.",
+          "Existing full controls, sprite, audio, hacking, encounter, boss, lift, drone, reward and completion checks."
+        ],
+        "retentionAudit": {
+          "baseSourcePackVersion": 67,
+          "exportedFilesCompared": 386,
+          "mismatches": [],
+          "priorManifestAndEvidence": "docs/source-pack/verification/pr65-merged-history.json",
+          "finding": "No removed controls, actor art, hacking, music, boss, lift, drone, reward or mission implementation found in scoped source comparison. Not a blanket hosted pass."
+        },
+        "nativeEvidence": [
+          "docs/source-pack/verification/repair-environment-repair-review.mp4",
+          "docs/source-pack/verification/repair-training-street-90.webp",
+          "docs/source-pack/verification/repair-watch-out-left.webp",
+          "docs/source-pack/verification/repair-watch-out-right.webp",
+          "docs/source-pack/verification/repair-traffic-hit-0.webp"
+        ],
+        "nativeLimits": "Production frame/update/render and bundled art, host image/sprite/canvas adapters; training dialogue hidden in capture. No hosted Makko, physical-controller or audio acceptance claim.",
+        "githubCI": [
+          {
+            "runId": 35081324193,
+            "event": "pull_request",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35081324193"
+          },
+          {
+            "runId": 35081283138,
+            "event": "push",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35081283138"
+          }
+        ],
+        "makkoPlaytest": "Pending owner review of exact 6623956757fe3cea7f4b26679fdeffc8414091e7; keep draft unmerged.",
+        "localLogSHA256": {
+          "repair-test.log": "5e3e2c70502b14fb69b93a2da06c75c878a0ecde2f36b475c89a8f4a95349022",
+          "repair-syntax.log": "c529f936d3ff65aee4524796ae1b6e60dfe58670e8ae03962c39f76024059f35"
+        }
+      },
+      "previousPack": {
+        "revision": "6623956757fe3cea7f4b26679fdeffc8414091e7",
+        "libraryVersion": 68,
+        "sha256": "4c7993602328cb834368aa959d0af0ad84883e2f683bf2e989e204ebaeb748f5"
+      },
+      "normalPostMergeDeployment": "Owner imports exact merge e79b30795ed825042c4bd27a28fd57e3c2da6c8f into a fresh Makko preview. This maintenance does not deploy or alter Makko.",
+      "focusedPostDeployEvidence": "From playable training, confirm the terminal is against the facade, clears the windows, leaves pavement in front and stays behind enemies/holograms. Run natural cars from both directions: WATCH OUT must appear before entry and an actual body hit must reduce health from 3 to 2 without affecting high-altitude or protected states. Climb the early terminal/awning route and confirm vertical camera follow. Inspect foreground rain, sign sweeps, steam and chimney haze from training onward; pause/resume, reduced flashes, retry and restart. Continue through mission, Jammer, lift, upper routes and boss. Record imported SHA, gameplay state, PASS/FAIL and clips; a post-training failure must be diagnosed separately rather than assumed to match the training gate.",
+      "rollback": "a8a0dfdd587906f4beea976a15c9671a40d5aac6",
+      "exportValidation": {
+        "checks": [
+          "ZIP CRC",
+          "safe unique paths",
+          "complete SHA256 coverage",
+          "all exported source files equal exact merged Git tree",
+          "root documents equal committed source-pack copies"
+        ]
+      },
+      "limitations": [
+        "No gameplay, deployment, PR merge or Makko mutation was performed by this maintenance.",
+        "Automated checks and native frame/render evidence do not establish hosted performance, audio, visual feel or owner acceptance."
+      ]
+    },
+    "runtimeLimitations": [
+      "Makko supplies /lib/MakkoEngine.min.js; it is not included in Git.",
+      "Artwork and audio referenced by remote URLs remain externally hosted.",
+      "This source snapshot is not a self-contained offline build."
+    ],
+    "hashScope": "FILE_HASHES.sha256 covers every archive file except itself."
+  },
+  "ownerFeedback": "The animated background is cool; requests a reusable animated asset made here, slightly more rain, and Jammer placement in a widened central region. No new video service account.",
+  "acceptanceLimit": "Positive background feedback is recorded; no complete hosted Makko acceptance was reported."
+}

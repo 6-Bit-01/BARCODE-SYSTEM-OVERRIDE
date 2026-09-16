@@ -1,5 +1,15 @@
 # Decision Register
 
+## September 16, 2026 — reusable background animation and central Jammer
+
+Base/rollback is merged PR #66, `e79b30795ed825042c4bd27a28fd57e3c2da6c8f`; branch `agent/animated-background-central-jammer`. The owner likes the new atmosphere and requests an animated asset made here, slightly heavier rain, and Jammer placement in an area a little wider than the middle third. No additional service account is wanted. Earlier current-work sections are historical.
+
+The existing far-city illustration now has a silent eight-second smoke/cloud loop at 24 fps. Architecture stays fixed in the uncompressed asset; rendering retains the original aspect and fixed scale. Asset ancestor: `ac31c22a283ca0e62b25ed303e8360c383336c14`. One muted video follows pause/reset/stop/restart, with one bundled fallback and the original still if media is unavailable. The game keeps its existing rain, steam and sign animation; rain streak populations rise by about 28%, with a small opacity increase.
+
+Jammer spawning no longer alternates into the opposite world half. The allowed central band is x=1180–2916 (about 42% of the map). The existing lift approach reserves the right part of that band; actual safe slots are 1200, 1400, 1600, 1800 and 2000, with x=1600 as the initial/reset default. This keeps the lift out of Jammer attack reach and leaves room for the camera to reveal the boss. The 20-defeat quota, 16 Jammer health, rhythm-only damage and cinematic/boss sequence remain.
+
+The permanent terminal remains at x=560, y=638, behind actors/holograms and clear of windows. PR #66's training/mission WATCH OUT warnings and real traffic damage remain. Read `ANIMATED_BACKGROUND_JAMMER_PASS.md` for asset provenance, review and validation limits. Canonical pack version 69 matched all 394 base exports; its manifest/receipt is preserved in `verification/pr66-merged-history.json`. Exact final head, PR and checks belong to the generated receipt. Keep the combined draft unmerged for owner Makko review.
+
 ## September 16, 2026 — repair playable traffic, terminal placement and visible city motion
 
 Base/rollback is merged PR #65, `a8a0dfdd587906f4beea976a15c9671a40d5aac6`; branch `agent/traffic-background-repair`. The owner reports #65 failed the placement/animation review and reports absent car warnings/damage. The merge is not acceptance. Earlier current-work sections are historical.
@@ -166,7 +176,7 @@ Statuses: **LOCKED** = explicit retained requirement; **APPROVED DIRECTION** = S
 | D-007 | LOCKED | Active tutorial owns Space. H/R retain tutorial locks; background music/rhythm timing continues with R hidden or inactive. |
 | D-008 | LOCKED | R is actual Rhythm Combat Mode; Down damage requires successful rhythm judgment. Passive landing stomp stays lethal against ordinary enemies. |
 | D-009 | LOCKED | 20 post-tutorial enemies, four authored groups; tutorial kills excluded. |
-| D-010 | LOCKED | Jammer appears in opposite half at 20 defeats; sixteen health, one damage per successful rhythm hit. Environmental owner; not hacked/stomped. |
+| D-010 | LOCKED; placement revised September 16 | Jammer appears in the widened central band at 20 defeats, clear of the lift and right-edge boss framing; sixteen health, one damage per successful rhythm hit. Environmental owner; not hacked/stomped. The earlier opposite-half rule is superseded by the owner's explicit placement request. |
 | D-011 | LOCKED | Preserve Jammer-to-boss freeze/purge/pan/entrance/flourish/handoff and rhythm-powered two-hit lift. |
 | D-012 | LOCKED | 28 one-time lore records, distribution 3/4/5/4/5/4/3. Random legacy text is not final canon. |
 | D-013 | LOCKED | Each level selects its own song/profile. No inherited Level 1 BPM/stems/grid/restart policy. Musical input judgment is chosen per genre. |

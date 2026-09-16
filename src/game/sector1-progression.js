@@ -10,6 +10,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
   const PLAYER_VISUAL_FOOT_OFFSET = window.Player.VISUAL_FOOT_OFFSET_Y;
   const CAMERA_MIN = CANVAS_WIDTH / 2;
   const CAMERA_MAX = WORLD_WIDTH - CANVAS_WIDTH / 2;
+  // About 42% of the level: the middle third plus a little space on each side.
+  // Lift approach space is reserved inside this band, never replaced by an
+  // alternate spawn at the right edge where the boss camera is already framed.
+  const JAMMER_PLACEMENT = Object.freeze({ minX: 1180, maxX: 2916 });
   const COMPLETION_PRESENTATION = Object.freeze({ holdMs: 620, fadeMs: 240, rowMs: 760, staggerMs: 220 });
 
   const STATES = Object.freeze({
@@ -188,6 +192,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     static get CINEMATIC() { return CINEMATIC; }
     static get STATES() { return STATES; }
     static get BOSS_COMBAT() { return BOSS_COMBAT; }
+    static get JAMMER_PLACEMENT() { return JAMMER_PLACEMENT; }
     isAuthoritativeMissionActive() { return this.state !== STATES.TUTORIAL && this.state !== STATES.LEVEL_COMPLETE; }
     shouldSuppressGenericSpawning() { return true; }
     isBossCinematicActive() { return [STATES.FREEZE, STATES.ENEMY_PURGE, STATES.CAMERA_PAN, STATES.BOSS_WALK_IN, STATES.BOSS_CLOSE_UP, STATES.BOSS_FLOURISH, STATES.BOSS_HOLD, STATES.CAMERA_RETURN].includes(this.state); }
@@ -389,12 +394,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     keepEntranceTargetSafe(enemy) { if (!enemy?._authoredEntranceActive || !enemy._entranceTarget || !this.player?.position) return; const bodyHalf = this.getSpawnBodyHalfWidth(enemy.type); const playerX = this.player.position.x; const clearance = SPAWN.playerExclusionRadius + bodyHalf; const side = enemy.position.x < playerX ? -1 : 1; const targetStaysOnApproachSide = side < 0 ? enemy._entranceTarget.x <= playerX - clearance : enemy._entranceTarget.x >= playerX + clearance; if (targetStaysOnApproachSide) return; const spread = Math.min(180, Math.max(0, Number(enemy._sector1Index) || 0) * 45); let targetX = Math.max(bodyHalf, Math.min(WORLD_WIDTH - bodyHalf, playerX + side * (clearance + spread))); if (Math.abs(targetX - playerX) < clearance) targetX = Math.max(bodyHalf, Math.min(WORLD_WIDTH - bodyHalf, playerX - side * (clearance + spread))); enemy._entranceTarget.x = targetX; }
     onEnemyDefeated(authoritativeTotal, enemy) { if (!this.missionStarted || !enemy || !enemy._sector1MissionEnemy || this.countedEnemies.has(enemy)) return; this.countedEnemies.add(enemy); this.lastMissionDefeatAtMs = this.districtSignal.elapsedMs; this.missionDefeats = Math.min(this.requiredEnemyKills, this.missionDefeats + 1); if (window.gameState) window.gameState.enemiesDefeated = this.missionDefeats; if (window.objectivesSystem?.updateMissionDefeatProgress) window.objectivesSystem.updateMissionDefeatProgress(this.missionDefeats, this.requiredEnemyKills); if (this.missionDefeats === this.requiredEnemyKills && !this.jammerRevealed) this.revealJammer(); }
     chooseJammerPosition() {
-      const px = this.player?.position?.x ?? 960;
       // Keep the entire attack position range clear of lift support. A player
       // on either lip must never power the lift while hitting the Jammer.
       const attackRange = window.BARCODE?.playerCombat?.range ?? 300;
       const clearance = attackRange + 18 + 96;
-      const candidates = (px < WORLD_WIDTH / 2 ? [3100, 3520, 3820] : [1300, 1550, 1800])
+      const candidates = [1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600, 2800]
+        .filter(x => x >= JAMMER_PLACEMENT.minX && x <= JAMMER_PLACEMENT.maxX)
         .filter(x => x < SIGNAL_LIFT.x - clearance || x > SIGNAL_LIFT.x + SIGNAL_LIFT.w + clearance);
       const x = candidates[Math.min(candidates.length - 1, Math.floor(Math.random() * candidates.length))];
       return { x, y: GROUND_Y };

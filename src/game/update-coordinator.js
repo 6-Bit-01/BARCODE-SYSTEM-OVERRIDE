@@ -32,6 +32,7 @@ window.BARCODE.TacticalFocusClock = Object.freeze({
 
 // Main update function called from game loop
 window.updateGame = function(deltaTime) {
+  window.parallaxBackground?.syncSkyPlayback?.();
   if (window.gameState.paused || window.isPaused) return;
   if (!window.gameState.running) {
     if (window.gameState.gameOver || window.gameState.victory) window.rhythmSystem?.update?.(deltaTime);

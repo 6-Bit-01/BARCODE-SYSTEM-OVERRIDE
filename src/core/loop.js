@@ -63,6 +63,7 @@ window.gameLoop = function(timestamp) {
   if (!window.isRunning) return;
 
   if (window.isPaused) {
+    window.parallaxBackground?.syncSkyPlayback?.();
     if (window.inputManager && typeof window.inputManager.updatePausedInput === 'function') {
       window.inputManager.updatePausedInput();
     }
@@ -147,6 +148,7 @@ window.startGameLoop = function() {
 // Pause the game
 window.pauseGame = function() {
   window.isPaused = true;
+  window.parallaxBackground?.syncSkyPlayback?.();
   cancelScheduledGameplayFrame();
   scheduleNextGameplayFrame();
 };
@@ -166,5 +168,6 @@ window.stopGame = function() {
   cancelScheduledGameplayFrame();
   window.isRunning = false;
   window.isPaused = false;
+  window.parallaxBackground?.syncSkyPlayback?.();
   window.lastTime = 0;
 };

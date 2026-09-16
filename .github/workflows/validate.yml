@@ -16,6 +16,18 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run check:syntax:all
+      - name: Check background video in real Chromium
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+          BACKGROUND_BROWSER_OUTPUT: ${{ runner.temp }}/background-browser
+        run: node tools/check-background-browser.cjs
+      - name: Upload background browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: background-browser-${{ github.sha }}
+          path: ${{ runner.temp }}/background-browser
+          if-no-files-found: ignore
       - name: Check intro visibility in real Chromium
         env:
           CHROME_BIN: /usr/bin/google-chrome
@@ -37,7 +49,7 @@ jobs:
           from pathlib import Path
           Path(os.environ['PACK_RECEIPT']).write_text(json.dumps({
               'revision': os.environ['GITHUB_SHA'],
-              'automatedTests': {'npm test': 'passed', 'npm run check:syntax:all': 'passed', 'node tools/check-intro-browser.cjs': 'passed'},
+              'automatedTests': {'npm test': 'passed', 'npm run check:syntax:all': 'passed', 'node tools/check-background-browser.cjs': 'passed', 'node tools/check-intro-browser.cjs': 'passed'},
               'makkoPlaytest': 'not recorded by CI',
               'workflowRun': os.environ['GITHUB_SERVER_URL'] + '/' + os.environ['GITHUB_REPOSITORY'] + '/actions/runs/' + os.environ['GITHUB_RUN_ID']
           }, indent=2))
