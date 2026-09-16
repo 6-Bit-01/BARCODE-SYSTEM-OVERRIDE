@@ -31,7 +31,7 @@ window.ParallaxBackground = class ParallaxBackground {
       [648,441,4,8],[870,368,4,9],[871,389,4,10],[944,491,5,4],
       [1027,553,3,9],[1164,586,6,17],[1185,581,6,18],[1373,401,4,7],
       [1578,544,4,9],[1808,506,3,8],[2015,430,5,12]];
-    this.skylineVents = [[248,289],[812,246],[1068,281],[1178,306],[1320,287],[1655,223]];
+    this.skylineVents = [[246,304],[552,312],[738,317],[826,323],[1192,316],[1604,324],[1935,334]];
   }
   
   // Add a parallax layer
@@ -256,22 +256,23 @@ window.ParallaxBackground = class ParallaxBackground {
     }
     // Reuse the foreground's existing cached steam texture. The haze rises
     // slowly above chimney mouths and stays behind all foreground buildings.
+    this.prepareAtmosphereSprites();
     const steam = this.atmosphereSprites?.steam;
     if (steam) for (const [i, [left, top]] of this.skylineVents.entries()) {
       if (!visible(left - 40, 90)) continue;
-      for (let puff = 0; puff < 3; puff++) {
-        const phase = ((time + i * 1700 + puff * 4000) % 12000) / 12000;
-        const radius = 8 + phase * 23;
-        const drift = phase * 24 + Math.sin(phase * 4 + i) * 4;
-        ctx.globalAlpha = Math.sin(phase * Math.PI) * 0.12 * quiet;
+      for (let puff = 0; puff < 4; puff++) {
+        const phase = ((time + i * 1700 + puff * 2400) % 9600) / 9600;
+        const radius = 8 + phase * 25;
+        const drift = phase * 34 + Math.sin(phase * 4 + i) * 4;
+        ctx.globalAlpha = Math.sin(phase * Math.PI) * 0.4 * quiet;
         ctx.drawImage(steam, left + drift - radius, top - phase * 105 - radius, radius * 2, radius * 2);
       }
     }
     // Sparse diagonal rain; a fixed analytic population cannot accumulate.
     // One path/stroke per frame and all of it remains in the background layer.
-    ctx.globalAlpha = 0.15 * quiet; ctx.strokeStyle = '#bdcfcc'; ctx.lineWidth = 0.5;
+    ctx.globalAlpha = 0.3 * quiet; ctx.strokeStyle = '#bdcfcc'; ctx.lineWidth = 0.55;
     ctx.beginPath();
-    for (let i = 0; i < 56; i++) {
+    for (let i = 0; i < 112; i++) {
       const left = ((i * 137.3 - time * (0.004 + i % 3 * 0.001)) % 2048 + 2048) % 2048;
       if (!visible(left - 3, 6)) continue;
       const top = (i * 89.7 + time * (0.04 + i % 4 * 0.005)) % 720;
@@ -454,12 +455,40 @@ window.ParallaxBackground = class ParallaxBackground {
 
   drawAtmosphere(ctx, layer, x, y, width, height) {
     if (layer !== this.layers[1] || !layer.imgElement) return;
+    if (!this.decorationVisible(0, 1279, x, width / 1279)) return;
     this.prepareAtmosphereSprites();
     const sx = width / 1279, sy = height / 462;
     const time = window.BARCODE?.combatFX?.timeMs ?? window.sector1Progression?.districtSignal?.elapsedMs ?? 0;
     const music = this.getSceneMusic();
     const sprites = this.atmosphereSprites;
     ctx.save(); ctx.translate(x, y); ctx.scale(sx, sy);
+    // The city is alive before the mission/music-driven sign takeover, too.
+    // A slow light sweep stays inside each authored sign; no moving buildings.
+    const animateLights = window.BARCODE_RENDER_QUALITY?.flashes !== false;
+    for (const [index, [left, top, w, h]] of this.signalDisplays.entries()) {
+      if (!this.decorationVisible(left, w, x, sx)) continue;
+      const phase = ((time / 3500 + index * 0.17) % 1);
+      ctx.save(); ctx.beginPath(); ctx.rect(left + 2, top + 2, w - 4, h - 4); ctx.clip();
+      ctx.fillStyle = index % 2 ? '#ffacdb' : '#9affdf';
+      ctx.globalAlpha = (animateLights ? 0.10 + Math.sin(phase * Math.PI) * 0.10 : 0.12) * music.quiet;
+      ctx.fillRect(left + 2, top + 2, w - 4, h - 4);
+      if (animateLights) {
+        ctx.globalAlpha = 0.28 * music.quiet;
+        ctx.fillRect(left + 2, top - 4 + phase * (h + 4), w - 4, 1.2);
+      }
+      ctx.restore();
+    }
+    // Foreground rain is visible from the sidewalk, behind actors and HUD.
+    // Fixed analytic streaks add no particles, timers or growing collections.
+    ctx.globalAlpha = 0.32 * music.quiet; ctx.strokeStyle = '#c6dcdc'; ctx.lineWidth = 0.35;
+    ctx.beginPath();
+    for (let i = 0; i < 144; i++) {
+      const left = ((i * 91.73 - time * (0.006 + i % 3 * 0.001)) % 1279 + 1279) % 1279;
+      if (!this.decorationVisible(left - 4, 8, x, sx)) continue;
+      const top = (i * 57.29 + time * (0.095 + i % 4 * 0.012)) % 458;
+      ctx.moveTo(left, top); ctx.lineTo(left - 3, top + 8);
+    }
+    ctx.stroke();
     for (const [index, [left, top, radius]] of this.neonSpills.entries()) {
       if (!this.decorationVisible(left - radius, radius * 2, x, sx)) continue;
       const sprite = sprites[index % 2 ? 'purple' : 'mint'];
@@ -477,7 +506,7 @@ window.ParallaxBackground = class ParallaxBackground {
         const phase = ((time + index * 1730 + puff * 980) % 7000) / 4200;
         if (phase >= 1) continue;
         const radius = 7 + phase * 18;
-        ctx.globalAlpha = Math.sin(phase * Math.PI) * 0.18 * quiet;
+        ctx.globalAlpha = Math.sin(phase * Math.PI) * 0.42 * quiet;
         const drift = Math.sin(index * 2 + phase * 3) * 9;
         ctx.drawImage(sprites.steam, left + drift - radius, top - phase * 66 - radius, radius * 2, radius * 2);
       }

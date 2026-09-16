@@ -137,6 +137,7 @@
     "tools/check-baseline.js",
     "tools/check-enemy-hijack.js",
     "tools/check-enemy-ownership.js",
+    "tools/check-environment-runtime.js",
     "tools/check-frame-ownership.js",
     "tools/check-intro.js",
     "tools/check-level-01-boss.js",

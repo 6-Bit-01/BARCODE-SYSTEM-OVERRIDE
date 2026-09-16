@@ -405,8 +405,11 @@ window.SpaceShipSystem = class SpaceShipSystem {
 
   trafficDamageEnabled() {
     const p = window.sector1Progression;
-    return !!(p?.missionStarted && !p.isGameplaySuppressed?.() && !p.isBossCombatLive?.() &&
-      !window.tutorialSystem?.isActive?.() && !window.gameState?.gameOver && !window.gameState?.victory);
+    // Playable training shares the same city and cars. Mission activation is
+    // not a hazard switch; cinematics, boss combat and stopped play still are.
+    return !!(window.gameState?.running && window.player && !window.player.isEntering &&
+      !p?.isGameplaySuppressed?.() && !p?.isBossCombatLive?.() &&
+      !window.gameState.gameOver && !window.gameState.victory);
   }
 
   sweptContact(a, endA, b, endB) {

@@ -55,8 +55,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
 
   const TRAVERSAL_PROPS = Object.freeze([
     { id: 'cache-maintenance-step', x: 1390, y: 410, w: 128, h: 14 },
-    // Set back on the pavement, leaving 32px before the actors' foot plane.
-    { id: 'tower-utility-unit', x: 690, y: 618, w: 160, h: 206, asset: 'broadcastTerminal', alwaysPresent: true },
+    // Rear edge meets the facade; 12px of pavement remains before actor feet.
+    { id: 'tower-utility-unit', x: 560, y: 638, w: 160, h: 206, asset: 'broadcastTerminal', alwaysPresent: true },
     { id: 'signal-high-step', x: 642, y: 10, w: 132, h: 18 },
     { id: 'cache-high-step', x: 1400, y: 30, w: 136, h: 18 },
     { id: 'firewall-low-step', x: 2130, y: 430, w: 148, h: 18 },
@@ -194,7 +194,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     isGameplaySuppressed() { return this.isBossCinematicActive() || this.state === STATES.LEVEL_COMPLETE; }
     getCameraY() { return this.cameraY || 0; }
     updateVerticalCamera(delta) {
-      if (!this.missionStarted) return;
+      // The permanent terminal opens roof travel during playable training.
+      // Follow that climb as well; mission activation must not strand the
+      // player (and approaching cars) above a street-locked viewport.
+      if (this.player?.isEntering) return;
       const foot = this.player.position.y + PLAYER_VISUAL_FOOT_OFFSET;
       const current = this.cameraY || 0;
       let desired = current;

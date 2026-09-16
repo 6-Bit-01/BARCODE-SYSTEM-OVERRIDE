@@ -1,0 +1,497 @@
+{
+  "libraryVersion": 67,
+  "sourceManifest": {
+    "packVersion": "5.0",
+    "repository": "6-Bit-01/BARCODE-SYSTEM-OVERRIDE",
+    "repositoryUrl": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE",
+    "revision": "a8a0dfdd587906f4beea976a15c9671a40d5aac6",
+    "revisionUrl": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/tree/a8a0dfdd587906f4beea976a15c9671a40d5aac6",
+    "publicationStatus": "github",
+    "verifiedMainBase": "a8a0dfdd587906f4beea976a15c9671a40d5aac6",
+    "implementationStatus": "merged",
+    "pullRequestUrl": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/65",
+    "generatedAtUtc": "2026-09-16T09:25:38.238334+00:00",
+    "sourceCommitDate": "2026-09-16T02:22:09-07:00",
+    "sourceMode": "committed Git tree with listed exclusions; no working-tree substitutions; pack documents additionally copied to archive root",
+    "snapshotDirectory": "repository-snapshot/",
+    "trackedFileCount": 387,
+    "exportedSourceFileCount": 386,
+    "excludedSourceFiles": [
+      {
+        "path": "project_sources/BARCODE-System-Override-Source-Pack-v4.zip",
+        "reason": "Historical source-pack input; retained in Git, omitted from current export to avoid nested obsolete packs."
+      }
+    ],
+    "packDocumentSourceDirectory": "docs/source-pack/",
+    "historicalBaseline": "7788ebfab4d6231c18229bef9571d6b97b676764 (PR #25)",
+    "supersedes": [
+      "Source Pack v2",
+      "Source Pack v3",
+      "Source Pack v4"
+    ],
+    "authority": "Newest explicit owner decisions, then current pack decisions; snapshot proves implementation, not design approval.",
+    "verification": {
+      "revision": "a8a0dfdd587906f4beea976a15c9671a40d5aac6",
+      "base": "a8a0dfdd587906f4beea976a15c9671a40d5aac6",
+      "pullRequest": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/65",
+      "status": "merged; owner Makko acceptance remains pending",
+      "mergedAtUtc": "2026-09-16T09:22:09Z",
+      "completeTree": "ab7b00e6355ba69ecebfa3a5054301b836bc8f42",
+      "previousReviewRevision": "08d7c05f8e340fa4dda2042ae91ab0991cb89e55",
+      "treeMatchesPreviousReviewExactly": true,
+      "implementationStatusChange": "PR #65 moved from review to merged main. The merge and saved review source trees are byte-identical.",
+      "implementation": {
+        "terminalDepth": "The existing left broadcast terminal moves 32px up/back on the sidewalk, leaving a visible pavement lane in front for street enemies.",
+        "terminalLifecycle": "The terminal is present and climbable from the first playable tutorial frame and after reset, rather than appearing at mission start.",
+        "layering": "The terminal draws before street enemies and hologram fields. Upper supports, lift, rewards and boss retain their established ordering.",
+        "background": "The distant skyline uses a fixed aspect-correct screen size with parallax and full roof coverage, avoiding walking-induced rescaling. Sparse rain, chimney haze and slow light variation use the existing pause/reset clock.",
+        "preserved": "Existing artwork, foreground camera behavior, original traffic settings and warnings, movement, jump physics, Cross beat controls, platform descent, hack popup, mission and boss rules remain unchanged."
+      },
+      "lockedRequirementsPreserved": "Single-jump movement, 20-defeat mission, 16-hit Jammer, eight-second hijack, original four playable characters, music ownership, original traffic behavior, boss flow, Makko compatibility and all earlier retained requirements remain.",
+      "reviewEvidence": {
+        "revision": "08d7c05f8e340fa4dda2042ae91ab0991cb89e55",
+        "tree": "ab7b00e6355ba69ecebfa3a5054301b836bc8f42",
+        "localTestedRevision": "0844c542a727be6ec0a15bc734d28fea62bbd871",
+        "localCompleteReviewRevision": "df5501d71e16f6d41f7eeef94366d8a8069cfb99",
+        "runtimeAndTestsUnchangedSinceLocalTests": true,
+        "onlyChangesAfterLocalTests": "Two native preview images refreshed after retaining the upper-support render pass; source and tests byte-identical.",
+        "automatedTests": {
+          "npm test": "passed",
+          "npm run check:syntax:all": "passed"
+        },
+        "focusedChecks": [
+          "63 production traversal jumps at 30/60/120Hz",
+          "45 combinations of sky camera/height/zoom coverage with fixed dimensions",
+          "Initial tutorial terminal, 32px foot-plane setback, aligned landings and restart",
+          "Terminal before enemies and hologram fields; rewards and upper props keep their late pass",
+          "Background clock determinism, pause, restart and reduced-flash lights",
+          "Existing original-car motion and warning regressions"
+        ],
+        "nativeRendering": {
+          "status": "passed",
+          "command": "WORLD_DEPTH_REVIEW=1 node tools/render-level1-rebuild.cjs ../final-review",
+          "evidenceDirectory": "docs/source-pack/verification",
+          "video": "box-background-review.mp4",
+          "limitations": "Native production rendering with adapted Image/Makko boundaries and scripted placements. One explicit hologram-overlap diagnostic moves the gate in the fixture only."
+        },
+        "artChanges": "None; existing artwork and cached haze textures reused.",
+        "limits": "Native production rendering used adapted Image/Makko boundaries and scripted placements; it is not hosted Makko, physical-controller, audio or gameplay acceptance."
+      },
+      "githubMergeValidation": {
+        "run": {
+          "id": 35079015292,
+          "name": "validate",
+          "run_number": 295,
+          "event": "push",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "a8a0dfdd587906f4beea976a15c9671a40d5aac6",
+          "created_at": "2026-09-16T09:22:12Z",
+          "updated_at": "2026-09-16T09:23:40Z",
+          "html_url": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35079015292"
+        },
+        "jobs": [
+          {
+            "id": 104738216900,
+            "name": "static-validation",
+            "status": "completed",
+            "conclusion": "success",
+            "steps": [
+              {
+                "number": 1,
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 2,
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 3,
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 4,
+                "name": "Run npm ci",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 5,
+                "name": "Run npm test",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 6,
+                "name": "Run npm run check:syntax:all",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 7,
+                "name": "Check intro visibility in real Chromium",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 8,
+                "name": "Upload intro browser evidence",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 9,
+                "name": "Export current source pack",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 10,
+                "name": "Run actions/upload-artifact@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 19,
+                "name": "Post Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 20,
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 21,
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success"
+              }
+            ]
+          }
+        ],
+        "attribution": "Fresh GitHub push validation on the exact merge commit; no redundant local gameplay run is claimed."
+      },
+      "githubCodeReviewAtMergeCheck": "The automated code review was still running when merge CI completed; no completed-review finding status is claimed.",
+      "makkoPlaytest": "Pending. The event context and PR record contain no owner Makko PASS for PR #65; merge status is not hosted acceptance.",
+      "physicalDualSense": "No new physical-controller acceptance is claimed. Earlier controller-related history remains preserved in the source tree and nested pack evidence.",
+      "historicalPackEvidence": {
+        "revision": "08d7c05f8e340fa4dda2042ae91ab0991cb89e55",
+        "base": "97b6367b53bc719594e77f32d89cc6bfdfbe72f7",
+        "tree": "ab7b00e6355ba69ecebfa3a5054301b836bc8f42",
+        "pullRequest": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/65",
+        "status": "draft; pending owner Makko acceptance",
+        "automatedTests": {
+          "npm test": "passed",
+          "npm run check:syntax:all": "passed"
+        },
+        "localTestedRevision": "0844c542a727be6ec0a15bc734d28fea62bbd871",
+        "localCompleteReviewRevision": "df5501d71e16f6d41f7eeef94366d8a8069cfb99",
+        "runtimeAndTestsUnchangedSinceLocalTests": true,
+        "onlyChangesAfterLocalTests": "Two native preview images refreshed after retaining the upper-support render pass; source and tests byte-identical.",
+        "checks": [
+          "63 production traversal jumps at 30/60/120Hz",
+          "45 combinations of sky camera/height/zoom coverage with fixed dimensions",
+          "Initial tutorial terminal, 32px foot-plane setback, aligned landings and restart",
+          "Terminal before enemies and hologram fields; rewards and upper props keep their late pass",
+          "Background clock determinism, pause, restart and reduced-flash lights",
+          "Existing original-car motion and warning regressions"
+        ],
+        "nativeRendering": {
+          "status": "passed",
+          "command": "WORLD_DEPTH_REVIEW=1 node tools/render-level1-rebuild.cjs ../final-review",
+          "evidenceDirectory": "docs/source-pack/verification",
+          "video": "box-background-review.mp4",
+          "limitations": "Native production rendering with adapted Image/Makko boundaries and scripted placements. One explicit hologram-overlap diagnostic moves the gate in the fixture only."
+        },
+        "makkoPlaytest": "not yet recorded; owner acceptance required before merge",
+        "artChanges": "None; existing artwork and cached haze textures reused.",
+        "sourcePackPreviousVersion": 65,
+        "baseSourceFilesMatched": 379,
+        "previousHistory": "docs/source-pack/verification/pr64-merged-history.json",
+        "ci": [
+          {
+            "id": 35078821583,
+            "event": "pull_request",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35078821583"
+          },
+          {
+            "id": 35078777205,
+            "event": "push",
+            "status": "completed",
+            "conclusion": "success",
+            "url": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35078777205"
+          }
+        ]
+      },
+      "previousPack": {
+        "revision": "08d7c05f8e340fa4dda2042ae91ab0991cb89e55",
+        "libraryVersion": 66,
+        "sha256": "274e3de5192d9d97347735981c8d5e8ad9adf51b71398a1c1fe9c24efb520044"
+      },
+      "normalPostMergeDeployment": "Owner imports exact merge a8a0dfdd587906f4beea976a15c9671a40d5aac6 into a fresh Makko preview. This maintenance does not deploy or alter Makko.",
+      "focusedPostDeployEvidence": "At the first playable tutorial frame and after restart, confirm the terminal is already present and climbable. Walk enemies across its full width and inspect an active hologram overlap: bodies, feet and fields must remain in front with pavement visible below. Confirm the terminal does not move or reappear at mission start. Walk left-center-right and reverse, then climb to the highest roofs at normal and wide zoom: the distant skyline must retain its size and cover the top edge. Inspect rain, chimney haze and light variation; pause/resume, reduced flashes, boss retry and full restart. Record imported SHA, PASS/FAIL and clips.",
+      "rollback": "97b6367b53bc719594e77f32d89cc6bfdfbe72f7",
+      "exportValidation": {
+        "checks": [
+          "ZIP CRC",
+          "safe unique paths",
+          "complete SHA256 coverage",
+          "all exported source files equal exact merged Git tree",
+          "root documents equal committed source-pack copies"
+        ]
+      },
+      "limitations": [
+        "No gameplay, deployment, PR merge or Makko mutation was performed by this maintenance.",
+        "Automated checks and native Canvas review do not establish hosted performance, audio, visual feel or owner acceptance."
+      ]
+    },
+    "runtimeLimitations": [
+      "Makko supplies /lib/MakkoEngine.min.js; it is not included in Git.",
+      "Artwork and audio referenced by remote URLs remain externally hosted.",
+      "This source snapshot is not a self-contained offline build."
+    ],
+    "hashScope": "FILE_HASHES.sha256 covers every archive file except itself."
+  },
+  "testEvidence": {
+    "revision": "a8a0dfdd587906f4beea976a15c9671a40d5aac6",
+    "base": "a8a0dfdd587906f4beea976a15c9671a40d5aac6",
+    "pullRequest": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/65",
+    "status": "merged; owner Makko acceptance remains pending",
+    "mergedAtUtc": "2026-09-16T09:22:09Z",
+    "completeTree": "ab7b00e6355ba69ecebfa3a5054301b836bc8f42",
+    "previousReviewRevision": "08d7c05f8e340fa4dda2042ae91ab0991cb89e55",
+    "treeMatchesPreviousReviewExactly": true,
+    "implementationStatusChange": "PR #65 moved from review to merged main. The merge and saved review source trees are byte-identical.",
+    "implementation": {
+      "terminalDepth": "The existing left broadcast terminal moves 32px up/back on the sidewalk, leaving a visible pavement lane in front for street enemies.",
+      "terminalLifecycle": "The terminal is present and climbable from the first playable tutorial frame and after reset, rather than appearing at mission start.",
+      "layering": "The terminal draws before street enemies and hologram fields. Upper supports, lift, rewards and boss retain their established ordering.",
+      "background": "The distant skyline uses a fixed aspect-correct screen size with parallax and full roof coverage, avoiding walking-induced rescaling. Sparse rain, chimney haze and slow light variation use the existing pause/reset clock.",
+      "preserved": "Existing artwork, foreground camera behavior, original traffic settings and warnings, movement, jump physics, Cross beat controls, platform descent, hack popup, mission and boss rules remain unchanged."
+    },
+    "lockedRequirementsPreserved": "Single-jump movement, 20-defeat mission, 16-hit Jammer, eight-second hijack, original four playable characters, music ownership, original traffic behavior, boss flow, Makko compatibility and all earlier retained requirements remain.",
+    "reviewEvidence": {
+      "revision": "08d7c05f8e340fa4dda2042ae91ab0991cb89e55",
+      "tree": "ab7b00e6355ba69ecebfa3a5054301b836bc8f42",
+      "localTestedRevision": "0844c542a727be6ec0a15bc734d28fea62bbd871",
+      "localCompleteReviewRevision": "df5501d71e16f6d41f7eeef94366d8a8069cfb99",
+      "runtimeAndTestsUnchangedSinceLocalTests": true,
+      "onlyChangesAfterLocalTests": "Two native preview images refreshed after retaining the upper-support render pass; source and tests byte-identical.",
+      "automatedTests": {
+        "npm test": "passed",
+        "npm run check:syntax:all": "passed"
+      },
+      "focusedChecks": [
+        "63 production traversal jumps at 30/60/120Hz",
+        "45 combinations of sky camera/height/zoom coverage with fixed dimensions",
+        "Initial tutorial terminal, 32px foot-plane setback, aligned landings and restart",
+        "Terminal before enemies and hologram fields; rewards and upper props keep their late pass",
+        "Background clock determinism, pause, restart and reduced-flash lights",
+        "Existing original-car motion and warning regressions"
+      ],
+      "nativeRendering": {
+        "status": "passed",
+        "command": "WORLD_DEPTH_REVIEW=1 node tools/render-level1-rebuild.cjs ../final-review",
+        "evidenceDirectory": "docs/source-pack/verification",
+        "video": "box-background-review.mp4",
+        "limitations": "Native production rendering with adapted Image/Makko boundaries and scripted placements. One explicit hologram-overlap diagnostic moves the gate in the fixture only."
+      },
+      "artChanges": "None; existing artwork and cached haze textures reused.",
+      "limits": "Native production rendering used adapted Image/Makko boundaries and scripted placements; it is not hosted Makko, physical-controller, audio or gameplay acceptance."
+    },
+    "githubMergeValidation": {
+      "run": {
+        "id": 35079015292,
+        "name": "validate",
+        "run_number": 295,
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "a8a0dfdd587906f4beea976a15c9671a40d5aac6",
+        "created_at": "2026-09-16T09:22:12Z",
+        "updated_at": "2026-09-16T09:23:40Z",
+        "html_url": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35079015292"
+      },
+      "jobs": [
+        {
+          "id": 104738216900,
+          "name": "static-validation",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "number": 1,
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 2,
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 3,
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 4,
+              "name": "Run npm ci",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 5,
+              "name": "Run npm test",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 6,
+              "name": "Run npm run check:syntax:all",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 7,
+              "name": "Check intro visibility in real Chromium",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 8,
+              "name": "Upload intro browser evidence",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 9,
+              "name": "Export current source pack",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 10,
+              "name": "Run actions/upload-artifact@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 19,
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 20,
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 21,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ],
+      "attribution": "Fresh GitHub push validation on the exact merge commit; no redundant local gameplay run is claimed."
+    },
+    "githubCodeReviewAtMergeCheck": "The automated code review was still running when merge CI completed; no completed-review finding status is claimed.",
+    "makkoPlaytest": "Pending. The event context and PR record contain no owner Makko PASS for PR #65; merge status is not hosted acceptance.",
+    "physicalDualSense": "No new physical-controller acceptance is claimed. Earlier controller-related history remains preserved in the source tree and nested pack evidence.",
+    "historicalPackEvidence": {
+      "revision": "08d7c05f8e340fa4dda2042ae91ab0991cb89e55",
+      "base": "97b6367b53bc719594e77f32d89cc6bfdfbe72f7",
+      "tree": "ab7b00e6355ba69ecebfa3a5054301b836bc8f42",
+      "pullRequest": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/65",
+      "status": "draft; pending owner Makko acceptance",
+      "automatedTests": {
+        "npm test": "passed",
+        "npm run check:syntax:all": "passed"
+      },
+      "localTestedRevision": "0844c542a727be6ec0a15bc734d28fea62bbd871",
+      "localCompleteReviewRevision": "df5501d71e16f6d41f7eeef94366d8a8069cfb99",
+      "runtimeAndTestsUnchangedSinceLocalTests": true,
+      "onlyChangesAfterLocalTests": "Two native preview images refreshed after retaining the upper-support render pass; source and tests byte-identical.",
+      "checks": [
+        "63 production traversal jumps at 30/60/120Hz",
+        "45 combinations of sky camera/height/zoom coverage with fixed dimensions",
+        "Initial tutorial terminal, 32px foot-plane setback, aligned landings and restart",
+        "Terminal before enemies and hologram fields; rewards and upper props keep their late pass",
+        "Background clock determinism, pause, restart and reduced-flash lights",
+        "Existing original-car motion and warning regressions"
+      ],
+      "nativeRendering": {
+        "status": "passed",
+        "command": "WORLD_DEPTH_REVIEW=1 node tools/render-level1-rebuild.cjs ../final-review",
+        "evidenceDirectory": "docs/source-pack/verification",
+        "video": "box-background-review.mp4",
+        "limitations": "Native production rendering with adapted Image/Makko boundaries and scripted placements. One explicit hologram-overlap diagnostic moves the gate in the fixture only."
+      },
+      "makkoPlaytest": "not yet recorded; owner acceptance required before merge",
+      "artChanges": "None; existing artwork and cached haze textures reused.",
+      "sourcePackPreviousVersion": 65,
+      "baseSourceFilesMatched": 379,
+      "previousHistory": "docs/source-pack/verification/pr64-merged-history.json",
+      "ci": [
+        {
+          "id": 35078821583,
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35078821583"
+        },
+        {
+          "id": 35078777205,
+          "event": "push",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35078777205"
+        }
+      ]
+    },
+    "previousPack": {
+      "revision": "08d7c05f8e340fa4dda2042ae91ab0991cb89e55",
+      "libraryVersion": 66,
+      "sha256": "274e3de5192d9d97347735981c8d5e8ad9adf51b71398a1c1fe9c24efb520044"
+    },
+    "normalPostMergeDeployment": "Owner imports exact merge a8a0dfdd587906f4beea976a15c9671a40d5aac6 into a fresh Makko preview. This maintenance does not deploy or alter Makko.",
+    "focusedPostDeployEvidence": "At the first playable tutorial frame and after restart, confirm the terminal is already present and climbable. Walk enemies across its full width and inspect an active hologram overlap: bodies, feet and fields must remain in front with pavement visible below. Confirm the terminal does not move or reappear at mission start. Walk left-center-right and reverse, then climb to the highest roofs at normal and wide zoom: the distant skyline must retain its size and cover the top edge. Inspect rain, chimney haze and light variation; pause/resume, reduced flashes, boss retry and full restart. Record imported SHA, PASS/FAIL and clips.",
+    "rollback": "97b6367b53bc719594e77f32d89cc6bfdfbe72f7",
+    "exportValidation": {
+      "checks": [
+        "ZIP CRC",
+        "safe unique paths",
+        "complete SHA256 coverage",
+        "all exported source files equal exact merged Git tree",
+        "root documents equal committed source-pack copies"
+      ]
+    },
+    "limitations": [
+      "No gameplay, deployment, PR merge or Makko mutation was performed by this maintenance.",
+      "Automated checks and native Canvas review do not establish hosted performance, audio, visual feel or owner acceptance."
+    ]
+  },
+  "sourceComparison": {
+    "compared": 386,
+    "mismatch": []
+  },
+  "ownerFeedback": "FAILED: terminal too far back and over windows; WATCH OUT and car damage absent; background did not look animated. Merge was not acceptance."
+}

@@ -48,6 +48,44 @@ async function main(){
   video.stdin.end();const [code]=await once(video,'close');if(code!==0)throw new Error(errors);if(calls.errors.length)throw new Error(calls.errors.join('\n'));
   console.log('Native warning previews and both-direction approach video complete.');return;
  }
+ if(process.env.ENVIRONMENT_REPAIR_REVIEW){
+  load(context,'src/engine/parallax.js');load(context,'src/engine/particles.js');load(context,'src/core/loop.js');
+  w.parallaxBackground=new w.ParallaxBackground();
+  w.parallaxBackground.addLayer({image:bg,scrollFactorX:0.5});w.parallaxBackground.addLayer({image:fg,scrollFactorX:1});
+  w.document.createElement=()=>createCanvas(64,64);
+  w.document.getElementById=id=>id==='gameCanvas'?canvas:null;
+  Object.assign(w.renderer,{screenShake:{x:0,y:0},clear(){c.fillStyle='#111322';c.fillRect(0,0,1920,1080);}});
+  w.requestAnimationFrame=()=>1;w.cancelAnimationFrame=()=>{};w.tutorialSystem.draw=()=>{};
+  w.spaceShipSystem.warningImage=await loadImage(path.join(root,'assets/traffic-warning/watch-out.webp'));
+  const movie=createCanvas(960,540),mc=movie.getContext('2d');
+  const video=spawn('ffmpeg',['-y','-loglevel','error','-f','image2pipe','-framerate','30','-i','pipe:0','-c:v','libx264','-pix_fmt','yuv420p','-movflags','+faststart',path.join(out,'environment-repair-review.mp4')],{stdio:['pipe','ignore','pipe']});
+  let errors='',now=10000;video.stderr.on('data',b=>errors+=b);w.Date.now=()=>now;
+  async function frame(label){
+    now+=1000/30;w.gameLoop(now);
+    mc.drawImage(canvas,0,0,960,540);mc.fillStyle='rgba(4,12,18,.9)';mc.fillRect(12,509,936,24);mc.fillStyle='#fff';mc.font='13px Oxanium';mc.fillText(label,24,526);
+    if(!video.stdin.write(movie.toBuffer('image/png')))await once(video.stdin,'drain');
+  }
+  p.reset();Object.assign(w.tutorialSystem,{active:true,completed:false});w.renderer.zoomLevel=.8;w.lastTime=now;w.isRunning=true;setHero(480,856);
+  for(let i=0;i<150;i++){
+    await frame('Native frame-loop review · Training · Fixed camera: rain, steam and moving sign light');
+    if(i===0||i===90)fs.writeFileSync(path.join(out,'training-street-'+i+'.webp'),canvas.toBuffer('image/webp'));
+  }
+  for(const [index,seed] of [1984,1981].entries()){
+    p.reset();Object.assign(w.tutorialSystem,{active:!index,completed:!!index});if(index){p.startMission();p.state='jammer_active';}
+    w.enemyManager.enemies=[];w.spaceShipSystem.resetRuntime();setHero(310,-200,'west-crown');p.cameraY=-800;w.renderer.zoomLevel=.8;
+    require('vm').runInContext(`Math.random=(()=>{let s=${seed};return ()=>((s=(Math.imul(s,1664525)+1013904223)>>>0)/4294967296);})()`,context);
+    let health=3;
+    for(let i=0;i<126;i++){
+      await frame('Native frame-loop review · '+(index?'Mission / from right':'Training / from left')+' · WATCH OUT → visible contact → real health loss');
+      if(i===45)fs.writeFileSync(path.join(out,'watch-out-'+(index?'right':'left')+'.webp'),canvas.toBuffer('image/webp'));
+      if(w.player.health<health){fs.writeFileSync(path.join(out,'traffic-hit-'+index+'.webp'),canvas.toBuffer('image/webp'));health=w.player.health;}
+    }
+    if(health!==2)throw new Error('Expected one real traffic health loss: '+health);
+  }
+  video.stdin.end();const [code]=await once(video,'close');if(code!==0)throw new Error(errors);
+  if(calls.errors.length)throw new Error([...new Set(calls.errors)].join('\n'));
+  console.log('Native 13-second production frame-loop capture: live training scene, natural left/right warnings and actual player damage.');return;
+ }
  if(process.env.WORLD_DEPTH_REVIEW){
   load(context,'src/engine/parallax.js');w.parallaxBackground=new w.ParallaxBackground();
   w.parallaxBackground.addLayer({image:bg,scrollFactorX:0.5});w.parallaxBackground.addLayer({image:fg,scrollFactorX:1});
