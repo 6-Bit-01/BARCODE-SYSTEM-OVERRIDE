@@ -10,6 +10,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   const streetRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/1891ebb4e061971362817832e942ef9fbe05d15a/';
   const slimRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/ac183cf0ccde1b716b82c5fdce9229d2de0c5032/';
   const upperRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/b1e9de902b325a949562e8ebeece375a8452ecca/';
+  const finaleRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/f92f076b237632c7001641690505560fe9075da6/';
   const entries = {
     studioCat: { path: 'assets/presentation/studio-cat.webp', columns: 2, rows: 2, frames: 4, ax: 0.5, ay: 0.9375 },
     directionArrow: { path: 'assets/presentation/direction-arrow.webp', columns: 1, rows: 1, frames: 1, ax: 0.5, ay: 0.5 },
@@ -26,6 +27,9 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     gateHardware3: { path:'assets/street-hardware/slim-gate-3.webp', root:slimRoot, columns:2, rows:1, frames:2, ax:0, ay:0, smooth:true },
     gateHardware4: { path:'assets/street-hardware/slim-gate-4.webp', root:slimRoot, columns:2, rows:1, frames:2, ax:0, ay:0, smooth:true },
     rhythmLift: { path: 'assets/upper-route/rhythm-lift.webp', root: upperRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 0.32, smooth: true },
+    liftCabin: { path: 'assets/finale/lift-cabin.webp', root: finaleRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 0.795, smooth: true },
+    liftTrack: { path: 'assets/finale/lift-track.webp', root: finaleRoot, columns: 1, rows: 1, frames: 1, ax: 0.5, ay: 0, smooth: true },
+    studioCatEvent: { path: 'assets/finale/studio-cat-event.webp', root: finaleRoot, columns: 4, rows: 3, frames: 12, ax: 0.5, ay: 348 / 384, smooth: true },
     bossFlourish: { path: 'assets/upper-route/boss-flourish.webp', root: upperRoot, columns: 4, rows: 3, frames: 12, ax: 0.5, ay: 0.9375, smooth: true },
     bossLeap: { path: 'assets/upper-route/boss-leap.webp', root: upperRoot, columns: 4, rows: 2, frames: 8, ax: 0.5, ay: 0.9375, smooth: true },
     wetStreet: { path: 'assets/wet-street/rain-blacktop.webp', root: 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/6e1c8a4eb58252e1491dedc7878630dbab14929a/', columns: 1, rows: 1, frames: 1, ax: 0, ay: 0, smooth: true },

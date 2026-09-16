@@ -44,6 +44,7 @@
     "src/game/tutorial.js",
     "src/game/post-tutorial-objectives.js",
     "src/game/lore-collection.js",
+    "src/game/level-difficulty.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
     "src/game/level-01-stage-fx.js",
@@ -98,6 +99,7 @@
     "src/game/tutorial.js",
     "src/game/post-tutorial-objectives.js",
     "src/game/lore-collection.js",
+    "src/game/level-difficulty.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
     "src/game/level-01-stage-fx.js",
@@ -153,6 +155,7 @@
     "tools/check-level-01-smoothing.js",
     "tools/check-level-01-story-controls.js",
     "tools/check-level-01-targets-traffic.js",
+    "tools/check-level-finale.js",
     "tools/check-level1-rebuild.js",
     "tools/check-makko-hotfix.js",
     "tools/check-model-art.js",
@@ -323,6 +326,10 @@
         "status": "pass"
       },
       {
+        "file": "src/game/level-difficulty.js",
+        "status": "pass"
+      },
+      {
         "file": "src/game/lost-data.js",
         "status": "pass"
       },
@@ -373,11 +380,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 51,
+        "index": 52,
         "status": "pass"
       },
       {
-        "index": 53,
+        "index": 54,
         "status": "pass"
       }
     ]
@@ -459,7 +466,7 @@
     {
       "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 1984,
+      "line": 1998,
       "loaded": true
     },
     {
@@ -681,7 +688,7 @@
     {
       "global": "window.startGameLoop",
       "file": "src/core/loop.js",
-      "line": 138,
+      "line": 147,
       "loaded": true
     },
     {
@@ -759,6 +766,7 @@
     "src/game/tutorial.js",
     "src/game/post-tutorial-objectives.js",
     "src/game/lore-collection.js",
+    "src/game/level-difficulty.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
     "src/game/level-01-stage-fx.js",

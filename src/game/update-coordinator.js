@@ -26,7 +26,7 @@ window.BARCODE.TacticalFocusClock = Object.freeze({
   },
 
   scaleDelta(deltaTime) {
-    return deltaTime * this.getScale();
+    return deltaTime * this.getScale() * (window.BARCODE?.LevelDifficulty?.getHostileScale?.() ?? 1);
   }
 });
 

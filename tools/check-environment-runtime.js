@@ -3,8 +3,9 @@
 const assert = require('assert'), vm = require('vm');
 const { createRig, load } = require('./check-level-01-boss');
 
-for (const training of [true, false]) for (const fps of [30, 60, 120]) for (const seed of [1984, 1981]) {
-  const { w, p, context, calls } = createRig();
+for (const mode of ['training','mission','boss']) for (const fps of [30, 60, 120]) for (const seed of [1984, 1981]) {
+  const training = mode === 'training', boss = mode === 'boss';
+  const { w, p, context, calls, reachReady } = createRig();
   load(context, 'src/game/combat-fx.js');
   load(context, 'src/engine/particles.js');
   load(context, 'src/engine/traffic-sheets.js');
@@ -17,10 +18,16 @@ for (const training of [true, false]) for (const fps of [30, 60, 120]) for (cons
   const traffic = w.spaceShipSystem = new w.SpaceShipSystem();
   traffic.imagesLoaded = [true, true, true]; traffic.shipImages = [{}, {}, {}];
   traffic.shipSheets = w.BARCODE.trafficSheets;
-  vm.runInContext(`Math.random=(()=>{let s=${seed};return ()=>((s=(Math.imul(s,1664525)+1013904223)>>>0)/4294967296);})()`, context);
   p.reset(); w.tutorialSystem.active = training; w.tutorialSystem.completed = !training;
   w.tutorialSystem.draw = () => {};
   if (!training) { p.startMission(); p.state = 'jammer_active'; }
+  if (boss) {
+    p.reset(); reachReady(); p.beginBossCombat();
+    // Hold one real guard phase so this isolates car damage from boss attacks.
+    Object.assign(p.boss, {x:520,y:-272,supportedSurfaceId:'west-crown',phase:'telegraph',phaseElapsedMs:-10000,canReceiveDamage:false});
+    traffic.resetRuntime();
+  }
+  vm.runInContext(`Math.random=(()=>{let s=${seed};return ()=>((s=(Math.imul(s,1664525)+1013904223)>>>0)/4294967296);})()`, context);
   w.rhythmSystem.hideRhythmMode();
   Object.assign(w.player.position, { x: 310, y: -272 });
   Object.assign(w.player, { grounded: true, supportedSurfaceId: 'west-crown', health: 3, invulnerableUntil: 0, controlsDisabled: false });
@@ -60,6 +67,7 @@ for (const training of [true, false]) for (const fps of [30, 60, 120]) for (cons
   assert(car, 'original random spawner launches a foreground car');
   assert(warnings > fps * 2, 'WATCH OUT is rendered through the live coordinator');
   assert.equal(w.player.health, 2, 'actual player loses exactly one health bar');
+  if (boss) assert.equal(p.boss.health,9,'the same original car also hits the guarded boss once');
   assert(firstHit - firstWarning >= fps * 2.9, 'contact follows a readable approach warning');
   assert(p.cameraY < -600, 'roof camera follows in training and mission');
   assert(images > 0 && w.BARCODE.combatFX.timeMs > 3900);
@@ -72,4 +80,4 @@ for (const training of [true, false]) for (const fps of [30, 60, 120]) for (cons
   now += 100; w.gameLoop(now);
   assert.equal(traffic.elapsedMs, clock); assert.equal(w.BARCODE.combatFX.timeMs, fxClock);
 }
-console.log('Environment: 12 full frame-loop routes, natural left/right cars, training/mission warnings and real 3→2 health, roof follow, visible environment clock and pause passed.');
+console.log('Environment: 18 full frame-loop routes, natural left/right cars, training/mission/boss warnings, real player and guarded-boss damage, roof follow, visible environment clock and pause passed.');

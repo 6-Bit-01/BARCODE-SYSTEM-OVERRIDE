@@ -1,3 +1,5 @@
+> Historical outage checkpoint. The workspace reconnected with its edits intact. Continue from BOSS_FAIRNESS_PASS.md and the latest source receipt; do not restart this pass from the pending items below.
+
 # Active pass recovery — boss fairness, level difficulty, lift and Studio Rat
 
 **INCOMPLETE WORK. This branch checkpoint contains this recovery note only. It is not a reviewed gameplay build and is not ready for a PR or merge.** Recover the existing local edits before doing new implementation. Do not mistake this note or passing checks on unchanged main code for completion of the pass.

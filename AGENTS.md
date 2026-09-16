@@ -1,5 +1,15 @@
 # Repository Guidance
 
+## September 16, 2026 — boss fairness, full-height rhythm lift and Studio Rats
+
+Base/rollback is merged #68, `84f7471fce9bb9300cd7c6f7165a86787054ace9`; branch `agent/boss-fairness-level-rewards`. The owner authorized this combined gameplay pass, then corrected the elevator: one fixed full-height back drive with the cabin in front and powered mechanism animation. This current section supersedes historical work entries.
+
+Rhythm attacks now reach the boss body on street/roofs. Slightly wider descending stomp catches and brief shallow side-contact forgiveness preserve genuine damage. Original warned foreground cars stay active in boss combat and hit both actors; the boss gets only a small inset/40 ms exposure allowance. The 196-wide roofed elevator expands around its original center for a valid canopy handoff, with fixed drive strip, animated teeth/motors, readable short rhythm-power text and Cliff's note beside it.
+
+Level-start difficulty locks through checkpoint retries. Level-specific profiles and hidden best-completion values support future rewards; exact reward thresholds/content remain undecided. Level 1's one-time tuxedo Studio Rat event now looks at the viewer, pounces and drags an eligible enemy off screen, or pulls the comic border when none is available. Durable identifiers cover all seven future levels; the later encounters still require their genre-specific implementation. Existing save credit survives the event upgrade.
+
+Read `BOSS_FAIRNESS_PASS.md` for tuning, asset provenance, regression routes, native previews and limitations. Asset ancestor: `f92f076b237632c7001641690505560fe9075da6`. The source receipt records the exact PR/head/checks. Preserve all #68 environment/controls/routes/music work. One combined draft; owner Makko playtest remains required before merge. The earlier temporary outage is resolved and `BOSS_FAIRNESS_RECOVERY.md` is historical.
+
 ## September 16, 2026 — fit holograms to buildings and complete tutorial Objectives
 
 Branch `agent/facade-hologram-objectives`, based on merged #67 (`d3d6128ce63c795c4096a320012e2136e21dfbc4`). The owner authorized one PR for the two gaps recovered in the conversation audit. Earlier current-work entries are historical.

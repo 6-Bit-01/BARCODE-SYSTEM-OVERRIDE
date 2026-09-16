@@ -45,6 +45,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
     this.elapsedMs = 0;
     this.pendingForeground = [];
     this.previousPlayerBody = null;
+    this.previousBossBody = null;
     this.imagesLoaded = [false, false, false];
     this.lastSpawnTime = 0;
     this.spawnInterval = 4000; // Spawn ships every 4 seconds (more reasonable rate)
@@ -80,6 +81,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
     this.elapsedMs = 0;
     this.pendingForeground = [];
     this.previousPlayerBody = null;
+    this.previousBossBody = null;
   }
 
   dispose() {
@@ -269,6 +271,9 @@ window.SpaceShipSystem = class SpaceShipSystem {
     const playerBody = this.getTrafficPlayerBody();
     const previousPlayer = this.previousPlayerBody || playerBody;
     this.previousPlayerBody = playerBody;
+    const bossBody = this.getTrafficBossBody();
+    const previousBoss = this.previousBossBody || bossBody;
+    this.previousBossBody = bossBody;
 
     // Preserve the original three-second approach while freezing it on pause.
     const arriving = [];
@@ -296,6 +301,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
       // Gentle bobbing motion
       ship.animationElapsedMs = (ship.animationElapsedMs || 0) + motionMs;
       if (beforeBody) this.checkTrafficContact(ship, beforeBody, previousPlayer, playerBody);
+      if (beforeBody) this.checkBossTrafficContact(ship, beforeBody, previousBoss, bossBody, motionMs);
 
       // CRITICAL FIX: Match despawn boundaries with spawn distances for seamless transitions
       const baseDespawnDistance = ship.size * 3; // Base 3x ship size
@@ -406,19 +412,23 @@ window.SpaceShipSystem = class SpaceShipSystem {
   trafficDamageEnabled() {
     const p = window.sector1Progression;
     // Playable training shares the same city and cars. Mission activation is
-    // not a hazard switch; cinematics, boss combat and stopped play still are.
+    // not a hazard switch. The same cars remain hazards during boss combat.
     return !!(window.gameState?.running && window.player && !window.player.isEntering &&
-      !p?.isGameplaySuppressed?.() && !p?.isBossCombatLive?.() &&
+      !p?.isGameplaySuppressed?.() &&
       !window.gameState.gameOver && !window.gameState.victory);
   }
 
   sweptContact(a, endA, b, endB) {
-    if (!b || !endB) return false;
+    return !!this.sweptContactInterval(a, endA, b, endB);
+  }
+
+  sweptContactInterval(a, endA, b, endB) {
+    if (!b || !endB) return null;
     let enter = 0, leave = 1;
     for (const [axis, size] of [['x', 'width'], ['y', 'height']]) {
       const motion = endA[axis] - a[axis] - (endB[axis] - b[axis]);
       if (Math.abs(motion) < .00001) {
-        if (a[axis] + a[size] <= b[axis] || a[axis] >= b[axis] + b[size]) return false;
+        if (a[axis] + a[size] <= b[axis] || a[axis] >= b[axis] + b[size]) return null;
       } else {
         const t1 = (b[axis] - a[axis] - a[size]) / motion;
         const t2 = (b[axis] + b[size] - a[axis]) / motion;
@@ -426,7 +436,36 @@ window.SpaceShipSystem = class SpaceShipSystem {
         leave = Math.min(leave, Math.max(t1, t2));
       }
     }
-    return enter <= leave;
+    return enter <= leave ? { enter, leave } : null;
+  }
+
+  getTrafficBossBody() {
+    const owner = window.sector1Progression;
+    if (!owner?.isBossCombatLive?.()) return null;
+    const body = owner.getBossHitbox?.(), playerBody = this.getTrafficPlayerBody();
+    const worldPlayer = window.player?.getHitbox?.();
+    if (!body || !playerBody || !worldPlayer) return null;
+    // The boss gets only a narrow edge allowance, using the same camera as the
+    // player. Its guard and relocation animation do not grant car immunity.
+    return { x: body.x + playerBody.x - worldPlayer.x + 8, y: body.y + 6,
+      width: body.width - 16, height: body.height - 12 };
+  }
+
+  checkBossTrafficContact(ship, before, previousBoss, bossBody, elapsedMs) {
+    if (ship.bossHit || !this.trafficDamageEnabled() || !this.imagesLoaded[ship.shipType] || !bossBody) {
+      ship.bossExposureMs = 0; return;
+    }
+    const overlap = this.sweptContactInterval(before, this.getHazardBody(ship), previousBoss, bossBody);
+    if (!overlap) { ship.bossExposureMs = 0; return; }
+    if (overlap.enter > 0) ship.bossExposureMs = 0;
+    ship.bossExposureMs = (ship.bossExposureMs || 0) + Math.max(0, overlap.leave - overlap.enter) * elapsedMs;
+    // Forty milliseconds of actual overlap lets a narrow graze escape. Swept
+    // exposure counts within a frame, so low frame rates cannot skip a hit.
+    if (ship.bossExposureMs >= 40) {
+      const hit = window.sector1Progression?.damageBoss?.('traffic');
+      if (hit?.ok) ship.bossHit = true;
+    }
+    if (overlap.leave < 1) ship.bossExposureMs = 0;
   }
 
   checkTrafficContact(ship, before, previousPlayer, playerBody) {
@@ -633,6 +672,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
     this.ships = [];
     this.pendingForeground = [];
     this.previousPlayerBody = null;
+    this.previousBossBody = null;
     console.log('🚀 All space ships cleared');
   }
 

@@ -85,6 +85,15 @@ window.gameLoop = function(timestamp) {
 
   // Cap delta time to prevent spiral of death (if tab was inactive)
   const cappedDelta = Math.min(deltaTime, 100); // Max 100ms (10fps minimum)
+  if (window.BARCODE?.LevelDifficulty?.open) {
+    window.inputManager?.update?.();
+    window.renderGame?.();
+    const canvas = document.getElementById('gameCanvas');
+    window.BARCODE.LevelDifficulty.draw(canvas?.getContext?.('2d'));
+    window.lastTime = timestamp;
+    scheduleNextGameplayFrame();
+    return;
+  }
   window.BARCODE?.PauseMenu?.sync();
   // Completion presentation advances through this same RAF even after gameplay
   // stops. Its owner ignores this delta outside the completed state.

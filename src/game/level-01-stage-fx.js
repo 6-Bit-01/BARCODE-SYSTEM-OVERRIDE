@@ -5,8 +5,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
   const B = window.BARCODE = window.BARCODE || {}, TAU = Math.PI * 2;
   const DETAILS = Object.freeze([
     { id: 'egg.l01.studio-rat', x: 1680, y: 330, name: 'STUDIO RAT', speaker: 'CACHE BACK',
-      lines: ['That cat just stole a bolt from the rooftop relay.', 'Studio Rats. Four paws, no respect for production equipment.'] },
-    { id: 'egg.l01.cliff-maintenance', x: 865, y: 492, name: 'MAINTENANCE PLATE', speaker: 'CLIFF',
+      lines: ['That cat is looking at whoever is holding the controls.', 'Keep moving. It has its own exit.'] },
+    { id: 'egg.l01.cliff-maintenance', x: 2366, y: 856, name: 'MAINTENANCE PLATE', speaker: 'CLIFF',
       lines: ['Two clean beats. That is all the lift needs.', 'I fixed the wiring. You still have to do the climbing.'] },
     { id: 'egg.l01.witty-route', x: 2475, y: 358, name: 'ROUTE MARK', speaker: 'WittyF0x',
       lines: ['See that glow above the relay roof? Signal Amp.', 'The high route has its own rewards. Look before you drop.'] },
@@ -20,7 +20,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
       this.owner = owner; this.timeMs = 0; this.reactions = []; this.events = [];
       this.seenEntrances = new WeakSet(); this.arrived = new WeakSet(); this.clears = new Set();
       this.activeEncounter = null; this.message = null; this.nearby = null; this.captionKick = 0;
-      this.ratAge = null; this.lastBossState = ''; this.lastStepX = null;
+      this.ratAge = null; this.ratEvent = null; this.lastBossState = ''; this.lastStepX = null;
       if (resume) {
         owner?.getDistrictSignalState?.().zones.forEach(z => { if (z.cleared) this.clears.add(z.id); });
         this.activeEncounter = owner?.activeEncounterId || null;
@@ -43,18 +43,19 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
     energyAt(x) {
       return Math.min(1, this.reactions.reduce((sum, r) => sum + r.strength * Math.max(0, 1 - Math.abs(x - r.x) / 750) * Math.max(0, 1 - r.age / 1000), 0));
     }
-    canInspect() {
+    canInspect({ rat = false } = {}) {
       const o = this.owner, gs = window.gameState;
       if (!o?.missionStarted || window.tutorialSystem?.isActive?.() || window.isPaused || gs?.paused || !gs?.running ||
         window.hackingSystem?.isActive?.() || o.isGameplaySuppressed?.() || !window.player?.grounded ||
         /jammer|boss|complete/.test(o.state || '')) return false;
-      return !o.getEncounterStatus?.()?.started;
+      return rat || !o.getEncounterStatus?.()?.started;
     }
     findNearby() {
-      if (!this.canInspect()) return null;
+      if (!this.canInspect({ rat: true })) return null;
       const p = window.player;
       const catId = DETAILS[0].id;
-      return DETAILS.find(d => (d.id !== catId || !this.archive()?.hasEgg?.(catId) || this.message?.id === catId) &&
+      return DETAILS.find(d => this.canInspect({ rat: d.id === catId }) &&
+        (d.id !== catId || !this.archive()?.hasStudioRatEvent?.('level-01') && !this.ratEvent || this.message?.id === catId) &&
         Math.abs(d.x - p.position.x) < 95 && Math.abs(d.y - (p.position.y + 72)) < 70) || null;
     }
     inspect() {
@@ -62,9 +63,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
       if (!detail) return { ok: false, reason: 'no-detail' };
       if (this.message?.id === detail.id && this.message.line === 0) { this.message.line = 1; this.message.age = 0; return { ok: true, reason: 'crew-response' }; }
       if (this.message?.id === detail.id) { this.message = null; return { ok: true, reason: 'closed' }; }
-      const fresh = this.archive()?.collectEgg?.(detail.id) || false;
+      const cat = detail.id === DETAILS[0].id;
+      const fresh = cat ? !this.archive()?.hasStudioRatEvent?.('level-01') : this.archive()?.collectEgg?.(detail.id) || false;
       this.message = { ...detail, line: 0, age: 0, duration: 7200 };
-      if (detail.id === DETAILS[0].id && fresh) this.ratAge = 0;
+      if (cat && fresh && !this.ratEvent) this.startRatEvent(detail);
       window.audioSystem?.playCombatCue?.('inspect');
       return { ok: true, reason: fresh ? 'discovered' : 'revisit', id: detail.id };
     }
@@ -77,8 +79,16 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
       this.reactions.forEach(r => r.age += ms); this.reactions = this.reactions.filter(r => r.age < 1000);
       this.events.forEach(e => e.age += ms); this.events = this.events.filter(e => e.age < e.duration);
       this.captionKick = Math.max(0, this.captionKick - ms / 1700);
-      if (this.ratAge !== null) { this.ratAge += ms; if (this.ratAge > 3600) this.ratAge = null; }
-      if (this.message) { this.message.age += ms; if (this.message.age >= this.message.duration || !this.canInspect() || Math.abs(window.player.position.x - this.message.x) > 200) this.message = null; }
+      if (this.ratAge !== null) {
+        this.ratAge += ms;
+        if (this.ratAge < 1650 && this.ratEvent?.victim?.active) {
+          this.ratEvent.targetX = this.ratEvent.victim.position.x;
+          this.ratEvent.targetY = this.ratEvent.victim.position.y + 72;
+        }
+        if (this.ratAge >= 1650 && this.ratEvent && !this.ratEvent.grabbed) this.grabRatTarget();
+        if (this.ratAge > 6200) { this.ratAge = null; this.ratEvent = null; }
+      }
+      if (this.message) { this.message.age += ms; if (this.message.age >= this.message.duration || !this.canInspect({ rat: this.message.id === DETAILS[0].id }) || Math.abs(window.player.position.x - this.message.x) > 200) this.message = null; }
       this.nearby = this.findNearby();
       if (!owner?.missionStarted) return;
       if (owner.activeEncounterId && owner.activeEncounterId !== this.activeEncounter) {
@@ -158,6 +168,57 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
       }
       ctx.restore();
     }
+    startRatEvent(detail) {
+      this.archive()?.completeStudioRatEvent?.('level-01');
+      const manager = window.enemyManager;
+      const candidates = (manager?.enemies || []).filter(e => e.active && e.type !== 'drone' && !e._authoredEntranceActive &&
+        !e.isSpawnProtected?.() && !manager.isHijacked?.(e) && !manager.isRebooting?.(e) &&
+        B.combatFX?.visible(e.position.x, e.position.y, 180));
+      const victim = candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : null;
+      const camera = window.gameCamera?.centerX || window.player.position.x;
+      const zoom = Math.max(0.5, window.renderer?.getZoomLevel?.() || 1);
+      this.ratAge = 0;
+      this.ratEvent = { x: detail.x, y: detail.y, victim, grabbed: false,
+        targetX: victim?.position.x ?? detail.x + 95, targetY: victim ? victim.position.y + 72 : detail.y,
+        exitX: camera - 960 / zoom - 220 };
+    }
+    grabRatTarget() {
+      const e = this.ratEvent, victim = e.victim, manager = window.enemyManager;
+      e.grabbed = true;
+      if (!victim?.active || victim._authoredEntranceActive || victim.isSpawnProtected?.() || manager?.isHijacked?.(victim) || manager?.isRebooting?.(victim) || window.hackingSystem?.isActive?.()) { e.victim = null; return; }
+      e.targetX = victim.position.x; e.targetY = victim.position.y + 72;
+      // Use the real defeat transaction once. The remaining dragged drawing is
+      // a presentation reference, never a second active enemy or quota credit.
+      victim.takeDamage(999, { x: victim.position.x, y: victim.position.y, direction: -1 });
+      if (!victim.active) manager?.recordDefeat?.(victim);
+      else e.victim = null;
+    }
+    drawRatEvent(ctx) {
+      const e = this.ratEvent, age = this.ratAge;
+      if (!e || age === null) return;
+      const pounce = Math.max(0, Math.min(1, (age - 1050) / 600));
+      const drag = Math.max(0, Math.min(1, (age - 1850) / 4000));
+      const x = drag ? e.targetX + (e.exitX - e.targetX) * drag : e.x + (e.targetX - e.x) * pounce;
+      const y = e.y + (e.targetY - e.y) * pounce - Math.sin(pounce * Math.PI) * 85;
+      const frame = age < 1050 ? Math.min(3, Math.floor(age / 270)) : age < 1650 ? 4 + Math.min(3, Math.floor(pounce * 4)) : 8 + Math.floor(age / 170) % 4;
+      if (e.grabbed) {
+        if (e.victim?.spriteReady && e.victim.sprite?.draw) {
+          const pose = e.victim.getSpritePresentation();
+          ctx.save(); ctx.translate(x + 108, y - 10); ctx.rotate(-Math.PI / 2);
+          e.victim.sprite.draw(ctx, pose.x - e.victim.position.x, pose.y - e.victim.position.y - 72,
+            { scale: pose.scale, flipH: pose.flipH }); ctx.restore();
+        } else {
+          // With no suitable enemy, it pulls a piece of the comic border out
+          // of the world instead. The scene still pays off in a cleared area.
+          ctx.fillStyle = '#e5e1d3'; ctx.fillRect(x + 44, y - 22, 118, 17);
+          ctx.fillStyle = '#111620'; ctx.fillRect(x + 44, y - 15, 113, 4);
+        }
+        ctx.strokeStyle = '#bcd4d2'; ctx.lineWidth = 2; ctx.beginPath();
+        ctx.moveTo(x + 39, y - 25); ctx.lineTo(x + 88, y - 15); ctx.stroke();
+      }
+      const flip = age >= 1050 && age < 1650 && e.targetX < e.x;
+      if (!B.PresentationAssets?.draw('studioCatEvent', ctx, { x, y, width: 136, frame, flip })) this.drawRat(ctx, x, y, 1.12);
+    }
     drawRat(ctx, x, y, scale = 1) {
       const moving = this.ratAge !== null;
       const frame = moving ? Math.floor(this.ratAge / 110) % 4 : 0;
@@ -190,27 +251,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
     drawWorld(ctx) {
       if (!this.owner?.missionStarted) return;
       ctx.save();
+      this.drawRatEvent(ctx);
       for (const d of DETAILS) {
         if (!B.combatFX?.visible(d.x, d.y, 120)) continue;
         const found = this.archive()?.hasEgg?.(d.id);
         if (d === DETAILS[0]) {
-          if (this.ratAge !== null) {
-            const t = Math.min(1, this.ratAge / 3600);
-            const x = d.x + t * 430;
-            const y = d.y - Math.sin(t * Math.PI) * 54;
-            ctx.save();
-            ctx.globalAlpha = Math.sin(t * Math.PI);
-            ctx.strokeStyle = '#eee6d4';
-            ctx.lineWidth = 3;
-            for (let i = 0; i < 4; i++) {
-              ctx.beginPath();
-              ctx.moveTo(x - 42 - i * 22, y - 18 + i * 9);
-              ctx.lineTo(x - 88 - i * 32, y - 18 + i * 9);
-              ctx.stroke();
-            }
-            ctx.restore();
-            this.drawRat(ctx, x, y, 1.12);
-          } else if (!found) this.drawRat(ctx, d.x, d.y);
+          if (!this.ratEvent && !this.archive()?.hasStudioRatEvent?.('level-01')) {
+            const frame = Math.floor(this.timeMs / 900) % 7 === 5 ? 2 : 1;
+            if (!B.PresentationAssets?.draw('studioCatEvent', ctx, { x: d.x, y: d.y, width: 136, frame })) this.drawRat(ctx, d.x, d.y);
+          }
         }
         else {
           ctx.save(); ctx.translate(d.x, d.y - 26); ctx.rotate(d === DETAILS[3] ? -0.1 : 0);

@@ -125,8 +125,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
   // Platform coordinates use the same visible-foot space as STAGE_SURFACES.
   const SIGNAL_LIFT = Object.freeze({
     id: 'signal-lift',
-    x: 2440,
-    w: 132,
+    // Expand around the original x=2506 center so the upper roof handoff stays
+    // under the rider, rather than moving the enlarged cabin beyond its edge.
+    x: 2408,
+    w: 196,
     h: 10,
     bottomY: GROUND_Y + PLAYER_VISUAL_FOOT_OFFSET,
     topY: 358,
@@ -407,7 +409,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       // on either lip must never power the lift while hitting the Jammer.
       const attackRange = window.BARCODE?.playerCombat?.range ?? 300;
       const clearance = attackRange + 18 + 96;
-      const candidates = [1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600, 2800]
+      const candidates = [1200, 1400, 1600, 1800, 1980, 2200, 2400, 2600, 2800]
         .filter(x => x >= JAMMER_PLACEMENT.minX && x <= JAMMER_PLACEMENT.maxX)
         .filter(x => x < SIGNAL_LIFT.x - clearance || x > SIGNAL_LIFT.x + SIGNAL_LIFT.w + clearance);
       const x = candidates[Math.min(candidates.length - 1, Math.floor(Math.random() * candidates.length))];
@@ -756,9 +758,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     }
     getBossRhythmTarget(player = this.player, range = 300) {
       if (!this.isBossCombatLive() || window.hackingSystem?.isActive?.()) return null;
+      const bounds = this.getBossHitbox();
+      // The pulse reaches a body, not an invisible point behind its front edge.
+      // Use the same world-space hull at street height and on every roof.
+      const x = player?.position?.x, y = player?.position?.y;
+      const dx = bounds ? Math.max(bounds.x - x, 0, x - bounds.x - bounds.width) : Infinity;
+      const dy = bounds ? Math.max(bounds.y - y, 0, y - bounds.y - bounds.height) : Infinity;
       return { inRange: !!(player?.position && Number.isFinite(range) && range > 0 &&
-        Math.hypot(player.position.x - this.boss.x, player.position.y - this.boss.y) <= range),
-        guarded: !this.boss.canReceiveDamage || this.boss.phase !== 'recovery', bounds: this.getBossHitbox() };
+        Math.hypot(dx, dy) <= range),
+        guarded: !this.boss.canReceiveDamage || this.boss.phase !== 'recovery', bounds };
     }
     applyBossRhythmDamage({ player = this.player, judgment, sequence, range = 300 } = {}) {
       if (!this.isBossCombatLive()) return { ok: false, reason: 'boss-inactive' };
@@ -778,11 +786,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       const previousFootY = movement.previousFootY + PLAYER_VISUAL_FOOT_OFFSET;
       const currentFootY = movement.currentFootY + PLAYER_VISUAL_FOOT_OFFSET;
       if (!Number.isFinite(previousFootY) || !Number.isFinite(currentFootY) ||
-        previousFootY > box.y || currentFootY < box.y || currentFootY <= previousFootY) return false;
-      const t = (box.y - previousFootY) / (currentFootY - previousFootY);
+        previousFootY > box.y + 12 || currentFootY < box.y || currentFootY <= previousFootY) return false;
+      const t = Math.max(0, (box.y - previousFootY) / (currentFootY - previousFootY));
       const previousX = Number.isFinite(movement.previousX) ? movement.previousX : player.position.x;
       const crossingX = previousX + (player.position.x - previousX) * t;
-      if (crossingX + 18 <= box.x || crossingX - 18 >= box.x + box.width) return false;
+      if (crossingX + 26 <= box.x || crossingX - 26 >= box.x + box.width) return false;
       const canCounter = this.canStompCounter();
       this.boss.stompArmed = false;
       player.position.y = box.y - PLAYER_VISUAL_FOOT_OFFSET;
@@ -807,7 +815,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       return true;
     }
     damageBoss(source) {
-      if (!this.isBossCombatLive() || !this.boss.canReceiveDamage) return { ok: false, reason: 'boss-guarded' };
+      // Cars are physical hazards; the musical guard does not stop a vehicle.
+      if (!this.isBossCombatLive() || (source !== 'traffic' && !this.boss.canReceiveDamage)) return { ok: false, reason: 'boss-guarded' };
       this.boss.health = Math.max(0, this.boss.health - 1);
       this.boss.hitFlashMs = 160;
       window.renderer?.addScreenShake?.(2, 80);
@@ -819,6 +828,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     }
     completeLevel() {
       if (this.boss?.defeated || this.state === STATES.LEVEL_COMPLETE || !this.boss) return false;
+      window.BARCODE?.LevelDifficulty?.complete();
       this.boss.health = 0;
       this.boss.defeated = true;
       this.boss.canDealDamage = false;
@@ -879,6 +889,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (!player) return { ok: false, reason: 'player-unavailable' };
       window.hackingSystem?.reset?.();
       window.enemyManager?.clear?.({ preserveDefeats: true });
+      window.spaceShipSystem?.resetRuntime?.();
       window.cancelInitialEnemySpawn?.();
       window.BARCODE?.playerCombat?.reset?.();
       window.inputManager?.resetActionEdges?.();
@@ -945,64 +956,64 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     }
     drawSignalLift(ctx) {
       if (!ctx || !this.signalLift || !this.isSignalLiftAvailable()) return;
-      const lift = this.signalLift;
-      const charged = lift.charges >= SIGNAL_LIFT.requiredCharges;
-      const pulse = 0.72 + Math.sin((window.gameState?.gameTime || 0) / 150) * 0.12;
+      const lift = this.signalLift, center = lift.x + lift.w / 2;
+      const cabinHeight = 258, railTop = SIGNAL_LIFT.topY - cabinHeight * 0.795;
+      const railBottom = SIGNAL_LIFT.bottomY + 18;
+      const moving = lift.state === 'moving' || lift.state === 'returning';
+      const powered = moving || lift.chargeFxMs > 0;
+      const phase = (lift.driveTimeMs || 0) / 1000;
       ctx.save();
-      // Rails make the platform read as a deliberate street elevator instead
-      // of an unexplained floating collision bar.
-      ctx.strokeStyle = 'rgba(0, 255, 255, 0.42)';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(lift.x + 18, SIGNAL_LIFT.topY);
-      ctx.lineTo(lift.x + 18, SIGNAL_LIFT.bottomY);
-      ctx.moveTo(lift.x + lift.w - 18, SIGNAL_LIFT.topY);
-      ctx.lineTo(lift.x + lift.w - 18, SIGNAL_LIFT.bottomY);
-      ctx.stroke();
-      ctx.shadowColor = charged ? '#ff00ff' : '#00ffff';
-      ctx.shadowBlur = charged ? 18 : 10;
-      ctx.fillStyle = charged ? `rgba(255, 0, 255, ${pulse})` : 'rgba(0, 24, 38, 0.94)';
-      const illustrated = window.BARCODE?.PresentationAssets?.draw('rhythmLift', ctx, {
-        x: lift.x, y: lift.y, width: lift.w, height: lift.w * 159 / 792
-      });
-      // lift.y is the authoritative contact line. Render the platform body
-      // below it so the player's visible feet meet the top instead of sinking
-      // into a graphic whose collision lived near its bottom edge.
-      if (!illustrated) ctx.fillRect(lift.x, lift.y, lift.w, 14);
-      ctx.strokeStyle = charged ? '#ffffff' : '#00ffff';
-      ctx.lineWidth = 2;
-      if (!illustrated) ctx.strokeRect(lift.x, lift.y, lift.w, 14);
-      ctx.shadowBlur = 0;
-      for (let index = 0; index < SIGNAL_LIFT.requiredCharges; index += 1) {
-        ctx.fillStyle = index < lift.charges ? '#ff00ff' : '#15394b';
-        if (illustrated) {
-          ctx.beginPath(); ctx.arc(lift.x + lift.w * (index ? 0.662 : 0.332), lift.y + 5, 2.5, 0, Math.PI * 2); ctx.fill();
-        } else ctx.fillRect(lift.x + 10 + index * 15, lift.y + 4, 9, 5);
+      // One stationary drive strip spans the complete travel plus cabin height.
+      // It is drawn before the moving carriage, never attached to its roof.
+      ctx.save(); ctx.beginPath(); ctx.rect(center - 25, railTop, 50, railBottom - railTop); ctx.clip();
+      ctx.fillStyle = '#0e1d27'; ctx.fillRect(center - 22, railTop, 44, railBottom - railTop);
+      for (let y = railTop; y < railBottom; y += 64) {
+        window.BARCODE?.PresentationAssets?.draw('liftTrack', ctx, { x: center, y, width: 44, height: 66 });
       }
-      ctx.fillStyle = '#a8ffff';
-      ctx.font = 'bold 9px monospace';
-      ctx.textAlign = 'right';
-      ctx.textBaseline = 'middle';
-      if (!illustrated) ctx.fillText('RHYTHM LIFT', lift.x + lift.w - 8, lift.y + 7);
-      if (lift.chargeFxMs > 0) {
-        const progress = 1 - lift.chargeFxMs / 520;
-        const center = lift.x + lift.w / 2;
-        ctx.strokeStyle = `rgba(124, 255, 226, ${1 - progress})`; ctx.lineWidth = 3;
-        for (const side of [-1, 1]) {
-          const startX = center + side * (16 + (1 - progress) * 65);
-          ctx.beginPath(); ctx.moveTo(startX, lift.y - (1 - progress) * 80);
-          ctx.lineTo(center + side * 12, lift.y + 7); ctx.stroke();
-        }
-        ctx.fillStyle = `rgba(255, 255, 255, ${0.35 * (1 - progress)})`;
-        ctx.fillRect(lift.x, lift.y, lift.w, 14);
+      ctx.strokeStyle = '#819fa7'; ctx.lineWidth = 2;
+      for (const side of [-1, 1]) {
+        ctx.beginPath(); ctx.moveTo(center + side * 23, railTop); ctx.lineTo(center + side * 23, railBottom); ctx.stroke();
       }
-      if (Math.abs((this.player?.position?.x ?? Infinity) - (lift.x + lift.w / 2)) < 220 && lift.y === SIGNAL_LIFT.bottomY) {
-        ctx.font = 'bold 16px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText(`${window.BARCODE?.ControllerSettings?.prompt('rhythm_mode', 'R') || 'R'} + ${window.BARCODE?.ControllerSettings?.prompt('primary', 'DOWN') || 'DOWN'} ON BEAT: POWER LIFT ${lift.charges}/${SIGNAL_LIFT.requiredCharges}`, lift.x + lift.w / 2, lift.y - 32);
+      // Drive teeth visibly travel with the cable, reversing on the return.
+      const offset = ((phase * 65) % 18 + 18) % 18;
+      ctx.fillStyle = powered ? '#a2f2d5' : '#536b74';
+      for (let y = railTop - 18 + offset; y < railBottom; y += 18) ctx.fillRect(center - 7, y, 14, 4);
+      ctx.restore();
+      const illustrated = window.BARCODE?.PresentationAssets?.draw('liftCabin', ctx,
+        { x: lift.x, y: lift.y, width: lift.w, height: cabinHeight });
+      if (!illustrated) {
+        ctx.strokeStyle = '#526677'; ctx.lineWidth = 9;
+        ctx.strokeRect(lift.x + 9, lift.y - 190, lift.w - 18, 203);
+        ctx.fillStyle = '#253f48'; ctx.fillRect(lift.x, lift.y - 211, lift.w, 24);
+        ctx.fillRect(lift.x, lift.y - 10, lift.w, 32);
+      }
+      // Visible floor depth surrounds the actor foot plane; the collider stays
+      // on its center line, and the carriage is drawn behind the player.
+      const motorY = lift.y + 40;
+      for (const side of [-1, 1]) {
+        ctx.save(); ctx.translate(center + side * 52, motorY);
+        ctx.strokeStyle = powered ? '#b9ffe7' : '#425f6b'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.stroke();
+        ctx.rotate(phase * 8); ctx.beginPath(); ctx.moveTo(-5, 0); ctx.lineTo(5, 0); ctx.moveTo(0, -5); ctx.lineTo(0, 5); ctx.stroke(); ctx.restore();
+      }
+      for (let i = 0; i < 2; i++) {
+        ctx.fillStyle = i < lift.charges ? '#b8ff88' : '#374d46';
+        ctx.beginPath(); ctx.arc(lift.x + lift.w * (i ? 0.61 : 0.28), lift.y + 27, 4, 0, Math.PI * 2); ctx.fill();
+      }
+      if (Math.abs((this.player?.position?.x ?? Infinity) - center) < 280) {
+        const zoom = Math.max(0.5, window.renderer?.getZoomLevel?.() || 1);
+        const scale = 1 / zoom, top = lift.y - cabinHeight * 0.795 - 18;
+        ctx.save(); ctx.translate(center, top); ctx.scale(scale, scale);
+        ctx.fillStyle = 'rgba(7, 17, 27, 0.94)'; ctx.fillRect(-142, -48, 284, 49);
+        ctx.textAlign = 'center'; ctx.fillStyle = '#acffe4'; ctx.font = 'bold 18px Oxanium, monospace';
+        ctx.fillText('RHYTHM LIFT', 0, -27);
+        ctx.fillStyle = '#eeebd8'; ctx.font = '14px Oxanium, monospace';
+        ctx.fillText(moving ? (lift.state === 'returning' ? 'RETURNING' : 'GOING UP') : `RHYTHM MODE • ${lift.charges}/2 BEATS`, 0, -7);
+        ctx.restore();
       }
       ctx.restore();
     }
+
     drawSignalAmp(ctx) {
       if (!ctx || this.signalAmpCollected) return;
       const fx = window.BARCODE?.combatFX;
@@ -1415,6 +1426,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         return;
       }
       if (this.isGameplaySuppressed()) return;
+      if (lift.chargeFxMs > 0 || ['charged', 'moving', 'returning'].includes(lift.state)) {
+        lift.driveTimeMs = (lift.driveTimeMs || 0) + deltaTime * (lift.state === 'returning' ? -1 : 1);
+      }
       let supported = this.isPlayerSupportedByLift(player);
       if (player?.supportedSurfaceId === SIGNAL_LIFT.id && !supported) player.supportedSurfaceId = null;
       if (lift.state === 'charged') lift.state = 'moving';
@@ -1435,7 +1449,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (supported && dy && player) player.position.y += dy;
     }
     resetSignalLift() {
-      this.signalLift = { ...SIGNAL_LIFT, y: SIGNAL_LIFT.bottomY, prevY: SIGNAL_LIFT.bottomY, state: 'dormant', charges: 0, chargeFxMs: 0, returnTimerMs: SIGNAL_LIFT.returnDelayMs };
+      this.signalLift = { ...SIGNAL_LIFT, y: SIGNAL_LIFT.bottomY, prevY: SIGNAL_LIFT.bottomY, state: 'dormant', charges: 0, chargeFxMs: 0, driveTimeMs: 0, returnTimerMs: SIGNAL_LIFT.returnDelayMs };
       const player = this.player || window.player;
       if (player?.supportedSurfaceId === SIGNAL_LIFT.id) player.supportedSurfaceId = null;
     }

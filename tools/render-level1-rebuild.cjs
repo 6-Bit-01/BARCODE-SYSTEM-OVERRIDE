@@ -30,6 +30,44 @@ async function main(){
  function scene(c,cx,cy){w.gameCamera={centerX:cx,y:cy};w.renderer.zoomLevel=1;c.fillStyle='#111322';c.fillRect(0,0,1920,1080);c.drawImage(bg,0,0,1920,1080);c.save();c.translate(960-cx,-cy);c.drawImage(fg,0,2,fg.width,fg.height-2,-152,-550+2*1589/fg.height,4400,1589-2*1589/fg.height);w.drawGround(c);w.drawGameEntities(c);w.player.draw(c);c.restore();c.save();c.translate(0,-cy);w.spaceShipSystem.drawForegroundShips(c);c.restore();if(!w.tutorialSystem?.isActive?.())w.drawObjectives(c);}
  function setHero(x,foot,support){Object.assign(w.player.position,{x,y:foot-72});w.player.velocity.x=0;w.player.velocity.y=0;w.player.grounded=true;w.player.supportedSurfaceId=support||null;w.player.state='idle';w.player.airInput=0;w.player.controlsDisabled=false;w.player.invulnerableUntil=0;w.player.health=w.player.maxHealth;w.player.playAnimation('idle');}
  const canvas=createCanvas(1920,1080),c=canvas.getContext('2d');
+ if(process.env.FINALE_REVIEW){
+  for(const file of ['src/game/lore-collection.js','src/game/level-difficulty.js','src/game/level-01-stage-fx.js','src/engine/parallax.js'])load(context,file);
+  const storage=new Map();w.localStorage={getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)};
+  w.lostDataSystem.archive=new w.BARCODE.LoreCollection();w.BARCODE.stageFX.reset(p);
+  w.parallaxBackground=new w.ParallaxBackground();w.parallaxBackground.addLayer({image:bg,scrollFactorX:.5});w.parallaxBackground.addLayer({image:fg,scrollFactorX:1});w.document.createElement=()=>createCanvas(64,64);
+  p.state='encounter_2';p.closedGateEncounterId=null;w.enemyManager.enemies=[];
+  function frame(cx=2538,cy=0,zoom=.625){
+   p.cameraY=cy;p.getCameraX=()=>cx;w.renderer.zoomLevel=zoom;
+   c.fillStyle='#000';c.fillRect(0,0,1920,1080);c.save();c.translate(960,675*(1-zoom)+425*zoom);c.scale(zoom,zoom);c.translate(-960,-425);
+   w.drawGameElements(c);c.restore();w.drawGameUI(c);
+  }
+  function save(name){fs.writeFileSync(path.join(out,name+'.webp'),canvas.toBuffer('image/webp'));}
+  const lift=p.signalLift;setHero(lift.x+lift.w/2,lift.y,lift.id);
+  frame();save('lift-bottom');lift.state='moving';lift.charges=2;p.updateSignalLift(1000);frame();save('lift-moving');
+  p.updateSignalLift(10000);frame(2538,-320);save('lift-top');
+  w.BARCODE.LevelDifficulty.beginLevel();w.BARCODE.LevelDifficulty.draw(c);save('level-difficulty');w.BARCODE.LevelDifficulty.stop();
+  const movie=createCanvas(960,540),mc=movie.getContext('2d');
+  const video=spawn('ffmpeg',['-y','-loglevel','error','-f','image2pipe','-framerate','20','-i','pipe:0','-c:v','libx264','-pix_fmt','yuv420p','-movflags','+faststart',path.join(out,'finale-review.mp4')],{stdio:['pipe','ignore','pipe']});
+  let errors='';video.stderr.on('data',b=>errors+=b);
+  async function emit(label){mc.drawImage(canvas,0,0,960,540);mc.fillStyle='rgba(4,12,18,.92)';mc.fillRect(12,509,936,24);mc.fillStyle='#fff';mc.font='13px Oxanium';mc.fillText(label,24,526);if(!video.stdin.write(movie.toBuffer('image/png')))await once(video.stdin,'drain');}
+  p.resetSignalLift();setHero(lift.x+lift.w/2,856,lift.id);
+  for(let i=0;i<150;i++){
+   if(i===15||i===28)p.chargeSignalLift();p.updateSignalLift(50);w.BARCODE.combatFX.update(50);w.BARCODE.stageFX.update(50);
+   frame(2538,Math.min(0,(p.signalLift.y-856)*.65));await emit('Native production render · Fixed full-height drive · Two beats power the carriage');
+  }
+  setHero(1625,330,'cache-canopy');w.gameCamera.centerX=1680;
+  const victim=new w.Enemy(1880,258,'virus');Object.assign(victim.position,{x:1880,y:258});Object.assign(victim,{entranceComplete:true,spawnProtectionDuration:0,spawnTimeMs:-10000,active:true,_sector1MissionEnemy:true});
+  victim.sprite=sprite();victim.spriteReady=true;victim.playAnimation('idle');w.enemyManager.enemies=[victim];
+  frame(1680,-400,.8);w.BARCODE.stageFX.update(0);w.BARCODE.stageFX.inspect();
+  for(let i=0;i<128;i++){
+   w.BARCODE.stageFX.update(50);w.BARCODE.combatFX.update(50);frame(1680,-400,.8);
+   if(i===8)save('cat-fourth-wall');if(i===53)save('cat-drag');
+   await emit('Native production render · Studio Rat looks at the player, pounces and drags one enemy away');
+  }
+  video.stdin.end();const [code]=await once(video,'close');if(code!==0)throw new Error(errors);
+  if(calls.errors.length)throw new Error([...new Set(calls.errors)].join('\n'));
+  console.log('Finale native stills and powered lift / Studio Rat animation rendered.');return;
+ }
  if(process.env.TRAFFIC_WARNING_REVIEW){
   const traffic=w.spaceShipSystem;traffic.warningImage=await loadImage(path.join(root,'assets/traffic-warning/watch-out.webp'));traffic.spawnShip=()=>{};
   const movie=createCanvas(960,540),mc=movie.getContext('2d');

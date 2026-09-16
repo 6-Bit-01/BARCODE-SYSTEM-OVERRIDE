@@ -1,5 +1,18 @@
 # Acceptance and Test Status
 
+## September 16 — boss fairness, elevator and Studio Rat review
+
+Use the exact revision from the combined `agent/boss-fairness-level-rewards` PR/source receipt. Base/rollback: merged #68, `84f7471fce9bb9300cd7c6f7165a86787054ace9`.
+
+1. Start Level 1 with keyboard, mouse and controller. Choose each difficulty; the initial confirm must not jump/advance dialogue. Health and enemy pace reflect the choice. Pause/resume and boss retry cannot change it; a full restart can.
+2. Rhythm-hit the boss when his body reaches the field, on the street and rooftops. Cyan recovery takes damage; guard still rejects the beat. Try near-edge descending stomps and shallow side grazes, then genuine deep contact. Ordinary stomps remain lethal and repeated boss bouncing cannot bypass rearm.
+3. In the boss fight, watch original foreground cars at their actual altitude. Warnings precede entry, a clean hit damages either actor, and the same car can hit both. A very narrow boss graze can escape. Retry must restore fresh warned approaches.
+4. Ride the elevator from street to Firewall canopy. The drive strip stays fixed for the full travel behind the cabin; teeth/motors animate when powered and reverse on return. Feet stand on the floor center. The rhythm-power label stays readable at the wider zoom. Two beats, canopy transfer, empty return, pause/reset and Cliff's nearby note work.
+5. Find the tuxedo cat on Cache's upper route. Inspect once: look at viewer, pounce, drag a normal enemy away. No suitable enemy gives the border gag. No ally/protected enemy theft or duplicate defeat credit. Leave/reload/restart: credit remains; the expanded event plays once for an older cat save.
+6. Confirm preserved tutorial Objectives, fitted holograms, terminal depth, animated fixed-scale BG/heavier rain, central Jammer, thin roof lines, Cross jump/beat, Down+Jump descent, H practice/hijack, 20 defeats, 16-hit Jammer, boss camera/upper routes, music, victory/loss/retry and full restart.
+
+Difficulty/rat reward facts are saved silently. No album/unlock threshold is approved or promised. Native previews and production-VM checks are evidence, not owner Makko acceptance. Record imported SHA, PASS/FAIL and a short capture; leave this draft unmerged until that playtest.
+
 ## September 16 — facade hologram and Objectives review
 
 Use the exact head from the new combined PR/source receipt on `agent/facade-hologram-objectives`. Base/rollback: merged #67, `d3d6128ce63c795c4096a320012e2136e21dfbc4`. A merged build or native screenshot alone does not approve visual alignment.
