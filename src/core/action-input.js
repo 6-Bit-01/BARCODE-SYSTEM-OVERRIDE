@@ -23,12 +23,12 @@ window.FILE_MANIFEST.push({
   const DEFAULT_GAMEPAD = {
     move_left: [{ axis: 0, dir: -1 }, { button: 14 }],
     move_right: [{ axis: 0, dir: 1 }, { button: 15 }],
-    jump: [{ button: 0 }, { button: 5 }],
+    jump: [{ button: 0 }],
     primary: [{ button: 2 }],
     interact: [{ button: 3 }],
-    inspect: [{ button: 4 }],
+    inspect: [{ button: 5 }],
     pause: [{ button: 9 }],
-    rhythm_mode: [{ button: 1 }]
+    rhythm_mode: [{ button: 4 }]
   };
 
   function clone(value) { return JSON.parse(JSON.stringify(value)); }
@@ -39,6 +39,7 @@ window.FILE_MANIFEST.push({
     constructor(options = {}) {
       this.keyboardBindings = clone(options.keyboardBindings || DEFAULT_KEYBOARD);
       this.gamepadBindings = clone(options.gamepadBindings || DEFAULT_GAMEPAD);
+      this.customGamepadBindings = !!options.gamepadBindings;
       this.keysHeld = new Set();
       this.previousHeld = {};
       this.pendingPresses = {};
@@ -57,7 +58,7 @@ window.FILE_MANIFEST.push({
       this.blockGamepadUntilRelease();
     }
     blockGamepadUntilRelease() {
-      const pads = navigator.getGamepads ? Array.from(navigator.getGamepads()).filter(Boolean) : [];
+      const pads = this.getPads();
       this.gamepadReleaseRequired = new Set(ACTIONS.filter(action => this.gamepadHeld(action, pads)));
     }
     remap(action, bindings) { if (!ACTIONS.includes(action)) throw new Error(`Unknown action: ${action}`); this.keyboardBindings[action] = bindings.map(k => String(k).toLowerCase()); }
@@ -85,7 +86,7 @@ window.FILE_MANIFEST.push({
     update(context = {}) {
       this.suppression = this.computeSuppression(context);
       const held = {};
-      const pads = navigator.getGamepads ? Array.from(navigator.getGamepads()).filter(Boolean) : [];
+      const pads = this.getPads();
       ACTIONS.forEach(action => {
         const padHeld = this.gamepadHeld(action, pads);
         if (!padHeld) this.gamepadReleaseRequired?.delete(action);
@@ -107,10 +108,22 @@ window.FILE_MANIFEST.push({
       return this.state;
     }
     keyboardHeld(action) { return (this.keyboardBindings[action] || []).some(key => this.keysHeld.has(key)); }
+    getPads() {
+      const ui = BARCODE.GamepadUI;
+      if (ui) { const pad = ui.selectPad(); return pad ? [pad] : []; }
+      return Array.from(navigator.getGamepads?.() || []).filter(pad => pad && pad.connected !== false && pad.mapping === 'standard').slice(0, 1);
+    }
     gamepadHeld(action, pads = []) {
-      return pads.some(pad => (this.gamepadBindings[action] || []).some(binding => {
-        if (binding.button !== undefined) return !!(pad.buttons[binding.button] && pad.buttons[binding.button].pressed);
-        if (binding.axis !== undefined) { const v = pad.axes[binding.axis] || 0; return binding.dir < 0 ? v < -0.25 : v > 0.25; }
+      const settings = BARCODE.ControllerSettings;
+      const buttons = !this.customGamepadBindings && settings?.bindings[action] !== undefined
+        ? [{ button: settings.bindings[action] }] : this.gamepadBindings[action] || [];
+      return pads.some(pad => buttons.some(binding => {
+        if (binding.button !== undefined) return !!pad.buttons[binding.button]?.pressed;
+        if (binding.axis !== undefined) {
+          if (BARCODE.GamepadUI) return BARCODE.GamepadUI.axis(binding.axis) === binding.dir;
+          const value = pad.axes[binding.axis] || 0;
+          return binding.dir < 0 ? value < -0.2 : value > 0.2;
+        }
         return false;
       }));
     }

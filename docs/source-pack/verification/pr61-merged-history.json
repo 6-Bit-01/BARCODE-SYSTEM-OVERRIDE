@@ -1,0 +1,330 @@
+{
+  "sourceLibraryVersion": 60,
+  "manifest": {
+    "packVersion": "5.0",
+    "repository": "6-Bit-01/BARCODE-SYSTEM-OVERRIDE",
+    "repositoryUrl": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE",
+    "revision": "91bc4917462062056ebe2cec7d01b89783d81850",
+    "revisionUrl": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/tree/91bc4917462062056ebe2cec7d01b89783d81850",
+    "publicationStatus": "github",
+    "verifiedMainBase": "91bc4917462062056ebe2cec7d01b89783d81850",
+    "implementationStatus": "merged",
+    "pullRequestUrl": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/61",
+    "generatedAtUtc": "2026-09-16T07:15:38.478878+00:00",
+    "sourceCommitDate": "2026-09-16T00:12:43-07:00",
+    "sourceMode": "committed Git tree with listed exclusions; no working-tree substitutions; pack documents additionally copied to archive root",
+    "snapshotDirectory": "repository-snapshot/",
+    "trackedFileCount": 354,
+    "exportedSourceFileCount": 353,
+    "excludedSourceFiles": [
+      {
+        "path": "project_sources/BARCODE-System-Override-Source-Pack-v4.zip",
+        "reason": "Historical source-pack input; retained in Git, omitted from current export to avoid nested obsolete packs."
+      }
+    ],
+    "packDocumentSourceDirectory": "docs/source-pack/",
+    "historicalBaseline": "7788ebfab4d6231c18229bef9571d6b97b676764 (PR #25)",
+    "supersedes": [
+      "Source Pack v2",
+      "Source Pack v3",
+      "Source Pack v4"
+    ],
+    "authority": "Newest explicit owner decisions, then current pack decisions; snapshot proves implementation, not design approval.",
+    "verification": {
+      "revision": "91bc4917462062056ebe2cec7d01b89783d81850",
+      "base": "91bc4917462062056ebe2cec7d01b89783d81850",
+      "pullRequest": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/61",
+      "status": "merged; owner Makko acceptance remains pending",
+      "mergedAtUtc": "2026-09-16T07:12:43Z",
+      "completeTree": "f649d00194140e180eb6ac1c8e0449486f7a2657",
+      "previousReviewRevision": "49cf239f16bdf45599c6c42e51fdfd5afebbdedf",
+      "treeMatchesPreviousReviewExactly": true,
+      "implementationStatusChange": "PR #61 review snapshot is now merged. Source files are byte-identical; only generated publication metadata and merge validation evidence change.",
+      "implementation": "Restores four original return poses to the full sixteen-pose walk cycle, uses even 62.5 ms timing and 64 metadata slots, and refreshes stale walk registries. Movement speed, collision, other animations and controller bindings are unchanged.",
+      "controllerSettingsAndHackMeter": "Owner approved the separate settings and hack-readiness pass in the supplied conversation. It is not implemented in this merged revision; this maintenance neither implements it nor claims its completion.",
+      "githubValidation": {
+        "runs": [
+          {
+            "id": 35067381245,
+            "head_sha": "91bc4917462062056ebe2cec7d01b89783d81850",
+            "status": "completed",
+            "conclusion": "success",
+            "html_url": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35067381245"
+          }
+        ],
+        "jobs": [
+          {
+            "id": 104700651734,
+            "conclusion": "success",
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-node@v4",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run npm ci",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run npm test",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run npm run check:syntax:all",
+                "conclusion": "success"
+              },
+              {
+                "name": "Check intro visibility in real Chromium",
+                "conclusion": "success"
+              },
+              {
+                "name": "Upload intro browser evidence",
+                "conclusion": "success"
+              },
+              {
+                "name": "Export current source pack",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/upload-artifact@v4",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/setup-node@v4",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "conclusion": "success"
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success"
+              }
+            ]
+          }
+        ],
+        "attribution": "Fresh GitHub merge-run results; no redundant local tests claimed."
+      },
+      "makkoPlaytest": "Pending: no owner PASS supplied in the conversation or PR discussion. Merge does not establish hosted playtest acceptance.",
+      "historicalReviewEvidence": {
+        "assetDelivery": "Immutable manifest, walk JSON and walk WebP downloaded and byte-matched",
+        "automatedTests": [
+          {
+            "command": "npm test",
+            "exitCode": 0,
+            "scope": "Complete suite reached final check:upper-route and passed on exact final tree"
+          },
+          {
+            "command": "npm run check:syntax:all",
+            "exitCode": 0
+          }
+        ],
+        "base": "5e0de1e16f2e40fd077468a18b0404e067cf634f",
+        "completeTree": "f649d00194140e180eb6ac1c8e0449486f7a2657",
+        "controllerControls": "Recommendation only; no remapping implemented",
+        "focusedWalk": "60 seconds sustained at 30/60/120/144 Hz, turn at halfway, pause/resume, idle/jump/walk; unchanged hitbox; stale walk registry refresh",
+        "githubValidation": [
+          {
+            "conclusion": "success",
+            "id": 35067024008,
+            "jobs_url": "https://api.github.com/repos/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35067024008/jobs",
+            "logs_url": "https://api.github.com/repos/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35067024008/logs",
+            "name": "validate",
+            "run_number": 281,
+            "status": "completed",
+            "workflow_id": 311553678,
+            "url": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35067024008"
+          }
+        ],
+        "makkoPlaytest": "Pending owner review before merge",
+        "nativeReview": "10-second before/after production Player and SpritePlayback clip, adapted host drawing; source poses and loop-boundary stills inspected",
+        "pr": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/61",
+        "revision": "49cf239f16bdf45599c6c42e51fdfd5afebbdedf",
+        "rollback": "5e0de1e16f2e40fd077468a18b0404e067cf634f",
+        "sourcePackHistory": "Canonical version 58 successfully downloaded; all source files match merged PR60 tree; receipt preserved at verification/pr60-review-history.json"
+      },
+      "previousPack": {
+        "revision": "49cf239f16bdf45599c6c42e51fdfd5afebbdedf",
+        "libraryVersion": 59,
+        "sha256": "a7084571e12dbd1fc1f5294383c39ea9097c9f49c3436b1d892bd48977f78e95"
+      },
+      "exportValidation": {
+        "sourceFiles": 353,
+        "checks": [
+          "ZIP CRC",
+          "safe unique paths",
+          "complete SHA256 hash coverage",
+          "every source file matches exact merged Git tree",
+          "root documents match committed copies"
+        ]
+      },
+      "normalPostMergeDeployment": "Owner imports exact merge 91bc4917462062056ebe2cec7d01b89783d81850 into a fresh Makko preview; no deployment performed by this maintenance.",
+      "focusedPostDeployEvidence": "Hold right and left through multiple one-second stride seams and four-second wraps; stop/start, reverse, jump/land and pause/resume. Confirm stable feet, scale, unchanged speed and no sprite-load errors. Record imported SHA, PASS/FAIL and a short clip. Controller settings/hack meter remain a separate pass.",
+      "rollback": "5e0de1e16f2e40fd077468a18b0404e067cf634f",
+      "limitations": [
+        "Native before/after evidence remains attributed to the prior review, not hosted Makko.",
+        "Committed requirements, prior PR #60 history and source bytes are preserved."
+      ]
+    },
+    "runtimeLimitations": [
+      "Makko supplies /lib/MakkoEngine.min.js; it is not included in Git.",
+      "Artwork and audio referenced by remote URLs remain externally hosted.",
+      "This source snapshot is not a self-contained offline build."
+    ],
+    "hashScope": "FILE_HASHES.sha256 covers every archive file except itself."
+  },
+  "testEvidence": {
+    "revision": "91bc4917462062056ebe2cec7d01b89783d81850",
+    "base": "91bc4917462062056ebe2cec7d01b89783d81850",
+    "pullRequest": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/61",
+    "status": "merged; owner Makko acceptance remains pending",
+    "mergedAtUtc": "2026-09-16T07:12:43Z",
+    "completeTree": "f649d00194140e180eb6ac1c8e0449486f7a2657",
+    "previousReviewRevision": "49cf239f16bdf45599c6c42e51fdfd5afebbdedf",
+    "treeMatchesPreviousReviewExactly": true,
+    "implementationStatusChange": "PR #61 review snapshot is now merged. Source files are byte-identical; only generated publication metadata and merge validation evidence change.",
+    "implementation": "Restores four original return poses to the full sixteen-pose walk cycle, uses even 62.5 ms timing and 64 metadata slots, and refreshes stale walk registries. Movement speed, collision, other animations and controller bindings are unchanged.",
+    "controllerSettingsAndHackMeter": "Owner approved the separate settings and hack-readiness pass in the supplied conversation. It is not implemented in this merged revision; this maintenance neither implements it nor claims its completion.",
+    "githubValidation": {
+      "runs": [
+        {
+          "id": 35067381245,
+          "head_sha": "91bc4917462062056ebe2cec7d01b89783d81850",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35067381245"
+        }
+      ],
+      "jobs": [
+        {
+          "id": 104700651734,
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm ci",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm test",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm run check:syntax:all",
+              "conclusion": "success"
+            },
+            {
+              "name": "Check intro visibility in real Chromium",
+              "conclusion": "success"
+            },
+            {
+              "name": "Upload intro browser evidence",
+              "conclusion": "success"
+            },
+            {
+              "name": "Export current source pack",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ],
+      "attribution": "Fresh GitHub merge-run results; no redundant local tests claimed."
+    },
+    "makkoPlaytest": "Pending: no owner PASS supplied in the conversation or PR discussion. Merge does not establish hosted playtest acceptance.",
+    "historicalReviewEvidence": {
+      "assetDelivery": "Immutable manifest, walk JSON and walk WebP downloaded and byte-matched",
+      "automatedTests": [
+        {
+          "command": "npm test",
+          "exitCode": 0,
+          "scope": "Complete suite reached final check:upper-route and passed on exact final tree"
+        },
+        {
+          "command": "npm run check:syntax:all",
+          "exitCode": 0
+        }
+      ],
+      "base": "5e0de1e16f2e40fd077468a18b0404e067cf634f",
+      "completeTree": "f649d00194140e180eb6ac1c8e0449486f7a2657",
+      "controllerControls": "Recommendation only; no remapping implemented",
+      "focusedWalk": "60 seconds sustained at 30/60/120/144 Hz, turn at halfway, pause/resume, idle/jump/walk; unchanged hitbox; stale walk registry refresh",
+      "githubValidation": [
+        {
+          "conclusion": "success",
+          "id": 35067024008,
+          "jobs_url": "https://api.github.com/repos/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35067024008/jobs",
+          "logs_url": "https://api.github.com/repos/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35067024008/logs",
+          "name": "validate",
+          "run_number": 281,
+          "status": "completed",
+          "workflow_id": 311553678,
+          "url": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35067024008"
+        }
+      ],
+      "makkoPlaytest": "Pending owner review before merge",
+      "nativeReview": "10-second before/after production Player and SpritePlayback clip, adapted host drawing; source poses and loop-boundary stills inspected",
+      "pr": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/61",
+      "revision": "49cf239f16bdf45599c6c42e51fdfd5afebbdedf",
+      "rollback": "5e0de1e16f2e40fd077468a18b0404e067cf634f",
+      "sourcePackHistory": "Canonical version 58 successfully downloaded; all source files match merged PR60 tree; receipt preserved at verification/pr60-review-history.json"
+    },
+    "previousPack": {
+      "revision": "49cf239f16bdf45599c6c42e51fdfd5afebbdedf",
+      "libraryVersion": 59,
+      "sha256": "a7084571e12dbd1fc1f5294383c39ea9097c9f49c3436b1d892bd48977f78e95"
+    },
+    "exportValidation": {
+      "sourceFiles": 353,
+      "checks": [
+        "ZIP CRC",
+        "safe unique paths",
+        "complete SHA256 hash coverage",
+        "every source file matches exact merged Git tree",
+        "root documents match committed copies"
+      ]
+    },
+    "normalPostMergeDeployment": "Owner imports exact merge 91bc4917462062056ebe2cec7d01b89783d81850 into a fresh Makko preview; no deployment performed by this maintenance.",
+    "focusedPostDeployEvidence": "Hold right and left through multiple one-second stride seams and four-second wraps; stop/start, reverse, jump/land and pause/resume. Confirm stable feet, scale, unchanged speed and no sprite-load errors. Record imported SHA, PASS/FAIL and a short clip. Controller settings/hack meter remain a separate pass.",
+    "rollback": "5e0de1e16f2e40fd077468a18b0404e067cf634f",
+    "limitations": [
+      "Native before/after evidence remains attributed to the prior review, not hosted Makko.",
+      "Committed requirements, prior PR #60 history and source bytes are preserved."
+    ]
+  }
+}

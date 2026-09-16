@@ -180,7 +180,7 @@ window.CutsceneSystem = class CutsceneSystem {
     transcript.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);';
     container.appendChild(transcript);
     const help = document.createElement('div');
-    help.textContent = 'Dialogue and captions appear in story order. Space or controller A advances dialogue. Enter or RB continues to the next scene after the final cue. The Dialogue and Next scene buttons do the same. Hold S or controller B for five seconds to skip the intro. Release to cancel. Left Arrow or D-pad Left inspects a displaced recovery caption once it appears.';
+    help.textContent = 'Dialogue and captions appear in story order. Space or the controller confirm button advances dialogue. Enter or the right bumper continues to the next scene after the final cue. The Dialogue and Next scene buttons do the same. Hold S or the controller cancel button for five seconds to skip the intro. Release to cancel. Left Arrow or D-pad Left inspects a displaced recovery caption once it appears.';
     help.style.cssText = transcript.style.cssText; container.appendChild(help);
     if (!this.introContext) {
       canvas.style.display = 'none';

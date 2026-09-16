@@ -100,7 +100,7 @@ window.TutorialSystem = class TutorialSystem {
         
         this.addObjective('Use Arrow Keys to move around', 'movement');
         this.addObjective('Press Up Arrow to jump', 'jump');
-        const movementDialogue = this.addDialogue('Left / Right or A / D to move; Up / W to jump. On a controller, use the stick and RB while we talk.', 'mac', 0);
+        const movementDialogue = this.addDialogue('Left / Right or A / D to move; Up / W to jump. On a controller, use the stick and {bumper} while we talk.', 'mac', 0);
         movementDialogue.requiresObjectives = ['movement', 'jump'];
         break;
         
@@ -131,10 +131,10 @@ window.TutorialSystem = class TutorialSystem {
         console.log('=== STARTING RHYTHM CHAPTER ===');
         this.addDialogue('That is your footing. Now listen: the beat survived the interference.', 'dj', 0);
         
-        this.addDialogue('Stand still on the ground. R / controller B locks you into Rhythm Combat.', 'dj', 2000);
-        this.addObjective('Press R to activate Rhythm Combat', 'rhythm_start');
-        this.addDialogue('Hit Down Arrow / controller X on the beat. A clean hit sends the attack; a miss does no damage.', 'dj', 3000);
-        this.addDialogue('Link five hits. Use R / controller B again to leave the stance when you need to move.', 'dj', 2000);
+        this.addDialogue('Stand still on the ground. {rhythm_mode} locks you into Rhythm Combat.', 'dj', 2000);
+        this.addObjective('Press {rhythm_mode} to activate Rhythm Combat', 'rhythm_start');
+        this.addDialogue('Hit {primary} on the beat. A clean hit sends the attack; a miss does no damage.', 'dj', 3000);
+        this.addDialogue('Link five hits. Use {rhythm_mode} again to leave the stance when you need to move.', 'dj', 2000);
         this.addObjective('Achieve a 5+ combo in rhythm mode', 'rhythm_combo');
         const rhythmCompleteDialogue = this.addDialogue('Five in a row. Listen for the next beat, even after a miss.', 'dj', 0);
         rhythmCompleteDialogue.requiresObjectives = ['rhythm_start', 'rhythm_combo'];
@@ -143,9 +143,9 @@ window.TutorialSystem = class TutorialSystem {
       case 3:
         this.addDialogue('Their commands are just code. I can open a practice uplink so you can learn to rewrite them.', 'mac', 2000);
         
-        this.addDialogue('H / controller Y opens the hack. Read the puzzle and enter the answer before its timer runs out.', 'mac', 2000);
-        this.addObjective('Press H to start hacking', 'hack_start');
-        this.addDialogue('In the street, H locks a nearby enemy. Solve the puzzle and it fights for you for eight seconds. H again releases it.', 'mac', 3000);
+        this.addDialogue('{interact} opens the hack. Read the puzzle and enter the answer before its timer runs out.', 'mac', 2000);
+        this.addObjective('Press {interact} to start hacking', 'hack_start');
+        this.addDialogue('In the street, {interact} locks a nearby enemy. Solve the puzzle and it fights for you for eight seconds. {interact} again releases it.', 'mac', 3000);
         this.addDialogue('Watch the ally countdown. Repairs are the marked cells on rooftops and enemies carrying them.', 'cache', 3000);
         this.addObjective('Complete the hacking puzzle', 'hack_complete');
         
@@ -181,6 +181,13 @@ window.TutorialSystem = class TutorialSystem {
     }
   }
   
+  resolveControlText(text) {
+    const keys = { rhythm_mode: 'R', primary: 'Down Arrow', interact: 'H', jump: 'Up / W' };
+    return text.replace(/\{(rhythm_mode|primary|interact|jump|bumper)\}/g, (match, action) => action === 'bumper'
+      ? (window.BARCODE?.ControllerSettings?.button(5) || 'right bumper')
+      : (window.BARCODE?.ControllerSettings?.prompt(action, keys[action]) || keys[action]));
+  }
+
   addDialogue(text, speaker = 'guide', duration = 0) {
     const dialogue = {
       text: text,
@@ -236,9 +243,9 @@ window.TutorialSystem = class TutorialSystem {
       }
     }
     
-    this.targetText = dialogue.text;
+    this.targetText = this.resolveControlText(dialogue.text);
     this.recentDialogue = this.recentDialogue || [];
-    if (this.recentDialogue.at(-1)?.text !== dialogue.text) this.recentDialogue.push({speaker:dialogue.speaker || 'crew',text:dialogue.text});
+    if (this.recentDialogue.at(-1)?.text !== this.targetText) this.recentDialogue.push({speaker:dialogue.speaker || 'crew',text:this.targetText});
     this.recentDialogue = this.recentDialogue.slice(-4);
     this.currentText = '';
     this.characterIndex = 0;
@@ -662,7 +669,7 @@ window.TutorialSystem = class TutorialSystem {
           ctx.fillStyle = '#00ffff';
           ctx.font = '16px Orbitron';
           ctx.textAlign = 'left';
-          ctx.fillText(window.BARCODE?.GamepadUI?.connected ? 'A: Continue' : 'Press SPACE to continue...', 50, boxY + 150);
+          ctx.fillText(window.BARCODE?.GamepadUI?.connected ? `${window.BARCODE.ControllerSettings?.button(0) || 'A'}: Continue` : 'Press SPACE to continue...', 50, boxY + 150);
         } else {
           ctx.fillStyle = '#ff6666';
           ctx.font = '16px Orbitron';
@@ -697,7 +704,7 @@ window.TutorialSystem = class TutorialSystem {
         const color = objective.completed ? '#00ff00' : '#ffffff';
         const prefix = objective.completed ? '✓ ' : '□ ';
         ctx.fillStyle = color;
-        ctx.fillText(prefix + objective.text, objX + 20, objY + 61 + (index * 30));
+        ctx.fillText(prefix + this.resolveControlText(objective.text), objX + 20, objY + 61 + (index * 30));
       });
       
       // Show enemy counter during combat tutorial

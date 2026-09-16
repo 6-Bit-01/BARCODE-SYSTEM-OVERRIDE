@@ -18,6 +18,7 @@ window.HackingSystem = class HackingSystem {
     this.hardMaxSessionMs = 22500;
     this.cooldownUntil = 0;
     this.cooldownMs = 10000;
+    this.cooldownDurationMs = this.cooldownMs;
     this.guardHitsRemaining = 0;
     this.previousRhythmModeActive = false;
     this.suspendedRhythmMode = false;
@@ -95,6 +96,28 @@ window.HackingSystem = class HackingSystem {
   }
 
   getCooldownRemainingMs() { return Math.max(0, this.cooldownUntil - Date.now()); }
+
+  // One read-only view of the same gates used by start(), for HUD and input.
+  getAvailability() {
+    const tutorial = !!window.tutorialSystem?.isActive?.();
+    const remainingMs = tutorial ? 0 : this.getCooldownRemainingMs();
+    const result = { state: 'ready', remainingMs, charge: Math.max(0, Math.min(1, 1 - remainingMs / Math.max(1, this.cooldownDurationMs))), target: null, allySeconds: 0, canStart: false };
+    if (this.active) result.state = 'active';
+    else if (tutorial && Number(window.tutorialSystem.storyChapter) < 3) { result.state = 'locked'; result.charge = 0; }
+    else if (window.isPaused || window.gameState?.paused || window.gameState?.gameOver || window.gameState?.victory || window.sector1Progression?.isGameplaySuppressed?.()) result.state = 'unavailable';
+    else if (window.player?.grounded === false) result.state = 'airborne';
+    else {
+      const manager = window.enemyManager, ally = !tutorial && manager?.getHijackedEnemy?.();
+      if (ally) { result.state = 'linked'; result.allySeconds = Math.max(0, (ally._hijackedUntilMs - manager.simulationTimeMs) / 1000); result.canStart = true; }
+      else if (remainingMs > 0) result.state = 'recharging';
+      else {
+        result.target = manager?.findHijackTarget?.() || null;
+        result.canStart = !!result.target || tutorial && Number(window.tutorialSystem.storyChapter) === 3;
+        if (!result.canStart) result.state = 'no-target';
+      }
+    }
+    return result;
+  }
 
   getDiagnostics() {
     return {
@@ -244,30 +267,22 @@ window.HackingSystem = class HackingSystem {
   }
 
   start() {
-    if (this.active) return false;
-    const tutorialActive = !!(window.tutorialSystem?.isActive?.());
-    if (tutorialActive && Number(window.tutorialSystem.storyChapter) < 3) {
-      console.log('Hacking remains locked until tutorial chapter 3');
+    const availability = this.getAvailability();
+    const tutorialActive = !!window.tutorialSystem?.isActive?.();
+    if (!availability.canStart) {
+      if (availability.state === 'no-target') {
+        this.feedback = { type: 'failure', text: 'NO HIJACK TARGET', opacity: 1, timer: 60 };
+        this.resultDetail = 'Move near an enemy marked for hijack.';
+      }
       return false;
     }
-    if (window.player && window.player.grounded === false) return false;
-    if (window.sector1Progression?.isGameplaySuppressed?.()) return false;
-    if (window.isPaused || window.gameState?.paused || window.gameState?.gameOver || window.gameState?.victory) return false;
-
-    const manager = window.enemyManager;
-    if (!tutorialActive && manager?.getHijackedEnemy?.()) {
-      manager.releaseHijack();
+    if (availability.state === 'linked') {
+      window.enemyManager.releaseHijack();
       this.feedback = { type: 'success', text: 'LINK RELEASED', opacity: 1, timer: 60 };
       this.resultDetail = 'Rebooting. Stand clear before it turns hostile.';
       return true;
     }
-    if (!tutorialActive && Date.now() < this.cooldownUntil) return false;
-    this.hijackTarget = manager?.findHijackTarget?.() || null;
-    if (!this.hijackTarget && !(tutorialActive && Number(window.tutorialSystem.storyChapter) === 3)) {
-      this.feedback = { type: 'failure', text: 'NO HIJACK TARGET', opacity: 1, timer: 60 };
-      this.resultDetail = 'Move near an enemy with the H / Y marker.';
-      return false;
-    }
+    this.hijackTarget = availability.target;
 
     this.runGeneration++;
     this.clearOwnedTimeouts();
@@ -410,7 +425,8 @@ window.HackingSystem = class HackingSystem {
     this._lastResultFailed = outcome !== 'success';
     this.terminalLines = terminalLines;
     this.resultFx = outcome === 'cancel' ? null : { outcome, elapsedMs: 0 };
-    this.cooldownUntil = Date.now() + this.cooldownMs;
+    this.cooldownDurationMs = this.cooldownMs;
+    this.cooldownUntil = Date.now() + this.cooldownDurationMs;
     this.runGeneration++;
     this.clearOwnedTimeouts();
     this.tutorialMode = false;
@@ -428,7 +444,8 @@ window.HackingSystem = class HackingSystem {
     const linked = training || this.safeInvoke('enemy hijack', () => window.enemyManager?.hijackEnemy?.(this.hijackTarget));
     if (!linked) {
       this.finishSession('target-lost', ['> TARGET DISCONNECTED', '> REACQUIRE A LIVE SIGNAL']);
-      this.cooldownUntil = Date.now() + 1500;
+      this.cooldownDurationMs = 1500;
+      this.cooldownUntil = Date.now() + this.cooldownDurationMs;
       this.feedback = { type: 'failure', text: 'TARGET LOST', opacity: 1, timer: 60 };
       this.resultDetail = 'The locked enemy is gone. Reacquire a live target.';
       return false;
@@ -518,7 +535,7 @@ window.HackingSystem = class HackingSystem {
     ctx.strokeStyle = '#3c827f'; ctx.lineWidth = 2; ctx.strokeRect(1110, 190, 780, 710);
     ctx.fillStyle = '#91ffe0'; ctx.font = 'bold 22px monospace'; ctx.fillText('SIGNAL TERMINAL', 1132, 231);
     ctx.font = '15px monospace'; ctx.fillStyle = '#aebdcc'; ctx.textAlign = 'right';
-    ctx.fillText(window.BARCODE?.GamepadUI?.connected ? 'B: Cancel' : 'Esc / Tap: Cancel', 1865, 231); ctx.textAlign = 'left';
+    ctx.fillText(window.BARCODE?.GamepadUI?.connected ? `${window.BARCODE.ControllerSettings.button(1)}: Cancel` : 'Esc / Tap: Cancel', 1865, 231); ctx.textAlign = 'left';
     const labels = ['01 CONNECT', '02 READ', '03 INPUT'];
     labels.forEach((label, i) => {
       const selected = ['boot', 'display', 'answer'][i] === this.phase;
@@ -558,7 +575,7 @@ window.HackingSystem = class HackingSystem {
       const width = ctx.measureText('> ' + this.inputText).width; ctx.fillStyle = color; ctx.fillRect(1153 + width, 489, 11, 28);
     }
     ctx.fillStyle = '#aebdcc'; ctx.font = '16px monospace';
-    ctx.fillText(window.BARCODE?.GamepadUI?.connected ? 'D-pad / Stick: Move   A: Select   X: Erase   B: Cancel' : 'Type 0–9 or tap the keys. Enter submits.', 1132, 577);
+    ctx.fillText(window.BARCODE?.GamepadUI?.connected ? `D-pad / Stick: Move   ${window.BARCODE.ControllerSettings.button(0)}: Select   ${window.BARCODE.ControllerSettings.button(2)}: Erase   ${window.BARCODE.ControllerSettings.button(1)}: Cancel` : 'Type 0–9 or tap the keys. Enter submits.', 1132, 577);
     this.getKeypad().forEach((key, index) => {
       const focused = this.keypadMode && index === (this.keypadIndex ?? 4);
       ctx.fillStyle = focused ? '#91ffe0' : '#142c38'; ctx.fillRect(key.x, key.y, key.w, key.h);

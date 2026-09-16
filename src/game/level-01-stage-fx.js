@@ -278,7 +278,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
         }
       }
       ctx.globalAlpha = 1; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-      const key = B.GamepadUI?.connected ? 'LB' : (window.inputManager?.actionInput?.keyboardBindings?.inspect?.[0] || 'E').toUpperCase();
+      const key = B.GamepadUI?.connected ? (B.ControllerSettings?.prompt('inspect') || 'RB') : (window.inputManager?.actionInput?.keyboardBindings?.inspect?.[0] || 'E').toUpperCase();
       if (this.message) {
         const m = this.message;
         ctx.fillStyle = '#070b15'; ctx.fillRect(39, 895, 890, 116); ctx.fillStyle = '#eee6d4'; ctx.fillRect(30, 887, 890, 116);

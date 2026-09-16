@@ -28,10 +28,10 @@ async function main() {
   {
     const rig = createRig(), { w, context } = rig, { pad, frame, tap } = controls(rig);
     w.rhythmSystem.hideRhythmMode();
-    tap(1); assert(w.rhythmSystem.isActive(), 'B binds the grounded R action'); tap(1); assert(!w.rhythmSystem.isActive());
+    tap(4); assert(w.rhythmSystem.isActive(), 'L1 binds the grounded R action'); tap(1); assert(!w.rhythmSystem.isActive());
     w.tutorialSystem.active = true; w.tutorialSystem.completed = false; w.tutorialSystem.storyChapter = 1;
     let advanced = 0; w.tutorialSystem.handleSpacePress = () => advanced++;
-    frame(); tap(1); assert(!w.rhythmSystem.isActive(), 'B retains tutorial R lock');
+    frame(); tap(4); assert(!w.rhythmSystem.isActive(), 'L1 retains tutorial R lock');
     const y = w.player.position.y; tap(0); assert.strictEqual(advanced, 1); assert.strictEqual(w.player.position.y, y); assert(w.player.grounded, 'A advance cannot also jump');
     tap(5); assert(!w.player.grounded, 'RB provides the tutorial jump action');
     w.player.grounded = true; w.player.velocity.y = 0; w.tutorialSystem.active = false; frame();
@@ -152,6 +152,98 @@ async function main() {
     w.inputManager.update();
     const pad = w.navigator.getGamepads()[1]; pad.buttons[0].pressed = true; w.inputManager.update();
     assert(!w.gameState.gameOver); assert.strictEqual(p.state, 'boss_ready', 'controller A uses the actual boss retry checkpoint');
+  }
+  // Approved controller settings: actual selectors, saved mappings and UI owner.
+  {
+    const rig = createRig(), { w, context } = rig, store = new Map();
+    w.localStorage = { getItem: key => store.get(key), setItem: (key, value) => store.set(key, value) };
+    const { pad, frame, tap } = controls(rig);
+    pad.id = 'DualSense Wireless Controller (054c)'; pad.index = 1; w.rhythmSystem.hideRhythmMode(); frame();
+    const settings = w.BARCODE.ControllerSettings, input = w.inputManager.actionInput, menu = w.BARCODE.PauseMenu;
+    assert.equal(settings.button(0), '✕'); assert.equal(settings.prompt('rhythm_mode'), 'L1');
+    pad.axes[0] = 0.19; frame(); assert(!input.held('move_right'));
+    pad.axes[0] = 0.21; frame(); assert(input.held('move_right'));
+    pad.axes[0] = 0.17; frame(); assert(input.held('move_right'), 'hysteresis prevents edge chatter');
+    pad.axes[0] = 0.14; frame(); assert(!input.held('move_right'));
+    pad.axes[0] = -0.21; frame(); assert(input.held('move_left'));
+    pad.axes[0] = 0; frame();
+    settings.setDeadzone(0.32); pad.axes[0] = 0.3; frame(); assert(!input.held('move_right'));
+    pad.axes[0] = 0.34; frame(); assert(input.held('move_right')); pad.axes[0] = 0; frame();
+    assert(settings.bind('jump', 2)); assert.equal(settings.bindings.primary, 0, 'conflicting assignment swaps actions');
+    assert(!settings.bind('jump', 1)); assert(!settings.bind('jump', 9), 'back and pause stay available');
+    w.player.grounded = true; pad.buttons[2].pressed = true; frame(); assert(!w.player.grounded, 'remapped jump reaches production player');
+    frame(); assert(!input.pressed('jump'), 'held button does not repeat edges'); pad.buttons[2].pressed = false; frame();
+    w.player.grounded = true; w.player.velocity.y = 0;
+    pad.buttons[0].pressed = true; frame(); assert(input.pressed('primary')); assert(w.player.grounded, 'swapped attack cannot jump');
+    pad.buttons[0].pressed = false; frame();
+    settings.labels = 'xbox'; settings.vibration = false; settings.save(); assert.equal(settings.button(0), 'A');
+    const saved = plain({ bindings: settings.bindings, deadzone: settings.deadzone, labels: settings.labels, vibration: settings.vibration });
+    load(context, 'src/core/gamepad-ui.js'); frame();
+    assert.deepStrictEqual(plain({ bindings: w.BARCODE.ControllerSettings.bindings, deadzone: w.BARCODE.ControllerSettings.deadzone, labels: w.BARCODE.ControllerSettings.labels, vibration: w.BARCODE.ControllerSettings.vibration }), saved);
+    const c = w.BARCODE.ControllerSettings;
+    load(context, 'src/core/runtime-lifecycle.js'); await w.BARCODE.RuntimeLifecycle.start(); frame(); await w.BARCODE.RuntimeLifecycle.pause(); frame();
+    menu.view = 'controller';
+    const originalElement = w.document.getElementById;
+    w.document.getElementById = id => id === 'gameCanvas' ? { getBoundingClientRect: () => ({ left: 10, top: 20, width: 960, height: 540 }) } : originalElement?.(id);
+    menu.pointer({ clientX: 10 + 1250 / 2, clientY: 20 + 370 / 2, preventDefault() {} }, 'down');
+    assert.equal(c.deadzone, 0.3, 'scaled pointer selects the actual deadzone slider');
+    w.document.getElementById = originalElement;
+    menu.controllerFocus = 3;
+    tap(0); assert.equal(menu.captureAction, 'jump'); assert(menu.captureReady, 'confirm release arms capture');
+    pad.buttons[6].pressed = true; frame(); assert.equal(c.bindings.jump, 6); assert.equal(menu.captureAction, null);
+    await menu.resume(); frame(); assert(!input.pressed('jump')); assert(!input.held('jump'), 'held capture button cannot leak into resumed play');
+    pad.buttons[6].pressed = false; frame(); w.player.grounded = true; pad.buttons[6].pressed = true; frame(); assert(input.pressed('jump'), 'released and repressed remap produces a fresh edge');
+    pad.buttons[6].pressed = false; frame();
+    // Unknown mappings cannot silently be interpreted as standard buttons.
+    const unknown = { ...pad, mapping: '', id: 'unmapped', index: 0, buttons: pad.buttons.map(() => ({ pressed: true })) };
+    w.navigator.getGamepads = () => [unknown]; frame(); assert(w.BARCODE.GamepadUI.unsupported); assert.equal(w.inputManager.gamepad, null); assert(!input.held('jump'));
+    const other = { ...pad, id: 'Second standard pad', index: 2, buttons: pad.buttons.map(() => ({ pressed: false })), axes: [1, 0] };
+    w.navigator.getGamepads = () => [unknown, other]; frame(); assert(!input.held('move_right'), 'new device must release held movement');
+    other.axes[0] = 0; frame(); other.axes[0] = 1; frame(); assert(input.held('move_right'));
+    pad.axes[0] = -1; w.navigator.getGamepads = () => [pad, other]; frame(); assert(input.held('move_right') && !input.held('move_left'), 'current controller stays selected instead of merging devices');
+    w.localStorage.setItem = () => { throw new Error('blocked'); }; c.setDeadzone(0.4); assert(!c.saved); assert.equal(c.deadzone, 0.4);
+    w.localStorage.getItem = () => '{broken'; load(context, 'src/core/gamepad-ui.js'); assert.equal(w.BARCODE.ControllerSettings.deadzone, 0.2);
+  }
+  {
+    const rig = createRig(), { w, context } = rig, { tap, frame } = controls(rig);
+    load(context, 'src/core/runtime-lifecycle.js'); await w.BARCODE.RuntimeLifecycle.start(); frame();
+    load(context, 'src/game/hacking.js'); w.hackingSystem = new w.HackingSystem();
+    w.tutorialSystem.active = true; w.tutorialSystem.storyChapter = 3;
+    assert(w.hackingSystem.start()); frame();
+    const elapsed = w.hackingSystem.sessionElapsedMs;
+    tap(9); await new Promise(resolve => setImmediate(resolve)); frame(); assert(w.gameState.paused && w.hackingSystem.active, 'Options pauses an active hack without cancelling');
+    frame(); assert.equal(w.hackingSystem.sessionElapsedMs, elapsed, 'pause freezes the hack session');
+    tap(9); await new Promise(resolve => setImmediate(resolve)); frame();
+    assert(!w.gameState.paused && w.hackingSystem.active, 'Options resumes the same hack');
+    tap(1); assert(!w.hackingSystem.active);
+  }
+  // Hack meter and start() use the same real gates, including the short recovery.
+  {
+    const rig = createRig(), { w, context } = rig; controls(rig);
+    load(context, 'src/game/hacking.js'); const hack = w.hackingSystem = new w.HackingSystem();
+    let now = 10000; w.Date.now = () => now;
+    w.tutorialSystem.active = true; w.tutorialSystem.storyChapter = 1;
+    assert.equal(hack.getAvailability().state, 'locked'); assert(!hack.start());
+    w.tutorialSystem.storyChapter = 3; assert.equal(hack.getAvailability().state, 'ready'); assert(hack.start());
+    assert.equal(hack.getAvailability().state, 'active'); hack.cancel();
+    w.tutorialSystem.active = false; hack.reset();
+    assert.equal(hack.getAvailability().state, 'no-target'); assert(!hack.start());
+    const enemy = new w.Enemy(1000, 784, 'virus'); Object.assign(enemy.position, { x: 1000, y: 784 });
+    enemy.entranceComplete = true; enemy.spawnProtectionDuration = 0; enemy.spawnTimeMs = -10000; w.enemyManager.enemies = [enemy];
+    w.player.grounded = false; assert.equal(hack.getAvailability().state, 'airborne'); assert(!hack.start());
+    w.player.grounded = true; assert.equal(hack.getAvailability().state, 'ready'); assert(hack.start()); hack.cancel();
+    assert.equal(hack.getAvailability().state, 'recharging'); assert.equal(hack.getAvailability().charge, 0); assert(!hack.start());
+    now += 5000; assert.equal(hack.getAvailability().remainingMs, 5000); assert.equal(hack.getAvailability().charge, 0.5);
+    now += 5000; assert.equal(hack.getAvailability().state, 'ready'); assert.equal(hack.getAvailability().charge, 1); assert(hack.start());
+    hack.successPuzzle(); assert.equal(hack.getAvailability().state, 'linked'); assert.equal(hack.getAvailability().allySeconds, 8);
+    assert(hack.start(), 'linked action releases ally even while cooldown remains'); assert.equal(hack.getAvailability().state, 'recharging');
+    w.enemyManager.simulationTimeMs += 1100; now += 10000; assert(hack.start()); enemy.active = false;
+    hack.successPuzzle(); assert.equal(hack.getAvailability().remainingMs, 1500); now += 750; assert.equal(hack.getAvailability().charge, 0.5);
+    now += 750; assert.equal(hack.getAvailability().state, 'no-target');
+    w.gameState.paused = true; assert.equal(hack.getAvailability().state, 'unavailable'); assert(!hack.start()); w.gameState.paused = false;
+    hack.reset(); assert.equal(hack.getAvailability().charge, 1); assert.equal(hack.getAvailability().remainingMs, 0);
+    const drawn = [], ctx = new Proxy({ fillText: value => drawn.push(String(value)) }, { get: (o,k) => o[k] || (() => {}), set: (o,k,v) => (o[k]=v,true) });
+    w.BARCODE.ComicHUD.hack(ctx, hack.getAvailability(), false); assert(drawn.includes('NO TARGET')); assert(drawn.includes('CHARGED · MOVE NEAR AN ENEMY'));
   }
   console.log('Stage B: direct tutorial handoff, controller ownership, both real hack puzzles, pause/archive/calibration, saved offsets, follow camera, crowd commitments and boss counter/retry passed.');
 }

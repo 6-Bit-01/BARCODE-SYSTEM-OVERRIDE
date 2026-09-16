@@ -215,6 +215,7 @@ window.drawGameUI = function(ctx) {
   const hp = window.BARCODE.ComicHUD.health;
   window.BARCODE?.combatFX?.drawDamageHUD(ctx, window.player, hp.x, hp.y, hp.width, hp.height);
   window.BARCODE?.combatFX?.drawAmpHUD(ctx);
+  if (!bossCinematicActive && !window.gameState.gameOver && !window.gameState.victory) window.BARCODE.ComicHUD.hack(ctx, window.hackingSystem?.getAvailability?.(), !!window.rhythmSystem?.isActive?.());
   
   // Draw objectives after tutorial completion
   if (tutorialCompleted && !bossCinematicActive && !['boss_ready', 'boss_combat', 'level_complete'].includes(window.sector1Progression?.state)) {
@@ -328,8 +329,8 @@ function drawSector1BossUI(ctx) {
     });
     ctx.fillStyle = '#b9faff';
     ctx.font = '22px monospace';
-    ctx.fillText(window.BARCODE?.GamepadUI?.connected ? 'X — Restart Level 1' : 'SPACE — Restart Level 1', 960, 718);
-    ctx.fillText(window.BARCODE?.GamepadUI?.connected ? 'A — Rematch the boss' : 'ENTER — Rematch the boss', 960, 766);
+    ctx.fillText(window.BARCODE?.GamepadUI?.connected ? `${window.BARCODE.ControllerSettings.button(2)} — Restart Level 1` : 'SPACE — Restart Level 1', 960, 718);
+    ctx.fillText(window.BARCODE?.GamepadUI?.connected ? `${window.BARCODE.ControllerSettings.button(0)} — Rematch the boss` : 'ENTER — Rematch the boss', 960, 766);
     if ((window.BARCODE?.IntroSequence?.inspectedGutter || window.BARCODE?.stageFX?.archive()?.hasEgg('egg.l01.studio-rat'))) {
       ctx.font = '18px monospace'; ctx.fillStyle = '#cbaaff';
       ctx.fillText('STUDIO RATS: Carrier restored. We are keeping the caption.', 960, 865);
@@ -498,18 +499,18 @@ function drawGameOver(ctx) {
   
   if (window.renderer && typeof window.renderer.drawGlowText === 'function') {
     try {
-      window.renderer.drawGlowText((window.BARCODE?.GamepadUI?.connected ? (window.sector1Progression?.canRetryBossCheckpoint?.() ? 'A: Retry boss  |  X: Restart Level 1' : 'A / X: Restart Level 1') : window.sector1Progression?.canRetryBossCheckpoint?.() ? 'SPACE: Retry boss  |  SHIFT+SPACE: Restart Level 1' : 'Press SPACE to restart'), 960, 700, {
+      window.renderer.drawGlowText((window.BARCODE?.GamepadUI?.connected ? (window.sector1Progression?.canRetryBossCheckpoint?.() ? `${window.BARCODE.ControllerSettings?.button(0) || 'A'}: Retry boss  |  ${window.BARCODE.ControllerSettings?.button(2) || 'X'}: Restart Level 1` : `${window.BARCODE.ControllerSettings?.button(0) || 'A'} / ${window.BARCODE.ControllerSettings?.button(2) || 'X'}: Restart Level 1`) : window.sector1Progression?.canRetryBossCheckpoint?.() ? 'SPACE: Retry boss  |  SHIFT+SPACE: Restart Level 1' : 'Press SPACE to restart'), 960, 700, {
         size: 24,
         color: '#ffffff'
       });
     } catch (error) {
-      drawGlowText((window.BARCODE?.GamepadUI?.connected ? (window.sector1Progression?.canRetryBossCheckpoint?.() ? 'A: Retry boss  |  X: Restart Level 1' : 'A / X: Restart Level 1') : window.sector1Progression?.canRetryBossCheckpoint?.() ? 'SPACE: Retry boss  |  SHIFT+SPACE: Restart Level 1' : 'Press SPACE to restart'), 960, 700, {
+      drawGlowText((window.BARCODE?.GamepadUI?.connected ? (window.sector1Progression?.canRetryBossCheckpoint?.() ? `${window.BARCODE.ControllerSettings?.button(0) || 'A'}: Retry boss  |  ${window.BARCODE.ControllerSettings?.button(2) || 'X'}: Restart Level 1` : `${window.BARCODE.ControllerSettings?.button(0) || 'A'} / ${window.BARCODE.ControllerSettings?.button(2) || 'X'}: Restart Level 1`) : window.sector1Progression?.canRetryBossCheckpoint?.() ? 'SPACE: Retry boss  |  SHIFT+SPACE: Restart Level 1' : 'Press SPACE to restart'), 960, 700, {
         size: 24,
         color: '#ffffff'
       });
     }
   } else {
-    drawGlowText((window.BARCODE?.GamepadUI?.connected ? (window.sector1Progression?.canRetryBossCheckpoint?.() ? 'A: Retry boss  |  X: Restart Level 1' : 'A / X: Restart Level 1') : window.sector1Progression?.canRetryBossCheckpoint?.() ? 'SPACE: Retry boss  |  SHIFT+SPACE: Restart Level 1' : 'Press SPACE to restart'), 960, 700, {
+    drawGlowText((window.BARCODE?.GamepadUI?.connected ? (window.sector1Progression?.canRetryBossCheckpoint?.() ? `${window.BARCODE.ControllerSettings?.button(0) || 'A'}: Retry boss  |  ${window.BARCODE.ControllerSettings?.button(2) || 'X'}: Restart Level 1` : `${window.BARCODE.ControllerSettings?.button(0) || 'A'} / ${window.BARCODE.ControllerSettings?.button(2) || 'X'}: Restart Level 1`) : window.sector1Progression?.canRetryBossCheckpoint?.() ? 'SPACE: Retry boss  |  SHIFT+SPACE: Restart Level 1' : 'Press SPACE to restart'), 960, 700, {
       size: 24,
       color: '#ffffff'
     });

@@ -1555,7 +1555,7 @@ window.EnemyManager = class EnemyManager {
     }
     ctx.fillStyle = '#0b1017'; ctx.fillRect(enemy.position.x - 100, y, 200, ally ? 45 : 27);
     ctx.fillStyle = color; ctx.font = 'bold 17px Oxanium, monospace'; ctx.textAlign = 'center';
-    ctx.fillText(ally ? `6 BIT // ALLY ${Math.ceil(seconds)}s` : reboot ? 'REBOOTING' : locked ? 'HIJACK TARGET' : 'H / Y: HIJACK', enemy.position.x, y + 20);
+    ctx.fillText(ally ? `6 BIT // ALLY ${Math.ceil(seconds)}s` : reboot ? 'REBOOTING' : locked ? 'HIJACK TARGET' : `${window.BARCODE?.ControllerSettings?.prompt('interact', 'H') || 'H'}: HIJACK`, enemy.position.x, y + 20);
     if (ally) {
       ctx.fillStyle = '#26353a'; ctx.fillRect(enemy.position.x - 90, y + 28, 180, 4);
       ctx.fillStyle = color; ctx.fillRect(enemy.position.x - 90, y + 28, 180 * seconds / 8, 4);
