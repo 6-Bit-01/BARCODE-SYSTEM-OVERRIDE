@@ -1,5 +1,9 @@
 # BARCODE: SYSTEM OVERRIDE — Source Pack v5
 
+## Latest review build — solid ledges and enemy pancakes
+
+This pack contains the follow-up to merged #70 on `agent/solid-awnings-lift-roof`: awning/ledge bonks, a solid moving roof for all actors, and visible enemy squashing beneath the descending elevator. Start with `SOLID_LEDGES_SMUSH_PASS.md`; inspect `review-solid-ledges/solid-ledges-smush.mp4`. The generated manifest and validation receipt identify the exact review commit and PR. Older current-work entries are historical; owner Makko acceptance remains pending.
+
 **Current milestone: Stage B crew link and Level 1 controls/readability after merged PR #38.** Base: `0d1882f6b6eebf6fc5704d8a3270f2a6b1fb7354`. The whole-campaign plan is merged; `STORY_CONTROLS_PASS.md` records this combined gameplay review. Exact exported head/PR/validation is in the manifest and receipt. Makko acceptance remains pending.
 
 This pack replaces conflicting instructions in v2–v4. It preserves the later approved mission, rhythm, movement, lift and cinematic repairs, consolidates the seven-level campaign direction, and makes current implementation/verification explicit. It is a living project handoff, not an assertion that every planned feature is implemented.

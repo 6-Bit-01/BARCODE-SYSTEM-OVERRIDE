@@ -1,18 +1,44 @@
 // Behavioral checks use production Player, Enemy, progression and traffic owners.
 const assert=require('assert'),fs=require('fs'),{createRig,load}=require('./check-level-01-boss');
 function rig(){const r=createRig();r.p.startMission();r.p.state='jammer_active';r.p.closedGateEncounterId=null;r.w.rhythmSystem.hideRhythmMode();r.w.player.allowMovement=true;return r;}
+// Solid undersides require approaching around the lip. The Tower/Broadcast
+// overhangs are descended with the existing Down+Jump action; the connected
+// upper ascent runs through the Relay and the outward Tower middle step.
+const {createSprite,playerClips}=require('./makko-animation-fixture');
 const routes=[
- ['signal-awning','signal-roof',1000,1050],['signal-roof','signal-high-step',750,710],['signal-high-step','west-crown',690,570],
- ['signal-roof','cache-high-step',1270,1460],['cache-high-step','cache-crown',1480,1620],['cache-crown','firewall-roof',1850,1990],
- ['firewall-roof','relay-rooftop',2480,2640],['relay-rooftop','tower-middle-step',3090,3320],['tower-middle-step','tower-high-step',3360,3480],['tower-high-step','tower-crown',3480,3530],
- ['firewall-low-step','firewall-canopy',2200,2050],['firewall-canopy','firewall-high-step',2280,2228],['firewall-high-step','firewall-roof',2228,2240],
- [null,'tower-utility-unit',480,640],['tower-utility-unit','signal-awning',690,850],['tower-awning','tower-rooftop',3460,3510],['tower-rooftop','tower-middle-step',3350,3320],
- ['tower-crown','broadcast-crown',3710,3850],['broadcast-awning','broadcast-low-step',3880,4000],['broadcast-low-step','broadcast-high-step',4000,3900],['broadcast-high-step','broadcast-crown',3900,3940]
+ ["signal-awning","signal-roof",724,729,0.08,-1,0.05],
+ ["signal-roof","signal-high-step",829,710,0],
+ ["signal-high-step","west-crown",690,570,0],
+ ["signal-roof","cache-high-step",1270,1460,0],
+ ["cache-high-step","cache-crown",1480,1620,0],
+ ["cache-crown","firewall-roof",1850,1990,0],
+ ["firewall-roof","relay-rooftop",2480,2640,0],
+ ["relay-rooftop","tower-middle-step",3142,3092,0],
+ ["tower-middle-step","tower-high-step",3112,3412,0],
+ ["tower-high-step","tower-crown",3480,3530,0],
+ ["firewall-low-step","firewall-canopy",2140,2050,0],
+ ["firewall-canopy","firewall-high-step",1924,2185,0.08,-1,0],
+ ["firewall-high-step","firewall-roof",2228,2240,0],
+ [null,"tower-utility-unit",480,640,0],
+ ["tower-utility-unit","signal-awning",690,850,0],
+ ["tower-rooftop","tower-awning",3500,3500,0,0,0,"drop"],
+ ["tower-rooftop","tower-middle-step",3300,3140,0],
+ ["tower-crown","broadcast-crown",3710,3850,0],
+ ["broadcast-awning","broadcast-low-step",3880,4000,0],
+ ["broadcast-high-step","broadcast-low-step",3950,3950,0,0,0,"drop"],
+ ["broadcast-high-step","broadcast-crown",3900,3940,0]
 ];
-for(const fps of [30,60,120])for(const [from,to,start,x] of routes){
+for(const fps of [30,60,120])for(const [from,to,start,x,delay=0,dir=0,walk=0,action='jump'] of routes){
  const {w,p}=rig(),player=w.player,surfaces=p.getStageSurfaces();const source=surfaces.find(s=>s.id===from),dest=surfaces.find(s=>s.id===to);assert(dest);
- Object.assign(player.position,{x:start,y:(source?.y??856)-72});player.grounded=true;player.supportedSurfaceId=from;player.isJumpHeld=()=>true;player.jump();
- let landed=null;for(let i=0;i<fps*3;i++){if(player.position.x<x-5)player.moveRight();else if(player.position.x>x+5)player.moveLeft();else player.stopHorizontal();player.update(1000/fps);if(player.grounded){landed=player.supportedSurfaceId;break;}}
+ Object.assign(player.position,{x:start,y:(source?.y??856)-72});player.grounded=true;player.supportedSurfaceId=from;
+ player.sprite=createSprite(playerClips);player.spriteReady=true;player.playAnimation('idle');player.isJumpHeld=()=>true;player.facing=dir||Math.sign(x-start)||1;
+ for(let j=0;j<Math.round(walk*fps);j++){dir>0?player.moveRight():player.moveLeft();player.update(1000/fps,true);}
+ assert(action==='drop'?player.dropThrough():player.jump(),'route starts with a valid player action');
+ let landed=null;for(let i=0;i<fps*3;i++){
+  if(i/fps<delay&&dir){dir>0?player.moveRight():player.moveLeft();}
+  else if(i/fps>=delay){if(player.position.x<x-5)player.moveRight();else if(player.position.x>x+5)player.moveLeft();else player.stopHorizontal();}
+  player.update(1000/fps,true);if(player.grounded){landed=player.supportedSurfaceId;break;}
+ }
  assert.strictEqual(landed,to,`${fps}Hz ${from||'street'} -> ${to}: ended ${landed} at ${player.position.x},${player.position.y+72}`);
 }
 for(const fps of [30,60,120]){
@@ -40,7 +66,7 @@ for(const fps of [30,60,120]){
  const ops=[];const ctx=new Proxy({},{get:(t,k)=>t[k]??((...a)=>ops.push([k,...a])),set:(t,k,v)=>(t[k]=v,true)});p.drawStageSurfaces(ctx);
  for(const surface of w.Sector1Progression.STAGE_SURFACES)assert(ops.some(o=>o[0]==='lineTo'&&o[1]===surface.x+surface.w&&o[2]===surface.y-(surface.maskFeet||0)),'subtle landing edge follows painted lip');
 }
-console.log('Rebuild: 63 production jumps; grounded guards and bounded drones at 30/60/120Hz; protected contact, original GIF cars, original approach/puzzle motion/reset and roof masking passed.');
+console.log('Rebuild: 63 production climbing/descent actions with solid undersides; grounded guards and bounded drones at 30/60/120Hz; protected contact, original GIF cars, original approach/puzzle motion/reset and roof masking passed.');
 {
  const {w,p}=rig(),roof=p.getStageSurfaces().find(s=>s.id==='cache-crown');
  const ground=['firewall','corrupted','corrupted'].map((type,i)=>{const e=new w.Enemy(1500+i*60,784,type);Object.assign(e.position,{x:1500+i*60,y:784});Object.assign(e,{_sector1MissionEnemy:true,entranceComplete:true,_inCrowd:true,spawnProtectionDuration:0});e.velocity.y=0;return e;});

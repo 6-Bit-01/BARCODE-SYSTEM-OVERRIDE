@@ -211,6 +211,13 @@ window.Enemy = class Enemy {
 
   update(deltaTime, player, simulationTimeMs) {
     if (!this.active || this._disposed) return;
+    const progression = window.sector1Progression, motion = progression?.captureRoofActor?.(this);
+    this.updateLocomotion(deltaTime, player, simulationTimeMs);
+    progression?.resolveLiftActor?.(this, motion);
+  }
+
+  updateLocomotion(deltaTime, player, simulationTimeMs) {
+    if (!this.active || this._disposed) return;
     this.simulationTimeMs = Number.isFinite(simulationTimeMs) ? simulationTimeMs : (this.simulationTimeMs + deltaTime);
     this.pollSpriteReady();
 
@@ -234,7 +241,7 @@ window.Enemy = class Enemy {
     // Track if enemy is on ground
     const previousFootY = this.position.y + 72;
     const previousX = this.position.x;
-    const supported = window.sector1Progression?.getStageSurfaces?.().find(p => p.id === this.supportedSurfaceId && this.position.x >= p.x && this.position.x <= p.x + p.w && Math.abs(previousFootY - p.y) < 3);
+    const supported = window.sector1Progression?.getActorSurfaces?.().find(p => p.id === this.supportedSurfaceId && this.position.x >= p.x && this.position.x <= p.x + p.w && Math.abs(previousFootY - p.y) < 3);
     this.isOnGround = !!supported || this.position.y >= ENEMY_GROUND_Y;
 
     // Gravity
@@ -290,7 +297,7 @@ window.Enemy = class Enemy {
     if (this.velocity.y < 0 || this.role === 'swooper') return;
     let support = null;
     const currentFootY = this.position.y + 72;
-    for (const p of window.sector1Progression?.getStageSurfaces?.() || []) {
+    for (const p of window.sector1Progression?.getActorSurfaces?.() || []) {
       if (previousFootY > p.y + 2 || currentFootY < p.y) continue;
       const t = currentFootY > previousFootY ? Math.max(0, Math.min(1, (p.y - previousFootY) / (currentFootY - previousFootY))) : 1;
       const x = previousX + (this.position.x - previousX) * t;
@@ -1013,9 +1020,9 @@ window.Enemy = class Enemy {
     this.hitFlashMs = 130;
     this.impactHoldMs = contact.perfect ? 45 : 25;
     const body = this.getHitbox();
-    window.BARCODE?.combatFX?.contact(this.type, contact.x ?? this.position.x, contact.y ?? (body.y + body.height * 0.45), contact.direction || 1, this.health <= 0, !!contact.perfect);
+    if (!contact.squashed) window.BARCODE?.combatFX?.contact(this.type, contact.x ?? this.position.x, contact.y ?? (body.y + body.height * 0.45), contact.direction || 1, this.health <= 0, !!contact.perfect);
 
-    if (!window.BARCODE?.combatFX && window.particleSystem) {
+    if (!contact.squashed && !window.BARCODE?.combatFX && window.particleSystem) {
       let particleColor = this.type === 'corrupted' ? 'corrupted' : this.type;
       window.particleSystem.damageEffect(this.position.x, this.position.y - this.height/2, particleColor, 10);
     }
@@ -1025,7 +1032,7 @@ window.Enemy = class Enemy {
 
       window.audioSystem?.playCombatCue?.('defeat', { material: this.type });
 
-      if (!window.BARCODE?.combatFX && window.particleSystem) {
+      if (!contact.squashed && !window.BARCODE?.combatFX && window.particleSystem) {
         let particleColor = this.type === 'corrupted' ? 'corrupted' : this.type;
         window.particleSystem.explosion(this.position.x, this.position.y - this.height/2, particleColor, 25);
       }
@@ -1252,6 +1259,17 @@ window.RooftopDrone = class RooftopDrone extends window.Enemy {
     this.entranceComplete=true;this.spriteReady=false;this.pulse=null;
   }
   update(deltaTime, target, simulationTimeMs) {
+    if (!this.active || this._disposed) return;
+    const progression = window.sector1Progression, motion = progression?.captureRoofActor?.(this);
+    const supported = progression?.isRoofRider?.(this);
+    this.updateFlight(deltaTime, target, simulationTimeMs);
+    // Its flight AI may keep patrolling horizontally while the solid roof
+    // supports it; restore the carried altitude instead of snapping through it.
+    if (supported && this.position.x + 50 > progression.getLiftRoof().x &&
+        this.position.x - 50 < progression.getLiftRoof().x + progression.getLiftRoof().w) this.position.y = motion.y;
+    progression?.resolveLiftActor?.(this, motion);
+  }
+  updateFlight(deltaTime, target, simulationTimeMs) {
     if(!this.active||this._disposed)return;
     const dt=Math.max(0,deltaTime)/1000;
     this.simulationTimeMs=simulationTimeMs;this.animationTime+=deltaTime;
@@ -1654,7 +1672,7 @@ window.EnemyManager = class EnemyManager {
     const shift = direction < 0 ? e.x - (p.x + p.width) - 2 : e.x + e.width - p.x + 2;
     const moveEnemy = amount => {
       const before = enemy.position.x;
-      const support = window.sector1Progression?.getStageSurfaces?.().find(s => s.id === enemy.supportedSurfaceId && Math.abs(enemy.position.y + 72 - s.y) < 3);
+      const support = window.sector1Progression?.getActorSurfaces?.().find(s => s.id === enemy.supportedSurfaceId && Math.abs(enemy.position.y + 72 - s.y) < 3);
       const margin = support ? Math.min(45, support.w / 4) : enemy.width / 2;
       const left = support ? support.x + margin : margin;
       const right = support ? support.x + support.w - margin : 4096 - margin;

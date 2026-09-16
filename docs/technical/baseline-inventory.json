@@ -163,6 +163,7 @@
     "tools/check-presentation-assets.js",
     "tools/check-rail-traffic-correction.js",
     "tools/check-runtime-lifecycle.js",
+    "tools/check-solid-ledges.js",
     "tools/check-startup-lifecycle.js",
     "tools/check-street-depth.js",
     "tools/check-syntax.js",
@@ -460,13 +461,13 @@
     {
       "global": "window.EnemyManager",
       "file": "src/game/enemies.js",
-      "line": 1340,
+      "line": 1358,
       "loaded": true
     },
     {
       "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 1998,
+      "line": 2016,
       "loaded": true
     },
     {
@@ -568,7 +569,7 @@
     {
       "global": "window.player",
       "file": "src/game/player.js",
-      "line": 1766,
+      "line": 1777,
       "loaded": true
     },
     {

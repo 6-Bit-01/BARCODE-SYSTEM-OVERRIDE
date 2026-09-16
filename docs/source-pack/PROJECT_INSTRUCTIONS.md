@@ -1,5 +1,13 @@
 # Project Instructions
 
+## September 16, 2026 — solid awnings, moving elevator roof and enemy pancakes
+
+Base/rollback is merged #70, `78475a7be0ec1ba1b4c7aa6d3fc1b069d00c7edf`. Branch: `agent/solid-awnings-lift-roof`. The owner explicitly requests bonks on awnings and hittable ledges, a fully solid elevator roof supporting the player, enemies and boss while moving, and visibly pancaked enemies under a descending elevator. This supersedes the previous cabin-only/climb-through-awnings direction.
+
+Visible stage undersides now stop upward player motion with a small contact cue. The full cabin roof blocks side/upward entry and supports/carries every actor type in both directions. Boss pursuit routes around the slab. The descending floor flattens ordinary enemies and drones using their existing sprites, with one defeat/score/repair transaction and a bounded 3.2-second visual. Floor and roof riders remain supported. The Tower middle step moves 160 units left to x=3100 so the solid-underside upper route remains connected; both collider and illustration share the position.
+
+Read `SOLID_LEDGES_SMUSH_PASS.md` for behavior, native evidence and the focused playtest route. Required local tests, exact revision and CI status belong to the generated receipt. Publish one combined draft and refresh the established v5 source pack. Owner Makko acceptance remains pending before assistant merge; older current-work entries below are historical.
+
 ## September 16, 2026 — fit holograms to buildings and complete tutorial Objectives
 
 Branch `agent/facade-hologram-objectives`, based on merged #67 (`d3d6128ce63c795c4096a320012e2136e21dfbc4`). The owner authorized one PR for the two gaps recovered in the conversation audit. Earlier current-work entries are historical.
