@@ -1,5 +1,9 @@
 # Decision Register
 
+## September 16 — explicit owner correction overrides blanket bonks
+
+Bonks are approved ONLY for the red-circled objects in the three supplied photos: `signal-awning`, `tower-awning`, `cache-maintenance-step`, `firewall-low-step`. The earlier interpretation of “anything the player can hit” as every stage underside was incorrect. Do not expand this list by appearance or generalize it to other roofs/steps. The separately requested moving elevator roof remains hard on every side and supports all actor types. See `CIRCLED_BONK_CORRECTION.md`; direct upward routes on unmarked platforms must remain playable.
+
 ## September 16 — controller descent, boss-win protection and ally time
 
 Approved together by the owner: protect against incidental downward controller movement when jumping; fix boss defeat resetting its health and returning the player to ground; make successful hacked enemies fight for the player for **12 seconds**. Twelve seconds supersedes historical eight-second hijack descriptions. The firm 70% stick threshold, 35-degree downward window and 250 ms result-control release are reviewable implementation tuning. Preserve deliberate single-platform descent and explicit rematch/restart; do not auto-advance to an unimplemented level. See `CONTROLLER_VICTORY_ALLY_PASS.md`.

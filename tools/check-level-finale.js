@@ -131,7 +131,7 @@ for(const target of ['enemy','ally','none']) {
 console.log('Finale: boss body-edge rhythm on street/roofs, forgiving real contacts, locked difficulty/retry, per-level durable rewards, single-credit cat rescue, full fixed shaft and powered/reverse/pause lifecycle passed.');
 
 // Exercise actual jump integration and animation against the moving cabin.
-// The complete illustrated roof is solid; static ledges now bonk as well.
+// The complete elevator roof is solid; the unmarked upper route stays open.
 const { createSprite, playerClips } = require('./makko-animation-fixture');
 function liftRig() {
   const r = rig(), {w,p} = r;
@@ -160,7 +160,7 @@ for (const fps of [30,60,120]) {
       assert.equal(actor.controlsDisabled,false,'head contact cannot stun');
     }
     assert.equal(contacts,['inside','left-post','right-post'].includes(scenario)?1:0,`${fps}fps ${scenario}: the entire roof catches an upward cap`);
-    assert(scenario==='clear-right'?rise>240:rise<100,`${fps}fps ${scenario}: visible overhead surfaces bonk; clear jumps retain height (${rise})`);
+    assert(['clear-right','upper-route'].includes(scenario)?rise>240:rise<100,`${fps}fps ${scenario}: elevator roof bonks; unmarked upper route retains jump height (${rise})`);
     assert.equal(w.gameState.gameOver,false);
   }
   // Carrying the standing player is not a jump; changing cabin position must

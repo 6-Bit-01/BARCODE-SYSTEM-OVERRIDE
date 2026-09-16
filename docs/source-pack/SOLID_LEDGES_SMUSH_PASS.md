@@ -1,5 +1,9 @@
 # Solid ledges, rideable elevator roof and pancakes
 
+## Scope correction after owner rejection
+
+This pass's blanket static-ledge bonks were not approved. `CIRCLED_BONK_CORRECTION.md` supersedes that part: only the four red-circled objects bonk, and direct upward traversal through all unmarked platforms is restored. The separately approved moving roof and pancake mechanics remain. The descriptions and footage below are historical evidence of the earlier build, not authority to reintroduce its extra collisions.
+
 Base/rollback: merged PR #70, `78475a7be0ec1ba1b4c7aa6d3fc1b069d00c7edf`. Branch: `agent/solid-awnings-lift-roof`. The generated receipt records the exact review head and PR.
 
 ## Behavior

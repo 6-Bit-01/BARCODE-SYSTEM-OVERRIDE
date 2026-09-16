@@ -1,11 +1,11 @@
-Slight downward controller movement could turn a jump into an accidental platform drop. After boss defeat, a fresh Cross/Enter could trigger a rematch before the victory card appeared, restoring boss health and returning the player to the street.
+The previous bonk pass made every stage underside collidable, exceeding the four objects circled in the owner's photos and blocking direct upward platform routes.
 
-This combined follow-up:
+This correction:
 
-- Requires a firm downward stick press within 35 degrees of straight down, or pure D-pad down, plus a fresh mapped jump for descent. Light/diagonal movement jumps normally.
-- Protects victory until the existing count-up finishes and result controls have been released for 250 ms. A fresh press then explicitly rematches or restarts. Covers street and rooftop wins; loss retry remains immediate.
-- Extends hacked allies to 12 seconds, with matching countdown/bar, success text and tutorial. Pause and early release remain.
+- Limits static bonks to the two circled striped awnings and two circled small gray steps: `signal-awning`, `tower-awning`, `cache-maintenance-step`, and `firewall-low-step`.
+- Restores upward passage through every unmarked platform while retaining landing support. Platform positions and jump physics are unchanged.
+- Preserves the separately approved solid moving elevator roof, rider support and enemy pancakes, plus #72's controller, victory and twelve-second ally fixes.
 
-Validation covers production input/player/RAF/progression at 30/60/120 Hz, remapped jumps, repeated/held victory input, deliberate rematch/restart, and twelve-second allegiance expiry at 30/60/120/144 Hz. Required gates: full `npm test` and all-JavaScript syntax checks. The generated source-pack receipt records their actual results and exact revision. No new artwork, dependencies, timers or movement-physics changes.
+The original three screenshots were recovered and inspected; `CIRCLED_BONK_CORRECTION.md` maps each red circle to its exact collider. Regression checks assert the independent four-object scope, every unmarked underside, direct upper routes, and 72 climbing/descent trajectories at 30/60/120 Hz. Full-suite and syntax results are recorded in the source-pack receipt.
 
-Base/rollback: merged #71, `5babd454e2753d834be2372642ee8612e0b39a9d`. See `CONTROLLER_VICTORY_ALLY_PASS.md` and the current `ACCEPTANCE.md` route. Keep this draft unmerged until owner physical-controller/Makko review; after merge, import the actual main merge SHA into a fresh preview.
+Base/rollback: merged #72, `0c428a053225dfa68b42fbb7464708f020daba76`. No new art or dependencies. Keep this draft for owner Makko/controller review using the current `ACCEPTANCE.md` route; automated checks do not claim hosted acceptance.

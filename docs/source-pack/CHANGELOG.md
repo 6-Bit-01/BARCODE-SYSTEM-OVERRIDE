@@ -1,5 +1,12 @@
 # Recovery checkpoint — September 14
 
+## September 16 — correction: only red-circled bonks
+
+- Remove unintended underside collision from every unmarked static stage surface. Retain exactly the two circled striped awnings and two circled gray steps.
+- Restore direct awning-to-roof and step-to-step ascents without changing platform positions or player physics.
+- Keep the separately approved solid moving elevator roof, rides and pancakes; preserve merged #72's controls, victory protection and twelve-second allies.
+- Regression coverage now asserts the exact four-object scope, unmarked upward passage, and 72 real climbing/descent routes across 30/60/120 Hz. The earlier blanket bonks were an implementation scope error. Exact head/checks are in the receipt; owner Makko review is pending.
+
 ## September 16 — controller drop, victory and ally-duration follow-up
 
 - Require a deliberate downward controller cone or straight D-pad down plus jump for descent; preserve keyboard and remapped jump behavior.

@@ -1,5 +1,13 @@
 # Continue here — Level 1 rebuild after reverted #55
 
+## September 16, 2026 — restrict bonks to the owner's red circles
+
+The owner rejects PR #71's blanket underside collisions: only the four circled objects in the three original screenshots are approved. Base/rollback: merged #72, `0c428a053225dfa68b42fbb7464708f020daba76`. Branch: `agent/circled-bonks`.
+
+Static bonks are now explicitly limited to `signal-awning`, `tower-awning`, `cache-maintenance-step` and `firewall-low-step`. Every unmarked roof, canopy and step retains one-way landing and allows upward passage. The separately requested elevator roof remains fully solid and rideable. No platform positions or jump physics change. The previous all-ledge implementation and its outside-detour route requirements were a scope error, not owner-approved design.
+
+See `CIRCLED_BONK_CORRECTION.md` for the exact photo-to-object mapping. Tests assert that exact four-item scope independently of implementation and restore direct platform ascents. Preserve #72's deliberate drop input, victory protection and twelve-second allies, plus elevator pancakes. Publish one draft and refresh the maintained v5 pack; physical-controller/Makko review remains pending. Older current-work entries are historical.
+
 ## September 16, 2026 — deliberate platform drops, protected victory and 12-second allies
 
 Base/rollback: merged PR #71, `5babd454e2753d834be2372642ee8612e0b39a9d`. Branch: `agent/controller-drop-victory`. The owner reports accidental controller drops and a boss defeat that immediately resets the boss/player, then explicitly extends hacked allies to 12 seconds.

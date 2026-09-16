@@ -1,5 +1,9 @@
 # BARCODE: SYSTEM OVERRIDE — Source Pack v5
 
+## Latest correction — restrict bonks to the four red-circled objects
+
+Start with `CIRCLED_BONK_CORRECTION.md`. Unmarked platform undersides are open again; the two circled striped awnings, two circled gray steps and separately approved elevator roof retain head contact. Earlier blanket-bonk descriptions are superseded. The manifest/receipt record the exact review SHA, PR and checks; owner Makko acceptance is pending.
+
 ## Latest review build — controller drops, boss victory and twelve-second allies
 
 This follow-up to merged #71 prevents accidental controller platform drops and invisible victory rematches, and extends hacked allies to twelve seconds. Start with `CONTROLLER_VICTORY_ALLY_PASS.md` and the current `ACCEPTANCE.md` route. The manifest/receipt identify the exact review revision, PR and check results. Previous build entries are historical; physical-controller and Makko acceptance remain pending.
