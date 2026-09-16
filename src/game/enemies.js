@@ -1243,11 +1243,11 @@ window.Enemy = class Enemy {
 // New authored aerial enemy. Flight is constrained to its assigned rooftop;
 // neither player altitude nor allegiance changes can pull it out of that band.
 window.RooftopDrone = class RooftopDrone extends window.Enemy {
-  constructor(x, y, surface) {
+  constructor(x, y, surface, patrol = null) {
     super(x, y, 'drone');
     this.position.x=x; this.position.y=y;
     this.width=112;this.height=92;this.health=2;this.maxHealth=2;this.damage=1;
-    this.home={x,y,left:surface.x+64,right:surface.x+surface.w-64};
+    this.home={x,y,left:patrol?.left ?? surface.x+64,right:patrol?.right ?? surface.x+surface.w-64};
     this.dronePhase='patrol';this.dronePhaseMs=0;this.patrolDirection=1;
     this.entranceComplete=true;this.spriteReady=false;this.pulse=null;
   }

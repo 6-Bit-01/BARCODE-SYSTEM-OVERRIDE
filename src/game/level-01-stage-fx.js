@@ -6,17 +6,32 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
   const DETAILS = Object.freeze([
     { id: 'egg.l01.studio-rat', x: 1680, y: 330, name: 'STUDIO RAT', speaker: 'CACHE BACK',
       lines: ['That cat is looking at whoever is holding the controls.', 'Keep moving. It has its own exit.'] },
-    { id: 'egg.l01.cliff-maintenance', x: 2366, y: 856, name: 'MAINTENANCE PLATE', speaker: 'CLIFF',
+    { id: 'egg.l01.cliff-maintenance', x: 2300, y: 856, name: 'MAINTENANCE PLATE', speaker: 'CLIFF',
       lines: ['Two clean beats. That is all the lift needs.', 'I fixed the wiring. You still have to do the climbing.'] },
     { id: 'egg.l01.witty-route', x: 2475, y: 358, name: 'ROUTE MARK', speaker: 'WittyF0x',
       lines: ['See that glow above the relay roof? Signal Amp.', 'The high route has its own rewards. Look before you drop.'] },
     { id: 'egg.l01.venue-flyer', x: 1840, y: 822, name: 'VENUE FLYER', speaker: 'DJ FLOPPYDISC',
       lines: ['BARCODE. Doors open when the signal comes back.', 'Keep the flyer. A room can go quiet without being finished.'] }
   ]);
+  // Pick once per fresh level run. These are supported, reachable perches,
+  // away from the lift shaft and traversal steps; saved discovery is separate.
+  const RAT_SPOTS = Object.freeze([
+    { x: 900, y: 492, surfaceId: 'signal-awning' },
+    { x: 1680, y: 330, surfaceId: 'cache-awning' },
+    { x: 2140, y: 358, surfaceId: 'firewall-canopy' },
+    { x: 2920, y: 196, surfaceId: 'relay-rooftop' },
+    { x: 3680, y: 275, surfaceId: 'tower-rooftop' },
+    { x: 3990, y: 502, surfaceId: 'broadcast-awning' }
+  ]);
   const COLORS = ['#8cffe0', '#c1b0ff', '#ffc07b', '#ff99e7'];
   class Level01StageFX {
     constructor() { this.reset(window.sector1Progression || null); }
     reset(owner = null, { resume = false } = {}) {
+      if (!resume || owner !== this.owner || !this.ratSpot) {
+        this.ratSpot = RAT_SPOTS[Math.floor(Math.random() * RAT_SPOTS.length)];
+        this.details = [{ ...DETAILS[0], ...this.ratSpot }, ...DETAILS.slice(1)];
+        this.ratRunConsumed = false;
+      }
       this.owner = owner; this.timeMs = 0; this.reactions = []; this.events = [];
       this.seenEntrances = new WeakSet(); this.arrived = new WeakSet(); this.clears = new Set();
       this.activeEncounter = null; this.message = null; this.nearby = null; this.captionKick = 0;
@@ -47,15 +62,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
       const o = this.owner, gs = window.gameState;
       if (!o?.missionStarted || window.tutorialSystem?.isActive?.() || window.isPaused || gs?.paused || !gs?.running ||
         window.hackingSystem?.isActive?.() || o.isGameplaySuppressed?.() || !window.player?.grounded ||
-        /jammer|boss|complete/.test(o.state || '')) return false;
+        /complete/.test(o.state || '') || !rat && /jammer|boss/.test(o.state || '')) return false;
       return rat || !o.getEncounterStatus?.()?.started;
     }
     findNearby() {
       if (!this.canInspect({ rat: true })) return null;
       const p = window.player;
       const catId = DETAILS[0].id;
-      return DETAILS.find(d => this.canInspect({ rat: d.id === catId }) &&
-        (d.id !== catId || !this.archive()?.hasStudioRatEvent?.('level-01') && !this.ratEvent || this.message?.id === catId) &&
+      return this.details.find(d => this.canInspect({ rat: d.id === catId }) &&
+        (d.id !== catId || !this.ratRunConsumed && !this.ratEvent || this.message?.id === catId) &&
         Math.abs(d.x - p.position.x) < 95 && Math.abs(d.y - (p.position.y + 72)) < 70) || null;
     }
     inspect() {
@@ -64,7 +79,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
       if (this.message?.id === detail.id && this.message.line === 0) { this.message.line = 1; this.message.age = 0; return { ok: true, reason: 'crew-response' }; }
       if (this.message?.id === detail.id) { this.message = null; return { ok: true, reason: 'closed' }; }
       const cat = detail.id === DETAILS[0].id;
-      const fresh = cat ? !this.archive()?.hasStudioRatEvent?.('level-01') : this.archive()?.collectEgg?.(detail.id) || false;
+      const fresh = cat ? !this.ratRunConsumed : this.archive()?.collectEgg?.(detail.id) || false;
       this.message = { ...detail, line: 0, age: 0, duration: 7200 };
       if (cat && fresh && !this.ratEvent) this.startRatEvent(detail);
       window.audioSystem?.playCombatCue?.('inspect');
@@ -169,6 +184,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
       ctx.restore();
     }
     startRatEvent(detail) {
+      this.ratRunConsumed = true;
       this.archive()?.completeStudioRatEvent?.('level-01');
       const manager = window.enemyManager;
       const candidates = (manager?.enemies || []).filter(e => e.active && e.type !== 'drone' && !e._authoredEntranceActive &&
@@ -252,11 +268,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
       if (!this.owner?.missionStarted) return;
       ctx.save();
       this.drawRatEvent(ctx);
-      for (const d of DETAILS) {
+      for (const d of this.details) {
         if (!B.combatFX?.visible(d.x, d.y, 120)) continue;
         const found = this.archive()?.hasEgg?.(d.id);
-        if (d === DETAILS[0]) {
-          if (!this.ratEvent && !this.archive()?.hasStudioRatEvent?.('level-01')) {
+        if (d.id === DETAILS[0].id) {
+          if (this.ratRunConsumed) continue;
+          if (!this.ratEvent) {
             const frame = Math.floor(this.timeMs / 900) % 7 === 5 ? 2 : 1;
             if (!B.PresentationAssets?.draw('studioCatEvent', ctx, { x: d.x, y: d.y, width: 136, frame })) this.drawRat(ctx, d.x, d.y);
           }

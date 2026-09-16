@@ -240,6 +240,7 @@ window.drawGameUI = function(ctx) {
   }
   
   drawSector1BossUI(ctx);
+  window.sector1Progression?.drawLiftPrompt?.(ctx);
   const attackFeedback = window.BARCODE?.playerCombat?.getFeedback?.();
   if (attackFeedback && !bossCinematicActive && !window.gameState.gameOver && !window.gameState.victory && !window.hackingSystem?.isActive?.()) {
     ctx.save();

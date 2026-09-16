@@ -1,5 +1,11 @@
 # Acceptance and Test Status
 
+## September 16 — elevator/rooftop/Studio Rat/drone follow-up
+
+Owner report after merged #69: cramped cabin, persistent label, lift floor below the rooftop, missing Studio Rat and a platform blocking the drone's stomp approach. These issues are not accepted merely because #69 merged. The combined correction is on `agent/lift-clearance-context-prompt`, based on `3554b0a326572b86f17a66300aa5ae9d122cd9c3`.
+
+Focused production checks cover actual jumps, gentle visible roof contact, full lift ascent and grounded rooftop walk-off at 30/60/120Hz; fresh-run cat placement with old save credit, checkpoint consumption and no duplicated rewards; and unobstructed mission-drone patrol/stomps. Existing traversal and discovery checks remain. Native stills/movie show the original art with the new behavior. The generated receipt records full local/CI results and exact review SHA. Hosted Makko and physical-controller acceptance remain pending. Follow the focused post-deploy route in `LIFT_ROOFTOP_RAT_PASS.md`; keep this draft unmerged until owner review.
+
 ## September 16 — boss fairness, elevator and Studio Rat review
 
 Use the exact revision from the combined `agent/boss-fairness-level-rewards` PR/source receipt. Base/rollback: merged #68, `84f7471fce9bb9300cd7c6f7165a86787054ace9`.

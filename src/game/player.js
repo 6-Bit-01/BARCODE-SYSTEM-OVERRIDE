@@ -27,6 +27,9 @@ const PLAYER_AIR_ACCEL = 1700;
 const PLAYER_AIR_DRAG = 420;
 const PLAYER_DIRECTIONAL_AIR_SPEED = 350;
 const PLAYER_STOMP_REBOUND = 560;
+// Opaque cap crown, measured per existing jump frame (alpha > 180), inset
+// three source pixels. Hands and empty sprite padding cannot cause a bump.
+const PLAYER_JUMP_CROWN = Object.freeze([[127,85],[112,79],[102,67],[100,51],[98,54],[111,64],[114,84],[108,90],[109,106],[98,109],[104,105],[102,87],[102,66],[98,60],[95,51],[104,45],[104,51],[114,60],[102,75],[108,79],[112,81],[115,75],[113,72],[106,63],[100,51],[106,48],[104,51]]);
 const PLAYER_ANIMATION_PRESENTATION = Object.freeze({"idle":{"animation":"6_bit_idle_idle","scale":0.6666666666666666,"anchorX":160,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]},"walk":{"animation":"6_bit_walk_walk","scale":0.7171717171717171,"anchorX":144,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]},"jump":{"animation":"6_bit_jump_jump","scale":0.7967479674796748,"anchorX":96,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]},"rhythm":{"animation":"6_bit_r__h_mode_rhmode","scale":0.7843137254901961,"anchorX":96,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]}});
 
 window.Player = class Player {
@@ -117,6 +120,7 @@ window.Player = class Player {
       this.contactSweep = { previousX, previousFootY: previousFootY + PLAYER_VISUAL_FOOT_OFFSET_Y };
       const groundedAtStart = this.grounded;
       const descentAtStart = this.velocity.y;
+      this.ceilingMotion = { head: this.getCeilingProbe(), rising: descentAtStart < 0, allowed: allowMovement && !this.isEntering };
       this.afterimageMs = Math.max(0, (this.afterimageMs || 0) - deltaTime);
       if (this.isRhythmPlanted()) { this.velocity.x = 0; this.airInput = 0; }
       // Forced motion may unground a performance; never suspend gravity.
@@ -1327,6 +1331,16 @@ window.Player = class Player {
     return { x: this.position.x - 32, y: this.position.y + PLAYER_VISUAL_FOOT_OFFSET_Y - 146, width: 64, height: 142 };
   }
 
+  getCeilingProbe() {
+    if (!this.spriteReady || !this.sprite) return { x: this.position.x, y: this.position.y + PLAYER_VISUAL_FOOT_OFFSET_Y - 192 + 3 };
+    const index = Math.max(0, Math.trunc(this.animationRef?.currentFrame || 0)) % PLAYER_JUMP_CROWN.length;
+    const [x, y] = PLAYER_JUMP_CROWN[this.state === 'jump' ? index : 0];
+    const presentation = PLAYER_ANIMATION_PRESENTATION.jump;
+    const scale = this.getMakkoRenderMetrics(presentation, this.facing === -1).frameScale;
+    return { x: this.position.x + (x - presentation.anchorX) * scale * this.facing,
+      y: this.position.y + PLAYER_VISUAL_FOOT_OFFSET_Y - (presentation.anchorY - y) * scale };
+  }
+
   // Debug method to visualize hitbox
   drawHitbox(ctx) {
     const hitbox = this.getHitbox();
@@ -1362,7 +1376,11 @@ window.Player = class Player {
     const footY = this.position.y + PLAYER_VISUAL_FOOT_OFFSET_Y;
     const surfaces = [...(window.sector1Progression?.getStageSurfaces?.() || window.Sector1Progression?.STAGE_SURFACES || [])];
     const progression = window.sector1Progression;
-    if (progression?.isSignalLiftAvailable?.() && progression.signalLift) surfaces.push(progression.signalLift);
+    if (progression?.isSignalLiftAvailable?.() && progression.signalLift) {
+      surfaces.push(progression.signalLift);
+      const roof = progression.getLiftRoof?.();
+      if (roof) surfaces.push({ x: roof.x, w: roof.w, y: roof.topY });
+    }
     let groundY = window.Player.GROUND_Y + PLAYER_VISUAL_FOOT_OFFSET_Y;
     for (const surface of surfaces) {
       if (this.position.x >= surface.x && this.position.x <= surface.x + surface.w && surface.y >= footY - 2) groundY = Math.min(groundY, surface.y);
