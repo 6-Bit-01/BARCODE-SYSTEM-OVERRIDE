@@ -118,25 +118,30 @@ async function main() {
   await until('parallaxBackground.skyVideo.currentTime > .1 && !parallaxBackground.skyPlayPending', 'rapid reset/resume settles pending plays');
   await evaluate('gameState.running=false;parallaxBackground.resetSkyAnimation()');
   assert(await evaluate('parallaxBackground.skyVideo.paused && parallaxBackground.skyVideo.currentTime === 0'), 'reset starts at frame zero');
-  // Decode known times using the real video, and draw through the production
+  // Observe presented playback frames, and draw through the production
   // far-background method. The scene's original fixed scale is retained.
   const rendered=await evaluate(`(async()=>{
     const p=parallaxBackground,v=p.skyVideo,ctx=gameCanvas.getContext('2d');
     // Use the real rooftop camera: the upper painted clouds are largely
     // above the sidewalk viewport. Sample architecture below the plume mask.
     gameCamera.y=-650;
-    const seek=time=>new Promise(resolve=>{v.addEventListener('seeked',resolve,{once:true});v.currentTime=time;});
+    const presentedAfter=time=>new Promise(resolve=>{const check=(_,frame)=>frame.mediaTime>=time?resolve(frame.mediaTime):v.requestVideoFrameCallback(check);v.requestVideoFrameCallback(check);});
     const records=[],original=ctx.drawImage;
     ctx.drawImage=function(...args){if(args[0]===v)records.push(args.slice(1));return original.apply(this,args);};
-    const frames=[];
-    for(const time of [.04,2]){await seek(time);ctx.clearRect(0,0,1920,1080);p.drawFarBackground(ctx,p.layers[0],{x:0,y:0});frames.push(ctx.getImageData(0,0,1920,1080).data);}
+    const frames=[],mediaTimes=[];
+    gameState.running=true;p.syncSkyPlayback();
+    for(const time of [.1,1.5]){mediaTimes.push(await presentedAfter(time));ctx.clearRect(0,0,1920,1080);p.drawFarBackground(ctx,p.layers[0],{x:0,y:0});frames.push(ctx.getImageData(0,0,1920,1080).data);}
+    gameState.running=false;p.syncSkyPlayback();
     let upper=0,lower=0; for(let y=0;y<1080;y++)for(let x=0;x<1920;x+=3){const i=(y*1920+x)*4; const d=Math.abs(frames[0][i]-frames[1][i]);if(y<140)upper+=d;else if(y>380)lower+=d;}
     for(const cameraY of [0,-650,-1040])for(const zoom of [.9,1,1.2]){gameCamera.y=cameraY;ctx.setTransform(zoom,0,0,zoom,30,-50);p.drawFarBackground(ctx,p.layers[0],{x:0,y:0});}
     ctx.setTransform(1,0,0,1,0,0);ctx.drawImage=original;gameCamera.y=-650;
     p.drawFarBackground(ctx,p.layers[0],{x:0,y:0});
-    return {upper,lower,records};
+    let opaqueSamples=0;for(let i=3;i<frames[0].length;i+=400)if(frames[0][i]===255)opaqueSamples++;
+    return {upper,lower,records,mediaTimes,opaqueSamples};
   })()`);
-  console.log(JSON.stringify({cloudPixelDifference:rendered.upper,cityPixelDifference:rendered.lower,videoDraws:rendered.records.length}));
+  console.log(JSON.stringify({cloudPixelDifference:rendered.upper,cityPixelDifference:rendered.lower,videoDraws:rendered.records.length,firstDraw:rendered.records[0],mediaTimes:rendered.mediaTimes,opaqueSamples:rendered.opaqueSamples}));
+  assert(rendered.mediaTimes[1]-rendered.mediaTimes[0]>1,'two distinct presented video frames were sampled');
+  assert(rendered.opaqueSamples>1000,'decoded video paints visible city pixels');
   assert(rendered.upper>1000,'painted clouds visibly change through real decoded video');
   assert(rendered.lower/rendered.upper<.15,'static city variation is limited to encoding noise');
   for(const r of rendered.records){assert.deepEqual(r.slice(0,4),[0,0,2087,754],'exclude padded column');assert.equal(r[6],4600);assert.equal(r[7],4600*754/2087);}
