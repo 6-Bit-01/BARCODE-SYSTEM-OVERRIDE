@@ -26,7 +26,10 @@ function place(r, a, x, foot) {
   if (a.velocity) { a.velocity.x = 0; a.velocity.y = 0; }
 }
 for (const fps of [30,60,120]) {
-  const ids = rig().p.getSolidLedges().filter(s => !s.alwaysPresent).map(s => s.id);
+  // Independent photo scope: do not derive the expected bonk list from the
+  // implementation, which previously let unapproved additions pass this test.
+  const ids = ['signal-awning', 'tower-awning', 'cache-maintenance-step', 'firewall-low-step'];
+  assert.deepStrictEqual(Array.from(rig().p.getSolidLedges(), s => s.id).sort(), ids.slice().sort(), 'only the four red-circled objects bonk');
   for (const id of ids) for (const facing of [-1,1]) {
     const r = rig(), { w, p } = r, a = w.player, ledge = p.getSolidLedges().find(s => s.id === id);
     a.state = 'jump'; a.facing = facing; a.grounded = false;
@@ -40,6 +43,18 @@ for (const fps of [30,60,120]) {
       assert.equal(a.health,3); assert(!a.controlsDisabled);
     }
     assert(touched, `${fps}Hz ${id} facing ${facing}: real upward motion bonks`);
+  }
+  for (const surface of rig().p.getStageSurfaces().filter(s => !ids.includes(s.id))) {
+    const { w, p } = rig(), a = w.player;
+    place({ w, p }, a, surface.x + surface.w / 2, 0);
+    a.position.y += surface.y + 80 - a.getCeilingProbe().y;
+    a.velocity.y = -920;
+    a.ceilingMotion = { head: a.getCeilingProbe(), rising: true, allowed: true };
+    a.position.y -= 82;
+    const y = a.position.y;
+    assert.strictEqual(p.applyPlayerHeadContact(a), false, `${surface.id}: unmarked underside permits ascent`);
+    assert.strictEqual(a.position.y, y); assert.strictEqual(a.velocity.y, -920);
+    assert(!a.headContactSurfaceId, 'no unmarked bonk cue');
   }
   for (const type of ['player','corrupted','firewall','virus','drone','boss']) for (const side of [-1,1]) {
     const r = rig(), a = actor(r,type), p = r.p, roof = p.getLiftRoof();
@@ -81,7 +96,7 @@ for (const fps of [30,60,120]) {
   place(r,a,ledge.x+100,ledge.y);a.grounded=true;a.supportedSurfaceId=ledge.id;
   assert(a.dropThrough(),'existing deliberate Down+Jump remains on ordinary ledges');
 }
-console.log('Solid ledges: all visible undersides, both facings, fast roof side crossings, all six actor types carried up/down at 30/60/120Hz, pause/reset and hard-roof drop protection passed.');
+console.log('Scoped bonks: exactly four red-circled objects, all unmarked undersides open, both facings, solid moving roof for all six actor types at 30/60/120Hz, pause/reset and hard-roof drop protection passed.');
 
 // A descending floor squashes real enemies once, including a carrier; the
 // flattened pose persists after EnemyManager removes the defeated actor.

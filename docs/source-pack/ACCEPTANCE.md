@@ -1,5 +1,16 @@
 # Acceptance and Test Status
 
+## Current correction — only the four circled static objects bonk
+
+Use the photo mapping in `CIRCLED_BONK_CORRECTION.md`. Import the exact review revision from the manifest/PR into a fresh Makko preview.
+
+1. Bonk beneath the circled Signal and Tower striped awnings, Cache maintenance step and Firewall low step. Confirm visible, harmless head contact on just those objects.
+2. Jump directly Signal awning → Signal roof; Tower awning → Tower roof; Firewall canopy → high step → roof; Broadcast low step → high step; Cache maintenance step → Cache awning. No outside detour should be required by an unmarked underside.
+3. Jump upward through other unmarked roofs and steps, then land on them normally. Check both facings and the actual route where the owner was trapped.
+4. Confirm the separately approved elevator roof stays hard and rideable and the descending elevator still pancakes enemies. Retain #72's firm-down drop control, victory result protection and twelve-second ally timer.
+
+Automated route/collision checks are not owner physical-controller/Makko acceptance. Keep the draft unmerged until that review is accepted; after merge import the actual main merge SHA and repeat the focused route.
+
 ## Current owner route — deliberate descent, victory and twelve-second allies
 
 Import the exact review SHA from the source manifest or PR into a fresh Makko preview. This follow-up is based on merged #71; previous art, solid roofs and pancake behavior remain.

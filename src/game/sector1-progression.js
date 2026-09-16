@@ -50,13 +50,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     { id: 'broadcast-crown', x: 3785, y: -74, w: 311, h: 8, maskFeet: 10 }
   ]);
 
-  // Undersides of the painted horizontal lips at the existing world transform.
-  // Facades, windows and diagonal support braces are background depth, not walls.
-  const LEDGE_DEPTH = Object.freeze({ 'signal-awning': 74, 'cache-awning': 68,
-    'firewall-canopy': 24, 'relay-rooftop': 26, 'tower-rooftop': 32,
-    'tower-awning': 78, 'broadcast-awning': 24, 'signal-roof': 34,
-    'west-crown': 40, 'cache-crown': 26, 'firewall-roof': 28,
-    'tower-crown': 50, 'broadcast-crown': 36 });
+  // Only the four objects circled red in the owner's three screenshots bonk.
+  // Other stage surfaces remain one-way landings so upward routes stay open.
+  // The separately approved moving elevator roof uses resolveLiftActor below.
+  const BONK_LEDGE_DEPTH = Object.freeze({ 'signal-awning': 74, 'tower-awning': 78,
+    'cache-maintenance-step': 14, 'firewall-low-step': 18 });
 
   // Swept AABB against one translating slab. The actor and obstacle share the
   // same interval, so a fast side entry or a moving roof cannot tunnel through.
@@ -1274,8 +1272,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       player.jumpReleaseQueued = false; player.coyoteTimerMs = 0;
     }
     getSolidLedges() {
-      return this.getStageSurfaces().map(surface => ({ ...surface,
-        bottomY: surface.y + (LEDGE_DEPTH[surface.id] ?? surface.h) }));
+      return this.getStageSurfaces().filter(surface => Object.prototype.hasOwnProperty.call(BONK_LEDGE_DEPTH, surface.id))
+        .map(surface => ({ ...surface, bottomY: surface.y + BONK_LEDGE_DEPTH[surface.id] }));
     }
     applyPlayerHeadContact(player) {
       const motion = player?.ceilingMotion, head = player?.getCeilingProbe?.();
