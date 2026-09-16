@@ -87,6 +87,7 @@ window.BARCODE = window.BARCODE || {};
 
   function resetRunState(options) {
     options = options || {};
+    window.parallaxBackground?.resetSkyAnimation?.();
     if (typeof window.initGameState === 'function' && !options.preserveProgress) window.initGameState();
     if (typeof window.resetRuntimeTerminalFlags === 'function') window.resetRuntimeTerminalFlags();
     else if (window.gameState) { window.gameState.gameOver = false; window.gameState.victory = false; }
@@ -271,6 +272,7 @@ window.BARCODE = window.BARCODE || {};
     if (window.inputManager && typeof window.inputManager.resetActionEdges === 'function') window.inputManager.resetActionEdges();
     if (window.BARCODE && window.BARCODE.playerCombat && typeof window.BARCODE.playerCombat.reset === 'function') window.BARCODE.playerCombat.reset();
     if (typeof window.stopGame === 'function') window.stopGame();
+    window.parallaxBackground?.disposeSkyAnimation?.();
     if (typeof window.cancelInitialEnemySpawn === 'function') window.cancelInitialEnemySpawn();
     if (namespace.AssetMonitor && typeof namespace.AssetMonitor.cleanup === 'function') namespace.AssetMonitor.cleanup();
     if (window.cutsceneSystem && typeof window.cutsceneSystem.destroy === 'function') window.cutsceneSystem.destroy();

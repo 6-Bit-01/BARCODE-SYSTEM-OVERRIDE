@@ -681,7 +681,7 @@
     {
       "global": "window.startGameLoop",
       "file": "src/core/loop.js",
-      "line": 137,
+      "line": 138,
       "loaded": true
     },
     {

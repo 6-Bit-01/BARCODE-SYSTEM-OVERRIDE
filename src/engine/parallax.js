@@ -32,6 +32,66 @@ window.ParallaxBackground = class ParallaxBackground {
       [1027,553,3,9],[1164,586,6,17],[1185,581,6,18],[1373,401,4,7],
       [1578,544,4,9],[1808,506,3,8],[2015,430,5,12]];
     this.skylineVents = [[246,304],[552,312],[738,317],[826,323],[1192,316],[1604,324],[1935,334]];
+    this.skyVideo = null;
+    this.skyVideoGeneration = 0;
+    this.skyPlayPending = false;
+    this.skyPlaybackBlocked = false;
+  }
+
+  loadSkyAnimation(options = {}) {
+    if (this.skyVideo || typeof window.document?.createElement !== 'function') return;
+    const video = window.document.createElement('video');
+    if (typeof video.play !== 'function') return;
+    this.skyVideo = video; this.skyPlaybackBlocked = false;
+    video.crossOrigin = 'anonymous'; video.muted = true; video.defaultMuted = true;
+    video.loop = true; video.playsInline = true; video.preload = 'auto';
+    const url = options.url || 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/ac31c22a283ca0e62b25ed303e8360c383336c14/assets/world-v3/animated-background/far-background-loop.mp4';
+    const fallback = options.fallbackUrl ?? 'assets/world-v3/animated-background/far-background-loop.mp4';
+    let usedFallback = false;
+    video.onerror = () => {
+      if (this.skyVideo !== video) return;
+      if (!usedFallback && fallback && fallback !== url) {
+        usedFallback = true; video.src = fallback; video.load();
+      } else { this.skyPlaybackBlocked = true; video.pause(); }
+    };
+    video.src = url; video.load();
+  }
+
+  shouldPlaySkyAnimation() {
+    return !!(window.isRunning && window.gameState?.running && !window.isPaused &&
+      !window.gameState.paused && !window.gameState.gameOver);
+  }
+
+  syncSkyPlayback() {
+    const video = this.skyVideo;
+    if (!video) return;
+    if (!this.shouldPlaySkyAnimation()) { if (!video.paused) video.pause(); return; }
+    if (video.readyState < 2 || !video.paused || this.skyPlayPending || this.skyPlaybackBlocked) return;
+    const generation = this.skyVideoGeneration;
+    this.skyPlayPending = true;
+    Promise.resolve(video.play()).then(() => {
+      if (this.skyVideo !== video || !this.shouldPlaySkyAnimation()) video.pause();
+    }).catch(error => {
+      // Pausing/resetting while play is pending is normal. A real decode or
+      // autoplay refusal keeps the existing static city rather than a blank.
+      if (this.skyVideo === video && generation === this.skyVideoGeneration && error?.name !== 'AbortError') this.skyPlaybackBlocked = true;
+    }).finally(() => {
+      if (this.skyVideo === video && generation === this.skyVideoGeneration) this.skyPlayPending = false;
+    });
+  }
+
+  resetSkyAnimation() {
+    this.skyVideoGeneration++; this.skyPlayPending = false; this.skyPlaybackBlocked = false;
+    if (!this.skyVideo) return;
+    this.skyVideo.pause();
+    if (this.skyVideo.readyState > 0) this.skyVideo.currentTime = 0;
+  }
+
+  disposeSkyAnimation() {
+    this.skyVideoGeneration++; this.skyPlayPending = false;
+    if (!this.skyVideo) return;
+    const video = this.skyVideo; this.skyVideo = null;
+    video.pause(); video.onerror = null; video.removeAttribute('src'); video.load();
   }
   
   // Add a parallax layer
@@ -233,7 +293,12 @@ window.ParallaxBackground = class ParallaxBackground {
     const x = 960 - width / 2 - offset.x, y = -560 - cameraY * 0.3;
     ctx.save();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.drawImage(image, x, y, width, height);
+    const video = this.skyVideo;
+    if (video?.readyState >= 2 && !this.skyPlaybackBlocked && !video.error) {
+      // H.264 needs an even width. Exclude its one padded column; the city
+      // keeps the exact original aspect ratio and the existing fixed scale.
+      ctx.drawImage(video, 0, 0, 2087, 754, x, y, width, height);
+    } else ctx.drawImage(image, x, y, width, height);
     this.drawSkylineLife(ctx, x, y, width, height);
     ctx.restore();
   }
@@ -270,9 +335,9 @@ window.ParallaxBackground = class ParallaxBackground {
     }
     // Sparse diagonal rain; a fixed analytic population cannot accumulate.
     // One path/stroke per frame and all of it remains in the background layer.
-    ctx.globalAlpha = 0.3 * quiet; ctx.strokeStyle = '#bdcfcc'; ctx.lineWidth = 0.55;
+    ctx.globalAlpha = 0.34 * quiet; ctx.strokeStyle = '#bdcfcc'; ctx.lineWidth = 0.55;
     ctx.beginPath();
-    for (let i = 0; i < 112; i++) {
+    for (let i = 0; i < 144; i++) {
       const left = ((i * 137.3 - time * (0.004 + i % 3 * 0.001)) % 2048 + 2048) % 2048;
       if (!visible(left - 3, 6)) continue;
       const top = (i * 89.7 + time * (0.04 + i % 4 * 0.005)) % 720;
@@ -480,9 +545,9 @@ window.ParallaxBackground = class ParallaxBackground {
     }
     // Foreground rain is visible from the sidewalk, behind actors and HUD.
     // Fixed analytic streaks add no particles, timers or growing collections.
-    ctx.globalAlpha = 0.32 * music.quiet; ctx.strokeStyle = '#c6dcdc'; ctx.lineWidth = 0.35;
+    ctx.globalAlpha = 0.36 * music.quiet; ctx.strokeStyle = '#c6dcdc'; ctx.lineWidth = 0.35;
     ctx.beginPath();
-    for (let i = 0; i < 144; i++) {
+    for (let i = 0; i < 184; i++) {
       const left = ((i * 91.73 - time * (0.006 + i % 3 * 0.001)) % 1279 + 1279) % 1279;
       if (!this.decorationVisible(left - 4, 8, x, sx)) continue;
       const top = (i * 57.29 + time * (0.095 + i % 4 * 0.012)) % 458;
@@ -651,6 +716,7 @@ window.ParallaxBackground = class ParallaxBackground {
   
   // Clear all layers
   clear() {
+    this.disposeSkyAnimation();
     this.layers = [];
   }
   
@@ -674,6 +740,7 @@ window.parallaxBackground = null;
 window.initParallax = function() {
   try {
     if (window.parallaxBackground) {
+      window.parallaxBackground.loadSkyAnimation();
       return true;
     }
     window.parallaxBackground = new window.ParallaxBackground();
@@ -709,6 +776,7 @@ window.initParallax = function() {
     });
     
     console.log('✓ Parallax background initialized with 2 layers (BG + FG)');
+    window.parallaxBackground.loadSkyAnimation();
     
     // Test if images load
     setTimeout(() => {

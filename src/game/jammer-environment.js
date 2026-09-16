@@ -47,7 +47,7 @@ window.BARCODE = window.BARCODE || {};
     lastDamageSequence: null,
     disposed: false,
     generation: 0,
-    position: { x: 3400, y: (window.Player?.GROUND_Y ?? 784) },
+    position: { x: 1600, y: (window.Player?.GROUND_Y ?? 784) },
     presentation: Object.freeze({ drawScale: 0.7, drawOffsetY: 72 }),
     sprite: null,
     animationRef: null,
@@ -121,6 +121,7 @@ window.BARCODE = window.BARCODE || {};
 
   function reset() {
     state.generation += 1;
+    state.position = { x: 1600, y: (window.Player?.GROUND_Y ?? 784) };
     state.revealed = false;
     state.triggered = false;
     state.targetable = false;

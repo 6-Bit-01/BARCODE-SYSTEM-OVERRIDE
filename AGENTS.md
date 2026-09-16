@@ -1,5 +1,15 @@
 # Repository Guidance
 
+## September 16, 2026 — reusable background animation and central Jammer
+
+Base/rollback is merged PR #66, `e79b30795ed825042c4bd27a28fd57e3c2da6c8f`; branch `agent/animated-background-central-jammer`. The owner likes the new atmosphere and requests an animated asset made here, slightly heavier rain, and Jammer placement in an area a little wider than the middle third. No additional service account is wanted. Earlier current-work sections are historical.
+
+The existing far-city illustration now has a silent eight-second smoke/cloud loop at 24 fps. Architecture stays fixed in the uncompressed asset; rendering retains the original aspect and fixed scale. Asset ancestor: `ac31c22a283ca0e62b25ed303e8360c383336c14`. One muted video follows pause/reset/stop/restart, with one bundled fallback and the original still if media is unavailable. The game keeps its existing rain, steam and sign animation; rain streak populations rise by about 28%, with a small opacity increase.
+
+Jammer spawning no longer alternates into the opposite world half. The allowed central band is x=1180–2916 (about 42% of the map). The existing lift approach reserves the right part of that band; actual safe slots are 1200, 1400, 1600, 1800 and 2000, with x=1600 as the initial/reset default. This keeps the lift out of Jammer attack reach and leaves room for the camera to reveal the boss. The 20-defeat quota, 16 Jammer health, rhythm-only damage and cinematic/boss sequence remain.
+
+The permanent terminal remains at x=560, y=638, behind actors/holograms and clear of windows. PR #66's training/mission WATCH OUT warnings and real traffic damage remain. Read `ANIMATED_BACKGROUND_JAMMER_PASS.md` for asset provenance, review and validation limits. Canonical pack version 69 matched all 394 base exports; its manifest/receipt is preserved in `verification/pr66-merged-history.json`. Exact final head, PR and checks belong to the generated receipt. Keep the combined draft unmerged for owner Makko review.
+
 ## September 16, 2026 — repair playable traffic, terminal placement and visible city motion
 
 Base/rollback is merged PR #65, `a8a0dfdd587906f4beea976a15c9671a40d5aac6`; branch `agent/traffic-background-repair`. The owner reports #65 failed the placement/animation review and reports absent car warnings/damage. The merge is not acceptance. Earlier current-work sections are historical.
@@ -154,7 +164,7 @@ The owner approved progressing from the existing Level 1 boss entrance to a fini
 - Tutorial and pre-encounter boundaries must prevent crossing a future closed gate. Boss world position must not be tied to cinematic camera motion; animation scale/feet must remain consistent. Jammer placement must clear the lift plus its full attack range. These are September 11 owner playtest corrections.
 - Preserve the two-hit rhythm-powered lift, authored rooftops, and the currently approved stable body/swept-foot geometry. Backend ownership changes are not permission to remove mechanics.
 - Level 1 requires 20 post-tutorial mission defeats through four authored encounter groups. Tutorial kills do not count.
-- At 20 mission defeats the Broadcast Jammer appears once in the opposite world half. It has 16 health and accepts one damage per successful rhythm attack; H and passive stomp do not damage it. It remains an environmental object owned by `BARCODE.JammerEnvironment`, not an ordinary enemy.
+- At 20 mission defeats the Broadcast Jammer appears once in the widened central band, clear of the lift approach. It has 16 health and accepts one damage per successful rhythm attack; H and passive stomp do not damage it. It remains an environmental object owned by `BARCODE.JammerEnvironment`, not an ordinary enemy.
 - Jammer destruction immediately ends active Rhythm Combat Mode; it cannot reactivate during the cinematic or automatically resume at handoff. Preserve the background rhythm/music clock.
 - Jammer destruction leads through the existing freeze, purge, camera pan, boss entrance/flourish and control handoff into the boss encounter. Reuse that presentation; do not casually rename its boss or change its identity.
 - Each level selects its own song/profile. Level 1's compatibility timing and source names are never a campaign fallback. Other genres choose their own musical interaction and need not gate their ordinary inputs by rhythm.

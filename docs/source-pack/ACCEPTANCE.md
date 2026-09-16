@@ -1,5 +1,15 @@
 # Acceptance and Test Status
 
+## September 16, 2026 — animated background asset, rain and central Jammer
+
+1. Open the standalone eight-second MP4. Smoke/clouds should roll subtly, with no camera movement, building deformation or visible loop splice.
+2. Import the exact review head into Makko. From training, stand still and climb roofs: the actual painted clouds move, signs/steam remain animated, rain is slightly fuller, and walking does not resize the distant city.
+3. Pause/resume, restart and retry. Video freezes when play stops and reloads once on a fresh run. A host that cannot play the video must retain the original visible city; report that as a media compatibility failure, not animation acceptance.
+4. Finish 20 mission defeats from either end of the district. The Jammer stays in the central safe slots, away from the right edge and lift. Defeat it from either side and verify a clear boss camera move and the existing entrance/flourish/handoff.
+5. Recheck WATCH OUT at the actual foreground car height, one health loss on unprotected contact, terminal/window/hologram depth, Cross jump/beat, platform descent, hack, lift, boss win/loss/retry and restart.
+
+Automated production logic and Chromium media checks do not replace owner Makko acceptance. Record the imported SHA and PASS/FAIL before merge. Exact check status belongs to the generated receipt.
+
 ## September 16, 2026 — repair playable traffic, terminal placement and visible city motion
 
 PR #65 failed owner review despite a successful merge. Review the new exact head in Makko before merging this repair:

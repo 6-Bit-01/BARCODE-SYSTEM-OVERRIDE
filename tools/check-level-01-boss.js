@@ -304,13 +304,20 @@ async function main() {
     const positions = new Set();
     // Exercise every authored slot, including both ends of random selection.
     for (const px of [200, 2047, 2048, 3900]) {
-      for (const value of [0, 0.34, 0.67, 0.999999]) {
+      for (const value of [0, 0.2, 0.4, 0.6, 0.8, 0.999999]) {
         vm.runInContext(`Math.random = () => ${value}`, context);
         w.player.position.x = px;
         p.revealJammer();
         const jammer = w.BARCODE.JammerEnvironment.getStatus().position;
         positions.add(jammer.x);
-        assert.strictEqual(jammer.x < 2048, px >= 2048, 'Jammer stays in the opposite map half');
+        const band = w.Sector1Progression.JAMMER_PLACEMENT;
+        assert(jammer.x >= band.minX && jammer.x <= band.maxX, 'Jammer stays in the wider central band from either end of the map');
+        // The rightmost normal attack position still leaves an actual camera
+        // move toward the boss instead of starting at the right camera stop.
+        w.player.position.x = jammer.x + 300;
+        w.gameCamera.centerX = Math.max(960, Math.min(3136, w.player.position.x));
+        p.captureCinematicStart(); p.transitionToPan();
+        assert(p.panTargetX - p.panStartX >= 800, 'boss reveal retains a clear rightward camera move');
         for (const playerX of [lift.x - 17, lift.x + lift.w + 17]) {
           w.player.position.x = playerX;
           w.player.position.y = 784;
@@ -324,7 +331,7 @@ async function main() {
         }
       }
     }
-    assert.strictEqual(positions.size, 6, 'every safe random slot was exercised');
+    assert.strictEqual(positions.size, 5, 'all five central slots outside the lift approach were exercised');
   }
   {
     const rig = createRig();
