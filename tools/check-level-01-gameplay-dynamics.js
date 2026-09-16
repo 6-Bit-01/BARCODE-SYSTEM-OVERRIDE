@@ -72,7 +72,8 @@ function createCanvasSpy() {
     restore() { Object.assign(this, saved.pop() || {}); },
     fillRect(x, y, w, h) { calls.push({ kind:'fillRect', x, y, w, h, fillStyle:this.fillStyle }); },
     strokeRect(x, y, w, h) { calls.push({ kind:'strokeRect', x, y, w, h, strokeStyle:this.strokeStyle }); },
-    beginPath() {}, moveTo() {}, lineTo() {}, stroke() {},
+    beginPath() {}, moveTo() {}, lineTo() {}, stroke() {}, rect() {}, clip() {},
+    translate() {}, scale() {}, rotate() {}, arc() {}, fill() {},
     fillText(text, x, y) { calls.push({ text: String(text), x, y, fillStyle: this.fillStyle, font: this.font, globalAlpha: this.globalAlpha }); },
     measureText(text) { return { width: String(text).length * 14 }; }
   };
@@ -512,8 +513,8 @@ function testSignalLiftAndBackgroundRhythm() {
     approx(player.getVisualAnchor().visibleFootY, liftConfig.bottomY, 0.001, `lift bottom uses the player's visible-foot contract at ${fps} FPS`);
     const liftCanvas = createCanvasSpy();
     progression.drawSignalLift(liftCanvas);
-    const liftBody = liftCanvas.calls.find(call => call.kind === 'fillRect' && call.x === progression.signalLift.x && call.w === progression.signalLift.w && call.h === 14);
-    assert(liftBody && liftBody.y === progression.signalLift.y, `rendered lift top equals its collision/contact line at ${fps} FPS`);
+    const liftBody = liftCanvas.calls.find(call => call.kind === 'fillRect' && call.x === progression.signalLift.x && call.w === progression.signalLift.w && call.h === 32);
+    assert(liftBody && liftBody.y === progression.signalLift.y - 10, `3D lift floor surrounds its center contact line at ${fps} FPS`);
 
     w.rhythmSystem = { active: true, trackStarted: true, currentTempoBeat: 1, isActive() { return this.active; }, applyResolvedAttackFeedback() {} };
     const combat = new w.BARCODE.PlayerCombat({ cooldownMs: 0 });

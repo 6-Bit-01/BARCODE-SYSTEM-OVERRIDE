@@ -6,6 +6,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/lore-collection.js', exports: ['BARC
   const KEY = 'barcode.system-override.save.v1.default';
   const COUNTS = [3, 4, 5, 4, 5, 4, 3];
   const EGGS = new Set(['egg.l01.studio-rat', 'egg.l01.cliff-maintenance', 'egg.l01.witty-route', 'egg.l01.venue-flyer']);
+  for (let level = 2; level <= 7; level++) EGGS.add(`egg.l0${level}.studio-rat`);
   const IDS = new Set(COUNTS.flatMap((count, index) => Array.from({ length: count }, (_, piece) =>
     `lore.l${String(index + 1).padStart(2, '0')}.${String(piece + 1).padStart(2, '0')}`)));
   const object = value => value && typeof value === 'object' && !Array.isArray(value);
@@ -25,6 +26,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/lore-collection.js', exports: ['BARC
       if (unknown.length) value.integrity.unrecognizedLore = unknown;
       value.progress.lore = [...new Set(value.progress.lore.filter(id => IDS.has(id)))];
       value.progress.easterEggs = Array.isArray(value.progress.easterEggs) ? [...new Set(value.progress.easterEggs.filter(id => typeof id === 'string'))] : [];
+      value.progress.completedLevels = Array.isArray(value.progress.completedLevels) ? [...new Set(value.progress.completedLevels.filter(id => typeof id === 'string'))] : [];
+      value.progress.levelChallenges = Object.fromEntries(Object.entries(object(value.progress.levelChallenges) ? value.progress.levelChallenges : {})
+        .filter(([id, c]) => /^level-0[1-7]$/.test(id) && object(c) && typeof c.difficultyId === 'string' && Number.isFinite(c.value) && c.value >= 0));
+      value.progress.studioRatEvents = Object.fromEntries(Object.entries(object(value.progress.studioRatEvents) ? value.progress.studioRatEvents : {})
+        .filter(([id, version]) => /^level-0[1-7]$/.test(id) && version === 2));
       return value;
     } catch (_) { return null; }
   }
@@ -57,6 +63,27 @@ window.FILE_MANIFEST.push({ name: 'src/game/lore-collection.js', exports: ['BARC
     has(id) { return this.record.progress.lore.includes(id); }
     getIds() { return [...this.record.progress.lore]; }
     hasEgg(id) { return this.record.progress.easterEggs.includes(id); }
+    hasStudioRatEvent(levelId) { return this.record.progress.studioRatEvents?.[levelId] === 2; }
+    completeStudioRatEvent(levelId) {
+      if (!/^level-0[1-7]$/.test(levelId) || this.hasStudioRatEvent(levelId)) return false;
+      this.record.progress.studioRatEvents = { ...this.record.progress.studioRatEvents, [levelId]: 2 };
+      const id = `egg.l${levelId.slice(-2)}.studio-rat`;
+      if (!this.hasEgg(id)) this.record.progress.easterEggs.push(id);
+      this.save(); return true;
+    }
+    recordLevelChallenge(levelId, difficultyId, value) {
+      if (!/^level-0[1-7]$/.test(levelId) || typeof difficultyId !== 'string' || !Number.isFinite(value) || value < 0) return false;
+      const prior = this.record.progress.levelChallenges?.[levelId];
+      if (prior && prior.value >= value) return false;
+      this.record.progress.levelChallenges = { ...this.record.progress.levelChallenges,
+        [levelId]: { difficultyId, value, completedAt: new Date().toISOString() } };
+      this.record.progress.completedLevels = [...new Set([...(this.record.progress.completedLevels || []), levelId])];
+      this.save(); return true;
+    }
+    getRewardFacts() {
+      return { challengeValue: Object.values(this.record.progress.levelChallenges || {}).reduce((sum, c) => sum + (Number.isFinite(c.value) ? c.value : 0), 0),
+        studioRats: Array.from({ length: 7 }, (_, i) => `egg.l0${i + 1}.studio-rat`).filter(id => this.hasEgg(id)), lore: this.getIds() };
+    }
     collectEgg(id) {
       if (!EGGS.has(id)) return false;
       const fresh = !this.hasEgg(id);
@@ -85,9 +112,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/lore-collection.js', exports: ['BARC
           const valid = parse(currentRaw);
           if (!valid && !this.record.integrity?.recoveredFromBackup) { this.blocked = true; this.status = 'damaged'; return false; }
           if (!valid) storage.setItem(KEY + '.damaged', currentRaw);
-          if (valid) this.record = { ...valid, progress: { ...valid.progress,
+          if (valid) {
+            const challenges = { ...valid.progress.levelChallenges };
+            for (const [level, result] of Object.entries(this.record.progress.levelChallenges || {})) {
+              if (!challenges[level] || result.value > challenges[level].value) challenges[level] = result;
+            }
+            this.record = { ...valid, progress: { ...valid.progress,
             lore: [...new Set([...valid.progress.lore, ...this.record.progress.lore])],
-            easterEggs: [...new Set([...valid.progress.easterEggs, ...this.record.progress.easterEggs])] } };
+            easterEggs: [...new Set([...valid.progress.easterEggs, ...this.record.progress.easterEggs])],
+            completedLevels: [...new Set([...(valid.progress.completedLevels || []), ...(this.record.progress.completedLevels || [])])],
+            levelChallenges: challenges,
+            studioRatEvents: { ...valid.progress.studioRatEvents, ...this.record.progress.studioRatEvents } } };
+          }
         }
         const next = JSON.parse(JSON.stringify(this.record));
         next.revision = (Number.isSafeInteger(next.revision) ? next.revision : 0) + 1;

@@ -89,7 +89,7 @@ for (const fps of [30, 60, 120, 144]) {
   for (let i = 0; i < 10; i++) input.routeActions(input.actionInput.update());
   assert.strictEqual(stage.archive().record.revision, revision);
   assert(stage.inspect().ok); assert.strictEqual(stage.message.line, 1); stage.inspect(); assert(!stage.message);
-  stage.update(3601); stage.update(16); assert.strictEqual(stage.ratAge, null);
+  stage.update(6201); stage.update(16); assert.strictEqual(stage.ratAge, null);
   assert.strictEqual(stage.findNearby(), null, 'saved Studio Cat event cannot be replayed');
   const other = new w.BARCODE.LoreCollection(); other.collect('lore.l01.02');
   stage.archive().collectEgg('egg.l01.cliff-maintenance');

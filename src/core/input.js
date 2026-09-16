@@ -24,6 +24,7 @@ window.InputManager = class InputManager {
     window.addEventListener('keydown', (e) => {
       const key = e.key.toLowerCase();
 
+      if (window.BARCODE?.LevelDifficulty?.keyDown(e)) return;
       if (window.cutsceneSystem?.isActive) return; // The opening owns its document handlers.
       if (window.BARCODE?.PauseMenu?.keyDown(e)) { e.preventDefault(); return; }
       if (this.terminalKeyLatched === key) { e.preventDefault(); return; }
@@ -78,6 +79,7 @@ window.InputManager = class InputManager {
     });
     window.addEventListener('keyup', (e) => {
       const key = e.key.toLowerCase();
+      window.BARCODE?.LevelDifficulty?.keyUp(e);
       window.BARCODE?.PauseMenu?.keyUp(e);
       if (this.terminalKeyLatched === key) this.terminalKeyLatched = null;
       const terminalOwnsKey = !!(window.hackingSystem?.isActive?.() || (this.hackEscapeLatched && key === 'escape'));
@@ -104,7 +106,7 @@ window.InputManager = class InputManager {
       if (window.hackingSystem?.isActive?.()) { e.preventDefault(); window.hackingSystem.pointerInput?.(e); }
     }, { passive: false });
     window.addEventListener('mousemove', (e) => { if (window.BARCODE?.PauseMenu?.pointer(e, 'move')) return; this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
-    window.addEventListener('mousedown', (e) => { if (window.BARCODE?.PauseMenu?.pointer(e, 'down')) return; this.mouse.pressed = true; this.mouse.clicked = true; });
+    window.addEventListener('mousedown', (e) => { if (window.BARCODE?.LevelDifficulty?.pointer(e) || window.BARCODE?.PauseMenu?.pointer(e, 'down')) return; this.mouse.pressed = true; this.mouse.clicked = true; });
     window.addEventListener('mouseup', (e) => { window.BARCODE?.PauseMenu?.pointer(e, 'up'); this.mouse.pressed = false; });
     window.addEventListener('gamepadconnected', (e) => { this.gamepad = e.gamepad; });
     window.addEventListener('gamepaddisconnected', () => { this.gamepad = null; });
@@ -133,6 +135,7 @@ window.InputManager = class InputManager {
       this.pressedKeys.clear(); this.releasedKeys.clear(); this.mouse.clicked = false;
       return;
     }
+    if (window.BARCODE?.LevelDifficulty?.open) return;
     const actions = this.actionInput ? this.actionInput.update(options.context || {}) : null;
     if (actions) this.routeActions(actions, options);
     this.pressedKeys.clear();
@@ -172,12 +175,19 @@ window.InputManager = class InputManager {
 
   routeGamepadUI() {
     const BARCODE = window.BARCODE, menu = BARCODE?.PauseMenu;
-    const owner = (window.isPaused || window.gameState?.paused) ? 'pause' : window.hackingSystem?.isActive?.() ? 'hack' :
+    const owner = BARCODE?.LevelDifficulty?.open ? 'difficulty' : (window.isPaused || window.gameState?.paused) ? 'pause' : window.hackingSystem?.isActive?.() ? 'hack' :
       (window.gameState?.gameOver || window.gameState?.victory) ? 'results' :
       window.tutorialSystem?.isActive?.() ? 'tutorial' : 'gameplay';
     const input = BARCODE?.GamepadUI?.poll(owner);
     if (!input) return false;
     const p = input.pressed;
+    if (owner === 'difficulty') {
+      const d = BARCODE.LevelDifficulty;
+      if (p.left || p.up) d.select((d.selected + 2) % 3);
+      else if (p.right || p.down) d.select((d.selected + 1) % 3);
+      else if (p.b0 || p.b9) d.confirm();
+      return true;
+    }
     if (input.changed) this.actionInput?.blockGamepadUntilRelease();
     if (owner === 'pause') {
       if (input.changed && menu) menu.dirty = true;

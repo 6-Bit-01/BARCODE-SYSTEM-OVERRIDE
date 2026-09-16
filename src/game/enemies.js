@@ -1574,11 +1574,11 @@ window.EnemyManager = class EnemyManager {
         const box = enemy.getStompBox?.() || enemy.getHitbox(), previous = enemy.previousStompBox || box;
         const before = sweep.previousFootY - previous.y;
         const after = sweep.currentFootY - box.y;
-        if (before > 6 || after < 0 || after <= before) continue;
+        if (before > 14 || after < 0 || after <= before) continue;
         const t = Math.max(0, Math.min(1, -before / (after - before)));
         const x = sweep.previousX + (sweep.currentX - sweep.previousX) * t;
         const left = previous.x + (box.x - previous.x) * t;
-        if (x + 18 <= left || x - 18 >= left + box.width) continue;
+        if (x + 26 <= left || x - 26 >= left + box.width) continue;
         if (!landing || t < landing.t) landing = { enemy, box, x, t };
       }
     }
@@ -1600,9 +1600,14 @@ window.EnemyManager = class EnemyManager {
       if (!enemy.active || enemy._authoredEntranceActive || enemy.isSpawnProtected?.()) { if (enemy.active) enemy._contactWasProtected = true; continue; }
       if (enemy._contactWasProtected) { enemy._contactWasProtected = false; enemy._contactSafeUntilMs = this.getHostileClockNow() + 300; }
       if (!this.simpleAABBcollision(player.getHitbox(), enemy.getHitbox())) continue;
+      const graze = !this.hasHarmfulBodyContact(player, enemy);
       const previousX = sweep?.previousX ?? player.position.x;
       const direction = Math.sign(previousX - enemy.position.x) || -player.facing || 1;
       const now = this.getHostileClockNow();
+      if (graze) {
+        if (!Number.isFinite(enemy._grazeLastAtMs) || now - enemy._grazeLastAtMs > 150) enemy._grazeStartedAtMs = now;
+        enemy._grazeLastAtMs = now;
+      }
       const protectedContact = this.isHijacked(enemy) || this.isRebooting(enemy) || player.controlsDisabled ||
         player.isDamageInvulnerable?.() || now <= (player._enemyInvulnerableUntilMs || -Infinity);
       if (protectedContact) enemy._contactSafeUntilMs = Math.max(enemy._contactSafeUntilMs || 0, now + 300);
@@ -1617,6 +1622,7 @@ window.EnemyManager = class EnemyManager {
       if (player.controlsDisabled || now <= (player._enemyInvulnerableUntilMs || -Infinity)) continue;
       if (Number.isFinite(enemy.lastPlayerHitTimeMs) && now - enemy.lastPlayerHitTimeMs <= 1500) continue;
       if (player.isDamageInvulnerable?.()) continue;
+      if (graze && now - enemy._grazeStartedAtMs < 85) continue;
       if (window.hackingSystem?.absorbGuardHit?.()) { enemy.lastPlayerHitTimeMs = now; continue; }
       const damaged = player.takeDamageWithKnockback(enemy.damage, direction * 450, -300, enemy.position);
       if (damaged !== false) enemy.lastPlayerHitTimeMs = now;
@@ -1633,6 +1639,14 @@ window.EnemyManager = class EnemyManager {
       }
       if (!overlap) break;
     }
+  }
+
+  hasHarmfulBodyContact(player, enemy) {
+    const body = player.getHitbox();
+    // Brief outer grazes get a small escape window; sustained pressure still
+    // damages. Full stable hulls always own separation and crowd resolution.
+    return this.simpleAABBcollision({ x: body.x + 5, y: body.y + 8,
+      width: Math.max(1, body.width - 10), height: Math.max(1, body.height - 12) }, enemy.getHitbox());
   }
 
   separatePlayerContact(player, enemy, direction) {

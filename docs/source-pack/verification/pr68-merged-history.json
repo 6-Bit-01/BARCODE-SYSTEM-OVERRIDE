@@ -1,0 +1,287 @@
+{
+  "manifest": {
+    "packVersion": "5.0",
+    "repository": "6-Bit-01/BARCODE-SYSTEM-OVERRIDE",
+    "repositoryUrl": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE",
+    "revision": "84f7471fce9bb9300cd7c6f7165a86787054ace9",
+    "revisionUrl": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/tree/84f7471fce9bb9300cd7c6f7165a86787054ace9",
+    "publicationStatus": "github",
+    "verifiedMainBase": "84f7471fce9bb9300cd7c6f7165a86787054ace9",
+    "implementationStatus": "merged",
+    "pullRequestUrl": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/68",
+    "generatedAtUtc": "2026-09-16T16:21:20.511015+00:00",
+    "sourceCommitDate": "2026-09-16T09:18:51-07:00",
+    "sourceMode": "committed Git tree with listed exclusions; no working-tree substitutions; pack documents additionally copied to archive root",
+    "snapshotDirectory": "repository-snapshot/",
+    "trackedFileCount": 412,
+    "exportedSourceFileCount": 411,
+    "excludedSourceFiles": [
+      {
+        "path": "project_sources/BARCODE-System-Override-Source-Pack-v4.zip",
+        "reason": "Historical source-pack input; retained in Git, omitted from current export to avoid nested obsolete packs."
+      }
+    ],
+    "packDocumentSourceDirectory": "docs/source-pack/",
+    "historicalBaseline": "7788ebfab4d6231c18229bef9571d6b97b676764 (PR #25)",
+    "supersedes": [
+      "Source Pack v2",
+      "Source Pack v3",
+      "Source Pack v4"
+    ],
+    "authority": "Newest explicit owner decisions, then current pack decisions; snapshot proves implementation, not design approval.",
+    "verification": {
+      "revision": "84f7471fce9bb9300cd7c6f7165a86787054ace9",
+      "tree": "4e7f00bed415ea65b8f6e09f4ccaa42b1ee5fe45",
+      "checks": [
+        {
+          "command": "npm test",
+          "exitCode": 0,
+          "seconds": 26.59,
+          "revision": "7642a95d30f021adbf2ad4a88981a32ef3604bab"
+        },
+        {
+          "command": "npm run check:syntax:all",
+          "exitCode": 0,
+          "seconds": 6.19,
+          "revision": "7642a95d30f021adbf2ad4a88981a32ef3604bab"
+        }
+      ],
+      "base": "84f7471fce9bb9300cd7c6f7165a86787054ace9",
+      "repository": "6-Bit-01/BARCODE-SYSTEM-OVERRIDE",
+      "pullRequestUrl": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/68",
+      "implementationStatus": "merged",
+      "draft": false,
+      "merged": true,
+      "makkoPlaytest": "No new owner Makko acceptance result was supplied. The PR was merged by 6-Bit-01; merge state does not by itself establish hosted rendering or gameplay acceptance.",
+      "automatedTests": {
+        "npm test": "passed",
+        "npm run check:syntax:all": "passed"
+      },
+      "logEvidence": [
+        {
+          "file": "hologram-npm-test.log",
+          "bytes": 19767,
+          "sha256": "2b12f0f2db57b249c67336017130cb8b22283d20174edd15fe0382064e95057b",
+          "output": "npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 test\n> npm run check:syntax && npm run audit:paths && npm run audit:globals && npm run audit:external-assets && npm run check:startup-lifecycle && npm run check:frame-ownership && npm run check:music-profiles && npm run check:makko-hotfix && npm run check:runtime-lifecycle && npm run check:enemy-ownership && npm run check:action-combat && npm run baseline:check && npm run check:level-01-mission && npm run check:level-01-smoothing && npm run check:level-01-gameplay-dynamics && npm run check:level-01-boss && npm run check:level-01-presentation && npm run check:level-01-responsive-combat && npm run check:level-01-polish && npm run check:level-01-polish-menu && npm run check:level-01-discovery && npm run check:level-01-targets-traffic && npm run check:level-01-lore-archive && npm run check:level-01-story-controls && npm run check:intro && npm run check:level-01-impact && npm run check:presentation-assets && npm run check:model-art && npm run check:animation-cleanup && npm run check:enemy-hijack && npm run check:level1-rebuild && npm run check:rail-traffic-correction && npm run check:street-depth && npm run check:upper-route && npm run check:environment-runtime\n\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:syntax\n> node tools/check-syntax.js\n\nChecking loaded repository JavaScript and inline scripts...\nPASS src/utils/math.js\nPASS src/engine/sprite-playback.js\nPASS src/core/fullscreen.js\nPASS src/game/lore-records.js\nPASS src/game/pause-menu.js\nPASS src/core/action-input.js\nPASS src/core/gamepad-ui.js\nPASS src/game/player-combat.js\nPASS src/core/input.js\nPASS src/engine/music-profiles.js\nPASS src/engine/music-transport.js\nPASS src/engine/level-01-music-profile.js\nPASS src/engine/audio.js\nPASS src/engine/boot-loader.js\nPASS src/engine/particles.js\nPASS src/game/comic-hud.js\nPASS src/game/combat-fx.js\nPASS src/engine/renderer.js\nPASS src/engine/parallax.js\nPASS src/engine/traffic-sheets.js\nPASS src/engine/spaceships.js\nPASS src/engine/lore.js\nPASS src/engine/presentation-assets.js\nPASS src/engine/jammer-indicator.js\nPASS src/engine/title-screen.js\nPASS src/game/objectives.js\nPASS src/engine/intro-sequence.js\nPASS src/engine/cutscene.js\nPASS src/core/loop.js\nPASS src/core/runtime-lifecycle.js\nPASS src/game/player.js\nPASS src/game/enemies.js\nPASS src/game/jammer-environment.js\nPASS src/game/hacking.js\nPASS src/game/rhythm.js\nPASS src/game/tutorial.js\nPASS src/game/post-tutorial-objectives.js\nPASS src/game/lore-collection.js\nPASS src/game/lost-data.js\nPASS src/game/sector1-progression.js\nPASS src/game/level-01-stage-fx.js\nPASS src/game/game-state.js\nPASS src/game/update-coordinator.js\nPASS src/game/render-coordinator.js\nPASS src/game/ui-manager.js\nPASS src/game/game-initializer.js\nPASS src/game/dependency-validator.js\nPASS src/game/debug-commands.js\nPASS src/game/level-01-debug.js\nPASS src/game/main-new.js\nPASS index.html inline script 51\nPASS index.html inline script 53\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 audit:paths\n> node tools/audit-paths.js\n\nMissing first-party references:\n- index.html: /lib/MakkoEngine.min.js -> lib/MakkoEngine.min.js (script)\n- src/engine/audio.js: /assets/sounds/whoosh1.mp3 -> assets/sounds/whoosh1.mp3 (string-reference)\n- src/engine/audio.js: /assets/sounds/whoosh2.mp3 -> assets/sounds/whoosh2.mp3 (string-reference)\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 audit:globals\n> node tools/audit-globals.js\n\nCritical window.* assignments:\n- window.EnemyManager src/game/enemies.js:1340 loaded\n- window.enemyManager src/game/enemies.js:1984 loaded\n- window.enemyManager tools/check-action-combat.js:375 inactive\n- window.enemyManager tools/check-action-combat.js:453 inactive\n- window.enemyManager tools/check-action-combat.js:52 inactive\n- window.Enemy src/game/enemies.js:17 loaded\n- window.gameLoop src/core/loop.js:60 loaded\n- window.gameState src/game/game-state.js:64 loaded\n- window.gameState src/game/game-state.js:9 loaded\n- window.gameState src/game/main.js:14 inactive\n- window.gameState tools/check-action-combat.js:127 inactive\n- window.gameState tools/check-action-combat.js:315 inactive\n- window.gameState tools/check-action-combat.js:407 inactive\n- window.gameState tools/check-action-combat.js:450 inactive\n- window.gameState tools/check-action-combat.js:48 inactive\n- window.gameState tools/check-action-combat.js:508 inactive\n- window.gameState tools/check-action-combat.js:67 inactive\n- window.gameState tools/check-action-combat.js:97 inactive\n- window.player src/game/player.js:1748 loaded\n- window.player tools/check-action-combat.js:316 inactive\n- window.player tools/check-action-combat.js:374 inactive\n- window.player tools/check-action-combat.js:408 inactive\n- window.player tools/check-action-combat.js:451 inactive\n- window.player tools/check-action-combat.js:50 inactive\n- window.player tools/check-action-combat.js:68 inactive\n- window.player tools/check-action-combat.js:98 inactive\n- window.renderer src/engine/renderer.js:489 loaded\n- window.renderer src/engine/renderer.js:561 loaded\n- window.renderer src/engine/renderer.js:578 loaded\n- window.renderer tools/check-level-01-mission.js:373 inactive\n- window.renderer tools/check-level-01-mission.js:401 inactive\n- window.renderer tools/check-level-01-mission.js:463 inactive\n- window.renderer tools/check-level-01-mission.js:481 inactive\n- window.renderer tools/check-level-01-mission.js:561 inactive\n- window.renderer tools/check-level-01-mission.js:601 inactive\n- window.renderGame src/game/render-coordinator.js:35 loaded\n- window.startGameInitialization src/game/game-initializer.js:363 loaded\n- window.startGameInitialization src/game/main.js:2246 inactive\n- window.startGameLoop src/core/loop.js:138 loaded\n- window.startGame src/game/main-new.js:10 loaded\n- window.startGame src/game/main.js:29 inactive\n- window.startNewGame src/game/main-new.js:25 loaded\n- window.updateGame src/game/update-coordinator.js:34 loaded\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 audit:external-assets\n> node tools/audit-external-assets.js\n\nExternal HTTP/HTTPS hosts:\n- api.makko.ai: audio-manifest.json, sprites-manifest.json, src/engine/audio.js\n- dcnmwoxzefwqmvvkpqap.supabase.co: src/engine/level-01-music-profile.js\n- fonts.googleapis.com: index.html\n- i.postimg.cc: src/engine/spaceships.js, src/engine/title-screen.js, src/engine/traffic-sheets.js, src/game/lost-data.js, tools/check-level-01-targets-traffic.js, tools/fixtures/original-traffic-6e375.js\n- raw.githubusercontent.com: index.html, sprites-manifest.json, src/engine/intro-sequence.js, src/engine/parallax.js, src/engine/presentation-assets.js, src/engine/spaceships.js, src/game/game-initializer.js, tools/check-intro.js\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:startup-lifecycle\n> node tools/check-startup-lifecycle.js\n\nstartup lifecycle check passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:frame-ownership\n> node tools/check-frame-ownership.js\n\nframe ownership check passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:music-profiles\n> node tools/check-music-profiles.js\n\nmusic profile/transport static checks passed\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:makko-hotfix\n> node tools/check-makko-hotfix.js\n\nPASS static Makko music/rhythm hotfix checks\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:runtime-lifecycle\n> node tools/check-runtime-lifecycle.js\n\n\u2705 runtime lifecycle static checks passed\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:enemy-ownership\n> node tools/check-enemy-ownership.js\n\nenemy ownership check passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:action-combat\n> node tools/check-action-combat.js\n\n\u2713 script order and PlayerCombat routing\n\u2713 tutorial Space ownership and repeated jumping\n\u2713 simultaneous-direction neutral input contract\n\u2713 boss cinematic Rhythm Mode ownership\nInitializing 6_bit_main character...\nMakkoEngine not available - waiting...\n\u2713 frame-aware player foot anchoring and cinematic rhythm handoff\n=== STARTING RHYTHM CHAPTER ===\n\ud83c\udfb5\ud83c\udfb5\ud83c\udfb5 RHYTHM COMBO DETECTED! Player achieved combo of 5\n\ud83c\udfb5\ud83c\udfb5\ud83c\udfb5 FORCE COMPLETE RHYTHM COMBO\n\ud83c\udfb5\ud83c\udfb5\ud83c\udfb5 DEACTIVATE RHYTHM MODE ON COMBO COMPLETE\n\ud83c\udfb5 SUCCESS: Rhythm Combat Mode deactivated\n\u2713 Objective marked as completed in UI: Press {interact} to start hacking\n\ud83d\udd10 HACKING COMPLETED SUCCESSFULLY - Player solved the puzzle!\n\u2713 Objective marked as completed in UI: Complete the hacking puzzle\n\u23e9 AUTO-SKIP: All objectives completed for current dialogue - auto-advancing\n\u2713 Objective marked as completed in UI: Press {interact} to start hacking\n\u23e9 AUTO-SKIP: All objectives completed for current dialogue - auto-advancing\n\u2713 tutorial rhythm/hacking objective progression\n=== STARTING FINAL CHAPTER (CHAPTER 4) ===\nStarting final message sequence - holding for 10 seconds then fading\nAt end of chapter, advancing to next chapter\nStarting final message fade-out\nTutorial marked complete after the final message presentation\n\ud83c\udfaf Ensuring original objectives system is active...\n\u2705 Tutorial complete - main objectives system will handle all objectives\n\u2705 Global objectives flag set - objectives will appear immediately\nTutorial final message fully faded out - tutorial deactivated\nCombat tutorial enemies paused at start\nSet objective dialogue index: 3\n=== STARTING RHYTHM CHAPTER ===\n\u2713 tutorial final-message timing and delayed spawn ownership\n\u2713 Rhythm Mode restrictions\n\u2713 beat-gated PlayerCombat damage\nInitializing 6_bit_main character...\nMakkoEngine not available - waiting...\n\ud83d\ude80 Starting entrance animation from left side\n\ud83d\udca5 Creating entrance black and green blast\n\u2705 Entrance animation completed\n\ud83c\udf86 Creating final entrance explosion\n\u2713 authored entrances, spawn protection, passive stomp, and reinforcement quota isolation\nStopped layer beat sync\n\ud83c\udfb5 Title screen music stopped\n\ud83c\udfac Cutscene music stopped\n\u2713 audio profile ownership\nPASS action/combat hotfix regression checks\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 baseline:check\n> node tools/check-baseline.js\n\nbaseline-inventory.json matches generated output.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:level-01-mission\n> node tools/check-level-01-mission.js\n\nLevel 1 mission static and real-module VM checks passed\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:level-01-smoothing\n> node tools/check-level-01-smoothing.js\n\n\u2705 Level 1 audio smoothing and tutorial timer ownership checks passed\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:level-01-gameplay-dynamics\n> node tools/check-level-01-gameplay-dynamics.js\n\n\u2705 Level 1 production gameplay dynamics checks passed\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:level-01-boss\n> node tools/check-level-01-boss.js\n\nLevel 1 boss production-module checks passed\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:level-01-presentation\n> node tools/check-level-01-presentation.js\n\nLevel 1 animation, stance, hack, effects and district-restoration checks passed\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:level-01-responsive-combat\n> node tools/check-level-01-responsive-combat.js\n\nResponsive combat: input timestamps, stable contacts, swept stomps, source anchors, 30/60/120/144 Hz pacing, feedback lifecycle, animation and audio ownership passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:level-01-polish\n> node tools/check-level-01-polish.js\n\nPolish chunk 1: elapsed shake, accepted damage HUD, committed warnings and Amp pickup/use/pause/retry/reset passed.\nPolish chunk 2: gate unlock/collapse, music/scenery clocks, atmosphere budgets and actual collection/projection passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:level-01-polish-menu\n> node tools/check-level-01-polish-menu.js\n\nPolish chunk 3: pause input/pointer ownership, persistence, audio pause, completed-run totals and retry/reset passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:level-01-discovery\n> node tools/check-level-01-discovery.js\n\nDiscovery: fast progression, all three authored records, roof contact, persistence, retries, duplicate IDs and save recovery passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:level-01-targets-traffic\n> node tools/check-level-01-targets-traffic.js\n\nTargets/traffic: pure preview matches real attacks, boss guard and environmental range; original frames, bounds, duration, pause/reset and asset fallback passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:level-01-lore-archive\n> node tools/check-level-01-lore-archive.js\n\nLore archive: authored content, existing-save unlocks, hidden entries, pure reading, input ownership, queued notices, pause/reload/reset and blocked storage passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:level-01-story-controls\n> node tools/check-level-01-story-controls.js\n\nStage B: direct tutorial handoff, controller ownership, both real hack puzzles, pause/archive/calibration, saved offsets, follow camera, crowd commitments and boss counter/retry passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:intro\n> node tools/check-intro.js\n\nIntro: fullscreen before/after startup, denied/exit/re-entry visibility, eight pages, keyboard/controller holds, release/focus/disconnect, caption discovery, tutorial/mission/audio handoff and cancellation passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:level-01-impact\n> node tools/check-level-01-impact.js\n\nImpact pass: attack tiers/preview parity, Amp bounds, directional cameras, protected roof arrivals, discovery input/save isolation, predictive timing and effect lifecycle passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:presentation-assets\n> node tools/check-presentation-assets.js\n\nPresentation asset loading, hashes, shared consumers, varied FX and lifecycle checks passed\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:model-art\n> node tools/check-model-art.js\n\nModel art: 13 clips / 611 frames, atlas bounds, grounded poses, idle loop, clarified flourish, live ComicHUD and active startup verified (cold, preloaded old, mixed, old flourish, cached current, player rebind and concurrent calls).\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:animation-cleanup\n> node tools/check-animation-cleanup.js\n\nAnimation cleanup: consistent 30/60/120/144 Hz playback, variable deltas/speeds, pause/one-shots, stable idle refs, full apex/recovery and raised Jammer verified.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:enemy-hijack\n> node tools/check-enemy-hijack.js\n\nEnemy hijack, repair transactions and production rooftop traversal checks passed\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:level1-rebuild\n> node tools/check-level1-rebuild.js\n\nRebuild: 63 production jumps; grounded guards and bounded drones at 30/60/120Hz; protected contact, original GIF cars, original approach/puzzle motion/reset and roof masking passed.\nFull crowd motion ownership and drone target/conversion/projectile/release checks passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:rail-traffic-correction\n> node tools/check-rail-traffic-correction.js\n\nCorrection: 80 original car comparisons; exact speed/height/scale/bob; 30/60/120Hz approach/pause; projected swept contact/protection; roof contact; both untimed keypad practices and 18 three-second/height/direction warning trajectories passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:street-depth\n> node tools/check-street-depth.js\n\nStreet depth: production layering, one large prop, no ghost boxes, camera-aware culling, 1\u20132 hardware draws and zero live filters passed.\nTerminal from training/reset, 12px walking lane, aligned landing, hologram order; 45 sky camera/zoom cases and deterministic pause/reset animation passed.\nFitted gates: registered bake, mirrored pavement, roof/street blocking and open passage; tutorial next-action cues passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:upper-route\n> node tools/check-upper-route.js\n\nUpper route: 30/60/120Hz climb/descent, camera, pause, first-wave drone rendering, caches, roof pulses, checkpoint and authored pose checks passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:environment-runtime\n> node tools/check-environment-runtime.js\n\nEnvironment: 12 full frame-loop routes, natural left/right cars, training/mission warnings and real 3\u21922 health, roof follow, visible environment clock and pause passed.\n"
+        },
+        {
+          "file": "hologram-syntax-all.log",
+          "bytes": 329,
+          "sha256": "c529f936d3ff65aee4524796ae1b6e60dfe58670e8ae03962c39f76024059f35",
+          "output": "npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:syntax:all\n> node tools/audit-syntax-all.js --check\n\nAuditing syntax for all repository JavaScript (check mode)...\nSyntax failures: 0\nAll repository JavaScript syntax checks passed.\n"
+        }
+      ],
+      "assetDelivery": {
+        "revision": "ac183cf0ccde1b716b82c5fdce9229d2de0c5032",
+        "verification": "Each pinned raw GitHub URL downloaded successfully and matched the local asset bytes.",
+        "files": [
+          {
+            "asset": "assets/street-hardware/slim-gate-1.webp",
+            "bytes": 30158,
+            "sha256": "5e072afe922b2c7b8fea4483b0992a9fbef3330291f1287363df061ddbfd33be"
+          },
+          {
+            "asset": "assets/street-hardware/slim-gate-2.webp",
+            "bytes": 20730,
+            "sha256": "8b8a34119ee68dac395e0a353347b505d7282027de2c06c5d156513736a324e5"
+          },
+          {
+            "asset": "assets/street-hardware/slim-gate-3.webp",
+            "bytes": 31498,
+            "sha256": "f673c2a30e39e5cd43e0988488a0e1319a3c6f22d2b3cc63ae9b2bcda449706e"
+          },
+          {
+            "asset": "assets/street-hardware/slim-gate-4.webp",
+            "bytes": 28982,
+            "sha256": "152e494af582368165efa531de89962eedc069349e3d33239124c9995dfd4404"
+          }
+        ]
+      },
+      "nativeReview": {
+        "command": "FACADE_REVIEW=1 REVIEW_STILLS_ONLY=1 node tools/render-level1-rebuild.cjs /absolute/path/to/review-output",
+        "reviewed": "All four gates at street and roof height, plus the completed-task tutorial Objectives state.",
+        "limits": "Image/sprite loading and fonts adapted to the native harness; these are not hosted Makko captures. The final commit only adjusts an old fixed gate coordinate in a test; production and native render code are unchanged from the inspected views.",
+        "artifacts": [
+          {
+            "path": "docs/source-pack/verification/facade-gates-street-roof.webp",
+            "bytes": 1041572,
+            "sha256": "c0aaf81c10d3bde80d1026c6438b9cc73c0ea229a11c313cf8dc4b1549937537"
+          },
+          {
+            "path": "docs/source-pack/verification/facade-training-objectives.webp",
+            "bytes": 338848,
+            "sha256": "02ed1b435024a3866c8143452abd663fc82b6405e731b9c089af1d8ff3ad47ce"
+          }
+        ]
+      },
+      "preservedScope": "Animated background video and heavier rain; central Jammer and boss camera space; permanent terminal/depth/walking strip; WATCH OUT and damaging traffic; tutorial and controller input ownership; encounter quotas and unlocks; lift, upper routes, boss, music, rewards and retry.",
+      "ci": [
+        {
+          "id": 35120882760,
+          "name": "validate",
+          "event": "pull_request",
+          "headSha": "7642a95d30f021adbf2ad4a88981a32ef3604bab",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35120882760"
+        },
+        {
+          "id": 35120389933,
+          "name": "validate",
+          "event": "push",
+          "headSha": "7642a95d30f021adbf2ad4a88981a32ef3604bab",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35120389933"
+        }
+      ],
+      "recordedAtUtc": "2026-09-16T16:21:20.180304+00:00",
+      "testedRevision": "7642a95d30f021adbf2ad4a88981a32ef3604bab",
+      "previousMainBase": "d3d6128ce63c795c4096a320012e2136e21dfbc4",
+      "mergedAtUtc": "2026-09-16T16:18:51Z",
+      "mergedBy": "6-Bit-01",
+      "mergeCi": [
+        {
+          "id": 35121092435,
+          "name": "validate",
+          "event": "push",
+          "headSha": "84f7471fce9bb9300cd7c6f7165a86787054ace9",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35121092435"
+        }
+      ],
+      "validationBasis": "The merge tree is byte-for-byte identical to the tested review tree. Local commands and review CI ran on testedRevision; there are no source differences requiring repeat local validation."
+    },
+    "runtimeLimitations": [
+      "Makko supplies /lib/MakkoEngine.min.js; it is not included in Git.",
+      "Artwork and audio referenced by remote URLs remain externally hosted.",
+      "This source snapshot is not a self-contained offline build."
+    ],
+    "hashScope": "FILE_HASHES.sha256 covers every archive file except itself."
+  },
+  "testEvidence": {
+    "revision": "84f7471fce9bb9300cd7c6f7165a86787054ace9",
+    "tree": "4e7f00bed415ea65b8f6e09f4ccaa42b1ee5fe45",
+    "checks": [
+      {
+        "command": "npm test",
+        "exitCode": 0,
+        "seconds": 26.59,
+        "revision": "7642a95d30f021adbf2ad4a88981a32ef3604bab"
+      },
+      {
+        "command": "npm run check:syntax:all",
+        "exitCode": 0,
+        "seconds": 6.19,
+        "revision": "7642a95d30f021adbf2ad4a88981a32ef3604bab"
+      }
+    ],
+    "base": "84f7471fce9bb9300cd7c6f7165a86787054ace9",
+    "repository": "6-Bit-01/BARCODE-SYSTEM-OVERRIDE",
+    "pullRequestUrl": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/68",
+    "implementationStatus": "merged",
+    "draft": false,
+    "merged": true,
+    "makkoPlaytest": "No new owner Makko acceptance result was supplied. The PR was merged by 6-Bit-01; merge state does not by itself establish hosted rendering or gameplay acceptance.",
+    "automatedTests": {
+      "npm test": "passed",
+      "npm run check:syntax:all": "passed"
+    },
+    "logEvidence": [
+      {
+        "file": "hologram-npm-test.log",
+        "bytes": 19767,
+        "sha256": "2b12f0f2db57b249c67336017130cb8b22283d20174edd15fe0382064e95057b",
+        "output": "npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 test\n> npm run check:syntax && npm run audit:paths && npm run audit:globals && npm run audit:external-assets && npm run check:startup-lifecycle && npm run check:frame-ownership && npm run check:music-profiles && npm run check:makko-hotfix && npm run check:runtime-lifecycle && npm run check:enemy-ownership && npm run check:action-combat && npm run baseline:check && npm run check:level-01-mission && npm run check:level-01-smoothing && npm run check:level-01-gameplay-dynamics && npm run check:level-01-boss && npm run check:level-01-presentation && npm run check:level-01-responsive-combat && npm run check:level-01-polish && npm run check:level-01-polish-menu && npm run check:level-01-discovery && npm run check:level-01-targets-traffic && npm run check:level-01-lore-archive && npm run check:level-01-story-controls && npm run check:intro && npm run check:level-01-impact && npm run check:presentation-assets && npm run check:model-art && npm run check:animation-cleanup && npm run check:enemy-hijack && npm run check:level1-rebuild && npm run check:rail-traffic-correction && npm run check:street-depth && npm run check:upper-route && npm run check:environment-runtime\n\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:syntax\n> node tools/check-syntax.js\n\nChecking loaded repository JavaScript and inline scripts...\nPASS src/utils/math.js\nPASS src/engine/sprite-playback.js\nPASS src/core/fullscreen.js\nPASS src/game/lore-records.js\nPASS src/game/pause-menu.js\nPASS src/core/action-input.js\nPASS src/core/gamepad-ui.js\nPASS src/game/player-combat.js\nPASS src/core/input.js\nPASS src/engine/music-profiles.js\nPASS src/engine/music-transport.js\nPASS src/engine/level-01-music-profile.js\nPASS src/engine/audio.js\nPASS src/engine/boot-loader.js\nPASS src/engine/particles.js\nPASS src/game/comic-hud.js\nPASS src/game/combat-fx.js\nPASS src/engine/renderer.js\nPASS src/engine/parallax.js\nPASS src/engine/traffic-sheets.js\nPASS src/engine/spaceships.js\nPASS src/engine/lore.js\nPASS src/engine/presentation-assets.js\nPASS src/engine/jammer-indicator.js\nPASS src/engine/title-screen.js\nPASS src/game/objectives.js\nPASS src/engine/intro-sequence.js\nPASS src/engine/cutscene.js\nPASS src/core/loop.js\nPASS src/core/runtime-lifecycle.js\nPASS src/game/player.js\nPASS src/game/enemies.js\nPASS src/game/jammer-environment.js\nPASS src/game/hacking.js\nPASS src/game/rhythm.js\nPASS src/game/tutorial.js\nPASS src/game/post-tutorial-objectives.js\nPASS src/game/lore-collection.js\nPASS src/game/lost-data.js\nPASS src/game/sector1-progression.js\nPASS src/game/level-01-stage-fx.js\nPASS src/game/game-state.js\nPASS src/game/update-coordinator.js\nPASS src/game/render-coordinator.js\nPASS src/game/ui-manager.js\nPASS src/game/game-initializer.js\nPASS src/game/dependency-validator.js\nPASS src/game/debug-commands.js\nPASS src/game/level-01-debug.js\nPASS src/game/main-new.js\nPASS index.html inline script 51\nPASS index.html inline script 53\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 audit:paths\n> node tools/audit-paths.js\n\nMissing first-party references:\n- index.html: /lib/MakkoEngine.min.js -> lib/MakkoEngine.min.js (script)\n- src/engine/audio.js: /assets/sounds/whoosh1.mp3 -> assets/sounds/whoosh1.mp3 (string-reference)\n- src/engine/audio.js: /assets/sounds/whoosh2.mp3 -> assets/sounds/whoosh2.mp3 (string-reference)\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 audit:globals\n> node tools/audit-globals.js\n\nCritical window.* assignments:\n- window.EnemyManager src/game/enemies.js:1340 loaded\n- window.enemyManager src/game/enemies.js:1984 loaded\n- window.enemyManager tools/check-action-combat.js:375 inactive\n- window.enemyManager tools/check-action-combat.js:453 inactive\n- window.enemyManager tools/check-action-combat.js:52 inactive\n- window.Enemy src/game/enemies.js:17 loaded\n- window.gameLoop src/core/loop.js:60 loaded\n- window.gameState src/game/game-state.js:64 loaded\n- window.gameState src/game/game-state.js:9 loaded\n- window.gameState src/game/main.js:14 inactive\n- window.gameState tools/check-action-combat.js:127 inactive\n- window.gameState tools/check-action-combat.js:315 inactive\n- window.gameState tools/check-action-combat.js:407 inactive\n- window.gameState tools/check-action-combat.js:450 inactive\n- window.gameState tools/check-action-combat.js:48 inactive\n- window.gameState tools/check-action-combat.js:508 inactive\n- window.gameState tools/check-action-combat.js:67 inactive\n- window.gameState tools/check-action-combat.js:97 inactive\n- window.player src/game/player.js:1748 loaded\n- window.player tools/check-action-combat.js:316 inactive\n- window.player tools/check-action-combat.js:374 inactive\n- window.player tools/check-action-combat.js:408 inactive\n- window.player tools/check-action-combat.js:451 inactive\n- window.player tools/check-action-combat.js:50 inactive\n- window.player tools/check-action-combat.js:68 inactive\n- window.player tools/check-action-combat.js:98 inactive\n- window.renderer src/engine/renderer.js:489 loaded\n- window.renderer src/engine/renderer.js:561 loaded\n- window.renderer src/engine/renderer.js:578 loaded\n- window.renderer tools/check-level-01-mission.js:373 inactive\n- window.renderer tools/check-level-01-mission.js:401 inactive\n- window.renderer tools/check-level-01-mission.js:463 inactive\n- window.renderer tools/check-level-01-mission.js:481 inactive\n- window.renderer tools/check-level-01-mission.js:561 inactive\n- window.renderer tools/check-level-01-mission.js:601 inactive\n- window.renderGame src/game/render-coordinator.js:35 loaded\n- window.startGameInitialization src/game/game-initializer.js:363 loaded\n- window.startGameInitialization src/game/main.js:2246 inactive\n- window.startGameLoop src/core/loop.js:138 loaded\n- window.startGame src/game/main-new.js:10 loaded\n- window.startGame src/game/main.js:29 inactive\n- window.startNewGame src/game/main-new.js:25 loaded\n- window.updateGame src/game/update-coordinator.js:34 loaded\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 audit:external-assets\n> node tools/audit-external-assets.js\n\nExternal HTTP/HTTPS hosts:\n- api.makko.ai: audio-manifest.json, sprites-manifest.json, src/engine/audio.js\n- dcnmwoxzefwqmvvkpqap.supabase.co: src/engine/level-01-music-profile.js\n- fonts.googleapis.com: index.html\n- i.postimg.cc: src/engine/spaceships.js, src/engine/title-screen.js, src/engine/traffic-sheets.js, src/game/lost-data.js, tools/check-level-01-targets-traffic.js, tools/fixtures/original-traffic-6e375.js\n- raw.githubusercontent.com: index.html, sprites-manifest.json, src/engine/intro-sequence.js, src/engine/parallax.js, src/engine/presentation-assets.js, src/engine/spaceships.js, src/game/game-initializer.js, tools/check-intro.js\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:startup-lifecycle\n> node tools/check-startup-lifecycle.js\n\nstartup lifecycle check passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:frame-ownership\n> node tools/check-frame-ownership.js\n\nframe ownership check passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:music-profiles\n> node tools/check-music-profiles.js\n\nmusic profile/transport static checks passed\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:makko-hotfix\n> node tools/check-makko-hotfix.js\n\nPASS static Makko music/rhythm hotfix checks\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:runtime-lifecycle\n> node tools/check-runtime-lifecycle.js\n\n\u2705 runtime lifecycle static checks passed\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:enemy-ownership\n> node tools/check-enemy-ownership.js\n\nenemy ownership check passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:action-combat\n> node tools/check-action-combat.js\n\n\u2713 script order and PlayerCombat routing\n\u2713 tutorial Space ownership and repeated jumping\n\u2713 simultaneous-direction neutral input contract\n\u2713 boss cinematic Rhythm Mode ownership\nInitializing 6_bit_main character...\nMakkoEngine not available - waiting...\n\u2713 frame-aware player foot anchoring and cinematic rhythm handoff\n=== STARTING RHYTHM CHAPTER ===\n\ud83c\udfb5\ud83c\udfb5\ud83c\udfb5 RHYTHM COMBO DETECTED! Player achieved combo of 5\n\ud83c\udfb5\ud83c\udfb5\ud83c\udfb5 FORCE COMPLETE RHYTHM COMBO\n\ud83c\udfb5\ud83c\udfb5\ud83c\udfb5 DEACTIVATE RHYTHM MODE ON COMBO COMPLETE\n\ud83c\udfb5 SUCCESS: Rhythm Combat Mode deactivated\n\u2713 Objective marked as completed in UI: Press {interact} to start hacking\n\ud83d\udd10 HACKING COMPLETED SUCCESSFULLY - Player solved the puzzle!\n\u2713 Objective marked as completed in UI: Complete the hacking puzzle\n\u23e9 AUTO-SKIP: All objectives completed for current dialogue - auto-advancing\n\u2713 Objective marked as completed in UI: Press {interact} to start hacking\n\u23e9 AUTO-SKIP: All objectives completed for current dialogue - auto-advancing\n\u2713 tutorial rhythm/hacking objective progression\n=== STARTING FINAL CHAPTER (CHAPTER 4) ===\nStarting final message sequence - holding for 10 seconds then fading\nAt end of chapter, advancing to next chapter\nStarting final message fade-out\nTutorial marked complete after the final message presentation\n\ud83c\udfaf Ensuring original objectives system is active...\n\u2705 Tutorial complete - main objectives system will handle all objectives\n\u2705 Global objectives flag set - objectives will appear immediately\nTutorial final message fully faded out - tutorial deactivated\nCombat tutorial enemies paused at start\nSet objective dialogue index: 3\n=== STARTING RHYTHM CHAPTER ===\n\u2713 tutorial final-message timing and delayed spawn ownership\n\u2713 Rhythm Mode restrictions\n\u2713 beat-gated PlayerCombat damage\nInitializing 6_bit_main character...\nMakkoEngine not available - waiting...\n\ud83d\ude80 Starting entrance animation from left side\n\ud83d\udca5 Creating entrance black and green blast\n\u2705 Entrance animation completed\n\ud83c\udf86 Creating final entrance explosion\n\u2713 authored entrances, spawn protection, passive stomp, and reinforcement quota isolation\nStopped layer beat sync\n\ud83c\udfb5 Title screen music stopped\n\ud83c\udfac Cutscene music stopped\n\u2713 audio profile ownership\nPASS action/combat hotfix regression checks\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 baseline:check\n> node tools/check-baseline.js\n\nbaseline-inventory.json matches generated output.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:level-01-mission\n> node tools/check-level-01-mission.js\n\nLevel 1 mission static and real-module VM checks passed\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:level-01-smoothing\n> node tools/check-level-01-smoothing.js\n\n\u2705 Level 1 audio smoothing and tutorial timer ownership checks passed\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:level-01-gameplay-dynamics\n> node tools/check-level-01-gameplay-dynamics.js\n\n\u2705 Level 1 production gameplay dynamics checks passed\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:level-01-boss\n> node tools/check-level-01-boss.js\n\nLevel 1 boss production-module checks passed\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:level-01-presentation\n> node tools/check-level-01-presentation.js\n\nLevel 1 animation, stance, hack, effects and district-restoration checks passed\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:level-01-responsive-combat\n> node tools/check-level-01-responsive-combat.js\n\nResponsive combat: input timestamps, stable contacts, swept stomps, source anchors, 30/60/120/144 Hz pacing, feedback lifecycle, animation and audio ownership passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:level-01-polish\n> node tools/check-level-01-polish.js\n\nPolish chunk 1: elapsed shake, accepted damage HUD, committed warnings and Amp pickup/use/pause/retry/reset passed.\nPolish chunk 2: gate unlock/collapse, music/scenery clocks, atmosphere budgets and actual collection/projection passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:level-01-polish-menu\n> node tools/check-level-01-polish-menu.js\n\nPolish chunk 3: pause input/pointer ownership, persistence, audio pause, completed-run totals and retry/reset passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:level-01-discovery\n> node tools/check-level-01-discovery.js\n\nDiscovery: fast progression, all three authored records, roof contact, persistence, retries, duplicate IDs and save recovery passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:level-01-targets-traffic\n> node tools/check-level-01-targets-traffic.js\n\nTargets/traffic: pure preview matches real attacks, boss guard and environmental range; original frames, bounds, duration, pause/reset and asset fallback passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:level-01-lore-archive\n> node tools/check-level-01-lore-archive.js\n\nLore archive: authored content, existing-save unlocks, hidden entries, pure reading, input ownership, queued notices, pause/reload/reset and blocked storage passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:level-01-story-controls\n> node tools/check-level-01-story-controls.js\n\nStage B: direct tutorial handoff, controller ownership, both real hack puzzles, pause/archive/calibration, saved offsets, follow camera, crowd commitments and boss counter/retry passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:intro\n> node tools/check-intro.js\n\nIntro: fullscreen before/after startup, denied/exit/re-entry visibility, eight pages, keyboard/controller holds, release/focus/disconnect, caption discovery, tutorial/mission/audio handoff and cancellation passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:level-01-impact\n> node tools/check-level-01-impact.js\n\nImpact pass: attack tiers/preview parity, Amp bounds, directional cameras, protected roof arrivals, discovery input/save isolation, predictive timing and effect lifecycle passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:presentation-assets\n> node tools/check-presentation-assets.js\n\nPresentation asset loading, hashes, shared consumers, varied FX and lifecycle checks passed\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:model-art\n> node tools/check-model-art.js\n\nModel art: 13 clips / 611 frames, atlas bounds, grounded poses, idle loop, clarified flourish, live ComicHUD and active startup verified (cold, preloaded old, mixed, old flourish, cached current, player rebind and concurrent calls).\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:animation-cleanup\n> node tools/check-animation-cleanup.js\n\nAnimation cleanup: consistent 30/60/120/144 Hz playback, variable deltas/speeds, pause/one-shots, stable idle refs, full apex/recovery and raised Jammer verified.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:enemy-hijack\n> node tools/check-enemy-hijack.js\n\nEnemy hijack, repair transactions and production rooftop traversal checks passed\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:level1-rebuild\n> node tools/check-level1-rebuild.js\n\nRebuild: 63 production jumps; grounded guards and bounded drones at 30/60/120Hz; protected contact, original GIF cars, original approach/puzzle motion/reset and roof masking passed.\nFull crowd motion ownership and drone target/conversion/projectile/release checks passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:rail-traffic-correction\n> node tools/check-rail-traffic-correction.js\n\nCorrection: 80 original car comparisons; exact speed/height/scale/bob; 30/60/120Hz approach/pause; projected swept contact/protection; roof contact; both untimed keypad practices and 18 three-second/height/direction warning trajectories passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:street-depth\n> node tools/check-street-depth.js\n\nStreet depth: production layering, one large prop, no ghost boxes, camera-aware culling, 1\u20132 hardware draws and zero live filters passed.\nTerminal from training/reset, 12px walking lane, aligned landing, hologram order; 45 sky camera/zoom cases and deterministic pause/reset animation passed.\nFitted gates: registered bake, mirrored pavement, roof/street blocking and open passage; tutorial next-action cues passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:upper-route\n> node tools/check-upper-route.js\n\nUpper route: 30/60/120Hz climb/descent, camera, pause, first-wave drone rendering, caches, roof pulses, checkpoint and authored pose checks passed.\nnpm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:environment-runtime\n> node tools/check-environment-runtime.js\n\nEnvironment: 12 full frame-loop routes, natural left/right cars, training/mission warnings and real 3\u21922 health, roof follow, visible environment clock and pause passed.\n"
+      },
+      {
+        "file": "hologram-syntax-all.log",
+        "bytes": 329,
+        "sha256": "c529f936d3ff65aee4524796ae1b6e60dfe58670e8ae03962c39f76024059f35",
+        "output": "npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n\n> barcode-system-override-baseline@0.1.0 check:syntax:all\n> node tools/audit-syntax-all.js --check\n\nAuditing syntax for all repository JavaScript (check mode)...\nSyntax failures: 0\nAll repository JavaScript syntax checks passed.\n"
+      }
+    ],
+    "assetDelivery": {
+      "revision": "ac183cf0ccde1b716b82c5fdce9229d2de0c5032",
+      "verification": "Each pinned raw GitHub URL downloaded successfully and matched the local asset bytes.",
+      "files": [
+        {
+          "asset": "assets/street-hardware/slim-gate-1.webp",
+          "bytes": 30158,
+          "sha256": "5e072afe922b2c7b8fea4483b0992a9fbef3330291f1287363df061ddbfd33be"
+        },
+        {
+          "asset": "assets/street-hardware/slim-gate-2.webp",
+          "bytes": 20730,
+          "sha256": "8b8a34119ee68dac395e0a353347b505d7282027de2c06c5d156513736a324e5"
+        },
+        {
+          "asset": "assets/street-hardware/slim-gate-3.webp",
+          "bytes": 31498,
+          "sha256": "f673c2a30e39e5cd43e0988488a0e1319a3c6f22d2b3cc63ae9b2bcda449706e"
+        },
+        {
+          "asset": "assets/street-hardware/slim-gate-4.webp",
+          "bytes": 28982,
+          "sha256": "152e494af582368165efa531de89962eedc069349e3d33239124c9995dfd4404"
+        }
+      ]
+    },
+    "nativeReview": {
+      "command": "FACADE_REVIEW=1 REVIEW_STILLS_ONLY=1 node tools/render-level1-rebuild.cjs /absolute/path/to/review-output",
+      "reviewed": "All four gates at street and roof height, plus the completed-task tutorial Objectives state.",
+      "limits": "Image/sprite loading and fonts adapted to the native harness; these are not hosted Makko captures. The final commit only adjusts an old fixed gate coordinate in a test; production and native render code are unchanged from the inspected views.",
+      "artifacts": [
+        {
+          "path": "docs/source-pack/verification/facade-gates-street-roof.webp",
+          "bytes": 1041572,
+          "sha256": "c0aaf81c10d3bde80d1026c6438b9cc73c0ea229a11c313cf8dc4b1549937537"
+        },
+        {
+          "path": "docs/source-pack/verification/facade-training-objectives.webp",
+          "bytes": 338848,
+          "sha256": "02ed1b435024a3866c8143452abd663fc82b6405e731b9c089af1d8ff3ad47ce"
+        }
+      ]
+    },
+    "preservedScope": "Animated background video and heavier rain; central Jammer and boss camera space; permanent terminal/depth/walking strip; WATCH OUT and damaging traffic; tutorial and controller input ownership; encounter quotas and unlocks; lift, upper routes, boss, music, rewards and retry.",
+    "ci": [
+      {
+        "id": 35120882760,
+        "name": "validate",
+        "event": "pull_request",
+        "headSha": "7642a95d30f021adbf2ad4a88981a32ef3604bab",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35120882760"
+      },
+      {
+        "id": 35120389933,
+        "name": "validate",
+        "event": "push",
+        "headSha": "7642a95d30f021adbf2ad4a88981a32ef3604bab",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35120389933"
+      }
+    ],
+    "recordedAtUtc": "2026-09-16T16:21:20.180304+00:00",
+    "testedRevision": "7642a95d30f021adbf2ad4a88981a32ef3604bab",
+    "previousMainBase": "d3d6128ce63c795c4096a320012e2136e21dfbc4",
+    "mergedAtUtc": "2026-09-16T16:18:51Z",
+    "mergedBy": "6-Bit-01",
+    "mergeCi": [
+      {
+        "id": 35121092435,
+        "name": "validate",
+        "event": "push",
+        "headSha": "84f7471fce9bb9300cd7c6f7165a86787054ace9",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35121092435"
+      }
+    ],
+    "validationBasis": "The merge tree is byte-for-byte identical to the tested review tree. Local commands and review CI ran on testedRevision; there are no source differences requiring repeat local validation."
+  }
+}

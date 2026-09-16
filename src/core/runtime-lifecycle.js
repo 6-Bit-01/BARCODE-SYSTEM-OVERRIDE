@@ -151,6 +151,7 @@ window.BARCODE = window.BARCODE || {};
     }
 
     resetRunState({ preserveProgress: !!options.restart });
+    window.BARCODE?.LevelDifficulty?.beginLevel('level-01');
     if (options.restart && window.audioSystem && typeof window.audioSystem.startRuntimeGameplayMusic === 'function') {
       const musicResult = window.audioSystem.startRuntimeGameplayMusic();
       if (!musicResult || musicResult.ok === false) {
@@ -268,6 +269,7 @@ window.BARCODE = window.BARCODE || {};
 
   function stopOwnedResources(options) {
     options = options || {};
+    namespace.LevelDifficulty?.stop();
     namespace.IntroSequence?.reset();
     if (window.inputManager && typeof window.inputManager.resetActionEdges === 'function') window.inputManager.resetActionEdges();
     if (window.BARCODE && window.BARCODE.playerCombat && typeof window.BARCODE.playerCombat.reset === 'function') window.BARCODE.playerCombat.reset();
