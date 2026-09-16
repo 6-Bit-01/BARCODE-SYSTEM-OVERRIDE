@@ -52,7 +52,7 @@ window.JammerIndicator = class JammerIndicator {
     const verticalOffset = 250 * (1 - zoom);
     return {
       x: 960 + zoom * (point.x - cameraCenter),
-      y: 425 + verticalOffset + zoom * (point.y - 425)
+      y: 425 + verticalOffset + zoom * (point.y - (window.sector1Progression?.getCameraY?.() || 0) - 425)
     };
   }
 

@@ -1,5 +1,9 @@
 # Project Instructions
 
+## September 16, 2026 — current upper-route follow-up after merged #59
+
+The owner requested the Jammer-arrow correction, visible drones, barely visible roof-edge guides, a free boss-combat camera, more rooftop exploration, a sharper boss intro, an illustrated elevator and boss jump/climb participation above the street. `UPPER_ROUTE_BOSS_PASS.md` records the recovered combined implementation and focused review. Thin continuous rails and hardware depth remain part of the saved continuation. Base/rollback is `a4c16069b008c508a1dca60aeba3aab7e3c29b3f`; branch `agent/upper-route-boss-polish`. Preserve original car motion, single jump, the 20-defeat mission and existing combat/music rules. Exact reward/timing/art choices are implemented for owner Makko review, which remains pending before merge. Older latest/current entries below describe earlier milestones.
+
 ## Latest approved scope
 
 The owner selected thin continuous barrier rails and approved `THIN_RAIL_TRAFFIC_CORRECTION.md`. This supersedes detached emitter boxes, retuned foreground cars and removal of all roof lines. Preserve exact original car motion/art, add warnings/damage, restore faint roof edges, finish contact/Firewall/keypad/attention corrections and retain working separate cutscene controls. One combined draft; owner Makko review before merge.

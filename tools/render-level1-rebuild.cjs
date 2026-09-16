@@ -8,6 +8,12 @@ GlobalFonts.registerFromPath('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','
 async function main(){
  const {w,p,context,calls}=createRig();await installArt(w,context);
  const clips={};for(const file of fs.readdirSync(path.join(root,'assets/sprites-v3/prepared')).filter(f=>f.endsWith('.json'))){const key=file.slice(0,-5),meta=JSON.parse(fs.readFileSync(path.join(root,'assets/sprites-v3/prepared',file)));clips[key]={meta,image:await loadImage(path.join(root,'assets/sprites-v3/prepared',key+'.webp')),frames:Object.values(meta.frames)};}
+ if(process.env.UPPER_ROUTE_REVIEW){
+  const key='sector_1_boss_walk_walk',folder=process.env.BOSS_WALK_CACHE;
+  if(!folder)throw new Error('BOSS_WALK_CACHE must contain the original manifest-linked walk bytes');
+  const meta=JSON.parse(fs.readFileSync(path.join(folder,key+'.json')));
+  clips[key]={meta,image:await loadImage(path.join(folder,key+'.webp')),frames:Object.values(meta.frames)};
+ }
  function sprite(){const s=createSprite(Object.fromEntries(Object.entries(clips).map(([k,v])=>[k,v.frames.length]))),old=s.play;
   s.isLoaded=()=>true;s.getHitboxWorld=()=>null;
   s.play=function(...args){const r=old.apply(s,args),a=clips[args[0]],anchor=a.meta.meta.anchor||{x:a.frames[0].frame.w/2,y:308};
@@ -36,6 +42,33 @@ async function main(){
  p.state='encounter_4';p.closedGateEncounterId=p.state;setHero(3250,650,'tower-utility-unit');w.enemyManager.enemies=[];scene(c,3190,0);fs.writeFileSync(path.join(out,'broadcast-terminal.png'),canvas.toBuffer('image/png'));
  const roof=w.Sector1Progression.STAGE_SURFACES.find(p=>p.id==='tower-crown');const drone=new w.RooftopDrone(3490,-500,roof);drone._sector1MissionEnemy=true;drone.spawnProtectionDuration=0;w.enemyManager.enemies=[drone];setHero(3340,-314,'tower-crown');scene(c,3160,-914);fs.writeFileSync(path.join(out,'rooftop-drone.png'),canvas.toBuffer('image/png'));
  const hack=w.hackingSystem=new w.HackingSystem();hack.active=true;hack.phase='answer';hack.puzzleType=2;hack.currentPuzzle={type:2,answer:'4061',hidden:true};hack.inputText='40';hack.useKeypad();scene(c,3160,-914);hack.draw(c);fs.writeFileSync(path.join(out,'keypad.png'),canvas.toBuffer('image/png'));hack.active=false;
+ if(process.env.UPPER_ROUTE_REVIEW){
+  p.state='jammer_active';p.closedGateEncounterId=null;p.districtSignal.clearedAtMs=[0,0,0,0];p.districtSignal.elapsedMs=3000;
+  p.resetSignalLift();p.signalLift.y=660;p.signalLift.charges=2;p.signalLift.state='rising';setHero(725,660,'signal-lift');w.enemyManager.enemies=[];
+  scene(c,1060,0);fs.writeFileSync(path.join(out,'upper-lift.png'),canvas.toBuffer('image/png'));
+  const def=w.Sector1Progression.ENCOUNTERS[1];p.state=def.id;p.spawnEncounter(def);p.updatePendingSpawns(1000);
+  w.enemyManager.enemies=p.activeEncounterEnemies.filter(e=>e.type==='drone');setHero(1660,330,'cache-awning');w.enemyManager.enemies.forEach(e=>e.update(800,w.player,800));scene(c,1790,-270);fs.writeFileSync(path.join(out,'upper-drone.png'),canvas.toBuffer('image/png'));
+  p.state='jammer_active';p.closedGateEncounterId=null;w.enemyManager.enemies=[];setHero(310,-200,'west-crown');scene(c,1000,-800);fs.writeFileSync(path.join(out,'upper-cache.png'),canvas.toBuffer('image/png'));
+  p.boss={x:3480,y:784,active:true,sprite:sprite(),spriteReady:true,fallbackLocked:false,activeAnimation:null};p.enterBossReady();p.startBossFlourish();
+  p.phaseElapsed=2100;setHero(3170,856);scene(c,3136,0);fs.writeFileSync(path.join(out,'upper-flourish.png'),canvas.toBuffer('image/png'));
+  const preview=createCanvas(960,540),pc=preview.getContext('2d');
+  const ff=spawn('/usr/bin/ffmpeg',['-y','-loglevel','error','-f','rawvideo','-pix_fmt','rgba','-s','960x540','-r','30','-i','pipe:0','-an','-c:v','libx264','-threads','2','-preset','veryfast','-crf','20','-pix_fmt','yuv420p','-movflags','+faststart',path.join(out,'Upper-Route-Boss-Review.mp4')],{stdio:['pipe','ignore','pipe']});let err='';ff.stderr.on('data',d=>err+=d);const completion=once(ff,'close');
+  for(let i=0;i<660;i++){
+   const dt=1000/30;w.gameState.gameTime=i*dt;
+   if(i<120){p.state='boss_flourish';p.phaseElapsed=i*dt;p.boss.state='flourish';scene(c,3136,0);}
+   else {
+    if(i===120){p.boss.x=3430;p.boss.y=784;p.enterBossReady();p.beginBossCombat();setHero(3490,-314,'tower-crown');}
+    if(i===480){setHero(3500,856);p.setBossCombatPhase('approach');}
+    w.audioSystem.context.currentTime+=dt/1000;p.update(dt);
+    scene(c,3136,p.getCameraY());
+    if(i===220||i===400||i===450)fs.writeFileSync(path.join(out,'upper-boss-'+i+'.png'),canvas.toBuffer('image/png'));
+   }
+   pc.setTransform(.5,0,0,.5,0,0);pc.drawImage(canvas,0,0);pc.fillStyle='rgba(8,12,20,.9)';pc.fillRect(18,1010,1520,46);pc.fillStyle='#fff';pc.font='22px Oxanium';pc.fillText(i<120?'Native review · Crisp boss flourish':i<480?'Native review · Boss climbs authored supports · Camera follows player':'Native review · Boss returns toward street level',34,1041);
+   if(!ff.stdin.write(Buffer.from(pc.getImageData(0,0,960,540).data)))await once(ff.stdin,'drain');
+  }
+  ff.stdin.end();const [code]=await completion;if(code!==0)throw new Error(err);if(calls.errors.length)throw new Error(calls.errors.join('\n'));
+  console.log('Upper-route production art, first-wave drone and 22-second boss/camera review rendered.');
+ }
  if(process.env.REVIEW_STILLS_ONLY)return console.log('Four production stills rendered.');
  // Script one original car for this short capture. Select a valid original
  // altitude for a visible contact; production spawning and range stay intact.

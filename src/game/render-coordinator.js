@@ -432,14 +432,13 @@ function drawGameEntities(ctx) {
     }
   }
 
-  // Street hardware belongs behind actors: enemies cross over pavement rails
-  // just like the player, including after a gate has powered down.
-  // Draw sector progression elements
-  if (window.sector1Progression && typeof window.sector1Progression.draw === 'function') {
+  // Only emitter hardware belongs behind enemies. Keep gate fields, lift,
+  // repairs, traversal props and boss in their established foreground order.
+  if (typeof window.sector1Progression?.drawEncounterHardware === 'function') {
     try {
-      window.sector1Progression.draw(ctx);
+      window.sector1Progression.drawEncounterHardware(ctx);
     } catch (error) {
-      console.error('Error drawing Sector 1 progression:', error?.message || error);
+      console.error('Error drawing encounter hardware:', error?.message || error);
     }
   }
   
@@ -449,6 +448,14 @@ function drawGameEntities(ctx) {
       window.enemyManager.draw(ctx);
     } catch (error) {
       console.error('Error drawing enemies:', error?.message || error);
+    }
+  }
+
+  if (window.sector1Progression && typeof window.sector1Progression.draw === 'function') {
+    try {
+      window.sector1Progression.draw(ctx);
+    } catch (error) {
+      console.error('Error drawing Sector 1 progression:', error?.message || error);
     }
   }
 

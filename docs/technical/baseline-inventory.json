@@ -162,6 +162,7 @@
     "tools/check-startup-lifecycle.js",
     "tools/check-street-depth.js",
     "tools/check-syntax.js",
+    "tools/check-upper-route.js",
     "tools/fixtures/original-traffic-6e375.js",
     "tools/generate-baseline.js",
     "tools/makko-animation-fixture.js"

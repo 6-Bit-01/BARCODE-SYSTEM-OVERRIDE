@@ -1,5 +1,9 @@
 # Decision Register
 
+## September 16, 2026 — current upper-route follow-up after merged #59
+
+The owner requested the Jammer-arrow correction, visible drones, barely visible roof-edge guides, a free boss-combat camera, more rooftop exploration, a sharper boss intro, an illustrated elevator and boss jump/climb participation above the street. `UPPER_ROUTE_BOSS_PASS.md` records the recovered combined implementation and focused review. Thin continuous rails and hardware depth remain part of the saved continuation. Base/rollback is `a4c16069b008c508a1dca60aeba3aab7e3c29b3f`; branch `agent/upper-route-boss-polish`. Preserve original car motion, single jump, the 20-defeat mission and existing combat/music rules. Exact reward/timing/art choices are implemented for owner Makko review, which remains pending before merge. Older latest/current entries below describe earlier milestones.
+
 ## September 16, 2026 — street depth, one terminal and render cost
 
 Base/rollback is merged PR #58 (`1c8b54ec5db0e102f64c0ffb15bd4b57c5e5acda`). Branch `agent/street-depth-terminal-performance` implements the owner's new feedback: draw emitter hardware behind enemies, replace three large generic boxes with one illustrated broadcast terminal at the Tower, and reduce wasted scenery rendering. The two removed boxes also lose their colliders; thin wall-mounted supports remain. Baked original rail geometry/off states use asset ancestor `1891ebb4e061971362817832e942ef9fbe05d15a`. Native gate-pass draw calls fall from 14 to 1 for the first gate and 55 to 2 after all gates clear at the fixed review camera. This is not a hosted FPS claim. See `STREET_DEPTH_TERMINAL_PERFORMANCE.md` for implementation, assets, tests, limits and the exact Makko route. Review head/CI belong to the generated receipt. Owner Makko acceptance is pending; earlier entries are history.
