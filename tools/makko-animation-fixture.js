@@ -48,6 +48,6 @@ function createSprite(animations) {
   };
 }
 
-const playerClips = { '6_bit_idle_idle': 26, '6_bit_walk_walk': 48, '6_bit_jump_jump': 27, '6_bit_r__h_mode_rhmode': 48 };
+const playerClips = { '6_bit_idle_idle': 26, '6_bit_walk_walk': 64, '6_bit_jump_jump': 27, '6_bit_r__h_mode_rhmode': 48 };
 const enemyClips = { virus_idle_idle: 51, corrupted_idle_idle: 51, corrupted_walk_walk: 46, firewall_idle_idle: 62, firewall_walk_walk: 33, firewall_attack_default: 59 };
 module.exports = { createSprite, playerClips, enemyClips };

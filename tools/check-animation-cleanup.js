@@ -33,6 +33,45 @@ const near = (a, b) => assert(Math.abs(a - b) < 1e-4, `${a} / ${b}`);
   }
 }
 
+// Sustained movement exercises Player's real transition owner as well as the
+// clock. Turning while held must not replace the reference or reset the stride.
+{
+  const fs = require('node:fs'), path = require('node:path');
+  const metadata = JSON.parse(fs.readFileSync(path.join(__dirname,
+    '../assets/sprites-v3/prepared/6_bit_walk_walk.json')));
+  const entries = Object.values(metadata.frames);
+  for (const fps of [30, 60, 120, 144]) {
+    const { w: world } = createRig(), player = world.player;
+    player.sprite = createSprite(playerClips); player.spriteReady = true;
+    player.state = 'walk'; player.grounded = true; player.landingPoseMs = 0;
+    player.cinematicPoseActive = false; player.impactHoldMs = 0;
+    player.playAnimation('walk');
+    player.sprite.currentSprite.metadata.frames = Object.fromEntries(entries.map((f, i) => [String(i), f]));
+    const ref = player.animationRef, body = JSON.stringify(player.getHitbox());
+    for (let i = 0; i < 60 * fps; i++) {
+      player.facing = i < 30 * fps ? 1 : -1;
+      player.updateSpriteAnimation(1000 / fps);
+      assert.equal(player.animationRef, ref, 'held walk and turns never restart the clip');
+    }
+    assert.equal(ref.currentFrame, 0, 'sixty sustained strides wrap to the initial pose');
+    near(player.sprite.currentSprite.timeAccumulator, 0);
+    assert.equal(JSON.stringify(player.getHitbox()), body, 'visual changes cannot alter the body');
+    player.sprite.pause(); player.updateSpriteAnimation(800);
+    assert.equal(ref.currentFrame, 0); player.sprite.resume();
+    player.updateSpriteAnimation(125);
+    assert.equal(player.animationRef, ref, 'resume retains the walk owner');
+    assert.equal(ref.currentFrame, 2, 'two evenly paced drawings after resume');
+    player.state = 'idle'; player.updateSpriteAnimation(16);
+    assert.equal(player.sprite.getCurrentAnimation(), '6_bit_idle_idle');
+    player.state = 'jump'; player.grounded = false; player.velocity.y = 300;
+    player.updateSpriteAnimation(16);
+    assert.equal(player.sprite.getCurrentAnimation(), '6_bit_jump_jump');
+    player.state = 'walk'; player.grounded = true; player.updateSpriteAnimation(16);
+    assert.equal(player.sprite.getCurrentAnimation(), '6_bit_walk_walk', 'moving landing resumes walk');
+    assert.equal(player.animationRef.currentFrame, 0, 'new walk starts on contact');
+  }
+}
+
 // At equal elapsed time the pose must agree, including remainder and speed.
 for (const fps of [30, 60, 120, 144]) for (const speed of [0.75, 1, 1.25, 2]) {
   const sprite = createSprite(playerClips);

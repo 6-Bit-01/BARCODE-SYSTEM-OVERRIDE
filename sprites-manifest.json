@@ -5,8 +5,8 @@
       "animations": {
         "6_bit_idle_idle": {
           "fps": 12,
-          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/39410b034c9444861f8f30836e31f9ec252d92fe/assets/sprites-v3/prepared/6_bit_idle_idle.json",
-          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/39410b034c9444861f8f30836e31f9ec252d92fe/assets/sprites-v3/prepared/6_bit_idle_idle.webp",
+          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3e1af42b28521ff02efd7343792a890196493f70/assets/sprites-v3/prepared/6_bit_idle_idle.json",
+          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3e1af42b28521ff02efd7343792a890196493f70/assets/sprites-v3/prepared/6_bit_idle_idle.webp",
           "anchor": {
             "x": 160,
             "y": 308,
@@ -38,8 +38,8 @@
         },
         "6_bit_jump_jump": {
           "fps": 12,
-          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/39410b034c9444861f8f30836e31f9ec252d92fe/assets/sprites-v3/prepared/6_bit_jump_jump.json",
-          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/39410b034c9444861f8f30836e31f9ec252d92fe/assets/sprites-v3/prepared/6_bit_jump_jump.webp",
+          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3e1af42b28521ff02efd7343792a890196493f70/assets/sprites-v3/prepared/6_bit_jump_jump.json",
+          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3e1af42b28521ff02efd7343792a890196493f70/assets/sprites-v3/prepared/6_bit_jump_jump.webp",
           "anchor": {
             "x": 96,
             "y": 308,
@@ -70,9 +70,9 @@
           "animationLength": 2.25
         },
         "6_bit_walk_walk": {
-          "fps": 12,
-          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/39410b034c9444861f8f30836e31f9ec252d92fe/assets/sprites-v3/prepared/6_bit_walk_walk.json",
-          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/39410b034c9444861f8f30836e31f9ec252d92fe/assets/sprites-v3/prepared/6_bit_walk_walk.webp",
+          "fps": 16,
+          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3e1af42b28521ff02efd7343792a890196493f70/assets/sprites-v3/prepared/6_bit_walk_walk.json",
+          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3e1af42b28521ff02efd7343792a890196493f70/assets/sprites-v3/prepared/6_bit_walk_walk.webp",
           "anchor": {
             "x": 144,
             "y": 308,
@@ -99,13 +99,13 @@
             "width": 288,
             "height": 320
           },
-          "frameCount": 48,
+          "frameCount": 64,
           "animationLength": 4
         },
         "6_bit_r__h_mode_rhmode": {
           "fps": 12,
-          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/39410b034c9444861f8f30836e31f9ec252d92fe/assets/sprites-v3/prepared/6_bit_r__h_mode_rhmode.json",
-          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/39410b034c9444861f8f30836e31f9ec252d92fe/assets/sprites-v3/prepared/6_bit_r__h_mode_rhmode.webp",
+          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3e1af42b28521ff02efd7343792a890196493f70/assets/sprites-v3/prepared/6_bit_r__h_mode_rhmode.json",
+          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3e1af42b28521ff02efd7343792a890196493f70/assets/sprites-v3/prepared/6_bit_r__h_mode_rhmode.webp",
           "anchor": {
             "x": 96,
             "y": 308,
@@ -144,8 +144,8 @@
       "animations": {
         "virus_idle_idle": {
           "fps": 12,
-          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/39410b034c9444861f8f30836e31f9ec252d92fe/assets/sprites-v3/prepared/virus_idle_idle.json",
-          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/39410b034c9444861f8f30836e31f9ec252d92fe/assets/sprites-v3/prepared/virus_idle_idle.webp",
+          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3e1af42b28521ff02efd7343792a890196493f70/assets/sprites-v3/prepared/virus_idle_idle.json",
+          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3e1af42b28521ff02efd7343792a890196493f70/assets/sprites-v3/prepared/virus_idle_idle.webp",
           "anchor": {
             "x": 192,
             "y": 308,
@@ -184,8 +184,8 @@
       "animations": {
         "corrupted_idle_idle": {
           "fps": 12,
-          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/39410b034c9444861f8f30836e31f9ec252d92fe/assets/sprites-v3/prepared/corrupted_idle_idle.json",
-          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/39410b034c9444861f8f30836e31f9ec252d92fe/assets/sprites-v3/prepared/corrupted_idle_idle.webp",
+          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3e1af42b28521ff02efd7343792a890196493f70/assets/sprites-v3/prepared/corrupted_idle_idle.json",
+          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3e1af42b28521ff02efd7343792a890196493f70/assets/sprites-v3/prepared/corrupted_idle_idle.webp",
           "anchor": {
             "x": 192,
             "y": 308,
@@ -217,8 +217,8 @@
         },
         "corrupted_walk_walk": {
           "fps": 12,
-          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/39410b034c9444861f8f30836e31f9ec252d92fe/assets/sprites-v3/prepared/corrupted_walk_walk.json",
-          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/39410b034c9444861f8f30836e31f9ec252d92fe/assets/sprites-v3/prepared/corrupted_walk_walk.webp",
+          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3e1af42b28521ff02efd7343792a890196493f70/assets/sprites-v3/prepared/corrupted_walk_walk.json",
+          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3e1af42b28521ff02efd7343792a890196493f70/assets/sprites-v3/prepared/corrupted_walk_walk.webp",
           "anchor": {
             "x": 160,
             "y": 276,
@@ -257,8 +257,8 @@
       "animations": {
         "firewall_idle_idle": {
           "fps": 12,
-          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/39410b034c9444861f8f30836e31f9ec252d92fe/assets/sprites-v3/prepared/firewall_idle_idle.json",
-          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/39410b034c9444861f8f30836e31f9ec252d92fe/assets/sprites-v3/prepared/firewall_idle_idle.webp",
+          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3e1af42b28521ff02efd7343792a890196493f70/assets/sprites-v3/prepared/firewall_idle_idle.json",
+          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3e1af42b28521ff02efd7343792a890196493f70/assets/sprites-v3/prepared/firewall_idle_idle.webp",
           "anchor": {
             "x": 176,
             "y": 308,
@@ -290,8 +290,8 @@
         },
         "firewall_walk_walk": {
           "fps": 12,
-          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/39410b034c9444861f8f30836e31f9ec252d92fe/assets/sprites-v3/prepared/firewall_walk_walk.json",
-          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/39410b034c9444861f8f30836e31f9ec252d92fe/assets/sprites-v3/prepared/firewall_walk_walk.webp",
+          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3e1af42b28521ff02efd7343792a890196493f70/assets/sprites-v3/prepared/firewall_walk_walk.json",
+          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3e1af42b28521ff02efd7343792a890196493f70/assets/sprites-v3/prepared/firewall_walk_walk.webp",
           "anchor": {
             "x": 160,
             "y": 308,
@@ -323,8 +323,8 @@
         },
         "firewall_attack_default": {
           "fps": 12,
-          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/39410b034c9444861f8f30836e31f9ec252d92fe/assets/sprites-v3/prepared/firewall_attack_default.json",
-          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/39410b034c9444861f8f30836e31f9ec252d92fe/assets/sprites-v3/prepared/firewall_attack_default.webp",
+          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3e1af42b28521ff02efd7343792a890196493f70/assets/sprites-v3/prepared/firewall_attack_default.json",
+          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3e1af42b28521ff02efd7343792a890196493f70/assets/sprites-v3/prepared/firewall_attack_default.webp",
           "anchor": {
             "x": 176,
             "y": 244,
@@ -363,8 +363,8 @@
       "animations": {
         "broadcast_jammer_idle_idle": {
           "fps": 12,
-          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/39410b034c9444861f8f30836e31f9ec252d92fe/assets/sprites-v3/prepared/broadcast_jammer_idle_idle.json",
-          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/39410b034c9444861f8f30836e31f9ec252d92fe/assets/sprites-v3/prepared/broadcast_jammer_idle_idle.webp",
+          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3e1af42b28521ff02efd7343792a890196493f70/assets/sprites-v3/prepared/broadcast_jammer_idle_idle.json",
+          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3e1af42b28521ff02efd7343792a890196493f70/assets/sprites-v3/prepared/broadcast_jammer_idle_idle.webp",
           "anchor": {
             "x": 176,
             "y": 340,
@@ -403,8 +403,8 @@
       "animations": {
         "sector_1_boss_idle_idle": {
           "fps": 12,
-          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/39410b034c9444861f8f30836e31f9ec252d92fe/assets/sprites-v3/prepared/sector_1_boss_idle_idle.json",
-          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/39410b034c9444861f8f30836e31f9ec252d92fe/assets/sprites-v3/prepared/sector_1_boss_idle_idle.webp",
+          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3e1af42b28521ff02efd7343792a890196493f70/assets/sprites-v3/prepared/sector_1_boss_idle_idle.json",
+          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3e1af42b28521ff02efd7343792a890196493f70/assets/sprites-v3/prepared/sector_1_boss_idle_idle.webp",
           "anchor": {
             "x": 208,
             "y": 308,
@@ -468,8 +468,8 @@
         },
         "sector_1_boss_attack_attack": {
           "fps": 12,
-          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/39410b034c9444861f8f30836e31f9ec252d92fe/assets/sprites-v3/prepared/sector_1_boss_attack_attack.json",
-          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/39410b034c9444861f8f30836e31f9ec252d92fe/assets/sprites-v3/prepared/sector_1_boss_attack_attack.webp",
+          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3e1af42b28521ff02efd7343792a890196493f70/assets/sprites-v3/prepared/sector_1_boss_attack_attack.json",
+          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3e1af42b28521ff02efd7343792a890196493f70/assets/sprites-v3/prepared/sector_1_boss_attack_attack.webp",
           "anchor": {
             "x": 256,
             "y": 308,

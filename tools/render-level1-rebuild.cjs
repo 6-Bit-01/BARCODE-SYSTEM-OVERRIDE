@@ -14,12 +14,12 @@ async function main(){
   const meta=JSON.parse(fs.readFileSync(path.join(folder,key+'.json')));
   clips[key]={meta,image:await loadImage(path.join(folder,key+'.webp')),frames:Object.values(meta.frames)};
  }
- function sprite(){const s=createSprite(Object.fromEntries(Object.entries(clips).map(([k,v])=>[k,v.frames.length]))),old=s.play;
+ function sprite(data=clips){const s=createSprite(Object.fromEntries(Object.entries(data).map(([k,v])=>[k,v.frames.length]))),old=s.play;
   s.isLoaded=()=>true;s.getHitboxWorld=()=>null;
-  s.play=function(...args){const r=old.apply(s,args),a=clips[args[0]],anchor=a.meta.meta.anchor||{x:a.frames[0].frame.w/2,y:308};
+  s.play=function(...args){const r=old.apply(s,args),a=data[args[0]],anchor=a.meta.meta.anchor||{x:a.frames[0].frame.w/2,y:308};
    s.currentSprite.getAnchorPoint=()=>anchor;s.currentSprite.hasManifestAnchor=()=>true;s.currentSprite.getManifestScale=()=>1;
    s.currentSprite.metadata.frames=Object.fromEntries(a.frames.map((f,i)=>[String(i),{...f,duration:f.duration||83}]));return r;};
-  s.draw=(c,x,y,o={})=>{const a=clips[s.getCurrentAnimation()];if(!a)return;const f=a.frames[s.currentSprite.currentFrame%a.frames.length].frame,anchor=s.currentSprite.getAnchorPoint(),scale=o.scale||1;c.save();c.globalAlpha*=o.alpha??1;c.translate(x,y);c.scale(o.flipH?-scale:scale,scale);c.drawImage(a.image,f.x,f.y,f.w,f.h,-anchor.x,-anchor.y,f.w,f.h);c.restore();};return s;
+  s.draw=(c,x,y,o={})=>{const a=data[s.getCurrentAnimation()];if(!a)return;const f=a.frames[s.currentSprite.currentFrame%a.frames.length].frame,anchor=s.currentSprite.getAnchorPoint(),scale=o.scale||1;c.save();c.globalAlpha*=o.alpha??1;c.translate(x,y);c.scale(o.flipH?-scale:scale,scale);c.drawImage(a.image,f.x,f.y,f.w,f.h,-anchor.x,-anchor.y,f.w,f.h);c.restore();};return s;
  }
  w.MakkoEngine.sprite=sprite;w.player.sprite=sprite();w.player.spriteReady=true;w.player.playAnimation('idle');
  load(context,'src/game/combat-fx.js');load(context,'src/game/render-coordinator.js');load(context,'src/game/hacking.js');load(context,'src/game/ui-manager.js');load(context,'src/engine/traffic-sheets.js');load(context,'src/engine/spaceships.js');w.SpaceShipSystem.prototype.loadShipImages=function(){};w.spaceShipSystem=new w.SpaceShipSystem();
@@ -29,6 +29,35 @@ async function main(){
  function scene(c,cx,cy){w.gameCamera={centerX:cx,y:cy};w.renderer.zoomLevel=1;c.fillStyle='#111322';c.fillRect(0,0,1920,1080);c.drawImage(bg,0,0,1920,1080);c.save();c.translate(960-cx,-cy);c.drawImage(fg,0,2,fg.width,fg.height-2,-152,-550+2*1589/fg.height,4400,1589-2*1589/fg.height);w.drawGround(c);w.drawGameEntities(c);w.player.draw(c);c.restore();c.save();c.translate(0,-cy);w.spaceShipSystem.drawTrafficWarnings(c);w.spaceShipSystem.drawForegroundShips(c);c.restore();w.drawObjectives(c);}
  function setHero(x,foot,support){Object.assign(w.player.position,{x,y:foot-72});w.player.velocity.x=0;w.player.velocity.y=0;w.player.grounded=true;w.player.supportedSurfaceId=support||null;w.player.state='idle';w.player.airInput=0;w.player.controlsDisabled=false;w.player.invulnerableUntil=0;w.player.health=w.player.maxHealth;w.player.playAnimation('idle');}
  const canvas=createCanvas(1920,1080),c=canvas.getContext('2d');
+ if(process.env.WALK_LOOP_REVIEW){
+  const oldRoot=process.env.WALK_BASELINE;
+  if(!oldRoot)throw new Error('WALK_BASELINE requires before.webp and before.json from the base commit');
+  const meta=JSON.parse(fs.readFileSync(path.join(oldRoot,'before.json')));
+  const oldClips={...clips,'6_bit_walk_walk':{meta,image:await loadImage(path.join(oldRoot,'before.webp')),frames:Object.values(meta.frames)}};
+  const actors=[new w.Player(),new w.Player()];
+  actors.forEach((a,i)=>{a.sprite=sprite(i?clips:oldClips);a.spriteReady=true;a.state='walk';a.grounded=true;a.position={x:960,y:784};a.velocity={x:300,y:0};a.impactHoldMs=0;a.playAnimation('walk');});
+  const preview=createCanvas(960,600),pc=preview.getContext('2d');
+  const ff=spawn('/usr/bin/ffmpeg',['-y','-loglevel','error','-f','rawvideo','-pix_fmt','rgba','-s','960x600','-r','60','-i','pipe:0','-an','-c:v','libx264','-threads','2','-preset','veryfast','-crf','18','-pix_fmt','yuv420p','-movflags','+faststart',path.join(out,'Walk-Loop-Review.mp4')],{stdio:['pipe','ignore','pipe']});let err='';ff.stderr.on('data',d=>err+=d);const completion=once(ff,'close');
+  for(let i=0;i<600;i++){
+   pc.fillStyle='#131b25';pc.fillRect(0,0,960,600);
+   actors.forEach((a,row)=>{
+    a.facing=i<300?1:-1;a.updateSpriteAnimation(1000/60);
+    pc.save();pc.beginPath();pc.rect(0,row*300,960,300);pc.clip();
+    pc.fillStyle='#22343c';pc.fillRect(0,row*300+253,960,47);
+    pc.strokeStyle='#51756e';pc.beginPath();pc.moveTo(0,row*300+253);pc.lineTo(960,row*300+253);pc.stroke();
+    const shift=(i*5)%96*(i<300?-1:1);pc.strokeStyle='#3a5057';
+    for(let x=-96;x<1060;x+=96){pc.beginPath();pc.moveTo(x+shift,row*300+253);pc.lineTo(x+shift-12,row*300+300);pc.stroke();}
+    pc.translate(480-960,row*300+253-856);a.drawSprite(pc);pc.restore();
+    pc.fillStyle='#dcebe3';pc.font='18px Oxanium';pc.fillText(row?'REPAIRED / COMPLETE 16-POSE CYCLE':'BEFORE / TRUNCATED 12-POSE CYCLE',22,row*300+30);
+   });
+   pc.fillStyle='#a4bcb9';pc.font='14px Oxanium';pc.fillText((i/60).toFixed(2)+' s / '+(i<300?'RIGHT':'LEFT'),780,28);
+   if([54,58,60,62].includes(i))fs.writeFileSync(path.join(out,'walk-seam-'+i+'.png'),preview.toBuffer('image/png'));
+   if(!ff.stdin.write(Buffer.from(pc.getImageData(0,0,960,600).data)))await once(ff.stdin,'drain');
+  }
+  ff.stdin.end();const [code]=await completion;if(code)throw new Error(err);
+  if(calls.errors.length)throw new Error(calls.errors.join('\n'));
+  console.log('10-second before/after: production Player + SpritePlayback, mirrored turn at five seconds; adapted host drawing.');return;
+ }
  p.state='encounter_1';p.closedGateEncounterId=p.state;p.spawnedEncounterIds.add(p.state);
  setHero(1110,856);const firewall=new w.Enemy(850,784,'firewall');Object.assign(firewall.position,{x:850,y:784});firewall._sector1MissionEnemy=true;firewall.entranceComplete=true;firewall.spawnProtectionDuration=0;firewall.pollSpriteReady();firewall.playAnimation('walk');w.enemyManager.enemies=[firewall];
  scene(c,1080,0);fs.writeFileSync(path.join(out,'street-barrier.png'),canvas.toBuffer('image/png'));
