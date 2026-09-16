@@ -55,7 +55,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
 
   const TRAVERSAL_PROPS = Object.freeze([
     { id: 'cache-maintenance-step', x: 1390, y: 410, w: 128, h: 14 },
-    { id: 'tower-utility-unit', x: 690, y: 650, w: 160, h: 206, asset: 'broadcastTerminal' },
+    // Set back on the pavement, leaving 32px before the actors' foot plane.
+    { id: 'tower-utility-unit', x: 690, y: 618, w: 160, h: 206, asset: 'broadcastTerminal', alwaysPresent: true },
     { id: 'signal-high-step', x: 642, y: 10, w: 132, h: 18 },
     { id: 'cache-high-step', x: 1400, y: 30, w: 136, h: 18 },
     { id: 'firewall-low-step', x: 2130, y: 430, w: 148, h: 18 },
@@ -179,7 +180,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     static get TRAVERSAL_PROPS() { return TRAVERSAL_PROPS; }
     static get REPAIRS() { return REPAIRS; }
     static drawRepairCell(ctx, x, y, scale) { drawRepairCell(ctx, x, y, scale); }
-    getStageSurfaces() { return this.missionStarted ? STAGE_SURFACES.concat(TRAVERSAL_PROPS) : STAGE_SURFACES; }
+    getStageSurfaces() { return STAGE_SURFACES.concat(this.missionStarted ? TRAVERSAL_PROPS : TRAVERSAL_PROPS.filter(prop => prop.alwaysPresent)); }
     static get PLAYER_VISUAL_FOOT_OFFSET() { return PLAYER_VISUAL_FOOT_OFFSET; }
     static get ENCOUNTER_GATES() { return ENCOUNTER_GATES; }
     static get SIGNAL_LIFT() { return SIGNAL_LIFT; }
@@ -1304,10 +1305,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         }
       }
     }
-    drawRepairRoute(ctx) {
-      if (!ctx || !this.missionStarted) return;
+    // The permanent terminal belongs behind street actors and the fields.
+    // Upper-route supports retain their later pass alongside the lift/rewards.
+    drawTraversalProps(ctx, behindActors = true) {
+      if (!ctx) return;
       ctx.save(); ctx.shadowBlur = 0;
       for (const prop of TRAVERSAL_PROPS) {
+        if (!!prop.alwaysPresent !== behindActors) continue;
+        if (!this.missionStarted && !prop.alwaysPresent) continue;
         if (!this.isSceneryVisible(ctx,prop.x-8,prop.y-24,prop.w+58,prop.h+80)) continue;
         if (prop.asset) {
           ctx.fillStyle='rgba(0,0,0,0.30)';
@@ -1343,6 +1348,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
           for (const x of [prop.x + 16, prop.x + prop.w - 16]) { ctx.beginPath(); ctx.moveTo(x, prop.y + 14); ctx.lineTo(x + 15, prop.y + 52); ctx.lineTo(x + 15, prop.y + 14); ctx.stroke(); }
         }
       }
+      ctx.restore();
+    }
+    drawRepairRoute(ctx) {
+      if (!ctx || !this.missionStarted) return;
+      this.drawTraversalProps(ctx, false);
+      ctx.save(); ctx.shadowBlur = 0;
       if (!this.isBossCinematicActive() && !this.isBossCombatLive?.() && this.state !== STATES.LEVEL_COMPLETE) {
         for (const cell of this.repairs) {
           if (cell.collected) continue;

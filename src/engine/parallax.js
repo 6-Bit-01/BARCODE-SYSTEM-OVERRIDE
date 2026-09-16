@@ -25,6 +25,13 @@ window.ParallaxBackground = class ParallaxBackground {
     this.atmosphereCables = [[390, 214], [785, 201]];
     this.neonSpills = [[137, 404, 40], [305, 404, 49], [682, 404, 62], [1058, 404, 47], [1206, 404, 35]];
     this.atmosphereSprites = null;
+    // Measured in the existing 2048x740 distant-city artwork. These accents
+    // share its fixed transform; they never drift off their buildings.
+    this.skylineWindows = [[372,386,4,10],[385,404,4,9],[562,415,5,12],
+      [648,441,4,8],[870,368,4,9],[871,389,4,10],[944,491,5,4],
+      [1027,553,3,9],[1164,586,6,17],[1185,581,6,18],[1373,401,4,7],
+      [1578,544,4,9],[1808,506,3,8],[2015,430,5,12]];
+    this.skylineVents = [[248,289],[812,246],[1068,281],[1178,306],[1320,287],[1655,223]];
   }
   
   // Add a parallax layer
@@ -201,21 +208,8 @@ window.ParallaxBackground = class ParallaxBackground {
           const iw=image.naturalWidth||image.width, ih=image.naturalHeight||image.height;
           const inset=2, offset=inset*newHeight/ih;
           ctx.drawImage(image,0,inset,iw,ih-inset,drawX,drawY+offset,newWidth,newHeight-offset);
-        } else {
-          // Cover the actual inverse viewport at every zoom and roof camera
-          // height. The former fixed -550 top exposed the black clear color.
-          const m = ctx.getTransform?.();
-          let x = drawX, y = drawY, width = newWidth, height = newHeight;
-          if (m?.a > 0 && m?.d > 0) {
-            const left = -m.e / m.a - 2, top = -m.f / m.d - 2;
-            const right = (1920 - m.e) / m.a + 2, bottom = (1080 - m.f) / m.d + 2;
-            x = Math.min(x, left); y = Math.min(y, top);
-            const scale = Math.max(1, (Math.max(drawX+newWidth,right)-x)/newWidth,
-              (Math.max(drawY+newHeight,bottom)-y)/newHeight);
-            width *= scale; height *= scale;
-          }
-          ctx.drawImage(image,x,y,width,height);
-        }
+        } else if (layer === this.layers[0]) this.drawFarBackground(ctx, layer, offset);
+        else ctx.drawImage(image, drawX, drawY, newWidth, newHeight);
         this.drawSignalLights(ctx, layer, drawX, drawY, newWidth, newHeight);
         this.drawAtmosphere(ctx, layer, drawX, drawY, newWidth, newHeight);
         ctx.restore();
@@ -225,6 +219,65 @@ window.ParallaxBackground = class ParallaxBackground {
     }
     
     ctx.restore();
+  }
+
+  drawFarBackground(ctx, layer, offset) {
+    // Distant scenery has one screen-space scale. The gameplay camera may
+    // zoom for framing, but walking must not make the skyline inflate.
+    // This fixed overscan covers x=960..3136 and y=0..-1040, including roofs,
+    // without a viewport-dependent resize or distortion of the original art.
+    const image = layer.imgElement;
+    const width = 4600;
+    const height = width * (image.naturalHeight || image.height) / (image.naturalWidth || image.width);
+    const cameraY = Math.max(-1040, Math.min(0, window.gameCamera?.y || 0));
+    const x = 960 - width / 2 - offset.x, y = -560 - cameraY * 0.3;
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.drawImage(image, x, y, width, height);
+    this.drawSkylineLife(ctx, x, y, width, height);
+    ctx.restore();
+  }
+
+  drawSkylineLife(ctx, x, y, width, height) {
+    // Sample the existing pause/reset-owned clock. No new timers, particles,
+    // canvases, frame loops, random flicker or animation state in the draw pass.
+    const time = window.BARCODE?.combatFX?.timeMs ?? window.BARCODE?.stageFX?.timeMs ?? 0;
+    const animateLights = window.BARCODE_RENDER_QUALITY?.flashes !== false;
+    const quiet = window.sector1Progression?.isBossCombatLive?.() ? 0.45 : 1;
+    const sx = width / 2048, sy = height / 740;
+    const visible = (left, span) => x + (left + span) * sx >= -20 && x + left * sx <= 1940;
+    ctx.save(); ctx.translate(x, y); ctx.scale(sx, sy); ctx.shadowBlur = 0;
+    for (const [i, [left, top, w, h]] of this.skylineWindows.entries()) {
+      if (!visible(left, w)) continue;
+      const breath = animateLights ? 0.5 + 0.5 * Math.sin(time / (1700 + i * 67) + i * 2.3) : 0.5;
+      ctx.fillStyle = i % 4 === 0 ? '#a4ecd8' : '#ffce87';
+      ctx.globalAlpha = (0.08 + breath * 0.16) * quiet;
+      ctx.fillRect(left, top, w, h);
+    }
+    // Reuse the foreground's existing cached steam texture. The haze rises
+    // slowly above chimney mouths and stays behind all foreground buildings.
+    const steam = this.atmosphereSprites?.steam;
+    if (steam) for (const [i, [left, top]] of this.skylineVents.entries()) {
+      if (!visible(left - 40, 90)) continue;
+      for (let puff = 0; puff < 3; puff++) {
+        const phase = ((time + i * 1700 + puff * 4000) % 12000) / 12000;
+        const radius = 8 + phase * 23;
+        const drift = phase * 24 + Math.sin(phase * 4 + i) * 4;
+        ctx.globalAlpha = Math.sin(phase * Math.PI) * 0.12 * quiet;
+        ctx.drawImage(steam, left + drift - radius, top - phase * 105 - radius, radius * 2, radius * 2);
+      }
+    }
+    // Sparse diagonal rain; a fixed analytic population cannot accumulate.
+    // One path/stroke per frame and all of it remains in the background layer.
+    ctx.globalAlpha = 0.15 * quiet; ctx.strokeStyle = '#bdcfcc'; ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    for (let i = 0; i < 56; i++) {
+      const left = ((i * 137.3 - time * (0.004 + i % 3 * 0.001)) % 2048 + 2048) % 2048;
+      if (!visible(left - 3, 6)) continue;
+      const top = (i * 89.7 + time * (0.04 + i % 4 * 0.005)) % 720;
+      ctx.moveTo(left, top); ctx.lineTo(left - 2.5, top + 9);
+    }
+    ctx.stroke(); ctx.restore();
   }
   
   drawSignalLights(ctx, layer, x, y, width, height) {
