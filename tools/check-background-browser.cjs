@@ -86,8 +86,8 @@ async function main() {
     const result = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true, userGesture: false });
     assert(!result.exceptionDetails, JSON.stringify(result.exceptionDetails)); return result.result.value;
   };
-  const until = async (expression, label) => {
-    for (let i = 0; i < 100; i++) { if (await evaluate(expression)) return; await delay(50); }
+  const until = async (expression, label, attempts = 100) => {
+    for (let i = 0; i < attempts; i++) { if (await evaluate(expression)) return; await delay(50); }
     const state=await evaluate('({running:window.isRunning,game:window.gameState,ready:window.parallaxBackground?.skyVideo?.readyState,paused:window.parallaxBackground?.skyVideo?.paused,time:window.parallaxBackground?.skyVideo?.currentTime,pending:window.parallaxBackground?.skyPlayPending,blocked:window.parallaxBackground?.skyPlaybackBlocked})');
     throw new Error(`Browser timeout: ${label}; ${JSON.stringify(state)}`);
   };
@@ -146,9 +146,10 @@ async function main() {
   assert(rendered.lower/rendered.upper<.15,'static city variation is limited to encoding noise');
   for(const r of rendered.records){assert.deepEqual(r.slice(0,4),[0,0,2087,754],'exclude padded column');assert.equal(r[6],4600);assert.equal(r[7],4600*754/2087);}
   await screenshot('01-animated-sky-roof');
-  await evaluate('parallaxBackground.skyVideo.currentTime=7.9');
-  await until('Math.abs(parallaxBackground.skyVideo.currentTime-7.9)<.04','seek near endpoint');
+  // Run through the complete asset instead of forcing an artificial seek on
+  // this simple non-range HTTP fixture. This exercises the actual game loop.
   await evaluate('gameState.running=true;parallaxBackground.syncSkyPlayback()');
+  await until('parallaxBackground.skyVideo.currentTime > 7.5','natural playback reaches the endpoint',180);
   await until('parallaxBackground.skyVideo.currentTime < 1 && !parallaxBackground.skyVideo.paused','natural playback wraps seamlessly');
   await evaluate('stopGame()');
   assert(await evaluate('parallaxBackground.skyVideo.paused'),'production stop stops video');
