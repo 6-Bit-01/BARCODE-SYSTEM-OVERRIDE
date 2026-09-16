@@ -201,7 +201,21 @@ window.ParallaxBackground = class ParallaxBackground {
           const iw=image.naturalWidth||image.width, ih=image.naturalHeight||image.height;
           const inset=2, offset=inset*newHeight/ih;
           ctx.drawImage(image,0,inset,iw,ih-inset,drawX,drawY+offset,newWidth,newHeight-offset);
-        } else ctx.drawImage(image,drawX,drawY,newWidth,newHeight);
+        } else {
+          // Cover the actual inverse viewport at every zoom and roof camera
+          // height. The former fixed -550 top exposed the black clear color.
+          const m = ctx.getTransform?.();
+          let x = drawX, y = drawY, width = newWidth, height = newHeight;
+          if (m?.a > 0 && m?.d > 0) {
+            const left = -m.e / m.a - 2, top = -m.f / m.d - 2;
+            const right = (1920 - m.e) / m.a + 2, bottom = (1080 - m.f) / m.d + 2;
+            x = Math.min(x, left); y = Math.min(y, top);
+            const scale = Math.max(1, (Math.max(drawX+newWidth,right)-x)/newWidth,
+              (Math.max(drawY+newHeight,bottom)-y)/newHeight);
+            width *= scale; height *= scale;
+          }
+          ctx.drawImage(image,x,y,width,height);
+        }
         this.drawSignalLights(ctx, layer, drawX, drawY, newWidth, newHeight);
         this.drawAtmosphere(ctx, layer, drawX, drawY, newWidth, newHeight);
         ctx.restore();

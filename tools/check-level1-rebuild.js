@@ -6,7 +6,7 @@ const routes=[
  ['signal-roof','cache-high-step',1270,1460],['cache-high-step','cache-crown',1480,1620],['cache-crown','firewall-roof',1850,1990],
  ['firewall-roof','relay-rooftop',2480,2640],['relay-rooftop','tower-middle-step',3090,3320],['tower-middle-step','tower-high-step',3360,3480],['tower-high-step','tower-crown',3480,3530],
  ['firewall-low-step','firewall-canopy',2200,2240],['firewall-canopy','firewall-high-step',2280,2390],['firewall-high-step','firewall-roof',2390,2400],
- [null,'tower-utility-unit',3040,3230],['tower-utility-unit','tower-awning',3260,3430],['tower-awning','tower-rooftop',3460,3510],['tower-rooftop','tower-middle-step',3350,3320],
+ [null,'tower-utility-unit',600,770],['tower-utility-unit','signal-awning',790,950],['tower-awning','tower-rooftop',3460,3510],['tower-rooftop','tower-middle-step',3350,3320],
  ['tower-crown','broadcast-crown',3710,3850],['broadcast-awning','broadcast-low-step',3880,4000],['broadcast-low-step','broadcast-high-step',4000,3900],['broadcast-high-step','broadcast-crown',3900,3940]
 ];
 for(const fps of [30,60,120])for(const [from,to,start,x] of routes){

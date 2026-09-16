@@ -71,6 +71,7 @@ async function main() {
     const { w, context } = createRig(); load(context, 'src/core/action-input.js');
     const pad = { mapping: 'standard', buttons: Array.from({ length: 16 }, () => ({ pressed: false })), axes: [1] };
     pad.buttons[0].pressed = true; w.navigator.getGamepads = () => [pad];
+    w.rhythmSystem.hideRhythmMode(); // Cross is jump outside the performance stance.
     const input = new w.BARCODE.ActionInput(); input.reset();
     assert(!input.update().jump.pressed); assert(!input.state.move_right.held, 'held gamepad actions require release after menu/reset');
     pad.axes[0] = 0; pad.buttons[0].pressed = false; input.update();

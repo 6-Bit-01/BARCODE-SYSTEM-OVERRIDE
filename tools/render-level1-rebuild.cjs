@@ -21,7 +21,7 @@ async function main(){
    s.currentSprite.metadata.frames=Object.fromEntries(a.frames.map((f,i)=>[String(i),{...f,duration:f.duration||83}]));return r;};
   s.draw=(c,x,y,o={})=>{const a=data[s.getCurrentAnimation()];if(!a)return;const f=a.frames[s.currentSprite.currentFrame%a.frames.length].frame,anchor=s.currentSprite.getAnchorPoint(),scale=o.scale||1;c.save();c.globalAlpha*=o.alpha??1;c.translate(x,y);c.scale(o.flipH?-scale:scale,scale);c.drawImage(a.image,f.x,f.y,f.w,f.h,-anchor.x,-anchor.y,f.w,f.h);c.restore();};return s;
  }
- w.MakkoEngine.sprite=sprite;w.player.sprite=sprite();w.player.spriteReady=true;w.player.playAnimation('idle');
+ w.MakkoEngine.sprite=()=>sprite();w.player.sprite=sprite();w.player.spriteReady=true;w.player.playAnimation('idle');
  load(context,'src/game/combat-fx.js');load(context,'src/game/render-coordinator.js');load(context,'src/game/hacking.js');load(context,'src/game/ui-manager.js');load(context,'src/engine/traffic-sheets.js');load(context,'src/engine/spaceships.js');w.SpaceShipSystem.prototype.loadShipImages=function(){};w.spaceShipSystem=new w.SpaceShipSystem();
  for(let i=0;i<3;i++){w.spaceShipSystem.shipImages[i]=await loadImage(path.join(root,'assets/traffic/ship-'+(i+1)+'.webp'));w.spaceShipSystem.imagesLoaded[i]=true;w.spaceShipSystem.shipSheets[i]=w.BARCODE.trafficSheets[i];}
  const bg=await loadImage(path.join(root,'assets/world-v3/far-background.webp')),fg=await loadImage(path.join(root,'assets/world-v3/buildings.webp'));
@@ -48,6 +48,39 @@ async function main(){
   video.stdin.end();const [code]=await once(video,'close');if(code!==0)throw new Error(errors);if(calls.errors.length)throw new Error(calls.errors.join('\n'));
   console.log('Native warning previews and both-direction approach video complete.');return;
  }
+ if(process.env.SCENE_POLISH_REVIEW){
+  load(context,'src/engine/parallax.js');w.parallaxBackground=new w.ParallaxBackground();
+  w.parallaxBackground.addLayer({image:bg,scrollFactorX:0.5});w.parallaxBackground.addLayer({image:fg,scrollFactorX:1});
+  p.state='jammer_active';p.missionDefeats=20;p.closedGateEncounterId=null;p.spawnedEncounterIds.add(p.state);
+  w.enemyManager.enemies=[];w.BARCODE.JammerEnvironment.reveal();
+  function capture(name,cx,cy,zoom){
+    p.cameraY=cy;p.getCameraX=()=>cx;w.renderer.zoomLevel=zoom;
+    c.fillStyle='#000';c.fillRect(0,0,1920,1080);c.save();c.translate(960,675*(1-zoom)+425*zoom);c.scale(zoom,zoom);c.translate(-960,-425);
+    w.drawGameElements(c);c.restore();w.drawGameUI(c);fs.writeFileSync(path.join(out,name+'.png'),canvas.toBuffer('image/png'));
+  }
+  setHero(3290,856);capture('wet-street-jammer',3136,0,1);
+  setHero(590,856);capture('left-terminal-route',960,0,0.8);
+  setHero(2420,856);capture('middle-right-lift',2440,0,0.8);
+  setHero(3500,-314,'tower-crown');capture('roof-zoom-coverage',3136,-1040,0.4);
+  if(process.env.STILLS_ONLY){if(calls.errors.length)throw new Error(calls.errors.join('\n'));return;}
+  const video=spawn('ffmpeg',['-y','-f','image2pipe','-framerate','12','-i','-','-c:v','libx264','-pix_fmt','yuv420p','-movflags','+faststart',path.join(out,'jammer-steady.mp4')],{stdio:['pipe','ignore','pipe']});let errors='';video.stderr.on('data',b=>errors+=b);
+  setHero(3290,856);p.cameraY=0;p.getCameraX=()=>3136;w.renderer.zoomLevel=1;
+  for(let i=0;i<48;i++){w.BARCODE.JammerEnvironment.update(1000/12);c.clearRect(0,0,1920,1080);w.drawGameElements(c);if(!video.stdin.write(canvas.toBuffer('image/png')))await once(video.stdin,'drain');}
+  video.stdin.end();const [code]=await once(video,'close');if(code!==0)throw new Error(errors);
+  if(calls.errors.length)throw new Error(calls.errors.join('\n'));console.log('Production sky coverage, wet street and steady jammer rendered.');return;
+ }
+ if(process.env.HACK_POPUP_REVIEW){
+  load(context,'src/game/pause-menu.js');load(context,'src/core/gamepad-ui.js');
+  const pad={id:'DualSense Wireless Controller (054c)',mapping:'standard',connected:true,index:0,buttons:Array.from({length:17},()=>({pressed:false})),axes:[0,0]};w.navigator.getGamepads=()=>[pad];w.BARCODE.GamepadUI.read();
+  const menu=w.BARCODE.PauseMenu;menu.view='controller';c.fillStyle='#101d29';c.fillRect(0,0,1920,1080);menu.draw(c);fs.writeFileSync(path.join(out,'cross-controller-settings.png'),canvas.toBuffer('image/png'));
+  const hack=w.hackingSystem=new w.HackingSystem(),target=new w.Enemy(1050,784,'virus');Object.assign(target,{entranceComplete:true,spawnProtectionDuration:0,spawnTimeMs:-10000});
+  p.state='encounter_1';p.closedGateEncounterId=p.state;setHero(900,856);w.enemyManager.enemies=[target];w.tutorialSystem.active=false;
+  w.rhythmSystem.showRhythmMode();hack.update(16);
+  scene(c,960,0);w.drawGameUI(c);fs.writeFileSync(path.join(out,'hack-ready-popup.png'),canvas.toBuffer('image/png'));
+  hack.update(2100);scene(c,960,0);w.drawGameUI(c);fs.writeFileSync(path.join(out,'hack-popup-fading.png'),canvas.toBuffer('image/png'));
+  hack.update(300);if(hack.getReadyPopup())throw new Error('Popup failed to disappear');scene(c,960,0);w.drawGameUI(c);fs.writeFileSync(path.join(out,'hack-popup-cleared.png'),canvas.toBuffer('image/png'));
+  if(calls.errors.length)throw new Error(calls.errors.join('\n'));console.log('Shared Cross settings, real ready popup, fade and fully cleared playfield rendered.');return;
+ }
  if(process.env.CONTROLLER_REVIEW){
   load(context,'src/game/pause-menu.js');load(context,'src/core/gamepad-ui.js');
   const pad={id:'DualSense Wireless Controller (054c)',mapping:'standard',connected:true,index:0,buttons:Array.from({length:17},()=>({pressed:false})),axes:[0,0]};
@@ -69,9 +102,9 @@ async function main(){
    if(state==='airborne')w.player.grounded=false;
    if(state==='linked')target._hijackedUntilMs=w.enemyManager.simulationTimeMs+8000;
    const status=hack.getAvailability();if(status.state!==state)throw new Error('Expected '+state+', got '+status.state);
-   scene(c,1000,0);w.drawBasicUI(c);w.BARCODE.ComicHUD.hack(c,status,false);
+   hack.updateReadyPopup(0);scene(c,1000,0);w.drawBasicUI(c);w.BARCODE.ComicHUD.hack(c,hack.getReadyPopup());
    if(i<2)fs.writeFileSync(path.join(out,'hack-'+state+'.png'),canvas.toBuffer('image/png'));
-   sc.drawImage(canvas,410,273,335,100,375*(i%2),190*Math.floor(i/2)+40,335,100);
+   sc.drawImage(canvas,720,183,335,100,375*(i%2),190*Math.floor(i/2)+40,335,100);
    sc.fillStyle='#c0ed55';sc.font='20px Oxanium';sc.fillText(state.toUpperCase(),375*(i%2)+8,190*Math.floor(i/2)+25);
   }
   fs.writeFileSync(path.join(out,'hack-states.png'),strip.toBuffer('image/png'));
@@ -119,7 +152,7 @@ async function main(){
  p.districtSignal.clearedAtMs=[null,null,null,null];
 
  for(const [i,cx] of [1080,2040,2990,3290].entries()){p.state='encounter_'+(i+1);p.closedGateEncounterId=p.state;setHero([1110,2010,2900,3870][i],856);w.enemyManager.enemies=[];scene(c,cx,0);fs.writeFileSync(path.join(out,'gate-'+(i+1)+'-street.png'),canvas.toBuffer('image/png'));scene(c,cx,-600);fs.writeFileSync(path.join(out,'gate-'+(i+1)+'-roof.png'),canvas.toBuffer('image/png'));}
- p.state='encounter_4';p.closedGateEncounterId=p.state;setHero(3250,650,'tower-utility-unit');w.enemyManager.enemies=[];scene(c,3190,0);fs.writeFileSync(path.join(out,'broadcast-terminal.png'),canvas.toBuffer('image/png'));
+ p.state='encounter_4';p.closedGateEncounterId=p.state;setHero(770,650,'tower-utility-unit');w.enemyManager.enemies=[];scene(c,960,0);fs.writeFileSync(path.join(out,'broadcast-terminal.png'),canvas.toBuffer('image/png'));
  const roof=w.Sector1Progression.STAGE_SURFACES.find(p=>p.id==='tower-crown');const drone=new w.RooftopDrone(3490,-500,roof);drone._sector1MissionEnemy=true;drone.spawnProtectionDuration=0;w.enemyManager.enemies=[drone];setHero(3340,-314,'tower-crown');scene(c,3160,-914);fs.writeFileSync(path.join(out,'rooftop-drone.png'),canvas.toBuffer('image/png'));
  const hack=w.hackingSystem=new w.HackingSystem();hack.active=true;hack.phase='answer';hack.puzzleType=2;hack.currentPuzzle={type:2,answer:'4061',hidden:true};hack.inputText='40';hack.useKeypad();scene(c,3160,-914);hack.draw(c);fs.writeFileSync(path.join(out,'keypad.png'),canvas.toBuffer('image/png'));hack.active=false;
  if(process.env.UPPER_ROUTE_REVIEW){

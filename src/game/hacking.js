@@ -19,6 +19,7 @@ window.HackingSystem = class HackingSystem {
     this.cooldownUntil = 0;
     this.cooldownMs = 10000;
     this.cooldownDurationMs = this.cooldownMs;
+    this.resetReadyPopup();
     this.guardHitsRemaining = 0;
     this.previousRhythmModeActive = false;
     this.suspendedRhythmMode = false;
@@ -117,6 +118,35 @@ window.HackingSystem = class HackingSystem {
       }
     }
     return result;
+  }
+
+  resetReadyPopup() {
+    this.readyPopupAgeMs = 0;
+    this.readyPopupVisible = false;
+    this.readyPopupArmed = true;
+    this.readyPopupAwayMs = 0;
+  }
+
+  updateReadyPopup(delta) {
+    if (window.isPaused || window.gameState?.paused) return;
+    const status = this.getAvailability();
+    if (status.state === 'ready') {
+      this.readyPopupAwayMs = 0;
+      if (this.readyPopupArmed) { this.readyPopupAgeMs = 0; this.readyPopupVisible = true; this.readyPopupArmed = false; }
+      else if (this.readyPopupVisible) this.readyPopupAgeMs += delta;
+      if (this.readyPopupAgeMs >= 2400) this.readyPopupVisible = false;
+    } else {
+      this.readyPopupVisible = false;
+      this.readyPopupAwayMs += delta;
+      // A consumed link/cooldown arms the next recharge. Brief hops and range
+      // flicker do not repeatedly announce the same available charge.
+      if (['active', 'recharging', 'linked', 'locked'].includes(status.state) || this.readyPopupAwayMs >= 1000) this.readyPopupArmed = true;
+    }
+  }
+
+  getReadyPopup() {
+    if (!this.readyPopupVisible || this.getAvailability().state !== 'ready') return null;
+    return { alpha: Math.max(0, Math.min(1, (2400 - this.readyPopupAgeMs) / 600)) };
   }
 
   getDiagnostics() {
@@ -330,6 +360,7 @@ window.HackingSystem = class HackingSystem {
 
   update(deltaTime) {
     const delta = Math.max(0, Number.isFinite(deltaTime) ? deltaTime : 0);
+    this.updateReadyPopup(delta);
     if (this.resultFx) {
       this.resultFx.elapsedMs += delta;
       if (this.resultFx.elapsedMs >= 1000) this.resultFx = null;
@@ -607,6 +638,7 @@ window.HackingSystem = class HackingSystem {
   getCurrentType() { return this.puzzleType; }
 
   reset() {
+    this.resetReadyPopup();
     this.hijackTarget = null;
     this.resultDetail = '';
     const shouldRestore = this.active || this.suspendedRhythmMode;

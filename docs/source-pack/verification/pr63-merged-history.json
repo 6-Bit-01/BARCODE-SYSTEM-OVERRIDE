@@ -1,0 +1,724 @@
+{
+  "description": "Canonical pack version 64, merged PR #63; exact exported bytes verified against base before this pass. Historical acceptance claims retain original attribution.",
+  "sourceManifest": {
+    "packVersion": "5.0",
+    "repository": "6-Bit-01/BARCODE-SYSTEM-OVERRIDE",
+    "repositoryUrl": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE",
+    "revision": "c6dc0116d08a70ca2c97edddb9404bd87e62906a",
+    "revisionUrl": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/tree/c6dc0116d08a70ca2c97edddb9404bd87e62906a",
+    "publicationStatus": "github",
+    "verifiedMainBase": "c6dc0116d08a70ca2c97edddb9404bd87e62906a",
+    "implementationStatus": "merged",
+    "pullRequestUrl": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/63",
+    "generatedAtUtc": "2026-09-16T07:59:30.605390+00:00",
+    "sourceCommitDate": "2026-09-16T00:53:49-07:00",
+    "sourceMode": "committed Git tree with listed exclusions; no working-tree substitutions; pack documents additionally copied to archive root",
+    "snapshotDirectory": "repository-snapshot/",
+    "trackedFileCount": 368,
+    "exportedSourceFileCount": 367,
+    "excludedSourceFiles": [
+      {
+        "path": "project_sources/BARCODE-System-Override-Source-Pack-v4.zip",
+        "reason": "Historical source-pack input; retained in Git, omitted from current export to avoid nested obsolete packs."
+      }
+    ],
+    "packDocumentSourceDirectory": "docs/source-pack/",
+    "historicalBaseline": "7788ebfab4d6231c18229bef9571d6b97b676764 (PR #25)",
+    "supersedes": [
+      "Source Pack v2",
+      "Source Pack v3",
+      "Source Pack v4"
+    ],
+    "authority": "Newest explicit owner decisions, then current pack decisions; snapshot proves implementation, not design approval.",
+    "verification": {
+      "revision": "c6dc0116d08a70ca2c97edddb9404bd87e62906a",
+      "base": "c6dc0116d08a70ca2c97edddb9404bd87e62906a",
+      "pullRequest": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/63",
+      "status": "merged; fresh physical DualSense and owner Makko acceptance remain pending",
+      "mergedAtUtc": "2026-09-16T07:53:49Z",
+      "completeTree": "3bfa09217748d050758a038a5ef8eb1365ea67d4",
+      "previousReviewRevision": "984d12cc45913b73403161b284155158e21e2d83",
+      "treeMatchesPreviousReviewExactly": true,
+      "implementationStatusChange": "PR #63 moved from review to merged main. The merge and reviewed source trees are byte-identical.",
+      "implementation": {
+        "controllerRepair": "Playable training now uses the normal mapped jump press/hold/release path. Cross/A or a saved remap performs the full variable-height jump; R1/RB remains inspect and no longer triggers a tiny jump.",
+        "dialogueInput": "Create/View advances playable crew dialogue without clearing movement or held jump. Menu, intro and keypad control ownership remains contextual.",
+        "trafficWarning": "An illustrated flashing red WATCH OUT tag and independent reversible arrow begin three seconds before a foreground car reaches the view, point from the correct edge at the projected car height, track camera and zoom, and end when the artwork first appears.",
+        "preserved": "Original car speed, scale, altitude, bob, probability, queued launch and collision are unchanged. Jump physics, movement, musical rules, controller settings, hack meter, walk, upper routes and boss remain unchanged."
+      },
+      "lockedRequirementsPreserved": "Single-jump movement, 20-defeat mission, eight-second hijack, music/boss rules, original four playable characters, Makko compatibility and all earlier retained requirements remain represented by the exact source tree.",
+      "failedHistoricalAcceptance": {
+        "revision": "af8019a1e7755195c4e6e2cddf1e3d3f9f82002a",
+        "pullRequest": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/62",
+        "attribution": "Owner physical playtest failed: Cross stopped movement instead of jumping during playable training, and R1/RB produced only a tiny jump. PR #62 automated checks had verified takeoff but not the full trajectory.",
+        "status": "failed controller playtest; superseded by PR #63 repair, which still awaits fresh physical acceptance"
+      },
+      "reviewEvidence": {
+        "revision": "984d12cc45913b73403161b284155158e21e2d83",
+        "tree": "3bfa09217748d050758a038a5ef8eb1365ea67d4",
+        "controllerReproduction": {
+          "before60Hz": {
+            "tutorialCrossRise": 0,
+            "tutorialBumperRise": 54.811345148444275
+          },
+          "after60Hz": {
+            "tutorialCrossHeldRise": 286.0027777777784,
+            "tutorialBumperRise": 0
+          },
+          "coverage": "full input followed by production update coordinator at 30/60/120Hz; keyboard, default Cross and remapped jump match through takeoff, apex and landing; speech advance preserves movement"
+        },
+        "automatedTests": {
+          "npm test": "passed",
+          "npm run check:syntax:all": "passed",
+          "git diff --check": "passed",
+          "exact local tested tree equals published tree": "passed"
+        },
+        "warningCoverage": "18 fixed-camera approaches: left/right, .625/1/1.2 zoom, 30/60/120Hz; three seconds within a frame, real projected altitude, first-artwork entry, pause/camera/reset and image-failure path; original 80 traffic property/motion comparisons retained",
+        "nativeReview": {
+          "command": "TRAFFIC_WARNING_REVIEW=1 node tools/render-level1-rebuild.cjs /workspace/scratch/72acc62ea830/traffic-warning-review",
+          "status": "passed; both previews visually inspected; generated 8.4-second two-direction production Canvas approach video",
+          "screenshots": [
+            "docs/source-pack/verification/traffic-warning-left.webp",
+            "docs/source-pack/verification/traffic-warning-right.webp"
+          ],
+          "video": "docs/source-pack/verification/traffic-warning-both-sides.mp4"
+        },
+        "asset": {
+          "revision": "27c23b7042a903006f79683f01518f9b5eec49fb",
+          "path": "assets/traffic-warning/watch-out.webp",
+          "generator": "built-in image_gen",
+          "prompt": "assets/traffic-warning/PROMPT.md"
+        },
+        "limits": "Synthetic controller trajectories and native Canvas rendering are not a physical DualSense test or hosted Makko acceptance."
+      },
+      "githubMergeValidation": {
+        "run": {
+          "id": 35070880862,
+          "name": "validate",
+          "run_number": 289,
+          "event": "push",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "c6dc0116d08a70ca2c97edddb9404bd87e62906a",
+          "created_at": "2026-09-16T07:53:51Z",
+          "updated_at": "2026-09-16T07:55:21Z",
+          "html_url": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35070880862"
+        },
+        "jobs": [
+          {
+            "id": 104711836700,
+            "name": "static-validation",
+            "status": "completed",
+            "conclusion": "success",
+            "steps": [
+              {
+                "number": 1,
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 2,
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 3,
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 4,
+                "name": "Run npm ci",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 5,
+                "name": "Run npm test",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 6,
+                "name": "Run npm run check:syntax:all",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 7,
+                "name": "Check intro visibility in real Chromium",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 8,
+                "name": "Upload intro browser evidence",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 9,
+                "name": "Export current source pack",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 10,
+                "name": "Run actions/upload-artifact@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 19,
+                "name": "Post Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 20,
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "number": 21,
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success"
+              }
+            ]
+          }
+        ],
+        "attribution": "Fresh GitHub push validation on the exact merge commit; no redundant local gameplay run is claimed."
+      },
+      "makkoPlaytest": "Pending. The event context and PR record contain no fresh owner PASS for PR #63; merge status is not hosted acceptance.",
+      "physicalDualSense": "Pending fresh device/browser verification of full held Cross/A and remapped jump, RB inspect, dialogue advance, settings persistence, prompts, vibration and feel.",
+      "historicalPackEvidence": {
+        "revision": "984d12cc45913b73403161b284155158e21e2d83",
+        "tree": "3bfa09217748d050758a038a5ef8eb1365ea67d4",
+        "base": "af8019a1e7755195c4e6e2cddf1e3d3f9f82002a",
+        "pullRequest": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/63",
+        "state": "draft review; not merged",
+        "automatedTests": {
+          "npm test": "passed",
+          "npm run check:syntax:all": "passed",
+          "git diff --check": "passed",
+          "exact local tested tree equals published tree": "passed"
+        },
+        "controllerReproduction": {
+          "before60Hz": {
+            "tutorialCrossRise": 0,
+            "tutorialBumperRise": 54.811345148444275
+          },
+          "after60Hz": {
+            "tutorialCrossHeldRise": 286.0027777777784,
+            "tutorialBumperRise": 0
+          },
+          "coverage": "full input followed by production update coordinator at 30/60/120Hz; keyboard, default Cross and remapped jump match through takeoff, apex and landing; speech advance preserves movement"
+        },
+        "warningCoverage": "18 fixed-camera approaches: left/right, .625/1/1.2 zoom, 30/60/120Hz; three seconds within a frame, real projected altitude, first-artwork entry, pause/camera/reset and image-failure path; original 80 traffic property/motion comparisons retained",
+        "nativeReview": {
+          "command": "TRAFFIC_WARNING_REVIEW=1 node tools/render-level1-rebuild.cjs /workspace/scratch/72acc62ea830/traffic-warning-review",
+          "status": "passed; both previews visually inspected; generated 8.4-second two-direction production Canvas approach video",
+          "screenshots": [
+            "docs/source-pack/verification/traffic-warning-left.webp",
+            "docs/source-pack/verification/traffic-warning-right.webp"
+          ],
+          "video": "docs/source-pack/verification/traffic-warning-both-sides.mp4"
+        },
+        "asset": {
+          "revision": "27c23b7042a903006f79683f01518f9b5eec49fb",
+          "path": "assets/traffic-warning/watch-out.webp",
+          "generator": "built-in image_gen",
+          "prompt": "assets/traffic-warning/PROMPT.md"
+        },
+        "priorAcceptance": "PR62 controller playtest failed per owner; preserved explicitly in pr62-merged-history.json. All 359 canonical v62 source bytes matched merged PR62 before this replacement.",
+        "makkoPlaytest": "pending fresh owner acceptance; not established by synthetic controller/native rendering",
+        "physicalDualSense": "pending",
+        "warningCameraLimit": "Lead is exact within one frame for a steady view; changing camera/zoom recomputes the actual entry without changing the car trajectory.",
+        "githubCI": {
+          "workflow": {
+            "workflow_runs": [
+              {
+                "conclusion": "success",
+                "id": 35070752907,
+                "jobs_url": "https://api.github.com/repos/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35070752907/jobs",
+                "logs_url": "https://api.github.com/repos/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35070752907/logs",
+                "name": "validate",
+                "run_number": 288,
+                "status": "completed",
+                "workflow_id": 311553678
+              }
+            ]
+          },
+          "jobs": {
+            "jobs": [
+              {
+                "conclusion": "success",
+                "id": 104711433427,
+                "logs_url": null,
+                "name": "static-validation",
+                "run_id": 35070752907,
+                "status": "completed",
+                "steps": [
+                  {
+                    "conclusion": "success",
+                    "name": "Set up job",
+                    "number": 1,
+                    "status": "completed"
+                  },
+                  {
+                    "conclusion": "success",
+                    "name": "Run actions/checkout@v4",
+                    "number": 2,
+                    "status": "completed"
+                  },
+                  {
+                    "conclusion": "success",
+                    "name": "Run actions/setup-node@v4",
+                    "number": 3,
+                    "status": "completed"
+                  },
+                  {
+                    "conclusion": "success",
+                    "name": "Run npm ci",
+                    "number": 4,
+                    "status": "completed"
+                  },
+                  {
+                    "conclusion": "success",
+                    "name": "Run npm test",
+                    "number": 5,
+                    "status": "completed"
+                  },
+                  {
+                    "conclusion": "success",
+                    "name": "Run npm run check:syntax:all",
+                    "number": 6,
+                    "status": "completed"
+                  },
+                  {
+                    "conclusion": "success",
+                    "name": "Check intro visibility in real Chromium",
+                    "number": 7,
+                    "status": "completed"
+                  },
+                  {
+                    "conclusion": "success",
+                    "name": "Upload intro browser evidence",
+                    "number": 8,
+                    "status": "completed"
+                  },
+                  {
+                    "conclusion": "success",
+                    "name": "Export current source pack",
+                    "number": 9,
+                    "status": "completed"
+                  },
+                  {
+                    "conclusion": "success",
+                    "name": "Run actions/upload-artifact@v4",
+                    "number": 10,
+                    "status": "completed"
+                  },
+                  {
+                    "conclusion": "success",
+                    "name": "Post Run actions/setup-node@v4",
+                    "number": 19,
+                    "status": "completed"
+                  },
+                  {
+                    "conclusion": "success",
+                    "name": "Post Run actions/checkout@v4",
+                    "number": 20,
+                    "status": "completed"
+                  },
+                  {
+                    "conclusion": "success",
+                    "name": "Complete job",
+                    "number": 21,
+                    "status": "completed"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "githubWorkflowUrl": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35070752907"
+      },
+      "previousPack": {
+        "revision": "984d12cc45913b73403161b284155158e21e2d83",
+        "libraryVersion": 63,
+        "sha256": "0f274fea4d16da7ca61023efe5a671fc0d00f341cdb407f988b962a98e4b0538"
+      },
+      "normalPostMergeDeployment": "Owner imports exact merge c6dc0116d08a70ca2c97edddb9404bd87e62906a into a fresh Makko preview. This maintenance does not deploy or alter Makko.",
+      "focusedPostDeployEvidence": "In playable training and gameplay, hold Cross/A for the normal approximately 286px 60Hz jump, release early for the short jump, repeat with a saved remap, confirm R1/RB inspects rather than jumps, and use Create/View to advance dialogue without stopping movement. Smoke-test settings and every hack-meter state. Observe WATCH OUT for three seconds from both directions at multiple camera heights and zooms; pause/resume/reset and confirm the cue follows the projected flight and ends at artwork entry while original car motion/collision remain. Then walk the long route, rooftops and boss flow. Record imported SHA, PASS/FAIL and clips.",
+      "rollback": "af8019a1e7755195c4e6e2cddf1e3d3f9f82002a",
+      "exportValidation": {
+        "checks": [
+          "ZIP CRC",
+          "safe unique paths",
+          "complete SHA256 coverage",
+          "all exported source files equal exact merged Git tree",
+          "root documents equal committed source-pack copies"
+        ]
+      },
+      "limitations": [
+        "No gameplay, deployment, PR merge or Makko mutation was performed by this maintenance.",
+        "GitHub automated checks do not establish physical controller feel, hosted rendering, audio or gameplay acceptance."
+      ]
+    },
+    "runtimeLimitations": [
+      "Makko supplies /lib/MakkoEngine.min.js; it is not included in Git.",
+      "Artwork and audio referenced by remote URLs remain externally hosted.",
+      "This source snapshot is not a self-contained offline build."
+    ],
+    "hashScope": "FILE_HASHES.sha256 covers every archive file except itself."
+  },
+  "testEvidence": {
+    "revision": "c6dc0116d08a70ca2c97edddb9404bd87e62906a",
+    "base": "c6dc0116d08a70ca2c97edddb9404bd87e62906a",
+    "pullRequest": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/63",
+    "status": "merged; fresh physical DualSense and owner Makko acceptance remain pending",
+    "mergedAtUtc": "2026-09-16T07:53:49Z",
+    "completeTree": "3bfa09217748d050758a038a5ef8eb1365ea67d4",
+    "previousReviewRevision": "984d12cc45913b73403161b284155158e21e2d83",
+    "treeMatchesPreviousReviewExactly": true,
+    "implementationStatusChange": "PR #63 moved from review to merged main. The merge and reviewed source trees are byte-identical.",
+    "implementation": {
+      "controllerRepair": "Playable training now uses the normal mapped jump press/hold/release path. Cross/A or a saved remap performs the full variable-height jump; R1/RB remains inspect and no longer triggers a tiny jump.",
+      "dialogueInput": "Create/View advances playable crew dialogue without clearing movement or held jump. Menu, intro and keypad control ownership remains contextual.",
+      "trafficWarning": "An illustrated flashing red WATCH OUT tag and independent reversible arrow begin three seconds before a foreground car reaches the view, point from the correct edge at the projected car height, track camera and zoom, and end when the artwork first appears.",
+      "preserved": "Original car speed, scale, altitude, bob, probability, queued launch and collision are unchanged. Jump physics, movement, musical rules, controller settings, hack meter, walk, upper routes and boss remain unchanged."
+    },
+    "lockedRequirementsPreserved": "Single-jump movement, 20-defeat mission, eight-second hijack, music/boss rules, original four playable characters, Makko compatibility and all earlier retained requirements remain represented by the exact source tree.",
+    "failedHistoricalAcceptance": {
+      "revision": "af8019a1e7755195c4e6e2cddf1e3d3f9f82002a",
+      "pullRequest": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/62",
+      "attribution": "Owner physical playtest failed: Cross stopped movement instead of jumping during playable training, and R1/RB produced only a tiny jump. PR #62 automated checks had verified takeoff but not the full trajectory.",
+      "status": "failed controller playtest; superseded by PR #63 repair, which still awaits fresh physical acceptance"
+    },
+    "reviewEvidence": {
+      "revision": "984d12cc45913b73403161b284155158e21e2d83",
+      "tree": "3bfa09217748d050758a038a5ef8eb1365ea67d4",
+      "controllerReproduction": {
+        "before60Hz": {
+          "tutorialCrossRise": 0,
+          "tutorialBumperRise": 54.811345148444275
+        },
+        "after60Hz": {
+          "tutorialCrossHeldRise": 286.0027777777784,
+          "tutorialBumperRise": 0
+        },
+        "coverage": "full input followed by production update coordinator at 30/60/120Hz; keyboard, default Cross and remapped jump match through takeoff, apex and landing; speech advance preserves movement"
+      },
+      "automatedTests": {
+        "npm test": "passed",
+        "npm run check:syntax:all": "passed",
+        "git diff --check": "passed",
+        "exact local tested tree equals published tree": "passed"
+      },
+      "warningCoverage": "18 fixed-camera approaches: left/right, .625/1/1.2 zoom, 30/60/120Hz; three seconds within a frame, real projected altitude, first-artwork entry, pause/camera/reset and image-failure path; original 80 traffic property/motion comparisons retained",
+      "nativeReview": {
+        "command": "TRAFFIC_WARNING_REVIEW=1 node tools/render-level1-rebuild.cjs /workspace/scratch/72acc62ea830/traffic-warning-review",
+        "status": "passed; both previews visually inspected; generated 8.4-second two-direction production Canvas approach video",
+        "screenshots": [
+          "docs/source-pack/verification/traffic-warning-left.webp",
+          "docs/source-pack/verification/traffic-warning-right.webp"
+        ],
+        "video": "docs/source-pack/verification/traffic-warning-both-sides.mp4"
+      },
+      "asset": {
+        "revision": "27c23b7042a903006f79683f01518f9b5eec49fb",
+        "path": "assets/traffic-warning/watch-out.webp",
+        "generator": "built-in image_gen",
+        "prompt": "assets/traffic-warning/PROMPT.md"
+      },
+      "limits": "Synthetic controller trajectories and native Canvas rendering are not a physical DualSense test or hosted Makko acceptance."
+    },
+    "githubMergeValidation": {
+      "run": {
+        "id": 35070880862,
+        "name": "validate",
+        "run_number": 289,
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "c6dc0116d08a70ca2c97edddb9404bd87e62906a",
+        "created_at": "2026-09-16T07:53:51Z",
+        "updated_at": "2026-09-16T07:55:21Z",
+        "html_url": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35070880862"
+      },
+      "jobs": [
+        {
+          "id": 104711836700,
+          "name": "static-validation",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "number": 1,
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 2,
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 3,
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 4,
+              "name": "Run npm ci",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 5,
+              "name": "Run npm test",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 6,
+              "name": "Run npm run check:syntax:all",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 7,
+              "name": "Check intro visibility in real Chromium",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 8,
+              "name": "Upload intro browser evidence",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 9,
+              "name": "Export current source pack",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 10,
+              "name": "Run actions/upload-artifact@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 19,
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 20,
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 21,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ],
+      "attribution": "Fresh GitHub push validation on the exact merge commit; no redundant local gameplay run is claimed."
+    },
+    "makkoPlaytest": "Pending. The event context and PR record contain no fresh owner PASS for PR #63; merge status is not hosted acceptance.",
+    "physicalDualSense": "Pending fresh device/browser verification of full held Cross/A and remapped jump, RB inspect, dialogue advance, settings persistence, prompts, vibration and feel.",
+    "historicalPackEvidence": {
+      "revision": "984d12cc45913b73403161b284155158e21e2d83",
+      "tree": "3bfa09217748d050758a038a5ef8eb1365ea67d4",
+      "base": "af8019a1e7755195c4e6e2cddf1e3d3f9f82002a",
+      "pullRequest": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/63",
+      "state": "draft review; not merged",
+      "automatedTests": {
+        "npm test": "passed",
+        "npm run check:syntax:all": "passed",
+        "git diff --check": "passed",
+        "exact local tested tree equals published tree": "passed"
+      },
+      "controllerReproduction": {
+        "before60Hz": {
+          "tutorialCrossRise": 0,
+          "tutorialBumperRise": 54.811345148444275
+        },
+        "after60Hz": {
+          "tutorialCrossHeldRise": 286.0027777777784,
+          "tutorialBumperRise": 0
+        },
+        "coverage": "full input followed by production update coordinator at 30/60/120Hz; keyboard, default Cross and remapped jump match through takeoff, apex and landing; speech advance preserves movement"
+      },
+      "warningCoverage": "18 fixed-camera approaches: left/right, .625/1/1.2 zoom, 30/60/120Hz; three seconds within a frame, real projected altitude, first-artwork entry, pause/camera/reset and image-failure path; original 80 traffic property/motion comparisons retained",
+      "nativeReview": {
+        "command": "TRAFFIC_WARNING_REVIEW=1 node tools/render-level1-rebuild.cjs /workspace/scratch/72acc62ea830/traffic-warning-review",
+        "status": "passed; both previews visually inspected; generated 8.4-second two-direction production Canvas approach video",
+        "screenshots": [
+          "docs/source-pack/verification/traffic-warning-left.webp",
+          "docs/source-pack/verification/traffic-warning-right.webp"
+        ],
+        "video": "docs/source-pack/verification/traffic-warning-both-sides.mp4"
+      },
+      "asset": {
+        "revision": "27c23b7042a903006f79683f01518f9b5eec49fb",
+        "path": "assets/traffic-warning/watch-out.webp",
+        "generator": "built-in image_gen",
+        "prompt": "assets/traffic-warning/PROMPT.md"
+      },
+      "priorAcceptance": "PR62 controller playtest failed per owner; preserved explicitly in pr62-merged-history.json. All 359 canonical v62 source bytes matched merged PR62 before this replacement.",
+      "makkoPlaytest": "pending fresh owner acceptance; not established by synthetic controller/native rendering",
+      "physicalDualSense": "pending",
+      "warningCameraLimit": "Lead is exact within one frame for a steady view; changing camera/zoom recomputes the actual entry without changing the car trajectory.",
+      "githubCI": {
+        "workflow": {
+          "workflow_runs": [
+            {
+              "conclusion": "success",
+              "id": 35070752907,
+              "jobs_url": "https://api.github.com/repos/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35070752907/jobs",
+              "logs_url": "https://api.github.com/repos/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35070752907/logs",
+              "name": "validate",
+              "run_number": 288,
+              "status": "completed",
+              "workflow_id": 311553678
+            }
+          ]
+        },
+        "jobs": {
+          "jobs": [
+            {
+              "conclusion": "success",
+              "id": 104711433427,
+              "logs_url": null,
+              "name": "static-validation",
+              "run_id": 35070752907,
+              "status": "completed",
+              "steps": [
+                {
+                  "conclusion": "success",
+                  "name": "Set up job",
+                  "number": 1,
+                  "status": "completed"
+                },
+                {
+                  "conclusion": "success",
+                  "name": "Run actions/checkout@v4",
+                  "number": 2,
+                  "status": "completed"
+                },
+                {
+                  "conclusion": "success",
+                  "name": "Run actions/setup-node@v4",
+                  "number": 3,
+                  "status": "completed"
+                },
+                {
+                  "conclusion": "success",
+                  "name": "Run npm ci",
+                  "number": 4,
+                  "status": "completed"
+                },
+                {
+                  "conclusion": "success",
+                  "name": "Run npm test",
+                  "number": 5,
+                  "status": "completed"
+                },
+                {
+                  "conclusion": "success",
+                  "name": "Run npm run check:syntax:all",
+                  "number": 6,
+                  "status": "completed"
+                },
+                {
+                  "conclusion": "success",
+                  "name": "Check intro visibility in real Chromium",
+                  "number": 7,
+                  "status": "completed"
+                },
+                {
+                  "conclusion": "success",
+                  "name": "Upload intro browser evidence",
+                  "number": 8,
+                  "status": "completed"
+                },
+                {
+                  "conclusion": "success",
+                  "name": "Export current source pack",
+                  "number": 9,
+                  "status": "completed"
+                },
+                {
+                  "conclusion": "success",
+                  "name": "Run actions/upload-artifact@v4",
+                  "number": 10,
+                  "status": "completed"
+                },
+                {
+                  "conclusion": "success",
+                  "name": "Post Run actions/setup-node@v4",
+                  "number": 19,
+                  "status": "completed"
+                },
+                {
+                  "conclusion": "success",
+                  "name": "Post Run actions/checkout@v4",
+                  "number": 20,
+                  "status": "completed"
+                },
+                {
+                  "conclusion": "success",
+                  "name": "Complete job",
+                  "number": 21,
+                  "status": "completed"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "githubWorkflowUrl": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35070752907"
+    },
+    "previousPack": {
+      "revision": "984d12cc45913b73403161b284155158e21e2d83",
+      "libraryVersion": 63,
+      "sha256": "0f274fea4d16da7ca61023efe5a671fc0d00f341cdb407f988b962a98e4b0538"
+    },
+    "normalPostMergeDeployment": "Owner imports exact merge c6dc0116d08a70ca2c97edddb9404bd87e62906a into a fresh Makko preview. This maintenance does not deploy or alter Makko.",
+    "focusedPostDeployEvidence": "In playable training and gameplay, hold Cross/A for the normal approximately 286px 60Hz jump, release early for the short jump, repeat with a saved remap, confirm R1/RB inspects rather than jumps, and use Create/View to advance dialogue without stopping movement. Smoke-test settings and every hack-meter state. Observe WATCH OUT for three seconds from both directions at multiple camera heights and zooms; pause/resume/reset and confirm the cue follows the projected flight and ends at artwork entry while original car motion/collision remain. Then walk the long route, rooftops and boss flow. Record imported SHA, PASS/FAIL and clips.",
+    "rollback": "af8019a1e7755195c4e6e2cddf1e3d3f9f82002a",
+    "exportValidation": {
+      "checks": [
+        "ZIP CRC",
+        "safe unique paths",
+        "complete SHA256 coverage",
+        "all exported source files equal exact merged Git tree",
+        "root documents equal committed source-pack copies"
+      ]
+    },
+    "limitations": [
+      "No gameplay, deployment, PR merge or Makko mutation was performed by this maintenance.",
+      "GitHub automated checks do not establish physical controller feel, hosted rendering, audio or gameplay acceptance."
+    ]
+  },
+  "exportedBytesVerified": 367,
+  "archiveSha256": "2ca9823384727426a6d9b05338dac91dcb5788d1df146055c1949697ada512b3"
+}
