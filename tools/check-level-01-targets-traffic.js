@@ -88,7 +88,9 @@ async function runTraffic() {
   for (const fps of [30, 60, 120, 144]) {
     const { w, ships, requested } = await trafficRig();
     assert.strictEqual(ships.getDiagnostics().animatedTypes, 3);
-    assert.strictEqual(requested.length, 3, 'successful atlas loading does not download original GIFs too');
+    assert.strictEqual(requested.filter(url => !url.endsWith('/assets/traffic-warning/watch-out.webp')).length, 3, 'successful atlas loading does not download original GIFs too');
+    assert.strictEqual(requested.filter(url => url.endsWith('/assets/traffic-warning/watch-out.webp')).length, 1, 'warning atlas loads once through the shared image owner');
+    assert(ships.warningImage, 'warning artwork is installed after its load');
     ships.spawnShip = () => {}; // Keep only the explicitly positioned traffic subjects.
     ships.ships = [0, 1, 2].map(type => ({ shipType: type, x: 600, y: 80, size: 200, speed: 0, direction: 1, bobOffset: 0, bobAmount: 0, rotation: 0 }));
     for (let i = 0; i < fps; i++) ships.update(1000 / fps);

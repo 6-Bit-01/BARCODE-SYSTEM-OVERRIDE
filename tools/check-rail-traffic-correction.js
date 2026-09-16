@@ -75,4 +75,50 @@ for(const puzzleType of [1,2]) {
   for(const digit of h.answer) {h.keypadIndex=h.getKeypad().findIndex(k=>k.key===digit);h.activateKeypad();}
   h.keypadIndex=11;h.activateKeypad();assert(!h.active&&h.resultFx.outcome==='success','both puzzles submit through the shared keypad');
 }
-console.log('Correction: 80 original car comparisons; exact speed/height/scale/bob; 30/60/120Hz approach/pause; projected swept contact/protection; roof contact; both untimed keypad practices passed.');
+// Three seconds before visible entry, at the real projected approach height.
+// Full artwork bounds (not collision insets) end the cue on first appearance.
+for (const fps of [30, 60, 120]) for (const direction of [-1, 1]) for (const zoom of [.625, 1, 1.2]) {
+  const {w, traffic} = rig(); traffic.spawnShip = () => {};
+  w.gameCamera.y = -600; w.BARCODE.sceneProjection = { matrix: { a: zoom, d: zoom, e: 960 * (1 - zoom), f: 675 * (1 - zoom) } };
+  const car = traffic.createForegroundShip(true);
+  Object.assign(car, { direction, speed: 72.5 * direction, flipH: direction < 0, x: direction > 0 ? -2370 : 4290, y: -200, bobAmount: 0 });
+  let first = null, last = null, entry = null;
+  const step = 1000 / fps;
+  for (let i = 0; i < fps * 5; i++) {
+    const warnings = traffic.getTrafficWarnings(), m = traffic.getTrafficProjection();
+    const hull = traffic.getHazardBody(car, traffic.elapsedMs, false);
+    const distance = direction > 0 ? -(hull.x + hull.width) * m.a - m.e : hull.x * m.a + m.e - 1920;
+    if (distance <= 0 && entry === null) entry = traffic.elapsedMs;
+    if (warnings.length) {
+      if (first === null) first = traffic.elapsedMs;
+      last = traffic.elapsedMs;
+      assert.equal(warnings[0].side, direction > 0 ? 'left' : 'right');
+      assert(Math.abs(warnings[0].y - ((hull.y + hull.height / 2) * zoom + m.f)) < .001, 'arrow matches real projected car height');
+      assert(warnings[0].entryInMs <= 3000 + .001);
+    } else if (first !== null && entry === null) assert.fail('warning disappeared before the car entered');
+    if (entry !== null) { assert.equal(warnings.length, 0, 'cue ends when artwork first appears'); break; }
+    traffic.update(step);
+  }
+  assert(first !== null && entry !== null);
+  assert(Math.abs(entry - first - 3000) <= step + .01, 'warning lasts three seconds within one frame');
+  assert(Math.abs(entry - last - step) < .01, 'no gap before first visible car frame');
+}
+{
+  const {w, traffic} = rig(); traffic.spawnShip = () => {};
+  w.gameCamera.y = -600; w.BARCODE.sceneProjection = { matrix: { a: 1, d: 1, e: 0, f: 0 } };
+  const car = traffic.createForegroundShip(true); car.y = -200;
+  traffic.update(1000); const before = traffic.getTrafficWarnings(); assert.equal(before.length, 1);
+  w.gameState.paused = true; const clock = traffic.elapsedMs; traffic.update(9000);
+  assert.equal(traffic.elapsedMs, clock); assert.equal(traffic.getTrafficWarnings()[0].entryInMs, before[0].entryInMs, 'pause freezes warning and arrival together'); w.gameState.paused = false;
+  w.gameCamera.y -= 180; assert(Math.abs(traffic.getTrafficWarnings()[0].y - before[0].y - 180) < .001, 'arrow follows vertical camera');
+  car.y = -5000; assert.equal(traffic.getTrafficWarnings().length, 0, 'off-view flight is not falsely warned at another height'); car.y = -200;
+  let draws = [], scales = [], texts = [];
+  const ctx = new Proxy({ drawImage(...args) { draws.push(args); }, scale(...args) { scales.push(args); }, fillText(text) { texts.push(text); } }, {get(target,key) { return target[key] || (() => {}); }});
+  traffic.warningImage = {}; car.direction = 1; car.speed = 72.5; car.x = -2370;
+  traffic.drawTrafficWarnings(ctx); assert.equal(draws.length, 2); assert.equal(scales.length, 0, 'left arrow uses authored direction');
+  draws = []; car.direction = -1; car.speed = -72.5; car.x = 4290;
+  traffic.drawTrafficWarnings(ctx); assert.equal(draws.length, 2); assert.deepStrictEqual(scales, [[-1,1]], 'only arrow is mirrored after readable label draw');
+  traffic.warningImage = null; traffic.drawTrafficWarnings(ctx); assert(texts.includes('WATCH OUT'), 'asset failure retains warning');
+  traffic.resetRuntime(); assert.equal(traffic.getTrafficWarnings().length, 0, 'reset clears pending warning');
+}
+console.log('Correction: 80 original car comparisons; exact speed/height/scale/bob; 30/60/120Hz approach/pause; projected swept contact/protection; roof contact; both untimed keypad practices and 18 three-second/height/direction warning trajectories passed.');

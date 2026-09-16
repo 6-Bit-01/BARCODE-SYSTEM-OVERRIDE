@@ -32,8 +32,9 @@ async function main() {
     w.tutorialSystem.active = true; w.tutorialSystem.completed = false; w.tutorialSystem.storyChapter = 1;
     let advanced = 0; w.tutorialSystem.handleSpacePress = () => advanced++;
     frame(); tap(4); assert(!w.rhythmSystem.isActive(), 'L1 retains tutorial R lock');
-    const y = w.player.position.y; tap(0); assert.strictEqual(advanced, 1); assert.strictEqual(w.player.position.y, y); assert(w.player.grounded, 'A advance cannot also jump');
-    tap(5); assert(!w.player.grounded, 'RB provides the tutorial jump action');
+    const y = w.player.position.y; tap(8); assert.strictEqual(advanced, 1); assert.strictEqual(w.player.position.y, y); assert(w.player.grounded, 'Create/View advance cannot also jump');
+    tap(5); assert(w.player.grounded, 'R1/RB no longer overrides tutorial jump');
+    tap(0); assert(!w.player.grounded, 'Cross/A uses the real mapped tutorial jump action'); assert.strictEqual(advanced, 1);
     w.player.grounded = true; w.player.velocity.y = 0; w.tutorialSystem.active = false; frame();
     load(context, 'src/game/hacking.js'); w.hackingSystem = new w.HackingSystem();
     const hackTarget = new w.Enemy(1000, 784, 'virus');
@@ -152,6 +153,41 @@ async function main() {
     w.inputManager.update();
     const pad = w.navigator.getGamepads()[1]; pad.buttons[0].pressed = true; w.inputManager.update();
     assert(!w.gameState.gameOver); assert.strictEqual(p.state, 'boss_ready', 'controller A uses the actual boss retry checkpoint');
+  }
+  // Reproduce the complete held-jump trajectory, not merely a launch impulse.
+  // Before this repair tutorial RB rose only 54.81px and Cross rose 0px at 60Hz.
+  for (const fps of [30, 60, 120]) {
+    function trajectory(tutorial, button, holdMs, remap = false) {
+      const rig = createRig(), { w } = rig, { pad, frame } = controls(rig);
+      w.rhythmSystem.hideRhythmMode(); w.player.position.x = 600;
+      Object.assign(w.tutorialSystem, { active: tutorial, storyChapter: 1, handleSpacePress() { this.advanced = (this.advanced || 0) + 1; } });
+      if (remap) w.BARCODE.ControllerSettings.bind('jump', button);
+      frame(); const start = w.player.position.y; let min = start;
+      if (button === null) w.inputManager.actionInput.handleKeyDown('w'); else pad.buttons[button].pressed = true;
+      const samples = [];
+      for (let i = 0; i < fps * 2; i++) {
+        if (i * 1000 / fps >= holdMs) { if (button === null) w.inputManager.actionInput.handleKeyUp('w'); else pad.buttons[button].pressed = false; }
+        // Match the live loop: input, then the full production update coordinator.
+        frame(); w.updateGame(1000 / fps); min = Math.min(min, w.player.position.y); samples.push(w.player.position.y);
+      }
+      assert.equal(rig.calls.errors.length, 0); assert(w.player.grounded, 'jump completes and lands');
+      return { rise: start - min, samples };
+    }
+    for (const hold of [30, 900]) {
+      const keyboard = trajectory(false, null, hold);
+      assert.deepStrictEqual(trajectory(false, 0, hold).samples, keyboard.samples, 'gameplay Cross matches keyboard flight');
+      assert.deepStrictEqual(trajectory(true, 0, hold).samples, keyboard.samples, 'tutorial Cross matches keyboard flight');
+      assert.deepStrictEqual(trajectory(true, 6, hold, true).samples, keyboard.samples, 'remapped tutorial jump holds through full physics');
+    }
+    assert(trajectory(true, 0, 900).rise > 280, 'held Cross achieves the full jump');
+    assert.equal(trajectory(true, 5, 900).rise, 0, 'default bumper cannot jump');
+    const rig = createRig(), { w } = rig, { pad, frame } = controls(rig);
+    w.rhythmSystem.hideRhythmMode(); w.player.position.x = 600;
+    Object.assign(w.tutorialSystem, { active: true, storyChapter: 1, handleSpacePress() {} }); frame();
+    pad.axes[0] = 1; frame(); const before = w.player.velocity.x;
+    pad.buttons[8].pressed = true; frame(); assert.equal(w.player.velocity.x, before, 'advancing speech preserves movement');
+    pad.buttons[0].pressed = true; frame(); assert(w.inputManager.actionInput.state.jump.held, 'jump remains held while comms advance');
+    assert(w.player.velocity.y < -900);
   }
   // Approved controller settings: actual selectors, saved mappings and UI owner.
   {

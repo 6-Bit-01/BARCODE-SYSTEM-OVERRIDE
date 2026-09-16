@@ -1,0 +1,573 @@
+{
+  "sourceLibraryVersion": 62,
+  "manifest": {
+    "packVersion": "5.0",
+    "repository": "6-Bit-01/BARCODE-SYSTEM-OVERRIDE",
+    "repositoryUrl": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE",
+    "revision": "af8019a1e7755195c4e6e2cddf1e3d3f9f82002a",
+    "revisionUrl": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/tree/af8019a1e7755195c4e6e2cddf1e3d3f9f82002a",
+    "publicationStatus": "github",
+    "verifiedMainBase": "af8019a1e7755195c4e6e2cddf1e3d3f9f82002a",
+    "implementationStatus": "merged",
+    "pullRequestUrl": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/62",
+    "generatedAtUtc": "2026-09-16T07:37:55.664425+00:00",
+    "sourceCommitDate": "2026-09-16T00:34:24-07:00",
+    "sourceMode": "committed Git tree with listed exclusions; no working-tree substitutions; pack documents additionally copied to archive root",
+    "snapshotDirectory": "repository-snapshot/",
+    "trackedFileCount": 360,
+    "exportedSourceFileCount": 359,
+    "excludedSourceFiles": [
+      {
+        "path": "project_sources/BARCODE-System-Override-Source-Pack-v4.zip",
+        "reason": "Historical source-pack input; retained in Git, omitted from current export to avoid nested obsolete packs."
+      }
+    ],
+    "packDocumentSourceDirectory": "docs/source-pack/",
+    "historicalBaseline": "7788ebfab4d6231c18229bef9571d6b97b676764 (PR #25)",
+    "supersedes": [
+      "Source Pack v2",
+      "Source Pack v3",
+      "Source Pack v4"
+    ],
+    "authority": "Newest explicit owner decisions, then current pack decisions; snapshot proves implementation, not design approval.",
+    "verification": {
+      "revision": "af8019a1e7755195c4e6e2cddf1e3d3f9f82002a",
+      "base": "af8019a1e7755195c4e6e2cddf1e3d3f9f82002a",
+      "pullRequest": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/62",
+      "status": "merged; physical DualSense and owner Makko acceptance remain pending",
+      "mergedAtUtc": "2026-09-16T07:34:24Z",
+      "completeTree": "3f6c077581b0434ae7f0318908876d995d12ddb7",
+      "previousReviewRevision": "146186193cf141a55d2fb080f42a673dcfcdc9ce",
+      "treeMatchesPreviousReviewExactly": true,
+      "implementationStatusChange": "PR #62 moved from reviewed implementation to merged main. The merge and reviewed source trees are byte-identical.",
+      "implementation": {
+        "controllerDefaults": "Cross jump, Square beat attack, Triangle hack/release, L1 Rhythm Mode, R1 inspect, Circle contextual back/exit, Options pause.",
+        "settings": "Pause menu controller settings add five remappable gameplay actions, conflict swapping, saved deadzone, PlayStation/Xbox/automatic prompts and vibration.",
+        "hackHud": "Displays recharge fill/time, READY, NO TARGET, LAND FIRST, training lock, active ally and release countdown using the same availability gates as input.",
+        "preserved": "Merged walk and upper routes, musical judgments, movement, ten-second hack cooldown, 1.5-second lost-target recovery and eight-second ally duration."
+      },
+      "reviewEvidence": {
+        "revision": "146186193cf141a55d2fb080f42a673dcfcdc9ce",
+        "tree": "3f6c077581b0434ae7f0318908876d995d12ddb7",
+        "automatedTests": [
+          "npm test passed on the exact tree",
+          "npm run check:syntax:all passed on the exact tree"
+        ],
+        "focusedCoverage": "Storage, remapping/capture, pointer-scaled settings, reconnect/ownership, deadzone hysteresis, pause during hacking and all hack availability gates.",
+        "nativeReview": "Production Canvas settings, remap and hack-state renders were inspected; synthetic devices/native Canvas are not physical DualSense or hosted Makko evidence."
+      },
+      "githubMergeValidation": {
+        "run": {
+          "id": 35069215549,
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "af8019a1e7755195c4e6e2cddf1e3d3f9f82002a",
+          "html_url": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35069215549"
+        },
+        "jobs": [
+          {
+            "id": 104706501410,
+            "name": "static-validation",
+            "status": "completed",
+            "conclusion": "success",
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-node@v4",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run npm ci",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run npm test",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run npm run check:syntax:all",
+                "conclusion": "success"
+              },
+              {
+                "name": "Check intro visibility in real Chromium",
+                "conclusion": "success"
+              },
+              {
+                "name": "Upload intro browser evidence",
+                "conclusion": "success"
+              },
+              {
+                "name": "Export current source pack",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/upload-artifact@v4",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/setup-node@v4",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "conclusion": "success"
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success"
+              }
+            ]
+          }
+        ],
+        "attribution": "Fresh GitHub merge-run results; no redundant local gameplay tests claimed."
+      },
+      "makkoPlaytest": "Pending. No owner PASS was supplied in the event context or current PR discussion; merge is not hosted acceptance.",
+      "physicalDualSense": "Pending device/browser verification, including vibration, persistence and feel.",
+      "historicalPackEvidence": {
+        "revision": "146186193cf141a55d2fb080f42a673dcfcdc9ce",
+        "tree": "3f6c077581b0434ae7f0318908876d995d12ddb7",
+        "base": "91bc4917462062056ebe2cec7d01b89783d81850",
+        "pullRequest": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/62",
+        "implementationStatus": "draft review; not merged",
+        "automatedTests": {
+          "npm test": "passed",
+          "npm run check:syntax:all": "passed",
+          "git diff --check": "passed",
+          "local tested tree equals published commit tree": "passed"
+        },
+        "focusedCoverage": [
+          "saved controller settings, corrupted/blocked storage, glyph styles",
+          "deadzone threshold/release, remap swaps, capture release guards, scaled pointer settings",
+          "standard gamepad selection, reconnect guards, no input merging",
+          "real remapped jump, both hack puzzles, Options pause/resume during active hack",
+          "shared availability gates, normal and 1.5-second cooldown fill, ally release"
+        ],
+        "nativeReview": {
+          "command": "CONTROLLER_REVIEW=1 node tools/render-level1-rebuild.cjs /workspace/scratch/72acc62ea830/controller-review",
+          "status": "passed; production Canvas settings/capture, six hack states and rhythm layout visually inspected",
+          "screenshots": [
+            "docs/source-pack/verification/controller-settings.webp",
+            "docs/source-pack/verification/controller-remap.webp",
+            "docs/source-pack/verification/hack-availability.webp",
+            "docs/source-pack/verification/hack-rhythm-layout.webp"
+          ]
+        },
+        "history": "Canonical version 60 matched all 353 source files in merged PR 61; its manifest and test receipt are preserved in docs/source-pack/verification/pr61-merged-history.json. Earlier history remains in Git/source-pack documents.",
+        "makkoPlaytest": "pending owner acceptance; synthetic controllers/native rendering do not establish physical DualSense or hosted playtest acceptance",
+        "physicalDualSense": "pending",
+        "hostedPersistenceAndVibration": "pending; browser support varies",
+        "rollback": "91bc4917462062056ebe2cec7d01b89783d81850",
+        "githubCI": {
+          "workflow": {
+            "workflow_runs": [
+              {
+                "conclusion": "success",
+                "id": 35069075455,
+                "jobs_url": "https://api.github.com/repos/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35069075455/jobs",
+                "logs_url": "https://api.github.com/repos/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35069075455/logs",
+                "name": "validate",
+                "run_number": 284,
+                "status": "completed",
+                "workflow_id": 311553678
+              }
+            ]
+          },
+          "jobs": {
+            "jobs": [
+              {
+                "conclusion": "success",
+                "id": 104706056027,
+                "logs_url": null,
+                "name": "static-validation",
+                "run_id": 35069075455,
+                "status": "completed",
+                "steps": [
+                  {
+                    "conclusion": "success",
+                    "name": "Set up job",
+                    "number": 1,
+                    "status": "completed"
+                  },
+                  {
+                    "conclusion": "success",
+                    "name": "Run actions/checkout@v4",
+                    "number": 2,
+                    "status": "completed"
+                  },
+                  {
+                    "conclusion": "success",
+                    "name": "Run actions/setup-node@v4",
+                    "number": 3,
+                    "status": "completed"
+                  },
+                  {
+                    "conclusion": "success",
+                    "name": "Run npm ci",
+                    "number": 4,
+                    "status": "completed"
+                  },
+                  {
+                    "conclusion": "success",
+                    "name": "Run npm test",
+                    "number": 5,
+                    "status": "completed"
+                  },
+                  {
+                    "conclusion": "success",
+                    "name": "Run npm run check:syntax:all",
+                    "number": 6,
+                    "status": "completed"
+                  },
+                  {
+                    "conclusion": "success",
+                    "name": "Check intro visibility in real Chromium",
+                    "number": 7,
+                    "status": "completed"
+                  },
+                  {
+                    "conclusion": "success",
+                    "name": "Upload intro browser evidence",
+                    "number": 8,
+                    "status": "completed"
+                  },
+                  {
+                    "conclusion": "success",
+                    "name": "Export current source pack",
+                    "number": 9,
+                    "status": "completed"
+                  },
+                  {
+                    "conclusion": "success",
+                    "name": "Run actions/upload-artifact@v4",
+                    "number": 10,
+                    "status": "completed"
+                  },
+                  {
+                    "conclusion": "success",
+                    "name": "Post Run actions/setup-node@v4",
+                    "number": 19,
+                    "status": "completed"
+                  },
+                  {
+                    "conclusion": "success",
+                    "name": "Post Run actions/checkout@v4",
+                    "number": 20,
+                    "status": "completed"
+                  },
+                  {
+                    "conclusion": "success",
+                    "name": "Complete job",
+                    "number": 21,
+                    "status": "completed"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "githubWorkflowUrl": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35069075455"
+      },
+      "previousPack": {
+        "revision": "146186193cf141a55d2fb080f42a673dcfcdc9ce",
+        "libraryVersion": 61,
+        "sha256": "36533636bccd2415e9e0ef536facddc5e1002550eb3ed7909fd0abe8a4531f04"
+      },
+      "normalPostMergeDeployment": "Owner imports exact merge af8019a1e7755195c4e6e2cddf1e3d3f9f82002a into a fresh Makko preview; this maintenance does not deploy or alter Makko.",
+      "focusedPostDeployEvidence": "Verify the default DualSense layout, Controller settings/remap/conflict swap/deadzone/prompts/vibration/persistence, held-button guards and reconnect. Exercise READY, recharge, NO TARGET, LAND FIRST, LOCKED, HACKING and active ally/release states. Smoke-test the repaired long walk, rooftops, boss, intro/keypad and pause/retry/restart. Record imported SHA, PASS/FAIL and short clips.",
+      "rollback": "91bc4917462062056ebe2cec7d01b89783d81850",
+      "exportValidation": {
+        "checks": [
+          "ZIP CRC",
+          "safe unique paths",
+          "complete SHA256 coverage",
+          "all exported source files equal exact merged Git tree",
+          "root documents equal committed copies"
+        ]
+      },
+      "limitations": [
+        "No gameplay, deployment, PR merge or Makko mutation was performed by this maintenance.",
+        "GitHub automated checks do not establish physical controller feel, hosted persistence, audio or gameplay acceptance."
+      ]
+    },
+    "runtimeLimitations": [
+      "Makko supplies /lib/MakkoEngine.min.js; it is not included in Git.",
+      "Artwork and audio referenced by remote URLs remain externally hosted.",
+      "This source snapshot is not a self-contained offline build."
+    ],
+    "hashScope": "FILE_HASHES.sha256 covers every archive file except itself."
+  },
+  "testEvidence": {
+    "revision": "af8019a1e7755195c4e6e2cddf1e3d3f9f82002a",
+    "base": "af8019a1e7755195c4e6e2cddf1e3d3f9f82002a",
+    "pullRequest": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/62",
+    "status": "merged; physical DualSense and owner Makko acceptance remain pending",
+    "mergedAtUtc": "2026-09-16T07:34:24Z",
+    "completeTree": "3f6c077581b0434ae7f0318908876d995d12ddb7",
+    "previousReviewRevision": "146186193cf141a55d2fb080f42a673dcfcdc9ce",
+    "treeMatchesPreviousReviewExactly": true,
+    "implementationStatusChange": "PR #62 moved from reviewed implementation to merged main. The merge and reviewed source trees are byte-identical.",
+    "implementation": {
+      "controllerDefaults": "Cross jump, Square beat attack, Triangle hack/release, L1 Rhythm Mode, R1 inspect, Circle contextual back/exit, Options pause.",
+      "settings": "Pause menu controller settings add five remappable gameplay actions, conflict swapping, saved deadzone, PlayStation/Xbox/automatic prompts and vibration.",
+      "hackHud": "Displays recharge fill/time, READY, NO TARGET, LAND FIRST, training lock, active ally and release countdown using the same availability gates as input.",
+      "preserved": "Merged walk and upper routes, musical judgments, movement, ten-second hack cooldown, 1.5-second lost-target recovery and eight-second ally duration."
+    },
+    "reviewEvidence": {
+      "revision": "146186193cf141a55d2fb080f42a673dcfcdc9ce",
+      "tree": "3f6c077581b0434ae7f0318908876d995d12ddb7",
+      "automatedTests": [
+        "npm test passed on the exact tree",
+        "npm run check:syntax:all passed on the exact tree"
+      ],
+      "focusedCoverage": "Storage, remapping/capture, pointer-scaled settings, reconnect/ownership, deadzone hysteresis, pause during hacking and all hack availability gates.",
+      "nativeReview": "Production Canvas settings, remap and hack-state renders were inspected; synthetic devices/native Canvas are not physical DualSense or hosted Makko evidence."
+    },
+    "githubMergeValidation": {
+      "run": {
+        "id": 35069215549,
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "af8019a1e7755195c4e6e2cddf1e3d3f9f82002a",
+        "html_url": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35069215549"
+      },
+      "jobs": [
+        {
+          "id": 104706501410,
+          "name": "static-validation",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm ci",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm test",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm run check:syntax:all",
+              "conclusion": "success"
+            },
+            {
+              "name": "Check intro visibility in real Chromium",
+              "conclusion": "success"
+            },
+            {
+              "name": "Upload intro browser evidence",
+              "conclusion": "success"
+            },
+            {
+              "name": "Export current source pack",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ],
+      "attribution": "Fresh GitHub merge-run results; no redundant local gameplay tests claimed."
+    },
+    "makkoPlaytest": "Pending. No owner PASS was supplied in the event context or current PR discussion; merge is not hosted acceptance.",
+    "physicalDualSense": "Pending device/browser verification, including vibration, persistence and feel.",
+    "historicalPackEvidence": {
+      "revision": "146186193cf141a55d2fb080f42a673dcfcdc9ce",
+      "tree": "3f6c077581b0434ae7f0318908876d995d12ddb7",
+      "base": "91bc4917462062056ebe2cec7d01b89783d81850",
+      "pullRequest": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/62",
+      "implementationStatus": "draft review; not merged",
+      "automatedTests": {
+        "npm test": "passed",
+        "npm run check:syntax:all": "passed",
+        "git diff --check": "passed",
+        "local tested tree equals published commit tree": "passed"
+      },
+      "focusedCoverage": [
+        "saved controller settings, corrupted/blocked storage, glyph styles",
+        "deadzone threshold/release, remap swaps, capture release guards, scaled pointer settings",
+        "standard gamepad selection, reconnect guards, no input merging",
+        "real remapped jump, both hack puzzles, Options pause/resume during active hack",
+        "shared availability gates, normal and 1.5-second cooldown fill, ally release"
+      ],
+      "nativeReview": {
+        "command": "CONTROLLER_REVIEW=1 node tools/render-level1-rebuild.cjs /workspace/scratch/72acc62ea830/controller-review",
+        "status": "passed; production Canvas settings/capture, six hack states and rhythm layout visually inspected",
+        "screenshots": [
+          "docs/source-pack/verification/controller-settings.webp",
+          "docs/source-pack/verification/controller-remap.webp",
+          "docs/source-pack/verification/hack-availability.webp",
+          "docs/source-pack/verification/hack-rhythm-layout.webp"
+        ]
+      },
+      "history": "Canonical version 60 matched all 353 source files in merged PR 61; its manifest and test receipt are preserved in docs/source-pack/verification/pr61-merged-history.json. Earlier history remains in Git/source-pack documents.",
+      "makkoPlaytest": "pending owner acceptance; synthetic controllers/native rendering do not establish physical DualSense or hosted playtest acceptance",
+      "physicalDualSense": "pending",
+      "hostedPersistenceAndVibration": "pending; browser support varies",
+      "rollback": "91bc4917462062056ebe2cec7d01b89783d81850",
+      "githubCI": {
+        "workflow": {
+          "workflow_runs": [
+            {
+              "conclusion": "success",
+              "id": 35069075455,
+              "jobs_url": "https://api.github.com/repos/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35069075455/jobs",
+              "logs_url": "https://api.github.com/repos/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35069075455/logs",
+              "name": "validate",
+              "run_number": 284,
+              "status": "completed",
+              "workflow_id": 311553678
+            }
+          ]
+        },
+        "jobs": {
+          "jobs": [
+            {
+              "conclusion": "success",
+              "id": 104706056027,
+              "logs_url": null,
+              "name": "static-validation",
+              "run_id": 35069075455,
+              "status": "completed",
+              "steps": [
+                {
+                  "conclusion": "success",
+                  "name": "Set up job",
+                  "number": 1,
+                  "status": "completed"
+                },
+                {
+                  "conclusion": "success",
+                  "name": "Run actions/checkout@v4",
+                  "number": 2,
+                  "status": "completed"
+                },
+                {
+                  "conclusion": "success",
+                  "name": "Run actions/setup-node@v4",
+                  "number": 3,
+                  "status": "completed"
+                },
+                {
+                  "conclusion": "success",
+                  "name": "Run npm ci",
+                  "number": 4,
+                  "status": "completed"
+                },
+                {
+                  "conclusion": "success",
+                  "name": "Run npm test",
+                  "number": 5,
+                  "status": "completed"
+                },
+                {
+                  "conclusion": "success",
+                  "name": "Run npm run check:syntax:all",
+                  "number": 6,
+                  "status": "completed"
+                },
+                {
+                  "conclusion": "success",
+                  "name": "Check intro visibility in real Chromium",
+                  "number": 7,
+                  "status": "completed"
+                },
+                {
+                  "conclusion": "success",
+                  "name": "Upload intro browser evidence",
+                  "number": 8,
+                  "status": "completed"
+                },
+                {
+                  "conclusion": "success",
+                  "name": "Export current source pack",
+                  "number": 9,
+                  "status": "completed"
+                },
+                {
+                  "conclusion": "success",
+                  "name": "Run actions/upload-artifact@v4",
+                  "number": 10,
+                  "status": "completed"
+                },
+                {
+                  "conclusion": "success",
+                  "name": "Post Run actions/setup-node@v4",
+                  "number": 19,
+                  "status": "completed"
+                },
+                {
+                  "conclusion": "success",
+                  "name": "Post Run actions/checkout@v4",
+                  "number": 20,
+                  "status": "completed"
+                },
+                {
+                  "conclusion": "success",
+                  "name": "Complete job",
+                  "number": 21,
+                  "status": "completed"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "githubWorkflowUrl": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35069075455"
+    },
+    "previousPack": {
+      "revision": "146186193cf141a55d2fb080f42a673dcfcdc9ce",
+      "libraryVersion": 61,
+      "sha256": "36533636bccd2415e9e0ef536facddc5e1002550eb3ed7909fd0abe8a4531f04"
+    },
+    "normalPostMergeDeployment": "Owner imports exact merge af8019a1e7755195c4e6e2cddf1e3d3f9f82002a into a fresh Makko preview; this maintenance does not deploy or alter Makko.",
+    "focusedPostDeployEvidence": "Verify the default DualSense layout, Controller settings/remap/conflict swap/deadzone/prompts/vibration/persistence, held-button guards and reconnect. Exercise READY, recharge, NO TARGET, LAND FIRST, LOCKED, HACKING and active ally/release states. Smoke-test the repaired long walk, rooftops, boss, intro/keypad and pause/retry/restart. Record imported SHA, PASS/FAIL and short clips.",
+    "rollback": "91bc4917462062056ebe2cec7d01b89783d81850",
+    "exportValidation": {
+      "checks": [
+        "ZIP CRC",
+        "safe unique paths",
+        "complete SHA256 coverage",
+        "all exported source files equal exact merged Git tree",
+        "root documents equal committed copies"
+      ]
+    },
+    "limitations": [
+      "No gameplay, deployment, PR merge or Makko mutation was performed by this maintenance.",
+      "GitHub automated checks do not establish physical controller feel, hosted persistence, audio or gameplay acceptance."
+    ]
+  },
+  "subsequentOwnerFeedback": "Owner reports controller pass failed: bumper still jumps with a tiny hop and Cross stops the character. This is failed controller playtest evidence, despite prior automated checks."
+}

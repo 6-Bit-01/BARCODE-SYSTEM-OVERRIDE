@@ -100,7 +100,7 @@ window.TutorialSystem = class TutorialSystem {
         
         this.addObjective('Use Arrow Keys to move around', 'movement');
         this.addObjective('Press Up Arrow to jump', 'jump');
-        const movementDialogue = this.addDialogue('Left / Right or A / D to move; Up / W to jump. On a controller, use the stick and {bumper} while we talk.', 'mac', 0);
+        const movementDialogue = this.addDialogue('Left / Right or A / D to move; Up / W to jump. On a controller, use the stick and {jump}. {dialogue} advances our comms.', 'mac', 0);
         movementDialogue.requiresObjectives = ['movement', 'jump'];
         break;
         
@@ -183,8 +183,8 @@ window.TutorialSystem = class TutorialSystem {
   
   resolveControlText(text) {
     const keys = { rhythm_mode: 'R', primary: 'Down Arrow', interact: 'H', jump: 'Up / W' };
-    return text.replace(/\{(rhythm_mode|primary|interact|jump|bumper)\}/g, (match, action) => action === 'bumper'
-      ? (window.BARCODE?.ControllerSettings?.button(5) || 'right bumper')
+    return text.replace(/\{(rhythm_mode|primary|interact|jump|dialogue)\}/g, (match, action) => action === 'dialogue'
+      ? (window.BARCODE?.ControllerSettings?.button(8) || 'Create / View')
       : (window.BARCODE?.ControllerSettings?.prompt(action, keys[action]) || keys[action]));
   }
 
@@ -669,7 +669,7 @@ window.TutorialSystem = class TutorialSystem {
           ctx.fillStyle = '#00ffff';
           ctx.font = '16px Orbitron';
           ctx.textAlign = 'left';
-          ctx.fillText(window.BARCODE?.GamepadUI?.connected ? `${window.BARCODE.ControllerSettings?.button(0) || 'A'}: Continue` : 'Press SPACE to continue...', 50, boxY + 150);
+          ctx.fillText(window.BARCODE?.GamepadUI?.connected ? `${window.BARCODE.ControllerSettings?.button(8) || 'Create / View'}: Continue` : 'Press SPACE to continue...', 50, boxY + 150);
         } else {
           ctx.fillStyle = '#ff6666';
           ctx.font = '16px Orbitron';

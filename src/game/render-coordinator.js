@@ -170,6 +170,7 @@ window.renderGame = function() {
       console.error('Error drawing UI:', error?.message || error);
     }
   }
+  window.spaceShipSystem?.drawTrafficWarnings?.(ctx);
   
   // Apply post-processing effects (if available)
   if (rendererAvailable) {
@@ -285,7 +286,6 @@ function drawGameElements(ctx) {
   // Draw foreground space ships
   ctx.save(); ctx.translate(0, -cameraY);
   window.BARCODE?.stageFX?.drawTrafficLighting?.(ctx, { foreground: true });
-  window.spaceShipSystem?.drawTrafficWarnings?.(ctx);
   drawForegroundSpaceShips(ctx);
   ctx.restore();
 }

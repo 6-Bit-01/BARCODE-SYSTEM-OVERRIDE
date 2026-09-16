@@ -26,9 +26,28 @@ async function main(){
  for(let i=0;i<3;i++){w.spaceShipSystem.shipImages[i]=await loadImage(path.join(root,'assets/traffic/ship-'+(i+1)+'.webp'));w.spaceShipSystem.imagesLoaded[i]=true;w.spaceShipSystem.shipSheets[i]=w.BARCODE.trafficSheets[i];}
  const bg=await loadImage(path.join(root,'assets/world-v3/far-background.webp')),fg=await loadImage(path.join(root,'assets/world-v3/buildings.webp'));
  p.startMission();w.rhythmSystem.hideRhythmMode();w.player.allowMovement=true;
- function scene(c,cx,cy){w.gameCamera={centerX:cx,y:cy};w.renderer.zoomLevel=1;c.fillStyle='#111322';c.fillRect(0,0,1920,1080);c.drawImage(bg,0,0,1920,1080);c.save();c.translate(960-cx,-cy);c.drawImage(fg,0,2,fg.width,fg.height-2,-152,-550+2*1589/fg.height,4400,1589-2*1589/fg.height);w.drawGround(c);w.drawGameEntities(c);w.player.draw(c);c.restore();c.save();c.translate(0,-cy);w.spaceShipSystem.drawTrafficWarnings(c);w.spaceShipSystem.drawForegroundShips(c);c.restore();w.drawObjectives(c);}
+ function scene(c,cx,cy){w.gameCamera={centerX:cx,y:cy};w.renderer.zoomLevel=1;c.fillStyle='#111322';c.fillRect(0,0,1920,1080);c.drawImage(bg,0,0,1920,1080);c.save();c.translate(960-cx,-cy);c.drawImage(fg,0,2,fg.width,fg.height-2,-152,-550+2*1589/fg.height,4400,1589-2*1589/fg.height);w.drawGround(c);w.drawGameEntities(c);w.player.draw(c);c.restore();c.save();c.translate(0,-cy);w.spaceShipSystem.drawForegroundShips(c);c.restore();w.drawObjectives(c);}
  function setHero(x,foot,support){Object.assign(w.player.position,{x,y:foot-72});w.player.velocity.x=0;w.player.velocity.y=0;w.player.grounded=true;w.player.supportedSurfaceId=support||null;w.player.state='idle';w.player.airInput=0;w.player.controlsDisabled=false;w.player.invulnerableUntil=0;w.player.health=w.player.maxHealth;w.player.playAnimation('idle');}
  const canvas=createCanvas(1920,1080),c=canvas.getContext('2d');
+ if(process.env.TRAFFIC_WARNING_REVIEW){
+  const traffic=w.spaceShipSystem;traffic.warningImage=await loadImage(path.join(root,'assets/traffic-warning/watch-out.webp'));traffic.spawnShip=()=>{};
+  const movie=createCanvas(960,540),mc=movie.getContext('2d');
+  const video=spawn('ffmpeg',['-y','-f','image2pipe','-framerate','30','-i','pipe:0','-c:v','libx264','-pix_fmt','yuv420p',path.join(out,'traffic-warning-both-sides.mp4')],{stdio:['pipe','ignore','pipe']});let errors='';video.stderr.on('data',d=>errors+=d);
+  for(const direction of [1,-1]){
+   traffic.resetRuntime();const car=traffic.createForegroundShip(true);
+   Object.assign(car,{direction,speed:72.5*direction,flipH:direction<0,x:direction>0?-2370:4290,y:direction>0?-100:-300,shipType:0});
+   p.state='encounter_2';p.closedGateEncounterId=null;const roof=p.getStageSurfaces().find(s=>s.id==='cache-crown');setHero(roof.x+roof.w/2,roof.y,roof.id);
+   for(let i=0;i<126;i++){
+    scene(c,2100,-550);w.drawGameUI(c);traffic.drawTrafficWarnings(c);
+    if(i===36)fs.writeFileSync(path.join(out,'warning-'+(direction>0?'left':'right')+'.png'),canvas.toBuffer('image/png'));
+    mc.drawImage(canvas,0,0,960,540);
+    if(!video.stdin.write(movie.toBuffer('image/png')))await once(video.stdin,'drain');
+    traffic.update(1000/30);
+   }
+  }
+  video.stdin.end();const [code]=await once(video,'close');if(code!==0)throw new Error(errors);if(calls.errors.length)throw new Error(calls.errors.join('\n'));
+  console.log('Native warning previews and both-direction approach video complete.');return;
+ }
  if(process.env.CONTROLLER_REVIEW){
   load(context,'src/game/pause-menu.js');load(context,'src/core/gamepad-ui.js');
   const pad={id:'DualSense Wireless Controller (054c)',mapping:'standard',connected:true,index:0,buttons:Array.from({length:17},()=>({pressed:false})),axes:[0,0]};
