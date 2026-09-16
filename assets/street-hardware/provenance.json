@@ -1,0 +1,55 @@
+{
+  "status": "implemented-for-owner-review; Makko acceptance pending",
+  "generator": "OpenAI built-in image generation",
+  "promptSummary": "Battered public-access broadcast terminal with CRT waveform, speaker cones, chipped mint paint, dark chassis and purple side light; flat jumpable top, front horizontal, shallow right/up depth matching sidewalk. Transparent isolated hand-inked game prop. No scenery or antenna.",
+  "sourceImageSha256": "a85eaac39a3eb7e17917b87ef586a9064631f4330be508ab2baa6836d65125b9",
+  "sourcePreservation": "Original generated PNG retained by the generating ChatGPT turn; runtime export tracked here.",
+  "terminalRegistration": {
+    "sourceCrop": [
+      110,
+      202,
+      931,
+      1054
+    ],
+    "sourceFrontLipY": 88,
+    "sourceFootY": 1047,
+    "worldCollider": [
+      3150,
+      650,
+      160,
+      206
+    ],
+    "stableSurfaceId": "tower-utility-unit",
+    "runtimeImageWidth": 194,
+    "runtimeImageHeight": 226.40667361835244,
+    "alpha": "preserved"
+  },
+  "rails": "Offline rendering of unchanged PR58 hardware modules at measured world geometry. Frame 0 powered; frame 1 original saturate(0) brightness(.65). Runtime uses two images only during 650ms opening, otherwise one.",
+  "assets": [
+    {
+      "path": "assets/street-hardware/broadcast-terminal.webp",
+      "bytes": 121788,
+      "sha256": "2c1a06cf44828cdcbc8044b9cdbf66457b994fbe7e0982f8209df4515d206446"
+    },
+    {
+      "path": "assets/street-hardware/gate-2.webp",
+      "bytes": 59274,
+      "sha256": "94bb09650bbf2c0c1817dc0ec1934185b57c3ea90b9bb9b9c23ec4eda2daeed4"
+    },
+    {
+      "path": "assets/street-hardware/gate-4.webp",
+      "bytes": 63714,
+      "sha256": "c068fda25074d2a1a67000f95f9e93d7e2a9f0957563d1c522efd920123730b5"
+    },
+    {
+      "path": "assets/street-hardware/gate-1.webp",
+      "bytes": 66178,
+      "sha256": "9f947dc0e7c6a2ea229d48d05037477ea6ee30b488def649503332f39ee416b3"
+    },
+    {
+      "path": "assets/street-hardware/gate-3.webp",
+      "bytes": 67524,
+      "sha256": "e3798694b599d23744f8d519952e403457280036f0694faf6b2c13b5967b5b43"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "gateHardware1",
+    "path": "assets/street-hardware/gate-1.webp",
+    "left": 860,
+    "top": -202,
+    "width": 670,
+    "height": 1334,
+    "columns": 2,
+    "frames": 2
+  },
+  {
+    "id": "gateHardware2",
+    "path": "assets/street-hardware/gate-2.webp",
+    "left": 1650,
+    "top": 26,
+    "width": 670,
+    "height": 1106,
+    "columns": 2,
+    "frames": 2
+  },
+  {
+    "id": "gateHardware3",
+    "path": "assets/street-hardware/gate-3.webp",
+    "left": 2540,
+    "top": -249,
+    "width": 670,
+    "height": 1381,
+    "columns": 2,
+    "frames": 2
+  },
+  {
+    "id": "gateHardware4",
+    "path": "assets/street-hardware/gate-4.webp",
+    "left": 3550,
+    "top": -108,
+    "width": 670,
+    "height": 1240,
+    "columns": 2,
+    "frames": 2
+  }
+]
