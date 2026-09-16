@@ -1,5 +1,9 @@
 # Continue here — Level 1 rebuild after reverted #55
 
+## September 16, 2026 — street depth, one terminal and render cost
+
+Base/rollback is merged PR #58 (`1c8b54ec5db0e102f64c0ffb15bd4b57c5e5acda`). Branch `agent/street-depth-terminal-performance` implements the owner's new feedback: draw emitter hardware behind enemies, replace three large generic boxes with one illustrated broadcast terminal at the Tower, and reduce wasted scenery rendering. The two removed boxes also lose their colliders; thin wall-mounted supports remain. Baked original rail geometry/off states use asset ancestor `1891ebb4e061971362817832e942ef9fbe05d15a`. Native gate-pass draw calls fall from 14 to 1 for the first gate and 55 to 2 after all gates clear at the fixed review camera. This is not a hosted FPS claim. See `STREET_DEPTH_TERMINAL_PERFORMANCE.md` for implementation, assets, tests, limits and the exact Makko route. Review head/CI belong to the generated receipt. Owner Makko acceptance is pending; earlier entries are history.
+
 ## Continue here — thin rails and original traffic
 
 Base/rollback `f048d229a51b9ecce801cd9d736613491c4ae2f9` (merged #57). Branch `agent/thin-rails-original-traffic`. The owner selected the thin continuous facade-to-road concept and approved the reviewed eight-issue plan. Read `docs/source-pack/THIN_RAIL_TRAFFIC_CORRECTION.md` and the newest acceptance entry. Four rail parts are pinned to `08d5720f31020fd846ea6b93c76988ffef6e3fbe`; original car behavior is restored and verified against the pre-rebuild production source. Source/native checks are not Makko acceptance. Prepare/review the exact receipt head, then after acceptance and merge import the actual main merge SHA into a fresh preview. Do not redo the reverted/rejected passes or substitute another car system.

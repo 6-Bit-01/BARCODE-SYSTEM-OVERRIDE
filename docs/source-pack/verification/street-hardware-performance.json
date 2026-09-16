@@ -1,0 +1,28 @@
+{
+  "scope": "Native Canvas gate pass only at 1920x1080; fixed camera; 6 warmups + 30 samples; not hosted FPS",
+  "base": "1c8b54ec",
+  "firstGate": {
+    "before": {
+      "medianMs": 0.317,
+      "p95Ms": 0.925,
+      "hardwareImageDrawsPerFrame": 14
+    },
+    "after": {
+      "medianMs": 0.207,
+      "p95Ms": 0.263,
+      "hardwareImageDrawsPerFrame": 1
+    }
+  },
+  "allCleared": {
+    "before": {
+      "medianMs": 0.853,
+      "p95Ms": 2.569,
+      "hardwareImageDrawsPerFrame": 55
+    },
+    "after": {
+      "medianMs": 0.146,
+      "p95Ms": 1.757,
+      "hardwareImageDrawsPerFrame": 2
+    }
+  }
+}

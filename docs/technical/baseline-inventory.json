@@ -160,6 +160,7 @@
     "tools/check-rail-traffic-correction.js",
     "tools/check-runtime-lifecycle.js",
     "tools/check-startup-lifecycle.js",
+    "tools/check-street-depth.js",
     "tools/check-syntax.js",
     "tools/fixtures/original-traffic-6e375.js",
     "tools/generate-baseline.js",

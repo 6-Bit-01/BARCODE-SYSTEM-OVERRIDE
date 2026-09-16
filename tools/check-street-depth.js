@@ -1,0 +1,31 @@
+// Production draw ordering, scenery visibility, and retained route contract.
+const assert=require('assert');
+const {createRig,load}=require('./check-level-01-boss');
+const {w,p,context}=createRig();p.startMission();
+const props=w.Sector1Progression.TRAVERSAL_PROPS;
+assert.strictEqual(props.filter(p=>p.h>30).length,1,'one large street prop');
+assert.strictEqual(props.find(p=>p.h>30).asset,'broadcastTerminal');
+assert(!p.getStageSurfaces().some(p=>['firewall-utility-unit','broadcast-utility-unit'].includes(p.id)),'removed boxes leave no invisible collision');
+const original=w.sector1Progression;
+load(context,'src/game/render-coordinator.js');
+const order=[];
+w.BARCODE.JammerEnvironment.draw=()=>order.push('jammer');
+w.sector1Progression={draw:()=>order.push('hardware')};
+w.enemyManager.draw=()=>order.push('enemy');
+w.lostDataSystem=null;
+w.drawGameEntities({});
+assert(order.indexOf('hardware')<order.indexOf('enemy'),'actual renderer must draw hardware before enemies');
+w.sector1Progression=original;
+let draws=0,filters=0;const stack=[];
+const c={canvas:{width:1920,height:1080},globalAlpha:1,getTransform:()=>({a:1,b:0,c:0,d:1,e:0,f:0}),
+ save(){stack.push(this.globalAlpha);},restore(){this.globalAlpha=stack.pop();},set filter(v){filters++;}};
+w.BARCODE.PresentationAssets={ready:()=>true,draw(){draws++;return true;}};
+const gates=w.Sector1Progression.ENCOUNTER_GATES;
+p.drawBarrierHardware(c,gates[0],false,0);assert.strictEqual(draws,1,'one image for visible active hardware');
+draws=0;p.drawBarrierHardware(c,gates[0],true,1);assert.strictEqual(draws,1,'one image for visible cleared hardware');
+draws=0;p.drawBarrierHardware(c,gates[0],true,.5);assert.strictEqual(draws,2,'opening only crossfades the two states');
+draws=0;p.drawBarrierHardware(c,gates[3],true,1);assert.strictEqual(draws,0,'offscreen cleared gate costs no draws');
+assert.strictEqual(filters,0,'no per-frame rail filters');assert.strictEqual(stack.length,0,'canvas state balanced');
+c.getTransform=()=>({a:.6,b:0,c:0,d:.6,e:-1200,f:650});
+assert(p.isSceneryVisible(c,3150,-314,194,230),'upper scenery stays visible through zoom/camera');
+console.log('Street depth: production layering, one large prop, no ghost boxes, camera-aware culling, 1–2 hardware draws and zero live filters passed.');

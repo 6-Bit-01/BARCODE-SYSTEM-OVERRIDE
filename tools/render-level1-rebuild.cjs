@@ -20,14 +20,20 @@ async function main(){
  for(let i=0;i<3;i++){w.spaceShipSystem.shipImages[i]=await loadImage(path.join(root,'assets/traffic/ship-'+(i+1)+'.webp'));w.spaceShipSystem.imagesLoaded[i]=true;w.spaceShipSystem.shipSheets[i]=w.BARCODE.trafficSheets[i];}
  const bg=await loadImage(path.join(root,'assets/world-v3/far-background.webp')),fg=await loadImage(path.join(root,'assets/world-v3/buildings.webp'));
  p.startMission();w.rhythmSystem.hideRhythmMode();w.player.allowMovement=true;
- function scene(c,cx,cy){w.gameCamera={centerX:cx,y:cy};w.renderer.zoomLevel=1;c.fillStyle='#111322';c.fillRect(0,0,1920,1080);c.drawImage(bg,0,0,1920,1080);c.save();c.translate(960-cx,-cy);c.drawImage(fg,0,2,fg.width,fg.height-2,-152,-550+2*1589/fg.height,4400,1589-2*1589/fg.height);w.drawGround(c);p.draw(c);w.enemyManager.enemies.forEach(e=>e.draw(c));w.player.draw(c);c.restore();c.save();c.translate(0,-cy);w.spaceShipSystem.drawTrafficWarnings(c);w.spaceShipSystem.drawForegroundShips(c);c.restore();w.drawObjectives(c);}
+ function scene(c,cx,cy){w.gameCamera={centerX:cx,y:cy};w.renderer.zoomLevel=1;c.fillStyle='#111322';c.fillRect(0,0,1920,1080);c.drawImage(bg,0,0,1920,1080);c.save();c.translate(960-cx,-cy);c.drawImage(fg,0,2,fg.width,fg.height-2,-152,-550+2*1589/fg.height,4400,1589-2*1589/fg.height);w.drawGround(c);w.drawGameEntities(c);w.player.draw(c);c.restore();c.save();c.translate(0,-cy);w.spaceShipSystem.drawTrafficWarnings(c);w.spaceShipSystem.drawForegroundShips(c);c.restore();w.drawObjectives(c);}
  function setHero(x,foot,support){Object.assign(w.player.position,{x,y:foot-72});w.player.velocity.x=0;w.player.velocity.y=0;w.player.grounded=true;w.player.supportedSurfaceId=support||null;w.player.state='idle';w.player.airInput=0;w.player.controlsDisabled=false;w.player.invulnerableUntil=0;w.player.health=w.player.maxHealth;w.player.playAnimation('idle');}
  const canvas=createCanvas(1920,1080),c=canvas.getContext('2d');
  p.state='encounter_1';p.closedGateEncounterId=p.state;p.spawnedEncounterIds.add(p.state);
  setHero(1110,856);const firewall=new w.Enemy(850,784,'firewall');Object.assign(firewall.position,{x:850,y:784});firewall._sector1MissionEnemy=true;firewall.entranceComplete=true;firewall.spawnProtectionDuration=0;firewall.pollSpriteReady();firewall.playAnimation('walk');w.enemyManager.enemies=[firewall];
  scene(c,1080,0);fs.writeFileSync(path.join(out,'street-barrier.png'),canvas.toBuffer('image/png'));
+ Object.assign(firewall.position,{x:1378,y:784});setHero(1200,856);
+ scene(c,1320,0);fs.writeFileSync(path.join(out,'enemy-over-rail.png'),canvas.toBuffer('image/png'));
+ p.districtSignal.clearedAtMs=[0,0,0,0];p.districtSignal.elapsedMs=3000;p.state='jammer_active';p.closedGateEncounterId=null;
+ scene(c,1320,0);fs.writeFileSync(path.join(out,'enemy-over-cleared-rail.png'),canvas.toBuffer('image/png'));
+ p.districtSignal.clearedAtMs=[null,null,null,null];
+
  for(const [i,cx] of [1080,2040,2990,3290].entries()){p.state='encounter_'+(i+1);p.closedGateEncounterId=p.state;setHero([1110,2010,2900,3870][i],856);w.enemyManager.enemies=[];scene(c,cx,0);fs.writeFileSync(path.join(out,'gate-'+(i+1)+'-street.png'),canvas.toBuffer('image/png'));scene(c,cx,-600);fs.writeFileSync(path.join(out,'gate-'+(i+1)+'-roof.png'),canvas.toBuffer('image/png'));}
- p.state='encounter_4';p.closedGateEncounterId=p.state;setHero(3250,650,'tower-utility-unit');w.enemyManager.enemies=[];scene(c,3190,0);fs.writeFileSync(path.join(out,'utility-box.png'),canvas.toBuffer('image/png'));
+ p.state='encounter_4';p.closedGateEncounterId=p.state;setHero(3250,650,'tower-utility-unit');w.enemyManager.enemies=[];scene(c,3190,0);fs.writeFileSync(path.join(out,'broadcast-terminal.png'),canvas.toBuffer('image/png'));
  const roof=w.Sector1Progression.STAGE_SURFACES.find(p=>p.id==='tower-crown');const drone=new w.RooftopDrone(3490,-500,roof);drone._sector1MissionEnemy=true;drone.spawnProtectionDuration=0;w.enemyManager.enemies=[drone];setHero(3340,-314,'tower-crown');scene(c,3160,-914);fs.writeFileSync(path.join(out,'rooftop-drone.png'),canvas.toBuffer('image/png'));
  const hack=w.hackingSystem=new w.HackingSystem();hack.active=true;hack.phase='answer';hack.puzzleType=2;hack.currentPuzzle={type:2,answer:'4061',hidden:true};hack.inputText='40';hack.useKeypad();scene(c,3160,-914);hack.draw(c);fs.writeFileSync(path.join(out,'keypad.png'),canvas.toBuffer('image/png'));hack.active=false;
  if(process.env.REVIEW_STILLS_ONLY)return console.log('Four production stills rendered.');

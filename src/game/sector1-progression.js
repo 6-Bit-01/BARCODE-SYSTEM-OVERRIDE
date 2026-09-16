@@ -55,15 +55,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
 
   const TRAVERSAL_PROPS = Object.freeze([
     { id: 'cache-maintenance-step', x: 1390, y: 410, w: 128, h: 14 },
-    { id: 'tower-utility-unit', x: 3150, y: 650, w: 160, h: 206 },
+    { id: 'tower-utility-unit', x: 3150, y: 650, w: 160, h: 206, asset: 'broadcastTerminal' },
     { id: 'signal-high-step', x: 642, y: 10, w: 132, h: 18 },
     { id: 'cache-high-step', x: 1400, y: 30, w: 136, h: 18 },
-    { id: 'firewall-utility-unit', x: 1940, y: 646, w: 158, h: 210 },
     { id: 'firewall-low-step', x: 2130, y: 430, w: 148, h: 18 },
     { id: 'firewall-high-step', x: 2330, y: 210, w: 136, h: 18 },
     { id: 'tower-middle-step', x: 3260, y: 50, w: 136, h: 18 },
     { id: 'tower-high-step', x: 3420, y: -140, w: 136, h: 18 },
-    { id: 'broadcast-utility-unit', x: 3800, y: 680, w: 152, h: 176 },
     { id: 'broadcast-low-step', x: 3930, y: 280, w: 144, h: 18 },
     { id: 'broadcast-high-step', x: 3820, y: 60, w: 144, h: 18 }
   ]);
@@ -883,12 +881,48 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         (enemy._barrierPreviousX-gate.x)*(enemy.position.x-gate.x)<=0&&enemy._barrierPreviousX!==enemy.position.x)
         this.touchBarrier(gate,enemy.position.y,'cross');
     }
-    drawBarrierHardware(ctx,gate,opening,progress) {
+    isSceneryVisible(ctx, x, y, width, height) {
+      const m = ctx.getTransform?.(), canvas = ctx.canvas;
+      if (!m || !Number.isFinite(canvas?.width) || !Number.isFinite(m.a)) return true;
+      const points = [[x,y],[x+width,y],[x,y+height],[x+width,y+height]];
+      const xs = points.map(([px,py]) => m.a*px+m.c*py+m.e);
+      const ys = points.map(([px,py]) => m.b*px+m.d*py+m.f);
+      return Math.max(...xs) >= -32 && Math.min(...xs) <= canvas.width+32 &&
+        Math.max(...ys) >= -32 && Math.min(...ys) <= canvas.height+32;
+    }
+    getGateHardwareLayout(gate) {
+      const index = ENCOUNTER_GATES.indexOf(gate), top = [-178,50,-225,-84][index]-24;
+      const foot = gate.y+gate.h;
+      const left = Math.floor(gate.x+gate.w-(1096-foot-4)*gate.depthX/-gate.depthY-28);
+      return { key: 'gateHardware'+(index+1), left, top,
+        width: Math.ceil(gate.x+gate.w+gate.depthX+40-left), height: 1132-top };
+    }
+    drawBarrierHardware(ctx, gate, opening, progress) {
+      const box = this.getGateHardwareLayout(gate);
+      if (!this.isSceneryVisible(ctx,box.left,box.top,box.width,box.height)) return;
+      const A = window.BARCODE?.PresentationAssets;
+      ctx.save(); ctx.globalAlpha = 1;
+      if (A?.ready?.(box.key)) {
+        const pose = { x:box.left, y:box.top, width:box.width, height:box.height };
+        // Two prebaked states preserve the original powered/off hardware. Only
+        // the 650 ms opening needs a second image; no live filters or canvases.
+        A.draw(box.key,ctx,{...pose,frame:opening && progress>=1 ? 1 : 0});
+        if (opening && progress>0 && progress<1) {
+          ctx.save(); ctx.globalAlpha *= progress;
+          A.draw(box.key,ctx,{...pose,frame:1}); ctx.restore();
+        }
+      } else {
+        // Bounded original-art fallback while the compact assemblies load.
+        ctx.save(); if (opening) ctx.globalAlpha *= 1-progress*.35;
+        this.drawBarrierHardwareModules(ctx,gate,opening,progress); ctx.restore();
+      }
+      ctx.restore();
+    }
+    drawBarrierHardwareModules(ctx,gate,opening,progress) {
       const i = ENCOUNTER_GATES.indexOf(gate), A = window.BARCODE?.PresentationAssets;
       const x = gate.x + gate.w + gate.depthX, foot = gate.y + gate.h;
       const roof = [-178, 50, -225, -84][i], baseY = foot + gate.depthY;
-      ctx.save(); ctx.globalAlpha = 1;
-      if (opening) ctx.filter = `saturate(${1-progress}) brightness(${1-progress*.35})`;
+      ctx.save();
       // Repeat actual narrow modules; do not stretch a small emitter up a facade.
       const tileHeight = 174, count = Math.ceil((baseY - roof) / tileHeight);
       const height = (baseY - roof) / count;
@@ -1077,6 +1111,17 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (!ctx || !this.missionStarted) return;
       ctx.save(); ctx.shadowBlur = 0;
       for (const prop of TRAVERSAL_PROPS) {
+        if (!this.isSceneryVisible(ctx,prop.x-8,prop.y-24,prop.w+58,prop.h+80)) continue;
+        if (prop.asset) {
+          ctx.fillStyle='rgba(0,0,0,0.30)';
+          ctx.beginPath(); ctx.ellipse(prop.x+98,prop.y+prop.h-2,96,12,0,0,Math.PI*2); ctx.fill();
+          // Authored front lip and feet register to the same old 160x206
+          // collider; the shallow top/right side follow the sidewalk angle.
+          const height=206*1054/959;
+          if (window.BARCODE?.PresentationAssets?.draw(prop.asset,ctx,{
+            x:prop.x,y:prop.y-height*88/1054,width:194,height
+          })) continue;
+        }
         const depth=prop.h>30?34:22, rise=prop.h>30?16:10;
         ctx.fillStyle='rgba(0,0,0,0.3)';ctx.beginPath();ctx.moveTo(prop.x,prop.y+prop.h);ctx.lineTo(prop.x+prop.w+depth,prop.y+prop.h-rise);ctx.lineTo(prop.x+prop.w+depth+15,prop.y+prop.h+7);ctx.lineTo(prop.x+8,prop.y+prop.h+15);ctx.closePath();ctx.fill();
         ctx.fillStyle='#405057';ctx.strokeStyle='#151e27';ctx.lineWidth=3;

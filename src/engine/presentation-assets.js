@@ -1,4 +1,4 @@
-// Shared raster cache. Seven images, one bounded pinned/bundled attempt each;
+// Shared raster cache. One bounded pinned/bundled attempt per asset;
 // no canvases, timers, frame loops or gameplay state. Reused across restarts.
 window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: ['BARCODE.PresentationAssets'], dependencies: [] });
@@ -7,6 +7,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   const root = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/e35ebe3ae8bfc547815a5a93c952424fa067af5d/';
   const rebuildRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a155d4283a12df4dd7ea0f8cb9eb0bf985644fa8/';
   const railRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/08d5720f31020fd846ea6b93c76988ffef6e3fbe/';
+  const streetRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/1891ebb4e061971362817832e942ef9fbe05d15a/';
   const entries = {
     studioCat: { path: 'assets/presentation/studio-cat.webp', columns: 2, rows: 2, frames: 4, ax: 0.5, ay: 0.9375 },
     directionArrow: { path: 'assets/presentation/direction-arrow.webp', columns: 1, rows: 1, frames: 1, ax: 0.5, ay: 0.5 },
@@ -17,6 +18,11 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     thinRailElbow: { path:'assets/thin-rails/elbow.webp', root:railRoot, columns:1, rows:1, frames:1, ax:0.5, ay:0.5, smooth:true },
     thinRailCap: { path:'assets/thin-rails/cap.webp', root:railRoot, columns:1, rows:1, frames:1, ax:0.5, ay:0.5, smooth:true },
     rooftopDrone: { path:'assets/level1-rebuild/rooftop-drone.webp', root:rebuildRoot, columns:4, rows:2, frames:8, ax:0.5, ay:0.5, smooth:true },
+    broadcastTerminal: { path:'assets/street-hardware/broadcast-terminal.webp', root:streetRoot, columns:1, rows:1, frames:1, ax:0, ay:0, smooth:true },
+    gateHardware1: { path:'assets/street-hardware/gate-1.webp', root:streetRoot, columns:2, rows:1, frames:2, ax:0, ay:0, smooth:true },
+    gateHardware2: { path:'assets/street-hardware/gate-2.webp', root:streetRoot, columns:2, rows:1, frames:2, ax:0, ay:0, smooth:true },
+    gateHardware3: { path:'assets/street-hardware/gate-3.webp', root:streetRoot, columns:2, rows:1, frames:2, ax:0, ay:0, smooth:true },
+    gateHardware4: { path:'assets/street-hardware/gate-4.webp', root:streetRoot, columns:2, rows:1, frames:2, ax:0, ay:0, smooth:true },
   };
   const cache = {};
   function preload() {

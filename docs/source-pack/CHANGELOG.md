@@ -1,5 +1,9 @@
 # Recovery checkpoint — September 14
 
+## September 16, 2026 — street depth, one terminal and render cost
+
+Base/rollback is merged PR #58 (`1c8b54ec5db0e102f64c0ffb15bd4b57c5e5acda`). Branch `agent/street-depth-terminal-performance` implements the owner's new feedback: draw emitter hardware behind enemies, replace three large generic boxes with one illustrated broadcast terminal at the Tower, and reduce wasted scenery rendering. The two removed boxes also lose their colliders; thin wall-mounted supports remain. Baked original rail geometry/off states use asset ancestor `1891ebb4e061971362817832e942ef9fbe05d15a`. Native gate-pass draw calls fall from 14 to 1 for the first gate and 55 to 2 after all gates clear at the fixed review camera. This is not a hosted FPS claim. See `STREET_DEPTH_TERMINAL_PERFORMANCE.md` for implementation, assets, tests, limits and the exact Makko route. Review head/CI belong to the generated receipt. Owner Makko acceptance is pending; earlier entries are history.
+
 ## Thin continuous rails and original-car correction — September 15, 2026
 
 - Implement the owner-selected thin facade-to-road rail kit with fitted roof caps, continuous curb/street connection, foreground-prop occlusion and local pressure/passage effects.

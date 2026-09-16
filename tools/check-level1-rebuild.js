@@ -5,9 +5,9 @@ const routes=[
  ['signal-awning','signal-roof',1000,1050],['signal-roof','signal-high-step',750,710],['signal-high-step','west-crown',690,570],
  ['signal-roof','cache-high-step',1270,1460],['cache-high-step','cache-crown',1480,1620],['cache-crown','firewall-roof',1850,1990],
  ['firewall-roof','relay-rooftop',2480,2640],['relay-rooftop','tower-middle-step',3090,3320],['tower-middle-step','tower-high-step',3360,3480],['tower-high-step','tower-crown',3480,3530],
- [null,'firewall-utility-unit',1870,2020],['firewall-utility-unit','firewall-low-step',2060,2200],['firewall-low-step','firewall-canopy',2200,2240],['firewall-canopy','firewall-high-step',2280,2390],['firewall-high-step','firewall-roof',2390,2400],
+ ['firewall-low-step','firewall-canopy',2200,2240],['firewall-canopy','firewall-high-step',2280,2390],['firewall-high-step','firewall-roof',2390,2400],
  [null,'tower-utility-unit',3040,3230],['tower-utility-unit','tower-awning',3260,3430],['tower-awning','tower-rooftop',3460,3510],['tower-rooftop','tower-middle-step',3350,3320],
- ['tower-crown','broadcast-crown',3710,3850],[null,'broadcast-utility-unit',3700,3860],['broadcast-utility-unit','broadcast-awning',3860,3820],['broadcast-awning','broadcast-low-step',3880,4000],['broadcast-low-step','broadcast-high-step',4000,3900],['broadcast-high-step','broadcast-crown',3900,3940]
+ ['tower-crown','broadcast-crown',3710,3850],['broadcast-awning','broadcast-low-step',3880,4000],['broadcast-low-step','broadcast-high-step',4000,3900],['broadcast-high-step','broadcast-crown',3900,3940]
 ];
 for(const fps of [30,60,120])for(const [from,to,start,x] of routes){
  const {w,p}=rig(),player=w.player,surfaces=p.getStageSurfaces();const source=surfaces.find(s=>s.id===from),dest=surfaces.find(s=>s.id===to);assert(dest);
@@ -40,7 +40,7 @@ for(const fps of [30,60,120]){
  const ops=[];const ctx=new Proxy({},{get:(t,k)=>t[k]??((...a)=>ops.push([k,...a])),set:(t,k,v)=>(t[k]=v,true)});p.drawStageSurfaces(ctx);
  for(const surface of w.Sector1Progression.STAGE_SURFACES)assert(ops.some(o=>o[0]==='lineTo'&&o[1]===surface.x+surface.w&&o[2]===surface.y-(surface.maskFeet||0)),'subtle landing edge follows painted lip');
 }
-console.log('Rebuild: 75 production jumps; grounded guards and bounded drones at 30/60/120Hz; protected contact, original GIF cars, original approach/puzzle motion/reset and roof masking passed.');
+console.log('Rebuild: 63 production jumps; grounded guards and bounded drones at 30/60/120Hz; protected contact, original GIF cars, original approach/puzzle motion/reset and roof masking passed.');
 {
  const {w,p}=rig(),roof=p.getStageSurfaces().find(s=>s.id==='cache-crown');
  const ground=['firewall','corrupted','corrupted'].map((type,i)=>{const e=new w.Enemy(1500+i*60,784,type);Object.assign(e.position,{x:1500+i*60,y:784});Object.assign(e,{_sector1MissionEnemy:true,entranceComplete:true,_inCrowd:true,spawnProtectionDuration:0});e.velocity.y=0;return e;});
