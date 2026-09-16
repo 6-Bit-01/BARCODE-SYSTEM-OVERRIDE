@@ -233,12 +233,12 @@ window.FILE_MANIFEST.push({ name: 'src/engine/intro-sequence.js', exports: ['BAR
       }
       const complete = cueIndex >= cues[index].length - 1;
       const next = !complete ? 'Next line / caption' : index === panels.length - 1 ? 'Enter Dead Air District' : 'Next scene';
-      text(ctx, complete ? `${pad ? 'RB' : 'Enter'}: ${next}` : `${pad ? 'A' : 'Space'}: Dialogue`, 430, 1030, 22, paper);
+      text(ctx, complete ? `${pad ? (window.BARCODE?.ControllerSettings?.button(5) || 'RB') : 'Enter'}: ${next}` : `${pad ? (window.BARCODE?.ControllerSettings?.button(0) || 'A') : 'Space'}: Dialogue`, 430, 1030, 22, paper);
       if (holding) {
         ctx.fillStyle = '#42284d'; ctx.fillRect(1340, 1015, 528, 9);
         ctx.fillStyle = pink; ctx.fillRect(1340, 1015, 528 * skipProgress, 9);
         text(ctx, `SKIPPING IN ${(5 * (1 - skipProgress)).toFixed(1)}s / RELEASE TO CANCEL`, 1340, 1034, 17, pink);
-      } else text(ctx, pad ? 'Hold B / S for 5s: Skip intro' : 'Hold S for 5s: Skip intro', 1370, 1032, 22, '#b5bdcd');
+      } else text(ctx, pad ? `Hold ${window.BARCODE?.ControllerSettings?.button(1) || 'B'} / S for 5s: Skip intro` : 'Hold S for 5s: Skip intro', 1370, 1032, 22, '#b5bdcd');
       ctx.restore();
     },
     getDiagnostics() { return { panels: panels.length, inspected: this.inspectedGutter ? ['egg.comic.gutter'] : [] }; }

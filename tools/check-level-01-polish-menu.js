@@ -34,6 +34,7 @@ async function main() {
     const drawCount = screen.getContext().operations.length;
     menu.render(); assert.strictEqual(screen.getContext().operations.length, drawCount, 'unchanged paused screen is not redrawn');
     down('ArrowDown'); up('ArrowDown'); // Defaults row.
+    down('Tab'); up('Tab'); // Controller settings row.
     down('Tab'); up('Tab'); // Music row.
     down('ArrowLeft'); up('ArrowLeft'); assert.strictEqual(prefs.values.music, 0.95);
     down('Tab'); up('Tab'); down('ArrowLeft'); up('ArrowLeft'); assert.strictEqual(prefs.values.sfx, 0.95);
@@ -68,7 +69,7 @@ async function main() {
   }
   {
     const { w, context } = createRig(); load(context, 'src/core/action-input.js');
-    const pad = { buttons: Array.from({ length: 16 }, () => ({ pressed: false })), axes: [1] };
+    const pad = { mapping: 'standard', buttons: Array.from({ length: 16 }, () => ({ pressed: false })), axes: [1] };
     pad.buttons[0].pressed = true; w.navigator.getGamepads = () => [pad];
     const input = new w.BARCODE.ActionInput(); input.reset();
     assert(!input.update().jump.pressed); assert(!input.state.move_right.held, 'held gamepad actions require release after menu/reset');

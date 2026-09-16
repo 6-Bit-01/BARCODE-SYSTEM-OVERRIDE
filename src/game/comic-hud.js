@@ -49,7 +49,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
     plate(c,1200,23,310,76,C.paper,C.ink);
     text(c,'SCORE',1220,42,16,C.ink);text(c,String(Math.max(0,score||0)).padStart(6,'0'),1488,64,31,C.ink,700,'right',260);
     plate(c,1314,111,193,43);text(c,'LORE',1330,132,16,C.muted);text(c,`${progress?.collected||0} / ${progress?.total||3}`,1488,132,23,C.paper,600,'right');
-    if(!active){plate(c,26,179,213,36,C.ink,C.muted);text(c,`[${pad?'B':'R'}] RHYTHM MODE`,43,197,17);}
+    if(!active){plate(c,26,179,213,36,C.ink,C.muted);text(c,`[${B.ControllerSettings?.prompt('rhythm_mode', 'R') || 'R'}] RHYTHM MODE`,43,197,17);}
     if(progress?.saved===false) text(c,'ARCHIVE SAVE UNAVAILABLE — KEEP TAB OPEN',26,active?448:312,12,'#ffc68a',600,'left',500);
     if(training) text(c,'DEAD AIR DISTRICT / CREW TRAINING',810,158,16,C.purple,600,'center',530);
     c.restore();
@@ -78,7 +78,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
     begin(c);const color=pattern==='discharge'?C.purple:pattern==='wave'?C.teal:C.green;
     plate(c,24,183,554,170,C.ink,color);
     polygon(c,[[24,186],[330,183],[314,217],[26,221]],color);
-    text(c,'RHYTHM COMBAT',42,204,22,C.ink,700);text(c,`[${pad?'B':'R'}] EXIT`,554,205,17,C.paper,600,'right');
+    text(c,'RHYTHM COMBAT',42,204,22,C.ink,700);text(c,`[${B.ControllerSettings?.prompt('rhythm_mode', 'R') || 'R'}] EXIT`,554,205,17,C.paper,600,'right');
     c.fillStyle='#1b2930';c.fillRect(46,243,330,53);
     c.save();c.beginPath();c.rect(46,243,330,53);c.clip();
     c.strokeStyle='#536968';c.lineWidth=1;c.beginPath();c.moveTo(46,270);c.lineTo(376,270);c.stroke();
@@ -91,7 +91,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
     }
     c.restore();c.fillStyle=C.paper;c.fillRect(150.5,235,3,68);
     polygon(c,[[141,231],[162,231],[152,241]],C.paper);
-    text(c,pad?'X':'DOWN',46,325,19,C.paper,700);
+    text(c,B.ControllerSettings?.prompt('primary', 'DOWN') || 'DOWN',46,325,19,C.paper,700);
     text(c,!lane.ready?'WAITING FOR MUSIC':!established?`FIND THE BEAT ${tempoBeat}/${tempoBeats}`:'HIT ON THE MARK',120,325,15,C.muted,600,'left',252);
     text(c,'COMBO',413,242,16,C.muted);text(c,pattern.toUpperCase(),554,242,11,C.muted,600,'right',81);
     text(c,combo,480,288,String(combo).length>3?48:70,color,700,'center',150);
@@ -105,5 +105,21 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
     const message=notice?.kind==='pickup'?'3 HITS · LONGER ENEMY REACH':notice?.kind==='empty'?'DEPLETED · NORMAL REACH':charges?'ON-BEAT HITS: ENEMY REACH +':'NORMAL REACH';
     text(c,message,43,y+47,12,C.muted,600,'left',269);c.restore();
   }
-  B.ComicHUD=Object.freeze({health,lore,C,polygon,plate,text,basic,objectives,boss,rhythm,amp});
+  function hack(c, status, active) {
+    if (!status) return;
+    begin(c); const x=343, y=active?368:229, w=235;
+    const ready=status.state==='ready', linked=status.state==='linked';
+    const color=ready?C.green:linked?C.teal:status.state==='recharging'?C.purple:C.muted;
+    plate(c,x,y,w,63,C.ink,color);
+    const key=B.ControllerSettings?.prompt('interact','H') || 'H';
+    text(c,`[${key}] ${linked?'RELEASE':'HACK'}`,x+15,y+17,17,color,700,'left',120);
+    const labels={ready:'READY',recharging:`${(status.remainingMs/1000).toFixed(1)}s`,locked:'LOCKED',active:'HACKING',airborne:'LAND FIRST','no-target':'NO TARGET',unavailable:'STANDBY',linked:`ALLY ${Math.ceil(status.allySeconds)}s`};
+    text(c,labels[status.state]||'STANDBY',x+w-15,y+17,14,color,600,'right',98);
+    c.fillStyle='#303640';c.fillRect(x+15,y+34,w-30,8);
+    c.fillStyle=color;c.fillRect(x+15,y+34,(w-30)*status.charge,8);
+    const detail=status.state==='locked'?'UNLOCKS DURING CREW TRAINING':status.remainingMs>0?`RECHARGING · ${(status.remainingMs/1000).toFixed(1)}s`:
+      status.state==='no-target'?'CHARGED · MOVE NEAR AN ENEMY':status.state==='airborne'?'LAND TO USE HACK':ready?'TARGET IN RANGE':linked?'PRESS TO RELEASE ALLY':status.state==='active'?'SOLVE THE UPLINK':'UPLINK UNAVAILABLE';
+    text(c,detail,x+15,y+53,10,C.muted,600,'left',w-30);c.restore();
+  }
+  B.ComicHUD=Object.freeze({health,lore,C,polygon,plate,text,basic,objectives,boss,rhythm,amp,hack});
 })();

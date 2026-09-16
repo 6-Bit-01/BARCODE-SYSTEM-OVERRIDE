@@ -121,10 +121,10 @@ window.InputManager = class InputManager {
   isKeyPressed(key) { return this.pressedKeys.has(key.toLowerCase()); }
   isKeyReleased(key) { return this.releasedKeys.has(key.toLowerCase()); }
   getMovement() { const state = this.actionInput ? this.actionInput.state : {}; return { x: (state.move_right && state.move_right.held ? 1 : 0) - (state.move_left && state.move_left.held ? 1 : 0), y: 0 }; }
-  updateGamepad() { const gamepads = navigator.getGamepads ? navigator.getGamepads() : []; this.gamepad = Array.from(gamepads).find(pad => pad && pad.connected !== false) || null; }
+  updateGamepad() { this.gamepad = window.BARCODE?.GamepadUI?.selectPad?.() || null; }
   isGamepadButton(buttonIndex) { return this.gamepad && this.gamepad.buttons[buttonIndex] && this.gamepad.buttons[buttonIndex].pressed; }
   getGamepadMovement() { return this.getMovement(); }
-  vibrate(intensity = 0.5, duration = 100) { if (this.vibrationEnabled && this.gamepad && this.gamepad.vibrationActuator) this.gamepad.vibrationActuator.playEffect('dual-rumble', { startDelay: 0, duration, weakMagnitude: intensity, strongMagnitude: intensity }); }
+  vibrate(intensity = 0.5, duration = 100) { if (window.BARCODE?.ControllerSettings?.vibration !== false && this.vibrationEnabled && this.gamepad && this.gamepad.vibrationActuator) this.gamepad.vibrationActuator.playEffect('dual-rumble', { startDelay: 0, duration, weakMagnitude: intensity, strongMagnitude: intensity })?.catch?.(() => {}); }
 
   update(options = {}) {
     this.updateGamepad();
@@ -180,12 +180,15 @@ window.InputManager = class InputManager {
     const p = input.pressed;
     if (input.changed) this.actionInput?.blockGamepadUntilRelease();
     if (owner === 'pause') {
+      if (input.changed && menu) menu.dirty = true;
+      if (menu?.view === 'controller' && menu.captureAction) { menu.captureController(input); return true; }
       const key = p.b9 ? 'p' : p.b1 ? 'escape' : p.b0 ? 'enter' : p.up ? 'arrowup' : p.down ? 'arrowdown' : p.left ? 'arrowleft' : p.right ? 'arrowright' : null;
       if (key) { menu?.keyDown({ key, repeat: false, preventDefault() {} }); menu?.keyUp({ key }); }
       return true;
     }
     if (owner === 'hack') {
       const hack = window.hackingSystem;
+      if (p.b9) { BARCODE.RuntimeLifecycle?.togglePause?.(); return true; }
       hack.useKeypad?.();
       if (p.b1) hack.processInput('Escape');
       else if (p.b2) hack.processInput('Backspace');
@@ -201,9 +204,13 @@ window.InputManager = class InputManager {
       if (p.b0 || p.b2) this.resetActionEdges();
       return true;
     }
+    if (owner === 'tutorial' && p.b5) {
+      window.player?.jump?.(); this.actionInput?.blockGamepadUntilRelease();
+    }
     if (owner === 'tutorial' && p.b0) {
       window.tutorialSystem.handleSpacePress?.(); this.resetActionEdges(); return true;
     }
+    if (p.b1 && window.rhythmSystem?.isActive?.() && !window.sector1Progression?.isGameplaySuppressed?.()) window.rhythmSystem.hideRhythmMode?.();
     return false;
   }
 
@@ -232,7 +239,7 @@ window.InputManager = class InputManager {
       else if (horizontal > 0) window.player.moveRight();
       else window.player.stopHorizontal();
       if (horizontal !== 0 && window.tutorialSystem && window.tutorialSystem.isActive && window.tutorialSystem.isActive() && !this.hasTrackedMovement) { this.hasTrackedMovement = true; window.tutorialSystem.checkObjective && window.tutorialSystem.checkObjective('movement'); }
-      if (actions.jump.pressed) { const r = window.handleGameAction ? window.handleGameAction('jump') : { ok: window.player.jump() }; if (r && r.ok && window.tutorialSystem && window.tutorialSystem.checkObjective && !this.hasTrackedJump) { this.hasTrackedJump = true; window.tutorialSystem.checkObjective('jump'); } }
+      if (actions.jump.pressed && !(window.tutorialSystem?.isActive?.() && window.BARCODE?.ControllerSettings?.bindings.jump === 0 && this.gamepad?.buttons[0]?.pressed)) { const r = window.handleGameAction ? window.handleGameAction('jump') : { ok: window.player.jump() }; if (r && r.ok && window.tutorialSystem && window.tutorialSystem.checkObjective && !this.hasTrackedJump) { this.hasTrackedJump = true; window.tutorialSystem.checkObjective('jump'); } }
     }
     if (actions.primary.pressed && window.BARCODE?.playerCombat) {
       for (const press of actions.primary.presses?.length ? actions.primary.presses : [{}]) {
@@ -242,7 +249,7 @@ window.InputManager = class InputManager {
       }
     }
     if (actions.interact.pressed) this.routeInteract();
-    if (actions.inspect?.pressed) window.BARCODE?.stageFX?.inspect();
+    if (actions.inspect?.pressed && !window.tutorialSystem?.isActive?.()) window.BARCODE?.stageFX?.inspect();
   }
 
   routeInteract() {

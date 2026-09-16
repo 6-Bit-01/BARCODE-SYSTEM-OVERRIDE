@@ -29,6 +29,38 @@ async function main(){
  function scene(c,cx,cy){w.gameCamera={centerX:cx,y:cy};w.renderer.zoomLevel=1;c.fillStyle='#111322';c.fillRect(0,0,1920,1080);c.drawImage(bg,0,0,1920,1080);c.save();c.translate(960-cx,-cy);c.drawImage(fg,0,2,fg.width,fg.height-2,-152,-550+2*1589/fg.height,4400,1589-2*1589/fg.height);w.drawGround(c);w.drawGameEntities(c);w.player.draw(c);c.restore();c.save();c.translate(0,-cy);w.spaceShipSystem.drawTrafficWarnings(c);w.spaceShipSystem.drawForegroundShips(c);c.restore();w.drawObjectives(c);}
  function setHero(x,foot,support){Object.assign(w.player.position,{x,y:foot-72});w.player.velocity.x=0;w.player.velocity.y=0;w.player.grounded=true;w.player.supportedSurfaceId=support||null;w.player.state='idle';w.player.airInput=0;w.player.controlsDisabled=false;w.player.invulnerableUntil=0;w.player.health=w.player.maxHealth;w.player.playAnimation('idle');}
  const canvas=createCanvas(1920,1080),c=canvas.getContext('2d');
+ if(process.env.CONTROLLER_REVIEW){
+  load(context,'src/game/pause-menu.js');load(context,'src/core/gamepad-ui.js');
+  const pad={id:'DualSense Wireless Controller (054c)',mapping:'standard',connected:true,index:0,buttons:Array.from({length:17},()=>({pressed:false})),axes:[0,0]};
+  w.navigator.getGamepads=()=>[pad];w.BARCODE.GamepadUI.read();
+  const menu=w.BARCODE.PauseMenu;menu.view='controller';menu.controllerFocus=0;
+  c.fillStyle='#101d29';c.fillRect(0,0,1920,1080);menu.draw(c);fs.writeFileSync(path.join(out,'controller-settings.png'),canvas.toBuffer('image/png'));
+  menu.controllerFocus=5;menu.activateController();menu.draw(c);fs.writeFileSync(path.join(out,'controller-remap.png'),canvas.toBuffer('image/png'));
+  menu.captureAction=null;
+  const hack=w.hackingSystem=new w.HackingSystem();
+  const target=new w.Enemy(900,784,'virus');Object.assign(target.position,{x:900,y:784});target.entranceComplete=true;target.spawnProtectionDuration=0;target.spawnTimeMs=-10000;
+  p.state='encounter_1';p.closedGateEncounterId=p.state;setHero(1000,856);w.enemyManager.enemies=[target];
+  const strip=createCanvas(760,600),sc=strip.getContext('2d');sc.fillStyle='#101d29';sc.fillRect(0,0,760,600);
+  const states=['ready','recharging','no-target','locked','airborne','linked'];
+  for(let i=0;i<states.length;i++){
+   const state=states[i];hack.reset();w.tutorialSystem.active=false;w.player.grounded=true;w.enemyManager.enemies=[target];target._hijackedUntilMs=0;
+   if(state==='recharging')hack.cooldownUntil=w.Date.now()+6300;
+   if(state==='no-target')w.enemyManager.enemies=[];
+   if(state==='locked'){w.tutorialSystem.active=true;w.tutorialSystem.storyChapter=1;}
+   if(state==='airborne')w.player.grounded=false;
+   if(state==='linked')target._hijackedUntilMs=w.enemyManager.simulationTimeMs+8000;
+   const status=hack.getAvailability();if(status.state!==state)throw new Error('Expected '+state+', got '+status.state);
+   scene(c,1000,0);w.drawBasicUI(c);w.BARCODE.ComicHUD.hack(c,status,false);
+   if(i<2)fs.writeFileSync(path.join(out,'hack-'+state+'.png'),canvas.toBuffer('image/png'));
+   sc.drawImage(canvas,410,273,335,100,375*(i%2),190*Math.floor(i/2)+40,335,100);
+   sc.fillStyle='#c0ed55';sc.font='20px Oxanium';sc.fillText(state.toUpperCase(),375*(i%2)+8,190*Math.floor(i/2)+25);
+  }
+  fs.writeFileSync(path.join(out,'hack-states.png'),strip.toBuffer('image/png'));
+  w.tutorialSystem.active=false;w.player.grounded=true;w.enemyManager.enemies=[];hack.reset();w.rhythmSystem.showRhythmMode();scene(c,1000,0);w.drawGameUI(c);
+  fs.writeFileSync(path.join(out,'hack-rhythm-layout.png'),canvas.toBuffer('image/png'));
+  if(calls.errors.length)throw new Error(calls.errors.join('\n'));
+  console.log('Controller settings/capture and six real hack availability states rendered through production UI.');return;
+ }
  if(process.env.WALK_LOOP_REVIEW){
   const oldRoot=process.env.WALK_BASELINE;
   if(!oldRoot)throw new Error('WALK_BASELINE requires before.webp and before.json from the base commit');

@@ -103,9 +103,9 @@ for (const fps of [30, 60, 120, 144]) {
   p.spawnedEncounterIds.add(p.state); assert(!stage.inspect().ok); p.spawnedEncounterIds.clear();
   w.player.grounded = false; assert(!stage.inspect().ok); w.player.grounded = true;
   assert.strictEqual(new w.BARCODE.LoreCollection().record.revision, count);
-  let pads = [{ connected: true, axes: [0, 0], buttons: Array.from({ length: 16 }, (_, i) => ({ pressed: i === 4, value: i === 4 ? 1 : 0 })) }];
-  w.navigator.getGamepads = () => pads; pads[0].buttons[4].pressed = false; pads[0].buttons[4].value = 0; input.actionInput.reset(); input.actionInput.update(); pads[0].buttons[4].pressed = true; pads[0].buttons[4].value = 1;
-  let actions = input.actionInput.update(); assert(actions.inspect.pressed); assert(!actions.interact.pressed, 'LB inspection never triggers Y/H hacking');
+  let pads = [{ connected: true, mapping: 'standard', axes: [0, 0], buttons: Array.from({ length: 16 }, (_, i) => ({ pressed: i === 5, value: i === 5 ? 1 : 0 })) }];
+  w.navigator.getGamepads = () => pads; pads[0].buttons[5].pressed = false; pads[0].buttons[5].value = 0; input.actionInput.reset(); input.actionInput.update(); pads[0].buttons[5].pressed = true; pads[0].buttons[5].value = 1;
+  let actions = input.actionInput.update(); assert(actions.inspect.pressed); assert(!actions.interact.pressed, 'R1/RB inspection never triggers Triangle/Y/H hacking');
   stage.react(1680, 1, 'stomp'); stage.event('clear', 1680); stage.update(100);
   const snapshot = plain({ events: stage.events, time: stage.timeMs, reactions: stage.reactions, kick: stage.captionKick });
   w.gameState.paused = true; stage.update(1000); assert.deepStrictEqual(plain({ events: stage.events, time: stage.timeMs, reactions: stage.reactions, kick: stage.captionKick }), snapshot); w.gameState.paused = false;

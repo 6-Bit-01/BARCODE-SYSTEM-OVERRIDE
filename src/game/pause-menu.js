@@ -47,17 +47,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
   const rows = [
     ['music', 'Music'], ['sfx', 'SFX'], ['screenShake', 'Screen shake'],
     ['flashes', 'Flash accents'], ['crtPostEffects', 'CRT effect'],
-    ['instantText', 'Instant dialogue'], ['crew', 'Recent crew dialogue'], ['timing', 'Timing calibration'], ['archive', 'Lore archive'], ['resume', 'Resume game'], ['defaults', 'Reset settings']
+    ['instantText', 'Instant dialogue'], ['crew', 'Recent crew dialogue'], ['timing', 'Timing calibration'], ['archive', 'Lore archive'], ['resume', 'Resume game'], ['defaults', 'Reset settings'], ['controller', 'Controller settings']
   ];
-  const rowTop = 331, rowStep = 48;
+  const rowTop = 331, rowStep = 44;
   const menu = BARCODE.PauseMenu = {
     open: false, dirty: false, focus: 0, drag: null, heldKeys: new Set(), snapshot: null, resumePending: false, message: '',
+    captureAction: null, captureReady: false, controllerFocus: 0,
     view: 'settings', archiveFocus: 0, archiveIndex: 0, timingFocus: 0,
     isPaused() { return !!(window.isPaused || window.gameState?.paused); },
     sync() {
       const paused = this.isPaused();
       if (paused === this.open) return;
-      this.open = paused; this.drag = null; this.dirty = paused; this.message = ''; this.view = 'settings';
+      this.open = paused; this.drag = null; this.dirty = paused; this.message = ''; this.view = 'settings'; this.captureAction = null;
       window.inputManager?.resetActionEdges?.();
       if (paused) {
         this.focus = rows.findIndex(row => row[0] === 'resume');
@@ -80,6 +81,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
     },
     activate(direction = 1) {
       const key = rows[this.focus][0];
+      if (key === 'controller') { this.view = 'controller'; this.controllerFocus = 0; this.captureAction = null; this.dirty = true; return; }
       if (key === 'resume') { this.resume(); return; }
       if (key === 'archive') { this.openArchive(); return; }
       if (key === 'crew') { this.view = 'crew'; this.dirty = true; return; }
@@ -125,6 +127,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       const key = event.key.toLowerCase();
       if (!this.open) return this.heldKeys.has(key);
       this.heldKeys.add(key); event.preventDefault?.();
+      if (this.view === 'controller') {
+        if (this.captureAction) { if (['escape', 'p'].includes(key)) { this.captureAction = null; this.dirty = true; } return true; }
+        if (key === 'p' && !event.repeat) this.resume();
+        else if (key === 'escape' && !event.repeat) this.closeController();
+        else if (['arrowup', 'arrowdown', 'tab'].includes(key)) { this.controllerFocus = (this.controllerFocus + (key === 'arrowup' || key === 'tab' && event.shiftKey ? 9 : 1)) % 10; this.dirty = true; }
+        else if (['arrowleft', 'arrowright'].includes(key) && this.controllerFocus < 3) this.activateController(key === 'arrowleft' ? -1 : 1);
+        else if (['enter', ' '].includes(key) && !event.repeat) this.activateController();
+        return true;
+      }
       if (this.view === 'crew') {
         if (key === 'p' && !event.repeat) this.resume();
         else if (['escape','enter',' '].includes(key) && !event.repeat) { this.view = 'settings'; this.dirty = true; }
@@ -171,6 +182,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       const canvas = document.getElementById('gameCanvas'), rect = canvas?.getBoundingClientRect?.();
       if (!rect?.width || !rect?.height) return true;
       const x = (event.clientX - rect.left) * 1920 / rect.width, y = (event.clientY - rect.top) * 1080 / rect.height;
+      if (this.view === 'controller') {
+        if (phase !== 'down') return true;
+        if (this.captureAction) { this.captureAction = null; this.dirty = true; return true; }
+        const index = Math.floor((y - 350) / 46);
+        if (x >= 440 && x <= 1480 && index >= 0 && index < 10 && y < 350 + index * 46 + 40) {
+          this.controllerFocus = index;
+          if (index === 0 && x >= 1110) BARCODE.ControllerSettings.setDeadzone(0.1 + Math.max(0, Math.min(1, (x - 1110) / 280)) * 0.4);
+          else this.activateController();
+          this.dirty = true;
+        }
+        return true;
+      }
       if (this.view === 'crew') { if (phase === 'down') { this.view = 'settings'; this.dirty = true; } return true; }
       if (this.view === 'timing') {
         if (phase === 'down') {
@@ -192,7 +215,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       }
       if (phase === 'down') {
         const index = Math.floor((y - rowTop) / rowStep);
-        if (x < 1020 || x > 1500 || index < 0 || index >= rows.length || y > rowTop + index * rowStep + 48) return true;
+        if (x < 1020 || x > 1500 || index < 0 || index >= rows.length || y > rowTop + index * rowStep + 44) return true;
         this.focus = index; this.dirty = true;
         if (index < 2) this.drag = index; else this.activate();
       }
@@ -207,6 +230,48 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
       if (this.snapshot) ctx.drawImage(this.snapshot, 0, 0); else { ctx.fillStyle = '#081321'; ctx.fillRect(0, 0, 1920, 1080); }
       this.draw(ctx); ctx.restore(); this.dirty = false;
+    },
+    closeController() { this.view = 'settings'; this.focus = rows.findIndex(row => row[0] === 'controller'); this.captureAction = null; this.dirty = true; },
+    activateController(direction = 1) {
+      const c = BARCODE.ControllerSettings, i = this.controllerFocus;
+      if (!c) return;
+      if (i === 0) c.setDeadzone(c.deadzone + direction * 0.01);
+      else if (i === 1) { const styles = ['auto', 'playstation', 'xbox']; c.labels = styles[(styles.indexOf(c.labels) + direction + 3) % 3]; c.save(); }
+      else if (i === 2) { c.vibration = !c.vibration; c.save(); }
+      else if (i < 8) { this.captureAction = ['jump', 'primary', 'interact', 'rhythm_mode', 'inspect'][i - 3]; this.captureReady = false; }
+      else if (i === 8) c.restore();
+      else this.closeController();
+      this.dirty = true;
+    },
+    captureController(input) {
+      if (!this.captureAction) return;
+      if (input.pressed.b1 || input.pressed.b9) { this.captureAction = null; this.dirty = true; return; }
+      const allowed = [0, 2, 3, 4, 5, 6, 7, 10, 11];
+      if (!this.captureReady) { this.captureReady = !allowed.some(index => input.held['b' + index]); return; }
+      const button = allowed.find(index => input.pressed['b' + index]);
+      if (button !== undefined) { BARCODE.ControllerSettings.bind(this.captureAction, button); this.captureAction = null; this.dirty = true; }
+    },
+    drawController(ctx, text) {
+      const c = BARCODE.ControllerSettings;
+      text('CONTROLLER SETTINGS', 440, 248, 38, '#a0ffe4');
+      text(BARCODE.GamepadUI?.unsupported ? 'Controller not recognized. Try another connection or browser.' : BARCODE.GamepadUI?.connected ? 'Controller connected' : 'Connect a controller and press a button.', 440, 307, 20, '#cfa2ff');
+      const labels = ['Stick deadzone', 'Button prompts', 'Vibration', 'Jump', 'Beat attack', 'Hack', 'Rhythm Mode', 'Inspect / collect', 'Reset controller defaults', 'Back to pause'];
+      const actions = ['jump', 'primary', 'interact', 'rhythm_mode', 'inspect'];
+      labels.forEach((label, i) => {
+        const y = 350 + i * 46;
+        ctx.fillStyle = i === this.controllerFocus ? '#16394b' : '#0d2032'; ctx.fillRect(440, y, 1040, 40);
+        if (i === this.controllerFocus) { ctx.strokeStyle = '#94ffe3'; ctx.strokeRect(440, y, 1040, 40); }
+        text(label, 460, y + 21, 22);
+        if (i === 0) {
+          ctx.fillStyle = '#334358'; ctx.fillRect(1110, y + 17, 280, 7); ctx.fillStyle = '#94ffe3'; ctx.fillRect(1110, y + 17, 280 * (c.deadzone - 0.1) / 0.4, 7);
+          text(`${Math.round(c.deadzone * 100)}%`, 1410, y + 21, 18);
+        } else if (i === 1) text(c.labels === 'auto' ? 'Automatic' : c.labels === 'playstation' ? 'PlayStation' : 'Xbox', 1240, y + 21, 20);
+        else if (i === 2) text(c.vibration ? 'ON' : 'OFF', 1380, y + 21, 20);
+        else if (i < 8) text(this.captureAction === actions[i - 3] ? 'Press a new button…' : c.button(c.bindings[actions[i - 3]]), 1210, y + 21, 22, '#a0ffe4');
+      });
+      text(this.captureAction ? `Release, then press a face / shoulder / stick button. ${c.button(1)} or Esc cancels.` : `Menu controls stay fixed: ${c.button(0)} confirm, ${c.button(1)} back, ${c.button(9)} pause.`, 440, 837, 18, '#cfa2ff');
+      text(this.captureAction ? 'Assigning a used button swaps the two actions. Click to cancel.' : 'During crew dialogue: confirm advances; right bumper jumps.', 440, 871, 18);
+      text(c.saved ? 'Saved on this device.' : 'Applied this session; saving is unavailable.', 440, 915, 18, '#a0ffe4');
     },
     closeTiming() { this.view = 'settings'; this.focus = rows.findIndex(row => row[0] === 'timing'); this.drag = null; this.dirty = true; },
     activateTiming(direction = 1) {
@@ -235,7 +300,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
         }
       });
       text(this.message || (preferences.saved ? 'Saved on this device. Range: −200 to +200 ms. Step: 5 ms.' : 'Applied this session; saving is unavailable.'), 440, 880, 19, '#cfa2ff');
-      text(BARCODE.GamepadUI?.connected ? 'D-pad: Select / Adjust    A: Choose    B: Back    Start: Resume' : 'Arrows: Select / Adjust    Enter: Choose    Esc: Back    P: Resume', 440, 920, 19);
+      text(BARCODE.GamepadUI?.connected ? BARCODE.ControllerSettings.menuHelp() : 'Arrows: Select / Adjust    Enter: Choose    Esc: Back    P: Resume', 440, 920, 19);
     },
     drawArchive(ctx, text) {
       const { records, count, saved } = this.archiveState();
@@ -279,7 +344,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
         text(saved ? 'Records stay on this device.' : 'Saving unavailable on this device.', 440, 704, 18, saved ? '#a0ffe4' : '#ffc68a');
         if (!saved) text('These records remain in this session.', 440, 728, 17, '#ffc68a');
       }
-      text(BARCODE.GamepadUI?.connected ? 'D-pad: Select   A: Choose   B: Back   Start: Resume' : 'Arrows / Tab: Select   Enter: Choose   Esc: Back   P: Resume', 440, 916, 20);
+      text(BARCODE.GamepadUI?.connected ? BARCODE.ControllerSettings.menuHelp() : 'Arrows / Tab: Select   Enter: Choose   Esc: Back   P: Resume', 440, 916, 20);
     },
     draw(ctx) {
       ctx.save(); ctx.globalAlpha = 1; ctx.shadowBlur = 0;
@@ -298,21 +363,22 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
           for (const word of line.text.split(' ')) { if ((row+' '+word).length>81) {text(row,440,y,20);y+=27;row=word;} else row+=(row?' ':'')+word; }
           if(row)text(row,440,y,20); y+=48;
         }
-        text(BARCODE.GamepadUI?.connected?'A / B: Back':'Enter / Esc / Click: Back',440,920,19,'#a0ffe4');ctx.restore();return;
+        text(BARCODE.GamepadUI?.connected?`${BARCODE.ControllerSettings.button(0)} / ${BARCODE.ControllerSettings.button(1)}: Back`:'Enter / Esc / Click: Back',440,920,19,'#a0ffe4');ctx.restore();return;
       }
+      if (this.view === 'controller') { this.drawController(ctx, text); ctx.restore(); return; }
       if (this.view === 'archive') { this.drawArchive(ctx, text); ctx.restore(); return; }
       if (this.view === 'timing') { this.drawTiming(ctx, text); ctx.restore(); return; }
       text('PAUSED', 440, 250, 46, '#a0ffe4');
       text('Take a breath. Keep your signal.', 440, 307, 22);
       text('CONTROLS', 440, 392, 24, '#cfa2ff');
-      const controls = BARCODE.GamepadUI?.connected ? ['Stick / D-pad: Move', 'A / RB: Jump (tutorial: RB)', 'B: Enter / Exit Rhythm Mode', 'X: Attack on the beat', 'Y: Hack when unlocked', 'Start: Pause · A: Menu confirm'] : ['A / D or Left / Right: Move', 'Space / W / Up: Jump', 'R: Enter Rhythm Mode', 'Down: Attack on the beat', 'H: Hack when unlocked', 'P: Pause'];
+      const controls = BARCODE.GamepadUI?.connected ? ['Stick / D-pad: Move', `${BARCODE.ControllerSettings.prompt('jump')}: Jump`, `${BARCODE.ControllerSettings.prompt('rhythm_mode')}: Rhythm Mode`, `${BARCODE.ControllerSettings.prompt('primary')}: Beat attack`, `${BARCODE.ControllerSettings.prompt('interact')}: Hack`, `${BARCODE.ControllerSettings.button(9)}: Pause / Settings`] : ['A / D or Left / Right: Move', 'Space / W / Up: Jump', 'R: Enter Rhythm Mode', 'Down: Attack on the beat', 'H: Hack when unlocked', 'P: Pause'];
       controls.forEach((line, i) => text(line, 440, 448 + i * 46, 21));
       text('RHYTHM MODE HOLDS YOUR STANCE', 440, 772, 20, '#a0ffe4');
-      text(BARCODE.GamepadUI?.connected ? 'B exits so you can move.' : 'R or Escape exits so you can move.', 440, 810, 20);
+      text(BARCODE.GamepadUI?.connected ? `${BARCODE.ControllerSettings.button(1)} exits so you can move.` : 'R or Escape exits so you can move.', 440, 810, 20);
       rows.forEach(([key, label], index) => {
         const y = rowTop + index * rowStep, selected = index === this.focus;
-        ctx.fillStyle = selected ? '#16394b' : '#0d2032'; ctx.fillRect(1020, y, 480, 48);
-        if (selected) { ctx.strokeStyle = '#94ffe3'; ctx.strokeRect(1020, y, 480, 48); }
+        ctx.fillStyle = selected ? '#16394b' : '#0d2032'; ctx.fillRect(1020, y, 480, 44);
+        if (selected) { ctx.strokeStyle = '#94ffe3'; ctx.strokeRect(1020, y, 480, 44); }
         text(label, 1038, y + 26, 20);
         if (index < 2) {
           ctx.fillStyle = '#334358'; ctx.fillRect(1260, y + 22, 190, 8);
@@ -323,7 +389,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
         else if (key === 'archive') text('L', 1460, y + 26, 20, '#cfa2ff');
       });
       text(this.message || (preferences.saved ? 'Settings save automatically.' : 'Settings apply now; saving is unavailable here.'), 440, 874, 19, '#cfa2ff');
-      text(BARCODE.GamepadUI?.connected ? 'D-pad: Select / Adjust    A: Choose    B / Start: Resume' : 'Tab / Up / Down: Select   Left / Right: Adjust   Enter: Choose   P / Esc: Resume', 440, 914, 18);
+      text(BARCODE.GamepadUI?.connected ? BARCODE.ControllerSettings.menuHelp() : 'Tab / Up / Down: Select   Left / Right: Adjust   Enter: Choose   P / Esc: Resume', 440, 914, 18);
       ctx.restore();
     }
   };
