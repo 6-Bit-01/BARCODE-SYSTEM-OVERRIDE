@@ -118,6 +118,24 @@ window.JammerIndicator = class JammerIndicator {
   }
 
   placeAtSafeEdge(player, target) {
+    // A street-level player can project below the HUD-safe bottom. Casting
+    // from that clamped point then hits the bottom at t=0, over the player.
+    // For a Jammer beyond either side, keep its cue on that screen edge and
+    // clamp only the height; aim the artwork from the cue toward the target.
+    const offLeft = target.x + target.width < this.gameplayViewport.left;
+    const offRight = target.x > this.gameplayViewport.right;
+    if (offLeft || offRight) {
+      const x = offLeft ? this.safeArea.left : this.safeArea.right;
+      const dx = target.centerX - player.x;
+      const y = player.y + (target.centerY - player.y) * (x - player.x) / dx;
+      this.indicatorPosition = {
+        x,
+        y: Math.max(this.safeArea.top, Math.min(this.safeArea.bottom, y))
+      };
+      this.angle = Math.atan2(target.centerY - this.indicatorPosition.y, target.centerX - x);
+      return;
+    }
+
     const origin = {
       x: Math.max(this.safeArea.left, Math.min(this.safeArea.right, player.x)),
       y: Math.max(this.safeArea.top, Math.min(this.safeArea.bottom, player.y))

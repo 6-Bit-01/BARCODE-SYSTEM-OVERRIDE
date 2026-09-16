@@ -735,6 +735,32 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   assert.strictEqual(indicator.active, true, 'indicator activates when the Jammer presentation bounds are offscreen');
   approximately(indicator.indicatorPosition.x, 1840, 'offscreen Jammer indicator lands on the right safe edge');
   assert(indicator.indicatorPosition.y >= 180 && indicator.indicatorPosition.y <= 770, 'offscreen Jammer indicator remains inside the vertical safe area');
+  // Normal zoom used to put the grounded cue at (player.x, 770): the
+  // clamped player origin immediately intersected the bottom edge at t=0.
+  for (const zoom of [0.625, 0.85, 1, 1.2]) {
+    window.renderer.zoomLevel = zoom;
+    for (const playerY of [784, 650, 450]) {
+      for (const side of ['left', 'right']) {
+        const playerX = side === 'right' ? 960 : 3136;
+        window.gameCamera.centerX = playerX;
+        window.BARCODE.JammerEnvironment.reveal({ position: { x: side === 'right' ? 3520 : 400, y: 784 } });
+        indicator.update(500, window.BARCODE.JammerEnvironment.getAimBounds(), playerX, playerY);
+        assert.strictEqual(indicator.active, true, `${side} cue stays active at zoom ${zoom}, player y ${playerY}`);
+        approximately(indicator.indicatorPosition.x, side === 'right' ? 1840 : 80, `${side} cue stays on its screen edge at zoom ${zoom}, player y ${playerY}`);
+        assert(indicator.indicatorPosition.y >= 180 && indicator.indicatorPosition.y <= 770, 'cue stays out of HUD lanes');
+        assert(Math.abs(indicator.indicatorPosition.x - indicator.lastProjection.player.x) >= 800, 'cue stays away from the player');
+        const target = indicator.lastProjection.target;
+        approximately(indicator.angle, Math.atan2(target.centerY - indicator.indicatorPosition.y, target.centerX - indicator.indicatorPosition.x), 'cue aims at the actual projected Jammer');
+      }
+    }
+  }
+  window.gameCamera.centerX = 960;
+  window.renderer.zoomLevel = 1;
+  window.BARCODE.JammerEnvironment.reveal({ position: { x: 1200, y: 784 } });
+  indicator.update(500, window.BARCODE.JammerEnvironment.getAimBounds(), 960, 784);
+  assert.strictEqual(indicator.active, false, 'cue disappears once the Jammer enters view at normal zoom');
+  indicator.update(500, null, 960, 784);
+  assert.strictEqual(indicator.active, false, 'cue stays hidden without a target');
 }
 {
   const listeners = {};
