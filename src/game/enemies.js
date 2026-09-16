@@ -1799,11 +1799,21 @@ window.EnemyManager = class EnemyManager {
   }
 
   getActiveEnemies() { return this.enemies; }
-  draw(ctx) {
+  draw(ctx, liftRoofPass = null) {
+    const progression = window.sector1Progression;
+    const roof = liftRoofPass !== null && progression?.isSignalLiftAvailable?.() ? progression.getLiftRoof() : null;
     // Stable drawing layers, without a copied/sorted array each frame.
     for (const layer of [-1, 1]) for (const enemy of this.enemies) {
       if (enemy.getDrawLayer() !== layer || !enemy.active) continue;
       if (window.BARCODE?.combatFX && !window.BARCODE.combatFX.visible(enemy.position.x, enemy.position.y, 300)) continue;
+      if (liftRoofPass !== null) {
+        const body = roof && progression.getRoofActorBounds(enemy);
+        // Include airborne approaches and departures, so depth does not pop
+        // when roof support starts or ends. Below-roof actors keep their pass.
+        const aboveRoof = !!body && body.y + body.height <= roof.topY + 4 &&
+          body.x + body.width > roof.x && body.x < roof.x + roof.w;
+        if (aboveRoof !== liftRoofPass) continue;
+      }
       enemy.draw(ctx);
     }
   }

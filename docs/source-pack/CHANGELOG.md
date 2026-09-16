@@ -1,5 +1,11 @@
 # Recovery checkpoint — September 14
 
+## September 16 — draw enemies on top of the elevator
+
+- Split enemy drawing around the illustrated cabin so roof riders' feet remain visible during ascent, return and airborne transitions; retain other enemies' depth and camera culling.
+- Preserve all collision, bonk scope and prior gameplay. Added focused render-order regressions and four native artwork previews; exact full-suite/CI results are in the receipt.
+- Added a tutorial design review recommending 25 → 20 bubbles, clearer actual controls and event-aligned instructions. The recommendation is not implemented in tutorial runtime.
+
 ## September 16 — correction: only red-circled bonks
 
 - Remove unintended underside collision from every unmarked static stage surface. Retain exactly the two circled striped awnings and two circled gray steps.

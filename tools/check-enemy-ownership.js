@@ -50,7 +50,7 @@ assert(!loadedScripts.includes('src/engine/jammer-arrow-indicator.js'), 'legacy 
 assert(count(render, /window\.jammerIndicator\.draw\(ctx\)/g) === 0, 'world/zoom render pass does not draw the screen-space Jammer indicator');
 assert(count(ui, /window\.jammerIndicator\.draw\(ctx\)/g) === 1, 'UI pass is the single active Jammer indicator draw owner');
 const drawGameEntitiesBody = (render.match(/function drawGameEntities\(ctx\) \{([\s\S]*?)\n\}/) || [null, ''])[1];
-assert(drawGameEntitiesBody.indexOf('JammerEnvironment.draw(ctx)') !== -1 && drawGameEntitiesBody.indexOf('window.enemyManager.draw(ctx)') !== -1 && drawGameEntitiesBody.indexOf('JammerEnvironment.draw(ctx)') < drawGameEntitiesBody.indexOf('window.enemyManager.draw(ctx)'), 'JammerEnvironment draws before enemyManager in drawGameEntities');
+assert(drawGameEntitiesBody.indexOf('JammerEnvironment.draw(ctx)') !== -1 && drawGameEntitiesBody.indexOf('window.enemyManager.draw(ctx, false)') !== -1 && drawGameEntitiesBody.indexOf('JammerEnvironment.draw(ctx)') < drawGameEntitiesBody.indexOf('window.enemyManager.draw(ctx, false)'), 'JammerEnvironment draws before enemyManager in drawGameEntities');
 assert(!/JammerEnvironment\.reset\(\)/.test(objectives), 'ObjectivesSystem reset must not compete for JammerEnvironment ownership');
 assert(/health: 16/.test(jammer) && /applyRhythmDamage/.test(jammer) && !/class\s+JammerEnemy|extends\s+Enemy/.test(jammer), 'JammerEnvironment is the approved destructible stage target, not a normal enemy');
 

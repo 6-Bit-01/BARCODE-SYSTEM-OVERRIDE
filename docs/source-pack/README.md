@@ -1,5 +1,9 @@
 # BARCODE: SYSTEM OVERRIDE — Source Pack v5
 
+## Latest correction — visible elevator roof riders
+
+Start with `ELEVATOR_ROOF_DEPTH_FIX.md` and `review-roof-depth/roof-corrupted.webp`. Enemies now render on top of the elevator deck while riding; existing physics and the four-circle bonk scope remain. Exact tested/published revisions and checks are in the receipt. `TUTORIAL_FLOW_PROPOSAL.md` answers the owner's new design question with a 25 → 20 bubble recommendation; tutorial runtime remains unchanged. Owner Makko review is pending.
+
 ## Latest correction — restrict bonks to the four red-circled objects
 
 Start with `CIRCLED_BONK_CORRECTION.md`. Unmarked platform undersides are open again; the two circled striped awnings, two circled gray steps and separately approved elevator roof retain head contact. Earlier blanket-bonk descriptions are superseded. The manifest/receipt record the exact review SHA, PR and checks; owner Makko acceptance is pending.

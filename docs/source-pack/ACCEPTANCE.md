@@ -1,5 +1,11 @@
 # Acceptance and Test Status
 
+## Current correction — enemies visibly stand on the elevator roof
+
+Import the exact review SHA from the manifest/PR. Observe a corrupted enemy, virus, Firewall and drone on the rising and returning roof. Feet must remain visible on the deck; approaching/leaving the edge must not flip their depth. Verify the player can ride inside and stand on the roof. Preserve only the four approved static bonks and normal upward platform routes. `ELEVATOR_ROOF_DEPTH_FIX.md` records the cause and native previews.
+
+Focused production tests and native canvas evidence do not establish owner Makko acceptance. Keep the draft unmerged for that review. `TUTORIAL_FLOW_PROPOSAL.md` is an accompanying recommendation, not a changed tutorial or an accepted script.
+
 ## Current correction — only the four circled static objects bonk
 
 Use the photo mapping in `CIRCLED_BONK_CORRECTION.md`. Import the exact review revision from the manifest/PR into a fresh Makko preview.
