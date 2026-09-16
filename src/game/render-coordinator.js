@@ -388,8 +388,12 @@ function drawGround(ctx) {
   const groundY = 890;
   const worldWidth = 4096;
   
-  const groundStartX = -2000;
-  const groundEndX = worldWidth + 2000;
+  // Clip the expensive glowing road stroke to the visible camera span.
+  // Padding retains its blurred edge through zoom and camera shake.
+  const center = window.gameCamera?.centerX ?? 2048;
+  const halfView = 960 / Math.max(0.4,window.renderer?.zoomLevel || 1) + 100;
+  const groundStartX = Math.max(-2000,center-halfView);
+  const groundEndX = Math.min(worldWidth+2000,center+halfView);
   const screenWidth = groundEndX - groundStartX;
   
   const groundGradient = ctx.createLinearGradient(0, groundY, 0, 1080);
@@ -428,15 +432,8 @@ function drawGameEntities(ctx) {
     }
   }
 
-  // Draw enemies
-  if (window.enemyManager && typeof window.enemyManager.draw === 'function') {
-    try {
-      window.enemyManager.draw(ctx);
-    } catch (error) {
-      console.error('Error drawing enemies:', error?.message || error);
-    }
-  }
-
+  // Street hardware belongs behind actors: enemies cross over pavement rails
+  // just like the player, including after a gate has powered down.
   // Draw sector progression elements
   if (window.sector1Progression && typeof window.sector1Progression.draw === 'function') {
     try {
@@ -446,6 +443,15 @@ function drawGameEntities(ctx) {
     }
   }
   
+  // Draw enemies
+  if (window.enemyManager && typeof window.enemyManager.draw === 'function') {
+    try {
+      window.enemyManager.draw(ctx);
+    } catch (error) {
+      console.error('Error drawing enemies:', error?.message || error);
+    }
+  }
+
   // Draw lost data fragments
   if (window.lostDataSystem && typeof window.lostDataSystem.draw === 'function') {
     try {

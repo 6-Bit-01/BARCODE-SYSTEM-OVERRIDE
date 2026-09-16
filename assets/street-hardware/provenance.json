@@ -29,27 +29,37 @@
     {
       "path": "assets/street-hardware/broadcast-terminal.webp",
       "bytes": 121788,
-      "sha256": "2c1a06cf44828cdcbc8044b9cdbf66457b994fbe7e0982f8209df4515d206446"
+      "sha256": "2c1a06cf44828cdcbc8044b9cdbf66457b994fbe7e0982f8209df4515d206446",
+      "width": 512,
+      "height": 580
     },
     {
       "path": "assets/street-hardware/gate-2.webp",
       "bytes": 59274,
-      "sha256": "94bb09650bbf2c0c1817dc0ec1934185b57c3ea90b9bb9b9c23ec4eda2daeed4"
+      "sha256": "94bb09650bbf2c0c1817dc0ec1934185b57c3ea90b9bb9b9c23ec4eda2daeed4",
+      "width": 1340,
+      "height": 1106
     },
     {
       "path": "assets/street-hardware/gate-4.webp",
       "bytes": 63714,
-      "sha256": "c068fda25074d2a1a67000f95f9e93d7e2a9f0957563d1c522efd920123730b5"
+      "sha256": "c068fda25074d2a1a67000f95f9e93d7e2a9f0957563d1c522efd920123730b5",
+      "width": 1340,
+      "height": 1240
     },
     {
       "path": "assets/street-hardware/gate-1.webp",
       "bytes": 66178,
-      "sha256": "9f947dc0e7c6a2ea229d48d05037477ea6ee30b488def649503332f39ee416b3"
+      "sha256": "9f947dc0e7c6a2ea229d48d05037477ea6ee30b488def649503332f39ee416b3",
+      "width": 1340,
+      "height": 1334
     },
     {
       "path": "assets/street-hardware/gate-3.webp",
       "bytes": 67524,
-      "sha256": "e3798694b599d23744f8d519952e403457280036f0694faf6b2c13b5967b5b43"
+      "sha256": "e3798694b599d23744f8d519952e403457280036f0694faf6b2c13b5967b5b43",
+      "width": 1340,
+      "height": 1381
     }
   ]
 }
