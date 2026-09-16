@@ -105,21 +105,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
     const message=notice?.kind==='pickup'?'3 HITS · LONGER ENEMY REACH':notice?.kind==='empty'?'DEPLETED · NORMAL REACH':charges?'ON-BEAT HITS: ENEMY REACH +':'NORMAL REACH';
     text(c,message,43,y+47,12,C.muted,600,'left',269);c.restore();
   }
-  function hack(c, status, active) {
-    if (!status) return;
-    begin(c); const x=343, y=active?368:229, w=235;
-    const ready=status.state==='ready', linked=status.state==='linked';
-    const color=ready?C.green:linked?C.teal:status.state==='recharging'?C.purple:C.muted;
-    plate(c,x,y,w,63,C.ink,color);
-    const key=B.ControllerSettings?.prompt('interact','H') || 'H';
-    text(c,`[${key}] ${linked?'RELEASE':'HACK'}`,x+15,y+17,17,color,700,'left',120);
-    const labels={ready:'READY',recharging:`${(status.remainingMs/1000).toFixed(1)}s`,locked:'LOCKED',active:'HACKING',airborne:'LAND FIRST','no-target':'NO TARGET',unavailable:'STANDBY',linked:`ALLY ${Math.ceil(status.allySeconds)}s`};
-    text(c,labels[status.state]||'STANDBY',x+w-15,y+17,14,color,600,'right',98);
-    c.fillStyle='#303640';c.fillRect(x+15,y+34,w-30,8);
-    c.fillStyle=color;c.fillRect(x+15,y+34,(w-30)*status.charge,8);
-    const detail=status.state==='locked'?'UNLOCKS DURING CREW TRAINING':status.remainingMs>0?`RECHARGING · ${(status.remainingMs/1000).toFixed(1)}s`:
-      status.state==='no-target'?'CHARGED · MOVE NEAR AN ENEMY':status.state==='airborne'?'LAND TO USE HACK':ready?'TARGET IN RANGE':linked?'PRESS TO RELEASE ALLY':status.state==='active'?'SOLVE THE UPLINK':'UPLINK UNAVAILABLE';
-    text(c,detail,x+15,y+53,10,C.muted,600,'left',w-30);c.restore();
+  function hack(c, notice) {
+    if (!notice || !(notice.alpha > 0)) return;
+    begin(c); c.globalAlpha *= notice.alpha;
+    // Brief notice in the top gap: above the playfield, below a boss readout,
+    // and outside the left health/rhythm/Amp stack.
+    const x=585, y=155, w=235, key=B.ControllerSettings?.prompt('interact','H') || 'H';
+    plate(c,x,y,w,42,C.ink,C.green);
+    text(c,`[${key}] HACK READY`,x+w/2,y+21,21,C.green,700,'center',w-24);
+    c.restore();
   }
   B.ComicHUD=Object.freeze({health,lore,C,polygon,plate,text,basic,objectives,boss,rhythm,amp,hack});
 })();

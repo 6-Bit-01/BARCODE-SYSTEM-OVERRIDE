@@ -396,29 +396,25 @@ function drawGround(ctx) {
   const groundEndX = Math.min(worldWidth+2000,center+halfView);
   const screenWidth = groundEndX - groundStartX;
   
-  const groundGradient = ctx.createLinearGradient(0, groundY, 0, 1080);
-  groundGradient.addColorStop(0, '#2a0a4a');
-  groundGradient.addColorStop(0.5, '#1a053a');
-  groundGradient.addColorStop(1, '#0a022a');
-  
-  ctx.fillStyle = groundGradient;
-  ctx.fillRect(groundStartX, groundY, screenWidth, 1080 - groundY);
-  
-  ctx.strokeStyle = '#ff00ff';
-  ctx.lineWidth = 2;
-  ctx.shadowColor = '#ff00ff';
-  ctx.shadowBlur = 10;
-  ctx.beginPath();
-  ctx.moveTo(groundStartX, groundY);
-  ctx.lineTo(groundEndX, groundY);
-  ctx.stroke();
-  ctx.shadowBlur = 0;
-  
-  ctx.fillStyle = 'rgba(0, 255, 255, 0.1)';
-  const patternStart = Math.floor(groundStartX / 100) * 100;
-  for (let x = patternStart; x < groundEndX; x += 100) {
-    ctx.fillRect(x, groundY + 10, 80, 5);
+  // World-anchored dark asphalt below the existing curb. Alternating tile
+  // direction joins identical edge pixels without per-frame filtering.
+  const projection = ctx.getTransform?.();
+  const visibleBottom = projection?.d > 0 ? (1080 - projection.f) / projection.d : 1080;
+  const bottom = Math.max(1080, visibleBottom + 2), tileWidth = 1152, tileHeight = 384;
+  ctx.fillStyle = '#111319';
+  ctx.fillRect(groundStartX, groundY, screenWidth, bottom - groundY);
+  ctx.save(); ctx.beginPath(); ctx.rect(groundStartX, groundY, screenWidth, bottom-groundY); ctx.clip();
+  for (let y = groundY; y < bottom; y += tileHeight) {
+    for (let tile = Math.floor(groundStartX / tileWidth); tile * tileWidth < groundEndX; tile++) {
+      const flip = Math.abs(tile % 2) === 1;
+      window.BARCODE?.PresentationAssets?.draw('wetStreet', ctx, {
+        x: (tile + (flip ? 1 : 0)) * tileWidth, y, width: tileWidth, height: tileHeight, flip
+      });
+    }
   }
+  ctx.restore();
+  ctx.strokeStyle = 'rgba(217,98,200,0.65)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(groundStartX,groundY); ctx.lineTo(groundEndX,groundY); ctx.stroke();
 }
 
 // Draw game entities

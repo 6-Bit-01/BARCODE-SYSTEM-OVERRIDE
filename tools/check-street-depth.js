@@ -5,6 +5,8 @@ const {w,p,context}=createRig();p.startMission();
 const props=w.Sector1Progression.TRAVERSAL_PROPS;
 assert.strictEqual(props.filter(p=>p.h>30).length,1,'one large street prop');
 assert.strictEqual(props.find(p=>p.h>30).asset,'broadcastTerminal');
+assert(props.find(p=>p.h>30).x<1000,'single terminal supplies the left entry route');
+assert(w.Sector1Progression.SIGNAL_LIFT.x>2048 && w.Sector1Progression.SIGNAL_LIFT.x<3000,'lift sits in the middle-right');
 assert(!p.getStageSurfaces().some(p=>['firewall-utility-unit','broadcast-utility-unit'].includes(p.id)),'removed boxes leave no invisible collision');
 const original=w.sector1Progression;
 load(context,'src/game/render-coordinator.js');

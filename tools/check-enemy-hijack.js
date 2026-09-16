@@ -148,12 +148,12 @@ for (const fps of [30, 60, 120]) {
   }
   jumpRoute(1230, 492, 1450, 'cache-maintenance-step');
   jumpRoute(1480, 410, 1620, 'cache-awning');
-  jumpRoute(3010, 856, 3225, 'tower-utility-unit');
-  jumpRoute(3280, 650, 3420, 'tower-awning');
+  jumpRoute(600, 856, 770, 'tower-utility-unit');
+  jumpRoute(790, 650, 950, 'signal-awning');
   jumpRoute(1600, 330, 1450, 'cache-maintenance-step');
   jumpRoute(1420, 410, 1220, 'signal-roof'); // The new higher roof now intercepts this upward jump.
-  jumpRoute(3360, 502, 3225, 'tower-utility-unit', false);
-  jumpRoute(3200, 650, 3000, null);
+  jumpRoute(800, 492, 710, 'tower-utility-unit', false);
+  jumpRoute(780, 650, 500, null);
 }
 {
   const { w, p } = rig(); p.state = 'encounter_1'; p.closedGateEncounterId = 'encounter_1';

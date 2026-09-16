@@ -535,7 +535,7 @@ function testSignalLiftAndBackgroundRhythm() {
     }
     assert(frames < fps * 4, `lift reaches its upper stop at ${fps} FPS`);
     w.updateGame(dt);
-    assert.strictEqual(player.supportedSurfaceId, 'signal-awning', `lift hands the player to the authored awning at ${fps} FPS`);
+    assert.strictEqual(player.supportedSurfaceId, liftConfig.destinationSurfaceId, `lift hands the player to the authored awning at ${fps} FPS`);
     approx(player.getVisualAnchor().visibleFootY, liftConfig.topY, 0.001, `player visible feet meet the awning/lift top at ${fps} FPS`);
     const playerTopY = player.position.y;
 

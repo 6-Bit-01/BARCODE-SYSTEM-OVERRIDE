@@ -265,9 +265,9 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   // direct street-to-awning jump that skipped the visible-foot offset.
   const lift = window.Sector1Progression.SIGNAL_LIFT;
   assert.strictEqual(lift.bottomY, groundVisualFoot.y, 'Signal Lift boards at the shared street foot line');
-  assert.strictEqual(lift.topY, surfaces.get('signal-awning').y, 'Signal Lift reaches the first awning');
+  assert.strictEqual(lift.topY, surfaces.get('firewall-canopy').y, 'Signal Lift reaches the middle-right canopy');
   const access = window.Sector1Progression.TRAVERSAL_PROPS;
-  for (const [stepId, targetId] of [['tower-utility-unit','tower-awning']]) {
+  for (const [stepId, targetId] of [['tower-utility-unit','signal-awning']]) {
     const step = access.find(p => p.id === stepId), target = surfaces.get(targetId);
     supportedFrameStepsMs.forEach(frameMs => {
       assert.notStrictEqual(descendingCrossingTime(groundVisualFoot.y, step.y, frameMs), null, `${stepId} reachable from street`);

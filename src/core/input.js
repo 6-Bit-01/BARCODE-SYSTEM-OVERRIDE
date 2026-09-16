@@ -236,6 +236,14 @@ window.InputManager = class InputManager {
       else if (horizontal > 0) window.player.moveRight();
       else window.player.stopHorizontal();
       if (horizontal !== 0 && window.tutorialSystem && window.tutorialSystem.isActive && window.tutorialSystem.isActive() && !this.hasTrackedMovement) { this.hasTrackedMovement = true; window.tutorialSystem.checkObjective && window.tutorialSystem.checkObjective('movement'); }
+      // Down + the mapped jump drops through only the current support. With
+      // shared Cross, the same chord also exits a planted Rhythm Mode safely.
+      const sharedBeatPress = actions.primary.pressed && this.actionInput.jumpSharesBeatButton() &&
+        this.actionInput.gamepadHeld('jump', this.actionInput.getPads());
+      const dropPressed = actions.move_down?.held && (actions.jump.pressed || sharedBeatPress);
+      if (dropPressed && window.player.dropThrough?.()) {
+        actions.jump.pressed = false; actions.primary.pressed = false;
+      }
       if (actions.jump.pressed) { const r = window.handleGameAction ? window.handleGameAction('jump') : { ok: window.player.jump() }; if (r && r.ok && window.tutorialSystem && window.tutorialSystem.checkObjective && !this.hasTrackedJump) { this.hasTrackedJump = true; window.tutorialSystem.checkObjective('jump'); } }
     }
     if (actions.primary.pressed && window.BARCODE?.playerCombat) {

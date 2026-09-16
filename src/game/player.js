@@ -128,6 +128,11 @@ window.Player = class Player {
       if (this.jumpBufferTimerMs > 0) this.jumpBufferTimerMs = Math.max(0, this.jumpBufferTimerMs - deltaTime);
       if (this.grounded) this.coyoteTimerMs = PLAYER_COYOTE_MS;
       else this.coyoteTimerMs = Math.max(0, this.coyoteTimerMs - deltaTime);
+      if (this.dropSurfaceId) {
+        this.dropSurfaceAgeMs += deltaTime;
+        if (this.grounded || this.dropSurfaceAgeMs > 1000 ||
+            this.position.y + PLAYER_VISUAL_FOOT_OFFSET_Y > this.dropSurfaceY + this.height) this.dropSurfaceId = null;
+      }
       const jumpHeld = this.isJumpHeld();
       if (!jumpHeld) this.queueJumpRelease();
       if (!this.grounded && this.velocity.y < 0) this.jumpHeldMs += deltaTime;
@@ -532,6 +537,25 @@ window.Player = class Player {
     if (this.grounded) this.velocity.x = 0;
     else this.airInput = 0;
     // Keep facing direction - don't change when stopping
+  }
+
+  dropThrough() {
+    if (!this.grounded || !this.supportedSurfaceId || this.isEntering || !this.allowMovement || this.controlsDisabled) return false;
+    if (window.sector1Progression?.isGameplaySuppressed?.() || window.isPaused || window.gameState?.paused) return false;
+    this.dropSurfaceId = this.supportedSurfaceId;
+    this.dropSurfaceY = this.position.y + PLAYER_VISUAL_FOOT_OFFSET_Y;
+    this.dropSurfaceAgeMs = 0;
+    this.supportedSurfaceId = null;
+    this.grounded = false;
+    this.position.y += 2;
+    this.velocity.y = 100;
+    this.coyoteTimerMs = 0;
+    this.jumpBufferTimerMs = 0;
+    this.jumpHeldMs = 0;
+    this.jumpReleaseQueued = false;
+    this.jumpAnimationStarted = false;
+    window.rhythmSystem?.hideRhythmMode?.();
+    return true;
   }
 
   jump() {

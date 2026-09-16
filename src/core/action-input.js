@@ -8,11 +8,12 @@ window.FILE_MANIFEST.push({
 
 (function() {
   const BARCODE = window.BARCODE = window.BARCODE || {};
-  const ACTIONS = ['move_left', 'move_right', 'jump', 'primary', 'interact', 'inspect', 'pause', 'rhythm_mode'];
+  const ACTIONS = ['move_left', 'move_right', 'move_down', 'jump', 'primary', 'interact', 'inspect', 'pause', 'rhythm_mode'];
   const EDGE_ACTIONS = new Set(['jump', 'primary', 'interact', 'inspect', 'pause', 'rhythm_mode']);
   const DEFAULT_KEYBOARD = {
     move_left: ['arrowleft', 'a'],
     move_right: ['arrowright', 'd'],
+    move_down: ['arrowdown', 's'],
     jump: [' ', 'arrowup', 'w'],
     primary: ['arrowdown'],
     interact: ['h'],
@@ -23,8 +24,9 @@ window.FILE_MANIFEST.push({
   const DEFAULT_GAMEPAD = {
     move_left: [{ axis: 0, dir: -1 }, { button: 14 }],
     move_right: [{ axis: 0, dir: 1 }, { button: 15 }],
+    move_down: [{ axis: 1, dir: 1 }, { button: 13 }],
     jump: [{ button: 0 }],
-    primary: [{ button: 2 }],
+    primary: [{ button: 0 }],
     interact: [{ button: 3 }],
     inspect: [{ button: 5 }],
     pause: [{ button: 9 }],
@@ -87,10 +89,17 @@ window.FILE_MANIFEST.push({
       this.suppression = this.computeSuppression(context);
       const held = {};
       const pads = this.getPads();
+      const shared = this.jumpSharesBeatButton(), rhythmMode = !!window.rhythmSystem?.isActive?.();
+      if (shared && this.rhythmInputMode !== undefined && this.rhythmInputMode !== rhythmMode) {
+        this.gamepadReleaseRequired ||= new Set();
+        for (const action of ['jump', 'primary']) if (this.gamepadHeld(action, pads)) this.gamepadReleaseRequired.add(action);
+      }
+      this.rhythmInputMode = rhythmMode;
       ACTIONS.forEach(action => {
         const padHeld = this.gamepadHeld(action, pads);
         if (!padHeld) this.gamepadReleaseRequired?.delete(action);
-        held[action] = this.keyboardHeld(action) || (padHeld && !this.gamepadReleaseRequired?.has(action));
+        const contextAllows = !shared || action !== 'jump' && action !== 'primary' || (action === 'primary' ? rhythmMode : !rhythmMode);
+        held[action] = this.keyboardHeld(action) || (contextAllows && padHeld && !this.gamepadReleaseRequired?.has(action));
       });
       this.state = stateTemplate();
       ACTIONS.forEach(action => {
@@ -112,6 +121,11 @@ window.FILE_MANIFEST.push({
       const ui = BARCODE.GamepadUI;
       if (ui) { const pad = ui.selectPad(); return pad ? [pad] : []; }
       return Array.from(navigator.getGamepads?.() || []).filter(pad => pad && pad.connected !== false && pad.mapping === 'standard').slice(0, 1);
+    }
+    jumpSharesBeatButton() {
+      const settings = BARCODE.ControllerSettings;
+      if (!this.customGamepadBindings && settings) return settings.bindings.jump === settings.bindings.primary;
+      return (this.gamepadBindings.jump || []).some(jump => jump.button !== undefined && (this.gamepadBindings.primary || []).some(beat => beat.button === jump.button));
     }
     gamepadHeld(action, pads = []) {
       const settings = BARCODE.ControllerSettings;

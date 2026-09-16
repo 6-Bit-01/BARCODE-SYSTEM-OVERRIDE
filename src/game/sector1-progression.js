@@ -55,7 +55,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
 
   const TRAVERSAL_PROPS = Object.freeze([
     { id: 'cache-maintenance-step', x: 1390, y: 410, w: 128, h: 14 },
-    { id: 'tower-utility-unit', x: 3150, y: 650, w: 160, h: 206, asset: 'broadcastTerminal' },
+    { id: 'tower-utility-unit', x: 690, y: 650, w: 160, h: 206, asset: 'broadcastTerminal' },
     { id: 'signal-high-step', x: 642, y: 10, w: 132, h: 18 },
     { id: 'cache-high-step', x: 1400, y: 30, w: 136, h: 18 },
     { id: 'firewall-low-step', x: 2130, y: 430, w: 148, h: 18 },
@@ -107,15 +107,16 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     jammerCadenceMinMs: 2500,
     jammerCadenceMaxMs: 3500
   });
-  // Rhythm-powered access from street level to the first authored awning.
+  // Rhythm-powered access from the middle-right street to Firewall canopy.
   // Platform coordinates use the same visible-foot space as STAGE_SURFACES.
   const SIGNAL_LIFT = Object.freeze({
     id: 'signal-lift',
-    x: 660,
+    x: 2440,
     w: 132,
     h: 10,
     bottomY: GROUND_Y + PLAYER_VISUAL_FOOT_OFFSET,
-    topY: 492,
+    topY: 358,
+    destinationSurfaceId: 'firewall-canopy',
     speed: 220,
     returnDelayMs: 900,
     requiredCharges: 2
@@ -389,7 +390,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       // on either lip must never power the lift while hitting the Jammer.
       const attackRange = window.BARCODE?.playerCombat?.range ?? 300;
       const clearance = attackRange + 18 + 96;
-      const candidates = (px < WORLD_WIDTH / 2 ? [2350, 2900, 3520] : [1300, 1550, 1800])
+      const candidates = (px < WORLD_WIDTH / 2 ? [3100, 3520, 3820] : [1300, 1550, 1800])
         .filter(x => x < SIGNAL_LIFT.x - clearance || x > SIGNAL_LIFT.x + SIGNAL_LIFT.w + clearance);
       const x = candidates[Math.min(candidates.length - 1, Math.floor(Math.random() * candidates.length))];
       return { x, y: GROUND_Y };
@@ -551,7 +552,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     }
     updateBossRoute(delta) {
       const boss = this.boss, player = this.player, current = this.getBossSurface();
-      if (player.grounded) boss.chaseSurfaceId = player.supportedSurfaceId === SIGNAL_LIFT.id ? 'signal-awning' : (player.supportedSurfaceId || 'street');
+      if (player.grounded) boss.chaseSurfaceId = player.supportedSurfaceId === SIGNAL_LIFT.id ? SIGNAL_LIFT.destinationSurfaceId : (player.supportedSurfaceId || 'street');
       if (!boss.chaseSurfaceId || boss.chaseSurfaceId === current.id) return false;
       const next = this.getBossRouteStep(boss.chaseSurfaceId);
       if (!next) return false;
@@ -870,7 +871,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       window.renderer?.resetFollowCamera?.(checkpoint.playerX);
       Object.assign(player.velocity, { x: 0, y: 0 });
       Object.assign(player, { health: player.maxHealth, grounded: true, controlsDisabled: false,
-        allowMovement: true, isEntering: false, supportedSurfaceId: null,
+        allowMovement: true, isEntering: false, supportedSurfaceId: null, dropSurfaceId: null,
         invulnerable: false, invulnerableUntil: 0, _enemyInvulnerableUntilMs: 0,
         primaryAttackAnimationMs: 0, afterimageMs: 0, coyoteTimerMs: 0, jumpBufferTimerMs: 0,
         jumpHeldMs: 0, jumpReleaseQueued: false, airInput: 0 });
@@ -980,7 +981,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (Math.abs((this.player?.position?.x ?? Infinity) - (lift.x + lift.w / 2)) < 220 && lift.y === SIGNAL_LIFT.bottomY) {
         ctx.font = 'bold 16px monospace';
         ctx.textAlign = 'center';
-        ctx.fillText(`R + DOWN ON BEAT: POWER LIFT ${lift.charges}/${SIGNAL_LIFT.requiredCharges}`, lift.x + lift.w / 2, lift.y - 32);
+        ctx.fillText(`${window.BARCODE?.ControllerSettings?.prompt('rhythm_mode', 'R') || 'R'} + ${window.BARCODE?.ControllerSettings?.prompt('primary', 'DOWN') || 'DOWN'} ON BEAT: POWER LIFT ${lift.charges}/${SIGNAL_LIFT.requiredCharges}`, lift.x + lift.w / 2, lift.y - 32);
       }
       ctx.restore();
     }
@@ -1592,8 +1593,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         moving: true
       }] : [];
       // Static geometry intentionally wins at the top overlap so stepping
-      // right transfers support from the lift to the signal awning.
+      // sideways transfers support from the lift to its destination roof.
       for (const surface of this.getStageSurfaces().concat(movingSurfaces)) {
+        if (surface.id === player.dropSurfaceId) continue;
         const surfacePrevY = Number.isFinite(surface.previousY) ? surface.previousY : surface.y;
         if (previousVisualFootY > surfacePrevY || currentVisualFootY < surface.y) continue;
         const crossingT = verticalTravel > 0 ? Math.max(0, Math.min(1, (surface.y - previousVisualFootY) / verticalTravel)) : 1;
@@ -1656,6 +1658,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     pollPreparedAsset(entry) { if (!entry || entry.ready || entry.generation !== this.assetGeneration) return; try { if (!entry.sprite.isLoaded || entry.sprite.isLoaded()) { entry.ready = true; if (entry.onReady) entry.onReady(entry.sprite); } } catch (error) { if (!entry.diagnosticRecorded) { entry.diagnosticRecorded = true; this.recordAssetDiagnostic(entry.key, error); } } }
     recordAssetDiagnostic(key, error) { this.assetDiagnostics = this.assetDiagnostics || []; if (!this.assetDiagnostics.some(entry => entry.key === key)) this.assetDiagnostics.push({ key, message: String(error && error.message || error) }); }
     reset(options = {}) {
+      if (this.player) this.player.dropSurfaceId = null;
       this.resetRepairs();
       window.BARCODE?.stageFX?.reset(this);
       window.renderer?.resetFollowCamera?.(this.player?.position.x);

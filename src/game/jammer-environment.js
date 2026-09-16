@@ -56,6 +56,7 @@ window.BARCODE = window.BARCODE || {};
     spriteRequestGeneration: -1,
     spriteRequestCount: 0,
     audio: null,
+    signalTimeMs: 0,
     destructionEffectStarted: false
   };
 
@@ -128,6 +129,7 @@ window.BARCODE = window.BARCODE || {};
     state.destructionNotified = false;
     state.lastDamageSequence = null;
     state.destructionEffectStarted = false;
+    state.signalTimeMs = 0;
     state.disposed = false;
     invalidatePresentation();
     return cloneStatus(state);
@@ -144,6 +146,7 @@ window.BARCODE = window.BARCODE || {};
   function update(deltaTime) {
     if (!state.revealed || state.disposed) return cloneStatus(state);
     pollSpriteReady();
+    state.signalTimeMs += Math.max(0, Number(deltaTime) || 0);
     if (state.spriteReady && state.sprite && typeof state.sprite.update === 'function') {
       if (namespace.SpritePlayback) namespace.SpritePlayback.update(state.sprite, deltaTime);
       else state.sprite.update(deltaTime);
@@ -185,11 +188,29 @@ window.BARCODE = window.BARCODE || {};
     if (!ctx || state.destroyed || !state.revealed || state.disposed) return;
     ctx.save();
     const stage = getStage();
-    if (state.spriteReady && state.sprite && typeof state.sprite.draw === 'function') {
+    // A fixed whole-body drawing keeps the machinery bolted to the sidewalk.
+    // The old clip changes its silhouette and previously re-added legacy foot
+    // offsets; animate transmission light instead of shaking the chassis.
+    const footY = state.position.y + state.presentation.drawOffsetY;
+    const steady = namespace.PresentationAssets?.draw('steadyJammer', ctx, {
+      x: state.position.x, y: footY, width: 352 * JAMMER_TEXTURE.scale, frame: 0
+    });
+    if (steady) {
+      const pulse = 0.5 + 0.5 * Math.sin(state.signalTimeMs / 650);
+      ctx.save(); ctx.globalAlpha *= 0.18 + pulse * 0.16;
+      ctx.fillStyle = stage.color;
+      ctx.fillRect(state.position.x - 37, footY - 64, 42, 15);
+      ctx.strokeStyle = stage.color; ctx.lineWidth = 1.5;
+      for (let ring = 0; ring < 2; ring++) {
+        const phase = ((state.signalTimeMs / 1800 + ring / 2) % 1);
+        ctx.globalAlpha = (1 - phase) * 0.35;
+        ctx.beginPath(); ctx.arc(state.position.x - 22, footY - 137, 10 + phase * 27, -2.7, -0.7); ctx.stroke();
+      }
+      ctx.restore();
+    } else if (state.spriteReady && state.sprite && typeof state.sprite.draw === 'function') {
       const frame = Math.max(0, Math.trunc(state.animationRef?.currentFrame || 0)) % JAMMER_TEXTURE.footRows.length;
       const metrics = window.Player.prototype.getMakkoRenderMetrics.call({ sprite: state.sprite }, JAMMER_TEXTURE, false);
-      const targetFootY = state.position.y + state.presentation.drawOffsetY +
-        (JAMMER_TEXTURE.originalFootRows[frame] - 214) * state.presentation.drawScale;
+      const targetFootY = state.position.y + state.presentation.drawOffsetY;
       const drawY = targetFootY + metrics.anchorOffsetY - JAMMER_TEXTURE.footRows[frame] * metrics.frameScale;
       const drawX = state.position.x + metrics.anchorOffsetX - JAMMER_TEXTURE.anchorX * metrics.frameScale;
       state.sprite.draw(ctx, drawX, drawY, { scale: JAMMER_TEXTURE.scale, flipH: false });
@@ -206,7 +227,7 @@ window.BARCODE = window.BARCODE || {};
       ctx.fillText('BROADCAST JAMMER', state.position.x, fallbackY - fallbackHeight - 10);
     }
     if (state.targetable) {
-      const barW = 140; const barH = 12; const hp = state.health / state.maxHealth; const barY = state.position.y + 65;
+      const barW = 140; const barH = 12; const hp = state.health / state.maxHealth; const barY = footY - 174;
       ctx.fillStyle = 'rgba(0,0,0,0.75)'; ctx.fillRect(state.position.x - barW / 2, barY, barW, barH);
       ctx.fillStyle = stage.color; ctx.fillRect(state.position.x - barW / 2, barY, barW * hp, barH);
       ctx.strokeStyle = '#00ffff'; ctx.strokeRect(state.position.x - barW / 2, barY, barW, barH);
@@ -219,10 +240,10 @@ window.BARCODE = window.BARCODE || {};
       }
       ctx.fillStyle = stage.color;
       ctx.font = 'bold 14px monospace';
-      ctx.fillText(stage.label, state.position.x, barY - 26);
+      ctx.fillText(stage.label, state.position.x, barY - 46);
       ctx.fillStyle = '#c4f8ff';
       ctx.font = '12px monospace';
-      ctx.fillText('R + DOWN ON BEAT', state.position.x, barY + 42);
+      ctx.fillText(window.BARCODE?.ControllerSettings?.prompt ? `${window.BARCODE.ControllerSettings.prompt('primary', 'DOWN')} ON BEAT IN RHYTHM MODE` : 'R + DOWN ON BEAT', state.position.x, barY - 24);
     }
     ctx.restore();
   }
