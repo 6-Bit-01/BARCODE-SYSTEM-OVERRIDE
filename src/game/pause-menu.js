@@ -270,7 +270,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
         else if (i < 8) text(this.captureAction === actions[i - 3] ? 'Press a new button…' : c.button(c.bindings[actions[i - 3]]), 1210, y + 21, 22, '#a0ffe4');
       });
       text(this.captureAction ? `Release, then press a face / shoulder / stick button. ${c.button(1)} or Esc cancels.` : `Menu controls stay fixed: ${c.button(0)} confirm, ${c.button(1)} back, ${c.button(9)} pause.`, 440, 837, 18, '#cfa2ff');
-      text(this.captureAction ? 'Assigning a used button swaps the two actions. Click to cancel.' : 'During crew dialogue: confirm advances; right bumper jumps.', 440, 871, 18);
+      text(this.captureAction ? 'Assigning a used button swaps the two actions. Click to cancel.' : `${c.button(8)} advances crew dialogue. Jump keeps your gameplay binding.`, 440, 871, 18);
       text(c.saved ? 'Saved on this device.' : 'Applied this session; saving is unavailable.', 440, 915, 18, '#a0ffe4');
     },
     closeTiming() { this.view = 'settings'; this.focus = rows.findIndex(row => row[0] === 'timing'); this.drag = null; this.dirty = true; },

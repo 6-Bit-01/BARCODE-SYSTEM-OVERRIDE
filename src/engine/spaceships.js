@@ -41,6 +41,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
     this.ships = [];
     this.shipImages = [null, null, null]; // Array for multiple ship types
     this.shipSheets = [null, null, null];
+    this.warningImage = null;
     this.elapsedMs = 0;
     this.pendingForeground = [];
     this.previousPlayerBody = null;
@@ -95,6 +96,8 @@ window.SpaceShipSystem = class SpaceShipSystem {
 
   // Load multiple ship images directly (simplified approach)
   loadShipImages() {
+    loadSharedImageAsset('image.level-01.watch-out.27c23b7', 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/27c23b7042a903006f79683f01518f9b5eec49fb/assets/traffic-warning/watch-out.webp')
+      .then(image => { if (!this.disposed) this.warningImage = image; }).catch(() => {});
     const shipUrls = [
       'https://i.postimg.cc/xj3VcRP3/Ship1.gif',
       'https://i.postimg.cc/T1LNxnfz/Ship2.gif',
@@ -386,7 +389,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
     return { ...body, x: body.x + 960 - cameraX };
   }
 
-  getHazardBody(ship, time = this.elapsedMs) {
+  getHazardBody(ship, time = this.elapsedMs, inset = true) {
     const sheet = this.shipSheets[ship.shipType] || window.BARCODE?.trafficSheets?.[ship.shipType];
     const width = ship.size, height = ship.shipType === 2 ? width * .35 : width;
     const trim = sheet?.trim || { x: 0, y: 0, width: 1, height: 1 };
@@ -395,7 +398,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
     const cx = (-width / 2 + (trim.x + trim.width / 2) / sw * width) * sign;
     const cy = -height / 2 + (trim.y + trim.height / 2) / sh * height;
     // Inset the opaque trim to exclude exhaust and the tapered nose corners.
-    const bw = trim.width / sw * width * .74, bh = trim.height / sh * height * .62;
+    const bw = trim.width / sw * width * (inset ? .74 : 1), bh = trim.height / sh * height * (inset ? .62 : 1);
     const bob = Math.sin(time / 1000 + ship.bobOffset) * ship.bobAmount;
     return { x: ship.x + cx - bw / 2, y: ship.y + bob + cy - bh / 2, width: bw, height: bh };
   }
@@ -434,26 +437,69 @@ window.SpaceShipSystem = class SpaceShipSystem {
     player?.takeDamageWithKnockback?.(1, ship.direction * 320, -240, { x: player.position.x - ship.direction * 100, y: ship.y });
   }
 
-  drawTrafficWarnings(ctx) {
-    if (!this.trafficDamageEnabled()) return;
+  getTrafficProjection() {
+    // The actual scene matrix includes zoom, impact zoom and shake. Cars share
+    // vertical camera movement but deliberately not the actors' horizontal pan.
     const zoom = window.renderer?.getZoomLevel?.() || window.renderer?.zoomLevel || 1;
-    const left = 960 - 920 / zoom, right = 960 + 920 / zoom;
+    const m = window.BARCODE.sceneProjection?.matrix || { a: zoom, d: zoom, e: 960 * (1 - zoom), f: 675 * (1 - zoom) };
+    const cameraY = window.gameCamera?.y ?? window.sector1Progression?.getCameraY?.() ?? 0;
+    return { a: m.a, d: m.d, e: m.e, f: m.f - cameraY * m.d };
+  }
+
+  getTrafficWarnings() {
+    if (!this.trafficDamageEnabled()) return [];
+    const m = this.getTrafficProjection(), warnings = [];
     for (const ship of this.pendingForeground.concat(this.ships.filter(s => s.isForeground))) {
-      const body = this.getHazardBody(ship);
-      if (!ship.launchInMs && (ship.direction > 0 ? body.x + body.width >= left : body.x <= right)) continue;
-      const y = body.y + body.height / 2, edge = ship.direction > 0 ? left : right;
-      ctx.save(); ctx.strokeStyle = '#ffc278'; ctx.fillStyle = '#ffc278'; ctx.lineWidth = 2 / zoom;
-      ctx.globalAlpha = .15; ctx.beginPath(); ctx.moveTo(edge, y); ctx.lineTo(edge + ship.direction * 160 / zoom, y); ctx.stroke();
-      ctx.globalAlpha = .85;
-      for (let i = 0; i < 3; i++) {
-        const x = edge + ship.direction * (24 + i * 17) / zoom;
-        ctx.beginPath(); ctx.moveTo(x - ship.direction * 6 / zoom, y - 12 / zoom);
-        ctx.lineTo(x + ship.direction * 4 / zoom, y); ctx.lineTo(x - ship.direction * 6 / zoom, y + 12 / zoom); ctx.stroke();
+      // Visibility follows the complete opaque artwork, not the inset damage box.
+      const hull = this.getHazardBody(ship, this.elapsedMs, false);
+      const body = { x: hull.x * m.a + m.e, y: hull.y * m.d + m.f, width: hull.width * m.a, height: hull.height * m.d };
+      const distance = ship.direction > 0 ? -body.x - body.width : body.x - 1920;
+      if (distance <= 0) continue; // The leading artwork has appeared: remove cue.
+      const entryInMs = Math.max(0, ship.launchInMs || 0) + distance / (Math.abs(ship.speed) * 0.06 * m.a);
+      if (entryInMs > 3000 || body.y + body.height <= 0 || body.y >= 1080) continue;
+      // Center on the actual car altitude. For a partly clipped car, point into
+      // its visible hull slice; never relocate a high car to a generic HUD row.
+      const centerY = body.y + body.height / 2;
+      const y = centerY >= 0 && centerY <= 1080 ? centerY : (Math.max(0, body.y) + Math.min(1080, body.y + body.height)) / 2;
+      warnings.push({ ship, side: ship.direction > 0 ? 'left' : 'right', y, body, entryInMs });
+    }
+    return warnings;
+  }
+
+  drawTrafficWarnings(ctx) {
+    const warnings = this.getTrafficWarnings();
+    for (const warning of warnings) {
+      const left = warning.side === 'left', arrowX = left ? 48 : 1872;
+      const plateX = left ? 96 : 1584;
+      // Keep the label clear of health/rhythm and objectives; only its label
+      // may shift. The arrow itself stays precisely on the car's flight line.
+      const hudBottom = left ? (window.rhythmSystem?.isActive?.() ? 550 : 370) : 356;
+      const plateY = Math.max(hudBottom, Math.min(998, warning.y - 37));
+      ctx.save();
+      // This pass runs in screen coordinates after the normal HUD. Alpha never
+      // reaches zero: the warning remains readable between its red flashes.
+      ctx.globalAlpha = Math.floor(this.elapsedMs / 250) % 2 ? 0.48 : 1;
+      if (Math.abs(plateY + 37 - warning.y) > 1) {
+        const joinX = left ? 90 : 1830;
+        ctx.strokeStyle = '#ff3444'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(left ? 84 : 1836, warning.y); ctx.lineTo(joinX, warning.y);
+        ctx.lineTo(joinX, plateY + 37); ctx.lineTo(left ? plateX : plateX + 240, plateY + 37); ctx.stroke();
       }
-      ctx.beginPath(); ctx.moveTo(edge + ship.direction * 12 / zoom, y - 40 / zoom);
-      ctx.lineTo(edge, y - 20 / zoom); ctx.lineTo(edge + ship.direction * 24 / zoom, y - 20 / zoom); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = '#17191c'; ctx.fillRect(edge + ship.direction * 12 / zoom - 1 / zoom, y - 33 / zoom, 2 / zoom, 6 / zoom);
-      ctx.fillRect(edge + ship.direction * 12 / zoom - 1 / zoom, y - 24 / zoom, 2 / zoom, 2 / zoom); ctx.restore();
+      if (this.warningImage) {
+        ctx.drawImage(this.warningImage, 0, 0, 768, 235, plateX, plateY, 240, 74);
+        ctx.translate(arrowX, warning.y); if (!left) ctx.scale(-1, 1);
+        ctx.drawImage(this.warningImage, 0, 240, 384, 155, -38, -16, 76, 32);
+      } else {
+        // A failed optional image fetch must not remove the safety information.
+        ctx.fillStyle = '#b30b1a'; ctx.fillRect(plateX, plateY, 240, 74);
+        ctx.strokeStyle = '#ff4b58'; ctx.lineWidth = 3; ctx.strokeRect(plateX, plateY, 240, 74);
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 28px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('WATCH OUT', plateX + 120, plateY + 37);
+        ctx.fillStyle = '#ff2838'; const direction = left ? -1 : 1;
+        ctx.beginPath(); ctx.moveTo(arrowX + direction * 32, warning.y);
+        ctx.lineTo(arrowX - direction * 22, warning.y - 16); ctx.lineTo(arrowX - direction * 22, warning.y + 16); ctx.closePath(); ctx.fill();
+      }
+      ctx.restore();
     }
   }
 

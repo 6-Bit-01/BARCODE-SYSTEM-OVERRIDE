@@ -81,7 +81,7 @@ window.FILE_MANIFEST.push({
       } else if (Number.isFinite(result.liftCharges)) {
         text = `LIFT CHARGED ${result.liftCharges}/2`;
         color = '#00ffff';
-      } else if (result.reason === 'rhythm-inactive') text = 'PRESS R TO ENTER RHYTHM MODE';
+      } else if (result.reason === 'rhythm-inactive') text = `PRESS ${BARCODE.ControllerSettings?.prompt('rhythm_mode', 'R') || 'R'} TO ENTER RHYTHM MODE`;
       else if (result.reason === 'rhythm-not-ready') text = 'LISTEN FOR THE BEAT';
       else if (result.reason === 'miss') text = Number.isFinite(result.timing?.signedOffsetMs) ? `${result.timing.signedOffsetMs < 0 ? 'EARLY' : 'LATE'} — MATCH THE PULSE` : 'OFF BEAT — MATCH THE PULSE';
       else if (result.bossReason === 'boss-guarded') { text = 'ON BEAT — BOSS GUARDED; WAIT FOR CYAN'; if (!BARCODE.combatFX) window.audioSystem?.playSound?.('hihat'); }

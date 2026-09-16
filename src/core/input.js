@@ -204,12 +204,9 @@ window.InputManager = class InputManager {
       if (p.b0 || p.b2) this.resetActionEdges();
       return true;
     }
-    if (owner === 'tutorial' && p.b5) {
-      window.player?.jump?.(); this.actionInput?.blockGamepadUntilRelease();
-    }
-    if (owner === 'tutorial' && p.b0) {
-      window.tutorialSystem.handleSpacePress?.(); this.resetActionEdges(); return true;
-    }
+    // Playable crew training keeps the same jump/hold action as the street.
+    // Create/View advances speech without clearing movement or jump state.
+    if (owner === 'tutorial' && p.b8) window.tutorialSystem.handleSpacePress?.();
     if (p.b1 && window.rhythmSystem?.isActive?.() && !window.sector1Progression?.isGameplaySuppressed?.()) window.rhythmSystem.hideRhythmMode?.();
     return false;
   }
@@ -239,7 +236,7 @@ window.InputManager = class InputManager {
       else if (horizontal > 0) window.player.moveRight();
       else window.player.stopHorizontal();
       if (horizontal !== 0 && window.tutorialSystem && window.tutorialSystem.isActive && window.tutorialSystem.isActive() && !this.hasTrackedMovement) { this.hasTrackedMovement = true; window.tutorialSystem.checkObjective && window.tutorialSystem.checkObjective('movement'); }
-      if (actions.jump.pressed && !(window.tutorialSystem?.isActive?.() && window.BARCODE?.ControllerSettings?.bindings.jump === 0 && this.gamepad?.buttons[0]?.pressed)) { const r = window.handleGameAction ? window.handleGameAction('jump') : { ok: window.player.jump() }; if (r && r.ok && window.tutorialSystem && window.tutorialSystem.checkObjective && !this.hasTrackedJump) { this.hasTrackedJump = true; window.tutorialSystem.checkObjective('jump'); } }
+      if (actions.jump.pressed) { const r = window.handleGameAction ? window.handleGameAction('jump') : { ok: window.player.jump() }; if (r && r.ok && window.tutorialSystem && window.tutorialSystem.checkObjective && !this.hasTrackedJump) { this.hasTrackedJump = true; window.tutorialSystem.checkObjective('jump'); } }
     }
     if (actions.primary.pressed && window.BARCODE?.playerCombat) {
       for (const press of actions.primary.presses?.length ? actions.primary.presses : [{}]) {
