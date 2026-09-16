@@ -158,6 +158,6 @@ for (const fps of [30, 60, 120]) {
 {
   const { w, p } = rig(); p.state = 'encounter_1'; p.closedGateEncounterId = 'encounter_1';
   w.player.position.x = 1500; p.applyGateCollision();
-  assert(w.player.position.x + w.player.width / 2 <= 1320);
+  assert(w.player.position.x + w.player.width / 2 <= p.getCurrentGate().x, 'hijack route cannot bypass the fitted closed gate');
 }
 console.log('Enemy hijack, repair transactions and production rooftop traversal checks passed');

@@ -1,5 +1,16 @@
 # Acceptance and Test Status
 
+## September 16 — facade hologram and Objectives review
+
+Use the exact head from the new combined PR/source receipt on `agent/facade-hologram-objectives`. Base/rollback: merged #67, `d3d6128ce63c795c4096a320012e2136e21dfbc4`. A merged build or native screenshot alone does not approve visual alignment.
+
+1. At the first gate, inspect the circled building seam from the owner screenshot. The rail must meet the facade foot and roof edge; its ground track must meet the wall rail and follow the paving across curb and street. Climb and inspect the full height.
+2. Repeat at the other three gates. The right-hand gates follow the rightward pavement perspective. Check that characters stop at each visible barrier at ground and roof height, enemies pass above hardware, contact deforms/parts the field, and clearing the encounter opens passage immediately. The dark hardware remains after collapse. All 20 mission defeats must still reach the Jammer.
+3. Complete movement/jump tasks while earlier crew lines remain. Objectives shows “Continue crew briefing” and Space; a connected controller shows its existing Create/View button. Advance into the next chapter: the next actual task replaces the cue. Input behavior remains the same.
+4. Confirm the permanent left terminal, hologram/actor depth, animated background asset and heavier rain, original WATCH OUT/damaging cars, central Jammer, Cross jump/beat, platform drop, lift, drones, boss upper-route camera and win/loss/retry/restart remain.
+
+Native evidence and reproduction: `FACADE_HOLOGRAM_PASS.md`. Required suite/syntax and CI results, with the exact head, belong to the generated receipt. Record imported SHA, PASS/FAIL and a short scene capture. After accepted merge, import actual new main and repeat the focused route.
+
 ## September 16, 2026 — animated background asset, rain and central Jammer
 
 1. Open the standalone eight-second MP4. Smoke/clouds should roll subtly, with no camera movement, building deformation or visible loop splice.

@@ -9,9 +9,7 @@ async function main(){
  const out=path.resolve(__dirname,'../assets/street-hardware');fs.mkdirSync(out,{recursive:true});
  const manifest=[];
  for(const [i,g] of w.Sector1Progression.ENCOUNTER_GATES.entries()){
-  const roof=[-178,50,-225,-84][i],foot=g.y+g.h;
-  const left=Math.floor(g.x+g.w-(1096-foot-4)*g.depthX/-g.depthY-28),top=roof-24;
-  const width=Math.ceil(g.x+g.w+g.depthX+40-left),height=1132-top;
+  const {left,top,width,height}=p.getGateHardwareLayout(g);
   const c=createCanvas(width*2,height),ctx=c.getContext('2d');
   for(let frame=0;frame<2;frame++){
    ctx.save();ctx.translate(frame*width-left,-top);

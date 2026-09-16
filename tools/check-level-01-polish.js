@@ -161,7 +161,7 @@ console.log('Polish chunk 1: elapsed shake, accepted damage HUD, committed warni
   const { w, p, fx, drawing } = createRig();
   p.startMission(); p.spawnEncounter(w.Sector1Progression.ENCOUNTERS[0]);
   const gate = p.getCurrentGate();
-  assert(gate.y <= -500 && gate.h >= 1400 && gate.depthX > 0 && gate.depthY < 0, 'gate is a tall sidewalk-aligned 3D wall');
+  assert(gate.y <= -500 && gate.h >= 1400 && gate.mountX !== gate.curbX && gate.baseY < gate.y + gate.h, 'gate is a tall sidewalk-aligned 3D wall');
   assert.strictEqual(p.getGatePresentation()[0].opening, false);
   p.openEncounterGate('encounter_1');
   assert.strictEqual(p.getCurrentGate(), null, 'collision opens immediately');

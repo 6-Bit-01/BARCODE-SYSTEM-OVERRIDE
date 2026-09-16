@@ -1,5 +1,13 @@
 # Continue here — Level 1 rebuild after reverted #55
 
+## September 16, 2026 — fit holograms to buildings and complete tutorial Objectives
+
+Branch `agent/facade-hologram-objectives`, based on merged #67 (`d3d6128ce63c795c4096a320012e2136e21dfbc4`). The owner authorized one PR for the two gaps recovered in the conversation audit. Earlier current-work entries are historical.
+
+Each gate now uses a measured facade mount and its local pavement direction. Hardware, field edges, curb transition, baked image bounds and the blocking strip share those coordinates. The field thickness matches the existing 14-unit thin rail. Blocking x positions move with the fitted fields to 1342, 1966, 3269 and 3853; encounter identities, triggers, defeat quotas and unlock/collapse rules remain. Native previews cover every gate at street and roof height. The four rebaked assemblies use immutable asset ancestor `ac183cf0ccde1b716b82c5fdce9229d2de0c5032`.
+
+After tutorial tasks finish, Objectives now offers “Continue crew briefing” with Space or the existing Create/View control. Active tasks and input ownership remain. Preserve the animated BG asset/rain, central Jammer, terminal placement/depth, original warned/damaging cars, controls, upper routes, boss, rewards and music. See `FACADE_HOLOGRAM_PASS.md`. The prior v70 manifest/receipt is retained in `verification/pr67-merged-history.json`. Exact review SHA and check outcomes belong to the generated receipt. Owner Makko acceptance remains pending; keep this combined draft unmerged.
+
 ## September 16, 2026 — reusable background animation and central Jammer
 
 Base/rollback is merged PR #66, `e79b30795ed825042c4bd27a28fd57e3c2da6c8f`; branch `agent/animated-background-central-jammer`. The owner likes the new atmosphere and requests an animated asset made here, slightly heavier rain, and Jammer placement in an area a little wider than the middle third. No additional service account is wanted. Earlier current-work sections are historical.

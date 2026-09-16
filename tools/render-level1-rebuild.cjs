@@ -5,6 +5,7 @@ const {createCanvas,loadImage,GlobalFonts}=require(require.resolve('@napi-rs/can
 const {createRig,load}=require('./check-level-01-boss'),{createSprite}=require('./makko-animation-fixture'),{installArt}=require('./render-cat-chaos.cjs');
 const root=path.resolve(__dirname,'..'),out=path.resolve(process.argv[2]||'../review');fs.mkdirSync(out,{recursive:true});
 GlobalFonts.registerFromPath('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','Oxanium');
+GlobalFonts.registerFromPath('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','sans-serif');
 async function main(){
  const {w,p,context,calls}=createRig();await installArt(w,context);
  const clips={};for(const file of fs.readdirSync(path.join(root,'assets/sprites-v3/prepared')).filter(f=>f.endsWith('.json'))){const key=file.slice(0,-5),meta=JSON.parse(fs.readFileSync(path.join(root,'assets/sprites-v3/prepared',file)));clips[key]={meta,image:await loadImage(path.join(root,'assets/sprites-v3/prepared',key+'.webp')),frames:Object.values(meta.frames)};}
@@ -26,7 +27,7 @@ async function main(){
  for(let i=0;i<3;i++){w.spaceShipSystem.shipImages[i]=await loadImage(path.join(root,'assets/traffic/ship-'+(i+1)+'.webp'));w.spaceShipSystem.imagesLoaded[i]=true;w.spaceShipSystem.shipSheets[i]=w.BARCODE.trafficSheets[i];}
  const bg=await loadImage(path.join(root,'assets/world-v3/far-background.webp')),fg=await loadImage(path.join(root,'assets/world-v3/buildings.webp'));
  p.startMission();w.rhythmSystem.hideRhythmMode();w.player.allowMovement=true;
- function scene(c,cx,cy){w.gameCamera={centerX:cx,y:cy};w.renderer.zoomLevel=1;c.fillStyle='#111322';c.fillRect(0,0,1920,1080);c.drawImage(bg,0,0,1920,1080);c.save();c.translate(960-cx,-cy);c.drawImage(fg,0,2,fg.width,fg.height-2,-152,-550+2*1589/fg.height,4400,1589-2*1589/fg.height);w.drawGround(c);w.drawGameEntities(c);w.player.draw(c);c.restore();c.save();c.translate(0,-cy);w.spaceShipSystem.drawForegroundShips(c);c.restore();w.drawObjectives(c);}
+ function scene(c,cx,cy){w.gameCamera={centerX:cx,y:cy};w.renderer.zoomLevel=1;c.fillStyle='#111322';c.fillRect(0,0,1920,1080);c.drawImage(bg,0,0,1920,1080);c.save();c.translate(960-cx,-cy);c.drawImage(fg,0,2,fg.width,fg.height-2,-152,-550+2*1589/fg.height,4400,1589-2*1589/fg.height);w.drawGround(c);w.drawGameEntities(c);w.player.draw(c);c.restore();c.save();c.translate(0,-cy);w.spaceShipSystem.drawForegroundShips(c);c.restore();if(!w.tutorialSystem?.isActive?.())w.drawObjectives(c);}
  function setHero(x,foot,support){Object.assign(w.player.position,{x,y:foot-72});w.player.velocity.x=0;w.player.velocity.y=0;w.player.grounded=true;w.player.supportedSurfaceId=support||null;w.player.state='idle';w.player.airInput=0;w.player.controlsDisabled=false;w.player.invulnerableUntil=0;w.player.health=w.player.maxHealth;w.player.playAnimation('idle');}
  const canvas=createCanvas(1920,1080),c=canvas.getContext('2d');
  if(process.env.TRAFFIC_WARNING_REVIEW){
@@ -222,10 +223,27 @@ async function main(){
  scene(c,1320,0);fs.writeFileSync(path.join(out,'enemy-over-cleared-rail.png'),canvas.toBuffer('image/png'));
  p.districtSignal.clearedAtMs=[null,null,null,null];
 
- for(const [i,cx] of [1080,2040,2990,3290].entries()){p.state='encounter_'+(i+1);p.closedGateEncounterId=p.state;setHero([1110,2010,2900,3870][i],856);w.enemyManager.enemies=[];scene(c,cx,0);fs.writeFileSync(path.join(out,'gate-'+(i+1)+'-street.png'),canvas.toBuffer('image/png'));scene(c,cx,-600);fs.writeFileSync(path.join(out,'gate-'+(i+1)+'-roof.png'),canvas.toBuffer('image/png'));}
+ for(const [i,cx] of [1080,2040,2990,3290].entries()){p.state='encounter_'+(i+1);p.closedGateEncounterId=p.state;setHero(w.Sector1Progression.ENCOUNTER_GATES[i].x-140,856);w.enemyManager.enemies=[];scene(c,cx,0);fs.writeFileSync(path.join(out,'gate-'+(i+1)+'-street.png'),canvas.toBuffer('image/png'));scene(c,cx,-600);fs.writeFileSync(path.join(out,'gate-'+(i+1)+'-roof.png'),canvas.toBuffer('image/png'));}
  p.state='encounter_4';p.closedGateEncounterId=p.state;setHero(770,650,'tower-utility-unit');w.enemyManager.enemies=[];scene(c,960,0);fs.writeFileSync(path.join(out,'broadcast-terminal.png'),canvas.toBuffer('image/png'));
  const roof=w.Sector1Progression.STAGE_SURFACES.find(p=>p.id==='tower-crown');const drone=new w.RooftopDrone(3490,-500,roof);drone._sector1MissionEnemy=true;drone.spawnProtectionDuration=0;w.enemyManager.enemies=[drone];setHero(3340,-314,'tower-crown');scene(c,3160,-914);fs.writeFileSync(path.join(out,'rooftop-drone.png'),canvas.toBuffer('image/png'));
  const hack=w.hackingSystem=new w.HackingSystem();hack.active=true;hack.phase='answer';hack.puzzleType=2;hack.currentPuzzle={type:2,answer:'4061',hidden:true};hack.inputText='40';hack.useKeypad();scene(c,3160,-914);hack.draw(c);fs.writeFileSync(path.join(out,'keypad.png'),canvas.toBuffer('image/png'));hack.active=false;
+ if(process.env.FACADE_REVIEW){
+  const sheet=createCanvas(1920,2160),sc=sheet.getContext('2d');
+  for(let i=0;i<4;i++)for(const [column,view] of ['street','roof'].entries()){
+   const im=await loadImage(path.join(out,'gate-'+(i+1)+'-'+view+'.png'));
+   sc.drawImage(im,column*960,i*540,960,540);
+   sc.fillStyle='rgba(4,12,18,.94)';sc.fillRect(column*960+12,i*540+12,490,32);
+   sc.fillStyle='#d8ffad';sc.font='19px Oxanium';sc.fillText('Gate '+(i+1)+' · '+view+' · production geometry',column*960+24,i*540+35);
+  }
+  fs.writeFileSync(path.join(out,'facade-gates-street-roof.webp'),sheet.toBuffer('image/webp',86));
+  load(context,'src/game/tutorial.js');w.tutorialSystem=new w.TutorialSystem();
+  w.tutorialSystem.startTutorial();w.tutorialSystem.objectives.forEach(o=>{o.completed=true;});
+  w.tutorialSystem.currentText=w.tutorialSystem.targetText;w.tutorialSystem.readyToAdvance=true;
+  p.reset();w.enemyManager.enemies=[];setHero(580,856);scene(c,960,0);w.drawBasicUI(c);w.tutorialSystem.draw(c);
+  fs.writeFileSync(path.join(out,'facade-training-objectives.webp'),canvas.toBuffer('image/webp',88));
+  if(calls.errors.length)throw new Error(calls.errors.join('\n'));
+  console.log('All four fitted gates at street/roof height and the live tutorial Objectives transition rendered.');return;
+ }
  if(process.env.UPPER_ROUTE_REVIEW){
   p.state='jammer_active';p.closedGateEncounterId=null;p.districtSignal.clearedAtMs=[0,0,0,0];p.districtSignal.elapsedMs=3000;
   p.resetSignalLift();p.signalLift.y=660;p.signalLift.charges=2;p.signalLift.state='rising';setHero(725,660,'signal-lift');w.enemyManager.enemies=[];

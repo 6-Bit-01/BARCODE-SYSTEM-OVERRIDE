@@ -88,3 +88,43 @@ console.log('Street depth: production layering, one large prop, no ghost boxes, 
  assert(low.length>0);
 }
 console.log('Terminal from training/reset, 12px walking lane, aligned landing, hologram order; 45 sky camera/zoom cases and deterministic pause/reset animation passed.');
+
+// Fitted geometry must not leave invisible old boundaries or erase opened
+// ones late. Exercise every production gate, including both roof and street.
+{
+ const {w,p}=createRig();p.startMission();
+ const geometry=require('../assets/street-hardware/geometry.json');
+ for(const [i,g] of w.Sector1Progression.ENCOUNTER_GATES.entries()) {
+  const {path}=p.getGateGeometry(g),box=p.getGateHardwareLayout(g);
+  assert.strictEqual(path[1][0],g.x+g.w/2,'track crosses the blocking strip at actor feet');
+  assert.strictEqual(path[2][0],path[3][0],'curb drop is vertical');
+  assert.strictEqual(path[3][1]-path[2][1],4,'track traverses the live curb');
+  assert(path[4][1]>1080,'track reaches beyond the road edge');
+  for(const field of ['left','top','width','height'])assert.strictEqual(geometry[i][field],box[field],'baked hardware keeps the current registered bounds');
+  p.state=g.encounterId;p.spawnedEncounterIds.add(g.encounterId);p.closedGateEncounterId=g.encounterId;
+  for(const y of [w.Player.GROUND_Y,-360]) {
+   Object.assign(w.player.position,{x:g.x+20,y});w.player.velocity.x=300;
+   p.applyGateCollision();assert.strictEqual(w.player.position.x,g.x-w.player.width/2,'field and blocking boundary move together at both heights');
+  }
+  p.openEncounterGate(g.encounterId);
+  w.player.position.x=g.x+20;p.applyGateCollision();assert.strictEqual(w.player.position.x,g.x+20,'cleared track remains passable');
+ }
+ assert(w.Sector1Progression.ENCOUNTER_GATES[0].curbX<w.Sector1Progression.ENCOUNTER_GATES[0].mountX);
+ assert(w.Sector1Progression.ENCOUNTER_GATES[3].curbX>w.Sector1Progression.ENCOUNTER_GATES[3].mountX,'right district follows its rightward paving perspective');
+}
+
+// Actual tutorial drawing must offer a next action in the completed-task gap.
+{
+ const {w,context}=createRig();load(context,'src/game/tutorial.js');
+ const t=new w.TutorialSystem();
+ Object.assign(t,{active:true,dialogue:[{speaker:'cache',text:'Still with you.'}],currentText:'Still with you.',targetText:'Still with you.',readyToAdvance:true,objectives:[{id:'movement',text:'Move left and right',completed:false}]});
+ const lines=[];const c=new Proxy({globalAlpha:1,fillText(text,x,y){if(x>=1450&&y<500)lines.push(text);},measureText(text){return {width:text.length*10};}},{get:(o,k)=>o[k]??(()=>{})});
+ t.draw(c);assert(lines.includes('□ Move left and right'));assert(!lines.includes('Continue crew briefing'));
+ t.objectives[0].completed=true;lines.length=0;t.draw(c);
+ assert(lines.includes('Continue crew briefing')&&lines.includes('Space: Continue'));
+ w.BARCODE.GamepadUI={connected:true};w.BARCODE.ControllerSettings={button:()=> 'Create'};
+ lines.length=0;t.draw(c);assert(lines.includes('Create: Continue'),'cue matches existing controller dialogue ownership');
+ t.storyChapter=4;t._finalMessageSequenceArmed=true;lines.length=0;t.draw(c);
+ assert(lines.includes('Entering the next section…'));assert(!lines.includes('Create: Continue'),'automatic transition does not request another press');
+}
+console.log('Fitted gates: registered bake, mirrored pavement, roof/street blocking and open passage; tutorial next-action cues passed.');

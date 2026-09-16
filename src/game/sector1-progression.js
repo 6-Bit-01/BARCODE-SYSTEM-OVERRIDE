@@ -50,12 +50,21 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     { id: 'broadcast-crown', x: 3785, y: -74, w: 311, h: 8, maskFeet: 10 }
   ]);
 
+  // Measured on buildings.webp at its production (-152,-550), 4400x1589
+  // transform. Each rail follows a solid facade edge and its local paving
+  // direction; perspective changes across the district. The collision strip
+  // meets the same track at the shared y=856 walking plane.
   const ENCOUNTER_GATES = Object.freeze([
-    { id: 'gate_1', encounterId: 'encounter_1', x: 1320, y: -1040, w: 58, h: 1896, depthX: 112, depthY: -54 },
-    { id: 'gate_2', encounterId: 'encounter_2', x: 2110, y: -1040, w: 58, h: 1896, depthX: 112, depthY: -54 },
-    { id: 'gate_3', encounterId: 'encounter_3', x: 3000, y: -1040, w: 58, h: 1896, depthX: 112, depthY: -54 },
-    { id: 'gate_4', encounterId: 'encounter_4', x: 4010, y: -1040, w: 58, h: 1896, depthX: 112, depthY: -54 }
-  ]);
+    { mountX: 1382, roofY: -197, baseY: 824, curbX: 1316 },
+    { mountX: 1980, roofY: 49, baseY: 824, curbX: 1966 },
+    { mountX: 3250, roofY: -316, baseY: 824, curbX: 3302 },
+    { mountX: 3830, roofY: -88, baseY: 824, curbX: 3890 }
+  ].map((mount, index) => {
+    const w = 14, footY = 856;
+    const centerX = mount.mountX + (mount.curbX - mount.mountX) * (footY - mount.baseY) / (888 - mount.baseY);
+    return Object.freeze({ ...mount, id: 'gate_' + (index + 1), encounterId: 'encounter_' + (index + 1),
+      x: centerX - w / 2, y: -1040, w, h: 1896 });
+  }));
 
   const TRAVERSAL_PROPS = Object.freeze([
     { id: 'cache-maintenance-step', x: 1390, y: 410, w: 128, h: 14 },
@@ -1052,12 +1061,22 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       return Math.max(...xs) >= -32 && Math.min(...xs) <= canvas.width+32 &&
         Math.max(...ys) >= -32 && Math.min(...ys) <= canvas.height+32;
     }
+    getGateGeometry(gate) {
+      // One geometry owner for the live field, fallback modules and baked art.
+      const groundY = gate.y + gate.h, curbTop = 888, curbBottom = 892, streetBottom = 1096;
+      const slope = (gate.curbX - gate.mountX) / (curbTop - gate.baseY);
+      const roadX = gate.curbX + slope * (streetBottom - curbBottom);
+      const path = [[gate.mountX, gate.baseY, 0], [gate.x + gate.w / 2, groundY, 0],
+        [gate.curbX, curbTop, 0], [gate.curbX, curbBottom, curbBottom - curbTop],
+        [roadX, streetBottom, curbBottom - curbTop]];
+      return { path, roof: gate.roofY, groundY, curbTop, curbBottom, streetBottom };
+    }
     getGateHardwareLayout(gate) {
-      const index = ENCOUNTER_GATES.indexOf(gate), top = [-178,50,-225,-84][index]-24;
-      const foot = gate.y+gate.h;
-      const left = Math.floor(gate.x+gate.w-(1096-foot-4)*gate.depthX/-gate.depthY-28);
-      return { key: 'gateHardware'+(index+1), left, top,
-        width: Math.ceil(gate.x+gate.w+gate.depthX+40-left), height: 1132-top };
+      const { path, roof, streetBottom } = this.getGateGeometry(gate);
+      const xs = path.map(point => point[0]);
+      const left = Math.floor(Math.min(...xs) - 28), top = roof - 24;
+      return { key: 'gateHardware' + gate.id.split('_')[1], left, top,
+        width: Math.ceil(Math.max(...xs) + 28 - left), height: streetBottom + 36 - top };
     }
     drawBarrierHardware(ctx, gate, opening, progress) {
       const box = this.getGateHardwareLayout(gate);
@@ -1081,9 +1100,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       ctx.restore();
     }
     drawBarrierHardwareModules(ctx,gate,opening,progress) {
-      const i = ENCOUNTER_GATES.indexOf(gate), A = window.BARCODE?.PresentationAssets;
-      const x = gate.x + gate.w + gate.depthX, foot = gate.y + gate.h;
-      const roof = [-178, 50, -225, -84][i], baseY = foot + gate.depthY;
+      const A = window.BARCODE?.PresentationAssets;
+      const { path, roof } = this.getGateGeometry(gate);
+      const [x, baseY] = path[0];
       ctx.save();
       // Repeat actual narrow modules; do not stretch a small emitter up a facade.
       const tileHeight = 174, count = Math.ceil((baseY - roof) / tileHeight);
@@ -1091,9 +1110,6 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       ctx.fillStyle = 'rgba(0,0,0,.24)'; ctx.fillRect(x + 5, roof, 6, baseY - roof);
       for (let j = 0; j < count; j++) A?.draw('thinWallRail', ctx, { x, y: roof + height*(j+.5), width: 14, height: height+1 });
       A?.draw('thinRailCap', ctx, { x, y: roof+5, width: 14, height: 22 });
-      const projectX = rise => gate.x + gate.w - rise * gate.depthX / -gate.depthY;
-      const path = [[x,baseY],[gate.x+gate.w,foot],[projectX(888-foot),888],
-        [projectX(888-foot),892],[projectX(1096-foot-4),1096]];
       for (let j = 1; j < path.length; j++) {
         const [ax,ay] = path[j-1], [bx,by] = path[j], dx = bx-ax, dy = by-ay, length = Math.hypot(dx,dy);
         const pieces = Math.max(1,Math.ceil(length/188)), span = length/pieces;
@@ -1102,7 +1118,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         for (let k=0;k<pieces;k++) A?.draw('thinPavementRail',ctx,{x:0,y:span*(k+.5),width:14,height:span+1});
         ctx.restore();
       }
-      A?.draw('thinRailElbow',ctx,{x:x-4,y:baseY-2,width:22,height:28,flip:true});
+      A?.draw('thinRailElbow',ctx,{x,y:baseY-2,width:18,height:24,flip:gate.curbX<x});
       ctx.restore();
     }
     drawEncounterGates(ctx, includeHardware = true) {
@@ -1114,25 +1130,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         const fade = 1 - progress;
         const height = gate.h * fade * fade;
         const top = gate.y + gate.h - height;
-        const groundY = gate.y + gate.h;
-        // The live road overlays the painted curb at y=890. Follow its visible
-        // lip, then continue beyond the road's y=1080 edge without a front gap.
-        // Project along the existing slab's depth, not straight down its pole.
-        const curbTop = 888, curbBottom = 892, streetBottom = 1096;
+        const { path, curbTop, curbBottom, streetBottom } = this.getGateGeometry(gate);
         const curbDrop = curbBottom - curbTop;
-        const projectX = rise => gate.x + gate.w - rise * gate.depthX / -gate.depthY;
-        const nearX = projectX(streetBottom - groundY - curbDrop) - gate.w;
-        const footprint = [
-          [gate.x + gate.w + gate.depthX, groundY + gate.depthY, 0],
-          [gate.x + gate.w, groundY, 0],
-          [projectX(curbTop - groundY), curbTop, 0],
-          [projectX(curbTop - groundY), curbBottom, curbDrop],
-          [nearX + gate.w, streetBottom, curbDrop]
-        ];
+        // Put both luminous edges on the 14-unit rail, including the wall
+        // mount and curb drop. Do not retain a second detached slab/pole.
+        const footprint = path.map(([x,y,drop]) => [x + gate.w / 2,y,drop]);
+        const nearX = footprint[footprint.length - 1][0] - gate.w;
         const crown = footprint.map(([x, y, drop]) => [x, y - (gate.h + drop) * fade * fade]);
         const farX = footprint[0][0], farTop = crown[0][1];
-        if (fx && !fx.visible((nearX + farX) / 2, (farTop + streetBottom) / 2,
-          Math.max(farX - nearX, streetBottom - farTop) / 2 + 60)) continue;
+        const xs = footprint.map(point => point[0]);
+        const left = Math.min(...xs) - gate.w, right = Math.max(...xs);
+        if (fx && !fx.visible((left + right) / 2, (farTop + streetBottom) / 2,
+          Math.max(right - left, streetBottom - farTop) / 2 + 60)) continue;
         ctx.save(); ctx.globalAlpha = fade;
         // Authorized enemies part the field locally; clipping leaves the city
         // behind them intact instead of erasing pixels from the whole canvas.
@@ -1162,8 +1171,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         ctx.fillRect(gate.x, top, gate.w, height);
         const flicker = animate ? 0.06 * Math.sin(time / 83) * Math.sin(time / 127) : 0;
         ctx.fillStyle = `rgba(${opening ? '137,255,224' : '232,129,255'},${0.38 + flicker})`;
-        for (let bar = 0; bar < 7; bar++) {
-          const left = gate.x + 3 + bar * 4;
+        for (let bar = 0; bar < 3; bar++) {
+          const left = gate.x + 2 + bar * 4;
           ctx.fillRect(left, top, bar % 3 ? 1.5 : 3, height);
         }
         ctx.fillStyle = '#a6ffe8'; ctx.fillRect(gate.x - 1, top, 2, height); ctx.fillRect(gate.x + gate.w - 1, top, 2, height);
