@@ -341,14 +341,15 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   p.spawnedEncounterIds.add('encounter_2');
   p.closedGateEncounterId = 'encounter_2';
   p.drawEncounterGates(ctx);
-  assert.deepStrictEqual(fills.filter(([, , width, height]) => width === 58 && height === 1896), [[2110, -1040, 58, 1896]], 'only the currently closed gate receives a field covering the upper route and shared foot line');
-  assert(paths.some(([op, x, y]) => op === 'lineTo' && x === 2280 && y === -1094), 'the field retains the sidewalk perspective at its higher crown');
-  assert(!fills.some(([x]) => [1320, 3000, 4010].includes(x)), 'future gate fields remain absent');
+  const gate = window.Sector1Progression.ENCOUNTER_GATES[1];
+  assert.deepStrictEqual(fills.filter(([, , width, height]) => width === gate.w && height === gate.h), [[gate.x, gate.y, gate.w, gate.h]], 'only the currently closed gate receives a field covering the upper route and shared foot line');
+  assert(paths.some(([op, x, y]) => op === 'lineTo' && x === gate.mountX + gate.w / 2 && y === gate.baseY - gate.h), 'the field retains the sidewalk perspective at its higher crown');
+  assert(!fills.some(([x]) => window.Sector1Progression.ENCOUNTER_GATES.filter(g => g !== gate).some(g => g.x === x)), 'future gate fields remain absent');
   const closedDrawCount = fills.length;
   p.closedGateEncounterId = null;
   p.drawEncounterGates(ctx);
   const afterOpen = fills.slice(closedDrawCount);
-  assert(!afterOpen.some(([, , width, height]) => width === 58 && height > 100), 'cleared gates retain only machinery, never a collision-looking field');
+  assert(!afterOpen.some(([, , width, height]) => width === gate.w && height > 100), 'cleared gates retain only machinery, never a collision-looking field');
 }
 
 {

@@ -700,6 +700,20 @@ window.TutorialSystem = class TutorialSystem {
       ctx.fillText('Objectives', objX + 20, objY + 28);
       ctx.font = '16px Oxanium, monospace';
       ctx.globalAlpha *= this.readyToAdvance ? 1 : 0.6;
+      if (!visibleObjectives.length) {
+        // Tasks can finish before the crew finishes speaking. Keep a useful
+        // current action during that interval instead of an empty panel.
+        ctx.globalAlpha = this.isFinalMessage ? this.finalMessageOpacity : 1;
+        ctx.fillStyle = '#ffffff';
+        const advancing = this._isFinalChapterDialogue() && this._finalMessageSequenceArmed;
+        ctx.fillText(advancing ? 'Entering the next section…' : 'Continue crew briefing', objX + 20, objY + 61);
+        if (!advancing) {
+          ctx.fillStyle = '#a9ffdb';
+          const control = window.BARCODE?.GamepadUI?.connected
+            ? (window.BARCODE.ControllerSettings?.button(8) || 'Create / View') : 'Space';
+          ctx.fillText(control + ': Continue', objX + 20, objY + 92);
+        }
+      }
       visibleObjectives.forEach((objective, index) => {
         const color = objective.completed ? '#00ff00' : '#ffffff';
         const prefix = objective.completed ? '✓ ' : '□ ';

@@ -1,5 +1,9 @@
 # Decision Register
 
+## September 16 — approved follow-up to the conversation audit
+
+The owner said “Ok make the PR” for the unresolved per-building hologram mounting/perspective and empty tutorial Objectives panel. Keep the selected thin continuous facade-to-street design. Fitting the field requires its blocking boundary to follow its rendered placement; the authored positions are implementation choices awaiting visual review, not a change to encounter quotas or unlock rules. Do not restart already-implemented art, traffic, controller, background, Jammer or boss passes. The new branch and source receipt identify the review build; Makko acceptance is still required before assistant merge.
+
 ## September 16, 2026 — reusable background animation and central Jammer
 
 Base/rollback is merged PR #66, `e79b30795ed825042c4bd27a28fd57e3c2da6c8f`; branch `agent/animated-background-central-jammer`. The owner likes the new atmosphere and requests an animated asset made here, slightly heavier rain, and Jammer placement in an area a little wider than the middle third. No additional service account is wanted. Earlier current-work sections are historical.

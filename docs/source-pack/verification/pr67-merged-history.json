@@ -1,0 +1,206 @@
+{
+  "packVersion": 70,
+  "archiveSha256": "e766672bd7b71cf46399cc0e8b0faff4738d6dec69c92208b63af3d5383346b2",
+  "sourceManifest": {
+    "packVersion": "5.0",
+    "repository": "6-Bit-01/BARCODE-SYSTEM-OVERRIDE",
+    "repositoryUrl": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE",
+    "revision": "d3d6128ce63c795c4096a320012e2136e21dfbc4",
+    "revisionUrl": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/tree/d3d6128ce63c795c4096a320012e2136e21dfbc4",
+    "publicationStatus": "github",
+    "verifiedMainBase": "d3d6128ce63c795c4096a320012e2136e21dfbc4",
+    "implementationStatus": "merged",
+    "pullRequestUrl": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/67",
+    "generatedAtUtc": "2026-09-16T11:05:33.915867+00:00",
+    "sourceCommitDate": "2026-09-16T04:03:12-07:00",
+    "sourceMode": "committed Git tree with listed exclusions; no working-tree substitutions; pack documents additionally copied to archive root",
+    "snapshotDirectory": "repository-snapshot/",
+    "trackedFileCount": 408,
+    "exportedSourceFileCount": 407,
+    "excludedSourceFiles": [
+      {
+        "path": "project_sources/BARCODE-System-Override-Source-Pack-v4.zip",
+        "reason": "Historical source-pack input; retained in Git, omitted from current export to avoid nested obsolete packs."
+      }
+    ],
+    "packDocumentSourceDirectory": "docs/source-pack/",
+    "historicalBaseline": "7788ebfab4d6231c18229bef9571d6b97b676764 (PR #25)",
+    "supersedes": [
+      "Source Pack v2",
+      "Source Pack v3",
+      "Source Pack v4"
+    ],
+    "authority": "Newest explicit owner decisions, then current pack decisions; snapshot proves implementation, not design approval.",
+    "verification": {
+      "asset": {
+        "ancestor": "ac31c22a283ca0e62b25ed303e8360c383336c14",
+        "bytes": 1660401,
+        "content": [
+          2087,
+          754
+        ],
+        "durationSeconds": 8,
+        "encoded": [
+          2088,
+          754
+        ],
+        "fps": 24,
+        "frames": 192,
+        "method": "Existing art animated offline with a generated, corrected motion mask; periodic deformation and H.264 encoding. No additional service account.",
+        "path": "assets/world-v3/animated-background/far-background-loop.mp4",
+        "sha256": "774c6b4cbe5c063390b6e425f8fd696a5a195b28826207d936974cae65d2031f",
+        "uncompressedPeriodicEndpointExact": true,
+        "uncompressedStationaryPixelsExact": true
+      },
+      "automatedTests": {
+        "node tools/check-background-browser.cjs": "passed in real Chromium CI",
+        "node tools/check-intro-browser.cjs": "passed in real Chromium CI",
+        "npm run check:syntax:all": "passed locally and on review head f1607de8d43d8fecd21cdae8bd0545eafa4ea794 in CI; merged tree is byte-identical",
+        "npm test": "passed locally and on review head f1607de8d43d8fecd21cdae8bd0545eafa4ea794 in CI; merged tree is byte-identical"
+      },
+      "base": "d3d6128ce63c795c4096a320012e2136e21dfbc4",
+      "behavior": [
+        "Eight-second silent 24 fps background asset made here from the original city artwork, with moving painted smoke/clouds and fixed architecture.",
+        "Rain populations increase about 28%, with a slight opacity increase.",
+        "Normal Jammer placement stays within the widened central band, outside the lift attack approach. Safe slots: 1200, 1400, 1600, 1800, 2000; default/reset 1600.",
+        "Permanent terminal placement/depth, WATCH OUT, actual car damage, original vehicles, Cross controls, jump/drop, lift, music and boss sequence retained."
+      ],
+      "canonicalPackHistory": {
+        "exportedFilesMatched": 394,
+        "preservedAt": "docs/source-pack/verification/pr66-merged-history.json",
+        "revision": "e79b30795ed825042c4bd27a28fd57e3c2da6c8f",
+        "version": 69
+      },
+      "completeLocalAndPublishedTreeMatch": true,
+      "completeTree": "df2c2f56902cde2853534ef6dbcdd690d910556d",
+      "coverage": [
+        "All central Jammer slots from both world ends; retained lift exclusion; >=800-unit boss pan from rightmost normal attack position.",
+        "12 full RAF/update/render traffic routes at 30/60/120Hz, natural original cars, WATCH OUT and real health 3\u21922 in training and mission.",
+        "Actual Chromium muted autoplay, presented video pixels, invariant drawing dimensions, full natural loop, production pause/stop, reset/restart/disposal, and fallback to original city.",
+        "Required full regression suite and existing Chromium intro route."
+      ],
+      "implementationBase": "e79b30795ed825042c4bd27a28fd57e3c2da6c8f",
+      "localEquivalentCommit": "a24a25478eee2a4a62c19596217fd0a959ecce47",
+      "makkoPlaytest": "Not performed here. Merge is recorded as implementation status, not owner gameplay acceptance. Import the merged revision and review playback, visual loop/rain, Jammer-to-boss framing and retained acceptance route.",
+      "mergedAtUtc": "2026-09-16T11:03:12Z",
+      "previousReviewRevision": "f1607de8d43d8fecd21cdae8bd0545eafa4ea794",
+      "pullRequest": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/67",
+      "reviewNotes": [
+        "Native source/keyframes inspected; encoded cloud mean difference 6.54 levels versus city mean difference 0.0094 levels across sample frames. H.264 has ordinary compression differences.",
+        "Browser test fixture was corrected to wait for initialization, supply the omitted coordinator media tick, and inspect naturally presented frames instead of unsupported seeking on its simple non-range HTTP server. Production code was unchanged during those test corrections.",
+        "The scratch machine has no Chrome. Browser pass claims refer to CI; a bounded local browser download attempt timed out."
+      ],
+      "revision": "d3d6128ce63c795c4096a320012e2136e21dfbc4",
+      "rollback": "e79b30795ed825042c4bd27a28fd57e3c2da6c8f",
+      "status": "merged; owner Makko acceptance not recorded",
+      "treeMatchesTestedReviewExactly": true,
+      "workflowRuns": [
+        {
+          "conclusion": "success",
+          "event": "pull_request",
+          "head": "f1607de8d43d8fecd21cdae8bd0545eafa4ea794",
+          "id": 35088023885,
+          "status": "completed",
+          "url": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35088023885"
+        },
+        {
+          "conclusion": "success",
+          "event": "push",
+          "head": "f1607de8d43d8fecd21cdae8bd0545eafa4ea794",
+          "id": 35088020808,
+          "status": "completed",
+          "url": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35088020808"
+        }
+      ]
+    },
+    "runtimeLimitations": [
+      "Makko supplies /lib/MakkoEngine.min.js; it is not included in Git.",
+      "Artwork and audio referenced by remote URLs remain externally hosted.",
+      "This source snapshot is not a self-contained offline build."
+    ],
+    "hashScope": "FILE_HASHES.sha256 covers every archive file except itself."
+  },
+  "testEvidence": {
+    "asset": {
+      "ancestor": "ac31c22a283ca0e62b25ed303e8360c383336c14",
+      "bytes": 1660401,
+      "content": [
+        2087,
+        754
+      ],
+      "durationSeconds": 8,
+      "encoded": [
+        2088,
+        754
+      ],
+      "fps": 24,
+      "frames": 192,
+      "method": "Existing art animated offline with a generated, corrected motion mask; periodic deformation and H.264 encoding. No additional service account.",
+      "path": "assets/world-v3/animated-background/far-background-loop.mp4",
+      "sha256": "774c6b4cbe5c063390b6e425f8fd696a5a195b28826207d936974cae65d2031f",
+      "uncompressedPeriodicEndpointExact": true,
+      "uncompressedStationaryPixelsExact": true
+    },
+    "automatedTests": {
+      "node tools/check-background-browser.cjs": "passed in real Chromium CI",
+      "node tools/check-intro-browser.cjs": "passed in real Chromium CI",
+      "npm run check:syntax:all": "passed locally and on review head f1607de8d43d8fecd21cdae8bd0545eafa4ea794 in CI; merged tree is byte-identical",
+      "npm test": "passed locally and on review head f1607de8d43d8fecd21cdae8bd0545eafa4ea794 in CI; merged tree is byte-identical"
+    },
+    "base": "d3d6128ce63c795c4096a320012e2136e21dfbc4",
+    "behavior": [
+      "Eight-second silent 24 fps background asset made here from the original city artwork, with moving painted smoke/clouds and fixed architecture.",
+      "Rain populations increase about 28%, with a slight opacity increase.",
+      "Normal Jammer placement stays within the widened central band, outside the lift attack approach. Safe slots: 1200, 1400, 1600, 1800, 2000; default/reset 1600.",
+      "Permanent terminal placement/depth, WATCH OUT, actual car damage, original vehicles, Cross controls, jump/drop, lift, music and boss sequence retained."
+    ],
+    "canonicalPackHistory": {
+      "exportedFilesMatched": 394,
+      "preservedAt": "docs/source-pack/verification/pr66-merged-history.json",
+      "revision": "e79b30795ed825042c4bd27a28fd57e3c2da6c8f",
+      "version": 69
+    },
+    "completeLocalAndPublishedTreeMatch": true,
+    "completeTree": "df2c2f56902cde2853534ef6dbcdd690d910556d",
+    "coverage": [
+      "All central Jammer slots from both world ends; retained lift exclusion; >=800-unit boss pan from rightmost normal attack position.",
+      "12 full RAF/update/render traffic routes at 30/60/120Hz, natural original cars, WATCH OUT and real health 3\u21922 in training and mission.",
+      "Actual Chromium muted autoplay, presented video pixels, invariant drawing dimensions, full natural loop, production pause/stop, reset/restart/disposal, and fallback to original city.",
+      "Required full regression suite and existing Chromium intro route."
+    ],
+    "implementationBase": "e79b30795ed825042c4bd27a28fd57e3c2da6c8f",
+    "localEquivalentCommit": "a24a25478eee2a4a62c19596217fd0a959ecce47",
+    "makkoPlaytest": "Not performed here. Merge is recorded as implementation status, not owner gameplay acceptance. Import the merged revision and review playback, visual loop/rain, Jammer-to-boss framing and retained acceptance route.",
+    "mergedAtUtc": "2026-09-16T11:03:12Z",
+    "previousReviewRevision": "f1607de8d43d8fecd21cdae8bd0545eafa4ea794",
+    "pullRequest": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/67",
+    "reviewNotes": [
+      "Native source/keyframes inspected; encoded cloud mean difference 6.54 levels versus city mean difference 0.0094 levels across sample frames. H.264 has ordinary compression differences.",
+      "Browser test fixture was corrected to wait for initialization, supply the omitted coordinator media tick, and inspect naturally presented frames instead of unsupported seeking on its simple non-range HTTP server. Production code was unchanged during those test corrections.",
+      "The scratch machine has no Chrome. Browser pass claims refer to CI; a bounded local browser download attempt timed out."
+    ],
+    "revision": "d3d6128ce63c795c4096a320012e2136e21dfbc4",
+    "rollback": "e79b30795ed825042c4bd27a28fd57e3c2da6c8f",
+    "status": "merged; owner Makko acceptance not recorded",
+    "treeMatchesTestedReviewExactly": true,
+    "workflowRuns": [
+      {
+        "conclusion": "success",
+        "event": "pull_request",
+        "head": "f1607de8d43d8fecd21cdae8bd0545eafa4ea794",
+        "id": 35088023885,
+        "status": "completed",
+        "url": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35088023885"
+      },
+      {
+        "conclusion": "success",
+        "event": "push",
+        "head": "f1607de8d43d8fecd21cdae8bd0545eafa4ea794",
+        "id": 35088020808,
+        "status": "completed",
+        "url": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/35088020808"
+      }
+    ]
+  },
+  "ownerFeedback": "The first hologram is still misaligned. Owner authorized the audited mounting and empty-Objectives repair as one PR; merge #67 was not acceptance of those visual details."
+}
