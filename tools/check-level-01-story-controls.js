@@ -298,7 +298,7 @@ async function main() {
     assert.equal(hack.getAvailability().state, 'recharging'); assert.equal(hack.getAvailability().charge, 0); assert(!hack.start());
     now += 5000; assert.equal(hack.getAvailability().remainingMs, 5000); assert.equal(hack.getAvailability().charge, 0.5);
     now += 5000; assert.equal(hack.getAvailability().state, 'ready'); assert.equal(hack.getAvailability().charge, 1); assert(hack.start());
-    hack.successPuzzle(); assert.equal(hack.getAvailability().state, 'linked'); assert.equal(hack.getAvailability().allySeconds, 8);
+    hack.successPuzzle(); assert.equal(hack.getAvailability().state, 'linked'); assert.equal(hack.getAvailability().allySeconds, 12);
     assert(hack.start(), 'linked action releases ally even while cooldown remains'); assert.equal(hack.getAvailability().state, 'recharging');
     w.enemyManager.simulationTimeMs += 1100; now += 10000; assert(hack.start()); enemy.active = false;
     hack.successPuzzle(); assert.equal(hack.getAvailability().remainingMs, 1500); now += 750; assert.equal(hack.getAvailability().charge, 0.5);

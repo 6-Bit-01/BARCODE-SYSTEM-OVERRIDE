@@ -1,5 +1,9 @@
 # BARCODE: SYSTEM OVERRIDE — Source Pack v5
 
+## Latest review build — controller drops, boss victory and twelve-second allies
+
+This follow-up to merged #71 prevents accidental controller platform drops and invisible victory rematches, and extends hacked allies to twelve seconds. Start with `CONTROLLER_VICTORY_ALLY_PASS.md` and the current `ACCEPTANCE.md` route. The manifest/receipt identify the exact review revision, PR and check results. Previous build entries are historical; physical-controller and Makko acceptance remain pending.
+
 ## Latest review build — solid ledges and enemy pancakes
 
 This pack contains the follow-up to merged #70 on `agent/solid-awnings-lift-roof`: awning/ledge bonks, a solid moving roof for all actors, and visible enemy squashing beneath the descending elevator. Start with `SOLID_LEDGES_SMUSH_PASS.md`; inspect `review-solid-ledges/solid-ledges-smush.mp4`. The generated manifest and validation receipt identify the exact review commit and PR. Older current-work entries are historical; owner Makko acceptance remains pending.

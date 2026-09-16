@@ -1,5 +1,13 @@
 # Current State
 
+## September 16, 2026 — deliberate platform drops, protected victory and 12-second allies
+
+Base/rollback: merged PR #71, `5babd454e2753d834be2372642ee8612e0b39a9d`. Branch: `agent/controller-drop-victory`. The owner reports accidental controller drops and a boss defeat that immediately resets the boss/player, then explicitly extends hacked allies to 12 seconds.
+
+Controller descent now requires at least 70% downward stick travel within 35 degrees of straight down, or pure D-pad down, plus a fresh mapped jump. Light/down-diagonal walking still jumps normally. Keyboard descent and one-platform-at-a-time landing remain. Victory input waits until the existing results count-up finishes, then requires 250 ms with both result controls released; only a fresh press can rematch/restart. The old result handler accepted fresh Cross/Enter immediately after defeat, before the card appeared, resetting boss health and returning the player to the street. The same protection covers street and rooftop wins. Hacked allegiance now lasts 12 simulation seconds, with matching countdown, bar, success text and tutorial; pause and early release remain.
+
+Read `CONTROLLER_VICTORY_ALLY_PASS.md` for the focused review route and limits. Exact tested/published revision, full-suite results and CI belong to the generated receipt. No new art, dependencies, timers or movement-physics changes. One combined draft; physical-controller and owner Makko acceptance remain pending before assistant merge. Earlier current-work entries are historical.
+
 ## September 16, 2026 — solid awnings, moving elevator roof and enemy pancakes
 
 Base/rollback is merged #70, `78475a7be0ec1ba1b4c7aa6d3fc1b069d00c7edf`. Branch: `agent/solid-awnings-lift-roof`. The owner explicitly requests bonks on awnings and hittable ledges, a fully solid elevator roof supporting the player, enemies and boss while moving, and visibly pancaked enemies under a descending elevator. This supersedes the previous cabin-only/climb-through-awnings direction.

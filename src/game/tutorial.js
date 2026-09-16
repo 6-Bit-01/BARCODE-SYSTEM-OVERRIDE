@@ -145,7 +145,7 @@ window.TutorialSystem = class TutorialSystem {
         
         this.addDialogue('{interact} opens the hack. Read the puzzle and enter the answer before its timer runs out.', 'mac', 2000);
         this.addObjective('Press {interact} to start hacking', 'hack_start');
-        this.addDialogue('In the street, {interact} locks a nearby enemy. Solve the puzzle and it fights for you for eight seconds. {interact} again releases it.', 'mac', 3000);
+        this.addDialogue('In the street, {interact} locks a nearby enemy. Solve the puzzle and it fights for you for twelve seconds. {interact} again releases it.', 'mac', 3000);
         this.addDialogue('Watch the ally countdown. Repairs are the marked cells on rooftops and enemies carrying them.', 'cache', 3000);
         this.addObjective('Complete the hacking puzzle', 'hack_complete');
         

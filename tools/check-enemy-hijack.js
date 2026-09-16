@@ -35,7 +35,8 @@ function solve(h) {
   assert.strictEqual(w.BARCODE.TacticalFocusClock.getScale(), 0.4);
   assert(!m.isHijacked(target)); solve(h);
   assert(m.isHijacked(target)); assert(!m.isHijacked(other));
-  assert.strictEqual(w.player.health, 1); assert.strictEqual(target._hijackedUntilMs, 8000);
+  assert.strictEqual(w.player.health, 1); assert.strictEqual(target._hijackedUntilMs, 12000);
+  assert.match(h.resultDetail, /12 seconds/, 'successful puzzle reports the full ally duration');
   assert.strictEqual(p.missionDefeats, 0, 'conversion itself awards no defeat');
   assert.strictEqual(w.BARCODE.TacticalFocusClock.getScale(), 1);
   assert(!w.BARCODE.playerCombat.getAttackPlan(w.player, m).targets.includes(target), 'rhythm cannot hit ally');
@@ -95,9 +96,10 @@ for (const fps of [30, 60, 120, 144]) {
   assert(m.hijackEnemy(ally));
   w.gameState.paused = true; m.update(6000, w.player); assert.strictEqual(m.simulationTimeMs, 0);
   w.gameState.paused = false;
-  for (let i = 0; i < fps * 7; i++) m.update(1000 / fps, w.player);
-  assert(m.isHijacked(ally));
-  m.update(1001, w.player); assert(!m.isHijacked(ally) && m.isRebooting(ally));
+  for (let i = 0; i < fps * 11; i++) m.update(1000 / fps, w.player);
+  assert(m.isHijacked(ally), 'ally remains friendly beyond the old eight-second limit');
+  m.update(999, w.player); assert(m.isHijacked(ally), 'ally stays friendly until twelve seconds');
+  m.update(2, w.player); assert(!m.isHijacked(ally) && m.isRebooting(ally));
   const hp = w.player.health; w.player.position.x = ally.position.x; m.checkCollisions(w.player);
   assert.strictEqual(w.player.health, hp, 'expiry has one second of harmless reboot');
   m.update(1001, w.player); assert(!m.isRebooting(ally));

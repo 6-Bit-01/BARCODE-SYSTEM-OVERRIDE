@@ -1356,6 +1356,7 @@ window.RooftopDrone = class RooftopDrone extends window.Enemy {
 // 3. ENEMY MANAGER
 // ==========================================
 window.EnemyManager = class EnemyManager {
+  static get HIJACK_DURATION_MS() { return 12000; }
   constructor() {
     this.enemies = [];
     this.minEnemies = 2;
@@ -1517,7 +1518,7 @@ window.EnemyManager = class EnemyManager {
     if (!this.enemies.includes(enemy) || !this.isOrdinaryEnemy(enemy) || enemy._isTutorialEnemy || this.getHijackedEnemy() || enemy._authoredEntranceActive || enemy.entranceComplete === false || enemy.isSpawnProtected?.()) return false;
     this.resetAllegianceMotion(enemy);
     enemy._hijackRebootUntilMs = 0;
-    enemy._hijackedUntilMs = this.simulationTimeMs + 8000;
+    enemy._hijackedUntilMs = this.simulationTimeMs + window.EnemyManager.HIJACK_DURATION_MS;
     try { window.audioSystem?.playCombatCue?.('hijack'); } catch (error) { console.warn('Hijack cue unavailable', error); }
     return true;
   }
@@ -1576,7 +1577,7 @@ window.EnemyManager = class EnemyManager {
     ctx.fillText(ally ? `6 BIT // ALLY ${Math.ceil(seconds)}s` : reboot ? 'REBOOTING' : locked ? 'HIJACK TARGET' : `${window.BARCODE?.ControllerSettings?.prompt('interact', 'H') || 'H'}: HIJACK`, enemy.position.x, y + 20);
     if (ally) {
       ctx.fillStyle = '#26353a'; ctx.fillRect(enemy.position.x - 90, y + 28, 180, 4);
-      ctx.fillStyle = color; ctx.fillRect(enemy.position.x - 90, y + 28, 180 * seconds / 8, 4);
+      ctx.fillStyle = color; ctx.fillRect(enemy.position.x - 90, y + 28, 180 * seconds * 1000 / window.EnemyManager.HIJACK_DURATION_MS, 4);
       ctx.font = '12px Oxanium, monospace'; ctx.fillText(seconds <= 2 ? 'CONTROL EXPIRING' : `${inputKey}: RELEASE`, enemy.position.x, y + 43);
     }
     ctx.restore();

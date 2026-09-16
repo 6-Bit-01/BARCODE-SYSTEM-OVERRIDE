@@ -10,6 +10,10 @@ window.FILE_MANIFEST.push({
   const BARCODE = window.BARCODE = window.BARCODE || {};
   const ACTIONS = ['move_left', 'move_right', 'move_down', 'jump', 'primary', 'interact', 'inspect', 'pause', 'rhythm_mode'];
   const EDGE_ACTIONS = new Set(['jump', 'primary', 'interact', 'inspect', 'pause', 'rhythm_mode']);
+  // Dropping through a platform is deliberate: at least 70% downward travel,
+  // within 35 degrees of straight down. Walking/menu deadzones stay separate.
+  const DROP_STICK_MIN = 0.7;
+  const DROP_STICK_SLOPE = Math.tan(35 * Math.PI / 180);
   const DEFAULT_KEYBOARD = {
     move_left: ['arrowleft', 'a'],
     move_right: ['arrowright', 'd'],
@@ -132,8 +136,15 @@ window.FILE_MANIFEST.push({
       const buttons = !this.customGamepadBindings && settings?.bindings[action] !== undefined
         ? [{ button: settings.bindings[action] }] : this.gamepadBindings[action] || [];
       return pads.some(pad => buttons.some(binding => {
-        if (binding.button !== undefined) return !!pad.buttons[binding.button]?.pressed;
+        if (binding.button !== undefined) {
+          if (action === 'move_down' && binding.button === 13 && [12, 14, 15].some(index => pad.buttons[index]?.pressed)) return false;
+          return !!pad.buttons[binding.button]?.pressed;
+        }
         if (binding.axis !== undefined) {
+          if (action === 'move_down') {
+            const down = (pad.axes[binding.axis] || 0) * binding.dir;
+            return down >= DROP_STICK_MIN && Math.abs(pad.axes[0] || 0) <= down * DROP_STICK_SLOPE && !pad.buttons[12]?.pressed;
+          }
           if (BARCODE.GamepadUI) return BARCODE.GamepadUI.axis(binding.axis) === binding.dir;
           const value = pad.axes[binding.axis] || 0;
           return binding.dir < 0 ? value < -0.2 : value > 0.2;
