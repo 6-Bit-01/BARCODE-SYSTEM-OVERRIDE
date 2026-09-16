@@ -1,7 +1,7 @@
 [
   {
     "id": "gateHardware1",
-    "path": "assets/street-hardware/gate-1.webp",
+    "path": "assets/street-hardware/slim-gate-1.webp",
     "left": 860,
     "top": -202,
     "width": 670,
@@ -11,7 +11,7 @@
   },
   {
     "id": "gateHardware2",
-    "path": "assets/street-hardware/gate-2.webp",
+    "path": "assets/street-hardware/slim-gate-2.webp",
     "left": 1650,
     "top": 26,
     "width": 670,
@@ -21,7 +21,7 @@
   },
   {
     "id": "gateHardware3",
-    "path": "assets/street-hardware/gate-3.webp",
+    "path": "assets/street-hardware/slim-gate-3.webp",
     "left": 2540,
     "top": -249,
     "width": 670,
@@ -31,7 +31,7 @@
   },
   {
     "id": "gateHardware4",
-    "path": "assets/street-hardware/gate-4.webp",
+    "path": "assets/street-hardware/slim-gate-4.webp",
     "left": 3550,
     "top": -108,
     "width": 670,

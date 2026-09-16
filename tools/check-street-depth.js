@@ -9,13 +9,15 @@ assert(!p.getStageSurfaces().some(p=>['firewall-utility-unit','broadcast-utility
 const original=w.sector1Progression;
 load(context,'src/game/render-coordinator.js');
 const order=[];
-w.BARCODE.JammerEnvironment.draw=()=>order.push('jammer');
-w.sector1Progression={draw:()=>order.push('hardware')};
+const originalJammer=w.BARCODE.JammerEnvironment;
+w.BARCODE.JammerEnvironment={draw:()=>order.push('jammer')};
+w.sector1Progression={drawEncounterHardware:()=>order.push('hardware'),draw:()=>order.push('progression')};
 w.enemyManager.draw=()=>order.push('enemy');
-w.lostDataSystem=null;
+w.lostDataSystem={draw:()=>order.push('lostData')};
 w.drawGameEntities({});
-assert(order.indexOf('hardware')<order.indexOf('enemy'),'actual renderer must draw hardware before enemies');
+assert.deepStrictEqual(order,['jammer','hardware','enemy','progression','lostData'],'only hardware moves behind enemies; the rest keeps its order');
 w.sector1Progression=original;
+w.BARCODE.JammerEnvironment=originalJammer;
 let draws=0,filters=0;const stack=[];
 const c={canvas:{width:1920,height:1080},globalAlpha:1,getTransform:()=>({a:1,b:0,c:0,d:1,e:0,f:0}),
  save(){stack.push(this.globalAlpha);},restore(){this.globalAlpha=stack.pop();},set filter(v){filters++;}};

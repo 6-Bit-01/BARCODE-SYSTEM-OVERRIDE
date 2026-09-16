@@ -18,7 +18,7 @@ async function main(){
    if(frame)ctx.filter="saturate(0) brightness(.65)";
    p.drawBarrierHardwareModules(ctx,g,!!frame,frame);ctx.restore();
   }
-  const file='gate-'+(i+1)+'.webp';fs.writeFileSync(path.join(out,file),c.toBuffer('image/webp',90));
+  const file='slim-gate-'+(i+1)+'.webp';fs.writeFileSync(path.join(out,file),c.toBuffer('image/webp',90));
   manifest.push({id:'gateHardware'+(i+1),path:'assets/street-hardware/'+file,left,top,width,height,columns:2,frames:2});
  }
  fs.writeFileSync(path.join(out,'geometry.json'),JSON.stringify(manifest,null,2)+'\n');

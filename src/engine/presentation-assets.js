@@ -8,6 +8,8 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   const rebuildRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a155d4283a12df4dd7ea0f8cb9eb0bf985644fa8/';
   const railRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/08d5720f31020fd846ea6b93c76988ffef6e3fbe/';
   const streetRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/1891ebb4e061971362817832e942ef9fbe05d15a/';
+  const slimRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/c0b459ed219af816f696116ad3e37f64fad20460/';
+  const upperRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/b1e9de902b325a949562e8ebeece375a8452ecca/';
   const entries = {
     studioCat: { path: 'assets/presentation/studio-cat.webp', columns: 2, rows: 2, frames: 4, ax: 0.5, ay: 0.9375 },
     directionArrow: { path: 'assets/presentation/direction-arrow.webp', columns: 1, rows: 1, frames: 1, ax: 0.5, ay: 0.5 },
@@ -19,10 +21,13 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     thinRailCap: { path:'assets/thin-rails/cap.webp', root:railRoot, columns:1, rows:1, frames:1, ax:0.5, ay:0.5, smooth:true },
     rooftopDrone: { path:'assets/level1-rebuild/rooftop-drone.webp', root:rebuildRoot, columns:4, rows:2, frames:8, ax:0.5, ay:0.5, smooth:true },
     broadcastTerminal: { path:'assets/street-hardware/broadcast-terminal.webp', root:streetRoot, columns:1, rows:1, frames:1, ax:0, ay:0, smooth:true },
-    gateHardware1: { path:'assets/street-hardware/gate-1.webp', root:streetRoot, columns:2, rows:1, frames:2, ax:0, ay:0, smooth:true },
-    gateHardware2: { path:'assets/street-hardware/gate-2.webp', root:streetRoot, columns:2, rows:1, frames:2, ax:0, ay:0, smooth:true },
-    gateHardware3: { path:'assets/street-hardware/gate-3.webp', root:streetRoot, columns:2, rows:1, frames:2, ax:0, ay:0, smooth:true },
-    gateHardware4: { path:'assets/street-hardware/gate-4.webp', root:streetRoot, columns:2, rows:1, frames:2, ax:0, ay:0, smooth:true },
+    gateHardware1: { path:'assets/street-hardware/slim-gate-1.webp', root:slimRoot, columns:2, rows:1, frames:2, ax:0, ay:0, smooth:true },
+    gateHardware2: { path:'assets/street-hardware/slim-gate-2.webp', root:slimRoot, columns:2, rows:1, frames:2, ax:0, ay:0, smooth:true },
+    gateHardware3: { path:'assets/street-hardware/slim-gate-3.webp', root:slimRoot, columns:2, rows:1, frames:2, ax:0, ay:0, smooth:true },
+    gateHardware4: { path:'assets/street-hardware/slim-gate-4.webp', root:slimRoot, columns:2, rows:1, frames:2, ax:0, ay:0, smooth:true },
+    rhythmLift: { path: 'assets/upper-route/rhythm-lift.webp', root: upperRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 0.32, smooth: true },
+    bossFlourish: { path: 'assets/upper-route/boss-flourish.webp', root: upperRoot, columns: 4, rows: 3, frames: 12, ax: 0.5, ay: 0.9375, smooth: true },
+    bossLeap: { path: 'assets/upper-route/boss-leap.webp', root: upperRoot, columns: 4, rows: 2, frames: 8, ax: 0.5, ay: 0.9375, smooth: true },
   };
   const cache = {};
   function preload() {

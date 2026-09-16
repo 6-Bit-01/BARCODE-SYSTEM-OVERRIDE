@@ -1,25 +1,32 @@
-# Restore original flying cars and fit the selected thin barrier rails
+# Finish upper routes, boss pursuit and Jammer guidance
 
-The last rebuild changed the flying cars’ size, speed, altitude and spawning, and its detached emitter boxes did not follow the wall footprint. The owner selected the first thin continuous rail concept and approved correcting the full eight-issue pass.
+The Jammer cue could appear above 6 Bit, drones were easy to miss, upper routes lacked clear landing edges and rewards, and the boss kept the camera on the street. This completes the recovered follow-up to merged PR #59.
 
-This draft restores the original foreground car creator and movement from `6e3751b`, including its art, size, speed, height range, direction, bob and spawn cadence. Advance warnings and swept damage operate on those same cars. Pause freezes the approach; hack protection consumes contact harmlessly while cars keep moving. No new ground lanes or substitute car drawings.
+- Keep offscreen Jammer guidance on the correct screen edge.
+- Move the two existing mission drones into the first packets at accessible roof heights; keep the 20-defeat quota.
+- Add faint landing guides and three optional rooftop signal caches, awarding 1,500 total score and up to three existing Amp charges once per run.
+- Let the camera follow upper-level combat and let the boss pursue through actual supports using warned, animated leaps and a counter window after each landing. Roof pulses respect their platform height and span; retry restores the street checkpoint.
+- Install the saved illustrated lift and newly drawn boss flourish/leap poses. Preserve the four-second introduction, boss idle/walk, existing combat timing, damage and health.
+- Restore slim continuous emitter hardware and put only that hardware behind enemies. Preserve the field, foreground props, original flying-car motion and single broadcast terminal.
 
-Four new transparent hardware assets form continuous facade rails, pavement tracks, elbows and caps. They follow all four gate footprints, with local pressure/passage effects and power-down. Roof highlights are one muted screen pixel; the 3D utility props, foot masks, text-free heart repairs, centered sidewalk and working cutscene controls are retained.
-
-Contact separation respects roof boundaries and protected recovery. Firewall walk/idle is chosen after edge clamping, avoiding repeated animation restarts. The illustrated rooftop drone’s warning and muzzle now share the shot vector, with roof interception. Objectives show the current action and remain visible above the hack keypad. Every input gets the same 16-second answer budget; practice answer entry is untimed.
+Base/rollback: `a4c16069b008c508a1dca60aeba3aab7e3c29b3f` (merged #59). Branch: `agent/upper-route-boss-polish`. The generated receipt and GitHub PR identify the exact published review head and tree.
 
 ## Validation
 
-- `npm test` and `npm run check:syntax:all` passed locally.
-- 80 seeded comparisons execute archived original traffic alongside the new owner: matching geometry, motion and animation clocks.
-- 30/60/120 FPS checks cover approach/pause, swept contact/protection, roof-bound contact and both keypad practice puzzles. All 75 existing climb checks pass.
-- Twelve native stills and a 16-second clip exercise production drawing and actors with host image/sprite adapters. The clip scripts one original car at a valid original altitude to show contact; it does not alter production spawning. Native evidence does not certify hosted audio/controller feel.
-- Full regression coverage retains twenty mission defeats, sixteen-hit Jammer, eight-second hijack, single jump, audio ownership and boss/retry. Static fixtures were updated for moving hitboxes, Canvas transforms, current objective text and the approved answer deadline.
+The recovered final local `npm test` and `npm run check:syntax:all` passed. Production checks cover 30/60/120 Hz boss climb/descent, camera, pause, first-packet drone rendering, one-time caches, roof pulse bounds and retry; the existing combat, mission, original-car and traversal checks remain. The baseline inventory only adds the new harness. Documentation-only handoff changes followed those checks.
 
-One draft against merged #57 (`f048d229a51b9ecce801cd9d736613491c4ae2f9`). Do not merge before owner Makko acceptance. The exact published revision, CI results and source-pack receipt identify the review build.
+The saved 22-second native clip and stills use production modules with host image/sprite adapters and scripted player placements. They do not establish hosted Makko performance, audio or input feel. No new dependencies, canvas or frame loop.
 
-## Makko review
+Immutable asset pins: lift/boss `b1e9de902b325a949562e8ebeece375a8452ecca`; slim rails `c0b459ed219af816f696116ad3e37f64fad20460`. The seven image files were checked against their published bytes during the recovered pass.
 
-Import the exact draft head into a fresh preview. Check all four facade-to-road rails, pressure/passage/opening, original cars in both directions and protected contact, Firewall turns/crowds, stomps and hijack expiry, roof routes/edges/feet, repairs, both puzzles with controller/pointer, cutscene controls and Objectives. Finish the twenty-defeat mission, Jammer, boss win/loss/retry and restart with audio. Record imported SHA, PASS/FAIL and short clips. After acceptance and merge, import the actual new main merge SHA into a fresh preview and repeat.
+## Review before merge
 
-Detailed scope: `docs/source-pack/THIN_RAIL_TRAFFIC_CORRECTION.md`. Native comparison: `docs/source-pack/verification/thin-rails-original-traffic.webp`.
+Import the exact draft head into a fresh Makko preview. Check the Jammer arrow on both sides while walking/jumping; both early drones and H/stomp/rhythm interaction; lift foot placement; faint roof guides and all three caches; the full boss flourish; boss pursuit up/down, warned landings, counter windows and platform-bound pulses. Check thin rails under enemy feet, pause during a leap, boss loss/retry, victory and full restart. Retain the title/intro, original cars, music and core movement smoke check.
+
+Record imported SHA, PASS/FAIL and short clips covering the Jammer cue, lift/drone and boss ascent/descent. Owner Makko acceptance remains pending; keep this PR a draft until accepted.
+
+## After merge
+
+Read the actual new `main` merge SHA, import that revision into Makko, and open a fresh preview. Repeat the same focused route and record the imported merge SHA, PASS/FAIL and clips. Rollback is re-importing the PR #59 base above. The source pack remains the same maintained v5 file.
+
+Full implementation, limitations and route: `docs/source-pack/UPPER_ROUTE_BOSS_PASS.md`.

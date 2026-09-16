@@ -60,6 +60,35 @@
       "sha256": "e3798694b599d23744f8d519952e403457280036f0694faf6b2c13b5967b5b43",
       "width": 1340,
       "height": 1381
+    },
+    {
+      "path": "assets/street-hardware/slim-gate-1.webp",
+      "bytes": 40458,
+      "sha256": "7205e838fc3eb86c4188524d87a4f8ca021299592e5ca2d28e94fd855cf5e60b",
+      "width": 1340,
+      "height": 1334
+    },
+    {
+      "path": "assets/street-hardware/slim-gate-2.webp",
+      "bytes": 36460,
+      "sha256": "d51506bd84af7d85f0ed4704e583e167eff1906f897a78f1b2aa8d5e7c4d2f0a",
+      "width": 1340,
+      "height": 1106
+    },
+    {
+      "path": "assets/street-hardware/slim-gate-3.webp",
+      "bytes": 41260,
+      "sha256": "c9ee91d1f020a4b363458be28a50c24ee83410a3955f27121bed29a24de17ad9",
+      "width": 1340,
+      "height": 1381
+    },
+    {
+      "path": "assets/street-hardware/slim-gate-4.webp",
+      "bytes": 39050,
+      "sha256": "79a3ea59c16b2c0f3360d179188860a054f2b3e83e1f3735c32d5bf266c34e06",
+      "width": 1340,
+      "height": 1240
     }
-  ]
+  ],
+  "slimCorrection": "Same approved rail artwork rendered at 14 world units across the full facade and pavement path, with compact 14x22 cap and 22x28 elbow. Existing gate locations/footprints and powered/off states remain. Native bake retains one draw per gate (two during opening); no runtime filters."
 }

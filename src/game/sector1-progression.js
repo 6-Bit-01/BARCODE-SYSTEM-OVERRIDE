@@ -121,6 +121,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     requiredCharges: 2
   });
   const SIGNAL_AMP = Object.freeze({ id: 'signal-amp', x: 2868, y: 154, radius: 36, charges: 3, range: 430 });
+  const SKY_CACHES = Object.freeze([
+    { id: 'west', x: 300, surfaceId: 'west-crown' },
+    { id: 'cache', x: 1700, surfaceId: 'cache-crown' },
+    { id: 'broadcast', x: 3990, surfaceId: 'broadcast-crown' }
+  ]);
 
   // Encounter tuning is intentionally local to Level 1. MusicTransport keeps
   // the rhythm judgment; this owner's hostile delta controls enemy actions.
@@ -194,7 +199,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (foot-current < 600) desired = foot-600;
       else if (foot-current > 790) desired = foot-790;
       if (this.player.grounded && !this.player.supportedSurfaceId) desired=0;
-      if (this.isGameplaySuppressed() || this.isBossCombatLive?.()) desired=0;
+      if (this.isGameplaySuppressed()) desired=0;
       desired=Math.max(-1040,Math.min(0,desired));
       this.cameraY=current+(desired-current)*(1-Math.exp(-Math.max(0,delta)/180));
     }
@@ -223,6 +228,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       // never slow or freeze its carry motion.
       this.updateSignalLift(deltaTime);
       this.updateSignalAmp();
+      this.updateSkyCaches(deltaTime);
       this.updateRepairs(deltaTime);
       if (this.isGameplaySuppressed() && this.player) { this.player.supportedSurfaceId = null; this.player.controlsDisabled = true; if (this.frozenPlayerPosition) { this.player.position.x = this.frozenPlayerPosition.x; this.player.position.y = this.frozenPlayerPosition.y; } this.player.velocity.x = 0; this.player.velocity.y = 0; }
       const tacticalDeltaTime = window.BARCODE?.TacticalFocusClock?.scaleDelta?.(deltaTime) ?? deltaTime;
@@ -320,9 +326,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     spawnMissionEnemy(spec, encounterId, index, options = {}) {
       const guard = !options.jammerReinforcement && !options.tutorialEnemy ? ({
         encounter_1: { index: 2, surface: 'signal-roof' },
-        encounter_2: { index: 4, surface: 'cache-crown', drone: true },
+        encounter_2: { index: 1, surface: 'cache-awning', drone: true },
         encounter_3: { index: 2, surface: 'relay-rooftop' },
-        encounter_4: { index: 5, surface: 'tower-crown', drone: true }
+        encounter_4: { index: 1, surface: 'tower-rooftop', drone: true }
       })[encounterId] : null;
       const home = guard?.index === index ? this.getStageSurfaces().find(p => p.id === guard.surface) : null;
       const drone = !!(home && guard.drone);
@@ -463,7 +469,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         health: BOSS_COMBAT.maxHealth, maxHealth: BOSS_COMBAT.maxHealth, facing: -1,
         canDealDamage: false, canReceiveDamage: false, cycle: 0, stompCycle: -1, stompArmed: true,
         phaseBeatWait: null, secondPulseBeatWait: null, latePhase: false,
-        hitSequences: new Set(), pulses: [], pulseSequence: 0, hitFlashMs: 0, guardBounceMs: 0, defeated: false });
+        hitSequences: new Set(), pulses: [], pulseSequence: 0, hitFlashMs: 0, guardBounceMs: 0, defeated: false,
+        supportedSurfaceId: null, chaseSurfaceId: 'street', traversal: null, landingPoseMs: 0, routeRecovery: false });
       this.setBossAnimation('sector_1_boss_idle_idle', true);
       this.bossReadyEmitted = true;
       this.cameraOverrideActive = false;
@@ -478,7 +485,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (!this.bossCheckpoint) {
         const playerX = this.player?.position?.x ?? 960;
         this.bossCheckpoint = { playerX, bossX: this.boss.x,
-          score: window.gameState?.score || 0, signalAmpCharges: window.BARCODE?.signalAmpCharges || 0 };
+          score: window.gameState?.score || 0, skyCaches: Array.from(this.skyCaches || []), signalAmpCharges: window.BARCODE?.signalAmpCharges || 0 };
       }
       window.objectivesSystem?.setBossCombatObjective?.(this.boss.health, this.boss.maxHealth);
       return true;
@@ -515,6 +522,120 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       }
       if (phase === 'sweep') this.emitBossPulse();
     }
+    getBossSurface() {
+      return this.getStageSurfaces().find(s => s.id === this.boss?.supportedSurfaceId) ||
+        { id: 'street', x: 0, y: GROUND_Y + PLAYER_VISUAL_FOOT_OFFSET, w: WORLD_WIDTH };
+    }
+    getBossRouteStep(targetId) {
+      const surfaces = [this.getBossSurface()].concat(this.getStageSurfaces(),
+        [{ id: 'street', x: 0, y: GROUND_Y + PLAYER_VISUAL_FOOT_OFFSET, w: WORLD_WIDTH }]);
+      const current = surfaces[0], queue = [{ route: [current], cost: 0, x: this.boss.x }], seen = new Set();
+      // Only authored support planes participate. Bounded leaps use existing
+      // steps instead of teleporting to the player's height or adding solids.
+      while (queue.length) {
+        queue.sort((a, b) => a.cost - b.cost);
+        const node = queue.shift(), route = node.route, from = route[route.length - 1];
+        if (seen.has(from.id)) continue;
+        seen.add(from.id);
+        if (from.id === targetId) return route[1] || null;
+        for (const to of surfaces) {
+          if (seen.has(to.id) || to.w < 110) continue;
+          const rise = from.y - to.y;
+          const gap = Math.max(0, to.x - (from.x + from.w), from.x - (to.x + to.w));
+          if (rise > 420 || rise < -650 || gap > 260) continue;
+          const x = Math.max(to.x + 55, Math.min(to.x + to.w - 55, node.x));
+          queue.push({ route: route.concat(to), x, cost: node.cost + 1 + Math.abs(x - node.x) / 180 + Math.abs(rise) / 700 });
+        }
+      }
+      return null;
+    }
+    updateBossRoute(delta) {
+      const boss = this.boss, player = this.player, current = this.getBossSurface();
+      if (player.grounded) boss.chaseSurfaceId = player.supportedSurfaceId === SIGNAL_LIFT.id ? 'signal-awning' : (player.supportedSurfaceId || 'street');
+      if (!boss.chaseSurfaceId || boss.chaseSurfaceId === current.id) return false;
+      const next = this.getBossRouteStep(boss.chaseSurfaceId);
+      if (!next) return false;
+      let destinationX = player.position.x;
+      if (next.id === boss.chaseSurfaceId) {
+        const candidates = [-180, 180].map(offset => Math.max(next.x + 55, Math.min(next.x + next.w - 55, player.position.x + offset)));
+        candidates.sort((a, b) => {
+          const aClear = Math.abs(a - player.position.x) >= 140, bClear = Math.abs(b - player.position.x) >= 140;
+          return aClear !== bClear ? (aClear ? -1 : 1) : aClear ? Math.abs(a - boss.x) - Math.abs(b - boss.x) : Math.abs(b - player.position.x) - Math.abs(a - player.position.x);
+        });
+        destinationX = candidates[0];
+      }
+      const desiredX = Math.max(current.x - 205, Math.min(current.x + current.w + 205, destinationX));
+      const landingX = Math.max(next.x + 55, Math.min(next.x + next.w - 55, desiredX));
+      const launchX = Math.max(current.x + 55, Math.min(current.x + current.w - 55, landingX));
+      const dx = launchX - boss.x;
+      if (Math.abs(dx) > 10) {
+        boss.facing = Math.sign(dx);
+        boss.x += boss.facing * Math.min(Math.abs(dx), BOSS_COMBAT.approachSpeed * delta / 1000);
+        return true;
+      }
+      boss.facing = Math.sign(landingX - boss.x) || boss.facing;
+      boss.traversal = { phase: 'warning', elapsed: 0, startX: boss.x, startY: boss.y,
+        x: landingX, y: next.y - PLAYER_VISUAL_FOOT_OFFSET, surfaceId: next.id,
+        duration: Math.max(800, Math.min(1250, Math.hypot(landingX - boss.x, next.y - current.y) * 2)) };
+      boss.canDealDamage = false; boss.canReceiveDamage = false;
+      this.setBossAnimation('sector_1_boss_idle_idle', true);
+      window.audioSystem?.playCombatCue?.('windup', { material: 'boss' });
+      return true;
+    }
+    updateBossTraversal(delta) {
+      const boss = this.boss, jump = boss.traversal;
+      jump.elapsed += delta;
+      if (jump.phase === 'warning') {
+        if (jump.elapsed < 850) return;
+        jump.phase = 'flight'; jump.elapsed = 0;
+        boss.supportedSurfaceId = null;
+      }
+      const t = Math.min(1, jump.elapsed / jump.duration);
+      const arc = 130 + Math.max(0, jump.startY - jump.y) * 0.35;
+      boss.x = lerp(jump.startX, jump.x, t);
+      boss.y = lerp(jump.startY, jump.y, t) - Math.sin(t * Math.PI) * arc;
+      if (t >= 1) {
+        boss.x = jump.x; boss.y = jump.y; boss.supportedSurfaceId = jump.surfaceId === 'street' ? null : jump.surfaceId;
+        boss.traversal = null; boss.landingPoseMs = 350;
+        this.setBossCombatPhase('recovery');
+        boss.routeRecovery = boss.chaseSurfaceId !== jump.surfaceId;
+        window.BARCODE?.combatFX?.contact('boss', boss.x, boss.y + PLAYER_VISUAL_FOOT_OFFSET, boss.facing, false, false);
+        window.renderer?.impact?.('boss');
+      }
+    }
+    drawBossAuthoredPose(ctx) {
+      const boss = this.boss, art = window.BARCODE?.PresentationAssets;
+      if (!art) return false;
+      const jump = boss.traversal;
+      if (jump) {
+        ctx.save();
+        const foot = jump.y + PLAYER_VISUAL_FOOT_OFFSET;
+        ctx.strokeStyle = jump.phase === 'warning' ? '#ffb977' : '#eabfff'; ctx.lineWidth = 2;
+        ctx.setLineDash([7, 5]); ctx.beginPath(); ctx.ellipse(jump.x, foot - 3, 63, 12, 0, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+        if (jump.phase === 'warning') {
+          ctx.beginPath(); ctx.arc(boss.x, boss.y - 155, 19, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.min(1, jump.elapsed / 850)); ctx.stroke();
+        }
+        ctx.restore();
+        const frame = jump.phase === 'warning' ? (jump.elapsed < 430 ? 0 : 1) : Math.min(6, 2 + Math.floor(jump.elapsed / jump.duration * 5));
+        return art.draw('bossLeap', ctx, { x: boss.x, y: boss.y + PLAYER_VISUAL_FOOT_OFFSET, width: 350, height: 350, frame, flip: boss.facing < 0 });
+      }
+      if (boss.landingPoseMs > 0) return art.draw('bossLeap', ctx, { x: boss.x, y: boss.y + PLAYER_VISUAL_FOOT_OFFSET, width: 350, height: 350, frame: boss.landingPoseMs > 180 ? 6 : 7, flip: boss.facing < 0 });
+      if (this.getBossPresentationKey() !== 'flourish') return false;
+      return art.draw('bossFlourish', ctx, { x: boss.x, y: boss.y + PLAYER_VISUAL_FOOT_OFFSET, width: 366, height: 366, frame: this.getBossFlourishFrame(), flip: boss.facing < 0 });
+    }
+    getBossFlourishFrame() {
+      if (this.state === STATES.BOSS_HOLD) return 11;
+      if (this.state !== STATES.BOSS_FLOURISH) return Math.min(11, Math.floor((this.boss.phaseElapsedMs || 0) / BOSS_COMBAT.sweepMs * 12));
+      // A quick authored blade flourish, a held roar, then return to ready.
+      // Holds keep the four-second entrance without stretching motion to 3fps.
+      const durations = [600, 100, 100, 100, 100, 100, 100, 100, 100, 1900, 100, 600];
+      let elapsed = this.phaseElapsed;
+      for (let frame = 0; frame < durations.length; frame++) {
+        if (elapsed < durations[frame]) return frame;
+        elapsed -= durations[frame];
+      }
+      return 11;
+    }
     getBossMusicSample() {
       const time = window.audioSystem?.context?.currentTime;
       const sample = Number.isFinite(time) ? window.BARCODE?.MusicTransport?.sample?.(time) : null;
@@ -534,7 +655,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       return this.boss.phaseElapsedMs >= minimumMs && (crossed || Math.abs(sample.grid.beatFloat - beat) < 0.000001);
     }
     emitBossPulse() {
+      const surface = this.getBossSurface();
       this.boss.pulses.push({ id: ++this.boss.pulseSequence, originX: this.boss.x,
+        groundY: surface.y, left: surface.x, right: surface.x + surface.w,
         radius: 0, previousRadius: 0, hit: false });
       window.renderer?.impact?.('boss');
       window.BARCODE?.stageFX?.event('boss', this.boss.x, { duration: 650 });
@@ -547,12 +670,21 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       boss.phaseElapsedMs += delta;
       boss.hitFlashMs = Math.max(0, boss.hitFlashMs - delta);
       boss.guardBounceMs = Math.max(0, (boss.guardBounceMs || 0) - delta);
+      boss.landingPoseMs = Math.max(0, (boss.landingPoseMs || 0) - delta);
+      if (boss.traversal) {
+        this.updateBossTraversal(delta);
+        this.updateBossPulses(delta);
+        this.updateBossSprite(delta);
+        return;
+      }
       if (boss.phase === 'approach') {
+        if (this.updateBossRoute(delta)) { this.updateBossPulses(delta); this.updateBossSprite(delta); return; }
         const dx = this.player.position.x - boss.x;
         boss.facing = dx < 0 ? -1 : 1;
         if (Math.abs(dx) > BOSS_COMBAT.approachRange) {
           const distance = Math.min(Math.abs(dx) - BOSS_COMBAT.approachRange, BOSS_COMBAT.approachSpeed * delta / 1000);
-          boss.x = clampWorldX(boss.x + boss.facing * distance);
+          const surface = this.getBossSurface();
+          boss.x = Math.max(surface.x + 45, Math.min(surface.x + surface.w - 45, boss.x + boss.facing * distance));
         } else this.setBossCombatPhase('telegraph');
       } else if (boss.phase === 'telegraph') {
         const duration = boss.latePhase ? BOSS_COMBAT.fastTelegraphMs : BOSS_COMBAT.telegraphMs;
@@ -566,8 +698,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         const duration = boss.doublePulse ? (boss.lastPulseAtMs || 0) + BOSS_COMBAT.sweepMs : BOSS_COMBAT.sweepMs;
         if ((!boss.doublePulse || boss.secondPulseEmitted) && this.bossBoundaryReady(duration)) this.setBossCombatPhase('recovery');
       } else if (boss.phase === 'recovery') {
-        const duration = boss.latePhase ? BOSS_COMBAT.fastRecoveryMs : BOSS_COMBAT.recoveryMs;
-        if (this.bossBoundaryReady(duration)) this.setBossCombatPhase('approach');
+        const duration = boss.routeRecovery ? 1000 : boss.latePhase ? BOSS_COMBAT.fastRecoveryMs : BOSS_COMBAT.recoveryMs;
+        if (this.bossBoundaryReady(duration)) { boss.routeRecovery = false; this.setBossCombatPhase('approach'); }
       }
       this.updateBossPulses(delta);
       boss.canDealDamage = boss.phase === 'sweep' || boss.pulses.some(pulse => !pulse.hit);
@@ -577,10 +709,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       const boss = this.boss;
       const player = this.player;
       const footY = player.position.y + PLAYER_VISUAL_FOOT_OFFSET;
-      const ground = GROUND_Y + PLAYER_VISUAL_FOOT_OFFSET;
       boss.pulses.forEach(pulse => {
+        const ground = pulse.groundY ?? (GROUND_Y + PLAYER_VISUAL_FOOT_OFFSET);
         pulse.previousRadius = pulse.radius;
         pulse.radius += BOSS_COMBAT.pulseSpeed * deltaTime / 1000;
+        if (player.position.x < (pulse.left ?? 0) || player.position.x > (pulse.right ?? WORLD_WIDTH)) return;
         if (pulse.hit || footY < ground - BOSS_COMBAT.pulseHeight || footY > ground + 24) return;
         const distance = Math.abs(player.position.x - pulse.originX);
         const halfWidth = BOSS_COMBAT.pulseWidth / 2 + 24;
@@ -620,7 +753,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       return this.damageBoss('rhythm');
     }
     applyBossStomp(player, movement = {}) {
-      if (!this.isBossCombatLive() || player !== this.player || player.allowMovement === false ||
+      if (!this.isBossCombatLive() || this.boss.traversal || player !== this.player || player.allowMovement === false ||
         window.hackingSystem?.isActive?.() || player.velocity.y <= 0) return false;
       const box = this.getBossHitbox();
       const previousFootY = movement.previousFootY + PLAYER_VISUAL_FOOT_OFFSET;
@@ -741,6 +874,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         invulnerable: false, invulnerableUntil: 0, _enemyInvulnerableUntilMs: 0,
         primaryAttackAnimationMs: 0, afterimageMs: 0, coyoteTimerMs: 0, jumpBufferTimerMs: 0,
         jumpHeldMs: 0, jumpReleaseQueued: false, airInput: 0 });
+      this.cameraY = 0;
+      this.skyCaches = new Set(checkpoint.skyCaches || []);
       this.boss.x = checkpoint.bossX;
       this.boss.y = GROUND_Y;
       this.cinematicZoomOverride = null;
@@ -765,15 +900,27 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         checkpointAvailable: !!this.bossCheckpoint, retryAvailable: this.canRetryBossCheckpoint() };
     }
     canStompCounter() { return !!(this.boss?.canReceiveDamage && this.boss.stompArmed && this.boss.stompCycle !== this.boss.cycle); }
-    draw(ctx) { this.drawStageSurfaces(ctx); this.drawEncounterGates(ctx); this.drawRepairRoute(ctx); this.drawBoss(ctx); }
+    draw(ctx) { this.drawStageSurfaces(ctx); this.drawEncounterGates(ctx, false); this.drawRepairRoute(ctx); this.drawBoss(ctx); }
+    drawEncounterHardware(ctx) {
+      if (!ctx) return;
+      for (const { gate, progress, opening } of this.getGatePresentation()) this.drawBarrierHardware(ctx, gate, opening, progress);
+      ENCOUNTER_GATES.forEach((gate, i) => {
+        if (this.districtSignal.clearedAtMs[i] !== null && this.districtSignal.elapsedMs - this.districtSignal.clearedAtMs[i] >= 650)
+          this.drawBarrierHardware(ctx, gate, true, 1);
+      });
+    }
     drawStageSurfaces(ctx) {
       if (!ctx) return;
-      this.drawSignalLift(ctx); this.drawSignalAmp(ctx);
+      this.drawSignalLift(ctx); this.drawSignalAmp(ctx); this.drawSkyCaches(ctx);
       const zoom = window.renderer?.getZoomLevel?.() || window.renderer?.zoomLevel || 1;
-      ctx.save(); ctx.strokeStyle = 'rgba(178,216,207,0.24)'; ctx.lineWidth = 1 / zoom; ctx.shadowBlur = 0;
+      ctx.save(); ctx.lineWidth = 1 / zoom; ctx.shadowBlur = 0;
       for (const surface of STAGE_SURFACES) {
         const lip = surface.y - (surface.maskFeet || 0);
+        // A dark keyline keeps the fine light edge readable on pale roof art.
+        ctx.strokeStyle = 'rgba(8,18,28,0.35)'; ctx.lineWidth = 2.5 / zoom;
         ctx.beginPath(); ctx.moveTo(surface.x, lip); ctx.lineTo(surface.x + surface.w, lip); ctx.stroke();
+        ctx.strokeStyle = 'rgba(198,244,224,0.48)'; ctx.lineWidth = 1 / zoom;
+        ctx.stroke();
       }
       ctx.restore();
     }
@@ -796,23 +943,28 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       ctx.shadowColor = charged ? '#ff00ff' : '#00ffff';
       ctx.shadowBlur = charged ? 18 : 10;
       ctx.fillStyle = charged ? `rgba(255, 0, 255, ${pulse})` : 'rgba(0, 24, 38, 0.94)';
+      const illustrated = window.BARCODE?.PresentationAssets?.draw('rhythmLift', ctx, {
+        x: lift.x, y: lift.y, width: lift.w, height: lift.w * 159 / 792
+      });
       // lift.y is the authoritative contact line. Render the platform body
       // below it so the player's visible feet meet the top instead of sinking
       // into a graphic whose collision lived near its bottom edge.
-      ctx.fillRect(lift.x, lift.y, lift.w, 14);
+      if (!illustrated) ctx.fillRect(lift.x, lift.y, lift.w, 14);
       ctx.strokeStyle = charged ? '#ffffff' : '#00ffff';
       ctx.lineWidth = 2;
-      ctx.strokeRect(lift.x, lift.y, lift.w, 14);
+      if (!illustrated) ctx.strokeRect(lift.x, lift.y, lift.w, 14);
       ctx.shadowBlur = 0;
       for (let index = 0; index < SIGNAL_LIFT.requiredCharges; index += 1) {
         ctx.fillStyle = index < lift.charges ? '#ff00ff' : '#15394b';
-        ctx.fillRect(lift.x + 10 + index * 15, lift.y + 4, 9, 5);
+        if (illustrated) {
+          ctx.beginPath(); ctx.arc(lift.x + lift.w * (index ? 0.662 : 0.332), lift.y + 5, 2.5, 0, Math.PI * 2); ctx.fill();
+        } else ctx.fillRect(lift.x + 10 + index * 15, lift.y + 4, 9, 5);
       }
       ctx.fillStyle = '#a8ffff';
       ctx.font = 'bold 9px monospace';
       ctx.textAlign = 'right';
       ctx.textBaseline = 'middle';
-      ctx.fillText('RHYTHM LIFT', lift.x + lift.w - 8, lift.y + 7);
+      if (!illustrated) ctx.fillText('RHYTHM LIFT', lift.x + lift.w - 8, lift.y + 7);
       if (lift.chargeFxMs > 0) {
         const progress = 1 - lift.chargeFxMs / 520;
         const center = lift.x + lift.w / 2;
@@ -926,9 +1078,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       // Repeat actual narrow modules; do not stretch a small emitter up a facade.
       const tileHeight = 174, count = Math.ceil((baseY - roof) / tileHeight);
       const height = (baseY - roof) / count;
-      ctx.fillStyle = 'rgba(0,0,0,.32)'; ctx.fillRect(x + 9, roof, 18, baseY - roof);
-      for (let j = 0; j < count; j++) A?.draw('thinWallRail', ctx, { x, y: roof + height*(j+.5), width: 34, height: height+1 });
-      A?.draw('thinRailCap', ctx, { x, y: roof+8, width: 34, height: 58 });
+      ctx.fillStyle = 'rgba(0,0,0,.24)'; ctx.fillRect(x + 5, roof, 6, baseY - roof);
+      for (let j = 0; j < count; j++) A?.draw('thinWallRail', ctx, { x, y: roof + height*(j+.5), width: 14, height: height+1 });
+      A?.draw('thinRailCap', ctx, { x, y: roof+5, width: 14, height: 22 });
       const projectX = rise => gate.x + gate.w - rise * gate.depthX / -gate.depthY;
       const path = [[x,baseY],[gate.x+gate.w,foot],[projectX(888-foot),888],
         [projectX(888-foot),892],[projectX(1096-foot-4),1096]];
@@ -936,14 +1088,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         const [ax,ay] = path[j-1], [bx,by] = path[j], dx = bx-ax, dy = by-ay, length = Math.hypot(dx,dy);
         const pieces = Math.max(1,Math.ceil(length/188)), span = length/pieces;
         ctx.save(); ctx.translate(ax,ay); ctx.transform(dy/length,-dx/length,dx/length,dy/length,0,0);
-        ctx.fillStyle = 'rgba(0,0,0,.32)'; ctx.fillRect(-13,4,34,length);
-        for (let k=0;k<pieces;k++) A?.draw('thinPavementRail',ctx,{x:0,y:span*(k+.5),width:30,height:span+1});
+        ctx.fillStyle = 'rgba(0,0,0,.24)'; ctx.fillRect(-6,3,16,length);
+        for (let k=0;k<pieces;k++) A?.draw('thinPavementRail',ctx,{x:0,y:span*(k+.5),width:14,height:span+1});
         ctx.restore();
       }
-      A?.draw('thinRailElbow',ctx,{x:x-9,y:baseY-5,width:51,height:63,flip:true});
+      A?.draw('thinRailElbow',ctx,{x:x-4,y:baseY-2,width:22,height:28,flip:true});
       ctx.restore();
     }
-    drawEncounterGates(ctx) {
+    drawEncounterGates(ctx, includeHardware = true) {
       if (!ctx) return;
       const fx = window.BARCODE?.combatFX;
       const time = fx?.timeMs ?? this.districtSignal.elapsedMs;
@@ -1053,10 +1205,54 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
           }
         }
         ctx.restore();
-        this.drawBarrierHardware(ctx,gate,opening,progress);
+        if (includeHardware) this.drawBarrierHardware(ctx,gate,opening,progress);
         ctx.restore();
       }
-      ENCOUNTER_GATES.forEach((g,i)=>{if(this.districtSignal.clearedAtMs[i]!==null && this.districtSignal.elapsedMs-this.districtSignal.clearedAtMs[i]>=650)this.drawBarrierHardware(ctx,g,true,1);});
+      if (includeHardware) ENCOUNTER_GATES.forEach((g,i)=>{if(this.districtSignal.clearedAtMs[i]!==null && this.districtSignal.elapsedMs-this.districtSignal.clearedAtMs[i]>=650)this.drawBarrierHardware(ctx,g,true,1);});
+    }
+    updateSkyCaches(delta) {
+      if (!this.missionStarted || this.isGameplaySuppressed() || window.tutorialSystem?.isActive?.()) return;
+      const player = this.player;
+      if (!player?.grounded) return;
+      this.skyCaches ||= new Set();
+      for (const cache of SKY_CACHES) {
+        if (this.skyCaches.has(cache.id) || player.supportedSurfaceId !== cache.surfaceId || Math.abs(player.position.x - cache.x) > 55) continue;
+        this.skyCaches.add(cache.id);
+        const all = this.skyCaches.size === SKY_CACHES.length;
+        const reward = all ? 1000 : 250;
+        if (window.gameState) {
+          window.gameState.score = (window.gameState.score || 0) + reward;
+          window.gameState.collectionMessage = { text: `SKY CACHE ${this.skyCaches.size}/3 · +${reward}${all ? ' · SIGNAL AMPLIFIED' : ''}`, timer: 180, alpha: 1 };
+        }
+        window.BARCODE.signalAmpCharges = Math.min(3, (window.BARCODE.signalAmpCharges || 0) + 1);
+        window.BARCODE?.combatFX?.ampChanged?.('collect', window.BARCODE.signalAmpCharges, player);
+        window.BARCODE?.combatFX?.add?.({ kind: 'pulse', x: cache.x, y: player.position.y + 42, radius: all ? 200 : 100, duration: 600, color: '#bafa90' });
+        window.audioSystem?.playCombatCue?.('inspect');
+      }
+    }
+    drawSkyCaches(ctx) {
+      if (!this.missionStarted) return;
+      const time = this.districtSignal?.elapsedMs || 0;
+      for (const cache of SKY_CACHES) {
+        const surface = STAGE_SURFACES.find(s => s.id === cache.surfaceId);
+        const y = surface.y, collected = this.skyCaches?.has(cache.id);
+        if (window.BARCODE?.combatFX && !window.BARCODE.combatFX.visible(cache.x, y, 110)) continue;
+        ctx.save(); ctx.translate(cache.x, y);
+        // Small roof-mounted receiver; the same authored industrial vocabulary
+        // as the lift, with an elevated charge glyph instead of another box.
+        ctx.fillStyle = '#14242e'; ctx.strokeStyle = collected ? '#507567' : '#94baa4'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(-28, -2); ctx.lineTo(-19, -12); ctx.lineTo(19, -12); ctx.lineTo(28, -2); ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, -12); ctx.lineTo(0, -44); ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, -42, 16, 0.12, Math.PI - 0.12); ctx.stroke();
+        if (!collected) {
+          const bob = Math.sin(time / 350) * 3;
+          window.BARCODE?.combatFX?.drawAmpIcon?.(ctx, 0, -76 + bob);
+          ctx.strokeStyle = 'rgba(190,245,156,0.32)'; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.arc(0, -76 + bob, 30 + Math.sin(time / 500) * 3, 0, Math.PI * 2); ctx.stroke();
+        }
+        for (let i = 0; i < 3; i++) { ctx.fillStyle = i < (this.skyCaches?.size || 0) ? '#beff92' : '#344c48'; ctx.fillRect(-11 + i * 9, -8, 5, 3); }
+        ctx.restore();
+      }
     }
     updateSignalAmp() {
       const player = this.player || window.player;
@@ -1311,34 +1507,45 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (!ctx || !this.boss?.active) return;
       const boss = this.boss;
       const visual = this.getBossVisualBounds();
-      const ground = GROUND_Y + PLAYER_VISUAL_FOOT_OFFSET;
+      const surface = this.getBossSurface();
+      const ground = surface.y;
       ctx.save();
       if (this.state === STATES.BOSS_COMBAT) {
         if (boss.phase === 'telegraph') {
           const duration = boss.latePhase ? BOSS_COMBAT.fastTelegraphMs : BOSS_COMBAT.telegraphMs;
           const progress = Math.min(1, boss.phaseElapsedMs / duration);
-          const width = BOSS_COMBAT.pulseRange * 2;
+          const left = Math.max(surface.x, boss.x - BOSS_COMBAT.pulseRange);
+          const right = Math.min(surface.x + surface.w, boss.x + BOSS_COMBAT.pulseRange);
           ctx.fillStyle = 'rgba(255, 80, 30, 0.12)';
-          ctx.fillRect(boss.x - width / 2, ground - BOSS_COMBAT.pulseHeight, width, BOSS_COMBAT.pulseHeight);
+          ctx.fillRect(left, ground - BOSS_COMBAT.pulseHeight, right - left, BOSS_COMBAT.pulseHeight);
           ctx.strokeStyle = '#ff7844';
           ctx.lineWidth = 3;
           ctx.beginPath();
-          ctx.moveTo(boss.x - width / 2 * progress, ground - 2);
-          ctx.lineTo(boss.x + width / 2 * progress, ground - 2);
+          ctx.moveTo(lerp(boss.x, left, progress), ground - 2);
+          ctx.lineTo(lerp(boss.x, right, progress), ground - 2);
           ctx.stroke();
         }
         (boss.pulses || []).forEach(pulse => {
-          [-1, 1].forEach(direction => this.drawBossPulse(ctx, pulse, direction, ground));
+          [-1, 1].forEach(direction => {
+            const x = pulse.originX + direction * pulse.radius;
+            if (x >= (pulse.left ?? 0) && x <= (pulse.right ?? WORLD_WIDTH)) this.drawBossPulse(ctx, pulse, direction, pulse.groundY ?? ground);
+          });
         });
         if (boss.canReceiveDamage) { ctx.shadowColor = '#00ffff'; ctx.shadowBlur = 24; }
         if (boss.hitFlashMs > 0) { ctx.shadowColor = '#ffffff'; ctx.shadowBlur = 32; }
       }
       if (boss.defeated) ctx.globalAlpha = 0.35;
-      if (boss.spriteReady && boss.sprite?.draw) boss.sprite.draw(ctx, visual.anchorX, visual.anchorY, { scale: visual.scale, flipH: boss.facing === undefined || boss.facing < 0 });
-      else { ctx.fillStyle = '#ff3300'; ctx.fillRect(visual.x, visual.y, visual.width, visual.height); }
+      ctx.save();
+      if (surface.maskFeet && !boss.traversal) {
+        ctx.beginPath(); ctx.rect(-2000, -2500, 8200, surface.y - surface.maskFeet + 2500); ctx.clip();
+      }
+      const drawn = this.drawBossAuthoredPose(ctx);
+      if (!drawn && boss.spriteReady && boss.sprite?.draw) boss.sprite.draw(ctx, visual.anchorX, visual.anchorY, { scale: visual.scale, flipH: boss.facing === undefined || boss.facing < 0 });
+      else if (!drawn) { ctx.fillStyle = '#ff3300'; ctx.fillRect(visual.x, visual.y, visual.width, visual.height); }
+      ctx.restore();
       ctx.shadowBlur = 0;
       if (this.state === STATES.BOSS_COMBAT) {
-        const cue = boss.phase === 'telegraph' ? (boss.doublePulse ? 'TWO PULSES — JUMP' : 'GROUND PULSE — JUMP') :
+        const cue = boss.traversal ? (boss.traversal.phase === 'warning' ? 'RELOCATING — CLEAR THE MARKER' : 'SECTOR 1 BOSS') : boss.phase === 'telegraph' ? (boss.doublePulse ? 'TWO PULSES — JUMP' : 'GROUND PULSE — JUMP') :
           boss.canReceiveDamage ? (this.canStompCounter() ? 'COUNTER: RHYTHM / STOMP' : boss.stompCycle === boss.cycle ? 'COUNTER: RHYTHM — STOMP SPENT THIS CYCLE' : 'COUNTER: RHYTHM — LAND TO REARM STOMP') :
           boss.guardBounceMs > 0 ? 'GUARDED — LAND, THEN COUNTER' : 'SECTOR 1 BOSS';
         ctx.fillStyle = boss.canReceiveDamage ? '#00ffff' : '#ffffff';
@@ -1463,6 +1670,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (!options.preserveDefeats && window.rhythmSystem) window.rhythmSystem.runBestCombo = 0;
       this.boss = null; this.bossReadyEmitted = false; this.assetGeneration = (this.assetGeneration || 0) + 1; this.preparedAssets = {}; this.preloadedBossSprite = null; this.bossAssetsRequested = false;
       this.countedEnemies = new Set(); this.spawnedEncounterIds = new Set(); this.activeEncounterId = null; this.activeEncounterEnemies = []; this.closedGateEncounterId = null; this.pendingSpawns = [];
+      this.skyCaches = new Set(); this.skyCacheNotice = null; this.cameraY = 0;
       this.nextJammerSpawnMs = Infinity; this.jammerReinforcementCount = 0; this.debugDamageSequence = 0; this.lastSpawnPlan = null; this.resetSignalLift(); this.signalAmpCollected = false; if (window.BARCODE) window.BARCODE.signalAmpCharges = 0;
       this.state = options && options.preserveTutorial ? STATES.TUTORIAL : STATES.TUTORIAL;
       if (window.renderer && typeof window.renderer.clearCinematicZoomOverride === 'function') window.renderer.clearCinematicZoomOverride();
