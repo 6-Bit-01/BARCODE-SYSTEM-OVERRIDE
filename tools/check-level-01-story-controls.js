@@ -356,11 +356,17 @@ async function main() {
     load(context,'src/engine/parallax.js');const bg=new w.ParallaxBackground();
     bg.layers=[{loaded:true,imgElement:{width:2087,height:754},opacity:1,blendMode:'source-over',scrollFactorX:0.5}];
     for(const zoom of [0.4,0.6,1,1.25]) for(const cy of [0,-1040]) {
-      const m={a:zoom,d:zoom,e:960*(1-zoom)+7*zoom,f:675*(1-zoom)+(-cy*0.3+7)*zoom};
-      let rect;const ctx=new Proxy({getTransform:()=>m,drawImage:(_im,x,y,width,height)=>{rect={x,y,width,height};}},{get:(t,k)=>t[k]||(()=>{}),set:(t,k,v)=>(t[k]=v,true)});
+      let m={a:zoom,d:zoom,e:960*(1-zoom)+7*zoom,f:675*(1-zoom)+(-cy*0.3+7)*zoom};
+      w.gameCamera={centerX:2048,y:cy};
+      const stack=[];
+      let rect;const ctx=new Proxy({getTransform:()=>m,
+        save(){stack.push({...m});},restore(){m=stack.pop();},setTransform(a,b,c,d,e,f){m={a,d,e,f};},
+        drawImage:(_im,x,y,width,height)=>{rect={x,y,width,height,m:{...m}};}
+      },{get:(t,k)=>t[k]||(()=>{}),set:(t,k,v)=>(t[k]=v,true)});
       bg.drawLayer(ctx,bg.layers[0]);
-      assert(rect.x*m.a+m.e<=0 && rect.y*m.d+m.f<=0,'sky covers upper and left edges');
-      assert((rect.x+rect.width)*m.a+m.e>=1920 && (rect.y+rect.height)*m.d+m.f>=1080,'sky covers full view at zoom and roof extremes');
+      const painted=rect.m;
+      assert(rect.x*painted.a+painted.e<=0 && rect.y*painted.d+painted.f<=0,'sky covers upper and left edges');
+      assert((rect.x+rect.width)*painted.a+painted.e>=1920 && (rect.y+rect.height)*painted.d+painted.f>=1080,'sky covers full view at zoom and roof extremes');
     }
     const jammer=w.BARCODE.JammerEnvironment;jammer.reveal();const requests=[];
     w.BARCODE.PresentationAssets={draw:(key,_c,args)=>(requests.push({key,...args}),true)};

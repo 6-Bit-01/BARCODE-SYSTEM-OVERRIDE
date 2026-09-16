@@ -419,6 +419,16 @@ function drawGround(ctx) {
 
 // Draw game entities
 function drawGameEntities(ctx) {
+  // The set-back terminal is solid scenery. Actors and hologram fields pass
+  // in front; pickups, the lift and boss retain their established later pass.
+  if (typeof window.sector1Progression?.drawTraversalProps === 'function') {
+    try {
+      window.sector1Progression.drawTraversalProps(ctx);
+    } catch (error) {
+      console.error('Error drawing traversal scenery:', error?.message || error);
+    }
+  }
+
   // Environmental Jammer is drawn outside EnemyManager and behind active enemies.
   if (window.BARCODE && window.BARCODE.JammerEnvironment && typeof window.BARCODE.JammerEnvironment.draw === 'function') {
     try {
@@ -428,8 +438,8 @@ function drawGameEntities(ctx) {
     }
   }
 
-  // Only emitter hardware belongs behind enemies. Keep gate fields, lift,
-  // repairs, traversal props and boss in their established foreground order.
+  // Emitter hardware also belongs behind enemies. Keep gate fields, lift,
+  // repairs and boss in their established foreground order.
   if (typeof window.sector1Progression?.drawEncounterHardware === 'function') {
     try {
       window.sector1Progression.drawEncounterHardware(ctx);

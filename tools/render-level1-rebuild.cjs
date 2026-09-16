@@ -48,6 +48,39 @@ async function main(){
   video.stdin.end();const [code]=await once(video,'close');if(code!==0)throw new Error(errors);if(calls.errors.length)throw new Error(calls.errors.join('\n'));
   console.log('Native warning previews and both-direction approach video complete.');return;
  }
+ if(process.env.WORLD_DEPTH_REVIEW){
+  load(context,'src/engine/parallax.js');w.parallaxBackground=new w.ParallaxBackground();
+  w.parallaxBackground.addLayer({image:bg,scrollFactorX:0.5});w.parallaxBackground.addLayer({image:fg,scrollFactorX:1});
+  w.document.createElement=()=>createCanvas(64,64);w.parallaxBackground.prepareAtmosphereSprites();
+  function frame(cx=960,cy=0,zoom=0.8){
+    p.cameraY=cy;p.getCameraX=()=>cx;w.renderer.zoomLevel=zoom;
+    c.fillStyle='#000';c.fillRect(0,0,1920,1080);c.save();c.translate(960,675*(1-zoom)+425*zoom);c.scale(zoom,zoom);c.translate(-960,-425);
+    w.drawGameElements(c);c.restore();w.drawGameUI(c);
+  }
+  function capture(name,cx,cy,zoom){frame(cx,cy,zoom);fs.writeFileSync(path.join(out,name+'.webp'),canvas.toBuffer('image/webp'));}
+  p.reset();setHero(580,856);w.BARCODE.combatFX.reset();capture('box-in-tutorial');
+  p.startMission();p.closedGateEncounterId='encounter_1';
+  const enemy=new w.Enemy(770,784,'firewall');Object.assign(enemy,{entranceComplete:true,spawnProtectionDuration:0,spawnTimeMs:-100000,active:true,_sector1MissionEnemy:true});
+  Object.assign(enemy.position,{x:770,y:784});enemy.sprite=sprite();enemy.spriteReady=true;enemy.playAnimation('walk');w.enemyManager.enemies=[enemy];
+  capture('enemy-in-front-of-box');
+  // Force an overlap only in this diagnostic image to inspect the real
+  // hologram renderer over the terminal. Production gate locations stay put.
+  const gate=w.Sector1Progression.ENCOUNTER_GATES[0],presentation=p.getGatePresentation;
+  p.getGatePresentation=()=>[{gate:{...gate,x:840},opening:false,progress:0}];
+  enemy.position.x=1000;capture('hologram-over-box');p.getGatePresentation=presentation;
+  p.closedGateEncounterId=null;p.state='jammer_active';w.enemyManager.enemies=[];
+  setHero(3500,-314,'tower-crown');capture('stable-background-roof',3136,-1040,0.625);
+  const movie=createCanvas(960,540),mc=movie.getContext('2d');
+  const video=spawn('ffmpeg',['-y','-f','image2pipe','-framerate','12','-i','pipe:0','-c:v','libx264','-pix_fmt','yuv420p','-movflags','+faststart',path.join(out,'box-background-review.mp4')],{stdio:['pipe','ignore','pipe']});let errors='';video.stderr.on('data',b=>errors+=b);
+  for(let i=0;i<96;i++){
+   w.BARCODE.combatFX.update(1000/12);
+   if(i<36){setHero(560,856);enemy.position.x=620+i*9;w.enemyManager.enemies=[enemy];w.BARCODE.SpritePlayback.update(enemy.sprite,1000/12);frame();}
+   else{w.enemyManager.enemies=[];const cx=960+(i-36)/59*2176;setHero(cx,-314);frame(cx,-850,0.8-0.175*Math.sin((i-36)/59*Math.PI));}
+   mc.drawImage(canvas,0,0,960,540);if(!video.stdin.write(movie.toBuffer('image/png')))await once(video.stdin,'drain');
+  }
+  video.stdin.end();const [code]=await once(video,'close');if(code!==0)throw new Error(errors);
+  if(calls.errors.length)throw new Error(calls.errors.join('\n'));console.log('Production box depth, tutorial presence, hologram overlap and animated fixed-scale skyline rendered.');return;
+ }
  if(process.env.SCENE_POLISH_REVIEW){
   load(context,'src/engine/parallax.js');w.parallaxBackground=new w.ParallaxBackground();
   w.parallaxBackground.addLayer({image:bg,scrollFactorX:0.5});w.parallaxBackground.addLayer({image:fg,scrollFactorX:1});
