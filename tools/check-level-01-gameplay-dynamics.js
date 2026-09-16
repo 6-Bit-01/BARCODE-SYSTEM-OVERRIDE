@@ -163,7 +163,7 @@ function testHackingLifecycle() {
   assert.strictEqual(hijacks, 1, 'success attempts exactly one hijack');
   assert.strictEqual(shows, 1, 'previous Rhythm Mode restored once');
   assert.strictEqual(hack.guardHitsRemaining, 0, 'success clears guard');
-  assert.strictEqual(w.enemyManager.enemies[0]._hijackedUntilMs, 10000, 'nearest target is allied for eight simulation seconds');
+  assert.strictEqual(w.enemyManager.enemies[0]._hijackedUntilMs, 14000, 'nearest target is allied for twelve simulation seconds from the 2000 ms start');
   for (const e of w.enemyManager.enemies.slice(1)) assert(!w.enemyManager.isHijacked(e), 'success affects one ordinary enemy only');
   for (const e of w.enemyManager.enemies) assert(!e._stunnedUntilMs, 'success grants no area stun');
   w.enemyManager.enemies[0]._hijackedUntilMs = 0;

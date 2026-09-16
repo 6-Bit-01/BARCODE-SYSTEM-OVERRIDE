@@ -14,7 +14,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
   // Lift approach space is reserved inside this band, never replaced by an
   // alternate spawn at the right edge where the boss camera is already framed.
   const JAMMER_PLACEMENT = Object.freeze({ minX: 1180, maxX: 2916 });
-  const COMPLETION_PRESENTATION = Object.freeze({ holdMs: 620, fadeMs: 240, rowMs: 760, staggerMs: 220 });
+  const COMPLETION_PRESENTATION = Object.freeze({ holdMs: 620, fadeMs: 240, rowMs: 760, staggerMs: 220, releaseMs: 250 });
 
   const STATES = Object.freeze({
     TUTORIAL: 'tutorial', ENCOUNTER_1: 'encounter_1', ENCOUNTER_2: 'encounter_2', ENCOUNTER_3: 'encounter_3', ENCOUNTER_4: 'encounter_4',
@@ -940,7 +940,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       window.hackingSystem?.reset?.();
       window.inputManager?.resetActionEdges?.();
       window.objectivesSystem?.completeLevelObjective?.();
-      this.completion = { elapsedMs: 0, score: window.gameState?.score || 0,
+      this.completion = { elapsedMs: 0, controlsReady: false, releaseMs: 0, score: window.gameState?.score || 0,
         bestCombo: window.rhythmSystem?.runBestCombo || 0,
         fragments: window.lostDataSystem?.getProgress?.().collected || 0,
         totalFragments: window.lostDataSystem?.maxTotalLore || 3 };
@@ -952,7 +952,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       const { holdMs, fadeMs, rowMs, staggerMs } = COMPLETION_PRESENTATION;
       this.completion.elapsedMs = Math.min(holdMs + fadeMs + rowMs + 2 * staggerMs,
         this.completion.elapsedMs + Math.max(0, Number(deltaTime) || 0));
+      if (!this.completion.controlsReady) {
+        const finished = this.completion.elapsedMs >= holdMs + fadeMs + rowMs + 2 * staggerMs;
+        this.completion.releaseMs = !finished || window.inputManager?.isResultControlHeld?.() ? 0 :
+          this.completion.releaseMs + Math.min(100, Math.max(0, Number(deltaTime) || 0));
+        this.completion.controlsReady = this.completion.releaseMs >= COMPLETION_PRESENTATION.releaseMs;
+      }
     }
+    areCompletionControlsReady() { return !!this.completion?.controlsReady; }
     getCompletionReveal() {
       const { holdMs, fadeMs } = COMPLETION_PRESENTATION;
       return Math.max(0, Math.min(1, ((this.completion?.elapsedMs || 0) - holdMs) / fadeMs));

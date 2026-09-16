@@ -488,7 +488,7 @@ window.HackingSystem = class HackingSystem {
     if (!result) return false;
     this.safeInvoke('success audio', () => window.audioSystem?.playSound?.('terminalBeep', 0.5));
     this.safeInvoke('tutorial completion', () => this.completeTutorialObjectivesOnSuccess(result.tutorialSession));
-    this.resultDetail = training ? 'UPLINK READY · H / Y locks a nearby enemy.' : 'ENEMY HIJACKED · 8 seconds · H / Y releases';
+    this.resultDetail = training ? 'UPLINK READY · H / Y locks a nearby enemy.' : 'ENEMY HIJACKED · 12 seconds · H / Y releases';
     this.showSuccessFeedback();
     return true;
   }

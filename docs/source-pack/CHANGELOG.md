@@ -1,5 +1,13 @@
 # Recovery checkpoint — September 14
 
+## September 16 — controller drop, victory and ally-duration follow-up
+
+- Require a deliberate downward controller cone or straight D-pad down plus jump for descent; preserve keyboard and remapped jump behavior.
+- Prevent fight input from selecting an invisible victory rematch/restart. Finish the count-up, require a brief release, then show available result controls.
+- Extend successful enemy hijack from eight to twelve seconds and align its countdown bar, success message and tutorial.
+- Add production regression checks for street/rooftop victory input at 30/60/120 Hz and accidental directional drops; extend allegiance expiry checks through twelve seconds.
+- Base/rollback: merged #71 (`5babd454e2753d834be2372642ee8612e0b39a9d`). Exact review SHA, PR and checks are in the generated receipt. Hosted Makko/physical-controller acceptance is pending.
+
 ## September 16, 2026 — solid awnings, moving elevator roof and enemy pancakes
 
 Base/rollback is merged #70, `78475a7be0ec1ba1b4c7aa6d3fc1b069d00c7edf`. Branch: `agent/solid-awnings-lift-roof`. The owner explicitly requests bonks on awnings and hittable ledges, a fully solid elevator roof supporting the player, enemies and boss while moving, and visibly pancaked enemies under a descending elevator. This supersedes the previous cabin-only/climb-through-awnings direction.

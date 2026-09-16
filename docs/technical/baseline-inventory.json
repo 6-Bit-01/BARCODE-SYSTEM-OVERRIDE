@@ -137,6 +137,7 @@
     "tools/check-action-combat.js",
     "tools/check-animation-cleanup.js",
     "tools/check-baseline.js",
+    "tools/check-controller-victory.js",
     "tools/check-enemy-hijack.js",
     "tools/check-enemy-ownership.js",
     "tools/check-environment-runtime.js",
@@ -467,7 +468,7 @@
     {
       "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 2016,
+      "line": 2017,
       "loaded": true
     },
     {

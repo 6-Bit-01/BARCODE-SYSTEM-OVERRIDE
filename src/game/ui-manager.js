@@ -330,8 +330,12 @@ function drawSector1BossUI(ctx) {
     });
     ctx.fillStyle = '#b9faff';
     ctx.font = '22px monospace';
-    ctx.fillText(window.BARCODE?.GamepadUI?.connected ? `${window.BARCODE.ControllerSettings.button(2)} — Restart Level 1` : 'SPACE — Restart Level 1', 960, 718);
-    ctx.fillText(window.BARCODE?.GamepadUI?.connected ? `${window.BARCODE.ControllerSettings.button(0)} — Rematch the boss` : 'ENTER — Rematch the boss', 960, 766);
+    if (owner.areCompletionControlsReady?.() !== false) {
+      ctx.fillText(window.BARCODE?.GamepadUI?.connected ? `${window.BARCODE.ControllerSettings.button(2)} — Restart Level 1` : 'SPACE — Restart Level 1', 960, 718);
+      ctx.fillText(window.BARCODE?.GamepadUI?.connected ? `${window.BARCODE.ControllerSettings.button(0)} — Rematch the boss` : 'ENTER — Rematch the boss', 960, 766);
+    } else if (rows.length && rows.every(row => row.progress === 1)) {
+      ctx.fillText('Release buttons to continue', 960, 742);
+    }
     if ((window.BARCODE?.IntroSequence?.inspectedGutter || window.BARCODE?.stageFX?.archive()?.hasEgg('egg.l01.studio-rat'))) {
       ctx.font = '18px monospace'; ctx.fillStyle = '#cbaaff';
       ctx.fillText('STUDIO RATS: Carrier restored. We are keeping the caption.', 960, 865);

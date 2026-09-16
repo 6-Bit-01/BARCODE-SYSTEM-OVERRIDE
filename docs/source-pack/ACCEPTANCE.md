@@ -1,5 +1,16 @@
 # Acceptance and Test Status
 
+## Current owner route — deliberate descent, victory and twelve-second allies
+
+Import the exact review SHA from the source manifest or PR into a fresh Makko preview. This follow-up is based on merged #71; previous art, solid roofs and pancake behavior remain.
+
+1. On a platform, lightly press down or walk diagonally down while jumping: the player should jump. Push firmly within the downward cone and jump: descend one platform. Check straight D-pad down, a remapped jump and keyboard Down + Jump.
+2. Win against the boss on the street and on a rooftop while tapping/holding Cross. Health must remain zero and the player must stay at the win location while the results appear. Release result buttons briefly, then deliberately select rematch or restart; both must work. Loss retry remains immediate.
+3. Hack an enemy: it fights for you for twelve active seconds, with a matching timer/bar and a harmless reboot on expiry. Pause must freeze it; H/mapped interact must still release early.
+4. Briefly check tutorial prompts, pause/resume, solid elevator roof and enemy pancaking. Record imported SHA and PASS/FAIL. Synthetic-device integration tests do not establish physical-controller feel or hosted Makko acceptance.
+
+No assistant merge until this review is accepted. After merge, import the actual main merge SHA and repeat the three focused behaviors.
+
 ## Current review — solid ledges and elevator pancakes
 
 Automated/native evidence is in `SOLID_LEDGES_SMUSH_PASS.md` and `review-solid-ledges/`. Owner Makko acceptance is pending. Check awning and gray-step bonks, side/upward roof collisions, land/walk/ride on the roof going up and down with the player/enemies/boss, normal rooftop exit and boss pursuit around the roof. Lure an enemy beneath the returning elevator: it must flatten visibly and count once, including its carrier drop. Standing inside/on top, pause, retry and the upper climbing route must remain reliable. This replaces the previous expectation of jumping through awning undersides.

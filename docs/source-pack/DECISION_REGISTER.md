@@ -1,5 +1,9 @@
 # Decision Register
 
+## September 16 — controller descent, boss-win protection and ally time
+
+Approved together by the owner: protect against incidental downward controller movement when jumping; fix boss defeat resetting its health and returning the player to ground; make successful hacked enemies fight for the player for **12 seconds**. Twelve seconds supersedes historical eight-second hijack descriptions. The firm 70% stick threshold, 35-degree downward window and 250 ms result-control release are reviewable implementation tuning. Preserve deliberate single-platform descent and explicit rematch/restart; do not auto-advance to an unimplemented level. See `CONTROLLER_VICTORY_ALLY_PASS.md`.
+
 ## September 16 — owner-authorized solid ledges and elevator squash
 
 The owner broadens bonks to awnings and anything the player can hit, explicitly makes the elevator roof solid and rideable for the player, ordinary enemies and boss, then adds visible enemy pancaking beneath the descending elevator. The latest request supersedes the earlier cabin-only bonk and pass-through-awning direction. Use the existing sprites for the squash; retain defeat accounting and repair drops. Reposition the existing Tower middle step outward for a viable single-jump ascent. See `SOLID_LEDGES_SMUSH_PASS.md`. Existing authorization covers implementation, branch publication and one combined draft; owner Makko acceptance remains required before assistant merge.

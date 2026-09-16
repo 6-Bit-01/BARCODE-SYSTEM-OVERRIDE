@@ -16,6 +16,9 @@ window.InputManager = class InputManager {
     // browser's held-key repeat cannot immediately toggle restored Rhythm Mode.
     this.hackEscapeLatched = false;
     this.terminalKeyLatched = null;
+    // Physical result keys survive action resets at the winning hit. Their
+    // release is required before the victory menu accepts a fresh choice.
+    this.resultKeysHeld = new Set();
     this.actionInput = window.BARCODE && window.BARCODE.ActionInput ? new window.BARCODE.ActionInput({ attach: false }) : null;
     this.init();
   }
@@ -23,6 +26,7 @@ window.InputManager = class InputManager {
   init() {
     window.addEventListener('keydown', (e) => {
       const key = e.key.toLowerCase();
+      if (key === ' ' || key === 'enter') this.resultKeysHeld.add(key);
 
       if (window.BARCODE?.LevelDifficulty?.keyDown(e)) return;
       if (window.cutsceneSystem?.isActive) return; // The opening owns its document handlers.
@@ -50,8 +54,9 @@ window.InputManager = class InputManager {
       if (window.gameState && (window.gameState.gameOver || window.gameState.victory) && (e.key === ' ' || e.key === 'Enter')) {
         e.preventDefault();
         if (e.repeat) return;
-        this.terminalKeyLatched = key;
         const progression = window.sector1Progression;
+        if (window.gameState.victory && progression?.areCompletionControlsReady?.() === false) return;
+        this.terminalKeyLatched = key;
         const retryRequested = window.gameState.gameOver ? e.key === ' ' && !e.shiftKey : e.key === 'Enter';
         if (retryRequested && progression?.canRetryBossCheckpoint?.()) {
           progression.retryBossCheckpoint();
@@ -79,6 +84,7 @@ window.InputManager = class InputManager {
     });
     window.addEventListener('keyup', (e) => {
       const key = e.key.toLowerCase();
+      this.resultKeysHeld.delete(key);
       window.BARCODE?.LevelDifficulty?.keyUp(e);
       window.BARCODE?.PauseMenu?.keyUp(e);
       if (this.terminalKeyLatched === key) this.terminalKeyLatched = null;
@@ -97,6 +103,7 @@ window.InputManager = class InputManager {
       // Release physical-key ownership so that returning focus stays usable.
       this.terminalKeyLatched = null;
       this.hackEscapeLatched = false;
+      this.resultKeysHeld.clear();
       this.resetActionEdges();
       this.mouse.pressed = false;
       this.mouse.clicked = false;
@@ -156,6 +163,11 @@ window.InputManager = class InputManager {
     if (this.actionInput && typeof this.actionInput.reset === 'function') this.actionInput.reset();
   }
 
+  isResultControlHeld() {
+    const pad = window.BARCODE?.GamepadUI?.selectPad?.();
+    return this.resultKeysHeld.size > 0 || !!pad?.buttons[0]?.pressed || !!pad?.buttons[2]?.pressed;
+  }
+
   updateFrontend(owner) {
     const input = window.BARCODE?.GamepadUI?.poll(owner);
     if (!input) return;
@@ -207,6 +219,7 @@ window.InputManager = class InputManager {
       return true;
     }
     if (owner === 'results') {
+      if (window.gameState?.victory && window.sector1Progression?.areCompletionControlsReady?.() === false) return true;
       if (p.b0) {
         if (window.sector1Progression?.canRetryBossCheckpoint?.()) window.sector1Progression.retryBossCheckpoint();
         else BARCODE.RuntimeLifecycle?.restart({ source: 'controller-result' });
