@@ -217,7 +217,7 @@ function drawTacticalFocusCue(ctx) {
     ctx.fillStyle = 'rgba(0, 255, 255, 0.72)';
     ctx.font = '600 15px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('TACTICAL FOCUS // 40%', 0, 0);
+    ctx.fillText('TACTICAL FOCUS // TIME DILATION', 0, 0);
   } catch (error) {
     console.error('Error drawing tactical focus cue:', error?.message || error);
   }
@@ -277,7 +277,7 @@ function drawGameElements(ctx) {
   // Rhythm field is already drawn behind enemies and their warning labels.
   
   // Draw player
-  drawPlayer(ctx);
+  if (window.sector1Progression?.getLiftActorLayer?.(window.player) !== 'behind') drawPlayer(ctx);
   window.BARCODE?.combatFX?.draw(ctx);
   
   // Restore camera transform
@@ -448,7 +448,7 @@ function drawGameEntities(ctx) {
     }
   }
   
-  // Draw ordinary enemies before the lift; roof actors follow its artwork.
+  // Actors below a raised cabin pass behind it; floor/roof riders follow it.
   if (window.enemyManager && typeof window.enemyManager.draw === 'function') {
     try {
       window.enemyManager.draw(ctx, false);
@@ -456,6 +456,8 @@ function drawGameEntities(ctx) {
       console.error('Error drawing enemies:', error?.message || error);
     }
   }
+
+  if (window.sector1Progression?.getLiftActorLayer?.(window.player) === 'behind') drawPlayer(ctx);
 
   if (window.sector1Progression && typeof window.sector1Progression.draw === 'function') {
     try {
@@ -469,7 +471,7 @@ function drawGameEntities(ctx) {
     try {
       window.enemyManager.draw(ctx, true);
     } catch (error) {
-      console.error('Error drawing elevator roof enemies:', error?.message || error);
+      console.error('Error drawing elevator passengers:', error?.message || error);
     }
   }
 

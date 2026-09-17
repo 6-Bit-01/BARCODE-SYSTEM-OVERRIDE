@@ -57,7 +57,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
     plate(c,1200,23,310,76,C.paper,C.ink);
     text(c,'SCORE',1220,42,16,C.ink);text(c,String(Math.max(0,score||0)).padStart(6,'0'),1488,64,31,C.ink,700,'right',260);
     plate(c,1314,111,193,43);text(c,'LORE',1330,132,16,C.muted);text(c,`${progress?.collected||0} / ${progress?.total||3}`,1488,132,23,C.paper,600,'right');
-    if(!active && !(training && window.tutorialSystem?.storyChapter < 2)){plate(c,26,179,213,36,C.ink,C.muted);text(c,`[${B.ControllerSettings?.prompt('rhythm_mode', 'R') || 'R'}] RHYTHM MODE`,43,197,17);}
+    if(!active && !training && !window.hackingSystem?.isActive?.() && !B.stageFX?.ratEvent){plate(c,26,179,213,36,C.ink,C.muted);text(c,`[${B.ControllerSettings?.prompt('rhythm_mode', 'R') || 'R'}] RHYTHM MODE`,43,197,17);}
     if(progress?.saved===false) text(c,'ARCHIVE SAVE UNAVAILABLE — KEEP TAB OPEN',26,active?448:312,12,'#ffc68a',600,'left',500);
     if(training) text(c,'DEAD AIR DISTRICT / CREW TRAINING',810,158,16,C.purple,600,'center',530);
     c.restore();

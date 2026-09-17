@@ -433,6 +433,7 @@ window.HackingSystem = class HackingSystem {
   }
 
   finishSession(outcome, terminalLines) {
+    window.enemyManager?.clearHackTrails?.();
     if (!this.active) return null;
     const tutorialSession = this.tutorialMode;
 
@@ -634,6 +635,7 @@ window.HackingSystem = class HackingSystem {
   getCurrentType() { return this.puzzleType; }
 
   reset() {
+    window.enemyManager?.clearHackTrails?.();
     this.resetReadyPopup();
     this.hijackTarget = null;
     this.resultDetail = '';

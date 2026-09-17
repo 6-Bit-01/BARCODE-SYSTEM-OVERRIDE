@@ -62,6 +62,23 @@ for (const [combo, expectedPattern, expectedIndices] of [[0, 'pulse', [0]], [4, 
   assert.strictEqual(c.getPattern(), 'pulse', 'miss drops the actual attack tier');
 }
 
+// Lore, inspection and the complete Studio Rat event take turns. Hidden
+// panels retain their reading time and inputs cannot skip unseen dialogue.
+{
+ const {w,p,context}=rig(),stage=w.BARCODE.stageFX;
+ load(context,'src/game/lore-records.js');load(context,'src/engine/lore.js');w.initLore();
+ const lore=w.loreSystem;p.state='encounter_2';p.closedGateEncounterId=null;
+ Object.assign(w.player.position,{x:stage.ratSpot.x,y:stage.ratSpot.y-72});w.player.grounded=true;
+ lore.displayLoreMessage('A recovered transmission.');lore.update(500);const elapsed=lore.elapsedMs;
+ stage.update(16);assert(stage.inspect().ok);const text=[],ctx=new Proxy({globalAlpha:1,fillText:t=>text.push(t),measureText:t=>({width:t.length*10})},{get:(o,k)=>o[k]??(()=>{})});
+ for(let i=0;i<60;i++){stage.update(100);lore.update(100);stage.drawHUD(ctx);lore.draw(ctx);}
+ assert.equal(text.length,0,'neither dialogue covers the pounce or drag');assert.equal(lore.elapsedMs,elapsed);assert.equal(stage.message.age,0);
+ assert(!stage.inspect().ok);stage.update(300);lore.update(300);stage.drawHUD(ctx);lore.draw(ctx);
+ assert(text.includes(stage.message.lines[0]));assert(!text.includes('A recovered transmission.'));
+ assert(stage.inspect().ok);stage.inspect();text.length=0;lore.update(16);lore.draw(ctx);assert(text.includes('A recovered transmission.'));
+ assert.equal(lore.elapsedMs,elapsed+16,'lore resumes its retained reading time');
+}
+
 // Direction, elapsed-time decay, pause, bounded priority, optional camera motion.
 for (const fps of [30, 60, 120, 144]) {
   const { w } = rig(), camera = w.renderer;
@@ -88,8 +105,9 @@ for (const fps of [30, 60, 120, 144]) {
   const revision = stage.archive().record.revision;
   for (let i = 0; i < 10; i++) input.routeActions(input.actionInput.update());
   assert.strictEqual(stage.archive().record.revision, revision);
-  assert(stage.inspect().ok); assert.strictEqual(stage.message.line, 1); stage.inspect(); assert(!stage.message);
+  assert(!stage.inspect().ok, 'hidden inspection cannot advance during the cat event');
   stage.update(6201); stage.update(16); assert.strictEqual(stage.ratAge, null);
+  assert(stage.inspect().ok); assert.strictEqual(stage.message.line, 1); stage.inspect(); assert(!stage.message);
   assert.strictEqual(stage.findNearby(), null, 'Studio Rat event cannot be replayed in the same level run');
   const other = new w.BARCODE.LoreCollection(); other.collect('lore.l01.02');
   stage.archive().collectEgg('egg.l01.cliff-maintenance');

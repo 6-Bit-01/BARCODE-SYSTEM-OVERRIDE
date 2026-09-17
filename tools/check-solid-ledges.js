@@ -90,17 +90,31 @@ for (const fps of [30,60,120]) {
     w.gameState.paused=false;p.resetSignalLift();assert.equal(a.supportedSurfaceId,null);
   }
 }
-{
-  const r=rig(),a=r.w.player,roof=r.p.getLiftRoof();
-  place(r,a,roof.x+roof.w/2,roof.topY);a.grounded=true;a.supportedSurfaceId=roof.id;
-  assert.equal(a.dropThrough(),false,'a hard elevator roof cannot be dropped through');
-  const ledge=r.p.getStageSurfaces().find(s=>s.id==='signal-awning');
-  place(r,a,ledge.x+100,ledge.y);a.grounded=true;a.supportedSurfaceId=ledge.id;
-  assert.equal(a.dropThrough(),false,'solid awnings cannot be dropped through');
-  a.supportedSurfaceId='tower-rooftop';
-  assert(a.dropThrough(),'deliberate Down+Jump remains on ordinary roofs and steps');
+// Deliberate drops bypass the current support, including solid slabs, while
+// lower supports and normal underside/side collisions remain in force.
+for (const fps of [30,60,120]) {
+  const surfaces=rig().p.getActorSurfaces();
+  for (const surface of surfaces) {
+    const r=rig(), {w,p}=r, a=w.player;
+    let live=p.getActorSurfaces().find(s=>s.id===surface.id);
+    if(surface.id.startsWith('signal-lift')) {p.signalLift.y=p.signalLift.prevY=700;live=p.getActorSurfaces().find(s=>s.id===surface.id);}
+    const x=live.x+live.w/2;
+    const top=p.getActorSurfaces().filter(s=>x>s.x&&x<s.x+s.w).sort((a,b)=>a.y-b.y)[0];
+    place(r,a,x,top.y);a.grounded=true;a.supportedSurfaceId=top.id;a.isJumpHeld=()=>false;
+    let tested=false;
+    for(let drop=0;drop<12&&a.supportedSurfaceId;drop++) {
+      const from=a.supportedSurfaceId;
+      assert(a.dropThrough(),`${fps}Hz deliberate drop starts on ${from}`);
+      for(let i=0;i<fps*3&&!a.grounded;i++){a.update(1000/fps,true);p.updateSignalLift(1000/fps);}
+      assert.notEqual(a.supportedSurfaceId,from,`${fps}Hz ${from} does not recapture its drop`);
+      assert(a.grounded,`${fps}Hz ${from} lands below`);
+      if(from===live.id){tested=true;break;}
+    }
+    assert(tested,`${fps}Hz actual descent reaches and drops through ${live.id}`);
+    assert.equal(a.health,3);
+  }
 }
-console.log('Scoped solids: five awnings and two circled step undersides; all other undersides open; both facings; moving roof for six actor types at 30/60/120Hz; pause/reset and hard-surface drop protection passed.');
+console.log('Scoped solids: five awnings and two circled step undersides; all other undersides open; both facings; moving roof for six actor types at 30/60/120Hz; pause/reset and deliberate drops through every support passed.');
 
 // Regression: physical support was correct, but the later cabin image erased
 // the lower half of roof enemies. Exercise both real render owners after motion.
@@ -131,9 +145,11 @@ for (const type of ['virus', 'corrupted', 'firewall', 'drone']) for (const state
     a.velocity.y = vy;
     checkOrder(['ground', 'lift', 'rider'], 'airborne approach/departure stays in front');
   }
-  place(r, a, roof.x + roof.w / 2, roof.y + 120);
+  place(r, a, roof.x + roof.w / 2, p.signalLift.y);
+  checkOrder(['ground', 'lift', 'rider'], 'cabin passenger draws on the floor like the player');
+  place(r, a, roof.x + roof.w / 2, p.signalLift.y + 130);
   order.length = 0; w.drawGameEntities(ctx);
-  assert(order.indexOf('rider') < order.indexOf('lift'), 'below-roof enemy retains its previous depth');
+  assert(order.indexOf('rider') < order.indexOf('lift'), 'actor below the raised floor stays behind');
   place(r, a, roof.x + roof.w / 2, roof.topY);
   a.active = false; checkOrder(['ground', 'lift'], 'inactive rider is not redrawn');
   a.active = true;
@@ -147,6 +163,23 @@ for (const type of ['virus', 'corrupted', 'firewall', 'drone']) for (const state
   assert.equal(order.filter(x => x === 'rider').length, 1, 'no missing or duplicate enemy without a lift');
 }
 console.log('Elevator roof depth: four enemy types, rising/returning rides, airborne transitions, below-roof depth, one draw per actor, inactive/culling and unavailable-lift cases passed.');
+
+// The full render coordinator places the hero once on the same dynamic side
+// of the cabin as enemies: ground walk-on, rising floor/roof, or underneath.
+for(const position of ['ground','floor','roof','under','outside']) {
+ const r=rig(),{w,p,context}=r;load(context,'src/game/render-coordinator.js');
+ const lift=p.signalLift;lift.y=lift.prevY=position==='ground'?856:650;
+ const roof=p.getLiftRoof(),x=position==='outside'?lift.x-180:lift.x+lift.w/2;
+ const foot=position==='roof'?roof.topY:position==='floor'?lift.y:856;
+ place(r,w.player,x,foot);
+ const order=[];w.player.draw=()=>order.push('player');
+ w.BARCODE.PresentationAssets={draw:key=>{if(key==='liftCabin')order.push('lift');if(key==='liftTrack')order.push('drive');return true;}};
+ const ctx=new Proxy({globalAlpha:1,getTransform:()=>({a:1,b:0,c:0,d:1,e:0,f:0}),createLinearGradient:()=>({addColorStop(){}}),measureText:t=>({width:t.length*10})},{get:(o,k)=>o[k]??(()=>{})});
+ w.drawGameElements(ctx);assert.equal(order.filter(x=>x==='player').length,1);assert(order.includes('lift'));assert(order.indexOf('drive')<order.indexOf('player'),'the back drive stays behind every actor');
+ assert.equal(order.indexOf('player')<order.indexOf('lift'),position==='under',position+' follows the moving floor');
+ assert.deepStrictEqual(r.calls.errors,[]);
+}
+console.log('Shared player/enemy lift depth: ground walk-on, floor/roof passengers, underpass and outside actor draw once.');
 
 // A descending floor squashes real enemies once, including a carrier; the
 // flattened pose persists after EnemyManager removes the defeated actor.

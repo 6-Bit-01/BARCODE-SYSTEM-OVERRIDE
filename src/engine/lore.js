@@ -6,7 +6,8 @@ window.LoreSystem = class LoreSystem {
   reset() { this.currentLore = null; this.currentRecordId = null; this.pending = []; this.elapsedMs = 0; this.displayDuration = 12000; this.textOpacity = 0; }
   isBlocked() {
     return !!(window.isPaused || window.gameState?.paused || window.gameState?.gameOver || window.gameState?.victory ||
-      window.tutorialSystem?.isActive?.() || window.hackingSystem?.isActive?.() || window.sector1Progression?.isGameplaySuppressed?.());
+      window.tutorialSystem?.isActive?.() || window.hackingSystem?.isActive?.() || window.hackingSystem?.feedback || window.hackingSystem?.resultFx ||
+      window.BARCODE?.stageFX?.ratEvent || window.BARCODE?.stageFX?.message || window.sector1Progression?.isGameplaySuppressed?.());
   }
   begin(notice) {
     this.currentLore = notice.text; this.currentRecordId = notice.id; this.elapsedMs = 0; this.textOpacity = 0;

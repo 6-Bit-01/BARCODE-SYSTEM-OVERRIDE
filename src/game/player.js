@@ -134,10 +134,15 @@ window.Player = class Player {
       if (this.jumpBufferTimerMs > 0) this.jumpBufferTimerMs = Math.max(0, this.jumpBufferTimerMs - deltaTime);
       if (this.grounded) this.coyoteTimerMs = PLAYER_COYOTE_MS;
       else this.coyoteTimerMs = Math.max(0, this.coyoteTimerMs - deltaTime);
-      if (this.dropSurfaceId) {
+      if (this.dropSurfaceId || this.dropSurfaceIds?.size) {
         this.dropSurfaceAgeMs += deltaTime;
-        if (this.grounded || this.dropSurfaceAgeMs > 1000 ||
-            this.position.y + PLAYER_VISUAL_FOOT_OFFSET_Y > this.dropSurfaceY + this.height) this.dropSurfaceId = null;
+        this.dropSurfaceIds ||= new Set([this.dropSurfaceId].filter(Boolean));
+        for (const id of this.dropSurfaceIds) {
+          const cleared = window.sector1Progression?.hasClearedDropSurface?.(this, id) ??
+            this.position.y + PLAYER_VISUAL_FOOT_OFFSET_Y > this.dropSurfaceY + 260;
+          if (cleared) this.dropSurfaceIds.delete(id);
+        }
+        if (!this.dropSurfaceIds.has(this.dropSurfaceId)) this.dropSurfaceId = null;
       }
       const jumpHeld = this.isJumpHeld();
       if (!jumpHeld) this.queueJumpRelease();
@@ -556,9 +561,12 @@ window.Player = class Player {
 
   dropThrough() {
     if (!this.grounded || !this.supportedSurfaceId || this.isEntering || !this.allowMovement || this.controlsDisabled) return false;
-    if (this.supportedSurfaceId === 'signal-lift-roof' || window.sector1Progression?.getStageSurfaces?.().some(s => s.id === this.supportedSurfaceId && s.solid)) return false;
     if (window.sector1Progression?.isGameplaySuppressed?.() || window.isPaused || window.gameState?.paused) return false;
     this.dropSurfaceId = this.supportedSurfaceId;
+    // Closely stacked slabs can still surround the cap when the feet reach
+    // the next support. A fresh drop preserves only those already crossed.
+    this.dropSurfaceIds ||= new Set();
+    this.dropSurfaceIds.add(this.dropSurfaceId);
     this.dropSurfaceY = this.position.y + PLAYER_VISUAL_FOOT_OFFSET_Y;
     this.dropSurfaceAgeMs = 0;
     this.supportedSurfaceId = null;
@@ -573,6 +581,7 @@ window.Player = class Player {
     window.rhythmSystem?.hideRhythmMode?.();
     return true;
   }
+  isDroppingThrough(id) { return !!id && (this.dropSurfaceId === id || !!this.dropSurfaceIds?.has(id)); }
 
   jump() {
     if (this.isRhythmPlanted()) return false;

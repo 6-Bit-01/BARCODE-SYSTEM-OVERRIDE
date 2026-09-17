@@ -53,7 +53,7 @@ function main() {
     if (device === 'keyboard') r.tapKey('d'); else { r.pad.axes[0] = 1; r.step(); r.pad.axes[0] = 0; r.step(); }
     assert(t.completedObjectives.has('movement')); assert.equal(t.currentDialogue,0);
     assert(t.targetText.includes('original studio take'));
-    assert.equal(t.getObjectivePresentation().title, 'Continue crew briefing');
+    assert.equal(t.getObjectivePresentation(), null, 'Continue belongs only to the story footer');
     r.ground(); r.acknowledge(); assert(w.player.grounded, 'Continue never leaks to jump');
     assert.equal(t.currentDialogue,1); r.acknowledge(); r.acknowledge();
     assert.equal(t.storyChapter,1, 'completed coaching skipped only after all arrival story');
@@ -94,7 +94,8 @@ function main() {
     r.step();assert.equal(t.currentDialogue,0);assert(t.targetText.startsWith('Their commands'));
     assert.equal(t.getDialoguePresentation().line.speaker,'mac');
     assert(t.targetText.startsWith(t.getDialoguePresentation().text),'unread story resumes its preserved typing cursor');
-    r.acknowledge();assert.equal(t.currentDialogue,3);assert(t.targetText.includes('twelve seconds'));
+    const held=t.currentText;r.pressContinue();assert.equal(t.currentDialogue,0);assert.equal(t.currentText,held,'hidden result cannot consume story input');
+    r.advance(1100);r.acknowledge();assert.equal(t.currentDialogue,3);assert(t.targetText.includes('twelve seconds'));
     r.acknowledge();assert.equal(t.storyChapter,4);assert(!r.p.missionStarted);
     for(let n=0;n<4;n++)r.acknowledge();assert.equal(t.currentDialogue,4);
     r.pressContinue();assert(t.active&&t.readyToAdvance,'first Continue reveals closing line');

@@ -4,7 +4,7 @@ const fs=require('fs'),path=require('path'),{spawn}=require('child_process'),{on
 const {createCanvas,loadImage,GlobalFonts}=require(require.resolve('@napi-rs/canvas',{paths:[process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES]}));
 const {createRig,load}=require('./check-level-01-boss'),{createSprite}=require('./makko-animation-fixture'),{installArt}=require('./render-cat-chaos.cjs');
 const root=path.resolve(__dirname,'..'),out=path.resolve(process.argv[2]||'../review');fs.mkdirSync(out,{recursive:true});
-GlobalFonts.registerFromPath((process.env.TUTORIAL_FLOW_REVIEW || process.env.FEEDBACK_POLISH_REVIEW) ? path.join(root,'assets/studies/visual-overhaul/references/fonts/Oxanium.ttf') : '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','Oxanium');
+GlobalFonts.registerFromPath((process.env.TUTORIAL_FLOW_REVIEW || process.env.FEEDBACK_POLISH_REVIEW || process.env.PLAYTEST_POLISH_REVIEW) ? path.join(root,'assets/studies/visual-overhaul/references/fonts/Oxanium.ttf') : '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','Oxanium');
 GlobalFonts.registerFromPath('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','sans-serif');
 async function main(){
  const {w,p,context,calls}=createRig();await installArt(w,context);
@@ -27,9 +27,42 @@ async function main(){
  for(let i=0;i<3;i++){w.spaceShipSystem.shipImages[i]=await loadImage(path.join(root,'assets/traffic/ship-'+(i+1)+'.webp'));w.spaceShipSystem.imagesLoaded[i]=true;w.spaceShipSystem.shipSheets[i]=w.BARCODE.trafficSheets[i];}
  const bg=await loadImage(path.join(root,'assets/world-v3/far-background.webp')),fg=await loadImage(path.join(root,'assets/world-v3/buildings.webp'));
  p.startMission();w.rhythmSystem.hideRhythmMode();w.player.allowMovement=true;
- function scene(c,cx,cy){w.gameCamera={centerX:cx,y:cy};w.renderer.zoomLevel=1;c.fillStyle='#111322';c.fillRect(0,0,1920,1080);c.drawImage(bg,0,0,1920,1080);c.save();c.translate(960-cx,-cy);c.drawImage(fg,0,2,fg.width,fg.height-2,-152,-550+2*1589/fg.height,4400,1589-2*1589/fg.height);w.drawGround(c);w.drawGameEntities(c);w.player.draw(c);c.restore();c.save();c.translate(0,-cy);w.spaceShipSystem.drawForegroundShips(c);c.restore();if(!w.tutorialSystem?.isActive?.())w.drawObjectives(c);}
+ function scene(c,cx,cy){w.gameCamera={centerX:cx,y:cy};w.renderer.zoomLevel=1;c.fillStyle='#111322';c.fillRect(0,0,1920,1080);c.drawImage(bg,0,0,1920,1080);c.save();c.translate(960-cx,-cy);c.drawImage(fg,0,2,fg.width,fg.height-2,-152,-550+2*1589/fg.height,4400,1589-2*1589/fg.height);w.drawGround(c);if(process.env.PLAYTEST_POLISH_REVIEW)w.BARCODE.stageFX.drawWorld(c);w.drawGameEntities(c);if(p.getLiftActorLayer(w.player)!=='behind')w.player.draw(c);c.restore();c.save();c.translate(0,-cy);w.spaceShipSystem.drawForegroundShips(c);c.restore();if(!w.tutorialSystem?.isActive?.()&&!process.env.PLAYTEST_POLISH_REVIEW)w.drawObjectives(c);}
  function setHero(x,foot,support){Object.assign(w.player.position,{x,y:foot-72});w.player.velocity.x=0;w.player.velocity.y=0;w.player.grounded=true;w.player.supportedSurfaceId=support||null;w.player.state='idle';w.player.airInput=0;w.player.controlsDisabled=false;w.player.invulnerableUntil=0;w.player.health=w.player.maxHealth;w.player.playAnimation('idle');}
  const canvas=createCanvas(1920,1080),c=canvas.getContext('2d');
+ if(process.env.PLAYTEST_POLISH_REVIEW){
+  for(const file of ['src/core/action-input.js','src/core/gamepad-ui.js','src/core/input.js','src/game/tutorial.js','src/game/lore-records.js','src/game/lore-collection.js','src/engine/lore.js','src/game/level-01-stage-fx.js'])load(context,file);
+  const storage=new Map();w.localStorage={getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)};
+  w.lostDataSystem.archive=new w.BARCODE.LoreCollection();w.initLore();
+  p.reset();w.hackingSystem=new w.HackingSystem();w.inputManager=new w.InputManager();
+  const t=w.tutorialSystem,h=w.hackingSystem;t.startTutorial();setHero(660,856,null);
+  const acknowledge=()=>{if(!t.readyToAdvance)t.handleSpacePress();t.handleSpacePress();};
+  const preview=createCanvas(960,540),pc=preview.getContext('2d');
+  function frame(cx=960,cy=0){scene(c,cx,cy);w.drawTacticalFocusCue(c);t.draw(c);w.drawGameUI(c);pc.drawImage(canvas,0,0,960,540);}
+  function save(name,cx=960,cy=0){frame(cx,cy);fs.writeFileSync(path.join(out,name+'.webp'),preview.toBuffer('image/webp',90));}
+  t.handleSpacePress();save('01-dialogue');for(let i=0;i<4;i++)acknowledge();save('02-move-task');t.checkObjective('movement');save('03-jump-task');
+  w.navigator.getGamepads=()=>[{id:'Sony DualSense',connected:true,mapping:'standard',axes:[0,0],buttons:Array.from({length:17},()=>({pressed:false}))}];w.inputManager.update();t.startChapter(1);acknowledge();acknowledge();t.handleSpacePress();save('04-controller-briefing');
+  t.startChapter(3);h.start();h.update(h.bootDurationMs+h.displayTime+1);t.update(0);save('05-terminal-only');
+  h.inputText=h.currentPuzzle.answer;h.processInput('Enter');t.update(0);save('06-hack-result');h.update(1100);t.update(0);t.handleSpacePress();save('07-story-resumes');
+  t.active=false;t.completed=true;h.reset();p.startMission();p.state='jammer_active';p.closedGateEncounterId=null;p.pendingSpawns=[];w.enemyManager.clear();w.loreSystem.reset();w.spaceShipSystem.ships=[];
+  function foe(type,x,foot){const e=type==='drone'?new w.RooftopDrone(x,foot-57,{x:x-180,w:360}):new w.Enemy(x,foot-72,type);Object.assign(e,{entranceComplete:true,_authoredEntranceActive:false,spawnProtectionDuration:0,spawnTimeMs:-10000});Object.assign(e.position,{x,y:foot-(type==='drone'?57:72)});if(type!=='drone'){e.initSprite();e.playAnimation('idle');}return e;}
+  setHero(800,856,null);w.enemyManager.enemies=[foe('corrupted',970,856),foe('virus',380,856),foe('firewall',180,856)];h.start();
+  const movie=spawn('ffmpeg',['-y','-loglevel','error','-f','image2pipe','-framerate','24','-i','pipe:0','-c:v','libx264','-threads','2','-pix_fmt','yuv420p','-movflags','+faststart',path.join(out,'hack-dilation.mp4')],{stdio:['pipe','ignore','pipe']});
+  let errors='';movie.stderr.on('data',b=>errors+=b);
+  for(let i=0;i<144;i++){w.enemyManager.update(1000/24,w.player);h.update(1000/24);frame();if(i===45)save('08-hack-tracers');if(!movie.stdin.write(preview.toBuffer('image/jpeg',85)))await once(movie.stdin,'drain');}
+  movie.stdin.end();const [code]=await once(movie,'close');if(code)throw new Error(errors);h.reset();w.enemyManager.clear();
+  p.state='encounter_2';const stage=w.BARCODE.stageFX;stage.reset(p);const spot=stage.ratSpot;setHero(spot.x,spot.y,spot.surfaceId);w.gameCamera.centerX=spot.x;
+  const e=foe('corrupted',spot.x+80,spot.y);w.enemyManager.enemies=[e];w.loreSystem.displayLoreMessage('A recovered transmission waits while the crew speaks.');w.loreSystem.update(500);stage.update(16);stage.inspect();stage.update(2200);w.loreSystem.update(2200);save('09-studio-rat-clear',spot.x,spot.y-650);
+  stage.update(4100);w.loreSystem.update(16);save('10-inspection-resumes',spot.x,spot.y-650);stage.inspect();stage.inspect();w.loreSystem.update(16);save('11-lore-resumes',spot.x,spot.y-650);
+  w.loreSystem.reset();stage.reset(p);w.enemyManager.clear();p.state='jammer_active';
+  for(const state of ['ground','riders','under']){
+   p.resetSignalLift();const lift=p.signalLift;lift.y=lift.prevY=state==='ground'?856:650;
+   const x=lift.x+lift.w/2,foot=state==='riders'?lift.y:856;setHero(x+55,foot,state==='under'?null:lift.id);
+   w.enemyManager.enemies=[foe('firewall',x-55,foot)];save('lift-'+state,x,160);
+  }
+  if(calls.errors.length)throw new Error(calls.errors.join('\n'));
+  console.log('Native review: alternating tutorial, hack result/story, six-second dilation video, Studio Rat/inspect/lore sequencing, and ground/rider/underpass lift states.');return;
+ }
  if(process.env.FEEDBACK_POLISH_REVIEW){
   p.state='jammer_active';p.closedGateEncounterId=null;w.enemyManager.enemies=[];setHero(50,856,null);
   const sheet=createCanvas(1200,900),sc=sheet.getContext('2d');sc.fillStyle='#080f17';sc.fillRect(0,0,1200,900);

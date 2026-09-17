@@ -224,6 +224,7 @@ async function main() {
         w.player.grounded = true; const h = w.hackingSystem; assert(h.start()); tutorial.update(0);
         h.update(h.bootDurationMs); h.update(h.displayTime + 1);
         h.inputText = h.currentPuzzle.answer; h.processInput('Enter');
+        assert(!tutorial.handleSpacePress(), 'terminal result owns the screen until its feedback ends');h.update(1000);
       }
       for (let n = 0; tutorial.storyChapter === chapter && n < 10; n++) { tutorial.update(0); acknowledge(); }
       assert.strictEqual(tutorial.storyChapter, chapter + 1, 'earned actions and acknowledged story jointly advance the lesson');

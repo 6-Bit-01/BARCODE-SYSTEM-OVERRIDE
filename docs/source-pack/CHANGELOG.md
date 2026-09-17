@@ -1,5 +1,11 @@
 # Recovery checkpoint — September 14
 
+## September 17, 2026 — playtest clarity, hack dilation and dynamic lift depth
+
+Continue from merged #76, `ee089acce1ee9dad6ffd877fe32f99dd633aa011` (base/rollback), on `agent/tutorial-single-panel`. The owner's follow-up requests are implemented together: one alternating tutorial instruction area; lore and inspect waiting through the complete Studio Rat event; stronger hack slowdown with a gentle pulse and enemy trails; deliberate Down + Jump through every standable surface, including solids; and player/enemy elevator depth following the moving floor. The fixed drive stays behind actors.
+
+Read `docs/source-pack/PLAYTEST_POLISH_PASS.md` (or `PLAYTEST_POLISH_PASS.md` at the pack root). These explicit requests supersede the old simultaneous Objectives/dialogue cards, 40% constant focus, solid-surface drop prohibition and roof-only enemy depth fix. Preserve the twenty-bubble story/progression, all recovered art, boss clearance, twelve-second allies and exact five-second lift power. Current PR/head/checks belong to the generated receipt. Publish one draft, refresh the maintained v5 archive and retain owner Makko acceptance before assistant merge. Older entries below are history.
+
 ## September 17 — Finish The Job recovery and combined completion
 
 - Recover the approved twenty-bubble tutorial and original saved implementation: early-action credit, acknowledged story, one training entrance, phase-correct hack teaching, deliberate Rhythm Mode exit, readable mapped controls and immediate final Continue.
