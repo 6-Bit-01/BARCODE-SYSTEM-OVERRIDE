@@ -1,5 +1,9 @@
 # Repository Guidance
 
+## September 17, 2026 — hack/rhythm power enhancement
+
+The owner explicitly requested completion and publication of the unfinished power pass, not another recap. Base/rollback is merged #85, `62b44f7cf5446b38bec18746411587327cedb142`; branch `agent/hack-rhythm-power`. Read `docs/source-pack/MODE_POWER_PASS.md` and the newest ACCEPTANCE route. Hacking now slows hostiles/scenery to 16%, uses an existing-art open-hand pose and new time/guard effects; rhythm has stronger beat-driven pressure and impact feedback. Five synthesized SFX share the existing SFX bus. Preserve #85's fixed opaque terminal and all merged gameplay/settings/recovery. Music source/transport/loops/judgments remain unchanged. New animation logic reuses the approved idle atlas; do not call it new drawn art. Publish a tested draft and refresh maintained v5; owner Makko/controller/listening acceptance still precedes assistant merge.
+
 ## September 17, 2026 — final Level 1 playtest follow-up
 
 The owner's new request authorizes a stable visible hack panel with live enemies, title settings and pause fullscreen, explicit settings/recovery rules, stronger varied boss support and jammer phases, and a gentle return to proven dialogue/objective positions. Base/rollback is merged #84, `bbd95ba821b99a1268e1dc563d7027fdbf12dc08`; branch `agent/level1-final-playtest`. Read FINAL_PLAYTEST_PASS.md and the newest ACCEPTANCE route.

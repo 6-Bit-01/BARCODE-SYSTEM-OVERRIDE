@@ -160,7 +160,8 @@ window.renderGame = function() {
 
   // Tactical focus is a scene treatment, not part of the terminal or HUD. Draw
   // it after the world zoom has been restored and before any interface layer.
-  drawTacticalFocusCue(ctx);
+  if (window.BARCODE?.modePowerFX) window.BARCODE.modePowerFX.drawScreen(ctx);
+  else drawTacticalFocusCue(ctx);
   if(hackView) {
     ctx.save();ctx.globalAlpha=1;ctx.strokeStyle='#3c827f';ctx.lineWidth=2;
     ctx.strokeRect(hackView.x,hackView.y,hackView.width,hackView.height);
@@ -292,6 +293,7 @@ function drawGameElements(ctx) {
   // Draw game entities
   window.BARCODE?.stageFX?.drawWorld(ctx);
   drawRhythmEffectsBehindPlayer(ctx);
+  window.BARCODE?.modePowerFX?.drawBehind(ctx);
   drawGameEntities(ctx);
   
   // Rhythm field is already drawn behind enemies and their warning labels.
@@ -300,6 +302,7 @@ function drawGameElements(ctx) {
   if (window.sector1Progression?.getLiftActorLayer?.(window.player) !== 'behind') drawPlayer(ctx);
   window.sector1Progression?.drawSignalLift?.(ctx, 'front');
   window.BARCODE?.combatFX?.draw(ctx);
+  window.BARCODE?.modePowerFX?.drawFront(ctx);
   
   // Restore camera transform
   ctx.restore();

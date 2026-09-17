@@ -23,6 +23,7 @@
     "src/engine/boot-loader.js",
     "src/engine/particles.js",
     "src/game/comic-hud.js",
+    "src/game/mode-power-fx.js",
     "src/game/combat-fx.js",
     "src/engine/renderer.js",
     "src/engine/parallax.js",
@@ -80,6 +81,7 @@
     "src/engine/boot-loader.js",
     "src/engine/particles.js",
     "src/game/comic-hud.js",
+    "src/game/mode-power-fx.js",
     "src/game/combat-fx.js",
     "src/engine/renderer.js",
     "src/engine/parallax.js",
@@ -253,6 +255,10 @@
         "status": "pass"
       },
       {
+        "file": "src/game/mode-power-fx.js",
+        "status": "pass"
+      },
+      {
         "file": "src/game/combat-fx.js",
         "status": "pass"
       },
@@ -399,11 +405,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 54,
+        "index": 55,
         "status": "pass"
       },
       {
-        "index": 56,
+        "index": 57,
         "status": "pass"
       }
     ]
@@ -587,7 +593,7 @@
     {
       "global": "window.player",
       "file": "src/game/player.js",
-      "line": 1793,
+      "line": 1796,
       "loaded": true
     },
     {
@@ -764,6 +770,7 @@
     "src/engine/boot-loader.js",
     "src/engine/particles.js",
     "src/game/comic-hud.js",
+    "src/game/mode-power-fx.js",
     "src/game/combat-fx.js",
     "src/engine/renderer.js",
     "src/engine/parallax.js",

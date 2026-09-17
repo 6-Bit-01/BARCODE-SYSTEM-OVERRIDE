@@ -1,5 +1,16 @@
 # Acceptance and Test Status
 
+## Newest review route — hack/rhythm power pass
+
+Exact head/tree/CI: current source receipt. Base/rollback: merged #85 `62b44f7cf5446b38bec18746411587327cedb142`. Import the review revision into a duplicate Makko preview before merge.
+
+1. Near several enemies enter hacking on street, roof and lift. Verify the open-hand pose and distinctly slower enemies, cars, rain and skyline; the opaque terminal must stay readable/clickable. Finish both puzzle types and cancel; normal movement/world speed returns.
+2. Take one guarded hit: one deflection visual/sound, not repeated protection. Verify subsequent ordinary contact, cooldown, pause/resume, death/retry and checkpoint resume. Reduced motion/flashes must keep readable feedback without rotating/moving accents.
+3. Enter rhythm and hit/miss on beat. Verify entry surge, transport-sampled pressure rings, connected perfect/combo accents and no fake hit ripple on an empty attack. Listen for all five new cues without losing warning/damage cues; adjust SFX and mute to verify their shared bus.
+4. Preserve established music through at least one full loop boundary, pause/retry, boss completion and elevator exit. Record imported SHA, browser/device/controller, PASS/FAIL and a short clip. Automated/native results are not this acceptance.
+
+After acceptance/merge, import the actual main merge SHA, fresh-load and repeat this route. No migration/settings change; retain the #85 import for rollback. Full scope/provenance: `MODE_POWER_PASS.md`.
+
 ## Final playtest follow-up — current route
 
 Import the exact draft head from the generated receipt into a duplicate Makko project. Base/rollback: merged #84, `bbd95ba821b99a1268e1dc563d7027fdbf12dc08`. This route supersedes older active-hack movement/fade requirements; dialogue motion remains intact.

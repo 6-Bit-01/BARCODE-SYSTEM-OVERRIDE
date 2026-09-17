@@ -32,7 +32,7 @@ function solve(h) {
   const target = actor(r, 'corrupted', 1000), other = actor(r, 'virus', 1150);
   w.player.health = 1;
   assert(h.start()); assert.strictEqual(h.hijackTarget, target);
-  assert.strictEqual(w.BARCODE.TacticalFocusClock.getScale(), 0.35);
+  assert.strictEqual(w.BARCODE.TacticalFocusClock.getScale(), 0.16);
   assert(!m.isHijacked(target)); solve(h);
   assert(m.isHijacked(target)); assert(!m.isHijacked(other));
   assert.strictEqual(w.player.health, 1); assert.strictEqual(target._hijackedUntilMs, 12000);
@@ -173,16 +173,16 @@ for(const fps of [30,60,120]) {
   const scale=w.BARCODE.TacticalFocusClock.getScale();min=Math.min(min,scale);max=Math.max(max,scale);
   m.update(1000/fps,w.player);h.update(1000/fps);
  }
- assert(min>=.3249&&min<.327&&max<=.3751&&max>.373,'gentle pulse stays within 32.5–37.5% speed');
- assert(Math.abs(m.hostileSimulationTimeMs-840)<1,'complete pulse averages 35% at every frame rate');
+ assert(min>=.1479&&min<.150&&max<=.1721&&max>.170,'gentle pulse stays within 14.8–17.2% speed');
+ assert(Math.abs(m.hostileSimulationTimeMs-384)<1,'complete pulse averages 16% at every frame rate');
  const trail=m.hackTrails.get(e);assert(trail.samples.length>1&&trail.samples.length<=5);
  const before=JSON.stringify({position:e.position,frame:e.animationRef?.currentFrame,time:m.simulationTimeMs,samples:trail.samples});
  let drawings=0;e.sprite.draw=()=>drawings++;let strokes=0;const ctx=new Proxy({globalAlpha:1,stroke(){strokes++;}},{get:(o,k)=>o[k]??(()=>{})});
  m.drawHackTrail(ctx,e);m.drawHackTrail(ctx,e);assert(strokes>0&&drawings>0);
  assert.equal(JSON.stringify({position:e.position,frame:e.animationRef?.currentFrame,time:m.simulationTimeMs,samples:trail.samples}),before,'drawing never advances simulation or trails');
  w.gameState.paused=true;m.update(1000,w.player);assert.equal(JSON.stringify(trail.samples),JSON.stringify(JSON.parse(before).samples));w.gameState.paused=false;
- w.BARCODE.Preferences={values:{reducedMotion:true}};m.update(16,w.player);assert.equal(m.hackTrails.size,0);assert.equal(w.BARCODE.TacticalFocusClock.getScale(),.35);
+ w.BARCODE.Preferences={values:{reducedMotion:true}};m.update(16,w.player);assert.equal(m.hackTrails.size,0);assert.equal(w.BARCODE.TacticalFocusClock.getScale(),.16);
  w.BARCODE.Preferences.values.reducedMotion=false;m.update(130,w.player);assert(m.hackTrails.size);h.cancel();assert.equal(m.hackTrails.size,0);assert.equal(w.BARCODE.TacticalFocusClock.getScale(),1);
  h.reset();m.clear();assert.equal(m.hackTrails.size,0);
 }
-console.log('Hack dilation: real movement at 30/60/120Hz, bounded 35% pulse, trailing art without simulation writes, pause/reduced motion/cancel/reset passed.');
+console.log('Hack dilation: real movement at 30/60/120Hz, bounded 16% pulse, trailing art without simulation writes, pause/reduced motion/cancel/reset passed.');

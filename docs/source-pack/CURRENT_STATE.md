@@ -1,5 +1,9 @@
 # Current State
 
+## Current review — hack/rhythm power pass
+
+Base: merged #85 (`62b44f7cf5446b38bec18746411587327cedb142`). Branch `agent/hack-rhythm-power`. The deeper slow world, existing-art hack pose, scene/guard effects, stronger beat-driven rhythm presentation and five synthesized cues are implemented. `MODE_POWER_PASS.md` records verification and boundaries. #85's opaque keypad, settings/recovery and earlier fixes remain. The current receipt—not historical sections below—identifies publication and CI. Hosted play/listening/controller acceptance is still pending.
+
 ## Current review — final Level 1 playtest follow-up
 
 Merged #84 at `bbd95ba821b99a1268e1dc563d7027fdbf12dc08` is the base/rollback. Branch `agent/level1-final-playtest` addresses the new playtest: solid side-by-side hacking, title settings and pause fullscreen, saved optional objective recovery, bounded boss support drones, jammer relay/discharge phases, and learned safe dialogue/objective positions. Working music timing remains protected. Details and explicit settings rules: FINAL_PLAYTEST_PASS.md. Exact head, PR, automated checks and CI belong to the generated receipt. Native/Chromium evidence does not establish owner Makko/controller acceptance; Level 1 is a review candidate.

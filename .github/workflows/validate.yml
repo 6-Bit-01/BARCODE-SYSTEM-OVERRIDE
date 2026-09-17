@@ -16,6 +16,18 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run check:syntax:all
+      - name: Render power cues in real Chromium
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+          MODE_POWER_BROWSER_OUTPUT: ${{ runner.temp }}/mode-power-audio
+        run: node tools/check-mode-power-browser.cjs
+      - name: Upload power audio evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mode-power-audio-${{ github.sha }}
+          path: ${{ runner.temp }}/mode-power-audio
+          if-no-files-found: ignore
       - name: Check music automation in real Chromium
         env:
           CHROME_BIN: /usr/bin/google-chrome
@@ -79,7 +91,7 @@ jobs:
           from pathlib import Path
           Path(os.environ['PACK_RECEIPT']).write_text(json.dumps({
               'revision': os.environ['GITHUB_SHA'],
-              'automatedTests': {'npm test': 'passed', 'npm run check:syntax:all': 'passed', 'node tools/check-music-audibility.cjs': 'passed (controlled and original MP3s)', 'node tools/check-background-browser.cjs': 'passed', 'node tools/check-intro-browser.cjs': 'passed', 'node tools/check-settings-browser.cjs': 'passed'},
+              'automatedTests': {'npm test': 'passed', 'npm run check:syntax:all': 'passed', 'node tools/check-mode-power-browser.cjs': 'passed', 'node tools/check-music-audibility.cjs': 'passed (controlled and original MP3s)', 'node tools/check-background-browser.cjs': 'passed', 'node tools/check-intro-browser.cjs': 'passed', 'node tools/check-settings-browser.cjs': 'passed'},
               'makkoPlaytest': 'not recorded by CI',
               'workflowRun': os.environ['GITHUB_SERVER_URL'] + '/' + os.environ['GITHUB_REPOSITORY'] + '/actions/runs/' + os.environ['GITHUB_RUN_ID']
           }, indent=2))

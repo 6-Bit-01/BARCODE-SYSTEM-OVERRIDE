@@ -388,6 +388,7 @@ window.HackingSystem = class HackingSystem {
     this.tutorialMode = tutorialActive && Number(window.tutorialSystem?.storyChapter) === 3;
     this.tutorialObjective = 'hack_start';
     this.tutorialCompleteObjective = 'hack_complete';
+    this.safeInvoke('focus entry', () => window.BARCODE?.modePowerFX?.hackStarted());
     return true;
   }
 
@@ -496,6 +497,7 @@ window.HackingSystem = class HackingSystem {
     this.tutorialObjective = null;
     this.tutorialCompleteObjective = null;
 
+    this.safeInvoke('focus exit', () => window.BARCODE?.modePowerFX?.hackEnded(outcome));
     this.restoreSuspendedRhythmMode();
     return { outcome, tutorialSession };
   }
@@ -560,6 +562,7 @@ window.HackingSystem = class HackingSystem {
   absorbGuardHit() {
     if (!this.active || this.guardHitsRemaining <= 0) return false;
     this.guardHitsRemaining--;
+    this.safeInvoke('focus deflection', () => window.BARCODE?.modePowerFX?.deflect());
     this.feedback = { text: 'SIGNAL GUARD ABSORBED', type: 'success', timer: 45, opacity: 1 };
     return true;
   }
@@ -740,6 +743,7 @@ window.HackingSystem = class HackingSystem {
       this.previousRhythmModeActive = false;
       this.suspendedRhythmMode = false;
     }
+    window.BARCODE?.modePowerFX?.reset();
   }
 };
 

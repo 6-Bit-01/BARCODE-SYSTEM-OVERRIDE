@@ -291,7 +291,9 @@ window.Player = class Player {
     // Airborne motion wins over stance; grounded modes own the performance pose.
     } else if (!this.grounded) {
       this.state = 'jump';
-    } else if (this.isRhythmPlanted() || window.hackingSystem?.isActive?.() || this.primaryAttackAnimationMs > 0) {
+    } else if (window.hackingSystem?.isActive?.()) {
+      this.state = 'idle'; // Dedicated phase-controlled open-hand focus pose.
+    } else if (this.isRhythmPlanted() || this.primaryAttackAnimationMs > 0) {
       this.state = 'rhythm';
     } else if (Math.abs(this.velocity.x) > 5) {
       this.state = 'walk';
@@ -483,8 +485,9 @@ window.Player = class Player {
   // One frame-owned transition path. Repeated requests for the same clip
   // preserve its progress; new jumps explicitly restart the jump clip.
   updateSpriteAnimation(deltaTime) {
+    const hackPose = window.BARCODE?.modePowerFX?.hackPose(this);
     const landingMs = this.landingPoseMs || 0;
-    const landing = !this.cinematicPoseActive && this.state === 'idle' && this.grounded && landingMs > 0;
+    const landing = !hackPose && !this.cinematicPoseActive && this.state === 'idle' && this.grounded && landingMs > 0;
     this.landingPoseActive = landing;
     // Recovery belongs to the game clock, even if the host sprite is absent
     // or fails. An animation error must never latch the landing pose.
@@ -496,14 +499,14 @@ window.Player = class Player {
       // The existing jump frames cover takeoff, tuck, descent and recovery.
       // Makko's currentFrame is read-only. Select through play's startFrame;
       // phase-controlled clips do not also advance on the sprite clock.
-      let frame = null;
+      let frame = hackPose?.frame ?? null;
       if (this.state === 'jump' && !this.cinematicPoseActive && !held) {
         const vy = this.velocity.y;
         frame = vy < -160 ? Math.min(8, 4 + Math.floor((920 + vy) / 180))
           : vy < 160 ? 9 + Math.floor((vy + 160) / 80) : Math.min(16, 13 + Math.floor((vy - 160) / 230));
       }
       if (landing && !held) frame = Math.min(26, 17 + Math.floor((90 - landingMs) / 9));
-      this.playAnimation(landing ? 'jump' : this.state, frame);
+      this.playAnimation(hackPose?.animation || (landing ? 'jump' : this.state), frame);
       if (!this.cinematicPoseActive && !held && frame === null) {
         if (window.BARCODE?.SpritePlayback) window.BARCODE.SpritePlayback.update(this.sprite, deltaTime);
         else this.sprite.update(deltaTime);

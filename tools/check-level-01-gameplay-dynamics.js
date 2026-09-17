@@ -120,15 +120,15 @@ function testEncountersAndTacticalFocusClock() {
   w.player = { position: { x: 600, y: 784 }, velocity: { x: 0, y: 0 }, grounded: true };
   w.enemyManager = { enemies: [], clear() { this.enemies = []; } };
   w.hackingSystem = { isActive: () => true };
-  const p = new w.Sector1Progression(w.player); w.sector1Progression = p; p.startMission(); p.update(1000);
+  const p = new w.Sector1Progression(w.player); w.sector1Progression = p; p.startMission(); p.update(3000);
   defeatAllButOne(p); p.update(1000);
   assert.strictEqual(p.activeEncounterPacket, 0, 'tactical focus does not release a packet at full-speed cadence');
-  assert.strictEqual(p.packetGraceMs, 550, 'packet grace advances at the shared 35% base hostile scale');
-  p.update(1600);
+  assert.strictEqual(p.packetGraceMs, 740, 'packet grace advances at the shared 16% base hostile scale');
+  p.update(4700);
   assert.strictEqual(p.activeEncounterPacket, 1, 'packet grace continues and eventually releases during tactical focus');
   p.revealJammer(); p.nextJammerSpawnMs = 500;
   p.update(1000);
-  assert.strictEqual(p.nextJammerSpawnMs, 150, 'jammer reinforcement clock advances at the shared 35% base hostile scale');
+  assert.strictEqual(p.nextJammerSpawnMs, 340, 'jammer reinforcement clock advances at the shared 16% base hostile scale');
 }
 
 function testHackingLifecycle() {
@@ -420,10 +420,10 @@ function testLostDataMovementSwooperAmpAndEnemyClock() {
   const manager = new w.EnemyManager(); manager.enemies = [{ active: true, type: 'virus', position: { x: 1000, y: 784 }, velocity: { x: 0, y: 0 }, update(dt, player, sim) { this.lastDt = dt; this.lastSim = sim; }, getHitbox: () => ({ x: 0, y: 0, width: 0, height: 0 }) }];
   w.hackingSystem = { isActive: () => true };
   manager.update(1000, { controlsDisabled: false, getHitbox: () => ({ x: 9999, y: 9999, width: 1, height: 1 }), position: { x: 9999, y: 9999 }, velocity: { y: 0 } });
-  assert.strictEqual(manager.enemies[0].lastDt, 350, 'enemy behavior uses the shared 35% base hostile delta during hacking');
-  assert.strictEqual(manager.enemies[0].lastSim, 350, 'enemy attack timers use the shared hostile simulation clock');
+  assert.strictEqual(manager.enemies[0].lastDt, 160, 'enemy behavior uses the shared 16% base hostile delta during hacking');
+  assert.strictEqual(manager.enemies[0].lastSim, 160, 'enemy attack timers use the shared hostile simulation clock');
   assert.strictEqual(manager.simulationTimeMs, 1000, 'authoritative simulation clock remains real time for hijack expiry');
-  assert.strictEqual(w.BARCODE.TacticalFocusClock.getScale(), 0.35, 'shared tactical clock exposes the deeper base hostile scale');
+  assert.strictEqual(w.BARCODE.TacticalFocusClock.getScale(), 0.16, 'shared tactical clock exposes the deeper base hostile scale');
   const renderSource = fs.readFileSync(path.join(root, 'src/game/render-coordinator.js'), 'utf8');
   assert(renderSource.includes('TACTICAL FOCUS //'), 'render path includes a restrained on-screen tactical focus cue');
 
@@ -439,7 +439,7 @@ function testLostDataMovementSwooperAmpAndEnemyClock() {
   assert.strictEqual(contactHits, 1, 'initial contact damage lands during tactical focus');
   reapproach(); contactManager.update(1500, contactPlayer);
   assert.strictEqual(contactHits, 1, 'contact damage cannot repeat after only 1.5 seconds of normal time during tactical focus');
-  for (let i = 0; i < 5; i++) { reapproach(); contactManager.update(1000, contactPlayer); }
+  for (let i = 0; i < 12; i++) { reapproach(); contactManager.update(1000, contactPlayer); }
   assert.strictEqual(contactHits, 2, 'contact damage repeats after sufficient slowed hostile time');
 
   const realContactManager = new w.EnemyManager();

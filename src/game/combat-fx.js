@@ -19,7 +19,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
       this.randomState = x >>> 0; return this.randomState;
     }
     sample(seed, salt) { return noise(seed, salt); }
-    reset() { this.events = []; this.timeMs = 0; this.sceneKick = 0; this.sceneSample = null; this.serial = 0; this.lastCombo = 0; this.damageFeedback = null; this.ampNotice = null; }
+    reset() { BARCODE.modePowerFX?.reset(); this.events = []; this.timeMs = 0; this.sceneKick = 0; this.sceneSample = null; this.serial = 0; this.lastCombo = 0; this.damageFeedback = null; this.ampNotice = null; }
     add(event) {
       if (!Number.isFinite(event.x) || !Number.isFinite(event.y)) return;
       if (this.events.length >= 96) this.events.shift();
@@ -28,6 +28,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
     update(ms) {
       if (!Number.isFinite(ms) || ms < 0 || window.isPaused || window.gameState?.paused) return;
       this.timeMs += ms;
+      BARCODE.modePowerFX?.update(ms);
       const audioTime = window.audioSystem?.context?.currentTime;
       this.sceneSample = Number.isFinite(audioTime) ? BARCODE.MusicTransport?.sample?.(audioTime) : null;
       this.sceneKick = Math.max(0, this.sceneKick - ms / 600);
@@ -159,6 +160,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
     }
     mode(entering, player = window.player) {
       if (!player) return;
+      BARCODE.modePowerFX?.rhythmMode(entering);
       this.lastCombo = 0;
       this.sceneKick = entering ? 1 : 0;
       this.add({ kind: 'entry', x: player.position.x, y: player.position.y + 72, duration: entering ? 650 : 220, radius: entering ? 210 : 95, color: entering ? '#7cffe2' : '#b0bed6' });
@@ -179,6 +181,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
       if (kind === 'stomp' || kind === 'land') BARCODE.stageFX?.react?.(x, strength, kind);
     }
     resolved(result, player, range) {
+      BARCODE.modePowerFX?.resolved(result, player, range);
       if (!player || !result.timing?.available) return;
       const combo = window.rhythmSystem?.combo || 0;
       if (!result.ok) { this.lastCombo = combo; return; }

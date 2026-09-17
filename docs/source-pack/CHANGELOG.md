@@ -1,5 +1,9 @@
 # Recovery checkpoint — September 14
 
+## September 17, 2026 — hack and rhythm power pass
+
+Added a frame-owned mode presentation module, 16% hack world slowdown including traffic/particles/silent skyline, a dedicated existing-art open-hand pose, guard/time effects and beat-linked rhythm pressure/impact effects. Five generated SFX share existing volume and voice ownership. Fixed terminal opacity and music timing are preserved. Added production/native/Chromium checks; see `MODE_POWER_PASS.md`. This follows merged #85 and does not reimplement its settings/recovery work.
+
 ## September 17, 2026 — final playtest follow-up
 
 Replace disappearing active hack overlays with a stable opaque terminal beside a live viewport. Add reusable title settings, native fullscreen control and reduced motion; define anytime versus per-level rules. Persist deaths and restore the last objective with full health, or choose Full Run for a +500 clear bonus. Reuse smaller recolored rooftop drones as bounded boss support/relay guards. Jammer shields after each four-hit burst and marks a fixed discharge zone. Dialogue/objective panels learn a small set of settled homes and return only after sustained clearance. Add recovery, combat, panel and real Chromium settings regression coverage plus six native review screens. Keep music synchronization intact. Details: FINAL_PLAYTEST_PASS.md.

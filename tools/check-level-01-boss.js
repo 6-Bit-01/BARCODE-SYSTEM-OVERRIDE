@@ -410,7 +410,7 @@ async function main() {
     w.gameState.paused = false;
     w.hackingSystem.active = true; tick(250);
     assert.strictEqual(p.boss.phase, phase);
-    assert.strictEqual(p.boss.phaseElapsedMs - elapsed, 87.5, 'hacking applies the 0.35 base hostile-time scale once');
+    assert.strictEqual(p.boss.phaseElapsedMs - elapsed, 40, 'hacking applies the 0.35 base hostile-time scale once');
     const health = p.boss.health;
     assert.strictEqual(p.applyBossRhythmDamage({ judgment: { available: true, timing: 'perfect' }, sequence: 1000 }).ok, false, 'hacking does not permit a simultaneous rhythm attack');
     assert.strictEqual(p.boss.health, health);

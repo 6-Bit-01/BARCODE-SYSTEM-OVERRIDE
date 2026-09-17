@@ -7,11 +7,11 @@ window.FILE_MANIFEST.push({
 });
 
 // One clock owns tactical-focus timing. Systems that represent hostile gameplay
-// may opt into its scaled delta while presentation, input, music, camera, and
-// parallax continue to receive the unmodified frame delta.
+// use its scaled delta; scenery/traffic/particles share the visual slowdown.
+// Player animation, puzzle input/deadlines, camera and music remain real-time.
 window.BARCODE = window.BARCODE || {};
 window.BARCODE.TacticalFocusClock = Object.freeze({
-  scale: 0.35,
+  scale: 0.16,
 
   isActive() {
     return !!(
@@ -27,7 +27,7 @@ window.BARCODE.TacticalFocusClock = Object.freeze({
     if (prefs?.reducedMotion || prefs?.reducedFlashes) return this.scale;
     // Read the hack's existing simulation clock; querying never advances time.
     const phase = (window.hackingSystem.sessionElapsedMs || 0) * Math.PI * 2 / 2400;
-    return this.scale + 0.025 * Math.sin(phase);
+    return this.scale + 0.012 * Math.sin(phase);
   },
 
   scaleDelta(deltaTime) {
@@ -162,7 +162,7 @@ function updateVisualSystems(deltaTime) {
   // Update particles
   if (window.particleSystem && typeof window.particleSystem.update === 'function') {
     try {
-      window.particleSystem.update(deltaTime);
+      window.particleSystem.update(deltaTime * window.BARCODE.TacticalFocusClock.getScale());
     } catch (error) {
       console.error('Error updating particle system:', error?.message || error);
     }
@@ -171,7 +171,7 @@ function updateVisualSystems(deltaTime) {
   // Update space ships
   if (window.spaceShipSystem && typeof window.spaceShipSystem.update === 'function') {
     try {
-      window.spaceShipSystem.update(deltaTime);
+      window.spaceShipSystem.update(deltaTime * window.BARCODE.TacticalFocusClock.getScale());
     } catch (error) {
       console.error('Error updating space ship system:', error?.message || error);
     }

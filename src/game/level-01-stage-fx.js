@@ -100,7 +100,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
       const owner = window.sector1Progression;
       if (owner !== this.owner) this.reset(owner);
       if (!this.archive() && B.LoreCollection) this.fallbackArchive = new B.LoreCollection();
-      this.timeMs += ms;
+      this.timeMs += ms * (B.TacticalFocusClock?.getScale?.() ?? 1);
       this.reactions.forEach(r => r.age += ms); this.reactions = this.reactions.filter(r => r.age < 1000);
       this.events.forEach(e => e.age += ms); this.events = this.events.filter(e => e.age < e.duration);
       this.captionKick = Math.max(0, this.captionKick - ms / 1700);

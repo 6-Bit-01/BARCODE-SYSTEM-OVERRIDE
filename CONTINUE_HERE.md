@@ -1,5 +1,9 @@
 # Continue here — Level 1 rebuild after reverted #55
 
+## Current continuation — hack/rhythm power pass
+
+The unfinished post-#85 enhancement is implemented on `agent/hack-rhythm-power`, based on `62b44f7cf5446b38bec18746411587327cedb142`. See `docs/source-pack/MODE_POWER_PASS.md` for exact scope, tests, provenance and import route. Stronger slow world/open-hand hack/guard FX and beat-linked rhythm/SFX are the new work; earlier settings/recovery/elevator work is already merged and must not be redone. The generated receipt identifies the published revision and checks. Hosted acceptance remains pending before assistant merge.
+
 ## September 17, 2026 — smart boxes: movement is not a hide trigger
 
 The owner rejected PR #78's blanket hiding during walking, jumping and Rhythm Combat. That correction supersedes the older smart-panels section and its acceptance route. Base/rollback: merged #78, `ec89e7468a6f79bcafcaea8b07d3c75ab37a3cf9`; branch `agent/smart-box-motion`.

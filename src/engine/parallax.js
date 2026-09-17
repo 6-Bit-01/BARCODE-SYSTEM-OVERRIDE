@@ -65,6 +65,9 @@ window.ParallaxBackground = class ParallaxBackground {
   syncSkyPlayback() {
     const video = this.skyVideo;
     if (!video) return;
+    // Silent scenery only: music playback rates and transport never change.
+    const rate = window.BARCODE?.TacticalFocusClock?.isActive?.() ? window.BARCODE.TacticalFocusClock.scale : 1;
+    if (video.playbackRate !== rate) video.playbackRate = rate;
     if (!this.shouldPlaySkyAnimation()) { if (!video.paused) video.pause(); return; }
     if (video.readyState < 2 || !video.paused || this.skyPlayPending || this.skyPlaybackBlocked) return;
     const generation = this.skyVideoGeneration;
@@ -84,6 +87,7 @@ window.ParallaxBackground = class ParallaxBackground {
     this.skyVideoGeneration++; this.skyPlayPending = false; this.skyPlaybackBlocked = false;
     if (!this.skyVideo) return;
     this.skyVideo.pause();
+    this.skyVideo.playbackRate = 1;
     if (this.skyVideo.readyState > 0) this.skyVideo.currentTime = 0;
   }
 
@@ -306,7 +310,7 @@ window.ParallaxBackground = class ParallaxBackground {
   drawSkylineLife(ctx, x, y, width, height) {
     // Sample the existing pause/reset-owned clock. No new timers, particles,
     // canvases, frame loops, random flicker or animation state in the draw pass.
-    const time = window.BARCODE?.combatFX?.timeMs ?? window.BARCODE?.stageFX?.timeMs ?? 0;
+    const time = window.BARCODE?.modePowerFX?.worldTimeMs ?? window.BARCODE?.combatFX?.timeMs ?? window.BARCODE?.stageFX?.timeMs ?? 0;
     const animateLights = window.BARCODE_RENDER_QUALITY?.flashes !== false;
     const quiet = window.sector1Progression?.isBossCombatLive?.() ? 0.45 : 1;
     const sx = width / 2048, sy = height / 740;
@@ -526,7 +530,7 @@ window.ParallaxBackground = class ParallaxBackground {
     if (!this.decorationVisible(0, 1279, x, width / 1279)) return;
     this.prepareAtmosphereSprites();
     const sx = width / 1279, sy = height / 462;
-    const time = window.BARCODE?.combatFX?.timeMs ?? window.sector1Progression?.districtSignal?.elapsedMs ?? 0;
+    const time = window.BARCODE?.modePowerFX?.worldTimeMs ?? window.BARCODE?.combatFX?.timeMs ?? window.sector1Progression?.districtSignal?.elapsedMs ?? 0;
     const music = this.getSceneMusic();
     const sprites = this.atmosphereSprites;
     ctx.save(); ctx.translate(x, y); ctx.scale(sx, sy);
