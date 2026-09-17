@@ -1,6 +1,6 @@
 // One lesson owner coordinates crew dialogue, earned actions and enemy entrances.
 window.FILE_MANIFEST = window.FILE_MANIFEST || [];
-window.FILE_MANIFEST.push({ name: 'src/game/tutorial.js', exports: ['TutorialSystem', 'tutorialSystem'], dependencies: ['clamp', 'randomRange'] });
+window.FILE_MANIFEST.push({ name: 'src/game/tutorial.js', exports: ['TutorialSystem', 'tutorialSystem'], dependencies: ['clamp', 'randomRange', 'BARCODE.OverlayLayout'] });
 
 window.TutorialSystem = class TutorialSystem {
   constructor() {
@@ -44,6 +44,7 @@ window.TutorialSystem = class TutorialSystem {
   }
 
   startTutorial() {
+    this._overlayPanels = {};
     this._taskLayout = null;
     this._dialogueLayout = null;
     if (this.completed) return;
@@ -66,6 +67,7 @@ window.TutorialSystem = class TutorialSystem {
   }
 
   startChapter(chapter) {
+    if(this._overlayPanels)delete this._overlayPanels.dialogue;
     this.cancelPendingTimers();
     this.storyChapter = chapter;
     this.dialogue = [];
@@ -185,10 +187,10 @@ window.TutorialSystem = class TutorialSystem {
   }
 
   canAdvanceDialogueWithInput() {
-    return this.getInstructionOwner() === 'dialogue' && !this.isPaused() && this.readyToAdvance;
+    return this.getInstructionOwner() === 'dialogue' && this.getDialogueLayout().readable && !this.isPaused() && this.readyToAdvance;
   }
   handleSpacePress() {
-    if (this.getInstructionOwner() !== 'dialogue' || this.isPaused()) return false;
+    if (this.getInstructionOwner() !== 'dialogue' || !this.getDialogueLayout().readable || this.isPaused()) return false;
     if (!this.readyToAdvance) {
       this.characterIndex = this.targetText.length;
       this.currentText = this.targetText;
@@ -280,7 +282,7 @@ window.TutorialSystem = class TutorialSystem {
         const caption = this.getDialoguePresentation();
         this.rememberDialogue(caption.line, caption.text);
       }
-    } else if (this.getInstructionOwner() === 'dialogue') {
+    } else if (this.getInstructionOwner() === 'dialogue' && this.getDialogueLayout().readable) {
       this._hackCaptionPhase = null;
       this.characterIndex = Math.min(this.targetText.length, this.characterIndex +
         (window.BARCODE?.Preferences?.values.instantText ? this.targetText.length : delta / this.typingSpeed));
@@ -289,7 +291,7 @@ window.TutorialSystem = class TutorialSystem {
     }
     this.reconcileLesson();
     this._armFinalMessageSequence();
-    if (finalWasActive && this.isFinalMessage && this.active && this.getInstructionOwner() === 'dialogue') {
+    if (finalWasActive && this.isFinalMessage && this.active && this.getInstructionOwner() === 'dialogue' && this.getDialogueLayout().readable) {
       this.finalMessageTimer += delta;
       if (this.finalMessageTimer >= this.finalMessageHoldTime) {
         this.finalMessageFadeStart = this.finalMessageHoldTime;
@@ -356,18 +358,19 @@ window.TutorialSystem = class TutorialSystem {
     }
     return null;
   }
-  isPlayMoment() {
-    return !!window.BARCODE?.OverlayLayout?.isPlayMoment();
-  }
   getDialogueLayout() {
-    return window.BARCODE?.OverlayLayout?.place(1860,194,{previous:this._dialogueLayout || {x:26,y:875,width:1860,height:194,scale:1}});
+    // Size against the complete line, so typing never moves the panel's edges.
+    // Conservative glyph widths keep this independent of canvas/font loading.
+    const measure={measureText:text=>({width:text.length*18})};
+    const variants=[1100,860,600].map((width,i)=>({width,
+      height:104+Math.max(2+i,...this.dialogue.map(line=>this.wrapText(this.resolveControlText(line.text),width-60,measure).length))*38+(i===2?30:0)}));
+    return window.BARCODE.OverlayLayout.present(this,'dialogue',variants);
   }
   getInstructionOwner() {
     if (!this.active) return null;
     const hack = window.hackingSystem;
     if (hack?.isActive?.() || hack?.feedback || hack?.resultFx) return 'terminal';
-    if (this.isPlayMoment()) return this.getObjectivePresentation() ? 'task' : 'play';
-    if (!this.lineAcknowledged && !this.getDialoguePresentation().hidden && this.getDialogueLayout()?.clear !== false) return 'dialogue';
+    if (!this.lineAcknowledged && !this.getDialoguePresentation().hidden) return 'dialogue';
     return this.getObjectivePresentation() ? 'task' : null;
   }
   getDialoguePresentation() {
@@ -389,33 +392,35 @@ window.TutorialSystem = class TutorialSystem {
     const presentation = this.getDialoguePresentation(), { line } = presentation;
     if (!line) return;
     ctx.save();
-    // Only calm reading uses the large panel. Practice stays in a small clear
-    // corner; hidden story keeps its cursor and cannot consume Continue.
+    // Unread story stays visible during play. Geometry, not movement input,
+    // decides placement, reshaping, and a brief signal dissolve.
     if (owner === 'dialogue') {
       const speakers = { '6bit': ['6 BIT', '#e6e5ee'], dj: ['DJ FLOPPYDISC', '#83e9ff'], cache: ['CACHE BACK', '#ffd65c'], mac: ['MAC MODEM', '#ff929c'] };
       const [name, color] = speakers[line.speaker] || ['CREW LINK', '#95ffe0'];
       this._dialogueLayout = this.getDialogueLayout();
-      const {x,y,width} = this._dialogueLayout;
+      const {x,y,width,height} = this._dialogueLayout;
       ctx.globalAlpha = this.finalMessageOpacity;
-      ctx.fillStyle = '#080f1c'; ctx.fillRect(x, y, width, 194);
-      ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.strokeRect(x, y, width, 194);
-      ctx.fillStyle = color; ctx.fillRect(x, y, 6, 194);
+      window.BARCODE.OverlayLayout.begin(ctx,this._dialogueLayout);
+      if(this._dialogueLayout.docked){window.BARCODE.OverlayLayout.drawDock(ctx,this._dialogueLayout,name);ctx.restore();return;}
+      ctx.fillStyle = '#080f1c'; ctx.fillRect(x, y, width, height);
+      ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.strokeRect(x, y, width, height);
+      ctx.fillStyle = color; ctx.fillRect(x, y, 6, height);
       ctx.textBaseline = 'middle'; ctx.textAlign = 'left'; ctx.font = 'bold 26px Oxanium, sans-serif';
       ctx.fillText(name, x+26, y + 22);
       ctx.fillStyle = '#ffffff'; ctx.font = '32px Oxanium, sans-serif';
-      this.wrapText(presentation.text, width - 100, ctx).forEach((text, index) => ctx.fillText(text, x+26, y + 64 + index * 38));
+      this.wrapText(presentation.text, width - 60, ctx).forEach((text, index) => ctx.fillText(text, x+26, y + 64 + index * 38));
       ctx.font = 'bold 26px Oxanium, sans-serif'; ctx.fillStyle = '#a9ffdb';
       const button = this.control('continue') + (window.BARCODE?.GamepadUI?.connected ? ' button' : '');
       const help = `Press ${button} to ${this.readyToAdvance ? 'continue' : 'show the full line'}`;
-      ctx.fillText(help, x+26, y + 167);
+      const helpLines=this.wrapText(help,width-52,ctx);
+      helpLines.forEach((text,i)=>ctx.fillText(text,x+26,y+height-26-(helpLines.length-1-i)*29));
     } else {
       const card = this.getObjectivePresentation(), width = 564, height = 158;
-      this._taskLayout = window.BARCODE.OverlayLayout.place(width,height,{
-        previous:this._taskLayout
-      });
-      if(!this._taskLayout.clear){ctx.restore();return;}
+      this._taskLayout = window.BARCODE.OverlayLayout.present(this,'task',[{width,height}]);
       const {x,y} = this._taskLayout;
-      ctx.globalAlpha = 1; ctx.fillStyle = '#080f1c'; ctx.fillRect(x, y, width, height);
+      ctx.globalAlpha = 1; window.BARCODE.OverlayLayout.begin(ctx,this._taskLayout);
+      if(this._taskLayout.docked){window.BARCODE.OverlayLayout.drawDock(ctx,this._taskLayout,card.title,card.control);ctx.restore();return;}
+      ctx.fillStyle = '#080f1c'; ctx.fillRect(x, y, width, height);
       ctx.strokeStyle = '#95ffe0'; ctx.lineWidth = 2; ctx.strokeRect(x, y, width, height);
       ctx.fillStyle = '#95ffe0'; ctx.fillRect(x, y, 5, height);
       ctx.textBaseline = 'middle'; ctx.textAlign = 'left'; ctx.font = 'bold 30px Oxanium, sans-serif';

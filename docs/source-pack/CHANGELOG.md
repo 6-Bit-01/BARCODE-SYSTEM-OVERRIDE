@@ -1,5 +1,14 @@
 # Recovery checkpoint — September 14
 
+## September 17 — replace movement suppression with smart panel motion
+
+- Remove movement/airborne/Rhythm Mode as unread-dialogue hide triggers.
+- Add steady actor-aware placement, readable shapes, 260 ms relocation, overlap cutouts, 120 ms opacity recovery, and reserved rhythm controls.
+- Only actual crowding uses a saved-message tab; wait 350 ms before reopening to prevent flutter. Preserve unread text, input and puzzle clocks.
+- Protect moving pointer keys and retain cancellation. Extend presentation to objectives, wave/clear notices, combat feedback and lift prompt; preserve elevator/gameplay/assets.
+- Correct tests that asserted the rejected hiding rule; add production motion checks and native staged video/stills. Exact results belong to the receipt. Owner Makko acceptance is pending.
+
+
 ## September 17, 2026 — smart panels and elevator front rails
 
 Base/rollback: merged #77, `78f67f4750a2d12f8a2063c895d06d5b9952d700`. Branch: `agent/tutorial-play-space`. The owner reports the tutorial hiding street enemies during jumps, the fixed hack panel hiding its locked target, and passengers appearing over the elevator's front rails. This pass implements those reports together.

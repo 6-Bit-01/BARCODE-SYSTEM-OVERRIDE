@@ -32,6 +32,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
         this.details = [{ ...DETAILS[0], ...this.ratSpot }, ...DETAILS.slice(1)];
         this.ratRunConsumed = false;
       }
+      this._overlayPanels = {};
       this.owner = owner; this.timeMs = 0; this.reactions = []; this.events = [];
       this.seenEntrances = new WeakSet(); this.arrived = new WeakSet(); this.clears = new Set();
       this.activeEncounter = null; this.message = null; this.nearby = null; this.captionKick = 0;
@@ -74,7 +75,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
         Math.abs(d.x - p.position.x) < 95 && Math.abs(d.y - (p.position.y + 72)) < 70) || null;
     }
     inspect() {
-      if (this.isDialogueDeferred()) return { ok: false, reason: 'presentation-busy' };
+      if (this.isDialogueDeferred() || this.message && !this.getMessageLayout().readable) return { ok: false, reason: 'presentation-busy' };
       if (this.message?.line === 0) { this.message.line = 1; this.message.age = 0; return { ok: true, reason: 'crew-response' }; }
       if (this.message) { this.message = null; return { ok: true, reason: 'closed' }; }
       const detail = this.findNearby();
@@ -89,11 +90,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
     isDialogueDeferred() {
       const hack = window.hackingSystem;
       return !!(this.ratEvent || window.tutorialSystem?.isActive?.() || hack?.isActive?.() || hack?.feedback || hack?.resultFx ||
-        window.isPaused || window.gameState?.paused || window.gameState?.gameOver || window.gameState?.victory || this.owner?.isGameplaySuppressed?.() ||
-        this.message && (B.OverlayLayout.isPlayMoment() || !this.getMessageLayout().clear));
+        window.isPaused || window.gameState?.paused || window.gameState?.gameOver || window.gameState?.victory || this.owner?.isGameplaySuppressed?.());
     }
     getMessageLayout() {
-      return B.OverlayLayout.place(899,124,{previous:{x:30,y:887,width:899,height:124,scale:1}});
+      return B.OverlayLayout.present(this,'inspect',[{width:899,height:124}],{preferred:{x:30,y:887,width:899,height:124,scale:1}});
     }
     update(ms) {
       if (!Number.isFinite(ms) || ms < 0 || window.isPaused || window.gameState?.paused) return;
@@ -116,7 +116,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
       }
       // An unread inspection waits through the complete pounce/drag and hack
       // overlays. Its reading time begins only when the panel is visible.
-      if (this.message && !ratWasPlaying && !this.isDialogueDeferred()) {
+      if (this.message && !ratWasPlaying && !this.isDialogueDeferred() && this.getMessageLayout().readable) {
         this.message.age += ms;
         if (this.message.age >= this.message.duration) this.message = null;
       }
@@ -363,7 +363,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
       const key = B.GamepadUI?.connected ? (B.ControllerSettings?.prompt('inspect') || 'RB') : (window.inputManager?.actionInput?.keyboardBindings?.inspect?.[0] || 'E').toUpperCase();
       if (this.message) {
         const m = this.message;
-        const layout=this.getMessageLayout();ctx.translate(layout.x-30,layout.y-887);
+        const layout=this.getMessageLayout();B.OverlayLayout.begin(ctx,layout);
+        if(layout.docked){B.OverlayLayout.drawDock(ctx,layout,m.speaker);ctx.restore();return;}ctx.translate(layout.x-30,layout.y-887);
         ctx.fillStyle = '#070b15'; ctx.fillRect(39, 895, 890, 116); ctx.fillStyle = '#eee6d4'; ctx.fillRect(30, 887, 890, 116);
         ctx.fillStyle = '#0c1727'; ctx.font = 'bold 16px monospace'; ctx.fillText(m.speaker, 52, 908);
         ctx.font = 'bold 20px sans-serif'; ctx.fillText(m.lines[m.line], 52, 944, 840);

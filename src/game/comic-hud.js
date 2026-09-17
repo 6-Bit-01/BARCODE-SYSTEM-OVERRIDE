@@ -1,4 +1,4 @@
-// Approved illustrated HUD. Draw-only: no timers, contexts or gameplay writes.
+// Approved illustrated HUD and simulation-clock presentation. No new timers.
 window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.ComicHUD', 'BARCODE.OverlayLayout'], dependencies: [] });
 (function () {
@@ -33,17 +33,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
     const boss=window.sector1Progression?.boss;
     return [primary,window.player,...(window.enemyManager?.enemies || []).filter(e=>e.active),boss&&!boss.defeated?boss:null];
   }
-  function isPlayMoment() {
-    const p=window.player;
-    return !!p && !p.isEntering && (p.grounded===false || Math.abs(p.velocity?.x||0)>20 || window.rhythmSystem?.isActive?.());
+  function reservedBounds() {
+    // Health/score are above the placement area; the active beat lane extends
+    // into it. Coaching must not cover the controls it is teaching.
+    return window.rhythmSystem?.isActive?.() ? [{x:26,y:225,width:710,height:330}] : [];
   }
   function isClear(box) { return sceneActors().map(actorBounds).every(b=>!b||!overlap(box,b)); }
   function placeOverlay(width,height,{actors=sceneActors(),previous=null,scales=[1]}={}) {
-    const bounds = [...new Set(actors)].map(actorBounds).filter(b=>b && b.x<1920 && b.x+b.width>0 && b.y<1080 && b.y+b.height>0);
+    const bounds = [...new Set(actors)].map(actorBounds).filter(b=>b && b.x<1920 && b.x+b.width>0 && b.y<1080 && b.y+b.height>0).concat(reservedBounds());
     const score = box => bounds.map(b=>overlap(box,b));
     // Keep a clear location steady while reading or choosing a keypad button.
     if (previous && previous.width===width*(previous.scale||1) && previous.height===height*(previous.scale||1) && score(previous).every(n=>n===0)) return {...previous,clear:true};
-    let best = null;
+    let best = null, clear = null;
     for (const scale of scales) {
       const w=width*scale,h=height*scale,maxX=1894-w,maxY=1054-h;
       const xs=[maxX,26,(1920-w)/2,...bounds.flatMap(b=>[b.x-w-12,b.x+b.width+12])];
@@ -51,13 +52,78 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
       for(const y0 of ys) for(const x0 of xs) {
         const box={x:Math.max(26,Math.min(maxX,x0)),y:Math.max(225,Math.min(maxY,y0)),width:w,height:h,scale};
         const hits=score(box),focus=hits[0]||0,total=hits.reduce((a,b)=>a+b,0);
-        if (!total) return {...box,clear:true};
+        if (!total) {
+          const distance=previous ? Math.hypot(box.x-previous.x,box.y-previous.y) : Math.hypot(box.x-maxX,box.y-225);
+          if(!clear || distance<clear.distance)clear={box,distance};
+        }
         if (!best || focus<best.focus || focus===best.focus && total<best.total) best={box,focus,total};
       }
+      if(clear)return {...clear.box,clear:true};
     }
     return {...best.box,clear:false};
   }
-  B.OverlayLayout=Object.freeze({actorBounds,actors:sceneActors,isClear,isPlayMoment,overlap,place:placeOverlay});
+  function present(owner, slot, variants, {actors=sceneActors(), preferred=null}={}) {
+    const now=window.gameState?.gameTime || 0;
+    const states=owner._overlayPanels ||= {};
+    let state=states[slot];
+    if(state && now<state.time)state=null;
+    const bounds=[...new Set(actors)].map(actorBounds).filter(Boolean).concat(reservedBounds());
+    const fits=box=>bounds.every(b=>!overlap(box,b));
+    const matches=box=>variants.some(v=>v.width*(v.scale||1)===box.width && v.height*(v.scale||1)===box.height && !!v.compact===!!box.compact);
+    let destination=state?.to;
+    if(!destination || destination.docked || !matches(destination) || !fits(destination)) {
+      destination=null;
+      for(const v of variants) {
+        const box=placeOverlay(v.width,v.height,{actors,previous:state?.to || preferred,scales:[v.scale||1]});
+        if(box.clear){destination={...box,compact:!!v.compact};break;}
+      }
+      if(!destination)destination={...placeOverlay(440,70,{actors,previous:state?.to}),docked:true};
+      // After a crowded scene, wait for a sustained opening instead of
+      // repeatedly opening/closing a full paragraph between passing enemies.
+      if(state?.to.docked && !destination.docked) {
+        state.openSince ??= now;
+        if(now-state.openSince<350)destination=state.to;
+      } else if(state)state.openSince=null;
+    }
+    const changed=!state || ['x','y','width','height','scale','compact','docked'].some(k=>state.to[k]!==destination[k]);
+    if(changed) {
+      const from=state?.shown || destination;
+      state=states[slot]={from,to:destination,start:now,time:now,shown:from,lastOccluded:state?.lastOccluded};
+    }
+    state.time=now;
+    const reduced=B.Preferences?.values.reducedMotion;
+    const t=Math.min(1,Math.max(0,(now-state.start)/260)),ease=t*t*(3-2*t);
+    // Reshaping uses a brief signal dissolve; text is reflowed at its final
+    // readable size, never squeezed or scaled through intermediate widths.
+    const reshape=state.from.width!==state.to.width || state.from.height!==state.to.height;
+    const box={...state.to,x:reduced?state.to.x:state.from.x+(state.to.x-state.from.x)*ease,
+      y:reduced?state.to.y:state.from.y+(state.to.y-state.from.y)*ease};
+    box.x=Math.max(26,Math.min(1894-box.width,box.x));
+    box.y=Math.max(225,Math.min(1054-box.height,box.y));
+    const clear=fits(box);
+    if(!clear)state.lastOccluded=now;
+    const recover=reduced||state.lastOccluded===undefined?1:Math.min(1,0.22+0.78*(now-state.lastOccluded)/120);
+    const alpha=clear?Math.min(recover,reshape&&!reduced?0.35+0.65*ease:1):0.22;
+    const moving=!reduced && t<1 && (reshape || Math.hypot(state.from.x-state.to.x,state.from.y-state.to.y)>1);
+    state.shown=box;
+    return {...box,clear,alpha,moving,readable:clear&&!box.docked&&alpha>=0.9,
+      cutouts:bounds.filter(b=>overlap(box,b))};
+  }
+  function beginOverlay(ctx, layout) {
+    ctx.globalAlpha *= layout.alpha ?? 1;
+    // Subtract each actor separately. A single even-odd path for overlapping
+    // enemies would XOR their overlap and paint the panel back over them.
+    for(const b of layout.cutouts || []) {
+      ctx.beginPath();ctx.rect(0,0,1920,1080);ctx.rect(b.x,b.y,b.width,b.height);ctx.clip('evenodd');
+    }
+  }
+  function drawDock(ctx, layout, title, detail='Message held • resumes when clear') {
+    ctx.fillStyle='#080f1c';ctx.fillRect(layout.x,layout.y,layout.width,layout.height);
+    ctx.fillStyle=C.teal;ctx.fillRect(layout.x,layout.y,4,layout.height);
+    text(ctx,title,layout.x+18,layout.y+23,22,C.paper,700,'left',layout.width-36);
+    text(ctx,detail,layout.x+18,layout.y+49,18,C.muted,600,'left',layout.width-36);
+  }
+  B.OverlayLayout=Object.freeze({actorBounds,actors:sceneActors,isClear,overlap,place:placeOverlay,present,begin:beginOverlay,drawDock});
   function polygon(c, points, fill, stroke, width=2) {
     c.beginPath(); points.forEach((p,i)=>i ? c.lineTo(...p) : c.moveTo(...p)); c.closePath();
     c.fillStyle=fill; c.fill(); if(stroke){c.strokeStyle=stroke;c.lineWidth=width;c.stroke();}
@@ -125,6 +191,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
     if (line) lines.push(line);
     return lines;
   }
+  const objectiveMotion={};
   function actionCard(c, { title, control, label, detail, progress, hint }, { x = 1328, y = 225, width = 564 } = {}) {
     c.save(); c.globalAlpha = 1; c.shadowBlur = 0;
     const inner = width - 48, titles = wrapped(c, title, inner, 36, 700), details = wrapped(c, detail, inner, 28);
@@ -133,8 +200,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
     const hintTitles = hint ? wrapped(c, (hint.control ? '[' + hint.control + '] ' : '') + hint.title, inner, 28, 700) : [];
     const height = 60 + titles.length * 40 + details.length * 34 + (control ? 68 : 0) + progressLines.length * 32 +
       (hint ? 20 + hintTitles.length * 34 + hintLines.length * 32 : 0);
-    const layout=placeOverlay(width+8,height+8,{previous:{x,y,width:width+8,height:height+8,scale:1}});
-    if(!layout.clear){c.restore();return;}
+    const layout=present(objectiveMotion,'objectives',[{width:width+8,height:height+8}],{preferred:{x,y,width:width+8,height:height+8,scale:1}});
+    beginOverlay(c,layout);
+    if(layout.docked){drawDock(c,layout,title,control?`[${control}] ${label||''}`:'Objective retained');c.restore();return;}
     x=layout.x;y=layout.y;
     plate(c, x, y, width, height, C.ink, C.muted);
     text(c, 'OBJECTIVES', x + 24, y + 25, 22, C.green, 700);

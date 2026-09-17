@@ -3,22 +3,21 @@ window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({ name: 'src/engine/lore.js', exports: ['LoreSystem', 'loreSystem', 'initLore'], dependencies: ['BARCODE.LoreRecords'] });
 window.LoreSystem = class LoreSystem {
   constructor() { this.reset(); }
-  reset() { this.currentLore = null; this.currentRecordId = null; this.pending = []; this.elapsedMs = 0; this.displayDuration = 12000; this.textOpacity = 0; this.panelLayout = null; }
+  reset() { this._overlayPanels = {}; this.currentLore = null; this.currentRecordId = null; this.pending = []; this.elapsedMs = 0; this.displayDuration = 12000; this.textOpacity = 0; this.panelLayout = null; }
   getPanelLayout() {
     const record=window.BARCODE.LoreRecords.get(this.currentRecordId);
     const measure={measureText:text=>({width:text.length*13})};
     const lines=window.BARCODE.LoreRecords.wrap(measure,record?record.paragraphs[0]:this.currentLore,820);
-    return window.BARCODE.OverlayLayout.place(900,86+lines.length*29,{previous:this.panelLayout});
+    return window.BARCODE.OverlayLayout.present(this,'lore',[{width:900,height:96+lines.length*29}]);
   }
   isBlocked() {
     return !!(window.isPaused || window.gameState?.paused || window.gameState?.gameOver || window.gameState?.victory ||
       window.tutorialSystem?.isActive?.() || window.hackingSystem?.isActive?.() || window.hackingSystem?.feedback || window.hackingSystem?.resultFx ||
-      window.BARCODE?.stageFX?.ratEvent || window.BARCODE?.stageFX?.message || window.sector1Progression?.isGameplaySuppressed?.() ||
-      this.currentLore && (window.BARCODE?.OverlayLayout?.isPlayMoment() || !this.getPanelLayout().clear));
+      window.BARCODE?.stageFX?.ratEvent || window.BARCODE?.stageFX?.message || window.sector1Progression?.isGameplaySuppressed?.());
   }
   begin(notice) {
     this.currentLore = notice.text; this.currentRecordId = notice.id; this.elapsedMs = 0; this.textOpacity = 0;
-    this.panelLayout = null;
+    this.panelLayout = null; this._overlayPanels = {};
   }
   displayLoreMessage(text, id = null) {
     const record = id ? window.BARCODE.LoreRecords.get(id) : null;
@@ -33,7 +32,7 @@ window.LoreSystem = class LoreSystem {
     return true;
   }
   update(ms) {
-    if (this.isBlocked() || !this.currentLore || !Number.isFinite(ms) || ms < 0) return;
+    if (this.isBlocked() || !this.currentLore || !this.getPanelLayout().readable || !Number.isFinite(ms) || ms < 0) return;
     this.elapsedMs += ms;
     if (this.elapsedMs >= this.displayDuration) {
       const next = this.pending.shift();
@@ -50,6 +49,8 @@ window.LoreSystem = class LoreSystem {
     const lines = window.BARCODE.LoreRecords.wrap(ctx, record ? record.paragraphs[0] : this.currentLore, 820);
     this.panelLayout = this.getPanelLayout();
     const {height,x,y,width} = this.panelLayout;
+    window.BARCODE.OverlayLayout.begin(ctx,this.panelLayout);
+    if(this.panelLayout.docked){window.BARCODE.OverlayLayout.drawDock(ctx,this.panelLayout,'DISTRICT TRANSMISSION');ctx.restore();return;}
     ctx.fillStyle = 'rgba(7,16,30,0.96)'; ctx.fillRect(x, y, width, height);
     ctx.strokeStyle = '#9f82c7'; ctx.lineWidth = 2; ctx.strokeRect(x, y, width, height);
     ctx.fillStyle = '#caa4ff'; ctx.font = 'bold 19px monospace';
