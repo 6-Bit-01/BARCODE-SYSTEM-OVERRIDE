@@ -1,5 +1,13 @@
 # Repository Guidance
 
+## September 17, 2026 — make the music response audible
+
+The owner cannot hear PR #82's music changes and confirms the track names are wrong: ignore them when choosing musical treatment. Base/rollback is merged #82, `a0f9e79356210b0966f0a9d04113094b52b8e568`; branch `agent/audible-music-response`. Read AUDIBLE_MUSIC_RESPONSE.md.
+
+The linked audio, not the filenames, establishes processing roles. The historical `fx-layer` is predominantly low bass; `bass-layer` contains midrange material. The earlier high-cut filter on the former had almost nothing to remove. Keep source IDs/URLs, timing, loops, transport and judgments unchanged. Apply colour processing to actual midrange, add clear bass cutaways/returns and phrase variation, and preserve the dry foundation. Off must still reproduce legacy mixing exactly.
+
+Real Chromium PCM renders now supplement timing and gain-route tests; attach the original-audio A/B evidence and keep listening acceptance distinct from numerical output checks. Preserve all #82 gameplay and campaign changes. Publish one tested draft and refresh maintained v5; no assistant merge before the owner's Makko listening review.
+
 ## September 17, 2026 — boss, safe music variation and campaign foundation
 
 Owner approval: “Alright, let's do it. You can take a look at the sync but if its not broken, don't fix it.” Base/rollback is merged #81, `a75f33f2321a9e96f3a8fa7677dbf61e586bdb1e`; branch `agent/boss-music-campaign`. Read `BOSS_MUSIC_CAMPAIGN_PASS.md` and the newest acceptance route.

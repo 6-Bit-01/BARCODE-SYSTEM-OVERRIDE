@@ -16,6 +16,24 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run check:syntax:all
+      - name: Check music automation in real Chromium
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+          MUSIC_BROWSER_OUTPUT: ${{ runner.temp }}/music-browser/synthetic
+        run: node tools/check-music-audibility.cjs
+      - name: Render original music A/B in real Chromium
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+          MUSIC_FETCH_ASSETS: '1'
+          MUSIC_BROWSER_OUTPUT: ${{ runner.temp }}/music-browser/original-tracks
+        run: node tools/check-music-audibility.cjs
+      - name: Upload music audio evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: music-browser-${{ github.sha }}
+          path: ${{ runner.temp }}/music-browser
+          if-no-files-found: ignore
       - name: Check background video in real Chromium
         env:
           CHROME_BIN: /usr/bin/google-chrome
@@ -49,7 +67,7 @@ jobs:
           from pathlib import Path
           Path(os.environ['PACK_RECEIPT']).write_text(json.dumps({
               'revision': os.environ['GITHUB_SHA'],
-              'automatedTests': {'npm test': 'passed', 'npm run check:syntax:all': 'passed', 'node tools/check-background-browser.cjs': 'passed', 'node tools/check-intro-browser.cjs': 'passed'},
+              'automatedTests': {'npm test': 'passed', 'npm run check:syntax:all': 'passed', 'node tools/check-music-audibility.cjs': 'passed (controlled and original MP3s)', 'node tools/check-background-browser.cjs': 'passed', 'node tools/check-intro-browser.cjs': 'passed'},
               'makkoPlaytest': 'not recorded by CI',
               'workflowRun': os.environ['GITHUB_SERVER_URL'] + '/' + os.environ['GITHUB_REPOSITORY'] + '/actions/runs/' + os.environ['GITHUB_RUN_ID']
           }, indent=2))

@@ -1,5 +1,9 @@
 # Decision Register
 
+## September 17, 2026 — music names are not content
+
+The owner reports no audible difference after #82 and explicitly confirms: “the names are wrong. Ignore them actually”. Choose routing from actual sound/spectrum, keep existing IDs as references, and retain the earlier instruction to leave working sync alone. Use clear musical cutaways and returns; verify real output as well as timing. No source renaming/replacement, new audio clock, tempo change, source seeking or gameplay retune is approved by this correction.
+
 ## September 17, 2026 — approved next pass with synchronization constraint
 
 The owner approves the proposed boss/music/campaign work and permits sync inspection only: if it is not broken, do not fix it. Actual source/transport/restart timing remains the authority. Old comments describing a delay and unequal file lengths alone do not authorize a rewrite. Dynamic mixing is optional, reversible and tested against current scheduling. Boss pressure may change through counter duration and telegraphed patterns while earlier collision/traffic/rebound fixes stay intact.

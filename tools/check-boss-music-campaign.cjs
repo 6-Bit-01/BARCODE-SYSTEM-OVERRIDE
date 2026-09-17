@@ -90,7 +90,34 @@ async function checkAudio() {
   assert.equal(audio.musicTracks['fx-layer'].volume, 0.8);
   assert.equal(w.BARCODE.musicDirector.graph, null);
   assert.equal(r.trace.length, before, 'A/B switch does not restart a source');
+  r.setRhythm(false); r.advance(20);
+  assert.equal(audio.musicTracks['bass-layer'].gain.gain.value, 0, 'Off retains the original quiet exploration');
+  assert.equal(audio.musicTracks['fx-layer'].gain.gain.value, 0);
   w.BARCODE.Preferences.values.dynamicMusic = true;
+  r.setRhythm(true); r.advance(500);
+  const director = w.BARCODE.musicDirector;
+  assert.strictEqual(director.graph.gain, audio.musicTracks['bass-layer'].gain, 'effects follow actual midrange content, not filenames');
+  assert(audio.musicTracks.foundation.gain.connections.has(audio.musicGain), 'foundation keeps its dry direct route');
+  assert(audio.musicTracks['fx-layer'].gain.connections.has(audio.musicGain), 'sub-bass is not sent to the echo');
+  assert.equal(audio.musicTracks.foundation.gain.gain.value, .4);
+  const rhythmBass = audio.musicTracks['fx-layer'].gain.gain.value;
+  r.setHack(true); r.advance(500);
+  assert.equal(director.state, 'hack');
+  assert(audio.musicTracks['fx-layer'].gain.gain.value < rhythmBass / 5, 'hacking makes a material low-end drop');
+  assert.equal(director.graph.filter.frequency.value, 850, 'filter reaches the measured midrange');
+  r.setHack(false); r.advance(500);
+  assert.equal(director.state, 'rhythm');
+  assert(audio.musicTracks['fx-layer'].gain.gain.value > .2, 'exiting hack restores the low end');
+  let pulledBack = false, returned = false;
+  for (let i = 0; i < 900; i++) {
+    r.advance(20);
+    const sample = w.BARCODE.MusicTransport.sample(r.ac.currentTime);
+    const value = audio.musicTracks['fx-layer'].gain.gain.value;
+    if (sample.grid.beatIndex % 16 >= 14) { assert(value < .06); pulledBack = true; }
+    else if (pulledBack && value > .2) returned = true;
+    assert.equal(audio.musicTracks.foundation.gain.gain.value, .4, 'musical breaks never move the foundation');
+  }
+  assert(pulledBack && returned, 'audible phrase pullback and return happen through the real gains');
   r.p.state = 'boss_combat'; r.p.boss = { active: true, defeated: false, phase: 'telegraph' };
   r.advance(2000);
   assert(audio.musicTracks['bass-layer'].volume > 0, 'boss has pressure even with no ordinary enemies');
@@ -107,6 +134,9 @@ async function checkAudio() {
   second.arrangement.sources.forEach(s => { s.mixRole = roleNames[s.mixRole]; });
   second.adaptiveMix.colourRole = 'airwaves';
   for (const [key, levels] of Object.entries(second.adaptiveMix.states)) second.adaptiveMix.states[key] = Object.fromEntries(Object.entries(levels).map(([role, value]) => [roleNames[role], value]));
+  const renameRoles = levels => Object.fromEntries(Object.entries(levels).map(([role, value]) => [roleNames[role], value]));
+  second.adaptiveMix.phraseVariants = second.adaptiveMix.phraseVariants.map(renameRoles);
+  second.adaptiveMix.turnaroundGains = renameRoles(second.adaptiveMix.turnaroundGains);
   w.BARCODE.MusicProfiles.register(second); w.BARCODE.MusicProfiles.select(second.profileId); w.BARCODE.MusicTransport.load(second.profileId);
   audio.musicTracks = Object.fromEntries(second.arrangement.sources.map(s => [s.sourceId, {buffer:{id:s.sourceId,duration:12},volume:0}]));
   assert(audio.startAllLayersSimultaneously().ok); r.advance(2000);
@@ -223,4 +253,5 @@ function checkBoss() {
   console.log('Boss: actual rhythmic attacks and readable slam at 30/60/120Hz:', JSON.stringify(report));
 }
 
-(async () => { await checkAudio(); await checkCampaign(); checkBoss(); })().catch(error => { console.error(error.stack || error); process.exitCode = 1; });
+if (require.main === module) (async () => { await checkAudio(); await checkCampaign(); checkBoss(); })().catch(error => { console.error(error.stack || error); process.exitCode = 1; });
+module.exports = { audioRig };

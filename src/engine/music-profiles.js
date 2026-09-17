@@ -90,6 +90,15 @@ window.BARCODE = window.BARCODE || {};
         if (!levels || typeof levels !== 'object' || Array.isArray(levels)) return invalid('adaptive state levels invalid');
         for (const [role, value] of Object.entries(levels)) if (!roles.has(role) || !finiteNonnegative(value) || value > 0.8) return invalid('adaptive role/gain invalid');
       }
+      if (mix.phraseVariants != null && (!Array.isArray(mix.phraseVariants) || !mix.phraseVariants.length || mix.phraseVariants.length > 16)) return invalid('adaptive phrase variants invalid');
+      for (const levels of [...(mix.phraseVariants || []), mix.turnaroundGains || {}]) {
+        if (!levels || typeof levels !== 'object' || Array.isArray(levels)) return invalid('adaptive phrase gains invalid');
+        for (const [role, value] of Object.entries(levels)) if (!roles.has(role) || !finiteNonnegative(value) || value > 1) return invalid('adaptive phrase role/gain invalid');
+      }
+      for (const [state, hz] of Object.entries(mix.filterHz || {})) if (!mix.states[state] || !finiteNumber(hz) || hz < 100 || hz > 20000) return invalid('adaptive filter state/frequency invalid');
+      if (mix.echo) for (const [key, limit] of Object.entries({ wet: 0.4, feedback: 0.3, send: 0.8 })) {
+        if (!finiteNonnegative(mix.echo[key]) || mix.echo[key] > limit) return invalid('adaptive echo budget invalid');
+      }
     }
     if (!profile.playback || typeof profile.playback !== 'object') return invalid('playback required');
     if (!finiteNonnegative(profile.playback.startTrackSec)) return invalid('playback.startTrackSec invalid');

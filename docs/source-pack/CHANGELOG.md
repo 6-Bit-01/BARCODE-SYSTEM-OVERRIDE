@@ -1,5 +1,9 @@
 # Recovery checkpoint — September 14
 
+## September 17, 2026 — audible music correction
+
+After merged #82, route filter/echo to measured midrange instead of the misleadingly named sub-bass file. Stronger state contrast, two-beat phrase pullbacks, profile-owned phrase/filter/echo settings and diagnostic routing fields. Original timing, source assets and Off mixing remain. Add actual Web Audio PCM regression and original-track A/B render alongside existing three-loop timing protection. Details: AUDIBLE_MUSIC_RESPONSE.md.
+
 ## September 17, 2026 — boss/music/campaign draft
 
 Approved combined pass over merged #81. Boss recovery follows 6/3/2 musical beats by difficulty and gains a fixed warned slam. Add profile-owned arrangement/FX and saved A/B control while retaining the protected audio timing baseline. Prioritize critical SFX, quiet atmospheric competition at warnings, save Level 1 checkpoints/results, award Voice once and connect a resumable upcoming-channel intermission. No later playable genre or invented ending evaluation. Details and verification limits: BOSS_MUSIC_CAMPAIGN_PASS.md; exact publication/test state: generated receipt.
