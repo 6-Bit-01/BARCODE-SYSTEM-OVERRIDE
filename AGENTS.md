@@ -1,5 +1,15 @@
 # Repository Guidance
 
+## September 17, 2026 — boss, safe music variation and campaign foundation
+
+Owner approval: “Alright, let's do it. You can take a look at the sync but if its not broken, don't fix it.” Base/rollback is merged #81, `a75f33f2321a9e96f3a8fa7677dbf61e586bdb1e`; branch `agent/boss-music-campaign`. Read `BOSS_MUSIC_CAMPAIGN_PASS.md` and the newest acceptance route.
+
+Preserve the actual audio start/loop/restart/transport/judgment baseline; file-length differences and inaccurate old comments are not a demonstrated synchronization failure. The new profile-owned mix uses running tracks, gain/filter/echo and a saved Dynamic music A/B switch. Protected-method hashes plus real source-schedule comparisons cover three loops and pause/resume. No audible Makko acceptance is implied.
+
+Boss counters now use 6/3/2 fresh beats by difficulty, with a fixed marked slam on later cycles. Keep the safe rebounds, traffic, roof/lift physics and all previous controls. Campaign additions persist encounter/Jammer/boss checkpoints, per-difficulty results and the Voice key, plus an honest upcoming-channel intermission. Preserve the save identity, hidden reward facts and unresolved ending rules. Later playable levels and their authored music are not supplied by this milestone.
+
+Two new frame-owned modules intentionally extend the script graph; preserve baseline exceptions while updating that inventory. Publish one tested draft and update the same maintained v5 archive. Owner Makko/physical-controller/listening acceptance remains pending before assistant merge.
+
 ## September 17, 2026 — enemies can leave the elevator
 
 The owner reports enemies trapped in the grounded cabin after merged #80. Base/rollback: `f2fb5dccf7473f8584fcd3bf25847780c35a37b3`; branch `agent/enemy-lift-exits`. Real Firewall, Corrupted and virus pursuit reproduced the fault in both directions: the ledge guard stopped actors 45 units inside the cabin.

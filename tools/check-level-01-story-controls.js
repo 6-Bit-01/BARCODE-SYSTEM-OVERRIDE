@@ -77,8 +77,8 @@ async function main() {
     const rig = createRig(), { w, context } = rig, { tap, frame } = controls(rig);
     load(context, 'src/core/runtime-lifecycle.js'); await w.BARCODE.RuntimeLifecycle.start(); frame();
     await w.BARCODE.RuntimeLifecycle.pause(); frame();
-    const menu = w.BARCODE.PauseMenu; assert(menu.open); assert.strictEqual(menu.focus, 9);
-    tap(12); assert.strictEqual(menu.focus, 8); tap(0); assert.strictEqual(menu.view, 'archive');
+    const menu = w.BARCODE.PauseMenu; assert(menu.open); assert.strictEqual(menu.focus, 10);
+    tap(12); assert.strictEqual(menu.focus, 9); tap(0); assert.strictEqual(menu.view, 'archive');
     tap(15); assert.strictEqual(menu.archiveIndex, 1); tap(1); assert.strictEqual(menu.view, 'settings');
     tap(12); tap(0); assert.strictEqual(menu.view, 'timing'); tap(15); assert.strictEqual(w.BARCODE.Preferences.values.inputOffsetMs, 5);
     tap(13); tap(14); assert.strictEqual(w.BARCODE.Preferences.values.visualOffsetMs, -5);

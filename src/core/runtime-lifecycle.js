@@ -97,6 +97,7 @@ window.BARCODE = window.BARCODE || {};
       if (typeof window.inputManager.resetActionEdges === 'function') window.inputManager.resetActionEdges();
     }
     if (window.BARCODE && window.BARCODE.playerCombat && typeof window.BARCODE.playerCombat.reset === 'function') window.BARCODE.playerCombat.reset();
+    window.BARCODE?.Campaign?.resetSession();
     if (window.player) {
       window.player.health = window.player.maxHealth;
       window.player.position = new window.Vector2D(200, 500);
@@ -139,25 +140,26 @@ window.BARCODE = window.BARCODE || {};
       if (overlay) overlay.classList.add('hidden');
       const canvas = document.getElementById('gameCanvas');
       if (canvas) canvas.style.display = 'none';
-      if (window.cutsceneSystem && typeof window.cutsceneSystem.start === 'function') await window.cutsceneSystem.start();
+      if (!options.resume && window.cutsceneSystem && typeof window.cutsceneSystem.start === 'function') await window.cutsceneSystem.start();
       if (generation !== initializerGeneration || state !== STATES.STARTING) return;
       if (canvas) canvas.style.display = 'block';
       const topbar = document.querySelector('.topbar');
       const hint = document.querySelector('.hint');
       if (topbar) topbar.style.display = 'flex';
       if (hint) hint.style.display = 'block';
-      if (window.tutorialSystem && typeof window.tutorialSystem.startTutorial === 'function') window.tutorialSystem.startTutorial();
+      if (!options.resume && window.tutorialSystem && typeof window.tutorialSystem.startTutorial === 'function') window.tutorialSystem.startTutorial();
       if (loading) loading.classList.remove('visible');
     }
 
     resetRunState({ preserveProgress: !!options.restart });
-    window.BARCODE?.LevelDifficulty?.beginLevel('level-01');
-    if (options.restart && window.audioSystem && typeof window.audioSystem.startRuntimeGameplayMusic === 'function') {
+    if (!options.resume) window.BARCODE?.LevelDifficulty?.beginLevel('level-01');
+    if ((options.restart || options.resume) && window.audioSystem && typeof window.audioSystem.startRuntimeGameplayMusic === 'function') {
       const musicResult = window.audioSystem.startRuntimeGameplayMusic();
       if (!musicResult || musicResult.ok === false) {
         throw new Error(`Restart music startup failed: ${musicResult && musicResult.reason || 'unknown'}`);
       }
     }
+    if (options.resume && !window.BARCODE?.Campaign?.restore(options.resume)) throw new Error('Saved checkpoint could not be restored. Start a new run or retry Continue.');
     if (typeof window.startGameLoop === 'function') window.startGameLoop();
     return { ok: true, status: 'started', state, generation };
   }

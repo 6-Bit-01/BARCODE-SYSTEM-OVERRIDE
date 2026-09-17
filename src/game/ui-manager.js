@@ -315,6 +315,7 @@ function drawSector1BossUI(ctx) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   if (window.gameState.victory) {
+    if (window.BARCODE?.Campaign?.intermission) { window.BARCODE.Campaign.drawIntermission(ctx); ctx.restore(); return; }
     const reveal = owner.getCompletionReveal?.() || 0;
     if (reveal === 0) { ctx.restore(); return; }
     ctx.globalAlpha = reveal;
@@ -322,7 +323,7 @@ function drawSector1BossUI(ctx) {
     ctx.fillRect(0, 0, 1920, 1080);
     ctx.strokeStyle = '#00ffff';
     ctx.lineWidth = 3;
-    ctx.strokeRect(390, 265, 1140, 560);
+    ctx.strokeRect(390, 265, 1140, 620);
     ctx.fillStyle = '#00ffff';
     ctx.font = 'bold 48px monospace';
     ctx.fillText('SECTOR 1 COMPLETE', 960, 365);
@@ -342,16 +343,24 @@ function drawSector1BossUI(ctx) {
       ctx.fillRect(x, 653, 310 * row.progress, 4);
     });
     ctx.fillStyle = '#b9faff';
+    const result = window.BARCODE?.Campaign?.result;
+    if (result) {
+      const seconds = Math.floor(result.elapsedMs / 1000), minutes = Math.floor(seconds / 60);
+      const accuracy = result.attempts ? `${Math.round(100 * result.accurate / result.attempts)}%` : '—';
+      ctx.font = '20px Oxanium, monospace';
+      ctx.fillText(`TIME ${minutes}:${String(seconds % 60).padStart(2, '0')}  ·  ACCURACY ${accuracy}  ·  DAMAGE ${result.damageTaken}  ·  RETRIES ${result.retries}`, 960, 687);
+    }
     ctx.font = '22px monospace';
     if (owner.areCompletionControlsReady?.() !== false) {
       ctx.fillText(window.BARCODE?.GamepadUI?.connected ? `${window.BARCODE.ControllerSettings.button(2)} — Restart Level 1` : 'SPACE — Restart Level 1', 960, 718);
       ctx.fillText(window.BARCODE?.GamepadUI?.connected ? `${window.BARCODE.ControllerSettings.button(0)} — Rematch the boss` : 'ENTER — Rematch the boss', 960, 766);
+      if (window.BARCODE?.Campaign?.result) ctx.fillText(window.BARCODE?.GamepadUI?.connected ? `${window.BARCODE.ControllerSettings.button(3)} — Continue broadcast` : 'C — Continue broadcast', 960, 820);
     } else if (rows.length && rows.every(row => row.progress === 1)) {
       ctx.fillText('Release buttons to continue', 960, 742);
     }
     if ((window.BARCODE?.IntroSequence?.inspectedGutter || window.BARCODE?.stageFX?.archive()?.hasEgg('egg.l01.studio-rat'))) {
       ctx.font = '18px monospace'; ctx.fillStyle = '#cbaaff';
-      ctx.fillText('STUDIO RATS: Carrier restored. We are keeping the caption.', 960, 865);
+      ctx.fillText('STUDIO RATS: Carrier restored. We are keeping the caption.', 960, 945);
     }
   } else if (!window.gameState.gameOver) {
     window.BARCODE.ComicHUD.boss(ctx, status);

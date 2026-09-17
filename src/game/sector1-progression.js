@@ -291,6 +291,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       this.player = this.player || window.player;
       this.pollPreparedAssets();
       this.updateDistrictSignal(deltaTime);
+      window.BARCODE?.Campaign?.tick(deltaTime);
       this.updateVerticalCamera(deltaTime);
       this.updateBarrierContacts(deltaTime);
       const tutorialDone = !!(window.tutorialSystem && typeof window.tutorialSystem.isCompleted === 'function' && window.tutorialSystem.isCompleted() && typeof window.tutorialSystem.isActive === 'function' && !window.tutorialSystem.isActive());
@@ -324,7 +325,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       }
       else if (this.state === STATES.BOSS_COMBAT) this.updateBossCombat(tacticalDeltaTime);
     }
-    startMission() { this.state = STATES.ENCOUNTER_1; this.missionStarted = true; this.missionDefeats = 0; this.resetDistrictSignal(); this.countedEnemies.clear(); this.spawnedEncounterIds.clear(); this.activeEncounterId = null; this.applyGateCollision(); this.resetSignalLift(); this.enemyManagerReset(); if (window.objectivesSystem?.setMissionDefeatObjective) window.objectivesSystem.setMissionDefeatObjective(0, this.requiredEnemyKills); }
+    startMission() { this.state = STATES.ENCOUNTER_1; this.missionStarted = true; this.missionDefeats = 0; this.resetDistrictSignal(); this.countedEnemies.clear(); this.spawnedEncounterIds.clear(); this.activeEncounterId = null; this.applyGateCollision(); this.resetSignalLift(); this.enemyManagerReset(); if (window.objectivesSystem?.setMissionDefeatObjective) window.objectivesSystem.setMissionDefeatObjective(0, this.requiredEnemyKills); window.BARCODE?.Campaign?.begin(); window.BARCODE?.Campaign?.checkpoint('encounter_1'); }
     resetDistrictSignal() {
       this.lastMissionDefeatAtMs = 0;
       this.districtSignal = { elapsedMs: 0, interference: 1,
@@ -390,7 +391,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     }
     updateEncounter(deltaTime = 0) { const index = ENCOUNTERS.findIndex(e => e.id === this.state); const def = ENCOUNTERS[index]; if (!def) return; const px = this.player?.position?.x || 0; if (!this.spawnedEncounterIds.has(def.id) && px >= def.triggerX) this.spawnEncounter(def); if (this.activeEncounterId === def.id) this.updateEncounterPackets(def, deltaTime); const noPendingSpawns = !this.pendingSpawns || this.pendingSpawns.length === 0; const allPacketsReleased = this.activeEncounterPacket >= ((def.packets?.length || 1) - 1); const allDefeated = this.activeEncounterEnemies.length === encounterSpecs(def).length && this.activeEncounterEnemies.every(e => !e.active || e._defeatRecorded); if (this.activeEncounterId === def.id && allPacketsReleased && noPendingSpawns && allDefeated) { this.openEncounterGate(def.id); if (index < ENCOUNTERS.length - 1) { this.state = ENCOUNTERS[index + 1].id; this.activeEncounterId = null; this.activeEncounterEnemies = []; this.closedGateEncounterId = null; this.prepareAssetsForEncounter(index + 1); } } }
     updateEncounterPackets(def, deltaTime = 0) { const packets = def.packets || [def.enemies || []]; if (this.activeEncounterPacket >= packets.length - 1) return; const survivors = this.activeEncounterEnemies.filter(e => e && e.active && !e._defeatRecorded).length; const noPendingSpawns = !this.pendingSpawns || this.pendingSpawns.length === 0; if (noPendingSpawns && survivors <= 1 && this.packetGraceMs === null) this.packetGraceMs = 900; if (this.packetGraceMs !== null) { this.packetGraceMs = Math.max(0, this.packetGraceMs - deltaTime); if (this.packetGraceMs <= 0) this.releaseNextPacket(def); } }
-    spawnEncounter(def) { this.spawnedEncounterIds.add(def.id); this.activeEncounterId = def.id; this.closedGateEncounterId = def.id; this.activeEncounterEnemies = []; this.activeEncounterPacket = 0; this.packetGraceMs = null; const packets = def.packets || [def.enemies || []]; this.pendingSpawns = packets[0].map((spec, i) => ({ spec, encounterId: def.id, index: i, delayMs: i * SPAWN.staggerMs })); }
+    spawnEncounter(def) { window.BARCODE?.Campaign?.checkpoint(def.id); this.spawnedEncounterIds.add(def.id); this.activeEncounterId = def.id; this.closedGateEncounterId = def.id; this.activeEncounterEnemies = []; this.activeEncounterPacket = 0; this.packetGraceMs = null; const packets = def.packets || [def.enemies || []]; this.pendingSpawns = packets[0].map((spec, i) => ({ spec, encounterId: def.id, index: i, delayMs: i * SPAWN.staggerMs })); }
     releaseNextPacket(def) { const packets = def.packets || [def.enemies || []]; if (this.activeEncounterPacket >= packets.length - 1) return; this.activeEncounterPacket += 1; this.packetGraceMs = null; const priorCount = packets.slice(0, this.activeEncounterPacket).reduce((sum, packet) => sum + packet.length, 0); this.pendingSpawns = packets[this.activeEncounterPacket].map((spec, i) => ({ spec, encounterId: def.id, index: priorCount + i, delayMs: i * SPAWN.staggerMs })); }
     updatePendingSpawns(deltaTime) { if (!this.pendingSpawns || this.pendingSpawns.length === 0) return; const index = ENCOUNTERS.findIndex(e => e.id === this.state); const def = ENCOUNTERS[index]; const activeCount = this.activeEncounterEnemies.filter(e => e && e.active && !e._defeatRecorded).length; if (def?.activeCap && activeCount >= def.activeCap) return; this.pendingSpawns.forEach(pending => { pending.delayMs -= deltaTime; }); const ready = this.pendingSpawns.filter(pending => pending.delayMs <= 0).slice(0, Math.max(1, (def?.activeCap || 99) - activeCount)); this.pendingSpawns = this.pendingSpawns.filter(pending => !ready.includes(pending)); ready.forEach(pending => this.activeEncounterEnemies.push(this.spawnMissionEnemy(pending.spec, pending.encounterId, pending.index))); }
     getVisibleWorldBounds() { const playerX = this.player?.position?.x || CAMERA_MIN; const cameraX = this.cameraOverrideActive && Number.isFinite(this.cameraX) ? clampCamera(this.cameraX) : clampCamera(playerX); const rawZoom = window.renderer && typeof window.renderer.getZoomLevel === 'function' ? window.renderer.getZoomLevel() : window.renderer?.zoomLevel; const zoom = Math.max(0.1, Number.isFinite(rawZoom) ? rawZoom : 1); const halfWidth = CANVAS_WIDTH / (2 * zoom); return { left: Math.max(0, cameraX - halfWidth), right: Math.min(WORLD_WIDTH, cameraX + halfWidth), center: cameraX, zoom }; }
@@ -471,7 +472,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       const x = candidates[Math.min(candidates.length - 1, Math.floor(Math.random() * candidates.length))];
       return { x, y: GROUND_Y };
     }
-    revealJammer() { this.state = STATES.JAMMER_ACTIVE; this.nextJammerSpawnMs = 0; this.jammerReinforcementCount = 0; this.jammerRevealed = true; this.closedGateEncounterId = null; ENCOUNTERS.forEach(encounter => this.restoreEncounterSignal(encounter.id)); const position = this.chooseJammerPosition(); window.BARCODE?.JammerEnvironment?.reveal({ position }); if (window.objectivesSystem?.revealJammerObjective) window.objectivesSystem.revealJammerObjective(); this.prepareBossAssets(); }
+    revealJammer() { this.state = STATES.JAMMER_ACTIVE; this.nextJammerSpawnMs = 0; this.jammerReinforcementCount = 0; this.jammerRevealed = true; this.closedGateEncounterId = null; ENCOUNTERS.forEach(encounter => this.restoreEncounterSignal(encounter.id)); const position = this.chooseJammerPosition(); window.BARCODE?.JammerEnvironment?.reveal({ position }); if (window.objectivesSystem?.revealJammerObjective) window.objectivesSystem.revealJammerObjective(); this.prepareBossAssets(); window.BARCODE?.Campaign?.checkpoint('jammer'); }
     updateJammerReinforcements(deltaTime) { const environment = window.BARCODE?.JammerEnvironment; const status = environment?.getStatus?.(); if (!status || !status.revealed || status.destroyed) return; this.nextJammerSpawnMs = Number.isFinite(this.nextJammerSpawnMs) ? this.nextJammerSpawnMs - deltaTime : 0; const activeReinforcements = (window.enemyManager?.enemies || []).filter(enemy => enemy && enemy.active && (enemy._jammerReinforcement || !enemy._sector1MissionEnemy)); if (activeReinforcements.length >= SPAWN.jammerReinforcementCap || this.nextJammerSpawnMs > 0) return; const types = ['virus', 'corrupted', 'virus', 'firewall']; const type = types[this.jammerReinforcementCount % types.length]; this.jammerReinforcementCount += 1; const jammerX = status.position?.x || this.chooseJammerPosition().x; const targetX = Math.max(180, Math.min(WORLD_WIDTH - 180, jammerX + (jammerX < WORLD_WIDTH / 2 ? 240 : -240))); this.spawnMissionEnemy({ type, x: targetX, y: GROUND_Y }, 'jammer_reinforcement', this.jammerReinforcementCount, { jammerReinforcement: true }); this.nextJammerSpawnMs = SPAWN.jammerCadenceMinMs + Math.random() * (SPAWN.jammerCadenceMaxMs - SPAWN.jammerCadenceMinMs); }
     onJammerDestroyed() {
       this.nextJammerSpawnMs = Infinity;
@@ -548,7 +549,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         phaseBeatWait: null, secondPulseBeatWait: null, latePhase: false,
         hitSequences: new Set(), pulses: [], pulseSequence: 0, hitFlashMs: 0, guardBounceMs: 0, defeated: false,
         supportedSurfaceId: null, chaseSurfaceId: 'street', clearanceTarget: null, streetApproachLimit: null,
-        traversal: null, roofFallVelocity: null, landingPoseMs: 0, routeRecovery: false });
+        traversal: null, roofFallVelocity: null, landingPoseMs: 0, routeRecovery: false,
+        attackPattern: 'pulse', slam: null, recoveryBeatWait: null, recoveryBeats: 0 });
       this.setBossAnimation('sector_1_boss_idle_idle', true);
       this.bossReadyEmitted = true;
       this.cameraOverrideActive = false;
@@ -566,6 +568,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
           score: window.gameState?.score || 0, skyCaches: Array.from(this.skyCaches || []), signalAmpCharges: window.BARCODE?.signalAmpCharges || 0 };
       }
       window.objectivesSystem?.setBossCombatObjective?.(this.boss.health, this.boss.maxHealth);
+      window.BARCODE?.Campaign?.checkpoint('boss');
       return true;
     }
     beginBossCombat() {
@@ -585,20 +588,61 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       boss.phase = phase;
       boss.phaseElapsedMs = 0;
       boss.phaseBeatWait = null;
+      boss.recoveryBeatWait = null;
+      boss.recoveryBeats = 0;
       boss.canReceiveDamage = phase === 'recovery';
       boss.canDealDamage = phase === 'sweep' || boss.pulses.some(pulse => !pulse.hit);
       boss.state = phase === 'approach' ? 'walk' : phase === 'sweep' ? 'flourish' : 'idle';
       this.setBossAnimation(phase === 'approach' ? 'sector_1_boss_walk_walk' : phase === 'sweep' ? 'sector_1_boss_attack_attack' : 'sector_1_boss_idle_idle', phase !== 'sweep');
       if (phase === 'telegraph') {
         boss.cycle += 1;
+        window.audioSystem?.playCombatCue?.('warning');
         // Learn the double pulse before the final speed increase. The opening
         // cycle stays a demonstration even if development tools change health.
         boss.doublePulse = boss.cycle > 1 && boss.health <= 6;
         boss.latePhase = boss.cycle > 2 && boss.health <= 3;
         boss.secondPulseEmitted = false;
         boss.secondPulseBeatWait = null;
+        const choice = window.BARCODE?.LevelDifficulty?.choice?.id || 'standard';
+        const surface = this.getBossSurface();
+        const useSlam = surface.w >= 320 && boss.cycle >= 3 && boss.health <= (choice === 'relaxed' ? 3 : 6) &&
+          (choice === 'overclocked' ? boss.cycle % 2 === 1 : boss.cycle % 3 === 0);
+        boss.attackPattern = useSlam ? 'slam' : 'pulse';
+        boss.slam = useSlam ? { x: Math.max(surface.x + 100, Math.min(surface.x + surface.w - 100, this.player.position.x)),
+          groundY: surface.y, width: 176, height: 340, remainingMs: 0, hit: false } : null;
       }
-      if (phase === 'sweep') this.emitBossPulse();
+      if (phase === 'sweep') {
+        if (boss.attackPattern === 'slam' && boss.slam) {
+          boss.slam.remainingMs = 360;
+          window.renderer?.impact?.('boss');
+          window.audioSystem?.playCombatCue?.('guard');
+          window.BARCODE?.musicDirector?.accent('boss');
+        } else this.emitBossPulse();
+      }
+    }
+    bossRecoveryReady() {
+      const boss = this.boss, sample = this.getBossMusicSample();
+      const beats = window.BARCODE?.LevelDifficulty?.choice?.bossRecoveryBeats ?? 3;
+      if (!sample) return boss.phaseElapsedMs >= beats * 410;
+      const previous = boss.recoveryBeatWait;
+      boss.recoveryBeatWait = { generation: sample.generation, beat: sample.grid.beatIndex };
+      // Count fresh musical boundaries, never hostile-time scaling or a catch-up
+      // backlog. Pausing/restarting the song cannot silently consume an opening.
+      if (previous?.generation === sample.generation && sample.grid.beatIndex > previous.beat) boss.recoveryBeats++;
+      return boss.recoveryBeats >= (boss.routeRecovery ? Math.min(2, beats) : beats);
+    }
+    updateBossSlam(deltaTime) {
+      const slam = this.boss.slam;
+      if (!slam || slam.remainingMs <= 0) return;
+      const body = this.player.getHitbox?.();
+      if (!slam.hit && body && body.x + body.width > slam.x - slam.width / 2 && body.x < slam.x + slam.width / 2 &&
+          body.y + body.height > slam.groundY - slam.height && body.y < slam.groundY + 8) {
+        slam.hit = true;
+        if (!this.player.isDamageInvulnerable?.() && !window.hackingSystem?.absorbGuardHit?.()) {
+          this.player.takeDamage?.(1, { x: slam.x, y: slam.groundY });
+        }
+      }
+      slam.remainingMs = Math.max(0, slam.remainingMs - deltaTime);
     }
     getBossSurface() {
       return this.getActorSurfaces().find(s => s.id === this.boss?.supportedSurfaceId) ||
@@ -883,19 +927,20 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         const duration = boss.latePhase ? BOSS_COMBAT.fastTelegraphMs : BOSS_COMBAT.telegraphMs;
         if (this.bossBoundaryReady(duration)) this.setBossCombatPhase('sweep');
       } else if (boss.phase === 'sweep') {
-        if (boss.doublePulse && !boss.secondPulseEmitted && this.bossBoundaryReady(BOSS_COMBAT.secondPulseMs, 'secondPulseBeatWait')) {
+        if (boss.attackPattern !== 'slam' && boss.doublePulse && !boss.secondPulseEmitted && this.bossBoundaryReady(BOSS_COMBAT.secondPulseMs, 'secondPulseBeatWait')) {
           boss.secondPulseEmitted = true;
           boss.lastPulseAtMs = boss.phaseElapsedMs;
           this.emitBossPulse();
         }
-        const duration = boss.doublePulse ? (boss.lastPulseAtMs || 0) + BOSS_COMBAT.sweepMs : BOSS_COMBAT.sweepMs;
-        if ((!boss.doublePulse || boss.secondPulseEmitted) && this.bossBoundaryReady(duration)) this.setBossCombatPhase('recovery');
+        const doublePulse = boss.attackPattern !== 'slam' && boss.doublePulse;
+        const duration = doublePulse ? (boss.lastPulseAtMs || 0) + BOSS_COMBAT.sweepMs : BOSS_COMBAT.sweepMs;
+        if ((!doublePulse || boss.secondPulseEmitted) && this.bossBoundaryReady(duration)) this.setBossCombatPhase('recovery');
       } else if (boss.phase === 'recovery') {
-        const duration = boss.routeRecovery ? 1000 : boss.latePhase ? BOSS_COMBAT.fastRecoveryMs : BOSS_COMBAT.recoveryMs;
-        if (this.bossBoundaryReady(duration)) { boss.routeRecovery = false; this.setBossCombatPhase('approach'); }
+        if (this.bossRecoveryReady()) { boss.routeRecovery = false; this.setBossCombatPhase('approach'); }
       }
+      this.updateBossSlam(delta);
       this.updateBossPulses(delta);
-      boss.canDealDamage = boss.phase === 'sweep' || boss.pulses.some(pulse => !pulse.hit);
+      boss.canDealDamage = boss.phase === 'sweep' || boss.pulses.some(pulse => !pulse.hit) || (boss.slam?.remainingMs > 0 && !boss.slam.hit);
       this.updateBossSprite(delta);
     }
     updateBossPulses(deltaTime) {
@@ -949,6 +994,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (target.guarded) return { ok: false, reason: 'boss-guarded' };
       if (sequence === undefined || sequence === null || this.boss.hitSequences.has(sequence)) return { ok: false, reason: 'duplicate-attack' };
       this.boss.hitSequences.add(sequence);
+      window.BARCODE?.Campaign?.contact(sequence, judgment);
       return this.damageBoss('rhythm');
     }
     applyBossStomp(player, movement = {}) {
@@ -1001,6 +1047,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     completeLevel() {
       if (this.boss?.defeated || this.state === STATES.LEVEL_COMPLETE || !this.boss) return false;
       window.BARCODE?.LevelDifficulty?.complete();
+      window.BARCODE?.Campaign?.finish();
+      window.BARCODE?.musicDirector?.accent('clear');
       this.boss.health = 0;
       this.boss.defeated = true;
       this.boss.canDealDamage = false;
@@ -1063,6 +1111,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     retryBossCheckpoint() {
       if (!this.canRetryBossCheckpoint()) return { ok: false, reason: 'checkpoint-unavailable' };
       const checkpoint = this.bossCheckpoint;
+      window.BARCODE?.Campaign?.retryBoss();
       this.completion = null;
       const player = this.player;
       if (!player) return { ok: false, reason: 'player-unavailable' };
@@ -1097,12 +1146,71 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       this.enterBossReady();
       return { ok: true, state: this.state };
     }
+    restoreCampaignCheckpoint(saved) {
+      const B = window.BARCODE, state = saved.levelState, player = this.player;
+      if (!player || !state) return false;
+      const difficulty = B.LevelDifficulty;
+      difficulty.beginLevel('level-01');
+      const selection = difficulty.profile().choices.findIndex(c => c.id === state.difficultyId);
+      if (selection < 0) return false;
+      difficulty.select(selection); difficulty.confirm();
+      window.tutorialSystem?.cancelPendingTimers?.();
+      if (window.tutorialSystem) { window.tutorialSystem.active = false; window.tutorialSystem.completed = true; }
+      this.startMission();
+      const index = ENCOUNTERS.findIndex(e => e.id === saved.checkpointId);
+      const cleared = index >= 0 ? index : ENCOUNTERS.length;
+      this.missionDefeats = ENCOUNTERS.slice(0, cleared).reduce((n, e) => n + encounterSpecs(e).length, 0);
+      ENCOUNTERS.slice(0, cleared).forEach(e => { this.spawnedEncounterIds.add(e.id); this.restoreEncounterSignal(e.id); });
+      this.state = index >= 0 ? ENCOUNTERS[index].id : STATES.JAMMER_ACTIVE;
+      this.skyCaches = new Set((state.skyCaches || []).filter(id => SKY_CACHES.some(c => c.id === id)));
+      this.closedGateEncounterId = null; this.pendingSpawns = [];
+      Object.assign(player.position, { x: Math.max(60, Math.min(WORLD_WIDTH - 60, state.playerX)), y: GROUND_Y });
+      Object.assign(player.velocity, { x: 0, y: 0 });
+      Object.assign(player, { health: Math.max(1, Math.min(player.maxHealth, state.health || player.maxHealth)),
+        grounded: true, isEntering: false, controlsDisabled: false, allowMovement: true, supportedSurfaceId: null,
+        dropSurfaceId: null, dropSurfaceIds: null, invulnerable: false, invulnerableUntil: 0,
+        _enemyInvulnerableUntilMs: 0, bossReboundMs: 0, primaryAttackAnimationMs: 0 });
+      if (window.gameState) Object.assign(window.gameState, { score: state.score || 0, enemiesDefeated: this.missionDefeats, running: true, victory: false, gameOver: false });
+      if (window.enemyManager) window.enemyManager.defeatedCount = this.missionDefeats;
+      if (window.lostDataSystem) { window.lostDataSystem.collectedLore = new Set((state.fragments || []).filter(id => /^lore\.l01\.0[1-3]$/.test(id))); window.lostDataSystem.fragments = []; }
+      B.signalAmpCharges = Math.max(0, Math.min(3, state.ampCharges || 0));
+      if (window.rhythmSystem) { window.rhythmSystem.runBestCombo = state.bestCombo || 0; window.rhythmSystem.hideRhythmMode?.(); }
+      window.objectivesSystem?.setMissionDefeatObjective?.(this.missionDefeats, this.requiredEnemyKills);
+      if (saved.checkpointId === 'jammer') this.revealJammer();
+      if (['boss', 'intermission'].includes(saved.checkpointId)) {
+        this.jammerRevealed = true; this.jammerDestroyedNotified = true;
+        this.districtSignal.interference = 0;
+        this.districtSignal.restoration = { originX: 2000, distance: WORLD_WIDTH, startedAtMs: -10000 };
+        this.prepareBossAssets(); this.pollPreparedAssets();
+        this.startBossWalk();
+        // A reload skipped the cinematic preload interval. Keep the normal
+        // frame-owned sprite readiness polling instead of locking a fallback.
+        this.boss.fallbackLocked = false;
+        this.boss.x = state.boss?.bossX ?? 3300; this.boss.y = GROUND_Y;
+        this.bossCheckpoint = state.boss || { playerX: player.position.x, bossX: this.boss.x, score: state.score || 0, skyCaches: [...this.skyCaches], signalAmpCharges: B.signalAmpCharges };
+        this.enterBossReady();
+        if (saved.checkpointId === 'intermission') {
+          // Restore presentation from the committed result, without awarding a
+          // second clear, bonus, key, or challenge value.
+          Object.assign(this.boss, { defeated: true, health: 0, phase: 'defeated', canReceiveDamage: false, canDealDamage: false });
+          this.state = STATES.LEVEL_COMPLETE;
+          this.completion = { elapsedMs: 3000, controlsReady: false, releaseMs: 0, score: state.result.score,
+            bestCombo: state.result.bestCombo, fragments: state.result.discoveries, totalFragments: 3 };
+          Object.assign(window.gameState, { score: state.result.score, victory: true, running: false });
+          player.controlsDisabled = true;
+        }
+      }
+      this.cameraOverrideActive = false; this.cinematicZoomOverride = null; this.frozenPlayerPosition = null;
+      window.renderer?.resetFollowCamera?.(player.position.x);
+      window.inputManager?.resetActionEdges?.();
+      return true;
+    }
     getBossStatus() {
       const boss = this.boss;
       if (!boss) return null;
       return { phase: boss.phase || 'intro', phaseElapsedMs: boss.phaseElapsedMs || 0,
         health: boss.health ?? BOSS_COMBAT.maxHealth, maxHealth: boss.maxHealth || BOSS_COMBAT.maxHealth,
-        cycle: boss.cycle || 0, doublePulse: !!boss.doublePulse, latePhase: !!boss.latePhase,
+        cycle: boss.cycle || 0, doublePulse: !!boss.doublePulse, latePhase: !!boss.latePhase, attackPattern: boss.attackPattern || 'pulse',
         stompArmed: !!boss.stompArmed, canStompCounter: this.canStompCounter(), defeated: !!boss.defeated,
         canDealDamage: !!boss.canDealDamage, canReceiveDamage: !!boss.canReceiveDamage,
         pulses: (boss.pulses || []).map(pulse => ({ ...pulse })), hitbox: this.getBossHitbox(),
@@ -2180,7 +2288,16 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       const ground = surface.y;
       ctx.save();
       if (this.state === STATES.BOSS_COMBAT) {
-        if (boss.phase === 'telegraph') {
+        if (boss.slam && (boss.phase === 'telegraph' || boss.slam.remainingMs > 0)) {
+          const slam = boss.slam, active = slam.remainingMs > 0;
+          ctx.fillStyle = active ? 'rgba(255,190,100,0.7)' : 'rgba(255,140,60,0.12)';
+          ctx.fillRect(slam.x - slam.width / 2, slam.groundY - slam.height, slam.width, slam.height);
+          ctx.strokeStyle = active ? '#fff0c8' : '#ffb56a'; ctx.lineWidth = active ? 5 : 3;
+          ctx.strokeRect(slam.x - slam.width / 2, slam.groundY - slam.height, slam.width, slam.height);
+          ctx.fillStyle = '#fff0c8'; ctx.font = 'bold 20px Oxanium, monospace'; ctx.textAlign = 'center';
+          ctx.fillText(active ? 'SLAM' : 'MOVE CLEAR', slam.x, slam.groundY - slam.height - 15);
+          for (let i = -2; i <= 2; i++) { ctx.beginPath(); ctx.moveTo(slam.x + i * 28 - 10, slam.groundY - 20); ctx.lineTo(slam.x + i * 28, slam.groundY - 7); ctx.lineTo(slam.x + i * 28 + 10, slam.groundY - 20); ctx.stroke(); }
+        } else if (boss.phase === 'telegraph') {
           const duration = boss.latePhase ? BOSS_COMBAT.fastTelegraphMs : BOSS_COMBAT.telegraphMs;
           const progress = Math.min(1, boss.phaseElapsedMs / duration);
           const left = Math.max(surface.x, boss.x - BOSS_COMBAT.pulseRange);
@@ -2214,7 +2331,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       ctx.restore();
       ctx.shadowBlur = 0;
       if (this.state === STATES.BOSS_COMBAT) {
-        const cue = boss.traversal ? (boss.traversal.phase === 'warning' ? 'RELOCATING — CLEAR THE MARKER' : 'SECTOR 1 BOSS') : boss.phase === 'telegraph' ? (boss.doublePulse ? 'TWO PULSES — JUMP' : 'GROUND PULSE — JUMP') :
+        const cue = boss.traversal ? (boss.traversal.phase === 'warning' ? 'RELOCATING — CLEAR THE MARKER' : 'SECTOR 1 BOSS') : boss.phase === 'telegraph' ? (boss.attackPattern === 'slam' ? 'MARKED SLAM — MOVE CLEAR' : boss.doublePulse ? 'TWO PULSES — JUMP' : 'GROUND PULSE — JUMP') :
           boss.canReceiveDamage ? (this.canStompCounter() ? 'COUNTER: RHYTHM / STOMP' : boss.stompCycle === boss.cycle ? 'COUNTER: RHYTHM — STOMP SPENT THIS CYCLE' : 'COUNTER: RHYTHM — LAND TO REARM STOMP') :
           boss.guardBounceMs > 0 ? 'GUARDED — LAND, THEN COUNTER' : 'SECTOR 1 BOSS';
         ctx.fillStyle = boss.canReceiveDamage ? '#00ffff' : '#ffffff';

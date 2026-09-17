@@ -131,6 +131,7 @@ window.AudioSystem = class AudioSystem {
 
   beginRuntimeAudioGeneration() {
     this.runtimeAudioGeneration++;
+    window.BARCODE?.musicDirector?.reset();
     this.stopCombatCues();
     this.clearRuntimeTimeouts();
     return this.runtimeAudioGeneration;
@@ -609,13 +610,19 @@ window.AudioSystem = class AudioSystem {
     const now = this.context.currentTime;
     if (now - (this.combatCueTimes[kind] ?? -Infinity) < 0.035) return false;
     this.combatCueTimes[kind] = now;
+    const critical = kind === 'warning' || kind === 'damage';
+    if (critical) this.criticalCueUntil = now + 0.4;
     const tones = kind === 'combo5' || kind === 'combo10' || kind === 'pickup' ? [1, 1.5] : [1];
     const materialPitch = options.material === 'virus' ? 1.8 : options.material === 'firewall' ? 0.65 : 1;
     for (const tone of tones) {
-      while (this.combatVoices.size >= 12) this.combatVoices.values().next().value.dispose();
+      while (this.combatVoices.size >= 12) {
+        const expendable = [...this.combatVoices].find(voice => !voice.critical);
+        if (!expendable && !critical) return false;
+        (expendable || this.combatVoices.values().next().value).dispose();
+      }
       const osc = this.context.createOscillator(), gain = this.context.createGain();
       const duration = profile[2];
-      const voice = { dispose: () => {
+      const voice = { critical, dispose: () => {
         if (!this.combatVoices.delete(voice)) return;
         osc.onended = null;
         try { osc.stop(); } catch (error) {}
@@ -1225,6 +1232,7 @@ window.AudioSystem = class AudioSystem {
         }
       }
       
+      if (this.context.currentTime < (this.criticalCueUntil || 0)) targetVolume *= 0.35;
       // Smooth volume transition
       const currentVolume = soundData.gainNode.gain.value;
       const volumeStep = 0.05; // Smooth transition speed
@@ -2565,6 +2573,8 @@ window.AudioSystem = class AudioSystem {
   
   // Get current volume for a layer based on active state
   getCurrentLayerVolume(layerName) {
+    const directed = window.BARCODE?.musicDirector?.getVolume(layerName);
+    if (Number.isFinite(directed)) return directed;
     const activeLayers = this.determineActiveLayers();
     const shouldBeActive = activeLayers.includes(layerName);
     
@@ -2694,6 +2704,8 @@ window.AudioSystem = class AudioSystem {
       return;
     }
     
+    if (window.BARCODE?.musicDirector?.apply(this)) return;
+
     // CRITICAL: Pause music during cutscenes
     if (window.cutsceneSystem && typeof window.cutsceneSystem.isPlaying === 'function' && window.cutsceneSystem.isPlaying()) {
       // Mute all layers during cutscene
@@ -2775,6 +2787,8 @@ window.AudioSystem = class AudioSystem {
   
   // Get appropriate volume for layer based on context
   getLayerVolume(layerName) {
+    const directed = window.BARCODE?.musicDirector?.getVolume(layerName);
+    if (Number.isFinite(directed)) return directed;
     switch(layerName) {
       case 'foundation':
         return 0.4; // Foundation at lower volume as backbone
@@ -3161,6 +3175,7 @@ window.AudioSystem = class AudioSystem {
   stopRuntimeAudio(options) {
     options = options || {};
     this.runtimeAudioGeneration++;
+    window.BARCODE?.musicDirector?.reset();
     this.stopCombatCues();
     this.clearRuntimeTimeouts();
     this.stopBeatTrack();

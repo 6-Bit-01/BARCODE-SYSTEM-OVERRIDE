@@ -232,11 +232,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
     begin(c);const counter=!!status.canReceiveDamage,color=counter?C.teal:C.red;
     plate(c,585,26,580,111,C.ink,color);
     text(c,'SECTOR 1 BOSS',607,51,24,C.paper,700);
-    const phase=counter?'COUNTER WINDOW':status.phase==='ready'?'GET READY':status.doublePulse?'DOUBLE PULSE':'GROUND PULSE';
+    const phase=counter?'COUNTER WINDOW':status.phase==='ready'?'GET READY':status.attackPattern==='slam'?'MARKED SLAM':status.doublePulse?'DOUBLE PULSE':'GROUND PULSE';
     text(c,phase,1142,51,17,color,700,'right',290);
     const ratio=Math.max(0,Math.min(1,status.health/Math.max(1,status.maxHealth)));
     for(let i=0;i<12;i++) { c.fillStyle='#27333c';c.fillRect(607+i*44,78,37,17);const fill=Math.max(0,Math.min(1,ratio*12-i));c.fillStyle=color;c.fillRect(607+i*44,78,37*fill,17); }
-    const cue=counter?(status.canStompCounter?'TIMED HIT OR LANDING STOMP':'TIMED HIT · STOMP UNAVAILABLE'):status.doublePulse?'JUMP BOTH PULSES. WATCH FOR CYAN.':'JUMP THE PULSE. WATCH FOR CYAN.';
+    const cue=counter?(status.canStompCounter?'TIMED HIT OR LANDING STOMP':'TIMED HIT · STOMP UNAVAILABLE'):status.attackPattern==='slam'?'MOVE OUT OF THE MARKED COLUMN.':status.doublePulse?'JUMP BOTH PULSES. WATCH FOR CYAN.':'JUMP THE PULSE. WATCH FOR CYAN.';
     text(c,cue,607,117,16,C.paper,600,'left',535);c.restore();
   }
   function rhythm(c,{ lane, pattern, pad, combo, established, tempoBeat, tempoBeats }) {

@@ -18,6 +18,7 @@
     "src/engine/music-profiles.js",
     "src/engine/music-transport.js",
     "src/engine/level-01-music-profile.js",
+    "src/engine/music-director.js",
     "src/engine/audio.js",
     "src/engine/boot-loader.js",
     "src/engine/particles.js",
@@ -45,6 +46,7 @@
     "src/game/post-tutorial-objectives.js",
     "src/game/lore-collection.js",
     "src/game/level-difficulty.js",
+    "src/game/campaign-services.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
     "src/game/level-01-stage-fx.js",
@@ -73,6 +75,7 @@
     "src/engine/music-profiles.js",
     "src/engine/music-transport.js",
     "src/engine/level-01-music-profile.js",
+    "src/engine/music-director.js",
     "src/engine/audio.js",
     "src/engine/boot-loader.js",
     "src/engine/particles.js",
@@ -100,6 +103,7 @@
     "src/game/post-tutorial-objectives.js",
     "src/game/lore-collection.js",
     "src/game/level-difficulty.js",
+    "src/game/campaign-services.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
     "src/game/level-01-stage-fx.js",
@@ -229,6 +233,10 @@
         "status": "pass"
       },
       {
+        "file": "src/engine/music-director.js",
+        "status": "pass"
+      },
+      {
         "file": "src/engine/audio.js",
         "status": "pass"
       },
@@ -337,6 +345,10 @@
         "status": "pass"
       },
       {
+        "file": "src/game/campaign-services.js",
+        "status": "pass"
+      },
+      {
         "file": "src/game/lost-data.js",
         "status": "pass"
       },
@@ -387,11 +399,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 52,
+        "index": 54,
         "status": "pass"
       },
       {
-        "index": 54,
+        "index": 56,
         "status": "pass"
       }
     ]
@@ -575,7 +587,7 @@
     {
       "global": "window.player",
       "file": "src/game/player.js",
-      "line": 1791,
+      "line": 1793,
       "loaded": true
     },
     {
@@ -747,6 +759,7 @@
     "src/engine/music-profiles.js",
     "src/engine/music-transport.js",
     "src/engine/level-01-music-profile.js",
+    "src/engine/music-director.js",
     "src/engine/audio.js",
     "src/engine/boot-loader.js",
     "src/engine/particles.js",
@@ -774,6 +787,7 @@
     "src/game/post-tutorial-objectives.js",
     "src/game/lore-collection.js",
     "src/game/level-difficulty.js",
+    "src/game/campaign-services.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
     "src/game/level-01-stage-fx.js",

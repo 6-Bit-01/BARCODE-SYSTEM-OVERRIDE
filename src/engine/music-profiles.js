@@ -81,6 +81,16 @@ window.BARCODE = window.BARCODE || {};
       sourceIds.add(source.sourceId);
     }
 
+    if (profile.adaptiveMix) {
+      const mix = profile.adaptiveMix, roles = new Set(sources.map(s => s.mixRole));
+      if (sources.some(s => !nonempty(s.mixRole)) || !mix.states?.explore || typeof mix.states.explore !== 'object') return invalid('adaptive mix requires source roles and exploration levels');
+      if (mix.colourRole != null && !roles.has(mix.colourRole)) return invalid('adaptive colour role missing from sources');
+      if (!finiteNumber(mix.fadeSec) || mix.fadeSec < 0.05 || mix.fadeSec > 2) return invalid('adaptive fade must be 0.05–2 seconds');
+      for (const levels of Object.values(mix.states)) {
+        if (!levels || typeof levels !== 'object' || Array.isArray(levels)) return invalid('adaptive state levels invalid');
+        for (const [role, value] of Object.entries(levels)) if (!roles.has(role) || !finiteNonnegative(value) || value > 0.8) return invalid('adaptive role/gain invalid');
+      }
+    }
     if (!profile.playback || typeof profile.playback !== 'object') return invalid('playback required');
     if (!finiteNonnegative(profile.playback.startTrackSec)) return invalid('playback.startTrackSec invalid');
     if (!nonempty(profile.playback.endPolicy)) return invalid('playback.endPolicy required');

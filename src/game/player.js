@@ -691,6 +691,7 @@ window.Player = class Player {
     
     const previousHealth = this.health;
     this.health = Math.max(0, this.health - amount);
+    window.BARCODE?.Campaign?.damage(previousHealth - this.health);
     if (this.health < previousHealth) this.hudReaction = { kind: 'hurt', remainingMs: 750 };
     window.BARCODE?.combatFX?.playerDamaged(this, previousHealth, sourcePosition);
     
@@ -754,6 +755,7 @@ window.Player = class Player {
     
     const previousHealth = this.health;
     this.health = Math.max(0, this.health - amount);
+    window.BARCODE?.Campaign?.damage(previousHealth - this.health);
     if (this.health < previousHealth) this.hudReaction = { kind: 'hurt', remainingMs: 750 };
     // The source is authoritative when supplied; otherwise the horizontal
     // impulse identifies the side the blow came from without using facing.

@@ -4,7 +4,7 @@ const fs=require('fs'),path=require('path'),{spawn}=require('child_process'),{on
 const {createCanvas,loadImage,GlobalFonts}=require(require.resolve('@napi-rs/canvas',{paths:[process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES]}));
 const {createRig,load}=require('./check-level-01-boss'),{createSprite}=require('./makko-animation-fixture'),{installArt}=require('./render-cat-chaos.cjs');
 const root=path.resolve(__dirname,'..'),out=path.resolve(process.argv[2]||'../review');fs.mkdirSync(out,{recursive:true});
-GlobalFonts.registerFromPath((process.env.ENEMY_LIFT_EXIT_REVIEW || process.env.LIFT_RIDER_REVIEW || process.env.TUTORIAL_FLOW_REVIEW || process.env.FEEDBACK_POLISH_REVIEW || process.env.PLAYTEST_POLISH_REVIEW || process.env.SMART_PANEL_REVIEW || process.env.SMART_MOTION_REVIEW) ? path.join(root,'assets/studies/visual-overhaul/references/fonts/Oxanium.ttf') : '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','Oxanium');
+GlobalFonts.registerFromPath((process.env.BOSS_MUSIC_REVIEW || process.env.ENEMY_LIFT_EXIT_REVIEW || process.env.LIFT_RIDER_REVIEW || process.env.TUTORIAL_FLOW_REVIEW || process.env.FEEDBACK_POLISH_REVIEW || process.env.PLAYTEST_POLISH_REVIEW || process.env.SMART_PANEL_REVIEW || process.env.SMART_MOTION_REVIEW) ? path.join(root,'assets/studies/visual-overhaul/references/fonts/Oxanium.ttf') : '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','Oxanium');
 GlobalFonts.registerFromPath('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','sans-serif');
 async function main(){
  const {w,p,context,calls}=createRig();await installArt(w,context);
@@ -27,9 +27,28 @@ async function main(){
  for(let i=0;i<3;i++){w.spaceShipSystem.shipImages[i]=await loadImage(path.join(root,'assets/traffic/ship-'+(i+1)+'.webp'));w.spaceShipSystem.imagesLoaded[i]=true;w.spaceShipSystem.shipSheets[i]=w.BARCODE.trafficSheets[i];}
  const bg=await loadImage(path.join(root,'assets/world-v3/far-background.webp')),fg=await loadImage(path.join(root,'assets/world-v3/buildings.webp'));
  p.startMission();w.rhythmSystem.hideRhythmMode();w.player.allowMovement=true;
- function scene(c,cx,cy){w.gameCamera={centerX:cx,y:cy};w.renderer.zoomLevel=1;c.fillStyle='#111322';c.fillRect(0,0,1920,1080);c.drawImage(bg,0,0,1920,1080);c.save();c.translate(960-cx,-cy);c.drawImage(fg,0,2,fg.width,fg.height-2,-152,-550+2*1589/fg.height,4400,1589-2*1589/fg.height);w.drawGround(c);if(process.env.PLAYTEST_POLISH_REVIEW)w.BARCODE.stageFX.drawWorld(c);w.drawGameEntities(c);if(p.getLiftActorLayer(w.player)!=='behind')w.player.draw(c);p.drawSignalLift(c,'front');c.restore();c.save();c.translate(0,-cy);w.spaceShipSystem.drawForegroundShips(c);c.restore();if(!w.tutorialSystem?.isActive?.()&&!process.env.PLAYTEST_POLISH_REVIEW)w.drawObjectives(c);}
+ function scene(c,cx,cy){w.gameCamera={centerX:cx,y:cy};w.renderer.zoomLevel=1;c.fillStyle='#111322';c.fillRect(0,0,1920,1080);c.drawImage(bg,0,0,1920,1080);c.save();c.translate(960-cx,-cy);c.drawImage(fg,0,2,fg.width,fg.height-2,-152,-550+2*1589/fg.height,4400,1589-2*1589/fg.height);w.drawGround(c);if(process.env.PLAYTEST_POLISH_REVIEW)w.BARCODE.stageFX.drawWorld(c);w.drawGameEntities(c);if(p.getLiftActorLayer(w.player)!=='behind')w.player.draw(c);p.drawSignalLift(c,'front');c.restore();c.save();c.translate(0,-cy);w.spaceShipSystem.drawForegroundShips(c);c.restore();if(!w.tutorialSystem?.isActive?.()&&!process.env.PLAYTEST_POLISH_REVIEW&&!process.env.BOSS_MUSIC_REVIEW)w.drawObjectives(c);}
  function setHero(x,foot,support){Object.assign(w.player.position,{x,y:foot-72});w.player.velocity.x=0;w.player.velocity.y=0;w.player.grounded=true;w.player.supportedSurfaceId=support||null;w.player.state='idle';w.player.airInput=0;w.player.controlsDisabled=false;w.player.invulnerableUntil=0;w.player.health=w.player.maxHealth;w.player.playAnimation('idle');}
  const canvas=createCanvas(1920,1080),c=canvas.getContext('2d');
+ if(process.env.BOSS_MUSIC_REVIEW){
+  const store=new Map();w.localStorage={getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v),removeItem:k=>store.delete(k)};
+  for(const file of ['src/game/lore-collection.js','src/game/level-difficulty.js','src/game/campaign-services.js'])load(context,file);
+  w.lostDataSystem.archive=new w.BARCODE.LoreCollection();w.lostDataSystem.collectedLore=new Set(['lore.l01.01','lore.l01.02']);w.lostDataSystem.getProgress=()=>({collected:2});
+  w.BARCODE.LevelDifficulty.beginLevel();w.BARCODE.LevelDifficulty.select(1);w.BARCODE.LevelDifficulty.confirm();w.BARCODE.Campaign.begin();
+  // Stage the combat pose directly: this native pack contains the production
+  // idle/attack sheets; hosted walk-in is covered by the integration rig.
+  p.boss={x:3150,y:784,sprite:sprite(),activeAnimation:null};p.enterBossReady();p.state='boss_combat';
+  setHero(2980,856);p.boss.cycle=2;p.boss.health=4;p.setBossCombatPhase('telegraph');p.boss.phaseElapsedMs=700;
+  function save(name){fs.writeFileSync(path.join(out,name+'.webp'),canvas.toBuffer('image/webp',88));}
+  scene(c,3000,0);w.drawBasicUI(c);w.drawSector1BossUI(c);save('boss-slam-warning');
+  setHero(2710,856);p.setBossCombatPhase('sweep');scene(c,3000,0);w.drawBasicUI(c);w.drawSector1BossUI(c);save('boss-slam-escape');
+  Object.assign(w.BARCODE.Campaign.run,{elapsedMs:185000,damageTaken:1,retries:1,attempts:53,accurate:48,perfect:40,connected:45,connectedPerfect:38});
+  w.gameState.score=8500;p.completeLevel();for(let i=0;i<180;i++)p.updateCompletionPresentation(20);
+  w.drawSector1BossUI(c);save('campaign-results');
+  w.BARCODE.Campaign.openIntermission();w.drawSector1BossUI(c);save('campaign-handoff');
+  w.BARCODE.Campaign.closeIntermission();load(context,'src/game/pause-menu.js');w.isPaused=true;w.BARCODE.PauseMenu.open=true;w.BARCODE.PauseMenu.draw(c);save('dynamic-music-setting');
+  if(calls.errors.length)throw new Error(calls.errors.join('\n'));console.log('Five production boss, results, intermission and settings captures rendered.');return;
+ }
  if(process.env.ENEMY_LIFT_EXIT_REVIEW){
   p.state='jammer_active';p.closedGateEncounterId=null;p.pendingSpawns=[];
   const preview=createCanvas(960,540),pc=preview.getContext('2d'),lift=p.signalLift;

@@ -1,5 +1,17 @@
 # Acceptance and Test Status
 
+## Boss/music/campaign review route — current
+
+Use the exact draft head from the receipt in a duplicate Makko project. Base/rollback: merged #81, `a75f33f2321a9e96f3a8fa7677dbf61e586bdb1e`. Automated tests preserve scheduling but do not certify audible sync or gameplay feel.
+
+1. Compare Dynamic music ON/OFF in Pause. Listen through at least two full 3:31 restart boundaries; verify original beat alignment, no new clicks/gaps, no doubled stems, and clear foundation timing. Exercise pause/resume, hacking, rhythm entry/exit and boss retry. Report any difference against the base, not merely an existing artifact.
+2. Fight Standard, then Overclocked: learn the pulse, double pulse and fixed marked slam. Moving out of the column avoids its damage; staying inside takes at most one hit. Counter cues match real availability. Verify rhythm and stomp routes at street/roof height, traffic and full lift rides.
+3. Complete an encounter, enter the next, reload and use Continue Saved (C / Triangle / Y / pointer). Confirm the checkpoint start, selected difficulty, earlier kills, score/lore/Amp/sky caches and single music start. Repeat at Jammer and boss starts. Check keyboard and a physical controller.
+4. Win: inspect real results and the clear bonus. Use Continue Broadcast for the Voice key/Cache Back handoff; reopen and Continue Saved into it. Confirm Level 2 is honestly upcoming. Rematch for practice and confirm no repeat campaign bonus/key or replacement of full-run bests. Full restart remains available.
+5. Recheck reduced effects, warnings with busy music, smart tutorial/hack panels, elevator exits and original traffic. Existing intro/title/new-game path must still work. Do not substitute native captures for this hosted route.
+
+After owner acceptance and merge: import/redeploy the actual main merge commit into Makko, reopen from a fresh load and repeat the music loop, boss, checkpoint/terminal resume and elevator smoke routes. Keep the base import available for rollback.
+
 ## September 17 — enemy elevator exits
 
 Review the exact head in the generated receipt. Base/rollback: merged #80, `f2fb5dccf7473f8584fcd3bf25847780c35a37b3`. Makko/controller acceptance remains pending.
