@@ -160,6 +160,7 @@
     "tools/check-level-finale.js",
     "tools/check-level1-rebuild.js",
     "tools/check-lift-charge-timeout.js",
+    "tools/check-lift-riders.js",
     "tools/check-makko-hotfix.js",
     "tools/check-model-art.js",
     "tools/check-music-profiles.js",

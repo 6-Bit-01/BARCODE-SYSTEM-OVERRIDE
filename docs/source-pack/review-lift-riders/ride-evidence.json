@@ -1,0 +1,1922 @@
+[
+  {
+    "ms": 41.666666666666664,
+    "liftY": 846.8333333333334,
+    "playerX": 2450,
+    "playerFoot": 846.8333333333334,
+    "roofFoot": 546.5933333333334,
+    "state": "moving"
+  },
+  {
+    "ms": 83.33333333333333,
+    "liftY": 837.6666666666667,
+    "playerX": 2450,
+    "playerFoot": 837.6666666666667,
+    "roofFoot": 537.4266666666667,
+    "state": "moving"
+  },
+  {
+    "ms": 125,
+    "liftY": 828.5000000000001,
+    "playerX": 2450,
+    "playerFoot": 828.5000000000001,
+    "roofFoot": 528.2600000000001,
+    "state": "moving"
+  },
+  {
+    "ms": 166.66666666666666,
+    "liftY": 819.3333333333335,
+    "playerX": 2450,
+    "playerFoot": 819.3333333333335,
+    "roofFoot": 519.0933333333335,
+    "state": "moving"
+  },
+  {
+    "ms": 208.33333333333331,
+    "liftY": 810.1666666666669,
+    "playerX": 2450,
+    "playerFoot": 810.1666666666669,
+    "roofFoot": 509.92666666666685,
+    "state": "moving"
+  },
+  {
+    "ms": 250,
+    "liftY": 801.0000000000002,
+    "playerX": 2450,
+    "playerFoot": 801.0000000000002,
+    "roofFoot": 500.7600000000002,
+    "state": "moving"
+  },
+  {
+    "ms": 291.66666666666663,
+    "liftY": 791.8333333333336,
+    "playerX": 2450,
+    "playerFoot": 791.8333333333336,
+    "roofFoot": 491.5933333333336,
+    "state": "moving"
+  },
+  {
+    "ms": 333.3333333333333,
+    "liftY": 782.666666666667,
+    "playerX": 2450,
+    "playerFoot": 782.666666666667,
+    "roofFoot": 482.42666666666696,
+    "state": "moving"
+  },
+  {
+    "ms": 375,
+    "liftY": 773.5000000000003,
+    "playerX": 2450,
+    "playerFoot": 773.5000000000003,
+    "roofFoot": 473.26000000000033,
+    "state": "moving"
+  },
+  {
+    "ms": 416.66666666666663,
+    "liftY": 764.3333333333337,
+    "playerX": 2450,
+    "playerFoot": 764.3333333333337,
+    "roofFoot": 464.0933333333337,
+    "state": "moving"
+  },
+  {
+    "ms": 458.3333333333333,
+    "liftY": 755.1666666666671,
+    "playerX": 2450,
+    "playerFoot": 755.1666666666671,
+    "roofFoot": 454.9266666666671,
+    "state": "moving"
+  },
+  {
+    "ms": 500,
+    "liftY": 746.0000000000005,
+    "playerX": 2450,
+    "playerFoot": 746.0000000000005,
+    "roofFoot": 445.76000000000045,
+    "state": "moving"
+  },
+  {
+    "ms": 541.6666666666666,
+    "liftY": 736.8333333333338,
+    "playerX": 2450,
+    "playerFoot": 736.8333333333338,
+    "roofFoot": 436.5933333333338,
+    "state": "moving"
+  },
+  {
+    "ms": 583.3333333333333,
+    "liftY": 727.6666666666672,
+    "playerX": 2450,
+    "playerFoot": 727.6666666666672,
+    "roofFoot": 427.4266666666672,
+    "state": "moving"
+  },
+  {
+    "ms": 625,
+    "liftY": 718.5000000000006,
+    "playerX": 2450,
+    "playerFoot": 718.5000000000006,
+    "roofFoot": 418.26000000000056,
+    "state": "moving"
+  },
+  {
+    "ms": 666.6666666666666,
+    "liftY": 709.3333333333339,
+    "playerX": 2450,
+    "playerFoot": 709.3333333333339,
+    "roofFoot": 409.09333333333393,
+    "state": "moving"
+  },
+  {
+    "ms": 708.3333333333333,
+    "liftY": 700.1666666666673,
+    "playerX": 2450,
+    "playerFoot": 700.1666666666673,
+    "roofFoot": 399.9266666666673,
+    "state": "moving"
+  },
+  {
+    "ms": 750,
+    "liftY": 691.0000000000007,
+    "playerX": 2450,
+    "playerFoot": 691.0000000000007,
+    "roofFoot": 390.7600000000007,
+    "state": "moving"
+  },
+  {
+    "ms": 791.6666666666666,
+    "liftY": 681.833333333334,
+    "playerX": 2450,
+    "playerFoot": 681.833333333334,
+    "roofFoot": 381.59333333333404,
+    "state": "moving"
+  },
+  {
+    "ms": 833.3333333333333,
+    "liftY": 672.6666666666674,
+    "playerX": 2450,
+    "playerFoot": 672.6666666666674,
+    "roofFoot": 372.4266666666674,
+    "state": "moving"
+  },
+  {
+    "ms": 875,
+    "liftY": 663.5000000000008,
+    "playerX": 2450,
+    "playerFoot": 663.5000000000008,
+    "roofFoot": 363.2600000000008,
+    "state": "moving"
+  },
+  {
+    "ms": 916.6666666666666,
+    "liftY": 654.3333333333342,
+    "playerX": 2450,
+    "playerFoot": 654.3333333333342,
+    "roofFoot": 354.09333333333416,
+    "state": "moving"
+  },
+  {
+    "ms": 958.3333333333333,
+    "liftY": 645.1666666666675,
+    "playerX": 2450,
+    "playerFoot": 645.1666666666675,
+    "roofFoot": 344.92666666666753,
+    "state": "moving"
+  },
+  {
+    "ms": 1000,
+    "liftY": 636.0000000000009,
+    "playerX": 2450,
+    "playerFoot": 636.0000000000009,
+    "roofFoot": 335.7600000000009,
+    "state": "moving"
+  },
+  {
+    "ms": 1041.6666666666665,
+    "liftY": 626.8333333333343,
+    "playerX": 2450,
+    "playerFoot": 626.8333333333343,
+    "roofFoot": 326.5933333333343,
+    "state": "moving"
+  },
+  {
+    "ms": 1083.3333333333333,
+    "liftY": 617.6666666666677,
+    "playerX": 2450,
+    "playerFoot": 617.6666666666677,
+    "roofFoot": 317.42666666666764,
+    "state": "moving"
+  },
+  {
+    "ms": 1125,
+    "liftY": 608.500000000001,
+    "playerX": 2450,
+    "playerFoot": 608.500000000001,
+    "roofFoot": 308.260000000001,
+    "state": "moving"
+  },
+  {
+    "ms": 1166.6666666666665,
+    "liftY": 599.3333333333344,
+    "playerX": 2450,
+    "playerFoot": 599.3333333333344,
+    "roofFoot": 299.0933333333344,
+    "state": "moving"
+  },
+  {
+    "ms": 1208.3333333333333,
+    "liftY": 590.1666666666678,
+    "playerX": 2450,
+    "playerFoot": 590.1666666666678,
+    "roofFoot": 289.92666666666776,
+    "state": "moving"
+  },
+  {
+    "ms": 1250,
+    "liftY": 581.0000000000011,
+    "playerX": 2450,
+    "playerFoot": 581.0000000000011,
+    "roofFoot": 280.7600000000011,
+    "state": "moving"
+  },
+  {
+    "ms": 1291.6666666666665,
+    "liftY": 571.8333333333345,
+    "playerX": 2450,
+    "playerFoot": 571.8333333333345,
+    "roofFoot": 271.5933333333345,
+    "state": "moving"
+  },
+  {
+    "ms": 1333.3333333333333,
+    "liftY": 562.6666666666679,
+    "playerX": 2450,
+    "playerFoot": 562.6666666666679,
+    "roofFoot": 262.42666666666787,
+    "state": "moving"
+  },
+  {
+    "ms": 1375,
+    "liftY": 553.5000000000013,
+    "playerX": 2450,
+    "playerFoot": 553.5000000000013,
+    "roofFoot": 253.26000000000124,
+    "state": "moving"
+  },
+  {
+    "ms": 1416.6666666666665,
+    "liftY": 544.3333333333346,
+    "playerX": 2450,
+    "playerFoot": 544.3333333333346,
+    "roofFoot": 244.0933333333346,
+    "state": "moving"
+  },
+  {
+    "ms": 1458.3333333333333,
+    "liftY": 535.166666666668,
+    "playerX": 2450,
+    "playerFoot": 535.166666666668,
+    "roofFoot": 234.92666666666798,
+    "state": "moving"
+  },
+  {
+    "ms": 1500,
+    "liftY": 526.0000000000014,
+    "playerX": 2450,
+    "playerFoot": 526.0000000000014,
+    "roofFoot": 225.76000000000136,
+    "state": "moving"
+  },
+  {
+    "ms": 1541.6666666666665,
+    "liftY": 516.8333333333347,
+    "playerX": 2450,
+    "playerFoot": 516.8333333333347,
+    "roofFoot": 216.59333333333473,
+    "state": "moving"
+  },
+  {
+    "ms": 1583.3333333333333,
+    "liftY": 507.66666666666805,
+    "playerX": 2450,
+    "playerFoot": 507.66666666666805,
+    "roofFoot": 207.42666666666804,
+    "state": "moving"
+  },
+  {
+    "ms": 1625,
+    "liftY": 498.50000000000136,
+    "playerX": 2450,
+    "playerFoot": 498.50000000000136,
+    "roofFoot": 198.26000000000136,
+    "state": "moving"
+  },
+  {
+    "ms": 1666.6666666666665,
+    "liftY": 489.3333333333347,
+    "playerX": 2450,
+    "playerFoot": 489.3333333333347,
+    "roofFoot": 189.09333333333467,
+    "state": "moving"
+  },
+  {
+    "ms": 1708.3333333333333,
+    "liftY": 480.166666666668,
+    "playerX": 2450,
+    "playerFoot": 480.166666666668,
+    "roofFoot": 179.92666666666798,
+    "state": "moving"
+  },
+  {
+    "ms": 1750,
+    "liftY": 471.0000000000013,
+    "playerX": 2450,
+    "playerFoot": 471.0000000000013,
+    "roofFoot": 170.7600000000013,
+    "state": "moving"
+  },
+  {
+    "ms": 1791.6666666666665,
+    "liftY": 461.8333333333346,
+    "playerX": 2450,
+    "playerFoot": 461.8333333333346,
+    "roofFoot": 161.5933333333346,
+    "state": "moving"
+  },
+  {
+    "ms": 1833.3333333333333,
+    "liftY": 452.66666666666794,
+    "playerX": 2450,
+    "playerFoot": 452.66666666666794,
+    "roofFoot": 152.42666666666793,
+    "state": "moving"
+  },
+  {
+    "ms": 1875,
+    "liftY": 443.50000000000125,
+    "playerX": 2450,
+    "playerFoot": 443.50000000000125,
+    "roofFoot": 143.26000000000124,
+    "state": "moving"
+  },
+  {
+    "ms": 1916.6666666666665,
+    "liftY": 434.33333333333456,
+    "playerX": 2450,
+    "playerFoot": 434.33333333333456,
+    "roofFoot": 134.09333333333456,
+    "state": "moving"
+  },
+  {
+    "ms": 1958.3333333333333,
+    "liftY": 425.1666666666679,
+    "playerX": 2450,
+    "playerFoot": 425.1666666666679,
+    "roofFoot": 124.92666666666787,
+    "state": "moving"
+  },
+  {
+    "ms": 2000,
+    "liftY": 416.0000000000012,
+    "playerX": 2450,
+    "playerFoot": 416.0000000000012,
+    "roofFoot": 115.76000000000118,
+    "state": "moving"
+  },
+  {
+    "ms": 2041.6666666666665,
+    "liftY": 406.8333333333345,
+    "playerX": 2450,
+    "playerFoot": 406.8333333333345,
+    "roofFoot": 106.5933333333345,
+    "state": "moving"
+  },
+  {
+    "ms": 2083.333333333333,
+    "liftY": 397.6666666666678,
+    "playerX": 2450,
+    "playerFoot": 397.6666666666678,
+    "roofFoot": 97.42666666666781,
+    "state": "moving"
+  },
+  {
+    "ms": 2125,
+    "liftY": 388.50000000000114,
+    "playerX": 2450,
+    "playerFoot": 388.50000000000114,
+    "roofFoot": 88.26000000000113,
+    "state": "moving"
+  },
+  {
+    "ms": 2166.6666666666665,
+    "liftY": 379.33333333333445,
+    "playerX": 2450,
+    "playerFoot": 379.33333333333445,
+    "roofFoot": 79.09333333333444,
+    "state": "moving"
+  },
+  {
+    "ms": 2208.333333333333,
+    "liftY": 370.16666666666777,
+    "playerX": 2450,
+    "playerFoot": 370.16666666666777,
+    "roofFoot": 69.92666666666776,
+    "state": "moving"
+  },
+  {
+    "ms": 2250,
+    "liftY": 361.0000000000011,
+    "playerX": 2450,
+    "playerFoot": 361.0000000000011,
+    "roofFoot": 60.76000000000107,
+    "state": "moving"
+  },
+  {
+    "ms": 2291.6666666666665,
+    "liftY": 351.8333333333344,
+    "playerX": 2450,
+    "playerFoot": 351.8333333333344,
+    "roofFoot": 51.593333333334385,
+    "state": "moving"
+  },
+  {
+    "ms": 2333.333333333333,
+    "liftY": 342.6666666666677,
+    "playerX": 2450,
+    "playerFoot": 342.6666666666677,
+    "roofFoot": 42.4266666666677,
+    "state": "moving"
+  },
+  {
+    "ms": 2375,
+    "liftY": 333.500000000001,
+    "playerX": 2450,
+    "playerFoot": 333.500000000001,
+    "roofFoot": 33.260000000001014,
+    "state": "moving"
+  },
+  {
+    "ms": 2416.6666666666665,
+    "liftY": 324.33333333333434,
+    "playerX": 2450,
+    "playerFoot": 324.33333333333434,
+    "roofFoot": 24.09333333333433,
+    "state": "moving"
+  },
+  {
+    "ms": 2458.333333333333,
+    "liftY": 315.16666666666765,
+    "playerX": 2450,
+    "playerFoot": 315.16666666666765,
+    "roofFoot": 14.926666666667643,
+    "state": "moving"
+  },
+  {
+    "ms": 2500,
+    "liftY": 306.00000000000097,
+    "playerX": 2450,
+    "playerFoot": 306.00000000000097,
+    "roofFoot": 5.760000000000957,
+    "state": "moving"
+  },
+  {
+    "ms": 2541.6666666666665,
+    "liftY": 296.8333333333343,
+    "playerX": 2450,
+    "playerFoot": 296.8333333333343,
+    "roofFoot": -3.4066666666657284,
+    "state": "moving"
+  },
+  {
+    "ms": 2583.333333333333,
+    "liftY": 287.6666666666676,
+    "playerX": 2450,
+    "playerFoot": 287.6666666666676,
+    "roofFoot": -12.573333333332414,
+    "state": "moving"
+  },
+  {
+    "ms": 2625,
+    "liftY": 278.5000000000009,
+    "playerX": 2450,
+    "playerFoot": 278.5000000000009,
+    "roofFoot": -21.7399999999991,
+    "state": "moving"
+  },
+  {
+    "ms": 2666.6666666666665,
+    "liftY": 269.3333333333342,
+    "playerX": 2450,
+    "playerFoot": 269.3333333333342,
+    "roofFoot": -30.906666666665785,
+    "state": "moving"
+  },
+  {
+    "ms": 2708.333333333333,
+    "liftY": 260.16666666666754,
+    "playerX": 2450,
+    "playerFoot": 260.16666666666754,
+    "roofFoot": -40.07333333333247,
+    "state": "moving"
+  },
+  {
+    "ms": 2750,
+    "liftY": 251.00000000000088,
+    "playerX": 2450,
+    "playerFoot": 251.00000000000088,
+    "roofFoot": -49.23999999999913,
+    "state": "moving"
+  },
+  {
+    "ms": 2791.6666666666665,
+    "liftY": 241.83333333333422,
+    "playerX": 2450,
+    "playerFoot": 241.83333333333422,
+    "roofFoot": -58.406666666665785,
+    "state": "moving"
+  },
+  {
+    "ms": 2833.333333333333,
+    "liftY": 232.66666666666757,
+    "playerX": 2450,
+    "playerFoot": 232.66666666666757,
+    "roofFoot": -67.57333333333244,
+    "state": "moving"
+  },
+  {
+    "ms": 2875,
+    "liftY": 223.5000000000009,
+    "playerX": 2450,
+    "playerFoot": 223.5000000000009,
+    "roofFoot": -76.7399999999991,
+    "state": "moving"
+  },
+  {
+    "ms": 2916.6666666666665,
+    "liftY": 214.33333333333425,
+    "playerX": 2450,
+    "playerFoot": 214.33333333333425,
+    "roofFoot": -85.90666666666576,
+    "state": "moving"
+  },
+  {
+    "ms": 2958.333333333333,
+    "liftY": 205.1666666666676,
+    "playerX": 2450,
+    "playerFoot": 205.1666666666676,
+    "roofFoot": -95.07333333333241,
+    "state": "moving"
+  },
+  {
+    "ms": 3000,
+    "liftY": 196.00000000000094,
+    "playerX": 2450,
+    "playerFoot": 196.00000000000094,
+    "roofFoot": -104.23999999999907,
+    "state": "moving"
+  },
+  {
+    "ms": 3041.6666666666665,
+    "liftY": 186.83333333333428,
+    "playerX": 2450,
+    "playerFoot": 186.83333333333428,
+    "roofFoot": -113.40666666666573,
+    "state": "moving"
+  },
+  {
+    "ms": 3083.333333333333,
+    "liftY": 177.66666666666762,
+    "playerX": 2450,
+    "playerFoot": 177.66666666666762,
+    "roofFoot": -122.57333333333239,
+    "state": "moving"
+  },
+  {
+    "ms": 3125,
+    "liftY": 168.50000000000097,
+    "playerX": 2450,
+    "playerFoot": 168.50000000000097,
+    "roofFoot": -131.73999999999904,
+    "state": "moving"
+  },
+  {
+    "ms": 3166.6666666666665,
+    "liftY": 159.3333333333343,
+    "playerX": 2450,
+    "playerFoot": 159.3333333333343,
+    "roofFoot": -140.9066666666657,
+    "state": "moving"
+  },
+  {
+    "ms": 3208.333333333333,
+    "liftY": 150.16666666666765,
+    "playerX": 2450,
+    "playerFoot": 150.16666666666765,
+    "roofFoot": -150.07333333333236,
+    "state": "moving"
+  },
+  {
+    "ms": 3250,
+    "liftY": 141.000000000001,
+    "playerX": 2450,
+    "playerFoot": 141.000000000001,
+    "roofFoot": -159.23999999999901,
+    "state": "moving"
+  },
+  {
+    "ms": 3291.6666666666665,
+    "liftY": 131.83333333333434,
+    "playerX": 2450,
+    "playerFoot": 131.83333333333434,
+    "roofFoot": -168.40666666666567,
+    "state": "moving"
+  },
+  {
+    "ms": 3333.333333333333,
+    "liftY": 122.66666666666767,
+    "playerX": 2450,
+    "playerFoot": 122.66666666666767,
+    "roofFoot": -177.57333333333236,
+    "state": "moving"
+  },
+  {
+    "ms": 3375,
+    "liftY": 113.500000000001,
+    "playerX": 2450,
+    "playerFoot": 113.500000000001,
+    "roofFoot": -186.73999999999904,
+    "state": "moving"
+  },
+  {
+    "ms": 3416.6666666666665,
+    "liftY": 104.33333333333432,
+    "playerX": 2450,
+    "playerFoot": 104.33333333333432,
+    "roofFoot": -195.90666666666567,
+    "state": "moving"
+  },
+  {
+    "ms": 3458.333333333333,
+    "liftY": 95.16666666666765,
+    "playerX": 2450,
+    "playerFoot": 95.16666666666765,
+    "roofFoot": -205.07333333333236,
+    "state": "moving"
+  },
+  {
+    "ms": 3500,
+    "liftY": 86.00000000000098,
+    "playerX": 2450,
+    "playerFoot": 86.00000000000098,
+    "roofFoot": -214.23999999999904,
+    "state": "moving"
+  },
+  {
+    "ms": 3541.6666666666665,
+    "liftY": 76.83333333333431,
+    "playerX": 2450,
+    "playerFoot": 76.83333333333431,
+    "roofFoot": -223.40666666666573,
+    "state": "moving"
+  },
+  {
+    "ms": 3583.333333333333,
+    "liftY": 67.66666666666764,
+    "playerX": 2450,
+    "playerFoot": 67.66666666666764,
+    "roofFoot": -232.5733333333324,
+    "state": "moving"
+  },
+  {
+    "ms": 3625,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 3666.6666666666665,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 3708.333333333333,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 3750,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 3791.6666666666665,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 3833.333333333333,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 3875,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 3916.6666666666665,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 3958.333333333333,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 4000,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 4041.6666666666665,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 4083.333333333333,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 4125,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 4166.666666666666,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 4208.333333333333,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 4250,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 4291.666666666666,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 4333.333333333333,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 4375,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 4416.666666666666,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 4458.333333333333,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 4500,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 4541.666666666666,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 4583.333333333333,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 4625,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 4666.666666666666,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 4708.333333333333,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 4750,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 4791.666666666666,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 4833.333333333333,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 4875,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 4916.666666666666,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 4958.333333333333,
+    "liftY": 59,
+    "playerX": 2450,
+    "playerFoot": 59,
+    "roofFoot": -241.24,
+    "state": "dormant"
+  },
+  {
+    "ms": 5000,
+    "liftY": 59.0000000000001,
+    "playerX": 2450,
+    "playerFoot": 59.0000000000001,
+    "roofFoot": -241.2399999999999,
+    "state": "returning"
+  },
+  {
+    "ms": 5041.666666666666,
+    "liftY": 68.16666666666677,
+    "playerX": 2450,
+    "playerFoot": 68.16666666666677,
+    "roofFoot": -232.0733333333332,
+    "state": "returning"
+  },
+  {
+    "ms": 5083.333333333333,
+    "liftY": 77.33333333333344,
+    "playerX": 2450,
+    "playerFoot": 77.33333333333344,
+    "roofFoot": -222.90666666666658,
+    "state": "returning"
+  },
+  {
+    "ms": 5125,
+    "liftY": 86.50000000000011,
+    "playerX": 2450,
+    "playerFoot": 86.50000000000011,
+    "roofFoot": -213.7399999999999,
+    "state": "returning"
+  },
+  {
+    "ms": 5166.666666666666,
+    "liftY": 95.66666666666679,
+    "playerX": 2450,
+    "playerFoot": 95.66666666666679,
+    "roofFoot": -204.5733333333332,
+    "state": "returning"
+  },
+  {
+    "ms": 5208.333333333333,
+    "liftY": 104.83333333333346,
+    "playerX": 2450,
+    "playerFoot": 104.83333333333346,
+    "roofFoot": -195.40666666666652,
+    "state": "returning"
+  },
+  {
+    "ms": 5250,
+    "liftY": 114.00000000000013,
+    "playerX": 2450,
+    "playerFoot": 114.00000000000013,
+    "roofFoot": -186.23999999999984,
+    "state": "returning"
+  },
+  {
+    "ms": 5291.666666666666,
+    "liftY": 123.1666666666668,
+    "playerX": 2450,
+    "playerFoot": 123.1666666666668,
+    "roofFoot": -177.0733333333332,
+    "state": "returning"
+  },
+  {
+    "ms": 5333.333333333333,
+    "liftY": 132.33333333333346,
+    "playerX": 2450,
+    "playerFoot": 132.33333333333346,
+    "roofFoot": -167.90666666666655,
+    "state": "returning"
+  },
+  {
+    "ms": 5375,
+    "liftY": 141.5000000000001,
+    "playerX": 2450,
+    "playerFoot": 141.5000000000001,
+    "roofFoot": -158.7399999999999,
+    "state": "returning"
+  },
+  {
+    "ms": 5416.666666666666,
+    "liftY": 150.66666666666677,
+    "playerX": 2450,
+    "playerFoot": 150.66666666666677,
+    "roofFoot": -149.57333333333324,
+    "state": "returning"
+  },
+  {
+    "ms": 5458.333333333333,
+    "liftY": 159.83333333333343,
+    "playerX": 2450,
+    "playerFoot": 159.83333333333343,
+    "roofFoot": -140.40666666666658,
+    "state": "returning"
+  },
+  {
+    "ms": 5500,
+    "liftY": 169.00000000000009,
+    "playerX": 2450,
+    "playerFoot": 169.00000000000009,
+    "roofFoot": -131.23999999999992,
+    "state": "returning"
+  },
+  {
+    "ms": 5541.666666666666,
+    "liftY": 178.16666666666674,
+    "playerX": 2450,
+    "playerFoot": 178.16666666666674,
+    "roofFoot": -122.07333333333327,
+    "state": "returning"
+  },
+  {
+    "ms": 5583.333333333333,
+    "liftY": 187.3333333333334,
+    "playerX": 2450,
+    "playerFoot": 187.3333333333334,
+    "roofFoot": -112.90666666666661,
+    "state": "returning"
+  },
+  {
+    "ms": 5625,
+    "liftY": 196.50000000000006,
+    "playerX": 2450,
+    "playerFoot": 196.50000000000006,
+    "roofFoot": -103.73999999999995,
+    "state": "returning"
+  },
+  {
+    "ms": 5666.666666666666,
+    "liftY": 205.6666666666667,
+    "playerX": 2450,
+    "playerFoot": 205.6666666666667,
+    "roofFoot": -94.5733333333333,
+    "state": "returning"
+  },
+  {
+    "ms": 5708.333333333333,
+    "liftY": 214.83333333333337,
+    "playerX": 2450,
+    "playerFoot": 214.83333333333337,
+    "roofFoot": -85.40666666666664,
+    "state": "returning"
+  },
+  {
+    "ms": 5750,
+    "liftY": 224.00000000000003,
+    "playerX": 2450,
+    "playerFoot": 224.00000000000003,
+    "roofFoot": -76.23999999999998,
+    "state": "returning"
+  },
+  {
+    "ms": 5791.666666666666,
+    "liftY": 233.16666666666669,
+    "playerX": 2450,
+    "playerFoot": 233.16666666666669,
+    "roofFoot": -67.07333333333332,
+    "state": "returning"
+  },
+  {
+    "ms": 5833.333333333333,
+    "liftY": 242.33333333333334,
+    "playerX": 2450,
+    "playerFoot": 242.33333333333334,
+    "roofFoot": -57.906666666666666,
+    "state": "returning"
+  },
+  {
+    "ms": 5875,
+    "liftY": 251.5,
+    "playerX": 2450,
+    "playerFoot": 251.5,
+    "roofFoot": -48.74000000000001,
+    "state": "returning"
+  },
+  {
+    "ms": 5916.666666666666,
+    "liftY": 260.6666666666667,
+    "playerX": 2450,
+    "playerFoot": 260.6666666666667,
+    "roofFoot": -39.57333333333332,
+    "state": "returning"
+  },
+  {
+    "ms": 5958.333333333333,
+    "liftY": 269.83333333333337,
+    "playerX": 2450,
+    "playerFoot": 269.83333333333337,
+    "roofFoot": -30.406666666666638,
+    "state": "returning"
+  },
+  {
+    "ms": 6000,
+    "liftY": 279.00000000000006,
+    "playerX": 2450,
+    "playerFoot": 279.00000000000006,
+    "roofFoot": -21.239999999999952,
+    "state": "returning"
+  },
+  {
+    "ms": 6041.666666666666,
+    "liftY": 288.16666666666674,
+    "playerX": 2450,
+    "playerFoot": 288.16666666666674,
+    "roofFoot": -12.073333333333267,
+    "state": "returning"
+  },
+  {
+    "ms": 6083.333333333333,
+    "liftY": 297.3333333333334,
+    "playerX": 2450,
+    "playerFoot": 297.3333333333334,
+    "roofFoot": -2.906666666666581,
+    "state": "returning"
+  },
+  {
+    "ms": 6125,
+    "liftY": 306.5000000000001,
+    "playerX": 2450,
+    "playerFoot": 306.5000000000001,
+    "roofFoot": 6.260000000000105,
+    "state": "returning"
+  },
+  {
+    "ms": 6166.666666666666,
+    "liftY": 315.6666666666668,
+    "playerX": 2450,
+    "playerFoot": 315.6666666666668,
+    "roofFoot": 15.42666666666679,
+    "state": "returning"
+  },
+  {
+    "ms": 6208.333333333333,
+    "liftY": 324.8333333333335,
+    "playerX": 2450,
+    "playerFoot": 324.8333333333335,
+    "roofFoot": 24.593333333333476,
+    "state": "returning"
+  },
+  {
+    "ms": 6250,
+    "liftY": 334.00000000000017,
+    "playerX": 2450,
+    "playerFoot": 334.00000000000017,
+    "roofFoot": 33.76000000000016,
+    "state": "returning"
+  },
+  {
+    "ms": 6291.666666666666,
+    "liftY": 343.16666666666686,
+    "playerX": 2450,
+    "playerFoot": 343.16666666666686,
+    "roofFoot": 42.92666666666685,
+    "state": "returning"
+  },
+  {
+    "ms": 6333.333333333333,
+    "liftY": 352.33333333333354,
+    "playerX": 2450,
+    "playerFoot": 352.33333333333354,
+    "roofFoot": 52.09333333333353,
+    "state": "returning"
+  },
+  {
+    "ms": 6375,
+    "liftY": 361.5000000000002,
+    "playerX": 2450,
+    "playerFoot": 361.5000000000002,
+    "roofFoot": 61.26000000000022,
+    "state": "returning"
+  },
+  {
+    "ms": 6416.666666666666,
+    "liftY": 370.6666666666669,
+    "playerX": 2450,
+    "playerFoot": 370.6666666666669,
+    "roofFoot": 70.4266666666669,
+    "state": "returning"
+  },
+  {
+    "ms": 6458.333333333333,
+    "liftY": 379.8333333333336,
+    "playerX": 2450,
+    "playerFoot": 379.8333333333336,
+    "roofFoot": 79.59333333333359,
+    "state": "returning"
+  },
+  {
+    "ms": 6500,
+    "liftY": 389.0000000000003,
+    "playerX": 2450,
+    "playerFoot": 389.0000000000003,
+    "roofFoot": 88.76000000000028,
+    "state": "returning"
+  },
+  {
+    "ms": 6541.666666666666,
+    "liftY": 398.16666666666697,
+    "playerX": 2450,
+    "playerFoot": 398.16666666666697,
+    "roofFoot": 97.92666666666696,
+    "state": "returning"
+  },
+  {
+    "ms": 6583.333333333333,
+    "liftY": 407.33333333333366,
+    "playerX": 2450,
+    "playerFoot": 407.33333333333366,
+    "roofFoot": 107.09333333333365,
+    "state": "returning"
+  },
+  {
+    "ms": 6625,
+    "liftY": 416.50000000000034,
+    "playerX": 2450,
+    "playerFoot": 416.50000000000034,
+    "roofFoot": 116.26000000000033,
+    "state": "returning"
+  },
+  {
+    "ms": 6666.666666666666,
+    "liftY": 425.666666666667,
+    "playerX": 2450,
+    "playerFoot": 425.666666666667,
+    "roofFoot": 125.42666666666702,
+    "state": "returning"
+  },
+  {
+    "ms": 6708.333333333333,
+    "liftY": 434.8333333333337,
+    "playerX": 2450,
+    "playerFoot": 434.8333333333337,
+    "roofFoot": 134.5933333333337,
+    "state": "returning"
+  },
+  {
+    "ms": 6750,
+    "liftY": 444.0000000000004,
+    "playerX": 2450,
+    "playerFoot": 444.0000000000004,
+    "roofFoot": 143.7600000000004,
+    "state": "returning"
+  },
+  {
+    "ms": 6791.666666666666,
+    "liftY": 453.1666666666671,
+    "playerX": 2450,
+    "playerFoot": 453.1666666666671,
+    "roofFoot": 152.92666666666707,
+    "state": "returning"
+  },
+  {
+    "ms": 6833.333333333333,
+    "liftY": 462.33333333333377,
+    "playerX": 2450,
+    "playerFoot": 462.33333333333377,
+    "roofFoot": 162.09333333333376,
+    "state": "returning"
+  },
+  {
+    "ms": 6875,
+    "liftY": 471.50000000000045,
+    "playerX": 2450,
+    "playerFoot": 471.50000000000045,
+    "roofFoot": 171.26000000000045,
+    "state": "returning"
+  },
+  {
+    "ms": 6916.666666666666,
+    "liftY": 480.66666666666714,
+    "playerX": 2450,
+    "playerFoot": 480.66666666666714,
+    "roofFoot": 180.42666666666713,
+    "state": "returning"
+  },
+  {
+    "ms": 6958.333333333333,
+    "liftY": 489.8333333333338,
+    "playerX": 2450,
+    "playerFoot": 489.8333333333338,
+    "roofFoot": 189.59333333333382,
+    "state": "returning"
+  },
+  {
+    "ms": 7000,
+    "liftY": 499.0000000000005,
+    "playerX": 2450,
+    "playerFoot": 499.0000000000005,
+    "roofFoot": 198.7600000000005,
+    "state": "returning"
+  },
+  {
+    "ms": 7041.666666666666,
+    "liftY": 508.1666666666672,
+    "playerX": 2450,
+    "playerFoot": 508.1666666666672,
+    "roofFoot": 207.9266666666672,
+    "state": "returning"
+  },
+  {
+    "ms": 7083.333333333333,
+    "liftY": 517.3333333333338,
+    "playerX": 2450,
+    "playerFoot": 517.3333333333338,
+    "roofFoot": 217.09333333333382,
+    "state": "returning"
+  },
+  {
+    "ms": 7125,
+    "liftY": 526.5000000000005,
+    "playerX": 2450,
+    "playerFoot": 526.5000000000005,
+    "roofFoot": 226.26000000000045,
+    "state": "returning"
+  },
+  {
+    "ms": 7166.666666666666,
+    "liftY": 535.6666666666671,
+    "playerX": 2450,
+    "playerFoot": 535.6666666666671,
+    "roofFoot": 235.42666666666707,
+    "state": "returning"
+  },
+  {
+    "ms": 7208.333333333333,
+    "liftY": 544.8333333333337,
+    "playerX": 2450,
+    "playerFoot": 544.8333333333337,
+    "roofFoot": 244.5933333333337,
+    "state": "returning"
+  },
+  {
+    "ms": 7250,
+    "liftY": 554.0000000000003,
+    "playerX": 2450,
+    "playerFoot": 554.0000000000003,
+    "roofFoot": 253.76000000000033,
+    "state": "returning"
+  },
+  {
+    "ms": 7291.666666666666,
+    "liftY": 563.166666666667,
+    "playerX": 2450,
+    "playerFoot": 563.166666666667,
+    "roofFoot": 262.92666666666696,
+    "state": "returning"
+  },
+  {
+    "ms": 7333.333333333333,
+    "liftY": 572.3333333333336,
+    "playerX": 2450,
+    "playerFoot": 572.3333333333336,
+    "roofFoot": 272.0933333333336,
+    "state": "returning"
+  },
+  {
+    "ms": 7375,
+    "liftY": 581.5000000000002,
+    "playerX": 2450,
+    "playerFoot": 581.5000000000002,
+    "roofFoot": 281.2600000000002,
+    "state": "returning"
+  },
+  {
+    "ms": 7416.666666666666,
+    "liftY": 590.6666666666669,
+    "playerX": 2450,
+    "playerFoot": 590.6666666666669,
+    "roofFoot": 290.42666666666685,
+    "state": "returning"
+  },
+  {
+    "ms": 7458.333333333333,
+    "liftY": 599.8333333333335,
+    "playerX": 2450,
+    "playerFoot": 599.8333333333335,
+    "roofFoot": 299.5933333333335,
+    "state": "returning"
+  },
+  {
+    "ms": 7500,
+    "liftY": 609.0000000000001,
+    "playerX": 2450,
+    "playerFoot": 609.0000000000001,
+    "roofFoot": 308.7600000000001,
+    "state": "returning"
+  },
+  {
+    "ms": 7541.666666666666,
+    "liftY": 618.1666666666667,
+    "playerX": 2450,
+    "playerFoot": 618.1666666666667,
+    "roofFoot": 317.92666666666673,
+    "state": "returning"
+  },
+  {
+    "ms": 7583.333333333333,
+    "liftY": 627.3333333333334,
+    "playerX": 2450,
+    "playerFoot": 627.3333333333334,
+    "roofFoot": 327.09333333333336,
+    "state": "returning"
+  },
+  {
+    "ms": 7625,
+    "liftY": 636.5,
+    "playerX": 2450,
+    "playerFoot": 636.5,
+    "roofFoot": 336.26,
+    "state": "returning"
+  },
+  {
+    "ms": 7666.666666666666,
+    "liftY": 645.6666666666666,
+    "playerX": 2450,
+    "playerFoot": 645.6666666666666,
+    "roofFoot": 345.4266666666666,
+    "state": "returning"
+  },
+  {
+    "ms": 7708.333333333333,
+    "liftY": 654.8333333333333,
+    "playerX": 2450,
+    "playerFoot": 654.8333333333333,
+    "roofFoot": 354.59333333333325,
+    "state": "returning"
+  },
+  {
+    "ms": 7750,
+    "liftY": 663.9999999999999,
+    "playerX": 2450,
+    "playerFoot": 663.9999999999999,
+    "roofFoot": 363.7599999999999,
+    "state": "returning"
+  },
+  {
+    "ms": 7791.666666666666,
+    "liftY": 673.1666666666665,
+    "playerX": 2450,
+    "playerFoot": 673.1666666666665,
+    "roofFoot": 372.9266666666665,
+    "state": "returning"
+  },
+  {
+    "ms": 7833.333333333333,
+    "liftY": 682.3333333333331,
+    "playerX": 2450,
+    "playerFoot": 682.3333333333331,
+    "roofFoot": 382.09333333333313,
+    "state": "returning"
+  },
+  {
+    "ms": 7875,
+    "liftY": 691.4999999999998,
+    "playerX": 2450,
+    "playerFoot": 691.4999999999998,
+    "roofFoot": 391.25999999999976,
+    "state": "returning"
+  },
+  {
+    "ms": 7916.666666666666,
+    "liftY": 700.6666666666664,
+    "playerX": 2450,
+    "playerFoot": 700.6666666666664,
+    "roofFoot": 400.4266666666664,
+    "state": "returning"
+  },
+  {
+    "ms": 7958.333333333333,
+    "liftY": 709.833333333333,
+    "playerX": 2450,
+    "playerFoot": 709.833333333333,
+    "roofFoot": 409.593333333333,
+    "state": "returning"
+  },
+  {
+    "ms": 8000,
+    "liftY": 718.9999999999997,
+    "playerX": 2450,
+    "playerFoot": 718.9999999999997,
+    "roofFoot": 418.75999999999965,
+    "state": "returning"
+  },
+  {
+    "ms": 8041.666666666666,
+    "liftY": 728.1666666666663,
+    "playerX": 2450,
+    "playerFoot": 728.1666666666663,
+    "roofFoot": 427.9266666666663,
+    "state": "returning"
+  },
+  {
+    "ms": 8083.333333333333,
+    "liftY": 737.3333333333329,
+    "playerX": 2450,
+    "playerFoot": 737.3333333333329,
+    "roofFoot": 437.0933333333329,
+    "state": "returning"
+  },
+  {
+    "ms": 8124.999999999999,
+    "liftY": 746.4999999999995,
+    "playerX": 2450,
+    "playerFoot": 746.4999999999995,
+    "roofFoot": 446.25999999999954,
+    "state": "returning"
+  },
+  {
+    "ms": 8166.666666666666,
+    "liftY": 755.6666666666662,
+    "playerX": 2450,
+    "playerFoot": 755.6666666666662,
+    "roofFoot": 455.42666666666616,
+    "state": "returning"
+  },
+  {
+    "ms": 8208.333333333332,
+    "liftY": 764.8333333333328,
+    "playerX": 2450,
+    "playerFoot": 764.8333333333328,
+    "roofFoot": 464.5933333333328,
+    "state": "returning"
+  },
+  {
+    "ms": 8250,
+    "liftY": 773.9999999999994,
+    "playerX": 2450,
+    "playerFoot": 773.9999999999994,
+    "roofFoot": 473.7599999999994,
+    "state": "returning"
+  },
+  {
+    "ms": 8291.666666666666,
+    "liftY": 783.1666666666661,
+    "playerX": 2450,
+    "playerFoot": 783.1666666666661,
+    "roofFoot": 482.92666666666605,
+    "state": "returning"
+  },
+  {
+    "ms": 8333.333333333332,
+    "liftY": 792.3333333333327,
+    "playerX": 2450,
+    "playerFoot": 792.3333333333327,
+    "roofFoot": 492.0933333333327,
+    "state": "returning"
+  },
+  {
+    "ms": 8375,
+    "liftY": 801.4999999999993,
+    "playerX": 2450,
+    "playerFoot": 801.4999999999993,
+    "roofFoot": 501.2599999999993,
+    "state": "returning"
+  },
+  {
+    "ms": 8416.666666666666,
+    "liftY": 810.666666666666,
+    "playerX": 2450,
+    "playerFoot": 810.666666666666,
+    "roofFoot": 510.42666666666594,
+    "state": "returning"
+  },
+  {
+    "ms": 8458.333333333332,
+    "liftY": 819.8333333333326,
+    "playerX": 2450,
+    "playerFoot": 819.8333333333326,
+    "roofFoot": 519.5933333333326,
+    "state": "returning"
+  },
+  {
+    "ms": 8500,
+    "liftY": 828.9999999999992,
+    "playerX": 2450,
+    "playerFoot": 828.9999999999992,
+    "roofFoot": 528.7599999999992,
+    "state": "returning"
+  },
+  {
+    "ms": 8541.666666666666,
+    "liftY": 838.1666666666658,
+    "playerX": 2450,
+    "playerFoot": 838.1666666666658,
+    "roofFoot": 537.9266666666658,
+    "state": "returning"
+  },
+  {
+    "ms": 8583.333333333332,
+    "liftY": 847.3333333333325,
+    "playerX": 2450,
+    "playerFoot": 847.3333333333325,
+    "roofFoot": 547.0933333333325,
+    "state": "returning"
+  },
+  {
+    "ms": 8625,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 8666.666666666666,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 8708.333333333332,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 8750,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 8791.666666666666,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 8833.333333333332,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 8875,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 8916.666666666666,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 8958.333333333332,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 9000,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 9041.666666666666,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 9083.333333333332,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 9125,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 9166.666666666666,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 9208.333333333332,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 9250,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 9291.666666666666,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 9333.333333333332,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 9375,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 9416.666666666666,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 9458.333333333332,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 9500,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 9541.666666666666,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 9583.333333333332,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 9625,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 9666.666666666666,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 9708.333333333332,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 9750,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 9791.666666666666,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 9833.333333333332,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 9875,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 9916.666666666666,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 9958.333333333332,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  },
+  {
+    "ms": 10000,
+    "liftY": 856,
+    "playerX": 2450,
+    "playerFoot": 856,
+    "roofFoot": 555.76,
+    "state": "dormant"
+  }
+]

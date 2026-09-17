@@ -172,11 +172,11 @@ for (const fps of [30,60,120]) {
   for(let i=0;i<fps*4;i++){actor.update(1000/fps,true);p.updateSignalLift(1000/fps);assert(!actor.liftHeadContact);}
   const destination=p.getStageSurfaces().find(s=>s.id==='firewall-roof');
   assert.equal(lift.y,destination.y);assert(Math.abs(actor.position.y+72-destination.y)<0.001,'lift floor aligns with actual rooftop');
-  assert.equal(actor.supportedSurfaceId,destination.id,'standing passenger transfers onto rooftop');
+  assert.equal(actor.supportedSurfaceId,lift.id,'standing passenger keeps the carriage at the rooftop seam');
   // Real grounded movement, with no jump, carries the rider left out of the
-  // cabin after clearing the solid canopy on its right; returning carriage
+  // cabin; only crossing its edge transfers support. The returning carriage
   // must not pull them down through the roof.
-  for(let i=0;i<fps*.9;i++){actor.moveLeft();actor.update(1000/fps,true);p.updateSignalLift(1000/fps);assert(actor.grounded);assert.equal(actor.supportedSurfaceId,destination.id);}
+  for(let i=0;i<fps*.9;i++){actor.moveLeft();actor.update(1000/fps,true);p.updateSignalLift(1000/fps);assert(actor.grounded);assert.equal(actor.supportedSurfaceId,actor.position.x>=lift.x?lift.id:destination.id);}
   assert(actor.position.x<lift.x-18,'passenger walks completely out of the cabin');
   assert.equal(actor.position.y+72,destination.y);
   for(const state of ['moving','returning']) {

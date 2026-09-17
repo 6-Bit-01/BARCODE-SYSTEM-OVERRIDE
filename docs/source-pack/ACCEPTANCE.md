@@ -1,5 +1,17 @@
 # Acceptance and Test Status
 
+## September 17 — elevator passengers, removed platform and relevant WATCH OUT
+
+Import the exact draft head from the generated receipt. Base/rollback: merged #79, `318f024c1e1c6bb38f479b7e4842c894074c5ed4`. Makko and physical-controller acceptance are pending.
+
+1. Charge twice from the left, center and right of the cabin. Stay aboard through ascent, the top stop, five-second expiry and complete descent. Expect steady feet and no sideways shove or rooftop stealing support. Repeat with a roof enemy and check front-rail depth.
+2. At the top walk left onto the rooftop; remain there as the lift returns. Walk back aboard at the aligned stop and ride down. Jump inside during descent. Try exiting beside the canopy: wait at the edge until clear. Use Down + Jump to deliberately drop. Recharge during descent, pause mid-ride and restart.
+3. Check the circled spot below the Firewall canopy: no low platform, invisible landing or underside bonk. The higher Firewall step uses its gold design and existing hangers. Traverse that upper route and nearby solid awnings.
+4. Check car approaches from both sides while in their rooftop danger lane: cue stays at the edge/car altitude and ends on first visible artwork. Leave the lane: it clears. High traffic does not warn a street player. Jump, fall or ride toward a lane: anticipate nearby danger. With the flight line clipped/offscreen, the label must not drop below the HUD to stay visible. Speed and damage remain normal.
+5. Keep dialogue unread while walking/jumping, then use rhythm/hack to confirm #79 smart placement. Do a quick boss win/loss/retry and restart smoke check for shared lifecycle changes.
+
+Normal post-merge deployment: after owner acceptance and merge, read the actual new main merge SHA, import it into a fresh Makko preview, and repeat steps 1–5. Record imported SHA, device/input, PASS/FAIL per step, a full lift-cycle clip with both stops, the cleared-platform screenshot, and danger/safe approaches from both sides. Native captures do not prove hosted/controller acceptance. Re-import the base above if rollback is needed.
+
 ## September 17 — smart boxes correction
 
 Review the draft head from the generated receipt. Base/rollback: `ec89e7468a6f79bcafcaea8b07d3c75ab37a3cf9` (merged #78). The previous movement-hide rule is rejected.

@@ -51,12 +51,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
   ]);
 
   // September 17: the owner explicitly makes awnings fully solid like the
-  // lift. Only the two previously circled small steps retain underside bonks;
+  // lift. The remaining Cache maintenance step retains its underside bonk;
   // ordinary roofs and all other stepping platforms remain one-way landings.
   const AWNING_DEPTH = Object.freeze({ 'signal-awning': 74, 'cache-awning': 64,
     'firewall-canopy': 40, 'tower-awning': 78, 'broadcast-awning': 42 });
   const BONK_LEDGE_DEPTH = Object.freeze({ ...AWNING_DEPTH,
-    'cache-maintenance-step': 14, 'firewall-low-step': 18 });
+    'cache-maintenance-step': 14 });
 
   // Swept AABB against one translating slab. The actor and obstacle share the
   // same interval, so a fast side entry or a moving roof cannot tunnel through.
@@ -108,7 +108,6 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     { id: 'tower-utility-unit', x: 498, y: 638, w: 160, h: 206, asset: 'broadcastTerminal', alwaysPresent: true },
     { id: 'signal-high-step', x: 642, y: 10, w: 132, h: 18 },
     { id: 'cache-high-step', x: 1400, y: 30, w: 136, h: 18 },
-    { id: 'firewall-low-step', x: 2130, y: 430, w: 148, h: 18 },
     { id: 'firewall-high-step', x: 2160, y: 210, w: 136, h: 18 },
     { id: 'tower-middle-step', x: 3100, y: 50, w: 136, h: 18 },
     { id: 'tower-high-step', x: 3420, y: -140, w: 136, h: 18 },
@@ -120,7 +119,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     'signal-high-step': { asset: 'platformSideLeft', anchorX: 103/512, anchorY: 183/512, span: 342/512 },
     'tower-middle-step': { asset: 'platformSideRight', anchorX: 23/512, anchorY: 199/512, span: 440/512 },
     'cache-maintenance-step': { frame: 0 }, 'cache-high-step': { frame: 2, hangY: -169 },
-    'firewall-low-step': { frame: 1 }, 'firewall-high-step': { frame: 2, hangY: 59 },
+    'firewall-high-step': { frame: 1, hangY: 59 },
     'tower-high-step': { frame: 0 }, 'broadcast-low-step': { frame: 1 },
     'broadcast-high-step': { frame: 2, hangY: -74 }
   });
@@ -842,7 +841,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         boss.roofFallVelocity += 1460 * Math.max(0, deltaTime) / 1000;
         const previousFoot = boss.y + 72;
         boss.y += boss.roofFallVelocity * Math.max(0, deltaTime) / 1000;
-        const support = this.getActorSurfaces().concat([{ id: 'street', x: 0, w: WORLD_WIDTH, y: 856 }])
+        const support = this.getActorSurfaces(boss).concat([{ id: 'street', x: 0, w: WORLD_WIDTH, y: 856 }])
           .filter(s => boss.x + 40 > s.x && boss.x - 40 < s.x + s.w && previousFoot <= s.y + 2 && boss.y + 72 >= s.y)
           .sort((a,b) => a.y-b.y)[0];
         if (support) {
@@ -1284,12 +1283,37 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         previousTopY: lift.prevY - SIGNAL_LIFT.cabinHeight * (SIGNAL_LIFT.footAnchor - SIGNAL_LIFT.roofTop) };
     }
 
-    getActorSurfaces() {
-      const surfaces = this.getStageSurfaces();
+    getActorSurfaces(actor = null) {
+      const transit = actor && this.getLiftTransitSurface(actor);
+      const surfaces = this.getStageSurfaces().filter(s => !transit || !this.overlapsLiftTransit(s, transit));
       if (!this.isSignalLiftAvailable() || !this.signalLift) return surfaces;
       const roof = this.getLiftRoof();
       return surfaces.concat([{ ...this.signalLift, moving: true },
         { id: roof.id, x: roof.x, w: roof.w, y: roof.topY, h: roof.y - roof.topY, moving: true, solid: true }]);
+    }
+    overlapsLiftTransit(surface, transit) {
+      return surface.x < transit.x + transit.w && surface.x + surface.w > transit.x;
+    }
+    getLiftTransitSurface(actor) {
+      if (!actor) return null;
+      const body = this.getRoofActorBounds(actor);
+      const roof = this.isSignalLiftAvailable() && this.signalLift && this.getLiftRoof();
+      if (!body || !roof) { actor.liftTransitSurfaceId = null; return null; }
+      const decks = [this.signalLift, { id: roof.id, x: roof.x, w: roof.w, y: roof.topY }];
+      const foot = body.y + body.height, center = body.x + body.width / 2;
+      const attached = decks.find(s => actor.supportedSurfaceId === s.id && Math.abs(foot - s.y) <= 4);
+      if (attached) actor.liftTransitSurfaceId = attached.id;
+      const deck = decks.find(s => s.id === actor.liftTransitSurfaceId);
+      // The carriage travels in front of the facade. Its boarded passengers
+      // retain that lane across overlapping ledges and short cabin jumps.
+      // Walking out, dropping, falling below the deck or landing elsewhere
+      // releases the lane; ordinary awnings remain fully solid to other actors.
+      if (!deck || center < deck.x || center > deck.x + deck.w || foot > deck.y + 4 ||
+          actor.isDroppingThrough?.(deck.id) || actor.dropSurfaceId === deck.id ||
+          actor.supportedSurfaceId && !decks.some(s => s.id === actor.supportedSurfaceId)) {
+        actor.liftTransitSurfaceId = null; return null;
+      }
+      return deck;
     }
     getRoofActorBounds(actor) {
       if (!actor) return null;
@@ -1320,7 +1344,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     }
     captureRoofActor(actor) {
       const box = this.getRoofActorBounds(actor);
-      return box && { box, x: actor.position?.x ?? actor.x, y: actor.position?.y ?? actor.y };
+      const transit = this.getLiftTransitSurface(actor);
+      return box && { box, x: actor.position?.x ?? actor.x, y: actor.position?.y ?? actor.y,
+        liftTransitSurfaceId: transit?.id, supportedSurfaceId: actor.supportedSurfaceId };
     }
     moveRoofActor(actor, dx, dy) {
       if (actor === this.boss) { actor.x += dx; actor.y += dy; }
@@ -1338,8 +1364,30 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     resolveAwningActor(actor, motion) {
       if (!motion || this.isGameplaySuppressed() || actor === this.boss && !this.isBossCombatLive()) return null;
       let result = null;
+      // An exit into the side of a solid ledge waits at the cabin boundary.
+      // Resolving the facade's entire pre-existing overlap would otherwise
+      // teleport a passenger to the far side of the canopy.
+      if (motion.liftTransitSurfaceId && !actor.isDroppingThrough?.(motion.liftTransitSurfaceId)) {
+        const roof = this.getLiftRoof(), deck = motion.liftTransitSurfaceId === SIGNAL_LIFT.id ? this.signalLift :
+          { id: roof.id, x: roof.x, w: roof.w, y: roof.topY };
+        const body = this.getRoofActorBounds(actor), center = body.x + body.width / 2;
+        const previousCenter = motion.box.x + motion.box.width / 2;
+        const edge = center < deck.x ? deck.x : center > deck.x + deck.w ? deck.x + deck.w : null;
+        if (edge !== null && previousCenter >= deck.x && previousCenter <= deck.x + deck.w &&
+            STAGE_SURFACES.some(s => AWNING_DEPTH[s.id] && s.x < edge && s.x + s.w > edge &&
+              body.y < s.y + AWNING_DEPTH[s.id] - .001 && body.y + body.height > s.y + .001)) {
+          this.moveRoofActor(actor, edge - center, 0);
+          if (actor.velocity) actor.velocity.x = 0;
+          actor.liftTransitSurfaceId = deck.id;
+          if (motion.supportedSurfaceId === deck.id && Math.abs(body.y + body.height - deck.y) <= .001) {
+            actor.supportedSurfaceId = deck.id; actor.grounded = actor.isOnGround = true;
+          }
+        }
+      }
+      const transit = this.getLiftTransitSurface(actor);
       for (const surface of STAGE_SURFACES) {
         if (!AWNING_DEPTH[surface.id] || actor === this.player && actor.isDroppingThrough?.(surface.id)) continue;
+        if (transit && this.overlapsLiftTransit(surface, transit)) continue;
         const after = this.getRoofActorBounds(actor);
         if (!after) break;
         const slab = { x: surface.x, y: surface.y, width: surface.w, height: AWNING_DEPTH[surface.id] };
@@ -1404,7 +1452,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       // just exited onto. Prefer a clear edge that retains that footing.
       // The carriage floor, separately, owns enemy crushing.
       const foot = after.y + after.height, center = after.x + after.width / 2;
-      const blocker = this.getStageSurfaces().concat([{ x: 0, w: WORLD_WIDTH, y: 856 }])
+      const blocker = this.getActorSurfaces(actor).filter(s => !s.moving).concat([{ x: 0, w: WORLD_WIDTH, y: 856 }])
         .filter(s => s.id !== actor.dropSurfaceId && center + 18 > s.x && center - 18 < s.x + s.w &&
           foot <= s.y + 4 && roof.y + after.height > s.y)
         .sort((a,b) => a.y-b.y)[0];
@@ -2027,6 +2075,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (player) { player.headContactSurfaceId = null; player.liftHeadContact = false; player.ceilingMotion = null; player.roofMotion = null; }
       for (const actor of [player, ...(window.enemyManager?.enemies || []), this.boss].filter(Boolean)) {
         if ([SIGNAL_LIFT.id, 'signal-lift-roof'].includes(actor.supportedSurfaceId)) actor.supportedSurfaceId = null;
+        actor.liftTransitSurfaceId = null;
       }
     }
     chargeSignalLift() {
@@ -2202,35 +2251,27 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       const footHalfWidth = 18;
       const verticalTravel = currentVisualFootY - previousVisualFootY;
       let landing = null;
-      const movingSurfaces = this.isSignalLiftAvailable() && this.signalLift ? [{
-        id: SIGNAL_LIFT.id,
-        x: this.signalLift.x,
-        previousY: this.signalLift.y,
-        y: this.signalLift.y,
-        w: this.signalLift.w,
-        h: this.signalLift.h,
-        moving: true
-      }] : [];
-      if (movingSurfaces.length) {
-        const roof = this.getLiftRoof();
-        movingSurfaces.push({ id: roof.id, x: roof.x, w: roof.w, y: roof.topY, previousY: roof.topY, h: 10, moving: true, solid: true });
-      }
-      // Static geometry intentionally wins at the top overlap so stepping
-      // sideways transfers support from the lift to its destination roof.
-      for (const surface of this.getStageSurfaces().concat(movingSurfaces)) {
+      // A boarded rider keeps the deck at the shared rooftop seam. The
+      // normal roof becomes available as soon as the rider walks out.
+      for (const surface of this.getActorSurfaces(player)) {
         if (player.isDroppingThrough?.(surface.id) || surface.id === player.dropSurfaceId) continue;
-        const surfacePrevY = Number.isFinite(surface.previousY) ? surface.previousY : surface.y;
-        if (previousVisualFootY > surfacePrevY || currentVisualFootY < surface.y) continue;
+        const surfacePrevY = surface.y;
+        // Moving decks accumulate fractional coordinates. Roundoff at the
+        // foot anchor must not turn a resting rider into a falling one.
+        if (previousVisualFootY > surfacePrevY + .001 || currentVisualFootY < surface.y - .001) continue;
         const crossingT = verticalTravel > 0 ? Math.max(0, Math.min(1, (surface.y - previousVisualFootY) / verticalTravel)) : 1;
         const crossingX = previousX + (player.position.x - previousX) * crossingT;
         const overlapsX = crossingX + footHalfWidth > surface.x && crossingX - footHalfWidth < surface.x + surface.w;
-        if (overlapsX && (!landing || crossingT < landing.crossingT)) landing = { surface, crossingT };
+        const boardsDeck = surface.moving && crossingX >= surface.x && crossingX <= surface.x + surface.w;
+        if (overlapsX && (!landing || crossingT < landing.crossingT ||
+            boardsDeck && Math.abs(crossingT - landing.crossingT) < .000001)) landing = { surface, crossingT };
       }
       if (!landing) return false;
       player.position.y = landing.surface.y - PLAYER_VISUAL_FOOT_OFFSET;
       player.velocity.y = 0;
       player.grounded = true;
       player.supportedSurfaceId = landing.surface.id;
+      this.getLiftTransitSurface(player);
       return true;
     }
     getPriorEncounterKills(number) { return [0, 0, 4, 9, 14][Math.max(1, Math.min(4, Number(number) || 1))] || 0; }

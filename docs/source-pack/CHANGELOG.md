@@ -1,5 +1,15 @@
 # Recovery checkpoint — September 14
 
+## September 17, 2026 — stable elevator passengers and relevant car warnings
+
+Review branch `agent/lift-riders-traffic-relevance` builds on merged #79, `318f024c1e1c6bb38f479b7e4842c894074c5ed4` (base/rollback). The owner requested smoother elevator carrying, removal/reuse of the circled lower Firewall platform, and WATCH OUT only near a car's danger lane, without pulling it onscreen. Exact review revision, tree, PR and checks belong to the generated receipt.
+
+Boarded floor/roof passengers retain the carriage's foreground lane through overlapping facade ledges and both stops. Fractional foot coordinates retain support. Walking out transfers support; stepping aboard at the aligned rooftop acquires it. Cabin jumps retain the lane; deliberate drops release it. An exit into a solid canopy waits at the cabin edge instead of ejecting the actor. This supersedes automatic rooftop/canopy handoffs and their sideways shoves. Awnings remain solid for other actors. Enemy floor support survives the street stop.
+
+Remove `firewall-low-step` art, top collision and bonk. Reuse its gold frame at `firewall-high-step`, replacing a repeated design while preserving that upper step's geometry and hangers. Car cues use the actual player/hazard lane and briefly anticipate vertical movement. Label and arrow remain at the approaching edge and actual car altitude, including clipping/offscreen. Preserve original car motion/damage, five-second power, recharge reversal, crushing, front rails, controls and #79 smart boxes.
+
+Read `LIFT_RIDERS_TRAFFIC_PASS.md` and the newest acceptance route. Publish a tested draft and refresh the existing v5 archive. Owner Makko/physical-controller acceptance remains pending before assistant merge; automated/native captures do not establish it. Earlier conflicting entries are historical.
+
 ## September 17 — replace movement suppression with smart panel motion
 
 - Remove movement/airborne/Rhythm Mode as unread-dialogue hide triggers.

@@ -82,6 +82,7 @@ for (const fps of [30, 60, 120]) for (const direction of [-1, 1]) for (const zoo
   w.gameCamera.y = -600; w.BARCODE.sceneProjection = { matrix: { a: zoom, d: zoom, e: 960 * (1 - zoom), f: 675 * (1 - zoom) } };
   const car = traffic.createForegroundShip(true);
   Object.assign(car, { direction, speed: 72.5 * direction, flipH: direction < 0, x: direction > 0 ? -2370 : 4290, y: -200, bobAmount: 0 });
+  w.player.position.y += traffic.getHazardBody(car).y - w.player.getHitbox().y;
   let first = null, last = null, entry = null;
   const step = 1000 / fps;
   for (let i = 0; i < fps * 5; i++) {
@@ -107,6 +108,7 @@ for (const fps of [30, 60, 120]) for (const direction of [-1, 1]) for (const zoo
   const {w, traffic} = rig(); traffic.spawnShip = () => {};
   w.gameCamera.y = -600; w.BARCODE.sceneProjection = { matrix: { a: 1, d: 1, e: 0, f: 0 } };
   const car = traffic.createForegroundShip(true); car.y = -200;
+  w.player.position.y += traffic.getHazardBody(car).y - w.player.getHitbox().y;
   traffic.update(1000); const before = traffic.getTrafficWarnings(); assert.equal(before.length, 1);
   w.gameState.paused = true; const clock = traffic.elapsedMs; traffic.update(9000);
   assert.equal(traffic.elapsedMs, clock); assert.equal(traffic.getTrafficWarnings()[0].entryInMs, before[0].entryInMs, 'pause freezes warning and arrival together'); w.gameState.paused = false;
@@ -121,4 +123,29 @@ for (const fps of [30, 60, 120]) for (const direction of [-1, 1]) for (const zoo
   traffic.warningImage = null; traffic.drawTrafficWarnings(ctx); assert(texts.includes('WATCH OUT'), 'asset failure retains warning');
   traffic.resetRuntime(); assert.equal(traffic.getTrafficWarnings().length, 0, 'reset clears pending warning');
 }
-console.log('Correction: 80 original car comparisons; exact speed/height/scale/bob; 30/60/120Hz approach/pause; projected swept contact/protection; roof contact; both untimed keypad practices and 18 three-second/height/direction warning trajectories passed.');
+for(const direction of [-1,1]) {
+  const {w,p,traffic}=rig();traffic.spawnShip=()=>{};
+  w.gameCamera.y=0;w.BARCODE.sceneProjection={matrix:{a:1,d:1,e:0,f:0}};
+  const car=traffic.createForegroundShip(true);
+  Object.assign(car,{direction,speed:72.5*direction,flipH:direction<0,x:direction>0?-2370:4290,y:-200,bobAmount:0});
+  traffic.update(1000);const hull=traffic.getHazardBody(car),a=w.player;
+  assert.equal(traffic.getTrafficWarnings().length,0,'a street player is not warned about a high car');
+  const top=y=>{a.position.y+=y-a.getHitbox().y;a.velocity.y=0;a.supportedSurfaceId=null;};
+  top(hull.y);assert.equal(traffic.getTrafficWarnings().length,1,'entering the actual lane reveals its warning');
+  const warning=traffic.getTrafficWarnings()[0];assert(warning.y<0,'offscreen altitude stays offscreen');
+  let draws=[],joins=0;traffic.warningImage={};
+  const ctx=new Proxy({drawImage(...args){draws.push(args);},moveTo(){joins++;}}, {get:(o,k)=>o[k]||(()=>{})});
+  traffic.drawTrafficWarnings(ctx);
+  assert.equal(draws[0][6],warning.y-37,'label is never clamped down below the HUD');
+  assert.equal(joins,0,'no elbow brings an offscreen warning down into play');
+  top(hull.y+hull.height+80);assert.equal(traffic.getTrafficWarnings().length,0,'leaving the lane clears the warning');
+  a.velocity.y=-600;assert.equal(traffic.getTrafficWarnings().length,1,'an imminent jump into the lane is warned');
+  a.velocity.y=600;assert.equal(traffic.getTrafficWarnings().length,0,'motion away from the lane does not warn');
+  top(hull.y-a.getHitbox().height-80);a.velocity.y=600;
+  assert.equal(traffic.getTrafficWarnings().length,1,'an imminent fall into the lane is warned');
+  top(hull.y+hull.height+60);a.supportedSurfaceId=p.signalLift.id;p.signalLift.state='moving';
+  assert.equal(traffic.getTrafficWarnings().length,1,'lift ascent into the lane is anticipated');
+  p.signalLift.state='returning';assert.equal(traffic.getTrafficWarnings().length,0,'lift descent away stays quiet');
+  w.gameState.victory=true;assert.equal(traffic.getTrafficWarnings().length,0,'completion suppresses warnings');
+}
+console.log('Correction: 80 original car comparisons; exact speed/height/scale/bob; 30/60/120Hz approach/pause; swept contact/protection; roof contact; untimed practice; 18 three-second warning trajectories; danger-lane relevance, jump/fall/lift anticipation and unclamped offscreen cue positions passed.');
