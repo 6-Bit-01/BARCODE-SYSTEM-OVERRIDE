@@ -1,5 +1,11 @@
 # Repository Guidance
 
+## September 17, 2026 — control alignment and finishing
+
+The owner requests a pass aligning controls on their black squares plus remaining discussed polish/optimization. Base/rollback is merged #83, `c5be7a9ac1c2a1ef6609ce69e5714a5c9f8b2698`; branch `agent/control-polish-optimization`. Read `CONTROL_POLISH_PASS.md` and the newest ACCEPTANCE route.
+
+Center prompt glyphs independently of inherited Canvas text state, use saved device/action labels, and fit wider mappings. Share the centering with objective badges, hack keypads and Begin Level. Preserve all gameplay/art/music and moving-panel behavior. Target repeated presentation work only: per-request actor projection, duplicate layout candidates, complete-line wrapping and per-enemy target searches. Earlier polish/boss/music/campaign features already exist; do not redo them. Native pixel evidence and equivalent placement checks supplement the full suite. Publish one tested draft and refresh maintained v5; existing owner Makko review remains required before assistant merge.
+
 ## September 17, 2026 — make the music response audible
 
 The owner cannot hear PR #82's music changes and confirms the track names are wrong: ignore them when choosing musical treatment. Base/rollback is merged #82, `a0f9e79356210b0966f0a9d04113094b52b8e568`; branch `agent/audible-music-response`. Read AUDIBLE_MUSIC_RESPONSE.md.

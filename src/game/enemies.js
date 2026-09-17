@@ -1575,26 +1575,33 @@ window.EnemyManager = class EnemyManager {
     return player;
   }
 
+  getReadyHijackMarker() {
+    const hack=window.hackingSystem;
+    return !hack?.active && window.player?.grounded && !window.tutorialSystem?.isActive?.() &&
+      (hack?.getCooldownRemainingMs?.() || 0) === 0 && !window.sector1Progression?.isGameplaySuppressed?.() ? this.findHijackTarget() : null;
+  }
+
   drawHijackMarker(ctx, enemy) {
     const ally = this.isHijacked(enemy), reboot = this.isRebooting(enemy), hack = window.hackingSystem;
     const locked = hack?.active && hack.hijackTarget === enemy;
-    const ready = !hack?.active && window.player?.grounded && !window.tutorialSystem?.isActive?.() &&
-      (hack?.getCooldownRemainingMs?.() || 0) === 0 && !window.sector1Progression?.isGameplaySuppressed?.() && this.findHijackTarget() === enemy;
+    const ready = (this._drawingMarkers ? this._readyHijackMarker : this.getReadyHijackMarker()) === enemy;
     if (!ally && !reboot && !locked && !ready) return;
     const box = enemy.getStompBox(), seconds = Math.max(0, (enemy._hijackedUntilMs - this.simulationTimeMs) / 1000);
     const color = reboot || ally && seconds <= 2 ? '#ffc07b' : ally ? '#c0ed55' : '#a98ee9';
     const y = box.y - 74;
-    ctx.save(); ctx.shadowBlur = 0;
+    ctx.save(); ctx.shadowBlur = 0; ctx.textBaseline='alphabetic';
     ctx.strokeStyle = color; ctx.lineWidth = ally ? 3 : 2;
     for (const side of [-1, 1]) {
       const x = side < 0 ? box.x - 9 : box.x + box.width + 9;
       ctx.beginPath(); ctx.moveTo(x - side * 12, box.y - 4); ctx.lineTo(x, box.y - 4); ctx.lineTo(x, box.y + 20); ctx.stroke();
     }
-    const inputKey = window.BARCODE?.GamepadUI?.connected ? 'Y' : 'H';
+    const inputKey = window.BARCODE?.ControllerSettings?.prompt('interact','H') || 'H';
     if (ready && !ally && !reboot && !locked) {
-      ctx.fillStyle = '#0b1017'; ctx.fillRect(enemy.position.x-15,y+28,30,27);
-      ctx.fillStyle = color; ctx.font = 'bold 18px Oxanium, monospace'; ctx.textAlign = 'center';
-      ctx.fillText(inputKey,enemy.position.x,y+48); ctx.restore(); return;
+      ctx.font='bold 18px Oxanium, monospace';
+      const width=Math.max(30,Math.ceil(ctx.measureText(inputKey).width)+12),x=enemy.position.x-width/2;
+      ctx.fillStyle = '#0b1017'; ctx.fillRect(x,y+28,width,27);
+      ctx.fillStyle = color; window.BARCODE.ComicHUD.buttonText(ctx,inputKey,x,y+28,width,27);
+      ctx.restore(); return;
     }
     ctx.fillStyle = '#0b1017'; ctx.fillRect(enemy.position.x - 100, y, 200, ally ? 45 : 27);
     ctx.fillStyle = color; ctx.font = 'bold 17px Oxanium, monospace'; ctx.textAlign = 'center';
@@ -1867,19 +1874,24 @@ window.EnemyManager = class EnemyManager {
   }
   draw(ctx, liftRoofPass = null) {
     const progression = window.sector1Progression;
-    // Stable drawing layers, without a copied/sorted array each frame.
-    for (const layer of [-1, 1]) for (const enemy of this.enemies) {
-      if (enemy.getDrawLayer() !== layer || !enemy.active) continue;
-      if (window.BARCODE?.combatFX && !window.BARCODE.combatFX.visible(enemy.position.x, enemy.position.y, 300)) continue;
-      if (liftRoofPass !== null) {
-        // Roof riders and cabin passengers share the player's layer between
-        // the cabin back and front rails; actors below its floor stay behind.
-        const inFrontOfLift = progression?.getLiftActorLayer?.(enemy) === 'front';
-        if (inFrontOfLift !== liftRoofPass) continue;
+    // Select once per draw pass rather than scanning the crowd for every
+    // enemy. Scope it to this call so moving targets cannot outlive a frame.
+    this._readyHijackMarker=this.getReadyHijackMarker();this._drawingMarkers=true;
+    try {
+      // Stable drawing layers, without a copied/sorted array each frame.
+      for (const layer of [-1, 1]) for (const enemy of this.enemies) {
+        if (enemy.getDrawLayer() !== layer || !enemy.active) continue;
+        if (window.BARCODE?.combatFX && !window.BARCODE.combatFX.visible(enemy.position.x, enemy.position.y, 300)) continue;
+        if (liftRoofPass !== null) {
+          // Roof riders and cabin passengers share the player's layer between
+          // the cabin back and front rails; actors below its floor stay behind.
+          const inFrontOfLift = progression?.getLiftActorLayer?.(enemy) === 'front';
+          if (inFrontOfLift !== liftRoofPass) continue;
+        }
+        this.drawHackTrail(ctx, enemy);
+        enemy.draw(ctx);
       }
-      this.drawHackTrail(ctx, enemy);
-      enemy.draw(ctx);
-    }
+    } finally { this._drawingMarkers=false;this._readyHijackMarker=null; }
   }
 
   spawnEnemy() { this.spawnFlowEnemy(window.player || {position:{x:960,y:ENEMY_GROUND_Y}}); }

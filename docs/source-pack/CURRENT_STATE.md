@@ -1,5 +1,9 @@
 # Current State
 
+## Current review — control alignment and finishing
+
+PR #83 is merged at `c5be7a9ac1c2a1ef6609ce69e5714a5c9f8b2698` (base/rollback). Branch `agent/control-polish-optimization` centers button glyphs, corrects controller/remapping labels, aligns objective/keypad/Begin Level text, and removes repeated presentation calculations while preserving placement. The prior polish, boss, music and campaign work remains. See CONTROL_POLISH_PASS.md for 320 equivalent placement states, 40 native glyph comparisons, operation counts and focused Makko review. Exact head/PR/full checks/CI belong to the generated receipt; hosted acceptance is pending.
+
 ## Current review — audible music response
 
 PR #82 is merged (`a0f9e79356210b0966f0a9d04113094b52b8e568`). The owner reports its musical changes are imperceptible and confirms the filenames are misleading. Branch `agent/audible-music-response` uses measured source content to route effects, adds clear bass cutaways/returns and phrase breaks, and retains exact source timing/loops/judgment plus legacy Off mixing. See AUDIBLE_MUSIC_RESPONSE.md and the generated receipt for the evidence. Gameplay, campaign and elevator behavior are unchanged.

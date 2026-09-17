@@ -1,0 +1,106 @@
+{
+  "renderer": "native Canvas with bundled Oxanium",
+  "metrics": [
+    {
+      "label": "H",
+      "width": 48,
+      "height": 40,
+      "inkCenterErrorPx": {
+        "x": -0.5,
+        "y": 0.5
+      },
+      "inheritedBaselines": 4
+    },
+    {
+      "label": "Y",
+      "width": 48,
+      "height": 40,
+      "inkCenterErrorPx": {
+        "x": -0.5,
+        "y": 0.5
+      },
+      "inheritedBaselines": 4
+    },
+    {
+      "label": "△",
+      "width": 48,
+      "height": 40,
+      "inkCenterErrorPx": {
+        "x": 0,
+        "y": 0.5
+      },
+      "inheritedBaselines": 4
+    },
+    {
+      "label": "✕",
+      "width": 48,
+      "height": 40,
+      "inkCenterErrorPx": {
+        "x": 0.5,
+        "y": -0.5
+      },
+      "inheritedBaselines": 4
+    },
+    {
+      "label": "LB",
+      "width": 48,
+      "height": 40,
+      "inkCenterErrorPx": {
+        "x": -0.5,
+        "y": 0.5
+      },
+      "inheritedBaselines": 4
+    },
+    {
+      "label": "R2",
+      "width": 48,
+      "height": 40,
+      "inkCenterErrorPx": {
+        "x": -0.5,
+        "y": 0.5
+      },
+      "inheritedBaselines": 4
+    },
+    {
+      "label": "↓",
+      "width": 48,
+      "height": 40,
+      "inkCenterErrorPx": {
+        "x": -0.5,
+        "y": 0
+      },
+      "inheritedBaselines": 4
+    },
+    {
+      "label": "Space",
+      "width": 100,
+      "height": 40,
+      "inkCenterErrorPx": {
+        "x": 0,
+        "y": 0
+      },
+      "inheritedBaselines": 4
+    },
+    {
+      "label": "Submit",
+      "width": 100,
+      "height": 40,
+      "inkCenterErrorPx": {
+        "x": -0.5,
+        "y": 0
+      },
+      "inheritedBaselines": 4
+    },
+    {
+      "label": "⌫",
+      "width": 48,
+      "height": 40,
+      "inkCenterErrorPx": {
+        "x": 0,
+        "y": -1
+      },
+      "inheritedBaselines": 4
+    }
+  ],
+  "scope": "40 pixel comparisons; adapted Makko art; not hosted/controller acceptance"
+}

@@ -111,7 +111,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/campaign-services.js', exports: ['BA
     drawIntermission(ctx) {
       ctx.save(); ctx.fillStyle = '#070f19'; ctx.fillRect(0, 0, 1920, 1080);
       ctx.strokeStyle = '#92ffdc'; ctx.lineWidth = 3; ctx.strokeRect(290, 188, 1340, 690);
-      ctx.textAlign = 'center'; ctx.fillStyle = '#92ffdc'; ctx.font = 'bold 25px Oxanium, monospace';
+      ctx.textAlign = 'center'; ctx.textBaseline='alphabetic'; ctx.fillStyle = '#92ffdc'; ctx.font = 'bold 25px Oxanium, monospace';
       ctx.fillText('BARCODE NETWORK / OUTGOING CHANNEL', 960, 265);
       ctx.fillStyle = '#f2f0e9'; ctx.font = 'bold 52px Oxanium, monospace'; ctx.fillText('VOICE RECOVERED', 960, 357);
       ctx.font = '25px Oxanium, monospace'; ctx.fillStyle = '#c7a7ff'; ctx.fillText('CACHE BACK', 960, 445);
@@ -122,7 +122,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/campaign-services.js', exports: ['BA
       ctx.fillText('Your progress is saved. The next playable sector is coming.', 960, 703);
       if (this.archive().status !== 'ready') { ctx.fillStyle = '#ffb16e'; ctx.fillText('Save unavailable — keep this session open to retain progress.', 960, 754); }
       ctx.fillStyle = '#92ffdc'; ctx.font = '20px Oxanium, monospace';
-      ctx.fillText(B.GamepadUI?.connected ? 'CIRCLE / B — Back to results' : 'ESC — Back to results', 960, 820);
+      ctx.fillText(B.GamepadUI?.connected ? `${B.ControllerSettings?.button(1) || 'B'} — Back to results` : 'ESC — Back to results', 960, 820);
       ctx.restore();
     }
   };

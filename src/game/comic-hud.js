@@ -38,20 +38,26 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
     // into it. Coaching must not cover the controls it is teaching.
     return window.rhythmSystem?.isActive?.() ? [{x:26,y:225,width:710,height:330}] : [];
   }
-  function isClear(box) { return sceneActors().map(actorBounds).every(b=>!b||!overlap(box,b)); }
-  function placeOverlay(width,height,{actors=sceneActors(),previous=null,scales=[1]}={}) {
-    const bounds = [...new Set(actors)].map(actorBounds).filter(b=>b && b.x<1920 && b.x+b.width>0 && b.y<1080 && b.y+b.height>0).concat(reservedBounds());
-    const score = box => bounds.map(b=>overlap(box,b));
+  function projectedBounds(actors) { return [...new Set(actors)].map(actorBounds).filter(Boolean).concat(reservedBounds()); }
+  function isClear(box) {
+    for(const actor of new Set(sceneActors())){const b=actorBounds(actor);if(b&&overlap(box,b))return false;}
+    return true;
+  }
+  function placeOverlay(width,height,{actors=sceneActors(),previous=null,scales=[1],bounds:projected=null}={}) {
+    const bounds = (projected || projectedBounds(actors)).filter(b=>b.x<1920 && b.x+b.width>0 && b.y<1080 && b.y+b.height>0);
     // Keep a clear location steady while reading or choosing a keypad button.
-    if (previous && previous.width===width*(previous.scale||1) && previous.height===height*(previous.scale||1) && score(previous).every(n=>n===0)) return {...previous,clear:true};
+    if (previous && previous.width===width*(previous.scale||1) && previous.height===height*(previous.scale||1) && bounds.every(b=>!overlap(previous,b))) return {...previous,clear:true};
     let best = null, clear = null;
     for (const scale of scales) {
       const w=width*scale,h=height*scale,maxX=1894-w,maxY=1054-h;
-      const xs=[maxX,26,(1920-w)/2,...bounds.flatMap(b=>[b.x-w-12,b.x+b.width+12])];
-      const ys=[225,maxY,...bounds.flatMap(b=>[b.y-h-12,b.y+b.height+12])];
-      for(const y0 of ys) for(const x0 of xs) {
-        const box={x:Math.max(26,Math.min(maxX,x0)),y:Math.max(225,Math.min(maxY,y0)),width:w,height:h,scale};
-        const hits=score(box),focus=hits[0]||0,total=hits.reduce((a,b)=>a+b,0);
+      // Clamping can turn many actor edges into the same candidate. Visit
+      // each coordinate once, retaining order and the original tie-breaking.
+      const xs=[...new Set([maxX,26,(1920-w)/2,...bounds.flatMap(b=>[b.x-w-12,b.x+b.width+12])].map(x=>Math.max(26,Math.min(maxX,x))))];
+      const ys=[...new Set([225,maxY,...bounds.flatMap(b=>[b.y-h-12,b.y+b.height+12])].map(y=>Math.max(225,Math.min(maxY,y))))];
+      for(const y of ys) for(const x of xs) {
+        const box={x,y,width:w,height:h,scale};
+        let focus=0,total=0;
+        for(let i=0;i<bounds.length;i++){const hit=overlap(box,bounds[i]);if(!i)focus=hit;total+=hit;}
         if (!total) {
           const distance=previous ? Math.hypot(box.x-previous.x,box.y-previous.y) : Math.hypot(box.x-maxX,box.y-225);
           if(!clear || distance<clear.distance)clear={box,distance};
@@ -67,17 +73,19 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
     const states=owner._overlayPanels ||= {};
     let state=states[slot];
     if(state && now<state.time)state=null;
-    const bounds=[...new Set(actors)].map(actorBounds).filter(Boolean).concat(reservedBounds());
+    // Projection is local to this request: all variants share current actor
+    // geometry, with no stale cache across movement, zoom, pause or restart.
+    const bounds=projectedBounds(actors);
     const fits=box=>bounds.every(b=>!overlap(box,b));
     const matches=box=>variants.some(v=>v.width*(v.scale||1)===box.width && v.height*(v.scale||1)===box.height && !!v.compact===!!box.compact);
     let destination=state?.to;
     if(!destination || destination.docked || !matches(destination) || !fits(destination)) {
       destination=null;
       for(const v of variants) {
-        const box=placeOverlay(v.width,v.height,{actors,previous:state?.to || preferred,scales:[v.scale||1]});
+        const box=placeOverlay(v.width,v.height,{actors,bounds,previous:state?.to || preferred,scales:[v.scale||1]});
         if(box.clear){destination={...box,compact:!!v.compact};break;}
       }
-      if(!destination)destination={...placeOverlay(440,70,{actors,previous:state?.to}),docked:true};
+      if(!destination)destination={...placeOverlay(440,70,{actors,bounds,previous:state?.to}),docked:true};
       // After a crowded scene, wait for a sustained opening instead of
       // repeatedly opening/closing a full paragraph between passing enemies.
       if(state?.to.docked && !destination.docked) {
@@ -135,6 +143,24 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
   function text(c,t,x,y,size=22,color=C.paper,weight=600,align='left',maxWidth) {
     c.font=`${weight} ${size}px Oxanium, monospace`;c.fillStyle=color;c.textAlign=align;c.textBaseline='middle';
     if(maxWidth) c.fillText(String(t),x,y,maxWidth); else c.fillText(String(t),x,y);
+  }
+  function buttonText(c,value,x,y,width,height,padding=4) {
+    // Center the visible glyph, not a caller's inherited canvas baseline.
+    // Actual ink bounds also center triangle/cross and multi-letter labels.
+    c.save();c.textAlign='left';c.textBaseline='alphabetic';
+    const label=String(value),m=c.measureText(label);
+    const a=m.actualBoundingBoxAscent,d=m.actualBoundingBoxDescent;
+    if(Number.isFinite(a)&&Number.isFinite(d)&&a+d>0 &&
+      Number.isFinite(m.actualBoundingBoxLeft)&&Number.isFinite(m.actualBoundingBoxRight)) {
+      const left=m.actualBoundingBoxLeft,right=m.actualBoundingBoxRight;
+      const scale=Math.min(1,Math.max(1,width-padding*2)/Math.max(1,left+right),Math.max(1,height-padding*2)/(a+d));
+      c.translate(x+width/2,y+height/2);c.scale(scale,scale);
+      c.fillText(label,(left-right)/2,(a-d)/2);
+    } else {
+      c.textAlign='center';c.textBaseline='middle';
+      c.fillText(label,x+width/2,y+height/2,Math.max(1,width-padding*2));
+    }
+    c.restore();
   }
   function barcode(c,x,y,w,h,fill) {
     let at=x,n=0;c.fillStyle=fill;
@@ -212,7 +238,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
       c.font = 'bold 36px Oxanium, monospace';
       const badgeWidth = Math.max(72, c.measureText(control).width + 30);
       c.fillStyle = C.green; c.fillRect(x + 24, row + 1, badgeWidth, 50);
-      text(c, control, x + 39, row + 26, 36, C.ink, 700);
+      c.fillStyle=C.ink;buttonText(c,control,x+24,row+1,badgeWidth,50,8);
       if (label) text(c, label, x + 40 + badgeWidth, row + 26, 30, C.paper, 700);
       row += 68;
     }
@@ -283,5 +309,5 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
     text(c,`[${key}] HACK READY`,x+w/2,y+21,21,C.green,700,'center',w-24);
     c.restore();
   }
-  B.ComicHUD=Object.freeze({health,lore,C,polygon,plate,text,basic,objectives,actionCard,portraitFrame,boss,rhythm,amp,hack});
+  B.ComicHUD=Object.freeze({health,lore,C,polygon,plate,text,buttonText,basic,objectives,actionCard,portraitFrame,boss,rhythm,amp,hack});
 })();

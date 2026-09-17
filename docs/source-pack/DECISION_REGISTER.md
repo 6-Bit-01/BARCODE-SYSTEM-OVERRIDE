@@ -1,5 +1,9 @@
 # Decision Register
 
+## September 17, 2026 — aligned controls and remaining polish
+
+The owner asks: “Lets do a pass and make sure the control buttons are aligned on those black squares. Lets also work on the final touches and optimizations we talked about.” Correct the alignment and actual device/mapping labels, audit existing finishing work, and reduce repeated presentation work. Prior boss/music/campaign and earlier polish are already implemented. Preserve the working synchronization, mechanics, assets and moving/fading smart panels. No new level, ending threshold or reward-content decision is implied.
+
 ## September 17, 2026 — music names are not content
 
 The owner reports no audible difference after #82 and explicitly confirms: “the names are wrong. Ignore them actually”. Choose routing from actual sound/spectrum, keep existing IDs as references, and retain the earlier instruction to leave working sync alone. Use clear musical cutaways and returns; verify real output as well as timing. No source renaming/replacement, new audio clock, tempo change, source seeking or gameplay retune is approved by this correction.

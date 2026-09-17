@@ -1,5 +1,9 @@
 # Recovery checkpoint — September 14
 
+## September 17, 2026 — aligned controls and presentation optimization
+
+Center visible glyphs within enemy prompts, objective badges, hack keypads and Begin Level; fix hard-coded controller labels and inherited status/campaign text baselines. Share live actor projections across panel candidates, deduplicate positions, reuse complete dialogue measurements and select the ready target once per enemy draw pass. Preserve gameplay, art, music/sync and smart-panel behavior. Add controller/placement/native raster evidence. Details: CONTROL_POLISH_PASS.md.
+
 ## September 17, 2026 — audible music correction
 
 After merged #82, route filter/echo to measured midrange instead of the misleadingly named sub-bass file. Stronger state contrast, two-beat phrase pullbacks, profile-owned phrase/filter/echo settings and diagnostic routing fields. Original timing, source assets and Off mixing remain. Add actual Web Audio PCM regression and original-track A/B render alongside existing three-loop timing protection. Details: AUDIBLE_MUSIC_RESPONSE.md.
