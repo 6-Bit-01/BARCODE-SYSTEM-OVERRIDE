@@ -1,0 +1,219 @@
+{
+  "host": "Chromium OfflineAudioContext",
+  "source": "original linked MP3s",
+  "runs": [
+    {
+      "enabled": false,
+      "starts": [
+        {
+          "at": 0.01,
+          "offset": 0,
+          "rate": 1,
+          "loop": true
+        },
+        {
+          "at": 0.01,
+          "offset": 0,
+          "rate": 1,
+          "loop": true
+        },
+        {
+          "at": 0.01,
+          "offset": 0,
+          "rate": 1,
+          "loop": true
+        }
+      ],
+      "snapshots": [
+        {
+          "time": 1.050702947845805,
+          "state": "combat",
+          "gains": {
+            "foundation": 0.4000000059604645,
+            "bass-layer": 0.6000000238418579,
+            "fx-layer": 0
+          },
+          "filterHz": null,
+          "colourSource": null,
+          "foundationDirect": true,
+          "subBassDirect": true
+        },
+        {
+          "time": 8.051519274376417,
+          "state": "rhythm",
+          "gains": {
+            "foundation": 0.4000000059604645,
+            "bass-layer": 0.6000000238418579,
+            "fx-layer": 0.800000011920929
+          },
+          "filterHz": null,
+          "colourSource": null,
+          "foundationDirect": true,
+          "subBassDirect": true
+        },
+        {
+          "time": 15.05233560090703,
+          "state": "hack",
+          "gains": {
+            "foundation": 0.4000000059604645,
+            "bass-layer": 0.6000000238418579,
+            "fx-layer": 0.800000011920929
+          },
+          "filterHz": null,
+          "colourSource": null,
+          "foundationDirect": true,
+          "subBassDirect": true
+        },
+        {
+          "time": 22.053151927437643,
+          "state": "rhythm",
+          "gains": {
+            "foundation": 0.4000000059604645,
+            "bass-layer": 0.6000000238418579,
+            "fx-layer": 0.800000011920929
+          },
+          "filterHz": null,
+          "colourSource": null,
+          "foundationDirect": true,
+          "subBassDirect": true
+        },
+        {
+          "time": 26.05278911564626,
+          "state": "rhythm",
+          "gains": {
+            "foundation": 0.4000000059604645,
+            "bass-layer": 0.6000000238418579,
+            "fx-layer": 0.800000011920929
+          },
+          "filterHz": null,
+          "colourSource": null,
+          "foundationDirect": true,
+          "subBassDirect": true
+        }
+      ],
+      "peak": 1.131026029586792,
+      "clipped": 8,
+      "windows": {
+        "combat": {
+          "rms": 0.08047219059418599
+        },
+        "rhythm": {
+          "rms": 0.2333772295276533
+        },
+        "hack": {
+          "rms": 0.23022900515614003
+        },
+        "return": {
+          "rms": 0.2639410811774013
+        }
+      }
+    },
+    {
+      "enabled": true,
+      "starts": [
+        {
+          "at": 0.01,
+          "offset": 0,
+          "rate": 1,
+          "loop": true
+        },
+        {
+          "at": 0.01,
+          "offset": 0,
+          "rate": 1,
+          "loop": true
+        },
+        {
+          "at": 0.01,
+          "offset": 0,
+          "rate": 1,
+          "loop": true
+        }
+      ],
+      "snapshots": [
+        {
+          "time": 1.050702947845805,
+          "state": "combat",
+          "gains": {
+            "foundation": 0.4000000059604645,
+            "bass-layer": 0.6000000238418579,
+            "fx-layer": 0.13500000536441803
+          },
+          "filterHz": 3600,
+          "colourSource": "bass-layer",
+          "foundationDirect": true,
+          "subBassDirect": true
+        },
+        {
+          "time": 8.051519274376417,
+          "state": "rhythm",
+          "gains": {
+            "foundation": 0.4000000059604645,
+            "bass-layer": 0.36000001430511475,
+            "fx-layer": 0.44999998807907104
+          },
+          "filterHz": 7500,
+          "colourSource": "bass-layer",
+          "foundationDirect": true,
+          "subBassDirect": true
+        },
+        {
+          "time": 15.05233560090703,
+          "state": "hack",
+          "gains": {
+            "foundation": 0.4000000059604645,
+            "bass-layer": 0.699999988079071,
+            "fx-layer": 0.03999999910593033
+          },
+          "filterHz": 850,
+          "colourSource": "bass-layer",
+          "foundationDirect": true,
+          "subBassDirect": true
+        },
+        {
+          "time": 22.053151927437643,
+          "state": "rhythm",
+          "gains": {
+            "foundation": 0.4000000059604645,
+            "bass-layer": 0.7200000286102295,
+            "fx-layer": 0.5
+          },
+          "filterHz": 7500,
+          "colourSource": "bass-layer",
+          "foundationDirect": true,
+          "subBassDirect": true
+        },
+        {
+          "time": 26.05278911564626,
+          "state": "rhythm",
+          "gains": {
+            "foundation": 0.4000000059604645,
+            "bass-layer": 0.3959999978542328,
+            "fx-layer": 0.03999999910593033
+          },
+          "filterHz": 7500,
+          "colourSource": "bass-layer",
+          "foundationDirect": true,
+          "subBassDirect": true
+        }
+      ],
+      "peak": 0.9727441072463989,
+      "clipped": 0,
+      "windows": {
+        "combat": {
+          "rms": 0.08934592008974962
+        },
+        "rhythm": {
+          "rms": 0.137282890534065
+        },
+        "hack": {
+          "rms": 0.08139445147686972
+        },
+        "return": {
+          "rms": 0.14785101252478158
+        }
+      }
+    }
+  ],
+  "preview": "Original OFF: 0\u201328 s; one second silence; Dynamic ON: 29\u201357 s. Each half: combat 0\u20137, rhythm 7\u201314, hack 14\u201321, return 21\u201328. Both halves share 0.8 preview gain; no independent normalization."
+}

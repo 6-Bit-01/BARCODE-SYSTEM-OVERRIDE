@@ -1,5 +1,14 @@
 # Acceptance and Test Status
 
+## Audible music correction — current route
+
+Use the exact draft head from the receipt in Makko. Base/rollback is merged #82, `a0f9e79356210b0966f0a9d04113094b52b8e568`. The names of the files do not describe their instruments.
+
+1. Pause → Dynamic music OFF gives the original mix. Turn ON and resume. Approach combat, enter Rhythm Mode, then hack a target: hacking should clearly pull down the low bass and darken the midrange. Exiting restores the fuller arrangement on a beat. Compare both headphones and the normal speakers used for the game.
+2. Stay in normal combat/rhythm for several phrases: a short two-beat pullback should return cleanly, with the foundation steady. Combo/hack echoes should be audible without obscuring warning sounds. Compare the supplied identical-excerpt A/B render: it is evidence of the graph, not a hosted-device recording.
+3. Listen across two full 3:31 loop boundaries, pause/resume, boss retry and saved checkpoint resume. Source alignment, rhythm judgment and existing loop behavior must match the base. Off must remove the new treatment and preserve the original exploration/combat/rhythm mixes.
+4. Briefly recheck the boss slam/counters, campaign completion and elevator exits. Record SHA, device, ON/OFF impression and PASS/FAIL. After listening acceptance and merge, import the resulting main merge commit and repeat this route; retain the base import for rollback.
+
 ## Boss/music/campaign review route — current
 
 Use the exact draft head from the receipt in a duplicate Makko project. Base/rollback: merged #81, `a75f33f2321a9e96f3a8fa7677dbf61e586bdb1e`. Automated tests preserve scheduling but do not certify audible sync or gameplay feel.

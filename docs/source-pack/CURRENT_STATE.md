@@ -1,5 +1,9 @@
 # Current State
 
+## Current review — audible music response
+
+PR #82 is merged (`a0f9e79356210b0966f0a9d04113094b52b8e568`). The owner reports its musical changes are imperceptible and confirms the filenames are misleading. Branch `agent/audible-music-response` uses measured source content to route effects, adds clear bass cutaways/returns and phrase breaks, and retains exact source timing/loops/judgment plus legacy Off mixing. See AUDIBLE_MUSIC_RESPONSE.md and the generated receipt for the evidence. Gameplay, campaign and elevator behavior are unchanged.
+
 ## Current review — boss, music and campaign foundation
 
 Branch `agent/boss-music-campaign`, based on merged #81 (`a75f33f2321a9e96f3a8fa7677dbf61e586bdb1e`). The owner approved the next pass while explicitly protecting working audio sync. See BOSS_MUSIC_CAMPAIGN_PASS.md for implementation, exact evidence scope and remaining work.

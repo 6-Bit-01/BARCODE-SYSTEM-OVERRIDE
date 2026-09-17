@@ -10,7 +10,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/music-director.js', exports: ['BAR
       this.disposeGraph(); this.profileId = null; this.state = null; this.pending = null;
       this.lastBeat = null; this.lastBar = null; this.lastPhrase = null; this.generation = null;
       this.variation = 0; this.volumes = {}; this.pendingAccent = null; this.lastAccentBeat = -Infinity;
-      this.comboMilestone = 0; this.graph = null; this.audio = null;
+      this.comboMilestone = 0; this.graph = null; this.audio = null; this.enabled = null; this.turnaround = false;
     }
     accent(kind) {
       if (['hack', 'boss', 'clear', 'combo'].includes(kind)) this.pendingAccent = kind;
@@ -38,7 +38,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/music-director.js', exports: ['BAR
       else { param.cancelScheduledValues?.(now); param.setValueAtTime?.(param.value, now); }
       param.linearRampToValueAtTime(target, now + duration);
     }
-    bindColour(audio, source) {
+    bindColour(audio, source, mix) {
       const gain = audio.musicTracks[source.sourceId]?.gain, context = audio.context;
       if (this.graph?.gain === gain) return this.graph;
       this.disposeGraph();
@@ -51,11 +51,13 @@ window.FILE_MANIFEST.push({ name: 'src/engine/music-director.js', exports: ['BAR
         const feedback = context.createGain(); nodes.push(feedback);
         const wet = context.createGain(); nodes.push(wet);
         filter.type = 'lowpass'; filter.frequency.value = 18000; filter.Q.value = 0.4;
-        send.gain.value = 0; feedback.gain.value = 0.12; wet.gain.value = 0.18;
+        send.gain.value = 0;
+        feedback.gain.value = mix.echo?.feedback ?? 0.12;
+        wet.gain.value = mix.echo?.wet ?? 0.18;
         filter.connect(audio.musicGain); filter.connect(send); send.connect(delay);
         delay.connect(wet); wet.connect(audio.musicGain); delay.connect(feedback); feedback.connect(delay);
         gain.disconnect(audio.musicGain); gain.connect(filter);
-        this.graph = { gain, filter, send, delay, nodes, output: audio.musicGain };
+        this.graph = { sourceId: source.sourceId, gain, filter, send, delay, nodes, output: audio.musicGain };
         return this.graph;
       } catch (_) {
         nodes.forEach(node => { try { node.disconnect(); } catch (_) {} });
@@ -80,28 +82,40 @@ window.FILE_MANIFEST.push({ name: 'src/engine/music-director.js', exports: ['BAR
       const now = audio.context.currentTime;
       const sample = B.MusicTransport?.sample?.(now), grid = sample?.running ? sample.grid : null;
       const enabled = B.Preferences?.values?.dynamicMusic !== false;
+      this.enabled = enabled;
       const cutscene = window.cutsceneSystem?.isPlaying?.();
       const desired = this.desiredState();
       const generationChanged = this.generation !== sample?.generation;
       const beatChanged = !!grid && this.lastBeat !== grid.beatIndex;
       const barChanged = !!grid && this.lastBar !== grid.barIndex;
-      const phrase = grid ? Math.floor(grid.beatIndex / (grid.phraseBeatCount || grid.beatsPerBar)) : null;
-      if (!generationChanged && phrase !== null && phrase !== this.lastPhrase) this.variation = (this.variation + 1) % 4;
+      const phraseBeats = grid && (grid.phraseBeatCount || grid.beatsPerBar);
+      const phrase = grid ? Math.floor(grid.beatIndex / phraseBeats) : null;
+      const variants = mix.phraseVariants || [{}, {}, {}, {}];
+      if (!generationChanged && phrase !== null && phrase !== this.lastPhrase) this.variation = (this.variation + 1) % variants.length;
       this.pending = desired;
       // Emergency/terminal ownership is immediate; ordinary mix changes wait
       // for a bar. Boss counter cues and new rhythm/hack entries use a beat.
       const urgent = ['victory', 'restored', 'counter', 'boss', 'bossFinal', 'rhythm', 'hack'].includes(desired);
+      const previousState = this.state;
       if (!this.state || !grid || (!generationChanged && (barChanged || urgent && beatChanged))) this.state = desired;
+      if (enabled && previousState !== this.state && this.state === 'hack') this.accent('hack');
       const fallback = mix.states.explore;
       const levels = mix.states[this.state] || fallback;
       const baseline = enabled ? levels : mix.states[window.rhythmSystem?.isActive?.() || window.hackingSystem?.isActive?.() ? ((window.enemyManager?.getActiveEnemies?.().length || 0) > 0 ? 'legacyRhythm' : 'legacyRhythmSolo') :
-        (window.enemyManager?.getActiveEnemies?.().length || 0) > 0 ? 'legacyCombat' : 'explore'] || fallback;
-      const variant = enabled && !['bossFinal', 'victory', 'counter'].includes(this.state) ? [1, 0.82, 0.94, 0.88][this.variation] : 1;
+        (window.enemyManager?.getActiveEnemies?.().length || 0) > 0 ? 'legacyCombat' : 'legacyExplore'] || fallback;
+      const varied = enabled && ['combat', 'rhythm', 'boss'].includes(this.state);
+      const variant = varied ? variants[this.variation] : {};
+      // A two-beat pullback at the end of the authored phrase. Sources keep
+      // running, and the foundation is never attenuated by this arrangement.
+      const turnaround = enabled && grid && ['combat', 'rhythm'].includes(this.state) &&
+        grid.beatIndex % phraseBeats >= Math.max(0, phraseBeats - 2);
+      this.turnaround = !!turnaround;
       for (const source of profile.arrangement.sources) {
         const track = audio.musicTracks[source.sourceId];
         const role = source.mixRole;
         let level = Number.isFinite(baseline[role]) ? baseline[role] : source.gain;
-        const volume = cutscene ? 0 : clamp(level * (role === mix.colourRole ? variant : 1), 0, 0.8);
+        const volume = cutscene ? 0 : clamp(level * (variant[role] ?? 1) *
+          (turnaround ? (mix.turnaroundGains?.[role] ?? 1) : 1), 0, 0.8);
         this.volumes[source.sourceId] = volume;
         if (track?.isPlaying && track.gain && Math.abs((track.volume ?? -1) - volume) > 0.005) {
           audio.rampAdaptiveStemGain(track, volume, enabled ? (mix.fadeSec ?? 0.3) : 0.18);
@@ -110,19 +124,20 @@ window.FILE_MANIFEST.push({ name: 'src/engine/music-director.js', exports: ['BAR
       const colour = profile.arrangement.sources.find(s => s.mixRole === mix.colourRole);
       if (!enabled || cutscene) { this.disposeGraph(); this.pendingAccent = null; }
       else if (colour) {
-        const graph = this.bindColour(audio, colour);
+        const graph = this.bindColour(audio, colour, mix);
         if (graph && (beatChanged || !grid || generationChanged)) {
           const combo = window.rhythmSystem?.combo || 0;
           const milestone = Math.floor(combo / 5);
           if (milestone > this.comboMilestone) this.accent('combo');
           this.comboMilestone = milestone;
-          const cutoff = this.state === 'hack' ? 4200 : this.state === 'bossFinal' ? 16000 : 6500 + Math.min(8000, combo * 350);
+          const cutoff = (mix.filterHz?.[this.state] ?? 6500) +
+            (this.state === 'rhythm' ? Math.min(2000, combo * 100) : 0);
           this.ramp(graph.filter.frequency, cutoff, now, 0.25);
           // No-grid songs keep their dry arrangement. Echo requires the song's
           // own verified grid; there is no inherited Level 1 tempo.
           if (grid && this.pendingAccent && !generationChanged && grid.beatIndex - this.lastAccentBeat >= 4) {
             graph.delay.delayTime.setValueAtTime?.(grid.beatDurationSec * 0.75, now);
-            this.ramp(graph.send.gain, 0.55, now, 0.02);
+            this.ramp(graph.send.gain, mix.echo?.send ?? 0.55, now, 0.02);
             graph.send.gain.linearRampToValueAtTime?.(0, now + Math.min(0.7, grid.beatDurationSec));
             this.lastAccentBeat = grid.beatIndex; this.pendingAccent = null;
           }
@@ -133,7 +148,9 @@ window.FILE_MANIFEST.push({ name: 'src/engine/music-director.js', exports: ['BAR
       this.lastBar = grid?.barIndex ?? null; this.lastPhrase = phrase;
       return true;
     }
-    diagnostics() { return { profileId: this.profileId, state: this.state, pending: this.pending, variation: this.variation, volumes: { ...this.volumes }, effects: !!this.graph }; }
+    diagnostics() { return { profileId: this.profileId, enabled: this.enabled, state: this.state, pending: this.pending,
+      variation: this.variation, turnaround: this.turnaround, volumes: { ...this.volumes }, effects: !!this.graph,
+      colourSource: this.graph?.sourceId || null, filterHz: this.graph?.filter.frequency.value ?? null }; }
   }
   B.MusicDirector = MusicDirector; B.musicDirector = new MusicDirector();
 })(window.BARCODE = window.BARCODE || {});
