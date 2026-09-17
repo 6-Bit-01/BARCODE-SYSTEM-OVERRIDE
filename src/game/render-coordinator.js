@@ -161,6 +161,7 @@ window.renderGame = function() {
   // Tactical focus is a scene treatment, not part of the terminal or HUD. Draw
   // it after the world zoom has been restored and before any interface layer.
   drawTacticalFocusCue(ctx);
+  window.BARCODE?.combatFX?.drawPowerScreen?.(ctx);
   if(hackView) {
     ctx.save();ctx.globalAlpha=1;ctx.strokeStyle='#3c827f';ctx.lineWidth=2;
     ctx.strokeRect(hackView.x,hackView.y,hackView.width,hackView.height);
@@ -246,6 +247,7 @@ function drawTacticalFocusCue(ctx) {
 
 // Draw game elements with camera transform
 function drawGameElements(ctx) {
+  ctx.save();ctx.filter=window.BARCODE?.combatFX?.sceneFilter?.() || 'none';
   // Draw fallback background first
   drawBackground(ctx);
   
@@ -276,6 +278,8 @@ function drawGameElements(ctx) {
   drawParallaxForeground(ctx);
   ctx.restore();
   
+  ctx.restore(); // Colour grade scenery only; player and warnings stay crisp.
+
   // Apply camera transform to all game objects
   ctx.save();
   ctx.translate(cameraOffsetX, -cameraY);
@@ -292,6 +296,7 @@ function drawGameElements(ctx) {
   // Draw game entities
   window.BARCODE?.stageFX?.drawWorld(ctx);
   drawRhythmEffectsBehindPlayer(ctx);
+  if(window.player)window.BARCODE?.combatFX?.drawHackField?.(ctx,window.player.position.x,window.player.position.y);
   drawGameEntities(ctx);
   
   // Rhythm field is already drawn behind enemies and their warning labels.

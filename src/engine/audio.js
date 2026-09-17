@@ -644,6 +644,41 @@ window.AudioSystem = class AudioSystem {
     return true;
   }
 
+  // Cached one-shot textures: separate SFX, never a new beat/source clock.
+  playModeCue(kind) {
+    const ctx=this.context;
+    if(!ctx?.createBuffer || ctx.state!=='running' || !this.sfxGain)return false;
+    const settings={
+      'hack-in':[.78,260,42,.24], 'hack-out':[.36,70,520,.12],
+      'hack-guard':[.44,480,110,.16], 'rhythm-in':[.7,130,48,.26],
+      'rhythm-hit':[.24,95,44,.14]
+    };
+    const config=settings[kind];if(!config)return false;
+    this.modeCueTimes ||= {};const now=ctx.currentTime;
+    if(now-(this.modeCueTimes[kind]??-Infinity)<(kind==='rhythm-hit'?.16:.3))return false;
+    if(kind==='rhythm-hit' && now<(this.criticalCueUntil||0))return false;
+    this.modeCueTimes[kind]=now;
+    if(this.modeBufferRate!==ctx.sampleRate){this.modeBuffers={};this.modeBufferRate=ctx.sampleRate;}
+    let buffer=this.modeBuffers[kind];
+    if(!buffer){
+      const [duration,from,to,noiseLevel]=config,rate=ctx.sampleRate;
+      buffer=ctx.createBuffer(1,Math.ceil(rate*duration),rate);
+      const data=buffer.getChannelData(0);let phase=0,low=0,seed=0x6b17;
+      for(let i=0;i<data.length;i++){
+        const t=i/rate,u=t/duration,attack=Math.min(1,t/.012),release=Math.pow(1-u,1.8);
+        seed=(Math.imul(seed,1664525)+1013904223)>>>0;
+        const white=seed/2147483648-1;low+=.06*(white-low);
+        const hz=from*Math.pow(to/from,u);phase+=Math.PI*2*hz/rate;
+        const body=Math.sin(phase)*.36*Math.exp(-u*3.5);
+        const air=(white-low)*noiseLevel*(kind==='hack-in'?Math.sin(Math.PI*u):Math.exp(-u*6));
+        const shimmer=kind==='hack-guard'?Math.sin(phase*2.73)*.12:0;
+        data[i]=(body+air+shimmer)*attack*release;
+      }
+      this.modeBuffers[kind]=buffer;
+    }
+    return this.playSFXBuffer(buffer,.85,kind);
+  }
+
   createRepairBuffer() {
     const rate = this.context.sampleRate, duration = 0.84;
     const buffer = this.context.createBuffer(1, Math.ceil(rate * duration), rate);
@@ -675,7 +710,11 @@ window.AudioSystem = class AudioSystem {
       return false;
     }
     this.combatVoices ||= new Set();
-    while (this.combatVoices.size >= 12) this.combatVoices.values().next().value.dispose();
+    while (this.combatVoices.size >= 12) {
+      const spare=[...this.combatVoices].find(v=>!v.critical);
+      if(!spare)return false;
+      spare.dispose();
+    }
     const source = this.context.createBufferSource(), gain = this.context.createGain();
     source.buffer = buffer;
     gain.gain.value = volume;
@@ -695,6 +734,8 @@ window.AudioSystem = class AudioSystem {
   stopCombatCues() {
     for (const voice of this.combatVoices || []) voice.dispose();
     this.combatCueTimes = {};
+    this.modeCueTimes = {};
+    this.criticalCueUntil = 0;
   }
 
   playSound(soundName, volume = 1.0) {

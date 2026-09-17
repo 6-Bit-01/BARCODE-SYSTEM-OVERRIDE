@@ -19,7 +19,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
       this.randomState = x >>> 0; return this.randomState;
     }
     sample(seed, salt) { return noise(seed, salt); }
-    reset() { this.events = []; this.timeMs = 0; this.sceneKick = 0; this.sceneSample = null; this.serial = 0; this.lastCombo = 0; this.damageFeedback = null; this.ampNotice = null; }
+    reset() { this.powerMode="none";this.powerAge=0;this.hackDeflectMs=0;this.events = []; this.timeMs = 0; this.sceneKick = 0; this.sceneSample = null; this.serial = 0; this.lastCombo = 0; this.damageFeedback = null; this.ampNotice = null; }
     add(event) {
       if (!Number.isFinite(event.x) || !Number.isFinite(event.y)) return;
       if (this.events.length >= 96) this.events.shift();
@@ -28,6 +28,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
     update(ms) {
       if (!Number.isFinite(ms) || ms < 0 || window.isPaused || window.gameState?.paused) return;
       this.timeMs += ms;
+      this.updatePower(ms);
       const audioTime = window.audioSystem?.context?.currentTime;
       this.sceneSample = Number.isFinite(audioTime) ? BARCODE.MusicTransport?.sample?.(audioTime) : null;
       this.sceneKick = Math.max(0, this.sceneKick - ms / 600);
@@ -43,6 +44,85 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
         if (event.age < event.duration) this.events[write++] = event;
       }
       this.events.length = write;
+    }
+    powerSettings() {
+      const p=BARCODE.Preferences?.values || {};
+      return { reduced:!!p.reducedMotion, flashes:p.flashes!==false && window.BARCODE_RENDER_QUALITY?.flashes!==false };
+    }
+    updatePower(ms) {
+      const mode=window.hackingSystem?.isActive?.()?'hack':window.rhythmSystem?.isActive?.()?'rhythm':'none';
+      if(mode!==this.powerMode) {
+        if(this.powerMode==='hack')window.audioSystem?.playModeCue?.('hack-out');
+        this.powerMode=mode;this.powerAge=0;
+        if(mode==='hack')window.audioSystem?.playModeCue?.('hack-in');
+      }
+      this.powerAge+=ms;this.hackDeflectMs=Math.max(0,this.hackDeflectMs-ms);
+    }
+    hackDeflect() {
+      this.hackDeflectMs=420;
+      const p=window.player;if(p)this.add({kind:'power-hit',x:p.position.x,y:p.position.y-22,radius:125,duration:420,color:'#b4ffff'});
+      window.audioSystem?.playModeCue?.('hack-guard');
+    }
+    sceneFilter() { return window.hackingSystem?.isActive?.()?'saturate(0.36) contrast(1.08) brightness(0.8)':'none'; }
+    drawHackField(ctx,x,y) {
+      if(!window.hackingSystem?.isActive?.() || !this.visible(x,y,700))return;
+      const {reduced,flashes}=this.powerSettings(),time=reduced?0:this.powerAge/1000,side=window.player?.facing||1;
+      const hand={x:x+side*76,y:y-76};
+      ctx.save();
+      const halo=ctx.createRadialGradient(x,y-15,15,x,y-15,245);
+      halo.addColorStop(0,'rgba(79,246,255,0.19)');halo.addColorStop(1,'rgba(30,128,230,0)');
+      ctx.fillStyle=halo;ctx.fillRect(x-245,y-260,490,490);
+      ctx.strokeStyle='#80e9ff';ctx.lineWidth=2;ctx.globalAlpha=.6;
+      for(let i=0;i<3;i++){
+        const r=105+i*32,phase=time*(i%2?.8:-.6)+i;
+        ctx.beginPath();ctx.ellipse(x,y+72,r,r*.24,0,phase,phase+Math.PI*1.55);ctx.stroke();
+      }
+      // A few slowly drifting motes make the stopped world visible even when
+      // enemies are idle. Personal rings/gestures keep the real frame clock.
+      ctx.fillStyle='#98eaff';ctx.globalAlpha=.55;
+      for(let i=0;i<(reduced?8:26);i++){
+        const dx=(noise(61,i)-.5)*620,dy=(noise(93,i)*360+time*7)%360;
+        ctx.fillRect(x+dx,y+95-dy,i%4?2:4,i%4?7:16);
+      }
+      const target=window.hackingSystem.hijackTarget;
+      if(target?.active && Math.abs(target.position.x-x)<1000){
+        const box=target.getHitbox(),tx=box.x+box.width/2,ty=box.y+box.height/2;
+        ctx.strokeStyle='#b1a2ff';ctx.globalAlpha=.8;ctx.lineWidth=2;ctx.setLineDash([9,12]);ctx.lineDashOffset=-time*90;
+        ctx.beginPath();ctx.moveTo(hand.x,hand.y);ctx.quadraticCurveTo((hand.x+tx)/2,Math.min(hand.y,ty)-85,tx,ty);ctx.stroke();ctx.setLineDash([]);
+        ctx.strokeRect(box.x-12,box.y-12,box.width+24,box.height+24);
+      }
+      ctx.globalAlpha=1;ctx.strokeStyle='#b3ffff';ctx.fillStyle='#d9ffff';ctx.lineWidth=3;
+      ctx.beginPath();ctx.arc(hand.x,hand.y,flashes?16+Math.sin(time*8)*3:16,0,TAU);ctx.stroke();
+      for(let i=0;i<3;i++){const a=time*2+i*TAU/3;ctx.fillRect(hand.x+Math.cos(a)*23-2,hand.y+Math.sin(a)*23-2,4,4);}
+      if(this.hackDeflectMs>0){
+        ctx.lineWidth=6;ctx.globalAlpha=this.hackDeflectMs/420;
+        ctx.beginPath();ctx.arc(hand.x,hand.y,45+(1-this.hackDeflectMs/420)*36,-1.3+(side<0?Math.PI:0),1.3+(side<0?Math.PI:0));ctx.stroke();
+      }
+      ctx.restore();
+    }
+    drawPowerScreen(ctx) {
+      const hack=window.hackingSystem?.isActive?.(),rhythm=window.rhythmSystem?.isActive?.();
+      if(!hack&&!rhythm)return;
+      const {reduced,flashes}=this.powerSettings();if(reduced||!flashes)return;
+      const v=hack?window.hackingSystem.getSceneViewport?.():{x:0,y:210,width:1920,height:760};if(!v)return;
+      const projected=BARCODE.sceneProjection?.worldToScreen?.(window.player?.position||{x:960,y:760});
+      const x=Math.max(v.x+60,Math.min(v.x+v.width-60,projected?.x??960)),y=Math.max(v.y+60,Math.min(v.y+v.height-60,projected?.y??700));
+      const beat=this.beat(),pulse=rhythm?Math.pow(1-beat.fraction,3):0;
+      ctx.save();ctx.beginPath();ctx.rect(v.x,v.y,v.width,v.height);ctx.clip();
+      const edge=ctx.createRadialGradient(x,y,80,x,y,v.width*.66);
+      edge.addColorStop(0,'rgba(0,0,0,0)');edge.addColorStop(.5,'rgba(0,0,0,0)');
+      edge.addColorStop(1,hack?'rgba(5,55,95,0.65)':`rgba(89,9,95,${.22+pulse*.12})`);
+      ctx.fillStyle=edge;ctx.fillRect(v.x,v.y,v.width,v.height);
+      const entry=Math.max(0,1-this.powerAge/650);
+      if(entry>0){
+        ctx.strokeStyle=hack?'#b4ffff':'#f0a7ff';ctx.globalAlpha=entry*.55;ctx.lineWidth=2;
+        for(let i=0;i<18;i++){
+          const a=i*TAU/18,r=90+(1-entry)*v.width*.5;
+          ctx.beginPath();ctx.moveTo(x+Math.cos(a)*r,y+Math.sin(a)*r*.6);
+          ctx.lineTo(x+Math.cos(a)*(r+90*entry),y+Math.sin(a)*(r+90*entry)*.6);ctx.stroke();
+        }
+      }
+      ctx.restore();
     }
     playerDamaged(player, previousHealth, sourcePosition = null) {
       if (!player || !Number.isFinite(previousHealth) || !Number.isFinite(player.health) || player.health >= previousHealth) return;
@@ -163,6 +243,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
       this.sceneKick = entering ? 1 : 0;
       this.add({ kind: 'entry', x: player.position.x, y: player.position.y + 72, duration: entering ? 650 : 220, radius: entering ? 210 : 95, color: entering ? '#7cffe2' : '#b0bed6' });
       window.audioSystem?.playCombatCue?.(entering ? 'enter' : 'exit');
+      if(entering)window.audioSystem?.playModeCue?.('rhythm-in');
     }
     contact(type, x, y, direction = 1, defeated = false, perfect = false) {
       this.add({ kind: 'impact', x, y, direction: direction || 1, material: type, defeated, perfect, color: colors[type] || '#7cffe2', duration: defeated ? 900 : 380 });
@@ -194,6 +275,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
         this.add({ kind: 'link', x: target.fromX ?? x, y: (target.fromY ?? y) - 24, tx: target.x, ty: target.contactY ?? target.y, chain: target.via === 'chain', color: target.via === 'chain' ? '#ffa0ed' : colors[target.type] || color, duration: perfect ? 240 : 180, perfect });
         if (target.type === 'boss' || target.type === 'broadcast_jammer') this.contact(target.type, target.x, target.contactY ?? target.y, Math.sign(target.x - x), false, perfect);
       }
+      if(result.targets.length && perfect){this.add({kind:'power-hit',x,y,radius:range,duration:420,color:'#e6a6ff'});window.audioSystem?.playModeCue?.('rhythm-hit');}
       if (result.targets.length) { player.impactHoldMs = perfect ? 55 : 30; BARCODE.stageFX?.react?.(x, 1, 'hit'); }
       if (result.reason === 'boss-guarded') {
         const boss = window.sector1Progression?.boss;
@@ -211,7 +293,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
     }
     drawRhythmField(ctx, x, y) {
       if (!this.visible(x, y, 430)) return;
-      const { fraction, index } = this.beat();
+      const quiet=this.powerSettings().reduced || !this.powerSettings().flashes;
+      const { fraction, index } = quiet ? {fraction:1,index:0} : this.beat();
       const pulse = Math.pow(1 - fraction, 3);
       const combo = window.rhythmSystem?.combo || 0;
       const range = window.rhythmSystem?.getAuthoritativeDamageRadius?.() || 250;
@@ -230,6 +313,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
       ctx.beginPath(); ctx.ellipse(x, foot, 85 + pulse * 20, 20, 0, 0, TAU); ctx.fill();
       ctx.strokeStyle = combo >= 10 ? '#ffa0ed' : '#81ffe5'; ctx.lineWidth = 3;
       ctx.beginPath(); ctx.ellipse(x, foot, 68 + pulse * 16, 16 + pulse * 4, 0, 0, TAU); ctx.stroke();
+      // Broad floor ripples and vertical equalizer fins frame the performer.
+      // The outer damage circle above retains the real gameplay radius.
+      for(let i=0;i<3;i++){
+        const phase=quiet ? 0.35 :(fraction+i/3)%1,r=50+phase*170;
+        ctx.globalAlpha=(1-phase)*.5;ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(x,foot,r,r*.23,0,0,TAU);ctx.stroke();
+      }
+      const tier=Math.min(1,combo/10);ctx.globalAlpha=.55;
+      for(let i=0;i<12;i++){
+        const side=i<6?-1:1,n=i%6,dx=side*(54+n*13),height=22+(quiet?16:pulse*66)*(1-n/8)+tier*25;
+        ctx.fillStyle=tier>=1?'#ffa0ed':'#83ffe6';ctx.fillRect(x+dx-2,foot-height,4,height);
+      }
+      ctx.globalAlpha=1;
       // Stable, beat-indexed short tendrils remain close to the performer.
       ctx.globalAlpha = 0.45 + pulse * 0.3; ctx.lineWidth = 2;
       for (let side = -1; side <= 1; side += 2) {
@@ -245,7 +340,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
         if (!this.visible(e.x, e.y, e.radius || (e.tx ? Math.abs(e.tx - e.x) + 80 : 200))) continue;
         const t = e.age / e.duration, fade = 1 - t;
         ctx.save(); ctx.globalAlpha = fade; ctx.strokeStyle = e.color; ctx.fillStyle = e.color; ctx.lineWidth = e.perfect ? 4 : 2;
-        if (e.kind === 'entry') {
+        if(e.kind==='power-hit') {
+          const quiet=this.powerSettings().reduced || !this.powerSettings().flashes;
+          ctx.lineWidth=quiet?2:6*fade;ctx.globalAlpha=fade*(quiet ? 0.25 : 0.8);
+          const radius=quiet?e.radius:30+(e.radius-30)*Math.sin(t*Math.PI/2);
+          ctx.beginPath();ctx.arc(e.x,e.y,radius,0,TAU);ctx.stroke();
+          if(!quiet){ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(e.x,e.y+72,radius,radius*.24,0,0,TAU);ctx.stroke();}
+        } else if (e.kind === 'entry') {
           ctx.beginPath(); ctx.ellipse(e.x, e.y, 30 + t * e.radius, 8 + t * 32, 0, 0, TAU); ctx.stroke();
           for (let i = 0; i < 12; i++) ctx.fillRect(e.x - 58 + i * 10, e.y - 6 - Math.sin(i * 1.8) * 8 - t * 65, i % 3 ? 3 : 5, 12 * fade);
         } else if (e.kind === 'hurt') {

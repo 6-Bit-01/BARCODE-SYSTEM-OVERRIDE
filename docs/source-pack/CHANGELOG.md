@@ -1,5 +1,9 @@
 # Recovery checkpoint — September 14
 
+## September 17, 2026 — Hack and Rhythm Mode presence
+
+Add a cold hack scene, entry surge, palm/uplink field and dedicated approved-frame gesture with one-hit guard deflection. Apply the existing focus clock to ambient particles and traffic movement/spawning; slow the decoded skyline and restore on exit. Add rhythm floor waves/equalizer fins, beat edge color and connected-perfect shockwaves. Introduce five cached SFX under existing mute/lifecycle/voice protection. Let the hack music treatment take priority while hacking during a boss fight. Preserve synchronization, terminal readability and gameplay tuning. Add production clock/gesture/accessibility/SFX regressions, real Chromium audio/video checks and native motion/stills. See MODE_POWER_PASS.md.
+
 ## September 17, 2026 — final playtest follow-up
 
 Replace disappearing active hack overlays with a stable opaque terminal beside a live viewport. Add reusable title settings, native fullscreen control and reduced motion; define anytime versus per-level rules. Persist deaths and restore the last objective with full health, or choose Full Run for a +500 clear bonus. Reuse smaller recolored rooftop drones as bounded boss support/relay guards. Jammer shields after each four-hit burst and marks a fixed discharge zone. Dialogue/objective panels learn a small set of settled homes and return only after sustained clearance. Add recovery, combat, panel and real Chromium settings regression coverage plus six native review screens. Keep music synchronization intact. Details: FINAL_PLAYTEST_PASS.md.

@@ -14,7 +14,7 @@ assert(chromePath, 'Set CHROME_BIN to an installed Chrome/Chromium executable.')
 fs.mkdirSync(output, { recursive: true });
 const fixture = `<!doctype html><html><body style="margin:0;background:#10131b"><canvas id="gameCanvas" width="1920" height="1080" style="width:100vw"></canvas>
 <script>window.gameState={running:true,paused:false,gameOver:false};window.isRunning=true;window.isPaused=false;window.gameCamera={x:2048,y:0};</script>
-<script src="/src/engine/parallax.js"></script><script src="/src/core/loop.js"></script>
+<script src="/src/engine/parallax.js"></script><script src="/src/game/update-coordinator.js"></script><script src="/src/core/loop.js"></script>
 <script>
 window.isRunning=true;
 // Supply only the omitted gameplay coordinator's media tick; the production
@@ -106,6 +106,13 @@ async function main() {
   assert.equal(media.width,2088); assert.equal(media.height,754); assert.equal(media.duration,8);
   assert(media.src.startsWith(origin), 'actual bundled fallback decoded');
   await until('parallaxBackground.skyVideo.currentTime > .15 && !parallaxBackground.skyVideo.paused', 'muted autoplay without user gesture');
+  await evaluate('window.hackingSystem={active:true,isActive(){return this.active;}};parallaxBackground.syncSkyPlayback()');
+  assert.equal(await evaluate('parallaxBackground.skyVideo.playbackRate'),.35,'real media uses tactical focus');
+  const slowStart=await evaluate('parallaxBackground.skyVideo.currentTime');await delay(750);
+  const slowAdvance=await evaluate('parallaxBackground.skyVideo.currentTime')-slowStart;
+  assert(slowAdvance>.08 && slowAdvance<.5,'decoded skyline advances at slowed speed');
+  await evaluate('hackingSystem.active=false;parallaxBackground.syncSkyPlayback()');
+  assert.equal(await evaluate('parallaxBackground.skyVideo.playbackRate'),1,'media speed restores on exit');
   await evaluate('pauseGame()');
   const pausedAt=await evaluate('parallaxBackground.skyVideo.currentTime');
   await delay(200);
@@ -166,7 +173,7 @@ async function main() {
   assert.equal(fallback[3],255,'original artwork remains visible on media failure');
   await screenshot('02-static-fallback');
   assert.deepEqual(errors,[],'no browser JavaScript exceptions');
-  receipts.push({media,cloudPixelDifference:rendered.upper,cityPixelDifference:rendered.lower,fixedScaleCases:rendered.records.length});
+  receipts.push({media,slowMotion:{rate:.35,realMs:750,mediaAdvanceSec:slowAdvance,restoredRate:1},cloudPixelDifference:rendered.upper,cityPixelDifference:rendered.lower,fixedScaleCases:rendered.records.length});
   fs.writeFileSync(path.join(output,'result.json'),JSON.stringify({passed:true,receipts,errors,limits:'Real Chromium H.264 decoder and production background/loop APIs with local assets; not a Makko host acceptance or full game playtest.'},null,2));
   console.log(`Chromium background decode, autoplay, cloud motion, fixed scale, pause/reset/loop/restart/disposal and static fallback passed. Evidence: ${output}`);
 }

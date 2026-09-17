@@ -18,12 +18,12 @@ window.FILE_MANIFEST.push({ name: 'src/engine/music-director.js', exports: ['BAR
     desiredState() {
       const owner = window.sector1Progression;
       if (window.gameState?.victory) return 'victory';
+      if(window.hackingSystem?.isActive?.() && !owner?.isBossCinematicActive?.())return 'hack';
       if (owner?.isBossCombatLive?.() || owner?.state === 'boss_ready') {
         if (owner.boss?.phase === 'recovery') return 'counter';
         return owner.boss?.latePhase ? 'bossFinal' : 'boss';
       }
       if (owner?.isBossCinematicActive?.()) return 'restored';
-      if (window.hackingSystem?.isActive?.()) return 'hack';
       if (window.rhythmSystem?.isActive?.()) return 'rhythm';
       const pos = window.player?.position;
       const threats = window.enemyManager?.getActiveEnemies?.() || [];

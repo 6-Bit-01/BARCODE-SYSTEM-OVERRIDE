@@ -57,7 +57,8 @@ for(const fps of [30,60,120]){
  const ops=[];const c=new Proxy({},{get:(t,k)=>t[k]??((...a)=>ops.push([k,...a])),set:(t,k,v)=>(t[k]=v,true)});
  traffic.drawShip(c,car);assert(ops.some(o=>o[0]==='drawImage'&&o.length===6),'the original GIF draws even without an atlas');assert(!ops.some(o=>o[0]==='fillRect'),'no replacement vehicle drawing');
  traffic.spawnShip=()=>{};traffic.update(2900);assert.strictEqual(traffic.ships.length,0);traffic.update(100);assert(traffic.ships.includes(car));
- const x=car.x;w.hackingSystem.active=true;traffic.update(100);assert(Math.abs(car.x-x-car.speed*6)<.001,'original traffic continues during hacking');w.hackingSystem.active=false;
+ const x=car.x;w.hackingSystem.active=true;traffic.update(100);assert(Math.abs(car.x-x-car.speed*6*.35)<.001,'traffic shares the requested hack slowdown');w.hackingSystem.active=false;
+ const resumed=car.x;traffic.update(100);assert(Math.abs(car.x-resumed-car.speed*6)<.001,'ordinary traffic speed returns after hacking');
  traffic.resetRuntime();assert.strictEqual(traffic.pendingForeground.length,0);assert.strictEqual(traffic.ships.length,0);
 
 }

@@ -65,6 +65,8 @@ window.ParallaxBackground = class ParallaxBackground {
   syncSkyPlayback() {
     const video = this.skyVideo;
     if (!video) return;
+    const speed=window.BARCODE?.TacticalFocusClock?.isActive?.()?window.BARCODE.TacticalFocusClock.scale:1;
+    if(video.playbackRate!==speed)video.playbackRate=speed;
     if (!this.shouldPlaySkyAnimation()) { if (!video.paused) video.pause(); return; }
     if (video.readyState < 2 || !video.paused || this.skyPlayPending || this.skyPlaybackBlocked) return;
     const generation = this.skyVideoGeneration;
