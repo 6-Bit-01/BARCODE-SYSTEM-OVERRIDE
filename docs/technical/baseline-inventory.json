@@ -485,7 +485,7 @@
     {
       "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 2095,
+      "line": 2107,
       "loaded": true
     },
     {

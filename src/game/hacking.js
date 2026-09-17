@@ -655,7 +655,7 @@ window.HackingSystem = class HackingSystem {
       ctx.fillStyle = focused ? '#91ffe0' : '#142c38'; ctx.fillRect(key.x, key.y, key.w, key.h);
       ctx.strokeStyle = focused ? '#f1f6fb' : '#628c90'; ctx.lineWidth = focused ? 3 : 1; ctx.strokeRect(key.x, key.y, key.w, key.h);
       ctx.fillStyle = focused ? '#081921' : '#f1f6fb'; ctx.font = 'bold 26px Oxanium, monospace'; ctx.textAlign = 'center';
-      ctx.fillText(key.label, key.x + key.w / 2, key.y + 38);
+      window.BARCODE.ComicHUD.buttonText(ctx,key.label,key.x,key.y,key.w,key.h,8);
     });
     if (this.feedback) { ctx.textAlign = 'right'; ctx.fillStyle = color; ctx.font = 'bold 14px monospace'; ctx.fillText(this.feedback.text, 1865, 891); }
     ctx.restore();
@@ -676,7 +676,7 @@ window.HackingSystem = class HackingSystem {
     ctx.font='bold 26px monospace';ctx.fillStyle='#f1f6fb';ctx.fillText(this.phase==='answer'?'> '+(this.inputText||'_____'):'> INPUT LOCKED UNTIL SCAN ENDS',22,173);
     this.getKeypad({x:0,y:0,scale:1,compact:true}).forEach((key,index)=>{
       const focused=this.keypadMode&&index===(this.keypadIndex??4);ctx.fillStyle=focused?'#91ffe0':'#142c38';ctx.fillRect(key.x,key.y,key.w,key.h);ctx.strokeStyle=focused?'#f1f6fb':'#628c90';ctx.strokeRect(key.x,key.y,key.w,key.h);
-      ctx.font='bold 26px Oxanium, monospace';ctx.textAlign='center';ctx.fillStyle=focused?'#081921':'#f1f6fb';ctx.fillText(key.label,key.x+key.w/2,key.y+36);
+      ctx.font='bold 26px Oxanium, monospace';ctx.fillStyle=focused?'#081921':'#f1f6fb';window.BARCODE.ComicHUD.buttonText(ctx,key.label,key.x,key.y,key.w,key.h,8);
     });
     ctx.textAlign='left';ctx.font='16px monospace';ctx.fillStyle='#aebdcc';ctx.fillText(window.BARCODE?.GamepadUI?.connected?`D-pad / Stick: Move   ${window.BARCODE.ControllerSettings.button(0)}: Select   ${window.BARCODE.ControllerSettings.button(2)}: Erase`:'Type 0–9 or tap the keys. Enter submits.',22,339);
   }

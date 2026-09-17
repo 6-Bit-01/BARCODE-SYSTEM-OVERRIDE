@@ -4,7 +4,7 @@ const fs=require('fs'),path=require('path'),{spawn}=require('child_process'),{on
 const {createCanvas,loadImage,GlobalFonts}=require(require.resolve('@napi-rs/canvas',{paths:[process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES]}));
 const {createRig,load}=require('./check-level-01-boss'),{createSprite}=require('./makko-animation-fixture'),{installArt}=require('./render-cat-chaos.cjs');
 const root=path.resolve(__dirname,'..'),out=path.resolve(process.argv[2]||'../review');fs.mkdirSync(out,{recursive:true});
-GlobalFonts.registerFromPath((process.env.BOSS_MUSIC_REVIEW || process.env.ENEMY_LIFT_EXIT_REVIEW || process.env.LIFT_RIDER_REVIEW || process.env.TUTORIAL_FLOW_REVIEW || process.env.FEEDBACK_POLISH_REVIEW || process.env.PLAYTEST_POLISH_REVIEW || process.env.SMART_PANEL_REVIEW || process.env.SMART_MOTION_REVIEW) ? path.join(root,'assets/studies/visual-overhaul/references/fonts/Oxanium.ttf') : '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','Oxanium');
+GlobalFonts.registerFromPath((process.env.CONTROL_POLISH_REVIEW || process.env.BOSS_MUSIC_REVIEW || process.env.ENEMY_LIFT_EXIT_REVIEW || process.env.LIFT_RIDER_REVIEW || process.env.TUTORIAL_FLOW_REVIEW || process.env.FEEDBACK_POLISH_REVIEW || process.env.PLAYTEST_POLISH_REVIEW || process.env.SMART_PANEL_REVIEW || process.env.SMART_MOTION_REVIEW) ? path.join(root,'assets/studies/visual-overhaul/references/fonts/Oxanium.ttf') : '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','Oxanium');
 GlobalFonts.registerFromPath('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','sans-serif');
 async function main(){
  const {w,p,context,calls}=createRig();await installArt(w,context);
@@ -30,6 +30,50 @@ async function main(){
  function scene(c,cx,cy){w.gameCamera={centerX:cx,y:cy};w.renderer.zoomLevel=1;c.fillStyle='#111322';c.fillRect(0,0,1920,1080);c.drawImage(bg,0,0,1920,1080);c.save();c.translate(960-cx,-cy);c.drawImage(fg,0,2,fg.width,fg.height-2,-152,-550+2*1589/fg.height,4400,1589-2*1589/fg.height);w.drawGround(c);if(process.env.PLAYTEST_POLISH_REVIEW)w.BARCODE.stageFX.drawWorld(c);w.drawGameEntities(c);if(p.getLiftActorLayer(w.player)!=='behind')w.player.draw(c);p.drawSignalLift(c,'front');c.restore();c.save();c.translate(0,-cy);w.spaceShipSystem.drawForegroundShips(c);c.restore();if(!w.tutorialSystem?.isActive?.()&&!process.env.PLAYTEST_POLISH_REVIEW&&!process.env.BOSS_MUSIC_REVIEW)w.drawObjectives(c);}
  function setHero(x,foot,support){Object.assign(w.player.position,{x,y:foot-72});w.player.velocity.x=0;w.player.velocity.y=0;w.player.grounded=true;w.player.supportedSurfaceId=support||null;w.player.state='idle';w.player.airInput=0;w.player.controlsDisabled=false;w.player.invulnerableUntil=0;w.player.health=w.player.maxHealth;w.player.playAnimation('idle');}
  const canvas=createCanvas(1920,1080),c=canvas.getContext('2d');
+ if(process.env.CONTROL_POLISH_REVIEW){
+  const assert=require('assert');load(context,'src/core/gamepad-ui.js');
+  const H=w.BARCODE.ComicHUD,settings=w.BARCODE.ControllerSettings;
+  const metrics=[],sheet=createCanvas(1280,1020),sc=sheet.getContext('2d');
+  sc.fillStyle='#182334';sc.fillRect(0,0,1280,1020);
+  const cases=[['Keyboard','keyboard',3],['Xbox','xbox',3],['PlayStation','playstation',3],['Remapped PlayStation','playstation',7]];
+  for(const [i,[title,device,binding]] of cases.entries()){
+   p.state='jammer_active';p.closedGateEncounterId=null;p.pendingSpawns=[];setHero(2300,856);
+   const enemy=new w.Enemy(2420,784,'virus');Object.assign(enemy.position,{x:2420,y:784});
+   Object.assign(enemy,{entranceComplete:true,_authoredEntranceActive:false,spawnTimeMs:-10000,spawnProtectionDuration:0});
+   enemy.initSprite();enemy.playAnimation('idle');w.enemyManager.enemies=[enemy];
+   w.BARCODE.GamepadUI.connected=device!=='keyboard';settings.labels=device;settings.bindings.interact=binding;
+   // Reproduce the caller's old middle-baseline state without leaking it into
+   // the marker. This is the same production draw path for both platforms.
+   c.textBaseline='middle';scene(c,2380,0);
+   const x=(i%2)*640,y=Math.floor(i/2)*510;
+   sc.drawImage(canvas,770,550,460,330,x,y+46,640,459);
+   sc.font='bold 24px Oxanium, monospace';sc.fillStyle='#eee8d6';sc.textBaseline='middle';sc.fillText(title+' — '+settings.prompt('interact','H'),x+20,y+24);
+  }
+  fs.writeFileSync(path.join(out,'control-alignment.webp'),sheet.toBuffer('image/webp',92));
+  const badges=createCanvas(1200,320),bc=badges.getContext('2d');bc.fillStyle='#263446';bc.fillRect(0,0,1200,320);
+  for(const [i,label] of ['H','Y','△','✕','LB','R2','↓','Space','Submit','⌫'].entries()){
+   const width=label.length>2?100:48,height=40,pixel=createCanvas(width,height),pc=pixel.getContext('2d');
+   pc.font='bold 26px Oxanium, monospace';pc.fillStyle='#a98ee9';
+   let reference=null;
+   for(const baseline of ['alphabetic','middle','top','bottom']){
+    pc.clearRect(0,0,width,height);pc.textBaseline=baseline;pc.textAlign='right';
+    H.buttonText(pc,label,0,0,width,height);
+    const bytes=pixel.toBuffer('image/png');if(reference)assert(reference.equals(bytes),'baseline-independent ink: '+label);reference=bytes;
+    assert.equal(pc.textBaseline,baseline,'canvas state restored');assert.equal(pc.textAlign,'right');
+   }
+   const rgba=pc.getImageData(0,0,width,height).data;let minX=width,minY=height,maxX=-1,maxY=-1;
+   for(let y=0;y<height;y++)for(let x=0;x<width;x++)if(rgba[(y*width+x)*4+3]>64){minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y);}
+   assert(maxX>=0,'visible glyph: '+label);
+   const dx=(minX+maxX+1-width)/2,dy=(minY+maxY+1-height)/2;
+   assert(Math.abs(dx)<=1&&Math.abs(dy)<=1,'centered native ink: '+label+' '+dx+','+dy);
+   metrics.push({label,width,height,inkCenterErrorPx:{x:dx,y:dy},inheritedBaselines:4});
+   const x=30+(i%5)*238,y=35+Math.floor(i/5)*145;
+   bc.fillStyle='#0b1017';bc.fillRect(x,y,width*2,height*2);bc.drawImage(pixel,x,y,width*2,height*2);
+  }
+  fs.writeFileSync(path.join(out,'button-glyphs.webp'),badges.toBuffer('image/webp',95));
+  fs.writeFileSync(path.join(out,'native-control-metrics.json'),JSON.stringify({renderer:'native Canvas with bundled Oxanium',metrics,scope:'40 pixel comparisons; adapted Makko art; not hosted/controller acceptance'},null,2)+'\n');
+  if(calls.errors.length)throw new Error(calls.errors.join('\n'));console.log('Four production enemy prompts and 40 native glyph/baseline comparisons passed.');return;
+ }
  if(process.env.BOSS_MUSIC_REVIEW){
   const store=new Map();w.localStorage={getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v),removeItem:k=>store.delete(k)};
   for(const file of ['src/game/lore-collection.js','src/game/level-difficulty.js','src/game/campaign-services.js'])load(context,file);

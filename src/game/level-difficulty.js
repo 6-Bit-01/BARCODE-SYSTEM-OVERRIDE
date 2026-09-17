@@ -80,9 +80,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-difficulty.js', exports: ['BAR
       });
       ctx.fillStyle = '#c9cad4'; ctx.font = '22px Oxanium, monospace'; ctx.fillText('Locked for this level, including boss retries.', 960, 644);
       ctx.fillStyle = '#94ffdc'; ctx.fillRect(750, 690, 420, 72); ctx.fillStyle = '#101c24'; ctx.font = 'bold 27px Oxanium, monospace';
-      ctx.fillText('BEGIN LEVEL', 960, 737);
+      B.ComicHUD.buttonText(ctx,'BEGIN LEVEL',750,690,420,72,12);
       ctx.fillStyle = '#b8b3c9'; ctx.font = '19px Oxanium, monospace';
-      ctx.fillText(B.GamepadUI?.connected ? 'D-PAD: CHOOSE     CROSS / A: BEGIN' : 'ARROWS OR 1–3: CHOOSE     ENTER: BEGIN', 960, 824);
+      ctx.fillText(B.GamepadUI?.connected ? `D-PAD: CHOOSE     ${B.ControllerSettings?.button(0) || 'A'}: BEGIN` : 'ARROWS OR 1–3: CHOOSE     ENTER: BEGIN', 960, 824);
       ctx.restore();
     },
     stop() { this.open = false; this.held.clear(); }

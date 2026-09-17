@@ -47,6 +47,7 @@ window.TutorialSystem = class TutorialSystem {
     this._overlayPanels = {};
     this._taskLayout = null;
     this._dialogueLayout = null;
+    this._dialogueMeasure = null;
     if (this.completed) return;
     this.runGeneration++;
     this.completedObjectives.clear();
@@ -361,10 +362,14 @@ window.TutorialSystem = class TutorialSystem {
   getDialogueLayout() {
     // Size against the complete line, so typing never moves the panel's edges.
     // Conservative glyph widths keep this independent of canvas/font loading.
-    const measure={measureText:text=>({width:text.length*18})};
-    const variants=[1100,860,600].map((width,i)=>({width,
-      height:104+Math.max(2+i,...this.dialogue.map(line=>this.wrapText(this.resolveControlText(line.text),width-60,measure).length))*38+(i===2?30:0)}));
-    return window.BARCODE.OverlayLayout.present(this,'dialogue',variants);
+    const lines=this.dialogue.map(line=>this.resolveControlText(line.text)),key=JSON.stringify(lines);
+    if(this._dialogueMeasure?.key!==key) {
+      const measure={measureText:text=>({width:text.length*18})};
+      const variants=[1100,860,600].map((width,i)=>({width,
+        height:104+Math.max(2+i,...lines.map(text=>this.wrapText(text,width-60,measure).length))*38+(i===2?30:0)}));
+      this._dialogueMeasure={key,variants};
+    }
+    return window.BARCODE.OverlayLayout.present(this,'dialogue',this._dialogueMeasure.variants);
   }
   getInstructionOwner() {
     if (!this.active) return null;

@@ -1,5 +1,14 @@
 # Acceptance and Test Status
 
+## Control alignment and finishing — current route
+
+Use the exact draft head from the receipt in a duplicate Makko project. Base/rollback is merged #83, `c5be7a9ac1c2a1ef6609ce69e5714a5c9f8b2698`.
+
+1. Check H, Xbox Y, PlayStation triangle and a remapped shoulder button on their backings above street/roof enemies, through camera zoom and lift movement. Confirm ally/reboot/release labels and that the indicated button performs the action.
+2. Check objective control badges, both hack keypad shapes, Begin Level, and campaign return help. Prompts must stay centered and legible; buttons retain their click areas.
+3. Walk/jump through tutorial and hack-target overlaps. Panels should keep their earlier glide/dissolve/crowd behavior, preserve unread text, and never accept a keypad press at an old position. Pause/resume and retry; briefly recheck boss completion, elevator exits and #83 music.
+4. Record imported SHA, controller/device/browser, PASS/FAIL, and a short prompt/panel clip. Automated/native evidence does not establish physical-controller or Makko acceptance. After acceptance and merge, import the actual main merge commit, fresh-load and repeat this route; retain the base import for rollback.
+
 ## Audible music correction — current route
 
 Use the exact draft head from the receipt in Makko. Base/rollback is merged #82, `a0f9e79356210b0966f0a9d04113094b52b8e568`. The names of the files do not describe their instruments.
