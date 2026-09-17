@@ -1,5 +1,13 @@
 # Current State
 
+## September 17, 2026 — enemies can leave the elevator
+
+The owner reports enemies trapped in the grounded cabin after merged #80. Base/rollback: `f2fb5dccf7473f8584fcd3bf25847780c35a37b3`; branch `agent/enemy-lift-exits`. Real Firewall, Corrupted and virus pursuit reproduced the fault in both directions: the ledge guard stopped actors 45 units inside the cabin.
+
+Enemy walking and contact separation now share safe bounds: grounded cabin exits use the street; level, overlapping lift/rooftop supports join their walking ranges. Exposed elevated edges retain their guard. Moving-deck landing support continues to the actual edge so rooftop handoff has no falling gap. Preserve player carrying, lift power/layers, smart boxes, platform reuse, traffic and combat tuning.
+
+Read `ENEMY_LIFT_EXIT_FIX.md` and the newest acceptance route. Existing 99 ride tests now include 54 exits with real enemy AI, rooftop handoffs/reboarding, crowd pursuit and stationary-player separation. Exact head, CI and checks belong to the generated receipt. Publish one tested draft and refresh the maintained v5 archive; hosted Makko/controller acceptance remains pending.
+
 ## September 17, 2026 — stable elevator passengers and relevant car warnings
 
 Review branch `agent/lift-riders-traffic-relevance` builds on merged #79, `318f024c1e1c6bb38f479b7e4842c894074c5ed4` (base/rollback). The owner requested smoother elevator carrying, removal/reuse of the circled lower Firewall platform, and WATCH OUT only near a car's danger lane, without pulling it onscreen. Exact review revision, tree, PR and checks belong to the generated receipt.

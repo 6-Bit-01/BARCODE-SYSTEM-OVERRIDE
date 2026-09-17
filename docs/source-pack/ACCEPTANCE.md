@@ -1,5 +1,15 @@
 # Acceptance and Test Status
 
+## September 17 — enemy elevator exits
+
+Review the exact head in the generated receipt. Base/rollback: merged #80, `f2fb5dccf7473f8584fcd3bf25847780c35a37b3`. Makko/controller acceptance remains pending.
+
+1. Revisit the screenshot situation with enemies inside the grounded cabin. Stand to its right, then left: Firewall, Corrupted and ordinary virus enemies should pursue out of the cabin. Walk through it with a group approaching; they must not bunch at its edges.
+2. Ride up and back down with enemies. At street level they can leave; at the top they can walk onto the aligned left rooftop and back aboard. An exposed elevated edge still stops ordinary walkers. Verify no player ejection, floor gaps or sideways jolts.
+3. Check player/enemy contact at both grounded cabin edges, including during hack/recovery. The enemy can separate onto the street without snapping back or shoving a stationary player. Smoke-check recharge, deliberate player drop, smart boxes, car warnings and restart.
+
+Post-merge deployment: import the actual new main merge SHA into a fresh Makko preview and repeat 1–3. Record revision/device, PASS/FAIL for each route, and clips of enemies leaving both sides plus one complete occupied ride. Re-import the base above to roll back. Automated/native adapter evidence does not establish hosted/controller acceptance.
+
 ## September 17 — elevator passengers, removed platform and relevant WATCH OUT
 
 Import the exact draft head from the generated receipt. Base/rollback: merged #79, `318f024c1e1c6bb38f479b7e4842c894074c5ed4`. Makko and physical-controller acceptance are pending.

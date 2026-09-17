@@ -1,5 +1,12 @@
 # Recovery checkpoint — September 14
 
+## September 17, 2026 — enemies can leave the elevator
+
+- Fix the enemy ledge guard trapping grounded elevator passengers; share connected street/rooftop bounds with contact separation.
+- Carry enemy landing support to the moving deck edge, preserving exposed ledge protection and all prior lift/gameplay behavior.
+- Add real active-AI exits, manager crowd pursuit and stationary-player contact regressions to the existing rider test. Render both exit directions using production artwork and active AI.
+- Based on merged #80; owner playtest remains pending. Exact results belong to the receipt.
+
 ## September 17, 2026 — stable elevator passengers and relevant car warnings
 
 Review branch `agent/lift-riders-traffic-relevance` builds on merged #79, `318f024c1e1c6bb38f479b7e4842c894074c5ed4` (base/rollback). The owner requested smoother elevator carrying, removal/reuse of the circled lower Firewall platform, and WATCH OUT only near a car's danger lane, without pulling it onscreen. Exact review revision, tree, PR and checks belong to the generated receipt.

@@ -99,4 +99,76 @@ for(const fps of [30,60,120]) {
   assert(!p.getSolidLedges().some(s=>s.id==='firewall-low-step'),'removed underside cannot bonk');
   assert.equal(w.Sector1Progression.PLATFORM_MOUNTS['firewall-high-step'].frame,1,'reclaimed gold deck replaces a repeated upper design');
 }
-console.log(`Lift riders: ${rides} full nine-second rides at 30/60/120Hz, six actor types, left/center/right, both decks, no ejections; walk-off, cabin jump, deliberate drop and removed-platform collision passed.`);
+// Keep real AI active for exits. The original ride checks intentionally held
+// intent still and therefore could not detect the elevator's ledge guard trap.
+function pursuer(r,type,x,foot,support) {
+  const a=new r.w.Enemy(x,foot-72,type);
+  Object.assign(a,{entranceComplete:true,_authoredEntranceActive:false,
+    _sector1MissionEnemy:true,combatPattern:'approach',combatPatternMs:0});
+  place(r,a,x,foot,support);r.w.enemyManager.enemies=[a];return a;
+}
+let exits=0;
+for(const fps of [30,60,120]) for(const type of ['firewall','corrupted','virus']) {
+  for(const direction of [-1,1]) for(const start of ['inside','outside','returning']) {
+    const r=rig(),{w,p}=r,lift=p.signalLift,dt=1000/fps;
+    const center=lift.x+lift.w/2;
+    if(start==='returning'){lift.y=lift.prevY=600;lift.state='returning';}
+    const x=start==='outside' ? (direction>0?lift.x-70:lift.x+lift.w+70) : center;
+    const a=pursuer(r,type,x,lift.y,start==='outside'?null:lift.id);
+    place(r,w.player,center+direction*900,856,null);
+    let boarded=start!=='outside',departed=false,previousX=x;
+    for(let i=0;i<fps*8;i++) {
+      a.update(dt,w.player,i*dt);p.updateSignalLift(dt);
+      boarded ||= a.supportedSurfaceId===lift.id;
+      assert(Math.abs(a.position.x-previousX)<24,'active AI never teleports at the cabin edge');
+      previousX=a.position.x;
+      if(direction>0?a.position.x>lift.x+lift.w+30:a.position.x<lift.x-30){departed=true;break;}
+    }
+    assert(boarded,`${type} ${start} ${direction} actually boarded`);
+    assert(departed,`${fps}Hz ${type} ${start} exits toward player ${direction}`);
+    assert.notEqual(a.supportedSurfaceId,lift.id);assert.equal(a.liftTransitSurfaceId,null);
+    assert.deepEqual(r.calls.errors,[]);exits++;
+  }
+  // At the top stop, use the level rooftop on the left; keep the open right
+  // edge protected. Walking back aboard must acquire support normally.
+  const r=rig(),{w,p}=r,lift=p.signalLift,dt=1000/fps;
+  lift.y=lift.prevY=59;lift.state='dormant';lift.charges=2;lift.returnTimerMs=5000;
+  const a=pursuer(r,type,lift.x+60,59,lift.id);place(r,w.player,1900,59,null);
+  for(let i=0;i<fps*3;i++){
+    a.update(dt,w.player,i*dt);p.updateSignalLift(dt);
+    assert(Math.abs(a.position.y+72-59)<.001,
+      `${fps}Hz ${type} rooftop frame ${i}: foot ${a.position.y+72}, x ${a.position.x}, support ${a.supportedSurfaceId}`);
+    if(a.position.x<lift.x-30&&a.supportedSurfaceId==='firewall-roof')break;
+  }
+  assert(a.position.x<lift.x);assert.equal(a.supportedSurfaceId,'firewall-roof');
+  place(r,a,lift.x-55,59,'firewall-roof');place(r,w.player,lift.x+lift.w+900,59,null);
+  a.combatPattern='approach';a.combatPatternMs=0;a.hoverState='none';lift.returnTimerMs=5000;
+  for(let i=0;i<fps*3;i++){a.update(dt,w.player,i*dt);p.updateSignalLift(dt);}
+  assert.equal(a.supportedSurfaceId,lift.id,'active pursuer boards from the level rooftop');
+  assert(a.position.x<=lift.x+lift.w-40,'unconnected right edge remains protected');
+  assert(Math.abs(a.position.y+72-59)<.001);
+}
+// Exercise the manager, crowd separation and actual pursuit together.
+for(const direction of [-1,1]) {
+  const r=rig(),{w,p}=r,lift=p.signalLift,center=lift.x+lift.w/2,dt=1000/60;
+  const crowd=['firewall','corrupted'].map((type,i)=>pursuer(r,type,center-35+i*70,856,lift.id));
+  w.enemyManager.enemies=crowd;place(r,w.player,center+direction*1000,856,null);
+  for(let i=0;i<360;i++){w.enemyManager.update(dt,w.player);p.updateSignalLift(dt);}
+  assert(crowd.every(a=>direction>0?a.position.x>lift.x+lift.w:a.position.x<lift.x),
+    'the enemy manager does not bunch active pursuers inside the grounded cabin');
+  assert.deepEqual(r.calls.errors,[]);
+}
+// A stationary/recovering player can push an intruder out onto the street;
+// contact resolution must not snap it back into the cabin or move the player.
+for(const direction of [-1,1]) {
+  const r=rig(),{w,p}=r,lift=p.signalLift;
+  const x=direction>0?lift.x+lift.w-12:lift.x+12;
+  const a=pursuer(r,'firewall',x,856,lift.id);
+  place(r,w.player,x-direction*45,856,lift.id);w.player.controlsDisabled=true;
+  const px=w.player.position.x;
+  w.enemyManager.separatePlayerContact(w.player,a,-direction);
+  assert((a.position.x-x)*direction>0,'intruder separates toward the open street');
+  assert.equal(w.player.position.x,px,'stationary player is not displaced by a false cabin edge');
+  assert(!w.enemyManager.simpleAABBcollision(w.player.getHitbox(),a.getHitbox()));
+}
+console.log(`Lift riders: ${rides} full rides, ${exits} active-AI exits at 30/60/120Hz, rooftop departure/reboarding, exposed-edge protection and crowd pursuit passed; existing jump/drop/removal coverage passed.`);

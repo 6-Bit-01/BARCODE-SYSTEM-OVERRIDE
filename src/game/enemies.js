@@ -301,17 +301,39 @@ window.Enemy = class Enemy {
       if (previousFootY > p.y + 2 || currentFootY < p.y - .001) continue;
       const t = currentFootY > previousFootY ? Math.max(0, Math.min(1, (p.y - previousFootY) / (currentFootY - previousFootY))) : 1;
       const x = previousX + (this.position.x - previousX) * t;
-      if (x < p.x + 10 || x > p.x + p.w - 10 || support && support.y < p.y) continue;
+      // A rider must retain the moving deck right up to its edge; an inset
+      // would leave a short unsupported gap before the rooftop handoff.
+      const inset = p.moving ? 0 : 10;
+      if (x < p.x + inset || x > p.x + p.w - inset || support && support.y < p.y) continue;
       support = p;
     }
     this.supportedSurfaceId = support?.id || null;
     if (support) { this.position.y = support.y - 72; this.velocity.y = 0; this.isOnGround = true; }
   }
 
+  static getSurfaceWalkBounds(actor, support) {
+    const world = { left: actor.width / 2, right: 4096 - actor.width / 2 };
+    if (!support) return world;
+    // At the street stop the cabin is a walkway, not an isolated ledge.
+    if (support.moving && Math.abs(support.y - (ENEMY_GROUND_Y + 72)) < .001) return world;
+    const margin = Math.min(45, support.w / 4);
+    let left = support.x + margin, right = support.x + support.w - margin;
+    // Join only level, overlapping walking ranges involving the lift. Static
+    // ledge guards and the exposed side of an elevated cabin stay intact.
+    for (const surface of window.sector1Progression?.getActorSurfaces?.() || []) {
+      if (surface.id === support.id || !(support.moving || surface.moving) ||
+          Math.abs(surface.y - support.y) >= .001) continue;
+      const inset = Math.min(45, surface.w / 4);
+      const nextLeft = surface.x + inset, nextRight = surface.x + surface.w - inset;
+      if (nextLeft > right || nextRight < left) continue;
+      left = Math.min(left, nextLeft); right = Math.max(right, nextRight);
+    }
+    return { left: Math.max(world.left, left), right: Math.min(world.right, right) };
+  }
+
   stayOnSurface(support, dt) {
     if (!support || this.role === 'swooper' || !this.isOnGround) return;
-    const margin = Math.min(45, support.w / 4);
-    const left = support.x + margin, right = support.x + support.w - margin;
+    const { left, right } = window.Enemy.getSurfaceWalkBounds(this, support);
     const next = this.position.x + this.velocity.x * dt;
     if (next < left || next > right) {
       this.position.x = Math.max(left, Math.min(right, this.position.x));
@@ -1676,9 +1698,7 @@ window.EnemyManager = class EnemyManager {
     const moveEnemy = amount => {
       const before = enemy.position.x;
       const support = window.sector1Progression?.getActorSurfaces?.().find(s => s.id === enemy.supportedSurfaceId && Math.abs(enemy.position.y + 72 - s.y) < 3);
-      const margin = support ? Math.min(45, support.w / 4) : enemy.width / 2;
-      const left = support ? support.x + margin : margin;
-      const right = support ? support.x + support.w - margin : 4096 - margin;
+      const { left, right } = window.Enemy.getSurfaceWalkBounds(enemy, support);
       enemy.position.x = Math.max(left, Math.min(right, before + amount));
       if (enemy.velocity.x * amount < 0) enemy.velocity.x = 0;
       return enemy.position.x - before;
