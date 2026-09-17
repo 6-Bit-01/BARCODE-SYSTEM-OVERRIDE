@@ -4,7 +4,7 @@ const fs=require('fs'),path=require('path'),{spawn}=require('child_process'),{on
 const {createCanvas,loadImage,GlobalFonts}=require(require.resolve('@napi-rs/canvas',{paths:[process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES]}));
 const {createRig,load}=require('./check-level-01-boss'),{createSprite}=require('./makko-animation-fixture'),{installArt}=require('./render-cat-chaos.cjs');
 const root=path.resolve(__dirname,'..'),out=path.resolve(process.argv[2]||'../review');fs.mkdirSync(out,{recursive:true});
-GlobalFonts.registerFromPath((process.env.LIFT_RIDER_REVIEW || process.env.TUTORIAL_FLOW_REVIEW || process.env.FEEDBACK_POLISH_REVIEW || process.env.PLAYTEST_POLISH_REVIEW || process.env.SMART_PANEL_REVIEW || process.env.SMART_MOTION_REVIEW) ? path.join(root,'assets/studies/visual-overhaul/references/fonts/Oxanium.ttf') : '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','Oxanium');
+GlobalFonts.registerFromPath((process.env.ENEMY_LIFT_EXIT_REVIEW || process.env.LIFT_RIDER_REVIEW || process.env.TUTORIAL_FLOW_REVIEW || process.env.FEEDBACK_POLISH_REVIEW || process.env.PLAYTEST_POLISH_REVIEW || process.env.SMART_PANEL_REVIEW || process.env.SMART_MOTION_REVIEW) ? path.join(root,'assets/studies/visual-overhaul/references/fonts/Oxanium.ttf') : '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','Oxanium');
 GlobalFonts.registerFromPath('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','sans-serif');
 async function main(){
  const {w,p,context,calls}=createRig();await installArt(w,context);
@@ -30,6 +30,26 @@ async function main(){
  function scene(c,cx,cy){w.gameCamera={centerX:cx,y:cy};w.renderer.zoomLevel=1;c.fillStyle='#111322';c.fillRect(0,0,1920,1080);c.drawImage(bg,0,0,1920,1080);c.save();c.translate(960-cx,-cy);c.drawImage(fg,0,2,fg.width,fg.height-2,-152,-550+2*1589/fg.height,4400,1589-2*1589/fg.height);w.drawGround(c);if(process.env.PLAYTEST_POLISH_REVIEW)w.BARCODE.stageFX.drawWorld(c);w.drawGameEntities(c);if(p.getLiftActorLayer(w.player)!=='behind')w.player.draw(c);p.drawSignalLift(c,'front');c.restore();c.save();c.translate(0,-cy);w.spaceShipSystem.drawForegroundShips(c);c.restore();if(!w.tutorialSystem?.isActive?.()&&!process.env.PLAYTEST_POLISH_REVIEW)w.drawObjectives(c);}
  function setHero(x,foot,support){Object.assign(w.player.position,{x,y:foot-72});w.player.velocity.x=0;w.player.velocity.y=0;w.player.grounded=true;w.player.supportedSurfaceId=support||null;w.player.state='idle';w.player.airInput=0;w.player.controlsDisabled=false;w.player.invulnerableUntil=0;w.player.health=w.player.maxHealth;w.player.playAnimation('idle');}
  const canvas=createCanvas(1920,1080),c=canvas.getContext('2d');
+ if(process.env.ENEMY_LIFT_EXIT_REVIEW){
+  p.state='jammer_active';p.closedGateEncounterId=null;p.pendingSpawns=[];
+  const preview=createCanvas(960,540),pc=preview.getContext('2d'),lift=p.signalLift;
+  for(const direction of [-1,1]){
+   p.resetSignalLift();setHero(lift.x+lift.w/2+direction*900,856);
+   const crowd=['firewall','corrupted'].map((type,i)=>{
+    const x=lift.x+lift.w/2-35+i*70,e=new w.Enemy(x,784,type);
+    Object.assign(e,{entranceComplete:true,_authoredEntranceActive:false,_sector1MissionEnemy:true,
+      combatPattern:'approach',combatPatternMs:0,supportedSurfaceId:lift.id});
+    Object.assign(e.position,{x,y:784});e.velocity.x=e.velocity.y=0;e.initSprite();e.playAnimation('idle');return e;
+   });
+   w.enemyManager.enemies=crowd;
+   for(let i=0;i<240;i++){w.gameState.gameTime+=1000/60;w.enemyManager.update(1000/60,w.player);p.updateSignalLift(1000/60);}
+   if(!crowd.every(e=>direction>0?e.position.x>lift.x+lift.w:e.position.x<lift.x))throw new Error('Native active enemies remain trapped');
+   scene(c,2500,0);w.BARCODE.sceneProjection.capture({getTransform:()=>({a:1,b:0,c:0,d:1,e:0,f:0})});w.drawGameUI(c);pc.drawImage(canvas,0,0,960,540);
+   fs.writeFileSync(path.join(out,'exit-'+(direction>0?'right':'left')+'.webp'),preview.toBuffer('image/webp',90));
+  }
+  if(calls.errors.length)throw new Error(calls.errors.join('\n'));
+  console.log('Native active Firewall/Corrupted manager pursuit exits both sides of the grounded elevator.');return;
+ }
  if(process.env.LIFT_RIDER_REVIEW){
   p.state='jammer_active';p.closedGateEncounterId=null;p.pendingSpawns=[];
   const traffic=w.spaceShipSystem;traffic.resetRuntime();traffic.spawnShip=()=>{};
