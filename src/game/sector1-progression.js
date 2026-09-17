@@ -103,7 +103,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
   const TRAVERSAL_PROPS = Object.freeze([
     { id: 'cache-maintenance-step', x: 1390, y: 410, w: 128, h: 14 },
     // Rear edge meets the facade; 12px of pavement remains before actor feet.
-    { id: 'tower-utility-unit', x: 560, y: 638, w: 160, h: 206, asset: 'broadcastTerminal', alwaysPresent: true },
+    { id: 'tower-utility-unit', x: 498, y: 638, w: 160, h: 206, asset: 'broadcastTerminal', alwaysPresent: true },
     { id: 'signal-high-step', x: 642, y: 10, w: 132, h: 18 },
     { id: 'cache-high-step', x: 1400, y: 30, w: 136, h: 18 },
     { id: 'firewall-low-step', x: 2130, y: 430, w: 148, h: 18 },
@@ -113,6 +113,19 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     { id: 'broadcast-low-step', x: 3930, y: 280, w: 144, h: 18 },
     { id: 'broadcast-high-step', x: 3820, y: 60, w: 144, h: 18 }
   ]);
+  // Visual mounts only: the decks keep their established landing/bonk planes.
+  // Side cantilevers terminate on measured masonry, never on a dangling leg.
+  const PLATFORM_MOUNTS = Object.freeze({
+    'cache-maintenance-step': { kind: 'face', anchors: [16, 112], drop: 38 },
+    'signal-high-step': { kind: 'left', anchor: 14, drop: 72 },
+    'cache-high-step': { kind: 'left', anchor: -8, drop: 64 },
+    'firewall-low-step': { kind: 'hanger', anchors: [18, 130], rise: 48 },
+    'firewall-high-step': { kind: 'right', anchor: 178, drop: 64 },
+    'tower-middle-step': { kind: 'right', anchor: 124, drop: 76 },
+    'tower-high-step': { kind: 'face', anchors: [18, 118], drop: 44 },
+    'broadcast-low-step': { kind: 'right', anchor: 150, drop: 56 },
+    'broadcast-high-step': { kind: 'hanger', anchors: [18, 126], rise: 40 }
+  });
   const REPAIRS = Object.freeze([
     { id: 'repair.signal-awning', x: 1080, y: 450, surfaceY: 492 },
     { id: 'repair.tower-awning', x: 3600, y: -356, surfaceY: -314 }
@@ -172,7 +185,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     topY: 59,
     destinationSurfaceId: 'firewall-roof',
     speed: 220,
-    returnDelayMs: 900,
+    returnDelayMs: 5000,
     requiredCharges: 2
   });
   const SIGNAL_AMP = Object.freeze({ id: 'signal-amp', x: 2868, y: 154, radius: 36, charges: 3, range: 430 });
@@ -1663,7 +1676,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       for (const prop of TRAVERSAL_PROPS) {
         if (!!prop.alwaysPresent !== behindActors) continue;
         if (!this.missionStarted && !prop.alwaysPresent) continue;
-        if (!this.isSceneryVisible(ctx,prop.x-8,prop.y-24,prop.w+58,prop.h+80)) continue;
+        if (!this.isSceneryVisible(ctx,prop.x-24,prop.y-56,prop.w+82,prop.h+152)) continue;
         if (prop.asset) {
           ctx.fillStyle='rgba(0,0,0,0.30)';
           ctx.beginPath(); ctx.ellipse(prop.x+98,prop.y+prop.h-2,96,12,0,0,Math.PI*2); ctx.fill();
@@ -1672,7 +1685,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
           const height=206*1054/959;
           if (window.BARCODE?.PresentationAssets?.draw(prop.asset,ctx,{
             x:prop.x,y:prop.y-height*88/1054,width:194,height
-          })) continue;
+          })) {
+            this.drawTerminalScreen(ctx, prop, height);
+            continue;
+          }
         }
         const depth=prop.h>30?34:22, rise=prop.h>30?16:10;
         ctx.fillStyle='rgba(0,0,0,0.3)';ctx.beginPath();ctx.moveTo(prop.x,prop.y+prop.h);ctx.lineTo(prop.x+prop.w+depth,prop.y+prop.h-rise);ctx.lineTo(prop.x+prop.w+depth+15,prop.y+prop.h+7);ctx.lineTo(prop.x+8,prop.y+prop.h+15);ctx.closePath();ctx.fill();
@@ -1694,10 +1710,64 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
           ctx.fillStyle = '#82938e';
           for (const x of [prop.x + 8, prop.x + prop.w - 8]) for (const y of [prop.y + 15, prop.y + prop.h - 10]) ctx.fillRect(x - 2, y - 2, 4, 4);
         } else {
-          ctx.strokeStyle = '#7e9292'; ctx.lineWidth = 5;
-          for (const x of [prop.x + 16, prop.x + prop.w - 16]) { ctx.beginPath(); ctx.moveTo(x, prop.y + 14); ctx.lineTo(x + 15, prop.y + 52); ctx.lineTo(x + 15, prop.y + 14); ctx.stroke(); }
+          this.drawPlatformMount(ctx, prop);
         }
       }
+      ctx.restore();
+    }
+    drawPlatformMount(ctx, prop) {
+      const mount = PLATFORM_MOUNTS[prop.id];
+      if (!mount) return;
+      ctx.save(); ctx.translate(prop.x, prop.y); ctx.lineJoin = 'round';
+      const strut = points => {
+        for (const [color, width] of [['#101921', 8], ['#627678', 4]]) {
+          ctx.strokeStyle = color; ctx.lineWidth = width; ctx.beginPath();
+          points.forEach(([x,y], i) => i ? ctx.lineTo(x,y) : ctx.moveTo(x,y)); ctx.stroke();
+        }
+      };
+      const plate = (x, y, height = 28) => {
+        ctx.fillStyle = '#26343d'; ctx.strokeStyle = '#0d171d'; ctx.lineWidth = 2;
+        ctx.fillRect(x-7,y,14,height); ctx.strokeRect(x-7,y,14,height);
+        ctx.fillStyle = '#a1adaa';
+        for (const boltY of [y+5,y+height-5]) { ctx.fillRect(x-2,boltY-2,4,4); }
+      };
+      if (mount.kind === 'left' || mount.kind === 'right') {
+        const anchor = mount.anchor, free = mount.kind === 'left' ? prop.w-10 : 10;
+        // A triangulated horizontal arm and diagonal brace share one bolted
+        // wall plate. A narrow rear arm supplies visible perspective depth.
+        strut([[anchor+7,prop.h-7],[free+7,prop.h-7],[anchor+7,mount.drop-7]]);
+        plate(anchor,prop.h+2,mount.drop-prop.h+10);
+        strut([[anchor,prop.h+4],[free,prop.h+4],[anchor,mount.drop]]);
+      } else if (mount.kind === 'hanger') {
+        for (const x of mount.anchors) {
+          plate(x,-mount.rise,22);
+          strut([[x,-mount.rise+14],[x,prop.h-2]]);
+        }
+      } else {
+        for (const x of mount.anchors) {
+          plate(x+12,prop.h+2,mount.drop-prop.h+12);
+          strut([[x,prop.h],[x+12,mount.drop],[x+12,prop.h]]);
+        }
+      }
+      ctx.restore();
+    }
+    drawTerminalScreen(ctx, prop, height) {
+      // Reuse the painted waveform, clipped inside the glass. The shared
+      // scenery clock freezes with pause/reset; no new timer or image cache.
+      const phase = (this.districtSignal?.elapsedMs || 0) % 4200;
+      if (phase < 3880 || window.BARCODE_RENDER_QUALITY?.flashes === false) return;
+      const x = prop.x + 194 * 0.235, y = prop.y - height * 88 / 1054 + height * 0.238;
+      const w = 194 * 0.328, h = height * 0.224;
+      ctx.save(); ctx.beginPath();
+      ctx.moveTo(x + 4, y); ctx.lineTo(x + w - 4, y); ctx.lineTo(x + w, y + 4);
+      ctx.lineTo(x + w, y + h - 4); ctx.lineTo(x + w - 4, y + h);
+      ctx.lineTo(x + 4, y + h); ctx.lineTo(x, y + h - 4); ctx.lineTo(x, y + 4); ctx.closePath(); ctx.clip();
+      const offset = Math.sin(Math.floor(phase / 45) * 2.7) * 1.4;
+      window.BARCODE?.PresentationAssets?.draw(prop.asset, ctx, {
+        x: prop.x + offset, y: prop.y - height * 88 / 1054 + offset * 0.3, width: 194, height
+      });
+      ctx.fillStyle = 'rgba(190,255,199,0.12)';
+      ctx.fillRect(x, y + (phase - 3880) / 320 * h, w, 1);
       ctx.restore();
     }
     drawRepairRoute(ctx) {
@@ -1730,7 +1800,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     }
     isSignalLiftAvailable() { return !!(this.missionStarted && this.state !== STATES.TUTORIAL); }
     isPlayerSupportedByLift(player = this.player || window.player) {
-      if (!this.isSignalLiftAvailable() || !player || !this.signalLift || !player.grounded || player.supportedSurfaceId !== SIGNAL_LIFT.id) return false;
+      if (!this.isSignalLiftAvailable() || !player || !this.signalLift || !player.grounded) return false;
+      // At the upper stop the landing solver assigns the shared roof. A rider
+      // still inside the cabin can recharge it there, including at that seam.
+      if (player.supportedSurfaceId !== SIGNAL_LIFT.id &&
+          !(player.supportedSurfaceId === SIGNAL_LIFT.destinationSurfaceId && this.signalLift.y === SIGNAL_LIFT.topY)) return false;
       const footY = player.position.y + PLAYER_VISUAL_FOOT_OFFSET;
       const footHalfWidth = 18;
       return player.position.x + footHalfWidth > this.signalLift.x &&
@@ -1762,14 +1836,20 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         return { actor, motion, supported: floor || onRoof };
       });
       if (lift.state === 'charged') lift.state = 'moving';
-      if (lift.state === 'moving') lift.y = Math.max(SIGNAL_LIFT.topY, lift.y - SIGNAL_LIFT.speed * deltaTime / 1000);
-      else if (lift.state === 'returning') lift.y = Math.min(SIGNAL_LIFT.bottomY, lift.y + SIGNAL_LIFT.speed * deltaTime / 1000);
+      let returnMs = lift.state === 'returning' ? deltaTime : 0;
+      if (lift.state !== 'returning' && (lift.charges > 0 || lift.y < SIGNAL_LIFT.bottomY)) {
+        const poweredMs = Math.min(deltaTime, Math.max(0, lift.returnTimerMs));
+        lift.returnTimerMs = Math.max(0, lift.returnTimerMs - deltaTime);
+        if (lift.state === 'moving') lift.y = Math.max(SIGNAL_LIFT.topY, lift.y - SIGNAL_LIFT.speed * poweredMs / 1000);
+        if (lift.returnTimerMs <= 0.000001) {
+          lift.returnTimerMs = 0;
+          if (lift.y < SIGNAL_LIFT.bottomY) { lift.state = 'returning'; returnMs = deltaTime - poweredMs; }
+          else { lift.state = 'dormant'; lift.charges = 0; }
+        }
+      }
+      if (lift.state === 'returning') lift.y = Math.min(SIGNAL_LIFT.bottomY, lift.y + SIGNAL_LIFT.speed * returnMs / 1000);
       if (lift.state === 'moving' && lift.y <= SIGNAL_LIFT.topY) lift.state = 'dormant';
       if (lift.state === 'returning' && lift.y >= SIGNAL_LIFT.bottomY) { lift.state = 'dormant'; lift.charges = 0; }
-      if (!riders.some(r => r.supported) && lift.y <= SIGNAL_LIFT.topY + 1) {
-        lift.returnTimerMs = (lift.returnTimerMs || SIGNAL_LIFT.returnDelayMs) - deltaTime;
-        if (lift.returnTimerMs <= 0) lift.state = 'returning';
-      } else lift.returnTimerMs = SIGNAL_LIFT.returnDelayMs;
       const dy = lift.y - lift.prevY;
       this.crushLiftEnemies(lift.prevY, lift.y, riders);
       for (const { actor, motion, supported } of riders) {
@@ -1796,6 +1876,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       const player = this.player || window.player;
       if (!this.isPlayerSupportedByLift(player)) return { ok: false, reason: 'not-supported' };
       this.signalLift.chargeFxMs = 520;
+      this.signalLift.returnTimerMs = SIGNAL_LIFT.returnDelayMs;
       this.signalLift.charges = Math.min(SIGNAL_LIFT.requiredCharges, this.signalLift.charges + 1);
       this.signalLift.state = this.signalLift.charges >= SIGNAL_LIFT.requiredCharges ? 'charged' : 'charging';
       return { ok: true, charges: this.signalLift.charges, state: this.signalLift.state };

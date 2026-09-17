@@ -1,5 +1,15 @@
 # Decision Register
 
+## September 17, 2026 — platform attachments, five-second lift power and terminal screen
+
+Continuation from merged #74, `ea7a34571f91ba12d05291d6698eb17b389d150f`, on `agent/platform-mounts-charge-timeout`. PR #73 already corrected the blanket ledge collision mistake: only the four circled static objects bonk, plus the separately solid moving elevator roof. This pass preserves that collision scope and every existing small deck position/size.
+
+Visible support hardware now terminates on masonry: left/right cantilevers for projecting decks, bolted front brackets and short hangers where glass/signs prevented an underside attachment. The current deck artwork is retained. Three previously proposed replacement image designs were not recovered from GitHub or available files; do not claim they were integrated or replace them with invented equivalents.
+
+Two initial rhythm charges still launch the lift. Each accepted charge grants five simulation seconds; it then returns even when occupied. An onboard charge renews power at the shared rooftop seam or reverses descent. Pause freezes the countdown. The permanent terminal moves left to x=498, y=638, clear of the illustrated awning and neighboring door, with its existing collider/art/depth. Its existing painted waveform jitters inside the glass for 320 ms every 4.2 seconds using the shared scenery clock; reduced flashes disables this.
+
+See `PLATFORM_MOUNTS_CHARGE_PASS.md` and native captures in `review-platform-mounts/`. Required full-suite/syntax outcomes and exact published revision belong to the generated receipt. Publish one draft and refresh the existing v5 archive; owner Makko acceptance remains pending. The tutorial proposal remains unimplemented.
+
 ## September 16 — roof enemy visibility and tutorial design question
 
 Implement the owner's report of enemies appearing behind the elevator roof as a scoped draw-order correction. Retain the existing accurate landing height and collider. The owner additionally requests recommendations for clearer tutorial controls, consistent timing and at least two fewer bubbles while retaining storyline dialogue. The concrete proposal is 25 → 20 authored chapter bubbles; its wording/flow remains a proposal and is not silently applied to this elevator fix. Preserve all prior red-circle restrictions.
