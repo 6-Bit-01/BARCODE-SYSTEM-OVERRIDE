@@ -43,7 +43,8 @@ assert(!/enemiesDefeated\s*\+\s*.*defeatedCount|defeatedCount\s*\+\s*.*enemiesDe
 assert(/getCurrentRunDefeats/.test(gameState) && /syncEnemyDefeatProjections/.test(gameState), 'game-state exposes projection sync instead of duplicate totals');
 assert(/preserveDefeats/.test(runtime) && !/currentEnemyCount/.test(runtime), 'RuntimeLifecycle uses explicit preserveDefeats policy without quota inference');
 assert(/reset\(options = \{\}\)/.test(sector) && /JammerEnvironment\.reset/.test(sector), 'Sector1Progression reset explicitly cleans mission state');
-assert(/draw\(ctx\) \{ this\.drawStageSurfaces\(ctx\); this\.drawEncounterGates\(ctx, false\); this\.drawRepairRoute\(ctx\); this\.drawBoss\(ctx\); \}/.test(sector), 'Sector1Progression draw owns geometry, gate fields, repair route and boss-intro presentation');
+const sectorDraw = (sector.match(/    draw\(ctx\) \{([\s\S]*?)\n    \}/) || [null, ''])[1];
+assert(['drawStageSurfaces(ctx)', 'drawEncounterGates(ctx, false)', 'drawRepairRoute(ctx)', 'drawBoss(ctx)'].every(call => sectorDraw.includes(call)), 'Sector1Progression draw owns geometry, gate fields, repair route and boss-intro presentation');
 assert(/drawEncounterHardware\(ctx\)/.test(render), 'render coordinator draws emitter hardware in its separate pass');
 assert(/window\.sector1Progression && typeof window\.sector1Progression\.draw === 'function'/.test(render), 'render coordinator checks Sector1Progression draw contract before calling');
 assert(!loadedScripts.includes('src/engine/jammer-arrow-indicator.js'), 'legacy Jammer arrow renderer is not loaded');
@@ -56,7 +57,6 @@ assert(/health: 16/.test(jammer) && /applyRhythmDamage/.test(jammer) && !/class\
 
 assert(/drawScale:\s*0\.7/.test(jammer) && /drawOffsetY:\s*72/.test(jammer), 'JammerEnvironment preserves approved draw scale 0.7 and authored sidewalk contact');
 assert(/state\.position\.y \+ state\.presentation\.drawOffsetY/.test(jammer), 'JammerEnvironment draws sprite/fallback from approved Y offset');
-assert(/hud\?\.actionCard/.test(tutorial) && /y = 225/.test(read('src/game/comic-hud.js')), 'tutorial objectives share the dedicated action-card lane below score and lore');
 const normalShipsAt = render.indexOf('drawSpaceShips(ctx);');
 const backgroundLightsAt = render.indexOf('drawTrafficLighting?.(ctx, { foreground: false })');
 const buildingsAt = render.indexOf('drawParallaxForeground(ctx);');

@@ -11,7 +11,7 @@ window.FILE_MANIFEST.push({
 // parallax continue to receive the unmodified frame delta.
 window.BARCODE = window.BARCODE || {};
 window.BARCODE.TacticalFocusClock = Object.freeze({
-  scale: 0.4,
+  scale: 0.35,
 
   isActive() {
     return !!(
@@ -22,7 +22,12 @@ window.BARCODE.TacticalFocusClock = Object.freeze({
   },
 
   getScale() {
-    return this.isActive() ? this.scale : 1;
+    if (!this.isActive()) return 1;
+    const prefs = window.BARCODE?.Preferences?.values;
+    if (prefs?.reducedMotion || prefs?.reducedFlashes) return this.scale;
+    // Read the hack's existing simulation clock; querying never advances time.
+    const phase = (window.hackingSystem.sessionElapsedMs || 0) * Math.PI * 2 / 2400;
+    return this.scale + 0.025 * Math.sin(phase);
   },
 
   scaleDelta(deltaTime) {

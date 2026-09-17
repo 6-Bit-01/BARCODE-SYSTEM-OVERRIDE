@@ -1388,6 +1388,7 @@ window.EnemyManager = class EnemyManager {
     this.crowdCheckInterval = 500;
     this.simulationTimeMs = 0;
     this.hostileSimulationTimeMs = 0;
+    this.hackTrails = new Map();
   }
 
   update(deltaTime, player) {
@@ -1437,6 +1438,7 @@ window.EnemyManager = class EnemyManager {
     newlyDefeated.forEach(enemy => this.recordDefeat(enemy));
     this.enemies = this.enemies.filter(e => e.active);
     this.activeFirewallCount = this.enemies.filter(e => e.type === 'firewall').length;
+    this.updateHackTrails(deltaTime);
 
     // ENHANCED Spacing Check
     if (!this.hasAdequateSpacing(player)) return;
@@ -1799,21 +1801,63 @@ window.EnemyManager = class EnemyManager {
   }
 
   getActiveEnemies() { return this.enemies; }
+  clearHackTrails() { this.hackTrails.clear(); }
+  hasHackTrails() {
+    const prefs = window.BARCODE?.Preferences?.values;
+    return !!window.BARCODE?.TacticalFocusClock?.isActive?.() && !prefs?.reducedMotion && !prefs?.reducedFlashes;
+  }
+  updateHackTrails(deltaTime) {
+    if (!this.hasHackTrails()) { this.clearHackTrails(); return; }
+    for (const enemy of this.hackTrails.keys()) if (!enemy.active || !this.enemies.includes(enemy)) this.hackTrails.delete(enemy);
+    for (const enemy of this.enemies.slice(0, 12)) {
+      if (!enemy.active || this.isHijacked(enemy) || this.isRebooting(enemy)) { this.hackTrails.delete(enemy); continue; }
+      let trail = this.hackTrails.get(enemy);
+      if (!trail) { trail = { samples: [], elapsedMs: 120 }; this.hackTrails.set(enemy, trail); }
+      trail.elapsedMs += deltaTime;
+      trail.samples = trail.samples.filter(s => (s.ageMs += deltaTime) < 700);
+      const last = trail.samples.at(-1);
+      if (trail.elapsedMs >= 120 && (!last || Math.hypot(enemy.position.x - last.x, enemy.position.y - last.y) >= 3)) {
+        trail.samples.push({ x: enemy.position.x, y: enemy.position.y, ageMs: 0 });
+        if (trail.samples.length > 5) trail.samples.shift();
+        trail.elapsedMs %= 120;
+      }
+    }
+  }
+  drawHackTrail(ctx, enemy) {
+    const samples = this.hackTrails.get(enemy)?.samples;
+    if (!samples?.length || !this.hasHackTrails()) return;
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    for (const sample of samples) {
+      if (Math.hypot(enemy.position.x - sample.x, enemy.position.y - sample.y) < 3) continue;
+      ctx.save(); ctx.globalAlpha *= 0.22 * (1 - sample.ageMs / 700);
+      ctx.translate(sample.x - enemy.position.x, sample.y - enemy.position.y);
+      // Reuse the complete drawing without ticking animation, AI or hitboxes.
+      if (enemy.type === 'drone') window.BARCODE?.PresentationAssets?.draw('rooftopDrone', ctx,
+        { x: enemy.position.x, y: enemy.position.y + 15, width: 156, height: 156, frame: 0, flip: enemy.facing < 0 });
+      else if (enemy.spriteReady && enemy.sprite) enemy.drawSprite(ctx);
+      ctx.restore();
+    }
+    for (const [index, offset] of [-30, 0, 28].entries()) {
+      ctx.globalAlpha = 0.3; ctx.strokeStyle = index === 1 ? '#bb99ff' : '#8bfff1'; ctx.lineWidth = index === 1 ? 2 : 1;
+      ctx.beginPath();
+      samples.forEach((s, i) => { const y = s.y + offset; if (i) ctx.lineTo(s.x, y); else ctx.moveTo(s.x, y); });
+      ctx.lineTo(enemy.position.x, enemy.position.y + offset); ctx.stroke();
+    }
+    ctx.restore();
+  }
   draw(ctx, liftRoofPass = null) {
     const progression = window.sector1Progression;
-    const roof = liftRoofPass !== null && progression?.isSignalLiftAvailable?.() ? progression.getLiftRoof() : null;
     // Stable drawing layers, without a copied/sorted array each frame.
     for (const layer of [-1, 1]) for (const enemy of this.enemies) {
       if (enemy.getDrawLayer() !== layer || !enemy.active) continue;
       if (window.BARCODE?.combatFX && !window.BARCODE.combatFX.visible(enemy.position.x, enemy.position.y, 300)) continue;
       if (liftRoofPass !== null) {
-        const body = roof && progression.getRoofActorBounds(enemy);
-        // Include airborne approaches and departures, so depth does not pop
-        // when roof support starts or ends. Below-roof actors keep their pass.
-        const aboveRoof = !!body && body.y + body.height <= roof.topY + 4 &&
-          body.x + body.width > roof.x && body.x < roof.x + roof.w;
-        if (aboveRoof !== liftRoofPass) continue;
+        // Roof riders and cabin passengers share the player's front layer.
+        // Include airborne approaches; actors underneath the floor stay behind.
+        const inFrontOfLift = progression?.getLiftActorLayer?.(enemy) === 'front';
+        if (inFrontOfLift !== liftRoofPass) continue;
       }
+      this.drawHackTrail(ctx, enemy);
       enemy.draw(ctx);
     }
   }
@@ -2010,6 +2054,7 @@ window.EnemyManager = class EnemyManager {
   dispose(options = {}) { this.clear(options); this._disposed = true; }
 
   clear(options = {}) {
+    this.clearHackTrails();
     this.enemies.forEach(e => { e.active = false; e._disposed = true; e._generation = (e._generation || 0) + 1; e._crowdBurstTimer = 0; e._crowdBurstMultiplier = 1; });
     this.enemies = [];
     if (!options.preserveDefeats) this.defeatedCount = 0;

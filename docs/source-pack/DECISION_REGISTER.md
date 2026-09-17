@@ -1,5 +1,11 @@
 # Decision Register
 
+## September 17, 2026 — playtest clarity, hack dilation and dynamic lift depth
+
+Continue from merged #76, `ee089acce1ee9dad6ffd877fe32f99dd633aa011` (base/rollback), on `agent/tutorial-single-panel`. The owner's follow-up requests are implemented together: one alternating tutorial instruction area; lore and inspect waiting through the complete Studio Rat event; stronger hack slowdown with a gentle pulse and enemy trails; deliberate Down + Jump through every standable surface, including solids; and player/enemy elevator depth following the moving floor. The fixed drive stays behind actors.
+
+Read `docs/source-pack/PLAYTEST_POLISH_PASS.md` (or `PLAYTEST_POLISH_PASS.md` at the pack root). These explicit requests supersede the old simultaneous Objectives/dialogue cards, 40% constant focus, solid-surface drop prohibition and roof-only enemy depth fix. Preserve the twenty-bubble story/progression, all recovered art, boss clearance, twelve-second allies and exact five-second lift power. Current PR/head/checks belong to the generated receipt. Publish one draft, refresh the maintained v5 archive and retain owner Makko acceptance before assistant merge. Older entries below are history.
+
 ## September 17 — recovered owner approval supersedes incomplete continuation notes
 
 The shared [Finish The Job conversation](https://chatgpt.com/share/6aab45a3-02cc-83e8-a465-d90391ee8c13) explicitly approves the 20-bubble tutorial after the detailed early/out-of-order action plan. Implement it together with the subsequently requested five platform designs (three facade plus two side-braced), five-second lift timeout, terminal placement/waveform, happy digital pickup SFX, six reactive HUD faces, solid awnings and judged-beat colors. The saved implementation/assets have been recovered and integrated. Previous “proposal only” and “missing art” entries are historical errors in recovery status.

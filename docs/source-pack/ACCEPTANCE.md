@@ -1,5 +1,17 @@
 # Acceptance and Test Status
 
+## September 17 — combined playtest follow-up
+
+Import the exact new draft head from the receipt. Base/rollback is merged #76, `ee089acce1ee9dad6ffd877fe32f99dd633aa011`. Owner Makko/physical-controller acceptance is pending; local/native/CI checks do not replace it.
+
+1. Read the opening slowly, then acknowledge coaching. Dialogue gives way to one bottom action prompt. Earn movement/jump early and confirm unread story survives. Check that Create/View is clearly a button in the Continue sentence, with no second Objectives card. Read through the terminal, success/failure and returned story.
+2. Inspect the Studio Rat while a lore notice is active. Watch the full pounce and enemy drag without either dialogue covering it. Inspection appears afterward; lore follows after inspection closes or expires. Hidden Continue/inspect must not skip unseen text.
+3. Hack beside moving viruses/Firewall enemies. Check the slightly deeper, gently pulsing slowdown and tracer afterimages. Pause/resume, cancel, solve, fail and restart; trails must freeze or clear appropriately. Compare reduced motion/flashes. Puzzle controls/timing, music and the twelve-second ally remain steady.
+4. Use deliberate Down + Jump on solid awnings, ordinary roofs/steps, the lift floor and its roof. Land on the next lower support and release/repress to descend again. Check closely stacked platforms and normal upward/side bonks. Light diagonal stick input must still jump normally.
+5. Walk the hero and enemies across the cabin at its ground stop; both appear on it. Ride floor/roof upward and down. Walk/jump underneath the raised cabin; its moving front can cover actors below, while the stationary rear drive cannot. Check the transitions once per actor, then the existing five-second power/recharge and enemy pancakes.
+
+After owner acceptance and merge, import the actual new main SHA and repeat the focused route. Earlier routes below are historical.
+
 ## September 17 — Finish The Job combined review
 
 Import the exact draft head from the generated receipt into a fresh Makko preview. Base/rollback is merged #75, `48ec019a6037a3bf3910614eb5bae3c0c58d4130`. `FINISH_THE_JOB_RECOVERY.md` is the current scope and evidence record; conflicting older routes below are historical.

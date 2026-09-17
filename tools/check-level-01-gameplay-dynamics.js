@@ -123,12 +123,12 @@ function testEncountersAndTacticalFocusClock() {
   const p = new w.Sector1Progression(w.player); w.sector1Progression = p; p.startMission(); p.update(1000);
   defeatAllButOne(p); p.update(1000);
   assert.strictEqual(p.activeEncounterPacket, 0, 'tactical focus does not release a packet at full-speed cadence');
-  assert.strictEqual(p.packetGraceMs, 500, 'packet grace advances at the shared 40% hostile scale');
-  p.update(1250);
+  assert.strictEqual(p.packetGraceMs, 550, 'packet grace advances at the shared 35% base hostile scale');
+  p.update(1600);
   assert.strictEqual(p.activeEncounterPacket, 1, 'packet grace continues and eventually releases during tactical focus');
   p.revealJammer(); p.nextJammerSpawnMs = 500;
   p.update(1000);
-  assert.strictEqual(p.nextJammerSpawnMs, 100, 'jammer reinforcement clock advances at the shared 40% hostile scale');
+  assert.strictEqual(p.nextJammerSpawnMs, 150, 'jammer reinforcement clock advances at the shared 35% base hostile scale');
 }
 
 function testHackingLifecycle() {
@@ -420,10 +420,10 @@ function testLostDataMovementSwooperAmpAndEnemyClock() {
   const manager = new w.EnemyManager(); manager.enemies = [{ active: true, type: 'virus', position: { x: 1000, y: 784 }, velocity: { x: 0, y: 0 }, update(dt, player, sim) { this.lastDt = dt; this.lastSim = sim; }, getHitbox: () => ({ x: 0, y: 0, width: 0, height: 0 }) }];
   w.hackingSystem = { isActive: () => true };
   manager.update(1000, { controlsDisabled: false, getHitbox: () => ({ x: 9999, y: 9999, width: 1, height: 1 }), position: { x: 9999, y: 9999 }, velocity: { y: 0 } });
-  assert.strictEqual(manager.enemies[0].lastDt, 400, 'enemy behavior uses the shared 40% hostile delta during hacking');
-  assert.strictEqual(manager.enemies[0].lastSim, 400, 'enemy attack timers use the shared hostile simulation clock');
+  assert.strictEqual(manager.enemies[0].lastDt, 350, 'enemy behavior uses the shared 35% base hostile delta during hacking');
+  assert.strictEqual(manager.enemies[0].lastSim, 350, 'enemy attack timers use the shared hostile simulation clock');
   assert.strictEqual(manager.simulationTimeMs, 1000, 'authoritative simulation clock remains real time for hijack expiry');
-  assert.strictEqual(w.BARCODE.TacticalFocusClock.getScale(), 0.4, 'shared tactical clock exposes the visible 40% hostile scale');
+  assert.strictEqual(w.BARCODE.TacticalFocusClock.getScale(), 0.35, 'shared tactical clock exposes the deeper base hostile scale');
   const renderSource = fs.readFileSync(path.join(root, 'src/game/render-coordinator.js'), 'utf8');
   assert(renderSource.includes('TACTICAL FOCUS //'), 'render path includes a restrained on-screen tactical focus cue');
 

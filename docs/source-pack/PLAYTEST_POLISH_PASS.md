@@ -1,0 +1,19 @@
+# Playtest clarity, hack power and elevator depth
+
+Base/rollback: merged #76, `ee089acce1ee9dad6ffd877fe32f99dd633aa011`. One combined branch: `agent/tutorial-single-panel`. Exact tested/published SHA, PR status and check results are in the generated source receipt.
+
+## Owner-requested changes
+
+- Tutorial: dialogue and action prompts alternate at the bottom. Actual Create/View button names appear in a complete Continue sentence. The redundant Objectives card, saved-actions message and passive training Rhythm Mode hint are removed. The terminal alone owns instructions through its existing result feedback; hidden Continue cannot consume unread story.
+- Discoveries: the complete Studio Rat pounce/drag plays without lore, inspect or Objectives over it. Inspection resumes first, then lore resumes with its remaining reading time. Hidden inspection inputs cannot skip a line. Unread inspection remains available even if the player walks away; E/R1/RB advances or closes it.
+- Hack mode: hostile time averages 35% speed instead of 40%, with a gentle 2.4-second pulse between 32.5% and 37.5%. The hack's existing simulation clock drives it. Up to five recent positions per enemy leave complete-body afterimages and cyan/violet tracers. At most twelve actors retain histories. Drawing does not tick sprites, change hitboxes or add damage. Histories freeze with pause, clear on exit/reset/death, and disappear with reduced motion/flashes; that preference also steadies the slowdown. Input, player movement rules, puzzle deadlines, music, allies and lift clocks retain their existing owners.
+- Drops: a fresh deliberate Down + Jump works on every standable support, including the five solid awnings and moving elevator roof. Only crossed supports are bypassed, until the whole visible body clears them. Closely stacked supports retain earlier bypasses until clear, so a second deliberate drop cannot snap the cap back into an upper slab. Lower surfaces still catch the fall; holding the chord cannot cascade drops. Side/upward solidity remains during ordinary movement.
+- Elevator: all actor layers use physical feet relative to the current floor and horizontal cabin span. Ground walk-on and floor/roof passengers draw in front. Actors below a raised cabin draw underneath; actors outside its span keep normal order. The stationary drive is a separate rear draw so it cannot erase actors under the cabin. Ground, jumping, dropping and moving-support transitions use geometry rather than a grounded-only flag. Actor drawing stays once per frame. Boss placement uses the same layer rule.
+
+## Evidence and limits
+
+The existing production-module checks cover full tutorial flow with keyboard/PS/Xbox at 30/60/120 Hz, hidden result input, actual dialogue draw output, complete cat/lore/inspection sequencing, real hack movement and pulse bounds, trail lifecycle, every support's real descent, single-platform input, and shared hero/enemy lift depth. Existing boss, lift power, damage, pause, reset and controller tests remain required. `npm test` and `npm run check:syntax:all` outcomes belong to the generated receipt.
+
+`review-playtest-polish/` contains production-canvas captures using bundled artwork and Oxanium: dialogue/tasks, mapped Continue, terminal/result/story, tracers, unobstructed cat action, resumed inspect/lore and three lift states. `hack-dilation.mp4` is a six-second native simulation of the real slowdown and enemy animation. These are not hosted Makko, audio or physical-controller acceptance.
+
+No new art source or external dependency is introduced. The existing twenty-bubble plan and all PR #76 art/collision/portrait/sound/beat changes remain. The next step is the focused owner Makko route in `ACCEPTANCE.md`; subsequent campaign work stays deferred until this playtest pass is accepted. Do not repeat recovery or revive a superseded UI/drop restriction.

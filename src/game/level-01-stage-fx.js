@@ -74,16 +74,22 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
         Math.abs(d.x - p.position.x) < 95 && Math.abs(d.y - (p.position.y + 72)) < 70) || null;
     }
     inspect() {
+      if (this.isDialogueDeferred()) return { ok: false, reason: 'presentation-busy' };
+      if (this.message?.line === 0) { this.message.line = 1; this.message.age = 0; return { ok: true, reason: 'crew-response' }; }
+      if (this.message) { this.message = null; return { ok: true, reason: 'closed' }; }
       const detail = this.findNearby();
       if (!detail) return { ok: false, reason: 'no-detail' };
-      if (this.message?.id === detail.id && this.message.line === 0) { this.message.line = 1; this.message.age = 0; return { ok: true, reason: 'crew-response' }; }
-      if (this.message?.id === detail.id) { this.message = null; return { ok: true, reason: 'closed' }; }
       const cat = detail.id === DETAILS[0].id;
       const fresh = cat ? !this.ratRunConsumed : this.archive()?.collectEgg?.(detail.id) || false;
       this.message = { ...detail, line: 0, age: 0, duration: 7200 };
       if (cat && fresh && !this.ratEvent) this.startRatEvent(detail);
       window.audioSystem?.playCombatCue?.('inspect');
       return { ok: true, reason: fresh ? 'discovered' : 'revisit', id: detail.id };
+    }
+    isDialogueDeferred() {
+      const hack = window.hackingSystem;
+      return !!(this.ratEvent || window.tutorialSystem?.isActive?.() || hack?.isActive?.() || hack?.feedback || hack?.resultFx ||
+        window.isPaused || window.gameState?.paused || window.gameState?.gameOver || window.gameState?.victory || this.owner?.isGameplaySuppressed?.());
     }
     update(ms) {
       if (!Number.isFinite(ms) || ms < 0 || window.isPaused || window.gameState?.paused) return;
@@ -94,6 +100,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
       this.reactions.forEach(r => r.age += ms); this.reactions = this.reactions.filter(r => r.age < 1000);
       this.events.forEach(e => e.age += ms); this.events = this.events.filter(e => e.age < e.duration);
       this.captionKick = Math.max(0, this.captionKick - ms / 1700);
+      const ratWasPlaying = !!this.ratEvent;
       if (this.ratAge !== null) {
         this.ratAge += ms;
         if (this.ratAge < 1650 && this.ratEvent?.victim?.active) {
@@ -103,7 +110,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
         if (this.ratAge >= 1650 && this.ratEvent && !this.ratEvent.grabbed) this.grabRatTarget();
         if (this.ratAge > 6200) { this.ratAge = null; this.ratEvent = null; }
       }
-      if (this.message) { this.message.age += ms; if (this.message.age >= this.message.duration || !this.canInspect({ rat: this.message.id === DETAILS[0].id }) || Math.abs(window.player.position.x - this.message.x) > 200) this.message = null; }
+      // An unread inspection waits through the complete pounce/drag and hack
+      // overlays. Its reading time begins only when the panel is visible.
+      if (this.message && !ratWasPlaying && !this.isDialogueDeferred()) {
+        this.message.age += ms;
+        if (this.message.age >= this.message.duration) this.message = null;
+      }
       this.nearby = this.findNearby();
       if (!owner?.missionStarted) return;
       if (owner.activeEncounterId && owner.activeEncounterId !== this.activeEncounter) {
@@ -334,7 +346,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
       ctx.restore();
     }
     drawHUD(ctx) {
-      if (!this.owner?.missionStarted || window.gameState?.gameOver || window.gameState?.victory || window.hackingSystem?.isActive?.()) return;
+      if (!this.owner?.missionStarted || this.isDialogueDeferred()) return;
       ctx.save();
       const clear = this.events.find(e => e.kind === 'clear');
       if (clear) {
@@ -350,8 +362,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
         ctx.fillStyle = '#070b15'; ctx.fillRect(39, 895, 890, 116); ctx.fillStyle = '#eee6d4'; ctx.fillRect(30, 887, 890, 116);
         ctx.fillStyle = '#0c1727'; ctx.font = 'bold 16px monospace'; ctx.fillText(m.speaker, 52, 908);
         ctx.font = 'bold 20px sans-serif'; ctx.fillText(m.lines[m.line], 52, 944, 840);
-        ctx.font = '13px monospace'; ctx.fillText(`${key}: ${m.line ? 'CLOSE' : 'CREW RESPONSE'}    /    KEEP MOVING TO CONTINUE`, 52, 979);
-      } else if (this.nearby) {
+        ctx.font = '16px monospace'; ctx.fillText(`Press ${key} to ${m.line ? 'close' : 'continue'}`, 52, 979);
+      } else if (this.nearby && !window.loreSystem?.currentLore) {
         ctx.fillStyle = '#eee6d4'; ctx.fillRect(30, 947, 500, 49); ctx.fillStyle = '#121c2b'; ctx.font = 'bold 18px monospace';
         ctx.fillText(`${key} / INSPECT ${this.nearby.name}`, 48, 972);
       }

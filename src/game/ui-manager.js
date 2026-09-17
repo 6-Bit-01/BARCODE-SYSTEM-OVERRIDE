@@ -215,7 +215,7 @@ window.drawGameUI = function(ctx) {
   const hp = window.BARCODE.ComicHUD.health;
   window.BARCODE?.combatFX?.drawDamageHUD(ctx, window.player, hp.x, hp.y, hp.width, hp.height);
   window.BARCODE?.combatFX?.drawAmpHUD(ctx);
-  if (!bossCinematicActive && !window.gameState.gameOver && !window.gameState.victory) window.BARCODE.ComicHUD.hack(ctx, window.hackingSystem?.getReadyPopup?.());
+  if (!bossCinematicActive && !window.gameState.gameOver && !window.gameState.victory && !window.BARCODE?.stageFX?.ratEvent && !window.tutorialSystem?.isActive?.()) window.BARCODE.ComicHUD.hack(ctx, window.hackingSystem?.getReadyPopup?.());
   
   // Draw objectives after tutorial completion
   if (tutorialCompleted && !bossCinematicActive && !['boss_ready', 'boss_combat', 'level_complete'].includes(window.sector1Progression?.state)) {
@@ -354,17 +354,13 @@ function drawBasicUI(ctx) {
 }
 
 function drawObjectives(ctx) {
+  const hack = window.hackingSystem;
+  if (hack?.isActive?.() || hack?.feedback || hack?.resultFx || window.BARCODE?.stageFX?.ratEvent) return;
   const owner = window.sector1Progression, status = owner?.getEncounterStatus?.();
   const jammer = window.BARCODE?.JammerEnvironment?.getStatus?.();
   const title = status ? `${status.started ? 'CLEAR' : 'REACH'} ${String(status.label).toUpperCase()}` : jammer?.revealed && !jammer.destroyed ? 'BREAK THE BROADCAST JAMMER' : 'EXPLORE THE DISTRICT';
   const detail = status ? status.started ? `${status.defeated}/${status.required} CLEARED${status.straggler ? ' · ' + status.straggler : ''}` : 'Street and rooftop routes' : jammer?.revealed && !jammer.destroyed ? `${jammer.health}/16 SIGNAL LOCKS · RHYTHM HITS ONLY` : '';
   const kick = window.BARCODE?.stageFX?.captionKick || 0;
-  if (window.hackingSystem?.isActive?.()) {
-    ctx.save(); ctx.fillStyle = 'rgba(5,14,25,.8)'; ctx.fillRect(1110,146,780,32);
-    ctx.fillStyle = '#b4c9bf'; ctx.font = '16px Oxanium, monospace'; ctx.textAlign = 'left';
-    ctx.fillText(`Objectives · ${title} · ${status ? status.defeated+'/'+status.required : detail}`,1124,168,752);
-    ctx.restore(); return;
-  }
   ctx.save();
   window.BARCODE.ComicHUD.objectives(ctx, { title, detail, kick });
   ctx.restore();

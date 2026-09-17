@@ -1,14 +1,13 @@
-# Finish the approved tutorial and gameplay feedback pass
+# Declutter instructions, deepen hack focus and fix dynamic elevator layering
 
-The approved twenty-bubble tutorial and the later art/gameplay feedback survived in a local checkout but were missing from main. This restores that work over merged #75 and completes the solid-awning integration.
+Playtesting exposed overlapping tutorial/lore/inspect panels, a Studio Rat event hidden by dialogue, blocked deliberate platform drops and cabin artwork covering enemies. This pass addresses those reports together and adds the requested stronger hack presentation.
 
-- Coordinate dialogue, early/out-of-order actions, enemy entrances and hack phases with one tutorial progression owner. Keep all four speakers and story beats, show actual keyboard/controller bindings, preserve earned combo credit, require deliberate Rhythm Mode exit and remove the final forced wait.
-- Connect all five supplied platform designs, six reactive HUD expressions, a soft digital healing chime and calibrated beat-result colors. Preserve #75's five-second lift power, terminal placement and painted-waveform glitch.
-- Make the five awnings fully solid while retaining ordinary platform behavior and the two circled step bonks. Correct the boss's oversized terrain probe (310 units versus a roughly 232-unit walking body), awning descent and overhead routing. Rising cabin passengers clear the fixed canopy and keep their ride.
-- Restore the actual approved plan and asset provenance in the continuation records. Related recommendations are documented without adding them to gameplay.
+- Alternate tutorial dialogue and one concise action prompt; keep mapped Continue instructions in the dialogue. The terminal owns its instructions and result feedback.
+- Let the Studio Rat action finish, then show inspection and resume queued lore without spending hidden reading time.
+- Deepen hostile slowdown from 40% to a 35% average with a gentle pulse, complete-body enemy afterimages and cyan/violet tracers; preserve independent control, puzzle, ally and lift clocks.
+- Allow deliberate Down + Jump through all standable supports, including solid awnings and the elevator roof. Preserve lower landings, full-body clearance and normal solidity.
+- Share dynamic floor-relative elevator layers between hero/enemies/boss: ground walk-on and passengers in front, actors beneath a raised cabin behind its moving front, stationary drive behind everybody.
 
-Validation: `npm test` and `npm run check:syntax:all` pass. Production-module tests cover keyboard/PS/Xbox tutorial flow and traversal at 30/60/120 FPS, original boss street movement, lift handoffs/timeouts, real portrait events, beat calibration/reset and bounded pickup audio. Current native renders show twelve tutorial states, nine mounted platforms, terminal states, six portraits and three beat outcomes.
+Validation: required local suite/syntax results and exact revision are recorded in the generated receipt. Existing production tests cover tutorial/devices, cat/inspection/lore timing, real dilation and trail lifecycle, every support descent and shared lift render order. Native captures and a six-second hack video use bundled production art. No new art source or dependency.
 
-Base/rollback: `48ec019a6037a3bf3910614eb5bae3c0c58d4130` (merged #75). Feedback artwork pin: `dce79e888592023b85abe0eac2572f76b66e51ac`. No additional dependencies or new runtime timers/loops.
-
-See `docs/source-pack/FINISH_THE_JOB_RECOVERY.md` and the newest `ACCEPTANCE.md` route. Hosted Makko, physical-controller feel and sound acceptance remain pending. Keep this draft unmerged for the owner's review; after acceptance and merge, import the actual new main SHA and repeat the route.
+Owner Makko and physical-controller acceptance remain pending. One combined draft; preserve the recovered PR #76 story/art/gameplay and existing five-second lift power.

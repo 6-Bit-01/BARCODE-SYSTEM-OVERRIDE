@@ -1080,7 +1080,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       window.renderer?.resetFollowCamera?.(checkpoint.playerX);
       Object.assign(player.velocity, { x: 0, y: 0 });
       Object.assign(player, { health: player.maxHealth, grounded: true, controlsDisabled: false,
-        allowMovement: true, isEntering: false, supportedSurfaceId: null, dropSurfaceId: null,
+        allowMovement: true, isEntering: false, supportedSurfaceId: null, dropSurfaceId: null, dropSurfaceIds: null,
         invulnerable: false, invulnerableUntil: 0, _enemyInvulnerableUntilMs: 0,
         primaryAttackAnimationMs: 0, afterimageMs: 0, hudReaction: null, coyoteTimerMs: 0, jumpBufferTimerMs: 0,
         jumpHeldMs: 0, jumpReleaseQueued: false, airInput: 0 });
@@ -1110,7 +1110,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         checkpointAvailable: !!this.bossCheckpoint, retryAvailable: this.canRetryBossCheckpoint() };
     }
     canStompCounter() { return !!(this.boss?.canReceiveDamage && this.boss.stompArmed && this.boss.stompCycle !== this.boss.cycle); }
-    draw(ctx) { this.drawStageSurfaces(ctx); this.drawEncounterGates(ctx, false); this.drawRepairRoute(ctx); this.drawBoss(ctx); }
+    draw(ctx) {
+      const bossBehindLift = this.getLiftActorLayer(this.boss) === 'behind';
+      if (bossBehindLift) this.drawBoss(ctx);
+      this.drawStageSurfaces(ctx); this.drawEncounterGates(ctx, false); this.drawRepairRoute(ctx);
+      if (!bossBehindLift) this.drawBoss(ctx);
+    }
     drawEncounterHardware(ctx) {
       if (!ctx) return;
       for (const { gate, progress, opening } of this.getGatePresentation()) this.drawBarrierHardware(ctx, gate, opening, progress);
@@ -1121,7 +1126,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     }
     drawStageSurfaces(ctx) {
       if (!ctx) return;
-      this.drawSignalLift(ctx); this.drawSignalAmp(ctx); this.drawSkyCaches(ctx);
+      this.drawSignalLift(ctx, 'cabin'); this.drawSignalAmp(ctx); this.drawSkyCaches(ctx);
       const zoom = window.renderer?.getZoomLevel?.() || window.renderer?.zoomLevel || 1;
       ctx.save(); ctx.lineWidth = 1 / zoom; ctx.shadowBlur = 0;
       for (const surface of STAGE_SURFACES) {
@@ -1144,7 +1149,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         ctx.restore();
       }
     }
-    drawSignalLift(ctx) {
+    drawSignalLift(ctx, pass = 'all') {
       if (!ctx || !this.signalLift || !this.isSignalLiftAvailable()) return;
       const lift = this.signalLift, center = lift.x + lift.w / 2;
       const cabinHeight = SIGNAL_LIFT.cabinHeight, railTop = SIGNAL_LIFT.topY - cabinHeight * SIGNAL_LIFT.footAnchor;
@@ -1153,22 +1158,25 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       const powered = moving || lift.chargeFxMs > 0;
       const phase = (lift.driveTimeMs || 0) / 1000;
       ctx.save();
-      // One stationary drive strip spans the complete travel plus cabin height.
-      // It is drawn before the moving carriage, never attached to its roof.
-      ctx.save(); ctx.beginPath(); ctx.rect(center - 25, railTop, 50, railBottom - railTop); ctx.clip();
-      ctx.fillStyle = '#0e1d27'; ctx.fillRect(center - 22, railTop, 44, railBottom - railTop);
-      for (let y = railTop; y < railBottom; y += 64) {
-        window.BARCODE?.PresentationAssets?.draw('liftTrack', ctx, { x: center, y, width: 44, height: 66 });
+      if (pass !== 'cabin') {
+        // One stationary drive strip spans the complete travel plus cabin height.
+        // It is drawn before the moving carriage, never attached to its roof.
+        ctx.save(); ctx.beginPath(); ctx.rect(center - 25, railTop, 50, railBottom - railTop); ctx.clip();
+        ctx.fillStyle = '#0e1d27'; ctx.fillRect(center - 22, railTop, 44, railBottom - railTop);
+        for (let y = railTop; y < railBottom; y += 64) {
+          window.BARCODE?.PresentationAssets?.draw('liftTrack', ctx, { x: center, y, width: 44, height: 66 });
+        }
+        ctx.strokeStyle = '#819fa7'; ctx.lineWidth = 2;
+        for (const side of [-1, 1]) {
+          ctx.beginPath(); ctx.moveTo(center + side * 23, railTop); ctx.lineTo(center + side * 23, railBottom); ctx.stroke();
+        }
+        // Drive teeth visibly travel with the cable, reversing on the return.
+        const offset = ((phase * 65) % 18 + 18) % 18;
+        ctx.fillStyle = powered ? '#a2f2d5' : '#536b74';
+        for (let y = railTop - 18 + offset; y < railBottom; y += 18) ctx.fillRect(center - 7, y, 14, 4);
+        ctx.restore();
       }
-      ctx.strokeStyle = '#819fa7'; ctx.lineWidth = 2;
-      for (const side of [-1, 1]) {
-        ctx.beginPath(); ctx.moveTo(center + side * 23, railTop); ctx.lineTo(center + side * 23, railBottom); ctx.stroke();
-      }
-      // Drive teeth visibly travel with the cable, reversing on the return.
-      const offset = ((phase * 65) % 18 + 18) % 18;
-      ctx.fillStyle = powered ? '#a2f2d5' : '#536b74';
-      for (let y = railTop - 18 + offset; y < railBottom; y += 18) ctx.fillRect(center - 7, y, 14, 4);
-      ctx.restore();
+      if (pass === 'drive') { ctx.restore(); return; }
       const illustrated = window.BARCODE?.PresentationAssets?.draw('liftCabin', ctx,
         { x: lift.x, y: lift.y, width: lift.w, height: cabinHeight });
       if (!illustrated) {
@@ -1267,12 +1275,30 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         { id: roof.id, x: roof.x, w: roof.w, y: roof.topY, h: roof.y - roof.topY, moving: true, solid: true }]);
     }
     getRoofActorBounds(actor) {
+      if (!actor) return null;
       if (actor === this.boss) return { x: actor.x - 85, y: actor.y + 72 - BOSS_TERRAIN_HEIGHT, width: 170, height: BOSS_TERRAIN_HEIGHT };
       const box = actor.getHitbox?.();
       if (!box || !actor.position) return null;
       const foot = actor.position.y + (actor.type === 'drone' ? 57 : 72);
       const top = actor.getCeilingProbe?.().y ?? actor.getStompBox?.().y ?? box.y;
       return { x: box.x, y: top, width: box.width, height: Math.max(1, foot - top) };
+    }
+    getLiftActorLayer(actor) {
+      if (!this.isSignalLiftAvailable() || !this.signalLift) return 'outside';
+      const body = this.getRoofActorBounds(actor), roof = this.getLiftRoof();
+      if (!body || body.x + body.width <= roof.x || body.x >= roof.x + roof.w) return 'outside';
+      // Foot height follows the moving floor, including walk-on and jump/drop
+      // transitions. Floor/roof passengers stay in front; street actors below
+      // a raised cabin pass behind it. Drawing never assigns physical support.
+      return body.y + body.height <= this.signalLift.y + 4 ? 'front' : 'behind';
+    }
+    hasClearedDropSurface(player, id = player.dropSurfaceId) {
+      const surface = this.getActorSurfaces().find(s => s.id === id);
+      if (!surface) return true;
+      const body = this.getRoofActorBounds(player);
+      if (!body) return false;
+      const bottom = surface.y + (AWNING_DEPTH[surface.id] || BONK_LEDGE_DEPTH[surface.id] || surface.h || 0);
+      return body.x + body.width < surface.x - 6 || body.x > surface.x + surface.w + 6 || body.y > bottom + 24;
     }
     captureRoofActor(actor) {
       const box = this.getRoofActorBounds(actor);
@@ -1295,7 +1321,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (!motion || this.isGameplaySuppressed() || actor === this.boss && !this.isBossCombatLive()) return null;
       let result = null;
       for (const surface of STAGE_SURFACES) {
-        if (!AWNING_DEPTH[surface.id]) continue;
+        if (!AWNING_DEPTH[surface.id] || actor === this.player && actor.isDroppingThrough?.(surface.id)) continue;
         const after = this.getRoofActorBounds(actor);
         if (!after) break;
         const slab = { x: surface.x, y: surface.y, width: surface.w, height: AWNING_DEPTH[surface.id] };
@@ -1339,6 +1365,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       const awningHit = this.resolveAwningActor(actor, motion);
       if (!motion || !this.isSignalLiftAvailable() || this.isGameplaySuppressed()) return awningHit;
       const roof = this.getLiftRoof(), old = previousRoof || roof, after = this.getRoofActorBounds(actor);
+      if (actor === this.player && actor.isDroppingThrough?.(roof.id)) return awningHit;
       if (!after) return null;
       const slab = { x: roof.x, y: roof.topY, width: roof.w, height: roof.y - roof.topY };
       const oldSlab = { x: old.x, y: old.topY, width: old.w, height: old.y - old.topY };
@@ -1408,7 +1435,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       let contact = null;
       for (const surface of this.getSolidLedges()) {
         if (surface.solid) continue; // Full swept awning resolution owns these.
-        if (surface.id === player.dropSurfaceId && !surface.solid) continue;
+        if (player.isDroppingThrough?.(surface.id) || surface.id === player.dropSurfaceId) continue;
         const bottom = surface.bottomY;
         const before = motion.head.y - bottom, after = head.y - bottom;
         const t = before / (before - after || 1);
@@ -1816,6 +1843,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       return true;
     }
     drawTraversalProps(ctx, behindActors = true) {
+      if (behindActors) this.drawSignalLift(ctx, 'drive');
       if (!ctx) return;
       ctx.save(); ctx.shadowBlur = 0;
       for (const prop of TRAVERSAL_PROPS) {
@@ -2167,7 +2195,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       // Static geometry intentionally wins at the top overlap so stepping
       // sideways transfers support from the lift to its destination roof.
       for (const surface of this.getStageSurfaces().concat(movingSurfaces)) {
-        if (surface.id === player.dropSurfaceId && !surface.solid) continue;
+        if (player.isDroppingThrough?.(surface.id) || surface.id === player.dropSurfaceId) continue;
         const surfacePrevY = Number.isFinite(surface.previousY) ? surface.previousY : surface.y;
         if (previousVisualFootY > surfacePrevY || currentVisualFootY < surface.y) continue;
         const crossingT = verticalTravel > 0 ? Math.max(0, Math.min(1, (surface.y - previousVisualFootY) / verticalTravel)) : 1;
@@ -2230,7 +2258,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     pollPreparedAsset(entry) { if (!entry || entry.ready || entry.generation !== this.assetGeneration) return; try { if (!entry.sprite.isLoaded || entry.sprite.isLoaded()) { entry.ready = true; if (entry.onReady) entry.onReady(entry.sprite); } } catch (error) { if (!entry.diagnosticRecorded) { entry.diagnosticRecorded = true; this.recordAssetDiagnostic(entry.key, error); } } }
     recordAssetDiagnostic(key, error) { this.assetDiagnostics = this.assetDiagnostics || []; if (!this.assetDiagnostics.some(entry => entry.key === key)) this.assetDiagnostics.push({ key, message: String(error && error.message || error) }); }
     reset(options = {}) {
-      if (this.player) this.player.dropSurfaceId = null;
+      if (this.player) { this.player.dropSurfaceId = null; this.player.dropSurfaceIds = null; }
       this.resetRepairs();
       window.BARCODE?.stageFX?.reset(this);
       window.renderer?.resetFollowCamera?.(this.player?.position.x);
