@@ -1,5 +1,17 @@
 # Acceptance and Test Status
 
+## September 17 continuation — focused owner review
+
+Import the draft's exact published head into a fresh Makko preview. This is pending hosted acceptance.
+
+- Jump through unmarked decks and land on them normally; retain only the four circled static bonks and the solid elevator roof. Decorative supports add no collisions.
+- Inspect all nine small platforms: wall plates/side braces or upper hangers visibly meet masonry; no dangling outer leg.
+- Check the single box beside the first striped awning, clear of the left doorway; jump from it onto the awning. Watch its screen for at least five seconds. Reduced flashes keeps it still.
+- Launch the lift with two rhythm hits. It returns five seconds after the last accepted hit with or without passengers; add a hit while aboard to renew it. Check the shared rooftop seam and one-hit reversal during return. Pause consumes no charge.
+- Walk off onto the roof and confirm the returning lift does not pull the player through the fixed rooftop. Roof enemy rendering, pancakes, deliberate drop input and victory protection remain.
+
+Exact base and implementation/asset limits: `PLATFORM_MOUNTS_CHARGE_PASS.md`. The missing three proposed replacement platform images still need recovery; current decks are preserved.
+
 ## Current correction — enemies visibly stand on the elevator roof
 
 Import the exact review SHA from the manifest/PR. Observe a corrupted enemy, virus, Firewall and drone on the rising and returning roof. Feet must remain visible on the deck; approaching/leaving the edge must not flip their depth. Verify the player can ride inside and stand on the roof. Preserve only the four approved static bonks and normal upward platform routes. `ELEVATOR_ROOF_DEPTH_FIX.md` records the cause and native previews.
