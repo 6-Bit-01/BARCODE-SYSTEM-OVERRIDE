@@ -42,6 +42,7 @@ window.updateGame = function(deltaTime) {
   if (!window.gameState.running) {
     if (window.gameState.gameOver || window.gameState.victory) window.rhythmSystem?.update?.(deltaTime);
     if (window.gameState.victory) {
+      window.audioSystem?.updateMusicState?.(window.gameState);
       window.BARCODE?.combatFX?.update(deltaTime);
       window.BARCODE?.stageFX?.update(deltaTime);
     }

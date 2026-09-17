@@ -743,9 +743,9 @@ async function main() {
       }
     }
     assert(openings.length >= 2, 'musical phases keep advancing without a second scheduler');
-    p.boss.health = 6; p.setBossCombatPhase('telegraph');
+    p.boss.cycle = 1; p.boss.health = 6; p.setBossCombatPhase('telegraph');
     assert(p.boss.doublePulse && !p.boss.latePhase, 'double pulse arrives while retaining the generous warning/recovery');
-    p.boss.health = 3; p.setBossCombatPhase('telegraph');
+    p.boss.cycle = 3; p.boss.health = 3; p.setBossCombatPhase('telegraph');
     assert(p.boss.latePhase, 'only the last three health enable the faster warning/recovery');
     p.setBossCombatPhase('sweep');
     const pulseCount = p.boss.pulseSequence;

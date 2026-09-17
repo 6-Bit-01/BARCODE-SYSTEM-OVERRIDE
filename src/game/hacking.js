@@ -514,6 +514,7 @@ window.HackingSystem = class HackingSystem {
       training ? '> PRACTICE UPLINK COMPLETE' : '> ALLEGIANCE REWRITTEN: 6_BIT', '> TERMINATING SESSION...'
     ]);
     if (!result) return false;
+    window.BARCODE?.musicDirector?.accent('hack');
     this.safeInvoke('success audio', () => window.audioSystem?.playSound?.('terminalBeep', 0.5));
     this.safeInvoke('tutorial completion', () => this.completeTutorialObjectivesOnSuccess(result.tutorialSession));
     const control = window.BARCODE?.ControllerSettings?.prompt('interact', 'H') || 'H';

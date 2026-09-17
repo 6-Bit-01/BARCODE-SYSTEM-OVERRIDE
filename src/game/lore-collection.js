@@ -10,6 +10,33 @@ window.FILE_MANIFEST.push({ name: 'src/game/lore-collection.js', exports: ['BARC
   const IDS = new Set(COUNTS.flatMap((count, index) => Array.from({ length: count }, (_, piece) =>
     `lore.l${String(index + 1).padStart(2, '0')}.${String(piece + 1).padStart(2, '0')}`)));
   const object = value => value && typeof value === 'object' && !Array.isArray(value);
+  const levelId = id => /^level-0[1-7]$/.test(id);
+  function resultRecord(r) {
+    if (!object(r) || typeof r.runId !== 'string' || r.runId.length > 100 || !Number.isFinite(r.completedAt)) return null;
+    const result = { runId: r.runId, completedAt: r.completedAt };
+    for (const key of ['score', 'elapsedMs', 'damageTaken', 'retries', 'attempts', 'accurate', 'perfect', 'connected', 'bestCombo', 'discoveries', 'bonus']) {
+      if (!Number.isFinite(r[key]) || r[key] < 0 || r[key] > 1e10) return null;
+      result[key] = Math.round(r[key]);
+    }
+    return result;
+  }
+  function mergeResults(a = {}, b = {}) {
+    const merged = {};
+    for (const source of [a, b]) for (const [level, difficulties] of Object.entries(object(source) ? source : {})) {
+      if (!levelId(level) || !object(difficulties)) continue;
+      for (const [difficulty, entries] of Object.entries(difficulties)) {
+        if (!/^[a-z][a-z0-9_-]{0,31}$/.test(difficulty) || !object(entries)) continue;
+        for (const candidate of [entries.best, entries.latest, entries.fastest]) {
+          const r = resultRecord(candidate); if (!r) continue;
+          const bucket = (merged[level] ||= {})[difficulty] ||= {};
+          if (!bucket.best || r.score > bucket.best.score || r.score === bucket.best.score && r.elapsedMs < bucket.best.elapsedMs) bucket.best = r;
+          if (!bucket.latest || r.completedAt >= bucket.latest.completedAt) bucket.latest = r;
+          if (!bucket.fastest || r.elapsedMs < bucket.fastest.elapsedMs) bucket.fastest = r;
+        }
+      }
+    }
+    return merged;
+  }
   function blank() {
     return { schemaVersion: 1, campaignVersion: 'level-01-demo-1', slotId: 'default', revision: 0,
       current: { levelId: 'level-01', checkpointId: 'start', levelState: null },
@@ -27,6 +54,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/lore-collection.js', exports: ['BARC
       value.progress.lore = [...new Set(value.progress.lore.filter(id => IDS.has(id)))];
       value.progress.easterEggs = Array.isArray(value.progress.easterEggs) ? [...new Set(value.progress.easterEggs.filter(id => typeof id === 'string'))] : [];
       value.progress.completedLevels = Array.isArray(value.progress.completedLevels) ? [...new Set(value.progress.completedLevels.filter(id => typeof id === 'string'))] : [];
+      value.progress.unlockedLevels = [...new Set(['level-01', ...(Array.isArray(value.progress.unlockedLevels) ? value.progress.unlockedLevels : []).filter(id => levelId(id))])];
+      value.progress.items = Array.isArray(value.progress.items) ? [...new Set(value.progress.items.filter(id => typeof id === 'string'))] : [];
+      value.progress.results = mergeResults(value.progress.results);
       value.progress.levelChallenges = Object.fromEntries(Object.entries(object(value.progress.levelChallenges) ? value.progress.levelChallenges : {})
         .filter(([id, c]) => /^level-0[1-7]$/.test(id) && object(c) && typeof c.difficultyId === 'string' && Number.isFinite(c.value) && c.value >= 0));
       value.progress.studioRatEvents = Object.fromEntries(Object.entries(object(value.progress.studioRatEvents) ? value.progress.studioRatEvents : {})
@@ -80,6 +110,20 @@ window.FILE_MANIFEST.push({ name: 'src/game/lore-collection.js', exports: ['BARC
       this.record.progress.completedLevels = [...new Set([...(this.record.progress.completedLevels || []), levelId])];
       this.save(); return true;
     }
+    checkpoint(current) {
+      if (!object(current) || !levelId(current.levelId) || typeof current.checkpointId !== 'string' || !object(current.levelState)) return false;
+      this.record.current = JSON.parse(JSON.stringify(current)); this.currentDirty = true;
+      return this.save();
+    }
+    completeCampaignLevel(level, difficulty, result, item, nextLevel) {
+      const checked = resultRecord(result);
+      if (!levelId(level) || !/^[a-z][a-z0-9_-]{0,31}$/.test(difficulty) || !checked) return false;
+      this.record.progress.results = mergeResults(this.record.progress.results, { [level]: { [difficulty]: { latest: checked } } });
+      this.record.progress.completedLevels = [...new Set([...this.record.progress.completedLevels, level])];
+      if (typeof item === 'string') this.record.progress.items = [...new Set([...this.record.progress.items, item])];
+      if (levelId(nextLevel)) this.record.progress.unlockedLevels = [...new Set([...this.record.progress.unlockedLevels, nextLevel])];
+      return this.save();
+    }
     getRewardFacts() {
       return { challengeValue: Object.values(this.record.progress.levelChallenges || {}).reduce((sum, c) => sum + (Number.isFinite(c.value) ? c.value : 0), 0),
         studioRats: Array.from({ length: 7 }, (_, i) => `egg.l0${i + 1}.studio-rat`).filter(id => this.hasEgg(id)), lore: this.getIds() };
@@ -117,10 +161,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/lore-collection.js', exports: ['BARC
             for (const [level, result] of Object.entries(this.record.progress.levelChallenges || {})) {
               if (!challenges[level] || result.value > challenges[level].value) challenges[level] = result;
             }
-            this.record = { ...valid, progress: { ...valid.progress,
+            this.record = { ...valid, current: this.currentDirty ? this.record.current : valid.current, progress: { ...valid.progress,
             lore: [...new Set([...valid.progress.lore, ...this.record.progress.lore])],
             easterEggs: [...new Set([...valid.progress.easterEggs, ...this.record.progress.easterEggs])],
             completedLevels: [...new Set([...(valid.progress.completedLevels || []), ...(this.record.progress.completedLevels || [])])],
+            unlockedLevels: [...new Set([...(valid.progress.unlockedLevels || []), ...(this.record.progress.unlockedLevels || [])])],
+            items: [...new Set([...(valid.progress.items || []), ...(this.record.progress.items || [])])],
+            results: mergeResults(valid.progress.results, this.record.progress.results),
             levelChallenges: challenges,
             studioRatEvents: { ...valid.progress.studioRatEvents, ...this.record.progress.studioRatEvents } } };
           }
@@ -136,7 +183,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/lore-collection.js', exports: ['BARC
         else storage.setItem(KEY + '.backup', serialized);
         storage.setItem(KEY, serialized);
         if (storage.getItem(KEY) !== serialized) throw new Error('save promotion failed');
-        this.record = next; this.status = 'ready';
+        this.record = next; this.status = 'ready'; this.currentDirty = false;
         storage.removeItem(KEY + '.pending');
         return true;
       } catch (_) { this.status = 'unavailable'; return false; }

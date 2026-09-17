@@ -26,7 +26,18 @@ window.InputManager = class InputManager {
   init() {
     window.addEventListener('keydown', (e) => {
       const key = e.key.toLowerCase();
-      if (key === ' ' || key === 'enter') this.resultKeysHeld.add(key);
+      if (key === ' ' || key === 'enter' || key === 'c') this.resultKeysHeld.add(key);
+
+      if (window.BARCODE?.Campaign?.intermission) {
+        e.preventDefault();
+        if (key === 'escape' && !e.repeat) window.BARCODE.Campaign.closeIntermission();
+        return;
+      }
+      if (key === 'c' && window.gameState?.victory) {
+        e.preventDefault();
+        if (!e.repeat) window.BARCODE?.Campaign?.openIntermission();
+        return;
+      }
 
       if (window.BARCODE?.LevelDifficulty?.keyDown(e)) return;
       if (window.cutsceneSystem?.isActive) return; // The opening owns its document handlers.
@@ -164,14 +175,17 @@ window.InputManager = class InputManager {
 
   isResultControlHeld() {
     const pad = window.BARCODE?.GamepadUI?.selectPad?.();
-    return this.resultKeysHeld.size > 0 || !!pad?.buttons[0]?.pressed || !!pad?.buttons[2]?.pressed;
+    return this.resultKeysHeld.size > 0 || !!pad?.buttons[0]?.pressed || !!pad?.buttons[2]?.pressed || !!pad?.buttons[3]?.pressed;
   }
 
   updateFrontend(owner) {
     const input = window.BARCODE?.GamepadUI?.poll(owner);
     if (!input) return;
     const pressed = input.pressed;
-    if (owner === 'title' && (pressed.b0 || pressed.b9)) {
+    if (owner === 'title' && pressed.b3) {
+      const button = document.getElementById('continueButton');
+      if (button && !button.hidden && !button.disabled) button.click();
+    } else if (owner === 'title' && (pressed.b0 || pressed.b9)) {
       const button = document.getElementById('startButton');
       if (button && !button.disabled) button.click();
     } else if (owner === 'intro') {
@@ -218,7 +232,12 @@ window.InputManager = class InputManager {
       return true;
     }
     if (owner === 'results') {
+      if (BARCODE?.Campaign?.intermission) {
+        if (p.b1) BARCODE.Campaign.closeIntermission();
+        return true;
+      }
       if (window.gameState?.victory && window.sector1Progression?.areCompletionControlsReady?.() === false) return true;
+      if (p.b3 && window.gameState?.victory) { BARCODE?.Campaign?.openIntermission(); return true; }
       if (p.b0) {
         if (window.sector1Progression?.canRetryBossCheckpoint?.()) window.sector1Progression.retryBossCheckpoint();
         else BARCODE.RuntimeLifecycle?.restart({ source: 'controller-result' });

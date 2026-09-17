@@ -6,9 +6,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-difficulty.js', exports: ['BAR
   const B = window.BARCODE = window.BARCODE || {};
   const profiles = new Map();
   profiles.set('level-01', Object.freeze({ title: 'DEAD AIR DISTRICT', choices: Object.freeze([
-    Object.freeze({ id: 'relaxed', label: 'RELAXED', description: 'More health. More time to react.', health: 4, hostileScale: 0.86, value: 1 }),
-    Object.freeze({ id: 'standard', label: 'STANDARD', description: 'The regular rhythm. The regular challenge.', health: 3, hostileScale: 1, value: 2 }),
-    Object.freeze({ id: 'overclocked', label: 'OVERCLOCKED', description: 'Faster enemies. Tighter counter windows.', health: 3, hostileScale: 1.12, value: 3 })
+    Object.freeze({ id: 'relaxed', label: 'RELAXED', description: 'More health. More time to react.', health: 4, hostileScale: 0.86, bossRecoveryBeats: 6, value: 1 }),
+    Object.freeze({ id: 'standard', label: 'STANDARD', description: 'The regular rhythm. The regular challenge.', health: 3, hostileScale: 1, bossRecoveryBeats: 3, value: 2 }),
+    Object.freeze({ id: 'overclocked', label: 'OVERCLOCKED', description: 'Faster enemies. Tighter counter windows.', health: 3, hostileScale: 1.12, bossRecoveryBeats: 2, value: 3 })
   ]) }));
   const D = {
     open: false, locked: false, levelId: 'level-01', selected: 1, choice: null, held: new Set(),

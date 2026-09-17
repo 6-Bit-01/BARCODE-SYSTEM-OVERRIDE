@@ -1,0 +1,99 @@
+{
+  "base": "a75f33f2321a9e96f3a8fa7677dbf61e586bdb1e",
+  "methods": {
+    "scheduleRuntimeTimeout": "2d57e570f6c3e1ced495faddf14c8c9146aa7ec55083c7bfe19a06655f98f0aa",
+    "startAllLayersSimultaneously": "48984aeef8fe34ddd52e8b3fcbb1544bc137bcd0cdb5de0bab0a0be3b9c8d34e",
+    "startLoopDetection": "e80c85a2e5164387edd19172da6917083f55eeb5f4332f9b7900dbfaecd955ff",
+    "calculateLoopDuration": "d6aa9b2b9b558bfeddacf753cc728078881ff1190cab964aa5e475ac60881eac",
+    "checkLoopCompletion": "d16bc6b586bbaeae1e67c96b909b87fe9da4de7b497fe0be04371e6809b2c714",
+    "restartMusicLoop": "c907078aae75fe69413384b8dc72041206ac4d612faf3e667a7ebc6abacb03b9",
+    "pauseRuntimeAudio": "c1f5966cc8ce567611fe625d907ac5f3747db1249e0873f3bca4cfdb2dea66c1",
+    "resumeRuntimeAudio": "e0032765414bdf3b6122383615f247fa3c85f5b32310a8e14811c34d0b1953c5",
+    "startRuntimeGameplayMusic": "f0e5d9ef216f4ac223a3660bd92d4693d023269e3e72dea24092c3f32678ff3a"
+  },
+  "transportSha256": "19d115ae7cae0cf738f131fad2c9d507917ea0066700e95fff9cbdcc53191f20",
+  "profile": {
+    "profileId": "level-01.main",
+    "levelId": "level-01",
+    "runtimeRegistration": true,
+    "metadataStatus": "legacy-compatibility",
+    "compatibility": {
+      "note": "Migrates existing Level 1 behavior only; not verified as a reusable musical standard."
+    },
+    "arrangement": {
+      "sources": [
+        {
+          "sourceId": "foundation",
+          "assetId": "audio.level-01.foundation",
+          "url": "https://dcnmwoxzefwqmvvkpqap.supabase.co/storage/v1/object/public/audio-assets/e56876ca-50d1-4b32-bcb9-1e37b7d1f822/2133657a-6dbe-47c0-b4c3-4cb9849b3c58.mp3",
+          "required": true,
+          "gain": 0.8,
+          "offsetSec": 0,
+          "nativeLoop": true,
+          "fallbackRole": "required-or-degraded",
+          "playbackPolicy": "start-synchronously"
+        },
+        {
+          "sourceId": "bass-layer",
+          "assetId": "audio.level-01.bass-layer",
+          "url": "https://dcnmwoxzefwqmvvkpqap.supabase.co/storage/v1/object/public/audio-assets/e56876ca-50d1-4b32-bcb9-1e37b7d1f822/5089debd-8927-4409-88f1-785be8508686.mp3",
+          "required": true,
+          "gain": 0,
+          "offsetSec": 0,
+          "nativeLoop": true,
+          "fallbackRole": "synthetic-layer-fallback",
+          "playbackPolicy": "start-synchronously-muted"
+        },
+        {
+          "sourceId": "fx-layer",
+          "assetId": "audio.level-01.fx-layer",
+          "url": "https://dcnmwoxzefwqmvvkpqap.supabase.co/storage/v1/object/public/audio-assets/e56876ca-50d1-4b32-bcb9-1e37b7d1f822/1e86d080-84ac-45df-b591-5e433ae5ec8f.mp3",
+          "required": true,
+          "gain": 0,
+          "offsetSec": 0,
+          "nativeLoop": true,
+          "fallbackRole": "synthetic-layer-fallback",
+          "playbackPolicy": "start-synchronously-muted"
+        }
+      ]
+    },
+    "playback": {
+      "startTrackSec": 0,
+      "loop": null,
+      "endPolicy": "level-controlled",
+      "legacyManualRestartSec": 211,
+      "restartSemantics": "manual-fade-wait-restart-compatibility"
+    },
+    "timeline": {
+      "mode": "fixed-tempo",
+      "gridOriginTrackSec": 0,
+      "fixedGrid": {
+        "quarterBpm": 146,
+        "beatsPerBar": 4,
+        "beatUnit": 4
+      }
+    },
+    "phrasePresentation": {
+      "barsPerPhrase": 4,
+      "beatCount": 16
+    },
+    "judgmentRules": [
+      {
+        "id": "level-01.attack",
+        "target": "quarter-note",
+        "windowsMs": {
+          "perfect": 60,
+          "excellent": 100
+        },
+        "calibrationOffsetMs": 0
+      }
+    ],
+    "legacyCompatibility": {
+      "firstBoundaryOffsetBeats": 0,
+      "establishmentBeatCount": 32,
+      "phraseCycleBeats": 16,
+      "deadCompensationMsNotApplied": -20,
+      "unequalStemDebt": "foundation/fx about 212.088s, bass about 210.442s; runtime preserves native loops plus coordinated 211s manual restart."
+    }
+  }
+}

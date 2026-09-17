@@ -1,5 +1,11 @@
 # Decision Register
 
+## September 17, 2026 — approved next pass with synchronization constraint
+
+The owner approves the proposed boss/music/campaign work and permits sync inspection only: if it is not broken, do not fix it. Actual source/transport/restart timing remains the authority. Old comments describing a delay and unequal file lengths alone do not authorize a rewrite. Dynamic mixing is optional, reversible and tested against current scheduling. Boss pressure may change through counter duration and telegraphed patterns while earlier collision/traffic/rebound fixes stay intact.
+
+Campaign foundations extend the existing save identity with checkpoints, result facts and one-time keys. Existing hidden difficulty/lore/Studio Rat facts remain private. Final unlock thresholds, album delivery, optional-module challenges, later music and the final story resolution remain unresolved. A Level 2 unlock fact is not a claim that Level 2 is playable.
+
 ## September 17, 2026 — enemies can leave the elevator
 
 The owner reports enemies trapped in the grounded cabin after merged #80. Base/rollback: `f2fb5dccf7473f8584fcd3bf25847780c35a37b3`; branch `agent/enemy-lift-exits`. Real Firewall, Corrupted and virus pursuit reproduced the fault in both directions: the ledge guard stopped actors 45 units inside the cabin.

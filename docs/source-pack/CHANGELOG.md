@@ -1,5 +1,9 @@
 # Recovery checkpoint — September 14
 
+## September 17, 2026 — boss/music/campaign draft
+
+Approved combined pass over merged #81. Boss recovery follows 6/3/2 musical beats by difficulty and gains a fixed warned slam. Add profile-owned arrangement/FX and saved A/B control while retaining the protected audio timing baseline. Prioritize critical SFX, quiet atmospheric competition at warnings, save Level 1 checkpoints/results, award Voice once and connect a resumable upcoming-channel intermission. No later playable genre or invented ending evaluation. Details and verification limits: BOSS_MUSIC_CAMPAIGN_PASS.md; exact publication/test state: generated receipt.
+
 ## September 17, 2026 — enemies can leave the elevator
 
 - Fix the enemy ledge guard trapping grounded elevator passengers; share connected street/rooftop bounds with contact separation.

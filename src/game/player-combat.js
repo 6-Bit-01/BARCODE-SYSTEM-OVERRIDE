@@ -25,6 +25,7 @@ window.FILE_MANIFEST.push({
       this.lastAttackAt = now;
       const judgment = timing || this.getTimingJudgment(audioTimeSec);
       result.timing = judgment;
+      BARCODE.Campaign?.attempt(judgment);
       if (!judgment || !judgment.available || !SUCCESS_DAMAGE[judgment.timing]) {
         result.reason = judgment && judgment.timing ? judgment.timing : 'unavailable';
         this.applyFeedback(judgment || { available: false, timing: 'unavailable' });
@@ -43,7 +44,7 @@ window.FILE_MANIFEST.push({
       result.waveReach = plan.waveReach;
       const targets = this.findTargets(player, enemyManager, judgment, { plan });
       const jammerHit = this.tryDamageJammer(player, judgment, result.sequence);
-      if (jammerHit.ok) result.targets.push(jammerHit.target);
+      if (jammerHit.ok) { result.targets.push(jammerHit.target); BARCODE.Campaign?.contact(result.sequence, judgment); }
       const bossHit = window.sector1Progression?.applyBossRhythmDamage?.({
         player, judgment, sequence: result.sequence,
         range: window.rhythmSystem?.getAuthoritativeDamageRadius?.() ?? this.range
@@ -64,6 +65,7 @@ window.FILE_MANIFEST.push({
         result.targets.push({ type: target.type || 'target', damage: result.damage, x: target.position && target.position.x, y: target.position && target.position.y, contactY,
           via: link?.via || 'pulse', fromX: link?.from.position.x, fromY: link?.from.position.y });
       });
+      if (result.targets.length) BARCODE.Campaign?.contact(result.sequence, judgment);
       result.ok = true; result.reason = result.targets.length ? 'hit' : bossHit.reason === 'boss-guarded' ? 'boss-guarded' : 'no-target';
       return finish();
     }

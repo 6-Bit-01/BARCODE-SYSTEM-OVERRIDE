@@ -511,6 +511,9 @@ window.ParallaxBackground = class ParallaxBackground {
 
   atmosphereQuietAt(sourceX) {
     const worldX = -152 + sourceX * 4400 / 1279;
+    const boss = window.sector1Progression?.boss;
+    if (window.sector1Progression?.isBossCombatLive?.() && ['telegraph', 'sweep'].includes(boss?.phase) &&
+        (Math.abs(boss.x - worldX) < 280 || boss.slam && Math.abs(boss.slam.x - worldX) < 180)) return 0.25;
     for (const enemy of window.enemyManager?.enemies || []) {
       if (!enemy.active || Math.abs(enemy.position.x - worldX) > 240) continue;
       if (['brace', 'attack'].includes(enemy.combatPattern) || ['telegraph', 'dive'].includes(enemy.swooperState)) return 0.25;
@@ -536,6 +539,7 @@ window.ParallaxBackground = class ParallaxBackground {
       ctx.save(); ctx.beginPath(); ctx.rect(left + 2, top + 2, w - 4, h - 4); ctx.clip();
       ctx.fillStyle = index % 2 ? '#ffacdb' : '#9affdf';
       ctx.globalAlpha = (animateLights ? 0.10 + Math.sin(phase * Math.PI) * 0.10 : 0.12) * music.quiet;
+      ctx.globalAlpha *= this.atmosphereQuietAt(left + w / 2);
       ctx.fillRect(left + 2, top + 2, w - 4, h - 4);
       if (animateLights) {
         ctx.globalAlpha = 0.28 * music.quiet;
@@ -549,7 +553,7 @@ window.ParallaxBackground = class ParallaxBackground {
     ctx.beginPath();
     for (let i = 0; i < 184; i++) {
       const left = ((i * 91.73 - time * (0.006 + i % 3 * 0.001)) % 1279 + 1279) % 1279;
-      if (!this.decorationVisible(left - 4, 8, x, sx)) continue;
+      if (!this.decorationVisible(left - 4, 8, x, sx) || this.atmosphereQuietAt(left) < 1 && i % 4 !== 0) continue;
       const top = (i * 57.29 + time * (0.095 + i % 4 * 0.012)) % 458;
       ctx.moveTo(left, top); ctx.lineTo(left - 3, top + 8);
     }

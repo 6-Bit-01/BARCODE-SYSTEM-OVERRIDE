@@ -4,7 +4,7 @@ window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.Preferences', 'BARCODE.PauseMenu'], dependencies: ['BARCODE.LoreRecords'] });
 (function() {
   const BARCODE = window.BARCODE = window.BARCODE || {};
-  const defaults = Object.freeze({ music: 1, sfx: 1, screenShake: true, flashes: true, crtPostEffects: true, instantText: false, inputOffsetMs: 0, visualOffsetMs: 0 });
+  const defaults = Object.freeze({ music: 1, sfx: 1, dynamicMusic: true, screenShake: true, flashes: true, crtPostEffects: true, instantText: false, inputOffsetMs: 0, visualOffsetMs: 0 });
   const normalize = (key, value) => key.endsWith('OffsetMs') ? Math.round(Math.max(-200, Math.min(200, value))) : Math.round(Math.max(0, Math.min(1, value)) * 100) / 100;
   const storageKey = 'barcode.presentation.v1';
   const preferences = BARCODE.Preferences = {
@@ -45,7 +45,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
     restoreDefaults() { this.values = { ...defaults }; this.apply(); this.save(); }
   };
   const rows = [
-    ['music', 'Music'], ['sfx', 'SFX'], ['screenShake', 'Screen shake'],
+    ['music', 'Music'], ['sfx', 'SFX'], ['dynamicMusic', 'Dynamic music'], ['screenShake', 'Screen shake'],
     ['flashes', 'Flash accents'], ['crtPostEffects', 'CRT effect'],
     ['instantText', 'Instant dialogue'], ['crew', 'Recent crew dialogue'], ['timing', 'Timing calibration'], ['archive', 'Lore archive'], ['resume', 'Resume game'], ['defaults', 'Reset settings'], ['controller', 'Controller settings']
   ];

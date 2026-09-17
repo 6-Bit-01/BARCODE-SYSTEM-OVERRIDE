@@ -1,5 +1,11 @@
 # Current State
 
+## Current review — boss, music and campaign foundation
+
+Branch `agent/boss-music-campaign`, based on merged #81 (`a75f33f2321a9e96f3a8fa7677dbf61e586bdb1e`). The owner approved the next pass while explicitly protecting working audio sync. See BOSS_MUSIC_CAMPAIGN_PASS.md for implementation, exact evidence scope and remaining work.
+
+New: musical boss recovery by difficulty, fixed marked slam, profile-owned adaptive music with A/B setting, protected legacy synchronization contract, critical SFX priority/readability, durable Level 1 checkpoints and results, Voice key and resumable next-channel handoff. Six later playable levels, optional-module challenges, final ending rules and authored later songs remain outstanding. Exact head/PR/checks are generated in the source receipt; hosted/audio/controller acceptance is pending.
+
 ## September 17, 2026 — enemies can leave the elevator
 
 The owner reports enemies trapped in the grounded cabin after merged #80. Base/rollback: `f2fb5dccf7473f8584fcd3bf25847780c35a37b3`; branch `agent/enemy-lift-exits`. Real Firewall, Corrupted and virus pursuit reproduced the fault in both directions: the ledge guard stopped actors 45 units inside the cabin.
