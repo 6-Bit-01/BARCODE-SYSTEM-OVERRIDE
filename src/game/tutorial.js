@@ -44,6 +44,8 @@ window.TutorialSystem = class TutorialSystem {
   }
 
   startTutorial() {
+    this._taskLayout = null;
+    this._dialogueLayout = null;
     if (this.completed) return;
     this.runGeneration++;
     this.completedObjectives.clear();
@@ -278,7 +280,7 @@ window.TutorialSystem = class TutorialSystem {
         const caption = this.getDialoguePresentation();
         this.rememberDialogue(caption.line, caption.text);
       }
-    } else if (this.getInstructionOwner() !== 'terminal') {
+    } else if (this.getInstructionOwner() === 'dialogue') {
       this._hackCaptionPhase = null;
       this.characterIndex = Math.min(this.targetText.length, this.characterIndex +
         (window.BARCODE?.Preferences?.values.instantText ? this.targetText.length : delta / this.typingSpeed));
@@ -287,7 +289,7 @@ window.TutorialSystem = class TutorialSystem {
     }
     this.reconcileLesson();
     this._armFinalMessageSequence();
-    if (finalWasActive && this.isFinalMessage && this.active) {
+    if (finalWasActive && this.isFinalMessage && this.active && this.getInstructionOwner() === 'dialogue') {
       this.finalMessageTimer += delta;
       if (this.finalMessageTimer >= this.finalMessageHoldTime) {
         this.finalMessageFadeStart = this.finalMessageHoldTime;
@@ -338,7 +340,7 @@ window.TutorialSystem = class TutorialSystem {
     }
     if (this.storyChapter === 2 && !done('rhythm_exit')) {
       const active = window.rhythmSystem?.isActive?.();
-      if (!active) return cue('Enter Rhythm Combat', 'rhythm_mode', 'Stand still on the ground', done('rhythm_combo') ? 'Five hits ✓ • Practice leaving the stance' : '', 'Enter stance');
+      if (!active) return cue('Enter Rhythm Combat', 'rhythm_mode', 'Stand still on the ground', done('rhythm_combo') ? 'Five hits ✓' : '', 'Enter stance');
       if (!done('rhythm_combo')) return cue('Hit five beats in a row', 'primary', 'Tap when the beat lands', `${Math.min(5, window.rhythmSystem?.getCombo?.() ?? window.rhythmSystem?.combo ?? 0)}/5 in a row`, 'Beat');
       return cue('Leave Rhythm Combat', 'rhythm_mode', 'Leave the stance to move again', '', 'Exit stance');
     }
@@ -354,11 +356,18 @@ window.TutorialSystem = class TutorialSystem {
     }
     return null;
   }
+  isPlayMoment() {
+    return !!window.BARCODE?.OverlayLayout?.isPlayMoment();
+  }
+  getDialogueLayout() {
+    return window.BARCODE?.OverlayLayout?.place(1860,194,{previous:this._dialogueLayout || {x:26,y:875,width:1860,height:194,scale:1}});
+  }
   getInstructionOwner() {
     if (!this.active) return null;
     const hack = window.hackingSystem;
     if (hack?.isActive?.() || hack?.feedback || hack?.resultFx) return 'terminal';
-    if (!this.lineAcknowledged && !this.getDialoguePresentation().hidden) return 'dialogue';
+    if (this.isPlayMoment()) return this.getObjectivePresentation() ? 'task' : 'play';
+    if (!this.lineAcknowledged && !this.getDialoguePresentation().hidden && this.getDialogueLayout()?.clear !== false) return 'dialogue';
     return this.getObjectivePresentation() ? 'task' : null;
   }
   getDialoguePresentation() {
@@ -376,41 +385,46 @@ window.TutorialSystem = class TutorialSystem {
   draw(ctx) {
     if (!this.active || !ctx || !this.dialogue.length) return;
     const owner = this.getInstructionOwner();
-    if (!owner || owner === 'terminal') return;
+    if (!owner || owner === 'terminal' || owner === 'play') return;
     const presentation = this.getDialoguePresentation(), { line } = presentation;
     if (!line) return;
     ctx.save();
-    // One bottom instruction area alternates between unread story and action.
+    // Only calm reading uses the large panel. Practice stays in a small clear
+    // corner; hidden story keeps its cursor and cannot consume Continue.
     if (owner === 'dialogue') {
       const speakers = { '6bit': ['6 BIT', '#e6e5ee'], dj: ['DJ FLOPPYDISC', '#83e9ff'], cache: ['CACHE BACK', '#ffd65c'], mac: ['MAC MODEM', '#ff929c'] };
       const [name, color] = speakers[line.speaker] || ['CREW LINK', '#95ffe0'];
-      const y = 875;
-      const width = 1860;
+      this._dialogueLayout = this.getDialogueLayout();
+      const {x,y,width} = this._dialogueLayout;
       ctx.globalAlpha = this.finalMessageOpacity;
-      ctx.fillStyle = '#080f1c'; ctx.fillRect(26, y, width, 194);
-      ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.strokeRect(26, y, width, 194);
-      ctx.fillStyle = color; ctx.fillRect(26, y, 6, 194);
+      ctx.fillStyle = '#080f1c'; ctx.fillRect(x, y, width, 194);
+      ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.strokeRect(x, y, width, 194);
+      ctx.fillStyle = color; ctx.fillRect(x, y, 6, 194);
       ctx.textBaseline = 'middle'; ctx.textAlign = 'left'; ctx.font = 'bold 26px Oxanium, sans-serif';
-      ctx.fillText(name, 52, y + 22);
+      ctx.fillText(name, x+26, y + 22);
       ctx.fillStyle = '#ffffff'; ctx.font = '32px Oxanium, sans-serif';
-      this.wrapText(presentation.text, width - 100, ctx).forEach((text, index) => ctx.fillText(text, 52, y + 64 + index * 38));
+      this.wrapText(presentation.text, width - 100, ctx).forEach((text, index) => ctx.fillText(text, x+26, y + 64 + index * 38));
       ctx.font = 'bold 26px Oxanium, sans-serif'; ctx.fillStyle = '#a9ffdb';
       const button = this.control('continue') + (window.BARCODE?.GamepadUI?.connected ? ' button' : '');
       const help = `Press ${button} to ${this.readyToAdvance ? 'continue' : 'show the full line'}`;
-      ctx.fillText(help, 52, y + 167);
+      ctx.fillText(help, x+26, y + 167);
     } else {
-      const card = this.getObjectivePresentation(), x = 26, y = 923, width = 1120;
-      ctx.globalAlpha = 1; ctx.fillStyle = '#080f1c'; ctx.fillRect(x, y, width, 146);
-      ctx.strokeStyle = '#95ffe0'; ctx.lineWidth = 2; ctx.strokeRect(x, y, width, 146);
-      ctx.fillStyle = '#95ffe0'; ctx.fillRect(x, y, 6, 146);
-      ctx.textBaseline = 'middle'; ctx.textAlign = 'left'; ctx.font = 'bold 34px Oxanium, sans-serif';
-      ctx.fillStyle = '#ffffff'; ctx.fillText(card.title, x + 26, y + 33);
-      ctx.font = 'bold 30px Oxanium, sans-serif'; ctx.fillStyle = '#a9ffdb';
-      ctx.fillText(card.control || '', x + 26, y + 82);
-      const controlWidth = ctx.measureText(card.control || '').width;
-      ctx.font = '26px Oxanium, sans-serif'; ctx.fillStyle = '#e1e9ee';
-      ctx.fillText(card.detail, x + 48 + controlWidth, y + 82);
-      if (card.progress) { ctx.font = '24px Oxanium, sans-serif'; ctx.fillText(card.progress, x + 26, y + 121); }
+      const card = this.getObjectivePresentation(), width = 564, height = 158;
+      this._taskLayout = window.BARCODE.OverlayLayout.place(width,height,{
+        previous:this._taskLayout
+      });
+      if(!this._taskLayout.clear){ctx.restore();return;}
+      const {x,y} = this._taskLayout;
+      ctx.globalAlpha = 1; ctx.fillStyle = '#080f1c'; ctx.fillRect(x, y, width, height);
+      ctx.strokeStyle = '#95ffe0'; ctx.lineWidth = 2; ctx.strokeRect(x, y, width, height);
+      ctx.fillStyle = '#95ffe0'; ctx.fillRect(x, y, 5, height);
+      ctx.textBaseline = 'middle'; ctx.textAlign = 'left'; ctx.font = 'bold 30px Oxanium, sans-serif';
+      ctx.fillStyle = '#ffffff'; ctx.fillText(card.title, x + 20, y + 28);
+      ctx.font = 'bold 26px Oxanium, sans-serif'; ctx.fillStyle = '#a9ffdb';
+      ctx.fillText(card.control || '', x + 20, y + 65);
+      if (card.progress) { ctx.textAlign = 'right'; ctx.font = '22px Oxanium, sans-serif'; ctx.fillText(card.progress, x + width - 20, y + 65); }
+      ctx.textAlign = 'left'; ctx.font = '24px Oxanium, sans-serif'; ctx.fillStyle = '#e1e9ee';
+      this.wrapText(card.detail,width-40,ctx).forEach((text,i)=>ctx.fillText(text,x+20,y+105+i*28));
     }
     ctx.restore();
   }

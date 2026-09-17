@@ -113,11 +113,16 @@ console.log('Terminal from training/reset, 12px walking lane, aligned landing, h
  assert(w.Sector1Progression.ENCOUNTER_GATES[3].curbX>w.Sector1Progression.ENCOUNTER_GATES[3].mountX,'right district follows its rightward paving perspective');
 }
 
-// The actual draw output alternates in one bottom area; Continue stays in story.
+// Calm story and compact action cues alternate; Continue stays in story.
 {
  const {w,context}=createRig();load(context,'src/game/comic-hud.js');load(context,'src/game/tutorial.js');
  const t=new w.TutorialSystem();t.startTutorial();
- const lines=[];const c=new Proxy({globalAlpha:1,fillText(text,x,y){assert(y>=875,'tutorial stays in its bottom area');lines.push(text);},measureText(text){return {width:text.length*12};}},{get:(o,k)=>o[k]??(()=>{})});
+ w.rhythmSystem.hideRhythmMode();
+ const lines=[];const c=new Proxy({globalAlpha:1,fillText(text,x,y){
+  if(t.getInstructionOwner()==='dialogue'){const box=t._dialogueLayout;assert(y>=box.y&&y<=box.y+box.height,'story fits its clear reading area');}
+  else {const box=t._taskLayout;assert(x>=box.x&&x<=box.x+box.width&&y>=box.y&&y<=box.y+box.height,'action text fits its compact card');assert.equal(box.width,564);assert(box.height<=158);}
+  lines.push(text);
+ },measureText(text){return {width:text.length*12};}},{get:(o,k)=>o[k]??(()=>{})});
  t.handleSpacePress();t.draw(c);assert(lines.some(x=>x.includes('original studio take')));assert(!lines.includes('Move left or right'));
  for(let i=0;i<4;i++){if(!t.readyToAdvance)t.handleSpacePress();t.handleSpacePress();}
  lines.length=0;t.draw(c);assert(lines.includes('Move left or right'));assert(lines.includes('← / →'));assert(!lines.some(x=>x.includes('Press Space')));
@@ -128,3 +133,67 @@ console.log('Terminal from training/reset, 12px walking lane, aligned landing, h
  for(const h of [{isActive:()=>true},{feedback:{}},{resultFx:{}}]){w.hackingSystem=h;lines.length=0;t.draw(c);assert.equal(lines.length,0,'terminal owns instructions including result');assert(!t.handleSpacePress());}
 }
 console.log('Fitted gates: registered bake, mirrored pavement, roof/street blocking and open passage; tutorial next-action cues passed.');
+
+// Relocated terminal pixels and pointer hit regions must agree after the real
+// camera/zoom projection. Exercise both target sides, moving targets and roofs.
+{
+ const {w,p,context}=createRig();load(context,'src/game/render-coordinator.js');load(context,'src/game/hacking.js');
+ p.startMission();w.rhythmSystem.hideRhythmMode();w.hackingSystem=new w.HackingSystem();
+ const h=w.hackingSystem,rects=[],stack=[];let matrix={x:0,y:0,scale:1};
+ const c=new Proxy({globalAlpha:1,
+  save(){stack.push({...matrix});},restore(){matrix=stack.pop();},
+  translate(x,y){matrix.x+=x*matrix.scale;matrix.y+=y*matrix.scale;},scale(x,y){assert.equal(x,y);matrix.scale*=x;},
+  fillRect(x,y,width,height){rects.push({x:matrix.x+x*matrix.scale,y:matrix.y+y*matrix.scale,width:width*matrix.scale,height:height*matrix.scale});},
+  measureText(text){return {width:text.length*12};}
+ },{get:(o,k)=>o[k]??(()=>{})});
+ const canvasRect={left:71,top:40,width:960,height:540};
+ w.document.getElementById=()=>({getBoundingClientRect:()=>canvasRect});
+ const tap=(x,y)=>h.pointerInput({clientX:71+x/2,clientY:40+y/2});
+ const draw=()=>{rects.length=0;h.draw(c);return rects[0];};
+ const clearOf=(box,actor)=>assert.equal(w.BARCODE.OverlayLayout.overlap(box,w.BARCODE.OverlayLayout.actorBounds(actor)),0,'panel clears the projected actor, including its visual margin');
+ for(const zoom of [0.4,0.735,1,1.2])for(const cy of [0,-240,-700])for(const side of [-1,1]){
+  h.reset();w.player.grounded=true;Object.assign(w.player.position,{x:1800,y:784+cy});
+  const target=new w.Enemy(1800+side*300,784+cy,'firewall');
+  Object.assign(target.position,{x:1800+side*300,y:784+cy});Object.assign(target,{entranceComplete:true,spawnProtectionDuration:0,spawnTimeMs:-10000});
+  w.enemyManager.enemies=[target];w.gameCamera={centerX:1800,y:cy};
+  w.BARCODE.sceneProjection.capture({getTransform:()=>({a:zoom,b:0,c:0,d:zoom,e:960*(1-zoom)+3*zoom,f:675*(1-zoom)-2*zoom})});
+  assert(h.start());h.update(h.bootDurationMs+h.displayTime+1);assert.equal(h.phase,'answer');
+  let box=draw();clearOf(box,target);clearOf(box,w.player);assert(box.y>=225&&box.x>=26&&box.x+box.width<=1894&&box.y+box.height<=1054);
+  const stable=JSON.stringify(box);assert.equal(JSON.stringify(draw()),stable,'stationary content does not shuffle the panel');
+  const time=h.phaseElapsedMs;
+  for(const digit of ['1','6','0']){
+   h.inputText='';const key=h.getKeypad().find(k=>k.key===digit);
+   assert(rects.some(r=>Math.abs(r.x-key.x)<.001&&Math.abs(r.y-key.y)<.001&&Math.abs(r.width-key.w)<.001&&Math.abs(r.height-key.h)<.001),'pointer region equals the drawn key');
+   assert(tap(key.x+key.w/2,key.y+key.h/2));assert.equal(h.inputText,digit);
+  }
+  assert.equal(h.phaseElapsedMs,time,'layout and input do not spend puzzle time');
+  target.position.x=1800-side*300;box=draw();clearOf(box,target);clearOf(box,w.player);
+  h.inputText=h.currentPuzzle.answer;const submit=h.getKeypad().find(k=>k.key==='Enter');tap(submit.x+submit.w/2,submit.y+submit.h/2);
+  assert(!h.active&&w.enemyManager.isHijacked(target),'relocated Submit converts the locked target');
+  box=draw();clearOf(box,target);clearOf(box,w.player);
+  w.enemyManager.releaseHijack(target);target._hijackRebootUntilMs=0;h.reset();assert(h.start());draw();
+  const layout=h.panelLayout;tap(layout.x+660*layout.scale,layout.y+30*layout.scale);assert(!h.active,'relocated Cancel is clickable');
+  h.reset();assert(!h.panelLayout&&!h.resultLayout&&!h.resultFx,'reset drops layout and target references');
+ }
+ // A crowded street needs the short keypad instead of a tall side panel.
+ Object.assign(w.player.position,{x:960,y:784});w.gameCamera={centerX:960,y:0};
+ w.BARCODE.sceneProjection.capture({getTransform:()=>({a:1,b:0,c:0,d:1,e:0,f:0})});
+ w.enemyManager.enemies=[100,450,700,1220,1580,1810].map(x=>{
+  const e=new w.Enemy(x,784,'firewall');Object.assign(e.position,{x,y:784});Object.assign(e,{entranceComplete:true,spawnProtectionDuration:0,spawnTimeMs:-10000});return e;
+ });
+ assert(h.start());h.update(h.bootDurationMs+h.displayTime+1);const compact=draw();assert(h.panelLayout.compact&&h.panelLayout.clear);
+ for(const actor of [w.player,...w.enemyManager.enemies])clearOf(compact,actor);
+ h.keypadIndex=5;h.navigateKeypad(0,1);assert.equal(h.keypadIndex,11,'six-column keypad moves down to Submit');h.navigateKeypad(-1,0);assert.equal(h.keypadIndex,10);
+ for(const digit of ['6','7','0']){h.inputText='';const key=h.getKeypad().find(k=>k.key===digit);tap(key.x+key.w/2,key.y+key.h/2);assert.equal(h.inputText,digit);}
+ const erase=h.getKeypad().find(k=>k.key==='Backspace');tap(erase.x+erase.w/2,erase.y+erase.h/2);assert.equal(h.inputText,'');
+ h.inputText=h.currentPuzzle.answer;h.keypadIndex=11;h.activateKeypad();assert.equal(h.resultFx.outcome,'success','compact keyboard/controller/pointer layout retains submission');
+ w.enemyManager.releaseHijack();h.reset();w.enemyManager.enemies=w.enemyManager.enemies.filter(e=>!e._hijackRebootUntilMs);
+ assert(h.start());h.update(h.bootDurationMs+h.displayTime+1);const locked=h.hijackTarget,phase=h.phase,elapsed=h.phaseElapsedMs,session=h.sessionElapsedMs;
+ w.enemyManager.enemies=[locked,...[300,550,800].flatMap(y=>[200,600,1000,1400,1800].map(x=>{
+  const e=new w.Enemy(x,y,'firewall');Object.assign(e.position,{x,y});Object.assign(e,{entranceComplete:true,spawnProtectionDuration:0,spawnTimeMs:-10000});return e;
+ }))];
+ assert(!h.getPanelLayout().clear,'actors can occupy every readable panel location');rects.length=0;h.draw(c);assert.equal(rects.length,0,'an occupied terminal does not cover enemies');
+ h.update(8000);assert.equal(h.phase,phase);assert.equal(h.phaseElapsedMs,elapsed);assert.equal(h.sessionElapsedMs,session);assert(!h.processInput('1'),'an unseen puzzle cannot consume input or expire');
+ assert(h.processInput('Escape')&&!h.active,'Escape remains available while the panel waits');
+}
+console.log('Overlay clearance: 24 camera/zoom/target cases, stable placement, moved targets, drawn keypad hit regions, pointer submit/cancel, result clearance and reset passed.');

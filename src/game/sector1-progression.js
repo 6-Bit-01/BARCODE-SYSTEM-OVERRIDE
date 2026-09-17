@@ -1158,7 +1158,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       const powered = moving || lift.chargeFxMs > 0;
       const phase = (lift.driveTimeMs || 0) / 1000;
       ctx.save();
-      if (pass !== 'cabin') {
+      if (pass === 'all' || pass === 'drive') {
         // One stationary drive strip spans the complete travel plus cabin height.
         // It is drawn before the moving carriage, never attached to its roof.
         ctx.save(); ctx.beginPath(); ctx.rect(center - 25, railTop, 50, railBottom - railTop); ctx.clip();
@@ -1177,6 +1177,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         ctx.restore();
       }
       if (pass === 'drive') { ctx.restore(); return; }
+      if (pass === 'cabin' || pass === 'front') this.clipLiftCabinLayer(ctx,pass);
       const illustrated = window.BARCODE?.PresentationAssets?.draw('liftCabin', ctx,
         { x: lift.x, y: lift.y, width: lift.w, height: cabinHeight });
       if (!illustrated) {
@@ -1186,8 +1187,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         ctx.fillStyle = '#253f48'; ctx.fillRect(lift.x, roof.y - 24, lift.w, 24);
         ctx.fillRect(lift.x, lift.y - 10, lift.w, 32);
       }
-      // Visible floor depth surrounds the actor foot plane; the collider stays
-      // on its center line, and the carriage is drawn behind the player.
+      if (pass === 'cabin') { ctx.restore(); return; }
+      // Front rails and floor lip cover passengers; their backs and the deck
+      // surface were drawn earlier. These motor/light details belong in front.
       const motorY = lift.y + cabinHeight * 0.155;
       for (const side of [-1, 1]) {
         ctx.save(); ctx.translate(center + side * lift.w * 0.265, motorY);
@@ -1206,6 +1208,21 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       ctx.beginPath(); ctx.moveTo(roof.x, roof.y); ctx.lineTo(roof.x + roof.w, roof.y); ctx.stroke();
       ctx.restore();
       this.drawLiftSquashes(ctx);
+    }
+
+    clipLiftCabinLayer(ctx,pass) {
+      const lift=this.signalLift,top=lift.y-SIGNAL_LIFT.cabinHeight*SIGNAL_LIFT.footAnchor;
+      // Trace the existing image's front frame, with the cabin opening as a
+      // hole. Complementary clips split its pixels without replacing the art.
+      const outer=[[0,62],[495,62],[619,0],[619,111],[539,183],[538,494],[568,545],[568,597],[520,640],[79,640],[0,596],[0,543],[43,502],[43,176],[0,120]];
+      const opening=[[90,171],[486,171],[486,537],[90,537]];
+      ctx.beginPath();
+      if(pass==='cabin')ctx.rect(lift.x,top,lift.w,SIGNAL_LIFT.cabinHeight);
+      for(const points of [outer,opening]){
+        points.forEach(([x,y],i)=>ctx[i?'lineTo':'moveTo'](lift.x+x/619*lift.w,top+y/640*SIGNAL_LIFT.cabinHeight));
+        ctx.closePath();
+      }
+      ctx.clip('evenodd');
     }
 
     crushLiftEnemies(previousY, currentY, riders) {
@@ -1288,8 +1305,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       const body = this.getRoofActorBounds(actor), roof = this.getLiftRoof();
       if (!body || body.x + body.width <= roof.x || body.x >= roof.x + roof.w) return 'outside';
       // Foot height follows the moving floor, including walk-on and jump/drop
-      // transitions. Floor/roof passengers stay in front; street actors below
-      // a raised cabin pass behind it. Drawing never assigns physical support.
+      // transitions. Passengers follow the cabin back and precede its front
+      // rails; street actors below a raised cabin precede both cabin layers.
+      // Drawing never assigns physical support.
       return body.y + body.height <= this.signalLift.y + 4 ? 'front' : 'behind';
     }
     hasClearedDropSurface(player, id = player.dropSurfaceId) {
@@ -1482,7 +1500,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       const lift = this.signalLift;
       if (!ctx || !lift?.promptVisible || !this.isSignalLiftAvailable() || this.isGameplaySuppressed() ||
           window.gameState?.gameOver || window.gameState?.victory || window.hackingSystem?.isActive?.()) return;
+      if(window.tutorialSystem?.isActive?.()||window.BARCODE?.stageFX?.message||window.loreSystem?.currentLore)return;
+      const layout=window.BARCODE.OverlayLayout.place(420,62,{previous:{x:750,y:255,width:420,height:62,scale:1}});
+      if(!layout.clear)return;
       ctx.save(); ctx.globalAlpha *= Math.max(0, Math.min(1, (2400 - lift.promptAgeMs) / 500));
+      ctx.translate(layout.x-750,layout.y-255);
       ctx.fillStyle = 'rgba(7,17,27,0.92)'; ctx.fillRect(750, 255, 420, 62);
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#acffe4'; ctx.font = 'bold 20px Oxanium, monospace';
       ctx.fillText('RHYTHM LIFT', 960, 276);

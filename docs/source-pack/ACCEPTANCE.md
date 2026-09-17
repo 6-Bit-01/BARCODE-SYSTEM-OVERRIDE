@@ -1,5 +1,17 @@
 # Acceptance and Test Status
 
+## September 17 — smart panels and front rails
+
+Import the exact draft head from the generated receipt. Base/rollback: merged #77, `78f67f4750a2d12f8a2063c895d06d5b9952d700`. Owner Makko/physical-controller acceptance is pending.
+
+1. Read a crew line, then move/jump before acknowledging it. The large dialogue disappears and any remaining task uses a compact clear corner. Stop and land: unread text returns at its previous position. Hidden Continue must not skip it, and a hidden closing message must not expire.
+2. During Stomp practice, climb the Signal awning and jump. Keep the three street enemies visible below the raised camera; only the compact task remains. Repeat in Rhythm Combat and complete the original twenty-bubble tutorial without repeating earned tasks.
+3. Collect lore or inspect while enemies are visible. Move/jump/enter Rhythm Combat: unread panels must wait, then return without losing a line or reading time. Only one reading panel should own the instruction area. Mission objectives and other transient prompts must leave actors clear.
+4. Hack enemies on both sides, on street and rooftops, at normal and changed zoom. The terminal must leave the locked enemy and player visible, stay steady while clear, and move when the target/camera enters its area. Check keyboard, controller and pointer digits, Erase, Submit and Cancel after relocation; check success/failure placement too. In crowded scenes, check the shorter six-column keypad, its D-pad row navigation, pointer Erase/Submit and Cancel.
+5. Walk hero and enemies onto the grounded lift; ride the floor and roof, and jump/walk under a raised cabin. Front rails must cover cabin passengers, while the back and fixed drive remain behind them. Roof riders remain on top; the whole raised cabin can obscure actors underneath. Check both directions, edge crossings, five-second power, recharge, drops and enemy pancakes.
+
+Native stills and production-module checks support these cases; they do not establish hosted gameplay feel or owner acceptance. After owner acceptance and merge, import the actual merged main revision and repeat this route.
+
 ## September 17 — combined playtest follow-up
 
 Import the exact new draft head from the receipt. Base/rollback is merged #76, `ee089acce1ee9dad6ffd877fe32f99dd633aa011`. Owner Makko/physical-controller acceptance is pending; local/native/CI checks do not replace it.

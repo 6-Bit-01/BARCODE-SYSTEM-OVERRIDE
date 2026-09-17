@@ -89,7 +89,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
     isDialogueDeferred() {
       const hack = window.hackingSystem;
       return !!(this.ratEvent || window.tutorialSystem?.isActive?.() || hack?.isActive?.() || hack?.feedback || hack?.resultFx ||
-        window.isPaused || window.gameState?.paused || window.gameState?.gameOver || window.gameState?.victory || this.owner?.isGameplaySuppressed?.());
+        window.isPaused || window.gameState?.paused || window.gameState?.gameOver || window.gameState?.victory || this.owner?.isGameplaySuppressed?.() ||
+        this.message && (B.OverlayLayout.isPlayMoment() || !this.getMessageLayout().clear));
+    }
+    getMessageLayout() {
+      return B.OverlayLayout.place(899,124,{previous:{x:30,y:887,width:899,height:124,scale:1}});
     }
     update(ms) {
       if (!Number.isFinite(ms) || ms < 0 || window.isPaused || window.gameState?.paused) return;
@@ -359,11 +363,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
       const key = B.GamepadUI?.connected ? (B.ControllerSettings?.prompt('inspect') || 'RB') : (window.inputManager?.actionInput?.keyboardBindings?.inspect?.[0] || 'E').toUpperCase();
       if (this.message) {
         const m = this.message;
+        const layout=this.getMessageLayout();ctx.translate(layout.x-30,layout.y-887);
         ctx.fillStyle = '#070b15'; ctx.fillRect(39, 895, 890, 116); ctx.fillStyle = '#eee6d4'; ctx.fillRect(30, 887, 890, 116);
         ctx.fillStyle = '#0c1727'; ctx.font = 'bold 16px monospace'; ctx.fillText(m.speaker, 52, 908);
         ctx.font = 'bold 20px sans-serif'; ctx.fillText(m.lines[m.line], 52, 944, 840);
         ctx.font = '16px monospace'; ctx.fillText(`Press ${key} to ${m.line ? 'close' : 'continue'}`, 52, 979);
       } else if (this.nearby && !window.loreSystem?.currentLore) {
+        const layout=B.OverlayLayout.place(500,49,{previous:{x:30,y:947,width:500,height:49,scale:1}});
+        if(!layout.clear){ctx.restore();return;}ctx.translate(layout.x-30,layout.y-947);
         ctx.fillStyle = '#eee6d4'; ctx.fillRect(30, 947, 500, 49); ctx.fillStyle = '#121c2b'; ctx.font = 'bold 18px monospace';
         ctx.fillText(`${key} / INSPECT ${this.nearby.name}`, 48, 972);
       }

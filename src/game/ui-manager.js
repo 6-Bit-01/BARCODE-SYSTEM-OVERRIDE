@@ -126,6 +126,9 @@ const encounterPresentation = (() => {
     const width = 500;
     const height = 62;
     const x = (1920 - width) / 2;
+    const layout=window.BARCODE.OverlayLayout.place(width,height,{previous:{x,y:easedY,width,height,scale:1}});
+    if(!layout.clear)return;
+    ctx.translate(layout.x-x,layout.y-easedY);
 
     ctx.globalAlpha = alpha;
     ctx.fillStyle = 'rgba(0, 12, 28, 0.88)';
@@ -151,6 +154,9 @@ const encounterPresentation = (() => {
     const progress = Math.max(0, Math.min(1, elapsed / cue.duration));
     const halfLine = 90 + 180 * Math.sin(Math.PI * progress);
     const y = 290;
+    const layout=window.BARCODE.OverlayLayout.place(600,50,{previous:{x:660,y,width:600,height:50,scale:1}});
+    if(!layout.clear)return;
+    ctx.translate(layout.x-660,layout.y-y);
 
     ctx.globalAlpha = alpha * 0.78;
     ctx.strokeStyle = '#00ffff';
@@ -173,6 +179,7 @@ const encounterPresentation = (() => {
   const draw = ctx => {
     const cue = presentation.cue;
     if (!ctx || !cue) return;
+    if(window.tutorialSystem?.isActive?.()||window.BARCODE?.stageFX?.message||window.loreSystem?.currentLore)return;
     const elapsed = now() - cue.startedAt;
     if (elapsed >= cue.duration) {
       return;
@@ -244,6 +251,9 @@ window.drawGameUI = function(ctx) {
   const attackFeedback = window.BARCODE?.playerCombat?.getFeedback?.();
   if (attackFeedback && !bossCinematicActive && !window.gameState.gameOver && !window.gameState.victory && !window.hackingSystem?.isActive?.()) {
     ctx.save();
+    const layout=window.BARCODE.OverlayLayout.place(700,36,{previous:{x:738,y:185,width:700,height:36,scale:1}});
+    if(layout.clear){
+    ctx.translate(layout.x-738,layout.y-185);
     ctx.fillStyle = 'rgba(0, 8, 16, 0.92)';
     ctx.fillRect(738, 185, 700, 36);
     ctx.fillStyle = attackFeedback.color;
@@ -251,6 +261,7 @@ window.drawGameUI = function(ctx) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(attackFeedback.text, 1088, 204, 672);
+    }
     ctx.restore();
   }
 
@@ -355,7 +366,8 @@ function drawBasicUI(ctx) {
 
 function drawObjectives(ctx) {
   const hack = window.hackingSystem;
-  if (hack?.isActive?.() || hack?.feedback || hack?.resultFx || window.BARCODE?.stageFX?.ratEvent) return;
+  if (hack?.isActive?.() || hack?.feedback || hack?.resultFx || window.BARCODE?.stageFX?.ratEvent ||
+      window.BARCODE?.stageFX?.message || window.loreSystem?.currentLore) return;
   const owner = window.sector1Progression, status = owner?.getEncounterStatus?.();
   const jammer = window.BARCODE?.JammerEnvironment?.getStatus?.();
   const title = status ? `${status.started ? 'CLEAR' : 'REACH'} ${String(status.label).toUpperCase()}` : jammer?.revealed && !jammer.destroyed ? 'BREAK THE BROADCAST JAMMER' : 'EXPLORE THE DISTRICT';
@@ -378,6 +390,7 @@ function drawRhythmUI(ctx) {
 function drawCollectionMessage(ctx) {
   const message = window.gameState.collectionMessage;
   if (!message || message.timer <= 0) return;
+  if(window.tutorialSystem?.isActive?.()||window.hackingSystem?.isActive?.()||window.BARCODE?.stageFX?.message||window.loreSystem?.currentLore)return;
   
   ctx.save();
   
@@ -402,6 +415,9 @@ function drawCollectionMessage(ctx) {
   const boxHeight = 60;
   const boxX = (1920 - boxWidth) / 2;
   const boxY = 350;
+  const layout=window.BARCODE.OverlayLayout.place(boxWidth,boxHeight,{previous:{x:boxX,y:boxY,width:boxWidth,height:boxHeight,scale:1}});
+  if(!layout.clear){ctx.restore();return;}
+  ctx.translate(layout.x-boxX,layout.y-boxY);
   
   ctx.fillStyle = 'rgba(0, 20, 40, 0.9)';
   ctx.fillRect(boxX, boxY, boxWidth, boxHeight);

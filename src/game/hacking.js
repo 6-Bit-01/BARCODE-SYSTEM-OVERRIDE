@@ -4,7 +4,7 @@ window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({
   name: 'src/game/hacking.js',
   exports: ['HackingSystem', 'hackingSystem'],
-  dependencies: ['randomRange', 'clamp']
+  dependencies: ['randomRange', 'clamp', 'BARCODE.OverlayLayout']
 });
 
 window.HackingSystem = class HackingSystem {
@@ -47,6 +47,8 @@ window.HackingSystem = class HackingSystem {
     this.tutorialCompleteObjective = 'hack_complete';
     this._lastResultFailed = false;
     this.hijackTarget = null;
+    this.panelLayout = null;
+    this.resultLayout = null;
     this.resultDetail = '';
     console.log('Terminal Hacking System initialized');
   }
@@ -238,17 +240,33 @@ window.HackingSystem = class HackingSystem {
     this.keypadMode = true;
   }
 
-  getKeypad() {
+  getPanelLayout() {
+    const ui=window.BARCODE.OverlayLayout,actors=ui.actors(this.hijackTarget);
+    if(this.panelLayout?.compact){const held=ui.place(1040,360,{actors,previous:this.panelLayout});if(held.clear)return {...held,compact:true};}
+    const full=ui.place(780,710,{actors,previous:this.panelLayout,scales:[1,0.88,0.76]});
+    if(full.clear)return full;
+    return {...ui.place(1040,360,{actors,scales:[1,0.88,0.76]}),compact:true};
+  }
+  getResultLayout() {
+    return window.BARCODE.OverlayLayout.place(620,120,{
+      actors:window.BARCODE.OverlayLayout.actors(this.resultFx?.target),previous:this.resultLayout
+    });
+  }
+
+  getKeypad(layout = this.panelLayout || this.getPanelLayout()) {
     return ['1','2','3','4','5','6','7','8','9','Backspace','0','Enter'].map((key, i) => ({
       key, label: key === 'Backspace' ? '⌫' : key === 'Enter' ? 'Submit' : key,
-      x: 1132 + (i % 3) * 248, y: 602 + Math.floor(i / 3) * 68, w: 232, h: 58
+      x: layout.x + (22 + (i % (layout.compact?6:3)) * (layout.compact?168:248)) * layout.scale,
+      y: layout.y + ((layout.compact?194:412) + Math.floor(i / (layout.compact?6:3)) * (layout.compact?64:68)) * layout.scale,
+      w: (layout.compact?156:232) * layout.scale, h: (layout.compact?54:58) * layout.scale
     }));
   }
 
   navigateKeypad(dx, dy) {
     this.useKeypad();
     const i = this.keypadIndex ?? 4;
-    this.keypadIndex = Math.max(0, Math.min(3, Math.floor(i / 3) + dy)) * 3 + Math.max(0, Math.min(2, i % 3 + dx));
+    const columns=(this.panelLayout||this.getPanelLayout()).compact?6:3;
+    this.keypadIndex = Math.max(0, Math.min(12/columns-1, Math.floor(i / columns) + dy)) * columns + Math.max(0, Math.min(columns-1, i % columns + dx));
   }
 
   activateKeypad() {
@@ -263,7 +281,10 @@ window.HackingSystem = class HackingSystem {
     const rect = canvas?.getBoundingClientRect?.();
     if (!rect || !rect.width || !rect.height) return false;
     const x = (event.clientX - rect.left) * 1920 / rect.width, y = (event.clientY - rect.top) * 1080 / rect.height;
-    if (x >= 1650 && x <= 1875 && y >= 199 && y <= 243) return this.processInput('Escape');
+    const layout = this.panelLayout || this.getPanelLayout();
+    const localX = (x-layout.x)/layout.scale, localY = (y-layout.y)/layout.scale;
+    const cancelRight=layout.compact?1015:765;
+    if (localX >= cancelRight-225 && localX <= cancelRight && localY >= 9 && localY <= 53) return this.processInput('Escape');
     const index = this.getKeypad().findIndex(k => x >= k.x && x <= k.x + k.w && y >= k.y && y <= k.y + k.h);
     if (index < 0) return false;
     this.keypadIndex = index;
@@ -278,6 +299,7 @@ window.HackingSystem = class HackingSystem {
       this.cancel();
       return true;
     }
+    if(window.BARCODE?.OverlayLayout&&!this.getPanelLayout().clear)return false;
     // The display is part of the puzzle. It cannot also be an input buffer.
     if (this.phase !== 'answer') return false;
     if (value === 'Enter') {
@@ -313,6 +335,8 @@ window.HackingSystem = class HackingSystem {
       return true;
     }
     this.hijackTarget = availability.target;
+    this.panelLayout = null;
+    this.resultLayout = null;
 
     this.runGeneration++;
     this.clearOwnedTimeouts();
@@ -361,17 +385,21 @@ window.HackingSystem = class HackingSystem {
   update(deltaTime) {
     const delta = Math.max(0, Number.isFinite(deltaTime) ? deltaTime : 0);
     this.updateReadyPopup(delta);
-    if (this.resultFx) {
+    const resultVisible=!(this.feedback||this.resultFx) || this.active || !window.BARCODE?.OverlayLayout || this.getResultLayout().clear;
+    if (this.resultFx && resultVisible) {
       this.resultFx.elapsedMs += delta;
       if (this.resultFx.elapsedMs >= 1000) this.resultFx = null;
     }
-    if (this.feedback) {
+    if (this.feedback && resultVisible) {
       this.feedback.timer -= delta / (1000 / 60);
       this.feedback.opacity = Math.max(0, Math.min(1, this.feedback.timer / 60));
       if (this.feedback.timer <= 0.001) this.feedback = null;
     }
     this.cursorBlink = (this.cursorBlink + delta / (1000 / 60)) % 60;
     if (!this.active) return;
+    // If every readable layout is occupied, keep the unseen scan/deadline and
+    // input intact while the world moves. Escape remains available throughout.
+    if(window.BARCODE?.OverlayLayout&&!this.getPanelLayout().clear)return;
 
     this.sessionElapsedMs += delta;
     const practiceEntry = this.tutorialMode && this.phase === 'answer';
@@ -449,7 +477,7 @@ window.HackingSystem = class HackingSystem {
     this.puzzleReadyAt = 0;
     this._lastResultFailed = outcome !== 'success';
     this.terminalLines = terminalLines;
-    this.resultFx = outcome === 'cancel' ? null : { outcome, elapsedMs: 0 };
+    this.resultFx = outcome === 'cancel' ? null : { outcome, elapsedMs: 0, target: this.hijackTarget };
     this.cooldownDurationMs = this.cooldownMs;
     this.cooldownUntil = Date.now() + this.cooldownDurationMs;
     this.runGeneration++;
@@ -544,6 +572,9 @@ window.HackingSystem = class HackingSystem {
     ctx.save();
     ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left'; ctx.shadowBlur = 0;
     if (!this.active) {
+      this.resultLayout = this.getResultLayout();
+      if(!this.resultLayout.clear){ctx.restore();return;}
+      ctx.translate(this.resultLayout.x-650,this.resultLayout.y-260);
       const success = this.resultFx?.outcome === 'success' || this.feedback?.type === 'success';
       const color = success ? '#91ffe0' : '#ffb16e';
       ctx.globalAlpha = this.feedback?.opacity ?? 1;
@@ -556,6 +587,12 @@ window.HackingSystem = class HackingSystem {
       this.drawResultTransfer(ctx);
       ctx.restore(); return;
     }
+    this.panelLayout = this.getPanelLayout();
+    if(!this.panelLayout.clear){ctx.restore();return;}
+    ctx.translate(this.panelLayout.x,this.panelLayout.y);
+    ctx.scale(this.panelLayout.scale,this.panelLayout.scale);
+    if(this.panelLayout.compact){this.drawCompactTerminal(ctx);ctx.restore();return;}
+    ctx.translate(-1110,-190);
     const presentation = this.getPresentation();
     const urgent = this.phase === 'answer' && presentation.remainingMs <= 1500;
     const color = urgent ? '#ffb16e' : '#91ffe0';
@@ -604,7 +641,7 @@ window.HackingSystem = class HackingSystem {
     }
     ctx.fillStyle = '#aebdcc'; ctx.font = '16px monospace';
     ctx.fillText(window.BARCODE?.GamepadUI?.connected ? `D-pad / Stick: Move   ${window.BARCODE.ControllerSettings.button(0)}: Select   ${window.BARCODE.ControllerSettings.button(2)}: Erase   ${window.BARCODE.ControllerSettings.button(1)}: Cancel` : 'Type 0–9 or tap the keys. Enter submits.', 1132, 577);
-    this.getKeypad().forEach((key, index) => {
+    this.getKeypad({x:1110,y:190,scale:1}).forEach((key, index) => {
       const focused = this.keypadMode && index === (this.keypadIndex ?? 4);
       ctx.fillStyle = focused ? '#91ffe0' : '#142c38'; ctx.fillRect(key.x, key.y, key.w, key.h);
       ctx.strokeStyle = focused ? '#f1f6fb' : '#628c90'; ctx.lineWidth = focused ? 3 : 1; ctx.strokeRect(key.x, key.y, key.w, key.h);
@@ -613,6 +650,26 @@ window.HackingSystem = class HackingSystem {
     });
     if (this.feedback) { ctx.textAlign = 'right'; ctx.fillStyle = color; ctx.font = 'bold 14px monospace'; ctx.fillText(this.feedback.text, 1865, 891); }
     ctx.restore();
+  }
+
+  drawCompactTerminal(ctx) {
+    const p=this.getPresentation(),color=this.phase==='answer'&&p.remainingMs<=1500?'#ffb16e':'#91ffe0';
+    ctx.fillStyle='rgba(4,13,25,0.94)';ctx.fillRect(0,0,1040,360);ctx.strokeStyle='#3c827f';ctx.lineWidth=2;ctx.strokeRect(0,0,1040,360);
+    ctx.fillStyle='#91ffe0';ctx.font='bold 22px monospace';ctx.fillText('SIGNAL TERMINAL',22,32);
+    ctx.textAlign='right';ctx.font='16px monospace';ctx.fillStyle='#aebdcc';ctx.fillText(window.BARCODE?.GamepadUI?.connected?`${window.BARCODE.ControllerSettings.button(1)}: Cancel`:'Esc / Tap: Cancel',1015,32);
+    ctx.textAlign='left';ctx.font='bold 22px monospace';ctx.fillStyle='#f1f6fb';ctx.fillText(p.heading,22,73);
+    ctx.textAlign='right';ctx.fillStyle=color;ctx.fillText(p.untimed?'PRACTICE':`${(p.remainingMs/1000).toFixed(1)}s`,1015,73);ctx.textAlign='left';
+    ctx.fillStyle='#19313e';ctx.fillRect(22,88,994,5);ctx.fillStyle=color;ctx.fillRect(22,88,994*(1-p.progress),5);
+    if(this.phase==='display'&&!this.currentPuzzle?.hidden){
+      if(this.currentPuzzle.type===1)this.currentPuzzle.ports.forEach((port,i)=>{ctx.font='bold 27px monospace';ctx.fillStyle=port.status==='OPEN'?'#91ffe0':'#d5a18b';ctx.fillText(`${port.number}  ${port.status}`,22+i*335,134);});
+      else {ctx.font='bold 40px monospace';ctx.fillStyle='#f6e9a3';ctx.fillText(this.currentPuzzle.display,22,135);}
+    }else{ctx.font='20px monospace';ctx.fillStyle='#b7c8d4';ctx.fillText(this.phase==='boot'?'Locking the signal. Watch the scan.':this.puzzleType===1?'Enter the port number marked OPEN.':'Enter the sequence you just saw.',22,126);}
+    ctx.font='bold 26px monospace';ctx.fillStyle='#f1f6fb';ctx.fillText(this.phase==='answer'?'> '+(this.inputText||'_____'):'> INPUT LOCKED UNTIL SCAN ENDS',22,173);
+    this.getKeypad({x:0,y:0,scale:1,compact:true}).forEach((key,index)=>{
+      const focused=this.keypadMode&&index===(this.keypadIndex??4);ctx.fillStyle=focused?'#91ffe0':'#142c38';ctx.fillRect(key.x,key.y,key.w,key.h);ctx.strokeStyle=focused?'#f1f6fb':'#628c90';ctx.strokeRect(key.x,key.y,key.w,key.h);
+      ctx.font='bold 26px Oxanium, monospace';ctx.textAlign='center';ctx.fillStyle=focused?'#081921':'#f1f6fb';ctx.fillText(key.label,key.x+key.w/2,key.y+36);
+    });
+    ctx.textAlign='left';ctx.font='16px monospace';ctx.fillStyle='#aebdcc';ctx.fillText(window.BARCODE?.GamepadUI?.connected?`D-pad / Stick: Move   ${window.BARCODE.ControllerSettings.button(0)}: Select   ${window.BARCODE.ControllerSettings.button(2)}: Erase`:'Type 0–9 or tap the keys. Enter submits.',22,339);
   }
 
   drawResultTransfer(ctx) {
@@ -638,6 +695,8 @@ window.HackingSystem = class HackingSystem {
     window.enemyManager?.clearHackTrails?.();
     this.resetReadyPopup();
     this.hijackTarget = null;
+    this.panelLayout = null;
+    this.resultLayout = null;
     this.resultDetail = '';
     const shouldRestore = this.active || this.suspendedRhythmMode;
     this.active = false;

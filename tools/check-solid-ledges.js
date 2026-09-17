@@ -173,10 +173,14 @@ for(const position of ['ground','floor','roof','under','outside']) {
  const foot=position==='roof'?roof.topY:position==='floor'?lift.y:856;
  place(r,w.player,x,foot);
  const order=[];w.player.draw=()=>order.push('player');
+ const drawLift=p.drawSignalLift.bind(p);p.drawSignalLift=(ctx,pass)=>{order.push('pass-'+pass);drawLift(ctx,pass);};
  w.BARCODE.PresentationAssets={draw:key=>{if(key==='liftCabin')order.push('lift');if(key==='liftTrack')order.push('drive');return true;}};
  const ctx=new Proxy({globalAlpha:1,getTransform:()=>({a:1,b:0,c:0,d:1,e:0,f:0}),createLinearGradient:()=>({addColorStop(){}}),measureText:t=>({width:t.length*10})},{get:(o,k)=>o[k]??(()=>{})});
  w.drawGameElements(ctx);assert.equal(order.filter(x=>x==='player').length,1);assert(order.includes('lift'));assert(order.indexOf('drive')<order.indexOf('player'),'the back drive stays behind every actor');
  assert.equal(order.indexOf('player')<order.indexOf('lift'),position==='under',position+' follows the moving floor');
+ assert(order.indexOf('player')<order.indexOf('pass-front'),'front rails follow the player');
+ assert.equal(order.filter(x=>x==='pass-front').length,1,'one front frame pass');
+ assert.equal(order.filter(x=>x==='lift').length,2,'existing cabin is partitioned into back and front');
  assert.deepStrictEqual(r.calls.errors,[]);
 }
 console.log('Shared player/enemy lift depth: ground walk-on, floor/roof passengers, underpass and outside actor draw once.');

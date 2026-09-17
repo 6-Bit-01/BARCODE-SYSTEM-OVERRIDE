@@ -1852,8 +1852,8 @@ window.EnemyManager = class EnemyManager {
       if (enemy.getDrawLayer() !== layer || !enemy.active) continue;
       if (window.BARCODE?.combatFX && !window.BARCODE.combatFX.visible(enemy.position.x, enemy.position.y, 300)) continue;
       if (liftRoofPass !== null) {
-        // Roof riders and cabin passengers share the player's front layer.
-        // Include airborne approaches; actors underneath the floor stay behind.
+        // Roof riders and cabin passengers share the player's layer between
+        // the cabin back and front rails; actors below its floor stay behind.
         const inFrontOfLift = progression?.getLiftActorLayer?.(enemy) === 'front';
         if (inFrontOfLift !== liftRoofPass) continue;
       }

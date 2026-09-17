@@ -1,5 +1,15 @@
 # Decision Register
 
+## September 17, 2026 — smart panels and elevator front rails
+
+Base/rollback: merged #77, `78f67f4750a2d12f8a2063c895d06d5b9952d700`. Branch: `agent/tutorial-play-space`. The owner reports the tutorial hiding street enemies during jumps, the fixed hack panel hiding its locked target, and passengers appearing over the elevator's front rails. This pass implements those reports together.
+
+Across gameplay, tutorial, lore, inspection, mission objectives and transient prompts avoid visible actors. Large unread dialogue waits during movement, airborne play and Rhythm Combat; typing, Continue input and reading time stay frozen while hidden. One reading panel takes priority over secondary prompts. The hack terminal and result use the actual camera/zoom projection to avoid the target, player and other enemies. Crowded scenes use a short six-column keypad, with matching pointer/controller navigation. Clear placements remain steady. If no readable layout fits, unseen dialogue and puzzle phases wait while Escape remains available.
+
+The existing lift image is split with complementary clips: cabin back/deck, passengers, then front rails/lip. The fixed drive remains behind actors, and characters below the moving floor remain behind both cabin layers. This supersedes drawing the whole cabin behind passengers. No asset replacement or collision/timing changes.
+
+Read `docs/source-pack/SMART_PANELS_LIFT_PASS.md` (or `SMART_PANELS_LIFT_PASS.md` at the pack root). Preserve all merged #77 tutorial/progression, hack dilation/trails, deliberate drops, Studio Rat sequencing, recovered art and five-second lift power. Current PR/head/checks belong to the generated receipt. Publish one draft and refresh maintained v5; owner Makko acceptance remains pending before assistant merge. Older entries below are history.
+
 ## September 17, 2026 — playtest clarity, hack dilation and dynamic lift depth
 
 Continue from merged #76, `ee089acce1ee9dad6ffd877fe32f99dd633aa011` (base/rollback), on `agent/tutorial-single-panel`. The owner's follow-up requests are implemented together: one alternating tutorial instruction area; lore and inspect waiting through the complete Studio Rat event; stronger hack slowdown with a gentle pulse and enemy trails; deliberate Down + Jump through every standable surface, including solids; and player/enemy elevator depth following the moving floor. The fixed drive stays behind actors.
