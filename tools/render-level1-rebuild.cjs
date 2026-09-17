@@ -4,7 +4,7 @@ const fs=require('fs'),path=require('path'),{spawn}=require('child_process'),{on
 const {createCanvas,loadImage,GlobalFonts}=require(require.resolve('@napi-rs/canvas',{paths:[process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES]}));
 const {createRig,load}=require('./check-level-01-boss'),{createSprite}=require('./makko-animation-fixture'),{installArt}=require('./render-cat-chaos.cjs');
 const root=path.resolve(__dirname,'..'),out=path.resolve(process.argv[2]||'../review');fs.mkdirSync(out,{recursive:true});
-GlobalFonts.registerFromPath((process.env.TUTORIAL_FLOW_REVIEW || process.env.FEEDBACK_POLISH_REVIEW || process.env.PLAYTEST_POLISH_REVIEW) ? path.join(root,'assets/studies/visual-overhaul/references/fonts/Oxanium.ttf') : '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','Oxanium');
+GlobalFonts.registerFromPath((process.env.TUTORIAL_FLOW_REVIEW || process.env.FEEDBACK_POLISH_REVIEW || process.env.PLAYTEST_POLISH_REVIEW || process.env.SMART_PANEL_REVIEW) ? path.join(root,'assets/studies/visual-overhaul/references/fonts/Oxanium.ttf') : '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','Oxanium');
 GlobalFonts.registerFromPath('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','sans-serif');
 async function main(){
  const {w,p,context,calls}=createRig();await installArt(w,context);
@@ -27,9 +27,50 @@ async function main(){
  for(let i=0;i<3;i++){w.spaceShipSystem.shipImages[i]=await loadImage(path.join(root,'assets/traffic/ship-'+(i+1)+'.webp'));w.spaceShipSystem.imagesLoaded[i]=true;w.spaceShipSystem.shipSheets[i]=w.BARCODE.trafficSheets[i];}
  const bg=await loadImage(path.join(root,'assets/world-v3/far-background.webp')),fg=await loadImage(path.join(root,'assets/world-v3/buildings.webp'));
  p.startMission();w.rhythmSystem.hideRhythmMode();w.player.allowMovement=true;
- function scene(c,cx,cy){w.gameCamera={centerX:cx,y:cy};w.renderer.zoomLevel=1;c.fillStyle='#111322';c.fillRect(0,0,1920,1080);c.drawImage(bg,0,0,1920,1080);c.save();c.translate(960-cx,-cy);c.drawImage(fg,0,2,fg.width,fg.height-2,-152,-550+2*1589/fg.height,4400,1589-2*1589/fg.height);w.drawGround(c);if(process.env.PLAYTEST_POLISH_REVIEW)w.BARCODE.stageFX.drawWorld(c);w.drawGameEntities(c);if(p.getLiftActorLayer(w.player)!=='behind')w.player.draw(c);c.restore();c.save();c.translate(0,-cy);w.spaceShipSystem.drawForegroundShips(c);c.restore();if(!w.tutorialSystem?.isActive?.()&&!process.env.PLAYTEST_POLISH_REVIEW)w.drawObjectives(c);}
+ function scene(c,cx,cy){w.gameCamera={centerX:cx,y:cy};w.renderer.zoomLevel=1;c.fillStyle='#111322';c.fillRect(0,0,1920,1080);c.drawImage(bg,0,0,1920,1080);c.save();c.translate(960-cx,-cy);c.drawImage(fg,0,2,fg.width,fg.height-2,-152,-550+2*1589/fg.height,4400,1589-2*1589/fg.height);w.drawGround(c);if(process.env.PLAYTEST_POLISH_REVIEW)w.BARCODE.stageFX.drawWorld(c);w.drawGameEntities(c);if(p.getLiftActorLayer(w.player)!=='behind')w.player.draw(c);p.drawSignalLift(c,'front');c.restore();c.save();c.translate(0,-cy);w.spaceShipSystem.drawForegroundShips(c);c.restore();if(!w.tutorialSystem?.isActive?.()&&!process.env.PLAYTEST_POLISH_REVIEW)w.drawObjectives(c);}
  function setHero(x,foot,support){Object.assign(w.player.position,{x,y:foot-72});w.player.velocity.x=0;w.player.velocity.y=0;w.player.grounded=true;w.player.supportedSurfaceId=support||null;w.player.state='idle';w.player.airInput=0;w.player.controlsDisabled=false;w.player.invulnerableUntil=0;w.player.health=w.player.maxHealth;w.player.playAnimation('idle');}
  const canvas=createCanvas(1920,1080),c=canvas.getContext('2d');
+ if(process.env.SMART_PANEL_REVIEW){
+  for(const file of ['src/core/action-input.js','src/core/gamepad-ui.js','src/core/input.js','src/game/tutorial.js'])load(context,file);
+  p.reset();w.hackingSystem=new w.HackingSystem();w.inputManager=new w.InputManager();
+  const t=w.tutorialSystem,h=w.hackingSystem;t.startTutorial();setHero(1000,856);
+  const acknowledge=()=>{if(!t.readyToAdvance)t.handleSpacePress();t.handleSpacePress();};
+  const preview=createCanvas(960,540),pc=preview.getContext('2d');
+  function save(name,cx=960,cy=0){scene(c,cx,cy);w.BARCODE.sceneProjection.capture({getTransform:()=>({a:1,b:0,c:0,d:1,e:0,f:0})});w.drawTacticalFocusCue(c);t.draw(c);w.drawGameUI(c);pc.drawImage(canvas,0,0,960,540);fs.writeFileSync(path.join(out,name+'.webp'),preview.toBuffer('image/webp',90));}
+  t.handleSpacePress();save('01-calm-story');
+  w.player.jump();w.player.update(180,true);t.update(180);save('02-jump-story-hidden',960,-150);
+  setHero(1000,856);save('03-story-resumes');
+  t.startChapter(1);acknowledge();acknowledge();acknowledge();t.update(2100);w.updateEnemies(700);
+  const awning=p.getStageSurfaces().find(s=>s.id==='signal-awning');setHero(1000,awning.y,awning.id);
+  save('04-rooftop-stomp-task',960,-150);
+  w.player.jump();w.player.update(160,true);t.update(160);save('05-airborne-stomp-task',960,-150);
+  t.active=false;t.completed=true;h.reset();p.startMission();p.state='jammer_active';p.closedGateEncounterId=null;p.pendingSpawns=[];w.enemyManager.clear();w.spaceShipSystem.ships=[];
+  w.navigator.getGamepads=()=>[{id:'Sony DualSense',connected:true,mapping:'standard',axes:[0,0],buttons:Array.from({length:17},()=>({pressed:false}))}];w.inputManager.update();
+  for(const side of [1,-1]){
+   h.reset();setHero(960,856);const target=new w.Enemy(960+side*300,784,'firewall');Object.assign(target.position,{x:960+side*300,y:784});Object.assign(target,{entranceComplete:true,_authoredEntranceActive:false,spawnProtectionDuration:0,spawnTimeMs:-10000});target.initSprite();target.playAnimation('idle');w.enemyManager.enemies=[target];
+   if(!h.start())throw new Error('Review must open the real target hack');h.update(h.bootDurationMs+h.displayTime+1);save(side===1?'06-hack-target-right':'07-hack-target-left');
+   if(side===-1){h.inputText=h.currentPuzzle.answer;h.processInput('Enter');save('08-hack-result-clear');}
+  }
+  h.reset();w.enemyManager.clear();
+  for(const state of ['ground','floor','roof','under']){
+   p.resetSignalLift();const lift=p.signalLift;lift.y=lift.prevY=state==='ground'?856:650;
+   const roof=p.getLiftRoof(),foot=state==='roof'?roof.topY:state==='floor'?lift.y:856;
+   setHero(lift.x+lift.w*.17,foot,state==='under'?null:state==='roof'?roof.id:lift.id);
+   const target=new w.Enemy(lift.x+lift.w*.81,foot-72,'firewall');Object.assign(target.position,{x:lift.x+lift.w*.81,y:foot-72});Object.assign(target,{entranceComplete:true,_authoredEntranceActive:false,spawnProtectionDuration:0,spawnTimeMs:-10000});target.initSprite();target.playAnimation('idle');w.enemyManager.enemies=[target];
+   save('lift-'+state,lift.x+lift.w/2,state==='roof'?-80:160);
+  }
+  const storage=new Map();w.localStorage={getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)};
+  for(const file of ['src/game/lore-records.js','src/game/lore-collection.js','src/engine/lore.js','src/game/level-01-stage-fx.js'])load(context,file);
+  w.lostDataSystem.archive=new w.BARCODE.LoreCollection();w.initLore();const stage=w.BARCODE.stageFX,lore=w.loreSystem;
+  function streetFoe(x){const e=new w.Enemy(x,784,'firewall');Object.assign(e.position,{x,y:784});Object.assign(e,{entranceComplete:true,_authoredEntranceActive:false,spawnProtectionDuration:0,spawnTimeMs:-10000});e.initSprite();e.playAnimation('idle');return e;}
+  setHero(1000,awning.y,awning.id);w.enemyManager.enemies=[streetFoe(1200)];lore.displayLoreMessage(w.BARCODE.LoreRecords.preview('lore.l01.01'),'lore.l01.01');lore.update(500);save('09-lore-clear',960,-150);
+  p.state='encounter_3';const detail=stage.details.find(d=>d.id==='egg.l01.cliff-maintenance');setHero(detail.x,detail.y);w.enemyManager.enemies=[streetFoe(detail.x+130)];stage.update(16);if(!stage.inspect().ok)throw new Error('Review must open a real inspection');save('10-inspect-clear',detail.x,-150);
+  w.player.jump();w.player.update(160,true);stage.update(160);lore.update(160);save('11-inspect-play-hidden',detail.x,-150);
+  stage.message=null;lore.reset();h.reset();setHero(960,856);w.enemyManager.enemies=[100,450,700,1220,1580,1810].map(streetFoe);
+  if(!h.start())throw new Error('Review must open crowded hack');h.update(h.bootDurationMs+h.displayTime+1);save('12-hack-crowd-clear');
+  if(calls.errors.length)throw new Error(calls.errors.join('\n'));
+  console.log('Native review: calm/hidden/resumed story, rooftop stomp practice, both hack target sides/result, and front rails over ground/floor/roof/underpass actors.');return;
+ }
  if(process.env.PLAYTEST_POLISH_REVIEW){
   for(const file of ['src/core/action-input.js','src/core/gamepad-ui.js','src/core/input.js','src/game/tutorial.js','src/game/lore-records.js','src/game/lore-collection.js','src/engine/lore.js','src/game/level-01-stage-fx.js'])load(context,file);
   const storage=new Map();w.localStorage={getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)};

@@ -278,6 +278,7 @@ function drawGameElements(ctx) {
   
   // Draw player
   if (window.sector1Progression?.getLiftActorLayer?.(window.player) !== 'behind') drawPlayer(ctx);
+  window.sector1Progression?.drawSignalLift?.(ctx, 'front');
   window.BARCODE?.combatFX?.draw(ctx);
   
   // Restore camera transform

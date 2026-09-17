@@ -100,6 +100,7 @@ for(const fps of [30,60,120]) {
 // Real enemy defeat once, no ally theft, and a border gag in a cleared room.
 for(const target of ['enemy','ally','none']) {
   const {w,p}=rig();p.startMission();p.state='encounter_2';p.closedGateEncounterId=null;
+  w.rhythmSystem.hideRhythmMode();
   const stage=w.BARCODE.stageFX;stage.reset(p);
   Object.assign(w.player.position,{x:stage.ratSpot.x,y:stage.ratSpot.y-72});w.player.grounded=true;w.gameCamera.centerX=stage.ratSpot.x;
   const e=enemy(w,stage.ratSpot.x+20,stage.ratSpot.y-72);if(target==='ally')e._hijackedUntilMs=100000;

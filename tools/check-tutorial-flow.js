@@ -29,12 +29,25 @@ function rig(fps = 60, device = 'keyboard') {
   function tapPad(button) { pad.buttons[button].pressed = true; step(); pad.buttons[button].pressed = false; step(); }
   function pressContinue() { if (device === 'keyboard') tapKey(' '); else tapPad(8); }
   function acknowledge() { if (!t.readyToAdvance) pressContinue(); pressContinue(); }
-  function ground() { w.player.position.y = 784; w.player.velocity.y = 0; w.player.grounded = true; }
+  function ground() { w.player.position.y = 784; w.player.velocity.x = w.player.velocity.y = 0; w.player.grounded = true; }
   function defeat(enemy) { enemy.active = false; enemy.health = 0; w.enemyManager.recordDefeat(enemy); }
   step();
   return { ...r, t, pad, step, advance, key, tapKey, tapPad, acknowledge, pressContinue, ground, defeat, device };
 }
 function main() {
+  {
+    const r=rig(),{t,w}=r;
+    r.tapKey('w');const cursor=t.currentDialogue,typed=t.currentText,index=t.characterIndex;
+    assert.equal(t.getInstructionOwner(),'task','jump replaces unread story with the next compact task');
+    t.update(800);assert.equal(t.currentText,typed);assert.equal(t.characterIndex,index);
+    assert(!t.handleSpacePress());assert.equal(t.currentDialogue,cursor,'hidden story cannot consume Continue');
+    t.checkObjective('movement');assert.equal(t.getInstructionOwner(),'play','no task leaves the playfield clear');
+    r.ground();assert.equal(t.getInstructionOwner(),'dialogue');t.update(100);assert(t.characterIndex>index,'reading resumes at its saved cursor');
+    t.startChapter(4);for(let n=0;n<4;n++)r.acknowledge();r.pressContinue();t.update(0);
+    assert(t.isFinalMessage);const elapsed=t.finalMessageTimer;
+    w.player.grounded=false;t.update(20000);assert(t.active&&t.finalMessageTimer===elapsed,'hidden closing dialogue cannot time out');
+    r.ground();t.update(12000-elapsed);assert(t.completed);
+  }
   {
     const {t} = rig(); const counts = [], speakers = new Set();
     for (let c = 0; c < 5; c++) { t.startChapter(c); counts.push(t.dialogue.length); t.dialogue.forEach(d => speakers.add(d.speaker)); }

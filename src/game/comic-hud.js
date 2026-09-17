@@ -1,11 +1,63 @@
 // Approved illustrated HUD. Draw-only: no timers, contexts or gameplay writes.
 window.FILE_MANIFEST = window.FILE_MANIFEST || [];
-window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.ComicHUD'], dependencies: [] });
+window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.ComicHUD', 'BARCODE.OverlayLayout'], dependencies: [] });
 (function () {
   const B = window.BARCODE = window.BARCODE || {};
   const C = Object.freeze({ ink:'#0b1017', paper:'#eee8d6', green:'#c0ed55', teal:'#70efe0', purple:'#a98ee9', muted:'#a4b7b6', red:'#ed6b4e' });
   const health = Object.freeze({ x:196.25, y:128.75, width:431.25, height:36.25 });
   const lore = Object.freeze({ x:1642.5, y:138.75, width:241.25, height:53.75 });
+  // Screen-space clearance shared by coaching and the terminal. Use the live
+  // world projection, not world X alone: rooftop cameras and zoom move actors.
+  function actorBounds(actor) {
+    const boss=actor && actor===window.sector1Progression?.boss;
+    const position=actor?.position || (boss ? {x:actor.x,y:actor.y} : null);
+    if (!position) return null;
+    const body = (boss ? window.sector1Progression.getBossHitbox?.() : actor.getHitbox?.()) || { x:position.x-40, y:position.y-80, width:80, height:160 };
+    const visual = (boss ? window.sector1Progression.getBossVisualBounds?.() : actor.getVisualBounds?.()) || body, hero = actor === window.player;
+    const left = Math.min(body.x, visual.x) - (hero ? 64 : 32);
+    const top = Math.min(body.y, visual.y) - (hero ? 64 : 28);
+    const right = Math.max(body.x+body.width, visual.x+visual.width) + (hero ? 64 : 32);
+    const bottom = Math.max(body.y+body.height, visual.y+visual.height) + 4;
+    const project = point => B.sceneProjection?.worldToScreen(point) || {
+      x:point.x + 960 - (window.gameCamera?.centerX ?? 960), y:point.y - (window.gameCamera?.y || 0)
+    };
+    const points = [[left,top],[right,top],[left,bottom],[right,bottom]].map(([x,y])=>project({x,y}));
+    const x = Math.min(...points.map(p=>p.x))-18, y = Math.min(...points.map(p=>p.y))-18;
+    return { x,y,width:Math.max(...points.map(p=>p.x))+18-x,height:Math.max(...points.map(p=>p.y))+18-y };
+  }
+  function overlap(a,b) {
+    return Math.max(0,Math.min(a.x+a.width,b.x+b.width)-Math.max(a.x,b.x)) *
+      Math.max(0,Math.min(a.y+a.height,b.y+b.height)-Math.max(a.y,b.y));
+  }
+  function sceneActors(primary=window.player) {
+    const boss=window.sector1Progression?.boss;
+    return [primary,window.player,...(window.enemyManager?.enemies || []).filter(e=>e.active),boss&&!boss.defeated?boss:null];
+  }
+  function isPlayMoment() {
+    const p=window.player;
+    return !!p && !p.isEntering && (p.grounded===false || Math.abs(p.velocity?.x||0)>20 || window.rhythmSystem?.isActive?.());
+  }
+  function isClear(box) { return sceneActors().map(actorBounds).every(b=>!b||!overlap(box,b)); }
+  function placeOverlay(width,height,{actors=sceneActors(),previous=null,scales=[1]}={}) {
+    const bounds = [...new Set(actors)].map(actorBounds).filter(b=>b && b.x<1920 && b.x+b.width>0 && b.y<1080 && b.y+b.height>0);
+    const score = box => bounds.map(b=>overlap(box,b));
+    // Keep a clear location steady while reading or choosing a keypad button.
+    if (previous && previous.width===width*(previous.scale||1) && previous.height===height*(previous.scale||1) && score(previous).every(n=>n===0)) return {...previous,clear:true};
+    let best = null;
+    for (const scale of scales) {
+      const w=width*scale,h=height*scale,maxX=1894-w,maxY=1054-h;
+      const xs=[maxX,26,(1920-w)/2,...bounds.flatMap(b=>[b.x-w-12,b.x+b.width+12])];
+      const ys=[225,maxY,...bounds.flatMap(b=>[b.y-h-12,b.y+b.height+12])];
+      for(const y0 of ys) for(const x0 of xs) {
+        const box={x:Math.max(26,Math.min(maxX,x0)),y:Math.max(225,Math.min(maxY,y0)),width:w,height:h,scale};
+        const hits=score(box),focus=hits[0]||0,total=hits.reduce((a,b)=>a+b,0);
+        if (!total) return {...box,clear:true};
+        if (!best || focus<best.focus || focus===best.focus && total<best.total) best={box,focus,total};
+      }
+    }
+    return {...best.box,clear:false};
+  }
+  B.OverlayLayout=Object.freeze({actorBounds,actors:sceneActors,isClear,isPlayMoment,overlap,place:placeOverlay});
   function polygon(c, points, fill, stroke, width=2) {
     c.beginPath(); points.forEach((p,i)=>i ? c.lineTo(...p) : c.moveTo(...p)); c.closePath();
     c.fillStyle=fill; c.fill(); if(stroke){c.strokeStyle=stroke;c.lineWidth=width;c.stroke();}
@@ -57,7 +109,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
     plate(c,1200,23,310,76,C.paper,C.ink);
     text(c,'SCORE',1220,42,16,C.ink);text(c,String(Math.max(0,score||0)).padStart(6,'0'),1488,64,31,C.ink,700,'right',260);
     plate(c,1314,111,193,43);text(c,'LORE',1330,132,16,C.muted);text(c,`${progress?.collected||0} / ${progress?.total||3}`,1488,132,23,C.paper,600,'right');
-    if(!active && !training && !window.hackingSystem?.isActive?.() && !B.stageFX?.ratEvent){plate(c,26,179,213,36,C.ink,C.muted);text(c,`[${B.ControllerSettings?.prompt('rhythm_mode', 'R') || 'R'}] RHYTHM MODE`,43,197,17);}
+    if(!active && !training && !window.hackingSystem?.isActive?.() && !B.stageFX?.ratEvent && isClear({x:32.5,y:223.75,width:277,height:54})){plate(c,26,179,213,36,C.ink,C.muted);text(c,`[${B.ControllerSettings?.prompt('rhythm_mode', 'R') || 'R'}] RHYTHM MODE`,43,197,17);}
     if(progress?.saved===false) text(c,'ARCHIVE SAVE UNAVAILABLE — KEEP TAB OPEN',26,active?448:312,12,'#ffc68a',600,'left',500);
     if(training) text(c,'DEAD AIR DISTRICT / CREW TRAINING',810,158,16,C.purple,600,'center',530);
     c.restore();
@@ -81,6 +133,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
     const hintTitles = hint ? wrapped(c, (hint.control ? '[' + hint.control + '] ' : '') + hint.title, inner, 28, 700) : [];
     const height = 60 + titles.length * 40 + details.length * 34 + (control ? 68 : 0) + progressLines.length * 32 +
       (hint ? 20 + hintTitles.length * 34 + hintLines.length * 32 : 0);
+    const layout=placeOverlay(width+8,height+8,{previous:{x,y,width:width+8,height:height+8,scale:1}});
+    if(!layout.clear){c.restore();return;}
+    x=layout.x;y=layout.y;
     plate(c, x, y, width, height, C.ink, C.muted);
     text(c, 'OBJECTIVES', x + 24, y + 25, 22, C.green, 700);
     let row = y + 64;
@@ -151,6 +206,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
   }
   function hack(c, notice) {
     if (!notice || !(notice.alpha > 0)) return;
+    if(!isClear({x:731.25,y:193.75,width:304,height:63}))return;
     begin(c); c.globalAlpha *= notice.alpha;
     // Brief notice in the top gap: above the playfield, below a boss readout,
     // and outside the left health/rhythm/Amp stack.

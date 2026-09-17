@@ -68,6 +68,7 @@ for (const [combo, expectedPattern, expectedIndices] of [[0, 'pulse', [0]], [4, 
  const {w,p,context}=rig(),stage=w.BARCODE.stageFX;
  load(context,'src/game/lore-records.js');load(context,'src/engine/lore.js');w.initLore();
  const lore=w.loreSystem;p.state='encounter_2';p.closedGateEncounterId=null;
+ w.rhythmSystem.hideRhythmMode();
  Object.assign(w.player.position,{x:stage.ratSpot.x,y:stage.ratSpot.y-72});w.player.grounded=true;
  lore.displayLoreMessage('A recovered transmission.');lore.update(500);const elapsed=lore.elapsedMs;
  stage.update(16);assert(stage.inspect().ok);const text=[],ctx=new Proxy({globalAlpha:1,fillText:t=>text.push(t),measureText:t=>({width:t.length*10})},{get:(o,k)=>o[k]??(()=>{})});
@@ -77,6 +78,17 @@ for (const [combo, expectedPattern, expectedIndices] of [[0, 'pulse', [0]], [4, 
  assert(text.includes(stage.message.lines[0]));assert(!text.includes('A recovered transmission.'));
  assert(stage.inspect().ok);stage.inspect();text.length=0;lore.update(16);lore.draw(ctx);assert(text.includes('A recovered transmission.'));
  assert.equal(lore.elapsedMs,elapsed+16,'lore resumes its retained reading time');
+ const readTime=lore.elapsedMs;w.player.grounded=false;lore.update(5000);text.length=0;lore.draw(ctx);
+ assert.equal(text.length,0);assert.equal(lore.elapsedMs,readTime,'airborne lore waits without losing reading time');
+ w.player.grounded=true;w.player.velocity.x=150;lore.update(5000);assert.equal(lore.elapsedMs,readTime);
+ w.player.velocity.x=0;lore.update(16);assert.equal(lore.elapsedMs,readTime+16);
+ // A new inspection also waits during action, with no hidden input advance.
+ stage.message={id:'test',speaker:'CACHE BACK',lines:['Keep the enemy visible.','Then keep reading.'],line:0,age:0,duration:7200};
+ w.player.grounded=false;stage.update(4000);assert.equal(stage.message.age,0);assert(!stage.inspect().ok);
+ w.player.grounded=true;stage.update(16);assert.equal(stage.message.age,16);assert(stage.inspect().ok);
+ const foe=enemy(w,0);w.enemyManager.enemies=[foe];w.gameCamera={centerX:foe.position.x,y:foe.position.y-870};
+ const messageBox=stage.getMessageLayout();assert(messageBox.clear);assert.equal(w.BARCODE.OverlayLayout.overlap(messageBox,w.BARCODE.OverlayLayout.actorBounds(foe)),0,'inspection relocates off an enemy at the old bottom box');
+ stage.message=null;const loreBox=lore.getPanelLayout();assert(loreBox.clear);assert.equal(w.BARCODE.OverlayLayout.overlap(loreBox,w.BARCODE.OverlayLayout.actorBounds(foe)),0,'lore also leaves enemies clear');
 }
 
 // Direction, elapsed-time decay, pause, bounded priority, optional camera motion.

@@ -1,13 +1,12 @@
-# Declutter instructions, deepen hack focus and fix dynamic elevator layering
+# Keep tutorial and hack panels clear of play; draw lift front rails over passengers
 
-Playtesting exposed overlapping tutorial/lore/inspect panels, a Studio Rat event hidden by dialogue, blocked deliberate platform drops and cabin artwork covering enemies. This pass addresses those reports together and adds the requested stronger hack presentation.
+The tutorial's bottom task panel hides street enemies when the player jumps onto rooftops. The hack terminal also covers targets on its fixed right side, and the elevator's complete image behind passengers makes them overlap its front rails.
 
-- Alternate tutorial dialogue and one concise action prompt; keep mapped Continue instructions in the dialogue. The terminal owns its instructions and result feedback.
-- Let the Studio Rat action finish, then show inspection and resume queued lore without spending hidden reading time.
-- Deepen hostile slowdown from 40% to a 35% average with a gentle pulse, complete-body enemy afterimages and cyan/violet tracers; preserve independent control, puzzle, ally and lift clocks.
-- Allow deliberate Down + Jump through all standable supports, including solid awnings and the elevator roof. Preserve lower landings, full-body clearance and normal solidity.
-- Share dynamic floor-relative elevator layers between hero/enemies/boss: ground walk-on and passengers in front, actors beneath a raised cabin behind its moving front, stationary drive behind everybody.
+- Use one compact tutorial task card that avoids actors. Hide large dialogue during movement, jumps and Rhythm Combat, preserving unread text, Continue ownership and closing time.
+- Extend clear placement and preserved reading time to lore and inspection; make objectives and transient prompts yield to active reading.
+- Position the hack terminal/result using projected target, player and other enemy bounds. Use a short six-column keypad when the side layout would hide action. Keep clear placement steady, compact only when needed, and align keypad/Cancel pointer regions with the actual panel.
+- Split the existing elevator image into rear and front draw regions so passengers sit behind front rails. Preserve rooftop and below-floor depth, one actor draw and existing movement/collision/power rules.
 
-Validation: required local suite/syntax results and exact revision are recorded in the generated receipt. Existing production tests cover tutorial/devices, cat/inspection/lore timing, real dilation and trail lifecycle, every support descent and shared lift render order. Native captures and a six-second hack video use bundled production art. No new art source or dependency.
+Validation: required full local suite and all-JavaScript syntax; targeted production checks cover hidden tutorial state, 24 camera/zoom/target cases with moved pointer controls, and lift draw ordering/support. Sixteen inspected native stills use existing bundled art. Exact revision, CI and limits are recorded in the source receipt.
 
-Owner Makko and physical-controller acceptance remain pending. One combined draft; preserve the recovered PR #76 story/art/gameplay and existing five-second lift power.
+Base/rollback: merged #77, `78f67f4750a2d12f8a2063c895d06d5b9952d700`. No dependencies or image replacements. Owner Makko and physical-controller acceptance remain pending before assistant merge.
