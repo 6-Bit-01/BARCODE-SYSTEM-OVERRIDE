@@ -215,7 +215,7 @@ window.drawGameUI = function(ctx) {
   const hp = window.BARCODE.ComicHUD.health;
   window.BARCODE?.combatFX?.drawDamageHUD(ctx, window.player, hp.x, hp.y, hp.width, hp.height);
   window.BARCODE?.combatFX?.drawAmpHUD(ctx);
-  if (!bossCinematicActive && !window.gameState.gameOver && !window.gameState.victory && !window.BARCODE?.stageFX?.ratEvent) window.BARCODE.ComicHUD.hack(ctx, window.hackingSystem?.getReadyPopup?.());
+  if (!bossCinematicActive && !window.gameState.gameOver && !window.gameState.victory && !window.BARCODE?.stageFX?.ratEvent && !window.tutorialSystem?.isActive?.()) window.BARCODE.ComicHUD.hack(ctx, window.hackingSystem?.getReadyPopup?.());
   
   // Draw objectives after tutorial completion
   if (tutorialCompleted && !bossCinematicActive && !['boss_ready', 'boss_combat', 'level_complete'].includes(window.sector1Progression?.state)) {
