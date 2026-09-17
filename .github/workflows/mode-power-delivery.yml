@@ -1,0 +1,111 @@
+name: mode-power-delivery
+on:
+  push:
+    branches: [agent/hack-rhythm-power]
+permissions:
+  contents: write
+concurrency:
+  group: mode-power-delivery
+  cancel-in-progress: false
+jobs:
+  deliver:
+    if: contains(github.event.head_commit.message, 'Stage verified mode-power delivery')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      EXPECTED_BASE: 62b44f7cf5446b38bec18746411587327cedb142
+      EXPECTED_TREE: 56fd085c68f42a579ff86436cc84056f15033be0
+      EXPECTED_PATCH: 95a35f61617f8b7e1747bbe927d717aed6b6d8ae39dcbcfdaa598218896ba9f6
+      CHROME_BIN: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Restore exact locally tested tree
+        run: |
+          test "$(git rev-parse HEAD^)" = "$EXPECTED_BASE"
+          python3 - <<'PY'
+          import gzip, hashlib, os
+          from pathlib import Path
+          parts = [Path('.mode-power-delivery/part-' + str(i)).read_bytes() for i in range(3)]
+          patch = gzip.decompress(b''.join(parts))
+          assert hashlib.sha256(patch).hexdigest() == os.environ['EXPECTED_PATCH']
+          Path(os.environ['RUNNER_TEMP'], 'mode-power.patch').write_bytes(patch)
+          PY
+          git apply --unidiff-zero --check "$RUNNER_TEMP/mode-power.patch"
+          git apply --unidiff-zero "$RUNNER_TEMP/mode-power.patch"
+          git rm -r .mode-power-delivery .github/workflows/mode-power-delivery.yml
+          git add -A
+          git diff --cached --check
+          test "$(git write-tree)" = "$EXPECTED_TREE"
+      - run: npm ci
+      - run: npm test
+      - run: npm run check:syntax:all
+      - name: Render actual power SFX
+        env:
+          MODE_POWER_BROWSER_OUTPUT: ${{ runner.temp }}/mode-power-evidence/audio
+        run: node tools/check-mode-power-browser.cjs
+      - name: Check controlled music render
+        env:
+          MUSIC_BROWSER_OUTPUT: ${{ runner.temp }}/mode-power-evidence/music-controlled
+        run: node tools/check-music-audibility.cjs
+      - name: Check original music render
+        env:
+          MUSIC_FETCH_ASSETS: '1'
+          MUSIC_BROWSER_OUTPUT: ${{ runner.temp }}/mode-power-evidence/music-original
+        run: node tools/check-music-audibility.cjs
+      - name: Install optional native render tool outside the game
+        run: npm install --prefix "$RUNNER_TEMP/mode-power-canvas" --no-audit --no-fund @napi-rs/canvas
+      - name: Render production power layouts
+        env:
+          CODEX_PRIMARY_RUNTIME_NODE_MODULES: ${{ runner.temp }}/mode-power-canvas/node_modules
+        run: node tools/render-mode-power.cjs "$RUNNER_TEMP/mode-power-evidence/layouts"
+      - name: Publish exact tested tree on the review branch only
+        run: |
+          test "$(git write-tree)" = "$EXPECTED_TREE"
+          test "$(git ls-remote origin refs/heads/agent/hack-rhythm-power | cut -f1)" = "$GITHUB_SHA"
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Give hacking and rhythm distinct power animation, effects and sound'
+          test "$(git rev-parse HEAD^{tree})" = "$EXPECTED_TREE"
+          git push origin HEAD:refs/heads/agent/hack-rhythm-power
+          echo "PUBLISHED_REVISION=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+      - name: Export exact published v5 source pack
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          receipt = {
+            'revision': os.environ['PUBLISHED_REVISION'],
+            'tree': os.environ['EXPECTED_TREE'],
+            'verifiedMainBase': os.environ['EXPECTED_BASE'],
+            'localTestedCommit': 'bc1c8785d11bcc24352a51e739c0afab8d97f490',
+            'automatedTests': {
+              'npm test': 'passed',
+              'npm run check:syntax:all': 'passed',
+              'node tools/check-mode-power-browser.cjs': 'passed',
+              'node tools/check-music-audibility.cjs': 'passed (controlled and original MP3s)',
+              'node tools/render-mode-power.cjs': 'passed (native Canvas with explicit Makko adapters)'
+            },
+            'makkoPlaytest': 'not recorded; hosted listening and physical-controller acceptance pending',
+            'workflowRun': os.environ['GITHUB_SERVER_URL'] + '/' + os.environ['GITHUB_REPOSITORY'] + '/actions/runs/' + os.environ['GITHUB_RUN_ID']
+          }
+          Path(os.environ['RUNNER_TEMP'], 'mode-power-evidence', 'test-evidence.json').write_text(json.dumps(receipt, indent=2) + '\n')
+          PY
+          python3 tools/build-source-pack.py --revision "$PUBLISHED_REVISION" --base "$EXPECTED_BASE" --state review --validation-file "$RUNNER_TEMP/mode-power-evidence/test-evidence.json" --output "$RUNNER_TEMP/BARCODE-System-Override-Source-Pack-v5.zip"
+      - name: Upload exact source pack
+        uses: actions/upload-artifact@v4
+        with:
+          name: mode-power-source-pack-${{ github.run_id }}
+          path: ${{ runner.temp }}/BARCODE-System-Override-Source-Pack-v5.zip
+          compression-level: 0
+          if-no-files-found: error
+      - name: Upload verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mode-power-evidence-${{ github.run_id }}
+          path: ${{ runner.temp }}/mode-power-evidence
+          if-no-files-found: ignore
