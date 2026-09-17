@@ -44,17 +44,18 @@ assert(r2.readable&&!r2.moving,'reduced motion relocates directly without a glid
  assert(t.getDialogueLayout().readable);assert.equal(t.currentText,full);
  t.startTutorial();assert.equal(Object.keys(t._overlayPanels).length,0,'restart discards layout state');
 }
-// Terminal's in-flight keys never submit from their previous location.
+// Active hacking reserves solid controls; crowds cannot erase or disable them.
 {
- const r=createRig(),{w,context}=r;load(context,'src/game/hacking.js');const h=new w.HackingSystem();
+ const r=createRig(),{w,context}=r;load(context,'src/game/hacking.js');const h=w.hackingSystem=new w.HackingSystem();
  w.tutorialSystem.active=true;w.tutorialSystem.storyChapter=3;w.tutorialSystem.completed=false;w.tutorialSystem.completedObjectives=new Set();
  w.player.grounded=true;assert(h.start());h.update(h.bootDurationMs+h.displayTime+1);assert.equal(h.phase,'answer');
  const layout=h.getPanelLayout(),elapsed=h.phaseElapsedMs;h.panelLayout=layout;
- w.enemyManager.enemies=[Object.assign(actor(layout.x+100+(w.gameCamera.centerX-960),layout.y+20,200,300),{active:true})];
- h.panelLayout=h.getPanelLayout();assert(h.panelLayout.moving);
+ w.enemyManager.enemies=[Object.assign(actor(0,0,8000,3000),{active:true})];
+ assert.deepEqual(h.getPanelLayout(),layout);assert(layout.readable&&layout.alpha===1&&!layout.moving&&!layout.cutouts.length);
  w.document.getElementById=()=>({getBoundingClientRect:()=>({left:0,top:0,width:1920,height:1080})});
- const key=h.getKeypad().find(k=>k.key==='1');assert(!h.pointerInput({clientX:key.x+10,clientY:key.y+10}));
- h.update(1000);assert.equal(h.phaseElapsedMs,elapsed,'unreadable scan/input never spends the deadline');
- assert(h.processInput('Escape'));assert(!h.active,'cancel still works in transit');
+ const key=h.getKeypad().find(k=>k.key==='1');assert(h.pointerInput({clientX:key.x+10,clientY:key.y+10}));assert.equal(h.inputText,'1');
+ h.update(100);assert(h.phaseElapsedMs>elapsed,'visible usable puzzle keeps its clock');
+ assert(h.getSceneViewport().x+h.getSceneViewport().width<layout.x,'live action and controls have separate space');
+ assert(h.processInput('Escape'));assert(!h.active);assert.equal(h.getSceneViewport(),null);
 }
-console.log('Smart box motion: movement readability, real glide/dissolve, actor cutouts, stable parking, crowd dock/recovery, reduced motion, retained dialogue, reset and safe moving keypad passed.');
+console.log('Smart boxes: original dialogue glide/cutouts/crowd recovery and retained reading; solid, stable, usable hack controls under crowding passed.');

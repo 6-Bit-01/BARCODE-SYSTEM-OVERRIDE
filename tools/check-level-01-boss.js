@@ -111,6 +111,11 @@ function createRig() {
     w.player.position.y = w.Player.GROUND_Y; w.player.grounded = true;
     w.gameCamera.centerX = w.clamp(w.player.position.x, 960, 3136);
     for (let i = 0; i < 16; i++) {
+      if(jammer.getStatus().surge) {
+        const x=w.player.position.x;w.player.position.x+=400;
+        for(let ms=0;ms<3000;ms+=25){jammer.update(25);tick(25);}
+        w.player.position.x=x;
+      }
       const hit = beat();
       assert(hit.targets.some(target => target.type === 'broadcast_jammer'));
       assert.strictEqual(hit.reason, 'hit', 'Jammer-only successful rhythm attack reports a hit');
@@ -229,6 +234,7 @@ async function main() {
     let hits = 0;
     w.particleSystem.impact = () => { hits++; };
     for (let i = 1; i <= 16; i++) {
+      if(env.getStatus().surge){const x=w.player.position.x;w.player.position.x+=400;env.update(2200);w.player.position.x=x;}
       env.applyRhythmDamage({ timing: 'perfect', sequence: i });
       if (i % 4 === 0) stages.push(env.getStatus().stage.index);
       const health = env.getStatus().health;

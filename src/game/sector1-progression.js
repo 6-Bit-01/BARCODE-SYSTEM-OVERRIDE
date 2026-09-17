@@ -550,7 +550,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         hitSequences: new Set(), pulses: [], pulseSequence: 0, hitFlashMs: 0, guardBounceMs: 0, defeated: false,
         supportedSurfaceId: null, chaseSurfaceId: 'street', clearanceTarget: null, streetApproachLimit: null,
         traversal: null, roofFallVelocity: null, landingPoseMs: 0, routeRecovery: false,
-        attackPattern: 'pulse', slam: null, recoveryBeatWait: null, recoveryBeats: 0 });
+        attackPattern: 'pulse', slam: null, recoveryBeatWait: null, recoveryBeats: 0,
+        supportWaves:0,supportWaitMs:0 });
       this.setBossAnimation('sector_1_boss_idle_idle', true);
       this.bossReadyEmitted = true;
       this.cameraOverrideActive = false;
@@ -877,6 +878,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     }
     updateBossCombat(deltaTime) {
       if (!this.isBossCombatLive()) return;
+      this.updateBossSupport(deltaTime);
       const boss = this.boss, motion = this.captureRoofActor(boss);
       if (boss.supportedSurfaceId === 'signal-lift-roof' && !this.isRoofRider(boss)) {
         boss.supportedSurfaceId = null; boss.roofFallVelocity = 0;
@@ -895,6 +897,26 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         this.updateBossSprite(deltaTime);
       } else this.advanceBossCombat(deltaTime);
       this.resolveLiftActor(boss, motion);
+    }
+    spawnSupportDrone(owner, side=1) {
+      if(!window.RooftopDrone || !window.enemyManager || !this.player)return null;
+      const x=Math.max(100,Math.min(WORLD_WIDTH-100,this.player.position.x+side*470));
+      const y=Math.max(130,this.player.position.y-155);
+      const drone=new window.RooftopDrone(x,y,{x:0,w:WORLD_WIDTH},null,{owner,side});
+      drone.spawnTimeMs=window.enemyManager.hostileSimulationTimeMs || 0;
+      window.enemyManager.enemies.push(drone);return drone;
+    }
+    updateBossSupport(delta) {
+      const boss=this.boss,choice=window.BARCODE?.LevelDifficulty?.choice?.id || 'standard';
+      const relaxed=choice==='relaxed';
+      if(boss.health>(relaxed?4:6))return;
+      boss.supportWaitMs=Math.max(0,(boss.supportWaitMs||0)-delta);
+      const cap=relaxed?1:2,alive=(window.enemyManager?.enemies||[]).filter(e=>e.active&&e._bossSupport).length;
+      const waves=relaxed?2:choice==='overclocked'?4:3;
+      if(alive>=cap || boss.supportWaitMs>0 || boss.supportWaves>=waves || boss.phase!=='approach')return;
+      const side=boss.supportWaves%2===0?-1:1;
+      this.spawnSupportDrone('boss',side);boss.supportWaves++;boss.supportWaitMs=relaxed?18000:12000;
+      window.audioSystem?.playCombatCue?.('warning');
     }
     advanceBossCombat(deltaTime) {
       if (!this.isBossCombatLive()) return;
@@ -1055,6 +1077,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       this.boss.canReceiveDamage = false;
       this.boss.pulses = [];
       this.boss.phase = 'defeated';
+      for(const enemy of window.enemyManager?.enemies || [])if(enemy._bossSupport){enemy.active=false;enemy._disposed=true;enemy.pulse=null;}
       window.renderer?.impact?.('victory');
       window.BARCODE?.stageFX?.event('victory', this.boss.x, { duration: 1400 });
       window.BARCODE?.combatFX?.contact('firewall', this.boss.x, this.boss.y, -1, true, true);
@@ -1104,6 +1127,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       });
     }
     canRetryBossCheckpoint() {
+      if(window.gameState?.gameOver && window.BARCODE?.Campaign?.run?.recoveryMode==='full-run')return false;
       const runtimeState = window.BARCODE?.RuntimeLifecycle?.getState?.();
       return !!(this.bossCheckpoint && this.boss && (window.gameState?.gameOver || window.gameState?.victory) &&
         (!runtimeState || runtimeState === 'running') && !window.isPaused && !window.gameState?.paused);
@@ -1153,7 +1177,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       difficulty.beginLevel('level-01');
       const selection = difficulty.profile().choices.findIndex(c => c.id === state.difficultyId);
       if (selection < 0) return false;
-      difficulty.select(selection); difficulty.confirm();
+      difficulty.select(selection); difficulty.setRecovery(state.run?.recoveryMode || 'checkpoints'); difficulty.confirm();
       window.tutorialSystem?.cancelPendingTimers?.();
       if (window.tutorialSystem) { window.tutorialSystem.active = false; window.tutorialSystem.completed = true; }
       this.startMission();

@@ -1,5 +1,11 @@
 # Repository Guidance
 
+## September 17, 2026 — final Level 1 playtest follow-up
+
+The owner's new request authorizes a stable visible hack panel with live enemies, title settings and pause fullscreen, explicit settings/recovery rules, stronger varied boss support and jammer phases, and a gentle return to proven dialogue/objective positions. Base/rollback is merged #84, `bbd95ba821b99a1268e1dc563d7027fdbf12dc08`; branch `agent/level1-final-playtest`. Read FINAL_PLAYTEST_PASS.md and the newest ACCEPTANCE route.
+
+Active hacking now owns an opaque fixed panel beside one scaled live scene. Earlier moving/cutout terminal requirements are superseded for active hacking only. Preserve working dialogue movement; learned homes are a bounded opt-in preference, not a replacement solver. Preserve music source/transport/judgment sync. Settings use the existing input/frame owners. Difficulty/recovery lock per level; objective recovery is the default, Full Run earns +500 clear points. Both modes save objective boundaries. Death must persist before reopening and must not duplicate points. Boss/relay escorts reuse smaller recolored rooftop art, have finite warned shots/population, keep hack/stomp counters and award no farm points. Publish one tested draft and refresh canonical v5. Existing owner Makko/physical-controller acceptance is still required before assistant merge.
+
 ## September 17, 2026 — control alignment and finishing
 
 The owner requests a pass aligning controls on their black squares plus remaining discussed polish/optimization. Base/rollback is merged #83, `c5be7a9ac1c2a1ef6609ce69e5714a5c9f8b2698`; branch `agent/control-polish-optimization`. Read `CONTROL_POLISH_PASS.md` and the newest ACCEPTANCE route.

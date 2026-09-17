@@ -4,7 +4,7 @@ window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.Preferences', 'BARCODE.PauseMenu'], dependencies: ['BARCODE.LoreRecords'] });
 (function() {
   const BARCODE = window.BARCODE = window.BARCODE || {};
-  const defaults = Object.freeze({ music: 1, sfx: 1, dynamicMusic: true, screenShake: true, flashes: true, crtPostEffects: true, instantText: false, inputOffsetMs: 0, visualOffsetMs: 0 });
+  const defaults = Object.freeze({ music: 1, sfx: 1, dynamicMusic: true, screenShake: true, flashes: true, crtPostEffects: true, reducedMotion: false, instantText: false, inputOffsetMs: 0, visualOffsetMs: 0 });
   const normalize = (key, value) => key.endsWith('OffsetMs') ? Math.round(Math.max(-200, Math.min(200, value))) : Math.round(Math.max(0, Math.min(1, value)) * 100) / 100;
   const storageKey = 'barcode.presentation.v1';
   const preferences = BARCODE.Preferences = {
@@ -47,14 +47,47 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
   const rows = [
     ['music', 'Music'], ['sfx', 'SFX'], ['dynamicMusic', 'Dynamic music'], ['screenShake', 'Screen shake'],
     ['flashes', 'Flash accents'], ['crtPostEffects', 'CRT effect'],
-    ['instantText', 'Instant dialogue'], ['crew', 'Recent crew dialogue'], ['timing', 'Timing calibration'], ['archive', 'Lore archive'], ['resume', 'Resume game'], ['defaults', 'Reset settings'], ['controller', 'Controller settings']
+    ['instantText', 'Instant dialogue'], ['crew', 'Recent crew dialogue'], ['timing', 'Timing calibration'], ['archive', 'Lore archive'], ['resume', 'Resume game'], ['defaults', 'Reset settings'], ['controller', 'Controller settings'], ['reducedMotion', 'Reduced motion'], ['fullscreen', 'Fullscreen']
   ];
-  const rowTop = 331, rowStep = 44;
+  const rowTop = 331, rowStep = 38;
   const menu = BARCODE.PauseMenu = {
     open: false, dirty: false, focus: 0, drag: null, heldKeys: new Set(), snapshot: null, resumePending: false, message: '',
     captureAction: null, captureReady: false, controllerFocus: 0,
     view: 'settings', archiveFocus: 0, archiveIndex: 0, timingFocus: 0,
-    isPaused() { return !!(window.isPaused || window.gameState?.paused); },
+    titleOpen: false, titleCanvas: null, fullscreenPending: false,
+    isPaused() { return this.titleOpen || !!(window.isPaused || window.gameState?.paused); },
+    canvas() { return this.titleOpen ? this.titleCanvas : document.getElementById('gameCanvas'); },
+    openTitle() {
+      if (window.cutsceneSystem?.isActive || document.getElementById('startOverlay')?.classList.contains('hidden')) return false;
+      if (!this.titleCanvas) {
+        this.titleCanvas=document.createElement('canvas');this.titleCanvas.width=1920;this.titleCanvas.height=1080;
+        this.titleContext=this.titleCanvas.getContext('2d');
+        this.titleCanvas.id='titleSettingsCanvas';this.titleCanvas.tabIndex=0;
+        this.titleCanvas.setAttribute('aria-label','Game settings. Arrow keys select; Enter changes; Escape returns.');
+        this.titleCanvas.style.cssText='position:fixed;z-index:20000;inset:0;margin:auto;width:min(100vw,177.7778vh);height:min(100vh,56.25vw);background:#07121e;';
+        document.body.appendChild(this.titleCanvas);
+      }
+      this.titleOpen=true;this.titleCanvas.hidden=false;this.sync();this.focus=0;this.titleCanvas.focus();this.render();return true;
+    },
+    closeTitle() {
+      this.titleOpen=false;if(this.titleCanvas)this.titleCanvas.hidden=true;
+      this.open=false;this.drag=null;this.captureAction=null;this.heldKeys.clear();
+      window.inputManager?.resetActionEdges?.();document.getElementById('settingsButton')?.focus?.();
+    },
+    async toggleFullscreen() {
+      if(this.fullscreenPending)return;
+      const manager=window.fullscreenManager;
+      if(!manager?.isSupported){this.message='Fullscreen is unavailable in this browser or embed.';this.dirty=true;return;}
+      this.fullscreenPending=true;
+      try {
+        const wanted=!manager.isActive;
+        await manager.toggle();
+        // The native promise may settle before fullscreenchange is delivered.
+        manager.handleFullscreenChange?.();
+        this.message=manager.isActive===wanted?'':'Use a click or keyboard press; the host may block fullscreen.';
+      } catch (_) {this.message='Fullscreen was blocked. Try the button in the game’s own tab.';}
+      finally {this.fullscreenPending=false;this.dirty=true;}
+    },
     sync() {
       const paused = this.isPaused();
       if (paused === this.open) return;
@@ -62,7 +95,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       window.inputManager?.resetActionEdges?.();
       if (paused) {
         this.focus = rows.findIndex(row => row[0] === 'resume');
-        const canvas = document.getElementById('gameCanvas');
+        const canvas = this.titleOpen ? null : document.getElementById('gameCanvas');
         if (canvas && document.createElement) {
           this.snapshot ||= document.createElement('canvas');
           this.snapshot.width = canvas.width; this.snapshot.height = canvas.height;
@@ -71,6 +104,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       }
     },
     async resume() {
+      if(this.titleOpen){this.closeTitle();return;}
       if (this.resumePending || !this.isPaused()) return;
       this.resumePending = true;
       try {
@@ -81,6 +115,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
     },
     activate(direction = 1) {
       const key = rows[this.focus][0];
+      if (key === 'fullscreen') { this.toggleFullscreen(); return; }
       if (key === 'controller') { this.view = 'controller'; this.controllerFocus = 0; this.captureAction = null; this.dirty = true; return; }
       if (key === 'resume') { this.resume(); return; }
       if (key === 'archive') { this.openArchive(); return; }
@@ -92,7 +127,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       this.dirty = true;
     },
     archiveState() {
-      const collection = window.lostDataSystem?.archive;
+      const collection = window.lostDataSystem?.archive || BARCODE.Campaign?.archive?.();
       const ids = new Set(collection?.getIds?.() || []);
       // Unrecovered entries expose neither their titles nor any story content.
       const records = BARCODE.LoreRecords.level1.map(record => ids.has(record.id) ? record : null);
@@ -179,7 +214,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       if (!this.open) return false;
       event.preventDefault?.();
       if (phase === 'up') { this.drag = null; return true; }
-      const canvas = document.getElementById('gameCanvas'), rect = canvas?.getBoundingClientRect?.();
+      const canvas = this.canvas(), rect = canvas?.getBoundingClientRect?.();
       if (!rect?.width || !rect?.height) return true;
       const x = (event.clientX - rect.left) * 1920 / rect.width, y = (event.clientY - rect.top) * 1080 / rect.height;
       if (this.view === 'controller') {
@@ -215,7 +250,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       }
       if (phase === 'down') {
         const index = Math.floor((y - rowTop) / rowStep);
-        if (x < 1020 || x > 1500 || index < 0 || index >= rows.length || y > rowTop + index * rowStep + 44) return true;
+        if (x < 1020 || x > 1500 || index < 0 || index >= rows.length || y > rowTop + index * rowStep + rowStep) return true;
         this.focus = index; this.dirty = true;
         if (index < 2) this.drag = index; else this.activate();
       }
@@ -225,10 +260,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
     render() {
       this.sync();
       if (!this.open || !this.dirty) return;
-      const canvas = document.getElementById('gameCanvas'), ctx = canvas?.getContext('2d');
+      const canvas = this.canvas(), ctx = this.titleOpen ? this.titleContext : canvas?.getContext('2d');
       if (!ctx) return;
       ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
-      if (this.snapshot) ctx.drawImage(this.snapshot, 0, 0); else { ctx.fillStyle = '#081321'; ctx.fillRect(0, 0, 1920, 1080); }
+      if (this.snapshot && !this.titleOpen) ctx.drawImage(this.snapshot, 0, 0); else { ctx.fillStyle = '#081321'; ctx.fillRect(0, 0, 1920, 1080); }
       this.draw(ctx); ctx.restore(); this.dirty = false;
     },
     closeController() { this.view = 'settings'; this.focus = rows.findIndex(row => row[0] === 'controller'); this.captureAction = null; this.dirty = true; },
@@ -255,7 +290,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       const c = BARCODE.ControllerSettings;
       text('CONTROLLER SETTINGS', 440, 248, 38, '#a0ffe4');
       text(BARCODE.GamepadUI?.unsupported ? 'Controller not recognized. Try another connection or browser.' : BARCODE.GamepadUI?.connected ? 'Controller connected' : 'Connect a controller and press a button.', 440, 307, 20, '#cfa2ff');
-      const labels = ['Stick deadzone', 'Button prompts', 'Vibration', 'Jump', 'Beat attack', 'Hack', 'Rhythm Mode', 'Inspect / collect', 'Reset controller defaults', 'Back to pause'];
+      const labels = ['Stick deadzone', 'Button prompts', 'Vibration', 'Jump', 'Beat attack', 'Hack', 'Rhythm Mode', 'Inspect / collect', 'Reset controller defaults', this.titleOpen ? 'Back to settings' : 'Back to pause'];
       const actions = ['jump', 'primary', 'interact', 'rhythm_mode', 'inspect'];
       labels.forEach((label, i) => {
         const y = 350 + i * 46;
@@ -286,7 +321,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       text('TIMING CALIBRATION', 440, 250, 42, '#a0ffe4');
       text('Use small steps, then test on the beat in Rhythm Mode.', 440, 320, 23);
       text('Audio keeps its original timing. Scoring windows stay the same.', 440, 360, 21, '#cfa2ff');
-      ['Input compensation', 'Visual beat delay', 'Reset timing to zero', 'Test in play / Resume', 'Back to pause'].forEach((label, index) => {
+      ['Input compensation', 'Visual beat delay', 'Reset timing to zero', this.titleOpen ? 'Back to title' : 'Test in play / Resume', this.titleOpen ? 'Back to settings' : 'Back to pause'].forEach((label, index) => {
         const y = 430 + index * 86;
         ctx.fillStyle = index === this.timingFocus ? '#16394b' : '#0d2032'; ctx.fillRect(440, y, 1040, 62);
         if (index === this.timingFocus) { ctx.strokeStyle = '#94ffe3'; ctx.strokeRect(440, y, 1040, 62); }
@@ -331,7 +366,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
         text('Recover this fragment to read its contents.', 902, 466, 20);
         text('Found records remain here across level runs.', 902, 510, 20, '#cfa2ff');
       }
-      ['Back to pause', 'Resume game'].forEach((label, index) => {
+      [this.titleOpen ? 'Back to settings' : 'Back to pause', this.titleOpen ? 'Back to title' : 'Resume game'].forEach((label, index) => {
         const y = 746 + index * 74, selected = this.archiveFocus === records.length + index;
         ctx.fillStyle = selected ? '#16394b' : '#0d2032'; ctx.fillRect(420, y, 420, 56);
         if (selected) { ctx.strokeStyle = '#94ffe3'; ctx.strokeRect(420, y, 420, 56); }
@@ -349,8 +384,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
     draw(ctx) {
       ctx.save(); ctx.globalAlpha = 1; ctx.shadowBlur = 0;
       ctx.fillStyle = 'rgba(2,8,18,0.8)'; ctx.fillRect(0, 0, 1920, 1080);
-      ctx.fillStyle = '#0a1827'; ctx.fillRect(380, 180, 1160, 765);
-      ctx.strokeStyle = '#74f7d2'; ctx.lineWidth = 2; ctx.strokeRect(380, 180, 1160, 765);
+      ctx.fillStyle = '#0a1827'; ctx.fillRect(380, 180, 1160, 830);
+      ctx.strokeStyle = '#74f7d2'; ctx.lineWidth = 2; ctx.strokeRect(380, 180, 1160, 830);
       const text = (value, x, y, size = 22, color = '#d4dfec') => { ctx.font = `${size}px monospace`; ctx.fillStyle = color; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(value, x, y); };
       if (this.view === 'crew') {
         text('RECENT CREW DIALOGUE',440,250,38,'#a0ffe4');
@@ -368,28 +403,32 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       if (this.view === 'controller') { this.drawController(ctx, text); ctx.restore(); return; }
       if (this.view === 'archive') { this.drawArchive(ctx, text); ctx.restore(); return; }
       if (this.view === 'timing') { this.drawTiming(ctx, text); ctx.restore(); return; }
-      text('PAUSED', 440, 250, 46, '#a0ffe4');
-      text('Take a breath. Keep your signal.', 440, 307, 22);
+      text(this.titleOpen ? 'GAME SETTINGS' : 'PAUSED', 440, 250, 46, '#a0ffe4');
+      text(this.titleOpen ? 'Set up your signal before you start.' : 'Take a breath. Keep your signal.', 440, 307, 22);
       text('CONTROLS', 440, 392, 24, '#cfa2ff');
       const controls = BARCODE.GamepadUI?.connected ? ['Stick / D-pad: Move', `${BARCODE.ControllerSettings.prompt('jump')}: Jump / Down + Jump: Drop`, `${BARCODE.ControllerSettings.prompt('rhythm_mode')}: Rhythm Mode`, `${BARCODE.ControllerSettings.prompt('primary')}: Beat attack`, `${BARCODE.ControllerSettings.prompt('interact')}: Hack`, `${BARCODE.ControllerSettings.button(9)}: Pause / Settings`] : ['A / D or Left / Right: Move', 'Space / W / Up: Jump; Down + Jump: Drop', 'R: Enter Rhythm Mode', 'Down: Attack on the beat', 'H: Hack when unlocked', 'P: Pause'];
       controls.forEach((line, i) => text(line, 440, 448 + i * 46, 21));
       text('RHYTHM MODE HOLDS YOUR STANCE', 440, 772, 20, '#a0ffe4');
       text(BARCODE.GamepadUI?.connected ? `${BARCODE.ControllerSettings.button(1)} exits so you can move.` : 'R or Escape exits so you can move.', 440, 810, 20);
+      const d=BARCODE.LevelDifficulty;
+      text(d?.locked ? `LEVEL RULES: ${d.choice?.label} / ${d.recoveryMode==='full-run'?'FULL RUN':'CHECKPOINTS'}` : 'Difficulty + recovery: choose at level start.',440,855,18,'#cfa2ff');
+      text('Audio, visuals and controls can change anytime.',440,886,18,'#a0ffe4');
       rows.forEach(([key, label], index) => {
         const y = rowTop + index * rowStep, selected = index === this.focus;
-        ctx.fillStyle = selected ? '#16394b' : '#0d2032'; ctx.fillRect(1020, y, 480, 44);
-        if (selected) { ctx.strokeStyle = '#94ffe3'; ctx.strokeRect(1020, y, 480, 44); }
-        text(label, 1038, y + 26, 20);
+        ctx.fillStyle = selected ? '#16394b' : '#0d2032'; ctx.fillRect(1020, y, 480, rowStep);
+        if (selected) { ctx.strokeStyle = '#94ffe3'; ctx.strokeRect(1020, y, 480, rowStep); }
+        text(key==='resume'&&this.titleOpen?'Back to title':label, 1038, y + 20, 20);
         if (index < 2) {
-          ctx.fillStyle = '#334358'; ctx.fillRect(1260, y + 22, 190, 8);
-          ctx.fillStyle = '#94ffe3'; ctx.fillRect(1260, y + 22, 190 * preferences.values[key], 8);
-          ctx.fillRect(1257 + 190 * preferences.values[key], y + 15, 6, 22);
-          text(`${Math.round(preferences.values[key] * 100)}`, 1460, y + 26, 17);
-        } else if (typeof defaults[key] === 'boolean') text(preferences.values[key] ? 'ON' : 'OFF', 1438, y + 26, 20, preferences.values[key] ? '#94ffe3' : '#b3a1c7');
-        else if (key === 'archive') text('L', 1460, y + 26, 20, '#cfa2ff');
+          ctx.fillStyle = '#334358'; ctx.fillRect(1260, y + 17, 190, 8);
+          ctx.fillStyle = '#94ffe3'; ctx.fillRect(1260, y + 17, 190 * preferences.values[key], 8);
+          ctx.fillRect(1257 + 190 * preferences.values[key], y + 10, 6, 22);
+          text(`${Math.round(preferences.values[key] * 100)}`, 1460, y + 20, 17);
+        } else if (typeof defaults[key] === 'boolean') text(preferences.values[key] ? 'ON' : 'OFF', 1438, y + 20, 20, preferences.values[key] ? '#94ffe3' : '#b3a1c7');
+        else if (key === 'fullscreen') text(window.fullscreenManager?.isActive ? 'ON' : 'OFF',1438,y+20,20,'#94ffe3');
+        else if (key === 'archive') text('L', 1460, y + 20, 20, '#cfa2ff');
       });
-      text(this.message || (preferences.saved ? 'Settings save automatically.' : 'Settings apply now; saving is unavailable here.'), 440, 874, 19, '#cfa2ff');
-      text(BARCODE.GamepadUI?.connected ? BARCODE.ControllerSettings.menuHelp() : 'Tab / Up / Down: Select   Left / Right: Adjust   Enter: Choose   P / Esc: Resume', 440, 914, 18);
+      text(this.message || (preferences.saved ? 'Settings save automatically.' : 'Settings apply now; saving is unavailable here.'), 440, 948, 19, '#cfa2ff');
+      text(this.titleOpen ? 'Arrows / Tab: Select    Enter: Change    Esc: Back to title' : BARCODE.GamepadUI?.connected ? BARCODE.ControllerSettings.menuHelp() : 'Tab / Up / Down: Select   Left / Right: Adjust   Enter: Choose   P / Esc: Resume', 440, 984, 18);
       ctx.restore();
     }
   };

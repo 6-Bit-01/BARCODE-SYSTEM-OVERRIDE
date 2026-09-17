@@ -23,7 +23,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
     };
     const points = [[left,top],[right,top],[left,bottom],[right,bottom]].map(([x,y])=>project({x,y}));
     const x = Math.min(...points.map(p=>p.x))-18, y = Math.min(...points.map(p=>p.y))-18;
-    return { x,y,width:Math.max(...points.map(p=>p.x))+18-x,height:Math.max(...points.map(p=>p.y))+18-y };
+    const box={ x,y,width:Math.max(...points.map(p=>p.x))+18-x,height:Math.max(...points.map(p=>p.y))+18-y };
+    const viewport=B.sceneProjection?.viewport;
+    if(!viewport)return box;
+    const leftEdge=Math.max(box.x,viewport.x),topEdge=Math.max(box.y,viewport.y);
+    return {x:leftEdge,y:topEdge,width:Math.max(0,Math.min(box.x+box.width,viewport.x+viewport.width)-leftEdge),
+      height:Math.max(0,Math.min(box.y+box.height,viewport.y+viewport.height)-topEdge)};
   }
   function overlap(a,b) {
     return Math.max(0,Math.min(a.x+a.width,b.x+b.width)-Math.max(a.x,b.x)) *
@@ -68,7 +73,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
     }
     return {...best.box,clear:false};
   }
-  function present(owner, slot, variants, {actors=sceneActors(), preferred=null}={}) {
+  function present(owner, slot, variants, {actors=sceneActors(), preferred=null,remember=false}={}) {
     const now=window.gameState?.gameTime || 0;
     const states=owner._overlayPanels ||= {};
     let state=states[slot];
@@ -93,10 +98,27 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
         if(now-state.openSince<350)destination=state.to;
       } else if(state)state.openSince=null;
     }
+    // Dialogue/task panels remember a few genuinely settled positions. A
+    // previously useful home must be clear for a full second before returning.
+    // The existing glide, cutouts and reading protection still own that move.
+    const homes=state?.homes || [];
+    if(remember && state && !state.to.docked) {
+      const elapsed=Math.max(0,Math.min(100,now-state.time));
+      for(const home of homes) {
+        if(matches(home.box)&&fits(home.box))home.clearMs+=elapsed;else home.clearMs=0;
+      }
+      if(now-state.start>=1500 && fits(state.shown)) {
+        let home=homes.find(h=>matches(h.box)&&Math.hypot(h.box.x-state.to.x,h.box.y-state.to.y)<24);
+        if(!home){home={box:{...state.to},dwell:0,clearMs:0};homes.push(home);if(homes.length>6)homes.splice(homes.reduce((min,h,i)=>h.dwell<homes[min].dwell?i:min,0),1);}
+        home.dwell=Math.min(30000,home.dwell+elapsed);
+        const best=homes.filter(h=>matches(h.box)&&h.clearMs>=1000&&h.dwell>home.dwell+1500&&fits(h.box)).sort((a,b)=>b.dwell-a.dwell)[0];
+        if(best && now-state.start>=2500)destination={...best.box};
+      }
+    }
     const changed=!state || ['x','y','width','height','scale','compact','docked'].some(k=>state.to[k]!==destination[k]);
     if(changed) {
       const from=state?.shown || destination;
-      state=states[slot]={from,to:destination,start:now,time:now,shown:from,lastOccluded:state?.lastOccluded};
+      state=states[slot]={from,to:destination,start:now,time:now,shown:from,lastOccluded:state?.lastOccluded,homes};
     }
     state.time=now;
     const reduced=B.Preferences?.values.reducedMotion;
@@ -226,7 +248,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
     const hintTitles = hint ? wrapped(c, (hint.control ? '[' + hint.control + '] ' : '') + hint.title, inner, 28, 700) : [];
     const height = 60 + titles.length * 40 + details.length * 34 + (control ? 68 : 0) + progressLines.length * 32 +
       (hint ? 20 + hintTitles.length * 34 + hintLines.length * 32 : 0);
-    const layout=present(objectiveMotion,'objectives',[{width:width+8,height:height+8}],{preferred:{x,y,width:width+8,height:height+8,scale:1}});
+    const layout=present(objectiveMotion,'objectives',[{width:width+8,height:height+8}],{preferred:{x,y,width:width+8,height:height+8,scale:1},remember:true});
     beginOverlay(c,layout);
     if(layout.docked){drawDock(c,layout,title,control?`[${control}] ${label||''}`:'Objective retained');c.restore();return;}
     x=layout.x;y=layout.y;

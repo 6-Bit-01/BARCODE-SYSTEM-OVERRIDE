@@ -254,4 +254,4 @@ function checkBoss() {
 }
 
 if (require.main === module) (async () => { await checkAudio(); await checkCampaign(); checkBoss(); })().catch(error => { console.error(error.stack || error); process.exitCode = 1; });
-module.exports = { audioRig };
+module.exports = { audioRig, campaignRig };

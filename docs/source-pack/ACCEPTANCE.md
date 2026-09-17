@@ -1,5 +1,18 @@
 # Acceptance and Test Status
 
+## Final playtest follow-up — current route
+
+Import the exact draft head from the generated receipt into a duplicate Makko project. Base/rollback: merged #84, `bbd95ba821b99a1268e1dc563d7027fdbf12dc08`. This route supersedes older active-hack movement/fade requirements; dialogue motion remains intact.
+
+1. On the title, open Settings with pointer, O and a physical controller's X/Square. Change volumes/effects, reduced motion, controller labels/bindings and calibration; return without starting gameplay. Reopen/reload to confirm saved preferences. Toggle fullscreen in settings and pause, including a denied embedded request, resize and windowed play. Confirm no lost focus or extra music start.
+2. Hack in a crowded street, inside/near the lift and on rooftops. The terminal must stay opaque, fixed and clickable while the player/enemies remain visible in the live view. Test scan, answer, wrong answer, keypad/controller, guard hit, cancel, pause and resume. Traffic cues must remain inside the live view. Returning to play restores the normal camera presentation.
+3. Start with objective recovery. Finish an encounter, die in the next, retry and reload/Continue Saved: resume the saved objective with full health, original difficulty/rules, checkpoint score/resources, and recorded retry. Repeat at jammer and boss. Start Full Run, die after progress and reload: resume the first encounter with a fresh score/attempt, not the old boss checkpoint. Complete both modes and inspect the 500-point Full Run difference; repeat practice to confirm no duplicate rewards.
+4. Damage the jammer in four-hit groups. Each relay break shields it, fixes a warning at the player's position and spawns a bounded guard. Exit Rhythm Mode, leave the marked column, deal with or hijack the guard and reengage. Staying in the discharge should cause one hit. Repeat Relaxed/Standard/Overclocked; confirm the final cinematic and next checkpoint.
+5. Fight the boss past 6 HP (4 on Relaxed). Smaller recolored support drones appear with finite warnings and no homing; movement, hacking and stomps remain counters. Try camping in Rhythm Mode and varying elevation. Confirm caps, victory cleanup and a clean retry. Assess repetition/difficulty by feel, especially Relaxed fairness and Overclocked pressure.
+6. Read/move through the tutorial and objectives. After a box settles for a while, obstruct it and then clear its old position: it should return gently only after sustained clearance. Keep all existing unread-message, crowd and reduced-motion protections. Briefly recheck lift exits/rides, prompt alignment, pause/restart, music loops and the completion/intermission.
+
+Record exact SHA, device/browser/controller, PASS/FAIL and short clips. Existing AGENTS.md requires owner Makko/physical-controller acceptance before assistant merge. Once accepted and merged, import the actual main merge SHA, fresh-load and repeat title/settings, crowded hack, checkpoint/death, jammer, boss and music smoke checks. Keep the base import for rollback. Automated/native/Chromium evidence is not hosted acceptance.
+
 ## Control alignment and finishing — current route
 
 Use the exact draft head from the receipt in a duplicate Makko project. Base/rollback is merged #83, `c5be7a9ac1c2a1ef6609ce69e5714a5c9f8b2698`.

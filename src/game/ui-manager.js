@@ -284,7 +284,7 @@ window.drawGameUI = function(ctx) {
   drawLoreMessages(ctx);
   
   // Draw jammer indicator
-  if (!bossCinematicActive && window.jammerIndicator && typeof window.jammerIndicator.draw === 'function') {
+  if (!bossCinematicActive && !window.hackingSystem?.isActive?.() && window.jammerIndicator && typeof window.jammerIndicator.draw === 'function') {
     try {
       window.jammerIndicator.draw(ctx);
     } catch (error) {
@@ -382,7 +382,7 @@ function drawObjectives(ctx) {
   const owner = window.sector1Progression, status = owner?.getEncounterStatus?.();
   const jammer = window.BARCODE?.JammerEnvironment?.getStatus?.();
   const title = status ? `${status.started ? 'CLEAR' : 'REACH'} ${String(status.label).toUpperCase()}` : jammer?.revealed && !jammer.destroyed ? 'BREAK THE BROADCAST JAMMER' : 'EXPLORE THE DISTRICT';
-  const detail = status ? status.started ? `${status.defeated}/${status.required} CLEARED${status.straggler ? ' · ' + status.straggler : ''}` : 'Street and rooftop routes' : jammer?.revealed && !jammer.destroyed ? `${jammer.health}/16 SIGNAL LOCKS · RHYTHM HITS ONLY` : '';
+  const detail = status ? status.started ? `${status.defeated}/${status.required} CLEARED${status.straggler ? ' · ' + status.straggler : ''}` : 'Street and rooftop routes' : jammer?.revealed && !jammer.destroyed ? jammer.surge ? 'SHIELDED · EXIT RHYTHM AND EVADE THE SURGE' : `${jammer.health}/16 LOCKS · FOUR HITS, THEN MOVE` : '';
   const kick = window.BARCODE?.stageFX?.captionKick || 0;
   ctx.save();
   window.BARCODE.ComicHUD.objectives(ctx, { title, detail, kick });
@@ -528,18 +528,18 @@ function drawGameOver(ctx) {
   
   if (window.renderer && typeof window.renderer.drawGlowText === 'function') {
     try {
-      window.renderer.drawGlowText((window.BARCODE?.GamepadUI?.connected ? (window.sector1Progression?.canRetryBossCheckpoint?.() ? `${window.BARCODE.ControllerSettings?.button(0) || 'A'}: Retry boss  |  ${window.BARCODE.ControllerSettings?.button(2) || 'X'}: Restart Level 1` : `${window.BARCODE.ControllerSettings?.button(0) || 'A'} / ${window.BARCODE.ControllerSettings?.button(2) || 'X'}: Restart Level 1`) : window.sector1Progression?.canRetryBossCheckpoint?.() ? 'SPACE: Retry boss  |  SHIFT+SPACE: Restart Level 1' : 'Press SPACE to restart'), 960, 700, {
+      window.renderer.drawGlowText((window.BARCODE?.Campaign?.canRetryObjective?.() ? `${window.BARCODE?.GamepadUI?.connected ? window.BARCODE.ControllerSettings?.button(0) || 'A' : 'SPACE'}: ${window.BARCODE.Campaign.retryLabel()}  |  ${window.BARCODE?.GamepadUI?.connected ? window.BARCODE.ControllerSettings?.button(2) || 'X' : 'SHIFT+SPACE'}: New run` : window.BARCODE?.GamepadUI?.connected ? (window.sector1Progression?.canRetryBossCheckpoint?.() ? `${window.BARCODE.ControllerSettings?.button(0) || 'A'}: Retry boss  |  ${window.BARCODE.ControllerSettings?.button(2) || 'X'}: Restart Level 1` : `${window.BARCODE.ControllerSettings?.button(0) || 'A'} / ${window.BARCODE.ControllerSettings?.button(2) || 'X'}: Restart Level 1`) : window.sector1Progression?.canRetryBossCheckpoint?.() ? 'SPACE: Retry boss  |  SHIFT+SPACE: Restart Level 1' : 'Press SPACE to restart'), 960, 700, {
         size: 24,
         color: '#ffffff'
       });
     } catch (error) {
-      drawGlowText((window.BARCODE?.GamepadUI?.connected ? (window.sector1Progression?.canRetryBossCheckpoint?.() ? `${window.BARCODE.ControllerSettings?.button(0) || 'A'}: Retry boss  |  ${window.BARCODE.ControllerSettings?.button(2) || 'X'}: Restart Level 1` : `${window.BARCODE.ControllerSettings?.button(0) || 'A'} / ${window.BARCODE.ControllerSettings?.button(2) || 'X'}: Restart Level 1`) : window.sector1Progression?.canRetryBossCheckpoint?.() ? 'SPACE: Retry boss  |  SHIFT+SPACE: Restart Level 1' : 'Press SPACE to restart'), 960, 700, {
+      drawGlowText((window.BARCODE?.Campaign?.canRetryObjective?.() ? `${window.BARCODE?.GamepadUI?.connected ? window.BARCODE.ControllerSettings?.button(0) || 'A' : 'SPACE'}: ${window.BARCODE.Campaign.retryLabel()}  |  ${window.BARCODE?.GamepadUI?.connected ? window.BARCODE.ControllerSettings?.button(2) || 'X' : 'SHIFT+SPACE'}: New run` : window.BARCODE?.GamepadUI?.connected ? (window.sector1Progression?.canRetryBossCheckpoint?.() ? `${window.BARCODE.ControllerSettings?.button(0) || 'A'}: Retry boss  |  ${window.BARCODE.ControllerSettings?.button(2) || 'X'}: Restart Level 1` : `${window.BARCODE.ControllerSettings?.button(0) || 'A'} / ${window.BARCODE.ControllerSettings?.button(2) || 'X'}: Restart Level 1`) : window.sector1Progression?.canRetryBossCheckpoint?.() ? 'SPACE: Retry boss  |  SHIFT+SPACE: Restart Level 1' : 'Press SPACE to restart'), 960, 700, {
         size: 24,
         color: '#ffffff'
       });
     }
   } else {
-    drawGlowText((window.BARCODE?.GamepadUI?.connected ? (window.sector1Progression?.canRetryBossCheckpoint?.() ? `${window.BARCODE.ControllerSettings?.button(0) || 'A'}: Retry boss  |  ${window.BARCODE.ControllerSettings?.button(2) || 'X'}: Restart Level 1` : `${window.BARCODE.ControllerSettings?.button(0) || 'A'} / ${window.BARCODE.ControllerSettings?.button(2) || 'X'}: Restart Level 1`) : window.sector1Progression?.canRetryBossCheckpoint?.() ? 'SPACE: Retry boss  |  SHIFT+SPACE: Restart Level 1' : 'Press SPACE to restart'), 960, 700, {
+    drawGlowText((window.BARCODE?.Campaign?.canRetryObjective?.() ? `${window.BARCODE?.GamepadUI?.connected ? window.BARCODE.ControllerSettings?.button(0) || 'A' : 'SPACE'}: ${window.BARCODE.Campaign.retryLabel()}  |  ${window.BARCODE?.GamepadUI?.connected ? window.BARCODE.ControllerSettings?.button(2) || 'X' : 'SHIFT+SPACE'}: New run` : window.BARCODE?.GamepadUI?.connected ? (window.sector1Progression?.canRetryBossCheckpoint?.() ? `${window.BARCODE.ControllerSettings?.button(0) || 'A'}: Retry boss  |  ${window.BARCODE.ControllerSettings?.button(2) || 'X'}: Restart Level 1` : `${window.BARCODE.ControllerSettings?.button(0) || 'A'} / ${window.BARCODE.ControllerSettings?.button(2) || 'X'}: Restart Level 1`) : window.sector1Progression?.canRetryBossCheckpoint?.() ? 'SPACE: Retry boss  |  SHIFT+SPACE: Restart Level 1' : 'Press SPACE to restart'), 960, 700, {
       size: 24,
       color: '#ffffff'
     });

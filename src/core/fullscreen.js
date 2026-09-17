@@ -59,6 +59,7 @@ window.FullscreenManager = class FullscreenManager {
                       document.msFullscreenElement);
 
     if (wasActive !== this.isActive) {
+      if(window.BARCODE?.PauseMenu){window.BARCODE.PauseMenu.dirty=true;window.BARCODE.PauseMenu.fullscreenChoice=this.isActive;}
       console.log(`Fullscreen ${this.isActive ? 'entered' : 'exited'}`);
       
       if (this.isActive) {

@@ -495,7 +495,8 @@ window.SpaceShipSystem = class SpaceShipSystem {
       // Visibility follows the complete opaque artwork, not the inset damage box.
       const hull = this.getHazardBody(ship, this.elapsedMs, false);
       const body = { x: hull.x * m.a + m.e, y: hull.y * m.d + m.f, width: hull.width * m.a, height: hull.height * m.d };
-      const distance = ship.direction > 0 ? -body.x - body.width : body.x - 1920;
+      const view=window.BARCODE.sceneProjection?.viewport;
+      const distance = ship.direction > 0 ? (view?.x || 0)-body.x-body.width : body.x-(view?view.x+view.width:1920);
       if (distance <= 0) continue; // The leading artwork has appeared: remove cue.
       const entryInMs = Math.max(0, ship.launchInMs || 0) + distance / (Math.abs(ship.speed) * 0.06 * m.a);
       if (entryInMs > 3000 || !this.isTrafficWarningRelevant(ship)) continue;
@@ -524,11 +525,14 @@ window.SpaceShipSystem = class SpaceShipSystem {
 
   drawTrafficWarnings(ctx) {
     const warnings = this.getTrafficWarnings();
+    const view=window.BARCODE.sceneProjection?.viewport;
     for (const warning of warnings) {
-      const left = warning.side === 'left', arrowX = left ? 48 : 1872;
-      const plateX = left ? 96 : 1584;
+      const edgeLeft=view?.x || 0,edgeRight=view?view.x+view.width:1920;
+      const left = warning.side === 'left', arrowX = left ? edgeLeft+48 : edgeRight-48;
+      const plateX = left ? edgeLeft+96 : edgeRight-336;
       const plateY = warning.y - 37;
       ctx.save();
+      if(view){ctx.beginPath();ctx.rect(view.x,view.y,view.width,view.height);ctx.clip();}
       // This pass runs in screen coordinates after the normal HUD. Alpha never
       // reaches zero: the warning remains readable between its red flashes.
       ctx.globalAlpha = Math.floor(this.elapsedMs / 250) % 2 ? 0.48 : 1;

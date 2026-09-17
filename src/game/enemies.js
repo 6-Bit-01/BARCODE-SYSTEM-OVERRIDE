@@ -1272,13 +1272,15 @@ window.Enemy = class Enemy {
 // New authored aerial enemy. Flight is constrained to its assigned rooftop;
 // neither player altitude nor allegiance changes can pull it out of that band.
 window.RooftopDrone = class RooftopDrone extends window.Enemy {
-  constructor(x, y, surface, patrol = null) {
+  constructor(x, y, surface, patrol = null, escort = null) {
     super(x, y, 'drone');
     this.position.x=x; this.position.y=y;
     this.width=112;this.height=92;this.health=2;this.maxHealth=2;this.damage=1;
     this.home={x,y,left:patrol?.left ?? surface.x+64,right:patrol?.right ?? surface.x+surface.w-64};
     this.dronePhase='patrol';this.dronePhaseMs=0;this.patrolDirection=1;
     this.entranceComplete=true;this.spriteReady=false;this.pulse=null;
+    this.escort=escort;this._bossSupport=escort?.owner==='boss';this._jammerReinforcement=escort?.owner==='jammer';
+    if(escort){this.health=this.maxHealth=4;this.dronePhaseMs=-1200;this.spawnProtectionDuration=1000;}
   }
   update(deltaTime, target, simulationTimeMs) {
     if (!this.active || this._disposed) return;
@@ -1302,12 +1304,22 @@ window.RooftopDrone = class RooftopDrone extends window.Enemy {
     const dx=target?target.position.x-this.position.x:Infinity;
     const dy=target?target.position.y-this.position.y:Infinity;
     if(this.dronePhase==='patrol'){
+      if(this.escort && target && !ally) {
+        const desiredX=Math.max(90,Math.min(4006,target.position.x+(this.escort.side||1)*370));
+        this.home.left=desiredX-35;this.home.right=desiredX+35;
+        this.home.y=Math.max(130,target.position.y-155);
+        this.position.x+=Math.sign(desiredX-this.position.x)*Math.min(Math.abs(desiredX-this.position.x),110*dt);
+        this.position.y+=Math.sign(this.home.y-this.position.y)*Math.min(Math.abs(this.home.y-this.position.y),90*dt);
+      }
+      if(!this.escort || ally) {
       if(this.position.x<=this.home.left)this.patrolDirection=1;
       if(this.position.x>=this.home.right)this.patrolDirection=-1;
       this.velocity.x=this.patrolDirection*58;this.facing=this.patrolDirection;
       this.position.x=Math.max(this.home.left,Math.min(this.home.right,this.position.x+this.velocity.x*dt));
       this.position.y=this.home.y+Math.sin(this.animationTime/800)*5;
-      if(this.dronePhaseMs>=1500&&Math.abs(dx)<380&&Math.abs(dy)<145&&target?.health>0){
+      }
+      const bossAttack=this._bossSupport&&['telegraph','sweep'].includes(window.sector1Progression?.boss?.phase);
+      if(this.dronePhaseMs>=1500&&!bossAttack&&Math.abs(dx)<(this.escort?650:380)&&Math.abs(dy)<(this.escort?320:145)&&target?.health>0){
         this.dronePhase='warning';this.dronePhaseMs=0;this.facing=dx>=0?1:-1;
         const body=target.getHitbox();
         const tx=body.x+body.width/2,ty=body.y+body.height/2;
@@ -1345,7 +1357,7 @@ window.RooftopDrone = class RooftopDrone extends window.Enemy {
       if(shot.ms>850)this.pulse=null;
     }
   }
-  getHitbox(){return {x:this.position.x-50,y:this.position.y-25,width:100,height:82};}
+  getHitbox(){const scale=this.escort?0.8:1;return {x:this.position.x-50*scale,y:this.position.y-25*scale,width:100*scale,height:82*scale};}
   shotCrossesRoof(ax,ay,bx,by) {
     if (Math.abs(by-ay)<.00001) return false;
     return (window.sector1Progression?.getStageSurfaces?.() || []).some(s => {
@@ -1356,13 +1368,22 @@ window.RooftopDrone = class RooftopDrone extends window.Enemy {
   }
   getStompBox(){return this.getHitbox();}
   getVisualBounds(){return this.getHitbox();}
-  getPointValue(){return 250;}
+  getPointValue(){return this.escort?0:250;}
   draw(ctx){
     if(!this.active||!ctx)return;
     const frame=this.hitFlashMs>0?7:this.dronePhase==='warning'?(this.dronePhaseMs<650?4:5):this.dronePhase==='fire'?6:Math.floor(this.animationTime/130)%4;
     const box=this.getHitbox();ctx.save();
     if(this.isSpawnProtected())ctx.globalAlpha=0.5;
-    window.BARCODE?.PresentationAssets?.draw('rooftopDrone',ctx,{x:this.position.x,y:this.position.y+15,width:156,height:156,frame,flip:this.facing<0});
+    ctx.save();
+    if(this.escort)ctx.filter=this._bossSupport?'hue-rotate(135deg) saturate(1.7) brightness(1.15)':'hue-rotate(275deg) saturate(1.5)';
+    const size=this.escort?125:156;
+    window.BARCODE?.PresentationAssets?.draw('rooftopDrone',ctx,{x:this.position.x,y:this.position.y+15,width:size,height:size,frame,flip:this.facing<0});
+    ctx.restore();
+    if(this.escort){
+      ctx.fillStyle=this._bossSupport?'#ff90db':'#9effb1';ctx.font='bold 13px Oxanium, monospace';ctx.textAlign='center';ctx.textBaseline='alphabetic';
+      ctx.fillText(this._bossSupport?'BOSS SUPPORT':'RELAY GUARD',this.position.x,this.position.y-56);
+      for(let i=0;i<4;i++){ctx.fillStyle=i<this.health?(this._bossSupport?'#ff90db':'#9effb1'):'#243548';ctx.fillRect(this.position.x-27+i*14,this.position.y-48,11,4);}
+    }
     if(this.dronePhase==='warning'&&this.aim){
       ctx.strokeStyle='#ffcc78';ctx.lineWidth=2;ctx.setLineDash([8,8]);
       ctx.beginPath();ctx.moveTo(this.position.x+this.facing*48,this.position.y+30);ctx.lineTo(this.position.x+this.facing*48+this.aim.vx*.85,this.position.y+30+this.aim.vy*.85);ctx.stroke();ctx.setLineDash([]);
@@ -2042,7 +2063,7 @@ window.EnemyManager = class EnemyManager {
     if (!enemy || enemy._defeatRecorded) return false;
     enemy._defeatRecorded = true;
     window.sector1Progression?.dropCarrierRepair?.(enemy);
-    const countsTowardDefeatProjection = !enemy._jammerReinforcement;
+    const countsTowardDefeatProjection = !enemy._jammerReinforcement && !enemy._bossSupport;
     if (countsTowardDefeatProjection) {
       this.defeatedCount += 1;
       if (window.gameState) window.gameState.enemiesDefeated = this.defeatedCount;

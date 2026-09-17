@@ -4,7 +4,7 @@ const fs=require('fs'),path=require('path'),{spawn}=require('child_process'),{on
 const {createCanvas,loadImage,GlobalFonts}=require(require.resolve('@napi-rs/canvas',{paths:[process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES]}));
 const {createRig,load}=require('./check-level-01-boss'),{createSprite}=require('./makko-animation-fixture'),{installArt}=require('./render-cat-chaos.cjs');
 const root=path.resolve(__dirname,'..'),out=path.resolve(process.argv[2]||'../review');fs.mkdirSync(out,{recursive:true});
-GlobalFonts.registerFromPath((process.env.CONTROL_POLISH_REVIEW || process.env.BOSS_MUSIC_REVIEW || process.env.ENEMY_LIFT_EXIT_REVIEW || process.env.LIFT_RIDER_REVIEW || process.env.TUTORIAL_FLOW_REVIEW || process.env.FEEDBACK_POLISH_REVIEW || process.env.PLAYTEST_POLISH_REVIEW || process.env.SMART_PANEL_REVIEW || process.env.SMART_MOTION_REVIEW) ? path.join(root,'assets/studies/visual-overhaul/references/fonts/Oxanium.ttf') : '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','Oxanium');
+GlobalFonts.registerFromPath((process.env.FINAL_PLAYTEST_REVIEW || process.env.CONTROL_POLISH_REVIEW || process.env.BOSS_MUSIC_REVIEW || process.env.ENEMY_LIFT_EXIT_REVIEW || process.env.LIFT_RIDER_REVIEW || process.env.TUTORIAL_FLOW_REVIEW || process.env.FEEDBACK_POLISH_REVIEW || process.env.PLAYTEST_POLISH_REVIEW || process.env.SMART_PANEL_REVIEW || process.env.SMART_MOTION_REVIEW) ? path.join(root,'assets/studies/visual-overhaul/references/fonts/Oxanium.ttf') : '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','Oxanium');
 GlobalFonts.registerFromPath('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','sans-serif');
 async function main(){
  const {w,p,context,calls}=createRig();await installArt(w,context);
@@ -27,9 +27,36 @@ async function main(){
  for(let i=0;i<3;i++){w.spaceShipSystem.shipImages[i]=await loadImage(path.join(root,'assets/traffic/ship-'+(i+1)+'.webp'));w.spaceShipSystem.imagesLoaded[i]=true;w.spaceShipSystem.shipSheets[i]=w.BARCODE.trafficSheets[i];}
  const bg=await loadImage(path.join(root,'assets/world-v3/far-background.webp')),fg=await loadImage(path.join(root,'assets/world-v3/buildings.webp'));
  p.startMission();w.rhythmSystem.hideRhythmMode();w.player.allowMovement=true;
- function scene(c,cx,cy){w.gameCamera={centerX:cx,y:cy};w.renderer.zoomLevel=1;c.fillStyle='#111322';c.fillRect(0,0,1920,1080);c.drawImage(bg,0,0,1920,1080);c.save();c.translate(960-cx,-cy);c.drawImage(fg,0,2,fg.width,fg.height-2,-152,-550+2*1589/fg.height,4400,1589-2*1589/fg.height);w.drawGround(c);if(process.env.PLAYTEST_POLISH_REVIEW)w.BARCODE.stageFX.drawWorld(c);w.drawGameEntities(c);if(p.getLiftActorLayer(w.player)!=='behind')w.player.draw(c);p.drawSignalLift(c,'front');c.restore();c.save();c.translate(0,-cy);w.spaceShipSystem.drawForegroundShips(c);c.restore();if(!w.tutorialSystem?.isActive?.()&&!process.env.PLAYTEST_POLISH_REVIEW&&!process.env.BOSS_MUSIC_REVIEW)w.drawObjectives(c);}
+ function scene(c,cx,cy){w.gameCamera={centerX:cx,y:cy};w.renderer.zoomLevel=1;c.fillStyle='#111322';c.fillRect(0,0,1920,1080);c.drawImage(bg,0,0,1920,1080);c.save();c.translate(960-cx,-cy);c.drawImage(fg,0,2,fg.width,fg.height-2,-152,-550+2*1589/fg.height,4400,1589-2*1589/fg.height);w.drawGround(c);if(process.env.PLAYTEST_POLISH_REVIEW)w.BARCODE.stageFX.drawWorld(c);w.drawGameEntities(c);if(p.getLiftActorLayer(w.player)!=='behind')w.player.draw(c);p.drawSignalLift(c,'front');c.restore();c.save();c.translate(0,-cy);w.spaceShipSystem.drawForegroundShips(c);c.restore();if(!process.env.FINAL_PLAYTEST_REVIEW&&!w.tutorialSystem?.isActive?.()&&!process.env.PLAYTEST_POLISH_REVIEW&&!process.env.BOSS_MUSIC_REVIEW)w.drawObjectives(c);}
  function setHero(x,foot,support){Object.assign(w.player.position,{x,y:foot-72});w.player.velocity.x=0;w.player.velocity.y=0;w.player.grounded=true;w.player.supportedSurfaceId=support||null;w.player.state='idle';w.player.airInput=0;w.player.controlsDisabled=false;w.player.invulnerableUntil=0;w.player.health=w.player.maxHealth;w.player.playAnimation('idle');}
  const canvas=createCanvas(1920,1080),c=canvas.getContext('2d');
+ if(process.env.FINAL_PLAYTEST_REVIEW){
+  load(context,'src/core/gamepad-ui.js');load(context,'src/game/pause-menu.js');load(context,'src/game/level-difficulty.js');
+  const save=name=>fs.writeFileSync(path.join(out,name+'.webp'),canvas.toBuffer('image/webp',90));
+  w.document.getElementById=id=>id==='gameCanvas'?canvas:null;
+  w.document.createElement=()=>createCanvas(1920,1080);
+  p.state='jammer_active';p.closedGateEncounterId=null;p.pendingSpawns=[];setHero(2420,856);
+  const foe=new w.Enemy(2520,784,'corrupted');Object.assign(foe.position,{x:2520,y:784});
+  Object.assign(foe,{entranceComplete:true,_authoredEntranceActive:false,spawnTimeMs:-10000,spawnProtectionDuration:0});
+  foe.initSprite();foe.playAnimation('idle');w.enemyManager.enemies=[foe];
+  const hack=w.hackingSystem=new w.HackingSystem();hack.active=true;hack.hijackTarget=foe;hack.phase='answer';hack.puzzleType=2;
+  hack.currentPuzzle={type:2,answer:'425',hidden:true};hack.phaseDurationMs=7000;hack.phaseElapsedMs=1200;hack.inputText='42';
+  w.renderer.screenShake={x:0,y:0};w.renderer.zoomLevel=1;w.renderer.clear=()=>{c.setTransform(1,0,0,1,0,0);c.fillStyle='#07121e';c.fillRect(0,0,1920,1080);};
+  w.parallaxBackground={updateCamera(){},getLayer:i=>i,drawLayer(ctx,layer){if(layer===0)ctx.drawImage(bg,0,0,1920,1080);else{ctx.save();ctx.translate(960-w.gameCamera.centerX,0);ctx.drawImage(fg,-152,-550,4400,1589);ctx.restore();}}};
+  w.renderGame();save('hack-live-view');hack.cancel();
+  scene(c,2420,0);w.drawBasicUI(c);const menu=w.BARCODE.PauseMenu;menu.focus=14;menu.draw(c);save('pause-settings');
+  menu.titleOpen=true;c.fillStyle='#07121e';c.fillRect(0,0,1920,1080);menu.draw(c);save('title-settings');menu.titleOpen=false;
+  scene(c,2420,0);w.BARCODE.LevelDifficulty.beginLevel();w.BARCODE.LevelDifficulty.draw(c);save('level-rules');w.BARCODE.LevelDifficulty.confirm();
+  p.state='jammer_active';setHero(1740,856);w.enemyManager.enemies=[];const env=w.BARCODE.JammerEnvironment;p.revealJammer();setHero(env.getStatus().position.x-140,856);
+  for(let i=0;i<4;i++)env.applyRhythmDamage({timing:'perfect',sequence:i});env.update(850);
+  scene(c,Math.max(960,Math.min(3136,w.player.position.x)),0);w.drawBasicUI(c);w.drawObjectives(c);save('jammer-discharge');env.reset();
+  w.enemyManager.enemies=[];p.boss={x:2650,y:784,sprite:sprite(),activeAnimation:null};p.enterBossReady();p.state='boss_combat';p.boss.health=5;
+  setHero(2350,856);p.boss.phase='approach';p.updateBossSupport(16);
+  const drone=w.enemyManager.enemies.find(e=>e._bossSupport);drone.position.x=2100;drone.position.y=650;drone.dronePhase='warning';drone.dronePhaseMs=600;drone.aim={vx:470,vy:65};drone.simulationTimeMs=5000;drone.spawnTimeMs=-10000;
+  scene(c,2440,0);w.drawBasicUI(c);w.drawSector1BossUI(c);save('boss-support');
+  if(calls.errors.length)throw new Error(calls.errors.join('\n'));
+  console.log('Six production screens rendered: solid hack/live world, title/pause settings, level rules, jammer surge and boss escort.');return;
+ }
  if(process.env.CONTROL_POLISH_REVIEW){
   const assert=require('assert');load(context,'src/core/gamepad-ui.js');
   const H=w.BARCODE.ComicHUD,settings=w.BARCODE.ControllerSettings;
@@ -417,7 +444,7 @@ async function main(){
   const lift=p.signalLift;setHero(lift.x+lift.w/2,lift.y,lift.id);
   frame();save('lift-bottom');lift.state='moving';lift.charges=2;p.updateSignalLift(1000);frame();save('lift-moving');
   p.updateSignalLift(10000);frame(2538,-320);save('lift-top');
-  w.BARCODE.LevelDifficulty.beginLevel();w.BARCODE.LevelDifficulty.draw(c);save('level-difficulty');w.BARCODE.LevelDifficulty.stop();
+  scene(c,2420,0);w.BARCODE.LevelDifficulty.beginLevel();w.BARCODE.LevelDifficulty.draw(c);save('level-difficulty');w.BARCODE.LevelDifficulty.stop();
   const movie=createCanvas(960,540),mc=movie.getContext('2d');
   const video=spawn('ffmpeg',['-y','-loglevel','error','-f','image2pipe','-framerate','20','-i','pipe:0','-c:v','libx264','-pix_fmt','yuv420p','-movflags','+faststart',path.join(out,'finale-review.mp4')],{stdio:['pipe','ignore','pipe']});
   let errors='';video.stderr.on('data',b=>errors+=b);

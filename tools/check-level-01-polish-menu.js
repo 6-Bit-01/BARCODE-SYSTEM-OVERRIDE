@@ -35,6 +35,8 @@ async function main() {
     menu.render(); assert.strictEqual(screen.getContext().operations.length, drawCount, 'unchanged paused screen is not redrawn');
     down('ArrowDown'); up('ArrowDown'); // Defaults row.
     down('Tab'); up('Tab'); // Controller settings row.
+    down('Tab'); up('Tab'); // Reduced motion.
+    down('Tab'); up('Tab'); // Fullscreen.
     down('Tab'); up('Tab'); // Music row.
     down('ArrowLeft'); up('ArrowLeft'); assert.strictEqual(prefs.values.music, 0.95);
     down('Tab'); up('Tab'); down('ArrowLeft'); up('ArrowLeft'); assert.strictEqual(prefs.values.sfx, 0.95);
@@ -44,7 +46,7 @@ async function main() {
     listeners.mousedown[0](point(1355, 357));
     listeners.mousemove[0](point(1260, 357)); listeners.mouseup[0](point(1260, 357));
     assert.strictEqual(prefs.values.music, 0, 'pointer slider respects actual CSS-scaled canvas bounds and permits mute');
-    listeners.mousedown[0](point(1200, 545)); listeners.mouseup[0](point(1200, 545));
+    listeners.mousedown[0](point(1200, 502)); listeners.mouseup[0](point(1200, 502));
     assert.strictEqual(prefs.values.flashes, false);
     let spaces = 0; w.tutorialSystem.active = true; w.tutorialSystem.handleSpacePress = () => spaces++;
     down(' '); up(' '); down('r'); up('r'); down('h'); up('h');

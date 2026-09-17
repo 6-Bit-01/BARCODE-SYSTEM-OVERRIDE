@@ -1,5 +1,11 @@
 # Decision Register
 
+## September 17, 2026 — final playtest decisions
+
+The owner reports enemies making the hack panel disappear; requests fullscreen in pause, title settings, explicit start-only settings, optional checkpoint recovery with a score tradeoff, smaller recolored rooftop drones supporting the boss, a less repetitive jammer, and gentle return to known good dialogue/objective positions. These supersede earlier requests to preserve active terminal fading and prior boss/jammer tuning.
+
+Implementation choices for playtest: retain tactical-focus timing/guard but place the scene and terminal side by side; expose existing presentation/audio/controller/calibration settings plus reduced motion and fullscreen at title/pause; lock difficulty and recovery per level. Objective checkpoints use normal completion points; Full Run adds 500 on clear and restarts Level 1 after death. Accessibility settings never reduce points. Both policies allow objective-boundary Continue Saved. Boss support is limited and warned; jammer relay breaks force a dodge and introduce guards. Dialogue's existing placement remains with small bounded dwell memory. Exact balance values remain subject to playtest. Later-level content and ending thresholds are not decided here; working music sync remains protected.
+
 ## September 17, 2026 — aligned controls and remaining polish
 
 The owner asks: “Lets do a pass and make sure the control buttons are aligned on those black squares. Lets also work on the final touches and optimizations we talked about.” Correct the alignment and actual device/mapping labels, audit existing finishing work, and reduce repeated presentation work. Prior boss/music/campaign and earlier polish are already implemented. Preserve the working synchronization, mechanics, assets and moving/fading smart panels. No new level, ending threshold or reward-content decision is implied.

@@ -13,7 +13,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/lore-collection.js', exports: ['BARC
   const levelId = id => /^level-0[1-7]$/.test(id);
   function resultRecord(r) {
     if (!object(r) || typeof r.runId !== 'string' || r.runId.length > 100 || !Number.isFinite(r.completedAt)) return null;
-    const result = { runId: r.runId, completedAt: r.completedAt };
+    const result = { runId: r.runId, completedAt: r.completedAt, recoveryMode:r.recoveryMode==='full-run'?'full-run':'checkpoints' };
     for (const key of ['score', 'elapsedMs', 'damageTaken', 'retries', 'attempts', 'accurate', 'perfect', 'connected', 'bestCombo', 'discoveries', 'bonus']) {
       if (!Number.isFinite(r[key]) || r[key] < 0 || r[key] > 1e10) return null;
       result[key] = Math.round(r[key]);

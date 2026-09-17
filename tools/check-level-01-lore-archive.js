@@ -70,7 +70,7 @@ async function main() {
     assert.strictEqual(menu.archiveIndex, 0, 'scaled pointer selects the first record');
     listeners.mousedown[0](point(600, 774)); listeners.mouseup[0](point(600, 774));
     assert.strictEqual(menu.view, 'settings'); assert(w.gameState.paused);
-    listeners.mousedown[0](point(1200, 759)); listeners.mouseup[0](point(1200, 759));
+    listeners.mousedown[0](point(1200, 692)); listeners.mouseup[0](point(1200, 692));
     assert.strictEqual(menu.view, 'archive', 'normal menu archive button works');
     down(' '); await menu.resume(); down(' ', true); down('ArrowRight', true);
     w.inputManager.update(); assert(!w.inputManager.actionInput.pressed('jump')); assert(!w.inputManager.actionInput.held('move_right'));

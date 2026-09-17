@@ -1,5 +1,9 @@
 # Current State
 
+## Current review — final Level 1 playtest follow-up
+
+Merged #84 at `bbd95ba821b99a1268e1dc563d7027fdbf12dc08` is the base/rollback. Branch `agent/level1-final-playtest` addresses the new playtest: solid side-by-side hacking, title settings and pause fullscreen, saved optional objective recovery, bounded boss support drones, jammer relay/discharge phases, and learned safe dialogue/objective positions. Working music timing remains protected. Details and explicit settings rules: FINAL_PLAYTEST_PASS.md. Exact head, PR, automated checks and CI belong to the generated receipt. Native/Chromium evidence does not establish owner Makko/controller acceptance; Level 1 is a review candidate.
+
 ## Current review — control alignment and finishing
 
 PR #83 is merged at `c5be7a9ac1c2a1ef6609ce69e5714a5c9f8b2698` (base/rollback). Branch `agent/control-polish-optimization` centers button glyphs, corrects controller/remapping labels, aligns objective/keypad/Begin Level text, and removes repeated presentation calculations while preserving placement. The prior polish, boss, music and campaign work remains. See CONTROL_POLISH_PASS.md for 320 equivalent placement states, 40 native glyph comparisons, operation counts and focused Makko review. Exact head/PR/full checks/CI belong to the generated receipt; hosted acceptance is pending.

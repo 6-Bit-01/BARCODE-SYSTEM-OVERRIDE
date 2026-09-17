@@ -43,7 +43,7 @@ window.ObjectivesSystem = class ObjectivesSystem {
 
   revealJammerObjective() {
     this.updateMissionDefeatProgress(20, 20);
-    if (!this.objectives.some(o => o.id === 'destroy_broadcast_jammer')) this.objectives.push({ id: 'destroy_broadcast_jammer', title: 'Find and destroy Broadcast Jammer', description: 'Successful rhythm attacks damage the Jammer.', priority: 'PRIMARY', completed: false, visible: true, progress: 0, required: 16 });
+    if (!this.objectives.some(o => o.id === 'destroy_broadcast_jammer')) this.objectives.push({ id: 'destroy_broadcast_jammer', title: 'Find and destroy Broadcast Jammer', description: 'Break each relay on beat. Leave the marked surge; watch for relay guards.', priority: 'PRIMARY', completed: false, visible: true, progress: 0, required: 16 });
   }
 
   completeJammerObjective() {
