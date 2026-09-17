@@ -26,10 +26,10 @@ function place(r, a, x, foot) {
   if (a.velocity) { a.velocity.x = 0; a.velocity.y = 0; }
 }
 for (const fps of [30,60,120]) {
-  // Independent photo scope: do not derive the expected bonk list from the
-  // implementation, which previously let unapproved additions pass this test.
-  const ids = ['signal-awning', 'tower-awning', 'cache-maintenance-step', 'firewall-low-step'];
-  assert.deepStrictEqual(Array.from(rig().p.getSolidLedges(), s => s.id).sort(), ids.slice().sort(), 'only the four red-circled objects bonk');
+  // The later explicit request makes awnings solid like the elevator. The
+  // two circled small steps retain bonks; other steps/roofs stay one-way.
+  const ids = ['signal-awning', 'cache-awning', 'firewall-canopy', 'tower-awning', 'broadcast-awning', 'cache-maintenance-step', 'firewall-low-step'];
+  assert.deepStrictEqual(Array.from(rig().p.getSolidLedges(), s => s.id).sort(), ids.slice().sort(), 'five awnings plus the two circled step undersides');
   for (const id of ids) for (const facing of [-1,1]) {
     const r = rig(), { w, p } = r, a = w.player, ledge = p.getSolidLedges().find(s => s.id === id);
     a.state = 'jump'; a.facing = facing; a.grounded = false;
@@ -71,7 +71,9 @@ for (const fps of [30,60,120]) {
   for (const type of ['player','corrupted','firewall','virus','drone','boss']) for (const state of ['moving','returning']) {
     const r = rig(), a = actor(r,type), {p,w}=r, lift=p.signalLift;
     lift.y=lift.prevY=600; lift.state=state;
-    let roof=p.getLiftRoof(); place(r,a,roof.x+roof.w*.72,roof.topY-20);
+    // The right side clears the newly solid Firewall canopy, even for the
+    // widest actor. Awning handoffs are exercised separately below.
+    let roof=p.getLiftRoof(); place(r,a,roof.x+roof.w*.9,roof.topY-20);
     const motion=p.captureRoofActor(a); (a.position||a).y+=30;
     assert(p.resolveLiftActor(a,motion)); assert.equal(a.supportedSurfaceId,roof.id);
     for(let i=0;i<fps;i++) {
@@ -94,9 +96,11 @@ for (const fps of [30,60,120]) {
   assert.equal(a.dropThrough(),false,'a hard elevator roof cannot be dropped through');
   const ledge=r.p.getStageSurfaces().find(s=>s.id==='signal-awning');
   place(r,a,ledge.x+100,ledge.y);a.grounded=true;a.supportedSurfaceId=ledge.id;
-  assert(a.dropThrough(),'existing deliberate Down+Jump remains on ordinary ledges');
+  assert.equal(a.dropThrough(),false,'solid awnings cannot be dropped through');
+  a.supportedSurfaceId='tower-rooftop';
+  assert(a.dropThrough(),'deliberate Down+Jump remains on ordinary roofs and steps');
 }
-console.log('Scoped bonks: exactly four red-circled objects, all unmarked undersides open, both facings, solid moving roof for all six actor types at 30/60/120Hz, pause/reset and hard-roof drop protection passed.');
+console.log('Scoped solids: five awnings and two circled step undersides; all other undersides open; both facings; moving roof for six actor types at 30/60/120Hz; pause/reset and hard-surface drop protection passed.');
 
 // Regression: physical support was correct, but the later cabin image erased
 // the lower half of roof enemies. Exercise both real render owners after motion.
@@ -104,7 +108,7 @@ for (const type of ['virus', 'corrupted', 'firewall', 'drone']) for (const state
   const r = rig(), { w, p, context } = r, a = actor(r, type);
   load(context, 'src/game/render-coordinator.js');
   p.signalLift.y = p.signalLift.prevY = 600; p.signalLift.state = state;
-  let roof = p.getLiftRoof(); place(r, a, roof.x + roof.w / 2, roof.topY);
+  let roof = p.getLiftRoof(); place(r, a, roof.x + roof.w * .9, roof.topY);
   a.supportedSurfaceId = roof.id;
   const ground = new w.Enemy(2200, 784, 'corrupted');
   w.enemyManager.enemies.push(ground);

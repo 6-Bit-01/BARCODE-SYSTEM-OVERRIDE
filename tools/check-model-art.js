@@ -174,13 +174,13 @@ for (const [state, clip] of Object.entries({ idle: '6_bit_idle_idle', walk: '6_b
 // Exercise the production UI delegations with the actual ComicHUD renderer.
 load(context, 'src/game/ui-manager.js');
 const text = [];
-const drawing = new Proxy({ fillText(value) { text.push(String(value)); } }, {
+const drawing = new Proxy({ fillText(value) { text.push(String(value)); }, measureText(value) { return {width:String(value).length*16}; } }, {
   get(target, key) { return target[key] ?? (() => {}); },
   set(target, key, value) { target[key] = value; return true; }
 });
 w.drawBasicUI(drawing); w.drawObjectives(drawing);
 assert(text.includes('6 BIT'), 'live basic UI draws illustrated HUD fallback portrait label');
-assert(text.includes('Objectives') && text.includes('EXPLORE THE DISTRICT'), 'live objective UI reaches ComicHUD with its heading and current action');
+assert(text.includes('OBJECTIVES') && text.includes('EXPLORE THE DISTRICT'), 'live objective UI reaches ComicHUD with its heading and current action');
 
 async function checkSpriteStartup() {
   // Model Makko's host-owned root manifest and preloaded registry separately.

@@ -1,8 +1,8 @@
 // Behavioral checks use production Player, Enemy, progression and traffic owners.
 const assert=require('assert'),fs=require('fs'),{createRig,load}=require('./check-level-01-boss');
 function rig(){const r=createRig();r.p.startMission();r.p.state='jammer_active';r.p.closedGateEncounterId=null;r.w.rhythmSystem.hideRhythmMode();r.w.player.allowMovement=true;return r;}
-// Only the owner's four circled objects bonk. In particular, the direct
-// awning-to-roof and step-to-step jumps must not require an outside detour.
+// The five awnings are fully solid; ordinary roofs/steps retain one-way tops
+// plus the two circled step bonks. Direct upper routes must stay connected.
 const {createSprite,playerClips}=require('./makko-animation-fixture');
 const routes=[
  ["signal-awning","signal-roof",1000,1050,0],
@@ -68,7 +68,7 @@ for(const fps of [30,60,120]){
  const ops=[];const ctx=new Proxy({},{get:(t,k)=>t[k]??((...a)=>ops.push([k,...a])),set:(t,k,v)=>(t[k]=v,true)});p.drawStageSurfaces(ctx);
  for(const surface of w.Sector1Progression.STAGE_SURFACES)assert(ops.some(o=>o[0]==='lineTo'&&o[1]===surface.x+surface.w&&o[2]===surface.y-(surface.maskFeet||0)),'subtle landing edge follows painted lip');
 }
-console.log('Rebuild: 72 production climbing/descent actions with only four approved bonks; direct upper routes, grounded guards and bounded drones at 30/60/120Hz; contact, traffic, puzzle/reset and roof masking passed.');
+console.log('Rebuild: 72 production climbing/descent actions with the approved solid awnings and two step bonks; direct upper routes, grounded guards and bounded drones at 30/60/120Hz; contact, traffic, puzzle/reset and roof masking passed.');
 {
  const {w,p}=rig(),roof=p.getStageSurfaces().find(s=>s.id==='cache-crown');
  const ground=['firewall','corrupted','corrupted'].map((type,i)=>{const e=new w.Enemy(1500+i*60,784,type);Object.assign(e.position,{x:1500+i*60,y:784});Object.assign(e,{_sector1MissionEnemy:true,entranceComplete:true,_inCrowd:true,spawnProtectionDuration:0});e.velocity.y=0;return e;});

@@ -76,8 +76,7 @@ window.InputManager = class InputManager {
       if (e.key === 'Escape' || e.key === 'ESC') {
         e.preventDefault();
         if (window.rhythmSystem && window.rhythmSystem.isActive && window.rhythmSystem.isActive()) {
-          if (typeof window.rhythmSystem.hideRhythmMode === 'function') window.rhythmSystem.hideRhythmMode();
-          else if (typeof window.rhythmSystem.hide === 'function') window.rhythmSystem.hide();
+          this.leaveRhythmMode();
         }
       }
       if (window.DEBUG_KEYBOARD_ENABLED === true) this.handleDebugKey(e);
@@ -230,8 +229,19 @@ window.InputManager = class InputManager {
     // Playable crew training keeps the same jump/hold action as the street.
     // Create/View advances speech without clearing movement or jump state.
     if (owner === 'tutorial' && p.b8) window.tutorialSystem.handleSpacePress?.();
-    if (p.b1 && window.rhythmSystem?.isActive?.() && !window.sector1Progression?.isGameplaySuppressed?.()) window.rhythmSystem.hideRhythmMode?.();
+    if (p.b1 && window.rhythmSystem?.isActive?.() && !window.sector1Progression?.isGameplaySuppressed?.()) this.leaveRhythmMode();
     return false;
+  }
+
+  leaveRhythmMode() {
+    const rhythm = window.rhythmSystem;
+    if (!rhythm?.isActive?.()) return false;
+    // Capture a just-earned combo before hide() clears the live count. Only an
+    // explicit exit input earns this lesson; damage/hack suspension do not.
+    window.tutorialSystem?.observeProgress?.();
+    if (rhythm.hideRhythmMode) rhythm.hideRhythmMode(); else rhythm.hide?.();
+    if (!rhythm.isActive()) window.tutorialSystem?.checkObjective?.('rhythm_exit');
+    return !rhythm.isActive();
   }
 
   routeActions(actions, options = {}) {
@@ -239,7 +249,7 @@ window.InputManager = class InputManager {
     const progressionSuppressesGameplay = !!(window.sector1Progression && window.sector1Progression.isGameplaySuppressed && window.sector1Progression.isGameplaySuppressed());
     if (!progressionSuppressesGameplay && actions.rhythm_mode && actions.rhythm_mode.pressed && window.rhythmSystem && !(window.hackingSystem && window.hackingSystem.isActive && window.hackingSystem.isActive())) {
       if (window.rhythmSystem.isActive && window.rhythmSystem.isActive()) {
-        if (window.rhythmSystem.hideRhythmMode) window.rhythmSystem.hideRhythmMode(); else if (window.rhythmSystem.hide) window.rhythmSystem.hide();
+        this.leaveRhythmMode();
       } else {
         const activation = window.rhythmSystem.showRhythmMode ? window.rhythmSystem.showRhythmMode() : (window.rhythmSystem.show ? window.rhythmSystem.show() : { ok: false, reason: 'unavailable' });
         const active = window.rhythmSystem.isActive && window.rhythmSystem.isActive();

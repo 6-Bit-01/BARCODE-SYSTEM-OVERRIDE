@@ -269,7 +269,7 @@ function updateAudio(deltaTime) {
 // Update tutorial system
 function updateTutorial(deltaTime) {
   if (window.tutorialSystem && typeof window.tutorialSystem.update === 'function' && 
-      typeof window.tutorialSystem.active === 'boolean' && window.tutorialSystem.active) {
+      typeof window.tutorialSystem.active === 'boolean') {
     try {
       window.tutorialSystem.update(deltaTime);
     } catch (error) {

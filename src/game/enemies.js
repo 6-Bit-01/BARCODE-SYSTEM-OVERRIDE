@@ -1973,8 +1973,11 @@ window.EnemyManager = class EnemyManager {
       if (window.sector1Progression && typeof window.sector1Progression.onEnemyDefeated === 'function') window.sector1Progression.onEnemyDefeated(this.defeatedCount, enemy);
     }
     if (enemy._isTutorialEnemy && window.tutorialSystem && window.tutorialSystem.isActive && window.tutorialSystem.isActive() && window.tutorialSystem.storyChapter === 1) {
-      window.tutorialSystem._tutorialEnemiesDefeated = (window.tutorialSystem._tutorialEnemiesDefeated || 0) + 1;
-      if (window.tutorialSystem._tutorialEnemiesDefeated >= 3) window.tutorialSystem.checkObjective('combat');
+      if (window.tutorialSystem.recordEnemyDefeat) window.tutorialSystem.recordEnemyDefeat(enemy);
+      else {
+        window.tutorialSystem._tutorialEnemiesDefeated = (window.tutorialSystem._tutorialEnemiesDefeated || 0) + 1;
+        if (window.tutorialSystem._tutorialEnemiesDefeated >= 3) window.tutorialSystem.checkObjective('combat');
+      }
     }
     return true;
   }

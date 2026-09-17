@@ -305,7 +305,9 @@ pass('frame-aware player foot anchoring and cinematic rhythm handoff');
   tutorial.update(16);
   const rhythmObj = tutorial.objectives.find(obj => obj.id === 'rhythm_combo');
   assert(tutorial.completedObjectives.has('rhythm_combo') && rhythmObj && rhythmObj.completed, 'Chapter 2 combo >= 5 completes rhythm_combo UI objective');
-  assert(tutorial.canAdvanceDialogueWithInput(), 'Chapter 2 gate can advance after rhythm_start and rhythm_combo');
+  assert(tutorial.currentDialogue === 3 && tutorial.storyChapter === 2, 'earned coaching advances to the retained exit confirmation');
+  tutorial.handleSpacePress(); tutorial.handleSpacePress();
+  assert(tutorial.storyChapter === 2, 'five hits cannot bypass the deliberate exit objective');
 
   let started = 0;
   const hacking = { active:false, complete:false, _lastResultFailed:false, start(){ started++; this.active = true; }, isActive(){ return this.active; }, isComplete(){ return this.complete; }, processInput(){} };
@@ -324,10 +326,11 @@ pass('frame-aware player foot anchoring and cinematic rhythm handoff');
   s.__listeners.keydown[0](keyEvent('h')); manager.update();
   assert(started === 1 && hacking.active, 'H starts the existing hacking system without target resolver dependency');
   assert(tutorial.completedObjectives.has('hack_start'), 'hack_start completes only after hacking becomes active');
-  hacking.complete = true; tutorial.update(16);
+  hacking.active = false; hacking.complete = true; tutorial.update(16);
   const hackObj = tutorial.objectives.find(obj => obj.id === 'hack_complete');
   assert(tutorial.completedObjectives.has('hack_complete') && hackObj && hackObj.completed, 'Successful hacking completion completes hack_complete');
-  assert(tutorial.canAdvanceDialogueWithInput(), 'Chapter 3 gate can advance after hack_start and hack_complete');
+  tutorial.handleSpacePress();
+  assert(tutorial.currentDialogue === 3 && tutorial.canAdvanceDialogueWithInput(), 'successful hack returns to a readable, acknowledged story confirmation');
 
   hacking.active = false; hacking.complete = false; started = 0; tutorial.completedObjectives.delete('hack_start');
   s.__listeners.keyup[0](keyEvent('h')); manager.update();
@@ -341,7 +344,7 @@ pass('frame-aware player foot anchoring and cinematic rhythm handoff');
 }
 pass('tutorial rhythm/hacking objective progression');
 
-// Tutorial's final line owns its complete hold/fade, and delayed enemies use the live shared spawn path.
+// Closing Continue is immediate; optional auto hold/fade and acknowledged spawns share the simulation clock.
 {
   const s = sandbox();
   load(s, 'src/game/tutorial.js');
@@ -353,12 +356,14 @@ pass('tutorial rhythm/hacking objective progression');
   tutorial.characterIndex = tutorial.targetText.length - 0.5;
   tutorial.currentText = tutorial.targetText.slice(0, -1);
   tutorial.readyToAdvance = false;
-  tutorial.update(20);
+  tutorial.update(10);
   assert(!tutorial.completed && !tutorial.isFinalMessage, 'Chapter 4 cannot begin its final hold before the last line finishes typing');
   tutorial.update(10);
   assert(!tutorial.completed && tutorial.isFinalMessage && tutorial.finalMessageTimer === 0, 'fully typed final line arms its presentation without prematurely exposing post-tutorial UI');
-  tutorial.handleSpacePress();
-  assert(tutorial.active, 'Space cannot dismiss the fully typed final line before its timed hold');
+  const direct = new s.window.TutorialSystem(); direct.active = true; direct.startChapter(4);
+  direct.currentDialogue = direct.dialogue.length - 1; direct.startNextDialogue();
+  direct.handleSpacePress(); assert(direct.active, 'reveal does not also acknowledge the final line');
+  direct.handleSpacePress(); assert(direct.completed && !direct.active, 'fresh Continue can begin the mission without a timed wait');
   tutorial.update(9999);
   assert(tutorial.active && tutorial.finalMessageOpacity === 1 && tutorial.finalMessageTimer === 9999, 'final line remains fully visible for its complete ten-second hold');
   tutorial.update(1);
@@ -387,14 +392,16 @@ pass('tutorial rhythm/hacking objective progression');
     }
   };
   spawnTutorial.startChapter(1);
-  const firstSpawnTimer = [...s.__timers.entries()].find(([, timer]) => timer.delay === 0);
-  assert(firstSpawnTimer, 'combat tutorial schedules its first enemy through a tracked callback');
+  spawnTutorial.update(5000);
+  assert(spawnCalls.length === 0 && s.__timers.size === 0, 'no enemies or browser timers before briefing acknowledgement');
   s.window.player.position.x = 1800;
-  s.__timers.delete(firstSpawnTimer[0]);
-  firstSpawnTimer[1].fn();
-  assert(JSON.stringify(spawnCalls) === JSON.stringify([{ index: 0, playerX: 1800 }]), 'delayed tutorial spawn resolves through Sector1Progression using the live player position');
-  spawnTutorial.startChapter(2);
-  assert(s.__timers.size === 0, 'leaving the combat chapter cancels every pending tutorial spawn/grounding callback');
+  for (let i = 0; i < 3; i++) { spawnTutorial.handleSpacePress(); spawnTutorial.handleSpacePress(); }
+  assert(JSON.stringify(spawnCalls) === JSON.stringify([{ index: 0, playerX: 1800 }]), 'acknowledged tutorial spawn resolves through Sector1Progression at the live player position');
+  assert(enemies[0]._authoredEntranceActive, 'the shared offscreen entrance remains intact');
+  s.window.player.position.x = 2000; spawnTutorial.update(1000);
+  assert(spawnCalls.length === 2 && spawnCalls[1].playerX === 2000, 'later simulation-clock spawn uses the current position');
+  spawnTutorial.startChapter(2); spawnTutorial.update(5000);
+  assert(spawnCalls.length === 2 && spawnTutorial.pendingSpawns.length === 0 && s.__timers.size === 0, 'leaving combat cancels pending spawns');
 }
 pass('tutorial final-message timing and delayed spawn ownership');
 

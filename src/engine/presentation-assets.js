@@ -11,7 +11,12 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   const slimRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/ac183cf0ccde1b716b82c5fdce9229d2de0c5032/';
   const upperRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/b1e9de902b325a949562e8ebeece375a8452ecca/';
   const finaleRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/f92f076b237632c7001641690505560fe9075da6/';
+  const polishRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/dce79e888592023b85abe0eac2572f76b66e51ac/';
   const entries = {
+    hudExpressions: { path: 'assets/feedback-polish/hud-expressions.webp', root: polishRoot, columns: 3, rows: 2, frames: 6, ax: .5, ay: .5, smooth: true },
+    platformFacades: { path: 'assets/feedback-polish/platform-facades.webp', root: polishRoot, columns: 3, rows: 1, frames: 3, ax: 0, ay: 0, smooth: true },
+    platformSideLeft: { path: 'assets/feedback-polish/platform-side-left.webp', root: polishRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 0, smooth: true },
+    platformSideRight: { path: 'assets/feedback-polish/platform-side-right.webp', root: polishRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 0, smooth: true },
     studioCat: { path: 'assets/presentation/studio-cat.webp', columns: 2, rows: 2, frames: 4, ax: 0.5, ay: 0.9375 },
     directionArrow: { path: 'assets/presentation/direction-arrow.webp', columns: 1, rows: 1, frames: 1, ax: 0.5, ay: 0.5 },
     bossPulse: { path: 'assets/presentation/boss-pulse.webp', columns: 2, rows: 2, frames: 4, crop: [10, 95, 236, 145], ax: 0.5, ay: 1, smooth: true },

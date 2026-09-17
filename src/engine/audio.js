@@ -637,6 +637,31 @@ window.AudioSystem = class AudioSystem {
     return true;
   }
 
+  createRepairBuffer() {
+    const rate = this.context.sampleRate, duration = 0.84;
+    const buffer = this.context.createBuffer(1, Math.ceil(rate * duration), rate);
+    const samples = buffer.getChannelData(0);
+    // A soft rising major-key digital chime: clear attack, rounded body, airy tail.
+    const notes = [[0, 659.255, .28], [.09, 830.609, .26], [.18, 987.767, .25], [.30, 1318.510, .23]];
+    for (let i = 0; i < samples.length; i++) {
+      const t = i / rate; let value = 0;
+      for (const [start, hz, gain] of notes) {
+        const age = t-start;
+        if (age < 0 || age > .54) continue;
+        const envelope = Math.min(1, age/.009) * Math.exp(-age*9) * Math.min(1,(.54-age)/.08);
+        const phase = Math.PI*2*hz*age;
+        value += gain*envelope*(Math.sin(phase)+.11*Math.sin(phase*2)+.04*Math.sin(phase*4));
+      }
+      samples[i] = value;
+    }
+    return buffer;
+  }
+  playRepairPickup() {
+    if (!this.context || !this.sfxGain || this.context.state !== 'running') return false;
+    if (!this.repairBuffer || this.repairBuffer.sampleRate !== this.context.sampleRate) this.repairBuffer = this.createRepairBuffer();
+    return this.playSFXBuffer(this.repairBuffer, 0.62, 'repair');
+  }
+
   playSFXBuffer(buffer, volume = 1, kind = 'sample') {
     if (!this.context || !this.sfxGain || this.context.state !== 'running') {
       this.lastSFXCue = { kind, reason: this.context?.state || 'not-ready' };

@@ -173,8 +173,9 @@ for (const fps of [30,60,120]) {
   assert.equal(lift.y,destination.y);assert(Math.abs(actor.position.y+72-destination.y)<0.001,'lift floor aligns with actual rooftop');
   assert.equal(actor.supportedSurfaceId,destination.id,'standing passenger transfers onto rooftop');
   // Real grounded movement, with no jump, carries the rider left out of the
-  // cabin; returning carriage must not pull them down through the roof.
-  for(let i=0;i<fps*.6;i++){actor.moveLeft();actor.update(1000/fps,true);p.updateSignalLift(1000/fps);assert(actor.grounded);assert.equal(actor.supportedSurfaceId,destination.id);}
+  // cabin after clearing the solid canopy on its right; returning carriage
+  // must not pull them down through the roof.
+  for(let i=0;i<fps*.9;i++){actor.moveLeft();actor.update(1000/fps,true);p.updateSignalLift(1000/fps);assert(actor.grounded);assert.equal(actor.supportedSurfaceId,destination.id);}
   assert(actor.position.x<lift.x-18,'passenger walks completely out of the cabin');
   assert.equal(actor.position.y+72,destination.y);
   for(const state of ['moving','returning']) {

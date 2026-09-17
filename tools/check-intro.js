@@ -203,22 +203,31 @@ async function main() {
     assert(tutorial.dialogue.some(line => /Dead Air District/.test(line.text) && /jammed/.test(line.text)), 'skip players receive the local situation too');
     assert(!p.missionStarted, 'intro completion cannot bypass the playable tutorial');
     assert.deepStrictEqual(Array.from(tutorial.objectives, objective => objective.id), ['movement', 'jump']);
-    const expectedObjectives = [['movement', 'jump'], ['combat'], ['rhythm_start', 'rhythm_combo'], ['hack_start', 'hack_complete']];
+    const expectedObjectives = [['movement', 'jump'], ['combat'], ['rhythm_start', 'rhythm_combo', 'rhythm_exit'], ['hack_start', 'hack_complete']];
+    const acknowledge = () => { if (!tutorial.readyToAdvance) tutorial.handleSpacePress(); tutorial.handleSpacePress(); };
     for (let chapter = 0; chapter < 4; chapter++) {
       assert.strictEqual(tutorial.storyChapter, chapter);
       assert.deepStrictEqual(Array.from(tutorial.objectives, objective => objective.id), expectedObjectives[chapter]);
       assert(tutorial.dialogue.every(line => ['6bit', 'cache', 'dj', 'mac'].includes(line.speaker)));
-      while (tutorial.currentDialogue < tutorial.dialogue.length - 1) {
-        const before = tutorial.currentDialogue;
-        tutorial.update(tutorial.targetText.length * tutorial.typingSpeed + 1); tutorial.handleSpacePress();
-        assert.deepStrictEqual(calls.errors, []);
-        assert(tutorial.currentDialogue > before, `Chapter ${chapter}, dialogue ${before} did not advance: ${tutorial.targetText}`);
+      if (chapter === 0) { tutorial.completeObjective('jump'); tutorial.completeObjective('movement'); }
+      if (chapter === 1) {
+        tutorial.update(5000); assert.strictEqual(w.enemyManager.enemies.length, 0, 'reading does not start combat');
+        acknowledge(); acknowledge(); acknowledge(); tutorial.update(2000);
+        assert.strictEqual(w.enemyManager.enemies.length, 3);
+        for (const enemy of w.enemyManager.enemies) { enemy.active = false; enemy.health = 0; w.enemyManager.recordDefeat(enemy); }
       }
-      tutorial.update(tutorial.targetText.length * tutorial.typingSpeed + 1);
-      tutorial.handleSpacePress(); assert.strictEqual(tutorial.storyChapter, chapter, 'unfinished tasks keep the chapter closed');
-      for (const objective of expectedObjectives[chapter]) tutorial.completeObjective(objective);
-      advance(1000);
-      assert.strictEqual(tutorial.storyChapter, chapter + 1, 'authored copy does not control objective completion');
+      if (chapter === 2) {
+        w.player.grounded = true; assert(w.rhythmSystem.showRhythmMode().ok);
+        w.rhythmSystem.combo = 5; tutorial.update(0); w.inputManager.leaveRhythmMode();
+      }
+      if (chapter === 3) {
+        w.player.grounded = true; const h = w.hackingSystem; assert(h.start()); tutorial.update(0);
+        h.update(h.bootDurationMs); h.update(h.displayTime + 1);
+        h.inputText = h.currentPuzzle.answer; h.processInput('Enter');
+      }
+      for (let n = 0; tutorial.storyChapter === chapter && n < 10; n++) { tutorial.update(0); acknowledge(); }
+      assert.strictEqual(tutorial.storyChapter, chapter + 1, 'earned actions and acknowledged story jointly advance the lesson');
+      assert.deepStrictEqual(calls.errors, []);
       p.update(16); assert(!p.missionStarted);
     }
     assert.strictEqual(tutorial.storyChapter, 4);

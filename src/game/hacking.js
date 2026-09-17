@@ -430,13 +430,6 @@ window.HackingSystem = class HackingSystem {
       window.tutorialSystem.checkObjective('hack_start');
       window.tutorialSystem.checkObjective('hack_complete');
     }
-    window.tutorialSystem.completedObjectives?.add('hack_start');
-    window.tutorialSystem.completedObjectives?.add('hack_complete');
-    if (Array.isArray(window.tutorialSystem.objectives)) {
-      window.tutorialSystem.objectives.forEach(objective => {
-        if (objective.id === 'hack_start' || objective.id === 'hack_complete') objective.completed = true;
-      });
-    }
   }
 
   finishSession(outcome, terminalLines) {
@@ -488,17 +481,20 @@ window.HackingSystem = class HackingSystem {
     if (!result) return false;
     this.safeInvoke('success audio', () => window.audioSystem?.playSound?.('terminalBeep', 0.5));
     this.safeInvoke('tutorial completion', () => this.completeTutorialObjectivesOnSuccess(result.tutorialSession));
-    this.resultDetail = training ? 'UPLINK READY · H / Y locks a nearby enemy.' : 'ENEMY HIJACKED · 12 seconds · H / Y releases';
+    const control = window.BARCODE?.ControllerSettings?.prompt('interact', 'H') || 'H';
+    this.resultDetail = training ? 'PRACTICE COMPLETE · Find a marked enemy in the street.' : `ENEMY HIJACKED · 12 seconds · ${control} releases`;
     this.showSuccessFeedback();
     return true;
   }
 
   failPuzzle() {
+    const training = this.tutorialMode;
     const result = this.finishSession('failure', [
       '> ACCESS DENIED', '> AUTHENTICATION FAILED', '> NETWORK BREACH ATTEMPTED',
       '> INTRUSION DETECTED', '> TERMINATING SESSION...'
     ]);
     if (!result) return false;
+    if (training) this.resultDetail = 'PRACTICE · Open the uplink to try again when ready.';
     this.safeInvoke('failure audio', () => window.audioSystem?.playSound?.('terminalBuzz', 0.3));
     this.showFailureFeedback();
     return true;

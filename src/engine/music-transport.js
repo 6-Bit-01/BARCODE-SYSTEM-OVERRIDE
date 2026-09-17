@@ -175,7 +175,7 @@ window.BARCODE = window.BARCODE || {};
       let timing = 'miss';
       if (distanceMs <= rule.windowsMs.perfect) timing = 'perfect';
       else if (distanceMs <= rule.windowsMs.excellent) timing = 'excellent';
-      return freeze({ available: true, timing, distanceMs, signedOffsetMs, calibrationOffsetMs: offset, ruleId: rule.id, generation: snapshot.generation });
+      return freeze({ available: true, timing, distanceMs, signedOffsetMs, beatIndex: Math.round(snapshot.grid.beatFloat), calibrationOffsetMs: offset, ruleId: rule.id, generation: snapshot.generation });
     }
 
     function getDiagnostics() {

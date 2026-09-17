@@ -1,5 +1,18 @@
 # Acceptance and Test Status
 
+## September 17 — Finish The Job combined review
+
+Import the exact draft head from the generated receipt into a fresh Makko preview. Base/rollback is merged #75, `48ec019a6037a3bf3910614eb5bae3c0c58d4130`. `FINISH_THE_JOB_RECOVERY.md` is the current scope and evidence record; conflicting older routes below are historical.
+
+1. Start the tutorial and jump/move before the opening dialogue finishes, in either order. Both actions retain credit and unread story remains. Read slowly at the stomp briefing: the three enemies appear only after acknowledging that instruction, once. Complete training without adding mission kills.
+2. Earn five rhythm hits before the coaching catches up, then miss. The achievement remains and the lesson requires deliberate stance exit. Open the hack early; check Read/Input/failure/success captions, retry without losing progress, and return to unread story. Final Continue starts the mission without a compulsory wait. Check keyboard and actual PlayStation/Xbox bindings.
+3. Inspect the nine small platforms: three facade designs and two opposite side braces, with hangers reaching roofs where required. Check the single terminal beside the awning and clear of the doorway. Watch its painted waveform for five seconds, then compare reduced flashes.
+4. Launch the lift with two rhythm hits. It returns five active seconds after the last accepted charge even while occupied; recharge aboard, at the roof seam and during descent. Pause freezes the countdown. Ride the roof/cabin and step onto the fixed canopy/roof without clipping or being dragged down.
+5. Check side/upward contact and top landings on all five awnings with the player/enemies. Ordinary roofs/steps remain one-way, with two circled step bonks. Lure the boss up/down the route and across the street: his body fits beneath the street awnings, he clears edges on upper routes, and his existing warned pulses still reach. Confirm no repeated leap/landing loop, then win and retry. Enemy roof visibility, pancakes and deliberate drops remain.
+6. Take damage, reach low health, collect a repair and build a rhythm streak. Inspect the six appropriate portrait reactions and hear the light digital pickup chime at the current SFX volume. Perfect/excellent/missed inputs should color the corresponding lane beat, including with saved calibration; leaving/restarting clears stale feedback.
+
+Production-module/native checks do not establish hosted Makko behavior, physical-controller feel or sound quality. Owner acceptance is pending; keep the draft unmerged. After acceptance and merge, import the actual new main merge SHA and repeat the focused route.
+
 ## September 17 continuation — focused owner review
 
 Import the draft's exact published head into a fresh Makko preview. This is pending hosted acceptance.

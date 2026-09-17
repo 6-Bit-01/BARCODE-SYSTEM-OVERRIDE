@@ -23,13 +23,21 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
     while(at<x+w){const bw=[3,5,2,7,3,2,5][n++%7];c.fillRect(at,y,Math.min(bw,x+w-at),h);at+=bw+2;}
   }
   function begin(c) { c.save();c.globalAlpha=1;c.shadowBlur=0;c.scale(1.25,1.25); }
+  function portraitFrame(player, rhythm) {
+    if (player?.hudReaction?.kind === 'hurt') return 1;
+    if (window.gameState?.victory || player?.hudReaction?.kind === 'relief') return 5;
+    if ((player?.health || 0) <= 1) return 4;
+    const combo = rhythm?.getCombo?.() ?? rhythm?.combo ?? 0;
+    if (rhythm?.isActive?.()) return combo >= 5 && combo % 5 < 3 ? 2 : 3;
+    return 0;
+  }
   function basic(c, { player, rhythm, progress, score, pad, training }) {
     begin(c);
     const active=!!rhythm?.isActive?.(), max=Math.max(1,player?.maxHealth||3), hp=Math.max(0,Math.min(max,player?.health||0));
     plate(c,22,22,508,139);
     polygon(c,[[27,29],[144,27],[135,154],[31,154]],'#253441',C.paper);
     c.save();c.beginPath();c.rect(31,29,106,123);c.clip();
-    if(!B.PresentationAssets?.draw('hudPortrait',c,{x:85.5,y:88.5,width:127,height:127})) text(c,'6 BIT',84,90,27,C.paper,700,'center');
+    if(!B.PresentationAssets?.draw('hudExpressions',c,{x:85.5,y:88.5,width:127,height:127,frame:portraitFrame(player,rhythm)}) && !B.PresentationAssets?.draw('hudPortrait',c,{x:85.5,y:88.5,width:127,height:127})) text(c,'6 BIT',84,90,27,C.paper,700,'center');
     c.restore();
     text(c,'6 BIT',157,51,32,C.paper,700);
     text(c,active?'RHYTHM COMBAT':'SIGNAL ACTIVE',505,53,16,active?C.green:C.muted,600,'right');
@@ -49,19 +57,53 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
     plate(c,1200,23,310,76,C.paper,C.ink);
     text(c,'SCORE',1220,42,16,C.ink);text(c,String(Math.max(0,score||0)).padStart(6,'0'),1488,64,31,C.ink,700,'right',260);
     plate(c,1314,111,193,43);text(c,'LORE',1330,132,16,C.muted);text(c,`${progress?.collected||0} / ${progress?.total||3}`,1488,132,23,C.paper,600,'right');
-    if(!active){plate(c,26,179,213,36,C.ink,C.muted);text(c,`[${B.ControllerSettings?.prompt('rhythm_mode', 'R') || 'R'}] RHYTHM MODE`,43,197,17);}
+    if(!active && !(training && window.tutorialSystem?.storyChapter < 2)){plate(c,26,179,213,36,C.ink,C.muted);text(c,`[${B.ControllerSettings?.prompt('rhythm_mode', 'R') || 'R'}] RHYTHM MODE`,43,197,17);}
     if(progress?.saved===false) text(c,'ARCHIVE SAVE UNAVAILABLE — KEEP TAB OPEN',26,active?448:312,12,'#ffc68a',600,'left',500);
     if(training) text(c,'DEAD AIR DISTRICT / CREW TRAINING',810,158,16,C.purple,600,'center',530);
     c.restore();
   }
-  function objectives(c,{ title, detail, kick }) {
-    begin(c);c.translate(1293,218);c.rotate((kick||0)*.038);
-    plate(c,-213,-58,426,117,C.ink,C.muted);
-    polygon(c,[[-211,-46],[-200,-47],[-204,47],[-210,42]],C.green);
-    text(c,'Objectives',-186,-37,16,C.green,700,'left',378);
-    text(c,title,-186,-9,22,C.paper,700,'left',378);
-    text(c,detail,-186,26,15,C.muted,600,'left',378);
+  function wrapped(c, value, width, size, weight = 600) {
+    c.font = `${weight} ${size}px Oxanium, monospace`;
+    const lines = []; let line = '';
+    for (const word of String(value || '').split(' ')) {
+      const next = line ? line + ' ' + word : word;
+      if (line && c.measureText(next).width > width) { lines.push(line); line = word; }
+      else line = next;
+    }
+    if (line) lines.push(line);
+    return lines;
+  }
+  function actionCard(c, { title, control, label, detail, progress, hint }, { x = 1328, y = 225, width = 564 } = {}) {
+    c.save(); c.globalAlpha = 1; c.shadowBlur = 0;
+    const inner = width - 48, titles = wrapped(c, title, inner, 36, 700), details = wrapped(c, detail, inner, 28);
+    const progressLines = wrapped(c, progress, inner, 26);
+    const hintLines = hint ? wrapped(c, hint.detail, inner, 26) : [];
+    const hintTitles = hint ? wrapped(c, (hint.control ? '[' + hint.control + '] ' : '') + hint.title, inner, 28, 700) : [];
+    const height = 60 + titles.length * 40 + details.length * 34 + (control ? 68 : 0) + progressLines.length * 32 +
+      (hint ? 20 + hintTitles.length * 34 + hintLines.length * 32 : 0);
+    plate(c, x, y, width, height, C.ink, C.muted);
+    text(c, 'OBJECTIVES', x + 24, y + 25, 22, C.green, 700);
+    let row = y + 64;
+    for (const line of titles) { text(c, line, x + 24, row, 36, C.paper, 700); row += 40; }
+    if (control) {
+      c.font = 'bold 36px Oxanium, monospace';
+      const badgeWidth = Math.max(72, c.measureText(control).width + 30);
+      c.fillStyle = C.green; c.fillRect(x + 24, row + 1, badgeWidth, 50);
+      text(c, control, x + 39, row + 26, 36, C.ink, 700);
+      if (label) text(c, label, x + 40 + badgeWidth, row + 26, 30, C.paper, 700);
+      row += 68;
+    }
+    for (const line of details) { text(c, line, x + 24, row, 28, C.paper); row += 34; }
+    for (const line of progressLines) { text(c, line, x + 24, row + 2, 26, C.teal); row += 32; }
+    if (hint) {
+      c.fillStyle = '#334653'; c.fillRect(x + 24, row, inner, 2); row += 22;
+      for (const line of hintTitles) { text(c, line, x + 24, row, 28, C.green, 700); row += 34; }
+      for (const line of hintLines) { text(c, line, x + 24, row, 26, C.paper); row += 32; }
+    }
     c.restore();
+  }
+  function objectives(c,{ title, detail }) {
+    actionCard(c, { title, detail, hint: window.tutorialSystem?.getContextHint?.() });
   }
   function boss(c,status) {
     begin(c);const counter=!!status.canReceiveDamage,color=counter?C.teal:C.red;
@@ -86,7 +128,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
     // The same x=96 beat crossing still hits the fixed target exactly.
     for(const note of lane.notes) {
       const x=152+(note.x-96)*(52/82), onTarget=Math.abs(note.x-96)<6;
-      polygon(c,[[x-5,252],[x+9,252],[x+4,287],[x-10,287]],onTarget?C.paper:note.downbeat?color:C.muted);
+      const resultColor = note.timing === 'perfect' ? C.teal : note.timing === 'excellent' ? C.green : note.timing === 'miss' ? C.red : null;
+      polygon(c,[[x-5,252],[x+9,252],[x+4,287],[x-10,287]],resultColor || (onTarget?C.paper:note.downbeat?color:C.muted));
+      if(resultColor) text(c,note.timing==='miss'?'×':'✓',x,269,16,C.ink,700,'center');
       if(note.downbeat) barcode(c,x-3,255,8,29,C.ink);
     }
     c.restore();c.fillStyle=C.paper;c.fillRect(150.5,235,3,68);
@@ -115,5 +159,5 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
     text(c,`[${key}] HACK READY`,x+w/2,y+21,21,C.green,700,'center',w-24);
     c.restore();
   }
-  B.ComicHUD=Object.freeze({health,lore,C,polygon,plate,text,basic,objectives,boss,rhythm,amp,hack});
+  B.ComicHUD=Object.freeze({health,lore,C,polygon,plate,text,basic,objectives,actionCard,portraitFrame,boss,rhythm,amp,hack});
 })();

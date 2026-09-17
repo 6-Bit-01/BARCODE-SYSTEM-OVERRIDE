@@ -1,7 +1,14 @@
-Enemies are physically supported by the elevator roof, but its later draw covers their feet and lower bodies. Split the existing enemy render around the cabin so roof actors draw over it, including airborne approaches/departures. Other enemies retain their previous depth, culling and single draw.
+# Finish the approved tutorial and gameplay feedback pass
 
-The existing landing height, collisions, platform positions, four approved static bonks and all previous gameplay remain. Four native artwork previews show the corrected foot placement with the player inside the cabin. Focused production checks cover every enemy type on rising/returning lifts, transition depth and culling; existing roof physics checks cover player/enemies/boss at 30/60/120 Hz. Full local and CI results belong to the generated receipt.
+The approved twenty-bubble tutorial and the later art/gameplay feedback survived in a local checkout but were missing from main. This restores that work over merged #75 and completes the solid-awning integration.
 
-The owner also asked for tutorial recommendations. TUTORIAL_FLOW_PROPOSAL.md documents the current timing/readability mismatches and a concrete 25-to-20-bubble proposal preserving the story. That proposal does not modify tutorial runtime.
+- Coordinate dialogue, early/out-of-order actions, enemy entrances and hack phases with one tutorial progression owner. Keep all four speakers and story beats, show actual keyboard/controller bindings, preserve earned combo credit, require deliberate Rhythm Mode exit and remove the final forced wait.
+- Connect all five supplied platform designs, six reactive HUD expressions, a soft digital healing chime and calibrated beat-result colors. Preserve #75's five-second lift power, terminal placement and painted-waveform glitch.
+- Make the five awnings fully solid while retaining ordinary platform behavior and the two circled step bonks. Correct the boss's oversized terrain probe (310 units versus a roughly 232-unit walking body), awning descent and overhead routing. Rising cabin passengers clear the fixed canopy and keep their ride.
+- Restore the actual approved plan and asset provenance in the continuation records. Related recommendations are documented without adding them to gameplay.
 
-Base/rollback: merged #73, 8fc2f8ea838d1dc901b97c7b7c93581459451ddf. No new runtime art or dependencies. Keep this draft for owner Makko review using ACCEPTANCE.md.
+Validation: `npm test` and `npm run check:syntax:all` pass. Production-module tests cover keyboard/PS/Xbox tutorial flow and traversal at 30/60/120 FPS, original boss street movement, lift handoffs/timeouts, real portrait events, beat calibration/reset and bounded pickup audio. Current native renders show twelve tutorial states, nine mounted platforms, terminal states, six portraits and three beat outcomes.
+
+Base/rollback: `48ec019a6037a3bf3910614eb5bae3c0c58d4130` (merged #75). Feedback artwork pin: `dce79e888592023b85abe0eac2572f76b66e51ac`. No additional dependencies or new runtime timers/loops.
+
+See `docs/source-pack/FINISH_THE_JOB_RECOVERY.md` and the newest `ACCEPTANCE.md` route. Hosted Makko, physical-controller feel and sound acceptance remain pending. Keep this draft unmerged for the owner's review; after acceptance and merge, import the actual new main SHA and repeat the route.
