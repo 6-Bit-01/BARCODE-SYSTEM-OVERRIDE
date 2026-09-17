@@ -38,14 +38,14 @@ for(const type of ['player','corrupted','firewall','virus','drone','boss']){
     assert(!overlaps(p.getRoofActorBounds(a),s),type+' '+id+' '+JSON.stringify(p.getRoofActorBounds(a))+' '+JSON.stringify(s));
   }
 }
-// Roof passengers transfer to the fixed canopy when it catches their feet.
+// A boarded roof passenger retains the moving lane across the fixed canopy.
 for(const fps of [30,60,120])for(const type of ['player','firewall','boss']){
   const {p,a}=rig(type),lift=p.signalLift;lift.y=lift.prevY=600;lift.state='returning';
-  let roof=p.getLiftRoof();place(a,roof.x+roof.w*.3,roof.topY);a.supportedSurfaceId=roof.id;
+  let roof=p.getLiftRoof();const x=roof.x+roof.w*.3;place(a,x,roof.topY);a.supportedSurfaceId=roof.id;
   for(let i=0;i<fps;i++)p.updateSignalLift(1000/fps);
-  assert.equal(a.supportedSurfaceId,'firewall-canopy',type+': descending roof hands off to canopy');
-  const s=p.getSolidLedges().find(s=>s.id==='firewall-canopy');
-  assert.equal(p.getRoofActorBounds(a).y+p.getRoofActorBounds(a).height,s.y);
+  assert.equal(a.supportedSurfaceId,roof.id,type+': descending roof keeps its passenger');
+  assert(Math.abs(p.getRoofActorBounds(a).y+p.getRoofActorBounds(a).height-p.getLiftRoof().topY)<.001);
+  assert.equal((a.position||a).x,x);
 }
 // The fixed canopy must not trap/eject a rider as the cabin rises beneath it.
 for(const fps of [30,60,120])for(const x of [2460,2506]){
@@ -53,11 +53,11 @@ for(const fps of [30,60,120])for(const x of [2460,2506]){
   p.chargeSignalLift();p.chargeSignalLift();
   for(let i=0;i<fps*4.5;i++){
     a.update(1000/fps,true);p.updateSignalLift(1000/fps);
-    const body=p.getRoofActorBounds(a);
-    for(const s of p.getSolidLedges().filter(s=>s.solid))assert(!overlaps(body,s),`${fps}Hz cabin rider clears ${s.id}`);
+    assert.equal(a.position.x,x,`${fps}Hz cabin rider is not shoved around the facade`);
+    assert(Math.abs(a.position.y+72-lift.y)<.001,'floor owns the boarded passenger');
   }
-  assert.equal(lift.y,59);assert.equal(a.supportedSurfaceId,'firewall-roof');
-  assert.equal(a.position.y+72,59,'rider reaches the true rooftop after clearing the fixed canopy');
+  assert.equal(lift.y,59);assert.equal(a.supportedSurfaceId,lift.id);
+  assert.equal(a.position.y+72,59,'rider reaches the rooftop without losing the carriage');
 }
 // Pursuit must still work across street obstructions and toward a player who
 // fits beneath an awning. Attacks keep the original warning/recovery owners.

@@ -536,17 +536,17 @@ function testSignalLiftAndBackgroundRhythm() {
     }
     assert(frames < fps * 4, `lift reaches its upper stop at ${fps} FPS`);
     w.updateGame(dt);
-    assert.strictEqual(player.supportedSurfaceId, liftConfig.destinationSurfaceId, `lift hands the player to the actual rooftop at ${fps} FPS`);
+    assert.strictEqual(player.supportedSurfaceId, liftConfig.id, `lift retains its passenger at the rooftop seam at ${fps} FPS`);
     approx(player.getVisualAnchor().visibleFootY, liftConfig.topY, 0.001, `player visible feet meet the rooftop/lift top at ${fps} FPS`);
-    const playerTopY = player.position.y;
 
     frames = 0;
     while (progression.signalLift.y < liftConfig.bottomY && frames++ < fps * 5) {
       w.updateGame(dt);
     }
-    assert(frames < fps * 5, `unoccupied lift returns to its lower stop at ${fps} FPS`);
+    assert(frames < fps * 5, `occupied lift returns to its lower stop at ${fps} FPS`);
     approx(progression.signalLift.y, liftConfig.bottomY, 0.001, `lift lower stop is frame-stable at ${fps} FPS`);
-    approx(player.position.y, playerTopY, 0.001, `returning lift does not drag the player off the awning at ${fps} FPS`);
+    approx(player.getVisualAnchor().visibleFootY, liftConfig.bottomY, 0.001, `returning lift carries the player to the street at ${fps} FPS`);
+    assert.strictEqual(player.supportedSurfaceId, liftConfig.id, `street-height floor retains the passenger at ${fps} FPS`);
     assert.strictEqual(progression.signalLift.charges, 0, `returned lift clears charges at ${fps} FPS`);
     liftEndpoints.push(progression.signalLift.y);
   }

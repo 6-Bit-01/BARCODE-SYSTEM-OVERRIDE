@@ -498,14 +498,28 @@ window.SpaceShipSystem = class SpaceShipSystem {
       const distance = ship.direction > 0 ? -body.x - body.width : body.x - 1920;
       if (distance <= 0) continue; // The leading artwork has appeared: remove cue.
       const entryInMs = Math.max(0, ship.launchInMs || 0) + distance / (Math.abs(ship.speed) * 0.06 * m.a);
-      if (entryInMs > 3000 || body.y + body.height <= 0 || body.y >= 1080) continue;
-      // Center on the actual car altitude. For a partly clipped car, point into
-      // its visible hull slice; never relocate a high car to a generic HUD row.
-      const centerY = body.y + body.height / 2;
-      const y = centerY >= 0 && centerY <= 1080 ? centerY : (Math.max(0, body.y) + Math.min(1080, body.y + body.height)) / 2;
+      if (entryInMs > 3000 || !this.isTrafficWarningRelevant(ship)) continue;
+      // A cue may clip at the viewport edge or remain offscreen with its car.
+      // Never drag a high flight lane down into the player's play space.
+      const y = body.y + body.height / 2;
       warnings.push({ ship, side: ship.direction > 0 ? 'left' : 'right', y, body, entryInMs });
     }
     return warnings;
+  }
+
+  isTrafficWarningRelevant(ship) {
+    const player = window.player, body = this.getTrafficPlayerBody();
+    if (!body) return false;
+    const hull = this.getHazardBody(ship), bob = Math.sin(this.elapsedMs / 1000 + ship.bobOffset) * ship.bobAmount;
+    const laneTop = hull.y - bob - Math.abs(ship.bobAmount), laneBottom = hull.y - bob + hull.height + Math.abs(ship.bobAmount);
+    const lift = window.sector1Progression?.signalLift;
+    const riding = lift && [lift.id, 'signal-lift-roof'].includes(player.supportedSurfaceId);
+    const velocity = riding ? (lift.state === 'returning' ? lift.speed : lift.state === 'moving' ? -lift.speed : 0) : player.velocity?.y || 0;
+    // Short anticipation catches a jump, fall or lift entering the lane;
+    // distant traffic at another altitude has no reason to interrupt play.
+    const travel = Math.max(-180, Math.min(216, velocity * .18)), margin = 28;
+    return Math.min(body.y, body.y + travel) < laneBottom + margin &&
+      Math.max(body.y + body.height, body.y + body.height + travel) > laneTop - margin;
   }
 
   drawTrafficWarnings(ctx) {
@@ -513,20 +527,11 @@ window.SpaceShipSystem = class SpaceShipSystem {
     for (const warning of warnings) {
       const left = warning.side === 'left', arrowX = left ? 48 : 1872;
       const plateX = left ? 96 : 1584;
-      // Keep the label clear of health/rhythm and objectives; only its label
-      // may shift. The arrow itself stays precisely on the car's flight line.
-      const hudBottom = left ? (window.rhythmSystem?.isActive?.() ? 550 : 370) : 356;
-      const plateY = Math.max(hudBottom, Math.min(998, warning.y - 37));
+      const plateY = warning.y - 37;
       ctx.save();
       // This pass runs in screen coordinates after the normal HUD. Alpha never
       // reaches zero: the warning remains readable between its red flashes.
       ctx.globalAlpha = Math.floor(this.elapsedMs / 250) % 2 ? 0.48 : 1;
-      if (Math.abs(plateY + 37 - warning.y) > 1) {
-        const joinX = left ? 90 : 1830;
-        ctx.strokeStyle = '#ff3444'; ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.moveTo(left ? 84 : 1836, warning.y); ctx.lineTo(joinX, warning.y);
-        ctx.lineTo(joinX, plateY + 37); ctx.lineTo(left ? plateX : plateX + 240, plateY + 37); ctx.stroke();
-      }
       if (this.warningImage) {
         ctx.drawImage(this.warningImage, 0, 0, 768, 235, plateX, plateY, 240, 74);
         ctx.translate(arrowX, warning.y); if (!left) ctx.scale(-1, 1);

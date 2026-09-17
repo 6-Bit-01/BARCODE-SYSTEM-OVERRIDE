@@ -29,7 +29,7 @@ assert.strictEqual(counts.reduce((a,b)=>a+b,0), 20, 'exactly 20 quota enemies');
 assert.deepStrictEqual(counts, [4,5,5,6], 'encounter counts are 4/5/5/6');
 must(sectorSource, /STAGE_SURFACES = Object\.freeze/, 'single stage surface data exists');
 must(sectorSource, /ENCOUNTER_GATES = Object\.freeze/, 'single gate data exists');
-must(sectorSource, /previousVisualFootY > surfacePrevY \|\| currentVisualFootY < surface\.y[^]*crossingT[^]*crossingX/, 'platform tunneling prevention resolves the horizontal visual-foot position at the vertical crossing');
+must(sectorSource, /previousVisualFootY > surfacePrevY \+ \.001 \|\| currentVisualFootY < surface\.y - \.001[^]*crossingT[^]*crossingX/, 'platform tunneling prevention retains the swept foot crossing with bounded roundoff tolerance');
 must(sectorSource, /const footHalfWidth = 18;/, 'platform collision uses the narrow player foot probe');
 must(playerSource, /static get VISUAL_FOOT_OFFSET_Y\(\) \{ return PLAYER_VISUAL_FOOT_OFFSET_Y; \}/, 'Player publishes the canonical visual-foot offset');
 must(sectorSource, /const PLAYER_VISUAL_FOOT_OFFSET = window\.Player\.VISUAL_FOOT_OFFSET_Y;/, 'Level 1 platforms and boss presentation consume the player-owned visual-foot contract');

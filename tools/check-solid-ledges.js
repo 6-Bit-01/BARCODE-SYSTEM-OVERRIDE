@@ -27,9 +27,9 @@ function place(r, a, x, foot) {
 }
 for (const fps of [30,60,120]) {
   // The later explicit request makes awnings solid like the elevator. The
-  // two circled small steps retain bonks; other steps/roofs stay one-way.
-  const ids = ['signal-awning', 'cache-awning', 'firewall-canopy', 'tower-awning', 'broadcast-awning', 'cache-maintenance-step', 'firewall-low-step'];
-  assert.deepStrictEqual(Array.from(rig().p.getSolidLedges(), s => s.id).sort(), ids.slice().sort(), 'five awnings plus the two circled step undersides');
+  // remaining Cache step retains its bonk; other steps/roofs stay one-way.
+  const ids = ['signal-awning', 'cache-awning', 'firewall-canopy', 'tower-awning', 'broadcast-awning', 'cache-maintenance-step'];
+  assert.deepStrictEqual(Array.from(rig().p.getSolidLedges(), s => s.id).sort(), ids.slice().sort(), 'five awnings plus the remaining Cache step underside');
   for (const id of ids) for (const facing of [-1,1]) {
     const r = rig(), { w, p } = r, a = w.player, ledge = p.getSolidLedges().find(s => s.id === id);
     a.state = 'jump'; a.facing = facing; a.grounded = false;
@@ -114,7 +114,7 @@ for (const fps of [30,60,120]) {
     assert.equal(a.health,3);
   }
 }
-console.log('Scoped solids: five awnings and two circled step undersides; all other undersides open; both facings; moving roof for six actor types at 30/60/120Hz; pause/reset and deliberate drops through every support passed.');
+console.log('Scoped solids: five awnings and remaining Cache step underside; all other undersides open; both facings; moving roof for six actor types at 30/60/120Hz; pause/reset and deliberate drops through every support passed.');
 
 // Regression: physical support was correct, but the later cabin image erased
 // the lower half of roof enemies. Exercise both real render owners after motion.

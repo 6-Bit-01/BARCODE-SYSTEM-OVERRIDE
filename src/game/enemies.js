@@ -275,7 +275,7 @@ window.Enemy = class Enemy {
     const worldRight = 4096 - this.width/2;
     this.position.x = window.clamp(this.position.x, worldLeft, worldRight);
 
-    if (this.position.y >= ENEMY_GROUND_Y) {
+    if (this.position.y >= ENEMY_GROUND_Y && !this.supportedSurfaceId) {
       this.position.y = ENEMY_GROUND_Y; this.supportedSurfaceId = null;
       if (this.type === 'firewall' || this.type === 'corrupted') {
           this.velocity.y = Math.min(0, this.velocity.y);
@@ -297,8 +297,8 @@ window.Enemy = class Enemy {
     if (this.velocity.y < 0 || this.role === 'swooper') return;
     let support = null;
     const currentFootY = this.position.y + 72;
-    for (const p of window.sector1Progression?.getActorSurfaces?.() || []) {
-      if (previousFootY > p.y + 2 || currentFootY < p.y) continue;
+    for (const p of window.sector1Progression?.getActorSurfaces?.(this) || []) {
+      if (previousFootY > p.y + 2 || currentFootY < p.y - .001) continue;
       const t = currentFootY > previousFootY ? Math.max(0, Math.min(1, (p.y - previousFootY) / (currentFootY - previousFootY))) : 1;
       const x = previousX + (this.position.x - previousX) * t;
       if (x < p.x + 10 || x > p.x + p.w - 10 || support && support.y < p.y) continue;
