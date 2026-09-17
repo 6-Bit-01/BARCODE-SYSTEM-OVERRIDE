@@ -1,5 +1,9 @@
 # Repository Guidance
 
+## September 17, 2026 — stronger Hack and Rhythm Mode presence
+
+The owner's new request authorizes pronounced audiovisual power in both modes and a bullet-time feel in hacking. Base/rollback is merged #85, `62b44f7cf5446b38bec18746411587327cedb142`; branch `agent/mode-power-presence`. Read MODE_POWER_PASS.md and the newest ACCEPTANCE route. Retain the opaque terminal/live viewport and protected music synchronization. Cars/spawning, ambient particles and skyline now slow with hacking; the elevator keeps its established passenger/power clock. Personal animation, input and FX remain real-time; terminal answering remains stationary. Use approved idle frames for a dedicated hack gesture and guard deflection. Rhythm uses the actual transport beat and damage radius. New SFX share the existing bus/voice budget, warning priority, pause/reset and preferences. Reduced Motion/Flashes Off retain steady readable cues. No damage/score/boss/jammer retuning in this pass. Publish one tested draft and refresh canonical v5. Existing owner Makko/controller acceptance remains required before assistant merge.
+
 ## September 17, 2026 — final Level 1 playtest follow-up
 
 The owner's new request authorizes a stable visible hack panel with live enemies, title settings and pause fullscreen, explicit settings/recovery rules, stronger varied boss support and jammer phases, and a gentle return to proven dialogue/objective positions. Base/rollback is merged #84, `bbd95ba821b99a1268e1dc563d7027fdbf12dc08`; branch `agent/level1-final-playtest`. Read FINAL_PLAYTEST_PASS.md and the newest ACCEPTANCE route.

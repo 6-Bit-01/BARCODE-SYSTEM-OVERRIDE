@@ -487,6 +487,7 @@ window.HackingSystem = class HackingSystem {
     this._lastResultFailed = outcome !== 'success';
     this.terminalLines = terminalLines;
     this.resultFx = outcome === 'cancel' ? null : { outcome, elapsedMs: 0, target: this.hijackTarget };
+    this.feedback = null; // A cancelled guard must not become a result banner.
     this.cooldownDurationMs = this.cooldownMs;
     this.cooldownUntil = Date.now() + this.cooldownDurationMs;
     this.runGeneration++;
@@ -560,6 +561,7 @@ window.HackingSystem = class HackingSystem {
   absorbGuardHit() {
     if (!this.active || this.guardHitsRemaining <= 0) return false;
     this.guardHitsRemaining--;
+    window.BARCODE?.combatFX?.hackDeflect?.();
     this.feedback = { text: 'SIGNAL GUARD ABSORBED', type: 'success', timer: 45, opacity: 1 };
     return true;
   }

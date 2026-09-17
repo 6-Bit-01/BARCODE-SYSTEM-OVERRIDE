@@ -30,6 +30,45 @@ async function main(){
  function scene(c,cx,cy){w.gameCamera={centerX:cx,y:cy};w.renderer.zoomLevel=1;c.fillStyle='#111322';c.fillRect(0,0,1920,1080);c.drawImage(bg,0,0,1920,1080);c.save();c.translate(960-cx,-cy);c.drawImage(fg,0,2,fg.width,fg.height-2,-152,-550+2*1589/fg.height,4400,1589-2*1589/fg.height);w.drawGround(c);if(process.env.PLAYTEST_POLISH_REVIEW)w.BARCODE.stageFX.drawWorld(c);w.drawGameEntities(c);if(p.getLiftActorLayer(w.player)!=='behind')w.player.draw(c);p.drawSignalLift(c,'front');c.restore();c.save();c.translate(0,-cy);w.spaceShipSystem.drawForegroundShips(c);c.restore();if(!process.env.FINAL_PLAYTEST_REVIEW&&!w.tutorialSystem?.isActive?.()&&!process.env.PLAYTEST_POLISH_REVIEW&&!process.env.BOSS_MUSIC_REVIEW)w.drawObjectives(c);}
  function setHero(x,foot,support){Object.assign(w.player.position,{x,y:foot-72});w.player.velocity.x=0;w.player.velocity.y=0;w.player.grounded=true;w.player.supportedSurfaceId=support||null;w.player.state='idle';w.player.airInput=0;w.player.controlsDisabled=false;w.player.invulnerableUntil=0;w.player.health=w.player.maxHealth;w.player.playAnimation('idle');}
  const canvas=createCanvas(1920,1080),c=canvas.getContext('2d');
+ if(process.env.MODE_POWER_REVIEW){
+  GlobalFonts.registerFromPath(path.join(root,'assets/studies/visual-overhaul/references/fonts/Oxanium.ttf'),'Oxanium');
+  w.document.getElementById=id=>id==='gameCanvas'?canvas:null;
+  w.document.createElement=()=>createCanvas(1920,1080);
+  w.renderer.screenShake={x:0,y:0};w.renderer.zoomLevel=1;
+  w.renderer.clear=()=>{c.setTransform(1,0,0,1,0,0);c.fillStyle='#07121e';c.fillRect(0,0,1920,1080);};
+  w.parallaxBackground={updateCamera(){},getLayer:i=>i,drawLayer(ctx,layer){if(layer===0)ctx.drawImage(bg,0,0,1920,1080);else{ctx.save();ctx.translate(960-w.gameCamera.centerX,0);ctx.drawImage(fg,-152,-550,4400,1589);ctx.restore();}}};
+  w.BARCODE.Preferences={values:{reducedMotion:false,flashes:true}};
+  p.state='jammer_active';p.closedGateEncounterId=null;p.pendingSpawns=[];setHero(2200,856);w.player.facing=1;
+  const foes=['corrupted','firewall'].map((type,i)=>{
+   const e=new w.Enemy(2390+i*270,784,type);Object.assign(e.position,{x:2390+i*270,y:784});
+   Object.assign(e,{entranceComplete:true,_authoredEntranceActive:false,spawnTimeMs:-10000,spawnProtectionDuration:0});
+   e.initSprite();e.playAnimation('idle');return e;
+  });w.enemyManager.enemies=foes;
+  const hack=w.hackingSystem=new w.HackingSystem();Object.assign(hack,{active:true,hijackTarget:foes[0],phase:'answer',puzzleType:2,
+   currentPuzzle:{type:2,answer:'425',hidden:true},phaseDurationMs:16000,phaseElapsedMs:0,sessionElapsedMs:0,guardHitsRemaining:1,inputText:'42'});
+  const fx=w.BARCODE.combatFX;fx.reset();const dt=1000/24;
+  const preview=createCanvas(960,540),pc=preview.getContext('2d');
+  const movie=spawn('ffmpeg',['-y','-f','image2pipe','-framerate','24','-vcodec','mjpeg','-i','pipe:0','-c:v','libx264','-pix_fmt','yuv420p','-movflags','+faststart',path.join(out,'mode-power.mp4')],{stdio:['pipe','ignore','pipe']});
+  let errors='';movie.stderr.on('data',b=>errors+=b);
+  const save=name=>fs.writeFileSync(path.join(out,name+'.webp'),canvas.toBuffer('image/webp',90));
+  for(let i=0;i<192;i++){
+   if(i===96){hack.cancel({restoreRhythm:false});w.rhythmSystem.showRhythmMode();}
+   w.gameState.gameTime+=dt;w.audioSystem.context.currentTime+=dt/1000;hack.update(dt);
+   if(i===53)hack.absorbGuardHit();
+   if(i>=96 && i%10===0){w.rhythmSystem.combo=Math.min(12,Math.floor((i-96)/5));fx.resolved({ok:true,timing:{available:true,timing:'perfect'},targets:[{type:'corrupted',x:foes[0].position.x,y:784}]},w.player,250);}
+   fx.update(dt);w.player.updateState();w.player.updateSpriteAnimation(dt);
+   // Staged actor travel makes the two clocks comparable without allowing a
+   // scripted attack to cancel the visual review's terminal.
+   for(const e of foes){e.position.x-=dt*.015*w.BARCODE.TacticalFocusClock.getScale();e.sprite.update(dt*w.BARCODE.TacticalFocusClock.getScale());}
+   w.renderGame();if(i===5)save('hack-entry');if(i===55)save('hack-deflect');if(i===80)save('hack-held');if(i===151)save('rhythm-impact');
+   pc.drawImage(canvas,0,0,960,540);if(!movie.stdin.write(preview.toBuffer('image/jpeg',87)))await once(movie.stdin,'drain');
+  }
+  movie.stdin.end();const [exit]=await once(movie,'close');if(exit)throw new Error(errors);
+  w.BARCODE.Preferences.values.reducedMotion=true;w.BARCODE.Preferences.values.flashes=false;w.renderGame();save('rhythm-reduced');
+  hack.active=true;hack.phase='answer';hack.hijackTarget=foes[0];fx.update(dt);w.player.updateState();w.player.updateSpriteAnimation(dt);w.renderGame();save('hack-reduced');
+  if(calls.errors.length)throw new Error(calls.errors.join('\n'));
+  console.log('Production mode treatment: six stills and eight-second native video (staged travel/attacks, no hosted/audio claim).');return;
+ }
  if(process.env.FINAL_PLAYTEST_REVIEW){
   load(context,'src/core/gamepad-ui.js');load(context,'src/game/pause-menu.js');load(context,'src/game/level-difficulty.js');
   const save=name=>fs.writeFileSync(path.join(out,name+'.webp'),canvas.toBuffer('image/webp',90));

@@ -36,7 +36,7 @@ for(const fps of [30,60,120]) {
   assert(traffic.ships.includes(car),'original approach completes at three seconds');
   assert(Math.abs(car.x-x)<.001,'waiting does not move or rescale the car');
   w.hackingSystem.active=true;traffic.update(1000/fps);
-  assert(Math.abs(car.x-x-car.speed*60/fps)<.001,'puzzle does not reset or slow traffic');
+  assert(Math.abs(car.x-x-car.speed*60/fps*.35)<.001,'hack uses the shared slow clock without resetting traffic');
 }
 for(const direction of [-1,1]) for(const protection of [false,true]) {
   const {w,traffic}=rig();traffic.spawnShip=()=>{};

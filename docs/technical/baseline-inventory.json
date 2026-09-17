@@ -587,7 +587,7 @@
     {
       "global": "window.player",
       "file": "src/game/player.js",
-      "line": 1793,
+      "line": 1809,
       "loaded": true
     },
     {

@@ -47,7 +47,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
     this.previousPlayerBody = null;
     this.previousBossBody = null;
     this.imagesLoaded = [false, false, false];
-    this.lastSpawnTime = 0;
+    this.lastSpawnTime = -Infinity;
     this.spawnInterval = 4000; // Spawn ships every 4 seconds (more reasonable rate)
     this.canvasWidth = 1920;
     this.canvasHeight = 1080;
@@ -76,7 +76,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
   resetRuntime() {
     this.clearPendingSpawnTimeouts();
     this.ships = [];
-    this.lastSpawnTime = 0;
+    this.lastSpawnTime = -Infinity;
     this.disposed = false;
     this.elapsedMs = 0;
     this.pendingForeground = [];
@@ -155,7 +155,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
 
   // Spawn a new space ship
   spawnShip() {
-    const currentTime = Date.now();
+    const currentTime = this.elapsedMs;
     if (!this.getReadyShipTypes().length) return;
 
     // Check if it's time to spawn a new ship
@@ -265,7 +265,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
   // Update all ships
   update(deltaTime) {
     if (this.disposed || window.isPaused || window.gameState?.paused) return;
-    const elapsed = Math.max(0, Number(deltaTime) || 0);
+    const elapsed = Math.max(0, Number(deltaTime) || 0) * (window.BARCODE?.TacticalFocusClock?.getScale?.() ?? 1);
     const beforeTime = this.elapsedMs;
     this.elapsedMs += elapsed;
     const playerBody = this.getTrafficPlayerBody();

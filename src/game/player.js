@@ -291,7 +291,9 @@ window.Player = class Player {
     // Airborne motion wins over stance; grounded modes own the performance pose.
     } else if (!this.grounded) {
       this.state = 'jump';
-    } else if (this.isRhythmPlanted() || window.hackingSystem?.isActive?.() || this.primaryAttackAnimationMs > 0) {
+    } else if (window.hackingSystem?.isActive?.()) {
+      this.state='hack';
+    } else if (this.isRhythmPlanted() || this.primaryAttackAnimationMs > 0) {
       this.state = 'rhythm';
     } else if (Math.abs(this.velocity.x) > 5) {
       this.state = 'walk';
@@ -317,6 +319,7 @@ window.Player = class Player {
   }
 
   getAnimationPresentation(state = this.state) {
+    if(state==='hack')return PLAYER_ANIMATION_PRESENTATION.idle;
     return PLAYER_ANIMATION_PRESENTATION[state === 'idle' && this.grounded && this.landingPoseActive ? 'jump' : state] || PLAYER_ANIMATION_PRESENTATION.idle;
   }
 
@@ -497,6 +500,14 @@ window.Player = class Player {
       // Makko's currentFrame is read-only. Select through play's startFrame;
       // phase-controlled clips do not also advance on the sprite clock.
       let frame = null;
+      if(this.state==='hack') {
+        // A deliberate open-hand stance replaces the headbang while solving.
+        // Reuse approved character frames; gesture timing stays at player speed.
+        const h=window.hackingSystem,age=h?.sessionElapsedMs||0;
+        frame=Math.min(25,Math.floor(age/45));
+        if(age>=1170)frame=20+Math.floor((1+Math.sin(age/180))*2);
+        if(window.BARCODE?.combatFX?.hackDeflectMs>0)frame=8;
+      }
       if (this.state === 'jump' && !this.cinematicPoseActive && !held) {
         const vy = this.velocity.y;
         frame = vy < -160 ? Math.min(8, 4 + Math.floor((920 + vy) / 180))
@@ -515,7 +526,7 @@ window.Player = class Player {
 
   playAnimation(animationName, frame = null) {
     if (!this.spriteReady || !this.sprite) return;
-    const fullName = PLAYER_ANIMATION_PRESENTATION[animationName]?.animation || animationName;
+    const fullName = PLAYER_ANIMATION_PRESENTATION[animationName==='hack'?'idle':animationName]?.animation || animationName;
     const freshJump = animationName === 'jump' && !this.jumpAnimationStarted;
     const sameClip = this.currentAnimation === fullName && this.sprite.getCurrentAnimation?.() === fullName;
     const sameFrame = frame === null || this.animationRef?.currentFrame === frame;
@@ -1435,7 +1446,7 @@ window.Player = class Player {
     if (this.state === 'walk') {
       // The complete model walk is authored facing right
       shouldFlip = this.facing === -1;
-    } else if (this.state === 'idle' || this.state === 'jump') {
+    } else if (this.state === 'idle' || this.state === 'jump' || this.state === 'hack') {
       // Idle and jump should face the direction of movement
       shouldFlip = this.facing === -1;
     } else if (this.state === 'rhythm') {
@@ -1457,6 +1468,11 @@ window.Player = class Player {
     }
     ctx.save();
     window.sector1Progression?.clipRoofFeet?.(ctx, this);
+    if(this.state==='hack' && !window.BARCODE?.Preferences?.values.reducedMotion){
+      const fx=window.BARCODE?.combatFX,age=window.hackingSystem?.sessionElapsedMs||0;
+      const lean=this.facing*(.025*Math.sin(Math.min(1,age/420)*Math.PI/2)+(fx?.hackDeflectMs||0)/420*.12);
+      ctx.transform(1,0,lean,1,-lean*visualAnchor.targetFootY,0);
+    }
     this.sprite.draw(ctx, drawX, drawY, {
       scale: visualAnchor.scale,
       flipH: shouldFlip, // Animation-specific flipping logic

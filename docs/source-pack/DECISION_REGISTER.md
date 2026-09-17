@@ -1,5 +1,9 @@
 # Decision Register
 
+## September 17, 2026 — mode power direction
+
+The owner wants hacking to feel like bullet time, with a more noticeable gesture/effects/audio, and Rhythm Mode to feel more powerful. Preserve the previously emphasized music sync. Implement full-speed personal presentation against slow hostile/ambient activity, using the existing tactical clock and approved character art. Keep terminal answering stationary and the elevator's proven carrying/power behavior. Retain the side-by-side opaque terminal from #85. Give rhythm visible energy tied to actual beats, combos and contacts; no damage or point inflation. Add SFX textures through the existing bus rather than altering music source timing. Visual and audio taste still require target-device playtest; the automated results do not settle that subjective decision.
+
 ## September 17, 2026 — final playtest decisions
 
 The owner reports enemies making the hack panel disappear; requests fullscreen in pause, title settings, explicit start-only settings, optional checkpoint recovery with a score tradeoff, smaller recolored rooftop drones supporting the boss, a less repetitive jammer, and gentle return to known good dialogue/objective positions. These supersede earlier requests to preserve active terminal fading and prior boss/jammer tuning.

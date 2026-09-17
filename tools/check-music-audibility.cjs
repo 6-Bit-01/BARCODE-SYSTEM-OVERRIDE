@@ -58,6 +58,19 @@ async function main(){
   await send('Runtime.enable');
   for(const file of ['src/engine/music-profiles.js','src/engine/level-01-music-profile.js','src/engine/music-transport.js','src/engine/music-director.js','src/engine/audio.js'])
     await evaluate(fs.readFileSync(path.join(root,file),'utf8'));
+  if(process.env.MODE_SFX_REVIEW==='1'){
+    await evaluate('window.renderModeSFX='+require('./mode-sfx-browser-render.cjs').toString());
+    const report={host:'Chromium OfflineAudioContext',source:'production procedural mode SFX, isolated from music',runs:[]};
+    for(const muted of [false,true]){
+      const result=await evaluate('renderModeSFX('+muted+')'),pcm=Buffer.from(result.pcm,'base64');delete result.pcm;
+      assert.equal(result.cachedBuffers,5);assert.equal(result.remainingVoices,0);assert(result.peak<1);
+      if(muted)assert.equal(result.peak,0,'SFX preference mutes every texture');
+      else {assert(result.windows.every(w=>w.rms>.003),'all five cues produce measurable audio');fs.writeFileSync(path.join(output,'mode-sfx.wav'),pcm);}
+      report.runs.push(result);
+    }
+    assert.equal(errors.length,0,JSON.stringify(errors));fs.writeFileSync(path.join(output,'mode-sfx-report.json'),JSON.stringify(report,null,2)+'\n');
+    console.log('PASS: Chromium rendered five production mode SFX; finite unclipped PCM, SFX mute, cached buffers and voice cleanup.');return;
+  }
   const renderMusic=require('./music-browser-render.cjs');
   await evaluate('window.renderMusic='+renderMusic.toString());
   let assets=null;

@@ -1,5 +1,14 @@
 # Acceptance and Test Status
 
+## Hack and Rhythm Mode presence — current route
+
+Use the exact draft head in the receipt in a duplicate Makko preview. Base/rollback: merged #85, `62b44f7cf5446b38bec18746411587327cedb142`. Read MODE_POWER_PASS.md and review assets/review/mode-power.
+
+1. Hack a nearby enemy with traffic in view. Check the cold scene, entry pulse, palm/uplink pose, slower world and readable terminal. Allow one hit: the guard arc/gesture/sound should react once without hiding the keypad. Cancel, fail and succeed; verify normal scene/traffic speed returns each time. Input and gesture remain real-time; movement resumes on exit.
+2. Repeat against a boss support drone. Listen for the established hack music treatment, then the boss arrangement returning. Build Rhythm Mode combos with real contacts: floor waves, equalizer field and perfect hits should feel stronger while enemy warnings and the true range remain readable.
+3. Toggle Reduced Motion, Flashes Off, SFX mute and Dynamic Music Off. Pause/resume and retry mid-mode. Listen across two complete loops with the physical controller on the target device. Briefly recheck the elevator and objective recovery.
+4. Record imported SHA, device/controller, PASS/FAIL and a short clip. Existing AGENTS.md requires owner Makko/controller acceptance before assistant merge. After acceptance/merge, import the actual main merge SHA, fresh-load and repeat these checks; retain the base import for rollback. Native staged visuals and Chromium PCM are supplementary evidence.
+
 ## Final playtest follow-up — current route
 
 Import the exact draft head from the generated receipt into a duplicate Makko project. Base/rollback: merged #84, `bbd95ba821b99a1268e1dc563d7027fdbf12dc08`. This route supersedes older active-hack movement/fade requirements; dialogue motion remains intact.

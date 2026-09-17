@@ -7,8 +7,8 @@ window.FILE_MANIFEST.push({
 });
 
 // One clock owns tactical-focus timing. Systems that represent hostile gameplay
-// may opt into its scaled delta while presentation, input, music, camera, and
-// parallax continue to receive the unmodified frame delta.
+// use its scaled delta; ambient particles/traffic and the skyline follow too.
+// Player animation, terminal input, personal FX, music and camera keep full speed.
 window.BARCODE = window.BARCODE || {};
 window.BARCODE.TacticalFocusClock = Object.freeze({
   scale: 0.35,
@@ -24,7 +24,7 @@ window.BARCODE.TacticalFocusClock = Object.freeze({
   getScale() {
     if (!this.isActive()) return 1;
     const prefs = window.BARCODE?.Preferences?.values;
-    if (prefs?.reducedMotion || prefs?.reducedFlashes) return this.scale;
+    if (prefs?.reducedMotion || prefs?.reducedFlashes || prefs?.flashes === false) return this.scale;
     // Read the hack's existing simulation clock; querying never advances time.
     const phase = (window.hackingSystem.sessionElapsedMs || 0) * Math.PI * 2 / 2400;
     return this.scale + 0.025 * Math.sin(phase);
@@ -162,7 +162,7 @@ function updateVisualSystems(deltaTime) {
   // Update particles
   if (window.particleSystem && typeof window.particleSystem.update === 'function') {
     try {
-      window.particleSystem.update(deltaTime);
+      window.particleSystem.update(deltaTime * window.BARCODE.TacticalFocusClock.getScale());
     } catch (error) {
       console.error('Error updating particle system:', error?.message || error);
     }

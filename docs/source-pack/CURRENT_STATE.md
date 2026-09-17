@@ -1,5 +1,9 @@
 # Current State
 
+## Current review — Hack and Rhythm Mode presence
+
+Merged #85 at `62b44f7cf5446b38bec18746411587327cedb142` is the base/rollback. Branch `agent/mode-power-presence` strengthens hack entry, city color, slow scenery/traffic, open-hand gesture and guard reaction; Rhythm Mode gains beat fields and contact power. Five cached SFX use the existing mixer and warning budget. The fixed terminal stays readable, and music timing remains protected. Details, visual/audio evidence and playtest limits: MODE_POWER_PASS.md. Exact published head, tree, PR, checks and CI are in the generated receipt. Earlier current-review entries below are historical. Hosted/controller/listening acceptance remains pending.
+
 ## Current review — final Level 1 playtest follow-up
 
 Merged #84 at `bbd95ba821b99a1268e1dc563d7027fdbf12dc08` is the base/rollback. Branch `agent/level1-final-playtest` addresses the new playtest: solid side-by-side hacking, title settings and pause fullscreen, saved optional objective recovery, bounded boss support drones, jammer relay/discharge phases, and learned safe dialogue/objective positions. Working music timing remains protected. Details and explicit settings rules: FINAL_PLAYTEST_PASS.md. Exact head, PR, automated checks and CI belong to the generated receipt. Native/Chromium evidence does not establish owner Makko/controller acceptance; Level 1 is a review candidate.
