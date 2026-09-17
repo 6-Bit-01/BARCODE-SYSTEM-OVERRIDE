@@ -1,5 +1,18 @@
 # Acceptance and Test Status
 
+## September 17 — smart boxes correction
+
+Review the draft head from the generated receipt. Base/rollback: `ec89e7468a6f79bcafcaea8b07d3c75ab37a3cf9` (merged #78). The previous movement-hide rule is rejected.
+
+1. Leave a crew line unread. Walk, jump and enter Rhythm Combat: the full line stays when clear. Cross its area with an actor: it slides to safety, fades during the crossing and recovers. The beat lane stays clear. Stop: a safe panel should remain parked.
+2. Climb the Signal awning during Stomp practice. Check the compact task and street enemies with the raised camera. Return to story; all twenty bubbles and earned actions remain. Test keyboard Space and actual PlayStation/Xbox Continue.
+3. Collect lore and inspect while moving/jumping. They keep text and relocate. Studio Rat still finishes before inspection and queued lore. Crowding may produce a held-message tab; it reopens after a stable opening. No unseen Continue or expired story.
+4. Hack targets on both sides and rooftops among other enemies. Check full/compact keypad and target/player visibility through relocation. Moving keys reject stale pointer clicks. After settling, test digits, D-pad, Erase, Submit and Cancel. An unreadable terminal freezes scan/deadline/input; Escape/controller Cancel remains available, and the visible held tab supports tap-to-exit.
+5. Pause mid-transition, resume, restart, and enable reduced motion. Pause freezes motion; restart clears layouts; reduced motion places directly. Ride/walk under the elevator once to confirm retained front-rail depth.
+
+Post-merge deployment: import the actual merged main revision into a fresh Makko preview, then repeat steps 1–5. Record the imported SHA, device and a short clip of panel plus actor for remaining issues. Hosted/physical-controller acceptance is pending.
+
+
 ## September 17 — smart panels and front rails
 
 Import the exact draft head from the generated receipt. Base/rollback: merged #77, `78f67f4750a2d12f8a2063c895d06d5b9952d700`. Owner Makko/physical-controller acceptance is pending.

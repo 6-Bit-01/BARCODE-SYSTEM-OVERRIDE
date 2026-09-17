@@ -66,6 +66,7 @@ const encounterPresentation = (() => {
   };
 
   const reset = owner => {
+    presentation._overlayPanels = {};
     presentation.owner = owner || null;
     presentation.lastState = owner?.state || '';
     presentation.lastActiveEncounterId = null;
@@ -126,11 +127,10 @@ const encounterPresentation = (() => {
     const width = 500;
     const height = 62;
     const x = (1920 - width) / 2;
-    const layout=window.BARCODE.OverlayLayout.place(width,height,{previous:{x,y:easedY,width,height,scale:1}});
-    if(!layout.clear)return;
+    const layout=window.BARCODE.OverlayLayout.present(presentation,'wave',[{width,height}],{preferred:{x,y:easedY,width,height,scale:1}});
+    ctx.globalAlpha=alpha;window.BARCODE.OverlayLayout.begin(ctx,layout);
+    if(layout.docked){window.BARCODE.OverlayLayout.drawDock(ctx,layout,`WAVE ${cue.wave} / ${cue.total}`,cue.label);return;}
     ctx.translate(layout.x-x,layout.y-easedY);
-
-    ctx.globalAlpha = alpha;
     ctx.fillStyle = 'rgba(0, 12, 28, 0.88)';
     ctx.fillRect(x, easedY, width, height);
     ctx.strokeStyle = '#00ffff';
@@ -154,11 +154,12 @@ const encounterPresentation = (() => {
     const progress = Math.max(0, Math.min(1, elapsed / cue.duration));
     const halfLine = 90 + 180 * Math.sin(Math.PI * progress);
     const y = 290;
-    const layout=window.BARCODE.OverlayLayout.place(600,50,{previous:{x:660,y,width:600,height:50,scale:1}});
-    if(!layout.clear)return;
+    const layout=window.BARCODE.OverlayLayout.present(presentation,'clear',[{width:600,height:50}],{preferred:{x:660,y,width:600,height:50,scale:1}});
+    window.BARCODE.OverlayLayout.begin(ctx,layout);
+    if(layout.docked){window.BARCODE.OverlayLayout.drawDock(ctx,layout,'WAVE CLEARED',cue.label);return;}
     ctx.translate(layout.x-660,layout.y-y);
 
-    ctx.globalAlpha = alpha * 0.78;
+    ctx.globalAlpha = alpha * 0.78 * layout.alpha;
     ctx.strokeStyle = '#00ffff';
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -166,7 +167,7 @@ const encounterPresentation = (() => {
     ctx.lineTo(960 + halfLine, y + 28);
     ctx.stroke();
 
-    ctx.globalAlpha = alpha;
+    ctx.globalAlpha = alpha * layout.alpha;
     ctx.shadowColor = '#00ffff';
     ctx.shadowBlur = 8;
     ctx.fillStyle = '#bfffff';
@@ -251,8 +252,9 @@ window.drawGameUI = function(ctx) {
   const attackFeedback = window.BARCODE?.playerCombat?.getFeedback?.();
   if (attackFeedback && !bossCinematicActive && !window.gameState.gameOver && !window.gameState.victory && !window.hackingSystem?.isActive?.()) {
     ctx.save();
-    const layout=window.BARCODE.OverlayLayout.place(700,36,{previous:{x:738,y:185,width:700,height:36,scale:1}});
-    if(layout.clear){
+    const layout=window.BARCODE.OverlayLayout.present(window.gameState,'attack',[{width:700,height:36}],{preferred:{x:738,y:225,width:700,height:36,scale:1}});
+    window.BARCODE.OverlayLayout.begin(ctx,layout);
+    if(!layout.docked){
     ctx.translate(layout.x-738,layout.y-185);
     ctx.fillStyle = 'rgba(0, 8, 16, 0.92)';
     ctx.fillRect(738, 185, 700, 36);
@@ -415,8 +417,9 @@ function drawCollectionMessage(ctx) {
   const boxHeight = 60;
   const boxX = (1920 - boxWidth) / 2;
   const boxY = 350;
-  const layout=window.BARCODE.OverlayLayout.place(boxWidth,boxHeight,{previous:{x:boxX,y:boxY,width:boxWidth,height:boxHeight,scale:1}});
-  if(!layout.clear){ctx.restore();return;}
+  const layout=window.BARCODE.OverlayLayout.present(window.gameState,'notice',[{width:boxWidth,height:boxHeight}],{preferred:{x:boxX,y:boxY,width:boxWidth,height:boxHeight,scale:1}});
+  window.BARCODE.OverlayLayout.begin(ctx,layout);
+  if(layout.docked){window.BARCODE.OverlayLayout.drawDock(ctx,layout,message.text,'');ctx.restore();return;}
   ctx.translate(layout.x-boxX,layout.y-boxY);
   
   ctx.fillStyle = 'rgba(0, 20, 40, 0.9)';

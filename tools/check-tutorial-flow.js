@@ -17,6 +17,7 @@ function rig(fps = 60, device = 'keyboard') {
   function step(ms = 1000 / fps) {
     w.inputManager.update();
     if (!w.gameState.paused && !w.isPaused) {
+      w.gameState.gameTime += ms;
       r.tick(ms); w.player.update(ms, true); w.rhythmSystem.update(ms);
       w.hackingSystem.update(ms); w.updateEnemies(ms); t.update(ms);
     }
@@ -37,16 +38,14 @@ function rig(fps = 60, device = 'keyboard') {
 function main() {
   {
     const r=rig(),{t,w}=r;
-    r.tapKey('w');const cursor=t.currentDialogue,typed=t.currentText,index=t.characterIndex;
-    assert.equal(t.getInstructionOwner(),'task','jump replaces unread story with the next compact task');
-    t.update(800);assert.equal(t.currentText,typed);assert.equal(t.characterIndex,index);
-    assert(!t.handleSpacePress());assert.equal(t.currentDialogue,cursor,'hidden story cannot consume Continue');
-    t.checkObjective('movement');assert.equal(t.getInstructionOwner(),'play','no task leaves the playfield clear');
-    r.ground();assert.equal(t.getInstructionOwner(),'dialogue');t.update(100);assert(t.characterIndex>index,'reading resumes at its saved cursor');
-    t.startChapter(4);for(let n=0;n<4;n++)r.acknowledge();r.pressContinue();t.update(0);
-    assert(t.isFinalMessage);const elapsed=t.finalMessageTimer;
-    w.player.grounded=false;t.update(20000);assert(t.active&&t.finalMessageTimer===elapsed,'hidden closing dialogue cannot time out');
-    r.ground();t.update(12000-elapsed);assert(t.completed);
+    r.tapKey('w');const cursor=t.currentDialogue,index=t.characterIndex;
+    assert.equal(t.getInstructionOwner(),'dialogue','jump preserves unread story');
+    assert(t.getDialogueLayout().readable,'a clear panel remains readable in the air');
+    t.update(800);assert(t.characterIndex>index,'typing continues while the panel is clear');
+    t.handleSpacePress();assert.equal(t.currentDialogue,cursor,'first Continue reveals the full line');
+    t.checkObjective('movement');assert.equal(t.getInstructionOwner(),'dialogue','earned tasks never dismiss unread story');
+    r.ground();t.startChapter(4);for(let n=0;n<4;n++)r.acknowledge();r.pressContinue();t.update(0);
+    assert(t.isFinalMessage);w.player.grounded=false;t.update(12000);assert(t.completed,'readable closing dialogue can finish while airborne');
   }
   {
     const {t} = rig(); const counts = [], speakers = new Set();

@@ -1501,9 +1501,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (!ctx || !lift?.promptVisible || !this.isSignalLiftAvailable() || this.isGameplaySuppressed() ||
           window.gameState?.gameOver || window.gameState?.victory || window.hackingSystem?.isActive?.()) return;
       if(window.tutorialSystem?.isActive?.()||window.BARCODE?.stageFX?.message||window.loreSystem?.currentLore)return;
-      const layout=window.BARCODE.OverlayLayout.place(420,62,{previous:{x:750,y:255,width:420,height:62,scale:1}});
-      if(!layout.clear)return;
-      ctx.save(); ctx.globalAlpha *= Math.max(0, Math.min(1, (2400 - lift.promptAgeMs) / 500));
+      const layout=window.BARCODE.OverlayLayout.present(lift,'prompt',[{width:420,height:62}],{preferred:{x:750,y:255,width:420,height:62,scale:1}});
+      ctx.save(); window.BARCODE.OverlayLayout.begin(ctx,layout);
+      if(layout.docked){window.BARCODE.OverlayLayout.drawDock(ctx,layout,'RHYTHM LIFT','Power with on-beat hits');ctx.restore();return;}
+      ctx.globalAlpha *= Math.max(0, Math.min(1, (2400 - lift.promptAgeMs) / 500));
       ctx.translate(layout.x-750,layout.y-255);
       ctx.fillStyle = 'rgba(7,17,27,0.92)'; ctx.fillRect(750, 255, 420, 62);
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#acffe4'; ctx.font = 'bold 20px Oxanium, monospace';

@@ -293,6 +293,7 @@ pass('frame-aware player foot anchoring and cinematic rhythm handoff');
 // Tutorial rhythm-combo and hacking progression use real objective identifiers.
 {
   const s = sandbox();
+  load(s, 'src/game/comic-hud.js');
   load(s, 'src/game/tutorial.js');
   const tutorial = new s.window.TutorialSystem();
   tutorial.active = true;
@@ -313,7 +314,7 @@ pass('frame-aware player foot anchoring and cinematic rhythm handoff');
   const hacking = { active:false, complete:false, _lastResultFailed:false, start(){ started++; this.active = true; }, isActive(){ return this.active; }, isComplete(){ return this.complete; }, processInput(){} };
   s.window.hackingSystem = hacking;
   s.window.rhythmSystem = { isActive: () => false };
-  s.window.BARCODE = { RuntimeLifecycle:{ togglePause(){} }, findInteractionTarget(){ throw new Error('findInteractionTarget must not be used'); } };
+  s.window.BARCODE = { ...s.window.BARCODE, RuntimeLifecycle:{ togglePause(){} }, findInteractionTarget(){ throw new Error('findInteractionTarget must not be used'); } };
   s.window.gameState = { running:true, paused:false, gameOver:false, victory:false };
   s.window.player = { grounded:true, jump(){ return true; }, moveLeft(){}, moveRight(){}, stopHorizontal(){} };
   tutorial.startChapter(3);
@@ -347,6 +348,7 @@ pass('tutorial rhythm/hacking objective progression');
 // Closing Continue is immediate; optional auto hold/fade and acknowledged spawns share the simulation clock.
 {
   const s = sandbox();
+  load(s, 'src/game/comic-hud.js');
   load(s, 'src/game/tutorial.js');
   const tutorial = new s.window.TutorialSystem();
   tutorial.active = true;

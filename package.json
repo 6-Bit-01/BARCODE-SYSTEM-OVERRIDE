@@ -12,7 +12,7 @@
     "audit:external-assets": "node tools/audit-external-assets.js",
     "baseline:generate": "node tools/generate-baseline.js",
     "baseline:check": "node tools/check-baseline.js",
-    "test": "npm run check:syntax && npm run audit:paths && npm run audit:globals && npm run audit:external-assets && npm run check:startup-lifecycle && npm run check:frame-ownership && npm run check:music-profiles && npm run check:makko-hotfix && npm run check:runtime-lifecycle && npm run check:enemy-ownership && npm run check:action-combat && npm run baseline:check && npm run check:level-01-mission && npm run check:level-01-smoothing && npm run check:level-01-gameplay-dynamics && npm run check:level-01-boss && npm run check:level-01-presentation && npm run check:level-01-responsive-combat && npm run check:level-01-polish && npm run check:level-01-polish-menu && npm run check:level-01-discovery && npm run check:level-01-targets-traffic && npm run check:level-01-lore-archive && npm run check:level-01-story-controls && npm run check:intro && npm run check:level-01-impact && npm run check:presentation-assets && npm run check:model-art && npm run check:animation-cleanup && npm run check:enemy-hijack && npm run check:level1-rebuild && npm run check:rail-traffic-correction && npm run check:street-depth && npm run check:upper-route && npm run check:environment-runtime && npm run check:level-finale && npm run check:solid-ledges && npm run check:controller-victory && npm run check:lift-charge-timeout && npm run check:tutorial-flow && npm run check:feedback-polish",
+    "test": "npm run check:syntax && npm run audit:paths && npm run audit:globals && npm run audit:external-assets && npm run check:startup-lifecycle && npm run check:frame-ownership && npm run check:music-profiles && npm run check:makko-hotfix && npm run check:runtime-lifecycle && npm run check:enemy-ownership && npm run check:action-combat && npm run baseline:check && npm run check:level-01-mission && npm run check:level-01-smoothing && npm run check:level-01-gameplay-dynamics && npm run check:level-01-boss && npm run check:level-01-presentation && npm run check:level-01-responsive-combat && npm run check:level-01-polish && npm run check:level-01-polish-menu && npm run check:level-01-discovery && npm run check:level-01-targets-traffic && npm run check:level-01-lore-archive && npm run check:level-01-story-controls && npm run check:intro && npm run check:level-01-impact && npm run check:presentation-assets && npm run check:model-art && npm run check:animation-cleanup && npm run check:enemy-hijack && npm run check:level1-rebuild && npm run check:rail-traffic-correction && npm run check:street-depth && npm run check:upper-route && npm run check:environment-runtime && npm run check:level-finale && npm run check:solid-ledges && npm run check:controller-victory && npm run check:lift-charge-timeout && npm run check:tutorial-flow && npm run check:feedback-polish && npm run check:smart-box-motion",
     "check:startup-lifecycle": "node tools/check-startup-lifecycle.js",
     "check:frame-ownership": "node tools/check-frame-ownership.js",
     "check:music-profiles": "node tools/check-music-profiles.js",
@@ -48,7 +48,8 @@
     "check:controller-victory": "node tools/check-controller-victory.js",
     "check:lift-charge-timeout": "node tools/check-lift-charge-timeout.js",
     "check:tutorial-flow": "node tools/check-tutorial-flow.js",
-    "check:feedback-polish": "node tools/check-feedback-polish.js"
+    "check:feedback-polish": "node tools/check-feedback-polish.js",
+    "check:smart-box-motion": "node tools/check-smart-box-motion.js"
   },
   "dependencies": {},
   "devDependencies": {}

@@ -1,5 +1,14 @@
 # Continue here — Level 1 rebuild after reverted #55
 
+## September 17, 2026 — smart boxes: movement is not a hide trigger
+
+The owner rejected PR #78's blanket hiding during walking, jumping and Rhythm Combat. That correction supersedes the older smart-panels section and its acceptance route. Base/rollback: merged #78, `ec89e7468a6f79bcafcaea8b07d3c75ab37a3cf9`; branch `agent/smart-box-motion`.
+
+Unread tutorial, lore and inspection remain visible during play. Shared screen-space placement moves panels around actors, reshapes tutorial dialogue or the hack keypad when needed, glides to the chosen location, and dissolves during an obstructed crossing. Actor pixels are clipped out during that crossing, then the panel fades back in. Clear panels stay parked. Only actual crowding uses a compact saved-message tab; it reopens after a sustained clear window. Unread lines, Continue and hack scan/deadline/input remain protected while unreadable. Active rhythm controls reserve their space. Pause/restart and reduced motion use existing lifecycle owners.
+
+Preserve #78 elevator rear/passenger/front-rail layering, collisions, power and all other gameplay. Read SMART_BOX_MOTION_PASS.md and the newest ACCEPTANCE route. Publish a draft and refresh the existing v5 archive. Owner Makko/physical-controller acceptance remains pending before assistant merge; automated/native captures do not establish it.
+
+
 ## September 17, 2026 — smart panels and elevator front rails
 
 Base/rollback: merged #77, `78f67f4750a2d12f8a2063c895d06d5b9952d700`. Branch: `agent/tutorial-play-space`. The owner reports the tutorial hiding street enemies during jumps, the fixed hack panel hiding its locked target, and passengers appearing over the elevator's front rails. This pass implements those reports together.

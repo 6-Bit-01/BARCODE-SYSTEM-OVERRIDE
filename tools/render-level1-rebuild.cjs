@@ -4,7 +4,7 @@ const fs=require('fs'),path=require('path'),{spawn}=require('child_process'),{on
 const {createCanvas,loadImage,GlobalFonts}=require(require.resolve('@napi-rs/canvas',{paths:[process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES]}));
 const {createRig,load}=require('./check-level-01-boss'),{createSprite}=require('./makko-animation-fixture'),{installArt}=require('./render-cat-chaos.cjs');
 const root=path.resolve(__dirname,'..'),out=path.resolve(process.argv[2]||'../review');fs.mkdirSync(out,{recursive:true});
-GlobalFonts.registerFromPath((process.env.TUTORIAL_FLOW_REVIEW || process.env.FEEDBACK_POLISH_REVIEW || process.env.PLAYTEST_POLISH_REVIEW || process.env.SMART_PANEL_REVIEW) ? path.join(root,'assets/studies/visual-overhaul/references/fonts/Oxanium.ttf') : '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','Oxanium');
+GlobalFonts.registerFromPath((process.env.TUTORIAL_FLOW_REVIEW || process.env.FEEDBACK_POLISH_REVIEW || process.env.PLAYTEST_POLISH_REVIEW || process.env.SMART_PANEL_REVIEW || process.env.SMART_MOTION_REVIEW) ? path.join(root,'assets/studies/visual-overhaul/references/fonts/Oxanium.ttf') : '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','Oxanium');
 GlobalFonts.registerFromPath('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','sans-serif');
 async function main(){
  const {w,p,context,calls}=createRig();await installArt(w,context);
@@ -30,6 +30,35 @@ async function main(){
  function scene(c,cx,cy){w.gameCamera={centerX:cx,y:cy};w.renderer.zoomLevel=1;c.fillStyle='#111322';c.fillRect(0,0,1920,1080);c.drawImage(bg,0,0,1920,1080);c.save();c.translate(960-cx,-cy);c.drawImage(fg,0,2,fg.width,fg.height-2,-152,-550+2*1589/fg.height,4400,1589-2*1589/fg.height);w.drawGround(c);if(process.env.PLAYTEST_POLISH_REVIEW)w.BARCODE.stageFX.drawWorld(c);w.drawGameEntities(c);if(p.getLiftActorLayer(w.player)!=='behind')w.player.draw(c);p.drawSignalLift(c,'front');c.restore();c.save();c.translate(0,-cy);w.spaceShipSystem.drawForegroundShips(c);c.restore();if(!w.tutorialSystem?.isActive?.()&&!process.env.PLAYTEST_POLISH_REVIEW)w.drawObjectives(c);}
  function setHero(x,foot,support){Object.assign(w.player.position,{x,y:foot-72});w.player.velocity.x=0;w.player.velocity.y=0;w.player.grounded=true;w.player.supportedSurfaceId=support||null;w.player.state='idle';w.player.airInput=0;w.player.controlsDisabled=false;w.player.invulnerableUntil=0;w.player.health=w.player.maxHealth;w.player.playAnimation('idle');}
  const canvas=createCanvas(1920,1080),c=canvas.getContext('2d');
+ if(process.env.SMART_MOTION_REVIEW){
+  for(const file of ['src/core/action-input.js','src/core/gamepad-ui.js','src/core/input.js','src/game/tutorial.js'])load(context,file);
+  p.reset();w.hackingSystem=new w.HackingSystem();w.inputManager=new w.InputManager();
+  const t=w.tutorialSystem,h=w.hackingSystem;t.startTutorial();setHero(1000,856);t.handleSpacePress();
+  const preview=createCanvas(960,540),pc=preview.getContext('2d'),layouts=[];
+  const foe=(x,foot)=>{const e=new w.Enemy(x,foot-72,'firewall');Object.assign(e.position,{x,y:foot-72});Object.assign(e,{entranceComplete:true,_authoredEntranceActive:false,spawnProtectionDuration:0,spawnTimeMs:-10000});e.initSprite();e.playAnimation('idle');return e;};
+  const movingFoe=foe(1700,856);w.enemyManager.enemies=[movingFoe];
+  function frame(){scene(c,960,0);w.BARCODE.sceneProjection.capture({getTransform:()=>({a:1,b:0,c:0,d:1,e:0,f:0})});t.draw(c);w.drawGameUI(c);pc.drawImage(canvas,0,0,960,540);}
+  function still(name){fs.writeFileSync(path.join(out,name+'.webp'),preview.toBuffer('image/webp',90));}
+  const movie=spawn('ffmpeg',['-y','-f','image2pipe','-framerate','24','-vcodec','mjpeg','-i','pipe:0','-c:v','libx264','-pix_fmt','yuv420p','-movflags','+faststart',path.join(out,'smart-box-motion.mp4')],{stdio:['pipe','ignore','pipe']});
+  let errors='';movie.stderr.on('data',b=>errors+=b);
+  for(let i=0;i<168;i++){
+   w.gameState.gameTime=i*1000/24;
+   // Staged production poses isolate the UI behavior for review.
+   const rise=Math.max(0,Math.min(1,(i-35)/25));movingFoe.position.y=784-rise*460;
+   w.player.velocity.x=i<28?170:0;w.player.grounded=i<28;w.player.position.x=900+Math.min(i,28)*4;
+   frame();layouts.push({frame:i,layout:t._dialogueLayout});
+   if([20,49,54,100].includes(i))still('story-'+i);
+   if(!movie.stdin.write(preview.toBuffer('image/jpeg',86)))await once(movie.stdin,'drain');
+  }
+  movie.stdin.end();const [exit]=await once(movie,'close');if(exit)throw new Error(errors);
+  t.active=false;t.completed=true;p.startMission();p.state='jammer_active';p.pendingSpawns=[];p.closedGateEncounterId=null;
+  w.enemyManager.enemies=[100,450,700,1220,1580,1810].map(x=>foe(x,856));setHero(960,856);h.reset();if(!h.start())throw new Error('Real crowded hack must open');
+  h.update(h.bootDurationMs+h.displayTime+1);frame();w.gameState.gameTime+=400;frame();still('hack-crowded');
+  const target=h.hijackTarget;target.position.y=320;frame();w.gameState.gameTime+=300;frame();still('hack-raised-target');
+  fs.writeFileSync(path.join(out,'motion-evidence.json'),JSON.stringify(layouts,null,2));
+  if(calls.errors.length)throw new Error(calls.errors.join('\n'));
+  console.log('Native motion: seven-second staged production capture, four story frames and two adaptive hack layouts.');return;
+ }
  if(process.env.SMART_PANEL_REVIEW){
   for(const file of ['src/core/action-input.js','src/core/gamepad-ui.js','src/core/input.js','src/game/tutorial.js'])load(context,file);
   p.reset();w.hackingSystem=new w.HackingSystem();w.inputManager=new w.InputManager();

@@ -167,7 +167,7 @@ console.log('Fitted gates: registered bake, mirrored pavement, roof/street block
    assert(tap(key.x+key.w/2,key.y+key.h/2));assert.equal(h.inputText,digit);
   }
   assert.equal(h.phaseElapsedMs,time,'layout and input do not spend puzzle time');
-  target.position.x=1800-side*300;box=draw();clearOf(box,target);clearOf(box,w.player);
+  target.position.x=1800-side*300;draw();w.gameState.gameTime+=300;box=draw();clearOf(box,target);clearOf(box,w.player);
   h.inputText=h.currentPuzzle.answer;const submit=h.getKeypad().find(k=>k.key==='Enter');tap(submit.x+submit.w/2,submit.y+submit.h/2);
   assert(!h.active&&w.enemyManager.isHijacked(target),'relocated Submit converts the locked target');
   box=draw();clearOf(box,target);clearOf(box,w.player);
@@ -192,7 +192,7 @@ console.log('Fitted gates: registered bake, mirrored pavement, roof/street block
  w.enemyManager.enemies=[locked,...[300,550,800].flatMap(y=>[200,600,1000,1400,1800].map(x=>{
   const e=new w.Enemy(x,y,'firewall');Object.assign(e.position,{x,y});Object.assign(e,{entranceComplete:true,spawnProtectionDuration:0,spawnTimeMs:-10000});return e;
  }))];
- assert(!h.getPanelLayout().clear,'actors can occupy every readable panel location');rects.length=0;h.draw(c);assert.equal(rects.length,0,'an occupied terminal does not cover enemies');
+ assert(!h.getPanelLayout().readable,'actors can occupy every readable panel location');rects.length=0;h.draw(c);assert(h.panelLayout.docked,'crowded terminal retains a small signal-held tab');
  h.update(8000);assert.equal(h.phase,phase);assert.equal(h.phaseElapsedMs,elapsed);assert.equal(h.sessionElapsedMs,session);assert(!h.processInput('1'),'an unseen puzzle cannot consume input or expire');
  assert(h.processInput('Escape')&&!h.active,'Escape remains available while the panel waits');
 }

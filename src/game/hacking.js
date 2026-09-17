@@ -241,16 +241,14 @@ window.HackingSystem = class HackingSystem {
   }
 
   getPanelLayout() {
-    const ui=window.BARCODE.OverlayLayout,actors=ui.actors(this.hijackTarget);
-    if(this.panelLayout?.compact){const held=ui.place(1040,360,{actors,previous:this.panelLayout});if(held.clear)return {...held,compact:true};}
-    const full=ui.place(780,710,{actors,previous:this.panelLayout,scales:[1,0.88,0.76]});
-    if(full.clear)return full;
-    return {...ui.place(1040,360,{actors,scales:[1,0.88,0.76]}),compact:true};
+    const ui=window.BARCODE.OverlayLayout;
+    const variants=[1,0.88,0.76].map(scale=>({width:780,height:710,scale}))
+      .concat([1,0.88,0.76].map(scale=>({width:1040,height:360,scale,compact:true})));
+    return ui.present(this,'terminal',variants,{actors:ui.actors(this.hijackTarget)});
   }
   getResultLayout() {
-    return window.BARCODE.OverlayLayout.place(620,120,{
-      actors:window.BARCODE.OverlayLayout.actors(this.resultFx?.target),previous:this.resultLayout
-    });
+    const ui=window.BARCODE.OverlayLayout;
+    return ui.present(this,'result',[{width:620,height:120}],{actors:ui.actors(this.resultFx?.target)});
   }
 
   getKeypad(layout = this.panelLayout || this.getPanelLayout()) {
@@ -282,6 +280,13 @@ window.HackingSystem = class HackingSystem {
     if (!rect || !rect.width || !rect.height) return false;
     const x = (event.clientX - rect.left) * 1920 / rect.width, y = (event.clientY - rect.top) * 1080 / rect.height;
     const layout = this.panelLayout || this.getPanelLayout();
+    if(layout.docked) {
+      if(x>=layout.x&&x<=layout.x+layout.width&&y>=layout.y&&y<=layout.y+layout.height &&
+        !(layout.cutouts||[]).some(b=>x>=b.x&&x<=b.x+b.width&&y>=b.y&&y<=b.y+b.height))return this.processInput('Escape');
+      return false;
+    }
+    const live=this.getPanelLayout();
+    if(layout.moving || !layout.readable || live.moving || !live.readable)return false;
     const localX = (x-layout.x)/layout.scale, localY = (y-layout.y)/layout.scale;
     const cancelRight=layout.compact?1015:765;
     if (localX >= cancelRight-225 && localX <= cancelRight && localY >= 9 && localY <= 53) return this.processInput('Escape');
@@ -299,7 +304,7 @@ window.HackingSystem = class HackingSystem {
       this.cancel();
       return true;
     }
-    if(window.BARCODE?.OverlayLayout&&!this.getPanelLayout().clear)return false;
+    if(window.BARCODE?.OverlayLayout&&!this.getPanelLayout().readable)return false;
     // The display is part of the puzzle. It cannot also be an input buffer.
     if (this.phase !== 'answer') return false;
     if (value === 'Enter') {
@@ -334,6 +339,7 @@ window.HackingSystem = class HackingSystem {
       this.resultDetail = 'Rebooting. Stand clear before it turns hostile.';
       return true;
     }
+    this._overlayPanels = {};
     this.hijackTarget = availability.target;
     this.panelLayout = null;
     this.resultLayout = null;
@@ -385,7 +391,7 @@ window.HackingSystem = class HackingSystem {
   update(deltaTime) {
     const delta = Math.max(0, Number.isFinite(deltaTime) ? deltaTime : 0);
     this.updateReadyPopup(delta);
-    const resultVisible=!(this.feedback||this.resultFx) || this.active || !window.BARCODE?.OverlayLayout || this.getResultLayout().clear;
+    const resultVisible=!(this.feedback||this.resultFx) || this.active || !window.BARCODE?.OverlayLayout || this.getResultLayout().readable;
     if (this.resultFx && resultVisible) {
       this.resultFx.elapsedMs += delta;
       if (this.resultFx.elapsedMs >= 1000) this.resultFx = null;
@@ -399,7 +405,7 @@ window.HackingSystem = class HackingSystem {
     if (!this.active) return;
     // If every readable layout is occupied, keep the unseen scan/deadline and
     // input intact while the world moves. Escape remains available throughout.
-    if(window.BARCODE?.OverlayLayout&&!this.getPanelLayout().clear)return;
+    if(window.BARCODE?.OverlayLayout&&!this.getPanelLayout().readable)return;
 
     this.sessionElapsedMs += delta;
     const practiceEntry = this.tutorialMode && this.phase === 'answer';
@@ -573,11 +579,12 @@ window.HackingSystem = class HackingSystem {
     ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left'; ctx.shadowBlur = 0;
     if (!this.active) {
       this.resultLayout = this.getResultLayout();
-      if(!this.resultLayout.clear){ctx.restore();return;}
+      window.BARCODE.OverlayLayout.begin(ctx,this.resultLayout);
+      if(this.resultLayout.docked){window.BARCODE.OverlayLayout.drawDock(ctx,this.resultLayout,'UPLINK RESULT');ctx.restore();return;}
       ctx.translate(this.resultLayout.x-650,this.resultLayout.y-260);
       const success = this.resultFx?.outcome === 'success' || this.feedback?.type === 'success';
       const color = success ? '#91ffe0' : '#ffb16e';
-      ctx.globalAlpha = this.feedback?.opacity ?? 1;
+      ctx.globalAlpha *= this.feedback?.opacity ?? 1;
       ctx.fillStyle = 'rgba(5, 14, 25, 0.94)'; ctx.fillRect(650, 260, 620, 120);
       ctx.fillStyle = color; ctx.fillRect(650, 260, 5, 120);
       ctx.font = 'bold 28px monospace'; ctx.fillText(this.feedback?.text || (success ? 'ACCESS GRANTED' : 'SIGNAL INTERRUPTED'), 682, 307);
@@ -588,7 +595,8 @@ window.HackingSystem = class HackingSystem {
       ctx.restore(); return;
     }
     this.panelLayout = this.getPanelLayout();
-    if(!this.panelLayout.clear){ctx.restore();return;}
+    window.BARCODE.OverlayLayout.begin(ctx,this.panelLayout);
+    if(this.panelLayout.docked){window.BARCODE.OverlayLayout.drawDock(ctx,this.panelLayout,'SIGNAL HELD','Scan paused • Esc / Cancel / tap to exit');ctx.restore();return;}
     ctx.translate(this.panelLayout.x,this.panelLayout.y);
     ctx.scale(this.panelLayout.scale,this.panelLayout.scale);
     if(this.panelLayout.compact){this.drawCompactTerminal(ctx);ctx.restore();return;}
@@ -692,6 +700,7 @@ window.HackingSystem = class HackingSystem {
   getCurrentType() { return this.puzzleType; }
 
   reset() {
+    this._overlayPanels = {};
     window.enemyManager?.clearHackTrails?.();
     this.resetReadyPopup();
     this.hijackTarget = null;
