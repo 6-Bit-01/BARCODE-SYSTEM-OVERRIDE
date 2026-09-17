@@ -1,5 +1,13 @@
 # Decision Register
 
+## September 17 — recovered owner approval supersedes incomplete continuation notes
+
+The shared [Finish The Job conversation](https://chatgpt.com/share/6aab45a3-02cc-83e8-a465-d90391ee8c13) explicitly approves the 20-bubble tutorial after the detailed early/out-of-order action plan. Implement it together with the subsequently requested five platform designs (three facade plus two side-braced), five-second lift timeout, terminal placement/waveform, happy digital pickup SFX, six reactive HUD faces, solid awnings and judged-beat colors. The saved implementation/assets have been recovered and integrated. Previous “proposal only” and “missing art” entries are historical errors in recovery status.
+
+The owner's later request to make awnings like the elevator supersedes the earlier four-only scope specifically for awnings: all five are fully solid; ordinary roofs and steps stay one-way, except the two previously circled small-step underside bonks. Correct boss routing around that approved geometry without adding solids to ordinary platforms or changing combat balance. Keep #75's correct lift timer and terminal integration.
+
+See `FINISH_THE_JOB_RECOVERY.md`. Related low-hanging improvements are recommendations only. Existing authorization covers finishing, publishing one combined draft and refreshing the same v5 archive. Owner Makko acceptance remains required before assistant merge.
+
 ## September 17, 2026 — platform attachments, five-second lift power and terminal screen
 
 Continuation from merged #74, `ea7a34571f91ba12d05291d6698eb17b389d150f`, on `agent/platform-mounts-charge-timeout`. PR #73 already corrected the blanket ledge collision mistake: only the four circled static objects bonk, plus the separately solid moving elevator roof. This pass preserves that collision scope and every existing small deck position/size.

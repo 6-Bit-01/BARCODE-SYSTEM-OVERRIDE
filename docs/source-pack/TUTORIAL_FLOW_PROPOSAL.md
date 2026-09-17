@@ -1,5 +1,7 @@
 # Tutorial flow proposal
 
+> Status update, September 17: the owner approved this plan in **Finish The Job**. Its original implementation is recovered and included in the combined draft. See `FINISH_THE_JOB_RECOVERY.md`; the proposal-only status below describes the earlier PR #74 milestone.
+
 Status: recommendation for discussion, not implemented. Audited against merged PR #73 (`8fc2f8ea838d1dc901b97c7b7c93581459451ddf`); the accompanying elevator fix does not change tutorial code.
 
 Recommend **25 authored chapter bubbles → 20**, five fewer. Keep the studio take, Dead Air District, Jammer, tower and 9 Bit story beats, and all four existing voices. Count the chapter definitions, including objective-wait lines; actual displayed counts currently vary because completed objectives can skip lines.

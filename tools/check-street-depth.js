@@ -113,18 +113,17 @@ console.log('Terminal from training/reset, 12px walking lane, aligned landing, h
  assert(w.Sector1Progression.ENCOUNTER_GATES[3].curbX>w.Sector1Progression.ENCOUNTER_GATES[3].mountX,'right district follows its rightward paving perspective');
 }
 
-// Actual tutorial drawing must offer a next action in the completed-task gap.
+// Actual tutorial and shared Objectives drawing keep a bright mapped next action.
 {
- const {w,context}=createRig();load(context,'src/game/tutorial.js');
- const t=new w.TutorialSystem();
- Object.assign(t,{active:true,dialogue:[{speaker:'cache',text:'Still with you.'}],currentText:'Still with you.',targetText:'Still with you.',readyToAdvance:true,objectives:[{id:'movement',text:'Move left and right',completed:false}]});
- const lines=[];const c=new Proxy({globalAlpha:1,fillText(text,x,y){if(x>=1450&&y<500)lines.push(text);},measureText(text){return {width:text.length*10};}},{get:(o,k)=>o[k]??(()=>{})});
- t.draw(c);assert(lines.includes('□ Move left and right'));assert(!lines.includes('Continue crew briefing'));
- t.objectives[0].completed=true;lines.length=0;t.draw(c);
- assert(lines.includes('Continue crew briefing')&&lines.includes('Space: Continue'));
+ const {w,context}=createRig();load(context,'src/game/comic-hud.js');load(context,'src/game/tutorial.js');
+ const t=new w.TutorialSystem();t.startTutorial();
+ const lines=[];const c=new Proxy({globalAlpha:1,fillText(text,x,y){if(x>=1328&&y<800){assert.strictEqual(this.globalAlpha,1);lines.push(text);}},measureText(text){return {width:text.length*10};}},{get:(o,k)=>o[k]??(()=>{})});
+ t.draw(c);assert(lines.includes('Move left or right'));assert(lines.includes('← / →'));assert(!lines.includes('Continue crew briefing'));
+ t.completeObjective('movement');t.completeObjective('jump');t.handleSpacePress();lines.length=0;t.draw(c);
+ assert(lines.includes('Continue crew briefing')&&lines.includes('Space')&&lines.includes('Continue'));
  w.BARCODE.GamepadUI={connected:true};w.BARCODE.ControllerSettings={button:()=> 'Create'};
- lines.length=0;t.draw(c);assert(lines.includes('Create: Continue'),'cue matches existing controller dialogue ownership');
- t.storyChapter=4;t._finalMessageSequenceArmed=true;lines.length=0;t.draw(c);
- assert(lines.includes('Entering the next section…'));assert(!lines.includes('Create: Continue'),'automatic transition does not request another press');
+ lines.length=0;t.draw(c);assert(lines.includes('Create'),'cue matches existing controller dialogue ownership');
+ t.startChapter(4);t.currentDialogue=t.dialogue.length-1;t.startNextDialogue();t.handleSpacePress();t.update(0);
+ lines.length=0;t.draw(c);assert(lines.includes('Start the district mission')&&lines.includes('Create')&&lines.includes('Continue'),'optional automatic transition also offers immediate Continue');
 }
 console.log('Fitted gates: registered bake, mirrored pavement, roof/street blocking and open passage; tutorial next-action cues passed.');

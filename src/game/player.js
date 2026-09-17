@@ -123,6 +123,7 @@ window.Player = class Player {
       this.ceilingMotion = { head: this.getCeilingProbe(), rising: descentAtStart < 0, allowed: allowMovement && !this.isEntering };
       this.roofMotion = window.sector1Progression?.captureRoofActor?.(this);
       this.afterimageMs = Math.max(0, (this.afterimageMs || 0) - deltaTime);
+      if (this.hudReaction) { this.hudReaction.remainingMs -= deltaTime; if (this.hudReaction.remainingMs <= 0) this.hudReaction = null; }
       if (this.isRhythmPlanted()) { this.velocity.x = 0; this.airInput = 0; }
       // Forced motion may unground a performance; never suspend gravity.
       if (!this.grounded && window.rhythmSystem?.isActive?.()) window.rhythmSystem.hideRhythmMode();
@@ -555,7 +556,7 @@ window.Player = class Player {
 
   dropThrough() {
     if (!this.grounded || !this.supportedSurfaceId || this.isEntering || !this.allowMovement || this.controlsDisabled) return false;
-    if (this.supportedSurfaceId === 'signal-lift-roof') return false;
+    if (this.supportedSurfaceId === 'signal-lift-roof' || window.sector1Progression?.getStageSurfaces?.().some(s => s.id === this.supportedSurfaceId && s.solid)) return false;
     if (window.sector1Progression?.isGameplaySuppressed?.() || window.isPaused || window.gameState?.paused) return false;
     this.dropSurfaceId = this.supportedSurfaceId;
     this.dropSurfaceY = this.position.y + PLAYER_VISUAL_FOOT_OFFSET_Y;
@@ -681,6 +682,7 @@ window.Player = class Player {
     
     const previousHealth = this.health;
     this.health = Math.max(0, this.health - amount);
+    if (this.health < previousHealth) this.hudReaction = { kind: 'hurt', remainingMs: 750 };
     window.BARCODE?.combatFX?.playerDamaged(this, previousHealth, sourcePosition);
     
     // CRITICAL: Play player damage sound
@@ -743,6 +745,7 @@ window.Player = class Player {
     
     const previousHealth = this.health;
     this.health = Math.max(0, this.health - amount);
+    if (this.health < previousHealth) this.hudReaction = { kind: 'hurt', remainingMs: 750 };
     // The source is authoritative when supplied; otherwise the horizontal
     // impulse identifies the side the blow came from without using facing.
     const sourcePosition = enemyPosition || (knockbackX ? { x: this.position.x - Math.sign(knockbackX), y: this.position.y } : null);
@@ -1154,6 +1157,7 @@ window.Player = class Player {
     if (this.health > oldHealth) {
       console.log(`Health restored: ${oldHealth} → ${this.health} (+${this.health - oldHealth})`);
       
+      this.hudReaction = { kind: 'relief', remainingMs: 1100 };
       // Create healing particles
       if (window.particleSystem) {
         window.particleSystem.healEffect(this.position.x, this.position.y - this.height/2);
@@ -1161,7 +1165,8 @@ window.Player = class Player {
       
       // Play healing sound
       if (window.audioSystem) {
-        window.audioSystem.playSound('powerup', 0.5);
+        if (window.audioSystem.playRepairPickup) window.audioSystem.playRepairPickup();
+        else window.audioSystem.playCombatCue?.('restore');
       }
     }
     

@@ -122,13 +122,13 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
 {
   const { window } = loadRealSector();
   assert.deepStrictEqual(JSON.parse(JSON.stringify(window.Sector1Progression.STAGE_SURFACES.slice(0, 7))), [
-    { id: 'signal-awning', x: 736, y: 492, w: 529, h: 8 },
-    { id: 'cache-awning', x: 1534, y: 330, w: 278, h: 8 },
-    { id: 'firewall-canopy', x: 1936, y: 358, w: 582, h: 8 },
+    { id: 'signal-awning', solid: true, x: 736, y: 492, w: 529, h: 8 },
+    { id: 'cache-awning', solid: true, x: 1534, y: 330, w: 278, h: 8 },
+    { id: 'firewall-canopy', solid: true, x: 1936, y: 358, w: 582, h: 8 },
     { id: 'relay-rooftop', x: 2580, y: 196, w: 574, h: 8 },
     { id: 'tower-rooftop', x: 3154, y: 275, w: 609, h: 8 },
-    { id: 'tower-awning', x: 3292, y: 502, w: 402, h: 8 },
-    { id: 'broadcast-awning', x: 3777, y: 502, w: 319, h: 8 }
+    { id: 'tower-awning', solid: true, x: 3292, y: 502, w: 402, h: 8 },
+    { id: 'broadcast-awning', solid: true, x: 3777, y: 502, w: 319, h: 8 }
   ], 'Level 1 platform rectangles stay calibrated to real awnings and rooftops');
   assert.strictEqual(window.Sector1Progression.PLAYER_VISUAL_FOOT_OFFSET, 72, 'Level 1 publishes the canonical visual-foot offset');
 }

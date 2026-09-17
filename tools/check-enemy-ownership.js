@@ -56,7 +56,7 @@ assert(/health: 16/.test(jammer) && /applyRhythmDamage/.test(jammer) && !/class\
 
 assert(/drawScale:\s*0\.7/.test(jammer) && /drawOffsetY:\s*72/.test(jammer), 'JammerEnvironment preserves approved draw scale 0.7 and authored sidewalk contact');
 assert(/state\.position\.y \+ state\.presentation\.drawOffsetY/.test(jammer), 'JammerEnvironment draws sprite/fallback from approved Y offset');
-assert(/const objY = 220/.test(tutorial), 'tutorial objectives have a dedicated lane below the score and lore panels');
+assert(/hud\?\.actionCard/.test(tutorial) && /y = 225/.test(read('src/game/comic-hud.js')), 'tutorial objectives share the dedicated action-card lane below score and lore');
 const normalShipsAt = render.indexOf('drawSpaceShips(ctx);');
 const backgroundLightsAt = render.indexOf('drawTrafficLighting?.(ctx, { foreground: false })');
 const buildingsAt = render.indexOf('drawParallaxForeground(ctx);');

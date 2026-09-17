@@ -4,7 +4,7 @@ const fs=require('fs'),path=require('path'),{spawn}=require('child_process'),{on
 const {createCanvas,loadImage,GlobalFonts}=require(require.resolve('@napi-rs/canvas',{paths:[process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES]}));
 const {createRig,load}=require('./check-level-01-boss'),{createSprite}=require('./makko-animation-fixture'),{installArt}=require('./render-cat-chaos.cjs');
 const root=path.resolve(__dirname,'..'),out=path.resolve(process.argv[2]||'../review');fs.mkdirSync(out,{recursive:true});
-GlobalFonts.registerFromPath('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','Oxanium');
+GlobalFonts.registerFromPath((process.env.TUTORIAL_FLOW_REVIEW || process.env.FEEDBACK_POLISH_REVIEW) ? path.join(root,'assets/studies/visual-overhaul/references/fonts/Oxanium.ttf') : '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','Oxanium');
 GlobalFonts.registerFromPath('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','sans-serif');
 async function main(){
  const {w,p,context,calls}=createRig();await installArt(w,context);
@@ -30,6 +30,59 @@ async function main(){
  function scene(c,cx,cy){w.gameCamera={centerX:cx,y:cy};w.renderer.zoomLevel=1;c.fillStyle='#111322';c.fillRect(0,0,1920,1080);c.drawImage(bg,0,0,1920,1080);c.save();c.translate(960-cx,-cy);c.drawImage(fg,0,2,fg.width,fg.height-2,-152,-550+2*1589/fg.height,4400,1589-2*1589/fg.height);w.drawGround(c);w.drawGameEntities(c);w.player.draw(c);c.restore();c.save();c.translate(0,-cy);w.spaceShipSystem.drawForegroundShips(c);c.restore();if(!w.tutorialSystem?.isActive?.())w.drawObjectives(c);}
  function setHero(x,foot,support){Object.assign(w.player.position,{x,y:foot-72});w.player.velocity.x=0;w.player.velocity.y=0;w.player.grounded=true;w.player.supportedSurfaceId=support||null;w.player.state='idle';w.player.airInput=0;w.player.controlsDisabled=false;w.player.invulnerableUntil=0;w.player.health=w.player.maxHealth;w.player.playAnimation('idle');}
  const canvas=createCanvas(1920,1080),c=canvas.getContext('2d');
+ if(process.env.FEEDBACK_POLISH_REVIEW){
+  p.state='jammer_active';p.closedGateEncounterId=null;w.enemyManager.enemies=[];setHero(50,856,null);
+  const sheet=createCanvas(1200,900),sc=sheet.getContext('2d');sc.fillStyle='#080f17';sc.fillRect(0,0,1200,900);
+  const steps=w.Sector1Progression.TRAVERSAL_PROPS.filter(x=>!x.asset);
+  for(let i=0;i<steps.length;i++){
+   const prop=steps[i];scene(c,prop.x+prop.w/2,prop.y-140);
+   const x=(i%3)*400,y=Math.floor(i/3)*300;
+   sc.drawImage(canvas,700,0,520,360,x,y+28,400,272);sc.fillStyle='#d2ece0';sc.font='17px Oxanium';sc.fillText(prop.id,x+12,y+21);
+  }
+  fs.writeFileSync(path.join(out,'platform-mounts.webp'),sheet.toBuffer('image/webp',90));
+  for(const time of [3000,4050]){
+   p.districtSignal.elapsedMs=time;scene(c,590,430);
+   const crop=createCanvas(700,570),cc=crop.getContext('2d');cc.drawImage(canvas,650,0,700,570,0,0,700,570);
+   fs.writeFileSync(path.join(out,'terminal-'+time+'.webp'),crop.toBuffer('image/webp',90));
+  }
+  const faces=createCanvas(1050,230),fc=faces.getContext('2d');fc.fillStyle='#080f17';fc.fillRect(0,0,1050,230);
+  for(let frame=0;frame<6;frame++){w.BARCODE.PresentationAssets.draw('hudExpressions',fc,{x:87+frame*175,y:97,width:172,height:172,frame});fc.fillStyle='#ddf4e5';fc.font='16px Oxanium';fc.fillText(['Neutral','Damage','Good streak','Charging','Low health','Relief / win'][frame],frame*175+20,212);}
+  fs.writeFileSync(path.join(out,'hud-faces.webp'),faces.toBuffer('image/webp',92));
+  setHero(660,856,null);w.rhythmSystem.showRhythmMode();
+  const lanes=createCanvas(1500,450),lc=lanes.getContext('2d');lc.fillStyle='#080f17';lc.fillRect(0,0,1500,450);
+  for(const [i,timing] of ['perfect','excellent','miss'].entries()){
+   lc.save();lc.translate(i*500,-80);lc.scale(.7,.7);
+   w.BARCODE.ComicHUD.rhythm(lc,{lane:{ready:true,notes:[{x:66,index:1,timing},{x:148,index:2},{x:230,index:3},{x:312,index:4,downbeat:true}]},pattern:'pulse',combo:timing==='miss'?0:4,established:true,tempoBeat:4,tempoBeats:4});lc.restore();
+   lc.fillStyle='#ddf4e5';lc.font='22px Oxanium';lc.fillText(timing.toUpperCase(),i*500+28,296);
+  }
+  fs.writeFileSync(path.join(out,'beat-results.webp'),lanes.toBuffer('image/webp',90));
+  if(calls.errors.length)throw new Error(calls.errors.join('\n'));
+  console.log('Native feedback review: nine mounted platforms, terminal placement/glitch, six portrait states, three beat outcomes.');return;
+ }
+ if(process.env.TUTORIAL_FLOW_REVIEW){
+  for(const file of ['src/core/action-input.js','src/core/gamepad-ui.js','src/core/input.js','src/game/tutorial.js'])load(context,file);
+  p.reset();w.hackingSystem=new w.HackingSystem();w.inputManager=new w.InputManager();
+  const t=w.tutorialSystem;t.startTutorial();setHero(660,856,null);
+  const pad={id:'Sony DualSense',connected:true,mapping:'standard',axes:[0,0],buttons:Array.from({length:17},()=>({pressed:false}))};
+  const usePad=enabled=>{w.navigator.getGamepads=()=>enabled?[pad]:[];w.inputManager.update();};
+  const acknowledge=()=>{if(!t.readyToAdvance)t.handleSpacePress();t.handleSpacePress();};
+  const preview=createCanvas(960,540),pc=preview.getContext('2d');
+  function save(name){scene(c,960,0);t.draw(c);w.drawGameUI(c);pc.drawImage(canvas,0,0,960,540);fs.writeFileSync(path.join(out,name+'.webp'),preview.toBuffer('image/webp',88));}
+  t.update(450);save('01-keyboard-move');t.checkObjective('movement');save('02-keyboard-jump');
+  usePad(true);t.startChapter(1);acknowledge();acknowledge();t.handleSpacePress();save('03-stomp-briefing');acknowledge();t.update(2100);
+  for(const e of w.enemyManager.enemies){e.update(600,w.player,600);}save('04-stomp-practice');
+  w.enemyManager.clear();t.startChapter(2);setHero(660,856,null);w.rhythmSystem.showRhythmMode();t.update(0);acknowledge();t.handleSpacePress();save('05-rhythm-beats');
+  w.rhythmSystem.combo=5;t.update(0);t.handleSpacePress();save('06-rhythm-exit');w.inputManager.leaveRhythmMode();
+  t.startChapter(3);w.hackingSystem.start();w.hackingSystem.update(w.hackingSystem.bootDurationMs);t.update(0);save('07-hack-read');
+  w.hackingSystem.update(w.hackingSystem.displayTime+1);t.update(0);save('08-hack-input');
+  w.hackingSystem.inputText=w.hackingSystem.currentPuzzle.answer;w.hackingSystem.processInput('Enter');t.update(0);t.handleSpacePress();save('09-hack-return-to-story');
+  w.hackingSystem.reset();t.startChapter(4);for(let i=0;i<4;i++)acknowledge();t.handleSpacePress();save('10-final-continue');
+  t.completeTutorial();p.startMission();p.pendingSpawns=[];w.enemyManager.clear();setHero(750,856,null);
+  const e=new w.Enemy(840,784,'corrupted');Object.assign(e,{entranceComplete:true,_authoredEntranceActive:false,spawnProtectionDuration:0});Object.assign(e.position,{x:840,y:784});e.initSprite();e.playAnimation('idle');w.enemyManager.enemies=[e];t.update(16);save('11-first-enemy-hack');
+  w.enemyManager.hijackEnemy(e);t.update(16);save('12-first-ally');
+  if(calls.errors.length)throw new Error(calls.errors.join('\n'));
+  console.log('Native tutorial review: 12 production HUD/story/terminal states, bundled Oxanium font and artwork.');return;
+ }
  if(process.env.LIFT_ROOF_DEPTH_REVIEW){
   p.state='jammer_active';p.closedGateEncounterId=null;
   const crop=createCanvas(720,720),cc=crop.getContext('2d');

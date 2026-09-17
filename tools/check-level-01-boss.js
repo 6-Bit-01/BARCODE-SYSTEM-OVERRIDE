@@ -446,6 +446,9 @@ async function main() {
     const rig = createRig();
     const { w, p } = rig;
     rig.reachReady(); reachRecovery(rig);
+    // Isolate the stomp rebound on open street, clear of the newly solid
+    // Tower awning; that awning separately blocks upward player movement.
+    p.boss.x = 2900;
     const hitbox = p.getBossHitbox();
     const stompBursts = [];
     w.particleSystem.stompEffect = (...args) => stompBursts.push(args);
@@ -502,6 +505,7 @@ async function main() {
         rig.reachReady();
         p.beginBossCombat();
         p.setBossCombatPhase(phase);
+        p.boss.x = 2900;
         w.player.health = health;
         w.player.position.x = p.boss.x;
         w.player.position.y = p.getBossHitbox().y - w.Player.VISUAL_FOOT_OFFSET_Y - 5;

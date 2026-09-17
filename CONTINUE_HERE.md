@@ -1,5 +1,15 @@
 # Continue here — Level 1 rebuild after reverted #55
 
+## September 17, 2026 — Finish The Job recovered and completed
+
+The owner's shared **Finish The Job** conversation explicitly approved the twenty-bubble tutorial and then added platform art, lift/terminal polish, pickup SFX, reactive portraits, solid awnings and beat colors. The original local tutorial commit and unfinished art/gameplay work were recovered. They are integrated on `agent/finish-job-recovered` over merged #75, `48ec019a6037a3bf3910614eb5bae3c0c58d4130` (base/rollback).
+
+Read `docs/source-pack/FINISH_THE_JOB_RECOVERY.md` (or `FINISH_THE_JOB_RECOVERY.md` from the pack root) first. It records the approved scope, recovery provenance, boss-routing cause, implementation, evidence and recommendations. The tutorial is implemented. All five platform designs and six portrait expressions are recovered and connected. Earlier claims that this work was only a proposal or that its artwork was missing are superseded.
+
+The latest owner instruction makes all five awnings fully solid for every actor. Ordinary roofs/steps remain one-way except the two circled small-step underside bonks. Boss terrain clearance now matches his roughly 232-unit body instead of the oversized 310-unit elevator probe. He clears awning edges and blocked upper routes while retaining his original street approach. Preserve #75's exact five-second lift clock and corrected terminal placement/screen effect.
+
+One combined draft and the maintained v5 archive hold this work. Exact head, PR and test outcomes belong to the generated receipt. Owner Makko acceptance remains pending before assistant merge; native renders and simulated input tests do not establish it. Follow the newest `ACCEPTANCE.md` route. Earlier current-work entries below are historical.
+
 ## September 16, 2026 — elevator roof visibility; tutorial flow review
 
 Base/rollback: merged #73, `8fc2f8ea838d1dc901b97c7b7c93581459451ddf`. Branch: `agent/elevator-roof-depth`. The owner reports enemies hidden behind the elevator deck. The physical foot plane is already correct; draw roof enemies after the cabin, including airborne transitions, while preserving existing below-roof depth and one draw per actor. No collision or platform changes. See `ELEVATOR_ROOF_DEPTH_FIX.md` and its four native artwork previews. The four-circle bonk restriction, moving support, pancakes, controls, victory protection and twelve-second allies remain.

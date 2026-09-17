@@ -35,13 +35,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
   // awning or rooftop; the tower intentionally exposes both its upper roof and
   // lower striped awning, while facade/window/door trim remains non-collidable.
   const STAGE_SURFACES = Object.freeze([
-    { id: 'signal-awning', x: 736, y: 492, w: 529, h: 8 },
-    { id: 'cache-awning', x: 1534, y: 330, w: 278, h: 8 },
-    { id: 'firewall-canopy', x: 1936, y: 358, w: 582, h: 8 },
+    { id: 'signal-awning', solid: true, x: 736, y: 492, w: 529, h: 8 },
+    { id: 'cache-awning', solid: true, x: 1534, y: 330, w: 278, h: 8 },
+    { id: 'firewall-canopy', solid: true, x: 1936, y: 358, w: 582, h: 8 },
     { id: 'relay-rooftop', x: 2580, y: 196, w: 574, h: 8 },
     { id: 'tower-rooftop', x: 3154, y: 275, w: 609, h: 8 },
-    { id: 'tower-awning', x: 3292, y: 502, w: 402, h: 8 },
-    { id: 'broadcast-awning', x: 3777, y: 502, w: 319, h: 8 },
+    { id: 'tower-awning', solid: true, x: 3292, y: 502, w: 402, h: 8 },
+    { id: 'broadcast-awning', solid: true, x: 3777, y: 502, w: 319, h: 8 },
     { id: 'signal-roof', x: 704, y: 254, w: 618, h: 8, maskFeet: 10 },
     { id: 'west-crown', x: 110, y: -200, w: 512, h: 8, maskFeet: 10 },
     { id: 'cache-crown', x: 1370, y: -169, w: 518, h: 8, maskFeet: 9 },
@@ -50,10 +50,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     { id: 'broadcast-crown', x: 3785, y: -74, w: 311, h: 8, maskFeet: 10 }
   ]);
 
-  // Only the four objects circled red in the owner's three screenshots bonk.
-  // Other stage surfaces remain one-way landings so upward routes stay open.
-  // The separately approved moving elevator roof uses resolveLiftActor below.
-  const BONK_LEDGE_DEPTH = Object.freeze({ 'signal-awning': 74, 'tower-awning': 78,
+  // September 17: the owner explicitly makes awnings fully solid like the
+  // lift. Only the two previously circled small steps retain underside bonks;
+  // ordinary roofs and all other stepping platforms remain one-way landings.
+  const AWNING_DEPTH = Object.freeze({ 'signal-awning': 74, 'cache-awning': 64,
+    'firewall-canopy': 40, 'tower-awning': 78, 'broadcast-awning': 42 });
+  const BONK_LEDGE_DEPTH = Object.freeze({ ...AWNING_DEPTH,
     'cache-maintenance-step': 14, 'firewall-low-step': 18 });
 
   // Swept AABB against one translating slab. The actor and obstacle share the
@@ -113,18 +115,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     { id: 'broadcast-low-step', x: 3930, y: 280, w: 144, h: 18 },
     { id: 'broadcast-high-step', x: 3820, y: 60, w: 144, h: 18 }
   ]);
-  // Visual mounts only: the decks keep their established landing/bonk planes.
-  // Side cantilevers terminate on measured masonry, never on a dangling leg.
+  // Per-location mount choices; side sprites are anchored at one end only.
   const PLATFORM_MOUNTS = Object.freeze({
-    'cache-maintenance-step': { kind: 'face', anchors: [16, 112], drop: 38 },
-    'signal-high-step': { kind: 'left', anchor: 14, drop: 72 },
-    'cache-high-step': { kind: 'left', anchor: -8, drop: 64 },
-    'firewall-low-step': { kind: 'hanger', anchors: [18, 130], rise: 48 },
-    'firewall-high-step': { kind: 'right', anchor: 178, drop: 64 },
-    'tower-middle-step': { kind: 'right', anchor: 124, drop: 76 },
-    'tower-high-step': { kind: 'face', anchors: [18, 118], drop: 44 },
-    'broadcast-low-step': { kind: 'right', anchor: 150, drop: 56 },
-    'broadcast-high-step': { kind: 'hanger', anchors: [18, 126], rise: 40 }
+    'signal-high-step': { asset: 'platformSideLeft', anchorX: 103/512, anchorY: 183/512, span: 342/512 },
+    'tower-middle-step': { asset: 'platformSideRight', anchorX: 23/512, anchorY: 199/512, span: 440/512 },
+    'cache-maintenance-step': { frame: 0 }, 'cache-high-step': { frame: 2, hangY: -169 },
+    'firewall-low-step': { frame: 1 }, 'firewall-high-step': { frame: 2, hangY: 59 },
+    'tower-high-step': { frame: 0 }, 'broadcast-low-step': { frame: 1 },
+    'broadcast-high-step': { frame: 2, hangY: -74 }
   });
   const REPAIRS = Object.freeze([
     { id: 'repair.signal-awning', x: 1080, y: 450, surfaceY: 492 },
@@ -220,6 +218,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     }),
     idle: Object.freeze({"width":416,"height":320,"anchorX":208,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308],"bodyHeight":267.0})
   });
+  // Terrain clearance follows the tallest normal body pose. The old 310-unit
+  // lift probe included excess space above a roughly 232-unit walking body;
+  // applying it to every awning would displace him on otherwise clear street.
+  const BOSS_TERRAIN_HEIGHT = BOSS_PRESENTATION.targetBodyHeight * BOSS_PRESENTATION.walk.visualScale;
 
   function encounterSpecs(encounter) { return encounter && encounter.packets ? encounter.packets.flat() : (encounter?.enemies || []); }
   function totalQuota() { return ENCOUNTERS.reduce((sum, e) => sum + encounterSpecs(e).length, 0); }
@@ -244,6 +246,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     static get GEOMETRY() { return STAGE_SURFACES; }
     static get STAGE_SURFACES() { return STAGE_SURFACES; }
     static get TRAVERSAL_PROPS() { return TRAVERSAL_PROPS; }
+    static get PLATFORM_MOUNTS() { return PLATFORM_MOUNTS; }
     static get REPAIRS() { return REPAIRS; }
     static drawRepairCell(ctx, x, y, scale) { drawRepairCell(ctx, x, y, scale); }
     getStageSurfaces() { return STAGE_SURFACES.concat(this.missionStarted ? TRAVERSAL_PROPS : TRAVERSAL_PROPS.filter(prop => prop.alwaysPresent)); }
@@ -545,7 +548,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         canDealDamage: false, canReceiveDamage: false, cycle: 0, stompCycle: -1, stompArmed: true,
         phaseBeatWait: null, secondPulseBeatWait: null, latePhase: false,
         hitSequences: new Set(), pulses: [], pulseSequence: 0, hitFlashMs: 0, guardBounceMs: 0, defeated: false,
-        supportedSurfaceId: null, chaseSurfaceId: 'street', traversal: null, roofFallVelocity: null, landingPoseMs: 0, routeRecovery: false });
+        supportedSurfaceId: null, chaseSurfaceId: 'street', clearanceTarget: null, streetApproachLimit: null,
+        traversal: null, roofFallVelocity: null, landingPoseMs: 0, routeRecovery: false });
       this.setBossAnimation('sector_1_boss_idle_idle', true);
       this.bossReadyEmitted = true;
       this.cameraOverrideActive = false;
@@ -601,6 +605,20 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       return this.getActorSurfaces().find(s => s.id === this.boss?.supportedSurfaceId) ||
         { id: 'street', x: 0, y: GROUND_Y + PLAYER_VISUAL_FOOT_OFFSET, w: WORLD_WIDTH };
     }
+    getBossSafeLandingX(surface, desired, from = null) {
+      const inset = surface.solid || surface.id === 'signal-lift-roof' ? 16 : 55;
+      const lo = surface.x+inset, hi = surface.x+surface.w-inset;
+      const candidates = [Math.max(lo, Math.min(hi, desired)), lo, hi];
+      for (const slab of STAGE_SURFACES) if (AWNING_DEPTH[slab.id] && slab.id !== surface.id) {
+        candidates.push(slab.x-86, slab.x+slab.w+86);
+      }
+      return candidates.filter(x => x >= lo && x <= hi &&
+        (!from || Math.abs(x-Math.max(from.x+8,Math.min(from.x+from.w-8,x)))<=360) &&
+        (!from || surface.y<=from.y || !STAGE_SURFACES.some(s => AWNING_DEPTH[s.id] && s.id!==surface.id &&
+          from.y<=s.y+.01 && surface.y>s.y && x+85>s.x && x-85<s.x+s.w)) && !STAGE_SURFACES.some(s =>
+        AWNING_DEPTH[s.id] && s.id !== surface.id && surface.y>s.y && surface.y-BOSS_TERRAIN_HEIGHT<s.y+AWNING_DEPTH[s.id] &&
+        x+85>s.x && x-85<s.x+s.w)).sort((a,b)=>Math.abs(a-desired)-Math.abs(b-desired))[0];
+    }
     getBossRouteStep(targetId) {
       const surfaces = [this.getBossSurface()].concat(this.getActorSurfaces().filter(s => s.id !== SIGNAL_LIFT.id),
         [{ id: 'street', x: 0, y: GROUND_Y + PLAYER_VISUAL_FOOT_OFFSET, w: WORLD_WIDTH }]);
@@ -618,7 +636,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
           const rise = from.y - to.y;
           const gap = Math.max(0, to.x - (from.x + from.w), from.x - (to.x + to.w));
           if (rise > 420 || rise < -650 || gap > 260) continue;
-          const x = Math.max(to.x + 55, Math.min(to.x + to.w - 55, node.x));
+          const x = this.getBossSafeLandingX(to, node.x, from);
+          if (!Number.isFinite(x)) continue;
+          if (to.solid && from.y > to.y) {
+            const sides = [to.x - 100, to.x + to.w + 100].filter(at => at >= from.x + 8 && at <= from.x + from.w - 8);
+            const launch = sides.sort((a,b) => Math.abs(a-node.x) - Math.abs(b-node.x))[0];
+            if (!Number.isFinite(launch) || STAGE_SURFACES.some(s => s.solid && s.id !== to.id &&
+                launch + 85 > s.x && launch - 85 < s.x + s.w && from.y > s.y && to.y - BOSS_TERRAIN_HEIGHT < s.y + AWNING_DEPTH[s.id])) continue;
+          }
           queue.push({ route: route.concat(to), x, cost: node.cost + 1 + Math.abs(x - node.x) / 180 + Math.abs(rise) / 700 });
         }
       }
@@ -626,27 +651,53 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     }
     updateBossRoute(delta) {
       const boss = this.boss, player = this.player, current = this.getBossSurface();
+      boss.streetApproachLimit = null;
       if (player.grounded) boss.chaseSurfaceId = player.supportedSurfaceId === SIGNAL_LIFT.id ? SIGNAL_LIFT.destinationSurfaceId :
         (player.supportedSurfaceId || 'street');
       if (!boss.chaseSurfaceId) return false;
-      let next = boss.chaseSurfaceId === current.id ? null : this.getBossRouteStep(boss.chaseSurfaceId);
+      if (boss.clearanceTarget && (boss.clearanceTarget.id === current.id || boss.clearanceTarget.goal !== boss.chaseSurfaceId ||
+          boss.clearanceTarget.side !== Math.sign(player.position.x - boss.x))) boss.clearanceTarget = null;
+      const routeTarget = boss.clearanceTarget?.id || boss.chaseSurfaceId;
+      let next = routeTarget === current.id ? null : this.getBossRouteStep(routeTarget);
       const roof = this.getLiftRoof();
-      // Street is one support plane, but the carriage can obstruct the walk to
-      // a launch point. Step onto its roof before pursuing the opposite side.
-      const destinationSide = next ? next.x + next.w / 2 : player.position.x;
-      const crossesRoof = (boss.x >= roof.x + roof.w && destinationSide < roof.x + roof.w / 2 ||
-        boss.x <= roof.x && destinationSide > roof.x + roof.w / 2) &&
-        Math.abs(destinationSide - boss.x) > BOSS_COMBAT.approachRange;
-      if (this.isSignalLiftAvailable() && current.id !== roof.id && crossesRoof &&
-          current.y > roof.topY && current.y - 310 < roof.y && current.y - roof.topY <= 420) {
-        next = { id: roof.id, x: roof.x, w: roof.w, y: roof.topY };
+      // Street is one support plane, but an awning or carriage can block the
+      // walk to the next launch point. Clear the nearest obstruction first.
+      const destinationSide = next ? next.x + next.w / 2 : this.getBossSafeLandingX(current, player.position.x) ?? player.position.x;
+      const obstacles = STAGE_SURFACES.filter(s => s.solid).map(s => ({ ...s, bottomY: s.y + AWNING_DEPTH[s.id] }));
+      if (this.isSignalLiftAvailable()) obstacles.push({ id: roof.id, x: roof.x, w: roof.w, y: roof.topY, bottomY: roof.y, solid: true });
+      const blocker = obstacles.filter(s => s.id !== current.id && s.x < current.x + current.w && s.x + s.w > current.x &&
+        current.y > s.y && current.y - BOSS_TERRAIN_HEIGHT < s.bottomY &&
+        current.y - s.y <= 420 && Math.abs(destinationSide - boss.x) > BOSS_COMBAT.approachRange &&
+        (boss.x <= s.x && destinationSide > s.x || boss.x >= s.x + s.w && destinationSide < s.x + s.w))
+        .sort((a,b) => Math.abs(a.x + a.w/2 - boss.x) - Math.abs(b.x + b.w/2 - boss.x))[0];
+      if (blocker) {
+        if (current.id === 'street') {
+          const direction = Math.sign(destinationSide - boss.x);
+          const farEdge = direction > 0 ? blocker.x + blocker.w + 86 : blocker.x - 86;
+          const exit = this.getBossSafeLandingX(current, farEdge, blocker);
+          if (!Number.isFinite(exit) || direction * (exit - farEdge) < -.01) {
+            // Adjacent awnings can close the far-side descent for his wider
+            // body. Keep ranged combat on clear street footing in that case.
+            boss.streetApproachLimit = direction > 0 ? blocker.x - 86 : blocker.x + blocker.w + 86;
+            return false;
+          }
+        }
+        const launchX = boss.x < blocker.x ? blocker.x - 100 : blocker.x + blocker.w + 100;
+        const ceiling = obstacles.find(s => s.id !== blocker.id && s.id !== current.id && s.y < blocker.y &&
+          s.bottomY > blocker.y - BOSS_TERRAIN_HEIGHT && launchX + 85 > s.x && launchX - 85 < s.x + s.w);
+        if (ceiling) {
+          // The left lift approach rises beneath the Firewall canopy. Use the
+          // existing upper route to that canopy before crossing the shaft.
+          boss.clearanceTarget = { id: ceiling.id, goal: boss.chaseSurfaceId, side: Math.sign(player.position.x - boss.x) };
+          next = this.getBossRouteStep(ceiling.id);
+        } else next = blocker;
       }
       if (!next) return false;
       let destinationX = player.position.x;
       if (next.id === boss.chaseSurfaceId) {
         const candidates = [-180, 180].map(offset => {
           let x = Math.max(next.x + 55, Math.min(next.x + next.w - 55, player.position.x + offset));
-          if (next.id !== roof.id && this.isSignalLiftAvailable() && next.y > roof.topY && next.y - 310 < roof.y &&
+          if (next.id !== roof.id && this.isSignalLiftAvailable() && next.y > roof.topY && next.y - BOSS_TERRAIN_HEIGHT < roof.y &&
               x + 85 > roof.x && x - 85 < roof.x + roof.w) {
             x = x < roof.x + roof.w / 2 ? roof.x - 85 : roof.x + roof.w + 85;
           }
@@ -659,12 +710,22 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         destinationX = candidates[0];
       }
       const desiredX = Math.max(current.x - 205, Math.min(current.x + current.w + 205, destinationX));
-      const landingX = Math.max(next.x + 55, Math.min(next.x + next.w - 55, desiredX));
+      let landingX = this.getBossSafeLandingX(next, desiredX, current);
+      if (!Number.isFinite(landingX)) return false;
       let launchX = Math.max(current.x + 55, Math.min(current.x + current.w - 55, landingX));
-      if (next.id === 'signal-lift-roof' && current.y > next.y) {
+      if ((current.solid || current.id === 'signal-lift-roof') && next.y > current.y) {
+        // Leave from the actual edge so the whole body clears the slab before
+        // descending. The old 55-unit inset could land him back on the awning.
+        launchX = landingX < current.x + current.w / 2 ? current.x + 8 : current.x + current.w - 8;
+      }
+      if ((next.id === 'signal-lift-roof' || next.solid) && current.y > next.y) {
         // Go around the roof edge before rising; never jump through its slab.
-        const sides = [next.x - 100, next.x + next.w + 100].filter(x => x >= current.x + 40 && x <= current.x + current.w - 40);
+        const sides = [next.x - 100, next.x + next.w + 100].filter(x => x >= current.x + 8 && x <= current.x + current.w - 8);
         if (sides.length) launchX = sides.sort((a,b) => Math.abs(a-boss.x)-Math.abs(b-boss.x))[0];
+      }
+      if (Math.abs(landingX-launchX)>360) {
+        landingX = this.getBossSafeLandingX(next, launchX+Math.sign(landingX-launchX)*360, current);
+        if (!Number.isFinite(landingX) || Math.abs(landingX-launchX)>370) return false;
       }
       const dx = launchX - boss.x;
       if (Math.abs(dx) > 10) {
@@ -691,11 +752,16 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         boss.supportedSurfaceId = null;
       }
       const t = Math.min(1, jump.elapsed / jump.duration);
-      const arc = 130 + Math.max(0, jump.startY - jump.y) * 0.35;
+      let arc = 130 + Math.max(0, jump.startY - jump.y) * 0.35;
+      if ((jump.startSurfaceId === 'signal-lift-roof' || AWNING_DEPTH[jump.startSurfaceId]) && jump.y > jump.startY) {
+        // Keep the feet above the departure slab until horizontal travel has
+        // cleared it; a deep drop otherwise starts by falling into that slab.
+        arc = Math.max(arc, (jump.y - jump.startY) * .5 + 60);
+      }
       // Rise beside the slab when boarding; clear its edge early when leaving
       // downward so the boss's wide feet do not immediately land back on it.
-      const horizontalT = jump.surfaceId === 'signal-lift-roof' && jump.startY > jump.y ? Math.max(0, (t - 0.5) * 2) :
-        jump.startSurfaceId === 'signal-lift-roof' && jump.startY < jump.y ? Math.min(1, t * 1.8) : t;
+      const horizontalT = (jump.surfaceId === 'signal-lift-roof' || AWNING_DEPTH[jump.surfaceId]) && jump.startY > jump.y ? Math.max(0, (t - 0.5) * 2) :
+        (jump.startSurfaceId === 'signal-lift-roof' || AWNING_DEPTH[jump.startSurfaceId]) && jump.startY < jump.y ? Math.min(1, t * 1.8) : t;
       boss.x = lerp(jump.startX, jump.x, horizontalT);
       boss.y = lerp(jump.startY, jump.y, t) - Math.sin(t * Math.PI) * arc;
       if (t >= 1) {
@@ -804,12 +870,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       }
       if (boss.phase === 'approach') {
         if (this.updateBossRoute(delta)) { this.updateBossPulses(delta); this.updateBossSprite(delta); return; }
-        const dx = this.player.position.x - boss.x;
-        boss.facing = dx < 0 ? -1 : 1;
+        const surface = this.getBossSurface();
+        // If the player fits beneath an awning but the taller boss cannot,
+        // attack from nearby clear footing instead of cycling up and down.
+        const approachX = boss.streetApproachLimit ?? this.getBossSafeLandingX(surface, this.player.position.x) ?? boss.x;
+        const dx = approachX - boss.x;
+        boss.facing = this.player.position.x < boss.x ? -1 : 1;
         if (Math.abs(dx) > BOSS_COMBAT.approachRange) {
           const distance = Math.min(Math.abs(dx) - BOSS_COMBAT.approachRange, BOSS_COMBAT.approachSpeed * delta / 1000);
-          const surface = this.getBossSurface();
-          boss.x = Math.max(surface.x + 45, Math.min(surface.x + surface.w - 45, boss.x + boss.facing * distance));
+          boss.x = Math.max(surface.x + 45, Math.min(surface.x + surface.w - 45, boss.x + Math.sign(dx) * distance));
         } else this.setBossCombatPhase('telegraph');
       } else if (boss.phase === 'telegraph') {
         const duration = boss.latePhase ? BOSS_COMBAT.fastTelegraphMs : BOSS_COMBAT.telegraphMs;
@@ -1013,7 +1082,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       Object.assign(player, { health: player.maxHealth, grounded: true, controlsDisabled: false,
         allowMovement: true, isEntering: false, supportedSurfaceId: null, dropSurfaceId: null,
         invulnerable: false, invulnerableUntil: 0, _enemyInvulnerableUntilMs: 0,
-        primaryAttackAnimationMs: 0, afterimageMs: 0, coyoteTimerMs: 0, jumpBufferTimerMs: 0,
+        primaryAttackAnimationMs: 0, afterimageMs: 0, hudReaction: null, coyoteTimerMs: 0, jumpBufferTimerMs: 0,
         jumpHeldMs: 0, jumpReleaseQueued: false, airInput: 0 });
       this.cameraY = 0;
       this.skyCaches = new Set(checkpoint.skyCaches || []);
@@ -1198,7 +1267,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         { id: roof.id, x: roof.x, w: roof.w, y: roof.topY, h: roof.y - roof.topY, moving: true, solid: true }]);
     }
     getRoofActorBounds(actor) {
-      if (actor === this.boss) return { x: actor.x - 85, y: actor.y + 72 - 310, width: 170, height: 310 };
+      if (actor === this.boss) return { x: actor.x - 85, y: actor.y + 72 - BOSS_TERRAIN_HEIGHT, width: 170, height: BOSS_TERRAIN_HEIGHT };
       const box = actor.getHitbox?.();
       if (!box || !actor.position) return null;
       const foot = actor.position.y + (actor.type === 'drone' ? 57 : 72);
@@ -1222,8 +1291,53 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       return !!box && actor.supportedSurfaceId === roof.id &&
         box.x + box.width > roof.x && box.x < roof.x + roof.w && Math.abs(box.y + box.height - roof.topY) <= 4;
     }
+    resolveAwningActor(actor, motion) {
+      if (!motion || this.isGameplaySuppressed() || actor === this.boss && !this.isBossCombatLive()) return null;
+      let result = null;
+      for (const surface of STAGE_SURFACES) {
+        if (!AWNING_DEPTH[surface.id]) continue;
+        const after = this.getRoofActorBounds(actor);
+        if (!after) break;
+        const slab = { x: surface.x, y: surface.y, width: surface.w, height: AWNING_DEPTH[surface.id] };
+        const before = { ...after, x: after.x + motion.x - (actor.position?.x ?? actor.x),
+          y: after.y + motion.y - (actor.position?.y ?? actor.y) };
+        let hit = sweepSlab(before, after, slab, slab);
+        if (!hit) continue;
+        if (hit.axis === 'y' && hit.sign > 0) {
+          const foot = after.y + after.height, center = after.x + after.width/2;
+          const supports = this.getStageSurfaces().concat([{x:0,w:WORLD_WIDTH,y:856}]);
+          // A rising cabin floor can press its rider against the fixed canopy.
+          // Clear the awning's nearest edge while retaining the moving support.
+          if (this.isSignalLiftAvailable()) supports.push(this.signalLift);
+          const blocked = supports.some(s =>
+            s.id !== surface.id && center+18>s.x && center-18<s.x+s.w && foot<=s.y+4 && slab.y+slab.height+after.height>s.y);
+          if (blocked) hit = {axis:'x',sign:center<slab.x+slab.width/2?-1:1};
+        }
+        result = hit;
+        if (hit.axis === 'x') {
+          this.moveRoofActor(actor, hit.sign < 0 ? slab.x - after.x - after.width : slab.x + slab.width - after.x, 0);
+          if (actor.velocity && actor.velocity.x * hit.sign < 0) actor.velocity.x = 0;
+        } else if (hit.sign < 0) {
+          this.moveRoofActor(actor, 0, slab.y - after.y - after.height);
+          if (actor.velocity) actor.velocity.y = 0;
+          actor.grounded = actor.isOnGround = true; actor.supportedSurfaceId = surface.id;
+        } else {
+          this.moveRoofActor(actor, 0, slab.y + slab.height - after.y);
+          if (actor.velocity) actor.velocity.y = Math.max(0, actor.velocity.y);
+          actor.grounded = actor.isOnGround = false; actor.supportedSurfaceId = null;
+          if (actor === this.player) this.recordHeadContact(actor, surface.id, after.x + after.width / 2, slab.y + slab.height);
+        }
+        if (actor === this.boss) {
+          actor.traversal = null;
+          actor.roofFallVelocity = hit.axis === 'y' && hit.sign < 0 ? null : 0;
+          if (hit.axis === 'y' && hit.sign < 0) this.setBossCombatPhase('recovery');
+        }
+      }
+      return result;
+    }
     resolveLiftActor(actor, motion, previousRoof = null) {
-      if (!motion || !this.isSignalLiftAvailable() || this.isGameplaySuppressed()) return null;
+      const awningHit = this.resolveAwningActor(actor, motion);
+      if (!motion || !this.isSignalLiftAvailable() || this.isGameplaySuppressed()) return awningHit;
       const roof = this.getLiftRoof(), old = previousRoof || roof, after = this.getRoofActorBounds(actor);
       if (!after) return null;
       const slab = { x: roof.x, y: roof.topY, width: roof.w, height: roof.y - roof.topY };
@@ -1239,7 +1353,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
             after.x + after.width <= roof.x || after.x >= roof.x + roof.w)) {
           actor.headContactSurfaceId = null; actor.liftHeadContact = false;
         }
-        return null;
+        return awningHit;
       }
       // A returning roof cannot push a passenger through the rooftop they
       // just exited onto. Prefer a clear edge that retains that footing.
@@ -1293,6 +1407,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (!motion?.allowed || !head || this.isGameplaySuppressed()) return false;
       let contact = null;
       for (const surface of this.getSolidLedges()) {
+        if (surface.solid) continue; // Full swept awning resolution owns these.
         if (surface.id === player.dropSurfaceId && !surface.solid) continue;
         const bottom = surface.bottomY;
         const before = motion.head.y - bottom, after = head.y - bottom;
@@ -1670,13 +1785,44 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     }
     // The permanent terminal belongs behind street actors and the fields.
     // Upper-route supports retain their later pass alongside the lift/rewards.
+    drawPlatformHardware(ctx, prop) {
+      const mount = PLATFORM_MOUNTS[prop.id];
+      if (!mount) return false;
+      if (Number.isFinite(mount.hangY)) {
+        // Narrow tension straps fasten to the roof beam, never to window glass.
+        for (const x of [prop.x + 27, prop.x + prop.w - 25]) {
+          ctx.fillStyle = '#131d28'; ctx.fillRect(x-4, mount.hangY, 8, prop.y + 55 - mount.hangY);
+          ctx.fillStyle = '#70878b'; ctx.fillRect(x-2, mount.hangY+3, 2, prop.y + 49 - mount.hangY);
+          ctx.fillStyle = '#374954'; ctx.fillRect(x-9, mount.hangY-5, 18, 18);
+          ctx.fillStyle = '#c0ccc0'; ctx.fillRect(x-3, mount.hangY+1, 5, 5);
+        }
+      }
+      const span = mount.span || 410/512, width = prop.w/span;
+      const x = prop.x-(mount.anchorX ?? 22/512)*width;
+      const y = prop.y-(mount.anchorY ?? 182/512)*width;
+      if (window.BARCODE?.PresentationAssets?.draw(mount.asset || 'platformFacades', ctx,
+          { x, y, width, height: width, frame: mount.frame || 0 })) return true;
+      // Credible lightweight fallback if the shared raster is unavailable.
+      ctx.fillStyle = '#3d535d'; ctx.fillRect(prop.x, prop.y, prop.w, prop.h);
+      ctx.strokeStyle = '#9aadaa'; ctx.lineWidth = 3;
+      const side = mount.asset === 'platformSideRight' ? prop.x + prop.w + 10 : prop.x - 16;
+      if (mount.asset) {
+        ctx.fillStyle='#293b49';ctx.fillRect(side-5,prop.y-10,10,88);
+        ctx.beginPath();ctx.moveTo(side,prop.y+72);ctx.lineTo(mount.asset==='platformSideRight'?prop.x+8:prop.x+prop.w-8,prop.y+prop.h);ctx.stroke();
+      } else for(const x of [prop.x+22,prop.x+prop.w-22]) {
+        ctx.fillStyle='#293b49';ctx.fillRect(x-6,prop.y+20,12,40);
+        ctx.beginPath();ctx.moveTo(x,prop.y+55);ctx.lineTo(x-10,prop.y+prop.h);ctx.stroke();
+      }
+      return true;
+    }
     drawTraversalProps(ctx, behindActors = true) {
       if (!ctx) return;
       ctx.save(); ctx.shadowBlur = 0;
       for (const prop of TRAVERSAL_PROPS) {
         if (!!prop.alwaysPresent !== behindActors) continue;
         if (!this.missionStarted && !prop.alwaysPresent) continue;
-        if (!this.isSceneryVisible(ctx,prop.x-24,prop.y-56,prop.w+82,prop.h+152)) continue;
+        if (!this.isSceneryVisible(ctx,prop.x-56,prop.y-240,prop.w+124,prop.h+420)) continue;
+        if (!prop.asset && this.drawPlatformHardware(ctx, prop)) continue;
         if (prop.asset) {
           ctx.fillStyle='rgba(0,0,0,0.30)';
           ctx.beginPath(); ctx.ellipse(prop.x+98,prop.y+prop.h-2,96,12,0,0,Math.PI*2); ctx.fill();
@@ -1709,44 +1855,6 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
           for (let y = prop.y + 24; y < prop.y + prop.h - 12; y += 18) ctx.fillRect(prop.x + 16, y, prop.w - 32, 7);
           ctx.fillStyle = '#82938e';
           for (const x of [prop.x + 8, prop.x + prop.w - 8]) for (const y of [prop.y + 15, prop.y + prop.h - 10]) ctx.fillRect(x - 2, y - 2, 4, 4);
-        } else {
-          this.drawPlatformMount(ctx, prop);
-        }
-      }
-      ctx.restore();
-    }
-    drawPlatformMount(ctx, prop) {
-      const mount = PLATFORM_MOUNTS[prop.id];
-      if (!mount) return;
-      ctx.save(); ctx.translate(prop.x, prop.y); ctx.lineJoin = 'round';
-      const strut = points => {
-        for (const [color, width] of [['#101921', 8], ['#627678', 4]]) {
-          ctx.strokeStyle = color; ctx.lineWidth = width; ctx.beginPath();
-          points.forEach(([x,y], i) => i ? ctx.lineTo(x,y) : ctx.moveTo(x,y)); ctx.stroke();
-        }
-      };
-      const plate = (x, y, height = 28) => {
-        ctx.fillStyle = '#26343d'; ctx.strokeStyle = '#0d171d'; ctx.lineWidth = 2;
-        ctx.fillRect(x-7,y,14,height); ctx.strokeRect(x-7,y,14,height);
-        ctx.fillStyle = '#a1adaa';
-        for (const boltY of [y+5,y+height-5]) { ctx.fillRect(x-2,boltY-2,4,4); }
-      };
-      if (mount.kind === 'left' || mount.kind === 'right') {
-        const anchor = mount.anchor, free = mount.kind === 'left' ? prop.w-10 : 10;
-        // A triangulated horizontal arm and diagonal brace share one bolted
-        // wall plate. A narrow rear arm supplies visible perspective depth.
-        strut([[anchor+7,prop.h-7],[free+7,prop.h-7],[anchor+7,mount.drop-7]]);
-        plate(anchor,prop.h+2,mount.drop-prop.h+10);
-        strut([[anchor,prop.h+4],[free,prop.h+4],[anchor,mount.drop]]);
-      } else if (mount.kind === 'hanger') {
-        for (const x of mount.anchors) {
-          plate(x,-mount.rise,22);
-          strut([[x,-mount.rise+14],[x,prop.h-2]]);
-        }
-      } else {
-        for (const x of mount.anchors) {
-          plate(x+12,prop.h+2,mount.drop-prop.h+12);
-          strut([[x,prop.h],[x+12,mount.drop],[x+12,prop.h]]);
         }
       }
       ctx.restore();

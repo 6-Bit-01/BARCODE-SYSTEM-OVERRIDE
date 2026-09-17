@@ -323,6 +323,7 @@ window.RhythmSystem = class RhythmSystem {
   }
   
   hide() {
+    this.beatResults?.clear();
     if (window.DEBUG_RHYTHM) console.log('🎵 RHYTHM HIDE() CALLED - setting active=false');
     if (this.active) window.BARCODE?.combatFX?.mode(false);
     this.active = false;
@@ -661,9 +662,23 @@ window.RhythmSystem = class RhythmSystem {
     }
   }
   
+  recordBeatResult(judgment) {
+    if (!['perfect','excellent','miss'].includes(judgment?.timing)) return;
+    const audio = window.audioSystem?.context?.currentTime;
+    const offset = window.BARCODE?.Preferences?.values.inputOffsetMs || 0;
+    const sample = Number.isFinite(audio) ? window.BARCODE?.MusicTransport?.sample?.(audio-offset/1000) : null;
+    if (!sample?.running || !Number.isFinite(sample.grid?.beatFloat)) return;
+    if (this.beatResultGeneration !== sample.generation) { this.beatResults = new Map(); this.beatResultGeneration = sample.generation; }
+    this.beatResults ||= new Map();
+    const index = Number.isFinite(judgment.beatIndex) ? judgment.beatIndex : Math.round(sample.grid.beatFloat);
+    this.beatResults.set(index, judgment.timing);
+    while (this.beatResults.size > 12) this.beatResults.delete(this.beatResults.keys().next().value);
+  }
+
   // Feedback-only hook for PlayerCombat's already-resolved primary attack judgment.
   applyResolvedAttackFeedback(judgment = {}) {
     const timing = judgment && judgment.timing ? judgment.timing : 'unavailable';
+    this.recordBeatResult(judgment);
     this.lastJudgment = { hit: timing === 'perfect' || timing === 'excellent', timing, combo: this.combo };
     if (timing === 'perfect' || timing === 'excellent') {
       this.combo++;
@@ -705,6 +720,7 @@ window.RhythmSystem = class RhythmSystem {
     const transport = window.BARCODE && window.BARCODE.MusicTransport;
     const audioTimeSec = window.audioSystem && window.audioSystem.context ? window.audioSystem.context.currentTime : null;
     const judgment = transport && Number.isFinite(audioTimeSec) && this.judgmentRuleId ? transport.judgeInput(this.judgmentRuleId, audioTimeSec, window.BARCODE?.Preferences?.values.inputOffsetMs || 0) : { available: false, timing: 'unavailable' };
+    this.recordBeatResult(judgment);
     const isMiss = !judgment.available || judgment.timing === 'miss';
     if (window.DEBUG_RHYTHM) console.log(`TRANSPORT JUDGMENT: rule=${this.judgmentRuleId || 'none'}, timing=${judgment.timing}, distanceMs=${judgment.distanceMs == null ? 'n/a' : judgment.distanceMs.toFixed(0)}`);
     
@@ -1024,9 +1040,11 @@ window.RhythmSystem = class RhythmSystem {
     const beat = sample?.grid?.beatFloat;
     if (!sample?.running || !Number.isFinite(beat)) return { ready: false, notes: [] };
     const base = Math.floor(beat), meter = sample.grid.beatsPerBar || 4;
-    return { ready: true, fraction: beat - base, notes: Array.from({ length: 5 }, (_, i) => ({
-      x: 96 + (base + i - beat) * 82, downbeat: (base + i) % meter === 0, index: base + i
-    })).filter(note => note.x >= 73 && note.x <= 460) };
+    return { ready: true, fraction: beat - base, notes: Array.from({ length: 6 }, (_, i) => {
+      const index = base + i - 1;
+      return { x: 96 + (index - beat) * 82, downbeat: index % meter === 0, index,
+        timing: this.beatResultGeneration === sample.generation ? this.beatResults?.get(index) : null };
+    }).filter(note => note.x >= -66 && note.x <= 460) };
   }
   drawCompactHUD(ctx) {
     window.BARCODE?.ComicHUD?.rhythm(ctx, { lane: this.getPredictiveNotes(),

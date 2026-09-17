@@ -1,5 +1,13 @@
 # Recovery checkpoint — September 14
 
+## September 17 — Finish The Job recovery and combined completion
+
+- Recover the approved twenty-bubble tutorial and original saved implementation: early-action credit, acknowledged story, one training entrance, phase-correct hack teaching, deliberate Rhythm Mode exit, readable mapped controls and immediate final Continue.
+- Recover and connect all five requested platform designs and six HUD expressions. Add the soft digital healing chime and correctly associated beat-result colors through existing runtime owners.
+- Make the five awnings fully solid as the owner subsequently requested; retain ordinary platform behavior and two circled small-step bonks. Correct the oversized boss terrain probe, descent relanding and overhead routing; preserve his street approach. Rising cabin riders clear the fixed canopy and retain their ride.
+- Preserve merged #75's five-second occupied lift return/recharge semantics and terminal x=498 placement plus painted-waveform glitch.
+- Add production-module regressions and fresh native renders. Correct continuation/decision records so this work is not lost or mistaken for an unapproved proposal again. Exact tests, published head and PR are in the generated receipt; owner Makko acceptance remains pending.
+
 ## September 17, 2026 — platform attachments, five-second lift power and terminal screen
 
 Continuation from merged #74, `ea7a34571f91ba12d05291d6698eb17b389d150f`, on `agent/platform-mounts-charge-timeout`. PR #73 already corrected the blanket ledge collision mistake: only the four circled static objects bonk, plus the separately solid moving elevator roof. This pass preserves that collision scope and every existing small deck position/size.

@@ -153,6 +153,7 @@ window.checkGameConditions = function() {
 
 function respawnPlayerInTutorial() {
   window.player.health = window.player.maxHealth;
+  window.player.hudReaction = null;
   window.player.position = new window.Vector2D(200, 810);
   window.player.velocity = new window.Vector2D(0, 0);
   if (typeof window.player.startEntranceAnimation === 'function') window.player.startEntranceAnimation();

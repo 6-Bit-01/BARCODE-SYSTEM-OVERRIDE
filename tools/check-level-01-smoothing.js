@@ -35,26 +35,21 @@ assert(!/\.source\.(?:start|stop)\s*\(/.test(updateLayers), 'adaptive gain chang
 const playLayer = blockFrom(audio, '  playLayer(layerName, volume = 0.5) {', '  stopLayer(layerName) {');
 assert(playLayer.includes('layerGain.gain.value = 0;') && playLayer.includes('this.rampAdaptiveStemGain(track, volume);'), 'an emergency-started adaptive stem must fade in without changing its source start time');
 
-const tutorialClass = tutorial.slice(tutorial.indexOf('window.TutorialSystem = class TutorialSystem'), tutorial.indexOf('// Create global tutorial system'));
-assert((tutorialClass.match(/setTimeout\s*\(/g) || []).length === 1, 'all in-class tutorial delays must flow through the one owned scheduler');
-assert((tutorialClass.match(/_scheduleTutorialTimer\s*\(/g) || []).length >= 8, 'enemy and transition delays must share the owned tutorial timer registry');
-
-const scheduler = blockFrom(tutorial, '  _scheduleTutorialTimer(', '  cancelPendingTimers()');
-assert(scheduler.includes('generation !== this._tutorialTimerGeneration'), 'chapter/tutorial generation must invalidate stale callbacks');
-assert(scheduler.includes('!this.active'), 'debug skip/completion must invalidate stale callbacks');
-assert(scheduler.includes('currentRuntimeGeneration !== runtimeGeneration'), 'runtime restart must invalidate callbacks from the prior run');
-
+assert(!/setTimeout\s*\(/.test(tutorial), 'tutorial uses no competing wall-clock spawn or transition callbacks');
+const spawns = blockFrom(tutorial, '  updateCombatSpawns(delta) {', '  recordEnemyDefeat(enemy) {');
+assert(spawns.includes('item.run !== this.runGeneration'), 'queued enemies belong to the current tutorial run');
+assert(spawns.includes('this.spawnElapsedMs += delta'), 'entrances follow simulation time');
 const startTutorial = blockFrom(tutorial, '  startTutorial() {', '  startChapter(chapter) {');
 const startChapter = blockFrom(tutorial, '  startChapter(chapter) {', '  addDialogue(');
-const completeTutorial = blockFrom(tutorial, '  completeTutorial() {', '  draw(ctx) {');
-const activeSetter = blockFrom(tutorial, '  set active(value) {', '  startTutorial() {');
-assert(startTutorial.includes('_cancelPendingTutorialTimers()'), 'tutorial restart must cancel old callbacks');
-assert(startChapter.includes('_cancelPendingTutorialTimers()'), 'chapter changes must cancel old callbacks');
-assert(completeTutorial.includes('_cancelPendingTutorialTimers()'), 'tutorial completion must cancel old callbacks');
-assert(activeSetter.includes('_cancelPendingTutorialTimers()'), 'direct debug skip/reset deactivation must cancel old callbacks');
+const completeTutorial = blockFrom(tutorial, '  completeTutorial() {', '  control(action) {');
+const activeSetter = blockFrom(tutorial, '  set active(value) {', '  isActive()');
+assert(startTutorial.includes('this.runGeneration++') && startTutorial.includes('this.startChapter(0)'), 'restart invalidates the previous run and resets the lesson queue');
+assert(startChapter.includes('this.cancelPendingTimers()'), 'chapter changes cancel the spawn queue');
+assert(completeTutorial.includes('this.active = false'), 'completion follows the common deactivation path');
+assert(activeSetter.includes('this.cancelPendingTimers()'), 'direct debug skip/reset deactivation cancels pending spawns');
 
 assert(tutorial.includes('this.finalMessageHoldTime = 10000;'), 'final tutorial message must retain its 10 second hold');
 assert(tutorial.includes('/ 2000'), 'final tutorial message must retain its 2 second fade');
 assert(tutorial.includes('handleSpacePress()') && tutorial.includes('this.advanceDialogue();'), 'tutorial must retain exclusive Space-driven dialogue advancement');
 
-console.log('✅ Level 1 audio smoothing and tutorial timer ownership checks passed');
+console.log('✅ Level 1 audio smoothing and tutorial simulation-clock ownership checks passed');
