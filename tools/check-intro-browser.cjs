@@ -21,7 +21,7 @@ const startTo = index.indexOf('// Add keyboard support for start button', startF
 assert(startFrom >= 0 && startTo > startFrom, 'production Start adapter is available');
 const styles = index.match(/<style>([\s\S]*?)<\/style>/)[0];
 const markup = index.slice(index.indexOf('<body>') + 6, index.indexOf('<!-- MakkoEngine'));
-const scripts = ['src/utils/math.js', 'src/core/fullscreen.js', 'src/engine/presentation-assets.js', 'src/engine/intro-sequence.js', 'src/engine/cutscene.js', 'src/game/tutorial.js', 'src/core/runtime-lifecycle.js'];
+const scripts = ['src/utils/math.js', 'src/core/fullscreen.js', 'src/engine/presentation-assets.js', 'src/game/comic-hud.js', 'src/engine/intro-sequence.js', 'src/engine/cutscene.js', 'src/game/tutorial.js', 'src/core/runtime-lifecycle.js'];
 const fixture = `<!doctype html><html><head>${styles}<link rel="stylesheet" href="/style.css"></head><body>${markup}
 <script>
 window.browserCheck = { loops: 0, contexts: 0, fail: new URLSearchParams(location.search).has('fail') };
