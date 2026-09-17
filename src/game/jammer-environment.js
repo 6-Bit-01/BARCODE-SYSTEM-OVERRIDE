@@ -20,6 +20,7 @@ window.BARCODE = window.BARCODE || {};
       targetable: state.targetable,
       health: state.health,
       maxHealth: state.maxHealth,
+      surge: state.surge ? Object.freeze({...state.surge}) : null,
       destroyed: state.destroyed,
       destructionNotified: state.destructionNotified,
       disposed: state.disposed,
@@ -57,7 +58,8 @@ window.BARCODE = window.BARCODE || {};
     spriteRequestCount: 0,
     audio: null,
     signalTimeMs: 0,
-    destructionEffectStarted: false
+    destructionEffectStarted: false,
+    surge: null
   };
 
   function getStage() {
@@ -131,6 +133,7 @@ window.BARCODE = window.BARCODE || {};
     state.lastDamageSequence = null;
     state.destructionEffectStarted = false;
     state.signalTimeMs = 0;
+    state.surge = null;
     state.disposed = false;
     invalidatePresentation();
     return cloneStatus(state);
@@ -148,6 +151,19 @@ window.BARCODE = window.BARCODE || {};
     if (!state.revealed || state.disposed) return cloneStatus(state);
     pollSpriteReady();
     state.signalTimeMs += Math.max(0, Number(deltaTime) || 0);
+    const surge=state.surge;
+    if(surge && !window.isPaused && !window.gameState?.paused && !window.gameState?.gameOver) {
+      surge.elapsed+=namespace.TacticalFocusClock?.scaleDelta?.(deltaTime) ?? deltaTime;
+      if(surge.elapsed>=surge.warningMs && !surge.hit) {
+        const body=window.player?.getHitbox?.();
+        if(body && body.x+body.width>surge.x-surge.width/2 && body.x<surge.x+surge.width/2 &&
+          body.y+body.height>surge.groundY-270 && body.y<surge.groundY+8) {
+          surge.hit=true;
+          if(!window.hackingSystem?.absorbGuardHit?.())window.player?.takeDamage?.(1,{x:surge.x,y:surge.groundY});
+        }
+      }
+      if(surge.elapsed>=surge.warningMs+420)state.surge=null;
+    }
     if (state.spriteReady && state.sprite && typeof state.sprite.update === 'function') {
       if (namespace.SpritePlayback) namespace.SpritePlayback.update(state.sprite, deltaTime);
       else state.sprite.update(deltaTime);
@@ -155,7 +171,7 @@ window.BARCODE = window.BARCODE || {};
     return cloneStatus(state);
   }
 
-  function canReceiveRhythmDamage() { return state.initialized && state.revealed && state.targetable && !state.destroyed && !state.disposed; }
+  function canReceiveRhythmDamage() { return state.initialized && state.revealed && state.targetable && !state.destroyed && !state.disposed && !state.surge; }
 
   function applyRhythmDamage(options) {
     options = options || {};
@@ -167,6 +183,14 @@ window.BARCODE = window.BARCODE || {};
     state.health = Math.max(0, state.health - 1);
     if (state.health > 0 && getStage().index !== previousStage) {
       window.particleSystem?.impact?.(state.position.x, state.position.y + 65, getStage().color, 14);
+      const difficulty=namespace.LevelDifficulty?.choice?.id || 'standard';
+      const groundY=(window.player?.getHitbox?.().y ?? state.position.y)+ (window.player?.getHitbox?.().height || 72);
+      state.surge={x:window.player?.position?.x ?? state.position.x,groundY,
+        width:difficulty==='relaxed'?200:difficulty==='overclocked'?280:240,
+        elapsed:0,warningMs:difficulty==='relaxed'?1700:difficulty==='overclocked'?1050:1400,hit:false};
+      window.audioSystem?.playCombatCue?.('warning');
+      const guards=(window.enemyManager?.enemies||[]).filter(e=>e.active&&e.escort?.owner==='jammer');
+      if(guards.length<(difficulty==='relaxed'?1:2))window.sector1Progression?.spawnSupportDrone?.('jammer',getStage().index%2?1:-1);
     }
     if (state.health === 0 && !state.destroyed) {
       state.destroyed = true;
@@ -189,6 +213,14 @@ window.BARCODE = window.BARCODE || {};
     if (!ctx || state.destroyed || !state.revealed || state.disposed) return;
     ctx.save();
     const stage = getStage();
+    if(state.surge) {
+      const s=state.surge,active=s.elapsed>=s.warningMs;
+      ctx.fillStyle=active?'rgba(255,120,90,0.38)':'rgba(255,190,105,0.12)';ctx.strokeStyle='#ffc478';ctx.lineWidth=3;
+      ctx.fillRect(s.x-s.width/2,s.groundY-270,s.width,278);ctx.strokeRect(s.x-s.width/2,s.groundY-270,s.width,278);
+      ctx.fillStyle='#ffc478';ctx.font='bold 16px Oxanium, monospace';ctx.textAlign='center';ctx.textBaseline='alphabetic';
+      ctx.fillText(active?'SIGNAL DISCHARGE':'SURGE — LEAVE THE MARKED AREA',s.x,s.groundY-286);
+      ctx.fillRect(s.x-s.width/2,s.groundY+12,s.width*Math.min(1,s.elapsed/s.warningMs),6);
+    }
     // A fixed whole-body drawing keeps the machinery bolted to the sidewalk.
     // The old clip changes its silhouette and previously re-added legacy foot
     // offsets; animate transmission light instead of shaking the chassis.
@@ -241,10 +273,11 @@ window.BARCODE = window.BARCODE || {};
       }
       ctx.fillStyle = stage.color;
       ctx.font = 'bold 14px monospace';
-      ctx.fillText(stage.label, state.position.x, barY - 46);
+      ctx.fillText(state.surge?'SHIELDED / DISCHARGING':stage.label, state.position.x, barY - 46);
       ctx.fillStyle = '#c4f8ff';
       ctx.font = '12px monospace';
-      ctx.fillText(window.BARCODE?.ControllerSettings?.prompt ? `${window.BARCODE.ControllerSettings.prompt('primary', 'DOWN')} ON BEAT IN RHYTHM MODE` : 'R + DOWN ON BEAT', state.position.x, barY - 24);
+      ctx.fillText(state.surge?`${namespace.ControllerSettings?.prompt('rhythm_mode','R') || 'R'} / CANCEL: EXIT RHYTHM AND MOVE`:
+        window.BARCODE?.ControllerSettings?.prompt ? `${window.BARCODE.ControllerSettings.prompt('primary', 'DOWN')} ON BEAT IN RHYTHM MODE` : 'R + DOWN ON BEAT', state.position.x, barY - 24);
     }
     ctx.restore();
   }

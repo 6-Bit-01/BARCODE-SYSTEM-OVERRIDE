@@ -132,6 +132,7 @@ for (const fps of [30, 60, 120]) {
   const jammer = w.BARCODE.JammerEnvironment;
   w.player.position.x = jammer.getStatus().position.x - 150;
   for (let stage = 0; stage < 4; stage++) {
+    if(jammer.getStatus().surge){const x=w.player.position.x;w.player.position.x+=400;jammer.update(2500);w.player.position.x=x;}
     tick(450);
     assert.strictEqual(p.getDistrictSignalState().interference, 1 - stage / 4, 'each four-hit Jammer stage settles to less interference');
     for (let hit = 0; hit < 4; hit++) beat();

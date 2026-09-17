@@ -369,7 +369,7 @@ window.TutorialSystem = class TutorialSystem {
         height:104+Math.max(2+i,...lines.map(text=>this.wrapText(text,width-60,measure).length))*38+(i===2?30:0)}));
       this._dialogueMeasure={key,variants};
     }
-    return window.BARCODE.OverlayLayout.present(this,'dialogue',this._dialogueMeasure.variants);
+    return window.BARCODE.OverlayLayout.present(this,'dialogue',this._dialogueMeasure.variants,{remember:true});
   }
   getInstructionOwner() {
     if (!this.active) return null;
@@ -421,7 +421,7 @@ window.TutorialSystem = class TutorialSystem {
       helpLines.forEach((text,i)=>ctx.fillText(text,x+26,y+height-26-(helpLines.length-1-i)*29));
     } else {
       const card = this.getObjectivePresentation(), width = 564, height = 158;
-      this._taskLayout = window.BARCODE.OverlayLayout.present(this,'task',[{width,height}]);
+      this._taskLayout = window.BARCODE.OverlayLayout.present(this,'task',[{width,height}],{remember:true});
       const {x,y} = this._taskLayout;
       ctx.globalAlpha = 1; window.BARCODE.OverlayLayout.begin(ctx,this._taskLayout);
       if(this._taskLayout.docked){window.BARCODE.OverlayLayout.drawDock(ctx,this._taskLayout,card.title,card.control);ctx.restore();return;}

@@ -7,9 +7,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/campaign-services.js', exports: ['BA
   const stages = ['encounter_1', 'encounter_2', 'encounter_3', 'encounter_4', 'jammer', 'boss', 'intermission'];
   const keys = ['stem.voice', 'stem.bass', 'stem.drums', 'stem.synth', 'stem.samples', 'stem.noise_fx'];
   const C = B.Campaign = {
-    run: null, result: null, intermission: false, restoring: false, contactSequence: null,
+    run: null, deathHandled: false, result: null, intermission: false, restoring: false, contactSequence: null,
     adapters: new Map(),
-    resetSession() { this.run = null; this.result = null; this.intermission = false; this.contactSequence = null; },
+    resetSession() { this.deathHandled=false;this.run = null; this.result = null; this.intermission = false; this.contactSequence = null; },
     archive() { return window.lostDataSystem?.archive || (this.previewArchive ||= new B.LoreCollection()); },
     register(levelId, adapter) {
       if (!/^level-0[1-7]$/.test(levelId) || typeof adapter?.restore !== 'function' || this.adapters.has(levelId)) return false;
@@ -18,7 +18,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/campaign-services.js', exports: ['BA
     begin(levelId = 'level-01') {
       if (this.restoring) return;
       this.intermission = false; this.result = null; this.contactSequence = null;
-      this.run = { levelId, difficultyId: B.LevelDifficulty?.choice?.id || 'standard',
+      this.deathHandled=false;
+      this.run = { levelId, recoveryMode:B.LevelDifficulty?.recoveryMode || 'checkpoints', difficultyId: B.LevelDifficulty?.choice?.id || 'standard',
         runId: `${Date.now()}-${Math.random().toString(36).slice(2, 12)}`, elapsedMs: 0, damageTaken: 0,
         retries: 0, attempts: 0, accurate: 0, perfect: 0, connected: 0, connectedPerfect: 0, completed: false, practice: false };
     },
@@ -39,8 +40,32 @@ window.FILE_MANIFEST.push({ name: 'src/game/campaign-services.js', exports: ['BA
     retryBoss() {
       if (!this.run) return;
       if (this.run.completed) { this.run.practice = true; this.run.completed = false; }
-      this.run.retries++; this.contactSequence = null; this.intermission = false;
+      if(!this.deathHandled)this.run.retries++;this.deathHandled=false; this.contactSequence = null; this.intermission = false;
     },
+    handleDeath() {
+      if(!this.active() || this.deathHandled)return false;
+      const saved=this.readResume();
+      if(!saved || saved.levelState.run.runId!==this.run.runId)return false;
+      this.deathHandled=true;this.run.retries++;
+      const s=saved.levelState;
+      s.run=clone(this.run);s.health=window.player?.maxHealth || 3;
+      if(this.run.recoveryMode==='full-run') {
+        saved.checkpointId='encounter_1';
+        Object.assign(s,{score:0,bestCombo:0,playerX:200,fragments:[],skyCaches:[],ampCharges:0,boss:null,result:null});
+        Object.assign(s.run,{runId:`${Date.now()}-${Math.random().toString(36).slice(2,12)}`,elapsedMs:0,damageTaken:0,retries:0,
+          attempts:0,accurate:0,perfect:0,connected:0,connectedPerfect:0,completed:false,practice:false});
+      }
+      // Commit death before showing Retry, so reopening cannot erase the
+      // recovery rule or the failed attempt. In-memory fallback still works.
+      this.archive().checkpoint(saved);return true;
+    },
+    canRetryObjective() { return !!(window.gameState?.gameOver && this.run && this.readResume() && !this.run.practice); },
+    retryObjective() {
+      if(!this.canRetryObjective())return {ok:false,reason:'checkpoint-unavailable'};
+      this.handleDeath();
+      return B.RuntimeLifecycle?.restart({source:'objective-retry',resume:this.readResume()});
+    },
+    retryLabel() { return this.run?.recoveryMode==='full-run'?'Retry full run':'Retry objective'; },
     checkpoint(checkpointId) {
       if (this.restoring || !this.run || this.run.practice || !stages.includes(checkpointId)) return false;
       const p = window.sector1Progression, player = window.player;
@@ -58,9 +83,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/campaign-services.js', exports: ['BA
       // Existing kill/collectible points remain. Bonuses are clear-only and
       // bounded; idle rhythm taps and boss practice cannot farm them.
       const quality = r.attempts ? Math.round(600 * r.connectedPerfect / Math.max(r.attempts, r.connectedPerfect)) : 0;
-      const bonus = r.practice ? 0 : 1000 + quality + (r.damageTaken === 0 && r.retries === 0 ? 500 : 0);
+      const bonus = r.practice ? 0 : 1000 + quality + (r.recoveryMode==='full-run'?500:0) + (r.damageTaken === 0 && r.retries === 0 ? 500 : 0);
       if (window.gameState) window.gameState.score += bonus;
-      this.result = { runId: r.runId, completedAt: Date.now(), score: count(window.gameState?.score),
+      this.result = { runId: r.runId, recoveryMode:r.recoveryMode || 'checkpoints', completedAt: Date.now(), score: count(window.gameState?.score),
         elapsedMs: count(r.elapsedMs), damageTaken: count(r.damageTaken), retries: count(r.retries),
         attempts: count(r.attempts), accurate: count(r.accurate), perfect: count(r.perfect), connected: count(r.connected),
         bestCombo: count(window.rhythmSystem?.runBestCombo), discoveries: count(window.lostDataSystem?.getProgress?.().collected), bonus };
@@ -84,6 +109,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/campaign-services.js', exports: ['BA
       if (['boss','intermission'].includes(current.checkpointId) && (!s.boss || !Number.isFinite(s.boss.bossX) || s.boss.bossX < 0 || s.boss.bossX > 4096 ||
           !Number.isFinite(s.boss.playerX) || s.boss.playerX < 0 || s.boss.playerX > 4096 || !Number.isFinite(s.boss.score) || !Array.isArray(s.boss.skyCaches))) return null;
       if (current.checkpointId === 'intermission' && (!s.result || !Number.isFinite(s.result.score))) return null;
+      if(s.run.recoveryMode!==undefined && !['checkpoints','full-run'].includes(s.run.recoveryMode))return null;
       return clone(current);
     },
     syncTitleButton() {
@@ -98,7 +124,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/campaign-services.js', exports: ['BA
       const adapter = this.adapters.get(saved?.levelId); if (!adapter) return false;
       this.restoring = true;
       try {
-        this.run = clone(saved.levelState.run); this.result = saved.levelState.result ? clone(saved.levelState.result) : null;
+        this.deathHandled=false;this.run = clone(saved.levelState.run);this.run.recoveryMode ||= 'checkpoints'; this.result = saved.levelState.result ? clone(saved.levelState.result) : null;
         this.contactSequence = null; this.intermission = saved.checkpointId === 'intermission';
         return adapter.restore(saved);
       } finally { this.restoring = false; }

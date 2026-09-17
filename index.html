@@ -543,6 +543,7 @@
         <div class="game-subtitle">System Override</div>
         <button id="startButton" class="start-button">START SYSTEM</button>
         <button id="continueButton" class="start-button" hidden style="font-size: 20px; padding: 12px 30px; margin-top: 12px;">CONTINUE SAVED — C / Y</button>
+        <button id="settingsButton" class="start-button" style="font-size:20px;padding:12px 30px;margin-top:12px;">SETTINGS — O</button>
         <div class="instructions">
             <div class="instructions-line"><span class="key">Arrow Keys</span> - Move | <span class="key">Space</span> - Action</div>
             <div class="instructions-line"><span class="key">R</span> - Rhythm Mode | <span class="key">Down Arrow</span> - Beat Attack | <span class="key">H</span> - Hack</div>
@@ -775,12 +776,14 @@
         
         window.titleScreenMusicBlocked = !!window.titleScreenMusicBlocked; // Prevent title music from starting after game start
         
+        document.getElementById('settingsButton').addEventListener('click', () => window.BARCODE?.PauseMenu?.openTitle());
+
         // START BUTTON HANDLER - USER GESTURE ADAPTER ONLY
         document.getElementById('startButton').addEventListener('click', async function() {
             resetStartRetryPresentation();
 
             // Fullscreen must remain synchronous inside the user gesture.
-            if (window.fullscreenManager) {
+            if (window.fullscreenManager && window.BARCODE?.PauseMenu?.fullscreenChoice !== false) {
                 window.fullscreenManager.enter().catch(err => {
                     if (err.name === 'TypeError' && err.message && err.message.includes('Permissions check failed')) {
                         return;
@@ -805,7 +808,7 @@
         document.getElementById('continueButton').addEventListener('click', async function() {
             if (!window.BARCODE?.Campaign?.readResume()) return;
             resetStartRetryPresentation();
-            window.fullscreenManager?.enter?.().catch(() => {});
+            if(window.BARCODE?.PauseMenu?.fullscreenChoice !== false) window.fullscreenManager?.enter?.().catch(() => {});
             const result = await window.BARCODE.Campaign.continueSaved();
             if (!result?.ok) console.warn('Continue could not start:', result);
         });
@@ -826,8 +829,12 @@
 
         // Add keyboard support for start button
         document.addEventListener('keydown', function(event) {
+            if (window.BARCODE?.PauseMenu?.titleOpen) return;
             const savedButton = document.getElementById('continueButton');
             const onTitle = !document.getElementById('startOverlay').classList.contains('hidden');
+            if (onTitle && (event.code === 'KeyO' || event.code === 'Space' && document.activeElement === document.getElementById('settingsButton'))) {
+                event.preventDefault(); event.stopPropagation(); if(!event.repeat) window.BARCODE?.PauseMenu?.openTitle(); return;
+            }
             if (event.code === 'KeyC' && onTitle && !savedButton.hidden && !event.repeat) {
                 event.preventDefault(); savedButton.click(); return;
             }

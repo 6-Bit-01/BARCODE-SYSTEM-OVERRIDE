@@ -11,7 +11,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-difficulty.js', exports: ['BAR
     Object.freeze({ id: 'overclocked', label: 'OVERCLOCKED', description: 'Faster enemies. Tighter counter windows.', health: 3, hostileScale: 1.12, bossRecoveryBeats: 2, value: 3 })
   ]) }));
   const D = {
-    open: false, locked: false, levelId: 'level-01', selected: 1, choice: null, held: new Set(),
+    open: false, locked: false, recoveryMode: 'checkpoints', levelId: 'level-01', selected: 1, choice: null, held: new Set(),
     beginLevel(levelId = 'level-01') {
       if (!profiles.has(levelId)) return false;
       this.levelId = levelId; this.selected = this.choice && this.profile().choices.includes(this.choice) ? this.profile().choices.indexOf(this.choice) : 1;
@@ -27,6 +27,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-difficulty.js', exports: ['BAR
       return true;
     },
     select(index) { if (!this.open || this.locked || !Number.isInteger(index) || index < 0 || index > 2) return false; this.selected = index; return true; },
+    setRecovery(mode) { if(!this.open || this.locked || !['checkpoints','full-run'].includes(mode))return false;this.recoveryMode=mode;return true; },
+    toggleRecovery() { return this.setRecovery(this.recoveryMode==='checkpoints'?'full-run':'checkpoints'); },
     confirm() {
       if (!this.open || this.locked) return false;
       this.choice = this.profile().choices[this.selected]; this.locked = true; this.open = false;
@@ -48,6 +50,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-difficulty.js', exports: ['BAR
       if (['arrowleft', 'arrowup'].includes(key)) this.select((this.selected + 2) % 3);
       else if (['arrowright', 'arrowdown', 'tab'].includes(key)) this.select((this.selected + (event.shiftKey ? 2 : 1)) % 3);
       else if (['1', '2', '3'].includes(key)) this.select(Number(key) - 1);
+      else if (key==='c') this.toggleRecovery();
       else if (['enter', ' '].includes(key)) this.confirm();
       return true;
     },
@@ -59,7 +62,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-difficulty.js', exports: ['BAR
       if (!rect?.width || !rect.height) return true;
       const x = (event.clientX - rect.left) * 1920 / rect.width, y = (event.clientY - rect.top) * 1080 / rect.height;
       if (y >= 390 && y <= 590) for (let i = 0; i < 3; i++) if (x >= 340 + i * 420 && x <= 740 + i * 420) this.select(i);
-      if (x >= 750 && x <= 1170 && y >= 690 && y <= 762) this.confirm();
+      if(x>=340&&x<=1580&&y>=625&&y<=725)this.toggleRecovery();
+      if (x >= 750 && x <= 1170 && y >= 785 && y <= 857) this.confirm();
       return true;
     },
     draw(ctx) {
@@ -78,11 +82,17 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-difficulty.js', exports: ['BAR
         const lines = choice.description.split('. ').map(s => s.replace(/\.$/, ''));
         lines.forEach((line, row) => ctx.fillText(line, x + 200, 500 + row * 31));
       });
-      ctx.fillStyle = '#c9cad4'; ctx.font = '22px Oxanium, monospace'; ctx.fillText('Locked for this level, including boss retries.', 960, 644);
-      ctx.fillStyle = '#94ffdc'; ctx.fillRect(750, 690, 420, 72); ctx.fillStyle = '#101c24'; ctx.font = 'bold 27px Oxanium, monospace';
-      B.ComicHUD.buttonText(ctx,'BEGIN LEVEL',750,690,420,72,12);
+      ctx.fillStyle='#142a35';ctx.fillRect(340,625,1240,100);ctx.strokeStyle='#718697';ctx.strokeRect(340,625,1240,100);
+      ctx.fillStyle='#a5ffdf';ctx.font='bold 24px Oxanium, monospace';
+      const control=B.GamepadUI?.connected?B.ControllerSettings?.button(2)||'X':'C';
+      ctx.fillText(`[${control}] RECOVERY: ${this.recoveryMode==='full-run'?'FULL RUN':'OBJECTIVE CHECKPOINTS'}`,960,665);
+      ctx.fillStyle='#c9cad4';ctx.font='20px Oxanium, monospace';
+      ctx.fillText(this.recoveryMode==='full-run'?'Death restarts the level. Earn +500 clear points.':'Death retries the latest objective with full health. Normal clear points.',960,704);
+      ctx.fillText('Rules lock for this level. Both modes save at objective boundaries.',960,756);
+      ctx.fillStyle = '#94ffdc'; ctx.fillRect(750, 785, 420, 72); ctx.fillStyle = '#101c24'; ctx.font = 'bold 27px Oxanium, monospace';
+      B.ComicHUD.buttonText(ctx,'BEGIN LEVEL',750,785,420,72,12);
       ctx.fillStyle = '#b8b3c9'; ctx.font = '19px Oxanium, monospace';
-      ctx.fillText(B.GamepadUI?.connected ? `D-PAD: CHOOSE     ${B.ControllerSettings?.button(0) || 'A'}: BEGIN` : 'ARROWS OR 1–3: CHOOSE     ENTER: BEGIN', 960, 824);
+      ctx.fillText(B.GamepadUI?.connected ? `D-PAD: CHOOSE     ${B.ControllerSettings?.button(0) || 'A'}: BEGIN` : 'ARROWS OR 1–3: CHOOSE     ENTER: BEGIN', 960, 916);
       ctx.restore();
     },
     stop() { this.open = false; this.held.clear(); }

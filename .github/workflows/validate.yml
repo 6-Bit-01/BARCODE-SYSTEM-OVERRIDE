@@ -58,6 +58,18 @@ jobs:
           name: intro-browser-${{ github.sha }}
           path: ${{ runner.temp }}/intro-browser
           if-no-files-found: ignore
+      - name: Check title settings in real Chromium
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+          SETTINGS_BROWSER_OUTPUT: ${{ runner.temp }}/settings-browser
+        run: node tools/check-settings-browser.cjs
+      - name: Upload settings browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: settings-browser-${{ github.sha }}
+          path: ${{ runner.temp }}/settings-browser
+          if-no-files-found: ignore
       - name: Export current source pack
         env:
           PACK_RECEIPT: ${{ runner.temp }}/source-pack-tests.json
@@ -67,7 +79,7 @@ jobs:
           from pathlib import Path
           Path(os.environ['PACK_RECEIPT']).write_text(json.dumps({
               'revision': os.environ['GITHUB_SHA'],
-              'automatedTests': {'npm test': 'passed', 'npm run check:syntax:all': 'passed', 'node tools/check-music-audibility.cjs': 'passed (controlled and original MP3s)', 'node tools/check-background-browser.cjs': 'passed', 'node tools/check-intro-browser.cjs': 'passed'},
+              'automatedTests': {'npm test': 'passed', 'npm run check:syntax:all': 'passed', 'node tools/check-music-audibility.cjs': 'passed (controlled and original MP3s)', 'node tools/check-background-browser.cjs': 'passed', 'node tools/check-intro-browser.cjs': 'passed', 'node tools/check-settings-browser.cjs': 'passed'},
               'makkoPlaytest': 'not recorded by CI',
               'workflowRun': os.environ['GITHUB_SERVER_URL'] + '/' + os.environ['GITHUB_REPOSITORY'] + '/actions/runs/' + os.environ['GITHUB_RUN_ID']
           }, indent=2))

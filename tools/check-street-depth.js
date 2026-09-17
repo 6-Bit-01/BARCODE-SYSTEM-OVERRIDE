@@ -156,7 +156,8 @@ console.log('Fitted gates: registered bake, mirrored pavement, roof/street block
   const target=new w.Enemy(1800+side*300,784+cy,'firewall');
   Object.assign(target.position,{x:1800+side*300,y:784+cy});Object.assign(target,{entranceComplete:true,spawnProtectionDuration:0,spawnTimeMs:-10000});
   w.enemyManager.enemies=[target];w.gameCamera={centerX:1800,y:cy};
-  w.BARCODE.sceneProjection.capture({getTransform:()=>({a:zoom,b:0,c:0,d:zoom,e:960*(1-zoom)+3*zoom,f:675*(1-zoom)-2*zoom})});
+  const view={x:26,y:290,width:1060,height:596.25,scale:1060/1920};
+  w.BARCODE.sceneProjection.capture({getTransform:()=>({a:zoom*view.scale,b:0,c:0,d:zoom*view.scale,e:view.x+(960*(1-zoom)+3*zoom)*view.scale,f:view.y+(675*(1-zoom)-2*zoom)*view.scale})},1,null,view);
   assert(h.start());h.update(h.bootDurationMs+h.displayTime+1);assert.equal(h.phase,'answer');
   let box=draw();clearOf(box,target);clearOf(box,w.player);assert(box.y>=225&&box.x>=26&&box.x+box.width<=1894&&box.y+box.height<=1054);
   const stable=JSON.stringify(box);assert.equal(JSON.stringify(draw()),stable,'stationary content does not shuffle the panel');
@@ -175,15 +176,16 @@ console.log('Fitted gates: registered bake, mirrored pavement, roof/street block
   const layout=h.panelLayout;tap(layout.x+660*layout.scale,layout.y+30*layout.scale);assert(!h.active,'relocated Cancel is clickable');
   h.reset();assert(!h.panelLayout&&!h.resultLayout&&!h.resultFx,'reset drops layout and target references');
  }
- // A crowded street needs the short keypad instead of a tall side panel.
+ // Crowded streets keep the same solid side panel and three-column keypad.
  Object.assign(w.player.position,{x:960,y:784});w.gameCamera={centerX:960,y:0};
- w.BARCODE.sceneProjection.capture({getTransform:()=>({a:1,b:0,c:0,d:1,e:0,f:0})});
+ const view={x:26,y:290,width:1060,height:596.25,scale:1060/1920};
+ w.BARCODE.sceneProjection.capture({getTransform:()=>({a:view.scale,b:0,c:0,d:view.scale,e:view.x,f:view.y})},1,null,view);
  w.enemyManager.enemies=[100,450,700,1220,1580,1810].map(x=>{
   const e=new w.Enemy(x,784,'firewall');Object.assign(e.position,{x,y:784});Object.assign(e,{entranceComplete:true,spawnProtectionDuration:0,spawnTimeMs:-10000});return e;
  });
- assert(h.start());h.update(h.bootDurationMs+h.displayTime+1);const compact=draw();assert(h.panelLayout.compact&&h.panelLayout.clear);
+ assert(h.start());h.update(h.bootDurationMs+h.displayTime+1);const compact=draw();assert(!h.panelLayout.compact&&h.panelLayout.clear);
  for(const actor of [w.player,...w.enemyManager.enemies])clearOf(compact,actor);
- h.keypadIndex=5;h.navigateKeypad(0,1);assert.equal(h.keypadIndex,11,'six-column keypad moves down to Submit');h.navigateKeypad(-1,0);assert.equal(h.keypadIndex,10);
+ h.keypadIndex=8;h.navigateKeypad(0,1);assert.equal(h.keypadIndex,11,'fixed three-column keypad moves down to Submit');h.navigateKeypad(-1,0);assert.equal(h.keypadIndex,10);
  for(const digit of ['6','7','0']){h.inputText='';const key=h.getKeypad().find(k=>k.key===digit);tap(key.x+key.w/2,key.y+key.h/2);assert.equal(h.inputText,digit);}
  const erase=h.getKeypad().find(k=>k.key==='Backspace');tap(erase.x+erase.w/2,erase.y+erase.h/2);assert.equal(h.inputText,'');
  h.inputText=h.currentPuzzle.answer;h.keypadIndex=11;h.activateKeypad();assert.equal(h.resultFx.outcome,'success','compact keyboard/controller/pointer layout retains submission');
@@ -192,8 +194,8 @@ console.log('Fitted gates: registered bake, mirrored pavement, roof/street block
  w.enemyManager.enemies=[locked,...[300,550,800].flatMap(y=>[200,600,1000,1400,1800].map(x=>{
   const e=new w.Enemy(x,y,'firewall');Object.assign(e.position,{x,y});Object.assign(e,{entranceComplete:true,spawnProtectionDuration:0,spawnTimeMs:-10000});return e;
  }))];
- assert(!h.getPanelLayout().readable,'actors can occupy every readable panel location');rects.length=0;h.draw(c);assert(h.panelLayout.docked,'crowded terminal retains a small signal-held tab');
- h.update(8000);assert.equal(h.phase,phase);assert.equal(h.phaseElapsedMs,elapsed);assert.equal(h.sessionElapsedMs,session);assert(!h.processInput('1'),'an unseen puzzle cannot consume input or expire');
+ assert(h.getPanelLayout().readable,'even a full crowd cannot erase terminal controls');rects.length=0;h.draw(c);assert(!h.panelLayout.docked);
+ h.update(100);assert.equal(h.phase,phase);assert(h.phaseElapsedMs>elapsed);assert(h.sessionElapsedMs>session);assert(h.processInput('1'),'crowded puzzle stays visible and accepts input');
  assert(h.processInput('Escape')&&!h.active,'Escape remains available while the panel waits');
 }
 console.log('Overlay clearance: 24 camera/zoom/target cases, stable placement, moved targets, drawn keypad hit regions, pointer submit/cancel, result clearance and reset passed.');

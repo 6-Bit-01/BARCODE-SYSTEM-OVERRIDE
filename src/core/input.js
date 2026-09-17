@@ -71,6 +71,8 @@ window.InputManager = class InputManager {
         const retryRequested = window.gameState.gameOver ? e.key === ' ' && !e.shiftKey : e.key === 'Enter';
         if (retryRequested && progression?.canRetryBossCheckpoint?.()) {
           progression.retryBossCheckpoint();
+        } else if (retryRequested && window.BARCODE?.Campaign?.canRetryObjective?.()) {
+          window.BARCODE.Campaign.retryObjective();
         } else if (e.key === ' ' && window.BARCODE?.RuntimeLifecycle) {
           window.BARCODE.RuntimeLifecycle.restart({ source: 'terminal-space' });
         }
@@ -179,9 +181,12 @@ window.InputManager = class InputManager {
   }
 
   updateFrontend(owner) {
+    const menu=window.BARCODE?.PauseMenu;
+    if(owner==='title'&&menu?.titleOpen){this.routeGamepadUI();menu.render();return;}
     const input = window.BARCODE?.GamepadUI?.poll(owner);
     if (!input) return;
     const pressed = input.pressed;
+    if(owner==='title'&&pressed.b2){menu?.openTitle();return;}
     if (owner === 'title' && pressed.b3) {
       const button = document.getElementById('continueButton');
       if (button && !button.hidden && !button.disabled) button.click();
@@ -200,7 +205,7 @@ window.InputManager = class InputManager {
 
   routeGamepadUI() {
     const BARCODE = window.BARCODE, menu = BARCODE?.PauseMenu;
-    const owner = BARCODE?.LevelDifficulty?.open ? 'difficulty' : (window.isPaused || window.gameState?.paused) ? 'pause' : window.hackingSystem?.isActive?.() ? 'hack' :
+    const owner = BARCODE?.LevelDifficulty?.open ? 'difficulty' : (menu?.titleOpen || window.isPaused || window.gameState?.paused) ? 'pause' : window.hackingSystem?.isActive?.() ? 'hack' :
       (window.gameState?.gameOver || window.gameState?.victory) ? 'results' :
       window.tutorialSystem?.isActive?.() ? 'tutorial' : 'gameplay';
     const input = BARCODE?.GamepadUI?.poll(owner);
@@ -210,6 +215,7 @@ window.InputManager = class InputManager {
       const d = BARCODE.LevelDifficulty;
       if (p.left || p.up) d.select((d.selected + 2) % 3);
       else if (p.right || p.down) d.select((d.selected + 1) % 3);
+      else if(p.b2)d.toggleRecovery();
       else if (p.b0 || p.b9) d.confirm();
       return true;
     }
@@ -240,6 +246,7 @@ window.InputManager = class InputManager {
       if (p.b3 && window.gameState?.victory) { BARCODE?.Campaign?.openIntermission(); return true; }
       if (p.b0) {
         if (window.sector1Progression?.canRetryBossCheckpoint?.()) window.sector1Progression.retryBossCheckpoint();
+        else if(BARCODE.Campaign?.canRetryObjective?.())BARCODE.Campaign.retryObjective();
         else BARCODE.RuntimeLifecycle?.restart({ source: 'controller-result' });
       } else if (p.b2) BARCODE.RuntimeLifecycle?.restart({ source: 'controller-result' });
       if (p.b0 || p.b2) this.resetActionEdges();

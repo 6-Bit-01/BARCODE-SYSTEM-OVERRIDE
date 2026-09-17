@@ -83,7 +83,7 @@ must(debugSource, /handleCanvasPointer\(event\) \{\s*if \(isBossCinematicActive\
 must(debugSource, /drawOverlay\(ctx\) \{\s*if \(!ctx \|\| isBossCinematicActive\(\)\) return;/, 'Level 1 debug overlay stays hidden for the full boss cinematic');
 must(indexSource, /R<\/span> - Rhythm Mode[^]*Down Arrow<\/span> - Beat Attack/, 'visible controls distinguish Rhythm Mode from the Down Arrow beat attack');
 must(uiSource, /tutorialCompleted && !bossCinematicActive/, 'mission objectives hide during the boss cinematic and restore afterward');
-must(uiSource, /!bossCinematicActive && window\.jammerIndicator/, 'Jammer guidance hides during the boss cinematic');
+must(uiSource, /!bossCinematicActive && !window\.hackingSystem\?\.isActive\?\.\(\) && window\.jammerIndicator/, 'Jammer guidance hides during the boss cinematic');
 must(uiSource, /!bossCinematicActive && window\.DEBUG\?\.level1\?\.drawOverlay/, 'Level 1 DEV presentation hides during the boss cinematic');
 must(uiSource, /WAVE \$\{cue\.wave\} \/ \$\{cue\.total\}/, 'authored encounter wave labels are presented');
 must(uiSource, /CLEARED`/, 'encounter completion receives a restrained clear cue');

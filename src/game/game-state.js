@@ -103,6 +103,7 @@ window.checkGameConditions = function() {
     if (window.tutorialSystem && typeof window.tutorialSystem.isActive === 'function' && window.tutorialSystem.isActive()) {
       respawnPlayerInTutorial();
     } else {
+      window.BARCODE?.Campaign?.handleDeath();
       window.gameState.gameOver = true;
       window.gameState.running = false;
       if (window.renderer && typeof window.renderer.addScreenShake === 'function') window.renderer.addScreenShake(20, 1000);

@@ -241,10 +241,13 @@ window.HackingSystem = class HackingSystem {
   }
 
   getPanelLayout() {
-    const ui=window.BARCODE.OverlayLayout;
-    const variants=[1,0.88,0.76].map(scale=>({width:780,height:710,scale}))
-      .concat([1,0.88,0.76].map(scale=>({width:1040,height:360,scale,compact:true})));
-    return ui.present(this,'terminal',variants,{actors:ui.actors(this.hijackTarget)});
+    // Interactive controls own a stable, opaque area. The renderer puts the
+    // live world beside it; enemies never cut holes in the puzzle or its keys.
+    return {x:1110,y:245,width:780,height:710,scale:1,clear:true,alpha:1,
+      moving:false,readable:true,compact:false,docked:false,cutouts:[]};
+  }
+  getSceneViewport() {
+    return this.active ? {x:26,y:290,width:1060,height:596.25,scale:1060/1920} : null;
   }
   getResultLayout() {
     const ui=window.BARCODE.OverlayLayout;
@@ -605,7 +608,7 @@ window.HackingSystem = class HackingSystem {
     const presentation = this.getPresentation();
     const urgent = this.phase === 'answer' && presentation.remainingMs <= 1500;
     const color = urgent ? '#ffb16e' : '#91ffe0';
-    ctx.fillStyle = 'rgba(4, 13, 25, 0.92)'; ctx.fillRect(1110, 190, 780, 710);
+    ctx.fillStyle = '#040d19'; ctx.fillRect(1110, 190, 780, 710);
     ctx.strokeStyle = '#3c827f'; ctx.lineWidth = 2; ctx.strokeRect(1110, 190, 780, 710);
     ctx.fillStyle = '#91ffe0'; ctx.font = 'bold 22px monospace'; ctx.fillText('SIGNAL TERMINAL', 1132, 231);
     ctx.font = '15px monospace'; ctx.fillStyle = '#aebdcc'; ctx.textAlign = 'right';

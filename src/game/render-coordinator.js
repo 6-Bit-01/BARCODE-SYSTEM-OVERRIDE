@@ -17,11 +17,12 @@ const MAX_CONTEXT_ATTEMPTS = 3;
 window.BARCODE = window.BARCODE || {};
 window.BARCODE.sceneProjection = {
   matrix: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
-  capture(ctx, zoom = 1, shake = { x: 0, y: 0 }) {
+  capture(ctx, zoom = 1, shake = { x: 0, y: 0 }, viewport = null) {
     const matrix = ctx.getTransform?.() || { a: zoom, b: 0, c: 0, d: zoom,
       e: 960 * (1 - zoom) + (shake?.x || 0) * zoom,
       f: 675 * (1 - zoom) + (shake?.y || 0) * zoom };
     this.matrix = { a: matrix.a, b: matrix.b, c: matrix.c, d: matrix.d, e: matrix.e, f: matrix.f };
+    this.viewport=viewport;
   },
   worldToScreen(point) {
     const x = point.x + 960 - (window.gameCamera?.centerX ?? 960);
@@ -115,6 +116,15 @@ window.renderGame = function() {
     return;
   }
   
+  // A single live scene, drawn once into its own area during hacking. Keep
+  // the world matrix authoritative for markers and traffic warnings as well.
+  const hackView=window.hackingSystem?.getSceneViewport?.();
+  ctx.save();
+  if(hackView) {
+    ctx.fillStyle='#07121e';ctx.fillRect(0,0,1920,1080);
+    ctx.beginPath();ctx.rect(hackView.x,hackView.y,hackView.width,hackView.height);ctx.clip();
+    ctx.translate(hackView.x,hackView.y);ctx.scale(hackView.scale,hackView.scale);
+  }
   // Apply zoom transformation to game area only
   if (rendererAvailable && window.renderer && typeof window.renderer.zoomLevel === 'number') {
     ctx.save();
@@ -137,7 +147,7 @@ window.renderGame = function() {
   }
   
   window.BARCODE.sceneProjection.capture(ctx, rendererAvailable ? window.renderer.zoomLevel : 1,
-    rendererAvailable ? window.renderer.screenShake : null);
+    rendererAvailable ? window.renderer.screenShake : null,hackView);
 
   // Draw game elements first (within zoomed area)
   drawGameElements(ctx);
@@ -146,10 +156,20 @@ window.renderGame = function() {
   if (rendererAvailable && window.renderer && typeof window.renderer.zoomLevel === 'number') {
     ctx.restore();
   }
+  ctx.restore();
 
   // Tactical focus is a scene treatment, not part of the terminal or HUD. Draw
   // it after the world zoom has been restored and before any interface layer.
   drawTacticalFocusCue(ctx);
+  if(hackView) {
+    ctx.save();ctx.globalAlpha=1;ctx.strokeStyle='#3c827f';ctx.lineWidth=2;
+    ctx.strokeRect(hackView.x,hackView.y,hackView.width,hackView.height);
+    ctx.fillStyle='#91ffe0';ctx.font='bold 22px Oxanium, monospace';ctx.textAlign='left';ctx.textBaseline='alphabetic';
+    ctx.fillText('LIVE UPLINK / TACTICAL FOCUS',hackView.x+16,hackView.y-18);
+    ctx.fillStyle='#bacbd4';ctx.font='20px Oxanium, monospace';
+    ctx.fillText('Enemies remain in view. Cancel the uplink to move.',hackView.x+16,hackView.y+hackView.height+36);
+    ctx.restore();
+  }
   
   // Draw tutorial UI on top - NOT affected by zoom
   if (window.tutorialSystem && typeof window.tutorialSystem.isActive === 'function' && window.tutorialSystem.isActive()) {

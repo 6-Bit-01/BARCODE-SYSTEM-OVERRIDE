@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "receipts": [
+    {
+      "width": 1280,
+      "height": 720,
+      "keyboard": true,
+      "pointer": true,
+      "simulatedController": true,
+      "fullscreen": true,
+      "persistence": true
+    },
+    {
+      "width": 960,
+      "height": 720,
+      "keyboard": true,
+      "pointer": true,
+      "simulatedController": true,
+      "fullscreen": true,
+      "persistence": true
+    }
+  ],
+  "errors": [],
+  "limits": "Real Chromium production settings/DOM/input/fullscreen; lifecycle counted stubs and simulated controller. Hosted Makko and physical controller acceptance remain pending."
+}
