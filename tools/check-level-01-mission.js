@@ -79,7 +79,7 @@ must(updateCoordinator, /progressionSuppressesGameplay[^]*allowMovement = !hacki
   assert(!labels.includes('DEFEAT 20 ENEMIES'), 'completed objectives do not duplicate the mission HUD');
   assert(panels.every(([x, y, width, height]) => x >= 420 && x + width <= 1480 && y + height <= 128), 'objective stays inside its reserved top band');
 }
-must(debugSource, /handleCanvasPointer\(event\) \{\s*if \(isBossCinematicActive\(\)\) return;/, 'hidden Level 1 debug controls cannot receive pointer actions during the boss cinematic');
+must(debugSource, /handleCanvasPointer\(event\)[^]*?if \(isBossCinematicActive\(\)\) return;/, 'hidden Level 1 debug controls cannot receive pointer actions during the boss cinematic');
 must(debugSource, /drawOverlay\(ctx\) \{\s*if \(!ctx \|\| isBossCinematicActive\(\)\) return;/, 'Level 1 debug overlay stays hidden for the full boss cinematic');
 must(indexSource, /R<\/span> - Rhythm Mode[^]*Down Arrow<\/span> - Beat Attack/, 'visible controls distinguish Rhythm Mode from the Down Arrow beat attack');
 must(uiSource, /tutorialCompleted && !bossCinematicActive/, 'mission objectives hide during the boss cinematic and restore afterward');
@@ -798,6 +798,7 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
       debugSkipTutorial() { routed += 1; return { ok: true, state: 'encounter_1', missionDefeats: 0 }; },
       debugGotoJammer() { routed += 1; return { ok: true }; },
       debugResetSignalLift() { routed += 1; return { ok: true }; },
+      debugCompleteLevel() { routed += 1; return { ok: true, state: 'level_complete' }; },
       getDiagnostics() { return { state: 'test' }; }
     },
     addEventListener(type, listener) { listeners[type] = listener; }
@@ -814,11 +815,14 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   window.DEBUG.level1.drawOverlay(ctx);
   assert(drawnText.includes('DEV ▲'), 'canvas debug launcher renders inside Makko/fullscreen instead of as a hidden DOM sibling');
   assert(drawnText.includes('Skip Tutorial'), 'unlocked canvas debug panel renders its action buttons');
+  assert(drawnText.includes('Complete Level 1'), 'the Level 1 panel offers a one-click completion shortcut');
   assert.strictEqual(typeof canvasListeners.pointerdown, 'function', 'drawing the debug launcher attaches a canvas-native pointer route');
   canvasListeners.pointerdown({ button: 0, currentTarget: canvas, clientX: 40, clientY: 455, preventDefault() {}, stopPropagation() {} });
   assert.strictEqual(routed, 0, 'expanded canvas debug panel ignores clicks outside action buttons');
   assert.strictEqual(window.DEBUG.level1.gotoJammer().ok, true, 'unlocked debug action routes to Sector1Progression');
   assert.strictEqual(routed, 1, 'direct debug action routes exactly once');
+  assert.strictEqual(window.DEBUG.level1.completeLevel().state, 'level_complete', 'console shortcut routes through the progression owner');
+  assert.strictEqual(routed, 2, 'completion shortcut calls the progression owner once');
   const makkoShortcut = { key: 'd', code: 'KeyD', shiftKey: true, ctrlKey: true, preventDefault() {}, stopPropagation() {} };
   listeners.keydown(makkoShortcut);
   drawnText.length = 0;

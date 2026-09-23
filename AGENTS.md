@@ -1,5 +1,9 @@
 # Repository Guidance
 
+## September 23, 2026 — Level 1 skip and Level 3 DEV menu
+
+PR #89 has already been merged at `c0d061407378831ae90fcac49985a29c3c5ea037` (base/rollback). Branch `agent/level3-debug-menu` adds a session-only Level 1 completion shortcut and canvas-native Level 3 development menu. Read `docs/source-pack/BROADCAST_SLUM_PROOF.md` and the newest ACCEPTANCE route. Level 1's skip must use the real intermission save/Voice unlock, but exclude artificial best-result, bonus and difficulty challenge records. Level 3 controls may reset/advance its provisional relay checkpoints and show `proof-clear`; they must never award Drums or a Level 3 campaign clear. Preserve one input/RAF owner, pause and audio return. Publish a new tested draft and refresh canonical v5; owner Makko/controller/audio/feel acceptance remains pending before assistant merge.
+
 ## September 23, 2026 — Broadcast Slum combat follow-up
 
 The owner's first playtest of merged #88 reports that the proof works but feels easy and basic. Base/rollback is `b32a67831acc296c1cb1887ad579bbc04ac44cb1`; branch `agent/broadcast-slum-combat-pass`. Read the updated `docs/source-pack/BROADCAST_SLUM_PROOF.md` and newest ACCEPTANCE route. Each relay now has a reachable roof node shield, a bounded counter surge with a warned two-lane volley, an additional marked roof shot when elevated, a runner from behind, and a temporary scatter pickup. Defenders have distinct elevated gunner, patrol and runner behavior. Keep the preview boundary, checkpoint migration, audio transport, controls and Level 1 return intact. Voice persists; no Drums or Level 3 completion. Publish one tested draft and refresh canonical v5. Owner Makko/audio/controller feel acceptance is required before assistant merge.

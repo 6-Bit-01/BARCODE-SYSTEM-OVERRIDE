@@ -4,9 +4,11 @@ A BARCODE simulation built around seven distinct retro game genres and the origi
 
 ## Current state
 
-Read [CURRENT_STATE.md](docs/source-pack/CURRENT_STATE.md) and [the acceptance route](docs/source-pack/ACCEPTANCE.md) for the active review. Level 1 and its Cache Back handoff are playable. A clearly labeled Broadcast Slum development preview starts from that handoff; the current combat follow-up adds roof shield nodes, counter surges, varied defenders and a temporary scatter pickup after the owner's first playtest of merged #88. The Cache Line remains Level 2 in story order.
+Read [CURRENT_STATE.md](docs/source-pack/CURRENT_STATE.md) and [the acceptance route](docs/source-pack/ACCEPTANCE.md) for the active review. Level 1 and its Cache Back handoff are playable. A clearly labeled Broadcast Slum development preview starts from that handoff; merged #89 added roof shield nodes, counter surges, varied defenders and temporary scatter. The current review adds debug access to both levels. The Cache Line remains Level 2 in story order.
 
 The preview grants no later campaign completion or Drums key. Its owner Makko/audio/controller feel review is pending. The Cache Line and later story routes remain planned.
+
+For a quick test route, start Level 1 and open its `DEV` panel at the lower left (or press Shift+F1). Choose **Complete Level 1**, then enter the Broadcast Slum preview from Cache Back. Console command after unlocking: `DEBUG.level1.completeLevel()`. In the preview, open `DEV 3` (or Shift+F1) for relay checkpoints, recovery and **Complete Preview**; console command: `DEBUG.level3.completeProof()`. The Level 1 shortcut grants the handoff and Voice without a best result or challenge record. The preview clear grants no Drums or Level 3 campaign completion.
 
 ## Runtime and checks
 

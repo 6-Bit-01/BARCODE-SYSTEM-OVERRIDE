@@ -185,6 +185,7 @@ window.FILE_MANIFEST.push({
     { label: 'Destroy Jammer', run: () => window.DEBUG.level1.destroyJammer() },
     { label: 'Play Boss Intro', run: () => window.DEBUG.level1.playBossIntro() },
     { label: 'Go / Reset Boss', run: () => window.DEBUG.level1.gotoBoss() },
+    { label: 'Complete Level 1', run: () => window.DEBUG.level1.completeLevel() },
     { get label() { return overlayState.enabled ? 'Geometry Overlay: ON' : 'Geometry Overlay: OFF'; }, run: () => window.DEBUG.level1.toggleOverlay() },
     { label: 'Reset Mission', run: () => window.DEBUG.level1.resetMission() }
   ];
@@ -296,6 +297,7 @@ window.FILE_MANIFEST.push({
   }
 
   function handleCanvasPointer(event) {
+    if (window.BARCODE?.RunAndGunProof?.active || window.isPaused || window.BARCODE?.PauseMenu?.isPaused?.()) return;
     if (isBossCinematicActive()) return;
     if (Number.isFinite(event.button) && event.button !== 0) return;
     const canvas = event.currentTarget || uiState.pointerCanvas;
@@ -416,12 +418,14 @@ window.FILE_MANIFEST.push({
     giveSignalAmp: () => call('debugGiveSignalAmp'),
     playBossIntro: () => call('debugPlayBossIntro'),
     gotoBoss: () => call('debugGotoBoss'),
+    completeLevel: () => call('debugCompleteLevel'),
     resetMission: () => call('debugResetMission'),
     toggleOverlay,
     drawOverlay
   });
 
   window.addEventListener('keydown', event => {
+    if (window.BARCODE?.RunAndGunProof?.active || window.isPaused || window.BARCODE?.PauseMenu?.isPaused?.()) return;
     const key = String(event.key || '');
     const code = String(event.code || '');
     const shiftF1 = key === 'F1' && event.shiftKey;

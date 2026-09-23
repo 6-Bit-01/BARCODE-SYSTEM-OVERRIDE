@@ -77,13 +77,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/campaign-services.js', exports: ['BA
         result: this.result ? clone(this.result) : null };
       return this.archive().checkpoint({ levelId: this.run.levelId, checkpointId, levelState });
     },
-    finish() {
+    finish({ debugSkip = false } = {}) {
       if (!this.run || this.run.completed) return this.result;
       const r = this.run;
       // Existing kill/collectible points remain. Bonuses are clear-only and
       // bounded; idle rhythm taps and boss practice cannot farm them.
       const quality = r.attempts ? Math.round(600 * r.connectedPerfect / Math.max(r.attempts, r.connectedPerfect)) : 0;
-      const bonus = r.practice ? 0 : 1000 + quality + (r.recoveryMode==='full-run'?500:0) + (r.damageTaken === 0 && r.retries === 0 ? 500 : 0);
+      const bonus = r.practice || debugSkip ? 0 : 1000 + quality + (r.recoveryMode==='full-run'?500:0) + (r.damageTaken === 0 && r.retries === 0 ? 500 : 0);
       if (window.gameState) window.gameState.score += bonus;
       this.result = { runId: r.runId, recoveryMode:r.recoveryMode || 'checkpoints', completedAt: Date.now(), score: count(window.gameState?.score),
         elapsedMs: count(r.elapsedMs), damageTaken: count(r.damageTaken), retries: count(r.retries),
@@ -93,7 +93,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/campaign-services.js', exports: ['BA
       if (!r.practice) {
         const number = Number(r.levelId.slice(-2));
         this.archive().completeCampaignLevel(r.levelId, r.difficultyId, this.result, keys[number - 1],
-          number < 7 ? `level-0${number + 1}` : null);
+          number < 7 ? `level-0${number + 1}` : null, { recordResult: !debugSkip });
         this.checkpoint('intermission');
       }
       return this.result;

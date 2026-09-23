@@ -1,9 +1,9 @@
-# Broadcast Slum: combat follow-up after first playtest
+# Level 1 completion shortcut and Level 3 DEV menu
 
-The first preview worked, but the owner found it easy and basic. This draft gives the provisional Level 3 route a climb, exposure and counterattack loop while keeping the saved Level 1 Cache Back handoff. The Cache Line remains Level 2 in the story.
+The owner needs a quick route to the provisional Level 3 combat preview and a development menu there. This draft builds on merged #89, `c0d061407378831ae90fcac49985a29c3c5ea037`; the Cache Line remains Level 2 in story order.
 
-- Each relay starts shielded by a reachable rooftop node. Break the node, attack the core, then respond to a warned two-lane counter volley, a marked shot at roof height if elevated, and a runner from behind. A tougher second relay, aimed elevated gunners, patrol, pursuing runners and temporary scatter fire add movement and positioning choices.
-- Linked shield cues, spawn markers, impact sparks and a changing objective clarify each state. The original phrase volley and immediate movement/fire remain. Art and 108 BPM stems remain explicit development placeholders.
-- Preview checkpoints, title Continue, pause/Exit and Level 1 music return remain. Old preview saves restore; Voice survives, with no Drums key, Level 3 completion or later story scene.
+- The Level 1 DEV panel adds **Complete Level 1** for an immediate saved Cache Back handoff and Voice unlock. An artificial clear awards no bonus and does not enter best results or difficulty challenges.
+- The session-only, canvas-native `DEV 3` panel offers relay checkpoint jumps, node/relay bypass, health refill, scatter, defender clear, preview reset and **Complete Preview**. A proof clear saves `proof-clear` but grants no Drums key, Level 3 completion or later story scene.
+- Unlock with Shift+F1 or the lower-left launcher in each level. Console commands after unlock: `DEBUG.level1.completeLevel()` and `DEBUG.level3.completeProof()`. The existing input, frame, pause, save and audio owners remain in charge.
 
-Base/rollback: merged #88, `b32a67831acc296c1cb1887ad579bbc04ac44cb1`. See `BROADCAST_SLUM_PROOF.md`, the top of `ACCEPTANCE.md` and six `review-broadcast-slum/` captures for the route. The source pack receipt identifies the exact committed head and checks. Hosted Makko audio, physical controller and difficulty/fairness remain for owner review; keep this draft unmerged until acceptance.
+See `BROADCAST_SLUM_PROOF.md`, the top of `ACCEPTANCE.md` and seven `review-broadcast-slum/` captures. `npm test`, `npm run check:syntax:all` and `git diff --check` passed locally. The generated source receipt identifies the committed head. Hosted Makko input/audio/feel review remains for the owner; keep this draft unmerged until acceptance.

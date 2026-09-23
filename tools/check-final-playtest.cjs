@@ -5,6 +5,27 @@ const {campaignRig}=require('./check-boss-music-campaign.cjs');
 const copy=x=>JSON.parse(JSON.stringify(x));
 
 async function main(){
+  // The test shortcut reaches the real saved handoff, while leaving performance
+  // records and difficulty challenge awards to completed playthroughs.
+  {
+    const {w,p,c,context,storage}=campaignRig();
+    load(context,'src/game/level-01-debug.js');
+    assert.equal(w.DEBUG.level1.completeLevel().reason,'debug-disabled');
+    w.BARCODE.DEBUG_LEVEL_1_SESSION=true;
+    const result=w.DEBUG.level1.completeLevel();assert(result.ok,JSON.stringify(result));
+    assert(result.intermission && c.intermission && w.gameState.victory);
+    assert.equal(p.state,'level_complete');
+    assert.equal(c.result.bonus,0);
+    assert.equal(c.readResume().checkpointId,'intermission');
+    assert(c.archive().record.progress.completedLevels.includes('level-01'));
+    assert(c.archive().record.progress.items.includes('stem.voice'));
+    assert(c.archive().record.progress.unlockedLevels.includes('level-02'));
+    assert.equal(c.archive().record.progress.results['level-01'],undefined);
+    assert.equal(c.archive().record.progress.levelChallenges?.['level-01'],undefined);
+    assert.equal(w.DEBUG.level1.completeLevel().reason,'level-01-inactive');
+    const reopened=campaignRig(storage);assert.equal(reopened.c.readResume().checkpointId,'intermission');
+    assert(reopened.c.restore(reopened.c.readResume()) && reopened.c.intermission);
+  }
   // Death persists the policy immediately, restores the objective's earned
   // state, and cannot farm score or clear a retry by reopening the browser.
   for(const mode of ['checkpoints','full-run'])for(const stage of ['encounter_2','encounter_4','jammer','boss']){

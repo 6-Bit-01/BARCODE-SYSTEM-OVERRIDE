@@ -1,8 +1,12 @@
 # Current State
 
-## Current review — Broadcast Slum combat follow-up after merged #88
+## Current review — debug route after merged #89
 
-The owner's first run worked but felt easy and basic. Base/rollback is merged #88, `b32a67831acc296c1cb1887ad579bbc04ac44cb1`; branch `agent/broadcast-slum-combat-pass`. Both relays now require reachable roof nodes before core fire. A threshold counter surge warns two street lanes, marks an additional roof shot when elevated, and telegraphs a runner behind; temporary scatter pickups, elevated aimed gunners, patrol and pursuing runners add distinct actions. Shield links, impacts and objective text explain the sequence. Preview save/audio boundaries remain, including old checkpoint restores and Level 1 return; Voice remains, with no Drums or Level 3 completion. See `BROADCAST_SLUM_PROOF.md`, newest ACCEPTANCE route and six native captures. Exact draft revision, checks and CI belong to the generated receipt. Owner Makko/controller/audio/feel acceptance remains pending. The first proof section below is history.
+Base/rollback: `c0d061407378831ae90fcac49985a29c3c5ea037`. Branch `agent/level3-debug-menu` adds **Complete Level 1** to the existing DEV panel and `DEV 3` to the provisional Broadcast Slum canvas. The Level 1 shortcut reaches Cache Back with a real Voice/handoff save but no artificial best result, bonus or difficulty challenge. The preview menu offers relay checkpoint jumps, node/relay bypass, health, scatter, defender clear, reset and proof clear. It never awards Drums or Level 3 completion. Seven native captures include the menu. See `BROADCAST_SLUM_PROOF.md` and the newest ACCEPTANCE route; exact draft/checks belong to the generated receipt. Owner Makko/controller/audio/feel acceptance remains pending.
+
+## Historical review — Broadcast Slum combat follow-up after merged #88
+
+The owner's first run worked but felt easy and basic. Base/rollback is merged #88, `b32a67831acc296c1cb1887ad579bbc04ac44cb1`; branch `agent/broadcast-slum-combat-pass`. Both relays now require reachable roof nodes before core fire. A threshold counter surge warns two street lanes, marks an additional roof shot when elevated, and telegraphs a runner behind; temporary scatter pickups, elevated aimed gunners, patrol and pursuing runners add distinct actions. Shield links, impacts and objective text explain the sequence. Preview save/audio boundaries remain, including old checkpoint restores and Level 1 return; Voice remains, with no Drums or Level 3 completion. See `BROADCAST_SLUM_PROOF.md`, newest ACCEPTANCE route and seven native captures. Exact draft revision, checks and CI belong to the generated receipt. Owner Makko/controller/audio/feel acceptance remains pending. The first proof section below is history.
 
 ## Historical review — first new genre proof after merged #86
 
