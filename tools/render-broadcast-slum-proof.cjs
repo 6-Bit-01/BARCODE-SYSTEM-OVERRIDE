@@ -14,6 +14,9 @@ load(context, 'src/game/pause-menu.js');
 load(context, 'src/game/campaign-services.js');
 load(context, 'src/engine/broadcast-slum-proof-profile.js');
 load(context, 'src/game/broadcast-slum-proof.js');
+let debugShortcut;
+w.addEventListener = (type, listener) => { if (type === 'keydown') debugShortcut = listener; };
+load(context, 'src/game/level-03-debug.js');
 for (const id of ['slum-carrier', 'slum-pressure']) (w.audioSystem.musicTracks ||= {})[id] = { buffer: { duration: 16 * 60 / 108 }, isFallback: false };
 const proof = w.BARCODE.RunAndGunProof;
 const parent = { levelId: 'level-01', checkpointId: 'intermission', levelState: { difficultyId: 'standard',
@@ -51,4 +54,7 @@ proof.state.relays = [0, 7]; proof.state.nodes = [0, 4];
 proof.state.pickups[1].active = true; proof.state.warning = false;
 proof.draw(ctx); w.BARCODE.PauseMenu.draw(ctx);
 fs.writeFileSync(path.join(out, '06-pause-exit.png'), canvas.toBuffer('image/png'));
-console.log(`Six production preview screens rendered to ${out}`);
+debugShortcut({ key: 'F1', shiftKey: true, preventDefault() {}, stopPropagation() {} });
+proof.draw(ctx); w.DEBUG.level3.drawOverlay(ctx);
+fs.writeFileSync(path.join(out, '07-dev-menu.png'), canvas.toBuffer('image/png'));
+console.log(`Seven production preview screens rendered to ${out}`);

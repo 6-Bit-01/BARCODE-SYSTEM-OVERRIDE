@@ -60,6 +60,7 @@
     "src/game/dependency-validator.js",
     "src/game/debug-commands.js",
     "src/game/level-01-debug.js",
+    "src/game/level-03-debug.js",
     "[inline]",
     "src/game/main-new.js",
     "[inline]"
@@ -119,6 +120,7 @@
     "src/game/dependency-validator.js",
     "src/game/debug-commands.js",
     "src/game/level-01-debug.js",
+    "src/game/level-03-debug.js",
     "src/game/main-new.js"
   ],
   "unloadedRepositoryJs": [
@@ -405,17 +407,21 @@
         "status": "pass"
       },
       {
+        "file": "src/game/level-03-debug.js",
+        "status": "pass"
+      },
+      {
         "file": "src/game/main-new.js",
         "status": "pass"
       }
     ],
     "inlineScripts": [
       {
-        "index": 56,
+        "index": 57,
         "status": "pass"
       },
       {
-        "index": 58,
+        "index": 59,
         "status": "pass"
       }
     ]
@@ -719,7 +725,7 @@
     {
       "global": "window.startGameLoop",
       "file": "src/core/loop.js",
-      "line": 159,
+      "line": 161,
       "loaded": true
     },
     {
@@ -813,6 +819,7 @@
     "src/game/dependency-validator.js",
     "src/game/debug-commands.js",
     "src/game/level-01-debug.js",
+    "src/game/level-03-debug.js",
     "[inline script]",
     "src/game/main-new.js",
     "[inline script]"

@@ -30,6 +30,13 @@ async function run() {
   load(context, 'src/engine/broadcast-slum-proof-profile.js');
   load(context, 'src/engine/music-director.js');
   load(context, 'src/game/broadcast-slum-proof.js');
+  const debugKeys = [];
+  const addListener = w.addEventListener;
+  w.addEventListener = (type, listener, ...args) => {
+    if (type === 'keydown') debugKeys.push(listener);
+    return addListener.call(w, type, listener, ...args);
+  };
+  load(context, 'src/game/level-03-debug.js');
   const C = w.BARCODE.Campaign, proof = w.BARCODE.RunAndGunProof, transport = w.BARCODE.MusicTransport;
   const parent = level1Intermission();
   assert(C.validateLevel01Checkpoint(parent));
@@ -218,6 +225,50 @@ async function run() {
   assert.equal((await proof.enter()).ok, true);
   assert.equal(proof.state.relays[0], 0, 're-entering from Cache Back restores the last preview objective');
   assert.equal(archive.record.current.checkpointId, 'proof-relay');
-  console.log('Broadcast Slum: climb, shield, scatter, counter surge, varied AI, phrase dodge, checkpoint migration, no awards and Level 1 return passed.');
+  assert.equal(w.DEBUG.level3.completeProof().reason, 'debug-disabled');
+  const shortcut = { key: 'F1', shiftKey: true, preventDefault() {}, stopPropagation() {} };
+  debugKeys[0](shortcut);
+  assert.equal(w.BARCODE.DEBUG_LEVEL_3_SESSION, true, 'Shift+F1 unlocks the preview menu only while the preview is active');
+  const canvasListeners = {}, labels = [];
+  const canvas = { width: 1920, height: 1080,
+    addEventListener(type, fn) { canvasListeners[type] = fn; },
+    getBoundingClientRect() { return { left: 0, top: 0, width: 1920, height: 1080 }; } };
+  const ctx = { canvas, save() {}, restore() {}, fillRect() {}, strokeRect() {}, fillText(label) { labels.push(String(label)); } };
+  w.DEBUG.level3.drawOverlay(ctx);
+  assert(labels.includes('LEVEL 3 DEV — SESSION ONLY') && labels.includes('Complete Preview'));
+  assert.equal(typeof canvasListeners.pointerdown, 'function', 'menu click target lives inside the existing canvas');
+  assert.equal(w.DEBUG.level3.gotoRelay(1).ok, true);
+  assert.equal(C.readResume().checkpointId, 'proof-start');
+  assert.equal(w.DEBUG.level3.gotoRelay(2).ok, true);
+  assert.equal(C.readResume().checkpointId, 'proof-relay');
+  assert.deepEqual(copy(proof.state.relays), [0, 7]);
+  assert.equal(w.DEBUG.level3.clearNode().ok, true);
+  assert.equal(proof.state.nodes[1], 0);
+  proof.restore(C.readResume());
+  assert.equal(proof.state.nodes[1], 4, 'node-only debug changes are transient until its relay checkpoint');
+  assert.equal(w.DEBUG.level3.clearRelay().ok, true);
+  assert.equal(C.readResume().checkpointId, 'proof-relay-2');
+  assert.deepEqual(copy(proof.state.relays), [0, 0]);
+  assert.equal(w.DEBUG.level3.giveScatter().ok, true);
+  assert(proof.state.player.scatterMs > 0);
+  proof.state.player.health = 1; proof.hitPlayer();
+  assert.equal(proof.status, 'failed');
+  assert.equal(w.DEBUG.level3.refill().ok, true);
+  assert.equal(proof.status, 'playing');
+  assert.equal(proof.state.player.health, 4);
+  assert.equal(w.DEBUG.level3.clearDefenders().ok, true);
+  assert(proof.state.enemies.every(enemy => enemy.health === 0));
+  // The second-column completion button is exercised through the canvas pointer path.
+  canvasListeners.pointerdown({ button: 0, currentTarget: canvas, clientX: 270, clientY: 900,
+    preventDefault() {}, stopPropagation() {} });
+  assert.equal(proof.status, 'clear');
+  assert.equal(C.readResume().checkpointId, 'proof-clear');
+  assert(proof.validate(C.readResume()));
+  assert(!archive.record.progress.completedLevels.includes('level-03'));
+  assert(!archive.record.progress.items.includes('stem.drums'));
+  assert.equal(w.DEBUG.level3.resetProof().ok, true);
+  assert.equal(proof.status, 'playing');
+  assert.equal(C.readResume().checkpointId, 'proof-start');
+  console.log('Broadcast Slum: combat, checkpoints, no awards, Level 1 return and session-only Level 3 DEV controls passed.');
 }
 run().catch(error => { console.error(error); process.exitCode = 1; });

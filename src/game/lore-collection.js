@@ -115,10 +115,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/lore-collection.js', exports: ['BARC
       this.record.current = JSON.parse(JSON.stringify(current)); this.currentDirty = true;
       return this.save();
     }
-    completeCampaignLevel(level, difficulty, result, item, nextLevel) {
+    completeCampaignLevel(level, difficulty, result, item, nextLevel, { recordResult = true } = {}) {
       const checked = resultRecord(result);
       if (!levelId(level) || !/^[a-z][a-z0-9_-]{0,31}$/.test(difficulty) || !checked) return false;
-      this.record.progress.results = mergeResults(this.record.progress.results, { [level]: { [difficulty]: { latest: checked } } });
+      if (recordResult) this.record.progress.results = mergeResults(this.record.progress.results, { [level]: { [difficulty]: { latest: checked } } });
       this.record.progress.completedLevels = [...new Set([...this.record.progress.completedLevels, level])];
       if (typeof item === 'string') this.record.progress.items = [...new Set([...this.record.progress.items, item])];
       if (levelId(nextLevel)) this.record.progress.unlockedLevels = [...new Set([...this.record.progress.unlockedLevels, nextLevel])];

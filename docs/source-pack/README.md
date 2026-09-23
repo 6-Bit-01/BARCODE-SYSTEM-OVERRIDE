@@ -1,8 +1,10 @@
 # BARCODE: SYSTEM OVERRIDE — Source Pack v5
 
-## Current review — Broadcast Slum combat follow-up
+## Current review — Broadcast Slum combat and debug access
 
-PR #88 is merged at `b32a67831acc296c1cb1887ad579bbc04ac44cb1`. The owner found its provisional Broadcast Slum run-and-gun preview functional but too easy and basic. Branch `agent/broadcast-slum-combat-pass` adds roof shield nodes, relay counter surges, distinct defenders and temporary scatter fire while preserving its two checkpoints, Level 1 return, temporary music and no Level 3 award. The Cache Line is still Level 2 in story order. Start with `BROADCAST_SLUM_PROOF.md`, the newest `ACCEPTANCE.md` route and six `review-broadcast-slum/` captures; exact test and publication state are in the generated receipt. Owner hosted Makko/audio/controller feel review remains pending.
+PR #89 is merged at `c0d061407378831ae90fcac49985a29c3c5ea037` (base/rollback). Its Broadcast Slum combat pass added roof shield nodes, counter surges, varied defenders and temporary scatter after the first proof felt easy and basic. Branch `agent/level3-debug-menu` adds testing controls. The Cache Line is still Level 2 in story order. Start with `BROADCAST_SLUM_PROOF.md`, the newest `ACCEPTANCE.md` route and seven `review-broadcast-slum/` captures; exact test and publication state are in the generated receipt. Owner hosted Makko/audio/controller feel review remains pending.
+
+This review adds a Level 1 **Complete Level 1** DEV action for reaching Cache Back, and a session-only `DEV 3` canvas menu with relay jumps, recovery and **Complete Preview**. Unlock each panel with Shift+F1 or its lower-left button in the corresponding level. Console commands: `DEBUG.level1.completeLevel()` and `DEBUG.level3.completeProof()` after unlock. The Level 1 shortcut saves Voice and the handoff without a best result, bonus or difficulty challenge record. The preview clear still has no Drums/Level 3 campaign award. Seven native captures now include the Level 3 menu.
 
 ## Latest correction — visible elevator roof riders
 

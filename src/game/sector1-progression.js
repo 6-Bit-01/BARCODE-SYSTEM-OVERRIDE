@@ -1066,10 +1066,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (this.boss.health === 0) this.completeLevel();
       return { ok: true, target, health: this.boss.health };
     }
-    completeLevel() {
+    completeLevel({ debugSkip = false } = {}) {
       if (this.boss?.defeated || this.state === STATES.LEVEL_COMPLETE || !this.boss) return false;
-      window.BARCODE?.LevelDifficulty?.complete();
-      window.BARCODE?.Campaign?.finish();
+      if (!debugSkip) window.BARCODE?.LevelDifficulty?.complete();
+      window.BARCODE?.Campaign?.finish({ debugSkip });
       window.BARCODE?.musicDirector?.accent('clear');
       this.boss.health = 0;
       this.boss.defeated = true;
@@ -2454,6 +2454,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       this.cinematicZoomOverride = null;
       this.enterBossReady();
       return this.getDiagnostics();
+    }
+    debugCompleteLevel() {
+      if (!debugAllowed()) return debugDisabled();
+      if (!window.gameState?.running || window.BARCODE?.RunAndGunProof?.active || window.BARCODE?.Campaign?.intermission)
+        return { ok: false, reason: 'level-01-inactive' };
+      this.debugGotoBoss();
+      if (!this.boss || !this.completeLevel({ debugSkip: true })) return { ok: false, reason: 'level-01-clear-unavailable' };
+      // This is a deliberate test shortcut, so the completed handoff can open
+      // immediately without waiting for the results card's input-release timer.
+      this.completion.controlsReady = true;
+      window.BARCODE?.Campaign?.openIntermission?.();
+      return { ok: true, state: this.state, intermission: !!window.BARCODE?.Campaign?.intermission };
     }
     debugResetMission() { if (!debugAllowed()) return debugDisabled(); this.debugPrepareMission(); if (this.player) { this.player.position.x = 200; this.player.position.y = GROUND_Y; this.player.velocity.x = 0; this.player.velocity.y = 0; if (Number.isFinite(this.player.maxHealth)) this.player.health = this.player.maxHealth; } return this.getDiagnostics(); }
     prepareAssetsForEncounter(index) { const def = ENCOUNTERS[index]; if (!def) return; this.assetDiagnostics = this.assetDiagnostics || []; const types = [...new Set(encounterSpecs(def).map(e => e.type))]; types.forEach(type => this.requestSpriteOnce(`enemy:${type}`, type === 'firewall' ? 'firewall_firewall' : type === 'corrupted' ? 'corrupted_corrupted' : 'virus_virus')); if (index >= ENCOUNTERS.length - 1) this.prepareJammerAsset(); }

@@ -100,7 +100,9 @@ window.gameLoop = function(timestamp) {
     window.BARCODE?.PauseMenu?.sync();
     window.inputManager?.update?.();
     window.BARCODE.RunAndGunProof.update(cappedDelta);
-    window.BARCODE.RunAndGunProof.draw(document.getElementById('gameCanvas')?.getContext?.('2d'));
+    const proofContext = document.getElementById('gameCanvas')?.getContext?.('2d');
+    window.BARCODE.RunAndGunProof.draw(proofContext);
+    window.DEBUG?.level3?.drawOverlay?.(proofContext);
     window.audioSystem?.updateLayers?.();
     window.lastTime = timestamp;
     scheduleNextGameplayFrame();

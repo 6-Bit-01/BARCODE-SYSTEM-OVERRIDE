@@ -151,6 +151,82 @@ window.FILE_MANIFEST.push({ name: 'src/game/broadcast-slum-proof.js', exports: [
       window.inputManager?.resetActionEdges?.();
       return true;
     },
+    debugReady() { return this.active && !this.exiting && B.DEBUG_LEVEL_3_SESSION === true; },
+    debugStatus() {
+      if (!this.debugReady()) return { ok: false, reason: 'debug-disabled' };
+      return { ok: true, status: this.status, health: this.state.player.health,
+        relays: [...this.state.relays], nodes: [...this.state.nodes], checkpoint: B.Campaign.readResume()?.checkpointId };
+    },
+    debugGotoRelay(number) {
+      if (!this.debugReady()) return { ok: false, reason: 'debug-disabled' };
+      if (number !== 1 && number !== 2) return { ok: false, reason: 'invalid-relay' };
+      this.state = newState(number === 1 ? { playerX: 1100 } : { playerX: 2700, relays: [0, RELAYS[1].hp] });
+      this.status = 'playing';
+      window.inputManager?.resetActionEdges?.();
+      const saved = this.checkpoint(number === 1 ? 'proof-start' : 'proof-relay');
+      return { ok: true, state: `relay-${number}`, saved: !!saved };
+    },
+    debugClearNode() {
+      if (!this.debugReady()) return { ok: false, reason: 'debug-disabled' };
+      const index = this.state.relays.findIndex(hp => hp > 0);
+      if (index < 0) return { ok: false, reason: 'all-relays-disabled' };
+      this.state.nodes[index] = 0;
+      this.state.message = `NODE ${index + 1} DOWN — RELAY EXPOSED`;
+      this.state.messageMs = 1500;
+      return { ok: true, state: `node-${index + 1}-off` };
+    },
+    debugClearRelay() {
+      if (!this.debugReady()) return { ok: false, reason: 'debug-disabled' };
+      const s = this.state, index = s.relays.findIndex(hp => hp > 0);
+      if (index < 0) return { ok: false, reason: 'all-relays-disabled' };
+      s.nodes[index] = s.relays[index] = 0;
+      s.countered[index] = true; s.counter = null;
+      s.shots = []; s.hostileShots = []; s.warning = false;
+      s.pickups[index].active = false;
+      s.enemies.slice(0, index === 0 ? 2 : 4).forEach(enemy => { enemy.health = 0; });
+      s.message = `RELAY ${index + 1} DISABLED`; s.messageMs = 1200;
+      const saved = this.checkpoint(index === 0 ? 'proof-relay' : 'proof-relay-2');
+      return { ok: true, state: `relay-${index + 1}-off`, saved: !!saved };
+    },
+    debugRefill() {
+      if (!this.debugReady()) return { ok: false, reason: 'debug-disabled' };
+      this.state.player.health = 4; this.state.player.invulnerableMs = 900;
+      this.state.hostileShots = []; this.state.counter = null;
+      this.status = this.state.status = 'playing';
+      window.inputManager?.resetActionEdges?.();
+      return { ok: true, state: 'playing' };
+    },
+    debugScatter() {
+      if (!this.debugReady()) return { ok: false, reason: 'debug-disabled' };
+      this.state.player.scatterMs = 11500;
+      return { ok: true, state: 'scatter-ready' };
+    },
+    debugClearDefenders() {
+      if (!this.debugReady()) return { ok: false, reason: 'debug-disabled' };
+      this.state.enemies.forEach(enemy => { enemy.health = 0; });
+      this.state.hostileShots = [];
+      return { ok: true, state: 'defenders-cleared' };
+    },
+    debugCompleteProof() {
+      if (!this.debugReady()) return { ok: false, reason: 'debug-disabled' };
+      const s = this.state;
+      s.relays.fill(0); s.nodes.fill(0); s.counter = null;
+      s.shots = []; s.hostileShots = []; s.enemies.forEach(enemy => { enemy.health = 0; });
+      s.player.health = Math.max(1, s.player.health);
+      s.player.x = WIDTH - 130; s.player.y = FLOOR - PLAYER_H; s.player.vx = s.player.vy = 0;
+      s.cameraX = WIDTH - 1920;
+      this.status = s.status = 'clear';
+      window.inputManager?.resetActionEdges?.();
+      const saved = this.checkpoint('proof-clear');
+      return { ok: true, state: 'proof-clear', saved: !!saved };
+    },
+    debugResetProof() {
+      if (!this.debugReady()) return { ok: false, reason: 'debug-disabled' };
+      this.state = newState(); this.status = 'playing';
+      window.inputManager?.resetActionEdges?.();
+      const saved = this.checkpoint('proof-start');
+      return { ok: true, state: 'proof-start', saved: !!saved };
+    },
     keyDown(e) {
       if (this.status === 'playing') return false;
       const key = e.key.toLowerCase();

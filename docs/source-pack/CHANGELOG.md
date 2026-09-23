@@ -1,5 +1,11 @@
 # Recovery checkpoint — September 14
 
+## September 23, 2026 — debug route to Broadcast Slum
+
+- Add **Complete Level 1** to the existing session-only DEV panel and `DEBUG.level1.completeLevel()` for a fast saved Cache Back handoff. Grant Voice and completion while excluding bonus, best results and difficulty challenges from the artificial run.
+- Add `DEV 3` in the same canvas/input/frame owners: relay checkpoint jumps, current node/relay bypass, signal refill, scatter, defender clear, preview reset and `DEBUG.level3.completeProof()`. Preview clear writes only the proof checkpoint; no Drums or Level 3 campaign completion.
+- Exercise actual progression, campaign saves, menu shortcut/pointer routing and no-award behavior; add a seventh native menu capture. Hosted Makko/controller review remains pending.
+
 ## September 23, 2026 — Broadcast Slum combat follow-up
 
 - Respond to the first playtest's easy/basic feedback: add two reachable roof nodes shielding the relays, threshold counter surges with warned street lanes and a marked roof shot for elevated players, bounded rear runners, distinct elevated gunners/patrol/pursuit, and temporary scatter pickups.
