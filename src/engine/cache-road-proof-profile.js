@@ -5,7 +5,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/cache-road-proof-profile.js', expo
 (function(B) {
   // Some preview imports omit binary assets; use the identical published
   // revision if the first-party URL cannot be decoded on that host.
-  const publishedAudio = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/agent/cache-road-full-song/assets/audio/';
+  const publishedAudio = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/b0b26df3ca3289a24163f6b198072ea0de1429af/assets/audio/';
   const source = (name, role) => ({ sourceId: `cache-${name}`, mixRole: role,
     assetId: `audio.proof.cache-${name}`, url: `assets/audio/cache-${name}.mp3`,
     backupUrl: `${publishedAudio}cache-${name}.mp3`,

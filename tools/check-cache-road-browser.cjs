@@ -26,7 +26,7 @@ window.contextCalls=0;
 window.publishedRequests=[];
 ${livePublished ? '' : `const nativeFetch=window.fetch.bind(window);
 window.fetch=(url,...options)=>{
-  if(typeof url==='string' && url.startsWith('https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/agent/cache-road-full-song/assets/audio/')){
+  if(typeof url==='string' && url.startsWith('https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/b0b26df3ca3289a24163f6b198072ea0de1429af/assets/audio/')){
     window.publishedRequests.push(url);
     return nativeFetch('/published-'+url.split('/').pop(),...options);
   }

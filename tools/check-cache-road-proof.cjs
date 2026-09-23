@@ -35,7 +35,7 @@ async function run() {
   for (const part of profile.arrangement.sources) {
     const bytes = fs.readFileSync(part.url);
     assert(bytes.length > 3000000 && bytes.toString('ascii', 0, 3) === 'ID3', part.url);
-    assert(part.required && part.backupUrl.includes('cache-road-full-song'));
+    assert(part.required && part.backupUrl.includes('b0b26df3ca3289a24163f6b198072ea0de1429af'));
   }
   const audio = new w.AudioSystem(), starts = [], ramps = [];
   const param = value => ({ value, cancelAndHoldAtTime() {},
