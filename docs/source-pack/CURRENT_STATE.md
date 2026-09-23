@@ -1,6 +1,10 @@
 # Current State
 
-## Current review — debug route after merged #89
+## Current review — transmitter architecture proof after merged #90
+
+Base/rollback is `568c646a3f67cf4ebca4faebd81752534c67ee6f`; branch `agent/broadcast-slum-boss-pass`. The prior previews worked but remained easy/basic. The new bounded proof tightens the game camera, adds directional shield units and airborne interceptors to the existing gunner/patrol/runner mix, and gates the uplink behind a transmitter boss with two height-separated feeds, timed core windows, three warned attack patterns and an accelerated second phase. A boss-entry save, v1/v2 migration, DEV 3 jump and story-boundary labels preserve the handoff. No Drums, Level 3 campaign completion or durable Level 4 record is granted. The Cache Line remains next in actual story order. See `BROADCAST_SLUM_PROOF.md` and the newest ACCEPTANCE route. Exact draft head, validation and CI belong to the generated receipt; owner Makko/audio/controller/feel review remains pending.
+
+## Historical review — debug route after merged #89
 
 Base/rollback: `c0d061407378831ae90fcac49985a29c3c5ea037`. Branch `agent/level3-debug-menu` adds **Complete Level 1** to the existing DEV panel and `DEV 3` to the provisional Broadcast Slum canvas. The Level 1 shortcut reaches Cache Back with a real Voice/handoff save but no artificial best result, bonus or difficulty challenge. The preview menu offers relay checkpoint jumps, node/relay bypass, health, scatter, defender clear, reset and proof clear. It never awards Drums or Level 3 completion. Seven native captures include the menu. See `BROADCAST_SLUM_PROOF.md` and the newest ACCEPTANCE route; exact draft/checks belong to the generated receipt. Owner Makko/controller/audio/feel acceptance remains pending.
 

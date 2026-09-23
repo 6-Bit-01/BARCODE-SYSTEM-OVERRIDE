@@ -27,6 +27,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-03-debug.js', exports: ['DEBUG
     clearDefenders: () => call('debugClearDefenders'),
     completeProof: () => call('debugCompleteProof'),
     resetProof: () => call('debugResetProof'),
+    gotoBoss: () => call('debugGotoBoss'),
     drawOverlay
   });
 
@@ -39,7 +40,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-03-debug.js', exports: ['DEBUG
     { label: 'Give Scatter', run: () => window.DEBUG.level3.giveScatter() },
     { label: 'Clear Defenders', run: () => window.DEBUG.level3.clearDefenders() },
     { label: 'Complete Preview', run: () => window.DEBUG.level3.completeProof() },
-    { label: 'Reset Preview', run: () => window.DEBUG.level3.resetProof() }
+    { label: 'Reset Preview', run: () => window.DEBUG.level3.resetProof() },
+    { label: 'Go Transmitter', run: () => window.DEBUG.level3.gotoBoss() }
   ];
   function layout(canvas) {
     const height = canvas?.height || 1080, launcher = { x: 16, y: height - 46, w: 112, h: 30 };
@@ -120,7 +122,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-03-debug.js', exports: ['DEBUG
       const s = proof().state;
       ctx.fillStyle = 'rgba(0,18,28,0.96)'; ctx.fillRect(panel.x + 10, footerY, panel.w - 20, 40);
       ctx.fillStyle = '#91ffdd'; ctx.font = '12px monospace'; ctx.textBaseline = 'top';
-      ctx.fillText(`status=${proof().status}  hp=${s.player.health}  relays=${s.relays.join('/')}`, panel.x + 18, footerY + 6);
+      ctx.fillText(`status=${proof().status} hp=${s.player.health} relays=${s.relays.join('/')} boss=${s.boss.health}`, panel.x + 18, footerY + 6);
       ctx.fillStyle = '#ffffff'; ctx.fillText(ui.message, panel.x + 18, footerY + 22, panel.w - 36);
     }
     ctx.fillStyle = unlocked() ? 'rgba(0,20,30,0.92)' : 'rgba(25,4,32,0.92)';
