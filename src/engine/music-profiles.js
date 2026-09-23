@@ -33,6 +33,7 @@ window.BARCODE = window.BARCODE || {};
     if (!nonempty(source.assetId)) return invalid('assetId required');
     if (!!source.url === !!source.resolverId) return invalid('exactly one of url or resolverId required');
     if (source.url && !nonempty(source.url)) return invalid('url must be nonempty string');
+    if (source.backupUrl != null && (!nonempty(source.backupUrl) || !/^https:\/\//.test(source.backupUrl))) return invalid('backupUrl must be an HTTPS URL');
     if (source.resolverId && !nonempty(source.resolverId)) return invalid('resolverId must be nonempty string');
     if (typeof source.required !== 'boolean') return invalid('required boolean required');
     if (!finiteNonnegative(source.gain)) return invalid('gain must be finite non-negative number');

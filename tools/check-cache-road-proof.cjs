@@ -53,8 +53,51 @@ async function realAudioSchedule() {
   await Promise.resolve(); await Promise.resolve();
   assert.deepEqual(pending.map(item => item.name), ['cache-bass', 'cache-drums', 'cache-harmony', 'cache-fx'],
     'the four MP3 downloads start together before audio playback');
-  pending.forEach(item => item.resolve());
-  await allReady;
+  pending.forEach(item => item.resolve({ buffer: { duration: 187.5 } }));
+  assert.deepEqual(await allReady, []);
+
+  // Exercise the production fetch/decode path with the shipped MP3 bytes.
+  // A preview host that rejects HEAD but serves GET must play the real stems;
+  // a preview missing binaries must use the pinned published copies.
+  const bytes = Object.fromEntries(profile.arrangement.sources.map(source =>
+    [source.url, fs.readFileSync(source.url)]));
+  const attempts = [];
+  let missingLocal = false, missingPublished = false;
+  w.fetch = async (url, options) => {
+    assert(!options?.method || options.method === 'GET', 'do not require HEAD');
+    attempts.push(url);
+    const local = url.startsWith('assets/audio/');
+    if (local ? missingLocal : missingPublished) return { ok: false, status: 404 };
+    const file = bytes[local ? url : `assets/audio/${url.split('/').pop()}`];
+    return { ok: true, arrayBuffer: async () => file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength) };
+  };
+  const makeLoader = () => {
+    const instance = new w.AudioSystem();
+    instance.context = { decodeAudioData: async data => {
+      assert.equal(Buffer.from(data).toString('ascii', 0, 3), 'ID3', 'actual shipped MP3 reached decoder');
+      return { duration: 187.5 };
+    } };
+    return instance;
+  };
+  const direct = makeLoader();
+  assert((await direct.prepareActiveMusicProfile()).ok);
+  assert.equal(attempts.length, 4);
+  assert(profile.arrangement.sources.every(source => direct.musicTracks[source.sourceId]?.buffer.duration === 187.5));
+  attempts.length = 0; missingLocal = true;
+  const published = makeLoader();
+  assert((await published.prepareActiveMusicProfile()).ok);
+  assert.equal(attempts.length, 8, 'each missing local asset has one published GET');
+  assert(attempts.filter(url => url.startsWith('https://raw.githubusercontent.com/')).length === 4);
+  attempts.length = 0; missingPublished = true;
+  const unavailable = makeLoader();
+  const failed = await unavailable.prepareActiveMusicProfile();
+  assert.equal(failed.ok, false);
+  assert.equal(failed.reason, 'source-load-failed');
+  assert.equal(failed.failures.length, 4);
+  assert(profile.arrangement.sources.every(source => !unavailable.musicTracks[source.sourceId]),
+    'a failed owner stem cannot silently become synthetic music');
+  missingPublished = false;
+  assert((await unavailable.prepareActiveMusicProfile()).ok, 'a failed first visit can retry');
 }
 
 async function run() {
@@ -116,8 +159,15 @@ async function run() {
   w.audioSystem.context.currentTime = 0.01;
   let exitOptions;
   w.BARCODE.RuntimeLifecycle = { async restart(options) { exitOptions = options; road.dispose(); return { ok: true }; } };
+  w.audioSystem.prepareActiveMusicProfile = async () => ({ ok: false, reason: 'source-load-failed',
+    failures: [{ sourceId: 'cache-drums', reason: 'HTTP 404' }] });
+  assert.equal((await road.enter()).reason, 'road-audio-unavailable');
+  assert(C.roadAudioNotice.includes('DRUMS'), 'the intermission reports the missing owner stem');
+  assert.equal(C.intermission, true);
+  w.audioSystem.prepareActiveMusicProfile = async () => ({ ok: true });
   assert((await road.enter()).ok);
-  assert.equal(stops, 1); assert.equal(starts, 1);
+  assert.equal(C.roadAudioNotice, null);
+  assert.equal(stops, 2); assert.equal(starts, 1);
   assert.equal(C.intermission, false);
   assert.equal(C.run, null);
   assert.equal(archive.record.current.levelId, 'level-02');

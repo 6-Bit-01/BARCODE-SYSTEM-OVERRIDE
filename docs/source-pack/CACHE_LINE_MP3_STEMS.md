@@ -1,5 +1,7 @@
 # Cache Line — owner stems in MP3
 
+**Current hosted status:** The owner reports Cache Road remained silent after draft #97's GET-only change, although title music works. The new required-stem and published-copy repair is described in `CACHE_ROAD_AUDIO_LOAD_REPAIR.md`; no Makko audio acceptance has been recorded for it.
+
 September 23, 2026. The owner supplied `ContraHarmony(1).zip` with four aligned WAV exports and asked for MP3s before the Cache Road draft merges. This review revision uses the MP3 conversions in `level-02.proof`; the source filenames are provenance, not an assignment of the abandoned Contra preview to the campaign.
 
 | Supplied file | Road band | Shipped asset | SHA-256 of MP3 |

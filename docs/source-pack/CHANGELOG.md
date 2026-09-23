@@ -1,5 +1,11 @@
 # Recovery checkpoint — September 14
 
+## September 23, 2026 — Cache road audio delivery after failed draft #97 playback
+
+- Require the real four owner MP3 stems for Cache Road. If a Makko import omits the local binary, try the pinned public copy; never turn a missing stem into a generic 60-second success.
+- If both locations fail, keep the player at the Level 1 handoff and show an audio error with a retry path. Preserve title/Level 1 audio, the canvas context fix and all campaign boundaries.
+- Extend the production and Chromium checks to cover missing local assets, actual decoder/output signal, full failure and retry. The owner still needs to listen in Makko before merge.
+
 ## September 23, 2026 — PR #96 audio and canvas host correction
 
 - Cache Road, the Level 3 preview and difficulty selection reuse one game canvas context across frames. Renderer initialization shares that context, does not create a diagnostic canvas after failure, and attempts the optional CRT tile only once. Paused settings reuse their snapshot context. A draw exception no longer clears the same canvas cache and causes another context attempt next frame.

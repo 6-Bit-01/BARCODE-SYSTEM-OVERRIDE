@@ -7,7 +7,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/campaign-services.js', exports: ['BA
   const stages = ['encounter_1', 'encounter_2', 'encounter_3', 'encounter_4', 'jammer', 'boss', 'intermission'];
   const keys = ['stem.voice', 'stem.bass', 'stem.drums', 'stem.synth', 'stem.samples', 'stem.noise_fx'];
   const C = B.Campaign = {
-    run: null, deathHandled: false, result: null, intermission: false, restoring: false, contactSequence: null,
+    run: null, deathHandled: false, result: null, intermission: false, restoring: false, contactSequence: null, roadAudioNotice: null,
     adapters: new Map(),
     resetSession() { this.deathHandled=false;this.run = null; this.result = null; this.intermission = false; this.contactSequence = null; },
     archive() { return window.lostDataSystem?.archive || (this.previewArchive ||= new B.LoreCollection()); },
@@ -152,6 +152,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/campaign-services.js', exports: ['BA
       ctx.fillStyle = '#e0e6e9'; ctx.fillText('“Carrier is clean. I can get the signal out of this district.”', 960, 490);
       ctx.font = '22px Oxanium, monospace';
       ctx.fillText('Stem Key: Voice added to your campaign.', 960, 568);
+      if (this.roadAudioNotice) { ctx.fillStyle = '#ffb16e'; ctx.font = 'bold 19px Oxanium, monospace'; ctx.fillText(this.roadAudioNotice, 960, 615); }
       ctx.fillStyle = '#9eafb9'; ctx.fillText('NEXT CHANNEL: THE CACHE LINE', 960, 657);
       ctx.fillText('Drive the original tape through the road. Lock musical lanes as you go.', 960, 703);
       if (this.archive().status !== 'ready') { ctx.fillStyle = '#ffb16e'; ctx.fillText('Save unavailable — keep this session open to retain progress.', 960, 740); }

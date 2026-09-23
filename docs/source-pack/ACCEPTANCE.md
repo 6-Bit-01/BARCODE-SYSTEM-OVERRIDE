@@ -1,5 +1,11 @@
 # Acceptance and Test Status
 
+## Current route — Cache Road remains silent after draft #97
+
+The owner confirms the title music works but Cache Road still has no music in Makko. PR #97 merged while the next repair was prepared; review the new follow-up draft based on merge `df02c8964d34b2cfa13a5c4f6d3495395b39aba5`, with the old canvas fix retained. Enter Cache Road from the Level 1 intermission. The four real Bass/Drums/Harmony/FX parts must play, with the selected Drums band audible immediately; steer and lock bands, pause/resume, and listen across the loop. If Makko omits local MP3 files, the game tries the fixed public copies. If both fail, it must return to the intermission with **CACHE MUSIC UNAVAILABLE** and allow a retry, not drive silently or claim that synthetic audio is the owner song. Confirm title and Level 1 music still work, then check the Echo exit and controller. Keep this PR unmerged until the owner hears the actual stems in Makko.
+
+The focused check covers real loader success, local 404 plus published recovery, total failure and retry. Chromium covers 600 canvas frames, real MP3 decoding from a host that rejects HEAD, a missing-local case, a running context and nonzero selected-lane audio output. A separate opt-in Chromium run fetched the pinned public assets directly from this workspace. These checks do not observe Makko's request/CSP or speakers. If the host still fails, its visible error and `[audio-load]` console line identify the failed source for the next correction.
+
 ## Current route — PR #96 playback and canvas correction
 
 The PR #96 Makko run **failed**: the stems did not play and the host reported a canvas context creation limit. #96 then merged; import this new follow-up draft head into a fresh Makko preview and confirm the canvas error stays absent during several minutes of Cache Road driving, lane changes, pause/resume, and retry. The context fix also covers the Level 3 preview and difficulty selector; briefly open those routes.

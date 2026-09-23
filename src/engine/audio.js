@@ -233,7 +233,8 @@ window.AudioSystem = class AudioSystem {
       await this.loadCutsceneMusic();
       
       // Load music tracks
-      await this.loadMusicTracks();
+      const failures = await this.loadMusicTracks();
+      if (failures?.length) console.warn('[audio-startup] Source load failures:', failures);
       
       // CRITICAL: Force create ALL fallback tracks first, then start layers
       console.log('Creating fallback tracks for all missing audio...');
@@ -241,7 +242,7 @@ window.AudioSystem = class AudioSystem {
       const requiredTracks = activeProfile ? activeProfile.arrangement.sources.map(source => source.sourceId) : [];
       
       for (const trackName of requiredTracks) {
-        if (!this.musicTracks[trackName]) {
+        if (!this.musicTracks[trackName] && activeProfile.profileId !== 'level-02.proof') {
           console.log(`Creating fallback for ${trackName}`);
           try {
             const fallback = this.createFallbackMusic(trackName);
@@ -2051,10 +2052,13 @@ window.AudioSystem = class AudioSystem {
       if (!profile) return { ok: false, reason: 'missing-profile-selection' };
       const sources = this.getConfiguredSources(profile);
       if (!sources.length) return { ok: false, reason: 'missing-profile-sources', profileId: profile.profileId };
-      await this.loadMusicTracks();
+      const failures = await this.loadMusicTracks();
+      if (profile.profileId === 'level-02.proof' && failures.length) {
+        return { ok: false, reason: 'source-load-failed', profileId: profile.profileId, failures };
+      }
       for (const source of sources) {
         const existing = this.musicTracks[source.sourceId];
-        if (!existing || !existing.buffer) {
+        if ((!existing || !existing.buffer) && profile.profileId !== 'level-02.proof') {
           const fallback = this.createFallbackMusic(source.sourceId);
           if (fallback && fallback.buffer) this.musicTracks[source.sourceId] = fallback;
         }
@@ -2103,7 +2107,7 @@ window.AudioSystem = class AudioSystem {
     const profile = this.getActiveMusicProfile();
     if (!profile) {
       console.warn('No exact music profile selected; music loading is degraded and will not fall back to Level 1.');
-      return;
+      return [];
     }
     const trackUrls = {};
     profile.arrangement.sources.forEach(source => {
@@ -2112,10 +2116,12 @@ window.AudioSystem = class AudioSystem {
     
     const loadTrack = async ([name, url]) => {
       let trackLoaded = false;
+      let failure = null;
       
       // The road's four full-length MP3 parts need a larger load/decode budget
       // than the existing short profiles, especially on the first mobile visit.
-      const loadTimeoutMs = profile.profileId === 'level-02.proof' ? 30000 : 8000;
+      const roadProfile = profile.profileId === 'level-02.proof';
+      const loadTimeoutMs = roadProfile ? 45000 : 8000;
       let timeoutId;
       const timeoutPromise = new Promise((_, reject) => {
         timeoutId = setTimeout(() => reject(new Error(`Music track ${name} loading timeout`)), loadTimeoutMs);
@@ -2124,22 +2130,24 @@ window.AudioSystem = class AudioSystem {
       try {
         // Race between fetch and timeout
         const source = this.getConfiguredSources(profile).find(item => item.sourceId === name);
-        await Promise.race([this.getOrCreateAssetPromise(source && source.assetId || `audio.level-01.${name}`, () => this.fetchMusicTrack(name, url)), timeoutPromise]);
+        const track = await Promise.race([this.getOrCreateAssetPromise(source && source.assetId || `audio.level-01.${name}`,
+          () => this.fetchMusicTrack(name, url, source?.backupUrl, roadProfile ? 187.5 : null)), timeoutPromise]);
+        if (!track?.buffer) throw new Error(`Decoded track ${name} unavailable`);
+        this.musicTracks[name] = track;
         trackLoaded = true;
       } catch (error) {
-        // Handle timeout gracefully
+        failure = { sourceId: name, reason: error?.message || String(error) };
         if (error?.message && error.message.includes('timeout')) {
-          console.log(`⚠️ Music track ${name} loading timeout - creating fallback`);
+          console.warn(`⚠️ Music track ${name} loading timeout${roadProfile ? '' : ' - creating fallback'}`);
         } else {
-          // Network or fetch error - create fallback immediately
-          console.log(`Network error loading track ${name}, creating fallback:`, error?.message || 'Network error');
+          console.warn(`Network error loading track ${name}${roadProfile ? '' : ', creating fallback'}:`, error?.message || 'Network error');
         }
       } finally {
         clearTimeout(timeoutId);
       }
       
-      // If remote loading failed, always create fallback
-      if (!trackLoaded) {
+      // Older profiles retain their synthetic fallback; the road requires the owner stems.
+      if (!trackLoaded && !roadProfile) {
         try {
           const fallback = this.createFallbackMusic(name);
           if (fallback) {
@@ -2152,36 +2160,40 @@ window.AudioSystem = class AudioSystem {
           console.error(`Critical error creating fallback for ${name}:`, fallbackError?.message || fallbackError?.toString() || 'Unknown error');
         }
       }
+      return failure;
     };
     const entries = Object.entries(trackUrls);
     if (profile.profileId === 'level-02.proof') {
       // The four full-song stems are independent fetches; load them together
       // and start them only after every decode is ready on the same clock.
-      await Promise.all(entries.map(loadTrack));
+      return (await Promise.all(entries.map(loadTrack))).filter(Boolean);
     } else {
       for (const entry of entries) await loadTrack(entry);
+      return [];
     }
   }
   
   // Helper method for fetching individual music tracks
-  async fetchMusicTrack(name, url) {
-    // Imported asset hosts may serve GET while rejecting HEAD. One GET also
-    // avoids doubling requests for the four full-length road stems.
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`Music track ${name} unavailable (HTTP ${response.status})`);
-    const arrayBuffer = await response.arrayBuffer();
-    const audioBuffer = await this.context.decodeAudioData(arrayBuffer);
-    this.musicTracks[name] = {
-      buffer: audioBuffer,
-      source: null,
-      startTime: 0,
-      pauseTime: 0,
-      isPlaying: false,
-      volume: 1.0,
-      gain: null,
-      isFallback: false
-    };
-    console.log(`✓ Loaded music track: ${name}`);
+  async fetchMusicTrack(name, url, backupUrl, expectedDurationSec) {
+    let lastError;
+    for (const candidate of [url, backupUrl].filter(Boolean)) {
+      try {
+        // Preview hosts may reject HEAD while serving the actual GET.
+        const response = await fetch(candidate);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const audioBuffer = await this.context.decodeAudioData(await response.arrayBuffer());
+        if (!audioBuffer || !Number.isFinite(audioBuffer.duration) || audioBuffer.duration <= 0 ||
+            expectedDurationSec != null && Math.abs(audioBuffer.duration - expectedDurationSec) > 0.08)
+          throw new Error(`decoded duration ${audioBuffer?.duration ?? 'unknown'}s`);
+        console.log(`✓ Loaded music track: ${name}${candidate === backupUrl ? ' (published asset)' : ''}`);
+        return { buffer: audioBuffer, source: null, startTime: 0, pauseTime: 0,
+          isPlaying: false, volume: 1.0, gain: null, isFallback: false };
+      } catch (error) {
+        lastError = error;
+        console.warn(`[audio-load] ${name} ${candidate === backupUrl ? 'published asset' : 'local asset'}: ${error?.message || error}`);
+      }
+    }
+    throw new Error(`${name}: ${lastError?.message || 'audio unavailable'}`);
   }
   
   // Create synthetic fallback music for missing files

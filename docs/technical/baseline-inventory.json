@@ -496,6 +496,7 @@
       "sourceFiles": [
         "index.html",
         "sprites-manifest.json",
+        "src/engine/cache-road-proof-profile.js",
         "src/engine/intro-sequence.js",
         "src/engine/parallax.js",
         "src/engine/presentation-assets.js",

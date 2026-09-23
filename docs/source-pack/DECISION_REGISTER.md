@@ -1,5 +1,9 @@
 # Decision Register
 
+## September 23, 2026 — required Cache Road audio
+
+The owner confirms title music works while Cache Road remains silent in Makko after draft #97. The four supplied stems are required for this lane-music proof. Try an identical published copy when the preview lacks a local binary; if a real stem cannot load, report it visibly and let the player retry rather than present silence or generated music as success. The exact Makko network failure is still unobserved, so hosted listening and asset delivery remain an acceptance gate.
+
 ## September 23, 2026 — supplied tracks and MP3 delivery
 
 The owner approved the Cache exit correction and supplied aligned `ContraBass/Drums/Harmony/FX.wav` files, then specifically requested MP3s to reduce load time before merge. Use those four exports as the provisional Cache road song by their audible roles, preserving one synchronized start and lane-lock interaction. Ship 160 kbps MP3 derivatives, with the original WAV upload as provenance. The 128 BPM inference, balance and use of `Contra*` files in Cache's road are review decisions pending owner listening in Makko; no later-stage assignment or campaign reward is inferred. See `CACHE_LINE_MP3_STEMS.md`.
