@@ -1,6 +1,6 @@
 # Campaign scene beats and 9 Bit intrusions — September 23 working design
 
-`CAMPAIGN_REDESIGN.md` records the owner's selected genre order, Sheila correction and 9 Bit's player-aware presence. This sheet is a **draft presentation treatment**, not approved final dialogue, art or a runtime checklist. Keep the existing eight-page opening and three written Level 1 records intact. All later scene lengths, visuals and exact words require gameplay context and owner review.
+`CAMPAIGN_REDESIGN.md` records the owner's selected genre order, Sheila correction and 9 Bit's player-aware presence. The owner also wants him to occasionally prank the crew and player, including a saved-game button that dodges a click. This sheet is a **draft presentation treatment**, not approved final dialogue, art or a runtime checklist. Keep the existing eight-page opening and three written Level 1 records intact. All later scene lengths, visuals and exact words require gameplay context and owner review.
 
 ## Scene grammar
 
@@ -33,12 +33,29 @@ Use real community members as meaningful trainers, residents, guides and witness
 
 | Occurrence ID (draft) | Condition and scope | Dramatic function | Must remain usable |
 |---|---|---|---|
-| `ghost.title.saved` | Valid campaign save, sparse authored occurrence; never assumed on a fresh profile | Unexpectedly addresses the returning player and may try to dissuade Start/Continue without explaining everything | Start, Continue, settings, input labels, save loading |
+| `ghost.title.saved` | Valid campaign save, sparse authored occurrence; never assumed on a fresh profile | Unexpectedly addresses the returning player, sometimes tugging the selected save tile away after a click while trying to dissuade Continue | Same save selected, a fixed reachable tile after one dodge, second pointer click/keyboard/controller confirm, settings, Back, save loading |
 | `ghost.game_over` | Selected deaths with context; not every death, and no required clue depends on dying | He notices repetition and speaks from behind the ordinary failure screen | Immediate retry, pause/menu, accessibility and no punishment for skipping |
 | `ghost.level_end` | Selected cleared chapters, not a replacement for results | He questions what the system called a complete or clean result | True score, keys, lore, checkpoint, next level and exit |
 | `ghost.final_end` | Authored finale end/credits response, after the real decision | He acknowledges the consequence without stealing the crew's last word | Ending outcome, credits, replay and saved final state |
 
 Early hints should be interpretable as a strange presence, not a false hidden-name reveal: 9 Bit is already depicted/named in title/tutorial. Later scenes can identify what he changed and why, after corroboration. Avoid a repeating jump scare, a pretend crash, fake OS/account access, save-corruption scare or a forced Start lockout. If a title or results scene is skipped, essential facts remain on the normal story path. The only existing fourth-wall discovery is the optional opening `egg.comic.gutter`; the occurrences here are unimplemented.
+
+## Occasional pranks with a story arc
+
+The joke is that 9 Bit can put a hand into the *presentation*: cards, captions, labels and frame edges. His early tricks are funny and a little rude; later the same gesture makes the player wonder which recovered labels can be trusted. He cannot secretly rewrite a completed objective, a save slot, a controller binding or a genuine danger cue. Each authored event needs a crew reaction or a later payoff, not just a random glitch filter.
+
+| Moment (candidate) | What he does | Reaction / purpose |
+|---|---|---|
+| Saved title after a new chapter clear | On the first pointer activation of an existing selected save, a drawn hand pulls that tile sideways for a brief beat; he comments on the player's eagerness. It settles in its original hit area and will not dodge a second time on that visit. | A direct joke with the returning player, followed by his uneasy attempt to talk them out of resuming. The actual slot and Continue action never change. |
+| Early crew intermission | He changes a *nonessential* speaker tag or sticks a handwritten annotation onto a crew caption. Mac catches it and talks back; Cache notes that the original recording did not contain that line. | Establishes his personality and the difference between a performed interruption and authentic evidence. Draft gag: Mac asks, “Who edited my subtitle?” |
+| DJ's Level 4 signal work | A tiny unwanted channel label dances across DJ's mixing display. DJ cuts its audio, but the graphic folds over the damaged separation index. | The recurring joke becomes a useful clue to look beneath a label, while DJ still earns the actual separation reveal. Do not let 9 Bit supply the missing initiator. |
+| Level 5 competition | A playful trainer card gag can appear early. Once the four are shown to be unresponsive, his pranks stop during their lack of agency. | The absence matters: this is not the moment to laugh at Sheila controlling them. Whether he witnessed or changed that past event remains unproved. |
+| Game-over or results after L5 | A pencil mark/handprint briefly crosses the *border* of Retry or a clean-result stamp, then withdraws. He may challenge the system's wording without editing the score or the Retry target. | Turns the earlier visual trick into suspicion about the report; Level 6 checks the claim against independent records. |
+| Level 6/7 payoff | The same panel-peel gesture exposes an obscured field or opens a frame edge during a crew encounter. The content is still evidence to test. | His power is legible because the player has seen the small tricks before. The crew, rather than the gag, chooses what to do with the truth. |
+
+**Saved-title interaction contract for a first prototype:** only a valid, already selected campaign save is eligible; a fresh game and empty slot never receive this gag. At most one pointer dodge per eligible visit, with no cursor capture or click-through to another slot. The card visibly returns and remains at its normal target; a second click starts the selected save. Keyboard/controller confirm can continue without chasing it, Back/Escape can dismiss the effect, and settings remain reachable. Reduced Motion keeps the same joke as a stationary hand/caption and lets the first activation continue. No fake save deletion, changed slot identity, corrupted filename, loading failure or repeated dodges. Choose a sparse authored trigger and an optional cosmetic seen flag when implementation is designed; do not introduce a new campaign gate.
+
+For a cutscene prank, pause cue progression while the crew reacts, then return to the genuine speaker/caption. For a menu prank, the owning menu handles the input and returns to its normal hit testing and focus immediately. Actual accessibility labels announce the real action. Test mouse, touch, keyboard, controller, reduced motion and save reload before shipping any moving target. No required lore depends on a prank firing.
 
 ## Humor and evidence checks for scripts
 

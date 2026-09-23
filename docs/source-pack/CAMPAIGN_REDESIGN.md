@@ -1,6 +1,6 @@
 # Campaign redesign — owner direction, September 23, 2026
 
-The companion `CAMPAIGN_SCENE_BEATS.md` develops the proposed intermissions, forgotten competition and 9 Bit screen moments.
+The companion `CAMPAIGN_SCENE_BEATS.md` develops the proposed intermissions, forgotten competition and 9 Bit screen/prank moments.
 
 This is the active seven-level planning map. It supersedes the later-level assignments and story treatment in `CAMPAIGN_STORY_MAP.md` and the earlier `CAMPAIGN_CONCEPTS.md` table. The existing eight-scene opening, three Level 1 lore records, playable Level 1 and merged campaign/save facts remain the implementation baseline. The seven revised genres and leads, four solo plus three all-four structure, Sheila correction and 9 Bit's player-aware presence are owner directions. Exact dialogue, motive, simulation architect, separation initiator and endings remain working design.
 
@@ -52,17 +52,17 @@ The working presentation is a recovered flashback that becomes a nightmare: an i
 
 ## 9 Bit intrudes on the frame
 
-The owner selected a ghost-in-the-system presence, in the spirit of a hand entering a comic panel. 9 Bit should unexpectedly address the **player** as well as the crew. His name/image already exists in title/tutorial material; the mystery is what happened and why he acts, not whether he exists.
+The owner selected a ghost-in-the-system presence, in the spirit of a hand entering a comic panel. 9 Bit should unexpectedly address the **player** as well as the crew. He can also play occasional pranks: tug a selected save tile out of reach for one beat, scribble on a result card, alter a nonessential caption, or interrupt crew banter with an obviously foreign annotation. His name/image already exists in title/tutorial material; the mystery is what happened and why he acts, not whether he exists. The mischief should show character and eventually demonstrate that the record's presentation can be manipulated.
 
 | Surface | Purpose | Hard interaction boundary |
 |---|---|---|
-| Title with an actual saved game | He may try to talk the returning player out of pressing Start/Continue. Early wording remains cryptic. | Start/Continue and save choice remain real and immediately available; interruption is dismissible/skippable. |
+| Title with an actual saved game | He may try to talk the returning player out of Start/Continue or pull the selected tile away once after a pointer click. Early wording remains cryptic. | The same save stays selected; the tile returns to a fixed target, second click loads, and keyboard/controller confirm, Back and reduced-motion paths stay usable. Never move it repeatedly or change save contents. |
 | Game-over screen | He notices failure/retry and can question a repeated action. | Never require death for essential story, shame the player, obscure retry or silently alter persistence. |
 | Level-end/results screen | He can challenge a too-clean victory or the system's explanation. | Actual score, keys, lore, clear facts, navigation and save remain truthful. |
 | Final game end/credits | He can acknowledge the resolution without replacing the crew's last word. | Ending result, credits, replay and saved completion remain accessible. |
-| Later reveal/cutscene | He crosses a caption/panel boundary and speaks to crew and player after evidence earns it. | Distinguish his claim from a verified record. Do not let spectacle hide combat cues or steal control. |
+| Later reveal/cutscene | He crosses a caption/panel boundary, sometimes pranks the crew, and speaks to crew and player after evidence earns it. | Distinguish his claim from a verified record. Do not let spectacle hide combat cues or steal control. |
 
-Use authored state-specific occurrences sparingly rather than random spam on every title visit or defeat. Escalate from the already implemented loose opening caption, through contradictory encounter/arena labels and Level 5's missing memory, to visible control records in Level 6 and deliberate frame intrusion in Level 7. The simulation can notice player input and retries **in its own fiction**; never pretend the real browser, OS, account or actual save was damaged. Actual bindings, reduced motion/flashes, readable text, pause and skip remain reliable.
+Use authored state-specific occurrences sparingly rather than random spam on every title visit or defeat. Escalate from the already implemented loose opening caption, through mischievous interference with nonessential presentation and Level 5's missing memory, to visible control records in Level 6 and deliberate frame intrusion in Level 7. The simulation can notice player input and retries **in its own fiction**; never pretend the real browser, OS, account or actual save was damaged. Actual bindings, reduced motion/flashes, readable text, pause and skip remain reliable. A gag that briefly delays one pointer click must release the real action promptly and cannot be the only way to reach a story clue.
 
 ## Cutscene grammar, humor and 28 lore purposes
 
