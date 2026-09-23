@@ -1,6 +1,14 @@
 # Current State
 
-## September 23 — Cache Line visual and pace follow-up (review draft)
+## September 23 — Cache Line owner MP3 stems and missed-exit retry (review draft)
+
+The owner approved publishing the missed-exit correction and supplied four aligned WAV parts, then requested MP3 conversion for load time. This review branch now includes four 160 kbps MP3s (Bass, Drums, Harmony, FX), each 187.5 seconds of gapless decoded audio, in place of the five generated 16-second WAVs. The four assets total 15.0 MB rather than 132.3 MB of supplied WAVs; fetch/decode starts together before one synchronized playback start. A provisional 128 BPM grid and balanced lane gains support steering/locks. The automatic missed-exit jump remains fixed. See `CACHE_LINE_MP3_STEMS.md`, `CACHE_LINE_GATE_RETRY_FIX.md` and the newest acceptance route. Makko browser audio, physical controller, seams, load and feel remain owner review; there is no Bass award or Level 2 clear.
+
+## September 23 — initial missed-exit retry correction (historical within this draft)
+
+PR #95 is merged on main at `2cd9d40a44b6c91abc36c3d6d40a766dc9879c0f`. The owner says the new chase is better but seems to loop or jerk backward near the end. A failed Echo split did automatically set progress from the original exit back to 1910 with no result; a 2.7-second Echo also expired before a normal drive from the displayed exit cue. This review branch stops at the missed exit with a reason and explicit retry from the saved Mirror Viaduct marker, and gives an Echo sent in the final approach six seconds. No hidden backward motion occurs while driving. Temporary music, #95 speed/art, v1/v2 checkpoint compatibility, Level 1 return, separate Level 3 proof and no Bass/Level 2 completion remain. See `CACHE_LINE_GATE_RETRY_FIX.md` and the newest acceptance route. Hosted Makko, controller and feel remain unverified for this change.
+
+## September 23 — Cache Line visual and pace follow-up (merged #95; historical)
 
 PR #94 merged on main at `0852ff0bf23d5ae52816f59f7131db93c0741777`. The owner's next playtest found the chase visually crude and slow. This draft raises cruising/boost pace and steering response, adds more frequent road/shoulder motion cues, distinct silhouettes for Cache, Echo, traffic and Clean Copy, clearer hazard/exit warnings, section color and a scan-friendly speed/window/integrity/ability/mix HUD. The temporary code-native art remains a legibility pass, not authored vehicle/city art. The same five temporary WAVs, save/progression boundary and no Bass/Level 2 clear remain. See `CACHE_LINE_VISUAL_PACING_PASS.md` and the newest acceptance route. Makko/controller/feel review is pending; the values are provisional.
 

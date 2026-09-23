@@ -16,7 +16,7 @@ function level1Intermission() {
   } };
 }
 
-function realAudioSchedule() {
+async function realAudioSchedule() {
   const { w, context } = createRig();
   load(context, 'src/engine/cache-road-proof-profile.js');
   load(context, 'src/engine/music-director.js');
@@ -33,23 +33,32 @@ function realAudioSchedule() {
   const audio = w.audioSystem = new w.AudioSystem();
   Object.assign(audio, { initialized: true, context: ac, musicGain: node() });
   for (const source of profile.arrangement.sources)
-    audio.musicTracks[source.sourceId] = { buffer: { id: source.sourceId, duration: 16 }, volume: 0 };
+    audio.musicTracks[source.sourceId] = { buffer: { id: source.sourceId, duration: 187.5 }, volume: 0 };
   w.BARCODE.CacheRoadProof = { active: true, mixSnapshot: () => ({ lane: 0, locked: [], finalMix: false }) };
   assert(audio.startAllLayersSimultaneously().ok);
-  assert.equal(starts.length, 5);
+  assert.equal(starts.length, 4);
   assert(starts.every(s => s.time === 10.01 && s.offset === 0 && s.loop));
   ac.currentTime = 10.02; audio.updateLayers();
-  assert.equal(audio.musicTracks['cache-bass'].volume, .43);
+  assert.equal(audio.musicTracks['cache-bass'].volume, .28);
   w.BARCODE.CacheRoadProof.mixSnapshot = () => ({ lane: 2, locked: [0], finalMix: false });
   ac.currentTime = 10.2; audio.updateLayers();
   assert.equal(audio.musicTracks['cache-harmony'].volume, 0);
   ac.currentTime = 10.53; audio.updateLayers();
-  assert.equal(audio.musicTracks['cache-harmony'].volume, .32);
-  assert.equal(starts.length, 5, 'the real scheduler never restarts a muted part');
+  assert.equal(audio.musicTracks['cache-harmony'].volume, .52);
+  assert.equal(starts.length, 4, 'the real scheduler never restarts a muted part');
+
+  const loading = new w.AudioSystem(), pending = [];
+  loading.fetchMusicTrack = (name, url) => new Promise(resolve => pending.push({ name, url, resolve }));
+  const allReady = loading.loadMusicTracks();
+  await Promise.resolve(); await Promise.resolve();
+  assert.deepEqual(pending.map(item => item.name), ['cache-bass', 'cache-drums', 'cache-harmony', 'cache-fx'],
+    'the four MP3 downloads start together before audio playback');
+  pending.forEach(item => item.resolve());
+  await allReady;
 }
 
 async function run() {
-  realAudioSchedule();
+  await realAudioSchedule();
   const { w, context } = createRig(), store = new Map();
   w.localStorage = { getItem: key => store.get(key) ?? null, setItem: (key, value) => store.set(key, value) };
   w.inputManager = { resetActionEdges() {} };
@@ -65,18 +74,20 @@ async function run() {
   load(context, 'src/game/broadcast-slum-proof.js');
   const C = w.BARCODE.Campaign, road = w.BARCODE.CacheRoadProof;
   const profile = w.BARCODE.MusicProfiles.get('level-02.proof');
-  assert.equal(profile.timeline.fixedGrid.quarterBpm, 120);
-  assert.deepEqual(copy(profile.arrangement.sources.map(s => s.mixRole)), ['bed', 'bass', 'break', 'harmony', 'lead']);
-  const pcm = [];
+  assert.equal(profile.timeline.fixedGrid.quarterBpm, 128);
+  assert.deepEqual(copy(profile.arrangement.sources.map(s => s.mixRole)), ['bass', 'drums', 'harmony', 'fx']);
+  const encodedParts = [];
   for (const source of profile.arrangement.sources) {
     const bytes = fs.readFileSync(source.url);
-    assert.equal(bytes.toString('ascii', 0, 4), 'RIFF');
-    assert.equal(bytes.readUInt32LE(24), 22050);
-    assert.equal(bytes.readUInt32LE(40), 352800 * 2, 'every part has the same exact 8-bar length');
-    pcm.push(bytes.subarray(44));
+    assert(source.url.endsWith('.mp3'));
+    assert.equal(bytes.toString('ascii', 0, 3), 'ID3');
+    assert(bytes.length > 3000000 && bytes.length < 4000000,
+      'the converted MP3 is small enough for a web load');
+    encodedParts.push(bytes);
   }
-  assert(pcm.every(part => part.some(byte => byte !== 0)), 'all five parts have content');
-  assert(!pcm[1].equals(pcm[2]) && !pcm[2].equals(pcm[3]), 'lanes have distinct waveforms');
+  assert(encodedParts.every(part => part.some(byte => byte !== 0)), 'all four parts have content');
+  assert(!encodedParts[0].equals(encodedParts[1]) && !encodedParts[1].equals(encodedParts[2]) &&
+    !encodedParts[2].equals(encodedParts[3]), 'lanes have distinct audio');
   assert(C.validateLevel01Checkpoint(level1Intermission()));
   archive.record.progress.completedLevels.push('level-01');
   archive.record.progress.items.push('stem.voice');
@@ -91,7 +102,7 @@ async function run() {
   let stops = 0, starts = 0;
   w.audioSystem.stopRuntimeAudio = () => { stops++; w.BARCODE.MusicTransport.stop(); w.BARCODE.musicDirector.reset(); };
   w.audioSystem.musicTracks = Object.fromEntries(profile.arrangement.sources.map(source =>
-    [source.sourceId, { buffer: { duration: 16 }, isFallback: false,
+    [source.sourceId, { buffer: { duration: 187.5 }, isFallback: false,
       gain: { gain: { value: source.gain } }, volume: source.gain, isPlaying: true }]));
   w.audioSystem.layersStarted = true;
   w.audioSystem.isLooping = false;
@@ -121,7 +132,7 @@ async function run() {
   };
   const volume = id => w.audioSystem.musicTracks[`cache-${id}`].volume;
   mix();
-  assert.equal(volume('bed'), .19); assert.equal(volume('break'), .48);
+  assert.equal(volume('drums'), .62); assert.equal(volume('fx'), 0);
   assert.equal(volume('bass'), 0);
   for (let i = 0; i < 10; i++) road.update(100);
   const cruise = road.state.progress;
@@ -144,7 +155,7 @@ async function run() {
   assert.equal(road.state.lane, 2);
   mix(); assert.equal(volume('harmony'), 0, 'the queued part waits for the beat');
   w.audioSystem.context.currentTime = 0.51; mix();
-  assert.equal(volume('harmony'), .32); assert.equal(volume('break'), .48);
+  assert.equal(volume('harmony'), .52); assert.equal(volume('drums'), .62);
   input.routeActions(actions({ inspect: { pressed: true } }));
   assert.deepEqual(copy(road.state.locked), [1], 'unearned repeated locks do not fill the whole song');
   road.state.lockEnergy = 100;
@@ -165,7 +176,7 @@ async function run() {
   input.routeActions(actions({ inspect: { pressed: true } }));
   assert.deepEqual(copy(road.state.locked), [2, 3, 0], 'a fourth lock replaces the oldest');
   w.audioSystem.context.currentTime = 1.01; mix();
-  assert.equal(volume('break'), 0); assert(volume('harmony') > 0 && volume('lead') > 0);
+  assert.equal(volume('drums'), 0); assert(volume('harmony') > 0 && volume('fx') > 0);
   assert.equal(starts, 1, 'mixing does not restart a song');
   road.state.progress = 80; road.state.lanePos = 1.5; road.state.lane = 2;
   road.state.speed = 41; road.state.braking = true; road.update(100);
@@ -190,6 +201,8 @@ async function run() {
   assert.equal(road.state.progress, 850);
   assert(road.state.timeMs >= 30000 && road.state.echoEnergy === 100,
     'a nearby retry restores time and guarantees a chance to learn Echo');
+  road.state.progress = 1698; road.update(100);
+  assert.equal(C.readResume().checkpointId, 'road-fork');
   road.state.progress = 1701; road.state.nextRivalAt = 1800;
   road.state.lanePos = 1; road.state.lane = 1; road.state.rivalLane = 1;
   road.update(100);
@@ -213,22 +226,38 @@ async function run() {
   assert.equal(road.state.echoDeceptions, 1, 'the physical split fools one attack');
   assert.equal(road.state.integrity, 3);
   road.state.lanePos = 0; road.state.lane = 0; road.state.progress = 2058; road.update(100);
-  assert.equal(road.state.progress, 1910, 'clean copy route loops back');
-  assert.equal(road.state.echoEnergy, 100, 'a missed Echo gate replenishes the ability');
-  road.state.progress = 1980; road.state.lanePos = 1; road.state.lane = 1;
+  assert.equal(road.status, 'failed', 'missing the original exit stops the drive');
+  assert.equal(road.state.gateFailure, 'wrong-lane');
+  assert(road.state.progress >= 2058, 'a missed exit never teleports the car backward');
+  const missedAt = road.state.progress;
+  road.update(100);
+  assert.equal(road.state.progress, missedAt, 'the road waits for an explicit retry');
+  assert.equal(C.readResume().checkpointId, 'road-fork', 'the nearby marker remains saved');
+  assert(road.keyDown({ key: 'Enter', preventDefault() {} }));
+  assert.equal(road.status, 'playing');
+  assert.equal(road.state.progress, 1700, 'retry is the only deliberate return to the marker');
+  assert.equal(road.state.echoEnergy, 100, 'retry replenishes Echo');
+  road.state.progress = 2058; road.state.lanePos = 3; road.state.lane = 3;
+  road.state.echo = null; road.update(100);
+  assert.equal(road.state.gateFailure, 'no-echo', 'the result explains a missing or expired Echo');
+  assert(road.retry());
+  road.state.progress = 1841; road.state.lanePos = 1; road.state.lane = 1;
   road.state.trace = [{ steer: 0, duration: 1800 }];
   input.routeActions(actions({ interact: { pressed: true } }));
-  assert(road.state.echo && road.state.echoEnergy === 0);
-  road.state.lanePos = 3; road.state.lane = 3; road.state.steer = 0;
-  road.state.progress = 2058; road.update(100);
+  assert.equal(road.state.echo.durationMs, 6000, 'the final cue has time for a real split');
+  assert.equal(road.state.echoEnergy, 0);
+  road.state.lanePos = 3; road.state.lane = 3; road.state.steer = 0; road.state.speed = 54;
+  while (road.state.progress < 2060 && road.status === 'playing') road.update(100);
   assert.equal(archive.record.current.checkpointId, 'road-gate');
   assert.equal(road.state.gateOpen, true, 'divergent Echo opens the original route');
+  assert(road.state.echo && road.state.echo.ageMs < 6000,
+    'an Echo sent when the exit cue appears survives the drive to the scanner');
   road.state.locked = []; road.state.lanePos = 3; road.state.lane = 3;
   road.state.progress = 2219; road.update(100);
   w.audioSystem.context.currentTime = 1.51; mix();
   assert.equal(volume('bass'), 0, 'the finish does not force a full mix');
   road.state.locked = [0, 1, 2]; w.audioSystem.context.currentTime = 2.01; mix();
-  assert(['bass', 'break', 'harmony', 'lead'].every(role => volume(role) > 0),
+  assert(['bass', 'drums', 'harmony', 'fx'].every(role => volume(role) > 0),
     'a skilled driver can combine all four parts');
   road.state.progress = 2458; road.update(100);
   assert.equal(road.status, 'clear');
