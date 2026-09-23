@@ -1,4 +1,27 @@
-# Broadcast Slum proof and debug access — September 23, 2026
+# Broadcast Slum architecture proof — transmitter encounter, September 23, 2026
+
+Base/rollback: merged PR #90, `568c646a3f67cf4ebca4faebd81752534c67ee6f`. Review branch: `agent/broadcast-slum-boss-pass`. The owner's second playtest found the working preview far too easy and visually basic. This pass tests whether Level 1's shared input, RAF, audio, pause, save, and return architecture can support a more demanding run-and-gun encounter. It is **one contained architecture preview**, not a finished Level 3 or a substitute for The Cache Line, which remains Level 2 in story order.
+
+## Current encounter and story boundary
+
+- Camera framing now gives 6 Bit, rooftops, threats, and the transmitter room to read. The route still has two node/relay checkpoints, but adds two shield units whose front armor rejects shots except during their marked charge, and two hovering interceptors that require elevation and fire warned angled shots. Gunners, patrols and flanking runners retain their separate behaviors. Relay counter surges still pressure both street and roof positions. Holding fire and jumping remain immediate; temporary scatter chips are optional help.
+- After both relays, the final transmitter locks the uplink. Entering its arena restores four signal units and writes `proof-boss`. Its upper power feed is reachable from the rooftop or a jump, and its lower feed from street level. The armored core opens for a bounded counterfire window when both feeds fall and after each boss attack. At half core health the attack cycle speeds up and a marked interceptor can join. The boss telegraphs a two-lane sweep, an aimed fan and a fixed-position vertical column; each has a movement answer. The uplink stays shut until the transmitter is disabled, then the player must reach it to end the preview.
+- Signage connects Cache Back's preserved payload to the distribution blockade and the reconstruction route. The win card labels **PARTITION 09 / damaged separation index** as a working story beat. This is a glimpse of the campaign plan, not a durable lore unlock or a final scene. It does not claim the initiator of the separation, recruit Kave as an enemy, or resolve 9 Bit. No Drums key, Level 3 completion, score, or later story result is awarded.
+- Saves use preview version 2 with a boss-entry checkpoint. Existing version-1 relay and clear saves still load; an earlier `proof-clear` explicitly says it predates the transmitter and offers replay. Death at the boss restarts the boss attempt rather than the whole route. Pause, Exit, title Continue and Level 1 audio/Voice return remain owned by their existing systems.
+
+## Current development controls
+
+From Cache Back, enter the preview and press Shift+F1 or click DEV 3. **Go Transmitter** or `DEBUG.level3.gotoBoss()` opens a fresh arena checkpoint. **Complete Preview** or `DEBUG.level3.completeProof()` explicitly skips the encounter to `proof-clear`; it also marks the boss defeated inside the provisional save, with no campaign award. Go Relay 1/2, Break Current Node, Disable Current Relay, Refill Signal, Give Scatter, Clear Defenders and Reset Preview remain available. These controls are session-only. Level 1's DEV completion command still creates its actual Cache Back handoff and earned Voice.
+
+## Verification and owner playtest
+
+`npm test`, `npm run check:syntax:all`, and eleven native Canvas captures in `review-broadcast-slum/` cover the shared adapter, five defense behaviors, directional armor, boss weak points, shutter timing, three warned attacks, phase shift, boss reload, old-save migration, no campaign awards and Level 1 audio return. Native rendering verifies code paths and presentation layout; hosted Makko feel, actual audio and physical-controller behavior still need the owner to play the exact draft head.
+
+In a duplicate Makko preview, use DEV 3 to reach the transmitter and play it without Complete Preview. Break the high feed from the roof, low feed from the street, then counterfire after its attacks. Try each warning by dodging and by deliberately staying in the marked danger. Restart once at `proof-boss`, pause during a warning, exit and resume to verify Level 1 audio/Voice. Then test the shield and airborne enemy on the preceding route. Report where the challenge still feels trivial, unfair or too visually plain; that review informs the later authored level and art pass. The preview remains unmerged until that owner acceptance.
+
+---
+
+## Earlier proof and debug history
 
 The current debug addition builds on merged PR #89 at `c0d061407378831ae90fcac49985a29c3c5ea037`; branch `agent/level3-debug-menu`. The combat encounter below came from that merged PR. The new controls are described under Development controls.
 

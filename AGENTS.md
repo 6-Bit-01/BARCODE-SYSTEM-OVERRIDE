@@ -1,5 +1,9 @@
 # Repository Guidance
 
+## September 23, 2026 — transmitter architecture preview
+
+Base/rollback is merged #90, `568c646a3f67cf4ebca4faebd81752534c67ee6f`; branch `agent/broadcast-slum-boss-pass`. The owner confirms the first two Level 3 preview passes work but feel too easy and basic, and asks for a more compelling Contra-style proof with distinct enemies, a boss and a story connection. Read the newest `docs/source-pack/BROADCAST_SLUM_PROOF.md` and `ACCEPTANCE.md`. This is still a contained test of reused Level 1 architecture; The Cache Line is Level 2 in story order. Keep one input/RAF/audio/save/pause owner, old preview checkpoint compatibility, and clean Level 1 return. Do not award Drums, a Level 3 campaign clear or durable later lore. Publish a tested draft, refresh canonical v5 and leave the PR unmerged until owner Makko/audio/controller and feel acceptance.
+
 ## September 23, 2026 — Level 1 skip and Level 3 DEV menu
 
 PR #89 has already been merged at `c0d061407378831ae90fcac49985a29c3c5ea037` (base/rollback). Branch `agent/level3-debug-menu` adds a session-only Level 1 completion shortcut and canvas-native Level 3 development menu. Read `docs/source-pack/BROADCAST_SLUM_PROOF.md` and the newest ACCEPTANCE route. Level 1's skip must use the real intermission save/Voice unlock, but exclude artificial best-result, bonus and difficulty challenge records. Level 3 controls may reset/advance its provisional relay checkpoints and show `proof-clear`; they must never award Drums or a Level 3 campaign clear. Preserve one input/RAF owner, pause and audio return. Publish a new tested draft and refresh canonical v5; owner Makko/controller/audio/feel acceptance remains pending before assistant merge.
