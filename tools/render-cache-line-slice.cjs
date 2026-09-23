@@ -25,8 +25,9 @@ const parent = { levelId: 'level-01', checkpointId: 'intermission', levelState: 
   score: 2400, bestCombo: 2, health: 3, playerX: 3500, fragments: [], skyCaches: [], ampCharges: 1,
   boss: { bossX: 3480, playerX: 3500, score: 2400, skyCaches: [] }, result: { score: 2400 }
 } };
-const saved = { levelId: 'level-02', checkpointId: 'road-start', levelState: { proofVersion: 2,
-  returnTo: parent, proof: { progress: 0, lane: 1, lanePos: 1, speed: 34, timeMs: 37000,
+const saved = { levelId: 'level-02', checkpointId: 'road-start', levelState: { proofVersion: 3,
+  returnTo: parent, proof: { progress: 0, lane: 1, lanePos: 1, musicBar: 0,
+    speed: 34, timeMs: 55000,
     lockEnergy: 65, echoEnergy: 65, integrity: 3, locked: [] } } };
 const road = w.BARCODE.CacheRoadProof;
 if (!road.restore(saved)) throw Error('Road fixture did not restore.');
@@ -35,21 +36,24 @@ function capture(name) {
   road.draw(ctx);
   fs.writeFileSync(path.join(out, `${name}.webp`), canvas.toBuffer('image/webp', 45));
 }
-road.state.progress = 300; road.state.lanePos = road.state.visualLane = road.state.lane = 2;
+road.state.progress = 650; road.state.musicBar = 6;
+road.state.lanePos = road.state.visualLane = road.state.lane = 2;
 road.state.locked = [0]; road.state.messageMs = 0; road.state.speed = 54;
 capture('01-rainline');
-road.state.progress = 1160; road.state.locked = [0, 1]; road.state.echoEnergy = 100;
+road.state.progress = 3750; road.state.musicBar = 36;
+road.state.locked = [0, 1]; road.state.echoEnergy = 100;
 road.state.rivalWarning = false; road.state.messageMs = 0; road.state.speed = 54;
 capture('02-service-loop');
-road.state.progress = 1975; road.state.lanePos = road.state.visualLane = road.state.lane = 3;
+road.state.progress = 9700; road.state.musicBar = 94; road.state.gateAt = 9780;
+road.state.lanePos = road.state.visualLane = road.state.lane = 3;
 road.state.echo = { lanePos: 1, ageMs: 600 }; road.state.rivalLane = road.state.rivalTarget = 1;
-road.state.rivalWarning = true; road.state.nextRivalAt = 2035;
+road.state.rivalWarning = true; road.state.nextRivalAt = 9790;
 road.state.locked = [0, 1, 2]; road.state.echoEnergy = 0; road.state.messageMs = 0; road.state.speed = 64;
 capture('03-echo-split');
-road.status = road.state.status = 'clear'; road.state.progress = 2460;
+road.status = road.state.status = 'clear'; road.state.progress = 10100; road.state.musicBar = 100;
 road.state.rivalWarning = false; road.state.echo = null; road.state.messageMs = 0;
 capture('04-delivered');
-road.status = road.state.status = 'failed'; road.state.progress = 2062;
+road.status = road.state.status = 'failed'; road.state.progress = 9782; road.state.musicBar = 95;
 road.state.gateOpen = false; road.state.gateFailure = 'wrong-lane';
 road.state.lanePos = road.state.visualLane = road.state.lane = 0;
 capture('05-exit-missed');

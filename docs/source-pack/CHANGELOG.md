@@ -1,5 +1,11 @@
 # Recovery checkpoint — September 14
 
+## September 23, 2026 — full Cache Road song and five named stems (PR #102)
+
+- Replace the four older Cache MP3 roles with the five aligned owner parts: Pressure/drums as the permanent backbone, Drive/bass, Flow and Breakaway/harmonies, and Undercurrent/FX as the four named road bands. Pin missing-import recovery to the immutable MP3 asset commit.
+- Play the 4-bar intro, four 16-bar verses and four 8-bar choruses on one clock. Hold lane and lock combinations for four-bar phrases and fade changes over 0.38 seconds; carry the chase, saves and final Echo exit to the end of the recording.
+- Verify asset hashes and duration, held mixes, the full 100-bar run, old-save migration and no campaign award in production checks. Full local suite passes; GitHub Chromium and Makko listening/controller review are recorded separately.
+
 ## September 23, 2026 — Cache Road steady arrangement after PR #100
 
 - Replace near-solo lane fades with a continuous Bass/Drums foundation, quiet Harmony/FX presence and four distinct accents. Lane four combines Harmony and FX until its own aligned instrumental exists; no new audio is fabricated.

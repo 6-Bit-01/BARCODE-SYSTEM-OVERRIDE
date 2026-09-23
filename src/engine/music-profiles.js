@@ -107,14 +107,12 @@ window.BARCODE = window.BARCODE || {};
       if (!Array.isArray(mix.laneRoles) || mix.laneRoles.length !== 4 ||
           new Set(mix.laneRoles).size !== 4 || mix.laneRoles.some(role => !roles.has(role)))
         return invalid('lane mix requires four distinct source roles');
-      if (!mix.baseGains || !Array.isArray(mix.laneAccents) || mix.laneAccents.length !== 4 ||
-          Object.keys(mix.baseGains).some(role => !roles.has(role)) ||
-          [...roles].some(role => !finiteNonnegative(mix.baseGains[role]) ||
-            !mix.laneAccents.every(lane => lane && typeof lane === 'object' && !Array.isArray(lane) &&
-              Object.keys(lane).every(key => roles.has(key) && finiteNonnegative(lane[key])) &&
-              mix.baseGains[role] + (lane[role] || 0) <= 0.8)))
-        return invalid('lane mix foundation or accents invalid');
-      if (!finiteNumber(mix.transitionSec) || mix.transitionSec < 0.05 || mix.transitionSec > 0.4)
+      if (!nonempty(mix.backboneRole) || !roles.has(mix.backboneRole) ||
+          mix.laneRoles.includes(mix.backboneRole) ||
+          !Number.isInteger(mix.barsPerPhrase) || mix.barsPerPhrase < 2 || mix.barsPerPhrase > 8 ||
+          !mix.levels || [...roles].some(role => !finiteNonnegative(mix.levels[role]) || mix.levels[role] > 0.8))
+        return invalid('lane mix backbone, phrase or levels invalid');
+      if (!finiteNumber(mix.transitionSec) || mix.transitionSec < 0.05 || mix.transitionSec > 1)
         return invalid('lane mix transition timing invalid');
     }
     if (!profile.playback || typeof profile.playback !== 'object') return invalid('playback required');
