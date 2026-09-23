@@ -6,6 +6,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   'use strict';
   const ID = 'level-02', PROFILE = 'level-02.proof';
   const LAP = 2460, END = 4 * LAP, GATE = 3 * LAP + 2060;
+  const SEAL_COST = 50;
   const LANES = ['DRIVE', 'FLOW', 'BREAKAWAY', 'UNDERCURRENT'];
   const CHECKPOINTS = { 'road-start': 0, 'road-cache': 850, 'road-fork': 1700,
     'road-verse-2': 28, 'road-verse-3': 52, 'road-verse-4': 76,
@@ -21,17 +22,26 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     ({ at: at + pass * LAP, lane: (lane + pass) % 4, kind })));
   const clone = value => JSON.parse(JSON.stringify(value));
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+  const laneAvailable = (lane, bar) => lane === 0 ||
+    (lane === 1 ? bar >= 4 : bar >= 12 && (bar - 4) % 24 >= 8);
+  const laneArrival = (lane, bar) => {
+    if (lane === 1) return 4;
+    if (bar < 12) return 12;
+    return 4 + Math.ceil((bar - 4) / 24) * 24 + 8;
+  };
+  const stackSize = state => Math.max(1, new Set(state.captures.map(capture => capture.lane)).size);
   const legacyPoint = { 'road-start': 0, 'road-cache': 850, 'road-fork': 1700,
     'road-gate': 2070, 'road-clear': LAP };
   function migrateProof(proof, version) {
-    if (version === 3) return proof;
-    const locked = (proof.locked || []).flatMap(index => index === 1 ? [] :
-      [index === 2 ? 1 : index]);
-    return { ...proof, locked, lane: [0, 0, 1, 3][proof.lane] ?? 0,
+    if (version === 4) return proof;
+    const old = version === 3 ? proof : {
+      ...proof, lane: [0, 0, 1, 3][proof.lane] ?? 0,
       lanePos: [0, 0, 1, 3][Math.round(proof.lanePos ?? proof.lane)] ?? 0,
-      lockEnergy: clamp((proof.lockEnergy ?? 65) +
-        (proof.locked?.includes(1) ? 60 : 0), 0, 100),
       musicBar: Math.min(99, Math.floor(proof.progress / (54 * 1.875))) };
+    // Indefinite old locks have no bar expiry. Refund them instead of turning
+    // an old save into a permanent four-part stack.
+    return { ...old, locked: [], lockEnergy: clamp((proof.lockEnergy ?? 65) +
+      60 * (proof.locked || []).length, 0, 100) };
   }
   const roadCurve = progress => Math.sin(progress / 190) * 0.72 + Math.sin(progress / 410) * 0.24;
   const hazardLane = (hazard, progress, audits) => {
@@ -114,17 +124,22 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     const progress = saved.progress ?? 0;
     const lanePos = saved.lanePos ?? saved.lane ?? 1;
     return { progress, lanePos, lane: Math.round(lanePos), visualLane: lanePos,
-      locked: [...(saved.locked || [])], integrity: saved.integrity ?? 3,
+      captures: [], queuedCaptures: [], candidateLane: null, candidateSince: null,
+      autoClaimed: false, musicBeatFloat: (saved.musicBar ?? 0) * 4,
+      scoredThrough: (saved.musicBar ?? 0) - 1, damagedBar: -1,
+      score: saved.score ?? 0, peakStack: saved.peakStack ?? 1,
+      cleanBars: saved.cleanBars ?? 0, stumbleMs: 0,
+      integrity: saved.integrity ?? 3,
       speed: saved.speed ?? 44, timeMs: saved.timeMs ?? 55000,
       musicBar: saved.musicBar ?? 0, gateAt: saved.gateAt ?? null,
-      lockEnergy: saved.lockEnergy ?? 65, echoEnergy: saved.echoEnergy ?? (progress >= 1700 ? 100 : 65),
+      lockEnergy: saved.lockEnergy ?? 100, echoEnergy: saved.echoEnergy ?? (progress >= 1700 ? 100 : 65),
       boost: saved.boost ?? 1, boostMs: 0, invulnerableMs: 0, nearMisses: 0,
       steer: 0, braking: false, trace: [], echo: null, echoDeceptions: 0,
       audits: {}, drafted: {}, draftMs: 0,
       nextRivalAt: progress >= 3 * LAP + 1700 ? progress + 120 : 3 * LAP + 1810,
       rivalTarget: 1.5, rivalLane: 1.5, rivalWarning: false,
       rivalEchoCommitted: false, rivalDistractedMs: 0,
-      message: 'CACHE BACK // KEEP THE ORIGINAL', messageMs: 2800,
+      message: 'HOLD A LANE TO CATCH 2 BARS • E/RB SEALS 4 • MOVE TO STACK', messageMs: 4200,
       gateOpen: !!saved.gateOpen, gateFailure: null,
       status: saved.status || 'playing', elapsedMs: 0 };
   }
@@ -136,7 +151,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const hint = document.querySelector?.('.hint');
       if (!hint) return;
       if (this.oldHint === null) this.oldHint = hint.textContent;
-      hint.textContent = 'Left/Right: Steer | Down: Brake | Space/A: Turbo | E/RB: Lock | H/Y: Buffer Echo | P/Menu: Pause';
+      hint.textContent = 'Steer: Hold lane to catch 2 bars | E/RB: Seal 4 bars | Space/A: Turbo | H/Y: Echo | P/Menu: Pause';
     },
     selectMusicProfile() {
       const selected = B.MusicProfiles?.select(PROFILE);
@@ -152,8 +167,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     },
     validate(saved) {
       const s = saved?.levelState, p = s?.proof;
-      const legacy = s?.proofVersion !== 3;
-      return saved?.levelId === ID && [1, 2, 3].includes(s?.proofVersion) &&
+      const legacy = s?.proofVersion < 3;
+      return saved?.levelId === ID && [1, 2, 3, 4].includes(s?.proofVersion) &&
         Object.hasOwn(CHECKPOINTS, saved.checkpointId) &&
         (legacy || !['road-cache', 'road-fork'].includes(saved.checkpointId)) &&
         s.returnTo?.checkpointId === 'intermission' &&
@@ -172,9 +187,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           Number.isFinite(p.timeMs) && p.timeMs > 0 && p.timeMs <= 60000 &&
           Number.isFinite(p.lockEnergy) && p.lockEnergy >= 0 && p.lockEnergy <= 100 &&
           Number.isFinite(p.echoEnergy) && p.echoEnergy >= 0 && p.echoEnergy <= 100) &&
-        Array.isArray(p.locked) && p.locked.length <= (s.proofVersion === 1 ? 2 : 3) &&
-        new Set(p.locked).size === p.locked.length &&
-        p.locked.every(lane => Number.isInteger(lane) && lane >= 0 && lane < 4);
+        (s.proofVersion === 4 ?
+          Number.isInteger(p.score) && p.score >= 0 &&
+          Number.isInteger(p.peakStack) && p.peakStack >= 1 && p.peakStack <= 4 &&
+          Number.isInteger(p.cleanBars) && p.cleanBars >= 0 && p.cleanBars <= 100 :
+          Array.isArray(p.locked) && p.locked.length <= (s.proofVersion === 1 ? 2 : 3) &&
+          new Set(p.locked).size === p.locked.length &&
+          p.locked.every(lane => Number.isInteger(lane) && lane >= 0 && lane < 4));
     },
     async enter() {
       if (this.active || this.pending || B.RunAndGunProof?.active || B.RunAndGunProof?.pending ||
@@ -239,13 +258,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       if (!this.active || !this.returnTo || !Object.hasOwn(CHECKPOINTS, id)) return false;
       const s = this.state;
       const saved = B.Campaign.archive().checkpoint({ levelId: ID, checkpointId: id,
-        levelState: { proofVersion: 3, returnTo: clone(this.returnTo), proof: {
+        levelState: { proofVersion: 4, returnTo: clone(this.returnTo), proof: {
           progress: id === 'road-start' ? 0 : s.progress, lane: s.lane, lanePos: s.lanePos,
           musicBar: id === 'road-start' ? 0 : s.musicBar, gateAt: s.gateAt,
           gateOpen: s.gateOpen,
           speed: s.speed, timeMs: Math.ceil(s.timeMs),
           lockEnergy: Math.round(s.lockEnergy), echoEnergy: Math.round(s.echoEnergy),
-          boost: s.boost, locked: [...s.locked], integrity: Math.max(1, s.integrity) } } });
+          boost: s.boost, score: s.score, peakStack: s.peakStack,
+          cleanBars: s.cleanBars, integrity: Math.max(1, s.integrity) } } });
       B.Campaign.syncTitleButton();
       return saved;
     },
@@ -296,24 +316,79 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     },
     mixSnapshot() {
       if (!this.active || !this.state) return null;
-      return { lane: this.state.lane, lanePos: this.state.lanePos, locked: [...this.state.locked],
-        finalMix: false };
+      return { captures: this.state.captures.map(({ lane, endBeat, sealed }) =>
+        ({ lane, endBeat, sealed })) };
     },
     startOffsetSec() { return (this.state?.musicBar || 0) * 1.875; },
     lockCurrent() {
-      const s = this.state, lane = s.lane, index = s.locked.indexOf(lane);
-      if (index >= 0) {
-        s.locked.splice(index, 1); s.message = `${LANES[lane]} RELEASED`;
-      } else {
-        if (s.lockEnergy < 60) {
-          s.message = 'DRIVE CLEAN TO CHARGE A MUSIC LOCK'; s.messageMs = 1200; return;
-        }
-        s.lockEnergy -= 60;
-        if (s.locked.length === 3) s.locked.shift();
-        s.locked.push(lane); s.message = `${LANES[lane]} LOCKED IN`;
+      const s = this.state, lane = s.lane;
+      const music = B.MusicTransport?.sample?.(window.audioSystem?.context?.currentTime || 0);
+      if (!music?.running || !music.grid || Math.abs(s.lanePos - lane) > .34) {
+        s.message = 'CENTER IN A LANE TO SEAL IT'; s.messageMs = 1100; return;
       }
-      s.messageMs = 1150;
+      const beat = music.grid.beatIndex + 1, bar = Math.floor(beat / 4);
+      if (!laneAvailable(lane, bar)) {
+        s.message = `${LANES[lane]} ARRIVES BAR ${laneArrival(lane, bar) + 1}`;
+        s.messageMs = 1200; return;
+      }
+      if (s.queuedCaptures.some(capture => capture.lane === lane && capture.sealed)) return;
+      if (s.lockEnergy < SEAL_COST) {
+        s.message = 'SEAL NEEDS 50% • CLEAN BARS AND NEAR MISSES CHARGE IT';
+        s.messageMs = 1300; return;
+      }
+      s.lockEnergy -= SEAL_COST;
+      s.queuedCaptures = s.queuedCaptures.filter(capture => capture.lane !== lane);
+      s.queuedCaptures.push({ lane, beat, sealed: true });
+      s.autoClaimed = true;
+      s.message = `${LANES[lane]} // 4 BARS SEALED NEXT BEAT`;
+      s.messageMs = 1250;
       window.audioSystem?.playCombatCue?.('inspect');
+    },
+    updateCaptures(music) {
+      if (!music?.running || music.profileId !== PROFILE || !music.grid) return;
+      const s = this.state, { beatIndex, barIndex } = music.grid;
+      s.musicBeatFloat = music.grid.beatFloat;
+      // Award a completed clean bar before removing a capture that expires on
+      // this boundary. Damage marks its bar and removes the current stack.
+      for (let completed = s.scoredThrough + 1; completed < barIndex && completed < 100; completed++) {
+        if (completed !== s.damagedBar) {
+          const parts = new Set(s.captures.filter(c => c.startBeat < (completed + 1) * 4 &&
+            c.endBeat > completed * 4 && laneAvailable(c.lane, completed)).map(c => c.lane));
+          const stack = Math.max(1, parts.size);
+          s.score += 100 * stack; s.cleanBars++;
+          s.lockEnergy = clamp(s.lockEnergy + 10, 0, 100);
+        }
+      }
+      s.scoredThrough = Math.max(s.scoredThrough, barIndex - 1);
+      s.captures = s.captures.filter(capture =>
+        capture.endBeat > beatIndex && laneAvailable(capture.lane, barIndex));
+      for (const queued of s.queuedCaptures.filter(capture => capture.beat <= beatIndex)) {
+        if (!laneAvailable(queued.lane, barIndex) ||
+            !queued.sealed && (s.lane !== queued.lane || Math.abs(s.lanePos - queued.lane) > .34)) continue;
+        const previous = s.captures.find(capture => capture.lane === queued.lane);
+        if (previous) s.captures.splice(s.captures.indexOf(previous), 1);
+        s.captures.push({ lane: queued.lane, sealed: queued.sealed,
+          startBeat: queued.beat, endBeat: queued.beat + (queued.sealed ? 16 : 8) });
+        s.peakStack = Math.max(s.peakStack, stackSize(s));
+        if (!queued.sealed) {
+          s.message = `${LANES[queued.lane]} CAUGHT // 2 BARS • MOVE TO STACK`;
+          s.messageMs = 850;
+        }
+      }
+      s.queuedCaptures = s.queuedCaptures.filter(capture => capture.beat > beatIndex);
+      const centered = Math.abs(s.lanePos - s.lane) <= .30;
+      if (!centered || s.candidateLane !== s.lane) {
+        s.candidateLane = centered ? s.lane : null;
+        s.candidateSince = centered ? music.trackTimeSec : null;
+        s.autoClaimed = false;
+      }
+      if (centered && !s.autoClaimed && laneAvailable(s.lane, barIndex) &&
+          music.trackTimeSec - s.candidateSince >= .5) {
+        s.autoClaimed = true;
+        if (!s.captures.some(capture => capture.lane === s.lane) &&
+            !s.queuedCaptures.some(capture => capture.lane === s.lane))
+          s.queuedCaptures.push({ lane: s.lane, beat: beatIndex + 1, sealed: false });
+      }
     },
     sendEcho() {
       const s = this.state;
@@ -349,8 +424,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       if (s.invulnerableMs || s.boostMs) return;
       s.integrity--; s.speed = Math.max(20, s.speed - 19); s.timeMs = Math.max(0, s.timeMs - 1800);
       s.invulnerableMs = 1400;
-      s.message = `${kind.toUpperCase()} HIT / SIGNAL DAMAGED`;
+      s.damagedBar = s.musicBar;
+      s.captures = []; s.queuedCaptures = [];
+      s.candidateLane = null; s.candidateSince = null; s.autoClaimed = false;
+      s.stumbleMs = 650;
+      s.message = `${kind.toUpperCase()} HIT // STACK BROKEN • SIGNAL STUMBLE`;
       s.messageMs = 1400;
+      window.audioSystem?.playRoadStumble?.();
       window.audioSystem?.playCombatCue?.('damage');
       if (s.integrity <= 0) this.status = s.status = 'failed';
     },
@@ -358,9 +438,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const s = this.state;
       s.nearMisses++;
       s.echoEnergy = clamp(s.echoEnergy + 28, 0, 100);
-      s.lockEnergy = clamp(s.lockEnergy + 32, 0, 100);
+      s.lockEnergy = clamp(s.lockEnergy + 25, 0, 100);
+      s.score += 50 * stackSize(s);
       if (s.nearMisses >= 2) { s.boost = 1; s.nearMisses = 0; }
-      s.message = 'CLEAN PASS // BUFFER CHARGING'; s.messageMs = 800;
+      s.message = `CLEAN PASS +${50 * stackSize(s)} // SEAL CHARGING`; s.messageMs = 800;
       window.audioSystem?.playCombatCue?.('pickup');
     },
     update(delta) {
@@ -372,10 +453,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const previousBar = s.musicBar;
       const bar = music?.running && music.profileId === PROFILE && music.grid ?
         Math.max(0, music.grid.barIndex) : previousBar;
+      this.updateCaptures(music);
       s.musicBar = Math.max(previousBar, bar);
       s.elapsedMs += dt; s.timeMs = Math.max(0, s.timeMs - dt);
       s.boostMs = Math.max(0, s.boostMs - dt);
       s.invulnerableMs = Math.max(0, s.invulnerableMs - dt);
+      s.stumbleMs = Math.max(0, s.stumbleMs - dt);
       s.messageMs = Math.max(0, s.messageMs - dt);
       s.rivalDistractedMs = Math.max(0, s.rivalDistractedMs - dt);
       const seconds = dt / 1000;
@@ -461,17 +544,17 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
             this.hit('clean copy');
             if (this.status === 'failed') return;
           }
-          const density = new Set([s.lane, ...s.locked]).size;
+          const density = stackSize(s);
           s.nextRivalAt = s.progress + (density >= 3 ? 155 : 225);
           s.rivalWarning = false; s.rivalEchoCommitted = false;
         }
       }
       if (before < 850 && s.progress >= 850) {
-        s.timeMs = Math.max(s.timeMs, 33000) + (new Set([s.lane, ...s.locked]).size - 1) * 1800;
+        s.timeMs = Math.max(s.timeMs, 33000) + (stackSize(s) - 1) * 1800;
         this.checkpoint('road-cache'); s.message = 'ORIGINAL TAPE / KEEP MOVING'; s.messageMs = 1600;
       }
       if (before < 1700 && s.progress >= 1700) {
-        s.timeMs = Math.max(s.timeMs, 31000) + (new Set([s.lane, ...s.locked]).size - 1) * 1800;
+        s.timeMs = Math.max(s.timeMs, 31000) + (stackSize(s) - 1) * 1800;
         s.echoEnergy = 100;
         this.checkpoint('road-fork'); s.message = 'A CLEAN COPY IS MISSING NAMES'; s.messageMs = 2400;
       }
@@ -581,8 +664,25 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           const t = i / 20; ctx.lineTo(laneEdge(lane + 1, t), roadY(t));
         }
         ctx.closePath(); ctx.fillStyle = PALETTE[lane];
-        ctx.globalAlpha = s.lane === lane ? .13 : s.locked.includes(lane) ? .085 : .028;
+        ctx.globalAlpha = s.lane === lane ? .13 :
+          s.captures.some(capture => capture.lane === lane) ? .085 : .028;
         ctx.fill(); ctx.globalAlpha = 1;
+      }
+      // Four projected bar cells stay in the captured lane after Cache leaves
+      // it. Each cell drains with the music clock, so expiry is visible.
+      for (const capture of s.captures) {
+        const remaining = clamp((capture.endBeat - s.musicBeatFloat) / 4, 0, 4);
+        for (let cell = 0; cell < 4; cell++) {
+          const fill = clamp(remaining - cell, 0, 1);
+          if (!fill) continue;
+          const t = .32 + cell * .13, x = laneX(capture.lane, t);
+          const width = half(t) * .35, height = 10 + t * 18, y = roadY(t) - height;
+          ctx.fillStyle = PALETTE[capture.lane]; ctx.globalAlpha = capture.sealed ? .22 : .12;
+          ctx.fillRect(x - width / 2 - 8, y - 7, width + 16, height + 14);
+          ctx.globalAlpha = capture.sealed ? .91 : .67;
+          ctx.fillRect(x - width / 2, y, width * fill, height);
+          ctx.globalAlpha = 1;
+        }
       }
       for (const side of [-1, 1]) {
         ctx.strokeStyle = section === 3 ? '#a2f9c9' : '#f0a0ac'; ctx.lineWidth = 7;
@@ -701,6 +801,17 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.fillStyle = '#ff697a';
         ctx.fillRect(0, 163, 12, 750); ctx.fillRect(1908, 163, 12, 750);
       }
+      if (s.stumbleMs > 0) {
+        ctx.fillStyle = '#06132096'; ctx.fillRect(0, 360, 1920, 510);
+        ctx.fillStyle = '#ff768b'; ctx.font = 'bold 44px Oxanium, monospace';
+        ctx.textAlign = 'center'; ctx.fillText('SIGNAL STUMBLE  /  REBUILD THE STACK', 960, 475);
+        if (!reduced) {
+          ctx.globalAlpha = .32;
+          for (let i = 0; i < 3; i++) ctx.fillRect(210 + ((s.stumbleMs * (i + 3)) % 75),
+            570 + i * 72, 1420 - i * 100, 8);
+          ctx.globalAlpha = 1;
+        }
+      }
       // The driving HUD prioritizes time, damage and ability readiness.
       ctx.fillStyle = '#091523f2'; ctx.fillRect(0, 0, 1920, 164);
       ctx.fillStyle = '#9ef6e2'; ctx.font = 'bold 32px Oxanium, monospace'; ctx.textAlign = 'left';
@@ -709,7 +820,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const verse = s.musicBar < 4 ? 'INTRO' : (s.musicBar - 4) % 24 < 16 ?
         `VERSE ${1 + Math.floor((s.musicBar - 4) / 24)}` :
           `CHORUS ${1 + Math.floor((s.musicBar - 4) / 24)}`;
-      ctx.fillText(`${names[section]}   •   ${verse}   •   BAR ${Math.min(100, s.musicBar + 1)} / 100`, 44, 78);
+      ctx.fillText(`${names[section]}   •   ${verse}   •   BAR ${Math.min(100, s.musicBar + 1)} / 100   •   STRIP ${s.musicBar % 4 + 1}/4`, 44, 78);
       ctx.fillStyle = '#faf7e9'; ctx.font = 'bold 53px Oxanium, monospace';
       ctx.fillText(`${Math.round(s.speed * 5.2)}`, 44, 140);
       ctx.fillStyle = '#91bfd1'; ctx.font = '19px Oxanium, monospace'; ctx.fillText('KM/H', 173, 133);
@@ -728,27 +839,48 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.fillStyle = '#f7f8ec'; ctx.font = 'bold 17px Oxanium, monospace'; ctx.fillText(`${Math.round(value)}%`, x+187, 127);
       };
       meter(693, 'BUFFER ECHO', s.echoEnergy, '#83e6fc');
-      meter(969, 'MUSIC LOCK', s.lockEnergy, '#d0a4ff');
+      meter(969, 'E/RB SEAL 50%', s.lockEnergy, '#d0a4ff');
       ctx.fillStyle = s.boost || s.boostMs ? '#fbd899' : '#5d7381';
       ctx.font = 'bold 21px Oxanium, monospace'; ctx.fillText(s.boostMs ? 'TURBO ACTIVE' : s.boost ? 'TURBO READY' : 'TURBO CHARGING', 1246, 124);
       ctx.fillStyle = '#afbdcb'; ctx.font = '17px Oxanium, monospace'; ctx.textAlign = 'right';
       ctx.fillText('LEFT/RIGHT STEER    DOWN BRAKE    SPACE/A TURBO', 1880, 57);
-      ctx.fillText('E/RB LOCK    H/Y ECHO    P/MENU PAUSE', 1880, 91);
-      ctx.fillText('PRESSURE ALWAYS ON • NEXT MIX ON 4 BAR MARK', 1880, 129);
+      ctx.fillText('E/RB SEAL 4 BARS    H/Y ECHO DECOY    P/MENU PAUSE', 1880, 91);
+      ctx.fillStyle = '#e7f4e9'; ctx.font = 'bold 22px Oxanium, monospace';
+      ctx.fillText(`SCORE ${s.score}    STACK x${stackSize(s)}`, 1880, 130);
       for (let i = 0; i < 4; i++) {
-        const x = 43 + i * 469, selected = s.lane === i, locked = s.locked.includes(i);
-        const sparse = s.musicBar < 4 ? i >= 1 :
-          (s.musicBar - 4) % 24 < 8 && i >= 2;
-        ctx.fillStyle = '#0a1929e8'; ctx.fillRect(x, 957, 448, 76);
-        ctx.fillStyle = PALETTE[i]; ctx.fillRect(x, 957, 448, selected ? 7 : 4);
-        ctx.strokeStyle = PALETTE[i]; ctx.globalAlpha = selected ? 1 : locked ? .83 : .5;
-        ctx.lineWidth = selected ? 3 : 1.5; ctx.strokeRect(x, 957, 448, 76); ctx.globalAlpha = 1;
+        const x = 43 + i * 469, selected = s.lane === i;
+        const capture = s.captures.find(item => item.lane === i);
+        const queued = s.queuedCaptures.find(item => item.lane === i);
+        const available = laneAvailable(i, s.musicBar);
+        const remaining = capture ? clamp((capture.endBeat - s.musicBeatFloat) / 4, 0, 4) : 0;
+        ctx.fillStyle = '#0a1929ef'; ctx.fillRect(x, 930, 448, 121);
+        ctx.fillStyle = PALETTE[i]; ctx.fillRect(x, 930, 448, selected ? 7 : 4);
+        ctx.strokeStyle = PALETTE[i]; ctx.globalAlpha = selected ? 1 : capture ? .85 : .45;
+        ctx.lineWidth = selected ? 3 : 1.5; ctx.strokeRect(x, 930, 448, 121); ctx.globalAlpha = 1;
         ctx.fillStyle = selected ? '#ffffff' : '#bdd0dc'; ctx.font = 'bold 24px Oxanium, monospace';
-        ctx.textAlign = 'left'; ctx.fillText(`${i+1}  ${LANES[i]}`, x + 21, 1004);
-        if (selected || locked) {
-          ctx.fillStyle = selected ? PALETTE[i] : '#e9d7ff'; ctx.font = 'bold 17px Oxanium, monospace';
-          ctx.textAlign = 'right'; ctx.fillText(sparse ? 'LATER' : locked ? 'LOCKED' : 'NEXT', x + 424, 1002);
+        ctx.textAlign = 'left'; ctx.fillText(`${i+1}  ${LANES[i]}`, x + 18, 967);
+        ctx.fillStyle = available ? PALETTE[i] : '#788998';
+        ctx.font = 'bold 17px Oxanium, monospace'; ctx.textAlign = 'right';
+        ctx.fillText(!available ? `ARRIVES BAR ${laneArrival(i, s.musicBar) + 1}` :
+          queued ? 'NEXT BEAT' : capture ? capture.sealed ? 'SEALED' : 'CAUGHT' :
+            selected ? 'HOLD 0.5s' : 'READY', x + 428, 966);
+        for (let cell = 0; cell < 4; cell++) {
+          const cellX = x + 18 + cell * 105;
+          const start = (Math.floor(s.musicBar / 4) * 4 + cell) * 4;
+          const from = capture ? clamp((Math.max(capture.startBeat, s.musicBeatFloat) - start) / 4, 0, 1) : 0;
+          const to = capture ? clamp((capture.endBeat - start) / 4, 0, 1) : 0;
+          ctx.fillStyle = '#27384b'; ctx.fillRect(cellX, 983, 94, 18);
+          if (to > from) {
+            ctx.fillStyle = PALETTE[i]; ctx.fillRect(cellX + 94 * from, 983, 94 * (to - from), 18);
+          }
+          ctx.strokeStyle = cell === s.musicBar % 4 ? '#f6f7e4' : '#597183';
+          ctx.lineWidth = cell === s.musicBar % 4 ? 2 : 1;
+          ctx.strokeRect(cellX, 983, 94, 18);
         }
+        ctx.fillStyle = '#adc2cd'; ctx.font = 'bold 16px Oxanium, monospace'; ctx.textAlign = 'left';
+        ctx.fillText(!available ? 'RECORDED PART ENTERS NEXT SECTION' : capture ?
+          `${remaining.toFixed(1)} BARS LEFT  •  ${capture.sealed ? 'E/RB SEAL' : 'AUTO CATCH'}` :
+            queued ? 'CAPTURE ARMED' : 'PRESSURE DRUMS ALWAYS PLAY', x + 18, 1034);
       }
       if (s.gateAt != null && progress > s.gateAt - 220 && progress < s.gateAt) {
         ctx.fillStyle = '#0a2234ed'; ctx.fillRect(500, 282, 920, 54);

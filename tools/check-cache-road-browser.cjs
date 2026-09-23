@@ -144,8 +144,8 @@ async function main() {
       player.initialized=true;
       const prepared=await player.prepareActiveMusicProfile();
       const started=prepared.ok?player.startAllLayersSimultaneously():{ok:false};
-      let lane=1;
-      BARCODE.CacheRoadProof={active:true,mixSnapshot:()=>({lane,locked:[]}),startOffsetSec:()=>0};
+      let captures=[];
+      BARCODE.CacheRoadProof={active:true,mixSnapshot:()=>({captures}),startOffsetSec:()=>0};
       player.updateLayers();
       await new Promise(resolve=>setTimeout(resolve,300));
       const waveform=new Float32Array(analyser.fftSize);analyser.getFloatTimeDomainData(waveform);
@@ -158,30 +158,38 @@ async function main() {
           .map(([name,track])=>({name,duration:track.buffer.duration,fallback:track.isFallback,
             playing:track.isPlaying,start:track.startTime,
             sample:track.buffer.getChannelData(0).slice(10000,15000).some(x=>Math.abs(x)>0.001)}))};
-      result.steering=[];
-      for(const next of [0,1,2,3,2,1,0]){
-        lane=next;player.updateLayers();
+      result.catches=[];
+      for(const next of [[],[{lane:0,endBeat:12}],[{lane:0,endBeat:12},{lane:2,endBeat:12}],[]]){
+        captures=next;player.updateLayers();
         await new Promise(resolve=>setTimeout(resolve,100));
         analyser.getFloatTimeDomainData(waveform);
-        result.steering.push({lane,pressure:player.musicTracks['cache-pressure'].volume,
+        result.catches.push({captures:next.length,pressure:player.musicTracks['cache-pressure'].volume,
           drive:player.musicTracks['cache-drive'].volume,
           flow:player.musicTracks['cache-flow'].volume,
           rms:Math.sqrt(waveform.reduce((sum,x)=>sum+x*x,0)/waveform.length)});
       }
+      result.stumble=player.playRoadStumble();
+      await new Promise(resolve=>setTimeout(resolve,720));
+      analyser.getFloatTimeDomainData(waveform);
+      result.recoveredRms=Math.sqrt(waveform.reduce((sum,x)=>sum+x*x,0)/waveform.length);
+      result.recoveredGain=player.musicGain.gain.value;
       await player.context.close(); return result;
     })()`);
   }
   const audio = await checkAudio(false);
   assert(audio.prepared.ok && audio.started.ok, JSON.stringify(audio));
   assert(audio.rms > .0001, 'the actual intro MP3s produce signal');
-  assert.equal(audio.pressure, .60); assert.equal(audio.drive, .19);
+  assert.equal(audio.pressure, .60); assert.equal(audio.drive, .10);
   assert.equal(audio.undercurrent, 0, 'sparse intro FX is a selectable layer');
   assert.equal(audio.tracks.length, 5);
   assert(audio.tracks.every(track => !track.fallback && track.playing && track.sample &&
     Math.abs(track.duration - 187.5) < .08), JSON.stringify(audio.tracks));
   assert.equal(new Set(audio.tracks.map(track => track.start)).size, 1);
-  assert(audio.steering.every(point => point.pressure === .60 && point.drive === .19 &&
-    point.flow === 0 && point.rms > .0001), 'steering holds the intro mix through its phrase');
+  assert.deepEqual(audio.catches.map(point => point.drive), [.10,.19,.19,.10]);
+  assert(audio.catches.every(point => point.pressure === .60 && point.flow === 0 &&
+    point.rms > .0001), 'the sparse intro keeps drums while Drive catches and releases');
+  assert(audio.stumble && audio.recoveredRms > .0001 && Math.abs(audio.recoveredGain - .8) < .01,
+    'browser music bus stumbles and recovers without restarting MP3s');
   assert.equal(requests.head, 0);
   assert.equal(requests.get.filter(url => url.endsWith('.mp3')).length, 5);
   const fallback = await checkAudio(true);
@@ -192,7 +200,7 @@ async function main() {
   assert.equal(requests.get.filter(url => url.endsWith('.mp3')).length, livePublished ? 10 : 15);
   if (!livePublished) assert.equal(await evaluate('window.publishedRequests.length'), 5);
   assert.deepEqual(exceptions, []);
-  console.log(`Cache Road Chromium passed: ${frames.drawn} guarded frames (${frames.contextCalls} context calls), five local and missing-import/published MP3s decoded and held across steering.`);
+  console.log(`Cache Road Chromium passed: ${frames.drawn} guarded frames (${frames.contextCalls} context calls), five local and published MP3s, captured Drive and recovered collision stutter.`);
 }
 main().catch(error => { console.error(error.stack || error); process.exitCode = 1; }).finally(async () => {
   socket?.close();

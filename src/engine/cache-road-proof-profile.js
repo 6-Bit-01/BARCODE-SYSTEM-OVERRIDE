@@ -18,11 +18,11 @@ window.FILE_MANIFEST.push({ name: 'src/engine/cache-road-proof-profile.js', expo
     arrangement: { sources: [source('drive', 'drive'), source('pressure', 'pressure'),
       source('flow', 'flow'), source('breakaway', 'breakaway'),
       source('undercurrent', 'undercurrent')] },
-    // All five sources start together. Pressure is the drum backbone; the
-    // other parts trade on complete four-bar boundaries. In the intro and
-    // first half of each verse some recorded parts contain almost no sound.
+    // All five sources start together. The live road supplies short captured
+    // bar spans; sparse recorded parts only become selectable on entry.
     laneMix: { laneRoles: ['drive', 'flow', 'breakaway', 'undercurrent'],
-      backboneRole: 'pressure', barsPerPhrase: 4, transitionSec: 0.38,
+      backboneRole: 'pressure', idle: { drive: 0.10, flow: 0.18 },
+      captureFadeSec: 0.22, releaseFadeSec: 0.38,
       levels: { pressure: 0.60, drive: 0.19, flow: 0.55,
         breakaway: 0.50, undercurrent: 0.62 } },
     playback: { startTrackSec: 0, loop: null, endPolicy: 'native-loop' },

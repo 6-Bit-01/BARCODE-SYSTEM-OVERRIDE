@@ -1,5 +1,11 @@
 # Recovery checkpoint — September 14
 
+## September 23, 2026 — Stack the Bars and traffic-hit stumble
+
+- Replace the four-bar lane vote and indefinite locks with next-beat two-bar catches, paid four-bar E/RB seals, x1–x4 score and section-aware four-bar lane tapes. Keep Pressure and a quieter Drive/Flow bed; sparse recorded parts announce their entrance.
+- On collision, clear the active stack, dip/stutter the music bus for 0.62 seconds and play a short digital tear while the five MP3 sources continue on the same transport. Preserve existing traffic speed/time/integrity effects, Turbo and Echo.
+- Add checkpoint v4 score fields and old-lock refund migration. Exercise actual steering to x4, score/reset, complete song/exit, real Chromium MP3/stutter recovery and six native review frames. Makko listening/control balance remains open.
+
 ## September 23, 2026 — full Cache Road song and five named stems (PR #102)
 
 - Replace the four older Cache MP3 roles with the five aligned owner parts: Pressure/drums as the permanent backbone, Drive/bass, Flow and Breakaway/harmonies, and Undercurrent/FX as the four named road bands. Pin missing-import recovery to the immutable MP3 asset commit.

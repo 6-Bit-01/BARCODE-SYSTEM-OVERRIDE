@@ -132,6 +132,7 @@ window.AudioSystem = class AudioSystem {
   beginRuntimeAudioGeneration() {
     this.runtimeAudioGeneration++;
     window.BARCODE?.musicDirector?.reset();
+    this.resetRoadStumble();
     this.stopCombatCues();
     this.clearRuntimeTimeouts();
     return this.runtimeAudioGeneration;
@@ -643,6 +644,43 @@ window.AudioSystem = class AudioSystem {
     }
     this.lastSFXCue = { kind, reason: 'scheduled', audioTimeSec: now };
     return true;
+  }
+
+  // Collision is a short bus stutter, not a source stop/seek. The original
+  // five synchronized stems stay in time underneath a pitched digital tear.
+  playRoadStumble() {
+    const ctx = this.context, bus = this.musicGain?.gain;
+    if (!ctx || ctx.state !== 'running' || !bus) return false;
+    const now = ctx.currentTime;
+    bus.cancelScheduledValues?.(now);
+    if (!bus.setValueAtTime || !bus.linearRampToValueAtTime) return false;
+    bus.setValueAtTime(bus.value, now);
+    for (const [offset, level] of [[.015, .08], [.065, .08], [.072, .34],
+      [.105, .34], [.112, .05], [.17, .05], [.24, .24], [.36, .24], [.62, .8]])
+      bus.linearRampToValueAtTime(level, now + offset);
+    if (this.sfxGain && ctx.createOscillator && ctx.createGain) {
+      const osc = ctx.createOscillator(), envelope = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(760, now);
+      osc.frequency.setValueAtTime(290, now + .055);
+      osc.frequency.setValueAtTime(105, now + .115);
+      envelope.gain.setValueAtTime(0, now);
+      envelope.gain.linearRampToValueAtTime(.12, now + .008);
+      envelope.gain.setValueAtTime(.12, now + .10);
+      envelope.gain.linearRampToValueAtTime(0, now + .21);
+      osc.connect(envelope); envelope.connect(this.sfxGain);
+      osc.onended = () => { osc.disconnect(); envelope.disconnect(); };
+      osc.start(now); osc.stop(now + .23);
+    }
+    return true;
+  }
+
+  resetRoadStumble() {
+    const bus = this.musicGain?.gain, now = this.context?.currentTime;
+    if (!bus || !Number.isFinite(now)) return;
+    bus.cancelScheduledValues?.(now);
+    if (bus.setValueAtTime) bus.setValueAtTime(.8, now);
+    else bus.value = .8;
   }
 
   // Cached one-shot textures: separate SFX, never a new beat/source clock.
@@ -3236,6 +3274,7 @@ window.AudioSystem = class AudioSystem {
     options = options || {};
     this.runtimeAudioGeneration++;
     window.BARCODE?.musicDirector?.reset();
+    this.resetRoadStumble();
     this.stopCombatCues();
     this.clearRuntimeTimeouts();
     this.stopBeatTrack();
