@@ -11,8 +11,6 @@ window.FILE_MANIFEST.push({ name: 'src/engine/music-director.js', exports: ['BAR
       this.lastBeat = null; this.lastBar = null; this.lastPhrase = null; this.generation = null;
       this.variation = 0; this.volumes = {}; this.pendingAccent = null; this.lastAccentBeat = -Infinity;
       this.comboMilestone = 0; this.graph = null; this.audio = null; this.enabled = null; this.turnaround = false;
-      this.laneCandidate = null; this.laneCandidateSince = null;
-      this.laneVotes = [0, 0, 0, 0]; this.lastLaneTime = null;
     }
     accent(kind) {
       if (['hack', 'boss', 'clear', 'combo'].includes(kind)) this.pendingAccent = kind;
@@ -88,45 +86,29 @@ window.FILE_MANIFEST.push({ name: 'src/engine/music-director.js', exports: ['BAR
       if (!requested || !road.active || !sample?.running || !sample.grid) return true;
       const mix = profile.laneMix;
       const bar = sample.grid.barIndex;
-      const phrase = Math.floor(bar / mix.barsPerPhrase);
-      const lane = clamp(Math.round(requested.lane), 0, 3);
-      const votes = this.laneVotes;
-      // The lane driven during a strip chooses the following strip. Neither
-      // steering nor releasing a lock can change an already playing phrase.
-      if (this.lastPhrase !== phrase) {
-        const winning = Math.max(...votes);
-        const chosenLane = winning > 0 ? votes.indexOf(winning) : lane;
-        const chosen = mix.laneRoles[chosenLane];
-        const inIntro = bar < 4;
-        const verseBar = (bar - 4) % 24;
-        const half = inIntro ? 'intro' : verseBar < 8 ? 'verseA' : verseBar < 16 ? 'verseB' : 'chorus';
-        const available = half === 'intro' ? ['drive'] :
-          half === 'verseA' ? ['drive', 'flow'] :
-            ['drive', 'flow', 'breakaway', 'undercurrent'];
-        const colour = available.includes(chosen) && chosen !== 'drive' ? chosen :
-          half === 'chorus' ? 'undercurrent' : 'flow';
-        const roles = new Set([mix.backboneRole, 'drive']);
-        if (!inIntro) roles.add(colour);
-        for (const index of requested.locked || []) {
-          const role = mix.laneRoles[index];
-          if (available.includes(role)) roles.add(role);
-        }
-        this.state = { phrase, bar, half, chosen, roles: [...roles] };
-        this.lastPhrase = phrase;
-        this.laneVotes = [0, 0, 0, 0];
-        for (const source of profile.arrangement.sources) {
-          const volume = roles.has(source.mixRole) ? mix.levels[source.mixRole] : 0;
-          this.volumes[source.sourceId] = volume;
-          const track = audio.musicTracks[source.sourceId];
-          if (track?.isPlaying && track.gain && Math.abs((track.volume ?? -1) - volume) > 0.005)
-            audio.rampAdaptiveStemGain(track, volume, mix.transitionSec);
-        }
+      const verseBar = (bar - 4) % 24;
+      const half = bar < 4 ? 'intro' : verseBar < 8 ? 'verseA' : verseBar < 16 ? 'verseB' : 'chorus';
+      const available = half === 'intro' ? ['drive'] :
+        half === 'verseA' ? ['drive', 'flow'] : mix.laneRoles;
+      // The road owns short, beat-stamped captures. A quiet Drive/Flow bed
+      // preserves the groove while each captured band adds its recorded part.
+      const roles = new Set((requested.captures || []).filter(capture =>
+        capture.endBeat > sample.grid.beatIndex && available.includes(mix.laneRoles[capture.lane]))
+        .map(capture => mix.laneRoles[capture.lane]));
+      this.state = { bar, half, roles: [...roles] };
+      for (const source of profile.arrangement.sources) {
+        const role = source.mixRole;
+        const volume = role === mix.backboneRole ? mix.levels[role] :
+          roles.has(role) ? mix.levels[role] :
+            role === 'drive' ? mix.idle.drive :
+              role === 'flow' && half !== 'intro' ? mix.idle.flow : 0;
+        this.volumes[source.sourceId] = volume;
+        const track = audio.musicTracks[source.sourceId];
+        if (track?.isPlaying && track.gain && Math.abs((track.volume ?? -1) - volume) > 0.005)
+          audio.rampAdaptiveStemGain(track, volume,
+            volume > (track.volume ?? 0) ? mix.captureFadeSec : mix.releaseFadeSec);
       }
-      const elapsed = this.lastLaneTime == null || this.generation !== sample.generation ? 0 :
-        clamp(sample.trackTimeSec - this.lastLaneTime, 0, 0.25);
-      this.laneVotes[lane] += elapsed;
-      this.lastLaneTime = sample.trackTimeSec;
-      this.pending = { lane: mix.laneRoles[lane], locked: [...(requested.locked || [])] };
+      this.pending = { captures: [...roles] };
       this.generation = sample?.generation;
       this.lastBeat = sample?.grid?.beatIndex ?? null;
       this.enabled = true; // Lane arrangement is the road's core interaction.

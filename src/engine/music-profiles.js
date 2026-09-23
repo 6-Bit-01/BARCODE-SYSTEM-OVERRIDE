@@ -109,11 +109,14 @@ window.BARCODE = window.BARCODE || {};
         return invalid('lane mix requires four distinct source roles');
       if (!nonempty(mix.backboneRole) || !roles.has(mix.backboneRole) ||
           mix.laneRoles.includes(mix.backboneRole) ||
-          !Number.isInteger(mix.barsPerPhrase) || mix.barsPerPhrase < 2 || mix.barsPerPhrase > 8 ||
           !mix.levels || [...roles].some(role => !finiteNonnegative(mix.levels[role]) || mix.levels[role] > 0.8))
-        return invalid('lane mix backbone, phrase or levels invalid');
-      if (!finiteNumber(mix.transitionSec) || mix.transitionSec < 0.05 || mix.transitionSec > 1)
-        return invalid('lane mix transition timing invalid');
+        return invalid('lane mix backbone or levels invalid');
+      if (!mix.idle || !finiteNonnegative(mix.idle.drive) || !finiteNonnegative(mix.idle.flow) ||
+          mix.idle.drive > mix.levels.drive || mix.idle.flow > mix.levels.flow)
+        return invalid('lane mix idle levels invalid');
+      if (![mix.captureFadeSec, mix.releaseFadeSec].every(value =>
+        finiteNumber(value) && value >= 0.05 && value <= 1))
+        return invalid('lane mix capture timing invalid');
     }
     if (!profile.playback || typeof profile.playback !== 'object') return invalid('playback required');
     if (!finiteNonnegative(profile.playback.startTrackSec)) return invalid('playback.startTrackSec invalid');

@@ -37,10 +37,11 @@ async function run() {
     assert(bytes.length > 3000000 && bytes.toString('ascii', 0, 3) === 'ID3', part.url);
     assert(part.required && part.backupUrl.includes('b0b26df3ca3289a24163f6b198072ea0de1429af'));
   }
-  const audio = new w.AudioSystem(), starts = [], ramps = [];
-  const param = value => ({ value, cancelAndHoldAtTime() {},
-    linearRampToValueAtTime(v) { this.value = v; } });
-  audio.context = { currentTime: 0, createGain() { return { gain: param(1), connect() {}, disconnect() {} }; },
+  const audio = new w.AudioSystem(), starts = [], ramps = [], busEvents = [];
+  const param = value => ({ value, cancelAndHoldAtTime() {}, cancelScheduledValues() {},
+    setValueAtTime(v, at) { this.value = v; busEvents.push({ v, at }); },
+    linearRampToValueAtTime(v, at) { this.value = v; busEvents.push({ v, at }); } });
+  audio.context = { currentTime: 0, state: 'running', createGain() { return { gain: param(1), connect() {}, disconnect() {} }; },
     createBufferSource() { return { connect() {}, start(at, offset) { starts.push({ at, offset }); }, stop() {} }; } };
   audio.musicGain = audio.context.createGain(); audio.initialized = true;
   audio.rampAdaptiveStemGain = (track, volume, duration) => {
@@ -50,42 +51,45 @@ async function run() {
   for (const part of profile.arrangement.sources)
     audio.musicTracks[part.sourceId] = { role: part.mixRole, buffer: { duration: 187.5 }, volume: 0 };
   w.audioSystem = audio;
-  road.active = true; road.state = { lane: 1, lanePos: 1, locked: [], musicBar: 0 };
+  road.active = true; road.state = { lane: 1, lanePos: 1, captures: [], musicBar: 0 };
   assert(audio.startAllLayersSimultaneously().ok);
   assert.equal(starts.length, 5);
   assert.equal(new Set(starts.map(s => `${s.at}/${s.offset}`)).size, 1);
   const volume = role => audio.musicTracks[`cache-${role}`].volume;
-  const tick = (bar, lane, locked = []) => {
-    road.state.lane = lane; road.state.locked = locked;
+  const tick = (bar, lane, captures = []) => {
+    road.state.lane = lane; road.state.captures = captures;
     audio.context.currentTime = .01 + bar * 1.875;
     assert(B.musicDirector.apply(audio));
   };
   tick(0, 1);
-  assert(volume('pressure') === .60 && volume('drive') === .19);
+  assert(volume('pressure') === .60 && volume('drive') === .10);
   assert(volume('flow') === 0 && volume('breakaway') === 0 && volume('undercurrent') === 0);
-  for (let bar = .1; bar < 4; bar += .1) tick(bar, 1);
   tick(4, 1);
-  assert(volume('flow') === .55 && volume('pressure') === .60);
-  const beforeSteer = ramps.length;
-  for (let bar = 4.1; bar < 8; bar += .1) tick(bar, 2);
-  assert.equal(ramps.length, beforeSteer, 'steering cannot change the current phrase');
+  assert(volume('flow') === .18 && volume('pressure') === .60);
+  tick(4.5, 1, [{ lane: 1, startBeat: 18, endBeat: 26 }]);
+  assert.equal(volume('flow'), .55, 'caught lane becomes audible on its beat');
+  tick(4.6, 3, [{ lane: 1, startBeat: 18, endBeat: 26 }]);
+  assert.equal(volume('flow'), .55, 'changing lanes carries the captured bars');
+  tick(6.5, 3);
+  assert.equal(volume('flow'), .18, 'expired auto catch returns to the steady bed');
   tick(8, 2);
-  assert.equal(volume('breakaway'), 0, 'silent first-half verse material cannot count as a layer');
-  for (let bar = 8.1; bar < 12; bar += .1) tick(bar, 2);
-  tick(12, 2);
-  assert(volume('breakaway') === .50 && volume('flow') === 0);
-  for (let bar = 12.1; bar < 20; bar += .1) tick(bar, 3, [1]);
-  tick(20, 3, [1]);
-  assert(volume('undercurrent') === .62 && volume('flow') === .55 && volume('pressure') === .60,
-    'a locked part and selected FX can combine on the chorus');
+  assert.equal(volume('breakaway'), 0, 'silent first-half verse cannot be caught');
+  tick(12.5, 2, [{ lane: 2, startBeat: 50, endBeat: 66, sealed: true },
+    { lane: 3, startBeat: 50, endBeat: 58 }]);
+  assert.equal(volume('breakaway'), .50);
+  assert.equal(volume('undercurrent'), .62);
+  tick(20, 3, [0, 1, 2, 3].map(lane => ({ lane, startBeat: 80, endBeat: 96 })));
+  assert(volume('undercurrent') === .62 && volume('flow') === .55 &&
+    volume('drive') === .19 && volume('pressure') === .60,
+  'four caught parts stack over steady Pressure');
   for (const [bar, half] of [[28, 'verseA'], [36, 'verseB'], [44, 'chorus'],
     [52, 'verseA'], [76, 'verseA'], [92, 'chorus'], [99, 'chorus']]) {
     tick(bar, 1);
     assert.equal(B.musicDirector.state.half, half, `bar ${bar + 1}`);
-    assert(volume('pressure') === .60 && volume('drive') === .19);
+    assert(volume('pressure') === .60 && volume('drive') === .10);
   }
-  assert(ramps.every(r => r.duration === .38),
-    'all gain changes use the common transition duration');
+  assert(ramps.some(r => r.duration === .22) && ramps.some(r => r.duration === .38),
+    'catches rise quickly and expired parts trail smoothly');
   assert.equal(starts.length, 5, 'arrangement never restarts a playing stem');
 
   const archive = w.lostDataSystem.archive;
@@ -106,7 +110,64 @@ async function run() {
   road.active = false; road.state = null;
   audio.context.currentTime = 0;
   assert((await road.enter()).ok);
-  assert.equal(C.readResume().levelState.proofVersion, 3);
+  assert.equal(C.readResume().levelState.proofVersion, 4);
+  road.state.lane = road.state.lanePos = 2;
+  const unspent = road.state.lockEnergy;
+  road.lockCurrent();
+  assert.equal(road.state.lockEnergy, unspent, 'sparse part does not consume a seal');
+  assert.match(road.state.message, /ARRIVES BAR 13/);
+  // Exercise the actual transport and road update through four overlapping
+  // parts, scoring, a near miss and a collision before the long-form run.
+  road.state.musicBar = 12; road.state.scoredThrough = 11;
+  road.state.lane = road.state.lanePos = 0;
+  road.state.invulnerableMs = 1000000;
+  const drive = (sec, lane) => {
+    road.state.lane = road.state.lanePos = lane;
+    audio.context.currentTime = sec; road.update(100);
+  };
+  drive(22.51, 0); drive(23.1, 0); drive(23.48, 0);
+  assert(road.state.captures.some(c => c.lane === 0 && !c.sealed));
+  road.lockCurrent();
+  assert.equal(road.state.lockEnergy, 50);
+  drive(23.92, 1);
+  assert(road.state.captures.some(c => c.lane === 0 && c.sealed));
+  drive(24.5, 1); drive(24.86, 1);
+  drive(25, 2); drive(25.55, 2); drive(25.8, 2);
+  drive(26, 3); drive(26.6, 3); drive(26.8, 3);
+  assert.equal(road.state.captures.length, 4);
+  assert.equal(road.state.peakStack, 4);
+  drive(28.14, 3);
+  assert(road.state.score >= 400, 'completed stacked bars earn points');
+  const beforePass = road.state.score;
+  road.cleanPass();
+  assert.equal(road.state.score, beforePass + 200, 'near miss pays x4');
+  road.state.invulnerableMs = 0; road.state.boostMs = 0;
+  road.hit('van');
+  assert.equal(road.state.captures.length, 0);
+  assert.equal(road.state.stumbleMs, 650);
+  assert(busEvents.some(event => event.v === .8), 'music bus recovers after the stumble');
+  road.status = road.state.status = 'failed';
+  audio.context.currentTime = 0;
+  assert(road.retry());
+  road.state.musicBar = 12; road.state.scoredThrough = 11;
+  road.state.invulnerableMs = 1000000;
+  let sealedWhileDriving = false;
+  for (let frame = 0; frame < 140; frame++) {
+    const t = frame * .05, target = t < 1.4 ? 0 : t < 2.9 ? 1 : t < 4.3 ? 2 : 3;
+    audio.context.currentTime = 22.5 + t;
+    const position = road.state.lanePos;
+    const seal = !sealedWhileDriving && t >= 1.2 && target === 0 &&
+      Math.abs(position) < .25;
+    road.handleActions({ move_left: { held: position > target + .08 },
+      move_right: { held: position < target - .08 }, inspect: { pressed: seal } });
+    if (seal) sealedWhileDriving = true;
+    road.update(50);
+  }
+  assert(sealedWhileDriving && road.state.peakStack >= 4,
+    'actual steering and one seal can reach x4 before the first catch expires');
+  road.status = road.state.status = 'failed';
+  audio.context.currentTime = 0;
+  assert(road.retry());
   road.state.invulnerableMs = 1000000;
   const visited = new Set(); let sent = false, minLane = 3, maxLane = 0;
   let verseFourSave;
@@ -133,8 +194,11 @@ async function run() {
   assert(!archive.record.progress.completedLevels.includes('level-02'));
   assert.deepEqual(copy(archive.record.progress.items), ['stem.voice']);
   assert.equal(verseFourSave.checkpointId, 'road-verse-4');
+  assert(verseFourSave.levelState.proof.score > 0, 'a checkpoint preserves the earned score');
   archive.checkpoint(verseFourSave);
   assert(road.restore(verseFourSave));
+  assert.equal(road.state.score, verseFourSave.levelState.proof.score);
+  assert.equal(road.state.captures.length, 0, 'timed catches restart cleanly at a checkpoint');
   assert.equal(road.startOffsetSec(), 76 * 1.875);
   road.status = road.state.status = 'failed';
   assert(road.retry());
@@ -147,10 +211,24 @@ async function run() {
       timeMs: 30000, lockEnergy: 10, echoEnergy: 50 } } };
   assert(road.validate(legacy));
   assert(road.restore(legacy));
-  assert.deepEqual(copy(road.state.locked), [1, 3]);
-  assert.equal(road.state.lockEnergy, 70, 'an old drums lock is refunded when drums become global');
+  assert.deepEqual(copy(road.state.captures), []);
+  assert.equal(road.state.lockEnergy, 100, 'indefinite old locks refund into the bar-seal meter');
   assert.equal(road.state.musicBar, 8);
   assert.equal(road.startOffsetSec(), 15);
-  console.log('Cache Road: five real stems, full 100-bar arrangement, held phrases, full drive, final Echo and legacy save passed.');
+  const v1 = copy(legacy);
+  v1.levelState.proofVersion = 1;
+  v1.levelState.proof.locked = [0, 1];
+  assert(road.validate(v1) && road.restore(v1));
+  assert.equal(road.state.lockEnergy, 100);
+  const v3 = copy(verseFourSave);
+  v3.levelState.proofVersion = 3;
+  v3.levelState.proof.locked = [0, 2];
+  delete v3.levelState.proof.score;
+  delete v3.levelState.proof.peakStack;
+  delete v3.levelState.proof.cleanBars;
+  assert(road.validate(v3) && road.restore(v3));
+  assert.equal(road.state.lockEnergy, 100);
+  assert.equal(road.state.score, 0);
+  console.log('Cache Road: beat captures, four-bar seals, x4 score, collision stumble, full song, final Echo and old saves passed.');
 }
 run().catch(error => { console.error(error); process.exitCode = 1; });
