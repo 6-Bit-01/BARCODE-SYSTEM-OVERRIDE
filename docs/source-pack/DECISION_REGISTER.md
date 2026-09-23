@@ -1,5 +1,13 @@
 # Decision Register
 
+## September 23, 2026 — supplied tracks and MP3 delivery
+
+The owner approved the Cache exit correction and supplied aligned `ContraBass/Drums/Harmony/FX.wav` files, then specifically requested MP3s to reduce load time before merge. Use those four exports as the provisional Cache road song by their audible roles, preserving one synchronized start and lane-lock interaction. Ship 160 kbps MP3 derivatives, with the original WAV upload as provenance. The 128 BPM inference, balance and use of `Contra*` files in Cache's road are review decisions pending owner listening in Makko; no later-stage assignment or campaign reward is inferred. See `CACHE_LINE_MP3_STEMS.md`.
+
+## September 23, 2026 — Cache exit must not jump backward during play
+
+The owner reports the improved #95 chase snaps or loops to an earlier moment while driving. Its missed Echo gate deliberately moved the car from the exit to progress 1910 without asking, and the short Echo window made misses likely from the visible cue. Treat a missed original exit as an explicit result with a reason; replay from the saved Mirror Viaduct marker only after an actual Retry input. Give the final approach Echo enough time for a visible split. The maneuver remains a provisional proof, and the owner is gathering authored music tracks; do not replace the five temporary sources until those tracks are supplied and mapped.
+
 ## September 23, 2026 — chase visibility and pace
 
 After merged #94, the owner reports the Cache slice feels slow and the crude visuals make traffic and maneuvers hard to understand. Prioritize a faster, more legible playtest of the existing chase before deciding detailed handling or the full chapter. The code-native road/vehicle/HUD pass and acceleration values are review candidates, not accepted final art or locked balance. Preserve the established Original Master direction, music locks, Buffer Echo, Clean Copy and campaign reward boundary. Read `CACHE_LINE_VISUAL_PACING_PASS.md` for the focused change and review.

@@ -17,7 +17,7 @@ load(context, 'src/game/campaign-services.js');
 load(context, 'src/engine/cache-road-proof-profile.js');
 load(context, 'src/game/cache-road-proof.js');
 w.audioSystem.musicTracks = Object.fromEntries(w.BARCODE.MusicProfiles.get('level-02.proof').arrangement.sources.map(source =>
-  [source.sourceId, { buffer: { duration: 16 }, isFallback: false }]));
+  [source.sourceId, { buffer: { duration: 187.5 }, isFallback: false }]));
 const parent = { levelId: 'level-01', checkpointId: 'intermission', levelState: {
   difficultyId: 'standard', run: { levelId: 'level-01', runId: 'road-native', recoveryMode: 'checkpoints',
     elapsedMs: 120000, damageTaken: 0, retries: 0, attempts: 1, accurate: 1, perfect: 1,
@@ -49,4 +49,8 @@ capture('03-echo-split');
 road.status = road.state.status = 'clear'; road.state.progress = 2460;
 road.state.rivalWarning = false; road.state.echo = null; road.state.messageMs = 0;
 capture('04-delivered');
-console.log(`Four Cache Line review frames rendered to ${out}`);
+road.status = road.state.status = 'failed'; road.state.progress = 2062;
+road.state.gateOpen = false; road.state.gateFailure = 'wrong-lane';
+road.state.lanePos = road.state.visualLane = road.state.lane = 0;
+capture('05-exit-missed');
+console.log(`Five Cache Line review frames rendered to ${out}`);

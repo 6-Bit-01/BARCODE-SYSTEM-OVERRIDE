@@ -2110,12 +2110,15 @@ window.AudioSystem = class AudioSystem {
       if (source.url) trackUrls[source.sourceId] = source.url;
     });
     
-    for (const [name, url] of Object.entries(trackUrls)) {
+    const loadTrack = async ([name, url]) => {
       let trackLoaded = false;
       
-      // Create timeout for each track
+      // The road's four full-length MP3 parts need a larger load/decode budget
+      // than the existing short profiles, especially on the first mobile visit.
+      const loadTimeoutMs = profile.profileId === 'level-02.proof' ? 30000 : 8000;
+      let timeoutId;
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error(`Music track ${name} loading timeout`)), 8000);
+        timeoutId = setTimeout(() => reject(new Error(`Music track ${name} loading timeout`)), loadTimeoutMs);
       });
       
       try {
@@ -2131,6 +2134,8 @@ window.AudioSystem = class AudioSystem {
           // Network or fetch error - create fallback immediately
           console.log(`Network error loading track ${name}, creating fallback:`, error?.message || 'Network error');
         }
+      } finally {
+        clearTimeout(timeoutId);
       }
       
       // If remote loading failed, always create fallback
@@ -2147,6 +2152,14 @@ window.AudioSystem = class AudioSystem {
           console.error(`Critical error creating fallback for ${name}:`, fallbackError?.message || fallbackError?.toString() || 'Unknown error');
         }
       }
+    };
+    const entries = Object.entries(trackUrls);
+    if (profile.profileId === 'level-02.proof') {
+      // The four full-song stems are independent fetches; load them together
+      // and start them only after every decode is ready on the same clock.
+      await Promise.all(entries.map(loadTrack));
+    } else {
+      for (const entry of entries) await loadTrack(entry);
     }
   }
   

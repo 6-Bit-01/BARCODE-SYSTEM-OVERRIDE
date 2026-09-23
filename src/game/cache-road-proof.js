@@ -5,7 +5,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
 (function(B) {
   'use strict';
   const ID = 'level-02', PROFILE = 'level-02.proof', END = 2460, GATE = 2060;
-  const LANES = ['BASS', 'BREAK', 'HARMONY', 'LEAD'];
+  const LANES = ['BASS', 'DRUMS', 'HARMONY', 'FX'];
   const CHECKPOINTS = { 'road-start': 0, 'road-cache': 850, 'road-fork': 1700,
     'road-gate': 2070, 'road-clear': END };
   const HAZARDS = [
@@ -109,7 +109,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       rivalTarget: 1.5, rivalLane: 1.5, rivalWarning: false,
       rivalEchoCommitted: false, rivalDistractedMs: 0,
       message: 'CACHE BACK // KEEP THE ORIGINAL', messageMs: 2800,
-      gateOpen: progress >= GATE, gateRejectMs: 0,
+      gateOpen: progress >= GATE, gateFailure: null,
       status: saved.status || 'playing', elapsedMs: 0 };
   }
 
@@ -131,7 +131,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const tracks = window.audioSystem?.musicTracks || {};
       this.audioDegraded = B.MusicProfiles.get(PROFILE).arrangement.sources.some(source =>
         !tracks[source.sourceId]?.buffer || tracks[source.sourceId].isFallback ||
-        Math.abs(tracks[source.sourceId].buffer.duration - 16) > 0.02);
+        Math.abs(tracks[source.sourceId].buffer.duration - 187.5) > 0.08);
       return !this.audioDegraded;
     },
     validate(saved) {
@@ -285,9 +285,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         s.message = 'BUFFER NEEDS A CLEAN TRACE'; s.messageMs = 950; return;
       }
       s.echoEnergy = 0;
-      s.echo = { lanePos: s.lanePos, progress: s.progress, ageMs: 0,
+      // The final exit cue appears about four seconds before the scanner at
+      // cruise. Give that approach room for a visible split and steering.
+      const durationMs = s.progress >= 1840 && s.progress < GATE ? 6000 : 2700;
+      s.echo = { lanePos: s.lanePos, progress: s.progress, ageMs: 0, durationMs,
         path: s.trace.map(sample => ({ ...sample })), sampleIndex: 0, sampleMs: 0 };
-      s.rivalDistractedMs = 2700;
+      s.rivalDistractedMs = durationMs;
       s.message = 'BUFFER ECHO // SPLIT THE LINE'; s.messageMs = 1700;
       window.audioSystem?.playCombatCue?.('data');
     },
@@ -332,7 +335,6 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       s.boostMs = Math.max(0, s.boostMs - dt);
       s.invulnerableMs = Math.max(0, s.invulnerableMs - dt);
       s.messageMs = Math.max(0, s.messageMs - dt);
-      s.gateRejectMs = Math.max(0, s.gateRejectMs - dt);
       s.rivalDistractedMs = Math.max(0, s.rivalDistractedMs - dt);
       const seconds = dt / 1000;
       const targetSpeed = s.braking ? 23 : s.boostMs ? 75 : 54;
@@ -361,7 +363,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           e.sampleMs += step; remaining -= step;
           if (e.sampleMs >= sample.duration) { e.sampleIndex++; e.sampleMs = 0; }
         }
-        if (e.ageMs >= 2700) s.echo = null;
+        if (e.ageMs >= e.durationMs) s.echo = null;
       }
       if (Math.abs(curve) > 0.48 && s.speed > 30 && s.steer * curve > 0) {
         s.lockEnergy = clamp(s.lockEnergy + 10 * seconds, 0, 100);
@@ -434,10 +436,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       if (before < GATE && s.progress >= GATE) {
         if (s.lanePos < 2.45 || !s.echo || s.rivalDistractedMs <= 0 ||
             Math.abs(s.echo.lanePos - s.lanePos) < 0.75) {
-          s.progress = 1910; s.gateRejectMs = 1500;
-          s.timeMs = Math.max(s.timeMs, 16000); s.echoEnergy = 100;
-          s.echo = null; s.rivalDistractedMs = 0; s.nextRivalAt = 2020;
-          s.message = 'ECHO DRAWS THE AUDIT // DRIVE ORIGINAL RIGHT'; s.messageMs = 2600;
+          s.gateFailure = s.lanePos < 2.45 ? 'wrong-lane' :
+            !s.echo || s.rivalDistractedMs <= 0 ? 'no-echo' : 'no-split';
+          // Stop at the missed exit. Moving the car backward while play kept
+          // running looked like a broken game loop, not a deliberate retry.
+          this.status = s.status = 'failed';
+          return;
         } else {
           s.timeMs = Math.max(s.timeMs, 21000);
           s.gateOpen = true; this.checkpoint('road-gate');
@@ -683,15 +687,17 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           ctx.textAlign = 'right'; ctx.fillText(selected ? 'LIVE' : 'LOCKED', x + 424, 1002);
         }
       }
-      if (progress > 1840 && progress < GATE && !s.gateRejectMs) {
+      if (progress > 1840 && progress < GATE) {
         ctx.fillStyle = '#0a2234ed'; ctx.fillRect(500, 282, 920, 54);
         ctx.strokeStyle = '#9cf9ce'; ctx.lineWidth = 2; ctx.strokeRect(500, 282, 920, 54);
         ctx.fillStyle = '#e7ffeb'; ctx.font = 'bold 25px Oxanium, monospace';
-        ctx.textAlign = 'center'; ctx.fillText('SEND ECHO LEFT • STEER ORIGINAL RIGHT', 960, 316);
+        ctx.textAlign = 'center'; ctx.fillText(s.echo ?
+          'ECHO ACTIVE • SPLIT LEFT / ORIGINAL RIGHT' :
+          'H/Y: SEND ECHO LEFT • STEER ORIGINAL RIGHT', 960, 316);
       }
       if (s.messageMs > 0) {
         ctx.fillStyle = '#091928ed'; ctx.fillRect(395, 195, 1130, 67);
-        ctx.fillStyle = s.gateRejectMs ? '#ffb5a2' : '#b4ffe4';
+        ctx.fillStyle = '#b4ffe4';
         ctx.font = 'bold 28px Oxanium, monospace'; ctx.textAlign = 'center';
         ctx.fillText(s.message, 960, 239);
       }
@@ -704,14 +710,20 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.strokeStyle = '#9cf9df'; ctx.lineWidth = 3; ctx.strokeRect(370, 280, 1180, 485);
         ctx.fillStyle = '#f5f1ee'; ctx.font = 'bold 47px Oxanium, monospace'; ctx.textAlign = 'center';
         ctx.fillText(this.status === 'clear' ? 'ORIGINAL TAPE DELIVERED' :
+          s.gateFailure ? 'ORIGINAL EXIT MISSED' :
           s.timeMs <= 0 ? 'TRANSMISSION WINDOW CLOSED' : 'SIGNAL LOST', 960, 380);
         ctx.font = '25px Oxanium, monospace'; ctx.fillStyle = '#9cf9df';
         ctx.fillText(this.status === 'clear' ? 'DELIVERED / UNVERIFIED — Mac sees the distribution blockade.' :
+          s.gateFailure === 'wrong-lane' ? 'Cache must take the far-right marked original exit.' :
+          s.gateFailure === 'no-echo' ? 'Send Buffer Echo after the exit cue, then steer right.' :
+          s.gateFailure === 'no-split' ? 'Give the Echo another lane so the audit follows it.' :
           'Your last road marker remains. Draft, brake and use an Echo to split the audit.', 960, 458);
         ctx.fillStyle = '#e6c8b5'; ctx.font = '22px Oxanium, monospace';
         ctx.fillText(this.status === 'clear' ? 'Proof clear only. Bass awaits the authored Level 2.' :
+          s.gateFailure ? 'Retry starts at the Mirror Viaduct marker with a full Echo.' :
           'Collisions cost speed and time. The rival follows a visible warning line.', 960, 506);
-        ctx.fillText('ENTER / A: RETRY     C / Y: RETURN TO LEVEL 1', 960, 625);
+        ctx.fillText(s.gateFailure ? 'ENTER / A: RETRY FROM MARKER     C / Y: RETURN TO LEVEL 1' :
+          'ENTER / A: RETRY     C / Y: RETURN TO LEVEL 1', 960, 625);
         ctx.fillText('P / MENU: SETTINGS AND EXIT PREVIEW', 960, 672);
       }
       ctx.restore();

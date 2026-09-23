@@ -1,6 +1,26 @@
 # Acceptance and Test Status
 
-## Current route — Cache Line visibility and pace review
+## Current route — Cache Line MP3 stems and exit retry
+
+Import the exact draft head into a duplicate Makko preview. From the Level 1 handoff, enter Cache's road with headphones/speakers and a physical controller.
+
+1. Confirm a reasonable first load for four MP3 parts (about 15 MB total) with no audio fallback warning. Steer across Bass, Drums, Harmony and FX and listen for each distinct part. Lock three, switch to the fourth, release and relock; the mix should change on a beat without a playback restart. Pause/resume and listen past the complete 187.5-second loop seam for silence, drift or a click. Check whether levels and roles make musical sense; the grid and gains are provisional.
+2. Reach the Mirror Viaduct. Miss the original exit without Echo and once from a wrong lane; the car should stop at a named result, not jump backward while driving. Press Enter/A to retry from the saved marker. Send Echo at the final cue from a left band, steer right and confirm the split reaches **ORIGINAL TAPE DELIVERED** while music keeps playing. Try one failure/retry and Continue Saved.
+3. Exit to Level 1 and confirm Voice/music return once. Open the separate Level 3 architecture test. Verify there is no Bass key, Level 2 completion, result or lore award. Report exact imported SHA, device/browser/controller, load seconds, solo/full-mix and loop impression, Echo outcome and PASS/FAIL before merge.
+
+Automated checks cover MP3 presence, equal decoded frame counts in FFmpeg, parallel source preparation, synchronized start, game state and save boundaries; they cannot establish browser decoder gapless behavior, Makko sound, host load speed or controller feel. Keep the draft unmerged until owner listening/play review. The former route below describes the initial correction with temporary audio.
+
+## Historical route — initial Cache Line missed-exit retry correction
+
+Use the exact review commit on the new draft, based on merged #95 `2cd9d40a44b6c91abc36c3d6d40a766dc9879c0f`. Complete Level 1 or use its DEV skip and enter Cache's road in Makko.
+
+1. Reach the Mirror Viaduct. Drive into the marked original exit without Echo, then with Echo but in the wrong lane. In both cases, the car should stop at **ORIGINAL EXIT MISSED** with a specific cause. The road position must never jump backward while you are still driving. Enter/A explicitly returns to the saved Mirror Viaduct marker with a full Echo and time to try again. Check pointer/keyboard and a physical controller.
+2. When the exit cue appears, send H/Y Echo from a left band, steer Cache to the far-right marked route and keep the replay apart. At normal cruise, the Echo should remain visible through the scanner; the result should reach **ORIGINAL TAPE DELIVERED** without a forced music mix. Test a timed-out and three-hit retry as well as pause/Continue Saved.
+3. Listen to the unchanged five temporary aligned parts while steering and locking bands. Confirm #95 handling/traffic warnings are still fair, Level 1 Voice and audio return once, the separate Level 3 architecture test remains, and no Bass key or Level 2 clear/result/lore appears. The owner is gathering the authored tracks; this patch does not integrate them.
+
+Record imported SHA, device/browser/controller, PASS/FAIL, the position/timing around the exit and whether the split feels legible. Automated simulation and five local Canvas stills cannot establish Makko timing, audible quality or fun. Keep this draft unmerged until the owner reviews the feel. The older #95 route below is historical and its automatic-loop expectation is superseded.
+
+## Historical route — Cache Line visibility and pace review (merged #95)
 
 Import the exact draft head from its receipt into a duplicate Makko project. Base/rollback is merged #94, `0852ff0bf23d5ae52816f59f7131db93c0741777`. Complete Level 1 or use its DEV skip, then enter Cache's road. This is the owner's follow-up on the rough/slow first chase; it remains a provisional slice.
 

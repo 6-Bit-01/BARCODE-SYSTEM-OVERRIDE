@@ -88,7 +88,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/music-director.js', exports: ['BAR
       const requested = road?.mixSnapshot?.();
       if (!requested || !road.active) return true;
       // Steering is immediate. The arrangement catches the next beat without
-      // seeking or restarting any of the five synchronously running sources.
+      // seeking or restarting any of the synchronously running sources.
       this.pending = requested;
       if (!this.state || changedGeneration || !grid || changedBeat) this.state = requested;
       const mix = profile.laneMix;

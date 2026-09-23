@@ -1,5 +1,17 @@
 # Recovery checkpoint — September 14
 
+## September 23, 2026 — owner MP3 stems for the Cache chase
+
+- Convert the four aligned 187.5-second WAV exports to 160 kbps stereo MP3 (Bass, Drums, Harmony, FX). Replace the five generated 16-second WAVs and retire their generator. Four MP3s total about 15.0 MB versus 132.3 MB of the supplied WAVs.
+- Map the four musical road bands to the owner stems, provisionally set the transport grid to 128 BPM, balance each band's gain, fetch/decode in parallel, and schedule all four on the original shared clock. Keep Level 1 and the Level 3 architecture test unchanged.
+- Extend the road proof check to cover MP3 assets, joint loading, shared start and musical locks alongside the missed-exit retry and no-award boundaries. See `CACHE_LINE_MP3_STEMS.md`; browser audio/loop/listening and controller acceptance remain pending before merge.
+
+## September 23, 2026 — Cache Line missed-exit retry correction
+
+- After merged #95, replace the automatic 2060 → 1910 missed-gate jump with a stopped **ORIGINAL EXIT MISSED** result explaining the lane, Echo or split problem. Enter/A deliberately retries the saved Mirror Viaduct marker with a full Echo; no progress moves backward during active driving.
+- Give an Echo sent after the final exit cue six seconds rather than 2.7, enough for a normal-cruise approach and visible lane split. Clarify the active Echo cue. Keep the five temporary WAVs, chase handling/art, save format and campaign boundaries.
+- Exercise missed and successful exits through the real production state/input/clear path and add a fifth native frame for the missed-exit card. Makko/controller/audio feel remains owner review; see `CACHE_LINE_GATE_RETRY_FIX.md`.
+
 ## September 23, 2026 — Cache Line visibility and pace draft
 
 - Respond to the owner's merged #94 playtest: raise initial/cruise/brake/turbo speed and steering response while preserving warning distance and Echo gate reachability. Existing v1/v2 checkpoints still load; v2 accepts the faster saved speed.
