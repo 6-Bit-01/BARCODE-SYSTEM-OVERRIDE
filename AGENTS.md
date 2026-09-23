@@ -1,5 +1,11 @@
 # Repository Guidance
 
+## September 23, 2026 — owner confirmed audio; merge before Makko review
+
+The owner heard the four real Cache Road stems in Makko after PR #98 merged at `ae1be4a1ee868f0307daa0e8e47f7a100a1510e1`. The new problem is musical: swapping one selected part for another sounds abrupt. Implement an always-on FX bed, a faint drum pulse through the sparse FX opening, and longer beat-aligned handoffs using the current four stems. The fourth lane temporarily foregrounds FX until the owner supplies another Harmony/instrumental part; the future crew vocal performance reward has no audio asset yet and must not be fabricated. Preserve the shared audio clock, old saves, the title/Level 1 mix, Level 3 test and no Bass/Level 2 award.
+
+The owner explicitly clarified that **Makko testing requires a merged PR**. Publish the tested change as a ready PR, merge it after its checks pass, then give the actual main merge SHA for import. Historical instructions below to leave PRs unmerged until Makko listening are superseded. A passing automated check still does not claim the merged build has been heard in Makko.
+
 ## September 23, 2026 — Cache road remained silent in PR #97
 
 The owner confirms title audio works but Cache Road remains silent in Makko after the GET-only/canvas fix in PR #97. #97 merged while this follow-up was prepared; base the next draft on its actual merge `df02c8964d34b2cfa13a5c4f6d3495395b39aba5`. Do not describe local asset decoding as a hosted listening pass. The road loader previously substituted generic 60-second buffers for missing 187.5-second owner stems and returned success; the road only marked that as degraded. The next revision must require the four actual MP3s, try the same pinned published bytes if an import omits a local binary, and visibly fail/retry at the intermission if neither source works. Preserve the existing canvas fix and title/Level 1 audio. Cover a missing-local-asset browser case, live published URL delivery where available, actual nonzero audio output, failure/retry, and full repository gates. Makko listening remains unverified; do not merge on automated results.

@@ -16,6 +16,10 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run check:syntax:all
+      - name: Check Cache Road music in real Chromium
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+        run: npm run check:cache-road-browser
       - name: Check music automation in real Chromium
         env:
           CHROME_BIN: /usr/bin/google-chrome
@@ -85,7 +89,7 @@ jobs:
           from pathlib import Path
           Path(os.environ['PACK_RECEIPT']).write_text(json.dumps({
               'revision': os.environ['GITHUB_SHA'],
-              'automatedTests': {'npm test': 'passed', 'npm run check:syntax:all': 'passed', 'node tools/check-music-audibility.cjs': 'passed (controlled and original MP3s)', 'node tools/check-background-browser.cjs': 'passed', 'node tools/check-intro-browser.cjs': 'passed', 'node tools/check-settings-browser.cjs': 'passed', 'MODE_SFX_REVIEW=1 node tools/check-music-audibility.cjs': 'passed'},
+              'automatedTests': {'npm test': 'passed', 'npm run check:syntax:all': 'passed', 'npm run check:cache-road-browser': 'passed (real MP3s, missing local asset recovery, lane mix output)', 'node tools/check-music-audibility.cjs': 'passed (controlled and original MP3s)', 'node tools/check-background-browser.cjs': 'passed', 'node tools/check-intro-browser.cjs': 'passed', 'node tools/check-settings-browser.cjs': 'passed', 'MODE_SFX_REVIEW=1 node tools/check-music-audibility.cjs': 'passed'},
               'makkoPlaytest': 'not recorded by CI',
               'workflowRun': os.environ['GITHUB_SERVER_URL'] + '/' + os.environ['GITHUB_REPOSITORY'] + '/actions/runs/' + os.environ['GITHUB_RUN_ID']
           }, indent=2))

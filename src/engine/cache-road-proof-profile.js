@@ -17,8 +17,12 @@ window.FILE_MANIFEST.push({ name: 'src/engine/cache-road-proof-profile.js', expo
     metadataStatus: 'unverified',
     arrangement: { sources: [source('bass', 'bass'), source('drums', 'drums'),
       source('harmony', 'harmony'), source('fx', 'fx')] },
+    // FX and a quiet groove carry the song through every lane. Until the new
+    // instrumental is supplied, the fourth lane brings FX forward.
     laneMix: { laneRoles: ['bass', 'drums', 'harmony', 'fx'],
-      laneGains: [0.28, 0.62, 0.52, 0.64], fadeSec: 0.16 },
+      laneGains: [0.24, 0.62, 0.56, 0.64], bedRole: 'fx', bedGain: 0.27,
+      grooveRole: 'drums', grooveGain: 0.10,
+      fadeInSec: 0.28, fadeOutSec: 0.82, settleSec: 0.12 },
     playback: { startTrackSec: 0, loop: null, endPolicy: 'native-loop' },
     timeline: { mode: 'fixed-tempo', gridOriginTrackSec: 0,
       fixedGrid: { quarterBpm: 128, beatsPerBar: 4, beatUnit: 4 } },

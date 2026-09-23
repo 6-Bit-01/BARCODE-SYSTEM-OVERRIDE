@@ -11,6 +11,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/music-director.js', exports: ['BAR
       this.lastBeat = null; this.lastBar = null; this.lastPhrase = null; this.generation = null;
       this.variation = 0; this.volumes = {}; this.pendingAccent = null; this.lastAccentBeat = -Infinity;
       this.comboMilestone = 0; this.graph = null; this.audio = null; this.enabled = null; this.turnaround = false;
+      this.laneCandidate = null; this.laneCandidateSince = null;
     }
     accent(kind) {
       if (['hack', 'boss', 'clear', 'combo'].includes(kind)) this.pendingAccent = kind;
@@ -87,21 +88,31 @@ window.FILE_MANIFEST.push({ name: 'src/engine/music-director.js', exports: ['BAR
       const road = B.CacheRoadProof;
       const requested = road?.mixSnapshot?.();
       if (!requested || !road.active) return true;
-      // Steering is immediate. The arrangement catches the next beat without
-      // seeking or restarting any of the synchronously running sources.
+      const now = audio.context.currentTime;
+      if (requested.lane !== this.laneCandidate) {
+        this.laneCandidate = requested.lane;
+        this.laneCandidateSince = now;
+      }
+      // Short crossings do not audition every intermediate lane. A settled
+      // destination and locks join on the beat; sources never seek or restart.
       this.pending = requested;
-      if (!this.state || changedGeneration || !grid || changedBeat) this.state = requested;
+      if (!this.state || changedGeneration || !grid) this.state = requested;
+      else if (changedBeat) this.state = { ...requested,
+        lane: now - this.laneCandidateSince >= profile.laneMix.settleSec
+          ? requested.lane : this.state.lane };
       const mix = profile.laneMix;
       const audible = new Set(this.state.finalMix ? [0, 1, 2, 3]
         : [this.state.lane, ...this.state.locked]);
       for (const source of profile.arrangement.sources) {
         const index = mix.laneRoles.indexOf(source.mixRole);
-        const volume = source.mixRole === mix.bedRole ? mix.bedGain
-          : audible.has(index) ? mix.laneGains[index] : 0;
+        const volume = Math.max(source.mixRole === mix.bedRole ? mix.bedGain : 0,
+          source.mixRole === mix.grooveRole ? mix.grooveGain : 0,
+          index >= 0 && audible.has(index) ? mix.laneGains[index] : 0);
         this.volumes[source.sourceId] = volume;
         const track = audio.musicTracks[source.sourceId];
         if (track?.isPlaying && track.gain && Math.abs((track.volume ?? -1) - volume) > 0.005)
-          audio.rampAdaptiveStemGain(track, volume, mix.fadeSec);
+          audio.rampAdaptiveStemGain(track, volume,
+            volume > (track.volume ?? 0) ? mix.fadeInSec : mix.fadeOutSec);
       }
       this.generation = sample?.generation;
       this.lastBeat = grid?.beatIndex ?? null;

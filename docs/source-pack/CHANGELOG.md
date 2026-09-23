@@ -1,5 +1,11 @@
 # Recovery checkpoint — September 14
 
+## September 23, 2026 — FX bed and smoother Cache Road lane changes
+
+- Keep the owner FX MP3 at a quiet gain under every lane and a faint beat from the existing Drums stem where FX is sparse. Lane four currently brings FX forward; the upcoming Harmony/instrumental part and bonus vocal are not in this build.
+- Commit a settled lane on the next beat and fade incoming parts over 0.28 seconds, departing parts over 0.82 seconds. The four sources keep their shared playback anchor; locks remain additive and old checkpoints retain their lane numbers.
+- Update production and real-Chromium checks for bed, groove, crossed lanes, scheduled ramps and nonzero output after a steering change. Hosted musical feel remains the owner's review after merge.
+
 ## September 23, 2026 — Cache road audio delivery after failed draft #97 playback
 
 - Require the real four owner MP3 stems for Cache Road. If a Makko import omits the local binary, try the pinned public copy; never turn a missing stem into a generic 60-second success.

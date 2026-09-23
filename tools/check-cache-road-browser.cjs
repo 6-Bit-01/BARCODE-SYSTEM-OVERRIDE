@@ -142,22 +142,36 @@ async function main() {
     const prepared=await player.prepareActiveMusicProfile();
     const tracks=Object.entries(player.musicTracks).filter(([name])=>name.startsWith('cache-'));
     const started=player.startAllLayersSimultaneously();
-    BARCODE.CacheRoadProof={active:true,mixSnapshot:()=>({lane:1,locked:[],finalMix:false})};
+    let lane=1;
+    BARCODE.CacheRoadProof={active:true,mixSnapshot:()=>({lane,locked:[],finalMix:false})};
     player.updateLayers();
     await new Promise(resolve=>setTimeout(resolve,350));
     const waveform=new Float32Array(analyser.fftSize);analyser.getFloatTimeDomainData(waveform);
     const result={prepared,started:{ok:started.ok,reason:started.reason},
-      drumGain:player.musicTracks['cache-drums'].volume,contextState:player.context.state,
+      drumGain:player.musicTracks['cache-drums'].volume,
+      fxBedGain:player.musicTracks['cache-fx'].volume,contextState:player.context.state,
       rms:Math.sqrt(waveform.reduce((sum,x)=>sum+x*x,0)/waveform.length),
       tracks:tracks.map(([name,track])=>({name,duration:track.buffer.duration,
         fallback:track.isFallback,playing:track.isPlaying,start:track.startTime,
         sample:track.buffer.getChannelData(0).slice(10000,15000).some(x=>Math.abs(x)>0.001)}))};
+    lane=2;
+    for(let i=0;i<12;i++){await new Promise(resolve=>setTimeout(resolve,80));player.updateLayers();}
+    analyser.getFloatTimeDomainData(waveform);
+    result.afterSteer={drumGain:player.musicTracks['cache-drums'].volume,
+      harmonyGain:player.musicTracks['cache-harmony'].volume,
+      fxBedGain:player.musicTracks['cache-fx'].volume,
+      rms:Math.sqrt(waveform.reduce((sum,x)=>sum+x*x,0)/waveform.length)};
     await player.context.close();return result;
   })()`);
   assert(audio.prepared.ok && audio.started.ok, JSON.stringify(audio));
   assert.equal(audio.contextState, 'running', 'the unlocked audio clock must be running');
   assert(audio.rms > .0001, 'the selected real drum stem must produce audible signal');
   assert.equal(audio.drumGain, .62, 'the selected lane must leave the zero-gain startup mix');
+  assert.equal(audio.fxBedGain, .27, 'FX must be present even when another lane is selected');
+  assert.equal(audio.afterSteer.harmonyGain, .56);
+  assert.equal(audio.afterSteer.drumGain, .10, 'the drum groove stays under the harmony lane');
+  assert.equal(audio.afterSteer.fxBedGain, .27);
+  assert(audio.afterSteer.rms > .0001, 'steering must retain nonzero real audio output');
   assert.equal(audio.tracks.length, 4);
   assert(audio.tracks.every(track => !track.fallback && track.playing && track.sample &&
     Math.abs(track.duration - 187.5) < .08), JSON.stringify(audio.tracks));
@@ -168,6 +182,7 @@ async function main() {
   // URLs do not. Fetch the fixed public copies and decode them in Chromium.
   omitLocalStems = true;
   const fallback = await evaluate(`(async()=>{
+    BARCODE.musicDirector.reset();BARCODE.MusicTransport.load('level-02.proof');
     const player=new AudioSystem();player.context=new AudioContext({sampleRate:44100});
     player.musicGain=player.context.createGain();player.musicGain.connect(player.context.destination);
     const analyser=player.context.createAnalyser();player.musicGain.connect(analyser);
@@ -179,7 +194,7 @@ async function main() {
     await new Promise(resolve=>setTimeout(resolve,350));
     const waveform=new Float32Array(analyser.fftSize);analyser.getFloatTimeDomainData(waveform);
     const result={prepared,started:{ok:started.ok,reason:started.reason},
-      contextState:player.context.state,
+      contextState:player.context.state,fxBedGain:player.musicTracks['cache-fx'].volume,
       rms:Math.sqrt(waveform.reduce((sum,x)=>sum+x*x,0)/waveform.length),
       tracks:Object.entries(player.musicTracks).filter(([name])=>name.startsWith('cache-'))
         .map(([name,track])=>({name,duration:track.buffer.duration,fallback:track.isFallback,
@@ -190,6 +205,7 @@ async function main() {
   assert(fallback.prepared.ok && fallback.started.ok, JSON.stringify(fallback));
   assert.equal(fallback.contextState, 'running', 'published stems need a running audio clock');
   assert(fallback.rms > .0001, 'published drum stem must produce audible signal');
+  assert.equal(fallback.fxBedGain, .27, 'published FX remains the constant bed');
   assert.equal(fallback.tracks.length, 4);
   assert(fallback.tracks.every(track => !track.fallback && track.playing && track.sample &&
     Math.abs(track.duration - 187.5) < .08), JSON.stringify(fallback.tracks));

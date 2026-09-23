@@ -24,8 +24,8 @@ async function realAudioSchedule() {
   const profile = w.BARCODE.MusicProfiles.select('level-02.proof');
   w.BARCODE.MusicTransport.load(profile.profileId);
   const starts = [];
-  const param = value => ({ value, cancelAndHoldAtTime() {}, setValueAtTime(v) { this.value = v; },
-    linearRampToValueAtTime(v) { this.value = v; } });
+  const param = value => ({ value, ramps: [], cancelAndHoldAtTime() {}, setValueAtTime(v) { this.value = v; },
+    linearRampToValueAtTime(v, time) { this.value = v; this.ramps.push({ value: v, time }); } });
   const node = () => ({ gain: param(1), connect() {}, disconnect() {} });
   const ac = { currentTime: 10, createGain: node, createBufferSource() {
     return { connect() {}, start(time, offset) { starts.push({ time, offset, loop: this.loop, buffer: this.buffer }); }, stop() {} };
@@ -39,12 +39,37 @@ async function realAudioSchedule() {
   assert.equal(starts.length, 4);
   assert(starts.every(s => s.time === 10.01 && s.offset === 0 && s.loop));
   ac.currentTime = 10.02; audio.updateLayers();
-  assert.equal(audio.musicTracks['cache-bass'].volume, .28);
+  assert.equal(audio.musicTracks['cache-bass'].volume, .24);
+  assert.equal(audio.musicTracks['cache-fx'].volume, .27, 'FX stays under the selected lane');
+  assert.equal(audio.musicTracks['cache-drums'].volume, .10, 'a quiet pulse holds the FX gaps together');
+  w.BARCODE.CacheRoadProof.mixSnapshot = () => ({ lane: 1, locked: [], finalMix: false });
+  ac.currentTime = 10.08; audio.updateLayers();
   w.BARCODE.CacheRoadProof.mixSnapshot = () => ({ lane: 2, locked: [0], finalMix: false });
   ac.currentTime = 10.2; audio.updateLayers();
   assert.equal(audio.musicTracks['cache-harmony'].volume, 0);
   ac.currentTime = 10.53; audio.updateLayers();
-  assert.equal(audio.musicTracks['cache-harmony'].volume, .52);
+  assert.equal(audio.musicTracks['cache-harmony'].volume, .56);
+  assert.equal(audio.musicTracks['cache-drums'].volume, .10,
+    'crossing Drums briefly does not foreground an intermediate lane');
+  assert.equal(audio.musicTracks['cache-fx'].volume, .27);
+  assert(Math.abs(audio.musicTracks['cache-harmony'].gain.gain.ramps.at(-1).time - 10.81) < .0001,
+    'incoming lane fades up over 280 ms without a source restart');
+  w.BARCODE.CacheRoadProof.mixSnapshot = () => ({ lane: 3, locked: [], finalMix: false });
+  ac.currentTime = 10.7; audio.updateLayers();
+  ac.currentTime = 11.02; audio.updateLayers();
+  assert.equal(audio.musicTracks['cache-fx'].volume, .64, 'the fourth lane foregrounds its existing FX bed');
+  assert.equal(audio.musicTracks['cache-bass'].volume, 0);
+  assert(Math.abs(audio.musicTracks['cache-bass'].gain.gain.ramps.at(-1).time - 11.84) < .0001,
+    'departing lane releases over 820 ms');
+  w.BARCODE.CacheRoadProof.mixSnapshot = () => ({ lane: 1, locked: [], finalMix: false });
+  ac.currentTime = 11.40; audio.updateLayers();
+  ac.currentTime = 11.47; audio.updateLayers();
+  assert.equal(audio.musicTracks['cache-drums'].volume, .10,
+    'a lane reached just before the beat waits until steering settles');
+  ac.currentTime = 11.98; audio.updateLayers();
+  assert.equal(audio.musicTracks['cache-drums'].volume, .62);
+  assert.equal(audio.musicTracks['cache-fx'].volume, .27, 'leaving FX keeps the bed playing');
+  assert(Math.abs(audio.musicTracks['cache-fx'].gain.gain.ramps.at(-1).time - 12.8) < .0001);
   assert.equal(starts.length, 4, 'the real scheduler never restarts a muted part');
 
   const loading = new w.AudioSystem(), pending = [];
@@ -182,7 +207,7 @@ async function run() {
   };
   const volume = id => w.audioSystem.musicTracks[`cache-${id}`].volume;
   mix();
-  assert.equal(volume('drums'), .62); assert.equal(volume('fx'), 0);
+  assert.equal(volume('drums'), .62); assert.equal(volume('fx'), .27);
   assert.equal(volume('bass'), 0);
   for (let i = 0; i < 10; i++) road.update(100);
   const cruise = road.state.progress;
@@ -205,7 +230,7 @@ async function run() {
   assert.equal(road.state.lane, 2);
   mix(); assert.equal(volume('harmony'), 0, 'the queued part waits for the beat');
   w.audioSystem.context.currentTime = 0.51; mix();
-  assert.equal(volume('harmony'), .52); assert.equal(volume('drums'), .62);
+  assert.equal(volume('harmony'), .56); assert.equal(volume('drums'), .62);
   input.routeActions(actions({ inspect: { pressed: true } }));
   assert.deepEqual(copy(road.state.locked), [1], 'unearned repeated locks do not fill the whole song');
   road.state.lockEnergy = 100;
@@ -226,7 +251,7 @@ async function run() {
   input.routeActions(actions({ inspect: { pressed: true } }));
   assert.deepEqual(copy(road.state.locked), [2, 3, 0], 'a fourth lock replaces the oldest');
   w.audioSystem.context.currentTime = 1.01; mix();
-  assert.equal(volume('drums'), 0); assert(volume('harmony') > 0 && volume('fx') > 0);
+  assert.equal(volume('drums'), .10); assert(volume('harmony') > 0 && volume('fx') > 0);
   assert.equal(starts, 1, 'mixing does not restart a song');
   road.state.progress = 80; road.state.lanePos = 1.5; road.state.lane = 2;
   road.state.speed = 41; road.state.braking = true; road.update(100);
