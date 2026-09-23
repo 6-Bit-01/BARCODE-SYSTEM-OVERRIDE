@@ -54,7 +54,8 @@ window.renderGame = function() {
   if (!renderContext && contextCreationAttempts < MAX_CONTEXT_ATTEMPTS) {
     contextCreationAttempts++;
     try {
-      renderContext = renderCanvas.getContext('2d');
+      renderContext = window.renderer?.canvas === renderCanvas && window.renderer.ctx ||
+        renderCanvas.getContext('2d');
       if (!renderContext) {
         console.error('Failed to get canvas context, attempt', contextCreationAttempts);
         contextCreationAttempts = MAX_CONTEXT_ATTEMPTS;
@@ -559,7 +560,9 @@ function drawPlayer(ctx) {
 
 // Reset render context cache for error recovery
 window.resetRenderContext = function() {
-  console.log('Resetting render context cache');
+  // Reacquiring on the same element cannot repair a thrown draw call, and
+  // guarded hosts may treat each getContext call as a new context attempt.
+  if (renderCanvas === document.getElementById('gameCanvas')) return;
   renderCanvas = null;
   renderContext = null;
   contextCreationAttempts = 0;

@@ -1,5 +1,11 @@
 # Recovery checkpoint — September 14
 
+## September 23, 2026 — PR #96 audio and canvas host correction
+
+- Cache Road, the Level 3 preview and difficulty selection reuse one game canvas context across frames. Renderer initialization shares that context, does not create a diagnostic canvas after failure, and attempts the optional CRT tile only once. Paused settings reuse their snapshot context. A draw exception no longer clears the same canvas cache and causes another context attempt next frame.
+- Load music with one GET, allowing an asset host to reject HEAD without substituting generated fallback audio. Keep the four owner MP3s, lane gains, aligned start, transport, saves and missed-exit behavior.
+- Add a real Chromium check: a server rejects HEAD, 600 guarded road frames draw with one main context request, all four shipped MP3s decode to 187.5 seconds, and the selected lane leaves zero gain. Makko delivery and audible playback still need owner review; draft #96's reported host run was a failure.
+
 ## September 23, 2026 — owner MP3 stems for the Cache chase
 
 - Convert the four aligned 187.5-second WAV exports to 160 kbps stereo MP3 (Bass, Drums, Harmony, FX). Replace the five generated 16-second WAVs and retire their generator. Four MP3s total about 15.0 MB versus 132.3 MB of the supplied WAVs.
