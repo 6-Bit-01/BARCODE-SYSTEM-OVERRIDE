@@ -1,5 +1,11 @@
 # Recovery checkpoint — September 14
 
+## September 23, 2026 — Broadcast Slum combat follow-up
+
+- Respond to the first playtest's easy/basic feedback: add two reachable roof nodes shielding the relays, threshold counter surges with warned street lanes and a marked roof shot for elevated players, bounded rear runners, distinct elevated gunners/patrol/pursuit, and temporary scatter pickups.
+- Add linked shield art, sparks, spawn/muzzle effects, clearer objective and pause guidance. Keep the code-native art provisional and the preview's save, music, Level 1 return and no-award boundaries.
+- Extend production regression for the climb, shield, scatter, surge, enemy behavior and old checkpoint; refresh six native review screens. See BROADCAST_SLUM_PROOF.md and the generated receipt for exact test/PR state.
+
 ## September 23, 2026 — Broadcast Slum playable proof
 
 - Add an integrated Level 3 development preview at the post-clear Cache Back handoff: run/jump/fire, patrol defenders, fixed warned volleys at phrase boundaries, two blocking relays and a clear uplink.

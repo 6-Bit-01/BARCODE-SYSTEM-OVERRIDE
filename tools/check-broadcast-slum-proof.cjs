@@ -66,7 +66,7 @@ async function run() {
   assert.equal(button.textContent, 'CONTINUE PROTOTYPE — C / Y');
   assert.equal(C.intermission, false);
   assert.equal(C.run, null, 'preview does not inherit the completed Level 1 run');
-  assert.equal(w.BARCODE.musicDirector.desiredState(), 'explore');
+  assert.equal(w.BARCODE.musicDirector.desiredState(), 'combat', 'an elevated gunner pressures the opening');
   load(context, 'src/core/action-input.js');
   load(context, 'src/core/input.js');
   const input = new w.InputManager();
@@ -85,8 +85,40 @@ async function run() {
   const x = s.player.x;
   proof.update(16);
   assert(s.player.x > x && !s.player.grounded && s.shots.length, 'movement, jump and fire are active together');
-  s.player.y = 798 - 76; s.player.vy = 0; s.player.x = 1300;
-  for (let i = 0; i < 5; i++) { s.shots.push({ x: 1640, y: 745, vx: 1020, life: 1000 }); proof.update(16); }
+  s.shots = []; s.player.y = 798 - 76; s.player.vy = 0; s.player.x = 1140;
+  const shieldedHp = s.relays[0];
+  s.shots.push({ x: 1640, y: 745, vx: 1020, life: 1000 }); proof.update(16);
+  assert.equal(s.relays[0], shieldedHp, 'street-level fire cannot bypass an intact roof node');
+  s.player.grounded = true;
+  proof.handleActions({ jump: { pressed: true } });
+  for (let i = 0; i < 40; i++) proof.update(16);
+  assert.equal(s.player.y, 675 - 76, 'the roof is reachable with the ordinary jump');
+  assert(s.player.scatterMs > 0 && !s.pickups[0].active, 'climbing collects the scatter chip');
+  s.shots = []; s.fireCooldownMs = 0;
+  proof.handleActions({ inspect: { held: true } });
+  assert.deepEqual(s.shots.map(shot => shot.vy), [-220, 0, 220], 'one familiar fire control produces a temporary fan');
+  s.shots = [];
+  for (let i = 0; i < 3; i++) { s.shots.push({ x: 1250, y: 638, vx: 1020, life: 1000 }); proof.update(16); }
+  assert.equal(s.nodes[0], 0, 'the roof node can be shot from the reachable platform');
+  for (let i = 0; i < 3; i++) { s.shots.push({ x: 1640, y: 745, vx: 1020, life: 1000 }); proof.update(16); }
+  assert.equal(s.relays[0], 2);
+  assert.equal(s.counter?.index, 0, 'sustained relay fire forces a counter surge');
+  assert.equal(s.counter.roofY, 675 - 76 + 34, 'the warning marks the occupied roof lane');
+  assert(s.enemies.some(enemy => enemy.reinforcement && enemy.spawnMs > 0), 'a runner telegraphs behind the player');
+  s.shots.push({ x: 1640, y: 745, vx: 1020, life: 1000 }); proof.update(16);
+  assert.equal(s.relays[0], 2, 'the core shields during its counter warning');
+  proof.update(1000); proof.update(50);
+  assert.equal(s.hostileShots.filter(shot => shot.volley).length, 2, 'the counter launches a two-lane volley');
+  const roofShot = s.hostileShots.find(shot => shot.roof);
+  assert(roofShot && roofShot.y === s.counter.roofY, 'roof camping draws a separate marked shot');
+  s.player.y = 798 - 76; s.player.vy = 0; s.player.grounded = true;
+  roofShot.x = s.player.x;
+  const dropHealth = s.player.health;
+  proof.update(16);
+  assert.equal(s.player.health, dropHealth, 'dropping below the marked roof shot is a valid response');
+  proof.update(400);
+  assert.equal(s.counter, null, 'the core reopens after the counter');
+  for (let i = 0; i < 2; i++) { s.shots.push({ x: 1640, y: 745, vx: 1020, life: 1000 }); proof.update(16); }
   assert.equal(s.relays[0], 0);
   assert.equal(archive.record.current.checkpointId, 'proof-relay');
   assert.deepEqual(copy(archive.record.progress.items), ['stem.voice'], 'preview leaves the earned Level 1 key intact');
@@ -96,12 +128,25 @@ async function run() {
   proof.dispose();
   assert(C.restore(saved));
   assert.equal(proof.state.relays[0], 0);
+  assert.equal(proof.state.nodes[0], 0, 'old preview checkpoints infer cleared nodes from cleared relays');
   assert.equal(proof.state.enemies[0].health, 0);
   assert.equal(w.gameState.running, true);
   const malicious = copy(saved); malicious.levelState.returnTo.levelState.run.runId = null;
   assert.equal(proof.validate(malicious), false, 'a malformed parent checkpoint cannot be embedded');
 
   proof.state.player.x = 3000;
+  proof.state.enemies.forEach(enemy => { enemy.health = 0; });
+  const gunner = proof.state.enemies[3], runner = proof.state.enemies[2];
+  gunner.health = 3; gunner.cooldownMs = 0;
+  proof.update(16);
+  assert(gunner.warningMs > 0, 'the elevated gunner telegraphs its aimed fire');
+  for (let i = 0; i < 48; i++) proof.update(16);
+  assert(proof.state.hostileShots.some(shot => !shot.volley && shot.vy !== 0), 'the gunner fires at player height');
+  runner.health = 3; runner.x = 3190; runner.direction = 1;
+  const runnerX = runner.x;
+  proof.update(16);
+  assert(runner.x < runnerX, 'the runner actively closes from the right');
+  proof.state.hostileShots = [];
   proof.state.enemies.forEach(enemy => { enemy.health = 0; });
   w.audioSystem.context.currentTime = 15.2 * 60 / 108;
   proof.update(16);
@@ -173,6 +218,6 @@ async function run() {
   assert.equal((await proof.enter()).ok, true);
   assert.equal(proof.state.relays[0], 0, 're-entering from Cache Back restores the last preview objective');
   assert.equal(archive.record.current.checkpointId, 'proof-relay');
-  console.log('Broadcast Slum: controls, two-stem profile, phrase volley, checkpoint reload, no awards and Level 1 return passed.');
+  console.log('Broadcast Slum: climb, shield, scatter, counter surge, varied AI, phrase dodge, checkpoint migration, no awards and Level 1 return passed.');
 }
 run().catch(error => { console.error(error); process.exitCode = 1; });

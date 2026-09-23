@@ -1,6 +1,10 @@
 # Current State
 
-## Current review — first new genre proof after merged #86
+## Current review — Broadcast Slum combat follow-up after merged #88
+
+The owner's first run worked but felt easy and basic. Base/rollback is merged #88, `b32a67831acc296c1cb1887ad579bbc04ac44cb1`; branch `agent/broadcast-slum-combat-pass`. Both relays now require reachable roof nodes before core fire. A threshold counter surge warns two street lanes, marks an additional roof shot when elevated, and telegraphs a runner behind; temporary scatter pickups, elevated aimed gunners, patrol and pursuing runners add distinct actions. Shield links, impacts and objective text explain the sequence. Preview save/audio boundaries remain, including old checkpoint restores and Level 1 return; Voice remains, with no Drums or Level 3 completion. See `BROADCAST_SLUM_PROOF.md`, newest ACCEPTANCE route and six native captures. Exact draft revision, checks and CI belong to the generated receipt. Owner Makko/controller/audio/feel acceptance remains pending. The first proof section below is history.
+
+## Historical review — first new genre proof after merged #86
 
 Merged base/rollback is #86, `50aae91fea5f63a876d75a97bd67f86a539a961f`. Branch `agent/broadcast-slum-proof` adds a playable, clearly provisional Level 3 run-and-gun preview from the Level 1 Cache Back intermission: responsive move/jump/fire, six warned defenders, two blocking relays with phrase-timed volleys, uplink clear, two objective checkpoints, title Continue, pause/Exit preview and a real return to the preserved Level 1 handoff. It uses independent generated temporary stems at 108 BPM; the previous Level 1 synchronization contract remains intact. Voice and earlier discoveries survive. No Level 3 completion, Drums key or future story scene is awarded. See `BROADCAST_SLUM_PROOF.md` and its four native images for exact review/limits. The Cache Line road proof and actual Level 2 song are next; old current-review headings below are historical.
 

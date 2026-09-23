@@ -1,5 +1,9 @@
 # Decision Register
 
+## September 23, 2026 — deepen the working Broadcast Slum proof
+
+The owner's first playtest of merged #88 says the preview works but is easy and basic. Keep its honest development-preview boundary while adding a small challenge loop: climb for a shield node, shoot the exposed relay, survive a warned counter surge and a runner from behind, then repeat with stronger resistance. Mark an additional shot at roof height if the player camps there; the two street lanes remain jumpable. Use a temporary scatter pickup and distinct gunners, patrol and runners to reward movement. This is encounter tuning, not an authorization to grant Drums, finish Level 3 story, finalize its art/song or skip The Cache Line as Level 2. Preserve prior saves and the proven Level 1 music/handoff. Hosted difficulty and feel remain an owner decision after the draft playtest.
+
 ## September 23, 2026 — proceed beyond Level 1
 
 The owner accepted the merged #86 Level 1 state and said to proceed with the first campaign expansion. Production order uses a short Broadcast Slum/Contra-style proof before the road proof, while the playable story order remains The Cache Line (Level 2) before Broadcast Slum (Level 3). The preview is a practice route from Cache Back's handoff and must leave completion/Drums facts untouched. Temporary generated music demonstrates distinct profile routing without treating 108 BPM or its stem design as final song canon. Later authored songs, road mechanics, finished Level 3 story, optional rewards and ending thresholds remain undecided. See BROADCAST_SLUM_PROOF.md.

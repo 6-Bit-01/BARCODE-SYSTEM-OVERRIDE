@@ -1,8 +1,8 @@
 # BARCODE: SYSTEM OVERRIDE — Source Pack v5
 
-## Current review — first playable genre proof
+## Current review — Broadcast Slum combat follow-up
 
-PR #86 is merged at `50aae91fea5f63a876d75a97bd67f86a539a961f`. The next draft, `agent/broadcast-slum-proof`, adds a clearly labeled Broadcast Slum run-and-gun preview from the Level 1 Cache Back handoff, with its own temporary music, two relay checkpoints, pause/exit/reload and no Level 3 award. The Cache Line is still next in story order. Start with `BROADCAST_SLUM_PROOF.md` and `review-broadcast-slum/`; exact test and publication state are in the generated receipt. Owner hosted Makko/audio/controller review remains pending.
+PR #88 is merged at `b32a67831acc296c1cb1887ad579bbc04ac44cb1`. The owner found its provisional Broadcast Slum run-and-gun preview functional but too easy and basic. Branch `agent/broadcast-slum-combat-pass` adds roof shield nodes, relay counter surges, distinct defenders and temporary scatter fire while preserving its two checkpoints, Level 1 return, temporary music and no Level 3 award. The Cache Line is still Level 2 in story order. Start with `BROADCAST_SLUM_PROOF.md`, the newest `ACCEPTANCE.md` route and six `review-broadcast-slum/` captures; exact test and publication state are in the generated receipt. Owner hosted Makko/audio/controller feel review remains pending.
 
 ## Latest correction — visible elevator roof riders
 

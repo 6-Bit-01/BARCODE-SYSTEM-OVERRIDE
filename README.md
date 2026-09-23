@@ -4,9 +4,9 @@ A BARCODE simulation built around seven distinct retro game genres and the origi
 
 ## Current state
 
-Read [CONTINUE_HERE.md](CONTINUE_HERE.md) for the current recovery checkpoint and exact next action. The saved model-art/HUD work is integrated on `agent/finish-model-art-hud`, based on merged #46. Twelve recovered animation clips, two city layers and the live HUD replace their previous runtime presentation. Boss walk/flourish and traffic keep their working originals where the final new exports were lost.
+Read [CURRENT_STATE.md](docs/source-pack/CURRENT_STATE.md) and [the acceptance route](docs/source-pack/ACCEPTANCE.md) for the active review. Level 1 and its Cache Back handoff are playable. A clearly labeled Broadcast Slum development preview starts from that handoff; the current combat follow-up adds roof shield nodes, counter surges, varied defenders and a temporary scatter pickup after the owner's first playtest of merged #88. The Cache Line remains Level 2 in story order.
 
-The corrected intro, controls, rhythm/hack rules, encounters, roofs/lift, Jammer/boss, Studio Cats and saved discoveries remain. Owner Makko acceptance is pending. Levels 2–7 and campaign routing remain planned.
+The preview grants no later campaign completion or Drums key. Its owner Makko/audio/controller feel review is pending. The Cache Line and later story routes remain planned.
 
 ## Runtime and checks
 
