@@ -94,6 +94,18 @@ window.gameLoop = function(timestamp) {
     scheduleNextGameplayFrame();
     return;
   }
+  // Campaign previews share this RAF and input owner, while their own adapter
+  // supplies the new genre's simulation and canvas scene.
+  if (window.BARCODE?.RunAndGunProof?.active) {
+    window.BARCODE?.PauseMenu?.sync();
+    window.inputManager?.update?.();
+    window.BARCODE.RunAndGunProof.update(cappedDelta);
+    window.BARCODE.RunAndGunProof.draw(document.getElementById('gameCanvas')?.getContext?.('2d'));
+    window.audioSystem?.updateLayers?.();
+    window.lastTime = timestamp;
+    scheduleNextGameplayFrame();
+    return;
+  }
   window.BARCODE?.PauseMenu?.sync();
   // Completion presentation advances through this same RAF even after gameplay
   // stops. Its owner ignores this delta outside the completed state.

@@ -31,7 +31,11 @@ window.InputManager = class InputManager {
       if (window.BARCODE?.Campaign?.intermission) {
         e.preventDefault();
         if (key === 'escape' && !e.repeat) window.BARCODE.Campaign.closeIntermission();
+        if (key === 'enter' && !e.repeat) window.BARCODE?.RunAndGunProof?.enter?.();
         return;
+      }
+      if (window.BARCODE?.RunAndGunProof?.active) {
+        if (window.BARCODE.RunAndGunProof.keyDown(e)) return;
       }
       if (key === 'c' && window.gameState?.victory) {
         e.preventDefault();
@@ -125,7 +129,19 @@ window.InputManager = class InputManager {
       if (window.hackingSystem?.isActive?.()) { e.preventDefault(); window.hackingSystem.pointerInput?.(e); }
     }, { passive: false });
     window.addEventListener('mousemove', (e) => { if (window.BARCODE?.PauseMenu?.pointer(e, 'move')) return; this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
-    window.addEventListener('mousedown', (e) => { if (window.BARCODE?.LevelDifficulty?.pointer(e) || window.BARCODE?.PauseMenu?.pointer(e, 'down')) return; this.mouse.pressed = true; this.mouse.clicked = true; });
+    window.addEventListener('mousedown', (e) => {
+      if (window.BARCODE?.Campaign?.intermission) {
+        const rect = document.getElementById('gameCanvas')?.getBoundingClientRect?.();
+        if (rect?.width && rect?.height) {
+          const x = (e.clientX - rect.left) * 1920 / rect.width;
+          const y = (e.clientY - rect.top) * 1080 / rect.height;
+          if (x >= 575 && x <= 1345 && y >= 762 && y <= 819) window.BARCODE?.RunAndGunProof?.enter?.();
+        }
+        return;
+      }
+      if (window.BARCODE?.LevelDifficulty?.pointer(e) || window.BARCODE?.PauseMenu?.pointer(e, 'down')) return;
+      this.mouse.pressed = true; this.mouse.clicked = true;
+    });
     window.addEventListener('mouseup', (e) => { window.BARCODE?.PauseMenu?.pointer(e, 'up'); this.mouse.pressed = false; });
     window.addEventListener('gamepadconnected', (e) => { this.gamepad = e.gamepad; });
     window.addEventListener('gamepaddisconnected', () => { this.gamepad = null; });
@@ -240,6 +256,7 @@ window.InputManager = class InputManager {
     if (owner === 'results') {
       if (BARCODE?.Campaign?.intermission) {
         if (p.b1) BARCODE.Campaign.closeIntermission();
+        else if (p.b0) BARCODE?.RunAndGunProof?.enter?.();
         return true;
       }
       if (window.gameState?.victory && window.sector1Progression?.areCompletionControlsReady?.() === false) return true;
@@ -250,6 +267,11 @@ window.InputManager = class InputManager {
         else BARCODE.RuntimeLifecycle?.restart({ source: 'controller-result' });
       } else if (p.b2) BARCODE.RuntimeLifecycle?.restart({ source: 'controller-result' });
       if (p.b0 || p.b2) this.resetActionEdges();
+      return true;
+    }
+    if (BARCODE?.RunAndGunProof?.active && BARCODE.RunAndGunProof.status !== 'playing') {
+      if (p.b0) BARCODE.RunAndGunProof.retry();
+      else if (p.b3) BARCODE.RunAndGunProof.exit();
       return true;
     }
     // Playable crew training keeps the same jump/hold action as the street.
@@ -272,6 +294,10 @@ window.InputManager = class InputManager {
 
   routeActions(actions, options = {}) {
     if (actions.pause.pressed && window.BARCODE && window.BARCODE.RuntimeLifecycle) window.BARCODE.RuntimeLifecycle.togglePause();
+    if (window.BARCODE?.RunAndGunProof?.active) {
+      if (!options.inputOnly && !window.isPaused) window.BARCODE.RunAndGunProof.handleActions(actions);
+      return;
+    }
     const progressionSuppressesGameplay = !!(window.sector1Progression && window.sector1Progression.isGameplaySuppressed && window.sector1Progression.isGameplaySuppressed());
     if (!progressionSuppressesGameplay && actions.rhythm_mode && actions.rhythm_mode.pressed && window.rhythmSystem && !(window.hackingSystem && window.hackingSystem.isActive && window.hackingSystem.isActive())) {
       if (window.rhythmSystem.isActive && window.rhythmSystem.isActive()) {

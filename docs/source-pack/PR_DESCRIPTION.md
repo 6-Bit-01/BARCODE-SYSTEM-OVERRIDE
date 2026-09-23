@@ -1,12 +1,9 @@
-# Keep tutorial and hack panels clear of play; draw lift front rails over passengers
+# Broadcast Slum: first playable run-and-gun proof
 
-The tutorial's bottom task panel hides street enemies when the player jumps onto rooftops. The hack terminal also covers targets on its fixed right side, and the elevator's complete image behind passengers makes them overlap its front rails.
+This draft builds a short, clearly labeled Level 3 genre preview from the saved Level 1 Cache Back handoff. The Cache Line remains Level 2 in the story. The preview gives us a working new-level boundary to playtest without changing story unlocks or Level 1 combat/music.
 
-- Use one compact tutorial task card that avoids actors. Hide large dialogue during movement, jumps and Rhythm Combat, preserving unread text, Continue ownership and closing time.
-- Extend clear placement and preserved reading time to lore and inspection; make objectives and transient prompts yield to active reading.
-- Position the hack terminal/result using projected target, player and other enemy bounds. Use a short six-column keypad when the side layout would hide action. Keep clear placement steady, compact only when needed, and align keypad/Cancel pointer regions with the actual panel.
-- Split the existing elevator image into rear and front draw regions so passengers sit behind front rails. Preserve rooftop and below-floor depth, one actor draw and existing movement/collision/power rules.
+- Move, jump and hold fire against six warned defenders; disable two blocking relays and reach the uplink. The active relay warns across the final two beats of each 16-beat phrase, then sends two jumpable lanes. A visible fallback notice appears if the host does not load the provisional stems correctly.
+- Enter by keyboard, controller or pointer; pause, change settings and Exit preview to return to the original handoff and Level 1 music. Relay clears save objective checkpoints, including title Continue Prototype and failure retry. Clearing is practice only: no Drums key, Level 3 completion or later story scene.
+- Use two locally generated, synchronized 108 BPM temporary stems with their own music profile. The Level 1 sources, 146 BPM judgment and restart timing stay intact. The existing input, RAF, audio, pause and campaign save owners remain in charge.
 
-Validation: required full local suite and all-JavaScript syntax; targeted production checks cover hidden tutorial state, 24 camera/zoom/target cases with moved pointer controls, and lift draw ordering/support. Sixteen inspected native stills use existing bundled art. Exact revision, CI and limits are recorded in the source receipt.
-
-Base/rollback: merged #77, `78f67f4750a2d12f8a2063c895d06d5b9952d700`. No dependencies or image replacements. Owner Makko and physical-controller acceptance remain pending before assistant merge.
+Base/rollback: merged #86, `50aae91fea5f63a876d75a97bd67f86a539a961f`. See `BROADCAST_SLUM_PROOF.md`, the top of `ACCEPTANCE.md` and `review-broadcast-slum/` for the test route and native screen captures. The source pack receipt identifies the exact committed head and checks. Hosted Makko audio loading, physical controller input and combat feel remain to be reviewed by the owner; keep this draft unmerged until that acceptance.

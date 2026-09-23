@@ -98,23 +98,29 @@ window.FILE_MANIFEST.push({ name: 'src/game/campaign-services.js', exports: ['BA
       }
       return this.result;
     },
-    readResume() {
-      const current = this.archive().record.current, s = current?.levelState;
-      if (!current || !this.adapters.has(current.levelId) || !stages.includes(current.checkpointId) || !s || !s.run) return null;
+    validateLevel01Checkpoint(current) {
+      const s = current?.levelState;
+      if (!current || current.levelId !== 'level-01' || !stages.includes(current.checkpointId) || !s || !s.run) return false;
       if (!['relaxed', 'standard', 'overclocked'].includes(s.difficultyId) || s.run.levelId !== current.levelId ||
-          typeof s.run.runId !== 'string' || s.run.runId.length > 100 || !Number.isFinite(s.playerX) || s.playerX < 0 || s.playerX > 4096) return null;
-      if (!Array.isArray(s.fragments) || !Array.isArray(s.skyCaches) || !['health','score','bestCombo','ampCharges'].every(k => Number.isFinite(s[k]) && s[k] >= 0 && s[k] <= 1e10)) return null;
+          typeof s.run.runId !== 'string' || s.run.runId.length > 100 || !Number.isFinite(s.playerX) || s.playerX < 0 || s.playerX > 4096) return false;
+      if (!Array.isArray(s.fragments) || !Array.isArray(s.skyCaches) || !['health','score','bestCombo','ampCharges'].every(k => Number.isFinite(s[k]) && s[k] >= 0 && s[k] <= 1e10)) return false;
       if (!['elapsedMs', 'damageTaken', 'retries', 'attempts', 'accurate', 'perfect', 'connected', 'connectedPerfect'].every(k =>
-        Number.isFinite(s.run[k]) && s.run[k] >= 0 && s.run[k] <= 1e10)) return null;
+        Number.isFinite(s.run[k]) && s.run[k] >= 0 && s.run[k] <= 1e10)) return false;
       if (['boss','intermission'].includes(current.checkpointId) && (!s.boss || !Number.isFinite(s.boss.bossX) || s.boss.bossX < 0 || s.boss.bossX > 4096 ||
-          !Number.isFinite(s.boss.playerX) || s.boss.playerX < 0 || s.boss.playerX > 4096 || !Number.isFinite(s.boss.score) || !Array.isArray(s.boss.skyCaches))) return null;
-      if (current.checkpointId === 'intermission' && (!s.result || !Number.isFinite(s.result.score))) return null;
-      if(s.run.recoveryMode!==undefined && !['checkpoints','full-run'].includes(s.run.recoveryMode))return null;
+          !Number.isFinite(s.boss.playerX) || s.boss.playerX < 0 || s.boss.playerX > 4096 || !Number.isFinite(s.boss.score) || !Array.isArray(s.boss.skyCaches))) return false;
+      if (current.checkpointId === 'intermission' && (!s.result || !Number.isFinite(s.result.score))) return false;
+      if(s.run.recoveryMode!==undefined && !['checkpoints','full-run'].includes(s.run.recoveryMode))return false;
+      return true;
+    },
+    readResume() {
+      const current = this.archive().record.current, adapter = this.adapters.get(current?.levelId);
+      if (!adapter || !(current.levelId === 'level-01' ? this.validateLevel01Checkpoint(current) : adapter.validate?.(current))) return null;
       return clone(current);
     },
     syncTitleButton() {
       const button = document.getElementById('continueButton');
-      if (button) { button.hidden = !this.readResume(); button.disabled = false; }
+      if (button) { const saved = this.readResume(); button.hidden = !saved; button.disabled = false;
+        button.textContent = saved?.levelId === 'level-03' ? 'CONTINUE PROTOTYPE — C / Y' : 'CONTINUE SAVED — C / Y'; }
     },
     async continueSaved() {
       const saved = this.readResume(); if (!saved) return { ok: false, reason: 'no-checkpoint' };
@@ -124,7 +130,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/campaign-services.js', exports: ['BA
       const adapter = this.adapters.get(saved?.levelId); if (!adapter) return false;
       this.restoring = true;
       try {
-        this.deathHandled=false;this.run = clone(saved.levelState.run);this.run.recoveryMode ||= 'checkpoints'; this.result = saved.levelState.result ? clone(saved.levelState.result) : null;
+        this.deathHandled=false;this.run = saved.levelId === 'level-01' ? clone(saved.levelState.run) : null;
+        if (this.run) this.run.recoveryMode ||= 'checkpoints';
+        this.result = saved.levelId === 'level-01' && saved.levelState.result ? clone(saved.levelState.result) : null;
         this.contactSequence = null; this.intermission = saved.checkpointId === 'intermission';
         return adapter.restore(saved);
       } finally { this.restoring = false; }
@@ -145,10 +153,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/campaign-services.js', exports: ['BA
       ctx.font = '22px Oxanium, monospace';
       ctx.fillText('Stem Key: Voice added to your campaign.', 960, 568);
       ctx.fillStyle = '#9eafb9'; ctx.fillText('NEXT CHANNEL: THE CACHE LINE', 960, 657);
-      ctx.fillText('Your progress is saved. The next playable sector is coming.', 960, 703);
-      if (this.archive().status !== 'ready') { ctx.fillStyle = '#ffb16e'; ctx.fillText('Save unavailable — keep this session open to retain progress.', 960, 754); }
+      ctx.fillText('The Cache Line is next in the story. Preview the later blockade below.', 960, 703);
+      if (this.archive().status !== 'ready') { ctx.fillStyle = '#ffb16e'; ctx.fillText('Save unavailable — keep this session open to retain progress.', 960, 740); }
+      ctx.fillStyle = '#163e42'; ctx.fillRect(575, 762, 770, 57);
+      ctx.strokeStyle = '#92ffdc'; ctx.strokeRect(575, 762, 770, 57);
       ctx.fillStyle = '#92ffdc'; ctx.font = '20px Oxanium, monospace';
-      ctx.fillText(B.GamepadUI?.connected ? `${B.ControllerSettings?.button(1) || 'B'} — Back to results` : 'ESC — Back to results', 960, 820);
+      ctx.fillText(B.GamepadUI?.connected ? `${B.ControllerSettings?.button(0) || 'A'} — Preview Broadcast Slum` : 'ENTER / CLICK — Preview Broadcast Slum', 960, 799);
+      ctx.fillText(B.GamepadUI?.connected ? `${B.ControllerSettings?.button(1) || 'B'} — Back to results` : 'ESC — Back to results', 960, 836);
       ctx.restore();
     }
   };

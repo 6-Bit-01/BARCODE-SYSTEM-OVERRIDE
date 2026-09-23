@@ -1,5 +1,12 @@
 # Recovery checkpoint — September 14
 
+## September 23, 2026 — Broadcast Slum playable proof
+
+- Add an integrated Level 3 development preview at the post-clear Cache Back handoff: run/jump/fire, patrol defenders, fixed warned volleys at phrase boundaries, two blocking relays and a clear uplink.
+- Save each cleared relay in the existing envelope, allow title Continue Prototype, use the existing pause/settings menu with Exit preview, and restore the original Level 1 result/handoff and audio profile on exit. The preview grants no level/key/result facts.
+- Add two locally generated, independent four-bar 108 BPM placeholder stems/profile and visible audio-fallback notice. Retain the exact protected Level 1 timing and assets.
+- Add production module/lifecycle/music-profile regression, four native scene captures and focused Makko review instructions. See BROADCAST_SLUM_PROOF.md; exact test/CI/PR state belongs to the generated receipt.
+
 ## September 17, 2026 — Hack and Rhythm Mode presence
 
 Add a cold hack scene, entry surge, palm/uplink field and dedicated approved-frame gesture with one-hit guard deflection. Apply the existing focus clock to ambient particles and traffic movement/spawning; slow the decoded skyline and restore on exit. Add rhythm floor waves/equalizer fins, beat edge color and connected-perfect shockwaves. Introduce five cached SFX under existing mute/lifecycle/voice protection. Let the hack music treatment take priority while hacking during a boss fight. Preserve synchronization, terminal readability and gameplay tuning. Add production clock/gesture/accessibility/SFX regressions, real Chromium audio/video checks and native motion/stills. See MODE_POWER_PASS.md.
