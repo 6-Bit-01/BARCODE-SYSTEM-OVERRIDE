@@ -1,5 +1,7 @@
 # Broadcast Slum architecture proof — transmitter encounter, September 23, 2026
 
+**Later owner review:** PR #91 merged this technical preview into `main`, then the owner rejected its gameplay and boss feel as the campaign direction. `CAMPAIGN_REDESIGN.md` now plans Mac Modem's Level 3 as a Streets of Rage-style beat 'em up. The encounter and proposed story labels below are historical proof material, not accepted stage design or final canon. The proof still grants no Drums or Level 3 campaign clear.
+
 Base/rollback: merged PR #90, `568c646a3f67cf4ebca4faebd81752534c67ee6f`. Review branch: `agent/broadcast-slum-boss-pass`. The owner's second playtest found the working preview far too easy and visually basic. This pass tests whether Level 1's shared input, RAF, audio, pause, save, and return architecture can support a more demanding run-and-gun encounter. It is **one contained architecture preview**, not a finished Level 3 or a substitute for The Cache Line, which remains Level 2 in story order.
 
 ## Current encounter and story boundary
@@ -17,7 +19,7 @@ From Cache Back, enter the preview and press Shift+F1 or click DEV 3. **Go Trans
 
 `npm test`, `npm run check:syntax:all`, and eleven native Canvas captures in `review-broadcast-slum/` cover the shared adapter, five defense behaviors, directional armor, boss weak points, shutter timing, three warned attacks, phase shift, boss reload, old-save migration, no campaign awards and Level 1 audio return. Native rendering verifies code paths and presentation layout; hosted Makko feel, actual audio and physical-controller behavior still need the owner to play the exact draft head.
 
-In a duplicate Makko preview, use DEV 3 to reach the transmitter and play it without Complete Preview. Break the high feed from the roof, low feed from the street, then counterfire after its attacks. Try each warning by dodging and by deliberately staying in the marked danger. Restart once at `proof-boss`, pause during a warning, exit and resume to verify Level 1 audio/Voice. Then test the shield and airborne enemy on the preceding route. Report where the challenge still feels trivial, unfair or too visually plain; that review informs the later authored level and art pass. The preview remains unmerged until that owner acceptance.
+Historical playtest route: in a duplicate Makko preview, use DEV 3 to reach the transmitter and play it without Complete Preview. Break the high feed from the roof, low feed from the street, then counterfire after its attacks. Try each warning by dodging and by deliberately staying in the marked danger. Restart once at `proof-boss`, pause during a warning, exit and resume to verify Level 1 audio/Voice. Then test the shield and airborne enemy on the preceding route. The owner has since rejected this encounter's gameplay feel for the campaign; retain the route for technical regression only.
 
 ---
 

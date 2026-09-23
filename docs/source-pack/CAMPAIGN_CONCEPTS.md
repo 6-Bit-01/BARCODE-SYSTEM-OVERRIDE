@@ -1,22 +1,24 @@
 # Campaign and Finale Concepts
 
-Current expansion: `CAMPAIGN_STORY_MAP.md` develops this working framework into the whole-story treatment requested after PR #37, with causal transitions, all 28 lore purposes and setup/payoff tracking. `CONTINUATION_PLAN.md` supplies implementation order. Exact new scenes and unresolved canon remain working proposals.
+**September 23 revision:** `CAMPAIGN_REDESIGN.md` is the active story/genre authority. Historical detail later in this file about a Contra Level 3, puzzle Level 4, Mac-led DOOM Level 6 or RPG finale is superseded.
+
+Current expansion: `CAMPAIGN_REDESIGN.md` gives the selected order and revised story; `CAMPAIGN_SCENE_BEATS.md` sketches transitions and 9 Bit intrusions. `CAMPAIGN_STORY_MAP.md` preserves the pre-redesign treatment and implemented Level 1 lore purposes. `CONTINUATION_PLAN.md` retains historical implementation evidence. Exact new scenes and unresolved canon remain working proposals.
 
 ## The playable identity
 
 BARCODE: SYSTEM OVERRIDE behaves like a damaged multi-game cartridge transmitted through BARCODE Network. Seven sectors inside the simulation load different old-game rules. Short corrupted public-access transitions, familiar crew voices, visual motifs and musical phrases make the changes feel intentional. Only the original four are playable throughout.
 
-The owner approved this direction on September 11. The following map is a working production proposal; exact titles, order, lead assignments and candidate boss names are not final approvals.
+The September 23 owner correction selects the order, solo/all-four allocation and genre directions below. Exact titles, later mechanics and boss identities remain working proposals. The three implemented Level 1 lore records and runtime are unchanged.
 
 | Level | Working title / lead | Mechanical direction | Musical relationship | Lore pieces |
 |---|---|---|---|---|
 | 1 | Dead Air District / 6 Bit | Current platforming and rhythm combat | Judged attacks, readable selected enemy patterns | 3 |
 | 2 | The Cache Line / Cache Back | Rad Racer-style pseudo-3D racing | Sections shape traffic, boosts and major set pieces; steering stays immediate | 4 |
-| 3 | Broadcast Slum / 6 Bit | Contra-style run-and-gun | Volleys/encounter pacing follow phrases; ordinary movement/fire remain available | 5 |
-| 4 | Buffer Underflow / DJ Floppydisc | Tetris or Dr. Mario; linked-pair patching recommended | Clears restore layers; cascades reshape the arrangement | 4 |
-| 5 | Signal Preserve / original four | Pokémon-style exploration, collection and compact party battles | Collect musical/program Samples that equip the four; arrangement changes with actions | 5 |
-| 6 | Firewall Cathedral / Mac Modem, crew assists | DOOM-style first-person action | Threat and attack cues fit this song; navigation/fire stay responsive | 4 |
-| 7 | Negative Space / original four | First-person RPG exploration, preparation and 9 Bit confrontation | Separately composed Full Mix, recovered tools and crew motifs converge | 3 |
+| 3 | Broadcast Slum / Mac Modem | Streets of Rage-style beat 'em up | Music shapes set pieces without gating ordinary brawling | 5 |
+| 4 | Working title / DJ Floppydisc | Super Smash TV-style top-down arena action | DJ manipulates channels/arrangement; aiming and fire stay immediate | 4 |
+| 5 | Signal Preserve / original four under Sheila | Pokémon-inspired forgotten competition/flashback-nightmare | Party actions can change arrangement; four are mindless husks in the recovered event | 5 |
+| 6 | Working title / original four | First-person RPG investigation and preparation | Independent song supports exploration/party actions, not Level 1 timing defaults | 4 |
+| 7 | Working title / original four | DOOM-style first-person core assault and 9 Bit confrontation | Separately composed Full Mix and crew motifs converge | 3 |
 
 Prior packs suggested Program Director, Tollkeeper, EULA-88, Memory Leak, Curator and Root Daemon as candidate bosses. These are optional drafting handles, not approved identities. The first implementation uses the existing Level 1 boss presentation without naming its final canon identity.
 
@@ -39,8 +41,8 @@ The latest owner correction removes W3T TDDY. The six guaranteed keys and the cr
 
 ## Finale structure
 
-A central preparation hub can branch into optional archive, transit, armory, rollback, memory and admin spaces. Mandatory scenes provide everything needed to understand the confrontation; optional wings enrich it. The player can return to earlier content before a clear point of no return. The final pre-boss save remains loadable.
+A first-person RPG preparation chapter in Level 6 can branch into optional archive, transit, armory, rollback, memory and admin spaces. Mandatory scenes provide everything needed to understand the DOOM-style Level 7 confrontation; optional wings enrich it. The player can return to earlier content before a clear point of no return. The final pre-boss save remains loadable.
 
-Working 9 Bit phases may echo reflection/decoys, short callbacks to earlier genres, and a final close confrontation. Balance a winning route with zero optional modules; modules give advantages. Exact phases, emotional-trait symbolism, dialogue, combat cadence and resolution need dedicated design and owner review before canon text/art production.
+Working 9 Bit phases may echo reflection/decoys, short callbacks to earlier genres, and a final close confrontation in the Level 7 core assault. Balance a winning route with zero optional modules; modules give advantages. His unexpected saved-title, game-over and result/end-screen intrusions are selected direction. Exact phases, motive, emotional-trait symbolism, dialogue, combat cadence and resolution need dedicated design and owner review before canon text/art production.
 
 Previous ending labels—Static Burial, Ejected Echo, The Broadcast Returns—remain candidates. Reintegration, contained separation, quarantine or another outcome remain open. Do not equate difficult emotions with evil or imply that compassion requires accepting harm; 9 Bit's harmful actions still matter.

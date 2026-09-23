@@ -1,5 +1,11 @@
 # Decision Register
 
+## September 23, 2026 — revised seven-level order, forgotten competition and 9 Bit
+
+The owner selected four solo lead levels followed by three all-four levels: L1 6 Bit/platformer-rhythm; L2 Cache Back/Rad Racer; L3 Mac Modem/Streets of Rage beat 'em up; L4 DJ Floppydisc/Super Smash TV top-down arena; L5 all four/Pokémon-inspired; L6 all four/first-person RPG; L7 all four/DOOM-style climax. This supersedes the old L3 Contra, L4 puzzle, L6 Mac/DOOM and L7 RPG production assignments, but does not undo shipped Level 1 or the six keys/28 lore IDs. The temporary Contra preview merged in PR #91 but remains an architectural experiment; the owner rejected its gameplay and boss as the campaign direction. Do not treat it as the full stage.
+
+L5 is a forgotten competition uncovered after L4, with a flashback/nightmare treatment under development. Sheila is Pokémaster, using the original four as mindless husks; none remembers it. Corporate Satan is Gym Leader with humans, AI and entities in balls; other trainers and battles lead to him. Sheila defeats him with player help and **does not** take his place. She is morally compromised, not a good guide. The full active community roster should receive intentional appearances, including LostMarbles, Mr. Nice Guy, Shadowspit and Hellcat. Earlier excluded identities stay excluded absent an explicit reversal. 9 Bit is a surprising fourth-wall ghost who can address the player on a title screen with a saved game, game-over screens and game-end/results screens, sometimes trying to discourage Start. Maintain real input/save/result truth. Exact simulation purpose/creator, who separated 9 Bit, Sheila's knowledge, his motive and final outcomes remain open; `CAMPAIGN_REDESIGN.md` is the working story/cutscene treatment.
+
 ## September 23, 2026 — deepen the working Broadcast Slum proof
 
 The owner's first playtest of merged #88 says the preview works but is easy and basic. Keep its honest development-preview boundary while adding a small challenge loop: climb for a shield node, shoot the exposed relay, survive a warned counter surge and a runner from behind, then repeat with stronger resistance. Mark an additional shot at roof height if the player camps there; the two street lanes remain jumpable. Use a temporary scatter pickup and distinct gunners, patrol and runners to reward movement. This is encounter tuning, not an authorization to grant Drums, finish Level 3 story, finalize its art/song or skip The Cache Line as Level 2. Preserve prior saves and the proven Level 1 music/handoff. Hosted difficulty and feel remain an owner decision after the draft playtest.
@@ -288,7 +294,7 @@ Statuses: **LOCKED** = explicit retained requirement; **APPROVED DIRECTION** = S
 | D-002 | LOCKED | Only 6 Bit, DJ Floppydisc, Cache Back and Mac Modem playable. Guests are cameos/support. |
 | D-003 | LOCKED | Takes place in a simulation. 9 Bit is formed from the negative parts separated from 6 Bit. |
 | D-004 | UPDATED BY D-041 | Preserve current prologue/art as the live baseline; latest owner direction reopens selective intro/story design and prototype review. No incidental 9 Bit insertion. *Observer Not Found* stays separate. |
-| D-005 | LOCKED | Required later homages: Rad Racer, Contra, Tetris/Dr. Mario, Pokémon and DOOM. First-person RPG finale confronts 9 Bit and uses prior-level finds. |
+| D-005 | SUPERSEDED SEPTEMBER 23 | Earlier genre order/homages. New active order is recorded above and in `CAMPAIGN_REDESIGN.md`; Contra/Tetris/Dr. Mario can survive only as optional references, not required playable stages. |
 | D-006 | LOCKED | Level 1 movement: left/right, opposing directions cancel, single jump; no dash/slide/double jump/Down fast-fall. |
 | D-007 | LOCKED | Active tutorial owns Space. H/R retain tutorial locks; background music/rhythm timing continues with R hidden or inactive. |
 | D-008 | LOCKED | R is actual Rhythm Combat Mode; Down damage requires successful rhythm judgment. Passive landing stomp stays lethal against ordinary enemies. |
@@ -301,12 +307,12 @@ Statuses: **LOCKED** = explicit retained requirement; **APPROVED DIRECTION** = S
 | D-015 | APPROVED DIRECTION | Finish Level 1 now: learnable boss patterns, quick fair retry, victory and a real completion endpoint. |
 | D-016 | APPROVED DIRECTION | Reconcile documentation/tests; strengthen encounter teaching, feedback/readability, selected musical telegraphs and Jammer escalation. Implement in focused passes. |
 | D-017 | APPROVED DIRECTION | Small campaign adapter and versioned persistent progress before full new genres; prove independent-song mixer behavior. |
-| D-018 | APPROVED DIRECTION | First expansion prototype is Contra-style because side-view code can be reused. Production order need not equal campaign order. Prove road/first-person rendering before large asset orders. |
+| D-018 | HISTORICAL PROOF; GAMEPLAY REJECTED | The Contra-style first expansion proved shared Level 1 architecture. The owner rejected its gameplay and boss; future stage design is Mac's beat 'em up after the Cache road stage. Prove new genre controls/renderer before large art orders. |
 | D-019 | APPROVED DIRECTION | Compact stages, corrupted public-access transitions, shared crew/motifs and independent music connect the genre shifts. |
 | D-020 | APPROVED DIRECTION | Collect musical/program Samples that equip the original four in the Pokémon-inspired stage. Keep creature/content count compact. |
 | D-021 | APPROVED DIRECTION | Guaranteed six Stem Keys, optional Signature Modules, and a separately composed Full Mix arrangement provide finale progression/payoff. Exact item names/effects remain tunable. |
 | D-022 | APPROVED DIRECTION | Regularly rebuild/update this source ZIP at milestones and merges with actual SHA/PR/test status. |
-| D-023 | OPEN | Final shipping titles, exact later order/lead assignments, Dr. Mario versus Tetris rules and L2–L6 boss identities. Use the recorded map as a working plan. |
+| D-023 | PARTLY RESOLVED SEPTEMBER 23 | The seven-level order, lead allocation and genre direction are selected above. Titles, exact stage mechanics, later boss identities, simulation/ending canon and community scene details still require design. The main puzzle branch is retired. |
 | D-024 | OPEN | Level 1 boss's final identity/name; current existing sprite is an implementation basis, not approval of “Program Director,” “City Scrambler” or 9 Bit. |
 | D-025 | OPEN | Later tracks and verified music metadata; final art/animation requests follow prototypes. |
 | D-026 | OPEN | Simulation creator, full 9 Bit reveal/dialogue/trait list, exact ending thresholds, outcomes and presentation; collection affects the result under the latest owner direction. |

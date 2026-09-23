@@ -1,5 +1,7 @@
 # Project Instructions
 
+**Latest campaign direction — September 23, 2026:** The owner superseded the earlier genre order and rejected the Level 3 Contra draft's feel. Read `CAMPAIGN_REDESIGN.md` and the newest `DECISION_REGISTER.md` before using historical requirements below. The new solos are 6 Bit/platformer, Cache/Rad Racer, Mac/Streets of Rage and DJ/Super Smash TV; the final three use all four: Sheila's forgotten Pokémon-inspired competition, first-person RPG verification and DOOM finale. Sheila used the four as mindless husks, none remembers it, and she does not take Corporate Satan's place. 9 Bit can unexpectedly address the player on saved-title, game-over and result screens. Maintain actual input/save/result behavior and prior Level 1 implementation; exact later scenes and endings are unimplemented. The old required Contra/puzzle main levels and Mac/DOOM-before-RPG finale clauses are superseded.
+
 ## September 16, 2026 — elevator roof visibility; tutorial flow review
 
 Base/rollback: merged #73, `8fc2f8ea838d1dc901b97c7b7c93581459451ddf`. Branch: `agent/elevator-roof-depth`. The owner reports enemies hidden behind the elevator deck. The physical foot plane is already correct; draw roof enemies after the cabin, including airborne transitions, while preserving existing below-roof depth and one draw per actor. No collision or platform changes. See `ELEVATOR_ROOF_DEPTH_FIX.md` and its four native artwork previews. The four-circle bonk restriction, moving support, pancakes, controls, victory protection and twelve-second allies remain.

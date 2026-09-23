@@ -1,5 +1,7 @@
 # Full campaign story map — working treatment
 
+**Superseded later-level map.** Read `CAMPAIGN_REDESIGN.md` for the owner's September 23 revised seven-level order, Sheila's forgotten competition, 9 Bit's player-aware intrusions and current cutscene direction. This document preserves the earlier treatment and the three implemented Level 1 lore purposes as history; its Levels 3–7 assignments, puzzle branch, cameo placements and later 25 lore purposes no longer direct production.
+
 **Owner terminology correction after merged #44:** Studio Rats are cats; the term is studio slang, never a literal rodent species. The current Level 1 asset is a tuxedo cat. Interpret all later sightings and recurring physical gags below as feline behavior. Keep the existing discovery IDs and collaborator roster.
 
 ## Authority and purpose

@@ -1,5 +1,9 @@
 # BARCODE: SYSTEM OVERRIDE — Source Pack v5
 
+## September 23 campaign redesign — current story handoff
+
+Read `CAMPAIGN_REDESIGN.md` and `CAMPAIGN_SCENE_BEATS.md` first for the owner's newly selected level order, Sheila's forgotten competition and 9 Bit's player-aware presence. The older `CAMPAIGN_STORY_MAP.md` and historical review sections below predate that correction. PR #91's transmitter preview merged after #90, but the owner rejected its gameplay/boss feel as a campaign direction. The merged preview/debug route is a technical test, not Mac's planned Level 3, and grants no Drums or Level 3 completion. This source-pack documentation revision does not add gameplay, scenes, songs or a new approved ending.
+
 ## Current review — Broadcast Slum combat and debug access
 
 PR #89 is merged at `c0d061407378831ae90fcac49985a29c3c5ea037` (base/rollback). Its Broadcast Slum combat pass added roof shield nodes, counter surges, varied defenders and temporary scatter after the first proof felt easy and basic. Branch `agent/level3-debug-menu` adds testing controls. The Cache Line is still Level 2 in story order. Start with `BROADCAST_SLUM_PROOF.md`, the newest `ACCEPTANCE.md` route and seven `review-broadcast-slum/` captures; exact test and publication state are in the generated receipt. Owner hosted Makko/audio/controller feel review remains pending.
@@ -29,8 +33,8 @@ This pack replaces conflicting instructions in v2–v4. It preserves the later a
 ## Start here
 
 1. `PROJECT_INSTRUCTIONS.md` — authority and working rules.
-2. `BROADCAST_SLUM_PROOF.md` — current playable review and Makko route; `CONTINUATION_PLAN.md` — all campaign stages and source evidence.
-3. `CAMPAIGN_STORY_MAP.md` — whole-story treatment, 28 record purposes and setup/payoff map.
+2. `CAMPAIGN_REDESIGN.md` and `CAMPAIGN_SCENE_BEATS.md` — latest seven-level order, story/scene direction and 9 Bit presentation; `CONTINUATION_PLAN.md` — historical implementation stages.
+3. `CAMPAIGN_STORY_MAP.md` — superseded treatment retained for Level 1 and historical reveal/collectible context; `BROADCAST_SLUM_PROOF.md` — earlier technical preview evidence.
 4. `EASTER_EGGS_AND_CAMEOS.md` and `ASSET_AND_PLATFORM_PLAN.md` — corrected cast, inspiration bank, assets and platforms.
 5. `DECISION_REGISTER.md`, `CURRENT_STATE.md` and `ACCEPTANCE.md` — decisions, implementation and verification limits.
 6. `ROADMAP.md`, `CAMPAIGN_CONCEPTS.md`, `LORE_AND_CAST.md`, `MUSIC_AND_ART.md` — production and retained boundaries.
