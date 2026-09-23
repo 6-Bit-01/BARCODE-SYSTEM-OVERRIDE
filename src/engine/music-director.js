@@ -12,6 +12,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/music-director.js', exports: ['BAR
       this.variation = 0; this.volumes = {}; this.pendingAccent = null; this.lastAccentBeat = -Infinity;
       this.comboMilestone = 0; this.graph = null; this.audio = null; this.enabled = null; this.turnaround = false;
       this.laneCandidate = null; this.laneCandidateSince = null;
+      this.laneVotes = [0, 0, 0, 0]; this.lastLaneTime = null;
     }
     accent(kind) {
       if (['hack', 'boss', 'clear', 'combo'].includes(kind)) this.pendingAccent = kind;
@@ -84,29 +85,48 @@ window.FILE_MANIFEST.push({ name: 'src/engine/music-director.js', exports: ['BAR
       const sample = B.MusicTransport?.sample?.(audio.context.currentTime);
       const road = B.CacheRoadProof;
       const requested = road?.mixSnapshot?.();
-      if (!requested || !road.active) return true;
-      this.pending = requested;
-      this.state = requested;
+      if (!requested || !road.active || !sample?.running || !sample.grid) return true;
       const mix = profile.laneMix;
-      const position = clamp(Number.isFinite(requested.lanePos) ? requested.lanePos : requested.lane, 0, 3);
-      const locked = new Set(requested.locked || []);
-      const left = Math.floor(position), right = Math.min(3, left + 1);
-      const laneWeights = mix.laneRoles.map((_, index) =>
-        requested.finalMix || locked.has(index) ? 1 :
-          index === left ? 1 - (position - left) : index === right ? position - left : 0);
-      for (const source of profile.arrangement.sources) {
-        const role = source.mixRole;
-        const accents = mix.laneAccents.map(lane => lane[role] || 0);
-        // Keep a real musical foundation at every road position. Locks carry
-        // an accent into other lanes, but duplicate accents never pile up.
-        const boost = Math.min(Math.max(...accents),
-          accents.reduce((sum, accent, index) => sum + accent * laneWeights[index], 0));
-        const volume = mix.baseGains[role] + boost;
-        this.volumes[source.sourceId] = volume;
-        const track = audio.musicTracks[source.sourceId];
-        if (track?.isPlaying && track.gain && Math.abs((track.volume ?? -1) - volume) > 0.005)
-          audio.rampAdaptiveStemGain(track, volume, mix.transitionSec);
+      const bar = sample.grid.barIndex;
+      const phrase = Math.floor(bar / mix.barsPerPhrase);
+      const lane = clamp(Math.round(requested.lane), 0, 3);
+      const votes = this.laneVotes;
+      // The lane driven during a strip chooses the following strip. Neither
+      // steering nor releasing a lock can change an already playing phrase.
+      if (this.lastPhrase !== phrase) {
+        const winning = Math.max(...votes);
+        const chosenLane = winning > 0 ? votes.indexOf(winning) : lane;
+        const chosen = mix.laneRoles[chosenLane];
+        const inIntro = bar < 4;
+        const verseBar = (bar - 4) % 24;
+        const half = inIntro ? 'intro' : verseBar < 8 ? 'verseA' : verseBar < 16 ? 'verseB' : 'chorus';
+        const available = half === 'intro' ? ['drive'] :
+          half === 'verseA' ? ['drive', 'flow'] :
+            ['drive', 'flow', 'breakaway', 'undercurrent'];
+        const colour = available.includes(chosen) && chosen !== 'drive' ? chosen :
+          half === 'chorus' ? 'undercurrent' : 'flow';
+        const roles = new Set([mix.backboneRole, 'drive']);
+        if (!inIntro) roles.add(colour);
+        for (const index of requested.locked || []) {
+          const role = mix.laneRoles[index];
+          if (available.includes(role)) roles.add(role);
+        }
+        this.state = { phrase, bar, half, chosen, roles: [...roles] };
+        this.lastPhrase = phrase;
+        this.laneVotes = [0, 0, 0, 0];
+        for (const source of profile.arrangement.sources) {
+          const volume = roles.has(source.mixRole) ? mix.levels[source.mixRole] : 0;
+          this.volumes[source.sourceId] = volume;
+          const track = audio.musicTracks[source.sourceId];
+          if (track?.isPlaying && track.gain && Math.abs((track.volume ?? -1) - volume) > 0.005)
+            audio.rampAdaptiveStemGain(track, volume, mix.transitionSec);
+        }
       }
+      const elapsed = this.lastLaneTime == null || this.generation !== sample.generation ? 0 :
+        clamp(sample.trackTimeSec - this.lastLaneTime, 0, 0.25);
+      this.laneVotes[lane] += elapsed;
+      this.lastLaneTime = sample.trackTimeSec;
+      this.pending = { lane: mix.laneRoles[lane], locked: [...(requested.locked || [])] };
       this.generation = sample?.generation;
       this.lastBeat = sample?.grid?.beatIndex ?? null;
       this.enabled = true; // Lane arrangement is the road's core interaction.

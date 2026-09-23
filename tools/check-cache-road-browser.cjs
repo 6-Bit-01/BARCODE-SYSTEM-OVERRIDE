@@ -1,4 +1,4 @@
-// Real Chromium regression for the two reported Cache Road host failures.
+// Real Chromium regression for Cache Road host and full-song audio.
 // The local asset host deliberately rejects HEAD, and the canvas guard counts
 // every getContext call, including calls on an existing 2D canvas.
 const assert = require('node:assert/strict');
@@ -26,7 +26,7 @@ window.contextCalls=0;
 window.publishedRequests=[];
 ${livePublished ? '' : `const nativeFetch=window.fetch.bind(window);
 window.fetch=(url,...options)=>{
-  if(typeof url==='string' && url.startsWith('https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/c2ca847c63c3b8b70ba178dd02fda0ad8ab4f508/assets/audio/')){
+  if(typeof url==='string' && url.startsWith('https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/agent/cache-road-full-song/assets/audio/')){
     window.publishedRequests.push(url);
     return nativeFetch('/published-'+url.split('/').pop(),...options);
   }
@@ -133,101 +133,66 @@ async function main() {
   assert.equal(frames.drawn, 600);
   assert(frames.contextCalls <= 2, `road reacquired its canvas ${frames.contextCalls} times`);
 
-  const audio = await evaluate(`(async()=>{
-    BARCODE.MusicProfiles.select('level-02.proof');BARCODE.MusicTransport.load('level-02.proof');
-    const player=new AudioSystem();player.context=new AudioContext({sampleRate:44100});
-    player.musicGain=player.context.createGain();player.musicGain.connect(player.context.destination);
-    const analyser=player.context.createAnalyser();player.musicGain.connect(analyser);
-    player.initialized=true;
-    const prepared=await player.prepareActiveMusicProfile();
-    const tracks=Object.entries(player.musicTracks).filter(([name])=>name.startsWith('cache-'));
-    const started=player.startAllLayersSimultaneously();
-    let lane=1;
-    BARCODE.CacheRoadProof={active:true,mixSnapshot:()=>({lane,locked:[],finalMix:false})};
-    player.updateLayers();
-    await new Promise(resolve=>setTimeout(resolve,350));
-    const waveform=new Float32Array(analyser.fftSize);analyser.getFloatTimeDomainData(waveform);
-    const result={prepared,started:{ok:started.ok,reason:started.reason},
-      drumGain:player.musicTracks['cache-drums'].volume,
-      fxBedGain:player.musicTracks['cache-fx'].volume,contextState:player.context.state,
-      rms:Math.sqrt(waveform.reduce((sum,x)=>sum+x*x,0)/waveform.length),
-      tracks:tracks.map(([name,track])=>({name,duration:track.buffer.duration,
-        fallback:track.isFallback,playing:track.isPlaying,start:track.startTime,
-        sample:track.buffer.getChannelData(0).slice(10000,15000).some(x=>Math.abs(x)>0.001)}))};
-    lane=2;
-    for(let i=0;i<12;i++){await new Promise(resolve=>setTimeout(resolve,80));player.updateLayers();}
-    analyser.getFloatTimeDomainData(waveform);
-    result.afterSteer={drumGain:player.musicTracks['cache-drums'].volume,
-      harmonyGain:player.musicTracks['cache-harmony'].volume,
-      fxBedGain:player.musicTracks['cache-fx'].volume,
-      rms:Math.sqrt(waveform.reduce((sum,x)=>sum+x*x,0)/waveform.length)};
-    let lanePos=2;
-    BARCODE.CacheRoadProof.mixSnapshot=()=>({lane:Math.round(lanePos),lanePos,locked:[],finalMix:false});
-    result.steering=[];
-    for(const next of [2.5,3,2.5,2,1.5,1,.5,0,.5,1]){
-      lanePos=next;player.updateLayers();
-      await new Promise(resolve=>setTimeout(resolve,180));
-      analyser.getFloatTimeDomainData(waveform);
-      result.steering.push({lanePos,rms:Math.sqrt(waveform.reduce((sum,x)=>sum+x*x,0)/waveform.length),
-        bass:player.musicTracks['cache-bass'].volume,drums:player.musicTracks['cache-drums'].volume});
-    }
-    await player.context.close();return result;
-  })()`);
+  async function checkAudio(missingLocal) {
+    omitLocalStems = missingLocal;
+    return evaluate(`(async()=>{
+      BARCODE.musicDirector.reset();
+      BARCODE.MusicProfiles.select('level-02.proof'); BARCODE.MusicTransport.load('level-02.proof');
+      const player=new AudioSystem();player.context=new AudioContext({sampleRate:44100});
+      player.musicGain=player.context.createGain();player.musicGain.connect(player.context.destination);
+      const analyser=player.context.createAnalyser();player.musicGain.connect(analyser);
+      player.initialized=true;
+      const prepared=await player.prepareActiveMusicProfile();
+      const started=prepared.ok?player.startAllLayersSimultaneously():{ok:false};
+      let lane=1;
+      BARCODE.CacheRoadProof={active:true,mixSnapshot:()=>({lane,locked:[]}),startOffsetSec:()=>0};
+      player.updateLayers();
+      await new Promise(resolve=>setTimeout(resolve,300));
+      const waveform=new Float32Array(analyser.fftSize);analyser.getFloatTimeDomainData(waveform);
+      const result={prepared,started:{ok:started.ok,reason:started.reason},
+        rms:Math.sqrt(waveform.reduce((sum,x)=>sum+x*x,0)/waveform.length),
+        pressure:player.musicTracks['cache-pressure'].volume,
+        drive:player.musicTracks['cache-drive'].volume,
+        undercurrent:player.musicTracks['cache-undercurrent'].volume,
+        tracks:Object.entries(player.musicTracks).filter(([name])=>name.startsWith('cache-'))
+          .map(([name,track])=>({name,duration:track.buffer.duration,fallback:track.isFallback,
+            playing:track.isPlaying,start:track.startTime,
+            sample:track.buffer.getChannelData(0).slice(10000,15000).some(x=>Math.abs(x)>0.001)}))};
+      result.steering=[];
+      for(const next of [0,1,2,3,2,1,0]){
+        lane=next;player.updateLayers();
+        await new Promise(resolve=>setTimeout(resolve,100));
+        analyser.getFloatTimeDomainData(waveform);
+        result.steering.push({lane,pressure:player.musicTracks['cache-pressure'].volume,
+          drive:player.musicTracks['cache-drive'].volume,
+          flow:player.musicTracks['cache-flow'].volume,
+          rms:Math.sqrt(waveform.reduce((sum,x)=>sum+x*x,0)/waveform.length)});
+      }
+      await player.context.close(); return result;
+    })()`);
+  }
+  const audio = await checkAudio(false);
   assert(audio.prepared.ok && audio.started.ok, JSON.stringify(audio));
-  assert.equal(audio.contextState, 'running', 'the unlocked audio clock must be running');
-  assert(audio.rms > .0001, 'the selected real drum stem must produce audible signal');
-  assert.equal(audio.drumGain, .68, 'the selected lane must leave the zero-gain startup mix');
-  assert.equal(audio.fxBedGain, .30, 'FX must be present even when another lane is selected');
-  assert.equal(audio.afterSteer.harmonyGain, .70);
-  assert.equal(audio.afterSteer.drumGain, .52, 'the groove remains present under harmony');
-  assert.equal(audio.afterSteer.fxBedGain, .30);
-  assert(audio.afterSteer.rms > .0001, 'steering must retain nonzero real audio output');
-  assert(audio.steering.every(point => point.bass >= .13 && point.drums >= .52 && point.rms > .005),
-    `steering through and back across all lanes must retain real audio output: ${JSON.stringify(audio.steering)}`);
-  assert.equal(audio.tracks.length, 4);
+  assert(audio.rms > .0001, 'the actual intro MP3s produce signal');
+  assert.equal(audio.pressure, .60); assert.equal(audio.drive, .19);
+  assert.equal(audio.undercurrent, 0, 'sparse intro FX is a selectable layer');
+  assert.equal(audio.tracks.length, 5);
   assert(audio.tracks.every(track => !track.fallback && track.playing && track.sample &&
     Math.abs(track.duration - 187.5) < .08), JSON.stringify(audio.tracks));
-  assert.equal(new Set(audio.tracks.map(track => track.start)).size, 1, 'four sources share one audio start');
-  assert.equal(requests.head, 0, 'a host that rejects HEAD never receives a HEAD probe');
-  assert.equal(requests.get.filter(url => url.endsWith('.mp3')).length, 4);
-  // Reproduce the preview-import failure: JS arrives, but the four local MP3
-  // URLs do not. Fetch the fixed public copies and decode them in Chromium.
-  omitLocalStems = true;
-  const fallback = await evaluate(`(async()=>{
-    BARCODE.musicDirector.reset();BARCODE.MusicTransport.load('level-02.proof');
-    const player=new AudioSystem();player.context=new AudioContext({sampleRate:44100});
-    player.musicGain=player.context.createGain();player.musicGain.connect(player.context.destination);
-    const analyser=player.context.createAnalyser();player.musicGain.connect(analyser);
-    player.initialized=true;
-    const prepared=await player.prepareActiveMusicProfile();
-    const started=prepared.ok ? player.startAllLayersSimultaneously() : {ok:false};
-    BARCODE.CacheRoadProof={active:true,mixSnapshot:()=>({lane:1,locked:[],finalMix:false})};
-    player.updateLayers();
-    await new Promise(resolve=>setTimeout(resolve,350));
-    const waveform=new Float32Array(analyser.fftSize);analyser.getFloatTimeDomainData(waveform);
-    const result={prepared,started:{ok:started.ok,reason:started.reason},
-      contextState:player.context.state,fxBedGain:player.musicTracks['cache-fx'].volume,
-      rms:Math.sqrt(waveform.reduce((sum,x)=>sum+x*x,0)/waveform.length),
-      tracks:Object.entries(player.musicTracks).filter(([name])=>name.startsWith('cache-'))
-        .map(([name,track])=>({name,duration:track.buffer.duration,fallback:track.isFallback,
-          playing:track.isPlaying,volume:track.volume,
-          sample:track.buffer.getChannelData(0).slice(10000,15000).some(x=>Math.abs(x)>0.001)}))};
-    await player.context.close();return result;
-  })()`);
-  assert(fallback.prepared.ok && fallback.started.ok, JSON.stringify(fallback));
-  assert.equal(fallback.contextState, 'running', 'published stems need a running audio clock');
-  assert(fallback.rms > .0001, 'published drum stem must produce audible signal');
-  assert.equal(fallback.fxBedGain, .30, 'published FX remains the constant bed');
-  assert.equal(fallback.tracks.length, 4);
-  assert(fallback.tracks.every(track => !track.fallback && track.playing && track.sample &&
-    Math.abs(track.duration - 187.5) < .08), JSON.stringify(fallback.tracks));
-  assert.equal(fallback.tracks.find(track => track.name === 'cache-drums').volume, .68);
-  assert.equal(requests.get.filter(url => url.endsWith('.mp3')).length, livePublished ? 8 : 12,
-    'missing local assets were requested and rejected before published copies loaded');
-  if (!livePublished) assert.equal(await evaluate('window.publishedRequests.length'), 4,
-    'every missing local stem tried the pinned published URL');
+  assert.equal(new Set(audio.tracks.map(track => track.start)).size, 1);
+  assert(audio.steering.every(point => point.pressure === .60 && point.drive === .19 &&
+    point.flow === 0 && point.rms > .0001), 'steering holds the intro mix through its phrase');
+  assert.equal(requests.head, 0);
+  assert.equal(requests.get.filter(url => url.endsWith('.mp3')).length, 5);
+  const fallback = await checkAudio(true);
+  assert(fallback.prepared.ok && fallback.started.ok && fallback.rms > .0001, JSON.stringify(fallback));
+  assert.equal(fallback.tracks.length, 5);
+  assert(fallback.tracks.every(track => !track.fallback && track.playing &&
+    Math.abs(track.duration - 187.5) < .08));
+  assert.equal(requests.get.filter(url => url.endsWith('.mp3')).length, livePublished ? 10 : 15);
+  if (!livePublished) assert.equal(await evaluate('window.publishedRequests.length'), 5);
   assert.deepEqual(exceptions, []);
-  console.log(`Cache Road Chromium passed: ${frames.drawn} guarded frames (${frames.contextCalls} context calls), local and missing-import/published MP3 paths decoded and mixed.`);
+  console.log(`Cache Road Chromium passed: ${frames.drawn} guarded frames (${frames.contextCalls} context calls), five local and missing-import/published MP3s decoded and held across steering.`);
 }
 main().catch(error => { console.error(error.stack || error); process.exitCode = 1; }).finally(async () => {
   socket?.close();

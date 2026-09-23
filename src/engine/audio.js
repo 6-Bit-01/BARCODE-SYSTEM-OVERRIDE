@@ -2341,6 +2341,8 @@ window.AudioSystem = class AudioSystem {
     }
 
     const syncTime = this.context.currentTime + 0.01;
+    const sourceOffset = profile.profileId === 'level-02.proof' ?
+      Math.min(187.49, Math.max(0, window.BARCODE?.CacheRoadProof?.startOffsetSec?.() || 0)) : 0;
     console.log('Creating perfectly synchronized layers...');
     console.log(`Sync time: ${syncTime}`);
 
@@ -2368,7 +2370,7 @@ window.AudioSystem = class AudioSystem {
       layerGain.gain.value = sourceInfo.gain;
       source.connect(layerGain);
       layerGain.connect(this.musicGain);
-      source.start(syncTime, sourceInfo.offsetSec || 0);
+      source.start(syncTime, sourceOffset + (sourceInfo.offsetSec || 0));
       track.source = source;
       track.startTime = syncTime;
       track.gain = layerGain;
@@ -2383,7 +2385,8 @@ window.AudioSystem = class AudioSystem {
       return this.musicStartState;
     }
 
-    const transportResult = transport.start({ sourceAnchorAudioSec: syncTime, sourceOffsetTrackSec: profile.playback.startTrackSec || 0 });
+    const transportResult = transport.start({ sourceAnchorAudioSec: syncTime,
+      sourceOffsetTrackSec: sourceOffset + (profile.playback.startTrackSec || 0) });
     if (!transportResult || transportResult.status !== 'ok' || transportResult.running !== true) {
       console.error(`[audio-startup] MusicTransport failed to start for ${profile.profileId}: ${transportResult && transportResult.reason || 'not-running'}`);
       usableSources.forEach(sourceInfo => {
