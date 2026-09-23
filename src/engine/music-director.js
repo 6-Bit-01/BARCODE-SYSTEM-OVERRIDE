@@ -82,32 +82,23 @@ window.FILE_MANIFEST.push({ name: 'src/engine/music-director.js', exports: ['BAR
       this.audio = audio;
       if (window.isPaused || window.gameState?.paused) return true;
       const sample = B.MusicTransport?.sample?.(audio.context.currentTime);
-      const grid = sample?.running ? sample.grid : null;
-      const changedGeneration = this.generation !== sample?.generation;
-      const changedBeat = !!grid && this.lastBeat !== grid.beatIndex;
       const road = B.CacheRoadProof;
       const requested = road?.mixSnapshot?.();
       if (!requested || !road.active) return true;
-      const now = audio.context.currentTime;
-      if (requested.lane !== this.laneCandidate) {
-        this.laneCandidate = requested.lane;
-        this.laneCandidateSince = now;
-      }
-      // Short crossings do not audition every intermediate lane. A settled
-      // destination and locks join on the beat; sources never seek or restart.
       this.pending = requested;
-      if (!this.state || changedGeneration || !grid) this.state = requested;
-      else if (changedBeat) this.state = { ...requested,
-        lane: now - this.laneCandidateSince >= profile.laneMix.settleSec
-          ? requested.lane : this.state.lane };
+      this.state = requested;
       const mix = profile.laneMix;
-      const audible = new Set(this.state.finalMix ? [0, 1, 2, 3]
-        : [this.state.lane, ...this.state.locked]);
+      const position = clamp(Number.isFinite(requested.lanePos) ? requested.lanePos : requested.lane, 0, 3);
+      const locked = new Set(requested.locked);
       for (const source of profile.arrangement.sources) {
         const index = mix.laneRoles.indexOf(source.mixRole);
+        // A lane is strongest at its center and remains present across the
+        // neighboring lane. Locks retain full strength independently.
+        const proximity = index < 0 ? 0 : Math.max(0, 1 - Math.abs(position - index) / mix.blendWidth);
+        const presence = requested.finalMix || locked.has(index) ? 1 : proximity;
         const volume = Math.max(source.mixRole === mix.bedRole ? mix.bedGain : 0,
           source.mixRole === mix.grooveRole ? mix.grooveGain : 0,
-          index >= 0 && audible.has(index) ? mix.laneGains[index] : 0);
+          index >= 0 ? mix.laneGains[index] * presence : 0);
         this.volumes[source.sourceId] = volume;
         const track = audio.musicTracks[source.sourceId];
         if (track?.isPlaying && track.gain && Math.abs((track.volume ?? -1) - volume) > 0.005)
@@ -115,7 +106,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/music-director.js', exports: ['BAR
             volume > (track.volume ?? 0) ? mix.fadeInSec : mix.fadeOutSec);
       }
       this.generation = sample?.generation;
-      this.lastBeat = grid?.beatIndex ?? null;
+      this.lastBeat = sample?.grid?.beatIndex ?? null;
       this.enabled = true; // Lane arrangement is the road's core interaction.
       return true;
     }

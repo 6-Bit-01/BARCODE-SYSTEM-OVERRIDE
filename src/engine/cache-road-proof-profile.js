@@ -22,7 +22,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/cache-road-proof-profile.js', expo
     laneMix: { laneRoles: ['bass', 'drums', 'harmony', 'fx'],
       laneGains: [0.24, 0.62, 0.56, 0.64], bedRole: 'fx', bedGain: 0.27,
       grooveRole: 'drums', grooveGain: 0.10,
-      fadeInSec: 0.28, fadeOutSec: 0.82, settleSec: 0.12 },
+      blendWidth: 1.25, fadeInSec: 0.28, fadeOutSec: 0.82, settleSec: 0.12 },
     playback: { startTrackSec: 0, loop: null, endPolicy: 'native-loop' },
     timeline: { mode: 'fixed-tempo', gridOriginTrackSec: 0,
       fixedGrid: { quarterBpm: 128, beatsPerBar: 4, beatUnit: 4 } },

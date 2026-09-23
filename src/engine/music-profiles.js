@@ -115,6 +115,8 @@ window.BARCODE = window.BARCODE || {};
       if (!Array.isArray(mix.laneGains) || mix.laneGains.length !== 4 ||
           mix.laneGains.some(gain => !finiteNonnegative(gain) || gain > 0.8))
         return invalid('lane mix gains invalid');
+      if (!finiteNumber(mix.blendWidth) || mix.blendWidth < 1 || mix.blendWidth > 2)
+        return invalid('lane mix blend width invalid');
       if (!finiteNumber(mix.fadeInSec) || mix.fadeInSec <= 0 || mix.fadeInSec > 2 ||
           !finiteNumber(mix.fadeOutSec) || mix.fadeOutSec < mix.fadeInSec || mix.fadeOutSec > 3 ||
           !finiteNonnegative(mix.settleSec) || mix.settleSec > 0.5)

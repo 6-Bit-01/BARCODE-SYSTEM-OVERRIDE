@@ -268,7 +268,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     },
     mixSnapshot() {
       if (!this.active || !this.state) return null;
-      return { lane: this.state.lane, locked: [...this.state.locked],
+      return { lane: this.state.lane, lanePos: this.state.lanePos, locked: [...this.state.locked],
         finalMix: false };
     },
     lockCurrent() {

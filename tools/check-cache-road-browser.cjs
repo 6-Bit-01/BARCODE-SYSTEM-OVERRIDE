@@ -169,7 +169,7 @@ async function main() {
   assert.equal(audio.drumGain, .62, 'the selected lane must leave the zero-gain startup mix');
   assert.equal(audio.fxBedGain, .27, 'FX must be present even when another lane is selected');
   assert.equal(audio.afterSteer.harmonyGain, .56);
-  assert.equal(audio.afterSteer.drumGain, .10, 'the drum groove stays under the harmony lane');
+  assert(Math.abs(audio.afterSteer.drumGain - .124) < .0001, 'the neighboring drum lane overlaps under harmony');
   assert.equal(audio.afterSteer.fxBedGain, .27);
   assert(audio.afterSteer.rms > .0001, 'steering must retain nonzero real audio output');
   assert.equal(audio.tracks.length, 4);
