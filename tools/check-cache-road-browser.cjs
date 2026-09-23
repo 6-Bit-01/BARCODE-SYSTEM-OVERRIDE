@@ -161,17 +161,29 @@ async function main() {
       harmonyGain:player.musicTracks['cache-harmony'].volume,
       fxBedGain:player.musicTracks['cache-fx'].volume,
       rms:Math.sqrt(waveform.reduce((sum,x)=>sum+x*x,0)/waveform.length)};
+    let lanePos=2;
+    BARCODE.CacheRoadProof.mixSnapshot=()=>({lane:Math.round(lanePos),lanePos,locked:[],finalMix:false});
+    result.steering=[];
+    for(const next of [2.5,3,2.5,2,1.5,1,.5,0,.5,1]){
+      lanePos=next;player.updateLayers();
+      await new Promise(resolve=>setTimeout(resolve,180));
+      analyser.getFloatTimeDomainData(waveform);
+      result.steering.push({lanePos,rms:Math.sqrt(waveform.reduce((sum,x)=>sum+x*x,0)/waveform.length),
+        bass:player.musicTracks['cache-bass'].volume,drums:player.musicTracks['cache-drums'].volume});
+    }
     await player.context.close();return result;
   })()`);
   assert(audio.prepared.ok && audio.started.ok, JSON.stringify(audio));
   assert.equal(audio.contextState, 'running', 'the unlocked audio clock must be running');
   assert(audio.rms > .0001, 'the selected real drum stem must produce audible signal');
-  assert.equal(audio.drumGain, .62, 'the selected lane must leave the zero-gain startup mix');
-  assert.equal(audio.fxBedGain, .27, 'FX must be present even when another lane is selected');
-  assert.equal(audio.afterSteer.harmonyGain, .56);
-  assert(Math.abs(audio.afterSteer.drumGain - .124) < .0001, 'the neighboring drum lane overlaps under harmony');
-  assert.equal(audio.afterSteer.fxBedGain, .27);
+  assert.equal(audio.drumGain, .68, 'the selected lane must leave the zero-gain startup mix');
+  assert.equal(audio.fxBedGain, .30, 'FX must be present even when another lane is selected');
+  assert.equal(audio.afterSteer.harmonyGain, .70);
+  assert.equal(audio.afterSteer.drumGain, .52, 'the groove remains present under harmony');
+  assert.equal(audio.afterSteer.fxBedGain, .30);
   assert(audio.afterSteer.rms > .0001, 'steering must retain nonzero real audio output');
+  assert(audio.steering.every(point => point.bass >= .13 && point.drums >= .52 && point.rms > .005),
+    `steering through and back across all lanes must retain real audio output: ${JSON.stringify(audio.steering)}`);
   assert.equal(audio.tracks.length, 4);
   assert(audio.tracks.every(track => !track.fallback && track.playing && track.sample &&
     Math.abs(track.duration - 187.5) < .08), JSON.stringify(audio.tracks));
@@ -205,11 +217,11 @@ async function main() {
   assert(fallback.prepared.ok && fallback.started.ok, JSON.stringify(fallback));
   assert.equal(fallback.contextState, 'running', 'published stems need a running audio clock');
   assert(fallback.rms > .0001, 'published drum stem must produce audible signal');
-  assert.equal(fallback.fxBedGain, .27, 'published FX remains the constant bed');
+  assert.equal(fallback.fxBedGain, .30, 'published FX remains the constant bed');
   assert.equal(fallback.tracks.length, 4);
   assert(fallback.tracks.every(track => !track.fallback && track.playing && track.sample &&
     Math.abs(track.duration - 187.5) < .08), JSON.stringify(fallback.tracks));
-  assert.equal(fallback.tracks.find(track => track.name === 'cache-drums').volume, .62);
+  assert.equal(fallback.tracks.find(track => track.name === 'cache-drums').volume, .68);
   assert.equal(requests.get.filter(url => url.endsWith('.mp3')).length, livePublished ? 8 : 12,
     'missing local assets were requested and rejected before published copies loaded');
   if (!livePublished) assert.equal(await evaluate('window.publishedRequests.length'), 4,

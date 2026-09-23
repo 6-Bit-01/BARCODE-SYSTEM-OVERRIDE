@@ -1,5 +1,11 @@
 # Recovery checkpoint — September 14
 
+## September 23, 2026 — Cache Road steady arrangement after PR #100
+
+- Replace near-solo lane fades with a continuous Bass/Drums foundation, quiet Harmony/FX presence and four distinct accents. Lane four combines Harmony and FX until its own aligned instrumental exists; no new audio is fabricated.
+- Blend adjacent accents by car position; earned locks retain them. Limit shared Harmony accents to one maximum, and use a short 0.14-second ramp instead of repeatedly scheduling a 0.82-second outgoing release.
+- Update production and Chromium checks for all-lane steering, real output and lock behavior. Offline stem-level comparison shows far less variation across lane positions; owner Makko listening remains pending.
+
 ## September 23, 2026 — FX bed and smoother Cache Road lane changes
 
 - Keep the owner FX MP3 at a quiet gain under every lane and a faint beat from the existing Drums stem where FX is sparse. Lane four currently brings FX forward; the upcoming Harmony/instrumental part and bonus vocal are not in this build.
