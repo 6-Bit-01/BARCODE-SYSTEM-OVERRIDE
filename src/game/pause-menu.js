@@ -53,7 +53,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
     ? rows.map(([key, label]) => key === 'crew' ? ['exitPreview', 'Exit preview'] : [key, label]) : rows;
   const rowTop = 331, rowStep = 38;
   const menu = BARCODE.PauseMenu = {
-    open: false, dirty: false, focus: 0, drag: null, heldKeys: new Set(), snapshot: null, resumePending: false, message: '',
+    open: false, dirty: false, focus: 0, drag: null, heldKeys: new Set(), snapshot: null, snapshotContext: null, resumePending: false, message: '',
     captureAction: null, captureReady: false, controllerFocus: 0,
     view: 'settings', archiveFocus: 0, archiveIndex: 0, timingFocus: 0,
     titleOpen: false, titleCanvas: null, fullscreenPending: false,
@@ -99,9 +99,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
         this.focus = rows.findIndex(row => row[0] === 'resume');
         const canvas = this.titleOpen ? null : document.getElementById('gameCanvas');
         if (canvas && document.createElement) {
-          this.snapshot ||= document.createElement('canvas');
+          if (!this.snapshot) {
+            this.snapshot = document.createElement('canvas');
+            this.snapshotContext = this.snapshot.getContext('2d');
+          }
           this.snapshot.width = canvas.width; this.snapshot.height = canvas.height;
-          this.snapshot.getContext('2d')?.drawImage(canvas, 0, 0);
+          this.snapshotContext?.drawImage(canvas, 0, 0);
         }
       }
     },
@@ -263,7 +266,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
     render() {
       this.sync();
       if (!this.open || !this.dirty) return;
-      const canvas = this.canvas(), ctx = this.titleOpen ? this.titleContext : canvas?.getContext('2d');
+      const canvas = this.canvas(), ctx = this.titleOpen ? this.titleContext :
+        window.renderer?.canvas === canvas && window.renderer.ctx || canvas?.getContext('2d');
       if (!ctx) return;
       ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
       if (this.snapshot && !this.titleOpen) ctx.drawImage(this.snapshot, 0, 0); else { ctx.fillStyle = '#081321'; ctx.fillRect(0, 0, 1920, 1080); }

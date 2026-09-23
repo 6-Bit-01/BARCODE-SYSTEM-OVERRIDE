@@ -2165,32 +2165,23 @@ window.AudioSystem = class AudioSystem {
   
   // Helper method for fetching individual music tracks
   async fetchMusicTrack(name, url) {
-    // Try to load the remote track with proper error handling
-    const response = await fetch(url, { method: 'HEAD' });
-    
-    if (response.ok) {
-      // If HEAD request succeeds, do a full GET for actual data
-      const fullResponse = await fetch(url);
-      const arrayBuffer = await fullResponse.arrayBuffer();
-      
-      const audioBuffer = await this.context.decodeAudioData(arrayBuffer);
-      
-      this.musicTracks[name] = {
-        buffer: audioBuffer,
-        source: null,
-        startTime: 0,
-        pauseTime: 0,
-        isPlaying: false,
-        volume: 1.0,
-        gain: null,
-        isFallback: false
-      };
-      
-      console.log(`✓ Loaded music track: ${name}`);
-    } else {
-      // HEAD request failed - throw error to trigger fallback
-      throw new Error(`Remote track ${name} not available (HTTP ${response.status})`);
-    }
+    // Imported asset hosts may serve GET while rejecting HEAD. One GET also
+    // avoids doubling requests for the four full-length road stems.
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Music track ${name} unavailable (HTTP ${response.status})`);
+    const arrayBuffer = await response.arrayBuffer();
+    const audioBuffer = await this.context.decodeAudioData(arrayBuffer);
+    this.musicTracks[name] = {
+      buffer: audioBuffer,
+      source: null,
+      startTime: 0,
+      pauseTime: 0,
+      isPlaying: false,
+      volume: 1.0,
+      gain: null,
+      isFallback: false
+    };
+    console.log(`✓ Loaded music track: ${name}`);
   }
   
   // Create synthetic fallback music for missing files

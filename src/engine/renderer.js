@@ -7,26 +7,18 @@ window.FILE_MANIFEST.push({
 });
 
 window.Renderer = class Renderer {
-  constructor(canvas) {
+  constructor(canvas, context = null) {
     if (!canvas) {
       throw new Error('Canvas is required for Renderer');
     }
     
     this.canvas = canvas;
     
-    // Only get context once and cache it with enhanced error handling
+    // Initialization already acquired the context. Do not probe with another
+    // canvas when a guarded host refuses this one.
     try {
-      this.ctx = canvas.getContext('2d');
-      if (!this.ctx) {
-        // Check if browser might be hitting context limits
-        const testCanvas = document.createElement('canvas');
-        const testContext = testCanvas.getContext('2d');
-        if (!testContext) {
-          throw new Error('Browser has reached canvas context limit - please refresh the page');
-        } else {
-          throw new Error('Failed to get 2D context from canvas - canvas may be corrupted');
-        }
-      }
+      this.ctx = context || canvas.getContext('2d');
+      if (!this.ctx) throw new Error('Failed to get 2D context from game canvas');
     } catch (error) {
       console.error('Renderer context creation failed:', error?.message || error?.toString() || 'Unknown error');
       throw new Error(`Failed to initialize renderer: ${error.message}`);
@@ -41,6 +33,7 @@ window.Renderer = class Renderer {
     // CRT effect properties
     this.scanlineOffset = 0;
     this.scanlinePattern = null;
+    this.scanlinePatternAttempted = false;
     this.glitchIntensity = 0;
     this.chromaticAberration = 0;
     
@@ -205,17 +198,22 @@ window.Renderer = class Renderer {
     this.scanlineOffset = (this.scanlineOffset + 1) % 4;
     this.ctx.save();
 
-    if (!this.scanlinePattern) {
-      const tile = document.createElement('canvas');
-      tile.width = 4;
-      tile.height = 4;
-      const tileContext = tile.getContext('2d');
-      if (tileContext) {
-        // Match the old treatment: three rows darkened by roughly ten percent,
-        // followed by one clear row, without touching the underlying pixels.
-        tileContext.fillStyle = 'rgba(0, 0, 0, 0.10)';
-        tileContext.fillRect(0, 0, 4, 3);
-        this.scanlinePattern = this.ctx.createPattern(tile, 'repeat');
+    if (!this.scanlinePattern && !this.scanlinePatternAttempted) {
+      this.scanlinePatternAttempted = true;
+      try {
+        const tile = document.createElement('canvas');
+        tile.width = 4;
+        tile.height = 4;
+        const tileContext = tile.getContext('2d');
+        if (tileContext) {
+          // Three rows darkened, followed by one clear row.
+          tileContext.fillStyle = 'rgba(0, 0, 0, 0.10)';
+          tileContext.fillRect(0, 0, 4, 3);
+          this.scanlinePattern = this.ctx.createPattern(tile, 'repeat');
+        }
+      } catch (error) {
+        // CRT decoration is optional; a failed tile must not retry each frame.
+        console.warn('CRT scanline tile unavailable:', error?.message || error);
       }
     }
 
@@ -522,20 +520,8 @@ function initializeRenderer() {
         cachedContext = canvas.getContext('2d');
         if (!cachedContext) {
           console.error('Failed to get 2D context from canvas');
-          // Check for context limit specifically
-          const testCanvas = document.createElement('canvas');
-          const testContext = testCanvas.getContext('2d');
-          if (!testContext) {
-            console.error('🚫 Canvas context creation limit exceeded - possible infinite loop detected');
-            // CRITICAL: Stop trying to prevent infinite loop
-            createFallbackRenderer();
-            return;
-          } else {
-            // CRITICAL: Don't retry if context creation failed - use fallback
-            console.error('Canvas context creation failed - using fallback renderer');
-            createFallbackRenderer();
-            return;
-          }
+          createFallbackRenderer();
+          return;
         }
       } catch (contextError) {
         console.error('Error getting canvas context:', contextError?.message || contextError?.toString() || 'Unknown error');
@@ -558,7 +544,7 @@ function initializeRenderer() {
     
     // Create renderer instance
     try {
-      window.renderer = new window.Renderer(canvas);
+      window.renderer = new window.Renderer(canvas, cachedContext);
       rendererInitialized = true;
       console.log('Renderer initialized successfully');
     } catch (rendererError) {

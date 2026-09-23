@@ -14,6 +14,32 @@ window.isPaused = window.isPaused || false;
 window.isRunning = window.isRunning || false;
 window.gameLoopRafHandle = window.gameLoopRafHandle || null;
 
+// Makko's canvas guard counts getContext calls, including repeated calls on
+// the same element. Keep one context for all proof/difficulty frames and only
+// acquire another when the actual game canvas is replaced.
+let frameCanvas = null;
+let frameContext = null;
+let frameContextAttempted = false;
+function getFrameContext() {
+  const canvas = document.getElementById('gameCanvas');
+  if (!canvas) return null;
+  if (canvas !== frameCanvas) {
+    frameCanvas = canvas;
+    frameContext = null;
+    frameContextAttempted = false;
+  }
+  if (window.renderer?.canvas === canvas && window.renderer.ctx) {
+    frameContext = window.renderer.ctx;
+    return frameContext;
+  }
+  if (!frameContext && !frameContextAttempted) {
+    frameContextAttempted = true;
+    try { frameContext = canvas.getContext('2d'); }
+    catch (error) { console.error('Game canvas context unavailable:', error?.message || error); }
+  }
+  return frameContext;
+}
+
 // requestAnimationFrame ownership lives here for active gameplay and input-only paused polling.
 function scheduleNextGameplayFrame() {
   if (!window.isRunning || window.gameLoopRafHandle !== null) return;
@@ -88,8 +114,7 @@ window.gameLoop = function(timestamp) {
   if (window.BARCODE?.LevelDifficulty?.open) {
     window.inputManager?.update?.();
     window.renderGame?.();
-    const canvas = document.getElementById('gameCanvas');
-    window.BARCODE.LevelDifficulty.draw(canvas?.getContext?.('2d'));
+    window.BARCODE.LevelDifficulty.draw(getFrameContext());
     window.lastTime = timestamp;
     scheduleNextGameplayFrame();
     return;
@@ -100,7 +125,7 @@ window.gameLoop = function(timestamp) {
     window.BARCODE?.PauseMenu?.sync();
     window.inputManager?.update?.();
     window.BARCODE.CacheRoadProof.update(cappedDelta);
-    window.BARCODE.CacheRoadProof.draw(document.getElementById('gameCanvas')?.getContext?.('2d'));
+    window.BARCODE.CacheRoadProof.draw(getFrameContext());
     window.audioSystem?.updateLayers?.();
     window.lastTime = timestamp;
     scheduleNextGameplayFrame();
@@ -110,7 +135,7 @@ window.gameLoop = function(timestamp) {
     window.BARCODE?.PauseMenu?.sync();
     window.inputManager?.update?.();
     window.BARCODE.RunAndGunProof.update(cappedDelta);
-    const proofContext = document.getElementById('gameCanvas')?.getContext?.('2d');
+    const proofContext = getFrameContext();
     window.BARCODE.RunAndGunProof.draw(proofContext);
     window.DEBUG?.level3?.drawOverlay?.(proofContext);
     window.audioSystem?.updateLayers?.();
@@ -148,15 +173,10 @@ window.gameLoop = function(timestamp) {
       console.error('Error in game render:', error?.message || error);
       console.error('Render error stack:', error?.stack || 'No stack available');
       
-      // Attempt to recover from render errors
-      try {
-        // Reset render context cache if available
-        if (window.resetRenderContext) {
-          window.resetRenderContext();
-        }
-      } catch (recoveryError) {
-        console.error('Failed to recover from render error:', recoveryError?.message || recoveryError);
-      }
+      // Rendering errors are not evidence of a lost 2D context. Resetting the
+      // cache here made every subsequent frame call getContext again on Makko.
+      if (document.getElementById('gameCanvas') !== window.renderer?.canvas)
+        window.resetRenderContext?.();
       
       // Continue game loop even if render fails
     }

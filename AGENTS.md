@@ -1,5 +1,9 @@
 # Repository Guidance
 
+## September 23, 2026 — PR #96 host audio and canvas failure follow-up
+
+The owner's Makko playtest of #96 failed: the four MP3 stems did not play, and the host reported `Canvas context creation limit exceeded`. PR #96 was then merged at `c2ca847c63c3b8b70ba178dd02fda0ad8ab4f508`. The follow-up on `agent/cache-road-audio-load-repair` caches the game canvas context across Cache Road, Level 3 and difficulty frames; it also removes the MP3 loader's mandatory HEAD probe, which rejected otherwise readable assets on some hosts. A real Chromium check uses a HEAD-rejecting local server and a canvas-call guard: 600 road frames use one context acquisition, all four shipped MP3s GET/decode to 187.5 seconds and start on one clock with nonzero lane gain. This does not establish Makko delivery, sound, full-loop seams or controller feel. Publish a new draft PR, refresh v5 from the committed tree, and retain the Makko-before-merge gate. Preserve the missed-exit fix, campaign boundaries and old saves.
+
 ## September 23, 2026 — owner MP3 stems for Cache road review
 
 The owner supplied `ContraBass.wav`, `ContraDrums.wav`, `ContraHarmony.wav` and `ContraFX.wav`, then requested MP3s before merge. The current `agent/cache-line-exit-retry-clarity` review includes four 160 kbps MP3s in the road profile, mapped to Bass/Drums/Harmony/FX lanes. Their common 187.5-second decode and inferred 128 BPM grid replace the five generated scratch WAVs; the original uploads remain the provenance, and `docs/source-pack/CACHE_LINE_MP3_STEMS.md` records exact conversion and checks. The road loads the four parts together and still starts each on one transport anchor. This is a review mix: listen in Makko, test an actual controller, seams, load time, volume and the Echo exit before assistant merge. Preserve old saves, the Level 1/Level 3 routing and no Bass/Level 2 clear. Refresh the current source pack from the tested review commit.

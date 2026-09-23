@@ -56,7 +56,8 @@
     "check:final-playtest": "node tools/check-final-playtest.cjs",
     "check:mode-power": "node tools/check-mode-power.cjs",
     "check:broadcast-slum-proof": "node tools/check-broadcast-slum-proof.cjs",
-    "check:cache-road-proof": "node tools/check-cache-road-proof.cjs"
+    "check:cache-road-proof": "node tools/check-cache-road-proof.cjs",
+    "check:cache-road-browser": "node tools/check-cache-road-browser.cjs"
   },
   "dependencies": {},
   "devDependencies": {}

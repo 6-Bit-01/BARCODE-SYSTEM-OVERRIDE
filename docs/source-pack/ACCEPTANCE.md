@@ -1,5 +1,13 @@
 # Acceptance and Test Status
 
+## Current route — PR #96 playback and canvas correction
+
+The PR #96 Makko run **failed**: the stems did not play and the host reported a canvas context creation limit. #96 then merged; import this new follow-up draft head into a fresh Makko preview and confirm the canvas error stays absent during several minutes of Cache Road driving, lane changes, pause/resume, and retry. The context fix also covers the Level 3 preview and difficulty selector; briefly open those routes.
+
+At the Level 1 handoff, enter Cache's road and confirm the actual Bass, Drums, Harmony and FX parts are audible one by one. Lock a part, change lanes, and hear the combined mix. If any part remains silent or the audio-fallback warning appears, capture the request status for `assets/audio/cache-*.mp3` and the console's `[asset-load]` line; report whether the host's GET returned an MP3. Continue the Echo exit and 187.5-second loop checks in the route below, using a physical controller. Record the imported commit SHA, host/browser, PASS/FAIL and a short clip or console output if it still fails. Keep the PR unmerged until this specific failure and the road feel pass in Makko.
+
+The production Chromium check used a local host that rejects HEAD: four GETs decoded the shipped MP3s, the mix raised the selected lane to 0.62, and 600 guarded road frames needed one context request. Full repository and syntax checks are recorded for the tested revision. This establishes a browser code path, not Makko's asset delivery or actual audible output.
+
 ## Current route — Cache Line MP3 stems and exit retry
 
 Import the exact draft head into a duplicate Makko preview. From the Level 1 handoff, enter Cache's road with headphones/speakers and a physical controller.
