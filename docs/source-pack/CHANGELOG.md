@@ -1,5 +1,11 @@
 # Recovery checkpoint — September 14
 
+## September 23, 2026 — Cache Line visibility and pace draft
+
+- Respond to the owner's merged #94 playtest: raise initial/cruise/brake/turbo speed and steering response while preserving warning distance and Echo gate reachability. Existing v1/v2 checkpoints still load; v2 accepts the faster saved speed.
+- Redraw the provisional road with speed-scaled studs, shoulders, motion streaks and section colors. Differentiate Cache, replay, freight, van, sweeper, audit, roadblock and Clean Copy in silhouette and lighting. Keep warnings on the projected hazard line, route labels beside the exit and the main time/signal/ability/mix state in a larger HUD.
+- Re-render four native review frames and extend the production harness for observed cruise/turbo distance. No new authored art or audio, campaign completion, lore or key. See `CACHE_LINE_VISUAL_PACING_PASS.md`; owner Makko/controller feel remains open.
+
 ## September 23, 2026 — Cache Back road and musical lanes
 
 - Add a separate playable Level 2 proof from the Level 1 handoff. Four lanes choose Bass/Break/Harmony/Lead, two held parts persist through lane changes, and a quiet bed plays throughout. Synchronized temporary WAVs share an eight-bar 120 BPM loop; gain changes land on the next beat without restarting sources.

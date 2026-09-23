@@ -36,15 +36,15 @@ function capture(name) {
   fs.writeFileSync(path.join(out, `${name}.webp`), canvas.toBuffer('image/webp', 45));
 }
 road.state.progress = 300; road.state.lanePos = road.state.visualLane = road.state.lane = 2;
-road.state.locked = [0]; road.state.messageMs = 0; road.state.speed = 43;
+road.state.locked = [0]; road.state.messageMs = 0; road.state.speed = 54;
 capture('01-rainline');
 road.state.progress = 1160; road.state.locked = [0, 1]; road.state.echoEnergy = 100;
-road.state.rivalWarning = false; road.state.messageMs = 0;
+road.state.rivalWarning = false; road.state.messageMs = 0; road.state.speed = 54;
 capture('02-service-loop');
 road.state.progress = 1975; road.state.lanePos = road.state.visualLane = road.state.lane = 3;
 road.state.echo = { lanePos: 1, ageMs: 600 }; road.state.rivalLane = road.state.rivalTarget = 1;
 road.state.rivalWarning = true; road.state.nextRivalAt = 2035;
-road.state.locked = [0, 1, 2]; road.state.echoEnergy = 0; road.state.messageMs = 0;
+road.state.locked = [0, 1, 2]; road.state.echoEnergy = 0; road.state.messageMs = 0; road.state.speed = 64;
 capture('03-echo-split');
 road.status = road.state.status = 'clear'; road.state.progress = 2460;
 road.state.rivalWarning = false; road.state.echo = null; road.state.messageMs = 0;

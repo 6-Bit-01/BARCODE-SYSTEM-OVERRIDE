@@ -1,6 +1,16 @@
 # Acceptance and Test Status
 
-## Current route — Original Master chase slice
+## Current route — Cache Line visibility and pace review
+
+Import the exact draft head from its receipt into a duplicate Makko project. Base/rollback is merged #94, `0852ff0bf23d5ae52816f59f7131db93c0741777`. Complete Level 1 or use its DEV skip, then enter Cache's road. This is the owner's follow-up on the rough/slow first chase; it remains a provisional slice.
+
+1. Drive the first Rainline stretch at cruise, brake around traffic, draft a freight car and use turbo. Judge whether speed looks and feels fast without hiding the bend or near-miss line. Inspect the differently shaped freight, van, sweeper, audit, roadblock and Cache car at actual game scale; report any warning that is still late or ambiguous.
+2. Cross the Service Loop and Mirror Viaduct. Read speed, remaining window, integrity, Echo/lock meters and live versus locked bands without looking away from a hazard too long. Check the projected merge arrow, audit lock, Clean Copy target and far-right original exit with Echo visible. Wrong gate still loops/refills, collision still costs speed/time/signal, and reduced-motion setting should omit peripheral speed streaks without removing core warnings.
+3. Try keyboard and physical controller, pause/resume, retry and Continue Prototype at a marker. Listen to the unchanged five temporary synchronized parts and verify Level 1 return/Voice plus the separate Level 3 test. No Bass key or Level 2 clear/result/lore is awarded.
+
+Record imported SHA, device/browser/controller, whether the pace is fun, specific unreadable frames or maneuvers, and a short clip if possible. The four updated native frames and automated harness demonstrate layout and logic only; they cannot establish Makko timing, physical input or fun. Keep the draft unmerged pending owner review. The earlier chase route below remains as historical detail.
+
+## Historical route — Original Master chase slice (merged #94)
 
 Import the exact new draft head into Makko. Complete Level 1 or use the DEV completion shortcut and enter The Cache Line from Cache's handoff. The slice is **not accepted gameplay** until the owner tests feel on the hosted build and physical controller; `CACHE_LINE_BLUEPRINT.md` is the target and `CACHE_LINE_CHASE_SLICE.md` records what was actually built.
 

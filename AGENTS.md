@@ -1,5 +1,9 @@
 # Repository Guidance
 
+## September 23, 2026 — Cache Line readability and pace follow-up
+
+PR #94 merged at `0852ff0bf23d5ae52816f59f7131db93c0741777`. The owner played that chase slice and found it slow and hard to read with crude vehicles. The current branch `agent/cache-line-visual-speed-pass` is a focused response: faster cruise/turbo/steering, clearer projected road motion and differentiated code-native traffic/Cache/Echo/Clean Copy silhouettes, local warnings and a simpler HUD. See `docs/source-pack/CACHE_LINE_VISUAL_PACING_PASS.md` and the newest acceptance route. Keep the five temporary music sources, checkpoint compatibility, Level 1 return, separate Level 3 test, no Bass/Level 2 clear and all shared owners intact. This is a playtest pass, not approved final art or a finished authored chapter. Publish a tested draft and update canonical v5; require owner Makko/controller/feel review before assistant merge.
+
 ## September 23, 2026 — Cache Line chase slice after creative review
 
 The owner rejected the lane-runner proof as too basic and accepted the `Original Master` chase concept for further work. `docs/source-pack/CACHE_LINE_BLUEPRINT.md` states the working target; `CACHE_LINE_CHASE_SLICE.md` records the current review pass. The same Level 2 draft now tests continuous steering/brake/speed, distinct traffic, paid three-part locks, Buffer Echo, a committing Clean Copy rival and an Echo split at the original exit. Do not mistake the temporary raster vehicles or generated 120 BPM WAVs for final art/music, the proof card for an authored cutscene, or this encounter for a finished boss. Preserve v1 proof checkpoint migration, Level 1 Voice/return, old Level 3 test, one input/RAF/audio owner and no Bass/Level 2 clear. Run the targeted and full suite, publish the tested draft and refresh canonical v5. Owner Makko/controller/listening/feel review remains necessary before merging or calling the chapter complete.
