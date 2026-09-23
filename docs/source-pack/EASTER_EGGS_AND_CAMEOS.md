@@ -1,5 +1,7 @@
 # Easter eggs, cameos and player-aware presentation
 
+**September 23 redesign:** `CAMPAIGN_REDESIGN.md` is the active later-level map. Sheila is a morally compromised trainer in the forgotten Level 5 competition, using the four playable crew members as mindless husks; none remembers the event, and she does not replace Corporate Satan on victory. She remains a silhouette when depicted. LostMarbles, Mr. Nice Guy, Shadowspit and Hellcat join the included community inventory. All active community people should have a purposeful Level 5 presence, with named trainer/resident/support roles planned before scenes. Excluded Mind Fanatic, Emerald, Crowline and W3T TDDY stay excluded. The older placements and inspiration IDs below are a historical candidate bank where they conflict with this direction. 9 Bit's unexpected saved-title, game-over and result/end-screen intrusions are a selected player-aware direction; preserve real input, results and saves.
+
 **Owner correction (September 13): Studio Rats means cats. All appearances use feline anatomy; existing discovery IDs remain unchanged.**
 
 ## First Level 1 discoveries — current combined draft
@@ -31,12 +33,13 @@ Use original BARCODE art, writing, sounds and game rules. Inspiration names belo
 |---|---|---|
 | 6 Bit, DJ Floppydisc, Cache Back, Mac Modem | Only playable four | Lead/crew roles in CAMPAIGN_STORY_MAP; keep their real differences |
 | Cliff | Include | L1 maintenance note/interruption; same detail becomes useful in L6; credits callback |
-| Sheila | Include; silhouette only when shown | Short practical intercom/control interventions in opening, L1 and L7 |
+| Sheila | Include; silhouette only when shown | Earlier practical intercom presence gains a new meaning: L5 Pokémaster in a forgotten competition, using the four as mindless husks; no gym succession. Exact earlier knowledge remains open. |
 | Studio Rats | Include | One optional sighting per level; recurring physical gag and potential gallery payoff |
 | WittyF0x | Include | L1 hidden-route observation, L2 route callback, L5 discrepancy; concise support |
 | Kave | Include, exact display name | L3 venue/relay, L5 return, optional L6 secret-room echo |
 | SKELLA | Include, exact display name | L4 visual sample-bank/chorus motif, L5 return; audible contribution only from an actual appropriate asset |
 | Dr3wBaby | Include, exact display name | L2 service/decal/transmission and L5 recovery/venue callback; retire old Dr3wB4by Blue spelling |
+| LostMarbles, Mr. Nice Guy, Shadowspit, Hellcat | Include under the owner's newest instruction | Give each a meaningful Level 5 trainer, resident, guide or support scene; exact public spelling and portrayal follow scene design. Older LoST M4RBLES, Mister N1CE Guide and H3LLCAT placements are candidate ideas, not forced aliases. |
 | Miss Bit, BNL-01 | Retained supporting candidates | Existing teleoperator/status roles; no omniscient exposition or new playable slot |
 | Other prior community ideas | Retained candidates, individual use unresolved | Preserve LoST M4RBLES, OREAGANOMIX, D34D1TE_ASH, H3LLCAT and other unexcluded prior candidates; do not manufacture blanket approval |
 | Mind Fanatic/M1ND_FANATIC, Emerald/EMRLD, Crowline, W3T TDDY | Excluded by latest owner instruction | No active placements, new dialogue, art request or functional route dependency |
@@ -47,19 +50,19 @@ Approved inclusion is not a request to ask the owner again whether these people 
 
 ## Primary inspiration registry
 
-These eight references are present in the current owner direction/required genre list. The plan covers both Tetris and Dr. Mario as egg references even while the main puzzle branch remains open. Stable IDs below are development reservations; nothing is inserted into the current save or menu by this document pass.
+This registry predates the September 23 genre redesign. Contra and Tetris/Dr. Mario are no longer required playable stages, though a small optional reference may survive. Streets of Rage and Super Smash TV are now primary Level 3/4 influences; exact new optional discoveries need scene design. Stable IDs below are historical development reservations, not shipped facts or a reason to restore retired main modes.
 
 | ID / inspiration | Proposed BARCODE discovery | Placement / payoff | Production needs |
 |---|---|---|---|
-| egg.comic.gutter / Comix Zone | A loose stage-direction caption becomes a physical scrap; a Studio Rat steals it through the panel gutter | First safe L1 transition; scrap reappears during L4 reconstruction; deliberate frame callback in L7 | Code-native panel/caption layer; optional cat frames after inspection |
-| egg.comms.stage_crate / Metal Gear | A conspicuous broadcast-equipment crate interrupts an optional crew call; the reply changes after the player inspects it | Safe L3 service area or L6 maintenance room; same label in credits | Original crate prop and brief comms; no required stealth mechanic |
+| egg.comic.gutter / Comix Zone | A loose stage-direction caption becomes a physical scrap; a Studio Cat steals it through the panel gutter | Existing opening discovery; optional L4 arena/9 Bit frame callback and deliberate L7 payoff | Code-native panel/caption layer; no real browser/save damage |
+| egg.comms.stage_crate / Metal Gear | A conspicuous broadcast-equipment crate interrupts an optional crew call; the reply changes after inspection | Safe L3 brawler service area or L7 maintenance room; same label in credits | Original crate prop and brief comms; no required stealth mechanic |
 | egg.comms.bound_action / Metal Gear | A caller tries to describe the controller and is corrected by a message showing the player's actual current binding | Quiet tutorial/optional terminal, once controller support is complete | Semantic binding lookup and input-safe dialogue; no fake OS/account access |
-| egg.rungun.drum_code / Contra | A hidden warm-up terminal accepts an original short drum sequence and opens an optional rehearsal/credits gag | L3 side room; optional pattern can echo in the final credits | Own pattern and art; no copied cheat code and no score/ending dependency |
+| egg.rungun.drum_code / Contra | An optional archival warm-up terminal accepts an original short drum sequence | Possible L4 backstage or L7 archive callback, if it suits the authored scene | No copied cheat code; no return of the rejected run-and-gun stage or ending dependency |
 | egg.racer.demo_loop / Rad Racer | An unattended cabinet loops a tiny attract-mode road; examining it reveals a ridiculous BARCODE road-service bulletin | L2 service stop; later transit wing reuses the bulletin | Reuse proven road renderer at miniature scale; original sign |
-| egg.puzzle.long_wait / Tetris | A queue of oddly long patch pieces waits at a supply hatch while the needed connector is in a filing tray | L4 optional scenery/practice board; harmless completion gag | Canvas shapes and original copy; joke cannot falsify live piece previews |
-| egg.puzzle.linked_patch / Dr. Mario | Two linked repair plugs argue only through tiny status labels until the player matches their socket symbols | L4 optional practice/discovery; can remain even if Tetris becomes the main branch | Original plugs/symbols; no copied capsules, creatures or clinical mechanic |
+| egg.puzzle.long_wait / Tetris | A queue of oddly long patch pieces waits at a supply hatch | Possible L6 archive scenery only | Original shapes/copy; no main puzzle-stage requirement |
+| egg.puzzle.linked_patch / Dr. Mario | Two linked repair plugs argue through status labels | Possible L6 maintenance discovery only | Original plugs/symbols; no main puzzle-stage requirement |
 | egg.samples.field_guide / Pokémon | A Sample field guide mistakes an inanimate rehearsal appliance for a rare signal and corrects itself after inspection | L5 settlement; crew comment/cosmetic log only | Own Sample art/UI; no copied creature/device silhouette or guest capture |
-| egg.fps.service_wall / DOOM | An optional suspicious wall opens onto a maintenance booth with a miniature view of the earlier broadcast set | L6 secret; L7 archive/credits callback | Proven wall/door interaction; reuse set artwork; original texture/music |
+| egg.fps.service_wall / DOOM | An optional suspicious wall opens onto a maintenance booth with a miniature view of the earlier broadcast set | L7 core assault secret; credits callback | Proven wall/door interaction; reuse set artwork; original texture/music |
 
 ## Earlier inspirations retained as optional candidates
 
@@ -67,7 +70,7 @@ The v2 MASTER_SOURCE named these as a generic reference menu before the later ex
 
 | Historical reference | Optional BARCODE acknowledgment | Where it could fit |
 |---|---|---|
-| Streets of Rage 2 | Record-shop stage flyer and a harmless after-hours sound-check tableau | L1 or L3 venue |
+| Streets of Rage 2 | Main Level 3 brawler influence; an optional after-hours sound-check remains a possible separate discovery | L3 venue |
 | Teenage Mutant Ninja Turtles IV | Four empty stage risers with different crew equipment; no borrowed characters | L1 backstage / L5 venue |
 | Sonic the Hedgehog 2/3 | Road-service sign warns against rolling the fragile archive; no spin dash, rings or physics change | L2 service route |
 | Donkey Kong Country | Hidden percussion equipment behind an optional venue frontage; no barrel cannon/character copy | L3 or L5 |

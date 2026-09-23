@@ -1,8 +1,12 @@
 # Current State
 
-## Current review — transmitter architecture proof after merged #90
+## September 23 — campaign story direction after owner review
 
-Base/rollback is `568c646a3f67cf4ebca4faebd81752534c67ee6f`; branch `agent/broadcast-slum-boss-pass`. The prior previews worked but remained easy/basic. The new bounded proof tightens the game camera, adds directional shield units and airborne interceptors to the existing gunner/patrol/runner mix, and gates the uplink behind a transmitter boss with two height-separated feeds, timed core windows, three warned attack patterns and an accelerated second phase. A boss-entry save, v1/v2 migration, DEV 3 jump and story-boundary labels preserve the handoff. No Drums, Level 3 campaign completion or durable Level 4 record is granted. The Cache Line remains next in actual story order. See `BROADCAST_SLUM_PROOF.md` and the newest ACCEPTANCE route. Exact draft head, validation and CI belong to the generated receipt; owner Makko/audio/controller/feel review remains pending.
+`CAMPAIGN_REDESIGN.md` is the active revised map. The owner rejected the difficulty, combat depth and boss feel of merged PR #91's transmitter preview. Its architecture proof is distinct from an accepted Level 3, now planned for Mac as a Streets of Rage-style brawler after Cache's Level 2 road stage. DJ's Level 4 becomes a Super Smash TV-style arena; Sheila's forgotten competition and 9 Bit's player-aware intrusions are selected direction; all four play Levels 5–7, with first-person RPG then DOOM finale. No later level, authored later song, new story cutscene, Drums award or 9 Bit menu interruption is implemented by this documentation pass. The debug/provisional preview merged through #91 remains a technical route only. Old current-review entries below describe their own historical passes.
+
+## Historical transmitter architecture proof after merged #90
+
+Base/rollback is `568c646a3f67cf4ebca4faebd81752534c67ee6f`; branch `agent/broadcast-slum-boss-pass`. The prior previews worked but remained easy/basic. The new bounded proof tightens the game camera, adds directional shield units and airborne interceptors to the existing gunner/patrol/runner mix, and gates the uplink behind a transmitter boss with two height-separated feeds, timed core windows, three warned attack patterns and an accelerated second phase. A boss-entry save, v1/v2 migration, DEV 3 jump and story-boundary labels preserve the handoff. No Drums, Level 3 campaign completion or durable Level 4 record is granted. The Cache Line remains next in actual story order. See `BROADCAST_SLUM_PROOF.md` and the newest ACCEPTANCE route. Exact draft head, validation and CI belong to the generated receipt; the owner subsequently rejected its gameplay feel as the final stage direction.
 
 ## Historical review — debug route after merged #89
 

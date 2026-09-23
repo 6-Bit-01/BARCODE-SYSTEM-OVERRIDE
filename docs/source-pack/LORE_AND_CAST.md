@@ -1,5 +1,7 @@
 # Lore, Cast and Community
 
+**September 23 revision:** `CAMPAIGN_REDESIGN.md` supersedes later-level cast placements below. The owner now selects Sheila as Pokémaster in a forgotten Level 5 competition: she uses the four as mindless husks to defeat Corporate Satan, they do not remember it, and she does not replace him. She is morally compromised; keep silhouette-only depiction. LostMarbles, Mr. Nice Guy, Shadowspit and Hellcat are explicitly included in the active community inventory alongside the prior included roster. All active community characters belong in Level 5 with deliberate roles; previously excluded Mind Fanatic, Emerald, Crowline and W3T TDDY remain excluded. The exact full roster/portrayal and later copy are production tasks. Four original playable characters, 9 Bit's separated origin, Cache's origin and three authored Level 1 records remain unchanged.
+
 ## Canon boundaries
 
 BARCODE's original four are 6 Bit, DJ Floppydisc, Cache Back and Mac Modem. The collective predates the Network; the Network grew around its signal. They retain their artist/performer identities; game roles do not reduce them to generic software classes. The game happens inside a simulation. Who built that simulation and how it relates to the recovery story remain unresolved until the finale is deliberately written.
@@ -19,7 +21,7 @@ The current opening review uses the script in INTRO_OVERHAUL.md and eight new sc
 | Cache Back | Archives, restoration, checkpoint/recovery themes |
 | Mac Modem | Access, breach, instability and risk/reward |
 
-Latest owner-required supporting inclusions are Cliff, Sheila, Studio Rats, WittyF0x, Kave, SKELLA and Dr3wBaby. Sheila is a silhouette when depicted. Miss Bit's transmitter/teleoperator and BNL-01's bounded procedural liaison roles remain retained candidates. Exact scenes and new dialogue remain draft work; nobody gains a fifth player slot.
+Latest owner-required supporting inclusions are Cliff, Sheila, Studio Rats, WittyF0x, Kave, SKELLA, Dr3wBaby, LostMarbles, Mr. Nice Guy, Shadowspit and Hellcat. Sheila is a silhouette when depicted and becomes a morally compromised trainer in the Level 5 forgotten competition, not a fifth player slot. Corporate Satan is that chapter's Gym Leader, not automatically the simulation creator or separation initiator. Miss Bit's transmitter/teleoperator and BNL-01's bounded procedural liaison roles remain retained candidates. Exact later scenes and new dialogue remain draft work.
 
 Exclude Mind Fanatic/M1ND_FANATIC, Emerald/EMRLD, Crowline and W3T TDDY from active placements. The previous guaranteed W3T TDDY route support is retired. The six earned keys and crew's recovered link supply finale access without another cameo credential. Use Kave and Dr3wBaby's latest names instead of silently preserving transformed legacy labels. See `EASTER_EGGS_AND_CAMEOS.md` for the complete status map.
 

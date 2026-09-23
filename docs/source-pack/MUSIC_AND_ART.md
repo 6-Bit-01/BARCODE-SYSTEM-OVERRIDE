@@ -1,5 +1,7 @@
 # Music, Art and Production
 
+**Campaign art direction update (September 23):** `CAMPAIGN_REDESIGN.md` supersedes the old later-stage asset mapping below. After Cache's road proof, Mac's brawler needs close-range silhouettes/contact states; DJ's top-down arena needs readable multidirectional attacks/pickups; Level 5 needs a trainer-party/Gym visual proof and the four husk states; Level 6 needs first-person RPG investigation/crew interaction; Level 7 needs a DOOM-style all-four assault and authored 9 Bit finale. Do not order the old Contra full-stage or main Tetris/Dr. Mario puzzle assets. Level 1 artwork/song remain the live baseline; later songs and exact assets remain unproduced.
+
 Current production sequence is in `ASSET_AND_PLATFORM_PLAN.md`: a representative story/panel sequence using current assets, followed by only the missing scene-specific art; no mass redraw or engine/mobile migration. The attached historical intro and Level 1 contact sheets were inspected for the September 12 continuation, without implying a fresh host availability audit.
 
 ## Independent songs
@@ -34,10 +36,10 @@ Prototype first; then request an asset with a stable ID, dimensions, on-screen s
 |---|---|
 | Level 1 | Reuse current boss/art; code-native telegraphs; request only missing readable action/contact states |
 | Racing | Rear-view vehicle states, small traffic set, road/horizon/sign kit after renderer proof |
-| Run-and-gun | Modular weapon/FX overlays and a small enemy set after controls/aim proof |
-| Puzzle | Code-native grid/symbols with color plus shape; small DJ reaction set |
-| Sample RPG | Four crew sets; cap first Sample families at 6–8; prove one settlement/route/battle loop |
-| First-person action | Front-facing billboard enemies, small texture/door/switch kit, Mac Modem HUD/ability overlays |
-| Finale | Reuse proven first-person navigation/art, extend hub/optional spaces, then approved 9 Bit/ending assets |
+| Mac beat 'em up | Readable contact/throw/counter silhouettes and a small opponent set after close-range control proof |
+| DJ top-down arena | Code-native arena and shape-plus-color threats first; prove multidirectional aim, pickup readability and DJ reaction states |
+| Sheila trainer chapter | Four crew party/husk states and a small Sample set; prove one settlement, other trainer encounters and Corporate Satan Gym loop |
+| First-person RPG | Four crew interaction states, investigation space and readable dialogue/evidence UI after navigation/party proof |
+| DOOM finale | Reuse proven first-person technology, extend core assault threats and team roles, then produce approved 9 Bit/ending assets |
 
 Do not place a large art order based on old speculative counts. Confirm the playable camera/scale/interaction and request the smallest set that makes the next milestone reviewable.

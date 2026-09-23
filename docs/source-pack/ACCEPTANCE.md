@@ -1,13 +1,15 @@
 # Acceptance and Test Status
 
-## Broadcast Slum transmitter architecture preview — current hosted review
+**September 23 owner review:** PR #91 merged the transmitter preview into main; the owner subsequently rejected its fun/depth as the campaign direction. Do not use the older acceptance route below to infer gameplay approval for Mac's Level 3. `CAMPAIGN_REDESIGN.md` is the new story/genre direction. The preview and DEV shortcuts merged through #91 are technical routes and grant no Drums or Level 3 clear. This documentation pass does not change runtime and has no hosted gameplay acceptance claim.
+
+## Historical Broadcast Slum transmitter architecture preview route
 
 Use the exact draft head in the generated receipt. Base/rollback is merged #90, `568c646a3f67cf4ebca4faebd81752534c67ee6f`. This is a contained Level 3 architecture proof, not the authored campaign level; The Cache Line remains Level 2.
 
 1. From the saved Cache Back handoff, traverse the relays. Shoot a shield unit from the front, then during its bright charge or from behind; climb to fire at a hovering interceptor. The threats should demand different responses. Review the tighter camera and signage for visual readability.
 2. Use DEV 3 → **Go Transmitter** to test the boss independently. Break the upper and lower feeds from different heights. Fire into the protected core, then use the recovery window after a warned floor sweep, angled fan and fixed column. At half health, verify the faster cycle and marked interceptor. Defeat it and walk to the uplink; only then does the preview clear.
 3. Take a hit and lose at the boss, then replay from `proof-boss`. Pause during a warning, exit to Cache Back, reload Continue Saved and return. Check audio resumes once, Voice survives, and Drums/Level 3 completion remain absent. An earlier version-1 `proof-clear` should say **EARLIER PREVIEW CLEARED** and offer replay instead of claiming the new boss was beaten.
-4. Try `DEBUG.level3.completeProof()` and its button only as a skip control. Confirm it writes a preview clear without a campaign reward. Record exact imported SHA, keyboard/physical-controller/browser, PASS/FAIL and short clips of the three warnings, phase shift and checkpoint reload. Native captures and automated tests do not substitute for hosted Makko feel or listening acceptance. Keep the draft unmerged pending the owner's review.
+4. Try `DEBUG.level3.completeProof()` and its button only as a skip control. Confirm it writes a preview clear without a campaign reward. Record exact imported SHA, keyboard/physical-controller/browser, PASS/FAIL and short clips of the three warnings, phase shift and checkpoint reload. Native captures and automated tests do not substitute for hosted Makko feel or listening acceptance. This route belongs to a merged technical preview; the owner rejected its gameplay feel as a final stage.
 
 ## Level 1 skip and Level 3 DEV menu — prior hosted review
 
