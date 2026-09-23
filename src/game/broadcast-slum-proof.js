@@ -91,7 +91,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/broadcast-slum-proof.js', exports: [
       return { ok: selected?.profileId === PROFILE && loaded?.status === 'ok' };
     },
     async enter() {
-      if (this.active || this.pending || !B.Campaign?.intermission) return { ok: false, reason: 'handoff-unavailable' };
+      if (this.active || this.pending || B.CacheRoadProof?.active || B.CacheRoadProof?.pending ||
+          !B.Campaign?.intermission) return { ok: false, reason: 'handoff-unavailable' };
       const returnTo = B.Campaign.readResume();
       if (returnTo?.levelId !== 'level-01' || returnTo.checkpointId !== 'intermission' ||
           !B.Campaign.archive().record.progress.completedLevels.includes('level-01')) return { ok: false, reason: 'level-01-clear-required' };

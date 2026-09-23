@@ -1,5 +1,9 @@
 # Decision Register
 
+## September 23, 2026 — lane music for Cache's road
+
+The owner wants Level 2's soundtrack to add/remove parts based on road lanes and let the player lock lanes before switching, combining a song through play. The current proof uses four compatible parts plus a quiet bed, two locks plus the current lane, immediate steering and beat-aligned gain changes without seek/restart or timed-button judgment. A short authentic-tape gate and all-four delivery section test how the musical mechanic supports Cache's story. These details and generated 120 BPM audio are implementation choices for review, not final composition, stage acceptance or the finale Full Mix. `CACHE_ROAD_MUSIC_PROOF.md` describes the boundaries and owner listening route; Level 2 still needs authored music, scene treatment, assets and accepted pacing before a Bass award.
+
 ## September 23, 2026 — revised seven-level order, forgotten competition and 9 Bit
 
 The owner selected four solo lead levels followed by three all-four levels: L1 6 Bit/platformer-rhythm; L2 Cache Back/Rad Racer; L3 Mac Modem/Streets of Rage beat 'em up; L4 DJ Floppydisc/Super Smash TV top-down arena; L5 all four/Pokémon-inspired; L6 all four/first-person RPG; L7 all four/DOOM-style climax. This supersedes the old L3 Contra, L4 puzzle, L6 Mac/DOOM and L7 RPG production assignments, but does not undo shipped Level 1 or the six keys/28 lore IDs. The temporary Contra preview merged in PR #91 but remains an architectural experiment; the owner rejected its gameplay and boss as the campaign direction. Do not treat it as the full stage.

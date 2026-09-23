@@ -1,5 +1,11 @@
 # Recovery checkpoint — September 14
 
+## September 23, 2026 — Cache Back road and musical lanes
+
+- Add a separate playable Level 2 proof from the Level 1 handoff. Four lanes choose Bass/Break/Harmony/Lead, two held parts persist through lane changes, and a quiet bed plays throughout. Synchronized temporary WAVs share an eight-bar 120 BPM loop; gain changes land on the next beat without restarting sources.
+- Add traffic, roadblocks, a short Cache dash/near-miss refill, two saved road markers and an original-tape delivery gate. Keep Level 3's old architecture preview as a labeled alternate and keep all campaign key/result/lore awards out of both proofs.
+- Cover source scheduling, mixer transitions, road play, old save return and pause lifecycle with a production-module check. Full suite and syntax gate pass; Makko/controller/listening feel review is pending. See CACHE_ROAD_MUSIC_PROOF.md.
+
 ## September 23, 2026 — debug route to Broadcast Slum
 
 - Add **Complete Level 1** to the existing session-only DEV panel and `DEBUG.level1.completeLevel()` for a fast saved Cache Back handoff. Grant Voice and completion while excluding bonus, best results and difficulty challenges from the artificial run.
