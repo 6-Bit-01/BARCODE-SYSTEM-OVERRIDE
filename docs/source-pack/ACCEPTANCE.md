@@ -1,6 +1,15 @@
 # Acceptance and Test Status
 
-## Broadcast Slum proof — current hosted review
+## Broadcast Slum combat follow-up — current hosted review
+
+Import the exact draft head from the generated receipt into a duplicate Makko preview. Base/rollback is merged #88, `b32a67831acc296c1cb1887ad579bbc04ac44cb1`. The owner found the first proof functional but too easy and basic. `BROADCAST_SLUM_PROOF.md` describes the revised provisional route; The Cache Line remains Level 2 in story order.
+
+1. Enter from Cache Back by keyboard, controller and pointer. Try to shoot the first relay from the street: its shield should spark and point to the roof node. Jump to the roof, take the temporary scatter pickup, break the node, then hit the exposed core. Check movement and fire remain immediate, and the three-way shot ends after its timer.
+2. At the first counter threshold, read the warning. If on the roof, the orange marked shot should require a jump or a move off the platform; from the street, jump the two pink lanes. Respond to the telegraphed runner behind. Compare elevated gunner aim, street patrol and runner pursuit while crossing to relay two. Check the second roof node and its tougher core; time at least one ordinary phrase volley with audible music. Report difficulty and fairness, including damage sources and attempts.
+3. Pause during a warning, resume, clear relay one, reload and Continue Prototype. Its node and core stay off; health, enemies and pickup for the next objective reset. Exit preview and confirm Cache Back and Level 1 music return once. Clear/replay the proof: Voice persists and no Drums key, Level 3 completion or later scene appears.
+4. Record imported SHA, device/controller, PASS/FAIL by step and short shield/counter/reload clips. Six native screens and the automated suite support implementation; hosted sound, physical input and feel require owner review. Keep the draft unmerged pending that acceptance. After merge, import the actual new main SHA and repeat this focused route; retain #88 for rollback.
+
+## Broadcast Slum first proof — historical route
 
 Import the exact draft head from the generated receipt into a duplicate Makko preview. Base/rollback: merged #86, `50aae91fea5f63a876d75a97bd67f86a539a961f`. `BROADCAST_SLUM_PROOF.md` describes the production-order preview and the later Level 2 story route.
 

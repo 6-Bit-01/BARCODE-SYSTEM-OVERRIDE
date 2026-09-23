@@ -1,5 +1,9 @@
 # Repository Guidance
 
+## September 23, 2026 — Broadcast Slum combat follow-up
+
+The owner's first playtest of merged #88 reports that the proof works but feels easy and basic. Base/rollback is `b32a67831acc296c1cb1887ad579bbc04ac44cb1`; branch `agent/broadcast-slum-combat-pass`. Read the updated `docs/source-pack/BROADCAST_SLUM_PROOF.md` and newest ACCEPTANCE route. Each relay now has a reachable roof node shield, a bounded counter surge with a warned two-lane volley, an additional marked roof shot when elevated, a runner from behind, and a temporary scatter pickup. Defenders have distinct elevated gunner, patrol and runner behavior. Keep the preview boundary, checkpoint migration, audio transport, controls and Level 1 return intact. Voice persists; no Drums or Level 3 completion. Publish one tested draft and refresh canonical v5. Owner Makko/audio/controller feel acceptance is required before assistant merge.
+
 ## September 23, 2026 — first playable Broadcast Slum proof
 
 The owner accepted moving past Level 1 after merged PR #86, `50aae91fea5f63a876d75a97bd67f86a539a961f`. Branch `agent/broadcast-slum-proof` provides one provisional Level 3 run-and-gun preview from Cache Back's saved handoff. Read `docs/source-pack/BROADCAST_SLUM_PROOF.md` and the newest ACCEPTANCE route. The Cache Line remains Level 2 in story order. Keep the preview's two relay checkpoints, entry, pause, exit, title resume, independent 108 BPM temporary stems and Level 1 audio return within the existing input/RAF/save/transport owners. Preserve Voice and Level 1 discoveries; do not award Drums, Level 3 completion, or a later story scene. Preserve Level 1 music timing and combat. Publish one tested draft and refresh canonical v5. Hosted Makko/audio/physical-controller acceptance is required before assistant merge.

@@ -411,8 +411,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       text('CONTROLS', 440, 392, 24, '#cfa2ff');
       const proof = BARCODE.RunAndGunProof?.active;
       const controls = proof ? (BARCODE.GamepadUI?.connected
-        ? ['Stick / D-pad: Move', `${BARCODE.ControllerSettings.prompt('jump')}: Jump`, `${BARCODE.ControllerSettings.prompt('inspect')}: Fire`, 'Relays block the route until disabled.', 'Volleys warn before each music phrase.', `${BARCODE.ControllerSettings.button(9)}: Pause / Settings`]
-        : ['A / D or Left / Right: Move', 'Space / W / Up: Jump', 'E: Fire / Hold E for repeat fire', 'Relays block the route until disabled.', 'Volleys warn before each music phrase.', 'P: Pause'])
+        ? ['Stick / D-pad: Move', `${BARCODE.ControllerSettings.prompt('jump')}: Jump`, `${BARCODE.ControllerSettings.prompt('inspect')}: Fire`, 'Climb: break roof nodes, then relays.', 'Jump the lanes; watch for a runner.', `${BARCODE.ControllerSettings.button(9)}: Pause / Settings`]
+        : ['A / D or Left / Right: Move', 'Space / W / Up: Jump', 'E: Fire / Hold E for repeat fire', 'Climb: break roof nodes, then relays.', 'Jump the lanes; watch for a runner.', 'P: Pause'])
         : (BARCODE.GamepadUI?.connected ? ['Stick / D-pad: Move', `${BARCODE.ControllerSettings.prompt('jump')}: Jump / Down + Jump: Drop`, `${BARCODE.ControllerSettings.prompt('rhythm_mode')}: Rhythm Mode`, `${BARCODE.ControllerSettings.prompt('primary')}: Beat attack`, `${BARCODE.ControllerSettings.prompt('interact')}: Hack`, `${BARCODE.ControllerSettings.button(9)}: Pause / Settings`] : ['A / D or Left / Right: Move', 'Space / W / Up: Jump; Down + Jump: Drop', 'R: Enter Rhythm Mode', 'Down: Attack on the beat', 'H: Hack when unlocked', 'P: Pause']);
       controls.forEach((line, i) => text(line, 440, 448 + i * 46, 21));
       text(proof ? 'PROTOTYPE CHANNEL 03' : 'RHYTHM MODE HOLDS YOUR STANCE', 440, 772, 20, '#a0ffe4');
