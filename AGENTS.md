@@ -1,5 +1,9 @@
 # Repository Guidance
 
+## September 23, 2026 — Cache Line chase slice after creative review
+
+The owner rejected the lane-runner proof as too basic and accepted the `Original Master` chase concept for further work. `docs/source-pack/CACHE_LINE_BLUEPRINT.md` states the working target; `CACHE_LINE_CHASE_SLICE.md` records the current review pass. The same Level 2 draft now tests continuous steering/brake/speed, distinct traffic, paid three-part locks, Buffer Echo, a committing Clean Copy rival and an Echo split at the original exit. Do not mistake the temporary raster vehicles or generated 120 BPM WAVs for final art/music, the proof card for an authored cutscene, or this encounter for a finished boss. Preserve v1 proof checkpoint migration, Level 1 Voice/return, old Level 3 test, one input/RAF/audio owner and no Bass/Level 2 clear. Run the targeted and full suite, publish the tested draft and refresh canonical v5. Owner Makko/controller/listening/feel review remains necessary before merging or calling the chapter complete.
+
 ## September 23, 2026 — Cache road lane-music proof
 
 The current owner continuation asks to make Level 2's soundtrack respond to road lanes: each lane carries one part, and locked lanes continue playing when Cache steers elsewhere. `docs/source-pack/CACHE_ROAD_MUSIC_PROOF.md` records the bounded implementation/review. It is a separate `level-02.proof` song and save adapter, not authored Level 2 completion. The Level 3 transmitter test remains reachable as a labeled architecture route. Preserve Voice, old Level 1 saves, old Level 3 checkpoints, the shared input/RAF/audio/pause lifecycle and no Bass award. These scratch 120 BPM WAVs are temporary; listen in Makko before accepting feel or replacing them with authored music. Publish one tested draft; do not assistant-merge before owner Makko/controller/listening review.

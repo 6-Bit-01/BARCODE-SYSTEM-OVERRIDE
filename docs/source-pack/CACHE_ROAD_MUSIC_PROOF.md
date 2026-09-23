@@ -1,5 +1,7 @@
 # The Cache Line — lane music and road proof
 
+**Historical first proof.** Its two-lock lane runner and far-right-only gate were replaced by the chase slice in `CACHE_LINE_BLUEPRINT.md` and `CACHE_LINE_CHASE_SLICE.md`. The synchronized profile, separate save adapter and campaign award boundary remain relevant; the controls and Makko route below describe the earlier revision.
+
 September 23, 2026. Review branch `agent/cache-road-music-proof` from merged PR #92 (`45a742b4b3bdb765f60ce2b5539658f7fcd06312`). This is a bounded interactive proof for Cache Back's Level 2, following the owner's request that a road lane add or remove song parts and a lock carry parts into another lane. It does not declare the stage, music or writing accepted.
 
 ## What is playable

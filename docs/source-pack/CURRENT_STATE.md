@@ -1,5 +1,9 @@
 # Current State
 
+## September 23 — revised Cache Line chase slice (unmerged draft)
+
+The owner found the first Level 2 lane runner too basic and accepted the `Original Master` chase direction for a focused proof. The updated draft tests continuous steering, auto-acceleration/braking, corner pressure, timed road markers, freight drafts and other traffic, earned three-part music locks, Buffer Echo and a committed Clean Copy rival/marked original exit. V1 proof checkpoints migrate; v2 saves retain speed and ability state. Generated 120 BPM parts and procedural canvas vehicles remain temporary; the direct-path story is only a result-card hint, not an authored comparison/cutscene. There is no Bass award or durable Level 2 clear. See `CACHE_LINE_BLUEPRINT.md`, `CACHE_LINE_CHASE_SLICE.md` and the newest `ACCEPTANCE.md`. Native frames and automated logic checks cannot settle Makko, controller, sound or fun. The first proof entry below is historical.
+
 ## September 23 — Cache Back road and musical-lane proof
 
 Branch `agent/cache-road-music-proof` adds a provisional Level 2 route from the saved Level 1 handoff. Four lane-specific compatible parts, a quiet carrier and two persistent locks let Cache build a short arrangement while dodging road hazards and choosing the authentic tape at a delivery gate. The five locally generated WAVs start on one profile clock; gains change on beats without source restarts. Dash/near misses, two checkpoints, pause, title Continue and Level 1 return make this a playable vertical slice. The old Level 3 test remains a labeled alternate route. No Bass, Level 2 completion, lore or authored music/cutscene is added. `CACHE_ROAD_MUSIC_PROOF.md` has the exact controls, temporary assets and review route. The full automated suite passes; hosted Makko, physical controller, audio and gameplay feel remain owner review. Base is merged #92 (`45a742b4b3bdb765f60ce2b5539658f7fcd06312`); exact draft head and CI belong to the PR/receipt.

@@ -1,5 +1,18 @@
 # Acceptance and Test Status
 
+## Current route — Original Master chase slice
+
+Import the exact new draft head into Makko. Complete Level 1 or use the DEV completion shortcut and enter The Cache Line from Cache's handoff. The slice is **not accepted gameplay** until the owner tests feel on the hosted build and physical controller; `CACHE_LINE_BLUEPRINT.md` is the target and `CACHE_LINE_CHASE_SLICE.md` records what was actually built.
+
+1. Steer continuously with Left/Right or stick. Hold Down/S to brake, release to accelerate through a curve. Draft a freight vehicle, cut past it for a near miss, then spend Space/A turbo. Check visible sweeper merge, audit target and three-hit/speed/time consequence. Check whether warnings and handling are fair at actual scale.
+2. E/RB locks the current musical part if the lock meter is charged. Move to the next band and earn two more locks through clean passes, freight draft or fast cornering. With three held and the fourth active, hear all four aligned parts. Releasing a part and reaching the finish with a sparse mix should stay sparse. Listen on headphones/speakers over several 16-second seams, while paused/resumed, and with general Dynamic music Off.
+3. From the boss road marker, watch the Clean Copy commit to a marked line and dodge it. H/Y sends Buffer Echo. Make the visible copy continue left while Cache takes the marked original/right exit. Confirm the rival targets the decoy, and test the wrong gate once: the short loop should explain the split and refill Echo. Run out of time or integrity; retry from the last marker with time and Echo to practice.
+4. Reload Continue Prototype from a road marker; exit via pause or the result and confirm Level 1's Voice, handoff and music return once. The separate Level 3 architecture test and old checkpoint still work. The result must say delivered/unverified but grant no Bass Key, Level 2 completion/result, future lore or repeated Voice award.
+
+Record imported SHA, browser and input device, how many attempts, audible mix impression, car/road/hazard readability, whether the Echo gate is understandable and whether the race is fun enough to develop. Native captures in `review-cache-line/` and automated tests support logic/layout only. New soundtrack, art, cutscenes, proper boss phases and community cameos remain design/production work. Keep the draft unmerged pending the owner's play review.
+
+## Historical first lane-runner route
+
 ## Current route — Cache Back lane-music road proof
 
 Import the draft branch head in Makko. Complete Level 1 (the DEV completion shortcut is acceptable for reaching this handoff). Enter/click/A opens The Cache Line; key 3/click the second row/Y opens only the old Level 3 architecture test. On the road, left/right or stick changes lanes immediately. E or mapped Inspect/RB locks a part; move, lock a second, then lock a third and confirm the oldest drops. Press the same lock control again to release. Listen on headphones and speakers for each of the four distinct parts, a continuous quiet bed, a smooth next-beat transition, no restart at the 16-second phrase seam and a combined delivery section. Pause/resume and toggle general Dynamic music Off; the road's lane mix should still respond.
