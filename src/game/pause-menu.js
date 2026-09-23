@@ -49,6 +49,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
     ['flashes', 'Flash accents'], ['crtPostEffects', 'CRT effect'],
     ['instantText', 'Instant dialogue'], ['crew', 'Recent crew dialogue'], ['timing', 'Timing calibration'], ['archive', 'Lore archive'], ['resume', 'Resume game'], ['defaults', 'Reset settings'], ['controller', 'Controller settings'], ['reducedMotion', 'Reduced motion'], ['fullscreen', 'Fullscreen']
   ];
+  const visibleRows = () => BARCODE.RunAndGunProof?.active
+    ? rows.map(([key, label]) => key === 'crew' ? ['exitPreview', 'Exit preview'] : [key, label]) : rows;
   const rowTop = 331, rowStep = 38;
   const menu = BARCODE.PauseMenu = {
     open: false, dirty: false, focus: 0, drag: null, heldKeys: new Set(), snapshot: null, resumePending: false, message: '',
@@ -114,7 +116,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       this.resumePending = false; this.sync(); this.dirty = true;
     },
     activate(direction = 1) {
-      const key = rows[this.focus][0];
+      const key = visibleRows()[this.focus][0];
+      if (key === 'exitPreview') { BARCODE.RunAndGunProof.exit(); return; }
       if (key === 'fullscreen') { this.toggleFullscreen(); return; }
       if (key === 'controller') { this.view = 'controller'; this.controllerFocus = 0; this.captureAction = null; this.dirty = true; return; }
       if (key === 'resume') { this.resume(); return; }
@@ -406,14 +409,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       text(this.titleOpen ? 'GAME SETTINGS' : 'PAUSED', 440, 250, 46, '#a0ffe4');
       text(this.titleOpen ? 'Set up your signal before you start.' : 'Take a breath. Keep your signal.', 440, 307, 22);
       text('CONTROLS', 440, 392, 24, '#cfa2ff');
-      const controls = BARCODE.GamepadUI?.connected ? ['Stick / D-pad: Move', `${BARCODE.ControllerSettings.prompt('jump')}: Jump / Down + Jump: Drop`, `${BARCODE.ControllerSettings.prompt('rhythm_mode')}: Rhythm Mode`, `${BARCODE.ControllerSettings.prompt('primary')}: Beat attack`, `${BARCODE.ControllerSettings.prompt('interact')}: Hack`, `${BARCODE.ControllerSettings.button(9)}: Pause / Settings`] : ['A / D or Left / Right: Move', 'Space / W / Up: Jump; Down + Jump: Drop', 'R: Enter Rhythm Mode', 'Down: Attack on the beat', 'H: Hack when unlocked', 'P: Pause'];
+      const proof = BARCODE.RunAndGunProof?.active;
+      const controls = proof ? (BARCODE.GamepadUI?.connected
+        ? ['Stick / D-pad: Move', `${BARCODE.ControllerSettings.prompt('jump')}: Jump`, `${BARCODE.ControllerSettings.prompt('inspect')}: Fire`, 'Relays block the route until disabled.', 'Volleys warn before each music phrase.', `${BARCODE.ControllerSettings.button(9)}: Pause / Settings`]
+        : ['A / D or Left / Right: Move', 'Space / W / Up: Jump', 'E: Fire / Hold E for repeat fire', 'Relays block the route until disabled.', 'Volleys warn before each music phrase.', 'P: Pause'])
+        : (BARCODE.GamepadUI?.connected ? ['Stick / D-pad: Move', `${BARCODE.ControllerSettings.prompt('jump')}: Jump / Down + Jump: Drop`, `${BARCODE.ControllerSettings.prompt('rhythm_mode')}: Rhythm Mode`, `${BARCODE.ControllerSettings.prompt('primary')}: Beat attack`, `${BARCODE.ControllerSettings.prompt('interact')}: Hack`, `${BARCODE.ControllerSettings.button(9)}: Pause / Settings`] : ['A / D or Left / Right: Move', 'Space / W / Up: Jump; Down + Jump: Drop', 'R: Enter Rhythm Mode', 'Down: Attack on the beat', 'H: Hack when unlocked', 'P: Pause']);
       controls.forEach((line, i) => text(line, 440, 448 + i * 46, 21));
-      text('RHYTHM MODE HOLDS YOUR STANCE', 440, 772, 20, '#a0ffe4');
-      text(BARCODE.GamepadUI?.connected ? `${BARCODE.ControllerSettings.button(1)} exits so you can move.` : 'R or Escape exits so you can move.', 440, 810, 20);
+      text(proof ? 'PROTOTYPE CHANNEL 03' : 'RHYTHM MODE HOLDS YOUR STANCE', 440, 772, 20, '#a0ffe4');
+      text(proof ? 'Choose Exit preview to return to Cache Back.' : BARCODE.GamepadUI?.connected ? `${BARCODE.ControllerSettings.button(1)} exits so you can move.` : 'R or Escape exits so you can move.', 440, 810, 20);
       const d=BARCODE.LevelDifficulty;
-      text(d?.locked ? `LEVEL RULES: ${d.choice?.label} / ${d.recoveryMode==='full-run'?'FULL RUN':'CHECKPOINTS'}` : 'Difficulty + recovery: choose at level start.',440,855,18,'#cfa2ff');
+      text(proof ? 'Practice preview: progress saves at each relay.' : d?.locked ? `LEVEL RULES: ${d.choice?.label} / ${d.recoveryMode==='full-run'?'FULL RUN':'CHECKPOINTS'}` : 'Difficulty + recovery: choose at level start.',440,855,18,'#cfa2ff');
       text('Audio, visuals and controls can change anytime.',440,886,18,'#a0ffe4');
-      rows.forEach(([key, label], index) => {
+      visibleRows().forEach(([key, label], index) => {
         const y = rowTop + index * rowStep, selected = index === this.focus;
         ctx.fillStyle = selected ? '#16394b' : '#0d2032'; ctx.fillRect(1020, y, 480, rowStep);
         if (selected) { ctx.strokeStyle = '#94ffe3'; ctx.strokeRect(1020, y, 480, rowStep); }

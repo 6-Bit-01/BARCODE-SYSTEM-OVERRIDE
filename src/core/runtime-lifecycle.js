@@ -153,6 +153,17 @@ window.BARCODE = window.BARCODE || {};
 
     resetRunState({ preserveProgress: !!options.restart });
     if (!options.resume) window.BARCODE?.LevelDifficulty?.beginLevel('level-01');
+    if (options.resume?.levelId === 'level-03') {
+      const selection = namespace.RunAndGunProof?.selectMusicProfile?.();
+      if (!selection?.ok) throw new Error('Prototype music profile could not be selected.');
+      const prepared = await window.audioSystem?.prepareActiveMusicProfile?.();
+      if (!prepared?.ok) throw new Error('Prototype audio could not be prepared.');
+    } else if ((options.restart || options.resume) && namespace.MusicProfiles?.getActive()?.profileId !== 'level-01.main') {
+      const selection = namespace.ensureLevel01MusicProfileSelected?.();
+      if (!selection?.ok) throw new Error('Level 1 music profile could not be restored.');
+      const prepared = await window.audioSystem?.prepareActiveMusicProfile?.();
+      if (!prepared?.ok) throw new Error('Level 1 audio could not be prepared.');
+    }
     if ((options.restart || options.resume) && window.audioSystem && typeof window.audioSystem.startRuntimeGameplayMusic === 'function') {
       const musicResult = window.audioSystem.startRuntimeGameplayMusic();
       if (!musicResult || musicResult.ok === false) {
@@ -271,6 +282,7 @@ window.BARCODE = window.BARCODE || {};
 
   function stopOwnedResources(options) {
     options = options || {};
+    namespace.RunAndGunProof?.dispose?.();
     namespace.LevelDifficulty?.stop();
     namespace.IntroSequence?.reset();
     if (window.inputManager && typeof window.inputManager.resetActionEdges === 'function') window.inputManager.resetActionEdges();

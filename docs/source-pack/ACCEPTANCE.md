@@ -1,5 +1,14 @@
 # Acceptance and Test Status
 
+## Broadcast Slum proof — current hosted review
+
+Import the exact draft head from the generated receipt into a duplicate Makko preview. Base/rollback: merged #86, `50aae91fea5f63a876d75a97bd67f86a539a961f`. `BROADCAST_SLUM_PROOF.md` describes the production-order preview and the later Level 2 story route.
+
+1. Complete or Continue a saved Level 1 clear. Open Cache Back's handoff, then enter the preview with Enter, controller confirm and pointer. Check the two relay gates, defender warnings, jump/fire input, camera and uplink clear; the player never waits for a beat to move or shoot.
+2. Listen through two phrase volleys. The pink lanes warn before launching from the active relay. Jump from relay range during the warning to clear both lanes. Pause during one warning, resume and compare what you hear and see. If the audio-fallback notice appears, record it: phrase/audio acceptance remains open on that host.
+3. Clear the first relay, reload and Continue Prototype. Confirm checkpoint reconstruction and that the second relay still blocks. Pause and choose Exit preview; the Cache Back handoff and Level 1 music should return once. Replay and clear the proof; the earned Voice key remains and no Drums key/Level 3 completion is recorded.
+4. Record imported SHA, device/controller, PASS/FAIL for each route, and a warning/reload clip. `npm test` and four native production-draw captures support implementation; hosted audio loading, physical input and feel require this review. Keep the draft unmerged pending owner acceptance. After merge, import the actual new main SHA and repeat the focused route, retaining the #86 import for rollback.
+
 ## Hack and Rhythm Mode presence — current route
 
 Use the exact draft head in the receipt in a duplicate Makko preview. Base/rollback: merged #85, `62b44f7cf5446b38bec18746411587327cedb142`. Read MODE_POWER_PASS.md and review assets/review/mode-power.

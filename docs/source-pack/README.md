@@ -1,5 +1,9 @@
 # BARCODE: SYSTEM OVERRIDE — Source Pack v5
 
+## Current review — first playable genre proof
+
+PR #86 is merged at `50aae91fea5f63a876d75a97bd67f86a539a961f`. The next draft, `agent/broadcast-slum-proof`, adds a clearly labeled Broadcast Slum run-and-gun preview from the Level 1 Cache Back handoff, with its own temporary music, two relay checkpoints, pause/exit/reload and no Level 3 award. The Cache Line is still next in story order. Start with `BROADCAST_SLUM_PROOF.md` and `review-broadcast-slum/`; exact test and publication state are in the generated receipt. Owner hosted Makko/audio/controller review remains pending.
+
 ## Latest correction — visible elevator roof riders
 
 Start with `ELEVATOR_ROOF_DEPTH_FIX.md` and `review-roof-depth/roof-corrupted.webp`. Enemies now render on top of the elevator deck while riding; existing physics and the four-circle bonk scope remain. Exact tested/published revisions and checks are in the receipt. `TUTORIAL_FLOW_PROPOSAL.md` answers the owner's new design question with a 25 → 20 bubble recommendation; tutorial runtime remains unchanged. Owner Makko review is pending.
@@ -23,7 +27,7 @@ This pack replaces conflicting instructions in v2–v4. It preserves the later a
 ## Start here
 
 1. `PROJECT_INSTRUCTIONS.md` — authority and working rules.
-2. `STORY_CONTROLS_PASS.md` — current implemented pass, controls, timing and Makko route; `CONTINUATION_PLAN.md` — all campaign stages and source evidence.
+2. `BROADCAST_SLUM_PROOF.md` — current playable review and Makko route; `CONTINUATION_PLAN.md` — all campaign stages and source evidence.
 3. `CAMPAIGN_STORY_MAP.md` — whole-story treatment, 28 record purposes and setup/payoff map.
 4. `EASTER_EGGS_AND_CAMEOS.md` and `ASSET_AND_PLATFORM_PLAN.md` — corrected cast, inspiration bank, assets and platforms.
 5. `DECISION_REGISTER.md`, `CURRENT_STATE.md` and `ACCEPTANCE.md` — decisions, implementation and verification limits.

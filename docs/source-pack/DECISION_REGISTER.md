@@ -1,5 +1,9 @@
 # Decision Register
 
+## September 23, 2026 — proceed beyond Level 1
+
+The owner accepted the merged #86 Level 1 state and said to proceed with the first campaign expansion. Production order uses a short Broadcast Slum/Contra-style proof before the road proof, while the playable story order remains The Cache Line (Level 2) before Broadcast Slum (Level 3). The preview is a practice route from Cache Back's handoff and must leave completion/Drums facts untouched. Temporary generated music demonstrates distinct profile routing without treating 108 BPM or its stem design as final song canon. Later authored songs, road mechanics, finished Level 3 story, optional rewards and ending thresholds remain undecided. See BROADCAST_SLUM_PROOF.md.
+
 ## September 17, 2026 — mode power direction
 
 The owner wants hacking to feel like bullet time, with a more noticeable gesture/effects/audio, and Rhythm Mode to feel more powerful. Preserve the previously emphasized music sync. Implement full-speed personal presentation against slow hostile/ambient activity, using the existing tactical clock and approved character art. Keep terminal answering stationary and the elevator's proven carrying/power behavior. Retain the side-by-side opaque terminal from #85. Give rhythm visible energy tied to actual beats, combos and contacts; no damage or point inflation. Add SFX textures through the existing bus rather than altering music source timing. Visual and audio taste still require target-device playtest; the automated results do not settle that subjective decision.

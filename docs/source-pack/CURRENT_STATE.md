@@ -1,5 +1,9 @@
 # Current State
 
+## Current review — first new genre proof after merged #86
+
+Merged base/rollback is #86, `50aae91fea5f63a876d75a97bd67f86a539a961f`. Branch `agent/broadcast-slum-proof` adds a playable, clearly provisional Level 3 run-and-gun preview from the Level 1 Cache Back intermission: responsive move/jump/fire, six warned defenders, two blocking relays with phrase-timed volleys, uplink clear, two objective checkpoints, title Continue, pause/Exit preview and a real return to the preserved Level 1 handoff. It uses independent generated temporary stems at 108 BPM; the previous Level 1 synchronization contract remains intact. Voice and earlier discoveries survive. No Level 3 completion, Drums key or future story scene is awarded. See `BROADCAST_SLUM_PROOF.md` and its four native images for exact review/limits. The Cache Line road proof and actual Level 2 song are next; old current-review headings below are historical.
+
 ## Current review — Hack and Rhythm Mode presence
 
 Merged #85 at `62b44f7cf5446b38bec18746411587327cedb142` is the base/rollback. Branch `agent/mode-power-presence` strengthens hack entry, city color, slow scenery/traffic, open-hand gesture and guard reaction; Rhythm Mode gains beat fields and contact power. Five cached SFX use the existing mixer and warning budget. The fixed terminal stays readable, and music timing remains protected. Details, visual/audio evidence and playtest limits: MODE_POWER_PASS.md. Exact published head, tree, PR, checks and CI are in the generated receipt. Earlier current-review entries below are historical. Hosted/controller/listening acceptance remains pending.
