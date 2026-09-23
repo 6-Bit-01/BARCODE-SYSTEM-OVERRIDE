@@ -349,6 +349,13 @@ Preserved the recovered 547-frame model-art implementation and live HUD. Draft P
 
 # Changelog
 
+## September 23, 2026 — Cache Line chase slice draft
+
+- Record the working Original Master target and a bounded gameplay review plan after owner rejection of the simple lane runner.
+- Add continuous steering, acceleration/brake, corner drift, speed loss on collision, timed checkpoints, freight drafting, near-miss recharges, sweeper and audit traffic, earned three-part locks, Buffer Echo, a committed Clean Copy rival and an Echo split to the original exit.
+- Keep five aligned temporary song parts on the established transport. Remove forced all-stem finish. Move proof saves to version 2 while accepting version 1, and preserve Level 1/3 boundaries with no Bass award or Level 2 campaign clear.
+- Refresh pause instructions, focused harness and native review frames. Hosted Makko/controller/listening/feel review is pending. Details: `CACHE_LINE_CHASE_SLICE.md`.
+
 ## September 14, 2026 — Level 1 presentation smoothing after merged #48
 
 - Place the Jammer on the authored sidewalk contact and remove its stale hard-coded vertical offset.

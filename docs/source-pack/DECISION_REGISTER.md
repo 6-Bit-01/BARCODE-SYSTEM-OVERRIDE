@@ -1,5 +1,9 @@
 # Decision Register
 
+## September 23, 2026 — Original Master chase direction
+
+After reviewing the basic lane proof, the owner asked for the strongest possible Rad Racer-inspired Cache game and then approved proceeding with the proposed direction. The working target is a fast authentic-recording delivery run with meaningful driving, musical bands that can be carried across lanes, a recent-path Buffer Echo and a spotless Clean Copy rival trying to replace the evidence. The first focused slice implements those interactions while preserving a **provisional** boundary. Three locks, recharge rates, timer length, vehicle/rival appearance, exact gate maneuver and resulting dialogue are reviewable design choices rather than locked canon. The Clean Copy does not establish who created the simulation or identify 9 Bit/the separation initiator. Authored music, story scenes, later boss phases and owner feel acceptance remain outstanding. Read `CACHE_LINE_BLUEPRINT.md` and `CACHE_LINE_CHASE_SLICE.md`; the two-lock choices below describe the superseded first proof.
+
 ## September 23, 2026 — lane music for Cache's road
 
 The owner wants Level 2's soundtrack to add/remove parts based on road lanes and let the player lock lanes before switching, combining a song through play. The current proof uses four compatible parts plus a quiet bed, two locks plus the current lane, immediate steering and beat-aligned gain changes without seek/restart or timed-button judgment. A short authentic-tape gate and all-four delivery section test how the musical mechanic supports Cache's story. These details and generated 120 BPM audio are implementation choices for review, not final composition, stage acceptance or the finale Full Mix. `CACHE_ROAD_MUSIC_PROOF.md` describes the boundaries and owner listening route; Level 2 still needs authored music, scene treatment, assets and accepted pacing before a Bass award.

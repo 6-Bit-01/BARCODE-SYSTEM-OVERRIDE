@@ -411,8 +411,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       text('CONTROLS', 440, 392, 24, '#cfa2ff');
       const road = BARCODE.CacheRoadProof?.active, proof = BARCODE.RunAndGunProof?.active;
       const controls = road ? (BARCODE.GamepadUI?.connected
-        ? ['Stick / D-pad: Change lane', `${BARCODE.ControllerSettings.prompt('inspect')}: Lock / release part`, `${BARCODE.ControllerSettings.prompt('jump')}: Cache dash`, 'Two locks plus the current lane combine.', 'Take the original at the far-right gate.', `${BARCODE.ControllerSettings.button(9)}: Pause / Settings`]
-        : ['A / D or Left / Right: Change lane', 'E: Lock / release lane part', 'Space: Cache dash', 'Two locks plus the current lane combine.', 'Take the original at the far-right gate.', 'P: Pause'])
+        ? ['Stick / D-pad: Steer; Down: Brake', `${BARCODE.ControllerSettings.prompt('jump')}: Turbo; ${BARCODE.ControllerSettings.prompt('interact')}: Buffer Echo`, `${BARCODE.ControllerSettings.prompt('inspect')}: Lock / release part`, 'Earn three locks through clean driving.', 'Send Echo left, take original right.', `${BARCODE.ControllerSettings.button(9)}: Pause / Settings`]
+        : ['A / D or Left / Right: Steer; Down / S: Brake', 'Space: Turbo; H: Buffer Echo', 'E: Lock / release the current part', 'Earn three locks through clean driving.', 'Send Echo left, take original right.', 'P: Pause'])
         : proof ? (BARCODE.GamepadUI?.connected
         ? ['Stick / D-pad: Move', `${BARCODE.ControllerSettings.prompt('jump')}: Jump`, `${BARCODE.ControllerSettings.prompt('inspect')}: Fire`, 'Climb: break roof nodes, then relays.', 'Jump the lanes; watch for a runner.', `${BARCODE.ControllerSettings.button(9)}: Pause / Settings`]
         : ['A / D or Left / Right: Move', 'Space / W / Up: Jump', 'E: Fire / Hold E for repeat fire', 'Climb: break roof nodes, then relays.', 'Jump the lanes; watch for a runner.', 'P: Pause'])

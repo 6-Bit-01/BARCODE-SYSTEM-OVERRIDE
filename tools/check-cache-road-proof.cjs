@@ -114,7 +114,8 @@ async function run() {
   assert.equal(w.BARCODE.MusicProfiles.getActive().profileId, 'level-02.proof');
   load(context, 'src/core/action-input.js'); load(context, 'src/core/input.js');
   const input = w.inputManager = new w.InputManager();
-  const actions = (overrides = {}) => ({ pause: { pressed: false }, move_left: {}, move_right: {}, inspect: {}, jump: {}, ...overrides });
+  const actions = (overrides = {}) => ({ pause: { pressed: false }, move_left: {}, move_right: {},
+    move_down: {}, inspect: {}, interact: {}, jump: {}, ...overrides });
   const director = w.BARCODE.musicDirector, mix = () => {
     assert(director.apply(w.audioSystem)); return copy(director.diagnostics().volumes);
   };
@@ -124,38 +125,100 @@ async function run() {
   assert.equal(volume('bass'), 0);
   input.routeActions(actions({ inspect: { pressed: true } }));
   assert.deepEqual(copy(road.state.locked), [1]);
+  assert.equal(road.state.lockEnergy, 5, 'a lock spends earned charge');
   input.routeActions(actions({ move_right: { pressed: true, held: true } }));
-  assert.equal(road.state.lane, 2, 'steering is immediate');
+  for (let i = 0; i < 5; i++) road.update(100);
+  assert(road.state.lanePos > 1.8 && road.state.lanePos < 2.5,
+    'steering is continuous across the band rather than snapping');
+  assert.equal(road.state.lane, 2);
   mix(); assert.equal(volume('harmony'), 0, 'the queued part waits for the beat');
   w.audioSystem.context.currentTime = 0.51; mix();
   assert.equal(volume('harmony'), .32); assert.equal(volume('break'), .48);
   input.routeActions(actions({ inspect: { pressed: true } }));
+  assert.deepEqual(copy(road.state.locked), [1], 'unearned repeated locks do not fill the whole song');
+  road.state.lockEnergy = 100;
+  input.routeActions(actions({ inspect: { pressed: true } }));
   assert.deepEqual(copy(road.state.locked), [1, 2]);
   input.routeActions(actions({ move_right: { pressed: true, held: true } }));
+  for (let i = 0; i < 5; i++) road.update(100);
+  assert.equal(road.state.lane, 3);
+  road.state.lockEnergy = 100;
   input.routeActions(actions({ inspect: { pressed: true } }));
-  assert.deepEqual(copy(road.state.locked), [2, 3], 'third held part replaces oldest');
+  assert.deepEqual(copy(road.state.locked), [1, 2, 3], 'three parts can be carried into a fourth band');
   input.routeActions(actions({ inspect: { pressed: true } }));
-  assert.deepEqual(copy(road.state.locked), [2], 'tap again releases the current lane');
+  assert.deepEqual(copy(road.state.locked), [1, 2], 'tap again releases the current band');
+  road.state.lockEnergy = 100;
   input.routeActions(actions({ inspect: { pressed: true } }));
-  assert.deepEqual(copy(road.state.locked), [2, 3]);
+  assert.deepEqual(copy(road.state.locked), [1, 2, 3]);
+  road.state.lanePos = 0; road.state.lane = 0; road.state.lockEnergy = 100;
+  input.routeActions(actions({ inspect: { pressed: true } }));
+  assert.deepEqual(copy(road.state.locked), [2, 3, 0], 'a fourth lock replaces the oldest');
   w.audioSystem.context.currentTime = 1.01; mix();
   assert.equal(volume('break'), 0); assert(volume('harmony') > 0 && volume('lead') > 0);
   assert.equal(starts, 1, 'mixing does not restart a song');
+  road.state.progress = 80; road.state.lanePos = 1.5; road.state.lane = 2;
+  road.state.speed = 41; road.state.braking = true; road.update(100);
+  assert(road.state.speed < 41 && road.state.progress > 80, 'braking sheds speed without stopping the race');
+  road.state.braking = false;
   road.state.progress = 188;
-  road.state.lane = 1; road.update(100);
-  assert.equal(road.state.integrity, 2, 'traffic collides with the occupied lane');
-  road.state.progress = 847; road.update(150);
+  road.state.lanePos = 1; road.state.lane = 1; road.state.speed = 44; road.state.steer = 0;
+  road.update(100);
+  assert.equal(road.state.integrity, 2, 'freight collisions cost integrity');
+  assert(road.state.speed < 44, 'collision also costs speed');
+  road.state.progress = 847; road.state.speed = 44; road.update(100);
   assert.equal(archive.record.current.checkpointId, 'road-cache');
   assert(road.restore(C.readResume()));
   assert.equal(road.state.progress, 850);
-  road.state.lane = 0; road.state.progress = 2058; road.update(100);
+  assert.equal(C.readResume().levelState.proofVersion, 2);
+  const malformed = copy(C.readResume());
+  malformed.levelState.proof.lanePos = 8;
+  assert(!road.validate(malformed), 'bad lateral checkpoint values cannot enter the runtime');
+  road.state.timeMs = 25; road.update(100);
+  assert.equal(road.status, 'failed', 'an expired transmission window ends the stretch');
+  assert(road.retry());
+  assert.equal(road.state.progress, 850);
+  assert(road.state.timeMs >= 30000 && road.state.echoEnergy === 100,
+    'a nearby retry restores time and guarantees a chance to learn Echo');
+  road.state.progress = 1701; road.state.nextRivalAt = 1800;
+  road.state.lanePos = 1; road.state.lane = 1; road.state.rivalLane = 1;
+  road.update(100);
+  assert(road.state.rivalWarning);
+  assert(Math.abs(road.state.rivalTarget - 1) < 0.1);
+  road.state.lanePos = 3; road.state.lane = 3;
+  road.update(100);
+  assert(Math.abs(road.state.rivalTarget - 1) < 0.1,
+    'a warned rival commits to a line, allowing a real dodge');
+  road.state.progress = 1798; road.update(100);
+  assert.equal(road.state.integrity, 3, 'leaving the warned line avoids the rival');
+  road.state.progress = 1830; road.state.nextRivalAt = 1930;
+  road.state.lanePos = 3; road.state.lane = 3; road.state.echoEnergy = 100;
+  road.state.trace = [{ steer: 0, duration: 1800 }];
+  road.update(100);
+  input.routeActions(actions({ interact: { pressed: true } }));
+  road.state.lanePos = 1; road.state.lane = 1;
+  road.update(100);
+  assert(road.state.rivalEchoCommitted, 'a fresh Echo redirects a committed rival');
+  road.state.progress = 1928; road.update(100);
+  assert.equal(road.state.echoDeceptions, 1, 'the physical split fools one attack');
+  assert.equal(road.state.integrity, 3);
+  road.state.lanePos = 0; road.state.lane = 0; road.state.progress = 2058; road.update(100);
   assert.equal(road.state.progress, 1910, 'clean copy route loops back');
-  road.state.lane = 3; road.state.progress = 2058; road.update(100);
+  assert.equal(road.state.echoEnergy, 100, 'a missed Echo gate replenishes the ability');
+  road.state.progress = 1980; road.state.lanePos = 1; road.state.lane = 1;
+  road.state.trace = [{ steer: 0, duration: 1800 }];
+  input.routeActions(actions({ interact: { pressed: true } }));
+  assert(road.state.echo && road.state.echoEnergy === 0);
+  road.state.lanePos = 3; road.state.lane = 3; road.state.steer = 0;
+  road.state.progress = 2058; road.update(100);
   assert.equal(archive.record.current.checkpointId, 'road-gate');
+  assert.equal(road.state.gateOpen, true, 'divergent Echo opens the original route');
+  road.state.locked = []; road.state.lanePos = 3; road.state.lane = 3;
   road.state.progress = 2219; road.update(100);
   w.audioSystem.context.currentTime = 1.51; mix();
+  assert.equal(volume('bass'), 0, 'the finish does not force a full mix');
+  road.state.locked = [0, 1, 2]; w.audioSystem.context.currentTime = 2.01; mix();
   assert(['bass', 'break', 'harmony', 'lead'].every(role => volume(role) > 0),
-    'delivery payoff combines all four compatible parts');
+    'a skilled driver can combine all four parts');
   road.state.progress = 2458; road.update(100);
   assert.equal(road.status, 'clear');
   assert.equal(archive.record.current.checkpointId, 'road-clear');
@@ -165,6 +228,7 @@ async function run() {
   assert.equal(exitOptions.resume.levelId, 'level-01');
   assert.equal(exitOptions.resume.checkpointId, 'intermission');
   assert.equal(C.readResume().levelState.cacheRoadCheckpoint.checkpointId, 'road-clear');
+  assert.equal(C.readResume().levelState.cacheRoadCheckpoint.proofVersion, 2);
   assert.deepEqual(copy(C.readResume().levelState.previewCheckpoint), parent.levelState.previewCheckpoint,
     'the old Level 3 checkpoint remains independent after the road trip');
   assert(C.validateLevel01Checkpoint(C.readResume()));
@@ -178,6 +242,7 @@ async function run() {
   const saved = { levelId: 'level-02', checkpointId: 'road-cache', levelState: {
     proofVersion: 1, returnTo: level1Intermission(),
     proof: { progress: 850, lane: 2, locked: [1], integrity: 2 } } };
+  assert(road.validate(saved), 'the first lane-music proof saves remain loadable');
   archive.checkpoint(saved);
   w.initSector1Progression = () => { w.sector1Progression = {
     reset() {}, restoreCampaignCheckpoint() { w.gameState.victory = true; return true; }
@@ -201,6 +266,6 @@ async function run() {
   assert.equal(w.gameState.victory, true);
   assert.equal(C.readResume().levelState.cacheRoadCheckpoint.checkpointId, 'road-cache');
   assert.equal(archive.record.progress.items.includes('stem.bass'), false);
-  console.log('Cache road: aligned parts, lane locks and beat changes, hazards/gate, checkpoint, lifecycle pause/return and no Bass award passed.');
+  console.log('Cache road: driving/brake, earned mix locks, Echo gate, traffic, aligned parts, checkpoint, lifecycle and no Bass award passed.');
 }
 run().catch(error => { console.error(error); process.exitCode = 1; });

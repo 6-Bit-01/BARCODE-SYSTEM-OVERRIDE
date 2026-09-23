@@ -1,5 +1,9 @@
 # BARCODE: SYSTEM OVERRIDE — Source Pack v5
 
+## Current review — Cache Line chase slice
+
+The owner rejected the first lane runner as too basic and approved proceeding with the `Original Master` chase direction. Read `CACHE_LINE_BLUEPRINT.md` for the working gameplay/story target, `CACHE_LINE_CHASE_SLICE.md` for implemented controls and limits, and the newest `ACCEPTANCE.md` route. This is an unmerged review slice with temporary audio/art, no Bass/Level 2 completion, and pending hosted Makko/controller/listening/fun review. Earlier source-pack entries below remain historical.
+
 ## September 23 campaign redesign — current story handoff
 
 Read `CAMPAIGN_REDESIGN.md` and `CAMPAIGN_SCENE_BEATS.md` first for the owner's newly selected level order, Sheila's forgotten competition and 9 Bit's player-aware presence. The older `CAMPAIGN_STORY_MAP.md` and historical review sections below predate that correction. PR #91's transmitter preview merged after #90, but the owner rejected its gameplay/boss feel as a campaign direction. The merged preview/debug route is a technical test, not Mac's planned Level 3, and grants no Drums or Level 3 completion. This source-pack documentation revision does not add gameplay, scenes, songs or a new approved ending.
