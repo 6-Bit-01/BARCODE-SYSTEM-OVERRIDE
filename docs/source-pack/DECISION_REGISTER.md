@@ -1,5 +1,9 @@
 # Decision Register
 
+## September 23, 2026 — Cache Road song shape after owner playback
+
+PR #98 fixed asset delivery: the owner hears the four stems in Makko. The owner now wants the current FX track as an always-on base, four instrumental lanes, and eventually a hidden/no-lane gang vocal reward for skilled driving. A new Harmony/instrumental layer is being authored; do not invent it or present the existing FX twice as independent audio. For this interim pass, the fourth lane foregrounds the already-playing FX, while the other three lanes remain Bass, Drums and Harmony. The FX opening is sparse, so a quiet level of the existing Drums track supports its pulse. Smooth beat-aligned lane changes and keep locks additive. When the new part arrives, it can replace the fourth lane while FX remains below all four. The performance vocal requires its own aligned source and phrase-safe trigger; it is future work. The owner must merge PRs to test them in Makko, superseding historical premerge acceptance gates. Merger does not itself establish a listening pass.
+
 ## September 23, 2026 — required Cache Road audio
 
 The owner confirms title music works while Cache Road remains silent in Makko after draft #97. The four supplied stems are required for this lane-music proof. Try an identical published copy when the preview lacks a local binary; if a real stem cannot load, report it visibly and let the player retry rather than present silence or generated music as success. The exact Makko network failure is still unobserved, so hosted listening and asset delivery remain an acceptance gate.

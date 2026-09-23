@@ -101,6 +101,25 @@ window.BARCODE = window.BARCODE || {};
         if (!finiteNonnegative(mix.echo[key]) || mix.echo[key] > limit) return invalid('adaptive echo budget invalid');
       }
     }
+    if (profile.laneMix) {
+      const mix = profile.laneMix;
+      const roles = new Set(sources.map(source => source.mixRole));
+      if (!Array.isArray(mix.laneRoles) || mix.laneRoles.length !== 4 ||
+          new Set(mix.laneRoles).size !== 4 || mix.laneRoles.some(role => !roles.has(role)))
+        return invalid('lane mix requires four distinct source roles');
+      if (!roles.has(mix.bedRole) || !finiteNonnegative(mix.bedGain) || mix.bedGain > 0.8)
+        return invalid('lane mix bed role/gain invalid');
+      if (!roles.has(mix.grooveRole) || mix.grooveRole === mix.bedRole ||
+          !finiteNonnegative(mix.grooveGain) || mix.grooveGain > 0.2)
+        return invalid('lane mix quiet groove invalid');
+      if (!Array.isArray(mix.laneGains) || mix.laneGains.length !== 4 ||
+          mix.laneGains.some(gain => !finiteNonnegative(gain) || gain > 0.8))
+        return invalid('lane mix gains invalid');
+      if (!finiteNumber(mix.fadeInSec) || mix.fadeInSec <= 0 || mix.fadeInSec > 2 ||
+          !finiteNumber(mix.fadeOutSec) || mix.fadeOutSec < mix.fadeInSec || mix.fadeOutSec > 3 ||
+          !finiteNonnegative(mix.settleSec) || mix.settleSec > 0.5)
+        return invalid('lane mix transition timing invalid');
+    }
     if (!profile.playback || typeof profile.playback !== 'object') return invalid('playback required');
     if (!finiteNonnegative(profile.playback.startTrackSec)) return invalid('playback.startTrackSec invalid');
     if (!nonempty(profile.playback.endPolicy)) return invalid('playback.endPolicy required');

@@ -1,5 +1,13 @@
 # Acceptance and Test Status
 
+## Current route — FX bed after confirmed Cache Road playback
+
+The owner confirms the four real stems play in Makko on merged #98 (`ae1be4a1ee868f0307daa0e8e47f7a100a1510e1`) and reports that replacing one layer with the next sounds bad. **Merge this pass before importing it into Makko**, then listen from a fresh load of the actual new main SHA. The source pack's manifest and PR identify the exact code revision; automated PCM is supporting evidence, not a hosted listening verdict.
+
+1. From the Level 1 handoff, drive across Bass → Drums → Harmony → FX and back, including rapid crossings. FX should remain quietly present throughout, with a faint pulse during its sparse opening. Lane four should make FX stronger. A short crossing should not flash a full intermediate part; the previous part should trail under the incoming part instead of dropping out.
+2. Lock Drums or Harmony, change lanes, release it, then build three locks. Confirm the locked part persists, the full combination has room and the next-beat transitions do not sound muddy. Pause/resume and cross the 187.5-second native loop without the layers drifting.
+3. Check title/Level 1 music and a return from the Level 3 architecture test. Old road checkpoints and the Echo exit should still work; this pass awards no Bass key or Level 2 clear. Record the imported SHA and any specific lane pair or song moment that still sounds rough. The future fourth instrumental and no-lane gang vocal are not included in this test.
+
 ## Current route — Cache Road remains silent after draft #97
 
 The owner confirms the title music works but Cache Road still has no music in Makko. PR #97 merged while the next repair was prepared; review the new follow-up draft based on merge `df02c8964d34b2cfa13a5c4f6d3495395b39aba5`, with the old canvas fix retained. Enter Cache Road from the Level 1 intermission. The four real Bass/Drums/Harmony/FX parts must play, with the selected Drums band audible immediately; steer and lock bands, pause/resume, and listen across the loop. If Makko omits local MP3 files, the game tries the fixed public copies. If both fail, it must return to the intermission with **CACHE MUSIC UNAVAILABLE** and allow a retry, not drive silently or claim that synthetic audio is the owner song. Confirm title and Level 1 music still work, then check the Echo exit and controller. Keep this PR unmerged until the owner hears the actual stems in Makko.
