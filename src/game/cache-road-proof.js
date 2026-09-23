@@ -25,12 +25,82 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     return hazard.lane;
   };
 
+  const PALETTE = ['#69d9f5', '#ffc077', '#cd9dff', '#91f5bc'];
+  const polygon = (ctx, points, fill) => {
+    ctx.beginPath();
+    points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
+    ctx.closePath(); ctx.fillStyle = fill; ctx.fill();
+  };
+  // One silhouette language at every depth. The four traffic kinds differ in
+  // body shape, lights and warning marks even without reading their labels.
+  function drawVehicle(ctx, x, y, w, h, kind, { alpha = 1, turbo = false } = {}) {
+    ctx.save(); ctx.translate(x, y); ctx.globalAlpha *= alpha;
+    ctx.fillStyle = '#07111da9'; ctx.beginPath();
+    ctx.ellipse(0, 7, w * 0.62, Math.max(4, h * 0.13), 0, 0, Math.PI * 2); ctx.fill();
+    if (kind === 'block') {
+      polygon(ctx, [[-w*.57,0],[-w*.54,-h*.64],[-w*.43,-h*.77],[w*.43,-h*.77],[w*.54,-h*.64],[w*.57,0]], '#f0a35b');
+      polygon(ctx, [[-w*.47,-h*.59],[w*.47,-h*.59],[w*.44,-h*.13],[-w*.44,-h*.13]], '#2b3149');
+      for (let i = -1; i <= 1; i++) polygon(ctx,
+        [[(i-.42)*w/3,-h*.59],[(i+.08)*w/3,-h*.59],[(i+.42)*w/3,-h*.13],[(i-.08)*w/3,-h*.13]], '#ffe5a9');
+      ctx.fillStyle = '#ff5f7b'; ctx.fillRect(-w*.48,-h*.78,w*.22,h*.1); ctx.fillRect(w*.26,-h*.78,w*.22,h*.1);
+    } else if (kind === 'freight') {
+      ctx.fillStyle = '#0b1e30'; ctx.fillRect(-w*.57,-h*.22,w*.17,h*.29); ctx.fillRect(w*.40,-h*.22,w*.17,h*.29);
+      polygon(ctx, [[-w*.49,-h*.06],[-w*.49,-h*.88],[-w*.38,-h],[w*.38,-h],[w*.49,-h*.88],[w*.49,-h*.06]], '#657d89');
+      polygon(ctx, [[-w*.40,-h*.89],[w*.40,-h*.89],[w*.42,-h*.28],[-w*.42,-h*.28]], '#19384d');
+      ctx.strokeStyle = '#91c8d1'; ctx.lineWidth = Math.max(1,w*.018); ctx.strokeRect(-w*.38,-h*.86,w*.76,h*.56);
+      ctx.fillStyle = '#d0dee0'; ctx.fillRect(-w*.025,-h*.86,w*.05,h*.58);
+      ctx.fillStyle = '#ff8275'; ctx.fillRect(-w*.42,-h*.19,w*.19,h*.09); ctx.fillRect(w*.23,-h*.19,w*.19,h*.09);
+    } else {
+      const player = kind === 'cache' || kind === 'echo';
+      const body = kind === 'rival' ? '#f9f6ee' : kind === 'audit' ? '#f1eee9' : kind === 'sweeper' ? '#e5a15f' :
+        kind === 'van' ? '#4c8fc0' : kind === 'echo' ? '#b7f8ff' : turbo ? '#fbe3a3' : '#61e7d4';
+      if (turbo) {
+        polygon(ctx, [[-w*.35,0],[-w*.2,h*.48],[-w*.06,h*.04]], '#ffbb5f');
+        polygon(ctx, [[w*.35,0],[w*.2,h*.48],[w*.06,h*.04]], '#ffbb5f');
+      }
+      ctx.fillStyle = '#0b1726'; ctx.fillRect(-w*.55,-h*.35,w*.15,h*.4); ctx.fillRect(w*.4,-h*.35,w*.15,h*.4);
+      polygon(ctx, [[-w*.47,0],[-w*.53,-h*.48],[-w*.32,-h*.67],[w*.32,-h*.67],[w*.53,-h*.48],[w*.47,0]], body);
+      polygon(ctx, [[-w*.33,-h*.59],[-w*.25,-h*.91],[w*.25,-h*.91],[w*.33,-h*.59]],
+        kind === 'audit' || kind === 'rival' ? '#8f9ba6' : '#163b52');
+      ctx.fillStyle = kind === 'audit' || kind === 'rival' ? '#fb6087' : kind === 'sweeper' ? '#fff2a8' : '#ffc077';
+      ctx.fillRect(-w*.43,-h*.22,w*.23,h*.105); ctx.fillRect(w*.2,-h*.22,w*.23,h*.105);
+      ctx.fillStyle = '#132239'; ctx.fillRect(-w*.16,-h*.19,w*.32,h*.11);
+      if (player) {
+        ctx.strokeStyle = '#eaffef'; ctx.lineWidth = Math.max(2,w*.024);
+        ctx.beginPath(); ctx.moveTo(-w*.56,-h*.62); ctx.lineTo(w*.56,-h*.62); ctx.stroke();
+        ctx.fillStyle = '#edfff4';
+        ctx.beginPath(); ctx.arc(-w*.11,-h*.73,w*.045,0,Math.PI*2); ctx.arc(w*.11,-h*.73,w*.045,0,Math.PI*2); ctx.fill();
+        ctx.font = `bold ${Math.max(8,w*.115)}px Oxanium, monospace`;
+        ctx.textAlign = 'center'; ctx.fillText(kind === 'echo' ? 'REPLAY' : 'CACHE', 0, -h*.32);
+        if (kind === 'echo') {
+          ctx.strokeStyle = '#dfffff'; ctx.lineWidth = Math.max(2,w*.03);
+          ctx.strokeRect(-w*.56,-h*.94,w*1.12,h*1.05);
+        }
+      } else if (kind === 'rival') {
+        ctx.fillStyle = '#fc5c91'; ctx.fillRect(-w*.42,-h*.53,w*.84,h*.1);
+        ctx.fillStyle = '#19334a'; ctx.font = `bold ${Math.max(8,w*.12)}px Oxanium, monospace`;
+        ctx.textAlign = 'center'; ctx.fillText('COPY', 0, -h*.31);
+        ctx.strokeStyle = '#ffacc1'; ctx.lineWidth = Math.max(2,w*.03);
+        ctx.beginPath(); ctx.moveTo(-w*.58,-h*.65); ctx.lineTo(w*.58,-h*.65); ctx.stroke();
+      } else if (kind === 'audit') {
+        polygon(ctx, [[0,-h*.94],[-w*.09,-h*.75],[0,-h*.7],[w*.09,-h*.75]], '#fd497f');
+        ctx.fillStyle = '#fb6087'; ctx.fillRect(-w*.24,-h*.48,w*.48,h*.095);
+      } else if (kind === 'sweeper') {
+        ctx.fillStyle = '#fff0a8'; ctx.font = `bold ${Math.max(10,w*.22)}px Oxanium, monospace`;
+        ctx.textAlign = 'center'; ctx.fillText('>', 0, -h*.31);
+      } else {
+        ctx.fillStyle = '#9ae8ff'; ctx.fillRect(-w*.2,-h*.52,w*.4,h*.09);
+      }
+    }
+    ctx.restore();
+  }
+
   function newState(saved = {}) {
     const progress = saved.progress ?? 0;
     const lanePos = saved.lanePos ?? saved.lane ?? 1;
     return { progress, lanePos, lane: Math.round(lanePos), visualLane: lanePos,
       locked: [...(saved.locked || [])], integrity: saved.integrity ?? 3,
-      speed: saved.speed ?? 34, timeMs: saved.timeMs ?? 37000,
+      speed: saved.speed ?? 44, timeMs: saved.timeMs ?? 37000,
       lockEnergy: saved.lockEnergy ?? 65, echoEnergy: saved.echoEnergy ?? (progress >= 1700 ? 100 : 65),
       boost: saved.boost ?? 1, boostMs: 0, invulnerableMs: 0, nearMisses: 0,
       steer: 0, braking: false, trace: [], echo: null, echoDeceptions: 0,
@@ -77,7 +147,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         Number.isInteger(p.integrity) && p.integrity >= 1 && p.integrity <= 3 &&
         (s.proofVersion === 1 ||
           Number.isFinite(p.lanePos) && p.lanePos >= 0 && p.lanePos <= 3 &&
-          Number.isFinite(p.speed) && p.speed >= 10 && p.speed <= 64 &&
+          Number.isFinite(p.speed) && p.speed >= 10 && p.speed <= 78 &&
           Number.isFinite(p.timeMs) && p.timeMs > 0 && p.timeMs <= 60000 &&
           Number.isFinite(p.lockEnergy) && p.lockEnergy >= 0 && p.lockEnergy <= 100 &&
           Number.isFinite(p.echoEnergy) && p.echoEnergy >= 0 && p.echoEnergy <= 100) &&
@@ -237,7 +307,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     hit(kind) {
       const s = this.state;
       if (s.invulnerableMs || s.boostMs) return;
-      s.integrity--; s.speed = Math.max(17, s.speed - 17); s.timeMs = Math.max(0, s.timeMs - 1800);
+      s.integrity--; s.speed = Math.max(20, s.speed - 19); s.timeMs = Math.max(0, s.timeMs - 1800);
       s.invulnerableMs = 1400;
       s.message = `${kind.toUpperCase()} HIT / SIGNAL DAMAGED`;
       s.messageMs = 1400;
@@ -265,12 +335,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       s.gateRejectMs = Math.max(0, s.gateRejectMs - dt);
       s.rivalDistractedMs = Math.max(0, s.rivalDistractedMs - dt);
       const seconds = dt / 1000;
-      const targetSpeed = s.braking ? 18 : s.boostMs ? 62 : 44;
+      const targetSpeed = s.braking ? 23 : s.boostMs ? 75 : 54;
       s.speed = clamp(s.speed + clamp(targetSpeed - s.speed,
-        -(s.braking ? 38 : 8) * seconds, (s.boostMs ? 35 : 14) * seconds), 14, 62);
+        -(s.braking ? 48 : 8) * seconds, (s.boostMs ? 47 : 22) * seconds), 18, 75);
       const curve = roadCurve(before);
       s.lanePos = clamp(s.lanePos +
-        (s.steer * 2.15 - curve * (s.speed / 42) ** 2 * 0.43) * seconds, 0, 3);
+        (s.steer * 2.5 - curve * (s.speed / 54) ** 2 * 0.5) * seconds, 0, 3);
       s.lane = Math.round(s.lanePos);
       s.visualLane += (s.lanePos - s.visualLane) * Math.min(1, dt / 90);
       s.progress = Math.min(END, before + s.speed * seconds);
@@ -287,7 +357,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         let remaining = dt;
         while (remaining > 0 && e.sampleIndex < e.path.length) {
           const sample = e.path[e.sampleIndex], step = Math.min(remaining, sample.duration - e.sampleMs);
-          e.lanePos = clamp(e.lanePos + sample.steer * 2.15 * step / 1000, 0, 3);
+          e.lanePos = clamp(e.lanePos + sample.steer * 2.5 * step / 1000, 0, 3);
           e.sampleMs += step; remaining -= step;
           if (e.sampleMs >= sample.duration) { e.sampleIndex++; e.sampleMs = 0; }
         }
@@ -385,188 +455,252 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     draw(ctx) {
       if (!ctx || !this.active) return;
       const s = this.state, progress = s.progress;
-      ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
-      const sky = ctx.createLinearGradient(0, 0, 0, 930);
-      sky.addColorStop(0, progress > 1700 ? '#1b2145' : '#070e29');
-      sky.addColorStop(0.65, progress > 1700 ? '#a34c77' : '#392648');
-      sky.addColorStop(1, progress > 1700 ? '#efaa75' : '#ab5973');
-      ctx.fillStyle = sky; ctx.fillRect(0, 0, 1920, 1080);
+      const section = progress < 850 ? 0 : progress < 1700 ? 1 : progress < 2070 ? 2 : 3;
+      const names = ['RAINLINE', 'SERVICE LOOP', 'MIRROR VIADUCT', 'DISTRIBUTION CAUSEWAY'];
+      const skyTops = ['#08152b', '#201a30', '#1c1d43', '#152b39'];
+      const skyBottoms = ['#9b4f74', '#dc805b', '#d87891', '#86a89d'];
+      const reduced = !!B.Preferences?.values?.reducedMotion;
       const horizon = 345, bottom = 1080;
       const bend = t => Math.sin(progress / 190 + (1 - t) * 1.2) * (1 - t) * 124;
       const center = t => 960 + bend(t), half = t => 80 + 800 * t;
-      const laneX = (lane, t) => center(t) + ((lane + 0.5) / 4 * 2 - 1) * half(t);
+      const laneEdge = (lane, t) => center(t) - half(t) + lane * half(t) / 2;
+      const laneX = (lane, t) => laneEdge(lane, t) + half(t) / 4;
       const roadY = t => horizon + t * t * (bottom - horizon);
-      // Distant skyline and scanlines move against the road's travel speed.
-      for (let i = 0; i < 30; i++) {
-        const x = i * 92 - (progress * 0.24 % 92);
-        const h = 85 + i * 31 % 135;
-        ctx.fillStyle = i % 3 ? '#132039' : '#1d2943';
-        ctx.fillRect(x, horizon - h, 72, h);
-        ctx.fillStyle = '#6c6779'; ctx.fillRect(x + 14, horizon - h + 24, 7, 8);
+      const depth = d => clamp(1 - (d + 80) / 520, 0, 1);
+      ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
+      const sky = ctx.createLinearGradient(0, 0, 0, horizon + 70);
+      sky.addColorStop(0, skyTops[section]); sky.addColorStop(1, skyBottoms[section]);
+      ctx.fillStyle = sky; ctx.fillRect(0, 0, 1920, 1080);
+      ctx.globalAlpha = .38; ctx.fillStyle = section === 3 ? '#d7fff0' : '#ffd8aa';
+      ctx.beginPath(); ctx.arc(1500 - (progress * .025 % 190), 274, 105, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;
+      // Three moving layers establish a place and a speed reference beyond the track.
+      for (let layer = 0; layer < 2; layer++) {
+        const pitch = layer ? 91 : 131, drift = layer ? .33 : .11;
+        for (let i = -2; i < 25; i++) {
+          const x = i * pitch - (progress * drift % pitch);
+          const h = (layer ? 65 : 95) + ((i * 47 + layer * 31 + 3000) % (layer ? 145 : 125));
+          ctx.fillStyle = layer ? '#18283c' : '#24344c';
+          ctx.fillRect(x, horizon - h, pitch * (layer ? .77 : .72), h + 28);
+          if (layer) {
+            ctx.fillStyle = i % 3 ? '#86abc089' : '#e9b5a58c';
+            for (let wy = horizon - h + 16; wy < horizon - 12; wy += 26)
+              ctx.fillRect(x + 13, wy, pitch * .06, 5);
+          }
+        }
       }
-      ctx.fillStyle = '#101724'; ctx.fillRect(0, horizon + 25, 1920, 735);
-      for (let i = 0; i < 12; i++) {
-        const x = ((i * 263 - progress * 2.2) % 2350 + 2350) % 2350 - 230;
-        ctx.fillStyle = i % 3 ? '#394a57' : '#536472';
-        ctx.fillRect(x, horizon + 15, 12, 480);
-        ctx.fillStyle = '#76baca'; ctx.globalAlpha = 0.42;
-        ctx.fillRect(x - 25, horizon + 50, 65, 4); ctx.globalAlpha = 1;
-      }
-      ctx.fillStyle = '#102133'; ctx.fillRect(0, horizon, 1920, bottom - horizon);
-      ctx.beginPath(); ctx.moveTo(center(0) - half(0), horizon);
-      for (let i = 1; i <= 24; i++) { const t = i / 24; ctx.lineTo(center(t) - half(t), roadY(t)); }
-      for (let i = 24; i >= 0; i--) { const t = i / 24; ctx.lineTo(center(t) + half(t), roadY(t)); }
-      ctx.closePath(); ctx.fillStyle = '#20283b'; ctx.fill();
-      const colours = ['#67ddff', '#fba66f', '#d59cff', '#9cffbb'];
-      for (let lane = 0; lane < 4; lane++) {
-        const x1 = laneX(lane, 0.08), x2 = laneX(lane, 1);
-        ctx.beginPath(); ctx.moveTo(x1 - 18, roadY(0.08));
-        ctx.lineTo(x1 + 18, roadY(0.08));
-        ctx.lineTo(x2 + 150, roadY(1)); ctx.lineTo(x2 - 150, roadY(1));
-        ctx.closePath(); ctx.fillStyle = colours[lane];
-        ctx.globalAlpha = s.locked.includes(lane) || s.lane === lane ? 0.065 : 0.022;
-        ctx.fill(); ctx.globalAlpha = 1;
-      }
-      ctx.strokeStyle = '#e7788a'; ctx.lineWidth = 7;
+      ctx.fillStyle = '#112134'; ctx.fillRect(0, horizon, 1920, bottom - horizon);
+      // Road shoulders and four colored music bands share the same projection.
       for (const side of [-1, 1]) {
         ctx.beginPath();
-        for (let i = 0; i <= 22; i++) {
-          const t = i / 22, x = center(t) + side * half(t);
+        for (let i = 0; i <= 24; i++) {
+          const t = i / 24, x = center(t) + side * (half(t) + 26 + 39 * t);
+          if (!i) ctx.moveTo(x, roadY(t)); else ctx.lineTo(x, roadY(t));
+        }
+        for (let i = 24; i >= 0; i--) {
+          const t = i / 24, x = center(t) + side * half(t);
+          ctx.lineTo(x, roadY(t));
+        }
+        ctx.closePath(); ctx.fillStyle = '#44536a'; ctx.fill();
+      }
+      ctx.beginPath();
+      for (let i = 0; i <= 28; i++) {
+        const t = i / 28;
+        if (!i) ctx.moveTo(center(t) - half(t), roadY(t)); else ctx.lineTo(center(t) - half(t), roadY(t));
+      }
+      for (let i = 28; i >= 0; i--) { const t = i / 28; ctx.lineTo(center(t) + half(t), roadY(t)); }
+      ctx.closePath(); ctx.fillStyle = '#1b2539'; ctx.fill();
+      for (let lane = 0; lane < 4; lane++) {
+        ctx.beginPath();
+        for (let i = 0; i <= 20; i++) {
+          const t = i / 20;
+          if (!i) ctx.moveTo(laneEdge(lane, t), roadY(t)); else ctx.lineTo(laneEdge(lane, t), roadY(t));
+        }
+        for (let i = 20; i >= 0; i--) {
+          const t = i / 20; ctx.lineTo(laneEdge(lane + 1, t), roadY(t));
+        }
+        ctx.closePath(); ctx.fillStyle = PALETTE[lane];
+        ctx.globalAlpha = s.lane === lane ? .13 : s.locked.includes(lane) ? .085 : .028;
+        ctx.fill(); ctx.globalAlpha = 1;
+      }
+      for (const side of [-1, 1]) {
+        ctx.strokeStyle = section === 3 ? '#a2f9c9' : '#f0a0ac'; ctx.lineWidth = 7;
+        ctx.beginPath();
+        for (let i = 0; i <= 24; i++) {
+          const t = i / 24, x = center(t) + side * half(t);
           if (!i) ctx.moveTo(x, roadY(t)); else ctx.lineTo(x, roadY(t));
         }
         ctx.stroke();
       }
-      // Road dashes and lane-color reflections encode the current mix.
-      for (let lane = 0; lane < 4; lane++) {
-        const t = 0.91;
-        ctx.fillStyle = colours[lane]; ctx.globalAlpha = s.locked.includes(lane) || s.lane === lane ? 0.30 : 0.07;
-        ctx.fillRect(laneX(lane, t) - 75, roadY(t), 150, 13);
-        ctx.globalAlpha = 1;
-      }
-      for (let at = Math.floor(progress / 24) * 24; at < progress + 500; at += 24) {
-        const d = at - progress, t = clamp(1 - (d + 80) / 520, 0, 1);
-        if (d < -72 || (Math.floor(at / 24) % 2)) continue;
-        ctx.fillStyle = '#b5b8c2'; ctx.globalAlpha = 0.25 + 0.55 * t;
+      // Road studs and striped shoulder posts accelerate toward the player.
+      for (let at = Math.floor(progress / 26) * 26; at < progress + 500; at += 26) {
+        const d = at - progress, t = depth(d);
+        if (d < -65 || t < .12) continue;
+        const y = roadY(t), size = 2 + 17 * t * t;
         for (let lane = 1; lane < 4; lane++) {
-          const x = center(t) - half(t) + lane * half(t) / 2;
-          ctx.fillRect(x - 2 - 3 * t, roadY(t), 4 + 6 * t, 5 + 25 * t);
+          const x = laneEdge(lane, t);
+          ctx.fillStyle = '#f4e4cf'; ctx.globalAlpha = .28 + t * .55;
+          ctx.fillRect(x - size * .25, y - size * .7, size * .5, size * 1.4);
+        }
+        ctx.globalAlpha = 1;
+        for (const side of [-1, 1]) {
+          const x = center(t) + side * (half(t) + 18 + t * 32);
+          ctx.fillStyle = at % 52 ? '#7c92a2' : '#efb5a2';
+          ctx.fillRect(x - size*.35, y - size*2.5, size*.7, size*2.5);
+          ctx.fillStyle = '#b4f7e8'; ctx.fillRect(x - size*.35, y - size*2.2, size*.7, size*.38);
         }
       }
-      ctx.globalAlpha = 1;
-      // The approach stripes make speed and the checkpoint window readable.
-      for (let at = Math.ceil(progress / 90) * 90; at < progress + 480; at += 90) {
-        const d = at - progress, t = clamp(1 - (d + 80) / 520, 0, 1);
-        ctx.strokeStyle = at % 180 ? '#679199' : '#d8aa8b';
-        ctx.globalAlpha = 0.14 + t * 0.24; ctx.lineWidth = 2 + t * 7;
+      for (let at = Math.floor(progress / 58) * 58; at < progress + 500; at += 58) {
+        const d = at - progress, t = depth(d);
+        if (d < -65 || t < .18) continue;
+        ctx.strokeStyle = section === 3 ? '#bbfad4' : '#9bbad3';
+        ctx.globalAlpha = .12 + t * .23; ctx.lineWidth = 2 + t * 8;
         ctx.beginPath(); ctx.moveTo(center(t) - half(t), roadY(t));
         ctx.lineTo(center(t) + half(t), roadY(t)); ctx.stroke();
       }
       ctx.globalAlpha = 1;
-      for (const hazard of HAZARDS) {
-        const d = hazard.at - progress;
-        if (d < -45 || d > 440) continue;
-        const t = clamp(1 - (d + 80) / 520, 0, 1);
-        const lane = hazardLane(hazard, progress, s.audits);
-        const x = laneX(lane, t), y = roadY(t);
-        const w = (hazard.kind === 'freight' ? 34 : 24) + t * (hazard.kind === 'freight' ? 122 : 90);
-        const h = (hazard.kind === 'freight' ? 28 : 16) + t * (hazard.kind === 'freight' ? 135 : 100);
-        ctx.fillStyle = '#0b1021'; ctx.fillRect(x - w * 0.6, y - h * 0.1, w * 1.2, h * 0.24);
-        ctx.fillStyle = hazard.kind === 'block' ? '#cc765d' : hazard.kind === 'audit' ? '#f0e8d9' :
-          hazard.kind === 'freight' ? '#526774' : hazard.kind === 'sweeper' ? '#bb8351' : '#4c76a0';
-        ctx.fillRect(x - w / 2, y - h, w, h);
-        ctx.fillStyle = hazard.kind === 'block' ? '#fff0c9' : hazard.kind === 'audit' ? '#ee5882' : '#adf4ff';
-        ctx.fillRect(x - w * 0.35, y - h * 0.75, w * 0.7, h * 0.22);
-        ctx.fillStyle = '#fbc375';
-        ctx.fillRect(x - w * 0.42, y - h * 0.17, w * 0.2, h * 0.1);
-        ctx.fillRect(x + w * 0.22, y - h * 0.17, w * 0.2, h * 0.1);
-        if (hazard.kind === 'sweeper' || hazard.kind === 'audit') {
-          ctx.fillStyle = '#ffe39a'; ctx.font = `bold ${Math.round(13 + t * 23)}px Oxanium, monospace`;
-          ctx.textAlign = 'center';
-          ctx.fillText(hazard.kind === 'audit' ? 'AUDIT LOCK' : 'MERGING RIGHT', x, y - h - 12);
+      if (!reduced && s.speed > 40) {
+        const travel = (progress * 1.8) % 190;
+        for (let i = 0; i < 13; i++) {
+          const d = (i * 37 + travel) % 190, t = .67 + d / 620;
+          const y = roadY(t), len = 14 + (s.speed - 38) * .9 * t;
+          ctx.strokeStyle = PALETTE[i % 4]; ctx.globalAlpha = .11 + t * .19;
+          ctx.lineWidth = 1 + t * 2; ctx.beginPath();
+          const x = center(t) + (i % 2 ? -1 : 1) * (half(t) + 60 + i * 9);
+          ctx.moveTo(x, y - len); ctx.lineTo(x, y + len * .3); ctx.stroke();
         }
-      }
-      if (progress > 1670 && progress < GATE + 35) {
-        const d = GATE - progress, t = clamp(1 - (d + 80) / 520, 0, 1);
-        const x = laneX(3, t), y = roadY(t);
-        ctx.fillStyle = '#94ffd3'; ctx.font = `bold ${Math.round(20 + t * 25)}px Oxanium, monospace`;
-        ctx.textAlign = 'center'; ctx.fillText('ORIGINAL / RIGHT EXIT', x, y - 90 * t - 25);
-        ctx.fillStyle = '#ff9d91'; ctx.fillText('CLEAN COPY / AUDIT', laneX(0, t), y - 90 * t - 25);
-      }
-      if (progress >= 1700) {
-        const t = 0.67, x = laneX(s.rivalLane, t), y = roadY(t);
-        const w = 30 + t * 105, h = 30 + t * 110;
-        ctx.fillStyle = '#fff0e5'; ctx.fillRect(x - w / 2, y - h, w, h);
-        ctx.fillStyle = '#d65679'; ctx.fillRect(x - w * 0.36, y - h * 0.68, w * 0.72, h * 0.18);
-        ctx.strokeStyle = '#ffaac1'; ctx.lineWidth = 2 + t * 5;
-        ctx.strokeRect(x - w / 2, y - h, w, h);
-        if (s.rivalWarning) {
-          const d = s.nextRivalAt - progress, markT = clamp(1 - (d + 80) / 520, 0, 1);
-          const markX = laneX(s.rivalTarget, markT), markY = roadY(markT);
-          ctx.strokeStyle = '#ffc4d0'; ctx.lineWidth = 5;
-          ctx.strokeRect(markX - 42, markY - 75, 84, 70);
-          ctx.fillStyle = '#ffe6f0'; ctx.font = 'bold 24px Oxanium, monospace';
-          ctx.textAlign = 'center'; ctx.fillText('CLEAN COPY CLOSING', 960, 325);
-        }
-      }
-      // Cache and the visible replay share a starting point, then diverge.
-      const carX = laneX(s.visualLane, 0.83), carY = roadY(0.83);
-      if (s.echo) {
-        const x = laneX(s.echo.lanePos, 0.83);
-        ctx.globalAlpha = 0.45 + Math.sin(s.echo.ageMs / 90) * 0.12;
-        ctx.fillStyle = '#a8edff'; ctx.fillRect(x - 75, carY - 90, 150, 94);
-        ctx.strokeStyle = '#e3fbff'; ctx.lineWidth = 4;
-        ctx.strokeRect(x - 81, carY - 98, 162, 103);
-        ctx.fillStyle = '#052a3e'; ctx.fillRect(x - 52, carY - 75, 104, 40);
         ctx.globalAlpha = 1;
       }
-      ctx.globalAlpha = s.invulnerableMs && Math.floor(s.invulnerableMs / 90) % 2 ? 0.4 : 1;
-      ctx.fillStyle = '#090f1a'; ctx.beginPath(); ctx.ellipse(carX, carY + 18, 105, 20, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = s.boostMs ? '#ffe399' : '#80f5de'; ctx.fillRect(carX - 78, carY - 94, 156, 104);
-      ctx.fillStyle = '#132f41'; ctx.fillRect(carX - 58, carY - 80, 116, 47);
-      ctx.fillStyle = '#f597a6'; ctx.fillRect(carX - 66, carY - 12, 28, 12); ctx.fillRect(carX + 38, carY - 12, 28, 12);
-      if (s.boostMs) {
-        ctx.fillStyle = '#ffdc83'; ctx.fillRect(carX - 50, carY + 10, 25, 46);
-        ctx.fillRect(carX + 25, carY + 10, 25, 46);
+      const upcoming = [850, 1700].find(at => at > progress && at - progress < 410);
+      if (upcoming) {
+        const d = upcoming - progress, t = depth(d), y = roadY(t), width = half(t) * 1.7;
+        ctx.fillStyle = '#0b2431'; ctx.fillRect(center(t) - width/2, y - 100*t - 24, width, 25 + 65*t);
+        ctx.strokeStyle = '#8cdef2'; ctx.lineWidth = Math.max(2, 5*t);
+        ctx.strokeRect(center(t) - width/2, y - 100*t - 24, width, 25 + 65*t);
+        ctx.fillStyle = '#e5fcf1'; ctx.font = `bold ${Math.round(10 + 22*t)}px Oxanium, monospace`;
+        ctx.textAlign = 'center'; ctx.fillText('ROAD MARKER', center(t), y - 60*t - 3);
       }
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = '#07121f'; ctx.fillRect(0, 0, 1920, 166);
-      ctx.fillStyle = '#9cf9df'; ctx.font = 'bold 33px Oxanium, monospace';
-      ctx.textAlign = 'left'; ctx.fillText('THE CACHE LINE // ORIGINAL MASTER', 60, 58);
-      ctx.fillStyle = '#f6eef3'; ctx.font = '22px Oxanium, monospace';
-      ctx.fillText(`SPEED ${Math.round(s.speed * 5.2)} KM/H     WINDOW ${(s.timeMs / 1000).toFixed(1)}S     SIGNAL ${Math.floor(progress)} / ${END}`, 60, 102);
-      ctx.fillText(`TURBO ${s.boost ? 'READY' : s.boostMs ? 'ACTIVE' : 'CHARGING'}     ECHO ${Math.round(s.echoEnergy)}%     LOCK ${Math.round(s.lockEnergy)}%     INTEGRITY ${s.integrity}/3`, 60, 139);
-      ctx.fillStyle = '#b9a6cd'; ctx.textAlign = 'right';
-      ctx.font = '18px Oxanium, monospace';
-      ctx.fillText('REVIEW SLICE // NO CAMPAIGN KEY', 1860, 53);
-      ctx.fillText('LEFT/RIGHT: STEER  DOWN: BRAKE  SPACE/A: TURBO  E/RB: LOCK  H/Y: ECHO', 1860, 92);
-      ctx.fillText('THREE EARNED LOCKS + CURRENT BAND // BEAT-ALIGNED MIX', 1860, 131);
+      // Far traffic first; the shapes and on-road arrows remain legible in motion.
+      for (const hazard of [...HAZARDS].reverse()) {
+        const d = hazard.at - progress;
+        if (d < 0 || d > 440) continue;
+        const t = depth(d), lane = hazardLane(hazard, progress, s.audits);
+        const x = laneX(lane, t), y = roadY(t);
+        const w = (hazard.kind === 'freight' ? 32 : 26) + t * (hazard.kind === 'freight' ? 144 : 113);
+        const h = (hazard.kind === 'freight' ? 30 : 24) + t * (hazard.kind === 'freight' ? 149 : 111);
+        if (hazard.kind === 'audit' && d < 165 && d > 0) {
+          ctx.fillStyle = '#ff4f82'; ctx.globalAlpha = .27;
+          ctx.fillRect(laneEdge(lane,t) + 8, y + h*.1, half(t)/2 - 16, 13 + 24*t);
+          ctx.globalAlpha = 1;
+        }
+        if (hazard.kind === 'sweeper' && d < 165 && d > 0) {
+          ctx.strokeStyle = '#ffe6a2'; ctx.lineWidth = 4 + t*5;
+          ctx.beginPath(); ctx.moveTo(laneX(hazard.lane,t), y + 30*t);
+          ctx.lineTo(laneX(hazard.lane+1,t), y + 30*t); ctx.stroke();
+          polygon(ctx, [[laneX(hazard.lane+1,t),y+30*t],
+            [laneX(hazard.lane+1,t)-15*t,y+18*t],[laneX(hazard.lane+1,t)-15*t,y+42*t]], '#ffe6a2');
+        }
+        drawVehicle(ctx, x, y, w, h, hazard.kind);
+        if (d < 210 && d > 0 && t > .38 && ['audit','sweeper','freight'].includes(hazard.kind)) {
+          ctx.fillStyle = hazard.kind === 'audit' ? '#ffd0df' : '#fff2be';
+          ctx.font = `bold ${Math.round(15 + t*16)}px Oxanium, monospace`;
+          ctx.textAlign = 'center';
+          ctx.fillText(hazard.kind === 'audit' ? 'AUDIT LOCK' : hazard.kind === 'sweeper' ? 'MERGE >' : 'DRAFT', x, y - h - 14);
+        }
+      }
+      if (progress > 1700 && progress < GATE + 45) {
+        const t = depth(GATE - progress), y = roadY(t);
+        ctx.fillStyle = '#9ffff0'; ctx.font = `bold ${Math.round(18 + t*23)}px Oxanium, monospace`;
+        ctx.textAlign = 'center'; ctx.fillText('ORIGINAL >>>', laneX(3,t), y - 154*t - 52);
+        ctx.fillStyle = '#ffb2bd'; ctx.fillText('AUDIT COPY', laneX(0,t), y - 154*t - 52);
+      }
+      if (progress >= 1700) {
+        const t = .62, x = laneX(s.rivalLane,t), y = roadY(t);
+        drawVehicle(ctx, x, y, 126, 127, 'rival');
+        if (s.rivalWarning) {
+          const markT = depth(s.nextRivalAt - progress), markX = laneX(s.rivalTarget,markT), markY = roadY(markT);
+          ctx.strokeStyle = '#ff719b'; ctx.lineWidth = 6;
+          ctx.strokeRect(markX - 44, markY - 83, 88, 78);
+          ctx.fillStyle = '#ffe3eb'; ctx.font = 'bold 22px Oxanium, monospace';
+          ctx.textAlign = 'center'; ctx.fillText('CLEAN COPY // MARKED LANE', 960, 371);
+        }
+      }
+      const carX = laneX(s.visualLane, .83), carY = roadY(.83);
+      if (s.echo) {
+        const x = laneX(s.echo.lanePos, .83);
+        if (Math.abs(x - carX) > 35) {
+          ctx.strokeStyle = '#a4faff'; ctx.globalAlpha = .36; ctx.lineWidth = 3;
+          ctx.beginPath(); ctx.moveTo(x, carY - 8); ctx.lineTo(carX, carY - 8); ctx.stroke(); ctx.globalAlpha = 1;
+        }
+        drawVehicle(ctx, x, carY, 152, 115, 'echo', { alpha: .68 });
+      }
+      drawVehicle(ctx, carX, carY, 164, 119, 'cache',
+        { alpha: s.invulnerableMs && Math.floor(s.invulnerableMs / 90) % 2 ? .55 : 1, turbo: !!s.boostMs });
+      if (s.invulnerableMs) {
+        ctx.fillStyle = '#ff697a';
+        ctx.fillRect(0, 163, 12, 750); ctx.fillRect(1908, 163, 12, 750);
+      }
+      // The driving HUD prioritizes time, damage and ability readiness.
+      ctx.fillStyle = '#091523f2'; ctx.fillRect(0, 0, 1920, 164);
+      ctx.fillStyle = '#9ef6e2'; ctx.font = 'bold 32px Oxanium, monospace'; ctx.textAlign = 'left';
+      ctx.fillText('CACHE BACK  /  ORIGINAL MASTER', 42, 45);
+      ctx.fillStyle = '#c9e1e8'; ctx.font = '20px Oxanium, monospace';
+      ctx.fillText(`${names[section]}   •   SIGNAL ${Math.floor(progress)} / ${END}`, 44, 78);
+      ctx.fillStyle = '#faf7e9'; ctx.font = 'bold 53px Oxanium, monospace';
+      ctx.fillText(`${Math.round(s.speed * 5.2)}`, 44, 140);
+      ctx.fillStyle = '#91bfd1'; ctx.font = '19px Oxanium, monospace'; ctx.fillText('KM/H', 173, 133);
+      ctx.fillStyle = s.timeMs < 8000 ? '#ff879d' : '#f7dfaa';
+      ctx.font = 'bold 39px Oxanium, monospace'; ctx.fillText(`${(s.timeMs/1000).toFixed(1)}s`, 300, 134);
+      ctx.fillStyle = '#a7bcca'; ctx.font = '16px Oxanium, monospace'; ctx.fillText('WINDOW', 303, 96);
+      for (let i = 0; i < 3; i++) {
+        ctx.fillStyle = i < s.integrity ? '#85efd1' : '#374959';
+        ctx.fillRect(520 + i*40, 111, 29, 20);
+      }
+      ctx.fillStyle = '#a7bcca'; ctx.fillText('SIGNAL', 520, 96);
+      const meter = (x, label, value, color) => {
+        ctx.fillStyle = '#afbdcb'; ctx.font = 'bold 16px Oxanium, monospace'; ctx.fillText(label, x, 97);
+        ctx.fillStyle = '#26364b'; ctx.fillRect(x, 111, 176, 18);
+        ctx.fillStyle = color; ctx.fillRect(x, 111, 176 * clamp(value/100,0,1), 18);
+        ctx.fillStyle = '#f7f8ec'; ctx.font = 'bold 17px Oxanium, monospace'; ctx.fillText(`${Math.round(value)}%`, x+187, 127);
+      };
+      meter(693, 'BUFFER ECHO', s.echoEnergy, '#83e6fc');
+      meter(969, 'MUSIC LOCK', s.lockEnergy, '#d0a4ff');
+      ctx.fillStyle = s.boost || s.boostMs ? '#fbd899' : '#5d7381';
+      ctx.font = 'bold 21px Oxanium, monospace'; ctx.fillText(s.boostMs ? 'TURBO ACTIVE' : s.boost ? 'TURBO READY' : 'TURBO CHARGING', 1246, 124);
+      ctx.fillStyle = '#afbdcb'; ctx.font = '17px Oxanium, monospace'; ctx.textAlign = 'right';
+      ctx.fillText('LEFT/RIGHT STEER    DOWN BRAKE    SPACE/A TURBO', 1880, 57);
+      ctx.fillText('E/RB LOCK    H/Y ECHO    P/MENU PAUSE', 1880, 91);
+      ctx.fillText('REVIEW SLICE • NO CAMPAIGN KEY', 1880, 129);
       for (let i = 0; i < 4; i++) {
-        const x = 200 + i * 380, selected = s.lane === i, locked = s.locked.includes(i);
-        ctx.fillStyle = selected ? '#225456' : locked ? '#443a5d' : '#172437';
-        ctx.fillRect(x, 954, 350, 79);
-        ctx.strokeStyle = colours[i]; ctx.lineWidth = selected || locked ? 4 : 2;
-        ctx.strokeRect(x, 954, 350, 79);
-        ctx.fillStyle = '#f7f4ed'; ctx.font = 'bold 23px Oxanium, monospace';
-        ctx.textAlign = 'center'; ctx.fillText(`${i + 1} ${LANES[i]}${locked ? '  • LOCKED' : ''}`, x + 175, 1003);
+        const x = 43 + i * 469, selected = s.lane === i, locked = s.locked.includes(i);
+        ctx.fillStyle = '#0a1929e8'; ctx.fillRect(x, 957, 448, 76);
+        ctx.fillStyle = PALETTE[i]; ctx.fillRect(x, 957, 448, selected ? 7 : 4);
+        ctx.strokeStyle = PALETTE[i]; ctx.globalAlpha = selected ? 1 : locked ? .83 : .5;
+        ctx.lineWidth = selected ? 3 : 1.5; ctx.strokeRect(x, 957, 448, 76); ctx.globalAlpha = 1;
+        ctx.fillStyle = selected ? '#ffffff' : '#bdd0dc'; ctx.font = 'bold 24px Oxanium, monospace';
+        ctx.textAlign = 'left'; ctx.fillText(`${i+1}  ${LANES[i]}`, x + 21, 1004);
+        if (selected || locked) {
+          ctx.fillStyle = selected ? PALETTE[i] : '#e9d7ff'; ctx.font = 'bold 17px Oxanium, monospace';
+          ctx.textAlign = 'right'; ctx.fillText(selected ? 'LIVE' : 'LOCKED', x + 424, 1002);
+        }
       }
       if (progress > 1840 && progress < GATE && !s.gateRejectMs) {
-        ctx.fillStyle = '#0b2133e5'; ctx.fillRect(465, 284, 990, 58);
-        ctx.strokeStyle = '#9cffbb'; ctx.lineWidth = 2; ctx.strokeRect(465, 284, 990, 58);
-        ctx.fillStyle = '#d4ffdf'; ctx.font = 'bold 25px Oxanium, monospace';
-        ctx.textAlign = 'center'; ctx.fillText('H / Y: SEND ECHO LEFT • STEER ORIGINAL RIGHT', 960, 321);
+        ctx.fillStyle = '#0a2234ed'; ctx.fillRect(500, 282, 920, 54);
+        ctx.strokeStyle = '#9cf9ce'; ctx.lineWidth = 2; ctx.strokeRect(500, 282, 920, 54);
+        ctx.fillStyle = '#e7ffeb'; ctx.font = 'bold 25px Oxanium, monospace';
+        ctx.textAlign = 'center'; ctx.fillText('SEND ECHO LEFT • STEER ORIGINAL RIGHT', 960, 316);
       }
       if (s.messageMs > 0) {
-        ctx.fillStyle = '#0c1b2bdd'; ctx.fillRect(340, 200, 1240, 72);
-        ctx.fillStyle = s.gateRejectMs ? '#ffb2a1' : '#afffe1';
-        ctx.font = 'bold 30px Oxanium, monospace'; ctx.textAlign = 'center';
-        ctx.fillText(s.message, 960, 247);
+        ctx.fillStyle = '#091928ed'; ctx.fillRect(395, 195, 1130, 67);
+        ctx.fillStyle = s.gateRejectMs ? '#ffb5a2' : '#b4ffe4';
+        ctx.font = 'bold 28px Oxanium, monospace'; ctx.textAlign = 'center';
+        ctx.fillText(s.message, 960, 239);
       }
       if (this.audioDegraded) {
         ctx.fillStyle = '#ffbb8b'; ctx.font = '20px Oxanium, monospace'; ctx.textAlign = 'center';
-        ctx.fillText('AUDIO FALLBACK — MIX TIMBRE / ALIGNMENT NEEDS RECHECK', 960, 310);
+        ctx.fillText('AUDIO FALLBACK — MIX TIMBRE / ALIGNMENT NEEDS RECHECK', 960, 365);
       }
       if (this.status !== 'playing') {
-        ctx.fillStyle = '#061320eb'; ctx.fillRect(370, 280, 1180, 485);
+        ctx.fillStyle = '#061320ed'; ctx.fillRect(370, 280, 1180, 485);
         ctx.strokeStyle = '#9cf9df'; ctx.lineWidth = 3; ctx.strokeRect(370, 280, 1180, 485);
         ctx.fillStyle = '#f5f1ee'; ctx.font = 'bold 47px Oxanium, monospace'; ctx.textAlign = 'center';
         ctx.fillText(this.status === 'clear' ? 'ORIGINAL TAPE DELIVERED' :

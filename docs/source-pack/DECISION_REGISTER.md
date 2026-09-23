@@ -1,5 +1,9 @@
 # Decision Register
 
+## September 23, 2026 — chase visibility and pace
+
+After merged #94, the owner reports the Cache slice feels slow and the crude visuals make traffic and maneuvers hard to understand. Prioritize a faster, more legible playtest of the existing chase before deciding detailed handling or the full chapter. The code-native road/vehicle/HUD pass and acceleration values are review candidates, not accepted final art or locked balance. Preserve the established Original Master direction, music locks, Buffer Echo, Clean Copy and campaign reward boundary. Read `CACHE_LINE_VISUAL_PACING_PASS.md` for the focused change and review.
+
 ## September 23, 2026 — Original Master chase direction
 
 After reviewing the basic lane proof, the owner asked for the strongest possible Rad Racer-inspired Cache game and then approved proceeding with the proposed direction. The working target is a fast authentic-recording delivery run with meaningful driving, musical bands that can be carried across lanes, a recent-path Buffer Echo and a spotless Clean Copy rival trying to replace the evidence. The first focused slice implements those interactions while preserving a **provisional** boundary. Three locks, recharge rates, timer length, vehicle/rival appearance, exact gate maneuver and resulting dialogue are reviewable design choices rather than locked canon. The Clean Copy does not establish who created the simulation or identify 9 Bit/the separation initiator. Authored music, story scenes, later boss phases and owner feel acceptance remain outstanding. Read `CACHE_LINE_BLUEPRINT.md` and `CACHE_LINE_CHASE_SLICE.md`; the two-lock choices below describe the superseded first proof.

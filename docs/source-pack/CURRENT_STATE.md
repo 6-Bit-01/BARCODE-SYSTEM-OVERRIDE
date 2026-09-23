@@ -1,6 +1,10 @@
 # Current State
 
-## September 23 — revised Cache Line chase slice (unmerged draft)
+## September 23 — Cache Line visual and pace follow-up (review draft)
+
+PR #94 merged on main at `0852ff0bf23d5ae52816f59f7131db93c0741777`. The owner's next playtest found the chase visually crude and slow. This draft raises cruising/boost pace and steering response, adds more frequent road/shoulder motion cues, distinct silhouettes for Cache, Echo, traffic and Clean Copy, clearer hazard/exit warnings, section color and a scan-friendly speed/window/integrity/ability/mix HUD. The temporary code-native art remains a legibility pass, not authored vehicle/city art. The same five temporary WAVs, save/progression boundary and no Bass/Level 2 clear remain. See `CACHE_LINE_VISUAL_PACING_PASS.md` and the newest acceptance route. Makko/controller/feel review is pending; the values are provisional.
+
+## September 23 — revised Cache Line chase slice (merged #94; historical)
 
 The owner found the first Level 2 lane runner too basic and accepted the `Original Master` chase direction for a focused proof. The updated draft tests continuous steering, auto-acceleration/braking, corner pressure, timed road markers, freight drafts and other traffic, earned three-part music locks, Buffer Echo and a committed Clean Copy rival/marked original exit. V1 proof checkpoints migrate; v2 saves retain speed and ability state. Generated 120 BPM parts and procedural canvas vehicles remain temporary; the direct-path story is only a result-card hint, not an authored comparison/cutscene. There is no Bass award or durable Level 2 clear. See `CACHE_LINE_BLUEPRINT.md`, `CACHE_LINE_CHASE_SLICE.md` and the newest `ACCEPTANCE.md`. Native frames and automated logic checks cannot settle Makko, controller, sound or fun. The first proof entry below is historical.
 

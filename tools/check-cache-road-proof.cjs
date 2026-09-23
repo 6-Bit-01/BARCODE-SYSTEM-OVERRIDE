@@ -123,6 +123,17 @@ async function run() {
   mix();
   assert.equal(volume('bed'), .19); assert.equal(volume('break'), .48);
   assert.equal(volume('bass'), 0);
+  for (let i = 0; i < 10; i++) road.update(100);
+  const cruise = road.state.progress;
+  assert(road.state.speed >= 53 && cruise > 50,
+    'the revised opening reaches a brisk cruise within one second');
+  input.routeActions(actions({ jump: { pressed: true } }));
+  for (let i = 0; i < 10; i++) road.update(100);
+  assert(road.state.speed >= 70 && road.state.progress - cruise > cruise + 10,
+    'turbo covers meaningfully more road than the opening cruise');
+  road.state.progress = 0; road.state.speed = 54; road.state.boostMs = 0;
+  road.state.invulnerableMs = 0; road.state.timeMs = 37000;
+  road.state.lockEnergy = road.state.echoEnergy = 65;
   input.routeActions(actions({ inspect: { pressed: true } }));
   assert.deepEqual(copy(road.state.locked), [1]);
   assert.equal(road.state.lockEnergy, 5, 'a lock spends earned charge');
