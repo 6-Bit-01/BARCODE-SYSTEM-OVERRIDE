@@ -89,21 +89,23 @@ window.FILE_MANIFEST.push({ name: 'src/engine/music-director.js', exports: ['BAR
       this.state = requested;
       const mix = profile.laneMix;
       const position = clamp(Number.isFinite(requested.lanePos) ? requested.lanePos : requested.lane, 0, 3);
-      const locked = new Set(requested.locked);
+      const locked = new Set(requested.locked || []);
+      const left = Math.floor(position), right = Math.min(3, left + 1);
+      const laneWeights = mix.laneRoles.map((_, index) =>
+        requested.finalMix || locked.has(index) ? 1 :
+          index === left ? 1 - (position - left) : index === right ? position - left : 0);
       for (const source of profile.arrangement.sources) {
-        const index = mix.laneRoles.indexOf(source.mixRole);
-        // A lane is strongest at its center and remains present across the
-        // neighboring lane. Locks retain full strength independently.
-        const proximity = index < 0 ? 0 : Math.max(0, 1 - Math.abs(position - index) / mix.blendWidth);
-        const presence = requested.finalMix || locked.has(index) ? 1 : proximity;
-        const volume = Math.max(source.mixRole === mix.bedRole ? mix.bedGain : 0,
-          source.mixRole === mix.grooveRole ? mix.grooveGain : 0,
-          index >= 0 ? mix.laneGains[index] * presence : 0);
+        const role = source.mixRole;
+        const accents = mix.laneAccents.map(lane => lane[role] || 0);
+        // Keep a real musical foundation at every road position. Locks carry
+        // an accent into other lanes, but duplicate accents never pile up.
+        const boost = Math.min(Math.max(...accents),
+          accents.reduce((sum, accent, index) => sum + accent * laneWeights[index], 0));
+        const volume = mix.baseGains[role] + boost;
         this.volumes[source.sourceId] = volume;
         const track = audio.musicTracks[source.sourceId];
         if (track?.isPlaying && track.gain && Math.abs((track.volume ?? -1) - volume) > 0.005)
-          audio.rampAdaptiveStemGain(track, volume,
-            volume > (track.volume ?? 0) ? mix.fadeInSec : mix.fadeOutSec);
+          audio.rampAdaptiveStemGain(track, volume, mix.transitionSec);
       }
       this.generation = sample?.generation;
       this.lastBeat = sample?.grid?.beatIndex ?? null;

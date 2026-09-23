@@ -1,5 +1,9 @@
 # Decision Register
 
+## September 23, 2026 — owner rejects the lane fade result
+
+The owner heard PR #100 in Makko and reports the music falls quiet and swells back as the car crosses lanes. Replace the sparse FX-only and lane-solo strategy with a steady Bass/Drums song foundation; lane movement and earned locks add different compatible parts above it. Use the existing four aligned MP3s. The fourth lane temporarily combines Harmony/FX until the new instrumental arrives. There is no gang vocal asset yet. Keep shared playback, checkpoint compatibility, and no Level 2 clear or Bass award. The owner tests through a merged PR in Makko; local and CI audio checks are evidence of playback and signal, not musical feel.
+
 ## September 23, 2026 — Cache Road song shape after owner playback
 
 PR #98 fixed asset delivery: the owner hears the four stems in Makko. The owner now wants the current FX track as an always-on base, four instrumental lanes, and eventually a hidden/no-lane gang vocal reward for skilled driving. A new Harmony/instrumental layer is being authored; do not invent it or present the existing FX twice as independent audio. For this interim pass, the fourth lane foregrounds the already-playing FX, while the other three lanes remain Bass, Drums and Harmony. The FX opening is sparse, so a quiet level of the existing Drums track supports its pulse. Smooth beat-aligned lane changes and keep locks additive. When the new part arrives, it can replace the fourth lane while FX remains below all four. The performance vocal requires its own aligned source and phrase-safe trigger; it is future work. The owner must merge PRs to test them in Makko, superseding historical premerge acceptance gates. Merger does not itself establish a listening pass.

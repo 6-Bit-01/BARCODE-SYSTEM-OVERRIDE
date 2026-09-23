@@ -39,33 +39,37 @@ async function realAudioSchedule() {
   assert.equal(starts.length, 4);
   assert(starts.every(s => s.time === 10.01 && s.offset === 0 && s.loop));
   ac.currentTime = 10.02; audio.updateLayers();
-  assert.equal(audio.musicTracks['cache-bass'].volume, .24);
-  assert.equal(audio.musicTracks['cache-fx'].volume, .27, 'FX stays under the selected lane');
-  assert(Math.abs(audio.musicTracks['cache-drums'].volume - .124) < .0001, 'a quiet pulse holds the FX gaps together');
+  assert.equal(audio.musicTracks['cache-bass'].volume, .18);
+  assert.equal(audio.musicTracks['cache-fx'].volume, .30);
+  assert.equal(audio.musicTracks['cache-drums'].volume, .52, 'the groove holds every lane together');
   w.BARCODE.CacheRoadProof.mixSnapshot = () => ({ lane: 0, lanePos: .5, locked: [], finalMix: false });
   ac.currentTime = 10.08; audio.updateLayers();
-  assert(Math.abs(audio.musicTracks['cache-bass'].volume - .144) < .0001);
-  assert(Math.abs(audio.musicTracks['cache-drums'].volume - .372) < .0001,
+  assert(Math.abs(audio.musicTracks['cache-bass'].volume - .155) < .0001);
+  assert(Math.abs(audio.musicTracks['cache-drums'].volume - .60) < .0001,
     'neighboring lanes overlap during steering');
   w.BARCODE.CacheRoadProof.mixSnapshot = () => ({ lane: 1, lanePos: 1, locked: [], finalMix: false });
   ac.currentTime = 10.2; audio.updateLayers();
-  assert(Math.abs(audio.musicTracks['cache-bass'].volume - .048) < .0001,
-    'departed part remains quiet at the neighboring lane center');
-  assert.equal(audio.musicTracks['cache-drums'].volume, .62);
+  assert.equal(audio.musicTracks['cache-bass'].volume, .13,
+    'the bass foundation remains in the song after leaving its lane');
+  assert.equal(audio.musicTracks['cache-drums'].volume, .68);
   w.BARCODE.CacheRoadProof.mixSnapshot = () => ({ lane: 2, lanePos: 2, locked: [0], finalMix: false });
   ac.currentTime = 10.53; audio.updateLayers();
-  assert.equal(audio.musicTracks['cache-bass'].volume, .24, 'locked lane remains full');
-  assert.equal(audio.musicTracks['cache-harmony'].volume, .56);
-  assert(Math.abs(audio.musicTracks['cache-drums'].volume - .124) < .0001);
-  assert.equal(audio.musicTracks['cache-fx'].volume, .27);
+  assert.equal(audio.musicTracks['cache-bass'].volume, .18, 'locked lane retains its accent');
+  assert.equal(audio.musicTracks['cache-harmony'].volume, .70);
+  assert.equal(audio.musicTracks['cache-drums'].volume, .52);
+  assert.equal(audio.musicTracks['cache-fx'].volume, .30);
   w.BARCODE.CacheRoadProof.mixSnapshot = () => ({ lane: 3, lanePos: 3, locked: [], finalMix: false });
   ac.currentTime = 11.02; audio.updateLayers();
-  assert.equal(audio.musicTracks['cache-fx'].volume, .64);
-  assert.equal(audio.musicTracks['cache-bass'].volume, 0);
+  assert.equal(audio.musicTracks['cache-fx'].volume, .70);
+  assert.equal(audio.musicTracks['cache-harmony'].volume, .40,
+    'the FX lane carries a Harmony combination while FX is sparse');
+  assert.equal(audio.musicTracks['cache-bass'].volume, .13);
   w.BARCODE.CacheRoadProof.mixSnapshot = () => ({ lane: 1, lanePos: 1, locked: [], finalMix: false });
   ac.currentTime = 11.98; audio.updateLayers();
-  assert.equal(audio.musicTracks['cache-drums'].volume, .62);
-  assert.equal(audio.musicTracks['cache-fx'].volume, .27, 'FX bed never stops');
+  assert.equal(audio.musicTracks['cache-drums'].volume, .68);
+  assert.equal(audio.musicTracks['cache-fx'].volume, .30, 'FX bed never stops');
+  assert(audio.musicTracks['cache-fx'].gain.gain.ramps.every(ramp =>
+    ramp.time - ac.currentTime <= .14 + .0001), 'no long release keeps chasing the steering');
   assert.equal(starts.length, 4, 'the real scheduler never restarts a muted part');
 
   const loading = new w.AudioSystem(), pending = [];
@@ -203,8 +207,8 @@ async function run() {
   };
   const volume = id => w.audioSystem.musicTracks[`cache-${id}`].volume;
   mix();
-  assert.equal(volume('drums'), .62); assert.equal(volume('fx'), .27);
-  assert(volume('bass') > 0 && volume('bass') < .1);
+  assert.equal(volume('drums'), .68); assert.equal(volume('fx'), .30);
+  assert.equal(volume('bass'), .13);
   for (let i = 0; i < 10; i++) road.update(100);
   const cruise = road.state.progress;
   assert(road.state.speed >= 53 && cruise > 50,
@@ -226,7 +230,7 @@ async function run() {
   assert.equal(road.state.lane, 2);
   mix(); assert(volume('harmony') > 0, 'the neighboring part blends in during steering');
   w.audioSystem.context.currentTime = 0.51; mix();
-  assert(volume('harmony') > 0 && volume('harmony') <= .56); assert.equal(volume('drums'), .62);
+  assert(volume('harmony') > .06 && volume('harmony') <= .70); assert.equal(volume('drums'), .68);
   input.routeActions(actions({ inspect: { pressed: true } }));
   assert.deepEqual(copy(road.state.locked), [1], 'unearned repeated locks do not fill the whole song');
   road.state.lockEnergy = 100;
@@ -247,7 +251,7 @@ async function run() {
   input.routeActions(actions({ inspect: { pressed: true } }));
   assert.deepEqual(copy(road.state.locked), [2, 3, 0], 'a fourth lock replaces the oldest');
   w.audioSystem.context.currentTime = 1.01; mix();
-  assert(Math.abs(volume('drums') - .124) < .0001); assert(volume('harmony') > 0 && volume('fx') > 0);
+  assert.equal(volume('drums'), .52); assert(volume('harmony') > 0 && volume('fx') > 0);
   assert.equal(starts, 1, 'mixing does not restart a song');
   road.state.progress = 80; road.state.lanePos = 1.5; road.state.lane = 2;
   road.state.speed = 41; road.state.braking = true; road.update(100);
@@ -326,7 +330,7 @@ async function run() {
   road.state.locked = []; road.state.lanePos = 3; road.state.lane = 3;
   road.state.progress = 2219; road.update(100);
   w.audioSystem.context.currentTime = 1.51; mix();
-  assert.equal(volume('bass'), 0, 'the finish does not force a full mix');
+  assert.equal(volume('bass'), .13, 'the finish does not force a full mix or remove the backbone');
   road.state.locked = [0, 1, 2]; w.audioSystem.context.currentTime = 2.01; mix();
   assert(['bass', 'drums', 'harmony', 'fx'].every(role => volume(role) > 0),
     'a skilled driver can combine all four parts');

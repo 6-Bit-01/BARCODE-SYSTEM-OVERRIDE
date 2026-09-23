@@ -1,5 +1,9 @@
 # Repository Guidance
 
+## September 23, 2026 — steady Cache Road arrangement after owner listening
+
+PR #100 merged at `86ec9ce08018584a75b3fbd456738239a926e322`, but the owner heard large dips and returns while steering. The actual stems are uneven: Bass is loud and continuous; FX is sparse, especially at the opening. The next change keeps Bass, Drums, Harmony and FX on their shared clock, with a steady Bass/Drums foundation and lane/lock accents that change combinations without dropping the song. The fourth lane temporarily features Harmony plus FX while awaiting the new instrumental. Keep the no-lane vocal deferred until an asset exists. Test steering both directions with real MP3s, run repository checks, publish and merge after CI so the owner can listen in Makko. Automated browser output is not a listening verdict. The old beat-gated FX-bed instruction below is superseded.
+
 ## September 23, 2026 — owner confirmed audio; merge before Makko review
 
 The owner heard the four real Cache Road stems in Makko after PR #98 merged at `ae1be4a1ee868f0307daa0e8e47f7a100a1510e1`. The new problem is musical: swapping one selected part for another sounds abrupt. Implement an always-on FX bed, a faint drum pulse through the sparse FX opening, and longer beat-aligned handoffs using the current four stems. The fourth lane temporarily foregrounds FX until the owner supplies another Harmony/instrumental part; the future crew vocal performance reward has no audio asset yet and must not be fabricated. Preserve the shared audio clock, old saves, the title/Level 1 mix, Level 3 test and no Bass/Level 2 award.

@@ -107,19 +107,14 @@ window.BARCODE = window.BARCODE || {};
       if (!Array.isArray(mix.laneRoles) || mix.laneRoles.length !== 4 ||
           new Set(mix.laneRoles).size !== 4 || mix.laneRoles.some(role => !roles.has(role)))
         return invalid('lane mix requires four distinct source roles');
-      if (!roles.has(mix.bedRole) || !finiteNonnegative(mix.bedGain) || mix.bedGain > 0.8)
-        return invalid('lane mix bed role/gain invalid');
-      if (!roles.has(mix.grooveRole) || mix.grooveRole === mix.bedRole ||
-          !finiteNonnegative(mix.grooveGain) || mix.grooveGain > 0.2)
-        return invalid('lane mix quiet groove invalid');
-      if (!Array.isArray(mix.laneGains) || mix.laneGains.length !== 4 ||
-          mix.laneGains.some(gain => !finiteNonnegative(gain) || gain > 0.8))
-        return invalid('lane mix gains invalid');
-      if (!finiteNumber(mix.blendWidth) || mix.blendWidth < 1 || mix.blendWidth > 2)
-        return invalid('lane mix blend width invalid');
-      if (!finiteNumber(mix.fadeInSec) || mix.fadeInSec <= 0 || mix.fadeInSec > 2 ||
-          !finiteNumber(mix.fadeOutSec) || mix.fadeOutSec < mix.fadeInSec || mix.fadeOutSec > 3 ||
-          !finiteNonnegative(mix.settleSec) || mix.settleSec > 0.5)
+      if (!mix.baseGains || !Array.isArray(mix.laneAccents) || mix.laneAccents.length !== 4 ||
+          Object.keys(mix.baseGains).some(role => !roles.has(role)) ||
+          [...roles].some(role => !finiteNonnegative(mix.baseGains[role]) ||
+            !mix.laneAccents.every(lane => lane && typeof lane === 'object' && !Array.isArray(lane) &&
+              Object.keys(lane).every(key => roles.has(key) && finiteNonnegative(lane[key])) &&
+              mix.baseGains[role] + (lane[role] || 0) <= 0.8)))
+        return invalid('lane mix foundation or accents invalid');
+      if (!finiteNumber(mix.transitionSec) || mix.transitionSec < 0.05 || mix.transitionSec > 0.4)
         return invalid('lane mix transition timing invalid');
     }
     if (!profile.playback || typeof profile.playback !== 'object') return invalid('playback required');

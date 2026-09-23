@@ -1,5 +1,9 @@
 # Acceptance and Test Status
 
+## Current route — Cache Road steady mix after owner PR #100 playtest
+
+The owner heard the #100 lane transitions in Makko and rejected the quiet/loud pumping. Import the merged revision from this follow-up, drive through all four lanes in both directions, pause between lanes, lock and release parts, then try the Echo exit and a full 187.5-second loop. Listen for a continuous beat and bass under every lane, additions/subtractions that remain noticeable, and a fourth-lane Harmony/FX combination without a hollow FX-only opening. Test normal speed, rapid steering, pause/resume and an old checkpoint. Report any time the song appears to disappear or clip. Automated checks exercise production gains and real MP3 output, but cannot certify Makko listening or musical feel.
+
 ## Current route — FX bed after confirmed Cache Road playback
 
 The owner confirms the four real stems play in Makko on merged #98 (`ae1be4a1ee868f0307daa0e8e47f7a100a1510e1`) and reports that replacing one layer with the next sounds bad. **Merge this pass before importing it into Makko**, then listen from a fresh load of the actual new main SHA. The source pack's manifest and PR identify the exact code revision; automated PCM is supporting evidence, not a hosted listening verdict.
