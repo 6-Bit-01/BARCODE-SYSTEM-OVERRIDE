@@ -75,8 +75,42 @@ window.FILE_MANIFEST.push({ name: 'src/engine/music-director.js', exports: ['BAR
       this.graph = null;
     }
     getVolume(id) { return Number.isFinite(this.volumes[id]) ? this.volumes[id] : null; }
+    applyLaneMix(audio, profile) {
+      if (!audio.context || !audio.layersStarted || audio.isLooping) return false;
+      if (this.profileId !== profile.profileId) { this.reset(); this.profileId = profile.profileId; }
+      this.audio = audio;
+      if (window.isPaused || window.gameState?.paused) return true;
+      const sample = B.MusicTransport?.sample?.(audio.context.currentTime);
+      const grid = sample?.running ? sample.grid : null;
+      const changedGeneration = this.generation !== sample?.generation;
+      const changedBeat = !!grid && this.lastBeat !== grid.beatIndex;
+      const road = B.CacheRoadProof;
+      const requested = road?.mixSnapshot?.();
+      if (!requested || !road.active) return true;
+      // Steering is immediate. The arrangement catches the next beat without
+      // seeking or restarting any of the five synchronously running sources.
+      this.pending = requested;
+      if (!this.state || changedGeneration || !grid || changedBeat) this.state = requested;
+      const mix = profile.laneMix;
+      const audible = new Set(this.state.finalMix ? [0, 1, 2, 3]
+        : [this.state.lane, ...this.state.locked]);
+      for (const source of profile.arrangement.sources) {
+        const index = mix.laneRoles.indexOf(source.mixRole);
+        const volume = source.mixRole === mix.bedRole ? mix.bedGain
+          : audible.has(index) ? mix.laneGains[index] : 0;
+        this.volumes[source.sourceId] = volume;
+        const track = audio.musicTracks[source.sourceId];
+        if (track?.isPlaying && track.gain && Math.abs((track.volume ?? -1) - volume) > 0.005)
+          audio.rampAdaptiveStemGain(track, volume, mix.fadeSec);
+      }
+      this.generation = sample?.generation;
+      this.lastBeat = grid?.beatIndex ?? null;
+      this.enabled = true; // Lane arrangement is the road's core interaction.
+      return true;
+    }
     apply(audio) {
       const profile = audio.getActiveMusicProfile?.(), mix = profile?.adaptiveMix;
+      if (profile?.laneMix) return this.applyLaneMix(audio, profile);
       if (!mix || !audio.context || !audio.layersStarted || audio.isLooping) return false;
       if (this.profileId !== profile.profileId) { this.reset(); this.profileId = profile.profileId; }
       this.audio = audio;

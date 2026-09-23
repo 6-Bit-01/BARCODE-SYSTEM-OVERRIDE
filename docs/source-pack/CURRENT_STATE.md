@@ -1,5 +1,9 @@
 # Current State
 
+## September 23 — Cache Back road and musical-lane proof
+
+Branch `agent/cache-road-music-proof` adds a provisional Level 2 route from the saved Level 1 handoff. Four lane-specific compatible parts, a quiet carrier and two persistent locks let Cache build a short arrangement while dodging road hazards and choosing the authentic tape at a delivery gate. The five locally generated WAVs start on one profile clock; gains change on beats without source restarts. Dash/near misses, two checkpoints, pause, title Continue and Level 1 return make this a playable vertical slice. The old Level 3 test remains a labeled alternate route. No Bass, Level 2 completion, lore or authored music/cutscene is added. `CACHE_ROAD_MUSIC_PROOF.md` has the exact controls, temporary assets and review route. The full automated suite passes; hosted Makko, physical controller, audio and gameplay feel remain owner review. Base is merged #92 (`45a742b4b3bdb765f60ce2b5539658f7fcd06312`); exact draft head and CI belong to the PR/receipt.
+
 ## September 23 — campaign story direction after owner review
 
 `CAMPAIGN_REDESIGN.md` is the active revised map. The owner rejected the difficulty, combat depth and boss feel of merged PR #91's transmitter preview. Its architecture proof is distinct from an accepted Level 3, now planned for Mac as a Streets of Rage-style brawler after Cache's Level 2 road stage. DJ's Level 4 becomes a Super Smash TV-style arena; Sheila's forgotten competition and 9 Bit's player-aware intrusions are selected direction; all four play Levels 5–7, with first-person RPG then DOOM finale. No later level, authored later song, new story cutscene, Drums award or 9 Bit menu interruption is implemented by this documentation pass. The debug/provisional preview merged through #91 remains a technical route only. Old current-review entries below describe their own historical passes.

@@ -18,6 +18,7 @@
     "src/engine/music-profiles.js",
     "src/engine/music-transport.js",
     "src/engine/level-01-music-profile.js",
+    "src/engine/cache-road-proof-profile.js",
     "src/engine/broadcast-slum-proof-profile.js",
     "src/engine/music-director.js",
     "src/engine/audio.js",
@@ -48,6 +49,7 @@
     "src/game/lore-collection.js",
     "src/game/level-difficulty.js",
     "src/game/campaign-services.js",
+    "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
@@ -78,6 +80,7 @@
     "src/engine/music-profiles.js",
     "src/engine/music-transport.js",
     "src/engine/level-01-music-profile.js",
+    "src/engine/cache-road-proof-profile.js",
     "src/engine/broadcast-slum-proof-profile.js",
     "src/engine/music-director.js",
     "src/engine/audio.js",
@@ -108,6 +111,7 @@
     "src/game/lore-collection.js",
     "src/game/level-difficulty.js",
     "src/game/campaign-services.js",
+    "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
@@ -239,6 +243,10 @@
         "status": "pass"
       },
       {
+        "file": "src/engine/cache-road-proof-profile.js",
+        "status": "pass"
+      },
+      {
         "file": "src/engine/broadcast-slum-proof-profile.js",
         "status": "pass"
       },
@@ -359,6 +367,10 @@
         "status": "pass"
       },
       {
+        "file": "src/game/cache-road-proof.js",
+        "status": "pass"
+      },
+      {
         "file": "src/game/broadcast-slum-proof.js",
         "status": "pass"
       },
@@ -417,11 +429,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 57,
+        "index": 59,
         "status": "pass"
       },
       {
-        "index": 59,
+        "index": 61,
         "status": "pass"
       }
     ]
@@ -725,7 +737,7 @@
     {
       "global": "window.startGameLoop",
       "file": "src/core/loop.js",
-      "line": 161,
+      "line": 171,
       "loaded": true
     },
     {
@@ -777,6 +789,7 @@
     "src/engine/music-profiles.js",
     "src/engine/music-transport.js",
     "src/engine/level-01-music-profile.js",
+    "src/engine/cache-road-proof-profile.js",
     "src/engine/broadcast-slum-proof-profile.js",
     "src/engine/music-director.js",
     "src/engine/audio.js",
@@ -807,6 +820,7 @@
     "src/game/lore-collection.js",
     "src/game/level-difficulty.js",
     "src/game/campaign-services.js",
+    "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",

@@ -94,8 +94,18 @@ window.gameLoop = function(timestamp) {
     scheduleNextGameplayFrame();
     return;
   }
-  // Campaign previews share this RAF and input owner, while their own adapter
-  // supplies the new genre's simulation and canvas scene.
+  // Campaign proofs share this RAF and input owner. Each supplies its own
+  // genre simulation and canvas scene.
+  if (window.BARCODE?.CacheRoadProof?.active) {
+    window.BARCODE?.PauseMenu?.sync();
+    window.inputManager?.update?.();
+    window.BARCODE.CacheRoadProof.update(cappedDelta);
+    window.BARCODE.CacheRoadProof.draw(document.getElementById('gameCanvas')?.getContext?.('2d'));
+    window.audioSystem?.updateLayers?.();
+    window.lastTime = timestamp;
+    scheduleNextGameplayFrame();
+    return;
+  }
   if (window.BARCODE?.RunAndGunProof?.active) {
     window.BARCODE?.PauseMenu?.sync();
     window.inputManager?.update?.();

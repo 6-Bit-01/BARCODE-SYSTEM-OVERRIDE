@@ -120,7 +120,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/campaign-services.js', exports: ['BA
     syncTitleButton() {
       const button = document.getElementById('continueButton');
       if (button) { const saved = this.readResume(); button.hidden = !saved; button.disabled = false;
-        button.textContent = saved?.levelId === 'level-03' ? 'CONTINUE PROTOTYPE — C / Y' : 'CONTINUE SAVED — C / Y'; }
+        button.textContent = ['level-02', 'level-03'].includes(saved?.levelId) ? 'CONTINUE PROTOTYPE — C / Y' : 'CONTINUE SAVED — C / Y'; }
     },
     async continueSaved() {
       const saved = this.readResume(); if (!saved) return { ok: false, reason: 'no-checkpoint' };
@@ -144,7 +144,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/campaign-services.js', exports: ['BA
     closeIntermission() { this.intermission = false; window.inputManager?.resetActionEdges?.(); },
     drawIntermission(ctx) {
       ctx.save(); ctx.fillStyle = '#070f19'; ctx.fillRect(0, 0, 1920, 1080);
-      ctx.strokeStyle = '#92ffdc'; ctx.lineWidth = 3; ctx.strokeRect(290, 188, 1340, 690);
+      ctx.strokeStyle = '#92ffdc'; ctx.lineWidth = 3; ctx.strokeRect(290, 188, 1340, 770);
       ctx.textAlign = 'center'; ctx.textBaseline='alphabetic'; ctx.fillStyle = '#92ffdc'; ctx.font = 'bold 25px Oxanium, monospace';
       ctx.fillText('BARCODE NETWORK / OUTGOING CHANNEL', 960, 265);
       ctx.fillStyle = '#f2f0e9'; ctx.font = 'bold 52px Oxanium, monospace'; ctx.fillText('VOICE RECOVERED', 960, 357);
@@ -153,13 +153,17 @@ window.FILE_MANIFEST.push({ name: 'src/game/campaign-services.js', exports: ['BA
       ctx.font = '22px Oxanium, monospace';
       ctx.fillText('Stem Key: Voice added to your campaign.', 960, 568);
       ctx.fillStyle = '#9eafb9'; ctx.fillText('NEXT CHANNEL: THE CACHE LINE', 960, 657);
-      ctx.fillText('The Cache Line is next in the story. Preview the later blockade below.', 960, 703);
+      ctx.fillText('Drive the original tape through the road. Lock musical lanes as you go.', 960, 703);
       if (this.archive().status !== 'ready') { ctx.fillStyle = '#ffb16e'; ctx.fillText('Save unavailable — keep this session open to retain progress.', 960, 740); }
       ctx.fillStyle = '#163e42'; ctx.fillRect(575, 762, 770, 57);
       ctx.strokeStyle = '#92ffdc'; ctx.strokeRect(575, 762, 770, 57);
       ctx.fillStyle = '#92ffdc'; ctx.font = '20px Oxanium, monospace';
-      ctx.fillText(B.GamepadUI?.connected ? `${B.ControllerSettings?.button(0) || 'A'} — Preview Broadcast Slum` : 'ENTER / CLICK — Preview Broadcast Slum', 960, 799);
-      ctx.fillText(B.GamepadUI?.connected ? `${B.ControllerSettings?.button(1) || 'B'} — Back to results` : 'ESC — Back to results', 960, 836);
+      ctx.fillText(B.GamepadUI?.connected ? `${B.ControllerSettings?.button(0) || 'A'} — Preview The Cache Line` : 'ENTER / CLICK — Preview The Cache Line', 960, 799);
+      ctx.fillStyle = '#172936'; ctx.fillRect(575, 854, 770, 49);
+      ctx.strokeStyle = '#698794'; ctx.strokeRect(575, 854, 770, 49);
+      ctx.fillStyle = '#9eafb9'; ctx.font = '19px Oxanium, monospace';
+      ctx.fillText(B.GamepadUI?.connected ? `${B.ControllerSettings?.button(3) || 'Y'} — Level 3 architecture test` : '3 / CLICK — Level 3 architecture test', 960, 880);
+      ctx.fillText(B.GamepadUI?.connected ? `${B.ControllerSettings?.button(1) || 'B'} — Back to results` : 'ESC — Back to results', 960, 927);
       ctx.restore();
     }
   };

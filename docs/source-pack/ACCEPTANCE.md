@@ -1,5 +1,13 @@
 # Acceptance and Test Status
 
+## Current route — Cache Back lane-music road proof
+
+Import the draft branch head in Makko. Complete Level 1 (the DEV completion shortcut is acceptable for reaching this handoff). Enter/click/A opens The Cache Line; key 3/click the second row/Y opens only the old Level 3 architecture test. On the road, left/right or stick changes lanes immediately. E or mapped Inspect/RB locks a part; move, lock a second, then lock a third and confirm the oldest drops. Press the same lock control again to release. Listen on headphones and speakers for each of the four distinct parts, a continuous quiet bed, a smooth next-beat transition, no restart at the 16-second phrase seam and a combined delivery section. Pause/resume and toggle general Dynamic music Off; the road's lane mix should still respond.
+
+Check traffic anticipation, three-hit integrity, Space/A dash and adjacent near-miss refill. The far-right original gate should advance; another lane should loop back with an explanation. Fail and retry the last saved marker. Reload and Continue Prototype from a road marker and after proof clear. Exit preview via pause or C/Y on the result card and confirm the same Level 1 Voice/handoff/song returns, with no Bass key, Level 2 result or repeated Voice award. Reopen the separate Level 3 test and its old checkpoint. Record imported SHA, device/browser, audible impression, legibility, difficulty, PASS/FAIL and any proposed changes. Automated checks and a local Canvas raster do not establish Makko/controller/listening acceptance; do not merge on those alone.
+
+## Historical September 23 story review
+
 **September 23 owner review:** PR #91 merged the transmitter preview into main; the owner subsequently rejected its fun/depth as the campaign direction. Do not use the older acceptance route below to infer gameplay approval for Mac's Level 3. `CAMPAIGN_REDESIGN.md` is the new story/genre direction. The preview and DEV shortcuts merged through #91 are technical routes and grant no Drums or Level 3 clear. This documentation pass does not change runtime and has no hosted gameplay acceptance claim.
 
 ## Historical Broadcast Slum transmitter architecture preview route

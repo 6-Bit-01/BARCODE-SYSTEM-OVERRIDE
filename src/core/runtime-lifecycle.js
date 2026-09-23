@@ -153,8 +153,9 @@ window.BARCODE = window.BARCODE || {};
 
     resetRunState({ preserveProgress: !!options.restart });
     if (!options.resume) window.BARCODE?.LevelDifficulty?.beginLevel('level-01');
-    if (options.resume?.levelId === 'level-03') {
-      const selection = namespace.RunAndGunProof?.selectMusicProfile?.();
+    if (['level-02', 'level-03'].includes(options.resume?.levelId)) {
+      const proof = options.resume.levelId === 'level-02' ? namespace.CacheRoadProof : namespace.RunAndGunProof;
+      const selection = proof?.selectMusicProfile?.();
       if (!selection?.ok) throw new Error('Prototype music profile could not be selected.');
       const prepared = await window.audioSystem?.prepareActiveMusicProfile?.();
       if (!prepared?.ok) throw new Error('Prototype audio could not be prepared.');
@@ -282,6 +283,7 @@ window.BARCODE = window.BARCODE || {};
 
   function stopOwnedResources(options) {
     options = options || {};
+    namespace.CacheRoadProof?.dispose?.();
     namespace.RunAndGunProof?.dispose?.();
     namespace.LevelDifficulty?.stop();
     namespace.IntroSequence?.reset();

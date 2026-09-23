@@ -1,5 +1,7 @@
 # Music, Art and Production
 
+**Cache lane-music proof (September 23):** The provisional `level-02.proof` profile has a continuous bed and four compatible lane parts. Two locks plus the current lane drive beat-aligned gain fades while all five loop together. Its generated 120 BPM WAVs are a scratch interaction test, not Cache's authored song or a template for other levels. The separately composed finale Full Mix remains a different asset. See `CACHE_ROAD_MUSIC_PROOF.md` for exact exports and review limits.
+
 **Campaign art direction update (September 23):** `CAMPAIGN_REDESIGN.md` supersedes the old later-stage asset mapping below. After Cache's road proof, Mac's brawler needs close-range silhouettes/contact states; DJ's top-down arena needs readable multidirectional attacks/pickups; Level 5 needs a trainer-party/Gym visual proof and the four husk states; Level 6 needs first-person RPG investigation/crew interaction; Level 7 needs a DOOM-style all-four assault and authored 9 Bit finale. Do not order the old Contra full-stage or main Tetris/Dr. Mario puzzle assets. Level 1 artwork/song remain the live baseline; later songs and exact assets remain unproduced.
 
 Current production sequence is in `ASSET_AND_PLATFORM_PLAN.md`: a representative story/panel sequence using current assets, followed by only the missing scene-specific art; no mass redraw or engine/mobile migration. The attached historical intro and Level 1 contact sheets were inspected for the September 12 continuation, without implying a fresh host availability audit.
