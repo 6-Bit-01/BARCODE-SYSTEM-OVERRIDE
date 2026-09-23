@@ -1,0 +1,11 @@
+# Cache road audio load repair
+
+Base/rollback for this follow-up: merged PR #97, `df02c8964d34b2cfa13a5c4f6d3495395b39aba5`. The owner reports the four MP3s still do not work in Makko, while title music does. The exact failed network request on Makko has not been captured.
+
+The loader in #96 required `HEAD` to succeed before issuing `GET`; #97 removed that preflight and fixed a canvas context limit, but still generated 60-second generic buffers for absent `cache-*` parts. `prepareActiveMusicProfile()` then saw four buffers and returned success, so an MP3 loading failure became a different, misleading musical mix. Its browser test served all four assets locally and did not exercise this missing-file path.
+
+This review revision loads through one checked `GET` per part. If a preview omits a local binary or sends invalid audio, it tries the identical MP3 published in GitHub at the fixed #96 merge SHA. The published Bass URL was verified to return `audio/mpeg`, the expected 3,751,228 bytes, and `Access-Control-Allow-Origin: *` from this workspace; Makko reachability remains a hosted check. Each decoded road buffer must be 187.5 seconds within 80 ms. A failed owner part is reported and never replaced by a synthetic tone. Because `fetchMusicTrack` returns a decoded track rather than mutating the live map, a timed-out late download cannot silently replace a later retry. The original shared clock, gains, lane locks and Level 1 fallback policy are retained.
+
+If both copies fail, the road returns to the Level 1 handoff with a visible name/retry notice. Console diagnostics include each local/published attempt and the final reason. The focused production-loader check uses the four committed MP3 byte arrays at the fetch boundary, with a decoder stub checking their ID3 contents and 187.5-second contract. It covers GET despite a host refusing HEAD, missing local binaries with public copies available, total failure without a generic fallback, and a successful retry. The chase test also checks failed entry and a subsequent successful entry. This does not simulate Makko's actual browser decoder or speakers.
+
+See the top of `ACCEPTANCE.md` for the short hosted listening route. No campaign award, save migration, visual pacing or controller behavior changes in this repair.

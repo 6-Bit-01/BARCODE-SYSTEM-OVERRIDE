@@ -3,8 +3,12 @@
 window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({ name: 'src/engine/cache-road-proof-profile.js', exports: ['BARCODE.CACHE_ROAD_PROOF_PROFILE_ID'], dependencies: ['BARCODE.MusicProfiles'] });
 (function(B) {
+  // Some preview imports omit binary assets; use the identical published
+  // revision if the first-party URL cannot be decoded on that host.
+  const publishedAudio = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/c2ca847c63c3b8b70ba178dd02fda0ad8ab4f508/assets/audio/';
   const source = (name, role) => ({ sourceId: `cache-${name}`, mixRole: role,
     assetId: `audio.proof.cache-${name}`, url: `assets/audio/cache-${name}.mp3`,
+    backupUrl: `${publishedAudio}cache-${name}.mp3`,
     required: true, gain: 0, offsetSec: 0, nativeLoop: true,
     fallbackRole: 'required-or-degraded', playbackPolicy: 'start-synchronously' });
   B.CACHE_ROAD_PROOF_PROFILE_ID = 'level-02.proof';

@@ -168,12 +168,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         levelState: { proofVersion: previous.proofVersion || 1, returnTo, proof: previous.proof } };
       const resume = this.validate(candidate) ? candidate : null;
       this.pending = true;
+      B.Campaign.roadAudioNotice = null;
+      let audioFailure = null;
       try {
         window.audioSystem?.stopRuntimeAudio?.({ stopMusic: true });
         if (!this.selectMusicProfile().ok) throw new Error('road-profile-unavailable');
         const prepared = await window.audioSystem?.prepareActiveMusicProfile?.();
-        if (!prepared?.ok) throw new Error('road-audio-unavailable');
-        this.checkAudioAssets();
+        if (!prepared?.ok) { audioFailure = prepared; throw new Error('road-audio-unavailable'); }
+        if (!this.checkAudioAssets()) throw new Error('road-audio-invalid');
         this.returnTo = returnTo;
         this.state = newState(resume?.levelState.proof);
         this.status = this.state.status; this.active = true;
@@ -187,10 +189,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         window.inputManager?.resetActionEdges?.();
         return { ok: true };
       } catch (error) {
+        console.error('[cache-road] Entry failed:', error?.message || error, audioFailure || '');
         this.dispose();
         if (previous) returnTo.levelState.cacheRoadCheckpoint = previous;
         B.Campaign.archive().checkpoint(returnTo);
         await B.RuntimeLifecycle?.restart?.({ source: 'road-entry-recovery', resume: returnTo });
+        if (audioFailure || ['road-audio-invalid', 'road-audio-start-failed'].includes(error?.message)) {
+          const names = audioFailure?.failures?.map(item => item.sourceId.replace('cache-', '').toUpperCase()).join(', ');
+          B.Campaign.roadAudioNotice = `CACHE MUSIC UNAVAILABLE${names ? ` (${names})` : ''} — CHECK CONNECTION, THEN RETRY`;
+        }
         return { ok: false, reason: error.message };
       } finally { this.pending = false; }
     },
