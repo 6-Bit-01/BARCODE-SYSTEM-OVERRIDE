@@ -90,11 +90,16 @@ window.FILE_MANIFEST.push({ name: 'src/engine/music-director.js', exports: ['BAR
       const half = bar < 4 ? 'intro' : verseBar < 8 ? 'verseA' : verseBar < 16 ? 'verseB' : 'chorus';
       const available = half === 'intro' ? ['drive'] :
         half === 'verseA' ? ['drive', 'flow'] : mix.laneRoles;
-      // The road owns short, beat-stamped captures. A quiet Drive/Flow bed
-      // preserves the groove while each captured band adds its recorded part.
+      // The road commits aligned phrases. A short centered hold previews one
+      // part on a beat, but only committed phrases carry it after steering.
       const roles = new Set((requested.captures || []).filter(capture =>
+        capture.startBeat <= sample.grid.beatIndex &&
         capture.endBeat > sample.grid.beatIndex && available.includes(mix.laneRoles[capture.lane]))
         .map(capture => mix.laneRoles[capture.lane]));
+      if (requested.previewLane != null && requested.previewBeat <= sample.grid.beatIndex) {
+        const previewRole = mix.laneRoles[requested.previewLane];
+        if (available.includes(previewRole)) roles.add(previewRole);
+      }
       this.state = { bar, half, roles: [...roles] };
       for (const source of profile.arrangement.sources) {
         const role = source.mixRole;
