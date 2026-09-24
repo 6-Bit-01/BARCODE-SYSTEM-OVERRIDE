@@ -66,16 +66,21 @@ async function run() {
   assert(volume('flow') === 0 && volume('breakaway') === 0 && volume('undercurrent') === 0);
   tick(4, 1);
   assert(volume('flow') === .18 && volume('pressure') === .60);
-  tick(4.5, 1, [{ lane: 1, startBeat: 18, endBeat: 26 }]);
-  assert.equal(volume('flow'), .55, 'caught lane becomes audible on its beat');
-  tick(4.6, 3, [{ lane: 1, startBeat: 18, endBeat: 26 }]);
-  assert.equal(volume('flow'), .55, 'changing lanes carries the captured bars');
-  tick(6.5, 3);
-  assert.equal(volume('flow'), .18, 'expired auto catch returns to the steady bed');
+  tick(4.5, 1, [{ lane: 1, startBeat: 16, endBeat: 32 }]);
+  assert.equal(volume('flow'), .55, 'aligned phrase becomes audible when it begins');
+  tick(4.6, 3, [{ lane: 1, startBeat: 16, endBeat: 32 }]);
+  assert.equal(volume('flow'), .55, 'changing lanes carries the committed phrase');
+  tick(8, 3);
+  assert.equal(volume('flow'), .18, 'expired phrase returns to the steady bed');
+  road.state.previewLane = 0; road.state.previewBeat = 1;
+  tick(.2, 0); assert.equal(volume('drive'), .10, 'preview waits for a beat');
+  tick(.3, 0); assert.equal(volume('drive'), .19, 'held lane previews without a seal');
+  road.state.previewLane = null; road.state.previewBeat = null;
+  tick(.4, 3); assert.equal(volume('drive'), .10, 'preview leaves with the lane');
   tick(8, 2);
   assert.equal(volume('breakaway'), 0, 'silent first-half verse cannot be caught');
-  tick(12.5, 2, [{ lane: 2, startBeat: 50, endBeat: 66, sealed: true },
-    { lane: 3, startBeat: 50, endBeat: 58 }]);
+  tick(12.5, 2, [{ lane: 2, startBeat: 48, endBeat: 64, sealed: true },
+    { lane: 3, startBeat: 48, endBeat: 64 }]);
   assert.equal(volume('breakaway'), .50);
   assert.equal(volume('undercurrent'), .62);
   tick(20, 3, [0, 1, 2, 3].map(lane => ({ lane, startBeat: 80, endBeat: 96 })));
@@ -89,7 +94,7 @@ async function run() {
     assert(volume('pressure') === .60 && volume('drive') === .10);
   }
   assert(ramps.some(r => r.duration === .22) && ramps.some(r => r.duration === .38),
-    'catches rise quickly and expired parts trail smoothly');
+    'phrases and previews rise quickly and trail smoothly');
   assert.equal(starts.length, 5, 'arrangement never restarts a playing stem');
 
   const archive = w.lostDataSystem.archive;
@@ -111,32 +116,65 @@ async function run() {
   audio.context.currentTime = 0;
   assert((await road.enter()).ok);
   assert.equal(C.readResume().levelState.proofVersion, 4);
+  audio.context.currentTime = 2 * 1.875 + .1; // intro bar 3
   road.state.lane = road.state.lanePos = 2;
   const unspent = road.state.lockEnergy;
-  road.lockCurrent();
-  assert.equal(road.state.lockEnergy, unspent, 'sparse part does not consume a seal');
-  assert.match(road.state.message, /ARRIVES BAR 13/);
-  // Exercise the actual transport and road update through four overlapping
-  // parts, scoring, a near miss and a collision before the long-form run.
-  road.state.musicBar = 12; road.state.scoredThrough = 11;
-  road.state.lane = road.state.lanePos = 0;
+  road.update(100);
+  audio.context.currentTime += .55; road.update(100);
+  assert.equal(road.state.queuedCaptures.length, 0, 'sparse target cannot auto-lock');
+  assert.equal(road.state.lockEnergy, unspent, 'sparse part does not consume carry charge');
+  audio.context.currentTime += .05;
+  road.state.lane = road.state.lanePos = 1;
+  road.update(100);
+  audio.context.currentTime += .55; road.update(100);
+  assert.deepEqual(copy(road.state.queuedCaptures),
+    [{ lane: 1, startBeat: 16, endBeat: 32 }],
+    'settling in Flow during intro bar 3 automatically arms verse bars 1–4');
+  assert.equal(road.state.lockEnergy, 100, 'four-bar auto lock costs no charge');
+  audio.context.currentTime += 1; road.update(100);
+  assert.deepEqual(copy(road.state.queuedCaptures),
+    [{ lane: 1, startBeat: 16, endBeat: 48 }],
+    'continuing to hold automatically carries the same start for eight bars');
+  assert.equal(road.state.lockEnergy, 75);
+  road.update(100);
+  assert.equal(road.state.captures.length, 0, 'an armed phrase cannot play early');
+  audio.context.currentTime = 4 * 1.875 + .01;
+  road.update(100);
+  assert.equal(road.state.captures[0].startBeat, 16);
+  assert.equal(road.state.captures[0].endBeat, 48);
+  assert.equal(road.state.peakStack, 1);
+  audio.context.currentTime = 8 * 1.875 + .01; road.update(100);
+  assert.equal(road.state.queuedCaptures.length, 0,
+    'camping in one lane does not automatically rearm every future phrase');
+  // Exercise actual steering, target availability, aligned stack, scoring,
+  // near misses and collision before the long-form run.
+  road.status = road.state.status = 'failed'; audio.context.currentTime = 0;
+  assert(road.retry());
   road.state.invulnerableMs = 1000000;
-  const drive = (sec, lane) => {
-    road.state.lane = road.state.lanePos = lane;
-    audio.context.currentTime = sec; road.update(100);
-  };
-  drive(22.51, 0); drive(23.1, 0); drive(23.48, 0);
-  assert(road.state.captures.some(c => c.lane === 0 && !c.sealed));
-  road.lockCurrent();
-  assert.equal(road.state.lockEnergy, 50);
-  drive(23.92, 1);
-  assert(road.state.captures.some(c => c.lane === 0 && c.sealed));
-  drive(24.5, 1); drive(24.86, 1);
-  drive(25, 2); drive(25.55, 2); drive(25.8, 2);
-  drive(26, 3); drive(26.6, 3); drive(26.8, 3);
+  road.state.lane = road.state.lanePos = road.state.visualLane = 0;
+  const sealed = new Set(), sealTimes = [];
+  for (let frame = 0; frame < 110; frame++) {
+    const t = frame * .05, target = t < .65 ? 0 : t < 1.9 ? 1 : t < 3.2 ? 2 : 3;
+    audio.context.currentTime = 9 * 1.875 + .05 + t;
+    const position = road.state.lanePos;
+    road.handleActions({ move_left: { held: position > target + .06 },
+      move_right: { held: position < target - .06 } });
+    road.update(50);
+    for (const capture of road.state.queuedCaptures) if (!sealed.has(capture.lane)) {
+      sealed.add(capture.lane); sealTimes.push(Number(audio.context.currentTime.toFixed(2)));
+    }
+  }
+  assert.deepEqual([...sealed], [0, 1, 2, 3],
+    'a driver can auto-arm all four lanes for verse B with actual steering');
+  assert(sealTimes[3] < 12 * 1.875,
+    'all four seals fit before verse B begins');
+  assert(road.state.queuedCaptures.every(c => c.startBeat === 48 && [64, 80].includes(c.endBeat)),
+    'all locks share one start; a longer hold may carry lane four to eight bars');
+  assert.equal(road.state.captures.length, 0, 'x4 is prospective until the section boundary');
+  audio.context.currentTime = 12 * 1.875 + .01; road.update(100);
   assert.equal(road.state.captures.length, 4);
   assert.equal(road.state.peakStack, 4);
-  drive(28.14, 3);
+  audio.context.currentTime = 13 * 1.875 + .01; road.update(100);
   assert(road.state.score >= 400, 'completed stacked bars earn points');
   const beforePass = road.state.score;
   road.cleanPass();
@@ -145,26 +183,8 @@ async function run() {
   road.hit('van');
   assert.equal(road.state.captures.length, 0);
   assert.equal(road.state.stumbleMs, 650);
+  assert.equal(road.state.messageMs, 0, 'traffic hit cannot show a popup');
   assert(busEvents.some(event => event.v === .8), 'music bus recovers after the stumble');
-  road.status = road.state.status = 'failed';
-  audio.context.currentTime = 0;
-  assert(road.retry());
-  road.state.musicBar = 12; road.state.scoredThrough = 11;
-  road.state.invulnerableMs = 1000000;
-  let sealedWhileDriving = false;
-  for (let frame = 0; frame < 140; frame++) {
-    const t = frame * .05, target = t < 1.4 ? 0 : t < 2.9 ? 1 : t < 4.3 ? 2 : 3;
-    audio.context.currentTime = 22.5 + t;
-    const position = road.state.lanePos;
-    const seal = !sealedWhileDriving && t >= 1.2 && target === 0 &&
-      Math.abs(position) < .25;
-    road.handleActions({ move_left: { held: position > target + .08 },
-      move_right: { held: position < target - .08 }, inspect: { pressed: seal } });
-    if (seal) sealedWhileDriving = true;
-    road.update(50);
-  }
-  assert(sealedWhileDriving && road.state.peakStack >= 4,
-    'actual steering and one seal can reach x4 before the first catch expires');
   road.status = road.state.status = 'failed';
   audio.context.currentTime = 0;
   assert(road.retry());
@@ -198,7 +218,7 @@ async function run() {
   archive.checkpoint(verseFourSave);
   assert(road.restore(verseFourSave));
   assert.equal(road.state.score, verseFourSave.levelState.proof.score);
-  assert.equal(road.state.captures.length, 0, 'timed catches restart cleanly at a checkpoint');
+  assert.equal(road.state.captures.length, 0, 'phrase locks restart cleanly at a checkpoint');
   assert.equal(road.startOffsetSec(), 76 * 1.875);
   road.status = road.state.status = 'failed';
   assert(road.retry());
@@ -229,6 +249,6 @@ async function run() {
   assert(road.validate(v3) && road.restore(v3));
   assert.equal(road.state.lockEnergy, 100);
   assert.equal(road.state.score, 0);
-  console.log('Cache Road: beat captures, four-bar seals, x4 score, collision stumble, full song, final Echo and old saves passed.');
+  console.log(`Cache Road: automatic aligned 4/8-bar locks, x4 steering arms at ${sealTimes.join('/')}s before 22.5s boundary, clear hit view, full song, final Echo and old saves passed.`);
 }
 run().catch(error => { console.error(error); process.exitCode = 1; });

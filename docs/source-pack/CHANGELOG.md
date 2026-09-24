@@ -1,5 +1,11 @@
 # Recovery checkpoint — September 14
 
+## September 24, 2026 — aligned phrase locks and visible road
+
+- A centered half-second hold automatically commits the upcoming aligned four bars for free and previews a recorded lane on the next beat. Staying centered for 1.5 seconds automatically extends to eight for 25% carry meter where recorded. Sparse parts can be pre-armed for their entrance, so intro bar 3 Flow begins on verse bar 1. No E/RB music-lock input is needed.
+- Replace the small timed bar rectangles with full-lane road bands for each committed song bar, section boundary lines/labels and exact armed/playing bar ranges. Keep traffic above them. Remove the dark collision overlay and hit text while retaining the audio stumble, car blink and stack loss.
+- Simulate real steering to x4 before a phrase boundary; retain full-song, Echo, old-save and no-award checks. Reuse the five existing MP3s; Chromium and native review support, but cannot settle Makko sound and feel.
+
 ## September 23, 2026 — Stack the Bars and traffic-hit stumble
 
 - Replace the four-bar lane vote and indefinite locks with next-beat two-bar catches, paid four-bar E/RB seals, x1–x4 score and section-aware four-bar lane tapes. Keep Pressure and a quieter Drive/Flow bed; sparse recorded parts announce their entrance.

@@ -71,7 +71,7 @@ function missingFirstPartyReferences() {
 }
 
 function syntaxCheckSource(code, filename) {
-  const tempDir = path.join(ROOT, '.tmp-syntax-check');
+  const tempDir = process.env.BARCODE_SYNTAX_TMP_DIR || path.join(ROOT, '.tmp-syntax-check');
   fs.mkdirSync(tempDir, { recursive: true });
   const safeName = `${process.pid}-${syntaxCheckSequence++}-${filename.replace(/[^A-Za-z0-9_.-]/g, '_')}.js`;
   const tempFile = path.join(tempDir, safeName);

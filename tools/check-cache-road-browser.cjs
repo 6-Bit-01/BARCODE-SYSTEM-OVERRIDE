@@ -144,8 +144,8 @@ async function main() {
       player.initialized=true;
       const prepared=await player.prepareActiveMusicProfile();
       const started=prepared.ok?player.startAllLayersSimultaneously():{ok:false};
-      let captures=[];
-      BARCODE.CacheRoadProof={active:true,mixSnapshot:()=>({captures}),startOffsetSec:()=>0};
+      let captures=[],previewLane=null,previewBeat=null;
+      BARCODE.CacheRoadProof={active:true,mixSnapshot:()=>({captures,previewLane,previewBeat}),startOffsetSec:()=>0};
       player.updateLayers();
       await new Promise(resolve=>setTimeout(resolve,300));
       const waveform=new Float32Array(analyser.fftSize);analyser.getFloatTimeDomainData(waveform);
@@ -159,7 +159,8 @@ async function main() {
             playing:track.isPlaying,start:track.startTime,
             sample:track.buffer.getChannelData(0).slice(10000,15000).some(x=>Math.abs(x)>0.001)}))};
       result.catches=[];
-      for(const next of [[],[{lane:0,endBeat:12}],[{lane:0,endBeat:12},{lane:2,endBeat:12}],[]]){
+      for(const next of [[],[{lane:0,startBeat:0,endBeat:16}],
+        [{lane:0,startBeat:0,endBeat:16},{lane:2,startBeat:0,endBeat:16}],[]]){
         captures=next;player.updateLayers();
         await new Promise(resolve=>setTimeout(resolve,100));
         analyser.getFloatTimeDomainData(waveform);
@@ -200,7 +201,7 @@ async function main() {
   assert.equal(requests.get.filter(url => url.endsWith('.mp3')).length, livePublished ? 10 : 15);
   if (!livePublished) assert.equal(await evaluate('window.publishedRequests.length'), 5);
   assert.deepEqual(exceptions, []);
-  console.log(`Cache Road Chromium passed: ${frames.drawn} guarded frames (${frames.contextCalls} context calls), five local and published MP3s, captured Drive and recovered collision stutter.`);
+  console.log(`Cache Road Chromium passed: ${frames.drawn} guarded frames (${frames.contextCalls} context calls), five local and published MP3s, aligned Drive phrase and recovered collision stutter.`);
 }
 main().catch(error => { console.error(error.stack || error); process.exitCode = 1; }).finally(async () => {
   socket?.close();

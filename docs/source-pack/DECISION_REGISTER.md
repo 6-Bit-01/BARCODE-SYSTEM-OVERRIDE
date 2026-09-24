@@ -1,5 +1,9 @@
 # Decision Register
 
+## September 24, 2026 — Cache Road phrase commit design
+
+The owner corrected #103's two-bar capture timing: a lane settled during intro bar 3 should begin at the first bar of the next verse and occupy the upcoming section on the road, not a two-bar window starting on the next beat. The owner explicitly requires **automatic lane locks**, without an E/RB commit button. Keep the hit's audible glitch/power dip but remove the text and panel so traffic stays visible. The resulting test system automatically commits the next four-bar phrase after 0.5 seconds centered, carries it to eight after 1.5 seconds for 25% meter when recorded, and builds x1–x4 through distinct active lanes. A short beat-aligned live preview gives immediate musical response without contributing to stack. This is a reviewable balance choice rather than a final fun verdict. Turbo and Buffer Echo retain their driving/decoy roles; the five owner stems and full 100-bar form remain. Merge after CI for Makko listening and preserve the no-award proof boundary. See `CACHE_ROAD_SECTION_LOCK.md` for exact rules and simulation.
+
 ## September 23, 2026 — owner rejects the lane fade result
 
 The owner heard PR #100 in Makko and reports the music falls quiet and swells back as the car crosses lanes. Replace the sparse FX-only and lane-solo strategy with a steady Bass/Drums song foundation; lane movement and earned locks add different compatible parts above it. Use the existing four aligned MP3s. The fourth lane temporarily combines Harmony/FX until the new instrumental arrives. There is no gang vocal asset yet. Keep shared playback, checkpoint compatibility, and no Level 2 clear or Bass award. The owner tests through a merged PR in Makko; local and CI audio checks are evidence of playback and signal, not musical feel.
