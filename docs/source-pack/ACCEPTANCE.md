@@ -1,5 +1,11 @@
 # Acceptance and Test Status
 
+## Current route — driving earns the carried music
+
+Import the exact merged main SHA from this pass. In a lane, center the car for half a second: its part should become ready and preview on a beat, but it should not appear as a four-bar road lock merely from waiting. Pass a nearby vehicle cleanly and hear that part continue until the current four-bar boundary after steering away. Make a tighter escape from a threatened lane: its part should also paint and play for the following four bars, while the cut charges Zone. Try a safe sweep through all four lanes; it should not automatically grant x4. Plan several passes, using one E/RB stamp in a four-bar section, to see if x3 and a rare x4 feel earned. A second E/RB in that section should say it is ready next section, and the next section should permit it again.
+
+Hit a vehicle with parts playing. Listen for a brief music break that returns on a beat, then drums without the former quiet bed; the other parts should come back only from a new pass or the next available E/RB. No text should cover the road. Check that every lane part can be prepared in verse A despite softer recordings, and that Zone, Turbo, Echo, pause/retry, old checkpoints and the full 100-bar song still work. Record bar/hazard, stack before and after, device and whether the sound and driving feel responsive. Automated output and traffic routes are evidence of function, not a Makko listening verdict. Existing lane names and MP3s remain as supplied; no Bass/Level 2 award is made. The free-lock routes below are historical.
+
 ## Current route — all four lanes without an artificial gate
 
 Import the exact merged main SHA for this correction. During intro bar 3, hold Breakaway then Undercurrent for half a second each: both should paint the upcoming verse bars 1–4 (song bars 5–8). Let the verse begin and check that both locks enter and stack; Undercurrent should be audible, while Breakaway's recording is much softer in this first half. Press E/RB in Breakaway or Undercurrent during chorus bar 28 and verify the current remainder **and** the next verse's first four bars stamp on the road. The MP3s and gain levels have not changed; an intro lane can be visually stamped during literal silence without new sounds appearing.

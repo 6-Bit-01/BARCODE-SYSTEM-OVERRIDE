@@ -1,5 +1,9 @@
 # BARCODE: SYSTEM OVERRIDE — Source Pack v5
 
+## Current review — Cache Road driving and music
+
+Start with `CACHE_ROAD_DRIVING_MUSIC.md` and the newest `ACCEPTANCE.md` route. A half-second hold prepares a part, a clean traffic pass carries it, a tight escape carries it into the next four bars, and E/RB is an immediate once-per-section option. A hit breaks the music before rebuilding. All five supplied MP3s and existing lane names remain. Owner Makko listening and controller feel are pending; earlier free-lock routes are historical.
+
 ## Current review — Cache Line chase slice
 
 The owner rejected the first lane runner as too basic and approved proceeding with the `Original Master` chase direction. Read `CACHE_LINE_BLUEPRINT.md` for the working gameplay/story target, `CACHE_LINE_CHASE_SLICE.md` for implemented controls and limits, and the newest `ACCEPTANCE.md` route. This is an unmerged review slice with temporary audio/art, no Bass/Level 2 completion, and pending hosted Makko/controller/listening/fun review. Earlier source-pack entries below remain historical.

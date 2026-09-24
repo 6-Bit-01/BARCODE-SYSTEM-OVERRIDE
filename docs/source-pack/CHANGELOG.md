@@ -1,5 +1,11 @@
 # Recovery checkpoint — September 14
 
+## September 24, 2026 — driving-earned music and audible hit
+
+- Keep every recorded lane available and the five MP3 clocks synchronized. Make a half-second hold prepare/preview a part; a clean pass seals the current remainder, a tight escape also carries the next four bars, and E/RB seals current plus next once per section.
+- On collision clear the prepared, active and queued parts, cut the music bus briefly and return on a beat with drums alone until new music is earned. Keep the road unobstructed and the existing damage, Zone, Turbo, Echo and campaign boundaries.
+- Test safe sweeping against deliberate no-invulnerability traffic routes, x4 reachability, real close cuts, hit recovery gain, full 100 bars and old saves. Actual Makko listening and physical controller feel are pending.
+
 ## September 24, 2026 — correct false sparse-stem gate
 
 - Allow all four recorded MP3 lanes to lock the current/next aligned four bars and enter the mix for the complete song. Breakaway is softer in verse A; Undercurrent is clearly present there. Remove the hard-coded section mask and false later-arrival label without modifying audio files or gains.

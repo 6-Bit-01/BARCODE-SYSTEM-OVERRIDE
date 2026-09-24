@@ -415,8 +415,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       text('CONTROLS', 440, 392, 24, '#cfa2ff');
       const road = BARCODE.CacheRoadProof?.active, proof = BARCODE.RunAndGunProof?.active;
       const controls = road ? (BARCODE.GamepadUI?.connected
-        ? ['Stick / D-pad: Steer; Down: Brake', `${BARCODE.ControllerSettings.prompt('jump')}: Turbo; ${BARCODE.ControllerSettings.prompt('interact')}: Buffer Echo`, `${BARCODE.ControllerSettings.prompt('inspect')}: Seal now + next 4 bars`, 'Hold lane .5s: next 4 bars free.', 'Cuts → Zone speed/time; Echo left, exit right.', `${BARCODE.ControllerSettings.button(9)}: Pause / Settings`]
-        : ['A / D or Left / Right: Steer; Down / S: Brake', 'Space: Turbo; H: Buffer Echo', 'E: Seal now + next 4 bars', 'Hold lane .5s: next 4 bars free.', 'Cuts → Zone speed/time; Echo left, exit right.', 'P: Pause'])
+        ? ['Stick / D-pad: Steer; Down: Brake', `${BARCODE.ControllerSettings.prompt('jump')}: Turbo; ${BARCODE.ControllerSettings.prompt('interact')}: Buffer Echo`, `${BARCODE.ControllerSettings.prompt('inspect')}: Seal now + next 4 once per section`, 'Hold lane .5s, then pass traffic to keep its part.', 'Tight cut → next 4 + Zone; Echo left, exit right.', `${BARCODE.ControllerSettings.button(9)}: Pause / Settings`]
+        : ['A / D or Left / Right: Steer; Down / S: Brake', 'Space: Turbo; H: Buffer Echo', 'E: Seal now + next 4 once per section', 'Hold lane .5s, then pass traffic to keep its part.', 'Tight cut → next 4 + Zone; Echo left, exit right.', 'P: Pause'])
         : proof ? (BARCODE.GamepadUI?.connected
         ? ['Stick / D-pad: Move', `${BARCODE.ControllerSettings.prompt('jump')}: Jump`, `${BARCODE.ControllerSettings.prompt('inspect')}: Fire`, 'Climb: break roof nodes, then relays.', 'Jump the lanes; watch for a runner.', `${BARCODE.ControllerSettings.button(9)}: Pause / Settings`]
         : ['A / D or Left / Right: Move', 'Space / W / Up: Jump', 'E: Fire / Hold E for repeat fire', 'Climb: break roof nodes, then relays.', 'Jump the lanes; watch for a runner.', 'P: Pause'])
