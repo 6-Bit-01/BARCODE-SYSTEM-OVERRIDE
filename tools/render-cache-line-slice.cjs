@@ -36,6 +36,21 @@ function capture(name) {
   road.draw(ctx);
   fs.writeFileSync(path.join(out, `${name}.webp`), canvas.toBuffer('image/webp', 45));
 }
+capture('00-original-goal-and-lane-hold');
+road.state.progress = 115; road.state.opening.held = true;
+road.state.pendingCapture = { lane: 1, startBeat: 8, endBeat: 16 };
+capture('12-freight-and-rb');
+road.state.progress = 515; road.state.pendingCapture = null;
+road.state.musicBar = 5; road.state.musicBeatFloat = 21;
+capture('13-outside-gap-and-turbo');
+road.state.progress = 885; road.state.echoEnergy = 100;
+capture('14-first-audit-and-echo');
+road.state.opening.echo = true; road.state.echoEnergy = 0;
+road.state.echo = { lanePos: 0, ageMs: 100, durationMs: 6000 };
+capture('15-echo-sent');
+road.state.echo = null; road.state.opening.auditFollowedEcho = true;
+road.state.audits[1135] = 0; road.state.progress = 1015;
+capture('16-audit-follows-echo');
 road.state.progress = 250; road.state.musicBar = 2;
 road.state.lanePos = road.state.visualLane = road.state.lane = 1;
 road.state.musicBeatFloat = 10;
@@ -102,4 +117,4 @@ capture('10-rb-now-next');
 road.state.message = 'ZONE // 4 BARS FASTER  +1.5s'; road.state.messageMs = 1500;
 road.state.zoneEndBeat = 96; road.state.lockEnergy = 35; road.state.speed = 64;
 capture('11-zone-active');
-console.log(`Eleven Cache Road section review frames rendered to ${out}`);
+console.log(`Seventeen Cache Road section review frames rendered to ${out}`);

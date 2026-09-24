@@ -1,5 +1,9 @@
 # Decision Register
 
+## September 24, 2026 — teach the chase while driving
+
+After the predictable music rule felt better, the owner asked for direction and a short tutorial rather than a menu. State the original-recording delivery goal in the first stretch; teach a real lane hold and E/RB before freight, Turbo at the paired block, and Echo at the first audit. The first marker must supply a retryable charged Echo, and the prompt must change only after the action works. Preserve the established lane names, audio and game rules. See `CACHE_ROAD_AUTHORED_OPENING.md`; the merged Makko review determines whether the timing feels right.
+
 ## September 24, 2026 — choose music by bar, reward traffic separately
 
 - Replace the #109 pass-gated part rule after owner play found it inconsistent. The latest half-second centered hold in a bar sets one visible next-bar choice, which survives a dodge and plays to the end of that four-bar section. Keep E/RB current-plus-next once per section.

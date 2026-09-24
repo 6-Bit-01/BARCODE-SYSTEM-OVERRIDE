@@ -24,6 +24,6 @@ The dependency-free suite exercises production logic through explicit host bound
 
 ## Development and source pack
 
-Read [AGENTS.md](AGENTS.md) and [project instructions](docs/source-pack/PROJECT_INSTRUCTIONS.md). Codex implements coherent reviewable milestones; the owner tests gameplay changes in Makko before merge. Preserve the current mechanics and discoveries. Production logic checks and layout diagnostics do not replace that gameplay review.
+Read [AGENTS.md](AGENTS.md) and [project instructions](docs/source-pack/PROJECT_INSTRUCTIONS.md). The [Cache Road opening](docs/source-pack/CACHE_ROAD_AUTHORED_OPENING.md) teaches its delivery goal and controls during the drive. The owner imports merged, CI-checked changes into Makko to test gameplay. Preserve the current mechanics and discoveries. Production logic checks and layout diagnostics do not replace that gameplay review.
 
 The maintained [v5 source pack](docs/source-pack/README.md) exports an exact committed tree through `tools/build-source-pack.py`; CI publishes a revision-named archive artifact. [The update protocol](docs/source-pack/UPDATE_PROTOCOL.md) governs the current downloadable archive and merge receipts. Attached v2–v4 packs and old audit reports are provenance, not current implementation commands. Historical technical records remain under `docs/technical/` and `docs/archive/`.
