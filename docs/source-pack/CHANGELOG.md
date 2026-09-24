@@ -1,5 +1,19 @@
 # Recovery checkpoint — September 14
 
+## September 24, 2026 — safe, timed Cache Road pulses (review)
+
+- Add seven repeatable, lane-specific beat pickups per four-bar phrase.
+  Controller face buttons and keyboard K/L/J/I perform Surge, Push, Brace and
+  Refill. Bumpers spend Turbo/Echo; up/down changes speed and the pulse reward.
+- A clean timed catch earns its lane part for four bars; consecutive catches
+  extend eight. Show mint safe rings and button symbols apart from opaque
+  traffic. Missing a pickup causes no damage or score loss.
+- Keep the five supplied MP3s, original lane names, traffic, saves and final
+  exit. Hits clear earned parts; a four-part state exposes a future vocal gate
+  with no pretend recording. Update road-only pause/HUD/tutorial directions.
+- Test input mapping, a real steered full-stack route, abilities/collisions,
+  the 100-bar song and old saves. Makko playtest and aligned vocals remain.
+
 ## September 24, 2026 — Cache Road art loading repair
 
 - Point all 19 Cache Road image entries at the immutable merged art revision,

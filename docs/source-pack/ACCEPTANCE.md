@@ -1,5 +1,28 @@
 # Acceptance and Test Status
 
+## Cache Road safe pulse prototype — September 24
+
+Import the PR head into Makko after CI and drive the opening with a physical
+controller and sound. Confirm left/right steering; up accelerates and down
+brakes. The four face buttons should match their visible rings: A/Cross Surge,
+B/Circle Push, X/Square Brace, Y/Triangle Refill. Left bumper spends Turbo;
+right bumper sends Echo. On keyboard use K/L/J/I, Space and H respectively.
+Glowing mint rings say SAFE, float above a mint road mark and pass through
+without injury; red warnings, opaque vehicles and their collisions remain
+visibly separate. A wrong/missed face press must not subtract points or hurt.
+
+Follow the first five pulses by steering between lanes and tapping on their
+music beats. Hear four named parts build over constant Pressure drums and see
+the second consecutive catch hold eight bars. Try up at a pulse for double
+score/Turbo readiness and down at a pulse for Echo refill. Use Push on traffic,
+then Brace on a later hit; the next unprotected hit should remove the parts
+and return on beat with drums, while another ring allows quick recovery. At
+all four, FULL ADRENALINE should show; crew vocals will be silent until the
+sixth aligned recording is supplied. Check pause/retry, the final Echo exit,
+old saves and Level 1 return. Send back the bar, lane, button and speed for
+any impossible or unclear prompt. Local tests cannot establish Makko sound
+or input feel, so owner acceptance remains open.
+
 ## Cache Road art delivery repair — September 24
 
 After this PR merges, import its exact merged SHA into Makko and start Cache

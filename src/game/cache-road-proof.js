@@ -6,8 +6,21 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   'use strict';
   const ID = 'level-02', PROFILE = 'level-02.proof';
   const LAP = 2460, END = 4 * LAP, GATE = 3 * LAP + 2060;
-  const ZONE_COST = 60, ZONE_WINDOW = 16;
+  const BAR_BEATS = 4, PULSE_BEATS = 16;
   const LANES = ['DRIVE', 'FLOW', 'BREAKAWAY', 'UNDERCURRENT'];
+  const PULSE_ACTIONS = [
+    { key: 'road_a', label: 'SURGE', button: 0, keyboard: 'K' },
+    { key: 'road_b', label: 'PUSH', button: 1, keyboard: 'L' },
+    { key: 'road_x', label: 'BRACE', button: 2, keyboard: 'J' },
+    { key: 'road_y', label: 'REFILL', button: 3, keyboard: 'I' }
+  ];
+  // A repeatable phrase offers several routes to each part. Its arrival is
+  // anchored to the song rather than road distance, which changes with speed.
+  const PULSE_PHRASE = [[3,1,0],[5,0,2],[7,1,3],[9,2,1],
+    [11,3,0],[13,2,2],[15,1,1]];
+  const PULSES = Array.from({ length: 25 }, (_, phrase) =>
+    PULSE_PHRASE.map(([offset, lane, action]) => ({ beat: phrase * 16 + offset,
+      lane: (lane + phrase) % 4, action }))).flat();
   const CHECKPOINTS = { 'road-start': 0, 'road-cache': 850, 'road-fork': 1700,
     'road-verse-2': 28, 'road-verse-3': 52, 'road-verse-4': 76,
     'road-gate': 92, 'road-clear': 100 };
@@ -32,9 +45,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   function mirrorExpression(s) {
     if (s.stumbleMs > 0) return 4;
     if (s.integrity <= 1 || s.timeMs < 8000 || s.status === 'failed') return 5;
-    if (s.boostMs > 0 || s.musicBeatFloat < s.zoneEndBeat || s.status === 'clear') return 2;
+    if (s.boostMs > 0 || s.fullAdrenaline || s.status === 'clear') return 2;
     if (s.cutFlashMs > 0 || (s.messageMs > 0 && /NEAR MISS/.test(s.message))) return 3;
-    if (s.pendingCapture || s.candidateHold > .2 || s.rivalWarning) return 1;
+    if (s.pulseFlashMs > 0 || s.rivalWarning) return 1;
     return 0;
   }
 
@@ -129,9 +142,6 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   // are softer, but that is not a reason to reject their lane captures.
   const laneAvailable = (lane, bar) => lane >= 0 && lane < LANES.length &&
     bar >= 0 && bar < 100;
-  const availableFor = (lane, startBar, endBar) =>
-    startBar >= 0 && endBar <= 100 && startBar < endBar && laneAvailable(lane, startBar);
-  const nextStrip = bar => (Math.floor(bar / 4) + 1) * 4;
   const songSection = bar => {
     if (bar < 4) return 'INTRO';
     if (bar >= 100) return 'TAPE END';
@@ -382,10 +392,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     const progress = saved.progress ?? 0;
     const lanePos = saved.lanePos ?? saved.lane ?? 1;
     return { progress, lanePos, lane: Math.round(lanePos), visualLane: lanePos,
-      captures: [], queuedCaptures: [], pendingCapture: null, candidateLane: null, candidateSince: null,
-      candidateHold: 0, candidateBar: saved.musicBar ?? 0,
-      previewLane: null, previewBeat: null,
-      lastSnapStartBar: -1, hitRecovery: false,
+      captures: [], queuedCaptures: [], hitRecovery: false,
+      caughtPulses: {}, pulseFlashMs: 0, pulseCombo: 0, lastPulseBeat: -10,
+      fullAdrenaline: false, fullAdrenalineCount: 0, shield: 0, ramMs: 0, surgeMs: 0,
+      fastPulses: 0,
       cutMarks: {}, cutStreak: 0, cutFlashMs: 0, cutAward: 0,
       musicBeatFloat: (saved.musicBar ?? 0) * 4,
       scoredThrough: (saved.musicBar ?? 0) - 1, damagedBar: -1,
@@ -398,7 +408,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       lockEnergy: saved.lockEnergy ?? 0, zoneEndBeat: -1,
       echoEnergy: saved.echoEnergy ?? (progress >= 1700 ? 100 : 65),
       boost: saved.boost ?? 1, boostMs: 0, invulnerableMs: 0, nearMisses: 0,
-      steer: 0, braking: false, trace: [], echo: null, echoDeceptions: 0,
+      steer: 0, braking: false, throttling: false, trace: [], echo: null, echoDeceptions: 0,
       audits: {}, drafted: {}, draftMs: 0,
       nextRivalAt: progress >= 3 * LAP + 1700 ? progress + 120 : 3 * LAP + 1810,
       rivalTarget: 1.5, rivalLane: 1.5, rivalWarning: false,
@@ -417,23 +427,23 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const hint = document.querySelector?.('.hint');
       if (!hint) return;
       if (this.oldHint === null) this.oldHint = hint.textContent;
-      hint.textContent = 'Hold a lane .5s: choose its part for the next bar | One choice per bar; dodge after choosing | E/RB: once per 4 bars, now + next 4 | Space/A Turbo | H/Y Echo';
+      const left = B.GamepadUI?.connected ? B.ControllerSettings?.button(4) : 'SPACE';
+      const right = B.GamepadUI?.connected ? B.ControllerSettings?.button(5) : 'H';
+      hint.textContent = `Glowing pulses are safe: steer into one and tap its face button on the beat | Up: faster rewards; Down: slower Echo refill | ${left} Turbo | ${right} Echo`;
     },
     openingCue() {
       if (this.status !== 'playing' || !this.state) return null;
       const s = this.state, at = s.progress;
-      const button = (action, keyboard, pad) => B.ControllerSettings?.prompt(action, keyboard) ||
-        (B.GamepadUI?.connected ? pad : keyboard);
       if (at < 300) {
-        if (!s.opening.held && at < 170) return ['HOLD A LANE FOR HALF A SECOND',
-          `Steer with ${B.GamepadUI?.connected ? 'STICK / D-PAD' : 'LEFT / RIGHT'}. Its music joins on the next bar.`];
-        if (!s.opening.sealed && at < 190) return ['FREIGHT AHEAD — KEEP THIS PART',
-          `Press ${button('inspect', 'E', 'RB')} to play it now and through the next four bars.`];
-        return ['FREIGHT AHEAD', 'Steer out of its lane. The part you kept stays with you.'];
+        if (!s.opening.held && s.musicBeatFloat < 10) return ['GLOWING PULSES ARE SAFE',
+          `Steer into the marked lane. Tap its face button on the beat (${B.GamepadUI?.connected ? [0,1,2,3].map(i=>B.ControllerSettings?.button(i)).join(' / ') : 'K / L / J / I'}).`];
+        if (!s.opening.sealed && s.musicBeatFloat < 20) return ['FOLLOW TWO PULSES',
+          'Consecutive catches hold a part for eight bars. Up speeds up for points; Down slows for Echo.'];
+        return ['TRAFFIC IS SOLID; PULSES ARE SAFE', 'Drive through the glowing shapes. Give vehicles room when changing lanes.'];
       }
       if (at >= 465 && at < 650) {
         if (!s.opening.turbo && s.boost > 0) return ['TWO LANES BLOCKED AHEAD',
-          `Outside lanes are open. Press ${button('jump', 'SPACE', 'A')} at the block for a short Turbo burst.`];
+          `Outside lanes are open. Press ${B.GamepadUI?.connected ? B.ControllerSettings?.button(4) : 'SPACE'} for Turbo.`];
         return ['TWO LANES BLOCKED AHEAD', 'Take an outside lane through the gap.'];
       }
       if (at >= 850 && at < 1135) {
@@ -441,7 +451,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           if (s.echo) return ['ECHO SENT — SCAN AHEAD',
             'Hold far left through the block. Move away from the Echo after it.'];
           if (s.echoEnergy >= 100) return ['SCAN AHEAD — SEND AN ECHO',
-            `Hold far left at the block. Press ${button('interact', 'H', 'Y')} near it, then move away.`];
+            `Hold far left at the block. Press ${B.GamepadUI?.connected ? B.ControllerSettings?.button(5) : 'H'} near it, then move away.`];
           return ['SCAN AHEAD', 'Hold far left through the block. Dodge the audit car.'];
         }
         return s.opening.auditFollowedEcho ? ['THE SCAN FOLLOWED YOUR ECHO',
@@ -617,7 +627,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       if (!this.active || !this.state) return null;
       return { captures: this.state.captures.map(({ lane, startBeat, endBeat }) =>
         ({ lane, startBeat, endBeat })),
-        previewLane: this.state.previewLane, previewBeat: this.state.previewBeat,
+        // The aligned crew-vocal source is still needed before this can sound.
+        bonusVocal: this.state.fullAdrenaline,
         hitRecovery: this.state.hitRecovery };
     },
     startOffsetSec() { return (this.state?.musicBar || 0) * 1.875; },
@@ -625,124 +636,76 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       if (!music?.running || music.profileId !== PROFILE || !music.grid) return;
       const s = this.state, { beatIndex, barIndex } = music.grid;
       s.musicBeatFloat = music.grid.beatFloat;
-      // A hold must spend its full half second inside the bar making the
-      // choice. Remaining centered across a downbeat cannot renew it for free.
-      if (s.candidateBar !== barIndex) {
-        s.candidateBar = barIndex;
-        s.candidateLane = null; s.candidateSince = null; s.candidateHold = 0;
-        s.previewLane = null; s.previewBeat = null;
-      }
-      // Award a completed clean bar before removing a capture that expires on
-      // this boundary. Damage marks its bar and removes the current stack.
+      // Score a finished bar before retiring a part at its last beat.
       for (let completed = s.scoredThrough + 1; completed < barIndex && completed < 100; completed++) {
         if (completed !== s.damagedBar) {
-          const parts = new Set(s.captures.filter(c => c.startBeat < (completed + 1) * 4 &&
-            c.endBeat > completed * 4 && laneAvailable(c.lane, completed)).map(c => c.lane));
-          const stack = Math.max(1, parts.size);
-          s.score += 100 * stack; s.cleanBars++;
-          s.lockEnergy = clamp(s.lockEnergy + 1, 0, 100);
+          const parts = new Set(s.captures.filter(c => c.startBeat < (completed + 1) * BAR_BEATS &&
+            c.endBeat > completed * BAR_BEATS).map(c => c.lane));
+          s.score += 100 * Math.max(1, parts.size); s.cleanBars++;
         }
       }
       s.scoredThrough = Math.max(s.scoredThrough, barIndex - 1);
-      s.captures = s.captures.filter(capture =>
-        capture.endBeat > beatIndex && laneAvailable(capture.lane, barIndex));
-      let phraseEntered = false;
-      for (const queued of s.queuedCaptures.filter(capture => capture.startBeat <= beatIndex)) {
-        if (!laneAvailable(queued.lane, barIndex) || queued.endBeat <= beatIndex) continue;
-        const previous = s.captures.find(capture => capture.lane === queued.lane);
-        if (previous) s.captures.splice(s.captures.indexOf(previous), 1);
-        s.captures.push({ lane: queued.lane, sealed: true,
-          startBeat: queued.startBeat, endBeat: queued.endBeat });
-        s.peakStack = Math.max(s.peakStack, stackSize(s));
-        phraseEntered = true;
+      s.captures = s.captures.filter(c => c.endBeat > beatIndex && laneAvailable(c.lane, barIndex));
+      for (const queued of s.queuedCaptures.filter(c => c.startBeat <= beatIndex)) {
+        if (queued.endBeat <= beatIndex || !laneAvailable(queued.lane, barIndex)) continue;
+        const prior = s.captures.find(c => c.lane === queued.lane);
+        if (prior) s.captures.splice(s.captures.indexOf(prior), 1);
+        s.captures.push(queued);
+        s.hitRecovery = false;
       }
-      s.queuedCaptures = s.queuedCaptures.filter(capture => capture.startBeat > beatIndex);
-      // The last lane held in a bar is the choice for the next bar. Once
-      // chosen, it survives steering away from traffic; one bar can add at
-      // most one part. Only the shared transport boundary plays that choice.
-      const selected = s.pendingCapture;
-      if (selected && barIndex >= selected.startBeat / 4) {
-        s.pendingCapture = null;
-        if (barIndex === selected.startBeat / 4 && selected.endBeat > beatIndex &&
-            laneAvailable(selected.lane, barIndex)) {
-          const previous = s.captures.find(capture => capture.lane === selected.lane);
-          if (!previous || previous.endBeat < selected.endBeat) {
-            if (previous) s.captures.splice(s.captures.indexOf(previous), 1);
-            s.captures.push({ ...selected, inkAtMs: s.elapsedMs });
-            s.peakStack = Math.max(s.peakStack, stackSize(s));
-            s.hitRecovery = false;
-            if (barIndex % 4 === 0) phraseEntered = true;
-          }
-        }
-      }
-      // Zone is a reward for skilled driving, never a price of recording music.
-      // One charged entry speeds the entire aligned phrase, even if several
-      // lanes enter together. Its clock comes from the shared song transport.
-      if (phraseEntered && s.lockEnergy >= ZONE_COST && beatIndex >= s.zoneEndBeat) {
-        s.lockEnergy -= ZONE_COST;
-        s.zoneEndBeat = (Math.floor(barIndex / 4) + 1) * ZONE_WINDOW;
-        s.timeMs = Math.min(60000, s.timeMs + 1500);
-        s.message = 'ZONE // 4 BARS FASTER  +1.5s'; s.messageMs = 1500;
+      s.queuedCaptures = s.queuedCaptures.filter(c => c.startBeat > beatIndex);
+      s.peakStack = Math.max(s.peakStack, stackSize(s));
+      const full = s.captures.length === 4;
+      if (full && !s.fullAdrenaline) {
+        s.fullAdrenalineCount++;
+        s.message = 'FULL ADRENALINE'; s.messageMs = 1300;
         window.audioSystem?.playCombatCue?.('data');
       }
-      const centered = Math.abs(s.lanePos - s.lane) <= .30;
-      if (!centered || s.candidateLane !== s.lane) {
-        s.candidateLane = centered ? s.lane : null;
-        s.candidateSince = centered ? music.trackTimeSec : null;
-        s.previewLane = null; s.previewBeat = null;
-      }
-      const dwell = centered ? music.trackTimeSec - s.candidateSince : 0;
-      s.candidateHold = clamp(dwell / .5, 0, 1);
-      if (centered && dwell >= .5) {
-        if (s.previewLane === null && s.previewBeat === null && laneAvailable(s.lane, barIndex))
-          s.previewBeat = beatIndex + 1;
-        const nextBar = barIndex + 1;
-        if (nextBar < 100 && (s.pendingCapture?.lane !== s.lane ||
-            s.pendingCapture.startBeat !== nextBar * 4)) {
-          s.pendingCapture = { lane: s.lane, startBeat: nextBar * 4,
-            endBeat: nextStrip(nextBar) * 4 };
-          s.opening.held = true;
-          s.message = `${LANES[s.lane]} // NEXT BAR ${nextBar + 1}`; s.messageMs = 950;
-          window.audioSystem?.playCombatCue?.('inspect');
-        }
-      }
-      if (s.previewBeat !== null && beatIndex >= s.previewBeat) s.previewLane = s.lane;
+      s.fullAdrenaline = full;
     },
-    snapLock() {
+    // Pickups are visual, harmless opportunities on the song clock. A press
+    // needs the displayed face button, the displayed lane and a real beat.
+    catchPulse(action, pressTimeSec) {
       const s = this.state;
-      const music = B.MusicTransport?.sample?.(window.audioSystem?.context?.currentTime || 0);
-      if (!music?.running || music.profileId !== PROFILE || !music.grid) return;
-      const { beatIndex, barIndex } = music.grid;
-      if (barIndex >= 100) return;
-      const lane = clamp(Math.round(s.lanePos), 0, 3);
-      const boundary = nextStrip(barIndex), endBeat = boundary * 4;
-      const startBar = Math.floor(barIndex / 4) * 4;
-      if (s.lastSnapStartBar === startBar) {
-        s.message = 'E/RB // READY NEXT 4 BARS'; s.messageMs = 950;
-        return;
+      const now = Number.isFinite(pressTimeSec) ? pressTimeSec : window.audioSystem?.context?.currentTime;
+      const judgment = B.MusicTransport?.judgeInput?.('road-pulse', now,
+        B.Preferences?.values?.inputOffsetMs || 0);
+      if (!judgment?.available || judgment.timing === 'miss') return false;
+      const pulse = PULSES.find(p => p.beat === judgment.beatIndex &&
+        PULSE_ACTIONS[p.action].key === action);
+      if (!pulse || s.caughtPulses[pulse.beat] || Math.abs(s.lanePos - pulse.lane) > .38) return false;
+      s.caughtPulses[pulse.beat] = true;
+      const fast = s.speed >= 61, slow = s.speed <= 36;
+      s.pulseCombo = pulse.beat - s.lastPulseBeat === 2 ? s.pulseCombo + 1 : 1;
+      s.lastPulseBeat = pulse.beat;
+      const long = s.pulseCombo >= 2;
+      const startBeat = pulse.beat;
+      const endBeat = Math.min(400, startBeat + (long ? 2 : 1) * PULSE_BEATS);
+      const existing = s.captures.find(c => c.lane === pulse.lane) ||
+        s.queuedCaptures.find(c => c.lane === pulse.lane);
+      if (existing) existing.endBeat = Math.max(existing.endBeat, endBeat);
+      else s.queuedCaptures.push({ lane: pulse.lane, startBeat, endBeat, inkAtMs: s.elapsedMs });
+      s.opening.held = true;
+      if (long) s.opening.sealed = true;
+      s.pulseFlashMs = 650;
+      s.score += (judgment.timing === 'perfect' ? 80 : 50) * (fast ? 2 : 1);
+      if (fast && ++s.fastPulses % 2 === 0) s.boost = 1;
+      if (slow) s.echoEnergy = clamp(s.echoEnergy + 25, 0, 100);
+      switch (action) {
+        case 'road_a': s.surgeMs = Math.max(s.surgeMs, 900); break;
+        case 'road_b': s.ramMs = Math.max(s.ramMs, 1800); break;
+        case 'road_x': s.shield = 1; break;
+        case 'road_y':
+          s.echoEnergy = clamp(s.echoEnergy + 40, 0, 100);
+          if (fast) s.boost = 1;
+          break;
       }
-      let currentSealed = false, nextSealed = false;
-      if (laneAvailable(lane, barIndex) && !s.captures.some(c => c.lane === lane && c.endBeat >= endBeat)) {
-        s.captures = s.captures.filter(c => c.lane !== lane);
-        s.captures.push({ lane, startBeat: beatIndex, endBeat, inkAtMs: s.elapsedMs });
-        s.peakStack = Math.max(s.peakStack, stackSize(s));
-        currentSealed = true;
-      }
-      if (availableFor(lane, boundary, boundary + 4) &&
-          !s.queuedCaptures.some(c => c.lane === lane && c.startBeat === endBeat)) {
-        s.queuedCaptures.push({ lane, startBeat: endBeat, endBeat: endBeat + 16,
-          inkAtMs: s.elapsedMs });
-        nextSealed = true;
-      }
-      if (currentSealed || nextSealed) {
-        s.lastSnapStartBar = startBar;
-        s.opening.sealed = true;
-        s.hitRecovery = false;
-        s.message = `${LANES[lane]} // ${currentSealed ? 'NOW' : ''}` +
-          `${currentSealed && nextSealed ? ' + ' : ''}${nextSealed ? 'NEXT 4' : ''} SEALED`;
-        s.messageMs = 950;
-        window.audioSystem?.playCombatCue?.('inspect');
-      }
+      const effect = PULSE_ACTIONS[pulse.action].label;
+      s.message = `${effect} // ${LANES[pulse.lane]} +${long ? 8 : 4} BARS` +
+        (fast ? '  FAST x2' : slow ? '  ECHO +25' : '');
+      s.messageMs = 1100;
+      window.audioSystem?.playCombatCue?.('pickup');
+      return true;
     },
     sendEcho() {
       const s = this.state;
@@ -767,9 +730,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const s = this.state;
       s.steer = Number(!!actions.move_right?.held) - Number(!!actions.move_left?.held);
       s.braking = !!actions.move_down?.held;
-      if (actions.inspect?.pressed) this.snapLock();
-      if (actions.interact?.pressed) this.sendEcho();
-      if (actions.jump?.pressed && s.boost > 0) {
+      s.throttling = !!actions.move_up?.held && !s.braking;
+      for (const face of PULSE_ACTIONS)
+        for (const press of actions[face.key]?.presses?.length ? actions[face.key].presses :
+          actions[face.key]?.pressed ? [{ audioTimeSec: window.audioSystem?.context?.currentTime }] : [])
+          this.catchPulse(face.key, press.audioTimeSec);
+      if (actions.road_echo?.pressed) this.sendEcho();
+      if (actions.road_turbo?.pressed && s.boost > 0) {
         s.boost = 0; s.nearMisses = 0; s.boostMs = 1250;
         s.opening.turbo = true;
         s.message = 'TURBO // ORIGINAL SIGNAL HELD'; s.messageMs = 900;
@@ -779,15 +746,21 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     hit(kind) {
       const s = this.state;
       if (s.invulnerableMs || s.boostMs) return;
+      if (s.ramMs > 0) {
+        s.ramMs = 0; s.score += 100; s.message = 'PUSH // TRAFFIC CLEARED';
+        s.messageMs = 900; window.audioSystem?.playCombatCue?.('cutline'); return;
+      }
+      if (s.shield) {
+        s.shield = 0; s.message = 'BRACE // IMPACT BLOCKED';
+        s.messageMs = 900; window.audioSystem?.playCombatCue?.('land'); return;
+      }
       s.integrity--; s.speed = Math.max(20, s.speed - 19); s.timeMs = Math.max(0, s.timeMs - 1800);
       s.invulnerableMs = 1400;
       s.damagedBar = s.musicBar;
-      s.captures = []; s.queuedCaptures = []; s.pendingCapture = null;
+      s.captures = []; s.queuedCaptures = []; s.fullAdrenaline = false;
+      s.pulseCombo = 0; s.lastPulseBeat = -10;
       s.hitRecovery = true;
-      s.zoneEndBeat = -1;
-      s.candidateLane = null; s.candidateSince = null;
-      s.candidateHold = 0;
-      s.previewLane = null; s.previewBeat = null;
+      s.shield = 0; s.ramMs = 0; s.surgeMs = 0;
       s.stumbleMs = 650; s.cutStreak = 0; s.cutFlashMs = 0; s.nearMisses = 0;
       s.message = ''; s.messageMs = 0;
       window.audioSystem?.playRoadStumble?.();
@@ -796,12 +769,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     },
     cleanPass(cut = false) {
       const s = this.state;
-      // Passing traffic charges abilities and score, not the music choice.
+      // Traffic skill charges abilities and score; the visible pulses earn music.
       // A collision's grace window is recovery, not a clean crossing.
       if (s.invulnerableMs) return;
       s.nearMisses++;
       s.echoEnergy = clamp(s.echoEnergy + (cut ? 35 : 16), 0, 100);
-      s.lockEnergy = clamp(s.lockEnergy + (cut ? 70 : 8), 0, 100);
       s.cutStreak = cut ? Math.min(4, s.cutStreak + 1) : 0;
       const points = (cut ? 150 * s.cutStreak : 25) * stackSize(s);
       s.score += points;
@@ -823,14 +795,17 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       s.musicBar = Math.max(previousBar, bar);
       s.elapsedMs += dt; s.timeMs = Math.max(0, s.timeMs - dt);
       s.boostMs = Math.max(0, s.boostMs - dt);
+      s.ramMs = Math.max(0, s.ramMs - dt);
+      s.surgeMs = Math.max(0, s.surgeMs - dt);
+      s.pulseFlashMs = Math.max(0, s.pulseFlashMs - dt);
       s.invulnerableMs = Math.max(0, s.invulnerableMs - dt);
       s.stumbleMs = Math.max(0, s.stumbleMs - dt);
       s.cutFlashMs = Math.max(0, s.cutFlashMs - dt);
       s.messageMs = Math.max(0, s.messageMs - dt);
       s.rivalDistractedMs = Math.max(0, s.rivalDistractedMs - dt);
       const seconds = dt / 1000;
-      const zoned = s.musicBeatFloat < s.zoneEndBeat;
-      const targetSpeed = s.braking ? 23 : s.boostMs ? 75 : zoned ? 64 : 54;
+      const targetSpeed = s.braking ? 23 : s.boostMs ? 75 : s.surgeMs ? 68 :
+        s.throttling ? 68 : 54;
       s.speed = clamp(s.speed + clamp(targetSpeed - s.speed,
         -(s.braking ? 48 : 8) * seconds, (s.boostMs ? 47 : 22) * seconds), 18, 75);
       const curve = roadCurve(before);
@@ -859,7 +834,6 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         if (e.ageMs >= e.durationMs) s.echo = null;
       }
       if (Math.abs(curve) > 0.48 && s.speed > 30 && s.steer * curve > 0) {
-        s.lockEnergy = clamp(s.lockEnergy + 3 * seconds, 0, 100);
         s.echoEnergy = clamp(s.echoEnergy + 8 * seconds, 0, 100);
       }
 
@@ -885,13 +859,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           if (s.draftMs >= 600) {
             s.drafted[hazard.at] = true; s.draftMs = 0; s.boost = 1;
             s.echoEnergy = clamp(s.echoEnergy + 25, 0, 100);
-            s.lockEnergy = clamp(s.lockEnergy + 20, 0, 100);
             s.message = 'FREIGHT DRAFT // TURBO READY'; s.messageMs = 900;
           }
         }
         if (before >= hazard.at || s.progress < hazard.at) continue;
         const gap = Math.abs(lane - s.lanePos);
         if (gap < (hazard.kind === 'freight' ? 0.53 : 0.45)) {
+          if (contactAt.has(hazard.at)) continue;
           contactAt.add(hazard.at);
           this.hit(hazard.kind === 'block' ? 'roadblock' : hazard.kind);
           if (this.status === 'failed') return;
@@ -901,7 +875,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         }
         delete s.cutMarks[hazardId];
       }
-      for (const pass of pendingPasses) if (!contactAt.has(pass.at)) this.cleanPass(pass.cut);
+      const paidAt = new Set();
+      for (const pass of pendingPasses) if (!contactAt.has(pass.at) && !paidAt.has(pass.at)) {
+        this.cleanPass(pass.cut); paidAt.add(pass.at);
+      }
       if (s.progress >= 3 * LAP + 1700 && s.musicBar < 100) {
         const distance = s.nextRivalAt - s.progress;
         const enteringWarning = !s.rivalWarning && distance <= 120 && distance > 0;
@@ -1212,11 +1189,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           const active = s.captures.find(c => c.lane === lane && c.startBeat < (bar + 1) * 4 && c.endBeat > bar * 4);
           const queued = !active && s.queuedCaptures.find(c => c.lane === lane &&
             c.startBeat <= bar * 4 && c.endBeat > bar * 4);
-          const selected = !active && !queued && s.pendingCapture?.lane === lane &&
-            s.pendingCapture.startBeat <= bar * 4 && s.pendingCapture.endBeat > bar * 4 ?
-            s.pendingCapture : null;
-          if (!active && !queued && !selected) continue;
-          const mark = active || queued || selected;
+          if (!active && !queued) continue;
+          const mark = active || queued;
           const slot = bar - mark.startBeat / 4;
           const reveal = active || mark.inkAtMs == null ? 1 :
             clamp((s.elapsedMs - mark.inkAtMs - (3 - slot) * 100) / 260, 0, 1);
@@ -1227,9 +1201,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
             [laneEdge(lane+1,near)-padNear,roadY(near)],
             [laneEdge(lane+1,far)-padFar,roadY(far)],
             [laneEdge(lane,far)+padFar,roadY(far)]];
-          ctx.globalAlpha = (active ? .35 : selected ? .10 : .16) * reveal;
+          ctx.globalAlpha = (active ? .35 : .16) * reveal;
           polygon(ctx, quad, PALETTE[lane]);
-          ctx.globalAlpha = (active ? .9 : selected ? .35 : .57) * reveal;
+          ctx.globalAlpha = (active ? .9 : .57) * reveal;
           ctx.strokeStyle = PALETTE[lane]; ctx.lineWidth = 1.5 + near * (active ? 4 : 2);
           ctx.beginPath(); ctx.moveTo(...quad[0]); ctx.lineTo(...quad[3]);
           ctx.moveTo(...quad[1]); ctx.lineTo(...quad[2]); ctx.stroke();
@@ -1278,7 +1252,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         }
       }
       for (const side of [-1, 1]) {
-        ctx.strokeStyle = s.musicBeatFloat < s.zoneEndBeat ? '#ffe4a2' :
+        ctx.strokeStyle = s.fullAdrenaline ? '#ffe4a2' :
           section === 3 ? '#a2f9c9' : '#f0a0ac'; ctx.lineWidth = 4;
         ctx.globalAlpha=.46;
         ctx.beginPath();
@@ -1372,6 +1346,35 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           ctx.fillText(hazard.kind === 'audit' ? 'AUDIT LOCK' : hazard.kind === 'sweeper' ? 'MERGE >' : 'DRAFT', x, y - h - 14);
         }
       }
+      // Safe beat gates are translucent floating rings with a button and a
+      // four-point spark. Vehicles remain opaque silhouettes with red warnings.
+      for (const pulse of PULSES) {
+        const ahead = pulse.beat - s.musicBeatFloat;
+        if (ahead < -.45 || ahead > 3.5 || s.caughtPulses[pulse.beat]) continue;
+        const t = clamp(.83 - ahead * .19, .17, .92);
+        const x = laneX(pulse.lane, t), y = roadY(t) - 85 * t;
+        const r = 15 + 51 * t, flash = reduced ? 0 : Math.sin(s.musicBeatFloat * Math.PI * 2) * .08;
+        const face = PULSE_ACTIONS[pulse.action];
+        ctx.save(); ctx.globalCompositeOperation = 'screen';
+        const glow = ctx.createRadialGradient(x,y,r*.18,x,y,r*1.8);
+        glow.addColorStop(0,'#d9fff3aa'); glow.addColorStop(.6,'#61ffd388');
+        glow.addColorStop(1,'#35ffd000');
+        ctx.fillStyle = glow; ctx.fillRect(x-r*1.8,y-r*1.8,r*3.6,r*3.6);
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = '#77ffd04f'; ctx.beginPath();
+        ctx.ellipse(x,roadY(t),r*.84,r*.28,0,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#157e7199'; ctx.strokeStyle = '#b4ffdf';
+        ctx.lineWidth = 3 + t * 5; ctx.beginPath(); ctx.arc(x,y,r*(1+flash),0,Math.PI*2); ctx.fill(); ctx.stroke();
+        ctx.strokeStyle = '#e7ffe9'; ctx.lineWidth = 2 + t*2;
+        ctx.beginPath(); ctx.moveTo(x,y-r*.77); ctx.lineTo(x+r*.77,y);
+        ctx.lineTo(x,y+r*.77); ctx.lineTo(x-r*.77,y); ctx.closePath();ctx.stroke();
+        ctx.fillStyle = '#fffde6'; ctx.textAlign = 'center';
+        ctx.font = `bold ${Math.round(17 + 24*t)}px Oxanium, monospace`;
+        ctx.fillText(B.GamepadUI?.connected ? B.ControllerSettings?.button(face.button) || face.keyboard : face.keyboard, x, y+11*t);
+        ctx.font = `bold ${Math.round(12 + 11*t)}px Oxanium, monospace`;
+        ctx.fillText(`SAFE • ${face.label}`,x,y-r-17*t);
+        ctx.restore();
+      }
       if (s.gateAt != null && progress < s.gateAt + 45) {
         const t = depth(s.gateAt - progress), y = roadY(t);
         ctx.fillStyle = '#9ffff0'; ctx.font = `bold ${Math.round(18 + t*23)}px Oxanium, monospace`;
@@ -1450,51 +1453,50 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       ctx.fillStyle = '#a7bcca'; ctx.fillText('SIGNAL', 520, 96);
       drawRearview(ctx, s, ['#f6adbb', '#f3b276', '#d2a4f9', '#9aefce'][section], reduced);
       ctx.fillStyle = '#e4ede5'; ctx.font = 'bold 18px Oxanium, monospace'; ctx.textAlign = 'left';
-      const chosen = s.pendingCapture;
-      const barWait = ((4 - s.musicBeatFloat % 4) * .46875).toFixed(1);
-      ctx.fillText(chosen ? `NEXT BAR: ${LANES[chosen.lane]} IN ${barWait}s` :
-        'HOLD A LANE .5s: CHOOSE THE NEXT BAR', 1345, 31, 540);
+      const nextPulse = PULSES.find(p => p.beat >= s.musicBeatFloat - .2 &&
+        !s.caughtPulses[p.beat]);
+      const nextFace = nextPulse && PULSE_ACTIONS[nextPulse.action];
+      const nextButton = nextFace && (B.GamepadUI?.connected ?
+        B.ControllerSettings?.button(nextFace.button) || nextFace.keyboard : nextFace.keyboard);
+      ctx.fillText(nextPulse ? `SAFE PULSE • ${LANES[nextPulse.lane]} • ${nextButton} ${nextFace.label} • ${Math.max(0,(nextPulse.beat-s.musicBeatFloat)*.46875).toFixed(1)}s` :
+        'SAFE PULSES: STEER IN + TAP ON THE BEAT', 1345, 31, 540);
       ctx.fillStyle = '#b5cbd0'; ctx.font = '16px Oxanium, monospace';
-      ctx.fillText(`E/RB: NOW + NEXT 4 ${s.lastSnapStartBar === Math.floor(s.musicBar/4)*4 ? 'USED' : 'READY'}`, 1345, 57, 282);
-      ctx.fillText('SPACE/A: TURBO    H/Y: ECHO', 1615, 57, 270);
-      const meter = (x, label, value, color) => {
+      ctx.fillText(PULSE_ACTIONS.map(face => `${B.GamepadUI?.connected ? B.ControllerSettings?.button(face.button) : face.keyboard} ${face.label}`).join(' • '), 1345, 57, 540);
+      const meter = (x, label, value, color, display = `${Math.round(value)}%`) => {
         ctx.fillStyle = '#afbdcb'; ctx.font = 'bold 14px Oxanium, monospace'; ctx.fillText(label, x, 80);
         ctx.fillStyle = '#26364b'; ctx.fillRect(x, 87, 196, 14);
         ctx.fillStyle = color; ctx.fillRect(x, 87, 196 * clamp(value/100,0,1), 14);
-        ctx.fillStyle = '#f7f8ec'; ctx.font = 'bold 14px Oxanium, monospace'; ctx.fillText(`${Math.round(value)}%`, x + 204, 100);
+        ctx.fillStyle = '#f7f8ec'; ctx.font = 'bold 14px Oxanium, monospace'; ctx.fillText(display, x + 204, 100);
       };
       meter(1345, 'ECHO', s.echoEnergy, '#83e6fc');
-      meter(1615, s.musicBeatFloat < s.zoneEndBeat ? 'ZONE ACTIVE' : 'ZONE', s.lockEnergy, '#d0a4ff');
+      meter(1615, s.fullAdrenaline ? 'FULL ADRENALINE' : 'PARTS ACTIVE',
+        s.captures.length * 25, '#d0a4ff', `${s.captures.length}/4`);
       ctx.fillStyle = '#e7f4e9'; ctx.font = 'bold 21px Oxanium, monospace';
       ctx.fillText(`SCORE ${s.score}    STACK x${stackSize(s)}`, 1345, 131, 315);
       ctx.fillStyle = s.boost || s.boostMs ? '#fbd899' : '#718995';
       ctx.font = 'bold 17px Oxanium, monospace';
-      ctx.fillText(s.boostMs ? 'TURBO ACTIVE' : s.boost ? 'TURBO READY' : 'TURBO CHARGING', 1660, 131, 230);
+      const turboButton = B.GamepadUI?.connected ? B.ControllerSettings?.button(4) : 'SPACE';
+      ctx.fillText(s.boostMs ? 'TURBO ACTIVE' : s.boost ? `${turboButton} TURBO READY` : `${turboButton} TURBO CHARGING`, 1660, 131, 230);
       // The original four names remain beneath the one-piece mirror.
       for (let i = 0; i < 4; i++) {
         const x = 642 + i * 171;
         const capture = s.captures.find(item => item.lane === i);
         const queued = s.queuedCaptures.find(item => item.lane === i);
-        const selected = chosen?.lane === i ? chosen : null;
-        ctx.fillStyle = capture || queued ? '#f1fff5' : selected ? '#ffc077' : '#a4bdc4';
+        ctx.fillStyle = capture || queued ? '#f1fff5' : '#a4bdc4';
         ctx.font = 'bold 13px Oxanium, monospace'; ctx.textAlign = 'left';
-        ctx.fillText(`${i+1} ${LANES[i]} ${queued ? `Q${queued.startBeat/4+1}` :
-          selected ? `N${selected.startBeat/4+1}` :
-          capture ? `${Math.max(0,Math.ceil((capture.endBeat-s.musicBeatFloat)/4))}B` : 'HOLD'}`, x, 145, 165);
-        ctx.fillStyle = PALETTE[i]; ctx.globalAlpha = capture ? 1 : queued ? .65 : selected ? .40 : s.lane === i ? .45 : .16;
+        ctx.fillText(`${i+1} ${LANES[i]} ${queued ? 'NEXT BEAT' :
+          capture ? `${Math.max(0,Math.ceil((capture.endBeat-s.musicBeatFloat)/4))}B` : 'READY'}`, x, 145, 165);
+        ctx.fillStyle = PALETTE[i]; ctx.globalAlpha = capture ? 1 : queued ? .65 : s.lane === i ? .45 : .16;
         ctx.fillRect(x, 151, 162, 5); ctx.globalAlpha = 1;
-        if (s.candidateLane === i && s.candidateHold < 1) {
-          ctx.fillStyle = '#f1fff5'; ctx.fillRect(x, 158, 162 * s.candidateHold, 3);
-        }
       }
       ctx.textAlign = 'left';
       if (s.cutFlashMs) {
         ctx.fillStyle = '#dcfff1'; ctx.font = 'bold 17px Oxanium, monospace';
-        ctx.fillText(`CLOSE CUT x${s.cutStreak}  +${s.cutAward}  // ZONE CHARGED`, 1345, 155, 535);
+        ctx.fillText(`CLOSE CUT x${s.cutStreak}  +${s.cutAward}  // TURBO + ECHO`, 1345, 155, 535);
       } else if (s.gateAt != null && progress > s.gateAt - 220 && progress < s.gateAt) {
         ctx.fillStyle = '#e7ffeb'; ctx.font = 'bold 17px Oxanium, monospace';
         ctx.fillText(s.echo ? 'ECHO LEFT • ORIGINAL RIGHT' :
-          'H/Y ECHO LEFT • ORIGINAL RIGHT', 1345, 155, 535);
+          `${B.GamepadUI?.connected ? B.ControllerSettings?.button(5) : 'H'} ECHO LEFT • ORIGINAL RIGHT`, 1345, 155, 535);
       } else if (s.messageMs > 0 && !s.stumbleMs &&
           !(s.gateAt != null && progress > s.gateAt - 220 && progress < s.gateAt)) {
         ctx.fillStyle = '#b4ffe4';

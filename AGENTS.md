@@ -1,5 +1,21 @@
 # Repository Guidance
 
+## September 24, 2026 — Cache Road timed pulse review
+
+The owner now wants four face buttons as four distinct driving actions, two
+bumpers for Turbo/Echo, left/right steering and up/down speed control with
+different rewards. Safe, friendly beat pulses are separate from solid traffic.
+The current prototype uses Surge, Push, Brace and Refill, and catches lane
+music only when the matching button is pressed on its visible beat in that
+lane. Consecutive catches can hold eight bars, and all four active parts
+expose the still unrecorded crew-vocal gate. Preserve DRIVE, FLOW, BREAKAWAY
+and UNDERCURRENT, the five owner MP3s, save migration and no Level 2 award.
+Previous hold/E/RB seal/Zone rules below are historical. See
+`docs/source-pack/CACHE_ROAD_PULSE_ACTIONS.md` and the latest acceptance
+route. A code/VM/native preview is not Makko feel acceptance; CI and owner
+listening remain required. Keep the requested vehicle/roadside art follow-up
+after this mechanical review.
+
 ## September 24, 2026 — Cache Road layered art PR
 
 The owner requested a calmer seam-free road, swapped visual turn poses, more of Cache Back's face in the same mirror, dirty wispy effects, a genuinely layered city, roadside hardware, a small distant city and a beat/stack-responsive morphing sky. Reuse animated Level 1 ship art as high flying traffic. The source and current preview must retain the recovered car, freight and mirror work. The owner now authorizes a PR for this complete pass; do not merge without their Makko review. Keep lane names, music and save/gameplay rules unchanged. See `docs/source-pack/CACHE_ROAD_MIRROR_ART.md` and the asset READMEs.
