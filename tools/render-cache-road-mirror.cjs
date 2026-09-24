@@ -80,7 +80,7 @@ async function main() {
   road.audioDegraded = false;
   const scene = createCanvas(1920,1080), sc = scene.getContext('2d');
   const video = createCanvas(1280,720), vc = video.getContext('2d');
-  const detail = createCanvas(1320, 1140), dc = detail.getContext('2d');
+  const detail = createCanvas(1320, 1330), dc = detail.getContext('2d');
   const fps = 18, seconds = 2, chapters = [
     { name: 'Calm', progress: 3020, bar: 32 },
     { name: 'Focused', progress: 3120, bar: 33 },
@@ -143,14 +143,16 @@ async function main() {
       vc.drawImage(scene,0,0,1920,164,0,0,1280,109.3333);
     } else vc.drawImage(scene,0,0,1920,1080,0,0,1280,720);
     const stillAt = chapterIndex === 3 || chapterIndex === 4 ? 4 : fps;
-    if (i % (fps * seconds) === stillAt) {
-      fs.writeFileSync(path.join(out, `Cache-Road-Mirror-${chapter.name}.webp`),
+    const rearCheck = chapterIndex === 4 && i % (fps * seconds) === fps;
+    if (i % (fps * seconds) === stillAt || rearCheck) {
+      const stateName = rearCheck ? 'Rear-Check' : chapter.name;
+      fs.writeFileSync(path.join(out, `Cache-Road-Mirror-${stateName}.webp`),
         video.toBuffer('image/webp',88));
-      const row = chapterIndex * 190;
+      const row = (rearCheck ? 6 : chapterIndex) * 190;
       dc.drawImage(scene, 600, 0, 1320, 164, 0, row, 1320, 164);
       dc.fillStyle = '#091523'; dc.fillRect(0, row+164, 1320, 26);
       dc.fillStyle = '#f5dda9'; dc.font = 'bold 18px Oxanium';
-      dc.fillText(chapter.name.toUpperCase(), 20, row+184);
+      dc.fillText(stateName.toUpperCase(), 20, row+184);
     }
     if (!ff.stdin.write(Buffer.from(vc.getImageData(0,0,1280,720).data)))
       await once(ff.stdin,'drain');

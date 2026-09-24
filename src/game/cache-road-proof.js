@@ -31,6 +31,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   function mirrorExpression(s) {
     if (s.stumbleMs > 0) return 4;
+    if (s.invulnerableMs > 0) return 6;
     if (s.integrity <= 1 || s.timeMs < 8000 || s.status === 'failed') return 5;
     if (s.boostMs > 0 || s.musicBeatFloat < s.zoneEndBeat || s.status === 'clear') return 2;
     if (s.cutFlashMs > 0 || (s.messageMs > 0 && /NEAR MISS/.test(s.message))) return 3;
@@ -99,18 +100,20 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       }
     }
     ctx.globalAlpha = 1;
-    // Cache sits on the driver's side. His visible eye faces the windshield
-    // for ordinary driving; only the impact cell glances across the mirror.
-    ctx.globalCompositeOperation = 'screen'; ctx.globalAlpha = .90;
+    // Cache sits on the driver's side. Both eyes face the windshield for
+    // ordinary driving. The impact cell braces facing forward; after that
+    // brief flinch, the separate recovery cell checks the mirror behind him.
+    // The portrait has its own alpha silhouette. Keep the face opaque so the
+    // reflected road never shows through his glasses, skin or mask.
+    ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
     if (!B.PresentationAssets?.draw?.('cacheMirror', ctx, {
       x: x + 180, y: y + h/2, width: 250, height: 111,
-      sourceRect: [0, 150, 402, 185], frame: expression })) {
+      sourceRect: [24, 150, 464, 210], frame: expression })) {
       ctx.fillStyle = '#d9aa4c'; ctx.beginPath();
       ctx.arc(x + 57, y + 50, 58, Math.PI, Math.PI*2); ctx.fill();
       ctx.fillStyle = '#142632'; ctx.fillRect(x, y + 65, 122, 52);
       ctx.fillStyle = '#f4e0b1'; ctx.fillRect(x + 52, y + 58, 28, 8);
     }
-    ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
     // Shared glare and scan marks pass over both the road and Cache's face.
     ctx.strokeStyle = '#c8eef0'; ctx.globalAlpha = .24; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(x + 23, y + 15); ctx.lineTo(x + 159, y + 3);

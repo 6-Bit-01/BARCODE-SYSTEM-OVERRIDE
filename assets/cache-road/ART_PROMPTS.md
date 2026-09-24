@@ -4,6 +4,18 @@ Built-in image generation was used. The recovered
 `world/sources/skyline.png` served as a **style reference**, not an edit target,
 for the first four assets. Every source PNG retains real transparency.
 
+## `hud/sources/cache-back-mirror-expressions.png` — repaired September 24
+
+Use the owner's original Cache Back model as the identity reference, not only
+the earlier cropped portrait. Build complete head portraits with the cap's long
+brim and fabric side flaps, rectangular glasses, angular mask and collar.
+Five normal driving states keep the head and eyes aimed forward. Edit the
+impact brace from the forward pose by squeezing one eye shut while the other
+stays centered; a separate brief rear-check pose alone moves its gaze toward
+the reflected road. Keep real alpha outside the character and opaque skin,
+glasses, mask and cap. Pack seven poses in a 3 × 3 atlas with the last two cells
+empty. Do not add a frame, road or text.
+
 ## `world/sources/mid-city.png`
 
 Transparent midground panorama of dense low industrial rooftops and facades

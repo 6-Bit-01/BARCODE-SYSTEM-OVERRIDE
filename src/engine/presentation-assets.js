@@ -14,7 +14,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   const polishRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/dce79e888592023b85abe0eac2572f76b66e51ac/';
   const entries = {
     cacheMirror: { path: 'assets/cache-road/hud/cache-back-mirror-expressions.webp', root: '',
-      columns: 3, rows: 2, frames: 6, ax: .5, ay: .5, smooth: true },
+      columns: 3, rows: 3, frames: 7, ax: .5, ay: .5, smooth: true },
     cacheCar: { path: 'assets/cache-road/vehicles/cache-center.webp', root: '', columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
     cacheCarLeft: { path: 'assets/cache-road/vehicles/cache-left.webp', root: '', columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
     cacheCarRight: { path: 'assets/cache-road/vehicles/cache-right.webp', root: '', columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },

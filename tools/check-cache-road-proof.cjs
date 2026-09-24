@@ -124,12 +124,14 @@ async function run() {
   B.PresentationAssets = { ready(key) { return key.startsWith('cache'); },
     draw(key, _ctx, options) {
     if (key === 'cacheMirror') mirrorFrames.push({ frame: options.frame,
-      sourceRect: options.sourceRect, x: options.x, y: options.y });
+      sourceRect: options.sourceRect, x: options.x, y: options.y,
+      composition: _ctx.globalCompositeOperation, alpha: _ctx.globalAlpha });
     else roadArt.push({ key, ...options });
     return true;
   } };
   const paint = { addColorStop() {} };
-  const drawCtx = new Proxy({ createLinearGradient: () => paint,
+  const drawCtx = new Proxy({ globalCompositeOperation: 'source-over',
+    createLinearGradient: () => paint,
     createRadialGradient: () => paint,
     fillRect(x, y, width, height) {
       if (x === 30 && y === 176 && width > 100) openingRects.push([width, height]);
@@ -137,13 +139,15 @@ async function run() {
     set(target, key, value) { target[key] = value; return true; } });
   const mirrorFrame = overrides => {
     road.state = { ...liveState, progress: 395, integrity: 3, timeMs: 55000,
-      stumbleMs: 0, boostMs: 0, zoneEndBeat: -1, pendingCapture: null,
+      stumbleMs: 0, invulnerableMs: 0, boostMs: 0, zoneEndBeat: -1, pendingCapture: null,
       candidateHold: 0, cutFlashMs: 0, messageMs: 0, rivalWarning: false,
       ...overrides };
     mirrorFrames.length = 0; roadArt.length = 0; openingRects.length = 0; road.draw(drawCtx);
     assert.equal(mirrorFrames.length, 1, 'one expression is drawn inside the shared rearview');
-    assert.deepEqual(Array.from(mirrorFrames[0].sourceRect), [0, 150, 402, 185]);
+    assert.deepEqual(Array.from(mirrorFrames[0].sourceRect), [24, 150, 464, 210]);
     assert.equal(mirrorFrames[0].x, 818, 'more of the same-size face sits inside the driver side');
+    assert.equal(mirrorFrames[0].composition, 'source-over', 'the reflected road cannot show through his face');
+    assert.equal(mirrorFrames[0].alpha, 1, 'the portrait is fully opaque inside its alpha silhouette');
     return mirrorFrames[0].frame;
   };
   assert.equal(mirrorFrame({}), 0);
@@ -168,6 +172,8 @@ async function run() {
   assert.equal(mirrorFrame({ stumbleMs: 650, integrity: 1 }), 4,
     'a hit overrides low signal during the collision');
   assert(roadArt.some(entry => entry.key === 'cacheCarHit'), 'collision uses its jolt pose');
+  assert.equal(mirrorFrame({ invulnerableMs: 400, integrity: 1 }), 6,
+    'the rear check follows the forward-facing impact brace');
   assert.equal(mirrorFrame({ integrity: 1 }), 5);
   mirrorFrame({ progress: 60 });
   assert.deepEqual(openingRects, [[875, 82]], 'the opening panel remains compact');

@@ -1,5 +1,17 @@
 # Cache Road rearview reflection review — September 24, 2026
 
+## Portrait repair after PR #112 review
+
+The owner spotted that the original six-cell portrait had half of Cache
+Back's head cut off. The replacement cells contain a complete face and cap before
+the mirror crops an eye-and-mask band. The new atlas has transparent background
+outside the portrait but solid face pixels; the runtime draws it with normal
+compositing so the reflected road cannot show through his eyes, skin or mask.
+The face remains the same size and driver-side position in the mirror. Five
+everyday states look forward. On impact he braces facing forward with one eye
+shut; only the short recovery pose checks the mirror behind him. The
+integrated review video and seven stills were regenerated from production draw.
+
 The latest owner review supersedes the first recovered-art parallax pass.
 The mirror crop now moves Cache Back farther into the same glass without
 resizing him. The turn art is swapped to match the actual car direction.
@@ -16,14 +28,14 @@ the older composite is only a reference.
 
 The owner corrected the prior separate portrait-card layout: Cache Back should
 appear inside the rearview as a partial face, with his eyes aimed toward the
-road. A new six-cell atlas derived from his supplied model crops the cap brim,
-glasses, one brown eye and upper mask. The portrait enters from the left and
+road. A repaired seven-cell atlas derived from his supplied model crops the cap brim,
+both brown eyes and upper mask from a complete head. The portrait enters from the left and
 shares the mirror's glass tint, clipping, glare and frame with the moving road.
 There is no independent face border or label. Calm, deliberate choice,
 Turbo/Zone, close pass, hit and low-signal states use existing road events;
-the hit takes priority over low signal during the stumble. Five expressions
-look straight ahead through the windshield; only the hit cell glances
-right into the reflected road for the brief stumble interval.
+the hit takes priority over low signal during the stumble. The brace is
+forward-looking during the stumble; the recovery cell alone checks the mirror
+for the rest of the existing short damage-protection interval.
 
 The city and road behind him are a decorative loop. They show no actual cars
 or collision warning. Reduced Motion holds the decorative movement. All four

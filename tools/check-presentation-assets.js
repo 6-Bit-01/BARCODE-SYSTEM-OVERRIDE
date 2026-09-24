@@ -29,12 +29,17 @@ assert.strictEqual(catImage.onerror, null);
 art.draw('studioCat', ctx, { x: 60, y: 80, width: 128, frame: 7, flip: true });
 assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2), [256, 256, 256, 256, -64, -120, 128, 128]);
 assert(ops.some(op => op[0] === 'scale' && op[1] === -1));
-mirrorImage.naturalWidth = 1536; mirrorImage.naturalHeight = 1024; mirrorImage.onload();
+mirrorImage.naturalWidth = 1536; mirrorImage.naturalHeight = 1536; mirrorImage.onload();
 ops.length = 0; art.draw('cacheMirror', ctx, { x: 753, y: 70, width: 250, height: 111,
-  sourceRect: [0, 150, 402, 185], frame: 4 });
+  sourceRect: [24, 150, 464, 210], frame: 4 });
 assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2),
-  [512, 662, 402, 185, -125, -55.5, 250, 111],
-  'collision eyes come from the second row inside the same mirror crop');
+  [536, 662, 464, 210, -125, -55.5, 250, 111],
+  'forward-facing impact brace comes from the second row');
+ops.length = 0; art.draw('cacheMirror', ctx, { x: 753, y: 70, width: 250, height: 111,
+  sourceRect: [24, 150, 464, 210], frame: 6 });
+assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2),
+  [24, 1174, 464, 210, -125, -55.5, 250, 111],
+  'the brief rear-check is a separate third-row cell');
 arrowImage.onerror(); arrowImage.onerror();
 assert.strictEqual(arrowImage.requests.length, 2); assert.strictEqual(arrowImage.onerror, null);
 art.preload(); assert.strictEqual(images.length, 45, 'failed assets do not retry forever');
