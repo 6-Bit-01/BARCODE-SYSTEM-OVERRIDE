@@ -142,7 +142,7 @@ async function run() {
   assert.equal(C.readResume().levelState.proofVersion, 4);
   const roadStart = copy(C.readResume());
   const liveState = road.state, oldArt = B.PresentationAssets;
-  const mirrorFrames = [], roadArt = [], openingRects = [], drawOrder = [];
+  const mirrorFrames = [], roadArt = [], openingRects = [], drawOrder = [], hudLines = [];
   B.PresentationAssets = { ready(key) { return key.startsWith('cache'); },
     draw(key, _ctx, options) {
     if (key === 'cacheMirror') mirrorFrames.push({ frame: options.frame,
@@ -155,7 +155,8 @@ async function run() {
     createRadialGradient: () => paint,
     fillRect(x, y, width, height) {
       if (x === 30 && y === 176 && width > 100) openingRects.push([width, height]);
-    }, fill() { if (this.fillStyle === '#174c51') drawOrder.push('roadPad'); } },
+    }, fill() { if (this.fillStyle === '#174c51') drawOrder.push('roadPad'); },
+    fillText(value, x, y) { if (x === 1345 && y === 57) hudLines.push(value); } },
     { get(target, key) { return key in target ? target[key] : () => {}; },
     set(target, key, value) { target[key] = value; return true; } });
   const mirrorFrame = overrides => {
@@ -164,7 +165,7 @@ async function run() {
       candidateHold: 0, cutFlashMs: 0, messageMs: 0, rivalWarning: false,
       ...overrides };
     mirrorFrames.length = 0; roadArt.length = 0; openingRects.length = 0;
-    drawOrder.length = 0; road.draw(drawCtx);
+    drawOrder.length = 0; hudLines.length = 0; road.draw(drawCtx);
     assert.equal(mirrorFrames.length, 1, 'one expression is drawn inside the shared rearview');
     assert.deepEqual(Array.from(mirrorFrames[0].sourceRect), [0, 150, 450, 185]);
     assert.equal(mirrorFrames[0].x, 833, 'the completed face sits inside the driver side');
@@ -193,12 +194,22 @@ async function run() {
     'a hit overrides low signal during the collision');
   assert(roadArt.some(entry => entry.key === 'cacheCarHit'), 'collision uses its jolt pose');
   assert.equal(mirrorFrame({ integrity: 1 }), 5);
+  mirrorFrame({ ramMs: 1180, shield: 1 });
+  assert.match(hudLines[0], /PUSH 1\.2s.*BRACE READY/,
+    'armed contact abilities remain visible after the catch message ends');
   mirrorFrame({ progress: 60 });
   assert.deepEqual(openingRects, [[875, 82]], 'the opening panel remains compact');
   mirrorFrame({ progress: 130 });
   assert(drawOrder.includes('roadPad') && drawOrder.includes('cacheFreight'));
   assert(drawOrder.indexOf('roadPad') < drawOrder.indexOf('cacheFreight'),
     'road paint is composited beneath physical traffic');
+  const visibleBeforeCatch = drawOrder.filter(item => item === 'roadPad').length;
+  mirrorFrame({ progress: 130, caughtPulses: { '0/0/0': true } });
+  assert.equal(drawOrder.filter(item => item === 'roadPad').length, visibleBeforeCatch,
+    'a caught fixed marking stays visible until it passes under the car');
+  mirrorFrame({ progress: 173, caughtPulses: { '0/0/0': true } });
+  assert.equal(drawOrder.filter(item => item === 'roadPad').length, visibleBeforeCatch - 1,
+    'the caught marking leaves only after it has passed the car');
   road.state = liveState; B.PresentationAssets = oldArt;
   assert.match(road.openingCue()[0], /ROAD PADS ARE SAFE/,
     'the first prompt distinguishes safe music pickups from traffic');
