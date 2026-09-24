@@ -99,12 +99,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       }
     }
     ctx.globalAlpha = 1;
-    // Cache sits on the driver's side. His visible eye faces the windshield
+    // Cache sits on the driver's side. His eyes face the windshield
     // for ordinary driving; only the impact cell glances across the mirror.
-    ctx.globalCompositeOperation = 'screen'; ctx.globalAlpha = .90;
+    ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
     if (!B.PresentationAssets?.draw?.('cacheMirror', ctx, {
-      x: x + 180, y: y + h/2, width: 250, height: 111,
-      sourceRect: [0, 150, 402, 185], frame: expression })) {
+      x: x + 195, y: y + h/2, width: 280, height: 111,
+      sourceRect: [0, 150, 450, 185], frame: expression })) {
       ctx.fillStyle = '#d9aa4c'; ctx.beginPath();
       ctx.arc(x + 57, y + 50, 58, Math.PI, Math.PI*2); ctx.fill();
       ctx.fillStyle = '#142632'; ctx.fillRect(x, y + 65, 122, 52);
