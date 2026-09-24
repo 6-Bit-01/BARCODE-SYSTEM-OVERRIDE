@@ -1,5 +1,9 @@
 # Decision Register
 
+## September 24, 2026 — driver reflection, not portrait card
+
+The owner clarified that Cache Back should appear in the rearview itself: only a partial face, with his eyes on the road. A model-based close crop shares the mirror glass and changes expression with existing driving events. The rear road remains a decorative loop. This is a local art review with no PR yet; the previous unpublished vehicle/world source must be restored before claiming a complete build. See `CACHE_ROAD_MIRROR_ART.md`.
+
 ## September 24, 2026 — teach the chase while driving
 
 After the predictable music rule felt better, the owner asked for direction and a short tutorial rather than a menu. State the original-recording delivery goal in the first stretch; teach a real lane hold and E/RB before freight, Turbo at the paired block, and Echo at the first audit. The first marker must supply a retryable charged Echo, and the prompt must change only after the action works. Preserve the established lane names, audio and game rules. See `CACHE_ROAD_AUTHORED_OPENING.md`; the merged Makko review determines whether the timing feels right.

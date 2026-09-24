@@ -1,5 +1,51 @@
 # Acceptance and Test Status
 
+## Layered Cache Road art PR — September 24
+
+Watch the integrated twelve-second scene at normal size. Look for continuous
+blacktop without visible texture-band joins, distinct small distant buildings
+behind the far and near city, a beat-responsive sky that changes color across
+the reel, and Level 1 flying ships at different bank angles above the road.
+The roadside wall should follow the bend without detached panels; the amber
+service pylons should pass on both sides. On a left and right lane change,
+confirm that the car's illustrated turn matches the movement. Cache Back's
+face should remain the same scale but reveal more cap, eye and mask inside the
+left side of the mirror, looking forward except the brief hit glance. Look at
+Turbo, close pass and hit for dirty spray and soot, with no clean beam or
+starburst overlay. Car and truck shocks and tire motion should still read.
+The native reel establishes visual integration only; import the PR's exact
+commit into Makko after merge to judge frame rate, control feel and art in
+actual play. No lane, audio, traffic or save behavior was intentionally changed.
+
+## Revised Cache Road art motion — September 24
+
+Watch the twelve-second integrated road clip at normal game size before the
+following car and freight close crops. Compare it with the saved prior
+parallax study: the distant city, lower buildings, roadside deck/towers,
+guardrail lamps and wet road should move at distinct depths without a visible
+horizon cut. Follow a lane change to see body lean and the angled pose; watch
+the rear tires stay planted and their treads move, then the truck's stronger
+suspension. The hit should jolt, shed fragments and settle. These clips are
+scripted production draws; check actual controller feel and frame rate in
+Makko only after a reviewed PR is merged.
+
+## Cache Road art and motion review — September 24
+
+1. In the local production preview, verify the yellow car, rain road and
+   skyline share one draw with the rearview. Check both steering poses,
+   visible shock bounce, moving tire treads and the truck's stronger
+   suspension movement in the close-up clips.
+2. Confirm a near pass draws short streaks and a hit uses the collision pose,
+   jolt and debris, then returns to the ordinary pose. The mirror glances
+   back only during the stumble; ordinary driving looks ahead.
+3. In a future merged Makko build, drive the first route with keyboard and
+   controller and judge motion at normal size and frame rate. Scripted native
+   clips are review evidence, not host acceptance.
+
+## Current art review — Cache Back in the rearview
+
+Inspect `review-cache-road-mirror-composite/Cache-Road-Mirror-World-Loop.webp` or the full MP4, then the six-state detail sheet in `review-cache-road-mirror/`. Cache's cap brim, glasses, eye and upper mask should be cropped by the same mirror glass that holds the moving road, with his gaze aimed toward the road rather than the viewer. Watch the eye/brow shifts for a lane choice, Turbo, close pass, hit and low signal. The rear image is decorative and should never suggest a real traffic warning. The composite uses the earlier saved road preview with the new production HUD pixels; check the layout now, then judge the complete art build after the unpublished vehicle/world source is restored. The current checkout has no PR and no Makko playtest.
+
 ## Current route — deliver the original
 
 Import the exact merged main SHA after CI and enter Cache Road from Cache Back. The opening should say why Cache is driving: the clean copy erased names, so deliver the original recording. Keep steering while the brief guidance appears above the road; there should be no choice menu or blocked input. At the first freight, hold a lane for half a second and see the E/RB instruction replace the hold instruction. Press E/RB, then steer away; that instruction should leave, and the part should play now and carry into the next four bars. Drive toward the paired block: use an outside lane and try Space/A Turbo near it. Its button instruction should leave when the burst starts.

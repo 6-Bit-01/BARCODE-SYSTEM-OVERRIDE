@@ -13,6 +13,26 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   const finaleRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/f92f076b237632c7001641690505560fe9075da6/';
   const polishRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/dce79e888592023b85abe0eac2572f76b66e51ac/';
   const entries = {
+    cacheMirror: { path: 'assets/cache-road/hud/cache-back-mirror-expressions.webp', root: '',
+      columns: 3, rows: 2, frames: 6, ax: .5, ay: .5, smooth: true },
+    cacheCar: { path: 'assets/cache-road/vehicles/cache-center.webp', root: '', columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cacheCarLeft: { path: 'assets/cache-road/vehicles/cache-left.webp', root: '', columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cacheCarRight: { path: 'assets/cache-road/vehicles/cache-right.webp', root: '', columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cacheCarHit: { path: 'assets/cache-road/vehicles/cache-hit.webp', root: '', columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cacheFreight: { path: 'assets/cache-road/vehicles/freight.webp', root: '', columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cacheCourier: { path: 'assets/cache-road/vehicles/courier.webp', root: '', columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cacheBarricade: { path: 'assets/cache-road/vehicles/barricade.webp', root: '', columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cacheRival: { path: 'assets/cache-road/vehicles/rival.webp', root: '', columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cacheSkyline: { path: 'assets/cache-road/world/skyline.webp', root: '', columns: 1, rows: 1, frames: 1, ax: 0, ay: 1, smooth: true },
+    cacheDistantCity: { path: 'assets/cache-road/world/distant-city.webp', root: '', columns: 1, rows: 1, frames: 1, ax: 0, ay: 1, smooth: true },
+    cacheMidCity: { path: 'assets/cache-road/world/mid-city.webp', root: '', columns: 1, rows: 1, frames: 1, ax: 0, ay: 1, smooth: true },
+    cacheParapet: { path: 'assets/cache-road/roadside/parapet.webp', root: '', columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cachePylon: { path: 'assets/cache-road/roadside/service-pylon.webp', root: '', columns: 1, rows: 1, frames: 1, ax: .28, ay: 1, smooth: true },
+    cacheImpactGrit: { path: 'assets/cache-road/effects/impact-grit.webp', root: '', columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cacheSpeedMist: { path: 'assets/cache-road/effects/speed-mist.webp', root: '', columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cacheBlacktop: { path: 'assets/wet-street/rain-blacktop.webp', root: '', columns: 1, rows: 1, frames: 1, ax: 0, ay: 0, smooth: true },
+    cacheFly1: { path: 'assets/traffic/ship-1.webp', root: '', columns: 8, rows: 11, frames: 81, ax: .5, ay: .5, smooth: false },
+    cacheFly3: { path: 'assets/traffic/ship-3.webp', root: '', columns: 8, rows: 16, frames: 122, ax: .5, ay: .5, smooth: false },
     hudExpressions: { path: 'assets/feedback-polish/hud-expressions.webp', root: polishRoot, columns: 3, rows: 2, frames: 6, ax: .5, ay: .5, smooth: true },
     platformFacades: { path: 'assets/feedback-polish/platform-facades.webp', root: polishRoot, columns: 3, rows: 1, frames: 3, ax: 0, ay: 0, smooth: true },
     platformSideLeft: { path: 'assets/feedback-polish/platform-side-left.webp', root: polishRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 0, smooth: true },
@@ -55,12 +75,13 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
       image.src = (entry.root ?? root) + entry.path;
     }
   }
-  function draw(key, ctx, { x = 0, y = 0, width = 96, height, frame = 0, flip = false } = {}) {
+  function draw(key, ctx, { x = 0, y = 0, width = 96, height, frame = 0,
+    flip = false, sourceRect = null } = {}) {
     const entry = entries[key], state = cache[key];
     if (!entry || !state?.ready) return false;
     const image = state.image, fw = image.naturalWidth / entry.columns, fh = image.naturalHeight / entry.rows;
     const index = Math.max(0, Math.floor(frame)) % entry.frames;
-    const [sx, sy, sw, sh] = entry.crop || [0, 0, fw, fh];
+    const [sx, sy, sw, sh] = sourceRect || entry.crop || [0, 0, fw, fh];
     const h = height ?? width * sh / sw;
     ctx.save(); ctx.translate(x, y); if (flip) ctx.scale(-1, 1);
     ctx.imageSmoothingEnabled = !!entry.smooth;

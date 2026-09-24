@@ -1,5 +1,53 @@
 # Recovery checkpoint — September 14
 
+## September 24, 2026 — layered Cache Road art PR
+
+- Replace the repeated skyline crop with smaller distant buildings and a
+  separate near-city painting. Give the sky beat/part-responsive hue, moving
+  veils and ribbons. Reuse two animated Level 1 flying ship atlases at varied
+  heights, scales and banking angles.
+- Join Level 1 blacktop texture samples across perspective strips, blend the
+  wrap, reduce surface contrast and remove fake wet seams/most grid lines.
+  Project new weathered parapet art continuously around the bend; place new
+  cantilever lamps at road distances.
+- Swap the turn poses to match visible movement, move Cache Back's face into
+  the mirror without resizing it, and replace clean Turbo, close-pass and hit
+  marks with animated soot and spray. Keep the existing car/truck bounce and
+  tires, lane names, music, saves and collision rules.
+- Render one scripted production scene and close crops. This is not a Makko
+  playthrough or an owner art acceptance.
+
+## September 24, 2026 — revised Cache Road motion and parallax (local review)
+
+- Respond to the owner's rejection of the flat preview by restoring the lower
+  city and layering a slower skyline, cropped roofs, silhouettes, depth-based
+  service decks/towers, guardrails and road seams. The blacktop retains Level
+  1's texture and moves independently of roadside architecture.
+- Keep recovered tire pixels at road contact while the body rides the shocks;
+  make the freight suspension larger and slower, turn the visible side rim,
+  add wet spray and a decaying hit jolt. The twelve-second native reel now
+  steers across lanes instead of swapping poses on a stationary car.
+- The saved previous parallax video is a quality reference, not source code.
+  No PR or Makko acceptance is claimed; owner visual review remains open.
+
+## September 24, 2026 — Cache Road car/world motion recovery (local review)
+
+- Recovered the saved transparent yellow car steering and collision poses,
+  freight truck, courier, barricade, rival and skyline sources. The old
+  animation code was lost; shock movement, stronger truck bounce, moving tire
+  treads, crash jolt and short near-pass streaks were rebuilt in the
+  live road renderer.
+- Reused Level 1 rain blacktop beneath the lane markings. The scripted native
+  preview now contains the car, road and rearview in one production draw.
+- Music, lane names, traffic timing, collision rules and saves remain as they
+  were. No PR or Makko acceptance is claimed; owner visual review is next.
+
+## September 24, 2026 — Cache Back's face inside the rearview (local review)
+
+- Replace the separate portrait-card concept with a cropped, road-looking face reflection in the same glass as the looping rear road.
+- Retain six event-driven expressions, the four original lane names and controls. Make the opening objective smaller and remove it between lessons.
+- Render production HUD state stills and a labeled visual composite over the saved road preview. The former unpushed world/car source branch is not in this checkout; no unified-build or Makko claim is made.
+
 ## September 24, 2026 — Cache Road opening direction
 
 - Add a driving-time goal and contextual hold, E/RB, Turbo and Echo cues above the road; successful actions replace their prompts without a menu.
