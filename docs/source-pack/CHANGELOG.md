@@ -1,5 +1,13 @@
 # Recovery checkpoint — September 14
 
+## September 24, 2026 — Cache Road art loading repair
+
+- Point all 19 Cache Road image entries at the immutable merged art revision,
+  retaining local fallback for checked-out builds. This addresses the owner's
+  report of old graphics when local binary art is absent from a Makko import.
+- Verify URL availability and both loader paths. The actual Makko result is
+  pending a new import; the art, gameplay, music and lane names are unchanged.
+
 ## September 24, 2026 — layered Cache Road art PR
 
 - Replace the repeated skyline crop with smaller distant buildings and a

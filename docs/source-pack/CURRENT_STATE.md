@@ -1,5 +1,17 @@
 # Current State
 
+## September 24 — Cache Road art delivery repair (PR review)
+
+The owner reports seeing the old graphics after the art PRs merged. The 19
+Cache Road image files are present at merged commit `37db983`, but their
+runtime entries requested only relative paths. Makko imports may omit binary
+files, leaving the game to draw its older fallback vehicles and scenery.
+Those entries now request the published images from that fixed revision and
+fall back to local files if necessary. No artwork or animation was redrawn.
+All 19 published URLs respond, and local loader checks cover both paths.
+The cause in the owner's particular Makko import and the visible result still
+need a fresh import and playtest; this PR does not establish that by itself.
+
 ## September 24 — Cache Road layered art and sky (PR review)
 
 This pass responds to the owner's latest visual review. The Level 1 blacktop
