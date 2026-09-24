@@ -1,5 +1,15 @@
 # Recovery checkpoint — September 14
 
+## September 24, 2026 — Cache Road cohesion review
+
+- Run four production-input driving scenarios and inspect native road frames.
+  Record the low-speed tape-end tradeoff and long x4 stack in the cohesion
+  audit; leave trial music durations unchanged until listening review.
+- Keep a caught road pad visible until it passes under the car. Show the
+  active Push timer and Brace charge in the existing top HUD, with a focused
+  rendering regression. Add the power-up categories and preserve the prior
+  road, vehicle, traffic and scenery follow-up list.
+
 ## September 24, 2026 — grounded Cache Road pads (review)
 
 - Replace song-driven floating rings with eight fixed low-profile road pads

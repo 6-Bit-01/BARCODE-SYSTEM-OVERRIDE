@@ -1315,7 +1315,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // projection as vehicles. Traffic is drawn afterward and occludes them.
       for (const pulse of PULSES) {
         const d = pulse.at - progress;
-        if (d < -22 || d > 345 || s.caughtPulses[pulse.id]) continue;
+        // A caught marking remains part of the asphalt until it passes under
+        // the car. The caught flag prevents another award, not its drawing.
+        if (d < -22 || d > 345) continue;
         const near = depth(d - 18), far = depth(d + 18), mid = depth(d);
         if (mid < .17 || near <= far) continue;
         const x = laneX(pulse.lane, mid), y = roadY(mid);
@@ -1476,7 +1478,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           `SAFE ROAD PAD • ${LANES[nextPulse.lane]} • ${nextButton} ${nextFace.label} • ${Math.round(padDistance)} AHEAD` :
           'ROAD CLEAR', 1345, 31, 540);
       ctx.fillStyle = '#b5cbd0'; ctx.font = '16px Oxanium, monospace';
-      ctx.fillText(PULSE_ACTIONS.map(face => `${B.GamepadUI?.connected ? B.ControllerSettings?.button(face.button) : face.keyboard} ${face.label}`).join(' • '), 1345, 57, 540);
+      const armed = [s.ramMs > 0 ? `PUSH ${Math.ceil(s.ramMs / 100) / 10}s` : '',
+        s.shield ? 'BRACE READY' : ''].filter(Boolean).join('  •  ');
+      ctx.fillText(armed || PULSE_ACTIONS.map(face =>
+        `${B.GamepadUI?.connected ? B.ControllerSettings?.button(face.button) : face.keyboard} ${face.label}`).join(' • '),
+      1345, 57, 540);
       const meter = (x, label, value, color, display = `${Math.round(value)}%`) => {
         ctx.fillStyle = '#afbdcb'; ctx.font = 'bold 14px Oxanium, monospace'; ctx.fillText(label, x, 80);
         ctx.fillStyle = '#26364b'; ctx.fillRect(x, 87, 196, 14);

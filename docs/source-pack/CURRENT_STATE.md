@@ -1,5 +1,18 @@
 # Current State
 
+## September 24 — repeated Cache Road drives and caught-pad correction
+
+Merged main #116 is `5c246b217397848b6dc8f24b5b1d20b94890ee79`.
+Four scripted production-input runs and native road frames exposed a pad
+vanishing early after a catch, the low-speed tape-end trap and overly sustained
+four-part stacks under an ideal pad-seeking route. This review branch keeps a
+caught marking drawn until it passes the car and shows armed Push/Brace state
+in the compact top HUD. Music timing, eight/sixteen-bar durations, traffic,
+assets, saves and campaign awards are unchanged. The full results, prior
+seven-part plan and defense/offense/traffic/environment/song/lane power-up
+backlog are in `CACHE_ROAD_COHESION_AUDIT.md`. Automated driving and native
+draws cannot establish Makko sound, input feel or owner acceptance.
+
 ## September 24 — grounded Cache Road pads (review branch)
 
 Owner play of merged #115 found the rings too fast, too frequent, distracting

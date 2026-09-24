@@ -1,5 +1,18 @@
 # Decision Register
 
+## September 24, 2026 — action/lane cohesion after repeated drives
+
+The owner adds power-ups for defense, offense, traffic, environment, song and
+lanes. Keep the four established face actions and two bumper abilities; put
+new interactions in planned road scenes instead of increasing floating pickup
+density. The seven-part follow-up remains open, especially tire contact,
+texture/ship direction, more animated traffic and layered roadside scenes.
+Scripted production-input runs show a sustained x4 stack with eight/sixteen-
+bar holds and a tape-end failure under continuous braking. Those are design
+findings, not permission to change the owner song or claim Makko acceptance.
+Fix the caught-pad drawing defect and make existing contact charges legible
+without changing their gameplay. See `CACHE_ROAD_COHESION_AUDIT.md`.
+
 ## September 24, 2026 — fixed, sparse road pads after owner play
 
 The owner rejects merged #115's floating ring stream: it moves toward the

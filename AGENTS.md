@@ -1,5 +1,16 @@
 # Repository Guidance
 
+## September 24, 2026 — Cache Road cohesion and power-up backlog
+
+After merged #116, the owner requests repeated play/simulation before their
+next Makko run and adds defensive, offensive, traffic, environment, song and
+lane power-ups. Preserve the current face/bumpers and selective inlaid pads.
+The current focused patch keeps caught pads visible until they pass the car
+and reports armed Push/Brace in the top HUD. The production-input playthrough
+results, full seven-part visual/gameplay list and candidate interactions are
+in `docs/source-pack/CACHE_ROAD_COHESION_AUDIT.md`. Do not call scripted
+runs Makko listening or treat the eight/sixteen-bar holds as final balance.
+
 ## September 24, 2026 — grounded Cache Road pads after owner play
 
 The owner rejected #115's fast floating rings: they crossed vehicles, appeared

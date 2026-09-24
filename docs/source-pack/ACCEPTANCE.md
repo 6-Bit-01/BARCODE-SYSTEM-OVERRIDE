@@ -1,5 +1,22 @@
 # Acceptance and Test Status
 
+## Cache Road cohesion follow-up — September 24
+
+Import the exact merged revision for this pass. Catch the first Drive pad
+near its front edge: its mint paint should keep approaching under the car
+after the successful press, then leave behind it. The reward must occur once.
+Watch a protected contact with Push and then Brace; while armed, the top HUD
+should show the Push countdown and Brace charge without taking road space.
+Check traffic still occludes pad paint and the four face actions remain
+harmless on a miss. Listen through pad catches, a later hit and recovery;
+the eight/sixteen-bar holds and five MP3s have not changed.
+
+The repeated scripted routes found long four-part stretches and a full-brake
+tape-end failure; tell us whether x4 feels earned, how speed choices read and
+where the late traffic becomes unfair. The seven-part art/gameplay list and
+power-up categories remain open in `CACHE_ROAD_COHESION_AUDIT.md`. Native
+draws and production simulations are supporting evidence, not Makko play.
+
 ## Grounded Cache Road pads — September 24
 
 Import the exact revision after CI and drive with sound and a controller.
