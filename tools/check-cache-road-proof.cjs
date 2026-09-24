@@ -127,15 +127,21 @@ async function run() {
   road.state.lane = road.state.lanePos = 1;
   road.update(100);
   audio.context.currentTime += .55; road.update(100);
-  assert.deepEqual(copy(road.state.queuedCaptures),
-    [{ lane: 1, startBeat: 16, endBeat: 32 }],
+  assert.deepEqual(copy(road.state.queuedCaptures.map(({ lane, startBeat, endBeat }) =>
+    ({ lane, startBeat, endBeat }))), [{ lane: 1, startBeat: 16, endBeat: 32 }],
     'settling in Flow during intro bar 3 automatically arms verse bars 1–4');
-  assert.equal(road.state.lockEnergy, 100, 'four-bar auto lock costs no charge');
+  assert.equal(road.state.lockEnergy, 40, 'auto lock spends 60 ink');
+  for (let i = 0; i < 5; i++) {
+    audio.context.currentTime += .05;
+    road.handleActions({ inspect: { pressed: true } }); road.update(50);
+  }
+  assert.equal(road.state.lockEnergy, 40, 'RB spam cannot spend or add lock charge');
+  assert.equal(road.state.queuedCaptures.length, 1, 'RB spam cannot stamp extra phrases');
   audio.context.currentTime += 1; road.update(100);
-  assert.deepEqual(copy(road.state.queuedCaptures),
-    [{ lane: 1, startBeat: 16, endBeat: 48 }],
+  assert.deepEqual(copy(road.state.queuedCaptures.map(({ lane, startBeat, endBeat }) =>
+    ({ lane, startBeat, endBeat }))), [{ lane: 1, startBeat: 16, endBeat: 48 }],
     'continuing to hold automatically carries the same start for eight bars');
-  assert.equal(road.state.lockEnergy, 75);
+  assert(road.state.lockEnergy < 10, 'eight-bar carry spends the remaining 40 ink');
   road.update(100);
   assert.equal(road.state.captures.length, 0, 'an armed phrase cannot play early');
   audio.context.currentTime = 4 * 1.875 + .01;
@@ -146,45 +152,73 @@ async function run() {
   audio.context.currentTime = 8 * 1.875 + .01; road.update(100);
   assert.equal(road.state.queuedCaptures.length, 0,
     'camping in one lane does not automatically rearm every future phrase');
-  // Exercise actual steering, target availability, aligned stack, scoring,
-  // near misses and collision before the long-form run.
+  // RB/inspect is deliberately not a music-lock input. Merely changing
+  // lanes or staying centered cannot print more phrases without earned ink.
   road.status = road.state.status = 'failed'; audio.context.currentTime = 0;
   assert(road.retry());
-  road.state.invulnerableMs = 1000000;
-  road.state.lane = road.state.lanePos = road.state.visualLane = 0;
-  const sealed = new Set(), sealTimes = [];
-  for (let frame = 0; frame < 110; frame++) {
-    const t = frame * .05, target = t < .65 ? 0 : t < 1.9 ? 1 : t < 3.2 ? 2 : 3;
-    audio.context.currentTime = 9 * 1.875 + .05 + t;
-    const position = road.state.lanePos;
-    road.handleActions({ move_left: { held: position > target + .06 },
-      move_right: { held: position < target - .06 } });
+  road.state.lockEnergy = 0;
+  road.state.progress = 145; road.state.lane = road.state.lanePos = road.state.visualLane = 1;
+  road.state.musicBar = 10; road.state.musicBeatFloat = 40; road.state.scoredThrough = 9;
+  road.state.speed = 54;
+  const beforeCut = road.state.score;
+  let cutAt = null, armedAt = null;
+  for (let frame = 0; frame < 50; frame++) {
+    audio.context.currentTime = 10 * 1.875 + .05 + frame * .05;
+    const steer = road.state.progress >= 166 && road.state.lanePos > .18;
+    road.handleActions({ move_left: { held: steer }, inspect: { pressed: true } });
     road.update(50);
-    for (const capture of road.state.queuedCaptures) if (!sealed.has(capture.lane)) {
-      sealed.add(capture.lane); sealTimes.push(Number(audio.context.currentTime.toFixed(2)));
-    }
+    if (road.state.cutStreak && cutAt === null) cutAt = Number(audio.context.currentTime.toFixed(2));
+    if (road.state.queuedCaptures.some(c => c.lane === 0) && armedAt === null)
+      armedAt = Number(audio.context.currentTime.toFixed(2));
   }
-  assert.deepEqual([...sealed], [0, 1, 2, 3],
-    'a driver can auto-arm all four lanes for verse B with actual steering');
-  assert(sealTimes[3] < 12 * 1.875,
-    'all four seals fit before verse B begins');
-  assert(road.state.queuedCaptures.every(c => c.startBeat === 48 && [64, 80].includes(c.endBeat)),
-    'all locks share one start; a longer hold may carry lane four to eight bars');
-  assert.equal(road.state.captures.length, 0, 'x4 is prospective until the section boundary');
-  audio.context.currentTime = 12 * 1.875 + .01; road.update(100);
-  assert.equal(road.state.captures.length, 4);
-  assert.equal(road.state.peakStack, 4);
-  audio.context.currentTime = 13 * 1.875 + .01; road.update(100);
-  assert(road.state.score >= 400, 'completed stacked bars earn points');
-  const beforePass = road.state.score;
-  road.cleanPass();
-  assert.equal(road.state.score, beforePass + 200, 'near miss pays x4');
+  assert(cutAt !== null && armedAt !== null && cutAt < armedAt,
+    'a close steering escape earns ink, then automatically arms the next phrase');
+  assert(road.state.score >= beforeCut + 150, 'cutline scores above a passive adjacent pass');
+  assert(road.state.queuedCaptures.some(c => c.lane === 0 && c.startBeat === 48 && c.endBeat === 64));
+  assert(road.state.lockEnergy < 60, 'the cutline cannot pay for a four-lane sweep');
+  const queueBeforeRB = copy(road.state.queuedCaptures);
+  for (let frame = 0; frame < 12; frame++) {
+    audio.context.currentTime += .05;
+    road.handleActions({ inspect: { pressed: true } }); road.update(50);
+  }
+  assert.deepEqual(copy(road.state.queuedCaptures), queueBeforeRB,
+    'repeated RB does not arm or extend a phrase');
   road.state.invulnerableMs = 0; road.state.boostMs = 0;
   road.hit('van');
   assert.equal(road.state.captures.length, 0);
   assert.equal(road.state.stumbleMs, 650);
   assert.equal(road.state.messageMs, 0, 'traffic hit cannot show a popup');
   assert(busEvents.some(event => event.v === .8), 'music bus recovers after the stumble');
+  // A three-lane gate leaves a visible open route, but camping in one of its
+  // blocked lanes still costs integrity. Both cases use production collision.
+  road.status = road.state.status = 'failed'; audio.context.currentTime = 0;
+  assert(road.retry());
+  road.state.progress = 970; road.state.lanePos = road.state.lane = 0;
+  road.state.speed = 54; road.state.invulnerableMs = 0;
+  audio.context.currentTime = 20; road.handleActions({}); road.update(100);
+  assert.equal(road.state.integrity, 3, 'gate at 975 leaves lane zero open');
+  road.state.progress = 970; road.state.lanePos = road.state.lane = 1;
+  road.state.speed = 54; road.state.invulnerableMs = 0;
+  audio.context.currentTime += .1; road.handleActions({}); road.update(100);
+  assert.equal(road.state.integrity, 2, 'the paired traffic blocks lane one');
+  road.status = road.state.status = 'failed'; audio.context.currentTime = 0;
+  assert(road.retry());
+  for (let frame = 1; frame <= 300 && road.status === 'playing'; frame++) {
+    audio.context.currentTime = frame / 10;
+    road.handleActions({ inspect: { pressed: true } }); road.update(100);
+  }
+  assert.equal(road.status, 'failed', 'camping a lane cannot survive the authored traffic');
+  assert(road.state.musicBar <= 12 && road.state.peakStack === 1,
+    'RB spam and passive lane camping cannot build a multiplier');
+  audio.context.currentTime = 0; assert(road.retry());
+  road.state.progress = 980; road.state.lane = road.state.lanePos = 0;
+  road.state.echoEnergy = 100;
+  road.sendEcho();
+  audio.context.currentTime = 18.2;
+  road.handleActions({ move_right: { held: true } }); road.update(100);
+  assert.equal(road.state.audits[1135], 0,
+    'Echo draws the approaching audit into its lane before the driver splits away');
+  assert.equal(road.state.echoEnergy, 0, 'the decoy is a charged tactical choice');
   road.status = road.state.status = 'failed';
   audio.context.currentTime = 0;
   assert(road.retry());
@@ -249,6 +283,6 @@ async function run() {
   assert(road.validate(v3) && road.restore(v3));
   assert.equal(road.state.lockEnergy, 100);
   assert.equal(road.state.score, 0);
-  console.log(`Cache Road: automatic aligned 4/8-bar locks, x4 steering arms at ${sealTimes.join('/')}s before 22.5s boundary, clear hit view, full song, final Echo and old saves passed.`);
+  console.log(`Cache Road: earned automatic 4/8-bar locks, close cut ${cutAt}s → arm ${armedAt}s, RB no effect, traffic gate, clear hit view, full song, final Echo and old saves passed.`);
 }
 run().catch(error => { console.error(error); process.exitCode = 1; });

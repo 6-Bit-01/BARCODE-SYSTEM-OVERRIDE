@@ -1,5 +1,11 @@
 # Recovery checkpoint — September 14
 
+## September 24, 2026 — road paint and earned Cutline locks
+
+- Keep automatic aligned 4/8-bar locks, but charge 60/40 ink and make a deliberate late hazard escape refill 70. Passive adjacent passes refill 8; clean bars refill 3. RB presses cannot arm a section. Add rotating paired/three-wide traffic gates, a cut streak/score/SFX/road pulse and Echo-targeted audits.
+- Render phrases and warnings on the single curved road projection, printing each four-bar strip as it approaches. Remove broad duplicate lane tint, floating marker, lower lane cards and central notification panels. Keep traffic above markings and collision audio without hit text.
+- Extend production simulations with a timed close cut → automatic arm, passive RB-camper failure, gate escape/collision and Echo lure. Render nine native frames; retain five uploaded MP3s and all save/exit/no-award checks. Hosted Makko feel remains open.
+
 ## September 24, 2026 — aligned phrase locks and visible road
 
 - A centered half-second hold automatically commits the upcoming aligned four bars for free and previews a recorded lane on the next beat. Staying centered for 1.5 seconds automatically extends to eight for 25% carry meter where recorded. Sparse parts can be pre-armed for their entrance, so intro bar 3 Flow begins on verse bar 1. No E/RB music-lock input is needed.

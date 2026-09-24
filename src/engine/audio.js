@@ -600,6 +600,7 @@ window.AudioSystem = class AudioSystem {
       empty: [240, 200, 0.07, 'sine'], miss: [150, 90, 0.10, 'triangle'],
       damage: [170, 45, 0.23, 'sawtooth'], lift: [330, 660, 0.20, 'triangle'],
       pickup: [660, 1320, 0.25, 'sine'], combo5: [440, 880, 0.24, 'triangle'],
+      cutline: [380, 1050, 0.28, 'triangle'],
       combo10: [660, 1320, 0.32, 'triangle'], defeat: [260, 65, 0.20, 'square'],
       wave: [180, 820, 0.18, 'sawtooth'], discharge: [1240, 180, 0.16, 'square'],
       metal: [190, 38, 0.16, 'square'], tear: [860, 70, 0.11, 'sawtooth'], data: [940, 320, 0.08, 'triangle'],
@@ -614,7 +615,7 @@ window.AudioSystem = class AudioSystem {
     this.combatCueTimes[kind] = now;
     const critical = kind === 'warning' || kind === 'damage';
     if (critical) this.criticalCueUntil = now + 0.4;
-    const tones = kind === 'combo5' || kind === 'combo10' || kind === 'pickup' ? [1, 1.5] : [1];
+    const tones = kind === 'combo5' || kind === 'combo10' || kind === 'pickup' || kind === 'cutline' ? [1, 1.5] : [1];
     const materialPitch = options.material === 'virus' ? 1.8 : options.material === 'firewall' ? 0.65 : 1;
     for (const tone of tones) {
       while (this.combatVoices.size >= 12) {
