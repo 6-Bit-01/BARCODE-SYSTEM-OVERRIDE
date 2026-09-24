@@ -142,12 +142,12 @@ async function run() {
   assert.equal(C.readResume().levelState.proofVersion, 4);
   const roadStart = copy(C.readResume());
   const liveState = road.state, oldArt = B.PresentationAssets;
-  const mirrorFrames = [], roadArt = [], openingRects = [];
+  const mirrorFrames = [], roadArt = [], openingRects = [], drawOrder = [];
   B.PresentationAssets = { ready(key) { return key.startsWith('cache'); },
     draw(key, _ctx, options) {
     if (key === 'cacheMirror') mirrorFrames.push({ frame: options.frame,
       sourceRect: options.sourceRect, x: options.x, y: options.y });
-    else roadArt.push({ key, ...options });
+    else { roadArt.push({ key, ...options }); drawOrder.push(key); }
     return true;
   } };
   const paint = { addColorStop() {} };
@@ -155,14 +155,16 @@ async function run() {
     createRadialGradient: () => paint,
     fillRect(x, y, width, height) {
       if (x === 30 && y === 176 && width > 100) openingRects.push([width, height]);
-    } }, { get(target, key) { return key in target ? target[key] : () => {}; },
+    }, fill() { if (this.fillStyle === '#174c51') drawOrder.push('roadPad'); } },
+    { get(target, key) { return key in target ? target[key] : () => {}; },
     set(target, key, value) { target[key] = value; return true; } });
   const mirrorFrame = overrides => {
     road.state = { ...liveState, progress: 395, integrity: 3, timeMs: 55000,
       stumbleMs: 0, boostMs: 0, zoneEndBeat: -1, pendingCapture: null,
       candidateHold: 0, cutFlashMs: 0, messageMs: 0, rivalWarning: false,
       ...overrides };
-    mirrorFrames.length = 0; roadArt.length = 0; openingRects.length = 0; road.draw(drawCtx);
+    mirrorFrames.length = 0; roadArt.length = 0; openingRects.length = 0;
+    drawOrder.length = 0; road.draw(drawCtx);
     assert.equal(mirrorFrames.length, 1, 'one expression is drawn inside the shared rearview');
     assert.deepEqual(Array.from(mirrorFrames[0].sourceRect), [0, 150, 450, 185]);
     assert.equal(mirrorFrames[0].x, 833, 'the completed face sits inside the driver side');
@@ -193,14 +195,18 @@ async function run() {
   assert.equal(mirrorFrame({ integrity: 1 }), 5);
   mirrorFrame({ progress: 60 });
   assert.deepEqual(openingRects, [[875, 82]], 'the opening panel remains compact');
+  mirrorFrame({ progress: 130 });
+  assert(drawOrder.includes('roadPad') && drawOrder.includes('cacheFreight'));
+  assert(drawOrder.indexOf('roadPad') < drawOrder.indexOf('cacheFreight'),
+    'road paint is composited beneath physical traffic');
   road.state = liveState; B.PresentationAssets = oldArt;
-  assert.match(road.openingCue()[0], /PULSES ARE SAFE/,
+  assert.match(road.openingCue()[0], /ROAD PADS ARE SAFE/,
     'the first prompt distinguishes safe music pickups from traffic');
   assert.equal(profile.judgmentRules[0].id, 'road-pulse');
   const beatSec = 60 / 128;
-  const face = (key, beat, lane, speed = 54, offset = 0) => {
+  const face = (key, beat, lane, at, speed = 54, offset = 0) => {
     road.state.lane = road.state.lanePos = road.state.visualLane = lane;
-    road.state.speed = speed;
+    road.state.speed = speed; road.state.progress = at - 30;
     audio.context.currentTime = beat * beatSec + offset;
     road.handleActions({ [key]: { pressed: true, presses: [{ audioTimeSec: audio.context.currentTime }] } });
     road.update(100);
@@ -208,31 +214,33 @@ async function run() {
   audio.context.currentTime = 3 * beatSec - .25;
   road.state.lane = road.state.lanePos = 1; road.update(100);
   assert.equal(road.state.captures.length, 0, 'holding a lane without a timed pulse earns no music');
-  face('road_a', 3, 1);
-  assert.deepEqual(copy(road.state.captures.map(c => [c.lane,c.startBeat,c.endBeat])), [[1,3,19]],
-    'a real face-button press in the marked lane catches four bars on the song beat');
+  face('road_a', 3, 0, 150);
+  assert.deepEqual(copy(road.state.captures.map(c => [c.lane,c.startBeat,c.endBeat])), [[0,3,35]],
+    'the first fixed road pad earns eight bars on a played beat');
   assert.equal(road.state.surgeMs > 0, true, 'A pulse gives a short speed surge');
   assert.equal(road.mixSnapshot().bonusVocal, false, 'a single part does not signal crew vocals');
   const firstScore = road.state.score;
-  face('road_a', 3, 1);
+  face('road_a', 3, 0, 150);
   assert.equal(road.state.score, firstScore, 'one pulse cannot be paid twice by a repeated press');
-  face('road_x', 5, 1);
+  road.state.progress = 390; road.state.lanePos = 1;
+  assert.equal(road.catchPulse('road_x', 11 * beatSec), false,
+    'a missed road pad does not wait for a later song beat or follow the car');
+  face('road_x', 11, 0, 365);
   assert.equal(road.state.shield, 0, 'a button press in the wrong lane is harmless');
-  face('road_x', 5, 0, 54, .22);
+  face('road_x', 11, 1, 365, 54, .22);
   assert.equal(road.state.captures.length, 1, 'a late press outside the window earns no part');
-  face('road_x', 5, 0);
+  face('road_x', 11, 1, 365);
   assert.equal(road.state.shield, 1, 'X provides one defensive brace');
-  assert.equal(road.state.captures.find(c => c.lane === 0).endBeat, 37,
-    'consecutive face-button catches extend the second part to eight bars');
+  assert.equal(road.state.captures.find(c => c.lane === 1).endBeat, 75,
+    'the next pad in the same run holds its part for sixteen bars');
   const echoBefore = road.state.echoEnergy;
-  face('road_y', 7, 1, 30);
+  face('road_y', 19, 3, 585, 30);
   assert(road.state.echoEnergy >= Math.min(100, echoBefore + 65),
     'a slow Y catch combines its refill with the deliberate slow-speed bonus');
-  face('road_b', 9, 2, 63);
+  face('road_b', 27, 2, 810, 63);
   assert(road.state.ramMs > 0 && road.state.score > firstScore + 100,
     'B arms a traffic push and fast pulses score more');
-  face('road_a', 11, 3, 63);
-  assert.equal(road.state.captures.length, 4, 'the repeatable first phrase can reach all four parts');
+  assert.equal(road.state.captures.length, 4, 'the first planned run can reach all four parts');
   assert.equal(road.state.peakStack, 4);
   assert.equal(road.state.fullAdrenalineCount, 1);
   assert.equal(road.mixSnapshot().bonusVocal, true, 'the future vocal gate follows four live parts');
@@ -270,7 +278,7 @@ async function run() {
   road.cleanPass(false);
   assert.equal(road.state.score, recoveryScore, 'invulnerability cannot report a clean traffic pass');
   assert.equal(road.state.echoEnergy, recoveryEcho);
-  face('road_x', 13, 2);
+  face('road_y', 35, 2, 1260);
   assert.equal(road.state.captures.length, 1, 'a safe pulse gives a quick way back after a hit');
   // A lane-centered adjacent pass counts despite small natural steering drift.
   road.status = road.state.status = 'failed'; audio.context.currentTime = 0;
@@ -288,24 +296,60 @@ async function run() {
   // teleporting lane state alone would hide an impossible chart.
   road.status = road.state.status = 'failed'; audio.context.currentTime = 0;
   assert(road.retry());
-  const route = [[3,1,'road_a'],[5,0,'road_x'],[7,1,'road_y'],
-    [9,2,'road_b'],[11,3,'road_a']];
+  const route = [[150,0,'road_a'],[365,1,'road_x'],[585,3,'road_y'],
+    [810,2,'road_b']];
   let routeIndex = 0;
-  for (let frame = 1; frame <= 112; frame++) {
-    audio.context.currentTime = frame * .05;
-    const next = route[routeIndex], goal = next?.[1] ?? 3;
+  for (let frame = 1; frame <= 900 && road.state.progress < 835; frame++) {
+    audio.context.currentTime = frame * .025;
+    const next = route[routeIndex];
+    // The freight immediately after the first pad and before the fourth
+    // require holding the safe lane until their crossing is behind the car.
+    const goal = routeIndex === 1 && road.state.progress < 205 ? 0 :
+      routeIndex === 3 && road.state.progress < 650 ? 3 : next?.[1] ?? 2;
     const steer = goal - road.state.lanePos;
     const actions = { move_left: { held: steer < -.10 },
       move_right: { held: steer > .10 } };
-    if (next && Math.abs(audio.context.currentTime - next[0] * beatSec) <= .024) {
+    if (next && next[0] - road.state.progress <= 55 &&
+      next[0] - road.state.progress >= -18 &&
+      Math.abs(steer) <= .38 &&
+      Math.abs(audio.context.currentTime / beatSec -
+        Math.round(audio.context.currentTime / beatSec)) <= .04) {
       actions[next[2]] = { pressed: true, presses: [{ audioTimeSec: audio.context.currentTime }] };
       routeIndex++;
     }
-    road.handleActions(actions); road.update(50);
+    road.handleActions(actions); road.update(25);
   }
-  assert.equal(routeIndex, route.length, 'all authored prompts arrived on the same music clock');
+  assert.equal(routeIndex, route.length, 'all planned pads are reachable with the road and music clocks');
   assert.equal(road.state.integrity, 3, 'the opening rhythm route also clears actual traffic');
   assert.equal(road.state.peakStack, 4, 'steering between real safe pulses can reach full adrenaline');
+  road.status = road.state.status = 'failed'; audio.context.currentTime = 0;
+  assert(road.retry());
+  road.state.progress = 1190; road.state.lanePos = road.state.visualLane = road.state.lane = 2;
+  road.state.speed = 54;
+  const laterRun = [[1260,2,'road_y'],[1490,1,'road_a'],[1720,0,'road_x'],
+    [1895,3,'road_b']];
+  let laterIndex = 0;
+  for (let frame = 1; frame <= 650 && road.state.progress < 1920; frame++) {
+    audio.context.currentTime = 20 + frame * .025;
+    const next = laterRun[laterIndex];
+    const goal = laterIndex === 1 && road.state.progress < 1335 ? 2 :
+      laterIndex === 2 && road.state.progress < 1525 ? 1 : next?.[1] ?? 3;
+    const steer = goal - road.state.lanePos;
+    const actions = { move_left: { held: steer < -.10 },
+      move_right: { held: steer > .10 } };
+    if (next && next[0] - road.state.progress <= 55 &&
+      next[0] - road.state.progress >= -18 && Math.abs(steer) <= .38 &&
+      Math.abs(audio.context.currentTime / beatSec -
+        Math.round(audio.context.currentTime / beatSec)) <= .04) {
+      actions[next[2]] = { pressed: true, presses: [{ audioTimeSec: audio.context.currentTime }] };
+      laterIndex++;
+    }
+    road.handleActions(actions); road.update(25);
+  }
+  assert.equal(laterIndex, laterRun.length, 'the second planned run offers four distinct parts');
+  assert.equal(road.state.integrity, 3, 'the second run navigates real gates and traffic');
+  assert.equal(road.state.peakStack, 4, 'the later run still reaches the vocal gate');
+  archive.checkpoint(roadStart);
   // A three-lane gate leaves a visible open route, but camping in one of its
   // blocked lanes still costs integrity. Both cases use production collision.
   road.status = road.state.status = 'failed'; audio.context.currentTime = 0;

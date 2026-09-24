@@ -1,5 +1,18 @@
 # Recovery checkpoint — September 14
 
+## September 24, 2026 — grounded Cache Road pads (review)
+
+- Replace song-driven floating rings with eight fixed low-profile road pads
+  per lap, in two planned four-lane runs, painted before traffic. Remove the
+  screen glow and keep long clear stretches.
+- Judge the face button on the song beat inside the crossing window. Speed
+  now changes how a player approaches a pad. Hold earned music for eight
+  bars, or sixteen when the next pad in the same run is caught, so the sparse
+  route can still reach all four parts.
+- Update road HUD, opening lesson and pause directions. Verify both steered
+  routes, vehicle occlusion, misses, ability/hit outcomes, full song and saves.
+  Makko visual and listening acceptance remains open.
+
 ## September 24, 2026 — safe, timed Cache Road pulses (review)
 
 - Add seven repeatable, lane-specific beat pickups per four-bar phrase.

@@ -1,5 +1,19 @@
 # Decision Register
 
+## September 24, 2026 — fixed, sparse road pads after owner play
+
+The owner rejects merged #115's floating ring stream: it moves toward the
+screen too quickly, overlaps vehicles and overwhelms the landscape. Replace
+the song-positioned rings with small, fixed asphalt markings in two planned
+four-pad runs per road lap. Traffic occludes the markings; each run follows
+readable gaps and visits all four original lanes. A lane-centered button press
+on a real beat while crossing a pad earns its action and lane part. Less
+frequent opportunities need eight-bar base and sixteen-bar same-run holds as
+an explicit trial balance for x4. The four face actions, bumpers, speed,
+collision, five owner MP3s, checkpoint migration and future vocal gate remain.
+See `CACHE_ROAD_PULSE_ACTIONS.md`. Makko play, audio and art acceptance remain
+open; these spacing/duration numbers are not a final owner-approved design.
+
 ## September 24, 2026 — four face actions and safe timed pulses
 
 The owner's latest direction replaces the old hold-and-seal lane capture.

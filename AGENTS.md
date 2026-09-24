@@ -1,5 +1,19 @@
 # Repository Guidance
 
+## September 24, 2026 — grounded Cache Road pads after owner play
+
+The owner rejected #115's fast floating rings: they crossed vehicles, appeared
+too often and made the road feel cluttered. Keep the four face actions and
+established lane names, but place small mint pads at fixed, planned road
+positions in two four-lane runs per lap. Draw them as asphalt markings before
+traffic so cars occlude them. The button is judged on any beat while crossing
+the pad, with speed affecting approach timing; a miss is harmless. This trial
+uses eight bars for a catch and sixteen for a consecutive catch in the same
+run to keep four parts reachable with much wider spacing. No crew recording
+exists yet. Preserve five owner MP3s, saves, collision/exit and no Level 2
+award. See `docs/source-pack/CACHE_ROAD_PULSE_ACTIONS.md` and current
+acceptance route; native preview and simulation do not settle Makko feel.
+
 ## September 24, 2026 — Cache Road timed pulse review
 
 The owner now wants four face buttons as four distinct driving actions, two
