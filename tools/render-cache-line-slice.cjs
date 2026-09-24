@@ -28,7 +28,7 @@ const parent = { levelId: 'level-01', checkpointId: 'intermission', levelState: 
 const saved = { levelId: 'level-02', checkpointId: 'road-start', levelState: { proofVersion: 4,
   returnTo: parent, proof: { progress: 0, lane: 1, lanePos: 1, musicBar: 0,
     speed: 34, timeMs: 55000,
-    lockEnergy: 100, echoEnergy: 65, integrity: 3, score: 0, peakStack: 1, cleanBars: 0 } } };
+    lockEnergy: 0, echoEnergy: 65, integrity: 3, score: 0, peakStack: 1, cleanBars: 0 } } };
 const road = w.BARCODE.CacheRoadProof;
 if (!road.restore(saved)) throw Error('Road fixture did not restore.');
 const canvas = createCanvas(1920, 1080), ctx = canvas.getContext('2d');
@@ -90,4 +90,15 @@ road.state.progress = 3750; road.state.stumbleMs = 530; road.state.invulnerableM
 road.state.captures = []; road.state.queuedCaptures = [];
 road.state.message = ''; road.state.messageMs = 0;
 capture('06-stumble');
-console.log(`Nine Cache Road section review frames rendered to ${out}`);
+road.state.invulnerableMs = 0; road.state.stumbleMs = 0;
+road.state.progress = 2050; road.state.musicBar = 20; road.state.musicBeatFloat = 82;
+road.state.lanePos = road.state.visualLane = road.state.lane = 2;
+road.state.captures = [0, 1, 2].map(lane => ({ lane, startBeat: 82, endBeat: 96 }));
+road.state.queuedCaptures = [0, 1, 2].map(lane => ({ lane, startBeat: 96, endBeat: 112 }));
+road.state.score = 6000; road.state.peakStack = 3;
+road.state.message = 'BREAKAWAY // NOW + NEXT 4 SEALED'; road.state.messageMs = 950;
+capture('10-rb-now-next');
+road.state.message = 'ZONE // 4 BARS FASTER  +1.5s'; road.state.messageMs = 1500;
+road.state.zoneEndBeat = 96; road.state.lockEnergy = 35; road.state.speed = 64;
+capture('11-zone-active');
+console.log(`Eleven Cache Road section review frames rendered to ${out}`);

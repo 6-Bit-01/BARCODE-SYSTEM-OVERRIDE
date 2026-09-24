@@ -1,5 +1,11 @@
 # Recovery checkpoint — September 14
 
+## September 24, 2026 — free phrase captures and earned Zone
+
+- Make the next aligned four bars lock automatically after 0.5 seconds in a lane, regardless of meter. E/RB immediately catches the current recorded remainder plus the next four; duplicate taps do not extend it. Remove the paid 60/40 capture and hidden eight-bar hold.
+- Move cut/draft/near-miss energy into Zone. A charged queued phrase starts one four-bar speed window and returns 1.5 seconds. Start fresh runs at zero, keep the old checkpoint meter field compatible, and label sparse stems and actions in the header.
+- Preserve the single on-road paint, traffic, Turbo, Echo and collision stumble. Exercise real steering to x4, RB idempotence, Zone timing, full song, gate, old saves and browser playback; render eleven native frames. Makko feel remains open.
+
 ## September 24, 2026 — road paint and earned Cutline locks
 
 - Keep automatic aligned 4/8-bar locks, but charge 60/40 ink and make a deliberate late hazard escape refill 70. Passive adjacent passes refill 8; clean bars refill 3. RB presses cannot arm a section. Add rotating paired/three-wide traffic gates, a cut streak/score/SFX/road pulse and Echo-targeted audits.

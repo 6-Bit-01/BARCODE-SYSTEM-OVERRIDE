@@ -1,5 +1,11 @@
 # Acceptance and Test Status
 
+## Current route — Cache Road Zone and lane stack
+
+Import the exact new main SHA into Makko after CI merge. With an empty Zone meter, hold Flow for half a second in intro bar 3: verse bars 1–4 should print ahead on its road lane and sound when verse A begins. Hold longer: it should remain four bars. At a recorded chorus or verse B, drive among lanes to build x2–x4; their colors should stay on the actual curved pavement under traffic. Press E/RB in a lane during a four-bar section: its current remainder should sound/paint immediately, and the next aligned four bars should appear farther ahead. Tapping it again in the same lane should do nothing. Sparse parts should show their recorded arrival rather than seem randomly blocked.
+
+Make a late cut around traffic, then lock another lane before the next four-bar boundary. The cut should charge Zone; at the boundary, expect a four-bar faster road, a 1.5-second time refund and one Zone charge even if multiple parts enter. Compare the road edge and header with Zone active. Test Space/A Turbo, H/Y Echo audit lure and final split, a hit that stumbles the audio and breaks the stack without road-covering text, pause/retry/old save, and the complete 100-bar run. Report imported SHA, section/lane, score/stack, speed/time, device, and what still feels confusing or unfun. Production, browser and native render checks support this build; only owner Makko play with audio and a physical controller can judge feel. No Bass/Level 2 award is made. The paid Cutline route below is historical.
+
 ## Current route — Cache Road Cutline
 
 Import the exact new main SHA into Makko after its CI merge. In intro bar 3, settle in Flow: it should automatically print and arm the upcoming verse bars 1–4 for 60% ink, then enter on the verse boundary. Remaining centered for 1.5 seconds spends another 40% to paint bars 5–8. Try RB repeatedly; it should not add any locks. The small colored spans should be part of the curved pavement, advance under traffic, and reveal from far to near, with no second floating lane sheet or four large cards covering the bottom road.
