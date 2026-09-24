@@ -48,6 +48,8 @@ This pack replaces conflicting instructions in v2–v4. It preserves the later a
 6. `ROADMAP.md`, `CAMPAIGN_CONCEPTS.md`, `LORE_AND_CAST.md`, `MUSIC_AND_ART.md` — production and retained boundaries.
 7. `UPDATE_PROTOCOL.md` and `CHANGELOG.md` — maintain the same archive and actual revision history.
 
+For the current Cache Road music rule and playtest route, read `CACHE_ROAD_PREDICTABLE_MUSIC.md` and the first route in `ACCEPTANCE.md`. Earlier Cache Road music documents record superseded revisions.
+
 `SOURCE_MANIFEST.json` is generated from the exact exported Git revision and lists the historical input ZIPs excluded from the export. `FILE_HASHES.sha256` covers the exported files. Automated evidence is included when supplied at build time; missing evidence is not a pass. `repository-snapshot/` preserves repository paths from that same commit, including runtime source, manifests, validation tools and `docs/source-pack/`. The pack documents also appear at this archive's root for convenient reading; both copies have identical bytes. There is no `.git` directory and no nested historical source ZIP.
 
 Use `repository-snapshot/` as the project root for source review or Makko import. To continue development or rebuild from Git, check out the manifest's revision in the canonical repository; this download has no Git history. Makko's engine and externally hosted artwork/audio are dependencies, so the snapshot is not a self-contained offline game.

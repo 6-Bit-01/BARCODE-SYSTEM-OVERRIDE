@@ -1,5 +1,11 @@
 # Decision Register
 
+## September 24, 2026 — choose music by bar, reward traffic separately
+
+- Replace the #109 pass-gated part rule after owner play found it inconsistent. The latest half-second centered hold in a bar sets one visible next-bar choice, which survives a dodge and plays to the end of that four-bar section. Keep E/RB current-plus-next once per section.
+- Keep near misses and tight cuts as score, Zone, Echo and Turbo bonuses. Widen adjacent-pass recognition to cover 0.3 lane of steering drift and display a near-miss acknowledgment; collisions at the same crossing still cancel rewards.
+- Keep hit dropout and drums-only recovery, all supplied parts and names, single projected road paint, 100-bar song, saves, final Echo exit and no Level 2 award. Merge after CI for the owner's Makko review. See `CACHE_ROAD_PREDICTABLE_MUSIC.md`.
+
 ## September 24, 2026 — keep music earned by driving
 
 The owner's new playtest supersedes the earlier free next-four-bar lock and unlimited E/RB-per-lane design: x3/x4 were too common, and the hit's quiet beds made the loss sound like a slight volume change. Keep the half-second lane hold as a preview and clear preparation step, but commit carried music on a clean pass, with a tight escape earning an extra four-bar carry. Preserve E/RB's immediate current-plus-next action once per four-bar section. This is an explicit driving condition shown in the HUD, not a quiet-section mask or Zone payment. A hit has a beat-aligned audible break and a drums-only recovery until a new part is earned. All four named lane MP3s remain selectable across the entire song; their source bytes and recorded dynamics are unchanged. See `CACHE_ROAD_DRIVING_MUSIC.md`. Owner Makko acceptance is pending.

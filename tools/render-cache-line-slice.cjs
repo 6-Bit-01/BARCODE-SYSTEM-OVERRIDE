@@ -39,14 +39,15 @@ function capture(name) {
 road.state.progress = 250; road.state.musicBar = 2;
 road.state.lanePos = road.state.visualLane = road.state.lane = 1;
 road.state.musicBeatFloat = 10;
-road.state.queuedCaptures = [{ lane: 0, startBeat: 16, endBeat: 32 },
-  { lane: 1, startBeat: 16, endBeat: 32 }];
+road.state.queuedCaptures = [];
+road.state.pendingCapture = { lane: 2, startBeat: 12, endBeat: 16 };
 road.state.captures = [];
 road.state.score = 200; road.state.peakStack = 1;
 road.state.messageMs = 0; road.state.speed = 54;
-capture('01-intro-armed');
+capture('01-intro-selected-next-bar');
 road.state.progress = 1450; road.state.musicBar = 14;
 road.state.musicBeatFloat = 57;
+road.state.pendingCapture = null;
 road.state.queuedCaptures = [];
 road.state.captures = [0, 1, 2, 3].map(lane => ({ lane, startBeat: 48, endBeat: 64, sealed: true }));
 road.state.score = 9300; road.state.peakStack = 3;
