@@ -14,16 +14,16 @@ twelve-second render and close crops still use production draw code with
 scripted state, not Makko gameplay. This revised pass is intended for a PR;
 the older composite is only a reference.
 
-The owner corrected the prior separate portrait-card layout: Cache Back should
-appear inside the rearview as a partial face, with his eyes aimed toward the
-road. A new six-cell atlas derived from his supplied model crops the cap brim,
-glasses, one brown eye and upper mask. The portrait enters from the left and
-shares the mirror's glass tint, clipping, glare and frame with the moving road.
-There is no independent face border or label. Calm, deliberate choice,
-Turbo/Zone, close pass, hit and low-signal states use existing road events;
-the hit takes priority over low signal during the stumble. Five expressions
-look straight ahead through the windshield; only the hit cell glances
-right into the reflected road for the brief stumble interval.
+The owner corrected the prior separate portrait-card layout: Cache Back appears
+inside the rearview, looking ahead at the road. The existing six-cell atlas
+derived from his supplied model now completes the side of his face that was
+cut off. Both brown eyes, the cap brim, glasses and upper mask fit inside the
+mirror. The portrait is opaque while the decorative road stays visible around
+it; mirror clipping, glare and frame still cover the shared scene. There is no
+independent face border or label. Calm, deliberate choice, Turbo/Zone, close
+pass, hit and low-signal states use existing road events; the hit takes
+priority over low signal during the stumble. The ordinary cells face forward;
+the hit cell has both eyes squeezed shut and a slight head jolt.
 
 The city and road behind him are a decorative loop. They show no actual cars
 or collision warning. Reduced Motion holds the decorative movement. All four
