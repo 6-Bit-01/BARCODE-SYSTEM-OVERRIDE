@@ -1,5 +1,11 @@
 # Recovery checkpoint — September 14
 
+## September 24, 2026 — Cache Road opening direction
+
+- Add a driving-time goal and contextual hold, E/RB, Turbo and Echo cues above the road; successful actions replace their prompts without a menu.
+- Fill Echo at the first marker, give the first audit a readable decoy window and allow version-4 marker Continue saves. Keep the later exit and existing lane/music mechanics.
+- Test the actual first-audit road route, controller binding, checkpoint, full song and native frames. Owner Makko timing and feel remain review.
+
 ## September 24, 2026 — predictable Cache Road music choice
 
 - Choose one part for the next bar after a centered half-second lane hold. The latest hold wins and survives a traffic dodge. It enters on the shared bar line through the current four-bar section; road and header show the upcoming choice and countdown.

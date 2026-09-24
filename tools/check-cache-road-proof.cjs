@@ -118,6 +118,9 @@ async function run() {
   audio.context.currentTime = 0;
   assert((await road.enter()).ok);
   assert.equal(C.readResume().levelState.proofVersion, 4);
+  const roadStart = copy(C.readResume());
+  assert.match(road.openingCue()[0], /HOLD A LANE/,
+    'the opening gives a driving instruction without stopping play');
   audio.context.currentTime = 2 * 1.875 + .1; // intro bar 3
   road.state.lane = road.state.lanePos = 2;
   road.update(100);
@@ -128,6 +131,8 @@ async function run() {
   audio.context.currentTime += .30; road.update(100);
   assert.deepEqual(copy(road.state.pendingCapture), { lane: 2, startBeat: 12, endBeat: 16 },
     'the softer recorded part is chosen for the next bar without traffic');
+  assert.match(road.openingCue()[1], /Press E/,
+    'the hold lesson gives way to the E/RB lesson once the music choice works');
   assert.equal(road.state.captures.length, 0, 'the part waits for the visible bar boundary');
   assert.equal(road.state.lockEnergy, unspent, 'choosing music does not spend Zone');
   road.state.lane = road.state.lanePos = 3;
@@ -177,6 +182,9 @@ async function run() {
     audio.context.currentTime += .05;
     road.handleActions({ inspect: { pressed: true } }); road.update(50);
   }
+  assert.equal(road.state.opening.sealed, true);
+  assert.doesNotMatch(road.openingCue()[1], /Press E/,
+    'the E/RB instruction leaves when a part is actually sealed');
   assert.equal(road.state.lockEnergy, zoneBeforeFlow, 'RB does not spend Zone');
   assert.equal(road.state.queuedCaptures.length, 1, 'RB cannot duplicate a queued phrase');
   audio.context.currentTime += 1; road.update(100);
@@ -397,12 +405,60 @@ async function run() {
   assert.equal(road.state.audits[1135], 0,
     'Echo draws the approaching audit into its lane before the driver splits away');
   assert.equal(road.state.echoEnergy, 0, 'the decoy is a charged tactical choice');
+  road.state.progress = 500; road.state.boost = 1;
+  assert.match(road.openingCue()[1], /Press SPACE/);
+  road.handleActions({ jump: { pressed: true } });
+  assert.equal(road.state.boostMs, 1250);
+  assert.doesNotMatch(road.openingCue()[1], /Press SPACE/,
+    'the Turbo prompt leaves after the real input spends the burst');
+  // The first marker is a repeatable road lesson: it saves a ready Echo, and
+  // the audit follows the actual decoy before the driver leaves that lane.
+  road.status = road.state.status = 'failed'; audio.context.currentTime = 0;
+  assert(road.retry());
+  road.state.progress = 845; road.state.lane = road.state.lanePos = road.state.visualLane = 0;
+  road.state.speed = 54; road.state.echoEnergy = 0;
+  audio.context.currentTime = 19;
+  road.handleActions({}); road.update(100);
+  assert(road.state.progress >= 850 && road.state.echoEnergy === 100);
+  const firstMarker = copy(C.readResume());
+  assert.equal(firstMarker.checkpointId, 'road-cache');
+  assert(road.validate(firstMarker), 'the first authored road marker must reload from Continue');
+  assert.equal(firstMarker.levelState.proof.echoEnergy, 100);
+  assert.match(road.openingCue()[1], /Press H/);
+  const oldSettings = B.ControllerSettings, oldGamepad = B.GamepadUI;
+  B.GamepadUI = { connected: true };
+  B.ControllerSettings = { prompt(action) { return { inspect: 'R1', jump: 'CROSS', interact: 'TRIANGLE' }[action]; } };
+  assert.match(road.openingCue()[1], /TRIANGLE/,
+    'the road prompt respects a connected controller binding');
+  B.ControllerSettings = oldSettings; B.GamepadUI = oldGamepad;
+  road.handleActions({ interact: { pressed: true } });
+  assert.equal(road.state.echo.durationMs, 6000);
+  assert.doesNotMatch(road.openingCue()[1], /Press H/);
+  for (let frame = 0; frame < 27 && road.state.progress < 978; frame++) {
+    audio.context.currentTime += .1;
+    road.handleActions({ move_left: { held: true } }); road.update(100);
+  }
+  assert.equal(road.state.integrity, 3, 'holding the left gap passes the three-wide block');
+  assert.equal(road.state.audits[1135], 0,
+    'the audit commits to the Echo from the reachable first marker');
+  assert.match(road.openingCue()[0], /FOLLOWED YOUR ECHO/);
+  for (let frame = 0; frame < 30 && road.state.progress < 1137; frame++) {
+    audio.context.currentTime += .1;
+    road.handleActions({ move_right: { held: road.state.lanePos < 1.15 } }); road.update(100);
+  }
+  assert.equal(road.state.integrity, 3, 'leaving the Echo lane safely clears the first audit');
+  assert(road.restore(firstMarker));
+  assert.equal(road.state.echoEnergy, 100, 'Continue restores the first Echo opportunity');
+  assert.match(road.openingCue()[1], /Press H/);
+  road.state.progress = 1710;
+  assert.equal(road.openingCue(), null, 'opening instructions end after the first stretch');
+  archive.checkpoint(roadStart);
   road.status = road.state.status = 'failed';
   audio.context.currentTime = 0;
   assert(road.retry());
   road.state.invulnerableMs = 1000000;
   const visited = new Set(); let sent = false, minLane = 3, maxLane = 0;
-  let verseFourSave;
+  let verseFourSave, firstForkSave;
   for (let frame = 1; frame <= 1880 && road.status === 'playing'; frame++) {
     audio.context.currentTime = frame / 10;
     road.handleActions({ move_left: { held: frame < 36 },
@@ -410,6 +466,8 @@ async function run() {
     road.update(100);
     minLane = Math.min(minLane, road.state.lanePos);
     maxLane = Math.max(maxLane, road.state.lanePos);
+    if (!firstForkSave && road.state.progress >= 1700 && road.state.progress < 1710)
+      firstForkSave = copy(C.readResume());
     if (road.state.musicBar === 28 || road.state.musicBar === 52 || road.state.musicBar === 76)
       visited.add(road.state.musicBar);
     if (road.state.musicBar === 76 && !verseFourSave) verseFourSave = copy(C.readResume());
@@ -419,6 +477,8 @@ async function run() {
     }
   }
   assert.deepEqual([...visited], [28, 52, 76], 'the road spans all four verses and choruses');
+  assert.equal(firstForkSave.checkpointId, 'road-fork');
+  assert(road.validate(firstForkSave), 'the second road marker also remains a valid Continue save');
   assert(minLane < .1 && maxLane > 2.8, 'real steering traverses both sides while music continues');
   assert(sent && road.state.gateOpen, `the final chorus offers a reachable Echo exit: ${JSON.stringify({ sent, progress: road.state.progress, gateAt: road.state.gateAt, gateFailure: road.state.gateFailure, bar: road.state.musicBar, status: road.status })}`);
   assert.equal(road.status, 'clear', 'the run finishes when the complete recording ends');
@@ -461,6 +521,6 @@ async function run() {
   assert(road.validate(v3) && road.restore(v3));
   assert.equal(road.state.lockEnergy, 100);
   assert.equal(road.state.score, 0);
-  console.log(`Cache Road: visible one-per-bar choice, one RB per four bars, short x4, close cut ${cutAt}s → Zone speed/time, adjacent near miss, traffic gate, audible hit, full song, final Echo and old saves passed.`);
+  console.log(`Cache Road: authored lane/RB/Turbo/Echo road cues, ready first audit, visible one-per-bar choice, one RB per four bars, short x4, close cut ${cutAt}s → Zone speed/time, traffic, full song, final Echo and old saves passed.`);
 }
 run().catch(error => { console.error(error); process.exitCode = 1; });

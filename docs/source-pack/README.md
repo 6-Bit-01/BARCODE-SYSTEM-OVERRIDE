@@ -1,5 +1,9 @@
 # BARCODE: SYSTEM OVERRIDE — Source Pack v5
 
+## Current review — Cache Road opening
+
+Start with `CACHE_ROAD_AUTHORED_OPENING.md` and the first `ACCEPTANCE.md` route. Cache's original-recording goal and the lane hold, E/RB, Turbo and Echo lessons appear during the first drive. The music rule remains the predictable next-bar choice in `CACHE_ROAD_PREDICTABLE_MUSIC.md`. Existing lane names, five MP3s and the proof's no-award boundary remain; merged Makko controller, sound and feel review is pending. Entries below are historical when they conflict.
+
 ## Current review — Cache Road driving and music
 
 Start with `CACHE_ROAD_DRIVING_MUSIC.md` and the newest `ACCEPTANCE.md` route. A half-second hold prepares a part, a clean traffic pass carries it, a tight escape carries it into the next four bars, and E/RB is an immediate once-per-section option. A hit breaks the music before rebuilding. All five supplied MP3s and existing lane names remain. Owner Makko listening and controller feel are pending; earlier free-lock routes are historical.

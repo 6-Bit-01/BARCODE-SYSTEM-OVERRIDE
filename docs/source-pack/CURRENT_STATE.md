@@ -1,5 +1,9 @@
 # Current State
 
+## September 24 — in-drive Cache Road opening
+
+The proof now states the original-recording delivery goal in the first stretch and offers short contextual lane hold, E/RB, Turbo and Echo instructions above the horizon. The first freight, paired block and audit supply their actual driving situations; a successful action advances its cue without interrupting play. The first marker refills Echo and validates as a version-4 Continue save, so the audit has a repeatable decoy opportunity; its Echo lasts six seconds like the final exit. A production route clears the left gap and redirects the audit, with native layout frames. All four lane names, the five MP3s, next-bar music choices, 100-bar song, old saves, final exit and no-award boundary remain. The owner still needs to judge cue timing, clarity and controller/music feel in merged Makko. See `CACHE_ROAD_AUTHORED_OPENING.md` and the first acceptance route.
+
 ## September 24 — predictable choices and separate driving bonuses
 
 The owner's playtest of merged #109 found traffic-gated parts random and hard to line up, with near misses inconsistent. A centered half-second hold now visibly chooses one lane's part for the next bar; a later hold replaces it, and a dodge does not cancel it. The chosen part enters on the song clock for the current four-bar section, at most one newly chosen part per bar. E/RB still adds the present remainder and next four once per section. Passes and close cuts only pay score and abilities; adjacent passes allow ordinary steering drift and report a near miss. Zone can start when the chosen part enters at a section boundary. Hit dropout and drums-only recovery, five MP3s, lane names, full song, Echo exit and saves remain. This is verified in local production logic; merged Makko music, timing and controller feel are still untested. See `CACHE_ROAD_PREDICTABLE_MUSIC.md` and the first acceptance route. Older entries are historical.

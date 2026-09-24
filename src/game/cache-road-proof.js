@@ -158,6 +158,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       nextRivalAt: progress >= 3 * LAP + 1700 ? progress + 120 : 3 * LAP + 1810,
       rivalTarget: 1.5, rivalLane: 1.5, rivalWarning: false,
       rivalEchoCommitted: false, rivalDistractedMs: 0,
+      // Road lessons are momentary guidance, not save or music state.
+      opening: { held: false, sealed: false, turbo: false, echo: false, auditFollowedEcho: false },
       message: '', messageMs: 0,
       gateOpen: !!saved.gateOpen, gateFailure: null,
       status: saved.status || 'playing', elapsedMs: 0 };
@@ -171,6 +173,37 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       if (!hint) return;
       if (this.oldHint === null) this.oldHint = hint.textContent;
       hint.textContent = 'Hold a lane .5s: choose its part for the next bar | One choice per bar; dodge after choosing | E/RB: once per 4 bars, now + next 4 | Space/A Turbo | H/Y Echo';
+    },
+    openingCue() {
+      if (this.status !== 'playing' || !this.state) return null;
+      const s = this.state, at = s.progress;
+      const button = (action, keyboard, pad) => B.ControllerSettings?.prompt(action, keyboard) ||
+        (B.GamepadUI?.connected ? pad : keyboard);
+      if (at < 300) {
+        if (!s.opening.held && at < 170) return ['HOLD A LANE FOR HALF A SECOND',
+          `Steer with ${B.GamepadUI?.connected ? 'STICK / D-PAD' : 'LEFT / RIGHT'}. Its music joins on the next bar.`];
+        if (!s.opening.sealed && at < 190) return ['FREIGHT AHEAD — KEEP THIS PART',
+          `Press ${button('inspect', 'E', 'RB')} to play it now and through the next four bars.`];
+        return ['FREIGHT AHEAD', 'Steer out of its lane. The part you kept stays with you.'];
+      }
+      if (at >= 465 && at < 650) {
+        if (!s.opening.turbo && s.boost > 0) return ['TWO LANES BLOCKED AHEAD',
+          `Outside lanes are open. Press ${button('jump', 'SPACE', 'A')} at the block for a short Turbo burst.`];
+        return ['TWO LANES BLOCKED AHEAD', 'Take an outside lane through the gap.'];
+      }
+      if (at >= 850 && at < 1135) {
+        if (at < 975) {
+          if (s.echo) return ['ECHO SENT — SCAN AHEAD',
+            'Hold far left through the block. Move away from the Echo after it.'];
+          if (s.echoEnergy >= 100) return ['SCAN AHEAD — SEND AN ECHO',
+            `Hold far left at the block. Press ${button('interact', 'H', 'Y')} near it, then move away.`];
+          return ['SCAN AHEAD', 'Hold far left through the block. Dodge the audit car.'];
+        }
+        return s.opening.auditFollowedEcho ? ['THE SCAN FOLLOWED YOUR ECHO',
+          'Steer away from its lane to keep the original recording safe.'] :
+          ['THE SCAN LOCKED ON', 'Change lanes before the audit car reaches you.'];
+      }
+      return null;
     },
     selectMusicProfile() {
       const selected = B.MusicProfiles?.select(PROFILE);
@@ -189,13 +222,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const legacy = s?.proofVersion < 3;
       return saved?.levelId === ID && [1, 2, 3, 4].includes(s?.proofVersion) &&
         Object.hasOwn(CHECKPOINTS, saved.checkpointId) &&
-        (legacy || !['road-cache', 'road-fork'].includes(saved.checkpointId)) &&
+        (legacy || s?.proofVersion === 4 || !['road-cache', 'road-fork'].includes(saved.checkpointId)) &&
         s.returnTo?.checkpointId === 'intermission' &&
         B.Campaign.validateLevel01Checkpoint(s.returnTo) &&
         Number.isFinite(p?.progress) && p.progress >= 0 && p.progress <= (legacy ? LAP : 15000) &&
         (legacy ? Math.abs(p.progress - legacyPoint[saved.checkpointId]) <= 1 :
           Number.isInteger(p.musicBar) && p.musicBar >= 0 && p.musicBar <= 100 &&
           (saved.checkpointId === 'road-start' ? p.progress === 0 :
+            saved.checkpointId === 'road-cache' ? p.progress >= 850 && p.progress < 860 :
+            saved.checkpointId === 'road-fork' ? p.progress >= 1700 && p.progress < 1710 :
             saved.checkpointId === 'road-clear' ? p.musicBar >= 99 :
               ['road-gate', 'road-verse-2', 'road-verse-3', 'road-verse-4'].includes(saved.checkpointId))) &&
         Number.isInteger(p.lane) && p.lane >= 0 && p.lane < 4 &&
@@ -421,6 +456,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
             s.pendingCapture.startBeat !== nextBar * 4)) {
           s.pendingCapture = { lane: s.lane, startBeat: nextBar * 4,
             endBeat: nextStrip(nextBar) * 4 };
+          s.opening.held = true;
           s.message = `${LANES[s.lane]} // NEXT BAR ${nextBar + 1}`; s.messageMs = 950;
           window.audioSystem?.playCombatCue?.('inspect');
         }
@@ -455,6 +491,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       }
       if (currentSealed || nextSealed) {
         s.lastSnapStartBar = startBar;
+        s.opening.sealed = true;
         s.hitRecovery = false;
         s.message = `${LANES[lane]} // ${currentSealed ? 'NOW' : ''}` +
           `${currentSealed && nextSealed ? ' + ' : ''}${nextSealed ? 'NEXT 4' : ''} SEALED`;
@@ -468,13 +505,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         s.message = 'BUFFER NEEDS A CLEAN TRACE'; s.messageMs = 950; return;
       }
       s.echoEnergy = 0;
-      // The final exit cue appears about four seconds before the scanner at
-      // cruise. Give that approach room for a visible split and steering.
-      const durationMs = s.gateAt != null && s.progress >= s.gateAt - 220 &&
-        s.progress < s.gateAt ? 6000 : 2700;
+      // Give the first audit and final exit time for a visible split. Both
+      // appear shortly after a marker; other Echos keep their short duration.
+      const firstAudit = s.progress >= 850 && s.progress < 975;
+      const finalExit = s.gateAt != null && s.progress >= s.gateAt - 220 && s.progress < s.gateAt;
+      const durationMs = firstAudit || finalExit ? 6000 : 2700;
       s.echo = { lanePos: s.lanePos, progress: s.progress, ageMs: 0, durationMs,
         path: s.trace.map(sample => ({ ...sample })), sampleIndex: 0, sampleMs: 0 };
       s.rivalDistractedMs = durationMs;
+      s.opening.echo = true;
       s.message = 'BUFFER ECHO // SPLIT THE LINE'; s.messageMs = 1700;
       window.audioSystem?.playCombatCue?.('data');
     },
@@ -487,6 +526,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       if (actions.interact?.pressed) this.sendEcho();
       if (actions.jump?.pressed && s.boost > 0) {
         s.boost = 0; s.nearMisses = 0; s.boostMs = 1250;
+        s.opening.turbo = true;
         s.message = 'TURBO // ORIGINAL SIGNAL HELD'; s.messageMs = 900;
         window.audioSystem?.playCombatCue?.('lift');
       }
@@ -586,8 +626,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const distance = hazard.at - s.progress;
         const hazardId = `${hazard.at}/${hazard.lane}`;
         if (hazard.kind === 'audit' && distance < 160 && distance > 0 &&
-          !Object.hasOwn(s.audits, hazard.at))
+          !Object.hasOwn(s.audits, hazard.at)) {
           s.audits[hazard.at] = s.echo ? Math.round(s.echo.lanePos) : s.lane;
+          if (hazard.at === 1135 && s.echo) s.opening.auditFollowedEcho = true;
+        }
         const lane = hazardLane(hazard, s.progress, s.audits);
         if (distance <= 80 && distance > 0 && s.speed >= 38 && !s.invulnerableMs &&
             !s.boostMs && Math.abs(lane - s.lanePos) < .45)
@@ -647,6 +689,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       }
       if (before < 850 && s.progress >= 850) {
         s.timeMs = Math.max(s.timeMs, 33000) + (stackSize(s) - 1) * 1800;
+        s.echoEnergy = 100;
         this.checkpoint('road-cache'); s.message = 'ORIGINAL TAPE / KEEP MOVING'; s.messageMs = 1600;
       }
       if (before < 1700 && s.progress >= 1700) {
@@ -1026,6 +1069,22 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.fillStyle = '#b4ffe4';
         ctx.font = 'bold 20px Oxanium, monospace'; ctx.textAlign = 'center';
         ctx.fillText(s.message, 960, 150);
+      }
+      // The short opening lives above the horizon. It never pauses input or
+      // covers traffic; each button cue gives way as soon as the action works.
+      if (this.status === 'playing' && progress < 1700) {
+        const cue = this.openingCue();
+        ctx.fillStyle = '#081824dd'; ctx.fillRect(30, 176, 1100, cue ? 118 : 45);
+        ctx.fillStyle = '#90efda'; ctx.fillRect(30, 176, 5, cue ? 118 : 45);
+        ctx.textAlign = 'left'; ctx.fillStyle = '#aaf1dc';
+        ctx.font = 'bold 17px Oxanium, monospace';
+        ctx.fillText('DELIVER THE ORIGINAL RECORDING  /  THE CLEAN COPY ERASED THE NAMES', 48, 205);
+        if (cue) {
+          ctx.fillStyle = '#fff5df'; ctx.font = 'bold 25px Oxanium, monospace';
+          ctx.fillText(cue[0], 48, 241);
+          ctx.fillStyle = '#c8e0df'; ctx.font = '20px Oxanium, monospace';
+          ctx.fillText(cue[1], 48, 274);
+        }
       }
       if (this.audioDegraded) {
         ctx.fillStyle = '#ffbb8b'; ctx.font = '20px Oxanium, monospace'; ctx.textAlign = 'center';
