@@ -1,5 +1,11 @@
 # Recovery checkpoint — September 14
 
+## September 24, 2026 — predictable Cache Road music choice
+
+- Choose one part for the next bar after a centered half-second lane hold. The latest hold wins and survives a traffic dodge. It enters on the shared bar line through the current four-bar section; road and header show the upcoming choice and countdown.
+- Remove traffic-pass music capture. Adjacent passes tolerate normal steering drift and show feedback; tight cuts still charge Zone. Retain E/RB's once-per-section current and next carry, and drums-only beat-aligned recovery after a hit.
+- Cover choice replacement, one part per bar, brief deliberate x4, a real cut and near miss, collision, full song, old saves and MP3 playback paths. Makko musical and controller feel remains owner review after CI merge.
+
 ## September 24, 2026 — driving-earned music and audible hit
 
 - Keep every recorded lane available and the five MP3 clocks synchronized. Make a half-second hold prepare/preview a part; a clean pass seals the current remainder, a tight escape also carries the next four bars, and E/RB seals current plus next once per section.

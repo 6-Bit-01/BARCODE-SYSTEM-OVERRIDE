@@ -88,8 +88,8 @@ window.FILE_MANIFEST.push({ name: 'src/engine/music-director.js', exports: ['BAR
       const bar = sample.grid.barIndex;
       const verseBar = (bar - 4) % 24;
       const half = bar < 4 ? 'intro' : verseBar < 8 ? 'verseA' : verseBar < 16 ? 'verseB' : 'chorus';
-      // A hold previews a part on a beat. A clean traffic pass or the once-per-
-      // section button commits it so it continues after the car changes lanes.
+      // A hold previews a part on a beat. Its visible next-bar choice or the
+      // once-per-section button keeps it playing after the car changes lanes.
       // Every supplied source contains a complete aligned recording; sparse
       // passages stay quieter without being muted by a guessed section mask.
       const roles = new Set((requested.captures || []).filter(capture =>
