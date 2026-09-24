@@ -1,5 +1,30 @@
 # Acceptance and Test Status
 
+## Grounded Cache Road pads — September 24
+
+Import the exact revision after CI and drive with sound and a controller.
+The safe mint targets should read as small markings in the asphalt, approach
+at road speed and disappear under the car; solid vehicles should cover them
+where the view overlaps. There should be clear stretches between two planned
+four-target runs, not a constant stream or floating overlays. In the first
+run, aim for Drive at 150, Flow at 365, Undercurrent at 585 and Breakaway at
+810. The HUD shows the action/button while a pad is visible, then a short
+tap-on-beat cue while crossing it. Brake or accelerate to adjust arrival;
+pressing off beat, using a wrong button or driving through without a press
+should not cost score or life.
+
+Catch the four parts while steering around freight, the two-lane block and
+the van. The first part holds eight bars, later consecutive same-run parts
+sixteen; decide whether four at once is winnable without feeling automatic.
+Try the later run after the first marker too. Use Push and Brace on separate
+traffic contacts; an unprotected hit should clear the earned stack, with
+drums returning on beat. The all-four signal currently cannot play crew
+vocals because that recording has not been supplied. Check speed rewards,
+pause, retry/Continue, the final Echo exit and the unchanged four lane
+names. Report the imported SHA, pad/traffic location and device, whether any
+marking still crosses a car visually, and how the spacing and duration feel.
+The simulation and native draw do not establish Makko audiovisual feel.
+
 ## Cache Road safe pulse prototype — September 24
 
 Import the PR head into Makko after CI and drive the opening with a physical

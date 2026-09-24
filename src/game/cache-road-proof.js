@@ -6,7 +6,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   'use strict';
   const ID = 'level-02', PROFILE = 'level-02.proof';
   const LAP = 2460, END = 4 * LAP, GATE = 3 * LAP + 2060;
-  const BAR_BEATS = 4, PULSE_BEATS = 16;
+  const BAR_BEATS = 4, PULSE_BEATS = 32;
   const LANES = ['DRIVE', 'FLOW', 'BREAKAWAY', 'UNDERCURRENT'];
   const PULSE_ACTIONS = [
     { key: 'road_a', label: 'SURGE', button: 0, keyboard: 'K' },
@@ -14,13 +14,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     { key: 'road_x', label: 'BRACE', button: 2, keyboard: 'J' },
     { key: 'road_y', label: 'REFILL', button: 3, keyboard: 'I' }
   ];
-  // A repeatable phrase offers several routes to each part. Its arrival is
-  // anchored to the song rather than road distance, which changes with speed.
-  const PULSE_PHRASE = [[3,1,0],[5,0,2],[7,1,3],[9,2,1],
-    [11,3,0],[13,2,2],[15,1,1]];
-  const PULSES = Array.from({ length: 25 }, (_, phrase) =>
-    PULSE_PHRASE.map(([offset, lane, action]) => ({ beat: phrase * 16 + offset,
-      lane: (lane + phrase) % 4, action }))).flat();
+  // Two planned runs per lap, with breathing room between them. Each run
+  // visits all four lanes; the road and traffic rotate together on later laps.
+  // The markings stay at these world positions even when the driver brakes.
+  const PULSE_RUNS = [
+    [[150,0,0],[365,1,2],[585,3,3],[810,2,1]],
+    [[1260,2,3],[1490,1,0],[1720,0,2],[1895,3,1]]
+  ];
+  const PULSES = Array.from({ length: 5 }, (_, pass) =>
+    PULSE_RUNS.flatMap((run, runIndex) => run.map(([at, lane, action], order) => ({
+      at: at + pass * LAP, lane: (lane + pass) % 4, action,
+      id: `${pass}/${runIndex}/${order}`, run: `${pass}/${runIndex}`, order
+    })))).flat();
   const CHECKPOINTS = { 'road-start': 0, 'road-cache': 850, 'road-fork': 1700,
     'road-verse-2': 28, 'road-verse-3': 52, 'road-verse-4': 76,
     'road-gate': 92, 'road-clear': 100 };
@@ -393,7 +398,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     const lanePos = saved.lanePos ?? saved.lane ?? 1;
     return { progress, lanePos, lane: Math.round(lanePos), visualLane: lanePos,
       captures: [], queuedCaptures: [], hitRecovery: false,
-      caughtPulses: {}, pulseFlashMs: 0, pulseCombo: 0, lastPulseBeat: -10,
+      caughtPulses: {}, pulseFlashMs: 0, pulseCombo: 0,
+      lastPulseRun: null, lastPulseOrder: -1,
       fullAdrenaline: false, fullAdrenalineCount: 0, shield: 0, ramMs: 0, surgeMs: 0,
       fastPulses: 0,
       cutMarks: {}, cutStreak: 0, cutFlashMs: 0, cutAward: 0,
@@ -429,17 +435,17 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       if (this.oldHint === null) this.oldHint = hint.textContent;
       const left = B.GamepadUI?.connected ? B.ControllerSettings?.button(4) : 'SPACE';
       const right = B.GamepadUI?.connected ? B.ControllerSettings?.button(5) : 'H';
-      hint.textContent = `Glowing pulses are safe: steer into one and tap its face button on the beat | Up: faster rewards; Down: slower Echo refill | ${left} Turbo | ${right} Echo`;
+      hint.textContent = `Mint road pads are safe: drive over the marked lane and tap its face button on a beat | Up: faster rewards; Down: slower Echo refill | ${left} Turbo | ${right} Echo`;
     },
     openingCue() {
       if (this.status !== 'playing' || !this.state) return null;
       const s = this.state, at = s.progress;
       if (at < 300) {
-        if (!s.opening.held && s.musicBeatFloat < 10) return ['GLOWING PULSES ARE SAFE',
-          `Steer into the marked lane. Tap its face button on the beat (${B.GamepadUI?.connected ? [0,1,2,3].map(i=>B.ControllerSettings?.button(i)).join(' / ') : 'K / L / J / I'}).`];
-        if (!s.opening.sealed && s.musicBeatFloat < 20) return ['FOLLOW TWO PULSES',
-          'Consecutive catches hold a part for eight bars. Up speeds up for points; Down slows for Echo.'];
-        return ['TRAFFIC IS SOLID; PULSES ARE SAFE', 'Drive through the glowing shapes. Give vehicles room when changing lanes.'];
+        if (!s.opening.held && s.musicBeatFloat < 10) return ['MINT ROAD PADS ARE SAFE',
+          `Drive over a pad in its marked lane. Tap its face button on a beat (${B.GamepadUI?.connected ? [0,1,2,3].map(i=>B.ControllerSettings?.button(i)).join(' / ') : 'K / L / J / I'}).`];
+        if (!s.opening.sealed && s.musicBeatFloat < 20) return ['FOLLOW THE NEXT ROAD PAD',
+          'Catch two in the same run for a longer part. Up earns more points; Down refills Echo.'];
+        return ['TRAFFIC IS SOLID; MINT PADS ARE SAFE', 'Pads are painted into the road. Give vehicles room when changing lanes.'];
       }
       if (at >= 465 && at < 650) {
         if (!s.opening.turbo && s.boost > 0) return ['TWO LANES BLOCKED AHEAD',
@@ -663,23 +669,25 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       }
       s.fullAdrenaline = full;
     },
-    // Pickups are visual, harmless opportunities on the song clock. A press
-    // needs the displayed face button, the displayed lane and a real beat.
+    // A fixed road pad needs the right lane and face action while the car
+    // crosses it. The press still has to land on the shared music beat.
     catchPulse(action, pressTimeSec) {
       const s = this.state;
       const now = Number.isFinite(pressTimeSec) ? pressTimeSec : window.audioSystem?.context?.currentTime;
       const judgment = B.MusicTransport?.judgeInput?.('road-pulse', now,
         B.Preferences?.values?.inputOffsetMs || 0);
       if (!judgment?.available || judgment.timing === 'miss') return false;
-      const pulse = PULSES.find(p => p.beat === judgment.beatIndex &&
-        PULSE_ACTIONS[p.action].key === action);
-      if (!pulse || s.caughtPulses[pulse.beat] || Math.abs(s.lanePos - pulse.lane) > .38) return false;
-      s.caughtPulses[pulse.beat] = true;
+      const pulse = PULSES.find(p => p.at - s.progress >= -18 &&
+        p.at - s.progress <= 55 && PULSE_ACTIONS[p.action].key === action &&
+        !s.caughtPulses[p.id] && Math.abs(s.lanePos - p.lane) <= .38);
+      if (!pulse) return false;
+      s.caughtPulses[pulse.id] = true;
       const fast = s.speed >= 61, slow = s.speed <= 36;
-      s.pulseCombo = pulse.beat - s.lastPulseBeat === 2 ? s.pulseCombo + 1 : 1;
-      s.lastPulseBeat = pulse.beat;
+      s.pulseCombo = pulse.run === s.lastPulseRun && pulse.order === s.lastPulseOrder + 1 ?
+        s.pulseCombo + 1 : 1;
+      s.lastPulseRun = pulse.run; s.lastPulseOrder = pulse.order;
       const long = s.pulseCombo >= 2;
-      const startBeat = pulse.beat;
+      const startBeat = judgment.beatIndex;
       const endBeat = Math.min(400, startBeat + (long ? 2 : 1) * PULSE_BEATS);
       const existing = s.captures.find(c => c.lane === pulse.lane) ||
         s.queuedCaptures.find(c => c.lane === pulse.lane);
@@ -701,7 +709,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           break;
       }
       const effect = PULSE_ACTIONS[pulse.action].label;
-      s.message = `${effect} // ${LANES[pulse.lane]} +${long ? 8 : 4} BARS` +
+      s.message = `${effect} // ${LANES[pulse.lane]} +${long ? 16 : 8} BARS` +
         (fast ? '  FAST x2' : slow ? '  ECHO +25' : '');
       s.messageMs = 1100;
       window.audioSystem?.playCombatCue?.('pickup');
@@ -758,7 +766,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       s.invulnerableMs = 1400;
       s.damagedBar = s.musicBar;
       s.captures = []; s.queuedCaptures = []; s.fullAdrenaline = false;
-      s.pulseCombo = 0; s.lastPulseBeat = -10;
+      s.pulseCombo = 0; s.lastPulseRun = null; s.lastPulseOrder = -1;
       s.hitRecovery = true;
       s.shield = 0; s.ramMs = 0; s.surgeMs = 0;
       s.stumbleMs = 650; s.cutStreak = 0; s.cutFlashMs = 0; s.nearMisses = 0;
@@ -1303,6 +1311,38 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.fillStyle = '#e5fcf1'; ctx.font = 'bold 30px Oxanium, monospace';
         ctx.textAlign = 'center'; ctx.fillText('ROAD MARKER', 0, -16); ctx.restore();
       }
+      // Small inlaid road pads use world distance and the same curved road
+      // projection as vehicles. Traffic is drawn afterward and occludes them.
+      for (const pulse of PULSES) {
+        const d = pulse.at - progress;
+        if (d < -22 || d > 345 || s.caughtPulses[pulse.id]) continue;
+        const near = depth(d - 18), far = depth(d + 18), mid = depth(d);
+        if (mid < .17 || near <= far) continue;
+        const x = laneX(pulse.lane, mid), y = roadY(mid);
+        const nearWidth = Math.min(116, (laneEdge(pulse.lane+1,near) - laneEdge(pulse.lane,near))*.32);
+        const farWidth = Math.min(116, (laneEdge(pulse.lane+1,far) - laneEdge(pulse.lane,far))*.32);
+        const points = [[laneX(pulse.lane,near)-nearWidth,roadY(near)],
+          [laneX(pulse.lane,near)+nearWidth,roadY(near)],
+          [laneX(pulse.lane,far)+farWidth,roadY(far)],
+          [laneX(pulse.lane,far)-farWidth,roadY(far)]];
+        ctx.save();
+        ctx.globalAlpha = .78 + (reduced ? 0 : beatPulse*.12);
+        polygon(ctx, points, '#174c51');
+        ctx.strokeStyle = '#a9e2cb'; ctx.lineWidth = 1 + mid*2;
+        ctx.beginPath(); points.forEach(([px,py],i) => i ? ctx.lineTo(px,py) : ctx.moveTo(px,py));
+        ctx.closePath(); ctx.stroke();
+        ctx.strokeStyle = '#d1edca'; ctx.lineWidth = 2 + mid*2;
+        for (const offset of [-.55,.55]) {
+          const yy = y + offset*(roadY(near)-roadY(far))*.5;
+          ctx.beginPath(); ctx.moveTo(x-28*mid,yy); ctx.lineTo(x+28*mid,yy); ctx.stroke();
+        }
+        ctx.translate(x,y); ctx.scale(Math.max(.5,mid),Math.max(.28,mid*.42));
+        ctx.fillStyle = '#f4f3d7'; ctx.textAlign = 'center';
+        ctx.font = 'bold 32px Oxanium, monospace';
+        const face = PULSE_ACTIONS[pulse.action];
+        ctx.fillText(B.GamepadUI?.connected ? B.ControllerSettings?.button(face.button) || face.keyboard : face.keyboard,0,9);
+        ctx.restore();
+      }
       // Far traffic first; the shapes and on-road arrows remain legible in motion.
       for (const hazard of [...HAZARDS].reverse()) {
         const d = hazard.at - progress;
@@ -1345,35 +1385,6 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           ctx.textAlign = 'center';
           ctx.fillText(hazard.kind === 'audit' ? 'AUDIT LOCK' : hazard.kind === 'sweeper' ? 'MERGE >' : 'DRAFT', x, y - h - 14);
         }
-      }
-      // Safe beat gates are translucent floating rings with a button and a
-      // four-point spark. Vehicles remain opaque silhouettes with red warnings.
-      for (const pulse of PULSES) {
-        const ahead = pulse.beat - s.musicBeatFloat;
-        if (ahead < -.45 || ahead > 3.5 || s.caughtPulses[pulse.beat]) continue;
-        const t = clamp(.83 - ahead * .19, .17, .92);
-        const x = laneX(pulse.lane, t), y = roadY(t) - 85 * t;
-        const r = 15 + 51 * t, flash = reduced ? 0 : Math.sin(s.musicBeatFloat * Math.PI * 2) * .08;
-        const face = PULSE_ACTIONS[pulse.action];
-        ctx.save(); ctx.globalCompositeOperation = 'screen';
-        const glow = ctx.createRadialGradient(x,y,r*.18,x,y,r*1.8);
-        glow.addColorStop(0,'#d9fff3aa'); glow.addColorStop(.6,'#61ffd388');
-        glow.addColorStop(1,'#35ffd000');
-        ctx.fillStyle = glow; ctx.fillRect(x-r*1.8,y-r*1.8,r*3.6,r*3.6);
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.fillStyle = '#77ffd04f'; ctx.beginPath();
-        ctx.ellipse(x,roadY(t),r*.84,r*.28,0,0,Math.PI*2); ctx.fill();
-        ctx.fillStyle = '#157e7199'; ctx.strokeStyle = '#b4ffdf';
-        ctx.lineWidth = 3 + t * 5; ctx.beginPath(); ctx.arc(x,y,r*(1+flash),0,Math.PI*2); ctx.fill(); ctx.stroke();
-        ctx.strokeStyle = '#e7ffe9'; ctx.lineWidth = 2 + t*2;
-        ctx.beginPath(); ctx.moveTo(x,y-r*.77); ctx.lineTo(x+r*.77,y);
-        ctx.lineTo(x,y+r*.77); ctx.lineTo(x-r*.77,y); ctx.closePath();ctx.stroke();
-        ctx.fillStyle = '#fffde6'; ctx.textAlign = 'center';
-        ctx.font = `bold ${Math.round(17 + 24*t)}px Oxanium, monospace`;
-        ctx.fillText(B.GamepadUI?.connected ? B.ControllerSettings?.button(face.button) || face.keyboard : face.keyboard, x, y+11*t);
-        ctx.font = `bold ${Math.round(12 + 11*t)}px Oxanium, monospace`;
-        ctx.fillText(`SAFE • ${face.label}`,x,y-r-17*t);
-        ctx.restore();
       }
       if (s.gateAt != null && progress < s.gateAt + 45) {
         const t = depth(s.gateAt - progress), y = roadY(t);
@@ -1453,13 +1464,17 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       ctx.fillStyle = '#a7bcca'; ctx.fillText('SIGNAL', 520, 96);
       drawRearview(ctx, s, ['#f6adbb', '#f3b276', '#d2a4f9', '#9aefce'][section], reduced);
       ctx.fillStyle = '#e4ede5'; ctx.font = 'bold 18px Oxanium, monospace'; ctx.textAlign = 'left';
-      const nextPulse = PULSES.find(p => p.beat >= s.musicBeatFloat - .2 &&
-        !s.caughtPulses[p.beat]);
+      const nextPulse = PULSES.find(p => p.at >= s.progress - 18 &&
+        !s.caughtPulses[p.id]);
       const nextFace = nextPulse && PULSE_ACTIONS[nextPulse.action];
       const nextButton = nextFace && (B.GamepadUI?.connected ?
         B.ControllerSettings?.button(nextFace.button) || nextFace.keyboard : nextFace.keyboard);
-      ctx.fillText(nextPulse ? `SAFE PULSE • ${LANES[nextPulse.lane]} • ${nextButton} ${nextFace.label} • ${Math.max(0,(nextPulse.beat-s.musicBeatFloat)*.46875).toFixed(1)}s` :
-        'SAFE PULSES: STEER IN + TAP ON THE BEAT', 1345, 31, 540);
+      const padDistance = nextPulse?.at - s.progress;
+      ctx.fillText(nextPulse && padDistance <= 55 ?
+        `SAFE ROAD PAD • ${LANES[nextPulse.lane]} • TAP ${nextButton} ON BEAT` :
+        nextPulse && padDistance <= 345 ?
+          `SAFE ROAD PAD • ${LANES[nextPulse.lane]} • ${nextButton} ${nextFace.label} • ${Math.round(padDistance)} AHEAD` :
+          'ROAD CLEAR', 1345, 31, 540);
       ctx.fillStyle = '#b5cbd0'; ctx.font = '16px Oxanium, monospace';
       ctx.fillText(PULSE_ACTIONS.map(face => `${B.GamepadUI?.connected ? B.ControllerSettings?.button(face.button) : face.keyboard} ${face.label}`).join(' • '), 1345, 57, 540);
       const meter = (x, label, value, color, display = `${Math.round(value)}%`) => {

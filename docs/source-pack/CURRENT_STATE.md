@@ -1,5 +1,24 @@
 # Current State
 
+## September 24 — grounded Cache Road pads (review branch)
+
+Owner play of merged #115 found the rings too fast, too frequent, distracting
+and visibly over traffic. The current branch replaces the seven-per-four-bar
+song stream with two four-pad road runs per lap. The mint, low-profile pads
+stay at fixed world positions, follow the blacktop bend, and draw beneath
+cars. They appear in authored traffic gaps; the HUD names only a pad close
+enough to see. A press on a song beat in the pad's lane and crossing window
+earns one of the same four actions. Misses remain harmless. Eight-bar base
+and sixteen-bar consecutive same-run holds are a trial balance for the wider
+spacing. The real five-track mix, lane names, road art, saves, collision and
+exit are unchanged; the full-adrenaline crew vocal still lacks a recording.
+
+Focused tests steer through both runs to x4 without damage and verify draw
+order and a missed pad. A native production-draw contact sheet was inspected
+at eight positions; its timing and visual quality require Makko play. Full
+suite, syntax and CI outcomes belong to the final revision receipt. The
+owner must judge pace, visibility, timing and music duration in Makko.
+
 ## September 24 — Cache Road safe pulse prototype (PR review)
 
 Based on merged art-loader repair `950ce07`. Seven repeatable face-button
