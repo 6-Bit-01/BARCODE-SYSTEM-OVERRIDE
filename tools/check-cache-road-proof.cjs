@@ -142,8 +142,8 @@ async function run() {
       ...overrides };
     mirrorFrames.length = 0; roadArt.length = 0; openingRects.length = 0; road.draw(drawCtx);
     assert.equal(mirrorFrames.length, 1, 'one expression is drawn inside the shared rearview');
-    assert.deepEqual(Array.from(mirrorFrames[0].sourceRect), [0, 150, 402, 185]);
-    assert.equal(mirrorFrames[0].x, 818, 'more of the same-size face sits inside the driver side');
+    assert.deepEqual(Array.from(mirrorFrames[0].sourceRect), [0, 150, 450, 185]);
+    assert.equal(mirrorFrames[0].x, 833, 'the completed face sits inside the driver side');
     return mirrorFrames[0].frame;
   };
   assert.equal(mirrorFrame({}), 0);
