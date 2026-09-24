@@ -1,5 +1,9 @@
 # Current State
 
+## September 24 — driving-earned parts and a clear hit
+
+The owner confirms that the all-lane correction made the game better but x3/x4 remain routine and a hit sounds like the same music at a lower level. The free hold and multi-lane RB rule allowed four parts within a few seconds. The review rule now makes a half-second hold prepare and preview a lane, a clean traffic pass carry it through the current section, a tight escape carry it through the next four bars, and E/RB seal current plus next once per four-bar section. A hit breaks the music briefly, then leaves drums without the quiet background beds until the player earns a new part. All five unchanged MP3s remain in sync and all four lanes remain available throughout the song. A production steering route reaches x4 without invulnerability; a safe lane sweep does not. This is a playtest hypothesis for merged Makko and a physical controller, not a claim of accepted feel. See `CACHE_ROAD_DRIVING_MUSIC.md` and the newest `ACCEPTANCE.md` route. The free-lock descriptions below are historical.
+
 ## September 24 — all four recorded lanes can lock
 
 The owner found lanes refusing to lock. The hard-coded mask treated verse A Breakaway/Undercurrent as absent. Decoding the unchanged owner MP3s confirms both contain audio during verse A: approximately −43 and −30 dBFS RMS respectively in the first verse's bars 5–12. Breakaway is much softer than its verse B part (about −20 dBFS), but it is not missing. The road and music director now accept all four lane captures throughout the 100-bar song, including an RB capture at chorus bar 28 into the following verse A. The road no longer promises a false later entrance. Genuine quiet passages retain their original levels. The owner has also reported that capturing every available lane feels too easy; this correction fixes the false gate, not that balance judgment. Makko sound and difficulty remain to be assessed.

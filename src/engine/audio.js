@@ -647,18 +647,26 @@ window.AudioSystem = class AudioSystem {
     return true;
   }
 
-  // Collision is a short bus stutter, not a source stop/seek. The original
-  // five synchronized stems stay in time underneath a pitched digital tear.
+  // A miss cuts the bus for a beat and returns on the song grid. The five
+  // synchronized sources continue underneath; none is stopped or re-seeked.
   playRoadStumble() {
     const ctx = this.context, bus = this.musicGain?.gain;
     if (!ctx || ctx.state !== 'running' || !bus) return false;
     const now = ctx.currentTime;
     bus.cancelScheduledValues?.(now);
     if (!bus.setValueAtTime || !bus.linearRampToValueAtTime) return false;
+    const grid = window.BARCODE?.MusicTransport?.sample?.(now)?.grid;
+    const beatDuration = grid?.beatDurationSec || 60 / 128;
+    // Give the silence at least three quarters of a beat, then land on the
+    // next available beat. A collision just before a beat must still register.
+    const nextRecoveryBeat = now + (grid ?
+      Math.ceil(grid.beatFloat + .75) - grid.beatFloat : 1) * beatDuration;
     bus.setValueAtTime(bus.value, now);
-    for (const [offset, level] of [[.015, .08], [.065, .08], [.072, .34],
-      [.105, .34], [.112, .05], [.17, .05], [.24, .24], [.36, .24], [.62, .8]])
-      bus.linearRampToValueAtTime(level, now + offset);
+    bus.linearRampToValueAtTime(.05, now + .025);
+    bus.setValueAtTime(.05, now + .06);
+    bus.linearRampToValueAtTime(0, now + .09);
+    bus.setValueAtTime(0, nextRecoveryBeat - .035);
+    bus.linearRampToValueAtTime(.8, nextRecoveryBeat);
     if (this.sfxGain && ctx.createOscillator && ctx.createGain) {
       const osc = ctx.createOscillator(), envelope = ctx.createGain();
       osc.type = 'square';

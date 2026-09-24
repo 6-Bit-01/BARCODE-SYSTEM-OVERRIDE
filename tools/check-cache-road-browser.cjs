@@ -144,8 +144,8 @@ async function main() {
       player.initialized=true;
       const prepared=await player.prepareActiveMusicProfile();
       const started=prepared.ok?player.startAllLayersSimultaneously():{ok:false};
-      let captures=[],previewLane=null,previewBeat=null;
-      BARCODE.CacheRoadProof={active:true,mixSnapshot:()=>({captures,previewLane,previewBeat}),startOffsetSec:()=>0};
+      let captures=[],previewLane=null,previewBeat=null,hitRecovery=false;
+      BARCODE.CacheRoadProof={active:true,mixSnapshot:()=>({captures,previewLane,previewBeat,hitRecovery}),startOffsetSec:()=>0};
       player.updateLayers();
       await new Promise(resolve=>setTimeout(resolve,300));
       const waveform=new Float32Array(analyser.fftSize);analyser.getFloatTimeDomainData(waveform);
@@ -170,8 +170,14 @@ async function main() {
           breakaway:player.musicTracks['cache-breakaway'].volume,
           rms:Math.sqrt(waveform.reduce((sum,x)=>sum+x*x,0)/waveform.length)});
       }
+      hitRecovery=true;player.updateLayers();
+      result.hitDrive=player.musicTracks['cache-drive'].volume;
+      result.hitFlow=player.musicTracks['cache-flow'].volume;
       result.stumble=player.playRoadStumble();
-      await new Promise(resolve=>setTimeout(resolve,720));
+      await new Promise(resolve=>setTimeout(resolve,220));
+      analyser.getFloatTimeDomainData(waveform);
+      result.droppedRms=Math.sqrt(waveform.reduce((sum,x)=>sum+x*x,0)/waveform.length);
+      await new Promise(resolve=>setTimeout(resolve,800));
       analyser.getFloatTimeDomainData(waveform);
       result.recoveredRms=Math.sqrt(waveform.reduce((sum,x)=>sum+x*x,0)/waveform.length);
       result.recoveredGain=player.musicGain.gain.value;
@@ -192,8 +198,11 @@ async function main() {
     'the quiet intro Breakaway passage is not muted when captured');
   assert(audio.catches.every(point => point.pressure === .60 && point.flow === 0 &&
     point.rms > .0001), 'the sparse intro keeps drums while Drive catches and releases');
-  assert(audio.stumble && audio.recoveredRms > .0001 && Math.abs(audio.recoveredGain - .8) < .01,
-    'browser music bus stumbles and recovers without restarting MP3s');
+  assert(audio.hitDrive === 0 && audio.hitFlow === 0,
+    'a hit removes both quiet beds while the drums remain');
+  assert(audio.stumble && audio.droppedRms < .0001 && audio.recoveredRms > .0001 &&
+    Math.abs(audio.recoveredGain - .8) < .01,
+  'browser music bus cuts out and returns on the beat without restarting MP3s');
   assert.equal(requests.head, 0);
   assert.equal(requests.get.filter(url => url.endsWith('.mp3')).length, 5);
   const fallback = await checkAudio(true);
@@ -204,7 +213,7 @@ async function main() {
   assert.equal(requests.get.filter(url => url.endsWith('.mp3')).length, livePublished ? 10 : 15);
   if (!livePublished) assert.equal(await evaluate('window.publishedRequests.length'), 5);
   assert.deepEqual(exceptions, []);
-  console.log(`Cache Road Chromium passed: ${frames.drawn} guarded frames (${frames.contextCalls} context calls), five local and published MP3s, aligned Drive phrase and recovered collision stutter.`);
+  console.log(`Cache Road Chromium passed: ${frames.drawn} guarded frames (${frames.contextCalls} context calls), five local and published MP3s, aligned phrases and audible collision break.`);
 }
 main().catch(error => { console.error(error.stack || error); process.exitCode = 1; }).finally(async () => {
   socket?.close();

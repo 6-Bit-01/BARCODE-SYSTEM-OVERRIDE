@@ -1,5 +1,9 @@
 # Decision Register
 
+## September 24, 2026 — keep music earned by driving
+
+The owner's new playtest supersedes the earlier free next-four-bar lock and unlimited E/RB-per-lane design: x3/x4 were too common, and the hit's quiet beds made the loss sound like a slight volume change. Keep the half-second lane hold as a preview and clear preparation step, but commit carried music on a clean pass, with a tight escape earning an extra four-bar carry. Preserve E/RB's immediate current-plus-next action once per four-bar section. This is an explicit driving condition shown in the HUD, not a quiet-section mask or Zone payment. A hit has a beat-aligned audible break and a drums-only recovery until a new part is earned. All four named lane MP3s remain selectable across the entire song; their source bytes and recorded dynamics are unchanged. See `CACHE_ROAD_DRIVING_MUSIC.md`. Owner Makko acceptance is pending.
+
 ## September 24, 2026 — every supplied lane remains capturable
 
 The owner's observation that all four lane MP3s contain audio is correct. The previous first-half-verse restriction was an inference from relative loudness, not an absent recording: decoded verse A RMS is about −30 dBFS for Undercurrent and −43 dBFS for Breakaway. Let all four lanes lock and enter on their aligned phrases, including chorus-to-verse and intro-to-verse boundaries. Keep the source levels and supplied MP3 bytes unchanged; the quieter Breakaway passage may have a subtle audible effect, and a few intro bars contain literal silence. Balance the ease of sweeping lanes through a separate, visible driving challenge, never an unexplained music gate. The half-second automatic and E/RB immediate rules, Zone, Turbo and Echo remain.

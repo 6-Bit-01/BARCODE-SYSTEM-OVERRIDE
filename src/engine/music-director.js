@@ -88,8 +88,8 @@ window.FILE_MANIFEST.push({ name: 'src/engine/music-director.js', exports: ['BAR
       const bar = sample.grid.barIndex;
       const verseBar = (bar - 4) % 24;
       const half = bar < 4 ? 'intro' : verseBar < 8 ? 'verseA' : verseBar < 16 ? 'verseB' : 'chorus';
-      // The road commits aligned phrases. A short centered hold previews one
-      // part on a beat, but only committed phrases carry it after steering.
+      // A hold previews a part on a beat. A clean traffic pass or the once-per-
+      // section button commits it so it continues after the car changes lanes.
       // Every supplied source contains a complete aligned recording; sparse
       // passages stay quieter without being muted by a guessed section mask.
       const roles = new Set((requested.captures || []).filter(capture =>
@@ -105,8 +105,9 @@ window.FILE_MANIFEST.push({ name: 'src/engine/music-director.js', exports: ['BAR
         const role = source.mixRole;
         const volume = role === mix.backboneRole ? mix.levels[role] :
           roles.has(role) ? mix.levels[role] :
-            role === 'drive' ? mix.idle.drive :
-              role === 'flow' && half !== 'intro' ? mix.idle.flow : 0;
+            requested.hitRecovery ? 0 :
+              role === 'drive' ? mix.idle.drive :
+                role === 'flow' && half !== 'intro' ? mix.idle.flow : 0;
         this.volumes[source.sourceId] = volume;
         const track = audio.musicTracks[source.sourceId];
         if (track?.isPlaying && track.gain && Math.abs((track.volume ?? -1) - volume) > 0.005)
