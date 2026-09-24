@@ -1,5 +1,11 @@
 # Acceptance and Test Status
 
+## Current route — all four lanes without an artificial gate
+
+Import the exact merged main SHA for this correction. During intro bar 3, hold Breakaway then Undercurrent for half a second each: both should paint the upcoming verse bars 1–4 (song bars 5–8). Let the verse begin and check that both locks enter and stack; Undercurrent should be audible, while Breakaway's recording is much softer in this first half. Press E/RB in Breakaway or Undercurrent during chorus bar 28 and verify the current remainder **and** the next verse's first four bars stamp on the road. The MP3s and gain levels have not changed; an intro lane can be visually stamped during literal silence without new sounds appearing.
+
+Continue to try a four-lane sweep, close cuts, Turbo, Echo and a hit. Report whether x4 remains trivial with the lanes working, and note the section/controller if any lane still refuses to paint or produce its recorded part. This change addresses the false gate only; it does not claim to resolve the owner's difficulty and fun feedback. Production and browser tests do not replace a Makko listening/handling check. The routes below record earlier builds and their sparse-lane claims are superseded.
+
 ## Current route — Cache Road Zone and lane stack
 
 On this follow-up, pause with keyboard and controller to check that controls describe free hold and E/RB captures plus Zone. In chorus bars 25–28, press RB in Breakaway or Undercurrent: it should confirm the current recorded remainder only; the next verse A part is absent. At a paired gate, collide with either of its blocked vehicles and verify the adjacent vehicle does not also grant a near miss, score, Echo, Zone or Turbo. Retry normally afterward.

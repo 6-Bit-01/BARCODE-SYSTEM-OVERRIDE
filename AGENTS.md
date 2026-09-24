@@ -1,5 +1,9 @@
 # Repository Guidance
 
+## September 24, 2026 — Cache Road recorded-lane correction
+
+Owner playback contradicts the claimed missing stems. Directly decoded owner MP3s show Undercurrent throughout every verse A (about −30 dBFS RMS in bars 5–12) and softer Breakaway content there (about −43 dBFS). The hard-coded intro/verse A availability masks in the road and music director were an inaccurate inference; all four lanes now accept the current and upcoming four-bar capture through the 100-bar song. Some intro samples are genuinely silent and Breakaway is much quieter in verse A, so visible locks do not invent or amplify recorded content. Preserve the free half-second hold, E/RB current-plus-next, Zone, collision, road paint, save/exit and no-award boundaries. Owner's excessive ease report remains a separate balance issue; do not solve it by hiding or refusing lanes. Test and merge for Makko listening, then maintain the source pack from the exact revision.
+
 ## September 24, 2026 — Cache Road Zone review corrections
 
 Following merged #106 (`6b874006fa1de26afd727afa7feb89c7c5c8a853`), fix three concrete review findings on `agent/cache-road-zone-polish`: pause controls must describe free hold/E/RB captures and Zone; RB confirmation must name only the current and/or upcoming phrases actually sealed; a paired traffic collision must suppress every clean-pass reward from the same crossing even if the adjacent vehicle is processed first. Preserve #106's free four-bar stack, Zone timing/speed/time, MP3 transport, visual paint, hit stumble, Turbo/Echo and no-award boundary. Run focused and full validation, merge after CI for Makko, then refresh the maintained source pack from exact main. See `docs/source-pack/CACHE_ROAD_ZONE.md` and newest acceptance route.

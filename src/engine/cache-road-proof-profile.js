@@ -19,7 +19,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/cache-road-proof-profile.js', expo
       source('flow', 'flow'), source('breakaway', 'breakaway'),
       source('undercurrent', 'undercurrent')] },
     // All five sources start together. The live road supplies short captured
-    // bar spans; sparse recorded parts only become selectable on entry.
+    // bar spans; softer recorded passages remain selectable throughout.
     laneMix: { laneRoles: ['drive', 'flow', 'breakaway', 'undercurrent'],
       backboneRole: 'pressure', idle: { drive: 0.10, flow: 0.18 },
       captureFadeSec: 0.22, releaseFadeSec: 0.38,
