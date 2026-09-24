@@ -159,6 +159,16 @@ async function run() {
   assert.equal(road.state.queuedCaptures.length, 0);
   road.status = road.state.status = 'failed'; audio.context.currentTime = 0;
   assert(road.retry());
+  road.state.musicBar = 24; road.state.scoredThrough = 23;
+  road.state.lane = road.state.lanePos = 2;
+  audio.context.currentTime = 24 * 1.875 + .1;
+  road.handleActions({ inspect: { pressed: true } });
+  assert.equal(road.state.captures[0].endBeat, 112, 'RB still catches a recorded chorus remainder');
+  assert.equal(road.state.queuedCaptures.length, 0, 'the next verse A has no Breakaway part');
+  assert.equal(road.state.message, 'BREAKAWAY // NOW SEALED',
+    'RB reports only the current bars when the upcoming part is absent');
+  road.status = road.state.status = 'failed'; audio.context.currentTime = 0;
+  assert(road.retry());
   road.state.invulnerableMs = 10000;
   road.state.lockEnergy = 0;
   road.state.musicBar = 20; road.state.scoredThrough = 19;
@@ -239,8 +249,27 @@ async function run() {
   assert.equal(road.state.integrity, 3, 'gate at 975 leaves lane zero open');
   road.state.progress = 970; road.state.lanePos = road.state.lane = 1;
   road.state.speed = 54; road.state.invulnerableMs = 0;
+  road.state.nearMisses = 1; road.state.boost = 0;
+  const gateScore = road.state.score, gateEcho = road.state.echoEnergy;
+  const gateZone = road.state.lockEnergy;
   audio.context.currentTime += .1; road.handleActions({}); road.update(100);
   assert.equal(road.state.integrity, 2, 'the paired traffic blocks lane one');
+  assert.equal(road.state.score, gateScore, 'the neighboring gate vehicle pays no pass after contact');
+  assert.equal(road.state.echoEnergy, gateEcho);
+  assert.equal(road.state.lockEnergy, gateZone);
+  assert.equal(road.state.nearMisses, 0);
+  assert.equal(road.state.boost, 0, 'a gate collision cannot grant Turbo from a prior near miss');
+  road.status = road.state.status = 'failed'; audio.context.currentTime = 0;
+  assert(road.retry());
+  road.state.progress = 970; road.state.lanePos = road.state.lane = 2;
+  road.state.speed = 54; road.state.invulnerableMs = 0;
+  road.state.musicBar = 10; road.state.scoredThrough = 9;
+  road.state.boost = 0;
+  const secondGateScore = road.state.score;
+  audio.context.currentTime = 20; road.handleActions({}); road.update(100);
+  assert.equal(road.state.integrity, 2, 'lane two collides with the paired gate');
+  assert.equal(road.state.score, secondGateScore,
+    'an earlier neighbor is not rewarded before a later vehicle at the same crossing hits');
   road.status = road.state.status = 'failed'; audio.context.currentTime = 0;
   assert(road.retry());
   for (let frame = 1; frame <= 300 && road.status === 'playing'; frame++) {

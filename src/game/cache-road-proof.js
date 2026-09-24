@@ -415,22 +415,23 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       if (barIndex >= 100) return;
       const lane = clamp(Math.round(s.lanePos), 0, 3);
       const boundary = nextStrip(barIndex), endBeat = boundary * 4;
-      let changed = false;
+      let currentSealed = false, nextSealed = false;
       if (laneAvailable(lane, barIndex) && !s.captures.some(c => c.lane === lane && c.endBeat >= endBeat)) {
         s.captures = s.captures.filter(c => c.lane !== lane);
         s.captures.push({ lane, startBeat: beatIndex, endBeat, inkAtMs: s.elapsedMs });
         s.peakStack = Math.max(s.peakStack, stackSize(s));
-        changed = true;
+        currentSealed = true;
       }
       if (availableFor(lane, boundary, boundary + 4) &&
           !s.queuedCaptures.some(c => c.lane === lane && c.startBeat === endBeat)) {
         s.queuedCaptures.push({ lane, startBeat: endBeat, endBeat: endBeat + 16,
           inkAtMs: s.elapsedMs });
-        changed = true;
+        nextSealed = true;
       }
-      if (changed) {
+      if (currentSealed || nextSealed) {
         s.visitArmedStart = boundary;
-        s.message = `${LANES[lane]} // ${laneAvailable(lane, barIndex) ? 'NOW + ' : ''}NEXT 4 SEALED`;
+        s.message = `${LANES[lane]} // ${currentSealed ? 'NOW' : ''}` +
+          `${currentSealed && nextSealed ? ' + ' : ''}${nextSealed ? 'NEXT 4' : ''} SEALED`;
         s.messageMs = 950;
         window.audioSystem?.playCombatCue?.('inspect');
       } else if (!laneAvailable(lane, barIndex) && !availableFor(lane, boundary, boundary + 4)) {
@@ -477,7 +478,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       s.zoneEndBeat = -1;
       s.candidateLane = null; s.candidateSince = null;
       s.previewLane = null; s.previewBeat = null; s.visitArmedStart = null;
-      s.stumbleMs = 650; s.cutStreak = 0; s.cutFlashMs = 0;
+      s.stumbleMs = 650; s.cutStreak = 0; s.cutFlashMs = 0; s.nearMisses = 0;
       s.message = ''; s.messageMs = 0;
       window.audioSystem?.playRoadStumble?.();
       window.audioSystem?.playCombatCue?.('damage');
@@ -548,6 +549,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         s.echoEnergy = clamp(s.echoEnergy + 8 * seconds, 0, 100);
       }
 
+      // Resolve every vehicle at a crossing before paying clean-pass rewards.
+      // A paired gate can otherwise award a near miss from its second vehicle
+      // in the very frame where its first vehicle hits the car.
+      const contactAt = new Set(), pendingPasses = [];
       for (const hazard of HAZARDS) {
         const distance = hazard.at - s.progress;
         const hazardId = `${hazard.at}/${hazard.lane}`;
@@ -571,13 +576,16 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         if (before >= hazard.at || s.progress < hazard.at) continue;
         const gap = Math.abs(lane - s.lanePos);
         if (gap < (hazard.kind === 'freight' ? 0.53 : 0.45)) {
+          contactAt.add(hazard.at);
           this.hit(hazard.kind === 'block' ? 'roadblock' : hazard.kind);
           if (this.status === 'failed') return;
         } else if (gap < 1.13 && s.speed >= 25) {
-          this.cleanPass(!!s.cutMarks[hazardId] && gap < 1.08 && s.speed >= 38);
+          pendingPasses.push({ at: hazard.at,
+            cut: !!s.cutMarks[hazardId] && gap < 1.08 && s.speed >= 38 });
         }
         delete s.cutMarks[hazardId];
       }
+      for (const pass of pendingPasses) if (!contactAt.has(pass.at)) this.cleanPass(pass.cut);
       if (s.progress >= 3 * LAP + 1700 && s.musicBar < 100) {
         const distance = s.nextRivalAt - s.progress;
         const enteringWarning = !s.rivalWarning && distance <= 120 && distance > 0;

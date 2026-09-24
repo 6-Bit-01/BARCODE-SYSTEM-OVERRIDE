@@ -1,5 +1,9 @@
 # Repository Guidance
 
+## September 24, 2026 — Cache Road Zone review corrections
+
+Following merged #106 (`6b874006fa1de26afd727afa7feb89c7c5c8a853`), fix three concrete review findings on `agent/cache-road-zone-polish`: pause controls must describe free hold/E/RB captures and Zone; RB confirmation must name only the current and/or upcoming phrases actually sealed; a paired traffic collision must suppress every clean-pass reward from the same crossing even if the adjacent vehicle is processed first. Preserve #106's free four-bar stack, Zone timing/speed/time, MP3 transport, visual paint, hit stumble, Turbo/Echo and no-award boundary. Run focused and full validation, merge after CI for Makko, then refresh the maintained source pack from exact main. See `docs/source-pack/CACHE_ROAD_ZONE.md` and newest acceptance route.
+
 ## September 24, 2026 — Cache Road Zone and clear lane captures
 
 The owner reports that merged #105's 60/40 ink gate makes lane captures feel random and prevents stacking. This focused `agent/cache-road-zone` pass supersedes that payment rule: a centered 0.5-second hold freely commits the **next aligned four bars** of that lane, and E/RB immediately commits the recorded remainder of the current four-bar section **plus the next four bars** when that stem exists. Each visit is idempotent; long holds no longer silently extend to eight. Close cuts, near misses, freight drafting and clean bars fill Zone. A charged Zone begins when a queued phrase enters, speeds that aligned four-bar stretch and refunds 1.5 seconds once. Preserve #105's single road-projected paint, denser fair traffic, Turbo/Echo, hit stumble with a clear road, five supplied MP3s, 100-bar form, old saves and no campaign award. See `docs/source-pack/CACHE_ROAD_ZONE.md` and the newest acceptance route. Merge after CI for Makko testing; owner fun, controller and listening acceptance remains open. Earlier Cutline guidance below is historical.
