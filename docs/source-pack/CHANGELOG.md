@@ -1,5 +1,11 @@
 # Recovery checkpoint — September 14
 
+## September 24, 2026 — Zone review corrections
+
+- Correct paused road controls for the free hold and E/RB now-plus-next rule; explain that close cuts charge Zone.
+- Confirm only current and/or next phrases RB actually sealed, including a chorus-to-verse boundary where Breakaway is absent next.
+- Defer clean-pass rewards across a traffic crossing and discard them if any co-located vehicle hits. Reset near-miss progress on hit. Preserve the approved stack, Zone, road visuals, audio, Turbo/Echo and full-song route.
+
 ## September 24, 2026 — free phrase captures and earned Zone
 
 - Make the next aligned four bars lock automatically after 0.5 seconds in a lane, regardless of meter. E/RB immediately catches the current recorded remainder plus the next four; duplicate taps do not extend it. Remove the paid 60/40 capture and hidden eight-bar hold.
