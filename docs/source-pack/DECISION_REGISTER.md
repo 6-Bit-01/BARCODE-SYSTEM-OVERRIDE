@@ -1,5 +1,9 @@
 # Decision Register
 
+## September 24, 2026 — predictable stacking, earned speed
+
+The owner clarifies that paid music locks in #105 obscure the core goal of stacking parts. The current rule is a free next-four-bar capture after 0.5 seconds in a lane; E/RB acts immediately on the recorded current remainder and next aligned four bars. The existing song's sparse entries remain honest, so an absent part cannot sound early. A lane visit never silently buys an eight-bar extension. Close cuts and other driving actions now charge Zone rather than permission to hear music. At a queued phrase boundary, 60 Zone buys four bars at faster road speed and adds 1.5 seconds to the time window. Turbo and Echo keep their approved roles. These values are a review balance for Makko, not a claim that the owner accepted the feel. Preserve the road-projected visuals and no-award campaign boundary. See `CACHE_ROAD_ZONE.md`; the paid Cutline decision below is superseded.
+
 ## September 24, 2026 — earned automatic road captures
 
 The owner found merged #104's duplicated visual layer, free lane-by-lane capture and low difficulty unsatisfying. Keep their explicit **automatic lock** requirement and the upcoming song-structure-aligned 4/8-bar sections, but require earned ink rather than a lock button. The current playtest balance is 60% for four bars and another 40% for eight; a real late traffic escape refills 70, an ordinary adjacent pass only 8, and a completed clean bar 3. The first meter begins full. The cut streak, denser fair traffic gates, Turbo protection and Echo audit lure create meaningful risk, route choice and ability timing. Project the phrase paint on one road surface and remove detached overlays and lower cards. These numbers and look are review hypotheses pending Makko; no new audio asset, Level 2 award or story fact is authorized. See `CACHE_ROAD_CUTLINE.md`; the free-lock entry below is superseded.
