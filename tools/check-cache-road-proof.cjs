@@ -139,9 +139,18 @@ async function run() {
   road.cleanPass(true, 3);
   assert.equal(road.state.queuedCaptures.length, 2,
     'Undercurrent can also be carried into the upcoming verse A');
+  road.state.lane = road.state.lanePos = 0;
+  audio.context.currentTime += .1; road.update(100);
+  audio.context.currentTime += .55; road.update(100);
+  assert(road.state.armedCaptures.some(c => c.lane === 0));
+  road.state.boostMs = 1000;
+  road.cleanPass(false, 0);
+  assert(road.state.captures.some(c => c.lane === 0),
+    'a Turbo clean pass carries its prepared part and grants its usual reward');
+  road.state.boostMs = 0;
   audio.context.currentTime = 4 * 1.875 + .01; road.update(100);
-  assert.equal(road.state.peakStack, 2,
-    'both early parts stack across the aligned verse boundary');
+  assert.deepEqual(copy(road.state.captures.map(c => c.lane).sort()), [2, 3],
+    'the two close-cut parts carry into verse A; the Turbo pass ends at the boundary');
   road.status = road.state.status = 'failed'; audio.context.currentTime = 0;
   assert(road.retry());
   audio.context.currentTime = 2 * 1.875 + .1;
@@ -300,6 +309,11 @@ async function run() {
   assert.equal(B.musicDirector.getVolume('cache-drive'), 0,
     'the former bed does not disguise the lost stack');
   assert.equal(B.musicDirector.getVolume('cache-flow'), 0);
+  const recoveryScore = road.state.score, recoveryZone = road.state.lockEnergy;
+  road.cleanPass(false, 0);
+  assert.equal(road.state.score, recoveryScore,
+    'a pass during hit invulnerability is not reported as clean');
+  assert.equal(road.state.lockEnergy, recoveryZone);
   // A three-lane gate leaves a visible open route, but camping in one of its
   // blocked lanes still costs integrity. Both cases use production collision.
   road.status = road.state.status = 'failed'; audio.context.currentTime = 0;

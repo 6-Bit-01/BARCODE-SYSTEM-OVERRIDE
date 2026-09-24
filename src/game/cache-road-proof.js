@@ -408,7 +408,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const s = this.state, beatIndex = Math.floor(s.musicBeatFloat);
       const armed = s.armedCaptures.find(c => c.lane === lane &&
         c.startBeat <= beatIndex && c.endBeat > beatIndex);
-      if (!armed || s.invulnerableMs || s.boostMs) return false;
+      if (!armed || s.invulnerableMs) return false;
       const boundary = nextStrip(s.musicBar), endBeat = boundary * 4;
       let currentSealed = false, nextSealed = false;
       if (!s.captures.some(c => c.lane === lane && c.endBeat >= endBeat)) {
@@ -518,6 +518,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     },
     cleanPass(cut = false, lane = this.state.lane) {
       const s = this.state;
+      // A collision's grace window is recovery, not a clean crossing. Turbo
+      // passes still count and can carry a prepared part.
+      if (s.invulnerableMs) return;
       this.sealArmedCapture(lane, cut);
       s.nearMisses++;
       s.echoEnergy = clamp(s.echoEnergy + (cut ? 35 : 16), 0, 100);
