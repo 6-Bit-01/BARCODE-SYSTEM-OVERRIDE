@@ -88,18 +88,14 @@ window.FILE_MANIFEST.push({ name: 'src/engine/music-director.js', exports: ['BAR
       const bar = sample.grid.barIndex;
       const verseBar = (bar - 4) % 24;
       const half = bar < 4 ? 'intro' : verseBar < 8 ? 'verseA' : verseBar < 16 ? 'verseB' : 'chorus';
-      // A hold previews a part on a beat. Its visible next-bar choice or the
-      // once-per-section button keeps it playing after the car changes lanes.
+      // A successful safe road pulse starts its part on a judged beat and
+      // carries it after the car changes lanes.
       // Every supplied source contains a complete aligned recording; sparse
       // passages stay quieter without being muted by a guessed section mask.
       const roles = new Set((requested.captures || []).filter(capture =>
         capture.startBeat <= sample.grid.beatIndex &&
         capture.endBeat > sample.grid.beatIndex && mix.laneRoles[capture.lane])
         .map(capture => mix.laneRoles[capture.lane]));
-      if (requested.previewLane != null && requested.previewBeat <= sample.grid.beatIndex) {
-        const previewRole = mix.laneRoles[requested.previewLane];
-        if (previewRole) roles.add(previewRole);
-      }
       this.state = { bar, half, roles: [...roles] };
       for (const source of profile.arrangement.sources) {
         const role = source.mixRole;

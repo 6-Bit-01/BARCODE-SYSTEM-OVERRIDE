@@ -8,8 +8,10 @@ window.FILE_MANIFEST.push({
 
 (function() {
   const BARCODE = window.BARCODE = window.BARCODE || {};
-  const ACTIONS = ['move_left', 'move_right', 'move_down', 'jump', 'primary', 'interact', 'inspect', 'pause', 'rhythm_mode'];
-  const EDGE_ACTIONS = new Set(['jump', 'primary', 'interact', 'inspect', 'pause', 'rhythm_mode']);
+  const ACTIONS = ['move_left', 'move_right', 'move_up', 'move_down', 'jump', 'primary', 'interact', 'inspect', 'pause', 'rhythm_mode',
+    'road_a', 'road_b', 'road_x', 'road_y', 'road_turbo', 'road_echo'];
+  const EDGE_ACTIONS = new Set(['jump', 'primary', 'interact', 'inspect', 'pause', 'rhythm_mode',
+    'road_a', 'road_b', 'road_x', 'road_y', 'road_turbo', 'road_echo']);
   // Dropping through a platform is deliberate: at least 70% downward travel,
   // within 35 degrees of straight down. Walking/menu deadzones stay separate.
   const DROP_STICK_MIN = 0.7;
@@ -17,24 +19,32 @@ window.FILE_MANIFEST.push({
   const DEFAULT_KEYBOARD = {
     move_left: ['arrowleft', 'a'],
     move_right: ['arrowright', 'd'],
+    move_up: ['arrowup', 'w'],
     move_down: ['arrowdown', 's'],
     jump: [' ', 'arrowup', 'w'],
     primary: ['arrowdown'],
     interact: ['h'],
     inspect: ['e'],
     pause: ['p'],
-    rhythm_mode: ['r']
+    rhythm_mode: ['r'],
+    // A right-hand diamond keeps the left hand free to steer and change speed.
+    road_a: ['k'], road_b: ['l'], road_x: ['j'], road_y: ['i'],
+    road_turbo: [' '], road_echo: ['h']
   };
   const DEFAULT_GAMEPAD = {
     move_left: [{ axis: 0, dir: -1 }, { button: 14 }],
     move_right: [{ axis: 0, dir: 1 }, { button: 15 }],
+    move_up: [{ axis: 1, dir: -1 }, { button: 12 }],
     move_down: [{ axis: 1, dir: 1 }, { button: 13 }],
     jump: [{ button: 0 }],
     primary: [{ button: 0 }],
     interact: [{ button: 3 }],
     inspect: [{ button: 5 }],
     pause: [{ button: 9 }],
-    rhythm_mode: [{ button: 4 }]
+    rhythm_mode: [{ button: 4 }],
+    road_a: [{ button: 0 }], road_b: [{ button: 1 }],
+    road_x: [{ button: 2 }], road_y: [{ button: 3 }],
+    road_turbo: [{ button: 4 }], road_echo: [{ button: 5 }]
   };
 
   function clone(value) { return JSON.parse(JSON.stringify(value)); }

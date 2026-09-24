@@ -1,5 +1,19 @@
 # Decision Register
 
+## September 24, 2026 — four face actions and safe timed pulses
+
+The owner's latest direction replaces the old hold-and-seal lane capture.
+Cache Road's four face buttons now perform Surge, Push, Brace and Refill on
+authored, beat-timed, lane-specific glowing pickups. Left/right steers,
+up/down varies speed and its bonuses, and the two bumpers own Turbo and Echo.
+The pickups are harmless and visually separate from physical traffic; missed
+buttons never cause contact damage. Consecutive catches extend four-bar parts
+to eight, and all four active parts expose the future crew-vocal gate. Keep
+the existing four lane names and song; no vocal recording has been supplied.
+See `CACHE_ROAD_PULSE_ACTIONS.md`. This is unmerged review implementation,
+pending owner Makko playtest; prior music-selection decisions below are
+historical for this route.
+
 ## September 24, 2026 — driver reflection, not portrait card
 
 The owner clarified that Cache Back should appear in the rearview itself: only a partial face, with his eyes on the road. A model-based close crop shares the mirror glass and changes expression with existing driving events. The rear road remains a decorative loop. This is a local art review with no PR yet; the previous unpublished vehicle/world source must be restored before claiming a complete build. See `CACHE_ROAD_MIRROR_ART.md`.

@@ -1,5 +1,26 @@
 # Current State
 
+## September 24 — Cache Road safe pulse prototype (PR review)
+
+Based on merged art-loader repair `950ce07`. Seven repeatable face-button
+pulses appear per four-bar phrase, rotate across the four established lanes,
+and arrive on the 128 BPM transport. A matching timed press in the marked
+lane earns four bars of its part; consecutive catches hold eight. The four
+buttons supply Surge, Push, Brace and Refill. Left/right still steers,
+up/down changes speed and bonuses, and LB/RB spend Turbo/Echo on controller.
+The safe mint rings are drawn above the road with their own symbol and text;
+traffic stays solid. Unprotected contact still cuts to drums-only recovery.
+The existing Pressure plus four lane MP3s, art, checkpoints, final exit and
+campaign no-award boundary remain. The full-adrenaline state exposes a
+future vocal gate, but no crew-vocal MP3 exists in this source.
+
+The focused harness reaches four parts through real steering and traffic,
+checks all inputs and hit outcomes, and traverses the full song/old saves.
+`npm test` and `npm run check:syntax:all` pass. Chromium was unavailable
+for the optional browser decoder test. Neither native drawing nor local VM
+checks prove Makko controller feel, audio timing or visual readability.
+Review `CACHE_ROAD_PULSE_ACTIONS.md` and the acceptance route before merging.
+
 ## September 24 — Cache Road art delivery repair (PR review)
 
 The owner reports seeing the old graphics after the art PRs merged. The 19

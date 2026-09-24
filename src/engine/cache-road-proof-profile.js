@@ -28,6 +28,8 @@ window.FILE_MANIFEST.push({ name: 'src/engine/cache-road-proof-profile.js', expo
     playback: { startTrackSec: 0, loop: null, endPolicy: 'native-loop' },
     timeline: { mode: 'fixed-tempo', gridOriginTrackSec: 0,
       fixedGrid: { quarterBpm: 128, beatsPerBar: 4, beatUnit: 4 } },
-    phrasePresentation: { barsPerPhrase: 4, beatCount: 16 }, judgmentRules: []
+    phrasePresentation: { barsPerPhrase: 4, beatCount: 16 },
+    judgmentRules: [{ id: 'road-pulse', target: 'lane-pulse',
+      windowsMs: { perfect: 90, excellent: 185 }, calibrationOffsetMs: 0 }]
   });
 })(window.BARCODE = window.BARCODE || {});
