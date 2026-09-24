@@ -156,6 +156,12 @@ async function run() {
   audio.context.currentTime = 4 * 1.875 + .01; road.update(100);
   assert.deepEqual(copy(road.state.captures.map(c => c.lane)), [2],
     'the verse starts with the deliberate last-bar choice; the intro part expires');
+  assert.equal(road.state.pendingCapture, null,
+    'crossing the bar line does not immediately choose the same lane again');
+  road.state.lane = road.state.lanePos = 0;
+  audio.context.currentTime += .1; road.update(100);
+  assert.equal(road.state.pendingCapture, null,
+    'dodging just after the beat cannot silently extend the last-bar choice');
   road.status = road.state.status = 'failed'; audio.context.currentTime = 0;
   assert(road.retry());
   audio.context.currentTime = 2 * 1.875 + .1;
@@ -257,6 +263,22 @@ async function run() {
   audio.context.currentTime = 24 * 1.875 + .01; road.update(100);
   assert.equal(road.state.captures.length, 1, 'the brief four-part stack ends at the section edge');
   assert.equal(road.state.captures[0].lane, 2, 'the one RB carry remains into the next section');
+  road.status = road.state.status = 'failed'; audio.context.currentTime = 0;
+  assert(road.retry());
+  road.state.musicBar = 22; road.state.scoredThrough = 21;
+  road.state.invulnerableMs = 10000;
+  road.state.lane = road.state.lanePos = 2;
+  audio.context.currentTime = 22 * 1.875 + .1; road.update(100);
+  audio.context.currentTime += .55; road.update(100);
+  assert.deepEqual(copy(road.state.pendingCapture), { lane: 2, startBeat: 92, endBeat: 96 });
+  audio.context.currentTime = 23 * 1.875 + .01; road.update(100);
+  assert.equal(road.state.captures[0].endBeat, 96);
+  assert.equal(road.state.pendingCapture, null, 'the new bar starts a fresh hold timer');
+  road.state.lane = road.state.lanePos = 0;
+  audio.context.currentTime += .1; road.update(100);
+  audio.context.currentTime = 24 * 1.875 + .01; road.update(100);
+  assert.equal(road.state.captures.length, 0,
+    'a last-bar choice expires at the section edge if the player dodges after the beat');
   road.status = road.state.status = 'failed'; audio.context.currentTime = 0;
   assert(road.retry());
   road.state.lockEnergy = 0;

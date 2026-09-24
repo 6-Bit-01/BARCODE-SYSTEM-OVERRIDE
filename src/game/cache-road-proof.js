@@ -138,7 +138,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     const lanePos = saved.lanePos ?? saved.lane ?? 1;
     return { progress, lanePos, lane: Math.round(lanePos), visualLane: lanePos,
       captures: [], queuedCaptures: [], pendingCapture: null, candidateLane: null, candidateSince: null,
-      candidateHold: 0,
+      candidateHold: 0, candidateBar: saved.musicBar ?? 0,
       previewLane: null, previewBeat: null,
       lastSnapStartBar: -1, hitRecovery: false,
       cutMarks: {}, cutStreak: 0, cutFlashMs: 0, cutAward: 0,
@@ -345,6 +345,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       if (!music?.running || music.profileId !== PROFILE || !music.grid) return;
       const s = this.state, { beatIndex, barIndex } = music.grid;
       s.musicBeatFloat = music.grid.beatFloat;
+      // A hold must spend its full half second inside the bar making the
+      // choice. Remaining centered across a downbeat cannot renew it for free.
+      if (s.candidateBar !== barIndex) {
+        s.candidateBar = barIndex;
+        s.candidateLane = null; s.candidateSince = null; s.candidateHold = 0;
+        s.previewLane = null; s.previewBeat = null;
+      }
       // Award a completed clean bar before removing a capture that expires on
       // this boundary. Damage marks its bar and removes the current stack.
       for (let completed = s.scoredThrough + 1; completed < barIndex && completed < 100; completed++) {
