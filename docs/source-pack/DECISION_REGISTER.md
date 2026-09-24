@@ -1,5 +1,9 @@
 # Decision Register
 
+## September 24, 2026 — every supplied lane remains capturable
+
+The owner's observation that all four lane MP3s contain audio is correct. The previous first-half-verse restriction was an inference from relative loudness, not an absent recording: decoded verse A RMS is about −30 dBFS for Undercurrent and −43 dBFS for Breakaway. Let all four lanes lock and enter on their aligned phrases, including chorus-to-verse and intro-to-verse boundaries. Keep the source levels and supplied MP3 bytes unchanged; the quieter Breakaway passage may have a subtle audible effect, and a few intro bars contain literal silence. Balance the ease of sweeping lanes through a separate, visible driving challenge, never an unexplained music gate. The half-second automatic and E/RB immediate rules, Zone, Turbo and Echo remain.
+
 ## September 24, 2026 — predictable stacking, earned speed
 
 The owner clarifies that paid music locks in #105 obscure the core goal of stacking parts. The current rule is a free next-four-bar capture after 0.5 seconds in a lane; E/RB acts immediately on the recorded current remainder and next aligned four bars. The existing song's sparse entries remain honest, so an absent part cannot sound early. A lane visit never silently buys an eight-bar extension. Close cuts and other driving actions now charge Zone rather than permission to hear music. At a queued phrase boundary, 60 Zone buys four bars at faster road speed and adds 1.5 seconds to the time window. Turbo and Echo keep their approved roles. These values are a review balance for Makko, not a claim that the owner accepted the feel. Preserve the road-projected visuals and no-award campaign boundary. See `CACHE_ROAD_ZONE.md`; the paid Cutline decision below is superseded.

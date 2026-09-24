@@ -1,5 +1,10 @@
 # Recovery checkpoint — September 14
 
+## September 24, 2026 — correct false sparse-stem gate
+
+- Allow all four recorded MP3 lanes to lock the current/next aligned four bars and enter the mix for the complete song. Breakaway is softer in verse A; Undercurrent is clearly present there. Remove the hard-coded section mask and false later-arrival label without modifying audio files or gains.
+- Cover automatic intro-to-verse locks for Breakaway/Undercurrent, chorus-to-verse RB, verse A output gain, and the existing full-song/traffic/Zone rules. The difficulty complaint remains open for a driving/score pass rather than an invisible lock restriction.
+
 ## September 24, 2026 — Zone review corrections
 
 - Correct paused road controls for the free hold and E/RB now-plus-next rule; explain that close cuts charge Zone.

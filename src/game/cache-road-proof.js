@@ -29,17 +29,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   ]).flat());
   const clone = value => JSON.parse(JSON.stringify(value));
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
-  const laneAvailable = (lane, bar) => bar >= 0 && bar < 100 && (lane === 0 ||
-    (lane === 1 ? bar >= 4 : bar >= 12 && (bar - 4) % 24 >= 8));
+  // Every supplied stem runs for the complete song. Some recorded passages
+  // are softer, but that is not a reason to reject their lane captures.
+  const laneAvailable = (lane, bar) => lane >= 0 && lane < LANES.length &&
+    bar >= 0 && bar < 100;
   const availableFor = (lane, startBar, endBar) =>
-    Array.from({ length: endBar - startBar }, (_, index) => startBar + index)
-      .every(bar => laneAvailable(lane, bar));
+    startBar >= 0 && endBar <= 100 && startBar < endBar && laneAvailable(lane, startBar);
   const nextStrip = bar => (Math.floor(bar / 4) + 1) * 4;
-  const laneArrival = (lane, bar) => {
-    if (lane === 1) return 4;
-    if (bar < 12) return 12;
-    return 4 + Math.ceil((bar - 4) / 24) * 24 + 8;
-  };
   const songSection = bar => {
     if (bar < 4) return 'INTRO';
     if (bar >= 100) return 'TAPE END';
@@ -434,9 +430,6 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           `${currentSealed && nextSealed ? ' + ' : ''}${nextSealed ? 'NEXT 4' : ''} SEALED`;
         s.messageMs = 950;
         window.audioSystem?.playCombatCue?.('inspect');
-      } else if (!laneAvailable(lane, barIndex) && !availableFor(lane, boundary, boundary + 4)) {
-        const arrival = laneArrival(lane, barIndex);
-        s.message = `${LANES[lane]} RECORDED AT BAR ${arrival + 1}`; s.messageMs = 950;
       }
     },
     sendEcho() {
@@ -968,7 +961,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.font = 'bold 13px Oxanium, monospace'; ctx.textAlign = 'left';
         ctx.fillText(`${i+1} ${['DRIVE','FLOW','BREAK','FX'][i]} ${queued ? `Q${queued.startBeat/4+1}` :
           capture ? `${Math.max(0,Math.ceil((capture.endBeat-s.musicBeatFloat)/4))}B` :
-            !laneAvailable(i,s.musicBar) ? `AT ${laneArrival(i,s.musicBar)+1}` : 'READY'}`, x, 145);
+            'READY'}`, x, 145);
         ctx.fillStyle = PALETTE[i]; ctx.globalAlpha = capture ? 1 : queued ? .65 : s.lane === i ? .45 : .16;
         ctx.fillRect(x, 151, 148, 5); ctx.globalAlpha = 1;
       }

@@ -1,5 +1,9 @@
 # Current State
 
+## September 24 — all four recorded lanes can lock
+
+The owner found lanes refusing to lock. The hard-coded mask treated verse A Breakaway/Undercurrent as absent. Decoding the unchanged owner MP3s confirms both contain audio during verse A: approximately −43 and −30 dBFS RMS respectively in the first verse's bars 5–12. Breakaway is much softer than its verse B part (about −20 dBFS), but it is not missing. The road and music director now accept all four lane captures throughout the 100-bar song, including an RB capture at chorus bar 28 into the following verse A. The road no longer promises a false later entrance. Genuine quiet passages retain their original levels. The owner has also reported that capturing every available lane feels too easy; this correction fixes the false gate, not that balance judgment. Makko sound and difficulty remain to be assessed.
+
 ## September 24 — Zone review corrections (follow-up)
 
 The merged #106 build establishes free half-second next-four-bar captures, RB current-plus-next when recorded, and a separate faster four-bar Zone. Review identified three clarity/skill-credit defects. The follow-up updates both keyboard/controller pause instructions, reports only phrases RB actually added when a stem disappears at a section boundary, and settles an entire paired gate before paying near-miss rewards so a collision cannot award Zone, Echo, score or Turbo from its adjacent vehicles. A hit also resets near-miss progress. The current musical timing, projected road paint, five owner MP3s, full song and campaign boundaries remain. Production tests cover both orders of a paired gate hit and an unavailable next phrase; owner Makko sound and feel remain pending. See `CACHE_ROAD_ZONE.md`.

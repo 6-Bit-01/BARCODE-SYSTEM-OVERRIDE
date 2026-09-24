@@ -88,17 +88,17 @@ window.FILE_MANIFEST.push({ name: 'src/engine/music-director.js', exports: ['BAR
       const bar = sample.grid.barIndex;
       const verseBar = (bar - 4) % 24;
       const half = bar < 4 ? 'intro' : verseBar < 8 ? 'verseA' : verseBar < 16 ? 'verseB' : 'chorus';
-      const available = half === 'intro' ? ['drive'] :
-        half === 'verseA' ? ['drive', 'flow'] : mix.laneRoles;
       // The road commits aligned phrases. A short centered hold previews one
       // part on a beat, but only committed phrases carry it after steering.
+      // Every supplied source contains a complete aligned recording; sparse
+      // passages stay quieter without being muted by a guessed section mask.
       const roles = new Set((requested.captures || []).filter(capture =>
         capture.startBeat <= sample.grid.beatIndex &&
-        capture.endBeat > sample.grid.beatIndex && available.includes(mix.laneRoles[capture.lane]))
+        capture.endBeat > sample.grid.beatIndex && mix.laneRoles[capture.lane])
         .map(capture => mix.laneRoles[capture.lane]));
       if (requested.previewLane != null && requested.previewBeat <= sample.grid.beatIndex) {
         const previewRole = mix.laneRoles[requested.previewLane];
-        if (available.includes(previewRole)) roles.add(previewRole);
+        if (previewRole) roles.add(previewRole);
       }
       this.state = { bar, half, roles: [...roles] };
       for (const source of profile.arrangement.sources) {

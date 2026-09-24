@@ -77,8 +77,10 @@ async function run() {
   tick(.3, 0); assert.equal(volume('drive'), .19, 'held lane previews without a seal');
   road.state.previewLane = null; road.state.previewBeat = null;
   tick(.4, 3); assert.equal(volume('drive'), .10, 'preview leaves with the lane');
-  tick(8, 2);
-  assert.equal(volume('breakaway'), 0, 'silent first-half verse cannot be caught');
+  tick(8, 2, [{ lane: 2, startBeat: 32, endBeat: 48 },
+    { lane: 3, startBeat: 32, endBeat: 48 }]);
+  assert.equal(volume('breakaway'), .50, 'soft Breakaway verse A is selectable');
+  assert.equal(volume('undercurrent'), .62, 'recorded Undercurrent verse A is not masked');
   tick(12.5, 2, [{ lane: 2, startBeat: 48, endBeat: 64, sealed: true },
     { lane: 3, startBeat: 48, endBeat: 64 }]);
   assert.equal(volume('breakaway'), .50);
@@ -121,12 +123,24 @@ async function run() {
   const unspent = road.state.lockEnergy;
   road.update(100);
   audio.context.currentTime += .55; road.update(100);
-  assert.equal(road.state.queuedCaptures.length, 0, 'sparse target cannot auto-lock');
-  assert(road.state.lockEnergy >= unspent, 'sparse part does not consume Zone');
-  const zoneBeforeFlow = road.state.lockEnergy;
-  audio.context.currentTime += .05;
+  assert.deepEqual(copy(road.state.queuedCaptures.map(({ lane, startBeat, endBeat }) =>
+    ({ lane, startBeat, endBeat }))), [{ lane: 2, startBeat: 16, endBeat: 32 }],
+    'Breakaway can lock the upcoming verse A despite its softer recording');
+  assert(road.state.lockEnergy >= unspent, 'the lock does not spend Zone');
+  road.state.lane = road.state.lanePos = 3;
+  audio.context.currentTime += .1; road.update(100);
+  audio.context.currentTime += .55; road.update(100);
+  assert.equal(road.state.queuedCaptures.length, 2,
+    'Undercurrent can also lock the upcoming verse A');
+  audio.context.currentTime = 4 * 1.875 + .01; road.update(100);
+  assert.equal(road.state.peakStack, 2,
+    'both early parts stack across the aligned verse boundary');
+  road.status = road.state.status = 'failed'; audio.context.currentTime = 0;
+  assert(road.retry());
+  audio.context.currentTime = 2 * 1.875 + .1;
   road.state.lane = road.state.lanePos = 1;
   road.update(100);
+  const zoneBeforeFlow = road.state.lockEnergy;
   audio.context.currentTime += .55; road.update(100);
   assert.deepEqual(copy(road.state.queuedCaptures.map(({ lane, startBeat, endBeat }) =>
     ({ lane, startBeat, endBeat }))), [{ lane: 1, startBeat: 16, endBeat: 32 }],
@@ -142,7 +156,8 @@ async function run() {
   assert.equal(road.state.queuedCaptures[0].endBeat, 32,
     'a long hold remains a four-bar phrase; the next section needs another choice');
   road.update(100);
-  assert.equal(road.state.captures.length, 0, 'an armed phrase cannot play early');
+  assert.equal(road.state.captures.length, 1,
+    'RB immediately stamps the current intro remainder too');
   audio.context.currentTime = 4 * 1.875 + .01;
   road.update(100);
   assert.equal(road.state.captures[0].startBeat, 16);
@@ -164,9 +179,15 @@ async function run() {
   audio.context.currentTime = 24 * 1.875 + .1;
   road.handleActions({ inspect: { pressed: true } });
   assert.equal(road.state.captures[0].endBeat, 112, 'RB still catches a recorded chorus remainder');
-  assert.equal(road.state.queuedCaptures.length, 0, 'the next verse A has no Breakaway part');
-  assert.equal(road.state.message, 'BREAKAWAY // NOW SEALED',
-    'RB reports only the current bars when the upcoming part is absent');
+  assert.equal(road.state.queuedCaptures.length, 1,
+    'the next verse A Breakaway passage is quiet but recorded');
+  assert.equal(road.state.message, 'BREAKAWAY // NOW + NEXT 4 SEALED',
+    'RB confirms both the current and upcoming recorded bars');
+  road.state.lane = road.state.lanePos = 3;
+  road.handleActions({ inspect: { pressed: true } });
+  assert.equal(road.state.queuedCaptures.length, 2,
+    'Undercurrent likewise carries from chorus into its audible verse A part');
+  assert.equal(road.state.message, 'UNDERCURRENT // NOW + NEXT 4 SEALED');
   road.status = road.state.status = 'failed'; audio.context.currentTime = 0;
   assert(road.retry());
   road.state.invulnerableMs = 10000;

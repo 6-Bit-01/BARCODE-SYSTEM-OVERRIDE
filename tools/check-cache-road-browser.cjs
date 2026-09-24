@@ -167,6 +167,7 @@ async function main() {
         result.catches.push({captures:next.length,pressure:player.musicTracks['cache-pressure'].volume,
           drive:player.musicTracks['cache-drive'].volume,
           flow:player.musicTracks['cache-flow'].volume,
+          breakaway:player.musicTracks['cache-breakaway'].volume,
           rms:Math.sqrt(waveform.reduce((sum,x)=>sum+x*x,0)/waveform.length)});
       }
       result.stumble=player.playRoadStumble();
@@ -187,6 +188,8 @@ async function main() {
     Math.abs(track.duration - 187.5) < .08), JSON.stringify(audio.tracks));
   assert.equal(new Set(audio.tracks.map(track => track.start)).size, 1);
   assert.deepEqual(audio.catches.map(point => point.drive), [.10,.19,.19,.10]);
+  assert.deepEqual(audio.catches.map(point => point.breakaway), [0,0,.50,0],
+    'the quiet intro Breakaway passage is not muted when captured');
   assert(audio.catches.every(point => point.pressure === .60 && point.flow === 0 &&
     point.rms > .0001), 'the sparse intro keeps drums while Drive catches and releases');
   assert(audio.stumble && audio.recoveredRms > .0001 && Math.abs(audio.recoveredGain - .8) < .01,
