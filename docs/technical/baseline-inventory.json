@@ -502,7 +502,8 @@
         "src/engine/presentation-assets.js",
         "src/engine/spaceships.js",
         "src/game/game-initializer.js",
-        "tools/check-intro.js"
+        "tools/check-intro.js",
+        "tools/check-presentation-assets.js"
       ]
     }
   ],

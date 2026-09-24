@@ -1,5 +1,15 @@
 # Acceptance and Test Status
 
+## Cache Road art delivery repair — September 24
+
+After this PR merges, import its exact merged SHA into Makko and start Cache
+Road. Check for the yellow Cache Back car and animated tires/shocks, the
+freight truck, layered city, road texture, roadside hardware, flying cars,
+dirty effects and the completed face inside the rearview mirror. A hit should
+show the closed-eye jolt. If the old graphics remain, capture the imported
+SHA and a frame so the runtime import can be traced. Local loader checks and
+published URL availability do not establish the hosted Makko result.
+
 ## Layered Cache Road art PR — September 24
 
 Watch the integrated twelve-second scene at normal size. Look for continuous

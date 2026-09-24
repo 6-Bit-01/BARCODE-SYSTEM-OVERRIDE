@@ -13,13 +13,17 @@ const art = w.BARCODE.PresentationAssets;
 for (let i = 0; i < 20; i++) art.preload();
 assert.strictEqual(images.length, 45, 'restarts reuse Cache car, road, sky, ship and mirror art');
 assert(images.slice(19).every(im => /^https:\/\/raw\.githubusercontent\.com\/.+\/[a-f0-9]{40}\//.test(im.requests[0])), 'previous assets use published immutable revisions');
-assert(images.slice(0,19).every(im => im.requests[0].startsWith('assets/')),
-  'new Cache art and reused Level 1 ships load from the checkout');
+const cacheRoadRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/37db98387b8791655e3ff352d6bc6d61cb0b574b/';
+assert(images.slice(0,19).every(im => im.requests[0].startsWith(cacheRoadRoot)),
+  'Cache Road art loads from the merged published revision when Makko omits local binaries');
 const catImage=images.find(im=>im.requests[0].endsWith('/assets/presentation/studio-cat.webp'));
 const arrowImage=images.find(im=>im.requests[0].endsWith('/assets/presentation/direction-arrow.webp'));
 const pulseImage=images.find(im=>im.requests[0].endsWith('/assets/presentation/boss-pulse.webp'));
-const mirrorImage=images.find(im=>im.requests[0] === 'assets/cache-road/hud/cache-back-mirror-expressions.webp');
-assert.strictEqual(mirrorImage.requests[0], 'assets/cache-road/hud/cache-back-mirror-expressions.webp', 'new bundled art loads from this checkout');
+const mirrorImage=images.find(im=>im.requests[0] === cacheRoadRoot+'assets/cache-road/hud/cache-back-mirror-expressions.webp');
+assert(mirrorImage, 'completed mirror art has a published URL');
+mirrorImage.onerror();
+assert.strictEqual(mirrorImage.requests[1], 'assets/cache-road/hud/cache-back-mirror-expressions.webp',
+  'a checked-out local asset remains the fallback');
 const ops = [];
 const ctx = new Proxy({}, { get(target, key) { return target[key] ?? ((...args) => ops.push([key, ...args])); }, set(target, key, value) { target[key] = value; ops.push(['set', key, value]); return true; } });
 assert.strictEqual(art.draw('studioCat', ctx), false, 'not-yet-loaded assets use the caller fallback');
