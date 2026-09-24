@@ -119,6 +119,59 @@ async function run() {
   assert((await road.enter()).ok);
   assert.equal(C.readResume().levelState.proofVersion, 4);
   const roadStart = copy(C.readResume());
+  const liveState = road.state, oldArt = B.PresentationAssets;
+  const mirrorFrames = [], roadArt = [], openingRects = [];
+  B.PresentationAssets = { ready(key) { return key.startsWith('cache'); },
+    draw(key, _ctx, options) {
+    if (key === 'cacheMirror') mirrorFrames.push({ frame: options.frame,
+      sourceRect: options.sourceRect, x: options.x, y: options.y });
+    else roadArt.push({ key, ...options });
+    return true;
+  } };
+  const paint = { addColorStop() {} };
+  const drawCtx = new Proxy({ createLinearGradient: () => paint,
+    createRadialGradient: () => paint,
+    fillRect(x, y, width, height) {
+      if (x === 30 && y === 176 && width > 100) openingRects.push([width, height]);
+    } }, { get(target, key) { return key in target ? target[key] : () => {}; },
+    set(target, key, value) { target[key] = value; return true; } });
+  const mirrorFrame = overrides => {
+    road.state = { ...liveState, progress: 395, integrity: 3, timeMs: 55000,
+      stumbleMs: 0, boostMs: 0, zoneEndBeat: -1, pendingCapture: null,
+      candidateHold: 0, cutFlashMs: 0, messageMs: 0, rivalWarning: false,
+      ...overrides };
+    mirrorFrames.length = 0; roadArt.length = 0; openingRects.length = 0; road.draw(drawCtx);
+    assert.equal(mirrorFrames.length, 1, 'one expression is drawn inside the shared rearview');
+    assert.deepEqual(Array.from(mirrorFrames[0].sourceRect), [0, 150, 402, 185]);
+    assert.equal(mirrorFrames[0].x, 818, 'more of the same-size face sits inside the driver side');
+    return mirrorFrames[0].frame;
+  };
+  assert.equal(mirrorFrame({}), 0);
+  assert(roadArt.some(entry => entry.key === 'cacheDistantCity') &&
+    roadArt.some(entry => entry.key === 'cacheSkyline') &&
+    roadArt.some(entry => entry.key === 'cacheMidCity') &&
+    roadArt.some(entry => entry.key === 'cacheParapet') &&
+    roadArt.some(entry => entry.key === 'cachePylon') &&
+    roadArt.some(entry => entry.key === 'cacheFly1') &&
+    roadArt.some(entry => entry.key === 'cacheFly3') &&
+    roadArt.some(entry => entry.key === 'cacheBlacktop') &&
+    roadArt.some(entry => entry.key === 'cacheCar'),
+  'three city depths, roadside art, flying traffic, road and car share the live draw');
+  assert.deepEqual(openingRects, [], 'the objective disappears between actionable lessons');
+  mirrorFrame({ steer: -1 });
+  assert(roadArt.some(entry => entry.key === 'cacheCarRight'), 'left steering uses the corrected visible turn');
+  mirrorFrame({ steer: 1 });
+  assert(roadArt.some(entry => entry.key === 'cacheCarLeft'), 'right steering uses the corrected visible turn');
+  assert.equal(mirrorFrame({ pendingCapture: { lane: 1, startBeat: 8 } }), 1);
+  assert.equal(mirrorFrame({ boostMs: 600 }), 2);
+  assert.equal(mirrorFrame({ cutFlashMs: 500 }), 3);
+  assert.equal(mirrorFrame({ stumbleMs: 650, integrity: 1 }), 4,
+    'a hit overrides low signal during the collision');
+  assert(roadArt.some(entry => entry.key === 'cacheCarHit'), 'collision uses its jolt pose');
+  assert.equal(mirrorFrame({ integrity: 1 }), 5);
+  mirrorFrame({ progress: 60 });
+  assert.deepEqual(openingRects, [[875, 82]], 'the opening panel remains compact');
+  road.state = liveState; B.PresentationAssets = oldArt;
   assert.match(road.openingCue()[0], /HOLD A LANE/,
     'the opening gives a driving instruction without stopping play');
   audio.context.currentTime = 2 * 1.875 + .1; // intro bar 3

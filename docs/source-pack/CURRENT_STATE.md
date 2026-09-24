@@ -1,5 +1,51 @@
 # Current State
 
+## September 24 — Cache Road layered art and sky (PR review)
+
+This pass responds to the owner's latest visual review. The Level 1 blacktop
+is quieter and samples adjoining rows with a blended wrap; artificial wet
+seams and most transverse grid lines are gone. The city now has separate
+small distant buildings, recovered far skyline and new industrial facades,
+with a lower road horizon so the sky is visible. Its color and moving veils
+respond to the song beat, active part count and Turbo. Two animated Level 1
+ship models cross above it at different apparent depths and angles. New
+continuous wall art and cantilever lamps follow the road bend. The left/right
+turn poses are swapped, the mirror face moves farther into view without a
+scale change, and hit/near-pass/Turbo have dirty spray and soot instead of
+clean beam effects. The car, truck, tire and mirror motion from the previous
+local review remains. The twelve-second reel is a scripted production draw;
+Makko speed, controller feel and final art judgment remain owner review after
+the PR. Gameplay, music, saves and the four lane names are unchanged.
+
+## September 24 — revised Cache Road motion and parallax (local review)
+
+The owner rejected the first rebuilt motion preview as inferior to the saved
+parallax video. The renderer now moves the far city, lower rooftops, nearby
+silhouettes, road-depth service decks and lamps, wet surface, seams and lane
+studs on distinct paths. Recovered wheels stay at the road while the car and
+freight chassis ride their shocks; steering reveals a turning side rim, and
+the car throws wet spray. The collision uses its saved pose and a decaying
+body jolt. The scripted native reel includes lane changes and six event
+states, with close crops following the car and freight. This remains an art
+review from production draw code, not a playable Makko capture. No PR yet.
+
+## September 24 — Cache Road art recovery in local review
+
+The saved transparent car poses, collision pose, freight, courier, barricade,
+rival and skyline have been recovered into `assets/cache-road/`. The playable
+road renderer now uses those assets and Level 1's rain-blacktop texture; car
+shocks, more pronounced freight bounce, rotating wheel detail, near-pass
+streaks and the crash jolt are driven by current road state. The earlier
+animation source itself was not recovered, so these motions have been rebuilt
+in code. The native renderer in `review-cache-road-mirror/` now shows one
+production draw with the car, world and mirror together. It is scripted state
+review, not a Makko capture. No PR has been made and owner motion approval is
+pending.
+
+## September 24 — rearview reflection layout (local art review)
+
+Cache Back's partial face lives inside the mirror glass, looking straight ahead in ordinary driving and glancing back on a hit. Six expressions react to choice, Turbo/Zone, close pass, hit and low signal. The objective panel only appears with a live opening cue. The earlier HUD-only review also used a composite with the saved road video. That composite is historical; the newer art recovery entry above describes the production renderer with all three pieces together. See `CACHE_ROAD_MIRROR_ART.md`.
+
 ## September 24 — in-drive Cache Road opening
 
 The proof now states the original-recording delivery goal in the first stretch and offers short contextual lane hold, E/RB, Turbo and Echo instructions above the horizon. The first freight, paired block and audit supply their actual driving situations; a successful action advances its cue without interrupting play. The first marker refills Echo and validates as a version-4 Continue save, so the audit has a repeatable decoy opportunity; its Echo lasts six seconds like the final exit. A production route clears the left gap and redirects the audit, with native layout frames. All four lane names, the five MP3s, next-bar music choices, 100-bar song, old saves, final exit and no-award boundary remain. The owner still needs to judge cue timing, clarity and controller/music feel in merged Makko. See `CACHE_ROAD_AUTHORED_OPENING.md` and the first acceptance route.

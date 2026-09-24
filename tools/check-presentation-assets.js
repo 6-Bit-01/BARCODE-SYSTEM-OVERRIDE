@@ -11,11 +11,15 @@ w.Image = class Image {
 load(context, 'src/engine/presentation-assets.js');
 const art = w.BARCODE.PresentationAssets;
 for (let i = 0; i < 20; i++) art.preload();
-assert.strictEqual(images.length, 26, 'restarts reuse existing art plus four feedback sheets');
-assert(images.every(im => /^https:\/\/raw\.githubusercontent\.com\/.+\/[a-f0-9]{40}\//.test(im.requests[0])), 'assets use a published immutable revision');
+assert.strictEqual(images.length, 45, 'restarts reuse Cache car, road, sky, ship and mirror art');
+assert(images.slice(19).every(im => /^https:\/\/raw\.githubusercontent\.com\/.+\/[a-f0-9]{40}\//.test(im.requests[0])), 'previous assets use published immutable revisions');
+assert(images.slice(0,19).every(im => im.requests[0].startsWith('assets/')),
+  'new Cache art and reused Level 1 ships load from the checkout');
 const catImage=images.find(im=>im.requests[0].endsWith('/assets/presentation/studio-cat.webp'));
 const arrowImage=images.find(im=>im.requests[0].endsWith('/assets/presentation/direction-arrow.webp'));
 const pulseImage=images.find(im=>im.requests[0].endsWith('/assets/presentation/boss-pulse.webp'));
+const mirrorImage=images.find(im=>im.requests[0] === 'assets/cache-road/hud/cache-back-mirror-expressions.webp');
+assert.strictEqual(mirrorImage.requests[0], 'assets/cache-road/hud/cache-back-mirror-expressions.webp', 'new bundled art loads from this checkout');
 const ops = [];
 const ctx = new Proxy({}, { get(target, key) { return target[key] ?? ((...args) => ops.push([key, ...args])); }, set(target, key, value) { target[key] = value; ops.push(['set', key, value]); return true; } });
 assert.strictEqual(art.draw('studioCat', ctx), false, 'not-yet-loaded assets use the caller fallback');
@@ -25,9 +29,15 @@ assert.strictEqual(catImage.onerror, null);
 art.draw('studioCat', ctx, { x: 60, y: 80, width: 128, frame: 7, flip: true });
 assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2), [256, 256, 256, 256, -64, -120, 128, 128]);
 assert(ops.some(op => op[0] === 'scale' && op[1] === -1));
+mirrorImage.naturalWidth = 1536; mirrorImage.naturalHeight = 1024; mirrorImage.onload();
+ops.length = 0; art.draw('cacheMirror', ctx, { x: 753, y: 70, width: 250, height: 111,
+  sourceRect: [0, 150, 402, 185], frame: 4 });
+assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2),
+  [512, 662, 402, 185, -125, -55.5, 250, 111],
+  'collision eyes come from the second row inside the same mirror crop');
 arrowImage.onerror(); arrowImage.onerror();
 assert.strictEqual(arrowImage.requests.length, 2); assert.strictEqual(arrowImage.onerror, null);
-art.preload(); assert.strictEqual(images.length, 26, 'failed assets do not retry forever');
+art.preload(); assert.strictEqual(images.length, 45, 'failed assets do not retry forever');
 pulseImage.naturalWidth = pulseImage.naturalHeight = 512; pulseImage.onload();
 ops.length = 0; art.draw('bossPulse', ctx, { y: 822, width: 64, height: 56, frame: 2 });
 assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2), [10, 351, 236, 145, -32, -56, 64, 56], 'pulse fills the dangerous height and retains the ground anchor');

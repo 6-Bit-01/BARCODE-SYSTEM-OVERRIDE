@@ -1,5 +1,13 @@
 # Repository Guidance
 
+## September 24, 2026 — Cache Road layered art PR
+
+The owner requested a calmer seam-free road, swapped visual turn poses, more of Cache Back's face in the same mirror, dirty wispy effects, a genuinely layered city, roadside hardware, a small distant city and a beat/stack-responsive morphing sky. Reuse animated Level 1 ship art as high flying traffic. The source and current preview must retain the recovered car, freight and mirror work. The owner now authorizes a PR for this complete pass; do not merge without their Makko review. Keep lane names, music and save/gameplay rules unchanged. See `docs/source-pack/CACHE_ROAD_MIRROR_ART.md` and the asset READMEs.
+
+## September 24, 2026 — prior Cache Road art motion review
+
+The owner rejected the first recovered art/motion preview as flat and inferior to the saved parallax study. The local review separated wheel contact from chassis movement, added turning rim motion, a stronger freight suspension, wet spray and a decaying crash jolt, and restored city, roadside deck and road motion. The scripted renderer steers through six states; it is not a Makko capture. Preserve Cache Back's partial face inside the mirror on the driver's side with a forward gaze, all four lane names, music/gameplay/saves and the compact transient objective. This branch starts from merged #111; the earlier unpublished animation source was lost, but the saved transparent vehicle/skyline art has been recovered. See `docs/source-pack/CACHE_ROAD_MIRROR_ART.md` and the vehicle/world READMEs.
+
 ## September 24, 2026 — Cache Road authored opening
 
 The owner approved a short in-drive opening that makes the original-recording delivery goal clear and teaches the lane hold, E/RB, Turbo and Echo through the first freight, paired block and audit. Keep the hints above the road, transient, and responsive to actual actions; never interrupt driving with a choice menu. The first marker supplies a saved Echo chance for the audit, and version-4 marker saves must validate on Continue. Preserve the music rule and exact lane names below, five MP3s, save migration, final exit, no Bass/Level 2 award, and merged-before-Makko process. See `docs/source-pack/CACHE_ROAD_AUTHORED_OPENING.md` and the first route in `ACCEPTANCE.md`.
