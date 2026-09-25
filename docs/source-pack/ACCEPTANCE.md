@@ -1,6 +1,27 @@
 # Acceptance and Test Status
 
+## Curved Cache Road roadside — September 25
+
+Import the exact merged main SHA into Makko at normal game size. Drive the
+first market and house slowly, then at cruising speed. Compare each with the
+player car, freight and sweeper: the near building should feel like a real
+roadside place while its far version starts small. Follow a single market
+past the camera; its upper facade should continue until it leaves the edge,
+without a size jump or early disappearance. Repeat around a visible road
+bend and check the curb, parcel foundation, wet ground, trees, wall and lamp
+all flow together. Check parking, park and industrial blocks for varied
+size/spacing and empty stretches; try pause, resume and Reduced Motion.
+
+Report the imported SHA and a normal-speed clip showing a bad angle, floating
+footprint, scale mismatch, pop or blank gap. The native 32-second render and
+production draw assertions cover a scripted view, not a Makko playthrough or
+music/controller verdict. The pad, song-bar and HUD checks below still apply.
+The adrenaline balance and new power-ups remain open after this visual pass.
+
 ## Individual Cache Road places — September 25
+
+Historical #123 checklist: the owner rejected its visual proportions and
+placement. Use the curved-roadside route above for current review.
 
 Import the exact merged main SHA into Makko. Drive the first two districts at
 normal speed, then brake, accelerate and pause/retry. Follow a small distant

@@ -1,6 +1,21 @@
 # Decision Register
 
+## September 25, 2026 — roadside proportion and curved passing motion
+
+After merged #123 the owner rejected the small, poorly angled and detached
+locations. Keep individual oblique buildings, houses, parking lots, parks and
+other places, but judge them against the actual road silhouette, player and
+traffic. The lights were sized well. Large places should enter small near
+the distant road, grow to substantial car-relative scale, follow its bend
+with their ground and pass fully out of view. A continuous underlying city
+surface and varied filler connect the separate locations; do not reintroduce
+joined building strips. This visual work precedes the adrenaline/power-up
+mechanics pass. See `CACHE_ROAD_CURVED_PROJECTION.md`.
+
 ## September 25, 2026 — individual oblique locations and layered filler
+
+Historical placement and scale in #123 were rejected; the separate artwork
+and event variety remain the source kit for the projection correction above.
 
 The owner rejected PR #122's long diagonal scene strips. Paint the perspective
 into **each separate place** and position many buildings, houses, open lots,

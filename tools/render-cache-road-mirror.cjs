@@ -122,7 +122,7 @@ async function main() {
     [1.2,2.0,.12,.62], [2.0,2.0,0,1], [2.0,1.5,.4,1.6]
   ];
   const smooth = value => { const v=Math.max(0,Math.min(1,value)); return v*v*(3-2*v); };
-  const file = path.join(out, continuous ? 'Cache-Road-Individual-Places-Drive.mp4' :
+  const file = path.join(out, continuous ? 'Cache-Road-Curved-Roadside-Drive.mp4' :
     worldFrames ? 'Cache-Road-Mirror-World-Preview.mp4' : 'Cache-Road-Mirror-Preview.mp4');
   const ff = spawn('/usr/bin/ffmpeg', ['-y','-loglevel','error','-f','rawvideo',
     '-pix_fmt','rgba','-s','1280x720','-r',String(fps),'-i','pipe:0',
@@ -156,9 +156,12 @@ async function main() {
     s.lane = Math.round(s.lanePos); s.speed = 54;
     s.steer = continuous ? .12*Math.cos(local*.41) :
       turn > 0 && turn < 1 ? Math.sign(to-from)*(.15+.85*Math.sin(Math.PI*turn)) : 0;
-    const half = 80+800*.83;
-    const bend = Math.sin(s.progress/190+(1-.83)*1.2)*(1-.83)*124;
-    carCenters.push((960+bend-half+s.visualLane*half/2+half/4)*2/3);
+    const at=t => 200*Math.sin(t/700)+90*Math.sin(t/295+.5);
+    const heading=200/700*Math.cos(s.progress/700)+90/295*Math.cos(s.progress/295+.5);
+    const ahead=(1-.83)*520;
+    const half=26+590*.83;
+    const center=960+(at(s.progress+ahead)-at(s.progress)-ahead*heading)*.95;
+    carCenters.push((center-half+s.visualLane*half/2+half/4)*2/3);
     s.integrity = !worldReview && chapterIndex === 5 ? 1 : 3;
     s.timeMs = !worldReview && chapterIndex === 5 ? 7400 : 55000;
     s.pendingCapture = !worldReview && chapterIndex === 1 ? { lane: 2, startBeat: (s.musicBar + 1)*4 } : null;

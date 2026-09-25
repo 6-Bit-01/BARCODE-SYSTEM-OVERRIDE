@@ -205,6 +205,10 @@ async function run() {
     new Set(places.map(entry => entry.key)).size >= 3 &&
     places.every(entry => !entry.sourceRect && entry.width > 0 && entry.height > 0),
   'both sides contain several separate, varied, uniformly scaled parcels');
+  const playerCar=roadArt.find(entry => entry.key === 'cacheCar');
+  assert(market.width > playerCar.width*2 && market.height > playerCar.height*2 &&
+    house.width > playerCar.width*1.4 && house.height > playerCar.height*1.7,
+  'near buildings read substantially larger than the player car at road scale');
   const openingPlaces=JSON.stringify(places);
   mirrorFrame({ progress: 0 });
   assert.equal(JSON.stringify(roadArt.filter(entry => entry.key.startsWith('cachePlace'))),openingPlaces,
@@ -220,6 +224,11 @@ async function run() {
     advancingMarket.y > market.y && advancingMarket.width > market.width &&
     advancingMarket.height > market.height && advancingLamp && advancingLamp.x < lamp.x,
   'a painted place grows and approaches alongside a world-fixed streetlight');
+  mirrorFrame({ progress: 300 });
+  assert(roadArt.some(entry => entry.key === 'cachePlaceMarket' && !entry.flip &&
+    entry.width > market.width*1.4 && entry.y > 1080 &&
+    entry.y-entry.height < 1080),
+  'the near building stays drawn while its facade is still passing the screen');
   mirrorFrame({ progress: 600 });
   assert(roadArt.some(entry => entry.key.startsWith('cachePlace') && entry.flip) &&
     !roadArt.some(entry => /^(cacheMarket|cacheDepot|cacheFrontage)/.test(entry.key)),
@@ -229,7 +238,11 @@ async function run() {
   mirrorFrame({ progress: 3*2460+600 });
   assert(trafficLabels.includes('< CUT'), 'rotated right-edge trike calls its left cut');
   mirrorFrame({ progress: 395 });
-  const textureRow = roadArt.find(entry => entry.key === 'cacheBlacktop').sourceRect[1];
+  const roadTexture=() => roadArt.find(entry => entry.key === 'cacheBlacktop' &&
+    entry.sourceRect[3] <= 22);
+  assert(roadArt.some(entry => entry.key === 'cacheBlacktop' &&
+    entry.sourceRect[3] === 78), 'world blocks carry their own wet ground texture');
+  const textureRow = roadTexture().sourceRect[1];
   const ships = roadArt.filter(entry => entry.key.startsWith('cacheFly'));
   assert.deepEqual(ships.map(ship => [ship.key,ship.flip]),
     [['cacheFly1',false],['cacheFly3',false],['cacheFly3',true],
@@ -241,7 +254,7 @@ async function run() {
     Math.abs(contacts.at(-1).y - (-119*.14+2)) < .01,
   'the player shadow has a contact patch under each grounded tire');
   mirrorFrame({ progress: 405 });
-  assert(roadArt.find(entry => entry.key === 'cacheBlacktop').sourceRect[1] < textureRow,
+  assert(roadTexture().sourceRect[1] < textureRow,
     'blacktop marks advance from horizon toward car with road progress');
   const movingShips = roadArt.filter(entry => entry.key.startsWith('cacheFly'));
   assert(movingShips[0].screenX > ships[0].screenX &&
