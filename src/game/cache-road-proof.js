@@ -84,8 +84,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const kind=lap===0&&index===0 ? side<0?'market':'house' : pool[choice];
       const size=.78+placeRandom(seed+4)*.48;
       SIDE_PLACES.push({at,side,kind,size});previous=kind;
-      at+=Math.round(PLACE_ART[kind][4]*(.88+placeRandom(seed+7)*.28)+
-        17+placeRandom(seed+11)*32);
+      at+=Math.round(PLACE_ART[kind][4]*size*(1+placeRandom(seed+7)*.16)+
+        12+placeRandom(seed+11)*26);
       index++;
     }
   }
