@@ -1,5 +1,10 @@
 # Cache Road diagonal scene and instrument art — September 25, 2026
 
+**Historical roadside experiment:** the owner rejected these six long scene
+strips after PR #122 merged. The current separate locations and filler are
+documented in `CACHE_ROAD_INDIVIDUAL_PLACES.md`. The pad, bar and instrument
+sections below remain relevant.
+
 The owner corrected the previous side-road treatment: a horizontal frontage
 cannot become the desired place merely by slicing and projecting it. This pass
 uses six newly painted transparent perspective cutouts. Market, relay depot

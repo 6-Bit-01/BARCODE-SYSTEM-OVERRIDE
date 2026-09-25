@@ -45,30 +45,66 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     ...(GATES[at] || []).map(extra => ({ at: at + pass * LAP,
       lane: (extra + pass) % 4, kind: 'block' }))
   ]).flat());
-  // A route through inhabited blocks, then a service district, then back into
-  // the lit city. Repeated laps swap sides and facades without random popping.
-  const SCENES = Array.from({ length: 5 }, (_, pass) => [
-    [340, 'market', -1], [970, 'depot', 1],
-    [1540, 'market', 1], [2140, 'depot', -1]
-  ].map(([at, kind, side]) => ({
-    at: at + pass * LAP, kind: pass % 2 ?
-      (kind === 'market' ? 'depot' : 'market') : kind,
-    side: pass % 2 ? -side : side
-  }))).flat();
-  // Each cutout was painted with its own near-to-far building, roof and
-  // sidewalk perspective. These source foot points register the painted curb
-  // to the road; the complete artwork moves as one piece without slice warps.
-  const SIDE_ART = {
-    market: {
-      '-1': ['cacheMarketLeft', 1080, 393, [47,364], [1031,307]],
-      '1': ['cacheMarketRight', 1080, 385, [998,360], [62,154]] },
-    depot: {
-      '-1': ['cacheDepotLeft', 1080, 403, [68,368], [1010,263]],
-      '1': ['cacheDepotRight', 1080, 403, [1015,379], [63,258]] },
-    frontage: {
-      '-1': ['cacheFrontageLeft', 1080, 405, [63,374], [1018,298]],
-      '1': ['cacheFrontageRight', 1080, 360, [970,328], [60,117]] }
+  // Each transparent place has its own painted three-quarter footprint. A
+  // uniform scale changes its distance without reshaping its architecture.
+  const PLACE_ART = {
+    market: ['cachePlaceMarket',960,876,390,120],
+    house: ['cachePlaceHouse',960,891,315,112],
+    parking: ['cachePlaceParking',960,645,530,177],
+    park: ['cachePlacePark',960,640,485,171],
+    garage: ['cachePlaceGarage',960,632,440,145],
+    apartment: ['cachePlaceApartment',631,960,235,112],
+    diner: ['cachePlaceDiner',960,618,440,143],
+    substation: ['cachePlaceSubstation',960,638,480,158],
+    garden: ['cachePlaceGarden',960,646,485,167],
+    construction: ['cachePlaceConstruction',960,635,510,172]
   };
+  const PLACE_DISTRICTS = [
+    ['market','diner','apartment','house','parking','park'],
+    ['garage','substation','construction','parking','garden','apartment'],
+    ['house','garden','park','market','parking','diner'],
+    ['construction','garage','substation','parking','apartment','garden']
+  ];
+  // Seeded choices keep the lots varied yet identical after pause, retry,
+  // saved-road restore and frame-rate changes. Parcel spacing uses its width.
+  const placeRandom = n => {
+    let x = Math.imul(n ^ n >>> 16, 0x7feb352d);
+    x = Math.imul(x ^ x >>> 15, 0x846ca68b);
+    return ((x ^ x >>> 16) >>> 0) / 4294967296;
+  };
+  const SIDE_PLACES = [];
+  for(let lap=0;lap<5;lap++)for(const side of [-1,1]) {
+    let at=lap*LAP+(side<0?175:250),index=0,previous='';
+    while(at<(lap+1)*LAP) {
+      const district=Math.min(3,Math.floor((at-lap*LAP)/615));
+      const pool=PLACE_DISTRICTS[district];
+      const seed=(lap+1)*10007+(side+2)*2039+index*379;
+      let choice=Math.floor(placeRandom(seed)*pool.length);
+      if(pool[choice]===previous)choice=(choice+1+Math.floor(placeRandom(seed+2)*3))%pool.length;
+      const kind=lap===0&&index===0 ? side<0?'market':'house' : pool[choice];
+      const size=.78+placeRandom(seed+4)*.48;
+      SIDE_PLACES.push({at,side,kind,size});previous=kind;
+      at+=Math.round(PLACE_ART[kind][4]*(.88+placeRandom(seed+7)*.28)+
+        17+placeRandom(seed+11)*32);
+      index++;
+    }
+  }
+  SIDE_PLACES.sort((a,b)=>b.at-a.at);
+  // A second, more distant row is independently parcelled, rather than
+  // repeating a connected frontage underneath the main roadside events.
+  const BACK_PLACES=[];
+  for(let lap=0;lap<5;lap++)for(const side of [-1,1]) {
+    let at=lap*LAP+(side<0?105:175),index=0;
+    while(at<(lap+1)*LAP) {
+      const seed=(lap+11)*8123+(side+2)*1913+index*557;
+      const district=Math.min(3,Math.floor((at-lap*LAP)/615));
+      const pool=PLACE_DISTRICTS[district];
+      BACK_PLACES.push({at,side,kind:pool[Math.floor(placeRandom(seed)*pool.length)],
+        size:.53+placeRandom(seed+3)*.28});
+      at+=155+Math.floor(placeRandom(seed+7)*95);index++;
+    }
+  }
+  BACK_PLACES.sort((a,b)=>b.at-a.at);
   const clone = value => JSON.parse(JSON.stringify(value));
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   function mirrorExpression(s) {
@@ -1308,52 +1344,103 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       for (let i=28;i>=0;i--) { const t=i/28; ctx.lineTo(center(t)+half(t),roadY(t)); }
       ctx.closePath(); ctx.clip(); ctx.fillStyle=roadFog; ctx.fillRect(0,horizon,1920,170);
       ctx.restore();
-      const drawSideScene = (kind,side,at,span,background=false) => {
-        const [key,width,height,srcNear,srcFar] = SIDE_ART[kind][side];
-        const near=depth(at-span*.5-progress),far=depth(at+span*.5-progress);
-        if(near<.12||far>.98)return;
-        const base=background?258:180,growth=background?200:140;
-        const nearX=roadsideX(side,near,base,growth),farX=roadsideX(side,far,base,growth);
-        const nearY=roadY(near)+24*near,farY=roadY(far)+24*far;
-        const scaleY=(background?70+290*near:90+360*near)/height;
-        const a=(farX-nearX)/(srcFar[0]-srcNear[0]);
-        const b=(farY-nearY-scaleY*(srcFar[1]-srcNear[1]))/(srcFar[0]-srcNear[0]);
-        ctx.save();
-        ctx.globalAlpha*=clamp((near-.10)/.18,0,1)*(background ? .63 : .94);
-        ctx.transform(a,b,0,scaleY,nearX-a*srcNear[0],
-          nearY-b*srcNear[0]-scaleY*srcNear[1]);
-        B.PresentationAssets?.draw?.(key,ctx,{x:0,y:0,width,height});
+      for(const place of BACK_PLACES) {
+        const t=depth(place.at-progress);if(t<.13||t>.85)continue;
+        const [key,sourceW,sourceH,maxW]=PLACE_ART[place.kind];
+        const width=maxW*(.05+.95*t)*place.size;
+        ctx.save();ctx.globalAlpha*=clamp((t-.13)/.12,0,1)*(.38+.35*t);
+        B.PresentationAssets?.draw?.(key,ctx,{
+          x:roadsideX(place.side,t,305,185),y:roadY(t)+18*t,
+          width,height:width*sourceH/sourceW,flip:place.side===1 });
         ctx.restore();
-      };
-      // Complete diagonal paintings overlap over the continuous side deck.
-      // The row behind an event remains world-fixed through speed changes.
-      for(let at=Math.floor((progress+620)/320)*320;at>progress-220;at-=320)
-        for(const side of [-1,1]) drawSideScene('frontage',side,at,350,true);
-      for(const scene of [...SCENES].reverse()) {
-        const distance=scene.at-progress,side=scene.side;
-        if(distance< -175||distance>600)continue;
-        drawSideScene(scene.kind,side,scene.at,300);
-        // Walkers share the projected slab line between frontage and wall.
-        for(let person=0;person<2;person++) {
-          const personAt=scene.at+(person?75:-55);
-          const t=depth(personAt-progress);
-          if(t<.17||t>.95)continue;
-          const stride=reduced?0:Math.sin((s.elapsedMs||0)*.004+scene.at*.13+person*2.4);
-          const px=roadsideX(side,t,122,83)+stride*8*t;
-          const foot=roadY(t)+8*t, human=13+52*t;
-          ctx.save();ctx.globalAlpha=.56+.36*t;
-          ctx.fillStyle='#0c1827';ctx.beginPath();ctx.ellipse(px,foot+2*t,7+9*t,2+2*t,0,0,Math.PI*2);ctx.fill();
-          ctx.strokeStyle=person?'#495268':'#647186';ctx.lineWidth=2+3*t;
-          ctx.beginPath();ctx.moveTo(px,foot-human*.32);
-          ctx.lineTo(px-3-stride*4*t,foot);ctx.moveTo(px,foot-human*.32);
-          ctx.lineTo(px+4+stride*4*t,foot);ctx.stroke();
-          ctx.fillStyle=person?'#293249':'#39485a';
-          polygon(ctx,[[px-6*t,foot-human*.78],[px+6*t,foot-human*.78],
-            [px+9*t,foot-human*.26],[px-9*t,foot-human*.26]],ctx.fillStyle);
-          ctx.fillStyle=person?'#e4b179':'#9ad7d9';ctx.beginPath();
-          ctx.arc(px,foot-human*.86,3+4*t,0,Math.PI*2);ctx.fill();
+      }
+      // Individual low silhouettes fill gaps behind the places. Every hedge,
+      // fence, kiosk and utility post has a fixed world coordinate; there is
+      // no scrolling banner or repeated building strip behind the artwork.
+      for(let at=Math.floor((progress+455)/68)*68;at>progress-65;at-=68) {
+        const t=depth(at-progress);if(t<.16||t>.88)continue;
+        const y=roadY(t)+26*t;
+        for(const side of [-1,1]) {
+          const seed=Math.floor(at/68)*149+(side+2)*883;
+          const mode=Math.floor(placeRandom(seed)*4);
+          const x=roadsideX(side,t,130,80);
+          const w=(70+placeRandom(seed+1)*85)*(.22+1.25*t);
+          const h=(30+placeRandom(seed+3)*62)*(.22+1.5*t);
+          ctx.save();ctx.globalAlpha=(.43+.43*t)*clamp((t-.16)/.15,0,1);
+          // Broken wet paving and reflected sign color give the service deck
+          // depth without a repeating panoramic facade.
+          polygon(ctx,[[x-w*.9,y+2*t],[x+w*.72,y+2*t],
+            [x+w*.42,y+11*t],[x-w*1.15,y+11*t]],
+          mode%2?'#264a51':'#34414d');
+          ctx.strokeStyle=mode%2?'#73adb07c':'#c389a67c';
+          ctx.lineWidth=1+2*t;ctx.beginPath();ctx.moveTo(x-w*.72,y+6*t);
+          ctx.lineTo(x-w*.15,y+6*t);ctx.stroke();
+          if(mode===0) {
+            // Uneven shelter roof and lit kiosk window.
+            polygon(ctx,[[x-w*.6,y-h*.76],[x+w*.45,y-h*.76],
+              [x+w*.68,y-h*.60],[x-w*.82,y-h*.60]],'#152f40');
+            ctx.fillStyle='#182a3a';ctx.fillRect(x-w*.57,y-h*.60,w*1.05,h*.60);
+            ctx.fillStyle='#e6ae70';ctx.fillRect(x-w*.27,y-h*.4,w*.27,h*.18);
+          } else if(mode===1) {
+            // Small tree clumps break up rooflines and connect park parcels.
+            ctx.fillStyle='#223c42';ctx.fillRect(x-2*t,y-h*.55,4*t,h*.55);
+            for(let j=0;j<3;j++) {
+              ctx.fillStyle=j===1?'#315451':'#254246';ctx.beginPath();
+              ctx.ellipse(x+(j-1)*w*.32,y-h*(.62+j%2*.15),
+                w*.36,h*.36,0,0,Math.PI*2);ctx.fill();
+            }
+          } else if(mode===2) {
+            // Short fence with a service box; the open intervals reveal city.
+            ctx.strokeStyle='#61737b';ctx.lineWidth=1+2*t;
+            ctx.beginPath();ctx.moveTo(x-w*.6,y-h*.28);
+            ctx.lineTo(x+w*.6,y-h*.28);ctx.stroke();
+            for(let j=-1;j<=1;j++) {
+              ctx.beginPath();ctx.moveTo(x+j*w*.45,y);
+              ctx.lineTo(x+j*w*.45,y-h*.39);ctx.stroke();
+            }
+            ctx.fillStyle='#243748';ctx.fillRect(x-w*.11,y-h*.44,w*.36,h*.44);
+          } else {
+            ctx.fillStyle='#1b3341';ctx.fillRect(x-w*.54,y-h*.54,w*1.08,h*.54);
+            ctx.fillStyle='#f3c387';ctx.fillRect(x-w*.24,y-h*.4,w*.17,h*.13);
+            ctx.fillRect(x+w*.14,y-h*.4,w*.17,h*.13);
+            ctx.strokeStyle='#56727a';ctx.lineWidth=1+2*t;
+            ctx.beginPath();ctx.moveTo(x-w*.67,y-h*.54);
+            ctx.lineTo(x,y-h*.83);ctx.lineTo(x+w*.67,y-h*.54);ctx.stroke();
+          }
           ctx.restore();
         }
+      }
+      // Painted oblique parcels keep their authored shape. The same distance
+      // controls their position, uniform scale and opacity on either side.
+      for(const place of SIDE_PLACES) {
+        const t=depth(place.at-progress);
+        if(t<.13||t>.97)continue;
+        const [key,sourceW,sourceH,maxW]=PLACE_ART[place.kind];
+        const width=maxW*(.05+.95*t)*place.size;
+        const height=width*sourceH/sourceW;
+        const x=roadsideX(place.side,t,185,130),y=roadY(t)+24*t;
+        ctx.save();ctx.globalAlpha*=clamp((t-.13)/.12,0,1)*(.72+.25*t);
+        B.PresentationAssets?.draw?.(key,ctx,{x,y,width,height,flip:place.side===1});
+        ctx.restore();
+        if(!['market','diner','park','house','garden'].includes(place.kind))continue;
+        // A nearby pedestrian shares the lot's world coordinate and curb.
+        const walkT=depth(place.at+22-progress);
+        if(walkT<.17||walkT>.89)continue;
+        const stride=reduced?0:Math.sin((s.elapsedMs||0)*.004+place.at*.13);
+        const px=roadsideX(place.side,walkT,122,83)+stride*8*walkT;
+        const foot=roadY(walkT)+8*walkT,human=13+52*walkT;
+        ctx.save();ctx.globalAlpha=.42+.36*walkT;
+        ctx.fillStyle='#0c1827';ctx.beginPath();
+        ctx.ellipse(px,foot+2*walkT,7+9*walkT,2+2*walkT,0,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle='#647186';ctx.lineWidth=2+3*walkT;
+        ctx.beginPath();ctx.moveTo(px,foot-human*.32);
+        ctx.lineTo(px-3-stride*4*walkT,foot);ctx.moveTo(px,foot-human*.32);
+        ctx.lineTo(px+4+stride*4*walkT,foot);ctx.stroke();
+        polygon(ctx,[[px-6*walkT,foot-human*.78],[px+6*walkT,foot-human*.78],
+          [px+9*walkT,foot-human*.26],[px-9*walkT,foot-human*.26]],'#39485a');
+        ctx.fillStyle='#e4b179';ctx.beginPath();
+        ctx.arc(px,foot-human*.86,3+4*walkT,0,Math.PI*2);ctx.fill();
+        ctx.restore();
       }
       // Stretch adjacent wall segments between the same projected road points.
       // This makes one continuous side wall rather than floating sign panels.

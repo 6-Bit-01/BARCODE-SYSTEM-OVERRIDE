@@ -1,6 +1,23 @@
 # Decision Register
 
+## September 25, 2026 — individual oblique locations and layered filler
+
+The owner rejected PR #122's long diagonal scene strips. Paint the perspective
+into **each separate place** and position many buildings, houses, open lots,
+parks and service spaces at varied road-world distances and sizes. They start
+small, grow uniformly on approach and pass the car; do not make another
+connected facade strip. A denser backing of small world-fixed structures,
+foliage, fences and wet ground fills intervals while preserving space to read
+traffic and lane actions. Use the same projection for the side deck, lamps,
+walkers and places. The owner invited design judgment beyond a literal list
+of objects. Preserve #122's pad, HUD and bar work. Visual Makko acceptance,
+the cohesion audit and the defense/offense/traffic/environment/song/lane
+power-up direction remain open. See `CACHE_ROAD_INDIVIDUAL_PLACES.md`.
+
 ## September 25, 2026 — diagonal source art and road instruments
+
+Historical roadside direction, superseded by the individual-place decision.
+The instrument, road pad and bar parts remain current.
 
 The owner clarified that the side buildings themselves must be painted in
 diagonal perspective. The earlier horizontal market/depot/frontage strip

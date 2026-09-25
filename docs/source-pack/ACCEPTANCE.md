@@ -1,6 +1,31 @@
 # Acceptance and Test Status
 
+## Individual Cache Road places — September 25
+
+Import the exact merged main SHA into Makko. Drive the first two districts at
+normal speed, then brake, accelerate and pause/retry. Follow a small distant
+market and house until they grow and leave the screen; watch parking, parks,
+garage, apartment and industrial parcels appear at different sizes and
+intervals on both sides. Their roofs and lots should retain their own oblique
+perspective rather than shear into one long street wall. The short houses,
+fences, trees, kiosks and wet patches should fill the intervals without
+covering warnings, road pads or traffic. Watch the same nearby lamp, walker,
+deck joint and parcel cross the view together. Repeat in Reduced Motion;
+road travel should continue while decorative sky movement holds.
+
+Judge the density and visual rhythm through a few uninterrupted minutes,
+especially the transition from commercial to service blocks and the approach
+at the edge of the screen. Report the imported SHA, device, road position and
+a frame or short clip for any pop, repeated pattern, sliding foot line, flat
+gap or readability problem. The 32-second native review is a scripted
+production draw, not a Makko controller/listening playthrough. The pad,
+button, song-bar and HUD checks below still apply. Power-up mechanics and
+the larger adrenaline tune remain open in `CACHE_ROAD_COHESION_AUDIT.md`.
+
 ## Authored diagonal roadside and instrument art — September 25
+
+Historical roadside checklist for the rejected connected scenes. Its pad,
+song-bar and HUD checks still apply to the current build.
 
 Import this pass's exact main merge SHA into Makko after CI. On the first
 market, the source painting itself should show a large lower-left storefront

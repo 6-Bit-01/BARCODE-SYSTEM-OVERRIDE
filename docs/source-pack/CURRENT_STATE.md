@@ -1,6 +1,26 @@
 # Current State
 
+## September 25 — individual roadside places after owner correction
+
+PR #122's six long diagonal roadside scenes were merged but rejected by the
+owner as the wrong composition. This follow-up removes those runtime strips
+and uses ten separate perspective-painted locations: market, house, parking,
+park, garage, apartment, diner, substation, garden and construction yard.
+Seeded lot sizes, spacing and district palettes vary along both sides of the
+road; a smaller independent parcel row adds another depth. World-fixed kiosks,
+small houses, foliage, fences, utility boxes and wet
+paving fill the gaps behind them. Places approach with one uniform scale and
+the shared road curve; lamps, walkers, deck joints and the side street keep
+their world positions. A continuous 32-second production render was inspected
+along with the focused draw checks. Exact publication and CI evidence are in
+the revision receipt. Makko visual judgment remains pending; the retained
+pad, bar and HUD art and the adrenaline/power-up backlog are described in
+`CACHE_ROAD_INDIVIDUAL_PLACES.md` and `CACHE_ROAD_COHESION_AUDIT.md`.
+
 ## September 25 — authored diagonal roadside and instrument art review
+
+Historical: the owner subsequently rejected the connected scene composition.
+The individual-place pass above supersedes its roadside art and layout.
 
 The prior visual pass placed horizontal building paintings along a curved
 projection. The owner wanted the perspective authored into the art. Six new

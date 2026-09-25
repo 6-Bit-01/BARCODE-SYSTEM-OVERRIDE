@@ -15,7 +15,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   // Makko imports may omit local binary art; use the merged artwork first.
   const cacheRoadRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/37db98387b8791655e3ff352d6bc6d61cb0b574b/';
   const cacheWorldRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/41edca02367b9f1f3af429d14df3d378ca46c9b4/';
-  const cacheInstrumentRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/55cecb17abcb771d0e1348033d4fbe9529f927c0/';
+  const cachePlacesRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/6868a002c8ee10b8067b45aa78f3dfbeaa628396/';
   const entries = {
     cacheMirror: { path: 'assets/cache-road/hud/cache-back-mirror-expressions.webp', root: cacheRoadRoot,
       columns: 3, rows: 2, frames: 6, ax: .5, ay: .5, smooth: true },
@@ -31,12 +31,16 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     cacheSweeper: { path: 'assets/cache-road/vehicles/sweeper.webp', root: cacheWorldRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
     cacheTrike: { path: 'assets/cache-road/vehicles/signal-trike.webp', root: cacheWorldRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
     cacheShuttle: { path: 'assets/cache-road/vehicles/night-shuttle.webp', root: cacheWorldRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
-    cacheMarketLeft: { path: 'assets/cache-road/roadside/market-left-perspective.webp', root: cacheInstrumentRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 0, smooth: true },
-    cacheMarketRight: { path: 'assets/cache-road/roadside/market-right-perspective.webp', root: cacheInstrumentRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 0, smooth: true },
-    cacheDepotLeft: { path: 'assets/cache-road/roadside/depot-left-perspective.webp', root: cacheInstrumentRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 0, smooth: true },
-    cacheDepotRight: { path: 'assets/cache-road/roadside/depot-right-perspective.webp', root: cacheInstrumentRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 0, smooth: true },
-    cacheFrontageLeft: { path: 'assets/cache-road/roadside/frontage-left-perspective.webp', root: cacheInstrumentRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 0, smooth: true },
-    cacheFrontageRight: { path: 'assets/cache-road/roadside/frontage-right-perspective.webp', root: cacheInstrumentRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 0, smooth: true },
+    cachePlaceMarket: { path: 'assets/cache-road/roadside/places/corner-market.webp', root: cachePlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cachePlaceHouse: { path: 'assets/cache-road/roadside/places/row-house.webp', root: cachePlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cachePlaceParking: { path: 'assets/cache-road/roadside/places/parking-lot.webp', root: cachePlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cachePlacePark: { path: 'assets/cache-road/roadside/places/pocket-park.webp', root: cachePlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cachePlaceGarage: { path: 'assets/cache-road/roadside/places/repair-garage.webp', root: cachePlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cachePlaceApartment: { path: 'assets/cache-road/roadside/places/apartment.webp', root: cachePlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cachePlaceDiner: { path: 'assets/cache-road/roadside/places/night-diner.webp', root: cachePlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cachePlaceSubstation: { path: 'assets/cache-road/roadside/places/substation.webp', root: cachePlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cachePlaceGarden: { path: 'assets/cache-road/roadside/places/community-garden.webp', root: cachePlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cachePlaceConstruction: { path: 'assets/cache-road/roadside/places/construction-yard.webp', root: cachePlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
     cacheSkyline: { path: 'assets/cache-road/world/skyline.webp', root: cacheRoadRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 1, smooth: true },
     cacheDistantCity: { path: 'assets/cache-road/world/distant-city.webp', root: cacheRoadRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 1, smooth: true },
     cacheMidCity: { path: 'assets/cache-road/world/mid-city.webp', root: cacheRoadRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 1, smooth: true },

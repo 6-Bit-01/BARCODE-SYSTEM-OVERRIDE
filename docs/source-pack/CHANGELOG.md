@@ -1,6 +1,19 @@
 # Recovery checkpoint — September 14
 
+## September 25, 2026 — individual Cache Road places
+
+- Replace the rejected six long diagonal strips with ten separate transparent
+  oblique buildings, lots, parks and service parcels; keep editable PNGs.
+- Seed varied type, size and spacing across four district palettes on both
+  sides. Project each whole prop from its fixed world point, uniformly growing
+  as it approaches, over short kiosks, trees, fences and wet paving filler.
+- Inspect a continuous 32-second production draw and retain road pads, song
+  highlights and HUD instruments from #122. Music, traffic, controls, save
+  and award rules remain at their prior scope; Makko play remains pending.
+
 ## September 25, 2026 — authored diagonal and instrument art
+
+Historical roadside art rejected by the owner; see the individual-place pass.
 
 - Replace sliced horizontal roadside paintings with six left/right perspective
   market, depot and background sources, drawn whole at road world anchors.
