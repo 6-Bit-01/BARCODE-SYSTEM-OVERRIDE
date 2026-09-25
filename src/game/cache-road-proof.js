@@ -231,14 +231,16 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // The transparent paintings do not all end at the same wheel line:
       // the exhaust/bumper often extends below the tires. Keep each contact
       // point in the road frame while the painted chassis rides its shocks.
-      const contact = freight ? [.08,.08] : artKey === 'cacheCarLeft' ? [.17,.11] :
-        artKey === 'cacheCarRight' ? [.14,.12] : artKey === 'cacheRival' ? [.07,.07] :
+      const contact = freight ? [.08,.08] : artKey === 'cacheCarLeft' ? [.17,.275] :
+        artKey === 'cacheCarRight' ? [.31,.125] : artKey === 'cacheRival' ? [.07,.07] :
         artKey === 'cacheCourier' ? [.15,.15] : [.14,.14];
+      const tireTop = artKey === 'cacheCarLeft' ? [.43,.61] :
+        artKey === 'cacheCarRight' ? [.61,.43] : [freight ? .29 : .43,freight ? .29 : .43];
       const tires = anchored ? [-1,1].map((side,index) => {
         const pos = kind === 'cache' && !hit && steer < -.08 ?
           (side < 0 ? -.51 : .38) : kind === 'cache' && !hit && steer > .08 ?
             (side < 0 ? -.38 : .51) : side*(freight ? .32 : .44);
-        const top = -h*(freight ? .29 : .43), bottom = -h*contact[index];
+        const top = -h*tireTop[index], bottom = -h*contact[index];
         return { x: w*pos, top, bottom, height: bottom-top,
           width: w*(freight ? .15 : .125) };
       }) : [];

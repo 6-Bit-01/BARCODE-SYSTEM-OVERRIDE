@@ -9,8 +9,13 @@ paint and contact shadows to the recovered art while the chassis moves. Hold
 decorative ship travel and animation under Reduced Motion. See
 `docs/source-pack/CACHE_ROAD_VISUAL_CONTACT.md` for native motion review and
 `CACHE_ROAD_COHESION_AUDIT.md` for the still-open illustrated traffic,
-sidewalk/pedestrian/building/prop scenes, playtest and power-up work. Preserve
-the five owner MP3s, four lanes, controls, sparse pads, save/exit rules and
+sidewalk/pedestrian/building/prop scenes, playtest and power-up work.
+
+After merged #118, the automated review identified a raised outer front tire
+whose shadow sat too low in a turn pose. The focused follow-up uses separately
+measured outer/near contact and mask heights in both steering paintings;
+turn-specific draw assertions and the Turbo comparison cover that correction.
+Preserve the five owner MP3s, four lanes, controls, sparse pads, save/exit rules and
 no Level 2 award. Merge the tested PR for the owner's Makko import; only that
 play can settle visual speed, sound and controller feel. Older art review
 requirements below describe prior branches.

@@ -219,8 +219,18 @@ async function run() {
   assert.deepEqual(openingRects, [], 'the objective disappears between actionable lessons');
   mirrorFrame({ steer: -1 });
   assert(roadArt.some(entry => entry.key === 'cacheCarRight'), 'left steering uses the corrected visible turn');
+  assert(Math.abs(contacts.at(-2).x + 164*.51) < .01 &&
+    Math.abs(contacts.at(-2).y - (-119*.31+2)) < .01 &&
+    Math.abs(contacts.at(-1).x - 164*.38) < .01 &&
+    Math.abs(contacts.at(-1).y - (-119*.125+2)) < .01,
+  'left steer anchors the high outer front tire and the lower rear tire separately');
   mirrorFrame({ steer: 1 });
   assert(roadArt.some(entry => entry.key === 'cacheCarLeft'), 'right steering uses the corrected visible turn');
+  assert(Math.abs(contacts.at(-2).x + 164*.38) < .01 &&
+    Math.abs(contacts.at(-2).y - (-119*.17+2)) < .01 &&
+    Math.abs(contacts.at(-1).x - 164*.51) < .01 &&
+    Math.abs(contacts.at(-1).y - (-119*.275+2)) < .01,
+  'right steer anchors its near rear and raised outer front tire separately');
   assert.equal(mirrorFrame({ pulseFlashMs: 500 }), 1);
   assert.equal(mirrorFrame({ boostMs: 600 }), 2);
   assert.equal(mirrorFrame({ cutFlashMs: 500 }), 3);

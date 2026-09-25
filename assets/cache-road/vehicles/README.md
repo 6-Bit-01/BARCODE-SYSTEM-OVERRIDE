@@ -31,3 +31,6 @@ short dark suspension links and the body move around them. Cache's straight
 and two turn poses, hit pose, freight, courier and rival have separate contact
 heights; the road texture and flying-traffic direction fixes are documented in
 `docs/source-pack/CACHE_ROAD_VISUAL_CONTACT.md`.
+The two steering paintings also show an outer front tire higher than the near
+rear tire. After #118 review, each selected wheel clip and contact shadow has
+its own top and bottom, including the raised outer tire in both directions.
