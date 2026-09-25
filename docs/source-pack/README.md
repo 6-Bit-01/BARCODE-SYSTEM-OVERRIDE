@@ -1,6 +1,19 @@
 # BARCODE: SYSTEM OVERRIDE — Source Pack v5
 
-## Current review — Cache Road layered world
+## Current review — authored diagonal roadside and instruments
+
+Start with `CACHE_ROAD_INSTRUMENT_ART.md`, `CURRENT_STATE.md` and the first
+`ACCEPTANCE.md` route. Six distinct left/right market, depot and quiet frontage
+paintings contain the diagonal perspective in their source pixels. Whole
+paintings register to the moving side-road curb alongside lamps and walkers.
+The four safe road-pad symbols, song-bar inlays and HUD instrument cells share
+one visual language while button glyphs follow the live mapping. The exact
+revision and CI state are in the generated receipt; the scripted motion
+preview is not a Makko listening or controller playtest. The owner's requested
+adrenaline and power-up mechanics (defense, offense, traffic, environment,
+song and lane interaction) remain open after this visual pass.
+
+## Historical review — Cache Road layered world
 
 Start with `CACHE_ROAD_VISUAL_WORLD.md`, `CACHE_ROAD_COHESION_AUDIT.md`,
 `CURRENT_STATE.md` and the first `ACCEPTANCE.md` route. The current road has
