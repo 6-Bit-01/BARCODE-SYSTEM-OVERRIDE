@@ -1,5 +1,33 @@
 # Repository Guidance
 
+## September 25, 2026 — owner corrected #127 crest and site setback
+
+The owner showed five more game frames and a red approach path. The first
+#127 clip hid distant bottoms behind an independently rising horizontal line;
+the lower facade appeared without convincing contact with the landscape.
+Use a curved, road-bearing crest for the same roofs, low filler, parcel and
+open lot. Their footing and parcel ground share a projected path; a whole
+site becomes visible as it moves outward and toward the player. Give each
+seeded location its own lateral distance beyond the sidewalk, including its
+ground/lot. Do not reintroduce floating contact ovals. Inspect consecutive
+actual renderer frames, both sides and a later bend. Keep #127's city-camera
+pan, original art and gameplay/music, and the open power-up backlog. See
+`docs/source-pack/CACHE_ROAD_ROADSIDE_CAMERA_OVERHAUL.md`.
+
+## September 25, 2026 — owner rejected #126 roadside result
+
+The owner supplied a full game frame and a close crop after merged #126.
+Cars appear stranded off the road; location tops sit awkwardly against the
+city/planet horizon; city paintings scroll without a camera cause; sites are
+tiny far away, then swell too fast. This correction removes parked traffic
+sprites, uses a single road depth for site size, reveals complete sites from
+behind the visible y=425 crest, and gives the three overscanned city paintings
+one bounded road-bearing parallax. The park uses its whole painted scene with
+its entrance toward the road. See `docs/source-pack/CACHE_ROAD_ROADSIDE_CAMERA_OVERHAUL.md`.
+The previous horizon/locale pass below is historical and rejected. Review
+the actual frames across bends, not only draw assertions. Preserve the
+adrenaline and defense/offense/traffic/environment/song/lane power-up backlog.
+
 ## September 25, 2026 — Cache Road horizon and locale follow-up
 
 After merged #125, the owner rejected duplicate whole buildings, floating

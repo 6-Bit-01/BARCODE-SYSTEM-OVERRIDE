@@ -1,6 +1,53 @@
 # Acceptance and Test Status
 
+## Cache Road curved crest and varied site distance — September 25
+
+From the exact merged build, follow one building on each side at normal
+speed. Its roof should first peek above the city/planet crest while the
+parcel is obstructed. The full facade and ground should clear together on
+the diagonal path before the site passes outside the sidewalk. Follow the
+park, open parking lot and small trees through the same reveal. Compare
+several locations: some should stand visibly deeper in the landscape than
+others, while their projected ground keeps them attached to the side street.
+Check a later bend, third-lap reversal and Reduced Motion. The city layers,
+streetlights and sidewalk should maintain the road's motion; no off-road
+traffic car or duplicate whole building should appear.
+
+The close-spaced production frames, third-lap stills and continuous Canvas
+draw were visually inspected. Focused production geometry checks cover a
+curved crest, roof/base/clear stages, sidewalk clearance, varying setback,
+facing and no sudden lower-edge pop at the near handoff. The full repository
+gate and exact revision are in the receipt. These scripted frames cannot
+establish Makko appearance, performance, audio or controller feel; owner
+acceptance remains open. See `CACHE_ROAD_ROADSIDE_CAMERA_OVERHAUL.md`.
+
+## Cache Road coherent roadside camera — September 25
+
+Historical first #127 draft: its horizontal reveal was corrected above.
+
+Review the proposed correction against the owner's full game frame and crop.
+Drive at normal size through the first park and parking lot, then a later bend
+and third-lap reversal. A distant roof should rise from behind the visible
+city-bottom crest, its facade and parcel should clear gradually, and its size
+should grow steadily with the road and streetlights. Buildings, park and lot
+must stay beyond the outer sidewalk; no parked traffic cars should appear in
+the empty side terrain. The three city layers should shift together only as
+the road bearing changes, without tile seams or a free-running drift. Repeat
+while braking, resuming after pause and with Reduced Motion.
+
+Staged production draws across two laps and a 32-second continuous render
+were inspected. The focused draw test checks reveal, growth, setback, facing,
+absence of stray parking cars and coherent city pan. Exact repository/CI
+checks belong to the revision receipt. A scripted Canvas preview cannot
+establish the hosted Makko appearance, frame rate, input or music feel. The
+owner has not accepted the visual result. See
+`CACHE_ROAD_ROADSIDE_CAMERA_OVERHAUL.md` and the stills there. The audit's
+adrenaline and six power-up categories remain open after this visual review.
+
 ## Cache Road horizon and open locales — September 25
+
+Historical #126 checklist. The owner rejected the shown park/parking cars,
+horizon placement, city drift and approach scale. Use the route above.
 
 Import the exact merged SHA into Makko and drive the opening and later road
 bends at normal speed. Follow a building from its first small roof above the

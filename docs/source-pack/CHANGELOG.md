@@ -1,5 +1,31 @@
 # Recovery checkpoint — September 14
 
+## September 25, 2026 — curved crest and individual setbacks in #127
+
+- Replace the first #127 horizontal per-site clip with a road-bearing curved
+  ground crest. Apply the same obstruction to separate buildings, parcel
+  ground, open lot and low filler, so tops peek first and complete locations
+  travel into view along a diagonal path.
+- Give each seeded address an independent lateral offset outside the outer
+  sidewalk; stretch its parcel or open lot with it. Remove the temporary
+  contact oval that looked like a floating shadow.
+- Inspect a close-spaced opening sequence, later bend, third lap and 32-second
+  native drive. Focused geometry asserts curved occlusion, near clearing,
+  stable spacing and exterior placement. Makko owner judgment remains open.
+
+## September 25, 2026 — roadside camera overhaul after rejected #126
+
+- Remove the three parked copies of game traffic that read as stranded cars
+  beyond the road; keep the projected empty lot and active lane traffic.
+- Remove late site-size easing, reveal roof/ground through the visible city
+  crest, and render the complete road-facing park painting.
+- Replace independent modulo city scrolls with three overscanned paintings
+  driven by a single bounded road-camera bearing.
+- Review fourteen opening and fourteen third-lap distances and a continuous
+  production drive. Add checks for reveal, steady scale, setback, facing,
+  no decorative parked traffic and shared city pan. Makko owner acceptance
+  remains open; music/gameplay, power-ups and broader adrenaline tuning wait.
+
 ## September 25, 2026 — horizon emergence and matching open locales
 
 - Remove the independent duplicate whole-place row; schedule twenty separate

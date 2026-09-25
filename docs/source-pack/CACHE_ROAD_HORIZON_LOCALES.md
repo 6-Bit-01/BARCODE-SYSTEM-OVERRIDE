@@ -1,5 +1,10 @@
 # Cache Road horizon and roadside locales — September 25, 2026
 
+Historical merged #126 description. The owner rejected the visual result in
+game screenshots: stray parked cars, wrong horizon relationship, free-running
+city scroll and late swelling site scale. See
+`CACHE_ROAD_ROADSIDE_CAMERA_OVERHAUL.md` for the current correction.
+
 Base and rollback: merged PR #125, `6524ce84dcdc8d911054126da1f28b75f3c9afa6`.
 This is the next visual correction for owner review, not a change to the
 song, lane actions, traffic collisions, saves or campaign awards.

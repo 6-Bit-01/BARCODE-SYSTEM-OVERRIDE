@@ -1,5 +1,35 @@
 # BARCODE: SYSTEM OVERRIDE — Source Pack v5
 
+## Current review — curved crest and varied roadside sites
+
+The owner corrected the first #127 draft with marked game frames. Roofs and
+treetops now emerge behind a curved ground crest, then the whole site and its
+projected parcel clear along the road. Seeded address setbacks vary the
+distance beyond the sidewalk. Start with
+`CACHE_ROAD_ROADSIDE_CAMERA_OVERHAUL.md`, `CURRENT_STATE.md` and the first
+`ACCEPTANCE.md` route. The adrenaline and defense/offense/traffic/
+environment/song/lane power-up list remains open in
+`CACHE_ROAD_COHESION_AUDIT.md`.
+
+## Current review — cohesive roadside camera
+
+Historical first #127 draft: its horizontal reveal was corrected above.
+
+Start with `CACHE_ROAD_ROADSIDE_CAMERA_OVERHAUL.md`, `CURRENT_STATE.md`
+and the first `ACCEPTANCE.md` route. The owner rejected merged #126 after
+supplying the actual game frame and crop. This correction removes the stray
+parked traffic cars, matches site scale to road depth, reveals whole sites
+through the visible city crest, and ties three city paintings to one bounded
+road camera bearing. The complete park painting replaces cropped tree
+fragments. Staged and continuous production draws support review; owner
+Makko visual, input, audio and performance acceptance remain open. The
+adrenaline and power-up list remains in `CACHE_ROAD_COHESION_AUDIT.md`.
+
+## Historical — rejected #126 horizon and parking result
+
+The source record `CACHE_ROAD_HORIZON_LOCALES.md` describes the merged pass
+that prompted the owner's latest correction; it is not current acceptance.
+
 ## Current review — exterior roadside and frontages
 
 Start with `CACHE_ROAD_SETBACK_FACING.md`, `CURRENT_STATE.md` and the first
