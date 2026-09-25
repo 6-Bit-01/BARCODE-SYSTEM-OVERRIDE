@@ -1,5 +1,20 @@
 # Current State
 
+## September 25 — authored diagonal roadside and instrument art review
+
+The prior visual pass placed horizontal building paintings along a curved
+projection. The owner wanted the perspective authored into the art. Six new
+transparent cutouts now give market, depot and muted frontage separate left
+and right vanishing directions. Each whole scene is registered to two curb
+points; the connected pavement, lamps and walkers still share road progress.
+Road pads have distinct Surge/Push/Brace/Refill inlays and live mapped glyphs;
+song-bar highlights have four lane motifs and gapped edges; the instrument
+HUD groups the next action, active parts, meters and driving state around the
+existing Cache Back mirror. A scripted seven-chapter draw and focused proof
+support review. Exact CI/export evidence belongs to the revision receipt.
+Owner Makko perspective, readability, sound and controller feel are pending.
+The audit's adrenaline playtest and power-up categories remain next.
+
 ## September 25 — illustrated traffic and layered side-road events
 
 After merged #119, the next visual pass adds painted audit/sweeper vehicles,

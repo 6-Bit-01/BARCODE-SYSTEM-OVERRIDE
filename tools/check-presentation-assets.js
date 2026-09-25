@@ -11,16 +11,19 @@ w.Image = class Image {
 load(context, 'src/engine/presentation-assets.js');
 const art = w.BARCODE.PresentationAssets;
 for (let i = 0; i < 20; i++) art.preload();
-assert.strictEqual(images.length, 52, 'restarts reuse Cache traffic, roadside, road, sky, ship and mirror art');
+assert.strictEqual(images.length, 55, 'restarts reuse Cache traffic, diagonal roadside, road, sky, ship and mirror art');
 assert(images.every(im => /^https:\/\/raw\.githubusercontent\.com\/.+\/[a-f0-9]{40}\//.test(im.requests[0])), 'assets use published immutable revisions');
 const cacheRoadRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/37db98387b8791655e3ff352d6bc6d61cb0b574b/';
 assert.equal(images.filter(im => im.requests[0].startsWith(cacheRoadRoot)).length,19,
   'Cache Road art loads from the merged published revision when Makko omits local binaries');
 const cacheWorldRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/41edca02367b9f1f3af429d14df3d378ca46c9b4/';
-assert.equal(images.filter(im => im.requests[0].startsWith(cacheWorldRoot)).length,6,
-  'new traffic and diagonal roadside art loads from its published asset revision');
-assert(images.some(im => im.requests[0] === 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/9e8332897d40405ed96f0838f121f3e4236ac931/assets/cache-road/roadside/service-frontage.webp'),
-  'the continuous frontage uses its own published asset revision');
+assert.equal(images.filter(im => im.requests[0].startsWith(cacheWorldRoot)).length,4,
+  'the four illustrated traffic vehicles retain their published asset revision');
+const cacheInstrumentRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/55cecb17abcb771d0e1348033d4fbe9529f927c0/';
+assert.equal(images.filter(im => im.requests[0].startsWith(cacheInstrumentRoot)).length,6,
+  'six authored left/right diagonal paintings load from their exact published revision');
+assert(!images.some(im => /\/(market-block|relay-depot|service-frontage)\.webp$/.test(im.requests[0])),
+  'the previous flat paintings are not requested');
 const catImage=images.find(im=>im.requests[0].endsWith('/assets/presentation/studio-cat.webp'));
 const arrowImage=images.find(im=>im.requests[0].endsWith('/assets/presentation/direction-arrow.webp'));
 const pulseImage=images.find(im=>im.requests[0].endsWith('/assets/presentation/boss-pulse.webp'));
@@ -46,7 +49,7 @@ assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2),
   'collision eyes come from the second row inside the same mirror crop');
 arrowImage.onerror(); arrowImage.onerror();
 assert.strictEqual(arrowImage.requests.length, 2); assert.strictEqual(arrowImage.onerror, null);
-art.preload(); assert.strictEqual(images.length, 52, 'failed assets do not retry forever');
+art.preload(); assert.strictEqual(images.length, 55, 'failed assets do not retry forever');
 pulseImage.naturalWidth = pulseImage.naturalHeight = 512; pulseImage.onload();
 ops.length = 0; art.draw('bossPulse', ctx, { y: 822, width: 64, height: 56, frame: 2 });
 assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2), [10, 351, 236, 145, -32, -56, 64, 56], 'pulse fills the dangerous height and retains the ground anchor');

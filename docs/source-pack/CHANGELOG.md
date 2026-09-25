@@ -1,5 +1,14 @@
 # Recovery checkpoint — September 14
 
+## September 25, 2026 — authored diagonal and instrument art
+
+- Replace sliced horizontal roadside paintings with six left/right perspective
+  market, depot and background sources, drawn whole at road world anchors.
+- Add inlaid four-action pad symbols and mapped button glyphs, four distinct
+  gapped music-bar markings, and modular HUD instruments around the rearview.
+- Extend the native scripted visual review to queued and full-stack bars;
+  retain the sparse pad chart, song, hazard rules, saves and exit.
+
 ## September 25, 2026 — Cache Road traffic and layered roadside
 
 - Add illustrated audit/sweeper, signal trike and shuttle; project scan and

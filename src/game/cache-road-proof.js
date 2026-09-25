@@ -55,6 +55,20 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       (kind === 'market' ? 'depot' : 'market') : kind,
     side: pass % 2 ? -side : side
   }))).flat();
+  // Each cutout was painted with its own near-to-far building, roof and
+  // sidewalk perspective. These source foot points register the painted curb
+  // to the road; the complete artwork moves as one piece without slice warps.
+  const SIDE_ART = {
+    market: {
+      '-1': ['cacheMarketLeft', 1080, 393, [47,364], [1031,307]],
+      '1': ['cacheMarketRight', 1080, 385, [998,360], [62,154]] },
+    depot: {
+      '-1': ['cacheDepotLeft', 1080, 403, [68,368], [1010,263]],
+      '1': ['cacheDepotRight', 1080, 403, [1015,379], [63,258]] },
+    frontage: {
+      '-1': ['cacheFrontageLeft', 1080, 405, [63,374], [1018,298]],
+      '1': ['cacheFrontageRight', 1080, 360, [970,328], [60,117]] }
+  };
   const clone = value => JSON.parse(JSON.stringify(value));
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   function mirrorExpression(s) {
@@ -195,6 +209,69 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
     ctx.closePath(); ctx.fillStyle = fill; ctx.fill();
   };
+  // Vector source art keeps the same action and part language crisp on the
+  // road and in the instrument cluster, independent of remapped button text.
+  function drawActionIcon(ctx,action,x,y,size,color='#d6ffe7') {
+    ctx.save();ctx.translate(x,y);ctx.scale(size/60,size/60);
+    ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=5;
+    ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();
+    if(action===0) { // Surge: a double forward impulse.
+      for(const offset of [0,16]) {
+        ctx.moveTo(-20,10-offset);ctx.lineTo(0,-10-offset);
+        ctx.lineTo(20,10-offset);
+      }
+      ctx.stroke();
+    } else if(action===1) { // Push: an impact wedge.
+      ctx.moveTo(-23,-13);ctx.lineTo(5,-13);ctx.lineTo(24,0);
+      ctx.lineTo(5,13);ctx.lineTo(-23,13);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-14,-22);ctx.lineTo(-14,-16);
+      ctx.moveTo(-14,16);ctx.lineTo(-14,22);ctx.stroke();
+    } else if(action===2) { // Brace: armored shield.
+      ctx.moveTo(0,-24);ctx.lineTo(21,-15);ctx.lineTo(18,8);
+      ctx.quadraticCurveTo(12,22,0,27);ctx.quadraticCurveTo(-12,22,-18,8);
+      ctx.lineTo(-21,-15);ctx.closePath();ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-9,1);ctx.lineTo(-1,9);ctx.lineTo(12,-8);ctx.stroke();
+    } else { // Refill: winding signal coil.
+      ctx.arc(0,0,21,-.4,Math.PI*1.55);ctx.stroke();
+      polygon(ctx,[[16,-21],[27,-18],[21,-8]],color);
+      ctx.beginPath();ctx.moveTo(0,-10);ctx.lineTo(0,11);
+      ctx.moveTo(-10,1);ctx.lineTo(10,1);ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function drawLaneMark(ctx,lane,x,y,size,color=PALETTE[lane]) {
+    ctx.save();ctx.translate(x,y);ctx.scale(size/50,size/50);
+    ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=4;
+    ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();
+    if(lane===0) { // Drive: parallel motion tracks.
+      for(const offset of [-10,0,10]) {
+        ctx.moveTo(offset-9,15);ctx.lineTo(offset+9,-15);
+      }
+      ctx.stroke();
+    } else if(lane===1) { // Flow: continuous waveform.
+      ctx.moveTo(-23,0);ctx.bezierCurveTo(-12,-19,-5,-19,2,0);
+      ctx.bezierCurveTo(9,19,16,19,23,0);ctx.stroke();
+    } else if(lane===2) { // Breakaway: divided outward chevrons.
+      ctx.moveTo(-23,15);ctx.lineTo(-5,-4);ctx.lineTo(-23,-20);
+      ctx.moveTo(0,15);ctx.lineTo(19,-4);ctx.lineTo(0,-20);ctx.stroke();
+    } else { // Undercurrent: pulse below the surface.
+      ctx.moveTo(-23,9);ctx.lineTo(-10,9);ctx.lineTo(-4,-10);
+      ctx.lineTo(4,20);ctx.lineTo(11,-3);ctx.lineTo(23,-3);ctx.stroke();
+      ctx.beginPath();ctx.arc(-16,-11,2,0,Math.PI*2);ctx.fill();
+    }
+    ctx.restore();
+  }
+  function instrumentPanel(ctx,x,y,w,h,accent) {
+    polygon(ctx,[[x+14,y],[x+w-14,y],[x+w,y+14],[x+w,y+h-10],
+      [x+w-10,y+h],[x+10,y+h],[x,y+h-10],[x,y+14]],'#0b1b2bed');
+    ctx.strokeStyle=accent;ctx.globalAlpha=.54;ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(x+16,y+3);ctx.lineTo(x+w-16,y+3);
+    ctx.moveTo(x+9,y+h-5);ctx.lineTo(x+w-9,y+h-5);ctx.stroke();
+    ctx.globalAlpha=1;ctx.fillStyle='#527181';
+    for(const xx of [x+13,x+w-13]) {
+      ctx.beginPath();ctx.arc(xx,y+h-12,2,0,Math.PI*2);ctx.fill();
+    }
+  }
   const grit = n => { const v=Math.sin(n*78.233+12.9898)*43758.5453; return v-Math.floor(v); };
   function drawGrimyPlume(ctx,x,y,phase,spread,strength,colors,direction=1) {
     ctx.save();
@@ -1231,50 +1308,31 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       for (let i=28;i>=0;i--) { const t=i/28; ctx.lineTo(center(t)+half(t),roadY(t)); }
       ctx.closePath(); ctx.clip(); ctx.fillStyle=roadFog; ctx.fillRect(0,horizon,1920,170);
       ctx.restore();
-      // A quieter painted frontage repeats behind the distinct locations.
-      // Its 640-unit tile and the slabs/lights all use the same progress and
-      // depth function; the overlap conceals tiny texture sampling seams.
-      for(let at=Math.floor((progress+565)/16)*16;at>progress-85;at-=16) {
-        const far=depth(at-progress),near=depth(at-16-progress);
-        const t=(far+near)/2;
-        if(t<.12||t>.98)continue;
-        const tile=((at-16)%640+640)%640;
-        const sourceX=Math.round(tile*1550/640);
-        const sourceEnd=Math.round((tile+16)*1550/640);
-        for(const side of [-1,1]) {
-          const fx=roadsideX(side,far,258,200),nx=roadsideX(side,near,258,200);
-          ctx.save();ctx.globalAlpha=.47+.29*t;
-          B.PresentationAssets?.draw?.('cacheServiceFrontage',ctx,{
-            x:(fx+nx)/2,y:roadY(t)+24*t,
-            width:Math.abs(nx-fx)+2,height:75+350*t,
-            sourceRect:[sourceX,0,sourceEnd-sourceX,509] });
-          ctx.restore();
-        }
-      }
+      const drawSideScene = (kind,side,at,span,background=false) => {
+        const [key,width,height,srcNear,srcFar] = SIDE_ART[kind][side];
+        const near=depth(at-span*.5-progress),far=depth(at+span*.5-progress);
+        if(near<.12||far>.98)return;
+        const base=background?258:180,growth=background?200:140;
+        const nearX=roadsideX(side,near,base,growth),farX=roadsideX(side,far,base,growth);
+        const nearY=roadY(near)+24*near,farY=roadY(far)+24*far;
+        const scaleY=(background?70+290*near:90+360*near)/height;
+        const a=(farX-nearX)/(srcFar[0]-srcNear[0]);
+        const b=(farY-nearY-scaleY*(srcFar[1]-srcNear[1]))/(srcFar[0]-srcNear[0]);
+        ctx.save();
+        ctx.globalAlpha*=clamp((near-.10)/.18,0,1)*(background ? .63 : .94);
+        ctx.transform(a,b,0,scaleY,nearX-a*srcNear[0],
+          nearY-b*srcNear[0]-scaleY*srcNear[1]);
+        B.PresentationAssets?.draw?.(key,ctx,{x:0,y:0,width,height});
+        ctx.restore();
+      };
+      // Complete diagonal paintings overlap over the continuous side deck.
+      // The row behind an event remains world-fixed through speed changes.
+      for(let at=Math.floor((progress+620)/320)*320;at>progress-220;at-=320)
+        for(const side of [-1,1]) drawSideScene('frontage',side,at,350,true);
       for(const scene of [...SCENES].reverse()) {
         const distance=scene.at-progress,side=scene.side;
-        if(distance< -145||distance>565)continue;
-        const asset=scene.kind==='market'?'cacheMarketBlock':'cacheRelayDepot';
-        const sourceH=scene.kind==='market'?552:567, sourceW=1550;
-        // The source painting is a connected frontage. Each vertical slice is
-        // fixed to a successive world position beside the curving sidewalk.
-        // Its roof, paving and windows all grow together on approach.
-        const atSlice=u=>scene.at+(side<0?u-.5:.5-u)*280;
-        const buildingX=t=>roadsideX(side,t,180,140);
-        for(let strip=0;strip<40;strip++) {
-          const u0=strip/40,u1=(strip+1)/40;
-          const t0=depth(atSlice(u0)-progress),t1=depth(atSlice(u1)-progress);
-          const t=(t0+t1)/2;
-          if(t<.12||t>.98)continue;
-          const x0=buildingX(t0),x1=buildingX(t1);
-          const sourceX=Math.round(u0*sourceW),sourceEnd=Math.round(u1*sourceW);
-          ctx.save();ctx.globalAlpha=.54+.44*t;
-          B.PresentationAssets?.draw?.(asset,ctx,{
-            x:(x0+x1)/2,y:roadY(t)+24*t,
-            width:Math.abs(x1-x0)+2,height:105+470*t,
-            sourceRect:[sourceX,0,sourceEnd-sourceX,sourceH] });
-          ctx.restore();
-        }
+        if(distance< -175||distance>600)continue;
+        drawSideScene(scene.kind,side,scene.at,300);
         // Walkers share the projected slab line between frontage and wall.
         for(let person=0;person<2;person++) {
           const personAt=scene.at+(person?75:-55);
@@ -1352,16 +1410,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           if (!reveal) continue;
           painted = true;
           const padNear = 8 + near * 13, padFar = 8 + far * 13;
-          const quad = [[laneEdge(lane,near)+padNear,roadY(near)],
-            [laneEdge(lane+1,near)-padNear,roadY(near)],
-            [laneEdge(lane+1,far)-padFar,roadY(far)],
-            [laneEdge(lane,far)+padFar,roadY(far)]];
-          ctx.globalAlpha = (active ? .35 : .16) * reveal;
-          polygon(ctx, quad, PALETTE[lane]);
-          ctx.globalAlpha = (active ? .9 : .57) * reveal;
+          const trimFar=far+(near-far)*.10,trimNear=far+(near-far)*.88;
+          // Short gaps between bar cells leave the blacktop and traffic clear.
+          ctx.globalAlpha = (active ? .76 : .43) * reveal;
           ctx.strokeStyle = PALETTE[lane]; ctx.lineWidth = 1.5 + near * (active ? 4 : 2);
-          ctx.beginPath(); ctx.moveTo(...quad[0]); ctx.lineTo(...quad[3]);
-          ctx.moveTo(...quad[1]); ctx.lineTo(...quad[2]); ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(laneEdge(lane,trimNear)+padNear,roadY(trimNear));
+          ctx.lineTo(laneEdge(lane,trimFar)+padFar,roadY(trimFar));
+          ctx.moveTo(laneEdge(lane+1,trimNear)-padNear,roadY(trimNear));
+          ctx.lineTo(laneEdge(lane+1,trimFar)-padFar,roadY(trimFar));ctx.stroke();
           // Short transverse inlaid strokes make the paint read as material
           // passing under the car as a committed phrase approaches.
           const stripeT = far + (near - far) * .38;
@@ -1382,15 +1439,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
             ctx.lineTo(laneEdge(lane,markT) + (laneEdge(lane+1,markT)-laneEdge(lane,markT))*.7,
               roadY(markT)); ctx.stroke();
           }
-          if (bar % 4 === 0 && near > .32) {
-            const labelT = far + (near - far) * .7;
-            ctx.save(); ctx.translate(laneX(lane,labelT), roadY(labelT));
-            ctx.scale(Math.max(.35,labelT*.83), Math.max(.13,labelT*.25));
-            ctx.textAlign = 'center'; ctx.fillStyle = '#fafff8';
-            ctx.font = 'bold 25px Oxanium, monospace';
-            ctx.fillText(`${LANES[lane]} ${bar+1}–${Math.min(100,bar+4)}`, 0, -10);
-            ctx.restore();
-          }
+          // Four distinct inlaid motifs survive grayscale and tie the road
+          // phrase to its matching instrument cell above the mirror.
+          const motifT=far+(near-far)*.62;
+          ctx.save();ctx.globalAlpha=(active ? .82 : .43)*reveal;
+          ctx.translate(laneX(lane,motifT),roadY(motifT)-5*motifT);
+          ctx.scale(Math.max(.45,motifT),Math.max(.18,motifT*.36));
+          drawLaneMark(ctx,lane,0,0,47,PALETTE[lane]);ctx.restore();
           ctx.globalAlpha = 1;
         }
         if(bar%4===0||painted) {
@@ -1475,21 +1530,36 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           [laneX(pulse.lane,far)+farWidth,roadY(far)],
           [laneX(pulse.lane,far)-farWidth,roadY(far)]];
         ctx.save();
-        ctx.globalAlpha = .78 + (reduced ? 0 : beatPulse*.12);
-        polygon(ctx, points, '#174c51');
-        ctx.strokeStyle = '#a9e2cb'; ctx.lineWidth = 1 + mid*2;
+        const spent=!!s.caughtPulses[pulse.id],ready=d<=55&&d>=-18;
+        ctx.globalAlpha=spent ? .55 : .88;
+        polygon(ctx,points,'#061922');
+        const inset=8+mid*5;
+        polygon(ctx,[[points[0][0]+inset,points[0][1]-2],
+          [points[1][0]-inset,points[1][1]-2],
+          [points[2][0]-inset*.65,points[2][1]+2],
+          [points[3][0]+inset*.65,points[3][1]+2]],'#174c51');
+        ctx.strokeStyle=spent?'#6d9389':'#a9e2cb';ctx.lineWidth=1+mid*2;
         ctx.beginPath(); points.forEach(([px,py],i) => i ? ctx.lineTo(px,py) : ctx.moveTo(px,py));
         ctx.closePath(); ctx.stroke();
-        ctx.strokeStyle = '#d1edca'; ctx.lineWidth = 2 + mid*2;
-        for (const offset of [-.55,.55]) {
-          const yy = y + offset*(roadY(near)-roadY(far))*.5;
-          ctx.beginPath(); ctx.moveTo(x-28*mid,yy); ctx.lineTo(x+28*mid,yy); ctx.stroke();
+        ctx.fillStyle='#a4d6bc';
+        for(const [px,py] of points) {
+          ctx.beginPath();ctx.arc(px+(px<x?5:-5),py+(py<y?3:-3),1.5+mid,0,Math.PI*2);ctx.fill();
         }
-        ctx.translate(x,y); ctx.scale(Math.max(.5,mid),Math.max(.28,mid*.42));
+        // One restrained beat edge is sufficient; the plate never floats up
+        // through vehicles, and a caught plate stays until it passes the car.
+        if(ready&&!spent) {
+          ctx.globalAlpha=.72+(reduced?0:beatPulse*.28);
+          ctx.strokeStyle='#e3ffe5';ctx.lineWidth=2+mid*3;
+          ctx.beginPath();ctx.moveTo(points[0][0]+15,points[0][1]-3);
+          ctx.lineTo(points[1][0]-15,points[1][1]-3);ctx.stroke();
+        }
+        ctx.globalAlpha=spent ? .52 : 1;
+        ctx.translate(x,y);ctx.scale(Math.max(.52,mid),Math.max(.29,mid*.46));
+        const face=PULSE_ACTIONS[pulse.action];
+        drawActionIcon(ctx,pulse.action,0,-22,48,'#d7ffe6');
         ctx.fillStyle = '#f4f3d7'; ctx.textAlign = 'center';
-        ctx.font = 'bold 32px Oxanium, monospace';
-        const face = PULSE_ACTIONS[pulse.action];
-        ctx.fillText(B.GamepadUI?.connected ? B.ControllerSettings?.button(face.button) || face.keyboard : face.keyboard,0,9);
+        ctx.font = 'bold 40px Oxanium, monospace';
+        ctx.fillText(B.GamepadUI?.connected ? B.ControllerSettings?.button(face.button) || face.keyboard : face.keyboard,0,38);
         ctx.restore();
       }
       // Far traffic first; the shapes and on-road arrows remain legible in motion.
@@ -1609,7 +1679,16 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.fillRect(0, 163, 12, 750); ctx.fillRect(1908, 163, 12, 750);
       }
       // The driving HUD prioritizes time, damage and ability readiness.
-      ctx.fillStyle = '#091523f2'; ctx.fillRect(0, 0, 1920, 164);
+      ctx.fillStyle = '#07121ff5'; ctx.fillRect(0, 0, 1920, 164);
+      instrumentPanel(ctx,20,5,605,153,'#79d9d1');
+      instrumentPanel(ctx,1338,5,562,153,s.fullAdrenaline?'#f6d38a':'#81d8d2');
+      ctx.strokeStyle='#678b96';ctx.lineWidth=2;
+      for(let tick=0;tick<9;tick++) {
+        ctx.globalAlpha=tick<Math.round(s.speed/9) ? .7 : .25;
+        ctx.beginPath();ctx.moveTo(44+tick*29,151);
+        ctx.lineTo(63+tick*29,151);ctx.stroke();
+      }
+      ctx.globalAlpha=1;
       ctx.fillStyle = '#9ef6e2'; ctx.font = 'bold 32px Oxanium, monospace'; ctx.textAlign = 'left';
       ctx.fillText('CACHE BACK  /  ORIGINAL MASTER', 42, 45);
       ctx.fillStyle = '#c9e1e8'; ctx.font = '20px Oxanium, monospace';
@@ -1634,43 +1713,56 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const nextButton = nextFace && (B.GamepadUI?.connected ?
         B.ControllerSettings?.button(nextFace.button) || nextFace.keyboard : nextFace.keyboard);
       const padDistance = nextPulse?.at - s.progress;
-      ctx.fillText(nextPulse && padDistance <= 55 ?
-        `SAFE ROAD PAD • ${LANES[nextPulse.lane]} • TAP ${nextButton} ON BEAT` :
-        nextPulse && padDistance <= 345 ?
-          `SAFE ROAD PAD • ${LANES[nextPulse.lane]} • ${nextButton} ${nextFace.label} • ${Math.round(padDistance)} AHEAD` :
-          'ROAD CLEAR', 1345, 31, 540);
+      const padVisible=nextPulse&&padDistance<=345;
+      ctx.fillStyle=padVisible?'#17414a':'#162937';
+      polygon(ctx,[[1352,17],[1395,17],[1405,27],[1405,61],
+        [1395,70],[1352,70],[1345,61],[1345,27]],ctx.fillStyle);
+      if(padVisible) drawActionIcon(ctx,nextPulse.action,1375,43,37,'#c6ffe2');
+      else drawLaneMark(ctx,s.lane,1375,43,35,'#9bd7d0');
+      ctx.fillStyle='#a8bfcb';ctx.font='bold 14px Oxanium, monospace';
+      ctx.fillText(padVisible?`NEXT PAD  /  ${LANES[nextPulse.lane]}`:'ROAD CLEAR',1418,29,460);
+      ctx.fillStyle=padVisible&&padDistance<=55?'#f1ffe6':'#d8f5e8';
+      ctx.font='bold 25px Oxanium, monospace';
+      ctx.fillText(padVisible?`${nextButton}  ${nextFace.label}  •  ${padDistance<=55?'TAP ON BEAT':`${Math.round(padDistance)} AHEAD`}`:
+        'READ THE NEXT GAP',1418,56,465);
       ctx.fillStyle = '#b5cbd0'; ctx.font = '16px Oxanium, monospace';
       const armed = [s.ramMs > 0 ? `PUSH ${Math.ceil(s.ramMs / 100) / 10}s` : '',
         s.shield ? 'BRACE READY' : ''].filter(Boolean).join('  •  ');
-      ctx.fillText(armed || PULSE_ACTIONS.map(face =>
-        `${B.GamepadUI?.connected ? B.ControllerSettings?.button(face.button) : face.keyboard} ${face.label}`).join(' • '),
-      1345, 57, 540);
+      if(armed) {
+        ctx.font='bold 14px Oxanium, monospace';
+        ctx.fillText(armed,1418,73,465);
+      }
       const meter = (x, label, value, color, display = `${Math.round(value)}%`) => {
-        ctx.fillStyle = '#afbdcb'; ctx.font = 'bold 14px Oxanium, monospace'; ctx.fillText(label, x, 80);
-        ctx.fillStyle = '#26364b'; ctx.fillRect(x, 87, 196, 14);
-        ctx.fillStyle = color; ctx.fillRect(x, 87, 196 * clamp(value/100,0,1), 14);
-        ctx.fillStyle = '#f7f8ec'; ctx.font = 'bold 14px Oxanium, monospace'; ctx.fillText(display, x + 204, 100);
+        ctx.fillStyle = '#afbdcb'; ctx.font = 'bold 14px Oxanium, monospace'; ctx.fillText(label, x, 88);
+        ctx.fillStyle = '#26364b'; ctx.fillRect(x, 95, 196, 14);
+        ctx.fillStyle = color; ctx.fillRect(x, 95, 196 * clamp(value/100,0,1), 14);
+        ctx.fillStyle = '#f7f8ec'; ctx.font = 'bold 14px Oxanium, monospace'; ctx.fillText(display, x + 204, 108);
       };
       meter(1345, 'ECHO', s.echoEnergy, '#83e6fc');
       meter(1615, s.fullAdrenaline ? 'FULL ADRENALINE' : 'PARTS ACTIVE',
         s.captures.length * 25, '#d0a4ff', `${s.captures.length}/4`);
       ctx.fillStyle = '#e7f4e9'; ctx.font = 'bold 21px Oxanium, monospace';
-      ctx.fillText(`SCORE ${s.score}    STACK x${stackSize(s)}`, 1345, 131, 315);
+      ctx.fillText(`SCORE ${s.score}    STACK x${stackSize(s)}`, 1345, 135, 315);
       ctx.fillStyle = s.boost || s.boostMs ? '#fbd899' : '#718995';
       ctx.font = 'bold 17px Oxanium, monospace';
       const turboButton = B.GamepadUI?.connected ? B.ControllerSettings?.button(4) : 'SPACE';
       ctx.fillText(s.boostMs ? 'TURBO ACTIVE' : s.boost ? `${turboButton} TURBO READY` : `${turboButton} TURBO CHARGING`, 1660, 131, 230);
-      // The original four names remain beneath the one-piece mirror.
+      // Four instrument cells carry the same shapes as the inlaid road bars.
       for (let i = 0; i < 4; i++) {
         const x = 642 + i * 171;
         const capture = s.captures.find(item => item.lane === i);
         const queued = s.queuedCaptures.find(item => item.lane === i);
-        ctx.fillStyle = capture || queued ? '#f1fff5' : '#a4bdc4';
-        ctx.font = 'bold 13px Oxanium, monospace'; ctx.textAlign = 'left';
-        ctx.fillText(`${i+1} ${LANES[i]} ${queued ? 'NEXT BEAT' :
-          capture ? `${Math.max(0,Math.ceil((capture.endBeat-s.musicBeatFloat)/4))}B` : 'READY'}`, x, 145, 165);
+        ctx.fillStyle=capture?'#1b3843':queued?'#1c3040':'#112332';
+        ctx.fillRect(x,132,162,27);
+        ctx.strokeStyle=PALETTE[i];ctx.globalAlpha=capture ? .86 : queued ? .55 : .23;
+        ctx.strokeRect(x+.5,132.5,161,26);ctx.globalAlpha=1;
+        drawLaneMark(ctx,i,x+15,145,19,PALETTE[i]);
+        ctx.fillStyle=capture||queued?'#f1fff5':'#a4bdc4';
+        ctx.font='bold 15px Oxanium, monospace';ctx.textAlign='left';
+        ctx.fillText(`${LANES[i]}  ${queued?'NEXT':capture?
+          `${Math.max(0,Math.ceil((capture.endBeat-s.musicBeatFloat)/4))}B`:'—'}`,x+29,149,130);
         ctx.fillStyle = PALETTE[i]; ctx.globalAlpha = capture ? 1 : queued ? .65 : s.lane === i ? .45 : .16;
-        ctx.fillRect(x, 151, 162, 5); ctx.globalAlpha = 1;
+        ctx.fillRect(x+3,155,156,3);ctx.globalAlpha=1;
       }
       ctx.textAlign = 'left';
       if (s.cutFlashMs) {

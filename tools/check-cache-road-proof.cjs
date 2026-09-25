@@ -149,6 +149,8 @@ async function run() {
     if (key === 'cacheMirror') mirrorFrames.push({ frame: options.frame,
       sourceRect: options.sourceRect, x: options.x, y: options.y });
     else { roadArt.push({ key, ...options,
+      ...(/^(cacheMarket|cacheDepot|cacheFrontage)/.test(key) ?
+        { transform: _ctx.lastTransform } : {}),
       ...(key.startsWith('cacheFly') ? { screenX: _ctx.lastTranslate?.[0] } : {}) });
       drawOrder.push(key); }
     return true;
@@ -160,13 +162,15 @@ async function run() {
       if (x === 30 && y === 176 && width > 100) openingRects.push([width, height]);
     }, fill() { if (this.fillStyle === '#174c51') drawOrder.push('roadPad'); },
     translate(x,y) { this.lastTranslate = [x,y]; },
+    transform(...values) { this.lastTransform = values; },
     ellipse(x,y,rx,ry) {
       if (this.fillStyle === '#030b16c8') contacts.push({ x,y,rx,ry });
       if (['#ff77bb','#ffd079','#8af6f1'].includes(this.fillStyle))
         beacons.push({ x,y,translate:this.lastTranslate });
     },
     fillText(value, x, y) {
-      if (x === 1345 && y === 57) hudLines.push(value);
+      if ((x === 1418 && y === 73) || (x === 1345 && y === 155))
+        hudLines.push({ value, x, y });
       if (value === 'CUT >' || value === '< CUT') trafficLabels.push(value);
     } },
     { get(target, key) { return key in target ? target[key] : () => {}; },
@@ -196,34 +200,38 @@ async function run() {
     roadArt.some(entry => entry.key === 'cacheCar'),
   'three city depths, roadside art, flying traffic, road and car share the live draw');
   mirrorFrame({ progress: 0 });
-  const market = roadArt.filter(entry => entry.key === 'cacheMarketBlock');
-  assert(market.length > 10 && market[0].x < market.at(-1).x &&
-    market[0].height > market.at(-1).height && market[0].y > market.at(-1).y,
-  'left event recedes diagonally: near facades are lower and larger');
-  const marketNear = market[0];
-  const frontage = roadArt.find(entry => entry.key === 'cacheServiceFrontage' &&
-    entry.x < 960 && entry.y > 550 && entry.y < 690);
+  const foot = (entry,point) => {
+    const [a,b,c,d,e,f]=entry.transform;
+    return {x:a*point[0]+c*point[1]+e,y:b*point[0]+d*point[1]+f};
+  };
+  const market = roadArt.find(entry => entry.key === 'cacheMarketLeft');
+  assert(market && !market.sourceRect && market.width === 1080 &&
+    foot(market,[47,364]).x < foot(market,[1031,307]).x &&
+    foot(market,[47,364]).y > foot(market,[1031,307]).y,
+  'one authored diagonal market cutout registers its near/far painted curb');
+  const marketNear = foot(market,[47,364]);
+  const frontage = roadArt.find(entry => entry.key === 'cacheFrontageLeft');
   const lamp = roadArt.find(entry => entry.key === 'cachePylon' &&
     entry.x < 960 && entry.y > 550 && entry.y < 690);
-  assert(frontage && lamp,'painted background and streetlights occupy the same side road');
+  assert(frontage && lamp && roadArt.some(entry => entry.key === 'cacheFrontageRight'),
+    'both authored background directions and streetlights occupy the side road');
+  const frontageNear=foot(frontage,[63,374]);
   mirrorFrame({ progress: 32 });
-  const advancingMarket = roadArt.find(entry => entry.key === 'cacheMarketBlock' &&
-    entry.sourceRect[0] === marketNear.sourceRect[0]);
-  const advancingFrontage = roadArt.find(entry => entry.key === 'cacheServiceFrontage' &&
-    entry.x < 960 && entry.sourceRect[0] === frontage.sourceRect[0] &&
-    Math.abs(entry.x-frontage.x)<180);
+  const advancingMarket = roadArt.find(entry => entry.key === 'cacheMarketLeft');
+  const advancingFrontage = roadArt.find(entry => entry.key === 'cacheFrontageLeft');
   const advancingLamp = roadArt.find(entry => entry.key === 'cachePylon' &&
     entry.x < 960 && entry.y > lamp.y && entry.y < lamp.y+100);
-  assert(advancingMarket && advancingMarket.x < marketNear.x &&
-    advancingMarket.height > marketNear.height &&
-    advancingFrontage && advancingFrontage.x < frontage.x &&
+  assert(advancingMarket && foot(advancingMarket,[47,364]).x < marketNear.x &&
+    foot(advancingMarket,[47,364]).y > marketNear.y &&
+    advancingFrontage && foot(advancingFrontage,[63,374]).x < frontageNear.x &&
     advancingLamp && advancingLamp.x < lamp.x,
   'event, backing frontage and streetlight approach together in world space');
   mirrorFrame({ progress: 600 });
-  const depot = roadArt.filter(entry => entry.key === 'cacheRelayDepot');
-  assert(depot.length > 10 && depot[0].x < depot.at(-1).x &&
-    depot[0].height < depot.at(-1).height && depot[0].y < depot.at(-1).y,
-  'right event runs diagonally the opposite way toward the foreground');
+  const depot = roadArt.find(entry => entry.key === 'cacheDepotRight');
+  assert(depot && !depot.sourceRect && depot.width === 1080 &&
+    foot(depot,[1015,379]).x > foot(depot,[63,258]).x &&
+    foot(depot,[1015,379]).y > foot(depot,[63,258]).y,
+  'right event has its own reverse vanishing direction in the painting');
   assert(trafficLabels.includes('CUT >') && beacons.some(light => light.translate?.[0] === 0),
     'opening trike calls its right cut and keeps its beacon in the chassis frame');
   mirrorFrame({ progress: 3*2460+600 });
@@ -279,9 +287,13 @@ async function run() {
     'a hit overrides low signal during the collision');
   assert(roadArt.some(entry => entry.key === 'cacheCarHit'), 'collision uses its jolt pose');
   assert.equal(mirrorFrame({ integrity: 1 }), 5);
-  mirrorFrame({ ramMs: 1180, shield: 1 });
-  assert.match(hudLines[0], /PUSH 1\.2s.*BRACE READY/,
-    'armed contact abilities remain visible after the catch message ends');
+  mirrorFrame({ ramMs: 1180, shield: 1, messageMs: 1100,
+    message: 'PUSH // BREAKAWAY +8 BARS' });
+  const armedLabel=hudLines.find(line=>/BRACE READY/.test(line.value));
+  const pickupLabel=hudLines.find(line=>/BREAKAWAY \+8 BARS/.test(line.value));
+  assert.match(armedLabel.value, /PUSH 1\.2s.*BRACE READY/);
+  assert(pickupLabel && armedLabel.y+14 < pickupLabel.y-17,
+    'armed Push/Brace stays readable alongside its transient pickup message');
   mirrorFrame({ progress: 60 });
   assert.deepEqual(openingRects, [[875, 82]], 'the opening panel remains compact');
   mirrorFrame({ progress: 130 });
