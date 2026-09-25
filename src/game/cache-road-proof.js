@@ -1728,18 +1728,21 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       ctx.fillStyle = '#b5cbd0'; ctx.font = '16px Oxanium, monospace';
       const armed = [s.ramMs > 0 ? `PUSH ${Math.ceil(s.ramMs / 100) / 10}s` : '',
         s.shield ? 'BRACE READY' : ''].filter(Boolean).join('  •  ');
-      if(armed) ctx.fillText(armed,1350,152,530);
+      if(armed) {
+        ctx.font='bold 14px Oxanium, monospace';
+        ctx.fillText(armed,1418,73,465);
+      }
       const meter = (x, label, value, color, display = `${Math.round(value)}%`) => {
-        ctx.fillStyle = '#afbdcb'; ctx.font = 'bold 14px Oxanium, monospace'; ctx.fillText(label, x, 80);
-        ctx.fillStyle = '#26364b'; ctx.fillRect(x, 87, 196, 14);
-        ctx.fillStyle = color; ctx.fillRect(x, 87, 196 * clamp(value/100,0,1), 14);
-        ctx.fillStyle = '#f7f8ec'; ctx.font = 'bold 14px Oxanium, monospace'; ctx.fillText(display, x + 204, 100);
+        ctx.fillStyle = '#afbdcb'; ctx.font = 'bold 14px Oxanium, monospace'; ctx.fillText(label, x, 88);
+        ctx.fillStyle = '#26364b'; ctx.fillRect(x, 95, 196, 14);
+        ctx.fillStyle = color; ctx.fillRect(x, 95, 196 * clamp(value/100,0,1), 14);
+        ctx.fillStyle = '#f7f8ec'; ctx.font = 'bold 14px Oxanium, monospace'; ctx.fillText(display, x + 204, 108);
       };
       meter(1345, 'ECHO', s.echoEnergy, '#83e6fc');
       meter(1615, s.fullAdrenaline ? 'FULL ADRENALINE' : 'PARTS ACTIVE',
         s.captures.length * 25, '#d0a4ff', `${s.captures.length}/4`);
       ctx.fillStyle = '#e7f4e9'; ctx.font = 'bold 21px Oxanium, monospace';
-      ctx.fillText(`SCORE ${s.score}    STACK x${stackSize(s)}`, 1345, 131, 315);
+      ctx.fillText(`SCORE ${s.score}    STACK x${stackSize(s)}`, 1345, 135, 315);
       ctx.fillStyle = s.boost || s.boostMs ? '#fbd899' : '#718995';
       ctx.font = 'bold 17px Oxanium, monospace';
       const turboButton = B.GamepadUI?.connected ? B.ControllerSettings?.button(4) : 'SPACE';

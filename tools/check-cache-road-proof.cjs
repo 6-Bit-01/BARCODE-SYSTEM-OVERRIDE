@@ -169,7 +169,8 @@ async function run() {
         beacons.push({ x,y,translate:this.lastTranslate });
     },
     fillText(value, x, y) {
-      if (x === 1350 && y === 152) hudLines.push(value);
+      if ((x === 1418 && y === 73) || (x === 1345 && y === 155))
+        hudLines.push({ value, x, y });
       if (value === 'CUT >' || value === '< CUT') trafficLabels.push(value);
     } },
     { get(target, key) { return key in target ? target[key] : () => {}; },
@@ -286,9 +287,13 @@ async function run() {
     'a hit overrides low signal during the collision');
   assert(roadArt.some(entry => entry.key === 'cacheCarHit'), 'collision uses its jolt pose');
   assert.equal(mirrorFrame({ integrity: 1 }), 5);
-  mirrorFrame({ ramMs: 1180, shield: 1 });
-  assert.match(hudLines[0], /PUSH 1\.2s.*BRACE READY/,
-    'armed contact abilities remain visible after the catch message ends');
+  mirrorFrame({ ramMs: 1180, shield: 1, messageMs: 1100,
+    message: 'PUSH // BREAKAWAY +8 BARS' });
+  const armedLabel=hudLines.find(line=>/BRACE READY/.test(line.value));
+  const pickupLabel=hudLines.find(line=>/BREAKAWAY \+8 BARS/.test(line.value));
+  assert.match(armedLabel.value, /PUSH 1\.2s.*BRACE READY/);
+  assert(pickupLabel && armedLabel.y+14 < pickupLabel.y-17,
+    'armed Push/Brace stays readable alongside its transient pickup message');
   mirrorFrame({ progress: 60 });
   assert.deepEqual(openingRects, [[875, 82]], 'the opening panel remains compact');
   mirrorFrame({ progress: 130 });

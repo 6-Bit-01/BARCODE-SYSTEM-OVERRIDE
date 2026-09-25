@@ -164,6 +164,10 @@ async function main() {
     s.stumbleMs = !worldReview && chapterIndex === 4 ? Math.max(0,650-local*1000) : 0;
     s.invulnerableMs = !worldReview && chapterIndex === 4 ? Math.max(0,1400-local*1000) : 0;
     s.messageMs = 0; s.message = '';
+    if(worldReview&&chapterIndex===3) {
+      s.ramMs=1200;s.shield=1;
+      s.messageMs=1100;s.message='PUSH // BREAKAWAY +8 BARS';
+    } else {s.ramMs=0;s.shield=0;}
     s.echoEnergy = Math.min(100,65 + chapterIndex * 6);
     s.lockEnergy = 26 + chapterIndex * 10;
     road.draw(sc);
