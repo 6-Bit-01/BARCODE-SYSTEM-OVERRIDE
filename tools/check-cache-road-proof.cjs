@@ -217,8 +217,7 @@ async function run() {
   'three city depths, roadside art, flying traffic, road and car share the live draw');
   mirrorFrame({ progress: 0 });
   const uprightPlaces = entries => entries.filter(entry =>
-    entry.key.startsWith('cachePlace') && entry.key !== 'cachePlacePark' &&
-    entry.key !== 'cachePlaceParking');
+    entry.key.startsWith('cachePlace') && entry.key !== 'cachePlaceParking');
   const places = uprightPlaces(roadArt);
   const market = places.filter(entry => entry.key === 'cachePlaceMarket' && entry.flip)
     .sort((a,b) => b.width-a.width)[0];
@@ -242,7 +241,8 @@ async function run() {
   };
   const checkSetbackAndFacing = () => {
     for(const entry of uprightPlaces(roadArt).filter(item =>
-      item.y >= 470 && item.y <= 1080 && item.x+item.width/2 >= 0 &&
+      item.clipHeight === Infinity && item.y >= 470 && item.y <= 1080 &&
+      item.x+item.width/2 >= 0 &&
       item.x-item.width/2 <= 1920)) {
       const side=entry.x < 960 ? -1 : 1;
       const curb=sidewalkAt(side,entry.y);
@@ -272,6 +272,11 @@ async function run() {
     advancingMarket.height > market.height && advancingLamp && advancingLamp.x < lamp.x,
   'a painted place grows and approaches alongside a world-fixed streetlight');
   checkSetbackAndFacing();
+  mirrorFrame({ progress: 80 });
+  const firstDiner=roadArt.find(entry=>entry.key==='cachePlaceDiner');
+  assert(firstDiner && firstDiner.y-firstDiner.height<firstDiner.clipHeight &&
+    firstDiner.clipHeight<firstDiner.y,
+  'the restaurant roof first emerges with its foundation behind the city crest');
   mirrorFrame({ progress: 150 });
   assert(roadArt.some(entry => entry.key === 'cachePlaceMarket' && entry.flip &&
     entry.width > market.width && entry.x+entry.width/2 > 0 &&
@@ -286,8 +291,12 @@ async function run() {
   mirrorFrame({ progress: 270 });
   const clearDiner=roadArt.find(entry=>entry.key==='cachePlaceDiner');
   assert(clearDiner && clearDiner.clipHeight===Infinity &&
-    clearDiner.y>emergingDiner.y && clearDiner.width>emergingDiner.width*2,
+    clearDiner.y>emergingDiner.y && clearDiner.width>emergingDiner.width*1.5,
   'the restaurant clears the horizon and grows on its way past the player');
+  const marketGrowth=(advancingMarket.width-market.width)/32;
+  const dinerGrowth=(clearDiner.width-emergingDiner.width)/120;
+  assert(Math.abs(marketGrowth-dinerGrowth)<.18,
+  'sites use the same steady depth growth across the far and near approach');
   mirrorFrame({ progress: 300 });
   assert(roadArt.some(entry => entry.key === 'cachePlaceMarket' && entry.flip &&
     entry.width > market.width*1.4 && entry.x+entry.width/2 < 0),
@@ -310,25 +319,24 @@ async function run() {
     assert(!roadArt.some(entry=>entry.key==='cachePlaceParking'),
       'the rejected long parking slab is never drawn');
   }
-  assert.equal(reviewedKinds.size,8,
-    'all eight upright location paintings receive a road-facing, exterior placement check');
+  assert.equal(reviewedKinds.size,9,
+    'all nine complete location paintings receive a road-facing, exterior placement check');
   mirrorFrame({progress:340});
-  const parked=roadArt.filter(entry=>['cacheCourier','cacheAudit'].includes(entry.key) &&
-    entry.x+entry.width/2<sidewalkAt(-1,entry.y));
-  assert(parked.filter(entry=>entry.key==='cacheCourier').length>=2 &&
-    parked.some(entry=>entry.key==='cacheAudit'),
-  'projected parking bays use the game traffic sprites outside the sidewalk');
+  assert(!roadArt.some(entry=>['cacheCourier','cacheAudit'].includes(entry.key) &&
+    entry.x!==0),
+  'parking lots contain no stray copies of the active traffic paintings');
   mirrorFrame({progress:490});
   assert(roadArt.some(entry=>entry.key==='cachePlacePark' &&
-    entry.sourceRect && entry.sourceRect[3]<400) &&
-    roadArt.filter(entry=>entry.key==='cachePlacePark').every(entry=>entry.sourceRect),
-  'park foliage reuses cropped game art while the fixed painted ground is absent');
+    !entry.sourceRect && entry.width>300 && entry.flip===false),
+  'the whole road-facing park shares the scale of other painted sites');
   mirrorFrame({ progress: 600 });
   assert(trafficLabels.includes('CUT >') && beacons.some(light => light.translate?.[0] === 0),
     'opening trike calls its right cut and keeps its beacon in the chassis frame');
   mirrorFrame({ progress: 3*2460+600 });
   assert(trafficLabels.includes('< CUT'), 'rotated right-edge trike calls its left cut');
   mirrorFrame({ progress: 395 });
+  const cityAt395=['cacheDistantCity','cacheSkyline','cacheMidCity']
+    .map(key=>roadArt.find(entry=>entry.key===key).x);
   const roadTexture=() => roadArt.find(entry => entry.key === 'cacheBlacktop' &&
     entry.sourceRect[3] <= 22);
   assert(roadArt.some(entry => entry.key === 'cacheBlacktop' &&
@@ -345,6 +353,13 @@ async function run() {
     Math.abs(contacts.at(-1).y - (-119*.14+2)) < .01,
   'the player shadow has a contact patch under each grounded tire');
   mirrorFrame({ progress: 405 });
+  const cityAt405=['cacheDistantCity','cacheSkyline','cacheMidCity']
+    .map(key=>roadArt.find(entry=>entry.key===key).x);
+  const pans=cityAt405.map((x,i)=>x-cityAt395[i]);
+  assert(Math.abs(pans[0])<5 && Math.abs(pans[2])<12 &&
+    Math.abs(pans[1]-pans[0]*.5/.22)<.01 &&
+    Math.abs(pans[2]-pans[0]*.85/.22)<.01,
+  'city depths pan together with the road bearing at bounded parallax ratios');
   assert(roadTexture().sourceRect[1] < textureRow,
     'blacktop marks advance from horizon toward car with road progress');
   const movingShips = roadArt.filter(entry => entry.key.startsWith('cacheFly'));
@@ -355,11 +370,16 @@ async function run() {
   B.Preferences = { values: { reducedMotion: true } };
   mirrorFrame({ progress: 395, elapsedMs: 100 });
   const stillShips = roadArt.filter(entry => entry.key.startsWith('cacheFly'));
+  const stillCity=['cacheDistantCity','cacheSkyline','cacheMidCity']
+    .map(key=>roadArt.find(entry=>entry.key===key).x);
   mirrorFrame({ progress: 425, elapsedMs: 1400 });
   assert.deepEqual(roadArt.filter(entry => entry.key.startsWith('cacheFly'))
     .map(ship => [ship.screenX, ship.frame]),
     stillShips.map(ship => [ship.screenX, ship.frame]),
     'Reduced Motion holds decorative flying traffic in place');
+  assert.deepEqual(['cacheDistantCity','cacheSkyline','cacheMidCity']
+    .map(key=>roadArt.find(entry=>entry.key===key).x),stillCity,
+  'Reduced Motion holds decorative city pan while the road still turns');
   B.Preferences = previousPreferences;
   assert.deepEqual(openingRects, [], 'the objective disappears between actionable lessons');
   mirrorFrame({ steer: -1 });

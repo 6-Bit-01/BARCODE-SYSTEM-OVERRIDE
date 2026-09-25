@@ -1,5 +1,19 @@
 # Repository Guidance
 
+## September 25, 2026 — owner rejected #126 roadside result
+
+The owner supplied a full game frame and a close crop after merged #126.
+Cars appear stranded off the road; location tops sit awkwardly against the
+city/planet horizon; city paintings scroll without a camera cause; sites are
+tiny far away, then swell too fast. This correction removes parked traffic
+sprites, uses a single road depth for site size, reveals complete sites from
+behind the visible y=425 crest, and gives the three overscanned city paintings
+one bounded road-bearing parallax. The park uses its whole painted scene with
+its entrance toward the road. See `docs/source-pack/CACHE_ROAD_ROADSIDE_CAMERA_OVERHAUL.md`.
+The previous horizon/locale pass below is historical and rejected. Review
+the actual frames across bends, not only draw assertions. Preserve the
+adrenaline and defense/offense/traffic/environment/song/lane power-up backlog.
+
 ## September 25, 2026 — Cache Road horizon and locale follow-up
 
 After merged #125, the owner rejected duplicate whole buildings, floating

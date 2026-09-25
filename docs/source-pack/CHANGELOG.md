@@ -1,5 +1,18 @@
 # Recovery checkpoint — September 14
 
+## September 25, 2026 — roadside camera overhaul after rejected #126
+
+- Remove the three parked copies of game traffic that read as stranded cars
+  beyond the road; keep the projected empty lot and active lane traffic.
+- Remove late site-size easing, reveal roof/ground through the visible city
+  crest, and render the complete road-facing park painting.
+- Replace independent modulo city scrolls with three overscanned paintings
+  driven by a single bounded road-camera bearing.
+- Review fourteen opening and fourteen third-lap distances and a continuous
+  production drive. Add checks for reveal, steady scale, setback, facing,
+  no decorative parked traffic and shared city pan. Makko owner acceptance
+  remains open; music/gameplay, power-ups and broader adrenaline tuning wait.
+
 ## September 25, 2026 — horizon emergence and matching open locales
 
 - Remove the independent duplicate whole-place row; schedule twenty separate

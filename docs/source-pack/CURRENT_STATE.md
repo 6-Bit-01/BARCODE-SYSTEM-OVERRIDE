@@ -1,6 +1,26 @@
 # Current State
 
+## September 25 — cohesive roadside camera after owner rejected #126
+
+The owner supplied a game frame and crop showing off-road cars, a low/overlaid
+location reveal at the visible city horizon, city layers drifting without a
+road cause, and sites that remain tiny before swelling near the car. This
+review branch removes the three decorative parked traffic copies; active
+cars remain in their lanes. Site width now grows with the road's depth, while
+the buried footing and the actual city-bottom crest control a separate,
+continuous reveal. The whole illustrated park replaces cropped fragments.
+Three overscanned city layers pan only with the bounded road camera bearing.
+Opening and third-lap staged frames plus a continuous production draw were
+inspected. The owner has not accepted the result in Makko. See
+`CACHE_ROAD_ROADSIDE_CAMERA_OVERHAUL.md` and the top acceptance route. The
+visual work precedes the adrenaline tune and power-up backlog in
+`CACHE_ROAD_COHESION_AUDIT.md`.
+
 ## September 25 — horizon emergence and projected open locales
+
+Historical merged #126 result rejected by the owner. Its duplicate-row
+removal remains; its late site easing, parked traffic and cropped park are
+superseded by the camera overhaul above.
 
 After merged #125, the owner rejected duplicated/overlapping places, a flat
 parking slab above the horizon and mismatched generated cars. The generated

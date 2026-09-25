@@ -1,5 +1,19 @@
 # Decision Register
 
+## September 25, 2026 — roadside camera and horizon correction
+
+The owner rejected merged #126 in supplied game screenshots. No decorative
+traffic car may sit unmoored in the outer landscape. Individual places and
+whole locales must share the road's approach scale, rise from behind the
+visible planet/city crest, clear it smoothly, follow bends and pass outside
+the sidewalk. Distant city layers need motion justified by the same camera,
+not independent time/progress tile scrolls. Judge complete frames and motion
+against the actual game; a draw assertion alone cannot establish good art.
+Keep the illustrated style, road-facing entrances, varied independent sites
+and layered filler. The first correction is in
+`CACHE_ROAD_ROADSIDE_CAMERA_OVERHAUL.md`; owner visual acceptance remains
+open. The earlier #126 implementation decision below is historical.
+
 ## September 25, 2026 — roadside horizon emergence and matching art
 
 The owner rejected repeated/overlapping roadside buildings, parking and park

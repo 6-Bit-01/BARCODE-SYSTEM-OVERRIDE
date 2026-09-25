@@ -97,10 +97,16 @@ async function main() {
   const worldReview = process.env.CACHE_REVIEW_WORLD === '1';
   const siteReview = process.env.CACHE_REVIEW_SITES === '1';
   const continuous = process.env.CACHE_REVIEW_CONTINUOUS === '1';
+  const stillReview = process.env.CACHE_REVIEW_STILLS === '1';
   const reviewLap = Number(process.env.CACHE_REVIEW_LAP || 0);
-  const sceneryReview = worldReview || siteReview;
-  const fps = continuous ? 15 : 18, seconds = continuous ? 32 : 2;
-  const chapters = continuous ? [{ name: 'Continuous-Drive', progress: 0, bar: 4 }] : siteReview ? [
+  const sceneryReview = worldReview || siteReview || stillReview;
+  const fps = stillReview ? 1 : continuous ? 15 : 18;
+  const seconds = stillReview ? 1 : continuous ? 32 : 2;
+  const chapters = stillReview ?
+    [0,100,150,230,325,400,455,525,600,800,1000,1300,1700,2200]
+      .map(progress=>({name:`Road-${String(progress).padStart(4,'0')}`,
+        progress,bar:4+Math.floor(progress/81)})) :
+    continuous ? [{ name: 'Continuous-Drive', progress: 0, bar: 4 }] : siteReview ? [
     { name: 'Parking-Peek', progress: 155, bar: 6 },
     { name: 'Parking-Approach', progress: 325, bar: 8 },
     { name: 'Parking-Clear', progress: 455, bar: 10 },
@@ -162,7 +168,7 @@ async function main() {
       startBeat:(s.musicBar+1)*4,endBeat:(s.musicBar+5)*4,
       inkAtMs:s.elapsedMs-350}] : [];
     s.fullAdrenaline=s.captures.length===4;
-    const [from,to,start,end] = laneMoves[chapterIndex];
+    const [from,to,start,end] = stillReview ? [1.5,1.5,0,1] : laneMoves[chapterIndex];
     const turn = Math.max(0,Math.min(1,(local-start)/(end-start)));
     s.lanePos = s.visualLane = continuous ? 1.5+.45*Math.sin(local*.41) : from+(to-from)*smooth(turn);
     s.lane = Math.round(s.lanePos); s.speed = 54;
@@ -200,7 +206,7 @@ async function main() {
         0,0,800,450,0,0,1280,720);
       vc.drawImage(scene,0,0,1920,164,0,0,1280,109.3333);
     } else vc.drawImage(scene,0,0,1920,1080,0,0,1280,720);
-    const stillAt = chapterIndex === 3 || chapterIndex === 4 ? 4 : fps;
+    const stillAt = stillReview ? 0 : chapterIndex === 3 || chapterIndex === 4 ? 4 : fps;
     if (continuous ? i % (fps*4) === fps : i % (fps * seconds) === stillAt) {
       const name=continuous ? `Drive-${String(Math.floor(i/(fps*4))).padStart(2,'0')}` : chapter.name;
       fs.writeFileSync(path.join(out, `Cache-Road-Mirror-${name}.webp`),

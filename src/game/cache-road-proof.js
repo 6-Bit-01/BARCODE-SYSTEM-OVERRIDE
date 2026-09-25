@@ -45,14 +45,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     ...(GATES[at] || []).map(extra => ({ at: at + pass * LAP,
       lane: (extra + pass) % 4, kind: 'block' }))
   ]).flat());
-  // Upright painted buildings scale uniformly; flat park and parking ground
-  // instead follows the curved road projection below.
+  // Each whole painting is a single world site. The open parking surface is
+  // constructed on the projected ground instead of using a fixed bitmap slab.
   const PLACE_ART = {
     market: ['cachePlaceMarket',960,876,700,150],
     house: ['cachePlaceHouse',960,891,700,135],
     garage: ['cachePlaceGarage',960,632,700,175],
     apartment: ['cachePlaceApartment',631,960,490,135],
     diner: ['cachePlaceDiner',960,618,700,170],
+    park: ['cachePlacePark',960,640,650,165],
     substation: ['cachePlaceSubstation',960,638,680,185],
     garden: ['cachePlaceGarden',960,646,690,190],
     construction: ['cachePlaceConstruction',960,635,710,195]
@@ -1146,25 +1147,24 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // point, and the same projection continues beyond the bottom of frame.
       const roadsideX = (side,t,base,growth) =>
         center(t)+side*(half(t)+(base+growth*t)*(.1+.9*t));
-      // Distant roofs and treetops emerge above the horizon while their lower
-      // halves remain behind its foreground lip. The lip clears with the same
-      // projected depth as the road; near objects are completely unobscured.
-      const behindHorizon = (t,draw) => {
+      // The painted city's bottom edge is the visible crest of the planet.
+      // A distant parcel is below that crest before its roof reaches it. Its
+      // ground and facade clear together as the road carries it toward us.
+      const crest = horizon + 25;
+      const reveal = t => {
+        const u=clamp((t-.22)/.32,0,1);
+        return u*u*(3-2*u);
+      };
+      const buriedFoot = t => 90*(1-clamp(t/.5,0,1));
+      const clipRoadside = (t,draw) => {
         ctx.save();
-        if(t<.44) {
-          const clearance=clamp((t-.08)/.36,0,1);
+        if(t<.54) {
+          const foot=roadY(t)+25*t+buriedFoot(t);
           ctx.beginPath();
-          ctx.rect(0,0,1920,horizon+(roadY(t)-horizon)*clearance);
+          ctx.rect(0,0,1920,crest+(foot-crest)*reveal(t));
           ctx.clip();
         }
         draw(); ctx.restore();
-      };
-      // A site occupies only a few pixels when it first breaks the skyline.
-      // By the midground it reaches its authored road-scale size, then grows
-      // rapidly and leaves the screen as the player overtakes it.
-      const arrivalScale = t => {
-        const u=clamp((t-.06)/.58,0,1);
-        return u*u*(3-2*u);
       };
       ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
       const beat = reduced ? 0 : s.musicBeatFloat || 0;
@@ -1259,32 +1259,33 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         }
       }
       ctx.globalAlpha=1;
-      const distantWidth=2640,distantShift=reduced?0:progress*.012%distantWidth;
+      // These three paintings share the camera's road bearing. A bounded pan
+      // gives the nearer city more parallax on a turn without a free-running
+      // horizontal tile scroll or a seam crossing the screen.
+      const bearing=reduced ? 0 :
+        clamp(eyeHeading*115+(eyePath-path(0))*.18,-110,110);
+      const distantWidth=2640;
       ctx.globalAlpha=.73;
-      for(let tile=-1;tile<=1;tile++)
-        B.PresentationAssets?.draw?.('cacheDistantCity',ctx,{
-          x:tile*distantWidth-distantShift,y:horizon-90,
-          width:distantWidth,height:170 });
+      B.PresentationAssets?.draw?.('cacheDistantCity',ctx,{
+        x:(1920-distantWidth)/2-bearing*.22,y:horizon-90,
+        width:distantWidth,height:170 });
       ctx.globalAlpha=1;
       // Two actual city paintings occupy different depths. Their bottom edges
       // meet the road's horizon; no crop of one skyline is pasted over another.
-      const skylineWidth = 2310, skylineShift = reduced ? 0 : progress*.035 % skylineWidth;
+      const skylineWidth = 2310;
       ctx.globalAlpha = .65;
-      for (let tile = -1; tile <= 1; tile++)
-        B.PresentationAssets?.draw?.('cacheSkyline', ctx, {
-          x: tile*skylineWidth - skylineShift, y: horizon + 25,
-          width: skylineWidth, height: 225,
-          sourceRect: [0,180,2079,440] });
+      B.PresentationAssets?.draw?.('cacheSkyline', ctx, {
+        x:(1920-skylineWidth)/2-bearing*.50,y:horizon+25,
+        width:skylineWidth,height:225,sourceRect:[0,180,2079,440] });
       const haze = ctx.createLinearGradient(0,horizon-170,0,horizon+40);
       haze.addColorStop(0,'#4b6e7600'); haze.addColorStop(1,'#7796a657');
       ctx.fillStyle = haze; ctx.fillRect(0,horizon-170,1920,210);
       ctx.globalAlpha = 1;
-      const cityWidth = 2230, cityShift = reduced ? 0 : progress*.15 % cityWidth;
+      const cityWidth = 2230;
       ctx.globalAlpha = .82;
-      for (let tile=-1; tile<=1; tile++)
-        B.PresentationAssets?.draw?.('cacheMidCity',ctx,{
-          x:tile*cityWidth-cityShift-70,y:horizon+25,
-          width:cityWidth,height:168,sourceRect:[0,260,2079,496] });
+      B.PresentationAssets?.draw?.('cacheMidCity',ctx,{
+        x:(1920-cityWidth)/2-bearing*.85,y:horizon+25,
+        width:cityWidth,height:168,sourceRect:[0,260,2079,496] });
       ctx.globalAlpha = 1;
       // Level 1's animated ships cross above this road at different depths
       // and bank angles. They never enter the collision system.
@@ -1331,16 +1332,16 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // Its near/far edges are world distances, so the foundation stretches
       // and passes with the building instead of sliding beneath a billboard.
       for(const place of SIDE_PLACES) {
-        if(place.kind==='parking'||place.kind==='park')continue;
+        if(place.kind==='parking')continue;
         const t=sideDepth(place.at-progress);
-        if(t<.10)continue;
+        if(t<.22)continue;
         const near=sideDepth(place.at-18-progress);
         const far=sideDepth(place.at+75*place.size-progress);
         if(near<.11||far>1.2)continue;
         const n=clamp(near,.11,1.2),f=clamp(far,.11,1.2);
         const side=place.side;
-        behindHorizon(t,()=>{
-          ctx.globalAlpha=clamp((t-.10)/.22,0,.58);
+        clipRoadside(t,()=>{
+          ctx.globalAlpha=.58*reveal(t);
           polygon(ctx,[[roadsideX(side,f,245,210),roadY(f)+25*f],
             [roadsideX(side,n,245,210),roadY(n)+25*n],
             [roadsideX(side,n,700,370),roadY(n)+40*n],
@@ -1444,7 +1445,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           const h=(30+placeRandom(seed+3)*62)*(.22+1.5*t);
           // Keep even the widest kiosk/paving corner outside the walkway.
           const x=roadsideX(side,t,220,190)+side*(w*1.2+22*t);
-          ctx.save();ctx.globalAlpha=(.43+.43*t)*clamp((t-.16)/.15,0,1);
+          ctx.save();ctx.globalAlpha=(.43+.43*t)*reveal(t);
           // Broken wet paving and reflected sign color give the service deck
           // depth without a repeating panoramic facade.
           polygon(ctx,[[x-w*.9,y+2*t],[x+w*.72,y+2*t],
@@ -1488,9 +1489,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           ctx.restore();
         }
       }
-      // Flat locations are patches of the curved landscape. Their far and
-      // near edges, paths and parking bays all use roadsideX and roadY, so a
-      // bend cannot lift a fixed painted slab into the sky.
+      // The open lot is a patch of the curved landscape; its four corners,
+      // entrance and bays use the same projection as the sidewalk.
       const drawProjectedLocale = (place,t) => {
         const side=place.side;
         const n=clamp(sideDepth(place.at-67*place.size-progress),.06,1.18);
@@ -1498,123 +1498,67 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const lotX=(tt,outer=false)=>roadsideX(side,tt,
           outer?605:255,outer?345:215);
         const lotY=tt=>roadY(tt)+27*tt;
-        behindHorizon(t,()=>{
-          ctx.globalAlpha=clamp((t-.10)/.23,0,.9);
+        clipRoadside(t,()=>{
+          ctx.globalAlpha=.9*reveal(t);
           polygon(ctx,[[lotX(f),lotY(f)],[lotX(n),lotY(n)],
             [lotX(n,true),lotY(n)+17*n],[lotX(f,true),lotY(f)+17*f]],
-          place.kind==='park'?'#263d3c':'#1d2b36');
-          if(place.kind==='parking') {
-            ctx.save();ctx.beginPath();
-            ctx.moveTo(lotX(f),lotY(f));ctx.lineTo(lotX(n),lotY(n));
-            ctx.lineTo(lotX(n,true),lotY(n)+17*n);
-            ctx.lineTo(lotX(f,true),lotY(f)+17*f);ctx.closePath();ctx.clip();
-            ctx.globalAlpha*=.42;
-            B.PresentationAssets?.draw?.('cacheBlacktop',ctx,{
-              x:0,y:horizon,width:1920,height:680,
-              sourceRect:[0,108,2172,616] });
-            ctx.restore();
-          }
-          ctx.strokeStyle=place.kind==='park'?'#5e8d76':'#82969a';
+          '#1d2b36');
+          ctx.save();ctx.beginPath();
+          ctx.moveTo(lotX(f),lotY(f));ctx.lineTo(lotX(n),lotY(n));
+          ctx.lineTo(lotX(n,true),lotY(n)+17*n);
+          ctx.lineTo(lotX(f,true),lotY(f)+17*f);ctx.closePath();ctx.clip();
+          ctx.globalAlpha*=.42;
+          B.PresentationAssets?.draw?.('cacheBlacktop',ctx,{
+            x:0,y:horizon,width:1920,height:680,
+            sourceRect:[0,108,2172,616] });
+          ctx.restore();
+          ctx.strokeStyle='#82969a';
           ctx.lineWidth=2+3*n;ctx.beginPath();
           ctx.moveTo(lotX(f),lotY(f));ctx.lineTo(lotX(n),lotY(n));ctx.stroke();
-          const middle=(f+n)/2;
-          if(place.kind==='park') {
-            // The path crosses from a gate at the road-facing edge toward
-            // the grove, rather than forming a horizontal painted banner.
-            polygon(ctx,[[lotX(middle-.028),lotY(middle-.028)],
-              [lotX(middle+.028),lotY(middle+.028)],
-              [lotX(middle+.037,true),lotY(middle+.037)+15*middle],
-              [lotX(middle-.037,true),lotY(middle-.037)+15*middle]],'#455b5d');
-            ctx.strokeStyle='#a1b6a2';ctx.lineWidth=1+2*middle;
-            ctx.beginPath();ctx.moveTo(lotX(middle-.045),lotY(middle-.045));
-            ctx.lineTo(lotX(middle-.055,true),lotY(middle-.055)+15*middle);
-            ctx.stroke();
-          } else {
-            // Individual stall dividers advance with the same world stations
-            // as the parked game cars below.
-            for(const offset of [48,0,-48]) {
-              const tt=sideDepth(place.at+offset-progress);
-              if(tt<.08||tt>1.18)continue;
-              ctx.strokeStyle='#9bb5b17d';ctx.lineWidth=1+3*tt;
-              ctx.beginPath();ctx.moveTo(roadsideX(side,tt,350,250),lotY(tt)+4*tt);
-              ctx.lineTo(lotX(tt,true),lotY(tt)+15*tt);ctx.stroke();
-            }
-            // A low roadside fence defines the entrance while the ground and
-            // parked traffic travel independently with the bend.
-            for(const offset of [72,39,-38,-71]) {
-              const tt=sideDepth(place.at+offset-progress);
-              if(tt<.10||tt>1.18)continue;
-              const x=lotX(tt),y=lotY(tt),height=27*tt;
-              ctx.strokeStyle='#859395';ctx.lineWidth=1+2*tt;
-              ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y-height);ctx.stroke();
-              ctx.fillStyle='#d89968';ctx.fillRect(x-2*tt,y-height-2*tt,4*tt,3*tt);
-            }
-          }
-        });
-        if(place.kind==='parking') {
-          for(const [index,offset] of [48,0,-48].entries()) {
+          for(const offset of [48,0,-48]) {
             const tt=sideDepth(place.at+offset-progress);
-            if(tt<.10||tt>1.15)continue;
-            const width=(38+112*tt)*(.28+.72*arrivalScale(tt))*place.size;
-            const x=roadsideX(side,tt,470,295),y=lotY(tt)+9*tt;
-            behindHorizon(tt,()=>{
-              ctx.globalAlpha=clamp((tt-.10)/.17,0,1)*(.55+.4*tt);
-              B.PresentationAssets?.draw?.(index===1?'cacheAudit':'cacheCourier',ctx,
-                {x,y,width,height:width*.69});
-            });
+            if(tt<.08||tt>1.18)continue;
+            ctx.strokeStyle='#9bb5b17d';ctx.lineWidth=1+3*tt;
+            ctx.beginPath();ctx.moveTo(roadsideX(side,tt,350,250),lotY(tt)+4*tt);
+            ctx.lineTo(lotX(tt,true),lotY(tt)+15*tt);ctx.stroke();
           }
-          const signT=sideDepth(place.at+70-progress);
-          if(signT>.1&&signT<1.14)behindHorizon(signT,()=>{
-            const x=roadsideX(side,signT,265,220),y=lotY(signT);
-            ctx.fillStyle='#172936';ctx.fillRect(x-2*signT,y-67*signT,4*signT,67*signT);
-            ctx.fillStyle='#476c75';ctx.fillRect(x-15*signT,y-77*signT,30*signT,24*signT);
-            ctx.fillStyle='#e8c692';ctx.font=`bold ${Math.max(7,19*signT)}px Oxanium`;
-            ctx.fillText('P',x-5*signT,y-58*signT);
-          });
-        } else {
-          for(const [index,offset] of [68,12,-53].entries()) {
+          // Fence posts stop around the entrance instead of spanning the bay.
+          for(const offset of [72,39,-38,-71]) {
             const tt=sideDepth(place.at+offset-progress);
             if(tt<.10||tt>1.18)continue;
-            const x=roadsideX(side,tt,index===1?515:555,290);
-            const y=lotY(tt)+10*tt;
-            const crop=index===1?[108,27,390,330]:[550,2,315,295];
-            const width=(75+205*tt)*(.28+.72*arrivalScale(tt))*place.size;
-            behindHorizon(tt,()=>{
-              ctx.globalAlpha=clamp((tt-.10)/.16,0,1)*(.64+.31*tt);
-              // Only foliage, lamp and shrub cutouts from the existing park
-              // painting are drawn; its long fixed ground slab is discarded.
-              B.PresentationAssets?.draw?.('cachePlacePark',ctx,{
-                x,y,width,height:width*crop[3]/crop[2],sourceRect:crop,
-                flip:side<0 });
-            });
+            const x=lotX(tt),y=lotY(tt),height=27*tt;
+            ctx.strokeStyle='#859395';ctx.lineWidth=1+2*tt;
+            ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y-height);ctx.stroke();
+            ctx.fillStyle='#d89968';ctx.fillRect(x-2*tt,y-height-2*tt,4*tt,3*tt);
           }
-          const benchT=sideDepth(place.at-27-progress);
-          if(benchT>.12&&benchT<1.14)behindHorizon(benchT,()=>{
-            const x=roadsideX(side,benchT,370,255),y=lotY(benchT)+8*benchT;
-            const w=48*benchT,h=17*benchT;
-            ctx.fillStyle='#162e3b';ctx.fillRect(x-w/2,y-h,w,h*.55);
-            ctx.fillStyle='#a27c68';ctx.fillRect(x-w/2,y-h,w,h*.23);
-            ctx.fillStyle='#172530';ctx.fillRect(x-w*.35,y-h*.4,3*benchT,h);
-            ctx.fillRect(x+w*.35,y-h*.4,3*benchT,h);
-          });
-        }
+        });
+        const signT=sideDepth(place.at+70-progress);
+        if(signT>.22&&signT<1.14)clipRoadside(signT,()=>{
+          const x=roadsideX(side,signT,265,220),y=lotY(signT);
+          ctx.fillStyle='#172936';ctx.fillRect(x-2*signT,y-67*signT,4*signT,67*signT);
+          ctx.fillStyle='#476c75';ctx.fillRect(x-15*signT,y-77*signT,30*signT,24*signT);
+          ctx.fillStyle='#e8c692';ctx.font=`bold ${Math.max(7,19*signT)}px Oxanium`;
+          ctx.fillText('P',x-5*signT,y-58*signT);
+        });
       };
       // Upright painted buildings retain their authored diagonal perspective.
       // The same depth controls position, uniform scale and horizon reveal.
       for(const place of SIDE_PLACES) {
         const t=sideDepth(place.at-progress);
-        if(t<.10||t>1.9)continue;
-        if(place.kind==='parking'||place.kind==='park') {
+        if(t<.06||t>1.9)continue;
+        if(place.kind==='parking') {
           drawProjectedLocale(place,t);continue;
         }
         const [key,sourceW,sourceH,maxW]=PLACE_ART[place.kind];
-        const width=maxW*(.05+.95*t)*arrivalScale(t)*place.size;
+        // One linear depth scale matches the widening road and passing cars.
+        // The old second easing curve kept sites tiny, then inflated them.
+        const width=maxW*t*place.size;
         const height=width*sourceH/sourceW;
         const sidewalkEdge=roadsideX(place.side,t,220,190);
         const x=sidewalkEdge+place.side*(width*.5+26*t);
-        const y=roadY(t)+25*t;
-        behindHorizon(t,()=>{
-          ctx.globalAlpha*=clamp((t-.10)/.18,0,1)*(.72+.25*t);
+        const y=roadY(t)+25*t+buriedFoot(t);
+        clipRoadside(t,()=>{
+          ctx.globalAlpha*=clamp((t-.07)/.13,0,1)*(.72+.25*t);
           B.PresentationAssets?.draw?.(key,ctx,{
             x,y,width,height,flip:placeFacesRoad(place.kind,place.side) });
         });

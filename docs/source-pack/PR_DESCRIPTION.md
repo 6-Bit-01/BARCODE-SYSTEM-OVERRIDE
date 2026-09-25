@@ -1,4 +1,23 @@
-# Cache Road horizon emergence and projected locales
+# Cache Road roadside camera overhaul
+
+The owner rejected merged #126 after showing the actual game frame: parking
+cars looked stranded off the road, the park and distant roofs sat awkwardly
+against the visible horizon, the city layers scrolled independently, and
+sites swelled too quickly. This correction removes decorative parked cars,
+uses the road's depth directly for whole-site scale, reveals them through the
+city-bottom crest, renders the complete oblique park with its gate roadward,
+and pans all three city layers from one bounded camera bearing. The
+underlying site list, exterior sidewalk, road, lights, lane traffic, music,
+controls and saves remain as before.
+
+Inspect `CACHE_ROAD_ROADSIDE_CAMERA_OVERHAUL.md` and its four frames, then
+watch the continuous drive at normal size. Focused production geometry and
+full repository checks belong to the exact revision receipt. Scripted draws
+are not Makko play, audio/controller judgment or owner acceptance. The
+adrenaline and defensive/offensive/traffic/environment/song/lane power-up
+plan remains in `CACHE_ROAD_COHESION_AUDIT.md`.
+
+# Historical: Cache Road horizon emergence and projected locales
 
 After merged #125, the owner found repeated/overlapping places, a parking
 ground slab rising above the horizon, orientation problems and mismatched
