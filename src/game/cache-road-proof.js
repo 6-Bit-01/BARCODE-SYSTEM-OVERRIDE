@@ -228,16 +228,27 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const art = { x: 0, y: 1, width: w*ratio[0], height: h*ratio[1] };
       const anchored = kind !== 'block';
       const freight = kind === 'freight';
-      const tires = anchored ? [-1,1].map(side => {
+      // The transparent paintings do not all end at the same wheel line:
+      // the exhaust/bumper often extends below the tires. Keep each contact
+      // point in the road frame while the painted chassis rides its shocks.
+      const contact = freight ? [.08,.08] : artKey === 'cacheCarLeft' ? [.17,.11] :
+        artKey === 'cacheCarRight' ? [.14,.12] : artKey === 'cacheRival' ? [.07,.07] :
+        artKey === 'cacheCourier' ? [.15,.15] : [.14,.14];
+      const tires = anchored ? [-1,1].map((side,index) => {
         const pos = kind === 'cache' && !hit && steer < -.08 ?
           (side < 0 ? -.51 : .38) : kind === 'cache' && !hit && steer > .08 ?
             (side < 0 ? -.38 : .51) : side*(freight ? .32 : .44);
-        return { x: w*pos, top: -h*(freight ? .27 : .39),
-          height: h*(freight ? .25 : .30), width: w*(freight ? .15 : .125) };
+        const top = -h*(freight ? .29 : .43), bottom = -h*contact[index];
+        return { x: w*pos, top, bottom, height: bottom-top,
+          width: w*(freight ? .15 : .125) };
       }) : [];
-      ctx.fillStyle = '#06132099'; ctx.beginPath();
-      ctx.ellipse(0, 6, w*(.56-Math.max(0,-bounce/h)*.15),
-        Math.max(4,h*.10), 0, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#0613207d'; ctx.beginPath();
+      ctx.ellipse(0,-h*.075,w*.50,Math.max(2,h*.055),0,0,Math.PI*2); ctx.fill();
+      for (const tire of tires) {
+        ctx.fillStyle = '#030b16c8'; ctx.beginPath();
+        ctx.ellipse(tire.x,tire.bottom+2,tire.width*.86,
+          Math.max(2,h*.043),0,0,Math.PI*2); ctx.fill();
+      }
       if(turbo && !reduced) {
         for(let i=0;i<2;i++) {
           ctx.save(); ctx.globalAlpha*=.29+i*.09;
@@ -260,13 +271,19 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
             const drift = (tire.x < 0 ? -1 : 1)*(7+cycle*.56);
             ctx.strokeStyle = i%2 ? '#a4e8ef70' : '#e9d0ae6a';
             ctx.lineWidth = Math.max(.8,w*.008)*(1-cycle/44);
-            ctx.beginPath(); ctx.moveTo(tire.x,2+cycle*.42);
-            ctx.lineTo(tire.x+drift,5+cycle*.84); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(tire.x,tire.bottom+2+cycle*.42);
+            ctx.lineTo(tire.x+drift,tire.bottom+5+cycle*.84); ctx.stroke();
           }
         }
       }
       // The recovered images include both wheels. Paint their original pixels
       // at road contact, then draw the bouncing chassis around those areas.
+      // Short dark struts live behind both layers when the body lifts away.
+      for (const tire of tires) {
+        ctx.strokeStyle = '#0a1421'; ctx.lineWidth = Math.max(2,tire.width*.43);
+        ctx.beginPath(); ctx.moveTo(tire.x,tire.top+tire.height*.42);
+        ctx.lineTo(tire.x+jolt*.5,tire.top+bounce+h*.025); ctx.stroke();
+      }
       for (const tire of tires) {
         ctx.save(); ctx.beginPath();
         ctx.roundRect(tire.x-tire.width/2,tire.top,tire.width,tire.height,Math.max(1,tire.width*.2));
@@ -283,8 +300,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       B.PresentationAssets.draw(artKey, ctx, art);
       ctx.restore();
       for (const tire of tires) {
-        const top = tire.top+h*(freight ? .04 : .06);
-        const tireH = h*(freight ? .16 : .19);
+        const top = tire.top+tire.height*.25;
+        const tireH = tire.height*.64;
         const tireW = tire.width*.61;
         ctx.save(); ctx.beginPath();
         ctx.roundRect(tire.x-tireW/2,top,tireW,tireH,Math.max(1,tireW*.24)); ctx.clip();
@@ -304,7 +321,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         // A side rim becomes visible only while turning. Its narrow ellipse
         // spins inside the actual wheel rather than beside the car.
         const wx = (steer < 0 ? 1 : -1)*w*.40;
-        const wy = -h*(steer < 0 ? .30 : .34);
+        const wy = -h*(steer < 0 ? .27 : .29);
         const rx = w*.020, ry = h*.072;
         ctx.save(); ctx.beginPath(); ctx.ellipse(wx,wy,rx,ry,0,0,Math.PI*2); ctx.clip();
         ctx.fillStyle = '#18202bd7'; ctx.fillRect(wx-rx,wy-ry,rx*2,ry*2);
@@ -1061,16 +1078,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // and bank angles. They never enter the collision system.
       for (let i=0;i<5;i++) {
         const forward=i%2===0, model=i%3===0?'cacheFly1':'cacheFly3';
-        const travel=progress*(forward?.22:-.15);
+        const travel=(reduced?0:progress)*(forward?.22:-.15);
         const x=((i*511+travel+260)%2360+2360)%2360-220;
-        const y=202+(i%3)*38+Math.sin(progress*.013+i*2.4)*(reduced?0:7);
+        const y=202+(i%3)*38+(reduced?0:Math.sin(progress*.013+i*2.4)*7);
         const width=73+(i%3)*15, height=width*(model==='cacheFly1'?.26:.30);
-        const angle=(forward?-.055:.075)+Math.sin(progress*.008+i)*(reduced?0:.025);
-        const frame=Math.floor((s.elapsedMs||0)/40+i*27)%(model==='cacheFly1'?81:122);
+        const angle=(forward?-.055:.075)+(reduced?0:Math.sin(progress*.008+i)*.025);
+        const frame=Math.floor((reduced?0:(s.elapsedMs||0))/40+i*27)%(model==='cacheFly1'?81:122);
         ctx.save(); ctx.translate(x,y); ctx.rotate(angle);
         ctx.globalAlpha=.58+(i%3)*.08;
         B.PresentationAssets?.draw?.(model,ctx,{
-          x:0,y:0,width,height,frame,flip:!forward });
+          x:0,y:0,width,height,frame,
+          // The pink ship is painted nose-right; the gray ship is nose-left.
+          flip:model==='cacheFly1'?!forward:forward });
         ctx.restore();
       }
       // Side decks track the same bend as the lane geometry. Real parapet and
@@ -1116,12 +1135,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       }
       for (let i = 28; i >= 0; i--) { const t = i / 28; ctx.lineTo(center(t) + half(t), roadY(t)); }
       ctx.closePath(); ctx.fillStyle = '#171f2b'; ctx.fill();
-      // Adjacent slices now read adjacent texels. The old sampling jumped to
-      // an unrelated row at every band boundary. Blend the one wrap over the
-      // source's last 108 pixels into its first 108 pixels.
+      // Adjacent slices read adjacent texels from horizon to car. Advancing
+      // progress decreases the source offset so a mark moves toward the car.
+      // Blend the wrap over the last 108 pixels into the first 108 pixels.
       ctx.save();
       for (let i = 0; i < 28; i++) {
-        let c=((progress*.82+i*22)%616+616)%616, consumed=0;
+        let c=((-progress*.82+i*22)%616+616)%616, consumed=0;
         while (consumed<22) {
           const length=Math.min(22-consumed,616-c,c<508?508-c:22);
           const far=(i+consumed/22)/28, near=(i+(consumed+length)/22)/28;

@@ -58,12 +58,15 @@ part peak should lead into a distinct short road event and, once an aligned
 recording exists, a crew-vocal phrase. Missing a pad remains harmless. Road
 markings stay below opaque traffic and never form a constant floating stream.
 
-## Open work, preserving the earlier seven-part plan
+## Seven-part plan and current status
 
-1. **Road/contact:** correct road texture flow, bring vehicle shadows up to
-   tire contact, and correct the gray ship direction. Inspect these in motion.
-2. **Vehicle rig:** wheel and suspension motion for Cache Back and freight;
-   keep tires grounded while bodies absorb road and impact movement.
+1. **Road/contact — visual pass prepared:** road texture approaches the car,
+   shadows follow individual tire contact, and gray ships face travel.
+   Inspect in merged Makko after the native motion review.
+2. **Vehicle rig — visual pass prepared:** recovered tire pixels remain on
+   the road while Cache Back/freight chassis move on their shocks and a hit
+   jolts the body. Art-specific contact, tread and rim alignment is in
+   `CACHE_ROAD_VISUAL_CONTACT.md`; owner motion judgment remains.
 3. **Traffic:** illustrated, animated scan/sweeper vehicles and at least two
    more distinct traffic vehicles. Give each a readable path and consequence.
 4. **Roadside kit:** layered sidewalks, pedestrians, varied buildings,
@@ -77,10 +80,11 @@ markings stay below opaque traffic and never form a constant floating stream.
    basic loop has a satisfying rhythm. Keep the original-recording delivery
    and the final Echo exit clear.
 
-The art from #112–114 is in the repository, but the newer owner corrections
-in items 1–5 have not been completed by #115–116. Reduced Motion still needs
-decorative ship/plume review. Earlier lane-renewal and resume-order notes need
-fresh reproduction against the current pulse rule before any repair.
+The art from #112–114 is in the repository. This visual pass addresses items
+1–2; items 3–5 still need dedicated new art and composition. Reduced Motion
+now holds decorative ship travel and frames, while plume review remains.
+Earlier lane-renewal and resume-order notes need fresh reproduction against
+the current pulse rule before any repair.
 
 ## Power-up list to develop within the existing six buttons
 

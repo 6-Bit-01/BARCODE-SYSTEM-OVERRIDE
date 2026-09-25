@@ -1,5 +1,23 @@
 # Acceptance and Test Status
 
+## Cache Road visual contact — September 25
+
+Import the exact merged revision into Makko and drive with the same speed
+through a few hundred road units. The blacktop texture should stream from
+the horizon toward the car without a flashing seam or repeated band edge.
+Look above the city: pink and gray ships should point where they travel;
+Reduced Motion should hold their positions and atlas frames. On straight
+driving, both Cache Back tire shadows should touch their painted wheels while
+the body moves over them. Turn both ways, use Turbo, hit once, and follow a
+freight truck: the wheels should stay planted, the chassis should absorb
+the larger/slower bump, and contact shadows should not lag behind. Check the
+same scene at normal game size, then the enlarged comparison in
+`review-cache-road-visual/Contact-Before-After.webp`. This is a scripted
+production draw, not a Makko recording. Report the imported SHA and a frame
+if the art falls back or a contact gap persists. Music, pads, inputs,
+collision, saves and exit are unchanged; the next traffic/roadside art and
+mechanics tune remain separate acceptance items.
+
 ## Cache Road cohesion follow-up — September 24
 
 Import the exact merged revision for this pass. Catch the first Drive pad

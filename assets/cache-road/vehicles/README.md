@@ -23,3 +23,11 @@ collision pose with a decaying jolt. These are rebuilt runtime animations,
 not a recovered sprite sheet. Reduced Motion holds bounce, spray and tire
 movement. Procedural silhouettes remain as loading fallback for the other
 traffic kinds and failed image requests.
+
+The later visual-contact correction aligns each mask and its small dark
+contact shadow to that pose's painted tire bottom, rather than the lower
+bumper/exhaust edge of the image. The wheels stay in road coordinates while
+short dark suspension links and the body move around them. Cache's straight
+and two turn poses, hit pose, freight, courier and rival have separate contact
+heights; the road texture and flying-traffic direction fixes are documented in
+`docs/source-pack/CACHE_ROAD_VISUAL_CONTACT.md`.

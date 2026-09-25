@@ -142,12 +142,14 @@ async function run() {
   assert.equal(C.readResume().levelState.proofVersion, 4);
   const roadStart = copy(C.readResume());
   const liveState = road.state, oldArt = B.PresentationAssets;
-  const mirrorFrames = [], roadArt = [], openingRects = [], drawOrder = [], hudLines = [];
+  const mirrorFrames = [], roadArt = [], openingRects = [], drawOrder = [], hudLines = [], contacts = [];
   B.PresentationAssets = { ready(key) { return key.startsWith('cache'); },
     draw(key, _ctx, options) {
     if (key === 'cacheMirror') mirrorFrames.push({ frame: options.frame,
       sourceRect: options.sourceRect, x: options.x, y: options.y });
-    else { roadArt.push({ key, ...options }); drawOrder.push(key); }
+    else { roadArt.push({ key, ...options,
+      ...(key.startsWith('cacheFly') ? { screenX: _ctx.lastTranslate?.[0] } : {}) });
+      drawOrder.push(key); }
     return true;
   } };
   const paint = { addColorStop() {} };
@@ -156,6 +158,10 @@ async function run() {
     fillRect(x, y, width, height) {
       if (x === 30 && y === 176 && width > 100) openingRects.push([width, height]);
     }, fill() { if (this.fillStyle === '#174c51') drawOrder.push('roadPad'); },
+    translate(x,y) { this.lastTranslate = [x,y]; },
+    ellipse(x,y,rx,ry) {
+      if (this.fillStyle === '#030b16c8') contacts.push({ x,y,rx,ry });
+    },
     fillText(value, x, y) { if (x === 1345 && y === 57) hudLines.push(value); } },
     { get(target, key) { return key in target ? target[key] : () => {}; },
     set(target, key, value) { target[key] = value; return true; } });
@@ -165,7 +171,7 @@ async function run() {
       candidateHold: 0, cutFlashMs: 0, messageMs: 0, rivalWarning: false,
       ...overrides };
     mirrorFrames.length = 0; roadArt.length = 0; openingRects.length = 0;
-    drawOrder.length = 0; hudLines.length = 0; road.draw(drawCtx);
+    drawOrder.length = 0; hudLines.length = 0; contacts.length = 0; road.draw(drawCtx);
     assert.equal(mirrorFrames.length, 1, 'one expression is drawn inside the shared rearview');
     assert.deepEqual(Array.from(mirrorFrames[0].sourceRect), [0, 150, 450, 185]);
     assert.equal(mirrorFrames[0].x, 833, 'the completed face sits inside the driver side');
@@ -182,6 +188,34 @@ async function run() {
     roadArt.some(entry => entry.key === 'cacheBlacktop') &&
     roadArt.some(entry => entry.key === 'cacheCar'),
   'three city depths, roadside art, flying traffic, road and car share the live draw');
+  const textureRow = roadArt.find(entry => entry.key === 'cacheBlacktop').sourceRect[1];
+  const ships = roadArt.filter(entry => entry.key.startsWith('cacheFly'));
+  assert.deepEqual(ships.map(ship => [ship.key,ship.flip]),
+    [['cacheFly1',false],['cacheFly3',false],['cacheFly3',true],
+      ['cacheFly1',true],['cacheFly3',true]],
+    'both atlas noses face their actual left/right travel');
+  assert(Math.abs(contacts.at(-2).x + 164*.44) < .01 &&
+    Math.abs(contacts.at(-1).x - 164*.44) < .01 &&
+    Math.abs(contacts.at(-2).y - (-119*.14+2)) < .01 &&
+    Math.abs(contacts.at(-1).y - (-119*.14+2)) < .01,
+  'the player shadow has a contact patch under each grounded tire');
+  mirrorFrame({ progress: 405 });
+  assert(roadArt.find(entry => entry.key === 'cacheBlacktop').sourceRect[1] < textureRow,
+    'blacktop marks advance from horizon toward car with road progress');
+  const movingShips = roadArt.filter(entry => entry.key.startsWith('cacheFly'));
+  assert(movingShips[0].screenX > ships[0].screenX &&
+    movingShips[1].screenX < ships[1].screenX,
+  'flying traffic screen movement agrees with its visible nose');
+  const previousPreferences = B.Preferences;
+  B.Preferences = { values: { reducedMotion: true } };
+  mirrorFrame({ progress: 395, elapsedMs: 100 });
+  const stillShips = roadArt.filter(entry => entry.key.startsWith('cacheFly'));
+  mirrorFrame({ progress: 425, elapsedMs: 1400 });
+  assert.deepEqual(roadArt.filter(entry => entry.key.startsWith('cacheFly'))
+    .map(ship => [ship.screenX, ship.frame]),
+    stillShips.map(ship => [ship.screenX, ship.frame]),
+    'Reduced Motion holds decorative flying traffic in place');
+  B.Preferences = previousPreferences;
   assert.deepEqual(openingRects, [], 'the objective disappears between actionable lessons');
   mirrorFrame({ steer: -1 });
   assert(roadArt.some(entry => entry.key === 'cacheCarRight'), 'left steering uses the corrected visible turn');
