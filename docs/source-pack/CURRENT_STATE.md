@@ -1,5 +1,15 @@
 # Current State
 
+## September 25 — raised turn-wheel contact follow-up
+
+Automated review of merged #118 found that its generic turn contact height
+left the raised outer front tire shadow too low on `cacheCarRight`, with the
+mirrored turn also needing separate rear/front heights. The selected wheel
+mask and shadow now follow each pose's opaque tire bounds. A native Turbo
+comparison and turn-specific focused assertions cover both steering sides;
+the rest of #118's road, ship, music and gameplay state is unchanged. See
+`CACHE_ROAD_VISUAL_CONTACT.md` for the measured positions and review image.
+
 ## September 25 — Cache Road visual contact review
 
 Starting from merged #117 (`8923d3eea3fc5fe8cd8944ef50f3578ccaf0d785`),

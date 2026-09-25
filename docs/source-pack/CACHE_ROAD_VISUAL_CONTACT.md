@@ -10,6 +10,16 @@ the first two items in `CACHE_ROAD_COHESION_AUDIT.md`.
 | Flying traffic | `ship-1` is painted nose-right, `ship-3` nose-left; flip now depends on atlas and travel. Reduced Motion holds travel, bob, bank and frame. | Five rendered ships face their actual direction; focused draw assertions cover direction and still frames. |
 | Painted traffic | Rear tire masks and shadows use contact positions measured separately from each recovered art pose, since the bumper/exhaust often hangs below the wheels. The chassis still has its independent sway, freight travel and collision recoil. Tread, spray and turning rim now follow the corrected wheel bounds. | Six scripted production scenes and Cache/freight motion crops were viewed. [Enlarged before/after contact draw](review-cache-road-visual/Contact-Before-After.webp) uses identical production state. |
 
+After #118 merged, its automated review found that the raised outer front
+tire in each turn pose had been given a rear-tire shadow height. The follow-up
+uses opaque painted bounds at the selected mask locations: `cacheCarRight`
+left outer tire ends about `.31h` above the anchor while its right rear ends
+about `.125h`; `cacheCarLeft` uses `.17h` left rear and `.275h` right outer.
+The upper mask follows each raised outer wheel as well. The straight and
+freight positions were already aligned. Focused assertions now cover both
+turn poses, and the [turn contact comparison](review-cache-road-visual/Turn-Contact-Before-After.webp)
+uses the same scripted Turbo state before and after the follow-up.
+
 The renderer is `node tools/render-cache-road-mirror.cjs <output-folder>`;
 `python3 tools/build-cache-road-motion-previews.py <output-folder>` builds
 the moving crops. These are native production `draw()` calls with scripted

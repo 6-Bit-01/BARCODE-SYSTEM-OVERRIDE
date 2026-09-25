@@ -1,5 +1,11 @@
 # Recovery checkpoint — September 14
 
+## September 25, 2026 — turn-wheel contact follow-up
+
+- Align each selected outer front tire's clip and shadow to its higher
+  painted contact, with separate near rear positions in the two steering
+  poses. Add turn-specific draw assertions and a native Turbo comparison.
+
 ## September 25, 2026 — Cache Road visual contact
 
 - Reverse continuous blacktop sampling so surface marks approach the car.
