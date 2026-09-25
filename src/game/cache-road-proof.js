@@ -86,7 +86,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const kind=pair[(side<0?0:1)^(swapped?1:0)];
       const at=lap*LAP+PLACE_STATIONS[slot]+(side>0?25:0)+
         (lap===0&&slot===0?0:Math.round((placeRandom(seed)-.5)*42));
-      SIDE_PLACES.push({at,side,kind,size:.93+placeRandom(seed+4)*.14});
+      // A fixed lateral world offset keeps each address at its own distance
+      // from the sidewalk through turns, retries and different frame rates.
+      SIDE_PLACES.push({at,side,kind,size:.93+placeRandom(seed+4)*.14,
+        setback:18+Math.round(placeRandom(seed+9)*180)});
     }
   }
   SIDE_PLACES.sort((a,b)=>b.at-a.at);
@@ -1147,22 +1150,20 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // point, and the same projection continues beyond the bottom of frame.
       const roadsideX = (side,t,base,growth) =>
         center(t)+side*(half(t)+(base+growth*t)*(.1+.9*t));
-      // The painted city's bottom edge is the visible crest of the planet.
-      // A distant parcel is below that crest before its roof reaches it. Its
-      // ground and facade clear together as the road carries it toward us.
+      // A parcel is behind the planet's near ground until it passes the
+      // crest. The crest curves away from the road toward both screen edges;
+      // a horizontal per-object cut made buildings appear to materialize.
       const crest = horizon + 25;
-      const reveal = t => {
-        const u=clamp((t-.22)/.32,0,1);
-        return u*u*(3-2*u);
-      };
+      const crestY = x => crest+420*Math.pow(
+        clamp((Math.abs(x-center(0))-150)/600,0,1),2);
       const buriedFoot = t => 90*(1-clamp(t/.5,0,1));
+      const sceneFoot = t => roadY(t)+25*t+buriedFoot(t);
       const clipRoadside = (t,draw) => {
         ctx.save();
-        if(t<.54) {
-          const foot=roadY(t)+25*t+buriedFoot(t);
-          ctx.beginPath();
-          ctx.rect(0,0,1920,crest+(foot-crest)*reveal(t));
-          ctx.clip();
+        if(t<.75) {
+          ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(1920,0);
+          for(let x=1920;x>=0;x-=30)ctx.lineTo(x,crestY(x));
+          ctx.closePath();ctx.clip();
         }
         draw(); ctx.restore();
       };
@@ -1341,16 +1342,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const n=clamp(near,.11,1.2),f=clamp(far,.11,1.2);
         const side=place.side;
         clipRoadside(t,()=>{
-          ctx.globalAlpha=.58*reveal(t);
-          polygon(ctx,[[roadsideX(side,f,245,210),roadY(f)+25*f],
-            [roadsideX(side,n,245,210),roadY(n)+25*n],
-            [roadsideX(side,n,700,370),roadY(n)+40*n],
-            [roadsideX(side,f,700,370),roadY(f)+40*f]],
+          const parcelX=(tt,outer)=>roadsideX(side,tt,
+            outer?700+place.setback:230,outer?370:190);
+          ctx.globalAlpha=.75;
+          polygon(ctx,[[parcelX(f),roadY(f)+25*f],
+            [parcelX(n),roadY(n)+25*n],
+            [parcelX(n,true),sceneFoot(n)+15*n],
+            [parcelX(f,true),sceneFoot(f)+15*f]],
           place.kind==='garden'?'#344b43':
             ['garage','substation','construction'].includes(place.kind)?'#344149':'#394548');
           ctx.strokeStyle='#7e9c9970';ctx.lineWidth=1+2*n;
-          ctx.beginPath();ctx.moveTo(roadsideX(side,n,248,213),roadY(n)+25*n);
-          ctx.lineTo(roadsideX(side,n,695,365),roadY(n)+40*n);ctx.stroke();
+          ctx.beginPath();ctx.moveTo(parcelX(n),roadY(n)+25*n);
+          ctx.lineTo(parcelX(n,true),sceneFoot(n)+15*n);ctx.stroke();
         });
       }
       ctx.globalAlpha=1;
@@ -1435,7 +1438,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // house can appear at another size in the same vista.
       for(let at=Math.floor((progress+455)/68)*68;at>progress-170;at-=68) {
         const t=sideDepth(at-progress);if(t<.16||t>1.17)continue;
-        const y=roadY(t)+26*t;
+        const y=sceneFoot(t);
         for(const side of [-1,1]) {
           if(SIDE_PLACES.some(place=>place.side===side &&
             Math.abs(place.at-at)<125*place.size))continue;
@@ -1444,8 +1447,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           const w=(70+placeRandom(seed+1)*85)*(.22+1.25*t);
           const h=(30+placeRandom(seed+3)*62)*(.22+1.5*t);
           // Keep even the widest kiosk/paving corner outside the walkway.
-          const x=roadsideX(side,t,220,190)+side*(w*1.2+22*t);
-          ctx.save();ctx.globalAlpha=(.43+.43*t)*reveal(t);
+          const x=roadsideX(side,t,220,190)+side*
+            (w*1.2+22*t+placeRandom(seed+5)*140*t);
+          clipRoadside(t,()=>{ctx.globalAlpha=.43+.43*t;
           // Broken wet paving and reflected sign color give the service deck
           // depth without a repeating panoramic facade.
           polygon(ctx,[[x-w*.9,y+2*t],[x+w*.72,y+2*t],
@@ -1486,7 +1490,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
             ctx.fillStyle='#e8ae79';ctx.fillRect(x-w*.34,y-h*.22,w*.12,h*.07);
             ctx.fillStyle='#20343f';ctx.fillRect(x+w*.32,y-h*.46,w*.12,h*.46);
           }
-          ctx.restore();
+          });
         }
       }
       // The open lot is a patch of the curved landscape; its four corners,
@@ -1496,10 +1500,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const n=clamp(sideDepth(place.at-67*place.size-progress),.06,1.18);
         const f=clamp(sideDepth(place.at+82*place.size-progress),.06,1.18);
         const lotX=(tt,outer=false)=>roadsideX(side,tt,
-          outer?605:255,outer?345:215);
-        const lotY=tt=>roadY(tt)+27*tt;
+          outer?605+place.setback:255,outer?345:215);
+        const lotY=tt=>sceneFoot(tt);
         clipRoadside(t,()=>{
-          ctx.globalAlpha=.9*reveal(t);
+          ctx.globalAlpha=.9;
           polygon(ctx,[[lotX(f),lotY(f)],[lotX(n),lotY(n)],
             [lotX(n,true),lotY(n)+17*n],[lotX(f,true),lotY(f)+17*f]],
           '#1d2b36');
@@ -1555,8 +1559,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const width=maxW*t*place.size;
         const height=width*sourceH/sourceW;
         const sidewalkEdge=roadsideX(place.side,t,220,190);
-        const x=sidewalkEdge+place.side*(width*.5+26*t);
-        const y=roadY(t)+25*t+buriedFoot(t);
+        const x=sidewalkEdge+place.side*(width*.5+(26+place.setback)*t);
+        const y=sceneFoot(t);
         clipRoadside(t,()=>{
           ctx.globalAlpha*=clamp((t-.07)/.13,0,1)*(.72+.25*t);
           B.PresentationAssets?.draw?.(key,ctx,{

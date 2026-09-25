@@ -97,13 +97,16 @@ async function main() {
   const worldReview = process.env.CACHE_REVIEW_WORLD === '1';
   const siteReview = process.env.CACHE_REVIEW_SITES === '1';
   const continuous = process.env.CACHE_REVIEW_CONTINUOUS === '1';
-  const stillReview = process.env.CACHE_REVIEW_STILLS === '1';
+  const customProgress=process.env.CACHE_REVIEW_PROGRESS?.split(',')
+    .map(Number).filter(Number.isFinite);
+  const stillReview = process.env.CACHE_REVIEW_STILLS === '1' || !!customProgress?.length;
   const reviewLap = Number(process.env.CACHE_REVIEW_LAP || 0);
   const sceneryReview = worldReview || siteReview || stillReview;
   const fps = stillReview ? 1 : continuous ? 15 : 18;
   const seconds = stillReview ? 1 : continuous ? 32 : 2;
   const chapters = stillReview ?
-    [0,100,150,230,325,400,455,525,600,800,1000,1300,1700,2200]
+    (customProgress?.length ? customProgress :
+      [0,100,150,230,325,400,455,525,600,800,1000,1300,1700,2200])
       .map(progress=>({name:`Road-${String(progress).padStart(4,'0')}`,
         progress,bar:4+Math.floor(progress/81)})) :
     continuous ? [{ name: 'Continuous-Drive', progress: 0, bar: 4 }] : siteReview ? [

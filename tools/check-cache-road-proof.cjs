@@ -144,27 +144,42 @@ async function run() {
   const liveState = road.state, oldArt = B.PresentationAssets;
   const mirrorFrames = [], roadArt = [], openingRects = [], drawOrder = [], hudLines = [], contacts = [];
   const trafficLabels = [], beacons = [], sidewalkEdges = [], clipStack = [];
+  const ridgeAt = (points,x) => {
+    if(!points)return Infinity;
+    if(!Number.isFinite(x))return Infinity;
+    const i=Math.max(0,Math.min(63,Math.floor((1920-x)/30)));
+    const a=points[i+2],b=points[i+3];
+    if(!a||!b)throw Error(`invalid ridge length ${points.length} at ${x}/${i}`);
+    return a.y+(b.y-a.y)*((x-a.x)/(b.x-a.x));
+  };
   B.PresentationAssets = { ready(key) { return key.startsWith('cache'); },
     draw(key, _ctx, options) {
     if (key === 'cacheMirror') mirrorFrames.push({ frame: options.frame,
       sourceRect: options.sourceRect, x: options.x, y: options.y });
-    else { roadArt.push({ key, ...options, clipHeight: _ctx.clipHeight ?? Infinity,
+    else { roadArt.push({ key, ...options,
+      clipHeight: ridgeAt(_ctx.ridge,options.x),
+      clipLeft: ridgeAt(_ctx.ridge,options.x-(options.width||0)/2),
+      clipRight: ridgeAt(_ctx.ridge,options.x+(options.width||0)/2),
       ...(key.startsWith('cacheFly') ? { screenX: _ctx.lastTranslate?.[0] } : {}) });
       drawOrder.push(key); }
     return true;
   } };
   const paint = { addColorStop() {} };
-  const drawCtx = new Proxy({ clipHeight: Infinity, createLinearGradient: () => paint,
+  const drawCtx = new Proxy({ clipHeight: Infinity, ridge: null,
+    createLinearGradient: () => paint,
     createRadialGradient: () => paint,
     beginPath() { this.path = []; this.pendingClip = null; },
     rect(x,y,width,height) {
       if(x===0 && y===0 && width===1920) this.pendingClip=height;
     },
-    save() { clipStack.push(this.clipHeight ?? Infinity); },
-    restore() { this.clipHeight=clipStack.pop() ?? Infinity; },
+    save() { clipStack.push({ height:this.clipHeight, ridge:this.ridge }); },
+    restore() { const last=clipStack.pop(); this.clipHeight=last?.height ?? Infinity;
+      this.ridge=last?.ridge; },
     clip() {
       if(this.pendingClip!=null)
         this.clipHeight=Math.min(this.clipHeight ?? Infinity,this.pendingClip);
+      if(this.path?.length===67 && this.path[0].x===0 && this.path[1].x===1920)
+        this.ridge=this.path.slice();
       this.pendingClip=null;
     },
     moveTo(x,y) { this.path?.push({x,y}); },
@@ -239,9 +254,10 @@ async function run() {
     const a=edge[i-1],b=edge[i];
     return a.x+(b.x-a.x)*(y-a.y)/(b.y-a.y);
   };
+  const clearances=[];
   const checkSetbackAndFacing = () => {
     for(const entry of uprightPlaces(roadArt).filter(item =>
-      item.clipHeight === Infinity && item.y >= 470 && item.y <= 1080 &&
+      item.y >= 590 && item.y <= 1080 &&
       item.x+item.width/2 >= 0 &&
       item.x-item.width/2 <= 1920)) {
       const side=entry.x < 960 ? -1 : 1;
@@ -250,6 +266,7 @@ async function run() {
       const inner=entry.x-side*entry.width/2;
       assert(side*(inner-curb) >= 4,
         `${entry.key} footprint must stay outside the ${side<0?'left':'right'} sidewalk`);
+      clearances.push(side*(inner-curb)/Math.sqrt((entry.y-400)/680));
       assert.equal(entry.flip,entry.key === 'cachePlaceGarage' ? side>0 : side<0,
         `${entry.key} entrance faces the road from the ${side<0?'left':'right'}`);
     }
@@ -277,6 +294,8 @@ async function run() {
   assert(firstDiner && firstDiner.y-firstDiner.height<firstDiner.clipHeight &&
     firstDiner.clipHeight<firstDiner.y,
   'the restaurant roof first emerges with its foundation behind the city crest');
+  assert(Math.abs(firstDiner.clipLeft-firstDiner.clipRight)>4,
+    'the crest follows a curved roadside silhouette across the site');
   mirrorFrame({ progress: 150 });
   assert(roadArt.some(entry => entry.key === 'cachePlaceMarket' && entry.flip &&
     entry.width > market.width && entry.x+entry.width/2 > 0 &&
@@ -290,7 +309,7 @@ async function run() {
   checkSetbackAndFacing();
   mirrorFrame({ progress: 270 });
   const clearDiner=roadArt.find(entry=>entry.key==='cachePlaceDiner');
-  assert(clearDiner && clearDiner.clipHeight===Infinity &&
+  assert(clearDiner && clearDiner.clipHeight>=clearDiner.y &&
     clearDiner.y>emergingDiner.y && clearDiner.width>emergingDiner.width*1.5,
   'the restaurant clears the horizon and grows on its way past the player');
   const marketGrowth=(advancingMarket.width-market.width)/32;
@@ -321,6 +340,20 @@ async function run() {
   }
   assert.equal(reviewedKinds.size,9,
     'all nine complete location paintings receive a road-facing, exterior placement check');
+  assert(Math.max(...clearances)-Math.min(...clearances)>75,
+    'site footprints have visibly different stable setbacks from the sidewalk');
+  let crossingGap=Infinity, crossingSamples=0;
+  for(let progress=0;progress<2460;progress+=10) {
+    mirrorFrame({progress});
+    for(const entry of uprightPlaces(roadArt).filter(item=>
+      item.y>760 && item.y<803 && item.x+item.width/2>0 &&
+      item.x-item.width/2<1920 && Number.isFinite(item.clipHeight))) {
+      crossingGap=Math.min(crossingGap,entry.clipHeight-entry.y);
+      crossingSamples++;
+    }
+  }
+  assert(crossingSamples>5 && crossingGap>-20,
+    `a visible site's foundation must almost clear before the near clip ends (${crossingGap})`);
   mirrorFrame({progress:340});
   assert(!roadArt.some(entry=>['cacheCourier','cacheAudit'].includes(entry.key) &&
     entry.x!==0),

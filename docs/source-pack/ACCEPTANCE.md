@@ -1,6 +1,29 @@
 # Acceptance and Test Status
 
+## Cache Road curved crest and varied site distance — September 25
+
+From the exact merged build, follow one building on each side at normal
+speed. Its roof should first peek above the city/planet crest while the
+parcel is obstructed. The full facade and ground should clear together on
+the diagonal path before the site passes outside the sidewalk. Follow the
+park, open parking lot and small trees through the same reveal. Compare
+several locations: some should stand visibly deeper in the landscape than
+others, while their projected ground keeps them attached to the side street.
+Check a later bend, third-lap reversal and Reduced Motion. The city layers,
+streetlights and sidewalk should maintain the road's motion; no off-road
+traffic car or duplicate whole building should appear.
+
+The close-spaced production frames, third-lap stills and continuous Canvas
+draw were visually inspected. Focused production geometry checks cover a
+curved crest, roof/base/clear stages, sidewalk clearance, varying setback,
+facing and no sudden lower-edge pop at the near handoff. The full repository
+gate and exact revision are in the receipt. These scripted frames cannot
+establish Makko appearance, performance, audio or controller feel; owner
+acceptance remains open. See `CACHE_ROAD_ROADSIDE_CAMERA_OVERHAUL.md`.
+
 ## Cache Road coherent roadside camera — September 25
+
+Historical first #127 draft: its horizontal reveal was corrected above.
 
 Review the proposed correction against the owner's full game frame and crop.
 Drive at normal size through the first park and parking lot, then a later bend

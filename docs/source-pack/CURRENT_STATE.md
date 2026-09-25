@@ -1,6 +1,23 @@
 # Current State
 
+## September 25 — curved crest and varied site distance in draft #127
+
+The owner inspected the first #127 draw and found that distant building
+bases looked cut off and then appeared over flat terrain. Five marked game
+frames show the intended diagonal approach: roofs and treetops peek from
+behind the planet horizon, then each complete site clears and passes the
+car. The updated draw uses one curved roadside crest for buildings, parcels,
+the open lot and low filler. Seeded site setbacks move their art and ground
+together at varying distances beyond the sidewalk. Opening, close-spaced
+reveal, third-lap and continuous production renders were inspected; focused
+geometry checks cover the crest and spacing. The actual Makko visual result
+still needs owner review. Details and evidence are in
+`CACHE_ROAD_ROADSIDE_CAMERA_OVERHAUL.md`; adrenaline and power-ups remain
+in `CACHE_ROAD_COHESION_AUDIT.md`.
+
 ## September 25 — cohesive roadside camera after owner rejected #126
+
+Historical first #127 draft: the horizontal clip was corrected above.
 
 The owner supplied a game frame and crop showing off-road cars, a low/overlaid
 location reveal at the visible city horizon, city layers drifting without a

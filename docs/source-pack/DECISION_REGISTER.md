@@ -1,5 +1,17 @@
 # Decision Register
 
+## September 25, 2026 — site crest and variable roadside setback
+
+The owner corrected draft #127 with five marked frames. Distant buildings
+and trees must peek from behind the horizon; their ground and complete scene
+should clear along the road's diagonal approach, without a detached or
+horizontal lower-edge reveal. Each site should have its own distance from
+the road, and its parcel should follow it. Keep locations exterior to the
+sidewalk, original game art, road-facing fronts, the coherent city camera
+and traffic. The curved crest and seeded site offsets are in
+`CACHE_ROAD_ROADSIDE_CAMERA_OVERHAUL.md`. Owner Makko review remains open;
+visual work still precedes the adrenaline and power-up tune.
+
 ## September 25, 2026 — roadside camera and horizon correction
 
 The owner rejected merged #126 in supplied game screenshots. No decorative

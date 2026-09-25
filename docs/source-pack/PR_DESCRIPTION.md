@@ -1,5 +1,14 @@
 # Cache Road roadside camera overhaul
 
+Updated after owner review of draft #127: the previously horizontal clip
+made distant building bottoms appear over disconnected terrain. The current
+revision masks buildings, parcels, open lot and low filler behind a curved
+roadside crest; roofs and trees emerge first and the full scene clears as it
+passes outward. Each seeded site now has its own lateral setback, with its
+ground stretched to remain attached and the sidewalk left open. Review the
+four-stage sequence and third-lap frames in
+`CACHE_ROAD_ROADSIDE_CAMERA_OVERHAUL.md`.
+
 The owner rejected merged #126 after showing the actual game frame: parking
 cars looked stranded off the road, the park and distant roofs sat awkwardly
 against the visible horizon, the city layers scrolled independently, and
@@ -10,7 +19,7 @@ and pans all three city layers from one bounded camera bearing. The
 underlying site list, exterior sidewalk, road, lights, lane traffic, music,
 controls and saves remain as before.
 
-Inspect `CACHE_ROAD_ROADSIDE_CAMERA_OVERHAUL.md` and its four frames, then
+Inspect `CACHE_ROAD_ROADSIDE_CAMERA_OVERHAUL.md` and its staged frames, then
 watch the continuous drive at normal size. Focused production geometry and
 full repository checks belong to the exact revision receipt. Scripted draws
 are not Makko play, audio/controller judgment or owner acceptance. The
