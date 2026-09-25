@@ -41,6 +41,12 @@ The trike and sweeper lane changes, shuttle draft, four-part routes, full
 100-bar clock, final Echo and old saves are checked in `check-cache-road-proof`.
 The asset loader uses immutable published art revisions and a local fallback.
 
+Automated review after #120 merged caught two visual cues: the right-edge
+trike's warning still pointed right when its cut goes left, and roof pulses
+did not share the chassis bounce/roll transform. The follow-up points the
+warning into the destination lane and anchors each pulse to its vehicle.
+The focused proof covers both trike directions and the beacon transform.
+
 ## Art and review
 
 Production WebP and editable PNG reductions are in `assets/cache-road/`.

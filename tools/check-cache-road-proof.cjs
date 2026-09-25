@@ -143,6 +143,7 @@ async function run() {
   const roadStart = copy(C.readResume());
   const liveState = road.state, oldArt = B.PresentationAssets;
   const mirrorFrames = [], roadArt = [], openingRects = [], drawOrder = [], hudLines = [], contacts = [];
+  const trafficLabels = [], beacons = [];
   B.PresentationAssets = { ready(key) { return key.startsWith('cache'); },
     draw(key, _ctx, options) {
     if (key === 'cacheMirror') mirrorFrames.push({ frame: options.frame,
@@ -161,8 +162,13 @@ async function run() {
     translate(x,y) { this.lastTranslate = [x,y]; },
     ellipse(x,y,rx,ry) {
       if (this.fillStyle === '#030b16c8') contacts.push({ x,y,rx,ry });
+      if (['#ff77bb','#ffd079','#8af6f1'].includes(this.fillStyle))
+        beacons.push({ x,y,translate:this.lastTranslate });
     },
-    fillText(value, x, y) { if (x === 1345 && y === 57) hudLines.push(value); } },
+    fillText(value, x, y) {
+      if (x === 1345 && y === 57) hudLines.push(value);
+      if (value === 'CUT >' || value === '< CUT') trafficLabels.push(value);
+    } },
     { get(target, key) { return key in target ? target[key] : () => {}; },
     set(target, key, value) { target[key] = value; return true; } });
   const mirrorFrame = overrides => {
@@ -171,7 +177,8 @@ async function run() {
       candidateHold: 0, cutFlashMs: 0, messageMs: 0, rivalWarning: false,
       ...overrides };
     mirrorFrames.length = 0; roadArt.length = 0; openingRects.length = 0;
-    drawOrder.length = 0; hudLines.length = 0; contacts.length = 0; road.draw(drawCtx);
+    drawOrder.length = 0; hudLines.length = 0; contacts.length = 0;
+    trafficLabels.length = 0; beacons.length = 0; road.draw(drawCtx);
     assert.equal(mirrorFrames.length, 1, 'one expression is drawn inside the shared rearview');
     assert.deepEqual(Array.from(mirrorFrames[0].sourceRect), [0, 150, 450, 185]);
     assert.equal(mirrorFrames[0].x, 833, 'the completed face sits inside the driver side');
@@ -217,6 +224,10 @@ async function run() {
   assert(depot.length > 10 && depot[0].x < depot.at(-1).x &&
     depot[0].height < depot.at(-1).height && depot[0].y < depot.at(-1).y,
   'right event runs diagonally the opposite way toward the foreground');
+  assert(trafficLabels.includes('CUT >') && beacons.some(light => light.translate?.[0] === 0),
+    'opening trike calls its right cut and keeps its beacon in the chassis frame');
+  mirrorFrame({ progress: 3*2460+600 });
+  assert(trafficLabels.includes('< CUT'), 'rotated right-edge trike calls its left cut');
   mirrorFrame({ progress: 395 });
   const textureRow = roadArt.find(entry => entry.key === 'cacheBlacktop').sourceRect[1];
   const ships = roadArt.filter(entry => entry.key.startsWith('cacheFly'));

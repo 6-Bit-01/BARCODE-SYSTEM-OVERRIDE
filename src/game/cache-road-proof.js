@@ -363,10 +363,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         // Roof beacons and signal mast respond to travel without moving the
         // grounded tire pixels. A scan/merge is visible before its collision.
         const pulse = reduced ? .55 : .35 + .65 * Math.pow(Math.sin(phase*.11),2);
+        ctx.save(); ctx.translate(jolt,bounce); ctx.rotate(roll);
         ctx.globalAlpha *= pulse;
         ctx.fillStyle = kind === 'sweeper' ? '#ffd079' : kind === 'audit' ? '#ff77bb' : '#8af6f1';
         ctx.beginPath(); ctx.ellipse(0,-h*(kind === 'trike' ? 1.18 : 1.25),
           w*.11,h*.045,0,0,Math.PI*2); ctx.fill();
+        ctx.restore();
       }
       ctx.restore(); return;
     }
@@ -1543,7 +1545,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           ctx.font = `bold ${Math.round(15 + t*16)}px Oxanium, monospace`;
           ctx.textAlign = 'center';
           ctx.fillText(hazard.kind === 'audit' ? 'AUDIT LOCK' :
-            hazard.kind === 'sweeper' ? 'SWEEP' : hazard.kind === 'trike' ? 'CUT >' :
+            hazard.kind === 'sweeper' ? 'SWEEP' : hazard.kind === 'trike' ?
+              (hazard.lane === 3 ? '< CUT' : 'CUT >') :
             hazard.kind === 'shuttle' ? 'SLOW / DRAFT' : 'DRAFT', x, y - h - 14);
         }
       }
