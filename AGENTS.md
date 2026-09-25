@@ -1,5 +1,19 @@
 # Repository Guidance
 
+## September 25, 2026 — staggered vivid sites and projected roadside surfaces
+
+After merged #127 the owner requested independent left/right site timing,
+inconsistent gaps and setbacks, opaque distant buildings, proportional
+overscanned city layers, sidewalk art and side ground panels. Keep an
+occasional facing pair, the curved roof/ground crest, road-facing individual
+paintings and shared camera depth. The new surface tiles follow the same
+world projection as the curb, sites and lamps. Inspect continuous drives in
+the opening and a later lap, not only static assertions. The power-up and
+adrenaline backlog remains open. See
+`docs/source-pack/CACHE_ROAD_ROADSIDE_FLOW_PASS.md` and the top acceptance
+route. Merge after CI for the owner's Makko review; scripted previews do
+not certify hosted appearance, audio, controller feel or frame rate.
+
 ## September 25, 2026 — owner corrected #127 crest and site setback
 
 The owner showed five more game frames and a red approach path. The first

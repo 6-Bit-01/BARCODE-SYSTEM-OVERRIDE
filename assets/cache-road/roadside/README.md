@@ -1,5 +1,14 @@
 # Cache Road roadside art
 
+`sidewalk-slab.svg` is the current wet paver/curb tile. The three exterior
+tiles, `outer-ground-panel.svg`, `green-ground-panel.svg` and
+`service-ground-panel.svg`, fill the bank behind it and continue through
+site gaps. Every tile maps to a projected world-distance quad, so its
+seams, curb and ground travel with the road, individual places and lamps.
+Green/service materials cluster near matching locations; the default wet
+ground fills the intervals. The left and right low filler rows also use
+different world phases so they do not arrive in mirrored pairs.
+
 `parapet.webp` and `service-pylon.webp` are optimized from the transparent PNGs
 in `sources/`. The parapet is drawn as consecutive projected wall segments
 following the road bend. Service pylons and cantilever lamps sit at world

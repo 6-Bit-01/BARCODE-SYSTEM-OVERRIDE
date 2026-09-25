@@ -1,6 +1,15 @@
 # Cache Road world art
 
-`skyline.webp` is prepared from the saved transparent
+`panorama-distance.webp`, `panorama-skyline.webp` and
+`panorama-frontage.webp` are the current three individually painted
+transparent city layers. Their PNG sources are under `sources/`. The
+renderer draws each wider than the viewport at its natural aspect ratio,
+with no horizontal fattening, then pans all three from one road bearing at
+increasing depth ratios. Their lower facades tuck behind the city horizon.
+The earlier `distant-city.webp`, `skyline.webp` and `mid-city.webp` remain
+here as the previous art sources for comparison, but are not preloaded.
+
+Historically, `skyline.webp` was prepared from the saved transparent
 `Rain-Soaked Retro-Futurist Skyline.png`. `distant-city.webp` and
 `mid-city.webp` are separate generated transparent paintings, with their PNG
 sources under `sources/`. They move at increasing speeds behind the road:

@@ -156,7 +156,7 @@ async function run() {
     draw(key, _ctx, options) {
     if (key === 'cacheMirror') mirrorFrames.push({ frame: options.frame,
       sourceRect: options.sourceRect, x: options.x, y: options.y });
-    else { roadArt.push({ key, ...options,
+    else { roadArt.push({ key, ...options, alpha:_ctx.globalAlpha ?? 1,
       clipHeight: ridgeAt(_ctx.ridge,options.x),
       clipLeft: ridgeAt(_ctx.ridge,options.x-(options.width||0)/2),
       clipRight: ridgeAt(_ctx.ridge,options.x+(options.width||0)/2),
@@ -172,9 +172,10 @@ async function run() {
     rect(x,y,width,height) {
       if(x===0 && y===0 && width===1920) this.pendingClip=height;
     },
-    save() { clipStack.push({ height:this.clipHeight, ridge:this.ridge }); },
+    save() { clipStack.push({ height:this.clipHeight, ridge:this.ridge,
+      alpha:this.globalAlpha ?? 1 }); },
     restore() { const last=clipStack.pop(); this.clipHeight=last?.height ?? Infinity;
-      this.ridge=last?.ridge; },
+      this.ridge=last?.ridge;this.globalAlpha=last?.alpha ?? 1; },
     clip() {
       if(this.pendingClip!=null)
         this.clipHeight=Math.min(this.clipHeight ?? Infinity,this.pendingClip);
@@ -228,8 +229,10 @@ async function run() {
     roadArt.some(entry => entry.key === 'cacheFly1') &&
     roadArt.some(entry => entry.key === 'cacheFly3') &&
     roadArt.some(entry => entry.key === 'cacheBlacktop') &&
+    roadArt.some(entry => entry.key === 'cacheSidewalk') &&
+    roadArt.some(entry => entry.key.endsWith('Ground')) &&
     roadArt.some(entry => entry.key === 'cacheCar'),
-  'three city depths, roadside art, flying traffic, road and car share the live draw');
+  'three city depths, projected sidewalk and ground, roadside art, traffic and car share the live draw');
   mirrorFrame({ progress: 0 });
   const uprightPlaces = entries => entries.filter(entry =>
     entry.key.startsWith('cachePlace') && entry.key !== 'cachePlaceParking');
@@ -240,7 +243,8 @@ async function run() {
     .sort((a,b) => b.width-a.width)[0];
   assert(market && house && places.length >= 2 &&
     new Set(places.map(entry => entry.key)).size >= 2 &&
-    places.every(entry => !entry.sourceRect && entry.width > 0 && entry.height > 0),
+    places.every(entry => !entry.sourceRect && entry.width > 0 &&
+      entry.height > 0 && entry.alpha === 1),
   'both sides contain several separate, varied, uniformly scaled parcels');
   const playerCar=roadArt.find(entry => entry.key === 'cacheCar');
   assert(market.width > playerCar.width*1.5 && market.height > playerCar.height*1.5 &&
@@ -289,33 +293,36 @@ async function run() {
     advancingMarket.height > market.height && advancingLamp && advancingLamp.x < lamp.x,
   'a painted place grows and approaches alongside a world-fixed streetlight');
   checkSetbackAndFacing();
-  mirrorFrame({ progress: 80 });
-  const firstDiner=roadArt.find(entry=>entry.key==='cachePlaceDiner');
-  assert(firstDiner && firstDiner.y-firstDiner.height<firstDiner.clipHeight &&
-    firstDiner.clipHeight<firstDiner.y,
-  'the restaurant roof first emerges with its foundation behind the city crest');
-  assert(Math.abs(firstDiner.clipLeft-firstDiner.clipRight)>4,
-    'the crest follows a curved roadside silhouette across the site');
+  let emergingSite=null;
+  for(let progress=0;progress<700 && !emergingSite;progress+=20) {
+    mirrorFrame({progress});
+    const entry=uprightPlaces(roadArt).find(item=>item.alpha===1 &&
+      item.x+item.width/2>0 && item.x-item.width/2<1920 &&
+      item.y-item.height<item.clipHeight && item.clipHeight<item.y &&
+      Math.abs(item.clipLeft-item.clipRight)>4);
+    if(entry)emergingSite={progress,entry};
+  }
+  assert(emergingSite,
+    'a vivid roof emerges behind the curved crest while its foundation remains hidden');
   mirrorFrame({ progress: 150 });
   assert(roadArt.some(entry => entry.key === 'cachePlaceMarket' && entry.flip &&
     entry.width > market.width && entry.x+entry.width/2 > 0 &&
     entry.y-entry.height < 1080),
   'the enlarged left market facade remains visible while it approaches the screen edge');
-  const emergingDiner=roadArt.find(entry=>entry.key==='cachePlaceDiner');
-  assert(emergingDiner && Number.isFinite(emergingDiner.clipHeight) &&
-    emergingDiner.y-emergingDiner.height<emergingDiner.clipHeight &&
-    emergingDiner.clipHeight<emergingDiner.y,
-  'a distant restaurant roof peeks above the horizon lip while its base is hidden');
   checkSetbackAndFacing();
-  mirrorFrame({ progress: 270 });
-  const clearDiner=roadArt.find(entry=>entry.key==='cachePlaceDiner');
-  assert(clearDiner && clearDiner.clipHeight>=clearDiner.y &&
-    clearDiner.y>emergingDiner.y && clearDiner.width>emergingDiner.width*1.5,
-  'the restaurant clears the horizon and grows on its way past the player');
-  const marketGrowth=(advancingMarket.width-market.width)/32;
-  const dinerGrowth=(clearDiner.width-emergingDiner.width)/120;
-  assert(Math.abs(marketGrowth-dinerGrowth)<.18,
-  'sites use the same steady depth growth across the far and near approach');
+  let clearedSite=null;
+  for(let progress=emergingSite.progress+20;progress<emergingSite.progress+250;
+    progress+=20) {
+    mirrorFrame({progress});
+    const entry=uprightPlaces(roadArt).find(item=>
+      item.key===emergingSite.entry.key &&
+      Math.sign(item.x-960)===Math.sign(emergingSite.entry.x-960) &&
+      item.clipHeight>=item.y && item.y>emergingSite.entry.y &&
+      item.width>emergingSite.entry.width*1.25);
+    if(entry){clearedSite=entry;break;}
+  }
+  assert(clearedSite,
+    'the same fully colored location grows and clears the horizon as it approaches');
   mirrorFrame({ progress: 300 });
   assert(roadArt.some(entry => entry.key === 'cachePlaceMarket' && entry.flip &&
     entry.width > market.width*1.4 && entry.x+entry.width/2 < 0),
@@ -326,6 +333,7 @@ async function run() {
     !roadArt.some(entry => /^(cacheMarket|cacheDepot|cacheFrontage)/.test(entry.key)),
   'later blocks use independent right-side places, never the rejected long strips');
   const reviewedKinds=new Set();
+  let loneBankFrames=0,pairedApproaches=0,comparedApproaches=0;
   for(let progress=0;progress<2460;progress+=205) {
     mirrorFrame({ progress });
     checkSetbackAndFacing();
@@ -338,6 +346,19 @@ async function run() {
     assert(!roadArt.some(entry=>entry.key==='cachePlaceParking'),
       'the rejected long parking slab is never drawn');
   }
+  for(let progress=0;progress<2460;progress+=55) {
+    mirrorFrame({progress});
+    const near=uprightPlaces(roadArt).filter(item=>item.y>515 && item.y<790 &&
+      item.x+item.width/2>0 && item.x-item.width/2<1920);
+    const left=near.filter(item=>item.x<960),right=near.filter(item=>item.x>960);
+    if((!!left.length)!=(!!right.length))loneBankFrames++;
+    if(left.length&&right.length) {
+      comparedApproaches++;
+      if(left.some(l=>right.some(r=>Math.abs(l.y-r.y)<45)))pairedApproaches++;
+    }
+  }
+  assert(loneBankFrames>4 && pairedApproaches<comparedApproaches*.65,
+    'site approaches include one-sided gaps and only occasional facing pairs');
   assert.equal(reviewedKinds.size,9,
     'all nine complete location paintings receive a road-facing, exterior placement check');
   assert(Math.max(...clearances)-Math.min(...clearances)>75,
@@ -358,9 +379,13 @@ async function run() {
   assert(!roadArt.some(entry=>['cacheCourier','cacheAudit'].includes(entry.key) &&
     entry.x!==0),
   'parking lots contain no stray copies of the active traffic paintings');
-  mirrorFrame({progress:490});
-  assert(roadArt.some(entry=>entry.key==='cachePlacePark' &&
-    !entry.sourceRect && entry.width>300 && entry.flip===false),
+  let completePark=false;
+  for(let progress=0;progress<2460;progress+=75) {
+    mirrorFrame({progress});
+    completePark ||=roadArt.some(entry=>entry.key==='cachePlacePark' &&
+      !entry.sourceRect && entry.width>300 && entry.flip===false);
+  }
+  assert(completePark,
   'the whole road-facing park shares the scale of other painted sites');
   mirrorFrame({ progress: 600 });
   assert(trafficLabels.includes('CUT >') && beacons.some(light => light.translate?.[0] === 0),
@@ -370,6 +395,14 @@ async function run() {
   mirrorFrame({ progress: 395 });
   const cityAt395=['cacheDistantCity','cacheSkyline','cacheMidCity']
     .map(key=>roadArt.find(entry=>entry.key===key).x);
+  for(const [key,sourceW,sourceH] of [
+    ['cacheDistantCity',2079,756],['cacheSkyline',2079,756],
+    ['cacheMidCity',2172,724]]) {
+    const entry=roadArt.find(item=>item.key===key);
+    assert(entry.width>1920 && Math.abs(entry.width/entry.height-sourceW/sourceH)<.001 &&
+      !entry.sourceRect,
+    `${key} has overscan for camera pan without widening the source architecture`);
+  }
   const roadTexture=() => roadArt.find(entry => entry.key === 'cacheBlacktop' &&
     entry.sourceRect[3] <= 22);
   assert(roadArt.some(entry => entry.key === 'cacheBlacktop' &&

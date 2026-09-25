@@ -1,5 +1,28 @@
 # Acceptance and Test Status
 
+## Cache Road staggered roadside and surface flow — September 25
+
+Drive the merged build through the opening and a later lap at normal and
+reduced speed. A location should hold as a small, fully colored roof behind
+the curved crest, then reveal its ground and grow smoothly into a fast side
+pass. Watch each bank independently: some addresses oppose one another,
+while others have empty space or arrive well before the other side. The
+curb and slab joints, side ground, parcel, lamp and building should pass on
+the same bend without sliding or a bare wedge. City architecture should
+keep narrow natural proportions while all three layers pan only with the
+road bearing; check Reduced Motion as well. Compare a house, park, open lot
+and industrial site at different setbacks. No new off-road traffic or
+duplicate building should appear.
+
+First and third-lap 32-second production Canvas drives and four selected
+frames were visually inspected; the focused test covers spacing, opaque
+reveal, crest, exterior clearance, uniform city aspect, projected surfaces
+and shared pan. Exact full-suite and CI results belong to the revision
+receipt. These scripted draws cannot settle Makko appearance, frame rate,
+audio or controller feel. Owner acceptance is pending. See
+`CACHE_ROAD_ROADSIDE_FLOW_PASS.md`; the audit's adrenaline and power-ups
+remain deferred to the mechanics pass.
+
 ## Cache Road curved crest and varied site distance — September 25
 
 From the exact merged build, follow one building on each side at normal

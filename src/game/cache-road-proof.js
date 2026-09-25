@@ -62,14 +62,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   // repair garage's large bay. Mirror the left-hand places so their entrances
   // turn toward the road; the garage uses the opposite facing.
   const placeFacesRoad = (kind, side) => kind === 'garage' ? side > 0 : side < 0;
-  // Twenty separate sites per lap. Each type returns only after five stations
-  // (over a thousand world units), beyond one visible road vista. Pair order
-  // and side swap change between laps; the first market/house is authored.
-  const PLACE_PAIRS = [
-    ['market','house'],['diner','apartment'],['parking','park'],
-    ['garage','garden'],['substation','construction']
-  ];
-  const PLACE_STATIONS = Array.from({length:10},(_,slot)=>175+slot*225);
+  const PLACE_KINDS = [...Object.keys(PLACE_ART),'parking'];
   // Seeded choices keep the lots varied yet identical after pause, retry,
   // saved-road restore and frame-rate changes.
   const placeRandom = n => {
@@ -77,20 +70,40 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     x = Math.imul(x ^ x >>> 15, 0x846ca68b);
     return ((x ^ x >>> 16) >>> 0) / 4294967296;
   };
+  // Each bank gets its own fixed sequence of addresses. Short runs and long
+  // open intervals happen independently; an occasional facing pair is kept
+  // intentionally, rather than making every building arrive as a gate.
   const SIDE_PLACES = [];
-  for(let lap=0;lap<5;lap++)for(let slot=0;slot<PLACE_STATIONS.length;slot++) {
-    const pair=PLACE_PAIRS[(slot+lap*2)%PLACE_PAIRS.length];
-    const swapped=lap>0 && (lap+slot)%2===0;
-    for(const side of [-1,1]) {
-      const seed=(lap+1)*10007+(side+2)*2039+slot*379;
-      const kind=pair[(side<0?0:1)^(swapped?1:0)];
-      const at=lap*LAP+PLACE_STATIONS[slot]+(side>0?25:0)+
-        (lap===0&&slot===0?0:Math.round((placeRandom(seed)-.5)*42));
-      // A fixed lateral world offset keeps each address at its own distance
-      // from the sidewalk through turns, retries and different frame rates.
-      SIDE_PLACES.push({at,side,kind,size:.93+placeRandom(seed+4)*.14,
-        setback:18+Math.round(placeRandom(seed+9)*180)});
+  for(const side of [-1,1]) {
+    let at=side<0?175:200, index=0;
+    while(at<END+570) {
+      const seed=(side+2)*9173+index*2411;
+      if(side>0 && index>0 && index%7===3) {
+        const across=SIDE_PLACES.reduce((best,place)=>
+          Math.abs(place.at-at)<Math.abs((best?.at??Infinity)-at)?place:best,null);
+        if(across && Math.abs(across.at-at)<140)
+          at=across.at+Math.round((placeRandom(seed+6)-.5)*35);
+      } else if(side>0 && index>0 && SIDE_PLACES.some(place=>
+        Math.abs(place.at-at)<76)) at+=82;
+      SIDE_PLACES.push({at:Math.round(at),side,index,seed,
+        size:.86+placeRandom(seed+4)*.3,
+        setback:index===0?(side<0?65:165):
+          18+Math.round(placeRandom(seed+9)*245)});
+      const gap=175+placeRandom(seed+17)*127+
+        (placeRandom(seed+23)<.27?75+placeRandom(seed+29)*95:0);
+      at+=gap;index++;
     }
+  }
+  SIDE_PLACES.sort((a,b)=>a.at-b.at);
+  const lastKindAt = new Map();
+  for(const place of SIDE_PLACES) {
+    const choices=PLACE_KINDS.map((kind,k)=>({kind,
+      score:placeRandom(place.seed+k*97)-
+        Math.max(0,530-(place.at-(lastKindAt.get(kind)??-10000)))/530*2}));
+    choices.sort((a,b)=>b.score-a.score);
+    place.kind=place.index===0?(place.side<0?'market':'house'):choices[0].kind;
+    lastKindAt.set(place.kind,place.at);
+    delete place.index;delete place.seed;
   }
   SIDE_PLACES.sort((a,b)=>b.at-a.at);
   const clone = value => JSON.parse(JSON.stringify(value));
@@ -1167,6 +1180,27 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         }
         draw(); ctx.restore();
       };
+      // Paint one authored surface tile in the world plane. Its two sides
+      // use the same curve and depth as the curb, parcel and passing lamps;
+      // clipping the projected quad keeps the texture inside its own slab.
+      const drawSurfacePanel = (key,side,far,near,inner,outer) => {
+        const point=(t,edge) => ({
+          x:roadsideX(side,t,...edge.slice(0,2)),
+          y:roadY(t)+edge[2]*t+(edge[3]?buriedFoot(t):0)
+        });
+        const fi=point(far,inner),fo=point(far,outer);
+        const ni=point(near,inner),no=point(near,outer);
+        const farWidth=Math.hypot(fo.x-fi.x,fo.y-fi.y);
+        const nearWidth=Math.hypot(no.x-ni.x,no.y-ni.y);
+        ctx.save();ctx.beginPath();ctx.moveTo(fi.x,fi.y);
+        ctx.lineTo(ni.x,ni.y);ctx.lineTo(no.x,no.y);
+        ctx.lineTo(fo.x,fo.y);ctx.closePath();ctx.clip();
+        const reach=Math.max(1.08,Math.min(3,nearWidth/farWidth+.08));
+        ctx.transform((fo.x-fi.x)*reach/256,(fo.y-fi.y)*reach/256,
+          (ni.x-fi.x)/256,(ni.y-fi.y)/256,fi.x,fi.y);
+        B.PresentationAssets?.draw?.(key,ctx,{x:0,y:0,width:256,height:256});
+        ctx.restore();
+      };
       ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
       const beat = reduced ? 0 : s.musicBeatFloat || 0;
       const stack = Math.min(4,s.captures?.length || 0);
@@ -1260,33 +1294,30 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         }
       }
       ctx.globalAlpha=1;
-      // These three paintings share the camera's road bearing. A bounded pan
-      // gives the nearer city more parallax on a turn without a free-running
-      // horizontal tile scroll or a seam crossing the screen.
+      // Each new panorama is wider than the viewport and drawn at its source
+      // aspect ratio. The lower facades tuck behind one gently curved city
+      // horizon; the pan is caused only by the road camera bearing.
       const bearing=reduced ? 0 :
         clamp(eyeHeading*115+(eyePath-path(0))*.18,-110,110);
-      const distantWidth=2640;
-      ctx.globalAlpha=.73;
-      B.PresentationAssets?.draw?.('cacheDistantCity',ctx,{
-        x:(1920-distantWidth)/2-bearing*.22,y:horizon-90,
-        width:distantWidth,height:170 });
-      ctx.globalAlpha=1;
-      // Two actual city paintings occupy different depths. Their bottom edges
-      // meet the road's horizon; no crop of one skyline is pasted over another.
-      const skylineWidth = 2310;
-      ctx.globalAlpha = .65;
-      B.PresentationAssets?.draw?.('cacheSkyline', ctx, {
-        x:(1920-skylineWidth)/2-bearing*.50,y:horizon+25,
-        width:skylineWidth,height:225,sourceRect:[0,180,2079,440] });
+      ctx.save();ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(1920,0);
+      for(let x=1920;x>=0;x-=30)
+        ctx.lineTo(x,horizon+36+48*Math.pow(Math.abs(x-center(0))/960,2));
+      ctx.closePath();ctx.clip();
+      const cityLayers=[
+        ['cacheDistantCity',2079,756,2520,580,.64,.22],
+        ['cacheSkyline',2079,756,2420,620,.70,.50],
+        ['cacheMidCity',2172,724,2370,590,.88,.85]
+      ];
+      for(const [key,sourceW,sourceH,width,foot,opacity,parallax] of cityLayers) {
+        ctx.globalAlpha=opacity;
+        B.PresentationAssets?.draw?.(key,ctx,{
+          x:(1920-width)/2-bearing*parallax,y:foot,
+          width,height:width*sourceH/sourceW });
+      }
+      ctx.restore();
       const haze = ctx.createLinearGradient(0,horizon-170,0,horizon+40);
       haze.addColorStop(0,'#4b6e7600'); haze.addColorStop(1,'#7796a657');
       ctx.fillStyle = haze; ctx.fillRect(0,horizon-170,1920,210);
-      ctx.globalAlpha = 1;
-      const cityWidth = 2230;
-      ctx.globalAlpha = .82;
-      B.PresentationAssets?.draw?.('cacheMidCity',ctx,{
-        x:(1920-cityWidth)/2-bearing*.85,y:horizon+25,
-        width:cityWidth,height:168,sourceRect:[0,260,2079,496] });
       ctx.globalAlpha = 1;
       // Level 1's animated ships cross above this road at different depths
       // and bank angles. They never enter the collision system.
@@ -1305,6 +1336,22 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           // The pink ship is painted nose-right; the gray ship is nose-left.
           flip:model==='cacheFly1'?!forward:forward });
         ctx.restore();
+      }
+      // The exterior land is a continuous sequence of varied wet-ground
+      // panels, even through empty intervals between independent locations.
+      for(let at=Math.floor((progress+570)/85)*85;at>progress-180;at-=85) {
+        const far=sideDepth(at+85-progress),near=sideDepth(at-progress);
+        if(far<.10||near>1.22)continue;
+        for(const side of [-1,1]) {
+          const nearPlace=SIDE_PLACES.find(place=>place.side===side &&
+            Math.abs(place.at-at)<165);
+          const ground=nearPlace && ['park','garden','house'].includes(nearPlace.kind) ?
+            'cacheGreenGround':nearPlace &&
+              ['garage','substation','construction','parking'].includes(nearPlace.kind) ?
+              'cacheServiceGround':'cacheOuterGround';
+          drawSurfacePanel(ground,side,far,near,
+            [220,190,24,0],[990,440,40,1]);
+        }
       }
       // Side decks track the same bend as the lane geometry. Real parapet and
       // pylon art is placed at world distances below, after the asphalt.
@@ -1329,6 +1376,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         }
         ctx.stroke();
       }
+      for(let at=Math.floor((progress+520)/55)*55;at>progress-170;at-=55) {
+        const far=sideDepth(at+55-progress),near=sideDepth(at-progress);
+        if(far<.11||near>1.18)continue;
+        for(const side of [-1,1])
+          drawSurfacePanel('cacheSidewalk',side,far,near,
+            [73,50,0,0],[220,190,24,0]);
+      }
       // Each separate location owns a piece of the same roadside ground.
       // Its near/far edges are world distances, so the foundation stretches
       // and passes with the building instead of sliding beneath a billboard.
@@ -1344,7 +1398,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         clipRoadside(t,()=>{
           const parcelX=(tt,outer)=>roadsideX(side,tt,
             outer?700+place.setback:230,outer?370:190);
-          ctx.globalAlpha=.75;
+          ctx.globalAlpha=1;
           polygon(ctx,[[parcelX(f),roadY(f)+25*f],
             [parcelX(n),roadY(n)+25*n],
             [parcelX(n,true),sceneFoot(n)+15*n],
@@ -1436,20 +1490,22 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // Low landscape details fill the gaps between authored locations. A
       // single place row owns all whole buildings, so no second copy of a
       // house can appear at another size in the same vista.
-      for(let at=Math.floor((progress+455)/68)*68;at>progress-170;at-=68) {
-        const t=sideDepth(at-progress);if(t<.16||t>1.17)continue;
-        const y=sceneFoot(t);
-        for(const side of [-1,1]) {
+      for(const side of [-1,1]) {
+        const phase=side<0?0:37;
+        for(let at=Math.floor((progress+455-phase)/68)*68+phase;
+          at>progress-170;at-=68) {
+          const t=sideDepth(at-progress);if(t<.16||t>1.17)continue;
+          const y=sceneFoot(t);
           if(SIDE_PLACES.some(place=>place.side===side &&
             Math.abs(place.at-at)<125*place.size))continue;
-          const seed=Math.floor(at/68)*149+(side+2)*883;
+          const seed=Math.floor((at-phase)/68)*149+(side+2)*883;
           const mode=Math.floor(placeRandom(seed)*4);
           const w=(70+placeRandom(seed+1)*85)*(.22+1.25*t);
           const h=(30+placeRandom(seed+3)*62)*(.22+1.5*t);
           // Keep even the widest kiosk/paving corner outside the walkway.
           const x=roadsideX(side,t,220,190)+side*
             (w*1.2+22*t+placeRandom(seed+5)*140*t);
-          clipRoadside(t,()=>{ctx.globalAlpha=.43+.43*t;
+          clipRoadside(t,()=>{ctx.globalAlpha=1;
           // Broken wet paving and reflected sign color give the service deck
           // depth without a repeating panoramic facade.
           polygon(ctx,[[x-w*.9,y+2*t],[x+w*.72,y+2*t],
@@ -1503,7 +1559,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           outer?605+place.setback:255,outer?345:215);
         const lotY=tt=>sceneFoot(tt);
         clipRoadside(t,()=>{
-          ctx.globalAlpha=.9;
+          ctx.globalAlpha=1;
           polygon(ctx,[[lotX(f),lotY(f)],[lotX(n),lotY(n)],
             [lotX(n,true),lotY(n)+17*n],[lotX(f,true),lotY(f)+17*f]],
           '#1d2b36');
@@ -1562,7 +1618,6 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const x=sidewalkEdge+place.side*(width*.5+(26+place.setback)*t);
         const y=sceneFoot(t);
         clipRoadside(t,()=>{
-          ctx.globalAlpha*=clamp((t-.07)/.13,0,1)*(.72+.25*t);
           B.PresentationAssets?.draw?.(key,ctx,{
             x,y,width,height,flip:placeFacesRoad(place.kind,place.side) });
         });

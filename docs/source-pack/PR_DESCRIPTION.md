@@ -1,4 +1,22 @@
-# Cache Road roadside camera overhaul
+# Cache Road staggered roadside flow
+
+The owner reviewed merged #127 and asked for less paired scheduling,
+inconsistent intervals/setbacks, vivid first appearance, proportionate
+overscanned city paintings, sidewalks and exterior ground panels. This pass
+uses independent seeded left/right addresses with occasional pairs and no
+site alpha fade. Three new transparent city paintings keep uniform source
+aspect and share the bounded road bearing. Four editable surface tiles
+project under the locations and continue through the open stretches.
+
+Inspect `CACHE_ROAD_ROADSIDE_FLOW_PASS.md`, four review frames and the
+first/third-lap continuous draws. The production draw/asset checks, full
+repository suite and syntax gate passed locally; the hosted browser check
+is the remaining CI gate because local Chromium is unavailable. Owner
+Makko appearance, audio, controller feel and performance acceptance remain
+open. Gameplay/music/saves are unchanged and the adrenaline/power-up list
+remains in `CACHE_ROAD_COHESION_AUDIT.md`.
+
+# Historical: Cache Road roadside camera overhaul
 
 Updated after owner review of draft #127: the previously horizontal clip
 made distant building bottoms appear over disconnected terrain. The current

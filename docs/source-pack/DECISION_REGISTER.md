@@ -1,5 +1,18 @@
 # Decision Register
 
+## September 25, 2026 — independent site cadence and coherent side ground
+
+The owner wants irregular intervals and setbacks, with facing locations
+only occasionally. Buildings should emerge vivid from the first crest peek;
+distance comes from scale and occlusion rather than alpha. Two main city
+paintings and the farther layer must pan with the road camera at their own
+depths while preserving building proportions and overscanning the viewport.
+Sidewalk and exterior panels should be authored surfaces that flow under
+individual locations and remain continuous through open stretches. Keep
+the established roof-first curved reveal, game-matched place art, traffic
+and music/action rules. See `CACHE_ROAD_ROADSIDE_FLOW_PASS.md`; owner Makko
+judgment remains open before the later adrenaline and power-up pass.
+
 ## September 25, 2026 — site crest and variable roadside setback
 
 The owner corrected draft #127 with five marked frames. Distant buildings

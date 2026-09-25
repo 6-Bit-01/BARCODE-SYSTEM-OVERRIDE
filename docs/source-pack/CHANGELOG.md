@@ -1,5 +1,19 @@
 # Recovery checkpoint — September 14
 
+## September 25, 2026 — staggered sites, proportional city and road surfaces
+
+- Replace ten synchronized left/right stations per lap with independent
+  seeded address spacing, occasional pairs and wider size/setback variation.
+  Keep the roof-first curved crest and road-facing individual places.
+- Remove distant place and locale alpha fades. Add three new transparent
+  painted city panoramas and draw them with uniform aspect and road-bearing
+  overscan rather than widening the old crops.
+- Add projected slab, wet outer ground, green and service SVG assets under
+  roadside sites, with independent low-filler phases and pinned remote art.
+- Inspect first and third-lap 32-second scripted drives and staged frames;
+  extend focused draw/asset tests. Owner Makko judgment remains open;
+  music, controls and the adrenaline/power-up backlog are unchanged.
+
 ## September 25, 2026 — curved crest and individual setbacks in #127
 
 - Replace the first #127 horizontal per-site clip with a road-bearing curved
