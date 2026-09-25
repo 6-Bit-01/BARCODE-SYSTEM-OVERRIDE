@@ -1,4 +1,8 @@
-# Diagonal roadside source prompts
+# Historical long-strip diagonal roadside source prompts
+
+The owner rejected these joined scenes after reviewing the result. The
+individual source art in `places/` replaces them. This prompt record is kept
+to explain what was tried, not to direct current runtime art.
 
 The six source PNGs were made with built-in image generation, using the prior
 horizontal market/depot/frontage PNG only as a **style/architecture reference**.
@@ -19,5 +23,5 @@ restrained cyan/magenta/amber light; no road, car, sky, UI or legible signs.
 The perspective is authored inside each image. Runtime placement registers its
 painted near and far curb points to the road; it does not create the building
 perspective by slicing a flat strip. Original generated outputs are retained
-by the image workflow; repo PNGs are transparent 1080-pixel-wide source
-reductions sized for the game's view and mirrored by optimized runtime WebPs.
+by the image workflow; the rejected repository reductions were removed in the
+individual-places correction and remain available in Git history.

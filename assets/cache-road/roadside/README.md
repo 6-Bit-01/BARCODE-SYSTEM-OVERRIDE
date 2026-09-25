@@ -7,10 +7,9 @@ distances, get larger as they pass, and mirror across the road. Their amber
 light and chipped steel remain separate from lane indicators. Full prompts
 and reference roles are in `../ART_PROMPTS.md`.
 
-The six `*-perspective.webp` cutouts are the current market, depot and muted
-frontage art for both sides of the road. Their diagonal depth is painted into
-the source, including the continuous curb and paving. The renderer registers
-each whole image to two projected world points; the previous horizontal
-`market-block`, `relay-depot` and `service-frontage` images are historical and
-not loaded. See `DIAGONAL_PROMPTS.md` and
-`docs/source-pack/CACHE_ROAD_INSTRUMENT_ART.md`.
+`places/` contains the current ten independent transparent buildings, lots,
+parks and service parcels. The road places each whole prop at its own seeded
+world coordinate, with distinct spacing and size. Brief world-fixed filler
+elements occupy the gaps behind them. See `places/README.md` for the source
+inventory. The rejected horizontal and long diagonal strips remain in Git
+history only; `DIAGONAL_PROMPTS.md` records that earlier art experiment.

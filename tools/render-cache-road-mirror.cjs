@@ -33,12 +33,16 @@ async function main() {
     cacheMidCity: 'assets/cache-road/world/mid-city.webp',
     cacheParapet: 'assets/cache-road/roadside/parapet.webp',
     cachePylon: 'assets/cache-road/roadside/service-pylon.webp',
-    cacheMarketLeft: 'assets/cache-road/roadside/market-left-perspective.webp',
-    cacheMarketRight: 'assets/cache-road/roadside/market-right-perspective.webp',
-    cacheDepotLeft: 'assets/cache-road/roadside/depot-left-perspective.webp',
-    cacheDepotRight: 'assets/cache-road/roadside/depot-right-perspective.webp',
-    cacheFrontageLeft: 'assets/cache-road/roadside/frontage-left-perspective.webp',
-    cacheFrontageRight: 'assets/cache-road/roadside/frontage-right-perspective.webp',
+    cachePlaceMarket: 'assets/cache-road/roadside/places/corner-market.webp',
+    cachePlaceHouse: 'assets/cache-road/roadside/places/row-house.webp',
+    cachePlaceParking: 'assets/cache-road/roadside/places/parking-lot.webp',
+    cachePlacePark: 'assets/cache-road/roadside/places/pocket-park.webp',
+    cachePlaceGarage: 'assets/cache-road/roadside/places/repair-garage.webp',
+    cachePlaceApartment: 'assets/cache-road/roadside/places/apartment.webp',
+    cachePlaceDiner: 'assets/cache-road/roadside/places/night-diner.webp',
+    cachePlaceSubstation: 'assets/cache-road/roadside/places/substation.webp',
+    cachePlaceGarden: 'assets/cache-road/roadside/places/community-garden.webp',
+    cachePlaceConstruction: 'assets/cache-road/roadside/places/construction-yard.webp',
     cacheImpactGrit: 'assets/cache-road/effects/impact-grit.webp',
     cacheSpeedMist: 'assets/cache-road/effects/speed-mist.webp',
     cacheBlacktop: 'assets/wet-street/rain-blacktop.webp',
@@ -63,10 +67,9 @@ async function main() {
       const frameWidth = ship ? 320 : image.width;
       const frameHeight = key === 'cacheFly1' ? 83 : key === 'cacheFly3' ? 97 : image.height;
       const [sx, sy, sw, sh] = sourceRect || [0,0,mirror ? 512 : frameWidth,mirror ? 512 : frameHeight];
-      const perspective = /^(cacheMarket|cacheDepot|cacheFrontage)/.test(key);
-      const ax = perspective || key === 'cacheSkyline' || key === 'cacheDistantCity' || key === 'cacheMidCity' || key === 'cacheBlacktop' ? 0 :
+      const ax = key === 'cacheSkyline' || key === 'cacheDistantCity' || key === 'cacheMidCity' || key === 'cacheBlacktop' ? 0 :
         key === 'cachePylon' ? .28 : .5;
-      const ay = key === 'cacheMirror' || ship ? .5 : key === 'cacheBlacktop' || perspective ? 0 : 1;
+      const ay = key === 'cacheMirror' || ship ? .5 : key === 'cacheBlacktop' ? 0 : 1;
       ctx.save(); ctx.translate(x,y); if (flip) ctx.scale(-1,1); ctx.imageSmoothingEnabled = !ship;
       ctx.drawImage(image, (mirror ? frame % 3 * 512 : ship ? frame % 8 * 320 : 0) + sx,
         (mirror ? Math.floor(frame / 3) * 512 : ship ? Math.floor(frame / 8) * frameHeight : 0) + sy,
@@ -93,7 +96,9 @@ async function main() {
   const video = createCanvas(1280,720), vc = video.getContext('2d');
   const detail = createCanvas(1320, 1140), dc = detail.getContext('2d');
   const worldReview = process.env.CACHE_REVIEW_WORLD === '1';
-  const fps = 18, seconds = 2, chapters = worldReview ? [
+  const continuous = process.env.CACHE_REVIEW_CONTINUOUS === '1';
+  const fps = continuous ? 15 : 18, seconds = continuous ? 32 : 2;
+  const chapters = continuous ? [{ name: 'Continuous-Drive', progress: 0, bar: 4 }] : worldReview ? [
     { name: 'Market', progress: 0, bar: 4 },
     { name: 'Sweeper', progress: 315, bar: 7 },
     { name: 'Trike', progress: 565, bar: 10 },
@@ -109,7 +114,7 @@ async function main() {
     { name: 'Hit', progress: 7900, bar: 80 },
     { name: 'Low-Signal', progress: 8080, bar: 81 }
   ];
-  const laneMoves = worldReview ? [
+  const laneMoves = continuous ? [[1.5,1.5,0,1]] : worldReview ? [
     [1,1,0,1], [2,2.8,.25,1.4], [0,1,.15,1.25],
     [1,0,.3,1.3], [2,2,0,1], [2,1,.3,1.4], [3,3,0,1]
   ] : [
@@ -117,8 +122,8 @@ async function main() {
     [1.2,2.0,.12,.62], [2.0,2.0,0,1], [2.0,1.5,.4,1.6]
   ];
   const smooth = value => { const v=Math.max(0,Math.min(1,value)); return v*v*(3-2*v); };
-  const file = path.join(out, worldFrames ? 'Cache-Road-Mirror-World-Preview.mp4' :
-    'Cache-Road-Mirror-Preview.mp4');
+  const file = path.join(out, continuous ? 'Cache-Road-Individual-Places-Drive.mp4' :
+    worldFrames ? 'Cache-Road-Mirror-World-Preview.mp4' : 'Cache-Road-Mirror-Preview.mp4');
   const ff = spawn('/usr/bin/ffmpeg', ['-y','-loglevel','error','-f','rawvideo',
     '-pix_fmt','rgba','-s','1280x720','-r',String(fps),'-i','pipe:0',
     '-an','-c:v','libx264','-threads','2','-preset','veryfast','-crf','19',
@@ -131,13 +136,14 @@ async function main() {
     const chapterIndex = Math.floor(i / (seconds * fps));
     const chapter = chapters[chapterIndex], local = i % (seconds * fps) / fps;
     const s = road.state;
-    s.progress = chapter.progress + local * 54;
+    s.progress = continuous ? local * 80 : chapter.progress + local * 54;
     s.elapsedMs = i * 1000 / fps;
     s.musicBar = chapter.bar + Math.floor(local / 1.875);
     s.musicBeatFloat = s.musicBar * 4 + local % 1.875 * 4 / 1.875;
     // Scripted arrangement states expose queued, single, and full-stack road
     // markings for art review; no audio or playable route is implied.
-    const reviewParts=worldReview ? [[],[],[0],[0,1],[0,1,3],[1,3],[0,1,2,3]][chapterIndex] : [];
+    const reviewParts=continuous ? [[0],[0,1],[0,1,3],[0,1,2,3]][Math.min(3,Math.floor(local/8))] :
+      worldReview ? [[],[],[0],[0,1],[0,1,3],[1,3],[0,1,2,3]][chapterIndex] : [];
     s.captures=reviewParts.map(lane => ({ lane,startBeat:(s.musicBar-1)*4,
       endBeat:(s.musicBar+7)*4 }));
     s.queuedCaptures=worldReview&&chapterIndex===1 ? [{lane:2,
@@ -146,9 +152,10 @@ async function main() {
     s.fullAdrenaline=s.captures.length===4;
     const [from,to,start,end] = laneMoves[chapterIndex];
     const turn = Math.max(0,Math.min(1,(local-start)/(end-start)));
-    s.lanePos = s.visualLane = from+(to-from)*smooth(turn);
+    s.lanePos = s.visualLane = continuous ? 1.5+.45*Math.sin(local*.41) : from+(to-from)*smooth(turn);
     s.lane = Math.round(s.lanePos); s.speed = 54;
-    s.steer = turn > 0 && turn < 1 ? Math.sign(to-from)*(.15+.85*Math.sin(Math.PI*turn)) : 0;
+    s.steer = continuous ? .12*Math.cos(local*.41) :
+      turn > 0 && turn < 1 ? Math.sign(to-from)*(.15+.85*Math.sin(Math.PI*turn)) : 0;
     const half = 80+800*.83;
     const bend = Math.sin(s.progress/190+(1-.83)*1.2)*(1-.83)*124;
     carCenters.push((960+bend-half+s.visualLane*half/2+half/4)*2/3);
@@ -179,14 +186,17 @@ async function main() {
       vc.drawImage(scene,0,0,1920,164,0,0,1280,109.3333);
     } else vc.drawImage(scene,0,0,1920,1080,0,0,1280,720);
     const stillAt = chapterIndex === 3 || chapterIndex === 4 ? 4 : fps;
-    if (i % (fps * seconds) === stillAt) {
-      fs.writeFileSync(path.join(out, `Cache-Road-Mirror-${chapter.name}.webp`),
+    if (continuous ? i % (fps*4) === fps : i % (fps * seconds) === stillAt) {
+      const name=continuous ? `Drive-${String(Math.floor(i/(fps*4))).padStart(2,'0')}` : chapter.name;
+      fs.writeFileSync(path.join(out, `Cache-Road-Mirror-${name}.webp`),
         video.toBuffer('image/webp',88));
-      const row = chapterIndex * 190;
-      dc.drawImage(scene, 600, 0, 1320, 164, 0, row, 1320, 164);
-      dc.fillStyle = '#091523'; dc.fillRect(0, row+164, 1320, 26);
-      dc.fillStyle = '#f5dda9'; dc.font = 'bold 18px Oxanium';
-      dc.fillText(chapter.name.toUpperCase(), 20, row+184);
+      const row = (continuous ? Math.floor(i/(fps*4)) : chapterIndex) * 190;
+      if(row+190<=detail.height) {
+        dc.drawImage(scene, 600, 0, 1320, 164, 0, row, 1320, 164);
+        dc.fillStyle = '#091523'; dc.fillRect(0, row+164, 1320, 26);
+        dc.fillStyle = '#f5dda9'; dc.font = 'bold 18px Oxanium';
+        dc.fillText(name.toUpperCase(), 20, row+184);
+      }
     }
     if (!ff.stdin.write(Buffer.from(vc.getImageData(0,0,1280,720).data)))
       await once(ff.stdin,'drain');

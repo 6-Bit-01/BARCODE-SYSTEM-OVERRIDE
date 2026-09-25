@@ -149,8 +149,6 @@ async function run() {
     if (key === 'cacheMirror') mirrorFrames.push({ frame: options.frame,
       sourceRect: options.sourceRect, x: options.x, y: options.y });
     else { roadArt.push({ key, ...options,
-      ...(/^(cacheMarket|cacheDepot|cacheFrontage)/.test(key) ?
-        { transform: _ctx.lastTransform } : {}),
       ...(key.startsWith('cacheFly') ? { screenX: _ctx.lastTranslate?.[0] } : {}) });
       drawOrder.push(key); }
     return true;
@@ -200,38 +198,32 @@ async function run() {
     roadArt.some(entry => entry.key === 'cacheCar'),
   'three city depths, roadside art, flying traffic, road and car share the live draw');
   mirrorFrame({ progress: 0 });
-  const foot = (entry,point) => {
-    const [a,b,c,d,e,f]=entry.transform;
-    return {x:a*point[0]+c*point[1]+e,y:b*point[0]+d*point[1]+f};
-  };
-  const market = roadArt.find(entry => entry.key === 'cacheMarketLeft');
-  assert(market && !market.sourceRect && market.width === 1080 &&
-    foot(market,[47,364]).x < foot(market,[1031,307]).x &&
-    foot(market,[47,364]).y > foot(market,[1031,307]).y,
-  'one authored diagonal market cutout registers its near/far painted curb');
-  const marketNear = foot(market,[47,364]);
-  const frontage = roadArt.find(entry => entry.key === 'cacheFrontageLeft');
+  const places = roadArt.filter(entry => entry.key.startsWith('cachePlace'));
+  const market = places.find(entry => entry.key === 'cachePlaceMarket' && !entry.flip);
+  const house = places.find(entry => entry.key === 'cachePlaceHouse' && entry.flip);
+  assert(market && house && places.length >= 4 &&
+    new Set(places.map(entry => entry.key)).size >= 3 &&
+    places.every(entry => !entry.sourceRect && entry.width > 0 && entry.height > 0),
+  'both sides contain several separate, varied, uniformly scaled parcels');
+  const openingPlaces=JSON.stringify(places);
+  mirrorFrame({ progress: 0 });
+  assert.equal(JSON.stringify(roadArt.filter(entry => entry.key.startsWith('cachePlace'))),openingPlaces,
+    'seeded roadside placement draws identically on repeated frames');
   const lamp = roadArt.find(entry => entry.key === 'cachePylon' &&
     entry.x < 960 && entry.y > 550 && entry.y < 690);
-  assert(frontage && lamp && roadArt.some(entry => entry.key === 'cacheFrontageRight'),
-    'both authored background directions and streetlights occupy the side road');
-  const frontageNear=foot(frontage,[63,374]);
+  assert(lamp, 'streetlights share the side road with parcels and filler');
   mirrorFrame({ progress: 32 });
-  const advancingMarket = roadArt.find(entry => entry.key === 'cacheMarketLeft');
-  const advancingFrontage = roadArt.find(entry => entry.key === 'cacheFrontageLeft');
+  const advancingMarket = roadArt.find(entry => entry.key === 'cachePlaceMarket' && !entry.flip);
   const advancingLamp = roadArt.find(entry => entry.key === 'cachePylon' &&
     entry.x < 960 && entry.y > lamp.y && entry.y < lamp.y+100);
-  assert(advancingMarket && foot(advancingMarket,[47,364]).x < marketNear.x &&
-    foot(advancingMarket,[47,364]).y > marketNear.y &&
-    advancingFrontage && foot(advancingFrontage,[63,374]).x < frontageNear.x &&
-    advancingLamp && advancingLamp.x < lamp.x,
-  'event, backing frontage and streetlight approach together in world space');
+  assert(advancingMarket && advancingMarket.x < market.x &&
+    advancingMarket.y > market.y && advancingMarket.width > market.width &&
+    advancingMarket.height > market.height && advancingLamp && advancingLamp.x < lamp.x,
+  'a painted place grows and approaches alongside a world-fixed streetlight');
   mirrorFrame({ progress: 600 });
-  const depot = roadArt.find(entry => entry.key === 'cacheDepotRight');
-  assert(depot && !depot.sourceRect && depot.width === 1080 &&
-    foot(depot,[1015,379]).x > foot(depot,[63,258]).x &&
-    foot(depot,[1015,379]).y > foot(depot,[63,258]).y,
-  'right event has its own reverse vanishing direction in the painting');
+  assert(roadArt.some(entry => entry.key.startsWith('cachePlace') && entry.flip) &&
+    !roadArt.some(entry => /^(cacheMarket|cacheDepot|cacheFrontage)/.test(entry.key)),
+  'later blocks use independent right-side places, never the rejected long strips');
   assert(trafficLabels.includes('CUT >') && beacons.some(light => light.translate?.[0] === 0),
     'opening trike calls its right cut and keeps its beacon in the chassis frame');
   mirrorFrame({ progress: 3*2460+600 });

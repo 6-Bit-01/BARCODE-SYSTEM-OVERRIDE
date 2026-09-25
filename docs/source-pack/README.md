@@ -1,6 +1,18 @@
 # BARCODE: SYSTEM OVERRIDE — Source Pack v5
 
-## Current review — authored diagonal roadside and instruments
+## Current review — individual roadside places
+
+Start with `CACHE_ROAD_INDIVIDUAL_PLACES.md`, `CURRENT_STATE.md` and the first
+`ACCEPTANCE.md` route. The owner rejected the six joined diagonal scenes from
+PR #122. Ten separate perspective-painted buildings, lots, parks and service
+parcels now vary in type, scale and world spacing along both sides of the
+road. Short low structures, trees, fences and wet paving fill the gaps behind
+them. A continuous production draw and focused placement checks support this
+review; the owner still needs to drive the exact merged build in Makko. The
+inlaid pads, song-bar motifs and HUD instruments from #122 stay in place, and
+the adrenaline/power-up plan remains open.
+
+## Historical review — authored diagonal roadside and instruments
 
 Start with `CACHE_ROAD_INSTRUMENT_ART.md`, `CURRENT_STATE.md` and the first
 `ACCEPTANCE.md` route. Six distinct left/right market, depot and quiet frontage
