@@ -1,4 +1,18 @@
-# Level 1 completion shortcut and Level 3 DEV menu
+# Cache Road exterior lot placement and facing
+
+Merged #124 established larger individual places on a curved road. This
+follow-up positions both place rows and their small landscape filler outside
+the outer sidewalk edge, puts parcel foundations beyond the walkway and
+mirrors the existing painted fronts toward traffic. The streetlights keep
+their size. No new art or music files are needed.
+
+Review the opening market and house, later garage and open lots, bends and
+near edge passage in `CACHE_ROAD_SETBACK_FACING.md` and `ACCEPTANCE.md`.
+The production draw test checks the rendered sidewalk clearance and facing;
+native scenes and a continuous drive are visual previews, not Makko owner
+acceptance. Preserve music, controls, traffic, pads, song bars, HUD and saves.
+
+# Historical: Level 1 completion shortcut and Level 3 DEV menu
 
 The owner needs a quick route to the provisional Level 3 combat preview and a development menu there. This draft builds on merged #89, `c0d061407378831ae90fcac49985a29c3c5ea037`; the Cache Line remains Level 2 in story order.
 

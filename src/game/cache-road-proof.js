@@ -59,6 +59,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     garden: ['cachePlaceGarden',960,646,690,190],
     construction: ['cachePlaceConstruction',960,635,710,195]
   };
+  // The entrances in the source paintings sit on the left, except for the
+  // repair garage's large bay. Mirror the left-hand places so their entrances
+  // turn toward the road; the garage uses the opposite facing.
+  const placeFacesRoad = (kind, side) => kind === 'garage' ? side > 0 : side < 0;
   const PLACE_DISTRICTS = [
     ['market','diner','apartment','house','parking','park'],
     ['garage','substation','construction','parking','garden','apartment'],
@@ -1333,15 +1337,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const n=clamp(near,.11,1.2),f=clamp(far,.11,1.2);
         const side=place.side;
         ctx.globalAlpha=clamp((n-.11)/.2,0,.58);
-        polygon(ctx,[[roadsideX(side,f,174,120),roadY(f)+18*f],
-          [roadsideX(side,n,174,120),roadY(n)+18*n],
-          [roadsideX(side,n,445,285),roadY(n)+34*n],
-          [roadsideX(side,f,445,285),roadY(f)+34*f]],
+        polygon(ctx,[[roadsideX(side,f,245,210),roadY(f)+25*f],
+          [roadsideX(side,n,245,210),roadY(n)+25*n],
+          [roadsideX(side,n,700,370),roadY(n)+40*n],
+          [roadsideX(side,f,700,370),roadY(f)+40*f]],
         ['park','garden'].includes(place.kind)?'#344b43':
           ['garage','substation','construction'].includes(place.kind)?'#344149':'#394548');
         ctx.strokeStyle='#7e9c9970';ctx.lineWidth=1+2*n;
-        ctx.beginPath();ctx.moveTo(roadsideX(side,n,178,124),roadY(n)+18*n);
-        ctx.lineTo(roadsideX(side,n,440,280),roadY(n)+34*n);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(roadsideX(side,n,248,213),roadY(n)+25*n);
+        ctx.lineTo(roadsideX(side,n,695,365),roadY(n)+40*n);ctx.stroke();
       }
       ctx.globalAlpha=1;
       // World-fixed joints and drainage marks turn the decks into sidewalks
@@ -1424,10 +1428,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const t=sideDepth(place.at-progress);if(t<.10||t>1.9)continue;
         const [key,sourceW,sourceH,maxW]=PLACE_ART[place.kind];
         const width=maxW*(.05+.95*t)*place.size;
+        const sidewalkEdge=roadsideX(place.side,t,220,190);
         ctx.save();ctx.globalAlpha*=clamp((t-.13)/.12,0,1)*(.38+.35*t);
         B.PresentationAssets?.draw?.(key,ctx,{
-          x:roadsideX(place.side,t,305,185),y:roadY(t)+18*t,
-          width,height:width*sourceH/sourceW,flip:place.side===1 });
+          x:sidewalkEdge+place.side*(width*.5+80*t),y:roadY(t)+18*t,
+          width,height:width*sourceH/sourceW,
+          flip:placeFacesRoad(place.kind,place.side) });
         ctx.restore();
       }
       // Individual low silhouettes fill gaps behind the places. Every hedge,
@@ -1439,9 +1445,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         for(const side of [-1,1]) {
           const seed=Math.floor(at/68)*149+(side+2)*883;
           const mode=Math.floor(placeRandom(seed)*4);
-          const x=roadsideX(side,t,130,80);
           const w=(70+placeRandom(seed+1)*85)*(.22+1.25*t);
           const h=(30+placeRandom(seed+3)*62)*(.22+1.5*t);
+          // Keep even the widest kiosk/paving corner outside the walkway.
+          const x=roadsideX(side,t,220,190)+side*(w*1.2+22*t);
           ctx.save();ctx.globalAlpha=(.43+.43*t)*clamp((t-.16)/.15,0,1);
           // Broken wet paving and reflected sign color give the service deck
           // depth without a repeating panoramic facade.
@@ -1494,9 +1501,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const [key,sourceW,sourceH,maxW]=PLACE_ART[place.kind];
         const width=maxW*(.05+.95*t)*place.size;
         const height=width*sourceH/sourceW;
-        const x=roadsideX(place.side,t,185,130),y=roadY(t)+24*t;
+        const sidewalkEdge=roadsideX(place.side,t,220,190);
+        const x=sidewalkEdge+place.side*(width*.5+26*t);
+        const y=roadY(t)+25*t;
         ctx.save();ctx.globalAlpha*=clamp((t-.13)/.12,0,1)*(.72+.25*t);
-        B.PresentationAssets?.draw?.(key,ctx,{x,y,width,height,flip:place.side===1});
+        B.PresentationAssets?.draw?.(key,ctx,{
+          x,y,width,height,flip:placeFacesRoad(place.kind,place.side) });
         ctx.restore();
         if(!['market','diner','park','house','garden'].includes(place.kind))continue;
         // A nearby pedestrian shares the lot's world coordinate and curb.

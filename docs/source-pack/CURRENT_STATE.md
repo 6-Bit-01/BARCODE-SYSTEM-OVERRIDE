@@ -1,6 +1,23 @@
 # Current State
 
+## September 25 — roadside setback and frontage facing
+
+The owner approved the larger scale of merged #124, then found that some
+buildings and their painted lots covered the sidewalk and some houses faced
+away from traffic. This correction sets each foreground and background place
+beyond the projected outside sidewalk boundary by its own rendered half-width,
+with a growing gap. Parcel foundations and small landscape filler also move
+beyond the walkway; streetlights and pedestrians stay in their positions.
+Nine place sources mirror on the left to show their entrance toward the road;
+the garage bay has the opposite facing. The places keep their scale and
+world-distance approach. See `CACHE_ROAD_SETBACK_FACING.md` and the first
+`ACCEPTANCE.md` route. Native visual review and focused geometry checks cover
+this revision; Makko motion, music and feel remain for the owner.
+
 ## September 25 — curved roadside projection after owner rejected #123
+
+Historical placement in merged #124 covered the sidewalk and has been
+corrected above. The larger scale and curved projection remain in use.
 
 The owner inspected the merged individual-place pass and rejected its visual
 scale and perspective. Its streetlights were appropriately sized, but the
