@@ -1212,6 +1212,49 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.closePath();ctx.fill();
       }
       ctx.restore();
+      // The whole side of the road has a ground plane; locations are never
+      // isolated cutouts above the empty sky color. Its blocks advance in
+      // world distance, then the service street and artwork sit over it.
+      const land=ctx.createLinearGradient(0,horizon,0,bottom);
+      land.addColorStop(0,'#1b2b3a');land.addColorStop(1,'#293f43');
+      ctx.fillStyle=land;ctx.fillRect(0,horizon,1920,bottom-horizon);
+      for(let at=Math.floor((progress+600)/85)*85;at>progress-180;at-=85) {
+        const near=sideDepth(at-progress),far=sideDepth(at+85-progress);
+        if(near<.08||far>1.20)continue;
+        const n=clamp(near,.08,1.20),f=clamp(far,.08,1.20);
+        const district=Math.floor(Math.abs(at)/615)%4;
+        const plots=['#26394a','#273d43','#34414c','#223842'];
+        const landFade=clamp((roadY(n)-horizon)/140,0,1);
+        for(const side of [-1,1]) {
+          ctx.globalAlpha=.36*landFade;
+          polygon(ctx,[[roadsideX(side,f,470,285),roadY(f)+39*f],
+            [roadsideX(side,n,470,285),roadY(n)+39*n],
+            [side<0?-10:1930,roadY(n)+39*n],
+            [side<0?-10:1930,roadY(f)+39*f]],
+          plots[(district+1+Math.floor(at/85)%4+4)%4]);
+          ctx.save();ctx.beginPath();
+          ctx.moveTo(roadsideX(side,f,205,145),roadY(f)+20*f);
+          ctx.lineTo(roadsideX(side,n,205,145),roadY(n)+20*n);
+          ctx.lineTo(side<0?-10:1930,roadY(n)+39*n);
+          ctx.lineTo(side<0?-10:1930,roadY(f)+39*f);
+          ctx.closePath();ctx.clip();ctx.globalAlpha=.17*landFade;
+          B.PresentationAssets?.draw?.('cacheBlacktop',ctx,{
+            x:0,y:roadY(f)+20*f,width:1920,height:Math.max(1,roadY(n)-roadY(f)+40),
+            sourceRect:[0,108+(Math.abs(Math.floor(at/85))*43)%500,2172,78] });
+          ctx.restore();
+          ctx.globalAlpha=.88*landFade;
+          polygon(ctx,[[roadsideX(side,f,205,145),roadY(f)+20*f],
+            [roadsideX(side,n,205,145),roadY(n)+20*n],
+            [roadsideX(side,n,480,295),roadY(n)+39*n],
+            [roadsideX(side,f,480,295),roadY(f)+39*f]],
+          plots[(district+(Math.floor(at/85)%3+3)%3)%4]);
+          ctx.globalAlpha=.28*landFade;ctx.strokeStyle='#8baba6';ctx.lineWidth=1+2*n;
+          ctx.beginPath();
+          ctx.moveTo(roadsideX(side,n,210,150),roadY(n)+22*n);
+          ctx.lineTo(roadsideX(side,n,470,285),roadY(n)+38*n);ctx.stroke();
+        }
+      }
+      ctx.globalAlpha=1;
       const distantWidth=2640,distantShift=reduced?0:progress*.012%distantWidth;
       ctx.globalAlpha=.73;
       for(let tile=-1;tile<=1;tile++)
@@ -1257,48 +1300,6 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           flip:model==='cacheFly1'?!forward:forward });
         ctx.restore();
       }
-      // The whole side of the road has a ground plane; locations are never
-      // isolated cutouts above the empty sky color. Its blocks advance in
-      // world distance, then the service street and artwork sit over it.
-      const land=ctx.createLinearGradient(0,horizon,0,bottom);
-      land.addColorStop(0,'#1a2c38');land.addColorStop(1,'#293f43');
-      ctx.fillStyle=land;ctx.fillRect(0,horizon,1920,bottom-horizon);
-      for(let at=Math.floor((progress+600)/85)*85;at>progress-180;at-=85) {
-        const near=sideDepth(at-progress),far=sideDepth(at+85-progress);
-        if(near<.08||far>1.20)continue;
-        const n=clamp(near,.08,1.20),f=clamp(far,.08,1.20);
-        const district=Math.floor(Math.abs(at)/615)%4;
-        const plots=['#26394a','#273d43','#34414c','#223842'];
-        for(const side of [-1,1]) {
-          ctx.globalAlpha=.36;
-          polygon(ctx,[[roadsideX(side,f,470,285),roadY(f)+39*f],
-            [roadsideX(side,n,470,285),roadY(n)+39*n],
-            [side<0?-10:1930,roadY(n)+39*n],
-            [side<0?-10:1930,roadY(f)+39*f]],
-          plots[(district+1+Math.floor(at/85)%4+4)%4]);
-          ctx.save();ctx.beginPath();
-          ctx.moveTo(roadsideX(side,f,205,145),roadY(f)+20*f);
-          ctx.lineTo(roadsideX(side,n,205,145),roadY(n)+20*n);
-          ctx.lineTo(side<0?-10:1930,roadY(n)+39*n);
-          ctx.lineTo(side<0?-10:1930,roadY(f)+39*f);
-          ctx.closePath();ctx.clip();ctx.globalAlpha=.17;
-          B.PresentationAssets?.draw?.('cacheBlacktop',ctx,{
-            x:0,y:roadY(f)+20*f,width:1920,height:Math.max(1,roadY(n)-roadY(f)+40),
-            sourceRect:[0,108+(Math.abs(Math.floor(at/85))*43)%500,2172,78] });
-          ctx.restore();
-          ctx.globalAlpha=.88;
-          polygon(ctx,[[roadsideX(side,f,205,145),roadY(f)+20*f],
-            [roadsideX(side,n,205,145),roadY(n)+20*n],
-            [roadsideX(side,n,480,295),roadY(n)+39*n],
-            [roadsideX(side,f,480,295),roadY(f)+39*f]],
-          plots[(district+(Math.floor(at/85)%3+3)%3)%4]);
-          ctx.globalAlpha=.28;ctx.strokeStyle='#8baba6';ctx.lineWidth=1+2*n;
-          ctx.beginPath();
-          ctx.moveTo(roadsideX(side,n,210,150),roadY(n)+22*n);
-          ctx.lineTo(roadsideX(side,n,470,285),roadY(n)+38*n);ctx.stroke();
-        }
-      }
-      ctx.globalAlpha=1;
       // Side decks track the same bend as the lane geometry. Real parapet and
       // pylon art is placed at world distances below, after the asphalt.
       for (const side of [-1, 1]) {
