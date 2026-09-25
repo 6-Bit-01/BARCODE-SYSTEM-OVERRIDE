@@ -67,12 +67,13 @@ markings stay below opaque traffic and never form a constant floating stream.
    the road while Cache Back/freight chassis move on their shocks and a hit
    jolts the body. Art-specific contact, tread and rim alignment is in
    `CACHE_ROAD_VISUAL_CONTACT.md`; owner motion judgment remains.
-3. **Traffic:** illustrated, animated scan/sweeper vehicles and at least two
-   more distinct traffic vehicles. Give each a readable path and consequence.
-4. **Roadside kit:** layered sidewalks, pedestrians, varied buildings,
-   storefront moments and street props at believable scales and depths.
-5. **Passing scenes:** curate the order and parallax of roadside episodes so
-   they build a journey instead of an endlessly repeated backdrop.
+3. **Traffic — visual pass prepared:** illustrated audit/sweeper, signal trike
+   and night shuttle now have projected paths and distinct contact/draft rules.
+4. **Roadside kit — visual pass prepared:** connected market/depot blocks,
+   walkers, lamps and a continuous side street/frontage share road projection.
+5. **Passing scenes — visual pass prepared:** four locations per lap alternate
+   side and type on later passes over the repeating frontage. Judge their
+   rhythm and legibility in merged Makko before expanding the route.
 6. **Adrenaline playtest:** tune pad spacing/hold duration, audio response,
    pace warning, x3/x4 pressure, defenses and retry through actual driving.
    Validate with sound and a physical controller in Makko after a merge.
@@ -80,9 +81,10 @@ markings stay below opaque traffic and never form a constant floating stream.
    basic loop has a satisfying rhythm. Keep the original-recording delivery
    and the final Echo exit clear.
 
-The art from #112–114 is in the repository. This visual pass addresses items
-1–2; items 3–5 still need dedicated new art and composition. Reduced Motion
-now holds decorative ship travel and frames, while plume review remains.
+The art from #112–114 is in the repository. #118–119 prepared items 1–2;
+the next visual pass prepares 3–5 as detailed in `CACHE_ROAD_VISUAL_WORLD.md`.
+All five items still need owner motion judgment. Reduced Motion holds
+decorative ship travel and frames, while plume review remains.
 Earlier lane-renewal and resume-order notes need fresh reproduction against
 the current pulse rule before any repair.
 

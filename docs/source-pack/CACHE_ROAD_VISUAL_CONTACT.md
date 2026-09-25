@@ -29,9 +29,10 @@ positions and Reduced Motion; full repository gates are recorded with the PR.
 
 An exploratory use of the Level 1 storefront strip on the viaduct side deck
 looked like a floating isolated cutout at road scale and was removed before
-this review. Illustrated audit/sweeper and additional traffic, coherent
-sidewalks/pedestrians/buildings/props, curated passing episodes, then the
-adrenaline playtest and power-up implementation remain on the audit list.
+this review. The subsequent `CACHE_ROAD_VISUAL_WORLD.md` pass supplies
+connected diagonal locations over a continuous side street and painted
+frontage, plus illustrated traffic. The adrenaline playtest and power-up
+implementation remain on the audit list.
 The five owner MP3s, sparse pads, four face actions, two bumpers, lane names,
 traffic behavior, save format, final Echo exit and no-award boundary are
 unchanged. Owner visual and listening acceptance requires a merged Makko run.

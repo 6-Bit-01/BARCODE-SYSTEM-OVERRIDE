@@ -31,10 +31,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     'road-gate': 92, 'road-clear': 100 };
   const TRAFFIC = [
     [190, 1, 'freight'], [275, 2, 'van'], [350, 0, 'block'], [465, 2, 'sweeper'],
-    [550, 1, 'block'], [635, 2, 'freight'], [735, 0, 'van'], [895, 3, 'block'],
-    [975, 1, 'freight'], [1050, 2, 'block'], [1135, 0, 'audit'], [1220, 3, 'van'],
+    [550, 1, 'block'], [635, 2, 'freight'], [735, 0, 'trike'], [895, 3, 'block'],
+    [975, 1, 'freight'], [1050, 2, 'block'], [1135, 0, 'audit'], [1220, 3, 'shuttle'],
     [1320, 1, 'block'], [1415, 2, 'sweeper'], [1510, 0, 'freight'], [1610, 3, 'van'],
-    [1765, 1, 'freight'], [1840, 2, 'block'], [1930, 0, 'van'], [2005, 1, 'sweeper'],
+    [1765, 1, 'freight'], [1840, 2, 'block'], [1930, 0, 'trike'], [2005, 1, 'sweeper'],
     [2170, 2, 'audit'], [2265, 0, 'block'], [2345, 1, 'freight']
   ];
   // Paired traffic narrows the route at readable, repeatable places. Its open
@@ -45,6 +45,16 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     ...(GATES[at] || []).map(extra => ({ at: at + pass * LAP,
       lane: (extra + pass) % 4, kind: 'block' }))
   ]).flat());
+  // A route through inhabited blocks, then a service district, then back into
+  // the lit city. Repeated laps swap sides and facades without random popping.
+  const SCENES = Array.from({ length: 5 }, (_, pass) => [
+    [340, 'market', -1], [970, 'depot', 1],
+    [1540, 'market', 1], [2140, 'depot', -1]
+  ].map(([at, kind, side]) => ({
+    at: at + pass * LAP, kind: pass % 2 ?
+      (kind === 'market' ? 'depot' : 'market') : kind,
+    side: pass % 2 ? -side : side
+  }))).flat();
   const clone = value => JSON.parse(JSON.stringify(value));
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   function mirrorExpression(s) {
@@ -170,7 +180,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   const roadCurve = progress => Math.sin(progress / 190) * 0.72 + Math.sin(progress / 410) * 0.24;
   const hazardLane = (hazard, progress, audits) => {
     if (hazard.kind === 'audit') return audits[hazard.at] ?? hazard.lane;
-    if (hazard.kind === 'sweeper') return hazard.lane + clamp((progress - (hazard.at - 165)) / 120, 0, 1);
+    if (hazard.kind === 'sweeper' || hazard.kind === 'trike') {
+      const direction = hazard.lane === 3 ? -1 : 1;
+      const warning = hazard.kind === 'sweeper' ? 165 : 205;
+      const duration = hazard.kind === 'sweeper' ? 120 : 125;
+      return hazard.lane + direction * clamp((progress - (hazard.at - warning)) / duration, 0, 1);
+    }
     return hazard.lane;
   };
 
@@ -213,10 +228,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     const artKey = kind === 'cache' ? hit ? 'cacheCarHit' : steer < -.08 ?
       'cacheCarRight' : steer > .08 ? 'cacheCarLeft' : 'cacheCar' :
       ({ freight: 'cacheFreight', van: 'cacheCourier', block: 'cacheBarricade',
-        rival: 'cacheRival' })[kind];
+        rival: 'cacheRival', audit: 'cacheAudit', sweeper: 'cacheSweeper',
+        trike: 'cacheTrike', shuttle: 'cacheShuttle' })[kind];
     if (artKey && B.PresentationAssets?.ready?.(artKey)) {
       ctx.save(); ctx.translate(x, y); ctx.globalAlpha *= alpha;
-      const ratio = kind === 'block' ? [1.12, 1.28] : kind === 'freight' ? [1.27, 1.19] : [1.28, 1.32];
+      const ratio = kind === 'block' ? [1.12, 1.28] : kind === 'freight' ? [1.27, 1.19] :
+        kind === 'trike' ? [1.32, 1.24] : kind === 'sweeper' || kind === 'shuttle' ?
+          [1.23, 1.38] : [1.28, 1.32];
       const impact = hit && !reduced ? 1-clamp(hit/650,0,1) : 0;
       const recoil = impact ? Math.exp(-5*impact)*Math.sin(impact*17) : 0;
       const sway = reduced || kind === 'block' ? 0 :
@@ -231,18 +249,23 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // The transparent paintings do not all end at the same wheel line:
       // the exhaust/bumper often extends below the tires. Keep each contact
       // point in the road frame while the painted chassis rides its shocks.
-      const contact = freight ? [.08,.08] : artKey === 'cacheCarLeft' ? [.17,.275] :
+      const contact = freight ? [.08,.08] : kind === 'trike' ? [.08] :
+        kind === 'sweeper' ? [.075,.075] : kind === 'shuttle' ? [.05,.05] :
+        kind === 'audit' ? [.08,.08] : artKey === 'cacheCarLeft' ? [.17,.275] :
         artKey === 'cacheCarRight' ? [.31,.125] : artKey === 'cacheRival' ? [.07,.07] :
         artKey === 'cacheCourier' ? [.15,.15] : [.14,.14];
-      const tireTop = artKey === 'cacheCarLeft' ? [.43,.61] :
+      const tireTop = kind === 'trike' ? [.32] : kind === 'sweeper' ? [.30,.30] :
+        kind === 'shuttle' ? [.25,.25] : kind === 'audit' ? [.34,.34] :
+        artKey === 'cacheCarLeft' ? [.43,.61] :
         artKey === 'cacheCarRight' ? [.61,.43] : [freight ? .29 : .43,freight ? .29 : .43];
-      const tires = anchored ? [-1,1].map((side,index) => {
+      const tires = anchored ? (kind === 'trike' ? [0] : [-1,1]).map((side,index) => {
         const pos = kind === 'cache' && !hit && steer < -.08 ?
           (side < 0 ? -.51 : .38) : kind === 'cache' && !hit && steer > .08 ?
-            (side < 0 ? -.38 : .51) : side*(freight ? .32 : .44);
+            (side < 0 ? -.38 : .51) : side*(freight ? .32 :
+              kind === 'sweeper' ? .32 : kind === 'shuttle' ? .35 : kind === 'audit' ? .38 : .44);
         const top = -h*tireTop[index], bottom = -h*contact[index];
         return { x: w*pos, top, bottom, height: bottom-top,
-          width: w*(freight ? .15 : .125) };
+          width: w*(kind === 'trike' ? .22 : freight || kind === 'sweeper' || kind === 'shuttle' ? .15 : .125) };
       }) : [];
       ctx.fillStyle = '#0613207d'; ctx.beginPath();
       ctx.ellipse(0,-h*.075,w*.50,Math.max(2,h*.055),0,0,Math.PI*2); ctx.fill();
@@ -335,6 +358,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           ctx.lineTo(wx+Math.cos(angle)*rx*.76,wy+Math.sin(angle)*ry*.76); ctx.stroke();
         }
         ctx.restore();
+      }
+      if (kind === 'audit' || kind === 'sweeper' || kind === 'trike') {
+        // Roof beacons and signal mast respond to travel without moving the
+        // grounded tire pixels. A scan/merge is visible before its collision.
+        const pulse = reduced ? .55 : .35 + .65 * Math.pow(Math.sin(phase*.11),2);
+        ctx.globalAlpha *= pulse;
+        ctx.fillStyle = kind === 'sweeper' ? '#ffd079' : kind === 'audit' ? '#ff77bb' : '#8af6f1';
+        ctx.beginPath(); ctx.ellipse(0,-h*(kind === 'trike' ? 1.18 : 1.25),
+          w*.11,h*.045,0,0,Math.PI*2); ctx.fill();
       }
       ctx.restore(); return;
     }
@@ -880,18 +912,21 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         if (distance <= 80 && distance > 0 && s.speed >= 38 && !s.invulnerableMs &&
             !s.boostMs && Math.abs(lane - s.lanePos) < .45)
           s.cutMarks[hazardId] = true;
-        if (hazard.kind === 'freight' && distance > 15 && distance < 110 &&
+        if ((hazard.kind === 'freight' || hazard.kind === 'shuttle') &&
+            distance > 15 && distance < 110 &&
             Math.abs(lane - s.lanePos) < 0.42 && s.speed >= 28 && !s.drafted[hazard.at]) {
           s.draftMs += dt;
           if (s.draftMs >= 600) {
             s.drafted[hazard.at] = true; s.draftMs = 0; s.boost = 1;
             s.echoEnergy = clamp(s.echoEnergy + 25, 0, 100);
-            s.message = 'FREIGHT DRAFT // TURBO READY'; s.messageMs = 900;
+            s.message = hazard.kind === 'shuttle' ? 'SHUTTLE DRAFT // TURBO READY' :
+              'FREIGHT DRAFT // TURBO READY'; s.messageMs = 900;
           }
         }
         if (before >= hazard.at || s.progress < hazard.at) continue;
         const gap = Math.abs(lane - s.lanePos);
-        if (gap < (hazard.kind === 'freight' ? 0.53 : 0.45)) {
+        if (gap < (['freight','shuttle','sweeper'].includes(hazard.kind) ? 0.53 :
+            hazard.kind === 'trike' ? 0.38 : 0.45)) {
           if (contactAt.has(hazard.at)) continue;
           contactAt.add(hazard.at);
           this.hit(hazard.kind === 'block' ? 'roadblock' : hazard.kind);
@@ -999,6 +1034,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const laneX = (lane, t) => laneEdge(lane, t) + half(t) / 4;
       const roadY = t => horizon + t * t * (bottom - horizon);
       const depth = d => clamp(1 - (d + 80) / 520, 0, 1);
+      const roadsideX = (side,t,base,growth) => center(t)+side*(half(t)+base+growth*t);
       ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
       const beat = reduced ? 0 : s.musicBeatFloat || 0;
       const stack = Math.min(4,s.captures?.length || 0);
@@ -1097,25 +1133,47 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // Side decks track the same bend as the lane geometry. Real parapet and
       // pylon art is placed at world distances below, after the asphalt.
       for (const side of [-1, 1]) {
-        ctx.fillStyle = '#142437';
+        ctx.fillStyle = '#263749';
         ctx.beginPath();
         for (let i=0; i<=28; i++) {
           const t=i/28;
-          const xx=center(t)+side*(half(t)+73+50*t);
+          const xx=roadsideX(side,t,73,50);
           if (!i) ctx.moveTo(xx,roadY(t)); else ctx.lineTo(xx,roadY(t));
         }
         for (let i=28; i>=0; i--) {
           const t=i/28;
-          ctx.lineTo(center(t)+side*(half(t)+220+190*t),roadY(t)+24*t);
+          ctx.lineTo(roadsideX(side,t,220,190),roadY(t)+24*t);
         }
         ctx.closePath(); ctx.fill();
-        ctx.strokeStyle = '#496074'; ctx.lineWidth = 2;
+        ctx.strokeStyle = '#8296a1'; ctx.lineWidth = 2;
         ctx.beginPath();
         for (let i=0; i<=28; i++) {
-          const t=i/28, xx=center(t)+side*(half(t)+220+190*t);
+          const t=i/28, xx=roadsideX(side,t,220,190);
           if (!i) ctx.moveTo(xx,roadY(t)+24*t); else ctx.lineTo(xx,roadY(t)+24*t);
         }
         ctx.stroke();
+      }
+      // World-fixed joints and drainage marks turn the decks into sidewalks
+      // that advance with the road instead of a flat colored wedge.
+      for(let at=Math.floor((progress+435)/55)*55;at>progress-35;at-=55) {
+        const t=depth(at-progress); if(t<.16||t>.98)continue;
+        for(const side of [-1,1]) {
+          const inner=roadsideX(side,t,73,50);
+          const outer=roadsideX(side,t,220,190);
+          const yy=roadY(t);
+          ctx.strokeStyle='#bac8c16b'; ctx.lineWidth=1+2*t;
+          ctx.beginPath(); ctx.moveTo(inner,yy); ctx.lineTo(outer,yy+24*t);ctx.stroke();
+          ctx.fillStyle='#0a1523a8';
+          ctx.fillRect(inner+side*(26+22*t)-(side<0?26*t:0),yy+2*t,26*t,4*t);
+          // Wet service-lane dashes belong to the same 55-unit tile as the
+          // slab joint; both expand and pass at the road's exact speed.
+          if(Math.floor(at/55)%2===0) {
+            const next=depth(at+28-progress), far=clamp(next,.16,.98);
+            ctx.strokeStyle='#abc0bd70';ctx.lineWidth=1+3*t;
+            ctx.beginPath();ctx.moveTo(roadsideX(side,t,150,114),yy+10*t);
+            ctx.lineTo(roadsideX(side,far,150,114),roadY(far)+10*far);ctx.stroke();
+          }
+        }
       }
       // Road shoulders and the paint share a single curved road projection.
       for (const side of [-1, 1]) {
@@ -1171,6 +1229,72 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       for (let i=28;i>=0;i--) { const t=i/28; ctx.lineTo(center(t)+half(t),roadY(t)); }
       ctx.closePath(); ctx.clip(); ctx.fillStyle=roadFog; ctx.fillRect(0,horizon,1920,170);
       ctx.restore();
+      // A quieter painted frontage repeats behind the distinct locations.
+      // Its 640-unit tile and the slabs/lights all use the same progress and
+      // depth function; the overlap conceals tiny texture sampling seams.
+      for(let at=Math.floor((progress+565)/16)*16;at>progress-85;at-=16) {
+        const far=depth(at-progress),near=depth(at-16-progress);
+        const t=(far+near)/2;
+        if(t<.12||t>.98)continue;
+        const tile=((at-16)%640+640)%640;
+        const sourceX=Math.round(tile*1550/640);
+        const sourceEnd=Math.round((tile+16)*1550/640);
+        for(const side of [-1,1]) {
+          const fx=roadsideX(side,far,258,200),nx=roadsideX(side,near,258,200);
+          ctx.save();ctx.globalAlpha=.47+.29*t;
+          B.PresentationAssets?.draw?.('cacheServiceFrontage',ctx,{
+            x:(fx+nx)/2,y:roadY(t)+24*t,
+            width:Math.abs(nx-fx)+2,height:75+350*t,
+            sourceRect:[sourceX,0,sourceEnd-sourceX,509] });
+          ctx.restore();
+        }
+      }
+      for(const scene of [...SCENES].reverse()) {
+        const distance=scene.at-progress,side=scene.side;
+        if(distance< -145||distance>565)continue;
+        const asset=scene.kind==='market'?'cacheMarketBlock':'cacheRelayDepot';
+        const sourceH=scene.kind==='market'?552:567, sourceW=1550;
+        // The source painting is a connected frontage. Each vertical slice is
+        // fixed to a successive world position beside the curving sidewalk.
+        // Its roof, paving and windows all grow together on approach.
+        const atSlice=u=>scene.at+(side<0?u-.5:.5-u)*280;
+        const buildingX=t=>roadsideX(side,t,180,140);
+        for(let strip=0;strip<40;strip++) {
+          const u0=strip/40,u1=(strip+1)/40;
+          const t0=depth(atSlice(u0)-progress),t1=depth(atSlice(u1)-progress);
+          const t=(t0+t1)/2;
+          if(t<.12||t>.98)continue;
+          const x0=buildingX(t0),x1=buildingX(t1);
+          const sourceX=Math.round(u0*sourceW),sourceEnd=Math.round(u1*sourceW);
+          ctx.save();ctx.globalAlpha=.54+.44*t;
+          B.PresentationAssets?.draw?.(asset,ctx,{
+            x:(x0+x1)/2,y:roadY(t)+24*t,
+            width:Math.abs(x1-x0)+2,height:105+470*t,
+            sourceRect:[sourceX,0,sourceEnd-sourceX,sourceH] });
+          ctx.restore();
+        }
+        // Walkers share the projected slab line between frontage and wall.
+        for(let person=0;person<2;person++) {
+          const personAt=scene.at+(person?75:-55);
+          const t=depth(personAt-progress);
+          if(t<.17||t>.95)continue;
+          const stride=reduced?0:Math.sin((s.elapsedMs||0)*.004+scene.at*.13+person*2.4);
+          const px=roadsideX(side,t,122,83)+stride*8*t;
+          const foot=roadY(t)+8*t, human=13+52*t;
+          ctx.save();ctx.globalAlpha=.56+.36*t;
+          ctx.fillStyle='#0c1827';ctx.beginPath();ctx.ellipse(px,foot+2*t,7+9*t,2+2*t,0,0,Math.PI*2);ctx.fill();
+          ctx.strokeStyle=person?'#495268':'#647186';ctx.lineWidth=2+3*t;
+          ctx.beginPath();ctx.moveTo(px,foot-human*.32);
+          ctx.lineTo(px-3-stride*4*t,foot);ctx.moveTo(px,foot-human*.32);
+          ctx.lineTo(px+4+stride*4*t,foot);ctx.stroke();
+          ctx.fillStyle=person?'#293249':'#39485a';
+          polygon(ctx,[[px-6*t,foot-human*.78],[px+6*t,foot-human*.78],
+            [px+9*t,foot-human*.26],[px-9*t,foot-human*.26]],ctx.fillStyle);
+          ctx.fillStyle=person?'#e4b179':'#9ad7d9';ctx.beginPath();
+          ctx.arc(px,foot-human*.86,3+4*t,0,Math.PI*2);ctx.fill();
+          ctx.restore();
+        }
+      }
       // Stretch adjacent wall segments between the same projected road points.
       // This makes one continuous side wall rather than floating sign panels.
       for(let at=Math.floor((progress+500)/62)*62;at>progress-65;at-=62) {
@@ -1179,8 +1303,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         if(near<=far)continue;
         const id=Math.abs(Math.floor(at/62));
         for(const side of [-1,1]) {
-          const fx=center(far)+side*(half(far)+46+58*far);
-          const nx=center(near)+side*(half(near)+46+58*near);
+          const fx=roadsideX(side,far,46,58);
+          const nx=roadsideX(side,near,46,58);
           const fy=roadY(far)-20*far, ny=roadY(near)-20*near;
           const wallH=18+63*(far+near)/2;
           ctx.save(); ctx.globalAlpha=.70+.20*near;
@@ -1197,7 +1321,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const t=depth(at-progress);if(t<.17||t>.97)continue;
         const y=roadY(t)+18*t;
         for(const side of [-1,1]) {
-          const x=center(t)+side*(half(t)+98+80*t);
+          const x=roadsideX(side,t,98,80);
           B.PresentationAssets?.draw?.('cachePylon',ctx,{
             x,y,width:58+146*t,height:105+277*t,
             sourceRect:[42,69,954,1386],flip:side===1 });
@@ -1372,8 +1496,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         if (d < 0 || d > 440) continue;
         const t = depth(d), lane = hazardLane(hazard, progress, s.audits);
         const x = laneX(lane, t), y = roadY(t);
-        const w = (hazard.kind === 'freight' ? 32 : 26) + t * (hazard.kind === 'freight' ? 144 : 113);
-        const h = (hazard.kind === 'freight' ? 30 : 24) + t * (hazard.kind === 'freight' ? 149 : 111);
+        const heavy = ['freight','shuttle','sweeper'].includes(hazard.kind);
+        const w = (heavy ? 32 : hazard.kind === 'trike' ? 21 : 26) +
+          t * (heavy ? 144 : hazard.kind === 'trike' ? 96 : 113);
+        const h = (heavy ? 30 : 24) + t * (heavy ? 149 : 111);
         if (d < 145 && d > 4 && t > .38) {
           // A braking chevron is printed on the threatened lane, with a
           // narrowing cue as the car approaches the collision plane.
@@ -1393,20 +1519,32 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
             [laneEdge(lane,ahead)+15,roadY(ahead)]], '#ff4f82');
           ctx.globalAlpha = 1;
         }
-        if (hazard.kind === 'sweeper' && d < 165 && d > 0) {
-          ctx.strokeStyle = '#ffe6a2'; ctx.lineWidth = 4 + t*5;
-          ctx.beginPath(); ctx.moveTo(laneX(hazard.lane,t), y + 30*t);
-          ctx.lineTo(laneX(hazard.lane+1,t), y + 30*t); ctx.stroke();
-          polygon(ctx, [[laneX(hazard.lane+1,t),y+30*t],
-            [laneX(hazard.lane+1,t)-15*t,y+18*t],[laneX(hazard.lane+1,t)-15*t,y+42*t]], '#ffe6a2');
+        if ((hazard.kind === 'sweeper' || hazard.kind === 'trike') && d <
+            (hazard.kind === 'sweeper' ? 190 : 225) && d > 0) {
+          const target = hazard.lane + (hazard.lane === 3 ? -1 : 1);
+          const arrowT = depth(d - 48), targetX = laneX(target,arrowT);
+          ctx.strokeStyle = hazard.kind === 'sweeper' ? '#ffe6a2' : '#9cf6ef';
+          ctx.globalAlpha = .60; ctx.lineWidth = (hazard.kind === 'sweeper' ? 5 : 3) + t*4;
+          ctx.beginPath(); ctx.moveTo(laneX(hazard.lane,t),y+12*t);
+          ctx.lineTo(targetX,roadY(arrowT)+10*arrowT); ctx.stroke();
+          const direction = Math.sign(target-hazard.lane);
+          polygon(ctx, [[targetX,roadY(arrowT)+10*arrowT],
+            [targetX-direction*21*arrowT,roadY(arrowT)-9*arrowT],
+            [targetX-direction*20*arrowT,roadY(arrowT)+30*arrowT]],
+          hazard.kind === 'sweeper' ? '#ffe6a2' : '#9cf6ef');
+          ctx.globalAlpha = 1;
         }
         drawVehicle(ctx, x, y, w, h, hazard.kind,
           { phase: progress + hazard.at*.17, reduced });
-        if (d < 210 && d > 0 && t > .38 && ['audit','sweeper','freight'].includes(hazard.kind)) {
-          ctx.fillStyle = hazard.kind === 'audit' ? '#ffd0df' : '#fff2be';
+        if (d < 210 && d > 0 && t > .38 &&
+            ['audit','sweeper','freight','trike','shuttle'].includes(hazard.kind)) {
+          ctx.fillStyle = hazard.kind === 'audit' ? '#ffd0df' :
+            hazard.kind === 'trike' ? '#b4fff1' : '#fff2be';
           ctx.font = `bold ${Math.round(15 + t*16)}px Oxanium, monospace`;
           ctx.textAlign = 'center';
-          ctx.fillText(hazard.kind === 'audit' ? 'AUDIT LOCK' : hazard.kind === 'sweeper' ? 'MERGE >' : 'DRAFT', x, y - h - 14);
+          ctx.fillText(hazard.kind === 'audit' ? 'AUDIT LOCK' :
+            hazard.kind === 'sweeper' ? 'SWEEP' : hazard.kind === 'trike' ? 'CUT >' :
+            hazard.kind === 'shuttle' ? 'SLOW / DRAFT' : 'DRAFT', x, y - h - 14);
         }
       }
       if (s.gateAt != null && progress < s.gateAt + 45) {

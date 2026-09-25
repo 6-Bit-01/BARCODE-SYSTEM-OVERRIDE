@@ -1,5 +1,18 @@
 # BARCODE: SYSTEM OVERRIDE — Source Pack v5
 
+## Current review — Cache Road layered world
+
+Start with `CACHE_ROAD_VISUAL_WORLD.md`, `CACHE_ROAD_COHESION_AUDIT.md`,
+`CURRENT_STATE.md` and the first `ACCEPTANCE.md` route. The current road has
+four face actions, two bumper abilities, fixed safe pads and five aligned
+owner MP3s. This visual pass gives audit/sweeper traffic distinct art,
+introduces a signal trike and night shuttle, and puts diagonal market/depot
+events over a continuously projected side street and muted building frontage.
+Streetlights and walkers share the road's world projection. Owner Makko
+motion/listening acceptance, adrenaline tuning and the power-up backlog remain
+open. Earlier music-rule descriptions below are historical where they differ
+from this route.
+
 ## Current review — Cache Road opening
 
 Start with `CACHE_ROAD_AUTHORED_OPENING.md` and the first `ACCEPTANCE.md` route. Cache's original-recording goal and the lane hold, E/RB, Turbo and Echo lessons appear during the first drive. The music rule remains the predictable next-bar choice in `CACHE_ROAD_PREDICTABLE_MUSIC.md`. Existing lane names, five MP3s and the proof's no-award boundary remain; merged Makko controller, sound and feel review is pending. Entries below are historical when they conflict.

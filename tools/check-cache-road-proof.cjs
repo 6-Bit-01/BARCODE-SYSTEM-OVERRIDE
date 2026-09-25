@@ -188,6 +188,36 @@ async function run() {
     roadArt.some(entry => entry.key === 'cacheBlacktop') &&
     roadArt.some(entry => entry.key === 'cacheCar'),
   'three city depths, roadside art, flying traffic, road and car share the live draw');
+  mirrorFrame({ progress: 0 });
+  const market = roadArt.filter(entry => entry.key === 'cacheMarketBlock');
+  assert(market.length > 10 && market[0].x < market.at(-1).x &&
+    market[0].height > market.at(-1).height && market[0].y > market.at(-1).y,
+  'left event recedes diagonally: near facades are lower and larger');
+  const marketNear = market[0];
+  const frontage = roadArt.find(entry => entry.key === 'cacheServiceFrontage' &&
+    entry.x < 960 && entry.y > 550 && entry.y < 690);
+  const lamp = roadArt.find(entry => entry.key === 'cachePylon' &&
+    entry.x < 960 && entry.y > 550 && entry.y < 690);
+  assert(frontage && lamp,'painted background and streetlights occupy the same side road');
+  mirrorFrame({ progress: 32 });
+  const advancingMarket = roadArt.find(entry => entry.key === 'cacheMarketBlock' &&
+    entry.sourceRect[0] === marketNear.sourceRect[0]);
+  const advancingFrontage = roadArt.find(entry => entry.key === 'cacheServiceFrontage' &&
+    entry.x < 960 && entry.sourceRect[0] === frontage.sourceRect[0] &&
+    Math.abs(entry.x-frontage.x)<180);
+  const advancingLamp = roadArt.find(entry => entry.key === 'cachePylon' &&
+    entry.x < 960 && entry.y > lamp.y && entry.y < lamp.y+100);
+  assert(advancingMarket && advancingMarket.x < marketNear.x &&
+    advancingMarket.height > marketNear.height &&
+    advancingFrontage && advancingFrontage.x < frontage.x &&
+    advancingLamp && advancingLamp.x < lamp.x,
+  'event, backing frontage and streetlight approach together in world space');
+  mirrorFrame({ progress: 600 });
+  const depot = roadArt.filter(entry => entry.key === 'cacheRelayDepot');
+  assert(depot.length > 10 && depot[0].x < depot.at(-1).x &&
+    depot[0].height < depot.at(-1).height && depot[0].y < depot.at(-1).y,
+  'right event runs diagonally the opposite way toward the foreground');
+  mirrorFrame({ progress: 395 });
   const textureRow = roadArt.find(entry => entry.key === 'cacheBlacktop').sourceRect[1];
   const ships = roadArt.filter(entry => entry.key.startsWith('cacheFly'));
   assert.deepEqual(ships.map(ship => [ship.key,ship.flip]),
@@ -404,6 +434,30 @@ async function run() {
   assert.equal(laterIndex, laterRun.length, 'the second planned run offers four distinct parts');
   assert.equal(road.state.integrity, 3, 'the second run navigates real gates and traffic');
   assert.equal(road.state.peakStack, 4, 'the later run still reaches the vocal gate');
+  // The new silhouettes have distinct, authored collision and draft behavior.
+  const crossAt = (at, lane) => {
+    road.status = road.state.status = 'failed'; audio.context.currentTime = 0;
+    assert(road.retry());
+    road.state.progress = at - 1; road.state.lanePos = road.state.lane = lane;
+    road.state.speed = 54; road.state.invulnerableMs = 0; road.state.boostMs = 0;
+    audio.context.currentTime = 10; road.handleActions({}); road.update(100);
+    return road.state.integrity;
+  };
+  assert.equal(crossAt(735,1),2,'signal trike has visibly cut from lane zero into lane one');
+  assert.equal(crossAt(735,0),3,'the trike leaves its starting lane open after the cue');
+  assert.equal(crossAt(465,3),2,'sweeper occupies its marked adjacent lane at crossing');
+  assert.equal(crossAt(465,2),3,'the sweeper vacates its original lane');
+  assert.equal(crossAt(465+2460,2),2,'rotated sweeper merges inward from the right edge');
+  road.status = road.state.status = 'failed'; audio.context.currentTime = 0;
+  assert(road.retry());
+  road.state.progress = 1150; road.state.lanePos = road.state.lane = 3;
+  road.state.speed = 54; road.state.boost = 0;
+  for(let frame=0;frame<6;frame++) {
+    audio.context.currentTime = 23 + frame*.1;
+    road.handleActions({});road.update(100);
+  }
+  assert.equal(road.state.boost,1,'a close shuttle draft charges Turbo');
+  assert.match(road.state.message,/SHUTTLE DRAFT/);
   archive.checkpoint(roadStart);
   // A three-lane gate leaves a visible open route, but camping in one of its
   // blocked lanes still costs integrity. Both cases use production collision.
@@ -443,7 +497,7 @@ async function run() {
     road.handleActions({ inspect: { pressed: true } }); road.update(100);
   }
   assert.equal(road.status, 'failed', 'camping a lane cannot survive the authored traffic');
-  assert(road.state.musicBar <= 12 && road.state.peakStack < 4,
+  assert(road.state.musicBar <= 14 && road.state.peakStack < 4,
     'RB spam and passive camping cannot build a four-lane multiplier');
   audio.context.currentTime = 0; assert(road.retry());
   road.state.progress = 980; road.state.lane = road.state.lanePos = 0;

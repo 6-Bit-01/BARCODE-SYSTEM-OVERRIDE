@@ -1,5 +1,17 @@
 # Decision Register
 
+## September 25, 2026 — layered side-road parallax
+
+The owner corrected the roadside composition: locations ("events") must be
+diagonal to the road, small in the distance and larger near the car. They need
+a seamless background beneath them; service street, event, pedestrians and
+streetlights must pass together. Use one world-distance road projection for
+those layers, with a continuous muted frontage behind authored connected
+locations. This visual pass prepares the illustrated audit/sweeper and two
+additional traffic silhouettes while preserving the owner song and sparse
+pad chart. Judge the result in merged Makko before treating scene pacing as
+accepted. See `CACHE_ROAD_VISUAL_WORLD.md`.
+
 ## September 25, 2026 — grounded motion before the next tune
 
 The owner asked to address visual work first. Correct the road, ship and

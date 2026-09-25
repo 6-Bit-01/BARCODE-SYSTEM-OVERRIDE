@@ -1,5 +1,19 @@
 # Current State
 
+## September 25 — illustrated traffic and layered side-road events
+
+After merged #119, the next visual pass adds painted audit/sweeper vehicles,
+the cutting signal trike and a draftable night shuttle. Market and relay-depot
+blocks run diagonally along both sides over a world-fixed, repeating muted
+frontage and continuous service pavement. Pedestrians, lamps, event plinths,
+tile joints and the parapet share the road's depth curve; the near end grows
+as it approaches. Seven scripted native chapters were inspected, including
+early/late frames of each side. The production proof drives both four-pad
+runs without damage and checks changed hazard behavior and synchronized
+roadside approach. See `CACHE_ROAD_VISUAL_WORLD.md` and the first acceptance
+route. Owner Makko motion and audio judgment is still pending. Song source,
+pad locations, controls, saves, final Echo and campaign award boundary remain.
+
 ## September 25 — raised turn-wheel contact follow-up
 
 Automated review of merged #118 found that its generic turn contact height

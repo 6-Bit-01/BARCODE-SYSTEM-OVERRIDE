@@ -14,6 +14,8 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   const polishRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/dce79e888592023b85abe0eac2572f76b66e51ac/';
   // Makko imports may omit local binary art; use the merged artwork first.
   const cacheRoadRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/37db98387b8791655e3ff352d6bc6d61cb0b574b/';
+  const cacheWorldRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/41edca02367b9f1f3af429d14df3d378ca46c9b4/';
+  const cacheWorldBackRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/9e8332897d40405ed96f0838f121f3e4236ac931/';
   const entries = {
     cacheMirror: { path: 'assets/cache-road/hud/cache-back-mirror-expressions.webp', root: cacheRoadRoot,
       columns: 3, rows: 2, frames: 6, ax: .5, ay: .5, smooth: true },
@@ -25,6 +27,13 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     cacheCourier: { path: 'assets/cache-road/vehicles/courier.webp', root: cacheRoadRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
     cacheBarricade: { path: 'assets/cache-road/vehicles/barricade.webp', root: cacheRoadRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
     cacheRival: { path: 'assets/cache-road/vehicles/rival.webp', root: cacheRoadRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cacheAudit: { path: 'assets/cache-road/vehicles/audit-sedan.webp', root: cacheWorldRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cacheSweeper: { path: 'assets/cache-road/vehicles/sweeper.webp', root: cacheWorldRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cacheTrike: { path: 'assets/cache-road/vehicles/signal-trike.webp', root: cacheWorldRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cacheShuttle: { path: 'assets/cache-road/vehicles/night-shuttle.webp', root: cacheWorldRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cacheMarketBlock: { path: 'assets/cache-road/roadside/market-block.webp', root: cacheWorldRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cacheRelayDepot: { path: 'assets/cache-road/roadside/relay-depot.webp', root: cacheWorldRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cacheServiceFrontage: { path: 'assets/cache-road/roadside/service-frontage.webp', root: cacheWorldBackRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
     cacheSkyline: { path: 'assets/cache-road/world/skyline.webp', root: cacheRoadRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 1, smooth: true },
     cacheDistantCity: { path: 'assets/cache-road/world/distant-city.webp', root: cacheRoadRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 1, smooth: true },
     cacheMidCity: { path: 'assets/cache-road/world/mid-city.webp', root: cacheRoadRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 1, smooth: true },
