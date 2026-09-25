@@ -160,6 +160,8 @@ async function run() {
       clipHeight: ridgeAt(_ctx.ridge,options.x),
       clipLeft: ridgeAt(_ctx.ridge,options.x-(options.width||0)/2),
       clipRight: ridgeAt(_ctx.ridge,options.x+(options.width||0)/2),
+      ...(key === 'cacheMidCity' ? { ridgeCenter:ridgeAt(_ctx.ridge,960),
+        ridgeEdge:ridgeAt(_ctx.ridge,0) } : {}),
       ...(key.startsWith('cacheFly') ? { screenX: _ctx.lastTranslate?.[0] } : {}) });
       drawOrder.push(key); }
     return true;
@@ -259,6 +261,15 @@ async function run() {
     return a.x+(b.x-a.x)*(y-a.y)/(b.y-a.y);
   };
   const clearances=[];
+  const fittedPose = {
+    cachePlaceGardenRounded:[-1,false],cachePlaceGardenCompact:[-1,false],
+    cachePlaceGardenHorizon:[1,false],cachePlaceConstructionRounded:[-1,false],
+    cachePlaceConstructionHorizon:[1,false],cachePlaceConstructionCompact:[1,false],
+    cachePlaceSignalOrchard:[1,true],cachePlaceRelayExchange:[1,true],
+    cachePlaceDataReclamation:[1,true],cachePlaceCapacitorExchange:[1,true],
+    cachePlaceNightDataMarket:[1,true],cachePlaceEncryptedPump:[-1,false],
+    cachePlaceDroneServiceNode:[-1,false]
+  };
   const checkSetbackAndFacing = () => {
     for(const entry of uprightPlaces(roadArt).filter(item =>
       item.y >= 590 && item.y <= 1080 &&
@@ -271,11 +282,41 @@ async function run() {
       assert(side*(inner-curb) >= 4,
         `${entry.key} footprint must stay outside the ${side<0?'left':'right'} sidewalk`);
       clearances.push(side*(inner-curb)/Math.sqrt((entry.y-400)/680));
-      assert.equal(entry.flip,entry.key === 'cachePlaceGarage' ? side>0 : side<0,
+      if(entry.key in fittedPose) {
+        const [expectedSide,expectedFlip]=fittedPose[entry.key];
+        assert.equal(side,expectedSide,
+          `${entry.key} keeps its native ground slope on the assigned bank`);
+        assert.equal(entry.flip,expectedFlip,`${entry.key} uses its assigned facing`);
+      } else assert.equal(entry.flip,
+        entry.key === 'cachePlaceGarage' || entry.key === 'cachePlaceGarden' ? side>0 : side<0,
         `${entry.key} entrance faces the road from the ${side<0?'left':'right'}`);
     }
   };
   checkSetbackAndFacing();
+  for(const [at,key,side] of [
+    [623,'cachePlaceRelayExchange',1],
+    [2685,'cachePlaceNightDataMarket',1],
+    [3138,'cachePlaceConstructionRounded',-1],
+    [3635,'cachePlaceConstructionHorizon',1],
+    [4460,'cachePlaceGardenRounded',-1],
+    [5055,'cachePlaceDataReclamation',1],
+    [5829,'cachePlaceSignalOrchard',1],
+    [6303,'cachePlaceGardenCompact',-1],
+    [6511,'cachePlaceDroneServiceNode',-1],
+    [7015,'cachePlaceConstructionCompact',1],
+    [7427,'cachePlaceEncryptedPump',-1],
+    [8158,'cachePlaceGardenHorizon',1],
+    [8846,'cachePlaceCapacitorExchange',1]
+  ]) {
+    mirrorFrame({progress:at-180});
+    const fitted=roadArt.find(item=>item.key===key);
+    assert(fitted && (fitted.x<960 ? -1 : 1)===side &&
+      fitted.flip===fittedPose[key][1] &&
+      fitted.width>0 && fitted.height>0 && fitted.y-fitted.height<fitted.clipHeight,
+      `${key} appears at its curated ${side<0?'left':'right'} site`);
+    checkSetbackAndFacing();
+  }
+  mirrorFrame({progress:0});
   const openingPlaces=JSON.stringify(places);
   mirrorFrame({ progress: 0 });
   assert.equal(JSON.stringify(uprightPlaces(roadArt)),openingPlaces,
@@ -311,7 +352,7 @@ async function run() {
   'the enlarged left market facade remains visible while it approaches the screen edge');
   checkSetbackAndFacing();
   let clearedSite=null;
-  for(let progress=emergingSite.progress+20;progress<emergingSite.progress+250;
+  for(let progress=emergingSite.progress+20;progress<emergingSite.progress+450;
     progress+=20) {
     mirrorFrame({progress});
     const entry=uprightPlaces(roadArt).find(item=>
@@ -359,8 +400,9 @@ async function run() {
   }
   assert(loneBankFrames>4 && pairedApproaches<comparedApproaches*.65,
     'site approaches include one-sided gaps and only occasional facing pairs');
-  assert.equal(reviewedKinds.size,9,
-    'all nine complete location paintings receive a road-facing, exterior placement check');
+  assert(['Market','House','Garage','Apartment','Diner','Park','Substation',
+    'Garden','Construction'].every(name=>reviewedKinds.has(`cachePlace${name}`)),
+  'all nine default location paintings receive a road-facing, exterior placement check');
   assert(Math.max(...clearances)-Math.min(...clearances)>75,
     'site footprints have visibly different stable setbacks from the sidewalk');
   let crossingGap=Infinity, crossingSamples=0;
@@ -394,7 +436,10 @@ async function run() {
   assert(trafficLabels.includes('< CUT'), 'rotated right-edge trike calls its left cut');
   mirrorFrame({ progress: 395 });
   const cityAt395=['cacheDistantCity','cacheSkyline','cacheMidCity']
-    .map(key=>roadArt.find(entry=>entry.key===key).x);
+    .map(key=>{
+      const entry=roadArt.find(item=>item.key===key);
+      return entry.x-(1920-entry.width)/2;
+    });
   for(const [key,sourceW,sourceH] of [
     ['cacheDistantCity',2079,756],['cacheSkyline',2079,756],
     ['cacheMidCity',2172,724]]) {
@@ -403,6 +448,18 @@ async function run() {
       !entry.sourceRect,
     `${key} has overscan for camera pan without widening the source architecture`);
   }
+  const middleCity=roadArt.find(entry=>entry.key==='cacheMidCity');
+  assert(middleCity.ridgeEdge-middleCity.ridgeCenter>30 &&
+    middleCity.ridgeEdge-middleCity.ridgeCenter<45,
+  'the skyline keeps its modest edge while the roadside uses the original wide planet crest');
+  mirrorFrame({ progress: 0 });
+  const openingCity=roadArt.find(entry=>entry.key==='cacheMidCity');
+  mirrorFrame({ progress: 3*2460+2000 });
+  const nearCity=roadArt.find(entry=>entry.key==='cacheMidCity');
+  assert(nearCity.width>openingCity.width+200 &&
+    nearCity.y<openingCity.y-120 && nearCity.alpha===openingCity.alpha,
+  'near city architecture grows and clears the crest across the complete run without fading');
+  mirrorFrame({ progress: 395 });
   const roadTexture=() => roadArt.find(entry => entry.key === 'cacheBlacktop' &&
     entry.sourceRect[3] <= 22);
   assert(roadArt.some(entry => entry.key === 'cacheBlacktop' &&
@@ -420,7 +477,10 @@ async function run() {
   'the player shadow has a contact patch under each grounded tire');
   mirrorFrame({ progress: 405 });
   const cityAt405=['cacheDistantCity','cacheSkyline','cacheMidCity']
-    .map(key=>roadArt.find(entry=>entry.key===key).x);
+    .map(key=>{
+      const entry=roadArt.find(item=>item.key===key);
+      return entry.x-(1920-entry.width)/2;
+    });
   const pans=cityAt405.map((x,i)=>x-cityAt395[i]);
   assert(Math.abs(pans[0])<5 && Math.abs(pans[2])<12 &&
     Math.abs(pans[1]-pans[0]*.5/.22)<.01 &&
@@ -437,15 +497,24 @@ async function run() {
   mirrorFrame({ progress: 395, elapsedMs: 100 });
   const stillShips = roadArt.filter(entry => entry.key.startsWith('cacheFly'));
   const stillCity=['cacheDistantCity','cacheSkyline','cacheMidCity']
-    .map(key=>roadArt.find(entry=>entry.key===key).x);
+    .map(key=>{
+      const entry=roadArt.find(item=>item.key===key);
+      return entry.x-(1920-entry.width)/2;
+    });
+  const stillCityWidth=roadArt.find(entry=>entry.key==='cacheMidCity').width;
   mirrorFrame({ progress: 425, elapsedMs: 1400 });
   assert.deepEqual(roadArt.filter(entry => entry.key.startsWith('cacheFly'))
     .map(ship => [ship.screenX, ship.frame]),
     stillShips.map(ship => [ship.screenX, ship.frame]),
     'Reduced Motion holds decorative flying traffic in place');
   assert.deepEqual(['cacheDistantCity','cacheSkyline','cacheMidCity']
-    .map(key=>roadArt.find(entry=>entry.key===key).x),stillCity,
+    .map(key=>{
+      const entry=roadArt.find(item=>item.key===key);
+      return entry.x-(1920-entry.width)/2;
+    }),stillCity,
   'Reduced Motion holds decorative city pan while the road still turns');
+  assert(roadArt.find(entry=>entry.key==='cacheMidCity').width>stillCityWidth,
+    'Reduced Motion retains the non-decorative approach to the city');
   B.Preferences = previousPreferences;
   assert.deepEqual(openingRects, [], 'the objective disappears between actionable lessons');
   mirrorFrame({ steer: -1 });

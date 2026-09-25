@@ -1,5 +1,63 @@
 # Recovery checkpoint — September 14
 
+## September 25, 2026 — two more native-left cyber areas
+
+- Correct the usable count by adding an encrypted pump and drone service
+  node unflipped at existing left sites 7427 and 6511.
+- Update the facing diagram to show only active left options and add actual
+  approach/closer frames. The usable inventory is 9 LEFT, 9 RIGHT, 4 BOTH;
+  3 hard-edged original sources remain inactive. See the area asset audit.
+
+## September 25, 2026 — five cyber areas mirrored onto the right bank
+
+- Generate five transparent cyber roadside paintings, then correct their
+  left-facing source orientation by mirroring the complete image on the
+  right. Retain upright architecture, compact depth scale and alpha edges.
+- Place them at five existing right-hand sites across the four-lap route;
+  no extra roadside sites, new horizon curve or gameplay/audio changes.
+- Add nine-left/nine-right labeled facing diagrams, five actual-address
+  approach/closer comparisons, side/flip checks and pinned asset loading.
+  See `CACHE_ROAD_AREA_ASSET_AUDIT.md`.
+
+## September 25, 2026 — all area silhouettes and six live variants
+
+- Compare all 18 transparent place WebPs unmirrored at the same left/right
+  wide-horizon depth and again closer; record natural sides and edge limits.
+- Put three garden and three yard variants on six existing native-bank
+  addresses. Reuse one right substation and one right park slot as a yard and
+  garden, preserving the site count and spacing.
+- Keep compact cyber defaults, projected parking, wide planet, city approach,
+  music and driving rules. Add live approach/closer contact sheets and focused
+  drawing/loading assertions. See `CACHE_ROAD_AREA_ASSET_AUDIT.md`.
+
+## September 25, 2026 — directional BARCODE horizon assets
+
+- Restore #128's wide roadside planet and separate modest skyline edge;
+  retain the continuous near-city approach and fog contact.
+- Add compact hydroponics and fabrication cutouts with asymmetrical curved
+  ground, BARCODE neon materials and opposite road-facing source slopes.
+  Flip each complete image for its other bank.
+- Preserve the first rounded, longer form-fit and compact organic garden/
+  yard explorations as unused WebP variants. Update the scripted renderer
+  and focused facing/skyline checks. Makko owner review remains open.
+
+## September 25, 2026 — approaching city and planet edge
+
+Historical local result rejected by the owner; the shallow shared crest and
+depth-based clearing zone are superseded above.
+
+- Gradually enlarge and raise the near frontage painting over the complete
+  Cache Road route; preserve source aspect and road-bearing parallax.
+- Replace the steep independent side reveal and city-bottom clip with one
+  shallow crest, then expose each foreground site's foundation smoothly by
+  depth before it passes the player.
+- Draw curved contact haze after the projected side panels so the fog meets
+  the planet without dulling the fully colored buildings. Extend the focused
+  renderer checks for long approach, shared crest, city growth and Reduced
+  Motion. Inspect opening and third-lap continuous production drives.
+- Owner Makko visual/feel acceptance remains open; the separate adrenaline
+  and power-up mechanics list is unchanged.
+
 ## September 25, 2026 — staggered sites, proportional city and road surfaces
 
 - Replace ten synchronized left/right stations per lap with independent

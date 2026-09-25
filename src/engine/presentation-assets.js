@@ -17,6 +17,10 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   const cacheWorldRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/41edca02367b9f1f3af429d14df3d378ca46c9b4/';
   const cachePlacesRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/6868a002c8ee10b8067b45aa78f3dfbeaa628396/';
   const cacheRoadsideRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3dbc72b087435b02244ff1ec097a5151329a7234/';
+  // All fifteen new area paintings share one immutable asset commit. Makko
+  // can request the pinned art even if its import omits bundled binary files;
+  // the same relative paths remain the local preview fallback.
+  const cacheNewPlacesRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/aa9beb8f1400b6ab494a63bc257d304709a81e4e/';
   const entries = {
     cacheMirror: { path: 'assets/cache-road/hud/cache-back-mirror-expressions.webp', root: cacheRoadRoot,
       columns: 3, rows: 2, frames: 6, ax: .5, ay: .5, smooth: true },
@@ -39,8 +43,21 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     cachePlaceApartment: { path: 'assets/cache-road/roadside/places/apartment.webp', root: cachePlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
     cachePlaceDiner: { path: 'assets/cache-road/roadside/places/night-diner.webp', root: cachePlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
     cachePlaceSubstation: { path: 'assets/cache-road/roadside/places/substation.webp', root: cachePlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
-    cachePlaceGarden: { path: 'assets/cache-road/roadside/places/community-garden.webp', root: cachePlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
-    cachePlaceConstruction: { path: 'assets/cache-road/roadside/places/construction-yard.webp', root: cachePlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cachePlaceGarden: { path: 'assets/cache-road/roadside/places/hydroponics-horizon.webp', root: cacheNewPlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cachePlaceConstruction: { path: 'assets/cache-road/roadside/places/fabrication-horizon.webp', root: cacheNewPlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cachePlaceGardenRounded: { path: 'assets/cache-road/roadside/places/community-garden-rounded.webp', root: cacheNewPlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cachePlaceGardenCompact: { path: 'assets/cache-road/roadside/places/community-garden-left-compact.webp', root: cacheNewPlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cachePlaceGardenHorizon: { path: 'assets/cache-road/roadside/places/community-garden-horizon.webp', root: cacheNewPlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cachePlaceConstructionRounded: { path: 'assets/cache-road/roadside/places/construction-yard-rounded.webp', root: cacheNewPlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cachePlaceConstructionHorizon: { path: 'assets/cache-road/roadside/places/construction-yard-horizon.webp', root: cacheNewPlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cachePlaceConstructionCompact: { path: 'assets/cache-road/roadside/places/construction-yard-right-compact.webp', root: cacheNewPlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cachePlaceSignalOrchard: { path: 'assets/cache-road/roadside/places/signal-orchard.webp', root: cacheNewPlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cachePlaceRelayExchange: { path: 'assets/cache-road/roadside/places/relay-exchange.webp', root: cacheNewPlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cachePlaceDataReclamation: { path: 'assets/cache-road/roadside/places/data-reclamation.webp', root: cacheNewPlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cachePlaceCapacitorExchange: { path: 'assets/cache-road/roadside/places/capacitor-exchange.webp', root: cacheNewPlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cachePlaceNightDataMarket: { path: 'assets/cache-road/roadside/places/night-data-market.webp', root: cacheNewPlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cachePlaceEncryptedPump: { path: 'assets/cache-road/roadside/places/encrypted-pump.webp', root: cacheNewPlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cachePlaceDroneServiceNode: { path: 'assets/cache-road/roadside/places/drone-service-node.webp', root: cacheNewPlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
     cacheSkyline: { path: 'assets/cache-road/world/panorama-skyline.webp', root: cacheRoadsideRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 1, smooth: true },
     cacheDistantCity: { path: 'assets/cache-road/world/panorama-distance.webp', root: cacheRoadsideRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 1, smooth: true },
     cacheMidCity: { path: 'assets/cache-road/world/panorama-frontage.webp', root: cacheRoadsideRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 1, smooth: true },

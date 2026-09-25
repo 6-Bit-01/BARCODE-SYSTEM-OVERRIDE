@@ -1,5 +1,74 @@
 # Repository Guidance
 
+## September 25, 2026 — nine usable areas on each bank
+
+The owner requires equal **usable** selections. Two hard-edged original
+left lots were counted previously despite being inactive. The encrypted
+pump and drone service node now occupy existing left-side substation and
+garage addresses without flipping. The working inventory is 9 active LEFT,
+9 active RIGHT (including five whole-image mirrored cyber sources), 4
+active BOTH, and 3 retained inactive. See the corrected facing diagrams
+and live frames in `docs/source-pack/CACHE_ROAD_AREA_ASSET_AUDIT.md`.
+
+## September 25, 2026 — five new right-facing cyber areas
+
+The owner corrected the new image orientation: the generated signal orchard,
+relay exchange, data reclamation, capacitor exchange and night data market
+sources look left-facing alone. Draw each complete source mirrored on its
+selected right-bank site. Do not relabel the raw source as native-right or
+bend individual structures. The two facing diagrams in
+`docs/source-pack/CACHE_ROAD_AREA_ASSET_AUDIT.md` compare all nine left
+selections against four native-right plus five mirrored-right selections.
+The two hard-edged originals on the left remain inactive. The five new
+paintings reuse existing addresses and retain the wide planet. Makko owner
+review remains open.
+
+## September 25, 2026 — area inventory and side-fitted variants
+
+The owner clarified that the drawn wedge/rounded area example describes
+how ground rolls over each side of the wide planet; it does not prescribe
+square assets. All 18 place WebPs have been compared unmirrored on both
+banks. Six previously inactive shaped variants now occupy existing garden
+and construction addresses on their native side, without adding sites.
+The hard-edged original garden, yard and parking painting remain in the
+asset folder but out of rotation. Keep the two compact cyber defaults and
+the restored wide horizon. See
+`docs/source-pack/CACHE_ROAD_AREA_ASSET_AUDIT.md` for all side labels and
+actual-address frames; Makko owner review remains open.
+
+## September 25, 2026 — owner corrected planet and side-specific art
+
+The owner rejected the shallow shared crest below: it made the planet look
+tiny and exposed many buildings awkwardly. Keep #128's wide 420-unit
+roadside planet silhouette and separate modest city skyline edge. The near
+frontage still approaches over the full route and fog meets the skyline.
+The wide garden and yard paintings must be replaced by compact, BARCODE
+themed cyber sites with curved, asymmetrical ground banks. The hydroponics
+source slopes upward to the right and belongs on the left roadside as drawn;
+mirror that complete asset for the right. The fabrication source has the
+opposite slope and belongs on the right as drawn; mirror it for the left.
+Keep earlier rounded and organic variants as unused alternatives. Judge
+the art in actual road frames; Makko owner review remains open. See
+`docs/source-pack/CACHE_ROAD_HORIZON_ASSETS.md`.
+
+## September 25, 2026 — city approach, atmosphere and wide-site crest
+
+Historical rejected local draft. The owner superseded its shared shallow
+crest with the wide #128 planet and the new asymmetric cyber art above.
+
+After merged #128 the owner asked for a nearer city frontage to rise as the
+run approaches its end, fog to meet the planet edge, and correction of two
+wide painted lots that appeared to rise abruptly above the horizon. Use a
+single shallow, road-bearing crest for city occlusion and site reveal, with a
+depth-based clearing zone so complete locations appear before the side pass.
+Fog must reach the projected side panels; buildings remain fully colored.
+The frontage grows and reveals continuously across the route without a lap
+reset. Inspect the owner's marked game frames, continuous opening and later
+drives, and the full route progression. See
+`docs/source-pack/CACHE_ROAD_CITY_APPROACH.md`. The owner still needs to
+judge the look in Makko. Keep the #128 varied cadence, art, surfaces and the
+separate adrenaline/power-up backlog.
+
 ## September 25, 2026 — staggered vivid sites and projected roadside surfaces
 
 After merged #127 the owner requested independent left/right site timing,

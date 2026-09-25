@@ -55,13 +55,51 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     diner: ['cachePlaceDiner',960,618,700,170],
     park: ['cachePlacePark',960,640,650,165],
     substation: ['cachePlaceSubstation',960,638,680,185],
-    garden: ['cachePlaceGarden',960,646,690,190],
-    construction: ['cachePlaceConstruction',960,635,710,195]
+    garden: ['cachePlaceGarden',960,800,620,190],
+    construction: ['cachePlaceConstruction',960,640,650,195]
   };
-  // The entrances in the source paintings sit on the left, except for the
-  // repair garage's large bay. Mirror the left-hand places so their entrances
-  // turn toward the road; the garage uses the opposite facing.
-  const placeFacesRoad = (kind, side) => kind === 'garage' ? side > 0 : side < 0;
+  // A site keeps one whole painting with a side-specific ground silhouette.
+  // The first six are already painted for their assigned bank. The later
+  // five cyber sources turn as a whole for the right; two more are fitted
+  // directly to the left bank.
+  const SIDE_VARIANTS = {
+    gardenRounded: {kind:'garden',side:-1,art:['cachePlaceGardenRounded',960,646,620]},
+    gardenCompact: {kind:'garden',side:-1,art:['cachePlaceGardenCompact',960,793,620]},
+    gardenHorizon: {kind:'garden',side:1,art:['cachePlaceGardenHorizon',960,540,620]},
+    constructionRounded: {kind:'construction',side:-1,art:['cachePlaceConstructionRounded',960,585,650]},
+    constructionHorizon: {kind:'construction',side:1,art:['cachePlaceConstructionHorizon',960,585,650]},
+    constructionCompact: {kind:'construction',side:1,art:['cachePlaceConstructionCompact',960,692,650]},
+    signalOrchard: {kind:'garden',side:1,flip:true,art:['cachePlaceSignalOrchard',960,633,600]},
+    relayExchange: {kind:'substation',side:1,flip:true,art:['cachePlaceRelayExchange',960,1420,360]},
+    dataReclamation: {kind:'construction',side:1,flip:true,art:['cachePlaceDataReclamation',960,597,560]},
+    capacitorExchange: {kind:'substation',side:1,flip:true,art:['cachePlaceCapacitorExchange',960,721,550]},
+    nightDataMarket: {kind:'market',side:1,flip:true,art:['cachePlaceNightDataMarket',960,633,560]},
+    encryptedPump: {kind:'substation',side:-1,flip:false,art:['cachePlaceEncryptedPump',960,637,550]},
+    droneServiceNode: {kind:'garage',side:-1,flip:false,art:['cachePlaceDroneServiceNode',960,643,520]}
+  };
+  // Curated addresses replace their picture within the existing site cadence.
+  // Some existing right-hand park/substation slots become a garden or yard;
+  // the total number of locations and their positions do not change.
+  const FEATURED_SITES = {
+    '1:623':'relayExchange',
+    '1:2685':'nightDataMarket',
+    '-1:3138':'constructionRounded',
+    '1:3635':'constructionHorizon',
+    '-1:4460':'gardenRounded',
+    '1:5055':'dataReclamation',
+    '1:5829':'signalOrchard',
+    '-1:6303':'gardenCompact',
+    '-1:6511':'droneServiceNode',
+    '1:7015':'constructionCompact',
+    '-1:7427':'encryptedPump',
+    '1:8158':'gardenHorizon',
+    '1:8846':'capacitorExchange'
+  };
+  // The hydroponics gate is on the right of its curved bank. It faces the
+  // left road directly and mirrors for the right road. The fabrication gate
+  // and other places are painted on the left, except the repair garage.
+  const placeFacesRoad = (kind, side) =>
+    kind === 'garage' || kind === 'garden' ? side > 0 : side < 0;
   const PLACE_KINDS = [...Object.keys(PLACE_ART),'parking'];
   // Seeded choices keep the lots varied yet identical after pause, retry,
   // saved-road restore and frame-rate changes.
@@ -104,6 +142,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     place.kind=place.index===0?(place.side<0?'market':'house'):choices[0].kind;
     lastKindAt.set(place.kind,place.at);
     delete place.index;delete place.seed;
+  }
+  for(const place of SIDE_PLACES) {
+    const variantName=FEATURED_SITES[`${place.side}:${place.at}`];
+    const variant=SIDE_VARIANTS[variantName];
+    if(variant && variant.side===place.side) {
+      place.kind=variant.kind;
+      place.variant=variantName;
+    }
   }
   SIDE_PLACES.sort((a,b)=>b.at-a.at);
   const clone = value => JSON.parse(JSON.stringify(value));
@@ -1163,12 +1209,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // point, and the same projection continues beyond the bottom of frame.
       const roadsideX = (side,t,base,growth) =>
         center(t)+side*(half(t)+(base+growth*t)*(.1+.9*t));
-      // A parcel is behind the planet's near ground until it passes the
-      // crest. The crest curves away from the road toward both screen edges;
-      // a horizontal per-object cut made buildings appear to materialize.
-      const crest = horizon + 25;
-      const crestY = x => crest+420*Math.pow(
+      // Keep the established wide planet silhouette. The compact cyber sites
+      // have asymmetrical ground banks shaped for this deep roadside crest.
+      const crestY = x => horizon+25+420*Math.pow(
         clamp((Math.abs(x-center(0))-150)/600,0,1),2);
+      const cityCrestY = x => horizon+36+48*Math.pow(
+        Math.abs(x-center(0))/960,2);
       const buriedFoot = t => 90*(1-clamp(t/.5,0,1));
       const sceneFoot = t => roadY(t)+25*t+buriedFoot(t);
       const clipRoadside = (t,draw) => {
@@ -1294,19 +1340,24 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         }
       }
       ctx.globalAlpha=1;
-      // Each new panorama is wider than the viewport and drawn at its source
-      // aspect ratio. The lower facades tuck behind one gently curved city
-      // horizon; the pan is caused only by the road camera bearing.
+      // Each panorama overscans the viewport at its source aspect ratio.
+      // The near frontage starts with only its roofline above the city edge,
+      // then climbs and grows over the whole route as the city approaches.
+      // Road bearing alone pans all three depths; distance never resets at a
+      // lap boundary or stops advancing in Reduced Motion.
       const bearing=reduced ? 0 :
         clamp(eyeHeading*115+(eyePath-path(0))*.18,-110,110);
+      const cityDistance=clamp(progress/END,0,1);
+      const cityApproach=cityDistance*cityDistance*(3-2*cityDistance);
+      const frontageWidth=2370+250*cityApproach;
+      const frontageFoot=705-151*cityApproach;
       ctx.save();ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(1920,0);
-      for(let x=1920;x>=0;x-=30)
-        ctx.lineTo(x,horizon+36+48*Math.pow(Math.abs(x-center(0))/960,2));
+      for(let x=1920;x>=0;x-=30)ctx.lineTo(x,cityCrestY(x));
       ctx.closePath();ctx.clip();
       const cityLayers=[
         ['cacheDistantCity',2079,756,2520,580,.64,.22],
         ['cacheSkyline',2079,756,2420,620,.70,.50],
-        ['cacheMidCity',2172,724,2370,590,.88,.85]
+        ['cacheMidCity',2172,724,frontageWidth,frontageFoot,.88,.85]
       ];
       for(const [key,sourceW,sourceH,width,foot,opacity,parallax] of cityLayers) {
         ctx.globalAlpha=opacity;
@@ -1315,10 +1366,6 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           width,height:width*sourceH/sourceW });
       }
       ctx.restore();
-      const haze = ctx.createLinearGradient(0,horizon-170,0,horizon+40);
-      haze.addColorStop(0,'#4b6e7600'); haze.addColorStop(1,'#7796a657');
-      ctx.fillStyle = haze; ctx.fillRect(0,horizon-170,1920,210);
-      ctx.globalAlpha = 1;
       // Level 1's animated ships cross above this road at different depths
       // and bank angles. They never enter the collision system.
       for (let i=0;i<5;i++) {
@@ -1352,6 +1399,20 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           drawSurfacePanel(ground,side,far,near,
             [220,190,24,0],[990,440,40,1]);
         }
+      }
+      // Blend the city/terrain contact after the projected side panels so
+      // they cannot paint a dark gap over the fog. The wide roadside crest
+      // remains separate from this modest skyline edge as in the prior build.
+      const mist=['#7796a6','#b0a0a3','#b39da8','#91aaa3'][section];
+      for(let x=0;x<1920;x+=24) {
+        const lip=cityCrestY(x+12);
+        const haze=ctx.createLinearGradient(0,lip-155,0,lip+145);
+        haze.addColorStop(0,`${mist}00`);
+        haze.addColorStop(.38,`${mist}39`);
+        haze.addColorStop(.58,`${mist}6b`);
+        haze.addColorStop(.82,`${mist}41`);
+        haze.addColorStop(1,`${mist}00`);
+        ctx.fillStyle=haze;ctx.fillRect(x,lip-155,24,300);
       }
       // Side decks track the same bend as the lane geometry. Real parapet and
       // pylon art is placed at world distances below, after the asphalt.
@@ -1609,7 +1670,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         if(place.kind==='parking') {
           drawProjectedLocale(place,t);continue;
         }
-        const [key,sourceW,sourceH,maxW]=PLACE_ART[place.kind];
+        const [key,sourceW,sourceH,maxW]=
+          (place.variant && SIDE_VARIANTS[place.variant].art) || PLACE_ART[place.kind];
         // One linear depth scale matches the widening road and passing cars.
         // The old second easing curve kept sites tiny, then inflated them.
         const width=maxW*t*place.size;
@@ -1619,7 +1681,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const y=sceneFoot(t);
         clipRoadside(t,()=>{
           B.PresentationAssets?.draw?.(key,ctx,{
-            x,y,width,height,flip:placeFacesRoad(place.kind,place.side) });
+            x,y,width,height,
+            flip:place.variant ? !!SIDE_VARIANTS[place.variant].flip :
+              placeFacesRoad(place.kind,place.side) });
         });
         if(!['market','diner','park','house','garden'].includes(place.kind))continue;
         // A nearby pedestrian shares the lot's world coordinate and curb.

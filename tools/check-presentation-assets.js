@@ -11,7 +11,7 @@ w.Image = class Image {
 load(context, 'src/engine/presentation-assets.js');
 const art = w.BARCODE.PresentationAssets;
 for (let i = 0; i < 20; i++) art.preload();
-assert.strictEqual(images.length, 62, 'restarts reuse Cache traffic, individual places, road, sky, sidewalk, ground, ship and mirror art');
+assert.strictEqual(images.length, 75, 'restarts reuse Cache traffic, individual places, road, sky, sidewalk, ground, ship and mirror art');
 assert(images.every(im => /^https:\/\/raw\.githubusercontent\.com\/.+\/[a-f0-9]{40}\//.test(im.requests[0])), 'assets use published immutable revisions');
 const cacheRoadRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/37db98387b8791655e3ff352d6bc6d61cb0b574b/';
 assert.equal(images.filter(im => im.requests[0].startsWith(cacheRoadRoot)).length,16,
@@ -23,8 +23,33 @@ const cacheWorldRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTE
 assert.equal(images.filter(im => im.requests[0].startsWith(cacheWorldRoot)).length,4,
   'the four illustrated traffic vehicles retain their published asset revision');
 const cachePlacesRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/6868a002c8ee10b8067b45aa78f3dfbeaa628396/';
-assert.equal(images.filter(im => im.requests[0].startsWith(cachePlacesRoot)).length,9,
-  'eight upright locations and the park foliage load from their published revision');
+assert.equal(images.filter(im => im.requests[0].startsWith(cachePlacesRoot)).length,7,
+  'the earlier upright locations and park foliage retain their published revision');
+const cacheNewPlacesRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/aa9beb8f1400b6ab494a63bc257d304709a81e4e/';
+const newPlaceImages=images.filter(im => im.requests[0].startsWith(cacheNewPlacesRoot));
+assert.deepEqual(newPlaceImages.map(im => path.basename(im.requests[0])).sort(),
+  ['capacitor-exchange.webp','community-garden-horizon.webp',
+    'community-garden-left-compact.webp','community-garden-rounded.webp',
+    'construction-yard-horizon.webp',
+    'construction-yard-right-compact.webp','construction-yard-rounded.webp',
+    'data-reclamation.webp','drone-service-node.webp','encrypted-pump.webp',
+    'fabrication-horizon.webp','hydroponics-horizon.webp','night-data-market.webp',
+    'relay-exchange.webp','signal-orchard.webp'],
+  'all fifteen new area sources use one immutable published asset revision');
+for(const image of newPlaceImages) {
+  image.onerror();
+  assert.equal(image.requests[1],`assets/cache-road/roadside/places/${path.basename(image.requests[0])}`,
+    'a checked-out directional site remains available as a local fallback');
+  assert(fs.existsSync(path.join(root,image.requests[1])));
+}
+const areaSources=fs.readdirSync(path.join(root,'assets/cache-road/roadside/places'))
+  .filter(name=>name.endsWith('.webp'));
+const activeAreas=images.filter(im=>im.requests[0].includes('/assets/cache-road/roadside/places/'));
+assert.equal(areaSources.length,25,'the area folder keeps all paintings for review');
+assert.equal(activeAreas.length,22,'nine left, nine right and four both-bank paintings are loaded');
+for(const inactive of ['community-garden.webp','construction-yard.webp','parking-lot.webp'])
+  assert(!activeAreas.some(im=>im.requests[0].endsWith('/'+inactive)),
+    `${inactive} remains a retained, inactive source`);
 assert(!images.some(im => im.requests[0].endsWith('/parking-lot.webp')),
   'the rejected painted parking slab is not preloaded');
 assert(!images.some(im => /\/(market-block|relay-depot|service-frontage|market-left-perspective|market-right-perspective|depot-left-perspective|depot-right-perspective|frontage-left-perspective|frontage-right-perspective)\.webp$/.test(im.requests[0])),
@@ -54,7 +79,7 @@ assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2),
   'collision eyes come from the second row inside the same mirror crop');
 arrowImage.onerror(); arrowImage.onerror();
 assert.strictEqual(arrowImage.requests.length, 2); assert.strictEqual(arrowImage.onerror, null);
-art.preload(); assert.strictEqual(images.length, 62, 'failed assets do not retry forever');
+art.preload(); assert.strictEqual(images.length, 75, 'failed assets do not retry forever');
 pulseImage.naturalWidth = pulseImage.naturalHeight = 512; pulseImage.onload();
 ops.length = 0; art.draw('bossPulse', ctx, { y: 822, width: 64, height: 56, frame: 2 });
 assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2), [10, 351, 236, 145, -32, -56, 64, 56], 'pulse fills the dangerous height and retains the ground anchor');

@@ -1,6 +1,66 @@
 # BARCODE: SYSTEM OVERRIDE — Source Pack v5
 
+## Current review — equal usable area selections
+
+The corrected `CACHE_ROAD_AREA_ASSET_AUDIT.md` and two facing diagrams now
+show **9 usable LEFT, 9 usable RIGHT, 4 usable BOTH**. Encrypted pump and
+drone service node fill the two left slots previously counted using
+inactive originals. The folder holds **25 transparent place WebPs, 22
+active and 3 retained inactive**. Both new sources appear unflipped in
+existing left-side sites, with actual-address frames. The wide planet and
+site count remain unchanged.
+
+## Historical review — left/right area diagram and five flipped cyber sites
+
+Start with `CACHE_ROAD_AREA_ASSET_AUDIT.md`. Its two labeled diagrams show
+nine left-facing shapes (including two inactive originals) and nine right-facing placements: four older
+native-right sources and five new cyber cutouts mirrored as whole pictures.
+The new five appear at existing right-bank addresses at a game-specific
+size, with approach/closer frames. At that stage there were 23 transparent place WebPs,
+20 active. The wide planet and site count remain unchanged. The owner
+corrected the generated sources' handedness before integration.
+
+## Current review — all area shapes and six reactivated variants
+
+Historical first 18-source inventory, expanded above.
+
+Start with `CACHE_ROAD_AREA_ASSET_AUDIT.md` and its paired left/right
+contact sheets. The inventory contains 18 source WebPs with native side
+labels. Six rounded/compact/long garden and yard alternatives now appear
+at existing side-specific addresses; the two compact cyber sites remain
+the defaults. No more sites were added, and the wide planet horizon is
+unchanged. Three hard-edged painted lots stay inactive. The owner's latest
+sketch describes rolling contact, not a required square outline.
+
+## Current review — wide planet and directional cyber sites
+
+Historical starting point for the variant selection above.
+
+Start with `CACHE_ROAD_HORIZON_ASSETS.md`, `CURRENT_STATE.md` and the first
+`ACCEPTANCE.md` route. The earlier wide planet silhouette is restored. Two
+compact BARCODE themed sites have curved banks and opposite source slopes;
+each faces the road on its native bank and mirrors on the other. The first
+rounded and longer sculpted variants were initially inactive; six are now
+placed as described above. The city
+approach and fog work remain, pending the owner's Makko judgment.
+
+## Current review — approaching city and cohesive planet edge
+
+Historical rejected local crest draft; the city approach and fog survive
+in the corrected wide-planet pass above.
+
+Start with `CACHE_ROAD_CITY_APPROACH.md`, `CURRENT_STATE.md` and the first
+`ACCEPTANCE.md` route. The near city frontage slowly rises and grows along
+the full road; the same shallow crest clips it and reveals roadside roofs.
+A depth-based clearing zone exposes each site's footing before the close
+pass. Fog follows the curved terrain after the projected side panels.
+Opening and later-lap continuous drives support visual review; owner Makko
+judgment remains open. The adrenaline and power-up list remains in
+`CACHE_ROAD_COHESION_AUDIT.md`.
+
 ## Current review — staggered roadside and ground flow
+
+Historical merged #128 base for the city approach above.
 
 Start with `CACHE_ROAD_ROADSIDE_FLOW_PASS.md`, `CURRENT_STATE.md` and the
 first `ACCEPTANCE.md` route. Sites now arrive independently with varied
