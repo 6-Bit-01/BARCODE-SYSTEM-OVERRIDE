@@ -39,10 +39,10 @@ same scene at normal game size, then the enlarged comparison in
 `review-cache-road-visual/Contact-Before-After.webp` and the raised outer
 wheel comparison in `review-cache-road-visual/Turn-Contact-Before-After.webp`.
 The later follow-up specifically grounds both turning front wheels. This is
- a scripted production draw, not a Makko recording. Report the imported SHA
+a scripted production draw, not a Makko recording. Report the imported SHA
 and a frame if the art falls back or a contact gap persists. Music, pads, inputs,
-collision, saves and exit are unchanged; the next traffic/roadside art and
-mechanics tune remain separate acceptance items.
+collision, saves and exit were unchanged in that pass; the subsequent
+traffic/roadside review is above, with mechanics tuning still open.
 
 ## Cache Road cohesion follow-up — September 24
 
