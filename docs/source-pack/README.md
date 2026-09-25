@@ -1,6 +1,19 @@
 # BARCODE: SYSTEM OVERRIDE — Source Pack v5
 
+## Current review — staggered roadside and ground flow
+
+Start with `CACHE_ROAD_ROADSIDE_FLOW_PASS.md`, `CURRENT_STATE.md` and the
+first `ACCEPTANCE.md` route. Sites now arrive independently with varied
+gaps and setbacks, full color behind the curved crest and only occasional
+facing pairs. Three newly painted overscanned city layers keep their
+architectural proportions. Projected slab and outer-ground assets flow
+under the locations along the road. First and third-lap motion previews
+and stills are included; owner Makko judgment remains open. The adrenaline
+and power-up list remains in `CACHE_ROAD_COHESION_AUDIT.md`.
+
 ## Current review — curved crest and varied roadside sites
+
+Historical merged #127 base for the staggered surface pass above.
 
 The owner corrected the first #127 draft with marked game frames. Roofs and
 treetops now emerge behind a curved ground crest, then the whole site and its

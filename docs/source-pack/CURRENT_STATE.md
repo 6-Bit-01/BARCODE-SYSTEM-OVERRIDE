@@ -1,5 +1,21 @@
 # Current State
 
+## September 25 — staggered roadside, city proportion and ground surfaces
+
+The owner's #127 review asked for irregular left/right timing, vivid first
+appearance, less uniform road distance, a proportionate wider city and
+authored sidewalk/side terrain. Independent deterministic address sequences
+now create short clusters and longer one-sided openings, with rare facing
+pairs. Sites and open locales are fully colored behind the curved crest.
+Three new transparent city paintings draw wider than the screen at uniform
+aspect ratio with the same bounded bearing; world-fixed slab and varied
+outer-ground art passes under sites and lamps. First and third-lap continuous
+production draws and staged frames were inspected. The exact commit/checks
+are in the generated receipt; owner Makko visual, audio, controller and
+performance acceptance remain open. See
+`CACHE_ROAD_ROADSIDE_FLOW_PASS.md`. The adrenaline/power-up audit remains
+open in `CACHE_ROAD_COHESION_AUDIT.md`.
+
 ## September 25 — curved crest and varied site distance in draft #127
 
 The owner inspected the first #127 draw and found that distant building

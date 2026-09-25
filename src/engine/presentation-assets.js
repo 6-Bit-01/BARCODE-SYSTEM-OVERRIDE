@@ -16,6 +16,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   const cacheRoadRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/37db98387b8791655e3ff352d6bc6d61cb0b574b/';
   const cacheWorldRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/41edca02367b9f1f3af429d14df3d378ca46c9b4/';
   const cachePlacesRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/6868a002c8ee10b8067b45aa78f3dfbeaa628396/';
+  const cacheRoadsideRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3dbc72b087435b02244ff1ec097a5151329a7234/';
   const entries = {
     cacheMirror: { path: 'assets/cache-road/hud/cache-back-mirror-expressions.webp', root: cacheRoadRoot,
       columns: 3, rows: 2, frames: 6, ax: .5, ay: .5, smooth: true },
@@ -40,11 +41,15 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     cachePlaceSubstation: { path: 'assets/cache-road/roadside/places/substation.webp', root: cachePlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
     cachePlaceGarden: { path: 'assets/cache-road/roadside/places/community-garden.webp', root: cachePlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
     cachePlaceConstruction: { path: 'assets/cache-road/roadside/places/construction-yard.webp', root: cachePlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
-    cacheSkyline: { path: 'assets/cache-road/world/skyline.webp', root: cacheRoadRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 1, smooth: true },
-    cacheDistantCity: { path: 'assets/cache-road/world/distant-city.webp', root: cacheRoadRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 1, smooth: true },
-    cacheMidCity: { path: 'assets/cache-road/world/mid-city.webp', root: cacheRoadRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 1, smooth: true },
+    cacheSkyline: { path: 'assets/cache-road/world/panorama-skyline.webp', root: cacheRoadsideRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 1, smooth: true },
+    cacheDistantCity: { path: 'assets/cache-road/world/panorama-distance.webp', root: cacheRoadsideRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 1, smooth: true },
+    cacheMidCity: { path: 'assets/cache-road/world/panorama-frontage.webp', root: cacheRoadsideRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 1, smooth: true },
     cacheParapet: { path: 'assets/cache-road/roadside/parapet.webp', root: cacheRoadRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
     cachePylon: { path: 'assets/cache-road/roadside/service-pylon.webp', root: cacheRoadRoot, columns: 1, rows: 1, frames: 1, ax: .28, ay: 1, smooth: true },
+    cacheSidewalk: { path: 'assets/cache-road/roadside/sidewalk-slab.svg', root: cacheRoadsideRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 0, smooth: true },
+    cacheOuterGround: { path: 'assets/cache-road/roadside/outer-ground-panel.svg', root: cacheRoadsideRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 0, smooth: true },
+    cacheGreenGround: { path: 'assets/cache-road/roadside/green-ground-panel.svg', root: cacheRoadsideRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 0, smooth: true },
+    cacheServiceGround: { path: 'assets/cache-road/roadside/service-ground-panel.svg', root: cacheRoadsideRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 0, smooth: true },
     cacheImpactGrit: { path: 'assets/cache-road/effects/impact-grit.webp', root: cacheRoadRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
     cacheSpeedMist: { path: 'assets/cache-road/effects/speed-mist.webp', root: cacheRoadRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
     cacheBlacktop: { path: 'assets/wet-street/rain-blacktop.webp', root: cacheRoadRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 0, smooth: true },

@@ -28,11 +28,15 @@ async function main() {
     cacheSweeper: 'assets/cache-road/vehicles/sweeper.webp',
     cacheTrike: 'assets/cache-road/vehicles/signal-trike.webp',
     cacheShuttle: 'assets/cache-road/vehicles/night-shuttle.webp',
-    cacheSkyline: 'assets/cache-road/world/skyline.webp',
-    cacheDistantCity: 'assets/cache-road/world/distant-city.webp',
-    cacheMidCity: 'assets/cache-road/world/mid-city.webp',
+    cacheSkyline: 'assets/cache-road/world/panorama-skyline.webp',
+    cacheDistantCity: 'assets/cache-road/world/panorama-distance.webp',
+    cacheMidCity: 'assets/cache-road/world/panorama-frontage.webp',
     cacheParapet: 'assets/cache-road/roadside/parapet.webp',
     cachePylon: 'assets/cache-road/roadside/service-pylon.webp',
+    cacheSidewalk: 'assets/cache-road/roadside/sidewalk-slab.svg',
+    cacheOuterGround: 'assets/cache-road/roadside/outer-ground-panel.svg',
+    cacheGreenGround: 'assets/cache-road/roadside/green-ground-panel.svg',
+    cacheServiceGround: 'assets/cache-road/roadside/service-ground-panel.svg',
     cachePlaceMarket: 'assets/cache-road/roadside/places/corner-market.webp',
     cachePlaceHouse: 'assets/cache-road/roadside/places/row-house.webp',
     cachePlacePark: 'assets/cache-road/roadside/places/pocket-park.webp',
@@ -66,9 +70,10 @@ async function main() {
       const frameWidth = ship ? 320 : image.width;
       const frameHeight = key === 'cacheFly1' ? 83 : key === 'cacheFly3' ? 97 : image.height;
       const [sx, sy, sw, sh] = sourceRect || [0,0,mirror ? 512 : frameWidth,mirror ? 512 : frameHeight];
-      const ax = key === 'cacheSkyline' || key === 'cacheDistantCity' || key === 'cacheMidCity' || key === 'cacheBlacktop' ? 0 :
+      const ax = key === 'cacheSkyline' || key === 'cacheDistantCity' || key === 'cacheMidCity' || key === 'cacheBlacktop' || key === 'cacheSidewalk' || key.endsWith('Ground') ? 0 :
         key === 'cachePylon' ? .28 : .5;
-      const ay = key === 'cacheMirror' || ship ? .5 : key === 'cacheBlacktop' ? 0 : 1;
+      const ay = key === 'cacheMirror' || ship ? .5 :
+        key === 'cacheBlacktop' || key === 'cacheSidewalk' || key.endsWith('Ground') ? 0 : 1;
       ctx.save(); ctx.translate(x,y); if (flip) ctx.scale(-1,1); ctx.imageSmoothingEnabled = !ship;
       ctx.drawImage(image, (mirror ? frame % 3 * 512 : ship ? frame % 8 * 320 : 0) + sx,
         (mirror ? Math.floor(frame / 3) * 512 : ship ? Math.floor(frame / 8) * frameHeight : 0) + sy,
@@ -157,7 +162,8 @@ async function main() {
     const chapterIndex = Math.floor(i / (seconds * fps));
     const chapter = chapters[chapterIndex], local = i % (seconds * fps) / fps;
     const s = road.state;
-    s.progress = continuous ? local * 80 : chapter.progress + local * 54 + reviewLap*2460;
+    s.progress = continuous ? local * 80 + reviewLap*2460 :
+      chapter.progress + local * 54 + reviewLap*2460;
     s.elapsedMs = i * 1000 / fps;
     s.musicBar = chapter.bar + reviewLap*24 + Math.floor(local / 1.875);
     s.musicBeatFloat = s.musicBar * 4 + local % 1.875 * 4 / 1.875;
