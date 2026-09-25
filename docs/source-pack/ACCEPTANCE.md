@@ -1,5 +1,29 @@
 # Acceptance and Test Status
 
+## Authored diagonal roadside and instrument art — September 25
+
+Import this pass's exact main merge SHA into Makko after CI. On the first
+market, the source painting itself should show a large lower-left storefront
+and tiny upper-right end; on the depot, the big end should be lower right.
+Drive through each at cruise and while braking: the connected painted curb,
+quieter row beneath, service pavement, walkers, parapet and streetlights
+should pass together without a flat facade, stretched windows, sliding foot
+line or a visible reset between background rows. Follow later alternating
+left/right events as well. Reduced Motion should keep road travel.
+
+Catch the first four inlaid road pads with keyboard and a mapped controller.
+The symbol must identify Surge, Push, Brace or Refill before the button glyph
+is close; that glyph must match the current mapping. The pad stays under
+opaque traffic and remains on asphalt after a catch until passed. Watch a
+queued phrase become active, a full four-part stack, a hit and the drums-only
+return: the four lane motifs and HUD cells should agree, while road paint
+never covers a hazard. Check the next-action prompt, signal/window, Echo,
+Turbo, armed Push/Brace and Cache Back's mirror at normal game size. Report
+the SHA, road position/bar/device, a frame for any seam or misleading cue,
+and whether the added visual response actually helps the music feel dynamic.
+The scripted preview and automated proof do not establish Makko audio,
+physical-controller feel or owner acceptance. Power-up design remains open.
+
 ## Cache Road layered roadside and traffic — September 25
 
 After this pass merges, import its exact main SHA into Makko. At normal game

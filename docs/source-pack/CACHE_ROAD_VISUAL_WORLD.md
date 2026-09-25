@@ -1,5 +1,9 @@
 # Cache Road traffic and layered roadside — September 25, 2026
 
+Historical visual pass: the owner later corrected its horizontal source art.
+See `CACHE_ROAD_INSTRUMENT_ART.md` for the current authored diagonal cutouts and
+whole-sprite placement.
+
 This is the next visual pass after #119. It follows the owner's correction that
 the side locations must recede diagonally, and that a continuous side-road
 background, locations ("events"), pedestrians, and streetlights pass as one

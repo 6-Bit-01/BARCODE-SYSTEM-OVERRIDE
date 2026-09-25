@@ -1,5 +1,17 @@
 # Decision Register
 
+## September 25, 2026 — diagonal source art and road instruments
+
+The owner clarified that the side buildings themselves must be painted in
+diagonal perspective. The earlier horizontal market/depot/frontage strip
+distorted through code did not meet that request. Use distinct authored left
+and right event and background cutouts, placed intact on the shared road
+world points with the existing lamps and side deck. The next visual pass also
+needs better physical road pads, song-bar highlights and HUD assets. Keep
+the four actions and their mapped button labels, the five-stem song, sparse
+pad positions and the visual priority over mechanics tuning. See
+`CACHE_ROAD_INSTRUMENT_ART.md`; Makko owner judgment remains open.
+
 ## September 25, 2026 — layered side-road parallax
 
 The owner corrected the roadside composition: locations ("events") must be

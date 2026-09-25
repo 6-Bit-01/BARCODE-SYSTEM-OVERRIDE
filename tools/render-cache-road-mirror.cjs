@@ -33,9 +33,12 @@ async function main() {
     cacheMidCity: 'assets/cache-road/world/mid-city.webp',
     cacheParapet: 'assets/cache-road/roadside/parapet.webp',
     cachePylon: 'assets/cache-road/roadside/service-pylon.webp',
-    cacheMarketBlock: 'assets/cache-road/roadside/market-block.webp',
-    cacheRelayDepot: 'assets/cache-road/roadside/relay-depot.webp',
-    cacheServiceFrontage: 'assets/cache-road/roadside/service-frontage.webp',
+    cacheMarketLeft: 'assets/cache-road/roadside/market-left-perspective.webp',
+    cacheMarketRight: 'assets/cache-road/roadside/market-right-perspective.webp',
+    cacheDepotLeft: 'assets/cache-road/roadside/depot-left-perspective.webp',
+    cacheDepotRight: 'assets/cache-road/roadside/depot-right-perspective.webp',
+    cacheFrontageLeft: 'assets/cache-road/roadside/frontage-left-perspective.webp',
+    cacheFrontageRight: 'assets/cache-road/roadside/frontage-right-perspective.webp',
     cacheImpactGrit: 'assets/cache-road/effects/impact-grit.webp',
     cacheSpeedMist: 'assets/cache-road/effects/speed-mist.webp',
     cacheBlacktop: 'assets/wet-street/rain-blacktop.webp',
@@ -60,9 +63,10 @@ async function main() {
       const frameWidth = ship ? 320 : image.width;
       const frameHeight = key === 'cacheFly1' ? 83 : key === 'cacheFly3' ? 97 : image.height;
       const [sx, sy, sw, sh] = sourceRect || [0,0,mirror ? 512 : frameWidth,mirror ? 512 : frameHeight];
-      const ax = key === 'cacheSkyline' || key === 'cacheDistantCity' || key === 'cacheMidCity' || key === 'cacheBlacktop' ? 0 :
+      const perspective = /^(cacheMarket|cacheDepot|cacheFrontage)/.test(key);
+      const ax = perspective || key === 'cacheSkyline' || key === 'cacheDistantCity' || key === 'cacheMidCity' || key === 'cacheBlacktop' ? 0 :
         key === 'cachePylon' ? .28 : .5;
-      const ay = key === 'cacheMirror' || ship ? .5 : key === 'cacheBlacktop' ? 0 : 1;
+      const ay = key === 'cacheMirror' || ship ? .5 : key === 'cacheBlacktop' || perspective ? 0 : 1;
       ctx.save(); ctx.translate(x,y); if (flip) ctx.scale(-1,1); ctx.imageSmoothingEnabled = !ship;
       ctx.drawImage(image, (mirror ? frame % 3 * 512 : ship ? frame % 8 * 320 : 0) + sx,
         (mirror ? Math.floor(frame / 3) * 512 : ship ? Math.floor(frame / 8) * frameHeight : 0) + sy,
@@ -131,6 +135,15 @@ async function main() {
     s.elapsedMs = i * 1000 / fps;
     s.musicBar = chapter.bar + Math.floor(local / 1.875);
     s.musicBeatFloat = s.musicBar * 4 + local % 1.875 * 4 / 1.875;
+    // Scripted arrangement states expose queued, single, and full-stack road
+    // markings for art review; no audio or playable route is implied.
+    const reviewParts=worldReview ? [[],[],[0],[0,1],[0,1,3],[1,3],[0,1,2,3]][chapterIndex] : [];
+    s.captures=reviewParts.map(lane => ({ lane,startBeat:(s.musicBar-1)*4,
+      endBeat:(s.musicBar+7)*4 }));
+    s.queuedCaptures=worldReview&&chapterIndex===1 ? [{lane:2,
+      startBeat:(s.musicBar+1)*4,endBeat:(s.musicBar+5)*4,
+      inkAtMs:s.elapsedMs-350}] : [];
+    s.fullAdrenaline=s.captures.length===4;
     const [from,to,start,end] = laneMoves[chapterIndex];
     const turn = Math.max(0,Math.min(1,(local-start)/(end-start)));
     s.lanePos = s.visualLane = from+(to-from)*smooth(turn);
@@ -151,7 +164,7 @@ async function main() {
     s.stumbleMs = !worldReview && chapterIndex === 4 ? Math.max(0,650-local*1000) : 0;
     s.invulnerableMs = !worldReview && chapterIndex === 4 ? Math.max(0,1400-local*1000) : 0;
     s.messageMs = 0; s.message = '';
-    s.echoEnergy = 65 + chapterIndex * 6;
+    s.echoEnergy = Math.min(100,65 + chapterIndex * 6);
     s.lockEnergy = 26 + chapterIndex * 10;
     road.draw(sc);
     if (worldFrames) {
