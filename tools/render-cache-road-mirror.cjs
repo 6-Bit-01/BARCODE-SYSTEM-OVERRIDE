@@ -35,7 +35,6 @@ async function main() {
     cachePylon: 'assets/cache-road/roadside/service-pylon.webp',
     cachePlaceMarket: 'assets/cache-road/roadside/places/corner-market.webp',
     cachePlaceHouse: 'assets/cache-road/roadside/places/row-house.webp',
-    cachePlaceParking: 'assets/cache-road/roadside/places/parking-lot.webp',
     cachePlacePark: 'assets/cache-road/roadside/places/pocket-park.webp',
     cachePlaceGarage: 'assets/cache-road/roadside/places/repair-garage.webp',
     cachePlaceApartment: 'assets/cache-road/roadside/places/apartment.webp',
@@ -96,9 +95,19 @@ async function main() {
   const video = createCanvas(1280,720), vc = video.getContext('2d');
   const detail = createCanvas(1320, 1140), dc = detail.getContext('2d');
   const worldReview = process.env.CACHE_REVIEW_WORLD === '1';
+  const siteReview = process.env.CACHE_REVIEW_SITES === '1';
   const continuous = process.env.CACHE_REVIEW_CONTINUOUS === '1';
+  const reviewLap = Number(process.env.CACHE_REVIEW_LAP || 0);
+  const sceneryReview = worldReview || siteReview;
   const fps = continuous ? 15 : 18, seconds = continuous ? 32 : 2;
-  const chapters = continuous ? [{ name: 'Continuous-Drive', progress: 0, bar: 4 }] : worldReview ? [
+  const chapters = continuous ? [{ name: 'Continuous-Drive', progress: 0, bar: 4 }] : siteReview ? [
+    { name: 'Parking-Peek', progress: 155, bar: 6 },
+    { name: 'Parking-Approach', progress: 325, bar: 8 },
+    { name: 'Parking-Clear', progress: 455, bar: 10 },
+    { name: 'Park-Peek', progress: 230, bar: 7 },
+    { name: 'Park-Approach', progress: 400, bar: 9 },
+    { name: 'Park-Clear', progress: 525, bar: 11 }
+  ] : worldReview ? [
     { name: 'Market', progress: 0, bar: 4 },
     { name: 'Sweeper', progress: 315, bar: 7 },
     { name: 'Trike', progress: 565, bar: 10 },
@@ -114,7 +123,10 @@ async function main() {
     { name: 'Hit', progress: 7900, bar: 80 },
     { name: 'Low-Signal', progress: 8080, bar: 81 }
   ];
-  const laneMoves = continuous ? [[1.5,1.5,0,1]] : worldReview ? [
+  const laneMoves = continuous ? [[1.5,1.5,0,1]] : siteReview ? [
+    [1.5,1.5,0,1],[1.5,1.5,0,1],[1.5,1.5,0,1],
+    [1.5,1.5,0,1],[1.5,1.5,0,1],[1.5,1.5,0,1]
+  ] : worldReview ? [
     [1,1,0,1], [2,2.8,.25,1.4], [0,1,.15,1.25],
     [1,0,.3,1.3], [2,2,0,1], [2,1,.3,1.4], [3,3,0,1]
   ] : [
@@ -136,9 +148,9 @@ async function main() {
     const chapterIndex = Math.floor(i / (seconds * fps));
     const chapter = chapters[chapterIndex], local = i % (seconds * fps) / fps;
     const s = road.state;
-    s.progress = continuous ? local * 80 : chapter.progress + local * 54;
+    s.progress = continuous ? local * 80 : chapter.progress + local * 54 + reviewLap*2460;
     s.elapsedMs = i * 1000 / fps;
-    s.musicBar = chapter.bar + Math.floor(local / 1.875);
+    s.musicBar = chapter.bar + reviewLap*24 + Math.floor(local / 1.875);
     s.musicBeatFloat = s.musicBar * 4 + local % 1.875 * 4 / 1.875;
     // Scripted arrangement states expose queued, single, and full-stack road
     // markings for art review; no audio or playable route is implied.
@@ -162,17 +174,17 @@ async function main() {
     const half=26+590*.83;
     const center=960+(at(s.progress+ahead)-at(s.progress)-ahead*heading)*.95;
     carCenters.push((center-half+s.visualLane*half/2+half/4)*2/3);
-    s.integrity = !worldReview && chapterIndex === 5 ? 1 : 3;
-    s.timeMs = !worldReview && chapterIndex === 5 ? 7400 : 55000;
-    s.pendingCapture = !worldReview && chapterIndex === 1 ? { lane: 2, startBeat: (s.musicBar + 1)*4 } : null;
-    s.candidateHold = !worldReview && chapterIndex === 1 ? .82 : 0;
-    s.candidateLane = !worldReview && chapterIndex === 1 ? 2 : null;
-    s.boostMs = !worldReview && chapterIndex === 2 ? 800 : 0;
-    s.cutFlashMs = !worldReview && chapterIndex === 3 ? Math.max(0,740-local*1000) : 0;
-    s.cutStreak = !worldReview && chapterIndex === 3 ? 2 : 0;
-    s.cutAward = !worldReview && chapterIndex === 3 ? 250 : 0;
-    s.stumbleMs = !worldReview && chapterIndex === 4 ? Math.max(0,650-local*1000) : 0;
-    s.invulnerableMs = !worldReview && chapterIndex === 4 ? Math.max(0,1400-local*1000) : 0;
+    s.integrity = !sceneryReview && chapterIndex === 5 ? 1 : 3;
+    s.timeMs = !sceneryReview && chapterIndex === 5 ? 7400 : 55000;
+    s.pendingCapture = !sceneryReview && chapterIndex === 1 ? { lane: 2, startBeat: (s.musicBar + 1)*4 } : null;
+    s.candidateHold = !sceneryReview && chapterIndex === 1 ? .82 : 0;
+    s.candidateLane = !sceneryReview && chapterIndex === 1 ? 2 : null;
+    s.boostMs = !sceneryReview && chapterIndex === 2 ? 800 : 0;
+    s.cutFlashMs = !sceneryReview && chapterIndex === 3 ? Math.max(0,740-local*1000) : 0;
+    s.cutStreak = !sceneryReview && chapterIndex === 3 ? 2 : 0;
+    s.cutAward = !sceneryReview && chapterIndex === 3 ? 250 : 0;
+    s.stumbleMs = !sceneryReview && chapterIndex === 4 ? Math.max(0,650-local*1000) : 0;
+    s.invulnerableMs = !sceneryReview && chapterIndex === 4 ? Math.max(0,1400-local*1000) : 0;
     s.messageMs = 0; s.message = '';
     if(worldReview&&chapterIndex===3) {
       s.ramMs=1200;s.shield=1;

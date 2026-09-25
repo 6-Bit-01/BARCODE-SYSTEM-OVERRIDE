@@ -143,20 +143,30 @@ async function run() {
   const roadStart = copy(C.readResume());
   const liveState = road.state, oldArt = B.PresentationAssets;
   const mirrorFrames = [], roadArt = [], openingRects = [], drawOrder = [], hudLines = [], contacts = [];
-  const trafficLabels = [], beacons = [], sidewalkEdges = [];
+  const trafficLabels = [], beacons = [], sidewalkEdges = [], clipStack = [];
   B.PresentationAssets = { ready(key) { return key.startsWith('cache'); },
     draw(key, _ctx, options) {
     if (key === 'cacheMirror') mirrorFrames.push({ frame: options.frame,
       sourceRect: options.sourceRect, x: options.x, y: options.y });
-    else { roadArt.push({ key, ...options,
+    else { roadArt.push({ key, ...options, clipHeight: _ctx.clipHeight ?? Infinity,
       ...(key.startsWith('cacheFly') ? { screenX: _ctx.lastTranslate?.[0] } : {}) });
       drawOrder.push(key); }
     return true;
   } };
   const paint = { addColorStop() {} };
-  const drawCtx = new Proxy({ createLinearGradient: () => paint,
+  const drawCtx = new Proxy({ clipHeight: Infinity, createLinearGradient: () => paint,
     createRadialGradient: () => paint,
-    beginPath() { this.path = []; },
+    beginPath() { this.path = []; this.pendingClip = null; },
+    rect(x,y,width,height) {
+      if(x===0 && y===0 && width===1920) this.pendingClip=height;
+    },
+    save() { clipStack.push(this.clipHeight ?? Infinity); },
+    restore() { this.clipHeight=clipStack.pop() ?? Infinity; },
+    clip() {
+      if(this.pendingClip!=null)
+        this.clipHeight=Math.min(this.clipHeight ?? Infinity,this.pendingClip);
+      this.pendingClip=null;
+    },
     moveTo(x,y) { this.path?.push({x,y}); },
     lineTo(x,y) { this.path?.push({x,y}); },
     stroke() {
@@ -206,19 +216,22 @@ async function run() {
     roadArt.some(entry => entry.key === 'cacheCar'),
   'three city depths, roadside art, flying traffic, road and car share the live draw');
   mirrorFrame({ progress: 0 });
-  const places = roadArt.filter(entry => entry.key.startsWith('cachePlace'));
+  const uprightPlaces = entries => entries.filter(entry =>
+    entry.key.startsWith('cachePlace') && entry.key !== 'cachePlacePark' &&
+    entry.key !== 'cachePlaceParking');
+  const places = uprightPlaces(roadArt);
   const market = places.filter(entry => entry.key === 'cachePlaceMarket' && entry.flip)
     .sort((a,b) => b.width-a.width)[0];
   const house = places.filter(entry => entry.key === 'cachePlaceHouse' && !entry.flip)
     .sort((a,b) => b.width-a.width)[0];
-  assert(market && house && places.length >= 4 &&
-    new Set(places.map(entry => entry.key)).size >= 3 &&
+  assert(market && house && places.length >= 2 &&
+    new Set(places.map(entry => entry.key)).size >= 2 &&
     places.every(entry => !entry.sourceRect && entry.width > 0 && entry.height > 0),
   'both sides contain several separate, varied, uniformly scaled parcels');
   const playerCar=roadArt.find(entry => entry.key === 'cacheCar');
-  assert(market.width > playerCar.width*2 && market.height > playerCar.height*2 &&
-    house.width > playerCar.width*1.4 && house.height > playerCar.height*1.7,
-  'near buildings read substantially larger than the player car at road scale');
+  assert(market.width > playerCar.width*1.5 && market.height > playerCar.height*1.5 &&
+    house.width > playerCar.width*1.2 && house.height > playerCar.height*1.4,
+  'opening buildings grow beyond car scale as they clear the distant horizon');
   const sidewalkAt = (side,y) => {
     const edge=sidewalkEdges[side < 0 ? 0 : 1];
     assert(edge && edge.length === 29, 'both curved sidewalk outer edges are drawn');
@@ -228,7 +241,7 @@ async function run() {
     return a.x+(b.x-a.x)*(y-a.y)/(b.y-a.y);
   };
   const checkSetbackAndFacing = () => {
-    for(const entry of roadArt.filter(item => item.key.startsWith('cachePlace') &&
+    for(const entry of uprightPlaces(roadArt).filter(item =>
       item.y >= 470 && item.y <= 1080 && item.x+item.width/2 >= 0 &&
       item.x-item.width/2 <= 1920)) {
       const side=entry.x < 960 ? -1 : 1;
@@ -244,7 +257,7 @@ async function run() {
   checkSetbackAndFacing();
   const openingPlaces=JSON.stringify(places);
   mirrorFrame({ progress: 0 });
-  assert.equal(JSON.stringify(roadArt.filter(entry => entry.key.startsWith('cachePlace'))),openingPlaces,
+  assert.equal(JSON.stringify(uprightPlaces(roadArt)),openingPlaces,
     'seeded roadside placement draws identically on repeated frames');
   const lamp = roadArt.find(entry => entry.key === 'cachePylon' &&
     entry.x < 960 && entry.y > 550 && entry.y < 690);
@@ -264,25 +277,52 @@ async function run() {
     entry.width > market.width && entry.x+entry.width/2 > 0 &&
     entry.y-entry.height < 1080),
   'the enlarged left market facade remains visible while it approaches the screen edge');
+  const emergingDiner=roadArt.find(entry=>entry.key==='cachePlaceDiner');
+  assert(emergingDiner && Number.isFinite(emergingDiner.clipHeight) &&
+    emergingDiner.y-emergingDiner.height<emergingDiner.clipHeight &&
+    emergingDiner.clipHeight<emergingDiner.y,
+  'a distant restaurant roof peeks above the horizon lip while its base is hidden');
   checkSetbackAndFacing();
+  mirrorFrame({ progress: 270 });
+  const clearDiner=roadArt.find(entry=>entry.key==='cachePlaceDiner');
+  assert(clearDiner && clearDiner.clipHeight===Infinity &&
+    clearDiner.y>emergingDiner.y && clearDiner.width>emergingDiner.width*2,
+  'the restaurant clears the horizon and grows on its way past the player');
   mirrorFrame({ progress: 300 });
   assert(roadArt.some(entry => entry.key === 'cachePlaceMarket' && entry.flip &&
     entry.width > market.width*1.4 && entry.x+entry.width/2 < 0),
   'the near building exits across the landscape edge instead of crossing the sidewalk');
   mirrorFrame({ progress: 600 });
   checkSetbackAndFacing();
-  assert(roadArt.some(entry => entry.key.startsWith('cachePlace') && entry.flip) &&
+  assert(uprightPlaces(roadArt).some(entry => entry.flip) &&
     !roadArt.some(entry => /^(cacheMarket|cacheDepot|cacheFrontage)/.test(entry.key)),
   'later blocks use independent right-side places, never the rejected long strips');
   const reviewedKinds=new Set();
   for(let progress=0;progress<2460;progress+=205) {
     mirrorFrame({ progress });
     checkSetbackAndFacing();
-    roadArt.filter(entry => entry.key.startsWith('cachePlace'))
+    uprightPlaces(roadArt)
       .forEach(entry => reviewedKinds.add(entry.key));
+    const visible=uprightPlaces(roadArt).filter(entry=>entry.x+entry.width/2>0 &&
+      entry.x-entry.width/2<1920 && entry.y-entry.height<1080);
+    assert.equal(new Set(visible.map(entry=>entry.key)).size,visible.length,
+      'a visible road vista never repeats one whole building at another size');
+    assert(!roadArt.some(entry=>entry.key==='cachePlaceParking'),
+      'the rejected long parking slab is never drawn');
   }
-  assert.equal(reviewedKinds.size,10,
-    'all ten painted location types receive a road-facing, exterior placement check');
+  assert.equal(reviewedKinds.size,8,
+    'all eight upright location paintings receive a road-facing, exterior placement check');
+  mirrorFrame({progress:340});
+  const parked=roadArt.filter(entry=>['cacheCourier','cacheAudit'].includes(entry.key) &&
+    entry.x+entry.width/2<sidewalkAt(-1,entry.y));
+  assert(parked.filter(entry=>entry.key==='cacheCourier').length>=2 &&
+    parked.some(entry=>entry.key==='cacheAudit'),
+  'projected parking bays use the game traffic sprites outside the sidewalk');
+  mirrorFrame({progress:490});
+  assert(roadArt.some(entry=>entry.key==='cachePlacePark' &&
+    entry.sourceRect && entry.sourceRect[3]<400) &&
+    roadArt.filter(entry=>entry.key==='cachePlacePark').every(entry=>entry.sourceRect),
+  'park foliage reuses cropped game art while the fixed painted ground is absent');
   mirrorFrame({ progress: 600 });
   assert(trafficLabels.includes('CUT >') && beacons.some(light => light.translate?.[0] === 0),
     'opening trike calls its right cut and keeps its beacon in the chassis frame');

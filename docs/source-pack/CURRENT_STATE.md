@@ -1,6 +1,25 @@
 # Current State
 
+## September 25 — horizon emergence and projected open locales
+
+After merged #125, the owner rejected duplicated/overlapping places, a flat
+parking slab above the horizon and mismatched generated cars. The generated
+candidates were discarded. This correction uses one seeded site row with
+twenty varied locations per lap, smaller distant arrival scale and an invisible
+depth-based horizon lip: roofs and treetops appear first, then their bases
+clear the horizon before the entire location grows and passes the player.
+Parking and park ground now follow the road's bend, with existing game traffic
+sprites in parking and cropped existing park foliage. The old parking painting
+is not loaded. Opening, site-stage, continuous-drive and third-lap native
+frames were inspected; production draw checks and repository gates passed.
+Makko visual, audio/controller feel and performance judgment remain for the
+owner. See `CACHE_ROAD_HORIZON_LOCALES.md` and the first acceptance route.
+
 ## September 25 — roadside setback and frontage facing
+
+Historical #125 placement. The one-row sequence and horizon reveal above
+supersede its duplicate background place row; exterior sidewalk setback and
+road-facing upright buildings remain.
 
 The owner approved the larger scale of merged #124, then found that some
 buildings and their painted lots covered the sidewalk and some houses faced

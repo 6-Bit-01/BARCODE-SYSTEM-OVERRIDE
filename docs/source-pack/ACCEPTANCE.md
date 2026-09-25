@@ -1,6 +1,29 @@
 # Acceptance and Test Status
 
+## Cache Road horizon and open locales — September 25
+
+Import the exact merged SHA into Makko and drive the opening and later road
+bends at normal speed. Follow a building from its first small roof above the
+horizon: its base should remain hidden briefly, then the whole building should
+clear the lip, grow and leave the edge beyond the sidewalk. The streetlight
+and sidewalk should travel with it. Follow the park foliage and parking lot
+through the same sequence; their ground must stay in the landscape, follow
+the bend and never rise into the sky. Parking cars should read as the game's
+own traffic art. Look for repeated buildings at two scales, overlap, empty
+gaps and entrances facing away from the road. Repeat a close pass with braking,
+pause/resume and Reduced Motion. The power-up/adrenaline tuning remains next.
+
+Production draw checks cover the clip, scale, no duplicate whole sites,
+setback, facing and use of game art. Native first and third-lap scenes, six
+site-stage frames and a 32-second continuous drive were inspected. They do
+not establish Makko performance, audible response, input feel or aesthetic
+acceptance. Record the imported SHA, device, road position and short clip for
+any issue; see `CACHE_ROAD_HORIZON_LOCALES.md`.
+
 ## Roadside setback and facing — September 25
+
+Historical #125 route. The horizon/locale route above supersedes its duplicate
+background row and flat open-lot art; exterior setback/facing still apply.
 
 Import this correction's exact merged main SHA into Makko. Drive the opening
 market and house at normal size, then follow them to the near screen edges.
