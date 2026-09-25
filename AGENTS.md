@@ -1,5 +1,16 @@
 # Repository Guidance
 
+## September 25, 2026 — Cache Road horizon and locale follow-up
+
+After merged #125, the owner rejected duplicate whole buildings, floating
+parking ground and mismatched generated cars. The current visual correction
+uses one site sequence, a depth-based horizon reveal and projected park and
+parking surfaces with game traffic art. Preserve exterior sidewalk setback,
+road-facing entrances, shared road/light motion, the five owner MP3s, lane
+actions and the open adrenaline/power-up backlog. See
+`docs/source-pack/CACHE_ROAD_HORIZON_LOCALES.md` and the top acceptance route.
+Native draws and VM checks are not Makko feel acceptance.
+
 ## September 25, 2026 — Cache Road visual contact pass
 
 The owner wants the visual backlog ahead of another mechanics tune. From

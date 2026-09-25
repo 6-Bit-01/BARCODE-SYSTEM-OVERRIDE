@@ -1,5 +1,19 @@
 # Recovery checkpoint — September 14
 
+## September 25, 2026 — horizon emergence and matching open locales
+
+- Remove the independent duplicate whole-place row; schedule twenty separate
+  sites per lap with long separation before a type returns. Keep smaller
+  world-fixed filler out of those sites.
+- Clip distant buildings and foliage to a projected horizon lip, then reveal
+  and scale them fully as they approach. Preserve exterior sidewalk setback.
+- Replace the fixed parking/park slab draw with projected ground, wet asphalt,
+  game traffic sprites and cropped existing park foliage. Stop preloading the
+  obsolete parking painting and discard mismatched generated art candidates.
+- Inspect staged site and district frames, a third-lap pass and a continuous
+  native drive; pass the production draw and repository checks. Makko visual
+  and audio/controller judgment remains open.
+
 ## September 25, 2026 — exterior roadside lots and facing
 
 - Position each large and quiet-row painted place past the actual outer

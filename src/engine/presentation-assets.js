@@ -33,7 +33,6 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     cacheShuttle: { path: 'assets/cache-road/vehicles/night-shuttle.webp', root: cacheWorldRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
     cachePlaceMarket: { path: 'assets/cache-road/roadside/places/corner-market.webp', root: cachePlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
     cachePlaceHouse: { path: 'assets/cache-road/roadside/places/row-house.webp', root: cachePlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
-    cachePlaceParking: { path: 'assets/cache-road/roadside/places/parking-lot.webp', root: cachePlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
     cachePlacePark: { path: 'assets/cache-road/roadside/places/pocket-park.webp', root: cachePlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
     cachePlaceGarage: { path: 'assets/cache-road/roadside/places/repair-garage.webp', root: cachePlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
     cachePlaceApartment: { path: 'assets/cache-road/roadside/places/apartment.webp', root: cachePlacesRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },

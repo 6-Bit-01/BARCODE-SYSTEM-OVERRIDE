@@ -1,4 +1,20 @@
-# Cache Road exterior lot placement and facing
+# Cache Road horizon emergence and projected locales
+
+After merged #125, the owner found repeated/overlapping places, a parking
+ground slab rising above the horizon, orientation problems and mismatched
+generated cars. This pass uses one seeded site row and a projected horizon
+lip: roofs appear first, full sites clear it as they approach, then grow and
+pass beyond the sidewalk. Parking and park ground follow the road bend;
+parking cars reuse actual game art, while park foliage comes from the existing
+painting. The generated candidates are discarded. Road gameplay and music
+remain unchanged.
+
+Review `CACHE_ROAD_HORIZON_LOCALES.md` and the top acceptance route. Production
+draw assertions, full repository checks, staged native frames across two
+laps, and a 32-second continuous render passed locally. Makko visual/audio/
+controller judgment remains pending.
+
+# Historical: Cache Road exterior lot placement and facing
 
 Merged #124 established larger individual places on a curved road. This
 follow-up positions both place rows and their small landscape filler outside

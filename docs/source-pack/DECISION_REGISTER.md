@@ -1,5 +1,18 @@
 # Decision Register
 
+## September 25, 2026 — roadside horizon emergence and matching art
+
+The owner rejected repeated/overlapping roadside buildings, parking and park
+orientation, a lot rising above the horizon, and newly generated cars and art
+that differ from the game. Individual locales must emerge roof/treetop first
+from behind the planet horizon, clear it with distance, grow and pass the
+character along the road curve. Keep locations outside the sidewalk and
+fronts toward traffic. Use game vehicle art and coherent existing roadside
+painting, with projected ground for flat locales; discard the mismatched
+generated candidates and long slab draw. See `CACHE_ROAD_HORIZON_LOCALES.md`.
+The visual result needs owner Makko review. The audit's adrenaline loop and
+defense/offense/traffic/environment/song/lane power-ups remain open.
+
 ## September 25, 2026 — exterior lots and road-facing entrances
 
 The owner likes merged #124's larger scale, but places and their lots must
