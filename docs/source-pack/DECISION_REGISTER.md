@@ -1,5 +1,18 @@
 # Decision Register
 
+## September 25, 2026 — grounded motion before the next tune
+
+The owner asked to address visual work first. Correct the road, ship and
+vehicle contact directions from the seven-part cohesion list in one small
+pass, keeping current collision/music/pad balance intact. Wheel contact
+coordinates follow the recovered painted poses rather than the image box,
+whose bumper and exhaust extend lower than the tires. Reduced Motion freezes
+decorative flying ships. A tried reuse of the Level 1 storefront strip looked
+like an isolated cutout on this viaduct and was removed; the roadside/passing
+scene work requires its own perspective composition. See
+`CACHE_ROAD_VISUAL_CONTACT.md`. The remaining art and power-up backlog in
+`CACHE_ROAD_COHESION_AUDIT.md` stays active.
+
 ## September 24, 2026 — action/lane cohesion after repeated drives
 
 The owner adds power-ups for defense, offense, traffic, environment, song and

@@ -1,5 +1,21 @@
 # Current State
 
+## September 25 — Cache Road visual contact review
+
+Starting from merged #117 (`8923d3eea3fc5fe8cd8944ef50f3578ccaf0d785`),
+this focused pass makes the continuous blacktop texture travel toward the
+driver, turns the gray flying ships to match their flight, and holds all
+decorative ship motion in Reduced Motion. Recovered Cache Back, freight and
+other painted traffic keep their tire pixels and new contact shadows at each
+art-specific wheel line while the chassis bounces and impacts. A native
+six-scene production draw and enlarged before/after contact image were
+inspected; the focused proof checks texture direction, atlas facing, wheel
+shadow positions and Reduced Motion. Music, pads, controls, traffic rules,
+saves and campaign awards do not change. The illustrated scan/sweeper and
+additional traffic, sidewalks/pedestrians/varied roadside scenes, then
+adrenaline balance remain open. See `CACHE_ROAD_VISUAL_CONTACT.md` and the
+cohesion audit. Makko play has not judged this revision yet.
+
 ## September 24 — repeated Cache Road drives and caught-pad correction
 
 Merged main #116 is `5c246b217397848b6dc8f24b5b1d20b94890ee79`.

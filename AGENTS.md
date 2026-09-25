@@ -1,5 +1,20 @@
 # Repository Guidance
 
+## September 25, 2026 — Cache Road visual contact pass
+
+The owner wants the visual backlog ahead of another mechanics tune. From
+merged #117, reverse blacktop sampling so it approaches the car, face each
+reused flying-ship atlas along its travel, and anchor Cache/freight wheel
+paint and contact shadows to the recovered art while the chassis moves. Hold
+decorative ship travel and animation under Reduced Motion. See
+`docs/source-pack/CACHE_ROAD_VISUAL_CONTACT.md` for native motion review and
+`CACHE_ROAD_COHESION_AUDIT.md` for the still-open illustrated traffic,
+sidewalk/pedestrian/building/prop scenes, playtest and power-up work. Preserve
+the five owner MP3s, four lanes, controls, sparse pads, save/exit rules and
+no Level 2 award. Merge the tested PR for the owner's Makko import; only that
+play can settle visual speed, sound and controller feel. Older art review
+requirements below describe prior branches.
+
 ## September 24, 2026 — Cache Road cohesion and power-up backlog
 
 After merged #116, the owner requests repeated play/simulation before their

@@ -1,5 +1,17 @@
 # Recovery checkpoint — September 14
 
+## September 25, 2026 — Cache Road visual contact
+
+- Reverse continuous blacktop sampling so surface marks approach the car.
+  The existing adjacent-strip sampling and wrap blend remain.
+- Match each flying atlas's nose to its left/right travel; hold horizontal
+  travel, bob, banking and frame changes in Reduced Motion.
+- Calibrate each recovered vehicle's rear wheel contact line, paint two
+  anchored tire shadows and let chassis suspension/jolt move around those
+  pixels. Reposition spray, tread and turning rim within the wheel geometry.
+- Inspect six scripted production-draw states and car/freight motion crops;
+  add focused visual-direction/contact assertions. No music/gameplay tune.
+
 ## September 24, 2026 — Cache Road cohesion review
 
 - Run four production-input driving scenarios and inspect native road frames.
