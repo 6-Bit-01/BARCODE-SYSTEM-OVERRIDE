@@ -1,5 +1,16 @@
 # Recovery checkpoint — September 14
 
+## September 25, 2026 — exterior roadside lots and facing
+
+- Position each large and quiet-row painted place past the actual outer
+  sidewalk edge by half its rendered width and a perspective gap. Move parcel
+  foundations and short landscape filler outside that edge as well.
+- Mirror nine sources on the left and the garage on the right, so entrances,
+  gates and the garage bay face toward traffic. Keep place scale, curved road,
+  lamps, pads, HUD, music and gameplay rules.
+- Compare production draw bounds with the drawn sidewalk path and inspect
+  scripted and continuous native road views. Owner Makko review remains open.
+
 ## September 25, 2026 — curved Cache Road roadside correction
 
 - Narrow the near road and derive its curve from a world path and camera

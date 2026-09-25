@@ -1,6 +1,20 @@
 # BARCODE: SYSTEM OVERRIDE — Source Pack v5
 
+## Current review — exterior roadside and frontages
+
+Start with `CACHE_ROAD_SETBACK_FACING.md`, `CURRENT_STATE.md` and the first
+`ACCEPTANCE.md` route. The owner likes the larger scale in #124 but requested
+lots beyond the sidewalk and road-facing entrances. Both place rows, parcel
+ground and small filler now have an exterior setback on the curved road;
+entrances and gates face traffic. Scripted and continuous production renders
+and focused bounds/facing checks support review. Makko visual, music and
+controller judgment remain pending; the adrenaline/power-up plan is still
+open.
+
 ## Current review — curved roadside scale
+
+Historical placement from #124 is superseded by the exterior lot correction
+above. Its larger size and curved road remain.
 
 Start with `CACHE_ROAD_CURVED_PROJECTION.md`, `CURRENT_STATE.md` and the first
 `ACCEPTANCE.md` route. The owner rejected merged #123: its individual art

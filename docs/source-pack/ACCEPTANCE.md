@@ -1,6 +1,29 @@
 # Acceptance and Test Status
 
+## Roadside setback and facing — September 25
+
+Import this correction's exact merged main SHA into Makko. Drive the opening
+market and house at normal size, then follow them to the near screen edges.
+Their full painted footprints should stay on the landscape outside the
+sidewalk, leaving a visible strip for pedestrians and lights; the market
+storefront and house entrance should turn toward the road. Check the garage
+bay, parking gate, park entrance and later houses on both sides, including a
+noticeable bend and the close pass. Streetlights should keep their prior size.
+Pause, resume and try Reduced Motion; the fixed places and curved sidewalk
+should continue moving together at road speed. A road position and frame or
+short clip will help resolve any remaining bad frontage, overlap or empty gap.
+
+The focused draw checks compare visible place bounds with the actual sidewalk
+paths and check orientation. Seven scripted native scenes and a continuous
+drive show placement at various depths; they do not establish Makko input,
+music response, performance or aesthetic acceptance. The prior pad, bar and
+HUD routes still apply. Adrenaline balance and the defense/offense/traffic/
+environment/song/lane power-ups remain after the visual pass.
+
 ## Curved Cache Road roadside — September 25
+
+Historical #124 placement: the owner requested exterior setback and frontage
+facing after this review. Use the route above for current visual acceptance.
 
 Import the exact merged main SHA into Makko at normal game size. Drive the
 first market and house slowly, then at cruising speed. Compare each with the

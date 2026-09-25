@@ -1,5 +1,16 @@
 # Decision Register
 
+## September 25, 2026 — exterior lots and road-facing entrances
+
+The owner likes merged #124's larger scale, but places and their lots must
+sit in the landscape outside the sidewalk, farther toward the sides of the
+screen. Houses and other locations should present their fronts, or nearly
+their fronts, to traffic. Keep the individual oblique assets, varied sizes,
+curved world-distance motion and appropriately sized streetlights. Move both
+place rows and filler beyond the drawn sidewalk, turn their painted fronts
+roadward, and inspect multiple bends and near passes. Makko acceptance and
+the adrenaline/power-up work remain open. See `CACHE_ROAD_SETBACK_FACING.md`.
+
 ## September 25, 2026 — roadside proportion and curved passing motion
 
 After merged #123 the owner rejected the small, poorly angled and detached

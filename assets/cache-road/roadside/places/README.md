@@ -4,8 +4,14 @@ These ten transparent places replace the rejected long market, depot and
 frontage strips. Every image is one separate parcel or building with oblique
 depth painted into its own roof, walls and footprint. It is placed as a whole
 object at a deterministic road-world coordinate and grows uniformly as it
-approaches the car. The right side mirrors the diagonal art; there are no
-horizontal slices or per-column distortions.
+approaches the car. Its full footprint sits beyond the sidewalk edge with a
+small gap that grows on approach; there are no horizontal slices or per-column
+distortions. The source front is on the left for the market, house, parking,
+park, apartment, diner, substation, garden and construction site. Mirror these
+on the left side of the road so that their doors, gates and openings turn
+toward traffic. The garage's large bay is on the right of its source and uses
+the opposite mirror direction. Both the foreground and quieter background
+row use this facing rule.
 
 | Runtime WebP / source PNG stem | Individual place | Visual role |
 | --- | --- | --- |
