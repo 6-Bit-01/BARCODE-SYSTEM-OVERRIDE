@@ -24,11 +24,18 @@ async function main() {
     cacheCourier: 'assets/cache-road/vehicles/courier.webp',
     cacheBarricade: 'assets/cache-road/vehicles/barricade.webp',
     cacheRival: 'assets/cache-road/vehicles/rival.webp',
+    cacheAudit: 'assets/cache-road/vehicles/audit-sedan.webp',
+    cacheSweeper: 'assets/cache-road/vehicles/sweeper.webp',
+    cacheTrike: 'assets/cache-road/vehicles/signal-trike.webp',
+    cacheShuttle: 'assets/cache-road/vehicles/night-shuttle.webp',
     cacheSkyline: 'assets/cache-road/world/skyline.webp',
     cacheDistantCity: 'assets/cache-road/world/distant-city.webp',
     cacheMidCity: 'assets/cache-road/world/mid-city.webp',
     cacheParapet: 'assets/cache-road/roadside/parapet.webp',
     cachePylon: 'assets/cache-road/roadside/service-pylon.webp',
+    cacheMarketBlock: 'assets/cache-road/roadside/market-block.webp',
+    cacheRelayDepot: 'assets/cache-road/roadside/relay-depot.webp',
+    cacheServiceFrontage: 'assets/cache-road/roadside/service-frontage.webp',
     cacheImpactGrit: 'assets/cache-road/effects/impact-grit.webp',
     cacheSpeedMist: 'assets/cache-road/effects/speed-mist.webp',
     cacheBlacktop: 'assets/wet-street/rain-blacktop.webp',
@@ -81,7 +88,16 @@ async function main() {
   const scene = createCanvas(1920,1080), sc = scene.getContext('2d');
   const video = createCanvas(1280,720), vc = video.getContext('2d');
   const detail = createCanvas(1320, 1140), dc = detail.getContext('2d');
-  const fps = 18, seconds = 2, chapters = [
+  const worldReview = process.env.CACHE_REVIEW_WORLD === '1';
+  const fps = 18, seconds = 2, chapters = worldReview ? [
+    { name: 'Market', progress: 0, bar: 4 },
+    { name: 'Sweeper', progress: 315, bar: 7 },
+    { name: 'Trike', progress: 565, bar: 10 },
+    { name: 'Audit', progress: 975, bar: 15 },
+    { name: 'Shuttle', progress: 1065, bar: 16 },
+    { name: 'Depot', progress: 1255, bar: 19 },
+    { name: 'Later-Block', progress: 2020, bar: 28 }
+  ] : [
     { name: 'Calm', progress: 3020, bar: 32 },
     { name: 'Focused', progress: 3120, bar: 33 },
     { name: 'Turbo', progress: 5580, bar: 56 },
@@ -89,7 +105,10 @@ async function main() {
     { name: 'Hit', progress: 7900, bar: 80 },
     { name: 'Low-Signal', progress: 8080, bar: 81 }
   ];
-  const laneMoves = [
+  const laneMoves = worldReview ? [
+    [1,1,0,1], [2,2.8,.25,1.4], [0,1,.15,1.25],
+    [1,0,.3,1.3], [2,2,0,1], [2,1,.3,1.4], [3,3,0,1]
+  ] : [
     [1.5,1.5,0,1], [1.5,2.45,.15,1.35], [2.45,1.2,.06,1.3],
     [1.2,2.0,.12,.62], [2.0,2.0,0,1], [2.0,1.5,.4,1.6]
   ];
@@ -120,17 +139,17 @@ async function main() {
     const half = 80+800*.83;
     const bend = Math.sin(s.progress/190+(1-.83)*1.2)*(1-.83)*124;
     carCenters.push((960+bend-half+s.visualLane*half/2+half/4)*2/3);
-    s.integrity = chapterIndex === 5 ? 1 : 3;
-    s.timeMs = chapterIndex === 5 ? 7400 : 55000;
-    s.pendingCapture = chapterIndex === 1 ? { lane: 2, startBeat: (s.musicBar + 1)*4 } : null;
-    s.candidateHold = chapterIndex === 1 ? .82 : 0;
-    s.candidateLane = chapterIndex === 1 ? 2 : null;
-    s.boostMs = chapterIndex === 2 ? 800 : 0;
-    s.cutFlashMs = chapterIndex === 3 ? Math.max(0,740-local*1000) : 0;
-    s.cutStreak = chapterIndex === 3 ? 2 : 0;
-    s.cutAward = chapterIndex === 3 ? 250 : 0;
-    s.stumbleMs = chapterIndex === 4 ? Math.max(0,650-local*1000) : 0;
-    s.invulnerableMs = chapterIndex === 4 ? Math.max(0,1400-local*1000) : 0;
+    s.integrity = !worldReview && chapterIndex === 5 ? 1 : 3;
+    s.timeMs = !worldReview && chapterIndex === 5 ? 7400 : 55000;
+    s.pendingCapture = !worldReview && chapterIndex === 1 ? { lane: 2, startBeat: (s.musicBar + 1)*4 } : null;
+    s.candidateHold = !worldReview && chapterIndex === 1 ? .82 : 0;
+    s.candidateLane = !worldReview && chapterIndex === 1 ? 2 : null;
+    s.boostMs = !worldReview && chapterIndex === 2 ? 800 : 0;
+    s.cutFlashMs = !worldReview && chapterIndex === 3 ? Math.max(0,740-local*1000) : 0;
+    s.cutStreak = !worldReview && chapterIndex === 3 ? 2 : 0;
+    s.cutAward = !worldReview && chapterIndex === 3 ? 250 : 0;
+    s.stumbleMs = !worldReview && chapterIndex === 4 ? Math.max(0,650-local*1000) : 0;
+    s.invulnerableMs = !worldReview && chapterIndex === 4 ? Math.max(0,1400-local*1000) : 0;
     s.messageMs = 0; s.message = '';
     s.echoEnergy = 65 + chapterIndex * 6;
     s.lockEnergy = 26 + chapterIndex * 10;

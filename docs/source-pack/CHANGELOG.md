@@ -1,5 +1,16 @@
 # Recovery checkpoint — September 14
 
+## September 25, 2026 — Cache Road traffic and layered roadside
+
+- Add illustrated audit/sweeper, signal trike and shuttle; project scan and
+  adjacent-lane arrows, with corresponding contact and shuttle draft rules.
+- Place two connected event blocks diagonally over a repeating painted
+  frontage and world-fixed service pavement. Sidewalk markings, pedestrians,
+  streetlights and wall share one curved road projection and travel speed.
+- Inspect seven scripted moving chapters and early/late roadside frames;
+  check authored routes, traffic behavior, parallax coordinates and asset
+  fallback. Preserve the song, sparse pad chart, controls and save/award scope.
+
 ## September 25, 2026 — turn-wheel contact follow-up
 
 - Align each selected outer front tire's clip and shadow to its higher

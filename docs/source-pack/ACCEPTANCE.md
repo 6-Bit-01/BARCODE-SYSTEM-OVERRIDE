@@ -1,5 +1,29 @@
 # Acceptance and Test Status
 
+## Cache Road layered roadside and traffic — September 25
+
+After this pass merges, import its exact main SHA into Makko. At normal game
+size, drive the first market on the left: its far end should appear small by
+the horizon, then its connected frontage and pavement should grow diagonally
+toward the lower left. A quieter continuous building row and service street
+should remain beneath it. The sidewalk seams, walkers and streetlights should
+pass at the same road speed without a sliding seam. The depot on the right
+around the first audit should approach toward the lower right, with the
+frontage continuing after it. Check normal driving, braking, Turbo, pause and
+Reduced Motion.
+
+At the first sweeper near 465, read its amber one-lane arrow and get out of
+its destination lane. At the small trike near 735, watch its cyan cut from
+lane zero to one; its starting lane should open behind it. Use an Echo before
+the audit near 1135 and see the painted audit sedan lock the decoy. The tall
+purple shuttle near 1220 stays in its lane and can be drafted for Turbo.
+Later rotated sweepers must merge inward at the right edge. Report the exact
+imported SHA, device, road position and a frame for any separation, abrupt
+tile edge, unclear warning or art fallback. The native seven-chapter preview
+and scripted driving checks support this review but do not establish Makko
+motion, sound or physical-controller feel. Music and pad balance remain for
+the subsequent adrenaline playtest; the power-up list remains open.
+
 ## Cache Road visual contact — September 25
 
 Import the exact merged revision into Makko and drive with the same speed
@@ -17,8 +41,8 @@ wheel comparison in `review-cache-road-visual/Turn-Contact-Before-After.webp`.
 The later follow-up specifically grounds both turning front wheels. This is
 a scripted production draw, not a Makko recording. Report the imported SHA
 and a frame if the art falls back or a contact gap persists. Music, pads, inputs,
-collision, saves and exit are unchanged; the next traffic/roadside art and
-mechanics tune remain separate acceptance items.
+collision, saves and exit were unchanged in that pass; the subsequent
+traffic/roadside review is above, with mechanics tuning still open.
 
 ## Cache Road cohesion follow-up — September 24
 
