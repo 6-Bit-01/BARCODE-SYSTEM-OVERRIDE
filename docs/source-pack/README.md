@@ -1,6 +1,20 @@
 # BARCODE: SYSTEM OVERRIDE — Source Pack v5
 
+## Current review — curved roadside scale
+
+Start with `CACHE_ROAD_CURVED_PROJECTION.md`, `CURRENT_STATE.md` and the first
+`ACCEPTANCE.md` route. The owner rejected merged #123: its individual art
+appeared too small and detached from the road. This revision measures the
+road against the player car and traffic, enlarges the separate places,
+projects their ground and streetlights from one curved road, and keeps them
+drawing through the near-screen pass. A native continuous drive and focused
+draw checks support review; the exact merged build still needs Makko visual,
+audio and controller judgment. The power-up and adrenaline work remains open.
+
 ## Current review — individual roadside places
+
+Historical: the owner rejected #123's visual scale and placement. Its
+individual asset kit remains in use in the corrected projection above.
 
 Start with `CACHE_ROAD_INDIVIDUAL_PLACES.md`, `CURRENT_STATE.md` and the first
 `ACCEPTANCE.md` route. The owner rejected the six joined diagonal scenes from

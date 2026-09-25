@@ -48,16 +48,16 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   // Each transparent place has its own painted three-quarter footprint. A
   // uniform scale changes its distance without reshaping its architecture.
   const PLACE_ART = {
-    market: ['cachePlaceMarket',960,876,390,120],
-    house: ['cachePlaceHouse',960,891,315,112],
-    parking: ['cachePlaceParking',960,645,530,177],
-    park: ['cachePlacePark',960,640,485,171],
-    garage: ['cachePlaceGarage',960,632,440,145],
-    apartment: ['cachePlaceApartment',631,960,235,112],
-    diner: ['cachePlaceDiner',960,618,440,143],
-    substation: ['cachePlaceSubstation',960,638,480,158],
-    garden: ['cachePlaceGarden',960,646,485,167],
-    construction: ['cachePlaceConstruction',960,635,510,172]
+    market: ['cachePlaceMarket',960,876,700,150],
+    house: ['cachePlaceHouse',960,891,700,135],
+    parking: ['cachePlaceParking',960,645,780,205],
+    park: ['cachePlacePark',960,640,700,195],
+    garage: ['cachePlaceGarage',960,632,700,175],
+    apartment: ['cachePlaceApartment',631,960,490,135],
+    diner: ['cachePlaceDiner',960,618,700,170],
+    substation: ['cachePlaceSubstation',960,638,680,185],
+    garden: ['cachePlaceGarden',960,646,690,190],
+    construction: ['cachePlaceConstruction',960,635,710,195]
   };
   const PLACE_DISTRICTS = [
     ['market','diner','apartment','house','parking','park'],
@@ -1143,13 +1143,25 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const skyBottoms = ['#9b4f74', '#dc805b', '#d87891', '#86a89d'];
       const reduced = !!B.Preferences?.values?.reducedMotion;
       const horizon = 400, bottom = 1080;
-      const bend = t => Math.sin(progress / 190 + (1 - t) * 1.2) * (1 - t) * 124;
-      const center = t => 960 + bend(t), half = t => 80 + 800 * t;
+      // A camera follows the tangent of a world-space road centerline. The
+      // far road bends toward its upcoming path while the car stays centered.
+      const path = at => 200*Math.sin(at/700)+90*Math.sin(at/295+.5);
+      const heading = at => 200/700*Math.cos(at/700)+90/295*Math.cos(at/295+.5);
+      const eyePath=path(progress),eyeHeading=heading(progress);
+      const center = t => {
+        const ahead=(1-t)*520;
+        return 960+(path(progress+ahead)-eyePath-ahead*eyeHeading)*.95;
+      };
+      const half = t => 26 + 590 * t;
       const laneEdge = (lane, t) => center(t) - half(t) + lane * half(t) / 2;
       const laneX = (lane, t) => laneEdge(lane, t) + half(t) / 4;
       const roadY = t => horizon + t * t * (bottom - horizon);
       const depth = d => clamp(1 - (d + 80) / 520, 0, 1);
-      const roadsideX = (side,t,base,growth) => center(t)+side*(half(t)+base+growth*t);
+      const sideDepth = d => 1-(d+80)/520;
+      // The road, curb, lot and lamp offsets all converge at the vanishing
+      // point, and the same projection continues beyond the bottom of frame.
+      const roadsideX = (side,t,base,growth) =>
+        center(t)+side*(half(t)+(base+growth*t)*(.1+.9*t));
       ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
       const beat = reduced ? 0 : s.musicBeatFloat || 0;
       const stack = Math.min(4,s.captures?.length || 0);
@@ -1245,6 +1257,48 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           flip:model==='cacheFly1'?!forward:forward });
         ctx.restore();
       }
+      // The whole side of the road has a ground plane; locations are never
+      // isolated cutouts above the empty sky color. Its blocks advance in
+      // world distance, then the service street and artwork sit over it.
+      const land=ctx.createLinearGradient(0,horizon,0,bottom);
+      land.addColorStop(0,'#1a2c38');land.addColorStop(1,'#293f43');
+      ctx.fillStyle=land;ctx.fillRect(0,horizon,1920,bottom-horizon);
+      for(let at=Math.floor((progress+600)/85)*85;at>progress-180;at-=85) {
+        const near=sideDepth(at-progress),far=sideDepth(at+85-progress);
+        if(near<.08||far>1.20)continue;
+        const n=clamp(near,.08,1.20),f=clamp(far,.08,1.20);
+        const district=Math.floor(Math.abs(at)/615)%4;
+        const plots=['#26394a','#273d43','#34414c','#223842'];
+        for(const side of [-1,1]) {
+          ctx.globalAlpha=.36;
+          polygon(ctx,[[roadsideX(side,f,470,285),roadY(f)+39*f],
+            [roadsideX(side,n,470,285),roadY(n)+39*n],
+            [side<0?-10:1930,roadY(n)+39*n],
+            [side<0?-10:1930,roadY(f)+39*f]],
+          plots[(district+1+Math.floor(at/85)%4+4)%4]);
+          ctx.save();ctx.beginPath();
+          ctx.moveTo(roadsideX(side,f,205,145),roadY(f)+20*f);
+          ctx.lineTo(roadsideX(side,n,205,145),roadY(n)+20*n);
+          ctx.lineTo(side<0?-10:1930,roadY(n)+39*n);
+          ctx.lineTo(side<0?-10:1930,roadY(f)+39*f);
+          ctx.closePath();ctx.clip();ctx.globalAlpha=.17;
+          B.PresentationAssets?.draw?.('cacheBlacktop',ctx,{
+            x:0,y:roadY(f)+20*f,width:1920,height:Math.max(1,roadY(n)-roadY(f)+40),
+            sourceRect:[0,108+(Math.abs(Math.floor(at/85))*43)%500,2172,78] });
+          ctx.restore();
+          ctx.globalAlpha=.88;
+          polygon(ctx,[[roadsideX(side,f,205,145),roadY(f)+20*f],
+            [roadsideX(side,n,205,145),roadY(n)+20*n],
+            [roadsideX(side,n,480,295),roadY(n)+39*n],
+            [roadsideX(side,f,480,295),roadY(f)+39*f]],
+          plots[(district+(Math.floor(at/85)%3+3)%3)%4]);
+          ctx.globalAlpha=.28;ctx.strokeStyle='#8baba6';ctx.lineWidth=1+2*n;
+          ctx.beginPath();
+          ctx.moveTo(roadsideX(side,n,210,150),roadY(n)+22*n);
+          ctx.lineTo(roadsideX(side,n,470,285),roadY(n)+38*n);ctx.stroke();
+        }
+      }
+      ctx.globalAlpha=1;
       // Side decks track the same bend as the lane geometry. Real parapet and
       // pylon art is placed at world distances below, after the asphalt.
       for (const side of [-1, 1]) {
@@ -1268,10 +1322,31 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         }
         ctx.stroke();
       }
+      // Each separate location owns a piece of the same roadside ground.
+      // Its near/far edges are world distances, so the foundation stretches
+      // and passes with the building instead of sliding beneath a billboard.
+      for(const place of SIDE_PLACES) {
+        const near=sideDepth(place.at-18-progress);
+        const far=sideDepth(place.at+75*place.size-progress);
+        if(near<.11||far>1.2)continue;
+        const n=clamp(near,.11,1.2),f=clamp(far,.11,1.2);
+        const side=place.side;
+        ctx.globalAlpha=clamp((n-.11)/.2,0,.58);
+        polygon(ctx,[[roadsideX(side,f,174,120),roadY(f)+18*f],
+          [roadsideX(side,n,174,120),roadY(n)+18*n],
+          [roadsideX(side,n,445,285),roadY(n)+34*n],
+          [roadsideX(side,f,445,285),roadY(f)+34*f]],
+        ['park','garden'].includes(place.kind)?'#344b43':
+          ['garage','substation','construction'].includes(place.kind)?'#344149':'#394548');
+        ctx.strokeStyle='#7e9c9970';ctx.lineWidth=1+2*n;
+        ctx.beginPath();ctx.moveTo(roadsideX(side,n,178,124),roadY(n)+18*n);
+        ctx.lineTo(roadsideX(side,n,440,280),roadY(n)+34*n);ctx.stroke();
+      }
+      ctx.globalAlpha=1;
       // World-fixed joints and drainage marks turn the decks into sidewalks
       // that advance with the road instead of a flat colored wedge.
-      for(let at=Math.floor((progress+435)/55)*55;at>progress-35;at-=55) {
-        const t=depth(at-progress); if(t<.16||t>.98)continue;
+      for(let at=Math.floor((progress+435)/55)*55;at>progress-170;at-=55) {
+        const t=sideDepth(at-progress); if(t<.16||t>1.17)continue;
         for(const side of [-1,1]) {
           const inner=roadsideX(side,t,73,50);
           const outer=roadsideX(side,t,220,190);
@@ -1283,7 +1358,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           // Wet service-lane dashes belong to the same 55-unit tile as the
           // slab joint; both expand and pass at the road's exact speed.
           if(Math.floor(at/55)%2===0) {
-            const next=depth(at+28-progress), far=clamp(next,.16,.98);
+            const next=sideDepth(at+28-progress), far=clamp(next,.16,1.17);
             ctx.strokeStyle='#abc0bd70';ctx.lineWidth=1+3*t;
             ctx.beginPath();ctx.moveTo(roadsideX(side,t,150,114),yy+10*t);
             ctx.lineTo(roadsideX(side,far,150,114),roadY(far)+10*far);ctx.stroke();
@@ -1345,7 +1420,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       ctx.closePath(); ctx.clip(); ctx.fillStyle=roadFog; ctx.fillRect(0,horizon,1920,170);
       ctx.restore();
       for(const place of BACK_PLACES) {
-        const t=depth(place.at-progress);if(t<.13||t>.85)continue;
+        const t=sideDepth(place.at-progress);if(t<.10||t>1.9)continue;
         const [key,sourceW,sourceH,maxW]=PLACE_ART[place.kind];
         const width=maxW*(.05+.95*t)*place.size;
         ctx.save();ctx.globalAlpha*=clamp((t-.13)/.12,0,1)*(.38+.35*t);
@@ -1357,8 +1432,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // Individual low silhouettes fill gaps behind the places. Every hedge,
       // fence, kiosk and utility post has a fixed world coordinate; there is
       // no scrolling banner or repeated building strip behind the artwork.
-      for(let at=Math.floor((progress+455)/68)*68;at>progress-65;at-=68) {
-        const t=depth(at-progress);if(t<.16||t>.88)continue;
+      for(let at=Math.floor((progress+455)/68)*68;at>progress-170;at-=68) {
+        const t=sideDepth(at-progress);if(t<.16||t>1.17)continue;
         const y=roadY(t)+26*t;
         for(const side of [-1,1]) {
           const seed=Math.floor(at/68)*149+(side+2)*883;
@@ -1413,8 +1488,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // Painted oblique parcels keep their authored shape. The same distance
       // controls their position, uniform scale and opacity on either side.
       for(const place of SIDE_PLACES) {
-        const t=depth(place.at-progress);
-        if(t<.13||t>.97)continue;
+        const t=sideDepth(place.at-progress);
+        if(t<.10||t>1.9)continue;
         const [key,sourceW,sourceH,maxW]=PLACE_ART[place.kind];
         const width=maxW*(.05+.95*t)*place.size;
         const height=width*sourceH/sourceW;
@@ -1424,8 +1499,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.restore();
         if(!['market','diner','park','house','garden'].includes(place.kind))continue;
         // A nearby pedestrian shares the lot's world coordinate and curb.
-        const walkT=depth(place.at+22-progress);
-        if(walkT<.17||walkT>.89)continue;
+        const walkT=sideDepth(place.at+22-progress);
+        if(walkT<.17||walkT>1.16)continue;
         const stride=reduced?0:Math.sin((s.elapsedMs||0)*.004+place.at*.13);
         const px=roadsideX(place.side,walkT,122,83)+stride*8*walkT;
         const foot=roadY(walkT)+8*walkT,human=13+52*walkT;
@@ -1444,9 +1519,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       }
       // Stretch adjacent wall segments between the same projected road points.
       // This makes one continuous side wall rather than floating sign panels.
-      for(let at=Math.floor((progress+500)/62)*62;at>progress-65;at-=62) {
-        const far=clamp(depth(at+62-progress),.13,.99);
-        const near=clamp(depth(at-progress),.13,.99);
+      for(let at=Math.floor((progress+500)/62)*62;at>progress-150;at-=62) {
+        const far=clamp(sideDepth(at+62-progress),.13,1.15);
+        const near=clamp(sideDepth(at-progress),.13,1.15);
         if(near<=far)continue;
         const id=Math.abs(Math.floor(at/62));
         for(const side of [-1,1]) {
@@ -1464,8 +1539,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         }
       }
       ctx.globalAlpha=1;
-      for(let at=Math.floor((progress+520)/142)*142;at>progress-65;at-=142) {
-        const t=depth(at-progress);if(t<.17||t>.97)continue;
+      for(let at=Math.floor((progress+520)/142)*142;at>progress-420;at-=142) {
+        const t=sideDepth(at-progress);if(t<.17||t>1.65)continue;
         const y=roadY(t)+18*t;
         for(const side of [-1,1]) {
           const x=roadsideX(side,t,98,80);

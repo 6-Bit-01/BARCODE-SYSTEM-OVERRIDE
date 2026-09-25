@@ -1,6 +1,26 @@
 # Current State
 
+## September 25 — curved roadside projection after owner rejected #123
+
+The owner inspected the merged individual-place pass and rejected its visual
+scale and perspective. Its streetlights were appropriately sized, but the
+near road used almost the full 1,920-pixel screen, leaving small disconnected
+scenes at its edges. The correction narrows the road, projects its center
+from one world path and camera tangent, and lets all roadside offsets converge
+at distance. Buildings and lots are substantially larger relative to the
+player and traffic, and keep passing until their facades leave the frame.
+World-fixed wet ground blocks and parcel foundations connect the locations
+to the sidewalk. A continuous native drive and focused production draw cover
+the revision; actual Makko scale, angle and audible/visual feel await the
+owner's judgment. See `CACHE_ROAD_CURVED_PROJECTION.md` and the first
+`ACCEPTANCE.md` route. Pads, HUD, music, traffic and the power-up backlog
+retain their previous scope.
+
 ## September 25 — individual roadside places after owner correction
+
+Historical: the owner subsequently rejected this merged #123 visual result.
+Its separate source paintings remain; the new projection above supersedes
+their placement and scale.
 
 PR #122's six long diagonal roadside scenes were merged but rejected by the
 owner as the wrong composition. This follow-up removes those runtime strips

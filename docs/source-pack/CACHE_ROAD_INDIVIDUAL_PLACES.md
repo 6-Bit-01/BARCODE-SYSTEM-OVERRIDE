@@ -1,5 +1,9 @@
 # Cache Road individual places — September 25, 2026
 
+Historical placement note: the owner rejected the merged #123 rendering.
+The individual source art remains, but `CACHE_ROAD_CURVED_PROJECTION.md`
+supersedes the scale and ground projection described below.
+
 The owner rejected the six long diagonal paintings from PR #122. The intended
 roadside is a succession of separate locations: buildings, houses, open lots,
 parks and service spaces that emerge small in the distance, become larger,

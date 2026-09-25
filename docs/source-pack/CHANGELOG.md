@@ -1,5 +1,18 @@
 # Recovery checkpoint — September 14
 
+## September 25, 2026 — curved Cache Road roadside correction
+
+- Narrow the near road and derive its curve from a world path and camera
+  tangent. Make side offsets converge with it and continue beyond the near
+  screen while an individual facade is still visible.
+- Enlarge the separate foreground places relative to the player car, while
+  retaining each painted oblique asset and the existing streetlight sizes.
+- Fill the side ground with world-fixed blocks, wet texture and parcel
+  foundations under the service street and independent places. Inspect a
+  continuous native drive and add proportional/passing draw assertions.
+- Record the owner's rejection of merged #123 and leave music, traffic,
+  controls, pads, save/award rules and power-up planning intact.
+
 ## September 25, 2026 — individual Cache Road places
 
 - Replace the rejected six long diagonal strips with ten separate transparent
