@@ -1,6 +1,7 @@
 // Scripted production HUD states for art review; no gameplay or Makko capture.
 const fs = require('node:fs');
 const path = require('node:path');
+const vm = require('node:vm');
 const { spawn } = require('node:child_process');
 const { once } = require('node:events');
 const { createCanvas, loadImage, GlobalFonts } = require(require.resolve('@napi-rs/canvas', {
@@ -11,6 +12,10 @@ const { createRig, load } = require('./check-level-01-boss');
 async function main() {
   const out = path.resolve(process.argv[2] || 'docs/source-pack/review-cache-road-mirror');
   fs.mkdirSync(out, { recursive: true });
+  const areaReviewPath = process.env.CACHE_REVIEW_AREA_ASSET;
+  if (areaReviewPath && !path.resolve(areaReviewPath).startsWith(
+    path.resolve('assets/cache-road/roadside/places') + path.sep))
+    throw Error('Area review asset must be a roadside place image');
   const worldFrames = process.argv[3] ? await Promise.all(Array.from({length:120}, (_,i) =>
     loadImage(path.resolve(process.argv[3], `${String(i).padStart(3,'0')}.webp`)))) : null;
   GlobalFonts.registerFromPath(path.resolve('assets/studies/visual-overhaul/references/fonts/Oxanium.ttf'), 'Oxanium');
@@ -44,14 +49,28 @@ async function main() {
     cachePlaceApartment: 'assets/cache-road/roadside/places/apartment.webp',
     cachePlaceDiner: 'assets/cache-road/roadside/places/night-diner.webp',
     cachePlaceSubstation: 'assets/cache-road/roadside/places/substation.webp',
-    cachePlaceGarden: 'assets/cache-road/roadside/places/community-garden.webp',
-    cachePlaceConstruction: 'assets/cache-road/roadside/places/construction-yard.webp',
+    cachePlaceGarden: 'assets/cache-road/roadside/places/hydroponics-horizon.webp',
+    cachePlaceConstruction: 'assets/cache-road/roadside/places/fabrication-horizon.webp',
+    cachePlaceGardenRounded: 'assets/cache-road/roadside/places/community-garden-rounded.webp',
+    cachePlaceGardenCompact: 'assets/cache-road/roadside/places/community-garden-left-compact.webp',
+    cachePlaceGardenHorizon: 'assets/cache-road/roadside/places/community-garden-horizon.webp',
+    cachePlaceConstructionRounded: 'assets/cache-road/roadside/places/construction-yard-rounded.webp',
+    cachePlaceConstructionHorizon: 'assets/cache-road/roadside/places/construction-yard-horizon.webp',
+    cachePlaceConstructionCompact: 'assets/cache-road/roadside/places/construction-yard-right-compact.webp',
+    cachePlaceSignalOrchard: 'assets/cache-road/roadside/places/signal-orchard.webp',
+    cachePlaceRelayExchange: 'assets/cache-road/roadside/places/relay-exchange.webp',
+    cachePlaceDataReclamation: 'assets/cache-road/roadside/places/data-reclamation.webp',
+    cachePlaceCapacitorExchange: 'assets/cache-road/roadside/places/capacitor-exchange.webp',
+    cachePlaceNightDataMarket: 'assets/cache-road/roadside/places/night-data-market.webp',
+    cachePlaceEncryptedPump: 'assets/cache-road/roadside/places/encrypted-pump.webp',
+    cachePlaceDroneServiceNode: 'assets/cache-road/roadside/places/drone-service-node.webp',
     cacheImpactGrit: 'assets/cache-road/effects/impact-grit.webp',
     cacheSpeedMist: 'assets/cache-road/effects/speed-mist.webp',
     cacheBlacktop: 'assets/wet-street/rain-blacktop.webp',
     cacheFly1: 'assets/traffic/ship-1.webp',
     cacheFly3: 'assets/traffic/ship-3.webp'
   };
+  if (areaReviewPath) files.cacheReviewPlace = areaReviewPath;
   const art = Object.fromEntries(await Promise.all(Object.entries(files).map(async ([key,file]) =>
     [key, await loadImage(path.resolve(file))])));
   const { w, context } = createRig();
@@ -60,7 +79,25 @@ async function main() {
   w.lostDataSystem.archive = new w.BARCODE.LoreCollection();
   load(context, 'src/game/campaign-services.js');
   load(context, 'src/engine/cache-road-proof-profile.js');
-  load(context, 'src/game/cache-road-proof.js');
+  if (areaReviewPath) {
+    // Keep the production projection intact, but replace the seeded sites
+    // with one unmirrored copy of this source at equal depth on each bank.
+    const area = art.cacheReviewPlace;
+    let source = fs.readFileSync('src/game/cache-road-proof.js', 'utf8');
+    const artMarker = "  const PLACE_KINDS = [...Object.keys(PLACE_ART),'parking'];";
+    const placeMarker = '  SIDE_PLACES.sort((a,b)=>b.at-a.at);';
+    if (!source.includes(artMarker) || !source.includes(placeMarker))
+      throw Error('Cache Road review insertion point changed');
+    const reviewMaxW=Number(process.env.CACHE_REVIEW_MAX_W || 650);
+    if(!Number.isFinite(reviewMaxW) || reviewMaxW<=0 || reviewMaxW>960)
+      throw Error('Invalid area review width');
+    source = source.replace(artMarker,
+      `  PLACE_ART.review = ['cacheReviewPlace',${area.width},${area.height},${reviewMaxW},190];\n${artMarker}`);
+    source = source.replace(placeMarker, `${placeMarker}\n`+
+      "  SIDE_PLACES.length=0;\n"+
+      "  for(const side of [-1,1]) SIDE_PLACES.push({at:7200,side,size:1,setback:90,kind:'review'});");
+    vm.runInContext(source, context, { filename: 'src/game/cache-road-proof.js [area review]' });
+  } else load(context, 'src/game/cache-road-proof.js');
   w.BARCODE.PresentationAssets = {
     ready(key) { return !!art[key]; },
     draw(key, ctx, { x, y, width, height, frame, sourceRect, flip } = {}) {
@@ -74,7 +111,11 @@ async function main() {
         key === 'cachePylon' ? .28 : .5;
       const ay = key === 'cacheMirror' || ship ? .5 :
         key === 'cacheBlacktop' || key === 'cacheSidewalk' || key.endsWith('Ground') ? 0 : 1;
-      ctx.save(); ctx.translate(x,y); if (flip) ctx.scale(-1,1); ctx.imageSmoothingEnabled = !ship;
+      const reviewFlip=key === 'cacheReviewPlace' &&
+        process.env.CACHE_REVIEW_FLIP_RIGHT === '1' && x>960;
+      ctx.save(); ctx.translate(x,y);
+      if(key === 'cacheReviewPlace' ? reviewFlip : flip) ctx.scale(-1,1);
+      ctx.imageSmoothingEnabled = !ship;
       ctx.drawImage(image, (mirror ? frame % 3 * 512 : ship ? frame % 8 * 320 : 0) + sx,
         (mirror ? Math.floor(frame / 3) * 512 : ship ? Math.floor(frame / 8) * frameHeight : 0) + sy,
         sw, sh, -width*ax, -height*ay, width, height);

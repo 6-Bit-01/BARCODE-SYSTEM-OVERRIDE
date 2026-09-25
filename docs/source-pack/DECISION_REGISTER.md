@@ -1,5 +1,66 @@
 # Decision Register
 
+## September 25, 2026 — equal usable area choices on both banks
+
+The owner corrected the count: the earlier nine LEFT included two inactive
+original hard-edged lots, so only seven were usable. Add two compact
+left-fitted BARCODE cyber paintings and place them unflipped in existing
+slots. The active selection is now 9 LEFT, 9 RIGHT and 4 BOTH (22 usable),
+with the original garden, yard and painted parking retained inactive.
+Keep the restored wide horizon and existing site count.
+
+## September 25, 2026 — flip the five new sources for the right
+
+The owner rejected the initial right-facing claim for the five generated
+cyber areas: their raw slope reads left-facing. Flip each entire picture
+for the right bank and show all selected left/right areas on a diagram.
+The raw sources stay intact, while the renderer mirrors the five at their
+right-only existing addresses. The diagrams distinguish four sources
+painted for the right from five newly mirrored onto it, and mark the two
+retained hard-edged left lots inactive. See
+`CACHE_ROAD_AREA_ASSET_AUDIT.md`. This is not a change to the planet curve,
+site count or other driving rules.
+
+## September 25, 2026 — place art by horizon bank
+
+The owner asked to inventory every area, classify its left/right ground
+shape and bring fitting inactive alternatives into the road. The new sketch
+shows a rolling tapered footprint, not a demand for square lots; existing
+shape experiments are probably acceptable. All 18 sources were compared
+unmirrored on both banks. Six earlier variants now occupy native-bank
+addresses, including two existing right slots changed to yard/garden to
+make those sources visible within the run. Keep cyber hydroponics/fabrication
+as defaults, the wide horizon, and three hard-edged originals inactive.
+See `CACHE_ROAD_AREA_ASSET_AUDIT.md`. Makko appearance remains owner review.
+
+## September 25, 2026 — wide planet and opposite site silhouettes
+
+The owner rejected the shallow shared crest and asked for the exact older
+wide planet horizon. New art must be curved and form fitted to that shape,
+even if it looks asymmetrical by itself. Long footprints can be useful on
+one side and awkward on the other; the owner identified the upward-right
+hydroponics silhouette as a good left-side source and wants its opposite on
+the right. The assets must evoke BARCODE's cyber city, not a cozy garden or
+ordinary contemporary construction. Keep the earlier generated variants,
+but use compact hydroponics and fabrication sites in the running scene.
+City approach/fog from the previous draft remain; gameplay and deferred
+adrenaline/power-up work are unchanged. Owner Makko visual review is open.
+See `CACHE_ROAD_HORIZON_ASSETS.md`.
+
+## September 25, 2026 — city approach and broad-locale reveal
+
+Historical local draft, superseded by the wide planet decision above.
+
+The owner wants the closer city buildings to emerge as the level advances,
+with fog reaching the planet and the wide garden and industrial locales
+crossing the horizon naturally. The very steep side arc exposed their
+painted platforms too early. Use one shallower curved boundary for city and
+site reveal, then clear each site by road depth so its top remains visible
+for a while before its whole footprint passes. Keep city scale uniform,
+the existing game art vivid, varied site setbacks and the road's camera
+motion. See `CACHE_ROAD_CITY_APPROACH.md`; owner Makko visual review remains
+open. The adrenaline and power-up list is still deferred.
+
 ## September 25, 2026 — independent site cadence and coherent side ground
 
 The owner wants irregular intervals and setbacks, with facing locations

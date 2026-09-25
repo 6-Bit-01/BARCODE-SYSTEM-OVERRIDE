@@ -1,5 +1,80 @@
 # Current State
 
+## September 25 — equal usable left and right area selections
+
+The original nine-left inventory had two inactive hard-edged sources,
+leaving seven usable left areas against nine usable right. Two new compact
+BARCODE cyber locations, encrypted pump and drone service node, are now
+unflipped at existing left addresses 7427 and 6511. This yields **9 usable
+LEFT, 9 usable RIGHT and 4 usable BOTH**: 22 active of 25 WebPs, with the
+original garden, yard and painted parking kept inactive. The wide planet,
+site count and drive rules are unchanged. Corrected diagrams and live
+approach/closer frames are linked from the area audit. Owner Makko visual
+acceptance is still open.
+
+## Historical September 25 — five mirrored right-bank cyber areas
+
+The owner correctly identified all five new generated sources as visually
+left-facing. They remain intact WebPs and the game mirrors each complete
+picture on the right bank. Signal orchard, relay exchange, data reclamation,
+capacitor exchange and night data market replace the art at five existing
+right-hand addresses, with suitable width for the tall relay. At that point
+the folder contained 23 WebPs and the game loaded 20 of them. The original wide
+garden, yard and painted parking slab remain inactive; site count and the
+restored wide horizon are unchanged. `CACHE_ROAD_AREA_ASSET_AUDIT.md`
+contained the initial nine-left/nine-right facing diagram and actual approach/closer
+frames. Full test results belong to the current export receipt; owner Makko
+visual judgment remains open.
+
+## September 25 — complete area inventory and live side assignments
+
+Historical 18-source audit before the five new paintings above.
+
+All 18 transparent area sources were compared unmirrored on both banks of
+the restored wide horizon at two depths. The audit labels their raw shapes
+9 LEFT, 4 RIGHT, 4 BOTH and 1 NEITHER. Six earlier rounded, compact and
+long garden/yard variants now appear unmirrored at six curated existing
+addresses. Two right-side addresses change from substation/park to yard/
+garden to expose the right-handed paintings in the playable route. The
+compact cyber hydroponics/fabrication sources remain the defaults. Original
+hard-edged garden, yard and painted parking lot remain inactive. Site count,
+horizon, camera, music and gameplay stay as before. The new owner sketch
+illustrates a rolling ground taper without requiring square footprints.
+See `CACHE_ROAD_AREA_ASSET_AUDIT.md` and its actual-address sheets. Makko
+visual acceptance remains open.
+
+## September 25 — side-fitted BARCODE roadside sites
+
+Historical first selection, expanded by the audit above.
+
+The owner rejected the shallow shared crest in the local city-approach
+draft: the planet looked too small and every building jutted. The original
+wide roadside crest and separate city skyline clip are restored. The near
+city's continuous approach and contact fog remain. New compact hydroponics
+and fabrication paintings carry their own curved, sloped ground; each is
+drawn as authored on its matching side and mirrored on the opposite side.
+The user marked the hydroponics source as the correct left-side orientation.
+The earlier rounded, sloped garden/yard and compact organic experiments
+were then inactive; six are now used as described above. Native left/right
+frames and the focused projection check were inspected; final Makko visual
+judgment remains open. See `CACHE_ROAD_HORIZON_ASSETS.md`.
+
+## September 25 — city approach and flattened shared crest
+
+Historical rejected local draft, superseded by the side-fitted pass above.
+
+After #128, the owner marked a dark fog gap at both planet edges and two
+wide locales whose painted ground seemed to jut above the horizon. The near
+city painting now grows at its native aspect and exposes more of its lower
+architecture continuously across the run. A shallower road-bearing crest
+controls both city/terrain contact and distant site reveal. Sites cross a
+depth-based clearing zone so their ground becomes fully visible before the
+near clipping range ends. The fog follows the crest after projected side
+panels, while site art remains fully colored. Staged views and opening and
+third-lap production drives were inspected; owner Makko appearance and feel
+remain open. See `CACHE_ROAD_CITY_APPROACH.md`. The independent cadence,
+music, traffic and power-up backlog retain the #128 status.
+
 ## September 25 — staggered roadside, city proportion and ground surfaces
 
 The owner's #127 review asked for irregular left/right timing, vivid first

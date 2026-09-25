@@ -1,5 +1,75 @@
 # Acceptance and Test Status
 
+## Cache Road equal usable banks — September 25
+
+The corrected diagrams in `CACHE_ROAD_AREA_ASSET_AUDIT.md` show nine active
+LEFT and nine active RIGHT selections, plus four active BOTH and three
+retained inactive sources. The encrypted pump at left address 7427 and drone
+service node at left address 6511 draw unflipped in existing slots; compare
+their approach and closer frames in `review-cache-left-live/left-live-1.webp`.
+Check their rolling footprint against the old wide horizon in Makko. The
+same 25-file inventory contains 22 active area WebPs, with no new sites.
+
+## Historical Cache Road five flipped right-bank areas — September 25
+
+Compare the two labeled banks in `CACHE_ROAD_AREA_ASSET_AUDIT.md`. The five
+new sources are left-facing when viewed alone, and the **whole picture** is
+mirrored at right-bank sites. Drive past relay exchange near 623, night
+data market near 2685, data reclamation near 5055, signal orchard near
+5829 and capacitor exchange near 8846. The short/tall area proportions
+should feel grounded as they clear the old wide horizon; no source should
+appear unflipped on the right. Their actual-address approach and closer
+frames are linked in the audit. The site count, road/music/gameplay and
+three inactive painted lots remain unchanged. Scripted production Canvas
+frames and focused checks support review; Makko appearance is still for
+the owner to judge.
+
+## Cache Road all area silhouettes and native-bank sites — September 25
+
+The inventory and paired horizon/closer comparisons are in
+`CACHE_ROAD_AREA_ASSET_AUDIT.md`. During a drive, see the rounded yard on
+the left near 3138, long yard on the right near 3635, rounded garden on
+the left near 4460, compact garden on the left near 6303, compact yard on
+the right near 7015 and long garden on the right near 8158. The long
+footprints should taper with their assigned bank; they need not be square.
+The original wide garden/yard slab and painted parking lot should not
+appear. The two compact cyber sites remain the common defaults. There are
+still the same number of sites and the same wide planet edge. Native
+approach/closer frames and focused checks passed; Makko visual judgment is
+still open.
+
+## Cache Road wide horizon and directional cyber assets — September 25
+
+Drive past the hydroponics and fabrication sites on both banks. On the
+left, hydroponics rises toward its road-facing right edge; on the right,
+the whole image mirrors so its high edge faces the road. Fabrication uses
+the opposite painted orientation. Their short curved ground should read
+as part of the wide planet and stay beyond the sidewalk as each location
+grows and passes. Compare the early and late city: the closer frontage
+continues to rise, while the planet does not shrink into the rejected
+shallow arc. The earlier art remains available for comparison; six variants
+now appear at the specific sites above.
+Native staged frames and the focused draw check support this review. This
+is not yet a Makko visual/performance acceptance or a merged change. See
+`CACHE_ROAD_HORIZON_ASSETS.md` for the specific frames.
+
+## Cache Road city approach and shared crest — September 25
+
+Historical rejected local draft; use the directional-art route above.
+
+Drive the opening, an industrial yard and garden around a bend, and the last
+part of the level at normal size. At distance, only upper roofs/treetops
+should show; the painted base should clear gradually across the flatter
+planet edge before passing outside the sidewalk. Fog should touch that same
+edge on both sides, without a dark horizontal gap. Compare early and late
+city architecture: the near frontage should grow and reveal its lower
+facades steadily, including across lap boundaries, while distant layers
+remain in proportion and pan only with road bearing. Repeat with Reduced
+Motion. First and third-lap production drives and staged frames were
+inspected; these do not establish Makko performance, input, audio or owner
+visual approval. Focused production checks and repository/CI status belong
+to the revision receipt. The adrenaline and power-up audit remains open.
+
 ## Cache Road staggered roadside and surface flow — September 25
 
 Drive the merged build through the opening and a later lap at normal and
