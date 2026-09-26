@@ -23,18 +23,31 @@ compact frontages chosen by their use: homes by housing, repairs by garages,
 utility hardware by works, a garden/workshop by parks, and a vendor at
 selected market or diner sites. These frontages keep the original site address.
 
-## Static neighborhood trial
+## Procedural street life
 
 Forty-two fixed infill addresses occupy selected gaps between the larger
 places over the complete route. Six existing painted BARCODE settings rotate
 through them: repair shop, greenhouse workshop, homes, workshops, transit
-nook and utility corner. Each has a small paved branch in the ground plane,
-an opaque building or service setting, and a few fixed residents and props.
-Cycles, carts, terminals, planters and service crates repeat with different
-contexts; the existing foreground places get matching props. Residents and
-small furniture also appear by featured sites and parking areas. The
-pedestrians hold a deterministic pose for this visual trial. None of these
-objects affects collision, traffic, pickups, music or saved game state.
+nook and utility corner. Each has a small paved branch in the ground plane
+and an opaque building or service setting. The broad ground-cluster paintings
+now have 440 world units between candidate addresses and yield to infill,
+featured sites and their satellite frontages, so mismatched painted angles
+do not pile up.
+
+Fifteen individual pedestrians are available. The original five standing
+figures remain, joined by ten side, rear or three-quarter action poses:
+walking a bicycle, sweeping, gaming while walking, watering plants, repairing
+a utility box, waving with groceries, skating, carrying a crate, playing a
+board game and cooking at a small cart. Their PNGs are separate sources for
+later animation. No group painting is used. At each world address a stable
+seed chooses a group of one to five, starts with an action appropriate to the
+site and fills the rest with different individual IDs. The group is composed
+from independent projected sprites, never sampling an ID twice. Five painted
+props—bicycle rack, work supplies, delivery van, bench with planters and data
+kiosk—replace the old vector filler, with selection weighted by nearby
+market, home, park, garage, works or parking context. Scale and ground contact
+track road progress. The people hold one pose until animation frames are
+authored; scenery does not affect collision, traffic, pickups, music or saves.
 
 The branch road appears only at middle distance and narrows into its painted
 setting. It does not turn into a wide dark slab near the player. Infill art
@@ -53,13 +66,17 @@ Compare the [opening](review-cache-inhabited/Cache-Road-Mirror-Road-0000.webp),
 [next block](review-cache-inhabited/Cache-Road-Mirror-Road-0700.webp),
 [later bend](review-cache-inhabited/Cache-Road-Mirror-Road-4000.webp) and
 [last section](review-cache-inhabited/Cache-Road-Mirror-Road-6200.webp).
-The separate continuous 32-second drive is the motion review. These are
-scripted production Canvas frames; a merged Makko drive and owner visual
-acceptance remain to be done.
+The three 32-second normal-speed drive excerpts cover the opening and later
+route sections. These are scripted production Canvas frames; a merged Makko
+drive and owner visual acceptance remain to be done.
 
-Checks cover the pinned/bundled art, six infill settings, contextual vendors,
-opaque scale, city
-pan, road texture and a fixed ground strip moving toward the player with
-progress. The composition should be judged at normal play speed as well as
-in stills: the curb, terrain, buildings and small streets should read as one
-space without a transparent roll-in or competing building row.
+[Opening drive](review-cache-inhabited/Cache-Road-Street-Life-Opening.mp4) ·
+[Middle drive](review-cache-inhabited/Cache-Road-Street-Life-Middle.mp4) ·
+[Late drive](review-cache-inhabited/Cache-Road-Street-Life-Late.mp4)
+
+Checks cover the pinned/bundled art, all pedestrian group sizes and unique
+members, six infill settings, contextual vendors, opaque scale, city pan, road
+texture and a fixed ground strip moving toward the player with progress.
+Judge the composition at normal play speed and in stills: curb, terrain,
+buildings and small streets should read as one space without a transparent
+roll-in or competing building row.

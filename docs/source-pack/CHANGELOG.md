@@ -1,5 +1,19 @@
 # Recovery checkpoint — September 14
 
+## September 26, 2026 — individual pedestrians and painted street props
+
+- Add ten active side, rear and three-quarter action poses to the five
+  retained individual people; preserve separate transparent PNG sources for
+  later animation. Do not activate the earlier two-person cutout.
+- Generate groups of one through five at seeded world addresses, selecting
+  distinct people without replacement inside each group. Choose a local
+  action and complementary passers by place type, then project each person
+  independently with the moving terrain.
+- Replace tiny vector residents and filler with five painted object types
+  chosen by location. Give whole ground-cluster paintings more room so their
+  different authored angles do not overlap neighboring sites. Refresh
+  full-route stills and normal-speed motion excerpts.
+
 ## September 26, 2026 — larger neighborhood scale and contextual street life
 
 - Increase the six gap-setting and ground-cluster building scale, moving the

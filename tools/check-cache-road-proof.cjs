@@ -2,6 +2,7 @@
 // transport, save adapter and road update. Audible quality needs owner review.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const vm = require('node:vm');
 const { createRig, load } = require('./check-level-01-boss');
 const copy = value => JSON.parse(JSON.stringify(value));
 
@@ -24,7 +25,26 @@ async function run() {
   load(context, 'src/engine/cache-road-proof-profile.js');
   load(context, 'src/engine/music-director.js');
   load(context, 'src/engine/audio.js');
-  load(context, 'src/game/cache-road-proof.js');
+  const roadSource=fs.readFileSync('src/game/cache-road-proof.js','utf8');
+  const sceneMarker='  const clone = value => JSON.parse(JSON.stringify(value));';
+  assert(roadSource.includes(sceneMarker));
+  vm.runInContext(roadSource.replace(sceneMarker,
+    '  window.__cacheStreetScenes = STREET_SCENES;\n'+sceneMarker),
+  context,{filename:'src/game/cache-road-proof.js [street-scene inspection]'});
+  const streetScenes=w.__cacheStreetScenes;
+  const groups=streetScenes.map(scene=>scene.people).filter(group=>group.length);
+  assert.deepEqual([...new Set(groups.map(group=>group.length))].sort(),[1,2,3,4,5],
+    'procedural pedestrian groups include every size from one through five');
+  assert(groups.every(group=>new Set(group.map(person=>person.id)).size===group.length),
+    'one procedural group never repeats an individual sprite');
+  assert(groups.every(group=>Math.max(...group.map(person=>person.at))-
+    Math.min(...group.map(person=>person.at))<=104),
+  'groups of five stay close enough to read as one street moment');
+  assert.equal(new Set(groups.flatMap(group=>group.map(person=>person.id))).size,15,
+    'the full route draws all fifteen separate pedestrian variants');
+  assert(groups.some(group=>group.some(person=>person.id>=5)) &&
+    streetScenes.some(scene=>scene.props.some(prop=>prop.key==='cacheStreetDeliveryVan')),
+    'action poses and contextual street furniture are instantiated across the route');
   load(context, 'src/core/action-input.js');
   const B = w.BARCODE, profile = B.MusicProfiles.select('level-02.proof');
   const road = B.CacheRoadProof, C = B.Campaign;

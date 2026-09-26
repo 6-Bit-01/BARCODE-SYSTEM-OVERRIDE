@@ -1,5 +1,20 @@
 # Acceptance and Test Status
 
+## Cache Road pedestrian action and context — September 26
+
+Review the refreshed [opening](review-cache-inhabited/Cache-Road-Mirror-Road-0000.webp),
+[early bank](review-cache-inhabited/Cache-Road-Mirror-Road-0320.webp),
+[street gap](review-cache-inhabited/Cache-Road-Mirror-Road-0400.webp),
+[next block](review-cache-inhabited/Cache-Road-Mirror-Road-0700.webp),
+[later bend](review-cache-inhabited/Cache-Road-Mirror-Road-4000.webp) and
+[last section](review-cache-inhabited/Cache-Road-Mirror-Road-6200.webp).
+The new people must read as individuals doing things, with one to five in a
+procedural group and no duplicate person within that group. Verify the five
+painted props occur by relevant sites and move over the ground at road speed.
+Three short drive clips in the same folder show opening, middle and late
+route motion. The groups currently hold action poses for future animation;
+this pass does not include walking cycles.
+
 ## Cache Road rolling ground and inhabited outskirts — September 26
 
 For the larger-scale follow-up, compare the [early cluster at bar 8](review-cache-inhabited/Cache-Road-Mirror-Road-0320.webp)

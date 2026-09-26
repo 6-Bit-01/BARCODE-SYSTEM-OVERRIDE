@@ -192,6 +192,93 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           place.kind==='garage' ? INFILL_ART[5] :
           place.kind==='park'||place.kind==='garden' ? INFILL_ART[3] : INFILL_ART[1]
       }));
+  // Individual cutouts remain independent animation units. Context chooses
+  // one local action, then passers-by are sampled without replacement.
+  const PEDESTRIANS = [
+    ['cachePersonCourier',1036/1560,116],
+    ['cachePersonMechanic',1036/1555,116],
+    ['cachePersonUmbrella',1036/1534,116],
+    ['cachePersonStudent',989/1547,116],
+    ['cachePersonFoodWorker',1036/1559,116],
+    ['cachePersonBicycleCourier',1481/1048,106],
+    ['cachePersonSweeper',1199/1330,111],
+    ['cachePersonHandheldPlayer',993/1560,116],
+    ['cachePersonGardener',1217/1322,111],
+    ['cachePersonElectrician',1238/1307,105],
+    ['cachePersonWavingResident',1015/1503,116],
+    ['cachePersonSkateboarder',1238/1319,112],
+    ['cachePersonCrateCarrier',1263/1208,107],
+    ['cachePersonBoardPlayer',1236/1302,102],
+    ['cachePersonStreetCook',1293/1194,108]
+  ];
+  const PASSERS=[0,1,2,3,4,5,7,10,11,12];
+  const LOCAL_ACTIONS={
+    market:[14,12,5],diner:[14,12,7],
+    park:[13,8,11],garden:[8,13,10],
+    garage:[9,6,12],substation:[9,6,12],
+    construction:[12,9,6],parking:[5,6,12],
+    house:[10,7,13],apartment:[10,7,13]
+  };
+  const STREET_PROPS={
+    market:['cacheStreetBicycleRack','cacheStreetWorkSupplies','cacheStreetDataKiosk'],
+    diner:['cacheStreetBicycleRack','cacheStreetBenchPlanters','cacheStreetDataKiosk'],
+    park:['cacheStreetBenchPlanters','cacheStreetBicycleRack'],
+    garden:['cacheStreetBenchPlanters','cacheStreetWorkSupplies'],
+    garage:['cacheStreetWorkSupplies','cacheStreetDeliveryVan','cacheStreetBicycleRack'],
+    substation:['cacheStreetDataKiosk','cacheStreetWorkSupplies'],
+    construction:['cacheStreetWorkSupplies','cacheStreetDeliveryVan'],
+    parking:['cacheStreetDeliveryVan','cacheStreetBicycleRack','cacheStreetDataKiosk'],
+    house:['cacheStreetBenchPlanters','cacheStreetBicycleRack'],
+    apartment:['cacheStreetBicycleRack','cacheStreetBenchPlanters']
+  };
+  const PROP_SHAPES={
+    cacheStreetBicycleRack:[1526/1023,91],
+    cacheStreetWorkSupplies:[1491/1039,89],
+    cacheStreetDeliveryVan:[1498/1016,119],
+    cacheStreetBenchPlanters:[1546/1040,91],
+    cacheStreetDataKiosk:[1224/1318,96]
+  };
+  // These are world addresses, generated once with a stable seed. Road
+  // progress projects the same people and furniture as the ground and lane.
+  const STREET_SCENES=[...SIDE_PLACES,...INFILL_SCENES.map(scene=>({
+    at:scene.at,side:scene.side,kind:
+      scene.art[0]==='cacheGreenhouseWorkshop'?'garden':
+      scene.art[0]==='cacheOutskirtsHomes'?'house':
+      scene.art[0]==='cacheTransitNook'?'parking':'garage',
+    infill:true
+  }))].map((anchor,index)=>{
+    const seed=Math.round(anchor.at*17+anchor.side*987+index*173);
+    const size=1+Math.floor(placeRandom(seed+3)*5);
+    const local=LOCAL_ACTIONS[anchor.kind]||LOCAL_ACTIONS.house;
+    const leader=local[Math.floor(placeRandom(seed+5)*local.length)];
+    const pool=PASSERS.filter(id=>id!==leader)
+      .sort((a,b)=>placeRandom(seed+a*131)-placeRandom(seed+b*131));
+    const ids=[leader,...pool.slice(0,size-1)];
+    // Shuffle the spatial order without changing who belongs to the group.
+    ids.sort((a,b)=>placeRandom(seed+a*227+11)-placeRandom(seed+b*227+11));
+    const step=18+Math.floor(placeRandom(seed+7)*9);
+    const center=anchor.at+Math.round((placeRandom(seed+13)-.5)*42);
+    const people=placeRandom(seed+91)<.17?[]:ids.map((id,i)=>({
+      id,at:center+Math.round((i-(size-1)/2)*step),
+      base:305+Math.round(placeRandom(seed+id*79)*28)+(i%2)*6,
+      scale:.91+placeRandom(seed+id*37)*.15,
+      flip:placeRandom(seed+id*73)>.5
+    })).sort((a,b)=>b.at-a.at);
+    const choices=STREET_PROPS[anchor.kind]||STREET_PROPS.house;
+    const props=placeRandom(seed+57)<.20?[]:[{
+      key:choices[Math.floor(placeRandom(seed+29)*choices.length)],
+      at:anchor.at+(placeRandom(seed+43)<.5?-70:70),
+      base:anchor.kind==='parking'?420:410,
+      scale:.85+placeRandom(seed+47)*.28
+    }];
+    if(choices.length>2 && placeRandom(seed+61)<.23)props.push({
+      key:choices[Math.floor(placeRandom(seed+67)*choices.length)],
+      at:anchor.at+(props[0]?.at>anchor.at?-82:82),
+      base:500,scale:.8+placeRandom(seed+71)*.24
+    });
+    return {at:anchor.at,side:anchor.side,kind:anchor.kind,people,
+      props:props.sort((a,b)=>b.at-a.at)};
+  }).sort((a,b)=>b.at-a.at);
   const clone = value => JSON.parse(JSON.stringify(value));
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   function mirrorExpression(s) {
@@ -1475,7 +1562,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           ['cacheGroundClusterR2',1774,887],['cacheGroundClusterR3',1774,887]]
       };
       for(const side of [-1,1]) {
-        const phase=side<0?41:105,spacing=315;
+        const phase=side<0?41:105,spacing=440;
         for(let at=Math.floor((progress+570-phase)/spacing)*spacing+phase;
           at>progress+65;at-=spacing) {
           const t=sideDepth(at-progress);
@@ -1484,7 +1571,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           if(SIDE_PLACES.some(place=>place.side===side &&
             place.kind!=='parking' && Math.abs(place.at-at)<145))continue;
           if(INFILL_SCENES.some(scene=>scene.side===side &&
-            Math.abs(scene.at-at)<155))continue;
+            Math.abs(scene.at-at)<165))continue;
+          if(SATELLITE_SCENES.some(scene=>scene.side===side &&
+            Math.abs(scene.at-at)<145))continue;
           const variants=clusterArt[String(side)];
           const [key,sourceW,sourceH]=variants[((index%3)+3)%3];
           const width=(1190+70*placeRandom(index*83+side*19))*t;
@@ -1688,81 +1777,23 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           ctx.fillText('P',x-5*signT,y-58*signT);
         });
       };
-      const drawResident = (at,side,base,seed) => {
-        const t=sideDepth(at-progress);
-        if(t<.18||t>1.12)return;
-        const x=roadsideX(side,t,base,base>220?205:96);
-        const foot=base>220?terrainAt(side,t,x):roadY(t)+12*t;
-        const pose=placeRandom(seed)> .5 ? 1:-1;
+      const drawStreetLife = (scene, item, person=false) => {
+        const t=sideDepth(item.at-progress);
+        if(t<.18||t>1.08)return;
+        const [key,aspect,height]=person?PEDESTRIANS[item.id]:
+          [item.key,...PROP_SHAPES[item.key]];
+        const h=height*t*item.scale;
+        const width=h*aspect;
+        const x=roadsideX(scene.side,t,item.base,person?210:260);
+        if(x+width*.5<0||x-width*.5>1920)return;
+        const foot=terrainAt(scene.side,t,x)+4*t;
         clipRoadside(t,()=>{
-          ctx.save();ctx.translate(x,foot);ctx.scale(t*1.45,t*1.45);
-          ctx.fillStyle='#101d2bb8';ctx.beginPath();ctx.ellipse(1,2,12,3,0,0,Math.PI*2);ctx.fill();
-          ctx.strokeStyle='#202937';ctx.lineWidth=4;ctx.lineCap='round';
-          ctx.beginPath();ctx.moveTo(-3,-16);ctx.lineTo(-6-pose*2,0);
-          ctx.moveTo(3,-16);ctx.lineTo(5+pose*2,0);ctx.stroke();
-          const coats=['#344557','#5a455b','#435a60','#6a544e'];
-          polygon(ctx,[[-8,-38],[7,-38],[10,-13],[-8,-13]],coats[seed%4]);
-          ctx.strokeStyle=seed%2?'#e2ac7a':'#65c7c7';ctx.lineWidth=2;
-          ctx.beginPath();ctx.moveTo(-7,-34);ctx.lineTo(-11-pose*2,-19);
-          ctx.moveTo(8,-34);ctx.lineTo(11+pose*2,-23);ctx.stroke();
-          ctx.fillStyle='#243447';ctx.beginPath();ctx.arc(0,-44,7,0,Math.PI*2);ctx.fill();
-          ctx.fillStyle='#d0a179';ctx.fillRect(pose>0?2:-5,-45,3,5);
-          ctx.fillStyle=seed%3?'#72bac0':'#e89b6e';
-          ctx.fillRect(-7,-30,2,8);
-          if(seed%5===2) {
-            ctx.strokeStyle='#8da3a9';ctx.lineWidth=2;
-            ctx.beginPath();ctx.moveTo(11,-25);ctx.lineTo(13,-68);ctx.stroke();
-            ctx.fillStyle=['#9f658e','#5daba9','#be9971'][seed%3];
-            ctx.beginPath();ctx.moveTo(-17,-67);
-            ctx.quadraticCurveTo(12,-91,41,-67);
-            ctx.quadraticCurveTo(27,-72,13,-67);
-            ctx.quadraticCurveTo(-1,-72,-17,-67);ctx.fill();
-          }
-          ctx.restore();
-        });
-      };
-      const drawStreetProp = (at,side,base,kind) => {
-        const t=sideDepth(at-progress);
-        if(t<.22||t>1.1)return;
-        const x=roadsideX(side,t,base,175);
-        const foot=base>220?terrainAt(side,t,x):roadY(t)+18*t;
-        clipRoadside(t,()=>{
-          ctx.save();ctx.translate(x,foot);ctx.scale(t*1.38,t*1.38);
-          ctx.fillStyle='#0d2030a0';ctx.beginPath();ctx.ellipse(0,2,31,5,0,0,Math.PI*2);ctx.fill();
-          if(kind==='cycle') {
-            ctx.strokeStyle='#71a6a6';ctx.lineWidth=3;
-            for(const cx of [-20,20]) {ctx.beginPath();ctx.arc(cx,-9,11,0,Math.PI*2);ctx.stroke();}
-            ctx.beginPath();ctx.moveTo(-20,-9);ctx.lineTo(0,-26);ctx.lineTo(20,-9);
-            ctx.lineTo(-20,-9);ctx.moveTo(0,-26);ctx.lineTo(2,-9);
-            ctx.lineTo(20,-9);ctx.moveTo(0,-26);ctx.lineTo(-3,-31);
-            ctx.lineTo(-11,-31);ctx.stroke();
-          } else if(kind==='cart') {
-            polygon(ctx,[[-27,-27],[20,-27],[16,-8],[-24,-8]],'#425461');
-            ctx.fillStyle='#aa9279';ctx.fillRect(-22,-30,37,4);
-            ctx.fillStyle='#63b8b7';ctx.fillRect(-17,-24,9,9);
-            ctx.fillStyle='#d59376';ctx.fillRect(-3,-23,9,8);
-            ctx.strokeStyle='#71888c';ctx.lineWidth=3;ctx.beginPath();
-            ctx.moveTo(20,-27);ctx.lineTo(30,-32);ctx.stroke();
-            ctx.fillStyle='#141d29';for(const cx of [-16,13]) {
-              ctx.beginPath();ctx.arc(cx,-5,5,0,Math.PI*2);ctx.fill();}
-          } else if(kind==='terminal') {
-            ctx.fillStyle='#1e3040';ctx.fillRect(-9,-51,18,51);
-            ctx.fillStyle='#397078';ctx.fillRect(-12,-49,24,31);
-            ctx.fillStyle='#83e4dc';ctx.fillRect(-9,-45,18,4);
-            ctx.fillStyle='#bc82ad';ctx.fillRect(-7,-37,14,3);
-            ctx.fillStyle='#546d71';ctx.fillRect(-15,-4,30,5);
-          } else if(kind==='planter') {
-            polygon(ctx,[[-19,-21],[19,-21],[15,-3],[-16,-3]],'#3e5260');
-            ctx.strokeStyle='#6aa68c';ctx.lineWidth=3;
-            for(const dx of [-8,1,10]) {ctx.beginPath();ctx.moveTo(dx,-19);
-              ctx.lineTo(dx-5,-34);ctx.moveTo(dx,-24);ctx.lineTo(dx+6,-38);ctx.stroke();}
-            ctx.fillStyle='#b76b98';ctx.fillRect(-7,-32,3,3);
-          } else {
-            ctx.fillStyle='#263746';ctx.fillRect(-19,-27,30,25);
-            ctx.fillStyle='#687b7a';ctx.fillRect(-22,-30,35,5);
-            ctx.fillStyle='#293e49';ctx.fillRect(13,-18,12,16);
-            ctx.fillStyle='#dbad78';ctx.fillRect(-12,-25,4,4);
-          }
+          ctx.save();ctx.globalAlpha=1;
+          ctx.fillStyle='#0d19218c';ctx.beginPath();
+          ctx.ellipse(x,foot+2*t,Math.max(9,width*.33),Math.max(2,4*t),0,0,Math.PI*2);
+          ctx.fill();
+          B.PresentationAssets?.draw?.(key,ctx,{
+            x,y:foot,width,height:h,flip:person?item.flip:false });
           ctx.restore();
         });
       };
@@ -1773,10 +1804,6 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         if(t<.06||t>1.9)continue;
         if(place.kind==='parking') {
           drawProjectedLocale(place,t);
-          drawResident(place.at+26,place.side,134,place.at);
-          drawResident(place.at-18,place.side,292,place.at+11);
-          drawStreetProp(place.at+48,place.side,255,'cycle');
-          drawStreetProp(place.at-31,place.side,330,'terminal');
           continue;
         }
         const [key,sourceW,sourceH,maxW]=
@@ -1802,27 +1829,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
             flip:place.variant ? !!SIDE_VARIANTS[place.variant].flip :
               placeFacesRoad(place.kind,place.side) });
         });ctx.restore();
-        drawResident(place.at+26,place.side,134,Math.floor(place.at));
-        if(['market','diner','park','house','garden'].includes(place.kind))
-          drawResident(place.at-24,place.side,290,Math.floor(place.at)+13);
-        drawStreetProp(place.at-18,place.side,255,
-          ['market','diner'].includes(place.kind)?'cart':
-          place.kind==='park'||place.kind==='garden'?'planter':
-          place.kind==='garage'?'cycle':'crate');
-        drawStreetProp(place.at+53,place.side,325,
-          place.kind==='park'||place.kind==='garden'?'planter':
-          ['market','diner'].includes(place.kind)?'cart':
-          place.kind==='house'?'cycle':'terminal');
       }
-      for(const scene of INFILL_SCENES) {
-        drawResident(scene.at-19,scene.side,134,scene.index+7);
-        drawResident(scene.at+19,scene.side,298,scene.index+23);
-        if(scene.index%3===0)
-          drawResident(scene.at+42,scene.side,153,scene.index+39);
-        drawStreetProp(scene.at+14,scene.side,260,
-          ['terminal','cycle','cart','planter'][scene.index%4]);
-        drawStreetProp(scene.at-31,scene.side,332,
-          ['cycle','cart','planter','crate'][scene.index%4]);
+      // Each group is composed at runtime from separate people. Its members
+      // stay distinct, rooted in the same projected bank and pass with the road.
+      for(const scene of STREET_SCENES) {
+        for(const prop of scene.props)drawStreetLife(scene,prop);
+        for(const person of scene.people)drawStreetLife(scene,person,true);
       }
       // Stretch adjacent wall segments between the same projected road points.
       // This makes one continuous side wall rather than floating sign panels.

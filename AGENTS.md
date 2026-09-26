@@ -1,5 +1,17 @@
 # Repository Guidance
 
+## September 26, 2026 — procedural street life review
+
+Fifteen separate pedestrian cutouts, including side/rear walking, work,
+playing and neighborhood action poses, are placed by seeded world address.
+Groups range from one to five individual people and never repeat a person
+inside the same group. Do not paint or stamp paired/group pedestrians as a
+single reusable asset. Five painted street props are chosen by site context;
+the previous tiny vector residents/furniture are no longer drawn. The PNG
+sources remain available for later animation work. Keep people and props on
+the projected bank, moving with the road, and compare the actual drive clips
+and route stills before revising their size or density.
+
 ## September 26, 2026 — inhabited ground review
 
 The follow-up increases visible cluster and infill building scale. Small
@@ -12,7 +24,7 @@ continuous drive before changing placements.
 Keep the wide 420-unit roadside crest, shallow city boundary, two city depths
 and current palette. The ground grain samples adjacent world-distance strips
 at the same projection as road furniture. Six compact neighborhood settings
-occupy selected gaps, with small branch roads and static street life. Keep
+occupy selected gaps, with small branch roads and procedural street life. Keep
 these settings behind featured places and suppress overlapping large ground
 clusters. Judge the result in the continuous drive and actual road frames in
 `docs/source-pack/CACHE_ROAD_INHABITED_GROUND.md`; Makko owner acceptance is

@@ -1,5 +1,14 @@
 # Cache Road world art
 
+The `props/` folder contains 15 **individual** pedestrian cutouts and five
+street objects. Ten people have side, rear or three-quarter action poses:
+walking a bicycle, sweeping, playing handheld and board games, watering,
+repairing, waving, skating, carrying a crate and cooking. The first five
+standing people are retained as additional variants. Each has a separate PNG
+source in `sources/` for later animation work. Procedural world-address
+groups choose one to five distinct people without replacement; props are
+selected by the adjacent area's purpose. No paired pedestrian image is active.
+
 Current September 26 review: `bridge-free-distance.webp` and
 `bridge-free-outskirts.webp` are the two opaque-looking city depths behind
 the shallow city boundary. `ground-cluster-left-01..03.webp` and

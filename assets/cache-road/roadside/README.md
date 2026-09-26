@@ -4,8 +4,9 @@ Current September 26 review: `continuous-ground-panel.svg` is the single
 projected bank material. `rolling-ground-grain.webp` overlays it in adjacent
 world-distance strips sampled from one painted source. The same world-depth
 projection moves this grain, sidewalk, narrow infill streets, buildings and
-lamps. The six infill settings live under `../world/`, while small static
-residents and street furniture are drawn at fixed addresses. See
+lamps. The six infill settings live under `../world/`, while painted
+individual pedestrians and contextual furniture are procedurally assembled
+at world addresses. See
 `docs/source-pack/CACHE_ROAD_INHABITED_GROUND.md`. The historical exterior
 tiles below remain in the folder for comparison but are not the active bank.
 
