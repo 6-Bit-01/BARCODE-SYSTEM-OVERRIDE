@@ -1,5 +1,38 @@
 # Current State
 
+## September 26 — procedural city activity (draft review)
+
+Fifteen separate pedestrian assets now cover walking, work, play and
+neighborhood actions from front, side, rear and three-quarter views. A seeded
+world layout assembles groups of one to five from distinct individuals;
+each member has its own position and projected ground contact. Five painted
+object types replace the small vector filler and appear near matching sites.
+Whole ground-cluster paintings are spaced farther apart to reduce conflicting
+perspective. The existing horizon, ground motion, featured site inventory,
+city depths and gameplay remain on the reviewed foundation. Review stills
+sample the full route; short drive clips cover multiple sections.
+
+## September 26 — rolling terrain and inhabited outskirts (local review)
+
+The accepted wide-ground visual foundation is restored in this branch. Its
+two-depth city, shallow city boundary and wide roadside crest remain in
+place. Ground grain now travels on adjacent world-distance strips at road
+speed. Forty-two fixed gaps across the four-lap route receive a small
+neighborhood setting, narrow side street, static residents and contextual
+street furniture. Six painted settings already retained in the world-art
+folder are now active. Nearby ground clusters yield to these settings, while
+featured sites and gameplay remain in their previous positions. The
+32-second native drive and five stills are described in
+`CACHE_ROAD_INHABITED_GROUND.md`. Makko visual acceptance remains open.
+
+The follow-up enlarges the cluster and infill buildings, adds compact
+frontages to deep-set sites, and puts a painted vendor by selected markets and
+diners. Residents and small props now appear beside featured sites and parking
+areas. Bus stops are not placed; their source is retained but inactive until
+the street network supports one. The speculative extra junctions and flat
+shelter drawings were removed. Six refreshed stills and a new continuous
+drive record the visual check.
+
 ## September 25 — equal usable left and right area selections
 
 The original nine-left inventory had two inactive hard-edged sources,

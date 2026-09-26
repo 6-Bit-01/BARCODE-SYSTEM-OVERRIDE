@@ -1,5 +1,39 @@
 # Acceptance and Test Status
 
+## Cache Road pedestrian action and context — September 26
+
+Review the refreshed [opening](review-cache-inhabited/Cache-Road-Mirror-Road-0000.webp),
+[early bank](review-cache-inhabited/Cache-Road-Mirror-Road-0320.webp),
+[street gap](review-cache-inhabited/Cache-Road-Mirror-Road-0400.webp),
+[next block](review-cache-inhabited/Cache-Road-Mirror-Road-0700.webp),
+[later bend](review-cache-inhabited/Cache-Road-Mirror-Road-4000.webp) and
+[last section](review-cache-inhabited/Cache-Road-Mirror-Road-6200.webp).
+The new people must read as individuals doing things, with one to five in a
+procedural group and no duplicate person within that group. Verify the five
+painted props occur by relevant sites and move over the ground at road speed.
+Three short drive clips in the same folder show opening, middle and late
+route motion. The groups currently hold action poses for future animation;
+this pass does not include walking cycles.
+
+## Cache Road rolling ground and inhabited outskirts — September 26
+
+For the larger-scale follow-up, compare the [early cluster at bar 8](review-cache-inhabited/Cache-Road-Mirror-Road-0320.webp)
+with the other five stills. Ground-cluster buildings should be readable on the
+bank, while featured sites keep room around them. Market/diner frontages may
+have vendors and pedestrians; there should be **no bus stop** or unconnected
+shelter beside the highway. The source painting remains inactive for a future
+route design.
+
+Play the full route at normal speed. The painted grain should roll toward
+the car with the sidewalk and road markings, including through bends, without
+a stationary floor or abrupt strip seams. Look for smaller occupied gaps,
+branch lanes and residents as well as open breathing room around the larger
+area paintings. No new building should rise through the ground, become
+transparent at the horizon, cover the curb or create a competing wall of
+architecture. Compare the five actual draw stills and continuous drive in
+`CACHE_ROAD_INHABITED_GROUND.md`. Local production Canvas review and focused
+checks passed; Makko performance and owner appearance judgment remain open.
+
 ## Cache Road equal usable banks — September 25
 
 The corrected diagrams in `CACHE_ROAD_AREA_ASSET_AUDIT.md` show nine active
