@@ -1,5 +1,17 @@
 # Recovery checkpoint — September 14
 
+## September 26, 2026 — larger neighborhood scale and contextual street life
+
+- Increase the six gap-setting and ground-cluster building scale, moving the
+  wide clusters inward so more of each block remains visible on the bank.
+- Fill selected deep-set featured sites with smaller matching frontages;
+  add static residents, bicycles, carts, terminals and planters at featured
+  places and parking lots. Painted vendor scenes serve only market/diner sites.
+- Keep the painted bus-stop source inactive until a real service route is
+  designed. Remove speculative extra junctions and old flat shelter/stall
+  drawings. Retain the approved terrain, horizon, city and road composition;
+  refresh six review frames and the continuous drive.
+
 ## September 26, 2026 — Cache Road rolling ground and inhabited gaps
 
 - Restore the reviewed continuous ground, two-depth city and six fitted

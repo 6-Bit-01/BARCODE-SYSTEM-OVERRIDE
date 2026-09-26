@@ -13,6 +13,14 @@ featured sites and gameplay remain in their previous positions. The
 32-second native drive and five stills are described in
 `CACHE_ROAD_INHABITED_GROUND.md`. Makko visual acceptance remains open.
 
+The follow-up enlarges the cluster and infill buildings, adds compact
+frontages to deep-set sites, and puts a painted vendor by selected markets and
+diners. Residents and small props now appear beside featured sites and parking
+areas. Bus stops are not placed; their source is retained but inactive until
+the street network supports one. The speculative extra junctions and flat
+shelter drawings were removed. Six refreshed stills and a new continuous
+drive record the visual check.
+
 ## September 25 — equal usable left and right area selections
 
 The original nine-left inventory had two inactive hard-edged sources,

@@ -49,6 +49,7 @@ async function main() {
     cacheGreenhouseWorkshop: 'assets/cache-road/world/greenhouse-workshop.webp',
     cacheOutskirtsWorkshops: 'assets/cache-road/world/outskirts-workshops.webp',
     cacheRepairShop: 'assets/cache-road/world/neighborhood-repair-shop.webp',
+    cacheVendorStall: 'assets/cache-road/world/street-vendor-people.webp',
     cacheParapet: 'assets/cache-road/roadside/parapet.webp',
     cachePylon: 'assets/cache-road/roadside/service-pylon.webp',
     cacheSidewalk: 'assets/cache-road/roadside/sidewalk-slab.svg',

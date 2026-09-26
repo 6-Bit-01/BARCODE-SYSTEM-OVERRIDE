@@ -2,6 +2,13 @@
 
 ## Cache Road rolling ground and inhabited outskirts — September 26
 
+For the larger-scale follow-up, compare the [early cluster at bar 8](review-cache-inhabited/Cache-Road-Mirror-Road-0320.webp)
+with the other five stills. Ground-cluster buildings should be readable on the
+bank, while featured sites keep room around them. Market/diner frontages may
+have vendors and pedestrians; there should be **no bus stop** or unconnected
+shelter beside the highway. The source painting remains inactive for a future
+route design.
+
 Play the full route at normal speed. The painted grain should roll toward
 the car with the sidewalk and road markings, including through bends, without
 a stationary floor or abrupt strip seams. Look for smaller occupied gaps,

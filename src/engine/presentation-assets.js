@@ -18,6 +18,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   const cachePlacesRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/6868a002c8ee10b8067b45aa78f3dfbeaa628396/';
   const cacheRoadsideRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3dbc72b087435b02244ff1ec097a5151329a7234/';
   const cacheTerrainRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/1115dcf56bf841d05be3f6935126330e85fba1da/';
+  const cacheInhabitedRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/72fad00884d70e7574b1f021f497722669795908/';
   // All fifteen new area paintings share one immutable asset commit. Makko
   // can request the pinned art even if its import omits bundled binary files;
   // the same relative paths remain the local preview fallback.
@@ -75,6 +76,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     cacheGreenhouseWorkshop: { path: 'assets/cache-road/world/greenhouse-workshop.webp', root: cacheTerrainRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
     cacheOutskirtsWorkshops: { path: 'assets/cache-road/world/outskirts-workshops.webp', root: cacheTerrainRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
     cacheRepairShop: { path: 'assets/cache-road/world/neighborhood-repair-shop.webp', root: cacheTerrainRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cacheVendorStall: { path: 'assets/cache-road/world/street-vendor-people.webp', root: cacheInhabitedRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
     cacheParapet: { path: 'assets/cache-road/roadside/parapet.webp', root: cacheRoadRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
     cachePylon: { path: 'assets/cache-road/roadside/service-pylon.webp', root: cacheRoadRoot, columns: 1, rows: 1, frames: 1, ax: .28, ay: 1, smooth: true },
     cacheSidewalk: { path: 'assets/cache-road/roadside/sidewalk-slab.svg', root: cacheRoadsideRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 0, smooth: true },

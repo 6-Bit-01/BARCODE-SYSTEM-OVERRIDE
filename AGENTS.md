@@ -2,6 +2,13 @@
 
 ## September 26, 2026 — inhabited ground review
 
+The follow-up increases visible cluster and infill building scale. Small
+frontages correspond to deep-set featured sites; painted vendors appear only
+by markets/diners. Do not rotate bus stops into arbitrary gaps or invent road
+junctions to support them. The bus-stop art is retained but inactive. The old
+flat shelters/stalls were removed. Use refreshed actual road frames and the
+continuous drive before changing placements.
+
 Keep the wide 420-unit roadside crest, shallow city boundary, two city depths
 and current palette. The ground grain samples adjacent world-distance strips
 at the same projection as road furniture. Six compact neighborhood settings

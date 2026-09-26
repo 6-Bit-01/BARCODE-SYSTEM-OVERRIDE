@@ -11,7 +11,7 @@ w.Image = class Image {
 load(context, 'src/engine/presentation-assets.js');
 const art = w.BARCODE.PresentationAssets;
 for (let i = 0; i < 20; i++) art.preload();
-assert.strictEqual(images.length, 89, 'restarts reuse Cache traffic, places, city, terrain, infill, ship and mirror art');
+assert.strictEqual(images.length, 90, 'restarts reuse Cache traffic, places, city, terrain, infill, vendor, ship and mirror art');
 assert(images.every(im => /^https:\/\/raw\.githubusercontent\.com\/.+\/[a-f0-9]{40}\//.test(im.requests[0])), 'assets use published immutable revisions');
 const cacheRoadRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/37db98387b8791655e3ff352d6bc6d61cb0b574b/';
 assert.equal(images.filter(im => im.requests[0].startsWith(cacheRoadRoot)).length,16,
@@ -28,6 +28,14 @@ for(const image of terrainImages) {
   assert.equal(image.requests[1],local);
   assert(fs.existsSync(path.join(root,local)),`${local} has a bundled fallback`);
 }
+const cacheInhabitedRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/72fad00884d70e7574b1f021f497722669795908/';
+const vendorImage=images.find(im=>im.requests[0]===cacheInhabitedRoot+'assets/cache-road/world/street-vendor-people.webp');
+assert(vendorImage,'the contextual vendor is pinned to the published art commit');
+vendorImage.onerror();
+assert.equal(vendorImage.requests[1],'assets/cache-road/world/street-vendor-people.webp');
+assert(fs.existsSync(path.join(root,vendorImage.requests[1])));
+assert(!images.some(im=>im.requests[0].endsWith('/service-bus-stop.webp')),
+  'retained bus-stop painting remains inactive without a planned service route');
 const cacheWorldRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/41edca02367b9f1f3af429d14df3d378ca46c9b4/';
 assert.equal(images.filter(im => im.requests[0].startsWith(cacheWorldRoot)).length,4,
   'the four illustrated traffic vehicles retain their published asset revision');
@@ -88,7 +96,7 @@ assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2),
   'collision eyes come from the second row inside the same mirror crop');
 arrowImage.onerror(); arrowImage.onerror();
 assert.strictEqual(arrowImage.requests.length, 2); assert.strictEqual(arrowImage.onerror, null);
-art.preload(); assert.strictEqual(images.length, 89, 'failed assets do not retry forever');
+art.preload(); assert.strictEqual(images.length, 90, 'failed assets do not retry forever');
 pulseImage.naturalWidth = pulseImage.naturalHeight = 512; pulseImage.onload();
 ops.length = 0; art.draw('bossPulse', ctx, { y: 822, width: 64, height: 56, frame: 2 });
 assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2), [10, 351, 236, 145, -32, -56, 64, 56], 'pulse fills the dangerous height and retains the ground anchor');

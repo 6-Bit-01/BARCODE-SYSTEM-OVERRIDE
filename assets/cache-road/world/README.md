@@ -11,6 +11,10 @@ paintings (`neighborhood-repair-shop`, `greenhouse-workshop`,
 streets and street life supplied by the renderer. Their PNG sources remain
 under `sources/`. See `docs/source-pack/CACHE_ROAD_INHABITED_GROUND.md`.
 
+`street-vendor-people.webp` is an active market/diner frontage with its PNG
+under `sources/`. `service-bus-stop.webp` and its source are retained but
+inactive; the current world has no coherent bus route.
+
 The earlier panorama and city description below documents retained sources
 and previous visual experiments.
 

@@ -384,18 +384,25 @@ async function run() {
     'site footprints have visibly different stable setbacks from the sidewalk');
   const infillKeys=['cacheTransitNook','cacheOutskirtsHomes',
     'cacheUtilityCorner','cacheGreenhouseWorkshop',
-    'cacheOutskirtsWorkshops','cacheRepairShop'];
+    'cacheOutskirtsWorkshops','cacheRepairShop','cacheVendorStall'];
   const infillSeen=new Set();
   for(let progress=0;progress<9800;progress+=160) {
     mirrorFrame({progress});
     const infill=roadArt.filter(entry=>infillKeys.includes(entry.key));
     assert(infill.every(entry=>entry.alpha===1 && entry.width>0 &&
-      entry.width<500 && !entry.sourceRect),
-    'infill settings remain small, whole and fully opaque');
+      entry.width<900 && !entry.sourceRect &&
+      entry.flip===(entry.x>960)),
+    'supporting settings remain whole, opaque and face their assigned bank');
     for(const entry of infill)infillSeen.add(entry.key);
+    assert(!roadArt.some(entry=>entry.key==='cacheBusStop'),
+      'bus-stop painting remains inactive until a believable service route exists');
   }
   assert.deepEqual([...infillSeen].sort(),infillKeys.sort(),
-    'all six fixed neighborhood settings appear along the route');
+    'six fixed neighborhood settings and market-side vendors appear along the route');
+  mirrorFrame({progress:400});
+  assert(roadArt.some(entry=>entry.key==='cacheUtilityCorner' &&
+    entry.x<960 && entry.width>300 && entry.x+entry.width/2>120),
+  'a curbside workshop fills the otherwise empty left service bank');
   let crossingGap=Infinity, crossingSamples=0;
   for(let progress=0;progress<2460;progress+=10) {
     mirrorFrame({progress});

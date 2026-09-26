@@ -156,13 +156,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   // fixed neighborhood scenes. They replace a ground cluster at that address
   // rather than stacking another full block on top of it.
   const INFILL_ART = [
-    ['cacheTransitNook',1602,982,365],
-    ['cacheOutskirtsHomes',2022,778,490],
-    ['cacheUtilityCorner',1585,992,350],
-    ['cacheGreenhouseWorkshop',1536,1024,380],
-    ['cacheOutskirtsWorkshops',2022,778,490],
-    ['cacheRepairShop',1389,1132,345]
+    ['cacheTransitNook',1602,982,650],
+    ['cacheOutskirtsHomes',2022,778,910],
+    ['cacheUtilityCorner',1585,992,620],
+    ['cacheGreenhouseWorkshop',1536,1024,700],
+    ['cacheOutskirtsWorkshops',2022,778,910],
+    ['cacheRepairShop',1389,1132,650]
   ];
+  const VENDOR_ART=['cacheVendorStall',1391,1131,690];
   const INFILL_SCENES=[];
   for(const side of [-1,1]) {
     const addresses=SIDE_PLACES.filter(place=>place.side===side)
@@ -179,6 +180,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     }
   }
   INFILL_SCENES.sort((a,b)=>b.at-a.at);
+  // A deep-set featured site can leave an empty curb even though its own
+  // building is present farther out. A smaller occupied frontage connects
+  // that site to the road, without changing the established site address.
+  const SATELLITE_SCENES=SIDE_PLACES.filter(place=>place.kind!=='parking' &&
+    place.setback>145 && !INFILL_SCENES.some(scene=>scene.side===place.side &&
+      Math.abs(scene.at-place.at)<130)).map(place=>({
+        at:place.at,side:place.side,index:Math.floor(place.at/220),
+        art:place.kind==='market'||place.kind==='diner' ? VENDOR_ART :
+          place.kind==='construction'||place.kind==='substation' ? INFILL_ART[2] :
+          place.kind==='garage' ? INFILL_ART[5] :
+          place.kind==='park'||place.kind==='garden' ? INFILL_ART[3] : INFILL_ART[1]
+      }));
   const clone = value => JSON.parse(JSON.stringify(value));
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   function mirrorExpression(s) {
@@ -1420,8 +1433,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
             [side<0?0:265,sourceY,1509,sourceH]);
       }
       ctx.restore();
-      // Narrow side streets run into selected gaps. Their mouths meet the
-      // sidewalk at the same world address, so the joins pass with the road.
+      // Narrow side streets occupy selected gaps. The optional frontages of
+      // deep-set places do not create new road junctions by themselves.
       for(const scene of INFILL_SCENES) {
         const t=sideDepth(scene.at-progress);
         if(t<.16||t>.72)continue;
@@ -1474,9 +1487,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
             Math.abs(scene.at-at)<155))continue;
           const variants=clusterArt[String(side)];
           const [key,sourceW,sourceH]=variants[((index%3)+3)%3];
-          const width=(1030+65*placeRandom(index*83+side*19))*t;
+          const width=(1190+70*placeRandom(index*83+side*19))*t;
           const x=roadsideX(side,t,
-            710+115*placeRandom(index*79+side*23)+380*t,300);
+            580+80*placeRandom(index*79+side*23)+280*t,300);
           if(x+width*.5<0||x-width*.5>1920)continue;
           const y=terrainAt(side,t,x)+60*t;
           ctx.save();ctx.beginPath();
@@ -1494,14 +1507,16 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           ctx.restore();
         }
       }
-      // Smaller painted settings occupy those side-street gaps. Their source
-      // floor is buried into the same rolling ground as the main buildings.
-      for(const scene of INFILL_SCENES) {
-        const t=sideDepth(scene.at+38-progress);
-        if(t<.11||t>.84)continue;
+      // The selected gaps and deep-set sites gain readable supporting
+      // buildings. Their source floors bury into the same rolling bank.
+      for(const scene of [...INFILL_SCENES,...SATELLITE_SCENES]) {
+        const satellite=SATELLITE_SCENES.includes(scene);
+        const t=sideDepth(scene.at+(satellite?43:22)-progress);
+        if(t<.11||t>.95)continue;
         const [key,sourceW,sourceH,maxW]=scene.art;
-        const width=maxW*t;
-        const x=roadsideX(scene.side,t,485,260)+scene.side*22*t;
+        const width=(satellite?Math.min(620,maxW*.9):maxW)*t;
+        const sidewalkEdge=roadsideX(scene.side,t,220,190);
+        const x=sidewalkEdge+scene.side*(width*.5+(satellite?29:43)*t);
         if(x+width*.5<0||x-width*.5>1920)continue;
         const y=terrainAt(scene.side,t,x)+9*t;
         ctx.save();ctx.beginPath();
@@ -1673,14 +1688,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           ctx.fillText('P',x-5*signT,y-58*signT);
         });
       };
-      const drawResident = (at,side,ground,seed) => {
+      const drawResident = (at,side,base,seed) => {
         const t=sideDepth(at-progress);
-        if(t<.23||t>1.12)return;
-        const x=roadsideX(side,t,ground?292:134,ground?205:96);
-        const foot=ground?terrainAt(side,t,x):roadY(t)+12*t;
+        if(t<.18||t>1.12)return;
+        const x=roadsideX(side,t,base,base>220?205:96);
+        const foot=base>220?terrainAt(side,t,x):roadY(t)+12*t;
         const pose=placeRandom(seed)> .5 ? 1:-1;
         clipRoadside(t,()=>{
-          ctx.save();ctx.translate(x,foot);ctx.scale(t,t);
+          ctx.save();ctx.translate(x,foot);ctx.scale(t*1.45,t*1.45);
           ctx.fillStyle='#101d2bb8';ctx.beginPath();ctx.ellipse(1,2,12,3,0,0,Math.PI*2);ctx.fill();
           ctx.strokeStyle='#202937';ctx.lineWidth=4;ctx.lineCap='round';
           ctx.beginPath();ctx.moveTo(-3,-16);ctx.lineTo(-6-pose*2,0);
@@ -1694,6 +1709,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           ctx.fillStyle='#d0a179';ctx.fillRect(pose>0?2:-5,-45,3,5);
           ctx.fillStyle=seed%3?'#72bac0':'#e89b6e';
           ctx.fillRect(-7,-30,2,8);
+          if(seed%5===2) {
+            ctx.strokeStyle='#8da3a9';ctx.lineWidth=2;
+            ctx.beginPath();ctx.moveTo(11,-25);ctx.lineTo(13,-68);ctx.stroke();
+            ctx.fillStyle=['#9f658e','#5daba9','#be9971'][seed%3];
+            ctx.beginPath();ctx.moveTo(-17,-67);
+            ctx.quadraticCurveTo(12,-91,41,-67);
+            ctx.quadraticCurveTo(27,-72,13,-67);
+            ctx.quadraticCurveTo(-1,-72,-17,-67);ctx.fill();
+          }
           ctx.restore();
         });
       };
@@ -1703,7 +1727,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const x=roadsideX(side,t,base,175);
         const foot=base>220?terrainAt(side,t,x):roadY(t)+18*t;
         clipRoadside(t,()=>{
-          ctx.save();ctx.translate(x,foot);ctx.scale(t,t);
+          ctx.save();ctx.translate(x,foot);ctx.scale(t*1.38,t*1.38);
           ctx.fillStyle='#0d2030a0';ctx.beginPath();ctx.ellipse(0,2,31,5,0,0,Math.PI*2);ctx.fill();
           if(kind==='cycle') {
             ctx.strokeStyle='#71a6a6';ctx.lineWidth=3;
@@ -1748,7 +1772,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const t=sideDepth(place.at-progress);
         if(t<.06||t>1.9)continue;
         if(place.kind==='parking') {
-          drawProjectedLocale(place,t);continue;
+          drawProjectedLocale(place,t);
+          drawResident(place.at+26,place.side,134,place.at);
+          drawResident(place.at-18,place.side,292,place.at+11);
+          drawStreetProp(place.at+48,place.side,255,'cycle');
+          drawStreetProp(place.at-31,place.side,330,'terminal');
+          continue;
         }
         const [key,sourceW,sourceH,maxW]=
           (place.variant && SIDE_VARIANTS[place.variant].art) || PLACE_ART[place.kind];
@@ -1773,18 +1802,27 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
             flip:place.variant ? !!SIDE_VARIANTS[place.variant].flip :
               placeFacesRoad(place.kind,place.side) });
         });ctx.restore();
+        drawResident(place.at+26,place.side,134,Math.floor(place.at));
         if(['market','diner','park','house','garden'].includes(place.kind))
-          drawResident(place.at+22,place.side,false,Math.floor(place.at));
-        if(place.kind!=='parking')drawStreetProp(place.at-18,place.side,
-          255,['market','diner'].includes(place.kind)?'cart':
+          drawResident(place.at-24,place.side,290,Math.floor(place.at)+13);
+        drawStreetProp(place.at-18,place.side,255,
+          ['market','diner'].includes(place.kind)?'cart':
           place.kind==='park'||place.kind==='garden'?'planter':
           place.kind==='garage'?'cycle':'crate');
+        drawStreetProp(place.at+53,place.side,325,
+          place.kind==='park'||place.kind==='garden'?'planter':
+          ['market','diner'].includes(place.kind)?'cart':
+          place.kind==='house'?'cycle':'terminal');
       }
       for(const scene of INFILL_SCENES) {
-        drawResident(scene.at-18,scene.side,false,scene.index+7);
-        if(scene.index%2===0)drawResident(scene.at+19,scene.side,true,scene.index+23);
+        drawResident(scene.at-19,scene.side,134,scene.index+7);
+        drawResident(scene.at+19,scene.side,298,scene.index+23);
+        if(scene.index%3===0)
+          drawResident(scene.at+42,scene.side,153,scene.index+39);
         drawStreetProp(scene.at+14,scene.side,260,
           ['terminal','cycle','cart','planter'][scene.index%4]);
+        drawStreetProp(scene.at-31,scene.side,332,
+          ['cycle','cart','planter','crate'][scene.index%4]);
       }
       // Stretch adjacent wall segments between the same projected road points.
       // This makes one continuous side wall rather than floating sign panels.
