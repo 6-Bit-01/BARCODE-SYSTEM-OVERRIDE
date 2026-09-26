@@ -11,14 +11,23 @@ w.Image = class Image {
 load(context, 'src/engine/presentation-assets.js');
 const art = w.BARCODE.PresentationAssets;
 for (let i = 0; i < 20; i++) art.preload();
-assert.strictEqual(images.length, 75, 'restarts reuse Cache traffic, individual places, road, sky, sidewalk, ground, ship and mirror art');
+assert.strictEqual(images.length, 89, 'restarts reuse Cache traffic, places, city, terrain, infill, ship and mirror art');
 assert(images.every(im => /^https:\/\/raw\.githubusercontent\.com\/.+\/[a-f0-9]{40}\//.test(im.requests[0])), 'assets use published immutable revisions');
 const cacheRoadRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/37db98387b8791655e3ff352d6bc6d61cb0b574b/';
 assert.equal(images.filter(im => im.requests[0].startsWith(cacheRoadRoot)).length,16,
   'original Cache Road art retains its published pinned revision');
 const cacheRoadsideRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3dbc72b087435b02244ff1ec097a5151329a7234/';
-assert.equal(images.filter(im => im.requests[0].startsWith(cacheRoadsideRoot)).length,7,
-  'new city panoramas and roadside surfaces load from their pinned published asset commit');
+assert.equal(images.filter(im => im.requests[0].startsWith(cacheRoadsideRoot)).length,5,
+  'the retained roadside surfaces use their published asset commit');
+const cacheTerrainRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/1115dcf56bf841d05be3f6935126330e85fba1da/';
+const terrainImages=images.filter(im=>im.requests[0].startsWith(cacheTerrainRoot));
+assert.equal(terrainImages.length,16,'city approach, six clusters, six infill scenes and rolling ground share one immutable art revision');
+for(const image of terrainImages) {
+  image.onerror();
+  const local=image.requests[0].slice(cacheTerrainRoot.length);
+  assert.equal(image.requests[1],local);
+  assert(fs.existsSync(path.join(root,local)),`${local} has a bundled fallback`);
+}
 const cacheWorldRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/41edca02367b9f1f3af429d14df3d378ca46c9b4/';
 assert.equal(images.filter(im => im.requests[0].startsWith(cacheWorldRoot)).length,4,
   'the four illustrated traffic vehicles retain their published asset revision');
@@ -79,7 +88,7 @@ assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2),
   'collision eyes come from the second row inside the same mirror crop');
 arrowImage.onerror(); arrowImage.onerror();
 assert.strictEqual(arrowImage.requests.length, 2); assert.strictEqual(arrowImage.onerror, null);
-art.preload(); assert.strictEqual(images.length, 75, 'failed assets do not retry forever');
+art.preload(); assert.strictEqual(images.length, 89, 'failed assets do not retry forever');
 pulseImage.naturalWidth = pulseImage.naturalHeight = 512; pulseImage.onload();
 ops.length = 0; art.draw('bossPulse', ctx, { y: 822, width: 64, height: 56, frame: 2 });
 assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2), [10, 351, 236, 145, -32, -56, 64, 56], 'pulse fills the dangerous height and retains the ground anchor');

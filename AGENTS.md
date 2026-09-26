@@ -1,5 +1,17 @@
 # Repository Guidance
 
+## September 26, 2026 — inhabited ground review
+
+Keep the wide 420-unit roadside crest, shallow city boundary, two city depths
+and current palette. The ground grain samples adjacent world-distance strips
+at the same projection as road furniture. Six compact neighborhood settings
+occupy selected gaps, with small branch roads and static street life. Keep
+these settings behind featured places and suppress overlapping large ground
+clusters. Judge the result in the continuous drive and actual road frames in
+`docs/source-pack/CACHE_ROAD_INHABITED_GROUND.md`; Makko owner acceptance is
+pending. Do not restore the dense transparent puppet rows or dark near-camera
+side-road slabs.
+
 ## September 25, 2026 — nine usable areas on each bank
 
 The owner requires equal **usable** selections. Two hard-edged original

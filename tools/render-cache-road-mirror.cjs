@@ -34,12 +34,26 @@ async function main() {
     cacheTrike: 'assets/cache-road/vehicles/signal-trike.webp',
     cacheShuttle: 'assets/cache-road/vehicles/night-shuttle.webp',
     cacheSkyline: 'assets/cache-road/world/panorama-skyline.webp',
-    cacheDistantCity: 'assets/cache-road/world/panorama-distance.webp',
+    cacheDistantCity: 'assets/cache-road/world/bridge-free-distance.webp',
+    cacheOutskirts: 'assets/cache-road/world/bridge-free-outskirts.webp',
     cacheMidCity: 'assets/cache-road/world/panorama-frontage.webp',
+    cacheGroundClusterL1: 'assets/cache-road/world/ground-cluster-left-01.webp',
+    cacheGroundClusterL2: 'assets/cache-road/world/ground-cluster-left-02.webp',
+    cacheGroundClusterL3: 'assets/cache-road/world/ground-cluster-left-03.webp',
+    cacheGroundClusterR1: 'assets/cache-road/world/ground-cluster-right-01.webp',
+    cacheGroundClusterR2: 'assets/cache-road/world/ground-cluster-right-02.webp',
+    cacheGroundClusterR3: 'assets/cache-road/world/ground-cluster-right-03.webp',
+    cacheTransitNook: 'assets/cache-road/world/transit-service-nook.webp',
+    cacheOutskirtsHomes: 'assets/cache-road/world/outskirts-homes.webp',
+    cacheUtilityCorner: 'assets/cache-road/world/utility-service-corner.webp',
+    cacheGreenhouseWorkshop: 'assets/cache-road/world/greenhouse-workshop.webp',
+    cacheOutskirtsWorkshops: 'assets/cache-road/world/outskirts-workshops.webp',
+    cacheRepairShop: 'assets/cache-road/world/neighborhood-repair-shop.webp',
     cacheParapet: 'assets/cache-road/roadside/parapet.webp',
     cachePylon: 'assets/cache-road/roadside/service-pylon.webp',
     cacheSidewalk: 'assets/cache-road/roadside/sidewalk-slab.svg',
-    cacheOuterGround: 'assets/cache-road/roadside/outer-ground-panel.svg',
+    cacheOuterGround: 'assets/cache-road/roadside/continuous-ground-panel.svg',
+    cacheRollingGrain: 'assets/cache-road/roadside/rolling-ground-grain.webp',
     cacheGreenGround: 'assets/cache-road/roadside/green-ground-panel.svg',
     cacheServiceGround: 'assets/cache-road/roadside/service-ground-panel.svg',
     cachePlaceMarket: 'assets/cache-road/roadside/places/corner-market.webp',
@@ -107,10 +121,10 @@ async function main() {
       const frameWidth = ship ? 320 : image.width;
       const frameHeight = key === 'cacheFly1' ? 83 : key === 'cacheFly3' ? 97 : image.height;
       const [sx, sy, sw, sh] = sourceRect || [0,0,mirror ? 512 : frameWidth,mirror ? 512 : frameHeight];
-      const ax = key === 'cacheSkyline' || key === 'cacheDistantCity' || key === 'cacheMidCity' || key === 'cacheBlacktop' || key === 'cacheSidewalk' || key.endsWith('Ground') ? 0 :
+      const ax = key === 'cacheSkyline' || key === 'cacheDistantCity' || key === 'cacheOutskirts' || key === 'cacheMidCity' || key === 'cacheBlacktop' || key === 'cacheSidewalk' || key.endsWith('Ground') || key === 'cacheRollingGrain' ? 0 :
         key === 'cachePylon' ? .28 : .5;
       const ay = key === 'cacheMirror' || ship ? .5 :
-        key === 'cacheBlacktop' || key === 'cacheSidewalk' || key.endsWith('Ground') ? 0 : 1;
+        key === 'cacheBlacktop' || key === 'cacheSidewalk' || key.endsWith('Ground') || key === 'cacheRollingGrain' ? 0 : 1;
       const reviewFlip=key === 'cacheReviewPlace' &&
         process.env.CACHE_REVIEW_FLIP_RIGHT === '1' && x>960;
       ctx.save(); ctx.translate(x,y);
@@ -227,7 +241,7 @@ async function main() {
     const at=t => 200*Math.sin(t/700)+90*Math.sin(t/295+.5);
     const heading=200/700*Math.cos(s.progress/700)+90/295*Math.cos(s.progress/295+.5);
     const ahead=(1-.83)*520;
-    const half=26+590*.83;
+    const half=82+534*.83;
     const center=960+(at(s.progress+ahead)-at(s.progress)-ahead*heading)*.95;
     carCenters.push((center-half+s.visualLane*half/2+half/4)*2/3);
     s.integrity = !sceneryReview && chapterIndex === 5 ? 1 : 3;
@@ -248,6 +262,7 @@ async function main() {
     } else {s.ramMs=0;s.shield=0;}
     s.echoEnergy = Math.min(100,65 + chapterIndex * 6);
     s.lockEnergy = 26 + chapterIndex * 10;
+    sc.reset();
     road.draw(sc);
     if (worldFrames) {
       // Layout study: the current production HUD is placed over the owner's

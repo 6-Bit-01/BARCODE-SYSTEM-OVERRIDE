@@ -1,5 +1,18 @@
 # Recovery checkpoint — September 14
 
+## September 26, 2026 — Cache Road rolling ground and inhabited gaps
+
+- Restore the reviewed continuous ground, two-depth city and six fitted
+  ground clusters on the established wide horizon.
+- World-anchor the grain in adjacent 48-unit projected strips, moving toward
+  the player with road progress rather than remaining screen fixed.
+- Activate six retained neighborhood paintings at 42 selected gaps, with
+  narrow ground-plane streets, static residents and contextual small props.
+  Suppress a competing large cluster nearby; preserve featured area addresses,
+  gameplay, music, horizon height and visual palette.
+- Add native still/continuous-drive review and focused motion, layer, facing
+  and asset-loading checks. See `CACHE_ROAD_INHABITED_GROUND.md`.
+
 ## September 25, 2026 — two more native-left cyber areas
 
 - Correct the usable count by adding an encrypted pump and drone service

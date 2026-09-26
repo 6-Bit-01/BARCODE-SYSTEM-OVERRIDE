@@ -1,5 +1,17 @@
 # Acceptance and Test Status
 
+## Cache Road rolling ground and inhabited outskirts — September 26
+
+Play the full route at normal speed. The painted grain should roll toward
+the car with the sidewalk and road markings, including through bends, without
+a stationary floor or abrupt strip seams. Look for smaller occupied gaps,
+branch lanes and residents as well as open breathing room around the larger
+area paintings. No new building should rise through the ground, become
+transparent at the horizon, cover the curb or create a competing wall of
+architecture. Compare the five actual draw stills and continuous drive in
+`CACHE_ROAD_INHABITED_GROUND.md`. Local production Canvas review and focused
+checks passed; Makko performance and owner appearance judgment remain open.
+
 ## Cache Road equal usable banks — September 25
 
 The corrected diagrams in `CACHE_ROAD_AREA_ASSET_AUDIT.md` show nine active

@@ -1,5 +1,18 @@
 # Current State
 
+## September 26 — rolling terrain and inhabited outskirts (local review)
+
+The accepted wide-ground visual foundation is restored in this branch. Its
+two-depth city, shallow city boundary and wide roadside crest remain in
+place. Ground grain now travels on adjacent world-distance strips at road
+speed. Forty-two fixed gaps across the four-lap route receive a small
+neighborhood setting, narrow side street, static residents and contextual
+street furniture. Six painted settings already retained in the world-art
+folder are now active. Nearby ground clusters yield to these settings, while
+featured sites and gameplay remain in their previous positions. The
+32-second native drive and five stills are described in
+`CACHE_ROAD_INHABITED_GROUND.md`. Makko visual acceptance remains open.
+
 ## September 25 — equal usable left and right area selections
 
 The original nine-left inventory had two inactive hard-edged sources,
