@@ -531,6 +531,36 @@ async function run() {
   assert(roadArt.some(entry => entry.key === 'cachePlaceMarket' && entry.flip &&
     entry.width > market.width*1.4 && entry.x+entry.width/2 < 0),
   'the near building exits across the landscape edge instead of crossing the sidewalk');
+  const uncovered=entry=>Math.max(0,Math.min(entry.height,
+    entry.clipHeight-(entry.y-entry.height)));
+  const areaReveal=[],lampReveal=[];
+  for(const progress of [0,60,120,160]) {
+    mirrorFrame({progress});
+    const area=roadArt.find(entry=>entry.key==='cachePlaceRelayExchange');
+    const lampDepth=(525/620)*Math.pow((1200-(710-progress))/1200,3.1);
+    const lamp=roadArt.filter(entry=>entry.key==='cachePylon'&&entry.x<960)
+      .sort((a,b)=>Math.abs(a.width-214*lampDepth)-
+        Math.abs(b.width-214*lampDepth))[0];
+    assert(area&&lamp&&Math.abs(lamp.width-214*lampDepth)<.3,
+      'the same world-addressed lamp and featured area remain present from the horizon');
+    areaReveal.push([area.width,uncovered(area),area.height]);
+    lampReveal.push([lamp.width,uncovered(lamp)]);
+  }
+  assert(areaReveal[0][1]<areaReveal[0][2]*.25 &&
+    areaReveal[3][1]>areaReveal[3][2]*.6 &&
+    areaReveal.every(([width,visible],i)=>i===0||
+      width>areaReveal[i-1][0]&&visible>areaReveal[i-1][1]) &&
+    lampReveal[0][1]<3&&lampReveal[3][1]>15&&
+    lampReveal.every(([width,visible],i)=>i===0||
+      width>lampReveal[i-1][0]&&visible>lampReveal[i-1][1]),
+  'a building and a lamp reveal roof-first, then steadily grow while approaching');
+  mirrorFrame({progress:160});
+  const paintedOrder=roadArt.map(entry=>entry.key);
+  assert(paintedOrder.indexOf('cachePlaceGarage')<
+    paintedOrder.indexOf('cacheOutskirtsHomes') &&
+    paintedOrder.indexOf('cachePlaceConstruction')<
+    paintedOrder.indexOf('cacheMarketLFrontGap'),
+  'distant featured art draws behind the nearer satellite and district front');
   for(const [progress,bank,other] of [[250,'L','R'],[760,'R','L']]) {
     mirrorFrame({progress});
     for(const suffix of ['Turn','Curb','StreetWall','Endcap'])
@@ -556,7 +586,8 @@ async function run() {
     uprightPlaces(roadArt)
       .forEach(entry => reviewedKinds.add(entry.key));
     const visible=uprightPlaces(roadArt).filter(entry=>entry.x+entry.width/2>0 &&
-      entry.x-entry.width/2<1920 && entry.y-entry.height<1080);
+      entry.x-entry.width/2<1920 && entry.y-entry.height<1080 &&
+      entry.clipHeight>entry.y-entry.height+4);
     assert.equal(new Set(visible.map(entry=>entry.key)).size,visible.length,
       'a visible road vista never repeats one whole building at another size');
     assert(!roadArt.some(entry=>entry.key==='cachePlaceParking'),
@@ -591,7 +622,8 @@ async function run() {
       entry.width<2000 && (!entry.sourceRect ||
         entry.sourceRect[0]===0 && entry.sourceRect[1]===0 &&
         entry.sourceRect[2]>1300 && entry.sourceRect[3]>700) &&
-      entry.flip===(entry.x>960)),
+      (entry.flip===(entry.x>960)||entry.width<30||
+        entry.clipHeight<=entry.y-entry.height+4)),
     'graph accents and site satellites stay opaque and face their bank');
     for(const entry of infill)infillSeen.add(entry.key);
     assert(!roadArt.some(entry=>entry.key==='cacheBusStop'),
