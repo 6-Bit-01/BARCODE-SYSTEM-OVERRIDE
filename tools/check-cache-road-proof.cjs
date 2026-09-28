@@ -36,7 +36,7 @@ async function run() {
   context,{filename:'src/game/cache-road-proof.js [street-scene inspection]'});
   const landscape=w.__cacheLandscape, sites=w.__cacheSites;
   assert(landscape.pitch===180 && landscape.span===225 &&
-    landscape.chunks.length>=100 && landscape.plates.length>=200 &&
+    landscape.chunks.length>=100 && landscape.plates.length>=150 &&
     landscape.plates.every(plate=>plate.art[3]>=1500 &&
       plate.art[6]>0 && plate.art[6]<=plate.art[2]),
     'both banks use overlapping full-route chunks and fitted card metadata');
@@ -110,6 +110,29 @@ async function run() {
     'district fronts cannot occupy featured site addresses');
   assert.deepEqual(copy(w.BARCODE.CacheRoadLandscape.create(0x6b4d,9840,sites).streets),
     copy(landscape.streets),'retry produces the same street sockets');
+  // Check several real building stacks. Sites occupy their own painted lot,
+  // adjacent families may not collide, and a street belongs to one chunk.
+  for(const seed of [0x6b4d,17,92381,2026,7777]) {
+    const layout=w.BARCODE.CacheRoadLandscape.create(seed,9840,sites);
+    assert(layout.plates.length>=150 && layout.streets.length>=8,
+      `seed ${seed} retains inhabited banks and real streets`);
+    for(const side of [-1,1]) {
+      const plates=layout.plates.filter(p=>p.side===side);
+      const mouths=layout.streets.filter(s=>s.side===side).map(s=>s.at);
+      const accents=plates.filter(p=>p.key==='accent');
+      assert.equal(new Set(mouths).size,mouths.length,
+        `seed ${seed}: one chunk owns each ${side} street mouth`);
+      assert(plates.every(p=>!sites.some(s=>s.side===side&&
+        Math.abs(s.at-p.at)<30)),
+      `seed ${seed}: no card shares a featured site's foundation`);
+      assert(accents.every((p,i)=>accents.slice(i+1).every(q=>
+        Math.abs(p.at-q.at)>=240)),
+      `seed ${seed}: accent foundations have distinct addresses`);
+      assert(plates.every((p,i)=>plates.slice(i+1).every(q=>
+        p.family===q.family||Math.abs(p.at-q.at)>=110)),
+      `seed ${seed}: adjacent families do not intersect at a boundary`);
+    }
+  }
   const streetScenes=w.__cacheStreetScenes;
   const groups=streetScenes.map(scene=>scene.people).filter(group=>group.length);
   assert.deepEqual([...new Set(groups.map(group=>group.length))].sort(),[1,2,3,4,5],
@@ -425,6 +448,20 @@ async function run() {
   }
   mirrorFrame({progress:0});
   const openingPlaces=JSON.stringify(places);
+  const cutouts=roadArt.filter(entry=>/^(cachePerson|cacheWalker|cacheStreet)/.test(entry.key));
+  assert(cutouts.length>=5&&cutouts.every(entry=>
+    Math.abs(entry.clipLeft-entry.clipRight)<1e-6),
+  'people and props reveal across their whole width without a road-facing slice');
+  mirrorFrame({progress:120});
+  const earlyMarket=roadArt.filter(entry=>entry.key==='cachePlaceMarket'&&entry.flip)
+    .sort((a,b)=>b.width-a.width)[0];
+  mirrorFrame({progress:130});
+  const lateMarket=roadArt.filter(entry=>entry.key==='cachePlaceMarket'&&entry.flip)
+    .sort((a,b)=>b.width-a.width)[0];
+  assert(Number.isFinite(earlyMarket?.clipHeight)&&
+    Number.isFinite(lateMarket?.clipHeight)&&
+    Math.abs(earlyMarket.clipHeight-lateMarket.clipHeight)<60,
+  'the landscape reveal continues through the former t=.75 clip switch');
   mirrorFrame({ progress: 0 });
   assert.equal(JSON.stringify(uprightPlaces(roadArt)),openingPlaces,
     'seeded roadside placement draws identically on repeated frames');
@@ -440,6 +477,8 @@ async function run() {
     advancingMarket.y > market.y && advancingMarket.width > market.width &&
     advancingMarket.height > market.height && advancingLamp && advancingLamp.x < lamp.x,
   'a painted place grows and approaches alongside a world-fixed streetlight');
+  assert(advancingMarket.width/market.width<1.11,
+    'the same roadside site approaches at the longer, measured bank pace');
   checkSetbackAndFacing();
   mirrorFrame({ progress: 150 });
   assert(roadArt.some(entry => entry.key === 'cachePlaceMarket' && entry.flip &&
