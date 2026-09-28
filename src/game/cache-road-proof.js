@@ -572,9 +572,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const sway = reduced || kind === 'block' ? 0 :
         Math.sin(phase*(kind === 'freight' ? .055 : .082)+x*.009)*.65 +
         Math.sin(phase*(kind === 'freight' ? .105 : .15)+x*.016)*.35;
-      const bounce = sway*h*(kind === 'freight' ? .085 : .044) - Math.abs(recoil)*h*.08;
+      // The recovered vehicle art is a single pose per direction. Give its
+      // independently masked chassis enough suspension travel to read at
+      // the actual 1280x720 game scale while the tire pixels remain planted.
+      const bounce = sway*h*(kind === 'freight' ? .115 : .075) - Math.abs(recoil)*h*.08;
       const jolt = recoil*w*.075;
-      const roll = reduced ? 0 : (kind === 'cache' ? steer*.025 : 0) + recoil*.07;
+      const roll = reduced ? 0 : (kind === 'cache' ? steer*.025 : 0) +
+        sway*.009+recoil*.07;
       const art = { x: 0, y: 1, width: w*ratio[0], height: h*ratio[1] };
       const anchored = kind !== 'block';
       const freight = kind === 'freight';
@@ -620,14 +624,16 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         drawGrimyPlume(ctx,w*.16,-h*.08,phase+29,h*.85,.83,
           ['#e9ab68','#555968'],1);
       }
-      if (!reduced && kind === 'cache') {
-        // Thin wet spray begins at the two contact patches, not at the roof.
+      if (!reduced && anchored) {
+        // Animated wet contact remains behind all moving traffic. It is
+        // brighter on Cache, whose tire motion is the player's main cue.
         for (const tire of tires) {
-          for (let i=0; i<4; i++) {
-            const cycle = ((phase*.7+i*8+tire.x) % 32+32) % 32;
-            const drift = (tire.x < 0 ? -1 : 1)*(7+cycle*.56);
-            ctx.strokeStyle = i%2 ? '#a4e8ef70' : '#e9d0ae6a';
-            ctx.lineWidth = Math.max(.8,w*.008)*(1-cycle/44);
+          for (let i=0; i<(kind === 'cache'?6:3); i++) {
+            const cycle = ((phase*.75+i*8+tire.x) % 40+40) % 40;
+            const drift = (tire.x < 0 ? -1 : 1)*(8+cycle*.66);
+            ctx.strokeStyle = kind === 'cache' ?
+              (i%2 ? '#a4e8ef8c' : '#e9d0ae80') : '#9ec4c16a';
+            ctx.lineWidth = Math.max(.9,w*.009)*(1-cycle/54);
             ctx.beginPath(); ctx.moveTo(tire.x,tire.bottom+2+cycle*.42);
             ctx.lineTo(tire.x+drift,tire.bottom+5+cycle*.84); ctx.stroke();
           }
@@ -656,6 +662,20 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       }
       B.PresentationAssets.draw(artKey, ctx, art);
       ctx.restore();
+      if (!reduced && ['cache','freight','van','rival','audit','shuttle'].includes(kind)) {
+        // Small changing reflections animate the painted rear lamps without
+        // replacing the hand-painted vehicle poses or flashing a whole car.
+        ctx.save();ctx.translate(jolt,bounce);ctx.rotate(roll);
+        ctx.globalCompositeOperation='screen';
+        ctx.globalAlpha*=.15+.18*(.5+.5*Math.sin(phase*.17+x*.01));
+        ctx.fillStyle=kind==='cache'?'#ffcb78':'#ff8e87';
+        const lampY=-h*(kind==='freight'?.18:.29);
+        for(const side of [-1,1]) {
+          ctx.beginPath();ctx.ellipse(side*w*.35,lampY,
+            Math.max(2,w*.065),Math.max(1.5,h*.038),0,0,Math.PI*2);ctx.fill();
+        }
+        ctx.restore();
+      }
       for (const tire of tires) {
         const top = tire.top+tire.height*.25;
         const tireH = tire.height*.64;
@@ -1376,10 +1396,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const laneX = (lane, t) => laneEdge(lane, t) + half(t) / 4;
       const roadY = t => horizon + t * t * (bottom - horizon);
       const depth = d => clamp(1 - (d + 80) / 520, 0, 1);
-      // Give the bank a longer approach without changing its scale beside
-      // the car. At d=0 this equals the old projection; the far boundary
-      // arrives about 80 world units earlier and grows more gradually.
-      const sideDepth = d => 1-(d+95)/620;
+      // The bank has one invertible world projection for ground, streets,
+      // sites and people. Its shallow far slope lets a site clear the horizon
+      // before the near slope accelerates it past the player. d=0 retains
+      // the established sidewalk/road contact depth (525/620).
+      const bankNear=525/620,bankReach=720,bankCurve=1.65;
+      const sideDepth = d => bankNear*Math.pow(
+        Math.max(0,(bankReach-d)/bankReach),bankCurve);
+      const bankAddress = t => progress+bankReach*(1-
+        Math.pow(Math.max(0,t)/bankNear,1/bankCurve));
+      // Painted blocks contain foreground facades inside one large card.
+      // Moderate their near magnification without moving their world foot.
+      const cardScale = t => t/(1+.20*t);
       // The road, curb, lot and lamp offsets all converge at the vanishing
       // point, and the same projection continues beyond the bottom of frame.
       const roadsideX = (side,t,base,growth) =>
@@ -1392,7 +1420,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         Math.abs(x-center(0))/960,2)+
         6*Math.sin(x/260+progress/1700)+2*Math.sin(x/93+progress/1100);
       const terrainAt = (side,t,x) => {
-        const at=progress+525-620*t;
+        const at=bankAddress(t);
         const radial=(side*(x-center(t))-half(t))/(.1+.9*t)-190*t;
         return roadY(t)+t*(LANDSCAPE.height?.(side,at,
           Math.max(220,radial))??24);
@@ -1494,27 +1522,31 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const land=ctx.createLinearGradient(0,horizon,0,bottom);
       land.addColorStop(0,'#263b43');land.addColorStop(1,'#293f43');
       ctx.fillStyle=land;ctx.fillRect(0,horizon,1920,bottom-horizon);
-      // Each panorama overscans the viewport at its source aspect ratio.
-      // The near outskirts climb slightly across the full route. A single
-      // road bearing pans both depths without a lap reset.
-      const bearing=reduced ? 0 :
-        clamp(eyeHeading*115+(eyePath-path(0))*.18,-110,110);
+      // The three city paintings share the road's world path. All begin at
+      // the center of their wider-than-screen source. Near architecture
+      // tracks turns most, while the close frontage rises from completely
+      // below the skyline lip to a clear silhouette by the end of the run.
+      const startBearing=path(520)-path(0)-520*heading(0);
+      const currentBearing=path(progress+520)-eyePath-520*eyeHeading;
+      const bearing=clamp((eyePath-path(0))*.7+
+        (eyeHeading-heading(0))*160+
+        (currentBearing-startBearing)*.62,-330,330);
       const cityDistance=clamp(progress/END,0,1);
       const cityApproach=cityDistance*cityDistance*(3-2*cityDistance);
-      const frontageWidth=2240+145*cityApproach;
-      const frontageFoot=550-44*cityApproach;
       ctx.save();ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(1920,0);
       for(let x=1920;x>=0;x-=30)ctx.lineTo(x,cityCrestY(x));
       ctx.closePath();ctx.clip();
       const cityLayers=[
-        ['cacheDistantCity',2079,756,2450,520,.58,.20],
-        ['cacheOutskirts',2172,724,frontageWidth,frontageFoot,.78,.72]
+        // key, width, height, foot, opacity, horizontal parallax
+        ['cacheDistantCity',2600,800,520,.53,.18],
+        ['cacheOutskirts',2680,760,540,.68,.48],
+        ['cacheMidCity',2800,450,825-405*cityApproach,.88,.90]
       ];
-      for(const [key,sourceW,sourceH,width,foot,opacity,parallax] of cityLayers) {
+      for(const [key,width,height,foot,opacity,parallax] of cityLayers) {
         ctx.globalAlpha=opacity;
         B.PresentationAssets?.draw?.(key,ctx,{
           x:(1920-width)/2-bearing*parallax,y:foot,
-          width,height:width*sourceH/sourceW });
+          width,height });
       }
       ctx.restore();
       // Level 1's animated ships cross above this road at different depths
@@ -1686,7 +1718,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           const t=sideDepth(plate.at-progress);
           const [key,sourceW,sourceH,maxW,base,growth,
             contactBottom,contactAt,fit]=plate.art;
-          const width=maxW*t;
+          const width=maxW*cardScale(t);
           const socketFraction=fit?.socketU===undefined?0:
             plate.side<0?1-fit.socketU:fit.socketU;
           const roadward=roadsideX(plate.side,t,base,growth)-
@@ -1757,7 +1789,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
             Math.abs(scene.at-at)<145))continue;
           const variants=clusterArt[String(side)];
           const [key,sourceW,sourceH]=variants[((index%3)+3)%3];
-          const width=(1190+70*placeRandom(index*83+side*19))*t;
+          const width=(1190+70*placeRandom(index*83+side*19))*cardScale(t);
           const x=roadsideX(side,t,
             580+80*placeRandom(index*79+side*23)+280*t,300);
           if(x+width*.5<0||x-width*.5>1920)continue;
@@ -1785,7 +1817,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const t=sideDepth(scene.at+(satellite?43:22)-progress);
         if(t<.11||t>.95)continue;
         const [key,sourceW,sourceH,maxW]=scene.art;
-        const width=(satellite?Math.min(620,maxW*.9):maxW)*t;
+        const width=(satellite?Math.min(620,maxW*.9):maxW)*cardScale(t);
         const sidewalkEdge=roadsideX(scene.side,t,220,190);
         const x=sidewalkEdge+scene.side*(width*.5+(satellite?29:43)*t);
         if(x+width*.5<0||x-width*.5>1920)continue;
@@ -1956,31 +1988,39 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       for (let i=28;i>=0;i--) { const t=i/28; ctx.lineTo(center(t)+half(t),roadY(t)); }
       ctx.closePath(); ctx.clip(); ctx.fillStyle=roadFog; ctx.fillRect(0,horizon,1920,170);
       ctx.restore();
-      // The open lot is a patch of the curved landscape; its four corners,
-      // entrance and bays use the same projection as the sidewalk.
+      // The open lot is a patch of the curved landscape. Its texture samples
+      // world-addressed strips like the connected streets, so no fixed
+      // screen rectangle slides over the moving bank beneath it.
       const drawProjectedLocale = (place,t) => {
         const side=place.side;
-        const n=clamp(sideDepth(place.at-67*place.size-progress),.06,1.18);
-        const f=clamp(sideDepth(place.at+82*place.size-progress),.06,1.18);
+        const nearAt=place.at-67*place.size;
+        const farAt=place.at+82*place.size;
+        const n=clamp(sideDepth(nearAt-progress),.06,1.18);
+        const f=clamp(sideDepth(farAt-progress),.06,1.18);
         const lotX=(tt,outer=false)=>roadsideX(side,tt,
           outer?605+place.setback:255,outer?345:215);
         const lotY=(tt,outer=false)=>terrainAt(side,tt,lotX(tt,outer));
         clipRoadside(t,()=>{
           ctx.globalAlpha=1;
-          polygon(ctx,[[lotX(f),lotY(f)],[lotX(n),lotY(n)],
-            [lotX(n,true),lotY(n,true)+17*n],[lotX(f,true),lotY(f,true)+17*f]],
-          '#1d2b36');
-          ctx.save();ctx.beginPath();
-          ctx.moveTo(lotX(f),lotY(f));ctx.lineTo(lotX(n),lotY(n));
-          ctx.lineTo(lotX(n,true),lotY(n,true)+17*n);
-          ctx.lineTo(lotX(f,true),lotY(f,true)+17*f);ctx.closePath();ctx.clip();
-          ctx.globalAlpha*=.42;
-          B.PresentationAssets?.draw?.('cacheBlacktop',ctx,{
-            x:0,y:horizon,width:1920,height:680,
-            sourceRect:[0,108,2172,616] });
-          ctx.restore();
-          ctx.strokeStyle='#82969a';
-          ctx.lineWidth=2+3*n;ctx.beginPath();
+          // Address-aligned 24-unit tiles preserve their texels when a lot
+          // crosses the horizon, and share the street's affine quad mapping.
+          for(let at=Math.floor(farAt/24)*24;at>nearAt-24;at-=24) {
+            const ahead=Math.min(farAt,at+24),behind=Math.max(nearAt,at);
+            if(ahead<=behind)continue;
+            const far=clamp(sideDepth(ahead-progress),.06,1.18);
+            const near=clamp(sideDepth(behind-progress),.06,1.18);
+            if(near<=far)continue;
+            const row=((Math.floor(at*2)%localStreetPeriod)+
+              localStreetPeriod)%localStreetPeriod;
+            paintProjectedStreet([
+              [lotX(far),lotY(far)],
+              [lotX(near),lotY(near)],
+              [lotX(near,true),lotY(near,true)+17*near],
+              [lotX(far,true),lotY(far,true)+17*far]
+            ],row,'cacheLocalStreet',.82);
+          }
+          ctx.strokeStyle='#82969a8a';
+          ctx.lineWidth=1+2*n;ctx.beginPath();
           ctx.moveTo(lotX(f),lotY(f));ctx.lineTo(lotX(n),lotY(n));ctx.stroke();
           for(const offset of [48,0,-48]) {
             const tt=sideDepth(place.at+offset-progress);
@@ -2039,9 +2079,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         }
         const [key,sourceW,sourceH,maxW]=
           (place.variant && SIDE_VARIANTS[place.variant].art) || PLACE_ART[place.kind];
-        // One linear depth scale matches the widening road and passing cars.
-        // The old second easing curve kept sites tiny, then inflated them.
-        const width=maxW*t*place.size;
+        const width=maxW*cardScale(t)*place.size;
         const height=width*sourceH/sourceW;
         const sidewalkEdge=roadsideX(place.side,t,220,190);
         const x=sidewalkEdge+place.side*(width*.5+(26+place.setback)*t);
@@ -2396,7 +2434,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           ctx.strokeStyle = '#a4faff'; ctx.globalAlpha = .36; ctx.lineWidth = 3;
           ctx.beginPath(); ctx.moveTo(x, carY - 8); ctx.lineTo(carX, carY - 8); ctx.stroke(); ctx.globalAlpha = 1;
         }
-        drawVehicle(ctx, x, carY, 152, 115, 'echo', { alpha: .68 });
+        drawVehicle(ctx, x, carY, 152, 115, 'echo',
+          { alpha: .68, phase: progress+37, reduced });
       }
       drawVehicle(ctx, carX, carY, 164, 119, 'cache',
         { alpha: !s.stumbleMs && s.invulnerableMs && Math.floor(s.invulnerableMs / 90) % 2 ? .55 : 1,

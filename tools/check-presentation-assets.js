@@ -30,11 +30,13 @@ const cacheRoadRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM
 assert.equal(images.filter(im => im.requests[0].startsWith(cacheRoadRoot)).length,16,
   'original Cache Road art retains its published pinned revision');
 const cacheRoadsideRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3dbc72b087435b02244ff1ec097a5151329a7234/';
-assert.equal(images.filter(im => im.requests[0].startsWith(cacheRoadsideRoot)).length,5,
+assert.equal(images.filter(im => im.requests[0].startsWith(cacheRoadsideRoot)).length,4,
   'the retained roadside surfaces use their published asset commit');
 const cacheTerrainRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/1115dcf56bf841d05be3f6935126330e85fba1da/';
 const terrainImages=images.filter(im=>im.requests[0].startsWith(cacheTerrainRoot));
-assert.equal(terrainImages.length,16,'city approach, six clusters, six infill scenes and rolling ground share one immutable art revision');
+assert.equal(terrainImages.length,17,'three city depths, six clusters, six infill scenes and rolling ground share one immutable art revision');
+assert(terrainImages.some(im=>im.requests[0].endsWith('/bridge-free-district.webp')),
+  'the near city uses the retained bridge-free painting');
 for(const image of terrainImages) {
   image.onerror();
   const local=image.requests[0].slice(cacheTerrainRoot.length);

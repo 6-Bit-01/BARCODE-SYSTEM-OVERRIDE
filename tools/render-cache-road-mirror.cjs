@@ -42,7 +42,7 @@ async function main() {
     cacheSkyline: 'assets/cache-road/world/panorama-skyline.webp',
     cacheDistantCity: 'assets/cache-road/world/bridge-free-distance.webp',
     cacheOutskirts: 'assets/cache-road/world/bridge-free-outskirts.webp',
-    cacheMidCity: 'assets/cache-road/world/panorama-frontage.webp',
+    cacheMidCity: 'assets/cache-road/world/bridge-free-district.webp',
     cacheGroundClusterL1: 'assets/cache-road/world/ground-cluster-left-01.webp',
     cacheGroundClusterL2: 'assets/cache-road/world/ground-cluster-left-02.webp',
     cacheGroundClusterL3: 'assets/cache-road/world/ground-cluster-left-03.webp',
