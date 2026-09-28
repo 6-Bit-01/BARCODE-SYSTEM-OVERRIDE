@@ -34,3 +34,8 @@ heights; the road texture and flying-traffic direction fixes are documented in
 The two steering paintings also show an outer front tire higher than the near
 rear tire. After #118 review, each selected wheel clip and contact shadow has
 its own top and bottom, including the raised outer tire in both directions.
+
+The later camera pass makes the existing runtime suspension, tire spray and
+rear-light motion readable in the 1280x720 drive. Traffic uses the same
+anchored-wheel approach; Reduced Motion holds those effects. The recovered
+paintings remain single poses, so this does not restore a missing sprite sheet.

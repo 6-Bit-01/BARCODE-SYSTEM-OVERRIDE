@@ -292,6 +292,8 @@ async function run() {
       ...(['cacheRollingGrain','cacheWorkshopPavement','cacheLocalStreet'].includes(key) ||
         key.endsWith('Turn')||key.endsWith('Curb') ?
         { projected:_ctx.lastTransform?.slice() } : {}),
+      ...(['cacheCar','cacheFreight','cacheSweeper'].includes(key) ?
+        { chassisOffset:_ctx.lastTranslate?.slice() } : {}),
       ...(key.startsWith('cacheFly') ? { screenX: _ctx.lastTranslate?.[0] } : {}) });
       drawOrder.push(key); }
     return true;
@@ -355,6 +357,7 @@ async function run() {
   assert.equal(mirrorFrame({}), 0);
   assert(roadArt.some(entry => entry.key === 'cacheDistantCity') &&
     roadArt.some(entry => entry.key === 'cacheOutskirts') &&
+    roadArt.some(entry => entry.key === 'cacheMidCity') &&
     roadArt.some(entry => entry.key === 'cacheParapet') &&
     roadArt.some(entry => entry.key === 'cachePylon') &&
     roadArt.some(entry => entry.key === 'cacheFly1') &&
@@ -364,7 +367,7 @@ async function run() {
     roadArt.some(entry => entry.key === 'cacheOuterGround') &&
     roadArt.some(entry => entry.key === 'cacheRollingGrain') &&
     roadArt.some(entry => entry.key === 'cacheCar'),
-  'two city depths, projected sidewalk and ground, roadside art, traffic and car share the live draw');
+  'three city depths, projected sidewalk and ground, roadside art, traffic and car share the live draw');
   mirrorFrame({ progress: 0 });
   const uprightPlaces = entries => entries.filter(entry =>
     entry.key.startsWith('cachePlace') && entry.key !== 'cachePlaceParking');
@@ -479,8 +482,13 @@ async function run() {
   'a painted place grows and approaches alongside a world-fixed streetlight');
   assert(advancingMarket.width/market.width<1.11,
     'the same roadside site approaches at the longer, measured bank pace');
+  mirrorFrame({progress:150});
+  const laterWidth=roadArt.filter(entry=>entry.key==='cachePlaceMarket'&&entry.flip)
+    .sort((a,b)=>b.width-a.width)[0]?.width;
+  assert((laterWidth-advancingMarket.width)/118 >
+    (advancingMarket.width-market.width)/32,
+  'a site starts with a slower approach and accelerates near the player');
   checkSetbackAndFacing();
-  mirrorFrame({ progress: 150 });
   assert(roadArt.some(entry => entry.key === 'cachePlaceMarket' && entry.flip &&
     entry.width > market.width && entry.x+entry.width/2 > 0 &&
     entry.y-entry.height < 1080),
@@ -578,6 +586,17 @@ async function run() {
   assert(!roadArt.some(entry=>['cacheCourier','cacheAudit'].includes(entry.key) &&
     entry.x!==0),
   'parking lots contain no stray copies of the active traffic paintings');
+  mirrorFrame({progress:6010});
+  const lotTile=roadArt.find(entry=>entry.key==='cacheLocalStreet' &&
+    entry.alpha===.82 && entry.projected?.length===6);
+  assert(lotTile && !roadArt.some(entry=>entry.key==='cacheBlacktop' &&
+    entry.sourceRect?.[3]===616),
+  'the lot maps local asphalt onto terrain quads without a fixed screen texture');
+  mirrorFrame({progress:6020});
+  const sameLotTile=roadArt.find(entry=>entry.key==='cacheLocalStreet' &&
+    entry.alpha===.82 && entry.sourceRect?.[1]===lotTile.sourceRect[1]);
+  assert(sameLotTile && sameLotTile.projected[5]>lotTile.projected[5],
+  'a parking texel stays at its world address while its quad approaches');
   let completePark=false;
   for(let progress=0;progress<2460;progress+=75) {
     mirrorFrame({progress});
@@ -592,29 +611,32 @@ async function run() {
   mirrorFrame({ progress: 3*2460+600 });
   assert(trafficLabels.includes('< CUT'), 'rotated right-edge trike calls its left cut');
   mirrorFrame({ progress: 395 });
-  const cityAt395=['cacheDistantCity','cacheOutskirts']
+  const cityKeys=['cacheDistantCity','cacheOutskirts','cacheMidCity'];
+  const cityAt395=cityKeys
     .map(key=>{
       const entry=roadArt.find(item=>item.key===key);
       return entry.x-(1920-entry.width)/2;
     });
-  for(const [key,sourceW,sourceH] of [
-    ['cacheDistantCity',2079,756],['cacheOutskirts',2172,724]]) {
+  for(const key of cityKeys) {
     const entry=roadArt.find(item=>item.key===key);
-    assert(entry.width>1920 && Math.abs(entry.width/entry.height-sourceW/sourceH)<.001 &&
-      !entry.sourceRect,
-    `${key} has overscan for camera pan without widening the source architecture`);
+    assert(entry.width>=2600 && entry.width<3000 &&
+      entry.height>350 && !entry.sourceRect,
+    `${key} overscans the screen for a bounded road-bearing parallax`);
   }
   const middleCity=roadArt.find(entry=>entry.key==='cacheOutskirts');
   assert(middleCity.ridgeEdge-middleCity.ridgeCenter>10 &&
     middleCity.ridgeEdge-middleCity.ridgeCenter<35,
   'the city boundary stays shallow while the roadside keeps its wide planet crest');
   mirrorFrame({ progress: 0 });
-  const openingCity=roadArt.find(entry=>entry.key==='cacheOutskirts');
+  const openingCity=roadArt.find(entry=>entry.key==='cacheMidCity');
+  assert(Math.abs(openingCity.x-(1920-openingCity.width)/2)<.001 &&
+    openingCity.y-openingCity.height+openingCity.height*103/724>435,
+  'the close city starts centered and completely hidden below the skyline lip');
   mirrorFrame({ progress: 3*2460+2000 });
-  const nearCity=roadArt.find(entry=>entry.key==='cacheOutskirts');
-  assert(nearCity.width>openingCity.width+100 &&
-    nearCity.y<openingCity.y-35 && nearCity.alpha===openingCity.alpha,
-  'near city architecture grows and clears the crest across the complete run without fading');
+  const nearCity=roadArt.find(entry=>entry.key==='cacheMidCity');
+  assert(nearCity.width===openingCity.width &&
+    nearCity.y<openingCity.y-300 && nearCity.alpha===openingCity.alpha,
+  'the close city emerges vertically across the entire run without a lap reset');
   mirrorFrame({ progress: 395 });
   const roadTexture=() => roadArt.find(entry => entry.key === 'cacheBlacktop' &&
     entry.sourceRect[3] <= 22);
@@ -626,7 +648,7 @@ async function run() {
       entry.alpha===.44 && entry.projected?.length===6) &&
     workshopPavement.length===0 && localStreet.length>0 &&
     localStreet.length%2===0 &&localStreet.some(entry=>entry.alpha===.95) &&
-    localStreet.every(entry=>[.84,.95].includes(entry.alpha) &&
+    localStreet.every(entry=>[.82,.84,.95].includes(entry.alpha) &&
       entry.sourceRect?.[2]===256 && entry.sourceRect?.[3]===64 &&
       entry.projected?.length===6),
   'world-fixed grain covers both banks; shared local texture stays inside graph streets and market courts');
@@ -639,6 +661,8 @@ async function run() {
     entry.sourceRect[1]>100);
   assert(fixedGrain,'a tracked left-bank terrain strip is visible');
   const textureRow = roadTexture().sourceRect[1];
+  const cachePose=roadArt.filter(entry=>entry.key==='cacheCar').at(-1).chassisOffset;
+  const sweeperPose=roadArt.filter(entry=>entry.key==='cacheSweeper').at(-1).chassisOffset;
   const ships = roadArt.filter(entry => entry.key.startsWith('cacheFly'));
   assert.deepEqual(ships.map(ship => [ship.key,ship.flip]),
     [['cacheFly1',false],['cacheFly3',false],['cacheFly3',true],
@@ -650,15 +674,21 @@ async function run() {
     Math.abs(contacts.at(-1).y - (-119*.14+2)) < .01,
   'the player shadow has a contact patch under each grounded tire');
   mirrorFrame({ progress: 405 });
-  const cityAt405=['cacheDistantCity','cacheOutskirts']
+  assert(Math.abs(roadArt.filter(entry=>entry.key==='cacheCar').at(-1)
+    .chassisOffset[1]-cachePose[1])>1 &&
+    Math.abs(roadArt.filter(entry=>entry.key==='cacheSweeper').at(-1)
+      .chassisOffset[1]-sweeperPose[1])>1,
+  'painted player and traffic bodies animate over their grounded wheel masks');
+  const cityAt405=cityKeys
     .map(key=>{
       const entry=roadArt.find(item=>item.key===key);
       return entry.x-(1920-entry.width)/2;
     });
   const pans=cityAt405.map((x,i)=>x-cityAt395[i]);
-  assert(Math.abs(pans[0])<10 && Math.abs(pans[1])<12 &&
-    Math.abs(pans[1]-pans[0]*.72/.20)<.01,
-  'city depths pan together with the road bearing at bounded parallax ratios');
+  assert(Math.abs(pans[0])<10 && Math.abs(pans[2])<35 &&
+    Math.abs(pans[1]-pans[0]*.48/.18)<.01 &&
+    Math.abs(pans[2]-pans[0]*.90/.18)<.01,
+  'three city depths pan together on a road turn at increasing parallax ratios');
   assert(roadTexture().sourceRect[1] < textureRow,
     'blacktop marks advance from horizon toward car with road progress');
   const movedGrain=roadArt.find(entry=>entry.key===fixedGrain.key &&
@@ -674,25 +704,31 @@ async function run() {
   B.Preferences = { values: { reducedMotion: true } };
   mirrorFrame({ progress: 395, elapsedMs: 100 });
   const stillShips = roadArt.filter(entry => entry.key.startsWith('cacheFly'));
-  const stillCity=['cacheDistantCity','cacheOutskirts']
+  const stillCity=cityKeys
     .map(key=>{
       const entry=roadArt.find(item=>item.key===key);
       return entry.x-(1920-entry.width)/2;
     });
-  const stillCityWidth=roadArt.find(entry=>entry.key==='cacheOutskirts').width;
+  const stillCityY=roadArt.find(entry=>entry.key==='cacheMidCity').y;
   mirrorFrame({ progress: 425, elapsedMs: 1400 });
+  assert(Math.abs(roadArt.filter(entry=>entry.key==='cacheCar').at(-1)
+    .chassisOffset[1])<.01,
+  'Reduced Motion still plants the painted chassis on the road');
   assert.deepEqual(roadArt.filter(entry => entry.key.startsWith('cacheFly'))
     .map(ship => [ship.screenX, ship.frame]),
     stillShips.map(ship => [ship.screenX, ship.frame]),
     'Reduced Motion holds decorative flying traffic in place');
-  assert.deepEqual(['cacheDistantCity','cacheOutskirts']
+  const reducedCity=cityKeys
     .map(key=>{
       const entry=roadArt.find(item=>item.key===key);
       return entry.x-(1920-entry.width)/2;
-    }),stillCity,
-  'Reduced Motion holds decorative city pan while the road still turns');
-  assert(roadArt.find(entry=>entry.key==='cacheOutskirts').width>stillCityWidth,
-    'Reduced Motion retains the non-decorative approach to the city');
+    });
+  assert(reducedCity.some((x,i)=>Math.abs(x-stillCity[i])>.1) &&
+    Math.abs((reducedCity[2]-stillCity[2])/
+      (reducedCity[0]-stillCity[0])-.90/.18)<.01,
+  'Reduced Motion retains the road-following city camera while ships hold still');
+  assert(roadArt.find(entry=>entry.key==='cacheMidCity').y<stillCityY,
+    'Reduced Motion retains the close skyline arrival');
   B.Preferences = previousPreferences;
   assert.deepEqual(openingRects, [], 'the objective disappears between actionable lessons');
   mirrorFrame({ steer: -1 });

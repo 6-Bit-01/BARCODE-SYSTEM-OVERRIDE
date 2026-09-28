@@ -67,7 +67,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     cacheSkyline: { path: 'assets/cache-road/world/panorama-skyline.webp', root: cacheRoadsideRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 1, smooth: true },
     cacheDistantCity: { path: 'assets/cache-road/world/bridge-free-distance.webp', root: cacheTerrainRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 1, smooth: true },
     cacheOutskirts: { path: 'assets/cache-road/world/bridge-free-outskirts.webp', root: cacheTerrainRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 1, smooth: true },
-    cacheMidCity: { path: 'assets/cache-road/world/panorama-frontage.webp', root: cacheRoadsideRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 1, smooth: true },
+    cacheMidCity: { path: 'assets/cache-road/world/bridge-free-district.webp', root: cacheTerrainRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 1, smooth: true },
     cacheGroundClusterL1: { path: 'assets/cache-road/world/ground-cluster-left-01.webp', root: cacheTerrainRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
     cacheGroundClusterL2: { path: 'assets/cache-road/world/ground-cluster-left-02.webp', root: cacheTerrainRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
     cacheGroundClusterL3: { path: 'assets/cache-road/world/ground-cluster-left-03.webp', root: cacheTerrainRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
