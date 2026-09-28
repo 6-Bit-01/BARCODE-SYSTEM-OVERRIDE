@@ -152,9 +152,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     }
   }
   SIDE_PLACES.sort((a,b)=>b.at-a.at);
-  // A few of the longer gaps between established addresses become small,
-  // fixed neighborhood scenes. They replace a ground cluster at that address
-  // rather than stacking another full block on top of it.
+  // Existing featured places own their parcels. Generate the modular blocks
+  // around those addresses so one family cannot cover a special location or
+  // cut a road mouth through its painted foundation.
+  const LANDSCAPE = B.CacheRoadLandscape?.create(0x6b4d,END,SIDE_PLACES) ||
+    {plates:[],streets:[],districts:[],owns:()=>false};
+  // Six existing settings now occupy legal graph parcels in place of a
+  // middle workshop card. Their people and props share those addresses.
   const INFILL_ART = [
     ['cacheTransitNook',1602,982,650],
     ['cacheOutskirtsHomes',2022,778,910],
@@ -164,22 +168,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     ['cacheRepairShop',1389,1132,650]
   ];
   const VENDOR_ART=['cacheVendorStall',1391,1131,690];
-  const INFILL_SCENES=[];
-  for(const side of [-1,1]) {
-    const addresses=SIDE_PLACES.filter(place=>place.side===side)
-      .sort((a,b)=>a.at-b.at);
-    let last=-500;
-    for(let i=0;i<addresses.length-1;i++) {
-      const a=addresses[i],b=addresses[i+1],gap=b.at-a.at;
-      if(gap<210)continue;
-      const at=Math.round(a.at+gap*(.46+.08*placeRandom(i*191+side*31)));
-      if(at-last<310)continue;
-      INFILL_SCENES.push({at,side,index:i,
-        art:INFILL_ART[(i+(side>0?3:0))%INFILL_ART.length]});
-      last=at;
-    }
-  }
-  INFILL_SCENES.sort((a,b)=>b.at-a.at);
+  const INFILL_SCENES=LANDSCAPE.plates.filter(plate=>plate.key==='accent')
+    .map((plate,index)=>({at:plate.at,side:plate.side,index,
+      art:INFILL_ART.find(art=>art[0]===plate.art[0])}));
   // A deep-set featured site can leave an empty curb even though its own
   // building is present farther out. A smaller occupied frontage connects
   // that site to the road, without changing the established site address.
@@ -209,7 +200,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     ['cachePersonSkateboarder',1238/1319,112],
     ['cachePersonCrateCarrier',1263/1208,107],
     ['cachePersonBoardPlayer',1236/1302,102],
-    ['cachePersonStreetCook',1293/1194,108]
+    ['cachePersonStreetCook',1293/1194,108],
+    ...['Courier','Mechanic','MarketWorker','Student','Gardener','Resident']
+      .flatMap(identity=>['Toward','Away'].map(direction=>
+        [`cacheWalker${identity}${direction}`,1024/1536,113]))
   ];
   const PASSERS=[0,1,2,3,4,5,7,10,11,12];
   const LOCAL_ACTIONS={
@@ -236,7 +230,16 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     cacheStreetWorkSupplies:[1491/1039,89],
     cacheStreetDeliveryVan:[1498/1016,119],
     cacheStreetBenchPlanters:[1546/1040,91],
-    cacheStreetDataKiosk:[1224/1318,96]
+    cacheStreetDataKiosk:[1224/1318,96],
+    cacheNewLampL:[1024/1536,146],cacheNewLampR:[1024/1536,146],
+    cacheNewCrossingSignalL:[1024/1536,130],
+    cacheNewCrossingSignalR:[1024/1536,130],
+    cacheNewWayfindingSign:[1024/1536,110],
+    cacheNewBinsRecycling:[1312/1199,72],
+    cacheNewLoadingCrates:[1312/1199,80],
+    cacheNewUtilityCabinet:[1246/1263,95],
+    cacheNewVendorCart:[1312/1199,91],
+    cacheNewFencePlanter:[1536/1024,73]
   };
   // These are world addresses, generated once with a stable seed. Road
   // progress projects the same people and furniture as the ground and lane.
@@ -279,6 +282,47 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     return {at:anchor.at,side:anchor.side,kind:anchor.kind,people,
       props:props.sort((a,b)=>b.at-a.at)};
   }).sort((a,b)=>b.at-a.at);
+  const DISTRICT_PROPS={
+    market:['cacheNewVendorCart','cacheNewBinsRecycling'],
+    homes:['cacheNewFencePlanter','cacheNewBinsRecycling'],
+    workshop:['cacheNewLoadingCrates','cacheNewUtilityCabinet'],
+    greenhouse:['cacheNewFencePlanter','cacheNewBinsRecycling'],
+    data:['cacheNewUtilityCabinet','cacheNewWayfindingSign'],
+    transit:['cacheNewWayfindingSign','cacheNewBinsRecycling']
+  };
+  // The graph fixes addresses first. Stable, separate directional cutouts
+  // are sampled without replacing an identity within a group. These are
+  // pedestrians on accessible parcel fronts, never part of a building card.
+  const DISTRICT_SCENES=LANDSCAPE.chunks.filter((chunk,index)=>
+    index%3===1 && LANDSCAPE.plates.some(plate=>plate.chunkId===chunk.id &&
+      plate.tier==='front')).map((chunk,index)=>{
+    const salt=chunk.seed+index*119;
+    const size=1+Math.floor(placeRandom(salt+7)*5);
+    const first=Math.floor(placeRandom(salt+11)*6);
+    const people=Array.from({length:size},(_,j)=>{
+      const identity=(first+j)%6;
+      const direction=placeRandom(salt+identity*67)>.5?0:1;
+      return {id:15+identity*2+direction,
+        at:chunk.frontAt+(j-(size-1)/2)*21,
+        base:305+(j%2)*17+Math.floor(placeRandom(salt+j*41)*18),
+        scale:.91+placeRandom(salt+j*83)*.13,flip:false};
+    });
+    const choices=DISTRICT_PROPS[chunk.family];
+    const key=choices[Math.floor(placeRandom(salt+17)*choices.length)];
+    return {at:chunk.frontAt,side:chunk.side,kind:chunk.family,people,
+      props:[{key,at:chunk.frontAt+(index%2?-75:75),base:420,scale:.85}]};
+  });
+  for(const street of LANDSCAPE.streets) {
+    DISTRICT_SCENES.push({at:street.at,side:street.side,kind:street.family,
+      people:[],props:[
+        {key:street.side<0?'cacheNewLampL':'cacheNewLampR',
+          at:street.at-41,base:280,scale:.94},
+        {key:street.side<0?'cacheNewCrossingSignalL':'cacheNewCrossingSignalR',
+          at:street.at+41,base:280,scale:.91}
+      ]});
+  }
+  STREET_SCENES.push(...DISTRICT_SCENES);
+  STREET_SCENES.sort((a,b)=>b.at-a.at);
   const clone = value => JSON.parse(JSON.stringify(value));
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   function mirrorExpression(s) {
@@ -1343,18 +1387,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const cityCrestY = x => horizon+8+18*Math.pow(
         Math.abs(x-center(0))/960,2)+
         6*Math.sin(x/260+progress/1700)+2*Math.sin(x/93+progress/1100);
-      const buriedFoot = t => 10*(1-clamp(t/.5,0,1));
-      const terrainRoll = (side,t) => {
-        const at=progress+440-520*t;
-        return t*(12*Math.sin(at/157+side*.8)+4*Math.sin(at/51+side*1.6));
-      };
-      const sceneFoot = (t,side) =>
-        roadY(t)+40*t+buriedFoot(t)+terrainRoll(side,t);
       const terrainAt = (side,t,x) => {
-        const inner=roadsideX(side,t,220,190);
-        const outer=roadsideX(side,t,990,440);
-        const across=clamp((x-inner)/(outer-inner),0,1);
-        return roadY(t)+24*t+(sceneFoot(t,side)-roadY(t)-24*t)*across;
+        const at=progress+440-520*t;
+        const radial=(side*(x-center(t))-half(t))/(.1+.9*t)-190*t;
+        return roadY(t)+t*(LANDSCAPE.height?.(side,at,
+          Math.max(220,radial))??24);
       };
       const clipRoadside = (t,draw) => {
         ctx.save();
@@ -1371,7 +1408,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const drawSurfacePanel = (key,side,far,near,inner,outer,sourceRect=null) => {
         const point=(t,edge) => ({
           x:roadsideX(side,t,...edge.slice(0,2)),
-          y:roadY(t)+edge[2]*t+(edge[3]?buriedFoot(t)+terrainRoll(side,t):0)
+          y:terrainAt(side,t,roadsideX(side,t,...edge.slice(0,2)))+
+            (edge[3]?0:(edge[2]-24)*t)
         });
         const fi=point(far,inner),fo=point(far,outer);
         const ni=point(near,inner),no=point(near,outer);
@@ -1483,14 +1521,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           flip:model==='cacheFly1'?!forward:forward });
         ctx.restore();
       }
-      // A single projected material joins the outer land to the road.
-      for(let at=Math.floor((progress+570)/85)*85;at>progress-180;at-=85) {
-        const far=sideDepth(at+85-progress),near=sideDepth(at-progress);
-        if(far<.10||near>1.22)continue;
-        for(const side of [-1,1])
-          drawSurfacePanel('cacheOuterGround',side,far,near,
-            [220,190,24,0],[990,440,40,1]);
-      }
+      // The sampled ground below is the single material pass for both
+      // banks. Its strips cover the contact points of older cards.
       ctx.save();ctx.beginPath();
       for(let x=0;x<=1920;x+=20) {
         if(x===0)ctx.moveTo(x,cityCrestY(x));
@@ -1498,60 +1530,194 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       }
       ctx.strokeStyle='#102a34';ctx.lineWidth=6;ctx.stroke();
       ctx.restore();
-      // The painted grit uses the same world-distance projection as the road
-      // furniture. Neighboring strips sample neighboring rows of one image;
-      // the source wraps only where its upper and lower edges are transparent.
-      ctx.save();ctx.beginPath();ctx.moveTo(0,cityCrestY(0));
-      for(let x=30;x<=1920;x+=30)ctx.lineTo(x,cityCrestY(x));
-      ctx.lineTo(1920,bottom);ctx.lineTo(0,bottom);ctx.closePath();ctx.clip();
-      ctx.globalAlpha=.44;
-      const grainPeriod=624,grainStep=48,grainTop=32,grainHeight=823;
-      for(let at=Math.floor((progress+570)/grainStep)*grainStep;
-        at>progress-180;at-=grainStep) {
-        const far=sideDepth(at+grainStep-progress);
+      // Neighboring strips sample adjacent rows of one world-fixed material.
+      const grainPeriod=624,grainTop=32,grainHeight=823;
+      // The shared local-street material is 1254 square; a 64-pixel strip remains
+      // inside its source row when the address wraps.
+      const localStreetPeriod=1254-64;
+      // Paint sampled world strips far to near. Each opaque nearer strip
+      // hides the foot of an older card and the road beyond its local rise.
+      // A card has a fixed world address: terrain, not alpha, reveals it.
+      const streetPoint=(side,node,atOffset=0,radialOffset=0)=>{
+        const t=sideDepth(node.at+atOffset-progress);
+        const x=roadsideX(side,t,node.radial+radialOffset,190);
+        return [x,terrainAt(side,t,x)+3*t];
+      };
+      const paintProjectedStreet=(corners,row,key='cacheLocalStreet',alpha=.95)=>{
+        const [a,b,c,d]=corners;
+        // A single affine image spans a parallelogram, while a road recedes
+        // as a trapezoid. Two mapped triangles cover its exact four corners.
+        const paintHalf=(path,matrix)=>{
+          ctx.save();ctx.beginPath();ctx.moveTo(...a);
+          for(const corner of path)ctx.lineTo(...corner);
+          ctx.closePath();ctx.clip();ctx.globalAlpha=alpha;
+          ctx.transform(...matrix,a[0],a[1]);
+          B.PresentationAssets?.draw?.(key,ctx,{x:0,y:0,
+            width:256,height:256,
+            sourceRect:key==='cacheLocalStreet'?[0,row,256,64]:[0,0,256,64]});
+          ctx.restore();
+        };
+        paintHalf([b,c],[(b[0]-a[0])/256,(b[1]-a[1])/256,
+          (c[0]-b[0])/256,(c[1]-b[1])/256]);
+        paintHalf([c,d],[(c[0]-d[0])/256,(c[1]-d[1])/256,
+          (d[0]-a[0])/256,(d[1]-a[1])/256]);
+      };
+      const paintLocalStreet=part=>{
+        const {side,a,b,halfWidth}=part;
+        const along=b.at-a.at,across=(b.radial-a.radial)*.5;
+        const len=Math.hypot(along,across)||1;
+        const atOff=-across/len*halfWidth;
+        const radialOff=along/len*halfWidth*2;
+        const left=streetPoint(side,a,atOff,radialOff);
+        const right=streetPoint(side,a,-atOff,-radialOff);
+        const endRight=streetPoint(side,b,-atOff,-radialOff);
+        const endLeft=streetPoint(side,b,atOff,radialOff);
+        ctx.save();ctx.globalAlpha=.96;
+        polygon(ctx,[left,right,endRight,endLeft],'#17242a');
+        // An affine map of the whole tapered quad leaves an uncovered
+        // triangle. Split along the diagonal; both triangles use the same
+        // source address, so the moving road never shows a flat wedge.
+        const row=((Math.floor(a.at*2)%localStreetPeriod)+
+          localStreetPeriod)%localStreetPeriod;
+        paintProjectedStreet([left,right,endRight,endLeft],row);
+        // Decals are mapped to the exact graph street quad. A gap never
+        // gains a painted road unless the road graph actually owns it.
+        const decal=part.edgeIndex===0&&part.segment===0?
+          'cacheDecalCrosswalk':
+          part.edgeIndex===0&&part.segment===1?'cacheDecalStopLine':
+          part.edgeIndex===1&&part.segment===0?'cacheDecalDrainage':
+          part.edgeIndex===1&&part.segment===part.segments-1?
+            (part.family==='workshop'||part.family==='transit'?
+              'cacheDecalLoadingBay':'cacheDecalServiceStencil'):
+          part.edgeIndex===1&&part.segment===2&&
+            (part.family==='data'||part.family==='market')?
+              'cacheDecalWetRepairPatch':null;
+        if(decal)paintProjectedStreet([left,right,endRight,endLeft],0,decal,.76);
+        ctx.globalAlpha=.42;ctx.strokeStyle='#829a91';
+        ctx.lineWidth=.7+.7*sideDepth(part.at-progress);
+        for(const line of [[left,endLeft],[right,endRight]]) {
+          ctx.beginPath();ctx.moveTo(...line[0]);ctx.lineTo(...line[1]);ctx.stroke();
+        }
+        ctx.restore();
+      };
+      const visiblePlates=LANDSCAPE.plates.filter(plate=>{
+        const t=sideDepth(plate.at-progress);
+        return t>.055&&t<1.2;
+      });
+      const visibleStreetParts=(LANDSCAPE.streetParts||[]).filter(part=>{
+        const t=sideDepth(part.at-progress);
+        return t>.09&&t<1.2;
+      });
+      const visibleCourts=(LANDSCAPE.streets||[]).map(street=>({
+        side:street.side,at:street.nodes[2].at,family:street.family
+      })).filter(court=>{
+        const t=sideDepth(court.at-progress);
+        return t>.10&&t<1.17;
+      });
+      const layerStep=24;
+      for(let at=Math.floor((progress+570)/layerStep)*layerStep;
+        at>progress-200;at-=layerStep) {
+        const far=sideDepth(at+layerStep-progress);
         const near=sideDepth(at-progress);
-        if(far<.10||near>1.22)continue;
-        const row=(at%grainPeriod+grainPeriod)%grainPeriod;
-        const sourceY=grainTop+grainHeight*(1-(row+grainStep)/grainPeriod);
-        const sourceH=grainHeight*grainStep/grainPeriod;
-        for(const side of [-1,1])
+        if(far<.07||near>1.2)continue;
+        for(const side of [-1,1]) {
+          ctx.save();ctx.beginPath();ctx.moveTo(0,cityCrestY(0));
+          for(let xx=30;xx<=1920;xx+=30)
+            ctx.lineTo(xx,cityCrestY(xx));
+          ctx.lineTo(1920,bottom);ctx.lineTo(0,bottom);
+          ctx.closePath();ctx.clip();
+          ctx.globalAlpha=1;
+          drawSurfacePanel('cacheOuterGround',side,far,near,
+            [220,190,24,0],[2500,440,40,1]);
+          const row=((at%grainPeriod)+grainPeriod)%grainPeriod;
+          const sourceY=grainTop+grainHeight*(1-(row+layerStep)/grainPeriod);
+          ctx.globalAlpha=.44;
           drawSurfacePanel('cacheRollingGrain',side,far,near,
             [220,190,24,0],[2500,440,40,1],
-            [side<0?0:265,sourceY,1509,sourceH]);
-      }
-      ctx.restore();
-      // Narrow side streets occupy selected gaps. The optional frontages of
-      // deep-set places do not create new road junctions by themselves.
-      for(const scene of INFILL_SCENES) {
-        const t=sideDepth(scene.at-progress);
-        if(t<.16||t>.72)continue;
-        const side=scene.side;
-        const mouthFar=sideDepth(scene.at+22-progress);
-        const mouthNear=sideDepth(scene.at-22-progress);
-        const backFar=sideDepth(scene.at+42-progress);
-        const backNear=sideDepth(scene.at-3-progress);
-        const point=(tt,base,growth)=>{
-          const x=roadsideX(side,tt,base,growth);
-          return [x,terrainAt(side,tt,x)+2*tt];
-        };
-        const a=point(mouthFar,220,190),b=point(mouthNear,220,190);
-        const c=point(backNear,505,255),d=point(backFar,505,255);
-        clipRoadside(t,()=>{
-          const paving=ctx.createLinearGradient(a[0],a[1],d[0],d[1]);
-          paving.addColorStop(0,'#293a42');paving.addColorStop(1,'#182b34');
-          ctx.globalAlpha=.43;
-          polygon(ctx,[a,b,c,d],paving);
-          ctx.globalAlpha=1;
-          ctx.strokeStyle='#74919a9c';ctx.lineWidth=1+3*t;
-          for(const edge of [[a,d],[b,c]]) {
-            ctx.beginPath();ctx.moveTo(...edge[0]);ctx.lineTo(...edge[1]);ctx.stroke();
+            [side<0?0:265,sourceY,1509,
+              grainHeight*layerStep/grainPeriod]);
+          ctx.restore();
+        }
+        for(const court of visibleCourts) {
+          if(court.at<at||court.at>=at+layerStep)continue;
+          const corners=[
+            streetPoint(court.side,{at:court.at+36,radial:575}),
+            streetPoint(court.side,{at:court.at+36,radial:700}),
+            streetPoint(court.side,{at:court.at-36,radial:700}),
+            streetPoint(court.side,{at:court.at-36,radial:575})
+          ];
+          ctx.save();ctx.globalAlpha=.88;
+          polygon(ctx,corners,'#30414a');
+          const material=court.family==='homes'||court.family==='transit'?
+            'cacheResidentialPaving':court.family==='greenhouse'?
+            'cachePlantedGravelCourt':
+            court.family==='workshop'||court.family==='data'?
+            'cacheServiceCourtPaving':'cacheLocalStreet';
+          // The court stays within its four projected corners and shares
+          // the same depth/terrain sample as the connected branch.
+          paintProjectedStreet(corners,
+            ((Math.floor(court.at*2)%localStreetPeriod)+localStreetPeriod)%localStreetPeriod,
+            material,.84);
+          ctx.globalAlpha=.44;ctx.strokeStyle='#82949b';
+          ctx.lineWidth=1.3;
+          ctx.beginPath();ctx.moveTo(...corners[0]);
+          for(let i=1;i<corners.length;i++)ctx.lineTo(...corners[i]);
+          ctx.closePath();ctx.stroke();
+          ctx.restore();
+        }
+        for(const part of visibleStreetParts)
+          if(part.at>=at&&part.at<at+layerStep)paintLocalStreet(part);
+        for(const plate of visiblePlates) {
+          if(plate.at<at||plate.at>=at+layerStep)continue;
+          const t=sideDepth(plate.at-progress);
+          const [key,sourceW,sourceH,maxW,base,growth,
+            contactBottom,contactAt,fit]=plate.art;
+          const width=maxW*t;
+          const socketFraction=fit?.socketU===undefined?0:
+            plate.side<0?1-fit.socketU:fit.socketU;
+          const roadward=roadsideX(plate.side,t,base,growth)-
+            plate.side*width*socketFraction;
+          const x=roadward+plate.side*width*.5;
+          if(x+width*.5<0||x-width*.5>1920)continue;
+          // The visible roadward foot can sit far above the last alpha row
+          // of a sloped plate. Align that foot to sampled terrain, then let
+          // the near strip bury the deeper outer foundation.
+          const footX=fit?.footU===undefined?roadward:
+            x-width*.5+width*fit.footU;
+          const y=terrainAt(plate.side,t,footX)+
+            (contactAt?(contactBottom-contactAt)*width/sourceW+6*t:22*t);
+          ctx.save();ctx.beginPath();ctx.moveTo(x-width*.5,0);
+          ctx.lineTo(x+width*.5,0);
+          for(let i=20;i>=0;i--) {
+            const xx=x-width*.5+width*i/20;
+            ctx.lineTo(xx,Math.min(crestY(xx),
+              terrainAt(plate.side,t,xx)+7*t));
           }
-          // A subdued center reflection reads as wet paving, not another
-          // painted highway lane.
-          const mid1=point(mouthFar,370,230),mid2=point(backNear,465,255);
-          ctx.strokeStyle='#71939855';ctx.lineWidth=1+2*t;
-          ctx.beginPath();ctx.moveTo(...mid1);ctx.lineTo(...mid2);ctx.stroke();
-        });
+          ctx.closePath();ctx.clip();
+          B.PresentationAssets?.draw?.(key,ctx,{x,y,width,
+            height:width*(contactBottom||sourceH)/sourceW,
+            sourceRect:[0,0,sourceW,contactBottom||sourceH],
+            flip:!!plate.flip});
+          if(plate.tier==='front' && plate.key==='open') {
+            // This return caps the authored facade where its transparent
+            // street socket begins. It shares the plate's terrain clip.
+            const capX=roadward+plate.side*13*t;
+            B.PresentationAssets?.draw?.(plate.side<0?
+              'cacheJoinLEndcap':'cacheJoinREndcap',ctx,{
+              x:capX,y:terrainAt(plate.side,t,capX)+5*t,
+              width:48*t,height:96*t });
+          }
+          if(plate.tier==='front'&&plate.key==='closed'&&
+            (Number(plate.chunkId.split(':')[1])%3===0)) {
+            const lightX=x+plate.side*width*.09;
+            B.PresentationAssets?.draw?.(`cacheAmbient${
+              plate.family[0].toUpperCase()+plate.family.slice(1)}`,ctx,{
+              x:lightX,y:y-width*.24,width:54*t,height:54*t,
+              frame:reduced?1:Math.floor((s.elapsedMs||0)/230+
+                Number(plate.chunkId.split(':')[1]))%4});
+          }
+          ctx.restore();
+        }
       }
       // Ground-layer blocks are complete, opaque painted neighborhoods.
       // A nearby featured place owns its address and keeps the view calm.
@@ -1567,6 +1733,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           at>progress+65;at-=spacing) {
           const t=sideDepth(at-progress);
           if(t<.10||t>.70)continue;
+          if(LANDSCAPE.owns(side,at,100))continue;
           const index=Math.floor((at-phase)/spacing);
           if(SIDE_PLACES.some(place=>place.side===side &&
             place.kind!=='parking' && Math.abs(place.at-at)<145))continue;
@@ -1600,6 +1767,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // buildings. Their source floors bury into the same rolling bank.
       for(const scene of [...INFILL_SCENES,...SATELLITE_SCENES]) {
         const satellite=SATELLITE_SCENES.includes(scene);
+        if(!satellite)continue; // graph-owned accents drew in depth order
         const t=sideDepth(scene.at+(satellite?43:22)-progress);
         if(t<.11||t>.95)continue;
         const [key,sourceW,sourceH,maxW]=scene.art;
@@ -1670,6 +1838,55 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
             ctx.lineTo(roadsideX(side,far,150,114),roadY(far)+10*far);ctx.stroke();
           }
         }
+      }
+      // Cut a street throat through the sidewalk only at graph sockets.
+      // Its corners, paving and rail opening all share the same address.
+      for(const street of LANDSCAPE.streets) {
+        const t=sideDepth(street.at-progress);
+        if(t<.16||t>1.13)continue;
+        const nearAt=street.at-street.halfWidth;
+        const farAt=street.at+street.halfWidth;
+        const side=street.side;
+        const foot=(at,base,growth)=>{
+          const tt=sideDepth(at-progress),x=roadsideX(side,tt,base,growth);
+          return [x,roadY(tt)+(base>73?24*tt:0)];
+        };
+        const a=foot(farAt,73,50),b=foot(nearAt,73,50);
+        const c=foot(nearAt,255,190),d=foot(farAt,255,190);
+        clipRoadside(t,()=>{
+          polygon(ctx,[a,b,c,d],'#172732');
+          const row=((Math.floor(street.at*2)%localStreetPeriod)+
+            localStreetPeriod)%localStreetPeriod;
+          paintProjectedStreet([a,b,c,d],row);
+          ctx.strokeStyle='#8ba4aa';ctx.lineWidth=1.5+2.2*t;
+          for(const edge of [[a,d],[b,c]]) {
+            ctx.beginPath();ctx.moveTo(...edge[0]);ctx.lineTo(...edge[1]);ctx.stroke();
+          }
+          // Sidewalk return edges emphasize the two real corners without
+          // painting a wall across the entrance.
+          ctx.strokeStyle='#a8b5b4';ctx.lineWidth=2+3*t;
+          for(const corner of [a,b]){
+            const outer=foot(corner===a?farAt:nearAt,275,200);
+            ctx.beginPath();ctx.moveTo(...corner);ctx.lineTo(...outer);ctx.stroke();
+          }
+          // The transparent center of these cutouts leaves the graph road
+          // clear. Their pavers and bevels turn the existing sidewalk into
+          // its two measured 38-unit street corners.
+          const p0=foot(nearAt-9,73,50);
+          const p1=foot(farAt+9,73,50);
+          const p2=foot(nearAt-9,275,200);
+          const p3=foot(farAt+9,275,200);
+          ctx.save();ctx.beginPath();ctx.moveTo(...p0);
+          for(const p of [p1,p3,p2])ctx.lineTo(...p);
+          ctx.closePath();ctx.clip();
+          ctx.transform((p1[0]-p0[0])/256,(p1[1]-p0[1])/256,
+            (p2[0]-p0[0])/256,(p2[1]-p0[1])/256,p0[0],p0[1]);
+          for(const key of [side<0?'cacheJoinLTurn':'cacheJoinRTurn',
+            side<0?'cacheJoinLCurb':'cacheJoinRCurb'])
+            B.PresentationAssets?.draw?.(key,ctx,{x:0,y:0,
+              width:256,height:256});
+          ctx.restore();
+        });
       }
       // Road shoulders and the paint share a single curved road projection.
       for (const side of [-1, 1]) {
@@ -1844,16 +2061,56 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         if(near<=far)continue;
         const id=Math.abs(Math.floor(at/62));
         for(const side of [-1,1]) {
+          // A 38-unit mouth may fall inside a 62-unit parapet tile. Remove
+          // only the graph's street width, keeping the illustrated wall
+          // intact right up to both sidewalk corners.
+          const mouths=LANDSCAPE.streets.filter(street=>street.side===side &&
+            at<street.at+street.halfWidth &&
+            at+62>street.at-street.halfWidth);
           const fx=roadsideX(side,far,46,58);
           const nx=roadsideX(side,near,46,58);
           const fy=roadY(far)-20*far, ny=roadY(near)-20*near;
           const wallH=18+63*(far+near)/2;
-          ctx.save(); ctx.globalAlpha=.70+.20*near;
-          ctx.transform((nx-fx)/690,(ny-fy)/690,0,wallH/337,fx,fy);
-          B.PresentationAssets?.draw?.('cacheParapet',ctx,{
-            x:345,y:337,width:690,height:337,
-            sourceRect:[(id+(side<0?0:1))%3*690,282,690,337],
-            flip:side===1 });
+          let cursor=at;
+          const visible=[];
+          for(const street of mouths.sort((a,b)=>a.at-b.at)) {
+            const start=Math.max(at,street.at-street.halfWidth);
+            const end=Math.min(at+62,street.at+street.halfWidth);
+            if(start>cursor)visible.push([cursor,start]);
+            cursor=Math.max(cursor,end);
+          }
+          if(cursor<at+62)visible.push([cursor,at+62]);
+          for(const [start,end] of visible) {
+            if(end-start<.5)continue;
+            const u0=(at+62-end)/62*690;
+            const u1=(at+62-start)/62*690;
+            ctx.save();ctx.globalAlpha=.70+.20*near;
+            ctx.transform((nx-fx)/690,(ny-fy)/690,0,wallH/337,fx,fy);
+            // Clip in the full source tile's coordinates so its texture
+            // does not squash or restart at the join.
+            ctx.beginPath();ctx.rect(u0,0,u1-u0,337);ctx.clip();
+            B.PresentationAssets?.draw?.('cacheParapet',ctx,{
+              x:345,y:337,width:690,height:337,
+              sourceRect:[(id+(side<0?0:1))%3*690,282,690,337],
+              flip:side===1 });
+            ctx.restore();
+          }
+        }
+      }
+      for(const street of LANDSCAPE.streets) {
+        if(sideDepth(street.at-progress)<.15||
+          sideDepth(street.at-progress)>1.18)continue;
+        for(const edgeAt of [street.at-street.halfWidth,
+          street.at+street.halfWidth]) {
+          const t=sideDepth(edgeAt-progress);
+          if(t<.13||t>1.17)continue;
+          const x=roadsideX(street.side,t,46,58);
+          const wallH=18+63*t;
+          ctx.save();ctx.globalAlpha=.76;
+          B.PresentationAssets?.draw?.(street.side<0?
+            'cacheJoinLStreetWall':'cacheJoinRStreetWall',ctx,{
+            x,y:roadY(t)-20*t+wallH,
+            width:9+13*t,height:wallH });
           ctx.restore();
         }
       }
@@ -1862,6 +2119,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const t=sideDepth(at-progress);if(t<.17||t>1.65)continue;
         const y=roadY(t)+18*t;
         for(const side of [-1,1]) {
+          if(LANDSCAPE.streets.some(street=>street.side===side &&
+            Math.abs(street.at-at)<street.halfWidth+13))continue;
           const x=roadsideX(side,t,98,80);
           B.PresentationAssets?.draw?.('cachePylon',ctx,{
             x,y,width:58+146*t,height:105+277*t,

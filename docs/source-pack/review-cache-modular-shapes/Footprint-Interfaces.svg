@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 960" role="img" aria-label="Six top-down parcel footprint interfaces for the Cache Road modular district system">
+  <defs>
+    <style>
+      .bg{fill:#07131d}.panel{fill:#102431;stroke:#42606b;stroke-width:2}
+      .street{fill:#244851}.walk{fill:#43969d}.lot{fill:#725837;stroke:#e4b76b;stroke-width:3}
+      .building{fill:#965283;stroke:#e8a4ca;stroke-width:2}.open{fill:#345d53;stroke:#83bca2;stroke-width:2}
+      .route{fill:none;stroke:#d9f4ee;stroke-width:5;stroke-linecap:round;stroke-dasharray:9 8}
+      .divide{fill:none;stroke:#dcc692;stroke-width:3;stroke-dasharray:5 6}
+      .title{font:700 29px sans-serif;fill:#e6f6ed}.sub{font:16px sans-serif;fill:#b6d2d2}
+      .name{font:700 20px sans-serif;fill:#e6f6ed}.note{font:15px sans-serif;fill:#b6d2d2}
+      .small{font:13px sans-serif;fill:#d3e6df}.entry{fill:#f4df9c;stroke:#172a32;stroke-width:2}
+    </style>
+  </defs>
+  <rect class="bg" width="1280" height="960"/>
+  <text class="title" x="40" y="49">CACHE ROAD / MODULAR FOOTPRINTS</text>
+  <text class="sub" x="40" y="77">Top-down attachment shapes. Streets and sidewalks are shared world geometry; the colored cards occupy fitted parcels.</text>
+
+  <g transform="translate(40 115)">
+    <rect class="panel" width="380" height="330" rx="10"/>
+    <text class="name" x="20" y="34">01  Straight frontage</text>
+    <text class="note" x="20" y="56">Narrow + connected row on one curb</text>
+    <rect class="street" x="12" y="264" width="356" height="53"/>
+    <rect class="walk" x="12" y="237" width="356" height="27"/>
+    <path class="lot" d="M35 95H132V237H35Z"/>
+    <path class="lot" d="M145 105H345V237H145Z"/>
+    <rect class="building" x="48" y="121" width="72" height="100"/>
+    <rect class="building" x="158" y="131" width="55" height="90"/>
+    <rect class="building" x="217" y="131" width="56" height="90"/>
+    <rect class="building" x="277" y="131" width="56" height="90"/>
+    <path class="divide" d="M215 130V224M275 130V224"/>
+    <circle class="entry" cx="84" cy="235" r="7"/><circle class="entry" cx="244" cy="235" r="7"/>
+    <text class="small" x="49" y="312">one bay</text><text class="small" x="225" y="312">repeatable bays</text>
+  </g>
+
+  <g transform="translate(450 115)">
+    <rect class="panel" width="380" height="330" rx="10"/>
+    <text class="name" x="20" y="34">02  Corner + wedge</text>
+    <text class="note" x="20" y="56">Two usable street-facing edges</text>
+    <path class="street" d="M10 264H368V317H10ZM307 84H368V317H307Z"/>
+    <path class="walk" d="M10 237H307V264H10ZM280 84H307V264H280Z"/>
+    <path class="lot" d="M57 93H280V237H60L40 193Z"/>
+    <path class="building" d="M97 116H258V217H98L75 184Z"/>
+    <circle class="entry" cx="185" cy="236" r="7"/><circle class="entry" cx="279" cy="164" r="7"/>
+    <text class="small" x="48" y="311">street</text><text class="small" x="316" y="150" transform="rotate(90 316 150)">street</text>
+  </g>
+
+  <g transform="translate(860 115)">
+    <rect class="panel" width="380" height="330" rx="10"/>
+    <text class="name" x="20" y="34">03  Deep court</text>
+    <text class="note" x="20" y="56">Compound setting with a real entrance</text>
+    <rect class="street" x="12" y="264" width="356" height="53"/>
+    <rect class="walk" x="12" y="237" width="356" height="27"/>
+    <path class="lot" d="M34 85H346V237H34Z"/>
+    <rect class="building" x="52" y="105" width="100" height="113"/>
+    <rect class="building" x="228" y="106" width="101" height="112"/>
+    <rect class="building" x="157" y="91" width="66" height="48"/>
+    <path class="open" d="M154 145H226V220H154Z"/>
+    <path class="route" d="M190 266V151"/>
+    <circle class="entry" cx="190" cy="236" r="7"/>
+    <text class="small" x="157" y="312">connected access</text>
+  </g>
+
+  <g transform="translate(40 485)">
+    <rect class="panel" width="380" height="330" rx="10"/>
+    <text class="name" x="20" y="34">04  Alley / passage</text>
+    <text class="note" x="20" y="56">The gap belongs to the walkable graph</text>
+    <rect class="street" x="12" y="264" width="356" height="53"/>
+    <rect class="walk" x="12" y="237" width="356" height="27"/>
+    <path class="lot" d="M35 96H164V237H35ZM216 97H345V237H216Z"/>
+    <rect class="building" x="50" y="116" width="98" height="105"/>
+    <rect class="building" x="231" y="116" width="99" height="105"/>
+    <path class="open" d="M165 99H215V237H165Z"/>
+    <path class="route" d="M190 297V106"/>
+    <circle class="entry" cx="190" cy="237" r="7"/>
+    <text class="small" x="147" y="312">alley mouth</text>
+  </g>
+
+  <g transform="translate(450 485)">
+    <rect class="panel" width="380" height="330" rx="10"/>
+    <text class="name" x="20" y="34">05  Terrace / open lot</text>
+    <text class="note" x="20" y="56">Ground follows the shared slope</text>
+    <rect class="street" x="12" y="264" width="356" height="53"/>
+    <rect class="walk" x="12" y="237" width="356" height="27"/>
+    <path class="lot" d="M39 197Q101 101 185 89Q280 72 341 161L340 237H39Z"/>
+    <path class="open" d="M66 179Q132 121 198 126Q258 122 321 175L313 218H65Z"/>
+    <path class="divide" d="M70 186Q177 118 310 184M83 216Q182 161 304 215"/>
+    <path class="route" d="M189 270V206L219 174"/>
+    <circle class="entry" cx="189" cy="236" r="7"/>
+    <text class="small" x="130" y="312">graded path / steps</text>
+  </g>
+
+  <g transform="translate(860 485)">
+    <rect class="panel" width="380" height="330" rx="10"/>
+    <text class="name" x="20" y="34">06  Multi-building strip</text>
+    <text class="note" x="20" y="56">One compound card or joined single cards</text>
+    <rect class="street" x="12" y="264" width="356" height="53"/>
+    <rect class="walk" x="12" y="237" width="356" height="27"/>
+    <path class="lot" d="M27 93H354V237H27Z"/>
+    <rect class="building" x="42" y="139" width="81" height="83"/>
+    <rect class="building" x="119" y="105" width="105" height="117"/>
+    <rect class="building" x="220" y="145" width="118" height="77"/>
+    <path class="divide" d="M122 136V226M223 137V226"/>
+    <circle class="entry" cx="82" cy="236" r="7"/><circle class="entry" cx="171" cy="236" r="7"/><circle class="entry" cx="278" cy="236" r="7"/>
+    <text class="small" x="115" y="312">end / middle / end</text>
+  </g>
+
+  <g transform="translate(42 846)">
+    <rect class="street" width="24" height="18"/><text class="small" x="34" y="15">road</text>
+    <rect class="walk" x="110" width="24" height="18"/><text class="small" x="144" y="15">continuous sidewalk</text>
+    <rect class="lot" x="325" width="24" height="18"/><text class="small" x="359" y="15">fitted parcel</text>
+    <rect class="building" x="504" width="24" height="18"/><text class="small" x="538" y="15">illustrated card</text>
+    <circle class="entry" cx="715" cy="9" r="8"/><text class="small" x="733" y="15">entrance</text>
+    <path class="route" d="M844 9H875"/><text class="small" x="891" y="15">connected path</text>
+  </g>
+  <text class="sub" x="40" y="911">Relative shapes only. World widths, angles, sprite scale and terrain rise are calibrated in the actual moving game camera.</text>
+</svg>

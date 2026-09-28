@@ -1,5 +1,30 @@
 # Decision Register
 
+## September 27, 2026 — complete measured core kit before host review
+
+The owner asked to proceed with all remaining art while checking the plan,
+measurements and requirements. Implement the six family/side/tier bank
+cards and supporting graph-owned materials, street marks, small props,
+directional walkers and isolated practical animation inside the already
+approved layered composition. Retain all earlier area/person sources and
+the inactive bus stop; open mouths only on connected streets. A local
+renderer capture and automated fit are implementation evidence, while
+the Makko moving look and pacing are still the owner's acceptance gate.
+See `CACHE_ROAD_SIX_FAMILY_PRODUCTION.md`.
+
+## September 26, 2026 — layered city look approved as the baseline
+
+After reviewing the 12-second production-draw capture from commit `0821f60`,
+the owner said, “That's it! That's the look!” Preserve that composition as
+the visual baseline: wide road and planet crest, shallow separate city edge,
+three overlapping roadside depths, large inhabited cards, terrain occlusion,
+and world-fixed motion. Add district variety, street-supported activity and
+animation within this footprint. Compare any future camera, horizon, bank
+coverage or scale changes against the approved moving capture before keeping
+them. This is approval of the displayed look, not a claim that the six-family
+asset inventory, full route, Makko import or frame pacing is complete. See
+`CACHE_ROAD_LAYERED_CITY_IMPLEMENTATION.md` and its `Continuous-Drive.mp4`.
+
 ## September 25, 2026 — equal usable area choices on both banks
 
 The owner corrected the count: the earlier nine LEFT included two inactive

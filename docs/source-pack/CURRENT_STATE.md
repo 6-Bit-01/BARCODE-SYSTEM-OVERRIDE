@@ -1,5 +1,76 @@
 # Current State
 
+## September 27 — six-family Cache Road core kit (unmerged)
+
+The new kit's 97 runtime entries now have one immutable asset ancestor
+`b43761c` and a bundled fallback. Local fallback checks pass. The ancestor
+has not been published, so this does not establish a working Makko import or
+remote image delivery. Publication, hosted CI and owner play remain open.
+
+The production renderer now uses 48 measured and sided rear/middle/open/
+closed district cards across market, homes, workshop, greenhouse, data and
+transit runs. It keeps the approved wide 420 unit planet and shallow city
+edge. The other 46 support units are eight joins, four materials, six
+projected road decals, ten new props, twelve individual toward/away walkers
+and six four-frame practical-light sheets. Real streets and courts own their
+paving/markings; grouped people are still composed from distinct cutouts.
+The protected route selects all 48 cards with legal open sockets. Local
+Canvas stills and four moving route-quarter captures cover the full 9840
+units. `CACHE_ROAD_SIX_FAMILY_PRODUCTION.md` records the measurements,
+paths and verification limits. Makko import, host pacing and owner visual
+judgment have not occurred; this is a reviewable branch, not a merge.
+
+## September 27 — market joins and warm homes family (unmerged)
+
+The playable Cache Road draw retains the owner's layered-city camera and
+adds eight source-fitted homes cards: rear, middle, open front and filled
+front on both banks. Their lower rooms and stairs replace blank retaining
+walls; the front gaps are transparent only where the graph has a 38-unit
+street mouth. Eight sided SVG curb, sidewalk and end-cap joins fill the
+market/homes graph openings. The wet local-street material now covers all
+graph streets using two mapped triangles per tapered quad, closing a gray
+projection wedge. The homes family is selected in temporary 2600–4100
+left and 2700–3600 right runs. This is a reviewable art checkpoint, not the
+seeded six-family city or a hosted Makko acceptance. See
+`CACHE_ROAD_HOMES_SECOND_FAMILY.md` and its moving renderer capture.
+
+## September 26 — owner approves the layered-city visual baseline
+
+The owner reviewed the moving production-draw capture from `0821f60` and
+said, “That's it! That's the look!” The continuous layered composition is
+the baseline for subsequent Cache Road art and activity work. Preserve its
+wide crest, bank coverage, card scale, depth handoff and motion while adding
+the remaining neighborhood variety and connected details. This approval
+does not complete Makko import, browser pacing, walking animation or the
+six-family art and street-socket work listed below.
+
+## September 26 — continuous layered city candidate (unmerged)
+
+The playable Cache Road draw now uses overlapping 180/225 world-address
+chunks, a sampled bank surface, far-to-near ground/card occlusion, and a
+connected graph of site-protected mouths, loading courts and accessible
+parcels. Two additional dense sided cards and the six retained settings add
+coverage while the previous independent infill schedule and slab-like
+workshop pavement are suppressed. The wide planet/road and existing
+gameplay remain. This resolves the **architectural** gap identified below,
+but it is not yet the illustrated six-family procedural city. The repeated
+workshop fronts, incomplete visible street grid, contact fitting, remote
+art delivery and Makko pacing/appearance gate remain open. See
+`CACHE_ROAD_LAYERED_CITY_IMPLEMENTATION.md` for exact counts, normal-draw
+frames, three-seed comparisons, the moving clip and test limits.
+
+## September 26 — layered-city gap audit after workshop export
+
+The unmerged workshop export is **not** the approved multilayer procedural
+city. At the committed seed, it has three short runs with 2,475 and 2,406
+world units of open bank between them, only six front plates and two
+connected workshop street mouths. Rear, middle and near cutouts share one
+reveal path; a nearer opaque terrain strip does not cover older feet. The
+eight plate files and one material are exports/donor art, not nine accepted
+modular units. The camera, existing places and gameplay remain intact, but
+the visual target and Makko acceptance are open. Read
+`CACHE_ROAD_LAYER_GAP_AUDIT.md` and the measured plan before expanding art.
+
 ## September 26 — procedural city activity (draft review)
 
 Fifteen separate pedestrian assets now cover walking, work, play and

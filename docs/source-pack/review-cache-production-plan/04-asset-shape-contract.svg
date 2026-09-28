@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="920" viewBox="0 0 1280 920" role="img" aria-labelledby="title desc">
+  <title id="title">Cache Road left and right modular plate anatomy</title>
+  <desc id="desc">Two asymmetrical bank plates show transparent roof silhouettes, a clear local-street socket, an overscanned ground bleed, terrain contact points, and opposite road-facing slopes. Below, a depth-layer diagram shows how nearer ground hides the feet of farther illustrated buildings.</desc>
+  <defs>
+    <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
+      <path d="M24 0H0V24" fill="none" stroke="#667d8d" stroke-opacity=".15" stroke-width="1"/>
+    </pattern>
+    <pattern id="hatch" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(40)">
+      <rect width="12" height="12" fill="#876e47" fill-opacity=".15"/>
+      <path d="M0 0V12" stroke="#f1c176" stroke-opacity=".45" stroke-width="3"/>
+    </pattern>
+    <clipPath id="leftClip"><rect x="28" y="90" width="600" height="395"/></clipPath>
+    <clipPath id="rightClip"><rect x="652" y="90" width="600" height="395"/></clipPath>
+    <g id="houseTall">
+      <path d="M0 64V15L15 0H89L104 16V140H0Z" fill="#355a6b" stroke="#77c7d1" stroke-width="2"/>
+      <path d="M15 44h20v28H15Zm50 0h20v28H65Zm-30 49h31v46H35Z" fill="#e9bb7e" opacity=".7"/>
+      <path d="M0 15L15 0H89l15 16" fill="none" stroke="#e286bf" stroke-width="4"/>
+    </g>
+    <g id="houseShort">
+      <path d="M0 36L16 9h82l19 27v110H0Z" fill="#47616a" stroke="#9bc2c4" stroke-width="2"/>
+      <path d="M14 56h35v40H14Zm58 0h29v40H72Z" fill="#e6ae79" opacity=".7"/>
+      <path d="M0 36L16 9h82l19 27" fill="none" stroke="#83dace" stroke-width="4"/>
+    </g>
+    <g id="sign"><path d="M0 33V0h10v33" stroke="#a4c8cb" stroke-width="3"/><rect x="-18" y="-20" width="47" height="23" fill="#8e4d91" stroke="#ee8fc6" stroke-width="2"/></g>
+  </defs>
+  <rect width="1280" height="920" fill="#091827"/>
+  <text x="30" y="43" fill="#f2f5ec" font-family="sans-serif" font-size="27" font-weight="600">ONE MODULAR BANK PLATE: CUTOUT + METADATA + SHARED GROUND</text>
+  <text x="30" y="72" fill="#b5cbd0" font-family="sans-serif" font-size="17">Schematic asset anatomy. The live renderer determines the final curve and projection.</text>
+
+  <rect x="28" y="90" width="600" height="395" fill="url(#grid)" stroke="#47606a"/>
+  <rect x="652" y="90" width="600" height="395" fill="url(#grid)" stroke="#47606a"/>
+  <text x="48" y="122" fill="#f1c176" font-family="sans-serif" font-size="20" font-weight="600">LEFT BANK</text>
+  <text x="672" y="122" fill="#f1c176" font-family="sans-serif" font-size="20" font-weight="600">RIGHT BANK</text>
+  <text x="50" y="152" fill="#c2d6d5" font-family="sans-serif" font-size="16">outer edge</text>
+  <text x="503" y="152" fill="#c2d6d5" font-family="sans-serif" font-size="16">road →</text>
+  <text x="675" y="152" fill="#c2d6d5" font-family="sans-serif" font-size="16">← road</text>
+  <text x="1150" y="152" fill="#c2d6d5" font-family="sans-serif" font-size="16">outer edge</text>
+
+  <!-- The edge hash is surplus paint that sits underneath the next segment. -->
+  <g clip-path="url(#leftClip)">
+    <path d="M28 379Q105 350 196 321T360 286L389 282M451 266Q523 249 628 234V485H28Z" fill="#395357"/>
+    <path d="M28 379Q105 350 196 321T360 286L389 282M451 266Q523 249 628 234V485H28Z" fill="url(#hatch)"/>
+    <path d="M75 335V247l18-22h80l19 23v87Z" fill="#47616a" stroke="#99c1c5" stroke-width="3"/>
+    <path d="M75 247l18-22h80l19 23" fill="none" stroke="#83dace" stroke-width="5"/>
+    <rect x="91" y="267" width="32" height="38" fill="#e9b37d"/>
+    <rect x="143" y="267" width="32" height="38" fill="#e9b37d"/>
+    <path d="M204 312V181l18-23h82l17 23v131Z" fill="#355a6b" stroke="#99c1c5" stroke-width="3"/>
+    <path d="M204 181l18-23h82l17 23" fill="none" stroke="#ed8cbd" stroke-width="5"/>
+    <rect x="224" y="204" width="33" height="39" fill="#edbb80"/>
+    <rect x="271" y="204" width="33" height="39" fill="#edbb80"/>
+    <path d="M477 268V192l18-22h82l17 23v75Z" fill="#47616a" stroke="#99c1c5" stroke-width="3"/>
+    <path d="M477 192l18-22h82l17 23" fill="none" stroke="#83dace" stroke-width="5"/>
+    <rect x="493" y="211" width="32" height="34" fill="#e9b37d"/>
+    <rect x="545" y="211" width="32" height="34" fill="#e9b37d"/>
+    <path d="M342 285V190h45v96M452 270V204h-12v66" fill="#3d5d67" stroke="#94b6bb" stroke-width="2"/>
+    <path d="M389 282L414 275L451 267L451 485H389Z" fill="#283c4c"/>
+    <path d="M398 310L439 299M399 337L439 327" stroke="#82aab0" stroke-width="2"/>
+    <rect x="548" y="182" width="42" height="22" fill="#8e4d91" stroke="#ee8fc6" stroke-width="2"/>
+    <path d="M48 361Q120 333 205 312T358 283M452 266Q534 245 612 240" fill="none" stroke="#73e6d0" stroke-width="5" stroke-dasharray="15 7"/>
+    <path d="M48 361Q120 333 205 312T358 283M452 266Q534 245 612 240" fill="none" stroke="#091827" stroke-width="1"/>
+    <rect x="28" y="160" width="32" height="325" fill="url(#hatch)"/>
+    <rect x="596" y="160" width="32" height="325" fill="url(#hatch)"/>
+  </g>
+  <g clip-path="url(#rightClip)">
+    <path d="M652 234Q734 251 806 266L829 271M891 286Q1040 313 1124 351T1252 379V485H652Z" fill="#395357"/>
+    <path d="M652 234Q734 251 806 266L829 271M891 286Q1040 313 1124 351T1252 379V485H652Z" fill="url(#hatch)"/>
+    <path d="M681 268v-75l17-23h82l18 22v76Z" fill="#47616a" stroke="#99c1c5" stroke-width="3"/>
+    <path d="M681 193l17-23h82l18 22" fill="none" stroke="#83dace" stroke-width="5"/>
+    <rect x="699" y="211" width="32" height="34" fill="#e9b37d"/>
+    <rect x="750" y="211" width="32" height="34" fill="#e9b37d"/>
+    <path d="M951 312V181l18-23h82l18 23v131Z" fill="#355a6b" stroke="#99c1c5" stroke-width="3"/>
+    <path d="M951 181l18-23h82l18 23" fill="none" stroke="#ed8cbd" stroke-width="5"/>
+    <rect x="970" y="204" width="33" height="39" fill="#edbb80"/>
+    <rect x="1017" y="204" width="33" height="39" fill="#edbb80"/>
+    <path d="M1090 335v-87l19-23h80l18 22v88Z" fill="#47616a" stroke="#99c1c5" stroke-width="3"/>
+    <path d="M1090 248l19-23h80l18 22" fill="none" stroke="#83dace" stroke-width="5"/>
+    <rect x="1108" y="267" width="32" height="38" fill="#e9b37d"/>
+    <rect x="1160" y="267" width="32" height="38" fill="#e9b37d"/>
+    <path d="M891 286V191h-45v92M829 270V203h12v66" fill="#3d5d67" stroke="#94b6bb" stroke-width="2"/>
+    <path d="M829 271L852 275L891 286V485H829Z" fill="#283c4c"/>
+    <path d="M841 299L882 310M841 326L882 338" stroke="#82aab0" stroke-width="2"/>
+    <rect x="687" y="182" width="42" height="22" fill="#8e4d91" stroke="#ee8fc6" stroke-width="2"/>
+    <path d="M668 240Q746 245 828 267M892 283Q1063 317 1232 361" fill="none" stroke="#73e6d0" stroke-width="5" stroke-dasharray="15 7"/>
+    <rect x="652" y="160" width="32" height="325" fill="url(#hatch)"/>
+    <rect x="1220" y="160" width="32" height="325" fill="url(#hatch)"/>
+  </g>
+  <path d="M420 472V330M860 472V330" stroke="#f9d690" stroke-width="2" marker-end="none"/>
+  <text x="333" y="470" fill="#f9d690" font-family="sans-serif" font-size="16">street socket</text>
+  <text x="777" y="470" fill="#f9d690" font-family="sans-serif" font-size="16">street socket</text>
+  <circle cx="48" cy="361" r="6" fill="#73e6d0"/><circle cx="205" cy="312" r="6" fill="#73e6d0"/><circle cx="358" cy="283" r="6" fill="#73e6d0"/><circle cx="612" cy="240" r="6" fill="#73e6d0"/>
+  <circle cx="668" cy="240" r="6" fill="#73e6d0"/><circle cx="828" cy="267" r="6" fill="#73e6d0"/><circle cx="1063" cy="317" r="6" fill="#73e6d0"/><circle cx="1232" cy="361" r="6" fill="#73e6d0"/>
+
+  <text x="30" y="528" fill="#f2f5ec" font-family="sans-serif" font-size="23" font-weight="600">WHAT THE CUTOUT ACTUALLY CONTAINS</text>
+  <g font-family="sans-serif" font-size="17" fill="#d6e5df">
+    <text x="49" y="567">1. Transparent sky and irregular roofs; no rectangular skyline edge.</text>
+    <text x="49" y="597">2. Buildings at one depth band, entrances facing a legal parcel/sidewalk.</text>
+    <text x="49" y="627">3. A deliberate open street socket; no facade is cut by an arbitrary road mask.</text>
+    <text x="49" y="657">4. Extra image below the mint contact points; nearer ground hides that bleed.</text>
+    <text x="49" y="687">5. Overlap-safe margins at both ends; a wall, corner, or roof hides the join.</text>
+  </g>
+  <path d="M30 722H1250" stroke="#46606b"/>
+  <text x="30" y="755" fill="#f2f5ec" font-family="sans-serif" font-size="23" font-weight="600">THREE DIFFERENT IMAGE JOBS</text>
+  <rect x="30" y="779" width="390" height="93" fill="#1b3d50"/>
+  <rect x="444" y="779" width="390" height="93" fill="#51375b"/>
+  <rect x="858" y="779" width="390" height="93" fill="#604b33"/>
+  <g font-family="sans-serif" fill="#f1f4ee">
+    <text x="45" y="808" font-size="18" font-weight="600">REAR ROOF PLATE</text>
+    <text x="45" y="837" font-size="16">Broad skyline; slow lateral motion.</text>
+    <text x="45" y="859" font-size="16">Buried behind the middle strip.</text>
+    <text x="459" y="808" font-size="18" font-weight="600">MIDDLE BLOCK PLATE</text>
+    <text x="459" y="837" font-size="16">Connected buildings and courts.</text>
+    <text x="459" y="859" font-size="16">Its feet hide under near ground.</text>
+    <text x="873" y="808" font-size="18" font-weight="600">NEAR FRONTAGE</text>
+    <text x="873" y="837" font-size="16">Shop fronts, turns, corner detail.</text>
+    <text x="873" y="859" font-size="16">Approaches and exits the frame.</text>
+  </g>
+  <text x="30" y="900" fill="#aebfc1" font-family="sans-serif" font-size="15">The shared ground skin and paved road geometry are separate projected layers; the mint curve is live mask metadata, not a painted border.</text>
+</svg>
