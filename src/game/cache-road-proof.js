@@ -325,6 +325,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   STREET_SCENES.sort((a,b)=>b.at-a.at);
   const clone = value => JSON.parse(JSON.stringify(value));
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+  const smooth = value => {const t=clamp(value,0,1);return t*t*(3-2*t);};
   function mirrorExpression(s) {
     if (s.stumbleMs > 0) return 4;
     if (s.integrity <= 1 || s.timeMs < 8000 || s.status === 'failed') return 5;
@@ -1375,7 +1376,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const laneX = (lane, t) => laneEdge(lane, t) + half(t) / 4;
       const roadY = t => horizon + t * t * (bottom - horizon);
       const depth = d => clamp(1 - (d + 80) / 520, 0, 1);
-      const sideDepth = d => 1-(d+80)/520;
+      // Give the bank a longer approach without changing its scale beside
+      // the car. At d=0 this equals the old projection; the far boundary
+      // arrives about 80 world units earlier and grows more gradually.
+      const sideDepth = d => 1-(d+95)/620;
       // The road, curb, lot and lamp offsets all converge at the vanishing
       // point, and the same projection continues beyond the bottom of frame.
       const roadsideX = (side,t,base,growth) =>
@@ -1388,18 +1392,28 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         Math.abs(x-center(0))/960,2)+
         6*Math.sin(x/260+progress/1700)+2*Math.sin(x/93+progress/1100);
       const terrainAt = (side,t,x) => {
-        const at=progress+440-520*t;
+        const at=progress+525-620*t;
         const radial=(side*(x-center(t))-half(t))/(.1+.9*t)-190*t;
         return roadY(t)+t*(LANDSCAPE.height?.(side,at,
           Math.max(220,radial))??24);
       };
-      const clipRoadside = (t,draw) => {
+      // Terrain uncovers a site as it approaches. The old fixed crest mask
+      // switched off at t=.75, exposing an entire foundation in one frame.
+      const roadsideRevealY=(side,t,x)=>{
+        const ground=terrainAt(side,t,x)+7*t;
+        return crestY(x)+(ground-crestY(x))*smooth((t-.10)/.57);
+      };
+      const clipRoadside = (t,draw,side,actor=null) => {
         ctx.save();
-        if(t<.75) {
-          ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(1920,0);
-          for(let x=1920;x>=0;x-=30)ctx.lineTo(x,crestY(x));
-          ctx.closePath();ctx.clip();
-        }
+        ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(1920,0);
+        // People and small props need one horizontal contact line across
+        // their whole width; a curved screen-space crest shears their
+        // road-facing half away while the opposite half stays visible.
+        const actorLip=actor&&actor.foot+5*t-
+          actor.height*.55*(1-smooth((t-.16)/.4));
+        for(let x=1920;x>=0;x-=30)
+          ctx.lineTo(x,actor?actorLip:roadsideRevealY(side,t,x));
+        ctx.closePath();ctx.clip();
         draw(); ctx.restore();
       };
       // Paint one authored surface tile in the world plane. Its two sides
@@ -1690,7 +1704,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           ctx.lineTo(x+width*.5,0);
           for(let i=20;i>=0;i--) {
             const xx=x-width*.5+width*i/20;
-            ctx.lineTo(xx,Math.min(crestY(xx),
+            ctx.lineTo(xx,Math.min(roadsideRevealY(plate.side,t,xx),
               terrainAt(plate.side,t,xx)+7*t));
           }
           ctx.closePath();ctx.clip();
@@ -1759,7 +1773,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
             ctx.globalAlpha=1;
             B.PresentationAssets?.draw?.(key,ctx,{
               x,y,width,height:width*sourceH/sourceW,flip:false });
-          });
+          },side);
           ctx.restore();
         }
       }
@@ -1784,7 +1798,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         }
         ctx.closePath();ctx.clip();
         clipRoadside(t,()=>B.PresentationAssets?.draw?.(key,ctx,{
-          x,y,width,height:width*sourceH/sourceW,flip:scene.side>0 }));
+          x,y,width,height:width*sourceH/sourceW,flip:scene.side>0 }),scene.side);
         ctx.restore();
       }
       // Side decks track the same bend as the lane geometry. Real parapet and
@@ -1886,7 +1900,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
             B.PresentationAssets?.draw?.(key,ctx,{x:0,y:0,
               width:256,height:256});
           ctx.restore();
-        });
+        },side);
       }
       // Road shoulders and the paint share a single curved road projection.
       for (const side of [-1, 1]) {
@@ -1984,7 +1998,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
             ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y-height);ctx.stroke();
             ctx.fillStyle='#d89968';ctx.fillRect(x-2*tt,y-height-2*tt,4*tt,3*tt);
           }
-        });
+        },side);
         const signT=sideDepth(place.at+70-progress);
         if(signT>.22&&signT<1.14)clipRoadside(signT,()=>{
           const x=roadsideX(side,signT,265,220),y=lotY(signT);
@@ -1992,7 +2006,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           ctx.fillStyle='#476c75';ctx.fillRect(x-15*signT,y-77*signT,30*signT,24*signT);
           ctx.fillStyle='#e8c692';ctx.font=`bold ${Math.max(7,19*signT)}px Oxanium`;
           ctx.fillText('P',x-5*signT,y-58*signT);
-        });
+        },side);
       };
       const drawStreetLife = (scene, item, person=false) => {
         const t=sideDepth(item.at-progress);
@@ -2012,7 +2026,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           B.PresentationAssets?.draw?.(key,ctx,{
             x,y:foot,width,height:h,flip:person?item.flip:false });
           ctx.restore();
-        });
+        },scene.side,{foot,height:h});
       };
       // Upright painted buildings retain their authored diagonal perspective.
       // The same depth controls position, uniform scale and horizon reveal.
@@ -2045,7 +2059,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
             x,y,width,height,
             flip:place.variant ? !!SIDE_VARIANTS[place.variant].flip :
               placeFacesRoad(place.kind,place.side) });
-        });ctx.restore();
+        },place.side);ctx.restore();
       }
       // Each group is composed at runtime from separate people. Its members
       // stay distinct, rooted in the same projected bank and pass with the road.

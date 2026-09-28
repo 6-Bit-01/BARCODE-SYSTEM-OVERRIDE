@@ -197,18 +197,27 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-landscape.js', exports: [
         mouths.push(address);
       }
       let previousOuter=null,previousArterial=null;
+      const usedMouths=new Set(),accentAddresses=[];
+      // Reserve the painted core of a featured site at every depth. Checking
+      // only the front card lets a rear card or court sit on its foundation.
+      const clearsSite=(at,tier)=>!sites.some(site=>
+        Math.abs(site.at-at)<(tier==='front'?105:20)+
+          (site.size||1)*18+(tier==='front'?0:site.setback*.08));
+      const clearsAccent=at=>clearsSite(at,'rear')&&
+        accentAddresses.every(other=>Math.abs(at-other)>=240);
       for(let i=0,startAt=phase-PITCH;startAt<end+580;i++,startAt+=PITCH) {
         const endAt=startAt+SPAN;
         const centerAt=startAt+42;
-        const chosenMouth=mouths.find(at=>Math.abs(at-centerAt)<=90);
+        const chosenMouth=mouths.find(at=>
+          Math.abs(at-centerAt)<=90&&!usedMouths.has(at));
+        if(chosenMouth!==undefined)usedMouths.add(chosenMouth);
         const frontAt=chosenMouth??centerAt;
         const route=(seed+i*7+(side<0?0:2))%3;
         const offsets=[[65,135,230,310],[45,105,65,215],
           [75,150,225,190]][route];
         const courtAt=frontAt+offsets[1];
         const middleAt=startAt+119,rearAt=startAt+193;
-        const site=protectedSites.find(s=>s.side===side &&
-          Math.abs(s.at-frontAt)<105+(s.size||1)*18);
+        const site=!clearsSite(frontAt,'front');
         // The side phases and this choice keep openings from becoming a
         // paired gate. Sites reserve their full near frontage first.
         const open=chosenMouth!==undefined&&!site&&!protectedSites.some(s=>
@@ -222,10 +231,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-landscape.js', exports: [
           seed:(seed^Math.imul(i+17,side<0?0x5bd1e995:0x27d4eb2d))>>>0,
           family};
         const familyArt=FAMILY_ART[family][String(side)];
-        const accent=!open&&i%5===2&&
-          !protectedSites.some(s=>s.side===side&&
-            Math.abs(s.at-middleAt)<110);
-        chunk.accentIndex=open||accent ?
+        const accent=!open&&i%5===2&&clearsAccent(middleAt);
+        chunk.accentIndex=(open&&clearsAccent(courtAt+40))||accent ?
           (Math.floor(i/5)+(side>0?3:0)+seed%6)%ACCENT_ART.length : null;
         chunks.push(chunk);
         if(!site) {
@@ -243,7 +250,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-landscape.js', exports: [
         // gap variants are painted, placing a closed facade here would
         // punch a lane through it.
         if(!open) {
+          // At a family boundary the previous middle/rear foundations land
+          // almost on the next family's front. Keep the road-facing front
+          // and leave its successor a clean bank instead of stacking two
+          // differently painted neighborhoods at the same address.
+          const nextFamily=FAMILIES[(Math.floor((i+2)/10)+familyOffset)%FAMILIES.length];
           for(const [tier,at] of [['middle',middleAt],['rear',rearAt]]) {
+            if(!clearsSite(at,tier)||nextFamily!==family)continue;
             const isAccent=tier==='middle'&&chunk.accentIndex!==null;
             const art=isAccent?ACCENT_ART[chunk.accentIndex]:familyArt[tier];
             plates.push({at,side,chunkId:chunk.id,family:chunk.family,tier,
@@ -254,8 +267,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-landscape.js', exports: [
             parcels.push({id:`${chunk.id}:${tier}`,chunkId:chunk.id,side,
               tier,startAt,endAt,radial:[art[4],art[4]+170],
               entrance:{at,radial:art[4]},access:'sidewalk-path'});
+            if(isAccent)accentAddresses.push(at);
           }
-        } else {
+        } else if(chunk.accentIndex!==null) {
           // An occupied court beyond the turn gives the visible local street
           // a destination without painting a closed facade through it.
           const donor=ACCENT_ART[chunk.accentIndex];
@@ -270,6 +284,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-landscape.js', exports: [
             tier:'rear',startAt:courtAt-65,endAt:courtAt+75,
             radial:[650,870],entrance:{at:courtAt,radial:615},
             access:'local-street'});
+          accentAddresses.push(at);
         }
         const arterial=node(side,frontAt,220,'arterial-sidewalk');
         if(previousArterial!==null)
