@@ -4,9 +4,7 @@
 const assert=require('node:assert/strict');
 const path=require('node:path');
 const fs=require('node:fs');
-const {createCanvas,loadImage}=require(require.resolve('@napi-rs/canvas',{
-  paths:[process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES||process.cwd()]
-}));
+const {createCanvas,loadImage}=require('@napi-rs/canvas');
 const {createRig,load}=require('./check-level-01-boss');
 const root=path.resolve(__dirname,'..');
 

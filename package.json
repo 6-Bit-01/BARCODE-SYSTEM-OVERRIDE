@@ -59,6 +59,7 @@
     "check:cache-road-proof": "node tools/check-cache-road-proof.cjs && node tools/check-cache-road-block-art.cjs",
     "check:cache-road-browser": "node tools/check-cache-road-browser.cjs"
   },
-  "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "@napi-rs/canvas": "0.1.100"
+  }
 }
