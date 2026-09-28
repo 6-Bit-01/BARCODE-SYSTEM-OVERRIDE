@@ -186,24 +186,27 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   // Individual cutouts remain independent animation units. Context chooses
   // one local action, then passers-by are sampled without replacement.
   const PEDESTRIANS = [
-    ['cachePersonCourier',1036/1560,116],
-    ['cachePersonMechanic',1036/1555,116],
-    ['cachePersonUmbrella',1036/1534,116],
-    ['cachePersonStudent',989/1547,116],
-    ['cachePersonFoodWorker',1036/1559,116],
-    ['cachePersonBicycleCourier',1481/1048,106],
-    ['cachePersonSweeper',1199/1330,111],
-    ['cachePersonHandheldPlayer',993/1560,116],
-    ['cachePersonGardener',1217/1322,111],
-    ['cachePersonElectrician',1238/1307,105],
-    ['cachePersonWavingResident',1015/1503,116],
-    ['cachePersonSkateboarder',1238/1319,112],
-    ['cachePersonCrateCarrier',1263/1208,107],
-    ['cachePersonBoardPlayer',1236/1302,102],
-    ['cachePersonStreetCook',1293/1194,108],
+    // A vendor customer painted into cacheVendorStall is about 340 source
+    // pixels high. At that frontage's 690-unit width this is ~168 units;
+    // its setback makes a 130–140 unit sidewalk walker read at the same size.
+    ['cachePersonCourier',1036/1560,134],
+    ['cachePersonMechanic',1036/1555,134],
+    ['cachePersonUmbrella',1036/1534,134],
+    ['cachePersonStudent',989/1547,134],
+    ['cachePersonFoodWorker',1036/1559,134],
+    ['cachePersonBicycleCourier',1481/1048,132],
+    ['cachePersonSweeper',1199/1330,131],
+    ['cachePersonHandheldPlayer',993/1560,134],
+    ['cachePersonGardener',1217/1322,132],
+    ['cachePersonElectrician',1238/1307,124],
+    ['cachePersonWavingResident',1015/1503,134],
+    ['cachePersonSkateboarder',1238/1319,131],
+    ['cachePersonCrateCarrier',1263/1208,128],
+    ['cachePersonBoardPlayer',1236/1302,120],
+    ['cachePersonStreetCook',1293/1194,131],
     ...['Courier','Mechanic','MarketWorker','Student','Gardener','Resident']
       .flatMap(identity=>['Toward','Away'].map(direction=>
-        [`cacheWalker${identity}${direction}`,1024/1536,113]))
+        [`cacheWalker${identity}${direction}`,1024/1536,132]))
   ];
   const PASSERS=[0,1,2,3,4,5,7,10,11,12];
   const LOCAL_ACTIONS={
@@ -226,21 +229,38 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     apartment:['cacheStreetBicycleRack','cacheStreetBenchPlanters']
   };
   const PROP_SHAPES={
-    cacheStreetBicycleRack:[1526/1023,91],
-    cacheStreetWorkSupplies:[1491/1039,89],
-    cacheStreetDeliveryVan:[1498/1016,119],
-    cacheStreetBenchPlanters:[1546/1040,91],
-    cacheStreetDataKiosk:[1224/1318,96],
+    cacheStreetBicycleRack:[1526/1023,102],
+    cacheStreetWorkSupplies:[1491/1039,104],
+    cacheStreetDeliveryVan:[1498/1016,171],
+    cacheStreetBenchPlanters:[1546/1040,104],
+    cacheStreetDataKiosk:[1224/1318,142],
     cacheNewLampL:[1024/1536,146],cacheNewLampR:[1024/1536,146],
     cacheNewCrossingSignalL:[1024/1536,130],
     cacheNewCrossingSignalR:[1024/1536,130],
-    cacheNewWayfindingSign:[1024/1536,110],
-    cacheNewBinsRecycling:[1312/1199,72],
-    cacheNewLoadingCrates:[1312/1199,80],
-    cacheNewUtilityCabinet:[1246/1263,95],
-    cacheNewVendorCart:[1312/1199,91],
-    cacheNewFencePlanter:[1536/1024,73]
+    cacheNewWayfindingSign:[1024/1536,141],
+    cacheNewBinsRecycling:[1312/1199,83],
+    cacheNewLoadingCrates:[1312/1199,91],
+    cacheNewUtilityCabinet:[1246/1263,130],
+    cacheNewVendorCart:[1312/1199,120],
+    cacheNewFencePlanter:[1536/1024,86]
   };
+  // Along-road addresses and distance from the curb both vary. Keeping
+  // the group within one parcel gives pairs, knots and arcs instead of a row.
+  const FRONT_FORMATIONS={
+    1:[[0,0]],
+    2:[[-19,-30],[17,35]],
+    3:[[-32,6],[13,-49],[24,48]],
+    4:[[-41,-15],[-8,52],[24,-47],[39,22]],
+    5:[[-44,-13],[-18,53],[10,-52],[39,34],[2,5]]
+  };
+  const arrangePeople=(ids,center,base,seed,mirror=false)=>
+    ids.map((id,i)=>{
+      const [along,radial]=FRONT_FORMATIONS[ids.length][i];
+      return {id,at:center+(mirror?-along:along),
+        base:base+radial+Math.round((placeRandom(seed+id*79)-.5)*10),
+        scale:1+placeRandom(seed+id*37)*.09,
+        flip:placeRandom(seed+id*73)>.5};
+    }).sort((a,b)=>b.at-a.at);
   // These are world addresses, generated once with a stable seed. Road
   // progress projects the same people and furniture as the ground and lane.
   const STREET_SCENES=[...SIDE_PLACES,...INFILL_SCENES.map(scene=>({
@@ -259,25 +279,24 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     const ids=[leader,...pool.slice(0,size-1)];
     // Shuffle the spatial order without changing who belongs to the group.
     ids.sort((a,b)=>placeRandom(seed+a*227+11)-placeRandom(seed+b*227+11));
-    const step=18+Math.floor(placeRandom(seed+7)*9);
-    const center=anchor.at+Math.round((placeRandom(seed+13)-.5)*42);
-    const people=placeRandom(seed+91)<.17?[]:ids.map((id,i)=>({
-      id,at:center+Math.round((i-(size-1)/2)*step),
-      base:305+Math.round(placeRandom(seed+id*79)*28)+(i%2)*6,
-      scale:.91+placeRandom(seed+id*37)*.15,
-      flip:placeRandom(seed+id*73)>.5
-    })).sort((a,b)=>b.at-a.at);
+    let center=anchor.at+Math.round((placeRandom(seed+13)-.5)*26);
+    const nearbyMouth=LANDSCAPE.streets.find(street=>street.side===anchor.side &&
+      Math.abs(street.at-center)<116);
+    if(nearbyMouth)center=nearbyMouth.at+
+      (center<nearbyMouth.at?-116:116);
+    const people=placeRandom(seed+91)<.17?[]:
+      arrangePeople(ids,center,340,seed,placeRandom(seed+7)>.5);
     const choices=STREET_PROPS[anchor.kind]||STREET_PROPS.house;
     const props=placeRandom(seed+57)<.20?[]:[{
       key:choices[Math.floor(placeRandom(seed+29)*choices.length)],
-      at:anchor.at+(placeRandom(seed+43)<.5?-70:70),
-      base:anchor.kind==='parking'?420:410,
-      scale:.85+placeRandom(seed+47)*.28
+      at:center+(placeRandom(seed+43)<.5?-45:45),
+      base:anchor.kind==='parking'?414:380,
+      scale:.96+placeRandom(seed+47)*.15
     }];
     if(choices.length>2 && placeRandom(seed+61)<.23)props.push({
       key:choices[Math.floor(placeRandom(seed+67)*choices.length)],
-      at:anchor.at+(props[0]?.at>anchor.at?-82:82),
-      base:500,scale:.8+placeRandom(seed+71)*.24
+      at:center+(props[0]?.at>center?-55:55),
+      base:445,scale:.94+placeRandom(seed+71)*.13
     });
     return {at:anchor.at,side:anchor.side,kind:anchor.kind,people,
       props:props.sort((a,b)=>b.at-a.at)};
@@ -299,18 +318,24 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     const salt=chunk.seed+index*119;
     const size=1+Math.floor(placeRandom(salt+7)*5);
     const first=Math.floor(placeRandom(salt+11)*6);
-    const people=Array.from({length:size},(_,j)=>{
+    const ids=Array.from({length:size},(_,j)=>{
       const identity=(first+j)%6;
       const direction=placeRandom(salt+identity*67)>.5?0:1;
-      return {id:15+identity*2+direction,
-        at:chunk.frontAt+(j-(size-1)/2)*21,
-        base:305+(j%2)*17+Math.floor(placeRandom(salt+j*41)*18),
-        scale:.91+placeRandom(salt+j*83)*.13,flip:false};
+      return 15+identity*2+direction;
     });
+    // A transparent front card can contain a real street mouth. Its lamps
+    // sit at ±41, so keep the gathering on the parcel past the mouth.
+    const onStreet=LANDSCAPE.streets.some(street=>
+      street.side===chunk.side && street.at===chunk.frontAt);
+    const mirror=placeRandom(salt+29)>.5;
+    const center=chunk.frontAt+(onStreet?(mirror?108:-108):
+      Math.round((placeRandom(salt+23)-.5)*28));
+    const people=arrangePeople(ids,center,344,salt,mirror);
     const choices=DISTRICT_PROPS[chunk.family];
     const key=choices[Math.floor(placeRandom(salt+17)*choices.length)];
     return {at:chunk.frontAt,side:chunk.side,kind:chunk.family,people,
-      props:[{key,at:chunk.frontAt+(index%2?-75:75),base:420,scale:.85}]};
+      props:[{key,at:center+(onStreet?(mirror?26:-26):(index%2?-54:54)),
+        base:412,scale:1}]};
   });
   for(const street of LANDSCAPE.streets) {
     DISTRICT_SCENES.push({at:street.at,side:street.side,kind:street.family,
@@ -323,6 +348,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   }
   STREET_SCENES.push(...DISTRICT_SCENES);
   STREET_SCENES.sort((a,b)=>b.at-a.at);
+  const STREET_ITEMS=STREET_SCENES.flatMap(scene=>
+    [...scene.props,...scene.people].map(item=>({scene,item})))
+    .sort((a,b)=>b.item.at-a.item.at);
   const clone = value => JSON.parse(JSON.stringify(value));
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const smooth = value => {const t=clamp(value,0,1);return t*t*(3-2*t);};
@@ -1400,7 +1428,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // sites and people. Its shallow far slope lets a site clear the horizon
       // before the near slope accelerates it past the player. d=0 retains
       // the established sidewalk/road contact depth (525/620).
-      const bankNear=525/620,bankReach=720,bankCurve=1.65;
+      const bankNear=525/620,bankReach=1200,bankCurve=3.1;
       const sideDepth = d => bankNear*Math.pow(
         Math.max(0,(bankReach-d)/bankReach),bankCurve);
       const bankAddress = t => progress+bankReach*(1-
@@ -1661,11 +1689,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         return t>.10&&t<1.17;
       });
       const layerStep=24;
-      for(let at=Math.floor((progress+570)/layerStep)*layerStep;
+      for(let at=Math.floor((progress+744)/layerStep)*layerStep;
         at>progress-200;at-=layerStep) {
         const far=sideDepth(at+layerStep-progress);
         const near=sideDepth(at-progress);
-        if(far<.07||near>1.2)continue;
+        if(far<.045||near>1.2)continue;
         for(const side of [-1,1]) {
           ctx.save();ctx.beginPath();ctx.moveTo(0,cityCrestY(0));
           for(let xx=30;xx<=1920;xx+=30)
@@ -1775,7 +1803,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       };
       for(const side of [-1,1]) {
         const phase=side<0?41:105,spacing=440;
-        for(let at=Math.floor((progress+570-phase)/spacing)*spacing+phase;
+        for(let at=Math.floor((progress+700-phase)/spacing)*spacing+phase;
           at>progress+65;at-=spacing) {
           const t=sideDepth(at-progress);
           if(t<.10||t>.70)continue;
@@ -1817,7 +1845,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const t=sideDepth(scene.at+(satellite?43:22)-progress);
         if(t<.11||t>.95)continue;
         const [key,sourceW,sourceH,maxW]=scene.art;
-        const width=(satellite?Math.min(620,maxW*.9):maxW)*cardScale(t);
+        const width=(satellite?Math.min(720,maxW):maxW)*cardScale(t);
         const sidewalkEdge=roadsideX(scene.side,t,220,190);
         const x=sidewalkEdge+scene.side*(width*.5+(satellite?29:43)*t);
         if(x+width*.5<0||x-width*.5>1920)continue;
@@ -2050,7 +2078,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       };
       const drawStreetLife = (scene, item, person=false) => {
         const t=sideDepth(item.at-progress);
-        if(t<.18||t>1.08)return;
+        if(t<.15||t>1.08)return;
         const [key,aspect,height]=person?PEDESTRIANS[item.id]:
           [item.key,...PROP_SHAPES[item.key]];
         const h=height*t*item.scale;
@@ -2101,10 +2129,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       }
       // Each group is composed at runtime from separate people. Its members
       // stay distinct, rooted in the same projected bank and pass with the road.
-      for(const scene of STREET_SCENES) {
-        for(const prop of scene.props)drawStreetLife(scene,prop);
-        for(const person of scene.people)drawStreetLife(scene,person,true);
-      }
+      for(const {scene,item} of STREET_ITEMS)
+        drawStreetLife(scene,item,item.id!==undefined);
       // Stretch adjacent wall segments between the same projected road points.
       // This makes one continuous side wall rather than floating sign panels.
       for(let at=Math.floor((progress+500)/62)*62;at>progress-150;at-=62) {

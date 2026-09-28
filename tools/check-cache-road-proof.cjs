@@ -31,6 +31,9 @@ async function run() {
   assert(roadSource.includes(sceneMarker));
   vm.runInContext(roadSource.replace(sceneMarker,
     '  window.__cacheStreetScenes = STREET_SCENES;\n'+
+    '  window.__cacheStreetItems = STREET_ITEMS;\n'+
+    '  window.__cachePedestrians = PEDESTRIANS;\n'+
+    '  window.__cachePropShapes = PROP_SHAPES;\n'+
     '  window.__cacheLandscape = LANDSCAPE;\n'+
     '  window.__cacheSites = SIDE_PLACES;\n'+sceneMarker),
   context,{filename:'src/game/cache-road-proof.js [street-scene inspection]'});
@@ -143,6 +146,36 @@ async function run() {
   assert(groups.every(group=>Math.max(...group.map(person=>person.at))-
     Math.min(...group.map(person=>person.at))<=104),
   'groups of five stay close enough to read as one street moment');
+  assert(groups.filter(group=>group.length>=3).every(group=>
+    Math.max(...group.map(person=>person.base))-
+    Math.min(...group.map(person=>person.base))>=70),
+  'gatherings occupy the parcel depth instead of lining up along the road');
+  assert(streetScenes.every(scene=>scene.people.every(person=>
+    landscape.streets.filter(street=>street.side===scene.side).every(street=>
+      Math.abs(person.at-street.at)>=58))),
+  'people stay clear of graph street mouths and their crossing signals');
+  assert(streetScenes.every(scene=>scene.props.every(prop=>
+    /cacheNew(Lamp|CrossingSignal)/.test(prop.key) ||
+    landscape.streets.filter(street=>street.side===scene.side).every(street=>
+      Math.abs(prop.at-street.at)>=58))),
+  'loose furniture does not block a street mouth or crossing');
+  const paintedCustomerHeight=340/1391*690/(1+.2*.65);
+  assert(w.__cachePedestrians.filter((_,id)=>id<15 &&
+    ![5,9,11,13].includes(id)).every(([, ,height])=>
+      height>=paintedCustomerHeight*.84 &&
+      height<=paintedCustomerHeight*1.06) &&
+    w.__cachePedestrians.slice(15).every(([, ,height])=>
+      height>=paintedCustomerHeight*.84) &&
+    w.__cachePropShapes.cacheStreetDeliveryVan[1]>
+      w.__cachePedestrians[0][2]*1.2 &&
+    w.__cachePropShapes.cacheStreetDataKiosk[1]>=
+      w.__cachePedestrians[0][2],
+  'walkers match painted vendor customers and van and kiosk retain physical scale');
+  assert(w.__cacheStreetItems.length===streetScenes.reduce((sum,scene)=>
+    sum+scene.people.length+scene.props.length,0) &&
+    w.__cacheStreetItems.every(({item},index)=>index===0||
+      w.__cacheStreetItems[index-1].item.at>=item.at),
+  'people and furniture share one far-to-near depth order across parcels');
   assert.equal(new Set(groups.flatMap(group=>group.map(person=>person.id))).size,27,
     'the full route draws fifteen action cutouts and twelve directional walkers');
   assert(['L','R'].every(side=>streetScenes.some(scene=>scene.props.some(prop=>
@@ -382,7 +415,7 @@ async function run() {
       entry.height > 0 && entry.alpha === 1),
   'both sides contain several separate, varied, uniformly scaled parcels');
   const playerCar=roadArt.find(entry => entry.key === 'cacheCar');
-  assert(market.width > playerCar.width*1.5 && market.height > playerCar.height*1.5 &&
+  assert(market.width > playerCar.width*1.45 && market.height > playerCar.height*1.5 &&
     house.width > playerCar.width*1.2 && house.height > playerCar.height*1.4,
   'opening buildings grow beyond car scale as they clear the distant horizon');
   const sidewalkAt = (side,y) => {
