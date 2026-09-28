@@ -1,0 +1,175 @@
+{
+  "source": "src/game/cache-road-proof.js production draw",
+  "frame": "baseline/Cache-Road-Mirror-Road-0230.webp",
+  "frameProgress": 230,
+  "sourceResolution": [
+    1920,
+    1080
+  ],
+  "reviewResolution": [
+    1280,
+    720
+  ],
+  "geometry": {
+    "horizonY": 400,
+    "roadY": "400 + 680*t*t",
+    "roadHalf": "82 + 534*t",
+    "depth": "1-(distance+80)/520",
+    "roadWidthAtHorizon": 164,
+    "roadWidthAtBottom": 1232,
+    "currentPlaceClipStopsAtT": 0.75,
+    "clipStopY": 782.5
+  },
+  "rows": [
+    {
+      "y": 425,
+      "depth": 0.192,
+      "roadEdges": [
+        678,
+        1047
+      ],
+      "outerSidewalk": [
+        608,
+        1117
+      ],
+      "visibleBankWidths": [
+        678,
+        873
+      ],
+      "groundBeyondSidewalk": [
+        608,
+        803
+      ]
+    },
+    {
+      "y": 470,
+      "depth": 0.321,
+      "roadEdges": [
+        637,
+        1143
+      ],
+      "outerSidewalk": [
+        527,
+        1253
+      ],
+      "visibleBankWidths": [
+        637,
+        777
+      ],
+      "groundBeyondSidewalk": [
+        527,
+        667
+      ]
+    },
+    {
+      "y": 570,
+      "depth": 0.5,
+      "roadEdges": [
+        573,
+        1271
+      ],
+      "outerSidewalk": [
+        400,
+        1444
+      ],
+      "visibleBankWidths": [
+        573,
+        649
+      ],
+      "groundBeyondSidewalk": [
+        400,
+        476
+      ]
+    },
+    {
+      "y": 740,
+      "depth": 0.707,
+      "roadEdges": [
+        487,
+        1407
+      ],
+      "outerSidewalk": [
+        226,
+        1668
+      ],
+      "visibleBankWidths": [
+        487,
+        513
+      ],
+      "groundBeyondSidewalk": [
+        226,
+        252
+      ]
+    },
+    {
+      "y": 910,
+      "depth": 0.866,
+      "roadEdges": [
+        413,
+        1502
+      ],
+      "outerSidewalk": [
+        75,
+        1840
+      ],
+      "visibleBankWidths": [
+        413,
+        418
+      ],
+      "groundBeyondSidewalk": [
+        75,
+        80
+      ]
+    }
+  ],
+  "artInventory": [
+    {
+      "name": "ground-cluster-left-01.webp",
+      "size": [
+        1903,
+        826
+      ],
+      "opaqueCanvasFraction": 0.537
+    },
+    {
+      "name": "ground-cluster-left-02.webp",
+      "size": [
+        1903,
+        826
+      ],
+      "opaqueCanvasFraction": 0.56
+    },
+    {
+      "name": "ground-cluster-left-03.webp",
+      "size": [
+        1774,
+        887
+      ],
+      "opaqueCanvasFraction": 0.445
+    },
+    {
+      "name": "ground-cluster-right-01.webp",
+      "size": [
+        1898,
+        829
+      ],
+      "opaqueCanvasFraction": 0.572
+    },
+    {
+      "name": "ground-cluster-right-02.webp",
+      "size": [
+        1774,
+        887
+      ],
+      "opaqueCanvasFraction": 0.515
+    },
+    {
+      "name": "ground-cluster-right-03.webp",
+      "size": [
+        1774,
+        887
+      ],
+      "opaqueCanvasFraction": 0.52
+    }
+  ]
+}

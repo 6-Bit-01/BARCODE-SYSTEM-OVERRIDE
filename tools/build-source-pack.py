@@ -13,11 +13,24 @@ from datetime import datetime, timezone
 ROOT = Path(__file__).resolve().parents[1]
 PACK_ROOT = "BARCODE-System-Override-Source-Pack-v5"
 DOC_PREFIX = "docs/source-pack/"
+RETAINED_REVIEW_VIDEOS = {
+    "review-cache-layered-city/Continuous-Drive.mp4",
+}
+CURRENT_REVIEW = "review-cache-six-districts/"
+REVIEW_MEDIA_SUFFIXES = {".webp", ".png", ".mp4", ".jpg", ".jpeg", ".gif", ".mp3"}
+ROOT_DOCUMENT_SUFFIXES = {".md", ".json", ".txt"}
 
 
 def exclusion_reason(path):
     if path.parts and path.parts[0] == "project_sources" and path.suffix.lower() == ".zip":
         return "Historical source-pack input; retained in Git, omitted from current export to avoid nested obsolete packs."
+    if path.as_posix().startswith(DOC_PREFIX) and path.suffix.lower() in REVIEW_MEDIA_SUFFIXES:
+        relative = path.as_posix()[len(DOC_PREFIX):]
+        if relative in RETAINED_REVIEW_VIDEOS or (
+            relative.startswith(CURRENT_REVIEW) and path.suffix.lower() in {".webp", ".png"}
+        ):
+            return None
+        return "Review media retained in Git; omitted from the current source archive to keep complete code and source art within one downloadable file."
     return None
 
 
@@ -51,7 +64,7 @@ def build(args):
                 continue
             content = source.extractfile(member).read()
             destinations = ["repository-snapshot/" + member.name]
-            if member.name.startswith(DOC_PREFIX):
+            if member.name.startswith(DOC_PREFIX) and path.suffix.lower() in ROOT_DOCUMENT_SUFFIXES:
                 destinations.append(member.name[len(DOC_PREFIX):])
             for destination in destinations:
                 if destination in entries:

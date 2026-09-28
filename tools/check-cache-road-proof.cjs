@@ -25,23 +25,107 @@ async function run() {
   load(context, 'src/engine/cache-road-proof-profile.js');
   load(context, 'src/engine/music-director.js');
   load(context, 'src/engine/audio.js');
+  load(context, 'src/game/cache-road-landscape.js');
   const roadSource=fs.readFileSync('src/game/cache-road-proof.js','utf8');
   const sceneMarker='  const clone = value => JSON.parse(JSON.stringify(value));';
   assert(roadSource.includes(sceneMarker));
   vm.runInContext(roadSource.replace(sceneMarker,
-    '  window.__cacheStreetScenes = STREET_SCENES;\n'+sceneMarker),
+    '  window.__cacheStreetScenes = STREET_SCENES;\n'+
+    '  window.__cacheLandscape = LANDSCAPE;\n'+
+    '  window.__cacheSites = SIDE_PLACES;\n'+sceneMarker),
   context,{filename:'src/game/cache-road-proof.js [street-scene inspection]'});
+  const landscape=w.__cacheLandscape, sites=w.__cacheSites;
+  assert(landscape.pitch===180 && landscape.span===225 &&
+    landscape.chunks.length>=100 && landscape.plates.length>=200 &&
+    landscape.plates.every(plate=>plate.art[3]>=1500 &&
+      plate.art[6]>0 && plate.art[6]<=plate.art[2]),
+    'both banks use overlapping full-route chunks and fitted card metadata');
+  for(const family of ['market','homes','workshop','greenhouse','data','transit']) {
+    const prefix=family[0].toUpperCase()+family.slice(1);
+    const familyPlates=landscape.plates.filter(plate=>plate.family===family&&
+      plate.key!=='accent'&&
+      plate.art[0].startsWith(`cache${prefix}`));
+    assert.deepEqual([...new Set(familyPlates.map(plate=>plate.art[0]))].sort(),
+      ['L','R'].flatMap(side=>['Rear','Middle','FrontGap','FrontFill']
+        .map(tier=>`cache${prefix}${side}${tier}`)).sort(),
+      `the protected-site route exercises all eight ${family} cards`);
+    assert(familyPlates.every(plate=>plate.art[8]?.footU>0&&
+      plate.art[8]?.footU<1&&
+      (plate.key==='open')===(plate.art[8].socketU!==undefined)) &&
+      familyPlates.filter(plate=>plate.key==='open').every(plate=>
+        landscape.streets.some(street=>street.chunkId===plate.chunkId &&
+          street.side===plate.side && street.at===plate.at)),
+      `${family} contact and transparent graph socket stay paired`);
+  }
+  for(const side of [-1,1]) {
+    const chunks=landscape.chunks.filter(chunk=>chunk.side===side)
+      .sort((a,b)=>a.startAt-b.startAt);
+    assert(chunks[0].startAt<=0 && chunks.at(-1).endAt>=9840 &&
+      chunks.every((chunk,i)=>i===0 ||
+        chunk.startAt-chunks[i-1].startAt===180 &&
+        chunk.startAt<chunks[i-1].endAt),
+      'one overlapping landscape runs without address holes on each bank');
+  }
+  const graph=landscape.graph;
+  assert(graph.nodes.length>landscape.parcels.length &&
+    graph.edges.length>graph.nodes.length-2 &&
+    landscape.parcels.every(parcel=>{
+      const n=graph.nodes[parcel.entrance.node];
+      return n?.side===parcel.side && n?.at===parcel.entrance.at &&
+        n?.radial===parcel.entrance.radial &&
+        graph.edges.some(edge=>edge.kind==='parcel-access' &&
+          (edge.a===n.id||edge.b===n.id));
+    }), 'every graph parcel has a connected entrance');
+  for(const side of [-1,1]) {
+    const start=graph.nodes.find(n=>n.side===side &&
+      n.type==='arterial-sidewalk').id;
+    const visited=new Set([start]),pending=[start];
+    while(pending.length) {
+      const current=pending.pop();
+      for(const edge of graph.edges) {
+        const other=edge.a===current?edge.b:edge.b===current?edge.a:-1;
+        if(other>=0&&!visited.has(other)) {visited.add(other);pending.push(other);}
+      }
+    }
+    assert(graph.nodes.filter(n=>n.side===side).every(n=>visited.has(n.id)),
+      'streets, sidewalks, and parcel entrances reach the main sidewalk');
+  }
+  const badStreet=landscape.streets.find(street=>{
+    const plate=landscape.plates.find(p=>p.side===street.side &&
+      p.tier==='front' && p.chunkId===street.chunkId);
+    return plate?.key!=='open' ||
+      sites.some(site=>site.side===street.side && Math.abs(site.at-street.at)<135) ||
+      !street.edges.every(([a,b])=>a<street.nodes.length && b<street.nodes.length);
+  });
+  assert(landscape.streets.length>=8 && !badStreet,
+    `every branch has an opening and a protected site gap: ${JSON.stringify(badStreet)}`);
+  assert(new Set(landscape.streets.map(street=>
+    street.nodes[3].at-street.at)).size>=2 &&
+    landscape.streets.some(street=>street.nodes[3].at<street.nodes[2].at),
+  'connected branches include distinct bends and a returning turn');
+  assert.notDeepEqual(copy(w.BARCODE.CacheRoadLandscape.create(17,9840,sites).streets),
+    copy(landscape.streets),'a different seed changes the graph layout');
+  assert(landscape.plates.filter(p=>p.tier==='front').every(p=>
+    !sites.some(site=>site.side===p.side && Math.abs(site.at-p.at)<98)),
+    'district fronts cannot occupy featured site addresses');
+  assert.deepEqual(copy(w.BARCODE.CacheRoadLandscape.create(0x6b4d,9840,sites).streets),
+    copy(landscape.streets),'retry produces the same street sockets');
   const streetScenes=w.__cacheStreetScenes;
   const groups=streetScenes.map(scene=>scene.people).filter(group=>group.length);
   assert.deepEqual([...new Set(groups.map(group=>group.length))].sort(),[1,2,3,4,5],
     'procedural pedestrian groups include every size from one through five');
-  assert(groups.every(group=>new Set(group.map(person=>person.id)).size===group.length),
-    'one procedural group never repeats an individual sprite');
+  assert(groups.every(group=>new Set(group.map(person=>person.id>=15?
+    `new-${Math.floor((person.id-15)/2)}`:`old-${person.id}`)).size===group.length),
+    'one procedural group never repeats an individual identity in either direction');
   assert(groups.every(group=>Math.max(...group.map(person=>person.at))-
     Math.min(...group.map(person=>person.at))<=104),
   'groups of five stay close enough to read as one street moment');
-  assert.equal(new Set(groups.flatMap(group=>group.map(person=>person.id))).size,15,
-    'the full route draws all fifteen separate pedestrian variants');
+  assert.equal(new Set(groups.flatMap(group=>group.map(person=>person.id))).size,27,
+    'the full route draws fifteen action cutouts and twelve directional walkers');
+  assert(['L','R'].every(side=>streetScenes.some(scene=>scene.props.some(prop=>
+    prop.key===`cacheNewLamp${side}`)&&scene.people.length===0)) &&
+    streetScenes.some(scene=>scene.props.some(prop=>prop.key==='cacheNewVendorCart')),
+    'new practical street furniture follows graph sockets and district context');
   assert(groups.some(group=>group.some(person=>person.id>=5)) &&
     streetScenes.some(scene=>scene.props.some(prop=>prop.key==='cacheStreetDeliveryVan')),
     'action poses and contextual street furniture are instantiated across the route');
@@ -182,7 +266,9 @@ async function run() {
       clipRight: ridgeAt(_ctx.ridge,options.x+(options.width||0)/2),
       ...(key === 'cacheOutskirts' ? { ridgeCenter:ridgeAt(_ctx.ridge,960),
         ridgeEdge:ridgeAt(_ctx.ridge,0) } : {}),
-      ...(key === 'cacheRollingGrain' ? { projected:_ctx.lastTransform?.slice() } : {}),
+      ...(['cacheRollingGrain','cacheWorkshopPavement','cacheLocalStreet'].includes(key) ||
+        key.endsWith('Turn')||key.endsWith('Curb') ?
+        { projected:_ctx.lastTransform?.slice() } : {}),
       ...(key.startsWith('cacheFly') ? { screenX: _ctx.lastTranslate?.[0] } : {}) });
       drawOrder.push(key); }
     return true;
@@ -365,10 +451,22 @@ async function run() {
   assert(roadArt.some(entry => entry.key === 'cachePlaceMarket' && entry.flip &&
     entry.width > market.width*1.4 && entry.x+entry.width/2 < 0),
   'the near building exits across the landscape edge instead of crossing the sidewalk');
+  for(const [progress,bank,other] of [[250,'L','R'],[760,'R','L']]) {
+    mirrorFrame({progress});
+    for(const suffix of ['Turn','Curb','StreetWall','Endcap'])
+      assert(roadArt.some(entry=>entry.key===`cacheJoin${bank}${suffix}` &&
+        (suffix==='Turn'||suffix==='Curb' ?
+          entry.projected?.length===6 && entry.alpha===1 :
+          entry.width>0 && entry.height>0)),
+      `${bank} ${suffix} joins its own graph socket at progress ${progress}`);
+    assert(!roadArt.some(entry=>entry.key===`cacheJoin${other}Turn` ||
+      entry.key===`cacheJoin${other}Curb`),
+    'offscreen/opposite mouths do not stamp flat join art');
+  }
   mirrorFrame({ progress: 600 });
   checkSetbackAndFacing();
   assert(uprightPlaces(roadArt).some(entry => entry.flip) &&
-    !roadArt.some(entry => /^(cacheMarket|cacheDepot|cacheFrontage)/.test(entry.key)),
+    !roadArt.some(entry => /^(cacheMarketBlock|cacheDepot|cacheFrontage)/.test(entry.key)),
   'later blocks use independent right-side places, never the rejected long strips');
   const reviewedKinds=new Set();
   let loneBankFrames=0,pairedApproaches=0,comparedApproaches=0;
@@ -410,9 +508,11 @@ async function run() {
     mirrorFrame({progress});
     const infill=roadArt.filter(entry=>infillKeys.includes(entry.key));
     assert(infill.every(entry=>entry.alpha===1 && entry.width>0 &&
-      entry.width<900 && !entry.sourceRect &&
+      entry.width<2000 && (!entry.sourceRect ||
+        entry.sourceRect[0]===0 && entry.sourceRect[1]===0 &&
+        entry.sourceRect[2]>1300 && entry.sourceRect[3]>700) &&
       entry.flip===(entry.x>960)),
-    'supporting settings remain whole, opaque and face their assigned bank');
+    'graph accents and site satellites stay opaque and face their bank');
     for(const entry of infill)infillSeen.add(entry.key);
     assert(!roadArt.some(entry=>entry.key==='cacheBusStop'),
       'bus-stop painting remains inactive until a believable service route exists');
@@ -420,9 +520,9 @@ async function run() {
   assert.deepEqual([...infillSeen].sort(),infillKeys.sort(),
     'six fixed neighborhood settings and market-side vendors appear along the route');
   mirrorFrame({progress:400});
-  assert(roadArt.some(entry=>entry.key==='cacheUtilityCorner' &&
-    entry.x<960 && entry.width>300 && entry.x+entry.width/2>120),
-  'a curbside workshop fills the otherwise empty left service bank');
+  assert(roadArt.some(entry=>/^(cacheWorkshopL|cacheMarketL)/.test(entry.key) &&
+    entry.x<960 && entry.width>230 && entry.x+entry.width/2>120),
+  'the layered left district occupies the old isolated infill gap');
   let crossingGap=Infinity, crossingSamples=0;
   for(let progress=0;progress<2460;progress+=10) {
     mirrorFrame({progress});
@@ -480,10 +580,25 @@ async function run() {
   const roadTexture=() => roadArt.find(entry => entry.key === 'cacheBlacktop' &&
     entry.sourceRect[3] <= 22);
   const rollingGrain=roadArt.filter(entry=>entry.key==='cacheRollingGrain');
-  assert(rollingGrain.length>=10 && rollingGrain.every(entry=>
-    entry.sourceRect?.[3]>0 && entry.alpha===.44 && entry.projected?.length===6),
-  'adjacent world strips sample opaque underlying ground grain at a consistent opacity');
-  const fixedGrain=rollingGrain.find(entry=>entry.sourceRect[0]===0);
+  const workshopPavement=roadArt.filter(entry=>entry.key==='cacheWorkshopPavement');
+  const localStreet=roadArt.filter(entry=>entry.key==='cacheLocalStreet');
+  assert(rollingGrain.length>=40 &&
+    rollingGrain.every(entry=>entry.sourceRect?.[3]>0 &&
+      entry.alpha===.44 && entry.projected?.length===6) &&
+    workshopPavement.length===0 && localStreet.length>0 &&
+    localStreet.length%2===0 &&localStreet.some(entry=>entry.alpha===.95) &&
+    localStreet.every(entry=>[.84,.95].includes(entry.alpha) &&
+      entry.sourceRect?.[2]===256 && entry.sourceRect?.[3]===64 &&
+      entry.projected?.length===6),
+  'world-fixed grain covers both banks; shared local texture stays inside graph streets and market courts');
+  mirrorFrame({progress:2750});
+  assert(roadArt.some(entry=>entry.key==='cacheLocalStreet') &&
+    !roadArt.some(entry=>entry.key.startsWith('cacheMarket')),
+  'later workshop streets use the same world-addressed wet road surface');
+  mirrorFrame({progress:395});
+  const fixedGrain=rollingGrain.find(entry=>entry.sourceRect[0]===0 &&
+    entry.sourceRect[1]>100);
+  assert(fixedGrain,'a tracked left-bank terrain strip is visible');
   const textureRow = roadTexture().sourceRect[1];
   const ships = roadArt.filter(entry => entry.key.startsWith('cacheFly'));
   assert.deepEqual(ships.map(ship => [ship.key,ship.flip]),
@@ -507,7 +622,7 @@ async function run() {
   'city depths pan together with the road bearing at bounded parallax ratios');
   assert(roadTexture().sourceRect[1] < textureRow,
     'blacktop marks advance from horizon toward car with road progress');
-  const movedGrain=roadArt.find(entry=>entry.key==='cacheRollingGrain' &&
+  const movedGrain=roadArt.find(entry=>entry.key===fixedGrain.key &&
     entry.sourceRect[0]===fixedGrain.sourceRect[0] &&
     entry.sourceRect[1]===fixedGrain.sourceRect[1]);
   assert(movedGrain && movedGrain.projected[5]>fixedGrain.projected[5],

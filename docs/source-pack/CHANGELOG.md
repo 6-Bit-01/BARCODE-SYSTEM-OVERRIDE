@@ -1,5 +1,55 @@
 # Recovery checkpoint — September 14
 
+## September 27, 2026 — prepare immutable six-family asset delivery
+
+- Point all 97 new runtime entries at the exact `b43761c` art ancestor,
+  retaining a local fallback for every file.
+- Check each request and bundled fallback. The branch remains local:
+  publication, hosted validation and Makko review are pending.
+
+## September 27, 2026 — six-family Cache Road production kit (unmerged)
+
+- Complete 48 fitted sided block exports, correcting two workshop contacts;
+  choose coherent seeded district runs across both banks with no address
+  holes and graph-only open frontages.
+- Add three court materials beyond wet local street, six projected street
+  decals, ten context props, six identities with toward/away walking poses,
+  and six subtle four-frame practical-light sheets. Keep prior art and the
+  approved road/planet/city footprint.
+- Exercise all 94 kit slots, source alpha and contacts, graph access, local
+  asset loading, and staged production-draw stills plus four route quarters.
+  The host Makko playtest and owner appearance/pacing review remain open.
+
+
+## September 27, 2026 — Cache Road homes and fitted street joins (unmerged)
+
+- Add eight sided warm residential plates with corrected ground-floor
+  architecture and measured source contacts; exercise open and filled fronts
+  on both banks at temporary district addresses.
+- Add eight graph-owned join cutouts; clip parapets at the 38-unit street
+  mouth instead of dropping a full 62-unit section.
+- Use the wet world-addressed road material on every local graph street and
+  map its tapered quads in two triangles, eliminating uncovered gray wedges.
+- Review a 20-second production-draw pass and seed 17 near-bend stills;
+  retain the approved road, HUD, skyline and wide planet silhouette. See
+  `CACHE_ROAD_HOMES_SECOND_FAMILY.md` for measurements and remaining work.
+
+## September 26, 2026 — continuous Cache Road bank scaffold (unmerged)
+
+- Replace isolated workshop runs with overlapping world-address chunks on
+  both banks; paint terrain, local branches, and large rear/middle/front
+  cards in depth order through the actual Level 2 renderer.
+- Connect protected sidewalk mouths to loading courts and accessible
+  parcels. Place retained neighborhood settings at graph addresses; remove
+  the broad workshop pavement strip and duplicate ground-grain pass.
+- Fit two additional sided donor cutouts and roadward source contact
+  offsets. Preserve the wide crest, two city depths, active featured
+  places, individual people, props, HUD, traffic, music and game rules.
+- Add graph/terrain/seed assertions and three-seed production draw review.
+  This remains a candidate until the remaining district art and Makko
+  visual/performance gates pass. See
+  `CACHE_ROAD_LAYERED_CITY_IMPLEMENTATION.md`.
+
 ## September 26, 2026 — individual pedestrians and painted street props
 
 - Add ten active side, rear and three-quarter action poses to the five

@@ -1,5 +1,32 @@
 # Repository Guidance
 
+## September 27, 2026 — six-family Cache Road core kit in review
+
+The unmerged procedural branch now contains 48 fitted side-specific cards,
+eight graph joins, four local materials, six street decals, ten context
+props, twelve separate directional walker poses, and six four-frame
+practical-light sheets. `CACHE_ROAD_SIX_FAMILY_PRODUCTION.md` records the
+225/180 world overlap, alpha contacts, 38-unit street socket, seeded district
+cadence and four route-quarter production draw clips. Preserve the owner's
+approved 420-unit planet crest, road/city camera and existing featured
+areas. Continue to place pavement and props at actual graph/parcel addresses;
+do not activate the bus stop without a legal boarding bay. New walker poses
+are static source frames for later animation. Makko hosted appearance,
+asset delivery and device frame pacing remain an owner review gate.
+
+## September 26, 2026 — Cache Road layered look approved
+
+The owner approved the 12-second actual `CacheRoadProof.draw` capture from
+commit `0821f60` as “the look.” Keep that composition: wide road/planet,
+separate shallow city boundary, dense rolling rear/middle/front bank cards,
+ground hiding older feet, and continuous world-fixed approach. Add the
+remaining district art, street-supported life and later animation within
+that footprint. Compare visual changes with
+`docs/source-pack/review-cache-layered-city/Continuous-Drive.mp4` and the
+three-seed stills before altering the camera, skyline, bank scale or density.
+The owner's praise establishes visual direction; Makko import, frame pacing
+and the unfinished six-family inventory remain open.
+
 ## September 26, 2026 — procedural street life review
 
 Fifteen separate pedestrian cutouts, including side/rear walking, work,

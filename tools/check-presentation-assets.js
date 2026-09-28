@@ -11,8 +11,21 @@ w.Image = class Image {
 load(context, 'src/engine/presentation-assets.js');
 const art = w.BARCODE.PresentationAssets;
 for (let i = 0; i < 20; i++) art.preload();
-assert.strictEqual(images.length, 110, 'restarts reuse Cache traffic, places, city, terrain, individual people, street props and mirror art');
-assert(images.every(im => /^https:\/\/raw\.githubusercontent\.com\/.+\/[a-f0-9]{40}\//.test(im.requests[0])), 'assets use published immutable revisions');
+assert.strictEqual(images.length, 207, 'restarts reuse Cache traffic, six block families, graph joins, ground, walkers, props, decals and practical lights');
+const districtRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/33c768b73f29d9e0e2a91f30961a525030e6f6ba/';
+const districtImages=images.filter(im=>im.requests[0].startsWith(districtRoot));
+assert.equal(districtImages.length,97,
+  'six sided districts and all new support art preload from one immutable ancestor');
+for(const image of districtImages) {
+  image.onerror();
+  const local=image.requests[0].slice(districtRoot.length);
+  assert.equal(image.requests[1],local);
+  assert(fs.existsSync(path.join(root,local)),
+    `${local} is bundled when the pinned art cannot be reached`);
+}
+assert(images.filter(im=>!districtImages.includes(im)).every(im=>
+  /^https:\/\/raw\.githubusercontent\.com\/.+\/[a-f0-9]{40}\//.test(im.requests[0])),
+  'previously published assets retain immutable revisions');
 const cacheRoadRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/37db98387b8791655e3ff352d6bc6d61cb0b574b/';
 assert.equal(images.filter(im => im.requests[0].startsWith(cacheRoadRoot)).length,16,
   'original Cache Road art retains its published pinned revision');
@@ -108,7 +121,7 @@ assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2),
   'collision eyes come from the second row inside the same mirror crop');
 arrowImage.onerror(); arrowImage.onerror();
 assert.strictEqual(arrowImage.requests.length, 2); assert.strictEqual(arrowImage.onerror, null);
-art.preload(); assert.strictEqual(images.length, 110, 'failed assets do not retry forever');
+art.preload(); assert.strictEqual(images.length, 207, 'failed assets do not retry forever');
 pulseImage.naturalWidth = pulseImage.naturalHeight = 512; pulseImage.onload();
 ops.length = 0; art.draw('bossPulse', ctx, { y: 822, width: 64, height: 56, frame: 2 });
 assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2), [10, 351, 236, 145, -32, -56, 64, 56], 'pulse fills the dangerous height and retains the ground anchor');

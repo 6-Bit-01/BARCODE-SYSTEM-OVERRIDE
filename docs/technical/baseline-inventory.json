@@ -49,6 +49,7 @@
     "src/game/lore-collection.js",
     "src/game/level-difficulty.js",
     "src/game/campaign-services.js",
+    "src/game/cache-road-landscape.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
     "src/game/lost-data.js",
@@ -111,6 +112,7 @@
     "src/game/lore-collection.js",
     "src/game/level-difficulty.js",
     "src/game/campaign-services.js",
+    "src/game/cache-road-landscape.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
     "src/game/lost-data.js",
@@ -131,6 +133,8 @@
     "src/core/game-manager.js",
     "src/engine/game-logic.js",
     "src/engine/jammer-arrow-indicator.js",
+    "src/game/cache-road-districts.js",
+    "src/game/cache-road-puppet-study.js",
     "src/game/jammer-arrow.js",
     "src/game/jammer-arrows.js",
     "src/game/jammer-simple.js",
@@ -367,6 +371,10 @@
         "status": "pass"
       },
       {
+        "file": "src/game/cache-road-landscape.js",
+        "status": "pass"
+      },
+      {
         "file": "src/game/cache-road-proof.js",
         "status": "pass"
       },
@@ -429,11 +437,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 59,
+        "index": 60,
         "status": "pass"
       },
       {
-        "index": 61,
+        "index": 62,
         "status": "pass"
       }
     ]
@@ -822,6 +830,7 @@
     "src/game/lore-collection.js",
     "src/game/level-difficulty.js",
     "src/game/campaign-services.js",
+    "src/game/cache-road-landscape.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
     "src/game/lost-data.js",

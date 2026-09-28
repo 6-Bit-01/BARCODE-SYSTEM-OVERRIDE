@@ -1,5 +1,78 @@
 # Acceptance and Test Status
 
+## Six-family Cache Road production review — September 27
+
+The local protected route exercises all 48 left/right rear, middle, open
+and filled cards. The alpha checker validates 48 source/runtime contacts,
+transparent mouths, four local materials, eight joins, six street decals,
+22 new individual cutouts and six four-frame practical sheets. The graph
+and draw harness check seeded layout, parcel access, street ownership,
+unique pedestrian identities, and asset loading. Staged production Canvas
+captures cover 0–9000 and four consecutive 2460-unit moving quarters;
+see `CACHE_ROAD_SIX_FAMILY_PRODUCTION.md`. These are review evidence,
+not a Makko host acceptance. Owner moving appearance, device frame pacing,
+remote publication and Makko import/open remain pending before merge. The
+new kit now points to the local, immutable `b43761c` art ancestor with
+checked bundled fallbacks; its public URLs are unavailable until that commit
+is published. The full local `npm test` suite, all-file syntax audit and
+`git diff --check` pass with this loader change. Recheck actual remote loads
+after publication.
+
+## Cache Road homes and street joins — September 27
+
+The source and runtime art check passes sixteen market/homes sided contacts,
+ground slopes, real front gap alpha and the eight open-center joins. The
+protected-site layout chooses all eight homes images and only opens a gap
+onto its connected street. `npm test`, `npm run check:syntax:all` and the
+presentation asset fallback check passed locally. Inspect the
+[20-second homes draw](review-cache-homes-family/Cache-Road-Curved-Roadside-Drive.mp4)
+and seed 17 stills from `CACHE_ROAD_HOMES_SECOND_FAMILY.md`; these use the
+production Canvas draw path, not hosted Makko. The other four district
+families, mixed transitions, full-route seam and pacing review, and owner
+Makko appearance judgment remain open before merge.
+
+## Owner visual direction — September 26
+
+The owner approved the overall look of the 12-second production-draw clip
+at `0821f60`: “That's it! That's the look!” Treat the capture as the visual
+baseline for density, horizon, perspective and rolling layer motion. This
+does not mark the complete procedurally generated city or Makko/browser
+playtest accepted; remaining art, visible street branches and performance
+checks stay open below.
+
+## Cache Road layered-city candidate — September 26
+
+The current unmerged implementation passes `npm test`,
+`npm run check:syntax:all` and `git diff --check`. The production draw was
+captured at 0, 230, 600, 1300 and 2200 with the default seed; seeds 17 and
+53 were also reviewed at 230, 1300 and 2200, plus a 12-second moving opening.
+Chunk overlap, graph access, legal front gaps and ground movement have
+focused assertions. These checks establish a working game-path scaffold,
+not visual acceptance: five neighborhood art families, fitting and joins,
+art-supported street turns/crossings, the older site clip transition,
+Makko import and browser pacing still need work. See
+`CACHE_ROAD_LAYERED_CITY_IMPLEMENTATION.md`. The prior audit below describes
+the earlier isolated-run commit, not this candidate.
+
+## Cache Road layered-city gate — September 26
+
+The workshop integration fails the measured landscape gate despite the
+passing gameplay harness. It does not provide continuous rear/middle/near
+coverage on both banks, a sampled two-coordinate terrain surface, opaque
+near-ground occlusion, a connected route-wide street/parcel graph, or
+validated contact and join metadata for the eight images. Its isolated
+blocks and bare banks are visible in the actual 280/390 production stills.
+`CACHE_ROAD_LAYER_GAP_AUDIT.md` records the source files, exact gaps,
+projection rows and requirement-by-requirement status. Do not count image
+exports as approved assets or claim the full city is playable/accepted.
+
+The next visual gate uses the original road width and crest, real moving
+game frames at progress 0, 230, 600, 1300 and 2200 across three layout
+seeds, and the corresponding top-down graph. It must show layered handoff,
+legal streets and grounded buildings through bends without alpha pops,
+hard joins, repeated barren mid-bank points or altered gameplay. Makko
+import, pacing and owner feel judgment remain separate acceptance checks.
+
 ## Cache Road pedestrian action and context — September 26
 
 Review the refreshed [opening](review-cache-inhabited/Cache-Road-Mirror-Road-0000.webp),
