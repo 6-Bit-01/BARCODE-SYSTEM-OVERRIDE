@@ -357,6 +357,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   const clone = value => JSON.parse(JSON.stringify(value));
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const smooth = value => {const t=clamp(value,0,1);return t*t*(3-2*t);};
+  const roadPath = at => 200*Math.sin(at/700)+90*Math.sin(at/295+.5);
+  const roadHeading = at => 200/700*Math.cos(at/700)+90/295*Math.cos(at/295+.5);
   function mirrorExpression(s) {
     if (s.stumbleMs > 0) return 4;
     if (s.integrity <= 1 || s.timeMs < 8000 || s.status === 'failed') return 5;
@@ -377,13 +379,137 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     ctx.closePath();
   }
 
+  // The reflection looks back along the same world centerline as the main
+  // camera. A real mirror cancels the rear camera's horizontal reversal, so
+  // the physical lane order stays left-to-right while motion runs away.
+  function drawRearRoad(ctx, s, x, y, w, h, accent, reduced) {
+    const progress = s.progress, reach = 440, horizon = y + 47, floor = y + h + 4;
+    const profile = at => {
+      const distance = clamp(progress - at, 0, reach);
+      const t = 1 - distance/reach;
+      const bend = roadPath(progress-distance)-roadPath(progress)+
+        distance*roadHeading(progress);
+      return { t, x: x + 475 + bend*.72, y: horizon+(floor-horizon)*t*t,
+        half: 27+165*t };
+    };
+    const laneX = (lane,p) => p.x+(lane-1.5)*p.half/2;
+    const far = profile(progress-reach);
+    ctx.save(); ctx.filter = 'blur(2.3px)';
+    ctx.fillStyle = accent; ctx.globalAlpha = .11;
+    ctx.beginPath(); ctx.arc(x+425-(reduced?0:progress*.012)%55,y+31,29,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha = 1;
+    const skylineShift = progress*.035%37;
+    for(let i=-1;i<20;i++) {
+      const bx=x+i*38-skylineShift, bh=15+((i*19+17)%5)*6;
+      ctx.fillStyle=i%3?'#263c4a':'#344557';
+      ctx.fillRect(bx,y+58-bh,33,bh);
+      ctx.fillStyle='#f8cca4';ctx.globalAlpha=.2;
+      ctx.fillRect(bx+8,y+50-bh,2,3);ctx.globalAlpha=1;
+    }
+    ctx.fillStyle='#274550';ctx.fillRect(x,horizon,w,floor-horizon);
+    for(const side of [-1,1]) {
+      ctx.fillStyle='#4e6070';ctx.beginPath();
+      ctx.moveTo(far.x+side*far.half,far.y);
+      for(let i=1;i<=12;i++) {
+        const p=profile(progress-reach*(1-i/12));
+        ctx.lineTo(p.x+side*p.half,p.y);
+      }
+      for(let i=12;i>=0;i--) {
+        const p=profile(progress-reach*(1-i/12));
+        ctx.lineTo(p.x+side*(p.half+6+9*p.t),p.y);
+      }
+      ctx.closePath();ctx.fill();
+    }
+    ctx.fillStyle='#192e39';
+    ctx.beginPath();ctx.moveTo(far.x-far.half,far.y);
+    for(let i=1;i<=12;i++) {
+      const p=profile(progress-reach*(1-i/12));ctx.lineTo(p.x-p.half,p.y);
+    }
+    for(let i=12;i>=0;i--) {
+      const p=profile(progress-reach*(1-i/12));ctx.lineTo(p.x+p.half,p.y);
+    }
+    ctx.closePath();ctx.fill();
+    // Sample the same rain-blacktop painting used by the forward road at
+    // addresses behind the car. The glass blur hides slice joins naturally.
+    ctx.save();ctx.clip();ctx.globalAlpha=.31;
+    for(let i=0;i<9;i++) {
+      const a=profile(progress-reach*(1-i/9));
+      const b=profile(progress-reach*(1-(i+1)/9));
+      const mid=profile(progress-reach*(1-(i+.5)/9));
+      const worldAt=progress-reach*(1-(i+.5)/9);
+      const row=((worldAt*.82%596)+596)%596;
+      B.PresentationAssets?.draw?.('cacheBlacktop',ctx,{
+        x:mid.x-mid.half,y:a.y,width:mid.half*2,height:b.y-a.y+1,
+        sourceRect:[0,108+row,2172,20] });
+    }
+    ctx.restore();
+    for(const side of [-1,1]) {
+      ctx.strokeStyle='#a2b7b9';ctx.lineWidth=1.3;
+      ctx.beginPath();ctx.moveTo(far.x+side*far.half,far.y);
+      for(let i=1;i<=12;i++) {
+        const p=profile(progress-reach*(1-i/12));
+        ctx.lineTo(p.x+side*p.half,p.y);
+      }
+      ctx.stroke();
+    }
+    // All marks have fixed world addresses. After the car passes one, its
+    // image moves toward the horizon and shrinks instead of approaching us.
+    for(let at=Math.floor(progress/55)*55;at>progress-reach;at-=55) {
+      if(at>progress)continue;
+      const a=profile(at), b=profile(Math.max(at-15,progress-reach));
+      for(let lane=1;lane<4;lane++) {
+        const width=.6+1.8*a.t;
+        polygon(ctx,[[laneX(lane-.5,a)-width,a.y],
+          [laneX(lane-.5,a)+width,a.y],
+          [laneX(lane-.5,b)+width*.4,b.y],
+          [laneX(lane-.5,b)-width*.4,b.y]],'#c7d3ca');
+      }
+      for(const side of [-1,1]) {
+        ctx.fillStyle='#b7e2d1';ctx.globalAlpha=.18+a.t*.3;
+        ctx.fillRect(a.x+side*(a.half+7),a.y-4-a.t*8,2+a.t*2,4+a.t*8);
+        ctx.globalAlpha=1;
+      }
+    }
+    // A handful of already passed parcels anchors the miniature streetscape
+    // to the same world addresses as the large road outside the mirror.
+    for(const place of SIDE_PLACES) {
+      if(place.at>=progress || place.at<progress-reach)continue;
+      const p=profile(place.at), side=place.side;
+      const bx=p.x+side*(p.half+13+place.setback*.045*p.t);
+      const bh=(8+33*p.t)*place.size, bw=(11+25*p.t)*place.size;
+      ctx.fillStyle=place.kind==='parking'?'#41525b':'#314454';
+      ctx.fillRect(bx-(side<0?bw:0),p.y-bh,bw,bh);
+      ctx.fillStyle='#debca0';ctx.globalAlpha=.22+.2*p.t;
+      ctx.fillRect(bx+(side<0?-bw*.65:bw*.35),p.y-bh*.61,2+2*p.t,2+2*p.t);
+      ctx.globalAlpha=1;
+    }
+    for(const hazard of HAZARDS) {
+      if(hazard.at>=progress || hazard.at<progress-reach)continue;
+      const p=profile(hazard.at);
+      const lane=hazardLane(hazard,progress,s.audits);
+      const hx=laneX(lane,p), hw=(8+22*p.t)*(hazard.kind==='freight'?1.35:1);
+      const hh=5+12*p.t;
+      ctx.globalAlpha=.3+.62*p.t;
+      ctx.fillStyle=hazard.kind==='block'?'#c09a62':'#405967';
+      ctx.beginPath();ctx.moveTo(hx-hw/2,p.y);ctx.lineTo(hx-hw*.43,p.y-hh);
+      ctx.lineTo(hx+hw*.43,p.y-hh);ctx.lineTo(hx+hw/2,p.y);
+      ctx.closePath();ctx.fill();
+      ctx.fillStyle='#ffe8bc';
+      ctx.fillRect(hx-hw*.39,p.y-hh*.57,2+3*p.t,2+p.t);
+      ctx.fillRect(hx+hw*.22,p.y-hh*.57,2+3*p.t,2+p.t);
+      ctx.globalAlpha=1;
+    }
+    ctx.restore();
+    // Only reflected scenery gets softened. Cache and the glass markings are
+    // painted afterward at the HUD's native resolution.
+  }
+
   // One piece of glass contains both the passing road and Cache's eyes.
   function drawRearview(ctx, s, accent, reduced) {
     const x = 638, y = 12, w = 690, h = 117;
     const expression = mirrorExpression(s);
     const edge = expression === 4 ? '#ff7c89' : expression === 5 ? '#f7b376' :
       expression === 2 ? '#f6d188' : '#8fe3db';
-    const phase = reduced ? 0 : s.progress;
     ctx.fillStyle = '#45616f'; ctx.fillRect(x + 338, 0, 14, 14);
     ctx.fillStyle = '#25394a'; mirrorOutline(ctx, x - 6, y - 5, w + 12, h + 10); ctx.fill();
     ctx.fillStyle = edge; mirrorOutline(ctx, x - 3, y - 2, w + 6, h + 4); ctx.fill();
@@ -392,41 +518,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     glass.addColorStop(0, '#0e1b2d'); glass.addColorStop(.53, '#394a60');
     glass.addColorStop(1, '#10232e');
     ctx.fillStyle = glass; ctx.fillRect(x, y, w, h);
-    ctx.fillStyle = accent; ctx.globalAlpha = .17;
-    ctx.beginPath(); ctx.arc(x + 407 - phase * .012 % 55, y + 32, 30, 0, Math.PI * 2); ctx.fill();
-    ctx.globalAlpha = 1;
-    const skylineShift = phase * .13 % 38;
-    for (let i = -1; i < 20; i++) {
-      const bx = x + i * 38 - skylineShift;
-      const bh = 15 + ((i * 19 + 17) % 5) * 6;
-      ctx.fillStyle = i % 3 ? '#203442' : '#29394c';
-      ctx.fillRect(bx, y + 58 - bh, 33, bh);
-      ctx.fillStyle = '#e8b991'; ctx.globalAlpha = .17;
-      ctx.fillRect(bx + 8, y + 51 - bh, 2, 2); ctx.globalAlpha = 1;
-    }
-    ctx.fillStyle = '#223d47'; ctx.fillRect(x, y + 56, w, h - 56);
-    ctx.beginPath(); ctx.moveTo(x + 251, y + 55); ctx.lineTo(x + 307, y + 55);
-    ctx.lineTo(x + 548, y + h); ctx.lineTo(x + 10, y + h); ctx.closePath();
-    ctx.fillStyle = '#142a36'; ctx.fill();
-    ctx.strokeStyle = '#82999e'; ctx.lineWidth = 2;
-    for (const side of [-1, 1]) {
-      ctx.beginPath(); ctx.moveTo(x + 279 + side * 28, y + 56);
-      ctx.lineTo(x + 279 + side * 268, y + h); ctx.stroke();
-    }
-    for (let i = 0; i < 7; i++) {
-      const t = ((i * 84 + phase * 1.6) % 588) / 588;
-      const yy = y + 57 + t * 62;
-      ctx.strokeStyle = '#d3d4c5'; ctx.globalAlpha = .18 + t * .46;
-      ctx.lineWidth = 1 + t * 2;
-      ctx.beginPath(); ctx.moveTo(x + 279, yy); ctx.lineTo(x + 279, yy + 2 + t * 17); ctx.stroke();
-      for (const side of [-1, 1]) {
-        const postX = x + 279 + side * (34 + t * 266);
-        ctx.strokeStyle = '#9ee6d6'; ctx.globalAlpha = .12 + t * .33;
-        ctx.beginPath(); ctx.moveTo(postX, yy + 7); ctx.lineTo(postX, yy - 3 - t * 16); ctx.stroke();
-        ctx.fillStyle = '#e2ffdc'; ctx.fillRect(postX - 2, yy - 5 - t * 16, 3 + t * 3, 3);
-      }
-    }
-    ctx.globalAlpha = 1;
+    drawRearRoad(ctx,s,x,y,w,h,accent,reduced);
     // Cache sits on the driver's side. His eyes face the windshield
     // for ordinary driving; only the impact cell glances across the mirror.
     ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
@@ -1465,8 +1557,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const horizon = 400, bottom = 1080;
       // A camera follows the tangent of a world-space road centerline. The
       // far road bends toward its upcoming path while the car stays centered.
-      const path = at => 200*Math.sin(at/700)+90*Math.sin(at/295+.5);
-      const heading = at => 200/700*Math.cos(at/700)+90/295*Math.cos(at/295+.5);
+      const path=roadPath, heading=roadHeading;
       const eyePath=path(progress),eyeHeading=heading(progress);
       const center = t => {
         const ahead=(1-t)*520;

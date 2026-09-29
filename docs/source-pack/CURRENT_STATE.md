@@ -1,5 +1,17 @@
 # Current State
 
+## September 29 — world-backed Cache Road rearview
+
+The mirror now looks at the 440 road units Cache has passed, using the same
+centerline as the forward view. Fixed world stripes, roadside parcels and
+passed hazards shrink toward its horizon as progress increases. Its asphalt
+samples the existing rain-blacktop painting at those rearward addresses.
+Canvas blur applies to the miniature scene alone; Cache's six-expression face
+and the mirror frame stay sharp. The small lights are scenery, not a new
+collision warning. Focused checks cover progression, curvature and the blur
+boundary; scripted production-draw frames cover the layout. Moving Makko
+appearance and frame pacing still need the owner's review.
+
 ## September 29 — wet brake and damage feedback (review branch)
 
 Two transparent raster effects add broken red reflections to the road behind

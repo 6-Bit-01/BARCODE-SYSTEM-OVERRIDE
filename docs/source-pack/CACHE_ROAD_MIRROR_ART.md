@@ -1,5 +1,14 @@
 # Cache Road rearview reflection review — September 24, 2026
 
+## September 29 update
+
+The decorative loop described below has been replaced by a rearward world
+view. It samples the live centerline, painted blacktop, lane markings,
+roadside addresses and passed traffic behind Cache. Their images recede as
+the car advances. The reflected scene is softly blurred, while the face,
+glass marks and frame remain crisp. Reduced Motion still allows positional
+updates because they show the current place on the route.
+
 The latest owner review supersedes the first recovered-art parallax pass.
 The mirror crop now moves Cache Back farther into the same glass without
 resizing him. The turn art is swapped to match the actual car direction.
