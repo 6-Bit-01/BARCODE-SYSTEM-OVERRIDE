@@ -1,5 +1,20 @@
 # Recovery checkpoint — September 14
 
+## September 29, 2026 — motion and fourth-beat feedback repair
+
+- Move travelling people along the ground; face horizontal people outward
+  on both banks. Keep seated/standing figures planted and share positions
+  with the rearview.
+- Ease the sweeper lane change at both ends, couple its lean to the turn,
+  remove screen-position-driven frame jumps and settle heavy suspension.
+- Assign each visible action one fixed fourth-beat deadline. Align pads,
+  phrase paint, countdown and the visible strike line to that same clock.
+- Add a three-beat buildup, quiet counted clicks, clear perfect/good feedback
+  and an on-road catch burst. Early accepted input waits for the target beat.
+- Record a production driving trace and a real Web Audio replay path. The
+  full local regression and syntax audit pass; Makko owner review is open.
+
+
 ## September 29, 2026 — direction-locked pedestrian travel (local review)
 
 - Add six authored toward/away walker sheets plus pushing bicycle, leftward

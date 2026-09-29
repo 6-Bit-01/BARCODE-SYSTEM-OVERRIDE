@@ -1,0 +1,172 @@
+{
+  "peak": 0.5248486399650574,
+  "rms": 0.07958226312008566,
+  "scheduled": [
+    {
+      "kind": "roadCount",
+      "requested": 0,
+      "ok": true,
+      "actual": 0
+    },
+    {
+      "kind": "roadCount",
+      "requested": 0.46875,
+      "ok": true,
+      "actual": 0.46875
+    },
+    {
+      "kind": "roadCount",
+      "requested": 0.9375,
+      "ok": true,
+      "actual": 0.9375
+    },
+    {
+      "kind": "roadReady",
+      "requested": 1.40625,
+      "ok": true,
+      "actual": 1.40625
+    },
+    {
+      "kind": "roadPerfect",
+      "requested": 1.4166666666666667,
+      "ok": true,
+      "actual": 1.4166666666666667
+    },
+    {
+      "kind": "pickup",
+      "requested": 3.1666666666666665,
+      "ok": true,
+      "actual": 3.1666666666666665
+    },
+    {
+      "kind": "roadCount",
+      "requested": 3.75,
+      "ok": true,
+      "actual": 3.75
+    },
+    {
+      "kind": "roadCount",
+      "requested": 4.21875,
+      "ok": true,
+      "actual": 4.21875
+    },
+    {
+      "kind": "roadCount",
+      "requested": 4.6875,
+      "ok": true,
+      "actual": 4.6875
+    },
+    {
+      "kind": "pickup",
+      "requested": 4.708333333333333,
+      "ok": true,
+      "actual": 4.708333333333333
+    },
+    {
+      "kind": "roadReady",
+      "requested": 5.15625,
+      "ok": true,
+      "actual": 5.15625
+    },
+    {
+      "kind": "roadPerfect",
+      "requested": 5.166666666666667,
+      "ok": true,
+      "actual": 5.166666666666667
+    },
+    {
+      "kind": "roadCount",
+      "requested": 7.5,
+      "ok": true,
+      "actual": 7.5
+    },
+    {
+      "kind": "roadCount",
+      "requested": 7.96875,
+      "ok": true,
+      "actual": 7.96875
+    },
+    {
+      "kind": "land",
+      "requested": 8.208333333333334,
+      "ok": true,
+      "actual": 8.208333333333334
+    },
+    {
+      "kind": "roadCount",
+      "requested": 8.4375,
+      "ok": true,
+      "actual": 8.4375
+    },
+    {
+      "kind": "roadReady",
+      "requested": 8.90625,
+      "ok": true,
+      "actual": 8.90625
+    },
+    {
+      "kind": "roadPerfect",
+      "requested": 8.916666666666666,
+      "ok": true,
+      "actual": 8.916666666666666
+    },
+    {
+      "kind": "pickup",
+      "requested": 9.791666666666666,
+      "ok": true,
+      "actual": 9.791666666666666
+    },
+    {
+      "kind": "roadCount",
+      "requested": 11.25,
+      "ok": true,
+      "actual": 11.25
+    },
+    {
+      "kind": "pickup",
+      "requested": 11.375,
+      "ok": true,
+      "actual": 11.375
+    },
+    {
+      "kind": "roadCount",
+      "requested": 11.71875,
+      "ok": true,
+      "actual": 11.71875
+    },
+    {
+      "kind": "roadCount",
+      "requested": 12.1875,
+      "ok": true,
+      "actual": 12.1875
+    },
+    {
+      "kind": "roadReady",
+      "requested": 12.65625,
+      "ok": true,
+      "actual": 12.65625
+    },
+    {
+      "kind": "roadPerfect",
+      "requested": 12.666666666666666,
+      "ok": true,
+      "actual": 12.666666666666666
+    },
+    {
+      "kind": "data",
+      "requested": 12.666666666666666,
+      "ok": true,
+      "actual": 12.666666666666666
+    },
+    {
+      "kind": "pickup",
+      "requested": 13.208333333333334,
+      "ok": true,
+      "actual": 13.208333333333334
+    }
+  ],
+  "remainingVoices": 0,
+  "sourceCommit": "c51253147e9dabbe22e2dd97ca7fb0ff6ca3a1c1",
+  "workflowRun": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/36608610526",
+  "traceSha256": "e63044ccd25c1fac5017a8f2bc6e85d0ed5e3ae23e572a4a8cebf0f9c9d59a87"
+}

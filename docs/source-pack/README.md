@@ -1,13 +1,23 @@
 # BARCODE: SYSTEM OVERRIDE — Source Pack v5
 
-## Current local review — direction-locked pedestrian travel
+## Current review — moving people and fourth-beat repair
+
+Start with `CACHE_ROAD_MOTION_RHYTHM_REPAIR.md`. Travelling people now move
+on the ground, horizontal figures head toward their nearest screen edge,
+and the sweeper eases through its turn. Pads, count-in marks, phrase paint
+and catch feedback share one announced fourth beat at a visible strike line
+ahead of Cache. The linked 16-second drive includes matching Chromium
+audio. Local regression, syntax and the browser audio review pass. Final
+head CI is required for merge; the owner's Makko review remains open.
+Exact publication state is in the manifest.
+
+## Previous art pass — merged #144
 
 Start with `CACHE_ROAD_PEDESTRIAN_TRAVEL.md` and its nine-sheet frame board
 and eight-second road draw. Six walkers have separate toward/away steps;
 the bike pusher, skateboarder and crate carrier keep their painted travel
-direction. Seated and standing people remain still. Local checks pass, and
-the owner approved publication of the immutable art ancestor. Hosted CI and
-Makko review remain open.
+direction. Seated and standing people remain still. That build merged after
+successful CI; the owner's playtest prompted the repair above.
 
 ## Current review — equal usable area selections
 

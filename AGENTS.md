@@ -1,5 +1,23 @@
 # Repository Guidance
 
+## September 29, 2026 — owner motion and beat-four repair
+
+The owner found moving pedestrians stationary, the sweeper turn broken,
+and pulse/overlay alignment unclear in merged #144. People whose source
+shows travel must change ground position. Horizontal travellers face and
+move toward their nearest screen edge; this supersedes the no-mirror rule
+below for those three complete figures. Sitting and standing people stay
+still. Keep the toward/away views authored separately.
+
+Each road action now owns one announced fourth-beat deadline with a full
+1-2-3 lead-in. The pad, phrase paint and countdown share the visible strike
+line ahead of Cache, using music time. Never re-time an announced pad when
+speed changes. Early accepted input waits for that beat for its burst and
+scheduled sound. Input calibration does not shift the visual clock.
+See `docs/source-pack/CACHE_ROAD_MOTION_RHYTHM_REPAIR.md`. Improve the
+existing game, preserving the approved composition. Merge after CI for
+the owner's Makko review.
+
 ## September 29, 2026 — direction-locked Cache Road pedestrians
 
 Animate a person only when the source pose shows travel. Six walker
