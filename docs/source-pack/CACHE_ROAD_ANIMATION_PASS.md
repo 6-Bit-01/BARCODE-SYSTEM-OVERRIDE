@@ -3,7 +3,11 @@
 The moving art keeps the approved road and city composition. These are transparent
 painted frame sheets registered to the original art's alpha footprint and foot
 contact. The static source WebPs remain alongside the new sheets for comparison.
-All new sheets load from local project paths.
+The 23 sheets and seven companion painted cues/effects load first from the
+published #142 merge `88623df039cad868a8c9565a23209a2f5b557c47`.
+The shared loader falls back once to the matching bundled path. This fixes
+the original relative-only requests, which could retry the same absent file
+in a hosted import. The static source art remains bundled.
 
 | Family | Sheets | Cels | What changes |
 | --- | ---: | ---: | --- |
