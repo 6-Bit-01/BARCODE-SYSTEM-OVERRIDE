@@ -1,0 +1,17 @@
+{
+  "base": "9090c2d7a8a36d6ff1f2d53e56a4dd125dc1a4fa",
+  "nativeSweeperReview": {
+    "makkoPresent": false,
+    "celsReviewed": 8,
+    "beforeAtlasDrawsPerFrame": 3,
+    "afterAtlasDrawsPerFrame": 1
+  },
+  "drive": {
+    "seconds": 16,
+    "fps": 24,
+    "traceMatchesPreviousChromiumReplay": true,
+    "audioSource": "../review-cache-motion-rhythm/Drive-Audio-Checks.json",
+    "captures": 4,
+    "remainingSignal": 3
+  }
+}

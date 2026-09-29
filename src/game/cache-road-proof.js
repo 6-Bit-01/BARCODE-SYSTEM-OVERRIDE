@@ -9,9 +9,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   const BAR_BEATS = 4, PULSE_BEATS = 32;
   // Route addresses select encounters. Once visible, a pad owns one beat
   // four. Its road cue and the phrase paint share this musical projection.
-  const PAD_REVEAL = 345, CAR_DEPTH = .83, STRIKE_DEPTH = .64, BEAT_SPACING = 22;
-  // A visible receptor just ahead of Cache keeps the button clear of his
-  // opaque body during the entire countdown.
+  const PAD_REVEAL = 345, BEAT_SPACING = 22;
+  const ROAD_HORIZON = 400, ROAD_BOTTOM = 1080;
+  const CAR_DEPTH = .83, CAR_WIDTH = 164, CAR_HEIGHT = 119, CAR_TIRE_CONTACT = .14;
+  // The note center meets Cache's rear tire contact. The same road curve
+  // projects the pad, permanent timing line and phrase paint.
+  const STRIKE_DEPTH = Math.sqrt(CAR_DEPTH*CAR_DEPTH-
+    CAR_HEIGHT*CAR_TIRE_CONTACT/(ROAD_BOTTOM-ROAD_HORIZON));
   const STRIKE_DISTANCE = (1-STRIKE_DEPTH)*520-80;
   const PULSE_WINDOW_SEC = .13;
   const LANES = ['DRIVE', 'FLOW', 'BREAKAWAY', 'UNDERCURRENT'];
@@ -871,7 +875,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // The rear view leans into its smooth merge and straightens at the end.
       if(!reduced&&['sweeper','trike'].includes(kind))
         ctx.transform(1,0,-steer*.075,1,0,0);
-      const anchored = kind !== 'block';
+      // The sweeper already contains complete wheels and brush movement in
+      // each cel. Fixed wheel masks cut across its changing wheel outlines,
+      // leaving a second tire/body edge while turning. Draw its cel once.
+      const anchored = kind !== 'block' && kind !== 'sweeper';
       const freight = kind === 'freight';
       // The transparent paintings do not all end at the same wheel line:
       // the exhaust/bumper often extends below the tires. Keep each contact
@@ -880,7 +887,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         kind === 'sweeper' ? [.075,.075] : kind === 'shuttle' ? [.05,.05] :
         kind === 'audit' ? [.08,.08] : artKey === 'cacheCarLeft' ? [.17,.275] :
         artKey === 'cacheCarRight' ? [.31,.125] : artKey === 'cacheRival' ? [.07,.07] :
-        artKey === 'cacheCourier' ? [.15,.15] : [.14,.14];
+        artKey === 'cacheCourier' ? [.15,.15] : [CAR_TIRE_CONTACT,CAR_TIRE_CONTACT];
       const tireTop = kind === 'trike' ? [.32] : kind === 'sweeper' ? [.30,.30] :
         kind === 'shuttle' ? [.25,.25] : kind === 'audit' ? [.34,.34] :
         artKey === 'cacheCarLeft' ? [.43,.61] :
@@ -1028,13 +1035,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         }
         ctx.restore();
       }
-      if (kind === 'audit' || kind === 'sweeper' || kind === 'trike') {
+      if (kind === 'audit' || kind === 'trike') {
         // Roof beacons and signal mast respond to travel without moving the
         // grounded tire pixels. A scan/merge is visible before its collision.
         const pulse = reduced ? .55 : .35 + .65 * Math.pow(Math.sin(phase*.11),2);
         ctx.save(); ctx.translate(jolt,bounce); ctx.rotate(roll);
         ctx.globalAlpha *= pulse;
-        ctx.fillStyle = kind === 'sweeper' ? '#ffd079' : kind === 'audit' ? '#ff77bb' : '#8af6f1';
+        ctx.fillStyle = kind === 'audit' ? '#ff77bb' : '#8af6f1';
         ctx.beginPath(); ctx.ellipse(0,-h*(kind === 'trike' ? 1.18 : 1.25),
           w*.11,h*.045,0,0,Math.PI*2); ctx.fill();
         ctx.restore();
@@ -1166,7 +1173,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const s = this.state, at = s.progress;
       if (at < 300) {
         if (!s.opening.held && s.musicBeatFloat < 10) return ['MINT ROAD PADS ARE SAFE',
-          `Enter its marked lane. Tap the face button on BEAT 4 (${B.GamepadUI?.connected ? [0,1,2,3].map(i=>B.ControllerSettings?.button(i)).join(' / ') : 'K / L / J / I'}).`];
+          'Enter its lane. Press on beat 4 as the pad meets the line under your rear tires.'];
         if (!s.opening.sealed && s.musicBeatFloat < 20) return ['FOLLOW THE NEXT ROAD PAD',
           'Catch two in the same run for a longer part. Up earns more points; Down refills Echo.'];
         return ['TRAFFIC IS SOLID; MINT PADS ARE SAFE', 'Pads are painted into the road. Give vehicles room when changing lanes.'];
@@ -1764,7 +1771,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const names = ['RAINLINE', 'SERVICE LOOP', 'MIRROR VIADUCT', 'DISTRIBUTION CAUSEWAY'];
       const skyBottoms = ['#9b4f74', '#dc805b', '#d87891', '#86a89d'];
       const reduced = !!B.Preferences?.values?.reducedMotion;
-      const horizon = 400, bottom = 1080;
+      const horizon = ROAD_HORIZON, bottom = ROAD_BOTTOM;
       // A camera follows the tangent of a world-space road centerline. The
       // far road bends toward its upcoming path while the car stays centered.
       const path=roadPath, heading=roadHeading;
@@ -2554,6 +2561,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // for traffic and studs. Its near edge travels toward the car on the
       // shared song clock, while the road curves beneath every vertex.
       const cueBeatSec=B.MusicTransport?.getLastSample?.()?.grid?.beatDurationSec||60/128;
+      const nextPulse = PULSES.find(p => s.pulseTargets[p.id]!==undefined &&
+        s.pulseTargets[p.id]>=s.musicBeatFloat-PULSE_WINDOW_SEC/cueBeatSec&&
+        (!s.caughtPulses[p.id]||s.pendingPulseAwards.some(hit=>hit.pulse.id===p.id)));
+      const nextCue=nextPulse&&pulseVisual(nextPulse,s,cueBeatSec);
       // Input calibration adjusts a physical tap only. It must never move
       // the visible countdown away from the song's actual beat.
       const beatDistance=beat=>STRIKE_DISTANCE+(beat-s.musicBeatFloat)*BEAT_SPACING;
@@ -2686,7 +2697,35 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.fillStyle = '#e5fcf1'; ctx.font = 'bold 30px Oxanium, monospace';
         ctx.textAlign = 'center'; ctx.fillText('ROAD MARKER', 0, -16); ctx.restore();
       }
-      // Musical road paint arrives at the visible strike line on its fixed
+      // One permanent timing line sits under the rear tires, including the
+      // gaps between actions. Lane-end brackets remain visible around the
+      // opaque car. The upcoming lane builds toward the fourth beat here.
+      ctx.save();
+      const strikeY=roadY(STRIKE_DEPTH);
+      for(let lane=0;lane<4;lane++) {
+        const active=nextCue&&nextCue.remaining<=4&&nextPulse.lane===lane;
+        const caught=s.pulseFlashMs>0&&s.pulseFlashLane===lane;
+        const hot=active&&nextCue.window;
+        const left=laneEdge(lane,STRIKE_DEPTH)+9;
+        const right=laneEdge(lane+1,STRIKE_DEPTH)-9;
+        ctx.strokeStyle='#071821';ctx.lineWidth=10;
+        ctx.beginPath();ctx.moveTo(left,strikeY);ctx.lineTo(right,strikeY);ctx.stroke();
+        ctx.globalAlpha=caught?.9:hot?1:active?.65:.34;
+        ctx.strokeStyle=caught?'#bcffe2':hot?'#ffe399':'#9bd5cc';
+        ctx.lineWidth=hot||caught?5:3;
+        ctx.beginPath();ctx.moveTo(left,strikeY);ctx.lineTo(right,strikeY);ctx.stroke();
+        const length=active?25+nextCue.charge*12:20;
+        for(const [edge,sign] of [[left,1],[right,-1]]) {
+          ctx.beginPath();ctx.moveTo(edge+sign*length,strikeY-18);
+          ctx.lineTo(edge,strikeY-18);ctx.lineTo(edge,strikeY+14);
+          ctx.lineTo(edge+sign*length,strikeY+14);ctx.stroke();
+        }
+        ctx.globalAlpha=1;
+      }
+      ctx.fillStyle='#b8e1d5';ctx.font='bold 17px Oxanium, monospace';
+      ctx.textAlign='right';ctx.fillText('HIT ON 4',laneEdge(0,STRIKE_DEPTH)-20,strikeY+6);
+      ctx.restore();
+      // Musical road paint arrives at the car's timing line on its fixed
       // fourth beat. Traffic is drawn afterward and occludes every cue.
       for (const pulse of PULSES) {
         const cue=pulseVisual(pulse,s,cueBeatSec);
@@ -2722,15 +2761,6 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
             ctx.strokeStyle='#bbf7df';ctx.lineWidth=2+tt*2;
             ctx.beginPath();ctx.moveTo(laneX(pulse.lane,tt)-18-tt*12,roadY(tt));
             ctx.lineTo(laneX(pulse.lane,tt)+18+tt*12,roadY(tt));ctx.stroke();
-          }
-          ctx.globalAlpha=fourthWindow?.95:.42;
-          ctx.strokeStyle=fourthWindow?'#fff0ab':'#93dcc7';
-          ctx.lineWidth=fourthWindow?7:3;
-          const rx=laneX(pulse.lane,STRIKE_DEPTH),ry=roadY(STRIKE_DEPTH);
-          const rw=half(STRIKE_DEPTH)/4-18;
-          for(const sign of [-1,1]) {
-            ctx.beginPath();ctx.moveTo(rx+sign*(rw-26),ry);
-            ctx.lineTo(rx+sign*rw,ry);ctx.lineTo(rx+sign*rw,ry-12);ctx.stroke();
           }
           ctx.restore();
         }
@@ -2888,7 +2918,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         }
         ctx.restore();
       }
-      drawVehicle(ctx, carX, carY, 164, 119, 'cache',
+      drawVehicle(ctx, carX, carY, CAR_WIDTH, CAR_HEIGHT, 'cache',
         { alpha: !s.stumbleMs && s.invulnerableMs && Math.floor(s.invulnerableMs / 90) % 2 ? .55 : 1,
           turbo: !!s.boostMs, phase: progress, steer: s.steer, hit: s.stumbleMs,
           braking:s.braking, damage:3-s.integrity, reduced });
@@ -2951,10 +2981,6 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       ctx.fillStyle = '#a7bcca'; ctx.fillText('SIGNAL', 520, 96);
       drawRearview(ctx, s, ['#f6adbb', '#f3b276', '#d2a4f9', '#9aefce'][section], reduced);
       ctx.fillStyle = '#e4ede5'; ctx.font = 'bold 18px Oxanium, monospace'; ctx.textAlign = 'left';
-      const nextPulse = PULSES.find(p => s.pulseTargets[p.id]!==undefined &&
-        s.pulseTargets[p.id]>=s.musicBeatFloat-PULSE_WINDOW_SEC/cueBeatSec&&
-        (!s.caughtPulses[p.id]||s.pendingPulseAwards.some(hit=>hit.pulse.id===p.id)));
-      const nextCue=nextPulse&&pulseVisual(nextPulse,s,cueBeatSec);
       const nextFace = nextPulse && PULSE_ACTIONS[nextPulse.action];
       const nextButton = nextFace && (B.GamepadUI?.connected ?
         B.ControllerSettings?.button(nextFace.button) || nextFace.keyboard : nextFace.keyboard);

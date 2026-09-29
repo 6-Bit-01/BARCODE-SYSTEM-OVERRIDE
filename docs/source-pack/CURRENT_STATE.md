@@ -1,5 +1,20 @@
 # Current State
 
+## September 29 — timing at the car and a single sweeper image
+
+The owner's #145 playtest identified two remaining visual defects. The
+timing target was ahead of the car, leaving no stable place to judge passing
+pads. It now meets the rear tire contact, with a permanent line across all
+four lanes and end brackets visible around Cache. The same beat-four
+deadlines, input judgment and audio remain in place.
+
+The sweeper's wheel/body split reproduced doubled tire edges outside Makko.
+It now draws one complete atlas cel, including its painted wheels, brushes
+and beacons. The extra procedural roof light is removed. The existing
+smooth lane merge and restrained road movement remain. See
+`CACHE_ROAD_CAR_TIMING_SWEEPER_FIX.md` for the focused comparison and drive.
+Full CI gates the merge; owner Makko appearance and timing feel remain open.
+
 ## September 29 — owner motion and pulse repair (review)
 
 Merged #144 is `6123c55fa02acd5601bf9aa7b1dc8d8ac322c780`. Its owner
