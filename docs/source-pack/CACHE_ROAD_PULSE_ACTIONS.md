@@ -1,5 +1,22 @@
 # Cache Road actions — grounded pad review
 
+## September 29 confirmed phrase art follow-up
+
+The long road stretches after a successful button press now use a separate
+`confirmed-bar.webp` painted tile, rather than the old pair of thin rails and
+vector grooves. Four repeating bar tiles sit inside one continuous lane wash;
+the artwork has four worn beat slashes in each bar. The renderer shows the
+next four confirmed bars ahead and keeps the queued preview dim. Both remain
+beneath traffic and follow road curvature; the four-bar section divider and
+music capture duration have not changed. The new source PNG is in
+`assets/cache-road/roadside/beat/sources/`. It was generated with the built-in
+image tool using the existing phrase/pad art as style references, then cropped
+and converted to a 512×256 transparent lossless WebP. Prompt: a continuous
+top-down lane inlay with chipped cream edges, a translucent jade center,
+four short beat slashes and tiny magenta/amber scuffs; no arrow, badge,
+lettering, asphalt background or glow. Scripted production-draw stills show
+two simultaneously confirmed lanes; Makko motion and music feel need review.
+
 The owner played merged #115 and rejected its floating, song-driven rings:
 they came too fast, crossed traffic, appeared too often and distracted from
 the landscape. This revision keeps the four driving actions but places their

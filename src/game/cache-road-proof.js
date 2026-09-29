@@ -407,6 +407,20 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       ctx.fillRect(bx+8,y+50-bh,2,3);ctx.globalAlpha=1;
     }
     ctx.fillStyle='#274550';ctx.fillRect(x,horizon,w,floor-horizon);
+    // The narrow sidewalks use the same curved bank as the rearward road.
+    for(const side of [-1,1]) {
+      ctx.fillStyle='#526373';ctx.beginPath();
+      ctx.moveTo(far.x+side*(far.half+6),far.y);
+      for(let i=1;i<=12;i++) {
+        const p=profile(progress-reach*(1-i/12));
+        ctx.lineTo(p.x+side*(p.half+6),p.y);
+      }
+      for(let i=12;i>=0;i--) {
+        const p=profile(progress-reach*(1-i/12));
+        ctx.lineTo(p.x+side*(p.half+34+12*p.t),p.y);
+      }
+      ctx.closePath();ctx.fill();
+    }
     for(const side of [-1,1]) {
       ctx.fillStyle='#4e6070';ctx.beginPath();
       ctx.moveTo(far.x+side*far.half,far.y);
@@ -470,17 +484,78 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.globalAlpha=1;
       }
     }
-    // A handful of already passed parcels anchors the miniature streetscape
-    // to the same world addresses as the large road outside the mirror.
-    for(const place of SIDE_PLACES) {
-      if(place.at>=progress || place.at<progress-reach)continue;
-      const p=profile(place.at), side=place.side;
-      const bx=p.x+side*(p.half+13+place.setback*.045*p.t);
-      const bh=(8+33*p.t)*place.size, bw=(11+25*p.t)*place.size;
-      ctx.fillStyle=place.kind==='parking'?'#41525b':'#314454';
-      ctx.fillRect(bx-(side<0?bw:0),p.y-bh,bw,bh);
-      ctx.fillStyle='#debca0';ctx.globalAlpha=.22+.2*p.t;
-      ctx.fillRect(bx+(side<0?-bw*.65:bw*.35),p.y-bh*.61,2+2*p.t,2+2*p.t);
+    // Branch streets are the graph's actual mouths, opening through the
+    // miniature sidewalk only once their addresses are behind the car.
+    for(const street of LANDSCAPE.streets) {
+      if(street.at>=progress || street.at<progress-reach)continue;
+      const side=street.side;
+      const close=profile(Math.min(progress,street.at+street.halfWidth));
+      const distant=profile(Math.max(progress-reach,street.at-street.halfWidth));
+      const inner=p=>p.x+side*(p.half+5);
+      const outer=p=>p.x+side*(p.half+48+12*p.t);
+      const corners=[[inner(close),close.y],[inner(distant),distant.y],
+        [outer(distant),distant.y-3*distant.t],[outer(close),close.y-3*close.t]];
+      polygon(ctx,corners,'#263841');
+      ctx.strokeStyle='#92aeb1';ctx.globalAlpha=.35;
+      ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(...corners[0]);ctx.lineTo(...corners[3]);
+      ctx.moveTo(...corners[1]);ctx.lineTo(...corners[2]);ctx.stroke();
+      ctx.globalAlpha=1;
+    }
+    // Reuse the production district cards, featured places and individual
+    // people/props instead of generic boxes. The rear camera samples their
+    // existing world addresses and the glass clips and blurs their miniatures.
+    const scenery=[
+      ...LANDSCAPE.plates.map(plate=>({at:plate.at,side:plate.side,plate})),
+      ...SIDE_PLACES.map(place=>({at:place.at,side:place.side,place})),
+      ...SATELLITE_SCENES.map(scene=>({at:scene.at+43,side:scene.side,satellite:scene}))
+    ].filter(item=>item.at<progress&&item.at>progress-reach)
+      .sort((a,b)=>a.at-b.at);
+    for(const item of scenery) {
+      const p=profile(item.at),side=item.side;
+      let key,sourceW,sourceH,width,flip=false,setback=0,sourceRect;
+      if(item.plate) {
+        [key,sourceW,sourceH]=item.plate.art;
+        sourceH=item.plate.art[6]||sourceH;
+        width=18+50*p.t;flip=!!item.plate.flip;
+        sourceRect=[0,0,sourceW,sourceH];
+      } else if(item.satellite) {
+        [key,sourceW,sourceH]=item.satellite.art;
+        width=15+43*p.t;flip=side>0;setback=5;
+      } else if(item.place.kind!=='parking') {
+        const place=item.place,variant=SIDE_VARIANTS[place.variant];
+        [key,sourceW,sourceH]=(variant&&variant.art)||PLACE_ART[place.kind];
+        width=(18+51*p.t)*place.size;
+        flip=variant?!!variant.flip:placeFacesRoad(place.kind,side);
+        setback=place.setback*.035*p.t;
+      } else {
+        const bx=p.x+side*(p.half+26+item.place.setback*.035*p.t);
+        ctx.fillStyle='#667683';ctx.globalAlpha=.44;
+        ctx.fillRect(bx-(side<0?22*p.t:0),p.y-2*p.t,22*p.t,3*p.t);
+        ctx.globalAlpha=1;continue;
+      }
+      const artX=p.x+side*(p.half+8+setback+width*.5);
+      const height=width*sourceH/sourceW;
+      ctx.globalAlpha=.56+.37*p.t;
+      if(!B.PresentationAssets?.draw?.(key,ctx,{
+        x:artX,y:p.y+2*p.t,width,height,sourceRect,flip })) {
+        ctx.fillStyle='#536977';
+        ctx.fillRect(artX-width/2,p.y-height,width,height);
+      }
+      ctx.globalAlpha=1;
+    }
+    for(const {scene,item} of STREET_ITEMS) {
+      if(item.at>=progress || item.at<progress-reach)continue;
+      const p=profile(item.at),side=scene.side;
+      const person=item.id!==undefined;
+      const [key,aspect]=person?PEDESTRIANS[item.id]:
+        [item.key,PROP_SHAPES[item.key][0]];
+      const height=(person?2.5:3.5)+10*p.t*item.scale;
+      const artX=p.x+side*(p.half+10+item.base*.065*p.t);
+      ctx.globalAlpha=.55+.36*p.t;
+      B.PresentationAssets?.draw?.(person?key:item.key,ctx,{
+        x:artX,y:p.y+2*p.t,width:height*aspect,height,
+        flip:person?item.flip:false });
       ctx.globalAlpha=1;
     }
     for(const hazard of HAZARDS) {
@@ -2343,12 +2418,37 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const fourthCharge=beatInBar<=3?smooth((beatInBar-2)/1):
         clamp(1-(beatInBar-3)/.5,0,1);
       const floatBar = s.musicBeatFloat / 4;
+      // The confirmed phrase is a continuous four-bar wash, with painted
+      // beat marks placed in each bar below. The wash follows the exact road
+      // curve and stays under cars; upcoming captures keep only their preview.
+      for(let lane=0;lane<4;lane++) {
+        const capture=s.captures.find(c=>c.lane===lane &&
+          c.startBeat<(floatBar+4)*4 && c.endBeat>floatBar*4);
+        if(!capture)continue;
+        const start=Math.max(floatBar,capture.startBeat/4);
+        const end=Math.min(floatBar+4,capture.endBeat/4,100);
+        const near=depth(Math.max(-55,(start-floatBar)*65));
+        const far=depth((end-floatBar)*65);
+        if(near<=far)continue;
+        const inset=8;
+        ctx.save();ctx.globalAlpha=.15;ctx.fillStyle=PALETTE[lane];
+        ctx.beginPath();
+        for(let i=0;i<=12;i++) {
+          const t=far+(near-far)*i/12;
+          const px=laneEdge(lane,t)+inset,py=roadY(t);
+          if(!i)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+        }
+        for(let i=12;i>=0;i--) {
+          const t=far+(near-far)*i/12;
+          ctx.lineTo(laneEdge(lane+1,t)-inset,roadY(t));
+        }
+        ctx.closePath();ctx.fill();ctx.restore();
+      }
       for (let bar = Math.floor(floatBar) + 8; bar >= Math.floor(floatBar); bar--) {
         if (bar >= 100) continue;
         const near = depth(Math.max(-55, (bar - floatBar) * 65));
         const far = depth((bar + 1 - floatBar) * 65);
         if (near <= .12 || near <= far) continue;
-        let painted = false;
         for (let lane = 0; lane < 4; lane++) {
           const active = s.captures.find(c => c.lane === lane && c.startBeat < (bar + 1) * 4 && c.endBeat > bar * 4);
           const queued = !active && s.queuedCaptures.find(c => c.lane === lane &&
@@ -2359,57 +2459,32 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           const reveal = active || mark.inkAtMs == null ? 1 :
             clamp((s.elapsedMs - mark.inkAtMs - (3 - slot) * 100) / 260, 0, 1);
           if (!reveal) continue;
-          painted = true;
-          const padNear = 8 + near * 13, padFar = 8 + far * 13;
-          const trimFar=far+(near-far)*.10,trimNear=far+(near-far)*.88;
-          ctx.save();ctx.globalAlpha=(active?.43:.23)*reveal;
-          paintComicDecal(ctx,'cachePhraseStrip',[
-            [laneEdge(lane,trimNear)+padNear,roadY(trimNear)],
-            [laneEdge(lane+1,trimNear)-padNear,roadY(trimNear)],
-            [laneEdge(lane+1,trimFar)-padFar,roadY(trimFar)],
-            [laneEdge(lane,trimFar)+padFar,roadY(trimFar)]]);
-          ctx.restore();
-          // Short gaps between bar cells leave the blacktop and traffic clear.
-          ctx.globalAlpha = (active ? .76 : .43) * reveal;
-          ctx.strokeStyle = PALETTE[lane]; ctx.lineWidth = 1.5 + near * (active ? 4 : 2);
-          ctx.beginPath();
-          ctx.moveTo(laneEdge(lane,trimNear)+padNear,roadY(trimNear));
-          ctx.lineTo(laneEdge(lane,trimFar)+padFar,roadY(trimFar));
-          ctx.moveTo(laneEdge(lane+1,trimNear)-padNear,roadY(trimNear));
-          ctx.lineTo(laneEdge(lane+1,trimFar)-padFar,roadY(trimFar));ctx.stroke();
-          // Short transverse inlaid strokes make the paint read as material
-          // passing under the car as a committed phrase approaches.
-          const stripeT = far + (near - far) * .38;
-          ctx.lineWidth = Math.max(1, near * 3);
-          ctx.beginPath();
-          ctx.moveTo(laneEdge(lane,stripeT)+padFar+12,roadY(stripeT));
-          ctx.lineTo(laneEdge(lane+1,stripeT)-padFar-12,roadY(stripeT)); ctx.stroke();
-          // Directional grooves are cut into each bar tile. All vertices are
-          // evaluated at road depth, so the motif foreshortens with approach.
-          for (let mark = 0; mark < 2; mark++) {
-            const markT = far + (near - far) * (.2 + mark * .32);
-            const markAhead = far + (near - far) * (.32 + mark * .32);
-            ctx.globalAlpha = (active ? .51 : .34) * reveal;
-            ctx.beginPath();
-            ctx.moveTo(laneEdge(lane,markT) + (laneEdge(lane+1,markT)-laneEdge(lane,markT))*.3,
-              roadY(markT));
-            ctx.lineTo(laneX(lane,markAhead), roadY(markAhead));
-            ctx.lineTo(laneEdge(lane,markT) + (laneEdge(lane+1,markT)-laneEdge(lane,markT))*.7,
-              roadY(markT)); ctx.stroke();
+          // Show the next four lit bars as separate, road-bound ink tiles.
+          // Queued captures keep the thin preview; a successful press swaps
+          // it for the much broader confirmed painting beneath traffic.
+          if(active && bar >= Math.floor(floatBar)+4)continue;
+          const trimFar=far+(near-far)*.08,trimNear=far+(near-far)*.91;
+          const inset=5+near*10;
+          const tile=[
+            [laneEdge(lane,trimNear)+inset,roadY(trimNear)],
+            [laneEdge(lane+1,trimNear)-inset,roadY(trimNear)],
+            [laneEdge(lane+1,trimFar)-inset,roadY(trimFar)],
+            [laneEdge(lane,trimFar)+inset,roadY(trimFar)]];
+          ctx.save();
+          if(active) {
+            ctx.globalAlpha=.68*reveal;
+            if(!paintComicDecal(ctx,'cacheConfirmedBar',tile))
+              polygon(ctx,tile,'#b8ebda');
+          } else {
+            ctx.globalAlpha=.31*reveal;
+            paintComicDecal(ctx,'cachePhraseStrip',tile);
           }
-          // Four distinct inlaid motifs survive grayscale and tie the road
-          // phrase to its matching instrument cell above the mirror.
-          const motifT=far+(near-far)*.62;
-          ctx.save();ctx.globalAlpha=(active ? .82 : .43)*reveal;
-          ctx.translate(laneX(lane,motifT),roadY(motifT)-5*motifT);
-          ctx.scale(Math.max(.45,motifT),Math.max(.18,motifT*.36));
-          drawLaneMark(ctx,lane,0,0,47,PALETTE[lane]);ctx.restore();
-          ctx.globalAlpha = 1;
+          ctx.restore();
         }
-        if(bar%4===0||painted) {
-          ctx.strokeStyle = bar%4===0 ? '#b4f9ec' : '#8ea6ab';
-          ctx.globalAlpha = bar%4===0 ? .49 : .1;
-          ctx.lineWidth = bar%4===0 ? 2+near*3 : 1+near;
+        if(bar%4===0) {
+          ctx.strokeStyle = '#b4f9ec';
+          ctx.globalAlpha = .49;
+          ctx.lineWidth = 2+near*3;
           ctx.beginPath();ctx.moveTo(laneEdge(0,near),roadY(near));
           ctx.lineTo(laneEdge(4,near),roadY(near));ctx.stroke();ctx.globalAlpha=1;
         }

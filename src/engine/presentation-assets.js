@@ -203,6 +203,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     cachePulsePad: { path: 'assets/cache-road/roadside/beat/pulse-pad.webp', root: '', columns: 1, rows: 1, frames: 1, ax: 0, ay: 0, smooth: true },
     cachePulseStrip: { path: 'assets/cache-road/roadside/beat/approach-strip.webp', root: '', columns: 1, rows: 1, frames: 1, ax: 0, ay: 0, smooth: true },
     cachePhraseStrip: { path: 'assets/cache-road/roadside/beat/beat-phrase.webp', root: '', columns: 1, rows: 1, frames: 1, ax: 0, ay: 0, smooth: true },
+    cacheConfirmedBar: { path: 'assets/cache-road/roadside/beat/confirmed-bar.webp', root: '', columns: 1, rows: 1, frames: 1, ax: 0, ay: 0, smooth: true },
     cachePulseBurst: { path: 'assets/cache-road/roadside/beat/pulse-burst.webp', root: '', columns: 1, rows: 1, frames: 1, ax: .5, ay: .5, smooth: true },
     cachePulseSurge: { path: 'assets/cache-road/roadside/beat/surge.webp', root: '', columns: 1, rows: 1, frames: 1, ax: .5, ay: .5, smooth: true },
     cachePulsePush: { path: 'assets/cache-road/roadside/beat/push.webp', root: '', columns: 1, rows: 1, frames: 1, ax: .5, ay: .5, smooth: true },
