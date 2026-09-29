@@ -17,11 +17,13 @@ for distinct cues, all engine gears, voice/cache bounds, clipping, unchanged
 music sources and pause/resume/restart/disposal cleanup. The generated
 source-pack receipt and PR identify actual results at the tested revision.
 
-Focused chip checks pass 152 PCM variants, intended count-note pitch,
+Focused chip checks pass 152 palette PCM variants, intended count-note pitch,
 12-voice/96-buffer limits, 6,000 updates sharing three engine sources,
 shift/turbo response and cleanup. Maximum pre-playback sample peak is
 0.60033; this is not a full music-plus-SFX mix peak. The existing delay
 regression passes 50 downbeat arrivals/presses through 250 ms output delay.
+Palette coverage is separate from live event routing: lock, refill, miss
+and empty are auditionable sounds without current gameplay calls.
 
 Review `Lamp-Scale-Before-After.webp`, `Lamp-Details.webp`, `Drive-Review.mp4` and
 `Chip-SFX-Audition.mp3` under `review-cache-lamps-chip-sound/`. The owner must

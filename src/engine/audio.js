@@ -1221,6 +1221,12 @@ window.AudioSystem = class AudioSystem {
 
   // Runtime lifecycle compatibility alias for the legacy rhythm scheduler.
   stopBeatTrack() {
+    // This seam is called only by pause/stop. Cancel road SFX before context
+    // suspension without editing the protected music pause/transport method.
+    // stopRuntimeAudio already released its engine through stopCombatCues;
+    // preserve that owned, finite exit fade when no active graph remains.
+    if (this.roadEngine) this.stopRoadEngine({immediate:true});
+    this.stopRoadCues();
     return this.stopRhythm();
   }
   
@@ -3560,8 +3566,6 @@ window.AudioSystem = class AudioSystem {
         transportPaused = !!(pauseResult && pauseResult.status === 'ok');
       }
       this.stopBeatTrack();
-      this.stopRoadEngine({immediate:true});
-      this.stopRoadCues();
       if (this.context.state === 'running' && typeof this.context.suspend === 'function') {
         await this.context.suspend();
       }

@@ -44,10 +44,12 @@ beat-ONE button arrivals and original five recordings remain unchanged.
 
 ## Richer effects with bounded audio work
 
-Cache Road gets 19 cue families with layered pulse, triangle, FM metal and
-clocked noise textures. Countdown, arrival, perfect/good catches,
-crash, brace, near miss, shift, phrase lock, turbo readiness/launch, Echo,
-Push, refill and full-stack receipts have distinct envelopes and gestures.
+The synthesis palette contains 19 cue families with layered pulse, triangle,
+FM metal and clocked noise textures. Live driving routes countdown/arrival,
+perfect/good catches, crash, brace/Push, near passes, queued/committed shifts,
+turbo readiness/launch, Echo, full-stack and warning events to that palette.
+Lock, refill, miss and empty sounds are available in the audition but have
+no current gameplay calls; the 19-family count is not a live-event count.
 The four action catches vary their lead timbre; passes can sound from the
 side they occurred on, and impact intensity follows the driving state.
 The existing beat-aligned music stumble remains, with one new crash sound
@@ -90,7 +92,7 @@ The existing audible-clock check passes all 50 downbeat arrivals/presses
 across simulated output delays up to 250 ms. This verifies retained timing;
 it does not establish the owner's hardware latency or preferred mix.
 
-`tools/check-cache-road-chip-sfx.cjs` passes 152 synthesized PCM variants,
+`tools/check-cache-road-chip-sfx.cjs` passes 152 synthesized palette variants,
 with maximum pre-playback sample peak 0.60033 and minimum RMS 0.03491.
 Pitch autocorrelation distinguishes the intended count notes from adjacent
 semitones. It also verifies the 92/8 root map, exact source deadlines,
@@ -98,6 +100,7 @@ semitones. It also verifies the 92/8 root map, exact source deadlines,
 gear dip/turbo rev, 25 ms release, rapid restart, pause cleanup and unchanged
 legacy routing. These are focused synthesis/lifecycle checks; final Chromium
 audibility, combined mix and full-head CI are recorded in their own results.
+Gameplay routing is checked separately from this complete palette audition.
 
 Review material under `review-cache-lamps-chip-sound/` includes:
 

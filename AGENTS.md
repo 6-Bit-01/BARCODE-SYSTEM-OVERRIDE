@@ -13,7 +13,9 @@ sources. Tonal road cues use the measured D/A or F/C root/fifth map; previews
 and early catches use the announced arrival measure, not the request's bar.
 Do not infer a complete chord progression or change the verified 128 BPM grid.
 Keep timing voices audible, transient/cache limits bounded and lifecycle
-cleanup explicit. Full regression and Chromium audio/rendering CI gate merge;
+cleanup explicit. Distinguish the 19-family synthesis palette from live
+events: lock/refill/miss/empty are audition-only, with no gameplay calls.
+Full regression and Chromium audio/rendering CI gate merge;
 the generated receipt records the tested outcome. See
 `docs/source-pack/CACHE_ROAD_LAMPS_CHIP_SOUND.md`. Makko mix preference and
 device performance remain owner review.

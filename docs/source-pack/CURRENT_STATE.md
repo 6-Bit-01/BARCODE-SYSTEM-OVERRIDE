@@ -8,7 +8,9 @@ anchor translucent downward rays and ground pools in both road and mirror.
 The living sidelines, horizon, beat-ONE targets and buffered gears remain.
 
 Road-only layered chip cues and a reusable three-source engine respond to
-driving state. The original 100-measure recordings support D-root cues in
+driving state. The 19-family palette also includes audition-only lock,
+refill, miss and empty sounds with no current gameplay calls.
+The original 100-measure recordings support D-root cues in
 92 measures and F-root cues in eight; advance cues use the target measure's
 pitch set. Music transport and Level 1's sound palette are preserved.
 
