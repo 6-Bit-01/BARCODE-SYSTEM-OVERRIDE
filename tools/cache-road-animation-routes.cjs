@@ -42,18 +42,21 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
         record.item.at+(camera==='main'?-250:150),cel*period);
   };
   try {
-    for(const id of [5,11,12,...Array.from({length:12},(_,i)=>i+15)])
+    for(const id of [5,7,11,12,...Array.from({length:12},(_,i)=>i+15)])
       exerciseActor(`person-${id}`,candidates(item=>item.id===id),
         id===11?170:id===5?220:210,id===12?8:4);
+    for(const [id,period] of [[6,200],[8,320],[9,240],[10,230],[13,380],[14,250]])
+      exerciseActor(`activity-${id}`,candidates(item=>item.id===id),period,4);
     const propKeys=Object.keys(definitions).filter(key=>
-      key.startsWith('cache')&&definitions[key].frames===3);
+      (key.startsWith('cacheNew')||key==='cacheStreetDataKiosk')&&definitions[key].frames>1);
     for(const key of propKeys)
-      exerciseActor(key,candidates(item=>item.key===key),310,3);
+      exerciseActor(key,candidates(item=>item.key===key),310,definitions[key].frames);
     for(const key of Object.keys(definitions).filter(key=>key.startsWith('cacheAmbient'))) {
       const family=key.slice('cacheAmbient'.length).toLowerCase();
       const plate=entities.AMBIENT_PLATES.find(plate=>plate.family===family&&plate.at>400);
       check(plate,`${key} has no live eligible frontage`);
-      for(let cel=0;cel<4;cel++)render(key,plate.at-300,cel*230);
+      for(const camera of ['main','mirror'])for(let cel=0;cel<4;cel++)
+        render(`${key}/${camera}`,plate.at+(camera==='main'?-300:150),cel*230);
     }
     for(const kind of ['freight','van','audit','sweeper','trike','shuttle']) {
       const hazard=entities.HAZARDS.find(hazard=>hazard.kind===kind);
@@ -76,7 +79,8 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
       const frames=coverage.main[key]??new Set();
       const expected=intentionalStable.includes(key)?1:entry.frames;
       check(frames.size===expected,`${key}: actual world/HUD drew ${frames.size}/${expected} cels`);
-      if(key.endsWith('Travel')||propKeys.includes(key))
+      if(key.endsWith('Travel')||key.endsWith('Activity')||
+          key.startsWith('cacheAmbient')||propKeys.includes(key))
         check(coverage.mirror[key]?.size===entry.frames,
           `${key}: rearview did not play every authored cel`);
     }

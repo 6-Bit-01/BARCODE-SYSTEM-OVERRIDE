@@ -4,6 +4,7 @@
 const assert=require('node:assert/strict');
 const path=require('node:path');
 const fs=require('node:fs');
+const vm=require('node:vm');
 const {createCanvas,loadImage}=require('@napi-rs/canvas');
 const {createRig,load}=require('./check-level-01-boss');
 const root=path.resolve(__dirname,'..');
@@ -36,6 +37,25 @@ function occupied(data,u0,u1) {
 async function run() {
   const {w,context}=createRig();
   load(context,'src/game/cache-road-landscape.js');
+  // Both road cameras and facade sockets use center-x / foundation-y.
+  // Exercise the real atlas draw boundary: three families previously used
+  // top-left anchors, burying their buildings below floating activity.
+  w.Image=undefined;
+  vm.runInContext(fs.readFileSync(path.join(root,
+    'src/engine/presentation-assets.js'),'utf8').replace('  const cache = {};',
+    `  const cache=Object.fromEntries(Object.keys(entries).map(key=>[key,{
+      ready:true,image:{naturalWidth:200,naturalHeight:100}}]));`),context);
+  function assertProjectedAnchor(key) {
+    let tx=0,ty=0,rectangle;
+    const ctx={save(){},restore(){},translate(x,y){tx+=x;ty+=y;},
+      drawImage(image,sx,sy,sw,sh,x,y,width,height){
+        rectangle=[tx+x,ty+y,width,height];
+      }};
+    assert(w.BARCODE.PresentationAssets.draw(key,ctx,
+      {x:600,y:450,width:400,height:200}),`${key} has a runtime atlas entry`);
+    assert.deepEqual(rectangle,[400,250,400,200],
+      `${key} places its center and foundation at the projected contact`);
+  }
   const layout=w.BARCODE.CacheRoadLandscape.create(0x6b4d,9840,[]);
   const expected=['L-rear','L-middle','L-front-gap','L-front-fill',
     'R-rear','R-middle','R-front-gap','R-front-fill'];
@@ -52,6 +72,7 @@ async function run() {
     const key=`cache${prefix}${side}${name.slice(2).split('-').map(x=>
       x[0].toUpperCase()+x.slice(1)).join('')}`;
     const metadata=art.get(key);
+    assertProjectedAnchor(key);
     const runtime=await pixels(path.join(root,
       `assets/cache-road/world/blocks/block-${family}-${name}.webp`));
     const source=await sourceOrRuntime(path.join(root,

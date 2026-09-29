@@ -15,10 +15,10 @@ PACK_ROOT = "BARCODE-System-Override-Source-Pack-v5"
 DOC_PREFIX = "docs/source-pack/"
 RETAINED_REVIEW_VIDEOS = {
     "review-cache-layered-city/Continuous-Drive.mp4",
-    "review-cache-downbeat-depth/Drive-Review.mp4",
-    "review-cache-downbeat-depth/Car-Motion-Before-After.mp4",
+    "review-cache-living-sidelines/Drive-Review.mp4",
+    "review-cache-living-sidelines/Living-Details.mp4",
 }
-CURRENT_REVIEW = "review-cache-downbeat-depth/"
+CURRENT_REVIEW = "review-cache-living-sidelines/"
 REVIEW_MEDIA_SUFFIXES = {".webp", ".png", ".mp4", ".jpg", ".jpeg", ".gif", ".mp3"}
 ROOT_DOCUMENT_SUFFIXES = {".md", ".json", ".txt"}
 

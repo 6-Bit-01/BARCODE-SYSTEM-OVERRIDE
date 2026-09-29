@@ -149,11 +149,18 @@ async function run() {
   const groups=streetScenes.map(scene=>scene.people).filter(group=>group.length);
   const travel=w.__pedestrianTravel;
   assert(groups.flat().every(person=>
-    (person.id>=15 || [5,11,12].includes(person.id)) ? !person.flip : true),
+    (person.id>=15 || [5,7,11,12].includes(person.id)) ? !person.flip : true),
   'stored source poses retain their authored orientation before runtime edge facing');
-  for(const id of [0,1,2,3,4,6,7,8,9,10,13,14])
+  for(const id of [0,1,2,3,4])
     assert.equal(travel({id,at:500},{elapsedMs:840},false),null,
       `planted or seated person ${id} keeps the still painting`);
+  for(const [id,period] of [[6,200],[8,320],[9,240],[10,230],[13,380],[14,250]]) {
+    const first=travel({id,at:500},{elapsedMs:0},false);
+    const next=travel({id,at:500},{elapsedMs:period},false);
+    assert(first.key.endsWith('Activity')&&first.aspect>0);
+    assert.notEqual(first.frame,next.frame,`working person ${id} acts in place`);
+    assert.equal(travel({id,at:500},{elapsedMs:999},true).frame,0);
+  }
   for(const id of Array.from({length:12},(_,i)=>i+15)) {
     const first=travel({id,at:500},{elapsedMs:0},false);
     const next=travel({id,at:500},{elapsedMs:210},false);
@@ -166,6 +173,7 @@ async function run() {
       ((id-15)%2)*4,'Reduced Motion holds the first pose of each facing');
   }
   for(const [id,key,period] of [[5,'cachePersonBicycleCourierTravel',220],
+    [7,'cachePersonHandheldPlayerTravel',210],
     [11,'cachePersonSkateboarderTravel',170],
     [12,'cachePersonCrateCarrierTravel',210]]) {
     const first=travel({id,at:500},{elapsedMs:0},false);

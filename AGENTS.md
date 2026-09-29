@@ -1,5 +1,24 @@
 # Repository Guidance
 
+## September 29, 2026 — living sidelines and fitted vehicle lights
+
+Keep beat ONE, audible road timing and buffered gears from #149. Fit each
+vehicle's reflections/highlights to its measured lamp bounds, including
+steering poses and the trike's single light. Preserve whole-cel sweeper draw.
+
+The owner wants visible pedestrian activity: cleaners, gardeners, repairers,
+cooks, waving residents and seated board players animate in place. The
+handheld player travels outward; remaining bystanders only idle at their
+ground contact. This supersedes earlier blanket frozen-person guidance.
+Share those rules with the mirror and hold decorative poses in Reduced Motion.
+
+Keep carts and furniture contextual, street mouths clear and facade motion
+attached to painted buildings. All 48 block cards use bottom-center anchors;
+do not restore top-left anchors on greenhouse/data/transit assets. Review
+actual world/HUD animation routes and hosted loading before merge after CI.
+See `docs/source-pack/CACHE_ROAD_LIVING_SIDELINES.md`. Makko appearance and
+device performance remain owner review, not automated acceptance.
+
 ## September 29, 2026 — verified first beats and perspective gear motion
 
 This owner correction supersedes earlier beat-four instructions. Every announced

@@ -1,5 +1,21 @@
 # Decision Register
 
+## September 29, 2026 — visible activity within the approved roadside
+
+The owner accepted #149's timing and requested a visual pass: reflections
+must match each vehicle's actual lamps, buildings and small props must show
+readable motion, stalls/furniture must appear more often, and the cleaner
+must work. Animate actions according to the pictured person: planted work
+and seated play stay in place, while travel poses move in their supported
+direction. Remaining bystanders may idle without sliding. This supersedes
+the older blanket freeze of standing/seated figures.
+
+Keep the approved city composition, current depth ordering, beat ONE and
+buffered gears. Use contextual placements and facade sockets rather than
+floating effects. Merge after full CI under the existing owner authority;
+Makko visual and device acceptance remains open. See
+`CACHE_ROAD_LIVING_SIDELINES.md`.
+
 ## September 29, 2026 — ONE replaces beat four
 
 The owner explicitly moved all action windows to the first beat of each

@@ -259,13 +259,24 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     'Gardener','Resident'].map(identity=>`cacheWalker${identity}Travel`);
   const OTHER_TRAVEL={
     5:['cachePersonBicycleCourierTravel',4,220],
+    7:['cachePersonHandheldPlayerTravel',4,210,278/384],
     11:['cachePersonSkateboarderTravel',4,170],
     12:['cachePersonCrateCarrierTravel',8,210]
+  };
+  // Working/seated figures act in place. Their cels are registered to the
+  // same boots, stool or cart; an action never grants world locomotion.
+  const PERSON_ACTIVITY={
+    6:['cachePersonSweeperActivity',4,200,584/384],
+    8:['cachePersonGardenerActivity',4,320,436/384],
+    9:['cachePersonElectricianActivity',4,240,368/384],
+    10:['cachePersonWavingResidentActivity',4,230,294/384],
+    13:['cachePersonBoardPlayerActivity',4,380,370/384],
+    14:['cachePersonStreetCookActivity',4,250,360/384]
   };
   const travels=id=>id>=15||OTHER_TRAVEL[id]!==undefined;
   function pedestrianTravel(item,s,reduced) {
     const id=item.id;
-    if(!travels(id))return null;
+    if(!travels(id)&&!PERSON_ACTIVITY[id])return null;
     if(id>=15) {
       // Toward and away are authored views, not horizontally mirrored poses.
       const direction=(id-15)%2;
@@ -273,9 +284,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       return {key:WALKER_TRAVEL[Math.floor((id-15)/2)],
         frame:direction*4+((phase%4)+4)%4};
     }
-    const [key,count,period]=OTHER_TRAVEL[id];
+    const [key,count,period,aspect]=OTHER_TRAVEL[id]||PERSON_ACTIVITY[id];
     const phase=reduced?0:Math.floor(((s.elapsedMs||0)+item.at*13)/period);
-    return {key,frame:((phase%count)+count)%count};
+    return {key,frame:((phase%count)+count)%count,aspect};
   }
   const personKey=(scene,item)=>`${scene.side}/${item.at}/${item.id}/${item.base}`;
   function pedestrianPosition(scene,item,s) {
@@ -283,12 +294,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     const horizontal=OTHER_TRAVEL[item.id]!==undefined;
     return {at:item.at+(item.id>=15?((item.id-15)%2?1:-1)*distance:0),
       base:item.base+(horizontal?distance:0),
-      // Horizontal source paintings face left only for the skateboarder.
+      // The skateboarder and handheld player are authored facing left.
       // Orient the complete person toward the nearest outer screen edge.
-      flip:horizontal?(scene.side<0)!==(item.id===11):
+      flip:horizontal?(scene.side<0)!==([7,11].includes(item.id)):
         item.id>=15?false:item.flip};
   }
-  const PASSERS=[5,11,12,15,17,19,21,23,25];
+  const PASSERS=[5,7,11,12,15,17,19,21,23,25];
   const personIdentity=id=>id>=15?['courier','mechanic','worker','student','gardener','resident'][Math.floor((id-15)/2)]:
     ({0:'courier',1:'mechanic',3:'student',4:'worker',8:'gardener',10:'resident'})[id]??`local-${id}`;
   const LOCAL_ACTIONS={
@@ -299,16 +310,16 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     house:[10,7,13,0],apartment:[10,7,13,3]
   };
   const STREET_PROPS={
-    market:['cacheStreetBicycleRack','cacheStreetWorkSupplies','cacheStreetDataKiosk'],
-    diner:['cacheStreetBicycleRack','cacheStreetBenchPlanters','cacheStreetDataKiosk'],
+    market:['cacheNewVendorCart','cacheStreetDataKiosk','cacheNewLoadingCrates','cacheNewBinsRecycling'],
+    diner:['cacheNewVendorCart','cacheStreetBenchPlanters','cacheStreetBicycleRack','cacheNewBinsRecycling'],
     park:['cacheStreetBenchPlanters','cacheStreetBicycleRack'],
     garden:['cacheStreetBenchPlanters','cacheStreetWorkSupplies'],
-    garage:['cacheStreetWorkSupplies','cacheStreetDeliveryVan','cacheStreetBicycleRack'],
-    substation:['cacheStreetDataKiosk','cacheStreetWorkSupplies'],
+    garage:['cacheStreetWorkSupplies','cacheStreetDeliveryVan','cacheNewUtilityCabinet','cacheNewLoadingCrates'],
+    substation:['cacheStreetDataKiosk','cacheNewUtilityCabinet','cacheNewLoadingCrates'],
     construction:['cacheStreetWorkSupplies','cacheStreetDeliveryVan'],
     parking:['cacheStreetDeliveryVan','cacheStreetBicycleRack','cacheStreetDataKiosk'],
-    house:['cacheStreetBenchPlanters','cacheStreetBicycleRack'],
-    apartment:['cacheStreetBicycleRack','cacheStreetBenchPlanters']
+    house:['cacheStreetBenchPlanters','cacheNewFencePlanter','cacheNewBinsRecycling'],
+    apartment:['cacheStreetBicycleRack','cacheStreetBenchPlanters','cacheNewBinsRecycling']
   };
   const PROP_SHAPES={
     cacheStreetBicycleRack:[1526/1023,124],
@@ -323,14 +334,32 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     cacheNewBinsRecycling:[1312/1199,108],
     cacheNewLoadingCrates:[1312/1199,122],
     cacheNewUtilityCabinet:[1246/1263,160],
-    cacheNewVendorCart:[1312/1199,170],
+    cacheNewVendorCart:[460/384,188],
     cacheNewFencePlanter:[1536/1024,115]
   };
   const ANIMATED_PROPS=new Set(['cacheNewLampL','cacheNewLampR',
     'cacheNewCrossingSignalL','cacheNewCrossingSignalR','cacheNewWayfindingSign',
     'cacheNewUtilityCabinet','cacheNewVendorCart','cacheStreetDataKiosk']);
-  const propFrame=(item,s,reduced)=>reduced||!ANIMATED_PROPS.has(item.key)?0:
-    ((Math.floor(((s.elapsedMs||0)+item.at*9)/310)%3)+3)%3;
+  const propFrame=(item,s,reduced)=>{
+    if(reduced||!ANIMATED_PROPS.has(item.key))return 0;
+    const count=item.key==='cacheNewVendorCart'?4:3;
+    return ((Math.floor(((s.elapsedMs||0)+item.at*9)/310)%count)+count)%count;
+  };
+  function drawStreetActor(ctx,item,key,args,s,reduced,person) {
+    const action=person?pedestrianTravel(item,s,reduced):null;
+    const artArgs={...args,width:action?.aspect?args.height*action.aspect:args.width,
+      frame:action?.frame??propFrame(item,s,reduced)};
+    ctx.save();
+    if(person&&!action&&!reduced) {
+      // A restrained planted idle: the contact never changes position.
+      const breath=Math.sin((s.elapsedMs||0)/670+item.at*.13);
+      ctx.translate(args.x,args.y);ctx.transform(1,0,breath*.003,1+breath*.005,0,0);
+      ctx.translate(-args.x,-args.y);
+    }
+    if(!action||!B.PresentationAssets?.draw?.(action.key,ctx,artArgs))
+      B.PresentationAssets?.draw?.(key,ctx,{...args,frame:propFrame(item,s,reduced)});
+    ctx.restore();
+  }
   // Along-road addresses and distance from the curb both vary. Keeping
   // the group within one parcel gives pairs, knots and arcs instead of a row.
   const FRONT_FORMATIONS={
@@ -375,18 +404,19 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     if(nearbyMouth)center=nearbyMouth.at+
       (center<nearbyMouth.at?-116:116);
     const people=placeRandom(seed+91)<.17?[]:
-      arrangePeople(ids,center,340,seed,placeRandom(seed+7)>.5);
+      arrangePeople(ids,center,290,seed,placeRandom(seed+7)>.5);
     const choices=STREET_PROPS[anchor.kind]||STREET_PROPS.house;
-    const props=placeRandom(seed+57)<.20?[]:[{
-      key:choices[Math.floor(placeRandom(seed+29)*choices.length)],
+    const food=anchor.kind==='market'||anchor.kind==='diner';
+    const props=[{
+      key:food?'cacheNewVendorCart':choices[Math.floor(placeRandom(seed+29)*choices.length)],
       at:center+(placeRandom(seed+43)<.5?-45:45),
-      base:anchor.kind==='parking'?414:380,
+      base:anchor.kind==='parking'?404:food?180:224,
       scale:.96+placeRandom(seed+47)*.15
     }];
-    if(choices.length>2 && placeRandom(seed+61)<.23)props.push({
-      key:choices[Math.floor(placeRandom(seed+67)*choices.length)],
+    if(choices.length>2 || placeRandom(seed+61)<.65)props.push({
+      key:choices.filter(key=>key!==props[0].key)[Math.floor(placeRandom(seed+67)*(choices.length-1))],
       at:center+(props[0]?.at>center?-55:55),
-      base:445,scale:.94+placeRandom(seed+71)*.13
+      base:282,scale:1+placeRandom(seed+71)*.10
     });
     return {at:anchor.at,side:anchor.side,kind:anchor.kind,people,
       props:props.sort((a,b)=>b.at-a.at)};
@@ -404,14 +434,35 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   // pedestrians on accessible parcel fronts, never part of a building card.
   // Cycle each context independently so seeded placement cannot silently
   // omit an authored prop (the old random picks never spawned wayfinding).
-  const districtPropCounts={},ambientCounts={};
+  const districtPropCounts={};
   const nextDistrictVariant=(counts,family)=>
     counts[family]=(counts[family]??-1)+1;
   const AMBIENT_PLATES=new Set(LANDSCAPE.plates.filter(plate=>
-    plate.tier==='front'&&plate.key==='closed'&&
-    nextDistrictVariant(ambientCounts,plate.family)%3===0));
+    plate.tier==='front'&&plate.key==='closed'));
+  // Measured facade sockets in normalized source coordinates. The old
+  // center-card placement put most of these lights outside the screen.
+  const FACADE_ACTIVITY={
+    market:    {left:[[.79,.65,.13],[.57,.65,.10]],right:[[.17,.48,.12],[.38,.51,.10]]},
+    homes:     {left:[[.855,.34,.058],[.77,.59,.052]],right:[[.16,.31,.054],[.28,.50,.055]]},
+    workshop:  {left:[[.82,.43,.070]],right:[[.20,.23,.063]]},
+    greenhouse:{left:[[.89,.62,.085],[.73,.68,.074]],right:[[.13,.49,.08],[.25,.60,.07]]},
+    data:      {left:[[.89,.49,.075],[.74,.62,.064]],right:[[.20,.49,.07],[.30,.51,.055]]},
+    transit:   {left:[[.805,.64,.10],[.62,.62,.085]],right:[[.15,.62,.095],[.31,.61,.09]]}
+  };
+  function drawFacadeActivity(ctx,plate,x,y,width,height,s,reduced) {
+    if(!AMBIENT_PLATES.has(plate))return;
+    const fixtures=FACADE_ACTIVITY[plate.family][plate.side<0?'left':'right'];
+    const key=`cacheAmbient${plate.family[0].toUpperCase()+plate.family.slice(1)}`;
+    for(let i=0;i<fixtures.length;i++) {
+      const [u,v,size]=fixtures[i],fixtureW=width*size;
+      const fx=x+width*(u-.5),fy=y-height*(1-v);
+      B.PresentationAssets?.draw?.(key,ctx,{x:fx,y:fy,width:fixtureW,height:fixtureW,
+        frame:reduced?1:((Math.floor((s.elapsedMs||0)/230)+
+          Number(plate.chunkId.split(':')[1])+i*2)%4+4)%4});
+    }
+  }
   const DISTRICT_SCENES=LANDSCAPE.chunks.filter((chunk,index)=>
-    index%3===1 && LANDSCAPE.plates.some(plate=>plate.chunkId===chunk.id &&
+    index%2===1 && LANDSCAPE.plates.some(plate=>plate.chunkId===chunk.id &&
       plate.tier==='front')).map((chunk,index)=>{
     const salt=chunk.seed+index*119;
     const size=1+Math.floor(placeRandom(salt+7)*5);
@@ -428,12 +479,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     const mirror=placeRandom(salt+29)>.5;
     const center=chunk.frontAt+(onStreet?(mirror?108:-108):
       Math.round((placeRandom(salt+23)-.5)*28));
-    const people=arrangePeople(ids,center,344,salt,mirror);
+    const people=arrangePeople(ids,center,300,salt,mirror);
     const choices=DISTRICT_PROPS[chunk.family];
     const key=choices[nextDistrictVariant(districtPropCounts,chunk.family)%choices.length];
     return {at:chunk.frontAt,side:chunk.side,kind:chunk.family,people,
       props:[{key,at:center+(onStreet?(mirror?26:-26):(index%2?-54:54)),
-        base:412,scale:1}]};
+        base:216,scale:1.04},
+      {key:choices[(choices.indexOf(key)+1)%choices.length],
+        at:center+(onStreet?(mirror?-30:30):(index%2?46:-46)),
+        base:294,scale:.98}]};
   });
   for(const street of LANDSCAPE.streets) {
     DISTRICT_SCENES.push({at:street.at,side:street.side,kind:street.family,
@@ -667,6 +721,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.fillStyle='#536977';
         ctx.fillRect(artX-width/2,p.y-height,width,height);
       }
+      if(item.plate)drawFacadeActivity(ctx,item.plate,artX,p.y+2*p.t,width,height,s,reduced);
       ctx.globalAlpha=1;
     }
     function drawMirrorLife(scene,item) {
@@ -679,12 +734,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const height=(2.5+10*p.t)*item.scale*stature/134*(person?PERSON_SCALE:1);
       const artX=p.x+side*(p.half+10+position.base*.065*p.t);
       ctx.globalAlpha=.55+.36*p.t;
-      const travel=person?pedestrianTravel(item,s,reduced):null;
       const args={x:artX,y:p.y+2*p.t,width:height*aspect,height,
-        flip:person?position.flip:false,
-        frame:travel?.frame??propFrame(item,s,reduced)};
-      if(!travel||!B.PresentationAssets?.draw?.(travel.key,ctx,args))
-        B.PresentationAssets?.draw?.(key,ctx,{...args,frame:propFrame(item,s,reduced)});
+        flip:person?position.flip:false};
+      drawStreetActor(ctx,item,key,args,s,reduced,person);
       ctx.globalAlpha=1;
     }
     for(const hazard of HAZARDS) {
@@ -922,6 +974,22 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   }
   // One silhouette language at every depth. The four traffic kinds differ in
   // body shape, lights and warning marks even without reading their labels.
+  // Tail lamp bounds measured in a single authored cel (u,v,width,height).
+  // Steering paintings have asymmetric lamps; narrow vertical fixtures and
+  // the trike's single center lamp cannot use a generic pair at ±.35w.
+  const VEHICLE_TAIL_LIGHTS={
+    cacheCar:[[.17,.561,.140,.077],[.681,.561,.142,.077]],
+    cacheCarLeft:[[.094,.542,.139,.077],[.634,.564,.153,.079]],
+    cacheCarRight:[[.282,.572,.150,.082],[.798,.576,.136,.082]],
+    cacheCarHit:[[.176,.527,.144,.080],[.702,.527,.137,.073]],
+    cacheFreight:[[.233,.670,.109,.053],[.657,.669,.109,.053]],
+    cacheCourier:[[.184,.561,.135,.074],[.694,.561,.132,.074]],
+    cacheRival:[[.158,.532,.074,.113],[.768,.534,.074,.113]],
+    cacheAudit:[[.234,.554,.099,.056],[.723,.554,.099,.056]],
+    cacheSweeper:[[.198,.448,.045,.093],[.736,.448,.045,.093]],
+    cacheTrike:[[.407,.515,.191,.052]],
+    cacheShuttle:[[.206,.598,.058,.119],[.748,.598,.059,.119]]
+  };
   function drawVehicle(ctx, x, y, w, h, kind, { alpha = 1, turbo = false,
     phase = 0, steer = 0, hit = 0, braking = false, damage = 0,
     reduced = false } = {}) {
@@ -956,6 +1024,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         sway*.009+recoil*.07;
       const art = { x: 0, y: 1, width: w*ratio[0], height: h*ratio[1],
         frame: vehicleFrame };
+      const lamps=(VEHICLE_TAIL_LIGHTS[artKey]||[]).map(([u,v,lw,lh])=>({
+        x:(u+lw/2-.5)*art.width,y:art.y+(v+lh/2-1)*art.height,
+        width:lw*art.width,height:lh*art.height,v:v+lh/2
+      }));
       // Keep the complete truck and both tire masks in one turning frame.
       // The rear view leans into its smooth merge and straightens at the end.
       if(!reduced&&['sweeper','trike'].includes(kind))
@@ -993,13 +1065,20 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // The broken red painting sits on the road before the car and tires.
       // Cache's brake input brightens it; traffic has only a dim tail-light
       // trace, apart from the deliberately slow shuttle.
-      if (kind !== 'block' && kind !== 'trike' &&
-          B.PresentationAssets?.ready?.('cacheBrakeReflection')) {
+      if (lamps.length && B.PresentationAssets?.ready?.('cacheBrakeReflection')) {
         const light = kind === 'cache' ? braking ? .76 : hit ? .56 : .11 :
           kind === 'shuttle' ? .34 : kind === 'freight' ? .23 : .16;
         ctx.save();ctx.globalAlpha*=light;
-        B.PresentationAssets.draw('cacheBrakeReflection',ctx,{
-          x:0,y:-h*.48,width:w*1.64,height:h*1.55 });
+        if(kind==='trike'||kind==='audit')ctx.filter='hue-rotate(315deg)';
+        for(const lamp of lamps) {
+          // Project one broken reflection beneath each real light. The
+          // narrow source crop contains one column, not the old fixed pair.
+          // Ground streaks widen with distance; their head fits the lens.
+          const lampX=jolt+lamp.x*Math.cos(roll)-lamp.y*Math.sin(roll);
+          B.PresentationAssets.draw('cacheBrakeReflection',ctx,{
+            x:lampX,y:-h*.22,width:lamp.width*2.8,
+            height:h*(.66+(1-lamp.v)*.75),sourceRect:[0,0,192,290] });
+        }
         ctx.restore();
       }
       // Once the impact pose ends, reduced integrity remains visible on the
@@ -1073,19 +1152,19 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       }
       B.PresentationAssets.draw(artKey, ctx, art);
       ctx.restore();
-      if (!reduced && ['cache','freight','van','rival','audit','shuttle'].includes(kind)) {
+      if (lamps.length) {
         // Small changing reflections animate the painted rear lamps without
         // replacing the hand-painted vehicle poses or flashing a whole car.
         ctx.save();ctx.translate(jolt,bounce);ctx.rotate(roll);
         ctx.globalCompositeOperation='screen';
         ctx.globalAlpha*=kind==='cache' && braking ? .72 :
-          .15+.18*(.5+.5*Math.sin(phase*.17+x*.01));
+          reduced?.18:.15+.14*(.5+.5*Math.sin(phase*.17+x*.01));
         ctx.fillStyle=kind==='cache' && braking ? '#ff7773' :
-          kind==='cache'?'#ffcb78':'#ff8e87';
-        const lampY=-h*(kind==='freight'?.18:.29);
-        for(const side of [-1,1]) {
-          ctx.beginPath();ctx.ellipse(side*w*.35,lampY,
-            Math.max(2,w*.065),Math.max(1.5,h*.038),0,0,Math.PI*2);ctx.fill();
+          kind==='trike'||kind==='audit'?'#ff81e7':
+          kind==='cache'||kind==='sweeper'||kind==='shuttle'?'#ffc179':'#ff8e87';
+        for(const lamp of lamps) {
+          ctx.beginPath();ctx.ellipse(lamp.x,lamp.y,
+            lamp.width*.42,lamp.height*.33,0,0,Math.PI*2);ctx.fill();
         }
         ctx.restore();
       }
@@ -2340,7 +2419,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const [key,aspect,height]=person?PEDESTRIANS[item.id]:
           [item.key,...PROP_SHAPES[item.key]];
         const h=height*t*item.scale*(person?PERSON_SCALE:1);
-        const width=h*aspect;
+        const width=h*(person?(pedestrianTravel(item,s,reduced)?.aspect||aspect):aspect);
         const x=roadsideX(scene.side,t,position.base,person?210:260);
         if(x+width*.5<0||x-width*.5>1920)return;
         const foot=terrainAt(scene.side,t,x)+4*t;
@@ -2349,14 +2428,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           ctx.fillStyle='#0d19218c';ctx.beginPath();
           ctx.ellipse(x,foot+2*t,Math.max(9,width*.33),Math.max(2,4*t),0,0,Math.PI*2);
           ctx.fill();
-          // World-address offset prevents fixtures flashing in lockstep.
-          const frame=propFrame(item,s,reduced);
-          const travel=person?pedestrianTravel(item,s,reduced):null;
           const args={x,y:foot,width,height:h,
-            flip:person?position.flip:false,
-            frame:travel?.frame??frame};
-          if(!travel||!B.PresentationAssets?.draw?.(travel.key,ctx,args))
-            B.PresentationAssets?.draw?.(key,ctx,{...args,frame});
+            flip:person?position.flip:false};
+          drawStreetActor(ctx,item,key,args,s,reduced,person);
           ctx.restore();
         },scene.side));
       };
@@ -2402,14 +2476,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
                 x:capX,y:terrainAt(plate.side,t,capX)+5*t,
                 width:48*t,height:96*t });
             }
-            if(t>.28&&AMBIENT_PLATES.has(plate)) {
-              const lightX=x+plate.side*width*.09;
-              B.PresentationAssets?.draw?.(`cacheAmbient${
-                plate.family[0].toUpperCase()+plate.family.slice(1)}`,ctx,{
-                x:lightX,y:y-width*.24,width:54*t,height:54*t,
-                frame:reduced?1:Math.floor((s.elapsedMs||0)/230+
-                  Number(plate.chunkId.split(':')[1]))%4});
-            }
+            if(t>.20)drawFacadeActivity(ctx,plate,x,y,width,height,s,reduced);
           },plate.side));
         } else if(area.kind==='cluster') {
           const {side,index}=area;

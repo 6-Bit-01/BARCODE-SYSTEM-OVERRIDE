@@ -1,5 +1,20 @@
 # Recovery checkpoint — September 14
 
+## September 29, 2026 — living sidelines and fitted tail lights
+
+- Fit lens highlights and individual ground reflections to eleven measured
+  vehicle/pose definitions, including steering, tall lamps and the trike.
+- Add planted sweeping, watering, repair, cooking, waving and seated-play
+  cycles; let the handheld player walk outward and other bystanders idle.
+- Replace clipped cart steam with a clean four-cel sheet; place carts at
+  food frontages and more contextual furniture across the route.
+- Attach six stronger ambient families to visible facade sockets, sharing
+  activity clocks with the mirror and preserving depth ordering.
+- Correct 24 greenhouse/data/transit block anchors to bottom-center.
+- Expand production animation coverage to 48 sheets and refresh current
+  review-media packaging. Full candidate validation and CI remain pending.
+- Preserve the approved beat-ONE music/road timing and buffered gears.
+
 ## September 29, 2026 — downbeat timing, depth motion and animation coverage
 
 - Verify the actual five recordings and lock action targets to beat ONE.

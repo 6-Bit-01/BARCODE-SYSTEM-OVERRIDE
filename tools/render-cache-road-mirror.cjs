@@ -237,6 +237,11 @@ async function main() {
     cacheFly1: 'assets/traffic/ship-1.webp',
     cacheFly3: 'assets/traffic/ship-3.webp'
   };
+  const manifestContext=vm.createContext({window:{BARCODE:{}}});
+  vm.runInContext(fs.readFileSync('src/engine/presentation-assets.js','utf8')
+    .replace('  const cache = {};','  window.reviewEntries=entries;\n  const cache = {};'),manifestContext);
+  for(const [key,entry] of Object.entries(manifestContext.window.reviewEntries))
+    if(key.startsWith('cache'))files[key]=entry.path;
   if (areaReviewPath) files.cacheReviewPlace = areaReviewPath;
   const art = Object.fromEntries(await Promise.all(Object.entries(files).map(async ([key,file]) =>
     [key, await loadImage(path.resolve(file))])));
