@@ -1,0 +1,62 @@
+[
+  {
+    "family": "market",
+    "visibleChangedChannels": [
+      217,
+      324,
+      351,
+      349
+    ],
+    "distinctVisibleFrames": 4
+  },
+  {
+    "family": "homes",
+    "visibleChangedChannels": [
+      347,
+      346,
+      345,
+      347
+    ],
+    "distinctVisibleFrames": 3
+  },
+  {
+    "family": "workshop",
+    "visibleChangedChannels": [
+      180,
+      69,
+      180,
+      180
+    ],
+    "distinctVisibleFrames": 2
+  },
+  {
+    "family": "greenhouse",
+    "visibleChangedChannels": [
+      156,
+      245,
+      94,
+      93
+    ],
+    "distinctVisibleFrames": 4
+  },
+  {
+    "family": "data",
+    "visibleChangedChannels": [
+      166,
+      165,
+      165,
+      164
+    ],
+    "distinctVisibleFrames": 4
+  },
+  {
+    "family": "transit",
+    "visibleChangedChannels": [
+      152,
+      162,
+      144,
+      149
+    ],
+    "distinctVisibleFrames": 4
+  }
+]

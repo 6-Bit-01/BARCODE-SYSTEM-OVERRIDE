@@ -11,10 +11,10 @@ w.Image = class Image {
 load(context, 'src/engine/presentation-assets.js');
 const art = w.BARCODE.PresentationAssets;
 for (let i = 0; i < 20; i++) art.preload();
-assert.strictEqual(images.length, 227, 'restarts reuse Cache traffic, six block families, nine travel sheets, graph joins, ground, walkers, props, decals, practical lights and local effects');
+assert.strictEqual(images.length, 234, 'restarts reuse Cache traffic, six block families, ten travel sheets, six activity sheets, graph joins, ground, walkers, props, decals, practical lights and local effects');
 const districtRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/33c768b73f29d9e0e2a91f30961a525030e6f6ba/';
 const districtImages=images.filter(im=>im.requests[0].startsWith(districtRoot));
-assert.equal(districtImages.length,90,
+assert.equal(districtImages.length,84,
   'six sided districts and static support art preload from one immutable ancestor');
 for(const image of districtImages) {
   image.onerror();
@@ -34,7 +34,7 @@ const animationPaths=[
     .map(name=>`assets/cache-road/vehicles/animation/${name}-frames.webp`),
   ...['street-lamp-L','street-lamp-R','street-crossing-signal-L',
     'street-crossing-signal-R','street-wayfinding-sign','street-utility-cabinet',
-    'street-vendor-cart','street-data-kiosk']
+    'street-data-kiosk']
     .map(name=>`assets/cache-road/world/props/animation/${name}-frames.webp`),
   ...['surge','push','brace','refill']
     .map(name=>`assets/cache-road/roadside/beat/animation/${name}-frames.webp`)
@@ -44,7 +44,7 @@ const paintedRoot='https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVE
 const paintedImages=images.filter(im=>im.requests[0].startsWith(paintedRoot));
 assert.deepEqual(paintedImages.map(im=>im.requests[0].slice(paintedRoot.length)).sort(),
   paintedPaths.slice().sort(),
-  '23 animation sheets and seven painted cues/effects have an immutable hosted source');
+  '22 retained animation sheets and seven painted cues/effects have an immutable hosted source');
 for(const image of paintedImages) {
   image.onerror();
   const local=image.requests[0].slice(paintedRoot.length);
@@ -59,7 +59,7 @@ const travelPaths=[...['courier','mechanic','market-worker','student','gardener'
     .map(name=>`assets/cache-road/world/props/animation/person-${name}-frames.webp`)];
 const travelImages=images.filter(im=>im.requests[0].startsWith(pedestrianRoot));
 assert.deepEqual(travelImages.map(im=>im.requests[0].slice(pedestrianRoot.length)).sort(),
-  travelPaths.slice().sort(),'only painted travel figures load new frame sheets');
+  travelPaths.slice().sort(),'the nine original travel sheets keep their immutable hosted source');
 for(const image of travelImages) {
   image.onerror();
   const local=image.requests[0].slice(pedestrianRoot.length);
@@ -70,6 +70,34 @@ for(const image of travelImages) {
     '/sources/animation/').replace('-frames.webp','-source.png'))),
     local+' retains the editable PNG atlas');
 }
+const activityRoot='https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/172b7586864cace27eb55a85bfa2d63d96b77f89/';
+const activityPaths=[
+  ...['sweeper','gardener','electrician','waving-resident','board-player','street-cook','handheld-player']
+    .map(name=>`assets/cache-road/world/props/animation/person-${name}-activity-frames.webp`),
+  'assets/cache-road/world/props/animation/street-vendor-cart-activity-frames.webp',
+  ...['market','homes','workshop','greenhouse','data','transit']
+    .map(name=>`assets/cache-road/world/ambient/${name}-practicals.svg`)
+];
+const activityImages=images.filter(im=>im.requests[0].startsWith(activityRoot));
+assert.deepEqual(activityImages.map(im=>im.requests[0].slice(activityRoot.length)).sort(),
+  activityPaths.slice().sort(),
+  'six planted activities, one handheld walk, the clean cart and six facades use the published activity revision');
+for(const image of activityImages) {
+  image.onerror();
+  const local=image.requests[0].slice(activityRoot.length);
+  assert.deepEqual(image.requests,[activityRoot+local,local],
+    'each activity and facade has one matching bundled fallback');
+  assert(fs.existsSync(path.join(root,local)),local+' is bundled');
+  if(local.endsWith('.webp'))assert(fs.existsSync(path.join(root,local.replace('/props/animation/',
+    '/sources/animation/').replace('-frames.webp','-source.png'))),
+    local+' retains the editable PNG atlas');
+}
+assert(!images.some(im=>im.requests[0].endsWith('/street-vendor-cart-frames.webp')),
+  'the broken old cart steam sheet is retained on disk but never requested');
+const failedActivityImage=activityImages.find(im=>im.requests[0].endsWith('/person-handheld-player-activity-frames.webp'));
+failedActivityImage.onerror();
+assert.strictEqual(failedActivityImage.onload,null);
+assert.strictEqual(failedActivityImage.onerror,null);
 assert(images.every(im=>
   /^https:\/\/raw\.githubusercontent\.com\/.+\/[a-f0-9]{40}\//.test(im.requests[0])),
   'all presentation assets start at immutable published revisions');
@@ -79,8 +107,9 @@ failedPaintedImage.onerror();
 assert.strictEqual(failedPaintedImage.onload,null);
 assert.strictEqual(failedPaintedImage.onerror,null);
 art.preload();
-assert.strictEqual(images.length,227,'failed painted assets are not recreated on restart');
+assert.strictEqual(images.length,234,'failed painted and activity assets are not recreated on restart');
 assert.strictEqual(failedPaintedImage.requests.length,2,'painted assets stop after both sources fail');
+assert.strictEqual(failedActivityImage.requests.length,2,'activity assets stop after both sources fail');
 const cacheRoadRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/37db98387b8791655e3ff352d6bc6d61cb0b574b/';
 assert.equal(images.filter(im => im.requests[0].startsWith(cacheRoadRoot)).length,9,
   'remaining static Cache Road art retains its published pinned revision');
@@ -190,9 +219,15 @@ ops.length=0; art.draw('cacheNewLampL',ctx,{x:300,y:600,width:120,height:180,fra
 assert.deepStrictEqual(ops.find(op=>op[0]==='drawImage').slice(2),
   [768,0,384,576,-60,-180,120,180],
   'roadside cel selection preserves the pole foot at the world address');
+const sweeperCelImage=activityImages.find(im=>im.requests[0].endsWith('/person-sweeper-activity-frames.webp'));
+sweeperCelImage.naturalWidth=2336;sweeperCelImage.naturalHeight=384;sweeperCelImage.onload();
+ops.length=0;art.draw('cachePersonSweeperActivity',ctx,{x:300,y:600,width:292,height:192,frame:3});
+assert.deepStrictEqual(ops.find(op=>op[0]==='drawImage').slice(2),
+  [1752,0,584,384,-146,-192,292,192],
+  'the cleaner uses one complete registered fourth cel with its planted foot anchor');
 arrowImage.onerror(); arrowImage.onerror();
 assert.strictEqual(arrowImage.requests.length, 2); assert.strictEqual(arrowImage.onerror, null);
-art.preload(); assert.strictEqual(images.length, 227, 'failed assets do not retry forever');
+art.preload(); assert.strictEqual(images.length, 234, 'failed assets do not retry forever');
 pulseImage.naturalWidth = pulseImage.naturalHeight = 512; pulseImage.onload();
 ops.length = 0; art.draw('bossPulse', ctx, { y: 822, width: 64, height: 56, frame: 2 });
 assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2), [10, 351, 236, 145, -32, -56, 64, 56], 'pulse fills the dangerous height and retains the ground anchor');

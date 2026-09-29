@@ -1,5 +1,21 @@
 # Current State
 
+## September 29 — living sidelines and fitted reflections (candidate)
+
+From merged #149, the visual pass fits reflections to eleven vehicle/pose
+lamp definitions, adds six planted work/social cycles and one outward
+handheld-player walk, and replaces the broken vendor-cart steam sheet.
+Contextual frontage furniture is more frequent: the default route has
+336 props, including 24 carts. Six district facade effects use visible
+painted sockets, and 24 incorrect block anchors now match bottom-center
+placement. Main view and mirror share the activity rules.
+
+Beat ONE, music, gears, car depth motion and gameplay remain unchanged.
+Art is published at immutable revision `172b758`. Full candidate tests,
+hosted-art verification and final CI are pending; owner Makko appearance
+and device performance remain open. See
+`CACHE_ROAD_LIVING_SIDELINES.md` and `review-cache-living-sidelines/`.
+
 ## September 29 — beat ONE, audible road time and coherent car motion
 
 The current pass supersedes the fourth-beat timing below. Real recording

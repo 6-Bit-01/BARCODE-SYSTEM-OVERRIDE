@@ -1,0 +1,13 @@
+{
+  "seconds": 32,
+  "fps": 24,
+  "perfectCatches": 7,
+  "minimumIntegrity": 3,
+  "gears": [
+    1,
+    2,
+    3
+  ],
+  "audioEvents": 58,
+  "audioReplay": "Exact equality of all cue/mix/playback events to the previously Chromium-rendered audio; CI replays this same trace again."
+}

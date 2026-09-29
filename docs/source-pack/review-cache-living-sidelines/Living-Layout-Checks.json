@@ -1,0 +1,174 @@
+{
+  "props": {
+    "cacheStreetWorkSupplies": 35,
+    "cacheStreetBicycleRack": 28,
+    "cacheStreetDeliveryVan": 31,
+    "cacheStreetDataKiosk": 17,
+    "cacheNewCrossingSignalL": 13,
+    "cacheNewFencePlanter": 19,
+    "cacheNewLampL": 13,
+    "cacheNewUtilityCabinet": 25,
+    "cacheStreetBenchPlanters": 39,
+    "cacheNewLoadingCrates": 24,
+    "cacheNewVendorCart": 24,
+    "cacheNewBinsRecycling": 40,
+    "cacheNewCrossingSignalR": 12,
+    "cacheNewLampR": 12,
+    "cacheNewWayfindingSign": 4
+  },
+  "totalProps": 336,
+  "people": 353,
+  "activeFrontages": 22,
+  "vehicleLightBounds": {
+    "cacheCar": [
+      [
+        0.17,
+        0.561,
+        0.14,
+        0.077
+      ],
+      [
+        0.681,
+        0.561,
+        0.142,
+        0.077
+      ]
+    ],
+    "cacheCarLeft": [
+      [
+        0.094,
+        0.542,
+        0.139,
+        0.077
+      ],
+      [
+        0.634,
+        0.564,
+        0.153,
+        0.079
+      ]
+    ],
+    "cacheCarRight": [
+      [
+        0.282,
+        0.572,
+        0.15,
+        0.082
+      ],
+      [
+        0.798,
+        0.576,
+        0.136,
+        0.082
+      ]
+    ],
+    "cacheCarHit": [
+      [
+        0.176,
+        0.527,
+        0.144,
+        0.08
+      ],
+      [
+        0.702,
+        0.527,
+        0.137,
+        0.073
+      ]
+    ],
+    "cacheFreight": [
+      [
+        0.233,
+        0.67,
+        0.109,
+        0.053
+      ],
+      [
+        0.657,
+        0.669,
+        0.109,
+        0.053
+      ]
+    ],
+    "cacheCourier": [
+      [
+        0.184,
+        0.561,
+        0.135,
+        0.074
+      ],
+      [
+        0.694,
+        0.561,
+        0.132,
+        0.074
+      ]
+    ],
+    "cacheRival": [
+      [
+        0.158,
+        0.532,
+        0.074,
+        0.113
+      ],
+      [
+        0.768,
+        0.534,
+        0.074,
+        0.113
+      ]
+    ],
+    "cacheAudit": [
+      [
+        0.234,
+        0.554,
+        0.099,
+        0.056
+      ],
+      [
+        0.723,
+        0.554,
+        0.099,
+        0.056
+      ]
+    ],
+    "cacheSweeper": [
+      [
+        0.198,
+        0.448,
+        0.045,
+        0.093
+      ],
+      [
+        0.736,
+        0.448,
+        0.045,
+        0.093
+      ]
+    ],
+    "cacheTrike": [
+      [
+        0.407,
+        0.515,
+        0.191,
+        0.052
+      ]
+    ],
+    "cacheShuttle": [
+      [
+        0.206,
+        0.598,
+        0.058,
+        0.119
+      ],
+      [
+        0.748,
+        0.598,
+        0.059,
+        0.119
+      ]
+    ]
+  },
+  "activityTypes": 6,
+  "note": "Moving inspection uses production helpers, not owner-device or Makko footage."
+}

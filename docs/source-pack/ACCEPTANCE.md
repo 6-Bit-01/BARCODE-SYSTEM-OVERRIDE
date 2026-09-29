@@ -1,5 +1,30 @@
 # Acceptance and Test Status
 
+## Living sidelines and fitted lights — September 29, candidate
+
+Review individual tail lights and streaks across all vehicle/steering poses,
+especially the single-light trike and narrow sweeper/shuttle lamps. Working
+people must act with planted contacts; the board player remains seated and
+the handheld player travels outward. This replaces the older rule freezing
+all standing/seated images, while preserving their ground positions.
+
+The expanded production route audit targets 48 animated/stateful sheets,
+including six work/social cycles, the new traveller, four-cel cart, all six
+facade families and mirror routes. All 48 block anchors have passed the
+production draw-rectangle check; vehicle and six facade boards have passed
+visual inspection. Hosted loading must use published matching art
+(`172b758`); local sheet availability alone is insufficient. Full local regression
+and syntax pass. The 705-draw route audit passes all 48 sets; separate pixel
+inspection confirms all six facades contribute changing pixels to the mirror.
+Final-head CI must pass Chromium and hosted loading before merge; the generated
+pack receipt and PR identify that exact outcome.
+
+The default route layout records 336 props and 24 carts. Moving review must
+check their readability, building occlusion and clear street openings, while
+retaining beat-ONE catches and gear behavior. Owner Makko appearance,
+controller/audio feel and device FPS are still open. See
+`CACHE_ROAD_LIVING_SIDELINES.md`; automated footage is not owner acceptance.
+
 ## First-beat timing and complete animation routes — September 29
 
 Current requirements replace historical beat-four entries below. Automated

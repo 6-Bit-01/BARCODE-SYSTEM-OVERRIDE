@@ -225,7 +225,7 @@ async function main() {
   assert(cueAudio.rms>.003&&cueAudio.peak<1&&cueAudio.remainingVoices===0);
   assert(cueAudio.scheduled.every(event=>event.ok&&Math.abs(event.actual-event.requested)<1e-8),
     'countdown and calibrated early catch sounds start on exact source-clock beats');
-  const reviewTrace=path.join(root,'docs/source-pack/review-cache-downbeat-depth/Drive-Trace.json');
+  const reviewTrace=path.join(root,'docs/source-pack/review-cache-living-sidelines/Drive-Trace.json');
   if(fs.existsSync(reviewTrace)) {
     const trace=JSON.parse(fs.readFileSync(reviewTrace,'utf8'));
     const review=await evaluate(`(${renderRoadAudio.toString()})(${JSON.stringify(trace)})`);
@@ -244,7 +244,7 @@ async function main() {
   const reviewWorld=require('./cache-road-browser-world.cjs');
   const world=await evaluate(`(${reviewWorld.toString()})()`);
   assert(world.loadedAssets>200&&world.frames.length===96&&world.contextCalls<=4);
-  assert(Object.keys(world.animations).length===41 && world.animationRoutes.animatedKeys===41);
+  assert(Object.keys(world.animations).length===48 && world.animationRoutes.animatedKeys===48);
   const worldOutput=process.env.CACHE_ROAD_REVIEW_OUTPUT||
     (process.env.RUNNER_TEMP&&path.join(process.env.RUNNER_TEMP,'music-browser/cache-road'));
   if(worldOutput) {
