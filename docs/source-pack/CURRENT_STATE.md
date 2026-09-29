@@ -15,7 +15,9 @@ visible strike line ahead of the car. The timing window is 70 ms perfect /
 that fourth beat. Subtle count-in clicks and distinct catch chords use the
 existing bounded SFX voices. Full local regression and syntax passed; the
 production driving review clears both planned runs and reaches four parts.
-Hosted CI and the owner's new Makko review are pending publication.
+The real Chromium music/cue replay passed, with no clipping or retained
+voices. The 16-second production drive includes that matching audio. Final
+head CI is the merge gate; the owner's new Makko review remains open.
 See `CACHE_ROAD_MOTION_RHYTHM_REPAIR.md` for evidence and limits.
 
 ## September 29 — direction-locked pedestrian travel (local review)

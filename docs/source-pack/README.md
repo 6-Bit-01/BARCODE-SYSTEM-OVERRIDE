@@ -6,8 +6,10 @@ Start with `CACHE_ROAD_MOTION_RHYTHM_REPAIR.md`. Travelling people now move
 on the ground, horizontal figures head toward their nearest screen edge,
 and the sweeper eases through its turn. Pads, count-in marks, phrase paint
 and catch feedback share one announced fourth beat at a visible strike line
-ahead of Cache. Local regression and syntax pass. Hosted CI and the owner's
-new Makko review remain open; exact publication state is in the manifest.
+ahead of Cache. The linked 16-second drive includes matching Chromium
+audio. Local regression, syntax and the browser audio review pass. Final
+head CI is required for merge; the owner's Makko review remains open.
+Exact publication state is in the manifest.
 
 ## Previous art pass — merged #144
 

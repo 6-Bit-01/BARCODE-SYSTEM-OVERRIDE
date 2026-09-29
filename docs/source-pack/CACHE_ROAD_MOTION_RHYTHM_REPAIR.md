@@ -37,8 +37,8 @@ The button and three count-in marks use the same music-time road projection
 as the captured phrase paint. They reach a thin strike line just ahead of
 Cache: it stays visible while his opaque car would hide a target beneath
 the rear wheels. All cues remain within their projected lane and beneath
-traffic. The HUD shows the same 1-2-3-4 countdown and fills a narrow timing
-rail. The button remains calm until its final buildup and press window.
+traffic. The HUD shows the same 1-2-3-4 countdown. The button remains calm
+until its final buildup and press window.
 
 Judgment uses the production transport and event timestamp: 70 ms perfect,
 130 ms good, only for the announced beat four. A saved input offset adjusts
@@ -55,6 +55,10 @@ the source of the dynamic arrangement.
 
 ## Evidence
 
+- [16-second drive with sound](review-cache-motion-rhythm/Drive-Review.mp4)
+  and [preview](review-cache-motion-rhythm/Drive-Preview.webp): four timed
+  captures, three remaining signal points and the sweeper merge. The local
+  production Canvas render uses 24 fps; it is not a device performance test.
 - `review-cache-motion-rhythm/Drive-Trace.json`: input-driven production
   update trace, actual cue call times and MusicDirector stem ramps.
 - `tools/render-cache-road-mirror.cjs` with `CACHE_REVIEW_GAMEPLAY=1`:
@@ -66,7 +70,12 @@ the source of the dynamic arrangement.
   immutable deadlines, exact receptor alignment, early latching and
   duplicate suppression. Both authored four-action runs clear real traffic
   with ordinary steering and reach four music parts.
-- Local full `npm test` and all-file syntax pass. Hosted CI is the next gate.
+- Local full `npm test` and all-file syntax pass. The
+  [Chromium run](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/36608610526)
+  passed, including the real MP3s and recorded drive replay. Its
+  `review-cache-motion-rhythm/Drive-Audio-Checks.json` records the exact cue
+  start times, peak 0.525, RMS 0.080 and zero retained voices. The final
+  branch also runs the complete CI gate before merge.
 
 This is a controlled production-render and audio review. Owner Makko input
 latency, appearance and device pacing are still to be judged after import.

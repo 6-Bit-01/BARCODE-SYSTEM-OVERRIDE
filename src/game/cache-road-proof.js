@@ -3007,11 +3007,6 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.textAlign='left';ctx.fillStyle=pressNow?'#ffefa7':'#a9c9c7';
         ctx.font='bold 13px Oxanium, monospace';
         ctx.fillText('BEAT 4',1523,76);
-        // One narrowing timing rail reinforces the countdown beside the
-        // button label; its bright endpoint is always the fourth beat.
-        const fill=padReady?clamp(1-nextCue.remaining/3,0,1):0;
-        ctx.fillStyle='#314b54';ctx.fillRect(1418,82,458,3);
-        ctx.fillStyle=pressNow?'#ffeda4':'#8be5c9';ctx.fillRect(1418,82,458*fill,3);
       }
       ctx.fillStyle = '#b5cbd0'; ctx.font = '16px Oxanium, monospace';
       const armed = [s.ramMs > 0 ? `PUSH ${Math.ceil(s.ramMs / 100) / 10}s` : '',

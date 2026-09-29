@@ -1,4 +1,5 @@
-// Scripted production HUD states for art review; no gameplay or Makko capture.
+// Production Canvas review: scripted art states or input-driven gameplay.
+// This is a local render, not a Makko capture.
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
