@@ -1,5 +1,23 @@
 # Repository Guidance
 
+## September 29, 2026 — grounded streetlights and song-aware chip sound
+
+Preserve the owner-approved #150 sidelines, beat ONE and buffered gears.
+Service lamps are smaller and staggered; decorative lamps retain street
+clearance. Attach translucent rays to measured painted lenses and draw their
+ground pools beneath world actors. Share placement/light rules with the mirror.
+
+Road sound has its own chip palette and bounded three-source dynamic engine
+on the existing SFX bus. Preserve Level 1's sound path and all five music
+sources. Tonal road cues use the measured D/A or F/C root/fifth map; previews
+and early catches use the announced arrival measure, not the request's bar.
+Do not infer a complete chord progression or change the verified 128 BPM grid.
+Keep timing voices audible, transient/cache limits bounded and lifecycle
+cleanup explicit. Full regression and Chromium audio/rendering CI gate merge;
+the generated receipt records the tested outcome. See
+`docs/source-pack/CACHE_ROAD_LAMPS_CHIP_SOUND.md`. Makko mix preference and
+device performance remain owner review.
+
 ## September 29, 2026 — living sidelines and fitted vehicle lights
 
 Keep beat ONE, audible road timing and buffered gears from #149. Fit each

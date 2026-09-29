@@ -1,0 +1,34 @@
+{
+  "seconds": 32,
+  "fps": 24,
+  "frames": 768,
+  "gears": [
+    1,
+    2,
+    3
+  ],
+  "minimumIntegrity": 3,
+  "finalIntegrity": 3,
+  "capturedActions": 4,
+  "audioCueCounts": {
+    "roadQueued": 8,
+    "lift": 8,
+    "roadCount": 21,
+    "roadReady": 7,
+    "roadPerfect": 7,
+    "roadNearMiss": 10,
+    "roadCutPass": 1,
+    "roadFull": 2,
+    "data": 1,
+    "roadTurbo": 1
+  },
+  "engineUpdates": 768,
+  "originalStemIDs": [
+    "cache-breakaway",
+    "cache-drive",
+    "cache-flow",
+    "cache-pressure",
+    "cache-undercurrent"
+  ],
+  "provenance": "Deterministic production gameplay at24fps; Canvas rendering and real Chromium audio checked separately."
+}

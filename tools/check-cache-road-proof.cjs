@@ -614,9 +614,9 @@ async function run() {
       area.at>=progress-160&&area.at<=progress+864)),
       'binary range culling retains exactly the visible world records');
   }
-  assert(w.__cachePropShapes.cacheNewLampL[1]>=260&&
+  assert(w.__cachePropShapes.cacheNewLampL[1]===230&&
     w.__cachePropShapes.cacheStreetDeliveryVan[1]>=210,
-    'street lamps and parked vans have explicit full-sized stature');
+    'corner lamps use a human-scale 230-unit height while parked vans keep their stature');
   const away=w.__cacheStreetItems.find(e=>e.item.id>=15&&e.item.id%2===0&&e.item.at>500);
   const awayKey=`${away.scene.side}/${away.item.at}/${away.item.id}/${away.item.base}`;
   mirrorFrame({progress:away.item.at+600,streetMotion:{[awayKey]:700}});
@@ -733,7 +733,7 @@ async function run() {
   assert.equal(JSON.stringify(uprightPlaces(roadArt)),openingPlaces,
     'seeded roadside placement draws identically on repeated frames');
   const lamp = roadArt.find(entry => entry.key === 'cachePylon' &&
-    entry.x < 960 && entry.y > 550 && entry.y < 690);
+    entry.x < 960 && entry.y > 430 && entry.y < 1080);
   assert(lamp, 'streetlights share the side road with parcels and filler');
   mirrorFrame({ progress: 32 });
   const advancingMarket = roadArt.filter(entry => entry.key === 'cachePlaceMarket' && entry.flip)
@@ -768,11 +768,11 @@ async function run() {
   for(const progress of [0,60,120,160]) {
     mirrorFrame({progress});
     const area=roadArt.find(entry=>entry.key==='cachePlaceRelayExchange');
-    const lampDepth=(525/620)*Math.pow((1200-(710-progress))/1200,3.1);
+    const lampDepth=(525/620)*Math.pow((1200-(616-progress))/1200,3.1);
     const lamp=roadArt.filter(entry=>entry.key==='cachePylon'&&entry.x<960)
-      .sort((a,b)=>Math.abs(a.width-214*lampDepth)-
-        Math.abs(b.width-214*lampDepth))[0];
-    assert(area&&lamp&&Math.abs(lamp.width-214*lampDepth)<.3,
+      .sort((a,b)=>Math.abs(a.width-139.1*lampDepth)-
+        Math.abs(b.width-139.1*lampDepth))[0];
+    assert(area&&lamp&&Math.abs(lamp.width-139.1*lampDepth)<.3,
       'the same world-addressed lamp and featured area remain present from the horizon');
     areaReveal.push([area.width,uncovered(area),area.height]);
     areaEdges.push({clip:area.clipHeight,left:area.clipLeft,
