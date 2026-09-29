@@ -1,5 +1,18 @@
 # Current State
 
+## September 29 — mirrored roadside and confirmed four-bar paint
+
+The rearview now renders the same passed graph street mouths, district cards,
+featured places, satellite fronts and individual street people/props used by
+the forward road, at miniature rearward depth beneath the existing blur.
+Those art addresses move toward the mirror horizon as Cache advances; the
+face and glass remain sharp. The confirmed lane phrase has a new painted
+transparent WebP with four beat slashes per bar. A continuous lane tint joins
+the next four visible bar tiles after a successful press. Queued bars retain
+the subdued old strip; pickups, cars and music rules are unchanged. Production
+draw stills and focused checks cover the layout and progression; moving Makko
+appearance and frame pacing remain an owner review.
+
 ## September 29 — world-backed Cache Road rearview
 
 The mirror now looks at the 440 road units Cache has passed, using the same

@@ -302,7 +302,8 @@ async function run() {
   assert.equal(C.readResume().levelState.proofVersion, 4);
   const roadStart = copy(C.readResume());
   const liveState = road.state, oldArt = B.PresentationAssets;
-  const mirrorFrames = [], mirrorRoads = [], mirrorTraffic = [];
+  const mirrorFrames = [], mirrorRoads = [], mirrorTraffic = [], mirrorArt = [];
+  const mirrorStreets = [], litRunways = [];
   const roadArt = [], openingRects = [], drawOrder = [], hudLines = [], contacts = [];
   const trafficLabels = [], beacons = [], sidewalkEdges = [], clipStack = [];
   const ridgeAt = (points,x) => {
@@ -317,13 +318,16 @@ async function run() {
     draw(key, _ctx, options) {
     if (key === 'cacheMirror') mirrorFrames.push({ frame: options.frame,
       sourceRect: options.sourceRect, x: options.x, y: options.y, filter: _ctx.filter });
+    else if (_ctx.filter === 'blur(2.3px)')
+      mirrorArt.push({key,...options,alpha:_ctx.globalAlpha ?? 1});
     else { roadArt.push({ key, ...options, alpha:_ctx.globalAlpha ?? 1,
       clipHeight: ridgeAt(_ctx.ridge,options.x),
       clipLeft: ridgeAt(_ctx.ridge,options.x-(options.width||0)/2),
       clipRight: ridgeAt(_ctx.ridge,options.x+(options.width||0)/2),
       ...(key === 'cacheOutskirts' ? { ridgeCenter:ridgeAt(_ctx.ridge,960),
         ridgeEdge:ridgeAt(_ctx.ridge,0) } : {}),
-      ...(['cacheRollingGrain','cacheWorkshopPavement','cacheLocalStreet'].includes(key) ||
+      ...(['cacheRollingGrain','cacheWorkshopPavement','cacheLocalStreet',
+        'cacheConfirmedBar'].includes(key) ||
         key.endsWith('Turn')||key.endsWith('Curb') ?
         { projected:_ctx.lastTransform?.slice() } : {}),
       ...(['cacheCar','cacheFreight','cacheSweeper'].includes(key) ?
@@ -366,6 +370,10 @@ async function run() {
     }, fill() {
       if (this.fillStyle === '#174c51') drawOrder.push('roadPad');
       if (this.fillStyle === '#192e39') mirrorRoads.push(this.path.slice());
+      if (this.filter === 'blur(2.3px)' && this.fillStyle === '#263841')
+        mirrorStreets.push(this.path.slice());
+      if (this.filter !== 'blur(2.3px)' && this.fillStyle === '#69d9f5' &&
+        this.path?.length === 26) litRunways.push(this.path.slice());
     },
     translate(x,y) { this.lastTranslate = [x,y]; },
     transform(...values) { this.lastTransform = values; },
@@ -388,6 +396,7 @@ async function run() {
       candidateHold: 0, cutFlashMs: 0, messageMs: 0, rivalWarning: false,
       ...overrides };
     mirrorFrames.length = 0; mirrorRoads.length = 0; mirrorTraffic.length = 0;
+    mirrorArt.length = 0; mirrorStreets.length = 0; litRunways.length = 0;
     roadArt.length = 0; openingRects.length = 0;
     drawOrder.length = 0; hudLines.length = 0; contacts.length = 0;
     sidewalkEdges.length = 0;
@@ -415,6 +424,25 @@ async function run() {
   assert.equal(mirrorTraffic.length,2,'the same passed car remains behind Cache');
   assert(mirrorTraffic[0].y<firstLight.y && mirrorTraffic[0].width<firstLight.width,
     'a passed car recedes and shrinks as road progress increases');
+  assert(mirrorArt.some(entry=>entry.key==='cachePlaceHouse') &&
+    mirrorArt.some(entry=>entry.key==='cachePlaceMarket'),
+    'actual featured buildings enter the mirror only after they are passed');
+  const rearHouse=mirrorArt.find(entry=>entry.key==='cachePlaceHouse');
+  mirrorFrame({progress:300});
+  assert(mirrorArt.find(entry=>entry.key==='cachePlaceHouse').height<rearHouse.height,
+    'passed roadside art shrinks toward the rear horizon');
+  const firstStreet=landscape.streets.find(street=>street.at>500 && street.at<2000);
+  assert(firstStreet,'the street graph contains a rearview review address');
+  mirrorFrame({progress:firstStreet.at-1});
+  const oldMouths=mirrorStreets.length;
+  mirrorFrame({progress:firstStreet.at+1});
+  assert(mirrorStreets.length>oldMouths,
+    'the actual branch road opens in the mirror only after passage');
+  const firstCard=landscape.plates.find(plate=>plate.at>150 && plate.at<1500);
+  assert(firstCard,'the district graph contains a rearview review card');
+  mirrorFrame({progress:firstCard.at+1});
+  assert(mirrorArt.some(entry=>entry.key===firstCard.art[0] && entry.width<80),
+    'the same painted district card is miniaturized in the blurred glass');
   mirrorFrame({progress:450});
   assert.notEqual((mirrorRoads[0][0].x+mirrorRoads[0].at(-1).x)/2,
     (firstBend[0].x+firstBend.at(-1).x)/2,
@@ -895,6 +923,19 @@ async function run() {
     'illustrated road paint is composited beneath physical traffic');
   assert(roadSource.includes('depth(d-PAD_EARLY),stripFar=depth(d+PAD_LATE)'),
     'the visible strip spans the same world-space input range as catchPulse');
+  const phrase={lane:0,startBeat:32,endBeat:64};
+  mirrorFrame({progress:385,musicBeatFloat:32,captures:[],queuedCaptures:[phrase]});
+  assert(!drawOrder.includes('cacheConfirmedBar') &&
+    drawOrder.includes('cachePhraseStrip'),
+    'an unconfirmed phrase keeps a subdued preview');
+  mirrorFrame({progress:385,musicBeatFloat:32,captures:[phrase],queuedCaptures:[]});
+  const confirmed=roadArt.filter(entry=>entry.key==='cacheConfirmedBar');
+  assert.equal(confirmed.length,8,'exactly four confirmed bar tiles map as two road triangles each');
+  assert.equal(litRunways.length,1,'one continuous lane wash joins the four painted bars');
+  assert(litRunways[0][12].y-litRunways[0][0].y>200 &&
+    confirmed.every(entry=>entry.alpha===.68 && entry.projected?.length===6) &&
+    drawOrder.indexOf('cacheConfirmedBar')<drawOrder.indexOf('cacheFreight'),
+    'the confirmed stretch follows road depth and stays beneath traffic');
   mirrorFrame({ progress: 130, pulseFlashMs: 500 });
   assert(drawOrder.includes('cachePulseBurst'),
     'a successful catch gets its own brief painted HUD burst');

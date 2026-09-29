@@ -9,6 +9,12 @@ the car advances. The reflected scene is softly blurred, while the face,
 glass marks and frame remain crisp. Reduced Motion still allows positional
 updates because they show the current place on the route.
 
+The later side-road pass replaces the schematic parcel boxes with the actual
+district/featured paintings and street people/props already chosen by the
+world graph. Graph street mouths cut through the reflected sidewalk only
+after the player passes their address. This is the small rearward counterpart
+of the forward road, not a copy of the current windshield image.
+
 The latest owner review supersedes the first recovered-art parallax pass.
 The mirror crop now moves Cache Back farther into the same glass without
 resizing him. The turn art is swapped to match the actual car direction.

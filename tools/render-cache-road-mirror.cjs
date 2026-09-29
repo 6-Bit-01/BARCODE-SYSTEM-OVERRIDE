@@ -178,6 +178,7 @@ async function main() {
     cachePulsePad: 'assets/cache-road/roadside/beat/pulse-pad.webp',
     cachePulseStrip: 'assets/cache-road/roadside/beat/approach-strip.webp',
     cachePhraseStrip: 'assets/cache-road/roadside/beat/beat-phrase.webp',
+    cacheConfirmedBar: 'assets/cache-road/roadside/beat/confirmed-bar.webp',
     cachePulseBurst: 'assets/cache-road/roadside/beat/pulse-burst.webp',
     cachePulseSurge: 'assets/cache-road/roadside/beat/surge.webp',
     cachePulsePush: 'assets/cache-road/roadside/beat/push.webp',
@@ -375,10 +376,10 @@ async function main() {
       const frameHeight = key === 'cacheFly1' ? 83 : key === 'cacheFly3' ? 97 : image.height;
       const [sx, sy, sw, sh] = sourceRect || [0,0,mirror ? 512 : frameWidth,mirror ? 512 : frameHeight];
       const flatJoin=key.endsWith('Turn')||key.endsWith('Curb');
-      const ax = key === 'cacheDamagedExhaust' ? 1 : pulseIcon ? .5 : key === 'cachePulsePad' || key === 'cachePulseStrip' || key === 'cachePhraseStrip' || key === 'cacheSkyline' || key === 'cacheDistantCity' || key === 'cacheOutskirts' || key === 'cacheMidCity' || key === 'cacheBlacktop' || key === 'cacheSidewalk' || key.endsWith('Ground') || key === 'cacheRollingGrain' || key === 'cacheWorkshopPavement' || key === 'cacheLocalStreet' || flatJoin ? 0 :
+      const ax = key === 'cacheDamagedExhaust' ? 1 : pulseIcon ? .5 : key === 'cachePulsePad' || key === 'cachePulseStrip' || key === 'cachePhraseStrip' || key === 'cacheConfirmedBar' || key === 'cacheSkyline' || key === 'cacheDistantCity' || key === 'cacheOutskirts' || key === 'cacheMidCity' || key === 'cacheBlacktop' || key === 'cacheSidewalk' || key.endsWith('Ground') || key === 'cacheRollingGrain' || key === 'cacheWorkshopPavement' || key === 'cacheLocalStreet' || flatJoin ? 0 :
         key === 'cachePylon' ? .28 : .5;
       const ay = key === 'cacheMirror' || ship || pulseIcon ? .5 :
-        key === 'cacheDamagedExhaust' || key === 'cacheBrakeReflection' || key === 'cachePulsePad' || key === 'cachePulseStrip' || key === 'cachePhraseStrip' || key === 'cacheBlacktop' || key === 'cacheSidewalk' || key.endsWith('Ground') || key === 'cacheRollingGrain' || key === 'cacheWorkshopPavement' || key === 'cacheLocalStreet' || flatJoin ? 0 : 1;
+        key === 'cacheDamagedExhaust' || key === 'cacheBrakeReflection' || key === 'cachePulsePad' || key === 'cachePulseStrip' || key === 'cachePhraseStrip' || key === 'cacheConfirmedBar' || key === 'cacheBlacktop' || key === 'cacheSidewalk' || key.endsWith('Ground') || key === 'cacheRollingGrain' || key === 'cacheWorkshopPavement' || key === 'cacheLocalStreet' || flatJoin ? 0 : 1;
       const reviewFlip=key === 'cacheReviewPlace' &&
         process.env.CACHE_REVIEW_FLIP_RIGHT === '1' && x>960;
       ctx.save(); ctx.translate(x,y);
@@ -485,7 +486,9 @@ async function main() {
       Number(process.env.CACHE_REVIEW_BEAT_OFFSET) : local % 1.875 * 4 / 1.875);
     // Scripted arrangement states expose queued, single, and full-stack road
     // markings for art review; no audio or playable route is implied.
-    const reviewParts=continuous ? [[0],[0,1],[0,1,3],[0,1,2,3]][Math.min(3,Math.floor(local/8))] :
+    const reviewParts=process.env.CACHE_REVIEW_CAPTURE_LANES ?
+      process.env.CACHE_REVIEW_CAPTURE_LANES.split(',').map(Number).filter(lane=>lane>=0&&lane<4) :
+      continuous ? [[0],[0,1],[0,1,3],[0,1,2,3]][Math.min(3,Math.floor(local/8))] :
       worldReview ? [[],[],[0],[0,1],[0,1,3],[1,3],[0,1,2,3]][chapterIndex] : [];
     s.captures=reviewParts.map(lane => ({ lane,startBeat:(s.musicBar-1)*4,
       endBeat:(s.musicBar+7)*4 }));
