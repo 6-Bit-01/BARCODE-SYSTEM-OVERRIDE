@@ -107,6 +107,10 @@ audio.playRoadCue('roadCrash');
   assert.equal(audio.roadEngine,null);assert.equal(audio.roadEngineReleases.size,0);
   assert.equal(audio.combatVoices.size,0);assert.equal(audio.playRoadCue('roadCount'),false);
   await audio.resumeRuntimeAudio();assert.equal(audio.roadEngine,null,'resume waits for active gameplay');
+  audio.updateRoadEngine({active:true,gear:0,speed:30});audio.stopRoadEngine();
+  assert.equal(audio.roadEngineReleases.size,1);
+  await audio.pauseRuntimeAudio();assert.equal(audio.roadEngineReleases.size,0,
+    'pausing during a failure release cannot replay its tail after resume');
   console.log(JSON.stringify({pcmVariants:checked,peak,minRms,firstBeatRoots:{D:92,F:8},
     sourceClockDeadlines:true,voiceCap:12,cacheCap:96,engineUpdates:6000,engineSources:3,
     gearLoad:true,boostRev:true,releaseMs:25,pauseCleanup:true,legacyAudioPreserved:true}));

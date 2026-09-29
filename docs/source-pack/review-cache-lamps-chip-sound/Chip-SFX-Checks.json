@@ -1,0 +1,1522 @@
+{
+  "seconds": 42,
+  "sampleRate": 32000,
+  "grid": {
+    "bpm": 128,
+    "beatSec": 0.46875,
+    "meter": "4/4"
+  },
+  "originalStems": [
+    "pressure",
+    "drive",
+    "flow",
+    "breakaway",
+    "undercurrent"
+  ],
+  "musicSourceStarts": [
+    {
+      "stem": "pressure",
+      "starts": [
+        [
+          26,
+          30
+        ]
+      ],
+      "stops": [
+        [
+          41
+        ]
+      ]
+    },
+    {
+      "stem": "drive",
+      "starts": [
+        [
+          26,
+          30
+        ]
+      ],
+      "stops": [
+        [
+          41
+        ]
+      ]
+    },
+    {
+      "stem": "flow",
+      "starts": [
+        [
+          26,
+          30
+        ]
+      ],
+      "stops": [
+        [
+          41
+        ]
+      ]
+    },
+    {
+      "stem": "breakaway",
+      "starts": [
+        [
+          26,
+          30
+        ]
+      ],
+      "stops": [
+        [
+          41
+        ]
+      ]
+    },
+    {
+      "stem": "undercurrent",
+      "starts": [
+        [
+          26,
+          30
+        ]
+      ],
+      "stops": [
+        [
+          41
+        ]
+      ]
+    }
+  ],
+  "metrics": {
+    "peak": 0.608596682548523,
+    "rms": 0.0610911669119188,
+    "dc": 0.00010841157249200282,
+    "clipped": 0,
+    "samples": 2688000
+  },
+  "labels": [
+    {
+      "label": "Count TWO",
+      "kind": "roadCount",
+      "from": 0.25,
+      "to": 1.08,
+      "section": "isolated",
+      "metrics": {
+        "peak": 0.07135282456874847,
+        "rms": 0.004348400491894514,
+        "dc": -0.0000036876503788748614,
+        "clipped": 0,
+        "samples": 53120
+      }
+    },
+    {
+      "label": "Count THREE",
+      "kind": "roadCount",
+      "from": 1.13,
+      "to": 1.96,
+      "section": "isolated",
+      "metrics": {
+        "peak": 0.06902117282152176,
+        "rms": 0.004323626063863165,
+        "dc": -0.00001359230246636349,
+        "clipped": 0,
+        "samples": 53120
+      }
+    },
+    {
+      "label": "Count FOUR",
+      "kind": "roadCount",
+      "from": 2.01,
+      "to": 2.84,
+      "section": "isolated",
+      "metrics": {
+        "peak": 0.07912003248929977,
+        "rms": 0.004318064124979872,
+        "dc": -0.000010077613228962391,
+        "clipped": 0,
+        "samples": 53122
+      }
+    },
+    {
+      "label": "Downbeat ONE",
+      "kind": "roadReady",
+      "from": 2.89,
+      "to": 3.72,
+      "section": "isolated",
+      "metrics": {
+        "peak": 0.13827717304229736,
+        "rms": 0.012625645605325966,
+        "dc": -0.000010256445601356403,
+        "clipped": 0,
+        "samples": 53120
+      }
+    },
+    {
+      "label": "Perfect catch",
+      "kind": "roadPerfect",
+      "from": 3.77,
+      "to": 4.6,
+      "section": "isolated",
+      "metrics": {
+        "peak": 0.13990318775177002,
+        "rms": 0.02317290548428349,
+        "dc": 0.000014640931160474463,
+        "clipped": 0,
+        "samples": 53120
+      }
+    },
+    {
+      "label": "Good catch",
+      "kind": "roadGood",
+      "from": 4.65,
+      "to": 5.48,
+      "section": "isolated",
+      "metrics": {
+        "peak": 0.10564778000116348,
+        "rms": 0.012929407985219585,
+        "dc": -0.000021879723926854625,
+        "clipped": 0,
+        "samples": 53120
+      }
+    },
+    {
+      "label": "Impact / crash",
+      "kind": "roadCrash",
+      "from": 5.53,
+      "to": 6.36,
+      "section": "isolated",
+      "metrics": {
+        "peak": 0.2968677878379822,
+        "rms": 0.051323985815651896,
+        "dc": 0.00004180771290013597,
+        "clipped": 0,
+        "samples": 53120
+      }
+    },
+    {
+      "label": "Gear shift",
+      "kind": "roadShift",
+      "from": 6.41,
+      "to": 7.24,
+      "section": "isolated",
+      "metrics": {
+        "peak": 0.05841357633471489,
+        "rms": 0.006515298522253724,
+        "dc": -0.000004045285077263981,
+        "clipped": 0,
+        "samples": 53120
+      }
+    },
+    {
+      "label": "Turbo launch",
+      "kind": "roadTurbo",
+      "from": 7.29,
+      "to": 8.12,
+      "section": "isolated",
+      "metrics": {
+        "peak": 0.11128121614456177,
+        "rms": 0.024519955329381747,
+        "dc": -0.000057175901579065826,
+        "clipped": 0,
+        "samples": 53120
+      }
+    },
+    {
+      "label": "Turbo ready",
+      "kind": "roadTurboReady",
+      "from": 8.17,
+      "to": 9,
+      "section": "isolated",
+      "metrics": {
+        "peak": 0.06906914710998535,
+        "rms": 0.014848042713144544,
+        "dc": -0.000014176007105873735,
+        "clipped": 0,
+        "samples": 53120
+      }
+    },
+    {
+      "label": "Close pass",
+      "kind": "roadNearMiss",
+      "from": 9.05,
+      "to": 9.88,
+      "section": "isolated",
+      "metrics": {
+        "peak": 0.06567360460758209,
+        "rms": 0.00652171579527592,
+        "dc": -0.000008358876303176485,
+        "clipped": 0,
+        "samples": 53120
+      }
+    },
+    {
+      "label": "Brace / protection",
+      "kind": "roadBrace",
+      "from": 9.93,
+      "to": 10.76,
+      "section": "isolated",
+      "metrics": {
+        "peak": 0.10983120650053024,
+        "rms": 0.01119446498821418,
+        "dc": -0.0000028634852504550158,
+        "clipped": 0,
+        "samples": 53120
+      }
+    },
+    {
+      "label": "Push",
+      "kind": "roadPush",
+      "from": 10.81,
+      "to": 11.64,
+      "section": "isolated",
+      "metrics": {
+        "peak": 0.09256301075220108,
+        "rms": 0.011832018911087273,
+        "dc": 0.000012212639857036365,
+        "clipped": 0,
+        "samples": 53120
+      }
+    },
+    {
+      "label": "Echo",
+      "kind": "roadEcho",
+      "from": 11.69,
+      "to": 12.52,
+      "section": "isolated",
+      "metrics": {
+        "peak": 0.07030681520700455,
+        "rms": 0.01721631768874689,
+        "dc": -0.000005422532897138907,
+        "clipped": 0,
+        "samples": 53120
+      }
+    },
+    {
+      "label": "Lane lock",
+      "kind": "roadLock",
+      "from": 12.57,
+      "to": 13.4,
+      "section": "isolated",
+      "metrics": {
+        "peak": 0.056095581501722336,
+        "rms": 0.009043935290568628,
+        "dc": -0.000008645423602581422,
+        "clipped": 0,
+        "samples": 53120
+      }
+    },
+    {
+      "label": "Refill",
+      "kind": "roadRefill",
+      "from": 13.45,
+      "to": 14.28,
+      "section": "isolated",
+      "metrics": {
+        "peak": 0.07075376063585281,
+        "rms": 0.01521981059014122,
+        "dc": -0.000014532242173928867,
+        "clipped": 0,
+        "samples": 53120
+      }
+    },
+    {
+      "label": "Warning",
+      "kind": "roadWarning",
+      "from": 14.33,
+      "to": 15.16,
+      "section": "isolated",
+      "metrics": {
+        "peak": 0.05819381773471832,
+        "rms": 0.005645628340568826,
+        "dc": -0.00001007874892059272,
+        "clipped": 0,
+        "samples": 53120
+      }
+    },
+    {
+      "label": "Miss",
+      "kind": "roadMiss",
+      "from": 15.21,
+      "to": 16.04,
+      "section": "isolated",
+      "metrics": {
+        "peak": 0.04794726148247719,
+        "rms": 0.005292389771818337,
+        "dc": -0.00003797161489251746,
+        "clipped": 0,
+        "samples": 53120
+      }
+    },
+    {
+      "label": "Empty",
+      "kind": "roadEmpty",
+      "from": 16.09,
+      "to": 16.919999999999998,
+      "section": "isolated",
+      "metrics": {
+        "peak": 0.028514398261904716,
+        "rms": 0.0025500575726689462,
+        "dc": -0.000021346918059778666,
+        "clipped": 0,
+        "samples": 53120
+      }
+    },
+    {
+      "label": "Downbeat ONE in the F-bass measure",
+      "kind": "roadReady",
+      "from": 17.05,
+      "to": 17.88,
+      "section": "isolated",
+      "metrics": {
+        "peak": 0.1467825174331665,
+        "rms": 0.012512403978665532,
+        "dc": -0.00002546057134098367,
+        "clipped": 0,
+        "samples": 53120
+      }
+    },
+    {
+      "label": "Engine: three gears, load-up, turbo and damage",
+      "from": 18,
+      "to": 24,
+      "section": "engine"
+    },
+    {
+      "label": "Original five stems with dynamic chip engine and cues",
+      "from": 26,
+      "to": 41,
+      "section": "in-song"
+    },
+    {
+      "label": "roadReady",
+      "kind": "roadReady",
+      "from": 27.875,
+      "to": 28.625,
+      "section": "in-song cue"
+    },
+    {
+      "label": "roadPerfect",
+      "kind": "roadPerfect",
+      "from": 29.75,
+      "to": 30.5,
+      "section": "in-song cue"
+    },
+    {
+      "label": "roadNearMiss",
+      "kind": "roadNearMiss",
+      "from": 30.6875,
+      "to": 31.4375,
+      "section": "in-song cue"
+    },
+    {
+      "label": "roadShift",
+      "kind": "roadShift",
+      "from": 31.625,
+      "to": 32.375,
+      "section": "in-song cue"
+    },
+    {
+      "label": "roadTurboReady",
+      "kind": "roadTurboReady",
+      "from": 32.5625,
+      "to": 33.3125,
+      "section": "in-song cue"
+    },
+    {
+      "label": "roadTurbo",
+      "kind": "roadTurbo",
+      "from": 33.5,
+      "to": 34.25,
+      "section": "in-song cue"
+    },
+    {
+      "label": "roadBrace",
+      "kind": "roadBrace",
+      "from": 34.4375,
+      "to": 35.1875,
+      "section": "in-song cue"
+    },
+    {
+      "label": "roadGood",
+      "kind": "roadGood",
+      "from": 35.375,
+      "to": 36.125,
+      "section": "in-song cue"
+    },
+    {
+      "label": "roadCrash",
+      "kind": "roadCrash",
+      "from": 36.3125,
+      "to": 37.0625,
+      "section": "in-song cue"
+    },
+    {
+      "label": "roadEcho",
+      "kind": "roadEcho",
+      "from": 37.25,
+      "to": 38,
+      "section": "in-song cue"
+    },
+    {
+      "label": "roadPerfect",
+      "kind": "roadPerfect",
+      "from": 39.125,
+      "to": 39.875,
+      "section": "in-song cue"
+    }
+  ],
+  "scheduled": [
+    {
+      "kind": "roadCount",
+      "at": 0.25,
+      "calledAt": 0.19,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 0.25,
+      "priority": 3,
+      "noteRoot": "D",
+      "bar": 4,
+      "action": 0,
+      "countBeat": 2,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadCount",
+      "at": 1.13,
+      "calledAt": 1.0699999999999998,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 1.13,
+      "priority": 3,
+      "noteRoot": "D",
+      "bar": 4,
+      "action": 0,
+      "countBeat": 3,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadCount",
+      "at": 2.01,
+      "calledAt": 1.9499999999999997,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 2.01,
+      "priority": 3,
+      "noteRoot": "D",
+      "bar": 4,
+      "action": 0,
+      "countBeat": 4,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadReady",
+      "at": 2.89,
+      "calledAt": 2.83,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 2.89,
+      "priority": 3,
+      "noteRoot": "D",
+      "bar": 4,
+      "action": 0,
+      "countBeat": 2,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadPerfect",
+      "at": 3.77,
+      "calledAt": 3.71,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 3.77,
+      "priority": 3,
+      "noteRoot": "D",
+      "bar": 4,
+      "action": 2,
+      "countBeat": 2,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadGood",
+      "at": 4.65,
+      "calledAt": 4.590000000000001,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 4.65,
+      "priority": 3,
+      "noteRoot": "D",
+      "bar": 4,
+      "action": 0,
+      "countBeat": 2,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadCrash",
+      "at": 5.53,
+      "calledAt": 5.470000000000001,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 5.53,
+      "priority": 4,
+      "noteRoot": "D",
+      "bar": 4,
+      "action": 0,
+      "countBeat": 2,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadShift",
+      "at": 6.41,
+      "calledAt": 6.3500000000000005,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 6.41,
+      "priority": 1,
+      "noteRoot": "D",
+      "bar": 4,
+      "action": 0,
+      "countBeat": 2,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadTurbo",
+      "at": 7.29,
+      "calledAt": 7.23,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 7.29,
+      "priority": 2,
+      "noteRoot": "D",
+      "bar": 4,
+      "action": 0,
+      "countBeat": 2,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadTurboReady",
+      "at": 8.17,
+      "calledAt": 8.11,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 8.17,
+      "priority": 2,
+      "noteRoot": "D",
+      "bar": 4,
+      "action": 0,
+      "countBeat": 2,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadNearMiss",
+      "at": 9.05,
+      "calledAt": 8.99,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 9.05,
+      "priority": 1,
+      "noteRoot": "D",
+      "bar": 4,
+      "action": 0,
+      "countBeat": 2,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadBrace",
+      "at": 9.93,
+      "calledAt": 9.87,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 9.93,
+      "priority": 2,
+      "noteRoot": "D",
+      "bar": 4,
+      "action": 0,
+      "countBeat": 2,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadPush",
+      "at": 10.81,
+      "calledAt": 10.75,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 10.81,
+      "priority": 2,
+      "noteRoot": "D",
+      "bar": 4,
+      "action": 0,
+      "countBeat": 2,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadEcho",
+      "at": 11.69,
+      "calledAt": 11.629999999999999,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 11.69,
+      "priority": 2,
+      "noteRoot": "D",
+      "bar": 4,
+      "action": 0,
+      "countBeat": 2,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadLock",
+      "at": 12.57,
+      "calledAt": 12.51,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 12.57,
+      "priority": 1,
+      "noteRoot": "D",
+      "bar": 4,
+      "action": 0,
+      "countBeat": 2,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadRefill",
+      "at": 13.45,
+      "calledAt": 13.389999999999999,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 13.45,
+      "priority": 2,
+      "noteRoot": "D",
+      "bar": 4,
+      "action": 0,
+      "countBeat": 2,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadWarning",
+      "at": 14.33,
+      "calledAt": 14.27,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 14.33,
+      "priority": 3,
+      "noteRoot": "D",
+      "bar": 4,
+      "action": 0,
+      "countBeat": 2,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadMiss",
+      "at": 15.21,
+      "calledAt": 15.15,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 15.21,
+      "priority": 2,
+      "noteRoot": "D",
+      "bar": 4,
+      "action": 0,
+      "countBeat": 2,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadEmpty",
+      "at": 16.09,
+      "calledAt": 16.03,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 16.09,
+      "priority": 1,
+      "noteRoot": "D",
+      "bar": 4,
+      "action": 0,
+      "countBeat": 2,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadReady",
+      "at": 17.05,
+      "calledAt": 16.990000000000002,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 17.05,
+      "priority": 3,
+      "noteRoot": "F",
+      "bar": 21,
+      "action": 0,
+      "countBeat": 2,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadCount",
+      "at": 26.46875,
+      "calledAt": 26.34875,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 26.46875,
+      "priority": 3,
+      "noteRoot": "D",
+      "bar": 16,
+      "action": 0,
+      "countBeat": 2,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadCount",
+      "at": 26.9375,
+      "calledAt": 26.8175,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 26.9375,
+      "priority": 3,
+      "noteRoot": "D",
+      "bar": 16,
+      "action": 0,
+      "countBeat": 3,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadCount",
+      "at": 27.40625,
+      "calledAt": 27.28625,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 27.40625,
+      "priority": 3,
+      "noteRoot": "D",
+      "bar": 16,
+      "action": 0,
+      "countBeat": 4,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadReady",
+      "at": 27.875,
+      "calledAt": 27.735,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 27.875,
+      "priority": 3,
+      "noteRoot": "D",
+      "bar": 17,
+      "action": 0,
+      "countBeat": 2,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadPerfect",
+      "at": 29.75,
+      "calledAt": 29.61,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 29.75,
+      "priority": 3,
+      "noteRoot": "D",
+      "bar": 18,
+      "action": 2,
+      "countBeat": 2,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadNearMiss",
+      "at": 30.6875,
+      "calledAt": 30.5475,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 30.6875,
+      "priority": 1,
+      "noteRoot": "D",
+      "bar": 18,
+      "action": 0,
+      "countBeat": 2,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadShift",
+      "at": 31.625,
+      "calledAt": 31.485,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 31.625,
+      "priority": 1,
+      "noteRoot": "D",
+      "bar": 19,
+      "action": 0,
+      "countBeat": 2,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadTurboReady",
+      "at": 32.5625,
+      "calledAt": 32.4225,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 32.5625,
+      "priority": 2,
+      "noteRoot": "D",
+      "bar": 19,
+      "action": 0,
+      "countBeat": 2,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadTurbo",
+      "at": 33.5,
+      "calledAt": 33.36,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 33.5,
+      "priority": 2,
+      "noteRoot": "D",
+      "bar": 20,
+      "action": 0,
+      "countBeat": 2,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadBrace",
+      "at": 34.4375,
+      "calledAt": 34.2975,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 34.4375,
+      "priority": 2,
+      "noteRoot": "D",
+      "bar": 20,
+      "action": 0,
+      "countBeat": 2,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadGood",
+      "at": 35.375,
+      "calledAt": 35.235,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 35.375,
+      "priority": 3,
+      "noteRoot": "F",
+      "bar": 21,
+      "action": 1,
+      "countBeat": 2,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadCrash",
+      "at": 36.3125,
+      "calledAt": 36.1725,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 36.3125,
+      "priority": 4,
+      "noteRoot": "F",
+      "bar": 21,
+      "action": 0,
+      "countBeat": 2,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadEcho",
+      "at": 37.25,
+      "calledAt": 37.11,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 37.25,
+      "priority": 2,
+      "noteRoot": "D",
+      "bar": 22,
+      "action": 0,
+      "countBeat": 2,
+      "duplicateRejected": true
+    },
+    {
+      "kind": "roadPerfect",
+      "at": 39.125,
+      "calledAt": 38.985,
+      "road": true,
+      "reason": "scheduled",
+      "audioTimeSec": 39.125,
+      "priority": 3,
+      "noteRoot": "D",
+      "bar": 23,
+      "action": 3,
+      "countBeat": 2,
+      "duplicateRejected": true
+    }
+  ],
+  "engineSamples": [
+    {
+      "at": 18,
+      "gear": 0,
+      "speed": 30,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.2,
+      "rpmHz": 87.33846153846154,
+      "pulseHz": 68,
+      "subHz": 34
+    },
+    {
+      "at": 18.5,
+      "gear": 0,
+      "speed": 30,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.5249999999999999,
+      "rpmHz": 85.38846153846154,
+      "pulseHz": 85.72098541259766,
+      "subHz": 42.86049270629883
+    },
+    {
+      "at": 19,
+      "gear": 0,
+      "speed": 30,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.7629165124598851,
+      "rpmHz": 83.96096246370223,
+      "pulseHz": 84.17375946044922,
+      "subHz": 42.08687973022461
+    },
+    {
+      "at": 19.5,
+      "gear": 0,
+      "speed": 30,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.8500000000000001,
+      "rpmHz": 83.43846153846155,
+      "pulseHz": 83.46549224853516,
+      "subHz": 41.73274612426758
+    },
+    {
+      "at": 20,
+      "gear": 1,
+      "speed": 52,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.7629165124598851,
+      "rpmHz": 92.42250092524068,
+      "pulseHz": 71.50977325439453,
+      "subHz": 35.754886627197266
+    },
+    {
+      "at": 20.5,
+      "gear": 1,
+      "speed": 52,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.5249999999999999,
+      "rpmHz": 93.85,
+      "pulseHz": 93.52605438232422,
+      "subHz": 46.76302719116211
+    },
+    {
+      "at": 21,
+      "gear": 1,
+      "speed": 52,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.2000000000000001,
+      "rpmHz": 95.8,
+      "pulseHz": 95.42121124267578,
+      "subHz": 47.71060562133789
+    },
+    {
+      "at": 21.5,
+      "gear": 1,
+      "speed": 52,
+      "shifting": 0.85,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.5250000000000001,
+      "rpmHz": 73.44999999999999,
+      "pulseHz": 94.19117736816406,
+      "subHz": 47.09558868408203
+    },
+    {
+      "at": 22,
+      "gear": 2,
+      "speed": 70,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.7629165124598849,
+      "rpmHz": 95.34557784831759,
+      "pulseHz": 91.123046875,
+      "subHz": 45.5615234375
+    },
+    {
+      "at": 22.5,
+      "gear": 2,
+      "speed": 78,
+      "shifting": 0,
+      "boost": 1,
+      "damage": 0,
+      "load": 0.8500000000000001,
+      "rpmHz": 130.9,
+      "pulseHz": 130.15469360351562,
+      "subHz": 65.07734680175781
+    },
+    {
+      "at": 23,
+      "gear": 2,
+      "speed": 70,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.7629165124598851,
+      "rpmHz": 95.34557784831759,
+      "pulseHz": 131.25616455078125,
+      "subHz": 65.62808227539062
+    },
+    {
+      "at": 23.5,
+      "gear": 2,
+      "speed": 70,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0.8,
+      "load": 0.5250000000000004,
+      "rpmHz": 96.7730769230769,
+      "pulseHz": 96.47502136230469,
+      "subHz": 48.237510681152344
+    },
+    {
+      "at": 26,
+      "gear": 0,
+      "speed": 30,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.2,
+      "rpmHz": 87.33846153846154,
+      "pulseHz": 68,
+      "subHz": 34
+    },
+    {
+      "at": 26.5,
+      "gear": 0,
+      "speed": 30,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.33514259903154353,
+      "rpmHz": 86.52760594427228,
+      "pulseHz": 86.66842651367188,
+      "subHz": 43.33421325683594
+    },
+    {
+      "at": 27,
+      "gear": 0,
+      "speed": 30,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.4643788179992701,
+      "rpmHz": 85.75218863046592,
+      "pulseHz": 85.8929214477539,
+      "subHz": 42.94646072387695
+    },
+    {
+      "at": 27.5,
+      "gear": 0,
+      "speed": 30,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.5820604139901076,
+      "rpmHz": 85.04609905452091,
+      "pulseHz": 85.1717529296875,
+      "subHz": 42.58587646484375
+    },
+    {
+      "at": 28,
+      "gear": 0,
+      "speed": 30,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.6830441365603062,
+      "rpmHz": 84.4401967190997,
+      "pulseHz": 84.54522705078125,
+      "subHz": 42.272613525390625
+    },
+    {
+      "at": 28.5,
+      "gear": 0,
+      "speed": 30,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.7629165124598851,
+      "rpmHz": 83.96096246370223,
+      "pulseHz": 84.04080963134766,
+      "subHz": 42.02040481567383
+    },
+    {
+      "at": 29,
+      "gear": 0,
+      "speed": 30,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.8181867355918497,
+      "rpmHz": 83.62934112491045,
+      "pulseHz": 83.6805191040039,
+      "subHz": 41.84025955200195
+    },
+    {
+      "at": 29.5,
+      "gear": 0,
+      "speed": 30,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.8464392319893776,
+      "rpmHz": 83.45982614652529,
+      "pulseHz": 83.4801254272461,
+      "subHz": 41.74006271362305
+    },
+    {
+      "at": 30,
+      "gear": 0,
+      "speed": 30,
+      "shifting": 0.85,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.8464392319893776,
+      "rpmHz": 63.05982614652529,
+      "pulseHz": 72.50666809082031,
+      "subHz": 36.253334045410156
+    },
+    {
+      "at": 30.5,
+      "gear": 1,
+      "speed": 52,
+      "shifting": 0.85,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.81818673559185,
+      "rpmHz": 71.69087958644892,
+      "pulseHz": 63.190738677978516,
+      "subHz": 31.595369338989258
+    },
+    {
+      "at": 31,
+      "gear": 1,
+      "speed": 52,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.7629165124598851,
+      "rpmHz": 92.42250092524068,
+      "pulseHz": 82.88907623291016,
+      "subHz": 41.44453811645508
+    },
+    {
+      "at": 31.5,
+      "gear": 1,
+      "speed": 52,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.6830441365603064,
+      "rpmHz": 92.90173518063816,
+      "pulseHz": 92.798828125,
+      "subHz": 46.3994140625
+    },
+    {
+      "at": 32,
+      "gear": 1,
+      "speed": 52,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.5820604139901077,
+      "rpmHz": 93.50763751605936,
+      "pulseHz": 93.3870849609375,
+      "subHz": 46.69354248046875
+    },
+    {
+      "at": 32.5,
+      "gear": 1,
+      "speed": 52,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.46437881799927005,
+      "rpmHz": 94.21372709200438,
+      "pulseHz": 94.07649993896484,
+      "subHz": 47.03824996948242
+    },
+    {
+      "at": 33,
+      "gear": 1,
+      "speed": 52,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.33514259903154353,
+      "rpmHz": 94.98914440581073,
+      "pulseHz": 94.84123992919922,
+      "subHz": 47.42061996459961
+    },
+    {
+      "at": 33.5,
+      "gear": 1,
+      "speed": 52,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.2000000000000001,
+      "rpmHz": 95.8,
+      "pulseHz": 95.64786529541016,
+      "subHz": 47.82393264770508
+    },
+    {
+      "at": 34,
+      "gear": 1,
+      "speed": 52,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.3351425990315434,
+      "rpmHz": 94.98914440581073,
+      "pulseHz": 95.13868713378906,
+      "subHz": 47.56934356689453
+    },
+    {
+      "at": 34.5,
+      "gear": 1,
+      "speed": 52,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.4643788179992699,
+      "rpmHz": 94.21372709200438,
+      "pulseHz": 94.35446166992188,
+      "subHz": 47.17723083496094
+    },
+    {
+      "at": 35,
+      "gear": 1,
+      "speed": 52,
+      "shifting": 0.85,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.5820604139901076,
+      "rpmHz": 73.10763751605936,
+      "pulseHz": 73.66877746582031,
+      "subHz": 36.834388732910156
+    },
+    {
+      "at": 35.5,
+      "gear": 2,
+      "speed": 70,
+      "shifting": 0.85,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.6830441365603062,
+      "rpmHz": 75.42481210371506,
+      "pulseHz": 75.39529418945312,
+      "subHz": 37.69764709472656
+    },
+    {
+      "at": 36,
+      "gear": 2,
+      "speed": 70,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.7629165124598849,
+      "rpmHz": 95.34557784831759,
+      "pulseHz": 94.98973083496094,
+      "subHz": 47.49486541748047
+    },
+    {
+      "at": 36.5,
+      "gear": 2,
+      "speed": 70,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.8181867355918497,
+      "rpmHz": 95.01395650952581,
+      "pulseHz": 95.06493377685547,
+      "subHz": 47.532466888427734
+    },
+    {
+      "at": 37,
+      "gear": 2,
+      "speed": 78,
+      "shifting": 0,
+      "boost": 1,
+      "damage": 0,
+      "load": 0.8464392319893776,
+      "rpmHz": 130.92136460806373,
+      "pulseHz": 130.90589904785156,
+      "subHz": 65.45294952392578
+    },
+    {
+      "at": 37.5,
+      "gear": 2,
+      "speed": 78,
+      "shifting": 0,
+      "boost": 1,
+      "damage": 0,
+      "load": 0.8464392319893776,
+      "rpmHz": 130.92136460806373,
+      "pulseHz": 130.91368103027344,
+      "subHz": 65.45684051513672
+    },
+    {
+      "at": 38,
+      "gear": 2,
+      "speed": 78,
+      "shifting": 0,
+      "boost": 1,
+      "damage": 0,
+      "load": 0.81818673559185,
+      "rpmHz": 131.0908795864489,
+      "pulseHz": 131.0478515625,
+      "subHz": 65.52392578125
+    },
+    {
+      "at": 38.5,
+      "gear": 2,
+      "speed": 70,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.7629165124598851,
+      "rpmHz": 95.34557784831759,
+      "pulseHz": 111.99822998046875,
+      "subHz": 55.999114990234375
+    },
+    {
+      "at": 39,
+      "gear": 2,
+      "speed": 70,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.6830441365603062,
+      "rpmHz": 95.82481210371506,
+      "pulseHz": 95.73384857177734,
+      "subHz": 47.86692428588867
+    },
+    {
+      "at": 39.5,
+      "gear": 2,
+      "speed": 70,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0.8,
+      "load": 0.5820604139901078,
+      "rpmHz": 96.43071443913625,
+      "pulseHz": 96.31017303466797,
+      "subHz": 48.155086517333984
+    },
+    {
+      "at": 40,
+      "gear": 2,
+      "speed": 70,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0.8,
+      "load": 0.4643788179992701,
+      "rpmHz": 97.13680401508128,
+      "pulseHz": 96.99959564208984,
+      "subHz": 48.49979782104492
+    },
+    {
+      "at": 40.5,
+      "gear": 2,
+      "speed": 70,
+      "shifting": 0,
+      "boost": 0,
+      "damage": 0,
+      "load": 0.3351425990315439,
+      "rpmHz": 97.91222132888764,
+      "pulseHz": 97.76432037353516,
+      "subHz": 48.88216018676758
+    }
+  ],
+  "engineMetrics": [
+    {
+      "peak": 0.03312207758426666,
+      "rms": 0.01450035132832741,
+      "dc": 0.000001940123086922041,
+      "clipped": 0,
+      "samples": 51200
+    },
+    {
+      "peak": 0.031129300594329834,
+      "rms": 0.014691529167439703,
+      "dc": -0.000049752538229012046,
+      "clipped": 0,
+      "samples": 51200
+    },
+    {
+      "peak": 0.05179687589406967,
+      "rms": 0.020817010926944563,
+      "dc": -0.00008832277487217451,
+      "clipped": 0,
+      "samples": 38400
+    }
+  ],
+  "maxVoices": 1,
+  "cacheEntries": 23,
+  "stats": {
+    "scheduled": 34,
+    "evicted": 0,
+    "cacheBuilds": 23,
+    "engineStarts": 2,
+    "engineStops": 2
+  },
+  "beforeCleanup": {
+    "voices": 0,
+    "engine": false,
+    "releasingEngines": 0
+  },
+  "lifecycle": {
+    "starts": 5,
+    "stops": 5,
+    "pause": "paused",
+    "resume": "resumed",
+    "restart": "restart-audio-ready",
+    "engineStats": {
+      "scheduled": 1,
+      "evicted": 0,
+      "cacheBuilds": 1,
+      "engineStarts": 2,
+      "engineStops": 2
+    }
+  },
+  "stress": {
+    "accepted": 110,
+    "maxVoices": 12,
+    "cacheEntries": 35,
+    "cacheBeforeRepeat": 35,
+    "cacheAfterRepeat": 35,
+    "metrics": {
+      "peak": 0.6133397817611694,
+      "rms": 0.08273594828878256,
+      "dc": -0.00017417214090614051,
+      "clipped": 0,
+      "samples": 192000
+    },
+    "stats": {
+      "scheduled": 112,
+      "evicted": 76,
+      "cacheBuilds": 35,
+      "engineStarts": 0,
+      "engineStops": 0
+    }
+  }
+}

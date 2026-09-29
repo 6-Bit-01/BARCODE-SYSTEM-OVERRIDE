@@ -115,3 +115,24 @@ baseline. Automated capture establishes implementation behavior, not the
 owner's preferred mix, perceived musical fit, controller latency or Makko
 device performance. Those remain the next owner playtest; no FPS gain or
 subjective audio acceptance is claimed.
+
+## Recorded browser evidence
+
+Chromium run [36644476011](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/36644476011)
+rendered the included review audio from candidate `e62bea741801f8d95542039afa1495de43f7fd2a`.
+The 42-second audition peaks at 0.60860 with zero clipped samples; stress
+peaks at 0.61334 with at most 12 voices. The driving mix peaks at 0.62672
+and releases all transient voices and its engine. Real pause/resume/restart
+passes without restarting the original stems during road cues. The review
+folder records exact metrics and provenance; the final source-pack receipt
+identifies final-head CI after the last release-tail cleanup correction.
+
+Listen at 0–18 seconds for isolated palette examples, 18–24 for the engine,
+and 26–41 for effects/engine mixed with the original five recordings.
+The 32-second drive exercises all three gears, seven perfect beat catches,
+Turbo and close passes with full integrity. Its encoded video fully decodes
+and its simulation trace matches the audio replay fields exactly.
+
+Local full `npm test` and `npm run check:syntax:all` pass. The protected music
+pause method and its baseline hashes remain unchanged; road cleanup uses
+the existing lifecycle seam. Final-head CI remains the merge gate.

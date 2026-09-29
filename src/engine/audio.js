@@ -941,7 +941,7 @@ window.AudioSystem = class AudioSystem {
       if(panNode){gain.connect(panNode);panNode.connect(this.sfxGain);}else gain.connect(this.sfxGain);
       engine={context:ctx,pulse,sub,grit,body,bass,air,filter,gain,panNode,
         sources:[pulse,sub,grit],nodes:[body,bass,air,filter,gain,...(panNode?[panNode]:[])],
-        rpmHz:68,gear:0,startedAt:ctx.currentTime,lastUpdate:-Infinity};
+        rpmHz:68,gear:0,generation:this.runtimeAudioGeneration,startedAt:ctx.currentTime,lastUpdate:-Infinity};
       this.roadEngine=engine;
       pulse.frequency.value=68;sub.frequency.value=34;
       engine.sources.forEach(source=>source.start(ctx.currentTime));
@@ -1226,6 +1226,11 @@ window.AudioSystem = class AudioSystem {
     // stopRuntimeAudio already released its engine through stopCombatCues;
     // preserve that owned, finite exit fade when no active graph remains.
     if (this.roadEngine) this.stopRoadEngine({immediate:true});
+    // A same-generation tail is an in-game release (for example game over
+    // followed immediately by pause). Retire it before suspension so resume
+    // cannot replay its final 25 ms. Runtime stop has advanced the generation.
+    for (const released of this.roadEngineReleases || [])
+      if (released.generation === this.runtimeAudioGeneration) this.disposeRoadEngineGraph(released);
     this.stopRoadCues();
     return this.stopRhythm();
   }
