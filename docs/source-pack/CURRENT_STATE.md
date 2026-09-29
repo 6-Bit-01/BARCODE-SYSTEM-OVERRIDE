@@ -1,5 +1,25 @@
 # Current State
 
+## September 29 — building clearance and rearward world consistency
+
+This pass from merged #151 addresses the reported garage/residential overlap
+and the mirror's generic traffic/scenery. The reported buildings were only
+65 world units apart but passed a roughly 42-unit center reservation; the
+acceptance condition is now painted footprint separation, not center spacing.
+The fitter preserves radial rows/street sockets, searches legal parcel
+addresses and rejects cards that do not fit. The default route retains
+139 of 227 candidate cards, all 48 art keys and all 25 street mouths.
+The rearview uses the authored city/vehicle sprites, shared terrain/materials
+and building footprints behind Cache, retaining the owner's exact
+**2.3 px blur** and existing face/glass.
+
+Beat ONE, music, buffered gears, lamps and chip sound remain preserved.
+Focused visual/geometry evidence and full regression/Chromium gates establish
+the candidate. Full local `npm test` and all-file syntax pass; final-head
+Chromium/CI outcomes belong to the PR and generated receipt. Owner
+Makko appearance and performance remain open. See
+`CACHE_ROAD_CLEARANCE_REARVIEW.md` and `review-cache-clearance-rearview/`.
+
 ## September 29 — streetlamp scale and dynamic chip sound
 
 From merged #150, service lamps are 35% smaller and spread farther apart on

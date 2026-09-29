@@ -1,0 +1,39 @@
+{
+  "base": "ac9f70c162d45b3e85d8c60c273dad205c0417ed",
+  "fps": 24,
+  "seconds": 16,
+  "worldStarts": [
+    185,
+    705,
+    1120,
+    1820
+  ],
+  "speed": 54,
+  "blur": "2.3px",
+  "nativeMirrorDrawMs": {
+    "before": {
+      "samples": 360,
+      "mean": 4.9562841111109766,
+      "p95": 9.062095000001136
+    },
+    "after": {
+      "samples": 360,
+      "mean": 6.694213622222204,
+      "p95": 12.16545799999949
+    }
+  },
+  "assetSubmissions": {
+    "before": {
+      "samples": 360,
+      "mean": 44.794444444444444,
+      "p95": 52
+    },
+    "after": {
+      "samples": 360,
+      "mean": 100.18333333333334,
+      "p95": 108
+    }
+  },
+  "source": "Actual drawRearview, production atlas metadata and PNG/WebP/SVG assets.",
+  "limitation": "Traffic uses existing rear-authored sprites; no front-view art is present. Native timings vary with machine load and are not Makko/device FPS. This is not Makko/device footage."
+}

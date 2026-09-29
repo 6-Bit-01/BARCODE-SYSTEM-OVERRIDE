@@ -159,6 +159,111 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-landscape.js', exports: [
     const cross=6*Math.sin(at/175-radial/270+side*.4);
     return 24+outward*(16+broad+local+cross);
   }
+  // Contact-band occupancy, not sprite rectangles: approved connected
+  // modular seams may overlap; an unrelated featured forecourt may not.
+  const FRONTAGE_GAP=18;
+  const frontageConflict=(a,b)=>a.side===b.side &&
+    Math.abs(a.at-b.at)<a.halfAlong+b.halfAlong+FRONTAGE_GAP &&
+    Math.abs(a.radial-b.radial)<a.halfDepth+b.halfDepth+FRONTAGE_GAP;
+  const featuredFrontage=site=>({id:`site:${site.side}:${site.at}`,
+    side:site.side,at:site.at,radial:246+(site.setback||0),
+    halfAlong:site.frontageHalfAlong??(site.kind==='parking'?75:50)*(site.size||1),halfDepth:75,
+    kind:'site'});
+  function fitFrontages(plates,chunks,parcels,graph,sites,originals) {
+    const fixed=sites.map(featuredFrontage);
+    const records=plates.map((plate,index)=>{
+      const original=originals[index],chunk=chunks.find(c=>c.id===plate.chunkId);
+      return {id:`plate:${plate.chunkId}:${plate.tier}`,kind:'plate',plate,chunk,
+        original,side:plate.side,at:original.at,radial:original.base,
+        halfAlong:plate.key==='open'?55:plate.key==='accent'?60:75,halfDepth:56};
+    });
+    const authoredSeam=(a,b)=>a.kind==='plate'&&b.kind==='plate'&&
+      a.plate.key!=='accent'&&b.plate.key!=='accent'&&
+      a.plate.family===b.plate.family&&a.original.base===b.original.base&&
+      a.radial===a.original.base&&b.radial===b.original.base&&
+      Math.abs(a.original.at-b.original.at)<=SPAN&&
+      Math.abs(a.at-b.at)>=Math.abs(a.original.at-b.original.at);
+    // Keep graph openings first, then fit the most visible row. Every
+    // accepted contact reserves its place before the next tier is fitted.
+    records.sort((a,b)=>(a.plate.key==='open'?0:a.plate.tier==='front'?1:
+      a.plate.tier==='middle'?2:3)-(b.plate.key==='open'?0:b.plate.tier==='front'?1:
+      b.plate.tier==='middle'?2:3)||a.side-b.side||a.original.at-b.original.at);
+    const occupied=[...fixed],changes=[],unresolved=[],rejected=[],retained=[];
+    for(const record of records) {
+      const {plate,chunk,original}=record;
+      const clashes=candidate=>occupied.some(other=>frontageConflict(candidate,other)&&
+        !authoredSeam(candidate,other));
+      // Retain the authored radial row. Moving a billboard outward can
+      // hide its collision or even make its foreground foundation worse.
+      const candidates=[];
+      const radial=original.base;
+      for(let at=chunk.startAt+15;at<=chunk.endAt-15;at++) {
+        if(plate.key==='open'&&at!==original.at)continue;
+        const candidate={...record,at,radial};
+        if(!clashes(candidate))candidates.push(candidate);
+      }
+      if(!clashes(record))candidates.push(record);
+      candidates.sort((a,b)=>Math.abs(a.at-original.at)-Math.abs(b.at-original.at)||a.at-b.at);
+      if(!candidates.length) {
+        if(plate.key==='open')unresolved.push(record.id);
+        else {rejected.push({id:record.id,key:plate.art[0],side:plate.side,
+          at:original.at,radial:original.base});continue;}
+      }
+      const chosen=candidates[0]||record;
+      occupied.push(chosen);retained.push(plate);
+      plate.at=chosen.at;plate.art=[...original.art];plate.art[4]=chosen.radial;
+      plate.radialBand=chosen.radial;
+      plate.contact=original.contact.map(point=>({...point,
+        at:point.at+chosen.at-original.at,
+        radial:point.radial+chosen.radial-original.base}));
+      plate.frontage={at:chosen.at,radial:chosen.radial,
+        halfAlong:record.halfAlong,halfDepth:record.halfDepth};
+      if(plate.tier==='front'&&plate.key!=='open') {
+        const arterial=graph.nodes.find(node=>node.side===plate.side&&
+          node.type==='arterial-sidewalk'&&node.at===chunk.frontAt);
+        if(arterial)arterial.at=chosen.at;
+        chunk.frontAt=chosen.at;
+      }
+      const parcel=parcels.find(p=>p.chunkId===plate.chunkId&&p.tier===plate.tier);
+      if(parcel) {
+        parcel.entrance.at=chosen.at;parcel.entrance.radial=chosen.radial;
+        parcel.radial=[chosen.radial+5,chosen.radial+175];
+        const entrance=graph.nodes[parcel.entrance.node];
+        if(entrance){entrance.at=chosen.at;entrance.radial=chosen.radial;}
+      }
+      if(chosen.at!==original.at||chosen.radial!==original.base)changes.push({
+        id:record.id,key:plate.art[0],side:plate.side,
+        from:{at:original.at,radial:original.base},to:{at:chosen.at,radial:chosen.radial}});
+    }
+    const collisions=[],seams=[];
+    for(let i=0;i<occupied.length;i++)for(let j=i+1;j<occupied.length;j++) {
+      const a=occupied[i],b=occupied[j];
+      if(frontageConflict(a,b)) {
+        if(authoredSeam(a,b))seams.push([a.id,b.id]);
+        else collisions.push([a.id,b.id]);
+      }
+    }
+    plates.splice(0,plates.length,...retained.sort((a,b)=>b.at-a.at));
+    const parcelKeys=new Set(retained.map(plate=>`${plate.chunkId}:${plate.tier}`));
+    const removedNodes=new Set();
+    for(let i=parcels.length-1;i>=0;i--)if(!parcelKeys.has(`${parcels[i].chunkId}:${parcels[i].tier}`)) {
+      removedNodes.add(parcels[i].entrance.node);parcels.splice(i,1);
+    }
+    // Empty clearings retain their through-sidewalks, but no phantom parcel
+    // entrances/access edges. Remap IDs once after removing those leaves.
+    const keptNodes=graph.nodes.filter(node=>!removedNodes.has(node.id));
+    const nodeIds=new Map(keptNodes.map((node,index)=>[node.id,index]));
+    graph.edges=graph.edges.filter(edge=>!removedNodes.has(edge.a)&&!removedNodes.has(edge.b))
+      .map(edge=>({...edge,a:nodeIds.get(edge.a),b:nodeIds.get(edge.b)}));
+    keptNodes.forEach((node,index)=>{node.id=index;});graph.nodes=keptNodes;
+    for(const parcel of parcels)parcel.entrance.node=nodeIds.get(parcel.entrance.node);
+    return {gap:FRONTAGE_GAP,authoredCount:records.length,retainedCount:retained.length,
+      changes,rejected,unresolved,collisions,seams,
+      contacts:occupied.map(({id,kind,side,at,radial,halfAlong,halfDepth,original,plate})=>
+        ({id,kind,side,at,radial,halfAlong,halfDepth,
+          ...(original?{authoredAt:original.at,authoredRadial:original.base,
+            family:plate.family,key:plate.key}:{})}))};
+  }
   function create(seed=0x6b4d,end=9840,protectedSites=[]) {
     if(!Number.isSafeInteger(seed)||!Number.isFinite(end)||end<0)
       throw Error('Invalid Cache Road landscape seed or length');
@@ -348,15 +453,34 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-landscape.js', exports: [
     // The workshop pavement belongs to connected courts, not a giant
     // repeating blanket. The established rolling grit fills the bank.
     const districts=[];
-    plates.sort((a,b)=>b.at-a.at);
+    // Fit whole cards before indexing scenery or spawning contextual actors.
+    const originals=plates.map(plate=>({at:plate.at,base:plate.art[4],
+      art:plate.art,contact:plate.contact.map(point=>({...point}))}));
+    const clearance=fitFrontages(plates,chunks,parcels,graph,protectedSites,originals);
+    const fitSatellites=scenes=>{
+      const occupied=clearance.contacts.slice(),retained=[],rejected=[];
+      for(const scene of scenes) {
+        const origin=scene.at;
+        const candidates=[0,...Array.from({length:5},(_,i)=>[12*(i+1),-12*(i+1)]).flat()];
+        const offset=candidates.find(delta=>!occupied.some(other=>frontageConflict({
+          side:scene.side,at:origin+43+delta,radial:249,halfAlong:60,halfDepth:56},other)));
+        if(offset===undefined){rejected.push({side:scene.side,at:origin,key:scene.art[0]});continue;}
+        scene.at=origin+offset;retained.push(scene);
+        occupied.push({id:`satellite:${scene.side}:${origin}`,kind:'satellite',
+          side:scene.side,at:scene.at+43,radial:249,halfAlong:60,halfDepth:56});
+      }
+      scenes.splice(0,scenes.length,...retained);
+      clearance.contacts=occupied;clearance.satelliteRejected=rejected;
+      clearance.satelliteCount=retained.length;
+    };
     streets.sort((a,b)=>b.at-a.at);
     return Object.freeze({seed,chunks,plates,streets,streetParts,districts,
-      parcels,graph,pitch:PITCH,span:SPAN,
+      parcels,graph,pitch:PITCH,span:SPAN,clearance,fitSatellites,
       height:(side,at,radial)=>height(seed,side,at,radial),
       owns(side,at,margin=0) {
         return chunks.some(chunk=>chunk.side===side &&
           at>=chunk.startAt-margin&&at<chunk.endAt+margin);
       }});
   }
-  B.CacheRoadLandscape=Object.freeze({create,ART,FAMILY_ART,FAMILIES});
+  B.CacheRoadLandscape=Object.freeze({create,ART,FAMILY_ART,FAMILIES,frontageConflict,featuredFrontage});
 })(window.BARCODE=window.BARCODE||{});

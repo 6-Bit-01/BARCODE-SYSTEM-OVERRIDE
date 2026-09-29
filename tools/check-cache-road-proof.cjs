@@ -48,7 +48,7 @@ async function run() {
   context,{filename:'src/game/cache-road-proof.js [street-scene inspection]'});
   const landscape=w.__cacheLandscape, sites=w.__cacheSites;
   assert(landscape.pitch===180 && landscape.span===225 &&
-    landscape.chunks.length>=100 && landscape.plates.length>=150 &&
+    landscape.chunks.length>=100 && landscape.plates.length>=landscape.clearance.authoredCount*.6 &&
     landscape.plates.every(plate=>plate.art[3]>=1500 &&
       plate.art[6]>0 && plate.art[6]<=plate.art[2]),
     'both banks use overlapping full-route chunks and fitted card metadata');
@@ -126,23 +126,24 @@ async function run() {
   // adjacent families may not collide, and a street belongs to one chunk.
   for(const seed of [0x6b4d,17,92381,2026,7777]) {
     const layout=w.BARCODE.CacheRoadLandscape.create(seed,9840,sites);
-    assert(layout.plates.length>=150 && layout.streets.length>=8,
-      `seed ${seed} retains inhabited banks and real streets`);
+    assert(w.BARCODE.CacheRoadLandscape.FAMILIES.every(family=>[-1,1].every(side=>
+      layout.plates.some(p=>p.family===family&&p.side===side))) && layout.streets.length>=8 &&
+      layout.clearance.collisions.length===0 && layout.clearance.unresolved.length===0,
+      `seed ${seed} keeps populated banks and legal forecourts rather than forced overlapping cards`);
     for(const side of [-1,1]) {
       const plates=layout.plates.filter(p=>p.side===side);
       const mouths=layout.streets.filter(s=>s.side===side).map(s=>s.at);
       const accents=plates.filter(p=>p.key==='accent');
       assert.equal(new Set(mouths).size,mouths.length,
         `seed ${seed}: one chunk owns each ${side} street mouth`);
-      assert(plates.every(p=>!sites.some(s=>s.side===side&&
-        Math.abs(s.at-p.at)<30)),
-      `seed ${seed}: no card shares a featured site's foundation`);
+      assert(plates.every(p=>p.frontage&&p.frontage.radial===p.art[4]),
+      `seed ${seed}: every retained card has an explicit contact envelope in its authored row`);
       assert(accents.every((p,i)=>accents.slice(i+1).every(q=>
-        Math.abs(p.at-q.at)>=240)),
-      `seed ${seed}: accent foundations have distinct addresses`);
-      assert(plates.every((p,i)=>plates.slice(i+1).every(q=>
-        p.family===q.family||Math.abs(p.at-q.at)>=110)),
-      `seed ${seed}: adjacent families do not intersect at a boundary`);
+        !w.BARCODE.CacheRoadLandscape.frontageConflict({side,...p.frontage},{side,...q.frontage}))),
+      `seed ${seed}: fitted accent foundations remain distinct`);
+      assert(plates.every((p,i)=>plates.slice(i+1).every(q=>p.family===q.family||
+        !w.BARCODE.CacheRoadLandscape.frontageConflict({side,...p.frontage},{side,...q.frontage}))),
+      `seed ${seed}: adjacent families have separate fitted contact envelopes`);
     }
   }
   const streetScenes=w.__cacheStreetScenes;
@@ -414,8 +415,12 @@ async function run() {
     draw(key, _ctx, options) {
     if (key === 'cacheMirror') mirrorFrames.push({ frame: options.frame,
       sourceRect: options.sourceRect, x: options.x, y: options.y, filter: _ctx.filter });
-    else if (_ctx.filter === 'blur(2.3px)')
+    else if (_ctx.filter === 'blur(2.3px)') {
       mirrorArt.push({key,...options,alpha:_ctx.globalAlpha ?? 1});
+      if(['cacheFreight','cacheCourier','cacheBarricade','cacheAudit',
+          'cacheSweeper','cacheTrike','cacheShuttle'].includes(key))
+        mirrorTraffic.push({key,...options,..._ctx.rearVehicleContact,filter:_ctx.filter});
+    }
     else { roadArt.push({ key, ...options, alpha:_ctx.globalAlpha ?? 1,
       clipHeight: ridgeAt(_ctx.ridge,options.x),
       clipLeft: ridgeAt(_ctx.ridge,options.x-(options.width||0)/2),
@@ -441,9 +446,10 @@ async function run() {
       if(x===0 && y===0 && width===1920) this.pendingClip=height;
     },
     save() { clipStack.push({ height:this.clipHeight, ridge:this.ridge,
-      alpha:this.globalAlpha ?? 1, filter:this.filter }); },
+      alpha:this.globalAlpha ?? 1, filter:this.filter,rearVehicleContact:this.rearVehicleContact }); },
     restore() { const last=clipStack.pop(); this.clipHeight=last?.height ?? Infinity;
-      this.ridge=last?.ridge;this.globalAlpha=last?.alpha ?? 1;this.filter=last?.filter; },
+      this.ridge=last?.ridge;this.globalAlpha=last?.alpha ?? 1;this.filter=last?.filter;
+      this.rearVehicleContact=last?.rearVehicleContact; },
     clip() {
       if(this.pendingClip!=null)
         this.clipHeight=Math.min(this.clipHeight ?? Infinity,this.pendingClip);
@@ -460,8 +466,6 @@ async function run() {
     },
     fillRect(x, y, width, height) {
       if (x === 30 && y === 176 && width > 100) openingRects.push([width, height]);
-      if (this.fillStyle === '#ffe8bc')
-        mirrorTraffic.push({ x,y,width,height,filter:this.filter });
     }, fill() {
       if(this.fillStyle==='#263749' && this.path?.length===58)
         sidewalkEdges.push(this.path.slice(29).reverse());
@@ -472,11 +476,13 @@ async function run() {
       if (this.filter !== 'blur(2.3px)' && this.fillStyle === '#69d9f5' &&
         this.path?.length === 26) litRunways.push(this.path.slice());
     },
-    translate(x,y) { this.lastTranslate = [x,y]; },
+    translate(x,y) { this.lastTranslate = [x,y];
+      if(this.filter==='blur(2.3px)'&&x>638&&y>20&&y<150)
+        this.rearVehicleContact={worldX:x,worldY:y}; },
     transform(...values) { this.lastTransform = values; },
     ellipse(x,y,rx,ry) {
-      if (this.fillStyle === '#030b16c8') contacts.push({ x,y,rx,ry });
-      if (['#ff77bb','#ffd079','#8af6f1'].includes(this.fillStyle))
+      if (this.filter!=='blur(2.3px)'&&this.fillStyle === '#030b16c8') contacts.push({ x,y,rx,ry });
+      if (this.filter!=='blur(2.3px)'&&['#ff77bb','#ffd079','#8af6f1'].includes(this.fillStyle))
         beacons.push({ x,y,translate:this.lastTranslate });
     },
     fillText(value, x, y) {
@@ -520,17 +526,19 @@ async function run() {
   mirrorFrame({progress:185});
   assert.equal(mirrorTraffic.length,0,'traffic ahead is absent from the rearview');
   mirrorFrame({progress:215});
-  assert.equal(mirrorTraffic.length,2,'a passed hazard shows two blurred headlights');
+  assert(mirrorTraffic.length>0&&mirrorTraffic.every(item=>item.key==='cacheFreight'),
+    'a passed freight uses its actual authored sprite in the mirror');
   assert(mirrorTraffic.every(light=>light.filter==='blur(2.3px)'),
     'only the reflected world gets the mirror blur');
-  const firstLight={...mirrorTraffic[0]};
+  const firstVehicle={...mirrorTraffic[0]};
   const firstBend=mirrorRoads[0];
   assert.equal(mirrorRoads.length,1,'the rearview has one continuous curved road');
   assert.equal((firstBend[12].x+firstBend[13].x)/2,638+475,
     'the reflected road follows the car at its near end');
   mirrorFrame({progress:250});
-  assert.equal(mirrorTraffic.length,2,'the same passed car remains behind Cache');
-  assert(mirrorTraffic[0].y<firstLight.y && mirrorTraffic[0].width<firstLight.width,
+  assert(mirrorTraffic.length>0&&mirrorTraffic.every(item=>item.key==='cacheFreight'),
+    'the same passed freight remains behind Cache without the future van');
+  assert(mirrorTraffic[0].worldY<firstVehicle.worldY && mirrorTraffic[0].width<firstVehicle.width,
     'a passed car recedes and shrinks as road progress increases');
   assert(mirrorArt.some(entry=>entry.key==='cachePlaceHouse') &&
     mirrorArt.some(entry=>entry.key==='cachePlaceMarket'),
@@ -549,9 +557,13 @@ async function run() {
   const firstCard=landscape.plates.find(plate=>plate.at>150 && plate.at<1500);
   assert(firstCard,'the district graph contains a rearview review card');
   mirrorFrame({progress:firstCard.at+1});
-  assert(mirrorArt.some(entry=>entry.key===firstCard.art[0] && entry.width<80),
-    'the same painted district card is miniaturized in the blurred glass');
+  assert(mirrorArt.some(entry=>entry.key===firstCard.art[0] &&
+    entry.width>80&&entry.width<firstCard.art[3]),
+    'the same district card retains a legible miniature of its authored footprint');
   mirrorFrame({progress:450});
+  assert(['cacheDistantCity','cacheOutskirts','cacheMidCity','cacheBlacktop',
+    'cacheOuterGround','cacheRollingGrain'].every(key=>mirrorArt.some(entry=>entry.key===key)),
+    'the rearward setting uses the same painted city and wet terrain as the road');
   assert.notEqual((mirrorRoads[0][0].x+mirrorRoads[0].at(-1).x)/2,
     (firstBend[0].x+firstBend.at(-1).x)/2,
     'rear road curvature follows the shared world path');
@@ -786,12 +798,10 @@ async function run() {
     lampReveal.every(([width,visible],i)=>visible>0&&(i===0||width>lampReveal[i-1][0])),
     'whole silhouettes grow continuously from the raised skyline');
   mirrorFrame({progress:160});
-  const paintedOrder=roadArt.map(entry=>entry.key);
-  assert(paintedOrder.indexOf('cachePlaceGarage')<
-    paintedOrder.indexOf('cacheOutskirtsHomes') &&
-    paintedOrder.indexOf('cachePlaceConstruction')<
-    paintedOrder.indexOf('cacheMarketLFrontGap'),
-  'distant featured art draws behind the nearer satellite and district front');
+  assert(w.__cacheScenery.filter(area=>area.kind==='satellite').every(area=>
+    landscape.clearance.contacts.some(contact=>contact.kind==='satellite'&&
+      contact.side===area.side&&contact.at===area.at)),
+  'only fitted satellite frontages enter the same depth queue as featured sites and district cards');
   for(const [progress,bank,other] of [[250,'L','R'],[760,'R','L']]) {
     mirrorFrame({progress});
     for(const suffix of ['Turn','Curb','StreetWall','Endcap'])

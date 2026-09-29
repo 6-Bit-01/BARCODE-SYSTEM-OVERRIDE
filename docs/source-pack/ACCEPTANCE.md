@@ -1,5 +1,45 @@
 # Acceptance and Test Status
 
+## Building clearance and rearview consistency — September 29
+
+Revisit garage address 1840 and the previously intersecting residential
+middle plate at 1905. Require footprint separation through the actual
+approach/pass, plus full-route checks across banks and bends. A wider
+center-distance assertion alone is insufficient evidence, and this focused
+change does not certify the entire older landscape planning document.
+Clearance uses along-road/radial contact envelopes with an 18-unit margin;
+intended same-family seams are allowed, unrelated occupied bands are not.
+The final fitter preserves radial rows, uses 75-unit featured half-depth,
+rejects unplaceable cards at generation and cleans their graph leaves.
+The focused check passes 10 seeded layouts with 1,162 retained cards and
+independent all-contact validation. Default production retains 139 cards,
+all 48 modular keys, 25 street mouths and 17 fitted satellites. Both reported
+residential cards are rejected; the garage remains at 1840/setback 41 and
+appears in production draws through progress 1450–1800. Existing road proof
+passes. Final counts include 38 axial relocations, 88 rejected cards and
+15 omitted satellites, with zero unresolved/contact-envelope conflicts.
+Full local `npm test` and all-file syntax pass; Chromium/final-head CI remain
+separate merge gates. Both final visual comparisons have been inspected.
+
+The mirror must draw the existing world and authored traffic sprites behind
+Cache, with receding world motion and exactly `blur(2.3px)`. Preserve current
+animation, lamp and depth rules without claiming new vehicle viewing angles.
+Full regression, syntax and Chromium remain merge requirements; the PR and
+generated pack receipt record the tested revision/outcome. Moving comparison
+captures are implementation evidence, while Makko appearance and sustained
+device performance remain owner review. See
+`CACHE_ROAD_CLEARANCE_REARVIEW.md`.
+
+The animation-route check passes 753 actual production draws over all 48
+atlas keys, including all mirror cels for six traffic types. The focused
+rearview comparison records four passed-traffic segments at 24 FPS with
+the original 2.3 px blur. Full candidate gates remain separate.
+
+`Drive-Review.mp4` is a silent 16-second, 24 FPS scripted production-draw
+sweep around the reported garage (progress 1420 to approximately 2696.7), not an
+input-driven gameplay/audio capture. Prior catch and audio metrics remain
+historical; gameplay preservation requires this revision's regression gates.
+
 ## Streetlamp scale and chip sound — September 29
 
 Check smaller, staggered lamps through the full road and mirror, including

@@ -198,6 +198,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       place.variant=variantName;
     }
   }
+  for(const place of SIDE_PLACES) {
+    const art=SIDE_VARIANTS[place.variant]?.art||PLACE_ART[place.kind];
+    // A narrow tower should not reserve the frontage of a broad market.
+    place.frontageHalfAlong=(art?50*art[3]/700:75)*place.size;
+  }
   SIDE_PLACES.sort((a,b)=>b.at-a.at);
   // Existing featured places own their parcels. Generate the modular blocks
   // around those addresses so one family cannot cover a special location or
@@ -230,6 +235,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           place.kind==='garage' ? INFILL_ART[5] :
           place.kind==='park'||place.kind==='garden' ? INFILL_ART[3] : INFILL_ART[1]
       }));
+  // Optional contextual buildings are fitted after the actual district
+  // and featured parcels. A compact relocation may fit; otherwise that
+  // extra building is not spawned. Never cover an existing legal frontage.
+  LANDSCAPE.fitSatellites?.(SATELLITE_SCENES);
   // Individual cutouts remain independent animation units. Context chooses
   // one local action, then passers-by are sampled without replacement.
   const PEDESTRIANS = [
@@ -640,23 +649,64 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const bend = roadPath(progress-distance)-roadPath(progress)+
         distance*roadHeading(progress);
       return { t, x: x + 475 + bend*.72, y: horizon+(floor-horizon)*t*t,
-        half: 27+165*t };
+        half: 27+165*t, at };
     };
     const laneX = (lane,p) => p.x+(lane-1.5)*p.half/2;
+    // Miniature actors retain the forward camera's world size, parcel
+    // setback and painted ground contacts. They are not equal-size icons.
+    const miniature=.095,cardScale=t=>t/(1+.20*t);
+    const bankX=(p,side,base,growth=190)=>p.x+side*(p.half+
+      (base+growth*p.t)*(.1+.9*p.t)*miniature);
+    const bankY=(p,side,radial)=>p.y+p.t*miniature*
+      (LANDSCAPE.height?.(side,p.at,Math.max(220,radial))??24);
+    const paintQuad=(key,corners,sourceRect,alpha=1)=>{
+      const [a,b,c,d]=corners;
+      const half=(vertices,matrix)=>{
+        ctx.save();ctx.beginPath();ctx.moveTo(...a);
+        for(const vertex of vertices)ctx.lineTo(...vertex);
+        ctx.closePath();ctx.clip();ctx.globalAlpha*=alpha;
+        ctx.transform(...matrix,a[0],a[1]);
+        B.PresentationAssets?.draw?.(key,ctx,{x:0,y:0,width:256,height:256,sourceRect});
+        ctx.restore();
+      };
+      half([b,c],[(b[0]-a[0])/256,(b[1]-a[1])/256,
+        (c[0]-b[0])/256,(c[1]-b[1])/256]);
+      half([c,d],[(c[0]-d[0])/256,(c[1]-d[1])/256,
+        (d[0]-a[0])/256,(d[1]-a[1])/256]);
+    };
     const far = profile(progress-reach);
     ctx.save(); ctx.filter = 'blur(2.3px)';
     ctx.fillStyle = accent; ctx.globalAlpha = .11;
     ctx.beginPath(); ctx.arc(x+425-(reduced?0:progress*.012)%55,y+31,29,0,Math.PI*2);ctx.fill();
     ctx.globalAlpha = 1;
-    const skylineShift = progress*.035%37;
-    for(let i=-1;i<20;i++) {
-      const bx=x+i*38-skylineShift, bh=15+((i*19+17)%5)*6;
-      ctx.fillStyle=i%3?'#263c4a':'#344557';
-      ctx.fillRect(bx,y+58-bh,33,bh);
-      ctx.fillStyle='#f8cca4';ctx.globalAlpha=.2;
-      ctx.fillRect(bx+8,y+50-bh,2,3);ctx.globalAlpha=1;
+    const bearing=clamp(roadPath(progress)*.08+roadHeading(progress)*75,-50,50);
+    for(const [key,width,height,foot,opacity,parallax] of [
+      ['cacheDistantCity',w*1.46,137,horizon+11,.57,.18],
+      ['cacheOutskirts',w*1.38,117,horizon+12,.73,.48],
+      ['cacheMidCity',w*1.52,87,horizon+22,.84,.90]]) {
+      ctx.globalAlpha=opacity;
+      B.PresentationAssets?.draw?.(key,ctx,{
+        x:x+(w-width)/2+bearing*parallax,y:foot,width,height});
     }
+    ctx.globalAlpha=1;
     ctx.fillStyle='#274550';ctx.fillRect(x,horizon,w,floor-horizon);
+    // The same world-addressed wet bank material and height field continue
+    // behind the car; strips shrink toward the rearward horizon.
+    // Five coarse strips are enough under the retained glass blur; the
+    // full-size view's dense subdivision wasted work below one mirror pixel.
+    const bankStep=88;
+    for(let at=Math.floor(progress/bankStep)*bankStep;at>progress-reach;at-=bankStep) {
+      const near=profile(Math.min(progress,at+bankStep)),distant=profile(Math.max(progress-reach,at));
+      for(const side of [-1,1]) {
+        const point=(p,radial)=>[bankX(p,side,radial),bankY(p,side,radial)];
+        const corners=[point(distant,220),point(near,220),point(near,2500),point(distant,2500)];
+        paintQuad('cacheOuterGround',corners,null);
+        const row=((at%624)+624)%624;
+        paintQuad('cacheRollingGrain',corners,
+          [side<0?0:265,32+823*(1-(row+bankStep)/(624+bankStep)),
+            1509,823*bankStep/(624+bankStep)],.42);
+      }
+    }
     // The narrow sidewalks use the same curved bank as the rearward road.
     for(const side of [-1,1]) {
       ctx.fillStyle='#526373';ctx.beginPath();
@@ -732,6 +782,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.fillStyle='#b7e2d1';ctx.globalAlpha=.18+a.t*.3;
         ctx.fillRect(a.x+side*(a.half+7),a.y-4-a.t*8,2+a.t*2,4+a.t*8);
         ctx.globalAlpha=1;
+        // Slab joints belong to the same fixed world addresses as the
+        // forward sidewalk, rather than sliding with a separate HUD clock.
+        ctx.strokeStyle='#b5c5c26b';ctx.lineWidth=.7;
+        ctx.beginPath();ctx.moveTo(a.x+side*(a.half+8),a.y);
+        ctx.lineTo(bankX(a,side,255),bankY(a,side,255));ctx.stroke();
       }
     }
     // Branch streets are the graph's actual mouths, opening through the
@@ -746,6 +801,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const corners=[[inner(close),close.y],[inner(distant),distant.y],
         [outer(distant),distant.y-3*distant.t],[outer(close),close.y-3*close.t]];
       polygon(ctx,corners,'#263841');
+      paintQuad('cacheLocalStreet',corners,
+        [0,((Math.floor(street.at*2)%1190)+1190)%1190,256,64],.8);
       ctx.strokeStyle='#92aeb1';ctx.globalAlpha=.35;
       ctx.lineWidth=1;
       ctx.beginPath();ctx.moveTo(...corners[0]);ctx.lineTo(...corners[3]);
@@ -755,102 +812,101 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     // Reuse the production district cards, featured places and individual
     // people/props instead of generic boxes. The rear camera samples their
     // existing world addresses and the glass clips and blurs their miniatures.
+    const mirrorGeometry=item=>{
+      const p=profile(item.at),side=item.side;
+      let key,width,height,artX,foot,sourceRect,flip=false;
+      if(item.kind==='pylon') {
+        height=SERVICE_LAMP_HEIGHT*p.t*miniature;
+        return {p,key:'cachePylon',args:{x:bankX(p,side,92,100),
+          y:bankY(p,side,220),width:height*SERVICE_LAMP_WIDTH/SERVICE_LAMP_HEIGHT,
+          height,sourceRect:[42,69,954,1386],flip:side===1}};
+      }
+      if(item.kind==='life') {
+        const actor=item.item,person=actor.id!==undefined;
+        const position=pedestrianPosition(item.scene,actor,s);
+        const [asset,aspect,stature]=person?PEDESTRIANS[actor.id]:
+          [actor.key,...PROP_SHAPES[actor.key]];
+        height=stature*p.t*miniature*actor.scale*(person?PERSON_SCALE:1);
+        return {p,key:asset,person,args:{
+          x:bankX(p,side,position.base,person?210:260),
+          y:bankY(p,side,position.base)+4*p.t*miniature,
+          width:height*aspect,height,flip:person?position.flip:false}};
+      }
+      if(item.plate) {
+        const plate=item.plate;
+        const [asset,sourceW,sourceH,maxW,base,growth,
+          contactBottom,contactAt,fit]=plate.art;
+        key=asset;width=maxW*cardScale(p.t)*miniature;
+        height=width*(contactBottom||sourceH)/sourceW;
+        const socket=fit?.socketU===undefined?0:side<0?1-fit.socketU:fit.socketU;
+        const roadward=bankX(p,side,base,growth)-side*width*socket;
+        artX=roadward+side*width*.5;
+        const footX=fit?.footU===undefined?roadward:artX-width*.5+width*fit.footU;
+        const radial=(side*(footX-p.x)-p.half)/miniature/(.1+.9*p.t)-190*p.t;
+        foot=bankY(p,side,radial)+(contactAt?
+          (contactBottom-contactAt)*width/sourceW+6*p.t*miniature:22*p.t*miniature);
+        sourceRect=[0,0,sourceW,contactBottom||sourceH];flip=!!plate.flip;
+      } else if(item.kind==='satellite') {
+        const [asset,sourceW,sourceH,maxW]=item.scene.art;
+        key=asset;width=Math.min(720,maxW)*cardScale(p.t)*miniature;
+        height=width*sourceH/sourceW;
+        artX=bankX(p,side,220)+side*(width*.5+29*p.t*miniature);
+        foot=bankY(p,side,220)+9*p.t*miniature;flip=side>0;
+      } else if(item.place.kind!=='parking') {
+        const place=item.place,variant=SIDE_VARIANTS[place.variant];
+        const [asset,sourceW,sourceH,maxW]=(variant&&variant.art)||PLACE_ART[place.kind];
+        key=asset;width=maxW*cardScale(p.t)*place.size*miniature;
+        height=width*sourceH/sourceW;
+        artX=bankX(p,side,220)+side*(width*.5+(26+place.setback)*p.t*miniature);
+        foot=bankY(p,side,220+place.setback);flip=variant?!!variant.flip:placeFacesRoad(place.kind,side);
+      } else {
+        return {p,key:null,args:{x:bankX(p,side,220+item.place.setback),
+          y:bankY(p,side,220+item.place.setback),width:22*p.t,height:3*p.t}};
+      }
+      return {p,key,args:{x:artX,y:foot,width,height,sourceRect,flip}};
+    };
     const scenery=worldRange(SCENERY,progress-reach,progress)
       .concat(worldRange(SERVICE_LAMPS,progress-reach,progress))
       .concat(streetRange(s,progress-reach,progress)
         .map(({scene,item})=>({at:pedestrianPosition(scene,item,s).at,
           side:scene.side,kind:'life',scene,item})))
       .filter(item=>item.at<progress&&item.at>progress-reach)
-      .sort((a,b)=>(profile(a.at).y+2*profile(a.at).t)-
-        (profile(b.at).y+2*profile(b.at).t)||b.at-a.at);
-    // Ground light precedes the shared mirror actor queue too.
-    const mirrorLampArgs=item=>{
-      const p=profile(item.at),side=item.side;
-      const height=(2.5+10*p.t)*SERVICE_LAMP_HEIGHT/134;
-      return {x:p.x+side*(p.half+12+7*p.t),y:p.y+2*p.t,
-        width:height*SERVICE_LAMP_WIDTH/SERVICE_LAMP_HEIGHT,height,
-        sourceRect:[42,69,954,1386],flip:side===1};
-    };
-    for(const item of scenery) {
-      if(item.kind==='pylon')drawLampLight(ctx,'cachePylon',mirrorLampArgs(item),'pool');
-      else if(item.kind==='life'&&LAMP_LIGHTS[item.item.key]) {
-        const p=profile(item.at),prop=item.item;
-        const [aspect,stature]=PROP_SHAPES[prop.key];
-        const height=(2.5+10*p.t)*prop.scale*stature/134;
-        drawLampLight(ctx,prop.key,{x:p.x+item.side*(p.half+10+prop.base*.065*p.t),
-          y:p.y+2*p.t,width:height*aspect,height},'pool');
-      }
+      .map(item=>({item,...mirrorGeometry(item)}))
+      // Wide card foundations sort by the same authored ground contacts
+      // as their full-size view; roof heights do not determine occlusion.
+      .sort((a,b)=>a.args.y-b.args.y||a.item.at-b.item.at);
+    for(const {item,key,args} of scenery) {
+      if(item.kind==='pylon'||item.kind==='life'&&LAMP_LIGHTS[key])
+        drawLampLight(ctx,key,args,'pool');
     }
-    for(const item of scenery) {
-      if(item.kind==='pylon') {
-        const args=mirrorLampArgs(item);
-        drawLampLight(ctx,'cachePylon',args,'beam');
-        B.PresentationAssets?.draw?.('cachePylon',ctx,args);continue;
-      }
-      if(item.kind==='life') {drawMirrorLife(item.scene,item.item);continue;}
-      const p=profile(item.at),side=item.side;
-      let key,sourceW,sourceH,width,flip=false,setback=0,sourceRect;
-      if(item.plate) {
-        [key,sourceW,sourceH]=item.plate.art;
-        sourceH=item.plate.art[6]||sourceH;
-        width=18+50*p.t;flip=!!item.plate.flip;
-        sourceRect=[0,0,sourceW,sourceH];
-      } else if(item.kind==='satellite') {
-        [key,sourceW,sourceH]=item.scene.art;
-        width=15+43*p.t;flip=side>0;setback=5;
-      } else if(item.place.kind!=='parking') {
-        const place=item.place,variant=SIDE_VARIANTS[place.variant];
-        [key,sourceW,sourceH]=(variant&&variant.art)||PLACE_ART[place.kind];
-        width=(18+51*p.t)*place.size;
-        flip=variant?!!variant.flip:placeFacesRoad(place.kind,side);
-        setback=place.setback*.035*p.t;
+    for(const {item,p,key,args,person} of scenery) {
+      ctx.globalAlpha=.66+.34*p.t;
+      if(item.kind==='life')drawStreetActor(ctx,item.item,key,args,s,reduced,person);
+      else if(item.kind==='pylon') {
+        drawLampLight(ctx,key,args,'beam');B.PresentationAssets?.draw?.(key,ctx,args);
+      } else if(key) {
+        B.PresentationAssets?.draw?.(key,ctx,args);
+        if(item.plate)drawFacadeActivity(ctx,item.plate,args.x,args.y,args.width,args.height,s,reduced);
       } else {
-        const bx=p.x+side*(p.half+26+item.place.setback*.035*p.t);
-        ctx.fillStyle='#667683';ctx.globalAlpha=.44;
-        ctx.fillRect(bx-(side<0?22*p.t:0),p.y-2*p.t,22*p.t,3*p.t);
-        ctx.globalAlpha=1;continue;
+        ctx.fillStyle='#667683';ctx.globalAlpha*=.44;
+        ctx.fillRect(args.x-(item.side<0?args.width:0),args.y-2*p.t,args.width,args.height);
       }
-      const artX=p.x+side*(p.half+8+setback+width*.5);
-      const height=width*sourceH/sourceW;
-      ctx.globalAlpha=.56+.37*p.t;
-      if(!B.PresentationAssets?.draw?.(key,ctx,{
-        x:artX,y:p.y+2*p.t,width,height,sourceRect,flip })) {
-        ctx.fillStyle='#536977';
-        ctx.fillRect(artX-width/2,p.y-height,width,height);
-      }
-      if(item.plate)drawFacadeActivity(ctx,item.plate,artX,p.y+2*p.t,width,height,s,reduced);
       ctx.globalAlpha=1;
     }
-    function drawMirrorLife(scene,item) {
-      const position=pedestrianPosition(scene,item,s);
-      if(position.at>=progress || position.at<progress-reach)return;
-      const p=profile(position.at),side=scene.side;
-      const person=item.id!==undefined;
-      const [key,aspect,stature]=person?PEDESTRIANS[item.id]:
-        [item.key,...PROP_SHAPES[item.key]];
-      const height=(2.5+10*p.t)*item.scale*stature/134*(person?PERSON_SCALE:1);
-      const artX=p.x+side*(p.half+10+position.base*.065*p.t);
-      ctx.globalAlpha=.55+.36*p.t;
-      const args={x:artX,y:p.y+2*p.t,width:height*aspect,height,
-        flip:person?position.flip:false};
-      drawStreetActor(ctx,item,key,args,s,reduced,person);
-      ctx.globalAlpha=1;
-    }
-    for(const hazard of HAZARDS) {
+    for(const hazard of HAZARDS.filter(item=>item.at<progress&&item.at>progress-reach)
+      .sort((a,b)=>a.at-b.at)) {
       if(hazard.at>=progress || hazard.at<progress-reach)continue;
       const p=profile(hazard.at);
       const lane=hazardLane(hazard,progress,s.audits);
-      const hx=laneX(lane,p), hw=(8+22*p.t)*(hazard.kind==='freight'?1.35:1);
-      const hh=5+12*p.t;
-      ctx.globalAlpha=.3+.62*p.t;
-      ctx.fillStyle=hazard.kind==='block'?'#c09a62':'#405967';
-      ctx.beginPath();ctx.moveTo(hx-hw/2,p.y);ctx.lineTo(hx-hw*.43,p.y-hh);
-      ctx.lineTo(hx+hw*.43,p.y-hh);ctx.lineTo(hx+hw/2,p.y);
-      ctx.closePath();ctx.fill();
-      ctx.fillStyle='#ffe8bc';
-      ctx.fillRect(hx-hw*.39,p.y-hh*.57,2+3*p.t,2+p.t);
-      ctx.fillRect(hx+hw*.22,p.y-hh*.57,2+3*p.t,2+p.t);
-      ctx.globalAlpha=1;
+      const heavy=['freight','sweeper','shuttle'].includes(hazard.kind);
+      const width=(heavy?9:hazard.kind==='trike'?6:8)+p.t*(heavy?31:hazard.kind==='trike'?20:26);
+      const height=(heavy?8:6)+p.t*(heavy?27:22);
+      // The available paintings are authored rear views. Reuse those
+      // actual identities/cels honestly; do not invent front lamps or
+      // flip a turning vehicle to simulate an unavailable front-view set.
+      drawVehicle(ctx,laneX(lane,p),p.y,width,height,hazard.kind,{
+        alpha:.55+.45*p.t,phase:(s.elapsedMs||0)*.054+hazard.at*.17,
+        steer:hazardTurn(hazard,progress).steer,reduced});
     }
     ctx.restore();
     // Only reflected scenery gets softened. Cache and the glass markings are

@@ -1,5 +1,19 @@
 # Decision Register
 
+## September 29, 2026 — footprint separation and unchanged mirror blur
+
+The owner's screenshot shows a garage and green residential block occupying
+the same apparent ground. They requested a placement system with clear
+separation and a rearview showing actual vehicle sprites and the same setting
+behind the car. Their later instruction, “Don't reduce the blur,” is explicit:
+retain `blur(2.3px)` and improve the reflected content/projection instead.
+
+Repair the existing footprint/placement rules and reuse authored sprites;
+this does not authorize a new-art pass or claim every old planning proposal
+is complete. Preserve #151's music, beat ONE, buffered gears, lamps and SFX.
+Full CI gates merge under existing authority; Makko appearance remains owner
+review. See `CACHE_ROAD_CLEARANCE_REARVIEW.md`.
+
 ## September 29, 2026 — realistic lamps and rich musical driving SFX
 
 The owner praised #150 and requested smaller, more widely spaced streetlamps

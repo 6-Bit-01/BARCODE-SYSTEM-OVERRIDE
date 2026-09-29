@@ -56,7 +56,7 @@
     "check:final-playtest": "node tools/check-final-playtest.cjs",
     "check:mode-power": "node tools/check-mode-power.cjs",
     "check:broadcast-slum-proof": "node tools/check-broadcast-slum-proof.cjs",
-    "check:cache-road-proof": "node tools/check-cache-road-proof.cjs && node tools/check-cache-road-drive.cjs && node tools/check-audible-road-clock.cjs && node tools/check-cache-road-visual-motion.cjs && node tools/check-cache-road-animations.cjs && node tools/check-cache-road-block-art.cjs && node tools/check-cache-road-lamps.cjs && node tools/check-cache-road-chip-sfx.cjs && node tools/check-cache-road-sound-routing.cjs",
+    "check:cache-road-proof": "node tools/check-cache-road-proof.cjs && node tools/check-cache-road-clearance.cjs && node tools/check-cache-road-drive.cjs && node tools/check-audible-road-clock.cjs && node tools/check-cache-road-visual-motion.cjs && node tools/check-cache-road-animations.cjs && node tools/check-cache-road-block-art.cjs && node tools/check-cache-road-lamps.cjs && node tools/check-cache-road-chip-sfx.cjs && node tools/check-cache-road-sound-routing.cjs",
     "check:cache-road-browser": "node tools/check-cache-road-browser.cjs"
   },
   "devDependencies": {

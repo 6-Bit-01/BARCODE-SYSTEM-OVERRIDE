@@ -36,7 +36,9 @@ module.exports=async function reviewRoadWorld() {
   };
   const frames=[],screens=[];
   B.Preferences={values:{reducedMotion:false}};
-  for(const progress of [180,2680,5160,7620]) {
+  // Include the reported garage/home overlap through approach and passage,
+  // plus the high-gear late route; the same production draw owns both views.
+  for(const progress of [180,1500,1700,1900,2680,5160,7620,12400]) {
     road.state=window.roadReviewState({progress,lanePos:1.5,speed:54});
     for(let frame=0;frame<24;frame++) {
       road.state.progress=progress+frame*2;
