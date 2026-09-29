@@ -3,7 +3,8 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const { spawn } = require('node:child_process');
+const { spawn, execFileSync } = require('node:child_process');
+const { performance } = require('node:perf_hooks');
 const { once } = require('node:events');
 const { createCanvas, loadImage, GlobalFonts } = require(require.resolve('@napi-rs/canvas', {
   paths: [process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES || process.cwd()]
@@ -370,50 +371,37 @@ async function main() {
         frontAt:chunk.frontAt,open:chunk.open,plates:layout.plates.filter(
           plate=>plate.chunkId===chunk.id).map(plate=>
             `${plate.tier}:${plate.art[0]}`)})),null,2));
+  } else if(process.env.CACHE_REVIEW_REVISION) {
+    const source=execFileSync('git',['show',`${process.env.CACHE_REVIEW_REVISION}:src/game/cache-road-proof.js`],{encoding:'utf8'});
+    vm.runInContext(source,context,{filename:'cache-road-review-revision.js'});
   } else load(context, 'src/game/cache-road-proof.js');
-  w.BARCODE.PresentationAssets = {
-    ready(key) { return !!art[key]; },
-    draw(key, ctx, { x, y, width, height, frame, sourceRect, flip } = {}) {
-      const image = art[key]; if (!image) return false;
-      if(process.env.CACHE_REVIEW_PRINT_WORKSHOP==='1' && key.startsWith('cacheWorkshop'))
-        process.stdout.write(`${key} x=${Math.round(x)} y=${Math.round(y)} w=${Math.round(width)} h=${Math.round(height)}\n`);
-      if(process.env.CACHE_REVIEW_PRINT_MARKET==='1' && key.startsWith('cacheMarket'))
-        process.stdout.write(`${key} x=${Math.round(x)} y=${Math.round(y)} w=${Math.round(width)} h=${Math.round(height)}\n`);
-      const mirror = key === 'cacheMirror';
-      const ship = key === 'cacheFly1' || key === 'cacheFly3';
-      const vehicleCel = /^cache(Car|Freight|Courier|Rival|Audit|Sweeper|Trike|Shuttle)/.test(key);
-      const propCel = ['cacheNewLampL','cacheNewLampR','cacheNewCrossingSignalL',
-        'cacheNewCrossingSignalR','cacheNewWayfindingSign','cacheNewUtilityCabinet',
-        'cacheNewVendorCart','cacheStreetDataKiosk'].includes(key);
-      const actionCel = ['cachePulseSurge','cachePulsePush',
-        'cachePulseBrace','cachePulseRefill'].includes(key);
-      const walkerCel=/^cacheWalker.*Travel$/.test(key);
-      const eightTravel=key==='cachePersonCrateCarrierTravel';
-      const fourTravel=key==='cachePersonBicycleCourierTravel'||
-        key==='cachePersonSkateboarderTravel';
-      const pulseIcon=key.startsWith('cachePulse') && !['cachePulsePad','cachePulseStrip'].includes(key);
-      const cols=mirror?3:ship?8:vehicleCel||actionCel||walkerCel||eightTravel?4:
-        fourTravel?2:propCel?3:1;
-      const rows=mirror||vehicleCel||actionCel||walkerCel||eightTravel||fourTravel?2:1;
-      const frameWidth = ship ? 320 : image.width/cols;
-      const frameHeight = key === 'cacheFly1' ? 83 : key === 'cacheFly3' ? 97 : image.height/rows;
-      const [sx, sy, sw, sh] = sourceRect || [0,0,mirror ? 512 : frameWidth,mirror ? 512 : frameHeight];
-      const flatJoin=key.endsWith('Turn')||key.endsWith('Curb');
-      const ax = key === 'cacheDamagedExhaust' ? 1 : pulseIcon ? .5 : key === 'cachePulsePad' || key === 'cachePulseStrip' || key === 'cachePhraseStrip' || key === 'cacheConfirmedBar' || key === 'cacheSkyline' || key === 'cacheDistantCity' || key === 'cacheOutskirts' || key === 'cacheMidCity' || key === 'cacheBlacktop' || key === 'cacheSidewalk' || key.endsWith('Ground') || key === 'cacheRollingGrain' || key === 'cacheWorkshopPavement' || key === 'cacheLocalStreet' || flatJoin ? 0 :
-        key === 'cachePylon' ? .28 : .5;
-      const ay = key === 'cacheMirror' || ship || pulseIcon ? .5 :
-        key === 'cacheDamagedExhaust' || key === 'cacheBrakeReflection' || key === 'cachePulsePad' || key === 'cachePulseStrip' || key === 'cachePhraseStrip' || key === 'cacheConfirmedBar' || key === 'cacheBlacktop' || key === 'cacheSidewalk' || key.endsWith('Ground') || key === 'cacheRollingGrain' || key === 'cacheWorkshopPavement' || key === 'cacheLocalStreet' || flatJoin ? 0 : 1;
-      const reviewFlip=key === 'cacheReviewPlace' &&
-        process.env.CACHE_REVIEW_FLIP_RIGHT === '1' && x>960;
-      ctx.save(); ctx.translate(x,y);
-      if(key === 'cacheReviewPlace' ? reviewFlip : flip) ctx.scale(-1,1);
-      ctx.imageSmoothingEnabled = !ship;
-      const cel=Math.max(0,Math.floor(frame||0))%(cols*rows);
-      ctx.drawImage(image, (cel%cols)*frameWidth+sx,
-        Math.floor(cel/cols)*frameHeight+sy,
-        sw, sh, -width*ax, -height*ay, width, height);
-      ctx.restore(); return true;
+  // Use the production atlas code, including its real frame grid, anchors,
+  // crops and smoothing. Only image delivery is replaced with local files.
+  // A second hand-written atlas renderer previously missed ambient columns.
+  const definitions=fs.readFileSync('src/engine/presentation-assets.js','utf8');
+  const imageClass=w.Image;w.Image=undefined;w.__reviewArt=art;
+  vm.runInContext(definitions.replace('  const cache = {};',
+    `  const cache = Object.fromEntries(Object.entries(window.__reviewArt)
+      .map(([key,image])=>[key,{image,ready:true}]));`),context,
+    {filename:'presentation-assets.js [local image delivery]'});
+  w.Image=imageClass;
+  const productionDraw=w.BARCODE.PresentationAssets.draw;
+  const assetFrames={},renderStats=[],assetCosts={};
+  let frameDraws=0;
+  w.BARCODE.PresentationAssets.draw=(key,ctx,args={})=>{
+    frameDraws++;
+    (assetFrames[key]??=new Set()).add(args.frame||0);
+    if(key==='cacheReviewPlace'||key.startsWith('cachePuppet')) {
+      const image=art[key];if(!image)return false;
+      ctx.save();ctx.translate(args.x,args.y);
+      if(args.flip||process.env.CACHE_REVIEW_FLIP_RIGHT==='1'&&args.x>960)ctx.scale(-1,1);
+      ctx.drawImage(image,-args.width/2,-args.height,args.width,args.height);
+      ctx.restore();return true;
     }
+    const start=process.env.CACHE_REVIEW_PROFILE?performance.now():0;
+    const drawn=productionDraw(key,ctx,args);
+    if(start)assetCosts[key]=(assetCosts[key]||0)+performance.now()-start;
+    return drawn;
   };
   const parent = { levelId: 'level-01', checkpointId: 'intermission', levelState: {
     difficultyId: 'standard', run: { levelId: 'level-01', runId: 'mirror-review',
@@ -614,8 +602,20 @@ async function main() {
         captures:s.captures.length,pulseFlashMs:s.pulseFlashMs,
         targets:{...s.pulseTargets}});
     }
-    sc.reset();
+    if(process.env.CACHE_REVIEW_FEEDBACK==='1'&&!gameplay) {
+      // Explicit presentation fixtures; real earning is covered by gameplay checks.
+      const phase=Math.floor(local/2)%4;
+      s.progress=535+local*4;
+      s.lanePos=s.visualLane=s.lane=2;
+      s.boost=0;s.boostMs=phase===3?900:0;
+      s.draftTarget=phase===0?635:null;s.draftMs=phase===0?360:0;
+      s.shield=phase===1?1:0;s.ramMs=phase===2?1500:0;
+      s.turboReadyMs=phase===3?700:0;
+    }
+    sc.reset();frameDraws=0;
+    const started=performance.now();
     road.draw(sc);
+    renderStats.push({progress:s.progress,ms:performance.now()-started,assetDraws:frameDraws});
     if (worldFrames) {
       // Layout study: the current production HUD is placed over the owner's
       // earlier road-motion preview. The two draws are not one live build.
@@ -644,7 +644,9 @@ async function main() {
   if (code !== 0) throw Error(error || `ffmpeg exited: ${signal}`);
   fs.writeFileSync(path.join(out,'Cache-Road-Motion-Track.json'),
     JSON.stringify({ fps,gameplay,seconds,landscapeSeed:landscapeSeed===undefined?
-      0x6b4d:Number(landscapeSeed),carCenters,audioEvents,mixEvents,playbackFrames }, null, 2));
+      0x6b4d:Number(landscapeSeed),carCenters,audioEvents,mixEvents,playbackFrames,
+      renderStats,assetCosts,assetFrames:Object.fromEntries(Object.entries(assetFrames)
+        .map(([key,frames])=>[key,[...frames].sort((a,b)=>a-b)])) }, null, 2));
   fs.writeFileSync(path.join(out, 'Cache-Road-Mirror-Detail.webp'), detail.toBuffer('image/webp',90));
   console.log(file);
 }

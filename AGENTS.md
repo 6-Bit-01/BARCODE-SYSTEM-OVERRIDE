@@ -1,5 +1,28 @@
 # Repository Guidance
 
+## September 29, 2026 — broad Cache Road world and gameplay pass
+
+The owner requested substantial improvements across scale, occlusion,
+animation, readability, performance and gameplay. Street actors now share
+the building/terrain depth queue on the main view and in the mirror. Never
+restore an unconditional people/props pass over all buildings. Cull moving
+people using their current world address, including when braking beside an
+away walker. Static source poses remain planted; horizontal travellers
+continue outward and directional walkers retain their authored views.
+
+People use a shared 1.20 stature correction. Lamps, signals, parked vans,
+carts and other props have individual size contracts. The rearview shares
+the live prop cel clock. Review tooling uses production atlas metadata and
+draw code; do not maintain a separate handwritten frame-grid renderer.
+
+Keep the permanent rear-tire timing line and its new local 1–2–3–4 cue.
+Captured phrase paint is subdued so the next action remains dominant.
+Drafting requires 600 ms continuously behind one truck; leaving, changing
+truck, damage or turbo interrupts it. Slipstream charge, turbo readiness,
+brace/push protection and close-pass receipts are visible around the car.
+See `docs/source-pack/CACHE_ROAD_WORLD_POLISH.md`. Merge after CI for owner
+Makko review; native/headless measurements are not device FPS acceptance.
+
 ## September 29, 2026 — car contact and sweeper compositing correction
 
 The owner rejected #145's press plane ahead of Cache. The pad and phrase
