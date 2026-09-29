@@ -6,7 +6,7 @@ module.exports=async function reviewRoadWorld() {
   const font=await new FontFace('Oxanium',
     'url(/assets/studies/visual-overhaul/references/fonts/Oxanium.ttf)').load();
   document.fonts.add(font);
-  B.Campaign={register(){}};
+  B.Campaign={register(){},syncTitleButton(){}};
   (0,eval)(await load('src/game/cache-road-landscape.js'));
   (0,eval)((await load('src/game/cache-road-proof.js')).replace(
     '  B.Campaign.register(ID,','  window.roadReviewState=newState;\n  B.Campaign.register(ID,'));

@@ -2714,12 +2714,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         }
         if(bar%4===0) {
           ctx.strokeStyle = '#b4f9ec';
-          ctx.globalAlpha = .49;
+          ctx.globalAlpha = .25;
           ctx.lineWidth = 2+near*3;
           ctx.beginPath();ctx.moveTo(laneEdge(0,near),roadY(near));
           ctx.lineTo(laneEdge(4,near),roadY(near));ctx.stroke();ctx.globalAlpha=1;
         }
-        if (bar % 4 === 0 && near > .23) {
+        if (bar % 4 === 0 && near > .23 && Math.abs(roadY(near)-strikeY)>50) {
           ctx.fillStyle = '#d4fff1'; ctx.font = `bold ${Math.round(10 + 17 * near)}px Oxanium, monospace`;
           ctx.textAlign = 'right'; ctx.fillText(`${songSection(bar)} / ${bar + 1}–${bar + 4}`,
             laneEdge(0,near)-13, roadY(near)+3);
@@ -3096,7 +3096,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const x=carX,y=carY-175;
         const turbo=s.turboReadyMs>0||s.boostMs>0;
         const label=s.defenseFlashMs>0?`${s.defenseKind} / BLOCKED`:
-          s.boostMs>0?'TURBO':s.turboReadyMs>0?'TURBO READY':'DRAFT → TURBO';
+          s.boostMs>0?'TURBO':s.turboReadyMs>0?'TURBO READY':'DRAFT / TURBO';
         ctx.save();ctx.fillStyle='#071e29e6';ctx.fillRect(x-113,y-20,226,38);
         ctx.fillStyle=turbo?'#ffdda0':'#b5f0f1';
         ctx.font='bold 18px Oxanium, monospace';ctx.textAlign='center';ctx.fillText(label,x,y+3);

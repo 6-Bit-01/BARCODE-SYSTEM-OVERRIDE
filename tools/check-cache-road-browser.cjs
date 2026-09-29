@@ -219,6 +219,7 @@ async function main() {
   const beat=60/128;
   const probe={seconds:2,mixEvents:[],audioEvents:[
     ...[0,1,2].map(index=>({kind:'roadCount',at:index*beat,calledAt:Math.max(0,index*beat-.1)})),
+    {kind:'roadTurboReady',at:beat+.2,calledAt:beat+.2},
     {kind:'roadPerfect',at:3*beat,calledAt:3*beat-.32}]};
   const cueAudio=await evaluate(`(${renderRoadAudio.toString()})(${JSON.stringify(probe)})`);
   assert(cueAudio.rms>.003&&cueAudio.peak<1&&cueAudio.remainingVoices===0);
