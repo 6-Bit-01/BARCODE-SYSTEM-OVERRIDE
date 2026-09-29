@@ -27,15 +27,23 @@ separated by a clear stretch. Each run visits four distinct lanes with varied
 actions. The player sees the next pad on the road before reaching it, and a
 small HUD line gives its lane, button and distance while it is visible.
 
-The mint marking lies flush with the blacktop, uses the road's perspective
+The inked comic marking lies flush with the blacktop, uses the road's perspective
 and bend, and is drawn before opaque cars and red traffic warnings. There is
 no floating halo or screen blend over traffic. Pads are harmless: missing one,
 driving across one or pressing the wrong button costs no life or points.
-While the car is centered in the marked lane within 55 units before or 18
-after its center, pressing the marked button within the existing 185 ms beat
-window catches it once. Braking or accelerating changes when the car reaches
-that window; the pad itself does not follow the song clock. Timing settings
-still apply to the input timestamp.
+While the car is centered in the marked lane within 105 units before or 30
+after its center, pressing the marked button within the existing 185 ms
+window **on the fourth beat of a measure** catches it once. Other beats do
+not consume the pad. Braking or accelerating changes when the car reaches
+that window; the marking itself stays at its world address. The HUD counts
+through four beats, names the action and mapped button, swells the icon as
+beat four approaches, and changes to an amber PRESS cue during the judgment
+window. Timing settings apply to the input timestamp and the displayed cue.
+
+The pad, phrase cell and action symbols now use separate hand-inked SVG art
+with irregular edges and off-register color. The phrase art remains on the
+asphalt beneath traffic. The previous vector marks remain as a loading
+fallback for the game path.
 
 A caught part starts on the judged beat and lasts eight bars. A consecutive
 catch in the same four-pad run lasts sixteen bars. Wider spacing needs this
@@ -55,7 +63,8 @@ music bus before a beat-aligned drums-only return.
 
 The production-module test steers through both four-pad runs with actual
 traffic, reaches all four parts in each, verifies harmless missed input and
-pad draw order beneath a vehicle, and covers speed rewards, collisions,
+pad draw order beneath a vehicle, checks beats one through three and the
+fourth-beat HUD swell, and covers speed rewards, collisions,
 checkpoints, the 100-bar song and old saves. The native production draw was
 inspected at eight road positions with the current car, road and city art;
 it is not a Makko frame. The owner still needs to judge visibility, density,

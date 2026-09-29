@@ -175,6 +175,9 @@ async function main() {
     cacheStreetDataKiosk: 'assets/cache-road/world/props/street-data-kiosk.webp',
     cacheParapet: 'assets/cache-road/roadside/parapet.webp',
     cachePylon: 'assets/cache-road/roadside/service-pylon.webp',
+    cacheComicPad: 'assets/cache-road/roadside/beat/comic-pad.svg',
+    cacheComicBar: 'assets/cache-road/roadside/beat/comic-bar.svg',
+    cacheComicActions: 'assets/cache-road/roadside/beat/comic-actions.svg',
     cacheSidewalk: 'assets/cache-road/roadside/sidewalk-slab.svg',
     cacheOuterGround: 'assets/cache-road/roadside/continuous-ground-panel.svg',
     cacheRollingGrain: 'assets/cache-road/roadside/rolling-ground-grain.webp',
@@ -360,20 +363,21 @@ async function main() {
         process.stdout.write(`${key} x=${Math.round(x)} y=${Math.round(y)} w=${Math.round(width)} h=${Math.round(height)}\n`);
       const mirror = key === 'cacheMirror';
       const ship = key === 'cacheFly1' || key === 'cacheFly3';
-      const frameWidth = ship ? 320 : image.width;
+      const comicAction=key === 'cacheComicActions';
+      const frameWidth = comicAction ? 128 : ship ? 320 : image.width;
       const frameHeight = key === 'cacheFly1' ? 83 : key === 'cacheFly3' ? 97 : image.height;
       const [sx, sy, sw, sh] = sourceRect || [0,0,mirror ? 512 : frameWidth,mirror ? 512 : frameHeight];
       const flatJoin=key.endsWith('Turn')||key.endsWith('Curb');
-      const ax = key === 'cacheSkyline' || key === 'cacheDistantCity' || key === 'cacheOutskirts' || key === 'cacheMidCity' || key === 'cacheBlacktop' || key === 'cacheSidewalk' || key.endsWith('Ground') || key === 'cacheRollingGrain' || key === 'cacheWorkshopPavement' || key === 'cacheLocalStreet' || flatJoin ? 0 :
+      const ax = comicAction ? .5 : key === 'cacheComicPad' || key === 'cacheComicBar' || key === 'cacheSkyline' || key === 'cacheDistantCity' || key === 'cacheOutskirts' || key === 'cacheMidCity' || key === 'cacheBlacktop' || key === 'cacheSidewalk' || key.endsWith('Ground') || key === 'cacheRollingGrain' || key === 'cacheWorkshopPavement' || key === 'cacheLocalStreet' || flatJoin ? 0 :
         key === 'cachePylon' ? .28 : .5;
-      const ay = key === 'cacheMirror' || ship ? .5 :
-        key === 'cacheBlacktop' || key === 'cacheSidewalk' || key.endsWith('Ground') || key === 'cacheRollingGrain' || key === 'cacheWorkshopPavement' || key === 'cacheLocalStreet' || flatJoin ? 0 : 1;
+      const ay = key === 'cacheMirror' || ship || comicAction ? .5 :
+        key === 'cacheComicPad' || key === 'cacheComicBar' || key === 'cacheBlacktop' || key === 'cacheSidewalk' || key.endsWith('Ground') || key === 'cacheRollingGrain' || key === 'cacheWorkshopPavement' || key === 'cacheLocalStreet' || flatJoin ? 0 : 1;
       const reviewFlip=key === 'cacheReviewPlace' &&
         process.env.CACHE_REVIEW_FLIP_RIGHT === '1' && x>960;
       ctx.save(); ctx.translate(x,y);
       if(key === 'cacheReviewPlace' ? reviewFlip : flip) ctx.scale(-1,1);
       ctx.imageSmoothingEnabled = !ship;
-      ctx.drawImage(image, (mirror ? frame % 3 * 512 : ship ? frame % 8 * 320 : 0) + sx,
+      ctx.drawImage(image, (mirror ? frame % 3 * 512 : ship ? frame % 8 * 320 : comicAction ? frame % 4 * 128 : 0) + sx,
         (mirror ? Math.floor(frame / 3) * 512 : ship ? Math.floor(frame / 8) * frameHeight : 0) + sy,
         sw, sh, -width*ax, -height*ay, width, height);
       ctx.restore(); return true;
@@ -470,7 +474,8 @@ async function main() {
       chapter.progress + local * 54 + reviewLap*2460;
     s.elapsedMs = i * 1000 / fps;
     s.musicBar = chapter.bar + reviewLap*24 + Math.floor(local / 1.875);
-    s.musicBeatFloat = s.musicBar * 4 + local % 1.875 * 4 / 1.875;
+    s.musicBeatFloat = s.musicBar * 4 + (stillReview && process.env.CACHE_REVIEW_BEAT_OFFSET !== undefined ?
+      Number(process.env.CACHE_REVIEW_BEAT_OFFSET) : local % 1.875 * 4 / 1.875);
     // Scripted arrangement states expose queued, single, and full-stack road
     // markings for art review; no audio or playable route is implied.
     const reviewParts=continuous ? [[0],[0,1],[0,1,3],[0,1,2,3]][Math.min(3,Math.floor(local/8))] :
@@ -481,7 +486,8 @@ async function main() {
       startBeat:(s.musicBar+1)*4,endBeat:(s.musicBar+5)*4,
       inkAtMs:s.elapsedMs-350}] : [];
     s.fullAdrenaline=s.captures.length===4;
-    const [from,to,start,end] = stillReview ? [1.5,1.5,0,1] : laneMoves[chapterIndex];
+    const reviewLane=Number(process.env.CACHE_REVIEW_LANE ?? 1.5);
+    const [from,to,start,end] = stillReview ? [reviewLane,reviewLane,0,1] : laneMoves[chapterIndex];
     const turn = Math.max(0,Math.min(1,(local-start)/(end-start)));
     s.lanePos = s.visualLane = continuous ? 1.5+.45*Math.sin(local*.41) : from+(to-from)*smooth(turn);
     s.lane = Math.round(s.lanePos); s.speed = 54;

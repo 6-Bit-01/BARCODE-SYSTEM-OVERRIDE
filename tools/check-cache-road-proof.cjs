@@ -367,7 +367,8 @@ async function run() {
         beacons.push({ x,y,translate:this.lastTranslate });
     },
     fillText(value, x, y) {
-      if ((x === 1418 && y === 73) || (x === 1345 && y === 155))
+      if ((x === 1623 && y === 76) || (x === 1345 && y === 155) ||
+          (x === 1418 && y === 56))
         hudLines.push({ value, x, y });
       if (value === 'CUT >' || value === '< CUT') trafficLabels.push(value);
     } },
@@ -835,15 +836,25 @@ async function run() {
   mirrorFrame({ progress: 60 });
   assert.deepEqual(openingRects, [[875, 82]], 'the opening panel remains compact');
   mirrorFrame({ progress: 130 });
-  assert(drawOrder.includes('roadPad') && drawOrder.includes('cacheFreight'));
-  assert(drawOrder.indexOf('roadPad') < drawOrder.indexOf('cacheFreight'),
-    'road paint is composited beneath physical traffic');
-  const visibleBeforeCatch = drawOrder.filter(item => item === 'roadPad').length;
+  assert(drawOrder.includes('cacheComicPad') && drawOrder.includes('cacheFreight'));
+  assert(drawOrder.indexOf('cacheComicPad') < drawOrder.indexOf('cacheFreight'),
+    'illustrated road paint is composited beneath physical traffic');
+  mirrorFrame({ progress: 130, lanePos: 0, visualLane: 0, musicBeatFloat: 2 });
+  const waitingIcon = roadArt.find(entry => entry.key === 'cacheComicActions' && entry.x === 1375);
+  assert(hudLines.some(line => /HIT ON 4/.test(line.value)),
+    'the button cue names the target beat while the pad is in range');
+  mirrorFrame({ progress: 130, lanePos: 0, visualLane: 0, musicBeatFloat: 3 });
+  const pressIcon = roadArt.find(entry => entry.key === 'cacheComicActions' && entry.x === 1375);
+  assert(pressIcon.width > waitingIcon.width &&
+    hudLines.some(line => /PRESS!/.test(line.value)),
+  'on the fourth beat the action icon swells and the prompt changes to PRESS');
+  mirrorFrame({ progress: 130 });
+  const visibleBeforeCatch = drawOrder.filter(item => item === 'cacheComicPad').length;
   mirrorFrame({ progress: 130, caughtPulses: { '0/0/0': true } });
-  assert.equal(drawOrder.filter(item => item === 'roadPad').length, visibleBeforeCatch,
+  assert.equal(drawOrder.filter(item => item === 'cacheComicPad').length, visibleBeforeCatch,
     'a caught fixed marking stays visible until it passes under the car');
-  mirrorFrame({ progress: 173, caughtPulses: { '0/0/0': true } });
-  assert.equal(drawOrder.filter(item => item === 'roadPad').length, visibleBeforeCatch - 1,
+  mirrorFrame({ progress: 190, caughtPulses: { '0/0/0': true } });
+  assert.equal(drawOrder.filter(item => item === 'cacheComicPad').length, visibleBeforeCatch - 2,
     'the caught marking leaves only after it has passed the car');
   road.state = liveState; B.PresentationAssets = oldArt;
   assert.match(road.openingCue()[0], /ROAD PADS ARE SAFE/,
@@ -860,6 +871,13 @@ async function run() {
   audio.context.currentTime = 3 * beatSec - .25;
   road.state.lane = road.state.lanePos = 1; road.update(100);
   assert.equal(road.state.captures.length, 0, 'holding a lane without a timed pulse earns no music');
+  for (const beat of [0, 1, 2, 4]) {
+    face('road_a', beat, 0, 150);
+    assert.equal(road.state.captures.length, 0,
+      `a precise tap on beat ${beat + 1} cannot claim the road pad`);
+    assert.equal(road.state.caughtPulses['0/0/0'], undefined,
+      'off-beat presses must leave the pad available for beat four');
+  }
   face('road_a', 3, 0, 150);
   assert.deepEqual(copy(road.state.captures.map(c => [c.lane,c.startBeat,c.endBeat])), [[0,3,35]],
     'the first fixed road pad earns eight bars on a played beat');
@@ -868,7 +886,7 @@ async function run() {
   const firstScore = road.state.score;
   face('road_a', 3, 0, 150);
   assert.equal(road.state.score, firstScore, 'one pulse cannot be paid twice by a repeated press');
-  road.state.progress = 390; road.state.lanePos = 1;
+  road.state.progress = 401; road.state.lanePos = 1;
   assert.equal(road.catchPulse('road_x', 11 * beatSec), false,
     'a missed road pad does not wait for a later song beat or follow the car');
   face('road_x', 11, 0, 365);
@@ -955,11 +973,12 @@ async function run() {
     const steer = goal - road.state.lanePos;
     const actions = { move_left: { held: steer < -.10 },
       move_right: { held: steer > .10 } };
-    if (next && next[0] - road.state.progress <= 55 &&
-      next[0] - road.state.progress >= -18 &&
+    if (next && next[0] - road.state.progress <= 105 &&
+      next[0] - road.state.progress >= -30 &&
       Math.abs(steer) <= .38 &&
       Math.abs(audio.context.currentTime / beatSec -
-        Math.round(audio.context.currentTime / beatSec)) <= .04) {
+        Math.round(audio.context.currentTime / beatSec)) <= .04 &&
+      Math.round(audio.context.currentTime / beatSec) % 4 === 3) {
       actions[next[2]] = { pressed: true, presses: [{ audioTimeSec: audio.context.currentTime }] };
       routeIndex++;
     }
@@ -983,10 +1002,11 @@ async function run() {
     const steer = goal - road.state.lanePos;
     const actions = { move_left: { held: steer < -.10 },
       move_right: { held: steer > .10 } };
-    if (next && next[0] - road.state.progress <= 55 &&
-      next[0] - road.state.progress >= -18 && Math.abs(steer) <= .38 &&
+    if (next && next[0] - road.state.progress <= 105 &&
+      next[0] - road.state.progress >= -30 && Math.abs(steer) <= .38 &&
       Math.abs(audio.context.currentTime / beatSec -
-        Math.round(audio.context.currentTime / beatSec)) <= .04) {
+        Math.round(audio.context.currentTime / beatSec)) <= .04 &&
+      Math.round(audio.context.currentTime / beatSec) % 4 === 3) {
       actions[next[2]] = { pressed: true, presses: [{ audioTimeSec: audio.context.currentTime }] };
       laterIndex++;
     }

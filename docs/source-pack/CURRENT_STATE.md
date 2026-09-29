@@ -1,5 +1,16 @@
 # Current State
 
+## September 29 — comic road cues and fourth-beat input (review branch)
+
+Three local hand-inked SVG assets replace the pad, phrase inset and four
+action icons in Cache Road. Fixed road pads still sit at authored addresses
+under traffic. A catch requires the matching button in the marked lane and
+the fourth beat of a measure; other beats leave the pad available. The HUD
+counts beats, swells the icon and turns amber during the press window. The
+longer approach window keeps the world-fixed pad usable at varied speeds.
+The focused route and art checks pass; Makko timing, appearance and audio
+feel still require the owner's playtest after merge.
+
 ## September 27 — six-family Cache Road core kit (unmerged)
 
 The new kit's 97 runtime entries now have one immutable asset ancestor

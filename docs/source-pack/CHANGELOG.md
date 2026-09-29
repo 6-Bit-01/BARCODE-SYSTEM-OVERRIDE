@@ -1,5 +1,14 @@
 # Recovery checkpoint — September 14
 
+## September 29, 2026 — comic road cues and fourth-beat catches (review branch)
+
+- Add three hand-inked road/action SVGs; place pad and phrase art beneath
+  opaque traffic through the existing projected road draw.
+- Accept a pad only on beat four, widen its world-distance catch range, and
+  show an enlarged amber press cue with a four-beat HUD count.
+- Verify wrong-beat presses remain harmless and review the same road frame
+  before and during the press window. Makko feel remains untested.
+
 ## September 27, 2026 — prepare immutable six-family asset delivery
 
 - Point all 97 new runtime entries at the exact `b43761c` art ancestor,

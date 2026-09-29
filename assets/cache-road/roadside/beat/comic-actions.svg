@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="128" viewBox="0 0 512 128">
+  <defs>
+    <pattern id="speck" width="13" height="13" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="2" fill="#07151b" opacity=".38"/></pattern>
+  </defs>
+  <!-- SURGE: two torn-paper acceleration chevrons. -->
+  <g transform="translate(0)">
+    <path d="M18 88 61 43 105 84 95 103 62 73 31 105Z M18 48 62 8 106 50 95 68 62 37 30 67Z" fill="#e36c89" transform="translate(5 4)"/>
+    <path d="M18 88 61 43 105 84 95 103 62 73 31 105Z M18 48 62 8 106 50 95 68 62 37 30 67Z" fill="#051218" stroke="#051218" stroke-width="12" stroke-linejoin="bevel"/>
+    <path d="M18 88 61 43 105 84 95 103 62 73 31 105Z M18 48 62 8 106 50 95 68 62 37 30 67Z" fill="#8ff3d1" stroke="#f9ecbb" stroke-width="4" stroke-linejoin="bevel"/>
+    <path d="M43 83 61 66 83 83M42 44 61 27 83 45" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="square"/>
+    <path d="M12 111 32 105M9 69 24 63M103 27 116 16" stroke="#f9d583" stroke-width="5"/>
+  </g>
+  <!-- PUSH: a heavy comic impact wedge with an offset strike. -->
+  <g transform="translate(128)">
+    <path d="M16 43 66 22 112 59 91 82 113 99 48 108 28 83 14 76Z" fill="#d65e90" transform="translate(4 3)"/>
+    <path d="M16 43 66 22 112 59 91 82 113 99 48 108 28 83 14 76Z" fill="#06131a" stroke="#031018" stroke-width="12" stroke-linejoin="bevel"/>
+    <path d="M23 48 65 29 102 59 78 78 100 94 49 100 37 76 22 70Z" fill="#f3c579" stroke="#fff0bf" stroke-width="4" stroke-linejoin="bevel"/>
+    <path d="M37 51 67 43 87 60 58 72 85 91 48 88 43 71Z" fill="#e9636f" stroke="#071820" stroke-width="7" stroke-linejoin="bevel"/>
+    <path d="M11 24 24 39M40 11 46 25M105 24 93 39M116 106 98 100" stroke="#f5ede0" stroke-width="6" stroke-linecap="square"/>
+    <path d="M31 51 44 48M14 85 30 82" stroke="#87e7d9" stroke-width="5"/>
+  </g>
+  <!-- BRACE: painted armor plate, cracked but holding. -->
+  <g transform="translate(256)">
+    <path d="M64 8 111 27 106 78 87 103 64 116 41 103 22 78 17 27Z" fill="#d45b94" transform="translate(4 2)"/>
+    <path d="M64 8 111 27 106 78 87 103 64 116 41 103 22 78 17 27Z" fill="#09141a" stroke="#020e15" stroke-width="11" stroke-linejoin="bevel"/>
+    <path d="M64 16 103 33 98 76 82 96 64 108 46 96 30 76 25 33Z" fill="#86bed0" stroke="#f4ebc7" stroke-width="5" stroke-linejoin="bevel"/>
+    <path d="M64 24 93 37 87 75 64 97 41 75 35 37Z" fill="url(#speck)" stroke="#122d37" stroke-width="5"/>
+    <path d="M35 39 65 26 94 40M36 80 63 98 92 79" fill="none" stroke="#b0f8dd" stroke-width="4"/>
+    <path d="M51 57 62 71 82 46" fill="none" stroke="#03151a" stroke-width="17" stroke-linecap="square" stroke-linejoin="miter"/>
+    <path d="M51 57 62 71 82 46" fill="none" stroke="#fef0ae" stroke-width="8" stroke-linecap="square"/>
+    <path d="M12 28 25 34M103 33 117 27" stroke="#eac682" stroke-width="5"/>
+  </g>
+  <!-- REFILL: torn circular coil around the charged cross. -->
+  <g transform="translate(384)">
+    <path d="M94 27 76 13 34 24 17 52 22 85 42 106 76 113 105 90 110 59" fill="none" stroke="#db7092" stroke-width="22" transform="translate(4 2)"/>
+    <path d="M94 27 76 13 34 24 17 52 22 85 42 106 76 113 105 90 110 59" fill="none" stroke="#061219" stroke-width="25" stroke-linejoin="bevel"/>
+    <path d="M94 27 76 13 34 24 17 52 22 85 42 106 76 113 105 90 110 59" fill="none" stroke="#e7d889" stroke-width="14" stroke-linecap="square"/>
+    <path d="M88 16 117 22 104 48 92 35Z" fill="#88f2d0" stroke="#061219" stroke-width="7" stroke-linejoin="bevel"/>
+    <path d="M53 38 76 38 76 54 91 54 91 76 76 76 76 94 53 94 53 76 37 76 37 54 53 54Z" fill="#9df4d2" stroke="#04151b" stroke-width="8" stroke-linejoin="bevel"/>
+    <path d="M40 42 46 32M18 91 29 100M86 103 98 93" stroke="#fff3ba" stroke-width="5"/>
+  </g>
+</svg>
