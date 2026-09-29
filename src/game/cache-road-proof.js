@@ -1459,6 +1459,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const ground=terrainAt(side,t,x)+7*t;
         return crestY(x)+(ground-crestY(x))*smooth((t-.10)/.57);
       };
+      // The distant foot sits just below the visible bank. Perspective growth
+      // raises a little more of the roof above that bank each frame; the
+      // burial tapers away before the parcel reaches its terrain contact.
+      // The clipping edge itself remains the curved hill, never the roof.
+      const areaFoot=(side,t,roadwardX,groundFoot,height)=>Math.max(
+        groundFoot,roadsideRevealY(side,t,roadwardX)+
+          height*.8*(1-smooth((t-.025)/.22)));
       // Uncover a grounded cutout from its roof down while the bank lip
       // still hides its foundation. Its world foot never leaves the terrain.
       const emergenceLip=(t,foot,height)=>foot-height+
@@ -1790,35 +1797,29 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           const footX=fit?.footU===undefined?roadward:
             x-width*.5+width*fit.footU;
           const height=width*(contactBottom||sourceH)/sourceW;
-          const y=terrainAt(plate.side,t,footX)+
+          const groundFoot=terrainAt(plate.side,t,footX)+
             (contactAt?(contactBottom-contactAt)*width/sourceW+6*t:22*t);
-          ctx.save();ctx.beginPath();ctx.moveTo(x-width*.5,0);
-          ctx.lineTo(x+width*.5,0);
-          for(let i=20;i>=0;i--) {
-            const xx=x-width*.5+width*i/20;
-            ctx.lineTo(xx,Math.min(roadsideRevealY(plate.side,t,xx),
-              terrainAt(plate.side,t,xx)+7*t,emergenceLip(t,y,height)));
-          }
-          ctx.closePath();ctx.clip();
-          B.PresentationAssets?.draw?.(key,ctx,{x,y,width,height,
-            sourceRect:[0,0,sourceW,contactBottom||sourceH],flip:!!plate.flip});
-          if(t>.20&&plate.tier==='front'&&plate.key==='open') {
-            const capX=roadward+plate.side*13*t;
-            B.PresentationAssets?.draw?.(plate.side<0?
-              'cacheJoinLEndcap':'cacheJoinREndcap',ctx,{
-              x:capX,y:terrainAt(plate.side,t,capX)+5*t,
-              width:48*t,height:96*t });
-          }
-          if(t>.28&&plate.tier==='front'&&plate.key==='closed'&&
-            (Number(plate.chunkId.split(':')[1])%3===0)) {
-            const lightX=x+plate.side*width*.09;
-            B.PresentationAssets?.draw?.(`cacheAmbient${
-              plate.family[0].toUpperCase()+plate.family.slice(1)}`,ctx,{
-              x:lightX,y:y-width*.24,width:54*t,height:54*t,
-              frame:reduced?1:Math.floor((s.elapsedMs||0)/230+
-                Number(plate.chunkId.split(':')[1]))%4});
-          }
-          ctx.restore();
+          const y=areaFoot(plate.side,t,footX,groundFoot,height);
+          clipRoadside(t,()=>{
+            B.PresentationAssets?.draw?.(key,ctx,{x,y,width,height,groundY:groundFoot,
+              sourceRect:[0,0,sourceW,contactBottom||sourceH],flip:!!plate.flip});
+            if(t>.20&&plate.tier==='front'&&plate.key==='open') {
+              const capX=roadward+plate.side*13*t;
+              B.PresentationAssets?.draw?.(plate.side<0?
+                'cacheJoinLEndcap':'cacheJoinREndcap',ctx,{
+                x:capX,y:terrainAt(plate.side,t,capX)+5*t,
+                width:48*t,height:96*t });
+            }
+            if(t>.28&&plate.tier==='front'&&plate.key==='closed'&&
+              (Number(plate.chunkId.split(':')[1])%3===0)) {
+              const lightX=x+plate.side*width*.09;
+              B.PresentationAssets?.draw?.(`cacheAmbient${
+                plate.family[0].toUpperCase()+plate.family.slice(1)}`,ctx,{
+                x:lightX,y:y-width*.24,width:54*t,height:54*t,
+                frame:reduced?1:Math.floor((s.elapsedMs||0)/230+
+                  Number(plate.chunkId.split(':')[1]))%4});
+            }
+          },plate.side);
         } else if(area.kind==='cluster') {
           const {side,index}=area;
           const variants=clusterArt[String(side)];
@@ -1828,20 +1829,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
             580+80*placeRandom(index*79+side*23)+280*t,300);
           if(x+width*.5<0||x-width*.5>1920)return;
           const height=width*sourceH/sourceW;
-          const y=terrainAt(side,t,x)+60*t;
-          ctx.save();ctx.beginPath();ctx.moveTo(x-width*.5,0);
-          ctx.lineTo(x+width*.5,0);
-          for(let i=12;i>=0;i--) {
-            const xx=x-width*.5+width*i/12;
-            ctx.lineTo(xx,terrainAt(side,t,xx)-4*t);
-          }
-          ctx.closePath();ctx.clip();
+          const roadward=x-side*width*.5;
+          const groundFoot=terrainAt(side,t,x)+60*t;
+          const y=areaFoot(side,t,roadward,groundFoot,height);
           clipRoadside(t,()=>{
             ctx.globalAlpha=1;
             B.PresentationAssets?.draw?.(key,ctx,{
-              x,y,width,height,flip:false });
-          },side,null,{foot:y,height});
-          ctx.restore();
+              x,y,width,height,groundY:groundFoot,flip:false });
+          },side);
         } else if(area.kind==='satellite') {
           const {scene}=area,side=scene.side;
           const [key,sourceW,sourceH,maxW]=scene.art;
@@ -1850,17 +1845,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           const x=sidewalkEdge+side*(width*.5+29*t);
           if(x+width*.5<0||x-width*.5>1920)return;
           const height=width*sourceH/sourceW;
-          const y=terrainAt(side,t,x)+9*t;
-          ctx.save();ctx.beginPath();ctx.moveTo(x-width*.5,0);
-          ctx.lineTo(x+width*.5,0);
-          for(let i=12;i>=0;i--) {
-            const xx=x-width*.5+width*i/12;
-            ctx.lineTo(xx,terrainAt(side,t,xx)+7*t);
-          }
-          ctx.closePath();ctx.clip();
+          const groundFoot=terrainAt(side,t,x)+9*t;
+          const y=areaFoot(side,t,sidewalkEdge+side*29*t,groundFoot,height);
           clipRoadside(t,()=>B.PresentationAssets?.draw?.(key,ctx,{
-            x,y,width,height,flip:side>0 }),side,null,{foot:y,height});
-          ctx.restore();
+            x,y,width,height,groundY:groundFoot,flip:side>0 }),side);
         } else {
           const {place}=area,side=place.side;
           const [key,sourceW,sourceH,maxW]=
@@ -1869,19 +1857,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           const height=width*sourceH/sourceW;
           const sidewalkEdge=roadsideX(side,t,220,190);
           const x=sidewalkEdge+side*(width*.5+(26+place.setback)*t);
-          const y=terrainAt(side,t,x);
-          ctx.save();ctx.beginPath();ctx.moveTo(x-width*.5,0);
-          ctx.lineTo(x+width*.5,0);
-          for(let i=12;i>=0;i--) {
-            const xx=x-width*.5+width*i/12;
-            ctx.lineTo(xx,Math.min(y,terrainAt(side,t,xx)+4*t));
-          }
-          ctx.closePath();ctx.clip();
+          const roadward=sidewalkEdge+side*(26+place.setback)*t;
+          const groundFoot=terrainAt(side,t,x);
+          const y=areaFoot(side,t,roadward,groundFoot,height);
           clipRoadside(t,()=>B.PresentationAssets?.draw?.(key,ctx,{
-            x,y,width,height,flip:place.variant?
+            x,y,width,height,groundY:groundFoot,flip:place.variant?
               !!SIDE_VARIANTS[place.variant].flip:placeFacesRoad(place.kind,side) }),
-            side,null,{foot:y,height});
-          ctx.restore();
+            side);
         }
       };
       const visibleStreetParts=(LANDSCAPE.streetParts||[]).filter(part=>{
