@@ -836,31 +836,59 @@ async function run() {
   mirrorFrame({ progress: 60 });
   assert.deepEqual(openingRects, [[875, 82]], 'the opening panel remains compact');
   mirrorFrame({ progress: 130 });
-  assert(drawOrder.includes('cacheComicPad') && drawOrder.includes('cacheFreight'));
-  assert(drawOrder.indexOf('cacheComicPad') < drawOrder.indexOf('cacheFreight'),
+  assert(drawOrder.includes('cachePulsePad') && drawOrder.includes('cachePulseStrip') &&
+    drawOrder.includes('cacheFreight'));
+  assert(drawOrder.indexOf('cachePulseStrip') < drawOrder.indexOf('cacheFreight'),
     'illustrated road paint is composited beneath physical traffic');
+  assert(roadSource.includes('depth(d-PAD_EARLY),stripFar=depth(d+PAD_LATE)'),
+    'the visible strip spans the same world-space input range as catchPulse');
+  mirrorFrame({ progress: 130, pulseFlashMs: 500 });
+  assert(drawOrder.includes('cachePulseBurst'),
+    'a successful catch gets its own brief painted HUD burst');
   mirrorFrame({ progress: 130, lanePos: 0, visualLane: 0, musicBeatFloat: 2 });
-  const waitingIcon = roadArt.find(entry => entry.key === 'cacheComicActions' && entry.x === 1375);
+  const waitingIcon = roadArt.find(entry => entry.key === 'cachePulseSurge' && entry.x === 1375);
   assert(hudLines.some(line => /HIT ON 4/.test(line.value)),
     'the button cue names the target beat while the pad is in range');
   mirrorFrame({ progress: 130, lanePos: 0, visualLane: 0, musicBeatFloat: 3 });
-  const pressIcon = roadArt.find(entry => entry.key === 'cacheComicActions' && entry.x === 1375);
+  const pressIcon = roadArt.find(entry => entry.key === 'cachePulseSurge' && entry.x === 1375);
   assert(pressIcon.width > waitingIcon.width &&
     hudLines.some(line => /PRESS!/.test(line.value)),
   'on the fourth beat the action icon swells and the prompt changes to PRESS');
   mirrorFrame({ progress: 130 });
-  const visibleBeforeCatch = drawOrder.filter(item => item === 'cacheComicPad').length;
+  const visibleBeforeCatch = drawOrder.filter(item => item === 'cachePulsePad').length;
   mirrorFrame({ progress: 130, caughtPulses: { '0/0/0': true } });
-  assert.equal(drawOrder.filter(item => item === 'cacheComicPad').length, visibleBeforeCatch,
+  assert.equal(drawOrder.filter(item => item === 'cachePulsePad').length, visibleBeforeCatch,
     'a caught fixed marking stays visible until it passes under the car');
   mirrorFrame({ progress: 190, caughtPulses: { '0/0/0': true } });
-  assert.equal(drawOrder.filter(item => item === 'cacheComicPad').length, visibleBeforeCatch - 2,
+  assert.equal(drawOrder.filter(item => item === 'cachePulsePad').length, visibleBeforeCatch - 2,
     'the caught marking leaves only after it has passed the car');
   road.state = liveState; B.PresentationAssets = oldArt;
   assert.match(road.openingCue()[0], /ROAD PADS ARE SAFE/,
     'the first prompt distinguishes safe music pickups from traffic');
   assert.equal(profile.judgmentRules[0].id, 'road-pulse');
   const beatSec = 60 / 128;
+  const padWindow = /const PAD_EARLY = (\d+), PAD_LATE = (\d+);/.exec(roadSource);
+  assert(padWindow, 'the painted road zone has explicit world-distance bounds');
+  const [early, late] = padWindow.slice(1).map(Number);
+  const fourthPeriod = 4 * beatSec, judgmentSec = .185;
+  for(const speed of [18,23,36,54,68,75]) {
+    const crossingSec=(early+late)/speed;
+    for(let phase=0;phase<fourthPeriod;phase+=.025) {
+      const nextFourth=fourthPeriod-phase;
+      assert(nextFourth>=judgmentSec && nextFourth<=crossingSec-judgmentSec ||
+        nextFourth+fourthPeriod>=judgmentSec &&
+        nextFourth+fourthPeriod<=crossingSec-judgmentSec,
+      `the complete fourth-beat input window must fit in the pad at ${speed} road units/s`);
+    }
+  }
+  const beforeSpeedProbe=road.state;
+  road.state=copy(liveState);
+  road.state.lane=road.state.lanePos=road.state.visualLane=0;
+  road.state.speed=75;
+  road.state.progress=150-(150-75*.55);
+  assert(road.catchPulse('road_a',7*beatSec),
+    'a top-speed driver can catch beat four while on the painted approach');
+  road.state=beforeSpeedProbe;
   const face = (key, beat, lane, at, speed = 54, offset = 0) => {
     road.state.lane = road.state.lanePos = road.state.visualLane = lane;
     road.state.speed = speed; road.state.progress = at - 30;

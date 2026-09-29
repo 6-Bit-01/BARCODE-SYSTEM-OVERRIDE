@@ -7,7 +7,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   const ID = 'level-02', PROFILE = 'level-02.proof';
   const LAP = 2460, END = 4 * LAP, GATE = 3 * LAP + 2060;
   const BAR_BEATS = 4, PULSE_BEATS = 32;
-  const PAD_EARLY = 105, PAD_LATE = 30;
+  // 175 road units at the 75-unit/s ceiling gives 2.33 s in reach: a full
+  // fourth-beat cycle (1.875 s) plus both 185 ms judgment margins.
+  const PAD_EARLY = 145, PAD_LATE = 30;
   const LANES = ['DRIVE', 'FLOW', 'BREAKAWAY', 'UNDERCURRENT'];
   const PULSE_ACTIONS = [
     { key: 'road_a', label: 'SURGE', button: 0, keyboard: 'K' },
@@ -511,11 +513,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     }
     return true;
   }
-  // Vector source art keeps the same action and part language crisp on the
-  // road and in the instrument cluster, independent of remapped button text.
+  // Painted action badges share their symbols on the road and HUD; the small
+  // vector paths below remain useful while images load.
   function drawActionIcon(ctx,action,x,y,size,color='#d6ffe7') {
-    if(B.PresentationAssets?.draw?.('cacheComicActions',ctx,{
-      x,y,width:size,height:size,frame:action}))return;
+    if(B.PresentationAssets?.draw?.(
+      ['cachePulseSurge','cachePulsePush','cachePulseBrace','cachePulseRefill'][action],
+      ctx,{x,y,width:size,height:size}))return;
     ctx.save();ctx.translate(x,y);ctx.scale(size/60,size/60);
     ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=5;
     ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();
@@ -2242,7 +2245,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           const padNear = 8 + near * 13, padFar = 8 + far * 13;
           const trimFar=far+(near-far)*.10,trimNear=far+(near-far)*.88;
           ctx.save();ctx.globalAlpha=(active?.43:.23)*reveal;
-          paintComicDecal(ctx,'cacheComicBar',[
+          paintComicDecal(ctx,'cachePhraseStrip',[
             [laneEdge(lane,trimNear)+padNear,roadY(trimNear)],
             [laneEdge(lane+1,trimNear)-padNear,roadY(trimNear)],
             [laneEdge(lane+1,trimFar)-padFar,roadY(trimFar)],
@@ -2359,6 +2362,23 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         if (d < -PAD_LATE-8 || d > 345) continue;
         const near = depth(d - 18), far = depth(d + 18), mid = depth(d);
         if (mid < .17 || near <= far) continue;
+        const spent=!!s.caughtPulses[pulse.id],ready=d<=PAD_EARLY&&d>=-PAD_LATE;
+        // The continuous painted strip covers precisely the input zone;
+        // its position makes no claim about the song's beat positions.
+        const stripNear=depth(d-PAD_EARLY),stripFar=depth(d+PAD_LATE);
+        if(stripNear>stripFar+.005) {
+          const stripNearWidth=Math.min(82,(laneEdge(pulse.lane+1,stripNear)-
+            laneEdge(pulse.lane,stripNear))*.22);
+          const stripFarWidth=Math.min(82,(laneEdge(pulse.lane+1,stripFar)-
+            laneEdge(pulse.lane,stripFar))*.22);
+          ctx.save();ctx.globalAlpha=spent?.20:.51;
+          paintComicDecal(ctx,'cachePulseStrip',[
+            [laneX(pulse.lane,stripNear)-stripNearWidth,roadY(stripNear)],
+            [laneX(pulse.lane,stripNear)+stripNearWidth,roadY(stripNear)],
+            [laneX(pulse.lane,stripFar)+stripFarWidth,roadY(stripFar)],
+            [laneX(pulse.lane,stripFar)-stripFarWidth,roadY(stripFar)]]);
+          ctx.restore();
+        }
         const x = laneX(pulse.lane, mid), y = roadY(mid);
         const nearWidth = Math.min(116, (laneEdge(pulse.lane+1,near) - laneEdge(pulse.lane,near))*.32);
         const farWidth = Math.min(116, (laneEdge(pulse.lane+1,far) - laneEdge(pulse.lane,far))*.32);
@@ -2367,10 +2387,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           [laneX(pulse.lane,far)+farWidth,roadY(far)],
           [laneX(pulse.lane,far)-farWidth,roadY(far)]];
         ctx.save();
-        const spent=!!s.caughtPulses[pulse.id],ready=d<=PAD_EARLY&&d>=-PAD_LATE;
         ctx.globalAlpha=spent ? .55 : .88;
         polygon(ctx,points,'#061922');
-        if(!paintComicDecal(ctx,'cacheComicPad',points)) {
+        if(!paintComicDecal(ctx,'cachePulsePad',points)) {
           const inset=8+mid*5;
           polygon(ctx,[[points[0][0]+inset,points[0][1]-2],
             [points[1][0]-inset,points[1][1]-2],
@@ -2561,6 +2580,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       polygon(ctx,[[1355,21],[1392,21],[1402,30],[1402,68],
         [1392,77],[1355,77],[1348,68],[1348,30]],
         pressNow?'#a65e45':padReady?'#24585a':'#17323c');
+      if(s.pulseFlashMs&&!reduced) {
+        ctx.save();ctx.globalAlpha=.75*s.pulseFlashMs/650;
+        B.PresentationAssets?.draw?.('cachePulseBurst',ctx,
+          {x:1375,y:49,width:100,height:50});
+        ctx.restore();
+      }
       if(padVisible) drawActionIcon(ctx,nextPulse.action,1375,44,37*iconScale,'#c6ffe2');
       else drawLaneMark(ctx,s.lane,1375,43,35,'#9bd7d0');
       ctx.fillStyle='#a8bfcb';ctx.font='bold 14px Oxanium, monospace';

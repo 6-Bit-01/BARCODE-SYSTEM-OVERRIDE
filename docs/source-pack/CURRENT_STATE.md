@@ -1,13 +1,16 @@
 # Current State
 
-## September 29 — comic road cues and fourth-beat input (review branch)
+## September 29 — painted pulse assets and speed-safe beat input (review branch)
 
-Three local hand-inked SVG assets replace the pad, phrase inset and four
-action icons in Cache Road. Fixed road pads still sit at authored addresses
-under traffic. A catch requires the matching button in the marked lane and
+Eight local hand-painted WebP assets replace the rejected SVG pad, phrase
+inset and four action icons, and add a continuous reach strip and catch burst.
+Fixed road pads still sit at authored addresses under traffic. A catch
+requires the matching button in the marked lane and
 the fourth beat of a measure; other beats leave the pad available. The HUD
 counts beats, swells the icon and turns amber during the press window. The
-longer approach window keeps the world-fixed pad usable at varied speeds.
+145-before/30-after approach lasts 2.33 seconds at the 75-unit/s ceiling,
+enough for a full fourth-beat cycle and both timing margins; the song tempo
+stays fixed. The strip marks reach, while HUD numbers mark audible beats.
 The focused route and art checks pass; Makko timing, appearance and audio
 feel still require the owner's playtest after merge.
 

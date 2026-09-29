@@ -175,9 +175,14 @@ async function main() {
     cacheStreetDataKiosk: 'assets/cache-road/world/props/street-data-kiosk.webp',
     cacheParapet: 'assets/cache-road/roadside/parapet.webp',
     cachePylon: 'assets/cache-road/roadside/service-pylon.webp',
-    cacheComicPad: 'assets/cache-road/roadside/beat/comic-pad.svg',
-    cacheComicBar: 'assets/cache-road/roadside/beat/comic-bar.svg',
-    cacheComicActions: 'assets/cache-road/roadside/beat/comic-actions.svg',
+    cachePulsePad: 'assets/cache-road/roadside/beat/pulse-pad.webp',
+    cachePulseStrip: 'assets/cache-road/roadside/beat/approach-strip.webp',
+    cachePhraseStrip: 'assets/cache-road/roadside/beat/beat-phrase.webp',
+    cachePulseBurst: 'assets/cache-road/roadside/beat/pulse-burst.webp',
+    cachePulseSurge: 'assets/cache-road/roadside/beat/surge.webp',
+    cachePulsePush: 'assets/cache-road/roadside/beat/push.webp',
+    cachePulseBrace: 'assets/cache-road/roadside/beat/brace.webp',
+    cachePulseRefill: 'assets/cache-road/roadside/beat/refill.webp',
     cacheSidewalk: 'assets/cache-road/roadside/sidewalk-slab.svg',
     cacheOuterGround: 'assets/cache-road/roadside/continuous-ground-panel.svg',
     cacheRollingGrain: 'assets/cache-road/roadside/rolling-ground-grain.webp',
@@ -363,21 +368,21 @@ async function main() {
         process.stdout.write(`${key} x=${Math.round(x)} y=${Math.round(y)} w=${Math.round(width)} h=${Math.round(height)}\n`);
       const mirror = key === 'cacheMirror';
       const ship = key === 'cacheFly1' || key === 'cacheFly3';
-      const comicAction=key === 'cacheComicActions';
-      const frameWidth = comicAction ? 128 : ship ? 320 : image.width;
+      const pulseIcon=key.startsWith('cachePulse') && !['cachePulsePad','cachePulseStrip'].includes(key);
+      const frameWidth = ship ? 320 : image.width;
       const frameHeight = key === 'cacheFly1' ? 83 : key === 'cacheFly3' ? 97 : image.height;
       const [sx, sy, sw, sh] = sourceRect || [0,0,mirror ? 512 : frameWidth,mirror ? 512 : frameHeight];
       const flatJoin=key.endsWith('Turn')||key.endsWith('Curb');
-      const ax = comicAction ? .5 : key === 'cacheComicPad' || key === 'cacheComicBar' || key === 'cacheSkyline' || key === 'cacheDistantCity' || key === 'cacheOutskirts' || key === 'cacheMidCity' || key === 'cacheBlacktop' || key === 'cacheSidewalk' || key.endsWith('Ground') || key === 'cacheRollingGrain' || key === 'cacheWorkshopPavement' || key === 'cacheLocalStreet' || flatJoin ? 0 :
+      const ax = pulseIcon ? .5 : key === 'cachePulsePad' || key === 'cachePulseStrip' || key === 'cachePhraseStrip' || key === 'cacheSkyline' || key === 'cacheDistantCity' || key === 'cacheOutskirts' || key === 'cacheMidCity' || key === 'cacheBlacktop' || key === 'cacheSidewalk' || key.endsWith('Ground') || key === 'cacheRollingGrain' || key === 'cacheWorkshopPavement' || key === 'cacheLocalStreet' || flatJoin ? 0 :
         key === 'cachePylon' ? .28 : .5;
-      const ay = key === 'cacheMirror' || ship || comicAction ? .5 :
-        key === 'cacheComicPad' || key === 'cacheComicBar' || key === 'cacheBlacktop' || key === 'cacheSidewalk' || key.endsWith('Ground') || key === 'cacheRollingGrain' || key === 'cacheWorkshopPavement' || key === 'cacheLocalStreet' || flatJoin ? 0 : 1;
+      const ay = key === 'cacheMirror' || ship || pulseIcon ? .5 :
+        key === 'cachePulsePad' || key === 'cachePulseStrip' || key === 'cachePhraseStrip' || key === 'cacheBlacktop' || key === 'cacheSidewalk' || key.endsWith('Ground') || key === 'cacheRollingGrain' || key === 'cacheWorkshopPavement' || key === 'cacheLocalStreet' || flatJoin ? 0 : 1;
       const reviewFlip=key === 'cacheReviewPlace' &&
         process.env.CACHE_REVIEW_FLIP_RIGHT === '1' && x>960;
       ctx.save(); ctx.translate(x,y);
       if(key === 'cacheReviewPlace' ? reviewFlip : flip) ctx.scale(-1,1);
       ctx.imageSmoothingEnabled = !ship;
-      ctx.drawImage(image, (mirror ? frame % 3 * 512 : ship ? frame % 8 * 320 : comicAction ? frame % 4 * 128 : 0) + sx,
+      ctx.drawImage(image, (mirror ? frame % 3 * 512 : ship ? frame % 8 * 320 : 0) + sx,
         (mirror ? Math.floor(frame / 3) * 512 : ship ? Math.floor(frame / 8) * frameHeight : 0) + sy,
         sw, sh, -width*ax, -height*ay, width, height);
       ctx.restore(); return true;

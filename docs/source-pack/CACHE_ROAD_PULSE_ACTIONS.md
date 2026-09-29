@@ -31,19 +31,24 @@ The inked comic marking lies flush with the blacktop, uses the road's perspectiv
 and bend, and is drawn before opaque cars and red traffic warnings. There is
 no floating halo or screen blend over traffic. Pads are harmless: missing one,
 driving across one or pressing the wrong button costs no life or points.
-While the car is centered in the marked lane within 105 units before or 30
+While the car is centered in the marked lane within 145 units before or 30
 after its center, pressing the marked button within the existing 185 ms
 window **on the fourth beat of a measure** catches it once. Other beats do
-not consume the pad. Braking or accelerating changes when the car reaches
-that window; the marking itself stays at its world address. The HUD counts
+not consume the pad. At the 75-unit/s speed ceiling, the 175-unit painted
+reach lasts 2.33 seconds: longer than a 1.875-second four-beat cycle plus
+both 185 ms timing margins. Slower speeds give more chances; speeding up
+does not alter the song tempo. Braking or accelerating changes when the car
+reaches that window; the marking itself stays at its world address. The
+continuous strip indicates reach, not spatial beat positions. The HUD counts
 through four beats, names the action and mapped button, swells the icon as
 beat four approaches, and changes to an amber PRESS cue during the judgment
 window. Timing settings apply to the input timestamp and the displayed cue.
 
-The pad, phrase cell and action symbols now use separate hand-inked SVG art
-with irregular edges and off-register color. The phrase art remains on the
-asphalt beneath traffic. The previous vector marks remain as a loading
-fallback for the game path.
+Eight actual painted raster assets supply the pad, continuous approach,
+phrase overlay, brief catch burst and separate Surge, Push, Brace and Refill
+badges. The pad, strip and phrase art remain beneath traffic. The HUD burst
+appears only after a successful catch. Simple vector paths remain as a
+loading fallback for the action symbols.
 
 A caught part starts on the judged beat and lasts eight bars. A consecutive
 catch in the same four-pad run lasts sixteen bars. Wider spacing needs this

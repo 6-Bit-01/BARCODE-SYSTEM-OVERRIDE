@@ -1,11 +1,14 @@
 # Repository Guidance
 
-## September 29, 2026 — Cache Road fourth-beat comic cue review
+## September 29, 2026 — Cache Road speed-safe painted pulse review
 
 Keep beat pads at authored road addresses and beneath traffic. A matching
 button in the marked lane catches only on beat four; the HUD counts the
-measure and swells/warms the icon during the press window. Three local SVGs
-provide the inked pad, phrase inset and four action symbols. Preserve the
+measure and swells/warms the icon during the press window. The continuous
+painted approach covers the full 145-before/30-after catch range; it does
+not claim to mark beats spatially as the car changes speed. Eight local
+WebP paintings provide the pad, approach, phrase, catch burst and four
+action symbols. Preserve the
 five supplied MP3s, mapped controls, four lanes and existing city/vehicle
 draw. Merge after CI for the owner's Makko timing and appearance review;
 scripted frames are not audio or controller acceptance. See
