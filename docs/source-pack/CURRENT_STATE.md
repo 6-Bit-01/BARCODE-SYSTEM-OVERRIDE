@@ -1,5 +1,23 @@
 # Current State
 
+## September 29 — owner motion and pulse repair (review)
+
+Merged #144 is `6123c55fa02acd5601bf9aa7b1dc8d8ac322c780`. Its owner
+playtest found walkers animating in place, horizontal people lacking travel,
+a broken-looking sweeper merge and unclear fourth-beat pulse alignment.
+The repair gives travel poses real ground displacement, directs horizontal
+figures outward, smooths the sweeper merge and reduces heavy chassis bounce.
+
+Authored route addresses now announce individual actions on a fixed fourth
+beat. Three count-in marks, the button, phrase paint and HUD agree on the
+visible strike line ahead of the car. The timing window is 70 ms perfect /
+130 ms good. Early accepted taps schedule their sound and visible reward on
+that fourth beat. Subtle count-in clicks and distinct catch chords use the
+existing bounded SFX voices. Full local regression and syntax passed; the
+production driving review clears both planned runs and reaches four parts.
+Hosted CI and the owner's new Makko review are pending publication.
+See `CACHE_ROAD_MOTION_RHYTHM_REPAIR.md` for evidence and limits.
+
 ## September 29 — direction-locked pedestrian travel (local review)
 
 Nine new frame sheets animate six toward/away walker identities, a rightward

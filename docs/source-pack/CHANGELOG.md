@@ -871,6 +871,20 @@ Preserved the recovered 547-frame model-art implementation and live HUD. Draft P
 
 # Changelog
 
+## September 29, 2026 — motion and fourth-beat feedback repair
+
+- Move travelling people along the ground; face horizontal people outward
+  on both banks. Keep seated/standing figures planted and share positions
+  with the rearview.
+- Ease the sweeper lane change at both ends, couple its lean to the turn,
+  remove screen-position-driven frame jumps and settle heavy suspension.
+- Assign each visible action one fixed fourth-beat deadline. Align pads,
+  phrase paint, countdown and the visible strike line to that same clock.
+- Add a three-beat buildup, quiet counted clicks, clear perfect/good feedback
+  and an on-road catch burst. Early accepted input waits for the target beat.
+- Record a production driving trace and a real Web Audio replay path. The
+  full local regression and syntax audit pass; Makko owner review is open.
+
 ## September 23, 2026 — Cache Line chase slice draft
 
 - Record the working Original Master target and a bounded gameplay review plan after owner rejection of the simple lane runner.

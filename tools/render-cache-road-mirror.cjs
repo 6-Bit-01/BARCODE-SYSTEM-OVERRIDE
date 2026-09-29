@@ -434,7 +434,8 @@ async function main() {
   const detail = createCanvas(1320, 1140), dc = detail.getContext('2d');
   const worldReview = process.env.CACHE_REVIEW_WORLD === '1';
   const siteReview = process.env.CACHE_REVIEW_SITES === '1';
-  const continuous = process.env.CACHE_REVIEW_CONTINUOUS === '1';
+  const gameplay = process.env.CACHE_REVIEW_GAMEPLAY === '1';
+  const continuous = gameplay || process.env.CACHE_REVIEW_CONTINUOUS === '1';
   const animationReview = process.env.CACHE_REVIEW_ANIMATION === '1';
   const customProgress=process.env.CACHE_REVIEW_PROGRESS?.split(',')
     .map(Number).filter(Number.isFinite);
@@ -499,10 +500,33 @@ async function main() {
   let error = ''; ff.stderr.on('data', data => { error += data; });
   const completion = once(ff,'close');
   const carCenters = [];
+  const audioEvents=[],mixEvents=[],playbackFrames=[];
+  if(gameplay) {
+    road.selectMusicProfile();
+    w.BARCODE.MusicTransport.start({sourceAnchorAudioSec:0,sourceOffsetTrackSec:0});
+    load(context,'src/engine/music-director.js');
+    const profile=w.BARCODE.MusicProfiles.get('level-02.proof');
+    Object.assign(w.audioSystem,{layersStarted:true,isLooping:false,
+      getActiveMusicProfile:()=>profile,
+      musicTracks:Object.fromEntries(profile.arrangement.sources.map(source=>
+        [source.sourceId,{sourceId:source.sourceId,isPlaying:true,gain:{},volume:0}])),
+      rampAdaptiveStemGain(track,volume,duration) {
+        mixEvents.push({sourceId:track.sourceId,volume,duration,at:this.context.currentTime});
+        track.volume=volume;
+      },
+      playCombatCue(kind,options={}) {
+        audioEvents.push({kind,at:options.audioTimeSec??this.context.currentTime,
+          calledAt:this.context.currentTime});return true;
+      }
+    });
+  }
+  const driveRoute=[[150,0,'road_a'],[365,1,'road_x'],[585,3,'road_y'],[810,2,'road_b']];
+  let driveIndex=0;
   for (let i = 0; i < chapters.length * seconds * fps; i++) {
     const chapterIndex = Math.floor(i / (seconds * fps));
     const chapter = chapters[chapterIndex], local = i % (seconds * fps) / fps;
     const s = road.state;
+    if(!gameplay) {
     s.progress = continuous ? local * 80 + reviewLap*2460 :
       chapter.progress + local * 54 + reviewLap*2460;
     s.elapsedMs = i * 1000 / fps;
@@ -565,6 +589,30 @@ async function main() {
     } else {s.ramMs=0;s.shield=0;}
     s.echoEnergy = Math.min(100,65 + chapterIndex * 6);
     s.lockEnergy = 26 + chapterIndex * 10;
+    road.updateStreetMotion(1000/fps);
+    road.updatePulses({running:true,profileId:'level-02.proof',
+      audioTimeSec:s.musicBeatFloat*60/128,
+      grid:{beatFloat:s.musicBeatFloat,beatDurationSec:60/128}});
+    } else {
+      const now=i/fps,beat=now/(60/128);
+      w.audioSystem.context.currentTime=now;
+      const next=driveRoute[driveIndex];
+      const goal=driveIndex===1&&s.progress<205?0:
+        driveIndex===3&&s.progress<650?3:next?.[1]??2;
+      const steer=goal-s.lanePos;
+      const actions={move_left:{held:steer<-.1},move_right:{held:steer>.1}};
+      if(next&&Math.abs(steer)<=.38&&
+          Math.abs(beat-s.pulseTargets[`0/0/${driveIndex}`])<.055) {
+        actions[next[2]]={pressed:true,presses:[{audioTimeSec:now}]};driveIndex++;
+      }
+      road.handleActions(actions);
+      road.update(1000/fps);
+      w.BARCODE.musicDirector.apply(w.audioSystem);
+      playbackFrames.push({at:now,progress:s.progress,beat:s.musicBeatFloat,
+        lane:s.lanePos,speed:s.speed,integrity:s.integrity,
+        captures:s.captures.length,pulseFlashMs:s.pulseFlashMs,
+        targets:{...s.pulseTargets}});
+    }
     sc.reset();
     road.draw(sc);
     if (worldFrames) {
@@ -594,8 +642,8 @@ async function main() {
   const [code, signal] = await completion;
   if (code !== 0) throw Error(error || `ffmpeg exited: ${signal}`);
   fs.writeFileSync(path.join(out,'Cache-Road-Motion-Track.json'),
-    JSON.stringify({ fps, landscapeSeed:landscapeSeed===undefined?
-      0x6b4d:Number(landscapeSeed), carCenters }, null, 2));
+    JSON.stringify({ fps,gameplay,seconds,landscapeSeed:landscapeSeed===undefined?
+      0x6b4d:Number(landscapeSeed),carCenters,audioEvents,mixEvents,playbackFrames }, null, 2));
   fs.writeFileSync(path.join(out, 'Cache-Road-Mirror-Detail.webp'), detail.toBuffer('image/webp',90));
   console.log(file);
 }

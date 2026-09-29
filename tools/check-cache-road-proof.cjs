@@ -34,6 +34,9 @@ async function run() {
     '  window.__cacheStreetItems = STREET_ITEMS;\n'+
     '  window.__cachePedestrians = PEDESTRIANS;\n'+
     '  window.__pedestrianTravel = pedestrianTravel;\n'+
+    '  window.__pedestrianPosition = pedestrianPosition;\n'+
+    '  window.__pulseVisual = pulseVisual;\n'+
+    '  window.__hazardTurn = (...args)=>hazardTurn(...args);\n'+
     '  window.__cachePropShapes = PROP_SHAPES;\n'+
     '  window.__cacheLandscape = LANDSCAPE;\n'+
     '  window.__cacheSites = SIDE_PLACES;\n'+sceneMarker),
@@ -142,7 +145,7 @@ async function run() {
   const travel=w.__pedestrianTravel;
   assert(groups.flat().every(person=>
     (person.id>=15 || [5,11,12].includes(person.id)) ? !person.flip : true),
-  'travel cels retain their painted left/right facing; placement never mirrors them');
+  'stored source poses retain their authored orientation before runtime edge facing');
   for(const id of [0,1,2,3,4,6,7,8,9,10,13,14])
     assert.equal(travel({id,at:500},{elapsedMs:840},false),null,
       `planted or seated person ${id} keeps the still painting`);
@@ -330,6 +333,41 @@ async function run() {
   assert.equal(C.readResume().levelState.proofVersion, 4);
   const roadStart = copy(C.readResume());
   const liveState = road.state, oldArt = B.PresentationAssets;
+  B.Preferences ||= {values:{}};
+  // Actual ground travel is independent of camera motion. A planted person
+  // keeps its address; horizontal figures walk outward on either bank.
+  for(const side of [-1,1]) {
+    for(const id of [5,11,12,15,16,0,6,13]) {
+      const entry=w.__cacheStreetItems.find(e=>e.scene.side===side&&
+        (id>=15?e.item.id>=15&&e.item.id%2===id%2:e.item.id===id));
+      assert(entry,`road has person ${id} on bank ${side}`);
+      road.state.progress=entry.item.at-100;
+      const before=w.__pedestrianPosition(entry.scene,entry.item,road.state);
+      road.updateStreetMotion(1000);
+      const after=w.__pedestrianPosition(entry.scene,entry.item,road.state);
+      if([5,11,12].includes(id)) {
+        assert(after.base>before.base&&after.at===before.at);
+        assert.equal((id===11?-1:1)*(after.flip?-1:1),side,
+          'painted nose and horizontal travel both face the nearest edge');
+      } else if(id>=15) assert.equal(Math.sign(after.at-before.at),id%2===1?-1:1);
+      else assert.deepEqual(copy(after),copy(before),'seated and planted people do not travel');
+      B.Preferences.values.reducedMotion=true;
+      road.updateStreetMotion(1000);
+      assert.deepEqual(copy(w.__pedestrianPosition(entry.scene,entry.item,road.state)),copy(after),
+        'Reduced Motion holds the current ground position without a jump');
+      B.Preferences.values.reducedMotion=false;
+    }
+  }
+  road.state.progress=0;road.state.streetMotion={};
+  for(const lane of [2,3]) {
+    const hazard={kind:'sweeper',at:465,lane};
+    const start=w.__hazardTurn(hazard,300),mid=w.__hazardTurn(hazard,360),end=w.__hazardTurn(hazard,420);
+    assert.equal(Math.abs(start.steer),0);assert.equal(Math.abs(end.steer),0);
+    assert.equal(mid.amount,lane===3?-.5:.5);
+    assert.equal(mid.steer,lane===3?-1:1);
+    assert(Math.abs(w.__hazardTurn(hazard,301).amount)<.001,
+      'the sweeper starts its merge without an abrupt lateral step');
+  }
   const mirrorFrames = [], mirrorRoads = [], mirrorTraffic = [], mirrorArt = [];
   const mirrorStreets = [], litRunways = [];
   const roadArt = [], openingRects = [], drawOrder = [], hudLines = [], contacts = [];
@@ -422,6 +460,7 @@ async function run() {
     road.state = { ...liveState, progress: 395, integrity: 3, timeMs: 55000,
       stumbleMs: 0, boostMs: 0, zoneEndBeat: -1, pendingCapture: null,
       candidateHold: 0, cutFlashMs: 0, messageMs: 0, rivalWarning: false,
+      pulseTargets:{'0/0/0':3,'0/0/1':11},
       ...overrides };
     mirrorFrames.length = 0; mirrorRoads.length = 0; mirrorTraffic.length = 0;
     mirrorArt.length = 0; mirrorStreets.length = 0; litRunways.length = 0;
@@ -494,7 +533,7 @@ async function run() {
   assert.equal(new Set(carCels.map(entry=>entry.frame)).size,1,
     'body and two planted tire masks use the same painted cel');
   const firstCarCel=carCels[0].frame;
-  mirrorFrame({ progress: 80 });
+  mirrorFrame({ progress: 40 });
   assert.notEqual(roadArt.find(entry=>entry.key==='cacheCar').frame,firstCarCel,
     'car details advance with travel distance');
   mirrorFrame({ progress: 395, elapsedMs: 100 });
@@ -864,11 +903,11 @@ async function run() {
     Math.abs(contacts.at(-2).y - (-119*.14+2)) < .01 &&
     Math.abs(contacts.at(-1).y - (-119*.14+2)) < .01,
   'the player shadow has a contact patch under each grounded tire');
-  mirrorFrame({ progress: 405 });
+  mirrorFrame({ progress: 405, elapsedMs: 190 });
   assert(Math.abs(roadArt.filter(entry=>entry.key==='cacheCar').at(-1)
     .chassisOffset[1]-cachePose[1])>1 &&
     Math.abs(roadArt.filter(entry=>entry.key==='cacheSweeper').at(-1)
-      .chassisOffset[1]-sweeperPose[1])>1,
+      .chassisOffset[1]-sweeperPose[1])>.1,
   'painted player and traffic bodies animate over their grounded wheel masks');
   const cityAt405=cityKeys
     .map(key=>{
@@ -993,8 +1032,6 @@ async function run() {
     drawOrder.includes('cacheFreight'));
   assert(drawOrder.indexOf('cachePulseStrip') < drawOrder.indexOf('cacheFreight'),
     'illustrated road paint is composited beneath physical traffic');
-  assert(roadSource.includes('depth(d-PAD_EARLY),stripFar=depth(d+PAD_LATE)'),
-    'the visible strip spans the same world-space input range as catchPulse');
   const phrase={lane:0,startBeat:32,endBeat:64};
   mirrorFrame({progress:385,musicBeatFloat:32,captures:[],queuedCaptures:[phrase]});
   assert(!drawOrder.includes('cacheConfirmedBar') &&
@@ -1024,44 +1061,71 @@ async function run() {
   assert(pressIcon.width > waitingIcon.width && pressIcon.frame===2 &&
     hudLines.some(line => /PRESS!/.test(line.value)),
   'on the fourth beat the action icon swells and the prompt changes to PRESS');
-  mirrorFrame({ progress: 130 });
+  mirrorFrame({ progress: 130, pulseTargets:{'0/0/0':3} });
   const visibleBeforeCatch = drawOrder.filter(item => item === 'cachePulsePad').length;
-  mirrorFrame({ progress: 130, caughtPulses: { '0/0/0': true } });
+  mirrorFrame({ progress: 130, pulseTargets:{'0/0/0':3}, caughtPulses: { '0/0/0': true } });
   assert.equal(drawOrder.filter(item => item === 'cachePulsePad').length, visibleBeforeCatch,
     'a caught fixed marking stays visible until it passes under the car');
-  mirrorFrame({ progress: 190, caughtPulses: { '0/0/0': true } });
+  mirrorFrame({ progress: 190, musicBeatFloat:5, pulseTargets:{'0/0/0':3},
+    caughtPulses: { '0/0/0': true } });
   assert.equal(drawOrder.filter(item => item === 'cachePulsePad').length, visibleBeforeCatch - 2,
-    'the caught marking leaves only after it has passed the car');
+    'the caught musical marking leaves after its beat has passed the car');
   road.state = liveState; B.PresentationAssets = oldArt;
   assert.match(road.openingCue()[0], /ROAD PADS ARE SAFE/,
     'the first prompt distinguishes safe music pickups from traffic');
   assert.equal(profile.judgmentRules[0].id, 'road-pulse');
   const beatSec = 60 / 128;
-  const padWindow = /const PAD_EARLY = (\d+), PAD_LATE = (\d+);/.exec(roadSource);
-  assert(padWindow, 'the painted road zone has explicit world-distance bounds');
-  const [early, late] = padWindow.slice(1).map(Number);
-  const fourthPeriod = 4 * beatSec, judgmentSec = .185;
+  // Every encounter commits to a fourth beat with a full count-in. Speed
+  // changes after announcement leave that exact deadline intact.
   for(const speed of [18,23,36,54,68,75]) {
-    const crossingSec=(early+late)/speed;
-    for(let phase=0;phase<fourthPeriod;phase+=.025) {
-      const nextFourth=fourthPeriod-phase;
-      assert(nextFourth>=judgmentSec && nextFourth<=crossingSec-judgmentSec ||
-        nextFourth+fourthPeriod>=judgmentSec &&
-        nextFourth+fourthPeriod<=crossingSec-judgmentSec,
-      `the complete fourth-beat input window must fit in the pad at ${speed} road units/s`);
+    for(let phase=0;phase<4;phase+=.25) {
+      road.state={...copy(liveState),progress:0,speed,pulseTargets:{},pendingPulseAwards:[]};
+      const sample=beat=>({running:true,profileId:'level-02.proof',audioTimeSec:beat*beatSec,
+        grid:{beatFloat:beat,beatDurationSec:beatSec}});
+      road.updatePulses(sample(phase));
+      const target=road.state.pulseTargets['0/0/0'];
+      assert.equal(target%4,3);
+      assert(target-phase>=3,`full countdown at speed ${speed}`);
+      road.state.speed=speed===75?23:75;
+      road.updatePulses(sample(phase+.1));
+      assert.equal(road.state.pulseTargets['0/0/0'],target,'throttle never shifts an announced beat');
+      road.state.musicBeatFloat=target;
+      const visible=w.__pulseVisual({id:'0/0/0'},road.state,beatSec);
+      assert(Math.abs(1-(visible.d+80)/520-.64)<1e-10 && visible.window,
+        'every speed brings the button to the unobscured road receptor exactly on beat four');
     }
   }
-  const beforeSpeedProbe=road.state;
   road.state=copy(liveState);
   road.state.lane=road.state.lanePos=road.state.visualLane=0;
   road.state.speed=75;
-  road.state.progress=150-(150-75*.55);
+  road.state.progress=100;
+  road.state.pulseTargets={'0/0/0':7};audio.context.currentTime=7*beatSec;
   assert(road.catchPulse('road_a',7*beatSec),
-    'a top-speed driver can catch beat four while on the painted approach');
-  road.state=beforeSpeedProbe;
+    'a top-speed driver catches the announced fourth beat');
+  road.state=liveState;
+  // An early physical press is latched once, with its burst and capture
+  // delayed to beat four and its sound scheduled on the audio clock.
+  const beforeEarly=road.state,earlyCues=[];
+  const priorCue=audio.playCombatCue;
+  audio.playCombatCue=(kind,options)=>earlyCues.push({kind,...options});
+  road.state={...copy(liveState),pulseTargets:{'0/0/0':3},caughtPulses:{},
+    pendingPulseAwards:[],lanePos:0,pulseFlashMs:0};
+  audio.context.currentTime=3*beatSec-.08;
+  assert(road.catchPulse('road_a',audio.context.currentTime));
+  assert.equal(road.state.pulseFlashMs,0);
+  assert.equal(road.state.queuedCaptures.length,0);
+  assert.equal(earlyCues[0].kind,'roadGood');
+  assert.equal(earlyCues[0].audioTimeSec,3*beatSec);
+  assert.equal(road.catchPulse('road_a',audio.context.currentTime),false);
+  audio.context.currentTime=3*beatSec;road.update(16);
+  assert(road.state.pulseFlashMs>0 && road.state.captures.some(c=>c.startBeat===3));
+  audio.playCombatCue=priorCue;road.state=beforeEarly;
   const face = (key, beat, lane, at, speed = 54, offset = 0) => {
     road.state.lane = road.state.lanePos = road.state.visualLane = lane;
     road.state.speed = speed; road.state.progress = at - 30;
+    const chart={150:['0/0/0',3],365:['0/0/1',11],585:['0/0/2',19],810:['0/0/3',27],
+      1260:['0/1/0',35]};
+    if(chart[at])road.state.pulseTargets[chart[at][0]]=chart[at][1];
     audio.context.currentTime = beat * beatSec + offset;
     road.handleActions({ [key]: { pressed: true, presses: [{ audioTimeSec: audio.context.currentTime }] } });
     road.update(100);
@@ -1171,8 +1235,8 @@ async function run() {
     const steer = goal - road.state.lanePos;
     const actions = { move_left: { held: steer < -.10 },
       move_right: { held: steer > .10 } };
-    if (next && next[0] - road.state.progress <= 105 &&
-      next[0] - road.state.progress >= -30 &&
+    if (next && road.state.pulseTargets[`0/0/${routeIndex}`]===
+        Math.round(audio.context.currentTime/beatSec) &&
       Math.abs(steer) <= .38 &&
       Math.abs(audio.context.currentTime / beatSec -
         Math.round(audio.context.currentTime / beatSec)) <= .04 &&
@@ -1200,8 +1264,8 @@ async function run() {
     const steer = goal - road.state.lanePos;
     const actions = { move_left: { held: steer < -.10 },
       move_right: { held: steer > .10 } };
-    if (next && next[0] - road.state.progress <= 105 &&
-      next[0] - road.state.progress >= -30 && Math.abs(steer) <= .38 &&
+    if (next && road.state.pulseTargets[`0/1/${laterIndex}`]===
+        Math.round(audio.context.currentTime/beatSec) && Math.abs(steer) <= .38 &&
       Math.abs(audio.context.currentTime / beatSec -
         Math.round(audio.context.currentTime / beatSec)) <= .04 &&
       Math.round(audio.context.currentTime / beatSec) % 4 === 3) {

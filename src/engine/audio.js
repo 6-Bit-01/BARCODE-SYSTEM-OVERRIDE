@@ -600,6 +600,8 @@ window.AudioSystem = class AudioSystem {
       empty: [240, 200, 0.07, 'sine'], miss: [150, 90, 0.10, 'triangle'],
       damage: [170, 45, 0.23, 'sawtooth'], lift: [330, 660, 0.20, 'triangle'],
       pickup: [660, 1320, 0.25, 'sine'], combo5: [440, 880, 0.24, 'triangle'],
+      roadCount: [520, 360, 0.045, 'triangle'], roadReady: [780, 520, 0.065, 'triangle'],
+      roadPerfect: [880, 1320, 0.22, 'triangle'], roadGood: [660, 990, 0.18, 'triangle'],
       cutline: [380, 1050, 0.28, 'triangle'],
       combo10: [660, 1320, 0.32, 'triangle'], defeat: [260, 65, 0.20, 'square'],
       wave: [180, 820, 0.18, 'sawtooth'], discharge: [1240, 180, 0.16, 'square'],
@@ -610,12 +612,18 @@ window.AudioSystem = class AudioSystem {
     const profile = profiles[kind];
     if (!profile) return false;
     this.combatVoices ||= new Set(); this.combatCueTimes ||= {};
-    const now = this.context.currentTime;
+    const clock = this.context.currentTime;
+    // Road count-ins and early accepted taps can land on the source clock
+    // exactly. The short horizon keeps these in the existing bounded voices.
+    const now = Number.isFinite(options.audioTimeSec) ?
+      Math.max(clock,Math.min(clock+.4,options.audioTimeSec)) : clock;
     if (now - (this.combatCueTimes[kind] ?? -Infinity) < 0.035) return false;
     this.combatCueTimes[kind] = now;
     const critical = kind === 'warning' || kind === 'damage';
     if (critical) this.criticalCueUntil = now + 0.4;
-    const tones = kind === 'combo5' || kind === 'combo10' || kind === 'pickup' || kind === 'cutline' ? [1, 1.5] : [1];
+    const tones = kind === 'roadPerfect' ? [1,1.25,1.5] :
+      kind === 'combo5' || kind === 'combo10' || kind === 'pickup' ||
+      kind === 'cutline' || kind === 'roadGood' ? [1, 1.5] : [1];
     const materialPitch = options.material === 'virus' ? 1.8 : options.material === 'firewall' ? 0.65 : 1;
     for (const tone of tones) {
       while (this.combatVoices.size >= 12) {
@@ -636,7 +644,8 @@ window.AudioSystem = class AudioSystem {
       osc.frequency.setValueAtTime(profile[0] * tone * materialPitch, now);
       osc.frequency.exponentialRampToValueAtTime(profile[1] * tone * materialPitch, now + duration);
       gain.gain.setValueAtTime(0, now);
-      const peak = (kind === 'empty' ? 0.06 : 0.18) / tones.length;
+      const peak = (kind === 'roadCount' ? .035 : kind === 'roadReady' ? .065 :
+        kind === 'empty' ? 0.06 : 0.18) / tones.length;
       gain.gain.linearRampToValueAtTime(peak, now + 0.006);
       gain.gain.setValueAtTime(peak, now + duration * 0.3);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);

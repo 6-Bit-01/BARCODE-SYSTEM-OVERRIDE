@@ -1,5 +1,29 @@
 # Acceptance and Test Status
 
+## Cache Road motion and beat-four repair — September 29
+
+The owner rejected #144's stationary travellers, sweeper turn and pulse
+alignment. The repair now moves travelling cutouts in ground coordinates;
+standing/seated figures hold their positions. Horizontal figures face the
+nearest edge. The sweeper eases into and out of its merge with one coherent
+body/tire frame and restrained suspension.
+
+Every announced action is tied to one beat index congruent to 3 modulo 4.
+Its road button meets the visible receptor ahead of the car on that beat,
+alongside the HUD count and three preceding road marks. Speed changes do
+not move the deadline; input calibration only affects judgment. Early
+accepted input is latched once and pays its visible/audio response on beat
+four. Perfect and good use distinct chords through the existing SFX bus.
+
+Local full regression and all-file syntax pass. Production update simulations
+clear both four-action runs without damage, with ordinary steering and four
+captured parts. Focused checks cover ground travel/facing, Reduced Motion,
+smooth merge endpoints, speed-independent deadlines and early input. The
+rendered drive is controlled production code, not a hosted Makko session.
+CI includes Web Audio checks and a replay of the drive's recorded cue calls
+and stem ramps. The owner still needs to judge latency, visibility and
+device pacing in the imported build. See `CACHE_ROAD_MOTION_RHYTHM_REPAIR.md`.
+
 ## Cache Road pedestrian travel — September 29, local candidate
 
 Six walkers have separate front/back four-footfall rows; the bicycle courier

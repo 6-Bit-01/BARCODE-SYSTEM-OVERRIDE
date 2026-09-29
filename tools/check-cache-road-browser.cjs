@@ -212,6 +212,32 @@ async function main() {
     Math.abs(track.duration - 187.5) < .08));
   assert.equal(requests.get.filter(url => url.endsWith('.mp3')).length, livePublished ? 10 : 15);
   if (!livePublished) assert.equal(await evaluate('window.publishedRequests.length'), 5);
+  omitLocalStems=false;
+  const renderRoadAudio=require('./cache-road-review-audio.cjs');
+  const beat=60/128;
+  const probe={seconds:2,mixEvents:[],audioEvents:[
+    ...[0,1,2].map(index=>({kind:'roadCount',at:index*beat,calledAt:Math.max(0,index*beat-.1)})),
+    {kind:'roadPerfect',at:3*beat,calledAt:3*beat-.32}]};
+  const cueAudio=await evaluate(`(${renderRoadAudio.toString()})(${JSON.stringify(probe)})`);
+  assert(cueAudio.rms>.003&&cueAudio.peak<1&&cueAudio.remainingVoices===0);
+  assert(cueAudio.scheduled.every(event=>event.ok&&Math.abs(event.actual-event.requested)<1e-8),
+    'countdown and calibrated early catch sounds start on exact source-clock beats');
+  const reviewTrace=path.join(root,'docs/source-pack/review-cache-motion-rhythm/Drive-Trace.json');
+  if(fs.existsSync(reviewTrace)) {
+    const trace=JSON.parse(fs.readFileSync(reviewTrace,'utf8'));
+    const review=await evaluate(`(${renderRoadAudio.toString()})(${JSON.stringify(trace)})`);
+    assert(review.rms>.01&&review.peak<1&&review.remainingVoices===0,
+      'the driving review has audible music and cues without clipping or leaked voices');
+    assert(review.scheduled.filter(event=>/^road/.test(event.kind)).every(event=>event.ok));
+    const reviewOutput=process.env.CACHE_ROAD_REVIEW_OUTPUT ||
+      (process.env.RUNNER_TEMP&&path.join(process.env.RUNNER_TEMP,'music-browser/cache-road'));
+    if(reviewOutput) {
+      const output=path.resolve(reviewOutput);fs.mkdirSync(output,{recursive:true});
+      fs.writeFileSync(path.join(output,'Drive-Audio.wav'),Buffer.from(review.pcm,'base64'));
+      delete review.pcm;
+      fs.writeFileSync(path.join(output,'Drive-Audio-Checks.json'),JSON.stringify(review,null,2));
+    }
+  }
   assert.deepEqual(exceptions, []);
   console.log(`Cache Road Chromium passed: ${frames.drawn} guarded frames (${frames.contextCalls} context calls), five local and published MP3s, aligned phrases and audible collision break.`);
 }
