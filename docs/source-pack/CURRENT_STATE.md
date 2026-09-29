@@ -1,5 +1,16 @@
 # Current State
 
+## September 29 — wet brake and damage feedback (review branch)
+
+Two transparent raster effects add broken red reflections to the road behind
+rear lamps and sooty exhaust near Cache's damaged exhaust pipe. Braking
+brightens Cache's glare and prints short tire tracks at road depth; other
+traffic retains faint tail-light reflections. After a collision's existing
+impact pose and grit clear, integrity 2 and 1 show increasing exhaust.
+The effects change no road physics, damage, music or saves. Scripted frames
+and focused rendering checks pass; moving Makko visibility remains an owner
+review.
+
 ## September 29 — painted pulse assets and speed-safe beat input (review branch)
 
 Eight local hand-painted WebP assets replace the rejected SVG pad, phrase

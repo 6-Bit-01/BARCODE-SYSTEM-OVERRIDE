@@ -608,7 +608,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   // One silhouette language at every depth. The four traffic kinds differ in
   // body shape, lights and warning marks even without reading their labels.
   function drawVehicle(ctx, x, y, w, h, kind, { alpha = 1, turbo = false,
-    phase = 0, steer = 0, hit = 0, reduced = false } = {}) {
+    phase = 0, steer = 0, hit = 0, braking = false, damage = 0,
+    reduced = false } = {}) {
     const artKey = kind === 'cache' ? hit ? 'cacheCarHit' : steer < -.08 ?
       'cacheCarRight' : steer > .08 ? 'cacheCarLeft' : 'cacheCar' :
       ({ freight: 'cacheFreight', van: 'cacheCourier', block: 'cacheBarricade',
@@ -655,6 +656,30 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         return { x: w*pos, top, bottom, height: bottom-top,
           width: w*(kind === 'trike' ? .22 : freight || kind === 'sweeper' || kind === 'shuttle' ? .15 : .125) };
       }) : [];
+      // The broken red painting sits on the road before the car and tires.
+      // Cache's brake input brightens it; traffic has only a dim tail-light
+      // trace, apart from the deliberately slow shuttle.
+      if (kind !== 'block' && kind !== 'trike' &&
+          B.PresentationAssets?.ready?.('cacheBrakeReflection')) {
+        const light = kind === 'cache' ? braking ? .76 : hit ? .56 : .11 :
+          kind === 'shuttle' ? .34 : kind === 'freight' ? .23 : .16;
+        ctx.save();ctx.globalAlpha*=light;
+        B.PresentationAssets.draw('cacheBrakeReflection',ctx,{
+          x:0,y:-h*.48,width:w*1.64,height:h*1.55 });
+        ctx.restore();
+      }
+      // Once the impact pose ends, reduced integrity remains visible on the
+      // car itself rather than as another full-screen warning.
+      if (kind === 'cache' && damage && !hit &&
+          B.PresentationAssets?.ready?.('cacheDamagedExhaust')) {
+        const severe = damage >= 2;
+        ctx.save();ctx.globalAlpha*=(severe?.58:.34)*
+          (reduced?1:.88+.12*Math.sin(phase*.13));
+        B.PresentationAssets.draw('cacheDamagedExhaust',ctx,{
+          x:-w*.41,y:-h*.14,width:w*(severe?.76:.55),
+          height:h*(severe?1.03:.75) });
+        ctx.restore();
+      }
       ctx.fillStyle = '#0613207d'; ctx.beginPath();
       ctx.ellipse(0,-h*.075,w*.50,Math.max(2,h*.055),0,0,Math.PI*2); ctx.fill();
       for (const tire of tires) {
@@ -719,8 +744,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         // replacing the hand-painted vehicle poses or flashing a whole car.
         ctx.save();ctx.translate(jolt,bounce);ctx.rotate(roll);
         ctx.globalCompositeOperation='screen';
-        ctx.globalAlpha*=.15+.18*(.5+.5*Math.sin(phase*.17+x*.01));
-        ctx.fillStyle=kind==='cache'?'#ffcb78':'#ff8e87';
+        ctx.globalAlpha*=kind==='cache' && braking ? .72 :
+          .15+.18*(.5+.5*Math.sin(phase*.17+x*.01));
+        ctx.fillStyle=kind==='cache' && braking ? '#ff7773' :
+          kind==='cache'?'#ffcb78':'#ff8e87';
         const lampY=-h*(kind==='freight'?.18:.29);
         for(const side of [-1,1]) {
           ctx.beginPath();ctx.ellipse(side*w*.35,lampY,
@@ -2501,10 +2528,28 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         drawVehicle(ctx, x, carY, 152, 115, 'echo',
           { alpha: .68, phase: progress+37, reduced });
       }
+      if (s.braking || s.stumbleMs) {
+        // Two short broken wet tire tracks follow the curved road under the
+        // car. They are local to the rear tires and disappear on release.
+        ctx.save();ctx.globalAlpha=s.stumbleMs?.35:.24;
+        ctx.strokeStyle='#87949e';ctx.lineCap='round';
+        ctx.lineWidth=2.5;
+        for(const side of [-1,1])for(let segment=0;segment<3;segment++) {
+          ctx.beginPath();
+          for(let step=0;step<=3;step++) {
+            const t=.835+segment*.055+step*.012;
+            const xx=laneX(s.visualLane,t)+side*72-s.steer*(t-.83)*24;
+            const yy=roadY(t)-16;
+            if(!step)ctx.moveTo(xx,yy);else ctx.lineTo(xx,yy);
+          }
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
       drawVehicle(ctx, carX, carY, 164, 119, 'cache',
         { alpha: !s.stumbleMs && s.invulnerableMs && Math.floor(s.invulnerableMs / 90) % 2 ? .55 : 1,
           turbo: !!s.boostMs, phase: progress, steer: s.steer, hit: s.stumbleMs,
-          reduced });
+          braking:s.braking, damage:3-s.integrity, reduced });
       if (s.cutFlashMs && !reduced) {
         const pulse = s.cutFlashMs / 740;
         const side=Math.floor(progress/51)%2?1:-1;

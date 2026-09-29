@@ -1,5 +1,15 @@
 # Acceptance and Test Status
 
+## Cache Road wet brake and damage effects — September 29
+
+Braking makes a pair of broken red reflections under Cache and leaves six
+short tire-track segments; releasing the brake returns to a dim tail-light
+trace. At integrity 2, exhaust appears behind the car, and at integrity 1
+it grows; the collision pose/grit takes precedence during the impact.
+Production draw checks verify the states and car occlusion. In Makko, judge
+the reflections in motion on wet asphalt and ensure the smoke remains
+readable without masking lanes, traffic or the car.
+
 ## Cache Road fourth-beat comic cues — September 29
 
 The replacement art uses eight local painted WebPs. Inspect the continuous

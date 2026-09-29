@@ -355,6 +355,8 @@ async function run() {
     stroke() {
       if (this.strokeStyle === '#8296a1' && this.path?.length === 29)
         sidewalkEdges.push(this.path.slice());
+      if (this.strokeStyle === '#87949e' && this.path?.length === 4)
+        drawOrder.push('brakingTireTrack');
     },
     fillRect(x, y, width, height) {
       if (x === 30 && y === 176 && width > 100) openingRects.push([width, height]);
@@ -826,6 +828,29 @@ async function run() {
     'a hit overrides low signal during the collision');
   assert(roadArt.some(entry => entry.key === 'cacheCarHit'), 'collision uses its jolt pose');
   assert.equal(mirrorFrame({ integrity: 1 }), 5);
+  mirrorFrame({ integrity: 3 });
+  assert(!roadArt.some(entry => entry.key === 'cacheDamagedExhaust'),
+    'an intact car never draws damage smoke');
+  const idleGlare=roadArt.filter(entry=>entry.key==='cacheBrakeReflection').at(-1);
+  mirrorFrame({ braking: true, integrity: 3 });
+  const brakeGlare=roadArt.filter(entry=>entry.key==='cacheBrakeReflection').at(-1);
+  assert(brakeGlare.alpha > idleGlare.alpha*4 &&
+    drawOrder.lastIndexOf('cacheBrakeReflection') < drawOrder.lastIndexOf('cacheCar'),
+    'braking brightens road reflection behind the car instead of covering it');
+  assert.equal(drawOrder.filter(item=>item==='brakingTireTrack').length,6,
+    'the brake input lays two short broken road tracks');
+  mirrorFrame({ integrity: 2 });
+  const mildSmoke=roadArt.find(entry=>entry.key==='cacheDamagedExhaust');
+  assert(mildSmoke && !drawOrder.includes('brakingTireTrack'),
+    'one lost integrity leaves a small exhaust trace without permanent skid marks');
+  mirrorFrame({ integrity: 1 });
+  const severeSmoke=roadArt.find(entry=>entry.key==='cacheDamagedExhaust');
+  assert(severeSmoke.alpha > mildSmoke.alpha && severeSmoke.width > mildSmoke.width,
+    'critical damage is more visible than one lost integrity');
+  mirrorFrame({ integrity: 1, stumbleMs: 650 });
+  assert(!roadArt.some(entry=>entry.key==='cacheDamagedExhaust') &&
+    roadArt.some(entry=>entry.key==='cacheImpactGrit'),
+    'the original impact burst owns the first instant of a collision');
   mirrorFrame({ ramMs: 1180, shield: 1, messageMs: 1100,
     message: 'PUSH // BREAKAWAY +8 BARS' });
   const armedLabel=hudLines.find(line=>/BRACE READY/.test(line.value));

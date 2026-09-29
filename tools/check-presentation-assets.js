@@ -11,7 +11,7 @@ w.Image = class Image {
 load(context, 'src/engine/presentation-assets.js');
 const art = w.BARCODE.PresentationAssets;
 for (let i = 0; i < 20; i++) art.preload();
-assert.strictEqual(images.length, 215, 'restarts reuse Cache traffic, six block families, graph joins, ground, walkers, props, decals, practical lights and painted pulse cues');
+assert.strictEqual(images.length, 217, 'restarts reuse Cache traffic, six block families, graph joins, ground, walkers, props, decals, practical lights and local effects');
 const districtRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/33c768b73f29d9e0e2a91f30961a525030e6f6ba/';
 const districtImages=images.filter(im=>im.requests[0].startsWith(districtRoot));
 assert.equal(districtImages.length,97,
@@ -25,10 +25,12 @@ for(const image of districtImages) {
 }
 const pulseCuePaths=['pulse-pad.webp','approach-strip.webp','beat-phrase.webp',
   'pulse-burst.webp','surge.webp','push.webp','brace.webp','refill.webp']
-  .map(file=>'assets/cache-road/roadside/beat/'+file);
+  .map(file=>'assets/cache-road/roadside/beat/'+file).concat([
+    'assets/cache-road/effects/brake-reflection.webp',
+    'assets/cache-road/effects/damaged-exhaust.webp']);
 const pulseCueImages=images.filter(im=>pulseCuePaths.includes(im.requests[0]));
 assert.deepEqual(pulseCueImages.map(im=>im.requests[0]).sort(),pulseCuePaths.slice().sort(),
-  'the eight painted assets load from the deployed project itself');
+  'the ten painted assets load from the deployed project itself');
 assert(pulseCueImages.every(im=>fs.existsSync(path.join(root,im.requests[0]))),
   'all local pulse assets are bundled');
 assert(images.filter(im=>!districtImages.includes(im) && !pulseCueImages.includes(im)).every(im=>
@@ -131,7 +133,7 @@ assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2),
   'collision eyes come from the second row inside the same mirror crop');
 arrowImage.onerror(); arrowImage.onerror();
 assert.strictEqual(arrowImage.requests.length, 2); assert.strictEqual(arrowImage.onerror, null);
-art.preload(); assert.strictEqual(images.length, 215, 'failed assets do not retry forever');
+art.preload(); assert.strictEqual(images.length, 217, 'failed assets do not retry forever');
 pulseImage.naturalWidth = pulseImage.naturalHeight = 512; pulseImage.onload();
 ops.length = 0; art.draw('bossPulse', ctx, { y: 822, width: 64, height: 56, frame: 2 });
 assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2), [10, 351, 236, 145, -32, -56, 64, 56], 'pulse fills the dangerous height and retains the ground anchor');
