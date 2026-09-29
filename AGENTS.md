@@ -1,5 +1,16 @@
 # Repository Guidance
 
+## September 29, 2026 — Cache Road fourth-beat comic cue review
+
+Keep beat pads at authored road addresses and beneath traffic. A matching
+button in the marked lane catches only on beat four; the HUD counts the
+measure and swells/warms the icon during the press window. Three local SVGs
+provide the inked pad, phrase inset and four action symbols. Preserve the
+five supplied MP3s, mapped controls, four lanes and existing city/vehicle
+draw. Merge after CI for the owner's Makko timing and appearance review;
+scripted frames are not audio or controller acceptance. See
+`docs/source-pack/CACHE_ROAD_PULSE_ACTIONS.md` and the latest acceptance route.
+
 ## September 27, 2026 — six-family Cache Road core kit in review
 
 The unmerged procedural branch now contains 48 fitted side-specific cards,

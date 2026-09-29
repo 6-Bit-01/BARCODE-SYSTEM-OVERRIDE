@@ -1,5 +1,19 @@
 # Acceptance and Test Status
 
+## Cache Road fourth-beat comic cues — September 29
+
+The focused production check verifies that beats one, two, three and the
+following first beat do not consume a pad, while beat four catches it. The
+draw check verifies the inlaid comic pad remains beneath traffic and the HUD
+switches from HIT ON 4 to an enlarged PRESS cue. Same-position renderer
+stills at beats three and four show the button cue change; they do not prove
+hosted input/audio sync. After merge, play a four-pad run in Makko at cruise,
+under throttle and while braking. Confirm that the press cue agrees with
+the audible fourth beat and mapped controller button, and that the inlaid
+art is legible without covering cars. Report any late or early cue with
+device, input-offset setting and road position. The owner has not yet
+accepted this feel.
+
 ## Six-family Cache Road production review — September 27
 
 The local protected route exercises all 48 left/right rear, middle, open
