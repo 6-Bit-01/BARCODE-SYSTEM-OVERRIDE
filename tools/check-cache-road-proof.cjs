@@ -29,7 +29,12 @@ async function run() {
   const roadSource=fs.readFileSync('src/game/cache-road-proof.js','utf8');
   const sceneMarker='  const clone = value => JSON.parse(JSON.stringify(value));';
   assert(roadSource.includes(sceneMarker));
-  vm.runInContext(roadSource.replace(sceneMarker,
+  vm.runInContext(roadSource.replace('      const drawArea=area=>{',
+    '      const drawArea=area=>{ window.__cachePaintOrder.push(area);')
+    .replace(sceneMarker,
+    '  window.__cachePaintOrder=[];\n'+
+    '  window.__worldRange=worldRange;\n'+
+    '  window.__cacheScenery=SCENERY;\n'+
     '  window.__cacheStreetScenes = STREET_SCENES;\n'+
     '  window.__cacheStreetItems = STREET_ITEMS;\n'+
     '  window.__cachePedestrians = PEDESTRIANS;\n'+
@@ -376,6 +381,7 @@ async function run() {
   const ridgeAt = (points,x) => {
     if(!points)return Infinity;
     if(!Number.isFinite(x))return Infinity;
+    if(points.length===4)return points[2].y;
     const i=Math.max(0,Math.min(63,Math.floor((1920-x)/30)));
     const a=points[i+2],b=points[i+3];
     if(!a||!b)throw Error(`invalid ridge length ${points.length} at ${x}/${i}`);
@@ -418,7 +424,8 @@ async function run() {
     clip() {
       if(this.pendingClip!=null)
         this.clipHeight=Math.min(this.clipHeight ?? Infinity,this.pendingClip);
-      if(this.path?.length===67 && this.path[0].x===0 && this.path[1].x===1920)
+      if([4,67].includes(this.path?.length) && this.path[0].x===0 &&
+        this.path[0].y===0 && this.path[1].x===1920 && this.path[1].y===0)
         this.ridge=this.path.slice();
       this.pendingClip=null;
     },
@@ -459,6 +466,7 @@ async function run() {
     { get(target, key) { return key in target ? target[key] : () => {}; },
     set(target, key, value) { target[key] = value; return true; } });
   const mirrorFrame = overrides => {
+    w.__cachePaintOrder.length=0;
     road.state = { ...liveState, progress: 395, integrity: 3, timeMs: 55000,
       stumbleMs: 0, boostMs: 0, zoneEndBeat: -1, pendingCapture: null,
       candidateHold: 0, cutFlashMs: 0, messageMs: 0, rivalWarning: false,
@@ -550,6 +558,39 @@ async function run() {
   assert.notEqual(roadArt.find(entry=>entry.key===firstProp.key &&
     entry.x===firstProp.x && entry.y===firstProp.y).frame,firstProp.frame,
   'a world-anchored roadside fixture advances one of its three frames');
+  mirrorFrame({progress:730,elapsedMs:100});
+  const reflectedProp=mirrorArt.find(entry=>animatedProps.has(entry.key));
+  assert(reflectedProp,'an animated fixture is present in the rearview');
+  mirrorFrame({progress:730,elapsedMs:410});
+  assert.notEqual(mirrorArt.find(entry=>entry.key===reflectedProp.key&&
+    entry.x===reflectedProp.x&&entry.y===reflectedProp.y).frame,reflectedProp.frame,
+    'rearview uses the live prop clock instead of forcing cel zero');
+  for(const progress of [0,600,2400,4200,6300,8500]) {
+    mirrorFrame({progress});
+    const order=w.__cachePaintOrder;
+    assert(order.some(area=>area.kind==='life')&&order.some(area=>area.kind==='plate'));
+    assert(order.every((area,i)=>!i||area.at<=order[i-1].at),
+      `all street actors and buildings share monotonic world depth at ${progress}`);
+    const lives=order.filter(area=>area.kind==='life');
+    assert(lives.some(life=>order.findIndex(a=>a===life)<
+      order.findIndex(a=>a.kind==='plate'&&a.at<life.at)),
+      'nearer opaque buildings paint over distant people/props');
+    assert(lives.some(life=>order.findIndex(a=>a===life)>
+      order.findIndex(a=>a.kind==='plate'&&a.at>life.at)),
+      'foreground people/props remain in front of distant buildings');
+    const indexed=w.__worldRange(w.__cacheScenery,progress-160,progress+864);
+    assert.deepEqual(copy(indexed),copy(w.__cacheScenery.filter(area=>
+      area.at>=progress-160&&area.at<=progress+864)),
+      'binary range culling retains exactly the visible world records');
+  }
+  assert(w.__cachePropShapes.cacheNewLampL[1]>=260&&
+    w.__cachePropShapes.cacheStreetDeliveryVan[1]>=210,
+    'street lamps and parked vans have explicit full-sized stature');
+  const away=w.__cacheStreetItems.find(e=>e.item.id>=15&&e.item.id%2===0&&e.item.at>500);
+  const awayKey=`${away.scene.side}/${away.item.at}/${away.item.id}/${away.item.base}`;
+  mirrorFrame({progress:away.item.at+600,streetMotion:{[awayKey]:700}});
+  assert(w.__cachePaintOrder.some(area=>area.kind==='life'&&area.item===away.item),
+    'a walker ahead of a slow driver remains visible after its spawn is far behind');
   const walkerItem=w.__cacheStreetItems.find(({item})=>item.id>=15 && item.at>250);
   const walkKey=travel(walkerItem.item,{elapsedMs:840},false).key;
   mirrorFrame({progress:walkerItem.item.at-85,elapsedMs:840});
@@ -1051,9 +1092,9 @@ async function run() {
   assert.equal(confirmed.length,8,'exactly four confirmed bar tiles map as two road triangles each');
   assert.equal(litRunways.length,1,'one continuous lane wash joins the four painted bars');
   assert(litRunways[0][12].y-litRunways[0][0].y>200 &&
-    confirmed.every(entry=>entry.alpha===.68 && entry.projected?.length===6) &&
+    confirmed.every(entry=>entry.alpha===.30 && entry.projected?.length===6) &&
     drawOrder.indexOf('cacheConfirmedBar')<drawOrder.indexOf('cacheFreight'),
-    'the confirmed stretch follows road depth and stays beneath traffic');
+    'subdued captured phrases follow road depth and stay beneath traffic');
   mirrorFrame({ progress: 130, pulseFlashMs: 500 });
   assert(drawOrder.includes('cachePulseBurst'),
     'a successful catch gets its own brief painted HUD burst');
@@ -1312,6 +1353,20 @@ async function run() {
   }
   assert.equal(road.state.boost,1,'a close shuttle draft charges Turbo');
   assert.match(road.state.message,/SHUTTLE DRAFT/);
+  assert(road.state.turboReadyMs>0,'earning turbo produces an in-world ready receipt');
+  road.state.boost=0;road.state.drafted={};road.state.draftTarget=null;
+  road.state.progress=1130;road.state.lane=road.state.lanePos=3;
+  road.update(100);road.update(100);
+  assert.equal(road.state.draftMs,200);
+  road.state.lane=road.state.lanePos=1;road.update(100);
+  assert.equal(road.state.draftMs,0,'leaving the slipstream resets its hold');
+  assert.equal(road.state.draftTarget,null);
+  road.state.lane=road.state.lanePos=3;road.update(100);
+  assert.equal(road.state.draftMs,100,'re-entering starts a fresh hold');
+  road.state.progress=1450;road.state.lane=road.state.lanePos=0;road.update(100);
+  assert.equal(road.state.draftMs,100,'switching trucks cannot inherit partial charge');
+  road.hit('freight');
+  assert.equal(road.state.draftMs,0,'damage interrupts drafting');
   archive.checkpoint(roadStart);
   // A three-lane gate leaves a visible open route, but camping in one of its
   // blocked lanes still costs integrity. Both cases use production collision.

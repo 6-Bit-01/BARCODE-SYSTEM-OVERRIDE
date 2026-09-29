@@ -602,6 +602,7 @@ window.AudioSystem = class AudioSystem {
       pickup: [660, 1320, 0.25, 'sine'], combo5: [440, 880, 0.24, 'triangle'],
       roadCount: [520, 360, 0.045, 'triangle'], roadReady: [780, 520, 0.065, 'triangle'],
       roadPerfect: [880, 1320, 0.22, 'triangle'], roadGood: [660, 990, 0.18, 'triangle'],
+      roadTurboReady: [440, 880, 0.24, 'sine'],
       cutline: [380, 1050, 0.28, 'triangle'],
       combo10: [660, 1320, 0.32, 'triangle'], defeat: [260, 65, 0.20, 'square'],
       wave: [180, 820, 0.18, 'sawtooth'], discharge: [1240, 180, 0.16, 'square'],
@@ -623,7 +624,7 @@ window.AudioSystem = class AudioSystem {
     if (critical) this.criticalCueUntil = now + 0.4;
     const tones = kind === 'roadPerfect' ? [1,1.25,1.5] :
       kind === 'combo5' || kind === 'combo10' || kind === 'pickup' ||
-      kind === 'cutline' || kind === 'roadGood' ? [1, 1.5] : [1];
+      kind === 'cutline' || kind === 'roadGood' || kind === 'roadTurboReady' ? [1, 1.5] : [1];
     const materialPitch = options.material === 'virus' ? 1.8 : options.material === 'firewall' ? 0.65 : 1;
     for (const tone of tones) {
       while (this.combatVoices.size >= 12) {
