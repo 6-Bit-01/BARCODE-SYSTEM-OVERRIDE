@@ -10,6 +10,7 @@ const { createCanvas, loadImage, GlobalFonts } = require(require.resolve('@napi-
   paths: [process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES || process.cwd()]
 }));
 const { createRig, load } = require('./check-level-01-boss');
+let encoder;
 
 async function main() {
   const out = path.resolve(process.argv[2] || 'docs/source-pack/review-cache-road-mirror');
@@ -481,7 +482,7 @@ async function main() {
   const file = path.join(out, animationReview ? 'Cache-Road-Animation-Drive.mp4' :
     continuous ? 'Cache-Road-Curved-Roadside-Drive.mp4' :
     worldFrames ? 'Cache-Road-Mirror-World-Preview.mp4' : 'Cache-Road-Mirror-Preview.mp4');
-  const ff = spawn('/usr/bin/ffmpeg', ['-y','-loglevel','error','-f','rawvideo',
+  const ff = encoder = spawn('/usr/bin/ffmpeg', ['-y','-loglevel','error','-f','rawvideo',
     '-pix_fmt','rgba','-s','1280x720','-r',String(fps),'-i','pipe:0',
     '-an','-c:v','libx264','-threads','2','-preset','veryfast','-crf','19',
     '-pix_fmt','yuv420p','-movflags','+faststart',file],
@@ -650,4 +651,7 @@ async function main() {
   fs.writeFileSync(path.join(out, 'Cache-Road-Mirror-Detail.webp'), detail.toBuffer('image/webp',90));
   console.log(file);
 }
-main().catch(error => { console.error(error.stack || error); process.exitCode = 1; });
+main().catch(error => {
+  encoder?.stdin.destroy();encoder?.kill();
+  console.error(error.stack || error);process.exitCode = 1;
+});

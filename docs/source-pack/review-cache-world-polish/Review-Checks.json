@@ -1,0 +1,60 @@
+{
+  "baseline": "8faa64b13ed5dd1b919c27ac102051b78974cfc7",
+  "scope": "Native production Canvas; matched 1920x1080 draw, 24 fps, 8 seconds, first second excluded. CPU draw work, not Makko FPS.",
+  "before": {
+    "framesMeasured": 168,
+    "medianDrawMs": 43.286826499997915,
+    "p95DrawMs": 49.99069299999974,
+    "medianAssetDrawRequests": 420.0
+  },
+  "after": {
+    "framesMeasured": 168,
+    "medianDrawMs": 30.922303499999543,
+    "p95DrawMs": 38.742684000000736,
+    "medianAssetDrawRequests": 397.0
+  },
+  "medianReductionPercent": 28.56417067210729,
+  "p95ReductionPercent": 22.500206188378023,
+  "inputDrivenOpening": {
+    "durationSeconds": 16,
+    "fps": 24,
+    "captures": 4,
+    "minimumIntegrity": 3
+  },
+  "audioProvenance": "Exact event/mixer/playback trace equals the earlier Chromium-verified 16-second drive. Final CI also replays this current trace.",
+  "localValidation": {
+    "fullSuite": "passed",
+    "allJavaScriptSyntax": "passed",
+    "worldDepthSixRoutePositions": "passed",
+    "mirrorAnimatedFixture": "passed",
+    "slowDriverAwayWalker": "passed",
+    "continuousSingleTruckDraft": "passed",
+    "nativeActualAssetHarness": {
+      "loaded": 201,
+      "worldFrames": 96,
+      "animatedSheets": 39
+    }
+  },
+  "visualReview": {
+    "stills": [
+      100,
+      500,
+      1600,
+      2700,
+      4050,
+      5500,
+      7200,
+      8700
+    ],
+    "movingQuarters": [
+      0,
+      2460,
+      4920,
+      7380
+    ],
+    "abilitySequence": "staged draft charge, brace, push and turbo; earned mechanics checked separately"
+  },
+  "hostedValidation": "See matching CI and final source-pack receipt.",
+  "measurementRevision": "9197b2ecf5cdc41768baded8b5a149471654566d",
+  "packagedSourceSHA256": "cd7483bd50bdd3a634622300ac8bcfdcdd1c88d1a9a1899d58b8fb49355d195a"
+}

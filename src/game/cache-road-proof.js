@@ -1626,7 +1626,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       if (s.nearMisses >= 2) { this.readyTurbo(); s.nearMisses = 0; }
       s.passFlashMs=780;s.passSide=side;s.passAward=points;
       if (cut) { s.cutFlashMs = 740; s.cutAward = points; }
-      else { s.message = `NEAR MISS // +${points}  TURBO ${s.nearMisses}/2`; s.messageMs = 850; }
+      else { s.message = `NEAR MISS // +${points}  ${s.boost?'TURBO READY':`TURBO ${s.nearMisses}/2`}`; s.messageMs = 850; }
       window.audioSystem?.playCombatCue?.(cut ? 'cutline' : 'pickup');
     },
     update(delta) {
@@ -1846,6 +1846,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const laneEdge = (lane, t) => center(t) - half(t) + lane * half(t) / 2;
       const laneX = (lane, t) => laneEdge(lane, t) + half(t) / 4;
       const roadY = t => horizon + t * t * (bottom - horizon);
+      const strikeY=roadY(STRIKE_DEPTH);
       const depth = d => clamp(1 - (d + 80) / 520, 0, 1);
       // The bank has one invertible world projection for ground, streets,
       // sites and people. Its shallow far slope lets a site clear the horizon
@@ -2781,7 +2782,6 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // gaps between actions. Lane-end brackets remain visible around the
       // opaque car. The upcoming lane builds toward the fourth beat here.
       ctx.save();
-      const strikeY=roadY(STRIKE_DEPTH);
       for(let lane=0;lane<4;lane++) {
         const active=nextCue&&nextCue.remaining<=4&&nextPulse.lane===lane;
         const caught=s.pulseFlashMs>0&&s.pulseFlashLane===lane;
@@ -3095,7 +3095,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       if(s.draftMs>0||s.turboReadyMs>0||s.boostMs>0||s.defenseFlashMs>0) {
         const x=carX,y=carY-175;
         const turbo=s.turboReadyMs>0||s.boostMs>0;
-        const label=s.defenseFlashMs>0?`${s.defenseKind} / BLOCKED`:
+        const label=s.defenseFlashMs>0?`${s.defenseKind} / ${s.defenseKind==='PUSH'?'CLEARED':'BLOCKED'}`:
           s.boostMs>0?'TURBO':s.turboReadyMs>0?'TURBO READY':'DRAFT / TURBO';
         ctx.save();ctx.fillStyle='#071e29e6';ctx.fillRect(x-113,y-20,226,38);
         ctx.fillStyle=turbo?'#ffdda0':'#b5f0f1';
