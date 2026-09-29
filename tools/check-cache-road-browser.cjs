@@ -225,7 +225,7 @@ async function main() {
   assert(cueAudio.rms>.003&&cueAudio.peak<1&&cueAudio.remainingVoices===0);
   assert(cueAudio.scheduled.every(event=>event.ok&&Math.abs(event.actual-event.requested)<1e-8),
     'countdown and calibrated early catch sounds start on exact source-clock beats');
-  const reviewTrace=path.join(root,'docs/source-pack/review-cache-world-polish/Drive-Trace.json');
+  const reviewTrace=path.join(root,'docs/source-pack/review-cache-gears-grounding/Drive-Trace.json');
   if(fs.existsSync(reviewTrace)) {
     const trace=JSON.parse(fs.readFileSync(reviewTrace,'utf8'));
     const review=await evaluate(`(${renderRoadAudio.toString()})(${JSON.stringify(trace)})`);
@@ -250,12 +250,12 @@ async function main() {
   if(worldOutput) {
     fs.mkdirSync(worldOutput,{recursive:true});
     for(const screen of world.screens)fs.writeFileSync(path.join(worldOutput,
-      `Road-${screen.progress}.png`),Buffer.from(screen.png,'base64'));
+      `Road-${screen.progress}.webp`),Buffer.from(screen.webp,'base64'));
     delete world.screens;
     fs.writeFileSync(path.join(worldOutput,'World-Checks.json'),JSON.stringify(world,null,2));
   }
   assert.deepEqual(exceptions, []);
-  console.log(`Cache Road Chromium passed: ${frames.drawn} guarded frames (${frames.contextCalls} context calls), five local and published MP3s, aligned phrases and audible collision break.`);
+  console.log(`Cache Road Chromium passed: ${frames.drawn} guarded frames; ${world.frames.length} world frames; ${world.drive.frames} driving frames in all gears; ${world.drive.arrivals} beat-4 arrivals; ${world.hosted.length} byte-identical published animations; five MP3s and audible confirmation.`);
 }
 main().catch(error => { console.error(error.stack || error); process.exitCode = 1; }).finally(async () => {
   socket?.close();

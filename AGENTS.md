@@ -1,5 +1,26 @@
 # Repository Guidance
 
+## September 29, 2026 — buffered gears, physical beat-four paint and grounding
+
+The owner rejected independent speed/pad motion and requested buffered gear
+changes. Up/Down now queue persistent gears for the next downbeat. Commit
+each bar's analytic road trajectory from Web Audio time; place that bar's
+action at its fourth-beat world contact. Never move an announced world pad
+or deadline. Turbo, Surge and collision recovery also wait for a new bar.
+Keep the car settled during the entire fourth-beat judgment window; its
+load/launch animation runs between that window and the next third beat.
+Preview the next lane early, without inventing a future road position.
+
+The owner also rejected buried buildings and incorrect prop occlusion.
+This supersedes the old 420-pixel burial/reveal mask instructions below.
+Ground foundations/feet directly on terrain; sort projected front contacts,
+including service lamps, parapets and parking furniture. Passers use travel
+poses, while local standing/seated poses remain still. Keep complete legs.
+The raised skyline scales about its ground foot, never a floating bitmap edge.
+All gears must finish the song and Echo exit, and scenery must cover their
+full possible travel. See `docs/source-pack/CACHE_ROAD_GEARS_GROUNDING.md`.
+Merge after CI for owner Makko review; browser checks are not device acceptance.
+
 ## September 29, 2026 — broad Cache Road world and gameplay pass
 
 The owner requested substantial improvements across scale, occlusion,

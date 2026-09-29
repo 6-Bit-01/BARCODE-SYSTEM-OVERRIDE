@@ -1,5 +1,12 @@
 # BARCODE: SYSTEM OVERRIDE — Source Pack v5
 
+## Latest Cache Road revision
+
+Buffered musical gears, physically aligned beat-four pads, grounded scenery,
+complete pedestrian footfalls and shared prop/building depth ordering.
+See [the change notes](CACHE_ROAD_GEARS_GROUNDING.md) and
+[the driving review](review-cache-gears-grounding/Drive-Review.mp4).
+
 ## Current review — timing under the car and sweeper compositing
 
 Start with `CACHE_ROAD_CAR_TIMING_SWEEPER_FIX.md`. Musical pads now meet a

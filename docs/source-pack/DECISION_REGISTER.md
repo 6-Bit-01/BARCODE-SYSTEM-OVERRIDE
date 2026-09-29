@@ -1,5 +1,15 @@
 # Decision Register
 
+## September 29, 2026 — synchronize road sections, then accept gear changes
+
+The owner explicitly proposed buffering a speed request and timing the launch
+for the next musical road section. Implemented as three persistent gears,
+committed four-beat trajectories and immutable fourth-beat pad addresses.
+This supersedes both the widened catch-strip workaround and the independent
+music-time paint projection. Grounding/contact depth replaces artificial burial
+and address-only painter order. Existing art, music, controls and engine remain.
+See `CACHE_ROAD_GEARS_GROUNDING.md` for recovered decisions and measurements.
+
 ## September 27, 2026 — complete measured core kit before host review
 
 The owner asked to proceed with all remaining art while checking the plan,

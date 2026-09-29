@@ -1,5 +1,14 @@
 # Current State
 
+## September 29 — buffered gears and grounded world
+
+The current pass replaces direct throttle/brake with queued gears that launch
+on the next downbeat. Road distance, fixed painted pad addresses and fourth-beat
+arrivals share the audio transport. Buildings use their actual ground contacts;
+people, furniture, large lamps and parapets share the same projected depth queue.
+The complete song and Echo exit are reachable in all three gears. See
+`CACHE_ROAD_GEARS_GROUNDING.md` and `review-cache-gears-grounding/`.
+
 ## September 29 — timing at the car and a single sweeper image
 
 The owner's #145 playtest identified two remaining visual defects. The

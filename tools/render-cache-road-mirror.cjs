@@ -425,6 +425,7 @@ async function main() {
   const worldReview = process.env.CACHE_REVIEW_WORLD === '1';
   const siteReview = process.env.CACHE_REVIEW_SITES === '1';
   const gameplay = process.env.CACHE_REVIEW_GAMEPLAY === '1';
+  const gearReview = gameplay && process.env.CACHE_REVIEW_GEARS === '1';
   const continuous = gameplay || process.env.CACHE_REVIEW_CONTINUOUS === '1';
   const animationReview = process.env.CACHE_REVIEW_ANIMATION === '1';
   const customProgress=process.env.CACHE_REVIEW_PROGRESS?.split(',')
@@ -510,8 +511,13 @@ async function main() {
       }
     });
   }
-  const driveRoute=[[150,0,'road_a'],[365,1,'road_x'],[585,3,'road_y'],[810,2,'road_b']];
+  const driveRoute=[[150,0,'road_a'],[365,1,'road_x'],[585,3,'road_y'],[810,2,'road_b'],
+    [1260,2,'road_y'],[1490,1,'road_a'],[1720,0,'road_x'],[1895,3,'road_b']];
   let driveIndex=0;
+  let reviewEchoSent=false;
+  const shiftInputs=[[1,'move_down'],[4.2,'move_up'],[8.2,'move_up'],
+    [11,'move_down'],[14,'move_down'],[17,'move_up'],[21,'move_up'],[26,'road_turbo']];
+  let shiftIndex=0;
   for (let i = 0; i < chapters.length * seconds * fps; i++) {
     const chapterIndex = Math.floor(i / (seconds * fps));
     const chapter = chapters[chapterIndex], local = i % (seconds * fps) / fps;
@@ -580,6 +586,11 @@ async function main() {
     s.echoEnergy = Math.min(100,65 + chapterIndex * 6);
     s.lockEnergy = 26 + chapterIndex * 10;
     road.updateStreetMotion(1000/fps);
+    const sectionBeat=Math.floor(s.musicBeatFloat/4)*4;
+    const section={beat:sectionBeat,beatSec:60/128,speed:s.speed,v0:s.speed,
+      from:s.progress-(s.musicBeatFloat-sectionBeat)*60/128*s.speed};
+    s.driveSections=[section];s.pulseTargets={};s.pulsePlaces={};
+    road.placePulse(section);
     road.updatePulses({running:true,profileId:'level-02.proof',
       audioTimeSec:s.musicBeatFloat*60/128,
       grid:{beatFloat:s.musicBeatFloat,beatDurationSec:60/128}});
@@ -588,11 +599,20 @@ async function main() {
       w.audioSystem.context.currentTime=now;
       const next=driveRoute[driveIndex];
       const goal=driveIndex===1&&s.progress<205?0:
-        driveIndex===3&&s.progress<650?3:next?.[1]??2;
+        driveIndex===3&&s.progress<650?3:
+        driveIndex===4&&s.progress<1058?0:
+        driveIndex===5&&s.progress<1338?2:
+        driveIndex===6&&s.progress<1528?1:next?.[1]??3;
       const steer=goal-s.lanePos;
       const actions={move_left:{held:steer<-.1},move_right:{held:steer>.1}};
+      if(gearReview&&shiftIndex<shiftInputs.length&&now>=shiftInputs[shiftIndex][0]) {
+        actions[shiftInputs[shiftIndex++][1]]={pressed:true};
+      }
+      if(gearReview&&!reviewEchoSent&&s.progress>=920) {
+        actions.road_echo={pressed:true};reviewEchoSent=true;
+      }
       if(next&&Math.abs(steer)<=.38&&
-          Math.abs(beat-s.pulseTargets[`0/0/${driveIndex}`])<.055) {
+          Math.abs(beat-s.pulseTargets[`0/${Math.floor(driveIndex/4)}/${driveIndex%4}`])<.055) {
         actions[next[2]]={pressed:true,presses:[{audioTimeSec:now}]};driveIndex++;
       }
       road.handleActions(actions);
@@ -600,8 +620,9 @@ async function main() {
       w.BARCODE.musicDirector.apply(w.audioSystem);
       playbackFrames.push({at:now,progress:s.progress,beat:s.musicBeatFloat,
         lane:s.lanePos,speed:s.speed,integrity:s.integrity,
+        gear:s.gear,pendingGear:s.pendingGear,boostMs:s.boostMs,
         captures:s.captures.length,pulseFlashMs:s.pulseFlashMs,
-        targets:{...s.pulseTargets}});
+        targets:{...s.pulseTargets},places:{...s.pulsePlaces}});
     }
     if(process.env.CACHE_REVIEW_FEEDBACK==='1'&&!gameplay) {
       // Explicit presentation fixtures; real earning is covered by gameplay checks.
@@ -617,6 +638,7 @@ async function main() {
     const started=performance.now();
     road.draw(sc);
     renderStats.push({progress:s.progress,ms:performance.now()-started,assetDraws:frameDraws});
+    if(continuous&&i% (fps*4)===0)console.log(`Review ${Math.floor(i/fps)}/${seconds}s; gear ${s.gear+1}; integrity ${s.integrity}`);
     if (worldFrames) {
       // Layout study: the current production HUD is placed over the owner's
       // earlier road-motion preview. The two draws are not one live build.
