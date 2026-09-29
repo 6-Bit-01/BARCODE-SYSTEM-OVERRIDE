@@ -1,5 +1,16 @@
 # Recovery checkpoint — September 14
 
+## September 29, 2026 — car timing marker and sweeper compositing
+
+- Move the fixed musical strike plane from ahead of the car to its rear
+  tire contact. Keep a permanent four-lane timing line and lane brackets
+  visible around the car, with matching opening guidance.
+- Keep announced fourth beats, judgment windows, calibration and audio.
+- Draw the sweeper as one whole cel. Remove fixed wheel masks that duplicate
+  its changing wheel outlines and the added floating roof light.
+- Reproduce the source fault and correction with the production atlas
+  loader outside Makko; retain the existing game and host integration.
+
 ## September 29, 2026 — motion and fourth-beat feedback repair
 
 - Move travelling people along the ground; face horizontal people outward

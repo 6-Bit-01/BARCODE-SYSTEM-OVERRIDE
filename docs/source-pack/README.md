@@ -1,6 +1,14 @@
 # BARCODE: SYSTEM OVERRIDE — Source Pack v5
 
-## Current review — moving people and fourth-beat repair
+## Current review — timing under the car and sweeper compositing
+
+Start with `CACHE_ROAD_CAR_TIMING_SWEEPER_FIX.md`. Musical pads now meet a
+permanent line under the rear tires. The sweeper draws one complete cel,
+removing the doubled wheel edges and extra floating beacon. The owner
+identified these remaining defects in #145. Beat-four timing and the
+existing game are retained; exact merge/test state is in the manifest.
+
+## Previous repair — moving people and fourth-beat timing, merged #145
 
 Start with `CACHE_ROAD_MOTION_RHYTHM_REPAIR.md`. Travelling people now move
 on the ground, horizontal figures head toward their nearest screen edge,

@@ -372,6 +372,7 @@ async function run() {
   const mirrorStreets = [], litRunways = [];
   const roadArt = [], openingRects = [], drawOrder = [], hudLines = [], contacts = [];
   const trafficLabels = [], beacons = [], sidewalkEdges = [], clipStack = [];
+  const timingLabels = [];
   const ridgeAt = (points,x) => {
     if(!points)return Infinity;
     if(!Number.isFinite(x))return Infinity;
@@ -449,6 +450,7 @@ async function run() {
         beacons.push({ x,y,translate:this.lastTranslate });
     },
     fillText(value, x, y) {
+      if(value==='HIT ON 4')timingLabels.push({x,y});
       if ((x === 1623 && y === 76) || (x === 1345 && y === 155) ||
           (x === 1418 && y === 56))
         hudLines.push({ value, x, y });
@@ -893,6 +895,8 @@ async function run() {
   const textureRow = roadTexture().sourceRect[1];
   const cachePose=roadArt.filter(entry=>entry.key==='cacheCar').at(-1).chassisOffset;
   const sweeperPose=roadArt.filter(entry=>entry.key==='cacheSweeper').at(-1).chassisOffset;
+  assert.equal(roadArt.filter(entry=>entry.key==='cacheSweeper').length,1,
+    'one complete sweeper cel is painted; wheel cutouts cannot duplicate its moving silhouette');
   const ships = roadArt.filter(entry => entry.key.startsWith('cacheFly'));
   assert.deepEqual(ships.map(ship => [ship.key,ship.flip]),
     [['cacheFly1',false],['cacheFly3',false],['cacheFly3',true],
@@ -908,7 +912,7 @@ async function run() {
     .chassisOffset[1]-cachePose[1])>1 &&
     Math.abs(roadArt.filter(entry=>entry.key==='cacheSweeper').at(-1)
       .chassisOffset[1]-sweeperPose[1])>.1,
-  'painted player and traffic bodies animate over their grounded wheel masks');
+  'player suspension and the complete sweeper cel retain their restrained road movement');
   const cityAt405=cityKeys
     .map(key=>{
       const entry=roadArt.find(item=>item.key===key);
@@ -1032,6 +1036,11 @@ async function run() {
     drawOrder.includes('cacheFreight'));
   assert(drawOrder.indexOf('cachePulseStrip') < drawOrder.indexOf('cacheFreight'),
     'illustrated road paint is composited beneath physical traffic');
+  timingLabels.length=0;
+  mirrorFrame({musicBeatFloat:80,pulseTargets:{}});
+  assert.equal(timingLabels.length,1,'the attention marker remains visible between actions');
+  assert(Math.abs(timingLabels[0].y-6-(400+.83*.83*680-119*.14))<1e-9,
+    'the drawn timing line and the announced pad share the rear tire contact');
   const phrase={lane:0,startBeat:32,endBeat:64};
   mirrorFrame({progress:385,musicBeatFloat:32,captures:[],queuedCaptures:[phrase]});
   assert(!drawOrder.includes('cacheConfirmedBar') &&
@@ -1091,8 +1100,10 @@ async function run() {
       assert.equal(road.state.pulseTargets['0/0/0'],target,'throttle never shifts an announced beat');
       road.state.musicBeatFloat=target;
       const visible=w.__pulseVisual({id:'0/0/0'},road.state,beatSec);
-      assert(Math.abs(1-(visible.d+80)/520-.64)<1e-10 && visible.window,
-        'every speed brings the button to the unobscured road receptor exactly on beat four');
+      const targetDepth=1-(visible.d+80)/520;
+      const targetY=400+targetDepth*targetDepth*680;
+      assert(Math.abs(targetY-(400+.83*.83*680-119*.14))<1e-9 && visible.window,
+        'every speed brings the button under the rear tires exactly on beat four');
     }
   }
   road.state=copy(liveState);

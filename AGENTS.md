@@ -1,5 +1,20 @@
 # Repository Guidance
 
+## September 29, 2026 — car contact and sweeper compositing correction
+
+The owner rejected #145's press plane ahead of Cache. The pad and phrase
+paint now reach the rear tire contact on their existing musical deadlines.
+Keep the permanent four-lane timing line and visible end brackets under the
+car, including gaps between actions; do not move the target ahead to expose
+the button. The HUD keeps the matching face button and countdown visible.
+
+The sweeper uses one complete atlas draw per frame. Its changing wheel
+outlines do not fit the old stationary wheel masks; do not split this
+vehicle into wheel/body passes or add a synthetic roof beacon over its
+painted lamps. The defect reproduces without Makko. This correction does
+not authorize an engine rewrite. Merge after CI for owner Makko review.
+See `CACHE_ROAD_CAR_TIMING_SWEEPER_FIX.md`.
+
 ## September 29, 2026 — owner motion and beat-four repair
 
 The owner found moving pedestrians stationary, the sweeper turn broken,

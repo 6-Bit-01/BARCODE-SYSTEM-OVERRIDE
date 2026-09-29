@@ -1,5 +1,20 @@
 # Acceptance and Test Status
 
+## Car timing line and sweeper compositing — September 29
+
+The #145 owner review found its ahead-of-car timing plane confusing and the
+sweeper still doubled. The new production draw anchors musical pads and
+phrase paint at the rear tires. A permanent line and lane brackets show
+where to watch even between actions. Opening guidance points to that line.
+Checks cover pad/car contact across speeds and the marker between actions.
+
+A magnified test loads the real atlas through `PresentationAssets.draw`
+with Makko removed. Before: three sweeper atlas draws with fixed wheel
+cutouts and a displaced body; after: one coherent cel, with no extra roof
+beacon. Existing steering, animation frames, pedestrians, transport,
+input windows and success audio are preserved. New Makko playtest judgment
+is pending. See `CACHE_ROAD_CAR_TIMING_SWEEPER_FIX.md`.
+
 ## Cache Road motion and beat-four repair — September 29
 
 The owner rejected #144's stationary travellers, sweeper turn and pulse
