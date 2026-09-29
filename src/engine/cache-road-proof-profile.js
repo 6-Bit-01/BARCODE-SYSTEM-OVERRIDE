@@ -14,7 +14,9 @@ window.FILE_MANIFEST.push({ name: 'src/engine/cache-road-proof-profile.js', expo
   B.CACHE_ROAD_PROOF_PROFILE_ID = 'level-02.proof';
   B.MusicProfiles.register({
     profileId: B.CACHE_ROAD_PROOF_PROFILE_ID, levelId: 'level-02', runtimeRegistration: true,
-    metadataStatus: 'unverified',
+    // Recording grid verified against all five decoded sources; device latency
+    // and physical controller feel are separate from this metadata contract.
+    metadataStatus: 'verified',
     arrangement: { sources: [source('drive', 'drive'), source('pressure', 'pressure'),
       source('flow', 'flow'), source('breakaway', 'breakaway'),
       source('undercurrent', 'undercurrent')] },

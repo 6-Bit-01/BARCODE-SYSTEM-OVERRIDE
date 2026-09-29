@@ -1,0 +1,51 @@
+{
+  "baselineRevision": "3767b0e3d61eb58e5c47464d1fe4756e47a644d7",
+  "command": "node tools/check-presentation-render.cjs --baseline 3767b0e3d61eb58e5c47464d1fe4756e47a644d7",
+  "scope": "Origin-aligned projected texture draw path only",
+  "scenarios": 64,
+  "differingBytes": 0,
+  "maxChannelDelta": 0,
+  "contextStatePreserved": true,
+  "rounds": 14,
+  "drawsPerRound": 1024,
+  "beforeMedianMs": 4.794141500000023,
+  "afterMedianMs": 2.6766665000000103,
+  "changePercent": -44.16797042807357,
+  "beforeMs": [
+    5.03405500000008,
+    4.877259999999978,
+    4.711023000000068,
+    4.9233979999999065,
+    4.411018000000013,
+    3.9905559999999696,
+    4.956433999999945,
+    4.111879999999928,
+    4.229622000000063,
+    4.940955999999915,
+    4.523701000000074,
+    5.73103900000001,
+    5.161974999999984,
+    4.632501999999931
+  ],
+  "afterMs": [
+    3.6093579999999292,
+    2.6156080000000657,
+    2.639738999999963,
+    2.7410379999998895,
+    2.993394999999964,
+    2.59728999999993,
+    2.7135940000000573,
+    2.3714239999999336,
+    2.878464000000122,
+    2.4086520000000746,
+    3.1292439999999715,
+    4.066665999999941,
+    2.5716840000000047,
+    2.3513970000001336
+  ],
+  "limits": [
+    "Native Canvas microbenchmark; not Makko/browser FPS.",
+    "Translated sprites and all flipped draws retain the prior rendering branch.",
+    "Per-asset timings in the PR148 full-drive trace were empty; do not use that trace to claim ranked per-asset hotspots."
+  ]
+}

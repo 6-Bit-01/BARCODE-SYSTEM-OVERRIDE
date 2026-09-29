@@ -1,5 +1,17 @@
 # Recovery checkpoint — September 14
 
+## September 29, 2026 — downbeat timing, depth motion and animation coverage
+
+- Verify the actual five recordings and lock action targets to beat ONE.
+- Follow audible output time for road/input; retain raw source scheduling.
+- Preserve announced world targets through queued gears and delayed abilities.
+- Replace chassis shake with whole-car depth/scale gear motion between windows.
+- Remove floating road-edge outline passes; preserve illustrated walls.
+- Instantiate missing wayfinding and data-district ambient animations; animate
+  the rival by elapsed time. Verify every intended production animation route.
+- Skip redundant Canvas state operations only for exact local-origin draws;
+  preserve cropped, flipped, transformed and filtered rendering.
+
 ## September 29, 2026 — car timing marker and sweeper compositing
 
 - Move the fixed musical strike plane from ahead of the car to its rear

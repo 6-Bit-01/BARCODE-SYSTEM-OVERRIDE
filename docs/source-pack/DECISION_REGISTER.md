@@ -1,5 +1,15 @@
 # Decision Register
 
+## September 29, 2026 — ONE replaces beat four
+
+The owner explicitly moved all action windows to the first beat of each
+measure and requested verification against the original song data. The
+recording audit confirms the 128 BPM / 4/4 / zero-origin grid. Preserve
+buffered gears, immutable paint addresses and the existing engine. Use
+whole-car position/scale for shifts, remove floating road-edge lines and
+verify actual animation routes rather than sheet availability alone.
+See `CACHE_ROAD_DOWNBEAT_DEPTH.md`.
+
 ## September 29, 2026 — synchronize road sections, then accept gear changes
 
 The owner explicitly proposed buffering a speed request and timing the launch

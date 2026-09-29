@@ -88,6 +88,47 @@ window.AudioSystem = class AudioSystem {
     }
   }
 
+  // Presentation/input clock only. Sources and AudioParam events must continue
+  // to use context.currentTime: an audible timestamp is already in that domain,
+  // but names the sample reaching the device rather than the next rendered block.
+  getOutputAudioTime(audioTimeSec = this.context?.currentTime) {
+    const ctx = this.context, rawNow = ctx?.currentTime;
+    if (!Number.isFinite(rawNow)) return Number.isFinite(audioTimeSec) ? audioTimeSec : 0;
+    const age = Number.isFinite(audioTimeSec) ? Math.max(0, rawNow - audioTimeSec) : 0;
+    const latency = value => Number.isFinite(value) && value >= 0 && value <= 1 ? value : 0;
+    const estimatedDelay = Math.min(1, latency(ctx.baseLatency) + latency(ctx.outputLatency));
+    const performanceNow = window.performance?.now?.();
+    const previous = this.outputClockSample;
+    let heardNow = Math.max(0, rawNow - estimatedDelay);
+    if (ctx.state && ctx.state !== 'running') {
+      // Do not extrapolate a pre-suspension timestamp through wall-clock time.
+      if (previous?.context === ctx && previous.rawNow <= rawNow)
+        heardNow = Math.min(rawNow, previous.heardNow + rawNow - previous.rawNow);
+    } else if (Number.isFinite(performanceNow) && typeof ctx.getOutputTimestamp === 'function') {
+      try {
+        const stamp = ctx.getOutputTimestamp();
+        const elapsedMs = performanceNow - stamp?.performanceTime;
+        const mapped = stamp?.contextTime + elapsedMs / 1000;
+        // Zero timestamps occur before the first rendered block. Reject stale,
+        // suspended or implausible samples rather than moving the road by seconds.
+        const afterResume = previous?.context !== ctx || previous.state === 'running' ||
+          stamp?.performanceTime >= previous.performanceNow;
+        if (Number.isFinite(stamp?.contextTime) && stamp.contextTime > 0 &&
+            Number.isFinite(stamp.performanceTime) && stamp.performanceTime > 0 &&
+            elapsedMs >= -50 && elapsedMs <= 1000 && afterResume &&
+            stamp.contextTime <= rawNow + .025 && Number.isFinite(mapped) &&
+            mapped >= 0 && mapped <= rawNow + .025 && rawNow - mapped <= 1) {
+          heardNow = Math.min(rawNow, mapped);
+        }
+      } catch (_) { /* Partial implementations retain the bounded latency estimate. */ }
+    }
+    this.outputClockSample = { context: ctx, state: ctx.state || 'running', rawNow,
+      heardNow, performanceNow };
+    // Preserve an older event's age. Never clamp it to a later queried press;
+    // presentation can hold its own previous beat if a device-delay change regresses.
+    return Math.max(0, heardNow - age);
+  }
+
   rampAdaptiveStemGain(track, targetVolume, durationSec = ADAPTIVE_STEM_GAIN_RAMP_SEC) {
     const gainParam = track && track.gain && track.gain.gain;
     if (!gainParam) return false;

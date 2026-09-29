@@ -1,5 +1,22 @@
 # Current State
 
+## September 29 — beat ONE, audible road time and coherent car motion
+
+The current pass supersedes the fourth-beat timing below. Real recording
+analysis confirms 128 BPM, 4/4, a zero-origin 100-bar grid and five equal
+187.5-second sources. Every announced pad now reaches the rear-tire timing
+line on the next measure's ONE, with a 2–3–4 approach and first-beat flash.
+Queued gears preserve that world address. Speaker-output time drives road
+presentation and input judgment; source time still schedules count-in audio.
+
+The player car no longer cycles misregistered chassis paintings or shakes on
+split wheel masks. Gear changes move one coherent car nearer/larger, then
+farther/smaller and smoothly home between judgment windows. Floating road-edge
+outlines are removed. Missing wayfinding placements and data-district ambient
+eligibility are repaired; the rival uses elapsed time for its animation.
+See `CACHE_ROAD_DOWNBEAT_DEPTH.md`, `CACHE_ROAD_SONG_GRID_AUDIT.md` and
+`review-cache-downbeat-depth/`. Makko feel and device performance remain open.
+
 ## September 29 — buffered gears and grounded world
 
 The current pass replaces direct throttle/brake with queued gears that launch

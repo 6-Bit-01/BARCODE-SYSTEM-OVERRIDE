@@ -1,5 +1,25 @@
 # Acceptance and Test Status
 
+## First-beat timing and complete animation routes — September 29
+
+Current requirements replace historical beat-four entries below. Automated
+checks cover immutable physical pad contact on ONE across all gears, boundary
+requests, Turbo/Surge/recovery, frame rates and pause/resume. The actual output
+clock helper and timestamped input are exercised with 0–250 ms device delays,
+old keyboard events, invalid timestamps and manual calibration applied once.
+
+The animation audit submits complete production world/HUD frames. It checks
+all 41 animated/stateful atlases, both pedestrian banks/directions and mirror
+routes, every prop/ambient family, traffic, all impact/action cels and all
+flyover cels. Standing/seated people and the stable normal Cache chassis are
+intentional; Reduced Motion freezes decorative clocks. Direct sheet draws are
+separate and cannot inflate live coverage. Hosted production loader checks
+must pass in Chromium before merge. See `CACHE_ROAD_DOWNBEAT_DEPTH.md`.
+
+Owner Makko import, audio/controller feel and sustained device FPS remain
+unverified. The new review drive is evidence from production draw and inputs,
+not an owner acceptance claim.
+
 ## Car timing line and sweeper compositing — September 29
 
 The #145 owner review found its ahead-of-car timing plane confusing and the
