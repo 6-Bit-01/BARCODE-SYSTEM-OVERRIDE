@@ -555,7 +555,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       ctx.globalAlpha=.55+.36*p.t;
       B.PresentationAssets?.draw?.(person?key:item.key,ctx,{
         x:artX,y:p.y+2*p.t,width:height*aspect,height,
-        flip:person?item.flip:false });
+        flip:person?item.flip:false,
+        frame:person||reduced?0:
+          ((Math.floor(((s.elapsedMs||0)+item.at*9)/310)%3)+3)%3 });
       ctx.globalAlpha=1;
     }
     for(const hazard of HAZARDS) {
@@ -682,10 +684,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   }
   // Painted action badges share their symbols on the road and HUD; the small
   // vector paths below remain useful while images load.
-  function drawActionIcon(ctx,action,x,y,size,color='#d6ffe7') {
+  function drawActionIcon(ctx,action,x,y,size,color='#d6ffe7',frame=0) {
     if(B.PresentationAssets?.draw?.(
       ['cachePulseSurge','cachePulsePush','cachePulseBrace','cachePulseRefill'][action],
-      ctx,{x,y,width:size,height:size}))return;
+      ctx,{x,y,width:size,height:size,frame}))return;
     ctx.save();ctx.translate(x,y);ctx.scale(size/60,size/60);
     ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=5;
     ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();
@@ -784,6 +786,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         trike: 'cacheTrike', shuttle: 'cacheShuttle' })[kind];
     if (artKey && B.PresentationAssets?.ready?.(artKey)) {
       ctx.save(); ctx.translate(x, y); ctx.globalAlpha *= alpha;
+      // Advance painted detail with travel. The impact pose is a one-shot
+      // sequence; all masked tire and body passes use the same cel.
+      const vehicleFrame = reduced ? 0 : hit && kind === 'cache' ?
+        Math.min(7,Math.floor((650-hit)/82)) :
+        ((Math.floor(phase*.11+x*.015)%8)+8)%8;
       const ratio = kind === 'block' ? [1.12, 1.28] : kind === 'freight' ? [1.27, 1.19] :
         kind === 'trike' ? [1.32, 1.24] : kind === 'sweeper' || kind === 'shuttle' ?
           [1.23, 1.38] : [1.28, 1.32];
@@ -792,14 +799,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const sway = reduced || kind === 'block' ? 0 :
         Math.sin(phase*(kind === 'freight' ? .055 : .082)+x*.009)*.65 +
         Math.sin(phase*(kind === 'freight' ? .105 : .15)+x*.016)*.35;
-      // The recovered vehicle art is a single pose per direction. Give its
-      // independently masked chassis enough suspension travel to read at
-      // the actual 1280x720 game scale while the tire pixels remain planted.
+      // Each painted pose shares its silhouette. The sprung chassis still
+      // travels independently while the tire pixels remain planted.
       const bounce = sway*h*(kind === 'freight' ? .115 : .075) - Math.abs(recoil)*h*.08;
       const jolt = recoil*w*.075;
       const roll = reduced ? 0 : (kind === 'cache' ? steer*.025 : 0) +
         sway*.009+recoil*.07;
-      const art = { x: 0, y: 1, width: w*ratio[0], height: h*ratio[1] };
+      const art = { x: 0, y: 1, width: w*ratio[0], height: h*ratio[1],
+        frame: vehicleFrame };
       const anchored = kind !== 'block';
       const freight = kind === 'freight';
       // The transparent paintings do not all end at the same wheel line:
@@ -1049,7 +1056,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     const lanePos = saved.lanePos ?? saved.lane ?? 1;
     return { progress, lanePos, lane: Math.round(lanePos), visualLane: lanePos,
       captures: [], queuedCaptures: [], hitRecovery: false,
-      caughtPulses: {}, pulseFlashMs: 0, pulseCombo: 0,
+      caughtPulses: {}, pulseFlashMs: 0, pulseFlashAction: null, pulseCombo: 0,
       lastPulseRun: null, lastPulseOrder: -1,
       fullAdrenaline: false, fullAdrenalineCount: 0, shield: 0, ramMs: 0, surgeMs: 0,
       fastPulses: 0,
@@ -1349,6 +1356,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       s.opening.held = true;
       if (long) s.opening.sealed = true;
       s.pulseFlashMs = 650;
+      s.pulseFlashAction = pulse.action;
       s.score += (judgment.timing === 'perfect' ? 80 : 50) * (fast ? 2 : 1);
       if (fast && ++s.fastPulses % 2 === 0) s.boost = 1;
       if (slow) s.echoEnergy = clamp(s.echoEnergy + 25, 0, 100);
@@ -2321,8 +2329,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           ctx.fillStyle='#0d19218c';ctx.beginPath();
           ctx.ellipse(x,foot+2*t,Math.max(9,width*.33),Math.max(2,4*t),0,0,Math.PI*2);
           ctx.fill();
+          // World-address offset prevents fixtures flashing in lockstep.
+          const propFrame = !person && !reduced ?
+            ((Math.floor(((s.elapsedMs||0)+item.at*9)/310)%3)+3)%3 : 0;
           B.PresentationAssets?.draw?.(key,ctx,{
-            x,y:foot,width,height:h,flip:person?item.flip:false });
+            x,y:foot,width,height:h,flip:person?item.flip:false,
+            frame:propFrame });
           ctx.restore();
         },scene.side,{foot,height:h,reveal:!person});
       };
@@ -2605,7 +2617,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.globalAlpha=spent ? .52 : 1;
         ctx.translate(x,y);ctx.scale(Math.max(.52,mid),Math.max(.29,mid*.46));
         const face=PULSE_ACTIONS[pulse.action];
-        drawActionIcon(ctx,pulse.action,0,-22,48,'#d7ffe6');
+        const quiet=[0,1,6,7][Math.floor(((s.elapsedMs||0)+pulse.at*3)/180)%4];
+        drawActionIcon(ctx,pulse.action,0,-22,48,'#d7ffe6',
+          reduced?0:spent?7:ready&&fourthWindow?2:quiet);
         ctx.fillStyle = '#f4f3d7'; ctx.textAlign = 'center';
         ctx.font = 'bold 40px Oxanium, monospace';
         ctx.fillText(B.GamepadUI?.connected ? B.ControllerSettings?.button(face.button) || face.keyboard : face.keyboard,0,38);
@@ -2785,6 +2799,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const padReady=padVisible&&padDistance<=PAD_EARLY&&padDistance>=-PAD_LATE;
       const inPadLane=padReady&&Math.abs(s.lanePos-nextPulse.lane)<=.38;
       const pressNow=inPadLane&&fourthWindow;
+      const showingCatch=s.pulseFlashMs>0 && s.pulseFlashAction!==null;
       const iconScale=padReady&&inPadLane&&!reduced?1+.28*fourthCharge:1;
       polygon(ctx,[[1352,17],[1395,17],[1407,27],[1407,70],
         [1395,82],[1352,82],[1343,70],[1343,27]],'#050e17');
@@ -2797,16 +2812,25 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           {x:1375,y:49,width:100,height:50});
         ctx.restore();
       }
-      if(padVisible) drawActionIcon(ctx,nextPulse.action,1375,44,37*iconScale,'#c6ffe2');
+      if(showingCatch) {
+        const cel=reduced?0:Math.min(7,Math.floor((650-s.pulseFlashMs)/82));
+        drawActionIcon(ctx,s.pulseFlashAction,1375,44,reduced?45:68,
+          '#c6ffe2',cel);
+      } else if(padVisible) drawActionIcon(ctx,nextPulse.action,1375,44,
+        37*iconScale,'#c6ffe2',reduced?0:pressNow?2:
+          [0,1,6,7][Math.floor((s.elapsedMs||0)/180)%4]);
       else drawLaneMark(ctx,s.lane,1375,43,35,'#9bd7d0');
       ctx.fillStyle='#a8bfcb';ctx.font='bold 14px Oxanium, monospace';
-      ctx.fillText(padVisible?`NEXT PAD  /  ${LANES[nextPulse.lane]}`:'ROAD CLEAR',1418,29,460);
+      ctx.fillText(showingCatch?'PHRASE CAPTURED':
+        padVisible?`NEXT PAD  /  ${LANES[nextPulse.lane]}`:'ROAD CLEAR',1418,29,460);
       ctx.fillStyle=pressNow?'#fff2ad':'#d8f5e8';
       ctx.font='bold 25px Oxanium, monospace';
-      ctx.fillText(padVisible?`${nextButton}  ${nextFace.label}  •  ${pressNow?'PRESS!':padReady?
+      ctx.fillText(showingCatch?
+        `${PULSE_ACTIONS[s.pulseFlashAction].label}  //  +${s.pulseCombo>=2?16:8} BARS`:
+        padVisible?`${nextButton}  ${nextFace.label}  •  ${pressNow?'PRESS!':padReady?
         inPadLane?'HIT ON 4':'ENTER LANE':`${Math.round(padDistance)} AHEAD`}`:
         'READ THE NEXT GAP',1418,56,465);
-      if(padVisible) {
+      if(padVisible&&!showingCatch) {
         for(let count=1;count<=4;count++) {
           const step=Math.floor(beatInBar)+1;
           const selected=count===step;

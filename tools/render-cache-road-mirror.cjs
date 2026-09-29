@@ -27,18 +27,18 @@ async function main() {
   GlobalFonts.registerFromPath(path.resolve('assets/studies/visual-overhaul/references/fonts/Oxanium.ttf'), 'Oxanium');
   const files = {
     cacheMirror: 'assets/cache-road/hud/cache-back-mirror-expressions.webp',
-    cacheCar: 'assets/cache-road/vehicles/cache-center.webp',
-    cacheCarLeft: 'assets/cache-road/vehicles/cache-left.webp',
-    cacheCarRight: 'assets/cache-road/vehicles/cache-right.webp',
-    cacheCarHit: 'assets/cache-road/vehicles/cache-hit.webp',
-    cacheFreight: 'assets/cache-road/vehicles/freight.webp',
-    cacheCourier: 'assets/cache-road/vehicles/courier.webp',
+    cacheCar: 'assets/cache-road/vehicles/animation/cache-center-frames.webp',
+    cacheCarLeft: 'assets/cache-road/vehicles/animation/cache-left-frames.webp',
+    cacheCarRight: 'assets/cache-road/vehicles/animation/cache-right-frames.webp',
+    cacheCarHit: 'assets/cache-road/vehicles/animation/cache-hit-frames.webp',
+    cacheFreight: 'assets/cache-road/vehicles/animation/freight-frames.webp',
+    cacheCourier: 'assets/cache-road/vehicles/animation/courier-frames.webp',
     cacheBarricade: 'assets/cache-road/vehicles/barricade.webp',
-    cacheRival: 'assets/cache-road/vehicles/rival.webp',
-    cacheAudit: 'assets/cache-road/vehicles/audit-sedan.webp',
-    cacheSweeper: 'assets/cache-road/vehicles/sweeper.webp',
-    cacheTrike: 'assets/cache-road/vehicles/signal-trike.webp',
-    cacheShuttle: 'assets/cache-road/vehicles/night-shuttle.webp',
+    cacheRival: 'assets/cache-road/vehicles/animation/rival-frames.webp',
+    cacheAudit: 'assets/cache-road/vehicles/animation/audit-sedan-frames.webp',
+    cacheSweeper: 'assets/cache-road/vehicles/animation/sweeper-frames.webp',
+    cacheTrike: 'assets/cache-road/vehicles/animation/signal-trike-frames.webp',
+    cacheShuttle: 'assets/cache-road/vehicles/animation/night-shuttle-frames.webp',
     cacheSkyline: 'assets/cache-road/world/panorama-skyline.webp',
     cacheDistantCity: 'assets/cache-road/world/bridge-free-distance.webp',
     cacheOutskirts: 'assets/cache-road/world/bridge-free-outskirts.webp',
@@ -114,15 +114,15 @@ async function main() {
     cacheWalkerGardenerAway: 'assets/cache-road/world/props/walker-gardener-away.webp',
     cacheWalkerResidentToward: 'assets/cache-road/world/props/walker-resident-toward.webp',
     cacheWalkerResidentAway: 'assets/cache-road/world/props/walker-resident-away.webp',
-    cacheNewLampL: 'assets/cache-road/world/props/street-lamp-L.webp',
-    cacheNewLampR: 'assets/cache-road/world/props/street-lamp-R.webp',
-    cacheNewCrossingSignalL: 'assets/cache-road/world/props/street-crossing-signal-L.webp',
-    cacheNewCrossingSignalR: 'assets/cache-road/world/props/street-crossing-signal-R.webp',
-    cacheNewWayfindingSign: 'assets/cache-road/world/props/street-wayfinding-sign.webp',
+    cacheNewLampL: 'assets/cache-road/world/props/animation/street-lamp-L-frames.webp',
+    cacheNewLampR: 'assets/cache-road/world/props/animation/street-lamp-R-frames.webp',
+    cacheNewCrossingSignalL: 'assets/cache-road/world/props/animation/street-crossing-signal-L-frames.webp',
+    cacheNewCrossingSignalR: 'assets/cache-road/world/props/animation/street-crossing-signal-R-frames.webp',
+    cacheNewWayfindingSign: 'assets/cache-road/world/props/animation/street-wayfinding-sign-frames.webp',
     cacheNewBinsRecycling: 'assets/cache-road/world/props/street-bins-recycling.webp',
     cacheNewLoadingCrates: 'assets/cache-road/world/props/street-loading-crates.webp',
-    cacheNewUtilityCabinet: 'assets/cache-road/world/props/street-utility-cabinet.webp',
-    cacheNewVendorCart: 'assets/cache-road/world/props/street-vendor-cart.webp',
+    cacheNewUtilityCabinet: 'assets/cache-road/world/props/animation/street-utility-cabinet-frames.webp',
+    cacheNewVendorCart: 'assets/cache-road/world/props/animation/street-vendor-cart-frames.webp',
     cacheNewFencePlanter: 'assets/cache-road/world/props/street-fence-planter.webp',
     cacheDecalCrosswalk: 'assets/cache-road/world/decals/crosswalk.svg',
     cacheDecalStopLine: 'assets/cache-road/world/decals/stop-line.svg',
@@ -172,7 +172,7 @@ async function main() {
     cacheStreetWorkSupplies: 'assets/cache-road/world/props/street-work-supplies.webp',
     cacheStreetDeliveryVan: 'assets/cache-road/world/props/street-delivery-van.webp',
     cacheStreetBenchPlanters: 'assets/cache-road/world/props/street-bench-planters.webp',
-    cacheStreetDataKiosk: 'assets/cache-road/world/props/street-data-kiosk.webp',
+    cacheStreetDataKiosk: 'assets/cache-road/world/props/animation/street-data-kiosk-frames.webp',
     cacheParapet: 'assets/cache-road/roadside/parapet.webp',
     cachePylon: 'assets/cache-road/roadside/service-pylon.webp',
     cachePulsePad: 'assets/cache-road/roadside/beat/pulse-pad.webp',
@@ -180,10 +180,10 @@ async function main() {
     cachePhraseStrip: 'assets/cache-road/roadside/beat/beat-phrase.webp',
     cacheConfirmedBar: 'assets/cache-road/roadside/beat/confirmed-bar.webp',
     cachePulseBurst: 'assets/cache-road/roadside/beat/pulse-burst.webp',
-    cachePulseSurge: 'assets/cache-road/roadside/beat/surge.webp',
-    cachePulsePush: 'assets/cache-road/roadside/beat/push.webp',
-    cachePulseBrace: 'assets/cache-road/roadside/beat/brace.webp',
-    cachePulseRefill: 'assets/cache-road/roadside/beat/refill.webp',
+    cachePulseSurge: 'assets/cache-road/roadside/beat/animation/surge-frames.webp',
+    cachePulsePush: 'assets/cache-road/roadside/beat/animation/push-frames.webp',
+    cachePulseBrace: 'assets/cache-road/roadside/beat/animation/brace-frames.webp',
+    cachePulseRefill: 'assets/cache-road/roadside/beat/animation/refill-frames.webp',
     cacheSidewalk: 'assets/cache-road/roadside/sidewalk-slab.svg',
     cacheOuterGround: 'assets/cache-road/roadside/continuous-ground-panel.svg',
     cacheRollingGrain: 'assets/cache-road/roadside/rolling-ground-grain.webp',
@@ -371,9 +371,17 @@ async function main() {
         process.stdout.write(`${key} x=${Math.round(x)} y=${Math.round(y)} w=${Math.round(width)} h=${Math.round(height)}\n`);
       const mirror = key === 'cacheMirror';
       const ship = key === 'cacheFly1' || key === 'cacheFly3';
+      const vehicleCel = /^cache(Car|Freight|Courier|Rival|Audit|Sweeper|Trike|Shuttle)/.test(key);
+      const propCel = ['cacheNewLampL','cacheNewLampR','cacheNewCrossingSignalL',
+        'cacheNewCrossingSignalR','cacheNewWayfindingSign','cacheNewUtilityCabinet',
+        'cacheNewVendorCart','cacheStreetDataKiosk'].includes(key);
+      const actionCel = ['cachePulseSurge','cachePulsePush',
+        'cachePulseBrace','cachePulseRefill'].includes(key);
       const pulseIcon=key.startsWith('cachePulse') && !['cachePulsePad','cachePulseStrip'].includes(key);
-      const frameWidth = ship ? 320 : image.width;
-      const frameHeight = key === 'cacheFly1' ? 83 : key === 'cacheFly3' ? 97 : image.height;
+      const cols=mirror?3:ship?8:vehicleCel||actionCel?4:propCel?3:1;
+      const rows=mirror||vehicleCel||actionCel?2:1;
+      const frameWidth = ship ? 320 : image.width/cols;
+      const frameHeight = key === 'cacheFly1' ? 83 : key === 'cacheFly3' ? 97 : image.height/rows;
       const [sx, sy, sw, sh] = sourceRect || [0,0,mirror ? 512 : frameWidth,mirror ? 512 : frameHeight];
       const flatJoin=key.endsWith('Turn')||key.endsWith('Curb');
       const ax = key === 'cacheDamagedExhaust' ? 1 : pulseIcon ? .5 : key === 'cachePulsePad' || key === 'cachePulseStrip' || key === 'cachePhraseStrip' || key === 'cacheConfirmedBar' || key === 'cacheSkyline' || key === 'cacheDistantCity' || key === 'cacheOutskirts' || key === 'cacheMidCity' || key === 'cacheBlacktop' || key === 'cacheSidewalk' || key.endsWith('Ground') || key === 'cacheRollingGrain' || key === 'cacheWorkshopPavement' || key === 'cacheLocalStreet' || flatJoin ? 0 :
@@ -385,8 +393,9 @@ async function main() {
       ctx.save(); ctx.translate(x,y);
       if(key === 'cacheReviewPlace' ? reviewFlip : flip) ctx.scale(-1,1);
       ctx.imageSmoothingEnabled = !ship;
-      ctx.drawImage(image, (mirror ? frame % 3 * 512 : ship ? frame % 8 * 320 : 0) + sx,
-        (mirror ? Math.floor(frame / 3) * 512 : ship ? Math.floor(frame / 8) * frameHeight : 0) + sy,
+      const cel=Math.max(0,Math.floor(frame||0))%(cols*rows);
+      ctx.drawImage(image, (cel%cols)*frameWidth+sx,
+        Math.floor(cel/cols)*frameHeight+sy,
         sw, sh, -width*ax, -height*ay, width, height);
       ctx.restore(); return true;
     }
@@ -412,6 +421,7 @@ async function main() {
   const worldReview = process.env.CACHE_REVIEW_WORLD === '1';
   const siteReview = process.env.CACHE_REVIEW_SITES === '1';
   const continuous = process.env.CACHE_REVIEW_CONTINUOUS === '1';
+  const animationReview = process.env.CACHE_REVIEW_ANIMATION === '1';
   const customProgress=process.env.CACHE_REVIEW_PROGRESS?.split(',')
     .map(Number).filter(Number.isFinite);
   const stillReview = process.env.CACHE_REVIEW_STILLS === '1' || !!customProgress?.length;
@@ -464,7 +474,8 @@ async function main() {
     [1.2,2.0,.12,.62], [2.0,2.0,0,1], [2.0,1.5,.4,1.6]
   ];
   const smooth = value => { const v=Math.max(0,Math.min(1,value)); return v*v*(3-2*v); };
-  const file = path.join(out, continuous ? 'Cache-Road-Curved-Roadside-Drive.mp4' :
+  const file = path.join(out, animationReview ? 'Cache-Road-Animation-Drive.mp4' :
+    continuous ? 'Cache-Road-Curved-Roadside-Drive.mp4' :
     worldFrames ? 'Cache-Road-Mirror-World-Preview.mp4' : 'Cache-Road-Mirror-Preview.mp4');
   const ff = spawn('/usr/bin/ffmpeg', ['-y','-loglevel','error','-f','rawvideo',
     '-pix_fmt','rgba','-s','1280x720','-r',String(fps),'-i','pipe:0',
@@ -524,6 +535,14 @@ async function main() {
     s.cutAward = !sceneryReview && chapterIndex === 3 ? 250 : 0;
     s.stumbleMs = Number(process.env.CACHE_REVIEW_STUMBLE ??
       (!sceneryReview && chapterIndex === 4 ? Math.max(0,650-local*1000) : 0));
+    if(animationReview) {
+      // A review cue every two seconds demonstrates each eight-cel action
+      // without changing the playable catch or music judgment.
+      const actionAge=local%2;
+      s.pulseFlashAction=Math.floor(local/2)%4;
+      s.pulseFlashMs=actionAge>=.35 && actionAge<1 ?
+        650-(actionAge-.35)*1000 : 0;
+    }
     s.invulnerableMs = !sceneryReview && chapterIndex === 4 ? Math.max(0,1400-local*1000) : 0;
     s.messageMs = 0; s.message = '';
     if(worldReview&&chapterIndex===3) {

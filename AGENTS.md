@@ -1,5 +1,18 @@
 # Repository Guidance
 
+## September 29, 2026 — Cache Road animated painted cels
+
+The eight-frame car/action sheets and three-frame practical roadside sheets
+live under each family's `animation/` folder. Keep the car cel identical
+across its planted tire masks and bouncing chassis, and select prop cels by
+elapsed time plus world address on both main road and blurred rearview.
+The hit pose plays once through recovery; a successful action plays through
+the eight-cel HUD response, while road icons remain readable and safe timing
+stays on beat four. Reduced Motion uses cel zero. Preserve static pedestrians,
+physical stacked props, the audio arrangement and controller rules.
+See `docs/source-pack/CACHE_ROAD_ANIMATION_PASS.md` and the 8-second drive.
+Merge after CI for the owner's Makko moving-art review.
+
 ## September 29, 2026 — Cache Road wet-road feedback review
 
 Brake-light reflections and damage exhaust use two local transparent WebPs.

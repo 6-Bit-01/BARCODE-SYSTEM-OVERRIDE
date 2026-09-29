@@ -461,6 +461,27 @@ async function run() {
     roadArt.some(entry => entry.key === 'cacheCar'),
   'three city depths, projected sidewalk and ground, roadside art, traffic and car share the live draw');
   mirrorFrame({ progress: 0 });
+  const carCels=roadArt.filter(entry=>entry.key==='cacheCar');
+  assert.equal(carCels.length,3);
+  assert.equal(new Set(carCels.map(entry=>entry.frame)).size,1,
+    'body and two planted tire masks use the same painted cel');
+  const firstCarCel=carCels[0].frame;
+  mirrorFrame({ progress: 80 });
+  assert.notEqual(roadArt.find(entry=>entry.key==='cacheCar').frame,firstCarCel,
+    'car details advance with travel distance');
+  mirrorFrame({ progress: 395, elapsedMs: 100 });
+  const animatedProps=new Set(['cacheNewLampL','cacheNewLampR',
+    'cacheNewCrossingSignalL','cacheNewCrossingSignalR','cacheNewWayfindingSign',
+    'cacheNewUtilityCabinet','cacheNewVendorCart','cacheStreetDataKiosk']);
+  const visibleProps=roadArt.filter(entry=>animatedProps.has(entry.key));
+  assert(visibleProps.length>0,
+    'roadside practical props enter the main-world draw');
+  const firstProp=visibleProps[0];
+  mirrorFrame({ progress: 395, elapsedMs: 410 });
+  assert.notEqual(roadArt.find(entry=>entry.key===firstProp.key &&
+    entry.x===firstProp.x && entry.y===firstProp.y).frame,firstProp.frame,
+  'a world-anchored roadside fixture advances one of its three frames');
+  mirrorFrame({ progress: 0 });
   const uprightPlaces = entries => entries.filter(entry =>
     entry.key.startsWith('cachePlace') && entry.key !== 'cachePlaceParking');
   const places = uprightPlaces(roadArt);
@@ -843,6 +864,9 @@ async function run() {
     });
   const stillCityY=roadArt.find(entry=>entry.key==='cacheMidCity').y;
   mirrorFrame({ progress: 425, elapsedMs: 1400 });
+  assert(roadArt.filter(entry=>entry.key==='cacheCar').every(entry=>entry.frame===0) &&
+    roadArt.filter(entry=>animatedProps.has(entry.key)).every(entry=>entry.frame===0),
+    'Reduced Motion selects the first registered cel for cars and street fixtures');
   assert(Math.abs(roadArt.filter(entry=>entry.key==='cacheCar').at(-1)
     .chassisOffset[1])<.01,
   'Reduced Motion still plants the painted chassis on the road');
@@ -861,8 +885,13 @@ async function run() {
   'Reduced Motion retains the road-following city camera while ships hold still');
   assert(roadArt.find(entry=>entry.key==='cacheMidCity').y<stillCityY,
     'Reduced Motion retains the close skyline arrival');
-  B.Preferences = previousPreferences;
   assert.deepEqual(openingRects, [], 'the objective disappears between actionable lessons');
+  mirrorFrame({progress:130,pulseFlashMs:400,pulseFlashAction:2});
+  assert(roadArt.some(entry=>entry.key==='cachePulseBrace' &&
+    entry.x===1375 && entry.frame===0 && entry.width===45) &&
+    hudLines.some(line=>/BRACE  \/\/  \+8 BARS/.test(line.value)),
+  'Reduced Motion holds the caught action art and confirmation text still');
+  B.Preferences = previousPreferences;
   mirrorFrame({ steer: -1 });
   assert(roadArt.some(entry => entry.key === 'cacheCarRight'), 'left steering uses the corrected visible turn');
   assert(Math.abs(contacts.at(-2).x + 164*.51) < .01 &&
@@ -883,6 +912,11 @@ async function run() {
   assert.equal(mirrorFrame({ stumbleMs: 650, integrity: 1 }), 4,
     'a hit overrides low signal during the collision');
   assert(roadArt.some(entry => entry.key === 'cacheCarHit'), 'collision uses its jolt pose');
+  assert(roadArt.filter(entry=>entry.key==='cacheCarHit').every(entry=>entry.frame===0),
+    'impact animation begins on its first registered cel');
+  mirrorFrame({ stumbleMs: 240, integrity: 1 });
+  assert(roadArt.filter(entry=>entry.key==='cacheCarHit').every(entry=>entry.frame===5),
+    'the hit pose walks through its one-shot eight-frame arc');
   assert.equal(mirrorFrame({ integrity: 1 }), 5);
   mirrorFrame({ integrity: 3 });
   assert(!roadArt.some(entry => entry.key === 'cacheDamagedExhaust'),
@@ -939,13 +973,17 @@ async function run() {
   mirrorFrame({ progress: 130, pulseFlashMs: 500 });
   assert(drawOrder.includes('cachePulseBurst'),
     'a successful catch gets its own brief painted HUD burst');
+  mirrorFrame({ progress: 130, pulseFlashMs: 400, pulseFlashAction: 0 });
+  assert(roadArt.some(entry=>entry.key==='cachePulseSurge' &&
+    entry.x===1375 && entry.frame===3 && entry.width===68),
+    'the caught action plays its painted impact frames in the HUD');
   mirrorFrame({ progress: 130, lanePos: 0, visualLane: 0, musicBeatFloat: 2 });
   const waitingIcon = roadArt.find(entry => entry.key === 'cachePulseSurge' && entry.x === 1375);
   assert(hudLines.some(line => /HIT ON 4/.test(line.value)),
     'the button cue names the target beat while the pad is in range');
   mirrorFrame({ progress: 130, lanePos: 0, visualLane: 0, musicBeatFloat: 3 });
   const pressIcon = roadArt.find(entry => entry.key === 'cachePulseSurge' && entry.x === 1375);
-  assert(pressIcon.width > waitingIcon.width &&
+  assert(pressIcon.width > waitingIcon.width && pressIcon.frame===2 &&
     hudLines.some(line => /PRESS!/.test(line.value)),
   'on the fourth beat the action icon swells and the prompt changes to PRESS');
   mirrorFrame({ progress: 130 });
