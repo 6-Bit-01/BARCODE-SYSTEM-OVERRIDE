@@ -2,8 +2,14 @@
 
 ## September 29, 2026 — comic road cues and fourth-beat catches (review branch)
 
-- Add three hand-inked road/action SVGs; place pad and phrase art beneath
-  opaque traffic through the existing projected road draw.
+- Replace the rejected SVGs with eight separate painted raster assets:
+  fixed checkpoint, continuous approach, phrase, catch burst and four buttons.
+  The HUD owns beat counting; road distance never claims a fixed beat position.
+- Expand the painted reach to 145 before / 30 after the checkpoint. At the
+  75-unit/s ceiling it lasts 2.33 seconds, so any song phase contains a full
+  beat-four input window with the fixed 128 BPM song.
+- The preceding review used three hand-inked road/action SVGs; those rejected
+  files have been removed. Projected pad and phrase art remain beneath traffic.
 - Accept a pad only on beat four, widen its world-distance catch range, and
   show an enlarged amber press cue with a four-beat HUD count.
 - Verify wrong-beat presses remain harmless and review the same road frame

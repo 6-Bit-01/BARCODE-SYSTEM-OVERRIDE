@@ -2,6 +2,13 @@
 
 ## Cache Road fourth-beat comic cues — September 29
 
+The replacement art uses eight local painted WebPs. Inspect the continuous
+approach strip, pad, four button symbols and catch burst under real driving;
+only the HUD numbers claim beat positions. At every allowed speed the 175-unit
+reach lasts long enough for one complete fourth-beat timing window (2.33 s
+at the 75-unit/s ceiling). This is the timing design; Makko audio/input
+play remains the owner's final feel check.
+
 The focused production check verifies that beats one, two, three and the
 following first beat do not consume a pad, while beat four catches it. The
 draw check verifies the inlaid comic pad remains beneath traffic and the HUD
