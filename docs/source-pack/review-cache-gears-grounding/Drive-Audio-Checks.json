@@ -1,0 +1,373 @@
+{
+  "peak": 0.7549329996109009,
+  "rms": 0.08093206348578848,
+  "scheduled": [
+    {
+      "kind": "lift",
+      "requested": 1.875,
+      "ok": true,
+      "actual": 1.875
+    },
+    {
+      "kind": "roadCount",
+      "requested": 1.875,
+      "ok": true,
+      "actual": 1.875
+    },
+    {
+      "kind": "roadCount",
+      "requested": 2.34375,
+      "ok": true,
+      "actual": 2.34375
+    },
+    {
+      "kind": "roadCount",
+      "requested": 2.8125,
+      "ok": true,
+      "actual": 2.8125
+    },
+    {
+      "kind": "roadReady",
+      "requested": 3.28125,
+      "ok": true,
+      "actual": 3.28125
+    },
+    {
+      "kind": "roadPerfect",
+      "requested": 3.2916666666666665,
+      "ok": true,
+      "actual": 3.2916666666666665
+    },
+    {
+      "kind": "lift",
+      "requested": 3.75,
+      "ok": true,
+      "actual": 3.75
+    },
+    {
+      "kind": "pickup",
+      "requested": 4.333333333333333,
+      "ok": true,
+      "actual": 4.333333333333333
+    },
+    {
+      "kind": "pickup",
+      "requested": 5.583333333333333,
+      "ok": true,
+      "actual": 5.583333333333333
+    },
+    {
+      "kind": "lift",
+      "requested": 5.625,
+      "ok": true,
+      "actual": 5.625
+    },
+    {
+      "kind": "roadCount",
+      "requested": 5.625,
+      "ok": true,
+      "actual": 5.625
+    },
+    {
+      "kind": "roadCount",
+      "requested": 6.09375,
+      "ok": true,
+      "actual": 6.09375
+    },
+    {
+      "kind": "roadCount",
+      "requested": 6.5625,
+      "ok": true,
+      "actual": 6.5625
+    },
+    {
+      "kind": "roadReady",
+      "requested": 7.03125,
+      "ok": true,
+      "actual": 7.03125
+    },
+    {
+      "kind": "pickup",
+      "requested": 6.958333333333333,
+      "ok": true,
+      "actual": 6.958333333333333
+    },
+    {
+      "kind": "roadPerfect",
+      "requested": 7.041666666666667,
+      "ok": true,
+      "actual": 7.041666666666667
+    },
+    {
+      "kind": "land",
+      "requested": 9.166666666666666,
+      "ok": true,
+      "actual": 9.166666666666666
+    },
+    {
+      "kind": "lift",
+      "requested": 9.375,
+      "ok": true,
+      "actual": 9.375
+    },
+    {
+      "kind": "roadCount",
+      "requested": 9.375,
+      "ok": true,
+      "actual": 9.375
+    },
+    {
+      "kind": "roadCount",
+      "requested": 9.84375,
+      "ok": true,
+      "actual": 9.84375
+    },
+    {
+      "kind": "roadCount",
+      "requested": 10.3125,
+      "ok": true,
+      "actual": 10.3125
+    },
+    {
+      "kind": "pickup",
+      "requested": 10.5,
+      "ok": true,
+      "actual": 10.5
+    },
+    {
+      "kind": "roadReady",
+      "requested": 10.78125,
+      "ok": true,
+      "actual": 10.78125
+    },
+    {
+      "kind": "roadPerfect",
+      "requested": 10.791666666666666,
+      "ok": true,
+      "actual": 10.791666666666666
+    },
+    {
+      "kind": "lift",
+      "requested": 11.25,
+      "ok": true,
+      "actual": 11.25
+    },
+    {
+      "kind": "pickup",
+      "requested": 11.791666666666666,
+      "ok": true,
+      "actual": 11.791666666666666
+    },
+    {
+      "kind": "roadCount",
+      "requested": 13.125,
+      "ok": true,
+      "actual": 13.125
+    },
+    {
+      "kind": "roadCount",
+      "requested": 13.59375,
+      "ok": true,
+      "actual": 13.59375
+    },
+    {
+      "kind": "pickup",
+      "requested": 13.708333333333334,
+      "ok": true,
+      "actual": 13.708333333333334
+    },
+    {
+      "kind": "roadCount",
+      "requested": 14.0625,
+      "ok": true,
+      "actual": 14.0625
+    },
+    {
+      "kind": "roadReady",
+      "requested": 14.53125,
+      "ok": true,
+      "actual": 14.53125
+    },
+    {
+      "kind": "roadPerfect",
+      "requested": 14.541666666666666,
+      "ok": true,
+      "actual": 14.541666666666666
+    },
+    {
+      "kind": "data",
+      "requested": 14.541666666666666,
+      "ok": true,
+      "actual": 14.541666666666666
+    },
+    {
+      "kind": "lift",
+      "requested": 15,
+      "ok": true,
+      "actual": 15
+    },
+    {
+      "kind": "lift",
+      "requested": 18.75,
+      "ok": true,
+      "actual": 18.75
+    },
+    {
+      "kind": "data",
+      "requested": 18.833333333333332,
+      "ok": true,
+      "actual": 18.833333333333332
+    },
+    {
+      "kind": "pickup",
+      "requested": 19.916666666666668,
+      "ok": true,
+      "actual": 19.916666666666668
+    },
+    {
+      "kind": "lift",
+      "requested": 22.5,
+      "ok": true,
+      "actual": 22.5
+    },
+    {
+      "kind": "pickup",
+      "requested": 24.125,
+      "ok": true,
+      "actual": 24.125
+    },
+    {
+      "kind": "roadCount",
+      "requested": 24.375,
+      "ok": true,
+      "actual": 24.375
+    },
+    {
+      "kind": "roadCount",
+      "requested": 24.84375,
+      "ok": true,
+      "actual": 24.84375
+    },
+    {
+      "kind": "roadCount",
+      "requested": 25.3125,
+      "ok": true,
+      "actual": 25.3125
+    },
+    {
+      "kind": "pickup",
+      "requested": 25.583333333333332,
+      "ok": true,
+      "actual": 25.583333333333332
+    },
+    {
+      "kind": "roadReady",
+      "requested": 25.78125,
+      "ok": true,
+      "actual": 25.78125
+    },
+    {
+      "kind": "roadPerfect",
+      "requested": 25.791666666666668,
+      "ok": true,
+      "actual": 25.791666666666668
+    },
+    {
+      "kind": "lift",
+      "requested": 26.25,
+      "ok": true,
+      "actual": 26.25
+    },
+    {
+      "kind": "roadCount",
+      "requested": 26.25,
+      "ok": true,
+      "actual": 26.25
+    },
+    {
+      "kind": "roadCount",
+      "requested": 26.71875,
+      "ok": true,
+      "actual": 26.71875
+    },
+    {
+      "kind": "roadCount",
+      "requested": 27.1875,
+      "ok": true,
+      "actual": 27.1875
+    },
+    {
+      "kind": "roadReady",
+      "requested": 27.65625,
+      "ok": true,
+      "actual": 27.65625
+    },
+    {
+      "kind": "roadPerfect",
+      "requested": 27.666666666666668,
+      "ok": true,
+      "actual": 27.666666666666668
+    },
+    {
+      "kind": "lift",
+      "requested": 28.125,
+      "ok": true,
+      "actual": 28.125
+    },
+    {
+      "kind": "pickup",
+      "requested": 28.166666666666668,
+      "ok": true,
+      "actual": 28.166666666666668
+    },
+    {
+      "kind": "roadCount",
+      "requested": 30,
+      "ok": true,
+      "actual": 30
+    },
+    {
+      "kind": "roadCount",
+      "requested": 30.46875,
+      "ok": true,
+      "actual": 30.46875
+    },
+    {
+      "kind": "roadCount",
+      "requested": 30.9375,
+      "ok": true,
+      "actual": 30.9375
+    },
+    {
+      "kind": "roadReady",
+      "requested": 31.40625,
+      "ok": true,
+      "actual": 31.40625
+    },
+    {
+      "kind": "roadPerfect",
+      "requested": 31.416666666666668,
+      "ok": true,
+      "actual": 31.416666666666668
+    },
+    {
+      "kind": "data",
+      "requested": 31.416666666666668,
+      "ok": true,
+      "actual": 31.416666666666668
+    },
+    {
+      "kind": "land",
+      "requested": 31.791666666666668,
+      "ok": true,
+      "actual": 31.791666666666668
+    },
+    {
+      "kind": "roadCount",
+      "requested": 31.875,
+      "ok": true,
+      "actual": 31.875
+    }
+  ],
+  "remainingVoices": 0
+}

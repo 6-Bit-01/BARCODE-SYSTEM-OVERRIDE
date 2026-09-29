@@ -1,0 +1,62 @@
+{
+  "productionRevision": "f841ab6f124f9b6a3e6dc1074e3993991c53a042",
+  "productionSourceSha256": "054863acc211cc95be17c1bab113e753d40ef9b368c55047f41f330965d42c3f",
+  "browserRun": "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/36627989847",
+  "browserArtifactId": 11060474765,
+  "review": {
+    "seconds": 32,
+    "fps": 24,
+    "inputDriven": true,
+    "perfectCatches": 7,
+    "gears": [
+      1,
+      2,
+      3
+    ],
+    "minimumIntegrity": 3,
+    "audioTraceMatchesBrowserFixture": true,
+    "videoSha256": "c7c0ee103b677a7e9542b14cf567d2e48d6e2cc2f7a22274dab87aeaf5a30be0"
+  },
+  "physics": {
+    "physicalDisplacementChecks": 70400,
+    "fourthBeatArrivals": 21,
+    "frameRates": [
+      24,
+      30,
+      60,
+      120
+    ],
+    "allGearSongFinishes": true,
+    "pauseResume": true,
+    "boundaryInputs": 3
+  },
+  "browser": {
+    "loadedAssets": 201,
+    "worldFrames": 96,
+    "drive": {
+      "frames": 69,
+      "arrivals": 4,
+      "maxPixelError": 1.1368683772161603e-13,
+      "gears": [
+        1,
+        0,
+        1,
+        2,
+        1
+      ]
+    },
+    "distinctAnimationSheets": 39,
+    "publishedSpriteByteComparisons": 10
+  },
+  "audio": {
+    "scheduledEvents": 61,
+    "allScheduled": true,
+    "peak": 0.7549329996109009,
+    "rms": 0.08093206348578848,
+    "remainingVoices": 0
+  },
+  "limitations": [
+    "Native and headless timings are not Makko device FPS or latency acceptance.",
+    "The full-song physics fixtures isolate driving from traffic damage; the 32-second review uses mapped gameplay input with real collision handling."
+  ]
+}
