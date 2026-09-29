@@ -438,16 +438,16 @@ async function run() {
   };
   const checkSetbackAndFacing = () => {
     for(const entry of uprightPlaces(roadArt).filter(item =>
-      item.y >= 590 && item.y <= 1080 &&
+      item.groundY >= 590 && item.groundY <= 1080 &&
       item.x+item.width/2 >= 0 &&
       item.x-item.width/2 <= 1920)) {
       const side=entry.x < 960 ? -1 : 1;
-      const curb=sidewalkAt(side,entry.y);
+      const curb=sidewalkAt(side,entry.groundY);
       assert(curb !== null);
       const inner=entry.x-side*entry.width/2;
       assert(side*(inner-curb) >= 4,
         `${entry.key} footprint must stay outside the ${side<0?'left':'right'} sidewalk`);
-      clearances.push(side*(inner-curb)/Math.sqrt((entry.y-400)/680));
+      clearances.push(side*(inner-curb)/Math.sqrt((entry.groundY-400)/680));
       if(entry.key in fittedPose) {
         const [expectedSide,expectedFlip]=fittedPose[entry.key];
         assert.equal(side,expectedSide,
@@ -533,7 +533,7 @@ async function run() {
   'the near building exits across the landscape edge instead of crossing the sidewalk');
   const uncovered=entry=>Math.max(0,Math.min(entry.height,
     entry.clipHeight-(entry.y-entry.height)));
-  const areaReveal=[],lampReveal=[];
+  const areaReveal=[],lampReveal=[],areaEdges=[];
   for(const progress of [0,60,120,160]) {
     mirrorFrame({progress});
     const area=roadArt.find(entry=>entry.key==='cachePlaceRelayExchange');
@@ -544,9 +544,17 @@ async function run() {
     assert(area&&lamp&&Math.abs(lamp.width-214*lampDepth)<.3,
       'the same world-addressed lamp and featured area remain present from the horizon');
     areaReveal.push([area.width,uncovered(area),area.height]);
+    areaEdges.push({clip:area.clipHeight,left:area.clipLeft,
+      right:area.clipRight,foot:area.y,ground:area.groundY});
     lampReveal.push([lamp.width,uncovered(lamp)]);
   }
-  assert(areaReveal[0][1]<areaReveal[0][2]*.25 &&
+  assert(areaEdges.every((edge,i)=>edge.left<edge.clip&&
+    edge.clip<edge.right&&edge.foot>edge.ground&&
+    (i===0||edge.clip>areaEdges[i-1].clip&&
+      edge.clip-areaEdges[i-1].clip<20)) &&
+    areaEdges[0].clip>425&&areaEdges[0].foot-areaEdges[0].ground>20,
+  'a distant area stays buried behind the curved, stable bank horizon');
+  assert(areaReveal[0][1]<areaReveal[0][2]*.45 &&
     areaReveal[3][1]>areaReveal[3][2]*.6 &&
     areaReveal.every(([width,visible],i)=>i===0||
       width>areaReveal[i-1][0]&&visible>areaReveal[i-1][1]) &&
