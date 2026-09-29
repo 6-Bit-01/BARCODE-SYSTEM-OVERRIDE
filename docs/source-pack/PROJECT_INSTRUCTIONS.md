@@ -1,5 +1,14 @@
 # Project Instructions
 
+## Current Cache Road constraint — September 29
+
+Queue gear changes for the next downbeat. Never reintroduce instantaneous
+speed changes or paint that slides independently of the physical road.
+Keep the permanent rear-tire hit plane settled throughout the fourth-beat
+window. Use ground contacts for all scenery/prop ordering and retain complete
+pedestrian feet. The older burial/crest instructions are superseded by the
+owner's latest grounding request. See `CACHE_ROAD_GEARS_GROUNDING.md`.
+
 **Latest campaign direction — September 23, 2026:** The owner superseded the earlier genre order and rejected the Level 3 Contra draft's feel. Read `CAMPAIGN_REDESIGN.md` and the newest `DECISION_REGISTER.md` before using historical requirements below. The new solos are 6 Bit/platformer, Cache/Rad Racer, Mac/Streets of Rage and DJ/Super Smash TV; the final three use all four: Sheila's forgotten Pokémon-inspired competition, first-person RPG verification and DOOM finale. Sheila used the four as mindless husks, none remembers it, and she does not take Corporate Satan's place. 9 Bit can unexpectedly address the player on saved-title, game-over and result screens. Maintain actual input/save/result behavior and prior Level 1 implementation; exact later scenes and endings are unimplemented. The old required Contra/puzzle main levels and Mac/DOOM-before-RPG finale clauses are superseded.
 
 ## September 16, 2026 — elevator roof visibility; tutorial flow review

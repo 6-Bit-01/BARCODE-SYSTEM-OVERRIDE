@@ -44,6 +44,13 @@ jobs:
           name: music-browser-${{ github.sha }}
           path: ${{ runner.temp }}/music-browser
           if-no-files-found: ignore
+      - name: Upload Cache Road driving review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cache-road-review-${{ github.sha }}
+          path: ${{ runner.temp }}/music-browser/cache-road
+          if-no-files-found: ignore
       - name: Check background video in real Chromium
         env:
           CHROME_BIN: /usr/bin/google-chrome

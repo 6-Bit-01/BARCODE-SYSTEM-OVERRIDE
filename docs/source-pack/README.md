@@ -1,6 +1,15 @@
 # BARCODE: SYSTEM OVERRIDE — Source Pack v5
 
-## Current review — timing under the car and sweeper compositing
+## Latest Cache Road revision
+
+Buffered musical gears, physically aligned beat-four pads, grounded scenery,
+complete pedestrian footfalls and shared prop/building depth ordering.
+See [the change notes](CACHE_ROAD_GEARS_GROUNDING.md) and
+[the 32-second driving review](review-cache-gears-grounding/Drive-Review.mp4).
+The [before/after view](review-cache-gears-grounding/Before-After.webp)
+compares the same road position with PR #147.
+
+## Previous repair — timing under the car and sweeper compositing, merged #146
 
 Start with `CACHE_ROAD_CAR_TIMING_SWEEPER_FIX.md`. Musical pads now meet a
 permanent line under the rear tires. The sweeper draws one complete cel,
