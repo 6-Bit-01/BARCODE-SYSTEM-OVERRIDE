@@ -1,5 +1,21 @@
 # Recovery checkpoint — September 14
 
+## September 29, 2026 — grounded lamps and dynamic chip sound
+
+- Reduce service lamp height 400→260 and decorative lamp height 270→230;
+  use 308-unit service spacing with opposite banks staggered by 154.
+- Add measured-lens downward rays and projected ground light, preserving
+  depth order and sharing the lamp rules with the mirror.
+- Measure the original song's 100 first-beat roots; use D/A and F/C tonal
+  cues according to the announced target measure without moving deadlines.
+- Add layered road-only chip effects and a reusable three-source engine
+  responsive to gears, shifting, turbo, damage and car position.
+- Bound transient voices and cue caching; preserve the SFX bus/lifecycle,
+  original music transport, beat ONE and Level 1's existing sound palette.
+- Retain the current drive, lamp comparison and chip-sound audition in the
+  source pack. Full regression and Chromium CI gate merge; the generated
+  receipt records the actual tested revision and outcome.
+
 ## September 29, 2026 — living sidelines and fitted tail lights
 
 - Fit lens highlights and individual ground reflections to eleven measured

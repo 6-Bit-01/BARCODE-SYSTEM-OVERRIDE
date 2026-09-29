@@ -1,5 +1,36 @@
 # Acceptance and Test Status
 
+## Streetlamp scale and chip sound — September 29
+
+Check smaller, staggered lamps through the full road and mirror, including
+corner clearance. Downward beams must begin at the painted lenses and end
+at their projected pools; the ground light must remain below actors/buildings.
+Preserve #150's activities, depth contacts and readable road composition.
+The focused lamp check passes main/mirror draws at 11 route positions,
+spacing/socket/ground/mirroring checks and Canvas alpha falloff.
+
+The recording audit measures all 100 first-beat roots: 92 D and eight F.
+Road countdown and early-result pitch must use the target measure while
+their scheduled source deadlines, beat ONE and gear timing stay unchanged.
+Full regression and Chromium are merge requirements, including real audio
+for distinct cues, all engine gears, voice/cache bounds, clipping, unchanged
+music sources and pause/resume/restart/disposal cleanup. The generated
+source-pack receipt and PR identify actual results at the tested revision.
+
+Focused chip checks pass 152 palette PCM variants, intended count-note pitch,
+12-voice/96-buffer limits, 6,000 updates sharing three engine sources,
+shift/turbo response and cleanup. Maximum pre-playback sample peak is
+0.60033; this is not a full music-plus-SFX mix peak. The existing delay
+regression passes 50 downbeat arrivals/presses through 250 ms output delay.
+Palette coverage is separate from live event routing: lock, refill, miss
+and empty are auditionable sounds without current gameplay calls.
+
+Review `Lamp-Scale-Before-After.webp`, `Lamp-Details.webp`, `Drive-Review.mp4` and
+`Chip-SFX-Audition.mp3` under `review-cache-lamps-chip-sound/`. The owner must
+still judge the mix and musical feel in Makko; an unclipped offline render
+does not establish subjective quality or device performance. See
+`CACHE_ROAD_LAMPS_CHIP_SOUND.md`.
+
 ## Living sidelines and fitted lights — September 29, candidate
 
 Review individual tail lights and streaks across all vehicle/steering poses,

@@ -1,0 +1,404 @@
+{
+  "peak": 0.6267169117927551,
+  "rms": 0.07965680349077336,
+  "scheduled": [
+    {
+      "kind": "roadQueued",
+      "requested": 1,
+      "ok": true,
+      "actual": 1
+    },
+    {
+      "kind": "lift",
+      "requested": 1.875,
+      "ok": true,
+      "actual": 1.875
+    },
+    {
+      "kind": "roadCount",
+      "requested": 2.34375,
+      "ok": true,
+      "actual": 2.34375
+    },
+    {
+      "kind": "roadCount",
+      "requested": 2.8125,
+      "ok": true,
+      "actual": 2.8125
+    },
+    {
+      "kind": "roadCount",
+      "requested": 3.28125,
+      "ok": true,
+      "actual": 3.28125
+    },
+    {
+      "kind": "roadReady",
+      "requested": 3.75,
+      "ok": true,
+      "actual": 3.75
+    },
+    {
+      "kind": "roadPerfect",
+      "requested": 3.75,
+      "ok": true,
+      "actual": 3.75
+    },
+    {
+      "kind": "roadQueued",
+      "requested": 4.208333333333333,
+      "ok": true,
+      "actual": 4.208333333333333
+    },
+    {
+      "kind": "roadNearMiss",
+      "requested": 4.833333333333333,
+      "ok": true,
+      "actual": 4.833333333333333
+    },
+    {
+      "kind": "lift",
+      "requested": 5.625,
+      "ok": true,
+      "actual": 5.625
+    },
+    {
+      "kind": "roadNearMiss",
+      "requested": 6.625,
+      "ok": true,
+      "actual": 6.625
+    },
+    {
+      "kind": "roadNearMiss",
+      "requested": 7.75,
+      "ok": true,
+      "actual": 7.75
+    },
+    {
+      "kind": "roadCount",
+      "requested": 7.96875,
+      "ok": true,
+      "actual": 7.96875
+    },
+    {
+      "kind": "roadQueued",
+      "requested": 8.208333333333334,
+      "ok": true,
+      "actual": 8.208333333333334
+    },
+    {
+      "kind": "roadCount",
+      "requested": 8.4375,
+      "ok": true,
+      "actual": 8.4375
+    },
+    {
+      "kind": "roadCount",
+      "requested": 8.90625,
+      "ok": true,
+      "actual": 8.90625
+    },
+    {
+      "kind": "roadReady",
+      "requested": 9.375,
+      "ok": true,
+      "actual": 9.375
+    },
+    {
+      "kind": "roadPerfect",
+      "requested": 9.375,
+      "ok": true,
+      "actual": 9.375
+    },
+    {
+      "kind": "lift",
+      "requested": 9.375,
+      "ok": true,
+      "actual": 9.375
+    },
+    {
+      "kind": "roadNearMiss",
+      "requested": 9.875,
+      "ok": true,
+      "actual": 9.875
+    },
+    {
+      "kind": "roadQueued",
+      "requested": 11,
+      "ok": true,
+      "actual": 11
+    },
+    {
+      "kind": "roadCutPass",
+      "requested": 11.083333333333334,
+      "ok": true,
+      "actual": 11.083333333333334
+    },
+    {
+      "kind": "lift",
+      "requested": 11.25,
+      "ok": true,
+      "actual": 11.25
+    },
+    {
+      "kind": "roadCount",
+      "requested": 11.71875,
+      "ok": true,
+      "actual": 11.71875
+    },
+    {
+      "kind": "roadCount",
+      "requested": 12.1875,
+      "ok": true,
+      "actual": 12.1875
+    },
+    {
+      "kind": "roadCount",
+      "requested": 12.65625,
+      "ok": true,
+      "actual": 12.65625
+    },
+    {
+      "kind": "roadNearMiss",
+      "requested": 12.583333333333334,
+      "ok": true,
+      "actual": 12.583333333333334
+    },
+    {
+      "kind": "roadReady",
+      "requested": 13.125,
+      "ok": true,
+      "actual": 13.125
+    },
+    {
+      "kind": "roadPerfect",
+      "requested": 13.125,
+      "ok": true,
+      "actual": 13.125
+    },
+    {
+      "kind": "roadQueued",
+      "requested": 14,
+      "ok": true,
+      "actual": 14
+    },
+    {
+      "kind": "roadNearMiss",
+      "requested": 14.5,
+      "ok": true,
+      "actual": 14.5
+    },
+    {
+      "kind": "lift",
+      "requested": 15,
+      "ok": true,
+      "actual": 15
+    },
+    {
+      "kind": "roadCount",
+      "requested": 15.468750000000002,
+      "ok": true,
+      "actual": 15.468750000000002
+    },
+    {
+      "kind": "roadCount",
+      "requested": 15.9375,
+      "ok": true,
+      "actual": 15.9375
+    },
+    {
+      "kind": "roadCount",
+      "requested": 16.40625,
+      "ok": true,
+      "actual": 16.40625
+    },
+    {
+      "kind": "roadReady",
+      "requested": 16.875,
+      "ok": true,
+      "actual": 16.875
+    },
+    {
+      "kind": "roadPerfect",
+      "requested": 16.875,
+      "ok": true,
+      "actual": 16.875
+    },
+    {
+      "kind": "roadFull",
+      "requested": 16.875,
+      "ok": true,
+      "actual": 16.875
+    },
+    {
+      "kind": "roadQueued",
+      "requested": 17,
+      "ok": true,
+      "actual": 17
+    },
+    {
+      "kind": "lift",
+      "requested": 18.75,
+      "ok": true,
+      "actual": 18.75
+    },
+    {
+      "kind": "data",
+      "requested": 19.708333333333332,
+      "ok": true,
+      "actual": 19.708333333333332
+    },
+    {
+      "kind": "roadNearMiss",
+      "requested": 20.708333333333332,
+      "ok": true,
+      "actual": 20.708333333333332
+    },
+    {
+      "kind": "roadQueued",
+      "requested": 21,
+      "ok": true,
+      "actual": 21
+    },
+    {
+      "kind": "lift",
+      "requested": 22.5,
+      "ok": true,
+      "actual": 22.5
+    },
+    {
+      "kind": "roadNearMiss",
+      "requested": 24.708333333333332,
+      "ok": true,
+      "actual": 24.708333333333332
+    },
+    {
+      "kind": "roadCount",
+      "requested": 24.84375,
+      "ok": true,
+      "actual": 24.84375
+    },
+    {
+      "kind": "roadCount",
+      "requested": 25.3125,
+      "ok": true,
+      "actual": 25.3125
+    },
+    {
+      "kind": "roadCount",
+      "requested": 25.78125,
+      "ok": true,
+      "actual": 25.78125
+    },
+    {
+      "kind": "roadQueued",
+      "requested": 26,
+      "ok": true,
+      "actual": 26
+    },
+    {
+      "kind": "roadReady",
+      "requested": 26.25,
+      "ok": true,
+      "actual": 26.25
+    },
+    {
+      "kind": "roadNearMiss",
+      "requested": 26.166666666666668,
+      "ok": true,
+      "actual": 26.166666666666668
+    },
+    {
+      "kind": "roadPerfect",
+      "requested": 26.25,
+      "ok": true,
+      "actual": 26.25
+    },
+    {
+      "kind": "roadTurbo",
+      "requested": 26.25,
+      "ok": true,
+      "actual": 26.25
+    },
+    {
+      "kind": "roadCount",
+      "requested": 28.59375,
+      "ok": true,
+      "actual": 28.59375
+    },
+    {
+      "kind": "roadNearMiss",
+      "requested": 28.75,
+      "ok": true,
+      "actual": 28.75
+    },
+    {
+      "kind": "roadCount",
+      "requested": 29.0625,
+      "ok": true,
+      "actual": 29.0625
+    },
+    {
+      "kind": "roadCount",
+      "requested": 29.53125,
+      "ok": true,
+      "actual": 29.53125
+    },
+    {
+      "kind": "roadReady",
+      "requested": 30,
+      "ok": true,
+      "actual": 30
+    },
+    {
+      "kind": "roadPerfect",
+      "requested": 30,
+      "ok": true,
+      "actual": 30
+    },
+    {
+      "kind": "roadCount",
+      "requested": 30.46875,
+      "ok": true,
+      "actual": 30.46875
+    },
+    {
+      "kind": "roadCount",
+      "requested": 30.9375,
+      "ok": true,
+      "actual": 30.9375
+    },
+    {
+      "kind": "roadCount",
+      "requested": 31.40625,
+      "ok": true,
+      "actual": 31.40625
+    },
+    {
+      "kind": "roadReady",
+      "requested": 31.875,
+      "ok": true,
+      "actual": 31.875
+    },
+    {
+      "kind": "roadPerfect",
+      "requested": 31.875,
+      "ok": true,
+      "actual": 31.875
+    },
+    {
+      "kind": "lift",
+      "requested": 31.875,
+      "ok": true,
+      "actual": 31.875
+    },
+    {
+      "kind": "roadFull",
+      "requested": 31.875,
+      "ok": true,
+      "actual": 31.875
+    }
+  ],
+  "remainingVoices": 0,
+  "engineStopped": true
+}

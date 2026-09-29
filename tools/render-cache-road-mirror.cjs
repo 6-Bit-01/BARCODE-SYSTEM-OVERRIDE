@@ -488,15 +488,16 @@ async function main() {
   const file = path.join(out, animationReview ? 'Cache-Road-Animation-Drive.mp4' :
     continuous ? 'Cache-Road-Curved-Roadside-Drive.mp4' :
     worldFrames ? 'Cache-Road-Mirror-World-Preview.mp4' : 'Cache-Road-Mirror-Preview.mp4');
-  const ff = encoder = spawn('/usr/bin/ffmpeg', ['-y','-loglevel','error','-f','rawvideo',
+  const traceOnly=process.env.CACHE_REVIEW_TRACE_ONLY==='1';
+  const ff = encoder = traceOnly ? null : spawn('/usr/bin/ffmpeg', ['-y','-loglevel','error','-f','rawvideo',
     '-pix_fmt','rgba','-s','1280x720','-r',String(fps),'-i','pipe:0',
     '-an','-c:v','libx264','-threads','2','-preset','veryfast','-crf','19',
     '-pix_fmt','yuv420p','-movflags','+faststart',file],
     { stdio: ['pipe','ignore','pipe'] });
-  let error = ''; ff.stderr.on('data', data => { error += data; });
-  const completion = once(ff,'close');
+  let error = ''; ff?.stderr.on('data', data => { error += data; });
+  const completion = ff ? once(ff,'close') : null;
   const carCenters = [];
-  const audioEvents=[],mixEvents=[],playbackFrames=[];
+  const audioEvents=[],mixEvents=[],engineEvents=[],playbackFrames=[];
   if(gameplay) {
     road.selectMusicProfile();
     w.BARCODE.MusicTransport.start({sourceAnchorAudioSec:0,sourceOffsetTrackSec:0});
@@ -512,8 +513,12 @@ async function main() {
       },
       playCombatCue(kind,options={}) {
         audioEvents.push({kind,at:options.audioTimeSec??this.context.currentTime,
-          calledAt:this.context.currentTime});return true;
-      }
+          calledAt:this.context.currentTime,options:{...options}});return true;
+      },
+      updateRoadEngine(state) {
+        engineEvents.push({at:this.context.currentTime,...state});
+      },
+      stopRoadEngine() {engineEvents.push({at:this.context.currentTime,active:false});}
     });
   }
   const driveRoute=[[150,0,'road_a'],[365,1,'road_x'],[585,3,'road_y'],[810,2,'road_b'],
@@ -639,6 +644,7 @@ async function main() {
       s.shield=phase===1?1:0;s.ramMs=phase===2?1500:0;
       s.turboReadyMs=phase===3?700:0;
     }
+    if(traceOnly)continue;
     sc.reset();frameDraws=0;
     const started=performance.now();
     road.draw(sc);
@@ -667,16 +673,18 @@ async function main() {
     if (!ff.stdin.write(Buffer.from(vc.getImageData(0,0,1280,720).data)))
       await once(ff.stdin,'drain');
   }
-  ff.stdin.end();
-  const [code, signal] = await completion;
-  if (code !== 0) throw Error(error || `ffmpeg exited: ${signal}`);
+  if(ff){
+    ff.stdin.end();
+    const [code, signal] = await completion;
+    if (code !== 0) throw Error(error || `ffmpeg exited: ${signal}`);
+  }
   fs.writeFileSync(path.join(out,'Cache-Road-Motion-Track.json'),
     JSON.stringify({ fps,gameplay,seconds,landscapeSeed:landscapeSeed===undefined?
-      0x6b4d:Number(landscapeSeed),carCenters,audioEvents,mixEvents,playbackFrames,
+      0x6b4d:Number(landscapeSeed),carCenters,audioEvents,mixEvents,engineEvents,playbackFrames,
       renderStats,assetCosts,assetFrames:Object.fromEntries(Object.entries(assetFrames)
         .map(([key,frames])=>[key,[...frames].sort((a,b)=>a-b)])) }, null, 2));
-  fs.writeFileSync(path.join(out, 'Cache-Road-Mirror-Detail.webp'), detail.toBuffer('image/webp',90));
-  console.log(file);
+  if(!traceOnly)fs.writeFileSync(path.join(out, 'Cache-Road-Mirror-Detail.webp'), detail.toBuffer('image/webp',90));
+  console.log(traceOnly ? path.join(out,'Cache-Road-Motion-Track.json') : file);
 }
 main().catch(error => {
   encoder?.stdin.destroy();encoder?.kill();

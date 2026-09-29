@@ -15,6 +15,10 @@ module.exports = async function renderRoadAudio(trace) {
   const music=context.createGain();music.gain.value=.8;music.connect(context.destination);
   const events=trace.audioEvents.map(event=>({...event,type:'cue',time:event.calledAt}));
   for(const event of trace.mixEvents||[])events.push({...event,type:'mix',time:event.at});
+  for(const event of trace.engineEvents||[])if(event.at<seconds-.08)
+    events.push({...event,type:'engine',time:event.at});
+  // Fade only at the finite review clip edge; the live game owns its lifecycle.
+  if(trace.engineEvents?.length)events.push({type:'engine',active:false,time:seconds-.08});
   for(const id of new Set((trace.mixEvents||[]).map(event=>event.sourceId))) {
     const response=await fetch(`/assets/audio/${id}.mp3`);
     if(!response.ok)throw Error(`Review audio missing: ${id}`);
@@ -37,8 +41,10 @@ module.exports = async function renderRoadAudio(trace) {
         clock=event.time;
         if(event.type==='mix')audio.rampAdaptiveStemGain(
           audio.musicTracks[event.sourceId],event.volume,event.duration);
-        else {
-          const ok=audio.playCombatCue(event.kind,{audioTimeSec:event.at});
+        else if(event.type==='engine') {
+          audio.updateRoadEngine(event);
+        } else {
+          const ok=audio.playCombatCue(event.kind,{...event.options,audioTimeSec:event.at});
           scheduled.push({kind:event.kind,requested:event.at,ok,
             actual:audio.lastSFXCue?.audioTimeSec});
         }
@@ -60,9 +66,10 @@ module.exports = async function renderRoadAudio(trace) {
     peak=Math.max(peak,Math.abs(sample));energy+=sample*sample;
     view.setInt16(44+(i*2+channel)*2,Math.max(-1,Math.min(1,sample))*32767,true);
   }
+  audio.stopRoadEngine?.();
   audio.stopCombatCues();
   const bytes=new Uint8Array(pcm);let binary='';
   for(let i=0;i<bytes.length;i+=16384)binary+=String.fromCharCode(...bytes.subarray(i,i+16384));
   return {peak,rms:Math.sqrt(energy/(buffer.length*2)),scheduled,
-    remainingVoices:audio.combatVoices.size,pcm:btoa(binary)};
+    remainingVoices:audio.combatVoices?.size||0,engineStopped:!audio.roadEngine,pcm:btoa(binary)};
 };

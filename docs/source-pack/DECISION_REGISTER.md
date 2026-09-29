@@ -1,5 +1,19 @@
 # Decision Register
 
+## September 29, 2026 — realistic lamps and rich musical driving SFX
+
+The owner praised #150 and requested smaller, more widely spaced streetlamps
+with translucent rays and ground spots, plus rich dynamic 8/16-bit crashes,
+beat feedback and engines suited to the song. Extend the approved game;
+retain its scenery, beat-ONE timing, buffered gears and five source stems.
+
+Use measured lamp sockets and shared ground projection. Give Cache Road its
+own chip sound vocabulary while preserving Level 1. Pitch musical cues from
+the audited target-measure root map (D/A or F/C and octaves), without claiming
+a complete chord transcription. Full CI remains the merge gate under existing
+owner authority; preferred loudness, musical fit and Makko device feel still
+require owner listening. See `CACHE_ROAD_LAMPS_CHIP_SOUND.md`.
+
 ## September 29, 2026 — visible activity within the approved roadside
 
 The owner accepted #149's timing and requested a visual pass: reflections

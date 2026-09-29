@@ -627,6 +627,7 @@ window.AudioSystem = class AudioSystem {
   // Short musical effects share the existing context and SFX bus. Voice
   // count and per-cue cadence are bounded even during multi-target attacks.
   playCombatCue(kind, options = {}) {
+    if (options.road === true || /^road[A-Z]/.test(kind)) return this.playRoadCue(kind, options);
     // The graph can be ready while unrelated remote music assets still load.
     // Check the actual playback boundary, not the all-assets init flag.
     if (!this.context || !this.sfxGain || this.context.state !== 'running') {
@@ -698,9 +699,313 @@ window.AudioSystem = class AudioSystem {
     return true;
   }
 
+  // Cache Road has its own measured D/F song vocabulary. One cached 32 kHz
+  // PCM voice contains each complete layered effect: pulse/triangle channels,
+  // FM metal and clocked 15-bit LFSR noise. No downloaded samples, timers or
+  // changes to the five music stems, music clock or Level 1 sound palette.
+  roadCueSettings(kind, options = {}) {
+    const aliases = { lift:'shift', pickup:'lock', data:'echo', cutline:'push',
+      land:'brace', guard:'brace', damage:'crash', warning:'warning', restore:'refill',
+      hit:'brace', perfect:'perfect', empty:'empty', miss:'miss', enter:'lock', cutPass:'push' };
+    let name = String(kind).replace(/^road/, '');
+    name = name.charAt(0).toLowerCase() + name.slice(1);
+    name = aliases[name] || name;
+    // duration, playback gain, priority, minimum repeat interval. Critical
+    // count/arrival/result voices cannot be evicted by decorative receipts.
+    const table = {
+      count:[.11,.37,3,.045], ready:[.19,.52,3,.08], perfect:[.43,.58,3,.06],
+      good:[.28,.48,3,.06], crash:[.46,.73,4,.16], brace:[.25,.43,2,.1],
+      nearMiss:[.21,.35,1,.09], shift:[.32,.35,1,.14], lock:[.30,.35,1,.09],
+      turbo:[.61,.53,2,.3], turboReady:[.43,.41,2,.3], echo:[.62,.43,2,.24],
+      push:[.29,.43,2,.12], refill:[.58,.42,2,.2], warning:[.33,.39,3,.3],
+      full:[.69,.49,2,.5], queued:[.085,.18,1,.12],
+      miss:[.20,.37,2,.12], empty:[.12,.24,1,.12]
+    };
+    const profile = table[name]; if (!profile) return null;
+    const time = Number.isFinite(options.trackTimeSec) ? options.trackTimeSec :
+      Number.isFinite(options.beatFloat) ? options.beatFloat * 60 / 128 :
+      Number.isFinite(options.bar) ? options.bar * 1.875 : 0;
+    const bar = Math.max(0, Math.floor(time / 1.875 + 1e-7));
+    const fBass = [21,25,45,49,69,73,93,97].includes(bar);
+    const countBeat = Math.max(2, Math.min(4, Math.round(options.countBeat || 2)));
+    const action = Math.max(0, Math.min(3, Math.round(options.action || 0)));
+    return { name, duration:profile[0], gain:profile[1], priority:profile[2],
+      cadence:profile[3], rootHz:fBass ? 698.456463 : 587.329536,
+      noteRoot:fBass ? 'F' : 'D', bar, countBeat, action };
+  }
+
+  createRoadCueBuffer(settings) {
+    const ctx = this.context, rate = 32000;
+    const { name, duration, rootHz:root, countBeat, action } = settings;
+    const buffer = ctx.createBuffer(1, Math.ceil(rate * duration), rate);
+    const out = buffer.getChannelData(0), step = 60 / 128 / 8, fifth = Math.pow(2,7/12);
+    const pulse = (phase, dt, duty = .25) => {
+      const p = phase - Math.floor(phase);
+      const blep = q => q < dt ? (q /= dt, q + q - q*q - 1) :
+        q > 1-dt ? (q = (q-1)/dt, q*q + q + q + 1) : 0;
+      const edge = (p-duty+1) % 1;
+      return ((p < duty ? 1 : -1) + blep(p) - blep(edge) - (2*duty-1)) * .65;
+    };
+    const tones = [];
+    const note = (at, hz, length, gain, wave = 'pulse', duty = .25, endHz = hz) =>
+      tones.push({ at, hz, length, gain, wave, duty, endHz, phase:0 });
+    const timbres = ['pulse','triangle','fm','pulse'];
+    const lead = timbres[action], duty = action === 3 ? .125 : .25;
+    if (name === 'count') {
+      const hz = root * [0,0,.5,fifth*.5,1][countBeat];
+      note(0,hz,.085,.35,'pulse',.125);
+      note(0,hz*.5,.07,.2,'triangle');
+    } else if (name === 'ready') {
+      note(0,root*.25,.14,.32,'triangle',.5,root*.125);
+      note(0,root,.13,.34,'pulse',.25); note(.018,root*2,.13,.14,'fm');
+    } else if (name === 'perfect' || name === 'good') {
+      const perfect = name === 'perfect';
+      note(0,root*.5,.24,.24,'triangle');
+      note(0,root,.20,.29,lead,duty); note(.018,root*fifth,.22,.18,'fm');
+      note(step,root*2,perfect ? .24 : .16,perfect ? .27 : .12,lead,duty);
+      if (perfect) { note(step*2,root*fifth*2,.22,.19,'pulse',.125);
+        note(step*3,root*4,.23,.15,'fm'); }
+    } else if (name === 'crash') {
+      note(0,137,.30,.51,'sine',.5,32);
+      note(.008,310,.22,.25,'metal',.5,78);
+      note(.065,173,.29,.20,'metal',.5,53);
+    } else if (name === 'brace') {
+      note(0,root*.25,.16,.28,'triangle',.5,root*.125);
+      note(0,root*fifth*.5,.20,.25,'fm'); note(.045,root*fifth,.18,.14,'pulse',.125);
+    } else if (name === 'nearMiss' || name === 'push') {
+      note(0,root*.5,.19,.22,'pulse',.125,root*2);
+      if(name === 'push') note(.03,root*.25,.23,.27,'triangle',.5,root*fifth*.5);
+    } else if (name === 'shift') {
+      note(0,root*.25,.09,.20,'pulse',.25,root*.10);
+      note(.095,root*.125,.21,.28,'pulse',.25,root*.5);
+      note(.098,root*.25,.17,.13,'triangle',.5,root);
+    } else if (name === 'lock' || name === 'turboReady' || name === 'refill' || name === 'full') {
+      const long = name !== 'lock';
+      [1,fifth,2,...(long ? [fifth*2,4] : [])].forEach((ratio,i) =>
+        note(i*step,root*ratio,long ? .28 : .18,.25/(1+i*.15),i%2?'fm':'pulse',.25));
+      note(0,root*.5,.24,.17,'triangle');
+      if(name==='full'){note(.30,root,.37,.25,'triangle');note(.34,root*2,.33,.19,'fm');
+        note(.38,root*fifth*2,.29,.14,'fm');}
+    } else if (name === 'turbo') {
+      note(0,root*.125,.44,.31,'pulse',.125,root*fifth);
+      note(.06,root*.25,.43,.22,'triangle',.5,root*2);
+      note(.27,root*2,.28,.18,'fm'); note(.34,root*fifth*2,.26,.14,'fm');
+    } else if (name === 'echo') {
+      [1,2,fifth,fifth*2,2].forEach((ratio,i) => note(i*step*1.15,root*ratio,.26,
+        .29*Math.pow(.8,i),'fm'));
+    } else if (name === 'warning') {
+      note(0,root*.5,.095,.25,'pulse',.125);
+      note(.15,root*.5,.115,.27,'pulse',.125);
+      note(0,root*.25,.28,.12,'triangle');
+    } else if (name === 'queued') {
+      note(0,root*.5,.075,.25,'triangle');note(.018,root,.045,.13,'pulse',.125);
+    } else if (name === 'miss' || name === 'empty') {
+      note(0,root*.25,duration*.8,.28,'pulse',.25,root*.125);
+    }
+    // The LFSR is clocked at deliberately reduced rates like a console noise
+    // channel. Filtered body/air layers avoid a broadband white-noise blast.
+    let lfsr = 0x4a35, noisePhase = 0, heldNoise = 0, low = 0;
+    for (let i=0; i<out.length; i++) {
+      const t=i/rate, u=t/duration; let value=0;
+      for (const tone of tones) {
+        const age=t-tone.at; if(age<0 || age>=tone.length)continue;
+        const fraction=age/tone.length;
+        const hz=tone.hz*Math.pow(tone.endHz/tone.hz,fraction);
+        tone.phase += hz/rate;
+        const p=tone.phase, sine=Math.sin(2*Math.PI*p);
+        let wave;
+        if(tone.wave==='pulse')wave=pulse(p,hz/rate,tone.duty);
+        else if(tone.wave==='triangle')wave=Math.asin(sine)*2/Math.PI;
+        else if(tone.wave==='fm')wave=Math.sin(2*Math.PI*p +
+          1.65*Math.exp(-age*16)*Math.sin(2*Math.PI*p*2));
+        else if(tone.wave==='metal')wave=Math.sin(2*Math.PI*p +
+          3.8*Math.exp(-age*12)*Math.sin(2*Math.PI*p*1.4142));
+        else wave=sine;
+        const envelope=Math.min(1,age/.003)*Math.exp(-fraction*(tone.wave==='fm'?4.2:3.1))*
+          Math.min(1,(tone.length-age)/.014);
+        value+=wave*tone.gain*envelope;
+      }
+      const noiseHz=name==='crash'?10500*Math.pow(.19,u):name==='shift'?3100:
+        name==='turbo'?4200+6900*u:6500;
+      noisePhase+=noiseHz/rate;
+      if(noisePhase>=1){noisePhase-=1;const bit=(lfsr^(lfsr>>1))&1;
+        lfsr=(lfsr>>1)|(bit<<14);heldNoise=(lfsr&1)?1:-1;}
+      low+=.12*(heldNoise-low);
+      let noiseGain=0;
+      if(name==='crash')noiseGain=.43*Math.exp(-t*10)+.11*Math.exp(-Math.pow((t-.065)/.024,2));
+      else if(name==='brace')noiseGain=.15*Math.exp(-t*19);
+      else if(name==='nearMiss'||name==='push')noiseGain=.19*Math.sin(Math.PI*u)*Math.exp(-u*1.5);
+      else if(name==='turbo')noiseGain=.15*Math.sin(Math.PI*u)*Math.exp(-u*.7);
+      else if(name==='shift')noiseGain=.06*Math.exp(-Math.pow((t-.09)/.018,2));
+      else if(name==='count')noiseGain=.038*Math.exp(-t*95);
+      else if(name==='ready'||name==='perfect')noiseGain=.055*Math.exp(-t*60);
+      value+=(heldNoise-low*.72)*noiseGain;
+      const edge=Math.min(1,t/.0018)*Math.min(1,(duration-t)/.018);
+      // Mild console-like saturation followed by 16-bit quantization, with
+      // explicit silent endpoints to prevent sample-start/end clicks.
+      out[i]=Math.round(Math.tanh(value*1.25)*.68*edge*32767)/32767;
+    }
+    out[0]=0;out[out.length-1]=0;
+    return buffer;
+  }
+
+  playRoadCue(kind, options = {}) {
+    const ctx=this.context, settings=this.roadCueSettings(kind,options);
+    if(!settings)return false;
+    if(!ctx || ctx.state!=='running' || !this.sfxGain || !ctx.createBuffer ||
+        !ctx.createBufferSource || !ctx.createGain){
+      this.lastSFXCue={kind,road:true,reason:ctx?.state||'not-ready'};return false;
+    }
+    this.roadCueTimes ||= {};
+    const now=ctx.currentTime, at=Number.isFinite(options.audioTimeSec)?
+      Math.max(now,Math.min(now+.4,options.audioTimeSec)):now;
+    if(at-(this.roadCueTimes[settings.name]??-Infinity)<settings.cadence)return false;
+    this.combatVoices ||= new Set();
+    this.roadSFXStats ||= {scheduled:0,evicted:0,cacheBuilds:0,engineStarts:0,engineStops:0};
+    while(this.combatVoices.size>=12){
+      const spare=[...this.combatVoices].filter(v=>(v.priority||(v.critical?3:0))<settings.priority)
+        .sort((a,b)=>(a.priority||0)-(b.priority||0))[0] ||
+        (settings.priority>=3?[...this.combatVoices].find(v=>v.road&&v.priority===settings.priority):null);
+      if(!spare)return false;
+      spare.dispose();this.roadSFXStats.evicted++;
+    }
+    this.roadCueBuffers ||= new Map();
+    const key=[settings.name,settings.noteRoot,settings.name==='count'?settings.countBeat:0,
+      settings.name==='perfect'||settings.name==='good'?settings.action:0].join(':');
+    let buffer=this.roadCueBuffers.get(key);
+    if(!buffer){
+      buffer=this.createRoadCueBuffer(settings);
+      if(this.roadCueBuffers.size>=96)this.roadCueBuffers.delete(this.roadCueBuffers.keys().next().value);
+      this.roadCueBuffers.set(key,buffer);this.roadSFXStats.cacheBuilds++;
+    }
+    const source=ctx.createBufferSource(),gain=ctx.createGain();
+    const panNode=typeof ctx.createStereoPanner==='function'?ctx.createStereoPanner():null;
+    const intensity=Math.max(0,Math.min(1,Number.isFinite(options.intensity)?options.intensity:.75));
+    gain.gain.value=settings.gain*(.72+.28*intensity);
+    source.buffer=buffer;source.connect(gain);
+    if(panNode){panNode.pan.value=Math.max(-.7,Math.min(.7,options.pan||0));
+      gain.connect(panNode);panNode.connect(this.sfxGain);}else gain.connect(this.sfxGain);
+    const voice={road:true,kind:settings.name,priority:settings.priority,critical:settings.priority>=3,
+      source,gain,panner:panNode,dispose:()=>{
+        if(!this.combatVoices.delete(voice))return;
+        source.onended=null;try{source.stop();}catch(_){}
+        source.disconnect();gain.disconnect();panNode?.disconnect();
+      }};
+    this.combatVoices.add(voice);source.onended=voice.dispose;source.start(at);
+    this.roadCueTimes[settings.name]=at;this.roadSFXStats.scheduled++;
+    if(settings.priority>=3){this.roadEngineDuckAt=at;
+      this.roadEngineDuckUntil=Math.max(this.roadEngineDuckUntil||0,at+Math.min(.3,settings.duration));}
+    this.lastSFXCue={kind,road:true,reason:'scheduled',audioTimeSec:at,priority:settings.priority,
+      noteRoot:settings.noteRoot,bar:settings.bar,action:settings.action,countBeat:settings.countBeat};
+    return true;
+  }
+
+  stopRoadCues() {
+    for(const voice of this.combatVoices||[])if(voice.road)voice.dispose();
+    this.roadCueTimes={};this.roadEngineDuckAt=0;this.roadEngineDuckUntil=0;
+  }
+
+  updateRoadEngine(state = {}) {
+    const ctx=this.context;
+    if(!state.active || !ctx || ctx.state!=='running' || !this.sfxGain ||
+        !ctx.createOscillator || !ctx.createBufferSource || !ctx.createBuffer ||
+        !ctx.createGain || !ctx.createBiquadFilter){this.stopRoadEngine();return false;}
+    const clamp=(x,a,b)=>Math.max(a,Math.min(b,Number.isFinite(x)?x:a));
+    let engine=this.roadEngine;
+    if(engine?.context!==ctx){this.stopRoadEngine();engine=null;}
+    if(!engine){
+      // A rapid retry owns at most one engine graph: retire any 25 ms release
+      // before constructing its replacement, even if onended has not run yet.
+      for(const released of this.roadEngineReleases||[])this.disposeRoadEngineGraph(released);
+      const pulse=ctx.createOscillator(),sub=ctx.createOscillator(),grit=ctx.createBufferSource();
+      const body=ctx.createGain(),bass=ctx.createGain(),air=ctx.createGain(),filter=ctx.createBiquadFilter();
+      const gain=ctx.createGain(),panNode=ctx.createStereoPanner?.();
+      pulse.type='sawtooth';sub.type='triangle';
+      // A band-limited narrow-duty pulse carries console character without
+      // aliasing the continuously changing engine pitch.
+      if(ctx.createPeriodicWave && pulse.setPeriodicWave){
+        const real=new Float32Array(25),imag=new Float32Array(25),duty=.28;
+        for(let n=1;n<25;n++){real[n]=2*Math.sin(2*Math.PI*n*duty)/(Math.PI*n);
+          imag[n]=2*(1-Math.cos(2*Math.PI*n*duty))/(Math.PI*n);}
+        pulse.setPeriodicWave(ctx.createPeriodicWave(real,imag));
+      }
+      const buffer=ctx.createBuffer(1,16000,32000),data=buffer.getChannelData(0);
+      let lfsr=0x6b17,previous=0;
+      for(let i=0;i<data.length;i++){if(i%4===0){const bit=(lfsr^(lfsr>>1))&1;
+        lfsr=(lfsr>>1)|(bit<<14);}previous+=.22*(((lfsr&1)?1:-1)-previous);data[i]=previous;}
+      grit.buffer=buffer;grit.loop=true;
+      body.gain.value=.34;bass.gain.value=.24;air.gain.value=.045;
+      filter.type='lowpass';filter.frequency.value=600;filter.Q.value=.6;gain.gain.value=0;
+      pulse.connect(body);sub.connect(bass);grit.connect(air);
+      body.connect(filter);bass.connect(filter);air.connect(filter);filter.connect(gain);
+      if(panNode){gain.connect(panNode);panNode.connect(this.sfxGain);}else gain.connect(this.sfxGain);
+      engine={context:ctx,pulse,sub,grit,body,bass,air,filter,gain,panNode,
+        sources:[pulse,sub,grit],nodes:[body,bass,air,filter,gain,...(panNode?[panNode]:[])],
+        rpmHz:68,gear:0,generation:this.runtimeAudioGeneration,startedAt:ctx.currentTime,lastUpdate:-Infinity};
+      this.roadEngine=engine;
+      pulse.frequency.value=68;sub.frequency.value=34;
+      engine.sources.forEach(source=>source.start(ctx.currentTime));
+      this.roadSFXStats ||= {scheduled:0,evicted:0,cacheBuilds:0,engineStarts:0,engineStops:0};
+      this.roadSFXStats.engineStarts++;
+    }
+    const now=ctx.currentTime,gear=Math.round(clamp(state.gear,0,2));
+    // At most 30 parameter refreshes/sec; even a 240 Hz display reuses the
+    // same three sources and does not queue redundant automation each frame.
+    if(now-engine.lastUpdate<1/30 && gear===engine.gear)return true;
+    // Speed is committed road WORLD units/sec (gears 30/52/70, boost up to
+    // 78), never the cosmetic dashboard km/h number or a normalized ratio.
+    const speed=clamp(state.speed,0,100),normalizedSpeed=speed/78;
+    const boost=clamp(state.boost,0,1),shift=clamp(state.shifting,0,1);
+    const load=clamp(state.load,0,1),damage=clamp(state.damage,0,1);
+    const rpm=clamp(47+normalizedSpeed*108-gear*22+boost*25-load*6-shift*24,36,170);
+    const duck=now>=(this.roadEngineDuckAt||0)&&now<(this.roadEngineDuckUntil||0)?.34:1;
+    const target=(.079+normalizedSpeed*.021+boost*.024)*(1-shift*.2)*duck;
+    const param=(p,value,settle=.065)=>{
+      if(p.cancelAndHoldAtTime)p.cancelAndHoldAtTime(now);
+      else {const current=p.value;p.cancelScheduledValues?.(now);p.setValueAtTime?.(current,now);}
+      if(p.setTargetAtTime)p.setTargetAtTime(value,now,settle);
+      else if(p.setValueAtTime)p.setValueAtTime(value,now);else p.value=value;
+    };
+    param(engine.pulse.frequency,rpm);param(engine.sub.frequency,rpm*.5);
+    param(engine.filter.frequency,440+normalizedSpeed*430+boost*680-shift*170);
+    param(engine.air.gain,.03+boost*.06+damage*.065);
+    param(engine.grit.playbackRate,.8+normalizedSpeed*.32+boost*.3);
+    param(engine.gain.gain,target,.045);
+    if(engine.panNode)param(engine.panNode.pan,clamp(state.pan,-.55,.55));
+    engine.rpmHz=rpm;engine.gear=gear;engine.lastUpdate=now;
+    return true;
+  }
+
+  disposeRoadEngineGraph(engine) {
+    if(!engine || engine.disposed)return;
+    engine.disposed=true;this.roadEngineReleases?.delete(engine);
+    engine.sources.forEach(source=>{source.onended=null;try{source.stop();}catch(_){}source.disconnect();});
+    engine.nodes.forEach(node=>node.disconnect());
+  }
+
+  stopRoadEngine(options = {}) {
+    const engine=this.roadEngine;
+    if(options.immediate || this.context?.state!=='running')
+      for(const released of this.roadEngineReleases||[])this.disposeRoadEngineGraph(released);
+    if(!engine)return false;
+    this.roadEngine=null;
+    if(this.roadSFXStats)this.roadSFXStats.engineStops++;
+    if(options.immediate || engine.context.state!=='running'){
+      this.disposeRoadEngineGraph(engine);return true;
+    }
+    const now=engine.context.currentTime,at=now+.025,param=engine.gain.gain;
+    if(param.cancelAndHoldAtTime)param.cancelAndHoldAtTime(now);
+    else {param.cancelScheduledValues?.(now);param.setValueAtTime?.(param.value,now);}
+    param.linearRampToValueAtTime(0,at);
+    this.roadEngineReleases ||= new Set();this.roadEngineReleases.add(engine);
+    engine.sources.forEach(source=>{source.onended=()=>this.disposeRoadEngineGraph(engine);
+      try{source.stop(at);}catch(_){this.disposeRoadEngineGraph(engine);}});
+    return true;
+  }
+
   // A miss cuts the bus for a beat and returns on the song grid. The five
   // synchronized sources continue underneath; none is stopped or re-seeked.
-  playRoadStumble() {
+  playRoadStumble(options = {}) {
     const ctx = this.context, bus = this.musicGain?.gain;
     if (!ctx || ctx.state !== 'running' || !bus) return false;
     const now = ctx.currentTime;
@@ -718,7 +1023,7 @@ window.AudioSystem = class AudioSystem {
     bus.linearRampToValueAtTime(0, now + .09);
     bus.setValueAtTime(0, nextRecoveryBeat - .035);
     bus.linearRampToValueAtTime(.8, nextRecoveryBeat);
-    if (this.sfxGain && ctx.createOscillator && ctx.createGain) {
+    if (options.sound !== false && this.sfxGain && ctx.createOscillator && ctx.createGain) {
       const osc = ctx.createOscillator(), envelope = ctx.createGain();
       osc.type = 'square';
       osc.frequency.setValueAtTime(760, now);
@@ -831,6 +1136,8 @@ window.AudioSystem = class AudioSystem {
   }
 
   stopCombatCues() {
+    this.stopRoadEngine();
+    this.stopRoadCues();
     for (const voice of this.combatVoices || []) voice.dispose();
     this.combatCueTimes = {};
     this.modeCueTimes = {};
@@ -914,6 +1221,17 @@ window.AudioSystem = class AudioSystem {
 
   // Runtime lifecycle compatibility alias for the legacy rhythm scheduler.
   stopBeatTrack() {
+    // This seam is called only by pause/stop. Cancel road SFX before context
+    // suspension without editing the protected music pause/transport method.
+    // stopRuntimeAudio already released its engine through stopCombatCues;
+    // preserve that owned, finite exit fade when no active graph remains.
+    if (this.roadEngine) this.stopRoadEngine({immediate:true});
+    // A same-generation tail is an in-game release (for example game over
+    // followed immediately by pause). Retire it before suspension so resume
+    // cannot replay its final 25 ms. Runtime stop has advanced the generation.
+    for (const released of this.roadEngineReleases || [])
+      if (released.generation === this.runtimeAudioGeneration) this.disposeRoadEngineGraph(released);
+    this.stopRoadCues();
     return this.stopRhythm();
   }
   
@@ -3380,6 +3698,10 @@ window.AudioSystem = class AudioSystem {
         masterGain: this.masterGain?.gain?.value ?? null,
         busGain: this.sfxGain?.gain?.value ?? null,
         activeVoices: this.combatVoices?.size || 0,
+        roadEngineActive: !!this.roadEngine,
+        roadEngineReleaseGraphs: this.roadEngineReleases?.size || 0,
+        roadCueBuffers: this.roadCueBuffers?.size || 0,
+        roadStats: this.roadSFXStats ? { ...this.roadSFXStats } : null,
         rhythmSounds: [...(this.rhythmSuccessSounds || [])],
         lastCue: this.lastSFXCue || null
       },

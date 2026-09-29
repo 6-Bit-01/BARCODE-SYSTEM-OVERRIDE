@@ -124,6 +124,31 @@ async function main() {
     throw new Error(`Timed out waiting for ${expression}`);
   };
   await waitUntil('document.readyState === "complete" && !!window.renderer && !!window.AudioSystem && !!window.gameLoop');
+  async function checkChipAudio() {
+    const reviewChipAudio = require('./cache-road-chip-audio-review.cjs');
+    const chip = await evaluate(`(${reviewChipAudio.toString()})()`);
+    assert(chip.metrics.rms > .001 && chip.metrics.peak < 1 && chip.metrics.clipped === 0);
+    assert.equal(chip.originalStems.length, 5);
+    assert(chip.scheduled.length >= 30 && chip.maxVoices <= 12 && chip.cacheEntries <= 96);
+    assert(chip.stress.accepted > 100 && chip.stress.maxVoices <= 12 && chip.stress.metrics.peak < 1);
+    assert(chip.lifecycle.pause === 'paused' && chip.lifecycle.resume === 'resumed' &&
+      chip.lifecycle.restart === 'restart-audio-ready');
+    const reviewOutput = process.env.CACHE_ROAD_REVIEW_OUTPUT ||
+      (process.env.RUNNER_TEMP && path.join(process.env.RUNNER_TEMP, 'music-browser/cache-road'));
+    if (reviewOutput) {
+      fs.mkdirSync(reviewOutput, { recursive: true });
+      fs.writeFileSync(path.join(reviewOutput, 'Chip-SFX-Audition.wav'), Buffer.from(chip.pcm, 'base64'));
+      delete chip.pcm;
+      fs.writeFileSync(path.join(reviewOutput, 'Chip-SFX-Checks.json'), JSON.stringify(chip, null, 2));
+    }
+    return chip;
+  }
+  if (process.env.CACHE_ROAD_CHIP_AUDIO_ONLY === '1') {
+    const chip = await checkChipAudio();
+    assert.deepEqual(exceptions, []);
+    console.log(`Cache Road chip audio passed: ${chip.seconds}s production PCM; ${chip.scheduled.length} exact cues; five original stems; ${chip.stress.accepted} stress voices; pause/resume/restart.`);
+    return;
+  }
   const frames = await evaluate(`(()=>{
     let drawn=0;
     BARCODE.CacheRoadProof={active:true,update(){},draw(ctx){if(!ctx)throw Error('No road canvas');drawn++;ctx.fillRect(0,0,1,1);}};
@@ -215,6 +240,7 @@ async function main() {
   assert.equal(requests.get.filter(url => url.endsWith('.mp3')).length, livePublished ? 10 : 15);
   if (!livePublished) assert.equal(await evaluate('window.publishedRequests.length'), 5);
   omitLocalStems=false;
+  const chip = await checkChipAudio();
   const renderRoadAudio=require('./cache-road-review-audio.cjs');
   const beat=60/128;
   const probe={seconds:2,mixEvents:[],audioEvents:[
@@ -225,7 +251,7 @@ async function main() {
   assert(cueAudio.rms>.003&&cueAudio.peak<1&&cueAudio.remainingVoices===0);
   assert(cueAudio.scheduled.every(event=>event.ok&&Math.abs(event.actual-event.requested)<1e-8),
     'countdown and calibrated early catch sounds start on exact source-clock beats');
-  const reviewTrace=path.join(root,'docs/source-pack/review-cache-living-sidelines/Drive-Trace.json');
+  const reviewTrace=path.join(root,'docs/source-pack/review-cache-lamps-chip-sound/Drive-Trace.json');
   if(fs.existsSync(reviewTrace)) {
     const trace=JSON.parse(fs.readFileSync(reviewTrace,'utf8'));
     const review=await evaluate(`(${renderRoadAudio.toString()})(${JSON.stringify(trace)})`);
@@ -255,7 +281,7 @@ async function main() {
     fs.writeFileSync(path.join(worldOutput,'World-Checks.json'),JSON.stringify(world,null,2));
   }
   assert.deepEqual(exceptions, []);
-  console.log(`Cache Road Chromium passed: ${frames.drawn} guarded frames; ${world.frames.length} world frames; ${world.drive.frames} driving frames in all gears; ${world.drive.arrivals} beat-1 arrivals; ${world.hosted.length} byte-identical published animations; five MP3s and audible confirmation.`);
+  console.log(`Cache Road Chromium passed: ${frames.drawn} guarded frames; ${world.frames.length} world frames; ${world.drive.frames} driving frames in all gears; ${world.drive.arrivals} beat-1 arrivals; ${world.hosted.length} byte-identical published animations; five MP3s; ${chip.scheduled.length} exact chip cues and engine lifecycle.`);
 }
 main().catch(error => { console.error(error.stack || error); process.exitCode = 1; }).finally(async () => {
   socket?.close();

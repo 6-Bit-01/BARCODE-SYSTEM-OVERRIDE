@@ -327,7 +327,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     cacheStreetDeliveryVan:[1498/1016,220],
     cacheStreetBenchPlanters:[1546/1040,112],
     cacheStreetDataKiosk:[1224/1318,178],
-    cacheNewLampL:[1024/1536,270],cacheNewLampR:[1024/1536,270],
+    cacheNewLampL:[1024/1536,230],cacheNewLampR:[1024/1536,230],
     cacheNewCrossingSignalL:[1024/1536,226],
     cacheNewCrossingSignalR:[1024/1536,226],
     cacheNewWayfindingSign:[1024/1536,200],
@@ -337,6 +337,64 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     cacheNewVendorCart:[460/384,188],
     cacheNewFencePlanter:[1536/1024,115]
   };
+  // Lens sockets measured in the actual source crop/animation cel. The
+  // service mast keeps its painted .28 anchor; corner lamps use .5.
+  const LAMP_LIGHTS={
+    cachePylon:{anchor:.28,lenses:[[.76,.198,.078],[.91,.249,.058]]},
+    cacheNewLampL:{anchor:.5,lenses:[[.812,.168,.10]]},
+    cacheNewLampR:{anchor:.5,lenses:[[.26,.17,.125]]}
+  };
+  const SERVICE_LAMP_HEIGHT=260,SERVICE_LAMP_WIDTH=139.1;
+  const SERVICE_LAMP_SPACING=308;
+  function lampLightGeometry(key,args) {
+    const fixture=LAMP_LIGHTS[key];
+    if(!fixture)return [];
+    return fixture.lenses.map(([u,v,radius])=>{
+      const x=args.x+(u-fixture.anchor)*args.width*(args.flip?-1:1);
+      const y=args.y-(1-v)*args.height;
+      return {x,y,groundY:args.lampGround?.(x)??args.y,
+        lensRadius:args.width*radius,poolRadius:args.height*.21};
+    });
+  }
+  function drawLampLight(ctx,key,args,pass) {
+    if(args.height<5 || B.PresentationAssets?.ready?.(key)===false)return;
+    const geometry=lampLightGeometry(key,args);
+    if(!geometry.length)return;
+    ctx.save();ctx.globalCompositeOperation='screen';
+    for(const light of geometry) {
+      const {x,y,groundY,lensRadius,poolRadius}=light;
+      if(pass==='pool') {
+        // Surface-only light is painted after terrain and before every
+        // building, pedestrian and prop, never across their silhouettes.
+        ctx.save();ctx.translate(x,groundY);ctx.scale(poolRadius,poolRadius*.24);
+        const pool=ctx.createRadialGradient(0,0,.035,0,0,1);
+        pool.addColorStop(0,'rgba(255,219,144,.38)');
+        pool.addColorStop(.38,'rgba(255,202,112,.21)');
+        pool.addColorStop(1,'rgba(255,195,100,0)');
+        ctx.fillStyle=pool;ctx.beginPath();ctx.arc(0,0,1,0,Math.PI*2);ctx.fill();
+        ctx.restore();
+      } else {
+        // Soft angular slices avoid a hard triangular edge. A steady haze
+        // falls vertically from each painted lens to its own ground pool.
+        const beam=ctx.createLinearGradient(0,y,0,groundY);
+        beam.addColorStop(0,'rgba(255,229,163,.20)');
+        beam.addColorStop(.23,'rgba(255,220,152,.09)');
+        beam.addColorStop(1,'rgba(255,208,124,.045)');
+        ctx.fillStyle=beam;
+        const alpha=ctx.globalAlpha;
+        for(let j=0;j<10;j++) {
+          const a=-1+j/5,b=a+.2;
+          ctx.globalAlpha=alpha*Math.pow(Math.max(0,1-Math.abs((a+b)/2)),.8);
+          ctx.beginPath();ctx.moveTo(x+lensRadius*a,y);
+          ctx.lineTo(x+lensRadius*b,y);
+          ctx.lineTo(x+poolRadius*b,groundY);
+          ctx.lineTo(x+poolRadius*a,groundY);ctx.closePath();ctx.fill();
+        }
+        ctx.globalAlpha=alpha;
+      }
+    }
+    ctx.restore();
+  }
   const ANIMATED_PROPS=new Set(['cacheNewLampL','cacheNewLampR',
     'cacheNewCrossingSignalL','cacheNewCrossingSignalR','cacheNewWayfindingSign',
     'cacheNewUtilityCabinet','cacheNewVendorCart','cacheStreetDataKiosk']);
@@ -350,6 +408,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     const artArgs={...args,width:action?.aspect?args.height*action.aspect:args.width,
       frame:action?.frame??propFrame(item,s,reduced)};
     ctx.save();
+    if(!person)drawLampLight(ctx,key,args,'beam');
     if(person&&!action&&!reduced) {
       // A restrained planted idle: the contact never changes position.
       const breath=Math.sin((s.elapsedMs||0)/670+item.at*.13);
@@ -503,6 +562,20 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   const STREET_ITEMS=STREET_SCENES.flatMap(scene=>
     [...scene.props,...scene.people].map(item=>({at:item.at,scene,item})))
     .sort((a,b)=>b.item.at-a.item.at);
+  // The two roadsides interleave instead of forming a lamp corridor.
+  // Keep service fixtures clear of street mouths and authored corner lamps.
+  const SERVICE_LAMPS=[];
+  for(const side of [-1,1]) {
+    const phase=side<0?0:SERVICE_LAMP_SPACING/2;
+    for(let at=phase-SERVICE_LAMP_SPACING;at<WORLD_END+1200;at+=SERVICE_LAMP_SPACING) {
+      if(LANDSCAPE.streets.some(street=>street.side===side&&
+        Math.abs(street.at-at)<street.halfWidth+28))continue;
+      if(STREET_ITEMS.some(record=>record.scene.side===side&&
+        LAMP_LIGHTS[record.item.key]&&Math.abs(record.at-at)<180))continue;
+      SERVICE_LAMPS.push({at,side,kind:'pylon'});
+    }
+  }
+  SERVICE_LAMPS.sort((a,b)=>b.at-a.at);
   const MOBILE_STREET_ITEMS=STREET_ITEMS.filter(({item})=>travels(item.id));
   // Immutable world records are indexed once. Rendering only visits the
   // current horizon; moving actors are culled at their current address.
@@ -683,13 +756,37 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     // people/props instead of generic boxes. The rear camera samples their
     // existing world addresses and the glass clips and blurs their miniatures.
     const scenery=worldRange(SCENERY,progress-reach,progress)
+      .concat(worldRange(SERVICE_LAMPS,progress-reach,progress))
       .concat(streetRange(s,progress-reach,progress)
         .map(({scene,item})=>({at:pedestrianPosition(scene,item,s).at,
           side:scene.side,kind:'life',scene,item})))
       .filter(item=>item.at<progress&&item.at>progress-reach)
       .sort((a,b)=>(profile(a.at).y+2*profile(a.at).t)-
         (profile(b.at).y+2*profile(b.at).t)||b.at-a.at);
+    // Ground light precedes the shared mirror actor queue too.
+    const mirrorLampArgs=item=>{
+      const p=profile(item.at),side=item.side;
+      const height=(2.5+10*p.t)*SERVICE_LAMP_HEIGHT/134;
+      return {x:p.x+side*(p.half+12+7*p.t),y:p.y+2*p.t,
+        width:height*SERVICE_LAMP_WIDTH/SERVICE_LAMP_HEIGHT,height,
+        sourceRect:[42,69,954,1386],flip:side===1};
+    };
     for(const item of scenery) {
+      if(item.kind==='pylon')drawLampLight(ctx,'cachePylon',mirrorLampArgs(item),'pool');
+      else if(item.kind==='life'&&LAMP_LIGHTS[item.item.key]) {
+        const p=profile(item.at),prop=item.item;
+        const [aspect,stature]=PROP_SHAPES[prop.key];
+        const height=(2.5+10*p.t)*prop.scale*stature/134;
+        drawLampLight(ctx,prop.key,{x:p.x+item.side*(p.half+10+prop.base*.065*p.t),
+          y:p.y+2*p.t,width:height*aspect,height},'pool');
+      }
+    }
+    for(const item of scenery) {
+      if(item.kind==='pylon') {
+        const args=mirrorLampArgs(item);
+        drawLampLight(ctx,'cachePylon',args,'beam');
+        B.PresentationAssets?.draw?.('cachePylon',ctx,args);continue;
+      }
       if(item.kind==='life') {drawMirrorLife(item.scene,item.item);continue;}
       const p=profile(item.at),side=item.side;
       let key,sourceW,sourceH,width,flip=false,setback=0,sourceRect;
@@ -1494,6 +1591,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     async exit() {
       if (!this.active || this.exiting) return false;
       this.exiting = true;
+      window.audioSystem?.stopRoadEngine?.();
       const returnTo = clone(this.returnTo);
       const saved = B.Campaign.readResume();
       if (saved?.levelId === ID && this.validate(saved)) returnTo.levelState.cacheRoadCheckpoint = {
@@ -1506,6 +1604,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       return !!result?.ok;
     },
     dispose() {
+      window.audioSystem?.stopRoadEngine?.();
       const hint = document.querySelector?.('.hint');
       if (hint && this.oldHint !== null) hint.textContent = this.oldHint;
       this.oldHint = null;
@@ -1545,6 +1644,27 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         hitRecovery: this.state.hitRecovery };
     },
     startOffsetSec() { return (this.state?.musicBar || 0) * 1.875; },
+    cue(kind, options = {}) {
+      const s=this.state;
+      if(!s)return false;
+      return window.audioSystem?.playCombatCue?.(kind,{
+        road:true,trackTimeSec:(s.musicBeatFloat||0)*60/128,
+        gear:s.gear,pan:0,intensity:1,...options
+      });
+    },
+    updateEngineSound() {
+      const s=this.state;
+      if(!s||!this.active||this.status!=='playing'||this.exiting) {
+        window.audioSystem?.stopRoadEngine?.();return;
+      }
+      const age=s.musicBeatFloat-s.shiftStartBeat;
+      window.audioSystem?.updateRoadEngine?.({active:true,gear:s.gear,speed:s.speed,
+        boost:s.boostMs>0?1:s.surgeMs>0?.6:0,
+        shifting:age>.32&&age<1.3?Math.sin((age-.32)/.98*Math.PI):0,
+        load:clamp(.38+s.speed/150+(s.throttling?.12:0)-(s.draftMs>0?.13:0),0,1),
+        damage:1-s.integrity/3,pan:clamp(s.steer*.12,-.12,.12),
+        trackTimeSec:s.musicBeatFloat*60/128});
+    },
     updateCaptures(music) {
       if (!music?.running || music.profileId !== PROFILE || !music.grid) return;
       const s = this.state, { beatIndex, barIndex } = music.grid;
@@ -1572,7 +1692,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       if (full && !s.fullAdrenaline) {
         s.fullAdrenalineCount++;
         s.message = 'FULL ADRENALINE'; s.messageMs = 1300;
-        window.audioSystem?.playCombatCue?.('data');
+        this.cue('roadFull');
       }
       s.fullAdrenaline = full;
     },
@@ -1590,7 +1710,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     },
     requestGear(direction) {
       const s=this.state;
-      const gear=clamp((s.pendingGear??s.gear)+direction,0,2);
+      const previous=s.pendingGear??s.gear;
+      const gear=clamp(previous+direction,0,2);
+      if(gear!==previous)this.cue('roadQueued',{intensity:.35});
       s.pendingGear=gear===s.gear?null:gear;
       s.pendingGearBeat=this.nextShiftBeat();
     },
@@ -1630,8 +1752,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           s.message=turbo?'TURBO // LAUNCH':recovery?'RECOVER // NEXT BAR':
             `GEAR ${s.gear+1} // ${surge?'SURGE':'ENGAGED'}`;
           s.messageMs=700;
-          window.audioSystem?.playCombatCue?.('lift',
-            {audioTimeSec:music.audioTimeSec+Math.max(0,(beat-beatFloat)*beatDurationSec)});
+          this.cue(turbo?'roadTurbo':'lift',
+            {audioTimeSec:music.audioTimeSec+Math.max(0,(beat-beatFloat)*beatDurationSec),
+              trackTimeSec:beat*beatDurationSec,gear:s.gear,intensity:recovery?.6:1});
         }
         s.boostMs=turbo?Math.max(0,(beat+4-beatFloat)*beatDurationSec*1000):0;
         s.surgeMs=surge?Math.max(0,(beat+4-beatFloat)*beatDurationSec*1000):0;
@@ -1685,8 +1808,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       if(countBeat>=target-3&&countBeat<=target&&ahead<=.13&&
           cueKey!==s.lastPulseCue) {
         s.lastPulseCue=cueKey;
-        window.audioSystem?.playCombatCue?.(countBeat===target?'roadReady':'roadCount',
-          {audioTimeSec:schedule.audioTimeSec+Math.max(0,ahead)});
+        this.cue(countBeat===target?'roadReady':'roadCount',
+          {audioTimeSec:schedule.audioTimeSec+Math.max(0,ahead),
+            countBeat:countBeat%4+1,action:next.action,
+            trackTimeSec:target*beatDurationSec,pan:(next.lane-1.5)*.14});
       }
     },
     resolvePulseAwards(beatFloat) {
@@ -1720,8 +1845,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // A sufficiently early tap can schedule there; otherwise acknowledge
       // immediately. Already-rendered audio cannot be sent back in time.
       const deadline=current.audioTimeSec+until;
-      window.audioSystem?.playCombatCue?.(judgment.timing==='perfect'?'roadPerfect':'roadGood',
-        {audioTimeSec:Math.max(clock,deadline)});
+      this.cue(judgment.timing==='perfect'?'roadPerfect':'roadGood',
+        {audioTimeSec:Math.max(clock,deadline),action:pulse.action,
+          trackTimeSec:judgment.beatIndex*current.grid.beatDurationSec,
+          pan:(pulse.lane-1.5)*.14});
       if(until>.001)s.pendingPulseAwards.push({pulse,judgment,speed:s.speed,
         beat:judgment.beatIndex});
       else this.awardPulse(pulse,judgment,s.speed);
@@ -1780,7 +1907,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       s.rivalDistractedMs = durationMs;
       s.opening.echo = true;
       s.message = 'BUFFER ECHO // SPLIT THE LINE'; s.messageMs = 1700;
-      window.audioSystem?.playCombatCue?.('data');
+      this.cue('data');
     },
     handleActions(actions) {
       if (!this.active || this.status !== 'playing' || this.exiting) return;
@@ -1799,6 +1926,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         s.boost = 0; s.nearMisses = 0; s.queuedTurbo = true;s.turboBeat=this.nextShiftBeat();
         s.opening.turbo = true;
         s.message = 'TURBO QUEUED // NEXT BAR'; s.messageMs = 900;
+        this.cue('roadQueued',{intensity:.5});
       }
     },
     hit(kind) {
@@ -1807,12 +1935,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       if (s.ramMs > 0) {
         s.ramMs = 0; s.score += 100; s.message = 'PUSH // TRAFFIC CLEARED';
         s.defenseFlashMs=600;s.defenseKind='PUSH';
-        s.messageMs = 900; window.audioSystem?.playCombatCue?.('cutline'); return;
+        s.messageMs = 900; this.cue('roadPush',{intensity:.85}); return;
       }
       if (s.shield) {
         s.shield = 0; s.message = 'BRACE // IMPACT BLOCKED';
         s.defenseFlashMs=600;s.defenseKind='BRACE';
-        s.messageMs = 900; window.audioSystem?.playCombatCue?.('land'); return;
+        s.messageMs = 900; this.cue('land'); return;
       }
       s.integrity--; s.queuedRecovery = true;s.recoveryBeat=this.nextShiftBeat();
       s.timeMs = Math.max(0, s.timeMs - 1800);
@@ -1825,15 +1953,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       s.draftTarget=null;s.draftMs=0;s.passFlashMs=0;
       s.stumbleMs = 650; s.cutStreak = 0; s.cutFlashMs = 0; s.nearMisses = 0;
       s.message = ''; s.messageMs = 0;
-      window.audioSystem?.playRoadStumble?.();
-      window.audioSystem?.playCombatCue?.('damage');
-      if (s.integrity <= 0) this.status = s.status = 'failed';
+      window.audioSystem?.playRoadStumble?.({sound:false});
+      this.cue('damage',{material:kind,
+        intensity:clamp(.55+s.speed/160+(['freight','sweeper','roadblock'].includes(kind)?.12:0),0,1)});
+      if (s.integrity <= 0) {
+        this.status = s.status = 'failed';window.audioSystem?.stopRoadEngine?.();
+      }
     },
     readyTurbo() {
       const s=this.state;
       if(!s.boost) {
         s.turboReadyMs=1100;
-        window.audioSystem?.playCombatCue?.('roadTurboReady');
+        this.cue('roadTurboReady');
       }
       s.boost=1;
     },
@@ -1851,10 +1982,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       s.passFlashMs=780;s.passSide=side;s.passAward=points;
       if (cut) { s.cutFlashMs = 740; s.cutAward = points; }
       else { s.message = `NEAR MISS // +${points}  ${s.boost?'TURBO READY':`TURBO ${s.nearMisses}/2`}`; s.messageMs = 850; }
-      window.audioSystem?.playCombatCue?.(cut ? 'cutline' : 'pickup');
+      this.cue(cut ? 'roadCutPass' : 'roadNearMiss',
+        {pan:side*.65,intensity:clamp(.5+s.speed/140,0,1)});
     },
     update(delta) {
-      if (!this.active || this.status !== 'playing' || this.exiting) return;
+      if (!this.active || this.status !== 'playing' || this.exiting) {
+        window.audioSystem?.stopRoadEngine?.();return;
+      }
       const s = this.state, dt = Math.min(100, Math.max(0, delta));
       if (!dt) return;
       const before = s.progress;
@@ -1980,7 +2114,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           if (enteringWarning) {
             s.rivalTarget = s.lanePos;
             s.rivalEchoCommitted = false;
-            window.audioSystem?.playCombatCue?.('warning');
+            this.cue('warning');
           }
           if (s.echo && s.rivalDistractedMs && !s.rivalEchoCommitted) {
             s.rivalTarget = s.echo.lanePos;
@@ -2035,7 +2169,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           // Stop at the missed exit. Moving the car backward while play kept
           // running looked like a broken game loop, not a deliberate retry.
           this.status = s.status = 'failed';
-          return;
+          window.audioSystem?.stopRoadEngine?.();return;
         } else {
           s.timeMs = Math.max(s.timeMs, 21000);
           s.gateOpen = true; this.checkpoint('road-gate');
@@ -2053,6 +2187,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       if (s.timeMs <= 0 && this.status === 'playing') {
         this.status = s.status = 'failed'; s.message = 'TRANSMISSION WINDOW CLOSED';
       }
+      this.updateEngineSound();
     },
     draw(ctx) {
       if (!ctx || !this.active) return;
@@ -2410,7 +2545,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           visibleAreas.push({at,side,index:Math.floor((at-phase)/spacing),kind:'cluster'});
         }
       }
-      const worldPaint=[];
+      const worldPaint=[],lampPools=[];
       const enqueue=(area,foot,draw)=>worldPaint.push({area,foot,draw});
       const drawStreetLife = (scene, item, person=false,area) => {
         const position=pedestrianPosition(scene,item,s);
@@ -2423,13 +2558,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const x=roadsideX(scene.side,t,position.base,person?210:260);
         if(x+width*.5<0||x-width*.5>1920)return;
         const foot=terrainAt(scene.side,t,x)+4*t;
+        const args={x,y:foot,width,height:h,
+          flip:person?position.flip:false,
+          lampGround:lightX=>terrainAt(scene.side,t,lightX)+4*t};
+        if(!person&&LAMP_LIGHTS[key])lampPools.push(()=>drawLampLight(ctx,key,args,'pool'));
         enqueue(area,foot,()=>clipRoadside(t,()=>{
           ctx.save();ctx.globalAlpha=1;
           ctx.fillStyle='#0d19218c';ctx.beginPath();
           ctx.ellipse(x,foot+2*t,Math.max(9,width*.33),Math.max(2,4*t),0,0,Math.PI*2);
           ctx.fill();
-          const args={x,y:foot,width,height:h,
-            flip:person?position.flip:false};
           drawStreetActor(ctx,item,key,args,s,reduced,person);
           ctx.restore();
         },scene.side));
@@ -2809,20 +2946,21 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         }
       }
       ctx.globalAlpha=1;
-      for(let at=Math.floor((progress+850)/142)*142;at>progress-420;at-=142) {
+      for(const lamp of worldRange(SERVICE_LAMPS,progress-420,progress+850)) {
+        const {at,side}=lamp;
         const t=sideDepth(at-progress);if(t<.025||t>1.65)continue;
-        for(const side of [-1,1]) {
-          if(LANDSCAPE.streets.some(street=>street.side===side &&
-            Math.abs(street.at-at)<street.halfWidth+13))continue;
-          const x=roadsideX(side,t,98,80);
-          const width=214*t,height=400*t;
-          const y=roadY(t)+18*t;
-          enqueue({kind:'pylon',at,side},y,()=>clipRoadside(t,()=>B.PresentationAssets?.draw?.('cachePylon',ctx,{
-            x,y,width,height,
-            sourceRect:[42,69,954,1386],flip:side===1 }),
-            side,null,{foot:y,height}));
-        }
+        const x=roadsideX(side,t,98,80);
+        const width=SERVICE_LAMP_WIDTH*t,height=SERVICE_LAMP_HEIGHT*t;
+        const y=roadY(t)+18*t;
+        const args={x,y,width,height,sourceRect:[42,69,954,1386],flip:side===1,
+          lampGround:lightX=>y+side*(lightX-x)*.12};
+        lampPools.push(()=>drawLampLight(ctx,'cachePylon',args,'pool'));
+        enqueue(lamp,y,()=>clipRoadside(t,()=>{
+          drawLampLight(ctx,'cachePylon',args,'beam');
+          B.PresentationAssets?.draw?.('cachePylon',ctx,args);
+        },side));
       }
+      for(const drawPool of lampPools)drawPool();
       worldPaint.sort((a,b)=>a.foot-b.foot||b.area.at-a.area.at);
       for(const item of worldPaint)item.draw();
       // Phrase paint is a road marking, not a second translucent lane overlay.
