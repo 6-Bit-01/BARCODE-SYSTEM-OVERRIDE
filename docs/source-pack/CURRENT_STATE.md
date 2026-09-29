@@ -1,5 +1,21 @@
 # Current State
 
+## September 29 — animation delivery follow-up to merged #142
+
+PR #142 is merged at `88623df039cad868a8c9565a23209a2f5b557c47`: eleven eight-cel
+vehicle sheets, eight three-cel practical fixtures and four eight-cel action
+symbols are registered and playing. That commit's full CI passed. Individual
+pedestrians remain static, and Makko moving-art/input/audio/device acceptance
+has not been recorded.
+
+The continuation found all 23 sheets and seven companion painted road/effect
+assets using relative-only paths. On an import without bundled binaries, the
+loader retried the same missing path. This focused follow-up pins those 30
+assets to the published #142 merge while retaining the existing one-attempt
+bundled fallback. Artwork, timing and gameplay are unchanged. The focused
+loader regression covers first requests, fallback, bounded failure and atlas
+sampling; full checkout CI remains the merge gate for this follow-up.
+
 ## September 29 — mirrored roadside and confirmed four-bar paint
 
 The rearview now renders the same passed graph street mouths, district cards,

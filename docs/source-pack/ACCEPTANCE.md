@@ -1,5 +1,23 @@
 # Acceptance and Test Status
 
+## Cache Road animation delivery — September 29
+
+Merged #142 provides eleven eight-cel vehicle sheets, eight three-cel fixture
+sheets and four eight-cel action sheets. Its full CI passed; the eight-second
+production draw and frame boards are in `review-cache-animation/`.
+
+This follow-up restores immutable hosted loading for all 23 sheets plus seven
+companion painted cues/effects. The asset check verifies each pinned request,
+a distinct matching local fallback, cessation after two failures, and vehicle
+and fixture atlas rectangles after successful fallback. The published #142
+tree contains every referenced asset. Local VM checks establish loader behavior,
+not live network or image decoding; full checkout CI is required before merge.
+
+Owner Makko review remains: import the merged build, confirm animated cars,
+lamps/signals and action symbols display, compare the rearview fixture phases,
+and check Reduced Motion, fourth-beat input, sound and device frame pacing.
+Pedestrian walking/work cycles remain deferred.
+
 ## Cache Road wet brake and damage effects — September 29
 
 Braking makes a pair of broken red reflections under Cache and leaves six

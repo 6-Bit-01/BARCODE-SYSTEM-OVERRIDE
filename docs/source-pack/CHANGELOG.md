@@ -1,5 +1,17 @@
 # Recovery checkpoint — September 14
 
+## September 29, 2026 — complete animation asset delivery
+
+- Record merged #142's 23 animated sheets: eleven vehicles, eight fixtures and
+  four action symbols, with the existing production-draw and frame-board review.
+- Pin those sheets and seven companion painted cues/effects to #142's immutable
+  merge revision, preserving bundled fallback and the shared loader's retry cap.
+- Extend the asset-loading checks for hosted requests, successful local fallback,
+  bounded failure and retained atlas coordinates. Full checkout CI is the merge
+  gate; owner Makko moving-art, controller/audio and pacing review remains open.
+- Leave individual pedestrian cycles as the remaining deferred animation work.
+  This changes asset delivery only; rollback is a revert of this follow-up.
+
 ## September 29, 2026 — wet road and persistent damage cues (review branch)
 
 - Paint two new transparent WebPs for brake reflections and damaged exhaust.

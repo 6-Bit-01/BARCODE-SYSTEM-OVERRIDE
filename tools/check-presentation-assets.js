@@ -39,15 +39,30 @@ const animationPaths=[
   ...['surge','push','brace','refill']
     .map(name=>`assets/cache-road/roadside/beat/animation/${name}-frames.webp`)
 ];
-const localPaths=[...pulseCuePaths,...animationPaths];
-const localImages=images.filter(im=>localPaths.includes(im.requests[0]));
-assert.deepEqual(localImages.map(im=>im.requests[0]).sort(),localPaths.slice().sort(),
-  'all original cues and the 23 painted animation sheets preload locally');
-assert(localImages.every(im=>fs.existsSync(path.join(root,im.requests[0]))),
-  'every new cel sheet is bundled with the deployed project');
-assert(images.filter(im=>!districtImages.includes(im) && !localImages.includes(im)).every(im=>
+const paintedPaths=[...pulseCuePaths,...animationPaths];
+const paintedRoot='https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/88623df039cad868a8c9565a23209a2f5b557c47/';
+const paintedImages=images.filter(im=>im.requests[0].startsWith(paintedRoot));
+assert.deepEqual(paintedImages.map(im=>im.requests[0].slice(paintedRoot.length)).sort(),
+  paintedPaths.slice().sort(),
+  '23 animation sheets and seven painted cues/effects have an immutable hosted source');
+for(const image of paintedImages) {
+  image.onerror();
+  const local=image.requests[0].slice(paintedRoot.length);
+  assert.deepEqual(image.requests,[paintedRoot+local,local],
+    'a failed hosted request falls back once to the matching bundled asset');
+  assert(fs.existsSync(path.join(root,local)),local+' is bundled');
+}
+assert(images.every(im=>
   /^https:\/\/raw\.githubusercontent\.com\/.+\/[a-f0-9]{40}\//.test(im.requests[0])),
-  'previously published assets retain immutable revisions');
+  'all presentation assets start at immutable published revisions');
+const failedPaintedImage=paintedImages.find(im=>
+  im.requests[0].endsWith('/pulse-burst.webp'));
+failedPaintedImage.onerror();
+assert.strictEqual(failedPaintedImage.onload,null);
+assert.strictEqual(failedPaintedImage.onerror,null);
+art.preload();
+assert.strictEqual(images.length,218,'failed painted assets are not recreated on restart');
+assert.strictEqual(failedPaintedImage.requests.length,2,'painted assets stop after both sources fail');
 const cacheRoadRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/37db98387b8791655e3ff352d6bc6d61cb0b574b/';
 assert.equal(images.filter(im => im.requests[0].startsWith(cacheRoadRoot)).length,9,
   'remaining static Cache Road art retains its published pinned revision');
@@ -144,14 +159,14 @@ assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2),
   [512, 662, 402, 185, -125, -55.5, 250, 111],
   'collision eyes come from the second row inside the same mirror crop');
 const cacheCelImage=images.find(im=>im.requests[0]===
-  'assets/cache-road/vehicles/animation/cache-center-frames.webp');
+  paintedRoot+'assets/cache-road/vehicles/animation/cache-center-frames.webp');
 cacheCelImage.naturalWidth=1472; cacheCelImage.naturalHeight=534; cacheCelImage.onload();
 ops.length=0; art.draw('cacheCar',ctx,{x:400,y:600,width:200,height:150,frame:5});
 assert.deepStrictEqual(ops.find(op=>op[0]==='drawImage').slice(2),
   [368,267,368,267,-100,-150,200,150],
   'vehicle frame 5 samples the second row and keeps its grounded anchor');
 const lampCelImage=images.find(im=>im.requests[0]===
-  'assets/cache-road/world/props/animation/street-lamp-L-frames.webp');
+  paintedRoot+'assets/cache-road/world/props/animation/street-lamp-L-frames.webp');
 lampCelImage.naturalWidth=1152; lampCelImage.naturalHeight=576; lampCelImage.onload();
 ops.length=0; art.draw('cacheNewLampL',ctx,{x:300,y:600,width:120,height:180,frame:2});
 assert.deepStrictEqual(ops.find(op=>op[0]==='drawImage').slice(2),
