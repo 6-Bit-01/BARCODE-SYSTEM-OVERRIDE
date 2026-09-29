@@ -88,10 +88,19 @@ pause/resume and complete song/Echo exits in all gears. Actual output-helper
 and captured-input checks cover five delays (0/20/80/150/250 ms), all three
 gears and 50 perfect heard-beat arrivals. The motion check covers 221 settled
 window samples, ordinary stable chassis, moving treads and all impact cels.
-Full npm/syntax and real Chromium CI gate publication/merge.
+Local npm/syntax and the real Chromium CI run on production revision
+`5f18b84372bdecb5b5eee02c71d845bf87914b79` passed. All 41 hosted sheets
+matched bundled bytes and loaded through the production remote loader.
+The review audio peaks at 0.676 with no clipping or retained SFX voices.
+The final artifact-bearing head must also pass CI before merge.
 
-The input-driven review preserves real traffic and integrity. Final review
-metrics and Chromium evidence live in `review-cache-downbeat-depth/`.
+The 32-second input-driven review uses all three gears, earns seven perfect
+catches and retains all three integrity points against real traffic.
+`review-cache-downbeat-depth/Drive-Review.mp4` includes the matching original
+stems and production confirmation sounds. The isolated comparison is
+`review-cache-downbeat-depth/Car-Motion-Before-After.mp4`; it demonstrates
+perspective motion rather than a separate game engine. Metrics and Chromium
+evidence live in the same review directory.
 Owner Makko import, sustained device FPS and musical/controller feel remain
 open. No new art binaries or asset roots were introduced. Reverting this
 change returns the PR #148 code and its earlier beat-four behavior; the next

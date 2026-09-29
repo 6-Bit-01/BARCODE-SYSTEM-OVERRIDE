@@ -16,6 +16,7 @@ DOC_PREFIX = "docs/source-pack/"
 RETAINED_REVIEW_VIDEOS = {
     "review-cache-layered-city/Continuous-Drive.mp4",
     "review-cache-downbeat-depth/Drive-Review.mp4",
+    "review-cache-downbeat-depth/Car-Motion-Before-After.mp4",
 }
 CURRENT_REVIEW = "review-cache-downbeat-depth/"
 REVIEW_MEDIA_SUFFIXES = {".webp", ".png", ".mp4", ".jpg", ".jpeg", ".gif", ".mp3"}
