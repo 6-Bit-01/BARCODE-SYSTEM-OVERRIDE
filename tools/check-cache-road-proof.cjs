@@ -302,7 +302,8 @@ async function run() {
   assert.equal(C.readResume().levelState.proofVersion, 4);
   const roadStart = copy(C.readResume());
   const liveState = road.state, oldArt = B.PresentationAssets;
-  const mirrorFrames = [], roadArt = [], openingRects = [], drawOrder = [], hudLines = [], contacts = [];
+  const mirrorFrames = [], mirrorRoads = [], mirrorTraffic = [];
+  const roadArt = [], openingRects = [], drawOrder = [], hudLines = [], contacts = [];
   const trafficLabels = [], beacons = [], sidewalkEdges = [], clipStack = [];
   const ridgeAt = (points,x) => {
     if(!points)return Infinity;
@@ -315,7 +316,7 @@ async function run() {
   B.PresentationAssets = { ready(key) { return key.startsWith('cache'); },
     draw(key, _ctx, options) {
     if (key === 'cacheMirror') mirrorFrames.push({ frame: options.frame,
-      sourceRect: options.sourceRect, x: options.x, y: options.y });
+      sourceRect: options.sourceRect, x: options.x, y: options.y, filter: _ctx.filter });
     else { roadArt.push({ key, ...options, alpha:_ctx.globalAlpha ?? 1,
       clipHeight: ridgeAt(_ctx.ridge,options.x),
       clipLeft: ridgeAt(_ctx.ridge,options.x-(options.width||0)/2),
@@ -340,9 +341,9 @@ async function run() {
       if(x===0 && y===0 && width===1920) this.pendingClip=height;
     },
     save() { clipStack.push({ height:this.clipHeight, ridge:this.ridge,
-      alpha:this.globalAlpha ?? 1 }); },
+      alpha:this.globalAlpha ?? 1, filter:this.filter }); },
     restore() { const last=clipStack.pop(); this.clipHeight=last?.height ?? Infinity;
-      this.ridge=last?.ridge;this.globalAlpha=last?.alpha ?? 1; },
+      this.ridge=last?.ridge;this.globalAlpha=last?.alpha ?? 1;this.filter=last?.filter; },
     clip() {
       if(this.pendingClip!=null)
         this.clipHeight=Math.min(this.clipHeight ?? Infinity,this.pendingClip);
@@ -360,7 +361,12 @@ async function run() {
     },
     fillRect(x, y, width, height) {
       if (x === 30 && y === 176 && width > 100) openingRects.push([width, height]);
-    }, fill() { if (this.fillStyle === '#174c51') drawOrder.push('roadPad'); },
+      if (this.fillStyle === '#ffe8bc')
+        mirrorTraffic.push({ x,y,width,height,filter:this.filter });
+    }, fill() {
+      if (this.fillStyle === '#174c51') drawOrder.push('roadPad');
+      if (this.fillStyle === '#192e39') mirrorRoads.push(this.path.slice());
+    },
     translate(x,y) { this.lastTranslate = [x,y]; },
     transform(...values) { this.lastTransform = values; },
     ellipse(x,y,rx,ry) {
@@ -381,16 +387,38 @@ async function run() {
       stumbleMs: 0, boostMs: 0, zoneEndBeat: -1, pendingCapture: null,
       candidateHold: 0, cutFlashMs: 0, messageMs: 0, rivalWarning: false,
       ...overrides };
-    mirrorFrames.length = 0; roadArt.length = 0; openingRects.length = 0;
+    mirrorFrames.length = 0; mirrorRoads.length = 0; mirrorTraffic.length = 0;
+    roadArt.length = 0; openingRects.length = 0;
     drawOrder.length = 0; hudLines.length = 0; contacts.length = 0;
     sidewalkEdges.length = 0;
     trafficLabels.length = 0; beacons.length = 0; road.draw(drawCtx);
     assert.equal(mirrorFrames.length, 1, 'one expression is drawn inside the shared rearview');
     assert.deepEqual(Array.from(mirrorFrames[0].sourceRect), [0, 150, 450, 185]);
     assert.equal(mirrorFrames[0].x, 833, 'the completed face sits inside the driver side');
+    assert.notEqual(mirrorFrames[0].filter, 'blur(2.3px)',
+      'Cache stays sharp outside the blurred reflection');
     return mirrorFrames[0].frame;
   };
   assert.equal(mirrorFrame({}), 0);
+  mirrorFrame({progress:185});
+  assert.equal(mirrorTraffic.length,0,'traffic ahead is absent from the rearview');
+  mirrorFrame({progress:215});
+  assert.equal(mirrorTraffic.length,2,'a passed hazard shows two blurred headlights');
+  assert(mirrorTraffic.every(light=>light.filter==='blur(2.3px)'),
+    'only the reflected world gets the mirror blur');
+  const firstLight={...mirrorTraffic[0]};
+  const firstBend=mirrorRoads[0];
+  assert.equal(mirrorRoads.length,1,'the rearview has one continuous curved road');
+  assert.equal((firstBend[12].x+firstBend[13].x)/2,638+475,
+    'the reflected road follows the car at its near end');
+  mirrorFrame({progress:250});
+  assert.equal(mirrorTraffic.length,2,'the same passed car remains behind Cache');
+  assert(mirrorTraffic[0].y<firstLight.y && mirrorTraffic[0].width<firstLight.width,
+    'a passed car recedes and shrinks as road progress increases');
+  mirrorFrame({progress:450});
+  assert.notEqual((mirrorRoads[0][0].x+mirrorRoads[0].at(-1).x)/2,
+    (firstBend[0].x+firstBend.at(-1).x)/2,
+    'rear road curvature follows the shared world path');
   assert(roadArt.some(entry => entry.key === 'cacheDistantCity') &&
     roadArt.some(entry => entry.key === 'cacheOutskirts') &&
     roadArt.some(entry => entry.key === 'cacheMidCity') &&
