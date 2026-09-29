@@ -1,5 +1,16 @@
 # Repository Guidance
 
+## September 29, 2026 — direction-locked Cache Road pedestrians
+
+Animate a person only when the source pose shows travel. Six walker
+identities have separate toward and away footfalls; the bike courier pushes
+right on foot, the skateboarder rolls left, and the crate carrier walks
+right. Never mirror these travel cels. Keep seated and standing figures still.
+The frame sheets and editable generated PNGs are under the family animation
+folders, with original still cutouts retained. The owner authorized public
+publication and the immutable art ancestor is now on the review branch.
+See `docs/source-pack/CACHE_ROAD_PEDESTRIAN_TRAVEL.md`.
+
 ## September 29, 2026 — Cache Road animated painted cels
 
 The eight-frame car/action sheets and three-frame practical roadside sheets

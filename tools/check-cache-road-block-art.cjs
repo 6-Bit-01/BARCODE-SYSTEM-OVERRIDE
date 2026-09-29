@@ -146,6 +146,32 @@ async function run() {
     assert(source.alpha[3]<16&&runtime.alpha[3]<16,
       `${name} preserves transparent corners`);
   }
-  console.log('Cache Road art: 48 sided contacts, four materials, eight joins, six decals, 22 individual cutouts and six light sheets pass');
+  for(const name of ['walker-courier','walker-mechanic','walker-market-worker',
+    'walker-student','walker-gardener','walker-resident',
+    'person-bicycle-courier','person-skateboarder','person-crate-carrier']) {
+    const original=name.startsWith('walker-') ?
+      `${name}-toward.webp` : `${name}.webp`;
+    const pose=await pixels(path.join(root,props,original));
+    const sourcePath=path.join(root,
+      `assets/cache-road/world/sources/animation/${name}-source.png`);
+    assert(fs.existsSync(sourcePath),`${name} retains its editable source atlas`);
+    const atlas=await pixels(path.join(root,props,`animation/${name}-frames.webp`));
+    const cols=name==='person-bicycle-courier'||name==='person-skateboarder'?2:4;
+    assert.deepEqual([atlas.w,atlas.h],[Math.round(384*pose.w/pose.h)*cols,768],
+      `${name} is registered to the original aspect in a two-row sheet`);
+    const cw=atlas.w/cols,ch=atlas.h/2;
+    for(let frame=0;frame<cols*2;frame++) {
+      const x=frame%cols*cw,y=Math.floor(frame/cols)*ch;
+      let solid=0;
+      for(let yy=y+8;yy<y+ch-8;yy+=4)
+        for(let xx=x+8;xx<x+cw-8;xx+=4)
+          solid+=atlas.alpha[(yy*atlas.w+xx)*4+3]>128;
+      assert(solid>100,`${name} frame ${frame} contains the painted figure`);
+      for(const edge of [x,x+cw-1])for(let yy=y;yy<y+ch;yy+=4)
+        assert(atlas.alpha[(yy*atlas.w+edge)*4+3]<16,
+          `${name} frame ${frame} has no horizontal edge clipping`);
+    }
+  }
+  console.log('Cache Road art: 48 sided contacts, four materials, eight joins, six decals, 22 still cutouts, six light sheets and nine travel sheets pass');
 }
 run().catch(error=>{console.error(error.stack||error);process.exitCode=1;});

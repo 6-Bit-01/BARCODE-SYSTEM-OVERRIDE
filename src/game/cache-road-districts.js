@@ -544,9 +544,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-districts.js',
             ctx.ellipse(p.x,p.y+3*t,Math.max(4,width*.3),4*t,
               0,0,Math.PI*2);ctx.fill();
           }
+          const travelPose=item.type==='person' &&
+            ['cachePersonBicycleCourier','cachePersonSkateboarder',
+              'cachePersonCrateCarrier'].includes(item.key);
           B.PresentationAssets?.draw?.(card?key:item.key,ctx,{
             x:p.x,y:p.y+(card?12*t:0),width,height,
-            flip:card?flip:!!item.flip});
+            flip:card?flip:travelPose?false:!!item.flip});
         });
         ctx.restore();
       }

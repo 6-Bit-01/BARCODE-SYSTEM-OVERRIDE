@@ -114,6 +114,15 @@ async function main() {
     cacheWalkerGardenerAway: 'assets/cache-road/world/props/walker-gardener-away.webp',
     cacheWalkerResidentToward: 'assets/cache-road/world/props/walker-resident-toward.webp',
     cacheWalkerResidentAway: 'assets/cache-road/world/props/walker-resident-away.webp',
+    cacheWalkerCourierTravel: 'assets/cache-road/world/props/animation/walker-courier-frames.webp',
+    cacheWalkerMechanicTravel: 'assets/cache-road/world/props/animation/walker-mechanic-frames.webp',
+    cacheWalkerMarketWorkerTravel: 'assets/cache-road/world/props/animation/walker-market-worker-frames.webp',
+    cacheWalkerStudentTravel: 'assets/cache-road/world/props/animation/walker-student-frames.webp',
+    cacheWalkerGardenerTravel: 'assets/cache-road/world/props/animation/walker-gardener-frames.webp',
+    cacheWalkerResidentTravel: 'assets/cache-road/world/props/animation/walker-resident-frames.webp',
+    cachePersonBicycleCourierTravel: 'assets/cache-road/world/props/animation/person-bicycle-courier-frames.webp',
+    cachePersonSkateboarderTravel: 'assets/cache-road/world/props/animation/person-skateboarder-frames.webp',
+    cachePersonCrateCarrierTravel: 'assets/cache-road/world/props/animation/person-crate-carrier-frames.webp',
     cacheNewLampL: 'assets/cache-road/world/props/animation/street-lamp-L-frames.webp',
     cacheNewLampR: 'assets/cache-road/world/props/animation/street-lamp-R-frames.webp',
     cacheNewCrossingSignalL: 'assets/cache-road/world/props/animation/street-crossing-signal-L-frames.webp',
@@ -377,9 +386,14 @@ async function main() {
         'cacheNewVendorCart','cacheStreetDataKiosk'].includes(key);
       const actionCel = ['cachePulseSurge','cachePulsePush',
         'cachePulseBrace','cachePulseRefill'].includes(key);
+      const walkerCel=/^cacheWalker.*Travel$/.test(key);
+      const eightTravel=key==='cachePersonCrateCarrierTravel';
+      const fourTravel=key==='cachePersonBicycleCourierTravel'||
+        key==='cachePersonSkateboarderTravel';
       const pulseIcon=key.startsWith('cachePulse') && !['cachePulsePad','cachePulseStrip'].includes(key);
-      const cols=mirror?3:ship?8:vehicleCel||actionCel?4:propCel?3:1;
-      const rows=mirror||vehicleCel||actionCel?2:1;
+      const cols=mirror?3:ship?8:vehicleCel||actionCel||walkerCel||eightTravel?4:
+        fourTravel?2:propCel?3:1;
+      const rows=mirror||vehicleCel||actionCel||walkerCel||eightTravel||fourTravel?2:1;
       const frameWidth = ship ? 320 : image.width/cols;
       const frameHeight = key === 'cacheFly1' ? 83 : key === 'cacheFly3' ? 97 : image.height/rows;
       const [sx, sy, sw, sh] = sourceRect || [0,0,mirror ? 512 : frameWidth,mirror ? 512 : frameHeight];

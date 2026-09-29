@@ -11,7 +11,7 @@ w.Image = class Image {
 load(context, 'src/engine/presentation-assets.js');
 const art = w.BARCODE.PresentationAssets;
 for (let i = 0; i < 20; i++) art.preload();
-assert.strictEqual(images.length, 218, 'restarts reuse Cache traffic, six block families, graph joins, ground, walkers, props, decals, practical lights and local effects');
+assert.strictEqual(images.length, 227, 'restarts reuse Cache traffic, six block families, nine travel sheets, graph joins, ground, walkers, props, decals, practical lights and local effects');
 const districtRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/33c768b73f29d9e0e2a91f30961a525030e6f6ba/';
 const districtImages=images.filter(im=>im.requests[0].startsWith(districtRoot));
 assert.equal(districtImages.length,90,
@@ -52,6 +52,24 @@ for(const image of paintedImages) {
     'a failed hosted request falls back once to the matching bundled asset');
   assert(fs.existsSync(path.join(root,local)),local+' is bundled');
 }
+const pedestrianRoot='https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/6f128e9c3ddca5e642c01bd94d61d3ffbf18bf52/';
+const travelPaths=[...['courier','mechanic','market-worker','student','gardener','resident']
+  .map(name=>`assets/cache-road/world/props/animation/walker-${name}-frames.webp`),
+  ...['bicycle-courier','skateboarder','crate-carrier']
+    .map(name=>`assets/cache-road/world/props/animation/person-${name}-frames.webp`)];
+const travelImages=images.filter(im=>im.requests[0].startsWith(pedestrianRoot));
+assert.deepEqual(travelImages.map(im=>im.requests[0].slice(pedestrianRoot.length)).sort(),
+  travelPaths.slice().sort(),'only painted travel figures load new frame sheets');
+for(const image of travelImages) {
+  image.onerror();
+  const local=image.requests[0].slice(pedestrianRoot.length);
+  assert.deepEqual(image.requests,[pedestrianRoot+local,local],
+    'each new sheet has one bundled fallback when the pinned art is unavailable');
+  assert(fs.existsSync(path.join(root,local)),local+' has its packed WebP');
+  assert(fs.existsSync(path.join(root,local.replace('/props/animation/',
+    '/sources/animation/').replace('-frames.webp','-source.png'))),
+    local+' retains the editable PNG atlas');
+}
 assert(images.every(im=>
   /^https:\/\/raw\.githubusercontent\.com\/.+\/[a-f0-9]{40}\//.test(im.requests[0])),
   'all presentation assets start at immutable published revisions');
@@ -61,7 +79,7 @@ failedPaintedImage.onerror();
 assert.strictEqual(failedPaintedImage.onload,null);
 assert.strictEqual(failedPaintedImage.onerror,null);
 art.preload();
-assert.strictEqual(images.length,218,'failed painted assets are not recreated on restart');
+assert.strictEqual(images.length,227,'failed painted assets are not recreated on restart');
 assert.strictEqual(failedPaintedImage.requests.length,2,'painted assets stop after both sources fail');
 const cacheRoadRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/37db98387b8791655e3ff352d6bc6d61cb0b574b/';
 assert.equal(images.filter(im => im.requests[0].startsWith(cacheRoadRoot)).length,9,
@@ -174,7 +192,7 @@ assert.deepStrictEqual(ops.find(op=>op[0]==='drawImage').slice(2),
   'roadside cel selection preserves the pole foot at the world address');
 arrowImage.onerror(); arrowImage.onerror();
 assert.strictEqual(arrowImage.requests.length, 2); assert.strictEqual(arrowImage.onerror, null);
-art.preload(); assert.strictEqual(images.length, 218, 'failed assets do not retry forever');
+art.preload(); assert.strictEqual(images.length, 227, 'failed assets do not retry forever');
 pulseImage.naturalWidth = pulseImage.naturalHeight = 512; pulseImage.onload();
 ops.length = 0; art.draw('bossPulse', ctx, { y: 822, width: 64, height: 56, frame: 2 });
 assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2), [10, 351, 236, 145, -32, -56, 64, 56], 'pulse fills the dangerous height and retains the ground anchor');

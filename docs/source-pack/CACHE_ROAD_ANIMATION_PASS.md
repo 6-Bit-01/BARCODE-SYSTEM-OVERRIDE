@@ -26,8 +26,11 @@ in a hosted import. The static source art remains bundled.
   charged cel, and a successful catch plays the full eight-cel response in
   the HUD over the painted burst. The button and timing rules are unchanged.
 - Reduced Motion selects cel zero for vehicles, fixtures, and action symbols.
-- Existing nonluminous crates, racks, bins, benches, planter, barricade,
-  and individual pedestrian cutouts retain their static paintings.
+- Existing nonluminous crates, racks, bins, benches, planter and barricade
+  retain their static paintings. The later direction-locked pedestrian pass
+  animates only six walking identities, a bike pusher, a skateboarder and a
+  crate carrier; seated and standing people remain still. See
+  `CACHE_ROAD_PEDESTRIAN_TRAVEL.md`.
 
 The sheets were made with built-in ImageGen from the existing transparent
 paintings. Each prompt held the source silhouette and contact fixed while

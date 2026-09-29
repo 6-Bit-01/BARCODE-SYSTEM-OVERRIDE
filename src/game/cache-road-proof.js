@@ -211,6 +211,28 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       .flatMap(identity=>['Toward','Away'].map(direction=>
         [`cacheWalker${identity}${direction}`,1024/1536,132]))
   ];
+  const WALKER_TRAVEL=['Courier','Mechanic','MarketWorker','Student',
+    'Gardener','Resident'].map(identity=>`cacheWalker${identity}Travel`);
+  const OTHER_TRAVEL={
+    5:['cachePersonBicycleCourierTravel',4,220],
+    11:['cachePersonSkateboarderTravel',4,170],
+    12:['cachePersonCrateCarrierTravel',8,210]
+  };
+  const travels=id=>id>=15||OTHER_TRAVEL[id]!==undefined;
+  function pedestrianTravel(item,s,reduced) {
+    const id=item.id;
+    if(!travels(id))return null;
+    if(id>=15) {
+      // Toward and away are authored views, not horizontally mirrored poses.
+      const direction=(id-15)%2;
+      const phase=reduced?0:Math.floor(((s.elapsedMs||0)+item.at*13)/210);
+      return {key:WALKER_TRAVEL[Math.floor((id-15)/2)],
+        frame:direction*4+((phase%4)+4)%4};
+    }
+    const [key,count,period]=OTHER_TRAVEL[id];
+    const phase=reduced?0:Math.floor(((s.elapsedMs||0)+item.at*13)/period);
+    return {key,frame:((phase%count)+count)%count};
+  }
   const PASSERS=[0,1,2,3,4,5,7,10,11,12];
   const LOCAL_ACTIONS={
     market:[14,12,5],diner:[14,12,7],
@@ -262,7 +284,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       return {id,at:center+(mirror?-along:along),
         base:base+radial+Math.round((placeRandom(seed+id*79)-.5)*10),
         scale:1+placeRandom(seed+id*37)*.09,
-        flip:placeRandom(seed+id*73)>.5};
+        // Travel poses only face their authored direction. Planted people can
+        // still be composed toward either side of a frontage.
+        flip:travels(id)?false:placeRandom(seed+id*73)>.5};
     }).sort((a,b)=>b.at-a.at);
   // These are world addresses, generated once with a stable seed. Road
   // progress projects the same people and furniture as the ground and lane.
@@ -553,11 +577,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const height=(person?2.5:3.5)+10*p.t*item.scale;
       const artX=p.x+side*(p.half+10+item.base*.065*p.t);
       ctx.globalAlpha=.55+.36*p.t;
-      B.PresentationAssets?.draw?.(person?key:item.key,ctx,{
-        x:artX,y:p.y+2*p.t,width:height*aspect,height,
-        flip:person?item.flip:false,
-        frame:person||reduced?0:
-          ((Math.floor(((s.elapsedMs||0)+item.at*9)/310)%3)+3)%3 });
+      const travel=person?pedestrianTravel(item,s,reduced):null;
+      const args={x:artX,y:p.y+2*p.t,width:height*aspect,height,
+        flip:travel?false:person?item.flip:false,
+        frame:travel?.frame??(person||reduced?0:
+          ((Math.floor(((s.elapsedMs||0)+item.at*9)/310)%3)+3)%3)};
+      if(!travel||!B.PresentationAssets?.draw?.(travel.key,ctx,args))
+        B.PresentationAssets?.draw?.(key,ctx,{...args,frame:0});
       ctx.globalAlpha=1;
     }
     for(const hazard of HAZARDS) {
@@ -2332,9 +2358,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           // World-address offset prevents fixtures flashing in lockstep.
           const propFrame = !person && !reduced ?
             ((Math.floor(((s.elapsedMs||0)+item.at*9)/310)%3)+3)%3 : 0;
-          B.PresentationAssets?.draw?.(key,ctx,{
-            x,y:foot,width,height:h,flip:person?item.flip:false,
-            frame:propFrame });
+          const travel=person?pedestrianTravel(item,s,reduced):null;
+          const args={x,y:foot,width,height:h,
+            flip:travel?false:person?item.flip:false,
+            frame:travel?.frame??propFrame};
+          if(!travel||!B.PresentationAssets?.draw?.(travel.key,ctx,args))
+            B.PresentationAssets?.draw?.(key,ctx,{...args,frame:propFrame});
           ctx.restore();
         },scene.side,{foot,height:h,reveal:!person});
       };

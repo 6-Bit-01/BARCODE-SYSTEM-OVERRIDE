@@ -29,6 +29,9 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   // PR #142 contains the finished painted sheets and cues. Hosted imports
   // use this immutable source; the shared loader retains bundled fallback.
   const cachePaintedRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/88623df039cad868a8c9565a23209a2f5b557c47/';
+  // New travel art is pinned to the exact binary commit. The original still
+  // cutouts below remain available while a new sheet loads or falls back.
+  const cachePedestrianRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/6f128e9c3ddca5e642c01bd94d61d3ffbf18bf52/';
   const entries = {
     cacheMirror: { path: 'assets/cache-road/hud/cache-back-mirror-expressions.webp', root: cacheRoadRoot,
       columns: 3, rows: 2, frames: 6, ax: .5, ay: .5, smooth: true },
@@ -141,6 +144,15 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     cacheWalkerGardenerAway: { path: 'assets/cache-road/world/props/walker-gardener-away.webp', root: cacheDistrictRoot, columns: 1, rows: 1, frames: 1, ax: 0.5, ay: 1, smooth: true },
     cacheWalkerResidentToward: { path: 'assets/cache-road/world/props/walker-resident-toward.webp', root: cacheDistrictRoot, columns: 1, rows: 1, frames: 1, ax: 0.5, ay: 1, smooth: true },
     cacheWalkerResidentAway: { path: 'assets/cache-road/world/props/walker-resident-away.webp', root: cacheDistrictRoot, columns: 1, rows: 1, frames: 1, ax: 0.5, ay: 1, smooth: true },
+    cacheWalkerCourierTravel: { path: 'assets/cache-road/world/props/animation/walker-courier-frames.webp', root: cachePedestrianRoot, columns: 4, rows: 2, frames: 8, ax: .5, ay: 1, smooth: true },
+    cacheWalkerMechanicTravel: { path: 'assets/cache-road/world/props/animation/walker-mechanic-frames.webp', root: cachePedestrianRoot, columns: 4, rows: 2, frames: 8, ax: .5, ay: 1, smooth: true },
+    cacheWalkerMarketWorkerTravel: { path: 'assets/cache-road/world/props/animation/walker-market-worker-frames.webp', root: cachePedestrianRoot, columns: 4, rows: 2, frames: 8, ax: .5, ay: 1, smooth: true },
+    cacheWalkerStudentTravel: { path: 'assets/cache-road/world/props/animation/walker-student-frames.webp', root: cachePedestrianRoot, columns: 4, rows: 2, frames: 8, ax: .5, ay: 1, smooth: true },
+    cacheWalkerGardenerTravel: { path: 'assets/cache-road/world/props/animation/walker-gardener-frames.webp', root: cachePedestrianRoot, columns: 4, rows: 2, frames: 8, ax: .5, ay: 1, smooth: true },
+    cacheWalkerResidentTravel: { path: 'assets/cache-road/world/props/animation/walker-resident-frames.webp', root: cachePedestrianRoot, columns: 4, rows: 2, frames: 8, ax: .5, ay: 1, smooth: true },
+    cachePersonBicycleCourierTravel: { path: 'assets/cache-road/world/props/animation/person-bicycle-courier-frames.webp', root: cachePedestrianRoot, columns: 2, rows: 2, frames: 4, ax: .5, ay: 1, smooth: true },
+    cachePersonSkateboarderTravel: { path: 'assets/cache-road/world/props/animation/person-skateboarder-frames.webp', root: cachePedestrianRoot, columns: 2, rows: 2, frames: 4, ax: .5, ay: 1, smooth: true },
+    cachePersonCrateCarrierTravel: { path: 'assets/cache-road/world/props/animation/person-crate-carrier-frames.webp', root: cachePedestrianRoot, columns: 4, rows: 2, frames: 8, ax: .5, ay: 1, smooth: true },
     cacheNewLampL: { path: 'assets/cache-road/world/props/animation/street-lamp-L-frames.webp', root: cachePaintedRoot, columns: 3, rows: 1, frames: 3, ax: 0.5, ay: 1, smooth: true },
     cacheNewLampR: { path: 'assets/cache-road/world/props/animation/street-lamp-R-frames.webp', root: cachePaintedRoot, columns: 3, rows: 1, frames: 3, ax: 0.5, ay: 1, smooth: true },
     cacheNewCrossingSignalL: { path: 'assets/cache-road/world/props/animation/street-crossing-signal-L-frames.webp', root: cachePaintedRoot, columns: 3, rows: 1, frames: 3, ax: 0.5, ay: 1, smooth: true },
