@@ -215,6 +215,8 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     cacheServiceGround: { path: 'assets/cache-road/roadside/service-ground-panel.svg', root: cacheRoadsideRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 0, smooth: true },
     cacheImpactGrit: { path: 'assets/cache-road/effects/impact-grit.webp', root: cacheRoadRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
     cacheSpeedMist: { path: 'assets/cache-road/effects/speed-mist.webp', root: cacheRoadRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: 1, smooth: true },
+    cacheBrakeReflection: { path: 'assets/cache-road/effects/brake-reflection.webp', root: '', columns: 1, rows: 1, frames: 1, ax: .5, ay: 0, smooth: true },
+    cacheDamagedExhaust: { path: 'assets/cache-road/effects/damaged-exhaust.webp', root: '', columns: 1, rows: 1, frames: 1, ax: 1, ay: 0, smooth: true },
     cacheBlacktop: { path: 'assets/wet-street/rain-blacktop.webp', root: cacheRoadRoot, columns: 1, rows: 1, frames: 1, ax: 0, ay: 0, smooth: true },
     cacheFly1: { path: 'assets/traffic/ship-1.webp', root: cacheRoadRoot, columns: 8, rows: 11, frames: 81, ax: .5, ay: .5, smooth: false },
     cacheFly3: { path: 'assets/traffic/ship-3.webp', root: cacheRoadRoot, columns: 8, rows: 16, frames: 122, ax: .5, ay: .5, smooth: false },

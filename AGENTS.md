@@ -1,5 +1,14 @@
 # Repository Guidance
 
+## September 29, 2026 — Cache Road wet-road feedback review
+
+Brake-light reflections and damage exhaust use two local transparent WebPs.
+Keep their draw beneath the car and off the HUD. The brake input brightens
+Cache's reflection and lays short tire tracks; traffic tail lights stay dim.
+Integrity 2 and 1 show increasing exhaust after the collision grit clears.
+These are presentation only: preserve speed, collision, audio and save rules.
+Merge after CI for the owner's Makko moving-art review.
+
 ## September 29, 2026 — Cache Road speed-safe painted pulse review
 
 Keep beat pads at authored road addresses and beneath traffic. A matching

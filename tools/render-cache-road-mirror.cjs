@@ -218,6 +218,8 @@ async function main() {
     }),
     cacheImpactGrit: 'assets/cache-road/effects/impact-grit.webp',
     cacheSpeedMist: 'assets/cache-road/effects/speed-mist.webp',
+    cacheBrakeReflection: 'assets/cache-road/effects/brake-reflection.webp',
+    cacheDamagedExhaust: 'assets/cache-road/effects/damaged-exhaust.webp',
     cacheBlacktop: 'assets/wet-street/rain-blacktop.webp',
     cacheFly1: 'assets/traffic/ship-1.webp',
     cacheFly3: 'assets/traffic/ship-3.webp'
@@ -373,10 +375,10 @@ async function main() {
       const frameHeight = key === 'cacheFly1' ? 83 : key === 'cacheFly3' ? 97 : image.height;
       const [sx, sy, sw, sh] = sourceRect || [0,0,mirror ? 512 : frameWidth,mirror ? 512 : frameHeight];
       const flatJoin=key.endsWith('Turn')||key.endsWith('Curb');
-      const ax = pulseIcon ? .5 : key === 'cachePulsePad' || key === 'cachePulseStrip' || key === 'cachePhraseStrip' || key === 'cacheSkyline' || key === 'cacheDistantCity' || key === 'cacheOutskirts' || key === 'cacheMidCity' || key === 'cacheBlacktop' || key === 'cacheSidewalk' || key.endsWith('Ground') || key === 'cacheRollingGrain' || key === 'cacheWorkshopPavement' || key === 'cacheLocalStreet' || flatJoin ? 0 :
+      const ax = key === 'cacheDamagedExhaust' ? 1 : pulseIcon ? .5 : key === 'cachePulsePad' || key === 'cachePulseStrip' || key === 'cachePhraseStrip' || key === 'cacheSkyline' || key === 'cacheDistantCity' || key === 'cacheOutskirts' || key === 'cacheMidCity' || key === 'cacheBlacktop' || key === 'cacheSidewalk' || key.endsWith('Ground') || key === 'cacheRollingGrain' || key === 'cacheWorkshopPavement' || key === 'cacheLocalStreet' || flatJoin ? 0 :
         key === 'cachePylon' ? .28 : .5;
       const ay = key === 'cacheMirror' || ship || pulseIcon ? .5 :
-        key === 'cachePulsePad' || key === 'cachePulseStrip' || key === 'cachePhraseStrip' || key === 'cacheBlacktop' || key === 'cacheSidewalk' || key.endsWith('Ground') || key === 'cacheRollingGrain' || key === 'cacheWorkshopPavement' || key === 'cacheLocalStreet' || flatJoin ? 0 : 1;
+        key === 'cacheDamagedExhaust' || key === 'cacheBrakeReflection' || key === 'cachePulsePad' || key === 'cachePulseStrip' || key === 'cachePhraseStrip' || key === 'cacheBlacktop' || key === 'cacheSidewalk' || key.endsWith('Ground') || key === 'cacheRollingGrain' || key === 'cacheWorkshopPavement' || key === 'cacheLocalStreet' || flatJoin ? 0 : 1;
       const reviewFlip=key === 'cacheReviewPlace' &&
         process.env.CACHE_REVIEW_FLIP_RIGHT === '1' && x>960;
       ctx.save(); ctx.translate(x,y);
@@ -495,7 +497,9 @@ async function main() {
     const [from,to,start,end] = stillReview ? [reviewLane,reviewLane,0,1] : laneMoves[chapterIndex];
     const turn = Math.max(0,Math.min(1,(local-start)/(end-start)));
     s.lanePos = s.visualLane = continuous ? 1.5+.45*Math.sin(local*.41) : from+(to-from)*smooth(turn);
-    s.lane = Math.round(s.lanePos); s.speed = 54;
+    s.lane = Math.round(s.lanePos);
+    s.speed = Number(process.env.CACHE_REVIEW_SPEED ??
+      (process.env.CACHE_REVIEW_BRAKING === '1' ? 32 : 54));
     s.steer = continuous ? .12*Math.cos(local*.41) :
       turn > 0 && turn < 1 ? Math.sign(to-from)*(.15+.85*Math.sin(Math.PI*turn)) : 0;
     const at=t => 200*Math.sin(t/700)+90*Math.sin(t/295+.5);
@@ -504,7 +508,9 @@ async function main() {
     const half=82+534*.83;
     const center=960+(at(s.progress+ahead)-at(s.progress)-ahead*heading)*.95;
     carCenters.push((center-half+s.visualLane*half/2+half/4)*2/3);
-    s.integrity = !sceneryReview && chapterIndex === 5 ? 1 : 3;
+    s.integrity = Number(process.env.CACHE_REVIEW_INTEGRITY ??
+      (!sceneryReview && chapterIndex === 5 ? 1 : 3));
+    s.braking = process.env.CACHE_REVIEW_BRAKING === '1';
     s.timeMs = !sceneryReview && chapterIndex === 5 ? 7400 : 55000;
     s.pendingCapture = !sceneryReview && chapterIndex === 1 ? { lane: 2, startBeat: (s.musicBar + 1)*4 } : null;
     s.candidateHold = !sceneryReview && chapterIndex === 1 ? .82 : 0;
@@ -513,7 +519,8 @@ async function main() {
     s.cutFlashMs = !sceneryReview && chapterIndex === 3 ? Math.max(0,740-local*1000) : 0;
     s.cutStreak = !sceneryReview && chapterIndex === 3 ? 2 : 0;
     s.cutAward = !sceneryReview && chapterIndex === 3 ? 250 : 0;
-    s.stumbleMs = !sceneryReview && chapterIndex === 4 ? Math.max(0,650-local*1000) : 0;
+    s.stumbleMs = Number(process.env.CACHE_REVIEW_STUMBLE ??
+      (!sceneryReview && chapterIndex === 4 ? Math.max(0,650-local*1000) : 0));
     s.invulnerableMs = !sceneryReview && chapterIndex === 4 ? Math.max(0,1400-local*1000) : 0;
     s.messageMs = 0; s.message = '';
     if(worldReview&&chapterIndex===3) {

@@ -1,5 +1,17 @@
 # Recovery checkpoint — September 14
 
+## September 29, 2026 — wet road and persistent damage cues (review branch)
+
+- Paint two new transparent WebPs for brake reflections and damaged exhaust.
+  Keep the glare in the road plane behind each car; Cache's brake input
+  brightens it, while slow traffic leaves subtle tail-light traces.
+- Add brief broken tire tracks during braking or collision. After the
+  existing jolt/grit, smoke increases as integrity falls from 2 to 1.
+  Gameplay, timing, audio, and save rules remain the same.
+- Compare healthy, braking/damaged and collision frames at game resolution;
+  state-specific draw checks and loading checks pass locally. Makko motion
+  and feel remain to be reviewed after merge.
+
 ## September 29, 2026 — comic road cues and fourth-beat catches (review branch)
 
 - Replace the rejected SVGs with eight separate painted raster assets:
