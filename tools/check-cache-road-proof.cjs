@@ -33,6 +33,7 @@ async function run() {
     '  window.__cacheStreetScenes = STREET_SCENES;\n'+
     '  window.__cacheStreetItems = STREET_ITEMS;\n'+
     '  window.__cachePedestrians = PEDESTRIANS;\n'+
+    '  window.__pedestrianTravel = pedestrianTravel;\n'+
     '  window.__cachePropShapes = PROP_SHAPES;\n'+
     '  window.__cacheLandscape = LANDSCAPE;\n'+
     '  window.__cacheSites = SIDE_PLACES;\n'+sceneMarker),
@@ -138,6 +139,33 @@ async function run() {
   }
   const streetScenes=w.__cacheStreetScenes;
   const groups=streetScenes.map(scene=>scene.people).filter(group=>group.length);
+  const travel=w.__pedestrianTravel;
+  assert(groups.flat().every(person=>
+    (person.id>=15 || [5,11,12].includes(person.id)) ? !person.flip : true),
+  'travel cels retain their painted left/right facing; placement never mirrors them');
+  for(const id of [0,1,2,3,4,6,7,8,9,10,13,14])
+    assert.equal(travel({id,at:500},{elapsedMs:840},false),null,
+      `planted or seated person ${id} keeps the still painting`);
+  for(const id of Array.from({length:12},(_,i)=>i+15)) {
+    const first=travel({id,at:500},{elapsedMs:0},false);
+    const next=travel({id,at:500},{elapsedMs:210},false);
+    assert.equal(first.key,next.key);
+    assert.equal(Math.floor(first.frame/4),(id-15)%2,
+      'toward and away views stay in their authored atlas rows');
+    assert.equal((next.frame-first.frame+4)%4,1,
+      'directional gait advances one footfall without turning around');
+    assert.equal(travel({id,at:500},{elapsedMs:999},true).frame,
+      ((id-15)%2)*4,'Reduced Motion holds the first pose of each facing');
+  }
+  for(const [id,key,period] of [[5,'cachePersonBicycleCourierTravel',220],
+    [11,'cachePersonSkateboarderTravel',170],
+    [12,'cachePersonCrateCarrierTravel',210]]) {
+    const first=travel({id,at:500},{elapsedMs:0},false);
+    const next=travel({id,at:500},{elapsedMs:period},false);
+    assert.equal(first.key,key);
+    assert.notEqual(first.frame,next.frame);
+    assert.equal(travel({id,at:500},{elapsedMs:999},true).frame,0);
+  }
   assert.deepEqual([...new Set(groups.map(group=>group.length))].sort(),[1,2,3,4,5],
     'procedural pedestrian groups include every size from one through five');
   assert(groups.every(group=>new Set(group.map(person=>person.id>=15?
@@ -481,6 +509,16 @@ async function run() {
   assert.notEqual(roadArt.find(entry=>entry.key===firstProp.key &&
     entry.x===firstProp.x && entry.y===firstProp.y).frame,firstProp.frame,
   'a world-anchored roadside fixture advances one of its three frames');
+  const walkerItem=w.__cacheStreetItems.find(({item})=>item.id>=15 && item.at>250);
+  const walkKey=travel(walkerItem.item,{elapsedMs:840},false).key;
+  mirrorFrame({progress:walkerItem.item.at-85,elapsedMs:840});
+  const walkingArt=roadArt.find(entry=>entry.key===walkKey);
+  assert(walkingArt && !walkingArt.flip && walkingArt.frame>=0 &&
+    walkingArt.frame<8,'the authored direction draws an advancing cel in the live road');
+  mirrorFrame({progress:walkerItem.item.at+30,elapsedMs:840});
+  assert(mirrorArt.some(entry=>entry.key===walkKey && !entry.flip &&
+    entry.frame===walkingArt.frame),
+  'the rearview samples the same world-address gait cel after the walker passes');
   mirrorFrame({ progress: 0 });
   const uprightPlaces = entries => entries.filter(entry =>
     entry.key.startsWith('cachePlace') && entry.key !== 'cachePlaceParking');

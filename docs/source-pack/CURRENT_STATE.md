@@ -1,5 +1,24 @@
 # Current State
 
+## September 29 — direction-locked pedestrian travel (local review)
+
+Nine new frame sheets animate six toward/away walker identities, a rightward
+bicycle pusher, a leftward skateboarder and a rightward crate carrier. The
+other twelve seated or standing individual cutouts retain their still art.
+Travel poses are never horizontally mirrored; the two walker views stay in
+separate atlas rows, and Reduced Motion holds the first pose of each view.
+Forward and rearview draws share world-address phase. The eight-second
+production draw, cel board and focused scene/loader checks are available in
+`CACHE_ROAD_PEDESTRIAN_TRAVEL.md`.
+
+The candidate branch is based on merged #143. The owner approved public
+publication of the generated art; its pinned ancestor `6f128e9` is now
+available on the public branch with a bundled checkout fallback. The full
+local `npm test`, all-file syntax audit, sheet geometry check and
+`git diff --check` pass.
+Hosted CI and Makko moving-art, input/audio and device pacing review have
+not occurred.
+
 ## September 29 — animation delivery follow-up to merged #142
 
 PR #142 is merged at `88623df039cad868a8c9565a23209a2f5b557c47`: eleven eight-cel

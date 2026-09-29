@@ -1,5 +1,18 @@
 # Recovery checkpoint — September 14
 
+## September 29, 2026 — direction-locked pedestrian travel (local review)
+
+- Add six authored toward/away walker sheets plus pushing bicycle, leftward
+  skateboard and rightward crate carrier cels, with editable PNG sources and
+  a reproducible technical frame packer.
+- Keep twelve planted or seated figures frozen, suppress horizontal flipping
+  of travel poses, share the same world-address phase in road and rearview,
+  and hold the first facing cel in Reduced Motion. Original still paintings
+  remain a local load fallback.
+- Capture a production drive and frame board; focused checks pass locally.
+  The owner explicitly authorized public art publication after an initial
+  automatic approval review block. Hosted CI and Makko acceptance remain open.
+
 ## September 29, 2026 — complete animation asset delivery
 
 - Record merged #142's 23 animated sheets: eleven vehicles, eight fixtures and

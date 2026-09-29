@@ -1,5 +1,14 @@
 # BARCODE: SYSTEM OVERRIDE — Source Pack v5
 
+## Current local review — direction-locked pedestrian travel
+
+Start with `CACHE_ROAD_PEDESTRIAN_TRAVEL.md` and its nine-sheet frame board
+and eight-second road draw. Six walkers have separate toward/away steps;
+the bike pusher, skateboarder and crate carrier keep their painted travel
+direction. Seated and standing people remain still. Local checks pass, and
+the owner approved publication of the immutable art ancestor. Hosted CI and
+Makko review remain open.
+
 ## Current review — equal usable area selections
 
 The corrected `CACHE_ROAD_AREA_ASSET_AUDIT.md` and two facing diagrams now

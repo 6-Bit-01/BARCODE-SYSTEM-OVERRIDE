@@ -1,5 +1,18 @@
 # Acceptance and Test Status
 
+## Cache Road pedestrian travel — September 29, local candidate
+
+Six walkers have separate front/back four-footfall rows; the bicycle courier
+pushes right on foot, the skateboarder rolls left and the crate carrier walks
+right. Twelve seated or standing people remain single still images. Authored
+travel views do not flip. Reduced Motion holds the first pose per direction.
+The local production Canvas drive and frame board are in
+`review-cache-pedestrians/`; local `npm test`, all-file syntax, sheet geometry
+and whitespace checks pass. This is art/playback verification, not hosted
+Makko acceptance. The owner subsequently authorized public publication, and
+the immutable art ancestor is on the public branch. Hosted CI and a Makko
+playtest remain open.
+
 ## Cache Road animation delivery — September 29
 
 Merged #142 provides eleven eight-cel vehicle sheets, eight three-cel fixture
