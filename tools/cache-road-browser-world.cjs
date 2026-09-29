@@ -9,7 +9,7 @@ module.exports=async function reviewRoadWorld() {
   B.Campaign={register(){},syncTitleButton(){}};
   (0,eval)(await load('src/game/cache-road-landscape.js'));
   (0,eval)((await load('src/game/cache-road-proof.js')).replace(
-    '  B.Campaign.register(ID,','  window.roadReviewState=newState;window.roadReviewCues={PULSES,pulseVisual,shiftOffset};\n  B.Campaign.register(ID,'));
+    '  B.Campaign.register(ID,','  window.roadReviewState=newState;window.roadReviewEntities={HAZARDS,STREET_ITEMS,AMBIENT_PLATES:[...AMBIENT_PLATES]};window.roadReviewCues={PULSES,pulseVisual,shiftOffset};\n  B.Campaign.register(ID,'));
   (0,eval)((await load('src/engine/presentation-assets.js'))
     .replace('      if (cache[key]) continue;',"      if (cache[key]||!key.startsWith('cache')) continue;")
     .replace('image.src = (entry.root ?? root) + entry.path;','image.src = entry.path;')
@@ -35,13 +35,6 @@ module.exports=async function reviewRoadWorld() {
     imageCalls++;return nativeDraw(image,...args);
   };
   const frames=[],screens=[];
-  const liveAnimationFrames={};
-  const nativeAssetDraw=B.PresentationAssets.draw;
-  B.PresentationAssets.draw=(key,target,options)=>{
-    if(window.roadReviewDefinitions[key]?.frames>1)
-      (liveAnimationFrames[key]??=new Set()).add(options?.frame??0);
-    return nativeAssetDraw(key,target,options);
-  };
   B.Preferences={values:{reducedMotion:false}};
   for(const progress of [180,2680,5160,7620]) {
     road.state=window.roadReviewState({progress,lanePos:1.5,speed:54});
@@ -59,16 +52,17 @@ module.exports=async function reviewRoadWorld() {
     screens.push({progress,webp:ctx.canvas.toDataURL('image/webp',.9).split(',')[1]});
   }
   // Advance the real driver and draw it in Chromium while repeatedly
-  // changing gears. The controlled audio clock makes exact beat-4 frames
+  // changing gears. The controlled audio clock makes exact beat-1 frames
   // reproducible; audio scheduling is separately rendered with Web Audio.
   const actualAudio=window.audioSystem;
-  window.audioSystem={context:{currentTime:0},playCombatCue(){}};
+  window.audioSystem={context:{currentTime:0,state:'running',outputLatency:.15,baseLatency:0},
+    getOutputAudioTime:window.AudioSystem.prototype.getOutputAudioTime,playCombatCue(){}};
   road.selectMusicProfile();B.MusicTransport.start({sourceAnchorAudioSec:0,sourceOffsetTrackSec:0});
   road.state=window.roadReviewState();road.state.timeMs=1e6;road.state.invulnerableMs=1e6;
-  const drive={frames:0,arrivals:0,maxPixelError:0,gears:[]};
+  const drive={frames:0,arrivals:0,maxPixelError:0,gears:[],injectedOutputDelayMs:150};
   for(let frame=0;frame<=32*16;frame++) {
     const beat=frame/16,now=beat*60/128;
-    window.audioSystem.context.currentTime=now;
+    window.audioSystem.context.currentTime=now+.15;
     const actions=frame===20?{move_down:{pressed:true}}:
       frame===97||frame===170?{move_up:{pressed:true}}:
       frame===270?{move_down:{pressed:true}}:
@@ -82,7 +76,7 @@ module.exports=async function reviewRoadWorld() {
         const t=1-(cue.d+80)/520;
         const error=Math.abs(400+t*t*680-(400+.83*.83*680-119*.14));
         if(error>1e-6||window.roadReviewCues.shiftOffset(s,false)!==0)
-          throw Error('Gear shift moved a fourth-beat pad away from the rear axle');
+          throw Error('Gear shift moved a first-beat pad away from the rear axle');
         drive.maxPixelError=Math.max(drive.maxPixelError,error);drive.arrivals++;
         road.draw(ctx);drive.frames++;
         screens.push({progress:`Beat-${beat}-Gear-${s.gear+1}`,webp:ctx.canvas.toDataURL('image/webp',.9).split(',')[1]});
@@ -92,6 +86,16 @@ module.exports=async function reviewRoadWorld() {
   }
   if(drive.arrivals<3||new Set(drive.gears).size!==3)throw Error('Driving review missed gears or beat targets');
   window.audioSystem=actualAudio;
+  // The audit observes actual production world/HUD draws only. Diagnostic
+  // sheet draws below cannot inflate live animation coverage.
+  const auditModule={exports:null};
+  new Function('module',await load('tools/cache-road-animation-routes.cjs'))(auditModule);
+  const auditCanvas=document.createElement('canvas');auditCanvas.width=480;auditCanvas.height=270;
+  const auditCtx=auditCanvas.getContext('2d');auditCtx.scale(.25,.25);
+  const animationRoutes=auditModule.exports({B,ctx:auditCtx,newState:window.roadReviewState,
+    entities:window.roadReviewEntities,definitions:window.roadReviewDefinitions});
+  animationRoutes.canvasSize=[480,270];
+  const usedAnimations=animationRoutes.main;
   // Every authored road animation must contain changing pixels at real cel
   // boundaries. This catches missing assets and whole-sheet rendering.
   const sheet=document.createElement('canvas');sheet.width=128;sheet.height=128;
@@ -99,7 +103,7 @@ module.exports=async function reviewRoadWorld() {
   const animations={};
   for(const key of keys) {
     const definition=window.roadReviewDefinitions[key];
-    if(definition.frames<=1||key.startsWith('cacheFly'))continue;
+    if(definition.frames<=1)continue;
     const hashes=[];
     for(let frame=0;frame<definition.frames;frame++) {
       celCtx.clearRect(0,0,128,128);
@@ -114,16 +118,10 @@ module.exports=async function reviewRoadWorld() {
     animations[key]={frames:definition.frames,distinct};
   }
   ctx.drawImage=nativeDraw;
-  B.PresentationAssets.draw=nativeAssetDraw;
-  const usedAnimations=Object.fromEntries(Object.entries(liveAnimationFrames)
-    .map(([key,values])=>[key,[...values].sort((a,b)=>a-b)]));
-  const movingWalkers=Object.entries(usedAnimations).filter(([key])=>key.endsWith('Travel'));
-  if(movingWalkers.length<7||movingWalkers.some(([,values])=>values.length<2))
-    throw Error('Pedestrian animation failed in the actual world draw');
   // Check pinned delivery as well as bundled files. A locally working sheet
   // is not enough for a Makko import which omits binary assets.
   const hosted=[];
-  for(const key of ['cacheSweeper',...keys.filter(key=>key.endsWith('Travel'))]) {
+  for(const key of keys.filter(key=>window.roadReviewDefinitions[key].frames>1)) {
     const definition=window.roadReviewDefinitions[key];
     const response=await fetch(definition.root+definition.path);
     if(!response.ok)throw Error(`Published animation unavailable: ${key} (${response.status})`);
@@ -133,5 +131,24 @@ module.exports=async function reviewRoadWorld() {
     if(await digest(remote)!==await digest(local))throw Error(`Published animation differs: ${key}`);
     hosted.push({key,bytes:remote.byteLength});
   }
-  return {loadedAssets:keys.length,frames,animations,usedAnimations,drive,hosted,screens,contextCalls:window.contextCalls};
+  // Exercise the unmodified production remote-first Image loader as well.
+  // Disable only its bundled retry so this cannot silently pass using local art.
+  const localAssets=B.PresentationAssets;
+  (0,eval)((await load('src/engine/presentation-assets.js'))
+    .replace('      if (cache[key]) continue;',
+      "      if (cache[key]||!key.startsWith('cache')||entry.frames<=1) continue;")
+    .replace('image.src = entry.path;',"image.src = '/__disabled_animation_fallback__';"));
+  const remoteStart=performance.now();
+  while(!hosted.every(({key})=>B.PresentationAssets.ready(key))) {
+    if(performance.now()-remoteStart>45000)throw Error('Production remote animation loader failed');
+    await new Promise(resolve=>setTimeout(resolve,50));
+  }
+  for(const entry of hosted) {
+    if(!B.PresentationAssets.draw(entry.key,celCtx,{x:64,y:100,width:100,height:90}))
+      throw Error('Remote production draw failed: '+entry.key);
+    entry.productionLoader=true;
+  }
+  B.PresentationAssets=localAssets;
+  return {loadedAssets:keys.length,frames,animations,usedAnimations,animationRoutes,
+    drive,hosted,screens,contextCalls:window.contextCalls};
 };

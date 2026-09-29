@@ -1,5 +1,29 @@
 # Repository Guidance
 
+## September 29, 2026 — verified first beats and perspective gear motion
+
+This owner correction supersedes earlier beat-four instructions. Every announced
+road action arrives under the rear tires on **beat ONE** (beat index divisible
+by four). Preserve the verified 128 BPM, 4/4, zero-origin recording grid; do not
+add MP3 container priming as a second offset. Follow audible output time for
+road presentation and captured input, but raw AudioContext time for scheduling
+sources/count-in cues. Apply manual input calibration exactly once.
+
+Commit each road section before announcing its target. Gears, Turbo, Surge
+and recovery cannot move existing world paint or deadlines. Keep the entire
+130 ms early/late judgment window settled. Between windows, move the complete
+car in perspective (position AND scale), with one load/launch/settle motion.
+Its ordinary chassis stays on one registered cel; moving treads, traffic,
+one-shot impact and state reactions remain active. Do not reintroduce the
+floating deck/guardrail outlines or split the sweeper into multiple images.
+
+Audit animations through actual world/HUD draws, separately from direct sheet
+pixel checks. All eligible district props and ambient families must appear;
+standing/seated people remain still and travellers retain approved direction.
+See `docs/source-pack/CACHE_ROAD_DOWNBEAT_DEPTH.md` and the recording audit.
+Merge after full CI for owner Makko review; automated evidence is not device
+latency, controller-feel or total game FPS acceptance.
+
 ## September 29, 2026 — buffered gears, physical beat-four paint and grounding
 
 The owner rejected independent speed/pad motion and requested buffered gear

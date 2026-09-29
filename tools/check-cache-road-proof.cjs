@@ -392,7 +392,7 @@ async function run() {
   const mirrorStreets = [], litRunways = [];
   const roadArt = [], openingRects = [], drawOrder = [], hudLines = [], contacts = [];
   const trafficLabels = [], beacons = [], sidewalkEdges = [], clipStack = [];
-  const timingLabels = [];
+  const timingLabels = [], cueDigits = [];
   const ridgeAt = (points,x) => {
     if(!points)return Infinity;
     if(!Number.isFinite(x))return Infinity;
@@ -447,8 +447,6 @@ async function run() {
     moveTo(x,y) { this.path?.push({x,y}); },
     lineTo(x,y) { this.path?.push({x,y}); },
     stroke() {
-      if (this.strokeStyle === '#8296a1' && this.path?.length === 29)
-        sidewalkEdges.push(this.path.slice());
       if (this.strokeStyle === '#87949e' && this.path?.length === 4)
         drawOrder.push('brakingTireTrack');
     },
@@ -457,6 +455,8 @@ async function run() {
       if (this.fillStyle === '#ffe8bc')
         mirrorTraffic.push({ x,y,width,height,filter:this.filter });
     }, fill() {
+      if(this.fillStyle==='#263749' && this.path?.length===58)
+        sidewalkEdges.push(this.path.slice(29).reverse());
       if (this.fillStyle === '#174c51') drawOrder.push('roadPad');
       if (this.fillStyle === '#192e39') mirrorRoads.push(this.path.slice());
       if (this.filter === 'blur(2.3px)' && this.fillStyle === '#263841')
@@ -472,7 +472,9 @@ async function run() {
         beacons.push({ x,y,translate:this.lastTranslate });
     },
     fillText(value, x, y) {
-      if(value==='HIT ON 4')timingLabels.push({x,y});
+      if(value==='HIT ON 1')timingLabels.push({x,y});
+      if(y===76 && /^[1-4]$/.test(value))
+        cueDigits.push({value,x,y,color:this.fillStyle});
       if ((x === 1623 && y === 76) || (x === 1345 && y === 155) ||
           (x === 1418 && y === 56))
         hudLines.push({ value, x, y });
@@ -485,7 +487,7 @@ async function run() {
     road.state = { ...liveState, progress: 395, integrity: 3, timeMs: 55000,
       stumbleMs: 0, boostMs: 0, zoneEndBeat: -1, pendingCapture: null,
       candidateHold: 0, cutFlashMs: 0, messageMs: 0, rivalWarning: false,
-      pulseTargets:{'0/0/0':3,'0/0/1':11},
+      pulseTargets:{'0/0/0':4,'0/0/1':12},
       pulsePlaces:{'0/0/0':146.469,'0/0/1':322.469},
       ...overrides };
     const sectionBeat=Math.floor(road.state.musicBeatFloat/4)*4;
@@ -496,6 +498,7 @@ async function run() {
     mirrorArt.length = 0; mirrorStreets.length = 0; litRunways.length = 0;
     roadArt.length = 0; openingRects.length = 0;
     drawOrder.length = 0; hudLines.length = 0; contacts.length = 0;
+    cueDigits.length=0;
     sidewalkEdges.length = 0;
     trafficLabels.length = 0; beacons.length = 0; road.draw(drawCtx);
     assert.equal(mirrorFrames.length, 1, 'one expression is drawn inside the shared rearview');
@@ -559,13 +562,13 @@ async function run() {
   'three city depths, projected sidewalk and ground, roadside art, traffic and car share the live draw');
   mirrorFrame({ progress: 0 });
   const carCels=roadArt.filter(entry=>entry.key==='cacheCar');
-  assert.equal(carCels.length,3);
-  assert.equal(new Set(carCels.map(entry=>entry.frame)).size,1,
-    'body and two planted tire masks use the same painted cel');
+  assert.equal(carCels.length,1,
+    'Cache is painted once as a complete chassis, without overlapping tire masks');
   const firstCarCel=carCels[0].frame;
+  assert.equal(firstCarCel,0,'ordinary driving uses the registered steady chassis');
   mirrorFrame({ progress: 40, elapsedMs: 850 });
-  assert.notEqual(roadArt.find(entry=>entry.key==='cacheCar').frame,firstCarCel,
-    'car details keep animating at the same rate in every gear');
+  assert.equal(roadArt.find(entry=>entry.key==='cacheCar').frame,firstCarCel,
+    'the ordinary chassis does not shake as the road and tire clocks advance');
   mirrorFrame({ progress: 395, elapsedMs: 100 });
   const animatedProps=new Set(['cacheNewLampL','cacheNewLampR',
     'cacheNewCrossingSignalL','cacheNewCrossingSignalR','cacheNewWayfindingSign',
@@ -640,7 +643,8 @@ async function run() {
   'opening buildings grow beyond car scale as they clear the distant horizon');
   const sidewalkAt = (side,y) => {
     const edge=sidewalkEdges[side < 0 ? 0 : 1];
-    assert(edge && edge.length === 29, 'both curved sidewalk outer edges are drawn');
+    assert(edge && edge.length === 29,
+      'both filled sidewalk decks supply their actual outer ground contacts');
     const i=edge.findIndex((point,j) => j > 0 && point.y >= y);
     if(i<1)return null;
     const a=edge[i-1],b=edge[i];
@@ -960,11 +964,12 @@ async function run() {
     Math.abs(contacts.at(-1).y - (-119*.14+2)) < .01,
   'the player shadow has a contact patch under each grounded tire');
   mirrorFrame({ progress: 405, elapsedMs: 190 });
-  assert(Math.abs(roadArt.filter(entry=>entry.key==='cacheCar').at(-1)
-    .chassisOffset[1]-cachePose[1])>.01 &&
-    Math.abs(roadArt.filter(entry=>entry.key==='cacheSweeper').at(-1)
+  assert.deepEqual(roadArt.filter(entry=>entry.key==='cacheCar').at(-1)
+    .chassisOffset,cachePose,
+    'ordinary Cache has no periodic chassis bob while the road advances');
+  assert(Math.abs(roadArt.filter(entry=>entry.key==='cacheSweeper').at(-1)
       .chassisOffset[1]-sweeperPose[1])>.1,
-  'player suspension and the complete sweeper cel retain their restrained road movement');
+    'the complete sweeper cel retains its restrained suspension movement');
   const cityAt405=cityKeys
     .map(key=>{
       const entry=roadArt.find(item=>item.key===key);
@@ -1116,19 +1121,24 @@ async function run() {
     'the caught action plays its painted impact frames in the HUD');
   mirrorFrame({ progress: 130, lanePos: 0, visualLane: 0, musicBeatFloat: 2 });
   const waitingIcon = roadArt.find(entry => entry.key === 'cachePulseSurge' && entry.x === 1375);
-  assert(hudLines.some(line => /HIT ON 4/.test(line.value)),
+  assert(hudLines.some(line => /HIT ON 1/.test(line.value)),
     'the button cue names the target beat while the pad is in range');
-  mirrorFrame({ progress: 130, lanePos: 0, visualLane: 0, musicBeatFloat: 3 });
+  assert(!cueDigits.some(digit=>digit.color==='#111b1d'),
+    'a lead-in beat cannot display a hot hit number');
+  mirrorFrame({ progress: 130, lanePos: 0, visualLane: 0, musicBeatFloat: 4 });
   const pressIcon = roadArt.find(entry => entry.key === 'cachePulseSurge' && entry.x === 1375);
   assert(pressIcon.width > waitingIcon.width && pressIcon.frame===2 &&
     hudLines.some(line => /PRESS!/.test(line.value)),
-  'on the fourth beat the action icon swells and the prompt changes to PRESS');
-  mirrorFrame({ progress: 130, pulseTargets:{'0/0/0':3} });
+  'on the first beat the action icon swells and the prompt changes to PRESS');
+  assert.deepEqual(cueDigits.filter(digit=>digit.color==='#111b1d')
+    .map(digit=>digit.value),['1'],
+    'ONE is the only hot digit on the announced downbeat');
+  mirrorFrame({ progress: 130, pulseTargets:{'0/0/0':4} });
   const visibleBeforeCatch = drawOrder.filter(item => item === 'cachePulsePad').length;
-  mirrorFrame({ progress: 130, pulseTargets:{'0/0/0':3}, caughtPulses: { '0/0/0': true } });
+  mirrorFrame({ progress: 130, pulseTargets:{'0/0/0':4}, caughtPulses: { '0/0/0': true } });
   assert.equal(drawOrder.filter(item => item === 'cachePulsePad').length, visibleBeforeCatch,
     'a caught fixed marking stays visible until it passes under the car');
-  mirrorFrame({ progress: 190, musicBeatFloat:5, pulseTargets:{'0/0/0':3},
+  mirrorFrame({ progress: 190, musicBeatFloat:6, pulseTargets:{'0/0/0':4},
     caughtPulses: { '0/0/0': true } });
   assert.equal(drawOrder.filter(item => item === 'cachePulsePad').length, visibleBeforeCatch - 2,
     'the caught musical marking leaves after its beat has passed the car');
@@ -1143,71 +1153,95 @@ async function run() {
   road.state.lane=road.state.lanePos=road.state.visualLane=0;
   road.state.speed=75;
   road.state.progress=100;
-  road.state.pulseTargets={'0/0/0':7};audio.context.currentTime=7*beatSec;
-  assert(road.catchPulse('road_a',7*beatSec),
-    'a top-speed driver catches the announced fourth beat');
+  road.state.pulseTargets={'0/0/0':8};audio.context.currentTime=8*beatSec;
+  assert(road.catchPulse('road_a',8*beatSec),
+    'a top-speed driver catches the announced first beat');
   road.state=liveState;
   // An early physical press is latched once, with its burst and capture
-  // delayed to beat four and its sound scheduled on the audio clock.
+  // delayed to beat one and its sound scheduled on the audio clock.
   const beforeEarly=road.state,earlyCues=[];
   const priorCue=audio.playCombatCue;
   audio.playCombatCue=(kind,options)=>earlyCues.push({kind,...options});
-  road.state={...copy(liveState),pulseTargets:{'0/0/0':3},caughtPulses:{},
+  road.state={...copy(liveState),pulseTargets:{'0/0/0':4},caughtPulses:{},
     pendingPulseAwards:[],lanePos:0,pulseFlashMs:0};
-  audio.context.currentTime=3*beatSec-.08;
+  audio.context.currentTime=4*beatSec-.08;
   assert(road.catchPulse('road_a',audio.context.currentTime));
   assert.equal(road.state.pulseFlashMs,0);
   assert.equal(road.state.queuedCaptures.length,0);
   assert.equal(earlyCues[0].kind,'roadGood');
-  assert.equal(earlyCues[0].audioTimeSec,3*beatSec);
+  assert.equal(earlyCues[0].audioTimeSec,4*beatSec);
   assert.equal(road.catchPulse('road_a',audio.context.currentTime),false);
-  audio.context.currentTime=3*beatSec;road.update(16);
-  assert(road.state.pulseFlashMs>0 && road.state.captures.some(c=>c.startBeat===3));
+  audio.context.currentTime=4*beatSec;road.update(16);
+  assert(road.state.pulseFlashMs>0 && road.state.captures.some(c=>c.startBeat===4));
   audio.playCombatCue=priorCue;road.state=beforeEarly;
+  // The accepted window straddles the bar boundary. Starting the next
+  // section must not erase the late half of the announced downbeat.
+  for(const offset of [-.132,-.128,0,.128,.132]) {
+    road.state={...copy(liveState),pulseTargets:{'0/0/0':4},caughtPulses:{},
+      pendingPulseAwards:[],lanePos:0,pulseFlashMs:0};
+    audio.context.currentTime=4*beatSec+offset;
+    const accepted=road.catchPulse('road_a',audio.context.currentTime);
+    assert.equal(accepted,Math.abs(offset)<.13,
+      `the first-beat hit window judges ${offset*1000}ms against the unchanged downbeat`);
+    if(accepted) {
+      assert.equal(road.state.caughtPulses['0/0/0'],true);
+      if(offset<0)assert.equal(road.state.pulseFlashMs,0,
+        'an accepted early edge still waits for the downbeat');
+      else assert(road.state.pulseFlashMs>0,
+        'an accepted late edge pays immediately on the new measure');
+    }
+  }
+  road.state={...copy(liveState),pulseTargets:{'0/0/0':4},caughtPulses:{},
+    pendingPulseAwards:[],lane:0,lanePos:0,visualLane:0,pulseFlashMs:0};
+  audio.context.currentTime=4*beatSec+.08;road.update(16);
+  assert.equal(road.state.musicBar,1,'the late-input fixture has entered the next measure');
+  assert(road.catchPulse('road_a',audio.context.currentTime),
+    'the previous section\'s downbeat remains catchable after the next section begins');
+  road.state=beforeEarly;
   const face = (key, beat, lane, at, speed = 54, offset = 0) => {
     road.state.lane = road.state.lanePos = road.state.visualLane = lane;
     road.state.speed = speed; road.state.progress = at - 30;
-    const chart={150:['0/0/0',3],365:['0/0/1',11],585:['0/0/2',19],810:['0/0/3',27],
-      1260:['0/1/0',35]};
+    const chart={150:['0/0/0',4],365:['0/0/1',12],585:['0/0/2',20],810:['0/0/3',28],
+      1260:['0/1/0',36]};
     if(chart[at])road.state.pulseTargets[chart[at][0]]=chart[at][1];
     audio.context.currentTime = beat * beatSec + offset;
     road.handleActions({ [key]: { pressed: true, presses: [{ audioTimeSec: audio.context.currentTime }] } });
     road.update(100);
   };
-  audio.context.currentTime = 3 * beatSec - .25;
+  audio.context.currentTime = 4 * beatSec - .25;
   road.state.lane = road.state.lanePos = 1; road.update(100);
   assert.equal(road.state.captures.length, 0, 'holding a lane without a timed pulse earns no music');
-  for (const beat of [0, 1, 2, 4]) {
+  for (const beat of [0, 1, 2, 3]) {
     face('road_a', beat, 0, 150);
     assert.equal(road.state.captures.length, 0,
-      `a precise tap on beat ${beat + 1} cannot claim the road pad`);
+      `a precise tap at beat index ${beat} cannot claim the later downbeat pad`);
     assert.equal(road.state.caughtPulses['0/0/0'], undefined,
-      'off-beat presses must leave the pad available for beat four');
+      'off-beat presses must leave the pad available for its announced beat one');
   }
-  face('road_a', 3, 0, 150);
-  assert.deepEqual(copy(road.state.captures.map(c => [c.lane,c.startBeat,c.endBeat])), [[0,3,35]],
+  face('road_a', 4, 0, 150);
+  assert.deepEqual(copy(road.state.captures.map(c => [c.lane,c.startBeat,c.endBeat])), [[0,4,36]],
     'the first fixed road pad earns eight bars on a played beat');
   assert.equal(road.state.queuedSurge, true, 'A pulse queues a surge for the next bar');
   assert.equal(road.mixSnapshot().bonusVocal, false, 'a single part does not signal crew vocals');
   const firstScore = road.state.score;
-  face('road_a', 3, 0, 150);
+  face('road_a', 4, 0, 150);
   assert.equal(road.state.score, firstScore, 'one pulse cannot be paid twice by a repeated press');
   road.state.progress = 401; road.state.lanePos = 1;
-  assert.equal(road.catchPulse('road_x', 11 * beatSec), false,
+  assert.equal(road.catchPulse('road_x', 12 * beatSec), false,
     'a missed road pad does not wait for a later song beat or follow the car');
-  face('road_x', 11, 0, 365);
+  face('road_x', 12, 0, 365);
   assert.equal(road.state.shield, 0, 'a button press in the wrong lane is harmless');
-  face('road_x', 11, 1, 365, 54, .22);
+  face('road_x', 12, 1, 365, 54, .22);
   assert.equal(road.state.captures.length, 1, 'a late press outside the window earns no part');
-  face('road_x', 11, 1, 365);
+  face('road_x', 12, 1, 365);
   assert.equal(road.state.shield, 1, 'X provides one defensive brace');
-  assert.equal(road.state.captures.find(c => c.lane === 1).endBeat, 75,
+  assert.equal(road.state.captures.find(c => c.lane === 1).endBeat, 76,
     'the next pad in the same run holds its part for sixteen bars');
   const echoBefore = road.state.echoEnergy;
-  face('road_y', 19, 3, 585, 30);
+  face('road_y', 20, 3, 585, 30);
   assert(road.state.echoEnergy >= Math.min(100, echoBefore + 65),
     'a slow Y catch combines its refill with the deliberate slow-speed bonus');
-  face('road_b', 27, 2, 810, 63);
+  face('road_b', 28, 2, 810, 63);
   assert(road.state.ramMs > 0 && road.state.score > firstScore + 100,
     'B arms a traffic push and fast pulses score more');
   assert.equal(road.state.captures.length, 4, 'the first planned run can reach all four parts');
@@ -1248,7 +1282,7 @@ async function run() {
   road.cleanPass(false);
   assert.equal(road.state.score, recoveryScore, 'invulnerability cannot report a clean traffic pass');
   assert.equal(road.state.echoEnergy, recoveryEcho);
-  face('road_y', 35, 2, 1260);
+  face('road_y', 36, 2, 1260);
   assert.equal(road.state.captures.length, 1, 'a safe pulse gives a quick way back after a hit');
   // A lane-centered adjacent pass counts despite small natural steering drift.
   road.status = road.state.status = 'failed'; audio.context.currentTime = 0;
@@ -1284,7 +1318,7 @@ async function run() {
       Math.abs(steer) <= .38 &&
       Math.abs(audio.context.currentTime / beatSec -
         Math.round(audio.context.currentTime / beatSec)) <= .04 &&
-      Math.round(audio.context.currentTime / beatSec) % 4 === 3) {
+      Math.round(audio.context.currentTime / beatSec) % 4 === 0) {
       actions[next[2]] = { pressed: true, presses: [{ audioTimeSec: audio.context.currentTime }] };
       routeIndex++;
     }
@@ -1300,7 +1334,7 @@ async function run() {
   const laterRun = [[1260,2,'road_y'],[1490,1,'road_a'],[1720,0,'road_x'],
     [1895,3,'road_b']];
   let laterIndex = 0;
-  for (let frame = 1; frame <= 650 && road.state.progress < 1920; frame++) {
+  for (let frame = 1; frame <= 650 && laterIndex < laterRun.length; frame++) {
     audio.context.currentTime = 20 + frame * .025;
     const next = laterRun[laterIndex];
     const goal = laterIndex === 1 && road.state.progress < 1335 ? 2 :
@@ -1312,7 +1346,7 @@ async function run() {
         Math.round(audio.context.currentTime/beatSec) && Math.abs(steer) <= .38 &&
       Math.abs(audio.context.currentTime / beatSec -
         Math.round(audio.context.currentTime / beatSec)) <= .04 &&
-      Math.round(audio.context.currentTime / beatSec) % 4 === 3) {
+      Math.round(audio.context.currentTime / beatSec) % 4 === 0) {
       actions[next[2]] = { pressed: true, presses: [{ audioTimeSec: audio.context.currentTime }] };
       laterIndex++;
     }

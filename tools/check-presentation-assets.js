@@ -162,7 +162,7 @@ mirrorImage.onerror();
 assert.strictEqual(mirrorImage.requests[1], 'assets/cache-road/hud/cache-back-mirror-expressions.webp',
   'a checked-out local asset remains the fallback');
 const ops = [];
-const ctx = new Proxy({}, { get(target, key) { return target[key] ?? ((...args) => ops.push([key, ...args])); }, set(target, key, value) { target[key] = value; ops.push(['set', key, value]); return true; } });
+const ctx = new Proxy({imageSmoothingEnabled:true}, { get(target, key) { return target[key] ?? ((...args) => ops.push([key, ...args])); }, set(target, key, value) { target[key] = value; ops.push(['set', key, value]); return true; } });
 assert.strictEqual(art.draw('studioCat', ctx), false, 'not-yet-loaded assets use the caller fallback');
 catImage.onerror(); assert.strictEqual(catImage.requests[1], 'assets/presentation/studio-cat.webp');
 catImage.naturalWidth = catImage.naturalHeight = 512; catImage.onload();
@@ -196,6 +196,20 @@ art.preload(); assert.strictEqual(images.length, 227, 'failed assets do not retr
 pulseImage.naturalWidth = pulseImage.naturalHeight = 512; pulseImage.onload();
 ops.length = 0; art.draw('bossPulse', ctx, { y: 822, width: 64, height: 56, frame: 2 });
 assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2), [10, 351, 236, 145, -32, -56, 64, 56], 'pulse fills the dangerous height and retains the ground anchor');
+ops.length=0; art.draw('cacheCar',ctx,{x:0,y:0,width:200,height:150,frame:5});
+assert(!ops.some(op=>['save','restore','translate','scale'].includes(op[0])),
+  'origin-aligned raster draws preserve the caller transform without copying Canvas state');
+ctx.imageSmoothingEnabled=false;
+ops.length=0; art.draw('cacheCar',ctx,{x:0,y:0,width:200,height:150,frame:5});
+assert.deepStrictEqual(ops.filter(op=>op[0]==='set'),
+  [['set','imageSmoothingEnabled',true],['set','imageSmoothingEnabled',false]],
+  'the fast path restores the caller smoothing mode');
+assert.strictEqual(ctx.imageSmoothingEnabled,false);
+const drawFailure=new Error('canvas draw failure');
+const failedContext={imageSmoothingEnabled:false,drawImage(){throw drawFailure;}};
+assert.throws(()=>art.draw('cacheCar',failedContext),error=>error===drawFailure);
+assert.strictEqual(failedContext.imageSmoothingEnabled,false,
+  'a failed draw cannot leak a smoothing change into the caller');
 
 for (const asset of JSON.parse(fs.readFileSync(path.join(root, 'assets/presentation/manifest.json'))).assets) {
   const bytes = fs.readFileSync(path.join(root, asset.path));

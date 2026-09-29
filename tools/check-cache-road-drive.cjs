@@ -20,7 +20,7 @@ function rig(saved={}) {
   road.selectMusicProfile();
   B.MusicTransport.start({sourceAnchorAudioSec:0,sourceOffsetTrackSec:0});
   w.audioSystem.context.currentTime=0;
-  return {w,B,road,inspect:w.driveTest};
+  return {w,B,context,road,inspect:w.driveTest};
 }
 const beatSec=60/128;
 function tick(r,beat,actions={},delta=1000/60) {
@@ -45,7 +45,7 @@ function run() {
       const advance=s.progress-previousProgress;
       for(const pulse of r.inspect.PULSES) {
         const cue=r.inspect.pulseVisual(pulse,s,beatSec);if(!cue)continue;
-        assert.equal(cue.target%4,3,'only fourth beats own action targets');
+        assert.equal(cue.target%4,0,'only first beats own action targets');
         const prior=observed.get(pulse.id);
         if(prior) {
           assert.equal(cue.target,prior.target,'announced deadlines are immutable');
@@ -57,7 +57,7 @@ function run() {
           const t=1-(cue.d+80)/520;
           const error=Math.abs((400+680*t*t)-(400+680*.83*.83-119*.14));
           maxPixelError=Math.max(maxPixelError,error);
-          assert(error<1e-7,'physical painted pad meets rear axle at beat four');arrivals++;
+          assert(error<1e-7,'physical painted pad meets rear axle at beat one');arrivals++;
         }
         if(cue.window)assert.equal(r.inspect.shiftOffset(s,false),0,
           'the entire accepted button window has a settled car on its hit plane');
@@ -107,7 +107,7 @@ function run() {
     assert.equal(r.road.status,'clear',`gear ${gear+1} can complete the whole song and Echo exit`);
     endings.push({gear:gear+1,progress:r.road.state.progress,gate:r.road.state.gateAt});
   }
-  console.log(JSON.stringify({physicalDisplacementChecks:checks,fourthBeatArrivals:arrivals,maxPixelError,frameRates:[24,30,60,120],boundaryInputs:3,pauseResume:true,endings}));
+  console.log(JSON.stringify({physicalDisplacementChecks:checks,downbeatArrivals:arrivals,maxPixelError,frameRates:[24,30,60,120],boundaryInputs:3,pauseResume:true,endings}));
 }
 if(require.main===module)run();
 module.exports={rig,tick,run};

@@ -285,11 +285,30 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     const index = Math.max(0, Math.floor(frame)) % entry.frames;
     const [sx, sy, sw, sh] = sourceRect || entry.crop || [0, 0, fw, fh];
     const h = height ?? width * sh / sw;
-    ctx.save(); ctx.translate(x, y); if (flip) ctx.scale(-1, 1);
-    ctx.imageSmoothingEnabled = !!entry.smooth;
-    ctx.drawImage(image, index % entry.columns * fw + sx, Math.floor(index / entry.columns) * fh + sy, sw, sh,
-      -width * entry.ax, -h * entry.ay, width, h);
-    ctx.restore(); return true;
+    const sourceX = index % entry.columns * fw + sx;
+    const sourceY = Math.floor(index / entry.columns) * fh + sy;
+    if (flip || x !== 0 || y !== 0) {
+      ctx.save(); ctx.translate(x, y); if (flip) ctx.scale(-1, 1);
+      ctx.imageSmoothingEnabled = !!entry.smooth;
+      ctx.drawImage(image, sourceX, sourceY, sw, sh,
+        -width * entry.ax, -h * entry.ay, width, h);
+      ctx.restore();
+    } else {
+      // Projected textures already draw at the caller's local origin.
+      // Preserve its transform, clip, alpha and filter without copying the
+      // whole Canvas state for every ground/street triangle. Keep translated
+      // sprites on the original path to preserve filtered raster placement.
+      const smoothing = ctx.imageSmoothingEnabled;
+      const changed = smoothing !== !!entry.smooth;
+      if (changed) ctx.imageSmoothingEnabled = !!entry.smooth;
+      try {
+        ctx.drawImage(image, sourceX, sourceY, sw, sh,
+          x - width * entry.ax, y - h * entry.ay, width, h);
+      } finally {
+        if (changed) ctx.imageSmoothingEnabled = smoothing;
+      }
+    }
+    return true;
   }
   B.PresentationAssets = { preload, draw, ready: key => !!cache[key]?.ready };
   preload();

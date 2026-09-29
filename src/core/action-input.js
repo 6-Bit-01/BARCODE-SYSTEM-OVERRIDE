@@ -83,8 +83,13 @@ window.FILE_MANIFEST.push({
       const ageMs = Number.isFinite(event?.timeStamp) && event.timeStamp <= monotonicNow && monotonicNow - event.timeStamp < 1000
         ? monotonicNow - event.timeStamp : 0;
       const audioNow = window.audioSystem?.context?.currentTime;
+      const audioTimeSec = Number.isFinite(audioNow) ? Math.max(0, audioNow - ageMs / 1000) : null;
       return { wallTimeMs: Date.now() - ageMs,
-        audioTimeSec: Number.isFinite(audioNow) ? Math.max(0, audioNow - ageMs / 1000) : null };
+        audioTimeSec,
+        // Level 1 retains the original render-clock timestamp. Cache Road can
+        // judge the sample the player heard, including an older keyboard event.
+        audibleAudioTimeSec: audioTimeSec === null ? null :
+          window.audioSystem?.getOutputAudioTime?.(audioTimeSec) ?? audioTimeSec };
     }
     handleKeyDown(event) {
       const key = keyName(event);
