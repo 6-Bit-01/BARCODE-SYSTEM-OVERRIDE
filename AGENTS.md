@@ -1,5 +1,16 @@
 # Repository Guidance
 
+## September 30, 2026 — Brace ring depth correction
+
+The owner reports that the gold ring passes through Cache's car. Correct
+only its rendering: a ring on the road, with its far half behind the car and
+near half in front, scaled with the actual car pose. Preserve ability rules,
+encounters, music and exact mirror blur. Base/rollback is merged #157,
+`5115b9afa4fb07a39fb8b23b2ac626e72f9a2916`; branch
+`agent/cache-brace-ring-depth`. Refresh native visual evidence, run required
+regression/syntax and final-head CI, then merge under standing authority and
+update the maintained source pack. Final outcomes belong to the PR/receipt.
+
 ## September 30, 2026 — authored encounters, reactions and final pursuit
 
 The owner explicitly approved encounter layout, physical ability reactions,

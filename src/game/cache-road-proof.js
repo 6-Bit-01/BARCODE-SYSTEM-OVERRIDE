@@ -1254,6 +1254,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     cacheTrike:[[.407,.515,.191,.052]],
     cacheShuttle:[[.206,.598,.058,.119],[.748,.598,.059,.119]]
   };
+  function drawBraceHalo(ctx,x,y,w,h,impact,reduced,front) {
+    // The painted ring lies on the road around the tires. Its far half must
+    // be occluded by the complete car; only the near half draws over it.
+    const size=1+(reduced?0:impact*.18);
+    const width=w*2.05*size,height=h*.80*size,anchorY=y+h*.10*size;
+    const top=anchorY-height*.75,split=top+height*.55;
+    ctx.save();ctx.globalAlpha=impact>0?.7+impact*.3:.58;
+    ctx.beginPath();ctx.rect(x-width/2,front?split:top,width,
+      front?top+height-split:split-top);ctx.clip();
+    B.PresentationAssets.draw('cacheBraceHalo',ctx,{x,y:anchorY,width,height});
+    ctx.restore();
+  }
   function drawVehicle(ctx, x, y, w, h, kind, { alpha = 1, turbo = false,
     phase = 0, steer = 0, hit = 0, braking = false, damage = 0,
     reduced = false } = {}) {
@@ -3863,6 +3875,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const carX=laneX(s.visualLane,carPose.depth)+(s.reactionRecoilSide||1)*recoil,
         carY=roadY(carPose.depth)+Math.abs(recoil)*.6;
       const carWidth=CAR_WIDTH*carPose.scale,carHeight=CAR_HEIGHT*carPose.scale;
+      const defenseActive=!!(s.shield||s.ramMs||s.defenseFlashMs);
+      const defenseImpact=clamp(s.defenseFlashMs/600,0,1);
+      const defenseBrace=defenseImpact>0?s.defenseKind==='BRACE':!!s.shield;
+      const braceHalo=s.encounters&&defenseActive&&defenseBrace&&
+        B.PresentationAssets?.ready?.('cacheBraceHalo');
       if (s.echo) {
         const x = laneX(s.echo.lanePos, .83);
         if(s.encounters) {
@@ -3894,7 +3911,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         }
         ctx.restore();
       }
-      if(s.shield||s.ramMs||s.defenseFlashMs) {
+      if(braceHalo)drawBraceHalo(ctx,carX,carY,carWidth,carHeight,defenseImpact,reduced,false);
+      if(defenseActive&&!braceHalo) {
         ctx.save();
         const impact=s.defenseFlashMs/600;
         const brace=impact>0?s.defenseKind==='BRACE':!!s.shield;
@@ -3916,13 +3934,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         { alpha: !s.stumbleMs && s.invulnerableMs && Math.floor(s.invulnerableMs / 90) % 2 ? .55 : 1,
           turbo: !!s.boostMs, phase: (s.elapsedMs||0)*.054, steer: s.steer, hit: s.stumbleMs,
           braking:s.braking, damage:(s.maxIntegrity||3)-s.integrity, reduced });
-      if(s.encounters&&(s.shield||s.ramMs||s.defenseFlashMs)) {
-        const impact=clamp(s.defenseFlashMs/600,0,1);
-        const brace=impact>0?s.defenseKind==='BRACE':!!s.shield;
+      if(braceHalo)drawBraceHalo(ctx,carX,carY,carWidth,carHeight,defenseImpact,reduced,true);
+      if(s.encounters&&defenseActive&&!defenseBrace) {
+        const impact=defenseImpact;
         ctx.save();ctx.globalAlpha=impact>0?.7+impact*.3:.58;
         const size=1+(reduced?0:impact*.18);
-        B.PresentationAssets?.draw?.(brace?'cacheBraceHalo':'cachePushArc',ctx,{
-          x:carX,y:carY-25,width:310*size,height:(brace?130:155)*size});ctx.restore();
+        B.PresentationAssets?.draw?.('cachePushArc',ctx,{
+          x:carX,y:carY-25,width:310*size,height:155*size});ctx.restore();
       }
       if (s.cutFlashMs && !reduced) {
         const pulse = s.cutFlashMs / 740;

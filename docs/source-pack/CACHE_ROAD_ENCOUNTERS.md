@@ -144,6 +144,12 @@ The beacon is a grounded single prop, not an invented road-spanning wall or
 random addition beside an occupied building. Reduced Motion suppresses large
 effect motion without hiding the relevant contact/ability state.
 
+The Brace halo follows the car's actual scaled tire frame on the road.
+Its upper/far slice renders before the car and its lower/near slice after,
+using identical placement and opacity. The car occludes the far arc; the
+near arc stays below the painted bumper. The procedural ellipse is only a
+missing-art fallback, so it cannot form a second ring through the vehicle.
+
 ## Saves and protected behavior
 
 Fresh chapters carry `encounterVersion: 1` and serialize their committed chart.

@@ -1,7 +1,7 @@
 {
   "kind": "native-production-encounter-review",
   "sourceHashes": {
-    "src/game/cache-road-proof.js": "82cf6f80eb7d7fc6fc743942017dd8199d15e44403f2cee45e9b55e1fb71bfd2",
+    "src/game/cache-road-proof.js": "8b9f831723a38a11cd4c082a8f83e0e5661cfd467d86a5bbf4b87dc0fede3a4d",
     "src/game/cache-road-encounters.js": "f66e2ecc5362c6f698a169b815bb676c6d5eef79c75625d18cc42a75466b995b",
     "src/game/cache-road-reactions.js": "47748481a8426278bb23f3358916a9c3345c55af7507866bb561a8180ceb4753",
     "src/game/cache-road-pursuit.js": "cd00f39a893613e765848452f47b79c3953c45538f4c217e074b737a5eb936e3",
@@ -57,28 +57,28 @@
       "kind": "actual-input-driven-state",
       "trackTime": 61.000000000003936,
       "bar": 32.533333333335435,
-      "sha256": "f38eba9106ddf1ded369e484826c2bc0c807bd70726a31c1658d75278ddb00af"
+      "sha256": "9026d3e7bb3698df36cd9b68e53ce4f0c35716fcaaada6c92a1e99b8de9d33ef"
     },
     {
       "file": "Audit-echo.webp",
       "kind": "actual-input-driven-state",
       "trackTime": 109.03999999999544,
       "bar": 58.154666666664234,
-      "sha256": "7323f89f43f6d95f2f76a363bb16bd748cb4e6700f372ad6b27ad6cf355842c0"
+      "sha256": "748aa3573cd6d5522aa086a73599c4f80e39cfb057f62e2adb4e90de6ed0b844"
     },
     {
       "file": "Final-interception.webp",
       "kind": "actual-input-driven-state",
       "trackTime": 156.52000000000626,
       "bar": 83.47733333333667,
-      "sha256": "d338da5ca1303006470f8194b9ce2df3d945c700ef27c9385401092bf5c4cc75"
+      "sha256": "9f1717447a671580a9272c86eb0fbba87316363c7f7e54fdd003a3c23f56ffd0"
     },
     {
       "file": "Delivery-split.webp",
       "kind": "actual-input-driven-state",
       "trackTime": 173.52000000001496,
       "bar": 92.54400000000798,
-      "sha256": "fd29d517c19a1d0f31df3b396358193aef6a98aac5ce0ee18723b8fffd807421"
+      "sha256": "17807482a22655956ae35962772d106fa48ef508112129d399f1622851787b16"
     },
     {
       "file": "Staged-push-contact.webp",
@@ -177,7 +177,7 @@
         "kind": "brace",
         "phase": 0.39473684210526316
       },
-      "sha256": "650d77d555a4dfb3c8de8189a30f5cf92263b565e00180f01df32cf91c520764"
+      "sha256": "bcbb7b36c488b91c412f4cab2113bd791ae54ae652b35948d7b05785f2740348"
     },
     {
       "file": "Staged-brace-response-strip.webp",
@@ -224,7 +224,7 @@
           }
         }
       ],
-      "sha256": "db05686e2516b1058837f60fe02ab7a22c54bfa50c9d5d1c39af6d2787d7805b"
+      "sha256": "e137c7c397ef25ae85c3d0f8f7a38c337c1ee5298698e350c174e55d88fbdf40"
     }
   ],
   "race": {
@@ -1075,28 +1075,6 @@
       }
     ]
   },
-  "video": {
-    "file": "Encounter-Review.mp4",
-    "sha256": "bdf36c284fdfd2cd6bbaea1e2429ea95f8422bfba4711198e3fc56c6341c2af7",
-    "bytes": 8467453,
-    "compression": {
-      "codec": "libx264",
-      "preset": "slow",
-      "crf": 26,
-      "maxrateKbps": 2600,
-      "bufsizeKbps": 5200,
-      "audio": "copy",
-      "maximumBytes": 10485760
-    }
-  },
-  "audio": {
-    "kind": "offline-five-stem-music-reconstruction",
-    "sampleRate": 32000,
-    "masterGain": 0.8,
-    "peakBeforeMaster": 0.9411237689992413,
-    "limitation": "Uses actual race captures and profile fade targets. Engine/SFX and browser Web Audio automation are not captured."
-  },
-  "limitation": "Actual gamepad-input-driven production race with native Canvas and local decoded art. Audio/storage/browser host boundaries are simulated. The two named staged impacts are separate coverage fixtures. Not a human playtest, Makko acceptance or device-performance measurement.",
   "stagedFixtureEvents": [
     {
       "kind": "push",
@@ -1114,5 +1092,27 @@
       "integrity": 3,
       "actor": "freight"
     }
-  ]
+  ],
+  "video": {
+    "file": "Encounter-Review.mp4",
+    "sha256": "556d4b4e093a793d036e392f95c7f0fbf773e4bef27b471fc84e414a76b0ad06",
+    "bytes": 8448074,
+    "compression": {
+      "codec": "libx264",
+      "preset": "slow",
+      "crf": 26,
+      "maxrateKbps": 2600,
+      "bufsizeKbps": 5200,
+      "audio": "copy",
+      "maximumBytes": 10485760
+    }
+  },
+  "audio": {
+    "kind": "offline-five-stem-music-reconstruction",
+    "sampleRate": 32000,
+    "masterGain": 0.8,
+    "peakBeforeMaster": 0.9411237689992413,
+    "limitation": "Uses actual race captures and profile fade targets. Engine/SFX and browser Web Audio automation are not captured."
+  },
+  "limitation": "Actual gamepad-input-driven production race with native Canvas and local decoded art. Audio/storage/browser host boundaries are simulated. The two named staged impacts are separate coverage fixtures. Not a human playtest, Makko acceptance or device-performance measurement."
 }

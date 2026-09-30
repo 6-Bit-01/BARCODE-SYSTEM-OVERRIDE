@@ -1,5 +1,14 @@
 # Recovery checkpoint — September 14
 
+## September 30, 2026 — Brace ring depth correction
+
+- Lower the gold halo to the road around Cache's tires; scale it with the
+  current car pose and split its draw around the complete car sprite.
+- Draw its far arc behind the car and near arc in front; suppress the
+  duplicate procedural ellipse once the authored asset is available.
+- Preserve Push impact priority, ability/encounter rules, song and mirror
+  blur. Refresh native evidence; exact tests and merge are in the receipt.
+
 ## September 30, 2026 — encounter layout, reactions and final pursuit
 
 - Add a fresh-run, song-directed encounter chart with four driving acts,

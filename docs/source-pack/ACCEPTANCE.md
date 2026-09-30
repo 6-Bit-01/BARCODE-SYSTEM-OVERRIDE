@@ -1,5 +1,21 @@
 # Acceptance and Test Status
 
+## Brace ring depth — September 30 follow-up
+
+Import the merged revision from the PR/receipt through the normal Makko
+route, reload and choose Replay race. Hold Brace while steering left/right,
+change gears, and absorb a traffic contact. The gold ring's far arc must
+disappear behind the car, with its near arc on the road below the bumper;
+no gold band should cross the painted body. Repeat with Reduced Motion and
+confirm a Push contact still uses its cyan arc even while Brace is held.
+Keep the exact rearview blur. Record platform, input device, gear, song bar
+and a short clip for any mismatch. Base/rollback is merged #157,
+`5115b9afa4fb07a39fb8b23b2ac626e72f9a2916`.
+
+Final regression, syntax, native visual and Chromium results are recorded
+against the candidate in the PR/generated receipt. This rendering change
+does not alter collision, capture, health, timing or encounter decisions.
+
 ## Encounters, reactions and final pursuit — September 30
 
 Deploy/import the merged build through the normal project route; confirm the
@@ -37,7 +53,8 @@ use Replay race to review this pass. Base/rollback is merged #156,
 
 The recorded controller study clears all 18 full production-input matrix
 races, including one real hit in every recovery run, plus a mixed-gear race
-and a deliberately missed exit followed by checkpoint retry. Focused
+and a deliberately missed exit followed by checkpoint retry, an earned
+five-contact Push route and two early crashes (22 complete races). Focused
 chart/reaction/pursuit/save checks remain separate gates. Final local and CI
 outcomes belong to the PR/generated receipt; native footage and controlled
 Chromium checks do not establish Makko performance or controller feel.

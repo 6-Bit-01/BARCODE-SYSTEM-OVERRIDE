@@ -1,0 +1,320 @@
+{
+  "kind": "staged-native-brace-depth-comparison",
+  "beforeRevision": "5115b9afa4fb07a39fb8b23b2ac626e72f9a2916",
+  "sourceHashes": {
+    "before": "82cf6f80eb7d7fc6fc743942017dd8199d15e44403f2cee45e9b55e1fb71bfd2",
+    "after": "8b9f831723a38a11cd4c082a8f83e0e5661cfd467d86a5bbf4b87dc0fede3a4d",
+    "registry": "1621c0150fc2cecdf58e609417b834eb9ea2e4be66d31cd7dc4c0f12acb85358",
+    "renderer": "c4e987a761658e5995e5873c626daea4afa8f8cf07794af0af79d768f7169371"
+  },
+  "limitation": "Identical staged production states with native Canvas and original authored assets. Not a played race or a physical-device claim.",
+  "art": "Original brace-halo.webp is unchanged; only production draw placement and depth order differ.",
+  "records": [
+    {
+      "mode": "held",
+      "steer": -0.8,
+      "reducedMotion": false,
+      "version": "before",
+      "car": {
+        "x": 965.2752964239048,
+        "y": 868.452,
+        "w": 164,
+        "h": 119
+      }
+    },
+    {
+      "mode": "held",
+      "steer": -0.8,
+      "reducedMotion": false,
+      "version": "after",
+      "car": {
+        "x": 965.2752964239048,
+        "y": 868.452,
+        "w": 164,
+        "h": 119
+      }
+    },
+    {
+      "mode": "held",
+      "steer": 0,
+      "reducedMotion": false,
+      "version": "before",
+      "car": {
+        "x": 965.2752964239048,
+        "y": 868.452,
+        "w": 164,
+        "h": 119
+      }
+    },
+    {
+      "mode": "held",
+      "steer": 0,
+      "reducedMotion": false,
+      "version": "after",
+      "car": {
+        "x": 965.2752964239048,
+        "y": 868.452,
+        "w": 164,
+        "h": 119
+      }
+    },
+    {
+      "mode": "held",
+      "steer": 0.8,
+      "reducedMotion": false,
+      "version": "before",
+      "car": {
+        "x": 965.2752964239048,
+        "y": 868.452,
+        "w": 164,
+        "h": 119
+      }
+    },
+    {
+      "mode": "held",
+      "steer": 0.8,
+      "reducedMotion": false,
+      "version": "after",
+      "car": {
+        "x": 965.2752964239048,
+        "y": 868.452,
+        "w": 164,
+        "h": 119
+      }
+    },
+    {
+      "mode": "impact",
+      "steer": -0.8,
+      "reducedMotion": false,
+      "version": "before",
+      "car": {
+        "x": 972.0718891458872,
+        "y": 872.5299556331894,
+        "w": 164,
+        "h": 119
+      }
+    },
+    {
+      "mode": "impact",
+      "steer": -0.8,
+      "reducedMotion": false,
+      "version": "after",
+      "car": {
+        "x": 972.0718891458872,
+        "y": 872.5299556331894,
+        "w": 164,
+        "h": 119
+      }
+    },
+    {
+      "mode": "impact",
+      "steer": 0,
+      "reducedMotion": false,
+      "version": "before",
+      "car": {
+        "x": 972.0718891458872,
+        "y": 872.5299556331894,
+        "w": 164,
+        "h": 119
+      }
+    },
+    {
+      "mode": "impact",
+      "steer": 0,
+      "reducedMotion": false,
+      "version": "after",
+      "car": {
+        "x": 972.0718891458872,
+        "y": 872.5299556331894,
+        "w": 164,
+        "h": 119
+      }
+    },
+    {
+      "mode": "impact",
+      "steer": 0.8,
+      "reducedMotion": false,
+      "version": "before",
+      "car": {
+        "x": 972.0718891458872,
+        "y": 872.5299556331894,
+        "w": 164,
+        "h": 119
+      }
+    },
+    {
+      "mode": "impact",
+      "steer": 0.8,
+      "reducedMotion": false,
+      "version": "after",
+      "car": {
+        "x": 972.0718891458872,
+        "y": 872.5299556331894,
+        "w": 164,
+        "h": 119
+      }
+    },
+    {
+      "mode": "shift",
+      "steer": -0.8,
+      "reducedMotion": false,
+      "version": "before",
+      "car": {
+        "x": 967.4779242888221,
+        "y": 832.3749825887695,
+        "w": 157.55840586674512,
+        "h": 114.32591645208946
+      }
+    },
+    {
+      "mode": "shift",
+      "steer": -0.8,
+      "reducedMotion": false,
+      "version": "after",
+      "car": {
+        "x": 967.4779242888221,
+        "y": 832.3749825887695,
+        "w": 157.55840586674512,
+        "h": 114.32591645208946
+      }
+    },
+    {
+      "mode": "shift",
+      "steer": 0,
+      "reducedMotion": false,
+      "version": "before",
+      "car": {
+        "x": 967.4779242888221,
+        "y": 832.3749825887695,
+        "w": 157.55840586674512,
+        "h": 114.32591645208946
+      }
+    },
+    {
+      "mode": "shift",
+      "steer": 0,
+      "reducedMotion": false,
+      "version": "after",
+      "car": {
+        "x": 967.4779242888221,
+        "y": 832.3749825887695,
+        "w": 157.55840586674512,
+        "h": 114.32591645208946
+      }
+    },
+    {
+      "mode": "shift",
+      "steer": 0.8,
+      "reducedMotion": false,
+      "version": "before",
+      "car": {
+        "x": 967.4779242888221,
+        "y": 832.3749825887695,
+        "w": 157.55840586674512,
+        "h": 114.32591645208946
+      }
+    },
+    {
+      "mode": "shift",
+      "steer": 0.8,
+      "reducedMotion": false,
+      "version": "after",
+      "car": {
+        "x": 967.4779242888221,
+        "y": 832.3749825887695,
+        "w": 157.55840586674512,
+        "h": 114.32591645208946
+      }
+    },
+    {
+      "mode": "reduced",
+      "steer": -0.8,
+      "reducedMotion": true,
+      "version": "before",
+      "car": {
+        "x": 965.2752964239048,
+        "y": 868.452,
+        "w": 164,
+        "h": 119
+      }
+    },
+    {
+      "mode": "reduced",
+      "steer": -0.8,
+      "reducedMotion": true,
+      "version": "after",
+      "car": {
+        "x": 965.2752964239048,
+        "y": 868.452,
+        "w": 164,
+        "h": 119
+      }
+    },
+    {
+      "mode": "reduced",
+      "steer": 0,
+      "reducedMotion": true,
+      "version": "before",
+      "car": {
+        "x": 965.2752964239048,
+        "y": 868.452,
+        "w": 164,
+        "h": 119
+      }
+    },
+    {
+      "mode": "reduced",
+      "steer": 0,
+      "reducedMotion": true,
+      "version": "after",
+      "car": {
+        "x": 965.2752964239048,
+        "y": 868.452,
+        "w": 164,
+        "h": 119
+      }
+    },
+    {
+      "mode": "reduced",
+      "steer": 0.8,
+      "reducedMotion": true,
+      "version": "before",
+      "car": {
+        "x": 965.2752964239048,
+        "y": 868.452,
+        "w": 164,
+        "h": 119
+      }
+    },
+    {
+      "mode": "reduced",
+      "steer": 0.8,
+      "reducedMotion": true,
+      "version": "after",
+      "car": {
+        "x": 965.2752964239048,
+        "y": 868.452,
+        "w": 164,
+        "h": 119
+      }
+    }
+  ],
+  "files": [
+    {
+      "file": "Brace-held-before-after.webp",
+      "sha256": "880e4e874e9585ccb2701079f319867f2fb494578950d6c033dd2a5e09d63b4a"
+    },
+    {
+      "file": "Brace-impact-before-after.webp",
+      "sha256": "0148955314d66e9c8f721b57a417066c153fe25a493e7d870602197e99a9fd30"
+    },
+    {
+      "file": "Brace-shift-before-after.webp",
+      "sha256": "ce76b3ea31e4906c6e72cf4ebf2ed411e1beb3ad9c8db11526d61a8f6e695cd2"
+    },
+    {
+      "file": "Brace-reduced-before-after.webp",
+      "sha256": "e96a65a5c2a0383dc18ae833c35000b9ca3531071d6f513ea094ad13a9e9123f"
+    }
+  ]
+}
