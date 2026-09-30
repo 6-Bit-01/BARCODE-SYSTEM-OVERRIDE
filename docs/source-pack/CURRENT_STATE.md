@@ -1,5 +1,20 @@
 # Current State
 
+## September 30 — Brace halo sits around the car
+
+Following merged #157, the owner identified the gold halo cutting through
+the car. The ring now sits lower on the road and uses the current car's
+width/height. Its far half draws before the complete car and its near half
+afterward, with one shared transform and opacity. The older procedural
+ellipse is suppressed when the authored halo is loaded. Push and all
+gameplay/audio rules are unchanged. Base/rollback:
+`5115b9afa4fb07a39fb8b23b2ac626e72f9a2916`.
+
+Focused native views cover held Brace, impacts, steering, shifting and
+Reduced Motion. Final test/CI and publication outcomes belong to the
+PR/generated receipt; earlier #157 CI is not the gate for this correction.
+Makko/controller verification remains the focused post-deploy check.
+
 ## September 30 — Cache Line encounters and final pursuit
 
 The owner selected a second Level 2 gameplay pass after merged #156: musical
@@ -23,9 +38,10 @@ Beat ONE, music alignment, buffered gears, approved city/clearance, exact
 remain protected. Mac's authored gameplay is still future work.
 
 See `CACHE_ROAD_ENCOUNTERS.md` for measured race outcomes, evidence and limits.
-Twenty complete production-input runs clear: the nine gear/difficulty pairs,
-their nine actual-damage recovery runs, one mixed-gear race and one deliberate
-missed-exit/checkpoint-retry race. Each recovery run loses one live part and
+Twenty-two complete production-input runs clear: the nine gear/difficulty
+pairs, their nine actual-damage recovery runs, one mixed-gear race, one
+deliberate missed-exit/checkpoint-retry race, five earned Push contacts and
+two early nonfatal crashes. Each recovery run loses one live part and
 later captures another. These are controlled input results, not human success
 rates. Final regression/Chromium gates remain pending in the PR/generated
 receipt; do not infer this candidate's CI result from #156. No Makko/device

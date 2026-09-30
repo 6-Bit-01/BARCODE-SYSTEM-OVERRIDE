@@ -1,5 +1,13 @@
 # Decision Register
 
+## September 30, 2026 — ring occlusion correction
+
+The owner's “ring around the car is going through it” report authorizes a
+rendering correction to Brace. The ring belongs on the road around the car:
+far arc behind its sprite, near arc in front, following the actual car pose.
+Do not change gameplay to resolve an image-layering problem. Preserve the
+existing art, Push priority, music and exact rearview blur.
+
 ## September 30, 2026 — approved road encounters and measured tuning
 
 The owner explicitly selected “the encounter layout, ability reactions and

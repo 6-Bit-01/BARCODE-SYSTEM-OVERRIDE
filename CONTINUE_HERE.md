@@ -1,4 +1,16 @@
-# Continue here — Cache Line encounters and final pursuit
+# Continue here — Brace ring depth correction
+
+## September 30, 2026 — current follow-up: Brace ring
+
+The owner noticed the gold ring passing through the car in #157. The scoped
+fix places the halo around the tires, clips its far half before the car and
+its near half after, and scales both with the current car pose. Suppress the
+old procedural ring when the authored halo is ready. Push priority, game
+rules, music and exact mirror blur stay intact. Base/rollback is
+`5115b9afa4fb07a39fb8b23b2ac626e72f9a2916`; work on
+`agent/cache-brace-ring-depth`. Required tests and refreshed native evidence
+precede final-head CI/merge and the maintained v5 source-pack update. Use the
+newest ACCEPTANCE route; exact publication status belongs to the PR/receipt.
 
 ## September 30, 2026 — current work: encounters, reactions and final pursuit
 
