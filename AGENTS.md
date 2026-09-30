@@ -1,5 +1,23 @@
 # Repository Guidance
 
+## September 30, 2026 — visual driving cues and complete foreground exits
+
+The owner requests fewer words during play and asks to see passed cars and
+road objects travel off screen. Replace repeated live instruction sentences
+with mapped button badges, lane/route diagrams, progress lights and short
+outcome labels. Keep the complete explanations in Pause. Extend foreground
+projection and cull complete artwork only after it exits; keep finite work,
+actual world sockets and road clearance. Base/rollback is merged #160,
+`a176163110f08988bc5f0425815d5fb6cb2e21e4`; branch
+`agent/cache-visual-drive`. Preserve all PR160 timing, encounters, music,
+collision/reaction rules, rewards and exact mirror `blur(2.3px)`.
+
+Inspect native production stills and a foreground pass sequence, run focused
+geometry/presentation checks, full regression/all-file syntax and both
+final-head CI events. Merge under standing authority and refresh the exact
+merged source pack. Makko/device feel remains a post-deploy check. See
+`docs/source-pack/CACHE_VISUAL_DRIVE.md`; final outcomes belong to the PR/receipt.
+
 ## September 30, 2026 — drive feedback, traffic and reactive music
 
 The owner's nine-point playable-game review authorizes this focused Level 2

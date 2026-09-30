@@ -1,5 +1,19 @@
 # Current State
 
+## September 30 — less reading, complete foreground motion
+
+Live driving uses compact route progress, optional-record lights, mapped
+button shapes, a lane diagram and a two-step Echo-left/exit-right diagram.
+Short timing/outcome tags replace repeated sentences. Pause retains the full
+control and mission explanations. The optional tape sign uses a cassette,
+lane lights and a hold ring; the tire target uses the button itself.
+
+Passed traffic and roadside objects continue through the foreground until
+the complete visible artwork leaves the frame. Conservative distance bounds
+keep projection finite; no collision, music, timing or encounter rules change.
+The approved mirror blur stays exact. See `CACHE_VISUAL_DRIVE.md` and
+`review-cache-visual-drive/` for focused evidence and post-deploy review.
+
 ## September 30 — readable inputs and a busier, reactive drive
 
 Fresh Cache Line runs use a version 2 encounter chart with civilian traffic

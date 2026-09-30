@@ -1,5 +1,28 @@
 # Acceptance and Test Status
 
+## Visual driving and foreground exits — September 30
+
+Import the exact merged revision from the PR/receipt through the normal Makko
+route, reload, and choose Replay race. Base/rollback is merged #160,
+`a176163110f08988bc5f0425815d5fb6cb2e21e4`.
+
+1. Drive with keyboard and your controller. Follow the highlighted lane and
+   mapped button through the 2–3–4–1 count. Check an on-time hit, early/late
+   press, wrong button and wrong lane. Brief outcomes must stay distinct;
+   repeated teaching sentences should be absent. Open Pause for explanations.
+2. Overtake cars in inner and outer lanes at every gear. Watch their entire
+   bodies move below/beyond the frame. Inspect lamps, walkers, signs and
+   roadside scenery through the nearest visible edge: no early disappearance,
+   frozen near sprite, new asphalt overlap or foreground-size jump.
+3. Collect an optional record using its lane/hold cue. At the final split,
+   follow step 1 (Echo on the left) then step 2 (original to the far-right
+   exit). Route/record lights must report actual progress. Check Reduced
+   Motion; keep the approved rearview blur and music behavior.
+
+For a mismatch, capture a short clip and note platform, input device, gear,
+difficulty, bar, lane, object and Reduced Motion/flashes settings. Native
+projection fixtures and automated races are not Makko/device acceptance.
+
 ## Drive feedback and responsive music — September 30
 
 Import the exact merged revision in the PR/receipt through the normal Makko

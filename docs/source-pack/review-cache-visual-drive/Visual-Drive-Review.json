@@ -1,0 +1,2740 @@
+{
+  "kind": "native-production-visual-drive-review",
+  "dimensions": {
+    "width": 1920,
+    "height": 1080
+  },
+  "sourceHashes": {
+    "src/game/cache-road-guidance.js": "56a4bbe73e9c8e6b83ae3bd7648869850c083ef3e9d0ac3b7713a066e3bae6da",
+    "src/game/cache-road-proof.js": "8aa158e83f16944804c93fc8ebfede9fb7dbba213d6646c1cd98f37b0fdeedf6",
+    "src/game/cache-road-encounters.js": "efdf3a8c44fd4e15eca2f7a070a03b9a69fdf8f396376c64fc2d67965a518a0b",
+    "src/game/cache-road-reactions.js": "47748481a8426278bb23f3358916a9c3345c55af7507866bb561a8180ceb4753",
+    "src/game/cache-road-pursuit.js": "cd00f39a893613e765848452f47b79c3953c45538f4c217e074b737a5eb936e3",
+    "src/game/cache-road-landscape.js": "eb852168cc9bd18334e15eb3a8791d4a8409d542ee81df1dd2e321bdebda31f3",
+    "src/engine/cache-road-proof-profile.js": "582cce91bdf042759d8c6dccbd8ed1d033088a8d052b72ef5a685131dea42b8f",
+    "src/engine/presentation-assets.js": "1621c0150fc2cecdf58e609417b834eb9ea2e4be66d31cd7dc4c0f12acb85358",
+    "tools/render-cache-visual-drive.cjs": "45b8d1337d2342734004dca7ebf45433d82e5a934e2bb053404edef90b824ac8",
+    "tools/check-cache-road-races.cjs": "40554a65e54bcc66c5bf0ebde7ebfc0278972e9ccf4959886ebf3ecd97ca524b"
+  },
+  "fixtures": [
+    {
+      "file": "Fixture-keyboard-pad.webp",
+      "kind": "staged-ui-state",
+      "controller": "keyboard",
+      "sha256": "c2659b8e631c07cb175dd8fff6d87eb21ad85d712960ee8d331b40b5ed322179"
+    },
+    {
+      "file": "Fixture-playstation-miss.webp",
+      "kind": "staged-ui-state",
+      "controller": "playstation",
+      "sha256": "1f65228c5f3d98ab9bcf006fd8ce81852a250daead4496a8caed71bee89fe06f"
+    },
+    {
+      "file": "Fixture-capture.webp",
+      "kind": "staged-ui-state",
+      "controller": "keyboard",
+      "sha256": "d8dcb8bc20dfca91f516de1af3e9aa101e9abaf614ba688a78af71f1e6830be0"
+    },
+    {
+      "file": "Fixture-echo-exit.webp",
+      "kind": "staged-ui-state",
+      "controller": "keyboard",
+      "sha256": "05473fc7382a98068697a2e6ba143d5a28daf192fd7f6514b7dcff63ff04d57b"
+    },
+    {
+      "file": "Fixture-passed-depth.webp",
+      "kind": "staged-passed-depth-state",
+      "progress": 295,
+      "courierDistance": -20,
+      "playerLane": 1.65,
+      "sha256": "c61c93df4df8340677f1bd7916d0a332c833381a146afbe722fa44cbac0eeacf"
+    }
+  ],
+  "actualFrame": {
+    "file": "Race-Capture.webp",
+    "kind": "actual-production-input-race-state",
+    "bar": 19.029333333333323,
+    "elapsedMs": 35680,
+    "lane": 1.089578134112696,
+    "integrity": 3,
+    "sha256": "1aa57465124b21595b23cfb77ad06c1f5fbae324ac406dea1e0d4a898b071d49"
+  },
+  "motion": {
+    "file": "Foreground-Pass.mp4",
+    "kind": "staged-projection-fixture",
+    "fps": 24,
+    "frames": 192,
+    "durationSec": 8,
+    "from": 245,
+    "to": 755,
+    "playerLane": 1.65,
+    "primaryActor": {
+      "kind": "van",
+      "at": 275,
+      "lane": 2
+    },
+    "sha256": "094e18a691f903c513fa2aedf1b3250265e743ac02e3b9bf091e434b41d8dae1",
+    "sequence": [
+      {
+        "frame": 0,
+        "timeSec": 0,
+        "progress": 245,
+        "courierDistance": 30,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 240.504,
+            "right": 319.076,
+            "top": 521.599,
+            "bottom": 639.458
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": 77.583,
+            "right": 181.688,
+            "top": 618.838,
+            "bottom": 774.997
+          }
+        ],
+        "courierBounds": {
+          "left": 1005.018,
+          "right": 1152.624,
+          "top": 675.32,
+          "bottom": 823.737
+        }
+      },
+      {
+        "frame": 1,
+        "timeSec": 0.042,
+        "progress": 247.67,
+        "courierDistance": 27.33,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 235.894,
+            "right": 315.082,
+            "top": 524.319,
+            "bottom": 643.102
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": 71.577,
+            "right": 176.441,
+            "top": 623.032,
+            "bottom": 780.328
+          }
+        ],
+        "courierBounds": {
+          "left": 1005.833,
+          "right": 1153.995,
+          "top": 680.891,
+          "bottom": 829.261
+        }
+      },
+      {
+        "frame": 2,
+        "timeSec": 0.083,
+        "progress": 250.34,
+        "courierDistance": 24.66,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 231.245,
+            "right": 311.054,
+            "top": 527.081,
+            "bottom": 646.794
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": 65.523,
+            "right": 171.148,
+            "top": 627.285,
+            "bottom": 785.722
+          }
+        ],
+        "courierBounds": {
+          "left": 1006.552,
+          "right": 1155.417,
+          "top": 686.111,
+          "bottom": 835.063
+        }
+      },
+      {
+        "frame": 3,
+        "timeSec": 0.125,
+        "progress": 253.01,
+        "courierDistance": 21.99,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 226.559,
+            "right": 306.99,
+            "top": 529.886,
+            "bottom": 650.533
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": 59.418,
+            "right": 165.809,
+            "top": 631.596,
+            "bottom": 791.182
+          }
+        ],
+        "courierBounds": {
+          "left": 1007.168,
+          "right": 1156.887,
+          "top": 690.954,
+          "bottom": 841.138
+        }
+      },
+      {
+        "frame": 4,
+        "timeSec": 0.167,
+        "progress": 255.681,
+        "courierDistance": 19.319,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 221.834,
+            "right": 302.891,
+            "top": 532.734,
+            "bottom": 654.32
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": 53.263,
+            "right": 160.423,
+            "top": 635.967,
+            "bottom": 796.706
+          }
+        ],
+        "courierBounds": {
+          "left": 1007.777,
+          "right": 1158.308,
+          "top": 695.834,
+          "bottom": 847.068
+        }
+      },
+      {
+        "frame": 5,
+        "timeSec": 0.208,
+        "progress": 258.351,
+        "courierDistance": 16.649,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 217.07,
+            "right": 298.757,
+            "top": 535.625,
+            "bottom": 658.156
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": 47.058,
+            "right": 154.99,
+            "top": 640.399,
+            "bottom": 802.297
+          }
+        ],
+        "courierBounds": {
+          "left": 1008.379,
+          "right": 1159.686,
+          "top": 700.749,
+          "bottom": 852.877
+        }
+      },
+      {
+        "frame": 6,
+        "timeSec": 0.25,
+        "progress": 261.021,
+        "courierDistance": 13.979,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 212.266,
+            "right": 294.586,
+            "top": 538.561,
+            "bottom": 662.041
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": 40.801,
+            "right": 149.51,
+            "top": 644.891,
+            "bottom": 807.954
+          }
+        ],
+        "courierBounds": {
+          "left": 1008.974,
+          "right": 1161.031,
+          "top": 705.7,
+          "bottom": 858.609
+        }
+      },
+      {
+        "frame": 7,
+        "timeSec": 0.292,
+        "progress": 263.691,
+        "courierDistance": 11.309,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 207.423,
+            "right": 290.379,
+            "top": 541.541,
+            "bottom": 665.975
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": 34.492,
+            "right": 143.981,
+            "top": 649.445,
+            "bottom": 813.679
+          }
+        ],
+        "courierBounds": {
+          "left": 1009.563,
+          "right": 1162.356,
+          "top": 710.687,
+          "bottom": 864.321
+        }
+      },
+      {
+        "frame": 8,
+        "timeSec": 0.333,
+        "progress": 266.361,
+        "courierDistance": 8.639,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 202.539,
+            "right": 286.135,
+            "top": 544.566,
+            "bottom": 669.959
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": 28.132,
+            "right": 138.404,
+            "top": 654.062,
+            "bottom": 819.471
+          }
+        ],
+        "courierBounds": {
+          "left": 1010.144,
+          "right": 1163.675,
+          "top": 715.71,
+          "bottom": 870.076
+        }
+      },
+      {
+        "frame": 9,
+        "timeSec": 0.375,
+        "progress": 269.031,
+        "courierDistance": 5.969,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 197.615,
+            "right": 281.853,
+            "top": 547.637,
+            "bottom": 673.994
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": 21.718,
+            "right": 132.779,
+            "top": 658.741,
+            "bottom": 825.332
+          }
+        ],
+        "courierBounds": {
+          "left": 1010.718,
+          "right": 1165.002,
+          "top": 720.768,
+          "bottom": 875.931
+        }
+      },
+      {
+        "frame": 10,
+        "timeSec": 0.417,
+        "progress": 271.702,
+        "courierDistance": 3.298,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 192.65,
+            "right": 277.534,
+            "top": 550.754,
+            "bottom": 678.08
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": 15.251,
+            "right": 127.104,
+            "top": 663.484,
+            "bottom": 831.262
+          }
+        ],
+        "courierBounds": {
+          "left": 1011.284,
+          "right": 1166.346,
+          "top": 725.863,
+          "bottom": 881.929
+        }
+      },
+      {
+        "frame": 11,
+        "timeSec": 0.458,
+        "progress": 274.372,
+        "courierDistance": 0.628,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 187.643,
+            "right": 273.176,
+            "top": 553.917,
+            "bottom": 682.217
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": 8.731,
+            "right": 121.379,
+            "top": 668.29,
+            "bottom": 837.262
+          }
+        ],
+        "courierBounds": {
+          "left": 1011.843,
+          "right": 1167.712,
+          "top": 730.993,
+          "bottom": 888.091
+        }
+      },
+      {
+        "frame": 12,
+        "timeSec": 0.5,
+        "progress": 277.042,
+        "courierDistance": -2.042,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 182.594,
+            "right": 268.781,
+            "top": 557.128,
+            "bottom": 686.407
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": 2.156,
+            "right": 115.603,
+            "top": 673.162,
+            "bottom": 843.333
+          }
+        ],
+        "courierBounds": {
+          "left": 1012.394,
+          "right": 1169.099,
+          "top": 736.159,
+          "bottom": 894.41
+        }
+      },
+      {
+        "frame": 13,
+        "timeSec": 0.542,
+        "progress": 279.712,
+        "courierDistance": -4.712,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 177.503,
+            "right": 264.346,
+            "top": 560.386,
+            "bottom": 690.65
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": -4.473,
+            "right": 109.777,
+            "top": 678.099,
+            "bottom": 849.475
+          }
+        ],
+        "courierBounds": {
+          "left": 1012.938,
+          "right": 1170.5,
+          "top": 741.361,
+          "bottom": 900.854
+        }
+      },
+      {
+        "frame": 14,
+        "timeSec": 0.583,
+        "progress": 282.382,
+        "courierDistance": -7.382,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 172.37,
+            "right": 259.872,
+            "top": 563.692,
+            "bottom": 694.945
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": -11.157,
+            "right": 103.9,
+            "top": 683.103,
+            "bottom": 855.689
+          }
+        ],
+        "courierBounds": {
+          "left": 1013.474,
+          "right": 1171.9,
+          "top": 746.599,
+          "bottom": 907.368
+        }
+      },
+      {
+        "frame": 15,
+        "timeSec": 0.625,
+        "progress": 285.052,
+        "courierDistance": -10.052,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 167.193,
+            "right": 255.358,
+            "top": 567.047,
+            "bottom": 699.295
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": -17.897,
+            "right": 97.971,
+            "top": 688.173,
+            "bottom": 861.975
+          }
+        ],
+        "courierBounds": {
+          "left": 1014.003,
+          "right": 1173.284,
+          "top": 751.873,
+          "bottom": 913.878
+        }
+      },
+      {
+        "frame": 16,
+        "timeSec": 0.667,
+        "progress": 287.723,
+        "courierDistance": -12.723,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 161.972,
+            "right": 250.804,
+            "top": 570.452,
+            "bottom": 703.698
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": -24.694,
+            "right": 91.989,
+            "top": 693.311,
+            "bottom": 868.335
+          }
+        ],
+        "courierBounds": {
+          "left": 1014.524,
+          "right": 1174.633,
+          "top": 757.183,
+          "bottom": 920.305
+        }
+      },
+      {
+        "frame": 17,
+        "timeSec": 0.708,
+        "progress": 290.393,
+        "courierDistance": -15.393,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 156.708,
+            "right": 246.209,
+            "top": 573.906,
+            "bottom": 708.157
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": -31.546,
+            "right": 85.955,
+            "top": 698.516,
+            "bottom": 874.769
+          }
+        ],
+        "courierBounds": {
+          "left": 1015.038,
+          "right": 1175.927,
+          "top": 762.528,
+          "bottom": 926.568
+        }
+      },
+      {
+        "frame": 18,
+        "timeSec": 0.75,
+        "progress": 293.063,
+        "courierDistance": -18.063,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 151.399,
+            "right": 241.573,
+            "top": 577.41,
+            "bottom": 712.671
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": -38.456,
+            "right": 79.868,
+            "top": 703.791,
+            "bottom": 881.277
+          }
+        ],
+        "courierBounds": {
+          "left": 1015.544,
+          "right": 1177.154,
+          "top": 767.91,
+          "bottom": 932.603
+        }
+      },
+      {
+        "frame": 19,
+        "timeSec": 0.792,
+        "progress": 295.733,
+        "courierDistance": -20.733,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 146.045,
+            "right": 236.896,
+            "top": 580.965,
+            "bottom": 717.241
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": -45.423,
+            "right": 73.727,
+            "top": 709.135,
+            "bottom": 887.861
+          }
+        ],
+        "courierBounds": {
+          "left": 1016.043,
+          "right": 1178.301,
+          "top": 773.327,
+          "bottom": 938.368
+        }
+      },
+      {
+        "frame": 20,
+        "timeSec": 0.833,
+        "progress": 298.403,
+        "courierDistance": -23.403,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 140.647,
+            "right": 232.177,
+            "top": 584.572,
+            "bottom": 721.868
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": -52.449,
+            "right": 67.532,
+            "top": 714.55,
+            "bottom": 894.52
+          }
+        ],
+        "courierBounds": {
+          "left": 1016.534,
+          "right": 1179.367,
+          "top": 778.78,
+          "bottom": 943.851
+        }
+      },
+      {
+        "frame": 21,
+        "timeSec": 0.875,
+        "progress": 301.073,
+        "courierDistance": -26.073,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 135.202,
+            "right": 227.416,
+            "top": 588.23,
+            "bottom": 726.551
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": -59.533,
+            "right": 61.282,
+            "top": 720.035,
+            "bottom": 901.257
+          }
+        ],
+        "courierBounds": {
+          "left": 1017.018,
+          "right": 1180.357,
+          "top": 784.269,
+          "bottom": 949.073
+        }
+      },
+      {
+        "frame": 22,
+        "timeSec": 0.917,
+        "progress": 303.743,
+        "courierDistance": -28.743,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 129.711,
+            "right": 222.612,
+            "top": 591.941,
+            "bottom": 731.293
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": -66.676,
+            "right": 54.977,
+            "top": 725.592,
+            "bottom": 908.071
+          }
+        ],
+        "courierBounds": {
+          "left": 1017.494,
+          "right": 1181.282,
+          "top": 789.794,
+          "bottom": 954.09
+        }
+      },
+      {
+        "frame": 23,
+        "timeSec": 0.958,
+        "progress": 306.414,
+        "courierDistance": -31.414,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 124.174,
+            "right": 217.765,
+            "top": 595.706,
+            "bottom": 736.092
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": -73.879,
+            "right": 48.616,
+            "top": 731.222,
+            "bottom": 914.964
+          }
+        ],
+        "courierBounds": {
+          "left": 1017.759,
+          "right": 1182.368,
+          "top": 794.479,
+          "bottom": 959.864
+        }
+      },
+      {
+        "frame": 24,
+        "timeSec": 1,
+        "progress": 309.084,
+        "courierDistance": -34.084,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 118.59,
+            "right": 212.875,
+            "top": 599.523,
+            "bottom": 740.951
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": -81.142,
+            "right": 42.199,
+            "top": 736.924,
+            "bottom": 921.935
+          }
+        ],
+        "courierBounds": {
+          "left": 1017.879,
+          "right": 1183.572,
+          "top": 798.614,
+          "bottom": 966.213
+        }
+      },
+      {
+        "frame": 25,
+        "timeSec": 1.042,
+        "progress": 311.754,
+        "courierDistance": -36.754,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 112.958,
+            "right": 207.941,
+            "top": 603.395,
+            "bottom": 745.869
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": -88.465,
+            "right": 35.725,
+            "top": 742.701,
+            "bottom": 928.986
+          }
+        ],
+        "courierBounds": {
+          "left": 1018.008,
+          "right": 1184.766,
+          "top": 802.857,
+          "bottom": 972.598
+        }
+      },
+      {
+        "frame": 26,
+        "timeSec": 1.083,
+        "progress": 314.424,
+        "courierDistance": -39.424,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 107.279,
+            "right": 202.962,
+            "top": 607.322,
+            "bottom": 750.847
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": -95.85,
+            "right": 29.195,
+            "top": 748.551,
+            "bottom": 936.118
+          }
+        ],
+        "courierBounds": {
+          "left": 1018.173,
+          "right": 1185.953,
+          "top": 807.325,
+          "bottom": 979.019
+        }
+      },
+      {
+        "frame": 27,
+        "timeSec": 1.125,
+        "progress": 317.094,
+        "courierDistance": -42.094,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 101.551,
+            "right": 197.939,
+            "top": 611.304,
+            "bottom": 755.885
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": -103.296,
+            "right": 22.606,
+            "top": 754.477,
+            "bottom": 943.331
+          }
+        ],
+        "courierBounds": {
+          "left": 1018.398,
+          "right": 1187.131,
+          "top": 812.122,
+          "bottom": 985.475
+        }
+      },
+      {
+        "frame": 28,
+        "timeSec": 1.167,
+        "progress": 319.764,
+        "courierDistance": -44.764,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 95.775,
+            "right": 192.87,
+            "top": 615.343,
+            "bottom": 760.985
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": -110.804,
+            "right": 15.96,
+            "top": 760.479,
+            "bottom": 950.625
+          }
+        ],
+        "courierBounds": {
+          "left": 1018.701,
+          "right": 1188.3,
+          "top": 817.328,
+          "bottom": 991.968
+        }
+      },
+      {
+        "frame": 29,
+        "timeSec": 1.208,
+        "progress": 322.435,
+        "courierDistance": -47.435,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 89.95,
+            "right": 187.756,
+            "top": 619.437,
+            "bottom": 766.147
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": -118.375,
+            "right": 9.255,
+            "top": 766.558,
+            "bottom": 958.003
+          }
+        ],
+        "courierBounds": {
+          "left": 1019.093,
+          "right": 1189.462,
+          "top": 822.989,
+          "bottom": 998.496
+        }
+      },
+      {
+        "frame": 30,
+        "timeSec": 1.25,
+        "progress": 325.105,
+        "courierDistance": -50.105,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 84.075,
+            "right": 182.596,
+            "top": 623.589,
+            "bottom": 771.371
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": -126.008,
+            "right": 2.491,
+            "top": 772.714,
+            "bottom": 965.463
+          }
+        ],
+        "courierBounds": {
+          "left": 1019.576,
+          "right": 1190.615,
+          "top": 829.114,
+          "bottom": 1005.06
+        }
+      },
+      {
+        "frame": 31,
+        "timeSec": 1.292,
+        "progress": 327.775,
+        "courierDistance": -52.775,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 78.15,
+            "right": 177.389,
+            "top": 627.799,
+            "bottom": 776.658
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": -133.706,
+            "right": -4.333,
+            "top": 778.949,
+            "bottom": 973.009
+          }
+        ],
+        "courierBounds": {
+          "left": 1020.143,
+          "right": 1191.76,
+          "top": 835.674,
+          "bottom": 1011.66
+        }
+      },
+      {
+        "frame": 32,
+        "timeSec": 1.333,
+        "progress": 330.445,
+        "courierDistance": -55.445,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 72.174,
+            "right": 172.135,
+            "top": 632.067,
+            "bottom": 782.009
+          },
+          {
+            "key": "cacheNewLampL",
+            "left": -141.468,
+            "right": -11.217,
+            "top": 785.262,
+            "bottom": 980.639
+          }
+        ],
+        "courierBounds": {
+          "left": 1020.779,
+          "right": 1192.896,
+          "top": 842.602,
+          "bottom": 1018.296
+        }
+      },
+      {
+        "frame": 33,
+        "timeSec": 1.375,
+        "progress": 333.115,
+        "courierDistance": -58.115,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 66.148,
+            "right": 166.834,
+            "top": 636.394,
+            "bottom": 787.424
+          }
+        ],
+        "courierBounds": {
+          "left": 1021.462,
+          "right": 1194.023,
+          "top": 849.805,
+          "bottom": 1024.967
+        }
+      },
+      {
+        "frame": 34,
+        "timeSec": 1.417,
+        "progress": 335.785,
+        "courierDistance": -60.785,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 60.07,
+            "right": 161.486,
+            "top": 640.781,
+            "bottom": 792.904
+          }
+        ],
+        "courierBounds": {
+          "left": 1022.167,
+          "right": 1195.143,
+          "top": 857.17,
+          "bottom": 1031.675
+        }
+      },
+      {
+        "frame": 35,
+        "timeSec": 1.458,
+        "progress": 338.455,
+        "courierDistance": -63.455,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 53.941,
+            "right": 156.089,
+            "top": 645.228,
+            "bottom": 798.45
+          }
+        ],
+        "courierBounds": {
+          "left": 1022.865,
+          "right": 1196.253,
+          "top": 864.579,
+          "bottom": 1038.418
+        }
+      },
+      {
+        "frame": 36,
+        "timeSec": 1.5,
+        "progress": 341.126,
+        "courierDistance": -66.126,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 47.759,
+            "right": 150.643,
+            "top": 649.735,
+            "bottom": 804.062
+          }
+        ],
+        "courierBounds": {
+          "left": 1023.295,
+          "right": 1197.592,
+          "top": 870.907,
+          "bottom": 1046.21
+        }
+      },
+      {
+        "frame": 37,
+        "timeSec": 1.542,
+        "progress": 343.796,
+        "courierDistance": -68.796,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 41.525,
+            "right": 145.149,
+            "top": 654.304,
+            "bottom": 809.74
+          }
+        ],
+        "courierBounds": {
+          "left": 1023.646,
+          "right": 1198.946,
+          "top": 876.969,
+          "bottom": 1054.141
+        }
+      },
+      {
+        "frame": 38,
+        "timeSec": 1.583,
+        "progress": 346.466,
+        "courierDistance": -71.466,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 35.237,
+            "right": 139.605,
+            "top": 658.936,
+            "bottom": 815.486
+          }
+        ],
+        "courierBounds": {
+          "left": 1023.99,
+          "right": 1200.23,
+          "top": 883.068,
+          "bottom": 1061.842
+        }
+      },
+      {
+        "frame": 39,
+        "timeSec": 1.625,
+        "progress": 349.136,
+        "courierDistance": -74.136,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 28.896,
+            "right": 134.011,
+            "top": 663.629,
+            "bottom": 821.301
+          }
+        ],
+        "courierBounds": {
+          "left": 1024.326,
+          "right": 1201.437,
+          "top": 889.203,
+          "bottom": 1069.28
+        }
+      },
+      {
+        "frame": 40,
+        "timeSec": 1.667,
+        "progress": 351.806,
+        "courierDistance": -76.806,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 22.502,
+            "right": 128.366,
+            "top": 668.387,
+            "bottom": 827.184
+          }
+        ],
+        "courierBounds": {
+          "left": 1024.654,
+          "right": 1202.566,
+          "top": 895.373,
+          "bottom": 1076.454
+        }
+      },
+      {
+        "frame": 41,
+        "timeSec": 1.708,
+        "progress": 354.476,
+        "courierDistance": -79.476,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 16.052,
+            "right": 122.671,
+            "top": 673.208,
+            "bottom": 833.136
+          }
+        ],
+        "courierBounds": {
+          "left": 1024.974,
+          "right": 1203.625,
+          "top": 901.579,
+          "bottom": 1083.398
+        }
+      },
+      {
+        "frame": 42,
+        "timeSec": 1.75,
+        "progress": 357.147,
+        "courierDistance": -82.147,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 9.548,
+            "right": 116.925,
+            "top": 678.094,
+            "bottom": 839.159
+          }
+        ],
+        "courierBounds": {
+          "left": 1025.286,
+          "right": 1204.628,
+          "top": 907.821,
+          "bottom": 1090.171
+        }
+      },
+      {
+        "frame": 43,
+        "timeSec": 1.792,
+        "progress": 359.817,
+        "courierDistance": -84.817,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": 2.989,
+            "right": 111.126,
+            "top": 683.045,
+            "bottom": 845.252
+          }
+        ],
+        "courierBounds": {
+          "left": 1025.59,
+          "right": 1205.593,
+          "top": 914.099,
+          "bottom": 1096.848
+        }
+      },
+      {
+        "frame": 44,
+        "timeSec": 1.833,
+        "progress": 362.487,
+        "courierDistance": -87.487,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": -3.627,
+            "right": 105.276,
+            "top": 688.063,
+            "bottom": 851.417
+          }
+        ],
+        "courierBounds": {
+          "left": 1025.885,
+          "right": 1206.537,
+          "top": 920.413,
+          "bottom": 1103.512
+        }
+      },
+      {
+        "frame": 45,
+        "timeSec": 1.875,
+        "progress": 365.157,
+        "courierDistance": -90.157,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": -10.298,
+            "right": 99.373,
+            "top": 693.147,
+            "bottom": 857.654
+          }
+        ],
+        "courierBounds": {
+          "left": 1026.172,
+          "right": 1207.48,
+          "top": 926.762,
+          "bottom": 1110.237
+        }
+      },
+      {
+        "frame": 46,
+        "timeSec": 1.917,
+        "progress": 367.827,
+        "courierDistance": -92.827,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": -17.026,
+            "right": 93.417,
+            "top": 698.298,
+            "bottom": 863.964
+          }
+        ],
+        "courierBounds": {
+          "left": 1026.451,
+          "right": 1208.433,
+          "top": 933.148,
+          "bottom": 1117.084
+        }
+      },
+      {
+        "frame": 47,
+        "timeSec": 1.958,
+        "progress": 370.497,
+        "courierDistance": -95.497,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": -23.812,
+            "right": 87.408,
+            "top": 703.517,
+            "bottom": 870.347
+          }
+        ],
+        "courierBounds": {
+          "left": 1026.722,
+          "right": 1209.408,
+          "top": 939.569,
+          "bottom": 1124.091
+        }
+      },
+      {
+        "frame": 48,
+        "timeSec": 2,
+        "progress": 373.168,
+        "courierDistance": -98.168,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": -30.655,
+            "right": 81.345,
+            "top": 708.805,
+            "bottom": 876.805
+          }
+        ],
+        "courierBounds": {
+          "left": 1026.984,
+          "right": 1210.404,
+          "top": 946.026,
+          "bottom": 1131.266
+        }
+      },
+      {
+        "frame": 49,
+        "timeSec": 2.042,
+        "progress": 375.838,
+        "courierDistance": -100.838,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": -37.556,
+            "right": 75.228,
+            "top": 714.163,
+            "bottom": 883.337
+          }
+        ],
+        "courierBounds": {
+          "left": 1027.237,
+          "right": 1211.419,
+          "top": 952.519,
+          "bottom": 1138.588
+        }
+      },
+      {
+        "frame": 50,
+        "timeSec": 2.083,
+        "progress": 378.508,
+        "courierDistance": -103.508,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": -44.515,
+            "right": 69.055,
+            "top": 719.59,
+            "bottom": 889.945
+          }
+        ],
+        "courierBounds": {
+          "left": 1027.483,
+          "right": 1212.439,
+          "top": 959.048,
+          "bottom": 1146.009
+        }
+      },
+      {
+        "frame": 51,
+        "timeSec": 2.125,
+        "progress": 381.178,
+        "courierDistance": -106.178,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": -51.533,
+            "right": 62.828,
+            "top": 725.088,
+            "bottom": 896.63
+          }
+        ],
+        "courierBounds": {
+          "left": 1027.72,
+          "right": 1213.451,
+          "top": 965.613,
+          "bottom": 1153.465
+        }
+      },
+      {
+        "frame": 52,
+        "timeSec": 2.167,
+        "progress": 383.848,
+        "courierDistance": -108.848,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": -58.611,
+            "right": 56.545,
+            "top": 730.658,
+            "bottom": 903.391
+          }
+        ],
+        "courierBounds": {
+          "left": 1027.949,
+          "right": 1214.437,
+          "top": 972.213,
+          "bottom": 1160.878
+        }
+      },
+      {
+        "frame": 53,
+        "timeSec": 2.208,
+        "progress": 386.518,
+        "courierDistance": -111.518,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": -65.749,
+            "right": 50.205,
+            "top": 736.3,
+            "bottom": 910.231
+          }
+        ],
+        "courierBounds": {
+          "left": 1028.169,
+          "right": 1215.379,
+          "top": 978.85,
+          "bottom": 1168.175
+        }
+      },
+      {
+        "frame": 54,
+        "timeSec": 2.25,
+        "progress": 389.188,
+        "courierDistance": -114.188,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": -72.947,
+            "right": 43.809,
+            "top": 742.014,
+            "bottom": 917.148
+          }
+        ],
+        "courierBounds": {
+          "left": 1028.382,
+          "right": 1216.264,
+          "top": 985.522,
+          "bottom": 1175.293
+        }
+      },
+      {
+        "frame": 55,
+        "timeSec": 2.292,
+        "progress": 391.859,
+        "courierDistance": -116.859,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": -80.205,
+            "right": 37.357,
+            "top": 747.803,
+            "bottom": 924.145
+          }
+        ],
+        "courierBounds": {
+          "left": 1028.587,
+          "right": 1217.081,
+          "top": 992.23,
+          "bottom": 1182.194
+        }
+      },
+      {
+        "frame": 56,
+        "timeSec": 2.333,
+        "progress": 394.529,
+        "courierDistance": -119.529,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": -87.525,
+            "right": 30.846,
+            "top": 753.665,
+            "bottom": 931.222
+          }
+        ],
+        "courierBounds": {
+          "left": 1028.785,
+          "right": 1217.83,
+          "top": 998.974,
+          "bottom": 1188.869
+        }
+      },
+      {
+        "frame": 57,
+        "timeSec": 2.375,
+        "progress": 397.199,
+        "courierDistance": -122.199,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": -94.907,
+            "right": 24.278,
+            "top": 759.603,
+            "bottom": 938.38
+          }
+        ],
+        "courierBounds": {
+          "left": 1028.857,
+          "right": 1218.632,
+          "top": 1005.252,
+          "bottom": 1195.845
+        }
+      },
+      {
+        "frame": 58,
+        "timeSec": 2.417,
+        "progress": 399.869,
+        "courierDistance": -124.869,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": -102.35,
+            "right": 17.651,
+            "top": 765.616,
+            "bottom": 945.619
+          }
+        ],
+        "courierBounds": {
+          "left": 1028.75,
+          "right": 1219.556,
+          "top": 1010.831,
+          "bottom": 1203.413
+        }
+      },
+      {
+        "frame": 59,
+        "timeSec": 2.458,
+        "progress": 402.539,
+        "courierDistance": -127.539,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": -109.857,
+            "right": 10.966,
+            "top": 771.706,
+            "bottom": 952.94
+          }
+        ],
+        "courierBounds": {
+          "left": 1028.615,
+          "right": 1220.472,
+          "top": 1016.357,
+          "bottom": 1211.017
+        }
+      },
+      {
+        "frame": 60,
+        "timeSec": 2.5,
+        "progress": 405.209,
+        "courierDistance": -130.209,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": -117.426,
+            "right": 4.221,
+            "top": 777.874,
+            "bottom": 960.345
+          }
+        ],
+        "courierBounds": {
+          "left": 1028.476,
+          "right": 1221.38,
+          "top": 1021.939,
+          "bottom": 1218.657
+        }
+      },
+      {
+        "frame": 61,
+        "timeSec": 2.542,
+        "progress": 407.88,
+        "courierDistance": -132.88,
+        "roadsideBounds": [
+          {
+            "key": "cacheNewCrossingSignalL",
+            "left": -125.059,
+            "right": -2.583,
+            "top": 784.119,
+            "bottom": 967.833
+          }
+        ],
+        "courierBounds": {
+          "left": 1028.362,
+          "right": 1222.279,
+          "top": 1027.696,
+          "bottom": 1226.332
+        }
+      },
+      {
+        "frame": 62,
+        "timeSec": 2.583,
+        "progress": 410.55,
+        "courierDistance": -135.55,
+        "roadsideBounds": [],
+        "courierBounds": {
+          "left": 1028.299,
+          "right": 1223.17,
+          "top": 1033.744,
+          "bottom": 1234.044
+        }
+      },
+      {
+        "frame": 63,
+        "timeSec": 2.625,
+        "progress": 413.22,
+        "courierDistance": -138.22,
+        "roadsideBounds": [],
+        "courierBounds": {
+          "left": 1028.31,
+          "right": 1224.053,
+          "top": 1040.184,
+          "bottom": 1241.792
+        }
+      },
+      {
+        "frame": 64,
+        "timeSec": 2.667,
+        "progress": 415.89,
+        "courierDistance": -140.89,
+        "roadsideBounds": [],
+        "courierBounds": {
+          "left": 1028.414,
+          "right": 1224.928,
+          "top": 1047.09,
+          "bottom": 1249.575
+        }
+      },
+      {
+        "frame": 65,
+        "timeSec": 2.708,
+        "progress": 418.56,
+        "courierDistance": -143.56,
+        "roadsideBounds": [],
+        "courierBounds": {
+          "left": 1028.617,
+          "right": 1225.795,
+          "top": 1054.497,
+          "bottom": 1257.394
+        }
+      },
+      {
+        "frame": 66,
+        "timeSec": 2.75,
+        "progress": 421.23,
+        "courierDistance": -146.23,
+        "roadsideBounds": [],
+        "courierBounds": {
+          "left": 1028.919,
+          "right": 1226.654,
+          "top": 1062.403,
+          "bottom": 1265.249
+        }
+      },
+      {
+        "frame": 67,
+        "timeSec": 2.792,
+        "progress": 423.901,
+        "courierDistance": -148.901,
+        "roadsideBounds": [],
+        "courierBounds": {
+          "left": 1029.31,
+          "right": 1227.504,
+          "top": 1070.761,
+          "bottom": 1273.14
+        }
+      },
+      {
+        "frame": 68,
+        "timeSec": 2.833,
+        "progress": 426.571,
+        "courierDistance": -151.571,
+        "roadsideBounds": [],
+        "courierBounds": {
+          "left": 1029.771,
+          "right": 1228.347,
+          "top": 1079.486,
+          "bottom": 1281.067
+        }
+      },
+      {
+        "frame": 69,
+        "timeSec": 2.875,
+        "progress": 429.241,
+        "courierDistance": -154.241,
+        "roadsideBounds": [],
+        "courierBounds": {
+          "left": 1030.274,
+          "right": 1229.181,
+          "top": 1088.463,
+          "bottom": 1289.029
+        }
+      },
+      {
+        "frame": 70,
+        "timeSec": 2.917,
+        "progress": 431.911,
+        "courierDistance": -156.911,
+        "roadsideBounds": [],
+        "courierBounds": {
+          "left": 1030.695,
+          "right": 1230.101,
+          "top": 1097.156,
+          "bottom": 1297.427
+        }
+      },
+      {
+        "frame": 71,
+        "timeSec": 2.958,
+        "progress": 434.581,
+        "courierDistance": -159.581,
+        "roadsideBounds": [],
+        "courierBounds": {
+          "left": 1030.771,
+          "right": 1231.336,
+          "top": 1104.438,
+          "bottom": 1307.248
+        }
+      },
+      {
+        "frame": 72,
+        "timeSec": 3,
+        "progress": 437.251,
+        "courierDistance": -162.251,
+        "roadsideBounds": [],
+        "courierBounds": {
+          "left": 1030.84,
+          "right": 1232.518,
+          "top": 1111.756,
+          "bottom": 1316.909
+        }
+      },
+      {
+        "frame": 73,
+        "timeSec": 3.042,
+        "progress": 439.921,
+        "courierDistance": -164.921,
+        "roadsideBounds": [],
+        "courierBounds": {
+          "left": 1030.902,
+          "right": 1233.621,
+          "top": 1119.11,
+          "bottom": 1326.3
+        }
+      },
+      {
+        "frame": 74,
+        "timeSec": 3.083,
+        "progress": 442.592,
+        "courierDistance": -167.592,
+        "roadsideBounds": [],
+        "courierBounds": {
+          "left": 1030.957,
+          "right": 1234.626,
+          "top": 1126.499,
+          "bottom": 1335.339
+        }
+      },
+      {
+        "frame": 75,
+        "timeSec": 3.125,
+        "progress": 445.262,
+        "courierDistance": -170.262,
+        "roadsideBounds": [],
+        "courierBounds": {
+          "left": 1031.005,
+          "right": 1235.525,
+          "top": 1133.925,
+          "bottom": 1343.983
+        }
+      },
+      {
+        "frame": 76,
+        "timeSec": 3.167,
+        "progress": 447.932,
+        "courierDistance": -172.932,
+        "roadsideBounds": [],
+        "courierBounds": {
+          "left": 1031.045,
+          "right": 1236.317,
+          "top": 1141.386,
+          "bottom": 1352.233
+        }
+      },
+      {
+        "frame": 77,
+        "timeSec": 3.208,
+        "progress": 450.602,
+        "courierDistance": -175.602,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 78,
+        "timeSec": 3.25,
+        "progress": 453.272,
+        "courierDistance": -178.272,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 79,
+        "timeSec": 3.292,
+        "progress": 455.942,
+        "courierDistance": -180.942,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 80,
+        "timeSec": 3.333,
+        "progress": 458.613,
+        "courierDistance": -183.613,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 81,
+        "timeSec": 3.375,
+        "progress": 461.283,
+        "courierDistance": -186.283,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 82,
+        "timeSec": 3.417,
+        "progress": 463.953,
+        "courierDistance": -188.953,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 83,
+        "timeSec": 3.458,
+        "progress": 466.623,
+        "courierDistance": -191.623,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 84,
+        "timeSec": 3.5,
+        "progress": 469.293,
+        "courierDistance": -194.293,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 85,
+        "timeSec": 3.542,
+        "progress": 471.963,
+        "courierDistance": -196.963,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 86,
+        "timeSec": 3.583,
+        "progress": 474.634,
+        "courierDistance": -199.634,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 87,
+        "timeSec": 3.625,
+        "progress": 477.304,
+        "courierDistance": -202.304,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 88,
+        "timeSec": 3.667,
+        "progress": 479.974,
+        "courierDistance": -204.974,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 89,
+        "timeSec": 3.708,
+        "progress": 482.644,
+        "courierDistance": -207.644,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 90,
+        "timeSec": 3.75,
+        "progress": 485.314,
+        "courierDistance": -210.314,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 91,
+        "timeSec": 3.792,
+        "progress": 487.984,
+        "courierDistance": -212.984,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 92,
+        "timeSec": 3.833,
+        "progress": 490.654,
+        "courierDistance": -215.654,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 93,
+        "timeSec": 3.875,
+        "progress": 493.325,
+        "courierDistance": -218.325,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 94,
+        "timeSec": 3.917,
+        "progress": 495.995,
+        "courierDistance": -220.995,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 95,
+        "timeSec": 3.958,
+        "progress": 498.665,
+        "courierDistance": -223.665,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 96,
+        "timeSec": 4,
+        "progress": 501.335,
+        "courierDistance": -226.335,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 97,
+        "timeSec": 4.042,
+        "progress": 504.005,
+        "courierDistance": -229.005,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 98,
+        "timeSec": 4.083,
+        "progress": 506.675,
+        "courierDistance": -231.675,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 99,
+        "timeSec": 4.125,
+        "progress": 509.346,
+        "courierDistance": -234.346,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 100,
+        "timeSec": 4.167,
+        "progress": 512.016,
+        "courierDistance": -237.016,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 101,
+        "timeSec": 4.208,
+        "progress": 514.686,
+        "courierDistance": -239.686,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 102,
+        "timeSec": 4.25,
+        "progress": 517.356,
+        "courierDistance": -242.356,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 103,
+        "timeSec": 4.292,
+        "progress": 520.026,
+        "courierDistance": -245.026,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 104,
+        "timeSec": 4.333,
+        "progress": 522.696,
+        "courierDistance": -247.696,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 105,
+        "timeSec": 4.375,
+        "progress": 525.366,
+        "courierDistance": -250.366,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 106,
+        "timeSec": 4.417,
+        "progress": 528.037,
+        "courierDistance": -253.037,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 107,
+        "timeSec": 4.458,
+        "progress": 530.707,
+        "courierDistance": -255.707,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 108,
+        "timeSec": 4.5,
+        "progress": 533.377,
+        "courierDistance": -258.377,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 109,
+        "timeSec": 4.542,
+        "progress": 536.047,
+        "courierDistance": -261.047,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 110,
+        "timeSec": 4.583,
+        "progress": 538.717,
+        "courierDistance": -263.717,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 111,
+        "timeSec": 4.625,
+        "progress": 541.387,
+        "courierDistance": -266.387,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 112,
+        "timeSec": 4.667,
+        "progress": 544.058,
+        "courierDistance": -269.058,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 113,
+        "timeSec": 4.708,
+        "progress": 546.728,
+        "courierDistance": -271.728,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 114,
+        "timeSec": 4.75,
+        "progress": 549.398,
+        "courierDistance": -274.398,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 115,
+        "timeSec": 4.792,
+        "progress": 552.068,
+        "courierDistance": -277.068,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 116,
+        "timeSec": 4.833,
+        "progress": 554.738,
+        "courierDistance": -279.738,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 117,
+        "timeSec": 4.875,
+        "progress": 557.408,
+        "courierDistance": -282.408,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 118,
+        "timeSec": 4.917,
+        "progress": 560.079,
+        "courierDistance": -285.079,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 119,
+        "timeSec": 4.958,
+        "progress": 562.749,
+        "courierDistance": -287.749,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 120,
+        "timeSec": 5,
+        "progress": 565.419,
+        "courierDistance": -290.419,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 121,
+        "timeSec": 5.042,
+        "progress": 568.089,
+        "courierDistance": -293.089,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 122,
+        "timeSec": 5.083,
+        "progress": 570.759,
+        "courierDistance": -295.759,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 123,
+        "timeSec": 5.125,
+        "progress": 573.429,
+        "courierDistance": -298.429,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 124,
+        "timeSec": 5.167,
+        "progress": 576.099,
+        "courierDistance": -301.099,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 125,
+        "timeSec": 5.208,
+        "progress": 578.77,
+        "courierDistance": -303.77,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 126,
+        "timeSec": 5.25,
+        "progress": 581.44,
+        "courierDistance": -306.44,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 127,
+        "timeSec": 5.292,
+        "progress": 584.11,
+        "courierDistance": -309.11,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 128,
+        "timeSec": 5.333,
+        "progress": 586.78,
+        "courierDistance": -311.78,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 129,
+        "timeSec": 5.375,
+        "progress": 589.45,
+        "courierDistance": -314.45,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 130,
+        "timeSec": 5.417,
+        "progress": 592.12,
+        "courierDistance": -317.12,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 131,
+        "timeSec": 5.458,
+        "progress": 594.791,
+        "courierDistance": -319.791,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 132,
+        "timeSec": 5.5,
+        "progress": 597.461,
+        "courierDistance": -322.461,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 133,
+        "timeSec": 5.542,
+        "progress": 600.131,
+        "courierDistance": -325.131,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 134,
+        "timeSec": 5.583,
+        "progress": 602.801,
+        "courierDistance": -327.801,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 135,
+        "timeSec": 5.625,
+        "progress": 605.471,
+        "courierDistance": -330.471,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 136,
+        "timeSec": 5.667,
+        "progress": 608.141,
+        "courierDistance": -333.141,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 137,
+        "timeSec": 5.708,
+        "progress": 610.812,
+        "courierDistance": -335.812,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 138,
+        "timeSec": 5.75,
+        "progress": 613.482,
+        "courierDistance": -338.482,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 139,
+        "timeSec": 5.792,
+        "progress": 616.152,
+        "courierDistance": -341.152,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 140,
+        "timeSec": 5.833,
+        "progress": 618.822,
+        "courierDistance": -343.822,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 141,
+        "timeSec": 5.875,
+        "progress": 621.492,
+        "courierDistance": -346.492,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 142,
+        "timeSec": 5.917,
+        "progress": 624.162,
+        "courierDistance": -349.162,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 143,
+        "timeSec": 5.958,
+        "progress": 626.832,
+        "courierDistance": -351.832,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 144,
+        "timeSec": 6,
+        "progress": 629.503,
+        "courierDistance": -354.503,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 145,
+        "timeSec": 6.042,
+        "progress": 632.173,
+        "courierDistance": -357.173,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 146,
+        "timeSec": 6.083,
+        "progress": 634.843,
+        "courierDistance": -359.843,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 147,
+        "timeSec": 6.125,
+        "progress": 637.513,
+        "courierDistance": -362.513,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 148,
+        "timeSec": 6.167,
+        "progress": 640.183,
+        "courierDistance": -365.183,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 149,
+        "timeSec": 6.208,
+        "progress": 642.853,
+        "courierDistance": -367.853,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 150,
+        "timeSec": 6.25,
+        "progress": 645.524,
+        "courierDistance": -370.524,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 151,
+        "timeSec": 6.292,
+        "progress": 648.194,
+        "courierDistance": -373.194,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 152,
+        "timeSec": 6.333,
+        "progress": 650.864,
+        "courierDistance": -375.864,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 153,
+        "timeSec": 6.375,
+        "progress": 653.534,
+        "courierDistance": -378.534,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 154,
+        "timeSec": 6.417,
+        "progress": 656.204,
+        "courierDistance": -381.204,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 155,
+        "timeSec": 6.458,
+        "progress": 658.874,
+        "courierDistance": -383.874,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 156,
+        "timeSec": 6.5,
+        "progress": 661.545,
+        "courierDistance": -386.545,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 157,
+        "timeSec": 6.542,
+        "progress": 664.215,
+        "courierDistance": -389.215,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 158,
+        "timeSec": 6.583,
+        "progress": 666.885,
+        "courierDistance": -391.885,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 159,
+        "timeSec": 6.625,
+        "progress": 669.555,
+        "courierDistance": -394.555,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 160,
+        "timeSec": 6.667,
+        "progress": 672.225,
+        "courierDistance": -397.225,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 161,
+        "timeSec": 6.708,
+        "progress": 674.895,
+        "courierDistance": -399.895,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 162,
+        "timeSec": 6.75,
+        "progress": 677.565,
+        "courierDistance": -402.565,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 163,
+        "timeSec": 6.792,
+        "progress": 680.236,
+        "courierDistance": -405.236,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 164,
+        "timeSec": 6.833,
+        "progress": 682.906,
+        "courierDistance": -407.906,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 165,
+        "timeSec": 6.875,
+        "progress": 685.576,
+        "courierDistance": -410.576,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 166,
+        "timeSec": 6.917,
+        "progress": 688.246,
+        "courierDistance": -413.246,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 167,
+        "timeSec": 6.958,
+        "progress": 690.916,
+        "courierDistance": -415.916,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 168,
+        "timeSec": 7,
+        "progress": 693.586,
+        "courierDistance": -418.586,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 169,
+        "timeSec": 7.042,
+        "progress": 696.257,
+        "courierDistance": -421.257,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 170,
+        "timeSec": 7.083,
+        "progress": 698.927,
+        "courierDistance": -423.927,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 171,
+        "timeSec": 7.125,
+        "progress": 701.597,
+        "courierDistance": -426.597,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 172,
+        "timeSec": 7.167,
+        "progress": 704.267,
+        "courierDistance": -429.267,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 173,
+        "timeSec": 7.208,
+        "progress": 706.937,
+        "courierDistance": -431.937,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 174,
+        "timeSec": 7.25,
+        "progress": 709.607,
+        "courierDistance": -434.607,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 175,
+        "timeSec": 7.292,
+        "progress": 712.277,
+        "courierDistance": -437.277,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 176,
+        "timeSec": 7.333,
+        "progress": 714.948,
+        "courierDistance": -439.948,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 177,
+        "timeSec": 7.375,
+        "progress": 717.618,
+        "courierDistance": -442.618,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 178,
+        "timeSec": 7.417,
+        "progress": 720.288,
+        "courierDistance": -445.288,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 179,
+        "timeSec": 7.458,
+        "progress": 722.958,
+        "courierDistance": -447.958,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 180,
+        "timeSec": 7.5,
+        "progress": 725.628,
+        "courierDistance": -450.628,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 181,
+        "timeSec": 7.542,
+        "progress": 728.298,
+        "courierDistance": -453.298,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 182,
+        "timeSec": 7.583,
+        "progress": 730.969,
+        "courierDistance": -455.969,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 183,
+        "timeSec": 7.625,
+        "progress": 733.639,
+        "courierDistance": -458.639,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 184,
+        "timeSec": 7.667,
+        "progress": 736.309,
+        "courierDistance": -461.309,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 185,
+        "timeSec": 7.708,
+        "progress": 738.979,
+        "courierDistance": -463.979,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 186,
+        "timeSec": 7.75,
+        "progress": 741.649,
+        "courierDistance": -466.649,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 187,
+        "timeSec": 7.792,
+        "progress": 744.319,
+        "courierDistance": -469.319,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 188,
+        "timeSec": 7.833,
+        "progress": 746.99,
+        "courierDistance": -471.99,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 189,
+        "timeSec": 7.875,
+        "progress": 749.66,
+        "courierDistance": -474.66,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 190,
+        "timeSec": 7.917,
+        "progress": 752.33,
+        "courierDistance": -477.33,
+        "roadsideBounds": [],
+        "courierBounds": null
+      },
+      {
+        "frame": 191,
+        "timeSec": 7.958,
+        "progress": 755,
+        "courierDistance": -480,
+        "roadsideBounds": [],
+        "courierBounds": null
+      }
+    ]
+  },
+  "race": {
+    "status": "clear",
+    "encounterVersion": 2,
+    "gear": 2,
+    "difficulty": "standard",
+    "profile": "practiced",
+    "finalBar": 100,
+    "captured": 56,
+    "damageTaken": 0,
+    "gateOpen": true
+  },
+  "limitations": "The four UI images, passed-depth still and foreground movie stage state over the unchanged production draw path and authored art. The movie advances the camera past fixed world traffic/scenery; it does not run input, collision or audio. Race-Capture.webp is independently observed during a complete production-input-driven Standard / Gear 2 run. Native Canvas simulates host boundaries. No human, browser, Makko, physical-controller or audio acceptance is claimed."
+}

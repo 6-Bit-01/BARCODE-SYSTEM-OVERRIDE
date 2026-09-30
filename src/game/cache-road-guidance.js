@@ -13,7 +13,6 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
     Object.freeze({name:'TURBO',color:'#c1afff',key:'SPACE',shape:'pill',points:[[-20,18],[112,18],[127,32],[127,68],[112,82],[-20,82],[-28,68],[-28,32]]}),
     Object.freeze({name:'ECHO',color:'#a3f0e8',key:'H',shape:'pill',points:[[-20,18],[112,18],[127,32],[127,68],[112,82],[-20,82],[-28,68],[-28,32]]})
   ]);
-  const LANES=['DRIVE','FLOW','BREAKAWAY','UNDERCURRENT'];
   const LANE_COLORS=['#69d9f5','#ffc077','#cd9dff','#91f5bc'];
   const clamp=(n,lo,hi)=>Math.max(lo,Math.min(hi,n));
   const font=(ctx,size,weight='bold')=>{ctx.font=`${weight} ${size}px Oxanium, sans-serif`;};
@@ -103,7 +102,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
       title:s.echo?'DECOY LEFT / ORIGINAL RIGHT':'ECHO LEFT / EXIT RIGHT',
       detail:s.echo?'Take the far-right marked exit.':'Send the replay, then steer away from it.'};
     if(bar>=56&&bar<59)return {index:5,title:'SEND ECHO / CHANGE LANES',detail:'Let the scanner follow your replay.'};
-    if(bar<4&&!nextPulse)return {index:0,title:'STEER INTO THE MARKED LANE',detail:'Up / Down queues your next gear on ONE.'};
+    if(bar<4&&!nextPulse)return {steer:true,title:'STEER INTO THE MARKED LANE',detail:'Up / Down queues your next gear on ONE.'};
     const record=road.recordOpportunity?.();
     if(record?.active&&(!nextCue||nextCue.remaining>3))return {record:true,title:'OPTIONAL RECORD  /  HOLD AMBER LANE',detail:'Stay 0.65 seconds. Saved to the pause archive.'};
     if(nextPulse&&nextCue?.ready) {
@@ -113,7 +112,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
         detail:bar<12?(inLane?'Tap on ONE as the pad meets your rear tires.':'Steer into the marked lane, then tap on ONE.'):
           inLane?'BEAT ONE / REAR-TIRE TARGET':'ENTER THE MARKED LANE / BEAT ONE'};
     }
-    if(!s.opening?.held&&bar<12)return {index:0,title:'LINE UP / TAP ON ONE',detail:'Match the colored button when its pad reaches the tires.'};
+    if(!s.opening?.held&&bar<12)return {steer:true,title:'LINE UP / TAP ON ONE',detail:'Match the colored button when its pad reaches the tires.'};
     if(s.pulseFlashMs>0&&Number.isInteger(s.pulseFlashAction)) {
       const descriptions=['Surge launches on the next ONE.','Push clears your next contact before it expires.',
         'Brace absorbs one impact.','Refill adds Echo charge. Gear 3 also readies Turbo.'];
@@ -122,6 +121,133 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
     if(bar>=12&&bar<16&&!s.opening?.turbo)return {index:4,title:'DRAFT OR PASS CLOSE / TURBO',detail:'Two near misses ready Turbo. Launch on the next ONE.'};
     if(bar>=76&&bar<78)return {index:5,title:'LOCKED LANE / MOVE',detail:'Dodge the rival, or send an Echo to draw it away.'};
     return null;
+  }
+  function arrow(ctx,x,y,toX,toY,color='#b9ffe0',width=3) {
+    const angle=Math.atan2(toY-y,toX-x),head=7;
+    ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();
+    ctx.moveTo(x,y);ctx.lineTo(toX,toY);
+    ctx.moveTo(toX-Math.cos(angle-.6)*head,toY-Math.sin(angle-.6)*head);ctx.lineTo(toX,toY);
+    ctx.lineTo(toX-Math.cos(angle+.6)*head,toY-Math.sin(angle+.6)*head);ctx.stroke();
+  }
+  function carMark(ctx,x,y,color='#d9fff0',ghost=false) {
+    ctx.save();ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=2;
+    if(ghost)ctx.strokeRect(x-6,y-11,12,22);else ctx.fillRect(x-6,y-11,12,22);
+    ctx.fillStyle=ghost?color:'#153e46';ctx.fillRect(x-4,y-6,8,4);
+    ctx.fillStyle=color;for(const side of [-1,1])for(const yy of [-6,5])ctx.fillRect(x+side*8-1, y+yy,2,5);
+    ctx.restore();
+  }
+  function laneDiagram(ctx,s,x,y,{lane,color='#b9ffe0',ghost=false,held=null}={}) {
+    const spacing=28,current=clamp(Number(s.lanePos)||0,0,3);
+    for(let i=0;i<4;i++) {
+      ctx.fillStyle=i===lane?color+'25':'#102c39';ctx.fillRect(x+i*spacing,y,24,42);
+      ctx.strokeStyle=i===lane?color:'#47636b';ctx.lineWidth=i===lane?2:1;
+      ctx.strokeRect(x+i*spacing,y,24,42);
+    }
+    const carX=x+12+current*spacing,targetX=x+12+(lane??current)*spacing;
+    if(!ghost&&Number.isInteger(lane)&&Math.abs(current-lane)>.38)arrow(ctx,carX,y+6,targetX,y+6,color,2);
+    if(ghost)carMark(ctx,carX,y+25,color,true);
+    else carMark(ctx,carX,y+25);
+    if(held!=null) {ctx.fillStyle='#695a34';ctx.fillRect(x,y+47,108,3);
+      ctx.fillStyle=color;ctx.fillRect(x,y+47,108*clamp(held,0,1),3);}
+  }
+  function routeStrip(ctx,road) {
+    const s=road.state,progress=clamp(s.musicBeatFloat/400,0,1),start=84,end=354;
+    panel(ctx,30,174,450,56,'#b7f2d7');tape(ctx,57,201,28,'#b7f2d7');
+    fittedText(ctx,'DELIVER',82,188,110,14,'#e5fff0');
+    ctx.fillStyle='#29444b';ctx.fillRect(start,213,end-start,3);
+    ctx.fillStyle='#a6ebd1';ctx.fillRect(start,213,(end-start)*progress,3);
+    for(const at of [.28,.52,.76]) {
+      const x=start+(end-start)*at;path(ctx,[[x,209],[x+5,214],[x,219],[x-5,214]]);
+      ctx.fillStyle=progress>=at?'#b7f2d7':'#47636b';ctx.fill();
+    }
+    // Current position and delivery flag retain meaning without a sentence.
+    carMark(ctx,start+(end-start)*progress,211);
+    ctx.strokeStyle=s.gateOpen?'#b9ffe0':'#d9ece7';ctx.lineWidth=2;ctx.beginPath();
+    ctx.moveTo(end,200);ctx.lineTo(end,184);ctx.lineTo(end+13,188);ctx.lineTo(end,192);ctx.stroke();
+    ctx.strokeStyle='#38545c';ctx.beginPath();ctx.moveTo(382,185);ctx.lineTo(382,219);ctx.stroke();
+    tape(ctx,403,196,23,'#ffdd96');
+    for(let i=0;i<4;i++) {
+      ctx.fillStyle=i<(road.chapter?.records?.length||0)?'#ffe085':'#29444b';
+      ctx.fillRect(428+(i%2)*17,188+Math.floor(i/2)*17,10,10);
+    }
+  }
+  function exitCue(s) {
+    const distance=Number.isFinite(s.gateAt)?s.gateAt-s.progress:Infinity;
+    // The authored gate appears 150 units ahead. At the minimum road speed,
+    // that is five seconds, inside sendEcho's six-second final-exit replay.
+    // Bar 90 is preparation only; sending there would create a short replay.
+    const window=distance>0&&distance<=150;
+    const echo=s.echo,echoLane=Number.isFinite(echo?.lanePos)?echo.lanePos:null;
+    const remaining=echo?Math.min(echo.durationMs-echo.ageMs,s.rivalDistractedMs):0;
+    const live=echoLane!==null&&remaining>0;
+    // Keep the real replay visible even if it was sent too soon or on the
+    // exit lane. Advance the instruction only if a far-right split is still
+    // possible even after a gear-down/recovery: 30 is the existing minimum
+    // road speed. An ordinary pre-gate replay cannot look safely completed.
+    const exit=window&&live&&echoLane<=2.25&&remaining>=distance/30*1000;
+    const split=exit&&s.lanePos>=2.45&&Math.abs(echoLane-s.lanePos)>=.75;
+    return {window,live,echoLane,exit,split,
+      send:window&&!exit&&s.lanePos<=1.25&&s.echoEnergy>=100};
+  }
+  function exitDiagram(ctx,s) {
+    const cue=exitCue(s),color='#a3f0e8',echoColor=cue.live&&!cue.exit&&cue.window?'#ffab95':color;
+    panel(ctx,1470,174,420,86,color);
+    // Two numbered steps show where the replay stays and where Cache must go.
+    fittedText(ctx,'1',1489,191,18,15,cue.exit?'#729087':color,'center');
+    fittedText(ctx,cue.window?'ECHO':'HOLD',1520,191,68,15,color);
+    laneDiagram(ctx,cue.live?{lanePos:cue.echoLane}:s,1493,204,{lane:0,color:echoColor,ghost:cue.live});
+    drawButton(ctx,{index:5,x:1649,y:227,size:39,active:cue.send,disabled:!cue.send});
+    if(!cue.window) {
+      // A closed register communicates saved charge without another sentence.
+      ctx.strokeStyle='#cfdfdf';ctx.lineWidth=2;ctx.strokeRect(1644,231,10,8);
+      ctx.beginPath();ctx.arc(1649,231,4,Math.PI,0);ctx.stroke();
+    }
+    arrow(ctx,1690,227,1720,227,cue.exit?'#fff5a8':'#77958f');
+    const exitColor=cue.split?'#b9ffe0':cue.exit?'#fff5a8':'#94a7a5';
+    fittedText(ctx,'2',1734,191,18,15,exitColor,'center');
+    fittedText(ctx,'EXIT',1760,191,90,15,exitColor);
+    laneDiagram(ctx,s,1758,204,{lane:3,color:exitColor});
+  }
+  function cueDiagram(ctx,road,options,cue) {
+    const s=road.state,bar=s.musicBeatFloat/4,{nextPulse,nextCue}=options;
+    if(!s.gateOpen&&(bar>=90||s.gateAt!=null&&s.progress>=s.gateAt-220)) {exitDiagram(ctx,s);return;}
+    if(!cue)return;
+    // Routine instructions live in Pause. In motion, show the lane, the
+    // actual mapped button and the ONE target the player is aiming for.
+    const record=cue.record?road.recordOpportunity?.():null;
+    const pulse=nextPulse&&nextCue?.ready?nextPulse:null;
+    const index=pulse?.action??cue.index??0,color=record?'#ffe085':cue.steer?'#b9ffe0':BADGES[index].color;
+    panel(ctx,1550,174,340,72,color);
+    const target=record?.lane??pulse?.lane;
+    laneDiagram(ctx,s,1570,187,{lane:target,color,held:record?.held});
+    if(cue.steer&&!pulse) {
+      // No announced pad owns an action yet: teach steering without inventing
+      // a mapped button that could contradict the dashboard's next preview.
+      arrow(ctx,1734,209,1707,209,color);arrow(ctx,1816,209,1843,209,color);
+      ctx.strokeStyle=color;ctx.lineWidth=3;ctx.beginPath();ctx.arc(1775,209,20,0,Math.PI*2);ctx.stroke();
+      ctx.beginPath();ctx.arc(1775,209,4,0,Math.PI*2);ctx.moveTo(1771,207);ctx.lineTo(1757,200);
+      ctx.moveTo(1779,207);ctx.lineTo(1793,200);ctx.moveTo(1775,213);ctx.lineTo(1775,229);ctx.stroke();return;
+    }
+    if(record) {
+      tape(ctx,1750,209,39,color);
+      ctx.strokeStyle='#665f42';ctx.lineWidth=5;ctx.beginPath();ctx.arc(1831,209,20,0,Math.PI*2);ctx.stroke();
+      ctx.strokeStyle=color;ctx.beginPath();ctx.arc(1831,209,20,-Math.PI/2,-Math.PI/2+Math.PI*2*clamp(record.held,0,1));ctx.stroke();
+      fittedText(ctx,'HOLD',1831,209,47,12,color,'center');return;
+    }
+    if(index===5) {
+      drawButton(ctx,{index,x:1750,y:209,size:42,active:s.echoEnergy>=100});
+      arrow(ctx,1805,209,1854,209,color);carMark(ctx,1863,209);return;
+    }
+    drawButton(ctx,{index,x:1750,y:209,size:44,active:cue.active});
+    const active=!!cue.active;
+    ctx.strokeStyle=active?'#fff5a8':'#47636b';ctx.lineWidth=active?4:2;
+    ctx.beginPath();ctx.arc(1836,203,19,0,Math.PI*2);ctx.stroke();
+    if(nextCue?.ready&&!active) {
+      ctx.strokeStyle=color;ctx.lineWidth=3;ctx.beginPath();
+      ctx.arc(1836,203,19,-Math.PI/2,-Math.PI/2+Math.PI*2*clamp(1-nextCue.remaining/4,0,1));ctx.stroke();
+    }
+    fittedText(ctx,'1',1836,203,25,21,active?'#fff5a8':'#cfdfdf','center');
+    if(active)fittedText(ctx,'PRESS NOW',1836,233,93,12,'#fff5a8','center');
   }
   function receipt(ctx,s) {
     const live=value=>value&&Number.isFinite(value.expiresMs)&&s.elapsedMs<value.expiresMs;
@@ -137,42 +263,42 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
     const names={perfect:'PERFECT',good:'ON BEAT',early:'TOO EARLY',late:'TOO LATE',button:'WRONG BUTTON',
       lane:'CHANGE LANE',miss:'MISSED',record:'RECORD SAVED',join:'PART IN',extend:'PART HELD',lost:'PART OUT'};
     const color=failure?'#ffab95':d.kind==='record'||d.kind==='lost'?'#ffe085':'#b9ffe0';
-    const title=names[d.kind]||d.label||'READY';
+    const title=names[d.kind]||'READY';
     const music=combined?mix:['join','extend','lost'].includes(d.kind)?d:null;
-    const instructions={early:'Wait for the target to light.',late:'Tap as the target lights on ONE.',
-      button:'Match the shown button.',lane:'Enter the marked lane first.',miss:'Line up for the next pad.',record:'Optional record added to the archive.'};
-    const musicLabel=music?`${LANES[music.lane]||music.label||'PART'} ${music.kind==='lost'?'OUT':music.kind==='extend'?'HELD':'IN'}`+
-      (music.holdBars>0?` / ${music.holdBars} BARS`:''):'';
-    const subtitle=musicLabel||instructions[d.kind]||
-      (['perfect','good'].includes(d.kind)?`${LANES[d.lane]||'LANE'} CAPTURED`:d.label)||'READY';
-    font(ctx,22);const width=clamp(Math.max(ctx.measureText(title).width,ctx.measureText(subtitle).width)+118,320,560);
-    panel(ctx,30,268,width,82,color);
-    if(Number.isInteger(d.action))drawButton(ctx,{index:d.action,x:73,y:309,size:48,active:!failure});
-    else if(d.kind==='record')tape(ctx,73,309,38);
-    else laneMark(ctx,d.lane,73,309,32);
-    fittedText(ctx,title,111,293,width-100,25,color);
-    if(music) {laneMark(ctx,music.lane,120,323,18);fittedText(ctx,subtitle,139,323,width-125,19,LANE_COLORS[music.lane]);}
-    else fittedText(ctx,subtitle,111,323,width-100,18,'#cfdfdf');
-    return {x:30,y:268,w:width,h:82};
+    panel(ctx,30,240,370,56,color);
+    if(d.kind==='record')tape(ctx,61,268,32);
+    else if(Number.isInteger(d.action))drawButton(ctx,{index:d.action,x:61,y:268,size:38,active:!failure});
+    else laneMark(ctx,d.lane,61,268,29);
+    fittedText(ctx,title,91,268,188,21,color);
+    if(music) {
+      laneMark(ctx,music.lane,312,260,25);
+      // Plus/minus/hold and a six-cell duration strip replace the part sentence.
+      ctx.strokeStyle=music.kind==='lost'?'#ffe085':LANE_COLORS[music.lane];ctx.lineWidth=3;
+      ctx.beginPath();ctx.moveTo(345,260);ctx.lineTo(357,260);
+      if(music.kind==='join'){ctx.moveTo(351,254);ctx.lineTo(351,266);}
+      if(music.kind==='extend'){ctx.moveTo(345,255);ctx.lineTo(357,255);}
+      ctx.stroke();
+      for(let i=0;i<6;i++) {ctx.fillStyle=i<(music.holdBars||0)&&music.kind!=='lost'?LANE_COLORS[music.lane]:'#29444b';ctx.fillRect(302+i*10,282,7,3);}
+    } else if(d.kind==='early'||d.kind==='late'||d.kind==='miss') {
+      ctx.strokeStyle='#6c858b';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(302,270);ctx.lineTo(372,270);ctx.stroke();
+      ctx.strokeStyle='#d8ece4';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(337,257);ctx.lineTo(337,282);ctx.stroke();
+      const x=d.kind==='early'?313:d.kind==='late'?361:337;
+      ctx.strokeStyle=color;ctx.beginPath();ctx.moveTo(x-4,261);ctx.lineTo(x+4,269);ctx.moveTo(x+4,261);ctx.lineTo(x-4,269);ctx.stroke();
+    } else if(d.kind==='lane') {
+      const left=Number.isFinite(d.lane)&&d.lane<s.lanePos;
+      carMark(ctx,left?361:310,268);arrow(ctx,left?348:323,268,left?307:364,268,color);
+    } else if(d.kind==='button') {
+      ctx.strokeStyle=color;ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(322,258);ctx.lineTo(340,278);ctx.moveTo(340,258);ctx.lineTo(322,278);ctx.stroke();
+    } else {
+      ctx.strokeStyle=color;ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(315,269);ctx.lineTo(326,278);ctx.lineTo(346,258);ctx.stroke();
+    }
+    return {x:30,y:240,w:370,h:56};
   }
   function draw(ctx,road,options={}) {
     if(!road?.state||road.status!=='playing')return;
-    const s=road.state,goal=objective(road),cue=lesson(road,options);
     ctx.save();ctx.globalAlpha=1;
-    panel(ctx,30,174,650,72,'#b7f2d7');tape(ctx,58,195,25,'#b7f2d7');
-    fittedText(ctx,goal.title,82,195,452,19,'#e5fff0');
-    if(road.chapter)fittedText(ctx,`${road.chapter.records?.length||0}/4 OPTIONAL`,614,195,110,12,'#e5cba0','center');
-    for(let i=0;i<4;i++) {
-      const x=48+i*151;ctx.fillStyle=i<=goal.stage?'#a6ebd1':'#29444b';ctx.fillRect(x,215,138,3);
-    }
-    fittedText(ctx,goal.instruction,48,234,610,16,'#b6d8d1');
-    if(cue) {
-      panel(ctx,1210,174,680,72,cue.record?'#ffe085':BADGES[cue.index??0].color);
-      if(cue.record)tape(ctx,1257,209,38);else drawButton(ctx,{index:cue.index,x:1257,y:209,size:42,active:cue.active});
-      fittedText(ctx,cue.title,1310,196,558,19,cue.active?'#fff5a8':'#effaef');
-      fittedText(ctx,cue.detail,1310,224,558,16,'#c1dcd8');
-    }
-    receipt(ctx,s);ctx.restore();
+    routeStrip(ctx,road);cueDiagram(ctx,road,options,lesson(road,options));
+    receipt(ctx,road.state);ctx.restore();
   }
   function drawHelp(ctx,road) {
     ctx.save();
@@ -196,5 +322,5 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
     tape(ctx,456,784,27);fittedText(ctx,'Optional record: hold its lane for 0.65s.',484,784,506,16,'#e7d2b3');
     ctx.restore();
   }
-  B.CacheRoadGuidance=Object.freeze({badges:BADGES,label,drawButton,draw,drawHelp,objective,lesson});
+  B.CacheRoadGuidance=Object.freeze({badges:BADGES,label,drawButton,draw,drawHelp,objective,lesson,exitCue});
 })(window.BARCODE = window.BARCODE || {});

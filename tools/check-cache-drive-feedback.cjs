@@ -131,6 +131,60 @@ function run() {
     r.road.state.elapsedMs += 1001; texts.length = 0; guidance.draw(ctx, r.road, { reduced: true });
     assert(!texts.includes(text), `${kind} receipt expires without leaving a permanent overlay`);
   }
+  // The driving surface communicates through lane/route drawings and brief
+  // outcomes. Full explanation remains available in Pause rather than being
+  // repeated across live mission, lesson and receipt panels.
+  r.road.state.driveFeedback = null; r.road.state.mixFeedback = null;
+  r.road.state.musicBeatFloat = 20; r.road.state.gateAt = null;
+  texts.length = 0; guidance.draw(ctx, r.road, { nextPulse: r.pulse,
+    nextCue: { ready: true, window: false, remaining: 2 }, reduced: true });
+  assert(texts.includes('DELIVER'));
+  assert(texts.every(text => text.trim().split(/\s+/).length <= 2), 'live guidance uses brief labels, not instruction sentences');
+  assert(texts.length <= 4, 'an ordinary pad does not stack repeated lesson or mission text');
+  r.B.GamepadUI.connected = false;
+  r.road.state.opening.held = false;
+  for (const nextPulse of [null, { ...r.pulse, action: 2 }]) {
+    const options = { nextPulse, nextCue: { ready: false, window: false, remaining: 5 }, reduced: true };
+    assert.equal(guidance.lesson(r.road, options).steer, true, 'unannounced/early pads teach steering only');
+    texts.length = 0; guidance.draw(ctx, r.road, options);
+    assert(!texts.some(text => ['K', 'J', 'L', 'I', '1', 'PRESS NOW'].includes(text)),
+      'generic steering never invents an action button or ONE press target');
+  }
+  for (const [kind, musicKind, expected] of [['perfect', 'join', 'PERFECT'], ['perfect', 'lost', 'PART OUT'],
+    ['button', 'join', 'WRONG BUTTON'], ['record', 'join', 'RECORD SAVED']]) {
+    const atMs = r.road.state.elapsedMs;
+    r.road.state.driveFeedback = { kind, action: 0, lane: 0, atMs, expiresMs: atMs + 1000 };
+    r.road.state.mixFeedback = { kind: musicKind, lane: 0, holdBars: 3,
+      atMs: musicKind === 'lost' ? atMs + 1 : atMs - 1, expiresMs: atMs + 1000 };
+    texts.length = 0; guidance.draw(ctx, r.road, { reduced: true });
+    assert(texts.includes(expected), 'compact receipts retain outcome ownership and chronology');
+    assert(!texts.some(text => /BARS|CAPTURED|Wait for|Match the|Optional record/.test(text)),
+      'music glyphs replace the receipt subtitle without restoring prose');
+  }
+  r.road.state.driveFeedback = null; r.road.state.mixFeedback = null;
+  r.road.state.musicBeatFloat = 370; r.road.state.gateAt = r.road.state.progress + 150;
+  texts.length = 0; guidance.draw(ctx, r.road, { reduced: true });
+  for (const text of ['1', '2', 'ECHO', 'EXIT']) assert(texts.includes(text), 'both ordered exit steps remain explicit');
+  const exitState = { progress: 1000, lanePos: 0, echoEnergy: 100, gateAt: null,
+    echo: null, rivalDistractedMs: 0 };
+  assert.equal(guidance.exitCue(exitState).send, false, 'bar 90 preparation cannot light a premature Echo');
+  assert.equal(guidance.exitCue({ ...exitState, gateAt: 1220 }).send, false, 'six-second replay is not prompted seven seconds out in gear 1');
+  assert.equal(guidance.exitCue({ ...exitState, gateAt: 1150 }).send, true, 'the authored five-second left-lane split lights Echo');
+  assert.equal(guidance.exitCue({ ...exitState, gateAt: 1150, lanePos: 3 }).send, false, 'driver must first line up left');
+  const validEcho = { lanePos: 0, durationMs: 6000, ageMs: 1000 };
+  const activeExit = { ...exitState, gateAt: 1100, echo: validEcho, rivalDistractedMs: 5000 };
+  assert.equal(guidance.exitCue(activeExit).exit, true);
+  assert.equal(guidance.exitCue(activeExit).split, false, 'sending does not claim the original has exited');
+  assert.equal(guidance.exitCue({ ...activeExit, lanePos: 3 }).split, true);
+  const wrongEcho = guidance.exitCue({ ...activeExit, echo: { ...validEcho, lanePos: 3 } });
+  assert.equal(wrongEcho.echoLane, 3, 'the visual replay preserves its actual lane');
+  assert.equal(wrongEcho.exit, false, 'right-side Echo cannot satisfy the far-right split');
+  assert.equal(guidance.exitCue({ ...activeExit, echo: { ...validEcho, ageMs: 5900 } }).exit, false,
+    'a nearly expired replay cannot light a physically unreachable exit');
+  texts.length = 0; guidance.drawHelp(ctx, r.road);
+  assert(texts.includes('EXIT: ECHO LEFT / ORIGINAL FAR RIGHT'));
+  assert(texts.some(text => /Optional record: hold its lane/.test(text)), 'Pause retains the written collection explanation');
+  r.road.state.gateAt = null;
   const goals = [];
   for (const bar of [0, 28, 52, 76, 90]) {
     r.road.state.musicBeatFloat = bar * 4;
@@ -144,7 +198,7 @@ function run() {
   r.road.state.gateOpen = true;
   assert.match(guidance.objective(r.road).instruction, /EXIT CLEAR/);
   console.log(JSON.stringify({ timingCases, failureKinds: 5, outcomeReceipts: 8, distinctFaceShapes: 4,
-    inputLabels: ['keyboard', 'controller'], routeStages: 5, reducedMotionPressWindow: true }));
+    inputLabels: ['keyboard', 'controller'], routeStages: 5, reducedMotionPressWindow: true, conciseLiveLabels: true, receiptChronologyCases: 4, exitReadinessCases: 9 }));
 }
 module.exports = { rig, pressAt, run };
 if (require.main === module) run();

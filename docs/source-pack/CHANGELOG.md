@@ -1,5 +1,18 @@
 # Recovery checkpoint — September 14
 
+## September 30, 2026 — visual cues and natural foreground exits
+
+- Replace repeated route/tutorial prose with route lights, lane diagrams,
+  mapped button shapes, short receipts and a visual two-step delivery split.
+- Simplify the dashboard, tire target and optional tape sign; retain full
+  explanations in Pause and live control/beat feedback with Reduced Motion.
+- Continue passed cars, scenery, people, lamps and road marks beyond the
+  foreground until their complete artwork leaves the frame.
+- Draw passed traffic in front of Cache when its ground depth is nearer.
+- Preserve mechanics, all musical rules and exact mirror blur. Add focused
+  visibility regressions and native still/motion evidence; exact validation
+  and merge outcomes belong to the PR/generated receipt.
+
 ## September 30, 2026 — drive controls, objectives and responsive music
 
 - Replace raised road studs with flat markers and remove duplicate posts;

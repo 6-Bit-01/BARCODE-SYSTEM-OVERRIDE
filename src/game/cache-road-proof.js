@@ -1658,9 +1658,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const hint = document.querySelector?.('.hint');
       if (!hint) return;
       if (this.oldHint === null) this.oldHint = hint.textContent;
-      const left = B.GamepadUI?.connected ? B.ControllerSettings?.button(4) : 'SPACE';
-      const right = B.GamepadUI?.connected ? B.ControllerSettings?.button(5) : 'H';
-      hint.textContent = `Road pads: press on beat 1 under the rear tires | Up/Down: queue a gear for next beat 1 | Gear 3: bonus points; Gear 1: Echo refill | ${left} queue Turbo | ${right} Echo`;
+      // The complete control reference is available from Pause.
+      const pause = B.GamepadUI?.connected ? B.ControllerSettings?.button(9) || 'MENU' : 'P';
+      hint.textContent = `${pause} · CONTROLS`;
     },
     openingCue() {
       if (this.status !== 'playing' || !this.state) return null;
@@ -2735,7 +2735,20 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const laneX = (lane, t) => laneEdge(lane, t) + half(t) / 4;
       const roadY = t => horizon + t * t * (bottom - horizon);
       const strikeY=roadY(STRIKE_DEPTH);
-      const depth = d => clamp(1 - (d + 80) / 520, 0, 1);
+      // Passing the contact plane does not remove a world object. Continue
+      // the same projection below the frame; broad distance guards keep its
+      // scale finite, and whole-sprite bounds decide when rendering ends.
+      const frontNear = -360, bankNearDistance = -420, bankMaxDepth = 2.2;
+      const depth = d => clamp(1 - (d + 80) / 520, 0, 1.65);
+      const inFrame = (x,y,width,height,anchor=.5,padding=0) =>
+        x+width*(1-anchor)+padding>=0 && x-width*anchor-padding<=1920 &&
+        y+padding>=0 && y-height-padding<=bottom;
+      const lightInFrame = (key,args) => lampLightGeometry(key,args).some(light=>{
+        const radius=Math.max(light.lensRadius,light.poolRadius);
+        const top=Math.min(light.y,light.groundY-light.poolRadius*.24);
+        const foot=Math.max(light.y,light.groundY+light.poolRadius*.24);
+        return inFrame(light.x,foot,radius*2,foot-top);
+      });
       // The bank has one invertible world projection for ground, streets,
       // sites and people. Its shallow far slope lets a site clear the horizon
       // before the near slope accelerates it past the player. d=0 retains
@@ -3018,8 +3031,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           // Fence posts stop around the entrance instead of spanning the bay.
           for(const offset of [72,39,-38,-71]) {
             const tt=sideDepth(place.at+offset-progress);
-            if(tt<.10||tt>1.18)continue;
+            if(tt<.10||tt>bankMaxDepth)continue;
             const x=lotX(tt),y=lotY(tt),height=27*tt;
+            if(!inFrame(x,y,6*tt,height+4*tt))continue;
             enqueue({kind:'parking-post',at:place.at+offset,side},y,()=>{
             ctx.save();
             ctx.strokeStyle='#859395';ctx.lineWidth=1+2*tt;
@@ -3030,7 +3044,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           }
         },side);
         const signT=sideDepth(place.at+70-progress);
-        if(signT>.22&&signT<1.14)enqueue({kind:'parking-sign',at:place.at+70,side},lotY(signT),()=>clipRoadside(signT,()=>{
+        if(signT>.22&&signT<bankMaxDepth&&
+          inFrame(roadsideX(side,signT,265,220),lotY(signT),30*signT,77*signT))enqueue({kind:'parking-sign',at:place.at+70,side},lotY(signT),()=>clipRoadside(signT,()=>{
           const x=roadsideX(side,signT,265,220),y=lotY(signT);
           ctx.fillStyle='#172936';ctx.fillRect(x-2*signT,y-67*signT,4*signT,67*signT);
           ctx.fillStyle='#476c75';ctx.fillRect(x-15*signT,y-77*signT,30*signT,24*signT);
@@ -3044,20 +3059,20 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         '1':[['cacheGroundClusterR1',1898,829],
           ['cacheGroundClusterR2',1774,887],['cacheGroundClusterR3',1774,887]]
       };
-      const visibleAreas=worldRange(SCENERY,progress-160,progress+864)
+      const visibleAreas=worldRange(SCENERY,progress+bankNearDistance,progress+864)
         .filter(area=>{
           const t=sideDepth(area.at-progress);
           return t>(area.kind==='parking'?.06:.025)&&
-            t<(area.kind==='satellite'?.95:1.2);
+            t<bankMaxDepth;
         });
       // Ground clusters also have real world addresses. They take their
       // position in the same painter sequence as district and featured art.
       for(const side of [-1,1]) {
         const phase=side<0?41:105,spacing=440;
         for(let at=Math.floor((progress+850-phase)/spacing)*spacing+phase;
-          at>progress+65;at-=spacing) {
+          at>progress+bankNearDistance;at-=spacing) {
           const t=sideDepth(at-progress);
-          if(t<.025||t>.70||LANDSCAPE.owns(side,at,100))continue;
+          if(t<.025||t>bankMaxDepth||LANDSCAPE.owns(side,at,100))continue;
           if(SIDE_PLACES.some(place=>place.side===side &&
             place.kind!=='parking' && Math.abs(place.at-at)<145))continue;
           if(INFILL_SCENES.some(scene=>scene.side===side &&
@@ -3072,17 +3087,17 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const drawStreetLife = (scene, item, person=false,area) => {
         const position=pedestrianPosition(scene,item,s);
         const t=sideDepth(position.at-progress);
-        if(t<(person?.09:.025)||t>1.08)return;
+        if(t<(person?.09:.025)||t>bankMaxDepth)return;
         const [key,aspect,height]=person?PEDESTRIANS[item.id]:
           [item.key,...PROP_SHAPES[item.key]];
         const h=height*t*item.scale*(person?PERSON_SCALE:1);
         const width=h*(person?(pedestrianTravel(item,s,reduced)?.aspect||aspect):aspect);
         const x=roadsideX(scene.side,t,position.base,person?210:260);
-        if(x+width*.5<0||x-width*.5>1920)return;
         const foot=terrainAt(scene.side,t,x)+4*t;
         const args={x,y:foot,width,height:h,
           flip:person?position.flip:false,
           lampGround:lightX=>terrainAt(scene.side,t,lightX)+4*t};
+        if(!inFrame(x,foot,width,h,.5,8*t)&&!lightInFrame(key,args))return;
         if(!person&&LAMP_LIGHTS[key])lampPools.push(()=>drawLampLight(ctx,key,args,'pool'));
         enqueue(area,foot,()=>clipRoadside(t,()=>{
           ctx.save();ctx.globalAlpha=1;
@@ -3093,7 +3108,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           ctx.restore();
         },scene.side));
       };
-      for(const {scene,item} of streetRange(s,progress-200,progress+864)) {
+      for(const {scene,item} of streetRange(s,progress+bankNearDistance,progress+864)) {
         const position=pedestrianPosition(scene,item,s);
         visibleAreas.push({kind:'life',at:position.at,scene,item,
           radial:position.base});
@@ -3125,6 +3140,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           const groundFoot=terrainAt(plate.side,t,footX)+
             (contactAt?(contactBottom-contactAt)*width/sourceW+6*t:22*t);
           const y=areaFoot(plate.side,t,footX,groundFoot,height);
+          if(!inFrame(x,y,width,height))return;
           enqueue(area,y,()=>clipRoadside(t,()=>{
             B.PresentationAssets?.draw?.(key,ctx,{x,y,width,height,groundY:groundFoot,
               sourceRect:[0,0,sourceW,contactBottom||sourceH],flip:!!plate.flip});
@@ -3152,6 +3168,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           const roadward=x-side*width*.5;
           const groundFoot=terrainAt(side,t,x)+60*t;
           const y=areaFoot(side,t,roadward,groundFoot,height);
+          if(!inFrame(x,y,width,height))return;
           enqueue(area,y,()=>clipRoadside(t,()=>{
             ctx.globalAlpha=1;
             B.PresentationAssets?.draw?.(key,ctx,{
@@ -3167,6 +3184,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           const height=width*sourceH/sourceW;
           const groundFoot=terrainAt(side,t,x)+9*t;
           const y=areaFoot(side,t,sidewalkEdge+side*29*t,groundFoot,height);
+          if(!inFrame(x,y,width,height))return;
           enqueue(area,y,()=>clipRoadside(t,()=>B.PresentationAssets?.draw?.(key,ctx,{
             x,y,width,height,groundY:groundFoot,flip:side>0 }),side));
         } else {
@@ -3180,6 +3198,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           const roadward=sidewalkEdge+side*(26+place.setback)*t;
           const groundFoot=terrainAt(side,t,x);
           const y=areaFoot(side,t,roadward,groundFoot,height);
+          if(!inFrame(x,y,width,height))return;
           enqueue(area,y,()=>clipRoadside(t,()=>B.PresentationAssets?.draw?.(key,ctx,{
             x,y,width,height,groundY:groundFoot,flip:place.variant?
               !!SIDE_VARIANTS[place.variant].flip:placeFacesRoad(place.kind,side) }),
@@ -3471,14 +3490,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         }
       }
       ctx.globalAlpha=1;
-      for(const lamp of worldRange(SERVICE_LAMPS,progress-420,progress+850)) {
+      for(const lamp of worldRange(SERVICE_LAMPS,progress+bankNearDistance,progress+850)) {
         const {at,side}=lamp;
-        const t=sideDepth(at-progress);if(t<.025||t>1.65)continue;
+        const t=sideDepth(at-progress);if(t<.025||t>bankMaxDepth)continue;
         const x=roadsideX(side,t,98,80);
         const width=SERVICE_LAMP_WIDTH*t,height=SERVICE_LAMP_HEIGHT*t;
         const y=roadY(t)+18*t;
         const args={x,y,width,height,sourceRect:[42,69,954,1386],flip:side===1,
           lampGround:lightX=>y+side*(lightX-x)*.12};
+        // The right mast mirrors around its painted .28 socket, so its
+        // inward head owns .72 of the width. Preserve its light pool too.
+        if(!inFrame(x,y,width,height,side===1?.72:.28)&&
+          !lightInFrame('cachePylon',args))continue;
         lampPools.push(()=>drawLampLight(ctx,'cachePylon',args,'pool'));
         enqueue(lamp,y,()=>clipRoadside(t,()=>{
           drawLampLight(ctx,'cachePylon',args,'beam');
@@ -3597,9 +3620,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // Reflectors lie on the asphalt: both ends have real road addresses.
       // Upright screen rectangles used to resemble tiny floating people or
       // poles. The authored parapet already supplies every roadside post.
-      for (let at = Math.floor((progress-70) / 26) * 26; at < progress + 500; at += 26) {
+      for (let at = Math.floor((progress-115) / 26) * 26; at < progress + 500; at += 26) {
         const d = at - progress, t = depth(d);
-        if (d < -65 || t < .12) continue;
+        if (d < -110 || t < .12) continue;
         const far = depth(d + 1.1), near = depth(d - 1.1);
         const halfWidth = .7 + 2.2*t;
         ctx.globalAlpha = .25 + t*.45;
@@ -3619,9 +3642,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         if (rush > .02) {
           ctx.save();ctx.strokeStyle='#a7d7df';ctx.lineWidth=1+rush;
           ctx.globalAlpha=.055+.12*rush;
-          for (let at=Math.floor((progress-70)/78)*78;at<progress+330;at+=78) {
+          for (let at=Math.floor((progress-150)/78)*78;at<progress+330;at+=78) {
             const d=at-progress;
-            if(d < -65)continue;
+            if(d < -140)continue;
             for(const side of [-1,1]) {
               ctx.beginPath();
               for(let step=0;step<=3;step++) {
@@ -3638,7 +3661,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // The illustrated parapet and sidewalk own the road border. A second
       // screen-space guardrail used to float over their tops and street gaps.
       ctx.globalAlpha = 1;
-      const upcoming = [850, 1700].find(at => at > progress && at - progress < 410);
+      const upcoming = [850, 1700].find(at => at-progress>=frontNear && at-progress<410);
       if (upcoming) {
         // Checkpoints are roadside signs, not full-width false hit windows.
         const t = depth(upcoming - progress),x=laneEdge(4,t)+40*t,y=roadY(t);
@@ -3664,7 +3687,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       };
       if (record) {
         ctx.save();
-        for(let at=Math.ceil(progress/132)*132;at<progress+390;at+=132) {
+        for(let at=Math.ceil((progress-115)/132)*132;at<progress+390;at+=132) {
           const t=depth(at-progress);
           if(t<.2)continue;
           ctx.globalAlpha=record.active?.54:.3;
@@ -3673,17 +3696,19 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const signDistance=(s.recordSigns[record.index] ?? progress+340)-progress;
         const side=record.lane<2?-1:1,t=depth(signDistance);
         const x=laneEdge(side<0?0:4,t)+side*52*t,y=roadY(t);
-        if(signDistance>=-40 && signDistance<440) {
+        if(signDistance>=frontNear && signDistance<440 && inFrame(x,y,232*t,159*t)) {
         ctx.globalAlpha=.96;ctx.translate(x,y);ctx.scale(t,t);
         ctx.strokeStyle='#d9b98c';ctx.lineWidth=4;
         ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(0,-88);ctx.stroke();
-        ctx.fillStyle='#143037';ctx.fillRect(-116,-159,232,83);
-        ctx.strokeRect(-116,-159,232,83);
-        cassette(0,-133,.63);
-        ctx.fillStyle='#ffe2ae';ctx.font='bold 19px Oxanium, monospace';ctx.textAlign='center';
-        ctx.fillText('OPTIONAL RECORD',0,-101);
-        ctx.font='bold 16px Oxanium, monospace';
-        ctx.fillText(record.active?'HOLD MARKED LANE':'AHEAD',0,-80);
+        ctx.fillStyle='#143037';ctx.fillRect(-58,-159,116,83);
+        ctx.strokeRect(-58,-159,116,83);
+        cassette(0,-132,.8);
+        for(let lane=0;lane<4;lane++) {
+          ctx.fillStyle=lane===record.lane?'#ffe2ae':'#47616a';
+          ctx.fillRect(-41+lane*22,-106,16,17);
+        }
+        ctx.strokeStyle='#ffe2ae';ctx.lineWidth=3;ctx.beginPath();
+        ctx.arc(0,-132,25,-Math.PI/2,-Math.PI/2+Math.PI*2*(record.active?record.held:1));ctx.stroke();
         }
         ctx.restore();
         if(record.active) {
@@ -3750,18 +3775,21 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.font='bold 18px Oxanium, monospace';
         const button=B.GamepadUI?.connected?B.ControllerSettings?.button(face.button)||face.keyboard:face.keyboard;
         if(B.CacheRoadGuidance) {
-          B.CacheRoadGuidance.drawButton(ctx,{index:nextPulse.action,x:x-69,y:strikeY+76,size:43,active:nextCue.strike});
-          ctx.textAlign='left';ctx.fillText(nextCue.strike?'PRESS NOW':face.label,x-37,strikeY+83);
-        } else ctx.fillText(`${button}  ${nextCue.strike?'PRESS':face.label}`,x,strikeY+73);
+          B.CacheRoadGuidance.drawButton(ctx,{index:nextPulse.action,x,y:strikeY+78,size:49,active:nextCue.strike});
+        } else ctx.fillText(button,x,strikeY+73);
+        if(nextCue.strike) {
+          ctx.strokeStyle='#fff0ab';ctx.lineWidth=3;ctx.beginPath();
+          ctx.arc(x,strikeY+78,34,0,Math.PI*2);ctx.stroke();
+        }
       }
       ctx.fillStyle='#b8e1d5';ctx.font='bold 17px Oxanium, monospace';
-      ctx.textAlign='right';ctx.fillText('HIT ON 1',laneEdge(0,STRIKE_DEPTH)-20,strikeY+6);
+      ctx.textAlign='center';ctx.fillText('1',laneEdge(0,STRIKE_DEPTH)-26,strikeY+6);
       ctx.restore();
       // Musical road paint arrives at the car's timing line on its fixed
       // first beat. Traffic is drawn afterward and occludes every cue.
       for (const pulse of roadPulses(s)) {
         const cue=pulseVisual(pulse,s,cueBeatSec);
-        if(!cue||cue.remaining< -1.4||cue.d>PAD_REVEAL)continue;
+        if(!cue||cue.d< -115||cue.d>PAD_REVEAL)continue;
         const d=cue.d;
         const near = depth(d - 18), far = depth(d + 18), mid = depth(d);
         if (mid < .17 || near <= far) continue;
@@ -3876,18 +3904,29 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           ctx.restore();
         }
       }
+      // Passing traffic can now remain below Cache. Split complete sprites
+      // around the player's current projected ground depth, including gear
+      // movement, so steering behind a passed car cannot paint over its roof.
+      const carPose=shiftPose(s,reduced),foregroundVehicles=[];
+      const vehicleAtDepth=(t,draw)=>{
+        if(t>carPose.depth)foregroundVehicles.push({t,draw});
+        else draw();
+      };
       // Far traffic first; the shapes and on-road arrows remain legible in motion.
       const trafficPoses=roadHazards(s).map(hazard=>({hazard,actor:actorPose(s,hazard)}))
         .sort((a,b)=>b.actor.at-a.actor.at);
       for (const {hazard,actor} of trafficPoses) {
         const d=actor.at-progress;
-        if (d < (actor.kind?-45:0) || d > 440 || actor.alpha<=0) continue;
+        if (d < frontNear || d > 440 || actor.alpha<=0) continue;
         const t = depth(d), lane = actor.lane;
         const x = laneX(lane, t), y = roadY(t);
         const heavy = ['freight','shuttle','sweeper'].includes(hazard.kind);
         const w = (heavy ? 32 : hazard.kind === 'trike' ? 21 : 26) +
           t * (heavy ? 144 : hazard.kind === 'trike' ? 96 : 113);
         const h = (heavy ? 30 : 24) + t * (heavy ? 149 : 111);
+        // Include suspension, steering lean and lamps around the complete
+        // painted body. Cull only after its last edge leaves the viewport.
+        if(!inFrame(x,y,w*1.9,h*1.6,.5,h*.15))continue;
         if (actor.collidable && d < 145 && d > 4 && t > .38) {
           // A braking chevron is printed on the threatened lane, with a
           // narrowing cue as the car approaches the collision plane.
@@ -3922,9 +3961,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           hazard.kind === 'sweeper' ? '#ffe6a2' : '#9cf6ef');
           ctx.globalAlpha = 1;
         }
-        drawVehicle(ctx, x, y, w, h, hazard.kind,
+        vehicleAtDepth(t,()=>drawVehicle(ctx, x, y, w, h, hazard.kind,
           { phase: (s.elapsedMs||0)*.054 + hazard.at*.17,
-            alpha:actor.alpha,steer:actor.kind?actor.steer:hazardTurn(hazard,progress).steer, reduced });
+            alpha:actor.alpha,steer:actor.kind?actor.steer:hazardTurn(hazard,progress).steer, reduced }));
         if (actor.collidable && d < 210 && d > 0 && t > .38 &&
             ['audit','sweeper','freight','trike','shuttle'].includes(hazard.kind)) {
           ctx.fillStyle = hazard.kind === 'audit' ? '#ffd0df' :
@@ -3937,7 +3976,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
             hazard.kind === 'shuttle' ? 'SLOW / DRAFT' : 'DRAFT', x, y - h - 14);
         }
       }
-      if (s.gateAt != null && progress < s.gateAt + 45) {
+      if (s.gateAt != null && s.gateAt-progress>=frontNear) {
         const t = depth(s.gateAt - progress), y = roadY(t);
         if(s.encounters)B.PresentationAssets?.draw?.('cacheDeliveryBeacon',ctx,{
           x:laneEdge(4,t)+35*t,y,width:18+54*t,height:50+166*t});
@@ -3957,11 +3996,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       if(s.pursuit) {
         const rival=B.CacheRoadPursuit.pose(s.pursuit,{progress});
         const reaction=rival&&actorPose(s,rival);
-        if(reaction&&reaction.at>=progress-25) {
+        if(reaction&&reaction.at>=progress+frontNear) {
           const d=reaction.at-progress,t=depth(d);
           const x=laneX(reaction.lane,t),y=roadY(t);
-          drawVehicle(ctx,x,y,26+t*113,24+t*111,'rival',{
-            alpha:rival.alpha*reaction.alpha,phase:s.elapsedMs*.054+97,steer:reaction.steer,reduced});
+          vehicleAtDepth(t,()=>drawVehicle(ctx,x,y,26+t*113,24+t*111,'rival',{
+            alpha:rival.alpha*reaction.alpha,phase:s.elapsedMs*.054+97,steer:reaction.steer,reduced}));
           if(rival.warning&&reaction.collidable) {
             const target=laneX(rival.lockLane,t),w=35+65*t;
             ctx.save();ctx.strokeStyle=rival.echoCommitted?'#8cecf1':'#ff719b';ctx.lineWidth=3+3*t;
@@ -3974,7 +4013,6 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           }
         }
       }
-      const carPose=shiftPose(s,reduced);
       const recoil=s.encounters&&!reduced?Math.sin((s.reactionRecoilMs||0)/520*Math.PI)*7:0;
       const carX=laneX(s.visualLane,carPose.depth)+(s.reactionRecoilSide||1)*recoil,
         carY=roadY(carPose.depth)+Math.abs(recoil)*.6;
@@ -4072,6 +4110,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         drawGrimyPlume(ctx,carX+61,carY-75,progress*.9+47,
           151,pulse,['#b8a3a0','#303540'],1);
       }
+      foregroundVehicles.sort((a,b)=>a.t-b.t);
+      for(const vehicle of foregroundVehicles)vehicle.draw();
       // Short local receipts keep driving rewards where attention already is.
       if(s.draftMs>0||s.turboReadyMs>0||s.boostMs>0||s.defenseFlashMs>0) {
         const x=carX,y=carY-175;
@@ -4178,9 +4218,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       ctx.fillText(shownFace?.label||'READY',1517,43,181);
       ctx.fillStyle=pressNow?DASH_COLORS[1]:DASH_COLORS[0];
       ctx.font='bold 22px Oxanium, monospace';
-      ctx.fillText(showingCatch?`+${s.pulseHoldBars||(s.pulseCombo>=2?16:8)}B  ${s.pulseTiming||'ON BEAT'}`:
-        padVisible?pressNow?'PRESS!':padReady?inPadLane?'HIT ON 1':'ENTER LANE':
-          `${Math.ceil(nextCue.remaining)} BEATS`:previewPulse?'LINE UP':'—',1517,69,202);
+      ctx.fillText(showingCatch?`+${s.pulseHoldBars||(s.pulseCombo>=2?16:8)}B`:
+        padVisible?pressNow?'NOW':inPadLane?'ONE':'':previewPulse?'':'—',1517,69,202);
+      if(!showingCatch&&Number.isInteger(targetLane)&&Math.abs(s.lanePos-targetLane)>.38) {
+        const dir=targetLane>s.lanePos?1:-1;
+        ctx.strokeStyle=PALETTE[targetLane];ctx.lineWidth=4;ctx.beginPath();
+        ctx.moveTo(1538-dir*17,61);ctx.lineTo(1538+dir*17,61);
+        ctx.moveTo(1538+dir*7,51);ctx.lineTo(1538+dir*17,61);ctx.lineTo(1538+dir*7,71);ctx.stroke();
+      }
       if(padVisible&&!showingCatch) {
         for(let i=0;i<4;i++) {
           const count=[2,3,4,1][i];
@@ -4255,18 +4300,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           ctx.fillStyle='#ffd28d';ctx.fillRect(xx+4,155,154,2);
         }
       }
-      ctx.textAlign='left';
-      let receipt='';
-      if(s.cutFlashMs)receipt=`CLOSE CUT ×${s.cutStreak}  +${s.cutAward}`;
-      else if(s.gateAt!=null&&progress>s.gateAt-220&&progress<s.gateAt)
-        receipt=s.echo?'ECHO LEFT   |   ORIGINAL RIGHT':`${dash.echoButton} ECHO LEFT   |   ORIGINAL RIGHT`;
-      else if(s.messageMs>0&&!s.stumbleMs)receipt=s.message;
-      if(receipt) {
-        ctx.fillStyle='#071c22f2';ctx.fillRect(1345,142,540,19);
-        ctx.fillStyle='#b4ffe4';ctx.font='bold 14px Oxanium, monospace';
-        ctx.fillText(receipt,1353,156,524);
-      }
-      // Guidance only appears while its driving lesson is actionable.
+      // One visual guidance layer owns route, split and outcome feedback;
+      // do not repeat the same event as a scrolling dashboard sentence.
       B.CacheRoadGuidance?.draw(ctx,this,{nextPulse,nextCue,reduced});
       const cue = !B.CacheRoadGuidance&&this.openingCue();
       if (cue) {
