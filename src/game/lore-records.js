@@ -1,4 +1,4 @@
-// Authored Level 1 records. Save files keep these stable IDs, not copies of prose.
+// Authored records. Save files keep these stable IDs, not copies of prose.
 window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({ name: 'src/game/lore-records.js', exports: ['BARCODE.LoreRecords'], dependencies: [] });
 (function() {
@@ -32,9 +32,50 @@ window.FILE_MANIFEST.push({ name: 'src/game/lore-records.js', exports: ['BARCODE
       response: '6 Bit: "We came to bring the volume back. Let\'s do that."'
     }
   ].map(record => Object.freeze({ ...record, paragraphs: Object.freeze(record.paragraphs) }));
-  const byId = new Map(records.map(record => [record.id, record]));
+  const level2 = [
+    {
+      id: 'lore.l02.01', number: '04', levelId: 'level-02', title: 'A Copy That Travels', author: 'CACHE BACK', source: 'Transit integrity note',
+      paragraphs: [
+        'A transfer receipt tells me a file arrived. It does not tell me the file is still ours.',
+        'The original has names, room noise, and the bit where somebody comes in too soon. The clean copy keeps enough music to sound familiar. It drops the parts that tell me who was in the room.',
+        'DJ has both versions. I am taking the original through. If something changes between here and the receiver, we can point to the gap instead of arguing about what we remember.'
+      ],
+      response: '6 Bit: "Please tell me you kept the part where I nailed it."'
+    },
+    {
+      id: 'lore.l02.02', number: '05', levelId: 'level-02', title: 'Leave the Mistakes In', author: 'CACHE BACK', source: 'Original / clean comparison',
+      paragraphs: [
+        'In the original, you hear someone getting ready before the music. The clean version jumps straight to the finished part.',
+        'That little gap matters. So do the names and the bad entry. They put us in the same room, making something together. Remove enough of them and you can call the result whatever you want.',
+        'Keep the clean copy too. I want the comparison. Protecting the original does not mean throwing away the evidence of what changed.'
+      ],
+      response: 'DJ Floppydisc: "Both traces. Nothing overwritten."'
+    },
+    {
+      id: 'lore.l02.03', number: '06', levelId: 'level-02', title: 'A Familiar Rhythm', author: 'DJ FLOPPYDISC', source: 'Damaged pursuit-channel log',
+      paragraphs: [
+        'There is a pause in this damaged transmission, then a stressed syllable. Listen twice and it starts to sound like 6 Bit.',
+        'The channel repeats fragments. Part of the beginning is missing. Familiar timing is not a voice identification, and cleaning this up could make it sound more certain than it is.',
+        'I saved the extract with its damage intact. SOURCE UNRESOLVED. We can compare it when we have more than a rhythm and a guess.'
+      ],
+      response: '6 Bit: "Sounds like me is not the same as me."'
+    },
+    {
+      id: 'lore.l02.04', number: '07', levelId: 'level-02', title: 'Delivered Is Not Distributed', author: 'MAC MODEM', source: 'Receiver routing trace',
+      paragraphs: [
+        'The receiver records an arrival and a separate distribution decision. Getting a file to this address does not put it on the neighborhood channels.',
+        'The routing trace sends a distribution hold to street enforcement. There is a route into that sector. There is no name here that tells me who ordered the hold.',
+        'Cache can finish the delivery. I can follow the hold to where it is being enforced. Neither job replaces the other.'
+      ],
+      response: 'Cache Back: "Get it heard. Keep it intact."'
+    }
+  ].map(record => Object.freeze({ ...record, paragraphs: Object.freeze(record.paragraphs) }));
+  const all = Object.freeze([...records, ...level2]);
+  const byId = new Map(all.map(record => [record.id, record]));
   BARCODE.LoreRecords = Object.freeze({
     level1: Object.freeze(records),
+    level2: Object.freeze(level2),
+    all,
     get: id => byId.get(id) || null,
     preview: id => {
       const record = byId.get(id);

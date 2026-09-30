@@ -121,6 +121,15 @@ window.gameLoop = function(timestamp) {
   }
   // Campaign proofs share this RAF and input owner. Each supplies its own
   // genre simulation and canvas scene.
+  if (window.BARCODE?.CacheEnding?.active) {
+    window.BARCODE?.PauseMenu?.sync();
+    window.inputManager?.update?.();
+    window.BARCODE.CacheEnding.update(cappedDelta);
+    window.BARCODE.CacheEnding.draw(getFrameContext());
+    window.lastTime = timestamp;
+    scheduleNextGameplayFrame();
+    return;
+  }
   if (window.BARCODE?.CacheBridge?.active) {
     window.BARCODE?.PauseMenu?.sync();
     window.inputManager?.update?.();

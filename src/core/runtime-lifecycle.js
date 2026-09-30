@@ -278,6 +278,12 @@ window.BARCODE = window.BARCODE || {};
         projectCompatibility();
         return { ok: false, status: 'audio-resume-failed-still-paused', state, generation, diagnostic: audioResult };
       }
+      // Resuming the audio context must not resume a completed road clock.
+      // Its finite reading cues may be stopped; the next authored cue is fresh.
+      if (namespace.CacheEnding?.active || namespace.CacheRoadProof?.active && namespace.CacheRoadProof.status === 'clear') {
+        window.audioSystem?.stopRuntimeAudio?.({ stopMusic: true });
+        window.audioSystem?.stopRoadEngine?.();
+      }
       const result = transition(STATES.RUNNING, reason || 'resume');
       if (result.ok && typeof window.resumeGame === 'function') window.resumeGame();
       return result;
@@ -290,6 +296,7 @@ window.BARCODE = window.BARCODE || {};
 
   function stopOwnedResources(options) {
     options = options || {};
+    namespace.CacheEnding?.dispose?.();
     namespace.CacheRoadProof?.dispose?.();
     namespace.CacheBridge?.dispose?.();
     namespace.RunAndGunProof?.dispose?.();
@@ -323,6 +330,18 @@ window.BARCODE = window.BARCODE || {};
     return transition(STATES.IDLE, reason || 'stop-complete');
   }
 
+  async function returnToTitle({ source = 'chapter-title' } = {}) {
+    if (transitionInFlight) return { ok: false, status: 'transition-in-flight', state, generation };
+    const result = await stop(source, { stopMusic: true, preserveProgress: true });
+    if (!result.ok) return result;
+    resetRetryUi();
+    const overlay = document.getElementById('startOverlay');
+    if (overlay) { overlay.classList.remove('hidden'); overlay.style.display = ''; overlay.style.opacity = ''; }
+    namespace.Campaign?.syncTitleButton?.();
+    window.titleScreen?.show?.();
+    return result;
+  }
+
   function getDiagnostics() {
     const transport = namespace.MusicTransport && typeof namespace.MusicTransport.getDiagnostics === 'function' ? namespace.MusicTransport.getDiagnostics() : null;
     return Object.freeze(clone({
@@ -338,5 +357,5 @@ window.BARCODE = window.BARCODE || {};
     }));
   }
 
-  namespace.RuntimeLifecycle = Object.freeze({ STATES, ALLOWED_TRANSITIONS, getState, getSnapshot, start, retry, restart, pause, resume, togglePause, stop, getDiagnostics, projectCompatibility });
+  namespace.RuntimeLifecycle = Object.freeze({ STATES, ALLOWED_TRANSITIONS, getState, getSnapshot, start, retry, restart, pause, resume, togglePause, stop, returnToTitle, getDiagnostics, projectCompatibility });
 })(window.BARCODE);

@@ -92,6 +92,18 @@ jobs:
           name: cache-bridge-browser-${{ github.sha }}
           path: ${{ runner.temp }}/cache-bridge-review
           if-no-files-found: ignore
+      - name: Check Cache Line ending in real Chromium
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+          CACHE_ENDING_BROWSER_OUTPUT: ${{ runner.temp }}/cache-ending-review
+        run: npm run check:cache-ending-browser
+      - name: Upload Cache Line ending browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cache-ending-browser-${{ github.sha }}
+          path: ${{ runner.temp }}/cache-ending-review
+          if-no-files-found: ignore
       - name: Upload settings browser evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -109,6 +121,7 @@ jobs:
           Path(os.environ['PACK_RECEIPT']).write_text(json.dumps({
               'revision': os.environ['GITHUB_SHA'],
               'automatedTests': {'npm test': 'passed', 'npm run check:syntax:all': 'passed', 'npm run check:cache-road-browser': 'passed (real MP3s, missing local asset recovery, Drive catch and collision bus recovery)', 'node tools/check-music-audibility.cjs': 'passed (controlled and original MP3s)', 'node tools/check-background-browser.cjs': 'passed', 'node tools/check-intro-browser.cjs': 'passed', 'node tools/check-settings-browser.cjs': 'passed', 'node tools/check-cache-bridge-browser.cjs': 'passed (eight hosted byte-identical paintings, shared Canvas, production bridge input and final Drive guard)', 'MODE_SFX_REVIEW=1 node tools/check-music-audibility.cjs': 'passed'},
+              'cacheEndingBrowser': 'passed (four hosted byte-identical paintings, production shared Canvas/input/RAF/audio and silent ending reload)',
               'makkoPlaytest': 'not recorded by CI',
               'workflowRun': os.environ['GITHUB_SERVER_URL'] + '/' + os.environ['GITHUB_REPOSITORY'] + '/actions/runs/' + os.environ['GITHUB_RUN_ID']
           }, indent=2))

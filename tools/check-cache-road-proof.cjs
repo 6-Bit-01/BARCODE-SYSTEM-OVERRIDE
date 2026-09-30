@@ -22,6 +22,9 @@ async function run() {
   load(context, 'src/game/lore-collection.js');
   w.lostDataSystem.archive = new w.BARCODE.LoreCollection();
   load(context, 'src/game/campaign-services.js');
+  // The existing compatibility matrix below intentionally has no authored
+  // chapter metadata. A separate final section loads the new chapter owner
+  // and exercises both legacy saves and production-authored runs.
   load(context, 'src/engine/cache-road-proof-profile.js');
   load(context, 'src/engine/music-director.js');
   load(context, 'src/engine/audio.js');
@@ -1669,6 +1672,137 @@ async function run() {
   assert(!archive.record.progress.completedLevels.includes('level-02'));
   assert.deepEqual(copy(archive.record.progress.items), ['stem.voice']);
   audio.startRuntimeGameplayMusic = startRoadMusic;
-  console.log('Cache Road: safe timed four-face pulses, four-part route, speed and ability rewards, protected and unprotected traffic, full song, final Echo, silent completed handoffs, fresh Retry and old saves passed.');
+  // Actual chapter integration: legacy saves are still non-awarding with the
+  // new module installed; only a full new drive creates eligible metadata.
+  load(context, 'src/game/cache-chapter.js');
+  const chapterAPI=B.CacheChapter;
+  assert(road.restore(legacy));
+  assert.equal(road.chapter,null);
+  road.status=road.state.status='failed';archive.checkpoint(legacy);
+  assert(road.retry());
+  assert.equal(road.chapter,null,'a legacy mid-route retry cannot retroactively award Bass');
+  assert(road.restore(completedRoad));
+  assert.equal(road.chapter,null);
+  let endingStarts=0;
+  B.CacheEnding={active:false,start(saved){this.active=true;this.saved=copy(saved || {version:1,page:0,cue:0,done:false});endingStarts++;return true;},
+    dispose(){this.active=false;}};
+  assert(road.retry());
+  assert(chapterAPI.normalize(road.chapter),'full replay from an old terminal result starts an authored run');
+  const authoredId=road.chapter.runId;
+  assert.notEqual(authoredId,parentSave().levelState.run.runId);
+  const checkpointBefore=copy(C.readResume());
+  const pure=road.makeCheckpoint('road-start');
+  pure.levelState.chapter.records.push(chapterAPI.recordIds[0]);
+  assert.deepEqual(copy(C.readResume()),checkpointBefore,'constructing an envelope is side-effect free');
+  assert.equal(road.chapter.records.length,0,'checkpoint envelopes do not alias live metadata');
+  road.state.shield=1;road.hit('van');
+  assert.equal(road.chapter.damageTaken,0,'protected contact is not damage');
+  road.hit('van');
+  assert.equal(road.chapter.damageTaken,1);
+  road.status=road.state.status='failed';
+  assert(road.retry());
+  assert.equal(road.chapter.runId,authoredId,'failed marker retry retains the original run ID');
+  assert.equal(road.chapter.retries,1);
+  assert.equal(road.chapter.damageTaken,1,'failed-attempt damage survives marker retry');
+  audio.context.currentTime=0;
+  w.audioSystem.stopRuntimeAudio({stopMusic:true});road.selectMusicProfile();
+  w.audioSystem.startRuntimeGameplayMusic();
+  face('road_a',4,0,150);
+  assert.deepEqual(copy([road.chapter.attempts,road.chapter.accurate,
+    road.chapter.perfect,road.chapter.connected,road.chapter.bestCombo]),[1,1,1,1,1],
+    'real accepted pulse hooks supply the measured result');
+  assert(road.chapter.elapsedMs>0,'only active road updates advance chapter time');
+  const oldCue=road.cue;road.cue=()=>true;
+  for(const [index,start,end,lane] of [[0,12,20,0],[1,36,44,2],[2,60,68,1],[3,84,90,3]]) {
+    road.state.stumbleMs=0;road.state.lanePos=lane;road.state.musicBeatFloat=(start-1)*4;
+    assert.equal(road.recordOpportunity().index,index);
+    assert.equal(road.recordOpportunity().active,false);
+    assert.equal(road.updateRecords(650),false,'the preview is not a collection window');
+    road.state.musicBeatFloat=start*4;
+    road.updateRecords(400);
+    assert.equal(road.recordOpportunity().held,400/650);
+    road.state.lanePos=(lane+1)%4;road.updateRecords(100);
+    assert.equal(road.state.recordHoldMs,0,'leaving the lane resets continuous dwell');
+    road.state.lanePos=lane;road.updateRecords(400);
+    assert.equal(road.updateRecords(250),true,'650 ms continuous lane dwell collects without a button');
+    assert.equal(road.updateRecords(1000),false,'each opportunity pays once per run');
+    assert(road.chapter.records.includes(chapterAPI.recordIds[index]));
+    assert(archive.has(chapterAPI.recordIds[index]));
+    assert(C.readResume().levelState.chapter.records.includes(chapterAPI.recordIds[index]),
+      'collecting persists run metadata while preserving the road marker');
+    road.state.musicBeatFloat=end*4;
+    assert.equal(road.recordOpportunity(),null);
+  }
+  road.cue=oldCue;
+  assert(!archive.record.progress.items.includes('stem.bass'),'optional records never award the campaign stem');
+  assert.equal(C.readResume().levelState.proof.progress,checkpointBefore.levelState.proof.progress,
+    'optional catches do not move the safe restart marker');
+  const collectedChapter=copy(road.chapter);
+  assert(await road.exit());
+  assert.deepEqual(copy(C.readResume().levelState.cacheRoadCheckpoint.chapter),collectedChapter,
+    'nested return preserves collected records and failed-attempt stats');
+  C.intermission=true;assert((await road.enter()).ok);
+  assert.equal(road.chapter.runId,authoredId);
+  assert.equal(road.chapter.records.length,4);
+  road.state.invulnerableMs=1000000;
+  const fullStart=audio.context.currentTime;
+  let sentAuthored=false;
+  for(let frame=1;frame<=1880&&road.status==='playing';frame++) {
+    audio.context.currentTime=fullStart+frame/10;
+    road.handleActions({});road.update(100);
+    if(road.state.gateAt!=null&&!sentAuthored&&road.state.progress>=road.state.gateAt-200) {
+      road.state.lanePos=road.state.lane=0;road.state.trace=[{steer:0,duration:1500}];
+      road.sendEcho();road.state.lanePos=road.state.lane=3;sentAuthored=true;
+    }
+    if(sentAuthored)road.state.lanePos=road.state.lane=3;
+  }
+  assert(sentAuthored&&road.state.gateOpen&&road.status==='clear');
+  assert.equal(endingStarts,1,'the genuine authored clear hands control to the ending once');
+  assert(archive.record.progress.completedLevels.includes('level-02'));
+  assert(archive.record.progress.items.includes('stem.bass'));
+  assert(!archive.record.progress.items.includes('stem.drums'),'Mac development access awards no further stem');
+  assert.equal(road.chapter.delivery.result.runId,authoredId);
+  assert.equal(road.chapter.delivery.result.discoveries,4);
+  assert.equal(road.chapter.delivery.result.damageTaken,1);
+  assert.equal(road.chapter.delivery.result.retries,1);
+  const authoredClear=copy(C.readResume());
+  assert.equal(authoredClear.levelState.chapter.delivery.result.score,road.state.score);
+  const receipt=copy(road.chapter.delivery.result);
+  chapterAPI.finish(road);
+  assert.deepEqual(copy(road.chapter.delivery.result),receipt,'repeated finish cannot revise its receipt');
+  B.CacheEnding.dispose();
+  assert(road.restore(authoredClear));
+  assert.equal(endingStarts,2,'unfinished ending resumes from an authored saved clear');
+  const doneClear=copy(authoredClear);doneClear.levelState.chapter.delivery.ending.done=true;
+  B.CacheEnding.dispose();assert(road.restore(doneClear));
+  assert.equal(endingStarts,2,'a completed ending returns to the silent result');
+  assert.equal(B.MusicTransport.sample(audio.context.currentTime).running,false);
+  const archivedBass=archive.record.progress.items.filter(id=>id==='stem.bass').length;
+  const resultButtons=road.resultButtons();
+  assert.deepEqual(copy(resultButtons.map(button=>button.id)),['ending','race','title']);
+  let heldResult=true;
+  w.inputManager.isResultControlHeld=()=>heldResult;
+  road.armResultControls();
+  const replayButton=resultButtons.find(button=>button.id==='race');
+  road.pointerClick(replayButton.x+20,replayButton.y+20);
+  road.resultGamepad({pressed:{b2:true}});
+  road.keyDown({key:'r',repeat:false});
+  assert.equal(road.status,'clear','carried controls block pointer, controller and keyboard result actions');
+  heldResult=false;productionUpdate(16);
+  assert.equal(road.resultControlsReady,true);
+  road.keyDown({key:'r',repeat:true});
+  assert.equal(road.status,'clear','a repeated result key cannot trigger replay');
+  assert(road.pointerClick(replayButton.x+20,replayButton.y+20));
+  delete w.inputManager.isResultControlHeld;
+  assert.equal(road.status,'playing','a fresh visible result button starts the full replay');
+  assert.notEqual(road.chapter.runId,authoredId,'explicit clear replay starts a distinct full run');
+  assert.equal(road.chapter.elapsedMs,0);assert.equal(road.chapter.retries,0);
+  assert.equal(road.chapter.records.length,0);
+  assert.equal(archive.record.progress.items.filter(id=>id==='stem.bass').length,archivedBass);
+  road.dispose();archive.checkpoint(parentSave());C.intermission=true;
+  assert((await road.enter()).ok);
+  assert(chapterAPI.normalize(road.chapter),'first entry with no nested proof starts eligible metadata');
+  assert.equal(endingStarts,2,'new driving never starts the outro early');
+  console.log('Cache Road: preserved 100-bar driving, legacy non-awarding saves, authored run/retry statistics, four optional dwell records, atomic Bass clear and silent ending resume passed.');
 }
 run().catch(error => { console.error(error); process.exitCode = 1; });

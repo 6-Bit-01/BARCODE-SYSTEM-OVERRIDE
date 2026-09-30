@@ -115,13 +115,24 @@ window.FILE_MANIFEST.push({ name: 'src/game/lore-collection.js', exports: ['BARC
       this.record.current = JSON.parse(JSON.stringify(current)); this.currentDirty = true;
       return this.save();
     }
-    completeCampaignLevel(level, difficulty, result, item, nextLevel, { recordResult = true } = {}) {
+    completeCampaignLevel(level, difficulty, result, item, nextLevel, { recordResult = true, checkpoint = null, loreIds = [] } = {}) {
       const checked = resultRecord(result);
       if (!levelId(level) || !/^[a-z][a-z0-9_-]{0,31}$/.test(difficulty) || !checked) return false;
+      // Authored chapters can commit their receipt and resume position in the
+      // same promotion as their reward. Existing callers retain their separate
+      // checkpoint behavior. Validate everything before changing session facts.
+      if (checkpoint !== null && (!object(checkpoint) || checkpoint.levelId !== level ||
+          typeof checkpoint.checkpointId !== 'string' || !object(checkpoint.levelState))) return false;
+      if (!Array.isArray(loreIds) || loreIds.some(id => !IDS.has(id))) return false;
+      let savedCheckpoint = null;
+      try { if (checkpoint !== null) savedCheckpoint = JSON.parse(JSON.stringify(checkpoint)); }
+      catch (_) { return false; }
       if (recordResult) this.record.progress.results = mergeResults(this.record.progress.results, { [level]: { [difficulty]: { latest: checked } } });
       this.record.progress.completedLevels = [...new Set([...this.record.progress.completedLevels, level])];
       if (typeof item === 'string') this.record.progress.items = [...new Set([...this.record.progress.items, item])];
       if (levelId(nextLevel)) this.record.progress.unlockedLevels = [...new Set([...this.record.progress.unlockedLevels, nextLevel])];
+      this.record.progress.lore = [...new Set([...this.record.progress.lore, ...loreIds])];
+      if (savedCheckpoint) { this.record.current = savedCheckpoint; this.currentDirty = true; }
       return this.save();
     }
     getRewardFacts() {

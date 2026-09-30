@@ -1,5 +1,20 @@
 # Decision Register
 
+## September 30, 2026 — approved authored Level 2 completion
+
+The owner's “Let's proceed” selects the proposed authored Cache Line ending,
+Bass reward, four optional records and Cache-to-Mac handoff. This is now
+implementation scope. Previous no-Bass constraints remain migration rules
+for old proof saves, not a prohibition on fresh eligible race completion.
+
+Bass depends on the existing 100-bar/Echo-gate clear, never record collection
+or watching/skipping the ending. Result values come from the real run; no new
+score bonus is invented. Distribution stays blocked despite intact delivery;
+Mac investigates street enforcement. The story does not identify who caused
+the hold, assert that the clean copy was accepted, reveal Sheila or make the
+old Level 3 development proof an authored next chapter. See
+`CACHE_LINE_COMPLETION.md` for exact dialogue, record text and save semantics.
+
 ## September 30, 2026 — bounded completed-road handoff correction
 
 After merged #154 passed full CI, the continuation audit found a concrete

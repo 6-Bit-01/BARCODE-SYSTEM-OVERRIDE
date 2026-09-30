@@ -37,6 +37,7 @@
     "src/game/objectives.js",
     "src/engine/intro-sequence.js",
     "src/engine/cache-bridge.js",
+    "src/engine/cache-ending.js",
     "src/engine/cutscene.js",
     "src/core/loop.js",
     "src/core/runtime-lifecycle.js",
@@ -50,6 +51,7 @@
     "src/game/lore-collection.js",
     "src/game/level-difficulty.js",
     "src/game/campaign-services.js",
+    "src/game/cache-chapter.js",
     "src/game/cache-road-landscape.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
@@ -101,6 +103,7 @@
     "src/game/objectives.js",
     "src/engine/intro-sequence.js",
     "src/engine/cache-bridge.js",
+    "src/engine/cache-ending.js",
     "src/engine/cutscene.js",
     "src/core/loop.js",
     "src/core/runtime-lifecycle.js",
@@ -114,6 +117,7 @@
     "src/game/lore-collection.js",
     "src/game/level-difficulty.js",
     "src/game/campaign-services.js",
+    "src/game/cache-chapter.js",
     "src/game/cache-road-landscape.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
@@ -325,6 +329,10 @@
         "status": "pass"
       },
       {
+        "file": "src/engine/cache-ending.js",
+        "status": "pass"
+      },
+      {
         "file": "src/engine/cutscene.js",
         "status": "pass"
       },
@@ -374,6 +382,10 @@
       },
       {
         "file": "src/game/campaign-services.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/cache-chapter.js",
         "status": "pass"
       },
       {
@@ -443,11 +455,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 61,
+        "index": 63,
         "status": "pass"
       },
       {
-        "index": 63,
+        "index": 65,
         "status": "pass"
       }
     ]
@@ -511,6 +523,7 @@
         "index.html",
         "sprites-manifest.json",
         "src/engine/cache-bridge.js",
+        "src/engine/cache-ending.js",
         "src/engine/cache-road-proof-profile.js",
         "src/engine/intro-sequence.js",
         "src/engine/parallax.js",
@@ -754,7 +767,7 @@
     {
       "global": "window.startGameLoop",
       "file": "src/core/loop.js",
-      "line": 200,
+      "line": 209,
       "loaded": true
     },
     {
@@ -825,6 +838,7 @@
     "src/game/objectives.js",
     "src/engine/intro-sequence.js",
     "src/engine/cache-bridge.js",
+    "src/engine/cache-ending.js",
     "src/engine/cutscene.js",
     "src/core/loop.js",
     "src/core/runtime-lifecycle.js",
@@ -838,6 +852,7 @@
     "src/game/lore-collection.js",
     "src/game/level-difficulty.js",
     "src/game/campaign-services.js",
+    "src/game/cache-chapter.js",
     "src/game/cache-road-landscape.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",

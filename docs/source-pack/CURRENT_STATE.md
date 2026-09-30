@@ -1,5 +1,27 @@
 # Current State
 
+## September 30 — Cache Line chapter completion
+
+The approved follow-up to merged #155 adds a fresh-run chapter receipt,
+one-time Bass recovery, four optional records and a four-illustration ending.
+The protected original arrives intact; distribution remains UNVERIFIED and
+Mac follows the hold to street enforcement. No new villain identity or
+playable Mac campaign stage is introduced.
+
+Each optional cassette uses a broad marked lane window and 650 ms dwell.
+The archive switches between three Level 1 and four Level 2 entries with
+keyboard, controller and pointer access. Locked records keep their prose
+hidden. Race results use actual statistics and zero discovery bonus.
+Completion facts and checkpoint are saved atomically, ending page/cue is
+resumable and save failures remain explicit. Legacy proof saves stay legacy;
+full replay starts eligibility. Road timing, music, blur and both earlier
+eight-panel sequences remain unchanged.
+
+Review `CACHE_LINE_COMPLETION.md` and `review-cache-ending/`. Validation for
+this milestone is recorded against the final candidate in its PR/generated
+receipt; prior #155 checks are not evidence for this new code. Makko/device
+acceptance remains unrecorded. Base/rollback: `21257afbb00a4c500384da815d6e3d97fbeb610b`.
+
 ## September 30 — completed-road resume and bridge re-entry
 
 PR #154's eight-scene bridge is merged with full prior CI passed. A subsequent

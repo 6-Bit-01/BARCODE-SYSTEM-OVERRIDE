@@ -1,5 +1,5 @@
-// Cache Back chase slice. It shares the existing input/RAF/audio/save/pause
-// owners and awards no Level 2 campaign facts.
+// Cache Back chase. Shared input/RAF/audio/save/pause owners; optional chapter
+// metadata makes newly started runs eligible for the authored Level 2 ending.
 window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BARCODE.CacheRoadProof'], dependencies: ['BARCODE.Campaign', 'BARCODE.MusicTransport'] });
 (function(B) {
@@ -55,6 +55,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   const STRIKE_DISTANCE = (1-STRIKE_DEPTH)*520-80;
   const PULSE_WINDOW_SEC = .13;
   const LANES = ['DRIVE', 'FLOW', 'BREAKAWAY', 'UNDERCURRENT'];
+  // Wide, optional listening zones use lane dwell, never rhythm-button timing.
+  const RECORD_ZONES = [[12,20,0],[36,44,2],[60,68,1],[84,90,3]];
+  const RECORD_DWELL_MS = 650;
   const PULSE_ACTIONS = [
     { key: 'road_a', label: 'SURGE', button: 0, keyboard: 'K' },
     { key: 'road_b', label: 'PUSH', button: 1, keyboard: 'L' },
@@ -1557,7 +1560,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       rivalEchoCommitted: false, rivalDistractedMs: 0,
       // Road lessons are momentary guidance, not save or music state.
       opening: { held: false, sealed: false, turbo: false, echo: false, auditFollowedEcho: false },
-      message: '', messageMs: 0,
+      message: '', messageMs: 0, recordHoldMs: 0, recordIndex: -1,
+      recordFlashMs: 0, recordFlashIndex: -1, recordSigns: {},
       gateOpen: !!saved.gateOpen, gateFailure: null,
       status: saved.status || 'playing', elapsedMs: 0 };
   }
@@ -1572,7 +1576,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   }
 
   const road = B.CacheRoadProof = {
-    active: false, status: null, state: null, returnTo: null, pending: false,
+    active: false, status: null, state: null, chapter: null, returnTo: null, pending: false,
     exiting: false, audioDegraded: false, oldHint: null,
     setHint() {
       const hint = document.querySelector?.('.hint');
@@ -1665,7 +1669,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const previous = returnTo.levelState.cacheRoadCheckpoint;
       delete returnTo.levelState.cacheRoadCheckpoint; // keep the return save shallow on repeat visits
       const candidate = previous && { levelId: ID, checkpointId: previous.checkpointId,
-        levelState: { proofVersion: previous.proofVersion || 1, returnTo, proof: previous.proof } };
+        levelState: { proofVersion: previous.proofVersion || 1, returnTo, proof: previous.proof,
+          ...(previous.chapter ? { chapter: previous.chapter } : {}) } };
       const resume = this.validate(candidate) ? candidate : null;
       this.pending = true;
       const entryGeneration=this.entryGeneration=(this.entryGeneration||0)+1;
@@ -1680,6 +1685,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         if (!this.checkAudioAssets()) throw new Error('road-audio-invalid');
         this.returnTo = returnTo;
         this.state = resume ? stateFromCheckpoint(resume) : newState();
+        this.chapter = resume ? B.CacheChapter?.normalize(resume.levelState.chapter) || null :
+          B.CacheChapter?.create({ difficultyId: returnTo.levelState.difficultyId }) || null;
         this.status = this.state.status; this.active = true;
         this.setHint();
         B.Campaign.intermission = false; B.Campaign.run = null;
@@ -1690,7 +1697,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           if (!started?.ok) throw new Error('road-audio-start-failed');
         }
         this.checkpoint(resume?.checkpointId || 'road-start');
-        window.inputManager?.resetActionEdges?.();
+        this.armResultControls();
+        this.resumeEnding();
         return { ok: true };
       } catch (error) {
         if(entryGeneration!==this.entryGeneration)return {ok:false,reason:'handoff-cancelled'};
@@ -1710,6 +1718,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       if (!this.validate(saved)) return false;
       this.returnTo = clone(saved.levelState.returnTo);
       this.state = stateFromCheckpoint(saved);
+      this.chapter = B.CacheChapter?.normalize(saved.levelState.chapter) || null;
       this.status = this.state.status; this.active = true; this.exiting = false;
       if (this.status === 'clear') {
         window.audioSystem?.stopRuntimeAudio?.({ stopMusic: true });
@@ -1719,13 +1728,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       this.checkAudioAssets();
       window.gameState.victory = false; window.gameState.gameOver = false;
       window.gameState.running = true;
-      window.inputManager?.resetActionEdges?.();
+      this.armResultControls();
+      this.resumeEnding();
       return true;
     },
-    checkpoint(id) {
+    makeCheckpoint(id) {
       if (!this.active || !this.returnTo || !Object.hasOwn(CHECKPOINTS, id)) return false;
       const s = this.state;
-      const saved = B.Campaign.archive().checkpoint({ levelId: ID, checkpointId: id,
+      return { levelId: ID, checkpointId: id,
         levelState: { proofVersion: 4, returnTo: clone(this.returnTo), proof: {
           progress: id === 'road-start' ? 0 : id === 'road-cache' ? 850 :
             id === 'road-fork' ? 1700 : s.progress, lane: s.lane, lanePos: s.lanePos,
@@ -1734,19 +1744,44 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           speed: s.speed, gear: s.gear, timeMs: Math.ceil(s.timeMs),
           lockEnergy: Math.round(s.lockEnergy), echoEnergy: Math.round(s.echoEnergy),
           boost: s.boost, score: s.score, peakStack: s.peakStack,
-          cleanBars: s.cleanBars, integrity: Math.max(1, s.integrity) } } });
+          cleanBars: s.cleanBars, integrity: Math.max(1, s.integrity) },
+          ...(this.chapter ? { chapter: clone(this.chapter) } : {}) } };
+    },
+    checkpoint(id) {
+      const checkpoint = this.makeCheckpoint(id);
+      if (!checkpoint) return false;
+      const saved = B.Campaign.archive().checkpoint(checkpoint);
       B.Campaign.syncTitleButton();
       return saved;
+    },
+    checkpointChapter() {
+      if (!this.chapter || this.chapter.delivery) return false;
+      const saved = B.Campaign.readResume();
+      if (saved?.levelId !== ID || !this.validate(saved)) return false;
+      saved.levelState.chapter = clone(this.chapter);
+      return B.Campaign.archive().checkpoint(saved);
+    },
+    armResultControls() {
+      this.resultControlsReady = !window.inputManager?.isResultControlHeld?.();
+      window.inputManager?.resetActionEdges?.();
+    },
+    resumeEnding({ fresh = false } = {}) {
+      const ending = this.chapter?.delivery?.ending;
+      if (this.active && this.status === 'clear' && ending && !ending.done && !B.CacheEnding?.active)
+        return B.CacheEnding?.start(fresh ? undefined : ending) || false;
+      return false;
     },
     async exit() {
       if (!this.active || this.exiting) return false;
       this.exiting = true;
       window.audioSystem?.stopRoadEngine?.();
+      this.checkpointChapter();
       const returnTo = clone(this.returnTo);
       const saved = B.Campaign.readResume();
       if (saved?.levelId === ID && this.validate(saved)) returnTo.levelState.cacheRoadCheckpoint = {
         checkpointId: saved.checkpointId, proofVersion: saved.levelState.proofVersion,
-        proof: clone(saved.levelState.proof) };
+        proof: clone(saved.levelState.proof),
+        ...(saved.levelState.chapter ? { chapter: clone(saved.levelState.chapter) } : {}) };
       B.Campaign.archive().checkpoint(returnTo);
       B.Campaign.syncTitleButton();
       const result = await B.RuntimeLifecycle?.restart?.({ source: 'road-exit', resume: returnTo });
@@ -1759,7 +1794,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const hint = document.querySelector?.('.hint');
       if (hint && this.oldHint !== null) hint.textContent = this.oldHint;
       this.oldHint = null;
-      this.active = false; this.status = null; this.state = null;
+      B.CacheEnding?.dispose?.();
+      this.active = false; this.status = null; this.state = null; this.chapter = null;
       this.returnTo = null; this.exiting = false; this.audioDegraded = false;
     },
     retry() {
@@ -1767,6 +1803,17 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const saved = B.Campaign.readResume();
       const fromCheckpoint = this.status === 'clear' ? null : saved?.levelId === ID ?
         migrateProof(saved.levelState.proof, saved.levelState.proofVersion) : null;
+      B.CacheEnding?.dispose?.();
+      if (fromCheckpoint && !this.chapter && fromCheckpoint.progress === 0 &&
+          (fromCheckpoint.musicBar || 0) === 0) {
+        this.chapter = B.CacheChapter?.create({
+          difficultyId: this.returnTo?.levelState?.difficultyId }) || null;
+      } else if (fromCheckpoint) {
+        // Failed attempts contribute to this run even though the road returns
+        // to its marker. Missing old metadata never gains a retroactive award.
+        if (this.chapter && !this.chapter.delivery) this.chapter.retries++;
+      } else this.chapter = B.CacheChapter?.create({
+        difficultyId: this.returnTo?.levelState?.difficultyId }) || null;
       this.state = newState(fromCheckpoint ? { ...fromCheckpoint, integrity: 3,
         timeMs: Math.max(fromCheckpoint.timeMs || 0, 30000), echoEnergy: Math.max(fromCheckpoint.echoEnergy || 0, 100) } : {});
       this.status = 'playing';
@@ -1778,12 +1825,77 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       window.inputManager?.resetActionEdges?.();
       return true;
     },
+    resultButtons() {
+      if (!this.active || this.status === 'playing') return [];
+      const authored = !!this.chapter?.delivery;
+      const prompt = (key,index) => B.GamepadUI?.connected ? B.ControllerSettings?.button(index) || key : key;
+      const buttons = authored ? [
+        { id: 'ending', label: this.chapter.delivery.ending.done ? 'REPLAY ENDING' : 'RESUME ENDING', key: prompt('ENTER',0) },
+        { id: 'race', label: 'REPLAY RACE', key: prompt('R',2) },
+        { id: 'title', label: 'TITLE', key: prompt('C',3) }
+      ] : [
+        { id: 'race', label: this.status === 'clear' ? 'REPLAY RACE' : 'RETRY FROM MARKER', key: prompt('ENTER',0) },
+        { id: 'back', label: 'LEVEL 1 RESULTS', key: prompt('C',3) }
+      ];
+      return buttons.map((button,index)=>({ ...button, x: authored ? 435 + index * 355 : 565 + index * 430,
+        y: 572, w: authored ? 340 : 360, h: 72 }));
+    },
+    resultAction(action) {
+      if (!this.active || this.status === 'playing' || this.resultControlsReady === false ||
+          window.isPaused || window.gameState?.paused || B.CacheEnding?.active) return false;
+      if (action === 'race') return this.retry();
+      if (action === 'back') return this.exit();
+      if (!this.chapter?.delivery) return false;
+      if (action === 'save') return B.CacheChapter?.persist(this) || false;
+      if (action === 'ending') {
+        const ending = this.chapter.delivery.ending;
+        return B.CacheEnding?.start(ending.done ? undefined : ending) || false;
+      }
+      if (action === 'title') {
+        B.CacheChapter?.persist(this);
+        return B.RuntimeLifecycle?.returnToTitle?.({ source: 'cache-delivery-result' }) || false;
+      }
+      return false;
+    },
+    resultGamepad(input) {
+      if (!this.active || this.status === 'playing') return false;
+      const p = input?.pressed || {};
+      if (p.b9) { B.RuntimeLifecycle?.togglePause?.(); return true; }
+      if (this.resultControlsReady === false) {
+        // Input polling owns release-to-arm even when no world update runs
+        // between polls (paused/result transitions or a suppressed RAF).
+        // Consume the release poll itself; only a later fresh edge can act.
+        if (!window.inputManager?.isResultControlHeld?.() &&
+            !['b0','b1','b2','b3'].some(key=>input?.held?.[key])) this.resultControlsReady = true;
+        return true;
+      }
+      if (p.b0) this.resultAction(this.chapter?.delivery ? 'ending' : 'race');
+      else if (p.b2 && this.chapter?.delivery) this.resultAction('race');
+      else if (p.b3) this.resultAction(this.chapter?.delivery ? 'title' : 'back');
+      else if (p.b1 && this.chapter?.delivery) this.resultAction('save');
+      return true;
+    },
+    pointerClick(x,y) {
+      const button = this.resultButtons().find(b=>x>=b.x && x<=b.x+b.w && y>=b.y && y<=b.y+b.h);
+      if (button) { this.resultAction(button.id); return true; }
+      if (this.chapter?.delivery && x>=715 && x<=1205 && y>=682 && y<=723) {
+        this.resultAction('save'); return true;
+      }
+      return false;
+    },
     keyDown(e) {
       if (this.status === 'playing') return false;
       const key = e.key.toLowerCase();
-      if (!['enter', ' ', 'c'].includes(key)) return false;
+      if (key === 'p') {
+        e.preventDefault?.();
+        if (!e.repeat) B.RuntimeLifecycle?.togglePause?.();
+        return true;
+      }
+      const authored = !!this.chapter?.delivery;
+      if (!(authored ? ['enter', ' ', 'r', 'c', 's'] : ['enter', ' ', 'c']).includes(key)) return false;
       e.preventDefault?.();
-      if (!e.repeat) key === 'c' ? this.exit() : this.retry();
+      if (!e.repeat) this.resultAction(key === 'c' ? authored ? 'title' : 'back' :
+        key === 's' ? 'save' : key === 'r' ? 'race' : authored ? 'ending' : 'race');
       return true;
     },
     mixSnapshot() {
@@ -1981,6 +2093,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         audio?.getOutputAudioTime?.(rawNow)??rawNow;
       const judgment = B.MusicTransport?.judgeInput?.('road-pulse', now,
         B.Preferences?.values?.inputOffsetMs || 0);
+      if (this.chapter && !this.chapter.delivery && judgment?.available) this.chapter.attempts++;
       if (!judgment?.available || judgment.timing === 'miss' ||
         judgment.beatIndex % BAR_BEATS !== 0) return false;
       const pulse = PULSES.find(p => s.pulseTargets[p.id]===judgment.beatIndex &&
@@ -1991,6 +2104,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const current=B.MusicTransport.sample(audio?.getOutputAudioTime?.()??clock);
       if(!current.grid)return false;
       s.caughtPulses[pulse.id] = true;
+      if (this.chapter && !this.chapter.delivery) {
+        this.chapter.accurate++;
+        if (judgment.timing === 'perfect') this.chapter.perfect++;
+      }
       const until=(judgment.beatIndex-current.grid.beatFloat)*current.grid.beatDurationSec;
       // This is the original source deadline, not an output-delayed one.
       // A sufficiently early tap can schedule there; otherwise acknowledge
@@ -2011,6 +2128,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       s.pulseCombo = pulse.run === s.lastPulseRun && pulse.order === s.lastPulseOrder + 1 ?
         s.pulseCombo + 1 : 1;
       s.lastPulseRun = pulse.run; s.lastPulseOrder = pulse.order;
+      if (this.chapter && !this.chapter.delivery) {
+        this.chapter.connected++;
+        this.chapter.bestCombo = Math.max(this.chapter.bestCombo, s.pulseCombo);
+      }
       const long = s.pulseCombo >= 2;
       const startBeat = judgment.beatIndex;
       const endBeat = Math.min(400, startBeat + (long ? 2 : 1) * PULSE_BEATS);
@@ -2093,6 +2214,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         s.defenseFlashMs=600;s.defenseKind='BRACE';
         s.messageMs = 900; this.cue('land'); return;
       }
+      if (this.chapter && !this.chapter.delivery) this.chapter.damageTaken++;
+      s.recordHoldMs = 0;
       s.integrity--; s.queuedRecovery = true;s.recoveryBeat=this.nextShiftBeat();
       s.timeMs = Math.max(0, s.timeMs - 1800);
       s.invulnerableMs = 1400;
@@ -2108,7 +2231,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       this.cue('damage',{material:kind,
         intensity:clamp(.55+s.speed/160+(['freight','sweeper','roadblock'].includes(kind)?.12:0),0,1)});
       if (s.integrity <= 0) {
-        this.status = s.status = 'failed';window.audioSystem?.stopRoadEngine?.();
+        this.status = s.status = 'failed';this.checkpointChapter();
+        window.audioSystem?.stopRoadEngine?.();
       }
     },
     readyTurbo() {
@@ -2136,8 +2260,40 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       this.cue(cut ? 'roadCutPass' : 'roadNearMiss',
         {pan:side*.65,intensity:clamp(.5+s.speed/140,0,1)});
     },
+    recordOpportunity() {
+      if (!this.chapter || this.chapter.delivery || !this.state) return null;
+      const bar = this.state.musicBeatFloat / BAR_BEATS;
+      const index = RECORD_ZONES.findIndex(([start,end], i) =>
+        bar >= start - 2 && bar < end &&
+        !this.chapter.records.includes(B.CacheChapter.recordIds[i]));
+      if (index < 0) return null;
+      const [start,end,lane] = RECORD_ZONES[index];
+      return { index, lane, start, end, active: bar >= start,
+        held: this.state.recordIndex === index ? this.state.recordHoldMs / RECORD_DWELL_MS : 0 };
+    },
+    updateRecords(dt) {
+      const s = this.state, opportunity = this.recordOpportunity();
+      if (opportunity && s.recordSigns[opportunity.index] === undefined)
+        s.recordSigns[opportunity.index] = s.progress + 340;
+      if (!opportunity || !opportunity.active ||
+          Math.abs(s.lanePos - opportunity.lane) > .38 || s.stumbleMs > 0) {
+        s.recordHoldMs = 0; s.recordIndex = opportunity?.index ?? -1; return false;
+      }
+      if (s.recordIndex !== opportunity.index) s.recordHoldMs = 0;
+      s.recordIndex = opportunity.index;
+      s.recordHoldMs = Math.min(RECORD_DWELL_MS, s.recordHoldMs + dt);
+      if (s.recordHoldMs < RECORD_DWELL_MS) return false;
+      if (!B.CacheChapter.collect(B.CacheChapter.recordIds[opportunity.index], this)) return false;
+      s.recordFlashMs = 1300; s.recordFlashIndex = opportunity.index;
+      s.recordHoldMs = 0;
+      this.checkpointChapter();
+      this.cue('pickup', { intensity: .6, pan: (opportunity.lane - 1.5) * .14 });
+      return true;
+    },
     update(delta) {
       if (!this.active || this.status !== 'playing' || this.exiting) {
+        if (this.active && this.status !== 'playing' && !window.inputManager?.isResultControlHeld?.())
+          this.resultControlsReady = true;
         window.audioSystem?.stopRoadEngine?.();return;
       }
       const s = this.state, dt = Math.min(100, Math.max(0, delta));
@@ -2161,6 +2317,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       this.updatePulses(music);
       this.updateCaptures(music);
       s.musicBar = Math.max(previousBar, bar);
+      if (this.chapter && !this.chapter.delivery) this.chapter.elapsedMs += dt;
+      s.recordFlashMs = Math.max(0, s.recordFlashMs - dt);
       s.elapsedMs += dt; s.timeMs = Math.max(0, s.timeMs - dt);
       s.ramMs = Math.max(0, s.ramMs - dt);
       s.pulseFlashMs = Math.max(0, s.pulseFlashMs - dt);
@@ -2306,6 +2464,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           s.messageMs = 1800;
         }
       }
+      this.updateRecords(dt);
       if (previousBar < 92 && s.musicBar >= 92 && s.gateAt == null) {
         // Five seconds at the lowest gear, leaving a full Echo overlap and
         // ample music before the ending. No gear has an impossible exit.
@@ -2320,7 +2479,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           // Stop at the missed exit. Moving the car backward while play kept
           // running looked like a broken game loop, not a deliberate retry.
           this.status = s.status = 'failed';
-          window.audioSystem?.stopRoadEngine?.();return;
+          this.checkpointChapter();window.audioSystem?.stopRoadEngine?.();return;
         } else {
           s.timeMs = Math.max(s.timeMs, 21000);
           s.gateOpen = true; this.checkpoint('road-gate');
@@ -2329,14 +2488,23 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       }
       if (s.gateOpen && s.musicBar >= 100) {
         this.status = s.status = 'clear';
-        this.checkpoint('road-clear');
+        if (this.chapter) {
+          B.CacheChapter?.finish(this);
+          window.audioSystem?.stopRuntimeAudio?.({ stopMusic: true });
+          window.audioSystem?.stopRoadEngine?.();
+          this.armResultControls();
+          this.resumeEnding({ fresh: true });
+          return;
+        } else { this.checkpoint('road-clear'); this.armResultControls(); }
       }
       if (s.musicBar >= 100 && this.status === 'playing') {
         this.status = s.status = 'failed'; s.message = 'ORIGINAL TAPE ENDED';
+        this.checkpointChapter();
       }
       if (this.status !== 'playing') window.audioSystem?.stopRuntimeAudio?.({ stopMusic: true });
       if (s.timeMs <= 0 && this.status === 'playing') {
         this.status = s.status = 'failed'; s.message = 'TRANSMISSION WINDOW CLOSED';
+        this.checkpointChapter();
       }
       this.updateEngineSound();
     },
@@ -3254,6 +3422,64 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.fillStyle='#c0e4dd';ctx.font='bold 17px Oxanium, monospace';
         ctx.textAlign='center';ctx.fillText('ECHO +',20,-67);ctx.restore();
       }
+      // Amber cassette stamps mark optional listening zones in the road.
+      // Their fixed world addresses flow beneath traffic; no extra hitbox or
+      // beat deadline is created, and collecting never changes the mix.
+      const record = this.recordOpportunity();
+      const cassette = (x,y,scale,filled=false) => {
+        ctx.save();ctx.translate(x,y);ctx.scale(scale,scale);
+        ctx.fillStyle=filled?'#f1c586':'#183536';ctx.strokeStyle='#e9bf85';ctx.lineWidth=3;
+        ctx.fillRect(-27,-15,54,30);ctx.strokeRect(-27,-15,54,30);
+        ctx.strokeStyle=filled?'#244143':'#e9bf85';
+        for(const xx of [-13,13]) {ctx.beginPath();ctx.arc(xx,0,5,0,Math.PI*2);ctx.stroke();}
+        ctx.beginPath();ctx.moveTo(-8,0);ctx.lineTo(8,0);ctx.stroke();
+        ctx.restore();
+      };
+      if (record) {
+        ctx.save();
+        for(let at=Math.ceil(progress/132)*132;at<progress+390;at+=132) {
+          const t=depth(at-progress);
+          if(t<.2)continue;
+          ctx.globalAlpha=record.active?.54:.3;
+          cassette(laneX(record.lane,t),roadY(t),t*.9);
+        }
+        const signDistance=(s.recordSigns[record.index] ?? progress+340)-progress;
+        const side=record.lane<2?-1:1,t=depth(signDistance);
+        const x=laneEdge(side<0?0:4,t)+side*52*t,y=roadY(t);
+        if(signDistance>=-40 && signDistance<440) {
+        ctx.globalAlpha=.96;ctx.translate(x,y);ctx.scale(t,t);
+        ctx.strokeStyle='#d9b98c';ctx.lineWidth=4;
+        ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(0,-88);ctx.stroke();
+        ctx.fillStyle='#143037';ctx.fillRect(-116,-159,232,83);
+        ctx.strokeRect(-116,-159,232,83);
+        cassette(0,-133,.63);
+        ctx.fillStyle='#ffe2ae';ctx.font='bold 19px Oxanium, monospace';ctx.textAlign='center';
+        ctx.fillText('OPTIONAL RECORD',0,-101);
+        ctx.font='bold 16px Oxanium, monospace';
+        ctx.fillText(record.active?'HOLD MARKED LANE':'AHEAD',0,-80);
+        }
+        ctx.restore();
+        if(record.active) {
+          const t=STRIKE_DEPTH,y=roadY(t)-35;
+          ctx.save();ctx.globalAlpha=.86;
+          for(const edge of [record.lane,record.lane+1]) {
+            const x=laneEdge(edge,t)+(edge===record.lane?16:-16);
+            ctx.fillStyle='#172e35';ctx.fillRect(x-7,y-26,14,52);
+            ctx.strokeStyle='#d9b98c';ctx.lineWidth=2;ctx.strokeRect(x-7,y-26,14,52);
+            ctx.fillStyle='#f7d499';ctx.fillRect(x-6,y+25-50*record.held,12,50*record.held);
+          }
+          ctx.restore();
+        }
+      }
+      if(s.recordFlashMs>0&&s.recordFlashIndex>=0) {
+        const lane=RECORD_ZONES[s.recordFlashIndex][2];
+        const x=laneEdge(lane<2?lane:lane+1,STRIKE_DEPTH)+(lane<2?-25:25),y=strikeY-68;
+        ctx.save();ctx.globalAlpha=Math.min(1,s.recordFlashMs/220);
+        cassette(x,y,.8,true);
+        ctx.strokeStyle='#fbe2b2';ctx.lineWidth=4;
+        ctx.beginPath();ctx.moveTo(x+33,y);ctx.lineTo(x+40,y+7);ctx.lineTo(x+54,y-10);ctx.stroke();
+        ctx.restore();
+      }
       // One permanent timing line sits under the rear tires, including the
       // gaps between actions. Lane-end brackets remain visible around the
       // opaque car. The upcoming lane builds toward the next ONE here.
@@ -3783,18 +4009,42 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           s.gateFailure ? 'ORIGINAL EXIT MISSED' :
           s.timeMs <= 0 ? 'TRANSMISSION WINDOW CLOSED' : 'SIGNAL LOST', 960, 380);
         ctx.font = '25px Oxanium, monospace'; ctx.fillStyle = '#9cf9df';
-        ctx.fillText(this.status === 'clear' ? 'DELIVERED / UNVERIFIED — Mac sees the distribution blockade.' :
+        ctx.fillText(this.status === 'clear' ? this.chapter?.delivery ?
+          'BASS RECOVERED — THE DISTRIBUTION BLOCKADE REMAINS.' :
+          'DELIVERED / UNVERIFIED — Mac sees the distribution blockade.' :
           s.gateFailure === 'wrong-lane' ? 'Cache must take the far-right marked original exit.' :
           s.gateFailure === 'no-echo' ? 'Send Buffer Echo after the exit cue, then steer right.' :
           s.gateFailure === 'no-split' ? 'Give the Echo another lane so the audit follows it.' :
           'Your last road marker remains. Draft, brake and use an Echo to split the audit.', 960, 458);
         ctx.fillStyle = '#e6c8b5'; ctx.font = '22px Oxanium, monospace';
-        ctx.fillText(this.status === 'clear' ? 'Proof clear only. Bass awaits the authored Level 2.' :
+        ctx.fillText(this.status === 'clear' ? this.chapter?.delivery ?
+          'Cache kept the original. Mac takes the route from here.' :
+          'Legacy delivery. Replay the full run to recover Bass.' :
           s.gateFailure ? 'Retry starts at the Mirror Viaduct marker with a full Echo.' :
           '↑ ↓ queue gears for the next bar. Collisions cost time and a recovery bar.', 960, 506);
-        ctx.fillText(s.gateFailure ? 'ENTER / A: RETRY FROM MARKER     C / Y: RETURN TO LEVEL 1' :
-          'ENTER / A: RETRY     C / Y: RETURN TO LEVEL 1', 960, 625);
-        ctx.fillText('P / MENU: SETTINGS AND EXIT PREVIEW', 960, 672);
+        if (this.chapter?.delivery) {
+          const result=this.chapter.delivery.result;
+          const seconds=Math.floor(result.elapsedMs/1000);
+          const time=`${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`;
+          ctx.fillStyle='#bdd7d0';ctx.font='18px Oxanium, monospace';
+          ctx.fillText(`SCORE ${result.score}   ·   RECORDS ${result.discoveries}/4   ·   ${time}   ·   DAMAGE ${result.damageTaken}   ·   RETRIES ${result.retries}`,960,541,1040);
+        }
+        for (const button of this.resultButtons()) {
+          ctx.fillStyle='#12323e';ctx.fillRect(button.x,button.y,button.w,button.h);
+          ctx.strokeStyle='#83bdb8';ctx.lineWidth=2;ctx.strokeRect(button.x,button.y,button.w,button.h);
+          ctx.fillStyle='#f5e8cd';ctx.font='bold 20px Oxanium, monospace';
+          ctx.fillText(button.label,button.x+button.w/2,button.y+30,button.w-20);
+          ctx.fillStyle='#b9d8d7';ctx.font='15px Oxanium, monospace';
+          ctx.fillText(button.key,button.x+button.w/2,button.y+55,button.w-20);
+        }
+        ctx.fillStyle='#c7d8d6';ctx.font='17px Oxanium, monospace';
+        const resultPrompt = (key,index) => B.GamepadUI?.connected ? B.ControllerSettings?.button(index) || key : key;
+        ctx.fillText(`${resultPrompt('P',9)}: SETTINGS + RECORD ARCHIVE`,960,674);
+        if (this.chapter?.delivery) {
+          const saved=B.CacheChapter?.saveStatus(this)==='saved';
+          ctx.fillStyle=saved?'#a4d0bd':'#ffd398';
+          ctx.fillText(saved?'DELIVERY SAVED':`SAVE UNAVAILABLE  ·  ${resultPrompt('S',1)} / CLICK TO RETRY SAVE`,960,711,920);
+        }
       }
       ctx.restore();
     }
