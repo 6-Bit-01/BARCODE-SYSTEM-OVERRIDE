@@ -1,5 +1,20 @@
 # Repository Guidance
 
+## September 30, 2026 — comic bubbles and scene effects
+
+The owner approved chat bubbles and cutscene effects after merged #158.
+Apply authored speech/comms placement and bounded scene animation to the
+existing eight Cache bridge paintings and four delivery paintings. Preserve
+all dialogue, source art, cue timing, input ownership, audio, page/cue saves,
+Drive/Finish handoffs and rewards. Opening, tutorial, road mechanics, ring
+depth correction and exact mirror blur remain unchanged. Base/rollback is
+`694f109cd776bf9b05013aabebc3e1347855dd45`; branch
+`agent/cache-comic-dialogue`. Read `docs/source-pack/CACHE_COMIC_PRESENTATION.md`.
+Review every scene with native text/protected-art bounds and motion settings;
+run full local regression/syntax and both final-head CI events before merging
+under standing authority. Export the exact merge and refresh the maintained
+source pack. PR/receipt owns final outcomes; Makko/device acceptance is separate.
+
 ## September 30, 2026 — Brace ring depth correction
 
 The owner reports that the gold ring passes through Cache's car. Correct

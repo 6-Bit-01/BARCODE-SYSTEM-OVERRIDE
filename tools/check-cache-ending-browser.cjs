@@ -14,6 +14,7 @@ const chromePath=process.env.CHROME_BIN||['/usr/bin/google-chrome','/usr/bin/chr
 assert(chromePath,'Set CHROME_BIN to an installed Chrome/Chromium executable.');
 fs.mkdirSync(output,{recursive:true});
 const scripts=['src/engine/audio.js','src/core/action-input.js','src/core/gamepad-ui.js',
+  'src/engine/cache-scene-layouts.js','src/engine/cache-scene-effects.js','src/engine/comic-dialogue.js',
   'src/engine/cache-ending.js','src/core/input.js','src/core/loop.js'];
 const fixture=`<!doctype html><style>
 @font-face{font-family:Oxanium;src:url('/assets/studies/visual-overhaul/references/fonts/Oxanium.ttf') format('truetype');font-weight:200 800}
@@ -121,15 +122,46 @@ async function main(){
   const tap=async name=>{await key(name);await key(name,false);await evaluate('browserProof.step(40)');};
   const state=()=>evaluate(`({active:BARCODE.CacheEnding.active,page:BARCODE.CacheEnding.page,cue:BARCODE.CacheEnding.cue,
     skip:BARCODE.CacheEnding.skipMs,done:BARCODE.CacheEnding.done,resultArms:browserProof.resultArms,voices:audioSystem.combatVoices?.size||0})`);
+  const sceneClock=()=>evaluate('BARCODE.CacheEnding.sceneElapsedMs');
   const render=async page=>{
     const frame=await evaluate(`(()=>{browserProof.step(240);const b=BARCODE.CacheEnding,ctx=renderer.ctx;
       const pixels=ctx.getImageData(176,104,1568,712).data;let bright=0;
       for(let i=0;i<pixels.length;i+=64)if(pixels[i]+pixels[i+1]+pixels[i+2]>120)bright++;
+      const preferences=BARCODE.Preferences.values,reduced=preferences.reducedMotion,flashes=preferences.flashes;
+      const still=mode=>{
+        preferences.reducedMotion=mode==='reduced';preferences.flashes=mode!=='flashesOff';browserProof.step(20);
+        const first=ctx.getImageData(0,0,1920,1080).data;browserProof.step(400);
+        const second=ctx.getImageData(0,0,1920,1080).data;return first.every((value,i)=>value===second[i]);};
+      let reducedMotionStatic,flashesOffStatic;
+      try{reducedMotionStatic=still('reduced');flashesOffStatic=still('flashesOff');}
+      finally{preferences.reducedMotion=reduced;preferences.flashes=flashes;browserProof.step(20);}
+      const imageRect=b.imageRect(),bubbles=b.dialogueLayouts(ctx).map(l=>{
+        ctx.save();ctx.font='bold '+l.fontSize+'px Oxanium, sans-serif';
+        const lineWidths=l.lines.map(line=>ctx.measureText(line).width);ctx.restore();return {...l,lineWidths};});
       return {page:b.page,cue:b.cue,title:b.panels[b.page].title,status:b.images[b.page].status,
-        source:b.images[b.page].element.src,contexts:browserProof.contexts,bright,
+        source:b.images[b.page].element.src,contexts:browserProof.contexts,bright,imageRect,bubbles,
+        reducedMotionStatic,flashesOffStatic,
         webp:renderer.canvas.toDataURL('image/webp',.92).split(',')[1]};})()`);
     assert.equal(frame.page,page);assert.equal(frame.cue,2);assert.equal(frame.status,'ready');
     assert(frame.bright>3000,'illustrated page must contain substantial visible art');assert.equal(frame.contexts,1);
+    assert.equal(frame.bubbles.length,2,'both authored dialogue lines have measured balloons');
+    for(const l of frame.bubbles){
+      assert([l.x,l.y,l.w,l.h,l.fontSize,l.lineHeight].every(Number.isFinite));
+      assert(l.w>0&&l.h>0&&l.fontSize>=28&&l.lineHeight>=l.fontSize);
+      assert(l.x>=0&&l.x+l.w+8<=1920&&l.y>=104&&l.y+l.h+8<=986,
+        'balloon body and shadow stay between the title and status/control bands');
+      for(const box of [l.textRect,l.labelRect]){
+        assert([box.x,box.y,box.w,box.h].every(Number.isFinite)&&box.w>0&&box.h>0);
+        assert(box.x>=l.x&&box.y>=l.y&&box.x+box.w<=l.x+l.w&&box.y+box.h<=l.y+l.h,
+          'lettering remains inside its balloon');
+      }
+      assert(l.lines.length>0&&l.lineWidths.every(width=>width<=l.textRect.w+.01),'actual Oxanium lines fit');
+      if(l.radio)assert.equal(l.tail,null,'radio speech never points to a painted person');
+      else {assert.equal(l.tail.length,2);const [x,y]=l.tail,r=frame.imageRect;
+        assert(Number.isFinite(x)&&Number.isFinite(y)&&x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h,
+          'speech points into the actual painted image');}
+    }
+    assert(frame.reducedMotionStatic&&frame.flashesOffStatic,'both accessibility modes draw a static, complete page');
     fs.writeFileSync(path.join(output,`Ending-${String(page+1).padStart(2,'0')}.webp`),Buffer.from(frame.webp,'base64'));
     delete frame.webp;frames.push(frame);
   };
@@ -161,7 +193,9 @@ async function main(){
   await key('Enter');await key('Enter',true,true);await key('Enter');
   assert.equal((await state()).cue,1,'repeat and a held non-repeat cannot advance twice');
   await key('Enter',false);await tap('Enter');await render(0);
+  const beforeTranscript=await sceneClock();
   await tap('t');assert(await evaluate('BARCODE.CacheEnding.transcriptOpen&&audioSystem.combatVoices.size===0'));
+  await evaluate('browserProof.step(600)');assert.equal(await sceneClock(),beforeTranscript,'native transcript input freezes scene effects');
   await pointer(500,1035);assert(!(await evaluate('BARCODE.CacheEnding.transcriptOpen')),'pointer closes transcript');
   for(let page=1;page<4;page++){await tap('Enter');await tap('Enter');await tap('Enter');await render(page);}
   await evaluate('browserProof.step(12000)');
@@ -187,14 +221,16 @@ async function main(){
   assert.equal(await evaluate('audioSystem.lastSFXCue?.kind'),'cacheBridge:tape');
   await padTap(9);await evaluate('browserProof.pausePromise');assert(await evaluate('window.isPaused'));
   assert.equal(await evaluate('audioSystem.combatVoices.size'),0);
-  const beforePause=await evaluate('JSON.stringify(BARCODE.CacheEnding.serialize())');
+  const beforePause=await evaluate('JSON.stringify(BARCODE.CacheEnding.serialize())'),pausedScene=await sceneClock();
   await evaluate('browserProof.step(6000)');assert.equal(await evaluate('JSON.stringify(BARCODE.CacheEnding.serialize())'),beforePause);
+  assert.equal(await sceneClock(),pausedScene,'native pause input freezes scene effects');
   await padTap(9);await evaluate('browserProof.pausePromise');assert(!(await evaluate('window.isPaused')));
   assert.equal(await evaluate('audioSystem.combatVoices.size'),0);await evaluate('browserProof.step(40)');
   await padTap(8);assert(!(await state()).active,'View returns to results');
   // A partial keyboard skip cancels; a full controller hold reaches Ready only.
   await evaluate('browserProof.boot({version:1,page:0,cue:0,done:false})');
-  await key('s');await evaluate('browserProof.step(2300)');await key('s',false);
+  const beforeSkip=await sceneClock();await key('s');await evaluate('browserProof.step(2300)');
+  assert.equal(await sceneClock(),beforeSkip,'native skip hold freezes scene effects');await key('s',false);
   assert.equal((await state()).page,0);assert.equal((await state()).skip,0);
   await pad(1,true);await evaluate('browserProof.step(5000)');
   assert.equal((await state()).page,3);assert.equal((await state()).cue,2);assert.equal((await state()).done,false);
@@ -220,7 +256,7 @@ async function main(){
   assert.deepEqual(requests.localArt,[],'no page used local artwork fallback');assert.deepEqual(errors,[]);
   receipt={passed:true,hosted,frames,requests,firstSession,contextCallsPerPage:1,cues:12,
     keyboardHeldRelease:true,controllerHeldRelease:true,pointerFinalAction:true,transcriptAudioCleanup:true,
-    pauseCancelsFiniteCues:true,resumeDoesNotReplayCue:true,backCleanup:true,partialSkipCancelled:true,
+    pauseCancelsFiniteCues:true,resumeDoesNotReplayCue:true,sceneClockFreezesOnTranscriptPauseAndSkip:true,backCleanup:true,partialSkipCancelled:true,
     skipReadyOnly:true,finalManualFinishOnly:true,reloadPreservesReadingPositionSilently:true,
     noWorldOrRoadUpdatesWhileReading:true,noSongOrEngine:true,noMacOrDevelopmentLaunch:true,
     limits:'Real Chromium hosted art decoding, shared Canvas, native keyboard/pointer input, production controller navigation, ending/RAF/audio owners. Campaign/road receipt persistence and pause-menu commands are explicit host boundaries; their full integration is covered separately. Not Makko/device acceptance.'};

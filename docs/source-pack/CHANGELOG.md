@@ -1,5 +1,17 @@
 # Recovery checkpoint — September 14
 
+## September 30, 2026 — comic dialogue and scene effects
+
+- Place speaker-linked cream balloons and crew-colored dark comms cards
+  individually across all eight bridge and four delivery paintings.
+- Add measured lettering, reading-order marks and protected face/prop regions.
+- Animate local rain, practical light, reflections, CRT traces and tape/ignition
+  accents with a restrained uncropped camera settle and static motion settings.
+- Keep scene time transient under the existing update owner; preserve dialogue,
+  cue/audio/save/input behavior and the deliberate Drive/Finish handoffs.
+- Refresh native all-scene previews and focused browser/clock/layout evidence.
+  Final outcomes belong to the PR/receipt; no Makko/device acceptance claimed.
+
 ## September 30, 2026 — Brace ring depth correction
 
 - Lower the gold halo to the road around Cache's tires; scale it with the

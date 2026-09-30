@@ -1,5 +1,18 @@
 # Decision Register
 
+## September 30, 2026 — approved chat bubbles and cutscene effects
+
+The owner's “Alright now lets do that chat bubbles and cut scene effects”
+authorizes the presentation pass for Cache's eight bridge and four ending
+scenes. Use the established comic identities and unchanged scripts: visible
+speakers get cream balloons and authored pointers; `/ COMMS` lines remain
+radio cards, including when the caller appears in the illustration. Cache's
+unseen reply from the departing car is also a radio card. Add restrained
+weather/light/CRT motion aligned to actual painted objects, with complete
+static equivalents for Reduced Motion and flashes off. Do not crop source
+art or add voiced dialogue, music, gameplay rules, story reveals or Mac
+stages. Existing reading, save and explicit handoff contracts remain binding.
+
 ## September 30, 2026 — ring occlusion correction
 
 The owner's “ring around the car is going through it” report authorizes a

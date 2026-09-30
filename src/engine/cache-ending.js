@@ -1,7 +1,7 @@
 // Cache's authored delivery ending shares the gameplay Canvas, RAF and input.
 // The earned chapter facts belong to CacheChapter; reading cannot award them.
 window.FILE_MANIFEST = window.FILE_MANIFEST || [];
-window.FILE_MANIFEST.push({name:'src/engine/cache-ending.js',exports:['BARCODE.CacheEnding'],dependencies:['BARCODE.CacheChapter']});
+window.FILE_MANIFEST.push({name:'src/engine/cache-ending.js',exports:['BARCODE.CacheEnding'],dependencies:['BARCODE.CacheSceneLayouts','BARCODE.CacheSceneEffects','BARCODE.ComicDialogue','BARCODE.CacheChapter']});
 (function(B) {
   'use strict';
   const root='https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/14593372f7c58d8a3c5869bbda6989b98889f1ac/';
@@ -44,7 +44,7 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-ending.js',exports:['BARCODE.C
     if(line)lines.push(line);return lines;
   }
   const ending=B.CacheEnding={
-    panels,cues,frame,bounds,screenLabels,active:false,page:0,cue:0,done:false,cueElapsedMs:0,skipMs:0,
+    panels,cues,frame,bounds,screenLabels,active:false,page:0,cue:0,done:false,cueElapsedMs:0,sceneElapsedMs:0,skipMs:0,
     generation:0,images:[],heldKeys:new Set(),skipHolds:new Set(),padBlocked:new Set(),
     padNeedsRelease:true,transcriptOpen:false,transcriptElement:null,
     normalize(saved) {
@@ -66,7 +66,7 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-ending.js',exports:['BARCODE.C
       const road=B.CacheRoadProof;
       if(!road?.active||road.status!=='clear'||!road.chapter?.delivery)return false;
       const state=this.normalize(saved);this.generation++;this.active=true;
-      this.page=state.page;this.cue=state.cue;this.done=state.done;this.cueElapsedMs=0;this.transcriptOpen=false;
+      this.page=state.page;this.cue=state.cue;this.done=state.done;this.cueElapsedMs=0;this.sceneElapsedMs=0;this.transcriptOpen=false;
       this.releaseInputs();
       this.heldKeys=new Set(window.inputManager?.resultKeysHeld||[]);
       for(const [key,held] of Object.entries(window.inputManager?.keys||{}))if(held)this.heldKeys.add(key);
@@ -112,7 +112,8 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-ending.js',exports:['BARCODE.C
     playCue(){const name=sounds[`${this.page}:${this.cue}`];if(name)window.audioSystem?.playCacheBridgeCue?.(name);},
     setCue(page,cue) {
       window.audioSystem?.stopCacheBridgeAudio?.();
-      this.page=finite(page,3);this.cue=finite(cue,2);this.cueElapsedMs=0;
+      const nextPage=finite(page,3);if(nextPage!==this.page)this.sceneElapsedMs=0;
+      this.page=nextPage;this.cue=finite(cue,2);this.cueElapsedMs=0;
       this.syncTranscript();this.save();this.playCue();
     },
     update(delta) {
@@ -125,7 +126,7 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-ending.js',exports:['BARCODE.C
       if(this.skipHolds.size) {
         this.skipMs+=dt;if(this.skipMs>=5000)this.skipToReady();return;
       }
-      this.cueElapsedMs+=dt;
+      this.cueElapsedMs+=dt;this.sceneElapsedMs+=dt;
       if(this.cue<2&&this.cueElapsedMs>=cues[this.cue].holdMs)this.setCue(this.page,this.cue+1);
     },
     advance() {
@@ -206,7 +207,23 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-ending.js',exports:['BARCODE.C
       for(const item of this.images)if(item.element){item.element.onload=null;item.element.onerror=null;
         if(item.status==='loading')item.element.src='';}
       this.images=[];this.transcriptElement?.remove?.();this.transcriptElement=null;
-      if(reset){this.page=0;this.cue=0;this.done=false;this.cueElapsedMs=0;}
+      if(reset){this.page=0;this.cue=0;this.done=false;this.cueElapsedMs=0;this.sceneElapsedMs=0;}
+    },
+    imageRect() {
+      const image=this.images[this.page],source=image?.status==='ready'?image.element:null;
+      const sw=source?.naturalWidth||source?.width,sh=source?.naturalHeight||source?.height;
+      if(!sw||!sh)return null;
+      const scale=Math.min(frame.w/sw,frame.h/sh),w=sw*scale,h=sh*scale;
+      const rect={x:frame.x+(frame.w-w)/2,y:frame.y+(frame.h-h)/2,w,h};
+      const reduced=B.Preferences?.values?.reducedMotion||B.Preferences?.values?.flashes===false;
+      return B.CacheSceneEffects.pose({chapter:'ending',page:this.page,rect,
+        sceneElapsedMs:this.sceneElapsedMs,reduced});
+    },
+    dialogueLayouts(ctx) {
+      const rect=this.imageRect();
+      const placements=rect?B.CacheSceneLayouts.ending[this.page].placements:
+        [{x:64,y:808,w:856,radio:true},{x:996,y:808,w:856,radio:true}];
+      return B.ComicDialogue.layouts(ctx,panels[this.page].lines,placements,rect);
     },
     draw(ctx) {
       if(!ctx||!this.active)return;
@@ -217,14 +234,14 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-ending.js',exports:['BARCODE.C
       text(ctx,'BARCODE / DELIVERY CHANNEL',64,27,20,mint,true);
       text(ctx,panel.title,64,57,32,paper,true);text(ctx,`${String(this.page+1).padStart(2,'0')} / 04`,1737,34,28,gold,true);
       const image=this.images[this.page],source=image?.status==='ready'?image.element:null;
-      const sw=source?.naturalWidth||source?.width,sh=source?.naturalHeight||source?.height;
+      const rect=this.imageRect();
       ctx.fillStyle='#122534';ctx.fillRect(frame.x,frame.y,frame.w,frame.h);
-      if(sw&&sh) {
-        const scale=Math.min(frame.w/sw,frame.h/sh),w=sw*scale,h=sh*scale;
-        const imageX=frame.x+(frame.w-w)/2,imageY=frame.y+(frame.h-h)/2;
-        ctx.drawImage(source,imageX,imageY,w,h);
+      if(rect) {
+        ctx.drawImage(source,rect.x,rect.y,rect.w,rect.h);
+        if(!this.transcriptOpen)B.CacheSceneEffects.draw(ctx,{chapter:'ending',page:this.page,rect,
+          sceneElapsedMs:this.sceneElapsedMs,cue:this.cue,cueElapsedMs:this.cueElapsedMs,reduced});
         if(this.page===1&&!this.transcriptOpen)for(const label of screenLabels) {
-          ctx.save();ctx.translate(imageX,imageY);ctx.scale(w/1860,h/845);
+          ctx.save();ctx.translate(rect.x,rect.y);ctx.scale(rect.w/1860,rect.h/845);
           ctx.translate(label.x,label.y);ctx.transform(1,label.tilt,-.02,1,0,0);
           ctx.fillStyle=label.color;ctx.font=`bold ${label.font}px Oxanium, sans-serif`;
           ctx.textAlign='center';ctx.textBaseline='middle';ctx.shadowColor=label.color;ctx.shadowBlur=3;
@@ -235,17 +252,8 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-ending.js',exports:['BARCODE.C
         ctx.font='26px Oxanium, sans-serif';wrap(ctx,panel.visual,1390).forEach((line,i)=>text(ctx,line,250,404+i*36,26));
       }
       ctx.strokeStyle=paper;ctx.lineWidth=4;ctx.strokeRect(frame.x,frame.y,frame.w,frame.h);
-      for(let i=0;i<2;i++) {
-        const x=64+i*932,y=844,w=856;
-        ctx.fillStyle=i===1?'#182b32':'#17232d';ctx.fillRect(x,y,w,143);
-        ctx.fillStyle=i===1?gold:mint;ctx.fillRect(x,y,5,143);
-        if(this.cue>=i+1) {
-          ctx.save();if(!reduced&&this.cue===i+1)ctx.globalAlpha=.4+.6*Math.min(1,this.cueElapsedMs/180);
-          text(ctx,panel.lines[i][0],x+25,y+16,20,i===1?gold:mint,true);
-          ctx.font='bold 29px Oxanium, sans-serif';
-          wrap(ctx,panel.lines[i][1],w-52).forEach((line,j)=>text(ctx,line,x+25,y+50+j*35,29,paper,true));ctx.restore();
-        } else text(ctx,i===0?'DELIVERY CHANNEL / CONNECTED':'...',x+25,y+46,22,'#6d8c91');
-      }
+      if(!this.transcriptOpen)B.ComicDialogue.draw(ctx,this.dialogueLayouts(ctx),
+        {cue:this.cue,cueElapsedMs:this.cueElapsedMs,reduced});
       if(this.transcriptOpen) {
         ctx.fillStyle='#09131cf5';ctx.fillRect(160,154,1600,590);
         ctx.strokeStyle=mint;ctx.lineWidth=2;ctx.strokeRect(160,154,1600,590);
@@ -269,10 +277,10 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-ending.js',exports:['BARCODE.C
         text(ctx,`SKIP ${(5-this.skipMs/1000).toFixed(1)}s`,696,1034,17,gold,true);
       } else text(ctx,`Hold ${pad?button(1):'S'} 5s: Skip`,680,1027,18,'#b8c8c5');
       const archive=B.Campaign?.archive?.(),earned=archive?.record?.progress?.items?.includes('stem.bass');
-      if(earned)text(ctx,'BASS RECOVERED',178,817,16,gold,true);
+      if(earned)text(ctx,'BASS RECOVERED',178,986,16,gold,true);
       const saved=B.CacheChapter?.saveStatus?.(B.CacheRoadProof);
-      text(ctx,saved==='saved'?'PROGRESS SAVED':'SAVE UNAVAILABLE / KEEP THIS SESSION OPEN',earned?385:178,817,16,saved==='saved'?mint:'#ffb281');
-      if(final)text(ctx,"Mac's chapter is next.",1326,817,18,paper,true);
+      text(ctx,saved==='saved'?'PROGRESS SAVED':'SAVE UNAVAILABLE / KEEP THIS SESSION OPEN',earned?385:178,986,16,saved==='saved'?mint:'#ffb281');
+      if(final)text(ctx,"Mac's chapter is next.",1326,986,18,paper,true);
       ctx.restore();
     }
   };

@@ -14,6 +14,7 @@ const chromePath=process.env.CHROME_BIN||['/usr/bin/google-chrome','/usr/bin/chr
 assert(chromePath,'Set CHROME_BIN to an installed Chrome/Chromium executable.');
 fs.mkdirSync(output,{recursive:true});
 const scripts=['src/engine/audio.js','src/core/action-input.js','src/core/gamepad-ui.js',
+  'src/engine/cache-scene-layouts.js','src/engine/cache-scene-effects.js','src/engine/comic-dialogue.js',
   'src/engine/cache-bridge.js','src/core/input.js','src/core/loop.js'];
 const fixture=`<!doctype html><style>
 @font-face{font-family:Oxanium;src:url('/assets/studies/visual-overhaul/references/fonts/Oxanium.ttf') format('truetype');font-weight:200 800}
@@ -34,8 +35,12 @@ window.BARCODE={Preferences:{values:{reducedMotion:false}},Campaign:{intermissio
   archive:()=>({status:'ready'}),saveBridgeCheckpoint:s=>{browserProof.saves.push({...s});return true;},
   closeIntermission:()=>{browserProof.back++;BARCODE.CacheBridge.dispose();}},
   CacheRoadProof:{enter:async()=>{browserProof.roadEntries++;window.isRunning=false;return {ok:true};}},
-  RuntimeLifecycle:{togglePause:async()=>{window.isPaused=!window.isPaused;gameState.paused=window.isPaused;
-    return window.isPaused?audioSystem.pauseRuntimeAudio():audioSystem.resumeRuntimeAudio();}}};
+  RuntimeLifecycle:{togglePause(){const promise=(async()=>{window.isPaused=!window.isPaused;gameState.paused=window.isPaused;
+      const result=await(window.isPaused?audioSystem.pauseRuntimeAudio():audioSystem.resumeRuntimeAudio());
+      window.lastTime=browserProof.clock;return result;})();browserProof.pausePromise=promise;return promise;}},
+  PauseMenu:{heldKeys:new Set(),drag:null,sync(){},render(){},keyDown(event){
+    if(['p','escape'].includes(event.key.toLowerCase()))BARCODE.RuntimeLifecycle.togglePause();return true;},
+    keyUp(){},pointer(){return false;}}};
 </script>${scripts.map(file=>`<script src="/${file}"></script>`).join('')}
 <script>
 window.audioSystem=new AudioSystem();audioSystem.context=new AudioContext();
@@ -109,15 +114,46 @@ async function main(){
   const tap=async name=>{await key(name);await key(name,false);await evaluate('browserProof.step(40)');};
   const state=()=>evaluate(`({active:BARCODE.CacheBridge.active,page:BARCODE.CacheBridge.page,cue:BARCODE.CacheBridge.cue,
     skip:BARCODE.CacheBridge.skipMs,roadEntries:browserProof.roadEntries,voices:audioSystem.combatVoices?.size||0})`);
+  const sceneClock=()=>evaluate('BARCODE.CacheBridge.sceneElapsedMs');
   const render=async page=>{
     const frame=await evaluate(`(()=>{browserProof.step(240);const b=BARCODE.CacheBridge,ctx=renderer.ctx;
       const pixels=ctx.getImageData(176,104,1568,712).data;let bright=0;
       for(let i=0;i<pixels.length;i+=64)if(pixels[i]+pixels[i+1]+pixels[i+2]>120)bright++;
+      const preferences=BARCODE.Preferences.values,reduced=preferences.reducedMotion,flashes=preferences.flashes;
+      const still=mode=>{
+        preferences.reducedMotion=mode==='reduced';preferences.flashes=mode!=='flashesOff';browserProof.step(20);
+        const first=ctx.getImageData(0,0,1920,1080).data;browserProof.step(400);
+        const second=ctx.getImageData(0,0,1920,1080).data;return first.every((value,i)=>value===second[i]);};
+      let reducedMotionStatic,flashesOffStatic;
+      try{reducedMotionStatic=still('reduced');flashesOffStatic=still('flashesOff');}
+      finally{preferences.reducedMotion=reduced;preferences.flashes=flashes;browserProof.step(20);}
+      const imageRect=b.imageRect(),bubbles=b.dialogueLayouts(ctx).map(l=>{
+        ctx.save();ctx.font='bold '+l.fontSize+'px Oxanium, sans-serif';
+        const lineWidths=l.lines.map(line=>ctx.measureText(line).width);ctx.restore();return {...l,lineWidths};});
       return {page:b.page,cue:b.cue,title:b.panels[b.page].title,status:b.images[b.page].status,
-        source:b.images[b.page].element.src,contexts:browserProof.contexts,bright,
+        source:b.images[b.page].element.src,contexts:browserProof.contexts,bright,imageRect,bubbles,
+        reducedMotionStatic,flashesOffStatic,
         webp:renderer.canvas.toDataURL('image/webp',.92).split(',')[1]};})()`);
     assert.equal(frame.page,page);assert.equal(frame.cue,2);assert.equal(frame.status,'ready');
     assert(frame.bright>3000,'illustrated page must contain substantial visible art');assert.equal(frame.contexts,1);
+    assert.equal(frame.bubbles.length,2,'both authored dialogue lines have measured balloons');
+    for(const l of frame.bubbles){
+      assert([l.x,l.y,l.w,l.h,l.fontSize,l.lineHeight].every(Number.isFinite));
+      assert(l.w>0&&l.h>0&&l.fontSize>=28&&l.lineHeight>=l.fontSize);
+      assert(l.x>=0&&l.x+l.w+8<=1920&&l.y>=104&&l.y+l.h+8<=986,
+        'balloon body and shadow stay between the title and status/control bands');
+      for(const box of [l.textRect,l.labelRect]){
+        assert([box.x,box.y,box.w,box.h].every(Number.isFinite)&&box.w>0&&box.h>0);
+        assert(box.x>=l.x&&box.y>=l.y&&box.x+box.w<=l.x+l.w&&box.y+box.h<=l.y+l.h,
+          'lettering remains inside its balloon');
+      }
+      assert(l.lines.length>0&&l.lineWidths.every(width=>width<=l.textRect.w+.01),'actual Oxanium lines fit');
+      if(l.radio)assert.equal(l.tail,null,'radio speech never points to a painted person');
+      else {assert.equal(l.tail.length,2);const [x,y]=l.tail,r=frame.imageRect;
+        assert(Number.isFinite(x)&&Number.isFinite(y)&&x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h,
+          'speech points into the actual painted image');}
+    }
+    assert(frame.reducedMotionStatic&&frame.flashesOffStatic,'both accessibility modes draw a static, complete page');
     fs.writeFileSync(path.join(output,`Bridge-${String(page+1).padStart(2,'0')}.webp`),Buffer.from(frame.webp,'base64'));
     delete frame.webp;frames.push(frame);
   };
@@ -145,8 +181,15 @@ async function main(){
   assert.equal((await state()).cue,1,'repeat and a held non-repeat cannot advance twice');
   await key('Enter',false);await tap('Enter');await render(0);
   assert.equal((await state()).roadEntries,0);
+  const beforeTranscript=await sceneClock();
   await tap('t');assert(await evaluate('BARCODE.CacheBridge.transcriptOpen&&audioSystem.combatVoices.size===0'));
-  await tap('t');
+  await evaluate('browserProof.step(600)');assert.equal(await sceneClock(),beforeTranscript,'native transcript input freezes scene effects');
+  await tap('t');assert(await sceneClock()>beforeTranscript);
+  const beforePause=await sceneClock();await tap('p');await evaluate('browserProof.pausePromise');
+  assert(await evaluate('window.isPaused'));await evaluate('browserProof.step(600)');
+  assert.equal(await sceneClock(),beforePause,'native pause input freezes scene effects');
+  await tap('p');await evaluate('browserProof.pausePromise');assert(!(await evaluate('window.isPaused')));
+  await evaluate('browserProof.step(40)');assert(await sceneClock()>beforePause);
   for(let page=1;page<8;page++){await tap('Enter');await tap('Enter');await tap('Enter');await render(page);}
   await evaluate('browserProof.step(12000)');
   assert.deepEqual(await state(),{active:true,page:7,cue:2,skip:0,roadEntries:0,voices:0},
@@ -155,7 +198,9 @@ async function main(){
   // Back returns through the production bridge input adapter, without Drive.
   await tap('Escape');assert(!(await state()).active);assert.equal((await state()).roadEntries,0);
   assert.equal(await evaluate('browserProof.back'),1);
-  await evaluate('browserProof.boot()');await key('s');await evaluate('browserProof.step(2300)');await key('s',false);
+  await evaluate('browserProof.boot()');const beforeSkip=await sceneClock();
+  await key('s');await evaluate('browserProof.step(2300)');
+  assert.equal(await sceneClock(),beforeSkip,'native skip hold freezes scene effects');await key('s',false);
   assert.equal((await state()).page,0);assert.equal((await state()).skip,0,'release cancels a partial skip');
   await key('s');await evaluate('browserProof.step(5020)');
   assert.deepEqual(await state(),{active:true,page:7,cue:2,skip:0,roadEntries:0,voices:0},'skip lands on Ready, not gameplay');
@@ -165,10 +210,10 @@ async function main(){
   assert.equal(await evaluate('browserProof.contexts'),1);assert.equal(requests.head,0);
   assert.deepEqual(requests.localArt,[],'no page used local artwork fallback');assert.deepEqual(errors,[]);
   receipt={passed:true,hosted,frames,requests,contextCalls:1,keyboardHeldRelease:true,
-    transcriptAudioCleanup:true,backCleanup:true,partialSkipCancelled:true,skipReadyOnly:true,
+    transcriptAudioCleanup:true,sceneClockFreezesOnTranscriptPauseAndSkip:true,backCleanup:true,partialSkipCancelled:true,skipReadyOnly:true,
     finalManualDriveOnly:true,roadEntries:1,noWorldUpdatesWhileReading:true,noSongOrEngine:true,
     limits:'Real Chromium art decoding, shared Canvas, native keyboard input, production bridge/RAF/audio lifecycle. Campaign persistence and final road entry are counted boundaries; their full integration is covered separately. Not a Makko/device acceptance.'};
-  console.log(`Cache bridge Chromium passed: eight hosted byte-identical paintings, eight rendered pages, one main context, held/released input, back, skip and final Drive.`);
+  console.log(`Cache bridge Chromium passed: eight hosted byte-identical paintings, eight rendered pages, one main context, held/released input, frozen scene effects during transcript/pause/skip, back and final Drive.`);
 }
 main().catch(error=>{receipt={passed:false,error:error.stack,frames,requests,errors};console.error(error);process.exitCode=1;})
   .finally(async()=>{

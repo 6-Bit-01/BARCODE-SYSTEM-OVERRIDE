@@ -22,6 +22,8 @@ function rig(options={}) {
   const document={getElementById:()=>canvas,body:{appendChild(el){calls.dom.push(el);}},createElement:()=>({style:{},
     attrs:{},setAttribute(name,value){this.attrs[name]=value;},remove(){this.removed=true;}})};
   const context={window,document,Image:class{constructor(){calls.images.push(this);} set src(v){this.url=v;}get src(){return this.url;}}};
+  for(const file of ['src/engine/cache-scene-layouts.js','src/engine/cache-scene-effects.js','src/engine/comic-dialogue.js'])
+    vm.runInNewContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),context,{filename:file});
   vm.runInNewContext(source,context,{filename:'src/engine/cache-ending.js'});
   const e=B.CacheEnding;
   const ctx=new Proxy({font:'20px monospace',measureText:value=>({width:String(value).length*12}),
@@ -124,10 +126,31 @@ function checkSavesAndMissingArt() {
   assert.equal(r2.calls.dom.length,1);assert(r2.calls.dom[0].removed);
   return positions;
 }
+
+function checkSceneClock() {
+  const r=rig(),{e,window}=r;e.start();assert.equal(e.sceneElapsedMs,0);
+  r.step(300);assert.equal(e.sceneElapsedMs,300);
+  r.tap('Enter');assert.equal(e.cue,1);assert.equal(e.sceneElapsedMs,300,
+    'a dialogue reveal preserves the scene effect clock');
+  r.step(120);assert.equal(e.sceneElapsedMs,420);
+  r.tap('T');r.step(1200);assert.equal(e.sceneElapsedMs,420,'transcript freezes scene effects');
+  r.tap('Enter');assert(!e.transcriptOpen);assert.equal(e.cue,1);
+  r.tap('P');assert(window.isPaused);r.step(1200);assert.equal(e.sceneElapsedMs,420,'pause freezes scene effects');
+  window.isPaused=false;r.key('s',true);r.step(1200);
+  assert.equal(e.sceneElapsedMs,420,'holding skip freezes scene effects');
+  r.key('s',false);r.step(120);assert.equal(e.sceneElapsedMs,540);
+  r.tap('Enter');assert.equal(e.cue,2);assert.equal(e.sceneElapsedMs,540);
+  r.tap('Enter');assert.equal(e.page,1);assert.equal(e.sceneElapsedMs,0,'page changes reset scene effects');
+  assert.deepEqual(copy(e.serialize()),{version:1,page:1,cue:0,done:false});
+  e.dispose();e.start({version:1,page:2,cue:1,done:false});
+  assert.equal(e.sceneElapsedMs,0,'restore starts a transient clock without changing reading position');
+  assert.deepEqual(copy(e.serialize()),{version:1,page:2,cue:1,done:false});
+}
+
 function main() {
-  const cues=checkGuardAndProgress();checkTimingTranscriptAndControls();checkSkip();
+  const cues=checkGuardAndProgress();checkTimingTranscriptAndControls();checkSkip();checkSceneClock();
   const saved=checkSavesAndMissingArt();
-  console.log(`Cache ending: ${cues} actual cues, ${saved} silent save positions, release-to-arm controls, five-second skip, final-only Finish, pause/transcript, bounded image fallbacks and truthful saved/reward feedback passed.`);
+  console.log(`Cache ending: ${cues} actual cues, ${saved} silent save positions, release-to-arm controls, five-second skip, final-only Finish, pause/transcript, bounded image fallbacks and truthful saved/reward feedback and scene-effect clock ownership passed.`);
 }
 module.exports={endingRig:rig};
 if(require.main===module)main();
