@@ -42,7 +42,7 @@ window.BARCODE={Preferences:{values:{reducedMotion:false}},Campaign:{intermissio
   RuntimeLifecycle:{togglePause(){const promise=(async()=>{window.isPaused=!window.isPaused;gameState.paused=window.isPaused;
       const result=await(window.isPaused?audioSystem.pauseRuntimeAudio():audioSystem.resumeRuntimeAudio());
       window.lastTime=browserProof.clock;return result;})();browserProof.pausePromise=promise;return promise;}},
-  PauseMenu:{sync(){},render(){},keyDown(event){if(['p','escape'].includes(event.key.toLowerCase()))BARCODE.RuntimeLifecycle.togglePause();return true;},
+  PauseMenu:{heldKeys:new Set(),drag:null,sync(){},render(){},keyDown(event){if(['p','escape'].includes(event.key.toLowerCase()))BARCODE.RuntimeLifecycle.togglePause();return true;},
     keyUp(){},pointer(){return false;}}};
 </script>${scripts.map(file=>`<script src="/${file}"></script>`).join('')}
 <script>
@@ -136,7 +136,7 @@ async function main(){
   await send('Page.enable');await send('Runtime.enable');await send('Network.enable');
   await send('Emulation.setDeviceMetricsOverride',{width:1280,height:720,deviceScaleFactor:1,mobile:false});
   await send('Page.navigate',{url:origin});
-  await until('document.readyState==="complete"&&!!inputManager','production input ready');
+  await until('document.readyState==="complete"&&!!window.inputManager','production input ready');
   await evaluate('document.fonts.ready');await evaluate('browserProof.boot()');
   assert.equal(await evaluate('audioSystem.lastSFXCue?.kind'),'cacheBridge:relay','fresh ending plays its finite relay cue');
   await until('BARCODE.CacheEnding.images.every(item=>item.status==="ready")','all four hosted pictures decode with local fallback disabled');
@@ -207,13 +207,15 @@ async function main(){
     savedPositions:await evaluate('browserProof.saves.length'),noMusicStarts:true,noMacEntries:true};
   // Real page reload restores the saved receipt and dialogue without any cue replay.
   await evaluate('browserProof.boot({version:1,page:2,cue:1,done:false})');
+  const priorTimeOrigin=await evaluate('performance.timeOrigin');
   await send('Page.reload',{ignoreCache:true});
-  await until('document.readyState==="complete"&&!!inputManager','reload production input ready');
+  await until(`document.readyState==="complete"&&!!window.inputManager&&performance.timeOrigin!==${priorTimeOrigin}`,
+    'fresh document and production input ready after reload');
   await evaluate('document.fonts.ready');await evaluate('browserProof.boot("saved")');
   assert.equal((await state()).page,2);assert.equal((await state()).cue,1);assert.equal((await state()).voices,0);
   assert.equal(await evaluate('audioSystem.lastSFXCue?.kind||null'),null);
   assert(await evaluate('browserProof.musicStarts===0&&audioSystem.layersStarted===false&&!audioSystem.roadEngine'));
-  await tap('Escape');assert(!(await state()).active);assert.equal(await evaluate('audioSystem.combatVoices.size'),0);
+  await tap('Escape');assert(!(await state()).active);assert.equal(await evaluate('audioSystem.combatVoices?.size||0'),0);
   assert.equal(await evaluate('browserProof.contexts'),1);assert.equal(firstSession.contextCalls,1);assert.equal(requests.head,0);
   assert.deepEqual(requests.localArt,[],'no page used local artwork fallback');assert.deepEqual(errors,[]);
   receipt={passed:true,hosted,frames,requests,firstSession,contextCallsPerPage:1,cues:12,
