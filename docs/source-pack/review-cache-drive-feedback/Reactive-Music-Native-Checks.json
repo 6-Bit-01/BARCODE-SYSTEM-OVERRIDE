@@ -1,0 +1,284 @@
+{
+  "method": "Native offline music-only audition: five FFmpeg-decoded aligned MP3s plus production piecewise-linear gain trace",
+  "limitations": "Not a browser/device recording. Gameplay SFX and engine are omitted; real Web Audio renders the same trace separately in Chromium.",
+  "tool": "tools/render-cache-reactive-music.py",
+  "seconds": 56.25,
+  "sampleRate": 44100,
+  "channels": 2,
+  "musicBusGain": 0.8,
+  "reviewEdgeFadeMs": 60,
+  "sources": [
+    {
+      "id": "cache-pressure",
+      "path": "assets/audio/cache-pressure.mp3",
+      "sha256": "e2390841bb9aaac42e1814c8c949a1f7faafe63e286cdb160cc66a28f5c5d696",
+      "decodedSamples": 2480625,
+      "startSeconds": 0,
+      "gainEvents": [
+        {
+          "sourceId": "cache-pressure",
+          "at": 0,
+          "volume": 0.6,
+          "duration": 0.11
+        }
+      ]
+    },
+    {
+      "id": "cache-drive",
+      "path": "assets/audio/cache-drive.mp3",
+      "sha256": "da967a6d0dec3adfd4886d0a9dc99f4ee09b49a51f3a70ca429d80c0b9946f34",
+      "decodedSamples": 2480625,
+      "startSeconds": 0,
+      "gainEvents": [
+        {
+          "sourceId": "cache-drive",
+          "at": 0,
+          "volume": 0.03,
+          "duration": 0.11
+        },
+        {
+          "sourceId": "cache-drive",
+          "at": 3.75,
+          "volume": 0.19,
+          "duration": 0.11
+        },
+        {
+          "sourceId": "cache-drive",
+          "at": 9.375,
+          "volume": 0.03,
+          "duration": 0.3
+        },
+        {
+          "sourceId": "cache-drive",
+          "at": 39.375,
+          "volume": 0.19,
+          "duration": 0.11
+        },
+        {
+          "sourceId": "cache-drive",
+          "at": 45,
+          "volume": 0.03,
+          "duration": 0.3
+        },
+        {
+          "sourceId": "cache-drive",
+          "at": 46.875,
+          "volume": 0.19,
+          "duration": 0.11
+        }
+      ]
+    },
+    {
+      "id": "cache-flow",
+      "path": "assets/audio/cache-flow.mp3",
+      "sha256": "2e1aaef56b242c525242b7f8bdb659beb3495207385053aec06c2a0a934a6060",
+      "decodedSamples": 2480625,
+      "startSeconds": 0,
+      "gainEvents": [
+        {
+          "sourceId": "cache-flow",
+          "at": 0,
+          "volume": 0.045,
+          "duration": 0.11
+        },
+        {
+          "sourceId": "cache-flow",
+          "at": 7.5,
+          "volume": 0.55,
+          "duration": 0.11
+        },
+        {
+          "sourceId": "cache-flow",
+          "at": 18.75,
+          "volume": 0.045,
+          "duration": 0.3
+        },
+        {
+          "sourceId": "cache-flow",
+          "at": 41.25,
+          "volume": 0.55,
+          "duration": 0.11
+        },
+        {
+          "sourceId": "cache-flow",
+          "at": 52.5,
+          "volume": 0.045,
+          "duration": 0.3
+        }
+      ]
+    },
+    {
+      "id": "cache-breakaway",
+      "path": "assets/audio/cache-breakaway.mp3",
+      "sha256": "4c40c7f67489d95f6e146bcfb024216863a6d13722c45a97291f0dd59b9f77ed",
+      "decodedSamples": 2480625,
+      "startSeconds": 0,
+      "gainEvents": [
+        {
+          "sourceId": "cache-breakaway",
+          "at": 11.25,
+          "volume": 0.5,
+          "duration": 0.11
+        },
+        {
+          "sourceId": "cache-breakaway",
+          "at": 22.5,
+          "volume": 0,
+          "duration": 0.3
+        },
+        {
+          "sourceId": "cache-breakaway",
+          "at": 43.125,
+          "volume": 0.5,
+          "duration": 0.11
+        },
+        {
+          "sourceId": "cache-breakaway",
+          "at": 47.34375,
+          "volume": 0,
+          "duration": 0.3
+        }
+      ]
+    },
+    {
+      "id": "cache-undercurrent",
+      "path": "assets/audio/cache-undercurrent.mp3",
+      "sha256": "9e7c6a4e3278eddd2a8ed5ab5b5c1b4bda40c957e1f18d7658e17bd2ffda9bb4",
+      "decodedSamples": 2480625,
+      "startSeconds": 0,
+      "gainEvents": [
+        {
+          "sourceId": "cache-undercurrent",
+          "at": 15,
+          "volume": 0.62,
+          "duration": 0.11
+        },
+        {
+          "sourceId": "cache-undercurrent",
+          "at": 26.25,
+          "volume": 0,
+          "duration": 0.3
+        },
+        {
+          "sourceId": "cache-undercurrent",
+          "at": 45,
+          "volume": 0.62,
+          "duration": 0.11
+        },
+        {
+          "sourceId": "cache-undercurrent",
+          "at": 56.25,
+          "volume": 0,
+          "duration": 0.3
+        }
+      ]
+    }
+  ],
+  "productionEvents": [
+    {
+      "beat": 8,
+      "time": 3.75,
+      "kind": "catch",
+      "lane": 0
+    },
+    {
+      "beat": 16,
+      "time": 7.5,
+      "kind": "catch",
+      "lane": 1
+    },
+    {
+      "beat": 24,
+      "time": 11.25,
+      "kind": "catch",
+      "lane": 2
+    },
+    {
+      "beat": 32,
+      "time": 15,
+      "kind": "catch",
+      "lane": 3
+    },
+    {
+      "beat": 84,
+      "time": 39.375,
+      "kind": "catch",
+      "lane": 0
+    },
+    {
+      "beat": 88,
+      "time": 41.25,
+      "kind": "catch",
+      "lane": 1
+    },
+    {
+      "beat": 92,
+      "time": 43.125,
+      "kind": "catch",
+      "lane": 2
+    },
+    {
+      "beat": 96,
+      "time": 45,
+      "kind": "catch",
+      "lane": 3
+    },
+    {
+      "beat": 100,
+      "time": 46.875,
+      "kind": "catch",
+      "lane": 0
+    },
+    {
+      "beat": 101,
+      "time": 47.34375,
+      "kind": "crash",
+      "lane": 2
+    }
+  ],
+  "gainEventCount": 20,
+  "wholePartExits": [
+    {
+      "sourceId": "cache-breakaway",
+      "at": 22.5,
+      "volume": 0,
+      "duration": 0.3
+    },
+    {
+      "sourceId": "cache-undercurrent",
+      "at": 26.25,
+      "volume": 0,
+      "duration": 0.3
+    },
+    {
+      "sourceId": "cache-breakaway",
+      "at": 47.34375,
+      "volume": 0,
+      "duration": 0.3
+    },
+    {
+      "sourceId": "cache-undercurrent",
+      "at": 56.25,
+      "volume": 0,
+      "duration": 0.3
+    }
+  ],
+  "drumsContinuousAfterAttack": true,
+  "pcmPeak": 0.5667083550021053,
+  "pcmRms": 0.07429591417067892,
+  "encodedPeak": 0.5751782059669495,
+  "clippedSamples": 0,
+  "output": {
+    "path": "docs/source-pack/review-cache-drive-feedback/Reactive-Music-Audition.mp3",
+    "bytes": 1351892,
+    "sha256": "2503e6f638d7cef06ca061be5dc2d78523f3e1743fa657f6614209c724e25ddc"
+  },
+  "traceSha256": "227d321d3eed0111171ee265d0a38d93cbf9e994cee2eefb043e567f8463b46a",
+  "productionSourceHashes": {
+    "src/engine/cache-road-proof-profile.js": "582cce91bdf042759d8c6dccbd8ed1d033088a8d052b72ef5a685131dea42b8f",
+    "src/engine/music-director.js": "1baeaf1a180e737e0757be809aec8d7f9c65abdde88d94e742cb2a931aa103bb",
+    "src/engine/audio.js": "a285397149f2377446801b7287206875608dc776ecf3c2135b44a9ce19dc5e65",
+    "src/game/cache-road-proof.js": "f336e5d9d85b25af17e9f7dc091a7e4d6380cff7967f2f785e97fcddae2e65c7",
+    "tools/check-cache-road-music-reactivity.cjs": "2bcfb39cf4e5ca0502481ccfc7880ce47ea558146b9ff1a74763275b4fdf246a"
+  }
+}

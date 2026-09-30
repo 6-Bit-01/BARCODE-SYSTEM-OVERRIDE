@@ -1,5 +1,29 @@
 # Repository Guidance
 
+## September 30, 2026 — drive feedback, traffic and reactive music
+
+The owner's nine-point playable-game review authorizes this focused Level 2
+pass: remove misleading floating road markers, explain optional records,
+create distinct mapped button badges, improve musical timing and feedback,
+fill empty traffic stretches by difficulty, teach existing abilities, expose
+mission goals, strengthen speed feel and make musical entrances/exits clear.
+This supersedes the earlier mechanical freeze and narrow timing restriction.
+Base/rollback is merged #159, `8f0f435c3edb7ddbd13373e7ba0a95c84f0c6f95`;
+branch `agent/cache-drive-feedback`. Read `CACHE_DRIVE_FEEDBACK.md` in
+`docs/source-pack` for contracts, evidence and the focused deployment route.
+
+Fresh chapters use encounterVersion 2. Preserve version 1 saved charts,
+judgment windows, capture duration and music mix; replay opts into version 2.
+Keep immutable announced targets, beat ONE, aligned five-source music,
+existing story/rewards, city clearance and exact mirror blur(2.3px).
+Teach the existing six abilities in play and Pause; do not invent an upgrade
+shop, persistent skill tree, extra music recording or new power-up economy.
+Run complete races across every gear/difficulty and real-damage recovery,
+focused native visual/audio evidence, full regression/all-file syntax and
+both final-head CI events before merging under standing authority. Export the
+exact merge to the maintained source pack. Makko/device feel remains a
+separate acceptance check; final outcomes belong to the PR/receipt.
+
 ## September 30, 2026 — comic bubbles and scene effects
 
 The owner approved chat bubbles and cutscene effects after merged #158.

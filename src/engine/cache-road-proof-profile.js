@@ -25,6 +25,11 @@ window.FILE_MANIFEST.push({ name: 'src/engine/cache-road-proof-profile.js', expo
     laneMix: { laneRoles: ['drive', 'flow', 'breakaway', 'undercurrent'],
       backboneRole: 'pressure', idle: { drive: 0.10, flow: 0.18 },
       captureFadeSec: 0.22, releaseFadeSec: 0.38,
+      // Fresh chapter rules make each earned part a clear entrance while
+      // keeping drums and two quiet support parts underneath the drive.
+      // Older checkpoints retain their original beds and transitions.
+      reactive: { version: 2, idle: { drive: 0.03, flow: 0.045 },
+        captureFadeSec: 0.11, releaseFadeSec: 0.30, captureBars: 3, comboBars: 6 },
       levels: { pressure: 0.60, drive: 0.19, flow: 0.55,
         breakaway: 0.50, undercurrent: 0.62 } },
     playback: { startTrackSec: 0, loop: null, endPolicy: 'native-loop' },
@@ -32,6 +37,8 @@ window.FILE_MANIFEST.push({ name: 'src/engine/cache-road-proof-profile.js', expo
       fixedGrid: { quarterBpm: 128, beatsPerBar: 4, beatUnit: 4 } },
     phrasePresentation: { barsPerPhrase: 4, beatCount: 16 },
     judgmentRules: [{ id: 'road-pulse', target: 'lane-pulse',
-      windowsMs: { perfect: 70, excellent: 130 }, calibrationOffsetMs: 0 }]
+      windowsMs: { perfect: 70, excellent: 130 }, calibrationOffsetMs: 0 },
+      { id: 'road-pulse-v2', target: 'lane-pulse',
+        windowsMs: { perfect: 70, excellent: 180 }, calibrationOffsetMs: 0 }]
   });
 })(window.BARCODE = window.BARCODE || {});

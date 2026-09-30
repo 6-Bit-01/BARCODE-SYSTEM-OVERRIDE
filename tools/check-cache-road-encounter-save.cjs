@@ -15,12 +15,18 @@ function saveRig(storage) {
   r.anchor = () => { r.audioAnchor = r.audio.context.currentTime; r.beatAnchor = r.road.state.musicBar * 4; };
   return r;
 }
-async function fresh(difficulty = 'standard') {
+async function fresh(difficulty = 'standard', version = 2) {
   const r = saveRig(), before = r.finish();
   before.levelState.difficultyId = difficulty;
+  if (version === 1) {
+    // Construct a pre-existing v1 run through the same entry/save owner.
+    const create = r.B.CacheChapter.create.bind(r.B.CacheChapter);
+    r.B.CacheChapter.create = options => ({ ...create(options), encounterVersion: 1 });
+  }
   await r.boot(before); r.bridge.skipToReady();
   assert((await r.bridge.drive()).ok);
-  assert.equal(r.road.chapter.encounterVersion, 1);
+  assert.equal(r.road.chapter.encounterVersion, version);
+  assert.equal(r.road.state.encounters.version, version);
   assert.equal(r.road.chapter.difficultyId, difficulty);
   assert(r.road.state.encounters, 'fresh bridge entry owns an encounter chart');
   r.anchor(); return r;
@@ -86,8 +92,10 @@ async function transition(mode) {
 async function malformed(saved) {
   const r = saveRig();
   for (const mutate of [
-    candidate => { candidate.levelState.chapter.encounterVersion = 2; },
-    candidate => { candidate.levelState.proof.encounters.version = 2; },
+    candidate => { candidate.levelState.chapter.encounterVersion = 3; },
+    candidate => { candidate.levelState.proof.encounters.version = 3; },
+    candidate => { candidate.levelState.chapter.encounterVersion = 1; },
+    candidate => { candidate.levelState.proof.encounters.version = 1; },
     candidate => { delete candidate.levelState.proof.encounters; },
     candidate => { candidate.levelState.proof.encounters.rows[0].actors[0].at++; },
     candidate => { candidate.levelState.proof.encounters.pulses[0].target++; },
@@ -126,12 +134,30 @@ async function legacy(saved) {
       'a checkpoint retry keeps the old authored or legacy encounter rules');
   }
 }
+async function versionOneResume() {
+  const r = await fresh('standard', 1);
+  tick(r, 0);
+  for (let beat=.125;beat<=112.125;beat+=.125)tick(r,beat);
+  const saved = copy(r.C.readResume());
+  assert.equal(saved.levelState.chapter.encounterVersion, 1);
+  assert.equal(saved.levelState.proof.encounters.version, 1);
+  const reopened = saveRig(r.storage); await reopened.boot(saved); reopened.anchor();
+  assert.deepEqual(copy(reopened.road.state.encounters), saved.levelState.proof.encounters);
+  tick(reopened,112.25);
+  const again = reopened.road.makeCheckpoint('road-verse-2');
+  assert.equal(again.levelState.chapter.encounterVersion, 1);
+  assert.equal(again.levelState.proof.encounters.version, 1);
+  reopened.road.status = reopened.road.state.status = 'failed';
+  assert(reopened.road.retry());
+  assert.equal(reopened.road.chapter.encounterVersion,1);
+  assert.equal(reopened.road.state.encounters.version,1,'retry never silently upgrades old encounters');
+}
 async function nested(source) {
   const { r, saved } = source, expected = saved.levelState.proof.encounters;
   assert(await r.road.exit());
   const parent = copy(r.C.readResume());
   assert.equal(parent.levelId, 'level-01');
-  assert.equal(parent.levelState.cacheRoadCheckpoint.chapter.encounterVersion, 1);
+  assert.equal(parent.levelState.cacheRoadCheckpoint.chapter.encounterVersion, 2);
   assert.deepEqual(parent.levelState.cacheRoadCheckpoint.proof.encounters, expected);
   r.bridge.skipToReady(); assert((await r.bridge.drive()).ok);
   assert.equal(r.road.chapter.runId, saved.levelState.chapter.runId);
@@ -192,7 +218,8 @@ async function main() {
   const modes = ['gear-up', 'gear-down', 'turbo-start', 'turbo-end', 'surge-start', 'surge-end', 'recovery-start'];
   let first;
   for (const mode of modes) { const result = await transition(mode); first ||= result; }
-  await malformed(first.saved); await legacy(first.saved); await nested(first); await retries(); await earnedGateReloads();
+  await malformed(first.saved); await legacy(first.saved);
+  await versionOneResume(); await nested(first); await retries(); await earnedGateReloads();
   console.log(`Cache encounter save: ${modes.length} real verse-transition checkpoints retained physical ONE, with bounded restore, nested re-entry, unchanged old rules, difficulty-aware retries and three earned-gate reloads through Bass completion.`);
 }
 module.exports = { saveRig, fresh, tick };

@@ -1,5 +1,33 @@
 # Acceptance and Test Status
 
+## Drive feedback and responsive music — September 30
+
+Import the exact merged revision in the PR/receipt through the normal Makko
+route, reload, and select Replay race to opt into version 2. Existing saved
+version 1 chapters intentionally retain their old timing/traffic/music.
+
+1. Drive each gear. Road marks must sit flat; inspect any reported floating
+   square/pole and record bar, lane and clip if it persists. The rearview
+   keeps the exact approved blur. Reduced Motion preserves stable cues.
+2. Compare Relaxed, Standard and Overclocked. Traffic must continue through
+   the audit/pursuit acts, with at least one reachable escape route and a
+   clear final split. Test Push, Brace, Turbo, Refill and Echo recovery.
+3. Follow a pad on keyboard and the actual controller family. Its color,
+   shape and mapped label must match HUD/Pause. Press slightly before/after
+   ONE, then deliberately too early, late, wrong button and wrong lane.
+   Observe unmistakable success/failure without duplicate awards.
+4. Catch different musical lanes, extend a part and allow it to expire.
+   Listen for the named part entering/leaving; collide and confirm the drums
+   continue while one earned part drops. Pause/reload must not desync sources.
+5. Read the mission cue; collect an optional tape and find it in the pause
+   archive. Complete the Echo-left/far-right-original split and 100-bar route;
+   optional records are not required for delivery or the existing Bass award.
+
+Capture platform, input device, difficulty, gear, bar, audio output/latency,
+Reduced Motion/flashes and a short video with sound for mismatches. Automated
+races and native/browser output do not establish human timing feel or Makko
+acceptance. Base/rollback is #159, `8f0f435c3edb7ddbd13373e7ba0a95c84f0c6f95`.
+
 ## Chat bubbles and cutscene effects — September 30
 
 Import the merged revision identified by the PR/receipt through the normal

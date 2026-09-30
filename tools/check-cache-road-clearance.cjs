@@ -10,7 +10,7 @@ load(context,'src/engine/cache-road-proof-profile.js');
 load(context,'src/game/cache-road-landscape.js');
 vm.runInContext(fs.readFileSync('src/game/cache-road-proof.js','utf8').replace(
   '  B.Campaign.register(ID,',
-  '  window.placementReview={LANDSCAPE,SIDE_PLACES,SATELLITE_SCENES,SCENERY,newState};\n  B.Campaign.register(ID,'),context);
+  '  window.placementReview={LANDSCAPE,SIDE_PLACES,SATELLITE_SCENES,SCENERY,newState,roadPath,roadHeading};\n  B.Campaign.register(ID,'),context);
 const R=w.placementReview;
 function inspect(layout){
   const report=layout.clearance;
@@ -92,8 +92,26 @@ for(const progress of [1450,1500,1550,1600,1650,1700,1750,1800]) {
   assert(main.some(a=>a.key==='cachePlaceGarage'&&a.x>960&&a.x-a.width/2<1920&&
     a.y>400&&a.y<1080),'the featured garage stays visible through its approach');
 }
+// Reported square "pedestrians" were facade endcaps registered to the
+// transparent bitmap edge. Observe their actual production draw on both
+// banks through the whole high-gear route, including the reported frame.
+let endcaps=0, closestEndcap=Infinity;const endcapBanks=new Set();
+for(const progress of [130,...Array.from({length:116},(_,i)=>i*130)]) {
+  road.state=R.newState({progress,lane:1,lanePos:1,musicBar:24,integrity:3});
+  main=[];rear=[];ctx.reset();road.draw(ctx);
+  for(const cap of main.filter(item=>/^cacheJoin[LR]Endcap$/.test(item.key))) {
+    if(cap.y<400||cap.y>1080||cap.x<0||cap.x>1920)continue;
+    const t=Math.sqrt((cap.y-400)/680),ahead=(1-t)*520;
+    const center=960+(R.roadPath(progress+ahead)-R.roadPath(progress)-ahead*R.roadHeading(progress))*.95;
+    const roadHalf=82+534*t,side=cap.key.includes('LEndcap')?-1:1;
+    const gap=side*(cap.x-center)-cap.width/2-roadHalf;
+    assert(gap>=8,`facade cap must stay outside asphalt: ${cap.key} at progress ${progress}, gap ${gap}`);
+    closestEndcap=Math.min(closestEndcap,gap);endcaps++;endcapBanks.add(side);
+  }
+}
+assert(endcaps>=70&&endcapBanks.size===2,'both-bank endcap checks cover the full route, not just the reported frame');
 assert(R.SATELLITE_SCENES.length>0);
 for(const scene of R.SATELLITE_SCENES)assert(R.LANDSCAPE.clearance.contacts.some(c=>
   c.kind==='satellite'&&c.side===scene.side&&c.at===scene.at+43),
   'satellite reservations use their actual +43 world draw address');
-console.log(`Cache Road placement passed: ${layouts} seeded routes, ${retained} retained cards audited; production ${R.LANDSCAPE.plates.length} cards, 48 keys, ${R.SATELLITE_SCENES.length} fitted satellites, clear garage approach.`);
+console.log(`Cache Road placement passed: ${layouts} seeded routes, ${retained} retained cards audited; production ${R.LANDSCAPE.plates.length} cards, 48 keys, ${R.SATELLITE_SCENES.length} fitted satellites, clear garage approach; ${endcaps} grounded endcaps, minimum asphalt clearance ${closestEndcap.toFixed(1)}px.`);

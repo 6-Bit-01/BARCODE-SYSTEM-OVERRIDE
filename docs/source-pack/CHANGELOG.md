@@ -1,5 +1,22 @@
 # Recovery checkpoint — September 14
 
+## September 30, 2026 — drive controls, objectives and responsive music
+
+- Replace raised road studs with flat markers and remove duplicate posts;
+  add bounded speed-linked road glints without changing mirror blur.
+- Fill audit/pursuit traffic gaps with versioned, difficulty-scaled rows and
+  reserved musical/rival lanes plus intersecting escape corridors.
+- Add six custom color/shape button masters and matching immediate Canvas
+  badges with current keyboard, Xbox and PlayStation labels.
+- Align the PRESS cue with the full ±180 ms fresh-run timing window; add
+  success and specific miss receipts, contextual lessons and route objectives.
+- Identify tapes as optional archive records and expose existing abilities
+  in Pause; preserve the mission's Echo-left/original-right finish.
+- Shorten fresh-run musical holds, deepen audible joins/exits, show actual
+  part receipts and keep drums running through one-part crash recovery.
+- Keep saved version 1 behavior and the five synchronized source recordings.
+  Exact race, native/browser and CI outcomes belong to the PR/receipt.
+
 ## September 30, 2026 — comic dialogue and scene effects
 
 - Place speaker-linked cream balloons and crew-colored dark comms cards

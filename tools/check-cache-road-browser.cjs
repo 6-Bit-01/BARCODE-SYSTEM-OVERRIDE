@@ -171,8 +171,8 @@ async function main() {
       player.initialized=true;
       const prepared=await player.prepareActiveMusicProfile();
       const started=prepared.ok?player.startAllLayersSimultaneously():{ok:false};
-      let captures=[],previewLane=null,previewBeat=null,hitRecovery=false;
-      BARCODE.CacheRoadProof={active:true,mixSnapshot:()=>({captures,previewLane,previewBeat,hitRecovery}),startOffsetSec:()=>0};
+      let captures=[],previewLane=null,previewBeat=null,hitRecovery=false,reactivityVersion=1;
+      BARCODE.CacheRoadProof={active:true,mixSnapshot:()=>({captures,previewLane,previewBeat,hitRecovery,reactivityVersion}),startOffsetSec:()=>0};
       player.updateLayers();
       await new Promise(resolve=>setTimeout(resolve,300));
       const waveform=new Float32Array(analyser.fftSize);analyser.getFloatTimeDomainData(waveform);
@@ -208,6 +208,22 @@ async function main() {
       analyser.getFloatTimeDomainData(waveform);
       result.recoveredRms=Math.sqrt(waveform.reduce((sum,x)=>sum+x*x,0)/waveform.length);
       result.recoveredGain=player.musicGain.gain.value;
+      reactivityVersion=2;hitRecovery=false;
+      result.reactive=[];
+      const sourceStarts=result.tracks.map(track=>track.start);
+      for(const next of [[],[{lane:0,startBeat:0,endBeat:400}],
+        [{lane:0,startBeat:0,endBeat:400},{lane:2,startBeat:0,endBeat:400}],
+        [{lane:0,startBeat:0,endBeat:400}],[]]) {
+        captures=next;hitRecovery=result.reactive.length===3;player.updateLayers();
+        await new Promise(resolve=>setTimeout(resolve,350));
+        analyser.getFloatTimeDomainData(waveform);
+        result.reactive.push({gains:['pressure','drive','flow','breakaway','undercurrent']
+          .map(role=>player.musicTracks['cache-'+role].gain.gain.value),
+          bus:player.musicGain.gain.value,
+          rms:Math.sqrt(waveform.reduce((sum,x)=>sum+x*x,0)/waveform.length)});
+      }
+      result.reactiveSameStarts=Object.values(player.musicTracks).filter(track=>track.isPlaying)
+        .every((track,index)=>track.startTime===sourceStarts[index]);
       await player.context.close(); return result;
     })()`);
   }
@@ -230,6 +246,15 @@ async function main() {
   assert(audio.stumble && audio.droppedRms < .0001 && audio.recoveredRms > .0001 &&
     Math.abs(audio.recoveredGain - .8) < .01,
   'browser music bus cuts out and returns on the beat without restarting MP3s');
+  const expectedReactive=[[.60,.03,.045,0,0],[.60,.19,.045,0,0],
+    [.60,.19,.045,.50,0],[.60,.19,.045,0,0],[.60,.03,.045,0,0]];
+  audio.reactive.forEach((point,index)=>{
+    point.gains.forEach((gain,lane)=>assert(Math.abs(gain-expectedReactive[index][lane])<.00001,
+      `v2 decoded source ${lane} does not follow catch/release step ${index}`));
+    assert(point.rms>.0001&&Math.abs(point.bus-.8)<.00001,
+      'v2 catches, loss and recovery retain audible drums and music bus');
+  });
+  assert(audio.reactiveSameStarts,'v2 mix changes do not restart the five sources');
   assert.equal(requests.head, 0);
   assert.equal(requests.get.filter(url => url.endsWith('.mp3')).length, 5);
   const fallback = await checkAudio(true);
@@ -242,6 +267,22 @@ async function main() {
   omitLocalStems=false;
   const chip = await checkChipAudio();
   const renderRoadAudio=require('./cache-road-review-audio.cjs');
+  const reactiveTrace=require('./check-cache-road-music-reactivity.cjs').auditionTrace();
+  const reactiveAudio=await evaluate(`(${renderRoadAudio.toString()})(${JSON.stringify(reactiveTrace)})`);
+  assert(reactiveAudio.rms>.005&&reactiveAudio.peak<1&&reactiveAudio.remainingVoices===0,
+    'v2 catch/expiry/crash audition is audible, unclipped and releases its SFX');
+  assert.equal(new Set(reactiveTrace.mixEvents.map(event=>event.sourceId)).size,5);
+  assert(reactiveTrace.mixEvents.some(event=>event.sourceId==='cache-breakaway'&&event.volume===0&&event.at>0),
+    'audition includes a real recorded part leaving the mix');
+  const reactiveOutput=process.env.CACHE_ROAD_REVIEW_OUTPUT ||
+    (process.env.RUNNER_TEMP&&path.join(process.env.RUNNER_TEMP,'music-browser/cache-road'));
+  if(reactiveOutput) {
+    fs.mkdirSync(reactiveOutput,{recursive:true});
+    fs.writeFileSync(path.join(reactiveOutput,'Reactive-Music-Audition.wav'),Buffer.from(reactiveAudio.pcm,'base64'));
+    delete reactiveAudio.pcm;
+    fs.writeFileSync(path.join(reactiveOutput,'Reactive-Music-Checks.json'),JSON.stringify(reactiveAudio,null,2));
+    fs.writeFileSync(path.join(reactiveOutput,'Reactive-Music-Trace.json'),JSON.stringify(reactiveTrace,null,2));
+  }
   const beat=60/128;
   const probe={seconds:2,mixEvents:[],audioEvents:[
     ...[0,1,2].map(index=>({kind:'roadCount',at:index*beat,calledAt:Math.max(0,index*beat-.1)})),
