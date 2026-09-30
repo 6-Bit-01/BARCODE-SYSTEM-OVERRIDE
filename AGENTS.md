@@ -1,5 +1,33 @@
 # Repository Guidance
 
+## September 30, 2026 — authored encounters, reactions and final pursuit
+
+The owner explicitly approved encounter layout, physical ability reactions,
+the final pursuit, more assets and complete races in every gear to tune the
+result. This supersedes the previous pass's restriction on changing road
+encounters. Base/rollback is merged #156,
+`8a6b974e809e907e97a364fcb328693be3764ac6`; branch
+`agent/cache-encounter-pursuit`. Read
+`docs/source-pack/CACHE_ROAD_ENCOUNTERS.md` for the contracts and evidence.
+
+Fresh runs use `chapter.encounterVersion: 1`: four musical acts, committed
+traffic/pad addresses, reserved escape corridors, physical Push/Brace/Echo,
+one-part crash recovery and a staged rival. Preserve existing checkpoints
+without this marker on their original layout/rules; full replay opts into the
+new version. Keep beat ONE, queued gears, five aligned music sources, existing
+city geometry/clearance, the digital dashboard and exact `blur(2.3px)`.
+Keep the eight opening and eight bridge panels, optional records, atomic
+Bass/result save and four-panel delivery ending. Mac gameplay remains future.
+
+Run full 100-bar production-input races for all three gears × Relaxed,
+Standard and Overclocked, plus the recovery profile with actual damage.
+Do not substitute invulnerable completion fixtures or call these human
+success rates. Run focused checks, the full regression/all-file syntax and
+final-head Chromium CI before merging under standing owner authority.
+Exact final outcomes, tested head and merge belong to the PR/generated
+receipt. Makko/controller feel needs the focused post-deploy route below.
+Older dated entries are historical, including their narrower scope and gates.
+
 ## September 30, 2026 — authored Cache Line completion
 
 The owner approved the next milestone after merged PR #155: fresh Cache Line

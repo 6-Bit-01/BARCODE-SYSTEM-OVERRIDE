@@ -1,4 +1,28 @@
-# Continue here — authored Cache Line completion
+# Continue here — Cache Line encounters and final pursuit
+
+## September 30, 2026 — current work: encounters, reactions and final pursuit
+
+The owner approved this playable Level 2 pass before moving on to Mac.
+Continue on `agent/cache-encounter-pursuit` from merged #156,
+`8a6b974e809e907e97a364fcb328693be3764ac6` (base/rollback). Read
+`docs/source-pack/CACHE_ROAD_ENCOUNTERS.md` first; it covers the four acts,
+physical ability consequences, new art, difficulty and full-race evidence.
+
+Fresh runs carry `chapter.encounterVersion: 1`. Retain the old layout for
+saved chapters without it; explicit full replay starts the new rules.
+Preserve fixed announced contacts and beat ONE through gear changes and
+checkpoint restore. Keep the five aligned sources, exact 2.3 px mirror blur,
+approved city footprints, dashboard, both eight-panel sequences and the
+atomic Bass/result/ending handoff. Do not auto-launch the Mac development map.
+
+The requested validation is nine complete races plus nine recovery runs,
+driven through production input with every gear and difficulty. Record real
+damage/recovery, missed actions and retries; automated controller outcomes
+are not human difficulty or physical-device acceptance. The matrix and
+native/Chromium evidence must describe their actual final candidate.
+Full regression, all-file syntax and final-head CI gate merge under standing
+authority. Refresh the maintained v5 source pack after merge. Follow the
+newest `ACCEPTANCE.md` post-deploy route. Older entries below are history.
 
 ## September 30, 2026 — authored Cache Line completion
 

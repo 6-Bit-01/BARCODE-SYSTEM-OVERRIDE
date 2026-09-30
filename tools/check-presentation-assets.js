@@ -11,7 +11,7 @@ w.Image = class Image {
 load(context, 'src/engine/presentation-assets.js');
 const art = w.BARCODE.PresentationAssets;
 for (let i = 0; i < 20; i++) art.preload();
-assert.strictEqual(images.length, 237, 'restarts reuse Cache traffic, six block families, ten travel sheets, six activity sheets, graph joins, ground, walkers, props, decals, practical lights, three static dashboard assets and local effects');
+assert.strictEqual(images.length, 241, 'restarts reuse Cache traffic, six block families, ten travel sheets, six activity sheets, graph joins, ground, walkers, props, decals, practical lights, three static dashboard assets, four encounter effects and local effects');
 const dashboardRoot='https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/dd1b3e9adc174da39e4b228c45079526c9c6a36a/';
 const dashboardImages=images.filter(im=>im.requests[0].startsWith(dashboardRoot));
 assert.equal(dashboardImages.length,3,'all three static instruments share their immutable artwork revision');
@@ -116,7 +116,7 @@ failedPaintedImage.onerror();
 assert.strictEqual(failedPaintedImage.onload,null);
 assert.strictEqual(failedPaintedImage.onerror,null);
 art.preload();
-assert.strictEqual(images.length,237,'failed painted and activity assets are not recreated on restart');
+assert.strictEqual(images.length,241,'failed painted and activity assets are not recreated on restart');
 assert.strictEqual(failedPaintedImage.requests.length,2,'painted assets stop after both sources fail');
 assert.strictEqual(failedActivityImage.requests.length,2,'activity assets stop after both sources fail');
 const cacheRoadRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/37db98387b8791655e3ff352d6bc6d61cb0b574b/';
@@ -236,7 +236,7 @@ assert.deepStrictEqual(ops.find(op=>op[0]==='drawImage').slice(2),
   'the cleaner uses one complete registered fourth cel with its planted foot anchor');
 arrowImage.onerror(); arrowImage.onerror();
 assert.strictEqual(arrowImage.requests.length, 2); assert.strictEqual(arrowImage.onerror, null);
-art.preload(); assert.strictEqual(images.length, 237, 'failed assets do not retry forever');
+art.preload(); assert.strictEqual(images.length, 241, 'failed assets do not retry forever');
 pulseImage.naturalWidth = pulseImage.naturalHeight = 512; pulseImage.onload();
 ops.length = 0; art.draw('bossPulse', ctx, { y: 822, width: 64, height: 56, frame: 2 });
 assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2), [10, 351, 236, 145, -32, -56, 64, 56], 'pulse fills the dangerous height and retains the ground anchor');

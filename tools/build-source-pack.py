@@ -20,9 +20,10 @@ RETAINED_REVIEW_MEDIA = {
     "review-cache-bridge/Bridge-Cues.wav",
     "review-cache-ending/Ending-Review.mp4",
     "review-cache-ending/Ending-Cues.wav",
+    "review-cache-encounters/Encounter-Review.mp4",
     "review-cache-lamps-chip-sound/Chip-SFX-Audition.mp3",
 }
-CURRENT_REVIEW = "review-cache-ending/"
+CURRENT_REVIEW = "review-cache-encounters/"
 REVIEW_MEDIA_SUFFIXES = {".webp", ".png", ".mp4", ".jpg", ".jpeg", ".gif", ".mp3", ".wav"}
 ROOT_DOCUMENT_SUFFIXES = {".md", ".json", ".txt"}
 

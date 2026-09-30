@@ -1,0 +1,1118 @@
+{
+  "kind": "native-production-encounter-review",
+  "sourceHashes": {
+    "src/game/cache-road-proof.js": "82cf6f80eb7d7fc6fc743942017dd8199d15e44403f2cee45e9b55e1fb71bfd2",
+    "src/game/cache-road-encounters.js": "f66e2ecc5362c6f698a169b815bb676c6d5eef79c75625d18cc42a75466b995b",
+    "src/game/cache-road-reactions.js": "47748481a8426278bb23f3358916a9c3345c55af7507866bb561a8180ceb4753",
+    "src/game/cache-road-pursuit.js": "cd00f39a893613e765848452f47b79c3953c45538f4c217e074b737a5eb936e3",
+    "src/engine/presentation-assets.js": "1621c0150fc2cecdf58e609417b834eb9ea2e4be66d31cd7dc4c0f12acb85358",
+    "tools/check-cache-road-races.cjs": "2cebb67e0a430415e36de49b34b9b6318367e8bafd0e301e8278e1ae81b12709",
+    "tools/render-cache-encounter-review.cjs": "f12730be03d1b54dfa0618081cbdb30fabbc3fac2e45fe6b6bd35aaedb555601"
+  },
+  "dimensions": {
+    "width": 1280,
+    "height": 720
+  },
+  "framesPerSecond": 25,
+  "frames": 625,
+  "durationSeconds": 25,
+  "segments": [
+    {
+      "name": "City-escape",
+      "start": 21,
+      "duration": 5,
+      "stillOffset": 2.6
+    },
+    {
+      "name": "Freight-corridor",
+      "start": 60,
+      "duration": 5
+    },
+    {
+      "name": "Audit-echo",
+      "start": 108,
+      "duration": 5
+    },
+    {
+      "name": "Final-interception",
+      "start": 155.5,
+      "duration": 5
+    },
+    {
+      "name": "Delivery-split",
+      "start": 172.5,
+      "duration": 5
+    }
+  ],
+  "stills": [
+    {
+      "file": "City-escape.webp",
+      "kind": "actual-input-driven-state",
+      "trackTime": 23.639999999999585,
+      "bar": 12.607999999999778,
+      "sha256": "10e988ad5fab9e76f9d0c95f075746b2c035f745b8890a0d4a0afad654da8b2e"
+    },
+    {
+      "file": "Freight-corridor.webp",
+      "kind": "actual-input-driven-state",
+      "trackTime": 61.000000000003936,
+      "bar": 32.533333333335435,
+      "sha256": "f38eba9106ddf1ded369e484826c2bc0c807bd70726a31c1658d75278ddb00af"
+    },
+    {
+      "file": "Audit-echo.webp",
+      "kind": "actual-input-driven-state",
+      "trackTime": 109.03999999999544,
+      "bar": 58.154666666664234,
+      "sha256": "7323f89f43f6d95f2f76a363bb16bd748cb4e6700f372ad6b27ad6cf355842c0"
+    },
+    {
+      "file": "Final-interception.webp",
+      "kind": "actual-input-driven-state",
+      "trackTime": 156.52000000000626,
+      "bar": 83.47733333333667,
+      "sha256": "d338da5ca1303006470f8194b9ce2df3d945c700ef27c9385401092bf5c4cc75"
+    },
+    {
+      "file": "Delivery-split.webp",
+      "kind": "actual-input-driven-state",
+      "trackTime": 173.52000000001496,
+      "bar": 92.54400000000798,
+      "sha256": "fd29d517c19a1d0f31df3b396358193aef6a98aac5ce0ee18723b8fffd807421"
+    },
+    {
+      "file": "Staged-push-contact.webp",
+      "kind": "staged-production-impact-fixture",
+      "ability": "push",
+      "ageMs": 150,
+      "actor": {
+        "kind": "freight",
+        "lane": 0,
+        "at": 3329.2725,
+        "bar": 28,
+        "act": "freight",
+        "id": "traffic/28/0",
+        "encounter": true
+      },
+      "pose": {
+        "id": "traffic/28/0",
+        "at": 3351.3198372781067,
+        "lane": 0,
+        "alpha": 1,
+        "steer": 0,
+        "collidable": false,
+        "kind": "push",
+        "phase": 0.23076923076923078
+      },
+      "sha256": "ec11fed54eee1be68debbd4b95f0c7f1d23d1c4d8c9e2772f4cd706f4f117e93"
+    },
+    {
+      "file": "Staged-push-response-strip.webp",
+      "kind": "staged-production-impact-sequence",
+      "ability": "push",
+      "poses": [
+        {
+          "ageMs": 0,
+          "pose": {
+            "id": "traffic/28/0",
+            "at": 3329.2725,
+            "lane": 0,
+            "alpha": 1,
+            "steer": 0,
+            "collidable": false,
+            "kind": "push",
+            "phase": 0
+          }
+        },
+        {
+          "ageMs": 250,
+          "pose": {
+            "id": "traffic/28/0",
+            "at": 3362.8227958579882,
+            "lane": 0,
+            "alpha": 0.9903077236848914,
+            "steer": 0,
+            "collidable": false,
+            "kind": "push",
+            "phase": 0.38461538461538464
+          }
+        },
+        {
+          "ageMs": 550,
+          "pose": {
+            "id": "traffic/28/0",
+            "at": 3381.9943934911244,
+            "lane": 0,
+            "alpha": 0.5108688042032334,
+            "steer": 0,
+            "collidable": false,
+            "kind": "push",
+            "phase": 0.8461538461538461
+          }
+        }
+      ],
+      "sha256": "d7f931104028cb47c8bc9f9ff09d619547fd7286d5e888d40376ebda1273b58d"
+    },
+    {
+      "file": "Staged-brace-contact.webp",
+      "kind": "staged-production-impact-fixture",
+      "ability": "brace",
+      "ageMs": 150,
+      "actor": {
+        "kind": "freight",
+        "lane": 0,
+        "at": 3329.2725,
+        "bar": 28,
+        "act": "freight",
+        "id": "traffic/28/0",
+        "encounter": true
+      },
+      "pose": {
+        "id": "traffic/28/0",
+        "at": 3333.405755576615,
+        "lane": 0,
+        "alpha": 1,
+        "steer": 0,
+        "collidable": false,
+        "kind": "brace",
+        "phase": 0.39473684210526316
+      },
+      "sha256": "650d77d555a4dfb3c8de8189a30f5cf92263b565e00180f01df32cf91c520764"
+    },
+    {
+      "file": "Staged-brace-response-strip.webp",
+      "kind": "staged-production-impact-sequence",
+      "ability": "brace",
+      "poses": [
+        {
+          "ageMs": 0,
+          "pose": {
+            "id": "traffic/28/0",
+            "at": 3329.2725,
+            "lane": 0,
+            "alpha": 1,
+            "steer": 0,
+            "collidable": false,
+            "kind": "brace",
+            "phase": 0
+          }
+        },
+        {
+          "ageMs": 150,
+          "pose": {
+            "id": "traffic/28/0",
+            "at": 3333.405755576615,
+            "lane": 0,
+            "alpha": 1,
+            "steer": 0,
+            "collidable": false,
+            "kind": "brace",
+            "phase": 0.39473684210526316
+          }
+        },
+        {
+          "ageMs": 380,
+          "pose": {
+            "id": "traffic/28/0",
+            "at": 3341.2725,
+            "lane": 0,
+            "alpha": 0.5598719999999999,
+            "steer": 0,
+            "collidable": false,
+            "kind": "brace",
+            "phase": 1
+          }
+        }
+      ],
+      "sha256": "db05686e2516b1058837f60fe02ab7a22c54bfa50c9d5d1c39af6d2787d7805b"
+    }
+  ],
+  "race": {
+    "difficulty": "standard",
+    "gear": 2,
+    "profile": "practiced",
+    "gearSchedule": [],
+    "failFirstExit": false,
+    "seekPush": true,
+    "earlyHits": 0,
+    "initialTimerMs": 60000,
+    "status": "clear",
+    "finalBar": 100,
+    "elapsedMs": 187500,
+    "distance": 10371.46,
+    "score": 42090,
+    "integrity": 3,
+    "minimumIntegrity": 3,
+    "gearFrames": [
+      0,
+      9375,
+      0
+    ],
+    "damageTaken": 0,
+    "retries": 0,
+    "attempts": 55,
+    "captured": 54,
+    "perfect": 50,
+    "announced": 56,
+    "omittedInputs": 0,
+    "bestCombo": 8,
+    "maxCapturedParts": 4,
+    "nearPasses": 11,
+    "echoUses": 5,
+    "echoDeceptions": 3,
+    "turboUses": 4,
+    "pushContacts": 5,
+    "braceContacts": 0,
+    "gateOpen": true,
+    "gateFailure": null,
+    "finalMessage": "BRACE // FLOW +16 BARS  FAST x2",
+    "checkpoints": [
+      {
+        "id": "road-verse-2",
+        "bar": 28,
+        "integrity": 3
+      },
+      {
+        "id": "road-verse-3",
+        "bar": 52.011,
+        "integrity": 3
+      },
+      {
+        "id": "road-verse-4",
+        "bar": 76.011,
+        "integrity": 3
+      },
+      {
+        "id": "road-gate",
+        "bar": 93.547,
+        "integrity": 3
+      },
+      {
+        "id": "road-clear",
+        "bar": 100,
+        "integrity": 3
+      }
+    ],
+    "failures": [],
+    "recoveries": [],
+    "events": [
+      {
+        "kind": "capture",
+        "bar": 5.013,
+        "elapsedMs": 9400,
+        "lane": 1.958,
+        "integrity": 3,
+        "action": "road_a"
+      },
+      {
+        "kind": "capture",
+        "bar": 6.987,
+        "elapsedMs": 13100,
+        "lane": 2.982,
+        "integrity": 3,
+        "action": "road_x"
+      },
+      {
+        "kind": "capture",
+        "bar": 9.024,
+        "elapsedMs": 16920,
+        "lane": 2.088,
+        "integrity": 3,
+        "action": "road_y"
+      },
+      {
+        "kind": "capture",
+        "bar": 10.997,
+        "elapsedMs": 20620,
+        "lane": 1.071,
+        "integrity": 3,
+        "action": "road_b"
+      },
+      {
+        "kind": "push-route-input",
+        "bar": 11.008,
+        "elapsedMs": 20640,
+        "lane": 1.074,
+        "integrity": 3,
+        "id": "traffic/8/0",
+        "actor": "trike"
+      },
+      {
+        "kind": "push",
+        "bar": 12.523,
+        "elapsedMs": 23480,
+        "lane": 1.927,
+        "integrity": 3,
+        "actor": "trike"
+      },
+      {
+        "kind": "turbo-input",
+        "bar": 12.523,
+        "elapsedMs": 23480,
+        "lane": 1.927,
+        "integrity": 3
+      },
+      {
+        "kind": "capture",
+        "bar": 13.003,
+        "elapsedMs": 24380,
+        "lane": 0.052,
+        "integrity": 3,
+        "action": "road_a"
+      },
+      {
+        "kind": "missed-press",
+        "bar": 15.019,
+        "elapsedMs": 28160,
+        "lane": 0,
+        "integrity": 3,
+        "action": "road_x"
+      },
+      {
+        "kind": "near-pass",
+        "bar": 15.765,
+        "elapsedMs": 29560,
+        "lane": 0,
+        "integrity": 3,
+        "cut": false
+      },
+      {
+        "kind": "capture",
+        "bar": 16.981,
+        "elapsedMs": 31840,
+        "lane": 1.95,
+        "integrity": 3,
+        "action": "road_y"
+      },
+      {
+        "kind": "capture",
+        "bar": 19.019,
+        "elapsedMs": 35660,
+        "lane": 3,
+        "integrity": 3,
+        "action": "road_b"
+      },
+      {
+        "kind": "push-route-input",
+        "bar": 19.029,
+        "elapsedMs": 35680,
+        "lane": 3,
+        "integrity": 3,
+        "id": "traffic/16/0",
+        "actor": "trike"
+      },
+      {
+        "kind": "push",
+        "bar": 20.523,
+        "elapsedMs": 38480,
+        "lane": 3,
+        "integrity": 3,
+        "actor": "trike"
+      },
+      {
+        "kind": "capture",
+        "bar": 22.005,
+        "elapsedMs": 41260,
+        "lane": 3,
+        "integrity": 3,
+        "action": "road_a"
+      },
+      {
+        "kind": "near-pass",
+        "bar": 22.517,
+        "elapsedMs": 42220,
+        "lane": 3,
+        "integrity": 3,
+        "cut": false
+      },
+      {
+        "kind": "capture",
+        "bar": 22.987,
+        "elapsedMs": 43100,
+        "lane": 3,
+        "integrity": 3,
+        "action": "road_x"
+      },
+      {
+        "kind": "capture",
+        "bar": 24.032,
+        "elapsedMs": 45060,
+        "lane": 1.993,
+        "integrity": 3,
+        "action": "road_y"
+      },
+      {
+        "kind": "capture",
+        "bar": 24.992,
+        "elapsedMs": 46860,
+        "lane": 0.925,
+        "integrity": 3,
+        "action": "road_b"
+      },
+      {
+        "kind": "capture",
+        "bar": 26.005,
+        "elapsedMs": 48760,
+        "lane": 0,
+        "integrity": 3,
+        "action": "road_a"
+      },
+      {
+        "kind": "capture",
+        "bar": 27.019,
+        "elapsedMs": 50660,
+        "lane": 0.932,
+        "integrity": 3,
+        "action": "road_x"
+      },
+      {
+        "kind": "capture",
+        "bar": 27.979,
+        "elapsedMs": 52460,
+        "lane": 0.919,
+        "integrity": 3,
+        "action": "road_y"
+      },
+      {
+        "kind": "near-pass",
+        "bar": 28.181,
+        "elapsedMs": 52840,
+        "lane": 0.951,
+        "integrity": 3,
+        "cut": false
+      },
+      {
+        "kind": "capture",
+        "bar": 29.024,
+        "elapsedMs": 54420,
+        "lane": 0.918,
+        "integrity": 3,
+        "action": "road_b"
+      },
+      {
+        "kind": "capture",
+        "bar": 30.997,
+        "elapsedMs": 58120,
+        "lane": 2.042,
+        "integrity": 3,
+        "action": "road_x"
+      },
+      {
+        "kind": "near-pass",
+        "bar": 32.491,
+        "elapsedMs": 60920,
+        "lane": 2.087,
+        "integrity": 3,
+        "cut": false
+      },
+      {
+        "kind": "capture",
+        "bar": 32.992,
+        "elapsedMs": 61860,
+        "lane": 2.079,
+        "integrity": 3,
+        "action": "road_y"
+      },
+      {
+        "kind": "near-pass",
+        "bar": 34.517,
+        "elapsedMs": 64720,
+        "lane": 1.045,
+        "integrity": 3,
+        "cut": false
+      },
+      {
+        "kind": "capture",
+        "bar": 35.029,
+        "elapsedMs": 65680,
+        "lane": 1.021,
+        "integrity": 3,
+        "action": "road_a"
+      },
+      {
+        "kind": "near-pass",
+        "bar": 36.416,
+        "elapsedMs": 68280,
+        "lane": 1.941,
+        "integrity": 3,
+        "cut": false
+      },
+      {
+        "kind": "capture",
+        "bar": 36.981,
+        "elapsedMs": 69340,
+        "lane": 1.908,
+        "integrity": 3,
+        "action": "road_b"
+      },
+      {
+        "kind": "push-route-input",
+        "bar": 37.003,
+        "elapsedMs": 69380,
+        "lane": 1.936,
+        "integrity": 3,
+        "id": "traffic/34/0",
+        "actor": "freight"
+      },
+      {
+        "kind": "push",
+        "bar": 38.208,
+        "elapsedMs": 71640,
+        "lane": 0,
+        "integrity": 3,
+        "actor": "freight"
+      },
+      {
+        "kind": "turbo-input",
+        "bar": 38.208,
+        "elapsedMs": 71640,
+        "lane": 0,
+        "integrity": 3
+      },
+      {
+        "kind": "capture",
+        "bar": 39.019,
+        "elapsedMs": 73160,
+        "lane": 1.924,
+        "integrity": 3,
+        "action": "road_x"
+      },
+      {
+        "kind": "near-pass",
+        "bar": 39.872,
+        "elapsedMs": 74760,
+        "lane": 0.951,
+        "integrity": 3,
+        "cut": false
+      },
+      {
+        "kind": "capture",
+        "bar": 41.013,
+        "elapsedMs": 76900,
+        "lane": 3,
+        "integrity": 3,
+        "action": "road_y"
+      },
+      {
+        "kind": "capture",
+        "bar": 42.987,
+        "elapsedMs": 80600,
+        "lane": 2.052,
+        "integrity": 3,
+        "action": "road_a"
+      },
+      {
+        "kind": "near-pass",
+        "bar": 44.384,
+        "elapsedMs": 83220,
+        "lane": 1.106,
+        "integrity": 3,
+        "cut": false
+      },
+      {
+        "kind": "capture",
+        "bar": 45.024,
+        "elapsedMs": 84420,
+        "lane": 1.092,
+        "integrity": 3,
+        "action": "road_b"
+      },
+      {
+        "kind": "push-route-input",
+        "bar": 45.035,
+        "elapsedMs": 84440,
+        "lane": 1.052,
+        "integrity": 3,
+        "id": "traffic/42/0",
+        "actor": "freight"
+      },
+      {
+        "kind": "push",
+        "bar": 46.208,
+        "elapsedMs": 86640,
+        "lane": 3,
+        "integrity": 3,
+        "actor": "freight"
+      },
+      {
+        "kind": "turbo-input",
+        "bar": 46.208,
+        "elapsedMs": 86640,
+        "lane": 3,
+        "integrity": 3
+      },
+      {
+        "kind": "capture",
+        "bar": 47.008,
+        "elapsedMs": 88140,
+        "lane": 1.036,
+        "integrity": 3,
+        "action": "road_y"
+      },
+      {
+        "kind": "near-pass",
+        "bar": 47.872,
+        "elapsedMs": 89760,
+        "lane": 1.91,
+        "integrity": 3,
+        "cut": false
+      },
+      {
+        "kind": "capture",
+        "bar": 48.021,
+        "elapsedMs": 90040,
+        "lane": 1.918,
+        "integrity": 3,
+        "action": "road_a"
+      },
+      {
+        "kind": "capture",
+        "bar": 48.981,
+        "elapsedMs": 91840,
+        "lane": 2.956,
+        "integrity": 3,
+        "action": "road_b"
+      },
+      {
+        "kind": "capture",
+        "bar": 50.027,
+        "elapsedMs": 93800,
+        "lane": 1.942,
+        "integrity": 3,
+        "action": "road_x"
+      },
+      {
+        "kind": "capture",
+        "bar": 51.008,
+        "elapsedMs": 95640,
+        "lane": 0.937,
+        "integrity": 3,
+        "action": "road_y"
+      },
+      {
+        "kind": "capture",
+        "bar": 51.989,
+        "elapsedMs": 97480,
+        "lane": 0,
+        "integrity": 3,
+        "action": "road_a"
+      },
+      {
+        "kind": "capture",
+        "bar": 53.024,
+        "elapsedMs": 99420,
+        "lane": 1.082,
+        "integrity": 3,
+        "action": "road_y"
+      },
+      {
+        "kind": "capture",
+        "bar": 54.987,
+        "elapsedMs": 103100,
+        "lane": 2.042,
+        "integrity": 3,
+        "action": "road_x"
+      },
+      {
+        "kind": "capture",
+        "bar": 57.013,
+        "elapsedMs": 106900,
+        "lane": 2.994,
+        "integrity": 3,
+        "action": "road_a"
+      },
+      {
+        "kind": "echo",
+        "bar": 58.005,
+        "elapsedMs": 108760,
+        "lane": 2.938,
+        "integrity": 3
+      },
+      {
+        "kind": "pursuit-stage",
+        "bar": 58.101,
+        "elapsedMs": 108940,
+        "lane": 2.446,
+        "integrity": 3,
+        "stage": "surveillance"
+      },
+      {
+        "kind": "capture",
+        "bar": 59.019,
+        "elapsedMs": 110660,
+        "lane": 1.925,
+        "integrity": 3,
+        "action": "road_b"
+      },
+      {
+        "kind": "echo-deception",
+        "bar": 59.296,
+        "elapsedMs": 111180,
+        "lane": 1.909,
+        "integrity": 3
+      },
+      {
+        "kind": "pursuit-stage",
+        "bar": 59.392,
+        "elapsedMs": 111360,
+        "lane": 1.943,
+        "integrity": 3,
+        "stage": "recover"
+      },
+      {
+        "kind": "capture",
+        "bar": 60.981,
+        "elapsedMs": 114340,
+        "lane": 0.94,
+        "integrity": 3,
+        "action": "road_y"
+      },
+      {
+        "kind": "capture",
+        "bar": 63.029,
+        "elapsedMs": 118180,
+        "lane": 0,
+        "integrity": 3,
+        "action": "road_x"
+      },
+      {
+        "kind": "capture",
+        "bar": 64.992,
+        "elapsedMs": 121860,
+        "lane": 1.081,
+        "integrity": 3,
+        "action": "road_a"
+      },
+      {
+        "kind": "capture",
+        "bar": 66.997,
+        "elapsedMs": 125620,
+        "lane": 2.056,
+        "integrity": 3,
+        "action": "road_b"
+      },
+      {
+        "kind": "push-route-input",
+        "bar": 67.008,
+        "elapsedMs": 125640,
+        "lane": 2.069,
+        "integrity": 3,
+        "id": "traffic/64/1",
+        "actor": "van"
+      },
+      {
+        "kind": "push",
+        "bar": 68.213,
+        "elapsedMs": 127900,
+        "lane": 3,
+        "integrity": 3,
+        "actor": "van"
+      },
+      {
+        "kind": "turbo-input",
+        "bar": 68.213,
+        "elapsedMs": 127900,
+        "lane": 3,
+        "integrity": 3
+      },
+      {
+        "kind": "capture",
+        "bar": 69.024,
+        "elapsedMs": 129420,
+        "lane": 2.081,
+        "integrity": 3,
+        "action": "road_y"
+      },
+      {
+        "kind": "near-pass",
+        "bar": 69.867,
+        "elapsedMs": 131000,
+        "lane": 2.025,
+        "integrity": 3,
+        "cut": false
+      },
+      {
+        "kind": "echo",
+        "bar": 69.867,
+        "elapsedMs": 131000,
+        "lane": 2.025,
+        "integrity": 3
+      },
+      {
+        "kind": "capture",
+        "bar": 69.984,
+        "elapsedMs": 131220,
+        "lane": 1.931,
+        "integrity": 3,
+        "action": "road_x"
+      },
+      {
+        "kind": "capture",
+        "bar": 71.019,
+        "elapsedMs": 133160,
+        "lane": 2.958,
+        "integrity": 3,
+        "action": "road_a"
+      },
+      {
+        "kind": "capture",
+        "bar": 72.011,
+        "elapsedMs": 135020,
+        "lane": 1.928,
+        "integrity": 3,
+        "action": "road_b"
+      },
+      {
+        "kind": "near-pass",
+        "bar": 72.075,
+        "elapsedMs": 135140,
+        "lane": 1.942,
+        "integrity": 3,
+        "cut": false
+      },
+      {
+        "kind": "capture",
+        "bar": 72.992,
+        "elapsedMs": 136860,
+        "lane": 0.936,
+        "integrity": 3,
+        "action": "road_y"
+      },
+      {
+        "kind": "capture",
+        "bar": 74.027,
+        "elapsedMs": 138800,
+        "lane": 0,
+        "integrity": 3,
+        "action": "road_x"
+      },
+      {
+        "kind": "capture",
+        "bar": 74.987,
+        "elapsedMs": 140600,
+        "lane": 0.96,
+        "integrity": 3,
+        "action": "road_a"
+      },
+      {
+        "kind": "capture",
+        "bar": 76.011,
+        "elapsedMs": 142520,
+        "lane": 2.066,
+        "integrity": 3,
+        "action": "road_b"
+      },
+      {
+        "kind": "echo",
+        "bar": 77.003,
+        "elapsedMs": 144380,
+        "lane": 3,
+        "integrity": 3
+      },
+      {
+        "kind": "capture",
+        "bar": 77.024,
+        "elapsedMs": 144420,
+        "lane": 2.917,
+        "integrity": 3,
+        "action": "road_y"
+      },
+      {
+        "kind": "pursuit-stage",
+        "bar": 77.099,
+        "elapsedMs": 144560,
+        "lane": 2.62,
+        "integrity": 3,
+        "stage": "approach"
+      },
+      {
+        "kind": "echo-deception",
+        "bar": 78.571,
+        "elapsedMs": 147320,
+        "lane": 1.977,
+        "integrity": 3
+      },
+      {
+        "kind": "pursuit-stage",
+        "bar": 78.667,
+        "elapsedMs": 147500,
+        "lane": 2.004,
+        "integrity": 3,
+        "stage": "recover"
+      },
+      {
+        "kind": "capture",
+        "bar": 78.987,
+        "elapsedMs": 148100,
+        "lane": 2.077,
+        "integrity": 3,
+        "action": "road_x"
+      },
+      {
+        "kind": "capture",
+        "bar": 81.024,
+        "elapsedMs": 151920,
+        "lane": 0.919,
+        "integrity": 3,
+        "action": "road_a"
+      },
+      {
+        "kind": "capture",
+        "bar": 82.997,
+        "elapsedMs": 155620,
+        "lane": 0,
+        "integrity": 3,
+        "action": "road_b"
+      },
+      {
+        "kind": "pursuit-stage",
+        "bar": 83.104,
+        "elapsedMs": 155820,
+        "lane": 0,
+        "integrity": 3,
+        "stage": "interception"
+      },
+      {
+        "kind": "pursuit-stage",
+        "bar": 84.672,
+        "elapsedMs": 158760,
+        "lane": 0.96,
+        "integrity": 3,
+        "stage": "recover"
+      },
+      {
+        "kind": "capture",
+        "bar": 84.992,
+        "elapsedMs": 159360,
+        "lane": 0.911,
+        "integrity": 3,
+        "action": "road_y"
+      },
+      {
+        "kind": "capture",
+        "bar": 87.029,
+        "elapsedMs": 163180,
+        "lane": 2.048,
+        "integrity": 3,
+        "action": "road_x"
+      },
+      {
+        "kind": "echo",
+        "bar": 88,
+        "elapsedMs": 165000,
+        "lane": 2.09,
+        "integrity": 3
+      },
+      {
+        "kind": "pursuit-stage",
+        "bar": 88.096,
+        "elapsedMs": 165180,
+        "lane": 1.697,
+        "integrity": 3,
+        "stage": "last-pass"
+      },
+      {
+        "kind": "capture",
+        "bar": 88.981,
+        "elapsedMs": 166840,
+        "lane": 3,
+        "integrity": 3,
+        "action": "road_a"
+      },
+      {
+        "kind": "echo-deception",
+        "bar": 89.6,
+        "elapsedMs": 168000,
+        "lane": 3,
+        "integrity": 3
+      },
+      {
+        "kind": "pursuit-stage",
+        "bar": 89.696,
+        "elapsedMs": 168180,
+        "lane": 3,
+        "integrity": 3,
+        "stage": "recover"
+      },
+      {
+        "kind": "echo",
+        "bar": 92.011,
+        "elapsedMs": 172520,
+        "lane": 0.063,
+        "integrity": 3
+      },
+      {
+        "kind": "pursuit-stage",
+        "bar": 92.107,
+        "elapsedMs": 172700,
+        "lane": 0.528,
+        "integrity": 3,
+        "stage": "delivery-audit"
+      },
+      {
+        "kind": "pursuit-stage",
+        "bar": 93.643,
+        "elapsedMs": 175580,
+        "lane": 2.944,
+        "integrity": 3,
+        "stage": "recover"
+      },
+      {
+        "kind": "capture",
+        "bar": 97.013,
+        "elapsedMs": 181900,
+        "lane": 1.956,
+        "integrity": 3,
+        "action": "road_a"
+      },
+      {
+        "kind": "capture",
+        "bar": 99.008,
+        "elapsedMs": 185640,
+        "lane": 1.055,
+        "integrity": 3,
+        "action": "road_x"
+      }
+    ]
+  },
+  "video": {
+    "file": "Encounter-Review.mp4",
+    "sha256": "bdf36c284fdfd2cd6bbaea1e2429ea95f8422bfba4711198e3fc56c6341c2af7",
+    "bytes": 8467453,
+    "compression": {
+      "codec": "libx264",
+      "preset": "slow",
+      "crf": 26,
+      "maxrateKbps": 2600,
+      "bufsizeKbps": 5200,
+      "audio": "copy",
+      "maximumBytes": 10485760
+    }
+  },
+  "audio": {
+    "kind": "offline-five-stem-music-reconstruction",
+    "sampleRate": 32000,
+    "masterGain": 0.8,
+    "peakBeforeMaster": 0.9411237689992413,
+    "limitation": "Uses actual race captures and profile fade targets. Engine/SFX and browser Web Audio automation are not captured."
+  },
+  "limitation": "Actual gamepad-input-driven production race with native Canvas and local decoded art. Audio/storage/browser host boundaries are simulated. The two named staged impacts are separate coverage fixtures. Not a human playtest, Makko acceptance or device-performance measurement.",
+  "stagedFixtureEvents": [
+    {
+      "kind": "push",
+      "bar": 32,
+      "elapsedMs": 60000,
+      "lane": 0,
+      "integrity": 3,
+      "actor": "freight"
+    },
+    {
+      "kind": "brace",
+      "bar": 32,
+      "elapsedMs": 60000,
+      "lane": 0,
+      "integrity": 3,
+      "actor": "freight"
+    }
+  ]
+}

@@ -1,5 +1,23 @@
 # Recovery checkpoint — September 14
 
+## September 30, 2026 — encounter layout, reactions and final pursuit
+
+- Add a fresh-run, song-directed encounter chart with four driving acts,
+  committed world contacts, convoy gaps and reserved musical routes.
+- Make Relaxed/Standard/Overclocked affect road health, density and recovery.
+- Add shared physical Push/Brace/crash reactions and committed Echo diversion;
+  one crash removes one live musical part while queued awards survive.
+- Teach the rival at bar 58, stage three final interceptions, show split
+  preparation at bar 90 and keep the bar-92 delivery runway clear.
+- Add transparent Push arc, Brace halo, Echo ribbons and delivery beacon,
+  preserving source PNGs, lossless runtime conversions and generation records.
+- Retain old encounter rules for saved chapters without the new version;
+  preserve beat ONE, aligned music, exact 2.3 px mirror blur, city clearance,
+  digital HUD, records and the atomic Bass/result/ending handoff.
+- Add complete input-driven gear/difficulty races and recovery measurements.
+  Final local/Chromium/CI outcomes and merge state belong to the PR/generated
+  receipt. Native/automated evidence does not claim physical-device feel.
+
 ## September 30, 2026 — authored Cache Line completion
 
 - Add four ending paintings with source PNGs/provenance and twelve staged cues.
