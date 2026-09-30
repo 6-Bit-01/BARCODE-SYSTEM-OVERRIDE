@@ -22,8 +22,39 @@
     },
     "caveat": "Deterministic controller study; these are not human success rates, browser sound judgments, or Makko/device acceptance."
   },
-  "completed": 21,
-  "runs": 21,
+  "tunedFrom": {
+    "issue": "Initial timer exhausted before the first checkpoint despite remaining integrity",
+    "before": {
+      "initialTimerMs": 55000,
+      "difficulty": "standard",
+      "gear": 2,
+      "earlyHits": 2,
+      "hitBars": [
+        8.213,
+        10.635
+      ],
+      "status": "failed",
+      "finalBar": 27.413,
+      "elapsedMs": 51400,
+      "integrity": 1,
+      "reason": "TRANSMISSION WINDOW CLOSED"
+    },
+    "change": "Fresh authored runs and road-start retries receive 60000 ms; later verse checkpoints remain 55000 ms.",
+    "after": {
+      "initialTimerMs": 60000,
+      "status": "clear",
+      "finalBar": 100,
+      "elapsedMs": 187500,
+      "integrity": 1,
+      "hitBars": [
+        8.213,
+        10.635
+      ],
+      "retries": 0
+    }
+  },
+  "completed": 22,
+  "runs": 22,
   "results": [
     {
       "difficulty": "relaxed",
@@ -32,6 +63,8 @@
       "gearSchedule": [],
       "failFirstExit": false,
       "seekPush": false,
+      "earlyHits": 0,
+      "initialTimerMs": 60000,
       "status": "clear",
       "finalBar": 100,
       "elapsedMs": 187500,
@@ -733,6 +766,8 @@
       "gearSchedule": [],
       "failFirstExit": false,
       "seekPush": false,
+      "earlyHits": 0,
+      "initialTimerMs": 60000,
       "status": "clear",
       "finalBar": 100,
       "elapsedMs": 187500,
@@ -1411,6 +1446,8 @@
       "gearSchedule": [],
       "failFirstExit": false,
       "seekPush": false,
+      "earlyHits": 0,
+      "initialTimerMs": 60000,
       "status": "clear",
       "finalBar": 100,
       "elapsedMs": 187500,
@@ -2091,6 +2128,8 @@
       "gearSchedule": [],
       "failFirstExit": false,
       "seekPush": false,
+      "earlyHits": 0,
+      "initialTimerMs": 60000,
       "status": "clear",
       "finalBar": 100,
       "elapsedMs": 187500,
@@ -2907,6 +2946,8 @@
       "gearSchedule": [],
       "failFirstExit": false,
       "seekPush": false,
+      "earlyHits": 0,
+      "initialTimerMs": 60000,
       "status": "clear",
       "finalBar": 100,
       "elapsedMs": 187500,
@@ -3703,6 +3744,8 @@
       "gearSchedule": [],
       "failFirstExit": false,
       "seekPush": false,
+      "earlyHits": 0,
+      "initialTimerMs": 60000,
       "status": "clear",
       "finalBar": 100,
       "elapsedMs": 187500,
@@ -4486,6 +4529,8 @@
       "gearSchedule": [],
       "failFirstExit": false,
       "seekPush": false,
+      "earlyHits": 0,
+      "initialTimerMs": 60000,
       "status": "clear",
       "finalBar": 100,
       "elapsedMs": 187500,
@@ -5303,6 +5348,8 @@
       "gearSchedule": [],
       "failFirstExit": false,
       "seekPush": false,
+      "earlyHits": 0,
+      "initialTimerMs": 60000,
       "status": "clear",
       "finalBar": 100,
       "elapsedMs": 187500,
@@ -6147,6 +6194,8 @@
       "gearSchedule": [],
       "failFirstExit": false,
       "seekPush": false,
+      "earlyHits": 0,
+      "initialTimerMs": 60000,
       "status": "clear",
       "finalBar": 100,
       "elapsedMs": 187500,
@@ -6992,6 +7041,8 @@
       "gearSchedule": [],
       "failFirstExit": false,
       "seekPush": false,
+      "earlyHits": 0,
+      "initialTimerMs": 60000,
       "status": "clear",
       "finalBar": 100,
       "elapsedMs": 187500,
@@ -7686,6 +7737,8 @@
       "gearSchedule": [],
       "failFirstExit": false,
       "seekPush": false,
+      "earlyHits": 0,
+      "initialTimerMs": 60000,
       "status": "clear",
       "finalBar": 100,
       "elapsedMs": 187500,
@@ -8337,6 +8390,8 @@
       "gearSchedule": [],
       "failFirstExit": false,
       "seekPush": false,
+      "earlyHits": 0,
+      "initialTimerMs": 60000,
       "status": "clear",
       "finalBar": 100,
       "elapsedMs": 187500,
@@ -8947,6 +9002,8 @@
       "gearSchedule": [],
       "failFirstExit": false,
       "seekPush": false,
+      "earlyHits": 0,
+      "initialTimerMs": 60000,
       "status": "clear",
       "finalBar": 100,
       "elapsedMs": 187500,
@@ -9703,6 +9760,8 @@
       "gearSchedule": [],
       "failFirstExit": false,
       "seekPush": false,
+      "earlyHits": 0,
+      "initialTimerMs": 60000,
       "status": "clear",
       "finalBar": 100,
       "elapsedMs": 187500,
@@ -10440,6 +10499,8 @@
       "gearSchedule": [],
       "failFirstExit": false,
       "seekPush": false,
+      "earlyHits": 0,
+      "initialTimerMs": 60000,
       "status": "clear",
       "finalBar": 100,
       "elapsedMs": 187500,
@@ -11162,6 +11223,8 @@
       "gearSchedule": [],
       "failFirstExit": false,
       "seekPush": false,
+      "earlyHits": 0,
+      "initialTimerMs": 60000,
       "status": "clear",
       "finalBar": 100,
       "elapsedMs": 187500,
@@ -11927,6 +11990,8 @@
       "gearSchedule": [],
       "failFirstExit": false,
       "seekPush": false,
+      "earlyHits": 0,
+      "initialTimerMs": 60000,
       "status": "clear",
       "finalBar": 100,
       "elapsedMs": 187500,
@@ -12737,6 +12802,8 @@
       "gearSchedule": [],
       "failFirstExit": false,
       "seekPush": false,
+      "earlyHits": 0,
+      "initialTimerMs": 60000,
       "status": "clear",
       "finalBar": 100,
       "elapsedMs": 187500,
@@ -13514,6 +13581,8 @@
       ],
       "failFirstExit": false,
       "seekPush": false,
+      "earlyHits": 0,
+      "initialTimerMs": 60000,
       "status": "clear",
       "finalBar": 100,
       "elapsedMs": 187500,
@@ -14294,6 +14363,8 @@
       "gearSchedule": [],
       "failFirstExit": true,
       "seekPush": false,
+      "earlyHits": 0,
+      "initialTimerMs": 60000,
       "status": "clear",
       "finalBar": 100,
       "elapsedMs": 219660,
@@ -15203,6 +15274,8 @@
       "gearSchedule": [],
       "failFirstExit": false,
       "seekPush": true,
+      "earlyHits": 0,
+      "initialTimerMs": 60000,
       "status": "clear",
       "finalBar": 100,
       "elapsedMs": 187500,
@@ -16038,6 +16111,829 @@
           "elapsedMs": 185640,
           "lane": 1.055,
           "integrity": 3,
+          "action": "road_x"
+        }
+      ]
+    },
+    {
+      "difficulty": "standard",
+      "gear": 2,
+      "profile": "practiced",
+      "gearSchedule": [],
+      "failFirstExit": false,
+      "seekPush": false,
+      "earlyHits": 2,
+      "initialTimerMs": 60000,
+      "status": "clear",
+      "finalBar": 100,
+      "elapsedMs": 187500,
+      "distance": 10200.835,
+      "score": 37170,
+      "integrity": 1,
+      "minimumIntegrity": 1,
+      "gearFrames": [
+        0,
+        9375,
+        0
+      ],
+      "damageTaken": 2,
+      "retries": 0,
+      "attempts": 54,
+      "captured": 53,
+      "perfect": 49,
+      "announced": 56,
+      "omittedInputs": 0,
+      "bestCombo": 8,
+      "maxCapturedParts": 4,
+      "nearPasses": 15,
+      "echoUses": 5,
+      "echoDeceptions": 3,
+      "turboUses": 1,
+      "pushContacts": 0,
+      "braceContacts": 0,
+      "gateOpen": true,
+      "gateFailure": null,
+      "finalMessage": "BRACE // FLOW +16 BARS  FAST x2",
+      "checkpoints": [
+        {
+          "id": "road-verse-2",
+          "bar": 28,
+          "integrity": 1
+        },
+        {
+          "id": "road-verse-3",
+          "bar": 52.011,
+          "integrity": 1
+        },
+        {
+          "id": "road-verse-4",
+          "bar": 76.011,
+          "integrity": 1
+        },
+        {
+          "id": "road-gate",
+          "bar": 93.547,
+          "integrity": 1
+        },
+        {
+          "id": "road-clear",
+          "bar": 100,
+          "integrity": 1
+        }
+      ],
+      "failures": [],
+      "recoveries": [
+        {
+          "bar": 8.213,
+          "retained": 0,
+          "previous": 1,
+          "nextCaptureMs": 5220
+        },
+        {
+          "bar": 10.635,
+          "retained": 0,
+          "previous": 0,
+          "nextCaptureMs": 680
+        }
+      ],
+      "events": [
+        {
+          "kind": "capture",
+          "bar": 5.013,
+          "elapsedMs": 9400,
+          "lane": 1.958,
+          "integrity": 3,
+          "action": "road_a"
+        },
+        {
+          "kind": "intentional-lane-error",
+          "bar": 6.507,
+          "elapsedMs": 12200,
+          "lane": 2.946,
+          "integrity": 3,
+          "actor": "van",
+          "id": "traffic/4/0"
+        },
+        {
+          "kind": "damage",
+          "bar": 8.213,
+          "elapsedMs": 15400,
+          "lane": 0.044,
+          "integrity": 2,
+          "actor": "van",
+          "capturesBefore": [
+            2
+          ],
+          "capturesAfter": [],
+          "queuedBefore": [],
+          "queuedAfter": []
+        },
+        {
+          "kind": "intentional-lane-error",
+          "bar": 8.992,
+          "elapsedMs": 16860,
+          "lane": 2.084,
+          "integrity": 2,
+          "actor": "freight",
+          "id": "traffic/6/0"
+        },
+        {
+          "kind": "damage",
+          "bar": 10.635,
+          "elapsedMs": 19940,
+          "lane": 0.043,
+          "integrity": 1,
+          "actor": "freight",
+          "capturesBefore": [],
+          "capturesAfter": [],
+          "queuedBefore": [],
+          "queuedAfter": []
+        },
+        {
+          "kind": "turbo-input",
+          "bar": 10.635,
+          "elapsedMs": 19940,
+          "lane": 0.043,
+          "integrity": 1
+        },
+        {
+          "kind": "capture",
+          "bar": 10.997,
+          "elapsedMs": 20620,
+          "lane": 0.962,
+          "integrity": 1,
+          "action": "road_b"
+        },
+        {
+          "kind": "capture",
+          "bar": 13.003,
+          "elapsedMs": 24380,
+          "lane": 0,
+          "integrity": 1,
+          "action": "road_a"
+        },
+        {
+          "kind": "missed-press",
+          "bar": 15.019,
+          "elapsedMs": 28160,
+          "lane": 0,
+          "integrity": 1,
+          "action": "road_x"
+        },
+        {
+          "kind": "near-pass",
+          "bar": 16.171,
+          "elapsedMs": 30320,
+          "lane": 0.187,
+          "integrity": 1,
+          "cut": false
+        },
+        {
+          "kind": "capture",
+          "bar": 16.981,
+          "elapsedMs": 31840,
+          "lane": 1.939,
+          "integrity": 1,
+          "action": "road_y"
+        },
+        {
+          "kind": "capture",
+          "bar": 19.019,
+          "elapsedMs": 35660,
+          "lane": 2.693,
+          "integrity": 1,
+          "action": "road_b"
+        },
+        {
+          "kind": "near-pass",
+          "bar": 20.523,
+          "elapsedMs": 38480,
+          "lane": 2.093,
+          "integrity": 1,
+          "cut": false
+        },
+        {
+          "kind": "capture",
+          "bar": 22.005,
+          "elapsedMs": 41260,
+          "lane": 3,
+          "integrity": 1,
+          "action": "road_a"
+        },
+        {
+          "kind": "near-pass",
+          "bar": 22.517,
+          "elapsedMs": 42220,
+          "lane": 3,
+          "integrity": 1,
+          "cut": false
+        },
+        {
+          "kind": "capture",
+          "bar": 22.987,
+          "elapsedMs": 43100,
+          "lane": 3,
+          "integrity": 1,
+          "action": "road_x"
+        },
+        {
+          "kind": "capture",
+          "bar": 24.032,
+          "elapsedMs": 45060,
+          "lane": 2.033,
+          "integrity": 1,
+          "action": "road_y"
+        },
+        {
+          "kind": "capture",
+          "bar": 24.992,
+          "elapsedMs": 46860,
+          "lane": 0.948,
+          "integrity": 1,
+          "action": "road_b"
+        },
+        {
+          "kind": "capture",
+          "bar": 26.005,
+          "elapsedMs": 48760,
+          "lane": 0,
+          "integrity": 1,
+          "action": "road_a"
+        },
+        {
+          "kind": "capture",
+          "bar": 27.019,
+          "elapsedMs": 50660,
+          "lane": 0.94,
+          "integrity": 1,
+          "action": "road_x"
+        },
+        {
+          "kind": "capture",
+          "bar": 27.979,
+          "elapsedMs": 52460,
+          "lane": 0.93,
+          "integrity": 1,
+          "action": "road_y"
+        },
+        {
+          "kind": "near-pass",
+          "bar": 28.181,
+          "elapsedMs": 52840,
+          "lane": 0.935,
+          "integrity": 1,
+          "cut": false
+        },
+        {
+          "kind": "capture",
+          "bar": 29.024,
+          "elapsedMs": 54420,
+          "lane": 0.955,
+          "integrity": 1,
+          "action": "road_b"
+        },
+        {
+          "kind": "capture",
+          "bar": 30.997,
+          "elapsedMs": 58120,
+          "lane": 2.061,
+          "integrity": 1,
+          "action": "road_x"
+        },
+        {
+          "kind": "near-pass",
+          "bar": 32.491,
+          "elapsedMs": 60920,
+          "lane": 2.056,
+          "integrity": 1,
+          "cut": false
+        },
+        {
+          "kind": "capture",
+          "bar": 32.992,
+          "elapsedMs": 61860,
+          "lane": 2.064,
+          "integrity": 1,
+          "action": "road_y"
+        },
+        {
+          "kind": "near-pass",
+          "bar": 34.517,
+          "elapsedMs": 64720,
+          "lane": 1.057,
+          "integrity": 1,
+          "cut": false
+        },
+        {
+          "kind": "capture",
+          "bar": 35.029,
+          "elapsedMs": 65680,
+          "lane": 1.042,
+          "integrity": 1,
+          "action": "road_a"
+        },
+        {
+          "kind": "near-pass",
+          "bar": 36.416,
+          "elapsedMs": 68280,
+          "lane": 1.939,
+          "integrity": 1,
+          "cut": false
+        },
+        {
+          "kind": "capture",
+          "bar": 36.981,
+          "elapsedMs": 69340,
+          "lane": 1.926,
+          "integrity": 1,
+          "action": "road_b"
+        },
+        {
+          "kind": "near-pass",
+          "bar": 38.208,
+          "elapsedMs": 71640,
+          "lane": 1.942,
+          "integrity": 1,
+          "cut": false
+        },
+        {
+          "kind": "capture",
+          "bar": 39.019,
+          "elapsedMs": 73160,
+          "lane": 1.918,
+          "integrity": 1,
+          "action": "road_x"
+        },
+        {
+          "kind": "near-pass",
+          "bar": 40.213,
+          "elapsedMs": 75400,
+          "lane": 0.943,
+          "integrity": 1,
+          "cut": false
+        },
+        {
+          "kind": "capture",
+          "bar": 41.013,
+          "elapsedMs": 76900,
+          "lane": 0.962,
+          "integrity": 1,
+          "action": "road_y"
+        },
+        {
+          "kind": "near-pass",
+          "bar": 42.517,
+          "elapsedMs": 79720,
+          "lane": 2.063,
+          "integrity": 1,
+          "cut": false
+        },
+        {
+          "kind": "capture",
+          "bar": 42.987,
+          "elapsedMs": 80600,
+          "lane": 2.048,
+          "integrity": 1,
+          "action": "road_a"
+        },
+        {
+          "kind": "near-pass",
+          "bar": 44.416,
+          "elapsedMs": 83280,
+          "lane": 2.051,
+          "integrity": 1,
+          "cut": false
+        },
+        {
+          "kind": "capture",
+          "bar": 45.024,
+          "elapsedMs": 84420,
+          "lane": 2.089,
+          "integrity": 1,
+          "action": "road_b"
+        },
+        {
+          "kind": "capture",
+          "bar": 45.995,
+          "elapsedMs": 86240,
+          "lane": 1.061,
+          "integrity": 1,
+          "action": "road_x"
+        },
+        {
+          "kind": "near-pass",
+          "bar": 46.208,
+          "elapsedMs": 86640,
+          "lane": 1.069,
+          "integrity": 1,
+          "cut": false
+        },
+        {
+          "kind": "capture",
+          "bar": 47.008,
+          "elapsedMs": 88140,
+          "lane": 1.044,
+          "integrity": 1,
+          "action": "road_y"
+        },
+        {
+          "kind": "capture",
+          "bar": 48.021,
+          "elapsedMs": 90040,
+          "lane": 1.925,
+          "integrity": 1,
+          "action": "road_a"
+        },
+        {
+          "kind": "capture",
+          "bar": 48.981,
+          "elapsedMs": 91840,
+          "lane": 2.952,
+          "integrity": 1,
+          "action": "road_b"
+        },
+        {
+          "kind": "capture",
+          "bar": 50.027,
+          "elapsedMs": 93800,
+          "lane": 1.952,
+          "integrity": 1,
+          "action": "road_x"
+        },
+        {
+          "kind": "capture",
+          "bar": 51.008,
+          "elapsedMs": 95640,
+          "lane": 0.909,
+          "integrity": 1,
+          "action": "road_y"
+        },
+        {
+          "kind": "capture",
+          "bar": 51.989,
+          "elapsedMs": 97480,
+          "lane": 0,
+          "integrity": 1,
+          "action": "road_a"
+        },
+        {
+          "kind": "capture",
+          "bar": 53.024,
+          "elapsedMs": 99420,
+          "lane": 0.955,
+          "integrity": 1,
+          "action": "road_y"
+        },
+        {
+          "kind": "capture",
+          "bar": 54.987,
+          "elapsedMs": 103100,
+          "lane": 2.087,
+          "integrity": 1,
+          "action": "road_x"
+        },
+        {
+          "kind": "capture",
+          "bar": 57.013,
+          "elapsedMs": 106900,
+          "lane": 3,
+          "integrity": 1,
+          "action": "road_a"
+        },
+        {
+          "kind": "echo",
+          "bar": 58.005,
+          "elapsedMs": 108760,
+          "lane": 3,
+          "integrity": 1
+        },
+        {
+          "kind": "pursuit-stage",
+          "bar": 58.101,
+          "elapsedMs": 108940,
+          "lane": 2.552,
+          "integrity": 1,
+          "stage": "surveillance"
+        },
+        {
+          "kind": "capture",
+          "bar": 59.019,
+          "elapsedMs": 110660,
+          "lane": 1.93,
+          "integrity": 1,
+          "action": "road_b"
+        },
+        {
+          "kind": "echo-deception",
+          "bar": 59.296,
+          "elapsedMs": 111180,
+          "lane": 1.953,
+          "integrity": 1
+        },
+        {
+          "kind": "pursuit-stage",
+          "bar": 59.392,
+          "elapsedMs": 111360,
+          "lane": 1.96,
+          "integrity": 1,
+          "stage": "recover"
+        },
+        {
+          "kind": "capture",
+          "bar": 60.981,
+          "elapsedMs": 114340,
+          "lane": 0.936,
+          "integrity": 1,
+          "action": "road_y"
+        },
+        {
+          "kind": "capture",
+          "bar": 63.029,
+          "elapsedMs": 118180,
+          "lane": 0,
+          "integrity": 1,
+          "action": "road_x"
+        },
+        {
+          "kind": "capture",
+          "bar": 64.992,
+          "elapsedMs": 121860,
+          "lane": 1.001,
+          "integrity": 1,
+          "action": "road_a"
+        },
+        {
+          "kind": "capture",
+          "bar": 66.997,
+          "elapsedMs": 125620,
+          "lane": 2.069,
+          "integrity": 1,
+          "action": "road_b"
+        },
+        {
+          "kind": "near-pass",
+          "bar": 68.213,
+          "elapsedMs": 127900,
+          "lane": 2.085,
+          "integrity": 1,
+          "cut": false
+        },
+        {
+          "kind": "capture",
+          "bar": 69.024,
+          "elapsedMs": 129420,
+          "lane": 2.046,
+          "integrity": 1,
+          "action": "road_y"
+        },
+        {
+          "kind": "echo",
+          "bar": 69.035,
+          "elapsedMs": 129440,
+          "lane": 2.052,
+          "integrity": 1
+        },
+        {
+          "kind": "capture",
+          "bar": 69.984,
+          "elapsedMs": 131220,
+          "lane": 2.056,
+          "integrity": 1,
+          "action": "road_x"
+        },
+        {
+          "kind": "near-pass",
+          "bar": 70.208,
+          "elapsedMs": 131640,
+          "lane": 2.073,
+          "integrity": 1,
+          "cut": false
+        },
+        {
+          "kind": "capture",
+          "bar": 71.019,
+          "elapsedMs": 133160,
+          "lane": 2.077,
+          "integrity": 1,
+          "action": "road_a"
+        },
+        {
+          "kind": "capture",
+          "bar": 72.011,
+          "elapsedMs": 135020,
+          "lane": 1.926,
+          "integrity": 1,
+          "action": "road_b"
+        },
+        {
+          "kind": "near-pass",
+          "bar": 72.416,
+          "elapsedMs": 135780,
+          "lane": 1.956,
+          "integrity": 1,
+          "cut": false
+        },
+        {
+          "kind": "capture",
+          "bar": 72.992,
+          "elapsedMs": 136860,
+          "lane": 1.913,
+          "integrity": 1,
+          "action": "road_y"
+        },
+        {
+          "kind": "capture",
+          "bar": 74.027,
+          "elapsedMs": 138800,
+          "lane": 2.916,
+          "integrity": 1,
+          "action": "road_x"
+        },
+        {
+          "kind": "capture",
+          "bar": 74.987,
+          "elapsedMs": 140600,
+          "lane": 1.926,
+          "integrity": 1,
+          "action": "road_a"
+        },
+        {
+          "kind": "capture",
+          "bar": 76.011,
+          "elapsedMs": 142520,
+          "lane": 0.973,
+          "integrity": 1,
+          "action": "road_b"
+        },
+        {
+          "kind": "echo",
+          "bar": 77.003,
+          "elapsedMs": 144380,
+          "lane": 0.043,
+          "integrity": 1
+        },
+        {
+          "kind": "capture",
+          "bar": 77.024,
+          "elapsedMs": 144420,
+          "lane": 0.152,
+          "integrity": 1,
+          "action": "road_y"
+        },
+        {
+          "kind": "pursuit-stage",
+          "bar": 77.099,
+          "elapsedMs": 144560,
+          "lane": 0.533,
+          "integrity": 1,
+          "stage": "approach"
+        },
+        {
+          "kind": "echo-deception",
+          "bar": 78.571,
+          "elapsedMs": 147320,
+          "lane": 1.199,
+          "integrity": 1
+        },
+        {
+          "kind": "pursuit-stage",
+          "bar": 78.667,
+          "elapsedMs": 147500,
+          "lane": 1.045,
+          "integrity": 1,
+          "stage": "recover"
+        },
+        {
+          "kind": "capture",
+          "bar": 78.987,
+          "elapsedMs": 148100,
+          "lane": 1.048,
+          "integrity": 1,
+          "action": "road_x"
+        },
+        {
+          "kind": "capture",
+          "bar": 81.024,
+          "elapsedMs": 151920,
+          "lane": 2.077,
+          "integrity": 1,
+          "action": "road_a"
+        },
+        {
+          "kind": "capture",
+          "bar": 82.997,
+          "elapsedMs": 155620,
+          "lane": 2.919,
+          "integrity": 1,
+          "action": "road_b"
+        },
+        {
+          "kind": "pursuit-stage",
+          "bar": 83.104,
+          "elapsedMs": 155820,
+          "lane": 2.923,
+          "integrity": 1,
+          "stage": "interception"
+        },
+        {
+          "kind": "pursuit-stage",
+          "bar": 84.672,
+          "elapsedMs": 158760,
+          "lane": 2.921,
+          "integrity": 1,
+          "stage": "recover"
+        },
+        {
+          "kind": "capture",
+          "bar": 84.992,
+          "elapsedMs": 159360,
+          "lane": 2.92,
+          "integrity": 1,
+          "action": "road_y"
+        },
+        {
+          "kind": "capture",
+          "bar": 87.029,
+          "elapsedMs": 163180,
+          "lane": 1.959,
+          "integrity": 1,
+          "action": "road_x"
+        },
+        {
+          "kind": "echo",
+          "bar": 88,
+          "elapsedMs": 165000,
+          "lane": 1.917,
+          "integrity": 1
+        },
+        {
+          "kind": "pursuit-stage",
+          "bar": 88.096,
+          "elapsedMs": 165180,
+          "lane": 1.472,
+          "integrity": 1,
+          "stage": "last-pass"
+        },
+        {
+          "kind": "capture",
+          "bar": 88.981,
+          "elapsedMs": 166840,
+          "lane": 1.071,
+          "integrity": 1,
+          "action": "road_a"
+        },
+        {
+          "kind": "echo-deception",
+          "bar": 89.6,
+          "elapsedMs": 168000,
+          "lane": 1.059,
+          "integrity": 1
+        },
+        {
+          "kind": "pursuit-stage",
+          "bar": 89.696,
+          "elapsedMs": 168180,
+          "lane": 1.063,
+          "integrity": 1,
+          "stage": "recover"
+        },
+        {
+          "kind": "echo",
+          "bar": 92.011,
+          "elapsedMs": 172520,
+          "lane": 0.071,
+          "integrity": 1
+        },
+        {
+          "kind": "pursuit-stage",
+          "bar": 92.107,
+          "elapsedMs": 172700,
+          "lane": 0.581,
+          "integrity": 1,
+          "stage": "delivery-audit"
+        },
+        {
+          "kind": "pursuit-stage",
+          "bar": 93.643,
+          "elapsedMs": 175580,
+          "lane": 3,
+          "integrity": 1,
+          "stage": "recover"
+        },
+        {
+          "kind": "capture",
+          "bar": 97.013,
+          "elapsedMs": 181900,
+          "lane": 0,
+          "integrity": 1,
+          "action": "road_a"
+        },
+        {
+          "kind": "capture",
+          "bar": 99.008,
+          "elapsedMs": 185640,
+          "lane": 0.951,
+          "integrity": 1,
           "action": "road_x"
         }
       ]

@@ -27,8 +27,11 @@ The controller uses delayed production-visible observations and actual gamepad i
 | practiced + gear changes | standard | 2 | clear | 100 | 0 | 0 | 51/54 | 8 | 0 / 0 | 4 | 3 |
 | practiced + missed exit | standard | 3 | clear | 100 | 0 | 1 | 63/64 | 8 | 0 / 0 | 4 | 3 |
 | practiced + ram route | standard | 2 | clear | 100 | 0 | 0 | 54/56 | 8 | 5 / 0 | 5 | 3 |
+| practiced + two early hits | standard | 2 | clear | 100 | 2 | 0 | 53/56 | 8 | 0 / 0 | 5 | 1 |
 
-Completed: 21/21. Exact events, failures, checkpoints and recovery durations are in the companion JSON.
+Completed: 22/22. Exact events, failures, checkpoints and recovery durations are in the companion JSON.
+
+The early-contact probe found a timer-only failure: with the original 55-second start, two real hits at bars 8.213 and 10.635 left one integrity but exhausted the timer at bar 27.413, before the first checkpoint. The fresh authored start was increased to 60 seconds. Identical inputs now complete all 100 bars with one integrity and no retry. Later verse timers and legacy runs remain unchanged.
 
 Recovery samples below include an actual unprotected collision. Time to the next capture includes further timing mistakes, skipped inputs and driving around traffic; it is not a forced recovery delay.
 

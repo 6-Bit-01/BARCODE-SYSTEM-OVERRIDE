@@ -23,7 +23,9 @@ use Replay race to review this pass. Base/rollback is merged #156,
    already judged queued awards, then capture another pad. Repeat on Relaxed,
    Standard and Overclocked; health, traffic and recovery should differ while
    the musical timing window stays the same.
-4. Inspect all three final attacks and the bar-90 setup cue. At the delivery
+4. Reload a checkpoint after opening the exit: it must remain earned and
+   finish without requiring another Echo. Inspect all three final attacks and
+   the bar-90 setup cue. At the delivery
    approach, send a stable left-lane Echo and take the far-right exit. There
    must be room to split in every gear, with no extra rival collision at the
    gate. Deliberately miss it once and Retry from the saved marker. Complete

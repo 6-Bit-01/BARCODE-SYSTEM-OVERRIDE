@@ -1616,6 +1616,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       s.maxIntegrity=B.CacheRoadEncounters.difficulty(this.chapter.difficultyId).maxIntegrity;
       if(saved?.driveSection)s.driveSections=[clone(saved.driveSection)];
       if(!saved||refill)s.integrity=s.maxIntegrity;
+      // The opening includes four intro bars before the first 24-bar act.
+      // Its budget must also cover the nonfatal hits allowed by integrity.
+      if(!saved||(refill&&s.musicBar===0))s.timeMs=60000;
       s.pursuit=B.CacheRoadPursuit?.create({barFloat:s.musicBar});
       for(const pulse of roadPulses(s)) {
         s.pulseTargets[pulse.id]=pulse.target;s.pulsePlaces[pulse.id]=pulse.at;
@@ -2510,7 +2513,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       }
       if(s.pursuit) {
         const events=B.CacheRoadPursuit.step(s.pursuit,{before,progress:s.progress,
-          barFloat:s.musicBeatFloat/4,dt,lane:s.lanePos,echo:s.echo,gateAt:s.gateAt,
+          barFloat:s.musicBeatFloat/4,dt,lane:s.lanePos,echo:s.echo,gateAt:s.gateOpen?null:s.gateAt,
           echoActive:!!s.echo&&s.rivalDistractedMs>0,difficultyId:this.chapter.difficultyId,
           protectedPulses:roadPulses(s).filter(p=>p.target>=s.musicBeatFloat-.3),
           actors:roadHazards(s).map(h=>({...h,...actorPose(s,h),cleared:!actorPose(s,h).collidable}))});
@@ -2584,7 +2587,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         s.gateAt = s.progress + 150;
         s.echoEnergy = 100;
       }
-      if (s.gateAt != null && before < s.gateAt && s.progress >= s.gateAt) {
+      if (!s.gateOpen && s.gateAt != null && before < s.gateAt && s.progress >= s.gateAt) {
         if (s.lanePos < 2.45 || !s.echo || s.rivalDistractedMs <= 0 ||
             Math.abs(s.echo.lanePos - s.lanePos) < 0.75) {
           s.gateFailure = s.lanePos < 2.45 ? 'wrong-lane' :

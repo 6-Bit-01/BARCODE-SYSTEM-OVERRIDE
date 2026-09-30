@@ -127,9 +127,12 @@ class Driver {
     // A repeatable recovery probe is an openly intentional driving mistake:
     // choose a visible convoy actor and stay in its lane until the contact.
     // It changes controls only, and resumes the same policy after one impact.
-    if (this.observed.events.some(e => e.kind === 'damage')) this.mistakeChosen = true;
-    if (p.mistake && !this.mistakeChosen && !this.mistake && this.mistakeTries < 5 && s.musicBar >= 30 && s.musicBar < 68 &&
-        (s.captures || []).length >= 2 && !s.ramMs && !s.boostMs) {
+    const damageCount = this.observed.events.filter(e => e.kind === 'damage').length;
+    if (damageCount >= (this.options.earlyHits || 1)) this.mistakeChosen = true;
+    const earlyProbe = this.options.earlyHits > 0 && !this.mistakeChosen && s.musicBar < 28;
+    const ordinaryProbe = p.mistake && s.musicBar >= 30 && s.musicBar < 68 && (s.captures || []).length >= 2;
+    if ((earlyProbe || ordinaryProbe) && !this.mistakeChosen && !this.mistake && this.mistakeTries < 8 &&
+        !s.ramMs && !s.boostMs && !s.invulnerableMs) {
       const h = hazards.find(h => !this.mistakeActors.has(h.id) && !['audit', 'block'].includes(h.kind) && h.distance / Math.max(s.speed, 30) > 1.1 &&
         h.distance / Math.max(s.speed, 30) < 2.7);
       if (h) { this.mistake = h; this.mistakeTries++; this.mistakeActors.add(h.id); this.observed.event('intentional-lane-error', { actor: h.kind, id: h.id }); }
@@ -198,7 +201,7 @@ class Driver {
     }
     // Turbo is a deliberate response to close traffic, with no pulse due
     // during its immediate input. Its actual acceleration remains bar-owned.
-    if (!final && !this.mistake && !this.ramTarget && s.boost > 0 && !s.queuedTurbo && now - this.lastTurbo > 6500 &&
+    if (!final && !earlyProbe && !this.mistake && !this.ramTarget && s.boost > 0 && !s.queuedTurbo && now - this.lastTurbo > 6500 &&
         pulseSec > .4 && hazards.some(h => h.distance / Math.max(s.speed, 30) < 1.4 && Math.abs(h.lane - s.lanePos) < .7)) {
       pad.buttons[4].pressed = true; this.lastTurbo = now; this.observed.event('turbo-input');
     }
@@ -207,7 +210,8 @@ class Driver {
       const heardSec = s.musicBeatFloat * 60 / 128;
       if (heardSec >= targetSec && heardSec < targetSec + .07) {
         const action = typeof pulse.action === 'string' ? pulse.action : ['road_a', 'road_b', 'road_x', 'road_y'][pulse.action];
-        if (ACTION_BUTTON[action] !== undefined && !(p.mistake && !this.mistakeChosen && s.musicBar >= 30 && action === 'road_x')) pad.buttons[ACTION_BUTTON[action]].pressed = true;
+        if (ACTION_BUTTON[action] !== undefined && !(p.mistake && !this.mistakeChosen && s.musicBar >= 30 && action === 'road_x') &&
+            !(earlyProbe && ['road_b', 'road_x'].includes(action))) pad.buttons[ACTION_BUTTON[action]].pressed = true;
         this.pressed.add(pulse.id);
       }
     }
@@ -220,12 +224,13 @@ class Driver {
   }
 }
 
-async function runRace({ difficulty = 'standard', gear = 1, profile = 'practiced', retryLimit = 0, onReady, onFrame, gearSchedule = [], failFirstExit = false, seekPush = false } = {}) {
+async function runRace({ difficulty = 'standard', gear = 1, profile = 'practiced', retryLimit = 0, onReady, onFrame, gearSchedule = [], failFirstExit = false, seekPush = false, earlyHits = 0 } = {}) {
   const r = await raceRig(difficulty), observed = instrument(r);
   // Rendering is a host boundary in this balance study. Preserve the real
   // renderer for native review callbacks without drawing 9,375 mock frames.
   r.drawRoad = r.road.draw.bind(r.road); r.road.draw = () => {};
-  const driver = new Driver(r, PROFILES[profile], gear, observed, { gearSchedule, failFirstExit, seekPush });
+  const initialTimerMs = r.road.state.timeMs;
+  const driver = new Driver(r, PROFILES[profile], gear, observed, { gearSchedule, failFirstExit, seekPush, earlyHits });
   if (onReady) await onReady(r);
   let minimumIntegrity = r.road.state.integrity, frames = 0, retries = 0, maxStack = 0;
   const checkpoints = [], failures = [], gearFrames = [0, 0, 0];
@@ -259,7 +264,7 @@ async function runRace({ difficulty = 'standard', gear = 1, profile = 'practiced
       previous: hit.capturesBefore.length + hit.queuedBefore.length,
       nextCaptureMs: next ? round(next.elapsedMs - hit.elapsedMs) : null };
   });
-  const result = { difficulty, gear: gear + 1, profile, gearSchedule, failFirstExit, seekPush, status: r.road.status, finalBar: round(s.musicBeatFloat / 4),
+  const result = { difficulty, gear: gear + 1, profile, gearSchedule, failFirstExit, seekPush, earlyHits, initialTimerMs, status: r.road.status, finalBar: round(s.musicBeatFloat / 4),
     elapsedMs: round(chapter.elapsedMs), distance: round(s.progress), score: s.score,
     integrity: s.integrity, minimumIntegrity, gearFrames, damageTaken: chapter.damageTaken, retries,
     attempts: chapter.attempts, captured: chapter.accurate, perfect: chapter.perfect, announced: observed.pulses.size,
@@ -280,7 +285,16 @@ function report(results) {
     restrictions: 'No position/health/immunity/ability/capture/score writes. Only gamepad controls. No hidden chart lookup.',
     practiced: PROFILES.practiced, recovering: PROFILES.recovering,
     caveat: 'Deterministic controller study; these are not human success rates, browser sound judgments, or Makko/device acceptance.' };
-  return { schemaVersion: 1, policy, completed: results.filter(r => r.status === 'clear').length,
+  const early = results.find(r => r.earlyHits === 2);
+  const tunedFrom = { issue: 'Initial timer exhausted before the first checkpoint despite remaining integrity',
+    before: { initialTimerMs: 55000, difficulty: 'standard', gear: 2, earlyHits: 2,
+      hitBars: [8.213, 10.635], status: 'failed', finalBar: 27.413, elapsedMs: 51400,
+      integrity: 1, reason: 'TRANSMISSION WINDOW CLOSED' },
+    change: 'Fresh authored runs and road-start retries receive 60000 ms; later verse checkpoints remain 55000 ms.',
+    after: early ? { initialTimerMs: early.initialTimerMs, status: early.status,
+      finalBar: early.finalBar, elapsedMs: early.elapsedMs, integrity: early.integrity,
+      hitBars: early.events.filter(e => e.kind === 'damage').map(e => e.bar), retries: early.retries } : null };
+  return { schemaVersion: 1, policy, tunedFrom, completed: results.filter(r => r.status === 'clear').length,
     runs: results.length, results };
 }
 function markdown(data) {
@@ -288,8 +302,9 @@ function markdown(data) {
     'The controller uses delayed production-visible observations and actual gamepad input. All road travel, captures, collisions, abilities, gate checks and checkpoint retries run through production code at 50 updates/second. No immunity or gameplay state is injected. Gears 1 and 3 engage using the normal first-bar queued gear input. The recovering profile skips every fifth offered action, has more timing error, and skips Brace before deliberately staying in visible convoy lanes until one unprotected contact probes recovery.\n\n' +
     '| Driver | Difficulty | Gear | Result | Bar | Hits | Retries | Captures | Best chain | Push / Brace | Echo | Integrity |\n' +
     '| --- | --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |\n' +
-    data.results.map(r => `| ${r.profile}${r.gearSchedule.length ? ' + gear changes' : r.failFirstExit ? ' + missed exit' : r.seekPush ? ' + ram route' : ''} | ${r.difficulty} | ${r.gear} | ${r.status} | ${r.finalBar} | ${r.damageTaken} | ${r.retries} | ${r.captured}/${r.announced} | ${r.bestCombo} | ${r.pushContacts} / ${r.braceContacts} | ${r.echoUses} | ${r.integrity} |`).join('\n') + '\n\n' +
+    data.results.map(r => `| ${r.profile}${r.gearSchedule.length ? ' + gear changes' : r.failFirstExit ? ' + missed exit' : r.seekPush ? ' + ram route' : r.earlyHits ? ' + two early hits' : ''} | ${r.difficulty} | ${r.gear} | ${r.status} | ${r.finalBar} | ${r.damageTaken} | ${r.retries} | ${r.captured}/${r.announced} | ${r.bestCombo} | ${r.pushContacts} / ${r.braceContacts} | ${r.echoUses} | ${r.integrity} |`).join('\n') + '\n\n' +
     `Completed: ${data.completed}/${data.runs}. Exact events, failures, checkpoints and recovery durations are in the companion JSON.\n\n` +
+    (data.tunedFrom?.after ? 'The early-contact probe found a timer-only failure: with the original 55-second start, two real hits at bars 8.213 and 10.635 left one integrity but exhausted the timer at bar 27.413, before the first checkpoint. The fresh authored start was increased to 60 seconds. Identical inputs now complete all 100 bars with one integrity and no retry. Later verse timers and legacy runs remain unchanged.\n\n' : '') +
     'Recovery samples below include an actual unprotected collision. Time to the next capture includes further timing mistakes, skipped inputs and driving around traffic; it is not a forced recovery delay.\n\n' +
     '| Difficulty | Gear | Hit bar | Parts before → retained | Next capture |\n| --- | ---: | ---: | ---: | ---: |\n' +
     data.results.filter(r => r.profile === 'recovering').flatMap(r => r.recoveries.map(hit =>
@@ -308,7 +323,8 @@ async function main() {
   if (!requested('profile') && !requested('difficulty') && !requested('gear')) {
     for (const options of [{ difficulty: 'standard', gear: 1, profile: 'practiced', gearSchedule: [{ bar: 24, gear: 0 }, { bar: 48, gear: 2 }, { bar: 80, gear: 1 }] },
       { difficulty: 'standard', gear: 2, profile: 'practiced', failFirstExit: true, retryLimit: 1 },
-      { difficulty: 'standard', gear: 1, profile: 'practiced', seekPush: true }]) {
+      { difficulty: 'standard', gear: 1, profile: 'practiced', seekPush: true },
+      { difficulty: 'standard', gear: 1, profile: 'practiced', earlyHits: 2 }]) {
       const { result } = await runRace(options); results.push(result); console.log(JSON.stringify({ ...result, events: result.events.length }));
     }
   }
@@ -323,6 +339,7 @@ async function main() {
       assert.equal(result.status, 'clear', `${result.difficulty} gear ${result.gear}: practiced driver must complete a full race`);
       if (!result.gearSchedule.length && !result.failFirstExit) assert(result.echoDeceptions > 0, 'each full race visibly deceives the pursuit');
       if (!result.gearSchedule.length) assert(result.gearFrames[result.gear - 1] > 9000, 'the requested gear actually owns the race');
+      if (result.earlyHits) assert(result.events.filter(e => e.kind === 'damage' && e.bar < 28).length >= result.earlyHits, 'two early unprotected contacts exercise the first-checkpoint timer budget');
       if (result.seekPush) assert(result.pushContacts > 0, 'earned Push has a real visible traffic route and contact');
       if (result.failFirstExit) assert.equal(result.retries, 1, 'the missed final Echo uses one genuine checkpoint retry');
     }

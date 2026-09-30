@@ -1,12 +1,12 @@
 {
   "kind": "native-production-encounter-review",
   "sourceHashes": {
-    "src/game/cache-road-proof.js": "b589dc0ccaea80aeebb9086448d1bfef6fefcb300b277dcbb7ba4f29fe83ec9d",
+    "src/game/cache-road-proof.js": "82cf6f80eb7d7fc6fc743942017dd8199d15e44403f2cee45e9b55e1fb71bfd2",
     "src/game/cache-road-encounters.js": "f66e2ecc5362c6f698a169b815bb676c6d5eef79c75625d18cc42a75466b995b",
     "src/game/cache-road-reactions.js": "47748481a8426278bb23f3358916a9c3345c55af7507866bb561a8180ceb4753",
     "src/game/cache-road-pursuit.js": "cd00f39a893613e765848452f47b79c3953c45538f4c217e074b737a5eb936e3",
     "src/engine/presentation-assets.js": "1621c0150fc2cecdf58e609417b834eb9ea2e4be66d31cd7dc4c0f12acb85358",
-    "tools/check-cache-road-races.cjs": "32635601785602ce4886aaef4f266fce6295721c6c0cf9da88c78f7bc4fb39c5",
+    "tools/check-cache-road-races.cjs": "2cebb67e0a430415e36de49b34b9b6318367e8bafd0e301e8278e1ae81b12709",
     "tools/render-cache-encounter-review.cjs": "eafa2dbf7d124e63a609b08ef90837b015ae4c1e631d4b422f40f1a29eb0fb5d"
   },
   "dimensions": {
@@ -50,7 +50,7 @@
       "kind": "actual-input-driven-state",
       "trackTime": 23.639999999999585,
       "bar": 12.607999999999778,
-      "sha256": "8fea7f880255e02ba21c19462e35b29ab642a08ad34d9da7a0cac67dbeb21c06"
+      "sha256": "10e988ad5fab9e76f9d0c95f075746b2c035f745b8890a0d4a0afad654da8b2e"
     },
     {
       "file": "Freight-corridor.webp",
@@ -234,6 +234,8 @@
     "gearSchedule": [],
     "failFirstExit": false,
     "seekPush": true,
+    "earlyHits": 0,
+    "initialTimerMs": 60000,
     "status": "clear",
     "finalBar": 100,
     "elapsedMs": 187500,
@@ -1091,8 +1093,8 @@
   },
   "video": {
     "file": "Encounter-Review.mp4",
-    "sha256": "e0df3775cefd0a73ff10fb3bd59e21ac66d7068b7770285d74459923560a36f5",
-    "bytes": 8462877,
+    "sha256": "bdf36c284fdfd2cd6bbaea1e2429ea95f8422bfba4711198e3fc56c6341c2af7",
+    "bytes": 8467453,
     "compression": {
       "codec": "libx264",
       "preset": "slow",

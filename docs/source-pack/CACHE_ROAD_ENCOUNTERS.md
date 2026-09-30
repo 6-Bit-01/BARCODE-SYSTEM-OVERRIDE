@@ -40,7 +40,11 @@ announcement stays absent instead of appearing under the car.
 Traffic and pads receive fixed world addresses. Queued gears, Surge and Turbo
 change subsequent driving sections, never an already revealed address.
 Checkpoint restoration must preserve the committed trajectory/addresses and
-must not award a boundary pad twice. These are validation requirements, not
+must not award a boundary pad twice. An earned gate stays open after reload,
+even when the restored bar begins before its physical address; it neither
+demands another Echo nor creates another delivery audit. Tests exercise this
+through actual earned saves and resumed Bass completion in all three gears.
+These are validation requirements, not
 permission to retime the song or weaken legacy checks.
 
 ## Ability consequences and recovery
@@ -79,7 +83,12 @@ traffic and recovery, rather than serving only as result metadata.
 Relaxed has fewer convoy actors and wider spacing. Overclocked adds occupied
 lanes and denser reveals while preserving a route. All modes keep the same
 70/130 ms perfect/accurate musical thresholds and the three existing gears.
-These settings remain subject to the measured complete-race results below.
+New runs start with 60 seconds because the opening includes four intro bars
+before the first 24-bar act. Later verse markers retain a 55-second budget.
+The original 55-second opening failed after two real crashes at bars 8.213
+and 10.635: time expired at bar 27.413 with one integrity left. Identical
+inputs clear all 100 bars with the 60-second budget, retaining that integrity.
+The before/after observations are included in the balance JSON.
 
 ## Staged pursuit
 
@@ -174,7 +183,7 @@ and are not balance evidence.
 
 The outputs are `docs/source-pack/review-cache-encounters/full-race-balance.md`
 and `full-race-balance.json` in the same directory. The final controller study
-records **21/21 completed runs**:
+records **22/22 completed runs**:
 
 | Study | Runs | Measured result |
 | --- | ---: | --- |
@@ -183,6 +192,7 @@ records **21/21 completed runs**:
 | Mixed gears | 1 | Actual queued gear changes followed by a complete clear |
 | Deliberately missed final Echo | 1 | Genuine gate failure, verse-four checkpoint retry and eventual clear |
 | Earned Push route | 1 | Five physical traffic contacts, no damage and full clear |
+| Two early crashes | 1 | Survives the first marker and completes with one integrity |
 
 The recovering runs retain one to three other parts and capture again
 0.86–13.38 seconds after damage. They finish with three integrity on Relaxed

@@ -4,6 +4,7 @@
 const assert = require('node:assert/strict');
 const { bridgeRig } = require('./check-cache-bridge.cjs');
 const { load } = require('./check-level-01-boss');
+const { Driver, PROFILES } = require('./check-cache-road-races.cjs');
 const copy = value => JSON.parse(JSON.stringify(value));
 const BEAT_SEC = 60 / 128;
 const STRIKE = (1 - Math.sqrt(.83 ** 2 - 119 * .14 / 680)) * 520 - 80;
@@ -153,12 +154,46 @@ async function retries() {
     assert(r.road.validate(r.C.readResume()));
   }
 }
+async function earnedGateReloads() {
+  // This regression is a complete input-driven route to each earned exit,
+  // without immunity or state injection. Only the expensive mock draw is
+  // suppressed, matching the separate full-race balance harness.
+  for (const gear of [0, 1, 2]) {
+    const r = await fresh(); r.road.draw = () => {};
+    const observed = { events: [], pulses: new Map(),
+      event(kind, details = {}) { this.events.push({ kind, ...details }); } };
+    const driver = new Driver(r, PROFILES.practiced, gear, observed);
+    for (let frame = 0; frame < 10000 && r.road.status === 'playing' && !r.road.state.gateOpen; frame++) {
+      driver.step(); r.step(20, 50);
+    }
+    assert.equal(r.road.status, 'playing');
+    assert.equal(r.road.state.gear, gear);
+    assert(r.road.state.gateOpen, 'normal input actually earns the Echo exit before reload');
+    const saved = copy(r.C.readResume());
+    assert.equal(saved.checkpointId, 'road-gate');
+    assert(saved.levelState.proof.progress < saved.levelState.proof.gateAt,
+      'the fixed-bar checkpoint deliberately resumes before the already-earned gate');
+    assert(!r.C.archive().record.progress.items.includes('stem.bass'));
+    const reopened = saveRig(r.storage); await reopened.boot(saved); reopened.road.draw = () => {};
+    assert.equal(reopened.road.state.echo, null, 'reload does not invent another decoy');
+    for (let frame = 0; frame < 800 && reopened.road.status === 'playing'; frame++) {
+      reopened.step(20, 50);
+      assert(!reopened.road.state.pursuit?.actor?.delivery,
+        'an already-earned exit does not recreate an audit opponent during resume');
+    }
+    assert.equal(reopened.road.status, 'clear', `gear ${gear + 1}: earned gate resumes through the actual ending`);
+    assert.equal(reopened.road.state.gateFailure, null, 'an opened gate never demands a second Echo');
+    assert(reopened.road.chapter.delivery, 'normal bar100 completion creates the authored receipt');
+    assert(reopened.C.archive().record.progress.items.includes('stem.bass'));
+    assert(reopened.C.archive().record.progress.completedLevels.includes('level-02'));
+  }
+}
 async function main() {
   const modes = ['gear-up', 'gear-down', 'turbo-start', 'turbo-end', 'surge-start', 'surge-end', 'recovery-start'];
   let first;
   for (const mode of modes) { const result = await transition(mode); first ||= result; }
-  await malformed(first.saved); await legacy(first.saved); await nested(first); await retries();
-  console.log(`Cache encounter save: ${modes.length} real verse-transition checkpoints retained physical ONE, with bounded restore, nested re-entry, unchanged old rules and difficulty-aware retries.`);
+  await malformed(first.saved); await legacy(first.saved); await nested(first); await retries(); await earnedGateReloads();
+  console.log(`Cache encounter save: ${modes.length} real verse-transition checkpoints retained physical ONE, with bounded restore, nested re-entry, unchanged old rules, difficulty-aware retries and three earned-gate reloads through Bass completion.`);
 }
 module.exports = { saveRig, fresh, tick };
 if (require.main === module) main().catch(error => { console.error(error.stack || error); process.exitCode = 1; });
