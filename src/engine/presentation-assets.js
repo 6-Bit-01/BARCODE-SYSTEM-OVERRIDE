@@ -35,7 +35,12 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   const cacheActivityRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/172b7586864cace27eb55a85bfa2d63d96b77f89/';
   // Static dashboard artwork is versioned independently of live values.
   const cacheDashboardRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/dd1b3e9adc174da39e4b228c45079526c9c6a36a/';
+  const cacheEncounterRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/8b9343cd365d2efc9c6f04c4d65295fd293eec9b/';
   const entries = {
+    cachePushArc: { path: 'assets/cache-road/encounters/push-arc.webp', root: cacheEncounterRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: .78, smooth: true },
+    cacheBraceHalo: { path: 'assets/cache-road/encounters/brace-halo.webp', root: cacheEncounterRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: .75, smooth: true },
+    cacheEchoRibbons: { path: 'assets/cache-road/encounters/echo-ribbons.webp', root: cacheEncounterRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: .78, smooth: true },
+    cacheDeliveryBeacon: { path: 'assets/cache-road/encounters/delivery-beacon.webp', root: cacheEncounterRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: .96, smooth: true },
     cacheDashBezel: { path: 'assets/cache-road/hud/digital-dashboard/instrument-bezel.png', root: cacheDashboardRoot,
       columns: 1, rows: 1, frames: 1, ax: 0, ay: 0, smooth: true },
     cacheDashDigits: { path: 'assets/cache-road/hud/digital-dashboard/vfd-digits.svg', root: cacheDashboardRoot,

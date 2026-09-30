@@ -1,5 +1,48 @@
 # Acceptance and Test Status
 
+## Encounters, reactions and final pursuit — September 30
+
+Deploy/import the merged build through the normal project route; confirm the
+revision against the generated receipt, reload the game and start a fresh
+race. An older saved chapter intentionally retains its original encounters;
+use Replay race to review this pass. Base/rollback is merged #156,
+`8a6b974e809e907e97a364fcb328693be3764ac6`.
+
+1. Drive City Escape, Freight Corridor, Audit Grid and Final Pursuit. Check
+   that traffic telegraphs its lane, convoy gaps are clear and a mint pad
+   never sits under a committed obstacle. Queue gears and Turbo immediately
+   before ONE: already shown pads/vehicles must stay put. Pause and resume
+   near the chapter markers; no shifted timing or duplicate boundary reward.
+2. Catch Push and contact traffic: its sprite must move with the same position
+   in the forward road and mirror. Brace must visibly absorb one contact.
+   Send Echo during the bar-58 scan, move away and watch the rival commit to
+   the replay. It must stop following subsequent player steering. Keep the
+   existing city footprint separation and exact 2.3 px rearview blur.
+3. Intentionally crash with several captured parts and no shield/Push/Turbo.
+   Lose one live part, hear a brief disruption, preserve the other parts and
+   already judged queued awards, then capture another pad. Repeat on Relaxed,
+   Standard and Overclocked; health, traffic and recovery should differ while
+   the musical timing window stays the same.
+4. Inspect all three final attacks and the bar-90 setup cue. At the delivery
+   approach, send a stable left-lane Echo and take the far-right exit. There
+   must be room to split in every gear, with no extra rival collision at the
+   gate. Deliberately miss it once and Retry from the saved marker. Complete
+   bar 100, check the four ending panels and confirm Bass/results save once.
+5. Check the four new sprites with normal and Reduced Motion settings: no
+   opaque image rectangles, oversized glow hiding lanes or beacon clipping
+   nearby scenery. Resume old proof and pre-encounter authored saves; preserve
+   their layout, completion eligibility, silent ending/results and song bar.
+
+The recorded controller study clears all 18 full production-input matrix
+races, including one real hit in every recovery run, plus a mixed-gear race
+and a deliberately missed exit followed by checkpoint retry. Focused
+chart/reaction/pursuit/save checks remain separate gates. Final local and CI
+outcomes belong to the PR/generated receipt; native footage and controlled
+Chromium checks do not establish Makko performance or controller feel.
+Record browser/platform, input mapping/device, difficulty, gear, save route,
+song bar and a short video for each failure. See `CACHE_ROAD_ENCOUNTERS.md`.
+Older acceptance routes below remain historical regression context.
+
 ## Authored Cache Line completion — September 30
 
 1. Import the merged build in Makko, Continue from the bridge and start a fresh

@@ -28,12 +28,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-chapter.js', exports: ['BARCOD
     return Object.freeze(result);
   }
   function normalize(raw) {
-    if (!object(raw) || raw.version !== 1 || typeof raw.runId !== 'string' ||
+    if (!object(raw) || raw.version !== 1 ||
+        (raw.encounterVersion !== undefined && raw.encounterVersion !== 1) || typeof raw.runId !== 'string' ||
         !/^cache-[a-z0-9-]{1,90}$/i.test(raw.runId) || !difficulties.includes(raw.difficultyId) ||
         !counters.every(key => finite(raw[key])) || raw.perfect > raw.accurate ||
         raw.accurate > raw.attempts || raw.connected > raw.accurate || raw.bestCombo > raw.connected ||
         !Array.isArray(raw.records) || raw.records.length > 32 || raw.records.some(id => !recordIds.includes(id))) return null;
     const chapter = { version: 1, runId: raw.runId, difficultyId: raw.difficultyId };
+    if (raw.encounterVersion === 1) chapter.encounterVersion = 1;
     for (const key of counters) chapter[key] = count(raw[key]);
     chapter.records = recordIds.filter(id => raw.records.includes(id));
     chapter.delivery = null;
@@ -55,7 +57,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-chapter.js', exports: ['BARCOD
     recordIds,
     create({ difficultyId = B.LevelDifficulty?.choice?.id || 'standard', retries = 0 } = {}) {
       const chapter = { version: 1, runId: `cache-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`,
-        difficultyId: difficulties.includes(difficultyId) ? difficultyId : 'standard' };
+        difficultyId: difficulties.includes(difficultyId) ? difficultyId : 'standard', encounterVersion: 1 };
       for (const key of counters) chapter[key] = 0;
       chapter.retries = count(retries); chapter.records = []; chapter.delivery = null;
       return chapter;

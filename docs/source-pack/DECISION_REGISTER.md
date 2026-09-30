@@ -1,5 +1,34 @@
 # Decision Register
 
+## September 30, 2026 — approved road encounters and measured tuning
+
+The owner explicitly selected “the encounter layout, ability reactions and
+final pursuit,” requested complete races in every gear to tune difficulty
+and recovery, and asked for more assets. Implement this Level 2 pass before
+the future Mac stage. It authorizes new gameplay encounters and supporting
+art while preserving the approved road composition and story continuity.
+
+Use four musical acts with clear routes to announced pads. A revealed road
+address and target beat cannot move when speed changes. Push, Brace and Echo
+must affect a shared physical actor, including the rearview. A crash breaks
+one live musical part instead of erasing the entire arrangement; queued
+earned captures remain earned. Teach the Echo commitment before the finale,
+show the lane lock and give the delivery split its own clear approach.
+
+Road difficulty now uses the existing Relaxed/Standard/Overclocked choice;
+do not invent a “Hard” mode or widen the musical timing window to compensate
+for traffic. Test all nine gear/difficulty combinations through real input,
+then repeat with delayed/missed actions and a real recovery incident. These
+are deterministic controller studies, not human success rates.
+
+New rules are versioned per fresh chapter. Saved chapters lacking
+`encounterVersion: 1` retain their old layout; full replay opts in. Keep
+beat ONE, five synchronized sources, exact mirror blur, prior building
+clearance, digital HUD, eight-panel opening/bridge, four-panel ending and
+atomic rewards. No new recorded crew vocal is supplied or fabricated.
+See `CACHE_ROAD_ENCOUNTERS.md`; final-head full CI remains the merge gate
+under standing authority, with Makko/device feel reviewed after deployment.
+
 ## September 30, 2026 — approved authored Level 2 completion
 
 The owner's “Let's proceed” selects the proposed authored Cache Line ending,

@@ -1,5 +1,37 @@
 # Current State
 
+## September 30 — Cache Line encounters and final pursuit
+
+The owner selected a second Level 2 gameplay pass after merged #156: musical
+encounter layout, physical ability reactions, a staged finale and new assets.
+Fresh `encounterVersion: 1` runs replace the rotating distance loop with City
+Escape, Freight Corridor, Audit Grid and Final Pursuit, followed by the clear
+delivery runway. Published traffic/pad addresses remain fixed. Pad routes
+reserve nearby traffic and committed pursuit lanes.
+
+Push visibly drives the contacted actor forward; Brace absorbs with a short
+recoil; Echo can commit the rival to a decoy lane. A crash removes one live
+musical part and preserves earned queued awards. Relaxed, Standard and
+Overclocked now change road health, traffic and recovery. A bar-58 lesson
+prepares the three final attacks; bar 90 warns of the split and bar 92 starts
+the unobstructed delivery approach. Four transparent generated assets support
+Push, Brace, Echo and the final beacon.
+
+Prior saves without the new encounter marker retain their previous rules.
+Beat ONE, music alignment, buffered gears, approved city/clearance, exact
+2.3 px mirror blur, digital instruments, records and the completion ending
+remain protected. Mac's authored gameplay is still future work.
+
+See `CACHE_ROAD_ENCOUNTERS.md` for measured race outcomes, evidence and limits.
+Twenty complete production-input runs clear: the nine gear/difficulty pairs,
+their nine actual-damage recovery runs, one mixed-gear race and one deliberate
+missed-exit/checkpoint-retry race. Each recovery run loses one live part and
+later captures another. These are controlled input results, not human success
+rates. Final regression/Chromium gates remain pending in the PR/generated
+receipt; do not infer this candidate's CI result from #156. No Makko/device
+acceptance is claimed. Base/rollback: `8a6b974e809e907e97a364fcb328693be3764ac6`.
+All older entries below describe their historical milestone.
+
 ## September 30 — Cache Line chapter completion
 
 The approved follow-up to merged #155 adds a fresh-run chapter receipt,
