@@ -7,7 +7,7 @@
     "src/game/cache-road-pursuit.js": "cd00f39a893613e765848452f47b79c3953c45538f4c217e074b737a5eb936e3",
     "src/engine/presentation-assets.js": "1621c0150fc2cecdf58e609417b834eb9ea2e4be66d31cd7dc4c0f12acb85358",
     "tools/check-cache-road-races.cjs": "2cebb67e0a430415e36de49b34b9b6318367e8bafd0e301e8278e1ae81b12709",
-    "tools/render-cache-encounter-review.cjs": "eafa2dbf7d124e63a609b08ef90837b015ae4c1e631d4b422f40f1a29eb0fb5d"
+    "tools/render-cache-encounter-review.cjs": "f12730be03d1b54dfa0618081cbdb30fabbc3fac2e45fe6b6bd35aaedb555601"
   },
   "dimensions": {
     "width": 1280,
@@ -1072,22 +1072,6 @@
         "lane": 1.055,
         "integrity": 3,
         "action": "road_x"
-      },
-      {
-        "kind": "push",
-        "bar": 32,
-        "elapsedMs": 60000,
-        "lane": 0,
-        "integrity": 3,
-        "actor": "freight"
-      },
-      {
-        "kind": "brace",
-        "bar": 32,
-        "elapsedMs": 60000,
-        "lane": 0,
-        "integrity": 3,
-        "actor": "freight"
       }
     ]
   },
@@ -1112,5 +1096,23 @@
     "peakBeforeMaster": 0.9411237689992413,
     "limitation": "Uses actual race captures and profile fade targets. Engine/SFX and browser Web Audio automation are not captured."
   },
-  "limitation": "Actual gamepad-input-driven production race with native Canvas and local decoded art. Audio/storage/browser host boundaries are simulated. The two named staged impacts are separate coverage fixtures. Not a human playtest, Makko acceptance or device-performance measurement."
+  "limitation": "Actual gamepad-input-driven production race with native Canvas and local decoded art. Audio/storage/browser host boundaries are simulated. The two named staged impacts are separate coverage fixtures. Not a human playtest, Makko acceptance or device-performance measurement.",
+  "stagedFixtureEvents": [
+    {
+      "kind": "push",
+      "bar": 32,
+      "elapsedMs": 60000,
+      "lane": 0,
+      "integrity": 3,
+      "actor": "freight"
+    },
+    {
+      "kind": "brace",
+      "bar": 32,
+      "elapsedMs": 60000,
+      "lane": 0,
+      "integrity": 3,
+      "actor": "freight"
+    }
+  ]
 }

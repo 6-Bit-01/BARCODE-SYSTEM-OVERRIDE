@@ -94,6 +94,9 @@ async function main() {
           sha256:hash(path.join(out,file))});seen.add(segment.name);console.log(`Native encounter review: ${segment.name}`);
       }
     }});
+  // Instrumented road.hit still writes to run.result.events during the
+  // staged fixtures below. Snapshot the completed race before those calls.
+  const raceResult=clone(run.result);
   encoder.stdin.end();const [code,signal]=await done;encoder=null;
   assert.equal(code,0,errors||`ffmpeg stopped: ${signal}`);
   assert.equal(run.result.status,'clear','review race completes using actual controls');
@@ -164,9 +167,11 @@ async function main() {
     stills.push({file:stripFile,kind:'staged-production-impact-sequence',ability:kind,poses,
       sha256:hash(path.join(out,stripFile))});
   }
+  const stagedFixtureEvents=clone(run.result.events.slice(raceResult.events.length));
   const report={kind:'native-production-encounter-review',sourceHashes,dimensions:{width:1280,height:720},
     framesPerSecond:fps,frames:selected.length,durationSeconds:selected.length/fps,segments,stills,
-    race:run.result,video:{file:path.basename(video),sha256:hash(video),bytes:fs.statSync(video).size,compression},
+    race:raceResult,stagedFixtureEvents,
+    video:{file:path.basename(video),sha256:hash(video),bytes:fs.statSync(video).size,compression},
     audio:{kind:'offline-five-stem-music-reconstruction',sampleRate,masterGain:master,peakBeforeMaster:peak,
       limitation:'Uses actual race captures and profile fade targets. Engine/SFX and browser Web Audio automation are not captured.'},
     limitation:'Actual gamepad-input-driven production race with native Canvas and local decoded art. Audio/storage/browser host boundaries are simulated. The two named staged impacts are separate coverage fixtures. Not a human playtest, Makko acceptance or device-performance measurement.'};
