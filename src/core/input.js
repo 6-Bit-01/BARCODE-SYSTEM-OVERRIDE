@@ -30,9 +30,8 @@ window.InputManager = class InputManager {
 
       if (window.BARCODE?.Campaign?.intermission) {
         e.preventDefault();
-        if (key === 'escape' && !e.repeat) window.BARCODE.Campaign.closeIntermission();
-        if (key === 'enter' && !e.repeat) window.BARCODE?.CacheRoadProof?.enter?.();
-        if (key === '3' && !e.repeat) window.BARCODE?.RunAndGunProof?.enter?.();
+        if(window.isPaused||window.gameState?.paused)window.BARCODE?.PauseMenu?.keyDown(e);
+        else window.BARCODE?.CacheBridge?.keyDown(e);
         return;
       }
       if (window.BARCODE?.CacheRoadProof?.active) {
@@ -105,6 +104,7 @@ window.InputManager = class InputManager {
     window.addEventListener('keyup', (e) => {
       const key = e.key.toLowerCase();
       this.resultKeysHeld.delete(key);
+      window.BARCODE?.CacheBridge?.keyUp(e);
       window.BARCODE?.LevelDifficulty?.keyUp(e);
       window.BARCODE?.PauseMenu?.keyUp(e);
       if (this.terminalKeyLatched === key) this.terminalKeyLatched = null;
@@ -124,6 +124,7 @@ window.InputManager = class InputManager {
       this.terminalKeyLatched = null;
       this.hackEscapeLatched = false;
       this.resultKeysHeld.clear();
+      window.BARCODE?.CacheBridge?.releaseInputs();
       this.resetActionEdges();
       this.mouse.pressed = false;
       this.mouse.clicked = false;
@@ -135,13 +136,8 @@ window.InputManager = class InputManager {
     window.addEventListener('mousemove', (e) => { if (window.BARCODE?.PauseMenu?.pointer(e, 'move')) return; this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
     window.addEventListener('mousedown', (e) => {
       if (window.BARCODE?.Campaign?.intermission) {
-        const rect = document.getElementById('gameCanvas')?.getBoundingClientRect?.();
-        if (rect?.width && rect?.height) {
-          const x = (e.clientX - rect.left) * 1920 / rect.width;
-          const y = (e.clientY - rect.top) * 1080 / rect.height;
-          if (x >= 575 && x <= 1345 && y >= 762 && y <= 819) window.BARCODE?.CacheRoadProof?.enter?.();
-          if (x >= 575 && x <= 1345 && y >= 854 && y <= 903) window.BARCODE?.RunAndGunProof?.enter?.();
-        }
+        if(window.isPaused||window.gameState?.paused)window.BARCODE?.PauseMenu?.pointer(e,'down');
+        else window.BARCODE?.CacheBridge?.pointer(e);
         return;
       }
       if (window.BARCODE?.LevelDifficulty?.pointer(e) || window.BARCODE?.PauseMenu?.pointer(e, 'down')) return;
@@ -226,7 +222,7 @@ window.InputManager = class InputManager {
 
   routeGamepadUI() {
     const BARCODE = window.BARCODE, menu = BARCODE?.PauseMenu;
-    const owner = BARCODE?.LevelDifficulty?.open ? 'difficulty' : (menu?.titleOpen || window.isPaused || window.gameState?.paused) ? 'pause' : window.hackingSystem?.isActive?.() ? 'hack' :
+    const owner = BARCODE?.LevelDifficulty?.open ? 'difficulty' : (menu?.titleOpen || window.isPaused || window.gameState?.paused) ? 'pause' : BARCODE?.CacheBridge?.active ? 'bridge' : window.hackingSystem?.isActive?.() ? 'hack' :
       (window.gameState?.gameOver || window.gameState?.victory) ? 'results' :
       window.tutorialSystem?.isActive?.() ? 'tutorial' : 'gameplay';
     const input = BARCODE?.GamepadUI?.poll(owner);
@@ -241,6 +237,7 @@ window.InputManager = class InputManager {
       return true;
     }
     if (input.changed) this.actionInput?.blockGamepadUntilRelease();
+    if (owner === 'bridge') { BARCODE.CacheBridge.gamepad(input); return true; }
     if (owner === 'pause') {
       if (input.changed && menu) menu.dirty = true;
       if (menu?.view === 'controller' && menu.captureAction) { menu.captureController(input); return true; }
@@ -259,12 +256,6 @@ window.InputManager = class InputManager {
       return true;
     }
     if (owner === 'results') {
-      if (BARCODE?.Campaign?.intermission) {
-        if (p.b1) BARCODE.Campaign.closeIntermission();
-        else if (p.b0) BARCODE?.CacheRoadProof?.enter?.();
-        else if (p.b3) BARCODE?.RunAndGunProof?.enter?.();
-        return true;
-      }
       if (window.gameState?.victory && window.sector1Progression?.areCompletionControlsReady?.() === false) return true;
       if (p.b3 && window.gameState?.victory) { BARCODE?.Campaign?.openIntermission(); return true; }
       if (p.b0) {

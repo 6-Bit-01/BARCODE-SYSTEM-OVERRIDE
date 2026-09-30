@@ -317,7 +317,8 @@ async function run() {
   assert.equal(w.BARCODE.RuntimeLifecycle.getState(), 'paused');
   assert(await proof.exit());
   assert.equal(w.BARCODE.MusicProfiles.getActive().profileId, 'level-01.main');
-  assert.deepEqual(startedProfiles, ['level-03.proof', 'level-01.main']);
+  assert.deepEqual(startedProfiles, ['level-03.proof'],
+    'the preview starts once; returning to the bridge leaves gameplay music stopped');
   assert.equal(C.intermission, true);
   assert.equal(w.gameState.victory, true);
   assert.equal(w.BARCODE.RuntimeLifecycle.getState(), 'running');

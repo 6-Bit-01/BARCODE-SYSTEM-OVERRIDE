@@ -1,4 +1,21 @@
-# Continue here — Level 1 rebuild after reverted #55
+# Continue here — eight-scene Cache Line bridge
+
+## September 30, 2026 — current work: eight-scene Cache Line bridge
+
+Continue from merged PR #153, `658b99f`, on
+`agent/cache-eight-scene-bridge`. Read `docs/source-pack/CACHE_LINE_BRIDGE.md`
+first: it records the exact eight beats/sixteen lines, new art provenance,
+reading controls, synthesized comparison and validation limits. Older
+current-work entries below are history.
+
+The existing eight-page opening is preserved. Cache already owns the protected
+original; this bridge follows Voice recovery and awards no Bass. Optional
+page/cue save state must not invalidate older checkpoints. Hold skip for five
+seconds to reach Ready; only final Drive starts the unchanged road song and
+intro. Preserve results return, transcript, retry/cancel cleanup and the
+Level 3 test. Full local regression and all-file syntax pass; complete
+final-head Chromium/CI before merge under the owner's standing authority. The PR/generated
+receipt owns actual revision/results; native previews are not Makko acceptance.
 
 ## September 17, 2026 — smart boxes: movement is not a hide trigger
 

@@ -101,10 +101,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/broadcast-slum-proof.js', exports: [
         levelState: { previewVersion: previous.previewVersion || 1, returnTo, proof: previous.proof } };
       const resumePreview = this.validate(previousSaved) ? previous : null;
       this.pending = true;
+      const entryGeneration=this.entryGeneration=(this.entryGeneration||0)+1;
       try {
         window.audioSystem?.stopRuntimeAudio?.({ stopMusic: true });
         if (!this.selectMusicProfile().ok) throw new Error('missing-proof-profile');
         const prepared = await window.audioSystem?.prepareActiveMusicProfile?.();
+        if(entryGeneration!==this.entryGeneration)return {ok:false,reason:'handoff-cancelled'};
         if (!prepared?.ok) throw new Error('proof-audio-unavailable');
         this.checkAudioAssets();
         this.returnTo = returnTo;
@@ -121,11 +123,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/broadcast-slum-proof.js', exports: [
         window.inputManager?.resetActionEdges?.();
         return { ok: true };
       } catch (error) {
+        if(entryGeneration!==this.entryGeneration)return {ok:false,reason:'handoff-cancelled'};
         this.dispose();
         B.Campaign.archive().checkpoint(returnTo);
         await B.RuntimeLifecycle?.restart?.({ source: 'proof-entry-recovery', resume: returnTo });
         return { ok: false, reason: error.message };
-      } finally { this.pending = false; }
+      } finally { if(entryGeneration===this.entryGeneration)this.pending = false; }
     },
     restore(saved) {
       if (!this.validate(saved)) return false;
@@ -165,7 +168,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/broadcast-slum-proof.js', exports: [
       if (!result?.ok) this.exiting = false;
       return !!result?.ok;
     },
-    dispose() { this.active = false; this.status = null; this.state = null; this.returnTo = null; this.exiting = false; this.audioDegraded = false; },
+    dispose() { this.entryGeneration=(this.entryGeneration||0)+1;this.pending=false;
+      this.active = false; this.status = null; this.state = null; this.returnTo = null; this.exiting = false; this.audioDegraded = false; },
     retry() {
       if (!this.active || this.status === 'playing') return false;
       const saved = B.Campaign.readResume();

@@ -213,7 +213,7 @@ async function checkCampaign() {
   load(reopened.context, 'src/core/runtime-lifecycle.js');
   assert((await reopened.w.BARCODE.RuntimeLifecycle.start({ resume: saved })).ok, 'actual lifecycle skips intro and restores saved intermission');
   assert(!reopened.w.gameState.running && reopened.w.gameState.victory);
-  assert.equal(reopened.calls.musicStarts, 1, 'fresh browser resume starts its song exactly once');
+  assert.equal(reopened.calls.musicStarts, 0, 'saved intermission waits for Drive instead of starting a gameplay song');
   console.log('Campaign: six checkpoint types, locked difficulty, terminal resume, complete run stats, one-time key/bonus, practice and concurrent saves passed.');
 }
 

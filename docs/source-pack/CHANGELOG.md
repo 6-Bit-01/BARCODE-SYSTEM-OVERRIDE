@@ -1,5 +1,20 @@
 # Recovery checkpoint — September 14
 
+## September 30, 2026 — illustrated bridge into Cache Line
+
+- Replace the single post-Level-1 intermission card with eight new comic
+  illustrations, staged dialogue and a transcript; retain the existing opening.
+- Carry the already-protected original from Voice recovery through the
+  original/clean comparison, crew commitment, yellow-car departure and Ready.
+- Add five original synthesized cues; the musical comparison removes three
+  eighth-note slots without claiming speech or excerpts of the song.
+- Add bounded optional page/cue checkpoints, five-second skip to Ready,
+  release-to-arm controls and retry/cancel-safe final Drive handoff.
+- Preserve Voice/results, no Bass award, road timing/music/HUD and Level 3 test
+  access. Retain bridge preview/cue WAV plus approved road/audio references
+  in the source pack. Full regression/Chromium gate merge; the generated
+  receipt and PR record actual outcomes.
+
 ## September 29, 2026 — digital dashboard and source-facing correction
 
 - Build a custom 1980s instrument presentation with static bezel/digit/icon

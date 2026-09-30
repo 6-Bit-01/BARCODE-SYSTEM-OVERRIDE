@@ -1,5 +1,28 @@
 # Acceptance and Test Status
 
+## Eight-scene Level 1 → Cache Line bridge — September 30
+
+Require all eight illustrations and the exact sixteen-line runtime script,
+with title/first-line timing and an indefinite final-line reading hold. Keep
+the previous opening intact. Test physical keyboard/controller held inputs,
+remapped prompts, pointer buttons, independent five-second skip, transcript,
+pause, results return and all 24 page/cue checkpoint states. Preserve old
+saves, Voice and score/results; never grant Bass here. Ready must wait for a
+fresh Drive, with retryable audio failure and no late start after cancellation.
+
+The production flow checker passes all 24 cues, input/skip behavior, save
+positions, audio-entry failure and lifecycle cancellation. The focused audio
+checker passes five original synth cues, identical retained
+A/B samples with eighth slots 2/4/7 omitted, maximum 1.94-second duration,
+five-buffer/one-voice bounds, pause/page cleanup, shared mute and unchanged
+protected sync hashes. There is no bridge song playback or road engine.
+The 64-second native preview passes 72 text-metric checks with no overlap/
+escape and identical Reduced Motion layout; final Ready never invokes Drive.
+Full local regression and all-file syntax pass. Actual Chromium
+input/rendering/remote-art checks remain pending merge gates; the PR and generated receipt identify completed results and
+revision. Native artwork/preview does not establish hosted loading, Makko
+pacing, controller feel or owner audio preference. See `CACHE_LINE_BRIDGE.md`.
+
 ## Digital dashboard and source-facing correction — September 29
 
 Require live MPH conversion, separate current/queued gear, timer, integrity,

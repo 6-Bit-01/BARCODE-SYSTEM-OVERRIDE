@@ -16,10 +16,12 @@ DOC_PREFIX = "docs/source-pack/"
 RETAINED_REVIEW_MEDIA = {
     "review-cache-layered-city/Continuous-Drive.mp4",
     "review-cache-digital-dashboard/Drive-Review.mp4",
+    "review-cache-bridge/Bridge-Review.mp4",
+    "review-cache-bridge/Bridge-Cues.wav",
     "review-cache-lamps-chip-sound/Chip-SFX-Audition.mp3",
 }
-CURRENT_REVIEW = "review-cache-digital-dashboard/"
-REVIEW_MEDIA_SUFFIXES = {".webp", ".png", ".mp4", ".jpg", ".jpeg", ".gif", ".mp3"}
+CURRENT_REVIEW = "review-cache-bridge/"
+REVIEW_MEDIA_SUFFIXES = {".webp", ".png", ".mp4", ".jpg", ".jpeg", ".gif", ".mp3", ".wav"}
 ROOT_DOCUMENT_SUFFIXES = {".md", ".json", ".txt"}
 
 

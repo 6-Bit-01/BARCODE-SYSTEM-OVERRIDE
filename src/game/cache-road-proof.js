@@ -1659,12 +1659,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         levelState: { proofVersion: previous.proofVersion || 1, returnTo, proof: previous.proof } };
       const resume = this.validate(candidate) ? candidate : null;
       this.pending = true;
+      const entryGeneration=this.entryGeneration=(this.entryGeneration||0)+1;
       B.Campaign.roadAudioNotice = null;
       let audioFailure = null;
       try {
         window.audioSystem?.stopRuntimeAudio?.({ stopMusic: true });
         if (!this.selectMusicProfile().ok) throw new Error('road-profile-unavailable');
         const prepared = await window.audioSystem?.prepareActiveMusicProfile?.();
+        if(entryGeneration!==this.entryGeneration)return {ok:false,reason:'handoff-cancelled'};
         if (!prepared?.ok) { audioFailure = prepared; throw new Error('road-audio-unavailable'); }
         if (!this.checkAudioAssets()) throw new Error('road-audio-invalid');
         this.returnTo = returnTo;
@@ -1680,6 +1682,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         window.inputManager?.resetActionEdges?.();
         return { ok: true };
       } catch (error) {
+        if(entryGeneration!==this.entryGeneration)return {ok:false,reason:'handoff-cancelled'};
         console.error('[cache-road] Entry failed:', error?.message || error, audioFailure || '');
         this.dispose();
         if (previous) returnTo.levelState.cacheRoadCheckpoint = previous;
@@ -1690,7 +1693,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           B.Campaign.roadAudioNotice = `CACHE MUSIC UNAVAILABLE${names ? ` (${names})` : ''} — CHECK CONNECTION, THEN RETRY`;
         }
         return { ok: false, reason: error.message };
-      } finally { this.pending = false; }
+      } finally { if(entryGeneration===this.entryGeneration)this.pending = false; }
     },
     restore(saved) {
       if (!this.validate(saved)) return false;
@@ -1737,6 +1740,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       return !!result?.ok;
     },
     dispose() {
+      this.entryGeneration=(this.entryGeneration||0)+1;this.pending=false;
       window.audioSystem?.stopRoadEngine?.();
       const hint = document.querySelector?.('.hint');
       if (hint && this.oldHint !== null) hint.textContent = this.oldHint;
