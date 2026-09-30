@@ -50,12 +50,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
     ['instantText', 'Instant dialogue'], ['crew', 'Recent crew dialogue'], ['timing', 'Timing calibration'], ['archive', 'Lore archive'], ['resume', 'Resume game'], ['defaults', 'Reset settings'], ['controller', 'Controller settings'], ['reducedMotion', 'Reduced motion'], ['fullscreen', 'Fullscreen']
   ];
   const visibleRows = () => BARCODE.RunAndGunProof?.active || BARCODE.CacheRoadProof?.active
-    ? rows.map(([key, label]) => key === 'crew' ? ['exitPreview', 'Exit preview'] : [key, label]) : rows;
+    ? rows.map(([key, label]) => key === 'crew' ? ['exitPreview', BARCODE.CacheRoadProof?.active && BARCODE.CacheRoadProof.chapter ? 'Return to bridge' : 'Exit preview'] : [key, label]) : rows;
   const rowTop = 331, rowStep = 38;
   const menu = BARCODE.PauseMenu = {
     open: false, dirty: false, focus: 0, drag: null, heldKeys: new Set(), snapshot: null, snapshotContext: null, resumePending: false, message: '',
     captureAction: null, captureReady: false, controllerFocus: 0,
-    view: 'settings', archiveFocus: 0, archiveIndex: 0, timingFocus: 0,
+    view: 'settings', archiveFocus: 0, archiveIndex: 0, archiveLevel: 1, timingFocus: 0,
     titleOpen: false, titleCanvas: null, fullscreenPending: false,
     isPaused() { return this.titleOpen || !!(window.isPaused || window.gameState?.paused); },
     canvas() { return this.titleOpen ? this.titleCanvas : document.getElementById('gameCanvas'); },
@@ -132,21 +132,40 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       else preferences.set(key, preferences.values[key] + direction * 0.05);
       this.dirty = true;
     },
+    archiveChapters() {
+      const collection = window.lostDataSystem?.archive || BARCODE.Campaign?.archive?.();
+      const available = BARCODE.CacheRoadProof?.active || BARCODE.CacheEnding?.active ||
+        collection?.record?.progress?.unlockedLevels?.includes('level-02') ||
+        collection?.getIds?.().some(id => id.startsWith('lore.l02.'));
+      return available && BARCODE.LoreRecords.level2?.length ? [1, 2] : [1];
+    },
+    archiveCatalog() {
+      return this.archiveLevel === 2 && this.archiveChapters().includes(2) ? BARCODE.LoreRecords.level2 : BARCODE.LoreRecords.level1;
+    },
+    archiveLayout() {
+      return this.archiveCatalog().length > 3 ? { top: 356, step: 80, height: 70 } : { top: 366, step: 104, height: 88 };
+    },
     archiveState() {
       const collection = window.lostDataSystem?.archive || BARCODE.Campaign?.archive?.();
       const ids = new Set(collection?.getIds?.() || []);
       // Unrecovered entries expose neither their titles nor any story content.
-      const records = BARCODE.LoreRecords.level1.map(record => ids.has(record.id) ? record : null);
+      const records = this.archiveCatalog().map(record => ids.has(record.id) ? record : null);
       return { records, count: records.filter(Boolean).length, saved: !collection || collection.status === 'ready' };
+    },
+    changeArchiveChapter(level, keepTabFocus = false) {
+      if (!this.archiveChapters().includes(level)) return;
+      this.archiveLevel = level;
+      const state = this.archiveState(), latest = window.lostDataSystem?.lastCollectedLoreId;
+      let index = state.records.findIndex(record => record && record.id === latest);
+      if (index < 0) index = state.records.findIndex(Boolean);
+      this.archiveIndex = Math.max(0, index);
+      this.archiveFocus = keepTabFocus ? state.records.length + 2 + this.archiveChapters().indexOf(level) : this.archiveIndex;
+      this.drag = null; this.dirty = true;
     },
     openArchive() {
       this.sync();
       if (!this.isPaused()) return;
-      const state = this.archiveState();
-      const latest = window.lostDataSystem?.lastCollectedLoreId;
-      let index = state.records.findIndex(record => record && record.id === latest);
-      if (index < 0) index = state.records.findIndex(Boolean);
-      this.archiveIndex = this.archiveFocus = Math.max(0, index);
+      this.changeArchiveChapter(BARCODE.CacheRoadProof?.active || BARCODE.CacheEnding?.active ? 2 : 1);
       this.view = 'archive'; this.drag = null; this.dirty = true;
     },
     closeArchive() {
@@ -155,13 +174,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
     },
     selectArchive(index) {
       this.archiveFocus = index;
-      if (index < BARCODE.LoreRecords.level1.length) this.archiveIndex = index;
+      if (index >= 0 && index < this.archiveCatalog().length) this.archiveIndex = index;
       this.dirty = true;
     },
     activateArchive() {
-      const count = BARCODE.LoreRecords.level1.length;
+      const count = this.archiveCatalog().length;
       if (this.archiveFocus === count) this.closeArchive();
       else if (this.archiveFocus === count + 1) this.resume();
+      else if (this.archiveFocus >= count + 2) this.changeArchiveChapter(this.archiveChapters()[this.archiveFocus - count - 2], true);
     },
     keyDown(event) {
       this.sync();
@@ -196,11 +216,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
         else if (key === 'escape' && !event.repeat) this.closeArchive();
         else if (key === 'tab' || key === 'arrowup' || key === 'arrowdown') {
           const direction = key === 'arrowup' || (key === 'tab' && event.shiftKey) ? -1 : 1;
-          const count = BARCODE.LoreRecords.level1.length + 2;
+          const chapters = this.archiveChapters();
+          const count = this.archiveCatalog().length + 2 + (chapters.length > 1 ? chapters.length : 0);
           this.selectArchive((this.archiveFocus + direction + count) % count);
         } else if (key === 'arrowleft' || key === 'arrowright') {
-          const count = BARCODE.LoreRecords.level1.length;
-          this.selectArchive((this.archiveIndex + (key === 'arrowleft' ? -1 : 1) + count) % count);
+          const count = this.archiveCatalog().length, direction = key === 'arrowleft' ? -1 : 1;
+          if (this.archiveFocus >= count + 2) {
+            const chapters = this.archiveChapters(), selected = this.archiveFocus - count - 2;
+            this.changeArchiveChapter(chapters[(selected + direction + chapters.length) % chapters.length], true);
+          } else this.selectArchive((this.archiveIndex + direction + count) % count);
         } else if ((key === 'enter' || key === ' ') && !event.repeat) this.activateArchive();
         return true;
       }
@@ -248,8 +272,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       }
       if (this.view === 'archive') {
         if (phase !== 'down' || x < 420 || x > 840) return true;
-        const index = Math.floor((y - 366) / 104), count = BARCODE.LoreRecords.level1.length;
-        if (index >= 0 && index < count && y <= 366 + index * 104 + 88) this.selectArchive(index);
+        const chapters = this.archiveChapters(), count = this.archiveCatalog().length;
+        if (chapters.length > 1 && y >= 288 && y <= 334) {
+          const tab = x <= 622 ? 0 : x >= 638 ? 1 : -1;
+          if (tab >= 0) this.changeArchiveChapter(chapters[tab]);
+          return true;
+        }
+        const layout = this.archiveLayout(), index = Math.floor((y - layout.top) / layout.step);
+        if (index >= 0 && index < count && y <= layout.top + index * layout.step + layout.height) this.selectArchive(index);
         else if (y >= 746 && y <= 802) { this.selectArchive(count); this.activateArchive(); }
         else if (y >= 820 && y <= 876) { this.selectArchive(count + 1); this.activateArchive(); }
         return true;
@@ -346,14 +376,24 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
     },
     drawArchive(ctx, text) {
       const { records, count, saved } = this.archiveState();
+      const chapters = this.archiveChapters(), catalog = this.archiveCatalog(), layout = this.archiveLayout();
       text('LORE ARCHIVE', 440, 250, 42, '#a0ffe4');
-      text(`LEVEL 1  /  ${count} OF ${records.length} RECORDS RECOVERED`, 440, 306, 20, '#cfa2ff');
+      if (chapters.length > 1) {
+        chapters.forEach((level, index) => {
+          const x = 420 + index * 218, selected = this.archiveLevel === level;
+          ctx.fillStyle = selected ? '#16394b' : '#0d2032'; ctx.fillRect(x, 288, 202, 46);
+          if (selected) { ctx.fillStyle = '#74f7d2'; ctx.fillRect(x, 330, 202, 4); }
+          if (this.archiveFocus === records.length + 2 + index) { ctx.strokeStyle = '#edf3ff'; ctx.strokeRect(x, 288, 202, 46); }
+          text(`LEVEL ${level}`, x + 20, 310, 21, selected ? '#a0ffe4' : '#9aa7ba');
+        });
+        text(`${count} OF ${records.length} RECORDS RECOVERED`, 902, 310, 20, '#cfa2ff');
+      } else text(`LEVEL 1  /  ${count} OF ${records.length} RECORDS RECOVERED`, 440, 306, 20, '#cfa2ff');
       records.forEach((record, index) => {
-        const y = 366 + index * 104, selected = this.archiveFocus === index;
-        ctx.fillStyle = selected ? '#16394b' : '#0d2032'; ctx.fillRect(420, y, 420, 88);
-        if (selected) { ctx.strokeStyle = '#94ffe3'; ctx.strokeRect(420, y, 420, 88); }
-        text(`RECORD ${String(index + 1).padStart(2, '0')}  /  ${record ? 'RECOVERED' : 'UNRECOVERED'}`, 440, y + 23, 17, record ? '#a0ffe4' : '#9aa7ba');
-        text(record?.title || 'Signal not recovered', 440, y + 58, 20, record ? '#edf3ff' : '#9aa7ba');
+        const y = layout.top + index * layout.step, selected = this.archiveFocus === index;
+        ctx.fillStyle = selected ? '#16394b' : '#0d2032'; ctx.fillRect(420, y, 420, layout.height);
+        if (selected) { ctx.strokeStyle = '#94ffe3'; ctx.strokeRect(420, y, 420, layout.height); }
+        text(`RECORD ${catalog[index].number}  /  ${record ? 'RECOVERED' : 'UNRECOVERED'}`, 440, y + 23, 17, record ? '#a0ffe4' : '#9aa7ba');
+        text(record?.title || 'Signal not recovered', 440, y + (layout.height > 70 ? 58 : 50), 20, record ? '#edf3ff' : '#9aa7ba');
       });
       ctx.fillStyle = '#0d2032'; ctx.fillRect(874, 346, 626, 548);
       const record = records[this.archiveIndex];
@@ -361,9 +401,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
         text(record.title, 902, 386, 26, '#e8dcff');
         text(`${record.author} / ${record.source}`, 902, 427, 16, '#a0ffe4');
         let y = 450;
+        const bodySize = this.archiveLevel === 2 ? 20 : 21, bodyStep = this.archiveLevel === 2 ? 27 : 28;
         for (const paragraph of record.paragraphs) {
-          ctx.font = '21px monospace';
-          for (const line of BARCODE.LoreRecords.wrap(ctx, paragraph, 570)) { text(line, 902, y, 21); y += 28; }
+          ctx.font = `${bodySize}px monospace`;
+          for (const line of BARCODE.LoreRecords.wrap(ctx, paragraph, 570)) { text(line, 902, y, bodySize); y += bodyStep; }
           y += 10;
         }
         ctx.font = '20px monospace';
@@ -387,6 +428,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
         if (!saved) text('These records remain in this session.', 440, 728, 17, '#ffc68a');
       }
       text(BARCODE.GamepadUI?.connected ? BARCODE.ControllerSettings.menuHelp() : 'Arrows / Tab: Select   Enter: Choose   Esc: Back   P: Resume', 440, 916, 20);
+      if (chapters.length > 1) text('Select a chapter tab to change levels.', 440, 953, 18, '#cfa2ff');
     },
     draw(ctx) {
       ctx.save(); ctx.globalAlpha = 1; ctx.shadowBlur = 0;
@@ -414,6 +456,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       text(this.titleOpen ? 'Set up your signal before you start.' : 'Take a breath. Keep your signal.', 440, 307, 22);
       text('CONTROLS', 440, 392, 24, '#cfa2ff');
       const road = BARCODE.CacheRoadProof?.active, proof = BARCODE.RunAndGunProof?.active;
+      const chapter = road && BARCODE.CacheRoadProof.chapter;
       const controls = road ? (BARCODE.GamepadUI?.connected
         ? ['Stick / D-pad: Steer; Up: Faster; Down: Brake', `${BARCODE.ControllerSettings.button(4)}: Turbo; ${BARCODE.ControllerSettings.button(5)}: Buffer Echo`, 'Face buttons: Surge / Push / Brace / Refill', 'Drive over a mint road pad and tap its button on a beat.', 'A catch raises that lane for 8 bars; follow the run for 16.', `${BARCODE.ControllerSettings.button(9)}: Pause / Settings`]
         : ['A / D or Left / Right: Steer; Up / W: Faster; Down / S: Brake', 'Space: Turbo; H: Buffer Echo', 'K: Surge; L: Push; J: Brace; I: Refill', 'Drive over a mint road pad and tap its key on a beat.', 'A catch raises that lane for 8 bars; follow the run for 16.', 'P: Pause'])
@@ -422,10 +465,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
         : ['A / D or Left / Right: Move', 'Space / W / Up: Jump', 'E: Fire / Hold E for repeat fire', 'Climb: break roof nodes, then relays.', 'Jump the lanes; watch for a runner.', 'P: Pause'])
         : (BARCODE.GamepadUI?.connected ? ['Stick / D-pad: Move', `${BARCODE.ControllerSettings.prompt('jump')}: Jump / Down + Jump: Drop`, `${BARCODE.ControllerSettings.prompt('rhythm_mode')}: Rhythm Mode`, `${BARCODE.ControllerSettings.prompt('primary')}: Beat attack`, `${BARCODE.ControllerSettings.prompt('interact')}: Hack`, `${BARCODE.ControllerSettings.button(9)}: Pause / Settings`] : ['A / D or Left / Right: Move', 'Space / W / Up: Jump; Down + Jump: Drop', 'R: Enter Rhythm Mode', 'Down: Attack on the beat', 'H: Hack when unlocked', 'P: Pause']);
       controls.forEach((line, i) => text(line, 440, 448 + i * 46, 21));
-      text(road ? 'PROTOTYPE CHANNEL 02' : proof ? 'PROTOTYPE CHANNEL 03' : 'RHYTHM MODE HOLDS YOUR STANCE', 440, 772, 20, '#a0ffe4');
-      text(road || proof ? 'Choose Exit preview to return to Cache Back.' : BARCODE.GamepadUI?.connected ? `${BARCODE.ControllerSettings.button(1)} exits so you can move.` : 'R or Escape exits so you can move.', 440, 810, 20);
+      text(chapter ? 'CACHE LINE' : road ? 'PROTOTYPE CHANNEL 02' : proof ? 'PROTOTYPE CHANNEL 03' : 'RHYTHM MODE HOLDS YOUR STANCE', 440, 772, 20, '#a0ffe4');
+      text(chapter ? 'Return to bridge keeps your saved road marker.' : road || proof ? 'Choose Exit preview to return to Cache Back.' : BARCODE.GamepadUI?.connected ? `${BARCODE.ControllerSettings.button(1)} exits so you can move.` : 'R or Escape exits so you can move.', 440, 810, 20);
       const d=BARCODE.LevelDifficulty;
-      text(road ? 'Practice preview: progress saves at road markers.' : proof ? 'Practice preview: progress saves at each relay.' : d?.locked ? `LEVEL RULES: ${d.choice?.label} / ${d.recoveryMode==='full-run'?'FULL RUN':'CHECKPOINTS'}` : 'Difficulty + recovery: choose at level start.',440,855,18,'#cfa2ff');
+      text(chapter ? `CHAPTER 02 / ${chapter.difficultyId.toUpperCase()} / CHECKPOINTS` : road ? 'Practice preview: progress saves at road markers.' : proof ? 'Practice preview: progress saves at each relay.' : d?.locked ? `LEVEL RULES: ${d.choice?.label} / ${d.recoveryMode==='full-run'?'FULL RUN':'CHECKPOINTS'}` : 'Difficulty + recovery: choose at level start.',440,855,18,'#cfa2ff');
       text('Audio, visuals and controls can change anytime.',440,886,18,'#a0ffe4');
       visibleRows().forEach(([key, label], index) => {
         const y = rowTop + index * rowStep, selected = index === this.focus;

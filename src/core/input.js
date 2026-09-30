@@ -26,15 +26,21 @@ window.InputManager = class InputManager {
   init() {
     window.addEventListener('keydown', (e) => {
       const key = e.key.toLowerCase();
-      if (key === ' ' || key === 'enter' || key === 'c') this.resultKeysHeld.add(key);
+      if (key === ' ' || key === 'enter' || key === 'c' || window.BARCODE?.CacheRoadProof?.active && (key === 'r' || key === 's')) this.resultKeysHeld.add(key);
 
+      if (window.BARCODE?.CacheEnding?.active) {
+        e.preventDefault();
+        if(window.isPaused||window.gameState?.paused)window.BARCODE?.PauseMenu?.keyDown(e);
+        else window.BARCODE.CacheEnding.keyDown(e);
+        return;
+      }
       if (window.BARCODE?.Campaign?.intermission) {
         e.preventDefault();
         if(window.isPaused||window.gameState?.paused)window.BARCODE?.PauseMenu?.keyDown(e);
         else window.BARCODE?.CacheBridge?.keyDown(e);
         return;
       }
-      if (window.BARCODE?.CacheRoadProof?.active) {
+      if (window.BARCODE?.CacheRoadProof?.active && !(window.isPaused || window.gameState?.paused)) {
         if (window.BARCODE.CacheRoadProof.keyDown(e)) return;
       }
       if (window.BARCODE?.RunAndGunProof?.active) {
@@ -104,6 +110,7 @@ window.InputManager = class InputManager {
     window.addEventListener('keyup', (e) => {
       const key = e.key.toLowerCase();
       this.resultKeysHeld.delete(key);
+      window.BARCODE?.CacheEnding?.keyUp(e);
       window.BARCODE?.CacheBridge?.keyUp(e);
       window.BARCODE?.LevelDifficulty?.keyUp(e);
       window.BARCODE?.PauseMenu?.keyUp(e);
@@ -124,6 +131,7 @@ window.InputManager = class InputManager {
       this.terminalKeyLatched = null;
       this.hackEscapeLatched = false;
       this.resultKeysHeld.clear();
+      window.BARCODE?.CacheEnding?.releaseInputs();
       window.BARCODE?.CacheBridge?.releaseInputs();
       this.resetActionEdges();
       this.mouse.pressed = false;
@@ -135,12 +143,23 @@ window.InputManager = class InputManager {
     }, { passive: false });
     window.addEventListener('mousemove', (e) => { if (window.BARCODE?.PauseMenu?.pointer(e, 'move')) return; this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
     window.addEventListener('mousedown', (e) => {
+      if (window.BARCODE?.CacheEnding?.active) {
+        if(window.isPaused||window.gameState?.paused)window.BARCODE?.PauseMenu?.pointer(e,'down');
+        else window.BARCODE.CacheEnding.pointer(e);
+        return;
+      }
       if (window.BARCODE?.Campaign?.intermission) {
         if(window.isPaused||window.gameState?.paused)window.BARCODE?.PauseMenu?.pointer(e,'down');
         else window.BARCODE?.CacheBridge?.pointer(e);
         return;
       }
       if (window.BARCODE?.LevelDifficulty?.pointer(e) || window.BARCODE?.PauseMenu?.pointer(e, 'down')) return;
+      const road=window.BARCODE?.CacheRoadProof;
+      if(road?.active&&road.status!=='playing') {
+        const rect=document.getElementById('gameCanvas')?.getBoundingClientRect?.();
+        if(rect?.width&&rect?.height)road.pointerClick?.((e.clientX-rect.left)*1920/rect.width,(e.clientY-rect.top)*1080/rect.height);
+        return;
+      }
       this.mouse.pressed = true; this.mouse.clicked = true;
     });
     window.addEventListener('mouseup', (e) => { window.BARCODE?.PauseMenu?.pointer(e, 'up'); this.mouse.pressed = false; });
@@ -194,7 +213,7 @@ window.InputManager = class InputManager {
 
   isResultControlHeld() {
     const pad = window.BARCODE?.GamepadUI?.selectPad?.();
-    return this.resultKeysHeld.size > 0 || !!pad?.buttons[0]?.pressed || !!pad?.buttons[2]?.pressed || !!pad?.buttons[3]?.pressed;
+    return this.resultKeysHeld.size > 0 || !!pad?.buttons[0]?.pressed || !!pad?.buttons[2]?.pressed || !!pad?.buttons[3]?.pressed || !!(window.BARCODE?.CacheRoadProof?.active && pad?.buttons[1]?.pressed);
   }
 
   updateFrontend(owner) {
@@ -222,7 +241,7 @@ window.InputManager = class InputManager {
 
   routeGamepadUI() {
     const BARCODE = window.BARCODE, menu = BARCODE?.PauseMenu;
-    const owner = BARCODE?.LevelDifficulty?.open ? 'difficulty' : (menu?.titleOpen || window.isPaused || window.gameState?.paused) ? 'pause' : BARCODE?.CacheBridge?.active ? 'bridge' :
+    const owner = BARCODE?.LevelDifficulty?.open ? 'difficulty' : (menu?.titleOpen || window.isPaused || window.gameState?.paused) ? 'pause' : BARCODE?.CacheEnding?.active ? 'ending' : BARCODE?.CacheBridge?.active ? 'bridge' :
       BARCODE?.CacheRoadProof?.active && BARCODE.CacheRoadProof.status !== 'playing' ? 'road-results' : window.hackingSystem?.isActive?.() ? 'hack' :
       (window.gameState?.gameOver || window.gameState?.victory) ? 'results' :
       window.tutorialSystem?.isActive?.() ? 'tutorial' : 'gameplay';
@@ -238,6 +257,7 @@ window.InputManager = class InputManager {
       return true;
     }
     if (input.changed) this.actionInput?.blockGamepadUntilRelease();
+    if (owner === 'ending') { BARCODE.CacheEnding.gamepad(input); return true; }
     if (owner === 'bridge') { BARCODE.CacheBridge.gamepad(input); return true; }
     if (owner === 'pause') {
       if (input.changed && menu) menu.dirty = true;
@@ -270,6 +290,7 @@ window.InputManager = class InputManager {
     const activeProof = BARCODE?.CacheRoadProof?.active ? BARCODE.CacheRoadProof :
       BARCODE?.RunAndGunProof?.active ? BARCODE.RunAndGunProof : null;
     if (activeProof && activeProof.status !== 'playing') {
+      if(owner==='road-results'&&activeProof.resultGamepad) {activeProof.resultGamepad(input);return true;}
       if (owner === 'road-results' && p.b9) BARCODE.RuntimeLifecycle?.togglePause?.();
       else if (p.b0) activeProof.retry();
       else if (p.b3) activeProof.exit();

@@ -1,5 +1,31 @@
 # Repository Guidance
 
+## September 30, 2026 — authored Cache Line completion
+
+The owner approved the next milestone after merged PR #155: fresh Cache Line
+runs can earn Bass, four optional records and a four-panel delivery ending
+that hands the distribution hold to Mac. This supersedes the no-Bass scope
+of the earlier proof passes for new eligible runs only. Old v1–v4 checkpoints
+without chapter metadata remain playable and never receive a retroactive
+reward; an explicit full replay starts a new eligible run.
+
+Keep the existing eight opening panels, eight bridge panels, road geometry,
+beat ONE, five music sources, dashboard and exact rearview blur unchanged.
+Completion requires the existing Echo gate and 100-bar finish. Save actual
+statistics, Bass, Level 2 completion, Level 3 unlock and the current checkpoint
+as one transaction. Records are optional and add no artificial bonus. The
+ending shares the Canvas/input/RAF, resumes its page/cue silently and needs a
+fresh final confirmation. Mac's authored stage is not playable yet; do not
+launch the development proof automatically.
+
+Read `docs/source-pack/CACHE_LINE_COMPLETION.md` for the contracts and source
+art provenance. Base/rollback is `21257afbb00a4c500384da815d6e3d97fbeb610b`;
+branch `agent/cache-authored-completion`. Full regression and Chromium CI
+remain the merge gate under standing owner authority. Exact tested head,
+CI outcomes and merge belong to the PR/generated receipt. Native previews
+and browser checks do not claim Makko or physical-controller acceptance.
+Older current-work entries below are historical.
+
 ## September 30, 2026 — preserve completed road results on re-entry
 
 PR #154 is merged with its full prior CI passed. The follow-up audit found

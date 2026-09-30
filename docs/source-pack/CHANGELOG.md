@@ -1,5 +1,19 @@
 # Recovery checkpoint — September 14
 
+## September 30, 2026 — authored Cache Line completion
+
+- Add four ending paintings with source PNGs/provenance and twelve staged cues.
+- Award Bass once after an eligible clear; atomically persist the result,
+  campaign facts and checkpoint. Retain honest failure/retry save status.
+- Add four optional lane-dwell records and a chapter-aware pause archive.
+- Preserve legacy proof eligibility, direct/nested resume and saved music bars.
+- Share ending Canvas/RAF/input/audio cleanup; support transcript, pause,
+  saved reading position, deliberate skip/finish, race and ending replay.
+- Preserve both existing eight-panel sequences, all road art/geometry,
+  song-aware effects, beat ONE, dashboard and exact 2.3 px rearview blur.
+- Add persistence/flow/render/Chromium evidence; exact validation and merge
+  state are recorded by the PR and generated receipt. Mac gameplay is next.
+
 ## September 30, 2026 — completed-road handoff repair
 
 - Follow merged #154 and its successful full CI with a reproduced saved-road

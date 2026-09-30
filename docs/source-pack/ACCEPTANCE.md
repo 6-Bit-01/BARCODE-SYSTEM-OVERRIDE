@@ -1,5 +1,35 @@
 # Acceptance and Test Status
 
+## Authored Cache Line completion — September 30
+
+1. Import the merged build in Makko, Continue from the bridge and start a fresh
+   drive. Preserve the eight bridge scenes, road scale, beat ONE and 2.3 px
+   mirror blur. Collect a marked cassette with a 650 ms lane hold; inspect it
+   under Pause → Archive. Switch chapters with all three input methods.
+2. Finish a fresh 100-bar race with the Echo gate open, including a run with no
+   records. Expect Bass once, actual result statistics and four ending panels.
+   Reading, pausing, transcript and five-second skip must never restart music
+   or the road. Skip reaches the final panel; fresh Finish chapter returns to
+   results. Hold confirm across the finish and across results return: no action
+   occurs until release and a new press.
+3. Reload during the ending: Continue restores its page/cue silently. Replay
+   ending and return to results without changing score/reward. Replay race
+   starts a new eligible run. Title retains the completed checkpoint. Mac's
+   authored stage remains a future chapter, with no automatic DEV launch.
+4. Restore direct/nested legacy proof saves: preserve status and music offset;
+   no retroactive Bass or Level 2 result. A full replay can earn completion.
+   Verify a failed checkpoint attempt keeps its run ID and cumulative retry,
+   elapsed and damage counts, while replay resets them.
+5. Test storage unavailable then retry: report session-only facts honestly;
+   no false saved badge. Repeated saves/reload must not duplicate rewards.
+
+Focused persistence and production-flow checks, the full regression suite,
+all-file syntax and hosted Chromium scene/input/audio checks are required for
+this diff. Actual outcomes/head are in its PR/generated receipt. The 32-second
+native review is scripted production rendering, not a Makko playthrough.
+Capture the platform/browser, input device, save route, panel or song bar and
+short video for any failure. Base/rollback is merged #155 (`21257af`).
+
 ## Completed-road handoff — September 30
 
 From merged #154 (full prior CI passed), check both direct Continue and a

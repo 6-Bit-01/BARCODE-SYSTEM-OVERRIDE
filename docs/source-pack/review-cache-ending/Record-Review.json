@@ -1,0 +1,411 @@
+{
+  "kind": "native-production-road-draw",
+  "dimensions": {
+    "width": 1920,
+    "height": 1080
+  },
+  "sourceHash": "70df5df7b175bd1fabb11a22a955473da0ec1c4c87a6bf960561654b1aa6d7b4",
+  "limitation": "Deterministic renderer fixtures with approved art and a Map-backed localStorage boundary; not a real-time playthrough or device performance claim.",
+  "frames": [
+    {
+      "file": "record-lane-dwell.png",
+      "fixture": {
+        "bar": 12,
+        "lane": 0,
+        "record": 0,
+        "continuousDwellMs": 400,
+        "requiredDwellMs": 650,
+        "opportunity": {
+          "index": 0,
+          "lane": 0,
+          "start": 12,
+          "end": 20,
+          "active": true,
+          "held": 0.6153846153846154
+        },
+        "signWorldAddress": 1290
+      },
+      "texts": [
+        {
+          "text": "P",
+          "x": 1315.102306464082,
+          "y": 431.85356547162104,
+          "maxWidth": null
+        },
+        {
+          "text": "OPTIONAL RECORD",
+          "x": 0,
+          "y": -101,
+          "maxWidth": null
+        },
+        {
+          "text": "HOLD MARKED LANE",
+          "x": 0,
+          "y": -80,
+          "maxWidth": null
+        },
+        {
+          "text": "HIT ON 1",
+          "x": 425.3494293892019,
+          "y": 857.7919999999999,
+          "maxWidth": null
+        },
+        {
+          "text": "SLOW / DRAFT",
+          "x": 1306.1564954811645,
+          "y": 578.7633136094673,
+          "maxWidth": null
+        },
+        {
+          "text": "GEAR",
+          "x": 279,
+          "y": 40,
+          "maxWidth": null
+        },
+        {
+          "text": "TIME",
+          "x": 412,
+          "y": 42,
+          "maxWidth": null
+        },
+        {
+          "text": "MPH",
+          "x": 211,
+          "y": 105,
+          "maxWidth": null
+        },
+        {
+          "text": "SIGNAL",
+          "x": 534,
+          "y": 129,
+          "maxWidth": null
+        },
+        {
+          "text": "000000",
+          "x": 410,
+          "y": 131,
+          "maxWidth": 73
+        },
+        {
+          "text": "×1",
+          "x": 488,
+          "y": 131,
+          "maxWidth": 27
+        },
+        {
+          "text": "REAR VIEW",
+          "x": 657,
+          "y": 36,
+          "maxWidth": null
+        },
+        {
+          "text": "I",
+          "x": 1473,
+          "y": 70,
+          "maxWidth": 51
+        },
+        {
+          "text": "REFILL",
+          "x": 1517,
+          "y": 43,
+          "maxWidth": 181
+        },
+        {
+          "text": "LINE UP",
+          "x": 1517,
+          "y": 69,
+          "maxWidth": 202
+        },
+        {
+          "text": "LANE",
+          "x": 1773,
+          "y": 39,
+          "maxWidth": null
+        },
+        {
+          "text": "TURBO",
+          "x": 1392,
+          "y": 115,
+          "maxWidth": null
+        },
+        {
+          "text": "SPACE",
+          "x": 1480,
+          "y": 115,
+          "maxWidth": 48
+        },
+        {
+          "text": "READY",
+          "x": 1530,
+          "y": 130,
+          "maxWidth": 64
+        },
+        {
+          "text": "ECHO",
+          "x": 1628,
+          "y": 115,
+          "maxWidth": null
+        },
+        {
+          "text": "H",
+          "x": 1693,
+          "y": 115,
+          "maxWidth": 43
+        },
+        {
+          "text": "READY",
+          "x": 1751,
+          "y": 130,
+          "maxWidth": 47
+        },
+        {
+          "text": "B",
+          "x": 1052,
+          "y": 152,
+          "maxWidth": null
+        }
+      ],
+      "sha256": "b53f3ca5395c3cdcc599af088640dd0ec48e7e3d752bbb2bb6ff53e3c56d1759"
+    },
+    {
+      "file": "chapter-results.png",
+      "fixture": {
+        "result": {
+          "runId": "cache-native-review",
+          "recoveryMode": "checkpoints",
+          "completedAt": 10000,
+          "score": 12840,
+          "discoveries": 4,
+          "bonus": 0,
+          "elapsedMs": 203200,
+          "damageTaken": 1,
+          "retries": 1,
+          "attempts": 38,
+          "accurate": 31,
+          "perfect": 24,
+          "connected": 31,
+          "bestCombo": 8
+        },
+        "buttons": [
+          {
+            "id": "ending",
+            "label": "REPLAY ENDING",
+            "key": "ENTER",
+            "x": 435,
+            "y": 572,
+            "w": 340,
+            "h": 72
+          },
+          {
+            "id": "race",
+            "label": "REPLAY RACE",
+            "key": "R",
+            "x": 790,
+            "y": 572,
+            "w": 340,
+            "h": 72
+          },
+          {
+            "id": "title",
+            "label": "TITLE",
+            "key": "C",
+            "x": 1145,
+            "y": 572,
+            "w": 340,
+            "h": 72
+          }
+        ],
+        "saveStatus": "saved"
+      },
+      "texts": [
+        {
+          "text": "HIT ON 1",
+          "x": 417.71795721960393,
+          "y": 857.7919999999999,
+          "maxWidth": null
+        },
+        {
+          "text": "GEAR",
+          "x": 279,
+          "y": 40,
+          "maxWidth": null
+        },
+        {
+          "text": "TIME",
+          "x": 412,
+          "y": 42,
+          "maxWidth": null
+        },
+        {
+          "text": "MPH",
+          "x": 211,
+          "y": 105,
+          "maxWidth": null
+        },
+        {
+          "text": "SIGNAL",
+          "x": 534,
+          "y": 129,
+          "maxWidth": null
+        },
+        {
+          "text": "012840",
+          "x": 410,
+          "y": 131,
+          "maxWidth": 73
+        },
+        {
+          "text": "×1",
+          "x": 488,
+          "y": 131,
+          "maxWidth": 27
+        },
+        {
+          "text": "REAR VIEW",
+          "x": 657,
+          "y": 36,
+          "maxWidth": null
+        },
+        {
+          "text": "K",
+          "x": 1473,
+          "y": 70,
+          "maxWidth": 51
+        },
+        {
+          "text": "SURGE",
+          "x": 1517,
+          "y": 43,
+          "maxWidth": 181
+        },
+        {
+          "text": "LINE UP",
+          "x": 1517,
+          "y": 69,
+          "maxWidth": 202
+        },
+        {
+          "text": "LANE",
+          "x": 1773,
+          "y": 39,
+          "maxWidth": null
+        },
+        {
+          "text": "TURBO",
+          "x": 1392,
+          "y": 115,
+          "maxWidth": null
+        },
+        {
+          "text": "SPACE",
+          "x": 1480,
+          "y": 115,
+          "maxWidth": 48
+        },
+        {
+          "text": "READY",
+          "x": 1530,
+          "y": 130,
+          "maxWidth": 64
+        },
+        {
+          "text": "ECHO",
+          "x": 1628,
+          "y": 115,
+          "maxWidth": null
+        },
+        {
+          "text": "H",
+          "x": 1693,
+          "y": 115,
+          "maxWidth": 43
+        },
+        {
+          "text": "READY",
+          "x": 1751,
+          "y": 130,
+          "maxWidth": 47
+        },
+        {
+          "text": "B",
+          "x": 1052,
+          "y": 152,
+          "maxWidth": null
+        },
+        {
+          "text": "ORIGINAL TAPE DELIVERED",
+          "x": 960,
+          "y": 380,
+          "maxWidth": null
+        },
+        {
+          "text": "BASS RECOVERED — THE DISTRIBUTION BLOCKADE REMAINS.",
+          "x": 960,
+          "y": 458,
+          "maxWidth": null
+        },
+        {
+          "text": "Cache kept the original. Mac takes the route from here.",
+          "x": 960,
+          "y": 506,
+          "maxWidth": null
+        },
+        {
+          "text": "SCORE 12840   ·   RECORDS 4/4   ·   3:23   ·   DAMAGE 1   ·   RETRIES 1",
+          "x": 960,
+          "y": 541,
+          "maxWidth": 1040
+        },
+        {
+          "text": "REPLAY ENDING",
+          "x": 605,
+          "y": 602,
+          "maxWidth": 320
+        },
+        {
+          "text": "ENTER",
+          "x": 605,
+          "y": 627,
+          "maxWidth": 320
+        },
+        {
+          "text": "REPLAY RACE",
+          "x": 960,
+          "y": 602,
+          "maxWidth": 320
+        },
+        {
+          "text": "R",
+          "x": 960,
+          "y": 627,
+          "maxWidth": 320
+        },
+        {
+          "text": "TITLE",
+          "x": 1315,
+          "y": 602,
+          "maxWidth": 320
+        },
+        {
+          "text": "C",
+          "x": 1315,
+          "y": 627,
+          "maxWidth": 320
+        },
+        {
+          "text": "P: SETTINGS + RECORD ARCHIVE",
+          "x": 960,
+          "y": 674,
+          "maxWidth": null
+        },
+        {
+          "text": "DELIVERY SAVED",
+          "x": 960,
+          "y": 711,
+          "maxWidth": 920
+        }
+      ],
+      "sha256": "fea2a5eb7a047a0f340b69c9e7d4d95f3018bb458f90b94372e0b1ccfd6e6ae3"
+    }
+  ]
+}

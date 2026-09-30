@@ -110,6 +110,84 @@ async function main() {
     assert.strictEqual(menu.archiveState().count, 1); assert.strictEqual(menu.archiveState().saved, false);
     assert(canvas.getContext().operations.some(op => op[0] === 'fillText' && op[1] === 'These records remain in this session.'));
   }
-  console.log('Lore archive: authored content, existing-save unlocks, hidden entries, pure reading, input ownership, queued notices, pause/reload/reset and blocked storage passed.');
+  {
+    const { w, menu, lost, canvas, saved } = rig(), B = w.BARCODE;
+    const event = key => ({ key, repeat: false, preventDefault() {} });
+    const tap = key => { menu.keyDown(event(key)); menu.keyUp(event(key)); };
+    const labels = () => canvas.getContext().operations.filter(op => op[0] === 'fillText').map(op => op[1]);
+    const point = (x, y) => ({ clientX: 80 + x / 2, clientY: 40 + y / 2, preventDefault() {} });
+    w.gameState.paused = true; menu.openArchive();
+    assert.deepStrictEqual(plain(menu.archiveChapters()), [1], 'unavailable chapters do not add empty tabs');
+    B.CacheRoadProof = { active: true, status: 'playing' }; menu.openArchive();
+    assert.strictEqual(menu.archiveLevel, 2, 'driving opens the current chapter archive');
+    assert.strictEqual(menu.archiveState().records.length, 4);
+    menu.draw(canvas.getContext());
+    assert(labels().includes('RECORD 04  /  UNRECOVERED'));
+    assert(labels().includes('RECORD 07  /  UNRECOVERED'));
+    for (const record of B.LoreRecords.level2) {
+      assert(!labels().includes(record.title), 'unrecovered Level 2 titles stay hidden');
+      assert(!labels().some(text => record.paragraphs.some(paragraph => text && paragraph.includes(text))), 'unrecovered Level 2 prose stays hidden');
+    }
+    menu.selectArchive(0); tap('ArrowUp');
+    assert.strictEqual(menu.archiveFocus, 7, 'chapter tabs join the keyboard focus order');
+    tap('ArrowLeft'); assert.strictEqual(menu.archiveLevel, 1); assert.strictEqual(menu.archiveFocus, 5);
+    tap('ArrowRight'); assert.strictEqual(menu.archiveLevel, 2); assert.strictEqual(menu.archiveFocus, 7);
+    assert.strictEqual(saved.values.size, 0, 'reading either chapter cannot write a save');
+    menu.pointer(point(500, 310), 'down'); assert.strictEqual(menu.archiveLevel, 1);
+    menu.pointer(point(730, 310), 'down'); assert.strictEqual(menu.archiveLevel, 2);
+    menu.pointer(point(600, 630), 'down'); assert.strictEqual(menu.archiveIndex, 3, 'scaled pointer reaches the fourth record');
+    menu.pointer(point(600, 774), 'down'); assert.strictEqual(menu.view, 'settings', 'four records leave the Back button clear');
+    for (const record of B.LoreRecords.level2) assert(lost.archive.collect(record.id));
+    lost.lastCollectedLoreId = 'lore.l02.03'; menu.openArchive();
+    assert.strictEqual(menu.archiveIndex, 2); assert.strictEqual(menu.archiveState().count, 4);
+    const before = saved.getItem(KEY);
+    for (let index = 0; index < 4; index++) {
+      canvas.getContext().operations.length = 0; menu.selectArchive(index); menu.draw(canvas.getContext());
+      assert(labels().includes(B.LoreRecords.level2[index].title));
+      const rectangles = canvas.getContext().operations.filter(op => op[0] === 'fillRect' && op[1] === 420 && op[2] >= 356 && op[2] < 690);
+      assert.strictEqual(rectangles.length, 4);
+      assert(rectangles.every(op => op[2] + op[4] < 690), 'all four record rows fit above notices');
+    }
+    const pressed = {};
+    B.GamepadUI = { poll: owner => { assert.strictEqual(owner, 'pause'); return { pressed, held: {}, changed: false }; } };
+    menu.selectArchive(0); pressed.up = true; w.inputManager.routeGamepadUI(); delete pressed.up;
+    pressed.left = true; w.inputManager.routeGamepadUI(); delete pressed.left;
+    assert.strictEqual(menu.archiveLevel, 1, 'existing controller routing can select a chapter tab');
+    pressed.right = true; w.inputManager.routeGamepadUI(); delete pressed.right;
+    assert.strictEqual(menu.archiveLevel, 2);
+    pressed.b0 = true; w.inputManager.routeGamepadUI(); delete pressed.b0;
+    assert.strictEqual(menu.archiveLevel, 2, 'controller confirm keeps the selected chapter');
+    assert.strictEqual(saved.getItem(KEY), before, 'chapter switching and reading preserve save bytes');
+    B.CacheRoadProof.active = false; B.CacheEnding = { active: true }; menu.openArchive();
+    assert.strictEqual(menu.archiveLevel, 2, 'ending opens the same four records');
+    B.CacheEnding.active = false; menu.openArchive(); assert.strictEqual(menu.archiveLevel, 1, 'outside Cache, Level 1 remains the default');
+    const restored = rig(saved); restored.w.gameState.paused = true; restored.menu.openArchive();
+    assert.deepStrictEqual(plain(restored.menu.archiveChapters()), [1, 2], 'collected records keep their chapter available after reload');
+    restored.menu.changeArchiveChapter(2); assert.strictEqual(restored.menu.archiveState().count, 4);
+  }
+  {
+    const saved = storage(); saved.setItem = () => { throw new Error('blocked'); };
+    const { w, menu, lost, canvas } = rig(saved);
+    lost.archive.collect('lore.l02.04'); w.gameState.paused = true; menu.openArchive(); menu.changeArchiveChapter(2); menu.draw(canvas.getContext());
+    assert.strictEqual(menu.archiveState().count, 1); assert.strictEqual(menu.archiveState().saved, false);
+    assert.strictEqual(menu.archiveState().records[0], null);
+    assert.strictEqual(menu.archiveState().records[3].id, 'lore.l02.04');
+    assert(canvas.getContext().operations.some(op => op[0] === 'fillText' && op[1] === 'These records remain in this session.'));
+  }
+  {
+    const { w, menu, canvas } = rig(); let exits = 0;
+    const road = w.BARCODE.CacheRoadProof = { active: true, status: 'playing', chapter: null, exit() { exits++; } };
+    const drawLabels = () => { canvas.getContext().operations.length = 0; menu.draw(canvas.getContext());
+      return canvas.getContext().operations.filter(op => op[0] === 'fillText').map(op => op[1]); };
+    w.gameState.paused = true; menu.sync();
+    let labels = drawLabels(); assert(labels.includes('PROTOTYPE CHANNEL 02')); assert(labels.includes('Exit preview'));
+    road.chapter = { runId: 'cache-current', difficultyId: 'overclocked' }; labels = drawLabels();
+    assert(labels.includes('CACHE LINE')); assert(labels.includes('CHAPTER 02 / OVERCLOCKED / CHECKPOINTS'));
+    assert(labels.includes('Return to bridge')); assert(!labels.includes('PROTOTYPE CHANNEL 02'));
+    menu.focus = 7; menu.activate();
+    assert.strictEqual(exits, 1, 'authored return retains the established saved-road exit action');
+    assert.strictEqual(road.chapter.runId, 'cache-current', 'pause return does not create a new race');
+  }
+  console.log('Lore archive: both chapters, four optional Cache records, hidden entries, keyboard/controller/pointer tabs, pure reading, reload and honest storage status passed.');
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });
