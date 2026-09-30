@@ -1,4 +1,19 @@
-# Continue here — eight-scene Cache Line bridge
+# Continue here — completed Cache Road handoff
+
+## September 30, 2026 — current work: completed-road handoff repair
+
+Base is merged PR #154, `a1aeeddfa6d3cc385b413bf41330849c974c1398`, whose
+full CI passed. Branch: `agent/cache-completed-handoff`. Read
+`docs/source-pack/CACHE_ROAD_COMPLETED_HANDOFF.md` for the reproduced resume
+fault, silent-result/explicit-Retry contract, result-button release guard
+and saved-bar playback ordering.
+Keep the bridge and current road proof intact; do not award Bass or silently
+promote old proof clears. Final checks for this new repair remain pending
+in its own PR/generated receipt.
+
+Authored Level 2 completion, four optional records and the Mac outro remain
+a separately scoped proposed milestone, not implemented by this repair.
+Older current-work entries below are history.
 
 ## September 30, 2026 — current work: eight-scene Cache Line bridge
 

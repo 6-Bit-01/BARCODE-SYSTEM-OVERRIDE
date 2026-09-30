@@ -1562,6 +1562,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       status: saved.status || 'playing', elapsedMs: 0 };
   }
 
+  function stateFromCheckpoint(saved) {
+    const clear = saved.checkpointId === 'road-clear';
+    return newState({ ...migrateProof(saved.levelState.proof, saved.levelState.proofVersion),
+      // Old one-lap clears must remain valid when checkpoint() upgrades them
+      // to the full-song save format. Ordinary legacy markers keep their bar.
+      ...(clear && saved.levelState.proofVersion < 3 ? { musicBar: 100 } : {}),
+      status: clear ? 'clear' : 'playing' });
+  }
+
   const road = B.CacheRoadProof = {
     active: false, status: null, state: null, returnTo: null, pending: false,
     exiting: false, audioDegraded: false, oldHint: null,
@@ -1670,14 +1679,16 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         if (!prepared?.ok) { audioFailure = prepared; throw new Error('road-audio-unavailable'); }
         if (!this.checkAudioAssets()) throw new Error('road-audio-invalid');
         this.returnTo = returnTo;
-        this.state = newState(resume ? migrateProof(resume.levelState.proof, resume.levelState.proofVersion) : {});
+        this.state = resume ? stateFromCheckpoint(resume) : newState();
         this.status = this.state.status; this.active = true;
         this.setHint();
         B.Campaign.intermission = false; B.Campaign.run = null;
         window.gameState.victory = false; window.gameState.gameOver = false;
         window.gameState.running = true;
-        const started = window.audioSystem?.startRuntimeGameplayMusic?.();
-        if (!started?.ok) throw new Error('road-audio-start-failed');
+        if (this.status === 'playing') {
+          const started = window.audioSystem?.startRuntimeGameplayMusic?.();
+          if (!started?.ok) throw new Error('road-audio-start-failed');
+        }
         this.checkpoint(resume?.checkpointId || 'road-start');
         window.inputManager?.resetActionEdges?.();
         return { ok: true };
@@ -1698,9 +1709,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     restore(saved) {
       if (!this.validate(saved)) return false;
       this.returnTo = clone(saved.levelState.returnTo);
-      this.state = newState({ ...migrateProof(saved.levelState.proof, saved.levelState.proofVersion),
-        status: saved.checkpointId === 'road-clear' ? 'clear' : 'playing' });
+      this.state = stateFromCheckpoint(saved);
       this.status = this.state.status; this.active = true; this.exiting = false;
+      if (this.status === 'clear') {
+        window.audioSystem?.stopRuntimeAudio?.({ stopMusic: true });
+        window.audioSystem?.stopRoadEngine?.();
+      }
       this.setHint();
       this.checkAudioAssets();
       window.gameState.victory = false; window.gameState.gameOver = false;

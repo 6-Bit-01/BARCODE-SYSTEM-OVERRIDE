@@ -1,5 +1,28 @@
 # Acceptance and Test Status
 
+## Completed-road handoff — September 30
+
+From merged #154 (full prior CI passed), check both direct Continue and a
+nested `road-clear` re-entered through the bridge. Restore the completed
+result without a song/engine start or automatic replay; shared-loop updates
+must leave it silent. Explicit Retry starts one fresh drive at zero. For a
+playable save, restore before source creation and verify the saved-bar offset
+(bar 76 = 142.5 seconds). Preserve existing preparation failure/cancellation
+handling, Voice/results and the no-Bass/no-Level-2-completion boundary.
+Test clear/fail × controller Retry/Exit with buttons arriving after the final
+driving poll: hold does nothing, release plus fresh press acts once. Menu
+pauses results; pause-menu resume must preserve the release guard.
+
+Focused lifecycle/bridge and road-proof checks pass restore ordering, saved
+offset, silent results and deliberate Retry. An earned 100-bar clear survives
+exit/nested re-entry with exact statistics. Legacy v1/v2/v3 terminal saves
+roundtrip; v1/v2 completion normalizes to bar 100 for valid v4 rewriting.
+All four controller boundary cases and actual pause-menu resume pass. Final combined regression, syntax and actual
+Chromium/CI for this repair remain pending; use its PR/generated receipt,
+not #154's earlier pass. Audio preparation remains necessary and no offline
+availability or Makko/device acceptance is implied. See
+`CACHE_ROAD_COMPLETED_HANDOFF.md`.
+
 ## Eight-scene Level 1 → Cache Line bridge — September 30
 
 Require all eight illustrations and the exact sixteen-line runtime script,

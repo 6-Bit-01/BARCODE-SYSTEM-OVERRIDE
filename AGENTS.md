@@ -1,5 +1,20 @@
 # Repository Guidance
 
+## September 30, 2026 — preserve completed road results on re-entry
+
+PR #154 is merged with its full prior CI passed. The follow-up audit found
+road music starting before saved-state restoration. Restore the road before
+choosing playback: a completed result remains silent; only explicit Retry
+starts a new drive. A playable save supplies its saved bar before sources
+start. Preserve terminal status through nested bridge re-entry and existing
+cancellation/retry behavior. Results own controller release-to-arm handling
+for Retry/Exit and remain pausable. Audio preparation is still required.
+
+Keep the proof boundary: no Bass, durable Level 2 completion, lore/module or
+Mac-stage award. The authored Level 2 completion/four-record/outro treatment
+is a separate proposed scope. See `docs/source-pack/CACHE_ROAD_COMPLETED_HANDOFF.md`.
+Current repair validation belongs to its PR/receipt, not #154's prior pass.
+
 ## September 30, 2026 — eight-scene Level 1 → Cache Line bridge
 
 The owner approved the illustrated bridge from Voice recovery to Cache Road.
