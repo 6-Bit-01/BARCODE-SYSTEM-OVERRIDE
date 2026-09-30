@@ -1,5 +1,29 @@
 # Current State
 
+## September 30 — readable inputs and a busier, reactive drive
+
+Fresh Cache Line runs use a version 2 encounter chart with civilian traffic
+through the audit and pursuit acts. Locally reserved paint, rival contact
+lanes and escape corridors replace the previous long traffic blackouts.
+Raised lane studs become flat road-plane quads; duplicate procedural shoulder
+posts are removed. Ground glints respond to actual speed, with static Reduced
+Motion equivalents. City geometry and exact rearview blur stay intact.
+
+Six custom vector button badges carry actual keyboard/controller labels in
+projected pads, the tire target, dashboard and Pause help. The accepted timing
+window and visual PRESS cue agree on both sides of ONE. New runs accept
+±180 ms, with the existing ±70 ms perfect zone. Early, late, wrong-button,
+wrong-lane and unattempted misses have explicit transient receipts. A compact
+route objective and contextual lessons explain the original tape, abilities,
+Echo exit and four optional archive records.
+
+Musical captures now make conspicuous, shorter entrances and exits. Quiet
+Drive/Flow support beds maintain continuity; the drum source stays audible
+through recovery while an actual crash removes one earned part. Source
+playheads remain aligned and are not restarted for gameplay. Existing saved
+version 1 chapters retain their previous chart, timing and mix. See
+`CACHE_DRIVE_FEEDBACK.md` for current tuning and validation limits.
+
 ## September 30 — speech bubbles and living Cache panels
 
 The eight bridge scenes and four delivery scenes now share measured comic

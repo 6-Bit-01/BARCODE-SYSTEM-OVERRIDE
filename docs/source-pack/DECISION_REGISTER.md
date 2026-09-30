@@ -1,5 +1,26 @@
 # Decision Register
 
+## September 30, 2026 — nine-point playable-drive feedback
+
+The owner identifies stray road shapes, unexplained tapes, unclear buttons,
+short/ambiguous timing, bare traffic, unintroduced abilities, unclear mission
+goals, weak speed pressure and subtle audio layering. Implement one coherent
+feedback pass on the existing game. The requested wider, clearer timing is
+new authority superseding the earlier no-window-change restriction.
+
+Use the existing difficulty choice to scale physical traffic, protect fair
+escape routes and retain the unobstructed final delivery split. Introduce
+skills through contextual play and a visual Pause reference. The cassette
+pickups remain optional written archive records, separate from musical lane
+captures. An upgrade economy/skill tree remains unapproved design work.
+
+Every pad names one action and one musical lane. Catching that pad adds its
+lane's part; the action separately grants Surge, Push, Brace or Refill. Show
+actual musical join/hold/loss, shorten captured holds, keep quiet support and
+the drums, and remove the whole-bus crash dropout from fresh version 2 runs.
+No extra recording, vocal stem, source restart or unsynchronized layer is
+introduced. Preserve existing version 1 saves; explicit replay uses version 2.
+
 ## September 30, 2026 — approved chat bubbles and cutscene effects
 
 The owner's “Alright now lets do that chat bubbles and cut scene effects”

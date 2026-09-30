@@ -42,6 +42,11 @@ function primaryWrites(r) { return r.storage.writes.filter(key => key === KEY).l
 {
   const r = rig(), fresh = copy(r.road.chapter);
   assert.notEqual(fresh.runId, r.chapter.create().runId);
+  assert.equal(fresh.encounterVersion, 2, 'only fresh runs opt into the new drive rules');
+  assert.equal(r.chapter.normalize({ ...fresh, encounterVersion: 1 }).encounterVersion, 1,
+    'existing authored encounters keep their version');
+  assert.equal(r.chapter.normalize({ ...fresh, encounterVersion: 3 }), null,
+    'future encounter metadata cannot invent an eligible run');
   for (const invalid of [null, undefined, {}, { ...fresh, version: 2 }, { ...fresh, elapsedMs: -1 },
     { ...fresh, retries: Infinity }, { ...fresh, attempts: 1e11 }, { ...fresh, runId: 'level-one-run' },
     { ...fresh, perfect: 1 }, { ...fresh, records: ['lore.l01.01'] },

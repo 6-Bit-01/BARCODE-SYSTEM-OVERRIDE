@@ -173,8 +173,11 @@ window.BARCODE = window.BARCODE || {};
       const distanceMs = Math.min(phaseMs, beatMs - phaseMs);
       const signedOffsetMs = phaseMs <= beatMs / 2 ? phaseMs : phaseMs - beatMs;
       let timing = 'miss';
-      if (distanceMs <= rule.windowsMs.perfect) timing = 'perfect';
-      else if (distanceMs <= rule.windowsMs.excellent) timing = 'excellent';
+      // Decimal milliseconds can land a few ulps outside an exact boundary.
+      // Keep old profiles byte-for-byte in judgment behavior.
+      const toleranceMs=rule.id==='road-pulse-v2'?1e-7:0;
+      if (distanceMs <= rule.windowsMs.perfect+toleranceMs) timing = 'perfect';
+      else if (distanceMs <= rule.windowsMs.excellent+toleranceMs) timing = 'excellent';
       return freeze({ available: true, timing, distanceMs, signedOffsetMs, beatIndex: Math.round(snapshot.grid.beatFloat), calibrationOffsetMs: offset, ruleId: rule.id, generation: snapshot.generation });
     }
 

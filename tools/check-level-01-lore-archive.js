@@ -10,7 +10,8 @@ function storage() {
 }
 function screen() {
   const operations = [], ctx = { operations, measureText: text => ({ width: text.length * 12.6 }) };
-  for (const name of ['save','restore','setTransform','drawImage','fillRect','strokeRect','fillText']) ctx[name] = (...args) => operations.push([name,...args]);
+  for (const name of ['save','restore','setTransform','drawImage','fillRect','strokeRect','fillText',
+    'translate','scale','beginPath','moveTo','lineTo','closePath','fill','stroke','arc']) ctx[name] = (...args) => operations.push([name,...args]);
   return { width: 1920, height: 1080, style: {}, getContext: () => ctx,
     getBoundingClientRect: () => ({ left: 80, top: 40, width: 960, height: 540 }) };
 }
@@ -20,7 +21,7 @@ function rig(saved = storage()) {
   const canvas = screen();
   w.document.getElementById = id => id === 'gameCanvas' ? canvas : null;
   w.document.createElement = () => screen();
-  for (const file of ['src/game/lore-collection.js','src/game/lost-data.js','src/engine/lore.js','src/game/pause-menu.js','src/core/action-input.js','src/core/input.js','src/core/runtime-lifecycle.js']) load(context,file);
+  for (const file of ['src/game/lore-collection.js','src/game/lost-data.js','src/engine/lore.js','src/game/cache-road-guidance.js','src/game/pause-menu.js','src/core/action-input.js','src/core/input.js','src/core/runtime-lifecycle.js']) load(context,file);
   w.lostDataSystem = new w.LostDataSystem(); w.lostDataSystem.init(w.player);
   w.loreSystem = new w.LoreSystem(); w.inputManager = new w.InputManager();
   r.p.startMission();
@@ -180,9 +181,13 @@ async function main() {
     const drawLabels = () => { canvas.getContext().operations.length = 0; menu.draw(canvas.getContext());
       return canvas.getContext().operations.filter(op => op[0] === 'fillText').map(op => op[1]); };
     w.gameState.paused = true; menu.sync();
-    let labels = drawLabels(); assert(labels.includes('PROTOTYPE CHANNEL 02')); assert(labels.includes('Exit preview'));
+    let labels = drawLabels(); assert(labels.includes('PROTOTYPE CHANNEL 02'));
+    assert(labels.includes('MATCH THE PAD  /  PRESS ON BEAT ONE'));
+    assert(labels.includes('Optional record: hold its lane for 0.65s.')); assert(labels.includes('Exit preview'));
     road.chapter = { runId: 'cache-current', difficultyId: 'overclocked' }; labels = drawLabels();
-    assert(labels.includes('CACHE LINE')); assert(labels.includes('CHAPTER 02 / OVERCLOCKED / CHECKPOINTS'));
+    assert(labels.includes('CACHE LINE'));
+    assert(labels.includes('EXIT: ECHO LEFT / ORIGINAL FAR RIGHT'));
+    assert(labels.includes('CHAPTER 02 / OVERCLOCKED / CHECKPOINTS'));
     assert(labels.includes('Return to bridge')); assert(!labels.includes('PROTOTYPE CHANNEL 02'));
     menu.focus = 7; menu.activate();
     assert.strictEqual(exits, 1, 'authored return retains the established saved-road exit action');

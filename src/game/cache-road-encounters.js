@@ -5,7 +5,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-encounters.js',
   exports: ['BARCODE.CacheRoadEncounters'], dependencies: [] });
 (function(B) {
   'use strict';
-  const VERSION = 1, REVEAL_DISTANCE = 440, MAX_ADDRESS = 16000;
+  const VERSION = 2, REVEAL_DISTANCE = 440, MAX_ADDRESS = 16000;
   const KINDS = ['freight', 'van', 'block', 'sweeper', 'trike', 'audit', 'shuttle'];
   const SETTINGS = Object.freeze({
     relaxed: Object.freeze({ id: 'relaxed', maxIntegrity: 4, collisionScale: .88,
@@ -15,6 +15,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-encounters.js',
     overclocked: Object.freeze({ id: 'overclocked', maxIntegrity: 3, collisionScale: 1.04,
       recoveryMs: 1100, minimumRowGap: 74, contactSpacingBars: 2 })
   });
+  const LIVE_SETTINGS = Object.freeze({
+    relaxed: Object.freeze({ ...SETTINGS.relaxed, minimumRowGap: 112 }),
+    standard: Object.freeze({ ...SETTINGS.standard, minimumRowGap: 82 }),
+    overclocked: Object.freeze({ ...SETTINGS.overclocked, minimumRowGap: 62 })
+  });
+  const supportedVersion = version => version === 1 || version === VERSION;
   const ACTS = Object.freeze([
     Object.freeze({ id: 'intro', label: 'NIGHT DEPARTURE', startBar: 0, endBar: 4 }),
     Object.freeze({ id: 'escape', label: 'CITY ESCAPE', startBar: 4, endBar: 28 }),
@@ -28,7 +34,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-encounters.js',
   const object = value => !!value && typeof value === 'object' && !Array.isArray(value);
   const integer = (value, low, high) => Number.isInteger(value) && value >= low && value <= high;
   const address = value => Number.isFinite(value) && value >= 0 && value <= MAX_ADDRESS;
-  function difficulty(id) { return Object.hasOwn(SETTINGS, id) ? SETTINGS[id] : SETTINGS.standard; }
+  function difficulty(id, version = VERSION) {
+    const settings = version === 1 ? SETTINGS : LIVE_SETTINGS;
+    return Object.hasOwn(settings, id) ? settings[id] : settings.standard;
+  }
   function act(bar) {
     const measure = Number.isFinite(bar) ? Math.max(0, bar) : 0;
     const info = ACTS.find(item => measure < item.endBar) || ACTS.at(-1);
@@ -36,8 +45,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-encounters.js',
     return { ...info, chorus: measure >= 4 && measure < 100 && phase >= 16,
       phrase: measure < 4 ? 0 : Math.floor((measure - 4) / 8), phase };
   }
-  function create(difficultyId = 'standard') {
-    return { version: VERSION, difficultyId: difficulty(difficultyId).id,
+  function create(difficultyId = 'standard', version = VERSION) {
+    return { version: supportedVersion(version) ? version : VERSION, difficultyId: difficulty(difficultyId, version).id,
       rows: [], pulses: [], committedBars: [], lastLane: 1, laneDirection: 1 };
   }
   // Same analytic integral as the road: this module never predicts a future
@@ -61,7 +70,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-encounters.js',
     const low = Math.min(actor.lane, other), high = Math.max(actor.lane, other);
     return [0, 1, 2, 3].filter(lane => lane >= low && lane <= high);
   }
-  function rowDue(bar, settings) {
+  function rowDue(bar, settings, version) {
+    if (version === 2) {
+      // Even first gear clears a 440-unit reveal from bar 84 before the
+      // bar-92 delivery split. The intro and final exit retain their runway.
+      if (bar < 4 || bar > 84) return false;
+      return bar % (settings.id === 'relaxed' ? 4 : settings.id === 'standard' ? 2 : 1) === 0;
+    }
     if (bar < 4 || bar >= 69 || (bar >= 50 && bar <= 62)) return false;
     // The Echo lesson (58) and final pursuit (77/83/88) own open road. At
     // minimum driving speed the last 440-unit civilian reveal clears before
@@ -100,14 +115,86 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-encounters.js',
     if (settings.id !== 'relaxed') specs.push({ kind: 'van', lane: side === 0 ? 3 : 0 });
     return specs;
   }
-  function ensure(chart, section, reservedPulse) {
+  function sharesUpcomingPursuit(section, settings) {
+    const pursuit = B.CacheRoadPursuit, waves = pursuit?.waves || [];
+    const lead = pursuit?.tuning?.[settings.id]?.lead;
+    if (!Number.isFinite(lead)) return false;
+    const bar = section.beat / 4, committed = endpoint(section) - section.from;
+    // The current bar is already fixed. Bound only the uncommitted bars by
+    // the actual slowest gear and maximum Turbo speed, instead of guessing
+    // which future gear the driver will choose. A single edge-lane vehicle
+    // leaves room for the rival, a music pad AND an adjacent escape.
+    return waves.some(wave => {
+      const remaining = wave.bar - bar;
+      if (remaining < 1) return false;
+      const seconds = (remaining - 1) * 4 * section.beatSec;
+      const earliest = committed + 30 * seconds + lead;
+      const latest = committed + pursuit.maxSpeed * seconds + lead;
+      return REVEAL_DISTANCE >= earliest - 90 && REVEAL_DISTANCE <= latest + 90;
+    });
+  }
+  function liveRowActors(chart, bar, settings, section) {
+    const ordinal = chart.rows.length, scene = act(bar);
+    // Each convoy leaves TWO ADJACENT lanes free. Successive pairs share a
+    // free lane, so a driver never has to cross an entire road between rows.
+    // The pursuer's existing chooseLane() also checks these same bodies and
+    // can use one open lane while retaining the adjacent escape corridor.
+    // Keep each opening for a complete four-bar phrase. Switching every
+    // traffic row trapped dense-road music cues in the two center lanes:
+    // adjacent convoys closed an edge before a driver could reach its pad.
+    // Four bars allow successive one-lane cues to reach either road edge.
+    const pair = [[0, 1], [0, 3], [2, 3], [0, 3]][Math.floor((bar-4)/4) % 4];
+    const kinds = scene.id === 'escape' ? ['van', 'freight', 'van', 'shuttle'] :
+      scene.id === 'freight' ? ['freight', 'shuttle', 'van', 'freight'] :
+        ['audit', 'van', 'shuttle', 'freight'];
+    const kind = scene.id === 'escape' && Math.abs(pair[0]-pair[1]) === 1 && ordinal%3 === 2 ?
+      'trike' : kinds[ordinal % kinds.length];
+    if (sharesUpcomingPursuit(section, settings))
+      return [{ kind: scene.id === 'surveillance' ? 'van' : kind === 'trike' ? 'van' : kind, lane: 0 }];
+    const doubled = settings.id === 'overclocked' ||
+      settings.id === 'standard' && (scene.id !== 'escape' || ordinal % 3 === 2);
+    if (kind === 'trike' && Math.abs(pair[0] - pair[1]) === 1)
+      return [{ kind, lane: pair[0], mergeLane: pair[1], warningDistance: 205, mergeDistance: 125 }];
+    const actors = [{ kind, lane: pair[ordinal % 2] }];
+    if (doubled) actors.push({ kind: ordinal % 2 ? 'van' : 'shuttle', lane: pair[1 - ordinal % 2] });
+    return actors;
+  }
+  function safeLiveSpecs(chart, specs, at, protectedActors, reservedPursuit) {
+    const reservations = [...(Array.isArray(protectedActors) ? protectedActors : [])];
+    if (reservedPursuit) reservations.push({ ...reservedPursuit, locked: true });
+    const nearby = reservations.filter(actor => actor && !actor.crossed && actor.locked &&
+      Number.isFinite(actor.at) && Math.abs(actor.at - at) <= 90);
+    const protectedLanes = new Set(chart.pulses.filter(pulse => Math.abs(pulse.at - at) <= 90)
+      .map(pulse => pulse.lane));
+    for (const actor of nearby) {
+      const target = actor.targetLane ?? actor.lockLane ?? actor.lane;
+      const current = Number.isFinite(actor.lane) ? actor.lane : target;
+      if (!Number.isFinite(target)) continue;
+      for (const lane of [0, 1, 2, 3])
+        if (lane >= Math.min(current, target) - .65 && lane <= Math.max(current, target) + .65)
+          protectedLanes.add(lane);
+      // Preserve the closest available neighbor as the rival's visible
+      // escape. A newly issued civilian row must not close that corridor.
+      const escape = [target - 1, target + 1].find(lane => integer(lane, 0, 3) &&
+        !hazards(chart).some(other => Math.abs(other.at - at) <= 90 && occupiedLanes(other).includes(lane)));
+      if (escape !== undefined) protectedLanes.add(escape);
+    }
+    specs = specs.filter(spec => !occupiedLanes(spec).some(lane => protectedLanes.has(lane)));
+    // Adjacent rows can overlap in a collision/steering envelope. Keep one
+    // lane free across that whole local contact group, not just within a row.
+    const previous = hazards(chart).filter(actor => Math.abs(actor.at - at) < 90);
+    while (specs.length && new Set([...previous, ...specs].flatMap(occupiedLanes)).size >= 4) specs.pop();
+    return specs;
+  }
+  function ensure(chart, section, reservedPulse, { protectedActors = [], reservedPursuit } = {}) {
     const bar = sectionBar(section);
-    if (bar === null || chart?.version !== VERSION || chart.rows.some(row => row.bar === bar)) return null;
-    const settings = difficulty(chart.difficultyId);
-    if (!rowDue(bar, settings)) return null;
+    if (bar === null || !supportedVersion(chart?.version) || chart.rows.some(row => row.bar === bar)) return null;
+    const settings = difficulty(chart.difficultyId, chart.version);
+    if (!rowDue(bar, settings, chart.version)) return null;
     const at = section.from + REVEAL_DISTANCE, previous = chart.rows.at(-1);
     if (!address(at) || (previous && at - previous.at < settings.minimumRowGap)) return null;
-    let specs = rowActors(bar, settings);
+    let specs = chart.version === 1 ? rowActors(bar, settings) : liveRowActors(chart, bar, settings, section);
+    if (chart.version === 2) specs = safeLiveSpecs(chart, specs, at, protectedActors, reservedPursuit);
     if (reservedPulse && Math.abs(reservedPulse.at - at) < 70)
       specs = specs.filter(spec => !occupiedLanes(spec).includes(reservedPulse.lane));
     if (!specs.length) return null;
@@ -128,7 +215,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-encounters.js',
   }
   function pulse(chart, section, strikeDistance, { protectedActors = [], reservedPursuit } = {}) {
     const bar = sectionBar(section);
-    if (bar === null || chart?.version !== VERSION || !Number.isFinite(strikeDistance) ||
+    if (bar === null || !supportedVersion(chart?.version) || !Number.isFinite(strikeDistance) ||
         Math.abs(strikeDistance) > 100 || !pulseDue(bar)) return null;
     const existing = chart.pulses.find(item => item.bar === bar);
     if (existing) return existing;
@@ -170,28 +257,28 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-encounters.js',
   }
   function commit(chart, section, strikeDistance, { allowPulse = true, protectedActors = [], reservedPursuit } = {}) {
     const bar = sectionBar(section);
-    if (bar === null || chart?.version !== VERSION) return { row: null, pulse: null };
+    if (bar === null || !supportedVersion(chart?.version)) return { row: null, pulse: null };
     if (chart.committedBars.includes(bar)) return { row: chart.rows.find(row => row.bar === bar) || null,
       pulse: chart.pulses.find(item => item.bar === bar) || null };
-    const row = ensure(chart, section);
+    const row = ensure(chart, section, null, { protectedActors, reservedPursuit });
     const issued = allowPulse ? pulse(chart, section, strikeDistance, { protectedActors, reservedPursuit }) : null;
     chart.committedBars.push(bar);
     return { row, pulse: issued };
   }
-  function snapshot(chart) { return chart?.version === VERSION ? clone(chart) : null; }
+  function snapshot(chart) { return supportedVersion(chart?.version) ? clone(chart) : null; }
   function restore(raw, difficultyId = raw?.difficultyId) {
-    if (!object(raw) || raw.version !== VERSION || !Object.hasOwn(SETTINGS, raw.difficultyId) ||
+    if (!object(raw) || !supportedVersion(raw.version) || !Object.hasOwn(SETTINGS, raw.difficultyId) ||
         raw.difficultyId !== difficulty(difficultyId).id || !Array.isArray(raw.rows) || raw.rows.length > 100 ||
         !Array.isArray(raw.pulses) || raw.pulses.length > 100 || !Array.isArray(raw.committedBars) ||
         raw.committedBars.length > 100 || raw.committedBars.some(bar => !integer(bar, 0, 99)) ||
         new Set(raw.committedBars).size !== raw.committedBars.length || !integer(raw.lastLane, 0, 3) ||
         ![-1, 1].includes(raw.laneDirection)) return null;
-    const chart = create(raw.difficultyId), actorIds = new Set(), rowBars = new Set(), pulseBars = new Set();
+    const chart = create(raw.difficultyId, raw.version), actorIds = new Set(), rowBars = new Set(), pulseBars = new Set();
     for (const row of raw.rows) {
       if (!object(row) || !integer(row.bar, 0, 99) || !raw.committedBars.includes(row.bar) ||
           rowBars.has(row.bar) || row.id !== `row/${row.bar}` || !address(row.at) || row.act !== act(row.bar).id ||
           !Array.isArray(row.actors) || !row.actors.length || row.actors.length > 2 ||
-          (chart.rows.length && row.at - chart.rows.at(-1).at < difficulty(raw.difficultyId).minimumRowGap)) return null;
+          (chart.rows.length && row.at - chart.rows.at(-1).at < difficulty(raw.difficultyId, raw.version).minimumRowGap)) return null;
       const actors = [];
       for (let index = 0; index < row.actors.length; index++) {
         const actor = row.actors[index];
@@ -227,5 +314,5 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-encounters.js',
     return chart;
   }
   B.CacheRoadEncounters = Object.freeze({ version: VERSION, revealDistance: REVEAL_DISTANCE,
-    create, commit, ensure, pulse, pulses, hazards, occupiedLanes, act, difficulty, snapshot, restore });
+    create, commit, ensure, pulse, pulses, hazards, occupiedLanes, act, difficulty, snapshot, restore, supportedVersion });
 })(window.BARCODE = window.BARCODE || {});

@@ -457,16 +457,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       text('CONTROLS', 440, 392, 24, '#cfa2ff');
       const road = BARCODE.CacheRoadProof?.active, proof = BARCODE.RunAndGunProof?.active;
       const chapter = road && BARCODE.CacheRoadProof.chapter;
+      if (road) text(chapter ? 'CACHE LINE' : 'PROTOTYPE CHANNEL 02', 440, 350, 20, '#a0ffe4');
       const controls = road ? (BARCODE.GamepadUI?.connected
-        ? ['Stick / D-pad: Steer; Up: Faster; Down: Brake', `${BARCODE.ControllerSettings.button(4)}: Turbo; ${BARCODE.ControllerSettings.button(5)}: Buffer Echo`, 'Face buttons: Surge / Push / Brace / Refill', 'Drive over a mint road pad and tap its button on a beat.', 'A catch raises that lane for 8 bars; follow the run for 16.', `${BARCODE.ControllerSettings.button(9)}: Pause / Settings`]
-        : ['A / D or Left / Right: Steer; Up / W: Faster; Down / S: Brake', 'Space: Turbo; H: Buffer Echo', 'K: Surge; L: Push; J: Brace; I: Refill', 'Drive over a mint road pad and tap its key on a beat.', 'A catch raises that lane for 8 bars; follow the run for 16.', 'P: Pause'])
+        ? ['Stick / D-pad: Steer; Up / Down: Queue gear', `${BARCODE.ControllerSettings.button(4)}: Turbo; ${BARCODE.ControllerSettings.button(5)}: Echo`, 'Face buttons: Surge / Push / Brace / Refill', 'Match the pad. Press on beat ONE at the rear tires.', 'A catch brings that lane into the song.', 'Optional record: hold its lane for 0.65s.']
+        : ['A / D or Left / Right: Steer; Up / Down: Queue gear', 'Space: Turbo; H: Echo', 'K: Surge; L: Push; J: Brace; I: Refill', 'Match the pad. Press on beat ONE at the rear tires.', 'A catch brings that lane into the song.', 'Optional record: hold its lane for 0.65s.'])
         : proof ? (BARCODE.GamepadUI?.connected
         ? ['Stick / D-pad: Move', `${BARCODE.ControllerSettings.prompt('jump')}: Jump`, `${BARCODE.ControllerSettings.prompt('inspect')}: Fire`, 'Climb: break roof nodes, then relays.', 'Jump the lanes; watch for a runner.', `${BARCODE.ControllerSettings.button(9)}: Pause / Settings`]
         : ['A / D or Left / Right: Move', 'Space / W / Up: Jump', 'E: Fire / Hold E for repeat fire', 'Climb: break roof nodes, then relays.', 'Jump the lanes; watch for a runner.', 'P: Pause'])
         : (BARCODE.GamepadUI?.connected ? ['Stick / D-pad: Move', `${BARCODE.ControllerSettings.prompt('jump')}: Jump / Down + Jump: Drop`, `${BARCODE.ControllerSettings.prompt('rhythm_mode')}: Rhythm Mode`, `${BARCODE.ControllerSettings.prompt('primary')}: Beat attack`, `${BARCODE.ControllerSettings.prompt('interact')}: Hack`, `${BARCODE.ControllerSettings.button(9)}: Pause / Settings`] : ['A / D or Left / Right: Move', 'Space / W / Up: Jump; Down + Jump: Drop', 'R: Enter Rhythm Mode', 'Down: Attack on the beat', 'H: Hack when unlocked', 'P: Pause']);
-      controls.forEach((line, i) => text(line, 440, 448 + i * 46, 21));
-      text(chapter ? 'CACHE LINE' : road ? 'PROTOTYPE CHANNEL 02' : proof ? 'PROTOTYPE CHANNEL 03' : 'RHYTHM MODE HOLDS YOUR STANCE', 440, 772, 20, '#a0ffe4');
-      text(chapter ? 'Return to bridge keeps your saved road marker.' : road || proof ? 'Choose Exit preview to return to Cache Back.' : BARCODE.GamepadUI?.connected ? `${BARCODE.ControllerSettings.button(1)} exits so you can move.` : 'R or Escape exits so you can move.', 440, 810, 20);
+      if (road && BARCODE.CacheRoadGuidance) BARCODE.CacheRoadGuidance.drawHelp(ctx, BARCODE.CacheRoadProof);
+      else controls.forEach((line, i) => text(line, 440, 448 + i * 46, 21));
+      if (!road) text(proof ? 'PROTOTYPE CHANNEL 03' : 'RHYTHM MODE HOLDS YOUR STANCE', 440, 772, 20, '#a0ffe4');
+      text(chapter ? 'Return to bridge keeps your saved road marker.' : road || proof ? 'Choose Exit preview to return to Cache Back.' : BARCODE.GamepadUI?.connected ? `${BARCODE.ControllerSettings.button(1)} exits so you can move.` : 'R or Escape exits so you can move.', 440, road ? 819 : 810, 20);
       const d=BARCODE.LevelDifficulty;
       text(chapter ? `CHAPTER 02 / ${chapter.difficultyId.toUpperCase()} / CHECKPOINTS` : road ? 'Practice preview: progress saves at road markers.' : proof ? 'Practice preview: progress saves at each relay.' : d?.locked ? `LEVEL RULES: ${d.choice?.label} / ${d.recoveryMode==='full-run'?'FULL RUN':'CHECKPOINTS'}` : 'Difficulty + recovery: choose at level start.',440,855,18,'#cfa2ff');
       text('Audio, visuals and controls can change anytime.',440,886,18,'#a0ffe4');

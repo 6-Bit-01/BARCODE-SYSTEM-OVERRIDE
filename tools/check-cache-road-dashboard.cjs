@@ -7,6 +7,7 @@ const {w,context}=createRig(),B=w.BARCODE;
 B.Campaign={register(){},syncTitleButton(){}};
 load(context,'src/engine/cache-road-proof-profile.js');
 load(context,'src/game/cache-road-landscape.js');
+load(context,'src/game/cache-road-guidance.js');
 const marker='  B.Campaign.register(ID,';
 const actionMarker='      const iconScale=padReady&&inPadLane&&!reduced?1+.28*nextCue.charge:1;';
 const source=fs.readFileSync('src/game/cache-road-proof.js','utf8');
@@ -187,8 +188,10 @@ for(const [beat,count] of [[29,2],[30,3],[31,4]]) {
   assert(frame.text.some(item=>/BEAT 1|HIT ON 1/.test(item.text)),
     'the visible lead-in identifies beat ONE');
 }
-assert(!render({...announced,musicBeatFloat:31.85}).action.pressNow,
-  'the early judgment window does not visually announce an early strike');
+assert(render({...announced,musicBeatFloat:31.85}).action.pressNow,
+  'the accepted early half of the judgment window shows the press cue');
+assert(!render({...announced,musicBeatFloat:31.6}).action.pressNow,
+  'a tap before the accepted early window is not visually invited');
 for(const beat of [32,32.2]) {
   const frame=render({...announced,musicBeatFloat:beat});
   assert(frame.action.pressNow&&frame.action.nextCue.count===1);

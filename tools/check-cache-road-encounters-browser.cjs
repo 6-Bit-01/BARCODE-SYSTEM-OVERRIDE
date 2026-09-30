@@ -189,7 +189,7 @@ async function main(){
   assert.equal(await evaluate('browserProof.musicStarts'),0);
   await key('Enter');await key('Enter',false);
   await until('BARCODE.CacheRoadProof.active&&!BARCODE.CacheBridge.active','native final Drive enters authored road');
-  assert.equal(await evaluate('BARCODE.CacheRoadProof.chapter.encounterVersion'),1);
+  assert.equal(await evaluate('BARCODE.CacheRoadProof.chapter.encounterVersion'),2);
   assert(await evaluate('!!BARCODE.CacheRoadProof.state.encounters&&!!BARCODE.CacheRoadProof.state.pursuit'));
   assert.equal(await evaluate('browserProof.musicStarts'),1);
   await evaluate('browserProof.step(100)');

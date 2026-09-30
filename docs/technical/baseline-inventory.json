@@ -59,6 +59,7 @@
     "src/game/cache-road-encounters.js",
     "src/game/cache-road-reactions.js",
     "src/game/cache-road-pursuit.js",
+    "src/game/cache-road-guidance.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
     "src/game/lost-data.js",
@@ -131,6 +132,7 @@
     "src/game/cache-road-encounters.js",
     "src/game/cache-road-reactions.js",
     "src/game/cache-road-pursuit.js",
+    "src/game/cache-road-guidance.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
     "src/game/lost-data.js",
@@ -429,6 +431,10 @@
         "status": "pass"
       },
       {
+        "file": "src/game/cache-road-guidance.js",
+        "status": "pass"
+      },
+      {
         "file": "src/game/cache-road-proof.js",
         "status": "pass"
       },
@@ -491,11 +497,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 69,
+        "index": 70,
         "status": "pass"
       },
       {
-        "index": 71,
+        "index": 72,
         "status": "pass"
       }
     ]
@@ -896,6 +902,7 @@
     "src/game/cache-road-encounters.js",
     "src/game/cache-road-reactions.js",
     "src/game/cache-road-pursuit.js",
+    "src/game/cache-road-guidance.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
     "src/game/lost-data.js",

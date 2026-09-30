@@ -85,6 +85,8 @@ window.FILE_MANIFEST.push({ name: 'src/engine/music-director.js', exports: ['BAR
       const requested = road?.mixSnapshot?.();
       if (!requested || !road.active || !sample?.running || !sample.grid) return true;
       const mix = profile.laneMix;
+      const reactive = requested.reactivityVersion === 2 && mix.reactive?.version === 2 ?
+        mix.reactive : null;
       const bar = sample.grid.barIndex;
       const verseBar = (bar - 4) % 24;
       const half = bar < 4 ? 'intro' : verseBar < 8 ? 'verseA' : verseBar < 16 ? 'verseB' : 'chorus';
@@ -101,6 +103,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/music-director.js', exports: ['BAR
         const role = source.mixRole;
         const volume = role === mix.backboneRole ? mix.levels[role] :
           roles.has(role) ? mix.levels[role] :
+            reactive ? reactive.idle[role] || 0 :
             requested.hitRecovery ? 0 :
               role === 'drive' ? mix.idle.drive :
                 role === 'flow' && half !== 'intro' ? mix.idle.flow : 0;
@@ -108,7 +111,8 @@ window.FILE_MANIFEST.push({ name: 'src/engine/music-director.js', exports: ['BAR
         const track = audio.musicTracks[source.sourceId];
         if (track?.isPlaying && track.gain && Math.abs((track.volume ?? -1) - volume) > 0.005)
           audio.rampAdaptiveStemGain(track, volume,
-            volume > (track.volume ?? 0) ? mix.captureFadeSec : mix.releaseFadeSec);
+            volume > (track.volume ?? 0) ? (reactive || mix).captureFadeSec :
+              (reactive || mix).releaseFadeSec);
       }
       this.pending = { captures: [...roles] };
       this.generation = sample?.generation;

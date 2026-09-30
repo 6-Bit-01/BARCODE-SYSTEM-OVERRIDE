@@ -1,0 +1,143 @@
+{
+  "kind": "native-production-readability-review",
+  "dimensions": {
+    "width": 1920,
+    "height": 1080
+  },
+  "fixtures": [
+    {
+      "file": "Fixture-keyboard-one.webp",
+      "kind": "staged-ui-state",
+      "controller": "keyboard",
+      "sha256": "34e53e614140fbbca9b900cdca046bc59eeb3ae8cff8eebd1892c83dd3e03e98"
+    },
+    {
+      "file": "Fixture-xbox-one.webp",
+      "kind": "staged-ui-state",
+      "controller": "xbox",
+      "sha256": "471f38250e9eba4697d9f006d1b0056fe3758160f619b891eca05e9a0bc1185f"
+    },
+    {
+      "file": "Fixture-playstation-one.webp",
+      "kind": "staged-ui-state",
+      "controller": "playstation",
+      "sha256": "8fcaf8d3196dbaff53635c65574f3b96fe432dec20493e4e77a8374787373fce"
+    },
+    {
+      "file": "Fixture-success.webp",
+      "kind": "staged-ui-state",
+      "controller": "keyboard",
+      "sha256": "f389e7016b0f977b03b30363d2a429658b853c0dc4597c0b7310ffe898253dd1"
+    },
+    {
+      "file": "Fixture-wrong-button.webp",
+      "kind": "staged-ui-state",
+      "controller": "keyboard",
+      "sha256": "a995ed7eb1f1431a5222e7c74fa4b1a18a9468ecce09866d20baf4a3edbc1421"
+    },
+    {
+      "file": "Fixture-pause-keyboard.webp",
+      "kind": "staged-ui-state",
+      "controller": "keyboard",
+      "sha256": "c7d43bb716145f4bd6b51ac2adb92f4afb30f61b4f9c4c8cee139978f4d397a7"
+    },
+    {
+      "file": "Fixture-pause-xbox.webp",
+      "kind": "staged-ui-state",
+      "controller": "xbox",
+      "sha256": "b4e1e68dc753b0f637bf646e43587b0dba7074331407481bd8a854c5dfc533f8"
+    },
+    {
+      "file": "Fixture-pause-playstation.webp",
+      "kind": "staged-ui-state",
+      "controller": "playstation",
+      "sha256": "2a9414b09e089ea26619653d5ee45a05cba14b7cb137645a0c7151e02895138e"
+    },
+    {
+      "file": "Fixture-echo-exit.webp",
+      "kind": "staged-ui-state",
+      "controller": "keyboard",
+      "sha256": "ae305c9fab1136046bb6d2333422d6ceda6dd60af2fdd98be9c1b7f4ddce9fdf"
+    }
+  ],
+  "raceStills": [
+    {
+      "file": "Race-Capture.webp",
+      "kind": "actual-production-input-race-state",
+      "bar": 5.0239999999999405,
+      "elapsedMs": 9420,
+      "lane": 1.9524175166285038,
+      "integrity": 3,
+      "sha256": "46d7b432c05d4566380c282d661da8e6edffc2151c04afbe4ff8e3adc9c0bf37"
+    },
+    {
+      "file": "Race-Record.webp",
+      "kind": "actual-production-input-race-state",
+      "bar": 14.591999999999736,
+      "elapsedMs": 27360,
+      "lane": 0,
+      "integrity": 3,
+      "sha256": "9b0c875b76a35cad050cffe85388c06bd73c20b2c90acad1d234aa3620920ba0"
+    },
+    {
+      "file": "Race-Freight.webp",
+      "kind": "actual-production-input-race-state",
+      "bar": 33.00266666666884,
+      "elapsedMs": 61880,
+      "lane": 0.05681671676755089,
+      "integrity": 3,
+      "sha256": "3b3ed143ec1e3aaafece26e0776881ff0421234393ff1c86220ee8d51dffa083"
+    },
+    {
+      "file": "Race-Echo.webp",
+      "kind": "actual-production-input-race-state",
+      "bar": 58.0159999999976,
+      "elapsedMs": 108780,
+      "lane": 2.950395871010735,
+      "integrity": 3,
+      "sha256": "b3276e9e79ce60038d07828d1542eda72413a24518bbb1cdaf0284bddf28bd63"
+    },
+    {
+      "file": "Race-Delivery-split.webp",
+      "kind": "actual-production-input-race-state",
+      "bar": 92.0000000000077,
+      "elapsedMs": 172500,
+      "lane": 0.07385867753790688,
+      "integrity": 3,
+      "sha256": "11848e4c2de72236c969b47e91c73446063a3b518e4c2986119b4a87a7732d83"
+    },
+    {
+      "file": "Race-Exit-clear.webp",
+      "kind": "actual-production-input-race-state",
+      "bar": 93.54666666667516,
+      "elapsedMs": 175400,
+      "lane": 3,
+      "integrity": 3,
+      "sha256": "335c3a72908d53178a4d10652b908c28928268fe8f6f165b57b34988cc6613dc"
+    }
+  ],
+  "race": {
+    "status": "clear",
+    "encounterVersion": 2,
+    "gear": 2,
+    "difficulty": "standard",
+    "profile": "practiced",
+    "finalBar": 100,
+    "captured": 56,
+    "damageTaken": 0,
+    "gateOpen": true
+  },
+  "sourceHashes": {
+    "src/game/cache-road-guidance.js": "c859b5c78283f9e4a633cfa3da00e3e51b112171a44959190e2237ebc93c5e18",
+    "src/game/cache-road-proof.js": "f336e5d9d85b25af17e9f7dc091a7e4d6380cff7967f2f785e97fcddae2e65c7",
+    "src/game/cache-road-encounters.js": "efdf3a8c44fd4e15eca2f7a070a03b9a69fdf8f396376c64fc2d67965a518a0b",
+    "src/game/cache-road-reactions.js": "47748481a8426278bb23f3358916a9c3345c55af7507866bb561a8180ceb4753",
+    "src/game/cache-road-pursuit.js": "cd00f39a893613e765848452f47b79c3953c45538f4c217e074b737a5eb936e3",
+    "src/game/pause-menu.js": "028c2cf49262acf96527c6d863e388f15496166b48ffeffb6ce0a781917db0fa",
+    "src/engine/cache-road-proof-profile.js": "582cce91bdf042759d8c6dccbd8ed1d033088a8d052b72ef5a685131dea42b8f",
+    "src/engine/presentation-assets.js": "1621c0150fc2cecdf58e609417b834eb9ea2e4be66d31cd7dc4c0f12acb85358",
+    "tools/render-cache-drive-feedback.cjs": "e426bb6859b6946ac3bb937f6127985c9eae37e1cec06921f588cece2988b779",
+    "tools/check-cache-road-races.cjs": "40554a65e54bcc66c5bf0ebde7ebfc0278972e9ccf4959886ebf3ecd97ca524b"
+  },
+  "limitations": "Fixture files stage UI states over the production road renderer. Race files are actual frames from a complete production-input-driven Standard / Gear 2 run. Native Canvas and host audio/storage boundaries are simulated; no human, browser, Makko, physical-controller or sound-mix acceptance is claimed."
+}

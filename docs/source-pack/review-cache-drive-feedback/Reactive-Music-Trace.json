@@ -1,0 +1,341 @@
+{
+  "seconds": 56.25,
+  "title": "Scripted production music-control audition; not a complete race",
+  "events": [
+    {
+      "beat": 8,
+      "time": 3.75,
+      "kind": "catch",
+      "lane": 0
+    },
+    {
+      "beat": 16,
+      "time": 7.5,
+      "kind": "catch",
+      "lane": 1
+    },
+    {
+      "beat": 24,
+      "time": 11.25,
+      "kind": "catch",
+      "lane": 2
+    },
+    {
+      "beat": 32,
+      "time": 15,
+      "kind": "catch",
+      "lane": 3
+    },
+    {
+      "beat": 84,
+      "time": 39.375,
+      "kind": "catch",
+      "lane": 0
+    },
+    {
+      "beat": 88,
+      "time": 41.25,
+      "kind": "catch",
+      "lane": 1
+    },
+    {
+      "beat": 92,
+      "time": 43.125,
+      "kind": "catch",
+      "lane": 2
+    },
+    {
+      "beat": 96,
+      "time": 45,
+      "kind": "catch",
+      "lane": 3
+    },
+    {
+      "beat": 100,
+      "time": 46.875,
+      "kind": "catch",
+      "lane": 0
+    },
+    {
+      "beat": 101,
+      "time": 47.34375,
+      "kind": "crash",
+      "lane": 2
+    }
+  ],
+  "mixEvents": [
+    {
+      "sourceId": "cache-drive",
+      "at": 0,
+      "volume": 0.03,
+      "duration": 0.11
+    },
+    {
+      "sourceId": "cache-pressure",
+      "at": 0,
+      "volume": 0.6,
+      "duration": 0.11
+    },
+    {
+      "sourceId": "cache-flow",
+      "at": 0,
+      "volume": 0.045,
+      "duration": 0.11
+    },
+    {
+      "sourceId": "cache-drive",
+      "at": 3.75,
+      "volume": 0.19,
+      "duration": 0.11
+    },
+    {
+      "sourceId": "cache-flow",
+      "at": 7.5,
+      "volume": 0.55,
+      "duration": 0.11
+    },
+    {
+      "sourceId": "cache-drive",
+      "at": 9.375,
+      "volume": 0.03,
+      "duration": 0.3
+    },
+    {
+      "sourceId": "cache-breakaway",
+      "at": 11.25,
+      "volume": 0.5,
+      "duration": 0.11
+    },
+    {
+      "sourceId": "cache-undercurrent",
+      "at": 15,
+      "volume": 0.62,
+      "duration": 0.11
+    },
+    {
+      "sourceId": "cache-flow",
+      "at": 18.75,
+      "volume": 0.045,
+      "duration": 0.3
+    },
+    {
+      "sourceId": "cache-breakaway",
+      "at": 22.5,
+      "volume": 0,
+      "duration": 0.3
+    },
+    {
+      "sourceId": "cache-undercurrent",
+      "at": 26.25,
+      "volume": 0,
+      "duration": 0.3
+    },
+    {
+      "sourceId": "cache-drive",
+      "at": 39.375,
+      "volume": 0.19,
+      "duration": 0.11
+    },
+    {
+      "sourceId": "cache-flow",
+      "at": 41.25,
+      "volume": 0.55,
+      "duration": 0.11
+    },
+    {
+      "sourceId": "cache-breakaway",
+      "at": 43.125,
+      "volume": 0.5,
+      "duration": 0.11
+    },
+    {
+      "sourceId": "cache-drive",
+      "at": 45,
+      "volume": 0.03,
+      "duration": 0.3
+    },
+    {
+      "sourceId": "cache-undercurrent",
+      "at": 45,
+      "volume": 0.62,
+      "duration": 0.11
+    },
+    {
+      "sourceId": "cache-drive",
+      "at": 46.875,
+      "volume": 0.19,
+      "duration": 0.11
+    },
+    {
+      "sourceId": "cache-breakaway",
+      "at": 47.34375,
+      "volume": 0,
+      "duration": 0.3
+    },
+    {
+      "sourceId": "cache-flow",
+      "at": 52.5,
+      "volume": 0.045,
+      "duration": 0.3
+    },
+    {
+      "sourceId": "cache-undercurrent",
+      "at": 56.25,
+      "volume": 0,
+      "duration": 0.3
+    }
+  ],
+  "audioEvents": [
+    {
+      "kind": "roadPerfect",
+      "calledAt": 3.75,
+      "at": 3.75,
+      "options": {
+        "road": true,
+        "trackTimeSec": 3.75,
+        "gear": 1,
+        "pan": -0.21000000000000002,
+        "intensity": 1,
+        "audioTimeSec": 3.75,
+        "action": 3
+      }
+    },
+    {
+      "kind": "roadPerfect",
+      "calledAt": 7.5,
+      "at": 7.5,
+      "options": {
+        "road": true,
+        "trackTimeSec": 7.5,
+        "gear": 1,
+        "pan": -0.07,
+        "intensity": 1,
+        "audioTimeSec": 7.5,
+        "action": 3
+      }
+    },
+    {
+      "kind": "roadPerfect",
+      "calledAt": 11.25,
+      "at": 11.25,
+      "options": {
+        "road": true,
+        "trackTimeSec": 11.25,
+        "gear": 1,
+        "pan": 0.07,
+        "intensity": 1,
+        "audioTimeSec": 11.25,
+        "action": 3
+      }
+    },
+    {
+      "kind": "roadPerfect",
+      "calledAt": 15,
+      "at": 15,
+      "options": {
+        "road": true,
+        "trackTimeSec": 15,
+        "gear": 1,
+        "pan": 0.21000000000000002,
+        "intensity": 1,
+        "audioTimeSec": 15,
+        "action": 3
+      }
+    },
+    {
+      "kind": "roadPerfect",
+      "calledAt": 39.375,
+      "at": 39.375,
+      "options": {
+        "road": true,
+        "trackTimeSec": 39.375,
+        "gear": 1,
+        "pan": -0.21000000000000002,
+        "intensity": 1,
+        "audioTimeSec": 39.375,
+        "action": 3
+      }
+    },
+    {
+      "kind": "roadPerfect",
+      "calledAt": 41.25,
+      "at": 41.25,
+      "options": {
+        "road": true,
+        "trackTimeSec": 41.25,
+        "gear": 1,
+        "pan": -0.07,
+        "intensity": 1,
+        "audioTimeSec": 41.25,
+        "action": 3
+      }
+    },
+    {
+      "kind": "roadPerfect",
+      "calledAt": 43.125,
+      "at": 43.125,
+      "options": {
+        "road": true,
+        "trackTimeSec": 43.125,
+        "gear": 1,
+        "pan": 0.07,
+        "intensity": 1,
+        "audioTimeSec": 43.125,
+        "action": 3
+      }
+    },
+    {
+      "kind": "roadPerfect",
+      "calledAt": 45,
+      "at": 45,
+      "options": {
+        "road": true,
+        "trackTimeSec": 45,
+        "gear": 1,
+        "pan": 0.21000000000000002,
+        "intensity": 1,
+        "audioTimeSec": 45,
+        "action": 3
+      }
+    },
+    {
+      "kind": "roadPerfect",
+      "calledAt": 46.875,
+      "at": 46.875,
+      "options": {
+        "road": true,
+        "trackTimeSec": 46.875,
+        "gear": 1,
+        "pan": -0.21000000000000002,
+        "intensity": 1,
+        "audioTimeSec": 46.875,
+        "action": 3
+      }
+    },
+    {
+      "kind": "roadFull",
+      "calledAt": 46.875,
+      "at": 46.875,
+      "options": {
+        "road": true,
+        "trackTimeSec": 46.875,
+        "gear": 1,
+        "pan": 0,
+        "intensity": 1
+      }
+    },
+    {
+      "kind": "damage",
+      "calledAt": 47.34375,
+      "at": 47.34375,
+      "options": {
+        "road": true,
+        "trackTimeSec": 47.34375,
+        "gear": 1,
+        "pan": 0,
+        "intensity": 0.875,
+        "material": "van"
+      }
+    }
+  ]
+}
