@@ -166,14 +166,19 @@ window.BARCODE = window.BARCODE || {};
       if (!prepared?.ok) throw new Error('Level 1 audio could not be prepared.');
     }
     if (generation !== initializerGeneration || state !== STATES.STARTING) return;
+    // The road's source offset belongs to its restored bar. Restore that
+    // state before asking audio to start, and keep a completed result silent.
+    const roadResume=options.resume?.levelId==='level-02';
+    if (roadResume && !namespace.Campaign?.restore(options.resume)) throw new Error('Saved checkpoint could not be restored. Start a new run or retry Continue.');
     const bridgeResume=options.resume?.levelId==='level-01'&&options.resume.checkpointId==='intermission';
-    if (!bridgeResume && (options.restart || options.resume) && window.audioSystem && typeof window.audioSystem.startRuntimeGameplayMusic === 'function') {
+    const completedRoadResume=roadResume&&namespace.CacheRoadProof?.status==='clear';
+    if (!bridgeResume && !completedRoadResume && (options.restart || options.resume) && window.audioSystem && typeof window.audioSystem.startRuntimeGameplayMusic === 'function') {
       const musicResult = window.audioSystem.startRuntimeGameplayMusic();
       if (!musicResult || musicResult.ok === false) {
         throw new Error(`Restart music startup failed: ${musicResult && musicResult.reason || 'unknown'}`);
       }
     }
-    if (options.resume && !window.BARCODE?.Campaign?.restore(options.resume)) throw new Error('Saved checkpoint could not be restored. Start a new run or retry Continue.');
+    if (options.resume && !roadResume && !namespace.Campaign?.restore(options.resume)) throw new Error('Saved checkpoint could not be restored. Start a new run or retry Continue.');
     if (typeof window.startGameLoop === 'function') window.startGameLoop();
     return { ok: true, status: 'started', state, generation };
   }

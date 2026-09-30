@@ -1,5 +1,19 @@
 # Recovery checkpoint — September 14
 
+## September 30, 2026 — completed-road handoff repair
+
+- Follow merged #154 and its successful full CI with a reproduced saved-road
+  handoff repair: restore before playback and preserve completed status.
+- Keep a completed result silent until explicit Retry; playable saves start
+  at their restored song bar instead of reading state before restoration.
+- Give terminal road screens controller ownership so held Retry/Exit cannot
+  act on arrival; keep results pausable and require a fresh result choice.
+- Normalize old terminal saves for valid current checkpoint rewrites.
+- Preserve the bridge, current driving/music and proof/no-Bass boundary.
+  Authored Level 2 completion/lore/Mac outro remains a separate proposed pass.
+- Validate this diff through its own regression/Chromium gates; the PR and
+  generated receipt record actual results and revision.
+
 ## September 30, 2026 — illustrated bridge into Cache Line
 
 - Replace the single post-Level-1 intermission card with eight new comic

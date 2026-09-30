@@ -337,11 +337,98 @@ async function checkCancelledResume() {
   assert.deepEqual(copy(C.archive().record),archive);
 }
 
+async function checkRoadResumeMusic() {
+  const source=bridgeRig();await source.boot();
+  source.bridge.skipToReady();await source.bridge.drive();
+  // Produce valid saves through the actual adapter. This fixture establishes
+  // saved states; the full route checker owns earning the Echo-gate clear.
+  Object.assign(source.road.state,{progress:4500,musicBar:76,musicBeatFloat:304});
+  source.road.checkpoint('road-verse-4');const playing=copy(source.C.readResume());
+  Object.assign(source.road.state,{musicBar:100,musicBeatFloat:400,gateOpen:true,status:'clear'});
+  source.road.status='clear';source.road.checkpoint('road-clear');
+  const completed=copy(source.C.readResume()),facts=copy(source.C.archive().record.progress);
+  assert(source.road.validate(playing)&&source.road.validate(completed));
+  await source.B.RuntimeLifecycle.stop('fixture-title');
+
+  const play=bridgeRig(source.storage);await play.boot(playing);
+  assert.equal(play.road.status,'playing');assert.equal(play.road.state.musicBar,76);
+  assert.equal(play.roadStarts(),1,'a playable saved road starts music exactly once');
+  const transport=play.B.MusicTransport.getDiagnostics();
+  assert(transport.running);assert.equal(transport.sourceOffsetTrackSec,76*1.875,
+    'lifecycle restores the saved bar before audio reads the shared source offset');
+  assert.deepEqual(copy(play.C.archive().record.progress),facts);
+  await play.B.RuntimeLifecycle.stop('fixture-title');
+
+  const result=bridgeRig(source.storage);await result.boot(completed);
+  assert.equal(result.road.status,'clear');assert.equal(result.roadStarts(),0,
+    'a completed road restores its result without briefly starting a song');
+  assert(!result.B.MusicTransport.getDiagnostics().running);
+  result.step(1000);
+  assert.equal(result.road.status,'clear');assert.equal(result.roadStarts(),0);
+  assert(!result.B.MusicTransport.getDiagnostics().running,
+    'terminal shared-loop updates cannot restart the completed recording');
+  assert.deepEqual(copy(result.C.archive().record.progress),facts,
+    'completed Continue preserves Voice/results and awards no Bass or Level2 facts');
+  assert(result.road.retry());assert.equal(result.road.status,'playing');
+  assert.equal(result.roadStarts(),1,'deliberate Retry starts one fresh road song');
+  assert.equal(result.B.MusicTransport.getDiagnostics().sourceOffsetTrackSec,0);
+  assert.deepEqual(copy(result.C.archive().record.progress),facts);
+  await result.B.RuntimeLifecycle.stop('fixture-title');
+
+  const bridge=bridgeRig(source.storage);await bridge.boot(completed.levelState.returnTo);
+  assert(bridge.bridge.active&&!bridge.road.active);assert.equal(bridge.roadStarts(),0);
+  assert.equal(bridge.observed.musicStarts.length,0,'saved story bridge remains silent');
+}
+
+async function checkRoadResultControllerEdges() {
+  for(const status of ['clear','failed'])for(const button of [0,3]) {
+    const r=bridgeRig(),{B,road,pad}=r;await r.boot();
+    r.bridge.skipToReady();await r.bridge.drive();
+    load(r.context,'src/game/lore-records.js');load(r.context,'src/game/pause-menu.js');
+    B.PauseMenu.snapshot={};B.PauseMenu.snapshotContext={drawImage(){}};
+    r.input();assert.equal(B.GamepadUI.owner,'gameplay');
+    const facts=copy(r.C.archive().record.progress),calls={retry:0,exit:0};let exitPromise;
+    const retry=road.retry.bind(road),exit=road.exit.bind(road);
+    road.retry=(...args)=>{calls.retry++;return retry(...args);};
+    road.exit=(...args)=>{calls.exit++;return exitPromise=exit(...args);};
+    // This physical press arrives after the last gameplay poll but before
+    // the same frame's production update reaches its clear/failure result.
+    pad.buttons[button].pressed=true;road.state.invulnerableMs=10000;
+    if(status==='clear'){road.state.gateOpen=true;r.audio.context.currentTime=188;}
+    else {road.state.timeMs=1;r.audio.context.currentTime=.1;}
+    road.update(100);assert.equal(road.status,status);
+    for(let i=0;i<5;i++)r.input();
+    assert.equal(B.GamepadUI.owner,'road-results');
+    assert.deepEqual(calls,{retry:0,exit:0},`${status}/b${button}: carried input cannot choose a result`);
+    assert.equal(road.status,status);assert(road.active);
+
+    if(button===0) {
+      pad.buttons[9].pressed=true;r.input();await flush();
+      assert(r.w.isPaused,'a fresh Menu button still pauses road results');
+      r.input();assert.equal(B.GamepadUI.owner,'pause','pause owns input before road results');
+      pad.buttons[9].pressed=false;r.input();pad.buttons[9].pressed=true;r.input();await flush();
+      assert(!r.w.isPaused,'the actual pause menu accepts Menu to resume');
+      r.input();pad.buttons[9].pressed=false;r.input();
+      assert.deepEqual(calls,{retry:0,exit:0},'resuming cannot consume the held Retry button');
+    }
+    pad.buttons[button].pressed=false;r.input();
+    pad.buttons[button].pressed=true;r.input();
+    if(button===3)await exitPromise;
+    for(let i=0;i<5;i++)r.input();
+    assert.deepEqual(calls,button===0?{retry:1,exit:0}:{retry:0,exit:1},
+      `${status}/b${button}: release and fresh press performs exactly one chosen action`);
+    if(button===0){assert.equal(road.status,'playing');assert.equal(r.roadStarts(),2);}
+    else {assert(!road.active&&r.bridge.active);assert.equal(r.roadStarts(),1);}
+    assert.deepEqual(copy(r.C.archive().record.progress),facts);
+  }
+}
+
 async function main() {
   const cues=await checkPagesAndFacts();
   await checkHeldControls();await checkSkipAndEscape();await checkSaves();await checkPendingAndFailure();
-  await checkArchitectureCancellation();await checkCancelledResume();
-  console.log(`Cache bridge: ${cues} production cues, physical held inputs, independent five-second skip, save/restore, audio retry, cancelled road/DEV handoffs and final-only road clock passed.`);
+  await checkArchitectureCancellation();await checkCancelledResume();await checkRoadResumeMusic();
+  await checkRoadResultControllerEdges();
+  console.log(`Cache bridge: ${cues} production cues, physical held inputs, independent five-second skip, save/restore, audio retry, cancelled road/DEV handoffs, silent completed road, restored-bar playback and released road-result controls passed.`);
 }
 module.exports={bridgeRig};
 if(require.main===module)main().catch(error=>{console.error(error.stack||error);process.exitCode=1;});

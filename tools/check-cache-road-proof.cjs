@@ -1547,6 +1547,61 @@ async function run() {
   assert.equal(C.readResume().checkpointId, 'road-clear');
   assert(!archive.record.progress.completedLevels.includes('level-02'));
   assert.deepEqual(copy(archive.record.progress.items), ['stem.voice']);
+  const completedRoad = copy(C.readResume());
+  const startRoadMusic = audio.startRuntimeGameplayMusic;
+  let resultMusicStarts = 0;
+  audio.startRuntimeGameplayMusic = function () {
+    resultMusicStarts++;
+    return startRoadMusic.call(this);
+  };
+  // A direct restore must also silence a prior road session, without waiting
+  // for an update frame or assuming that its lifecycle caller already stopped it.
+  B.MusicTransport.start({ sourceAnchorAudioSec: audio.context.currentTime,
+    sourceOffsetTrackSec: 0 });
+  const priorEngine = audio.roadEngine = { context: { state: 'suspended' },
+    sources: [{ stop() {}, disconnect() {} }], nodes: [] };
+  assert(road.restore(completedRoad));
+  const directClear = { status: road.status,
+    musicRunning: B.MusicTransport.sample(audio.context.currentTime).running,
+    engineStopped: audio.roadEngine === null && priorEngine.disposed === true };
+  assert(await road.exit(), 'an earned result returns through the production exit path');
+  const nestedClear = C.readResume();
+  assert.equal(nestedClear.levelId, 'level-01');
+  assert.deepEqual(copy(nestedClear.levelState.cacheRoadCheckpoint), {
+    checkpointId: 'road-clear', proofVersion: 4, proof: completedRoad.levelState.proof
+  }, 'the parent result carries the exact completed road record');
+  C.intermission = true; // The lifecycle boundary stub above disposed the road.
+  assert((await road.enter()).ok);
+  assert.deepEqual({ directClear, nestedStatus: road.status, stateStatus: road.state.status,
+    musicStarts: resultMusicStarts,
+    musicRunning: B.MusicTransport.sample(audio.context.currentTime).running },
+  { directClear: { status: 'clear', musicRunning: false, engineStopped: true },
+    nestedStatus: 'clear', stateStatus: 'clear', musicStarts: 0, musicRunning: false },
+  'direct and nested completed-road restores show the result immediately and remain silent');
+  assert.deepEqual(copy(C.readResume()), completedRoad,
+    'revisiting the clear screen preserves earned stats and its shallow return save');
+  const resultState = copy(road.state);
+  audio.context.currentTime += .1;
+  productionUpdate(100);
+  assert.deepEqual(copy(road.state), resultState, 'the completed run cannot advance on a later frame');
+  const resultText = [], priorFillText = drawCtx.fillText;
+  drawCtx.fillText = value => resultText.push(value);
+  road.draw(drawCtx);
+  drawCtx.fillText = priorFillText;
+  assert(resultText.includes('ORIGINAL TAPE DELIVERED'), 'the real renderer presents the clear result');
+  assert(road.retry(), 'a deliberate Retry starts a new run from a completed result');
+  assert.equal(resultMusicStarts, 1);
+  assert.equal(road.status, 'playing');
+  assert.equal(road.state.progress, 0);
+  assert.equal(road.state.musicBar, 0);
+  assert.equal(road.state.score, 0);
+  assert.equal(C.readResume().checkpointId, 'road-start');
+  assert.equal(B.MusicTransport.sample(audio.context.currentTime).sourceOffsetTrackSec, 0);
+  assert.equal(road.retry(), false, 'a second Retry cannot restart the now-playing run');
+  assert.equal(resultMusicStarts, 1);
+  assert(!archive.record.progress.completedLevels.includes('level-02'));
+  assert.deepEqual(copy(archive.record.progress.items), ['stem.voice']);
+  audio.startRuntimeGameplayMusic = startRoadMusic;
   assert.equal(verseFourSave.checkpointId, 'road-verse-4');
   assert(verseFourSave.levelState.proof.score > 0, 'a checkpoint preserves the earned score');
   archive.checkpoint(verseFourSave);
@@ -1583,6 +1638,37 @@ async function run() {
   assert(road.validate(v3) && road.restore(v3));
   assert.equal(road.state.lockEnergy, 100);
   assert.equal(road.state.score, 0);
-  console.log('Cache Road: safe timed four-face pulses, four-part route, speed and ability rewards, protected and unprotected traffic, full song, final Echo and old saves passed.');
+  resultMusicStarts = 0;
+  audio.startRuntimeGameplayMusic = function () {
+    resultMusicStarts++;
+    return startRoadMusic.call(this);
+  };
+  for (const version of [1, 2, 3]) {
+    const oldClear = copy(completedRoad), proof = oldClear.levelState.proof;
+    oldClear.levelState.proofVersion = version;
+    proof.locked = version === 1 ? [0, 1] : [0, 1, 2];
+    delete proof.score; delete proof.peakStack; delete proof.cleanBars;
+    if (version < 3) { proof.progress = 2460; delete proof.musicBar; }
+    else proof.musicBar = 99;
+    assert(road.validate(oldClear), `version ${version} clear fixture is a legal old save`);
+    archive.checkpoint(oldClear);
+    assert(road.restore(oldClear));
+    assert.equal(road.status, 'clear');
+    assert.equal(road.state.musicBar, version < 3 ? 100 : 99);
+    assert(await road.exit());
+    C.intermission = true;
+    assert((await road.enter()).ok);
+    assert.equal(road.status, 'clear', `version ${version} nested clear remains terminal`);
+    const upgradedClear = C.readResume();
+    assert.equal(upgradedClear.checkpointId, 'road-clear');
+    assert.equal(upgradedClear.levelState.proofVersion, 4);
+    assert(road.validate(upgradedClear), `version ${version} upgrades to a valid clear checkpoint`);
+  }
+  assert.equal(resultMusicStarts, 0, 'legacy completed results never restart playback');
+  assert.equal(B.MusicTransport.sample(audio.context.currentTime).running, false);
+  assert(!archive.record.progress.completedLevels.includes('level-02'));
+  assert.deepEqual(copy(archive.record.progress.items), ['stem.voice']);
+  audio.startRuntimeGameplayMusic = startRoadMusic;
+  console.log('Cache Road: safe timed four-face pulses, four-part route, speed and ability rewards, protected and unprotected traffic, full song, final Echo, silent completed handoffs, fresh Retry and old saves passed.');
 }
 run().catch(error => { console.error(error); process.exitCode = 1; });

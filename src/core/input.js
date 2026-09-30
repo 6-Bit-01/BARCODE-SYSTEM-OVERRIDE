@@ -222,7 +222,8 @@ window.InputManager = class InputManager {
 
   routeGamepadUI() {
     const BARCODE = window.BARCODE, menu = BARCODE?.PauseMenu;
-    const owner = BARCODE?.LevelDifficulty?.open ? 'difficulty' : (menu?.titleOpen || window.isPaused || window.gameState?.paused) ? 'pause' : BARCODE?.CacheBridge?.active ? 'bridge' : window.hackingSystem?.isActive?.() ? 'hack' :
+    const owner = BARCODE?.LevelDifficulty?.open ? 'difficulty' : (menu?.titleOpen || window.isPaused || window.gameState?.paused) ? 'pause' : BARCODE?.CacheBridge?.active ? 'bridge' :
+      BARCODE?.CacheRoadProof?.active && BARCODE.CacheRoadProof.status !== 'playing' ? 'road-results' : window.hackingSystem?.isActive?.() ? 'hack' :
       (window.gameState?.gameOver || window.gameState?.victory) ? 'results' :
       window.tutorialSystem?.isActive?.() ? 'tutorial' : 'gameplay';
     const input = BARCODE?.GamepadUI?.poll(owner);
@@ -269,7 +270,8 @@ window.InputManager = class InputManager {
     const activeProof = BARCODE?.CacheRoadProof?.active ? BARCODE.CacheRoadProof :
       BARCODE?.RunAndGunProof?.active ? BARCODE.RunAndGunProof : null;
     if (activeProof && activeProof.status !== 'playing') {
-      if (p.b0) activeProof.retry();
+      if (owner === 'road-results' && p.b9) BARCODE.RuntimeLifecycle?.togglePause?.();
+      else if (p.b0) activeProof.retry();
       else if (p.b3) activeProof.exit();
       return true;
     }

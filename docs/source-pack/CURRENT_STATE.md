@@ -1,5 +1,22 @@
 # Current State
 
+## September 30 — completed-road resume and bridge re-entry
+
+PR #154's eight-scene bridge is merged with full prior CI passed. A subsequent
+audit reproduced music starting before saved-road restoration, including
+completed results, and loss of terminal status on nested bridge re-entry.
+The bounded repair restores road state before playback: keep a completed
+result silent until explicit Retry, and start a playable save at its saved
+bar. The focused bar-76 case starts once at 142.5 seconds; Retry starts at zero.
+Result-controller ownership blocks carried Retry/Exit until release and a
+fresh press; Menu can pause the result.
+
+Audio preparation remains required. Voice/results, existing road proof and
+no-Bass boundary stay intact. Authored Level 2 completion, four optional
+records and Mac's outro are a separate proposed scope. Focused lifecycle/
+bridge and road-proof checks pass, including legacy terminal-save roundtrips; final combined regression/syntax/Chromium results for this new
+repair remain pending in its PR/receipt. See `CACHE_ROAD_COMPLETED_HANDOFF.md`.
+
 ## September 30 — eight-scene bridge from Voice to Cache Line
 
 From merged PR #153 (`658b99f`), the post-Level-1 intermission now presents

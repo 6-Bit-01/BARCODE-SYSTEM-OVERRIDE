@@ -1,5 +1,22 @@
 # Decision Register
 
+## September 30, 2026 — bounded completed-road handoff correction
+
+After merged #154 passed full CI, the continuation audit found a concrete
+resume defect: music could start before the saved road state was restored,
+and nested bridge entry could replay a completed road. Correct those paths
+within the existing proof: completed results stay silent until explicit
+Retry; playable saves establish the song offset before sources start.
+Results need a fresh controller choice after release and must remain pausable,
+including when input arrives between the last driving poll and completion.
+Preserve prior saves, Voice/results, bridge content and no-Bass boundary.
+
+This repair does not select the broader authored Level 2 completion/Bass,
+four-record or Mac-outro treatment. That remains a separate proposed scope,
+not implemented by this repair.
+See `CACHE_ROAD_COMPLETED_HANDOFF.md`. This diff needs its own full validation
+and PR/receipt; prior #154 CI and native previews do not establish its result.
+
 ## September 30, 2026 — approved eight-page Level 1 → Level 2 bridge
 
 Use an illustrated comic bridge to connect restored Voice/uplink to Cache's
