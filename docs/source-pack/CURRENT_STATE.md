@@ -1,5 +1,25 @@
 # Current State
 
+## September 29 — 1980s digital dashboard and left-only source correction
+
+From merged #152, this pass gives the HUD a custom instrument bezel with
+live phosphor digits, icons and meters for MPH, current/queued gear, time,
+integrity, score/multiplier, mapped action/ONE, Turbo/Echo, Brace/Push and
+lane expiry/NEXT. MPH converts the
+existing calibration without changing driving physics; no fake RPM/fuel is
+introduced. The new instruments occupy the existing top 164-pixel HUD band;
+the road aperture, mirror face/crop and exact 2.3 px blur stay unchanged.
+
+The screenshot's fenced `cachePlaceSubstation` is now explicitly left-only,
+unmirrored; three right sites use the approved capacitor-exchange variant.
+The serialized landscape/satellites and all 48 core keys are unchanged.
+Earlier clearance, music, gears, lamps and chip sound remain approved.
+The focused dashboard check passes 38 production draws; seven native visual
+scenarios and the cruise-frame word count (36→16) support review. Full local
+regression/syntax and final-head Chromium/CI results remain pending; the PR
+and generated receipt record their actual outcomes. See
+`CACHE_ROAD_DIGITAL_DASHBOARD.md` and `review-cache-digital-dashboard/`.
+
 ## September 29 — building clearance and rearward world consistency
 
 This pass from merged #151 addresses the reported garage/residential overlap

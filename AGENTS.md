@@ -1,5 +1,23 @@
 # Repository Guidance
 
+## September 29, 2026 — live digital instruments and source-facing correction
+
+The owner requests a custom 1980s digital dashboard with less prose. Use live
+MPH (`round(speed*5.2/1.609344)`), current/queued gear, timer, integrity,
+mapped action/ONE cue, Turbo/Echo and lane expiry. Do not add fictitious RPM,
+fuel or other unmodeled gauges. Static bezel/glyph art must not bake values.
+
+Keep the redesigned dashboard inside the existing top 164-pixel HUD band;
+preserve the road aperture, mirror face/crop and exact `blur(2.3px)`.
+Keep beat ONE, buffered gears, audio, lamps and prior clearance behavior.
+The fenced `cachePlaceSubstation` is left-only and unmirrored; right sites
+2939/3913/12944 use the approved `capacitorExchange` variant with their
+existing reservations. All 48 core keys/layout remain intact here. The latest
+owner facing restriction still overrides an old inventory goal if a source
+is wrongly tagged. Do not place wrong-facing art to satisfy a count. See
+`docs/source-pack/CACHE_ROAD_DIGITAL_DASHBOARD.md`. Full regression and
+Chromium gate merge; the PR/receipt records the actual tested outcome.
+
 ## September 29, 2026 — true building clearance and the retained-blur rearview
 
 The owner reported intersecting garage/residential paintings. Validate actual

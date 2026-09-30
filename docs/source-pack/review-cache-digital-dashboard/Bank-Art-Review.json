@@ -1,0 +1,75 @@
+{
+  "evidenceType": "Native production Canvas capture and Node production-draw checks; not browser or device acceptance",
+  "sourceKey": "cachePlaceSubstation",
+  "sourceFile": "assets/cache-road/roadside/places/substation.webp",
+  "bankRule": {
+    "side": "left",
+    "worldSide": -1,
+    "flip": false
+  },
+  "leftSourceSites": [
+    1811,
+    10667,
+    11936
+  ],
+  "correctedRightSites": [
+    2939,
+    3913,
+    12944
+  ],
+  "rightReplacement": {
+    "variant": "capacitorExchange",
+    "sourceKey": "cachePlaceCapacitorExchange",
+    "worldSide": 1,
+    "flip": true
+  },
+  "preservedReservation": {
+    "originalMaxWidth": 680,
+    "halfAlongFormula": "50 * 680 / 700 * place.size",
+    "positionsSizesAndSetbacksUnchanged": true
+  },
+  "checks": [
+    {
+      "command": "node tools/check-cache-road-bank-art.cjs",
+      "result": "pass",
+      "actualMainAndRearObservations": 12
+    },
+    {
+      "command": "node tools/check-cache-road-clearance.cjs",
+      "result": "pass",
+      "seededRoutes": 10,
+      "retainedCardsAudited": 1162
+    }
+  ],
+  "preservedProductionLayout": {
+    "buildingCards": 139,
+    "coreSourceKeys": 48,
+    "streetSockets": 25,
+    "satellites": 17,
+    "landscapeAndSatelliteJsonMatchesBefore": true
+  },
+  "reviewedStillProgress": [
+    1600,
+    2700,
+    3673
+  ],
+  "comparison": {
+    "file": "Left-Only-Substation-Before-After.webp",
+    "progress": 2700,
+    "width": 1280,
+    "height": 1536,
+    "composition": "Full original 1280x720 frames, unscaled and unretouched, with labels outside each frame",
+    "frames": [
+      {
+        "role": "before",
+        "captureFile": "/workspace/scratch/dd1242abe481/orientation-target-scan/Cache-Road-Mirror-Road-2700.webp",
+        "sha256": "4f1f992fef2c2ed7eded890795f92eb0e728b64fd28efd21ad9fdeb32be29c1b"
+      },
+      {
+        "role": "after",
+        "captureFile": "/workspace/scratch/dd1242abe481/orientation-final/Cache-Road-Mirror-Road-2700.webp",
+        "sha256": "d1bc1ca33601d907e6eb51096bffda821299f17d119c6c97ee3a494a45004597"
+      }
+    ]
+  }
+}

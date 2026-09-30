@@ -121,28 +121,38 @@ module.exports=async function reviewRoadWorld() {
   }
   ctx.drawImage=nativeDraw;
   // Check pinned delivery as well as bundled files. A locally working sheet
-  // is not enough for a Makko import which omits binary assets.
+  // or static dashboard is not enough for a Makko import which omits art.
+  const dashboardKeys=['cacheDashBezel','cacheDashDigits','cacheDashIcons'];
+  for(const key of dashboardKeys) {
+    const definition=window.roadReviewDefinitions[key];
+    if(!definition||definition.frames!==1||definition.columns!==1||definition.rows!==1||
+      definition.ax!==0||definition.ay!==0)
+      throw Error(`Static dashboard metadata changed: ${key}`);
+  }
+  const hostedKeys=keys.filter(key=>window.roadReviewDefinitions[key].frames>1||
+    dashboardKeys.includes(key));
   const hosted=[];
-  for(const key of keys.filter(key=>window.roadReviewDefinitions[key].frames>1)) {
+  for(const key of hostedKeys) {
     const definition=window.roadReviewDefinitions[key];
     const response=await fetch(definition.root+definition.path);
-    if(!response.ok)throw Error(`Published animation unavailable: ${key} (${response.status})`);
+    if(!response.ok)throw Error(`Published asset unavailable: ${key} (${response.status})`);
     const remote=await response.arrayBuffer(),local=await (await fetch('/'+definition.path)).arrayBuffer();
     const digest=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)))
       .map(n=>n.toString(16).padStart(2,'0')).join('');
-    if(await digest(remote)!==await digest(local))throw Error(`Published animation differs: ${key}`);
-    hosted.push({key,bytes:remote.byteLength});
+    if(await digest(remote)!==await digest(local))throw Error(`Published asset differs: ${key}`);
+    hosted.push({key,bytes:remote.byteLength,frames:definition.frames,
+      columns:definition.columns,rows:definition.rows});
   }
   // Exercise the unmodified production remote-first Image loader as well.
   // Disable only its bundled retry so this cannot silently pass using local art.
   const localAssets=B.PresentationAssets;
   (0,eval)((await load('src/engine/presentation-assets.js'))
     .replace('      if (cache[key]) continue;',
-      "      if (cache[key]||!key.startsWith('cache')||entry.frames<=1) continue;")
-    .replace('image.src = entry.path;',"image.src = '/__disabled_animation_fallback__';"));
+      `      if (cache[key]||!${JSON.stringify(hostedKeys)}.includes(key)) continue;`)
+    .replace('image.src = entry.path;',"image.src = '/__disabled_asset_fallback__';"));
   const remoteStart=performance.now();
   while(!hosted.every(({key})=>B.PresentationAssets.ready(key))) {
-    if(performance.now()-remoteStart>45000)throw Error('Production remote animation loader failed');
+    if(performance.now()-remoteStart>45000)throw Error('Production remote asset loader failed');
     await new Promise(resolve=>setTimeout(resolve,50));
   }
   for(const entry of hosted) {
