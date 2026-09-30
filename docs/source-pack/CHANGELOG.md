@@ -1,5 +1,20 @@
 # Recovery checkpoint — September 14
 
+## September 29, 2026 — building clearance and actual rearview scenery
+
+- Address the reported garage/residential overlap with occupied-footprint
+  clearance; the old middle/rear center reservation allowed a 65-unit pair.
+- Keep the garage fixed and reject both intersecting residential cards;
+  retain radial rows, fit within parcels and clean rejected graph leaves.
+  Default production keeps 139 of 227 cards, all 48 keys and 25 street mouths.
+- Review the rearward scene against the same authored buildings, terrain,
+  streets, actors and vehicle sprites used by the forward world.
+- Preserve the owner's exact 2.3 px mirror blur and the existing glass/face.
+- Preserve #151's lamps, chip sound, song transport, beat ONE and gears.
+- Retain the new drive/current stills, approved city baseline and prior chip
+  audition in the source pack. Full regression and Chromium CI gate merge;
+  the PR and generated receipt record the actual outcome.
+
 ## September 29, 2026 — grounded lamps and dynamic chip sound
 
 - Reduce service lamp height 400→260 and decorative lamp height 270→230;

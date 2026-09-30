@@ -1,0 +1,23 @@
+{
+  "fps": 24,
+  "gameplay": false,
+  "seconds": 16,
+  "reviewStart": 1420,
+  "frames": 384,
+  "progressEnd": 2696.666666666667,
+  "width": 1280,
+  "height": 720,
+  "audio": false,
+  "source": "Production Canvas renderer and actual authored assets; scripted visual sweep, not input-driven gameplay.",
+  "video": "Drive-Review.mp4",
+  "videoSha256": "907b644fc41b94232f7419892240c3ae65e31f3fc9074cbf500b6be89e1659ae",
+  "blur": "2.3px",
+  "sourceHashes": {
+    "src/game/cache-road-landscape.js": "eb852168cc9bd18334e15eb3a8791d4a8409d542ee81df1dd2e321bdebda31f3",
+    "src/game/cache-road-proof.js": "9ada7fc6169b451ec652c4de2574be1b42782514d6f546db645c6715118f83a8"
+  },
+  "limitations": [
+    "Native capture is not Makko/device footage or a device FPS measurement.",
+    "No new catch score, audio mix or gameplay timing claim."
+  ]
+}

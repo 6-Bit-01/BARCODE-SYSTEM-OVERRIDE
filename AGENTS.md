@@ -1,5 +1,24 @@
 # Repository Guidance
 
+## September 29, 2026 — true building clearance and the retained-blur rearview
+
+The owner reported intersecting garage/residential paintings. Validate actual
+occupied building footprints around featured sites, including middle/rear
+cards and courts; center-address spacing alone allowed the reported overlap.
+Preserve radial rows and street sockets; fit within parcels, omit cards that
+cannot fit and remove their unused access leaves. Do not hide conflicts with
+outward displacement or renderer masks. Featured contact half-depth is 75,
+with an 18-unit envelope gap; intended same-family seams are allowed.
+Do not claim the complete older landscape plan is implemented by this fix.
+
+The rearview should show the existing world behind Cache with actual authored
+vehicle sprites. Preserve exactly `blur(2.3px)`—the owner explicitly said not
+to reduce it. Reuse the available views without claiming new front-facing
+vehicle art. Preserve beat ONE, music, gears, lamps and chip SFX from #151.
+Use actual production draws and footprint checks; full regression/Chromium
+CI gate merge, with results recorded by the PR and source-pack receipt.
+See `docs/source-pack/CACHE_ROAD_CLEARANCE_REARVIEW.md`.
+
 ## September 29, 2026 — grounded streetlights and song-aware chip sound
 
 Preserve the owner-approved #150 sidelines, beat ONE and buffered gears.

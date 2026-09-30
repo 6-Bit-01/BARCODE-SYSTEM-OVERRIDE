@@ -269,7 +269,7 @@ async function main() {
   }
   const reviewWorld=require('./cache-road-browser-world.cjs');
   const world=await evaluate(`(${reviewWorld.toString()})()`);
-  assert(world.loadedAssets>200&&world.frames.length===96&&world.contextCalls<=4);
+  assert(world.loadedAssets>200&&world.frames.length===192&&world.contextCalls<=4);
   assert(Object.keys(world.animations).length===48 && world.animationRoutes.animatedKeys===48);
   const worldOutput=process.env.CACHE_ROAD_REVIEW_OUTPUT||
     (process.env.RUNNER_TEMP&&path.join(process.env.RUNNER_TEMP,'music-browser/cache-road'));

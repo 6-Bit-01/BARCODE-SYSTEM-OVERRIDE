@@ -1,0 +1,4204 @@
+{
+  "scope": "Declared frontage/contact envelopes; not a reconstructed 3D floorplan. Actual visual review also required.",
+  "gap": 18,
+  "authoredCount": 227,
+  "retainedCount": 139,
+  "changes": [
+    {
+      "id": "plate:1:22:front",
+      "key": "cacheWorkshopRFrontFill",
+      "side": 1,
+      "from": {
+        "at": 4063,
+        "radial": 250
+      },
+      "to": {
+        "at": 4052,
+        "radial": 250
+      }
+    },
+    {
+      "id": "plate:1:24:front",
+      "key": "cacheWorkshopRFrontFill",
+      "side": 1,
+      "from": {
+        "at": 4348,
+        "radial": 250
+      },
+      "to": {
+        "at": 4372,
+        "radial": 250
+      }
+    },
+    {
+      "id": "plate:-1:19:middle",
+      "key": "cacheWorkshopLMiddle",
+      "side": -1,
+      "from": {
+        "at": 3469,
+        "radial": 250
+      },
+      "to": {
+        "at": 3450,
+        "radial": 250
+      }
+    },
+    {
+      "id": "plate:-1:20:middle",
+      "key": "cacheWorkshopLMiddle",
+      "side": -1,
+      "from": {
+        "at": 3649,
+        "radial": 250
+      },
+      "to": {
+        "at": 3724,
+        "radial": 250
+      }
+    },
+    {
+      "id": "plate:-1:31:middle",
+      "key": "cacheGreenhouseLMiddle",
+      "side": -1,
+      "from": {
+        "at": 5629,
+        "radial": 250
+      },
+      "to": {
+        "at": 5575,
+        "radial": 250
+      }
+    },
+    {
+      "id": "plate:-1:34:middle",
+      "key": "cacheGreenhouseLMiddle",
+      "side": -1,
+      "from": {
+        "at": 6169,
+        "radial": 250
+      },
+      "to": {
+        "at": 6165,
+        "radial": 250
+      }
+    },
+    {
+      "id": "plate:-1:47:middle",
+      "key": "cacheOutskirtsWorkshops",
+      "side": -1,
+      "from": {
+        "at": 8509,
+        "radial": 260
+      },
+      "to": {
+        "at": 8446,
+        "radial": 260
+      }
+    },
+    {
+      "id": "plate:-1:54:middle",
+      "key": "cacheTransitLMiddle",
+      "side": -1,
+      "from": {
+        "at": 9769,
+        "radial": 250
+      },
+      "to": {
+        "at": 9834,
+        "radial": 250
+      }
+    },
+    {
+      "id": "plate:-1:65:middle",
+      "key": "cacheMarketLMiddle",
+      "side": -1,
+      "from": {
+        "at": 11749,
+        "radial": 250
+      },
+      "to": {
+        "at": 11793,
+        "radial": 250
+      }
+    },
+    {
+      "id": "plate:-1:67:middle",
+      "key": "cacheUtilityCorner",
+      "side": -1,
+      "from": {
+        "at": 12109,
+        "radial": 260
+      },
+      "to": {
+        "at": 12072,
+        "radial": 260
+      }
+    },
+    {
+      "id": "plate:-1:80:middle",
+      "key": "cacheWorkshopLMiddle",
+      "side": -1,
+      "from": {
+        "at": 14449,
+        "radial": 250
+      },
+      "to": {
+        "at": 14479,
+        "radial": 250
+      }
+    },
+    {
+      "id": "plate:-1:83:middle",
+      "key": "cacheWorkshopLMiddle",
+      "side": -1,
+      "from": {
+        "at": 14989,
+        "radial": 250
+      },
+      "to": {
+        "at": 14924,
+        "radial": 250
+      }
+    },
+    {
+      "id": "plate:-1:86:middle",
+      "key": "cacheWorkshopLMiddle",
+      "side": -1,
+      "from": {
+        "at": 15529,
+        "radial": 250
+      },
+      "to": {
+        "at": 15569,
+        "radial": 250
+      }
+    },
+    {
+      "id": "plate:1:24:middle",
+      "key": "cacheWorkshopRMiddle",
+      "side": 1,
+      "from": {
+        "at": 4425,
+        "radial": 250
+      },
+      "to": {
+        "at": 4449,
+        "radial": 250
+      }
+    },
+    {
+      "id": "plate:1:37:middle",
+      "key": "cacheRepairShop",
+      "side": 1,
+      "from": {
+        "at": 6765,
+        "radial": 260
+      },
+      "to": {
+        "at": 6841,
+        "radial": 260
+      }
+    },
+    {
+      "id": "plate:1:71:middle",
+      "key": "cacheHomesRMiddle",
+      "side": 1,
+      "from": {
+        "at": 12885,
+        "radial": 250
+      },
+      "to": {
+        "at": 12802,
+        "radial": 250
+      }
+    },
+    {
+      "id": "plate:1:72:middle",
+      "key": "cacheTransitNook",
+      "side": 1,
+      "from": {
+        "at": 13065,
+        "radial": 260
+      },
+      "to": {
+        "at": 13071,
+        "radial": 260
+      }
+    },
+    {
+      "id": "plate:1:86:middle",
+      "key": "cacheWorkshopRMiddle",
+      "side": 1,
+      "from": {
+        "at": 15585,
+        "radial": 250
+      },
+      "to": {
+        "at": 15589,
+        "radial": 250
+      }
+    },
+    {
+      "id": "plate:-1:0:rear",
+      "key": "cacheMarketLRear",
+      "side": -1,
+      "from": {
+        "at": 123,
+        "radial": 430
+      },
+      "to": {
+        "at": 34,
+        "radial": 430
+      }
+    },
+    {
+      "id": "plate:-1:1:rear",
+      "key": "cacheMarketLRear",
+      "side": -1,
+      "from": {
+        "at": 303,
+        "radial": 430
+      },
+      "to": {
+        "at": 316,
+        "radial": 430
+      }
+    },
+    {
+      "id": "plate:-1:16:rear",
+      "key": "cacheHomesLRear",
+      "side": -1,
+      "from": {
+        "at": 3003,
+        "radial": 430
+      },
+      "to": {
+        "at": 2997,
+        "radial": 430
+      }
+    },
+    {
+      "id": "plate:-1:32:rear",
+      "key": "cacheGreenhouseLRear",
+      "side": -1,
+      "from": {
+        "at": 5883,
+        "radial": 430
+      },
+      "to": {
+        "at": 5882,
+        "radial": 430
+      }
+    },
+    {
+      "id": "plate:-1:34:rear",
+      "key": "cacheGreenhouseLRear",
+      "side": -1,
+      "from": {
+        "at": 6243,
+        "radial": 430
+      },
+      "to": {
+        "at": 6165,
+        "radial": 430
+      }
+    },
+    {
+      "id": "plate:-1:40:rear",
+      "key": "cacheDataLRear",
+      "side": -1,
+      "from": {
+        "at": 7323,
+        "radial": 430
+      },
+      "to": {
+        "at": 7290,
+        "radial": 430
+      }
+    },
+    {
+      "id": "plate:-1:65:rear",
+      "key": "cacheMarketLRear",
+      "side": -1,
+      "from": {
+        "at": 11823,
+        "radial": 430
+      },
+      "to": {
+        "at": 11795,
+        "radial": 430
+      }
+    },
+    {
+      "id": "plate:-1:73:rear",
+      "key": "cacheHomesLRear",
+      "side": -1,
+      "from": {
+        "at": 13263,
+        "radial": 430
+      },
+      "to": {
+        "at": 13243,
+        "radial": 430
+      }
+    },
+    {
+      "id": "plate:1:5:rear",
+      "key": "cacheMarketRRear",
+      "side": 1,
+      "from": {
+        "at": 1079,
+        "radial": 430
+      },
+      "to": {
+        "at": 1077,
+        "radial": 430
+      }
+    },
+    {
+      "id": "plate:1:15:rear",
+      "key": "cacheHomesRRear",
+      "side": 1,
+      "from": {
+        "at": 2879,
+        "radial": 430
+      },
+      "to": {
+        "at": 2793,
+        "radial": 430
+      }
+    },
+    {
+      "id": "plate:1:24:rear",
+      "key": "cacheWorkshopRRear",
+      "side": 1,
+      "from": {
+        "at": 4499,
+        "radial": 430
+      },
+      "to": {
+        "at": 4447,
+        "radial": 430
+      }
+    },
+    {
+      "id": "plate:1:25:rear",
+      "key": "cacheWorkshopRRear",
+      "side": 1,
+      "from": {
+        "at": 4679,
+        "radial": 430
+      },
+      "to": {
+        "at": 4695,
+        "radial": 430
+      }
+    },
+    {
+      "id": "plate:1:31:rear",
+      "key": "cacheGreenhouseRRear",
+      "side": 1,
+      "from": {
+        "at": 5759,
+        "radial": 430
+      },
+      "to": {
+        "at": 5690,
+        "radial": 430
+      }
+    },
+    {
+      "id": "plate:1:34:rear",
+      "key": "cacheGreenhouseRRear",
+      "side": 1,
+      "from": {
+        "at": 6299,
+        "radial": 430
+      },
+      "to": {
+        "at": 6258,
+        "radial": 430
+      }
+    },
+    {
+      "id": "plate:1:45:rear",
+      "key": "cacheDataRRear",
+      "side": 1,
+      "from": {
+        "at": 8279,
+        "radial": 430
+      },
+      "to": {
+        "at": 8291,
+        "radial": 430
+      }
+    },
+    {
+      "id": "plate:1:60:rear",
+      "key": "cacheMarketRRear",
+      "side": 1,
+      "from": {
+        "at": 10979,
+        "radial": 430
+      },
+      "to": {
+        "at": 10949,
+        "radial": 430
+      }
+    },
+    {
+      "id": "plate:1:64:rear",
+      "key": "cacheMarketRRear",
+      "side": 1,
+      "from": {
+        "at": 11699,
+        "radial": 430
+      },
+      "to": {
+        "at": 11656,
+        "radial": 430
+      }
+    },
+    {
+      "id": "plate:1:67:rear",
+      "key": "cacheMarketRRear",
+      "side": 1,
+      "from": {
+        "at": 12239,
+        "radial": 430
+      },
+      "to": {
+        "at": 12244,
+        "radial": 430
+      }
+    },
+    {
+      "id": "plate:1:84:rear",
+      "key": "cacheWorkshopRRear",
+      "side": 1,
+      "from": {
+        "at": 15299,
+        "radial": 430
+      },
+      "to": {
+        "at": 15312,
+        "radial": 430
+      }
+    },
+    {
+      "id": "plate:1:85:rear",
+      "key": "cacheWorkshopRRear",
+      "side": 1,
+      "from": {
+        "at": 15479,
+        "radial": 430
+      },
+      "to": {
+        "at": 15480,
+        "radial": 430
+      }
+    }
+  ],
+  "rejected": [
+    {
+      "id": "plate:-1:66:front",
+      "key": "cacheMarketLFrontFill",
+      "side": -1,
+      "at": 11796,
+      "radial": 250
+    },
+    {
+      "id": "plate:-1:0:middle",
+      "key": "cacheMarketLMiddle",
+      "side": -1,
+      "at": 49,
+      "radial": 250
+    },
+    {
+      "id": "plate:-1:1:middle",
+      "key": "cacheMarketLMiddle",
+      "side": -1,
+      "at": 229,
+      "radial": 250
+    },
+    {
+      "id": "plate:-1:22:middle",
+      "key": "cacheRepairShop",
+      "side": -1,
+      "at": 4009,
+      "radial": 260
+    },
+    {
+      "id": "plate:-1:23:middle",
+      "key": "cacheWorkshopLMiddle",
+      "side": -1,
+      "at": 4189,
+      "radial": 250
+    },
+    {
+      "id": "plate:-1:32:middle",
+      "key": "cacheOutskirtsHomes",
+      "side": -1,
+      "at": 5809,
+      "radial": 260
+    },
+    {
+      "id": "plate:-1:42:middle",
+      "key": "cacheGreenhouseWorkshop",
+      "side": -1,
+      "at": 7609,
+      "radial": 260
+    },
+    {
+      "id": "plate:-1:43:middle",
+      "key": "cacheDataLMiddle",
+      "side": -1,
+      "at": 7789,
+      "radial": 250
+    },
+    {
+      "id": "plate:-1:52:middle",
+      "key": "cacheRepairShop",
+      "side": -1,
+      "at": 9409,
+      "radial": 260
+    },
+    {
+      "id": "plate:-1:57:middle",
+      "key": "cacheTransitNook",
+      "side": -1,
+      "at": 10309,
+      "radial": 260
+    },
+    {
+      "id": "plate:-1:61:middle",
+      "key": "cacheMarketLMiddle",
+      "side": -1,
+      "at": 11029,
+      "radial": 250
+    },
+    {
+      "id": "plate:-1:62:middle",
+      "key": "cacheOutskirtsHomes",
+      "side": -1,
+      "at": 11209,
+      "radial": 260
+    },
+    {
+      "id": "plate:-1:64:middle",
+      "key": "cacheMarketLMiddle",
+      "side": -1,
+      "at": 11569,
+      "radial": 250
+    },
+    {
+      "id": "plate:-1:75:middle",
+      "key": "cacheHomesLMiddle",
+      "side": -1,
+      "at": 13549,
+      "radial": 250
+    },
+    {
+      "id": "plate:-1:76:middle",
+      "key": "cacheHomesLMiddle",
+      "side": -1,
+      "at": 13729,
+      "radial": 250
+    },
+    {
+      "id": "plate:-1:81:middle",
+      "key": "cacheWorkshopLMiddle",
+      "side": -1,
+      "at": 14629,
+      "radial": 250
+    },
+    {
+      "id": "plate:-1:84:middle",
+      "key": "cacheWorkshopLMiddle",
+      "side": -1,
+      "at": 15169,
+      "radial": 250
+    },
+    {
+      "id": "plate:1:4:middle",
+      "key": "cacheMarketRMiddle",
+      "side": 1,
+      "at": 825,
+      "radial": 250
+    },
+    {
+      "id": "plate:1:5:middle",
+      "key": "cacheMarketRMiddle",
+      "side": 1,
+      "at": 1005,
+      "radial": 250
+    },
+    {
+      "id": "plate:1:10:middle",
+      "key": "cacheHomesRMiddle",
+      "side": 1,
+      "at": 1905,
+      "radial": 250
+    },
+    {
+      "id": "plate:1:13:middle",
+      "key": "cacheHomesRMiddle",
+      "side": 1,
+      "at": 2445,
+      "radial": 250
+    },
+    {
+      "id": "plate:1:14:middle",
+      "key": "cacheHomesRMiddle",
+      "side": 1,
+      "at": 2625,
+      "radial": 250
+    },
+    {
+      "id": "plate:1:15:middle",
+      "key": "cacheHomesRMiddle",
+      "side": 1,
+      "at": 2805,
+      "radial": 250
+    },
+    {
+      "id": "plate:1:16:middle",
+      "key": "cacheHomesRMiddle",
+      "side": 1,
+      "at": 2985,
+      "radial": 250
+    },
+    {
+      "id": "plate:1:22:middle",
+      "key": "cacheUtilityCorner",
+      "side": 1,
+      "at": 4065,
+      "radial": 260
+    },
+    {
+      "id": "plate:1:39:middle",
+      "key": "cacheDataRMiddle",
+      "side": 1,
+      "at": 7125,
+      "radial": 250
+    },
+    {
+      "id": "plate:1:40:middle",
+      "key": "cacheDataRMiddle",
+      "side": 1,
+      "at": 7305,
+      "radial": 250
+    },
+    {
+      "id": "plate:1:45:middle",
+      "key": "cacheDataRMiddle",
+      "side": 1,
+      "at": 8205,
+      "radial": 250
+    },
+    {
+      "id": "plate:1:49:middle",
+      "key": "cacheTransitRMiddle",
+      "side": 1,
+      "at": 8925,
+      "radial": 250
+    },
+    {
+      "id": "plate:1:50:middle",
+      "key": "cacheTransitRMiddle",
+      "side": 1,
+      "at": 9105,
+      "radial": 250
+    },
+    {
+      "id": "plate:1:52:middle",
+      "key": "cacheUtilityCorner",
+      "side": 1,
+      "at": 9465,
+      "radial": 260
+    },
+    {
+      "id": "plate:1:62:middle",
+      "key": "cacheOutskirtsWorkshops",
+      "side": 1,
+      "at": 11265,
+      "radial": 260
+    },
+    {
+      "id": "plate:1:63:middle",
+      "key": "cacheMarketRMiddle",
+      "side": 1,
+      "at": 11445,
+      "radial": 250
+    },
+    {
+      "id": "plate:1:64:middle",
+      "key": "cacheMarketRMiddle",
+      "side": 1,
+      "at": 11625,
+      "radial": 250
+    },
+    {
+      "id": "plate:1:66:middle",
+      "key": "cacheMarketRMiddle",
+      "side": 1,
+      "at": 11985,
+      "radial": 250
+    },
+    {
+      "id": "plate:1:67:middle",
+      "key": "cacheRepairShop",
+      "side": 1,
+      "at": 12165,
+      "radial": 260
+    },
+    {
+      "id": "plate:1:81:middle",
+      "key": "cacheWorkshopRMiddle",
+      "side": 1,
+      "at": 14685,
+      "radial": 250
+    },
+    {
+      "id": "plate:1:83:middle",
+      "key": "cacheWorkshopRMiddle",
+      "side": 1,
+      "at": 15045,
+      "radial": 250
+    },
+    {
+      "id": "plate:1:84:middle",
+      "key": "cacheWorkshopRMiddle",
+      "side": 1,
+      "at": 15225,
+      "radial": 250
+    },
+    {
+      "id": "plate:-1:4:rear",
+      "key": "cacheMarketLRear",
+      "side": -1,
+      "at": 843,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:5:rear",
+      "key": "cacheMarketLRear",
+      "side": -1,
+      "at": 1023,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:6:rear",
+      "key": "cacheMarketLRear",
+      "side": -1,
+      "at": 1203,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:7:rear",
+      "key": "cacheMarketLRear",
+      "side": -1,
+      "at": 1383,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:10:rear",
+      "key": "cacheHomesLRear",
+      "side": -1,
+      "at": 1923,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:11:rear",
+      "key": "cacheHomesLRear",
+      "side": -1,
+      "at": 2103,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:13:rear",
+      "key": "cacheHomesLRear",
+      "side": -1,
+      "at": 2463,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:14:rear",
+      "key": "cacheHomesLRear",
+      "side": -1,
+      "at": 2643,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:19:rear",
+      "key": "cacheWorkshopLRear",
+      "side": -1,
+      "at": 3543,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:20:rear",
+      "key": "cacheWorkshopLRear",
+      "side": -1,
+      "at": 3723,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:21:rear",
+      "key": "cacheWorkshopLRear",
+      "side": -1,
+      "at": 3903,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:27:rear",
+      "key": "cacheWorkshopLRear",
+      "side": -1,
+      "at": 4983,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:30:rear",
+      "key": "cacheGreenhouseLRear",
+      "side": -1,
+      "at": 5523,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:35:rear",
+      "key": "cacheGreenhouseLRear",
+      "side": -1,
+      "at": 6423,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:36:rear",
+      "key": "cacheGreenhouseLRear",
+      "side": -1,
+      "at": 6603,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:39:rear",
+      "key": "cacheDataLRear",
+      "side": -1,
+      "at": 7143,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:41:rear",
+      "key": "cacheDataLRear",
+      "side": -1,
+      "at": 7503,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:45:rear",
+      "key": "cacheDataLRear",
+      "side": -1,
+      "at": 8223,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:46:rear",
+      "key": "cacheDataLRear",
+      "side": -1,
+      "at": 8403,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:49:rear",
+      "key": "cacheTransitLRear",
+      "side": -1,
+      "at": 8943,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:51:rear",
+      "key": "cacheTransitLRear",
+      "side": -1,
+      "at": 9303,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:54:rear",
+      "key": "cacheTransitLRear",
+      "side": -1,
+      "at": 9843,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:55:rear",
+      "key": "cacheTransitLRear",
+      "side": -1,
+      "at": 10023,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:56:rear",
+      "key": "cacheTransitLRear",
+      "side": -1,
+      "at": 10203,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:59:rear",
+      "key": "cacheMarketLRear",
+      "side": -1,
+      "at": 10743,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:60:rear",
+      "key": "cacheMarketLRear",
+      "side": -1,
+      "at": 10923,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:66:rear",
+      "key": "cacheMarketLRear",
+      "side": -1,
+      "at": 12003,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:69:rear",
+      "key": "cacheHomesLRear",
+      "side": -1,
+      "at": 12543,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:70:rear",
+      "key": "cacheHomesLRear",
+      "side": -1,
+      "at": 12723,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:72:rear",
+      "key": "cacheHomesLRear",
+      "side": -1,
+      "at": 13083,
+      "radial": 430
+    },
+    {
+      "id": "plate:-1:74:rear",
+      "key": "cacheHomesLRear",
+      "side": -1,
+      "at": 13443,
+      "radial": 430
+    },
+    {
+      "id": "plate:1:10:rear",
+      "key": "cacheHomesRRear",
+      "side": 1,
+      "at": 1979,
+      "radial": 430
+    },
+    {
+      "id": "plate:1:16:rear",
+      "key": "cacheHomesRRear",
+      "side": 1,
+      "at": 3059,
+      "radial": 430
+    },
+    {
+      "id": "plate:1:20:rear",
+      "key": "cacheWorkshopRRear",
+      "side": 1,
+      "at": 3779,
+      "radial": 430
+    },
+    {
+      "id": "plate:1:22:rear",
+      "key": "cacheWorkshopRRear",
+      "side": 1,
+      "at": 4139,
+      "radial": 430
+    },
+    {
+      "id": "plate:1:23:rear",
+      "key": "cacheWorkshopRRear",
+      "side": 1,
+      "at": 4319,
+      "radial": 430
+    },
+    {
+      "id": "plate:1:29:rear",
+      "key": "cacheGreenhouseRRear",
+      "side": 1,
+      "at": 5399,
+      "radial": 430
+    },
+    {
+      "id": "plate:1:30:rear",
+      "key": "cacheGreenhouseRRear",
+      "side": 1,
+      "at": 5579,
+      "radial": 430
+    },
+    {
+      "id": "plate:1:32:rear",
+      "key": "cacheGreenhouseRRear",
+      "side": 1,
+      "at": 5939,
+      "radial": 430
+    },
+    {
+      "id": "plate:1:40:rear",
+      "key": "cacheDataRRear",
+      "side": 1,
+      "at": 7379,
+      "radial": 430
+    },
+    {
+      "id": "plate:1:41:rear",
+      "key": "cacheDataRRear",
+      "side": 1,
+      "at": 7559,
+      "radial": 430
+    },
+    {
+      "id": "plate:1:49:rear",
+      "key": "cacheTransitRRear",
+      "side": 1,
+      "at": 8999,
+      "radial": 430
+    },
+    {
+      "id": "plate:1:50:rear",
+      "key": "cacheTransitRRear",
+      "side": 1,
+      "at": 9179,
+      "radial": 430
+    },
+    {
+      "id": "plate:1:53:rear",
+      "key": "cacheTransitRRear",
+      "side": 1,
+      "at": 9719,
+      "radial": 430
+    },
+    {
+      "id": "plate:1:54:rear",
+      "key": "cacheTransitRRear",
+      "side": 1,
+      "at": 9899,
+      "radial": 430
+    },
+    {
+      "id": "plate:1:59:rear",
+      "key": "cacheMarketRRear",
+      "side": 1,
+      "at": 10799,
+      "radial": 430
+    },
+    {
+      "id": "plate:1:65:rear",
+      "key": "cacheMarketRRear",
+      "side": 1,
+      "at": 11879,
+      "radial": 430
+    },
+    {
+      "id": "plate:1:69:rear",
+      "key": "cacheHomesRRear",
+      "side": 1,
+      "at": 12599,
+      "radial": 430
+    },
+    {
+      "id": "plate:1:83:rear",
+      "key": "cacheWorkshopRRear",
+      "side": 1,
+      "at": 15119,
+      "radial": 430
+    }
+  ],
+  "unresolved": [],
+  "collisions": [],
+  "seams": [
+    [
+      "plate:-1:17:front",
+      "plate:-1:16:middle"
+    ],
+    [
+      "plate:-1:26:front",
+      "plate:-1:25:middle"
+    ],
+    [
+      "plate:1:35:front",
+      "plate:1:34:middle"
+    ],
+    [
+      "plate:1:44:front",
+      "plate:1:43:middle"
+    ],
+    [
+      "plate:1:57:front",
+      "plate:1:56:middle"
+    ],
+    [
+      "plate:1:61:front",
+      "plate:1:60:middle"
+    ],
+    [
+      "plate:1:77:front",
+      "plate:1:76:middle"
+    ],
+    [
+      "plate:-1:4:front",
+      "plate:-1:3:middle"
+    ],
+    [
+      "plate:-1:4:front",
+      "plate:-1:4:middle"
+    ],
+    [
+      "plate:-1:9:front",
+      "plate:-1:9:middle"
+    ],
+    [
+      "plate:-1:24:front",
+      "plate:-1:24:middle"
+    ],
+    [
+      "plate:-1:40:front",
+      "plate:-1:40:middle"
+    ],
+    [
+      "plate:1:0:front",
+      "plate:1:0:middle"
+    ],
+    [
+      "plate:1:19:front",
+      "plate:1:19:middle"
+    ],
+    [
+      "plate:1:24:front",
+      "plate:1:24:middle"
+    ],
+    [
+      "plate:1:37:front",
+      "plate:1:36:middle"
+    ],
+    [
+      "plate:1:53:front",
+      "plate:1:53:middle"
+    ]
+  ],
+  "contacts": [
+    {
+      "id": "site:-1:15433",
+      "kind": "site",
+      "side": -1,
+      "at": 15433,
+      "radial": 314,
+      "halfAlong": 42.51272550483035,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:15425",
+      "kind": "site",
+      "side": 1,
+      "at": 15425,
+      "radial": 267,
+      "halfAlong": 70.45244449039456,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:15172",
+      "kind": "site",
+      "side": 1,
+      "at": 15172,
+      "radial": 342,
+      "halfAlong": 46.15114099299535,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:15058",
+      "kind": "site",
+      "side": -1,
+      "at": 15058,
+      "radial": 333,
+      "halfAlong": 40.92556667373116,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:14910",
+      "kind": "site",
+      "side": 1,
+      "at": 14910,
+      "radial": 387,
+      "halfAlong": 44.29705437924713,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:14881",
+      "kind": "site",
+      "side": -1,
+      "at": 14881,
+      "radial": 501,
+      "halfAlong": 41.49888313448589,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:14629",
+      "kind": "site",
+      "side": 1,
+      "at": 14629,
+      "radial": 268,
+      "halfAlong": 30.26882517246995,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:14522",
+      "kind": "site",
+      "side": -1,
+      "at": 14522,
+      "radial": 444,
+      "halfAlong": 54.66084574884735,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:14365",
+      "kind": "site",
+      "side": 1,
+      "at": 14365,
+      "radial": 410,
+      "halfAlong": 47.82907956815325,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:14312",
+      "kind": "site",
+      "side": -1,
+      "at": 14312,
+      "radial": 391,
+      "halfAlong": 73.2941099354066,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:14007",
+      "kind": "site",
+      "side": 1,
+      "at": 14007,
+      "radial": 275,
+      "halfAlong": 44.69469258061477,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:13909",
+      "kind": "site",
+      "side": -1,
+      "at": 13909,
+      "radial": 278,
+      "halfAlong": 46.767646378837526,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:13629",
+      "kind": "site",
+      "side": 1,
+      "at": 13629,
+      "radial": 280,
+      "halfAlong": 32.997928157704884,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:13603",
+      "kind": "site",
+      "side": -1,
+      "at": 13603,
+      "radial": 309,
+      "halfAlong": 48.25929834098289,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:13380",
+      "kind": "site",
+      "side": -1,
+      "at": 13380,
+      "radial": 392,
+      "halfAlong": 43.18200436607003,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:13170",
+      "kind": "site",
+      "side": 1,
+      "at": 13170,
+      "radial": 487,
+      "halfAlong": 45.135065185005914,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:13025",
+      "kind": "site",
+      "side": -1,
+      "at": 13025,
+      "radial": 331,
+      "halfAlong": 47.198249785695225,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:12944",
+      "kind": "site",
+      "side": 1,
+      "at": 12944,
+      "radial": 338,
+      "halfAlong": 48.96599428117541,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:12732",
+      "kind": "site",
+      "side": 1,
+      "at": 12732,
+      "radial": 418,
+      "halfAlong": 46.80019554751925,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:12628",
+      "kind": "site",
+      "side": -1,
+      "at": 12628,
+      "radial": 409,
+      "halfAlong": 48.36200413450466,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:12502",
+      "kind": "site",
+      "side": 1,
+      "at": 12502,
+      "radial": 508,
+      "halfAlong": 34.20999752103817,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:12396",
+      "kind": "site",
+      "side": -1,
+      "at": 12396,
+      "radial": 502,
+      "halfAlong": 47.9583042961013,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:12206",
+      "kind": "site",
+      "side": -1,
+      "at": 12206,
+      "radial": 391,
+      "halfAlong": 55.516042252536856,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:12082",
+      "kind": "site",
+      "side": 1,
+      "at": 12082,
+      "radial": 374,
+      "halfAlong": 68.8333826365415,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:11936",
+      "kind": "site",
+      "side": -1,
+      "at": 11936,
+      "radial": 336,
+      "halfAlong": 47.766961126002876,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:11800",
+      "kind": "site",
+      "side": 1,
+      "at": 11800,
+      "radial": 285,
+      "halfAlong": 50.92489240411668,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:11656",
+      "kind": "site",
+      "side": -1,
+      "at": 11656,
+      "radial": 325,
+      "halfAlong": 43.98840509308502,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:11504",
+      "kind": "site",
+      "side": 1,
+      "at": 11504,
+      "radial": 380,
+      "halfAlong": 41.84070868782167,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:11424",
+      "kind": "site",
+      "side": -1,
+      "at": 11424,
+      "radial": 371,
+      "halfAlong": 44.157250109195175,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:11093",
+      "kind": "site",
+      "side": 1,
+      "at": 11093,
+      "radial": 370,
+      "halfAlong": 50.50831209938041,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:11080",
+      "kind": "site",
+      "side": -1,
+      "at": 11080,
+      "radial": 316,
+      "halfAlong": 48.12892529380042,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:10864",
+      "kind": "site",
+      "side": -1,
+      "at": 10864,
+      "radial": 377,
+      "halfAlong": 35.15007798143196,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:10746",
+      "kind": "site",
+      "side": 1,
+      "at": 10746,
+      "radial": 385,
+      "halfAlong": 49.493938494240865,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:10667",
+      "kind": "site",
+      "side": -1,
+      "at": 10667,
+      "radial": 395,
+      "halfAlong": 46.671941662353596,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:10472",
+      "kind": "site",
+      "side": 1,
+      "at": 10472,
+      "radial": 284,
+      "halfAlong": 70.1258861819515,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:10423",
+      "kind": "site",
+      "side": -1,
+      "at": 10423,
+      "radial": 333,
+      "halfAlong": 43.34078540513292,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:10143",
+      "kind": "site",
+      "side": -1,
+      "at": 10143,
+      "radial": 297,
+      "halfAlong": 43.16417322563939,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:10043",
+      "kind": "site",
+      "side": 1,
+      "at": 10043,
+      "radial": 375,
+      "halfAlong": 41.59817289426656,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:9898",
+      "kind": "site",
+      "side": -1,
+      "at": 9898,
+      "radial": 401,
+      "halfAlong": 52.14990259334444,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:9801",
+      "kind": "site",
+      "side": 1,
+      "at": 9801,
+      "radial": 316,
+      "halfAlong": 55.19506330206059,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:9689",
+      "kind": "site",
+      "side": -1,
+      "at": 9689,
+      "radial": 392,
+      "halfAlong": 51.28566496055906,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:9366",
+      "kind": "site",
+      "side": 1,
+      "at": 9366,
+      "radial": 371,
+      "halfAlong": 39.98735927431844,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:9220",
+      "kind": "site",
+      "side": -1,
+      "at": 9220,
+      "radial": 348,
+      "halfAlong": 66.1053080779966,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:9058",
+      "kind": "site",
+      "side": 1,
+      "at": 9058,
+      "radial": 290,
+      "halfAlong": 50.556114878754926,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:8846",
+      "kind": "site",
+      "side": 1,
+      "at": 8846,
+      "radial": 350,
+      "halfAlong": 45.26208429826822,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:8841",
+      "kind": "site",
+      "side": -1,
+      "at": 8841,
+      "radial": 496,
+      "halfAlong": 50.58049506926909,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:8671",
+      "kind": "site",
+      "side": 1,
+      "at": 8671,
+      "radial": 474,
+      "halfAlong": 56.83539156871847,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:8565",
+      "kind": "site",
+      "side": -1,
+      "at": 8565,
+      "radial": 291,
+      "halfAlong": 40.116453011540166,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:8441",
+      "kind": "site",
+      "side": 1,
+      "at": 8441,
+      "radial": 493,
+      "halfAlong": 46.09532887884416,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:8348",
+      "kind": "site",
+      "side": -1,
+      "at": 8348,
+      "radial": 476,
+      "halfAlong": 30.85760719599202,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:8158",
+      "kind": "site",
+      "side": 1,
+      "at": 8158,
+      "radial": 337,
+      "halfAlong": 39.92508692835191,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:8119",
+      "kind": "site",
+      "side": -1,
+      "at": 8119,
+      "radial": 420,
+      "halfAlong": 51.32983818997828,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:7749",
+      "kind": "site",
+      "side": 1,
+      "at": 7749,
+      "radial": 447,
+      "halfAlong": 73.89985163742676,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:7666",
+      "kind": "site",
+      "side": -1,
+      "at": 7666,
+      "radial": 365,
+      "halfAlong": 56.72620456735603,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:7472",
+      "kind": "site",
+      "side": 1,
+      "at": 7472,
+      "radial": 358,
+      "halfAlong": 52.90988724282942,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:7427",
+      "kind": "site",
+      "side": -1,
+      "at": 7427,
+      "radial": 315,
+      "halfAlong": 43.8005974747939,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:7210",
+      "kind": "site",
+      "side": 1,
+      "at": 7210,
+      "radial": 325,
+      "halfAlong": 43.94604416312983,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:7026",
+      "kind": "site",
+      "side": -1,
+      "at": 7026,
+      "radial": 337,
+      "halfAlong": 52.88145490875468,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:7015",
+      "kind": "site",
+      "side": 1,
+      "at": 7015,
+      "radial": 299,
+      "halfAlong": 48.0346885156219,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:6842",
+      "kind": "site",
+      "side": 1,
+      "at": 6842,
+      "radial": 502,
+      "halfAlong": 56.704291607718915,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:6734",
+      "kind": "site",
+      "side": -1,
+      "at": 6734,
+      "radial": 448,
+      "halfAlong": 37.469602169725114,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:6511",
+      "kind": "site",
+      "side": -1,
+      "at": 6511,
+      "radial": 293,
+      "halfAlong": 40.71602997382038,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:6421",
+      "kind": "site",
+      "side": 1,
+      "at": 6421,
+      "radial": 374,
+      "halfAlong": 69.82817084575072,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:6303",
+      "kind": "site",
+      "side": -1,
+      "at": 6303,
+      "radial": 347,
+      "halfAlong": 44.329298604466025,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:6097",
+      "kind": "site",
+      "side": 1,
+      "at": 6097,
+      "radial": 443,
+      "halfAlong": 55.97636423143558,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:6019",
+      "kind": "site",
+      "side": -1,
+      "at": 6019,
+      "radial": 444,
+      "halfAlong": 43.66207509773917,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:5829",
+      "kind": "site",
+      "side": 1,
+      "at": 5829,
+      "radial": 442,
+      "halfAlong": 45.37585503315286,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:5707",
+      "kind": "site",
+      "side": -1,
+      "at": 5707,
+      "radial": 305,
+      "halfAlong": 38.21461673839949,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:5517",
+      "kind": "site",
+      "side": 1,
+      "at": 5517,
+      "radial": 501,
+      "halfAlong": 53.584704593056806,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:5434",
+      "kind": "site",
+      "side": -1,
+      "at": 5434,
+      "radial": 409,
+      "halfAlong": 48.60732990386896,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:5334",
+      "kind": "site",
+      "side": 1,
+      "at": 5334,
+      "radial": 478,
+      "halfAlong": 79.56822383205872,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:5055",
+      "kind": "site",
+      "side": 1,
+      "at": 5055,
+      "radial": 490,
+      "halfAlong": 46.15917272269726,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:5046",
+      "kind": "site",
+      "side": -1,
+      "at": 5046,
+      "radial": 418,
+      "halfAlong": 49.84707657550461,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:4935",
+      "kind": "site",
+      "side": 1,
+      "at": 4935,
+      "radial": 371,
+      "halfAlong": 50.521251739235595,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:4785",
+      "kind": "site",
+      "side": -1,
+      "at": 4785,
+      "radial": 294,
+      "halfAlong": 40.77444332863337,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:4571",
+      "kind": "site",
+      "side": 1,
+      "at": 4571,
+      "radial": 421,
+      "halfAlong": 30.93789547428023,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:4460",
+      "kind": "site",
+      "side": -1,
+      "at": 4460,
+      "radial": 488,
+      "halfAlong": 44.78491139676687,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:4212",
+      "kind": "site",
+      "side": 1,
+      "at": 4212,
+      "radial": 377,
+      "halfAlong": 66.09389029664453,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:4088",
+      "kind": "site",
+      "side": -1,
+      "at": 4088,
+      "radial": 329,
+      "halfAlong": 46.745240702992305,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:3913",
+      "kind": "site",
+      "side": 1,
+      "at": 3913,
+      "radial": 489,
+      "halfAlong": 52.30756512272305,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:3806",
+      "kind": "site",
+      "side": -1,
+      "at": 3806,
+      "radial": 429,
+      "halfAlong": 45.129081130044405,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:3635",
+      "kind": "site",
+      "side": 1,
+      "at": 3635,
+      "radial": 417,
+      "halfAlong": 50.50594504397097,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:3587",
+      "kind": "site",
+      "side": -1,
+      "at": 3587,
+      "radial": 294,
+      "halfAlong": 43.850490760058165,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:3360",
+      "kind": "site",
+      "side": -1,
+      "at": 3360,
+      "radial": 453,
+      "halfAlong": 51.2272852032911,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:3272",
+      "kind": "site",
+      "side": 1,
+      "at": 3272,
+      "radial": 396,
+      "halfAlong": 64.86845260066912,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:3138",
+      "kind": "site",
+      "side": -1,
+      "at": 3138,
+      "radial": 405,
+      "halfAlong": 47.834956125489306,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:2939",
+      "kind": "site",
+      "side": 1,
+      "at": 2939,
+      "radial": 285,
+      "halfAlong": 52.927038475418726,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:2782",
+      "kind": "site",
+      "side": -1,
+      "at": 2782,
+      "radial": 453,
+      "halfAlong": 45.70203079795465,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:2685",
+      "kind": "site",
+      "side": 1,
+      "at": 2685,
+      "radial": 276,
+      "halfAlong": 43.182258685678235,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:2541",
+      "kind": "site",
+      "side": -1,
+      "at": 2541,
+      "radial": 292,
+      "halfAlong": 45.43832644810235,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:2393",
+      "kind": "site",
+      "side": 1,
+      "at": 2393,
+      "radial": 275,
+      "halfAlong": 41.87423032211539,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:2285",
+      "kind": "site",
+      "side": -1,
+      "at": 2285,
+      "radial": 507,
+      "halfAlong": 56.41159233590588,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:2115",
+      "kind": "site",
+      "side": 1,
+      "at": 2115,
+      "radial": 344,
+      "halfAlong": 47.25779767218046,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:2032",
+      "kind": "site",
+      "side": -1,
+      "at": 2032,
+      "radial": 372,
+      "halfAlong": 41.47935780412185,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:1840",
+      "kind": "site",
+      "side": 1,
+      "at": 1840,
+      "radial": 287,
+      "halfAlong": 52.61484449566341,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:1811",
+      "kind": "site",
+      "side": -1,
+      "at": 1811,
+      "radial": 270,
+      "halfAlong": 47.14030940885256,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:1513",
+      "kind": "site",
+      "side": -1,
+      "at": 1513,
+      "radial": 387,
+      "halfAlong": 47.44071991779908,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:1468",
+      "kind": "site",
+      "side": 1,
+      "at": 1468,
+      "radial": 472,
+      "halfAlong": 84.7796947862953,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:1311",
+      "kind": "site",
+      "side": -1,
+      "at": 1311,
+      "radial": 341,
+      "halfAlong": 46.84446141892113,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:1209",
+      "kind": "site",
+      "side": 1,
+      "at": 1209,
+      "radial": 308,
+      "halfAlong": 38.45424149548635,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:1113",
+      "kind": "site",
+      "side": -1,
+      "at": 1113,
+      "radial": 284,
+      "halfAlong": 46.7265449622646,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:901",
+      "kind": "site",
+      "side": -1,
+      "at": 901,
+      "radial": 427,
+      "halfAlong": 48.78174962571023,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:896",
+      "kind": "site",
+      "side": 1,
+      "at": 896,
+      "radial": 337,
+      "halfAlong": 48.19437250094156,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:623",
+      "kind": "site",
+      "side": 1,
+      "at": 623,
+      "radial": 271,
+      "halfAlong": 26.123270742555285,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:516",
+      "kind": "site",
+      "side": -1,
+      "at": 516,
+      "radial": 455,
+      "halfAlong": 48.73826110476096,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:386",
+      "kind": "site",
+      "side": 1,
+      "at": 386,
+      "radial": 508,
+      "halfAlong": 54.03486152016558,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:1:200",
+      "kind": "site",
+      "side": 1,
+      "at": 200,
+      "radial": 411,
+      "halfAlong": 47.76455810829066,
+      "halfDepth": 75
+    },
+    {
+      "id": "site:-1:175",
+      "kind": "site",
+      "side": -1,
+      "at": 175,
+      "radial": 311,
+      "halfAlong": 47.75316258263774,
+      "halfDepth": 75
+    },
+    {
+      "id": "plate:-1:2:front",
+      "kind": "plate",
+      "side": -1,
+      "at": 346,
+      "radial": 250,
+      "halfAlong": 55,
+      "halfDepth": 56,
+      "authoredAt": 346,
+      "authoredRadial": 250,
+      "family": "market",
+      "key": "open"
+    },
+    {
+      "id": "plate:-1:17:front",
+      "kind": "plate",
+      "side": -1,
+      "at": 2960,
+      "radial": 250,
+      "halfAlong": 55,
+      "halfDepth": 56,
+      "authoredAt": 2960,
+      "authoredRadial": 250,
+      "family": "homes",
+      "key": "open"
+    },
+    {
+      "id": "plate:-1:26:front",
+      "kind": "plate",
+      "side": -1,
+      "at": 4623,
+      "radial": 250,
+      "halfAlong": 55,
+      "halfDepth": 56,
+      "authoredAt": 4623,
+      "authoredRadial": 250,
+      "family": "workshop",
+      "key": "open"
+    },
+    {
+      "id": "plate:-1:29:front",
+      "kind": "plate",
+      "side": -1,
+      "at": 5240,
+      "radial": 250,
+      "halfAlong": 55,
+      "halfDepth": 56,
+      "authoredAt": 5240,
+      "authoredRadial": 250,
+      "family": "greenhouse",
+      "key": "open"
+    },
+    {
+      "id": "plate:-1:33:front",
+      "kind": "plate",
+      "side": -1,
+      "at": 5863,
+      "radial": 250,
+      "halfAlong": 55,
+      "halfDepth": 56,
+      "authoredAt": 5863,
+      "authoredRadial": 250,
+      "family": "greenhouse",
+      "key": "open"
+    },
+    {
+      "id": "plate:-1:44:front",
+      "kind": "plate",
+      "side": -1,
+      "at": 7892,
+      "radial": 250,
+      "halfAlong": 55,
+      "halfDepth": 56,
+      "authoredAt": 7892,
+      "authoredRadial": 250,
+      "family": "data",
+      "key": "open"
+    },
+    {
+      "id": "plate:-1:50:front",
+      "kind": "plate",
+      "side": -1,
+      "at": 9031,
+      "radial": 250,
+      "halfAlong": 55,
+      "halfDepth": 56,
+      "authoredAt": 9031,
+      "authoredRadial": 250,
+      "family": "transit",
+      "key": "open"
+    },
+    {
+      "id": "plate:-1:53:front",
+      "kind": "plate",
+      "side": -1,
+      "at": 9455,
+      "radial": 250,
+      "halfAlong": 55,
+      "halfDepth": 56,
+      "authoredAt": 9455,
+      "authoredRadial": 250,
+      "family": "transit",
+      "key": "open"
+    },
+    {
+      "id": "plate:-1:63:front",
+      "kind": "plate",
+      "side": -1,
+      "at": 11252,
+      "radial": 250,
+      "halfAlong": 55,
+      "halfDepth": 56,
+      "authoredAt": 11252,
+      "authoredRadial": 250,
+      "family": "market",
+      "key": "open"
+    },
+    {
+      "id": "plate:-1:71:front",
+      "kind": "plate",
+      "side": -1,
+      "at": 12827,
+      "radial": 250,
+      "halfAlong": 55,
+      "halfDepth": 56,
+      "authoredAt": 12827,
+      "authoredRadial": 250,
+      "family": "homes",
+      "key": "open"
+    },
+    {
+      "id": "plate:-1:77:front",
+      "kind": "plate",
+      "side": -1,
+      "at": 13756,
+      "radial": 250,
+      "halfAlong": 55,
+      "halfDepth": 56,
+      "authoredAt": 13756,
+      "authoredRadial": 250,
+      "family": "homes",
+      "key": "open"
+    },
+    {
+      "id": "plate:-1:82:front",
+      "kind": "plate",
+      "side": -1,
+      "at": 14702,
+      "radial": 250,
+      "halfAlong": 55,
+      "halfDepth": 56,
+      "authoredAt": 14702,
+      "authoredRadial": 250,
+      "family": "workshop",
+      "key": "open"
+    },
+    {
+      "id": "plate:-1:85:front",
+      "kind": "plate",
+      "side": -1,
+      "at": 15246,
+      "radial": 250,
+      "halfAlong": 55,
+      "halfDepth": 56,
+      "authoredAt": 15246,
+      "authoredRadial": 250,
+      "family": "workshop",
+      "key": "open"
+    },
+    {
+      "id": "plate:1:6:front",
+      "kind": "plate",
+      "side": 1,
+      "at": 1053,
+      "radial": 250,
+      "halfAlong": 55,
+      "halfDepth": 56,
+      "authoredAt": 1053,
+      "authoredRadial": 250,
+      "family": "market",
+      "key": "open"
+    },
+    {
+      "id": "plate:1:9:front",
+      "kind": "plate",
+      "side": 1,
+      "at": 1654,
+      "radial": 250,
+      "halfAlong": 55,
+      "halfDepth": 56,
+      "authoredAt": 1654,
+      "authoredRadial": 250,
+      "family": "homes",
+      "key": "open"
+    },
+    {
+      "id": "plate:1:17:front",
+      "kind": "plate",
+      "side": 1,
+      "at": 3106,
+      "radial": 250,
+      "halfAlong": 55,
+      "halfDepth": 56,
+      "authoredAt": 3106,
+      "authoredRadial": 250,
+      "family": "homes",
+      "key": "open"
+    },
+    {
+      "id": "plate:1:26:front",
+      "kind": "plate",
+      "side": 1,
+      "at": 4753,
+      "radial": 250,
+      "halfAlong": 55,
+      "halfDepth": 56,
+      "authoredAt": 4753,
+      "authoredRadial": 250,
+      "family": "workshop",
+      "key": "open"
+    },
+    {
+      "id": "plate:1:35:front",
+      "kind": "plate",
+      "side": 1,
+      "at": 6259,
+      "radial": 250,
+      "halfAlong": 55,
+      "halfDepth": 56,
+      "authoredAt": 6259,
+      "authoredRadial": 250,
+      "family": "greenhouse",
+      "key": "open"
+    },
+    {
+      "id": "plate:1:44:front",
+      "kind": "plate",
+      "side": 1,
+      "at": 7954,
+      "radial": 250,
+      "halfAlong": 55,
+      "halfDepth": 56,
+      "authoredAt": 7954,
+      "authoredRadial": 250,
+      "family": "data",
+      "key": "open"
+    },
+    {
+      "id": "plate:1:51:front",
+      "kind": "plate",
+      "side": 1,
+      "at": 9212,
+      "radial": 250,
+      "halfAlong": 55,
+      "halfDepth": 56,
+      "authoredAt": 9212,
+      "authoredRadial": 250,
+      "family": "transit",
+      "key": "open"
+    },
+    {
+      "id": "plate:1:57:front",
+      "kind": "plate",
+      "side": 1,
+      "at": 10258,
+      "radial": 250,
+      "halfAlong": 55,
+      "halfDepth": 56,
+      "authoredAt": 10258,
+      "authoredRadial": 250,
+      "family": "transit",
+      "key": "open"
+    },
+    {
+      "id": "plate:1:61:front",
+      "kind": "plate",
+      "side": 1,
+      "at": 10920,
+      "radial": 250,
+      "halfAlong": 55,
+      "halfDepth": 56,
+      "authoredAt": 10920,
+      "authoredRadial": 250,
+      "family": "market",
+      "key": "open"
+    },
+    {
+      "id": "plate:1:68:front",
+      "kind": "plate",
+      "side": 1,
+      "at": 12292,
+      "radial": 250,
+      "halfAlong": 55,
+      "halfDepth": 56,
+      "authoredAt": 12292,
+      "authoredRadial": 250,
+      "family": "market",
+      "key": "open"
+    },
+    {
+      "id": "plate:1:74:front",
+      "kind": "plate",
+      "side": 1,
+      "at": 13400,
+      "radial": 250,
+      "halfAlong": 55,
+      "halfDepth": 56,
+      "authoredAt": 13400,
+      "authoredRadial": 250,
+      "family": "homes",
+      "key": "open"
+    },
+    {
+      "id": "plate:1:77:front",
+      "kind": "plate",
+      "side": 1,
+      "at": 13818,
+      "radial": 250,
+      "halfAlong": 55,
+      "halfDepth": 56,
+      "authoredAt": 13818,
+      "authoredRadial": 250,
+      "family": "homes",
+      "key": "open"
+    },
+    {
+      "id": "plate:-1:0:front",
+      "kind": "plate",
+      "side": -1,
+      "at": -28,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": -28,
+      "authoredRadial": 250,
+      "family": "market",
+      "key": "closed"
+    },
+    {
+      "id": "plate:-1:4:front",
+      "kind": "plate",
+      "side": -1,
+      "at": 692,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 692,
+      "authoredRadial": 250,
+      "family": "market",
+      "key": "closed"
+    },
+    {
+      "id": "plate:-1:9:front",
+      "kind": "plate",
+      "side": -1,
+      "at": 1662,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 1662,
+      "authoredRadial": 250,
+      "family": "homes",
+      "key": "closed"
+    },
+    {
+      "id": "plate:-1:22:front",
+      "kind": "plate",
+      "side": -1,
+      "at": 3947,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 3947,
+      "authoredRadial": 250,
+      "family": "workshop",
+      "key": "closed"
+    },
+    {
+      "id": "plate:-1:24:front",
+      "kind": "plate",
+      "side": -1,
+      "at": 4292,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 4292,
+      "authoredRadial": 250,
+      "family": "workshop",
+      "key": "closed"
+    },
+    {
+      "id": "plate:-1:38:front",
+      "kind": "plate",
+      "side": -1,
+      "at": 6880,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 6880,
+      "authoredRadial": 250,
+      "family": "greenhouse",
+      "key": "closed"
+    },
+    {
+      "id": "plate:-1:40:front",
+      "kind": "plate",
+      "side": -1,
+      "at": 7172,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 7172,
+      "authoredRadial": 250,
+      "family": "data",
+      "key": "closed"
+    },
+    {
+      "id": "plate:-1:57:front",
+      "kind": "plate",
+      "side": -1,
+      "at": 10283,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 10283,
+      "authoredRadial": 250,
+      "family": "transit",
+      "key": "closed"
+    },
+    {
+      "id": "plate:1:0:front",
+      "kind": "plate",
+      "side": 1,
+      "at": 28,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 28,
+      "authoredRadial": 250,
+      "family": "market",
+      "key": "closed"
+    },
+    {
+      "id": "plate:1:4:front",
+      "kind": "plate",
+      "side": 1,
+      "at": 748,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 748,
+      "authoredRadial": 250,
+      "family": "market",
+      "key": "closed"
+    },
+    {
+      "id": "plate:1:14:front",
+      "kind": "plate",
+      "side": 1,
+      "at": 2539,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 2539,
+      "authoredRadial": 250,
+      "family": "homes",
+      "key": "closed"
+    },
+    {
+      "id": "plate:1:19:front",
+      "kind": "plate",
+      "side": 1,
+      "at": 3448,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 3448,
+      "authoredRadial": 250,
+      "family": "workshop",
+      "key": "closed"
+    },
+    {
+      "id": "plate:1:22:front",
+      "kind": "plate",
+      "side": 1,
+      "at": 4052,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 4063,
+      "authoredRadial": 250,
+      "family": "workshop",
+      "key": "closed"
+    },
+    {
+      "id": "plate:1:24:front",
+      "kind": "plate",
+      "side": 1,
+      "at": 4372,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 4348,
+      "authoredRadial": 250,
+      "family": "workshop",
+      "key": "closed"
+    },
+    {
+      "id": "plate:1:33:front",
+      "kind": "plate",
+      "side": 1,
+      "at": 5968,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 5968,
+      "authoredRadial": 250,
+      "family": "greenhouse",
+      "key": "closed"
+    },
+    {
+      "id": "plate:1:37:front",
+      "kind": "plate",
+      "side": 1,
+      "at": 6688,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 6688,
+      "authoredRadial": 250,
+      "family": "greenhouse",
+      "key": "closed"
+    },
+    {
+      "id": "plate:1:46:front",
+      "kind": "plate",
+      "side": 1,
+      "at": 8308,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 8308,
+      "authoredRadial": 250,
+      "family": "data",
+      "key": "closed"
+    },
+    {
+      "id": "plate:1:53:front",
+      "kind": "plate",
+      "side": 1,
+      "at": 9568,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 9568,
+      "authoredRadial": 250,
+      "family": "transit",
+      "key": "closed"
+    },
+    {
+      "id": "plate:1:63:front",
+      "kind": "plate",
+      "side": 1,
+      "at": 11368,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 11368,
+      "authoredRadial": 250,
+      "family": "market",
+      "key": "closed"
+    },
+    {
+      "id": "plate:1:65:front",
+      "kind": "plate",
+      "side": 1,
+      "at": 11652,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 11652,
+      "authoredRadial": 250,
+      "family": "market",
+      "key": "closed"
+    },
+    {
+      "id": "plate:1:82:front",
+      "kind": "plate",
+      "side": 1,
+      "at": 14770,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 14770,
+      "authoredRadial": 250,
+      "family": "workshop",
+      "key": "closed"
+    },
+    {
+      "id": "plate:-1:3:middle",
+      "kind": "plate",
+      "side": -1,
+      "at": 589,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 589,
+      "authoredRadial": 250,
+      "family": "market",
+      "key": "middle"
+    },
+    {
+      "id": "plate:-1:4:middle",
+      "kind": "plate",
+      "side": -1,
+      "at": 769,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 769,
+      "authoredRadial": 250,
+      "family": "market",
+      "key": "middle"
+    },
+    {
+      "id": "plate:-1:9:middle",
+      "kind": "plate",
+      "side": -1,
+      "at": 1669,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 1669,
+      "authoredRadial": 250,
+      "family": "homes",
+      "key": "middle"
+    },
+    {
+      "id": "plate:-1:12:middle",
+      "kind": "plate",
+      "side": -1,
+      "at": 2209,
+      "radial": 260,
+      "halfAlong": 60,
+      "halfDepth": 56,
+      "authoredAt": 2209,
+      "authoredRadial": 260,
+      "family": "homes",
+      "key": "accent"
+    },
+    {
+      "id": "plate:-1:13:middle",
+      "kind": "plate",
+      "side": -1,
+      "at": 2389,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 2389,
+      "authoredRadial": 250,
+      "family": "homes",
+      "key": "middle"
+    },
+    {
+      "id": "plate:-1:16:middle",
+      "kind": "plate",
+      "side": -1,
+      "at": 2929,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 2929,
+      "authoredRadial": 250,
+      "family": "homes",
+      "key": "middle"
+    },
+    {
+      "id": "plate:-1:19:middle",
+      "kind": "plate",
+      "side": -1,
+      "at": 3450,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 3469,
+      "authoredRadial": 250,
+      "family": "workshop",
+      "key": "middle"
+    },
+    {
+      "id": "plate:-1:20:middle",
+      "kind": "plate",
+      "side": -1,
+      "at": 3724,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 3649,
+      "authoredRadial": 250,
+      "family": "workshop",
+      "key": "middle"
+    },
+    {
+      "id": "plate:-1:24:middle",
+      "kind": "plate",
+      "side": -1,
+      "at": 4369,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 4369,
+      "authoredRadial": 250,
+      "family": "workshop",
+      "key": "middle"
+    },
+    {
+      "id": "plate:-1:25:middle",
+      "kind": "plate",
+      "side": -1,
+      "at": 4549,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 4549,
+      "authoredRadial": 250,
+      "family": "workshop",
+      "key": "middle"
+    },
+    {
+      "id": "plate:-1:27:middle",
+      "kind": "plate",
+      "side": -1,
+      "at": 4909,
+      "radial": 260,
+      "halfAlong": 60,
+      "halfDepth": 56,
+      "authoredAt": 4909,
+      "authoredRadial": 260,
+      "family": "workshop",
+      "key": "accent"
+    },
+    {
+      "id": "plate:-1:31:middle",
+      "kind": "plate",
+      "side": -1,
+      "at": 5575,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 5629,
+      "authoredRadial": 250,
+      "family": "greenhouse",
+      "key": "middle"
+    },
+    {
+      "id": "plate:-1:34:middle",
+      "kind": "plate",
+      "side": -1,
+      "at": 6165,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 6169,
+      "authoredRadial": 250,
+      "family": "greenhouse",
+      "key": "middle"
+    },
+    {
+      "id": "plate:-1:40:middle",
+      "kind": "plate",
+      "side": -1,
+      "at": 7249,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 7249,
+      "authoredRadial": 250,
+      "family": "data",
+      "key": "middle"
+    },
+    {
+      "id": "plate:-1:47:middle",
+      "kind": "plate",
+      "side": -1,
+      "at": 8446,
+      "radial": 260,
+      "halfAlong": 60,
+      "halfDepth": 56,
+      "authoredAt": 8509,
+      "authoredRadial": 260,
+      "family": "data",
+      "key": "accent"
+    },
+    {
+      "id": "plate:-1:54:middle",
+      "kind": "plate",
+      "side": -1,
+      "at": 9834,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 9769,
+      "authoredRadial": 250,
+      "family": "transit",
+      "key": "middle"
+    },
+    {
+      "id": "plate:-1:65:middle",
+      "kind": "plate",
+      "side": -1,
+      "at": 11793,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 11749,
+      "authoredRadial": 250,
+      "family": "market",
+      "key": "middle"
+    },
+    {
+      "id": "plate:-1:67:middle",
+      "kind": "plate",
+      "side": -1,
+      "at": 12072,
+      "radial": 260,
+      "halfAlong": 60,
+      "halfDepth": 56,
+      "authoredAt": 12109,
+      "authoredRadial": 260,
+      "family": "market",
+      "key": "accent"
+    },
+    {
+      "id": "plate:-1:69:middle",
+      "kind": "plate",
+      "side": -1,
+      "at": 12469,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 12469,
+      "authoredRadial": 250,
+      "family": "homes",
+      "key": "middle"
+    },
+    {
+      "id": "plate:-1:73:middle",
+      "kind": "plate",
+      "side": -1,
+      "at": 13189,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 13189,
+      "authoredRadial": 250,
+      "family": "homes",
+      "key": "middle"
+    },
+    {
+      "id": "plate:-1:80:middle",
+      "kind": "plate",
+      "side": -1,
+      "at": 14479,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 14449,
+      "authoredRadial": 250,
+      "family": "workshop",
+      "key": "middle"
+    },
+    {
+      "id": "plate:-1:83:middle",
+      "kind": "plate",
+      "side": -1,
+      "at": 14924,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 14989,
+      "authoredRadial": 250,
+      "family": "workshop",
+      "key": "middle"
+    },
+    {
+      "id": "plate:-1:86:middle",
+      "kind": "plate",
+      "side": -1,
+      "at": 15569,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 15529,
+      "authoredRadial": 250,
+      "family": "workshop",
+      "key": "middle"
+    },
+    {
+      "id": "plate:1:0:middle",
+      "kind": "plate",
+      "side": 1,
+      "at": 105,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 105,
+      "authoredRadial": 250,
+      "family": "market",
+      "key": "middle"
+    },
+    {
+      "id": "plate:1:1:middle",
+      "kind": "plate",
+      "side": 1,
+      "at": 285,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 285,
+      "authoredRadial": 250,
+      "family": "market",
+      "key": "middle"
+    },
+    {
+      "id": "plate:1:2:middle",
+      "kind": "plate",
+      "side": 1,
+      "at": 465,
+      "radial": 260,
+      "halfAlong": 60,
+      "halfDepth": 56,
+      "authoredAt": 465,
+      "authoredRadial": 260,
+      "family": "market",
+      "key": "accent"
+    },
+    {
+      "id": "plate:1:7:middle",
+      "kind": "plate",
+      "side": 1,
+      "at": 1365,
+      "radial": 260,
+      "halfAlong": 60,
+      "halfDepth": 56,
+      "authoredAt": 1365,
+      "authoredRadial": 260,
+      "family": "market",
+      "key": "accent"
+    },
+    {
+      "id": "plate:1:12:middle",
+      "kind": "plate",
+      "side": 1,
+      "at": 2265,
+      "radial": 260,
+      "halfAlong": 60,
+      "halfDepth": 56,
+      "authoredAt": 2265,
+      "authoredRadial": 260,
+      "family": "homes",
+      "key": "accent"
+    },
+    {
+      "id": "plate:1:19:middle",
+      "kind": "plate",
+      "side": 1,
+      "at": 3525,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 3525,
+      "authoredRadial": 250,
+      "family": "workshop",
+      "key": "middle"
+    },
+    {
+      "id": "plate:1:20:middle",
+      "kind": "plate",
+      "side": 1,
+      "at": 3705,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 3705,
+      "authoredRadial": 250,
+      "family": "workshop",
+      "key": "middle"
+    },
+    {
+      "id": "plate:1:24:middle",
+      "kind": "plate",
+      "side": 1,
+      "at": 4449,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 4425,
+      "authoredRadial": 250,
+      "family": "workshop",
+      "key": "middle"
+    },
+    {
+      "id": "plate:1:31:middle",
+      "kind": "plate",
+      "side": 1,
+      "at": 5685,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 5685,
+      "authoredRadial": 250,
+      "family": "greenhouse",
+      "key": "middle"
+    },
+    {
+      "id": "plate:1:34:middle",
+      "kind": "plate",
+      "side": 1,
+      "at": 6225,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 6225,
+      "authoredRadial": 250,
+      "family": "greenhouse",
+      "key": "middle"
+    },
+    {
+      "id": "plate:1:36:middle",
+      "kind": "plate",
+      "side": 1,
+      "at": 6585,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 6585,
+      "authoredRadial": 250,
+      "family": "greenhouse",
+      "key": "middle"
+    },
+    {
+      "id": "plate:1:37:middle",
+      "kind": "plate",
+      "side": 1,
+      "at": 6841,
+      "radial": 260,
+      "halfAlong": 60,
+      "halfDepth": 56,
+      "authoredAt": 6765,
+      "authoredRadial": 260,
+      "family": "greenhouse",
+      "key": "accent"
+    },
+    {
+      "id": "plate:1:42:middle",
+      "kind": "plate",
+      "side": 1,
+      "at": 7665,
+      "radial": 260,
+      "halfAlong": 60,
+      "halfDepth": 56,
+      "authoredAt": 7665,
+      "authoredRadial": 260,
+      "family": "data",
+      "key": "accent"
+    },
+    {
+      "id": "plate:1:43:middle",
+      "kind": "plate",
+      "side": 1,
+      "at": 7845,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 7845,
+      "authoredRadial": 250,
+      "family": "data",
+      "key": "middle"
+    },
+    {
+      "id": "plate:1:47:middle",
+      "kind": "plate",
+      "side": 1,
+      "at": 8565,
+      "radial": 260,
+      "halfAlong": 60,
+      "halfDepth": 56,
+      "authoredAt": 8565,
+      "authoredRadial": 260,
+      "family": "data",
+      "key": "accent"
+    },
+    {
+      "id": "plate:1:53:middle",
+      "kind": "plate",
+      "side": 1,
+      "at": 9645,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 9645,
+      "authoredRadial": 250,
+      "family": "transit",
+      "key": "middle"
+    },
+    {
+      "id": "plate:1:56:middle",
+      "kind": "plate",
+      "side": 1,
+      "at": 10185,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 10185,
+      "authoredRadial": 250,
+      "family": "transit",
+      "key": "middle"
+    },
+    {
+      "id": "plate:1:60:middle",
+      "kind": "plate",
+      "side": 1,
+      "at": 10905,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 10905,
+      "authoredRadial": 250,
+      "family": "market",
+      "key": "middle"
+    },
+    {
+      "id": "plate:1:71:middle",
+      "kind": "plate",
+      "side": 1,
+      "at": 12802,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 12885,
+      "authoredRadial": 250,
+      "family": "homes",
+      "key": "middle"
+    },
+    {
+      "id": "plate:1:72:middle",
+      "kind": "plate",
+      "side": 1,
+      "at": 13071,
+      "radial": 260,
+      "halfAlong": 60,
+      "halfDepth": 56,
+      "authoredAt": 13065,
+      "authoredRadial": 260,
+      "family": "homes",
+      "key": "accent"
+    },
+    {
+      "id": "plate:1:73:middle",
+      "kind": "plate",
+      "side": 1,
+      "at": 13245,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 13245,
+      "authoredRadial": 250,
+      "family": "homes",
+      "key": "middle"
+    },
+    {
+      "id": "plate:1:76:middle",
+      "kind": "plate",
+      "side": 1,
+      "at": 13785,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 13785,
+      "authoredRadial": 250,
+      "family": "homes",
+      "key": "middle"
+    },
+    {
+      "id": "plate:1:80:middle",
+      "kind": "plate",
+      "side": 1,
+      "at": 14505,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 14505,
+      "authoredRadial": 250,
+      "family": "workshop",
+      "key": "middle"
+    },
+    {
+      "id": "plate:1:86:middle",
+      "kind": "plate",
+      "side": 1,
+      "at": 15589,
+      "radial": 250,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 15585,
+      "authoredRadial": 250,
+      "family": "workshop",
+      "key": "middle"
+    },
+    {
+      "id": "plate:-1:0:rear",
+      "kind": "plate",
+      "side": -1,
+      "at": 34,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 123,
+      "authoredRadial": 430,
+      "family": "market",
+      "key": "rear"
+    },
+    {
+      "id": "plate:-1:1:rear",
+      "kind": "plate",
+      "side": -1,
+      "at": 316,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 303,
+      "authoredRadial": 430,
+      "family": "market",
+      "key": "rear"
+    },
+    {
+      "id": "plate:-1:3:rear",
+      "kind": "plate",
+      "side": -1,
+      "at": 663,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 663,
+      "authoredRadial": 430,
+      "family": "market",
+      "key": "rear"
+    },
+    {
+      "id": "plate:-1:9:rear",
+      "kind": "plate",
+      "side": -1,
+      "at": 1743,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 1743,
+      "authoredRadial": 430,
+      "family": "homes",
+      "key": "rear"
+    },
+    {
+      "id": "plate:-1:16:rear",
+      "kind": "plate",
+      "side": -1,
+      "at": 2997,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 3003,
+      "authoredRadial": 430,
+      "family": "homes",
+      "key": "rear"
+    },
+    {
+      "id": "plate:-1:23:rear",
+      "kind": "plate",
+      "side": -1,
+      "at": 4263,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 4263,
+      "authoredRadial": 430,
+      "family": "workshop",
+      "key": "rear"
+    },
+    {
+      "id": "plate:-1:25:rear",
+      "kind": "plate",
+      "side": -1,
+      "at": 4623,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 4623,
+      "authoredRadial": 430,
+      "family": "workshop",
+      "key": "rear"
+    },
+    {
+      "id": "plate:-1:32:rear",
+      "kind": "plate",
+      "side": -1,
+      "at": 5882,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 5883,
+      "authoredRadial": 430,
+      "family": "greenhouse",
+      "key": "rear"
+    },
+    {
+      "id": "plate:-1:34:rear",
+      "kind": "plate",
+      "side": -1,
+      "at": 6165,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 6243,
+      "authoredRadial": 430,
+      "family": "greenhouse",
+      "key": "rear"
+    },
+    {
+      "id": "plate:-1:40:rear",
+      "kind": "plate",
+      "side": -1,
+      "at": 7290,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 7323,
+      "authoredRadial": 430,
+      "family": "data",
+      "key": "rear"
+    },
+    {
+      "id": "plate:-1:43:rear",
+      "kind": "plate",
+      "side": -1,
+      "at": 7863,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 7863,
+      "authoredRadial": 430,
+      "family": "data",
+      "key": "rear"
+    },
+    {
+      "id": "plate:-1:52:rear",
+      "kind": "plate",
+      "side": -1,
+      "at": 9483,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 9483,
+      "authoredRadial": 430,
+      "family": "transit",
+      "key": "rear"
+    },
+    {
+      "id": "plate:-1:62:rear",
+      "kind": "plate",
+      "side": -1,
+      "at": 11283,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 11283,
+      "authoredRadial": 430,
+      "family": "market",
+      "key": "rear"
+    },
+    {
+      "id": "plate:-1:65:rear",
+      "kind": "plate",
+      "side": -1,
+      "at": 11795,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 11823,
+      "authoredRadial": 430,
+      "family": "market",
+      "key": "rear"
+    },
+    {
+      "id": "plate:-1:73:rear",
+      "kind": "plate",
+      "side": -1,
+      "at": 13243,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 13263,
+      "authoredRadial": 430,
+      "family": "homes",
+      "key": "rear"
+    },
+    {
+      "id": "plate:-1:76:rear",
+      "kind": "plate",
+      "side": -1,
+      "at": 13803,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 13803,
+      "authoredRadial": 430,
+      "family": "homes",
+      "key": "rear"
+    },
+    {
+      "id": "plate:-1:81:rear",
+      "kind": "plate",
+      "side": -1,
+      "at": 14703,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 14703,
+      "authoredRadial": 430,
+      "family": "workshop",
+      "key": "rear"
+    },
+    {
+      "id": "plate:-1:84:rear",
+      "kind": "plate",
+      "side": -1,
+      "at": 15243,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 15243,
+      "authoredRadial": 430,
+      "family": "workshop",
+      "key": "rear"
+    },
+    {
+      "id": "plate:-1:86:rear",
+      "kind": "plate",
+      "side": -1,
+      "at": 15603,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 15603,
+      "authoredRadial": 430,
+      "family": "workshop",
+      "key": "rear"
+    },
+    {
+      "id": "plate:1:2:rear",
+      "kind": "plate",
+      "side": 1,
+      "at": 539,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 539,
+      "authoredRadial": 430,
+      "family": "market",
+      "key": "rear"
+    },
+    {
+      "id": "plate:1:3:rear",
+      "kind": "plate",
+      "side": 1,
+      "at": 719,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 719,
+      "authoredRadial": 430,
+      "family": "market",
+      "key": "rear"
+    },
+    {
+      "id": "plate:1:5:rear",
+      "kind": "plate",
+      "side": 1,
+      "at": 1077,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 1079,
+      "authoredRadial": 430,
+      "family": "market",
+      "key": "rear"
+    },
+    {
+      "id": "plate:1:12:rear",
+      "kind": "plate",
+      "side": 1,
+      "at": 2339,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 2339,
+      "authoredRadial": 430,
+      "family": "homes",
+      "key": "rear"
+    },
+    {
+      "id": "plate:1:13:rear",
+      "kind": "plate",
+      "side": 1,
+      "at": 2519,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 2519,
+      "authoredRadial": 430,
+      "family": "homes",
+      "key": "rear"
+    },
+    {
+      "id": "plate:1:15:rear",
+      "kind": "plate",
+      "side": 1,
+      "at": 2793,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 2879,
+      "authoredRadial": 430,
+      "family": "homes",
+      "key": "rear"
+    },
+    {
+      "id": "plate:1:24:rear",
+      "kind": "plate",
+      "side": 1,
+      "at": 4447,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 4499,
+      "authoredRadial": 430,
+      "family": "workshop",
+      "key": "rear"
+    },
+    {
+      "id": "plate:1:25:rear",
+      "kind": "plate",
+      "side": 1,
+      "at": 4695,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 4679,
+      "authoredRadial": 430,
+      "family": "workshop",
+      "key": "rear"
+    },
+    {
+      "id": "plate:1:31:rear",
+      "kind": "plate",
+      "side": 1,
+      "at": 5690,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 5759,
+      "authoredRadial": 430,
+      "family": "greenhouse",
+      "key": "rear"
+    },
+    {
+      "id": "plate:1:34:rear",
+      "kind": "plate",
+      "side": 1,
+      "at": 6258,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 6299,
+      "authoredRadial": 430,
+      "family": "greenhouse",
+      "key": "rear"
+    },
+    {
+      "id": "plate:1:36:rear",
+      "kind": "plate",
+      "side": 1,
+      "at": 6659,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 6659,
+      "authoredRadial": 430,
+      "family": "greenhouse",
+      "key": "rear"
+    },
+    {
+      "id": "plate:1:43:rear",
+      "kind": "plate",
+      "side": 1,
+      "at": 7919,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 7919,
+      "authoredRadial": 430,
+      "family": "data",
+      "key": "rear"
+    },
+    {
+      "id": "plate:1:45:rear",
+      "kind": "plate",
+      "side": 1,
+      "at": 8291,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 8279,
+      "authoredRadial": 430,
+      "family": "data",
+      "key": "rear"
+    },
+    {
+      "id": "plate:1:52:rear",
+      "kind": "plate",
+      "side": 1,
+      "at": 9539,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 9539,
+      "authoredRadial": 430,
+      "family": "transit",
+      "key": "rear"
+    },
+    {
+      "id": "plate:1:56:rear",
+      "kind": "plate",
+      "side": 1,
+      "at": 10259,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 10259,
+      "authoredRadial": 430,
+      "family": "transit",
+      "key": "rear"
+    },
+    {
+      "id": "plate:1:60:rear",
+      "kind": "plate",
+      "side": 1,
+      "at": 10949,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 10979,
+      "authoredRadial": 430,
+      "family": "market",
+      "key": "rear"
+    },
+    {
+      "id": "plate:1:62:rear",
+      "kind": "plate",
+      "side": 1,
+      "at": 11339,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 11339,
+      "authoredRadial": 430,
+      "family": "market",
+      "key": "rear"
+    },
+    {
+      "id": "plate:1:64:rear",
+      "kind": "plate",
+      "side": 1,
+      "at": 11656,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 11699,
+      "authoredRadial": 430,
+      "family": "market",
+      "key": "rear"
+    },
+    {
+      "id": "plate:1:67:rear",
+      "kind": "plate",
+      "side": 1,
+      "at": 12244,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 12239,
+      "authoredRadial": 430,
+      "family": "market",
+      "key": "rear"
+    },
+    {
+      "id": "plate:1:73:rear",
+      "kind": "plate",
+      "side": 1,
+      "at": 13319,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 13319,
+      "authoredRadial": 430,
+      "family": "homes",
+      "key": "rear"
+    },
+    {
+      "id": "plate:1:75:rear",
+      "kind": "plate",
+      "side": 1,
+      "at": 13679,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 13679,
+      "authoredRadial": 430,
+      "family": "homes",
+      "key": "rear"
+    },
+    {
+      "id": "plate:1:76:rear",
+      "kind": "plate",
+      "side": 1,
+      "at": 13859,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 13859,
+      "authoredRadial": 430,
+      "family": "homes",
+      "key": "rear"
+    },
+    {
+      "id": "plate:1:80:rear",
+      "kind": "plate",
+      "side": 1,
+      "at": 14579,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 14579,
+      "authoredRadial": 430,
+      "family": "workshop",
+      "key": "rear"
+    },
+    {
+      "id": "plate:1:81:rear",
+      "kind": "plate",
+      "side": 1,
+      "at": 14759,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 14759,
+      "authoredRadial": 430,
+      "family": "workshop",
+      "key": "rear"
+    },
+    {
+      "id": "plate:1:84:rear",
+      "kind": "plate",
+      "side": 1,
+      "at": 15312,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 15299,
+      "authoredRadial": 430,
+      "family": "workshop",
+      "key": "rear"
+    },
+    {
+      "id": "plate:1:85:rear",
+      "kind": "plate",
+      "side": 1,
+      "at": 15480,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 15479,
+      "authoredRadial": 430,
+      "family": "workshop",
+      "key": "rear"
+    },
+    {
+      "id": "plate:1:86:rear",
+      "kind": "plate",
+      "side": 1,
+      "at": 15659,
+      "radial": 430,
+      "halfAlong": 75,
+      "halfDepth": 56,
+      "authoredAt": 15659,
+      "authoredRadial": 430,
+      "family": "workshop",
+      "key": "rear"
+    },
+    {
+      "id": "satellite:1:14365",
+      "kind": "satellite",
+      "side": 1,
+      "at": 14348,
+      "radial": 249,
+      "halfAlong": 60,
+      "halfDepth": 56
+    },
+    {
+      "id": "satellite:-1:12628",
+      "kind": "satellite",
+      "side": -1,
+      "at": 12671,
+      "radial": 249,
+      "halfAlong": 60,
+      "halfDepth": 56
+    },
+    {
+      "id": "satellite:1:12502",
+      "kind": "satellite",
+      "side": 1,
+      "at": 12545,
+      "radial": 249,
+      "halfAlong": 60,
+      "halfDepth": 56
+    },
+    {
+      "id": "satellite:-1:9898",
+      "kind": "satellite",
+      "side": -1,
+      "at": 9989,
+      "radial": 249,
+      "halfAlong": 60,
+      "halfDepth": 56
+    },
+    {
+      "id": "satellite:-1:8841",
+      "kind": "satellite",
+      "side": -1,
+      "at": 8884,
+      "radial": 249,
+      "halfAlong": 60,
+      "halfDepth": 56
+    },
+    {
+      "id": "satellite:-1:8119",
+      "kind": "satellite",
+      "side": -1,
+      "at": 8162,
+      "radial": 249,
+      "halfAlong": 60,
+      "halfDepth": 56
+    },
+    {
+      "id": "satellite:-1:6734",
+      "kind": "satellite",
+      "side": -1,
+      "at": 6717,
+      "radial": 249,
+      "halfAlong": 60,
+      "halfDepth": 56
+    },
+    {
+      "id": "satellite:-1:6019",
+      "kind": "satellite",
+      "side": -1,
+      "at": 6002,
+      "radial": 249,
+      "halfAlong": 60,
+      "halfDepth": 56
+    },
+    {
+      "id": "satellite:1:5517",
+      "kind": "satellite",
+      "side": 1,
+      "at": 5524,
+      "radial": 249,
+      "halfAlong": 60,
+      "halfDepth": 56
+    },
+    {
+      "id": "satellite:-1:5434",
+      "kind": "satellite",
+      "side": -1,
+      "at": 5417,
+      "radial": 249,
+      "halfAlong": 60,
+      "halfDepth": 56
+    },
+    {
+      "id": "satellite:1:5055",
+      "kind": "satellite",
+      "side": 1,
+      "at": 5098,
+      "radial": 249,
+      "halfAlong": 60,
+      "halfDepth": 56
+    },
+    {
+      "id": "satellite:-1:5046",
+      "kind": "satellite",
+      "side": -1,
+      "at": 5089,
+      "radial": 249,
+      "halfAlong": 60,
+      "halfDepth": 56
+    },
+    {
+      "id": "satellite:1:4571",
+      "kind": "satellite",
+      "side": 1,
+      "at": 4614,
+      "radial": 249,
+      "halfAlong": 60,
+      "halfDepth": 56
+    },
+    {
+      "id": "satellite:1:3913",
+      "kind": "satellite",
+      "side": 1,
+      "at": 3896,
+      "radial": 249,
+      "halfAlong": 60,
+      "halfDepth": 56
+    },
+    {
+      "id": "satellite:-1:3138",
+      "kind": "satellite",
+      "side": -1,
+      "at": 3181,
+      "radial": 249,
+      "halfAlong": 60,
+      "halfDepth": 56
+    },
+    {
+      "id": "satellite:-1:2782",
+      "kind": "satellite",
+      "side": -1,
+      "at": 2765,
+      "radial": 249,
+      "halfAlong": 60,
+      "halfDepth": 56
+    },
+    {
+      "id": "satellite:-1:901",
+      "kind": "satellite",
+      "side": -1,
+      "at": 944,
+      "radial": 249,
+      "halfAlong": 60,
+      "halfDepth": 56
+    }
+  ],
+  "satelliteRejected": [
+    {
+      "side": -1,
+      "at": 14881,
+      "key": "cacheGreenhouseWorkshop"
+    },
+    {
+      "side": -1,
+      "at": 14522,
+      "key": "cacheRepairShop"
+    },
+    {
+      "side": -1,
+      "at": 13380,
+      "key": "cacheVendorStall"
+    },
+    {
+      "side": 1,
+      "at": 12732,
+      "key": "cacheOutskirtsHomes"
+    },
+    {
+      "side": -1,
+      "at": 12396,
+      "key": "cacheGreenhouseWorkshop"
+    },
+    {
+      "side": -1,
+      "at": 10667,
+      "key": "cacheUtilityCorner"
+    },
+    {
+      "side": -1,
+      "at": 9689,
+      "key": "cacheGreenhouseWorkshop"
+    },
+    {
+      "side": 1,
+      "at": 6097,
+      "key": "cacheVendorStall"
+    },
+    {
+      "side": 1,
+      "at": 5829,
+      "key": "cacheGreenhouseWorkshop"
+    },
+    {
+      "side": -1,
+      "at": 4460,
+      "key": "cacheGreenhouseWorkshop"
+    },
+    {
+      "side": -1,
+      "at": 3806,
+      "key": "cacheUtilityCorner"
+    },
+    {
+      "side": 1,
+      "at": 3635,
+      "key": "cacheUtilityCorner"
+    },
+    {
+      "side": -1,
+      "at": 3360,
+      "key": "cacheGreenhouseWorkshop"
+    },
+    {
+      "side": -1,
+      "at": 516,
+      "key": "cacheUtilityCorner"
+    },
+    {
+      "side": 1,
+      "at": 200,
+      "key": "cacheOutskirtsHomes"
+    }
+  ],
+  "satelliteCount": 17
+}

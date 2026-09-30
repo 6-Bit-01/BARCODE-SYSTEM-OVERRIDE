@@ -251,7 +251,10 @@ async function main() {
   w.lostDataSystem.archive = new w.BARCODE.LoreCollection();
   load(context, 'src/game/campaign-services.js');
   load(context, 'src/engine/cache-road-proof-profile.js');
-  load(context, 'src/game/cache-road-landscape.js');
+  if(process.env.CACHE_REVIEW_REVISION) {
+    const source=execFileSync('git',['show',`${process.env.CACHE_REVIEW_REVISION}:src/game/cache-road-landscape.js`],{encoding:'utf8'});
+    vm.runInContext(source,context,{filename:'cache-road-landscape-review-revision.js'});
+  } else load(context, 'src/game/cache-road-landscape.js');
   if (districtSeed !== undefined) {
     if(!/^\d{1,8}$/.test(districtSeed))throw Error('District seed must be a small unsigned integer');
     load(context, 'src/game/cache-road-districts.js');
@@ -437,6 +440,11 @@ async function main() {
     .map(Number).filter(Number.isFinite);
   const stillReview = process.env.CACHE_REVIEW_STILLS === '1' || !!customProgress?.length;
   const reviewLap = Number(process.env.CACHE_REVIEW_LAP || 0);
+  const reviewStart=process.env.CACHE_REVIEW_START_PROGRESS===undefined?
+    reviewLap*2460:Number(process.env.CACHE_REVIEW_START_PROGRESS);
+  if(!Number.isFinite(reviewStart)||reviewStart<0||reviewStart>14000||
+    gameplay&&process.env.CACHE_REVIEW_START_PROGRESS!==undefined)
+    throw Error('Review start is a bounded visual-sweep option, not a gameplay seek');
   const sceneryReview = worldReview || siteReview || stillReview;
   const fps = stillReview ? 1 : continuous ? Number(process.env.CACHE_REVIEW_FPS||
     (districtSeed!==undefined||puppetSeed!==undefined?
@@ -533,7 +541,7 @@ async function main() {
     const chapter = chapters[chapterIndex], local = i % (seconds * fps) / fps;
     const s = road.state;
     if(!gameplay) {
-    s.progress = continuous ? local * 80 + reviewLap*2460 :
+    s.progress = continuous ? local * 80 + reviewStart :
       chapter.progress + local * 54 + reviewLap*2460;
     s.elapsedMs = i * 1000 / fps;
     s.musicBar = chapter.bar + reviewLap*24 + Math.floor(local / 1.875);
@@ -679,7 +687,7 @@ async function main() {
     if (code !== 0) throw Error(error || `ffmpeg exited: ${signal}`);
   }
   fs.writeFileSync(path.join(out,'Cache-Road-Motion-Track.json'),
-    JSON.stringify({ fps,gameplay,seconds,landscapeSeed:landscapeSeed===undefined?
+    JSON.stringify({ fps,gameplay,seconds,reviewStart,landscapeSeed:landscapeSeed===undefined?
       0x6b4d:Number(landscapeSeed),carCenters,audioEvents,mixEvents,engineEvents,playbackFrames,
       renderStats,assetCosts,assetFrames:Object.fromEntries(Object.entries(assetFrames)
         .map(([key,frames])=>[key,[...frames].sort((a,b)=>a-b)])) }, null, 2));

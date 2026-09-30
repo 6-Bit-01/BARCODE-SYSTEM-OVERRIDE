@@ -61,7 +61,8 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
     for(const kind of ['freight','van','audit','sweeper','trike','shuttle']) {
       const hazard=entities.HAZARDS.find(hazard=>hazard.kind===kind);
       check(hazard,`${kind} has no live traffic placement`);
-      for(let cel=0;cel<8;cel++)render(kind,hazard.at-85,cel/(.054*.11));
+      for(const camera of ['main','mirror'])for(let cel=0;cel<8;cel++)
+        render(`${kind}/${camera}`,hazard.at+(camera==='main'?-85:85),cel/(.054*.11));
     }
     for(let cel=0;cel<8;cel++)render('rival',11000,cel/(.054*.11),{musicBar:80});
     for(const steer of [-1,0,1])render('Cache steering',1200,890,{steer});
@@ -80,7 +81,9 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
       const expected=intentionalStable.includes(key)?1:entry.frames;
       check(frames.size===expected,`${key}: actual world/HUD drew ${frames.size}/${expected} cels`);
       if(key.endsWith('Travel')||key.endsWith('Activity')||
-          key.startsWith('cacheAmbient')||propKeys.includes(key))
+          key.startsWith('cacheAmbient')||propKeys.includes(key)||
+          ['cacheFreight','cacheCourier','cacheAudit','cacheSweeper',
+            'cacheTrike','cacheShuttle'].includes(key))
         check(coverage.mirror[key]?.size===entry.frames,
           `${key}: rearview did not play every authored cel`);
     }
