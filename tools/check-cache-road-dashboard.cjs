@@ -91,7 +91,7 @@ B.ControllerSettings.button=()=>undefined;
 assert.equal(read({}).turboButton,'SPACE');assert.equal(read({}).echoButton,'H');
 B.GamepadUI.connected=false;
 
-let text=[],assets=[],rects=[],actionAssets=[],helperOperations=0,dashboardArtReady=true;
+let text=[],assets=[],rects=[],strokes=[],actionAssets=[],helperOperations=0,dashboardArtReady=true;
 const stack=[],gradient={addColorStop(){}};
 const ctx=new Proxy({canvas:{width:1920,height:1080},globalAlpha:1,filter:'none',
   save(){stack.push({filter:this.filter,globalAlpha:this.globalAlpha,
@@ -99,6 +99,8 @@ const ctx=new Proxy({canvas:{width:1920,height:1080},globalAlpha:1,filter:'none'
   restore(){assert(stack.length,'Canvas restore has a matching save');Object.assign(this,stack.pop());},
   createLinearGradient(){return gradient;},createRadialGradient(){return gradient;},
   measureText(value){return {width:String(value).length*10};},
+  beginPath(){this.path=[];},moveTo(x,y){this.path?.push([x,y]);},lineTo(x,y){this.path?.push([x,y]);},
+  stroke(){if(this.path?.length)strokes.push({points:copy(this.path),color:this.strokeStyle});},
   fillRect(x,y,width,height){if(y<=164)rects.push({x,y,width,height,color:this.fillStyle});},
   fillText(value,x,y,maxWidth){text.push({text:String(value),x,y,maxWidth,
     color:this.fillStyle,filter:this.filter});}
@@ -123,7 +125,7 @@ road.active=true;road.status='playing';road.audioDegraded=false;
 let draws=0,maxOperations=0,maxSubmissions=0;
 function render(overrides={},reduced=false) {
   road.state=make(overrides);B.Preferences.values.reducedMotion=reduced;
-  const before=copy(road.state);text=[];assets=[];rects=[];actionAssets=[];helperOperations=0;
+  const before=copy(road.state);text=[];assets=[];rects=[];strokes=[];actionAssets=[];helperOperations=0;
   w.dashboardCalls.length=0;w.dashboardReadouts.length=0;
   road.draw(ctx);draws++;
   assert.deepEqual(copy(road.state),before,'a production dashboard draw does not mutate gameplay');
@@ -135,7 +137,7 @@ function render(overrides={},reduced=false) {
   maxOperations=Math.max(maxOperations,helperOperations);
   maxSubmissions=Math.max(maxSubmissions,assets.length);
   return {model:copy(w.dashboardReadouts[0]),calls:copy(w.dashboardCalls),
-    action:copy(w.dashboardAction),rects:copy(rects),actionAssets:copy(actionAssets),
+    action:copy(w.dashboardAction),rects:copy(rects),strokes:copy(strokes),actionAssets:copy(actionAssets),
     text:copy(text.filter(item=>item.y<=164&&item.filter!=='blur(2.3px)')),
     assets:copy(assets)};
 }
@@ -185,7 +187,7 @@ for(const [beat,count] of [[29,2],[30,3],[31,4]]) {
   assert.equal(frame.action.nextCue.count,count);
   assert(frame.action.padReady&&!frame.action.pressNow,
     'the lead-in never tells the driver to press on beat four');
-  assert(frame.text.some(item=>/BEAT 1|HIT ON 1/.test(item.text)),
+  assert(frame.text.some(item=>item.text==='ONE'),
     'the visible lead-in identifies beat ONE');
 }
 assert(render({...announced,musicBeatFloat:31.85}).action.pressNow,
@@ -195,17 +197,20 @@ assert(!render({...announced,musicBeatFloat:31.6}).action.pressNow,
 for(const beat of [32,32.2]) {
   const frame=render({...announced,musicBeatFloat:beat});
   assert(frame.action.pressNow&&frame.action.nextCue.count===1);
-  assert(frame.text.some(item=>/PRESS/.test(item.text)),'beat ONE has a visible press cue');
+  assert(frame.text.some(item=>item.text==='NOW'),'beat ONE has a visible press cue');
 }
 assert(!render({...announced,musicBeatFloat:32.4}).action.pressNow,
   'the press cue expires after the 130 ms judgment window');
 const wrongLane=render({...announced,musicBeatFloat:32,lanePos:(pulse.lane+1)%4});
 assert(!wrongLane.action.pressNow);
-assert(wrongLane.text.some(item=>/ENTER LANE/.test(item.text)));
+assert(wrongLane.strokes.some(item=>item.points.length===5&&
+  item.points[0][1]===61&&item.points[1][1]===61&&item.points[0][0]!==item.points[1][0]),
+  'a wrong lane shows a directional arrow toward the mapped target');
+assert(!wrongLane.text.some(item=>/ENTER LANE|LINE UP/.test(item.text)),
+  'the lane arrow replaces repeated steering prose');
 const caught=render({...announced,musicBeatFloat:32,pulseFlashMs:410,
   pulseFlashAction:pulse.action,pulseFlashLane:pulse.lane,pulseTiming:'PERFECT',pulseCombo:2});
 assert(caught.action.showingCatch);
-assert(caught.text.some(item=>/CAPTURED|PERFECT/.test(item.text)));
 assert(caught.text.some(item=>/\+16B\b/.test(item.text)),'a chained catch reports its actual duration');
 B.GamepadUI.connected=true;
 B.ControllerSettings.button=index=>({4:'LB',5:'RB'})[index]||`FACE${index}`;
@@ -248,14 +253,13 @@ const expires=render({musicBeatFloat:64,captures:[phrase]});
 assert(expires.calls.some(call=>call.kind==='digits'&&call.args[0]===0&&call.args[3]===20),
   'the draw reports zero remaining bars without altering the capture');
 const exitState={progress:2290,gateAt:2430,echoEnergy:100};
-const directionText=item=>item.text.replace(/\s+/g,' ');
-assert(render(exitState).text.some(item=>directionText(item)==='H ECHO LEFT | ORIGINAL RIGHT'),
-  'the final exit names the keyboard Echo control and both required directions');
+assert(render(exitState).text.some(item=>item.text==='H'),
+  'the final exit retains the keyboard Echo button');
 B.GamepadUI.connected=true;B.ControllerSettings.button=index=>index===5?'RB':'LB';
-assert(render(exitState).text.some(item=>directionText(item)==='RB ECHO LEFT | ORIGINAL RIGHT'),
+assert(render(exitState).text.some(item=>item.text==='RB'),
   'the final exit uses the mapped Echo control');
-assert(render({...exitState,echo,echoEnergy:0}).text.some(item=>directionText(item)==='ECHO LEFT | ORIGINAL RIGHT'),
-  'an active Echo keeps split-direction guidance without requesting another activation');
+assert(!render({...exitState,echo,echoEnergy:0}).text.some(item=>/ECHO LEFT.*ORIGINAL RIGHT/.test(item.text)),
+  'the dashboard does not duplicate the visual split diagram with a sentence');
 B.GamepadUI.connected=false;
 dashboardArtReady=false;
 const fallback=render({speed:54});

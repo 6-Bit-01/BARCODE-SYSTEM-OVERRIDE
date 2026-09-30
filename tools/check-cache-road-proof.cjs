@@ -32,7 +32,9 @@ async function run() {
   const roadSource=fs.readFileSync('src/game/cache-road-proof.js','utf8');
   const sceneMarker='  const clone = value => JSON.parse(JSON.stringify(value));';
   assert(roadSource.includes(sceneMarker));
-  vm.runInContext(roadSource.replace('for(const item of worldPaint)item.draw();',
+  vm.runInContext(roadSource.replace("    const artKey = kind === 'cache' ?",
+    "    window.__cacheVehicleKind=kind;\n    const artKey = kind === 'cache' ?")
+    .replace('for(const item of worldPaint)item.draw();',
     'for(const item of worldPaint) {window.__cachePaintOrder.push({...item.area,paintFoot:item.foot});item.draw();}')
     .replace(sceneMarker,
     '  window.__cachePaintOrder=[];\n'+
@@ -425,6 +427,7 @@ async function run() {
         mirrorTraffic.push({key,...options,..._ctx.rearVehicleContact,filter:_ctx.filter});
     }
     else { roadArt.push({ key, ...options, alpha:_ctx.globalAlpha ?? 1,
+      vehicleKind:w.__cacheVehicleKind,
       clipHeight: ridgeAt(_ctx.ridge,options.x),
       clipLeft: ridgeAt(_ctx.ridge,options.x-(options.width||0)/2),
       clipRight: ridgeAt(_ctx.ridge,options.x+(options.width||0)/2),
@@ -436,6 +439,7 @@ async function run() {
         { projected:_ctx.lastTransform?.slice() } : {}),
       ...(['cacheCar','cacheFreight','cacheSweeper'].includes(key) ?
         { chassisOffset:_ctx.lastTranslate?.slice() } : {}),
+      ...(key==='cachePulsePad'?{footprint:_ctx.path?.map(point=>({...point}))}:{}),
       ...(key.startsWith('cacheFly') ? { screenX: _ctx.lastTranslate?.[0] } : {}) });
       drawOrder.push(key); }
     return true;
@@ -484,12 +488,13 @@ async function run() {
         this.rearVehicleContact={worldX:x,worldY:y}; },
     transform(...values) { this.lastTransform = values; },
     ellipse(x,y,rx,ry) {
-      if (this.filter!=='blur(2.3px)'&&this.fillStyle === '#030b16c8') contacts.push({ x,y,rx,ry });
+      if (this.filter!=='blur(2.3px)'&&this.fillStyle === '#030b16c8'&&
+        w.__cacheVehicleKind==='cache') contacts.push({ x,y,rx,ry });
       if (this.filter!=='blur(2.3px)'&&['#ff77bb','#ffd079','#8af6f1'].includes(this.fillStyle))
         beacons.push({ x,y,translate:this.lastTranslate });
     },
     fillText(value, x, y) {
-      if(value==='HIT ON 1'&&y>164)timingLabels.push({x,y});
+      if(value==='1'&&y>164)timingLabels.push({x,y});
       if(y===90&&x>=1517&&x<1640&&/^[1-4]$/.test(value))
         cueDigits.push({value,x,y,color:this.fillStyle});
       if (x>=1338&&x<1900&&y<=164)
@@ -773,10 +778,25 @@ async function run() {
     entry.y-entry.height < 1080),
   'the enlarged left market facade remains visible while it approaches the screen edge');
   checkSetbackAndFacing();
-  mirrorFrame({ progress: 300 });
-  assert(roadArt.some(entry => entry.key === 'cachePlaceMarket' && entry.flip &&
-    entry.width > market.width*1.4 && entry.x+entry.width/2 < 0),
-  'the near building exits across the landscape edge instead of crossing the sidewalk');
+  // Follow the same foreground facade through its last visible edge. Once
+  // its whole bitmap is outside, the renderer may skip its invisible draw.
+  let marketExitEdge=Infinity,marketExitSamples=0;
+  for(let progress=150;progress<=300;progress+=5) {
+    mirrorFrame({progress});
+    const facade=roadArt.find(entry=>entry.key==='cachePlaceMarket'&&entry.flip&&
+      entry.width>market.width*1.25);
+    if(!facade)continue;
+    const edge=facade.x+facade.width/2;
+    assert(edge>=0&&edge<marketExitEdge,
+      'the near facade travels continuously toward the outer edge');
+    marketExitEdge=edge;marketExitSamples++;
+    checkSetbackAndFacing();
+  }
+  assert(marketExitSamples>=5&&marketExitEdge<30,
+    'the complete market reaches the screen edge before bounds culling');
+  assert(!roadArt.some(entry=>entry.key==='cachePlaceMarket'&&entry.flip&&
+    entry.width>market.width*1.4),
+    'a fully offscreen foreground facade needs no image submission');
   const uncovered=entry=>Math.max(0,Math.min(entry.height,
     entry.clipHeight-(entry.y-entry.height)));
   const areaReveal=[],lampReveal=[],areaEdges=[];
@@ -1050,7 +1070,7 @@ async function run() {
   assert(roadArt.some(entry=>entry.key==='cachePulseBrace' &&
     entry.x===1400 && entry.frame===0 && entry.width===45) &&
     hudLines.some(line=>line.value==='BRACE')&&
-    hudLines.some(line=>/^\+8B /.test(line.value)),
+    hudLines.some(line=>line.value==='+8B'),
   'Reduced Motion holds the caught action art and confirmation text still');
   B.Preferences = previousPreferences;
   mirrorFrame({ steer: -1 });
@@ -1082,11 +1102,11 @@ async function run() {
   mirrorFrame({ integrity: 3 });
   assert(!roadArt.some(entry => entry.key === 'cacheDamagedExhaust'),
     'an intact car never draws damage smoke');
-  const idleGlare=roadArt.filter(entry=>entry.key==='cacheBrakeReflection').at(-1);
+  const idleGlare=roadArt.filter(entry=>entry.key==='cacheBrakeReflection'&&entry.vehicleKind==='cache').at(-1);
   mirrorFrame({ braking: true, integrity: 3 });
-  const brakeGlare=roadArt.filter(entry=>entry.key==='cacheBrakeReflection').at(-1);
+  const brakeGlare=roadArt.filter(entry=>entry.key==='cacheBrakeReflection'&&entry.vehicleKind==='cache').at(-1);
   assert(brakeGlare.alpha > idleGlare.alpha*4 &&
-    drawOrder.lastIndexOf('cacheBrakeReflection') < drawOrder.lastIndexOf('cacheCar'),
+    roadArt.indexOf(brakeGlare) < roadArt.findIndex(entry=>entry.key==='cacheCar'),
     'braking brightens road reflection behind the car instead of covering it');
   assert.equal(drawOrder.filter(item=>item==='brakingTireTrack').length,6,
     'the brake input lays two short broken road tracks');
@@ -1111,8 +1131,8 @@ async function run() {
   const pickupLabel=hudLines.find(line=>/BREAKAWAY \+8 BARS/.test(line.value));
   assert(braceLamp&&pushLamp&&hudLines.some(line=>line.value==='1.2'),
     'armed Brace and Push have lit icons and Push retains its remaining duration');
-  assert(pickupLabel&&Math.max(braceLamp.y+braceLamp.height,pushLamp.y+pushLamp.height)+4<pickupLabel.y-14,
-    'armed Push/Brace stays readable alongside its transient pickup message');
+  assert(!pickupLabel,
+    'armed Push/Brace uses its live icons without a duplicate pickup sentence');
   mirrorFrame({ progress: 60 });
   assert.deepEqual(openingRects, [[875, 82]], 'the opening panel remains compact');
   mirrorFrame({ progress: 130 });
@@ -1147,15 +1167,15 @@ async function run() {
     'the caught action plays its painted impact frames in the HUD');
   mirrorFrame({ progress: 130, lanePos: 0, visualLane: 0, musicBeatFloat: 2 });
   const waitingIcon = roadArt.find(entry => entry.key === 'cachePulseSurge' && entry.x === 1400);
-  assert(hudLines.some(line => /HIT ON 1/.test(line.value)),
+  assert(hudLines.some(line => line.value==='ONE'),
     'the button cue names the target beat while the pad is in range');
   assert(!cueDigits.some(digit=>digit.color==='#111b1d'),
     'a lead-in beat cannot display a hot hit number');
   mirrorFrame({ progress: 130, lanePos: 0, visualLane: 0, musicBeatFloat: 4 });
   const pressIcon = roadArt.find(entry => entry.key === 'cachePulseSurge' && entry.x === 1400);
   assert(pressIcon.width > waitingIcon.width && pressIcon.frame===2 &&
-    hudLines.some(line => /PRESS!/.test(line.value)),
-  'on the first beat the action icon swells and the prompt changes to PRESS');
+    hudLines.some(line => line.value==='NOW'),
+  'on the first beat the action icon swells and the prompt changes to NOW');
   assert.deepEqual(cueDigits.filter(digit=>digit.color==='#111b1d')
     .map(digit=>digit.value),['1'],
     'ONE is the only hot digit on the announced downbeat');
@@ -1166,8 +1186,20 @@ async function run() {
     'a caught fixed marking stays visible until it passes under the car');
   mirrorFrame({ progress: 190, musicBeatFloat:6, pulseTargets:{'0/0/0':4},
     caughtPulses: { '0/0/0': true } });
-  assert.equal(drawOrder.filter(item => item === 'cachePulsePad').length, visibleBeforeCatch - 2,
-    'the caught musical marking leaves after its beat has passed the car');
+  assert.equal(drawOrder.filter(item => item === 'cachePulsePad').length, visibleBeforeCatch,
+    'a caught fixed marking continues after its beat passes the car');
+  mirrorFrame({ progress: 237, musicBeatFloat:8, pulseTargets:{'0/0/0':4},
+    caughtPulses: { '0/0/0': true } });
+  const passedPad=roadArt.filter(entry=>entry.key==='cachePulsePad');
+  const passedPadY=passedPad.flatMap(entry=>entry.footprint.map(point=>point.y));
+  assert.equal(passedPad.length,visibleBeforeCatch,
+    'the passed marking remains while its footprint crosses the bottom edge');
+  assert(Math.min(...passedPadY)<1080&&Math.max(...passedPadY)>1080,
+    'the committed pad actually straddles the screen edge before culling');
+  mirrorFrame({ progress: 263, musicBeatFloat:9, pulseTargets:{'0/0/0':4},
+    caughtPulses: { '0/0/0': true } });
+  assert.equal(drawOrder.filter(item => item === 'cachePulsePad').length, visibleBeforeCatch-2,
+    'the caught marking leaves once its entire world footprint is below the screen');
   road.state = liveState; B.PresentationAssets = oldArt;
   assert.match(road.openingCue()[0], /ROAD PADS ARE SAFE/,
     'the first prompt distinguishes safe music pickups from traffic');

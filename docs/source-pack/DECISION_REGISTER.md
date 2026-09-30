@@ -1,5 +1,17 @@
 # Decision Register
 
+## September 30, 2026 — fewer words and foreground continuation
+
+The owner finds the previous live guidance too wordy and asks for a more
+visual drive. Consolidate repeated prompts into color-and-shape button
+badges, lane arrows, route/record lights and an explicit visual delivery
+split; keep brief distinguishable hit/miss feedback and Pause explanations.
+
+The owner also asks to see passed cars and road objects drive off screen.
+Change presentation projection and visibility, preserving physical actors,
+road addresses, traffic difficulty, collision windows, sound and rewards.
+Do not reduce the mirror blur or compensate by hiding nearby art earlier.
+
 ## September 30, 2026 — nine-point playable-drive feedback
 
 The owner identifies stray road shapes, unexplained tapes, unclear buttons,

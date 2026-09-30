@@ -22,9 +22,10 @@ RETAINED_REVIEW_MEDIA = {
     "review-cache-ending/Ending-Cues.wav",
     "review-cache-encounters/Encounter-Review.mp4",
     "review-cache-drive-feedback/Reactive-Music-Audition.mp3",
+    "review-cache-visual-drive/Foreground-Pass.mp4",
     "review-cache-lamps-chip-sound/Chip-SFX-Audition.mp3",
 }
-CURRENT_REVIEWS = ("review-cache-bridge/", "review-cache-ending/", "review-cache-drive-feedback/")
+CURRENT_REVIEWS = ("review-cache-bridge/", "review-cache-ending/", "review-cache-drive-feedback/", "review-cache-visual-drive/")
 REVIEW_MEDIA_SUFFIXES = {".webp", ".png", ".mp4", ".jpg", ".jpeg", ".gif", ".mp3", ".wav"}
 ROOT_DOCUMENT_SUFFIXES = {".md", ".json", ".txt"}
 
