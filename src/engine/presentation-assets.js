@@ -33,7 +33,15 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   // cutouts below remain available while a new sheet loads or falls back.
   const cachePedestrianRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/6f128e9c3ddca5e642c01bd94d61d3ffbf18bf52/';
   const cacheActivityRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/172b7586864cace27eb55a85bfa2d63d96b77f89/';
+  // Static dashboard artwork is versioned independently of live values.
+  const cacheDashboardRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/dd1b3e9adc174da39e4b228c45079526c9c6a36a/';
   const entries = {
+    cacheDashBezel: { path: 'assets/cache-road/hud/digital-dashboard/instrument-bezel.png', root: cacheDashboardRoot,
+      columns: 1, rows: 1, frames: 1, ax: 0, ay: 0, smooth: true },
+    cacheDashDigits: { path: 'assets/cache-road/hud/digital-dashboard/vfd-digits.svg', root: cacheDashboardRoot,
+      columns: 1, rows: 1, frames: 1, ax: 0, ay: 0, smooth: true },
+    cacheDashIcons: { path: 'assets/cache-road/hud/digital-dashboard/instrument-icons.svg', root: cacheDashboardRoot,
+      columns: 1, rows: 1, frames: 1, ax: 0, ay: 0, smooth: true },
     cacheMirror: { path: 'assets/cache-road/hud/cache-back-mirror-expressions.webp', root: cacheRoadRoot,
       columns: 3, rows: 2, frames: 6, ax: .5, ay: .5, smooth: true },
     cacheCar: { path: 'assets/cache-road/vehicles/animation/cache-center-frames.webp', root: cachePaintedRoot, columns: 4, rows: 2, frames: 8, ax: .5, ay: 1, smooth: true },

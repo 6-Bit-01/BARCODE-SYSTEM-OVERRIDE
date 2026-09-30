@@ -486,11 +486,10 @@ async function run() {
         beacons.push({ x,y,translate:this.lastTranslate });
     },
     fillText(value, x, y) {
-      if(value==='HIT ON 1')timingLabels.push({x,y});
-      if(y===76 && /^[1-4]$/.test(value))
+      if(value==='HIT ON 1'&&y>164)timingLabels.push({x,y});
+      if(y===90&&x>=1517&&x<1640&&/^[1-4]$/.test(value))
         cueDigits.push({value,x,y,color:this.fillStyle});
-      if ((x === 1623 && y === 76) || (x === 1345 && y === 155) ||
-          (x === 1418 && y === 56))
+      if (x>=1338&&x<1900&&y<=164)
         hudLines.push({ value, x, y });
       if (value === 'CUT >' || value === '< CUT') trafficLabels.push(value);
     } },
@@ -672,6 +671,7 @@ async function run() {
   };
   const clearances=[];
   const fittedPose = {
+    cachePlaceSubstation:[-1,false],
     cachePlaceGardenRounded:[-1,false],cachePlaceGardenCompact:[-1,false],
     cachePlaceGardenHorizon:[1,false],cachePlaceConstructionRounded:[-1,false],
     cachePlaceConstructionHorizon:[1,false],cachePlaceConstructionCompact:[1,false],
@@ -1045,8 +1045,9 @@ async function run() {
   assert.deepEqual(openingRects, [], 'the objective disappears between actionable lessons');
   mirrorFrame({progress:130,pulseFlashMs:400,pulseFlashAction:2});
   assert(roadArt.some(entry=>entry.key==='cachePulseBrace' &&
-    entry.x===1375 && entry.frame===0 && entry.width===45) &&
-    hudLines.some(line=>/BRACE  \/\/  \+8 BARS/.test(line.value)),
+    entry.x===1400 && entry.frame===0 && entry.width===45) &&
+    hudLines.some(line=>line.value==='BRACE')&&
+    hudLines.some(line=>/^\+8B /.test(line.value)),
   'Reduced Motion holds the caught action art and confirmation text still');
   B.Preferences = previousPreferences;
   mirrorFrame({ steer: -1 });
@@ -1100,10 +1101,14 @@ async function run() {
     'the original impact burst owns the first instant of a collision');
   mirrorFrame({ ramMs: 1180, shield: 1, messageMs: 1100,
     message: 'PUSH // BREAKAWAY +8 BARS' });
-  const armedLabel=hudLines.find(line=>/BRACE READY/.test(line.value));
+  const braceLamp=roadArt.find(entry=>entry.key==='cacheDashIcons'&&
+    entry.x===1807&&entry.sourceRect?.[0]===4*64&&entry.alpha===1);
+  const pushLamp=roadArt.find(entry=>entry.key==='cacheDashIcons'&&
+    entry.x===1840&&entry.sourceRect?.[0]===5*64&&entry.alpha===1);
   const pickupLabel=hudLines.find(line=>/BREAKAWAY \+8 BARS/.test(line.value));
-  assert.match(armedLabel.value, /PUSH 1\.2s.*BRACE READY/);
-  assert(pickupLabel && armedLabel.y+14 < pickupLabel.y-17,
+  assert(braceLamp&&pushLamp&&hudLines.some(line=>line.value==='1.2'),
+    'armed Brace and Push have lit icons and Push retains its remaining duration');
+  assert(pickupLabel&&Math.max(braceLamp.y+braceLamp.height,pushLamp.y+pushLamp.height)+4<pickupLabel.y-14,
     'armed Push/Brace stays readable alongside its transient pickup message');
   mirrorFrame({ progress: 60 });
   assert.deepEqual(openingRects, [[875, 82]], 'the opening panel remains compact');
@@ -1135,16 +1140,16 @@ async function run() {
     'a successful catch gets its own brief painted HUD burst');
   mirrorFrame({ progress: 130, pulseFlashMs: 400, pulseFlashAction: 0 });
   assert(roadArt.some(entry=>entry.key==='cachePulseSurge' &&
-    entry.x===1375 && entry.frame===3 && entry.width===68),
+    entry.x===1400 && entry.frame===3 && entry.width===60),
     'the caught action plays its painted impact frames in the HUD');
   mirrorFrame({ progress: 130, lanePos: 0, visualLane: 0, musicBeatFloat: 2 });
-  const waitingIcon = roadArt.find(entry => entry.key === 'cachePulseSurge' && entry.x === 1375);
+  const waitingIcon = roadArt.find(entry => entry.key === 'cachePulseSurge' && entry.x === 1400);
   assert(hudLines.some(line => /HIT ON 1/.test(line.value)),
     'the button cue names the target beat while the pad is in range');
   assert(!cueDigits.some(digit=>digit.color==='#111b1d'),
     'a lead-in beat cannot display a hot hit number');
   mirrorFrame({ progress: 130, lanePos: 0, visualLane: 0, musicBeatFloat: 4 });
-  const pressIcon = roadArt.find(entry => entry.key === 'cachePulseSurge' && entry.x === 1375);
+  const pressIcon = roadArt.find(entry => entry.key === 'cachePulseSurge' && entry.x === 1400);
   assert(pressIcon.width > waitingIcon.width && pressIcon.frame===2 &&
     hudLines.some(line => /PRESS!/.test(line.value)),
   'on the first beat the action icon swells and the prompt changes to PRESS');

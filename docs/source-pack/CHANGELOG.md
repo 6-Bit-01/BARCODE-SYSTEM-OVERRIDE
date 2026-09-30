@@ -1,5 +1,21 @@
 # Recovery checkpoint — September 14
 
+## September 29, 2026 — digital dashboard and source-facing correction
+
+- Build a custom 1980s instrument presentation with static bezel/digit/icon
+  artwork and live MPH, gears, timer, integrity and resource/action readings.
+- Convert the existing speed display to MPH without altering driving physics;
+  use real game state rather than fabricated RPM/fuel telemetry.
+- Redesign instruments inside the existing top 164-pixel HUD band, preserving
+  the road aperture, mirror face/glass, exact 2.3 px blur, beat ONE, buffered
+  gears, lamps and chip sound.
+- Enforce the fenced substation's existing left-only designation; replace
+  its three right-bank uses with the approved capacitor-exchange variant,
+  preserving the complete layout, reservations and all 48 core art keys.
+- Retain the new dashboard drive/stills, approved city baseline and prior
+  chip audition in the source pack. Regression/Chromium gate merge; the
+  generated receipt and PR record actual outcomes.
+
 ## September 29, 2026 — building clearance and actual rearview scenery
 
 - Address the reported garage/residential overlap with occupied-footprint

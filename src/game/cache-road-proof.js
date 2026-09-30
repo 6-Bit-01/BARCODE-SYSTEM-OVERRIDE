@@ -124,6 +124,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     encryptedPump: {kind:'substation',side:-1,flip:false,art:['cachePlaceEncryptedPump',960,637,550]},
     droneServiceNode: {kind:'garage',side:-1,flip:false,art:['cachePlaceDroneServiceNode',960,643,520]}
   };
+  // This source's long fence rises toward the right: it is a left-bank
+  // painting, not a reversible generic substation. Resolve the source key
+  // before scenery/clearance generation so both cameras share the same site.
+  const PLACE_BANK_RULES=Object.freeze({
+    cachePlaceSubstation:Object.freeze({side:-1,flip:false,
+      rightVariant:'capacitorExchange'})
+  });
   // Curated addresses replace their picture within the existing site cadence.
   // Some existing right-hand park/substation slots become a garden or yard;
   // the total number of locations and their positions do not change.
@@ -146,7 +153,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   // left road directly and mirrors for the right road. The fabrication gate
   // and other places are painted on the left, except the repair garage.
   const placeFacesRoad = (kind, side) =>
-    kind === 'garage' || kind === 'garden' ? side > 0 : side < 0;
+    PLACE_BANK_RULES[PLACE_ART[kind]?.[0]]?.flip ??
+      (kind === 'garage' || kind === 'garden' ? side > 0 : side < 0);
   const PLACE_KINDS = [...Object.keys(PLACE_ART),'parking'];
   // Seeded choices keep the lots varied yet identical after pause, retry,
   // saved-road restore and frame-rate changes.
@@ -199,9 +207,19 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     }
   }
   for(const place of SIDE_PLACES) {
+    const requested=SIDE_VARIANTS[place.variant]?.art||PLACE_ART[place.kind];
+    const rule=PLACE_BANK_RULES[requested?.[0]];
+    if(rule && place.side!==rule.side) {
+      const replacement=SIDE_VARIANTS[rule.rightVariant];
+      if(!replacement || replacement.side!==place.side || replacement.kind!==place.kind)
+        throw new Error(`No compatible bank art for ${requested[0]}`);
+      place.variant=rule.rightVariant;
+    }
     const art=SIDE_VARIANTS[place.variant]?.art||PLACE_ART[place.kind];
     // A narrow tower should not reserve the frontage of a broad market.
-    place.frontageHalfAlong=(art?50*art[3]/700:75)*place.size;
+    // A bank correction keeps its existing conservative lot reservation;
+    // it cannot release space and reshuffle the approved neighboring cards.
+    place.frontageHalfAlong=(art?50*Math.max(art[3],requested[3])/700:75)*place.size;
   }
   SIDE_PLACES.sort((a,b)=>b.at-a.at);
   // Existing featured places own their parcels. Generate the modular blocks
@@ -1098,6 +1116,65 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     for(const xx of [x+13,x+w-13]) {
       ctx.beginPath();ctx.arc(xx,y+h-12,2,0,Math.PI*2);ctx.fill();
     }
+  }
+  const DASH_COLORS=['#a5f5d5','#ffd28d','#ff879a'];
+  function dashboardReadout(s) {
+    const seconds=clamp(Math.ceil(s.timeMs/1000),0,5999);
+    const turboMode=s.queuedTurbo?'queued':s.boostMs>0?'active':
+      s.boost?'ready':s.draftMs>0?'draft':'charge';
+    const echoMode=s.echo?'active':s.echoEnergy>=100?'ready':'charge';
+    const button=(index,fallback)=>B.GamepadUI?.connected?
+      B.ControllerSettings?.button(index)||fallback:fallback;
+    return {mph:Math.round(Math.max(0,s.speed)*5.2/1.609344),gear:s.gear+1,
+      queuedGear:s.pendingGear===null?null:s.pendingGear+1,
+      clock:`${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`,
+      lowTime:s.timeMs<8000,integrity:clamp(s.integrity,0,3),turboMode,
+      turboValue:['queued','active','ready'].includes(turboMode)?1:
+        turboMode==='draft'?clamp(s.draftMs/600,0,1):clamp(s.nearMisses/2,0,1),
+      echoMode,echoValue:echoMode==='active'?
+        clamp(1-s.echo.ageMs/s.echo.durationMs,0,1):clamp(s.echoEnergy/100,0,1),
+      turboButton:button(4,'SPACE'),echoButton:button(5,'H')};
+  }
+  // Static glyph atlases keep the live dashboard crisp. If art is still
+  // loading, the same values remain readable through ordinary Canvas text.
+  function hudDigits(ctx,text,x,y,height,row=0) {
+    const left=x,width=height*64/112,gap=height*.075;
+    ctx.save();ctx.fillStyle=DASH_COLORS[row];ctx.textAlign='left';
+    for(const char of String(text)) {
+      if(char===':'||char==='.') {
+        const size=Math.max(2,height*.075);
+        if(char===':')ctx.fillRect(x,y+height*.32,size,size);
+        ctx.fillRect(x,y+height*(char===':'?.70:.86),size,size);
+        x+=height*.18;continue;
+      }
+      const digit=/[0-9]/.test(char)?Number(char):char==='-'?10:11;
+      if(!B.PresentationAssets?.draw?.('cacheDashDigits',ctx,
+        {x,y,width,height,sourceRect:[digit*64,row*112,64,112]})) {
+        ctx.font=`bold ${Math.round(height*.88)}px Oxanium, monospace`;
+        ctx.fillText(char,x,y+height*.84,width);
+      }
+      x+=width+gap;
+    }
+    ctx.restore();return x-left-gap;
+  }
+  function hudIcon(ctx,index,x,y,size,row=0) {
+    if(B.PresentationAssets?.draw?.('cacheDashIcons',ctx,
+      {x,y,width:size,height:size,sourceRect:[index*64,row*64,64,64]}))return;
+    ctx.save();ctx.fillStyle=DASH_COLORS[row];ctx.font=`bold ${Math.round(size*.8)}px Oxanium, monospace`;
+    ctx.textAlign='center';ctx.fillText(['◆','◷','↯','↔','◇','»','▣','→'][index],x+size/2,y+size*.8,size);
+    ctx.restore();
+  }
+  function hudSegments(ctx,x,y,width,count,value,row=0) {
+    const gap=3,segment=(width-gap*(count-1))/count;
+    for(let i=0;i<count;i++) {
+      ctx.fillStyle=i<Math.ceil(clamp(value,0,1)*count)?DASH_COLORS[row]:'#19343b';
+      ctx.fillRect(x+i*(segment+gap),y,segment,7);
+    }
+  }
+  function dashboardBezel(ctx,x,y,width,height,accent) {
+    if(!B.PresentationAssets?.draw?.('cacheDashBezel',ctx,
+      {x,y,width,height,sourceRect:[12,120,2018,512]}))
+      instrumentPanel(ctx,x,y,width,height,accent);
   }
   const grit = n => { const v=Math.sin(n*78.233+12.9898)*43758.5453; return v-Math.floor(v); };
   function drawGrimyPlume(ctx,x,y,phase,spread,strength,colors,direction=1) {
@@ -3503,32 +3580,38 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.fillStyle = '#ff697a';
         ctx.fillRect(0, 163, 12, 750); ctx.fillRect(1908, 163, 12, 750);
       }
-      // The driving HUD prioritizes time, damage and ability readiness.
+      // A compact VFD instrument cluster leaves the original mirror and
+      // world aperture untouched. Every gauge reports existing live state.
       ctx.fillStyle = '#07121ff5'; ctx.fillRect(0, 0, 1920, 164);
-      instrumentPanel(ctx,20,5,605,153,'#79d9d1');
-      instrumentPanel(ctx,1338,5,562,153,s.fullAdrenaline?'#f6d38a':'#81d8d2');
-      ctx.strokeStyle='#678b96';ctx.lineWidth=2;
-      ctx.globalAlpha=1;
-      ctx.fillStyle = '#9ef6e2'; ctx.font = 'bold 32px Oxanium, monospace'; ctx.textAlign = 'left';
-      ctx.fillText('CACHE BACK  /  ORIGINAL MASTER', 42, 45);
-      ctx.fillStyle = '#c9e1e8'; ctx.font = '20px Oxanium, monospace';
-      ctx.fillText(`${names[section]}   •   ${songSection(s.musicBar)}   •   BAR ${Math.min(100, s.musicBar + 1)} / 100`,
-        44, 78, 568);
-      ctx.fillStyle = '#faf7e9'; ctx.font = 'bold 53px Oxanium, monospace';
-      ctx.fillText(`${Math.round(s.speed * 5.2)}`, 44, 140);
-      ctx.fillStyle = '#91bfd1'; ctx.font = '19px Oxanium, monospace'; ctx.fillText('KM/H', 173, 133);
-      ctx.font='bold 15px Oxanium, monospace';
-      ctx.fillStyle=s.pendingGear!==null||s.queuedTurbo?'#ffdfa0':'#a5e7da';
-      ctx.fillText(s.queuedTurbo?'TURBO / NEXT 1':s.pendingGear!==null?
-        `G${s.gear+1} > G${s.pendingGear+1} / NEXT 1`:`GEAR ${s.gear+1} / UP DOWN`,44,157);
-      ctx.fillStyle = s.timeMs < 8000 ? '#ff879d' : '#f7dfaa';
-      ctx.font = 'bold 39px Oxanium, monospace'; ctx.fillText(`${(s.timeMs/1000).toFixed(1)}s`, 300, 134);
-      ctx.fillStyle = '#a7bcca'; ctx.font = '16px Oxanium, monospace'; ctx.fillText('WINDOW', 303, 96);
-      for (let i = 0; i < 3; i++) {
-        ctx.fillStyle = i < s.integrity ? '#85efd1' : '#374959';
-        ctx.fillRect(520 + i*40, 111, 29, 20);
+      dashboardBezel(ctx,20,5,605,153,'#79d9d1');
+      dashboardBezel(ctx,1338,5,562,153,s.fullAdrenaline?'#f6d38a':'#81d8d2');
+      const dash=dashboardReadout(s);
+      ctx.globalAlpha=1;ctx.textAlign='left';ctx.fillStyle='#a4c9bc';
+      ctx.font='bold 14px Oxanium, monospace';
+      ctx.fillText('GEAR',279,40);ctx.fillText('TIME',412,42);
+      hudDigits(ctx,String(dash.mph).padStart(3,'0'),50,44,77);
+      ctx.fillStyle='#b3dec9';ctx.font='bold 18px Oxanium, monospace';
+      ctx.fillText('MPH',211,105);
+      hudSegments(ctx,50,129,195,18,dash.mph/243,s.boostMs?1:0);
+      hudDigits(ctx,dash.gear,283,44,77);
+      if(dash.queuedGear!==null) {
+        hudIcon(ctx,7,337,48,19,1);hudDigits(ctx,dash.queuedGear,335,73,36,1);
+        ctx.fillStyle=DASH_COLORS[1];ctx.font='bold 12px Oxanium, monospace';
+        ctx.fillText('NEXT 1',331,133);
       }
-      ctx.fillStyle = '#a7bcca'; ctx.fillText('SIGNAL', 520, 96);
+      hudIcon(ctx,1,385,27,21,dash.lowTime?2:1);
+      hudDigits(ctx,dash.clock,383,57,43,dash.lowTime?2:1);
+      hudIcon(ctx,0,551,30,26,dash.integrity<=1?2:0);
+      for(let i=0;i<3;i++) {
+        ctx.fillStyle=i<dash.integrity?DASH_COLORS[dash.integrity<=1?2:0]:'#19343b';
+        ctx.fillRect(535+i*24,68,16,36);
+      }
+      ctx.fillStyle='#a4c9bc';ctx.font='bold 12px Oxanium, monospace';
+      ctx.fillText('SIGNAL',534,129);
+      hudIcon(ctx,6,385,116,18);
+      ctx.fillStyle='#bcebd3';ctx.font='bold 17px Oxanium, monospace';
+      ctx.fillText(String(s.score).padStart(6,'0'),410,131,73);
+      ctx.font='bold 12px Oxanium, monospace';ctx.fillText(`×${stackSize(s)}`,488,131,27);
       drawRearview(ctx, s, ['#f6adbb', '#f3b276', '#d2a4f9', '#9aefce'][section], reduced);
       ctx.fillStyle = '#e4ede5'; ctx.font = 'bold 18px Oxanium, monospace'; ctx.textAlign = 'left';
       // Preview the next lane/action before its bar is committed, without
@@ -3545,103 +3628,119 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const pressNow=inPadLane&&nextCue.strike;
       const showingCatch=s.pulseFlashMs>0 && s.pulseFlashAction!==null;
       const iconScale=padReady&&inPadLane&&!reduced?1+.28*nextCue.charge:1;
-      polygon(ctx,[[1352,17],[1395,17],[1407,27],[1407,70],
-        [1395,82],[1352,82],[1343,70],[1343,27]],'#050e17');
-      polygon(ctx,[[1355,21],[1392,21],[1402,30],[1402,68],
-        [1392,77],[1355,77],[1348,68],[1348,30]],
-        pressNow?'#a65e45':padReady?'#24585a':'#17323c');
+      const shownFace=showingCatch?PULSE_ACTIONS[s.pulseFlashAction]:nextFace;
+      const shownButton=showingCatch?(B.GamepadUI?.connected?
+        B.ControllerSettings?.button(shownFace.button)||shownFace.keyboard:shownFace.keyboard):nextButton;
+      const targetLane=showingCatch?s.pulseFlashLane:previewPulse?.lane;
+      ctx.fillStyle=pressNow?'#69432b':padReady?'#183e37':'#10262b';
+      ctx.fillRect(1366,31,67,57);
       if(s.pulseFlashMs&&!reduced) {
         ctx.save();ctx.globalAlpha=.75*s.pulseFlashMs/650;
         B.PresentationAssets?.draw?.('cachePulseBurst',ctx,
-          {x:1375,y:49,width:100,height:50});
+          {x:1400,y:57,width:94,height:50});
         ctx.restore();
       }
       if(showingCatch) {
         const cel=reduced?0:Math.min(7,Math.floor((650-s.pulseFlashMs)/82));
-        drawActionIcon(ctx,s.pulseFlashAction,1375,44,reduced?45:68,
-          '#c6ffe2',cel);
-      } else if(padVisible) drawActionIcon(ctx,nextPulse.action,1375,44,
+        drawActionIcon(ctx,s.pulseFlashAction,1400,57,reduced?45:60,'#c6ffe2',cel);
+      } else if(padVisible)drawActionIcon(ctx,nextPulse.action,1400,57,
         37*iconScale,'#c6ffe2',reduced?0:pressNow?2:0);
-      else if(previewPulse)drawActionIcon(ctx,previewPulse.action,1375,44,37,'#c6ffe2');
-      else drawLaneMark(ctx,s.lane,1375,43,35,'#9bd7d0');
-      ctx.fillStyle='#a8bfcb';ctx.font='bold 14px Oxanium, monospace';
-      ctx.fillText(showingCatch?`${s.pulseTiming||'ON BEAT'}  /  PHRASE CAPTURED`:
-        padVisible?`NEXT PAD  /  ${LANES[nextPulse.lane]}`:
-        previewPulse?`NEXT SECTION  /  ${LANES[previewPulse.lane]}`:'ROAD CLEAR',1418,29,460);
-      ctx.fillStyle=pressNow?'#fff2ad':'#d8f5e8';
-      ctx.font='bold 25px Oxanium, monospace';
-      ctx.fillText(showingCatch?
-        `${PULSE_ACTIONS[s.pulseFlashAction].label}  //  +${s.pulseCombo>=2?16:8} BARS`:
-        padVisible?`${nextButton}  ${nextFace.label}  •  ${pressNow?'PRESS!':padReady?
-        inPadLane?'HIT ON 1':'ENTER LANE':`${Math.ceil(nextCue.remaining)} BEATS`}`:
-        previewPulse?`${nextButton}  ${nextFace.label}  /  LINE UP`:'READ THE NEXT GAP',1418,56,465);
+      else if(previewPulse)drawActionIcon(ctx,previewPulse.action,1400,57,37,'#c6ffe2');
+      else drawLaneMark(ctx,s.lane,1400,57,35,'#55776d');
+      ctx.fillStyle=pressNow?'#ffd28d':'#102a28';ctx.fillRect(1443,31,60,55);
+      ctx.strokeStyle=pressNow?'#fff0c4':'#60968a';ctx.lineWidth=1.5;
+      ctx.strokeRect(1443.5,31.5,59,54);
+      ctx.fillStyle=pressNow?'#16271f':'#c8ffe3';
+      ctx.font='bold 29px Oxanium, monospace';ctx.textAlign='center';
+      ctx.fillText(shownButton||'—',1473,70,51);
+      ctx.textAlign='left';ctx.fillStyle='#8fc8b7';ctx.font='bold 15px Oxanium, monospace';
+      ctx.fillText(shownFace?.label||'READY',1517,43,181);
+      ctx.fillStyle=pressNow?DASH_COLORS[1]:DASH_COLORS[0];
+      ctx.font='bold 22px Oxanium, monospace';
+      ctx.fillText(showingCatch?`+${s.pulseCombo>=2?16:8}B  ${s.pulseTiming||'ON BEAT'}`:
+        padVisible?pressNow?'PRESS!':padReady?inPadLane?'HIT ON 1':'ENTER LANE':
+          `${Math.ceil(nextCue.remaining)} BEATS`:previewPulse?'LINE UP':'—',1517,69,202);
       if(padVisible&&!showingCatch) {
         for(let count=1;count<=4;count++) {
           const selected=padReady&&count===nextCue.count;
           const hot=padReady&&count===1&&nextCue.strike;
-          const px=1418+(count-1)*25;
-          polygon(ctx,[[px+3,61],[px+19,61],[px+22,65],[px+19,80],
-            [px+3,80],[px,76],[px,65]],hot?'#ffda83':selected?'#a5efd5':'#314b54');
-          ctx.fillStyle=hot?'#111b1d':'#09202a';
-          ctx.font='bold 14px Oxanium, monospace';ctx.textAlign='center';
-          ctx.fillText(String(count),px+11,76);
+          const px=1517+(count-1)*31;
+          ctx.fillStyle=hot?'#ffda83':selected?'#a5efd5':'#203f38';
+          ctx.fillRect(px,77,25,17);
+          ctx.fillStyle=hot?'#111b1d':'#09202a';ctx.font='bold 13px Oxanium, monospace';
+          ctx.textAlign='center';ctx.fillText(String(count),px+12.5,90);
         }
         ctx.textAlign='left';ctx.fillStyle=pressNow?'#ffefa7':'#a9c9c7';
-        ctx.font='bold 13px Oxanium, monospace';
-        ctx.fillText('BEAT 1',1523,76);
+        ctx.font='bold 12px Oxanium, monospace';ctx.fillText('ONE',1651,90);
       }
-      ctx.fillStyle = '#b5cbd0'; ctx.font = '16px Oxanium, monospace';
-      const armed = [s.ramMs > 0 ? `PUSH ${Math.ceil(s.ramMs / 100) / 10}s` : '',
-        s.shield ? 'BRACE READY' : ''].filter(Boolean).join('  •  ');
-      if(armed) {
-        ctx.font='bold 14px Oxanium, monospace';
-        ctx.fillText(armed,1623,76,267);
+      ctx.fillStyle='#8fc8b7';ctx.font='bold 11px Oxanium, monospace';
+      ctx.fillText('LANE',1773,39);
+      for(let lane=0;lane<4;lane++) {
+        const xx=1735+lane*34,target=lane===targetLane;
+        ctx.fillStyle=target?'#24483f':'#0a1d20';ctx.fillRect(xx,47,28,28);
+        ctx.strokeStyle=target?PALETTE[lane]:'#294640';ctx.lineWidth=target?2:1;
+        ctx.strokeRect(xx+.5,47.5,27,27);
+        drawLaneMark(ctx,lane,xx+14,61,18,target?PALETTE[lane]:'#4a6963');
+        if(lane===s.lane){ctx.fillStyle='#d8ffe9';ctx.fillRect(xx+10,79,8,3);}
       }
-      const meter = (x, label, value, color, display = `${Math.round(value)}%`) => {
-        ctx.fillStyle = '#afbdcb'; ctx.font = 'bold 14px Oxanium, monospace'; ctx.fillText(label, x, 88);
-        ctx.fillStyle = '#26364b'; ctx.fillRect(x, 95, 196, 14);
-        ctx.fillStyle = color; ctx.fillRect(x, 95, 196 * clamp(value/100,0,1), 14);
-        ctx.fillStyle = '#f7f8ec'; ctx.font = 'bold 14px Oxanium, monospace'; ctx.fillText(display, x + 204, 108);
-      };
-      meter(1345, 'ECHO', s.echoEnergy, '#83e6fc');
-      meter(1615, s.fullAdrenaline ? 'FULL ADRENALINE' : 'PARTS ACTIVE',
-        s.captures.length * 25, '#d0a4ff', `${s.captures.length}/4`);
-      ctx.fillStyle = '#e7f4e9'; ctx.font = 'bold 21px Oxanium, monospace';
-      ctx.fillText(`SCORE ${s.score}    STACK x${stackSize(s)}`, 1345, 135, 315);
-      ctx.fillStyle = s.boost || s.boostMs ? '#fbd899' : '#718995';
-      ctx.font = 'bold 17px Oxanium, monospace';
-      const turboButton = B.GamepadUI?.connected ? B.ControllerSettings?.button(4) : 'SPACE';
-      ctx.fillText(s.queuedTurbo ? 'TURBO / NEXT BEAT 1' : s.boostMs ? 'TURBO ACTIVE' : s.boost ? `${turboButton} TURBO READY` :
-        s.draftMs?`DRAFT ${Math.round(s.draftMs/6)}%`:`TURBO  ${s.nearMisses}/2 PASSES`, 1660, 131, 230);
-      // Four instrument cells carry the same shapes as the inlaid road bars.
-      for (let i = 0; i < 4; i++) {
-        const x = 642 + i * 171;
-        const capture = s.captures.find(item => item.lane === i);
-        const queued = s.queuedCaptures.find(item => item.lane === i);
-        ctx.fillStyle=capture?'#1b3843':queued?'#1c3040':'#112332';
-        ctx.fillRect(x,132,162,27);
-        ctx.strokeStyle=PALETTE[i];ctx.globalAlpha=capture ? .86 : queued ? .55 : .23;
-        ctx.strokeRect(x+.5,132.5,161,26);ctx.globalAlpha=1;
-        drawLaneMark(ctx,i,x+15,145,19,PALETTE[i]);
-        ctx.fillStyle=capture||queued?'#f1fff5':'#a4bdc4';
-        ctx.font='bold 15px Oxanium, monospace';ctx.textAlign='left';
-        ctx.fillText(`${LANES[i]}  ${queued?'NEXT':capture?
-          `${Math.max(0,Math.ceil((capture.endBeat-s.musicBeatFloat)/4))}B`:'—'}`,x+29,149,130);
-        ctx.fillStyle = PALETTE[i]; ctx.globalAlpha = capture ? 1 : queued ? .65 : s.lane === i ? .45 : .16;
-        ctx.fillRect(x+3,155,156,3);ctx.globalAlpha=1;
+      const turboRow=dash.turboMode==='queued'||dash.turboMode==='active'?1:0;
+      hudIcon(ctx,2,1365,103,21,turboRow);
+      ctx.fillStyle='#9bd6c0';ctx.font='bold 13px Oxanium, monospace';
+      ctx.fillText('TURBO',1392,115);ctx.fillText(dash.turboButton,1480,115,48);
+      hudSegments(ctx,1392,123,125,8,dash.turboValue,turboRow);
+      ctx.fillStyle=DASH_COLORS[turboRow];ctx.font='bold 11px Oxanium, monospace';
+      ctx.fillText(dash.turboMode==='queued'?'NEXT 1':dash.turboMode==='active'?'ON':
+        dash.turboMode==='ready'?'READY':dash.turboMode==='draft'?'DRAFT':`${s.nearMisses}/2`,1530,130,64);
+      hudIcon(ctx,3,1602,103,21,dash.echoMode==='active'?1:0);
+      ctx.fillStyle='#9bd6c0';ctx.font='bold 13px Oxanium, monospace';
+      ctx.fillText('ECHO',1628,115);ctx.fillText(dash.echoButton,1693,115,43);
+      hudSegments(ctx,1628,123,115,8,dash.echoValue,dash.echoMode==='active'?1:0);
+      ctx.fillStyle=DASH_COLORS[dash.echoMode==='active'?1:0];ctx.font='bold 11px Oxanium, monospace';
+      ctx.fillText(dash.echoMode==='active'?'ON':dash.echoMode==='ready'?'READY':
+        `${Math.round(s.echoEnergy)}%`,1751,130,47);
+      ctx.save();ctx.globalAlpha=s.shield?1:.2;hudIcon(ctx,4,1807,105,23);ctx.restore();
+      ctx.save();ctx.globalAlpha=s.ramMs>0?1:.2;hudIcon(ctx,5,1840,105,23,1);ctx.restore();
+      if(s.ramMs>0) {
+        ctx.fillStyle=DASH_COLORS[1];ctx.font='bold 10px Oxanium, monospace';
+        ctx.fillText(`${(Math.ceil(s.ramMs/100)/10).toFixed(1)}`,1844,137);
       }
-      ctx.textAlign = 'left';
-      if (s.cutFlashMs) {
-        ctx.fillStyle = '#dcfff1'; ctx.font = 'bold 17px Oxanium, monospace';
-        ctx.fillText(`CLOSE CUT x${s.cutStreak}  +${s.cutAward}  // TURBO + ECHO`, 1345, 155, 535);
-      } else if (s.gateAt != null && progress > s.gateAt - 220 && progress < s.gateAt) {
-        ctx.fillStyle = '#e7ffeb'; ctx.font = 'bold 17px Oxanium, monospace';
-        ctx.fillText(s.echo ? 'ECHO LEFT • ORIGINAL RIGHT' :
-          `${B.GamepadUI?.connected ? B.ControllerSettings?.button(5) : 'H'} ECHO LEFT • ORIGINAL RIGHT`, 1345, 155, 535);
-      } else if (s.messageMs > 0 && !s.stumbleMs &&
-          !(s.gateAt != null && progress > s.gateAt - 220 && progress < s.gateAt)) {
-        ctx.fillStyle = '#b4ffe4';
-        ctx.font = 'bold 17px Oxanium, monospace'; ctx.fillText(s.message, 1345, 155, 535);
+      // Lane shapes match road paint. Their bar countdown replaces long
+      // permanent names; queue arrows remain distinct from captured parts.
+      for(let lane=0;lane<4;lane++) {
+        const xx=642+lane*171,capture=s.captures.find(item=>item.lane===lane);
+        const queued=s.queuedCaptures.find(item=>item.lane===lane);
+        ctx.fillStyle=capture?'#153d32':queued?'#332e20':'#091f23';ctx.fillRect(xx,132,162,27);
+        ctx.strokeStyle=PALETTE[lane];ctx.globalAlpha=capture?.86:queued?.55:.23;
+        ctx.strokeRect(xx+.5,132.5,161,26);ctx.globalAlpha=1;
+        drawLaneMark(ctx,lane,xx+17,145,19,PALETTE[lane]);
+        if(queued&&!capture) {
+          hudIcon(ctx,7,xx+38,137,16,1);ctx.fillStyle=DASH_COLORS[1];
+          ctx.font='bold 12px Oxanium, monospace';ctx.fillText('NEXT',xx+59,151);
+        } else {
+          const remaining=capture?Math.max(0,Math.ceil((capture.endBeat-s.musicBeatFloat)/4)):0;
+          hudDigits(ctx,capture?remaining:'-',xx+40,136,20);
+          if(capture){ctx.fillStyle='#a9c9bc';ctx.font='bold 10px Oxanium, monospace';ctx.fillText('B',xx+68,152);}
+          hudSegments(ctx,xx+83,146,68,6,capture?
+            (capture.endBeat-s.musicBeatFloat)/Math.max(4,capture.endBeat-capture.startBeat):0);
+          if(queued) {
+            hudIcon(ctx,7,xx+83,134,10,1);ctx.fillStyle=DASH_COLORS[1];
+            ctx.font='bold 9px Oxanium, monospace';ctx.fillText('NEXT',xx+98,142);
+          }
+        }
+        if(s.fullAdrenaline) {
+          ctx.fillStyle='#ffd28d';ctx.fillRect(xx+4,155,154,2);
+        }
+      }
+      ctx.textAlign='left';
+      let receipt='';
+      if(s.cutFlashMs)receipt=`CLOSE CUT ×${s.cutStreak}  +${s.cutAward}`;
+      else if(s.gateAt!=null&&progress>s.gateAt-220&&progress<s.gateAt)
+        receipt=s.echo?'ECHO LEFT   |   ORIGINAL RIGHT':`${dash.echoButton} ECHO LEFT   |   ORIGINAL RIGHT`;
+      else if(s.messageMs>0&&!s.stumbleMs)receipt=s.message;
+      if(receipt) {
+        ctx.fillStyle='#071c22f2';ctx.fillRect(1345,142,540,19);
+        ctx.fillStyle='#b4ffe4';ctx.font='bold 14px Oxanium, monospace';
+        ctx.fillText(receipt,1353,156,524);
       }
       // Guidance only appears while its driving lesson is actionable.
       const cue = this.openingCue();

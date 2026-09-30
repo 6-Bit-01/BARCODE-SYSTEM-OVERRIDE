@@ -1,5 +1,22 @@
 # Decision Register
 
+## September 29, 2026 — custom digital instruments and the approved source bank
+
+The owner requested a custom 1980s digital-dashboard HUD with MPH, gear and
+useful visual data instead of excess wording. Readings must reflect actual
+state and input mappings; no invented RPM/fuel gauges. Redesign the existing
+top 164-pixel HUD band while preserving the road aperture, mirror face/crop
+and exact 2.3 px blur, plus current timing, gears, lamps and sound.
+
+The screenshot identifies the fenced `cachePlaceSubstation`, already marked
+LEFT in the asset audit. Enforce left/unmirrored placement and use the approved
+capacitor-exchange variant at its three right addresses. The full layout and
+48 core keys remain unchanged. Latest source-facing direction overrides
+historical key-count goals if they conflict; this correction does not reopen
+the previous clearance pass.
+See `CACHE_ROAD_DIGITAL_DASHBOARD.md`. Full CI remains the merge gate; Makko
+readability and feel remain owner review.
+
 ## September 29, 2026 — footprint separation and unchanged mirror blur
 
 The owner's screenshot shows a garage and green residential block occupying

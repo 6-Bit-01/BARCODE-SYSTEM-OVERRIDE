@@ -1,0 +1,24 @@
+{
+  "scope": "Scripted native Canvas visual sweep using actual production world, HUD and asset renderer; not input-driven gameplay or an audio recording.",
+  "base": "37717ca56188dbc708596a6d4cbb8e0aa320f27b",
+  "video": "Drive-Review.mp4",
+  "size": [
+    1280,
+    720
+  ],
+  "fps": 24,
+  "seconds": 16,
+  "frames": 384,
+  "startProgress": 2500,
+  "endProgress": 3776.666666666667,
+  "audio": false,
+  "blur": "2.3px",
+  "sourceSha256": {
+    "src/game/cache-road-proof.js": "8039cc16204a7dfafe710f9d5d7b6d8f940eee9d2d61511aacc50f5d4d06f131",
+    "src/game/cache-road-landscape.js": "eb852168cc9bd18334e15eb3a8791d4a8409d542ee81df1dd2e321bdebda31f3",
+    "src/engine/presentation-assets.js": "a995643bb03c488ca027d67658b623f73c4d3b85a548d2acae8a5a67fb5dcef5",
+    "tools/render-cache-road-mirror.cjs": "8ad39d7fd4f00c6078fa45ce64468a2f53dd08aa87e725cbdf4528e39f25e860"
+  },
+  "videoSha256": "195300d52825483c0f5684cae29eda2bbb3f49867b6e435fee84418d09760798",
+  "validation": "ffprobe confirms H.264,1280x720,24fps,384frames,16seconds; full ffmpeg decode passed. Four evenly spaced preview frames reviewed."
+}

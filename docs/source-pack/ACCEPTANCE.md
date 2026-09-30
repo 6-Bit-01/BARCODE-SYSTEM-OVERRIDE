@@ -1,5 +1,37 @@
 # Acceptance and Test Status
 
+## Digital dashboard and source-facing correction — September 29
+
+Require live MPH conversion, separate current/queued gear, timer, integrity,
+mapped action/ONE cue, Turbo/Echo state and real lane expiry. Check urgency,
+empty/ready/active states and art-loading fallbacks; reject invented gauges
+or labels baked into the bezel as fake state. Keyboard and remapped controller
+prompts must remain accurate. Confine the new dashboard to the existing top
+164-pixel HUD band and preserve the road aperture, mirror face/crop and exact
+2.3 px blur.
+The existing road proof and focused dashboard checker pass 38 production
+draws, including queued G1, active-plus-queued lane refresh and explicit
+final-exit guidance. Seven native scenarios support visual review. The cruise
+frame drops from 36 to 16 alphabetic HUD words; this does not establish
+readability in every state. All-file syntax passes; full regression and
+final-head Chromium/CI remain merge gates recorded in the PR/receipt.
+These focused results do not replace the complete gates.
+The real-browser asset gate includes 48 animated/stateful sheets plus three
+static HUD assets (51 total), published-byte parity and production remote
+loading with fallback disabled. Static glyphs are not animation coverage.
+
+The fenced `cachePlaceSubstation` may only appear left and unmirrored.
+Right sites 2939/3913/12944 use the approved capacitor-exchange variant;
+the complete serialized landscape/satellites and all 48 core keys remain.
+The bank-art checker passes 12 production main/rear observations, and the
+existing clearance checker passes 10 seeded routes/1,162 audited cards.
+Latest owner facing instructions override old key-count assertions when a
+source tag was wrong. Retain the previous clearance rules
+for every legal placement. Focused production checks, full regression, syntax
+and Chromium are merge gates; the PR/receipt identifies actual results.
+Owner Makko readability and controller/device feel remain open. See
+`CACHE_ROAD_DIGITAL_DASHBOARD.md`.
+
 ## Building clearance and rearview consistency — September 29
 
 Revisit garage address 1840 and the previously intersecting residential
