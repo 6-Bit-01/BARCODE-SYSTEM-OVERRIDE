@@ -12,7 +12,8 @@ function bridgeRig(storage) {
   const r=campaignRig(storage),{w,context,listeners}=r,B=w.BARCODE,C=B.Campaign;
   r.reachReady();
   for(const file of ['src/engine/cache-road-proof-profile.js','src/game/cache-road-landscape.js',
-    'src/game/cache-road-proof.js','src/engine/cache-bridge.js','src/core/action-input.js',
+    'src/game/cache-road-proof.js','src/engine/cache-scene-layouts.js','src/engine/cache-scene-effects.js',
+    'src/engine/comic-dialogue.js','src/engine/cache-bridge.js','src/core/action-input.js',
     'src/core/gamepad-ui.js','src/core/input.js'])load(context,file);
   const road=B.CacheRoadProof,bridge=B.CacheBridge;
   const pad={index:0,id:'Bridge boundary pad',mapping:'standard',connected:true,
@@ -423,12 +424,43 @@ async function checkRoadResultControllerEdges() {
   }
 }
 
+
+async function checkSceneClock() {
+  const r=bridgeRig(),{bridge,B}=r;await r.boot();
+  assert.equal(bridge.sceneElapsedMs,0,'fresh scene effects start at zero');
+  r.step(300);const first=bridge.sceneElapsedMs;assert(first>=299&&first<=301);
+  r.tap('Enter');assert.equal(bridge.cue,1);
+  assert.equal(bridge.sceneElapsedMs,first,'revealing another line does not restart scene effects');
+  r.step(120);assert(bridge.sceneElapsedMs>first);
+  const beforeTranscript=bridge.sceneElapsedMs;r.tap('t');r.step(1200);
+  assert.equal(bridge.sceneElapsedMs,beforeTranscript,'transcript freezes scene effects');
+  r.tap('t');r.step(120);assert(bridge.sceneElapsedMs>beforeTranscript);
+  await B.RuntimeLifecycle.pause('bridge-scene-clock');const beforePause=bridge.sceneElapsedMs;r.step(1200);
+  assert.equal(bridge.sceneElapsedMs,beforePause,'pause freezes scene effects');
+  await B.RuntimeLifecycle.resume('bridge-scene-clock');r.input();
+  r.key('s',true);const beforeSkip=bridge.sceneElapsedMs;r.step(1200);
+  assert.equal(bridge.sceneElapsedMs,beforeSkip,'holding skip freezes scene effects');
+  r.key('s',false);r.step(120);assert(bridge.sceneElapsedMs>beforeSkip);
+  const samePage=bridge.sceneElapsedMs;r.tap('Enter');assert.equal(bridge.cue,2);
+  assert.equal(bridge.sceneElapsedMs,samePage);r.tap('Enter');
+  assert.equal(bridge.page,1);assert.equal(bridge.sceneElapsedMs,0,'turning the page resets scene effects');
+  assert.deepEqual(copy(bridge.serialize()),{version:1,page:1,cue:0},'the transient clock never changes the save schema');
+  bridge.dispose();B.Campaign.intermission=true;bridge.start({version:1,page:3,cue:1});
+  assert.equal(bridge.sceneElapsedMs,0,'saved dialogue begins a new local presentation clock');
+  assert.deepEqual(copy(bridge.serialize()),{version:1,page:3,cue:1});
+  bridge.skipToReady();const wait=deferred();r.audio.roadPreparation=()=>wait.promise;
+  const drive=bridge.drive();assert(bridge.pending);const beforePending=bridge.sceneElapsedMs;r.step(1200);
+  assert.equal(bridge.sceneElapsedMs,beforePending,'pending audio preparation freezes scene effects');
+  wait.resolve({ok:true});assert((await drive).ok);
+}
+
 async function main() {
   const cues=await checkPagesAndFacts();
   await checkHeldControls();await checkSkipAndEscape();await checkSaves();await checkPendingAndFailure();
+  await checkSceneClock();
   await checkArchitectureCancellation();await checkCancelledResume();await checkRoadResumeMusic();
   await checkRoadResultControllerEdges();
-  console.log(`Cache bridge: ${cues} production cues, physical held inputs, independent five-second skip, save/restore, audio retry, cancelled road/DEV handoffs, silent completed road, restored-bar playback and released road-result controls passed.`);
+  console.log(`Cache bridge: ${cues} production cues, physical held inputs, independent five-second skip, save/restore, audio retry, cancelled road/DEV handoffs, silent completed road, restored-bar playback, released road-result controls and paused/transcript/skip/pending scene-effect clocks passed.`);
 }
 module.exports={bridgeRig};
 if(require.main===module)main().catch(error=>{console.error(error.stack||error);process.exitCode=1;});

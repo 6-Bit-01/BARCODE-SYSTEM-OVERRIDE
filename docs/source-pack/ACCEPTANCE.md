@@ -1,5 +1,31 @@
 # Acceptance and Test Status
 
+## Chat bubbles and cutscene effects — September 30
+
+Import the merged revision identified by the PR/receipt through the normal
+Makko route, reload and open the Cache bridge, then replay an earned ending.
+
+1. Read all eight bridge and four ending scenes. Speaker pointers should
+   identify visible people; offscreen/comms lines use dark receiver cards.
+   All words, faces, cassette/hand interactions, CRT status labels and the
+   street gate stay readable. The complete art remains visible inside its frame.
+2. Observe street rain/reflections, studio screens and tape accents, and
+   ignition light. Pause and open the transcript: time stops. Close/resume:
+   no jump or duplicate sound. Enable Reduced Motion, then disable flashes;
+   lettering stays put and effects are static.
+3. Test keyboard, pointer and controller reading. Hold skip five seconds;
+   only a fresh confirmation starts Drive or finishes the ending. Reload
+   mid-dialogue and confirm the saved page/cue resumes silently. Missing art
+   still exposes all dialogue and the transcript without an orphan pointer.
+4. Finish returns to the existing result with no duplicate reward or music.
+   The original opening, gameplay, halo depth and exact mirror blur remain
+   as before. Record platform, input device, chapter/page/cue, preferences and
+   a short clip for any visual or timing issue.
+
+Automated native/browser results and final-head full CI belong to the
+PR/generated receipt; they do not establish Makko or physical-device feel.
+Base/rollback is #158, `694f109cd776bf9b05013aabebc3e1347855dd45`.
+
 ## Brace ring depth — September 30 follow-up
 
 Import the merged revision from the PR/receipt through the normal Makko

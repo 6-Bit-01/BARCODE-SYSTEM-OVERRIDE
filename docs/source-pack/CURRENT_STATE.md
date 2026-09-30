@@ -1,5 +1,25 @@
 # Current State
 
+## September 30 — speech bubbles and living Cache panels
+
+The eight bridge scenes and four delivery scenes now share measured comic
+lettering: cream speech balloons with authored speaker pointers and dark
+crew-colored comms cards. Each page protects faces, the original cassette,
+comparison monitors and the street-access gate. The complete paintings stay
+inside their original frame. Local rain, lamp/pavement reflections, CRT
+waveforms and tape/ignition accents follow the illustrated scene; a subtle
+inset camera settle adds depth without cropping. Reduced Motion or disabled
+flashes gives static effects with the same lettering and reading controls.
+
+The shared game update owns a transient scene clock. Pause, transcript,
+held skip and pending Drive freeze it; page changes reset it. Existing
+page/cue checkpoints, all 24 dialogue lines, 36 cues, one-shot audio and
+fresh-confirm Drive/Finish behavior are preserved. Opening/tutorial and road
+are unchanged. See `CACHE_COMIC_PRESENTATION.md` and both native review folders.
+Exact local, CI and merge outcomes belong to the PR/generated receipt;
+Makko/physical-controller acceptance is unrecorded. Base/rollback is merged
+#158, `694f109cd776bf9b05013aabebc3e1347855dd45`.
+
 ## September 30 — Brace halo sits around the car
 
 Following merged #157, the owner identified the gold halo cutting through

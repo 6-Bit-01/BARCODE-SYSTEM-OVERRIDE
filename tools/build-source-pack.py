@@ -23,7 +23,7 @@ RETAINED_REVIEW_MEDIA = {
     "review-cache-encounters/Encounter-Review.mp4",
     "review-cache-lamps-chip-sound/Chip-SFX-Audition.mp3",
 }
-CURRENT_REVIEW = "review-cache-encounters/"
+CURRENT_REVIEWS = ("review-cache-bridge/", "review-cache-ending/")
 REVIEW_MEDIA_SUFFIXES = {".webp", ".png", ".mp4", ".jpg", ".jpeg", ".gif", ".mp3", ".wav"}
 ROOT_DOCUMENT_SUFFIXES = {".md", ".json", ".txt"}
 
@@ -34,7 +34,7 @@ def exclusion_reason(path):
     if path.as_posix().startswith(DOC_PREFIX) and path.suffix.lower() in REVIEW_MEDIA_SUFFIXES:
         relative = path.as_posix()[len(DOC_PREFIX):]
         if relative in RETAINED_REVIEW_MEDIA or (
-            relative.startswith(CURRENT_REVIEW) and path.suffix.lower() in {".webp", ".png"}
+            relative.startswith(CURRENT_REVIEWS) and path.suffix.lower() in {".webp", ".png"}
         ):
             return None
         return "Review media retained in Git; omitted from the current source archive to keep complete code and source art within one downloadable file."

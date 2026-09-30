@@ -5,6 +5,7 @@ const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const crypto=require('node:crypto');
 const {spawn,execFileSync}=require('node:child_process');
 const {once}=require('node:events');
+const {inspectDialogue,inspectEffects}=require('./lib/check-cache-scene-layout.cjs');
 const {createCanvas,loadImage,GlobalFonts}=require('@napi-rs/canvas');
 const root=path.resolve(__dirname,'..');
 const hash=file=>crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
@@ -21,7 +22,7 @@ async function main() {
   const sandbox={window:w,document:{readyState:'loading',addEventListener(){}},
     console:{log(){},warn(){},error(){}},setTimeout(){throw Error('Unexpected review timer');},clearTimeout(){}};
   const context=vm.createContext(sandbox),productionSources={};
-  for(const file of ['src/engine/audio.js','src/engine/cache-bridge.js']) {
+  for(const file of ['src/engine/audio.js','src/engine/cache-scene-layouts.js','src/engine/cache-scene-effects.js','src/engine/comic-dialogue.js','src/engine/cache-bridge.js']) {
     const source=fs.readFileSync(path.join(root,file),'utf8');
     productionSources[file]=crypto.createHash('sha256').update(source).digest('hex');
     vm.runInContext(source,context,{filename:file});
@@ -65,7 +66,7 @@ async function main() {
   const scene=createCanvas(1920,1080),ctx=scene.getContext('2d');
   const video=createCanvas(1280,720),videoCtx=video.getContext('2d');
   const contact=createCanvas(1920,2160),contactCtx=contact.getContext('2d');
-  const textBounds=[],layoutChecks=[];let recordingBounds=false,currentTexts=[];
+  const textBounds=[],layoutChecks=[],effectChecks=[];let recordingBounds=false,currentTexts=[];
   const nativeText=ctx.fillText.bind(ctx);
   ctx.fillText=(value,x,y,...rest)=>{
     if(recordingBounds) {
@@ -80,16 +81,12 @@ async function main() {
     Math.min(a[3],b[3])-Math.max(a[1],b[1])>.5;
   const inside=(a,b)=>a[0]>=b[0]-1&&a[1]>=b[1]-1&&a[2]<=b[2]+1&&a[3]<=b[3]+1;
   function inspectLayout(page,cue,reduced,transcript=false) {
-    bridge.page=page;bridge.cue=cue;bridge.cueElapsedMs=240;bridge.transcriptOpen=transcript;
+    bridge.page=page;bridge.cue=cue;bridge.cueElapsedMs=240;bridge.sceneElapsedMs=6000;bridge.transcriptOpen=transcript;
     B.Preferences.values.reducedMotion=reduced;currentTexts=[];recordingBounds=true;
     ctx.reset();bridge.draw(ctx);recordingBounds=false;
     for(const entry of currentTexts) {
       assert(entry.bounds.every(Number.isFinite),'native text bounds are finite');
       assert(inside(entry.bounds,[0,0,1920,1080]),`Text escapes Canvas: ${entry.text}`);
-      if(entry.y>=844&&entry.y<987) {
-        const region=entry.x<996?[64,844,920,987]:[996,844,1852,987];
-        assert(inside(entry.bounds,region),`Caption escapes its panel: ${entry.text}`);
-      }
       if(entry.y>=1011) {
         const hit=Object.entries(bridge.bounds).find(([name,[x,y,width,height]])=>
           entry.x===x+16&&entry.y===y+13&&(name!=='architecture'||page===7));
@@ -102,11 +99,12 @@ async function main() {
       if(transcript&&entry.y>=154&&entry.y<744)
         assert(inside(entry.bounds,[160,154,1760,744]),`Transcript text escapes panel: ${entry.text}`);
     }
+    const dialogue=inspectDialogue({scene:bridge,B,chapter:'bridge',ctx,texts:currentTexts});
     for(let i=0;i<currentTexts.length;i++)for(let j=i+1;j<currentTexts.length;j++) {
       const a=currentTexts[i],b=currentTexts[j];
       assert(!overlap(a.bounds,b.bounds),`Text overlaps on page ${page+1}: ${a.text} / ${b.text}`);
     }
-    layoutChecks.push({page:page+1,cue,reducedMotion:reduced,transcript,textCount:currentTexts.length});
+    layoutChecks.push({page:page+1,cue,reducedMotion:reduced,transcript,textCount:currentTexts.length,dialogue});
     if(cue===2&&!transcript)textBounds.push({page:page+1,reducedMotion:reduced,text:currentTexts});
     return currentTexts.map(entry=>({text:entry.text,bounds:entry.bounds}));
   }
@@ -118,6 +116,8 @@ async function main() {
       assert.deepEqual(normal,reduced,'Reduced Motion keeps all captions and controls in place');
     }
     inspectLayout(page,2,false,true);inspectLayout(page,2,true,true);
+    effectChecks.push(inspectEffects({scene:bridge,B,chapter:'bridge',ctx,
+      hashPixels:()=>crypto.createHash('sha256').update(ctx.getImageData(0,0,1920,1080).data).digest('hex')}));
     inspectLayout(page,2,false);
     fs.writeFileSync(path.join(out,`Bridge-${String(page+1).padStart(2,'0')}.webp`),scene.toBuffer('image/webp',92));
     // Native drawImage can retain a live Canvas reference until encoding.
@@ -140,7 +140,7 @@ async function main() {
   const silent=path.join(out,'Bridge-Review-silent.tmp.mp4');
   encoder=spawn('ffmpeg',['-y','-loglevel','error','-f','rawvideo','-pixel_format','rgba',
     '-video_size','1280x720','-framerate',String(fps),'-i','pipe:0','-an',
-    '-c:v','libx264','-threads','2','-preset','medium','-crf','19','-pix_fmt','yuv420p',silent],
+    '-c:v','libx264','-threads','2','-preset','medium','-crf','26','-maxrate','1100k','-bufsize','2200k','-pix_fmt','yuv420p',silent],
   {stdio:['pipe','ignore','pipe']});
   let encoderError='';encoder.stderr.on('data',data=>{encoderError+=data;});
   const completion=once(encoder,'close');
@@ -193,13 +193,16 @@ async function main() {
   const stream=probe.streams.find(item=>item.codec_type==='video');
   assert.equal(Number(stream.nb_frames),frameCount);assert.equal(Number(stream.duration),seconds);
   assert.equal(stream.width,1280);assert.equal(stream.height,720);
+  assert(fs.statSync(movie).size<=10*1024*1024,'review MP4 fits connector transport limit');
+  execFileSync('ffmpeg',['-v','error','-i',movie,'-f','null','-']);
   const report={kind:'scripted native production draw with exact synthesized PCM; not Makko capture',
     seconds,fps,frames:frameCount,canvas:[1920,1080],video:[1280,720],contactSheet:[1920,2160],
     localImagesLoadedOnce:images.length,contextsCreated:3,contextsPerFrame:0,
     advance:'Every eight seconds, only after cue 2; final Ready remains active and Drive is never invoked.',
-    productionSources,
+    productionSources,reviewSources:Object.fromEntries(['tools/render-cache-bridge.cjs','tools/lib/check-cache-scene-layout.cjs'].map(file=>[file,hash(path.join(root,file))])),
+    effectChecks,deliveryEncoding:{codec:'libx264',preset:'medium',crf:26,maxrate:'1100k',maxBytes:10*1024*1024},
     images:bridge.panels.map((panel,i)=>({path:panel.asset,sha256:hash(path.join(root,panel.asset)),width:images[i].width,height:images[i].height})),
-    layout:{nativeTextMetrics:true,checks:layoutChecks,actualTextBounds:textBounds,overlaps:0,escapes:0,reducedMotionSameLayout:true},
+    layout:{nativeTextMetrics:true,protectedArtClear:true,pointersClear:true,speakerTabsFit:true,checks:layoutChecks,actualTextBounds:textBounds,overlaps:0,escapes:0,reducedMotionSameLayout:true},
     cueTransitions,finalState:{...bridge.serialize(),active:bridge.active,pending:bridge.pending},
     audio:{source:'Production AudioSystem.playCacheBridgeCue/createCacheBridgeBuffer/stopCacheBridgeAudio.',
       sampleRate,channels:1,sfxGain:.8,peak,rms:Math.sqrt(squared/mix.length),noSpeech:true,noSong:true,
@@ -208,6 +211,7 @@ async function main() {
       pcmSha256:hash(wav),note:'WAV is exact scheduled PCM at the stated SFX gain; MP4 contains its AAC encoding.'},
     outputs:['Bridge-Contact.webp',...Array.from({length:8},(_,i)=>`Bridge-${String(i+1).padStart(2,'0')}.webp`),
       'Bridge-Review.wav','Bridge-Review.mp4']};
+  report.artifacts=report.outputs.map(file=>({path:file,bytes:fs.statSync(path.join(out,file)).size,sha256:hash(path.join(out,file))}));
   fs.writeFileSync(path.join(out,'Bridge-Review.json'),JSON.stringify(report,null,2)+'\n');
   console.log(`Bridge review passed: ${frameCount} frames, ${seconds}s, ${layoutChecks.length} native layout checks, ${events.length} exact PCM cues, final Ready retained.`);
 }

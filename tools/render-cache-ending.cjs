@@ -5,6 +5,7 @@ const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const crypto=require('node:crypto');
 const {spawn,execFileSync}=require('node:child_process');
 const {once}=require('node:events');
+const {inspectDialogue,inspectEffects}=require('./lib/check-cache-scene-layout.cjs');
 const {createCanvas,loadImage,GlobalFonts}=require('@napi-rs/canvas');
 const root=path.resolve(__dirname,'..');
 const hash=file=>crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
@@ -26,7 +27,7 @@ async function main() {
   const sandbox={window:w,document:{readyState:'loading',addEventListener(){}},
     console:{log(){},warn(){},error(){}},setTimeout(){throw Error('Unexpected review timer');},clearTimeout(){}};
   const context=vm.createContext(sandbox),productionSources={};
-  for(const file of ['src/engine/audio.js','src/engine/cache-ending.js']) {
+  for(const file of ['src/engine/audio.js','src/engine/cache-scene-layouts.js','src/engine/cache-scene-effects.js','src/engine/comic-dialogue.js','src/engine/cache-ending.js']) {
     const source=fs.readFileSync(path.join(root,file),'utf8');
     productionSources[file]=crypto.createHash('sha256').update(source).digest('hex');
     vm.runInContext(source,context,{filename:file});
@@ -70,7 +71,7 @@ async function main() {
   const scene=createCanvas(1920,1080),ctx=scene.getContext('2d');
   const video=createCanvas(1280,720),videoCtx=video.getContext('2d');
   const contact=createCanvas(1920,1080),contactCtx=contact.getContext('2d');
-  const textBounds=[],layoutChecks=[];let recordingBounds=false,currentTexts=[];
+  const textBounds=[],layoutChecks=[],effectChecks=[];let recordingBounds=false,currentTexts=[];
   const nativeText=ctx.fillText.bind(ctx);
   ctx.fillText=(value,x,y,...rest)=>{
     if(recordingBounds) {
@@ -96,21 +97,17 @@ async function main() {
     return signs.every(sign=>sign>=-1)||signs.every(sign=>sign<=1);
   };
   function inspectLayout(page,cue,reduced,transcript=false,variant='standard') {
-    ending.page=page;ending.cue=cue;ending.cueElapsedMs=240;ending.transcriptOpen=transcript;
+    ending.page=page;ending.cue=cue;ending.cueElapsedMs=240;ending.sceneElapsedMs=6000;ending.transcriptOpen=transcript;
     B.Preferences.values.reducedMotion=reduced;currentTexts=[];recordingBounds=true;
     ctx.reset();ending.draw(ctx);recordingBounds=false;
     for(const entry of currentTexts) {
       assert(entry.bounds.every(Number.isFinite),'native text bounds are finite');
       assert(inside(entry.bounds,[0,0,1920,1080]),`Text escapes Canvas: ${entry.text}`);
       if(page===1&&monitorGlass[entry.text]) {
-        const f=ending.frame,scale=Math.min(f.w/1860,f.h/845);
-        const ox=f.x+(f.w-1860*scale)/2,oy=f.y+(f.h-845*scale)/2;
+        const f=ending.imageRect(),scale=f.w/1860;
+        const ox=f.x,oy=f.y;
         for(const [x,y] of entry.corners)assert(insideConvex([(x-ox)/scale,(y-oy)/scale],monitorGlass[entry.text]),
           `Receiver stamp escapes measured painted glass: ${entry.text}`);
-      }
-      if(entry.y>=844&&entry.y<987) {
-        const region=entry.x<996?[64,844,920,987]:[996,844,1852,987];
-        assert(inside(entry.bounds,region),`Caption escapes its panel: ${entry.text}`);
       }
       if(entry.y>=1011) {
         const hit=Object.entries(ending.bounds).find(([name,[x,y,width,height]])=>
@@ -124,11 +121,12 @@ async function main() {
       if(transcript&&entry.y>=154&&entry.y<744)
         assert(inside(entry.bounds,[160,154,1760,744]),`Transcript text escapes panel: ${entry.text}`);
     }
+    const dialogue=inspectDialogue({scene:ending,B,chapter:'ending',ctx,texts:currentTexts});
     for(let i=0;i<currentTexts.length;i++)for(let j=i+1;j<currentTexts.length;j++) {
       const a=currentTexts[i],b=currentTexts[j];
       assert(!overlap(a.bounds,b.bounds),`Text overlaps on page ${page+1}: ${a.text} / ${b.text}`);
     }
-    layoutChecks.push({page:page+1,cue,reducedMotion:reduced,transcript,variant,textCount:currentTexts.length});
+    layoutChecks.push({page:page+1,cue,reducedMotion:reduced,transcript,variant,textCount:currentTexts.length,dialogue});
     if(cue===2&&!transcript)textBounds.push({page:page+1,reducedMotion:reduced,variant,text:currentTexts});
     return currentTexts.map(entry=>({text:entry.text,bounds:entry.bounds}));
   }
@@ -137,9 +135,12 @@ async function main() {
   for(let page=0;page<4;page++) {
     for(let cue=0;cue<3;cue++) {
       const normal=inspectLayout(page,cue,false),reduced=inspectLayout(page,cue,true);
-      assert.deepEqual(normal,reduced,'Reduced Motion keeps all captions and controls in place');
+      assert.deepEqual(normal.filter(t=>!monitorGlass[t.text]),reduced.filter(t=>!monitorGlass[t.text]),
+        'Reduced Motion keeps balloons and controls fixed; monitor labels follow the actual image pose');
     }
     inspectLayout(page,2,false,true);inspectLayout(page,2,true,true);
+    effectChecks.push(inspectEffects({scene:ending,B,chapter:'ending',ctx,
+      hashPixels:()=>crypto.createHash('sha256').update(ctx.getImageData(0,0,1920,1080).data).digest('hex')}));
     inspectLayout(page,2,false);
     fs.writeFileSync(path.join(out,`Ending-${String(page+1).padStart(2,'0')}.webp`),scene.toBuffer('image/webp',92));
     // Native drawImage can retain a live Canvas reference until encoding.
@@ -173,7 +174,7 @@ async function main() {
   const silent=path.join(out,'Ending-Review-silent.tmp.mp4');
   encoder=spawn('ffmpeg',['-y','-loglevel','error','-f','rawvideo','-pixel_format','rgba',
     '-video_size','1280x720','-framerate',String(fps),'-i','pipe:0','-an',
-    '-c:v','libx264','-threads','2','-preset','medium','-crf','19','-pix_fmt','yuv420p',silent],
+    '-c:v','libx264','-threads','2','-preset','medium','-crf','26','-maxrate','2000k','-bufsize','4000k','-pix_fmt','yuv420p',silent],
   {stdio:['pipe','ignore','pipe']});
   let encoderError='';encoder.stderr.on('data',data=>{encoderError+=data;});
   const completion=once(encoder,'close');
@@ -243,18 +244,21 @@ async function main() {
   const stream=probe.streams.find(item=>item.codec_type==='video');
   assert.equal(Number(stream.nb_frames),frameCount);assert.equal(Number(stream.duration),seconds);
   assert.equal(stream.width,1280);assert.equal(stream.height,720);
+  assert(fs.statSync(movie).size<=10*1024*1024,'review MP4 fits connector transport limit');
+  execFileSync('ffmpeg',['-v','error','-i',movie,'-f','null','-']);
   const report={kind:'scripted native production draw with exact synthesized PCM; not Makko capture',
     seconds,fps,frames:frameCount,canvas:[1920,1080],video:[1280,720],contactSheet:[1920,1080],
     localImagesLoadedOnce:images.length,contextsCreated:3,contextsPerFrame:0,
     advance:'Every eight seconds, only after cue 2; final Ready remains active and Finish chapter is never invoked.',
-    productionSources,
+    productionSources,reviewSources:Object.fromEntries(['tools/render-cache-ending.cjs','tools/lib/check-cache-scene-layout.cjs'].map(file=>[file,hash(path.join(root,file))])),
+    effectChecks,deliveryEncoding:{codec:'libx264',preset:'medium',crf:26,maxrate:'2000k',maxBytes:10*1024*1024},
     hostBoundaries:['Native Canvas and locally decoded art replace browser/network image delivery.',
       'Road clear, earned Bass and chapter persistence are explicit host fixtures, not integration evidence.',
       'Web Audio nodes capture actual production-synthesized buffers and scheduling; no real-time device playback.',
       'Controller layout uses production default button labels; no physical controller is exercised.'],
     checkpointWrites:saves.length,finishCalls,
     images:ending.panels.map((panel,i)=>({path:panel.asset,sha256:hash(path.join(root,panel.asset)),width:images[i].width,height:images[i].height})),
-    layout:{nativeTextMetrics:true,checks:layoutChecks,actualTextBounds:textBounds,overlaps:0,escapes:0,
+    layout:{nativeTextMetrics:true,protectedArtClear:true,pointersClear:true,speakerTabsFit:true,checks:layoutChecks,actualTextBounds:textBounds,overlaps:0,escapes:0,
       reducedMotionSameLayout:true,monitorLabelsInsideMeasuredGlass:true,monitorGlassSourcePixels:monitorGlass},
     cueTransitions,finalState:{...ending.serialize(),active:ending.active,done:ending.done},
     audio:{source:'Production AudioSystem.playCacheBridgeCue/createCacheBridgeBuffer/stopCacheBridgeAudio.',
@@ -266,6 +270,7 @@ async function main() {
       pcmSha256:hash(wav),note:'WAV is exact scheduled PCM at the stated SFX gain; MP4 contains its AAC encoding.'},
     outputs:['Ending-Contact.webp',...Array.from({length:4},(_,i)=>`Ending-${String(i+1).padStart(2,'0')}.webp`),
       'Ending-Review.wav','Ending-Cues.wav','Ending-Review.mp4']};
+  report.artifacts=report.outputs.map(file=>({path:file,bytes:fs.statSync(path.join(out,file)).size,sha256:hash(path.join(out,file))}));
   fs.writeFileSync(path.join(out,'Ending-Review.json'),JSON.stringify(report,null,2)+'\n');
   console.log(`Ending review passed: ${frameCount} frames, ${seconds}s, ${layoutChecks.length} native layout checks, ${events.length} exact PCM cues, final Ready retained.`);
 }

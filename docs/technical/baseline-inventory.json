@@ -36,6 +36,9 @@
     "src/engine/title-screen.js",
     "src/game/objectives.js",
     "src/engine/intro-sequence.js",
+    "src/engine/cache-scene-layouts.js",
+    "src/engine/cache-scene-effects.js",
+    "src/engine/comic-dialogue.js",
     "src/engine/cache-bridge.js",
     "src/engine/cache-ending.js",
     "src/engine/cutscene.js",
@@ -105,6 +108,9 @@
     "src/engine/title-screen.js",
     "src/game/objectives.js",
     "src/engine/intro-sequence.js",
+    "src/engine/cache-scene-layouts.js",
+    "src/engine/cache-scene-effects.js",
+    "src/engine/comic-dialogue.js",
     "src/engine/cache-bridge.js",
     "src/engine/cache-ending.js",
     "src/engine/cutscene.js",
@@ -331,6 +337,18 @@
         "status": "pass"
       },
       {
+        "file": "src/engine/cache-scene-layouts.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/engine/cache-scene-effects.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/engine/comic-dialogue.js",
+        "status": "pass"
+      },
+      {
         "file": "src/engine/cache-bridge.js",
         "status": "pass"
       },
@@ -473,11 +491,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 66,
+        "index": 69,
         "status": "pass"
       },
       {
-        "index": 68,
+        "index": 71,
         "status": "pass"
       }
     ]
@@ -855,6 +873,9 @@
     "src/engine/title-screen.js",
     "src/game/objectives.js",
     "src/engine/intro-sequence.js",
+    "src/engine/cache-scene-layouts.js",
+    "src/engine/cache-scene-effects.js",
+    "src/engine/comic-dialogue.js",
     "src/engine/cache-bridge.js",
     "src/engine/cache-ending.js",
     "src/engine/cutscene.js",

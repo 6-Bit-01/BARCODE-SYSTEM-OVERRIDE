@@ -9,6 +9,8 @@ const flush = async () => { for (let i = 0; i < 24; i++) await Promise.resolve()
 
 function completionRig(storage) {
   const r = bridgeRig(storage);
+  // bridgeRig loads the shared visual owners before either reading surface.
+  assert(r.B.CacheSceneLayouts && r.B.CacheSceneEffects && r.B.ComicDialogue);
   for (const file of ['src/game/cache-chapter.js', 'src/engine/cache-ending.js',
     'src/game/lore-records.js', 'src/game/pause-menu.js']) load(r.context, file);
   r.B.PauseMenu.snapshot = {}; r.B.PauseMenu.snapshotContext = { drawImage() {} };
@@ -59,17 +61,19 @@ async function checkFreshEnding() {
   assert.deepEqual(copy(r.C.archive().record.progress.results['level-01']), l1result);
   assert.deepEqual(copy(r.C.archive().getIds()), [], 'zero optional records still earns the complete chapter');
   const receipt = copy(r.road.chapter.delivery.result), updates = r.observed.roadUpdates;
-  const time = r.road.chapter.elapsedMs, starts = r.roadStarts();
+  const time = r.road.chapter.elapsedMs, starts = r.roadStarts(), sceneTime = r.ending.sceneElapsedMs;
   r.key('Enter', true, true); assert.equal(r.ending.cue, 0, 'held driving confirm cannot skip the ending title');
   r.key('Enter', false); r.tap('Enter'); assert.equal(r.ending.cue, 1);
   r.tap('t'); assert(r.ending.transcriptOpen);
   r.step(6000); assert.equal(r.ending.cue, 1, 'transcript holds authored cue timing');
   assert.equal(r.observed.roadUpdates, updates); assert.equal(r.observed.worldUpdates, 0);
   assert.equal(r.road.chapter.elapsedMs, time); assert.equal(r.roadStarts(), starts);
+  assert.equal(r.ending.sceneElapsedMs, sceneTime, 'transcript holds the ending effects on the real shared RAF');
   assert(!r.B.MusicTransport.getDiagnostics().running);
   assert.deepEqual(copy(r.road.chapter.delivery.result), receipt);
   r.tap('t'); r.tap('p'); await flush(); assert(r.w.isPaused);
-  const position = copy(r.ending.serialize()); r.step(2000);
+  const position = copy(r.ending.serialize()), pausedSceneTime = r.ending.sceneElapsedMs; r.step(2000);
+  assert.equal(r.ending.sceneElapsedMs, pausedSceneTime, 'pause holds ending effects on the real lifecycle');
   assert.deepEqual(copy(r.ending.serialize()), position);
   r.tap('p'); await flush(); assert(!r.w.isPaused && r.ending.active);
   assert(!r.B.MusicTransport.getDiagnostics().running, 'resume keeps the finished recording silent');
