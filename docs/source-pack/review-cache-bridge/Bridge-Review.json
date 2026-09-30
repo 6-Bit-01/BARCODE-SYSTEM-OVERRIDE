@@ -1,0 +1,4136 @@
+{
+  "kind": "scripted native production draw with exact synthesized PCM; not Makko capture",
+  "seconds": 64,
+  "fps": 12,
+  "frames": 768,
+  "canvas": [
+    1920,
+    1080
+  ],
+  "video": [
+    1280,
+    720
+  ],
+  "contactSheet": [
+    1920,
+    2160
+  ],
+  "localImagesLoadedOnce": 8,
+  "contextsCreated": 3,
+  "contextsPerFrame": 0,
+  "advance": "Every eight seconds, only after cue 2; final Ready remains active and Drive is never invoked.",
+  "productionSources": {
+    "src/engine/cache-bridge.js": "518870809f0a417e004f0130b0f0cbaa14512924c537b37471f91e2400777e70",
+    "src/engine/audio.js": "a285397149f2377446801b7287206875608dc776ecf3c2135b44a9ce19dc5e65"
+  },
+  "images": [
+    {
+      "path": "assets/cache-bridge/bridge-01-district.webp",
+      "sha256": "fe73f4f9d99094d954f7cb7aac7c99642675eaf3cdd33f5fedcffef103fc97af",
+      "width": 1859,
+      "height": 846
+    },
+    {
+      "path": "assets/cache-bridge/bridge-02-uplink.webp",
+      "sha256": "830f668f43c3a1105baef7b93b788df6a4f7a31b17bb939e2402babbe085dd2e",
+      "width": 1860,
+      "height": 845
+    },
+    {
+      "path": "assets/cache-bridge/bridge-03-original.webp",
+      "sha256": "a76f3a1e5374c24708c33150de1facdda67b95737edd00b5500b29cd2b660e62",
+      "width": 1860,
+      "height": 845
+    },
+    {
+      "path": "assets/cache-bridge/bridge-04-clean-copy.webp",
+      "sha256": "3f5a11e0bd3f83fb328d9a52fb1f73abe291e616cf29d19c24536c53c69ba62c",
+      "width": 1862,
+      "height": 845
+    },
+    {
+      "path": "assets/cache-bridge/bridge-05-keep-it.webp",
+      "sha256": "08c7e189746f34ba8a1b021cb8326618a59be8641d64fc9a3a312b7ff2ad22b7",
+      "width": 1860,
+      "height": 845
+    },
+    {
+      "path": "assets/cache-bridge/bridge-06-departure.webp",
+      "sha256": "cfc655311f786a783fce330d89af459c075a1c690f863c97ac39dc3ad7f02ffa",
+      "width": 1859,
+      "height": 846
+    },
+    {
+      "path": "assets/cache-bridge/bridge-07-ignition.webp",
+      "sha256": "4940ef74ef8464ce8b2477f38afe5bccf6cd19097be180f8b3feaa9b57fa676e",
+      "width": 1860,
+      "height": 845
+    },
+    {
+      "path": "assets/cache-bridge/bridge-08-cache-line.webp",
+      "sha256": "acd64c5f5e958c3905a0da11ebaddc54dc6a4309f893c4dce423ac79a4ec23ab",
+      "width": 1860,
+      "height": 845
+    }
+  ],
+  "layout": {
+    "nativeTextMetrics": true,
+    "checks": [
+      {
+        "page": 1,
+        "cue": 0,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 9
+      },
+      {
+        "page": 1,
+        "cue": 0,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 9
+      },
+      {
+        "page": 1,
+        "cue": 1,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 10
+      },
+      {
+        "page": 1,
+        "cue": 1,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 10
+      },
+      {
+        "page": 1,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 11
+      },
+      {
+        "page": 1,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 11
+      },
+      {
+        "page": 1,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": true,
+        "textCount": 16
+      },
+      {
+        "page": 1,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": true,
+        "textCount": 16
+      },
+      {
+        "page": 1,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 11
+      },
+      {
+        "page": 2,
+        "cue": 0,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 9
+      },
+      {
+        "page": 2,
+        "cue": 0,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 9
+      },
+      {
+        "page": 2,
+        "cue": 1,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 10
+      },
+      {
+        "page": 2,
+        "cue": 1,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 10
+      },
+      {
+        "page": 2,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 11
+      },
+      {
+        "page": 2,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 11
+      },
+      {
+        "page": 2,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": true,
+        "textCount": 16
+      },
+      {
+        "page": 2,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": true,
+        "textCount": 16
+      },
+      {
+        "page": 2,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 11
+      },
+      {
+        "page": 3,
+        "cue": 0,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 9
+      },
+      {
+        "page": 3,
+        "cue": 0,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 9
+      },
+      {
+        "page": 3,
+        "cue": 1,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 10
+      },
+      {
+        "page": 3,
+        "cue": 1,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 10
+      },
+      {
+        "page": 3,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 11
+      },
+      {
+        "page": 3,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 11
+      },
+      {
+        "page": 3,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": true,
+        "textCount": 16
+      },
+      {
+        "page": 3,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": true,
+        "textCount": 16
+      },
+      {
+        "page": 3,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 11
+      },
+      {
+        "page": 4,
+        "cue": 0,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 9
+      },
+      {
+        "page": 4,
+        "cue": 0,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 9
+      },
+      {
+        "page": 4,
+        "cue": 1,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 10
+      },
+      {
+        "page": 4,
+        "cue": 1,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 10
+      },
+      {
+        "page": 4,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 11
+      },
+      {
+        "page": 4,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 11
+      },
+      {
+        "page": 4,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": true,
+        "textCount": 16
+      },
+      {
+        "page": 4,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": true,
+        "textCount": 16
+      },
+      {
+        "page": 4,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 11
+      },
+      {
+        "page": 5,
+        "cue": 0,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 9
+      },
+      {
+        "page": 5,
+        "cue": 0,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 9
+      },
+      {
+        "page": 5,
+        "cue": 1,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 10
+      },
+      {
+        "page": 5,
+        "cue": 1,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 10
+      },
+      {
+        "page": 5,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 11
+      },
+      {
+        "page": 5,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 11
+      },
+      {
+        "page": 5,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": true,
+        "textCount": 16
+      },
+      {
+        "page": 5,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": true,
+        "textCount": 16
+      },
+      {
+        "page": 5,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 11
+      },
+      {
+        "page": 6,
+        "cue": 0,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 9
+      },
+      {
+        "page": 6,
+        "cue": 0,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 9
+      },
+      {
+        "page": 6,
+        "cue": 1,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 10
+      },
+      {
+        "page": 6,
+        "cue": 1,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 10
+      },
+      {
+        "page": 6,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 11
+      },
+      {
+        "page": 6,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 11
+      },
+      {
+        "page": 6,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": true,
+        "textCount": 16
+      },
+      {
+        "page": 6,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": true,
+        "textCount": 16
+      },
+      {
+        "page": 6,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 11
+      },
+      {
+        "page": 7,
+        "cue": 0,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 9
+      },
+      {
+        "page": 7,
+        "cue": 0,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 9
+      },
+      {
+        "page": 7,
+        "cue": 1,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 10
+      },
+      {
+        "page": 7,
+        "cue": 1,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 10
+      },
+      {
+        "page": 7,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 11
+      },
+      {
+        "page": 7,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 11
+      },
+      {
+        "page": 7,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": true,
+        "textCount": 16
+      },
+      {
+        "page": 7,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": true,
+        "textCount": 16
+      },
+      {
+        "page": 7,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 11
+      },
+      {
+        "page": 8,
+        "cue": 0,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 10
+      },
+      {
+        "page": 8,
+        "cue": 0,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 10
+      },
+      {
+        "page": 8,
+        "cue": 1,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 11
+      },
+      {
+        "page": 8,
+        "cue": 1,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 11
+      },
+      {
+        "page": 8,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 12
+      },
+      {
+        "page": 8,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 12
+      },
+      {
+        "page": 8,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": true,
+        "textCount": 17
+      },
+      {
+        "page": 8,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": true,
+        "textCount": 17
+      },
+      {
+        "page": 8,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 12
+      }
+    ],
+    "actualTextBounds": [
+      {
+        "page": 1,
+        "reducedMotion": false,
+        "text": [
+          {
+            "text": "BARCODE / CREW CHANNEL",
+            "x": 64,
+            "y": 27,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              65,
+              25.300000190734863,
+              317.79978942871094,
+              42.30000019073486
+            ]
+          },
+          {
+            "text": "THE DISTRICT ANSWERS",
+            "x": 64,
+            "y": 57,
+            "font": "bold 32px Oxanium, sans-serif",
+            "bounds": [
+              64,
+              54.28000068664551,
+              415.9447326660156,
+              79.28000068664551
+            ]
+          },
+          {
+            "text": "01 / 08",
+            "x": 1737,
+            "y": 34,
+            "font": "bold 28px Oxanium, sans-serif",
+            "bounds": [
+              1738,
+              29.6200008392334,
+              1824.1283111572266,
+              54.6200008392334
+            ]
+          },
+          {
+            "text": "MAC MODEM / COMMS",
+            "x": 89,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              858.3000001907349,
+              295.11985778808594,
+              875.3000001907349
+            ]
+          },
+          {
+            "text": "Outgoing relay is open.",
+            "x": 89,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              890.2849998474121,
+              388.2194519042969,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "6 BIT",
+            "x": 1021,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1022,
+              859.3000001907349,
+              1066.8999633789062,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "Hear that? They're still here.",
+            "x": 1021,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              1023,
+              890.2849998474121,
+              1387.2675170898438,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "ENTER / SPACE: Next scene",
+            "x": 1296,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1297,
+              1022.3000001907349,
+              1545.0198059082031,
+              1039.3000001907349
+            ]
+          },
+          {
+            "text": "T: Transcript",
+            "x": 406,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              406,
+              1023.3000001907349,
+              518.3199462890625,
+              1042.2999992370605
+            ]
+          },
+          {
+            "text": "ESC: Results",
+            "x": 80,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              81,
+              1022.3000001907349,
+              192.61990356445312,
+              1038.3000001907349
+            ]
+          },
+          {
+            "text": "Hold S 5s: Skip",
+            "x": 744,
+            "y": 1027,
+            "font": "18px Oxanium, sans-serif",
+            "bounds": [
+              745,
+              1025.9700002670288,
+              860.7293243408203,
+              1041.9700002670288
+            ]
+          }
+        ]
+      },
+      {
+        "page": 1,
+        "reducedMotion": true,
+        "text": [
+          {
+            "text": "BARCODE / CREW CHANNEL",
+            "x": 64,
+            "y": 27,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              65,
+              25.300000190734863,
+              317.79978942871094,
+              42.30000019073486
+            ]
+          },
+          {
+            "text": "THE DISTRICT ANSWERS",
+            "x": 64,
+            "y": 57,
+            "font": "bold 32px Oxanium, sans-serif",
+            "bounds": [
+              64,
+              54.28000068664551,
+              415.9447326660156,
+              79.28000068664551
+            ]
+          },
+          {
+            "text": "01 / 08",
+            "x": 1737,
+            "y": 34,
+            "font": "bold 28px Oxanium, sans-serif",
+            "bounds": [
+              1738,
+              29.6200008392334,
+              1824.1283111572266,
+              54.6200008392334
+            ]
+          },
+          {
+            "text": "MAC MODEM / COMMS",
+            "x": 89,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              858.3000001907349,
+              295.11985778808594,
+              875.3000001907349
+            ]
+          },
+          {
+            "text": "Outgoing relay is open.",
+            "x": 89,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              890.2849998474121,
+              388.2194519042969,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "6 BIT",
+            "x": 1021,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1022,
+              859.3000001907349,
+              1066.8999633789062,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "Hear that? They're still here.",
+            "x": 1021,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              1023,
+              890.2849998474121,
+              1387.2675170898438,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "ENTER / SPACE: Next scene",
+            "x": 1296,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1297,
+              1022.3000001907349,
+              1545.0198059082031,
+              1039.3000001907349
+            ]
+          },
+          {
+            "text": "T: Transcript",
+            "x": 406,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              406,
+              1023.3000001907349,
+              518.3199462890625,
+              1042.2999992370605
+            ]
+          },
+          {
+            "text": "ESC: Results",
+            "x": 80,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              81,
+              1022.3000001907349,
+              192.61990356445312,
+              1038.3000001907349
+            ]
+          },
+          {
+            "text": "Hold S 5s: Skip",
+            "x": 744,
+            "y": 1027,
+            "font": "18px Oxanium, sans-serif",
+            "bounds": [
+              745,
+              1025.9700002670288,
+              860.7293243408203,
+              1041.9700002670288
+            ]
+          }
+        ]
+      },
+      {
+        "page": 1,
+        "reducedMotion": false,
+        "text": [
+          {
+            "text": "BARCODE / CREW CHANNEL",
+            "x": 64,
+            "y": 27,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              65,
+              25.300000190734863,
+              317.79978942871094,
+              42.30000019073486
+            ]
+          },
+          {
+            "text": "THE DISTRICT ANSWERS",
+            "x": 64,
+            "y": 57,
+            "font": "bold 32px Oxanium, sans-serif",
+            "bounds": [
+              64,
+              54.28000068664551,
+              415.9447326660156,
+              79.28000068664551
+            ]
+          },
+          {
+            "text": "01 / 08",
+            "x": 1737,
+            "y": 34,
+            "font": "bold 28px Oxanium, sans-serif",
+            "bounds": [
+              1738,
+              29.6200008392334,
+              1824.1283111572266,
+              54.6200008392334
+            ]
+          },
+          {
+            "text": "MAC MODEM / COMMS",
+            "x": 89,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              858.3000001907349,
+              295.11985778808594,
+              875.3000001907349
+            ]
+          },
+          {
+            "text": "Outgoing relay is open.",
+            "x": 89,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              890.2849998474121,
+              388.2194519042969,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "6 BIT",
+            "x": 1021,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1022,
+              859.3000001907349,
+              1066.8999633789062,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "Hear that? They're still here.",
+            "x": 1021,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              1023,
+              890.2849998474121,
+              1387.2675170898438,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "ENTER / SPACE: Next scene",
+            "x": 1296,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1297,
+              1022.3000001907349,
+              1545.0198059082031,
+              1039.3000001907349
+            ]
+          },
+          {
+            "text": "T: Transcript",
+            "x": 406,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              406,
+              1023.3000001907349,
+              518.3199462890625,
+              1042.2999992370605
+            ]
+          },
+          {
+            "text": "ESC: Results",
+            "x": 80,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              81,
+              1022.3000001907349,
+              192.61990356445312,
+              1038.3000001907349
+            ]
+          },
+          {
+            "text": "Hold S 5s: Skip",
+            "x": 744,
+            "y": 1027,
+            "font": "18px Oxanium, sans-serif",
+            "bounds": [
+              745,
+              1025.9700002670288,
+              860.7293243408203,
+              1041.9700002670288
+            ]
+          }
+        ]
+      },
+      {
+        "page": 2,
+        "reducedMotion": false,
+        "text": [
+          {
+            "text": "BARCODE / CREW CHANNEL",
+            "x": 64,
+            "y": 27,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              65,
+              25.300000190734863,
+              317.79978942871094,
+              42.30000019073486
+            ]
+          },
+          {
+            "text": "THE TRANSIT LINE IS OPEN",
+            "x": 64,
+            "y": 57,
+            "font": "bold 32px Oxanium, sans-serif",
+            "bounds": [
+              64,
+              54.28000068664551,
+              453.384765625,
+              79.28000068664551
+            ]
+          },
+          {
+            "text": "02 / 08",
+            "x": 1737,
+            "y": 34,
+            "font": "bold 28px Oxanium, sans-serif",
+            "bounds": [
+              1738,
+              29.6200008392334,
+              1824.1283111572266,
+              54.6200008392334
+            ]
+          },
+          {
+            "text": "MAC MODEM",
+            "x": 89,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              859.3000001907349,
+              206.75991821289062,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "Local signal's back. The transit line is open.",
+            "x": 89,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              91,
+              890.2849998474121,
+              645.159912109375,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "CACHE BACK",
+            "x": 1021,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1022,
+              859.3000001907349,
+              1136.5599212646484,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "Then the original goes with me.",
+            "x": 1021,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              1021,
+              890.2849998474121,
+              1431.2607421875,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "ENTER / SPACE: Next scene",
+            "x": 1296,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1297,
+              1022.3000001907349,
+              1545.0198059082031,
+              1039.3000001907349
+            ]
+          },
+          {
+            "text": "T: Transcript",
+            "x": 406,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              406,
+              1023.3000001907349,
+              518.3199462890625,
+              1042.2999992370605
+            ]
+          },
+          {
+            "text": "ESC: Results",
+            "x": 80,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              81,
+              1022.3000001907349,
+              192.61990356445312,
+              1038.3000001907349
+            ]
+          },
+          {
+            "text": "Hold S 5s: Skip",
+            "x": 744,
+            "y": 1027,
+            "font": "18px Oxanium, sans-serif",
+            "bounds": [
+              745,
+              1025.9700002670288,
+              860.7293243408203,
+              1041.9700002670288
+            ]
+          }
+        ]
+      },
+      {
+        "page": 2,
+        "reducedMotion": true,
+        "text": [
+          {
+            "text": "BARCODE / CREW CHANNEL",
+            "x": 64,
+            "y": 27,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              65,
+              25.300000190734863,
+              317.79978942871094,
+              42.30000019073486
+            ]
+          },
+          {
+            "text": "THE TRANSIT LINE IS OPEN",
+            "x": 64,
+            "y": 57,
+            "font": "bold 32px Oxanium, sans-serif",
+            "bounds": [
+              64,
+              54.28000068664551,
+              453.384765625,
+              79.28000068664551
+            ]
+          },
+          {
+            "text": "02 / 08",
+            "x": 1737,
+            "y": 34,
+            "font": "bold 28px Oxanium, sans-serif",
+            "bounds": [
+              1738,
+              29.6200008392334,
+              1824.1283111572266,
+              54.6200008392334
+            ]
+          },
+          {
+            "text": "MAC MODEM",
+            "x": 89,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              859.3000001907349,
+              206.75991821289062,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "Local signal's back. The transit line is open.",
+            "x": 89,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              91,
+              890.2849998474121,
+              645.159912109375,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "CACHE BACK",
+            "x": 1021,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1022,
+              859.3000001907349,
+              1136.5599212646484,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "Then the original goes with me.",
+            "x": 1021,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              1021,
+              890.2849998474121,
+              1431.2607421875,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "ENTER / SPACE: Next scene",
+            "x": 1296,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1297,
+              1022.3000001907349,
+              1545.0198059082031,
+              1039.3000001907349
+            ]
+          },
+          {
+            "text": "T: Transcript",
+            "x": 406,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              406,
+              1023.3000001907349,
+              518.3199462890625,
+              1042.2999992370605
+            ]
+          },
+          {
+            "text": "ESC: Results",
+            "x": 80,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              81,
+              1022.3000001907349,
+              192.61990356445312,
+              1038.3000001907349
+            ]
+          },
+          {
+            "text": "Hold S 5s: Skip",
+            "x": 744,
+            "y": 1027,
+            "font": "18px Oxanium, sans-serif",
+            "bounds": [
+              745,
+              1025.9700002670288,
+              860.7293243408203,
+              1041.9700002670288
+            ]
+          }
+        ]
+      },
+      {
+        "page": 2,
+        "reducedMotion": false,
+        "text": [
+          {
+            "text": "BARCODE / CREW CHANNEL",
+            "x": 64,
+            "y": 27,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              65,
+              25.300000190734863,
+              317.79978942871094,
+              42.30000019073486
+            ]
+          },
+          {
+            "text": "THE TRANSIT LINE IS OPEN",
+            "x": 64,
+            "y": 57,
+            "font": "bold 32px Oxanium, sans-serif",
+            "bounds": [
+              64,
+              54.28000068664551,
+              453.384765625,
+              79.28000068664551
+            ]
+          },
+          {
+            "text": "02 / 08",
+            "x": 1737,
+            "y": 34,
+            "font": "bold 28px Oxanium, sans-serif",
+            "bounds": [
+              1738,
+              29.6200008392334,
+              1824.1283111572266,
+              54.6200008392334
+            ]
+          },
+          {
+            "text": "MAC MODEM",
+            "x": 89,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              859.3000001907349,
+              206.75991821289062,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "Local signal's back. The transit line is open.",
+            "x": 89,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              91,
+              890.2849998474121,
+              645.159912109375,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "CACHE BACK",
+            "x": 1021,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1022,
+              859.3000001907349,
+              1136.5599212646484,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "Then the original goes with me.",
+            "x": 1021,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              1021,
+              890.2849998474121,
+              1431.2607421875,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "ENTER / SPACE: Next scene",
+            "x": 1296,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1297,
+              1022.3000001907349,
+              1545.0198059082031,
+              1039.3000001907349
+            ]
+          },
+          {
+            "text": "T: Transcript",
+            "x": 406,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              406,
+              1023.3000001907349,
+              518.3199462890625,
+              1042.2999992370605
+            ]
+          },
+          {
+            "text": "ESC: Results",
+            "x": 80,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              81,
+              1022.3000001907349,
+              192.61990356445312,
+              1038.3000001907349
+            ]
+          },
+          {
+            "text": "Hold S 5s: Skip",
+            "x": 744,
+            "y": 1027,
+            "font": "18px Oxanium, sans-serif",
+            "bounds": [
+              745,
+              1025.9700002670288,
+              860.7293243408203,
+              1041.9700002670288
+            ]
+          }
+        ]
+      },
+      {
+        "page": 3,
+        "reducedMotion": false,
+        "text": [
+          {
+            "text": "BARCODE / CREW CHANNEL",
+            "x": 64,
+            "y": 27,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              65,
+              25.300000190734863,
+              317.79978942871094,
+              42.30000019073486
+            ]
+          },
+          {
+            "text": "THE ORIGINAL",
+            "x": 64,
+            "y": 57,
+            "font": "bold 32px Oxanium, sans-serif",
+            "bounds": [
+              64,
+              54.28000068664551,
+              269.3204040527344,
+              79.28000068664551
+            ]
+          },
+          {
+            "text": "03 / 08",
+            "x": 1737,
+            "y": 34,
+            "font": "bold 28px Oxanium, sans-serif",
+            "bounds": [
+              1738,
+              29.6200008392334,
+              1824.1283111572266,
+              54.6200008392334
+            ]
+          },
+          {
+            "text": "DJ FLOPPYDISC",
+            "x": 89,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              859.3000001907349,
+              232.85987854003906,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "The original. Room noise, names, every mistake.",
+            "x": 89,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              89,
+              890.2849998474121,
+              717.6021728515625,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "CACHE BACK",
+            "x": 1021,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1022,
+              859.3000001907349,
+              1136.5599212646484,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "Play the other one.",
+            "x": 1021,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              1023,
+              890.2849998474121,
+              1268.193374633789,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "ENTER / SPACE: Next scene",
+            "x": 1296,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1297,
+              1022.3000001907349,
+              1545.0198059082031,
+              1039.3000001907349
+            ]
+          },
+          {
+            "text": "T: Transcript",
+            "x": 406,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              406,
+              1023.3000001907349,
+              518.3199462890625,
+              1042.2999992370605
+            ]
+          },
+          {
+            "text": "ESC: Results",
+            "x": 80,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              81,
+              1022.3000001907349,
+              192.61990356445312,
+              1038.3000001907349
+            ]
+          },
+          {
+            "text": "Hold S 5s: Skip",
+            "x": 744,
+            "y": 1027,
+            "font": "18px Oxanium, sans-serif",
+            "bounds": [
+              745,
+              1025.9700002670288,
+              860.7293243408203,
+              1041.9700002670288
+            ]
+          }
+        ]
+      },
+      {
+        "page": 3,
+        "reducedMotion": true,
+        "text": [
+          {
+            "text": "BARCODE / CREW CHANNEL",
+            "x": 64,
+            "y": 27,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              65,
+              25.300000190734863,
+              317.79978942871094,
+              42.30000019073486
+            ]
+          },
+          {
+            "text": "THE ORIGINAL",
+            "x": 64,
+            "y": 57,
+            "font": "bold 32px Oxanium, sans-serif",
+            "bounds": [
+              64,
+              54.28000068664551,
+              269.3204040527344,
+              79.28000068664551
+            ]
+          },
+          {
+            "text": "03 / 08",
+            "x": 1737,
+            "y": 34,
+            "font": "bold 28px Oxanium, sans-serif",
+            "bounds": [
+              1738,
+              29.6200008392334,
+              1824.1283111572266,
+              54.6200008392334
+            ]
+          },
+          {
+            "text": "DJ FLOPPYDISC",
+            "x": 89,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              859.3000001907349,
+              232.85987854003906,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "The original. Room noise, names, every mistake.",
+            "x": 89,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              89,
+              890.2849998474121,
+              717.6021728515625,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "CACHE BACK",
+            "x": 1021,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1022,
+              859.3000001907349,
+              1136.5599212646484,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "Play the other one.",
+            "x": 1021,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              1023,
+              890.2849998474121,
+              1268.193374633789,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "ENTER / SPACE: Next scene",
+            "x": 1296,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1297,
+              1022.3000001907349,
+              1545.0198059082031,
+              1039.3000001907349
+            ]
+          },
+          {
+            "text": "T: Transcript",
+            "x": 406,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              406,
+              1023.3000001907349,
+              518.3199462890625,
+              1042.2999992370605
+            ]
+          },
+          {
+            "text": "ESC: Results",
+            "x": 80,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              81,
+              1022.3000001907349,
+              192.61990356445312,
+              1038.3000001907349
+            ]
+          },
+          {
+            "text": "Hold S 5s: Skip",
+            "x": 744,
+            "y": 1027,
+            "font": "18px Oxanium, sans-serif",
+            "bounds": [
+              745,
+              1025.9700002670288,
+              860.7293243408203,
+              1041.9700002670288
+            ]
+          }
+        ]
+      },
+      {
+        "page": 3,
+        "reducedMotion": false,
+        "text": [
+          {
+            "text": "BARCODE / CREW CHANNEL",
+            "x": 64,
+            "y": 27,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              65,
+              25.300000190734863,
+              317.79978942871094,
+              42.30000019073486
+            ]
+          },
+          {
+            "text": "THE ORIGINAL",
+            "x": 64,
+            "y": 57,
+            "font": "bold 32px Oxanium, sans-serif",
+            "bounds": [
+              64,
+              54.28000068664551,
+              269.3204040527344,
+              79.28000068664551
+            ]
+          },
+          {
+            "text": "03 / 08",
+            "x": 1737,
+            "y": 34,
+            "font": "bold 28px Oxanium, sans-serif",
+            "bounds": [
+              1738,
+              29.6200008392334,
+              1824.1283111572266,
+              54.6200008392334
+            ]
+          },
+          {
+            "text": "DJ FLOPPYDISC",
+            "x": 89,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              859.3000001907349,
+              232.85987854003906,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "The original. Room noise, names, every mistake.",
+            "x": 89,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              89,
+              890.2849998474121,
+              717.6021728515625,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "CACHE BACK",
+            "x": 1021,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1022,
+              859.3000001907349,
+              1136.5599212646484,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "Play the other one.",
+            "x": 1021,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              1023,
+              890.2849998474121,
+              1268.193374633789,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "ENTER / SPACE: Next scene",
+            "x": 1296,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1297,
+              1022.3000001907349,
+              1545.0198059082031,
+              1039.3000001907349
+            ]
+          },
+          {
+            "text": "T: Transcript",
+            "x": 406,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              406,
+              1023.3000001907349,
+              518.3199462890625,
+              1042.2999992370605
+            ]
+          },
+          {
+            "text": "ESC: Results",
+            "x": 80,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              81,
+              1022.3000001907349,
+              192.61990356445312,
+              1038.3000001907349
+            ]
+          },
+          {
+            "text": "Hold S 5s: Skip",
+            "x": 744,
+            "y": 1027,
+            "font": "18px Oxanium, sans-serif",
+            "bounds": [
+              745,
+              1025.9700002670288,
+              860.7293243408203,
+              1041.9700002670288
+            ]
+          }
+        ]
+      },
+      {
+        "page": 4,
+        "reducedMotion": false,
+        "text": [
+          {
+            "text": "BARCODE / CREW CHANNEL",
+            "x": 64,
+            "y": 27,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              65,
+              25.300000190734863,
+              317.79978942871094,
+              42.30000019073486
+            ]
+          },
+          {
+            "text": "LISTEN TO THE GAPS",
+            "x": 64,
+            "y": 57,
+            "font": "bold 32px Oxanium, sans-serif",
+            "bounds": [
+              66,
+              54.28000068664551,
+              367.72064208984375,
+              79.28000068664551
+            ]
+          },
+          {
+            "text": "04 / 08",
+            "x": 1737,
+            "y": 34,
+            "font": "bold 28px Oxanium, sans-serif",
+            "bounds": [
+              1738,
+              29.6200008392334,
+              1824.1283111572266,
+              54.6200008392334
+            ]
+          },
+          {
+            "text": "DJ FLOPPYDISC",
+            "x": 89,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              859.3000001907349,
+              232.85987854003906,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "Cleaner. But listen to the gaps.",
+            "x": 89,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              890.2849998474121,
+              488.00860595703125,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "CACHE BACK",
+            "x": 1021,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1022,
+              859.3000001907349,
+              1136.5599212646484,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "It didn't fix the recording. It took us out.",
+            "x": 1021,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              1023,
+              890.2849998474121,
+              1532.6737365722656,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "ENTER / SPACE: Next scene",
+            "x": 1296,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1297,
+              1022.3000001907349,
+              1545.0198059082031,
+              1039.3000001907349
+            ]
+          },
+          {
+            "text": "T: Transcript",
+            "x": 406,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              406,
+              1023.3000001907349,
+              518.3199462890625,
+              1042.2999992370605
+            ]
+          },
+          {
+            "text": "ESC: Results",
+            "x": 80,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              81,
+              1022.3000001907349,
+              192.61990356445312,
+              1038.3000001907349
+            ]
+          },
+          {
+            "text": "Hold S 5s: Skip",
+            "x": 744,
+            "y": 1027,
+            "font": "18px Oxanium, sans-serif",
+            "bounds": [
+              745,
+              1025.9700002670288,
+              860.7293243408203,
+              1041.9700002670288
+            ]
+          }
+        ]
+      },
+      {
+        "page": 4,
+        "reducedMotion": true,
+        "text": [
+          {
+            "text": "BARCODE / CREW CHANNEL",
+            "x": 64,
+            "y": 27,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              65,
+              25.300000190734863,
+              317.79978942871094,
+              42.30000019073486
+            ]
+          },
+          {
+            "text": "LISTEN TO THE GAPS",
+            "x": 64,
+            "y": 57,
+            "font": "bold 32px Oxanium, sans-serif",
+            "bounds": [
+              66,
+              54.28000068664551,
+              367.72064208984375,
+              79.28000068664551
+            ]
+          },
+          {
+            "text": "04 / 08",
+            "x": 1737,
+            "y": 34,
+            "font": "bold 28px Oxanium, sans-serif",
+            "bounds": [
+              1738,
+              29.6200008392334,
+              1824.1283111572266,
+              54.6200008392334
+            ]
+          },
+          {
+            "text": "DJ FLOPPYDISC",
+            "x": 89,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              859.3000001907349,
+              232.85987854003906,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "Cleaner. But listen to the gaps.",
+            "x": 89,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              890.2849998474121,
+              488.00860595703125,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "CACHE BACK",
+            "x": 1021,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1022,
+              859.3000001907349,
+              1136.5599212646484,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "It didn't fix the recording. It took us out.",
+            "x": 1021,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              1023,
+              890.2849998474121,
+              1532.6737365722656,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "ENTER / SPACE: Next scene",
+            "x": 1296,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1297,
+              1022.3000001907349,
+              1545.0198059082031,
+              1039.3000001907349
+            ]
+          },
+          {
+            "text": "T: Transcript",
+            "x": 406,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              406,
+              1023.3000001907349,
+              518.3199462890625,
+              1042.2999992370605
+            ]
+          },
+          {
+            "text": "ESC: Results",
+            "x": 80,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              81,
+              1022.3000001907349,
+              192.61990356445312,
+              1038.3000001907349
+            ]
+          },
+          {
+            "text": "Hold S 5s: Skip",
+            "x": 744,
+            "y": 1027,
+            "font": "18px Oxanium, sans-serif",
+            "bounds": [
+              745,
+              1025.9700002670288,
+              860.7293243408203,
+              1041.9700002670288
+            ]
+          }
+        ]
+      },
+      {
+        "page": 4,
+        "reducedMotion": false,
+        "text": [
+          {
+            "text": "BARCODE / CREW CHANNEL",
+            "x": 64,
+            "y": 27,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              65,
+              25.300000190734863,
+              317.79978942871094,
+              42.30000019073486
+            ]
+          },
+          {
+            "text": "LISTEN TO THE GAPS",
+            "x": 64,
+            "y": 57,
+            "font": "bold 32px Oxanium, sans-serif",
+            "bounds": [
+              66,
+              54.28000068664551,
+              367.72064208984375,
+              79.28000068664551
+            ]
+          },
+          {
+            "text": "04 / 08",
+            "x": 1737,
+            "y": 34,
+            "font": "bold 28px Oxanium, sans-serif",
+            "bounds": [
+              1738,
+              29.6200008392334,
+              1824.1283111572266,
+              54.6200008392334
+            ]
+          },
+          {
+            "text": "DJ FLOPPYDISC",
+            "x": 89,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              859.3000001907349,
+              232.85987854003906,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "Cleaner. But listen to the gaps.",
+            "x": 89,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              890.2849998474121,
+              488.00860595703125,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "CACHE BACK",
+            "x": 1021,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1022,
+              859.3000001907349,
+              1136.5599212646484,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "It didn't fix the recording. It took us out.",
+            "x": 1021,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              1023,
+              890.2849998474121,
+              1532.6737365722656,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "ENTER / SPACE: Next scene",
+            "x": 1296,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1297,
+              1022.3000001907349,
+              1545.0198059082031,
+              1039.3000001907349
+            ]
+          },
+          {
+            "text": "T: Transcript",
+            "x": 406,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              406,
+              1023.3000001907349,
+              518.3199462890625,
+              1042.2999992370605
+            ]
+          },
+          {
+            "text": "ESC: Results",
+            "x": 80,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              81,
+              1022.3000001907349,
+              192.61990356445312,
+              1038.3000001907349
+            ]
+          },
+          {
+            "text": "Hold S 5s: Skip",
+            "x": 744,
+            "y": 1027,
+            "font": "18px Oxanium, sans-serif",
+            "bounds": [
+              745,
+              1025.9700002670288,
+              860.7293243408203,
+              1041.9700002670288
+            ]
+          }
+        ]
+      },
+      {
+        "page": 5,
+        "reducedMotion": false,
+        "text": [
+          {
+            "text": "BARCODE / CREW CHANNEL",
+            "x": 64,
+            "y": 27,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              65,
+              25.300000190734863,
+              317.79978942871094,
+              42.30000019073486
+            ]
+          },
+          {
+            "text": "KEEP BOTH TRACES",
+            "x": 64,
+            "y": 57,
+            "font": "bold 32px Oxanium, sans-serif",
+            "bounds": [
+              66,
+              54.28000068664551,
+              352.68060302734375,
+              79.28000068664551
+            ]
+          },
+          {
+            "text": "05 / 08",
+            "x": 1737,
+            "y": 34,
+            "font": "bold 28px Oxanium, sans-serif",
+            "bounds": [
+              1738,
+              29.6200008392334,
+              1824.1283111572266,
+              54.6200008392334
+            ]
+          },
+          {
+            "text": "CACHE BACK",
+            "x": 89,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              859.3000001907349,
+              204.55992126464844,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "Keep both traces. This one leaves with me.",
+            "x": 89,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              91,
+              890.2849998474121,
+              647.7119140625,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "DJ FLOPPYDISC",
+            "x": 1021,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1022,
+              859.3000001907349,
+              1164.859878540039,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "Both saved. Crew channel stays open.",
+            "x": 1021,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              1023,
+              890.2849998474121,
+              1515.9407653808594,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "ENTER / SPACE: Next scene",
+            "x": 1296,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1297,
+              1022.3000001907349,
+              1545.0198059082031,
+              1039.3000001907349
+            ]
+          },
+          {
+            "text": "T: Transcript",
+            "x": 406,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              406,
+              1023.3000001907349,
+              518.3199462890625,
+              1042.2999992370605
+            ]
+          },
+          {
+            "text": "ESC: Results",
+            "x": 80,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              81,
+              1022.3000001907349,
+              192.61990356445312,
+              1038.3000001907349
+            ]
+          },
+          {
+            "text": "Hold S 5s: Skip",
+            "x": 744,
+            "y": 1027,
+            "font": "18px Oxanium, sans-serif",
+            "bounds": [
+              745,
+              1025.9700002670288,
+              860.7293243408203,
+              1041.9700002670288
+            ]
+          }
+        ]
+      },
+      {
+        "page": 5,
+        "reducedMotion": true,
+        "text": [
+          {
+            "text": "BARCODE / CREW CHANNEL",
+            "x": 64,
+            "y": 27,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              65,
+              25.300000190734863,
+              317.79978942871094,
+              42.30000019073486
+            ]
+          },
+          {
+            "text": "KEEP BOTH TRACES",
+            "x": 64,
+            "y": 57,
+            "font": "bold 32px Oxanium, sans-serif",
+            "bounds": [
+              66,
+              54.28000068664551,
+              352.68060302734375,
+              79.28000068664551
+            ]
+          },
+          {
+            "text": "05 / 08",
+            "x": 1737,
+            "y": 34,
+            "font": "bold 28px Oxanium, sans-serif",
+            "bounds": [
+              1738,
+              29.6200008392334,
+              1824.1283111572266,
+              54.6200008392334
+            ]
+          },
+          {
+            "text": "CACHE BACK",
+            "x": 89,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              859.3000001907349,
+              204.55992126464844,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "Keep both traces. This one leaves with me.",
+            "x": 89,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              91,
+              890.2849998474121,
+              647.7119140625,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "DJ FLOPPYDISC",
+            "x": 1021,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1022,
+              859.3000001907349,
+              1164.859878540039,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "Both saved. Crew channel stays open.",
+            "x": 1021,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              1023,
+              890.2849998474121,
+              1515.9407653808594,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "ENTER / SPACE: Next scene",
+            "x": 1296,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1297,
+              1022.3000001907349,
+              1545.0198059082031,
+              1039.3000001907349
+            ]
+          },
+          {
+            "text": "T: Transcript",
+            "x": 406,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              406,
+              1023.3000001907349,
+              518.3199462890625,
+              1042.2999992370605
+            ]
+          },
+          {
+            "text": "ESC: Results",
+            "x": 80,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              81,
+              1022.3000001907349,
+              192.61990356445312,
+              1038.3000001907349
+            ]
+          },
+          {
+            "text": "Hold S 5s: Skip",
+            "x": 744,
+            "y": 1027,
+            "font": "18px Oxanium, sans-serif",
+            "bounds": [
+              745,
+              1025.9700002670288,
+              860.7293243408203,
+              1041.9700002670288
+            ]
+          }
+        ]
+      },
+      {
+        "page": 5,
+        "reducedMotion": false,
+        "text": [
+          {
+            "text": "BARCODE / CREW CHANNEL",
+            "x": 64,
+            "y": 27,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              65,
+              25.300000190734863,
+              317.79978942871094,
+              42.30000019073486
+            ]
+          },
+          {
+            "text": "KEEP BOTH TRACES",
+            "x": 64,
+            "y": 57,
+            "font": "bold 32px Oxanium, sans-serif",
+            "bounds": [
+              66,
+              54.28000068664551,
+              352.68060302734375,
+              79.28000068664551
+            ]
+          },
+          {
+            "text": "05 / 08",
+            "x": 1737,
+            "y": 34,
+            "font": "bold 28px Oxanium, sans-serif",
+            "bounds": [
+              1738,
+              29.6200008392334,
+              1824.1283111572266,
+              54.6200008392334
+            ]
+          },
+          {
+            "text": "CACHE BACK",
+            "x": 89,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              859.3000001907349,
+              204.55992126464844,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "Keep both traces. This one leaves with me.",
+            "x": 89,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              91,
+              890.2849998474121,
+              647.7119140625,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "DJ FLOPPYDISC",
+            "x": 1021,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1022,
+              859.3000001907349,
+              1164.859878540039,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "Both saved. Crew channel stays open.",
+            "x": 1021,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              1023,
+              890.2849998474121,
+              1515.9407653808594,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "ENTER / SPACE: Next scene",
+            "x": 1296,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1297,
+              1022.3000001907349,
+              1545.0198059082031,
+              1039.3000001907349
+            ]
+          },
+          {
+            "text": "T: Transcript",
+            "x": 406,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              406,
+              1023.3000001907349,
+              518.3199462890625,
+              1042.2999992370605
+            ]
+          },
+          {
+            "text": "ESC: Results",
+            "x": 80,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              81,
+              1022.3000001907349,
+              192.61990356445312,
+              1038.3000001907349
+            ]
+          },
+          {
+            "text": "Hold S 5s: Skip",
+            "x": 744,
+            "y": 1027,
+            "font": "18px Oxanium, sans-serif",
+            "bounds": [
+              745,
+              1025.9700002670288,
+              860.7293243408203,
+              1041.9700002670288
+            ]
+          }
+        ]
+      },
+      {
+        "page": 6,
+        "reducedMotion": false,
+        "text": [
+          {
+            "text": "BARCODE / CREW CHANNEL",
+            "x": 64,
+            "y": 27,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              65,
+              25.300000190734863,
+              317.79978942871094,
+              42.30000019073486
+            ]
+          },
+          {
+            "text": "ONE PIECE",
+            "x": 64,
+            "y": 57,
+            "font": "bold 32px Oxanium, sans-serif",
+            "bounds": [
+              66,
+              54.28000068664551,
+              218.73629760742188,
+              79.28000068664551
+            ]
+          },
+          {
+            "text": "06 / 08",
+            "x": 1737,
+            "y": 34,
+            "font": "bold 28px Oxanium, sans-serif",
+            "bounds": [
+              1738,
+              29.6200008392334,
+              1824.1283111572266,
+              54.6200008392334
+            ]
+          },
+          {
+            "text": "6 BIT / COMMS",
+            "x": 89,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              858.3000001907349,
+              221.99990844726562,
+              875.3000001907349
+            ]
+          },
+          {
+            "text": "Get it there in one piece.",
+            "x": 89,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              890.2849998474121,
+              407.93951416015625,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "CACHE BACK",
+            "x": 1021,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1022,
+              859.3000001907349,
+              1136.5599212646484,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "The recording or the car?",
+            "x": 1021,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              1021,
+              890.2849998474121,
+              1349.2445068359375,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "ENTER / SPACE: Next scene",
+            "x": 1296,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1297,
+              1022.3000001907349,
+              1545.0198059082031,
+              1039.3000001907349
+            ]
+          },
+          {
+            "text": "T: Transcript",
+            "x": 406,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              406,
+              1023.3000001907349,
+              518.3199462890625,
+              1042.2999992370605
+            ]
+          },
+          {
+            "text": "ESC: Results",
+            "x": 80,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              81,
+              1022.3000001907349,
+              192.61990356445312,
+              1038.3000001907349
+            ]
+          },
+          {
+            "text": "Hold S 5s: Skip",
+            "x": 744,
+            "y": 1027,
+            "font": "18px Oxanium, sans-serif",
+            "bounds": [
+              745,
+              1025.9700002670288,
+              860.7293243408203,
+              1041.9700002670288
+            ]
+          }
+        ]
+      },
+      {
+        "page": 6,
+        "reducedMotion": true,
+        "text": [
+          {
+            "text": "BARCODE / CREW CHANNEL",
+            "x": 64,
+            "y": 27,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              65,
+              25.300000190734863,
+              317.79978942871094,
+              42.30000019073486
+            ]
+          },
+          {
+            "text": "ONE PIECE",
+            "x": 64,
+            "y": 57,
+            "font": "bold 32px Oxanium, sans-serif",
+            "bounds": [
+              66,
+              54.28000068664551,
+              218.73629760742188,
+              79.28000068664551
+            ]
+          },
+          {
+            "text": "06 / 08",
+            "x": 1737,
+            "y": 34,
+            "font": "bold 28px Oxanium, sans-serif",
+            "bounds": [
+              1738,
+              29.6200008392334,
+              1824.1283111572266,
+              54.6200008392334
+            ]
+          },
+          {
+            "text": "6 BIT / COMMS",
+            "x": 89,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              858.3000001907349,
+              221.99990844726562,
+              875.3000001907349
+            ]
+          },
+          {
+            "text": "Get it there in one piece.",
+            "x": 89,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              890.2849998474121,
+              407.93951416015625,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "CACHE BACK",
+            "x": 1021,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1022,
+              859.3000001907349,
+              1136.5599212646484,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "The recording or the car?",
+            "x": 1021,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              1021,
+              890.2849998474121,
+              1349.2445068359375,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "ENTER / SPACE: Next scene",
+            "x": 1296,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1297,
+              1022.3000001907349,
+              1545.0198059082031,
+              1039.3000001907349
+            ]
+          },
+          {
+            "text": "T: Transcript",
+            "x": 406,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              406,
+              1023.3000001907349,
+              518.3199462890625,
+              1042.2999992370605
+            ]
+          },
+          {
+            "text": "ESC: Results",
+            "x": 80,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              81,
+              1022.3000001907349,
+              192.61990356445312,
+              1038.3000001907349
+            ]
+          },
+          {
+            "text": "Hold S 5s: Skip",
+            "x": 744,
+            "y": 1027,
+            "font": "18px Oxanium, sans-serif",
+            "bounds": [
+              745,
+              1025.9700002670288,
+              860.7293243408203,
+              1041.9700002670288
+            ]
+          }
+        ]
+      },
+      {
+        "page": 6,
+        "reducedMotion": false,
+        "text": [
+          {
+            "text": "BARCODE / CREW CHANNEL",
+            "x": 64,
+            "y": 27,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              65,
+              25.300000190734863,
+              317.79978942871094,
+              42.30000019073486
+            ]
+          },
+          {
+            "text": "ONE PIECE",
+            "x": 64,
+            "y": 57,
+            "font": "bold 32px Oxanium, sans-serif",
+            "bounds": [
+              66,
+              54.28000068664551,
+              218.73629760742188,
+              79.28000068664551
+            ]
+          },
+          {
+            "text": "06 / 08",
+            "x": 1737,
+            "y": 34,
+            "font": "bold 28px Oxanium, sans-serif",
+            "bounds": [
+              1738,
+              29.6200008392334,
+              1824.1283111572266,
+              54.6200008392334
+            ]
+          },
+          {
+            "text": "6 BIT / COMMS",
+            "x": 89,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              858.3000001907349,
+              221.99990844726562,
+              875.3000001907349
+            ]
+          },
+          {
+            "text": "Get it there in one piece.",
+            "x": 89,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              890.2849998474121,
+              407.93951416015625,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "CACHE BACK",
+            "x": 1021,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1022,
+              859.3000001907349,
+              1136.5599212646484,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "The recording or the car?",
+            "x": 1021,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              1021,
+              890.2849998474121,
+              1349.2445068359375,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "ENTER / SPACE: Next scene",
+            "x": 1296,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1297,
+              1022.3000001907349,
+              1545.0198059082031,
+              1039.3000001907349
+            ]
+          },
+          {
+            "text": "T: Transcript",
+            "x": 406,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              406,
+              1023.3000001907349,
+              518.3199462890625,
+              1042.2999992370605
+            ]
+          },
+          {
+            "text": "ESC: Results",
+            "x": 80,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              81,
+              1022.3000001907349,
+              192.61990356445312,
+              1038.3000001907349
+            ]
+          },
+          {
+            "text": "Hold S 5s: Skip",
+            "x": 744,
+            "y": 1027,
+            "font": "18px Oxanium, sans-serif",
+            "bounds": [
+              745,
+              1025.9700002670288,
+              860.7293243408203,
+              1041.9700002670288
+            ]
+          }
+        ]
+      },
+      {
+        "page": 7,
+        "reducedMotion": false,
+        "text": [
+          {
+            "text": "BARCODE / CREW CHANNEL",
+            "x": 64,
+            "y": 27,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              65,
+              25.300000190734863,
+              317.79978942871094,
+              42.30000019073486
+            ]
+          },
+          {
+            "text": "ORIGINAL LOADED",
+            "x": 64,
+            "y": 57,
+            "font": "bold 32px Oxanium, sans-serif",
+            "bounds": [
+              66,
+              54.28000068664551,
+              328.4804992675781,
+              79.28000068664551
+            ]
+          },
+          {
+            "text": "07 / 08",
+            "x": 1737,
+            "y": 34,
+            "font": "bold 28px Oxanium, sans-serif",
+            "bounds": [
+              1738,
+              29.6200008392334,
+              1824.1283111572266,
+              54.6200008392334
+            ]
+          },
+          {
+            "text": "MAC MODEM / COMMS",
+            "x": 89,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              858.3000001907349,
+              295.11985778808594,
+              875.3000001907349
+            ]
+          },
+          {
+            "text": "Route is yours. Keep the original moving.",
+            "x": 89,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              91,
+              890.2849998474121,
+              620.56787109375,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "CACHE BACK",
+            "x": 1021,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1022,
+              859.3000001907349,
+              1136.5599212646484,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "Original loaded.",
+            "x": 1021,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              1022,
+              890.2849998474121,
+              1221.7933349609375,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "ENTER / SPACE: Next scene",
+            "x": 1296,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1297,
+              1022.3000001907349,
+              1545.0198059082031,
+              1039.3000001907349
+            ]
+          },
+          {
+            "text": "T: Transcript",
+            "x": 406,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              406,
+              1023.3000001907349,
+              518.3199462890625,
+              1042.2999992370605
+            ]
+          },
+          {
+            "text": "ESC: Results",
+            "x": 80,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              81,
+              1022.3000001907349,
+              192.61990356445312,
+              1038.3000001907349
+            ]
+          },
+          {
+            "text": "Hold S 5s: Skip",
+            "x": 744,
+            "y": 1027,
+            "font": "18px Oxanium, sans-serif",
+            "bounds": [
+              745,
+              1025.9700002670288,
+              860.7293243408203,
+              1041.9700002670288
+            ]
+          }
+        ]
+      },
+      {
+        "page": 7,
+        "reducedMotion": true,
+        "text": [
+          {
+            "text": "BARCODE / CREW CHANNEL",
+            "x": 64,
+            "y": 27,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              65,
+              25.300000190734863,
+              317.79978942871094,
+              42.30000019073486
+            ]
+          },
+          {
+            "text": "ORIGINAL LOADED",
+            "x": 64,
+            "y": 57,
+            "font": "bold 32px Oxanium, sans-serif",
+            "bounds": [
+              66,
+              54.28000068664551,
+              328.4804992675781,
+              79.28000068664551
+            ]
+          },
+          {
+            "text": "07 / 08",
+            "x": 1737,
+            "y": 34,
+            "font": "bold 28px Oxanium, sans-serif",
+            "bounds": [
+              1738,
+              29.6200008392334,
+              1824.1283111572266,
+              54.6200008392334
+            ]
+          },
+          {
+            "text": "MAC MODEM / COMMS",
+            "x": 89,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              858.3000001907349,
+              295.11985778808594,
+              875.3000001907349
+            ]
+          },
+          {
+            "text": "Route is yours. Keep the original moving.",
+            "x": 89,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              91,
+              890.2849998474121,
+              620.56787109375,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "CACHE BACK",
+            "x": 1021,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1022,
+              859.3000001907349,
+              1136.5599212646484,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "Original loaded.",
+            "x": 1021,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              1022,
+              890.2849998474121,
+              1221.7933349609375,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "ENTER / SPACE: Next scene",
+            "x": 1296,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1297,
+              1022.3000001907349,
+              1545.0198059082031,
+              1039.3000001907349
+            ]
+          },
+          {
+            "text": "T: Transcript",
+            "x": 406,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              406,
+              1023.3000001907349,
+              518.3199462890625,
+              1042.2999992370605
+            ]
+          },
+          {
+            "text": "ESC: Results",
+            "x": 80,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              81,
+              1022.3000001907349,
+              192.61990356445312,
+              1038.3000001907349
+            ]
+          },
+          {
+            "text": "Hold S 5s: Skip",
+            "x": 744,
+            "y": 1027,
+            "font": "18px Oxanium, sans-serif",
+            "bounds": [
+              745,
+              1025.9700002670288,
+              860.7293243408203,
+              1041.9700002670288
+            ]
+          }
+        ]
+      },
+      {
+        "page": 7,
+        "reducedMotion": false,
+        "text": [
+          {
+            "text": "BARCODE / CREW CHANNEL",
+            "x": 64,
+            "y": 27,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              65,
+              25.300000190734863,
+              317.79978942871094,
+              42.30000019073486
+            ]
+          },
+          {
+            "text": "ORIGINAL LOADED",
+            "x": 64,
+            "y": 57,
+            "font": "bold 32px Oxanium, sans-serif",
+            "bounds": [
+              66,
+              54.28000068664551,
+              328.4804992675781,
+              79.28000068664551
+            ]
+          },
+          {
+            "text": "07 / 08",
+            "x": 1737,
+            "y": 34,
+            "font": "bold 28px Oxanium, sans-serif",
+            "bounds": [
+              1738,
+              29.6200008392334,
+              1824.1283111572266,
+              54.6200008392334
+            ]
+          },
+          {
+            "text": "MAC MODEM / COMMS",
+            "x": 89,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              858.3000001907349,
+              295.11985778808594,
+              875.3000001907349
+            ]
+          },
+          {
+            "text": "Route is yours. Keep the original moving.",
+            "x": 89,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              91,
+              890.2849998474121,
+              620.56787109375,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "CACHE BACK",
+            "x": 1021,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1022,
+              859.3000001907349,
+              1136.5599212646484,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "Original loaded.",
+            "x": 1021,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              1022,
+              890.2849998474121,
+              1221.7933349609375,
+              920.2849998474121
+            ]
+          },
+          {
+            "text": "ENTER / SPACE: Next scene",
+            "x": 1296,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1297,
+              1022.3000001907349,
+              1545.0198059082031,
+              1039.3000001907349
+            ]
+          },
+          {
+            "text": "T: Transcript",
+            "x": 406,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              406,
+              1023.3000001907349,
+              518.3199462890625,
+              1042.2999992370605
+            ]
+          },
+          {
+            "text": "ESC: Results",
+            "x": 80,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              81,
+              1022.3000001907349,
+              192.61990356445312,
+              1038.3000001907349
+            ]
+          },
+          {
+            "text": "Hold S 5s: Skip",
+            "x": 744,
+            "y": 1027,
+            "font": "18px Oxanium, sans-serif",
+            "bounds": [
+              745,
+              1025.9700002670288,
+              860.7293243408203,
+              1041.9700002670288
+            ]
+          }
+        ]
+      },
+      {
+        "page": 8,
+        "reducedMotion": false,
+        "text": [
+          {
+            "text": "BARCODE / CREW CHANNEL",
+            "x": 64,
+            "y": 27,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              65,
+              25.300000190734863,
+              317.79978942871094,
+              42.30000019073486
+            ]
+          },
+          {
+            "text": "THE CACHE LINE",
+            "x": 64,
+            "y": 57,
+            "font": "bold 32px Oxanium, sans-serif",
+            "bounds": [
+              64,
+              54.28000068664551,
+              302.7684783935547,
+              79.28000068664551
+            ]
+          },
+          {
+            "text": "08 / 08",
+            "x": 1737,
+            "y": 34,
+            "font": "bold 28px Oxanium, sans-serif",
+            "bounds": [
+              1738,
+              29.6200008392334,
+              1824.1283111572266,
+              54.6200008392334
+            ]
+          },
+          {
+            "text": "6 BIT / COMMS",
+            "x": 89,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              858.3000001907349,
+              221.99990844726562,
+              875.3000001907349
+            ]
+          },
+          {
+            "text": "We're on the line.",
+            "x": 89,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              89,
+              890.2849998474121,
+              313.9793395996094,
+              914.2849998474121
+            ]
+          },
+          {
+            "text": "CACHE BACK",
+            "x": 1021,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1022,
+              859.3000001907349,
+              1136.5599212646484,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "Then let's make some noise.",
+            "x": 1021,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              1021,
+              890.2849998474121,
+              1392.0816040039062,
+              914.2849998474121
+            ]
+          },
+          {
+            "text": "ENTER / SPACE: DRIVE",
+            "x": 1296,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1297,
+              1022.3000001907349,
+              1498.3398132324219,
+              1039.3000001907349
+            ]
+          },
+          {
+            "text": "T: Transcript",
+            "x": 406,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              406,
+              1023.3000001907349,
+              518.3199462890625,
+              1042.2999992370605
+            ]
+          },
+          {
+            "text": "ESC: Results",
+            "x": 80,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              81,
+              1022.3000001907349,
+              192.61990356445312,
+              1038.3000001907349
+            ]
+          },
+          {
+            "text": "3: Level 3 test",
+            "x": 671,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              672,
+              1022.3000001907349,
+              798.0798950195312,
+              1038.3000001907349
+            ]
+          },
+          {
+            "text": "Hold S 5s: Skip",
+            "x": 1026,
+            "y": 1027,
+            "font": "18px Oxanium, sans-serif",
+            "bounds": [
+              1027,
+              1025.9700002670288,
+              1142.7293243408203,
+              1041.9700002670288
+            ]
+          }
+        ]
+      },
+      {
+        "page": 8,
+        "reducedMotion": true,
+        "text": [
+          {
+            "text": "BARCODE / CREW CHANNEL",
+            "x": 64,
+            "y": 27,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              65,
+              25.300000190734863,
+              317.79978942871094,
+              42.30000019073486
+            ]
+          },
+          {
+            "text": "THE CACHE LINE",
+            "x": 64,
+            "y": 57,
+            "font": "bold 32px Oxanium, sans-serif",
+            "bounds": [
+              64,
+              54.28000068664551,
+              302.7684783935547,
+              79.28000068664551
+            ]
+          },
+          {
+            "text": "08 / 08",
+            "x": 1737,
+            "y": 34,
+            "font": "bold 28px Oxanium, sans-serif",
+            "bounds": [
+              1738,
+              29.6200008392334,
+              1824.1283111572266,
+              54.6200008392334
+            ]
+          },
+          {
+            "text": "6 BIT / COMMS",
+            "x": 89,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              858.3000001907349,
+              221.99990844726562,
+              875.3000001907349
+            ]
+          },
+          {
+            "text": "We're on the line.",
+            "x": 89,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              89,
+              890.2849998474121,
+              313.9793395996094,
+              914.2849998474121
+            ]
+          },
+          {
+            "text": "CACHE BACK",
+            "x": 1021,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1022,
+              859.3000001907349,
+              1136.5599212646484,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "Then let's make some noise.",
+            "x": 1021,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              1021,
+              890.2849998474121,
+              1392.0816040039062,
+              914.2849998474121
+            ]
+          },
+          {
+            "text": "ENTER / SPACE: DRIVE",
+            "x": 1296,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1297,
+              1022.3000001907349,
+              1498.3398132324219,
+              1039.3000001907349
+            ]
+          },
+          {
+            "text": "T: Transcript",
+            "x": 406,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              406,
+              1023.3000001907349,
+              518.3199462890625,
+              1042.2999992370605
+            ]
+          },
+          {
+            "text": "ESC: Results",
+            "x": 80,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              81,
+              1022.3000001907349,
+              192.61990356445312,
+              1038.3000001907349
+            ]
+          },
+          {
+            "text": "3: Level 3 test",
+            "x": 671,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              672,
+              1022.3000001907349,
+              798.0798950195312,
+              1038.3000001907349
+            ]
+          },
+          {
+            "text": "Hold S 5s: Skip",
+            "x": 1026,
+            "y": 1027,
+            "font": "18px Oxanium, sans-serif",
+            "bounds": [
+              1027,
+              1025.9700002670288,
+              1142.7293243408203,
+              1041.9700002670288
+            ]
+          }
+        ]
+      },
+      {
+        "page": 8,
+        "reducedMotion": false,
+        "text": [
+          {
+            "text": "BARCODE / CREW CHANNEL",
+            "x": 64,
+            "y": 27,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              65,
+              25.300000190734863,
+              317.79978942871094,
+              42.30000019073486
+            ]
+          },
+          {
+            "text": "THE CACHE LINE",
+            "x": 64,
+            "y": 57,
+            "font": "bold 32px Oxanium, sans-serif",
+            "bounds": [
+              64,
+              54.28000068664551,
+              302.7684783935547,
+              79.28000068664551
+            ]
+          },
+          {
+            "text": "08 / 08",
+            "x": 1737,
+            "y": 34,
+            "font": "bold 28px Oxanium, sans-serif",
+            "bounds": [
+              1738,
+              29.6200008392334,
+              1824.1283111572266,
+              54.6200008392334
+            ]
+          },
+          {
+            "text": "6 BIT / COMMS",
+            "x": 89,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              90,
+              858.3000001907349,
+              221.99990844726562,
+              875.3000001907349
+            ]
+          },
+          {
+            "text": "We're on the line.",
+            "x": 89,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              89,
+              890.2849998474121,
+              313.9793395996094,
+              914.2849998474121
+            ]
+          },
+          {
+            "text": "CACHE BACK",
+            "x": 1021,
+            "y": 860,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1022,
+              859.3000001907349,
+              1136.5599212646484,
+              874.3000001907349
+            ]
+          },
+          {
+            "text": "Then let's make some noise.",
+            "x": 1021,
+            "y": 894,
+            "font": "bold 29px Oxanium, sans-serif",
+            "bounds": [
+              1021,
+              890.2849998474121,
+              1392.0816040039062,
+              914.2849998474121
+            ]
+          },
+          {
+            "text": "ENTER / SPACE: DRIVE",
+            "x": 1296,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              1297,
+              1022.3000001907349,
+              1498.3398132324219,
+              1039.3000001907349
+            ]
+          },
+          {
+            "text": "T: Transcript",
+            "x": 406,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              406,
+              1023.3000001907349,
+              518.3199462890625,
+              1042.2999992370605
+            ]
+          },
+          {
+            "text": "ESC: Results",
+            "x": 80,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              81,
+              1022.3000001907349,
+              192.61990356445312,
+              1038.3000001907349
+            ]
+          },
+          {
+            "text": "3: Level 3 test",
+            "x": 671,
+            "y": 1024,
+            "font": "bold 20px Oxanium, sans-serif",
+            "bounds": [
+              672,
+              1022.3000001907349,
+              798.0798950195312,
+              1038.3000001907349
+            ]
+          },
+          {
+            "text": "Hold S 5s: Skip",
+            "x": 1026,
+            "y": 1027,
+            "font": "18px Oxanium, sans-serif",
+            "bounds": [
+              1027,
+              1025.9700002670288,
+              1142.7293243408203,
+              1041.9700002670288
+            ]
+          }
+        ]
+      }
+    ],
+    "overlaps": 0,
+    "escapes": 0,
+    "reducedMotionSameLayout": true
+  },
+  "cueTransitions": [
+    {
+      "page": 1,
+      "cue": 0,
+      "at": 0
+    },
+    {
+      "page": 1,
+      "cue": 1,
+      "at": 0.8333333333333334
+    },
+    {
+      "page": 1,
+      "cue": 2,
+      "at": 4.833333333333333
+    },
+    {
+      "page": 2,
+      "cue": 0,
+      "at": 8
+    },
+    {
+      "page": 2,
+      "cue": 1,
+      "at": 8.833333333333334
+    },
+    {
+      "page": 2,
+      "cue": 2,
+      "at": 12.833333333333334
+    },
+    {
+      "page": 3,
+      "cue": 0,
+      "at": 16
+    },
+    {
+      "page": 3,
+      "cue": 1,
+      "at": 16.833333333333332
+    },
+    {
+      "page": 3,
+      "cue": 2,
+      "at": 20.833333333333332
+    },
+    {
+      "page": 4,
+      "cue": 0,
+      "at": 24
+    },
+    {
+      "page": 4,
+      "cue": 1,
+      "at": 24.833333333333332
+    },
+    {
+      "page": 4,
+      "cue": 2,
+      "at": 28.833333333333332
+    },
+    {
+      "page": 5,
+      "cue": 0,
+      "at": 32
+    },
+    {
+      "page": 5,
+      "cue": 1,
+      "at": 32.833333333333336
+    },
+    {
+      "page": 5,
+      "cue": 2,
+      "at": 36.833333333333336
+    },
+    {
+      "page": 6,
+      "cue": 0,
+      "at": 40
+    },
+    {
+      "page": 6,
+      "cue": 1,
+      "at": 40.833333333333336
+    },
+    {
+      "page": 6,
+      "cue": 2,
+      "at": 44.833333333333336
+    },
+    {
+      "page": 7,
+      "cue": 0,
+      "at": 48
+    },
+    {
+      "page": 7,
+      "cue": 1,
+      "at": 48.833333333333336
+    },
+    {
+      "page": 7,
+      "cue": 2,
+      "at": 52.833333333333336
+    },
+    {
+      "page": 8,
+      "cue": 0,
+      "at": 56
+    },
+    {
+      "page": 8,
+      "cue": 1,
+      "at": 56.833333333333336
+    },
+    {
+      "page": 8,
+      "cue": 2,
+      "at": 60.833333333333336
+    }
+  ],
+  "finalState": {
+    "version": 1,
+    "page": 7,
+    "cue": 2,
+    "active": true,
+    "pending": false
+  },
+  "audio": {
+    "source": "Production AudioSystem.playCacheBridgeCue/createCacheBridgeBuffer/stopCacheBridgeAudio.",
+    "sampleRate": 32000,
+    "channels": 1,
+    "sfxGain": 0.8,
+    "peak": 0.14706502854824066,
+    "rms": 0.007902002637887746,
+    "noSpeech": true,
+    "noSong": true,
+    "noRoadEngine": true,
+    "activeVoicesAfterStop": 0,
+    "cues": [
+      {
+        "kind": "relay",
+        "start": 0,
+        "stop": 0.56,
+        "naturalEnd": 0.56,
+        "gain": 0.48
+      },
+      {
+        "kind": "original",
+        "start": 16.833333333333332,
+        "stop": 18.773333333333333,
+        "naturalEnd": 18.773333333333333,
+        "gain": 0.48
+      },
+      {
+        "kind": "clean",
+        "start": 24.833333333333332,
+        "stop": 26.773333333333333,
+        "naturalEnd": 26.773333333333333,
+        "gain": 0.48
+      },
+      {
+        "kind": "tape",
+        "start": 32.833333333333336,
+        "stop": 33.303333333333335,
+        "naturalEnd": 33.303333333333335,
+        "gain": 0.48
+      },
+      {
+        "kind": "ignition",
+        "start": 48.833333333333336,
+        "stop": 49.99333333333333,
+        "naturalEnd": 49.99333333333333,
+        "gain": 0.44000000000000006
+      }
+    ],
+    "pcmSha256": "9aaf773cb9352d396ab31e94196056f120700b167f50ccb2bc13b1cebafcc7d7",
+    "note": "WAV is exact scheduled PCM at the stated SFX gain; MP4 contains its AAC encoding."
+  },
+  "outputs": [
+    "Bridge-Contact.webp",
+    "Bridge-01.webp",
+    "Bridge-02.webp",
+    "Bridge-03.webp",
+    "Bridge-04.webp",
+    "Bridge-05.webp",
+    "Bridge-06.webp",
+    "Bridge-07.webp",
+    "Bridge-08.webp",
+    "Bridge-Review.wav",
+    "Bridge-Review.mp4"
+  ],
+  "postCaptureVerification": {
+    "productionBridgeSha256": "fefdcfd894451ec52afe09ce009514c4f5188061ceb0d47ef33ba28910218877",
+    "onlyChange": "Immutable image-delivery pin replaced BRIDGE_ART_COMMIT with 9881bf126f2a529ccfe5c6262d4c1de98990973f. Byte-for-byte captured source is reproduced by reversing only this replacement.",
+    "renderUnaffected": "This native review loads the eight local authored files once; production draw/update/cue code and image bytes are unchanged."
+  }
+}

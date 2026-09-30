@@ -1,5 +1,21 @@
 # Decision Register
 
+## September 30, 2026 — approved eight-page Level 1 → Level 2 bridge
+
+Use an illustrated comic bridge to connect restored Voice/uplink to Cache's
+drive. The original was protected in the opening; this is a choice to carry
+it, not its first recording or acquisition. DJ preserves both traces, Mac
+opens access, and 6 Bit remains on street/comms. The clean copy's omissions
+raise the stakes without a new antagonist reveal or an early Bass award.
+
+Keep all eight new scenes, deliberate reading controls and the existing
+opening. Five-second skip reaches Ready; final Drive owns road/music start.
+Use approved character/car references and original synthesized musical cues,
+with no invented recorded voices or song excerpts. Exact runtime script and
+controls are in `CACHE_LINE_BRIDGE.md`. Standing authority permits merge
+only after full CI; Makko narrative pace and audiovisual preference remain
+owner review.
+
 ## September 29, 2026 — custom digital instruments and the approved source bank
 
 The owner requested a custom 1980s digital-dashboard HUD with MPH, gear and

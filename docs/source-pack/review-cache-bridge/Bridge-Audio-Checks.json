@@ -1,0 +1,90 @@
+{
+  "kind": "original-synthesized-cues",
+  "notSongExcerpts": true,
+  "noSpeech": true,
+  "metrics": {
+    "relay": {
+      "duration": 0.56,
+      "peak": 0.24250008165836334,
+      "rms": 0.04998333520258757
+    },
+    "original": {
+      "duration": 1.94,
+      "peak": 0.26581621170043945,
+      "rms": 0.048836640761492085
+    },
+    "clean": {
+      "duration": 1.94,
+      "peak": 0.26581621170043945,
+      "rms": 0.04069207827148542
+    },
+    "tape": {
+      "duration": 0.47,
+      "peak": 0.27576524019241333,
+      "rms": 0.05119690651638735
+    },
+    "ignition": {
+      "duration": 1.16,
+      "peak": 0.3342387080192566,
+      "rms": 0.08398163543304217
+    }
+  },
+  "motif": {
+    "bpm": 128,
+    "palette": "D/A octaves",
+    "retainedSamplesIdentical": 39580,
+    "removedNonzeroSamples": 19671,
+    "removedEighthSlotsOneBased": [
+      2,
+      4,
+      7
+    ]
+  },
+  "maxDurationSec": 1.94,
+  "cacheEntries": 5,
+  "maxBridgeVoices": 1,
+  "naturalEndCleanup": true,
+  "pageExitCleanup": true,
+  "pauseCleanup": true,
+  "noAutoResume": true,
+  "sharedSfxMute": true,
+  "noMusicSources": true,
+  "noEngine": true,
+  "protectedSyncHashes": true,
+  "audition": {
+    "note": "Exact production synthesized PCM at SFX gain 0.8. No original song, speech, engine loop or device recording.",
+    "seconds": 8.07,
+    "order": [
+      {
+        "name": "relay",
+        "start": 0,
+        "duration": 0.56,
+        "gain": 0.6
+      },
+      {
+        "name": "original",
+        "start": 0.9600000000000001,
+        "duration": 1.94,
+        "gain": 0.6
+      },
+      {
+        "name": "clean",
+        "start": 3.3,
+        "duration": 1.94,
+        "gain": 0.6
+      },
+      {
+        "name": "tape",
+        "start": 5.64,
+        "duration": 0.47,
+        "gain": 0.6
+      },
+      {
+        "name": "ignition",
+        "start": 6.51,
+        "duration": 1.16,
+        "gain": 0.55
+      }
+    ]
+  }
+}

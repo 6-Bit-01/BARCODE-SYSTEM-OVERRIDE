@@ -1003,6 +1003,104 @@ window.AudioSystem = class AudioSystem {
     return true;
   }
 
+  // Bridge cues are original synthesis, not excerpts of the level soundtrack
+  // or speech. The D/A palette recalls Cache Road, but no music profile, stem,
+  // transport or continuous engine is started during the illustrated scene.
+  createCacheBridgeBuffer(name) {
+    const lengths={relay:.56,original:1.94,clean:1.94,tape:.47,ignition:1.16};
+    const duration=lengths[name];if(!duration || !this.context?.createBuffer)return null;
+    const rate=32000,buffer=this.context.createBuffer(1,Math.ceil(duration*rate),rate);
+    const samples=buffer.getChannelData(0),eighth=60/128/2,root=293.664768;
+    const fifth=Math.pow(2,7/12),tones=[];
+    const add=(at,hz,length,gain,wave='pulse',endHz=hz)=>
+      tones.push({at,hz,length,gain,wave,endHz,phase:0});
+    if(name==='original'||name==='clean'){
+      // One authored bar, eight eighth-note slots. Clean retains the EXACT
+      // waveform/timing of every surviving note, deleting slots 2, 4 and 7.
+      // Each note ends before its next slot so those absences are real silence.
+      [1,fifth,2,fifth,1,2,fifth,fifth*2].forEach((ratio,index)=>{
+        if(name==='clean' && [1,3,6].includes(index))return;
+        const at=index*eighth;
+        add(at,root*ratio,.205,index===0||index===4?.33:.27,'pulse');
+        add(at,root*ratio*.5,.185,.16,'triangle');
+        add(at+.013,root*ratio*2,.15,.085,'fm');
+      });
+    }else if(name==='relay'){
+      [0,.075,.15].forEach((at,index)=>add(at,root*[1,2,fifth*2][index],.12,.19,'pulse'));
+      add(.235,root,.27,.23,'triangle');add(.25,root*2,.25,.15,'fm');
+      add(.32,root*fifth*2,.19,.13,'fm');
+    }else if(name==='tape'){
+      add(0,140,.08,.3,'triangle',58);add(.052,180,.095,.21,'metal',74);
+      add(.135,root,.22,.2,'pulse');add(.21,root*fifth,.23,.18,'fm');
+    }else if(name==='ignition'){
+      add(0,83,.15,.17,'pulse',57);add(.08,112,.13,.12,'metal',70);
+      add(.19,45,.36,.32,'pulse',108);add(.22,30,.42,.21,'triangle',54);
+      add(.50,108,.57,.25,'pulse',root*.25);add(.51,54,.56,.15,'triangle',root*.125);
+      add(.73,root,.33,.11,'fm');
+    }
+    const blep=(phase,step)=>phase<step?(phase/=step,phase+phase-phase*phase-1):
+      phase>1-step?(phase=(phase-1)/step,phase*phase+phase+phase+1):0;
+    let noise=0x63b7,held=0,low=0;
+    for(let i=0;i<samples.length;i++){
+      const t=i/rate;let value=0;
+      for(const tone of tones){
+        const age=t-tone.at;if(age<0||age>=tone.length)continue;
+        const u=age/tone.length,hz=tone.hz*Math.pow(tone.endHz/tone.hz,u);
+        tone.phase+=hz/rate;const cycle=tone.phase%1,phase=tone.phase*2*Math.PI;
+        let wave;
+        if(tone.wave==='pulse')wave=((cycle<.25?1:-1)+blep(cycle,hz/rate)-
+          blep((cycle+.75)%1,hz/rate)+.5)*.6;
+        else if(tone.wave==='triangle')wave=Math.asin(Math.sin(phase))*2/Math.PI;
+        else wave=Math.sin(phase+Math.sin(phase*(tone.wave==='metal'?1.4142:2))*
+          (tone.wave==='metal'?3.1:1.6)*Math.exp(-age*14));
+        const release=Math.min(1,(tone.length-age)/.025);
+        const envelope=Math.min(1,age/.004)*Math.exp(-u*(name==='ignition'?1.6:3.4))*release;
+        value+=wave*tone.gain*envelope;
+      }
+      if(i%4===0){noise=(noise>>1)|(((noise^(noise>>1))&1)<<14);held=(noise&1)?1:-1;}
+      low+=.15*(held-low);
+      const noiseGain=name==='tape'?.13*Math.exp(-t*36):name==='relay'?.026*Math.exp(-t*35):
+        name==='ignition'?.12*Math.exp(-Math.pow((t-.13)/.11,2))+.045*Math.exp(-Math.pow((t-.43)/.22,2)):0;
+      value+=(held-low*.7)*noiseGain;
+      const edge=Math.min(1,t/.002)*Math.min(1,(duration-t)/.035);
+      samples[i]=Math.round(Math.tanh(value*1.3)*.66*edge*32767)/32767;
+    }
+    samples[0]=0;samples[samples.length-1]=0;return buffer;
+  }
+
+  playCacheBridgeCue(name) {
+    if(!['relay','original','clean','tape','ignition'].includes(name))return false;
+    const ctx=this.context;
+    if(!ctx || ctx.state!=='running' || !this.sfxGain || !ctx.createBuffer ||
+        !ctx.createBufferSource || !ctx.createGain)return false;
+    this.stopCacheBridgeAudio();this.combatVoices ||= new Set();
+    while(this.combatVoices.size>=12){
+      const spare=[...this.combatVoices].find(voice=>!voice.critical);
+      if(!spare)return false;spare.dispose();
+    }
+    this.cacheBridgeBuffers ||= new Map();
+    if(!this.cacheBridgeBuffers.has(name))this.cacheBridgeBuffers.set(name,this.createCacheBridgeBuffer(name));
+    const source=ctx.createBufferSource(),gain=ctx.createGain(),now=ctx.currentTime;
+    source.buffer=this.cacheBridgeBuffers.get(name);source.loop=false;
+    // Original/clean are level matched on retained notes. The lower overall
+    // clean RMS is the intended missing material, never a global volume dip.
+    gain.gain.value=name==='ignition'?.55:.60;
+    source.connect(gain);gain.connect(this.sfxGain);
+    const voice={bridge:true,kind:name,source,gain,dispose:()=>{
+      if(!this.combatVoices.delete(voice))return;
+      source.onended=null;try{source.stop();}catch(_){}
+      source.disconnect();gain.disconnect();
+    }};
+    this.combatVoices.add(voice);source.onended=voice.dispose;source.start(now);
+    this.lastSFXCue={kind:`cacheBridge:${name}`,bridge:true,reason:'scheduled',
+      audioTimeSec:now,synthesized:true,duration:source.buffer.duration};
+    return true;
+  }
+
+  stopCacheBridgeAudio() {
+    for(const voice of this.combatVoices||[])if(voice.bridge)voice.dispose();
+  }
+
   // A miss cuts the bus for a beat and returns on the song grid. The five
   // synchronized sources continue underneath; none is stopped or re-seeked.
   playRoadStumble(options = {}) {
@@ -1232,6 +1330,7 @@ window.AudioSystem = class AudioSystem {
     for (const released of this.roadEngineReleases || [])
       if (released.generation === this.runtimeAudioGeneration) this.disposeRoadEngineGraph(released);
     this.stopRoadCues();
+    this.stopCacheBridgeAudio();
     return this.stopRhythm();
   }
   

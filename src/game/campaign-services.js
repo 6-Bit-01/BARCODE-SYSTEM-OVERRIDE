@@ -9,7 +9,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/campaign-services.js', exports: ['BA
   const C = B.Campaign = {
     run: null, deathHandled: false, result: null, intermission: false, restoring: false, contactSequence: null, roadAudioNotice: null,
     adapters: new Map(),
-    resetSession() { this.deathHandled=false;this.run = null; this.result = null; this.intermission = false; this.contactSequence = null; },
+    resetSession() { B.CacheBridge?.dispose?.({reset:true});this.deathHandled=false;this.run = null; this.result = null; this.intermission = false; this.contactSequence = null; },
     archive() { return window.lostDataSystem?.archive || (this.previewArchive ||= new B.LoreCollection()); },
     register(levelId, adapter) {
       if (!/^level-0[1-7]$/.test(levelId) || typeof adapter?.restore !== 'function' || this.adapters.has(levelId)) return false;
@@ -17,6 +17,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/campaign-services.js', exports: ['BA
     },
     begin(levelId = 'level-01') {
       if (this.restoring) return;
+      B.CacheBridge?.dispose?.({reset:true});
       this.intermission = false; this.result = null; this.contactSequence = null;
       this.deathHandled=false;
       this.run = { levelId, recoveryMode:B.LevelDifficulty?.recoveryMode || 'checkpoints', difficultyId: B.LevelDifficulty?.choice?.id || 'standard',
@@ -39,6 +40,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/campaign-services.js', exports: ['BA
     },
     retryBoss() {
       if (!this.run) return;
+      B.CacheBridge?.dispose?.({reset:true});
       if (this.run.completed) { this.run.practice = true; this.run.completed = false; }
       if(!this.deathHandled)this.run.retries++;this.deathHandled=false; this.contactSequence = null; this.intermission = false;
     },
@@ -75,7 +77,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/campaign-services.js', exports: ['BA
         fragments: [...(window.lostDataSystem?.collectedLore || [])], skyCaches: [...(p?.skyCaches || [])],
         ampCharges: count(B.signalAmpCharges), boss: p?.bossCheckpoint ? clone(p.bossCheckpoint) : null,
         result: this.result ? clone(this.result) : null };
+      if(checkpointId==='intermission')levelState.cacheBridge=B.CacheBridge?.serialize?.()||{version:1,page:0,cue:0};
       return this.archive().checkpoint({ levelId: this.run.levelId, checkpointId, levelState });
+    },
+    saveBridgeCheckpoint(state) {
+      if(this.restoring)return false;
+      const saved=this.readResume();
+      if(saved?.levelId!=='level-01'||saved.checkpointId!=='intermission')return false;
+      saved.levelState.cacheBridge=B.CacheBridge?.normalize?.(state)||{version:1,page:0,cue:0};
+      return this.archive().checkpoint(saved);
     },
     finish({ debugSkip = false } = {}) {
       if (!this.run || this.run.completed) return this.result;
@@ -115,7 +125,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/campaign-services.js', exports: ['BA
     readResume() {
       const current = this.archive().record.current, adapter = this.adapters.get(current?.levelId);
       if (!adapter || !(current.levelId === 'level-01' ? this.validateLevel01Checkpoint(current) : adapter.validate?.(current))) return null;
-      return clone(current);
+      const saved=clone(current);
+      if(saved.levelId==='level-01'&&saved.checkpointId==='intermission'&&B.CacheBridge)
+        saved.levelState.cacheBridge=B.CacheBridge.normalize(saved.levelState.cacheBridge);
+      return saved;
     },
     syncTitleButton() {
       const button = document.getElementById('continueButton');
@@ -128,44 +141,31 @@ window.FILE_MANIFEST.push({ name: 'src/game/campaign-services.js', exports: ['BA
     },
     restore(saved) {
       const adapter = this.adapters.get(saved?.levelId); if (!adapter) return false;
+      if(saved.levelId==='level-01'&&!this.validateLevel01Checkpoint(saved))return false;
       this.restoring = true;
       try {
         this.deathHandled=false;this.run = saved.levelId === 'level-01' ? clone(saved.levelState.run) : null;
         if (this.run) this.run.recoveryMode ||= 'checkpoints';
         this.result = saved.levelId === 'level-01' && saved.levelState.result ? clone(saved.levelState.result) : null;
         this.contactSequence = null; this.intermission = saved.checkpointId === 'intermission';
-        return adapter.restore(saved);
+        const restored=adapter.restore(saved);
+        if(restored&&this.intermission)B.CacheBridge?.start?.(saved.levelState.cacheBridge);
+        return restored;
       } finally { this.restoring = false; }
     },
     openIntermission() {
       if (!window.gameState?.victory || window.sector1Progression?.areCompletionControlsReady?.() === false) return false;
-      this.intermission = true; window.inputManager?.resetActionEdges?.(); return true;
+      this.intermission = true;
+      B.CacheBridge?.start?.(this.readResume()?.levelState?.cacheBridge);
+      window.inputManager?.resetActionEdges?.(); return true;
     },
-    closeIntermission() { this.intermission = false; window.inputManager?.resetActionEdges?.(); },
+    closeIntermission() {
+      if(B.CacheBridge?.pending)return false;
+      if(B.CacheBridge?.active)this.saveBridgeCheckpoint(B.CacheBridge.serialize());
+      B.CacheBridge?.dispose?.();this.intermission = false;window.inputManager?.resetActionEdges?.();return true;
+    },
     drawIntermission(ctx) {
-      ctx.save(); ctx.fillStyle = '#070f19'; ctx.fillRect(0, 0, 1920, 1080);
-      ctx.strokeStyle = '#92ffdc'; ctx.lineWidth = 3; ctx.strokeRect(290, 188, 1340, 770);
-      ctx.textAlign = 'center'; ctx.textBaseline='alphabetic'; ctx.fillStyle = '#92ffdc'; ctx.font = 'bold 25px Oxanium, monospace';
-      ctx.fillText('BARCODE NETWORK / OUTGOING CHANNEL', 960, 265);
-      ctx.fillStyle = '#f2f0e9'; ctx.font = 'bold 52px Oxanium, monospace'; ctx.fillText('VOICE RECOVERED', 960, 357);
-      ctx.font = '25px Oxanium, monospace'; ctx.fillStyle = '#c7a7ff'; ctx.fillText('CACHE BACK', 960, 445);
-      ctx.fillStyle = '#e0e6e9'; ctx.fillText('“Carrier is clean. I can get the signal out of this district.”', 960, 490);
-      ctx.font = '22px Oxanium, monospace';
-      ctx.fillText('Stem Key: Voice added to your campaign.', 960, 568);
-      if (this.roadAudioNotice) { ctx.fillStyle = '#ffb16e'; ctx.font = 'bold 19px Oxanium, monospace'; ctx.fillText(this.roadAudioNotice, 960, 615); }
-      ctx.fillStyle = '#9eafb9'; ctx.fillText('NEXT CHANNEL: THE CACHE LINE', 960, 657);
-      ctx.fillText('Drive the original tape through the road. Lock musical lanes as you go.', 960, 703);
-      if (this.archive().status !== 'ready') { ctx.fillStyle = '#ffb16e'; ctx.fillText('Save unavailable — keep this session open to retain progress.', 960, 740); }
-      ctx.fillStyle = '#163e42'; ctx.fillRect(575, 762, 770, 57);
-      ctx.strokeStyle = '#92ffdc'; ctx.strokeRect(575, 762, 770, 57);
-      ctx.fillStyle = '#92ffdc'; ctx.font = '20px Oxanium, monospace';
-      ctx.fillText(B.GamepadUI?.connected ? `${B.ControllerSettings?.button(0) || 'A'} — Preview The Cache Line` : 'ENTER / CLICK — Preview The Cache Line', 960, 799);
-      ctx.fillStyle = '#172936'; ctx.fillRect(575, 854, 770, 49);
-      ctx.strokeStyle = '#698794'; ctx.strokeRect(575, 854, 770, 49);
-      ctx.fillStyle = '#9eafb9'; ctx.font = '19px Oxanium, monospace';
-      ctx.fillText(B.GamepadUI?.connected ? `${B.ControllerSettings?.button(3) || 'Y'} — Level 3 architecture test` : '3 / CLICK — Level 3 architecture test', 960, 880);
-      ctx.fillText(B.GamepadUI?.connected ? `${B.ControllerSettings?.button(1) || 'B'} — Back to results` : 'ESC — Back to results', 960, 927);
-      ctx.restore();
+      B.CacheBridge?.draw?.(ctx);
     }
   };
   C.register('level-01', { restore(saved) { return window.sector1Progression?.restoreCampaignCheckpoint?.(saved) || false; } });

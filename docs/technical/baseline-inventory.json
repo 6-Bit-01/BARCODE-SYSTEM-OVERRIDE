@@ -36,6 +36,7 @@
     "src/engine/title-screen.js",
     "src/game/objectives.js",
     "src/engine/intro-sequence.js",
+    "src/engine/cache-bridge.js",
     "src/engine/cutscene.js",
     "src/core/loop.js",
     "src/core/runtime-lifecycle.js",
@@ -99,6 +100,7 @@
     "src/engine/title-screen.js",
     "src/game/objectives.js",
     "src/engine/intro-sequence.js",
+    "src/engine/cache-bridge.js",
     "src/engine/cutscene.js",
     "src/core/loop.js",
     "src/core/runtime-lifecycle.js",
@@ -319,6 +321,10 @@
         "status": "pass"
       },
       {
+        "file": "src/engine/cache-bridge.js",
+        "status": "pass"
+      },
+      {
         "file": "src/engine/cutscene.js",
         "status": "pass"
       },
@@ -437,11 +443,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 60,
+        "index": 61,
         "status": "pass"
       },
       {
-        "index": 62,
+        "index": 63,
         "status": "pass"
       }
     ]
@@ -504,6 +510,7 @@
       "sourceFiles": [
         "index.html",
         "sprites-manifest.json",
+        "src/engine/cache-bridge.js",
         "src/engine/cache-road-proof-profile.js",
         "src/engine/intro-sequence.js",
         "src/engine/parallax.js",
@@ -747,7 +754,7 @@
     {
       "global": "window.startGameLoop",
       "file": "src/core/loop.js",
-      "line": 191,
+      "line": 200,
       "loaded": true
     },
     {
@@ -817,6 +824,7 @@
     "src/engine/title-screen.js",
     "src/game/objectives.js",
     "src/engine/intro-sequence.js",
+    "src/engine/cache-bridge.js",
     "src/engine/cutscene.js",
     "src/core/loop.js",
     "src/core/runtime-lifecycle.js",

@@ -165,7 +165,9 @@ window.BARCODE = window.BARCODE || {};
       const prepared = await window.audioSystem?.prepareActiveMusicProfile?.();
       if (!prepared?.ok) throw new Error('Level 1 audio could not be prepared.');
     }
-    if ((options.restart || options.resume) && window.audioSystem && typeof window.audioSystem.startRuntimeGameplayMusic === 'function') {
+    if (generation !== initializerGeneration || state !== STATES.STARTING) return;
+    const bridgeResume=options.resume?.levelId==='level-01'&&options.resume.checkpointId==='intermission';
+    if (!bridgeResume && (options.restart || options.resume) && window.audioSystem && typeof window.audioSystem.startRuntimeGameplayMusic === 'function') {
       const musicResult = window.audioSystem.startRuntimeGameplayMusic();
       if (!musicResult || musicResult.ok === false) {
         throw new Error(`Restart music startup failed: ${musicResult && musicResult.reason || 'unknown'}`);
@@ -284,6 +286,7 @@ window.BARCODE = window.BARCODE || {};
   function stopOwnedResources(options) {
     options = options || {};
     namespace.CacheRoadProof?.dispose?.();
+    namespace.CacheBridge?.dispose?.();
     namespace.RunAndGunProof?.dispose?.();
     namespace.LevelDifficulty?.stop();
     namespace.IntroSequence?.reset();

@@ -1,5 +1,21 @@
 # Repository Guidance
 
+## September 30, 2026 — eight-scene Level 1 → Cache Line bridge
+
+The owner approved the illustrated bridge from Voice recovery to Cache Road.
+Keep the existing eight-page opening and all approved road behavior unchanged.
+Cache already owns the protected original; DJ keeps both traces, Mac opens
+access and 6 Bit stays on street/comms. Do not award Bass or add a villain
+reveal. The five synthesized effects are original musical cues, not song
+excerpts or voiced recordings.
+
+Use the shared Canvas/RAF/input owner, bounded optional page/cue saves and
+release-to-arm controls. Five-second skip reaches Ready; only a fresh final
+Drive starts Cache Road/song. Preserve retry/cancel cleanup, results return,
+transcript and Level 3 development access. Full regression/Chromium gate
+merge under standing owner authority; PR/receipt records exact results.
+Makko acceptance remains separate. See `docs/source-pack/CACHE_LINE_BRIDGE.md`.
+
 ## September 29, 2026 — live digital instruments and source-facing correction
 
 The owner requests a custom 1980s digital dashboard with less prose. Use live

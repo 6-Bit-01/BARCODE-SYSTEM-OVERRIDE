@@ -1,5 +1,24 @@
 # Current State
 
+## September 30 — eight-scene bridge from Voice to Cache Line
+
+From merged PR #153 (`658b99f`), the post-Level-1 intermission now presents
+eight illustrated scenes and sixteen dialogue lines: district response,
+opened uplink, original/clean comparison, preservation choice, departure,
+ignition and road handoff. The existing opening remains unchanged. New art
+uses established identities and rear car views; five short synthesized cues
+illustrate the comparison without speech or song excerpts.
+
+The shared Canvas/input route keeps the road stopped while reading. Page/cue
+saves are optional and backward compatible; Voice/results are preserved and
+Bass is not awarded. Hold skip for five seconds to reach Ready, then confirm
+Drive separately. Results, transcript and the Level 3 test remain available.
+Focused audio, 24-cue flow, full local regression and all-file syntax checks
+pass. Final-head Chromium/CI remain pending merge gates; actual
+outcomes are recorded by the PR/receipt. The completed 64-second native preview includes all eight pages and five
+cues; it is review evidence, not Makko acceptance. See `CACHE_LINE_BRIDGE.md` and
+`review-cache-bridge/`.
+
 ## September 29 — 1980s digital dashboard and left-only source correction
 
 From merged #152, this pass gives the HUD a custom instrument bezel with
