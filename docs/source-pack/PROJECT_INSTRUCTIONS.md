@@ -1,5 +1,79 @@
 # Project Instructions
 
+## October 1 — approved combat chase from the PR #168 checkpoint
+
+The owner approves [PR #169](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/169)
+on `agent/cache-combat-chase`, with merged
+PR #168 (`de003813dac96022e1ad19327ec827c3d1bac159`) retained as the
+rollback baseline. Build and verify playable mechanics with existing art
+first, then complete the chase, destruction, authored assets and polish in
+that same PR. This replaces version 3's dodge-to-damage finale for fresh
+runs; it does not replace the synchronization system.
+
+| Default controller input | Function | Keyboard |
+| --- | --- | --- |
+| A / Cross | Synchronization piece A | K |
+| B / Circle | Synchronization piece B | L |
+| X / Square | Synchronization piece X | J |
+| Y / Triangle | Synchronization piece Y | I |
+| R1 / RB | Attack | F |
+| L1 / LB | Turbo | Space |
+| R2 / RT | Defend | G |
+| L2 / LT | Disrupt | V |
+
+Face buttons are four pieces of synchronized data/adrenaline, not skills.
+Preserve their lane-based chart, announced physical pad addresses, timing,
+captures, extensions, arrangement, existing passive bonuses and original
+music. Four active parts represent optimum speed and power with the lowest
+enemy tracking footprint. The four deliberate combat skills recharge
+independently and remain usable at zero synchronization. Skill remaps stay
+within the four shoulders/triggers; face-piece addresses remain fixed.
+Turbo launches physically on the next ONE, preserving revealed pad positions.
+R2 Defend opens a timed guard for one hostile contact/projectile or ordinary
+traffic collision. Successful hostile counters affect their actual combat
+source; an ordinary traffic block consumes the guard without inventing combat
+damage or a takedown. Distinguish skill readiness from a successful counter
+in the HUD. Fresh labels and glyphs must identify synchronization pieces,
+not the historical Surge/Push/Brace/Refill commands.
+
+Fresh chapters use encounterVersion 4, the existing version-3 chart and a
+separate combat state. Make the chase the main conflict: actual hostile
+vehicles, warned attacks, timed defense, disruption, earned takedowns,
+explosions, flips and rider ejection. Dodging gives the rig a recovery opening;
+actual damage must break its three systems. Rhythm catches provide advantages,
+stack multipliers and measured ending points while pressure can force a
+voluntarily sacrificed piece. Completion still requires genuine rig defeat
+and the full original song. Preserve version-1–3 save rules, historical test
+attribution, the repaired camera and first-gear wrecks, shared runtime owners,
+Level 1 and the existing story/cutscene handoffs.
+
+The mechanics checkpoint at
+`668d57d662a99701383b683cccc0663a8249dc31` passes the production
+combat/input/guidance and integration race/save checks using existing art.
+Its historical source-hashed evidence is retained separately in
+`review-cache-combat-chase/combat-integration-mechanics-checkpoint.json`;
+it does not certify subsequent art or behavior changes.
+
+Authored combat art is complete. Four runtime atlases are pinned to immutable
+commit `12af86c0641456cc443ff7f42db013e565088b13`: hostile bikes and chassis,
+separate rider/wreck components, and destruction effects. Read the
+[art notes](../../assets/cache-road/combat/README.md) and
+[source rectangles, anchors and hashes](../../assets/cache-road/combat/atlas-metadata.json).
+Preserve the retained source originals, physical road/rearview registration,
+bounded shared image cache and Reduced Motion/Flashes Off behavior.
+
+Full local regression, all-file syntax and all nine production combat race
+cases pass on the final frozen source. Browser validation and both exact
+final-head CI events remain publication gates; their actual results belong
+in the PR/export receipt. Historical checkpoint evidence and staged art
+diagnostics do not establish owner acceptance.
+Standing publication/merge authority and exact-tree source export
+follow `AGENTS.md` and `UPDATE_PROTOCOL.md`; Makko/controller/audio, comfort,
+balance/fun and device frame pacing still need recorded owner evidence.
+Read `CACHE_COMBAT_CHASE.md` and the candidate receipt in
+`review-cache-combat-chase/combat-integration.json`. Earlier sections describe
+historical milestones and do not override this approved scope.
+
 ## October 1 — owner-authorized Break the Pursuit overhaul
 
 The owner approves one broader overhaul after the separate repair PR #167,

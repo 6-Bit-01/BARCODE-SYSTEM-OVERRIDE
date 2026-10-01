@@ -1,5 +1,26 @@
 # Acceptance and Test Status
 
+## October 1 — Combat chase needs fresh owner testing
+
+Test the exact candidate receipt with a fresh version4 race: distinguish
+face-piece synchronization from four skills, use all skills at zero sync,
+attack actual bikes/cars, defend committed contact, disrupt locks and Turbo
+on nextONE. Keep captures amid pressure, sacrifice a part to escape, and
+attack the persistent rig through three systems into the full-song ending.
+R2 must guard only during its active window: it blocks one ordinary road contact
+without spending a sync buffer or adding enemy damage. Hostile contact/projectile
+defense can produce a real counter; GUARD READY alone is not a successful block.
+Watch the newly painted kick, hostile damage, physical flips, detached rider,
+localized explosion and passed wreck in both front and mirror. Test Flashes Off
+and Reduced Motion while retaining readable pads, locks and four skill states.
+Check wreck/retry/continue, first gear, warnings, rearview destruction,
+controller remaps, original audio, Reduced Motion/Flashes Off and readable
+pad addresses. Makko/controller/audio, comfort, balance/fun and actual device
+frame pacing have not been accepted. Scripted results are separate evidence.
+The final integration receipt has nine complete clears and an alive full-song
+passive failure; the silent six-fps native preview is in `authored-preview.json`.
+Historical mechanics evidence remains in `combat-integration-mechanics-checkpoint.json`.
+
 ## October 1 — pursuit overhaul requires fresh owner acceptance
 
 Import the exact overhaul revision in its receipt and start a fresh race

@@ -23,7 +23,7 @@ function counters(result) {
     .map(event => ({ health: event.health, ...event.lastCounter }));
 }
 function assertEarnedClear(result) {
-  assert.equal(result.encounterVersion, 3, 'the fresh campaign uses the production overhaul rules');
+  assert.equal(result.encounterVersion, 3, 'the retained pursuit fixture uses its production version-3 rules');
   assert.equal(result.status, 'clear');
   assert.equal(result.finalBar, 100, 'delivery still finishes the complete source recording');
   assert(result.boss?.defeated && result.boss.health === 0 && result.boss.counters === 3,
@@ -112,7 +112,7 @@ async function checkMidBossPersistence() {
   assert.equal(saved.levelState.proof.pursuit.boss.counters, 2);
   const forgedGate = clone(saved); forgedGate.levelState.proof.gateOpen = true;
   assert.equal(r.road.validate(forgedGate), false, 'a gate flag cannot substitute for an undefeated rig');
-  const futureRules = clone(saved); futureRules.levelState.chapter.encounterVersion = 4;
+  const futureRules = clone(saved); futureRules.levelState.chapter.encounterVersion = 5;
   assert.equal(r.road.validate(futureRules), false, 'an unsupported rules version is rejected');
   const futurePursuit = clone(saved); futurePursuit.levelState.proof.pursuit.version = 4;
   assert.equal(r.road.validate(futurePursuit), false, 'an unsupported rig-state version is rejected');

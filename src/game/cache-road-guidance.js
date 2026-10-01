@@ -13,15 +13,36 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
     Object.freeze({name:'TURBO',color:'#c1afff',key:'SPACE',shape:'pill',points:[[-20,18],[112,18],[127,32],[127,68],[112,82],[-20,82],[-28,68],[-28,32]]}),
     Object.freeze({name:'ECHO',color:'#a3f0e8',key:'H',shape:'pill',points:[[-20,18],[112,18],[127,32],[127,68],[112,82],[-20,82],[-28,68],[-28,32]]})
   ]);
+  // Historic saves retain their original names and controls. In the combat
+  // chase, the same four chart pieces synchronize data; deliberate fighting
+  // belongs to the separate shoulder/trigger actions.
+  const COMBAT_BADGES = Object.freeze([
+    ...BADGES.slice(0,4).map((badge,index)=>Object.freeze({...badge,name:['SYNC A','SYNC B','SYNC X','SYNC Y'][index]})),
+    Object.freeze({...BADGES[4],action:'road_turbo'}),
+    Object.freeze({...BADGES[5],name:'ATTACK',key:'F',action:'road_attack',color:'#ff917d'}),
+    Object.freeze({...BADGES[5],name:'DEFEND',key:'G',action:'road_defend',color:'#77ddff'}),
+    Object.freeze({...BADGES[5],name:'DISRUPT',key:'V',action:'road_disrupt',color:'#a3f0e8'})
+  ]);
+  const combatChase = (road=B.CacheRoadProof)=>road?.chapter?.encounterVersion===4||road?.state?.combat?.version===4;
+  const getBadge = (index,road)=> (combatChase(road)?COMBAT_BADGES:BADGES)[index]||BADGES[0];
+  function keyboardLabel(action,fallback) {
+    const value=window.inputManager?.actionInput?.keyboardBindings?.[action]?.[0];
+    return value===' '?'SPACE':value?String(value).toUpperCase():fallback;
+  }
   const LANE_COLORS=['#69d9f5','#ffc077','#cd9dff','#91f5bc'];
   const clamp=(n,lo,hi)=>Math.max(lo,Math.min(hi,n));
   const font=(ctx,size,weight='bold')=>{ctx.font=`${weight} ${size}px Oxanium, sans-serif`;};
   function path(ctx,points) {
     ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();
   }
-  function label(index) {
-    const badge=BADGES[index];
-    return badge ? B.GamepadUI?.connected ? B.ControllerSettings?.button(index)||badge.key : badge.key : '';
+  function label(index,road) {
+    const badges=combatChase(road)?COMBAT_BADGES:BADGES,badge=badges[index];
+    if(!badge)return '';
+    if(badge.action) {
+      const key=keyboardLabel(badge.action,badge.key);
+      return B.ControllerSettings?.prompt?.(badge.action,key)||key;
+    }
+    return B.GamepadUI?.connected?B.ControllerSettings?.button(index)||badge.key:badge.key;
   }
   function fittedText(ctx,value,x,y,maxWidth,size=20,color='#d9eee6',align='left') {
     const text=String(value??'');ctx.textAlign=align;ctx.textBaseline='middle';
@@ -46,15 +67,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
       ctx.lineTo(cx-size*.37,cy+size*.28);ctx.closePath();ctx.stroke();
     } else fittedText(ctx,text,cx,cy+1,maxWidth,size,text.length>3?'#12303a':'#0b2230','center');
   }
-  function drawButton(ctx,{index=0,x=0,y=0,size=60,label:override,active=false,disabled=false}={}) {
-    const badge=BADGES[index]||BADGES[0],width=size*(index>=4?1.55:1);
+  function drawButton(ctx,{index=0,x=0,y=0,size=60,label:override,active=false,disabled=false,road}={}) {
+    const badge=getBadge(index,road),width=size*(index>=4?1.55:1);
     ctx.save();ctx.translate(x-size/2,y-size/2);ctx.scale(size/100,size/100);
     ctx.globalAlpha*=disabled?.38:1;
     ctx.lineJoin='round';ctx.lineWidth=8;path(ctx,badge.points);
     ctx.strokeStyle='#06141f';ctx.stroke();ctx.fillStyle=badge.color;ctx.fill();
     ctx.lineWidth=2;ctx.strokeStyle=active?'#fffce6':'#ffffff99';ctx.stroke();
     if(active) {ctx.lineWidth=3;ctx.strokeStyle='#fffce6';path(ctx,badge.points);ctx.stroke();}
-    buttonGlyph(ctx,override??label(index),50,index===0?59:50,index>=4?29:43,index>=4?96:69);
+    buttonGlyph(ctx,override??label(index,road),50,index===0?59:50,index>=4?29:43,index>=4?96:69);
     // Tiny register marks distinguish shoulder functions without relying on hue.
     if(index>=4) {
       ctx.strokeStyle='#14303d';ctx.lineWidth=3;ctx.beginPath();
@@ -87,6 +108,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
   }
   function objective(road) {
     const s=road.state,bar=s.musicBeatFloat/4;
+    if(combatChase(road)) {
+      if(s.combat?.boss?.defeated)return {stage:3,title:'PURSUIT DESTROYED',instruction:'DELIVER THE ORIGINAL / KEEP DRIVING'};
+      if(bar>=72)return {stage:2,title:'DESTROY THE ENFORCEMENT RIG',instruction:'DODGE THE LOCK / ATTACK ITS OPENINGS'};
+      if(bar>=28)return {stage:1,title:'FIGHT THROUGH THE CONVOY',instruction:'ATTACK / DEFEND / DISRUPT / KEEP THE DATA IN SYNC'};
+      return {stage:0,title:'SURVIVE THE CHASE',instruction:'FIGHT THE PURSUIT / SYNC THE FOUR DATA PIECES'};
+    }
     if(road.chapter?.encounterVersion===3) {
       if(s.pursuit?.defeated)return {stage:3,title:'PURSUIT BROKEN',instruction:'DELIVER THE ORIGINAL / KEEP DRIVING'};
       if(bar>=72)return {stage:2,title:'BREAK THE PURSUIT',instruction:'BAIT THE LOCK / DODGE OR COUNTER'};
@@ -104,6 +131,24 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
   }
   function lesson(road,{nextPulse,nextCue}={}) {
     const s=road.state,bar=s.musicBeatFloat/4;
+    if(combatChase(road)) {
+      if(nextPulse&&nextCue?.ready) {
+        const inLane=Math.abs(s.lanePos-nextPulse.lane)<=.38;
+        return {index:nextPulse.action,active:nextCue.window&&inLane,
+          title:nextCue.window&&inLane?'PRESS NOW':`LANE ${nextPulse.lane+1} / ${getBadge(nextPulse.action,road).name}`,
+          detail:inLane?'BEAT ONE / REAR-TIRE TARGET':'ENTER THE MARKED LANE / BEAT ONE'};
+      }
+      const record=road.recordOpportunity?.();
+      if(record?.active)return {record:true,title:'OPTIONAL RECORD / HOLD AMBER LANE',detail:'Stay 0.65 seconds. Saved to the pause archive.'};
+      if(!s.opening?.held&&bar<12)return {steer:true,title:'LINE UP / SYNC ON ONE',detail:'Match the colored piece when its pad reaches the tires.'};
+      if(s.pulseFlashMs>0&&Number.isInteger(s.pulseFlashAction))return {index:s.pulseFlashAction,
+        title:`${getBadge(s.pulseFlashAction,road).name} / ON BEAT`,detail:'Keep all four music parts active for optimum power and the lowest tracking footprint.'};
+      if(bar>=72&&!s.combat?.boss?.defeated)return {index:5,combat:true,
+        title:'ATTACK THE RIG / DODGE ITS LOCK',detail:'Dodging creates an opening. Attack or Turbo contact damages the rig; a dodge alone cannot break it.'};
+      if(bar>=12&&bar<16&&!s.opening?.turbo)return {index:4,combat:true,
+        title:'TURBO / NEXT ONE',detail:'Skills recharge independently, even with no active sync pieces.'};
+      return null;
+    }
     if(road.chapter?.encounterVersion===3&&bar>=72&&!s.pursuit?.defeated&&s.rivalWarning)
       return {index:5,title:s.rivalEchoCommitted?'DECOY COMMITTED / MOVE':'LOCKED ATTACK / DODGE',detail:'A clean escape overloads its exposed system. Earned Push, Brace and Turbo can counter contact.'};
     if(s.gateAt!=null&&s.progress>=s.gateAt-220&&!s.gateOpen) return {index:5,
@@ -116,7 +161,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
     if(nextPulse&&nextCue?.ready) {
       const inLane=Math.abs(s.lanePos-nextPulse.lane)<=.38;
       return {index:nextPulse.action,active:nextCue.window&&inLane,
-        title:nextCue.window&&inLane?'PRESS NOW':`LANE ${nextPulse.lane+1}  /  ${BADGES[nextPulse.action].name}`,
+        title:nextCue.window&&inLane?'PRESS NOW':`LANE ${nextPulse.lane+1}  /  ${getBadge(nextPulse.action,road).name}`,
         detail:bar<12?(inLane?'Tap on ONE as the pad meets your rear tires.':'Steer into the marked lane, then tap on ONE.'):
           inLane?'BEAT ONE / REAR-TIRE TARGET':'ENTER THE MARKED LANE / BEAT ONE'};
     }
@@ -197,14 +242,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
     return {window,live,echoLane,exit,split,
       send:window&&!exit&&s.lanePos<=1.25&&s.echoEnergy>=100};
   }
-  function exitDiagram(ctx,s) {
+  function exitDiagram(ctx,s,road) {
     const cue=exitCue(s),color='#a3f0e8',echoColor=cue.live&&!cue.exit&&cue.window?'#ffab95':color;
     panel(ctx,1470,174,420,86,color);
     // Two numbered steps show where the replay stays and where Cache must go.
     fittedText(ctx,'1',1489,191,18,15,cue.exit?'#729087':color,'center');
     fittedText(ctx,cue.window?'ECHO':'HOLD',1520,191,68,15,color);
     laneDiagram(ctx,cue.live?{lanePos:cue.echoLane}:s,1493,204,{lane:0,color:echoColor,ghost:cue.live});
-    drawButton(ctx,{index:5,x:1649,y:227,size:39,active:cue.send,disabled:!cue.send});
+    drawButton(ctx,{index:5,x:1649,y:227,size:39,active:cue.send,disabled:!cue.send,road});
     if(!cue.window) {
       // A closed register communicates saved charge without another sentence.
       ctx.strokeStyle='#cfdfdf';ctx.lineWidth=2;ctx.strokeRect(1644,231,10,8);
@@ -216,12 +261,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
     fittedText(ctx,'EXIT',1760,191,90,15,exitColor);
     laneDiagram(ctx,s,1758,204,{lane:3,color:exitColor});
   }
-  function bossDiagram(ctx,road) {
-    const s=road.state,boss=B.CacheRoadPursuit?.boss?.(s.pursuit,{progress:s.progress});
+  function bossDiagram(ctx,road,options={}) {
+    const s=road.state,combat=combatChase(road);
+    const view=combat?(options.combatPose||s.combatPose||B.CacheRoadCombat?.pose?.(s.combat,
+      {progress:s.progress,lanePos:s.lanePos,bar:s.musicBeatFloat/4})):null;
+    const boss=combat?view?.boss:B.CacheRoadPursuit?.boss?.(s.pursuit,{progress:s.progress});
     if(!boss)return;
     const color=boss.defeated?'#b9ffe0':'#ff917d';
     panel(ctx,1470,174,420,86,color);
-    fittedText(ctx,boss.defeated?'PURSUIT BROKEN':'BREAK THE PURSUIT',1490,191,256,15,color);
+    fittedText(ctx,boss.defeated?'PURSUIT BROKEN':combat?'ATTACK THE RIG':'BREAK THE PURSUIT',1490,191,256,15,color);
     const labels=['SCAN','RAM','CORE'];
     for(let i=0;i<3;i++) {
       const broken=boss.systems?.[i]?.broken===true;
@@ -231,9 +279,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
       if(broken) {ctx.beginPath();ctx.moveTo(x+9,223);ctx.lineTo(x+21,233);ctx.lineTo(x+43,214);ctx.stroke();}
       else fittedText(ctx,labels[i],x+26,225,46,12,'#152331','center');
     }
-    if(s.rivalWarning&&!boss.defeated) {
+    const warning=combat?view?.actors?.find(actor=>actor.warning||actor.locked):null;
+    if((combat?warning:s.rivalWarning)&&!boss.defeated) {
       // A danger map marks the attack address; it never guides the car into it.
-      const target=Math.round(s.rivalTarget),current=clamp(s.lanePos,0,3);
+      const target=Math.round(combat?warning.lockLane??warning.lane:s.rivalTarget),current=clamp(s.lanePos,0,3);
       fittedText(ctx,'DODGE',1794,199,108,11,color,'center');
       for(let lane=0;lane<4;lane++) {
         const x=1740+lane*28;
@@ -246,21 +295,23 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
       }
       carMark(ctx,1752+current*28,243);
 
-      const d=Math.max(0,s.nextRivalAt-s.progress);
+      const d=Math.max(0,combat?(warning.at??s.progress)-s.progress:s.nextRivalAt-s.progress);
       ctx.fillStyle='#30474b';ctx.fillRect(1740,248,108,3);
       ctx.fillStyle=color;ctx.fillRect(1740,248,108*clamp(1-d/180,0,1),3);
-    } else fittedText(ctx,boss.defeated?'DELIVER':'COUNTER',1794,225,116,15,color,'center');
+    } else fittedText(ctx,boss.defeated?'DELIVER':combat?'ATTACK':'COUNTER',1794,225,116,15,color,'center');
   }
   function cueDiagram(ctx,road,options,cue) {
     const s=road.state,bar=s.musicBeatFloat/4,{nextPulse,nextCue}=options;
-    if(road.chapter?.encounterVersion!==3&&!s.gateOpen&&(bar>=90||s.gateAt!=null&&s.progress>=s.gateAt-220)) {exitDiagram(ctx,s);return;}
+    const combat=combatChase(road);
+    if(combat&&bar>=72&&!(nextPulse&&nextCue?.ready)) {bossDiagram(ctx,road,options);return;}
+    if(!combat&&road.chapter?.encounterVersion!==3&&!s.gateOpen&&(bar>=90||s.gateAt!=null&&s.progress>=s.gateAt-220)) {exitDiagram(ctx,s,road);return;}
     if(road.chapter?.encounterVersion===3&&bar>=72) {bossDiagram(ctx,road);return;}
     if(!cue)return;
     // Routine instructions live in Pause. In motion, show the lane, the
     // actual mapped button and the ONE target the player is aiming for.
     const record=cue.record?road.recordOpportunity?.():null;
     const pulse=nextPulse&&nextCue?.ready?nextPulse:null;
-    const index=pulse?.action??cue.index??0,color=record?'#ffe085':cue.steer?'#b9ffe0':BADGES[index].color;
+    const index=pulse?.action??cue.index??0,color=record?'#ffe085':cue.steer?'#b9ffe0':getBadge(index,road).color;
     panel(ctx,1550,174,340,72,color);
     const target=record?.lane??pulse?.lane;
     laneDiagram(ctx,s,1570,187,{lane:target,color,held:record?.held});
@@ -278,11 +329,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
       ctx.strokeStyle=color;ctx.beginPath();ctx.arc(1831,209,20,-Math.PI/2,-Math.PI/2+Math.PI*2*clamp(record.held,0,1));ctx.stroke();
       fittedText(ctx,'HOLD',1831,209,47,12,color,'center');return;
     }
-    if(index===5) {
-      drawButton(ctx,{index,x:1750,y:209,size:42,active:s.echoEnergy>=100});
+    if(index===5&&!combat) {
+      drawButton(ctx,{index,x:1750,y:209,size:42,active:s.echoEnergy>=100,road});
       arrow(ctx,1805,209,1854,209,color);carMark(ctx,1863,209);return;
     }
-    drawButton(ctx,{index,x:1750,y:209,size:44,active:cue.active});
+    drawButton(ctx,{index,x:1750,y:209,size:44,active:cue.active,road});
+    if(cue.combat) {
+      fittedText(ctx,getBadge(index,road).name,1833,205,104,15,color,'center');
+      fittedText(ctx,index===4?'ON ONE':'OPENING',1833,229,104,12,'#cfdfdf','center');return;
+    }
     const active=!!cue.active;
     ctx.strokeStyle=active?'#fff5a8':'#47636b';ctx.lineWidth=active?4:2;
     ctx.beginPath();ctx.arc(1836,203,19,0,Math.PI*2);ctx.stroke();
@@ -293,7 +348,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
     fittedText(ctx,'1',1836,203,25,21,active?'#fff5a8':'#cfdfdf','center');
     if(active)fittedText(ctx,'PRESS NOW',1836,233,93,12,'#fff5a8','center');
   }
-  function receipt(ctx,s) {
+  function receipt(ctx,s,road) {
     const live=value=>value&&Number.isFinite(value.expiresMs)&&s.elapsedMs<value.expiresMs;
     const drive=live(s.driveFeedback)?s.driveFeedback:null,mix=live(s.mixFeedback)?s.mixFeedback:null;
     if(!drive&&!mix)return null;
@@ -311,7 +366,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
     const music=combined?mix:['join','extend','lost'].includes(d.kind)?d:null;
     panel(ctx,30,240,370,56,color);
     if(d.kind==='record')tape(ctx,61,268,32);
-    else if(Number.isInteger(d.action))drawButton(ctx,{index:d.action,x:61,y:268,size:38,active:!failure});
+    else if(Number.isInteger(d.action))drawButton(ctx,{index:d.action,x:61,y:268,size:38,active:!failure,road});
     else laneMark(ctx,d.lane,61,268,29);
     fittedText(ctx,title,91,268,188,21,color);
     if(music) {
@@ -342,15 +397,37 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
     if(!road?.state||road.status!=='playing')return;
     ctx.save();ctx.globalAlpha=1;
     routeStrip(ctx,road);cueDiagram(ctx,road,options,lesson(road,options));
-    receipt(ctx,road.state);ctx.restore();
+    receipt(ctx,road.state,road);ctx.restore();
   }
   function drawHelp(ctx,road) {
     ctx.save();
+    if(combatChase(road)) {
+      fittedText(ctx,'STEER: LEFT / RIGHT   GEAR: UP / DOWN',440,433,545,19,'#d4dfec');
+      for(let i=0;i<4;i++) {
+        const col=i%2,row=Math.floor(i/2),x=440+col*277,y=465+row*55,badge=getBadge(i,road);
+        drawButton(ctx,{index:i,x:x+23,y:y+11,size:40,road});
+        fittedText(ctx,badge.name,x+53,y,194,17,badge.color);
+        fittedText(ctx,'Catch / hold a lane in the song',x+53,y+23,194,13,'#d4dfec');
+      }
+      fittedText(ctx,'MATCH THE PAD / PRESS ON ONE AT THE TIRES',440,563,548,17,'#a0ffe4');
+      fittedText(ctx,'FOUR IN SYNC: OPTIMUM SPEED / POWER / LOW FOOTPRINT',440,590,548,15,'#d4dfec');
+      const skillIndices=[5,4,6,7],details=['Strike close / fire aligned','Launch on the next ONE','Time your guard for contact','Interrupt the enemy lock'];
+      for(let i=0;i<4;i++) {
+        const index=skillIndices[i],col=i%2,row=Math.floor(i/2),x=440+col*277,y=632+row*56,badge=getBadge(index,road);
+        drawButton(ctx,{index,x:x+31,y:y+10,size:35,road});
+        fittedText(ctx,badge.name,x+70,y-1,193,17,badge.color);
+        fittedText(ctx,details[i],x+70,y+22,193,13,'#d4dfec');
+      }
+      fittedText(ctx,'Skills recharge independently, even with zero sync.',440,734,548,16,'#a0ffe4');
+      fittedText(ctx,'BOSS: DODGE FOR AN OPENING / ATTACK TO BREAK IT',440,759,548,15,'#d4dfec');
+      tape(ctx,456,786,27);fittedText(ctx,'Optional record: hold its lane for 0.65s.',484,786,506,16,'#e7d2b3');
+      ctx.restore();return;
+    }
     fittedText(ctx,'STEER: LEFT / RIGHT   GEAR: UP / DOWN',440,433,545,19,'#d4dfec');
     const descriptions=['Next ONE: speed burst','Clear one contact','Absorb one hit','+40 Echo; gear 3 Turbo'];
     for(let i=0;i<4;i++) {
       const col=i%2,row=Math.floor(i/2),x=440+col*277,y=466+row*76;
-      drawButton(ctx,{index:i,x:x+25,y:y+21,size:44});
+      drawButton(ctx,{index:i,x:x+25,y:y+21,size:44,road});
       fittedText(ctx,BADGES[i].name,x+56,y+10,194,18,BADGES[i].color);
       fittedText(ctx,descriptions[i],x+56,y+35,194,14,'#d4dfec');
     }
@@ -358,7 +435,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
     fittedText(ctx,'A catch brings that lane into the song.',440,654,548,17,'#d4dfec');
     for(let i=4;i<6;i++) {
       const x=440+(i-4)*277;
-      drawButton(ctx,{index:i,x:x+35,y:698,size:43});
+      drawButton(ctx,{index:i,x:x+35,y:698,size:43,road});
       fittedText(ctx,BADGES[i].name,x+80,685,185,17,BADGES[i].color);
       fittedText(ctx,i===4?'Launch next ONE':'100% charge: replay',x+80,709,185,14,'#d4dfec');
     }
@@ -366,5 +443,6 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
     tape(ctx,456,784,27);fittedText(ctx,'Optional record: hold its lane for 0.65s.',484,784,506,16,'#e7d2b3');
     ctx.restore();
   }
-  B.CacheRoadGuidance=Object.freeze({badges:BADGES,label,drawButton,draw,drawHelp,objective,lesson,exitCue});
+  B.CacheRoadGuidance=Object.freeze({badges:BADGES,combatBadges:COMBAT_BADGES,combatChase,getBadge,
+    label,drawButton,draw,drawHelp,objective,lesson,exitCue});
 })(window.BARCODE = window.BARCODE || {});

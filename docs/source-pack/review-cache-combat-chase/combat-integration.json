@@ -1,0 +1,7541 @@
+{
+  "passed": true,
+  "sources": {
+    "src/game/cache-road-encounters.js": "6466de9becaa7f90303f79d2572ca22a3e981e6059286c05a537da1673fdba54",
+    "src/game/cache-road-reactions.js": "47748481a8426278bb23f3358916a9c3345c55af7507866bb561a8180ceb4753",
+    "src/game/cache-road-pursuit.js": "53ea656d99680c261bf9492ba6373efc5393bca23a34ab4203e8936908b6b00b",
+    "src/game/cache-road-combat.js": "33354e5e213a54669044d558218e270d53cec80d9f8a74b98fac7982d314285d",
+    "src/game/cache-road-proof.js": "bd547b7bd5897a9a5adb8d6193fcd5e60e38667a12bd88fcd609ead81fc17901",
+    "src/game/cache-chapter.js": "570f2f28c68c9769d09768c36faefbf968a22ede0534644a0a1481d7ac98e55e",
+    "src/core/action-input.js": "0b83bff3df03cf3ca6ecfdc7f5ec29e719d18688347cd933a6bf2c43c0de73c9",
+    "src/core/gamepad-ui.js": "621309ea7c6c42ad3e05b2b5343fe301e75fe45017a94088bb55e545c8403aa7",
+    "src/core/input.js": "33cfde3ce29d19770574f04360008d3cc92629ec6402c1325f217d9377917442",
+    "src/core/loop.js": "a9d6ce5704c169e999938e3caa6b5727aff55d04d66e55f78f45057b0ffbc321",
+    "src/core/runtime-lifecycle.js": "b027736b2dec0f7f0aae12ae57f8591a5d1b876b53659b5fa9345c4afd6179da",
+    "src/engine/cache-road-proof-profile.js": "582cce91bdf042759d8c6dccbd8ed1d033088a8d052b72ef5a685131dea42b8f",
+    "src/engine/music-transport.js": "26c19d8e63871472a91055614b5fafe9fab8216ba16486dc02020e1b76ef41dd",
+    "src/engine/music-director.js": "1baeaf1a180e737e0757be809aec8d7f9c65abdde88d94e742cb2a931aa103bb",
+    "tools/check-cache-road-races.cjs": "2b0336b0dc8c47b352ef39b84982c84362d7e9495f56615503c8e6577559e3ce",
+    "tools/check-cache-completion-flow.cjs": "4e1aa750f4345f04232c1f1d901feef7d7823471b3d5ac034a48ba27d421f0af",
+    "tools/check-cache-combat-integration.cjs": "1969c047e189fbdf3be62dcf686feb33c7365aafab2026710429b3ddd0d5236b"
+  },
+  "sourcesStable": true,
+  "zeroSync": [
+    {
+      "skill": "attack",
+      "button": 5,
+      "accepted": {
+        "kind": "combat-input",
+        "bar": 4.128,
+        "elapsedMs": 7740,
+        "lane": 0.466,
+        "integrity": 3,
+        "skill": "attack",
+        "accepted": true,
+        "reason": "accepted",
+        "syncBefore": 0
+      },
+      "after": {
+        "ready": true,
+        "cooldownMs": 0,
+        "rechargeMs": 550,
+        "activeMs": 0,
+        "active": false,
+        "charges": 1
+      }
+    },
+    {
+      "skill": "turbo",
+      "button": 4,
+      "accepted": {
+        "kind": "combat-input",
+        "bar": 0.011,
+        "elapsedMs": 20,
+        "lane": 1,
+        "integrity": 3,
+        "skill": "turbo",
+        "accepted": true,
+        "reason": "accepted",
+        "syncBefore": 0
+      },
+      "after": {
+        "ready": false,
+        "cooldownMs": 5080,
+        "rechargeMs": 7000,
+        "activeMs": 1,
+        "active": true,
+        "pending": false
+      }
+    },
+    {
+      "skill": "defend",
+      "button": 7,
+      "accepted": {
+        "kind": "combat-input",
+        "bar": 0.011,
+        "elapsedMs": 20,
+        "lane": 1,
+        "integrity": 3,
+        "skill": "defend",
+        "accepted": true,
+        "reason": "accepted",
+        "syncBefore": 0
+      },
+      "after": {
+        "ready": false,
+        "cooldownMs": 3860,
+        "rechargeMs": 4000,
+        "activeMs": 660,
+        "active": true
+      }
+    },
+    {
+      "skill": "disrupt",
+      "button": 6,
+      "accepted": {
+        "kind": "combat-input",
+        "bar": 0.011,
+        "elapsedMs": 20,
+        "lane": 1,
+        "integrity": 3,
+        "skill": "disrupt",
+        "accepted": true,
+        "reason": "accepted",
+        "syncBefore": 0
+      },
+      "after": {
+        "ready": false,
+        "cooldownMs": 8360,
+        "rechargeMs": 8500,
+        "activeMs": 1060,
+        "active": true
+      }
+    }
+  ],
+  "persistence": {
+    "savedBar": 75,
+    "before": {
+      "version": 4,
+      "actors": [
+        {
+          "id": "rig",
+          "kind": "rig",
+          "at": 8353.784217069368,
+          "lane": 3,
+          "distance": 57.21421706945148,
+          "hp": 8.975,
+          "maxHp": 12,
+          "damage": 0.2520833333333333,
+          "ageMs": 6180,
+          "phase": "recover",
+          "warning": false,
+          "locked": false,
+          "lockLane": 3,
+          "attackKind": "scan",
+          "boss": true,
+          "vulnerable": true,
+          "collidable": false,
+          "threatActive": false,
+          "alpha": 1
+        },
+        {
+          "id": "foe-22",
+          "kind": "escort",
+          "at": 8368.171772881224,
+          "lane": 3,
+          "distance": 71.60177288130762,
+          "hp": 3,
+          "maxHp": 3,
+          "damage": 0,
+          "ageMs": 5080,
+          "phase": "recover",
+          "warning": false,
+          "locked": false,
+          "lockLane": 3,
+          "attackKind": "ram",
+          "boss": false,
+          "vulnerable": true,
+          "collidable": false,
+          "threatActive": false,
+          "alpha": 1
+        }
+      ],
+      "projectiles": [],
+      "wrecks": [
+        {
+          "id": "foe-20",
+          "kind": "bike",
+          "at": 7814.285210825067,
+          "lane": 1,
+          "ageMs": 11600,
+          "rollMs": 1600,
+          "flip": true,
+          "rider": true,
+          "chain": false,
+          "phase": "wreck",
+          "wreck": true,
+          "distance": -482.2847891748488,
+          "flipAngle": 6.283185307179586,
+          "height": 7.102951435054649e-15,
+          "riderHeight": 1.1634144591899855e-14,
+          "riderOffset": 110,
+          "alpha": 1
+        },
+        {
+          "id": "foe-21",
+          "kind": "rammer",
+          "at": 8066.288741990967,
+          "lane": 2,
+          "ageMs": 5940,
+          "rollMs": 1600,
+          "flip": true,
+          "rider": false,
+          "chain": false,
+          "phase": "wreck",
+          "wreck": true,
+          "distance": -230.2812580089494,
+          "flipAngle": 6.283185307179586,
+          "height": 7.102951435054649e-15,
+          "riderHeight": 0,
+          "riderOffset": 0,
+          "alpha": 1
+        }
+      ],
+      "target": {
+        "id": "rig",
+        "kind": "rig",
+        "at": 8353.784217069368,
+        "lane": 3,
+        "distance": 57.21421706945148,
+        "hp": 8.975,
+        "maxHp": 12,
+        "damage": 0.2520833333333333,
+        "ageMs": 6180,
+        "phase": "recover",
+        "warning": false,
+        "locked": false,
+        "lockLane": 3,
+        "attackKind": "scan",
+        "boss": true,
+        "vulnerable": true,
+        "collidable": false,
+        "threatActive": false,
+        "alpha": 1,
+        "attackMode": "strike"
+      },
+      "boss": {
+        "id": "rig",
+        "kind": "rig",
+        "arrived": true,
+        "at": 8353.784217069368,
+        "lane": 3,
+        "hp": 8.975,
+        "maxHp": 12,
+        "health": 3,
+        "systems": [
+          {
+            "id": "scanner",
+            "broken": false
+          },
+          {
+            "id": "ram",
+            "broken": false
+          },
+          {
+            "id": "emitter",
+            "broken": false
+          }
+        ],
+        "defeated": false,
+        "phase": "recover",
+        "alpha": 1,
+        "visible": true
+      },
+      "skills": {
+        "attack": {
+          "ready": false,
+          "cooldownMs": 530,
+          "rechargeMs": 550,
+          "activeMs": 0,
+          "active": false,
+          "charges": 0
+        },
+        "defend": {
+          "ready": true,
+          "cooldownMs": 0,
+          "rechargeMs": 4000,
+          "activeMs": 0,
+          "active": false
+        },
+        "turbo": {
+          "ready": false,
+          "cooldownMs": 6460,
+          "rechargeMs": 7000,
+          "activeMs": 0,
+          "active": false,
+          "pending": true
+        },
+        "disrupt": {
+          "ready": false,
+          "cooldownMs": 4740,
+          "rechargeMs": 8500,
+          "activeMs": 0,
+          "active": false
+        }
+      },
+      "syncCount": 3,
+      "footprint": 0.64,
+      "stats": {
+        "damageDealt": 61.025,
+        "takedowns": 22,
+        "playerHits": 0,
+        "blocks": 0,
+        "shots": 31,
+        "attacks": 59,
+        "defends": 1,
+        "turbos": 19,
+        "disrupts": 8
+      }
+    },
+    "restored": {
+      "version": 4,
+      "actors": [
+        {
+          "id": "rig",
+          "kind": "rig",
+          "at": 8324.92421706945,
+          "lane": 3,
+          "distance": 57.21421706945148,
+          "hp": 8.975,
+          "maxHp": 12,
+          "damage": 0.2520833333333333,
+          "ageMs": 6180,
+          "phase": "approach",
+          "warning": false,
+          "locked": false,
+          "lockLane": 3,
+          "attackKind": "scan",
+          "boss": true,
+          "vulnerable": false,
+          "collidable": false,
+          "threatActive": false,
+          "alpha": 1
+        },
+        {
+          "id": "foe-22",
+          "kind": "escort",
+          "at": 8339.311772881307,
+          "lane": 3,
+          "distance": 71.60177288130762,
+          "hp": 3,
+          "maxHp": 3,
+          "damage": 0,
+          "ageMs": 5080,
+          "phase": "approach",
+          "warning": false,
+          "locked": false,
+          "lockLane": 3,
+          "attackKind": "ram",
+          "boss": false,
+          "vulnerable": false,
+          "collidable": false,
+          "threatActive": false,
+          "alpha": 1
+        }
+      ],
+      "projectiles": [],
+      "wrecks": [
+        {
+          "id": "foe-20",
+          "kind": "bike",
+          "at": 7785.42521082515,
+          "lane": 1,
+          "ageMs": 11600,
+          "rollMs": 1600,
+          "flip": true,
+          "rider": true,
+          "chain": false,
+          "phase": "wreck",
+          "wreck": true,
+          "distance": -482.2847891748488,
+          "flipAngle": 6.283185307179586,
+          "height": 7.102951435054649e-15,
+          "riderHeight": 1.1634144591899855e-14,
+          "riderOffset": 110,
+          "alpha": 1
+        },
+        {
+          "id": "foe-21",
+          "kind": "rammer",
+          "at": 8037.42874199105,
+          "lane": 2,
+          "ageMs": 5940,
+          "rollMs": 1600,
+          "flip": true,
+          "rider": false,
+          "chain": false,
+          "phase": "wreck",
+          "wreck": true,
+          "distance": -230.2812580089494,
+          "flipAngle": 6.283185307179586,
+          "height": 7.102951435054649e-15,
+          "riderHeight": 0,
+          "riderOffset": 0,
+          "alpha": 1
+        }
+      ],
+      "target": {
+        "id": "rig",
+        "kind": "rig",
+        "at": 8324.92421706945,
+        "lane": 3,
+        "distance": 57.21421706945148,
+        "hp": 8.975,
+        "maxHp": 12,
+        "damage": 0.2520833333333333,
+        "ageMs": 6180,
+        "phase": "approach",
+        "warning": false,
+        "locked": false,
+        "lockLane": 3,
+        "attackKind": "scan",
+        "boss": true,
+        "vulnerable": false,
+        "collidable": false,
+        "threatActive": false,
+        "alpha": 1,
+        "attackMode": "strike"
+      },
+      "boss": {
+        "id": "rig",
+        "kind": "rig",
+        "arrived": true,
+        "at": 8324.92421706945,
+        "lane": 3,
+        "hp": 8.975,
+        "maxHp": 12,
+        "health": 3,
+        "systems": [
+          {
+            "id": "scanner",
+            "broken": false
+          },
+          {
+            "id": "ram",
+            "broken": false
+          },
+          {
+            "id": "emitter",
+            "broken": false
+          }
+        ],
+        "defeated": false,
+        "phase": "approach",
+        "alpha": 1,
+        "visible": true
+      },
+      "skills": {
+        "attack": {
+          "ready": false,
+          "cooldownMs": 530,
+          "rechargeMs": 550,
+          "activeMs": 0,
+          "active": false,
+          "charges": 0
+        },
+        "defend": {
+          "ready": true,
+          "cooldownMs": 0,
+          "rechargeMs": 4000,
+          "activeMs": 0,
+          "active": false
+        },
+        "turbo": {
+          "ready": false,
+          "cooldownMs": 6460,
+          "rechargeMs": 7000,
+          "activeMs": 0,
+          "active": false,
+          "pending": false
+        },
+        "disrupt": {
+          "ready": false,
+          "cooldownMs": 4740,
+          "rechargeMs": 8500,
+          "activeMs": 0,
+          "active": false
+        }
+      },
+      "syncCount": 0,
+      "footprint": 1,
+      "stats": {
+        "damageDealt": 61.025,
+        "takedowns": 22,
+        "playerHits": 0,
+        "blocks": 0,
+        "shots": 31,
+        "attacks": 59,
+        "defends": 1,
+        "turbos": 19,
+        "disrupts": 8
+      }
+    },
+    "final": {
+      "version": 4,
+      "actors": [],
+      "projectiles": [],
+      "wrecks": [],
+      "target": null,
+      "boss": {
+        "id": "rig",
+        "kind": "rig",
+        "arrived": true,
+        "at": null,
+        "lane": 1.5,
+        "hp": 0,
+        "maxHp": 12,
+        "health": 0,
+        "systems": [
+          {
+            "id": "scanner",
+            "broken": true
+          },
+          {
+            "id": "ram",
+            "broken": true
+          },
+          {
+            "id": "emitter",
+            "broken": true
+          }
+        ],
+        "defeated": true,
+        "phase": "defeated",
+        "alpha": 1,
+        "visible": false
+      },
+      "skills": {
+        "attack": {
+          "ready": true,
+          "cooldownMs": 0,
+          "rechargeMs": 550,
+          "activeMs": 0,
+          "active": false,
+          "charges": 2
+        },
+        "defend": {
+          "ready": true,
+          "cooldownMs": 0,
+          "rechargeMs": 4000,
+          "activeMs": 0,
+          "active": false
+        },
+        "turbo": {
+          "ready": true,
+          "cooldownMs": 0,
+          "rechargeMs": 7000,
+          "activeMs": 0,
+          "active": false,
+          "pending": false
+        },
+        "disrupt": {
+          "ready": true,
+          "cooldownMs": 0,
+          "rechargeMs": 8500,
+          "activeMs": 0,
+          "active": false
+        }
+      },
+      "syncCount": 0,
+      "footprint": 1,
+      "stats": {
+        "damageDealt": 70,
+        "takedowns": 23,
+        "playerHits": 0,
+        "blocks": 0,
+        "shots": 31,
+        "attacks": 67,
+        "defends": 1,
+        "turbos": 19,
+        "disrupts": 9
+      }
+    },
+    "ledger": [
+      {
+        "id": "foe-0",
+        "kind": "bike",
+        "hp": 0,
+        "maxHp": 2,
+        "damage": 2,
+        "spawnBar": 4.010666666666628,
+        "retired": true
+      },
+      {
+        "id": "foe-1",
+        "kind": "rammer",
+        "hp": 0,
+        "maxHp": 3,
+        "damage": 3,
+        "spawnBar": 6.9439999999999,
+        "retired": true
+      },
+      {
+        "id": "foe-2",
+        "kind": "bike",
+        "hp": 0,
+        "maxHp": 2,
+        "damage": 2,
+        "spawnBar": 9.983999999999835,
+        "retired": true
+      },
+      {
+        "id": "foe-3",
+        "kind": "rammer",
+        "hp": 0,
+        "maxHp": 3,
+        "damage": 3,
+        "spawnBar": 13.130666666666434,
+        "retired": true
+      },
+      {
+        "id": "foe-4",
+        "kind": "bike",
+        "hp": 0,
+        "maxHp": 2,
+        "damage": 2,
+        "spawnBar": 16.277333333333033,
+        "retired": true
+      },
+      {
+        "id": "foe-5",
+        "kind": "rammer",
+        "hp": 0,
+        "maxHp": 3,
+        "damage": 3,
+        "spawnBar": 19.317333333333366,
+        "retired": true
+      },
+      {
+        "id": "foe-6",
+        "kind": "bike",
+        "hp": 0,
+        "maxHp": 2,
+        "damage": 2,
+        "spawnBar": 22.464000000000524,
+        "retired": true
+      },
+      {
+        "id": "foe-7",
+        "kind": "rammer",
+        "hp": 0,
+        "maxHp": 3,
+        "damage": 3,
+        "spawnBar": 25.504000000001,
+        "retired": true
+      },
+      {
+        "id": "foe-8",
+        "kind": "escort",
+        "hp": 0,
+        "maxHp": 3,
+        "damage": 3,
+        "spawnBar": 28.650666666668158,
+        "retired": true
+      },
+      {
+        "id": "foe-9",
+        "kind": "bike",
+        "hp": 0,
+        "maxHp": 2,
+        "damage": 2,
+        "spawnBar": 31.797333333335317,
+        "retired": true
+      },
+      {
+        "id": "foe-10",
+        "kind": "rammer",
+        "hp": 0,
+        "maxHp": 3,
+        "damage": 3,
+        "spawnBar": 34.94400000000219,
+        "retired": true
+      },
+      {
+        "id": "foe-11",
+        "kind": "escort",
+        "hp": 0,
+        "maxHp": 3,
+        "damage": 3,
+        "spawnBar": 37.984000000001586,
+        "retired": true
+      },
+      {
+        "id": "foe-12",
+        "kind": "bike",
+        "hp": 0,
+        "maxHp": 2,
+        "damage": 2,
+        "spawnBar": 41.13066666666762,
+        "retired": true
+      },
+      {
+        "id": "foe-13",
+        "kind": "rammer",
+        "hp": 0,
+        "maxHp": 3,
+        "damage": 3,
+        "spawnBar": 44.17066666666702,
+        "retired": true
+      },
+      {
+        "id": "foe-14",
+        "kind": "escort",
+        "hp": 0,
+        "maxHp": 3,
+        "damage": 3,
+        "spawnBar": 47.21066666666641,
+        "retired": true
+      },
+      {
+        "id": "foe-15",
+        "kind": "disruptor",
+        "hp": 0,
+        "maxHp": 3,
+        "damage": 3,
+        "spawnBar": 50.357333333332456,
+        "retired": true
+      },
+      {
+        "id": "foe-16",
+        "kind": "bike",
+        "hp": 0,
+        "maxHp": 2,
+        "damage": 2,
+        "spawnBar": 53.61066666666514,
+        "retired": true
+      },
+      {
+        "id": "foe-17",
+        "kind": "rammer",
+        "hp": 0,
+        "maxHp": 3,
+        "damage": 3,
+        "spawnBar": 56.97066666666447,
+        "retired": true
+      },
+      {
+        "id": "foe-18",
+        "kind": "escort",
+        "hp": 0,
+        "maxHp": 3,
+        "damage": 3,
+        "spawnBar": 60.117333333330514,
+        "retired": true
+      },
+      {
+        "id": "foe-19",
+        "kind": "disruptor",
+        "hp": 0,
+        "maxHp": 3,
+        "damage": 3,
+        "spawnBar": 63.26399999999656,
+        "retired": true
+      },
+      {
+        "id": "foe-20",
+        "kind": "bike",
+        "hp": 0,
+        "maxHp": 2,
+        "damage": 2,
+        "spawnBar": 66.41066666666259,
+        "retired": true
+      },
+      {
+        "id": "foe-21",
+        "kind": "rammer",
+        "hp": 0,
+        "maxHp": 3,
+        "damage": 3,
+        "spawnBar": 69.45066666666283,
+        "retired": true
+      },
+      {
+        "id": "rig",
+        "kind": "rig",
+        "hp": 0,
+        "maxHp": 12,
+        "damage": 12,
+        "spawnBar": 72.01066666666414,
+        "retired": true
+      },
+      {
+        "id": "foe-22",
+        "kind": "escort",
+        "hp": 3,
+        "maxHp": 3,
+        "damage": 0,
+        "spawnBar": 72.59733333333111,
+        "retired": true
+      }
+    ],
+    "rejected": [
+      "forged-gate",
+      "future-chapter",
+      "future-combat",
+      "forged-boss-health",
+      "forged-ledger-damage"
+    ],
+    "pausedMs": 1200
+  },
+  "trafficDefend": [
+    {
+      "policy": "active-window",
+      "target": {
+        "id": "traffic/4/0",
+        "kind": "van",
+        "at": 828.96,
+        "lane": 0
+      },
+      "guardAt": 15480,
+      "contact": {
+        "kind": "physical-contact",
+        "bar": 8.523,
+        "elapsedMs": 15980,
+        "lane": 0.045,
+        "integrity": 3,
+        "actor": "van",
+        "actorId": "traffic/4/0",
+        "combatContact": false,
+        "before": {
+          "integrity": 3,
+          "invulnerableMs": 0,
+          "boostMs": 0,
+          "ramMs": 0,
+          "shield": 0,
+          "defendMs": 320,
+          "blocks": 0,
+          "enemyDamage": 0
+        },
+        "after": {
+          "integrity": 3,
+          "defendMs": 0,
+          "defenseKind": "DEFEND BLOCK",
+          "blocks": 1,
+          "enemyDamage": 0
+        }
+      },
+      "guardInputs": [
+        {
+          "kind": "combat-input",
+          "bar": 8.256,
+          "elapsedMs": 15480,
+          "lane": 0.043,
+          "integrity": 3,
+          "skill": "defend",
+          "accepted": true,
+          "reason": "accepted",
+          "syncBefore": 0
+        }
+      ],
+      "disruptSent": true,
+      "damageTaken": 0,
+      "heldRepeatPrevented": true,
+      "afterHeldCheck": {
+        "heldForMsAfterContact": 4600,
+        "heldFrames": 230,
+        "ready": true,
+        "activeMs": 0
+      }
+    },
+    {
+      "policy": "expired-held",
+      "target": {
+        "id": "traffic/4/0",
+        "kind": "van",
+        "at": 828.96,
+        "lane": 0
+      },
+      "guardAt": 14320,
+      "contact": {
+        "kind": "physical-contact",
+        "bar": 8.523,
+        "elapsedMs": 15980,
+        "lane": 0.045,
+        "integrity": 2,
+        "actor": "van",
+        "actorId": "traffic/4/0",
+        "combatContact": false,
+        "before": {
+          "integrity": 3,
+          "invulnerableMs": 0,
+          "boostMs": 0,
+          "ramMs": 0,
+          "shield": 0,
+          "defendMs": 0,
+          "blocks": 0,
+          "enemyDamage": 0
+        },
+        "after": {
+          "integrity": 2,
+          "defendMs": 0,
+          "defenseKind": "GUARD READY",
+          "blocks": 0,
+          "enemyDamage": 0
+        }
+      },
+      "guardInputs": [
+        {
+          "kind": "combat-input",
+          "bar": 7.637,
+          "elapsedMs": 14320,
+          "lane": 0.005,
+          "integrity": 3,
+          "skill": "defend",
+          "accepted": true,
+          "reason": "accepted",
+          "syncBefore": 0
+        }
+      ],
+      "disruptSent": true,
+      "damageTaken": 1,
+      "heldRepeatPrevented": true,
+      "afterHeldCheck": {
+        "heldForMsAfterContact": 4600,
+        "heldFrames": 230,
+        "ready": true,
+        "activeMs": 0
+      }
+    },
+    {
+      "policy": "unprotected",
+      "target": {
+        "id": "traffic/4/0",
+        "kind": "van",
+        "at": 828.96,
+        "lane": 0
+      },
+      "guardAt": null,
+      "contact": {
+        "kind": "physical-contact",
+        "bar": 8.523,
+        "elapsedMs": 15980,
+        "lane": 0.045,
+        "integrity": 2,
+        "actor": "van",
+        "actorId": "traffic/4/0",
+        "combatContact": false,
+        "before": {
+          "integrity": 3,
+          "invulnerableMs": 0,
+          "boostMs": 0,
+          "ramMs": 0,
+          "shield": 0,
+          "defendMs": 0,
+          "blocks": 0,
+          "enemyDamage": 0
+        },
+        "after": {
+          "integrity": 2,
+          "defendMs": 0,
+          "defenseKind": "",
+          "blocks": 0,
+          "enemyDamage": 0
+        }
+      },
+      "guardInputs": [],
+      "disruptSent": true,
+      "damageTaken": 1,
+      "heldRepeatPrevented": false,
+      "afterHeldCheck": null
+    }
+  ],
+  "evidence": "Production Campaign + ActionInput + shared RAF, actual delayed visible observations, native button edges and physically earned damage.",
+  "limits": "Controlled Canvas/audio/storage hosts; no gameplay state injection. Not Makko, physical-controller, listening, human success rate or frame-pacing acceptance.",
+  "schemaVersion": 3,
+  "races": [
+    {
+      "difficulty": "relaxed",
+      "gear": 1,
+      "profile": "practiced",
+      "encounterVersion": 4,
+      "status": "clear",
+      "finalMessage": "FULL SYNCHRONIZATION",
+      "finalBar": 100.0000000000118,
+      "frames": 9374,
+      "gearFrames": [
+        9282,
+        92,
+        0
+      ],
+      "integrity": 4,
+      "minimumIntegrity": 4,
+      "damageTaken": 0,
+      "drumMinimum": 0.6,
+      "musicRoles": {
+        "drive": {
+          "minimum": 0.03,
+          "maximum": 0.19,
+          "capturedFrames": 4862
+        },
+        "flow": {
+          "minimum": 0.045,
+          "maximum": 0.55,
+          "capturedFrames": 7024
+        },
+        "breakaway": {
+          "minimum": 0,
+          "maximum": 0.5,
+          "capturedFrames": 7771
+        },
+        "undercurrent": {
+          "minimum": 0,
+          "maximum": 0.62,
+          "capturedFrames": 4298
+        }
+      },
+      "accurate": 61,
+      "attempts": 63,
+      "connected": 61,
+      "combat": {
+        "version": 4,
+        "actors": [],
+        "projectiles": [],
+        "wrecks": [],
+        "target": null,
+        "boss": {
+          "id": "rig",
+          "kind": "rig",
+          "arrived": true,
+          "at": null,
+          "lane": 1.5,
+          "hp": 0,
+          "maxHp": 12,
+          "health": 0,
+          "systems": [
+            {
+              "id": "scanner",
+              "broken": true
+            },
+            {
+              "id": "ram",
+              "broken": true
+            },
+            {
+              "id": "emitter",
+              "broken": true
+            }
+          ],
+          "defeated": true,
+          "phase": "defeated",
+          "alpha": 1,
+          "visible": false
+        },
+        "skills": {
+          "attack": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 550,
+            "activeMs": 0,
+            "active": false,
+            "charges": 2
+          },
+          "defend": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 4000,
+            "activeMs": 0,
+            "active": false
+          },
+          "turbo": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 7000,
+            "activeMs": 0,
+            "active": false,
+            "pending": false
+          },
+          "disrupt": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 8500,
+            "activeMs": 0,
+            "active": false
+          }
+        },
+        "syncCount": 0,
+        "footprint": 1,
+        "stats": {
+          "damageDealt": 62,
+          "takedowns": 20,
+          "playerHits": 0,
+          "blocks": 0,
+          "shots": 31,
+          "attacks": 53,
+          "defends": 1,
+          "turbos": 20,
+          "disrupts": 4
+        }
+      },
+      "recoveries": [],
+      "eventsSummary": {
+        "count": 1353,
+        "sha256": "8ce49deb88db603b423f88206bbb9465156a4e3c2d6b98bb8240d1e96c1519f0",
+        "countsByKind": {
+          "capture": 61,
+          "combat-driver-input": 472,
+          "combat-event": 215,
+          "combat-input": 472,
+          "earned-action": 61,
+          "missed-press": 2,
+          "music-award": 61,
+          "near-pass": 7,
+          "physical-contact": 2
+        },
+        "combatEventCountsByType": {
+          "attack": 53,
+          "boss-arrive": 1,
+          "boss-defeated": 1,
+          "boss-system-broken": 3,
+          "defend-ready": 1,
+          "disrupt": 4,
+          "enemy-arrive": 19,
+          "enemy-hit": 55,
+          "lock": 1,
+          "shot": 31,
+          "takedown": 20,
+          "turbo": 20,
+          "warning": 6
+        },
+        "combatInputCountsByReason": {
+          "accepted": 78,
+          "no-target": 117,
+          "recharging": 56,
+          "runway": 1,
+          "weapon-recharging": 220
+        },
+        "acceptedControlsBySkill": {
+          "attack": 53,
+          "defend": 1,
+          "disrupt": 4,
+          "turbo": 20
+        },
+        "realDamageCauses": {
+          "chain": 2,
+          "shot": 31,
+          "strike": 22
+        },
+        "music": {
+          "capturedFaceActions": [
+            "road_a",
+            "road_b",
+            "road_x",
+            "road_y"
+          ],
+          "captureCount": 61,
+          "awardCount": 61,
+          "uniqueAwardIds": 61,
+          "holdBars": [
+            3,
+            6
+          ],
+          "actualAttemptOffsetRangeMs": [
+            -15,
+            80
+          ],
+          "actualAcceptedOffsetRangeMs": [
+            -15,
+            80
+          ]
+        },
+        "samples": {
+          "combat-event": {
+            "kind": "combat-event",
+            "bar": 4.011,
+            "elapsedMs": 7520,
+            "lane": 1,
+            "integrity": 4,
+            "type": "enemy-arrive",
+            "id": "foe-0",
+            "actorKind": "bike",
+            "sourceMethod": "step"
+          },
+          "combat-driver-input": {
+            "kind": "combat-driver-input",
+            "bar": 4.107,
+            "elapsedMs": 7700,
+            "lane": 0.939,
+            "integrity": 4,
+            "skill": "attack"
+          },
+          "combat-input": {
+            "kind": "combat-input",
+            "bar": 4.107,
+            "elapsedMs": 7700,
+            "lane": 0.939,
+            "integrity": 4,
+            "skill": "attack",
+            "accepted": true,
+            "reason": "accepted",
+            "syncBefore": 0
+          },
+          "earned-action": {
+            "kind": "earned-action",
+            "bar": 5.024,
+            "elapsedMs": 9420,
+            "lane": 2,
+            "integrity": 4,
+            "action": 0
+          },
+          "music-award": {
+            "kind": "music-award",
+            "bar": 5.024,
+            "elapsedMs": 9420,
+            "lane": 1.955,
+            "integrity": 4,
+            "id": "song/4",
+            "action": 0,
+            "musicLane": 2,
+            "targetBeat": 20,
+            "awardedBeat": 20.138666666666428,
+            "holdBars": 3
+          },
+          "capture": {
+            "kind": "capture",
+            "bar": 5.024,
+            "elapsedMs": 9420,
+            "lane": 1.955,
+            "integrity": 4,
+            "action": "road_a",
+            "feedback": "perfect",
+            "timingOffsetMs": 65
+          },
+          "physical-contact": {
+            "kind": "physical-contact",
+            "bar": 16.48,
+            "elapsedMs": 30900,
+            "lane": 0,
+            "integrity": 4
+          },
+          "missed-press": {
+            "kind": "missed-press",
+            "bar": 19.008,
+            "elapsedMs": 35640,
+            "lane": 2.279,
+            "integrity": 4,
+            "action": "road_b",
+            "feedback": "lane",
+            "timingOffsetMs": 35
+          },
+          "near-pass": {
+            "kind": "near-pass",
+            "bar": 20.992,
+            "elapsedMs": 39360,
+            "lane": 2.013,
+            "integrity": 4
+          }
+        }
+      },
+      "announcedPads": {
+        "count": 63,
+        "uniqueIds": 63,
+        "allTargetsAreONE": true,
+        "immutableAddressesDuringRun": true,
+        "verification": "Runtime assertions checked every repeated visible id retained its target and world address.",
+        "sha256": "6919b5deab435cee9ca7b4ee9325d349cdd8fc39f6970a8bed1d54d911713922",
+        "samples": [
+          {
+            "id": "song/4",
+            "target": 20,
+            "at": 341.47136295585153
+          },
+          {
+            "id": "song/6",
+            "target": 28,
+            "at": 602.9166754558515
+          },
+          {
+            "id": "song/97",
+            "target": 392,
+            "at": 8043.971362955852
+          },
+          {
+            "id": "song/98",
+            "target": 396,
+            "at": 8164.791675455852
+          }
+        ]
+      },
+      "bossChanges": [
+        {
+          "bar": 72.01066666666414,
+          "previousHp": null,
+          "id": "rig",
+          "hp": 12,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "approach"
+        },
+        {
+          "bar": 73.08799999999802,
+          "previousHp": 12,
+          "id": "rig",
+          "hp": 11.5,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "approach"
+        },
+        {
+          "bar": 74.23999999999862,
+          "previousHp": 11.5,
+          "id": "rig",
+          "hp": 10,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 75.15733333333242,
+          "previousHp": 10,
+          "id": "rig",
+          "hp": 8.2,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 75.55199999999928,
+          "previousHp": 8.2,
+          "id": "rig",
+          "hp": 6.4,
+          "maxHp": 12,
+          "health": 2,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 78.28266666666735,
+          "previousHp": 6.4,
+          "id": "rig",
+          "hp": 4.6,
+          "maxHp": 12,
+          "health": 2,
+          "defeated": false,
+          "phase": "stunned"
+        },
+        {
+          "bar": 78.67733333333422,
+          "previousHp": 4.6,
+          "id": "rig",
+          "hp": 4.1,
+          "maxHp": 12,
+          "health": 2,
+          "defeated": false,
+          "phase": "stunned"
+        },
+        {
+          "bar": 79.07200000000108,
+          "previousHp": 4.1,
+          "id": "rig",
+          "hp": 2.45,
+          "maxHp": 12,
+          "health": 1,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 79.46666666666796,
+          "previousHp": 2.45,
+          "id": "rig",
+          "hp": 0.8,
+          "maxHp": 12,
+          "health": 1,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 79.86133333333483,
+          "previousHp": 0.8,
+          "id": "rig",
+          "hp": 0,
+          "maxHp": 12,
+          "health": 0,
+          "defeated": true,
+          "phase": "defeated"
+        }
+      ]
+    },
+    {
+      "difficulty": "relaxed",
+      "gear": 2,
+      "profile": "practiced",
+      "encounterVersion": 4,
+      "status": "clear",
+      "finalMessage": "SYNC Y // FLOW +6 BARS  FAST x2",
+      "finalBar": 100.0000000000118,
+      "frames": 9374,
+      "gearFrames": [
+        0,
+        9374,
+        0
+      ],
+      "integrity": 4,
+      "minimumIntegrity": 4,
+      "damageTaken": 0,
+      "drumMinimum": 0.6,
+      "musicRoles": {
+        "drive": {
+          "minimum": 0.03,
+          "maximum": 0.19,
+          "capturedFrames": 3083
+        },
+        "flow": {
+          "minimum": 0.045,
+          "maximum": 0.55,
+          "capturedFrames": 6744
+        },
+        "breakaway": {
+          "minimum": 0,
+          "maximum": 0.5,
+          "capturedFrames": 7678
+        },
+        "undercurrent": {
+          "minimum": 0,
+          "maximum": 0.62,
+          "capturedFrames": 3922
+        }
+      },
+      "accurate": 58,
+      "attempts": 63,
+      "connected": 58,
+      "combat": {
+        "version": 4,
+        "actors": [],
+        "projectiles": [],
+        "wrecks": [],
+        "target": null,
+        "boss": {
+          "id": "rig",
+          "kind": "rig",
+          "arrived": true,
+          "at": null,
+          "lane": 1.5,
+          "hp": 0,
+          "maxHp": 12,
+          "health": 0,
+          "systems": [
+            {
+              "id": "scanner",
+              "broken": true
+            },
+            {
+              "id": "ram",
+              "broken": true
+            },
+            {
+              "id": "emitter",
+              "broken": true
+            }
+          ],
+          "defeated": true,
+          "phase": "defeated",
+          "alpha": 1,
+          "visible": false
+        },
+        "skills": {
+          "attack": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 550,
+            "activeMs": 0,
+            "active": false,
+            "charges": 2
+          },
+          "defend": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 4000,
+            "activeMs": 0,
+            "active": false
+          },
+          "turbo": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 7000,
+            "activeMs": 0,
+            "active": false,
+            "pending": false
+          },
+          "disrupt": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 8500,
+            "activeMs": 0,
+            "active": false
+          }
+        },
+        "syncCount": 0,
+        "footprint": 1,
+        "stats": {
+          "damageDealt": 62,
+          "takedowns": 20,
+          "playerHits": 0,
+          "blocks": 0,
+          "shots": 31,
+          "attacks": 57,
+          "defends": 1,
+          "turbos": 19,
+          "disrupts": 4
+        }
+      },
+      "recoveries": [],
+      "eventsSummary": {
+        "count": 1303,
+        "sha256": "75f0ef6c280857ff62d82add2e32d5f1fada695ad02a53757cde91a2185848aa",
+        "countsByKind": {
+          "brace": 1,
+          "capture": 58,
+          "combat-driver-input": 447,
+          "combat-event": 220,
+          "combat-input": 447,
+          "earned-action": 58,
+          "missed-press": 5,
+          "music-award": 58,
+          "near-pass": 7,
+          "physical-contact": 2
+        },
+        "combatEventCountsByType": {
+          "attack": 57,
+          "boss-arrive": 1,
+          "boss-defeated": 1,
+          "boss-system-broken": 3,
+          "defend-ready": 1,
+          "disrupt": 4,
+          "enemy-arrive": 19,
+          "enemy-hit": 57,
+          "evaded": 1,
+          "lock": 1,
+          "shot": 31,
+          "takedown": 20,
+          "turbo": 19,
+          "warning": 5
+        },
+        "combatInputCountsByReason": {
+          "accepted": 81,
+          "no-target": 73,
+          "recharging": 61,
+          "runway": 1,
+          "weapon-recharging": 231
+        },
+        "acceptedControlsBySkill": {
+          "attack": 57,
+          "defend": 1,
+          "disrupt": 4,
+          "turbo": 19
+        },
+        "realDamageCauses": {
+          "chain": 1,
+          "shot": 30,
+          "strike": 26
+        },
+        "music": {
+          "capturedFaceActions": [
+            "road_a",
+            "road_b",
+            "road_x",
+            "road_y"
+          ],
+          "captureCount": 58,
+          "awardCount": 58,
+          "uniqueAwardIds": 58,
+          "holdBars": [
+            3,
+            6
+          ],
+          "actualAttemptOffsetRangeMs": [
+            -20,
+            80
+          ],
+          "actualAcceptedOffsetRangeMs": [
+            -15,
+            80
+          ]
+        },
+        "samples": {
+          "combat-event": {
+            "kind": "combat-event",
+            "bar": 4.011,
+            "elapsedMs": 7520,
+            "lane": 1,
+            "integrity": 4,
+            "type": "enemy-arrive",
+            "id": "foe-0",
+            "actorKind": "bike",
+            "sourceMethod": "step"
+          },
+          "combat-driver-input": {
+            "kind": "combat-driver-input",
+            "bar": 4.107,
+            "elapsedMs": 7700,
+            "lane": 0.932,
+            "integrity": 4,
+            "skill": "attack"
+          },
+          "combat-input": {
+            "kind": "combat-input",
+            "bar": 4.107,
+            "elapsedMs": 7700,
+            "lane": 0.932,
+            "integrity": 4,
+            "skill": "attack",
+            "accepted": true,
+            "reason": "accepted",
+            "syncBefore": 0
+          },
+          "earned-action": {
+            "kind": "earned-action",
+            "bar": 5.013,
+            "elapsedMs": 9400,
+            "lane": 2,
+            "integrity": 4,
+            "action": 0
+          },
+          "music-award": {
+            "kind": "music-award",
+            "bar": 5.013,
+            "elapsedMs": 9400,
+            "lane": 1.958,
+            "integrity": 4,
+            "id": "song/4",
+            "action": 0,
+            "musicLane": 2,
+            "targetBeat": 20,
+            "awardedBeat": 20.095999999999762,
+            "holdBars": 3
+          },
+          "capture": {
+            "kind": "capture",
+            "bar": 5.013,
+            "elapsedMs": 9400,
+            "lane": 1.958,
+            "integrity": 4,
+            "action": "road_a",
+            "feedback": "perfect",
+            "timingOffsetMs": 45
+          },
+          "physical-contact": {
+            "kind": "physical-contact",
+            "bar": 12.075,
+            "elapsedMs": 22640,
+            "lane": 2.922,
+            "integrity": 4
+          },
+          "brace": {
+            "kind": "brace",
+            "bar": 15.765,
+            "elapsedMs": 29560,
+            "lane": 0.042,
+            "integrity": 4
+          },
+          "missed-press": {
+            "kind": "missed-press",
+            "bar": 19.019,
+            "elapsedMs": 35660,
+            "lane": 2.055,
+            "integrity": 4,
+            "action": "road_b",
+            "feedback": "lane",
+            "timingOffsetMs": 55
+          },
+          "near-pass": {
+            "kind": "near-pass",
+            "bar": 23.765,
+            "elapsedMs": 44560,
+            "lane": 0.98,
+            "integrity": 4
+          }
+        }
+      },
+      "announcedPads": {
+        "count": 63,
+        "uniqueIds": 63,
+        "allTargetsAreONE": true,
+        "immutableAddressesDuringRun": true,
+        "verification": "Runtime assertions checked every repeated visible id retained its target and world address.",
+        "sha256": "6716e199476f3d974e80abe20fc915babec3110409655210064ee8eff5dfc237",
+        "samples": [
+          {
+            "id": "song/4",
+            "target": 20,
+            "at": 502.60417545585153
+          },
+          {
+            "id": "song/6",
+            "target": 28,
+            "at": 767.9166754558515
+          },
+          {
+            "id": "song/97",
+            "target": 392,
+            "at": 10719.47917545585
+          },
+          {
+            "id": "song/98",
+            "target": 396,
+            "at": 10844.16667545585
+          }
+        ]
+      },
+      "bossChanges": [
+        {
+          "bar": 72.01066666666414,
+          "previousHp": null,
+          "id": "rig",
+          "hp": 12,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "approach"
+        },
+        {
+          "bar": 74.49599999999874,
+          "previousHp": 12,
+          "id": "rig",
+          "hp": 10.5,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 75.08266666666572,
+          "previousHp": 10.5,
+          "id": "rig",
+          "hp": 8.7,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 75.47733333333258,
+          "previousHp": 8.7,
+          "id": "rig",
+          "hp": 6.9,
+          "maxHp": 12,
+          "health": 2,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 75.87199999999945,
+          "previousHp": 6.9,
+          "id": "rig",
+          "hp": 5.65,
+          "maxHp": 12,
+          "health": 2,
+          "defeated": false,
+          "phase": "approach"
+        },
+        {
+          "bar": 76.26666666666632,
+          "previousHp": 5.65,
+          "id": "rig",
+          "hp": 4.4,
+          "maxHp": 12,
+          "health": 2,
+          "defeated": false,
+          "phase": "windup"
+        },
+        {
+          "bar": 77.05600000000005,
+          "previousHp": 4.4,
+          "id": "rig",
+          "hp": 3.9,
+          "maxHp": 12,
+          "health": 1,
+          "defeated": false,
+          "phase": "windup"
+        },
+        {
+          "bar": 77.45066666666692,
+          "previousHp": 3.9,
+          "id": "rig",
+          "hp": 2.65,
+          "maxHp": 12,
+          "health": 1,
+          "defeated": false,
+          "phase": "committed"
+        },
+        {
+          "bar": 77.8453333333338,
+          "previousHp": 2.65,
+          "id": "rig",
+          "hp": 0.85,
+          "maxHp": 12,
+          "health": 1,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 78.24000000000066,
+          "previousHp": 0.85,
+          "id": "rig",
+          "hp": 0,
+          "maxHp": 12,
+          "health": 0,
+          "defeated": true,
+          "phase": "defeated"
+        }
+      ]
+    },
+    {
+      "difficulty": "relaxed",
+      "gear": 3,
+      "profile": "practiced",
+      "encounterVersion": 4,
+      "status": "clear",
+      "finalMessage": "SYNC Y // BREAKAWAY +6 BARS  FAST x2",
+      "finalBar": 100.0000000000118,
+      "frames": 9374,
+      "gearFrames": [
+        0,
+        92,
+        9282
+      ],
+      "integrity": 4,
+      "minimumIntegrity": 4,
+      "damageTaken": 0,
+      "drumMinimum": 0.6,
+      "musicRoles": {
+        "drive": {
+          "minimum": 0.03,
+          "maximum": 0.19,
+          "capturedFrames": 3832
+        },
+        "flow": {
+          "minimum": 0.045,
+          "maximum": 0.55,
+          "capturedFrames": 7300
+        },
+        "breakaway": {
+          "minimum": 0,
+          "maximum": 0.5,
+          "capturedFrames": 7303
+        },
+        "undercurrent": {
+          "minimum": 0,
+          "maximum": 0.62,
+          "capturedFrames": 4307
+        }
+      },
+      "accurate": 60,
+      "attempts": 63,
+      "connected": 60,
+      "combat": {
+        "version": 4,
+        "actors": [],
+        "projectiles": [],
+        "wrecks": [],
+        "target": null,
+        "boss": {
+          "id": "rig",
+          "kind": "rig",
+          "arrived": true,
+          "at": null,
+          "lane": 1.5,
+          "hp": 0,
+          "maxHp": 12,
+          "health": 0,
+          "systems": [
+            {
+              "id": "scanner",
+              "broken": true
+            },
+            {
+              "id": "ram",
+              "broken": true
+            },
+            {
+              "id": "emitter",
+              "broken": true
+            }
+          ],
+          "defeated": true,
+          "phase": "defeated",
+          "alpha": 1,
+          "visible": false
+        },
+        "skills": {
+          "attack": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 550,
+            "activeMs": 0,
+            "active": false,
+            "charges": 2
+          },
+          "defend": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 4000,
+            "activeMs": 0,
+            "active": false
+          },
+          "turbo": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 7000,
+            "activeMs": 0,
+            "active": false,
+            "pending": false
+          },
+          "disrupt": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 8500,
+            "activeMs": 0,
+            "active": false
+          }
+        },
+        "syncCount": 0,
+        "footprint": 1,
+        "stats": {
+          "damageDealt": 62,
+          "takedowns": 20,
+          "playerHits": 0,
+          "blocks": 0,
+          "shots": 31,
+          "attacks": 57,
+          "defends": 0,
+          "turbos": 20,
+          "disrupts": 3
+        }
+      },
+      "recoveries": [],
+      "eventsSummary": {
+        "count": 1357,
+        "sha256": "15e57c26e266b361a3e149a40b1c63d176d7961b8e8938756148795c23e729d5",
+        "countsByKind": {
+          "brace": 3,
+          "capture": 60,
+          "combat-driver-input": 471,
+          "combat-event": 221,
+          "combat-input": 471,
+          "earned-action": 60,
+          "missed-press": 3,
+          "music-award": 60,
+          "near-pass": 5,
+          "physical-contact": 3
+        },
+        "combatEventCountsByType": {
+          "attack": 57,
+          "boss-arrive": 1,
+          "boss-defeated": 1,
+          "boss-system-broken": 3,
+          "disengage": 1,
+          "disrupt": 3,
+          "enemy-arrive": 20,
+          "enemy-hit": 57,
+          "evaded": 1,
+          "lock": 1,
+          "shot": 31,
+          "takedown": 20,
+          "turbo": 20,
+          "warning": 5
+        },
+        "combatInputCountsByReason": {
+          "accepted": 80,
+          "no-target": 98,
+          "recharging": 59,
+          "runway": 20,
+          "weapon-recharging": 214
+        },
+        "acceptedControlsBySkill": {
+          "attack": 57,
+          "disrupt": 3,
+          "turbo": 20
+        },
+        "realDamageCauses": {
+          "chain": 1,
+          "shot": 30,
+          "strike": 26
+        },
+        "music": {
+          "capturedFaceActions": [
+            "road_a",
+            "road_b",
+            "road_x",
+            "road_y"
+          ],
+          "captureCount": 60,
+          "awardCount": 60,
+          "uniqueAwardIds": 60,
+          "holdBars": [
+            3,
+            6
+          ],
+          "actualAttemptOffsetRangeMs": [
+            -20,
+            80
+          ],
+          "actualAcceptedOffsetRangeMs": [
+            -20,
+            80
+          ]
+        },
+        "samples": {
+          "combat-event": {
+            "kind": "combat-event",
+            "bar": 4.011,
+            "elapsedMs": 7520,
+            "lane": 1,
+            "integrity": 4,
+            "type": "enemy-arrive",
+            "id": "foe-0",
+            "actorKind": "bike",
+            "sourceMethod": "step"
+          },
+          "combat-driver-input": {
+            "kind": "combat-driver-input",
+            "bar": 4.107,
+            "elapsedMs": 7700,
+            "lane": 0.919,
+            "integrity": 4,
+            "skill": "attack"
+          },
+          "combat-input": {
+            "kind": "combat-input",
+            "bar": 4.107,
+            "elapsedMs": 7700,
+            "lane": 0.919,
+            "integrity": 4,
+            "skill": "attack",
+            "accepted": true,
+            "reason": "accepted",
+            "syncBefore": 0
+          },
+          "earned-action": {
+            "kind": "earned-action",
+            "bar": 5.003,
+            "elapsedMs": 9380,
+            "lane": 2,
+            "integrity": 4,
+            "action": 0
+          },
+          "music-award": {
+            "kind": "music-award",
+            "bar": 5.003,
+            "elapsedMs": 9380,
+            "lane": 1.942,
+            "integrity": 4,
+            "id": "song/4",
+            "action": 0,
+            "musicLane": 2,
+            "targetBeat": 20,
+            "awardedBeat": 20.053333333333097,
+            "holdBars": 3
+          },
+          "capture": {
+            "kind": "capture",
+            "bar": 5.003,
+            "elapsedMs": 9380,
+            "lane": 1.942,
+            "integrity": 4,
+            "action": "road_a",
+            "feedback": "perfect",
+            "timingOffsetMs": 25
+          },
+          "near-pass": {
+            "kind": "near-pass",
+            "bar": 15.285,
+            "elapsedMs": 28660,
+            "lane": 1.069,
+            "integrity": 4
+          },
+          "missed-press": {
+            "kind": "missed-press",
+            "bar": 21.003,
+            "elapsedMs": 39380,
+            "lane": 2.582,
+            "integrity": 4,
+            "action": "road_a",
+            "feedback": "lane",
+            "timingOffsetMs": 25
+          },
+          "brace": {
+            "kind": "brace",
+            "bar": 27.285,
+            "elapsedMs": 51160,
+            "lane": 2.917,
+            "integrity": 4
+          },
+          "physical-contact": {
+            "kind": "physical-contact",
+            "bar": 27.285,
+            "elapsedMs": 51160,
+            "lane": 2.917,
+            "integrity": 4
+          }
+        }
+      },
+      "announcedPads": {
+        "count": 63,
+        "uniqueIds": 63,
+        "allTargetsAreONE": true,
+        "immutableAddressesDuringRun": true,
+        "verification": "Runtime assertions checked every repeated visible id retained its target and world address.",
+        "sha256": "1449209f997b3e039289a1a19cf7f74dde4616ff56abc40285ef4f58e24d5579",
+        "samples": [
+          {
+            "id": "song/4",
+            "target": 20,
+            "at": 634.4401129558515
+          },
+          {
+            "id": "song/6",
+            "target": 28,
+            "at": 906.3151129558515
+          },
+          {
+            "id": "song/97",
+            "target": 392,
+            "at": 13028.19011295585
+          },
+          {
+            "id": "song/98",
+            "target": 396,
+            "at": 13159.44011295585
+          }
+        ]
+      },
+      "bossChanges": [
+        {
+          "bar": 72.01066666666414,
+          "previousHp": null,
+          "id": "rig",
+          "hp": 12,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "approach"
+        },
+        {
+          "bar": 74.3999999999987,
+          "previousHp": 12,
+          "id": "rig",
+          "hp": 10.625,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 75.35999999999919,
+          "previousHp": 10.625,
+          "id": "rig",
+          "hp": 8.825,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 76.09599999999956,
+          "previousHp": 8.825,
+          "id": "rig",
+          "hp": 7.575,
+          "maxHp": 12,
+          "health": 2,
+          "defeated": false,
+          "phase": "approach"
+        },
+        {
+          "bar": 76.8853333333333,
+          "previousHp": 7.575,
+          "id": "rig",
+          "hp": 7.075,
+          "maxHp": 12,
+          "health": 2,
+          "defeated": false,
+          "phase": "windup"
+        },
+        {
+          "bar": 77.49333333333361,
+          "previousHp": 7.075,
+          "id": "rig",
+          "hp": 5.275,
+          "maxHp": 12,
+          "health": 2,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 77.88800000000047,
+          "previousHp": 5.275,
+          "id": "rig",
+          "hp": 3.475,
+          "maxHp": 12,
+          "health": 1,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 78.28266666666735,
+          "previousHp": 3.475,
+          "id": "rig",
+          "hp": 1.825,
+          "maxHp": 12,
+          "health": 1,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 79.2960000000012,
+          "previousHp": 1.825,
+          "id": "rig",
+          "hp": 0.725,
+          "maxHp": 12,
+          "health": 1,
+          "defeated": false,
+          "phase": "approach"
+        },
+        {
+          "bar": 79.69066666666806,
+          "previousHp": 0.725,
+          "id": "rig",
+          "hp": 0,
+          "maxHp": 12,
+          "health": 0,
+          "defeated": true,
+          "phase": "defeated"
+        }
+      ]
+    },
+    {
+      "difficulty": "standard",
+      "gear": 1,
+      "profile": "practiced",
+      "encounterVersion": 4,
+      "status": "clear",
+      "finalMessage": "FULL SYNCHRONIZATION",
+      "finalBar": 100.0000000000118,
+      "frames": 9374,
+      "gearFrames": [
+        9282,
+        92,
+        0
+      ],
+      "integrity": 3,
+      "minimumIntegrity": 3,
+      "damageTaken": 0,
+      "drumMinimum": 0.6,
+      "musicRoles": {
+        "drive": {
+          "minimum": 0.03,
+          "maximum": 0.19,
+          "capturedFrames": 3735
+        },
+        "flow": {
+          "minimum": 0.045,
+          "maximum": 0.55,
+          "capturedFrames": 6745
+        },
+        "breakaway": {
+          "minimum": 0,
+          "maximum": 0.5,
+          "capturedFrames": 6266
+        },
+        "undercurrent": {
+          "minimum": 0,
+          "maximum": 0.62,
+          "capturedFrames": 3737
+        }
+      },
+      "accurate": 60,
+      "attempts": 63,
+      "connected": 60,
+      "combat": {
+        "version": 4,
+        "actors": [],
+        "projectiles": [],
+        "wrecks": [],
+        "target": null,
+        "boss": {
+          "id": "rig",
+          "kind": "rig",
+          "arrived": true,
+          "at": null,
+          "lane": 1.5,
+          "hp": 0,
+          "maxHp": 12,
+          "health": 0,
+          "systems": [
+            {
+              "id": "scanner",
+              "broken": true
+            },
+            {
+              "id": "ram",
+              "broken": true
+            },
+            {
+              "id": "emitter",
+              "broken": true
+            }
+          ],
+          "defeated": true,
+          "phase": "defeated",
+          "alpha": 1,
+          "visible": false
+        },
+        "skills": {
+          "attack": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 550,
+            "activeMs": 0,
+            "active": false,
+            "charges": 2
+          },
+          "defend": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 4000,
+            "activeMs": 0,
+            "active": false
+          },
+          "turbo": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 7000,
+            "activeMs": 0,
+            "active": false,
+            "pending": false
+          },
+          "disrupt": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 8500,
+            "activeMs": 0,
+            "active": false
+          }
+        },
+        "syncCount": 0,
+        "footprint": 1,
+        "stats": {
+          "damageDealt": 71,
+          "takedowns": 23,
+          "playerHits": 0,
+          "blocks": 0,
+          "shots": 31,
+          "attacks": 63,
+          "defends": 0,
+          "turbos": 20,
+          "disrupts": 9
+        }
+      },
+      "recoveries": [],
+      "eventsSummary": {
+        "count": 1772,
+        "sha256": "dc47b6a2a4788ff03a0f6482f6f9e929163a2823d9035c55b101f68ac584e3e9",
+        "countsByKind": {
+          "brace": 2,
+          "capture": 60,
+          "combat-driver-input": 654,
+          "combat-event": 257,
+          "combat-input": 654,
+          "earned-action": 60,
+          "missed-press": 3,
+          "music-award": 60,
+          "near-pass": 19,
+          "physical-contact": 3
+        },
+        "combatEventCountsByType": {
+          "attack": 63,
+          "boss-arrive": 1,
+          "boss-defeated": 1,
+          "boss-system-broken": 3,
+          "disengage": 2,
+          "disrupt": 9,
+          "enemy-arrive": 23,
+          "enemy-hit": 65,
+          "enemy-shot": 1,
+          "evaded": 1,
+          "lock": 1,
+          "shot": 31,
+          "takedown": 23,
+          "turbo": 20,
+          "warning": 13
+        },
+        "combatInputCountsByReason": {
+          "accepted": 92,
+          "no-target": 89,
+          "recharging": 69,
+          "runway": 23,
+          "weapon-recharging": 381
+        },
+        "acceptedControlsBySkill": {
+          "attack": 63,
+          "disrupt": 9,
+          "turbo": 20
+        },
+        "realDamageCauses": {
+          "chain": 2,
+          "shot": 31,
+          "strike": 32
+        },
+        "music": {
+          "capturedFaceActions": [
+            "road_a",
+            "road_b",
+            "road_x",
+            "road_y"
+          ],
+          "captureCount": 60,
+          "awardCount": 60,
+          "uniqueAwardIds": 60,
+          "holdBars": [
+            3,
+            6
+          ],
+          "actualAttemptOffsetRangeMs": [
+            -15,
+            80
+          ],
+          "actualAcceptedOffsetRangeMs": [
+            -15,
+            80
+          ]
+        },
+        "samples": {
+          "combat-event": {
+            "kind": "combat-event",
+            "bar": 4.011,
+            "elapsedMs": 7520,
+            "lane": 1,
+            "integrity": 3,
+            "type": "enemy-arrive",
+            "id": "foe-0",
+            "actorKind": "bike",
+            "sourceMethod": "step"
+          },
+          "combat-driver-input": {
+            "kind": "combat-driver-input",
+            "bar": 4.107,
+            "elapsedMs": 7700,
+            "lane": 0.939,
+            "integrity": 3,
+            "skill": "attack"
+          },
+          "combat-input": {
+            "kind": "combat-input",
+            "bar": 4.107,
+            "elapsedMs": 7700,
+            "lane": 0.939,
+            "integrity": 3,
+            "skill": "attack",
+            "accepted": true,
+            "reason": "accepted",
+            "syncBefore": 0
+          },
+          "earned-action": {
+            "kind": "earned-action",
+            "bar": 5.024,
+            "elapsedMs": 9420,
+            "lane": 2,
+            "integrity": 3,
+            "action": 0
+          },
+          "music-award": {
+            "kind": "music-award",
+            "bar": 5.024,
+            "elapsedMs": 9420,
+            "lane": 1.955,
+            "integrity": 3,
+            "id": "song/4",
+            "action": 0,
+            "musicLane": 2,
+            "targetBeat": 20,
+            "awardedBeat": 20.138666666666428,
+            "holdBars": 3
+          },
+          "capture": {
+            "kind": "capture",
+            "bar": 5.024,
+            "elapsedMs": 9420,
+            "lane": 1.955,
+            "integrity": 3,
+            "action": "road_a",
+            "feedback": "perfect",
+            "timingOffsetMs": 65
+          },
+          "near-pass": {
+            "kind": "near-pass",
+            "bar": 10.923,
+            "elapsedMs": 20480,
+            "lane": 2.05,
+            "integrity": 3
+          },
+          "brace": {
+            "kind": "brace",
+            "bar": 26.528,
+            "elapsedMs": 49740,
+            "lane": 1.259,
+            "integrity": 3
+          },
+          "physical-contact": {
+            "kind": "physical-contact",
+            "bar": 26.528,
+            "elapsedMs": 49740,
+            "lane": 1.259,
+            "integrity": 3
+          },
+          "missed-press": {
+            "kind": "missed-press",
+            "bar": 57.024,
+            "elapsedMs": 106920,
+            "lane": 1.257,
+            "integrity": 3,
+            "action": "road_a",
+            "feedback": "lane",
+            "timingOffsetMs": 65
+          }
+        }
+      },
+      "announcedPads": {
+        "count": 63,
+        "uniqueIds": 63,
+        "allTargetsAreONE": true,
+        "immutableAddressesDuringRun": true,
+        "verification": "Runtime assertions checked every repeated visible id retained its target and world address.",
+        "sha256": "c21125e92865ba71fb4f77f04345a8919ef323eb8dae39f42bc532cd8dc20f0a",
+        "samples": [
+          {
+            "id": "song/4",
+            "target": 20,
+            "at": 341.47136295585153
+          },
+          {
+            "id": "song/6",
+            "target": 28,
+            "at": 602.9166754558515
+          },
+          {
+            "id": "song/97",
+            "target": 392,
+            "at": 8043.971362955852
+          },
+          {
+            "id": "song/98",
+            "target": 396,
+            "at": 8164.791675455852
+          }
+        ]
+      },
+      "bossChanges": [
+        {
+          "bar": 72.01066666666414,
+          "previousHp": null,
+          "id": "rig",
+          "hp": 12,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "approach"
+        },
+        {
+          "bar": 75.1253333333324,
+          "previousHp": 12,
+          "id": "rig",
+          "hp": 11.5,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 75.51999999999927,
+          "previousHp": 11.5,
+          "id": "rig",
+          "hp": 9.85,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 77.25866666666683,
+          "previousHp": 9.85,
+          "id": "rig",
+          "hp": 8.05,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 77.65333333333369,
+          "previousHp": 8.05,
+          "id": "rig",
+          "hp": 6.25,
+          "maxHp": 12,
+          "health": 2,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 78.04800000000056,
+          "previousHp": 6.25,
+          "id": "rig",
+          "hp": 4.45,
+          "maxHp": 12,
+          "health": 2,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 78.44266666666744,
+          "previousHp": 4.45,
+          "id": "rig",
+          "hp": 2.65,
+          "maxHp": 12,
+          "health": 1,
+          "defeated": false,
+          "phase": "stunned"
+        },
+        {
+          "bar": 78.8373333333343,
+          "previousHp": 2.65,
+          "id": "rig",
+          "hp": 0.85,
+          "maxHp": 12,
+          "health": 1,
+          "defeated": false,
+          "phase": "stunned"
+        },
+        {
+          "bar": 79.23200000000116,
+          "previousHp": 0.85,
+          "id": "rig",
+          "hp": 0,
+          "maxHp": 12,
+          "health": 0,
+          "defeated": true,
+          "phase": "defeated"
+        }
+      ]
+    },
+    {
+      "difficulty": "standard",
+      "gear": 2,
+      "profile": "practiced",
+      "encounterVersion": 4,
+      "status": "clear",
+      "finalMessage": "SYNC Y // BREAKAWAY +6 BARS  FAST x2",
+      "finalBar": 100.0000000000118,
+      "frames": 9374,
+      "gearFrames": [
+        0,
+        9374,
+        0
+      ],
+      "integrity": 3,
+      "minimumIntegrity": 3,
+      "damageTaken": 0,
+      "drumMinimum": 0.6,
+      "musicRoles": {
+        "drive": {
+          "minimum": 0.03,
+          "maximum": 0.19,
+          "capturedFrames": 1309
+        },
+        "flow": {
+          "minimum": 0.045,
+          "maximum": 0.55,
+          "capturedFrames": 6927
+        },
+        "breakaway": {
+          "minimum": 0,
+          "maximum": 0.5,
+          "capturedFrames": 7298
+        },
+        "undercurrent": {
+          "minimum": 0,
+          "maximum": 0.62,
+          "capturedFrames": 2993
+        }
+      },
+      "accurate": 56,
+      "attempts": 63,
+      "connected": 56,
+      "combat": {
+        "version": 4,
+        "actors": [],
+        "projectiles": [],
+        "wrecks": [],
+        "target": null,
+        "boss": {
+          "id": "rig",
+          "kind": "rig",
+          "arrived": true,
+          "at": null,
+          "lane": 1.5,
+          "hp": 0,
+          "maxHp": 12,
+          "health": 0,
+          "systems": [
+            {
+              "id": "scanner",
+              "broken": true
+            },
+            {
+              "id": "ram",
+              "broken": true
+            },
+            {
+              "id": "emitter",
+              "broken": true
+            }
+          ],
+          "defeated": true,
+          "phase": "defeated",
+          "alpha": 1,
+          "visible": false
+        },
+        "skills": {
+          "attack": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 550,
+            "activeMs": 0,
+            "active": false,
+            "charges": 2
+          },
+          "defend": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 4000,
+            "activeMs": 0,
+            "active": false
+          },
+          "turbo": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 7000,
+            "activeMs": 0,
+            "active": false,
+            "pending": false
+          },
+          "disrupt": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 8500,
+            "activeMs": 0,
+            "active": false
+          }
+        },
+        "syncCount": 0,
+        "footprint": 1,
+        "stats": {
+          "damageDealt": 71,
+          "takedowns": 23,
+          "playerHits": 0,
+          "blocks": 0,
+          "shots": 31,
+          "attacks": 67,
+          "defends": 2,
+          "turbos": 19,
+          "disrupts": 9
+        }
+      },
+      "recoveries": [],
+      "eventsSummary": {
+        "count": 1755,
+        "sha256": "55da1f1939dd9ce5454822c90a7303b127b166c19da8c0fac7708119bd9e8aa2",
+        "countsByKind": {
+          "brace": 2,
+          "capture": 56,
+          "combat-driver-input": 644,
+          "combat-event": 266,
+          "combat-input": 644,
+          "earned-action": 56,
+          "missed-press": 7,
+          "music-award": 56,
+          "near-pass": 20,
+          "physical-contact": 4
+        },
+        "combatEventCountsByType": {
+          "attack": 67,
+          "boss-arrive": 1,
+          "boss-defeated": 1,
+          "boss-system-broken": 3,
+          "defend-ready": 2,
+          "disrupt": 9,
+          "enemy-arrive": 23,
+          "enemy-hit": 68,
+          "enemy-shot": 1,
+          "evaded": 2,
+          "lock": 2,
+          "shot": 31,
+          "takedown": 23,
+          "turbo": 19,
+          "warning": 14
+        },
+        "combatInputCountsByReason": {
+          "accepted": 97,
+          "no-target": 111,
+          "recharging": 73,
+          "runway": 13,
+          "weapon-recharging": 350
+        },
+        "acceptedControlsBySkill": {
+          "attack": 67,
+          "defend": 2,
+          "disrupt": 9,
+          "turbo": 19
+        },
+        "realDamageCauses": {
+          "chain": 1,
+          "shot": 31,
+          "strike": 36
+        },
+        "music": {
+          "capturedFaceActions": [
+            "road_a",
+            "road_b",
+            "road_x",
+            "road_y"
+          ],
+          "captureCount": 56,
+          "awardCount": 56,
+          "uniqueAwardIds": 56,
+          "holdBars": [
+            3,
+            6
+          ],
+          "actualAttemptOffsetRangeMs": [
+            -20,
+            80
+          ],
+          "actualAcceptedOffsetRangeMs": [
+            -20,
+            75
+          ]
+        },
+        "samples": {
+          "combat-event": {
+            "kind": "combat-event",
+            "bar": 4.011,
+            "elapsedMs": 7520,
+            "lane": 1,
+            "integrity": 3,
+            "type": "enemy-arrive",
+            "id": "foe-0",
+            "actorKind": "bike",
+            "sourceMethod": "step"
+          },
+          "combat-driver-input": {
+            "kind": "combat-driver-input",
+            "bar": 4.107,
+            "elapsedMs": 7700,
+            "lane": 0.932,
+            "integrity": 3,
+            "skill": "attack"
+          },
+          "combat-input": {
+            "kind": "combat-input",
+            "bar": 4.107,
+            "elapsedMs": 7700,
+            "lane": 0.932,
+            "integrity": 3,
+            "skill": "attack",
+            "accepted": true,
+            "reason": "accepted",
+            "syncBefore": 0
+          },
+          "earned-action": {
+            "kind": "earned-action",
+            "bar": 5.013,
+            "elapsedMs": 9400,
+            "lane": 2,
+            "integrity": 3,
+            "action": 0
+          },
+          "music-award": {
+            "kind": "music-award",
+            "bar": 5.013,
+            "elapsedMs": 9400,
+            "lane": 1.958,
+            "integrity": 3,
+            "id": "song/4",
+            "action": 0,
+            "musicLane": 2,
+            "targetBeat": 20,
+            "awardedBeat": 20.095999999999762,
+            "holdBars": 3
+          },
+          "capture": {
+            "kind": "capture",
+            "bar": 5.013,
+            "elapsedMs": 9400,
+            "lane": 1.958,
+            "integrity": 3,
+            "action": "road_a",
+            "feedback": "perfect",
+            "timingOffsetMs": 45
+          },
+          "near-pass": {
+            "kind": "near-pass",
+            "bar": 9.728,
+            "elapsedMs": 18240,
+            "lane": 2.079,
+            "integrity": 3
+          },
+          "missed-press": {
+            "kind": "missed-press",
+            "bar": 15.019,
+            "elapsedMs": 28160,
+            "lane": 0.956,
+            "integrity": 3,
+            "action": "road_x",
+            "feedback": "lane",
+            "timingOffsetMs": 55
+          },
+          "physical-contact": {
+            "kind": "physical-contact",
+            "bar": 32.075,
+            "elapsedMs": 60140,
+            "lane": 1.9,
+            "integrity": 3
+          },
+          "brace": {
+            "kind": "brace",
+            "bar": 38.08,
+            "elapsedMs": 71400,
+            "lane": 2.968,
+            "integrity": 3
+          }
+        }
+      },
+      "announcedPads": {
+        "count": 63,
+        "uniqueIds": 63,
+        "allTargetsAreONE": true,
+        "immutableAddressesDuringRun": true,
+        "verification": "Runtime assertions checked every repeated visible id retained its target and world address.",
+        "sha256": "7e14685bae030888523665a2a390860dc9b0392b21dde041e370be29b8ce88a8",
+        "samples": [
+          {
+            "id": "song/4",
+            "target": 20,
+            "at": 502.60417545585153
+          },
+          {
+            "id": "song/6",
+            "target": 28,
+            "at": 767.9166754558515
+          },
+          {
+            "id": "song/97",
+            "target": 392,
+            "at": 10659.47917545585
+          },
+          {
+            "id": "song/98",
+            "target": 396,
+            "at": 10784.16667545585
+          }
+        ]
+      },
+      "bossChanges": [
+        {
+          "bar": 72.01066666666414,
+          "previousHp": null,
+          "id": "rig",
+          "hp": 12,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "approach"
+        },
+        {
+          "bar": 74.4746666666654,
+          "previousHp": 12,
+          "id": "rig",
+          "hp": 10.625,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 75.29599999999915,
+          "previousHp": 10.625,
+          "id": "rig",
+          "hp": 8.975,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 75.69066666666602,
+          "previousHp": 8.975,
+          "id": "rig",
+          "hp": 7.875,
+          "maxHp": 12,
+          "health": 2,
+          "defeated": false,
+          "phase": "approach"
+        },
+        {
+          "bar": 76.26666666666632,
+          "previousHp": 7.875,
+          "id": "rig",
+          "hp": 6.775,
+          "maxHp": 12,
+          "health": 2,
+          "defeated": false,
+          "phase": "windup"
+        },
+        {
+          "bar": 76.66133333333319,
+          "previousHp": 6.775,
+          "id": "rig",
+          "hp": 5.675,
+          "maxHp": 12,
+          "health": 2,
+          "defeated": false,
+          "phase": "windup"
+        },
+        {
+          "bar": 77.05600000000005,
+          "previousHp": 5.675,
+          "id": "rig",
+          "hp": 4.725,
+          "maxHp": 12,
+          "health": 2,
+          "defeated": false,
+          "phase": "committed"
+        },
+        {
+          "bar": 77.45066666666692,
+          "previousHp": 4.725,
+          "id": "rig",
+          "hp": 3.225,
+          "maxHp": 12,
+          "health": 1,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 77.8453333333338,
+          "previousHp": 3.225,
+          "id": "rig",
+          "hp": 1.725,
+          "maxHp": 12,
+          "health": 1,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 78.24000000000066,
+          "previousHp": 1.725,
+          "id": "rig",
+          "hp": 0.225,
+          "maxHp": 12,
+          "health": 1,
+          "defeated": false,
+          "phase": "stunned"
+        },
+        {
+          "bar": 78.63466666666753,
+          "previousHp": 0.225,
+          "id": "rig",
+          "hp": 0,
+          "maxHp": 12,
+          "health": 0,
+          "defeated": true,
+          "phase": "defeated"
+        }
+      ]
+    },
+    {
+      "difficulty": "standard",
+      "gear": 3,
+      "profile": "practiced",
+      "encounterVersion": 4,
+      "status": "clear",
+      "finalMessage": "SYNC Y // FLOW +6 BARS  FAST x2",
+      "finalBar": 100.0000000000118,
+      "frames": 9374,
+      "gearFrames": [
+        161,
+        185,
+        9028
+      ],
+      "integrity": 2,
+      "minimumIntegrity": 2,
+      "damageTaken": 1,
+      "drumMinimum": 0.6,
+      "musicRoles": {
+        "drive": {
+          "minimum": 0.03,
+          "maximum": 0.19,
+          "capturedFrames": 2525
+        },
+        "flow": {
+          "minimum": 0.045,
+          "maximum": 0.55,
+          "capturedFrames": 6932
+        },
+        "breakaway": {
+          "minimum": 0,
+          "maximum": 0.5,
+          "capturedFrames": 7310
+        },
+        "undercurrent": {
+          "minimum": 0,
+          "maximum": 0.62,
+          "capturedFrames": 3580
+        }
+      },
+      "accurate": 61,
+      "attempts": 63,
+      "connected": 61,
+      "combat": {
+        "version": 4,
+        "actors": [],
+        "projectiles": [],
+        "wrecks": [],
+        "target": null,
+        "boss": {
+          "id": "rig",
+          "kind": "rig",
+          "arrived": true,
+          "at": null,
+          "lane": 1.5,
+          "hp": 0,
+          "maxHp": 12,
+          "health": 0,
+          "systems": [
+            {
+              "id": "scanner",
+              "broken": true
+            },
+            {
+              "id": "ram",
+              "broken": true
+            },
+            {
+              "id": "emitter",
+              "broken": true
+            }
+          ],
+          "defeated": true,
+          "phase": "defeated",
+          "alpha": 1,
+          "visible": false
+        },
+        "skills": {
+          "attack": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 550,
+            "activeMs": 0,
+            "active": false,
+            "charges": 2
+          },
+          "defend": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 4000,
+            "activeMs": 0,
+            "active": false
+          },
+          "turbo": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 7000,
+            "activeMs": 0,
+            "active": false,
+            "pending": false
+          },
+          "disrupt": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 8500,
+            "activeMs": 0,
+            "active": false
+          }
+        },
+        "syncCount": 0,
+        "footprint": 1,
+        "stats": {
+          "damageDealt": 73,
+          "takedowns": 24,
+          "playerHits": 0,
+          "blocks": 0,
+          "shots": 31,
+          "attacks": 66,
+          "defends": 1,
+          "turbos": 20,
+          "disrupts": 8
+        }
+      },
+      "recoveries": [
+        {
+          "kind": "damage",
+          "bar": 41.291,
+          "elapsedMs": 77420,
+          "lane": 1.482,
+          "integrity": 2,
+          "actor": "shuttle",
+          "capturesBefore": [
+            2,
+            3
+          ],
+          "capturesAfter": [
+            2
+          ],
+          "queuedBefore": [],
+          "queuedAfter": [],
+          "nextCaptureMs": 3260
+        }
+      ],
+      "eventsSummary": {
+        "count": 1784,
+        "sha256": "5d3a2b4df38555514312c2f48549e0d1838f258702215b1bc84eba9e43de98d6",
+        "countsByKind": {
+          "brace": 2,
+          "capture": 61,
+          "combat-driver-input": 659,
+          "combat-event": 259,
+          "combat-input": 659,
+          "damage": 1,
+          "earned-action": 61,
+          "missed-press": 2,
+          "music-award": 61,
+          "near-pass": 15,
+          "physical-contact": 3,
+          "wreck-recovery": 1
+        },
+        "combatEventCountsByType": {
+          "attack": 66,
+          "boss-arrive": 1,
+          "boss-defeated": 1,
+          "boss-system-broken": 3,
+          "defend-ready": 1,
+          "disrupt": 8,
+          "enemy-arrive": 24,
+          "enemy-hit": 66,
+          "enemy-shot": 1,
+          "evaded": 1,
+          "lock": 1,
+          "shot": 31,
+          "takedown": 24,
+          "turbo": 20,
+          "warning": 11
+        },
+        "combatInputCountsByReason": {
+          "accepted": 95,
+          "no-target": 103,
+          "recharging": 74,
+          "runway": 18,
+          "weapon-recharging": 369
+        },
+        "acceptedControlsBySkill": {
+          "attack": 66,
+          "defend": 1,
+          "disrupt": 8,
+          "turbo": 20
+        },
+        "realDamageCauses": {
+          "shot": 31,
+          "strike": 35
+        },
+        "music": {
+          "capturedFaceActions": [
+            "road_a",
+            "road_b",
+            "road_x",
+            "road_y"
+          ],
+          "captureCount": 61,
+          "awardCount": 61,
+          "uniqueAwardIds": 61,
+          "holdBars": [
+            3,
+            6
+          ],
+          "actualAttemptOffsetRangeMs": [
+            -20,
+            80
+          ],
+          "actualAcceptedOffsetRangeMs": [
+            -20,
+            80
+          ]
+        },
+        "samples": {
+          "combat-event": {
+            "kind": "combat-event",
+            "bar": 4.011,
+            "elapsedMs": 7520,
+            "lane": 1,
+            "integrity": 3,
+            "type": "enemy-arrive",
+            "id": "foe-0",
+            "actorKind": "bike",
+            "sourceMethod": "step"
+          },
+          "combat-driver-input": {
+            "kind": "combat-driver-input",
+            "bar": 4.107,
+            "elapsedMs": 7700,
+            "lane": 0.919,
+            "integrity": 3,
+            "skill": "attack"
+          },
+          "combat-input": {
+            "kind": "combat-input",
+            "bar": 4.107,
+            "elapsedMs": 7700,
+            "lane": 0.919,
+            "integrity": 3,
+            "skill": "attack",
+            "accepted": true,
+            "reason": "accepted",
+            "syncBefore": 0
+          },
+          "earned-action": {
+            "kind": "earned-action",
+            "bar": 5.003,
+            "elapsedMs": 9380,
+            "lane": 2,
+            "integrity": 3,
+            "action": 0
+          },
+          "music-award": {
+            "kind": "music-award",
+            "bar": 5.003,
+            "elapsedMs": 9380,
+            "lane": 1.942,
+            "integrity": 3,
+            "id": "song/4",
+            "action": 0,
+            "musicLane": 2,
+            "targetBeat": 20,
+            "awardedBeat": 20.053333333333097,
+            "holdBars": 3
+          },
+          "capture": {
+            "kind": "capture",
+            "bar": 5.003,
+            "elapsedMs": 9380,
+            "lane": 1.942,
+            "integrity": 3,
+            "action": "road_a",
+            "feedback": "perfect",
+            "timingOffsetMs": 25
+          },
+          "near-pass": {
+            "kind": "near-pass",
+            "bar": 9.28,
+            "elapsedMs": 17400,
+            "lane": 2.049,
+            "integrity": 3
+          },
+          "brace": {
+            "kind": "brace",
+            "bar": 39.349,
+            "elapsedMs": 73780,
+            "lane": 0.959,
+            "integrity": 3
+          },
+          "physical-contact": {
+            "kind": "physical-contact",
+            "bar": 39.349,
+            "elapsedMs": 73780,
+            "lane": 0.959,
+            "integrity": 3
+          },
+          "damage": {
+            "kind": "damage",
+            "bar": 41.291,
+            "elapsedMs": 77420,
+            "lane": 1.482,
+            "integrity": 2,
+            "capturesBefore": [
+              2,
+              3
+            ],
+            "capturesAfter": [
+              2
+            ],
+            "queuedBefore": [],
+            "queuedAfter": []
+          },
+          "wreck-recovery": {
+            "kind": "wreck-recovery",
+            "bar": 41.291,
+            "elapsedMs": 77420,
+            "lane": 1.482,
+            "integrity": 2,
+            "gear": 0,
+            "queuedRecovery": true,
+            "recoveryBeat": 168
+          },
+          "missed-press": {
+            "kind": "missed-press",
+            "bar": 47.989,
+            "elapsedMs": 89980,
+            "lane": 0.914,
+            "integrity": 2,
+            "action": "road_a",
+            "feedback": "lane",
+            "timingOffsetMs": 0
+          }
+        }
+      },
+      "announcedPads": {
+        "count": 63,
+        "uniqueIds": 63,
+        "allTargetsAreONE": true,
+        "immutableAddressesDuringRun": true,
+        "verification": "Runtime assertions checked every repeated visible id retained its target and world address.",
+        "sha256": "34ab9d654264fa6a59677fb799349fda9d576f8671dbd8e6bbbd61ba4e8bcd47",
+        "samples": [
+          {
+            "id": "song/4",
+            "target": 20,
+            "at": 634.4401129558515
+          },
+          {
+            "id": "song/6",
+            "target": 28,
+            "at": 906.3151129558515
+          },
+          {
+            "id": "song/97",
+            "target": 392,
+            "at": 12919.44011295585
+          },
+          {
+            "id": "song/98",
+            "target": 396,
+            "at": 13050.69011295585
+          }
+        ]
+      },
+      "bossChanges": [
+        {
+          "bar": 72.01066666666414,
+          "previousHp": null,
+          "id": "rig",
+          "hp": 12,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "approach"
+        },
+        {
+          "bar": 75.50933333333259,
+          "previousHp": 12,
+          "id": "rig",
+          "hp": 10.9,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "approach"
+        },
+        {
+          "bar": 75.90399999999947,
+          "previousHp": 10.9,
+          "id": "rig",
+          "hp": 9.8,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "windup"
+        },
+        {
+          "bar": 76.29866666666634,
+          "previousHp": 9.8,
+          "id": "rig",
+          "hp": 8.15,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "stunned"
+        },
+        {
+          "bar": 77.14133333333344,
+          "previousHp": 8.15,
+          "id": "rig",
+          "hp": 6.5,
+          "maxHp": 12,
+          "health": 2,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 77.5360000000003,
+          "previousHp": 6.5,
+          "id": "rig",
+          "hp": 4.85,
+          "maxHp": 12,
+          "health": 2,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 77.93066666666716,
+          "previousHp": 4.85,
+          "id": "rig",
+          "hp": 3.2,
+          "maxHp": 12,
+          "health": 1,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 78.32533333333404,
+          "previousHp": 3.2,
+          "id": "rig",
+          "hp": 1.55,
+          "maxHp": 12,
+          "health": 1,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 78.72000000000091,
+          "previousHp": 1.55,
+          "id": "rig",
+          "hp": 0.45,
+          "maxHp": 12,
+          "health": 1,
+          "defeated": false,
+          "phase": "approach"
+        },
+        {
+          "bar": 79.11466666666777,
+          "previousHp": 0.45,
+          "id": "rig",
+          "hp": 0,
+          "maxHp": 12,
+          "health": 0,
+          "defeated": true,
+          "phase": "defeated"
+        }
+      ]
+    },
+    {
+      "difficulty": "overclocked",
+      "gear": 1,
+      "profile": "practiced",
+      "encounterVersion": 4,
+      "status": "clear",
+      "finalMessage": "SYNC Y // BREAKAWAY +6 BARS  FAST x2",
+      "finalBar": 100.0000000000118,
+      "frames": 9374,
+      "gearFrames": [
+        9282,
+        92,
+        0
+      ],
+      "integrity": 2,
+      "minimumIntegrity": 2,
+      "damageTaken": 1,
+      "drumMinimum": 0.6,
+      "musicRoles": {
+        "drive": {
+          "minimum": 0.03,
+          "maximum": 0.19,
+          "capturedFrames": 1681
+        },
+        "flow": {
+          "minimum": 0.045,
+          "maximum": 0.55,
+          "capturedFrames": 6641
+        },
+        "breakaway": {
+          "minimum": 0,
+          "maximum": 0.5,
+          "capturedFrames": 5428
+        },
+        "undercurrent": {
+          "minimum": 0,
+          "maximum": 0.62,
+          "capturedFrames": 2246
+        }
+      },
+      "accurate": 59,
+      "attempts": 63,
+      "connected": 59,
+      "combat": {
+        "version": 4,
+        "actors": [],
+        "projectiles": [],
+        "wrecks": [],
+        "target": null,
+        "boss": {
+          "id": "rig",
+          "kind": "rig",
+          "arrived": true,
+          "at": null,
+          "lane": 1.5,
+          "hp": 0,
+          "maxHp": 12,
+          "health": 0,
+          "systems": [
+            {
+              "id": "scanner",
+              "broken": true
+            },
+            {
+              "id": "ram",
+              "broken": true
+            },
+            {
+              "id": "emitter",
+              "broken": true
+            }
+          ],
+          "defeated": true,
+          "phase": "defeated",
+          "alpha": 1,
+          "visible": false
+        },
+        "skills": {
+          "attack": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 550,
+            "activeMs": 0,
+            "active": false,
+            "charges": 2
+          },
+          "defend": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 4000,
+            "activeMs": 0,
+            "active": false
+          },
+          "turbo": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 7000,
+            "activeMs": 0,
+            "active": false,
+            "pending": false
+          },
+          "disrupt": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 8500,
+            "activeMs": 0,
+            "active": false
+          }
+        },
+        "syncCount": 0,
+        "footprint": 1,
+        "stats": {
+          "damageDealt": 79.25,
+          "takedowns": 26,
+          "playerHits": 0,
+          "blocks": 0,
+          "shots": 31,
+          "attacks": 74,
+          "defends": 3,
+          "turbos": 19,
+          "disrupts": 11
+        }
+      },
+      "recoveries": [
+        {
+          "kind": "damage",
+          "bar": 25.92,
+          "elapsedMs": 48600,
+          "lane": 1.199,
+          "integrity": 2,
+          "actor": "freight",
+          "capturesBefore": [
+            1,
+            2
+          ],
+          "capturesAfter": [
+            2
+          ],
+          "queuedBefore": [],
+          "queuedAfter": [],
+          "nextCaptureMs": 2000
+        }
+      ],
+      "eventsSummary": {
+        "count": 1875,
+        "sha256": "2f34624eaf30fab35d8c751d0f290433d477dc2edf4f68f120a143ca3901c2db",
+        "countsByKind": {
+          "brace": 2,
+          "capture": 59,
+          "combat-driver-input": 673,
+          "combat-event": 301,
+          "combat-input": 673,
+          "damage": 1,
+          "earned-action": 59,
+          "missed-press": 4,
+          "music-award": 59,
+          "near-pass": 37,
+          "physical-contact": 6,
+          "wreck-recovery": 1
+        },
+        "combatEventCountsByType": {
+          "attack": 74,
+          "boss-arrive": 1,
+          "boss-defeated": 1,
+          "boss-system-broken": 3,
+          "defend-ready": 3,
+          "disengage": 2,
+          "disrupt": 11,
+          "enemy-arrive": 26,
+          "enemy-hit": 76,
+          "enemy-shot": 2,
+          "evaded": 3,
+          "lock": 4,
+          "shot": 31,
+          "takedown": 26,
+          "turbo": 19,
+          "warning": 19
+        },
+        "combatInputCountsByReason": {
+          "accepted": 107,
+          "no-target": 142,
+          "recharging": 83,
+          "runway": 30,
+          "weapon-recharging": 311
+        },
+        "acceptedControlsBySkill": {
+          "attack": 74,
+          "defend": 3,
+          "disrupt": 11,
+          "turbo": 19
+        },
+        "realDamageCauses": {
+          "chain": 2,
+          "shot": 31,
+          "strike": 43
+        },
+        "music": {
+          "capturedFaceActions": [
+            "road_a",
+            "road_b",
+            "road_x",
+            "road_y"
+          ],
+          "captureCount": 59,
+          "awardCount": 59,
+          "uniqueAwardIds": 59,
+          "holdBars": [
+            3,
+            6
+          ],
+          "actualAttemptOffsetRangeMs": [
+            -15,
+            80
+          ],
+          "actualAcceptedOffsetRangeMs": [
+            -15,
+            80
+          ]
+        },
+        "samples": {
+          "combat-event": {
+            "kind": "combat-event",
+            "bar": 4.011,
+            "elapsedMs": 7520,
+            "lane": 1,
+            "integrity": 3,
+            "type": "enemy-arrive",
+            "id": "foe-0",
+            "actorKind": "bike",
+            "sourceMethod": "step"
+          },
+          "combat-driver-input": {
+            "kind": "combat-driver-input",
+            "bar": 4.107,
+            "elapsedMs": 7700,
+            "lane": 0.939,
+            "integrity": 3,
+            "skill": "attack"
+          },
+          "combat-input": {
+            "kind": "combat-input",
+            "bar": 4.107,
+            "elapsedMs": 7700,
+            "lane": 0.939,
+            "integrity": 3,
+            "skill": "attack",
+            "accepted": true,
+            "reason": "accepted",
+            "syncBefore": 0
+          },
+          "earned-action": {
+            "kind": "earned-action",
+            "bar": 5.024,
+            "elapsedMs": 9420,
+            "lane": 2,
+            "integrity": 3,
+            "action": 0
+          },
+          "music-award": {
+            "kind": "music-award",
+            "bar": 5.024,
+            "elapsedMs": 9420,
+            "lane": 1.955,
+            "integrity": 3,
+            "id": "song/4",
+            "action": 0,
+            "musicLane": 2,
+            "targetBeat": 20,
+            "awardedBeat": 20.138666666666428,
+            "holdBars": 3
+          },
+          "capture": {
+            "kind": "capture",
+            "bar": 5.024,
+            "elapsedMs": 9420,
+            "lane": 1.955,
+            "integrity": 3,
+            "action": "road_a",
+            "feedback": "perfect",
+            "timingOffsetMs": 65
+          },
+          "near-pass": {
+            "kind": "near-pass",
+            "bar": 9.056,
+            "elapsedMs": 16980,
+            "lane": 2.049,
+            "integrity": 3
+          },
+          "physical-contact": {
+            "kind": "physical-contact",
+            "bar": 12.544,
+            "elapsedMs": 23520,
+            "lane": 0.921,
+            "integrity": 3
+          },
+          "brace": {
+            "kind": "brace",
+            "bar": 22.581,
+            "elapsedMs": 42340,
+            "lane": 2.603,
+            "integrity": 3
+          },
+          "missed-press": {
+            "kind": "missed-press",
+            "bar": 23.029,
+            "elapsedMs": 43180,
+            "lane": 2.051,
+            "integrity": 3,
+            "action": "road_y",
+            "feedback": "lane",
+            "timingOffsetMs": 75
+          },
+          "damage": {
+            "kind": "damage",
+            "bar": 25.92,
+            "elapsedMs": 48600,
+            "lane": 1.199,
+            "integrity": 2,
+            "capturesBefore": [
+              1,
+              2
+            ],
+            "capturesAfter": [
+              2
+            ],
+            "queuedBefore": [],
+            "queuedAfter": []
+          },
+          "wreck-recovery": {
+            "kind": "wreck-recovery",
+            "bar": 25.92,
+            "elapsedMs": 48600,
+            "lane": 1.199,
+            "integrity": 2,
+            "gear": 0,
+            "queuedRecovery": true,
+            "recoveryBeat": 104
+          }
+        }
+      },
+      "announcedPads": {
+        "count": 63,
+        "uniqueIds": 63,
+        "allTargetsAreONE": true,
+        "immutableAddressesDuringRun": true,
+        "verification": "Runtime assertions checked every repeated visible id retained its target and world address.",
+        "sha256": "091480ffcb7fca5e385b53273554526e02cf3a8838e962c4b319e6b6a2c06ca7",
+        "samples": [
+          {
+            "id": "song/4",
+            "target": 20,
+            "at": 341.47136295585153
+          },
+          {
+            "id": "song/6",
+            "target": 28,
+            "at": 602.9166754558515
+          },
+          {
+            "id": "song/97",
+            "target": 392,
+            "at": 7888.346362955852
+          },
+          {
+            "id": "song/98",
+            "target": 396,
+            "at": 8009.166675455852
+          }
+        ]
+      },
+      "bossChanges": [
+        {
+          "bar": 72.01066666666414,
+          "previousHp": null,
+          "id": "rig",
+          "hp": 12,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "approach"
+        },
+        {
+          "bar": 73.47199999999822,
+          "previousHp": 12,
+          "id": "rig",
+          "hp": 11.5,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "stunned"
+        },
+        {
+          "bar": 74.8586666666656,
+          "previousHp": 11.5,
+          "id": "rig",
+          "hp": 10,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 75.25333333333246,
+          "previousHp": 10,
+          "id": "rig",
+          "hp": 8.5,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 75.64799999999933,
+          "previousHp": 8.5,
+          "id": "rig",
+          "hp": 7.55,
+          "maxHp": 12,
+          "health": 2,
+          "defeated": false,
+          "phase": "approach"
+        },
+        {
+          "bar": 76.04266666666621,
+          "previousHp": 7.55,
+          "id": "rig",
+          "hp": 6.45,
+          "maxHp": 12,
+          "health": 2,
+          "defeated": false,
+          "phase": "windup"
+        },
+        {
+          "bar": 76.43733333333307,
+          "previousHp": 6.45,
+          "id": "rig",
+          "hp": 5.35,
+          "maxHp": 12,
+          "health": 2,
+          "defeated": false,
+          "phase": "windup"
+        },
+        {
+          "bar": 77.21600000000014,
+          "previousHp": 5.35,
+          "id": "rig",
+          "hp": 3.55,
+          "maxHp": 12,
+          "health": 1,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 77.610666666667,
+          "previousHp": 3.55,
+          "id": "rig",
+          "hp": 1.75,
+          "maxHp": 12,
+          "health": 1,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 78.00533333333388,
+          "previousHp": 1.75,
+          "id": "rig",
+          "hp": 0,
+          "maxHp": 12,
+          "health": 0,
+          "defeated": true,
+          "phase": "defeated"
+        }
+      ]
+    },
+    {
+      "difficulty": "overclocked",
+      "gear": 2,
+      "profile": "practiced",
+      "encounterVersion": 4,
+      "status": "clear",
+      "finalMessage": "FULL SYNCHRONIZATION",
+      "finalBar": 100.0000000000118,
+      "frames": 9374,
+      "gearFrames": [
+        0,
+        9374,
+        0
+      ],
+      "integrity": 3,
+      "minimumIntegrity": 3,
+      "damageTaken": 0,
+      "drumMinimum": 0.6,
+      "musicRoles": {
+        "drive": {
+          "minimum": 0.03,
+          "maximum": 0.19,
+          "capturedFrames": 1497
+        },
+        "flow": {
+          "minimum": 0.045,
+          "maximum": 0.55,
+          "capturedFrames": 6834
+        },
+        "breakaway": {
+          "minimum": 0,
+          "maximum": 0.5,
+          "capturedFrames": 5897
+        },
+        "undercurrent": {
+          "minimum": 0,
+          "maximum": 0.62,
+          "capturedFrames": 2620
+        }
+      },
+      "accurate": 58,
+      "attempts": 63,
+      "connected": 58,
+      "combat": {
+        "version": 4,
+        "actors": [],
+        "projectiles": [],
+        "wrecks": [],
+        "target": null,
+        "boss": {
+          "id": "rig",
+          "kind": "rig",
+          "arrived": true,
+          "at": null,
+          "lane": 1.5,
+          "hp": 0,
+          "maxHp": 12,
+          "health": 0,
+          "systems": [
+            {
+              "id": "scanner",
+              "broken": true
+            },
+            {
+              "id": "ram",
+              "broken": true
+            },
+            {
+              "id": "emitter",
+              "broken": true
+            }
+          ],
+          "defeated": true,
+          "phase": "defeated",
+          "alpha": 1,
+          "visible": false
+        },
+        "skills": {
+          "attack": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 550,
+            "activeMs": 0,
+            "active": false,
+            "charges": 2
+          },
+          "defend": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 4000,
+            "activeMs": 0,
+            "active": false
+          },
+          "turbo": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 7000,
+            "activeMs": 0,
+            "active": false,
+            "pending": false
+          },
+          "disrupt": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 8500,
+            "activeMs": 0,
+            "active": false
+          }
+        },
+        "syncCount": 0,
+        "footprint": 1,
+        "stats": {
+          "damageDealt": 84,
+          "takedowns": 28,
+          "playerHits": 0,
+          "blocks": 1,
+          "shots": 30,
+          "attacks": 81,
+          "defends": 3,
+          "turbos": 19,
+          "disrupts": 9
+        }
+      },
+      "recoveries": [],
+      "eventsSummary": {
+        "count": 1870,
+        "sha256": "d244710be5a5df590bc0e389457bb8ba8d3b59a39f5338a6703a4b95fc448eba",
+        "countsByKind": {
+          "brace": 1,
+          "capture": 58,
+          "combat-driver-input": 669,
+          "combat-event": 304,
+          "combat-input": 669,
+          "earned-action": 58,
+          "missed-press": 5,
+          "music-award": 58,
+          "near-pass": 45,
+          "physical-contact": 3
+        },
+        "combatEventCountsByType": {
+          "attack": 81,
+          "boss-arrive": 1,
+          "boss-defeated": 1,
+          "boss-system-broken": 3,
+          "defend-ready": 3,
+          "disengage": 1,
+          "disrupt": 9,
+          "enemy-arrive": 27,
+          "enemy-hit": 81,
+          "evaded": 1,
+          "lock": 3,
+          "shot": 30,
+          "takedown": 28,
+          "turbo": 19,
+          "warning": 16
+        },
+        "combatInputCountsByReason": {
+          "accepted": 112,
+          "no-target": 99,
+          "recharging": 90,
+          "weapon-recharging": 368
+        },
+        "acceptedControlsBySkill": {
+          "attack": 81,
+          "defend": 3,
+          "disrupt": 9,
+          "turbo": 19
+        },
+        "realDamageCauses": {
+          "chain": 2,
+          "shot": 28,
+          "strike": 51
+        },
+        "music": {
+          "capturedFaceActions": [
+            "road_a",
+            "road_b",
+            "road_x",
+            "road_y"
+          ],
+          "captureCount": 58,
+          "awardCount": 58,
+          "uniqueAwardIds": 58,
+          "holdBars": [
+            3,
+            6
+          ],
+          "actualAttemptOffsetRangeMs": [
+            -20,
+            80
+          ],
+          "actualAcceptedOffsetRangeMs": [
+            -20,
+            80
+          ]
+        },
+        "samples": {
+          "combat-event": {
+            "kind": "combat-event",
+            "bar": 4.011,
+            "elapsedMs": 7520,
+            "lane": 1,
+            "integrity": 3,
+            "type": "enemy-arrive",
+            "id": "foe-0",
+            "actorKind": "bike",
+            "sourceMethod": "step"
+          },
+          "combat-driver-input": {
+            "kind": "combat-driver-input",
+            "bar": 4.107,
+            "elapsedMs": 7700,
+            "lane": 0.932,
+            "integrity": 3,
+            "skill": "attack"
+          },
+          "combat-input": {
+            "kind": "combat-input",
+            "bar": 4.107,
+            "elapsedMs": 7700,
+            "lane": 0.932,
+            "integrity": 3,
+            "skill": "attack",
+            "accepted": true,
+            "reason": "accepted",
+            "syncBefore": 0
+          },
+          "earned-action": {
+            "kind": "earned-action",
+            "bar": 5.013,
+            "elapsedMs": 9400,
+            "lane": 2,
+            "integrity": 3,
+            "action": 0
+          },
+          "music-award": {
+            "kind": "music-award",
+            "bar": 5.013,
+            "elapsedMs": 9400,
+            "lane": 1.958,
+            "integrity": 3,
+            "id": "song/4",
+            "action": 0,
+            "musicLane": 2,
+            "targetBeat": 20,
+            "awardedBeat": 20.095999999999762,
+            "holdBars": 3
+          },
+          "capture": {
+            "kind": "capture",
+            "bar": 5.013,
+            "elapsedMs": 9400,
+            "lane": 1.958,
+            "integrity": 3,
+            "action": "road_a",
+            "feedback": "perfect",
+            "timingOffsetMs": 45
+          },
+          "near-pass": {
+            "kind": "near-pass",
+            "bar": 7.765,
+            "elapsedMs": 14560,
+            "lane": 2.079,
+            "integrity": 3
+          },
+          "missed-press": {
+            "kind": "missed-press",
+            "bar": 10.997,
+            "elapsedMs": 20620,
+            "lane": 2.576,
+            "integrity": 3,
+            "action": "road_b",
+            "feedback": "lane",
+            "timingOffsetMs": 15
+          },
+          "brace": {
+            "kind": "brace",
+            "bar": 14.069,
+            "elapsedMs": 26380,
+            "lane": 0.263,
+            "integrity": 3
+          },
+          "physical-contact": {
+            "kind": "physical-contact",
+            "bar": 14.069,
+            "elapsedMs": 26380,
+            "lane": 0.263,
+            "integrity": 3
+          }
+        }
+      },
+      "announcedPads": {
+        "count": 63,
+        "uniqueIds": 63,
+        "allTargetsAreONE": true,
+        "immutableAddressesDuringRun": true,
+        "verification": "Runtime assertions checked every repeated visible id retained its target and world address.",
+        "sha256": "da4cb58f72012f58102f95fa073b09d363697f13a0c0a98c8476c41f07db058b",
+        "samples": [
+          {
+            "id": "song/4",
+            "target": 20,
+            "at": 502.60417545585153
+          },
+          {
+            "id": "song/6",
+            "target": 28,
+            "at": 767.9166754558515
+          },
+          {
+            "id": "song/97",
+            "target": 392,
+            "at": 10749.47917545585
+          },
+          {
+            "id": "song/98",
+            "target": 396,
+            "at": 10874.16667545585
+          }
+        ]
+      },
+      "bossChanges": [
+        {
+          "bar": 72.01066666666414,
+          "previousHp": null,
+          "id": "rig",
+          "hp": 12,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "approach"
+        },
+        {
+          "bar": 74.34666666666534,
+          "previousHp": 12,
+          "id": "rig",
+          "hp": 11.5,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 75.16799999999908,
+          "previousHp": 11.5,
+          "id": "rig",
+          "hp": 9.85,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 75.56266666666596,
+          "previousHp": 9.85,
+          "id": "rig",
+          "hp": 8.2,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 75.95733333333283,
+          "previousHp": 8.2,
+          "id": "rig",
+          "hp": 7.1,
+          "maxHp": 12,
+          "health": 2,
+          "defeated": false,
+          "phase": "approach"
+        },
+        {
+          "bar": 76.35199999999969,
+          "previousHp": 7.1,
+          "id": "rig",
+          "hp": 6,
+          "maxHp": 12,
+          "health": 2,
+          "defeated": false,
+          "phase": "approach"
+        },
+        {
+          "bar": 76.74666666666657,
+          "previousHp": 6,
+          "id": "rig",
+          "hp": 4.9,
+          "maxHp": 12,
+          "health": 2,
+          "defeated": false,
+          "phase": "approach"
+        },
+        {
+          "bar": 77.14133333333344,
+          "previousHp": 4.9,
+          "id": "rig",
+          "hp": 3.8,
+          "maxHp": 12,
+          "health": 1,
+          "defeated": false,
+          "phase": "approach"
+        },
+        {
+          "bar": 77.93066666666716,
+          "previousHp": 3.8,
+          "id": "rig",
+          "hp": 3.3,
+          "maxHp": 12,
+          "health": 1,
+          "defeated": false,
+          "phase": "stunned"
+        },
+        {
+          "bar": 78.32533333333404,
+          "previousHp": 3.3,
+          "id": "rig",
+          "hp": 1.65,
+          "maxHp": 12,
+          "health": 1,
+          "defeated": false,
+          "phase": "stunned"
+        },
+        {
+          "bar": 78.72000000000091,
+          "previousHp": 1.65,
+          "id": "rig",
+          "hp": 0,
+          "maxHp": 12,
+          "health": 0,
+          "defeated": true,
+          "phase": "defeated"
+        }
+      ]
+    },
+    {
+      "difficulty": "overclocked",
+      "gear": 3,
+      "profile": "practiced",
+      "encounterVersion": 4,
+      "status": "clear",
+      "finalMessage": "SYNC Y // BREAKAWAY +6 BARS  FAST x2",
+      "finalBar": 100.0000000000118,
+      "frames": 9374,
+      "gearFrames": [
+        0,
+        92,
+        9282
+      ],
+      "integrity": 3,
+      "minimumIntegrity": 3,
+      "damageTaken": 0,
+      "drumMinimum": 0.6,
+      "musicRoles": {
+        "drive": {
+          "minimum": 0.03,
+          "maximum": 0.19,
+          "capturedFrames": 1869
+        },
+        "flow": {
+          "minimum": 0.045,
+          "maximum": 0.55,
+          "capturedFrames": 7207
+        },
+        "breakaway": {
+          "minimum": 0,
+          "maximum": 0.5,
+          "capturedFrames": 6268
+        },
+        "undercurrent": {
+          "minimum": 0,
+          "maximum": 0.62,
+          "capturedFrames": 2151
+        }
+      },
+      "accurate": 62,
+      "attempts": 63,
+      "connected": 62,
+      "combat": {
+        "version": 4,
+        "actors": [],
+        "projectiles": [],
+        "wrecks": [],
+        "target": null,
+        "boss": {
+          "id": "rig",
+          "kind": "rig",
+          "arrived": true,
+          "at": null,
+          "lane": 1.5,
+          "hp": 0,
+          "maxHp": 12,
+          "health": 0,
+          "systems": [
+            {
+              "id": "scanner",
+              "broken": true
+            },
+            {
+              "id": "ram",
+              "broken": true
+            },
+            {
+              "id": "emitter",
+              "broken": true
+            }
+          ],
+          "defeated": true,
+          "phase": "defeated",
+          "alpha": 1,
+          "visible": false
+        },
+        "skills": {
+          "attack": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 550,
+            "activeMs": 0,
+            "active": false,
+            "charges": 2
+          },
+          "defend": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 4000,
+            "activeMs": 0,
+            "active": false
+          },
+          "turbo": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 7000,
+            "activeMs": 0,
+            "active": false,
+            "pending": false
+          },
+          "disrupt": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 8500,
+            "activeMs": 0,
+            "active": false
+          }
+        },
+        "syncCount": 0,
+        "footprint": 1,
+        "stats": {
+          "damageDealt": 83,
+          "takedowns": 28,
+          "playerHits": 0,
+          "blocks": 0,
+          "shots": 31,
+          "attacks": 77,
+          "defends": 4,
+          "turbos": 20,
+          "disrupts": 11
+        }
+      },
+      "recoveries": [],
+      "eventsSummary": {
+        "count": 1886,
+        "sha256": "d204fc0626c178a080180f2596113534809926e7afa5b48bf8fd45e9389031a8",
+        "countsByKind": {
+          "brace": 6,
+          "capture": 62,
+          "combat-driver-input": 663,
+          "combat-event": 314,
+          "combat-input": 663,
+          "earned-action": 62,
+          "missed-press": 1,
+          "music-award": 62,
+          "near-pass": 44,
+          "physical-contact": 8,
+          "push": 1
+        },
+        "combatEventCountsByType": {
+          "attack": 77,
+          "boss-arrive": 1,
+          "boss-defeated": 1,
+          "boss-system-broken": 3,
+          "defend-ready": 4,
+          "disengage": 3,
+          "disrupt": 11,
+          "enemy-arrive": 28,
+          "enemy-hit": 78,
+          "enemy-shot": 1,
+          "evaded": 1,
+          "lock": 5,
+          "shot": 31,
+          "takedown": 28,
+          "turbo": 20,
+          "warning": 22
+        },
+        "combatInputCountsByReason": {
+          "accepted": 112,
+          "no-target": 159,
+          "recharging": 88,
+          "runway": 10,
+          "weapon-recharging": 294
+        },
+        "acceptedControlsBySkill": {
+          "attack": 77,
+          "defend": 4,
+          "disrupt": 11,
+          "turbo": 20
+        },
+        "realDamageCauses": {
+          "chain": 2,
+          "shot": 30,
+          "strike": 46
+        },
+        "music": {
+          "capturedFaceActions": [
+            "road_a",
+            "road_b",
+            "road_x",
+            "road_y"
+          ],
+          "captureCount": 62,
+          "awardCount": 62,
+          "uniqueAwardIds": 62,
+          "holdBars": [
+            3,
+            6
+          ],
+          "actualAttemptOffsetRangeMs": [
+            -20,
+            80
+          ],
+          "actualAcceptedOffsetRangeMs": [
+            -20,
+            80
+          ]
+        },
+        "samples": {
+          "combat-event": {
+            "kind": "combat-event",
+            "bar": 4.011,
+            "elapsedMs": 7520,
+            "lane": 1,
+            "integrity": 3,
+            "type": "enemy-arrive",
+            "id": "foe-0",
+            "actorKind": "bike",
+            "sourceMethod": "step"
+          },
+          "combat-driver-input": {
+            "kind": "combat-driver-input",
+            "bar": 4.107,
+            "elapsedMs": 7700,
+            "lane": 0.919,
+            "integrity": 3,
+            "skill": "attack"
+          },
+          "combat-input": {
+            "kind": "combat-input",
+            "bar": 4.107,
+            "elapsedMs": 7700,
+            "lane": 0.919,
+            "integrity": 3,
+            "skill": "attack",
+            "accepted": true,
+            "reason": "accepted",
+            "syncBefore": 0
+          },
+          "earned-action": {
+            "kind": "earned-action",
+            "bar": 5.003,
+            "elapsedMs": 9380,
+            "lane": 2,
+            "integrity": 3,
+            "action": 0
+          },
+          "music-award": {
+            "kind": "music-award",
+            "bar": 5.003,
+            "elapsedMs": 9380,
+            "lane": 1.942,
+            "integrity": 3,
+            "id": "song/4",
+            "action": 0,
+            "musicLane": 2,
+            "targetBeat": 20,
+            "awardedBeat": 20.053333333333097,
+            "holdBars": 3
+          },
+          "capture": {
+            "kind": "capture",
+            "bar": 5.003,
+            "elapsedMs": 9380,
+            "lane": 1.942,
+            "integrity": 3,
+            "action": "road_a",
+            "feedback": "perfect",
+            "timingOffsetMs": 25
+          },
+          "near-pass": {
+            "kind": "near-pass",
+            "bar": 7.285,
+            "elapsedMs": 13660,
+            "lane": 2.047,
+            "integrity": 3
+          },
+          "brace": {
+            "kind": "brace",
+            "bar": 14.283,
+            "elapsedMs": 26780,
+            "lane": 0.348,
+            "integrity": 3
+          },
+          "physical-contact": {
+            "kind": "physical-contact",
+            "bar": 14.283,
+            "elapsedMs": 26780,
+            "lane": 0.348,
+            "integrity": 3
+          },
+          "push": {
+            "kind": "push",
+            "bar": 25.291,
+            "elapsedMs": 47420,
+            "lane": 1.054,
+            "integrity": 3
+          },
+          "missed-press": {
+            "kind": "missed-press",
+            "bar": 76.981,
+            "elapsedMs": 144340,
+            "lane": 2.956,
+            "integrity": 3,
+            "action": "road_y",
+            "feedback": "lane",
+            "timingOffsetMs": -15
+          }
+        }
+      },
+      "announcedPads": {
+        "count": 63,
+        "uniqueIds": 63,
+        "allTargetsAreONE": true,
+        "immutableAddressesDuringRun": true,
+        "verification": "Runtime assertions checked every repeated visible id retained its target and world address.",
+        "sha256": "1449209f997b3e039289a1a19cf7f74dde4616ff56abc40285ef4f58e24d5579",
+        "samples": [
+          {
+            "id": "song/4",
+            "target": 20,
+            "at": 634.4401129558515
+          },
+          {
+            "id": "song/6",
+            "target": 28,
+            "at": 906.3151129558515
+          },
+          {
+            "id": "song/97",
+            "target": 392,
+            "at": 13028.19011295585
+          },
+          {
+            "id": "song/98",
+            "target": 396,
+            "at": 13159.44011295585
+          }
+        ]
+      },
+      "bossChanges": [
+        {
+          "bar": 72.01066666666414,
+          "previousHp": null,
+          "id": "rig",
+          "hp": 12,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "approach"
+        },
+        {
+          "bar": 73.79199999999838,
+          "previousHp": 12,
+          "id": "rig",
+          "hp": 11.5,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "stunned"
+        },
+        {
+          "bar": 74.55999999999878,
+          "previousHp": 11.5,
+          "id": "rig",
+          "hp": 10.125,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 76.93866666666666,
+          "previousHp": 10.125,
+          "id": "rig",
+          "hp": 9.625,
+          "maxHp": 12,
+          "health": 3,
+          "defeated": false,
+          "phase": "windup"
+        },
+        {
+          "bar": 77.71733333333373,
+          "previousHp": 9.625,
+          "id": "rig",
+          "hp": 7.825,
+          "maxHp": 12,
+          "health": 2,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 78.11200000000059,
+          "previousHp": 7.825,
+          "id": "rig",
+          "hp": 6.175,
+          "maxHp": 12,
+          "health": 2,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 78.50666666666747,
+          "previousHp": 6.175,
+          "id": "rig",
+          "hp": 4.525,
+          "maxHp": 12,
+          "health": 2,
+          "defeated": false,
+          "phase": "recover"
+        },
+        {
+          "bar": 79.2960000000012,
+          "previousHp": 4.525,
+          "id": "rig",
+          "hp": 3.425,
+          "maxHp": 12,
+          "health": 1,
+          "defeated": false,
+          "phase": "windup"
+        },
+        {
+          "bar": 79.69066666666806,
+          "previousHp": 3.425,
+          "id": "rig",
+          "hp": 1.775,
+          "maxHp": 12,
+          "health": 1,
+          "defeated": false,
+          "phase": "stunned"
+        },
+        {
+          "bar": 80.08533333333494,
+          "previousHp": 1.775,
+          "id": "rig",
+          "hp": 0.125,
+          "maxHp": 12,
+          "health": 1,
+          "defeated": false,
+          "phase": "stunned"
+        },
+        {
+          "bar": 80.48000000000181,
+          "previousHp": 0.125,
+          "id": "rig",
+          "hp": 0,
+          "maxHp": 12,
+          "health": 0,
+          "defeated": true,
+          "phase": "defeated"
+        }
+      ]
+    }
+  ],
+  "recovery": {
+    "difficulty": "standard",
+    "gear": 2,
+    "profile": "recovering",
+    "encounterVersion": 4,
+    "status": "clear",
+    "finalMessage": "SYNC Y // BREAKAWAY +6 BARS  FAST x2",
+    "finalBar": 100.0000000000118,
+    "frames": 9374,
+    "gearFrames": [
+      181,
+      9193,
+      0
+    ],
+    "integrity": 2,
+    "minimumIntegrity": 2,
+    "damageTaken": 1,
+    "drumMinimum": 0.6,
+    "musicRoles": {
+      "drive": {
+        "minimum": 0.03,
+        "maximum": 0.19,
+        "capturedFrames": 1306
+      },
+      "flow": {
+        "minimum": 0.045,
+        "maximum": 0.55,
+        "capturedFrames": 5608
+      },
+      "breakaway": {
+        "minimum": 0,
+        "maximum": 0.5,
+        "capturedFrames": 4852
+      },
+      "undercurrent": {
+        "minimum": 0,
+        "maximum": 0.62,
+        "capturedFrames": 1870
+      }
+    },
+    "accurate": 41,
+    "attempts": 44,
+    "connected": 41,
+    "combat": {
+      "version": 4,
+      "actors": [],
+      "projectiles": [],
+      "wrecks": [],
+      "target": null,
+      "boss": {
+        "id": "rig",
+        "kind": "rig",
+        "arrived": true,
+        "at": null,
+        "lane": 1.5,
+        "hp": 0,
+        "maxHp": 12,
+        "health": 0,
+        "systems": [
+          {
+            "id": "scanner",
+            "broken": true
+          },
+          {
+            "id": "ram",
+            "broken": true
+          },
+          {
+            "id": "emitter",
+            "broken": true
+          }
+        ],
+        "defeated": true,
+        "phase": "defeated",
+        "alpha": 1,
+        "visible": false
+      },
+      "skills": {
+        "attack": {
+          "ready": true,
+          "cooldownMs": 0,
+          "rechargeMs": 550,
+          "activeMs": 0,
+          "active": false,
+          "charges": 2
+        },
+        "defend": {
+          "ready": true,
+          "cooldownMs": 0,
+          "rechargeMs": 4000,
+          "activeMs": 0,
+          "active": false
+        },
+        "turbo": {
+          "ready": true,
+          "cooldownMs": 0,
+          "rechargeMs": 7000,
+          "activeMs": 0,
+          "active": false,
+          "pending": false
+        },
+        "disrupt": {
+          "ready": true,
+          "cooldownMs": 0,
+          "rechargeMs": 8500,
+          "activeMs": 0,
+          "active": false
+        }
+      },
+      "syncCount": 0,
+      "footprint": 1,
+      "stats": {
+        "damageDealt": 74,
+        "takedowns": 24,
+        "playerHits": 0,
+        "blocks": 0,
+        "shots": 31,
+        "attacks": 68,
+        "defends": 1,
+        "turbos": 19,
+        "disrupts": 9
+      }
+    },
+    "recoveries": [
+      {
+        "kind": "damage",
+        "bar": 48.075,
+        "elapsedMs": 90140,
+        "lane": 1.915,
+        "integrity": 2,
+        "actor": "freight",
+        "capturesBefore": [
+          2,
+          1
+        ],
+        "capturesAfter": [
+          1
+        ],
+        "queuedBefore": [],
+        "queuedAfter": [],
+        "nextCaptureMs": 1820
+      }
+    ],
+    "eventsSummary": {
+      "count": 1651,
+      "sha256": "94a87d6a25962e2a1916bcfd9a0418b1a2dbedbbd7ceddc5346510d0d25fe15b",
+      "countsByKind": {
+        "capture": 41,
+        "combat-driver-input": 614,
+        "combat-event": 269,
+        "combat-input": 614,
+        "damage": 1,
+        "earned-action": 41,
+        "intentional-lane-error": 1,
+        "missed-press": 3,
+        "music-award": 41,
+        "near-pass": 20,
+        "physical-contact": 4,
+        "push": 1,
+        "wreck-recovery": 1
+      },
+      "combatEventCountsByType": {
+        "attack": 68,
+        "boss-arrive": 1,
+        "boss-defeated": 1,
+        "boss-system-broken": 3,
+        "defend-ready": 1,
+        "disengage": 1,
+        "disrupt": 9,
+        "enemy-arrive": 24,
+        "enemy-hit": 69,
+        "evaded": 1,
+        "lock": 3,
+        "shot": 31,
+        "takedown": 24,
+        "turbo": 19,
+        "warning": 14
+      },
+      "combatInputCountsByReason": {
+        "accepted": 97,
+        "no-target": 108,
+        "recharging": 76,
+        "runway": 19,
+        "weapon-recharging": 314
+      },
+      "acceptedControlsBySkill": {
+        "attack": 68,
+        "defend": 1,
+        "disrupt": 9,
+        "turbo": 19
+      },
+      "realDamageCauses": {
+        "chain": 1,
+        "shot": 31,
+        "strike": 37
+      },
+      "music": {
+        "capturedFaceActions": [
+          "road_a",
+          "road_b",
+          "road_x",
+          "road_y"
+        ],
+        "captureCount": 41,
+        "awardCount": 41,
+        "uniqueAwardIds": 41,
+        "holdBars": [
+          3,
+          6
+        ],
+        "actualAttemptOffsetRangeMs": [
+          -55,
+          120
+        ],
+        "actualAcceptedOffsetRangeMs": [
+          -55,
+          120
+        ]
+      },
+      "samples": {
+        "combat-event": {
+          "kind": "combat-event",
+          "bar": 4.011,
+          "elapsedMs": 7520,
+          "lane": 1,
+          "integrity": 3,
+          "type": "enemy-arrive",
+          "id": "foe-0",
+          "actorKind": "bike",
+          "sourceMethod": "step"
+        },
+        "combat-driver-input": {
+          "kind": "combat-driver-input",
+          "bar": 4.171,
+          "elapsedMs": 7820,
+          "lane": 0.887,
+          "integrity": 3,
+          "skill": "attack"
+        },
+        "combat-input": {
+          "kind": "combat-input",
+          "bar": 4.171,
+          "elapsedMs": 7820,
+          "lane": 0.887,
+          "integrity": 3,
+          "skill": "attack",
+          "accepted": true,
+          "reason": "accepted",
+          "syncBefore": 0
+        },
+        "earned-action": {
+          "kind": "earned-action",
+          "bar": 5.024,
+          "elapsedMs": 9420,
+          "lane": 2,
+          "integrity": 3,
+          "action": 0
+        },
+        "music-award": {
+          "kind": "music-award",
+          "bar": 5.024,
+          "elapsedMs": 9420,
+          "lane": 1.902,
+          "integrity": 3,
+          "id": "song/4",
+          "action": 0,
+          "musicLane": 2,
+          "targetBeat": 20,
+          "awardedBeat": 20.138666666666428,
+          "holdBars": 3
+        },
+        "capture": {
+          "kind": "capture",
+          "bar": 5.024,
+          "elapsedMs": 9420,
+          "lane": 1.902,
+          "integrity": 3,
+          "action": "road_a",
+          "feedback": "perfect",
+          "timingOffsetMs": 65
+        },
+        "near-pass": {
+          "kind": "near-pass",
+          "bar": 9.845,
+          "elapsedMs": 18460,
+          "lane": 2.11,
+          "integrity": 3
+        },
+        "missed-press": {
+          "kind": "missed-press",
+          "bar": 23.051,
+          "elapsedMs": 43220,
+          "lane": 1.884,
+          "integrity": 3,
+          "action": "road_y",
+          "feedback": "lane",
+          "timingOffsetMs": 115
+        },
+        "push": {
+          "kind": "push",
+          "bar": 25.771,
+          "elapsedMs": 48320,
+          "lane": 0.681,
+          "integrity": 3
+        },
+        "physical-contact": {
+          "kind": "physical-contact",
+          "bar": 25.771,
+          "elapsedMs": 48320,
+          "lane": 0.681,
+          "integrity": 3
+        },
+        "intentional-lane-error": {
+          "kind": "intentional-lane-error",
+          "bar": 47.051,
+          "elapsedMs": 88220,
+          "lane": 0.878,
+          "integrity": 3,
+          "id": "traffic/44/0"
+        },
+        "damage": {
+          "kind": "damage",
+          "bar": 48.075,
+          "elapsedMs": 90140,
+          "lane": 1.915,
+          "integrity": 2,
+          "capturesBefore": [
+            2,
+            1
+          ],
+          "capturesAfter": [
+            1
+          ],
+          "queuedBefore": [],
+          "queuedAfter": []
+        },
+        "wreck-recovery": {
+          "kind": "wreck-recovery",
+          "bar": 48.075,
+          "elapsedMs": 90140,
+          "lane": 1.915,
+          "integrity": 2,
+          "gear": 0,
+          "queuedRecovery": true,
+          "recoveryBeat": 196
+        }
+      }
+    },
+    "announcedPads": {
+      "count": 63,
+      "uniqueIds": 63,
+      "allTargetsAreONE": true,
+      "immutableAddressesDuringRun": true,
+      "verification": "Runtime assertions checked every repeated visible id retained its target and world address.",
+      "sha256": "8d0e40352ed05e643a1925ad28eded9389e211c47c1ea82ee2364a8f606d507c",
+      "samples": [
+        {
+          "id": "song/4",
+          "target": 20,
+          "at": 502.60417545585153
+        },
+        {
+          "id": "song/6",
+          "target": 28,
+          "at": 767.9166754558515
+        },
+        {
+          "id": "song/97",
+          "target": 392,
+          "at": 10485.10417545585
+        },
+        {
+          "id": "song/98",
+          "target": 396,
+          "at": 10609.79167545585
+        }
+      ]
+    },
+    "bossChanges": [
+      {
+        "bar": 72.01066666666414,
+        "previousHp": null,
+        "id": "rig",
+        "hp": 12,
+        "maxHp": 12,
+        "health": 3,
+        "defeated": false,
+        "phase": "approach"
+      },
+      {
+        "bar": 74.31466666666532,
+        "previousHp": 12,
+        "id": "rig",
+        "hp": 10.625,
+        "maxHp": 12,
+        "health": 3,
+        "defeated": false,
+        "phase": "recover"
+      },
+      {
+        "bar": 74.71999999999886,
+        "previousHp": 10.625,
+        "id": "rig",
+        "hp": 8.975,
+        "maxHp": 12,
+        "health": 3,
+        "defeated": false,
+        "phase": "recover"
+      },
+      {
+        "bar": 75.17866666666576,
+        "previousHp": 8.975,
+        "id": "rig",
+        "hp": 7.725,
+        "maxHp": 12,
+        "health": 2,
+        "defeated": false,
+        "phase": "approach"
+      },
+      {
+        "bar": 75.63733333333266,
+        "previousHp": 7.725,
+        "id": "rig",
+        "hp": 6.475,
+        "maxHp": 12,
+        "health": 2,
+        "defeated": false,
+        "phase": "windup"
+      },
+      {
+        "bar": 77.16266666666678,
+        "previousHp": 6.475,
+        "id": "rig",
+        "hp": 4.825,
+        "maxHp": 12,
+        "health": 2,
+        "defeated": false,
+        "phase": "recover"
+      },
+      {
+        "bar": 77.62133333333368,
+        "previousHp": 4.825,
+        "id": "rig",
+        "hp": 3.175,
+        "maxHp": 12,
+        "health": 1,
+        "defeated": false,
+        "phase": "stunned"
+      },
+      {
+        "bar": 78.08000000000058,
+        "previousHp": 3.175,
+        "id": "rig",
+        "hp": 1.525,
+        "maxHp": 12,
+        "health": 1,
+        "defeated": false,
+        "phase": "stunned"
+      },
+      {
+        "bar": 78.53866666666748,
+        "previousHp": 1.525,
+        "id": "rig",
+        "hp": 0,
+        "maxHp": 12,
+        "health": 0,
+        "defeated": true,
+        "phase": "defeated"
+      }
+    ]
+  },
+  "musicNegatives": [
+    {
+      "difficulty": "standard",
+      "gear": 2,
+      "profile": "practiced",
+      "timingBiasMs": -240,
+      "encounterVersion": 4,
+      "status": "playing",
+      "finalMessage": "VERSE 2 // HOLD THE ORIGINAL",
+      "finalBar": 28.00000000000139,
+      "frames": 2624,
+      "gearFrames": [
+        180,
+        2444,
+        0
+      ],
+      "integrity": 2,
+      "minimumIntegrity": 2,
+      "damageTaken": 1,
+      "drumMinimum": 0.6,
+      "musicRoles": {
+        "drive": {
+          "minimum": 0.03,
+          "maximum": 0.03,
+          "capturedFrames": 0
+        },
+        "flow": {
+          "minimum": 0.045,
+          "maximum": 0.045,
+          "capturedFrames": 0
+        },
+        "breakaway": {
+          "minimum": 0,
+          "maximum": 0,
+          "capturedFrames": 0
+        },
+        "undercurrent": {
+          "minimum": 0,
+          "maximum": 0,
+          "capturedFrames": 0
+        }
+      },
+      "accurate": 0,
+      "attempts": 16,
+      "connected": 0,
+      "combat": {
+        "version": 4,
+        "actors": [
+          {
+            "id": "foe-7",
+            "kind": "rammer",
+            "at": 3015.753739157307,
+            "lane": 1.9813227964690419,
+            "distance": 69.29373915717133,
+            "hp": 1.8,
+            "maxHp": 3,
+            "damage": 0.4,
+            "ageMs": 6500,
+            "phase": "stunned",
+            "warning": false,
+            "locked": false,
+            "lockLane": 2,
+            "attackKind": "ram",
+            "boss": false,
+            "vulnerable": true,
+            "collidable": false,
+            "threatActive": false,
+            "alpha": 1
+          },
+          {
+            "id": "foe-8",
+            "kind": "escort",
+            "at": 3145.5000000001323,
+            "lane": 1,
+            "distance": 199.03999999999678,
+            "hp": 3,
+            "maxHp": 3,
+            "damage": 0,
+            "ageMs": 1000,
+            "phase": "stunned",
+            "warning": false,
+            "locked": false,
+            "lockLane": 1,
+            "attackKind": "ram",
+            "boss": false,
+            "vulnerable": true,
+            "collidable": false,
+            "threatActive": false,
+            "alpha": 1
+          }
+        ],
+        "projectiles": [],
+        "wrecks": [
+          {
+            "id": "foe-5",
+            "kind": "rammer",
+            "at": 2467.8056353096217,
+            "lane": 2,
+            "ageMs": 12500,
+            "rollMs": 1600,
+            "flip": true,
+            "rider": false,
+            "chain": false,
+            "phase": "wreck",
+            "wreck": true,
+            "distance": -478.65436469051383,
+            "flipAngle": 6.283185307179586,
+            "height": 7.102951435054649e-15,
+            "riderHeight": 0,
+            "riderOffset": 0,
+            "alpha": 1
+          },
+          {
+            "id": "foe-6",
+            "kind": "bike",
+            "at": 2695.9503878116343,
+            "lane": 2.3006578013300896,
+            "ageMs": 6700,
+            "rollMs": 1600,
+            "flip": true,
+            "rider": true,
+            "chain": false,
+            "phase": "wreck",
+            "wreck": true,
+            "distance": -250.50961218850125,
+            "flipAngle": 6.283185307179586,
+            "height": 7.102951435054649e-15,
+            "riderHeight": 1.1634144591899855e-14,
+            "riderOffset": 110,
+            "alpha": 1
+          }
+        ],
+        "target": {
+          "id": "foe-7",
+          "kind": "rammer",
+          "at": 3015.753739157307,
+          "lane": 1.9813227964690419,
+          "distance": 69.29373915717133,
+          "hp": 1.8,
+          "maxHp": 3,
+          "damage": 0.4,
+          "ageMs": 6500,
+          "phase": "stunned",
+          "warning": false,
+          "locked": false,
+          "lockLane": 2,
+          "attackKind": "ram",
+          "boss": false,
+          "vulnerable": true,
+          "collidable": false,
+          "threatActive": false,
+          "alpha": 1,
+          "attackMode": "strike"
+        },
+        "boss": null,
+        "skills": {
+          "attack": {
+            "ready": false,
+            "cooldownMs": 290,
+            "rechargeMs": 550,
+            "activeMs": 0,
+            "active": false,
+            "charges": 0
+          },
+          "defend": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 4000,
+            "activeMs": 0,
+            "active": false
+          },
+          "turbo": {
+            "ready": false,
+            "cooldownMs": 5320,
+            "rechargeMs": 7000,
+            "activeMs": 1,
+            "active": true,
+            "pending": false
+          },
+          "disrupt": {
+            "ready": false,
+            "cooldownMs": 8140,
+            "rechargeMs": 8500,
+            "activeMs": 840,
+            "active": true
+          }
+        },
+        "syncCount": 0,
+        "footprint": 1,
+        "stats": {
+          "damageDealt": 18.2,
+          "takedowns": 7,
+          "playerHits": 0,
+          "blocks": 0,
+          "shots": 11,
+          "attacks": 19,
+          "defends": 0,
+          "turbos": 7,
+          "disrupts": 3
+        }
+      },
+      "recoveries": [
+        {
+          "kind": "damage",
+          "bar": 22.08,
+          "elapsedMs": 41400,
+          "lane": 2.956,
+          "integrity": 2,
+          "actor": "shuttle",
+          "capturesBefore": [],
+          "capturesAfter": [],
+          "queuedBefore": [],
+          "queuedAfter": [],
+          "nextCaptureMs": null
+        }
+      ],
+      "eventsSummary": {
+        "count": 543,
+        "sha256": "ff0054fb18230030a20dfab82740ccc95372a5bdfe07d8069954c6cfeec77720",
+        "countsByKind": {
+          "combat-driver-input": 219,
+          "combat-event": 80,
+          "combat-input": 219,
+          "damage": 1,
+          "missed-press": 16,
+          "near-pass": 6,
+          "physical-contact": 1,
+          "wreck-recovery": 1
+        },
+        "combatEventCountsByType": {
+          "attack": 19,
+          "disengage": 1,
+          "disrupt": 3,
+          "enemy-arrive": 9,
+          "enemy-hit": 18,
+          "shot": 11,
+          "takedown": 7,
+          "turbo": 7,
+          "warning": 5
+        },
+        "combatInputCountsByReason": {
+          "accepted": 29,
+          "no-target": 17,
+          "recharging": 22,
+          "weapon-recharging": 151
+        },
+        "acceptedControlsBySkill": {
+          "attack": 19,
+          "disrupt": 3,
+          "turbo": 7
+        },
+        "realDamageCauses": {
+          "shot": 10,
+          "strike": 8
+        },
+        "music": {
+          "capturedFaceActions": [],
+          "captureCount": 0,
+          "awardCount": 0,
+          "uniqueAwardIds": 0,
+          "holdBars": [],
+          "actualAttemptOffsetRangeMs": [
+            -220,
+            -205
+          ],
+          "actualAcceptedOffsetRangeMs": null
+        },
+        "samples": {
+          "combat-event": {
+            "kind": "combat-event",
+            "bar": 4.011,
+            "elapsedMs": 7520,
+            "lane": 1,
+            "integrity": 3,
+            "type": "enemy-arrive",
+            "id": "foe-0",
+            "actorKind": "bike",
+            "sourceMethod": "step"
+          },
+          "combat-driver-input": {
+            "kind": "combat-driver-input",
+            "bar": 4.107,
+            "elapsedMs": 7700,
+            "lane": 0.932,
+            "integrity": 3,
+            "skill": "attack"
+          },
+          "combat-input": {
+            "kind": "combat-input",
+            "bar": 4.107,
+            "elapsedMs": 7700,
+            "lane": 0.932,
+            "integrity": 3,
+            "skill": "attack",
+            "accepted": true,
+            "reason": "accepted",
+            "syncBefore": 0
+          },
+          "missed-press": {
+            "kind": "missed-press",
+            "bar": 4.875,
+            "elapsedMs": 9140,
+            "lane": 1.935,
+            "integrity": 3,
+            "action": "road_a",
+            "feedback": "early",
+            "timingOffsetMs": -215
+          },
+          "near-pass": {
+            "kind": "near-pass",
+            "bar": 10.037,
+            "elapsedMs": 18820,
+            "lane": 2.08,
+            "integrity": 3
+          },
+          "damage": {
+            "kind": "damage",
+            "bar": 22.08,
+            "elapsedMs": 41400,
+            "lane": 2.956,
+            "integrity": 2,
+            "capturesBefore": [],
+            "capturesAfter": [],
+            "queuedBefore": [],
+            "queuedAfter": []
+          },
+          "physical-contact": {
+            "kind": "physical-contact",
+            "bar": 22.08,
+            "elapsedMs": 41400,
+            "lane": 2.956,
+            "integrity": 2
+          },
+          "wreck-recovery": {
+            "kind": "wreck-recovery",
+            "bar": 22.08,
+            "elapsedMs": 41400,
+            "lane": 2.956,
+            "integrity": 2,
+            "gear": 0,
+            "queuedRecovery": true,
+            "recoveryBeat": 92
+          }
+        }
+      },
+      "announcedPads": {
+        "count": 16,
+        "uniqueIds": 16,
+        "allTargetsAreONE": true,
+        "immutableAddressesDuringRun": true,
+        "verification": "Runtime assertions checked every repeated visible id retained its target and world address.",
+        "sha256": "24596ba075a682a3b5a2b1ddd47f3bd3c97ad349be3333d6f0090f7a8c7d7fc9",
+        "samples": [
+          {
+            "id": "song/4",
+            "target": 20,
+            "at": 502.60417545585153
+          },
+          {
+            "id": "song/6",
+            "target": 28,
+            "at": 740.7291754558515
+          },
+          {
+            "id": "song/26",
+            "target": 108,
+            "at": 2865.1041754558514
+          },
+          {
+            "id": "song/27",
+            "target": 112,
+            "at": 2962.6041754558514
+          }
+        ]
+      },
+      "bossChanges": []
+    },
+    {
+      "difficulty": "standard",
+      "gear": 2,
+      "profile": "practiced",
+      "timingBiasMs": 240,
+      "encounterVersion": 4,
+      "status": "playing",
+      "finalMessage": "VERSE 2 // HOLD THE ORIGINAL",
+      "finalBar": 28.00000000000139,
+      "frames": 2624,
+      "gearFrames": [
+        0,
+        2624,
+        0
+      ],
+      "integrity": 3,
+      "minimumIntegrity": 3,
+      "damageTaken": 0,
+      "drumMinimum": 0.6,
+      "musicRoles": {
+        "drive": {
+          "minimum": 0.03,
+          "maximum": 0.03,
+          "capturedFrames": 0
+        },
+        "flow": {
+          "minimum": 0.045,
+          "maximum": 0.045,
+          "capturedFrames": 0
+        },
+        "breakaway": {
+          "minimum": 0,
+          "maximum": 0,
+          "capturedFrames": 0
+        },
+        "undercurrent": {
+          "minimum": 0,
+          "maximum": 0,
+          "capturedFrames": 0
+        }
+      },
+      "accurate": 0,
+      "attempts": 15,
+      "connected": 0,
+      "combat": {
+        "version": 4,
+        "actors": [
+          {
+            "id": "foe-7",
+            "kind": "rammer",
+            "at": 3043.9442488970385,
+            "lane": 1,
+            "distance": 56.234248896902955,
+            "hp": 0.6,
+            "maxHp": 3,
+            "damage": 0.8,
+            "ageMs": 6500,
+            "phase": "stunned",
+            "warning": false,
+            "locked": false,
+            "lockLane": 1,
+            "attackKind": "ram",
+            "boss": false,
+            "vulnerable": true,
+            "collidable": false,
+            "threatActive": false,
+            "alpha": 1
+          },
+          {
+            "id": "foe-8",
+            "kind": "escort",
+            "at": 3186.7500000001323,
+            "lane": 1,
+            "distance": 199.03999999999678,
+            "hp": 3,
+            "maxHp": 3,
+            "damage": 0,
+            "ageMs": 1000,
+            "phase": "approach",
+            "warning": false,
+            "locked": false,
+            "lockLane": 1,
+            "attackKind": "ram",
+            "boss": false,
+            "vulnerable": false,
+            "collidable": false,
+            "threatActive": false,
+            "alpha": 1
+          }
+        ],
+        "projectiles": [],
+        "wrecks": [
+          {
+            "id": "foe-5",
+            "kind": "rammer",
+            "at": 2467.8056353096217,
+            "lane": 2,
+            "ageMs": 12500,
+            "rollMs": 1600,
+            "flip": true,
+            "rider": false,
+            "chain": false,
+            "phase": "wreck",
+            "wreck": true,
+            "distance": -519.9043646905138,
+            "flipAngle": 6.283185307179586,
+            "height": 7.102951435054649e-15,
+            "riderHeight": 0,
+            "riderOffset": 0,
+            "alpha": 1
+          },
+          {
+            "id": "foe-6",
+            "kind": "bike",
+            "at": 2727.855153699365,
+            "lane": 2.3006578013300896,
+            "ageMs": 6860,
+            "rollMs": 1600,
+            "flip": true,
+            "rider": true,
+            "chain": false,
+            "phase": "wreck",
+            "wreck": true,
+            "distance": -259.85484630077053,
+            "flipAngle": 6.283185307179586,
+            "height": 7.102951435054649e-15,
+            "riderHeight": 1.1634144591899855e-14,
+            "riderOffset": 110,
+            "alpha": 1
+          }
+        ],
+        "target": {
+          "id": "foe-7",
+          "kind": "rammer",
+          "at": 3043.9442488970385,
+          "lane": 1,
+          "distance": 56.234248896902955,
+          "hp": 0.6,
+          "maxHp": 3,
+          "damage": 0.8,
+          "ageMs": 6500,
+          "phase": "stunned",
+          "warning": false,
+          "locked": false,
+          "lockLane": 1,
+          "attackKind": "ram",
+          "boss": false,
+          "vulnerable": true,
+          "collidable": false,
+          "threatActive": false,
+          "alpha": 1,
+          "attackMode": "strike"
+        },
+        "boss": null,
+        "skills": {
+          "attack": {
+            "ready": false,
+            "cooldownMs": 310,
+            "rechargeMs": 550,
+            "activeMs": 0,
+            "active": false,
+            "charges": 1
+          },
+          "defend": {
+            "ready": false,
+            "cooldownMs": 2500,
+            "rechargeMs": 4000,
+            "activeMs": 0,
+            "active": false
+          },
+          "turbo": {
+            "ready": false,
+            "cooldownMs": 5380,
+            "rechargeMs": 7000,
+            "activeMs": 1,
+            "active": true,
+            "pending": false
+          },
+          "disrupt": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 8500,
+            "activeMs": 0,
+            "active": false
+          }
+        },
+        "syncCount": 0,
+        "footprint": 1,
+        "stats": {
+          "damageDealt": 19.4,
+          "takedowns": 7,
+          "playerHits": 0,
+          "blocks": 0,
+          "shots": 10,
+          "attacks": 19,
+          "defends": 1,
+          "turbos": 7,
+          "disrupts": 2
+        }
+      },
+      "recoveries": [],
+      "eventsSummary": {
+        "count": 525,
+        "sha256": "2c28c1b654abd0dd6f72ac94499d2925db2dbe3e1a4d5cc8593395189d30b576",
+        "countsByKind": {
+          "combat-driver-input": 212,
+          "combat-event": 79,
+          "combat-input": 212,
+          "missed-press": 15,
+          "near-pass": 7
+        },
+        "combatEventCountsByType": {
+          "attack": 19,
+          "defend-ready": 1,
+          "disrupt": 2,
+          "enemy-arrive": 9,
+          "enemy-hit": 19,
+          "lock": 1,
+          "shot": 10,
+          "takedown": 7,
+          "turbo": 7,
+          "warning": 4
+        },
+        "combatInputCountsByReason": {
+          "accepted": 29,
+          "no-target": 43,
+          "recharging": 22,
+          "weapon-recharging": 118
+        },
+        "acceptedControlsBySkill": {
+          "attack": 19,
+          "defend": 1,
+          "disrupt": 2,
+          "turbo": 7
+        },
+        "realDamageCauses": {
+          "shot": 10,
+          "strike": 9
+        },
+        "music": {
+          "capturedFaceActions": [],
+          "captureCount": 0,
+          "awardCount": 0,
+          "uniqueAwardIds": 0,
+          "holdBars": [],
+          "actualAttemptOffsetRangeMs": [
+            260,
+            275
+          ],
+          "actualAcceptedOffsetRangeMs": null
+        },
+        "samples": {
+          "combat-event": {
+            "kind": "combat-event",
+            "bar": 4.011,
+            "elapsedMs": 7520,
+            "lane": 1,
+            "integrity": 3,
+            "type": "enemy-arrive",
+            "id": "foe-0",
+            "actorKind": "bike",
+            "sourceMethod": "step"
+          },
+          "combat-driver-input": {
+            "kind": "combat-driver-input",
+            "bar": 4.107,
+            "elapsedMs": 7700,
+            "lane": 0.932,
+            "integrity": 3,
+            "skill": "attack"
+          },
+          "combat-input": {
+            "kind": "combat-input",
+            "bar": 4.107,
+            "elapsedMs": 7700,
+            "lane": 0.932,
+            "integrity": 3,
+            "skill": "attack",
+            "accepted": true,
+            "reason": "accepted",
+            "syncBefore": 0
+          },
+          "missed-press": {
+            "kind": "missed-press",
+            "bar": 5.131,
+            "elapsedMs": 9620,
+            "lane": 1.924,
+            "integrity": 3,
+            "action": "road_a",
+            "feedback": "late",
+            "timingOffsetMs": 265
+          },
+          "near-pass": {
+            "kind": "near-pass",
+            "bar": 10.037,
+            "elapsedMs": 18820,
+            "lane": 2.072,
+            "integrity": 3
+          }
+        }
+      },
+      "announcedPads": {
+        "count": 16,
+        "uniqueIds": 16,
+        "allTargetsAreONE": true,
+        "immutableAddressesDuringRun": true,
+        "verification": "Runtime assertions checked every repeated visible id retained its target and world address.",
+        "sha256": "74a3c8ace651e8667a43a83187e175b1473d03ae2f4b6c59ed0d09fcd0828bcb",
+        "samples": [
+          {
+            "id": "song/4",
+            "target": 20,
+            "at": 502.60417545585153
+          },
+          {
+            "id": "song/6",
+            "target": 28,
+            "at": 740.7291754558515
+          },
+          {
+            "id": "song/26",
+            "target": 108,
+            "at": 2906.3541754558514
+          },
+          {
+            "id": "song/27",
+            "target": 112,
+            "at": 3003.8541754558514
+          }
+        ]
+      },
+      "bossChanges": []
+    },
+    {
+      "difficulty": "standard",
+      "gear": 2,
+      "profile": "practiced",
+      "wrongFace": true,
+      "encounterVersion": 4,
+      "status": "playing",
+      "finalMessage": "VERSE 2 // HOLD THE ORIGINAL",
+      "finalBar": 28.00000000000139,
+      "frames": 2624,
+      "gearFrames": [
+        0,
+        2624,
+        0
+      ],
+      "integrity": 3,
+      "minimumIntegrity": 3,
+      "damageTaken": 0,
+      "drumMinimum": 0.6,
+      "musicRoles": {
+        "drive": {
+          "minimum": 0.03,
+          "maximum": 0.03,
+          "capturedFrames": 0
+        },
+        "flow": {
+          "minimum": 0.045,
+          "maximum": 0.045,
+          "capturedFrames": 0
+        },
+        "breakaway": {
+          "minimum": 0,
+          "maximum": 0,
+          "capturedFrames": 0
+        },
+        "undercurrent": {
+          "minimum": 0,
+          "maximum": 0,
+          "capturedFrames": 0
+        }
+      },
+      "accurate": 0,
+      "attempts": 15,
+      "connected": 0,
+      "combat": {
+        "version": 4,
+        "actors": [
+          {
+            "id": "foe-7",
+            "kind": "rammer",
+            "at": 3043.9442488970385,
+            "lane": 1,
+            "distance": 56.234248896902955,
+            "hp": 0.6,
+            "maxHp": 3,
+            "damage": 0.8,
+            "ageMs": 6500,
+            "phase": "stunned",
+            "warning": false,
+            "locked": false,
+            "lockLane": 1,
+            "attackKind": "ram",
+            "boss": false,
+            "vulnerable": true,
+            "collidable": false,
+            "threatActive": false,
+            "alpha": 1
+          },
+          {
+            "id": "foe-8",
+            "kind": "escort",
+            "at": 3186.7500000001323,
+            "lane": 1,
+            "distance": 199.03999999999678,
+            "hp": 3,
+            "maxHp": 3,
+            "damage": 0,
+            "ageMs": 1000,
+            "phase": "approach",
+            "warning": false,
+            "locked": false,
+            "lockLane": 1,
+            "attackKind": "ram",
+            "boss": false,
+            "vulnerable": false,
+            "collidable": false,
+            "threatActive": false,
+            "alpha": 1
+          }
+        ],
+        "projectiles": [],
+        "wrecks": [
+          {
+            "id": "foe-5",
+            "kind": "rammer",
+            "at": 2467.8056353096217,
+            "lane": 2,
+            "ageMs": 12500,
+            "rollMs": 1600,
+            "flip": true,
+            "rider": false,
+            "chain": false,
+            "phase": "wreck",
+            "wreck": true,
+            "distance": -519.9043646905138,
+            "flipAngle": 6.283185307179586,
+            "height": 7.102951435054649e-15,
+            "riderHeight": 0,
+            "riderOffset": 0,
+            "alpha": 1
+          },
+          {
+            "id": "foe-6",
+            "kind": "bike",
+            "at": 2727.855153699365,
+            "lane": 2.3006578013300896,
+            "ageMs": 6860,
+            "rollMs": 1600,
+            "flip": true,
+            "rider": true,
+            "chain": false,
+            "phase": "wreck",
+            "wreck": true,
+            "distance": -259.85484630077053,
+            "flipAngle": 6.283185307179586,
+            "height": 7.102951435054649e-15,
+            "riderHeight": 1.1634144591899855e-14,
+            "riderOffset": 110,
+            "alpha": 1
+          }
+        ],
+        "target": {
+          "id": "foe-7",
+          "kind": "rammer",
+          "at": 3043.9442488970385,
+          "lane": 1,
+          "distance": 56.234248896902955,
+          "hp": 0.6,
+          "maxHp": 3,
+          "damage": 0.8,
+          "ageMs": 6500,
+          "phase": "stunned",
+          "warning": false,
+          "locked": false,
+          "lockLane": 1,
+          "attackKind": "ram",
+          "boss": false,
+          "vulnerable": true,
+          "collidable": false,
+          "threatActive": false,
+          "alpha": 1,
+          "attackMode": "strike"
+        },
+        "boss": null,
+        "skills": {
+          "attack": {
+            "ready": false,
+            "cooldownMs": 310,
+            "rechargeMs": 550,
+            "activeMs": 0,
+            "active": false,
+            "charges": 1
+          },
+          "defend": {
+            "ready": false,
+            "cooldownMs": 2360,
+            "rechargeMs": 4000,
+            "activeMs": 0,
+            "active": false
+          },
+          "turbo": {
+            "ready": false,
+            "cooldownMs": 5320,
+            "rechargeMs": 7000,
+            "activeMs": 1,
+            "active": true,
+            "pending": false
+          },
+          "disrupt": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 8500,
+            "activeMs": 0,
+            "active": false
+          }
+        },
+        "syncCount": 0,
+        "footprint": 1,
+        "stats": {
+          "damageDealt": 19.4,
+          "takedowns": 7,
+          "playerHits": 0,
+          "blocks": 0,
+          "shots": 10,
+          "attacks": 19,
+          "defends": 1,
+          "turbos": 7,
+          "disrupts": 2
+        }
+      },
+      "recoveries": [],
+      "eventsSummary": {
+        "count": 529,
+        "sha256": "30dfc525cf3a284e1ae40469d869d94be5fb521cd1743ee8d34f82d7b6374c8f",
+        "countsByKind": {
+          "combat-driver-input": 214,
+          "combat-event": 79,
+          "combat-input": 214,
+          "missed-press": 15,
+          "near-pass": 7
+        },
+        "combatEventCountsByType": {
+          "attack": 19,
+          "defend-ready": 1,
+          "disrupt": 2,
+          "enemy-arrive": 9,
+          "enemy-hit": 19,
+          "lock": 1,
+          "shot": 10,
+          "takedown": 7,
+          "turbo": 7,
+          "warning": 4
+        },
+        "combatInputCountsByReason": {
+          "accepted": 29,
+          "no-target": 37,
+          "recharging": 22,
+          "weapon-recharging": 126
+        },
+        "acceptedControlsBySkill": {
+          "attack": 19,
+          "defend": 1,
+          "disrupt": 2,
+          "turbo": 7
+        },
+        "realDamageCauses": {
+          "shot": 10,
+          "strike": 9
+        },
+        "music": {
+          "capturedFaceActions": [],
+          "captureCount": 0,
+          "awardCount": 0,
+          "uniqueAwardIds": 0,
+          "holdBars": [],
+          "actualAttemptOffsetRangeMs": [
+            -15,
+            75
+          ],
+          "actualAcceptedOffsetRangeMs": null
+        },
+        "samples": {
+          "combat-event": {
+            "kind": "combat-event",
+            "bar": 4.011,
+            "elapsedMs": 7520,
+            "lane": 1,
+            "integrity": 3,
+            "type": "enemy-arrive",
+            "id": "foe-0",
+            "actorKind": "bike",
+            "sourceMethod": "step"
+          },
+          "combat-driver-input": {
+            "kind": "combat-driver-input",
+            "bar": 4.107,
+            "elapsedMs": 7700,
+            "lane": 0.932,
+            "integrity": 3,
+            "skill": "attack"
+          },
+          "combat-input": {
+            "kind": "combat-input",
+            "bar": 4.107,
+            "elapsedMs": 7700,
+            "lane": 0.932,
+            "integrity": 3,
+            "skill": "attack",
+            "accepted": true,
+            "reason": "accepted",
+            "syncBefore": 0
+          },
+          "missed-press": {
+            "kind": "missed-press",
+            "bar": 5.013,
+            "elapsedMs": 9400,
+            "lane": 1.958,
+            "integrity": 3,
+            "action": "road_b",
+            "feedback": "button",
+            "timingOffsetMs": 45
+          },
+          "near-pass": {
+            "kind": "near-pass",
+            "bar": 10.037,
+            "elapsedMs": 18820,
+            "lane": 2.08,
+            "integrity": 3
+          }
+        }
+      },
+      "announcedPads": {
+        "count": 16,
+        "uniqueIds": 16,
+        "allTargetsAreONE": true,
+        "immutableAddressesDuringRun": true,
+        "verification": "Runtime assertions checked every repeated visible id retained its target and world address.",
+        "sha256": "74a3c8ace651e8667a43a83187e175b1473d03ae2f4b6c59ed0d09fcd0828bcb",
+        "samples": [
+          {
+            "id": "song/4",
+            "target": 20,
+            "at": 502.60417545585153
+          },
+          {
+            "id": "song/6",
+            "target": 28,
+            "at": 740.7291754558515
+          },
+          {
+            "id": "song/26",
+            "target": 108,
+            "at": 2906.3541754558514
+          },
+          {
+            "id": "song/27",
+            "target": 112,
+            "at": 3003.8541754558514
+          }
+        ]
+      },
+      "bossChanges": []
+    },
+    {
+      "difficulty": "standard",
+      "gear": 2,
+      "profile": "practiced",
+      "timingBiasMs": -175,
+      "encounterVersion": 4,
+      "status": "playing",
+      "finalMessage": "VERSE 2 // HOLD THE ORIGINAL",
+      "finalBar": 28.00000000000139,
+      "frames": 2624,
+      "gearFrames": [
+        0,
+        2624,
+        0
+      ],
+      "integrity": 3,
+      "minimumIntegrity": 3,
+      "damageTaken": 0,
+      "drumMinimum": 0.6,
+      "musicRoles": {
+        "drive": {
+          "minimum": 0.03,
+          "maximum": 0.19,
+          "capturedFrames": 188
+        },
+        "flow": {
+          "minimum": 0.045,
+          "maximum": 0.55,
+          "capturedFrames": 937
+        },
+        "breakaway": {
+          "minimum": 0,
+          "maximum": 0.5,
+          "capturedFrames": 1689
+        },
+        "undercurrent": {
+          "minimum": 0,
+          "maximum": 0.62,
+          "capturedFrames": 843
+        }
+      },
+      "accurate": 13,
+      "attempts": 16,
+      "connected": 13,
+      "combat": {
+        "version": 4,
+        "actors": [
+          {
+            "id": "foe-7",
+            "kind": "rammer",
+            "at": 3164.7500000001196,
+            "lane": 1,
+            "distance": 87.03999999998405,
+            "hp": 1.75,
+            "maxHp": 3,
+            "damage": 0.41666666666666663,
+            "ageMs": 4500,
+            "phase": "recover",
+            "warning": false,
+            "locked": false,
+            "lockLane": 1,
+            "attackKind": "ram",
+            "boss": false,
+            "vulnerable": true,
+            "collidable": false,
+            "threatActive": false,
+            "alpha": 1
+          }
+        ],
+        "projectiles": [],
+        "wrecks": [
+          {
+            "id": "foe-5",
+            "kind": "rammer",
+            "at": 2623.282635437756,
+            "lane": 2,
+            "ageMs": 10300,
+            "rollMs": 1600,
+            "flip": true,
+            "rider": false,
+            "chain": false,
+            "phase": "wreck",
+            "wreck": true,
+            "distance": -454.42736456237935,
+            "flipAngle": 6.283185307179586,
+            "height": 7.102951435054649e-15,
+            "riderHeight": 0,
+            "riderOffset": 0,
+            "alpha": 1
+          },
+          {
+            "id": "foe-6",
+            "kind": "bike",
+            "at": 2912.1109198999634,
+            "lane": 3,
+            "ageMs": 5440,
+            "rollMs": 1600,
+            "flip": true,
+            "rider": true,
+            "chain": false,
+            "phase": "wreck",
+            "wreck": true,
+            "distance": -165.59908010017216,
+            "flipAngle": 6.283185307179586,
+            "height": 7.102951435054649e-15,
+            "riderHeight": 1.1634144591899855e-14,
+            "riderOffset": 110,
+            "alpha": 1
+          }
+        ],
+        "target": {
+          "id": "foe-7",
+          "kind": "rammer",
+          "at": 3164.7500000001196,
+          "lane": 1,
+          "distance": 87.03999999998405,
+          "hp": 1.75,
+          "maxHp": 3,
+          "damage": 0.41666666666666663,
+          "ageMs": 4500,
+          "phase": "recover",
+          "warning": false,
+          "locked": false,
+          "lockLane": 1,
+          "attackKind": "ram",
+          "boss": false,
+          "vulnerable": true,
+          "collidable": false,
+          "threatActive": false,
+          "alpha": 1,
+          "attackMode": "shot"
+        },
+        "boss": null,
+        "skills": {
+          "attack": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 550,
+            "activeMs": 0,
+            "active": false,
+            "charges": 0
+          },
+          "defend": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 4000,
+            "activeMs": 0,
+            "active": false
+          },
+          "turbo": {
+            "ready": false,
+            "cooldownMs": 5320,
+            "rechargeMs": 7000,
+            "activeMs": 1,
+            "active": true,
+            "pending": false
+          },
+          "disrupt": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 8500,
+            "activeMs": 0,
+            "active": false
+          }
+        },
+        "syncCount": 3,
+        "footprint": 0.64,
+        "stats": {
+          "damageDealt": 18.25,
+          "takedowns": 7,
+          "playerHits": 0,
+          "blocks": 0,
+          "shots": 11,
+          "attacks": 18,
+          "defends": 0,
+          "turbos": 7,
+          "disrupts": 2
+        }
+      },
+      "recoveries": [],
+      "eventsSummary": {
+        "count": 536,
+        "sha256": "0484801dec7cc05de3afb503b2aa2487dec943df66a35c4d95a49a6057673491",
+        "countsByKind": {
+          "capture": 13,
+          "combat-driver-input": 207,
+          "combat-event": 73,
+          "combat-input": 207,
+          "earned-action": 13,
+          "missed-press": 3,
+          "music-award": 13,
+          "near-pass": 7
+        },
+        "combatEventCountsByType": {
+          "attack": 18,
+          "disrupt": 2,
+          "enemy-arrive": 8,
+          "enemy-hit": 18,
+          "shot": 11,
+          "takedown": 7,
+          "turbo": 7,
+          "warning": 2
+        },
+        "combatInputCountsByReason": {
+          "accepted": 27,
+          "no-target": 32,
+          "recharging": 20,
+          "weapon-recharging": 128
+        },
+        "acceptedControlsBySkill": {
+          "attack": 18,
+          "disrupt": 2,
+          "turbo": 7
+        },
+        "realDamageCauses": {
+          "shot": 11,
+          "strike": 7
+        },
+        "music": {
+          "capturedFaceActions": [
+            "road_a",
+            "road_b",
+            "road_x",
+            "road_y"
+          ],
+          "captureCount": 13,
+          "awardCount": 13,
+          "uniqueAwardIds": 13,
+          "holdBars": [
+            3,
+            6
+          ],
+          "actualAttemptOffsetRangeMs": [
+            -155,
+            -135
+          ],
+          "actualAcceptedOffsetRangeMs": [
+            -155,
+            -135
+          ]
+        },
+        "samples": {
+          "combat-event": {
+            "kind": "combat-event",
+            "bar": 4.011,
+            "elapsedMs": 7520,
+            "lane": 1,
+            "integrity": 3,
+            "type": "enemy-arrive",
+            "id": "foe-0",
+            "actorKind": "bike",
+            "sourceMethod": "step"
+          },
+          "combat-driver-input": {
+            "kind": "combat-driver-input",
+            "bar": 4.107,
+            "elapsedMs": 7700,
+            "lane": 0.932,
+            "integrity": 3,
+            "skill": "attack"
+          },
+          "combat-input": {
+            "kind": "combat-input",
+            "bar": 4.107,
+            "elapsedMs": 7700,
+            "lane": 0.932,
+            "integrity": 3,
+            "skill": "attack",
+            "accepted": true,
+            "reason": "accepted",
+            "syncBefore": 0
+          },
+          "capture": {
+            "kind": "capture",
+            "bar": 4.917,
+            "elapsedMs": 9220,
+            "lane": 1.911,
+            "integrity": 3,
+            "action": "road_a",
+            "feedback": null,
+            "timingOffsetMs": -135
+          },
+          "earned-action": {
+            "kind": "earned-action",
+            "bar": 4.992,
+            "elapsedMs": 9360,
+            "lane": 2,
+            "integrity": 3,
+            "action": 0
+          },
+          "music-award": {
+            "kind": "music-award",
+            "bar": 4.992,
+            "elapsedMs": 9360,
+            "lane": 1.52,
+            "integrity": 3,
+            "id": "song/4",
+            "action": 0,
+            "musicLane": 2,
+            "targetBeat": 20,
+            "awardedBeat": 20.01066666666643,
+            "holdBars": 3
+          },
+          "near-pass": {
+            "kind": "near-pass",
+            "bar": 9.728,
+            "elapsedMs": 18240,
+            "lane": 2.079,
+            "integrity": 3
+          },
+          "missed-press": {
+            "kind": "missed-press",
+            "bar": 14.912,
+            "elapsedMs": 27960,
+            "lane": 0.957,
+            "integrity": 3,
+            "action": "road_x",
+            "feedback": "lane",
+            "timingOffsetMs": -145
+          }
+        }
+      },
+      "announcedPads": {
+        "count": 16,
+        "uniqueIds": 16,
+        "allTargetsAreONE": true,
+        "immutableAddressesDuringRun": true,
+        "verification": "Runtime assertions checked every repeated visible id retained its target and world address.",
+        "sha256": "a10dbb0f1df84eea25ebd96caa0c15103912026266def3d0fcb506e121c981d4",
+        "samples": [
+          {
+            "id": "song/4",
+            "target": 20,
+            "at": 502.60417545585153
+          },
+          {
+            "id": "song/6",
+            "target": 28,
+            "at": 767.9166754558515
+          },
+          {
+            "id": "song/26",
+            "target": 108,
+            "at": 2996.3541754558514
+          },
+          {
+            "id": "song/27",
+            "target": 112,
+            "at": 3093.8541754558514
+          }
+        ]
+      },
+      "bossChanges": []
+    },
+    {
+      "difficulty": "standard",
+      "gear": 2,
+      "profile": "practiced",
+      "timingBiasMs": 150,
+      "encounterVersion": 4,
+      "status": "playing",
+      "finalMessage": "VERSE 2 // HOLD THE ORIGINAL",
+      "finalBar": 28.00000000000139,
+      "frames": 2624,
+      "gearFrames": [
+        0,
+        2624,
+        0
+      ],
+      "integrity": 3,
+      "minimumIntegrity": 3,
+      "damageTaken": 0,
+      "drumMinimum": 0.6,
+      "musicRoles": {
+        "drive": {
+          "minimum": 0.03,
+          "maximum": 0.19,
+          "capturedFrames": 273
+        },
+        "flow": {
+          "minimum": 0.045,
+          "maximum": 0.55,
+          "capturedFrames": 461
+        },
+        "breakaway": {
+          "minimum": 0,
+          "maximum": 0.5,
+          "capturedFrames": 1101
+        },
+        "undercurrent": {
+          "minimum": 0,
+          "maximum": 0.62,
+          "capturedFrames": 273
+        }
+      },
+      "accurate": 9,
+      "attempts": 15,
+      "connected": 9,
+      "combat": {
+        "version": 4,
+        "actors": [],
+        "projectiles": [],
+        "wrecks": [
+          {
+            "id": "foe-5",
+            "kind": "rammer",
+            "at": 2524.263954974059,
+            "lane": 2,
+            "ageMs": 10900,
+            "rollMs": 1600,
+            "flip": true,
+            "rider": false,
+            "chain": false,
+            "phase": "wreck",
+            "wreck": true,
+            "distance": -463.4460450260767,
+            "flipAngle": 6.283185307179586,
+            "height": 7.102951435054649e-15,
+            "riderHeight": 0,
+            "riderOffset": 0,
+            "alpha": 1
+          },
+          {
+            "id": "foe-6",
+            "kind": "bike",
+            "at": 2912.1713606482963,
+            "lane": 0,
+            "ageMs": 2640,
+            "rollMs": 1600,
+            "flip": true,
+            "rider": true,
+            "chain": false,
+            "phase": "wreck",
+            "wreck": true,
+            "distance": -75.53863935183927,
+            "flipAngle": 6.283185307179586,
+            "height": 7.102951435054649e-15,
+            "riderHeight": 1.1634144591899855e-14,
+            "riderOffset": 110,
+            "alpha": 1
+          },
+          {
+            "id": "foe-7",
+            "kind": "rammer",
+            "at": 3004.900013943533,
+            "lane": 1,
+            "ageMs": 2640,
+            "rollMs": 1600,
+            "flip": true,
+            "rider": false,
+            "chain": true,
+            "phase": "wreck",
+            "wreck": true,
+            "distance": 17.19001394339739,
+            "flipAngle": 6.283185307179586,
+            "height": 7.102951435054649e-15,
+            "riderHeight": 0,
+            "riderOffset": 0,
+            "alpha": 1
+          }
+        ],
+        "target": null,
+        "boss": null,
+        "skills": {
+          "attack": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 550,
+            "activeMs": 0,
+            "active": false,
+            "charges": 0
+          },
+          "defend": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 4000,
+            "activeMs": 0,
+            "active": false
+          },
+          "turbo": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 7000,
+            "activeMs": 0,
+            "active": false,
+            "pending": false
+          },
+          "disrupt": {
+            "ready": true,
+            "cooldownMs": 0,
+            "rechargeMs": 8500,
+            "activeMs": 0,
+            "active": false
+          }
+        },
+        "syncCount": 2,
+        "footprint": 0.76,
+        "stats": {
+          "damageDealt": 20,
+          "takedowns": 8,
+          "playerHits": 0,
+          "blocks": 0,
+          "shots": 11,
+          "attacks": 19,
+          "defends": 1,
+          "turbos": 6,
+          "disrupts": 2
+        }
+      },
+      "recoveries": [],
+      "eventsSummary": {
+        "count": 482,
+        "sha256": "e71be538eab7635c6baa9432537ef4386c6fcb1156f0355af0aa797e2bf82740",
+        "countsByKind": {
+          "capture": 9,
+          "combat-driver-input": 181,
+          "combat-event": 80,
+          "combat-input": 181,
+          "earned-action": 9,
+          "missed-press": 6,
+          "music-award": 9,
+          "near-pass": 7
+        },
+        "combatEventCountsByType": {
+          "attack": 19,
+          "defend-ready": 1,
+          "disrupt": 2,
+          "enemy-arrive": 8,
+          "enemy-hit": 20,
+          "evaded": 1,
+          "lock": 1,
+          "shot": 11,
+          "takedown": 8,
+          "turbo": 6,
+          "warning": 3
+        },
+        "combatInputCountsByReason": {
+          "accepted": 28,
+          "no-target": 28,
+          "recharging": 21,
+          "weapon-recharging": 104
+        },
+        "acceptedControlsBySkill": {
+          "attack": 19,
+          "defend": 1,
+          "disrupt": 2,
+          "turbo": 6
+        },
+        "realDamageCauses": {
+          "chain": 1,
+          "shot": 11,
+          "strike": 8
+        },
+        "music": {
+          "capturedFaceActions": [
+            "road_b",
+            "road_x",
+            "road_y"
+          ],
+          "captureCount": 9,
+          "awardCount": 9,
+          "uniqueAwardIds": 9,
+          "holdBars": [
+            3,
+            6
+          ],
+          "actualAttemptOffsetRangeMs": [
+            170,
+            185
+          ],
+          "actualAcceptedOffsetRangeMs": [
+            170,
+            180
+          ]
+        },
+        "samples": {
+          "combat-event": {
+            "kind": "combat-event",
+            "bar": 4.011,
+            "elapsedMs": 7520,
+            "lane": 1,
+            "integrity": 3,
+            "type": "enemy-arrive",
+            "id": "foe-0",
+            "actorKind": "bike",
+            "sourceMethod": "step"
+          },
+          "combat-driver-input": {
+            "kind": "combat-driver-input",
+            "bar": 4.107,
+            "elapsedMs": 7700,
+            "lane": 0.932,
+            "integrity": 3,
+            "skill": "attack"
+          },
+          "combat-input": {
+            "kind": "combat-input",
+            "bar": 4.107,
+            "elapsedMs": 7700,
+            "lane": 0.932,
+            "integrity": 3,
+            "skill": "attack",
+            "accepted": true,
+            "reason": "accepted",
+            "syncBefore": 0
+          },
+          "missed-press": {
+            "kind": "missed-press",
+            "bar": 5.088,
+            "elapsedMs": 9540,
+            "lane": 1.91,
+            "integrity": 3,
+            "action": "road_a",
+            "feedback": "late",
+            "timingOffsetMs": 185
+          },
+          "earned-action": {
+            "kind": "earned-action",
+            "bar": 7.083,
+            "elapsedMs": 13280,
+            "lane": 3,
+            "integrity": 3,
+            "action": 2
+          },
+          "music-award": {
+            "kind": "music-award",
+            "bar": 7.083,
+            "elapsedMs": 13280,
+            "lane": 2.997,
+            "integrity": 3,
+            "id": "song/6",
+            "action": 2,
+            "musicLane": 3,
+            "targetBeat": 28,
+            "awardedBeat": 28.37333333333292,
+            "holdBars": 3
+          },
+          "capture": {
+            "kind": "capture",
+            "bar": 7.083,
+            "elapsedMs": 13280,
+            "lane": 2.997,
+            "integrity": 3,
+            "action": "road_x",
+            "feedback": "good",
+            "timingOffsetMs": 175
+          },
+          "near-pass": {
+            "kind": "near-pass",
+            "bar": 10.037,
+            "elapsedMs": 18820,
+            "lane": 2.08,
+            "integrity": 3
+          }
+        }
+      },
+      "announcedPads": {
+        "count": 16,
+        "uniqueIds": 16,
+        "allTargetsAreONE": true,
+        "immutableAddressesDuringRun": true,
+        "verification": "Runtime assertions checked every repeated visible id retained its target and world address.",
+        "sha256": "74a3c8ace651e8667a43a83187e175b1473d03ae2f4b6c59ed0d09fcd0828bcb",
+        "samples": [
+          {
+            "id": "song/4",
+            "target": 20,
+            "at": 502.60417545585153
+          },
+          {
+            "id": "song/6",
+            "target": 28,
+            "at": 740.7291754558515
+          },
+          {
+            "id": "song/26",
+            "target": 108,
+            "at": 2906.3541754558514
+          },
+          {
+            "id": "song/27",
+            "target": 112,
+            "at": 3003.8541754558514
+          }
+        ]
+      },
+      "bossChanges": []
+    }
+  ],
+  "passive": {
+    "difficulty": "standard",
+    "gear": 2,
+    "profile": "practiced",
+    "noCombat": true,
+    "encounterVersion": 4,
+    "status": "failed",
+    "finalMessage": "PURSUIT HELD THE ORIGINAL",
+    "finalBar": 100.0000000000118,
+    "frames": 9374,
+    "gearFrames": [
+      336,
+      9038,
+      0
+    ],
+    "integrity": 1,
+    "minimumIntegrity": 1,
+    "damageTaken": 2,
+    "drumMinimum": 0.6,
+    "musicRoles": {
+      "drive": {
+        "minimum": 0.03,
+        "maximum": 0.19,
+        "capturedFrames": 1795
+      },
+      "flow": {
+        "minimum": 0.045,
+        "maximum": 0.55,
+        "capturedFrames": 5619
+      },
+      "breakaway": {
+        "minimum": 0,
+        "maximum": 0.5,
+        "capturedFrames": 6260
+      },
+      "undercurrent": {
+        "minimum": 0,
+        "maximum": 0.62,
+        "capturedFrames": 2712
+      }
+    },
+    "accurate": 51,
+    "attempts": 63,
+    "connected": 51,
+    "combat": {
+      "version": 4,
+      "actors": [
+        {
+          "id": "rig",
+          "kind": "rig",
+          "at": 10173.20343877763,
+          "lane": 2,
+          "distance": 56.743438776480616,
+          "hp": 12,
+          "maxHp": 12,
+          "damage": 0,
+          "ageMs": 44800,
+          "phase": "recover",
+          "warning": false,
+          "locked": false,
+          "lockLane": 2,
+          "attackKind": "scan",
+          "boss": true,
+          "vulnerable": true,
+          "collidable": false,
+          "threatActive": false,
+          "alpha": 1
+        }
+      ],
+      "projectiles": [
+        {
+          "id": "shot-17",
+          "sourceId": "rig",
+          "owner": "enemy",
+          "friendly": false,
+          "at": 10171.80343877763,
+          "lane": 2,
+          "ageMs": 20,
+          "damage": 1,
+          "kind": "scan",
+          "distance": 55.34343877648098,
+          "warning": true,
+          "collidable": false
+        }
+      ],
+      "wrecks": [],
+      "target": {
+        "id": "rig",
+        "kind": "rig",
+        "at": 10173.20343877763,
+        "lane": 2,
+        "distance": 56.743438776480616,
+        "hp": 12,
+        "maxHp": 12,
+        "damage": 0,
+        "ageMs": 44800,
+        "phase": "recover",
+        "warning": false,
+        "locked": false,
+        "lockLane": 2,
+        "attackKind": "scan",
+        "boss": true,
+        "vulnerable": true,
+        "collidable": false,
+        "threatActive": false,
+        "alpha": 1,
+        "attackMode": "strike"
+      },
+      "boss": {
+        "id": "rig",
+        "kind": "rig",
+        "arrived": true,
+        "at": 10173.20343877763,
+        "lane": 2,
+        "hp": 12,
+        "maxHp": 12,
+        "health": 3,
+        "systems": [
+          {
+            "id": "scanner",
+            "broken": false
+          },
+          {
+            "id": "ram",
+            "broken": false
+          },
+          {
+            "id": "emitter",
+            "broken": false
+          }
+        ],
+        "defeated": false,
+        "phase": "recover",
+        "alpha": 1,
+        "visible": true
+      },
+      "skills": {
+        "attack": {
+          "ready": true,
+          "cooldownMs": 0,
+          "rechargeMs": 550,
+          "activeMs": 0,
+          "active": false,
+          "charges": 2
+        },
+        "defend": {
+          "ready": true,
+          "cooldownMs": 0,
+          "rechargeMs": 4000,
+          "activeMs": 0,
+          "active": false
+        },
+        "turbo": {
+          "ready": true,
+          "cooldownMs": 0,
+          "rechargeMs": 7000,
+          "activeMs": 0,
+          "active": false,
+          "pending": false
+        },
+        "disrupt": {
+          "ready": true,
+          "cooldownMs": 0,
+          "rechargeMs": 8500,
+          "activeMs": 0,
+          "active": false
+        }
+      },
+      "syncCount": 0,
+      "footprint": 1,
+      "stats": {
+        "damageDealt": 0,
+        "takedowns": 0,
+        "playerHits": 0,
+        "blocks": 0,
+        "shots": 0,
+        "attacks": 0,
+        "defends": 0,
+        "turbos": 0,
+        "disrupts": 0
+      }
+    },
+    "recoveries": [
+      {
+        "kind": "damage",
+        "bar": 40.213,
+        "elapsedMs": 75400,
+        "lane": 1.372,
+        "integrity": 2,
+        "actor": "shuttle",
+        "capturesBefore": [],
+        "capturesAfter": [],
+        "queuedBefore": [],
+        "queuedAfter": [],
+        "nextCaptureMs": 1460
+      },
+      {
+        "kind": "damage",
+        "bar": 50.208,
+        "elapsedMs": 94140,
+        "lane": 0.295,
+        "integrity": 1,
+        "actor": "shuttle",
+        "capturesBefore": [
+          0
+        ],
+        "capturesAfter": [],
+        "queuedBefore": [],
+        "queuedAfter": [],
+        "nextCaptureMs": 5200
+      }
+    ],
+    "eventsSummary": {
+      "count": 407,
+      "sha256": "8664a49dd36fb49e243ade6c2dca764f2c12e11754a0c1764b92266f43b976dd",
+      "countsByKind": {
+        "brace": 3,
+        "capture": 51,
+        "combat-event": 206,
+        "damage": 2,
+        "earned-action": 51,
+        "missed-press": 12,
+        "music-award": 51,
+        "near-pass": 18,
+        "physical-contact": 8,
+        "push": 3,
+        "wreck-recovery": 2
+      },
+      "combatEventCountsByType": {
+        "boss-arrive": 1,
+        "disengage": 23,
+        "enemy-arrive": 12,
+        "enemy-shot": 18,
+        "evaded": 41,
+        "lock": 46,
+        "warning": 65
+      },
+      "combatInputCountsByReason": {},
+      "acceptedControlsBySkill": {},
+      "realDamageCauses": {},
+      "music": {
+        "capturedFaceActions": [
+          "road_a",
+          "road_b",
+          "road_x",
+          "road_y"
+        ],
+        "captureCount": 51,
+        "awardCount": 51,
+        "uniqueAwardIds": 51,
+        "holdBars": [
+          3,
+          6
+        ],
+        "actualAttemptOffsetRangeMs": [
+          -20,
+          80
+        ],
+        "actualAcceptedOffsetRangeMs": [
+          -20,
+          75
+        ]
+      },
+      "samples": {
+        "combat-event": {
+          "kind": "combat-event",
+          "bar": 4.011,
+          "elapsedMs": 7520,
+          "lane": 1,
+          "integrity": 3,
+          "type": "enemy-arrive",
+          "id": "foe-0",
+          "actorKind": "bike",
+          "sourceMethod": "step"
+        },
+        "earned-action": {
+          "kind": "earned-action",
+          "bar": 5.013,
+          "elapsedMs": 9400,
+          "lane": 2,
+          "integrity": 3,
+          "action": 0
+        },
+        "music-award": {
+          "kind": "music-award",
+          "bar": 5.013,
+          "elapsedMs": 9400,
+          "lane": 1.958,
+          "integrity": 3,
+          "id": "song/4",
+          "action": 0,
+          "musicLane": 2,
+          "targetBeat": 20,
+          "awardedBeat": 20.095999999999762,
+          "holdBars": 3
+        },
+        "capture": {
+          "kind": "capture",
+          "bar": 5.013,
+          "elapsedMs": 9400,
+          "lane": 1.958,
+          "integrity": 3,
+          "action": "road_a",
+          "feedback": "perfect",
+          "timingOffsetMs": 45
+        },
+        "near-pass": {
+          "kind": "near-pass",
+          "bar": 8.213,
+          "elapsedMs": 15400,
+          "lane": 1.044,
+          "integrity": 3
+        },
+        "brace": {
+          "kind": "brace",
+          "bar": 10.208,
+          "elapsedMs": 19140,
+          "lane": 0.605,
+          "integrity": 3
+        },
+        "physical-contact": {
+          "kind": "physical-contact",
+          "bar": 10.208,
+          "elapsedMs": 19140,
+          "lane": 0.605,
+          "integrity": 3
+        },
+        "missed-press": {
+          "kind": "missed-press",
+          "bar": 15.019,
+          "elapsedMs": 28160,
+          "lane": 1.677,
+          "integrity": 3,
+          "action": "road_x",
+          "feedback": "lane",
+          "timingOffsetMs": 55
+        },
+        "damage": {
+          "kind": "damage",
+          "bar": 40.213,
+          "elapsedMs": 75400,
+          "lane": 1.372,
+          "integrity": 2,
+          "capturesBefore": [],
+          "capturesAfter": [],
+          "queuedBefore": [],
+          "queuedAfter": []
+        },
+        "wreck-recovery": {
+          "kind": "wreck-recovery",
+          "bar": 40.213,
+          "elapsedMs": 75400,
+          "lane": 1.372,
+          "integrity": 2,
+          "gear": 0,
+          "queuedRecovery": true,
+          "recoveryBeat": 164
+        },
+        "push": {
+          "kind": "push",
+          "bar": 46.251,
+          "elapsedMs": 86720,
+          "lane": 2.624,
+          "integrity": 2
+        }
+      }
+    },
+    "announcedPads": {
+      "count": 63,
+      "uniqueIds": 63,
+      "allTargetsAreONE": true,
+      "immutableAddressesDuringRun": true,
+      "verification": "Runtime assertions checked every repeated visible id retained its target and world address.",
+      "sha256": "f7b66974de4569bbb6a00162b4b30f3a73acc031b350b944698a3d3da3d52c89",
+      "samples": [
+        {
+          "id": "song/4",
+          "target": 20,
+          "at": 502.60417545585153
+        },
+        {
+          "id": "song/6",
+          "target": 28,
+          "at": 724.7916754558515
+        },
+        {
+          "id": "song/97",
+          "target": 392,
+          "at": 9907.60417545585
+        },
+        {
+          "id": "song/98",
+          "target": 396,
+          "at": 10032.29167545585
+        }
+      ]
+    },
+    "bossChanges": [
+      {
+        "bar": 76.11733333333291,
+        "previousHp": null,
+        "id": "rig",
+        "hp": 12,
+        "maxHp": 12,
+        "health": 3,
+        "defeated": false,
+        "phase": "approach"
+      }
+    ]
+  },
+  "summary": {
+    "matrixRuns": 9,
+    "matrixClears": 9,
+    "matrixMusicCaptures": 535,
+    "matrixTakedowns": 212,
+    "matrixActualDamageEvents": 2,
+    "matrixBossHPAtFinish": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "musicProbeRuns": 5,
+    "rejectionMusicRuns": 3,
+    "expandedWindowMusicRuns": 2,
+    "sourcesVerifiedAgainstCurrentFiles": true
+  },
+  "reporting": {
+    "format": "compact-recorded-production-run",
+    "derivation": "Run metrics, source hashes, final combat poses, HP transitions, actual recovery, controls, save/reload and negatives are retained. Raw repeated events and announced addresses are represented by exact counts, hashes and samples.",
+    "omittedDetail": [
+      "full repeated event arrays",
+      "complete announced-address arrays",
+      "duplicate boss pose fields on HP transitions"
+    ],
+    "fullDiagnosticTrace": {
+      "path": "/workspace/scratch/a7a7f97e9bdd/combat-integration-full.json",
+      "sha256": "ee5f2b557f5753a04bc647f7c926deeaa6634760866bee31aac6e3f59329876c",
+      "bytes": 5854103,
+      "availability": "Full diagnostic retained outside the checkout; this receipt omits the full trace."
+    },
+    "canonicalArrayHashEncoding": "UTF-8 JSON with recursively sorted object keys and no extra whitespace."
+  }
+}

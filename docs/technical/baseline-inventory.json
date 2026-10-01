@@ -59,6 +59,8 @@
     "src/game/cache-road-encounters.js",
     "src/game/cache-road-reactions.js",
     "src/game/cache-road-pursuit.js",
+    "src/game/cache-road-combat.js",
+    "src/game/cache-road-combat-art.js",
     "src/game/cache-road-boss-art.js",
     "src/game/cache-road-guidance.js",
     "src/game/cache-road-proof.js",
@@ -133,6 +135,8 @@
     "src/game/cache-road-encounters.js",
     "src/game/cache-road-reactions.js",
     "src/game/cache-road-pursuit.js",
+    "src/game/cache-road-combat.js",
+    "src/game/cache-road-combat-art.js",
     "src/game/cache-road-boss-art.js",
     "src/game/cache-road-guidance.js",
     "src/game/cache-road-proof.js",
@@ -433,6 +437,14 @@
         "status": "pass"
       },
       {
+        "file": "src/game/cache-road-combat.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/cache-road-combat-art.js",
+        "status": "pass"
+      },
+      {
         "file": "src/game/cache-road-boss-art.js",
         "status": "pass"
       },
@@ -503,11 +515,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 71,
+        "index": 73,
         "status": "pass"
       },
       {
-        "index": 73,
+        "index": 75,
         "status": "pass"
       }
     ]
@@ -908,6 +920,8 @@
     "src/game/cache-road-encounters.js",
     "src/game/cache-road-reactions.js",
     "src/game/cache-road-pursuit.js",
+    "src/game/cache-road-combat.js",
+    "src/game/cache-road-combat-art.js",
     "src/game/cache-road-boss-art.js",
     "src/game/cache-road-guidance.js",
     "src/game/cache-road-proof.js",

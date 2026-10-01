@@ -300,7 +300,10 @@ async function main() {
       assert.equal(asset.url, asset.productionUrl);
     }
   }
-  await evaluate('browserProof.boot()');
+  // The retained native pursuit gate owns historical v3 behavior. Fresh
+  // campaigns use the separate combat rules and their production browser gate.
+  await evaluate(`{const create=BARCODE.CacheChapter.create.bind(BARCODE.CacheChapter);
+    BARCODE.CacheChapter.create=options=>({...create(options),encounterVersion:3});browserProof.boot();}`);
   assert.equal(await evaluate('browserProof.musicStarts'), 0);
   await tap('Enter');
   await until('BARCODE.CacheRoadProof.active&&!BARCODE.CacheBridge.active', 'native final Drive enters fresh chapter');

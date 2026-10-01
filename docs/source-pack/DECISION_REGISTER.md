@@ -1,5 +1,15 @@
 # Decision Register
 
+## October 1 — Combat chase and skill mapping approved
+
+The owner approves R1 Attack, L1 Turbo, R2 Defend and L2 Disrupt, all four
+skills, lane-based synchronization with the existing systems preserved and
+renamed. Beat accuracy earns benefits/multipliers and ending points; actual
+hostile conflict is the game. Mechanics precede assets across checkpoints
+in one PR. Merged #168 is rollback. Dodging may create an attack opening,
+but is no longer sufficient by itself to damage a fresh-run boss. See
+`CACHE_COMBAT_CHASE.md`. Historical v3 claims remain version-attributed.
+
 ## October 1 — creative overhaul authorized after the repair
 
 After the focused repair, the owner approves the proposed broader overhaul:

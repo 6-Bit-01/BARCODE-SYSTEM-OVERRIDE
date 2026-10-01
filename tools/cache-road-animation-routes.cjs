@@ -115,6 +115,61 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
       check(calls.some(([key,frame])=>key==='cachePursuitRig'&&frame===fixture.frame),
         `Production ${camera} missed diagnostic pursuit pose ${fixture.frame}`);
     }
+    // These four atlases are mechanical poses/components, not autonomous
+    // legacy animation clocks. The focused combat-art gate checks their pure
+    // contracts and native source integrity; this fixture additionally sends
+    // every pose through the actual Combat view owner and full road painter.
+    // These explicitly staged diagnostic states are not earned race evidence.
+    const authoredCombatKeys=['cacheCombatBike','cacheCombatHostiles',
+      'cacheCombatBikeCrash','cacheCombatBlast'];
+    const combatOwner=B.CacheRoadCombat;
+    check(combatOwner&&B.CacheRoadCombatArt,'Authored combat owners were not loaded');
+    const combatCases=[
+      {kind:'bike',phase:'approach',frame:0},
+      {kind:'bike',phase:'windup',attackLane:0,frame:1},
+      {kind:'bike',phase:'windup',attackLane:2,frame:2},
+      {kind:'bike',phase:'attack',frame:3},
+      {kind:'bike',phase:'recover',frame:4},
+      {kind:'bike',phase:'stunned',frame:5},
+      {kind:'bike',phase:'approach',hp:1,frame:6},
+      {kind:'bike',wreck:true,ageMs:2000,frame:7},
+      ...['rammer','escort','disruptor'].flatMap((kind,index)=>[
+        {kind,phase:'approach',frame:index*4},
+        {kind,phase:'attack',frame:index*4+1},
+        {kind,phase:'stunned',hp:1,frame:index*4+2},
+        {kind,wreck:true,ageMs:2000,frame:index*4+3}]),
+      ...[150,800,1400,2000].map((ageMs,index)=>({kind:'bike',wreck:true,ageMs,
+        crashFrame:index<3?index:null,riderFrame:index===0?3:index===3?5:4})),
+      ...Array.from({length:6},(_,blastFrame)=>({kind:'bike',wreck:true,
+        ageMs:blastFrame*1900/6+1,blastFrame}))
+    ];
+    for(const [index,fixture] of combatCases.entries())for(const camera of ['main','mirror']) {
+      const progress=1200,clock=2000+index*100;
+      const combat=combatOwner.create({difficultyId:'standard'});
+      combat.lastProgress=progress;combat.lastBar=40;combat.elapsedMs=clock;
+      const maxHp=fixture.kind==='bike'?2:3;
+      const actor={id:`foe-art-${index}`,kind:fixture.kind,
+        at:progress+(camera==='main'?150:-140),lane:1,
+        hp:fixture.hp??maxHp,maxHp,ageMs:fixture.ageMs??clock,
+        phase:fixture.phase??'approach',phaseMs:0,
+        attackLane:fixture.attackLane??1,attackKind:fixture.kind==='bike'?'kick':'ram'};
+      if(fixture.wreck)combat.wrecks.push({...actor,rollMs:1600,
+        flip:true,rider:fixture.kind==='bike'});
+      else combat.enemies.push(actor);
+      const calls=render(`diagnostic combat ${fixture.kind}-${index}/${camera}`,
+        progress,clock,{combat,pursuit:null,musicBar:40,musicBeatFloat:160});
+      const contains=(key,frame)=>calls.some(([k,f])=>k===key&&f===frame);
+      if(fixture.frame!==undefined)check(contains(fixture.kind==='bike'?
+        'cacheCombatBike':'cacheCombatHostiles',fixture.frame),
+        `Production ${camera} missed diagnostic ${fixture.kind} pose ${fixture.frame}`);
+      if(fixture.crashFrame!==undefined&&fixture.crashFrame!==null)
+        check(contains('cacheCombatBikeCrash',fixture.crashFrame),
+          `Production ${camera} missed actual bike crash age ${fixture.ageMs}`);
+      if(fixture.riderFrame!==undefined)check(contains('cacheCombatBikeCrash',fixture.riderFrame),
+        `Production ${camera} missed detached rider age ${fixture.ageMs}`);
+      if(fixture.blastFrame!==undefined)check(contains('cacheCombatBlast',fixture.blastFrame),
+        `Production ${camera} missed real-age blast cell ${fixture.blastFrame}`);
+    }
     const intentionalStable=['cacheCar','cacheCarLeft','cacheCarRight'];
     const inventory=Object.entries(definitions).filter(([key,entry])=>
       key.startsWith('cache')&&entry.frames>1);
@@ -127,7 +182,7 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
       if(key.endsWith('Travel')||key.endsWith('Activity')||
           key.startsWith('cacheAmbient')||propKeys.includes(key)||
           ['cacheFreight','cacheCourier','cacheAudit','cacheSweeper',
-            'cacheTrike','cacheShuttle','cachePursuitRig'].includes(key))
+            'cacheTrike','cacheShuttle','cachePursuitRig',...authoredCombatKeys].includes(key))
         check(coverage.mirror[key]?.size===entry.frames,
           `${key}: rearview did not play every authored cel`);
     }
@@ -145,6 +200,7 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
     check(JSON.stringify(reducedAt(0))===JSON.stringify(reducedAt(1234)),
       'Reduced Motion advanced an animation');
     return {productionDraws:cases.length,animatedKeys:inventory.length,
+      legacyAnimatedKeys:inventory.length-authoredCombatKeys.length,authoredCombatKeys,
       intentionalStable,main:Object.fromEntries(Object.entries(coverage.main)
         .map(([key,frames])=>[key,[...frames].sort((a,b)=>a-b)])),
       mirror:Object.fromEntries(Object.entries(coverage.mirror)

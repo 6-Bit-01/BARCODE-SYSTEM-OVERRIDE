@@ -4,6 +4,61 @@ A BARCODE simulation built around seven distinct retro game genres and the origi
 
 ## Current state
 
+The active work is [combat-chase PR #169](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/169)
+on `agent/cache-combat-chase`, starting
+from merged [PR #168](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/168)
+at `de003813dac96022e1ad19327ec827c3d1bac159`, retained as rollback.
+Fresh Cache Line runs use version 4: fight hostile vehicles, defend committed
+attacks, disrupt tracking and damage an enforcement rig through three systems.
+Rhythm synchronization provides advantages and earned score during the chase.
+
+| Default controller input | Function | Keyboard |
+| --- | --- | --- |
+| A / Cross | Synchronization piece A | K |
+| B / Circle | Synchronization piece B | L |
+| X / Square | Synchronization piece X | J |
+| Y / Triangle | Synchronization piece Y | I |
+| R1 / RB | Attack | F |
+| L1 / LB | Turbo | Space |
+| R2 / RT | Defend | G |
+| L2 / LT | Disrupt | V |
+
+The face pieces retain the same lane chart, music, timing, captures, extensions
+and arrangement. All four active means optimum speed and power with the lowest
+tracking footprint. Combat skills recharge independently and work without
+synchronization; Turbo preserves its next-ONE launch. Historical version-1–3
+saves retain their rules. The delivered-original ending requires real rig
+defeat and the complete original song.
+
+R2 Defend opens a timed guard that stops one incoming hostile contact,
+projectile or ordinary traffic collision. A combat counter acts on its real
+source; blocking ordinary traffic consumes the guard without inventing enemy
+damage or a takedown. The skill HUD distinguishes an available guard from a
+successful counter, and fresh prompts present the face inputs as sync pieces.
+
+The playable mechanics checkpoint at
+[`668d57d6`](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/commit/668d57d662a99701383b683cccc0663a8249dc31)
+passes production combat/input/guidance and integration race/save checks with
+existing art. Its [original source-hashed receipt](docs/source-pack/review-cache-combat-chase/combat-integration-mechanics-checkpoint.json)
+remains separate from subsequent art and behavior changes.
+
+Authored combat art is now complete: four immutable atlases at
+`12af86c0641456cc443ff7f42db013e565088b13` provide hostile bikes/chassis,
+separated rider and wreck components, and destruction effects. See the
+[art notes](assets/cache-road/combat/README.md) and
+[extraction, anchors and hashes](assets/cache-road/combat/atlas-metadata.json).
+Full local regression, all-file syntax and all nine production combat races
+pass on the final frozen source. Hosted browser gates and both exact final-head
+CI events remain publication gates; their results belong in the PR/export receipt.
+Makko/controller/audio, comfort, balance/fun and device performance
+remain owner review. See [the approved combat plan](docs/source-pack/CACHE_COMBAT_CHASE.md),
+[CURRENT_STATE.md](docs/source-pack/CURRENT_STATE.md) and
+[the acceptance route](docs/source-pack/ACCEPTANCE.md) for scope and evidence;
+the historical mechanics checkpoint remains separate, and automated evidence
+does not establish owner acceptance.
+
+## Historical development preview description
+
 Read [CURRENT_STATE.md](docs/source-pack/CURRENT_STATE.md) and [the acceptance route](docs/source-pack/ACCEPTANCE.md) for the active review. Level 1 and its Cache Back handoff are playable. A clearly labeled Broadcast Slum development preview starts from that handoff; merged #89 added roof shield nodes, counter surges, varied defenders and temporary scatter. The current review adds debug access to both levels. The Cache Line remains Level 2 in story order.
 
 The preview grants no later campaign completion or Drums key. Its owner Makko/audio/controller feel review is pending. The Cache Line and later story routes remain planned.

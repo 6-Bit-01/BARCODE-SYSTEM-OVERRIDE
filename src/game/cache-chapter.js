@@ -29,13 +29,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-chapter.js', exports: ['BARCOD
   }
   function normalize(raw) {
     if (!object(raw) || raw.version !== 1 ||
-        (raw.encounterVersion !== undefined && ![1, 2, 3].includes(raw.encounterVersion)) || typeof raw.runId !== 'string' ||
+        (raw.encounterVersion !== undefined && ![1, 2, 3, 4].includes(raw.encounterVersion)) || typeof raw.runId !== 'string' ||
         !/^cache-[a-z0-9-]{1,90}$/i.test(raw.runId) || !difficulties.includes(raw.difficultyId) ||
         !counters.every(key => finite(raw[key])) || raw.perfect > raw.accurate ||
         raw.accurate > raw.attempts || raw.connected > raw.accurate || raw.bestCombo > raw.connected ||
         !Array.isArray(raw.records) || raw.records.length > 32 || raw.records.some(id => !recordIds.includes(id))) return null;
     const chapter = { version: 1, runId: raw.runId, difficultyId: raw.difficultyId };
-    if ([1, 2, 3].includes(raw.encounterVersion)) chapter.encounterVersion = raw.encounterVersion;
+    if ([1, 2, 3, 4].includes(raw.encounterVersion)) chapter.encounterVersion = raw.encounterVersion;
     for (const key of counters) chapter[key] = count(raw[key]);
     chapter.records = recordIds.filter(id => raw.records.includes(id));
     chapter.delivery = null;
@@ -51,13 +51,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-chapter.js', exports: ['BARCOD
   function archive() { return B.Campaign?.archive?.(); }
   function clear(road) {
     return !!road?.active && road.status === 'clear' && road.state?.status === 'clear' &&
-      road.state.gateOpen === true && (road.chapter?.encounterVersion!==3||road.state.pursuit?.defeated===true) && Number.isFinite(road.state.musicBar) && road.state.musicBar >= 100;
+      road.state.gateOpen === true && (road.chapter?.encounterVersion!==3||road.state.pursuit?.defeated===true) &&
+      (road.chapter?.encounterVersion!==4||road.state.combat?.boss?.defeated===true) && Number.isFinite(road.state.musicBar) && road.state.musicBar >= 100;
   }
   const C = B.CacheChapter = {
     recordIds,
     create({ difficultyId = B.LevelDifficulty?.choice?.id || 'standard', retries = 0 } = {}) {
       const chapter = { version: 1, runId: `cache-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`,
-        difficultyId: difficulties.includes(difficultyId) ? difficultyId : 'standard', encounterVersion: 3 };
+        difficultyId: difficulties.includes(difficultyId) ? difficultyId : 'standard', encounterVersion: 4 };
       for (const key of counters) chapter[key] = 0;
       chapter.retries = count(retries); chapter.records = []; chapter.delivery = null;
       return chapter;

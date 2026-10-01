@@ -1,5 +1,22 @@
 # Repository Guidance
 
+## October 1, 2026 — combat chase and correct skill controls
+
+The owner approves a new one-PR combat chase from merged #168
+(`de003813dac96022e1ad19327ec827c3d1bac159`), retained as rollback.
+Face buttons are synchronization pieces, not skills. Preserve existing lane
+chart, timing, captures, arrangement and passive synchronization bonuses.
+Skill controls are exactly R1 Attack, L1 Turbo, R2 Defend, L2 Disrupt, with
+independent recharge and usable at zero sync. Four live parts improve power
+and lower tracking footprint. Add real hostile contact, attacks, destruction
+and an actively damaged rig; dodge-only self-damage is historical v3 behavior.
+Fresh chapter encounterVersion4 reuses chart3 and separate combat state;
+keep v1–3 saves/rules. Build a playable mechanics checkpoint before new art,
+then finish the chase and assets in the same PR. Read
+`docs/source-pack/CACHE_COMBAT_CHASE.md`. Full regression/all-file syntax,
+production input/browser and both final-head CI gates retain standing merge
+authority. Owner Makko/controller/fun/frame pacing acceptance remains pending.
+
 ## October 1, 2026 — authorized pursuit overhaul after repair
 
 The owner approves the wild optimization/game overhaul after merged #167
