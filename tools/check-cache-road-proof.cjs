@@ -364,6 +364,20 @@ async function run() {
   audio.context.currentTime = 0;
   assert((await road.enter()).ok);
   assert.equal(C.readResume().levelState.proofVersion, 4);
+  assert.equal(road.introMs, 0, 'a fresh race opens on an in-world setup');
+  assert.equal(B.MusicTransport.sample(audio.context.currentTime).running, false,
+    'the recording waits for the start cue');
+  const openingTime=road.state.timeMs;
+  road.handleActions({ move_right: { held: true }, road_turbo: { pressed: true } });
+  for(let frame=0;frame<12;frame++)road.update(100);
+  assert.equal(road.state.progress, 0, 'the car stays on the line during the setup');
+  assert.equal(road.state.timeMs, openingTime, 'the setup does not consume race time');
+  assert.equal(road.state.steer, 0, 'held inputs cannot steer the introductory shot');
+  assert(road.keyDown({key:'Enter',repeat:false,preventDefault(){}}),
+    'Enter is consumed by the race setup');
+  assert.equal(road.introMs, null);
+  assert.equal(B.MusicTransport.sample(audio.context.currentTime).running, true,
+    'skipping starts the recording from its first bar');
   const roadStart = copy(C.readResume());
   const liveState = road.state, oldArt = B.PresentationAssets;
   B.Preferences ||= {values:{}};
@@ -984,7 +998,9 @@ async function run() {
   const rollingGrain=roadArt.filter(entry=>entry.key==='cacheRollingGrain');
   const workshopPavement=roadArt.filter(entry=>entry.key==='cacheWorkshopPavement');
   const localStreet=roadArt.filter(entry=>entry.key==='cacheLocalStreet');
-  assert(rollingGrain.length>=40 &&
+  assert(rollingGrain.length>=24 && rollingGrain.length<=30 &&
+    rollingGrain.some(entry=>entry.projected?.[0]<0) &&
+    rollingGrain.some(entry=>entry.projected?.[0]>0) &&
     rollingGrain.every(entry=>entry.sourceRect?.[3]>0 &&
       entry.alpha===.44 && entry.projected?.length===6) &&
     workshopPavement.length===0 && localStreet.length>0 &&
@@ -993,6 +1009,20 @@ async function run() {
       entry.sourceRect?.[2]===256 && entry.sourceRect?.[3]===64 &&
       entry.projected?.length===6),
   'world-fixed grain covers both banks; shared local texture stays inside graph streets and market courts');
+  // Check actual draw crops across the complete grain repeat, its boundary
+  // and later districts. A wider slab must never sample outside the painted
+  // source band when its world address wraps (including negative addresses
+  // in the opening foreground).
+  for(const progress of [...Array.from({length:17},(_,i)=>i*78),623,624,625,5000,12400]) {
+    mirrorFrame({progress});
+    const grain=roadArt.filter(entry=>entry.key==='cacheRollingGrain');
+    assert(grain.length>0,'every sampled route paints bank grain');
+    for(const entry of grain) {
+      const [x,y,w,h]=entry.sourceRect;
+      assert(x>=0&&w>0&&h>0&&y>=32-1e-9&&y+h<=855+1e-9,
+        `world grain crop stays inside its painted source band at ${progress}: ${entry.sourceRect}`);
+    }
+  }
   mirrorFrame({progress:2750});
   assert(roadArt.some(entry=>entry.key==='cacheLocalStreet') &&
     !roadArt.some(entry=>entry.key.startsWith('cacheMarket')),

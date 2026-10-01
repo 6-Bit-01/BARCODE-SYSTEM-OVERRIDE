@@ -14,7 +14,7 @@ const chromePath=process.env.CHROME_BIN||['/usr/bin/google-chrome','/usr/bin/chr
 assert(chromePath,'Set CHROME_BIN to an installed Chrome/Chromium executable.');
 fs.mkdirSync(output,{recursive:true});
 const scripts=['src/engine/audio.js','src/core/action-input.js','src/core/gamepad-ui.js',
-  'src/engine/cache-scene-layouts.js','src/engine/cache-scene-effects.js','src/engine/comic-dialogue.js',
+  'src/engine/intro-sequence.js','src/engine/cache-scene-layouts.js','src/engine/cache-scene-effects.js','src/engine/comic-dialogue.js',
   'src/engine/cache-bridge.js','src/core/input.js','src/core/loop.js'];
 const fixture=`<!doctype html><style>
 @font-face{font-family:Oxanium;src:url('/assets/studies/visual-overhaul/references/fonts/Oxanium.ttf') format('truetype');font-weight:200 800}
@@ -117,7 +117,7 @@ async function main(){
   const sceneClock=()=>evaluate('BARCODE.CacheBridge.sceneElapsedMs');
   const render=async page=>{
     const frame=await evaluate(`(()=>{browserProof.step(240);const b=BARCODE.CacheBridge,ctx=renderer.ctx;
-      const pixels=ctx.getImageData(176,104,1568,712).data;let bright=0;
+      const pixels=ctx.getImageData(48,140,1824,828).data;let bright=0;
       for(let i=0;i<pixels.length;i+=64)if(pixels[i]+pixels[i+1]+pixels[i+2]>120)bright++;
       const preferences=BARCODE.Preferences.values,reduced=preferences.reducedMotion,flashes=preferences.flashes;
       const still=mode=>{
@@ -128,26 +128,32 @@ async function main(){
       try{reducedMotionStatic=still('reduced');flashesOffStatic=still('flashesOff');}
       finally{preferences.reducedMotion=reduced;preferences.flashes=flashes;browserProof.step(20);}
       const imageRect=b.imageRect(),bubbles=b.dialogueLayouts(ctx).map(l=>{
-        ctx.save();ctx.font='bold '+l.fontSize+'px Oxanium, sans-serif';
+        ctx.save();ctx.font='bold '+l.fontSize+'px '+l.fontFamily;
         const lineWidths=l.lines.map(line=>ctx.measureText(line).width);ctx.restore();return {...l,lineWidths};});
       return {page:b.page,cue:b.cue,title:b.panels[b.page].title,status:b.images[b.page].status,
-        source:b.images[b.page].element.src,contexts:browserProof.contexts,bright,imageRect,bubbles,
+        source:b.images[b.page].element.src,contexts:browserProof.contexts,bright,pageFrame:{...b.frame},imageRect,bubbles,
         reducedMotionStatic,flashesOffStatic,
         webp:renderer.canvas.toDataURL('image/webp',.92).split(',')[1]};})()`);
     assert.equal(frame.page,page);assert.equal(frame.cue,2);assert.equal(frame.status,'ready');
     assert(frame.bright>3000,'illustrated page must contain substantial visible art');assert.equal(frame.contexts,1);
+    assert.deepEqual(frame.pageFrame,{x:48,y:140,w:1824,h:828},'comic chapters use the opening image frame');
     assert.equal(frame.bubbles.length,2,'both authored dialogue lines have measured balloons');
     for(const l of frame.bubbles){
       assert([l.x,l.y,l.w,l.h,l.fontSize,l.lineHeight].every(Number.isFinite));
       assert(l.w>0&&l.h>0&&l.fontSize>=28&&l.lineHeight>=l.fontSize);
-      assert(l.x>=0&&l.x+l.w+8<=1920&&l.y>=104&&l.y+l.h+8<=986,
-        'balloon body and shadow stay between the title and status/control bands');
-      for(const box of [l.textRect,l.labelRect]){
+      assert.equal(l.fontFamily,'sans-serif','dialogue uses the opening lettering family');
+      assert(l.x>=48&&l.x+l.w<=1872&&l.y>=140&&l.y+l.h<=968,
+        'balloon body stays inside the opening image frame');
+      for(const box of [l.textRect,l.labelRect,l.outerBounds])
         assert([box.x,box.y,box.w,box.h].every(Number.isFinite)&&box.w>0&&box.h>0);
-        assert(box.x>=l.x&&box.y>=l.y&&box.x+box.w<=l.x+l.w&&box.y+box.h<=l.y+l.h,
-          'lettering remains inside its balloon');
-      }
-      assert(l.lines.length>0&&l.lineWidths.every(width=>width<=l.textRect.w+.01),'actual Oxanium lines fit');
+      const text=l.textRect,outer=l.outerBounds,label=l.labelRect;
+      assert(text.x>=l.x&&text.y>=l.y&&text.x+text.w<=l.x+l.w&&text.y+text.h<=l.y+l.h,
+        'dialogue lettering remains inside its balloon body');
+      assert(outer.x>=32&&outer.y>=119&&outer.x+outer.w<=1888&&outer.y+outer.h<=980,
+        'balloon shadow and speaker tab stay inside the opening readable area');
+      assert(label.x>=outer.x&&label.y>=outer.y&&label.x+label.w<=outer.x+outer.w&&label.y+label.h<=outer.y+outer.h,
+        'the top-crossing speaker tab stays inside the exported balloon bounds');
+      assert(l.lines.length>0&&l.lineWidths.every(width=>width<=l.textRect.w+.01),'actual dialogue-family lines fit');
       if(l.radio)assert.equal(l.tail,null,'radio speech never points to a painted person');
       else {assert.equal(l.tail.length,2);const [x,y]=l.tail,r=frame.imageRect;
         assert(Number.isFinite(x)&&Number.isFinite(y)&&x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h,

@@ -20,7 +20,7 @@ const scripts=['src/engine/music-profiles.js','src/engine/music-transport.js',
   'src/game/cache-chapter.js','src/game/cache-road-landscape.js',
   'src/game/cache-road-encounters.js','src/game/cache-road-reactions.js',
   'src/game/cache-road-pursuit.js','src/game/cache-road-proof.js',
-  'src/engine/cache-scene-layouts.js','src/engine/cache-scene-effects.js','src/engine/comic-dialogue.js',
+  'src/engine/intro-sequence.js','src/engine/cache-scene-layouts.js','src/engine/cache-scene-effects.js','src/engine/comic-dialogue.js',
   'src/engine/cache-bridge.js','src/core/action-input.js','src/core/gamepad-ui.js',
   'src/core/input.js','src/core/loop.js'];
 const fixture=`<!doctype html><style>
@@ -191,7 +191,27 @@ async function main(){
   await until('BARCODE.CacheRoadProof.active&&!BARCODE.CacheBridge.active','native final Drive enters authored road');
   assert.equal(await evaluate('BARCODE.CacheRoadProof.chapter.encounterVersion'),2);
   assert(await evaluate('!!BARCODE.CacheRoadProof.state.encounters&&!!BARCODE.CacheRoadProof.state.pursuit'));
-  assert.equal(await evaluate('browserProof.musicStarts'),1);
+  assert.equal(await evaluate('browserProof.musicStarts'),0,'fresh Drive enters a silent race setup');
+  assert.equal(await evaluate('BARCODE.CacheRoadProof.introMs'),0);
+  const launchState=()=>evaluate(`(()=>{const s=BARCODE.CacheRoadProof.state;return {
+    progress:s.progress,lane:s.lanePos,timeMs:s.timeMs,elapsedMs:s.elapsedMs,musicBar:s.musicBar,
+    echoActive:!!s.echo,echoEnergy:s.echoEnergy,score:s.score};})()`);
+  const beforeLaunch=await launchState();
+  await key('ArrowRight');await key('h');await evaluate('browserProof.step(600)');
+  await key('ArrowRight',false);await key('h',false);
+  assert.deepEqual(await launchState(),beforeLaunch,
+    'native steering and Echo input cannot move the car, spend energy or advance race time during the setup');
+  assert.equal(await evaluate('browserProof.musicStarts'),0,'setup animation cannot start the song');
+  assert.equal(await evaluate('BARCODE.CacheRoadProof.introMs'),600,'the shared RAF advances only the setup clock');
+  assert.equal(await evaluate('browserProof.contexts'),1);assert.equal(await evaluate('browserProof.extraCanvases'),0);
+  // The bridge confirmation has been released. A fresh native Enter skips
+  // the in-world setup and owns the one music/drive handoff.
+  await key('Enter');await key('Enter',false);
+  assert.equal(await evaluate('BARCODE.CacheRoadProof.introMs'),null);
+  assert.equal(await evaluate('browserProof.musicStarts'),1,'fresh native skip starts the race song exactly once');
+  assert.deepEqual(await launchState(),beforeLaunch,'launch itself does not consume race time or move the car');
+  const launch={silentSetup:true,controlsLocked:true,setupElapsedMs:600,nativeFreshEnterSkip:true,
+    musicStarts:1,stateHeld:beforeLaunch,mainContextCalls:1,extraCanvases:0};
   await evaluate('browserProof.step(100)');
   const laneBefore=await evaluate('BARCODE.CacheRoadProof.state.lanePos');
   await key('ArrowRight');await evaluate('browserProof.step(300)');await key('ArrowRight',false);
@@ -214,7 +234,7 @@ async function main(){
   assert.equal(await evaluate('browserProof.worldUpdates'),0);assert.equal(await evaluate('document.querySelectorAll("canvas").length'),1);
   assert.equal(requests.head,0);assert.deepEqual(requests.localArt,[],'new assets cannot silently use bundled fallback');
   assert.deepEqual(errors,[]);
-  receipt={passed:true,artRevision,hosted,frames,requests,inputRoute,mainContextCalls:1,extraCanvases:0,
+  receipt={passed:true,artRevision,hosted,frames,requests,launch,inputRoute,mainContextCalls:1,extraCanvases:0,
     nativeBridgeDrive:true,nativeSteering:true,nativeEchoActivation:true,productionEncounterOwners:true,
     allFourProductionSpriteDraws:true,
     limits:'Real Chromium hosted-byte/decode and production Canvas/input/RAF smoke. Campaign persistence and audio clock are controlled boundaries; prior art is served from bundled files. Push/Brace/delivery screenshot states and Echo refill are explicit fixtures, not complete-race or audio evidence. Complete races and real MP3 audio have separate checks. Not Makko/device acceptance.'};

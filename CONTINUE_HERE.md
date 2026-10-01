@@ -1,4 +1,23 @@
-# Continue here — roadside bank fit
+# Continue here — Cache race launch and shared cutscene format
+
+## October 1, 2026 — immediate Level 2 lag
+
+The owner reports alternating stalls/catch-up as the road begins after merged
+PR #163. Branch `agent/cache-road-frame-time` reduces the measured terrain
+render workload without changing driving, music, scenery addresses or the
+rearview. See `docs/source-pack/CACHE_ROAD_FRAME_TIME.md`; validate final
+CI and source pack, then review a fresh Makko race for real frame pacing.
+
+The combined branch also adds the short fresh-race setup, speed zoom/shake
+and bounded edge streaks, with a steady Reduced Motion camera. Later bridge
+and delivery scenes use the opening's shared comic format; read
+`docs/source-pack/CACHE_COMIC_PRESENTATION.md` and current still receipts.
+The owner explicitly authorizes commit, PR and merge after full local
+regression, all-file syntax and both final-head CI events. The final PR and
+generated source-pack receipt establish publication/merge status. Makko
+frame pacing and visual/controller acceptance remain pending.
+
+# Earlier roadside bank fit
 
 ## September 30, 2026 — current follow-up: side assets
 

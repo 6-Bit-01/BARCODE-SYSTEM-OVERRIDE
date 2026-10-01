@@ -1,5 +1,34 @@
 # Repository Guidance
 
+## October 1, 2026 — shared cutscene format and authorized merge
+
+The owner requests that the later Cache cutscenes match the opening and locks
+the opening's visual format. Share its palette, masthead, double frame,
+bold speech lettering, top-edge speaker tabs and quiet footer. Reauthor
+placements for the existing paintings without covering protected faces or
+props. Preserve story, cue clocks, audio, controls, saves and handoffs.
+Review all twelve Cache scenes with native text/art clearance and motion
+checks; preserve the opening's output. See `CACHE_COMIC_PRESENTATION.md`.
+
+The owner explicitly authorizes the combined commit, PR and merge, including
+the road frame-cost correction, short fresh-race launch and speed camera.
+Run full regression/all-file syntax and both final-head CI events before
+merging. Refresh the exact merged archive. Makko/device acceptance remains
+unrecorded until the owner tests that build.
+
+## October 1, 2026 — Cache Road frame-time regression
+
+The owner reports a new severe, repeating frame drop immediately on entering
+Cache Back's Level 2. Base/rollback is merged PR #163,
+`8813ef7d1e6c76f5f2903096a5ae5555735d3b66`; branch
+`agent/cache-road-frame-time`. Keep the road and rearview art, music, input,
+collision, saves, difficulty and complete foreground exits intact. Profile
+the production draw path and make a bounded rendering-cost correction. Run
+the full regression, all-file syntax and final-head CI, and update the exact
+source pack after publication. Native timing is diagnostic; Makko/device
+frame pacing remains the owner's acceptance gate. Read
+`docs/source-pack/CACHE_ROAD_FRAME_TIME.md`.
+
 ## September 30, 2026 — roadside bank fit
 
 The owner reports misplaced side assets and pieces jutting unnaturally from

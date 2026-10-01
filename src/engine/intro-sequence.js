@@ -35,6 +35,23 @@ window.FILE_MANIFEST.push({ name: 'src/engine/intro-sequence.js', exports: ['BAR
   const ink = '#090b15', paper = '#f1eadd', mint = '#95ffe0', pink = '#f696d9';
   const crewColors = { '6 BIT': '#e6e5ee', 'DJ FLOPPYDISC': '#83e9ff', 'CACHE BACK': '#ffd65c', 'MAC MODEM': '#ff929c' };
   const frame = Object.freeze({ x: 48, y: 140, w: 1824, h: 828 });
+  // The opening is the visual standard for every comic chapter. These pure
+  // painters share its lettering and page furniture without owning a clock,
+  // input, images, audio or saved state.
+  const freeze = value => {
+    if (value && typeof value === 'object') { Object.values(value).forEach(freeze); Object.freeze(value); }
+    return value;
+  };
+  const format = freeze({
+    frame,
+    palette: { ink, paper, mint, pink, radio: '#101a2b', border: '#282235', muted: '#a9b4ca', crew: crewColors },
+    fonts: { dialogue: 'bold 30px sans-serif', label: 'bold 21px monospace', title: 'bold 36px sans-serif', control: '22px monospace' },
+    balloon: { fontSize: 30, lineHeight: 36, heightBase: 78, textInsetX: 30, textInsetY: 45,
+      outline: 10, shadowX: 9, shadowY: 10, cut: 16, tabX: 22, tabY: -17, tabHeight: 39,
+      labelInsetX: 18, labelInsetY: 8, labelPadding: 38, tailLeft: 22, tailRight: 20,
+      tailInsetY: 8, tailMinX: 54, tailMaxX: 68 },
+    readable: { x: 32, y: 119, w: 1856, h: 861 }
+  });
   // Author the reading order, including the gaps before a reaction. A scene
   // never turns its own page; its last cue remains until the player advances.
   const cue = (kind, holdMs, line = null) => Object.freeze({ kind, holdMs, line });
@@ -121,23 +138,49 @@ window.FILE_MANIFEST.push({ name: 'src/engine/intro-sequence.js', exports: ['BAR
     } else {
       text(ctx, item?.status === 'unavailable' ? 'SCENE ART UNAVAILABLE' : 'TUNING THE PICTURE...', 730, 466, 28, mint, true);
     }
+    drawFrame(ctx);
+  }
+  function drawFrame(ctx) {
+    const { x, y, w, h } = frame;
     ctx.strokeStyle = paper; ctx.lineWidth = 4; ctx.strokeRect(x, y, w, h);
     ctx.strokeStyle = '#282235'; ctx.lineWidth = 2; ctx.strokeRect(x - 9, y - 9, w + 18, h + 18);
   }
-  function balloonLayout(ctx, dialogue, placement) {
-    ctx.font = 'bold 30px sans-serif';
-    const lines = wrap(ctx, dialogue, placement.w - 60);
-    return { ...placement, h: 78 + lines.length * 36, lines };
+  function drawHeader(ctx, { title, channel = 'SYSTEM OVERRIDE / OPENING TRANSMISSION', index = 0, count = panels.length } = {}) {
+    ctx.fillStyle = pink; ctx.fillRect(48, 25, 163, 38);
+    text(ctx, 'BARCODE', 62, 30, 26, ink, true);
+    text(ctx, channel, 235, 35, 20, '#a9b4ca');
+    text(ctx, title, 48, 77, 36, paper, true, 'sans-serif');
+    text(ctx, `${String(index + 1).padStart(2, '0')} / ${String(count).padStart(2, '0')}`, 1710, 32, 27, mint, true);
+    for (let i = 0; i < count; i++) {
+      ctx.fillStyle = i <= index ? mint : '#2b3040'; ctx.fillRect(1698 + i * 22, 86, 14, i === index ? 15 : 5);
+    }
   }
-  function balloon(ctx, speaker, layout, serial) {
+  function balloonLayout(ctx, dialogue, placement, { speaker, serial = 1 } = {}) {
+    ctx.font = format.fonts.dialogue;
+    const lines = wrap(ctx, dialogue, placement.w - 60);
+    const layout = { ...placement, h: 78 + lines.length * 36, lines };
+    if (speaker !== undefined) {
+      const label = placement.radio ? `${speaker} / COMMS` : speaker;
+      ctx.font = format.fonts.label;
+      const labelRect = { x: placement.x + 22, y: placement.y - 17, w: ctx.measureText(label).width + 38, h: 39 };
+      Object.assign(layout, { speaker, serial, label, labelRect, accent: crewColors[speaker] || mint,
+        fontSize: 30, lineHeight: 36, fontFamily: 'sans-serif', labelFontFamily: 'monospace',
+        textRect: { x: placement.x + 30, y: placement.y + 45, w: placement.w - 60, h: lines.length * 36 },
+        outerBounds: { x: placement.x - 15, y: placement.y - 25, w: placement.w + 24, h: layout.h + 43 } });
+    }
+    return layout;
+  }
+  function balloon(ctx, speaker, layout, serial, { tailOnly = false, hideTail = false } = {}) {
     const { x, y, w, h, tail, radio, lines } = layout;
-    const accent = crewColors[speaker], fill = radio ? '#101a2b' : paper;
+    const accent = crewColors[speaker] || mint, fill = radio ? '#101a2b' : paper;
     ctx.save(); ctx.lineJoin = 'round';
-    if (tail) {
-      const baseX = Math.max(x + 54, Math.min(x + w - 68, tail[0]));
+    if (tail && !hideTail) {
+      const baseX = Math.max(x + 54, Math.min(x + w - 68,
+        Number.isFinite(layout.tailBase) ? x + layout.tailBase * w : tail[0]));
       polygon(ctx, [[baseX - 22, y + 8], tail, [baseX + 20, y + 8]]);
       ctx.fillStyle = fill; ctx.strokeStyle = ink; ctx.lineWidth = 10; ctx.stroke(); ctx.fill();
     }
+    if (tailOnly) { ctx.restore(); return; }
     cutBox(ctx, x + 9, y + 10, w, h); ctx.fillStyle = ink; ctx.fill();
     cutBox(ctx, x, y, w, h); ctx.strokeStyle = ink; ctx.lineWidth = 10; ctx.stroke(); ctx.fillStyle = fill; ctx.fill();
     ctx.strokeStyle = radio ? accent : '#c8bfaf'; ctx.lineWidth = 2; ctx.stroke();
@@ -181,7 +224,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/intro-sequence.js', exports: ['BAR
     ctx.restore();
   }
   BARCODE.IntroSequence = {
-    panels, inspectedGutter: false,
+    panels, format, drawHeader, drawFrame, measureBalloon: balloonLayout, drawBalloon: balloon, inspectedGutter: false,
     getCues(index) { return cues[index] || []; },
     getCueState(index, cueIndex = Infinity) {
       const shown = (cues[index] || []).slice(0, cueIndex + 1);
@@ -207,14 +250,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/intro-sequence.js', exports: ['BAR
       const shown = this.getCueState(index, cueIndex), current = cues[index][cueIndex];
       ctx.save(); ctx.globalAlpha = 1; ctx.shadowBlur = 0;
       ctx.fillStyle = ink; ctx.fillRect(0, 0, 1920, 1080);
-      ctx.fillStyle = pink; ctx.fillRect(48, 25, 163, 38);
-      text(ctx, 'BARCODE', 62, 30, 26, ink, true);
-      text(ctx, 'SYSTEM OVERRIDE / OPENING TRANSMISSION', 235, 35, 20, '#a9b4ca');
-      text(ctx, panel.title, 48, 77, 36, paper, true, 'sans-serif');
-      text(ctx, `${String(index + 1).padStart(2, '0')} / 08`, 1710, 32, 27, mint, true);
-      for (let i = 0; i < panels.length; i++) {
-        ctx.fillStyle = i <= index ? mint : '#2b3040'; ctx.fillRect(1698 + i * 22, 86, 14, i === index ? 15 : 5);
-      }
+      drawHeader(ctx, { title: panel.title, index });
       drawArt(ctx, images, panel.image);
       if (shown.screen) screenReadout(ctx, index, images);
       this.getDialogueLayouts(ctx, index).forEach((layout, i) => {

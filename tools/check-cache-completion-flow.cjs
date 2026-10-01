@@ -19,6 +19,8 @@ function completionRig(storage) {
 async function start(r) {
   await r.boot(); r.bridge.skipToReady(); await r.bridge.drive();
   assert(r.road.chapter && !r.road.chapter.delivery);
+  assert.equal(r.roadStarts(),0,'fresh race music waits through the opening');
+  assert(r.road.finishIntro());
   assert.equal(r.road.state.musicBar, 0); assert.equal(r.roadStarts(), 1);
 }
 function driveToClear(r, collect = false, carried = null) {

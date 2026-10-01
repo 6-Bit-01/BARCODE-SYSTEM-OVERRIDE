@@ -22,7 +22,7 @@ function rig(options={}) {
   const document={getElementById:()=>canvas,body:{appendChild(el){calls.dom.push(el);}},createElement:()=>({style:{},
     attrs:{},setAttribute(name,value){this.attrs[name]=value;},remove(){this.removed=true;}})};
   const context={window,document,Image:class{constructor(){calls.images.push(this);} set src(v){this.url=v;}get src(){return this.url;}}};
-  for(const file of ['src/engine/cache-scene-layouts.js','src/engine/cache-scene-effects.js','src/engine/comic-dialogue.js'])
+  for(const file of ['src/engine/intro-sequence.js','src/engine/cache-scene-layouts.js','src/engine/cache-scene-effects.js','src/engine/comic-dialogue.js'])
     vm.runInNewContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),context,{filename:file});
   vm.runInNewContext(source,context,{filename:'src/engine/cache-ending.js'});
   const e=B.CacheEnding;

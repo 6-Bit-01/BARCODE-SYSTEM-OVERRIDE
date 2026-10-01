@@ -1,5 +1,50 @@
 # Current State
 
+## October 1 — opening cutscene format locked (combined review candidate)
+
+The opening's visual layout is now the standard for the eight Cache bridge
+and four delivery ending pages. They share its pink BARCODE header, title and
+page progress, larger 48/140/1824/828 picture frame, ink/paper/mint/pink palette,
+cream speech and dark comms, 30 px sans-serif dialogue and 21 px monospace
+speaker tabs crossing the balloons' top edges. `IntroSequence.format` and its
+pure painters own the common geometry and lettering; authored placements
+protect the actual painted faces, hands, cassette, screens and gate.
+
+Source images, scripts, cue timing, input, audio, transcripts, saved reading
+positions and explicit Drive/Finish handoffs retain their existing contracts.
+The opening keeps its established appearance. See `CACHE_COMIC_PRESENTATION.md`
+for the locked format. This joins the road ground-slab correction and short
+race launch/speed camera in the current candidate based on merged #163.
+Final local checks, hosted CI, publication and merge outcomes belong to the
+PR/receipt. Makko scene appearance, physical controller feel and repeating
+frame-drop acceptance remain pending for the combined build.
+
+## October 1 — in-road race setup and speed camera (review branch)
+
+A fresh Cache Road entry now holds Cache at the start for a 4.2-second
+three-beat in-world setup: original recording, incoming audit lock, and the
+delivery/first-pad launch. Enter or controller A skips. The song and timed
+drive start together after that cue; steering and abilities cannot act during
+the setup. Continue and marker retries retain their existing direct resume.
+Keyboard/controller Pause freezes the setup; Resume leaves its prepared
+transport idle until launch. A thrown or returned audio-start failure leads
+to the existing recoverable failed result and stops partial audio sources.
+The camera gently tightens with speed and Turbo, gives short near-miss and
+impact motion, and adds bounded peripheral streaks. Reduced Motion keeps a
+steady camera and omits the streaks. The scene is drawn once per frame with
+the HUD and exact rearview presentation outside the world transform. Makko
+feel and frame pacing await owner verification alongside the ground-slab fix.
+
+## October 1 — Cache Road frame pacing (review branch)
+
+The owner reports a new repeating stall immediately when Level 2 begins.
+Native production-draw timing found the clipped world-ground slabs dominating
+the opening frame. This branch reduces their count while retaining world
+texture addresses and all road, mirror, audio and gameplay rules. See
+`CACHE_ROAD_FRAME_TIME.md` for measurements and the focused Makko route.
+The local diagnostic is not a hosted frame-rate acceptance. Base/rollback is
+merged #163 (`8813ef7d1e6c76f5f2903096a5ae5555735d3b66`).
+
 ## September 30 — Makko title visibility repair (unmerged)
 
 Live Chrome testing reached the Makko studio and reproduced Continue restoring

@@ -1,7 +1,7 @@
 // The Level 1 / Cache Road comic uses the gameplay RAF, Canvas and input owner.
 // It never starts a music profile or a race clock; Drive owns that handoff.
 window.FILE_MANIFEST = window.FILE_MANIFEST || [];
-window.FILE_MANIFEST.push({name:'src/engine/cache-bridge.js',exports:['BARCODE.CacheBridge'],dependencies:['BARCODE.CacheSceneLayouts','BARCODE.CacheSceneEffects','BARCODE.ComicDialogue']});
+window.FILE_MANIFEST.push({name:'src/engine/cache-bridge.js',exports:['BARCODE.CacheBridge'],dependencies:['BARCODE.IntroSequence','BARCODE.CacheSceneLayouts','BARCODE.CacheSceneEffects','BARCODE.ComicDialogue']});
 (function(B) {
   const root='https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/9881bf126f2a529ccfe5c6262d4c1de98990973f/';
   const panels=Object.freeze([
@@ -27,13 +27,13 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-bridge.js',exports:['BARCODE.C
   const cues=Object.freeze([{kind:'title',holdMs:800},{kind:'dialogue',line:0,holdMs:4000},
     {kind:'dialogue',line:1,holdMs:Infinity}].map(Object.freeze));
   const sounds={'0:0':'relay','2:1':'original','3:1':'clean','4:1':'tape','6:1':'ignition'};
-  const ink='#090e18',paper='#f2eadb',mint='#a7f2d3',gold='#ffce70';
-  const frame=Object.freeze({x:176,y:104,w:1568,h:712});
+  const {ink,paper,mint,pink}=B.IntroSequence.format.palette,gold=pink;
+  const frame=B.IntroSequence.format.frame;
   const bounds=Object.freeze({advance:[1280,1011,575,49],transcript:[390,1011,242,49],
     back:[64,1011,302,49],architecture:[655,1011,350,49]});
   const finite=(value,max)=>Number.isFinite(value)?Math.max(0,Math.min(max,Math.trunc(value))):0;
   function text(ctx,value,x,y,size=24,color=paper,bold=false) {
-    ctx.fillStyle=color;ctx.font=`${bold?'bold ':''}${size}px Oxanium, sans-serif`;
+    ctx.fillStyle=color;ctx.font=`${bold?'bold ':''}${size}px monospace`;
     ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText(value,x,y);
   }
   function wrap(ctx,value,width) {
@@ -240,27 +240,26 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-bridge.js',exports:['BARCODE.C
       const pad=B.GamepadUI?.connected,button=index=>B.ControllerSettings?.button(index)||['A','B','X','Y'][index]||'View';
       ctx.save();ctx.globalAlpha=1;ctx.shadowBlur=0;ctx.filter='none';
       ctx.fillStyle=ink;ctx.fillRect(0,0,1920,1080);
-      text(ctx,'BARCODE / CREW CHANNEL',64,27,20,mint,true);
-      text(ctx,panel.title,64,57,32,paper,true);text(ctx,`${String(this.page+1).padStart(2,'0')} / 08`,1737,34,28,gold,true);
+      B.IntroSequence.drawHeader(ctx,{title:panel.title,channel:'SYSTEM OVERRIDE / CREW CHANNEL',index:this.page,count:8});
       const image=this.images[this.page],source=image?.status==='ready'?image.element:null;
       const rect=this.imageRect();
-      ctx.fillStyle='#122534';ctx.fillRect(frame.x,frame.y,frame.w,frame.h);
+      ctx.fillStyle='#152235';ctx.fillRect(frame.x,frame.y,frame.w,frame.h);
       if(rect) {
         ctx.drawImage(source,rect.x,rect.y,rect.w,rect.h);
         if(!this.transcriptOpen)B.CacheSceneEffects.draw(ctx,{chapter:'bridge',page:this.page,rect,
           sceneElapsedMs:this.sceneElapsedMs,cue:this.cue,cueElapsedMs:this.cueElapsedMs,reduced});
       } else {
         text(ctx,image?.status==='unavailable'?'PICTURE UNAVAILABLE / THE CHANNEL IS STILL OPEN':'TUNING THE PICTURE...',250,345,28,mint,true);
-        ctx.font='26px Oxanium, sans-serif';wrap(ctx,panel.visual,1390).forEach((line,i)=>text(ctx,line,250,404+i*36,26));
+        ctx.font='26px monospace';wrap(ctx,panel.visual,1390).forEach((line,i)=>text(ctx,line,250,404+i*36,26));
       }
-      ctx.strokeStyle=paper;ctx.lineWidth=4;ctx.strokeRect(frame.x,frame.y,frame.w,frame.h);
+      B.IntroSequence.drawFrame(ctx);
       if(!this.transcriptOpen)B.ComicDialogue.draw(ctx,this.dialogueLayouts(ctx),
         {cue:this.cue,cueElapsedMs:this.cueElapsedMs,reduced});
       if(this.transcriptOpen) {
         ctx.fillStyle='#09131cf5';ctx.fillRect(160,154,1600,590);
         ctx.strokeStyle=mint;ctx.lineWidth=2;ctx.strokeRect(160,154,1600,590);
         text(ctx,`TRANSCRIPT / ${this.page+1} OF 8`,205,194,24,mint,true);
-        ctx.font='26px Oxanium, sans-serif';let y=247;
+        ctx.font='26px monospace';let y=247;
         for(const paragraph of [panel.visual,...panel.lines.map(line=>line.join(': '))]) {
           for(const line of wrap(ctx,paragraph,1490)){text(ctx,line,205,y,26);y+=38;}y+=27;
         }
@@ -272,9 +271,7 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-bridge.js',exports:['BARCODE.C
           `${pad?button(0):'ENTER / SPACE'}: DRIVE`:`${pad?button(0):'ENTER / SPACE'}: ${this.cue<2?'Next line':'Next scene'}`};
       for(const [name,[x,y,w,h]] of Object.entries(bounds)) {
         if(name==='architecture'&&this.page!==7)continue;
-        ctx.fillStyle=name==='advance'?'#24453e':'#14242d';ctx.fillRect(x,y,w,h);
-        ctx.strokeStyle=name==='advance'?gold:'#476369';ctx.lineWidth=1;ctx.strokeRect(x+.5,y+.5,w-1,h-1);
-        text(ctx,labels[name],x+16,y+13,20,name==='advance'?gold:paper,true);
+        text(ctx,labels[name],x+16,y+13,20, name==='advance'?paper:'#b5bdcd');
       }
       const skipX=this.page===7?1030:748;
       if(this.skipHolds.size) {

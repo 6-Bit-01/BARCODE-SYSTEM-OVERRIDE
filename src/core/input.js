@@ -266,6 +266,11 @@ window.InputManager = class InputManager {
       if (key) { menu?.keyDown({ key, repeat: false, preventDefault() {} }); menu?.keyUp({ key }); }
       return true;
     }
+    if (BARCODE?.CacheRoadProof?.active && BARCODE.CacheRoadProof.introMs != null) {
+      if (p.b9) BARCODE.RuntimeLifecycle?.togglePause?.();
+      else if (p.b0) BARCODE.CacheRoadProof.finishIntro();
+      return true;
+    }
     if (owner === 'hack') {
       const hack = window.hackingSystem;
       if (p.b9) { BARCODE.RuntimeLifecycle?.togglePause?.(); return true; }

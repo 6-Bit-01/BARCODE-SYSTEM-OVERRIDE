@@ -1,7 +1,7 @@
 // Cache's authored delivery ending shares the gameplay Canvas, RAF and input.
 // The earned chapter facts belong to CacheChapter; reading cannot award them.
 window.FILE_MANIFEST = window.FILE_MANIFEST || [];
-window.FILE_MANIFEST.push({name:'src/engine/cache-ending.js',exports:['BARCODE.CacheEnding'],dependencies:['BARCODE.CacheSceneLayouts','BARCODE.CacheSceneEffects','BARCODE.ComicDialogue','BARCODE.CacheChapter']});
+window.FILE_MANIFEST.push({name:'src/engine/cache-ending.js',exports:['BARCODE.CacheEnding'],dependencies:['BARCODE.IntroSequence','BARCODE.CacheSceneLayouts','BARCODE.CacheSceneEffects','BARCODE.ComicDialogue','BARCODE.CacheChapter']});
 (function(B) {
   'use strict';
   const root='https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/14593372f7c58d8a3c5869bbda6989b98889f1ac/';
@@ -20,8 +20,8 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-ending.js',exports:['BARCODE.C
   const cues=Object.freeze([{kind:'title',holdMs:800},{kind:'dialogue',line:0,holdMs:4000},
     {kind:'dialogue',line:1,holdMs:Infinity}].map(Object.freeze));
   const sounds=Object.freeze({'0:0':'relay','2:0':'tape'});
-  const ink='#090e18',paper='#f2eadb',mint='#a7f2d3',gold='#ffce70';
-  const frame=Object.freeze({x:176,y:104,w:1568,h:712});
+  const {ink,paper,mint,pink}=B.IntroSequence.format.palette,gold=pink;
+  const frame=B.IntroSequence.format.frame;
   // Measured source-image centers and safe widths inside scene 2's painted screens.
   const screenLabels=Object.freeze([
     Object.freeze({text:'DELIVERED',x:363,y:336,width:250,font:28,color:'#b5fbd7',tilt:.15}),
@@ -31,7 +31,7 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-ending.js',exports:['BARCODE.C
   const finite=(value,max)=>Number.isFinite(value)?Math.max(0,Math.min(max,Math.trunc(value))):0;
   const paused=()=>!!(window.isPaused||window.gameState?.paused);
   function text(ctx,value,x,y,size=24,color=paper,bold=false) {
-    ctx.fillStyle=color;ctx.font=`${bold?'bold ':''}${size}px Oxanium, sans-serif`;
+    ctx.fillStyle=color;ctx.font=`${bold?'bold ':''}${size}px monospace`;
     ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText(value,x,y);
   }
   function wrap(ctx,value,width) {
@@ -231,11 +231,10 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-ending.js',exports:['BARCODE.C
       const pad=B.GamepadUI?.connected,button=index=>B.ControllerSettings?.button(index)||['A','B','X','Y'][index]||(index===9?'Menu':'View');
       ctx.save();ctx.globalAlpha=1;ctx.shadowBlur=0;ctx.filter='none';
       ctx.fillStyle=ink;ctx.fillRect(0,0,1920,1080);
-      text(ctx,'BARCODE / DELIVERY CHANNEL',64,27,20,mint,true);
-      text(ctx,panel.title,64,57,32,paper,true);text(ctx,`${String(this.page+1).padStart(2,'0')} / 04`,1737,34,28,gold,true);
+      B.IntroSequence.drawHeader(ctx,{title:panel.title,channel:'SYSTEM OVERRIDE / DELIVERY CHANNEL',index:this.page,count:4});
       const image=this.images[this.page],source=image?.status==='ready'?image.element:null;
       const rect=this.imageRect();
-      ctx.fillStyle='#122534';ctx.fillRect(frame.x,frame.y,frame.w,frame.h);
+      ctx.fillStyle='#152235';ctx.fillRect(frame.x,frame.y,frame.w,frame.h);
       if(rect) {
         ctx.drawImage(source,rect.x,rect.y,rect.w,rect.h);
         if(!this.transcriptOpen)B.CacheSceneEffects.draw(ctx,{chapter:'ending',page:this.page,rect,
@@ -249,16 +248,16 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-ending.js',exports:['BARCODE.C
         }
       } else {
         text(ctx,image?.status==='unavailable'?'PICTURE UNAVAILABLE / DELIVERY CHANNEL OPEN':'TUNING THE PICTURE...',250,345,28,mint,true);
-        ctx.font='26px Oxanium, sans-serif';wrap(ctx,panel.visual,1390).forEach((line,i)=>text(ctx,line,250,404+i*36,26));
+        ctx.font='26px monospace';wrap(ctx,panel.visual,1390).forEach((line,i)=>text(ctx,line,250,404+i*36,26));
       }
-      ctx.strokeStyle=paper;ctx.lineWidth=4;ctx.strokeRect(frame.x,frame.y,frame.w,frame.h);
+      B.IntroSequence.drawFrame(ctx);
       if(!this.transcriptOpen)B.ComicDialogue.draw(ctx,this.dialogueLayouts(ctx),
         {cue:this.cue,cueElapsedMs:this.cueElapsedMs,reduced});
       if(this.transcriptOpen) {
         ctx.fillStyle='#09131cf5';ctx.fillRect(160,154,1600,590);
         ctx.strokeStyle=mint;ctx.lineWidth=2;ctx.strokeRect(160,154,1600,590);
         text(ctx,`TRANSCRIPT / ${this.page+1} OF 4`,205,194,24,mint,true);
-        ctx.font='26px Oxanium, sans-serif';let y=247;
+        ctx.font='26px monospace';let y=247;
         for(const paragraph of [panel.visual,...panel.lines.map(line=>line.join(': '))]) {
           for(const line of wrap(ctx,paragraph,1490)){text(ctx,line,205,y,26);y+=38;}y+=27;
         }
@@ -268,9 +267,7 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-ending.js',exports:['BARCODE.C
       const labels={back:pad?`${button(8)}: Results`:'ESC: Results',transcript:pad?`${button(2)}: Transcript`:'T: Transcript',
         advance:`${pad?button(0):'ENTER / SPACE'}: ${final?'FINISH CHAPTER':this.cue<2?'Next line':'Next scene'}`};
       for(const [name,[x,y,w,h]] of Object.entries(bounds)) {
-        ctx.fillStyle=name==='advance'?'#24453e':'#14242d';ctx.fillRect(x,y,w,h);
-        ctx.strokeStyle=name==='advance'?gold:'#476369';ctx.lineWidth=1;ctx.strokeRect(x+.5,y+.5,w-1,h-1);
-        text(ctx,labels[name],x+16,y+13,20,name==='advance'?gold:paper,true);
+        text(ctx,labels[name],x+16,y+13,20,name==='advance'?paper:'#b5bdcd');
       }
       if(this.skipHolds.size) {
         ctx.fillStyle='#354846';ctx.fillRect(686,1015,220,8);ctx.fillStyle=gold;ctx.fillRect(686,1015,220*Math.min(1,this.skipMs/5000),8);

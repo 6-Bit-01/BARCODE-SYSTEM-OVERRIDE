@@ -1662,7 +1662,24 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           at:s.pulsePlaces[p.id],distance:s.pulsePlaces[p.id]-s.progress,target:s.pulseTargets[p.id]})),
         pursuit:s.pursuit?B.CacheRoadPursuit.pose(s.pursuit,{progress:s.progress}):null};
     },
-    exiting: false, audioDegraded: false, oldHint: null,
+    exiting: false, audioDegraded: false, oldHint: null, introMs: null,
+    finishIntro() {
+      if (!this.active || this.status !== 'playing' || this.introMs === null ||
+          window.isPaused || window.gameState?.paused) return false;
+      this.introMs = null;
+      let started;
+      try { started = window.audioSystem?.startRuntimeGameplayMusic?.(); }
+      catch (_) { started = { ok: false }; }
+      if (!started?.ok) {
+        this.status = this.state.status = 'failed';
+        this.state.message = 'CACHE MUSIC UNAVAILABLE';
+        window.audioSystem?.stopRuntimeAudio?.({ stopMusic: true });
+        this.armResultControls();
+        return false;
+      }
+      window.inputManager?.resetActionEdges?.();
+      return true;
+    },
     setHint() {
       const hint = document.querySelector?.('.hint');
       if (!hint) return;
@@ -1784,11 +1801,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           B.CacheChapter?.create({ difficultyId: returnTo.levelState.difficultyId }) || null;
         this.configureEncounters(resume?.levelState?.proof);
         this.status = this.state.status; this.active = true;
+        this.introMs = !resume && this.status === 'playing' ? 0 : null;
         this.setHint();
         B.Campaign.intermission = false; B.Campaign.run = null;
         window.gameState.victory = false; window.gameState.gameOver = false;
         window.gameState.running = true;
-        if (this.status === 'playing') {
+        if (this.status === 'playing' && this.introMs === null) {
           const started = window.audioSystem?.startRuntimeGameplayMusic?.();
           if (!started?.ok) throw new Error('road-audio-start-failed');
         }
@@ -1817,6 +1835,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       this.chapter = B.CacheChapter?.normalize(saved.levelState.chapter) || null;
       this.configureEncounters(saved.levelState.proof);
       this.status = this.state.status; this.active = true; this.exiting = false;
+      this.introMs = null;
       if (this.status === 'clear') {
         window.audioSystem?.stopRuntimeAudio?.({ stopMusic: true });
         window.audioSystem?.stopRoadEngine?.();
@@ -1897,7 +1916,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       this.oldHint = null;
       B.CacheEnding?.dispose?.();
       this.active = false; this.status = null; this.state = null; this.chapter = null;
-      this.returnTo = null; this.exiting = false; this.audioDegraded = false;
+      this.returnTo = null; this.exiting = false; this.audioDegraded = false; this.introMs = null;
     },
     retry() {
       if (!this.active || this.status === 'playing') return false;
@@ -1919,6 +1938,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         timeMs: Math.max(fromCheckpoint.timeMs || 0, 30000), echoEnergy: Math.max(fromCheckpoint.echoEnergy || 0, 100) } : {});
       this.configureEncounters(fromCheckpoint, true);
       this.status = 'playing';
+      this.introMs = null;
       // A retry deliberately resumes at the saved bar. Steering never seeks.
       window.audioSystem?.stopRuntimeAudio?.({ stopMusic: true });
       this.selectMusicProfile();
@@ -1986,6 +2006,19 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       return false;
     },
     keyDown(e) {
+      if (this.introMs !== null) {
+        if (e.key.toLowerCase() === 'p') {
+          e.preventDefault?.();
+          if (!e.repeat) B.RuntimeLifecycle?.togglePause?.();
+          return true;
+        }
+        if (['enter', ' '].includes(e.key.toLowerCase())) {
+          e.preventDefault?.();
+          if (!e.repeat) this.finishIntro();
+          return true;
+        }
+        return false;
+      }
       if (this.status === 'playing') return false;
       const key = e.key.toLowerCase();
       if (key === 'p') {
@@ -2362,7 +2395,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       this.cue('data');
     },
     handleActions(actions) {
-      if (!this.active || this.status !== 'playing' || this.exiting) return;
+      if (!this.active || this.status !== 'playing' || this.exiting || this.introMs !== null) return;
       const s = this.state;
       s.steer = Number(!!actions.move_right?.held) - Number(!!actions.move_left?.held);
       const down=!!actions.move_down?.held,up=!!actions.move_up?.held&&!down;
@@ -2486,6 +2519,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       }
       const s = this.state, dt = Math.min(100, Math.max(0, delta));
       if (!dt) return;
+      if (this.introMs !== null) {
+        this.introMs += dt;
+        if (this.introMs >= 4200) this.finishIntro();
+        return;
+      }
       const before = s.progress;
       const audio=window.audioSystem;
       let music = B.MusicTransport?.sample?.(audio?.getOutputAudioTime?.()??audio?.context?.currentTime??0);
@@ -2818,6 +2856,20 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.restore();
       };
       ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
+      // One transform moves the existing world. The dashboard, timing cues
+      // and rearview are drawn after it is restored, with no second scene pass.
+      ctx.save();
+      const intro = this.introMs;
+      const zoom = intro !== null ? reduced ? 1.045 : 1.13-.13*clamp((intro-1100)/3100,0,1) :
+        reduced || this.status !== 'playing' ? 1 : 1+
+          .018*clamp((s.speed-34)/40,0,1)+
+          (s.boostMs>0?.026:0)+.012*clamp(s.passFlashMs/780,0,1);
+      const shake = reduced || intro !== null ? 0 :
+        7*clamp(s.stumbleMs/650,0,1)+2.5*clamp(s.passFlashMs/780,0,1)+
+          (s.boostMs>0?1.6:0);
+      const cx=960+Math.sin(s.elapsedMs*.069)*shake;
+      const cy=540+Math.cos(s.elapsedMs*.091)*shake*.57;
+      ctx.translate(cx,cy);ctx.scale(zoom,zoom);ctx.translate(-960,-540);
       ctx.globalAlpha=1;
       const beat = reduced ? 0 : s.musicBeatFloat || 0;
       const stack = Math.min(4,s.captures?.length || 0);
@@ -3232,7 +3284,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       });
       const groundCrest=Array.from({length:65},(_,i)=>[i*30,cityCrestY(i*30)]);
       const lowestCrest=Math.min(...groundCrest.map(point=>point[1]));
-      const layerStep=24;
+      // Eight slabs divide the grain repeat exactly, so every world-aligned
+      // crop stays in its source band. Wider slabs cut the clipped texture
+      // draws that saturated the road's first frame.
+      const layerStep=grainPeriod/8;
       for(let at=Math.floor((progress+864)/layerStep)*layerStep;
         at>progress-200;at-=layerStep) {
         const far=sideDepth(at+layerStep-progress);
@@ -4151,6 +4206,37 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.font='bold 12px Oxanium, monospace';ctx.fillText(s.cutFlashMs?'CLOSE CUT':'NEAR MISS',x,y+20);
         ctx.restore();
       }
+      // Peripheral streaks stretch with speed while staying outside the
+      // timing plane and center lanes. A few strokes cost no extra texture.
+      if (!reduced && intro === null && this.status === 'playing') {
+        const intensity=clamp((s.speed-40)/33,0,1)+(s.boostMs>0?.48:0);
+        if (intensity>.05) {
+          ctx.save();ctx.strokeStyle='#c5f4ef';ctx.lineWidth=1.3+intensity;
+          ctx.globalAlpha=.10*intensity;
+          for(let side of [-1,1])for(let i=0;i<7;i++) {
+            const phase=((s.elapsedMs*.00065*(1+intensity)+i/7)%1+1)%1;
+            const x=960+side*(690+phase*260+i%2*20);
+            const y=220+i*119+phase*55;
+            ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+side*(25+intensity*44),y+32+intensity*34);ctx.stroke();
+          }
+          ctx.restore();
+        }
+      }
+      ctx.restore(); // world camera
+      if (intro !== null) {
+        const scene=intro<1350?0:intro<2700?1:2;
+        const titles=['ORIGINAL RECORDING','AUDIT LOCK INCOMING','DELIVER THE ORIGINAL'];
+        const details=['CACHE // COURIER ROUTE','THE CLEAN COPY ERASED THE NAMES','HIT THE MINT PADS ON ONE'];
+        ctx.fillStyle='#07121fe8';ctx.fillRect(0,0,1920,156);ctx.fillRect(0,912,1920,168);
+        ctx.fillStyle=scene===1?'#ff947f':'#a4f2d7';ctx.fillRect(112,916,Math.min(1696,1696*intro/4200),5);
+        ctx.textAlign='center';ctx.fillStyle='#eff9e8';ctx.font='bold 54px Oxanium, monospace';
+        ctx.fillText(titles[scene],960,80);
+        ctx.fillStyle='#b3d9d3';ctx.font='bold 25px Oxanium, monospace';
+        ctx.fillText(details[scene],960,970);
+        ctx.font='18px Oxanium, monospace';
+        ctx.fillText('ENTER / A TO SKIP',960,1025);
+        ctx.restore();return;
+      }
       if (s.invulnerableMs) {
         ctx.fillStyle = '#ff697a';
         ctx.fillRect(0, 163, 12, 750); ctx.fillRect(1908, 163, 12, 750);
@@ -4337,6 +4423,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.strokeStyle = '#9cf9df'; ctx.lineWidth = 3; ctx.strokeRect(370, 280, 1180, 485);
         ctx.fillStyle = '#f5f1ee'; ctx.font = 'bold 47px Oxanium, monospace'; ctx.textAlign = 'center';
         ctx.fillText(this.status === 'clear' ? 'ORIGINAL TAPE DELIVERED' :
+          s.message === 'CACHE MUSIC UNAVAILABLE' ? 'CACHE MUSIC UNAVAILABLE' :
           s.gateFailure ? 'ORIGINAL EXIT MISSED' :
           s.timeMs <= 0 ? 'TRANSMISSION WINDOW CLOSED' : 'SIGNAL LOST', 960, 380);
         ctx.font = '25px Oxanium, monospace'; ctx.fillStyle = '#9cf9df';
@@ -4346,6 +4433,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           s.gateFailure === 'wrong-lane' ? 'Cache must take the far-right marked original exit.' :
           s.gateFailure === 'no-echo' ? 'Send Buffer Echo after the exit cue, then steer right.' :
           s.gateFailure === 'no-split' ? 'Give the Echo another lane so the audit follows it.' :
+          s.message === 'CACHE MUSIC UNAVAILABLE' ? 'Check audio, then retry from the start line.' :
           'Your last road marker remains. Draft, brake and use an Echo to split the audit.', 960, 458);
         ctx.fillStyle = '#e6c8b5'; ctx.font = '22px Oxanium, monospace';
         ctx.fillText(this.status === 'clear' ? this.chapter?.delivery ?
