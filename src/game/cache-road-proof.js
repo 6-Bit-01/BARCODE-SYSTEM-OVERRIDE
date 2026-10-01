@@ -1617,6 +1617,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       message: '', messageMs: 0, recordHoldMs: 0, recordIndex: -1,
       recordFlashMs: 0, recordFlashIndex: -1, recordSigns: {},
       gateOpen: !!saved.gateOpen, gateFailure: null,
+      // Camera follow is transient presentation state, never a save or clock.
+      cameraMotion: {zoom:1,x:0,y:0,roll:0,velocity:{zoom:0,x:0,y:0,roll:0}},
       status: saved.status || 'playing', elapsedMs: 0 };
   }
 
@@ -1631,10 +1633,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
 
   // Presentation reads live state but never advances distance, music or input.
   const CAMERA_PIVOT_Y = ROAD_HORIZON + STRIKE_DEPTH * STRIKE_DEPTH * (ROAD_BOTTOM - ROAD_HORIZON);
-  function speedCamera(s,{reduced=false,intro=null,playing=true}={}) {
-    reduced=reduced||window.BARCODE_RENDER_QUALITY?.flashes===false;
-    if(intro!==null)return {zoom:reduced?1.045:1.13-.13*clamp((intro-1100)/3100,0,1),x:0,y:0,roll:0};
-    if(reduced||!playing)return {zoom:1,x:0,y:0,roll:0};
+  function cameraTarget(s) {
     const rush=smooth(clamp((s.speed-30)/45,0,1)),boost=s.boostMs>0?1:0;
     const pass=clamp(s.passFlashMs/780,0,1),hit=clamp(s.stumbleMs/650,0,1);
     const steering=clamp(s.steer||0,-1,1),t=s.elapsedMs/1000;
@@ -1646,9 +1645,39 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     // The tire-contact pivot keeps the hit plane centered through the zoom.
     const breathe=(.5+.5*Math.sin(t*1.45))*rush;
     return {zoom:clamp(1+.235*rush+.05*boost+.024*breathe+.032*shift+.012*pass,1,1.335),
-      x:-steering*23*rush+Math.sin(t*2.1)*7*rush+Math.sin(t*59)*(9*hit+3*pass),
-      y:Math.sin(t*2.7)*6*rush+Math.cos(t*71)*(6*hit+2*pass),
-      roll:-steering*.012*rush+Math.sin(t*1.7)*.0045*rush+Math.sin(t*43)*.003*hit};
+      x:-steering*23*rush+Math.sin(t*2.1)*7*rush,
+      y:Math.sin(t*2.7)*6*rush,
+      roll:-steering*.012*rush+Math.sin(t*1.7)*.0045*rush};
+  }
+  function advanceCamera(s,dt,{reduced=false}={}) {
+    const neutral={zoom:1,x:0,y:0,roll:0};
+    const target=reduced||window.BARCODE_RENDER_QUALITY?.flashes===false?neutral:cameraTarget(s);
+    const pose=s.cameraMotion||(s.cameraMotion={...neutral,velocity:{zoom:0,x:0,y:0,roll:0}});
+    if(reduced||window.BARCODE_RENDER_QUALITY?.flashes===false) {
+      Object.assign(pose,neutral);for(const key of Object.keys(neutral))pose.velocity[key]=0;return;
+    }
+    // Exact critically damped follow for a constant target over this update.
+    // About 250 ms of trailing response, no overshoot, no render-time mutation.
+    const seconds=clamp(dt,0,100)/1000,omega=12,decay=Math.exp(-omega*seconds);
+    for(const key of Object.keys(neutral)) {
+      const offset=pose[key]-target[key],v=pose.velocity[key],term=v+omega*offset;
+      pose[key]=target[key]+(offset+term*seconds)*decay;
+      pose.velocity[key]=(v-omega*term*seconds)*decay;
+    }
+    pose.zoom=clamp(pose.zoom,1,1.335);
+    pose.x=clamp(pose.x,-30,30);pose.y=clamp(pose.y,-6,6);pose.roll=clamp(pose.roll,-.017,.017);
+  }
+  function speedCamera(s,{reduced=false,intro=null,playing=true}={}) {
+    reduced=reduced||window.BARCODE_RENDER_QUALITY?.flashes===false;
+    if(intro!==null)return {zoom:reduced?1.045:1.13-.13*clamp((intro-1100)/3100,0,1),x:0,y:0,roll:0};
+    if(reduced||!playing)return {zoom:1,x:0,y:0,roll:0};
+    const base=s.cameraMotion||cameraTarget(s);
+    // One soft impact oscillation replaces the rapid alternating jitter.
+    const hit=clamp(s.stumbleMs/650,0,1),pass=clamp(s.passFlashMs/780,0,1);
+    const impact=Math.sin((1-hit)*Math.PI*2)*hit;
+    const glide=Math.sin((1-pass)*Math.PI)*pass*(s.passSide||1);
+    return {zoom:base.zoom,x:base.x+impact*7+glide*2,
+      y:base.y+impact*5,roll:base.roll+impact*.002};
   }
   function cameraPoint(camera,x,y) {
     const dx=(x-960)*camera.zoom,dy=(y-CAMERA_PIVOT_Y)*camera.zoom;
@@ -1727,6 +1756,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   }
   const road = B.CacheRoadProof = {
     active: false, status: null, state: null, chapter: null, returnTo: null, pending: false,
+    updateCamera(dt) {
+      advanceCamera(this.state,dt,{reduced:!!B.Preferences?.values?.reducedMotion});
+    },
     configureEncounters(saved = null, refill = false) {
       const s=this.state;
       if(!s||!B.CacheRoadEncounters?.supportedVersion(this.chapter?.encounterVersion))return false;
@@ -2261,12 +2293,17 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const prior=sections.at(-1),beat=prior.beat+4;
         this.resolvePulseAwards(beat);
         const from=drivePosition(prior,beat),oldGear=s.gear;
-        if(s.pendingGear!==null&&s.pendingGearBeat<=beat) {
+        const recovery=s.queuedRecovery&&s.recoveryBeat<=beat;
+        if(recovery) {
+          s.gear=0;s.pendingGear=null;
+          if(s.queuedTurbo)s.boost=1;
+          s.queuedTurbo=false;s.queuedSurge=false;
+        }
+        else if(s.pendingGear!==null&&s.pendingGearBeat<=beat) {
           s.gear=s.pendingGear;s.pendingGear=null;
         }
         const turbo=s.queuedTurbo&&s.turboBeat<=beat;
         const surge=s.queuedSurge&&s.surgeBeat<=beat;
-        const recovery=s.queuedRecovery&&s.recoveryBeat<=beat;
         const speed=turbo?75:recovery?30:surge?Math.max(68,GEAR_SPEEDS[s.gear]):GEAR_SPEEDS[s.gear];
         if(s.gear!==oldGear||turbo||surge||recovery) {
           s.shiftFrom=oldGear;s.shiftStartBeat=beat;
@@ -2532,6 +2569,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       if (this.chapter && !this.chapter.delivery) this.chapter.damageTaken++;
       s.recordHoldMs = 0;
       s.integrity--; s.queuedRecovery = true;s.recoveryBeat=this.nextShiftBeat();
+      // A genuine wreck drops the selected gear permanently. The next ONE
+      // owns the smooth physical slowdown, preserving every revealed pad.
+      s.gear=0;s.pendingGear=null;
+      // The saved section's gear records the selected gear; its physical
+      // trajectory stays fixed until next ONE. Keep the existing save invariant.
+      if(s.driveSections.length)s.driveSections.at(-1).gear=0;
+      if(s.queuedTurbo)s.boost=1; // Return the charge for a launch that never ran.
+      s.queuedTurbo=false;s.queuedSurge=false;
       s.timeMs = Math.max(0, s.timeMs - 1800);
       s.invulnerableMs = s.encounters ? B.CacheRoadEncounters.difficulty(this.chapter.difficultyId,s.encounters?.version).recoveryMs : 1400;
       s.damagedBar = s.musicBar;
@@ -2853,6 +2898,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         this.checkpointChapter();
       }
       this.updateEngineSound();
+      if(music?.running)this.updateCamera(dt);
     },
     draw(ctx) {
       if (!ctx || !this.active) return;

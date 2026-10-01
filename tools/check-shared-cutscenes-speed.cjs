@@ -38,7 +38,7 @@ async function main(){
   }
   const r=createRig();r.w.BARCODE.Campaign={register(){},syncTitleButton(){}};load(r.context,'src/engine/cache-road-proof-profile.js');load(r.context,'src/game/cache-road-landscape.js');
   const source=fs.readFileSync('src/game/cache-road-proof.js','utf8');
-  vm.runInContext(source.replace('  const road = B.CacheRoadProof = {','  window.speedFXTest={speedCamera,drawSpeedAtmosphere,cameraPoint,cameraEdgeMarker,drawCameraWarnings,CAMERA_PIVOT_Y};\n  const road = B.CacheRoadProof = {'),r.context);
+  vm.runInContext(source.replace('  const road = B.CacheRoadProof = {','  window.speedFXTest={speedCamera,cameraTarget,advanceCamera,drawSpeedAtmosphere,cameraPoint,cameraEdgeMarker,drawCameraWarnings,CAMERA_PIVOT_Y};\n  const road = B.CacheRoadProof = {'),r.context);
   const fx=r.w.speedFXTest,draws=[],clips=[];
   r.w.BARCODE.PresentationAssets={draw:(key,ctx,opts)=>{draws.push({key,...opts});return true;}};
   const ctx=new Proxy({globalAlpha:1,rect:(...x)=>clips.push(x),createLinearGradient:()=>({addColorStop(){}})},
@@ -71,6 +71,25 @@ async function main(){
   const a=fx.speedCamera({...state,speed:70}),b=fx.speedCamera({...state,speed:70,elapsedMs:1000});
   assert(Math.abs(a.zoom-b.zoom)>.005&&Math.abs(b.roll)>.001,'moving camera breathes and wobbles');
   const still={zoom:1,x:0,y:0,roll:0};
+  // A real input edge/reversal changes the target, never the rendered pose.
+  // Constant-target damping must give the same response at each frame rate.
+  const endings=[];
+  for(const fps of [24,30,60,120]) {
+    const moving={...state,speed:70,steer:1};
+    fx.advanceCamera(moving,0);const initial=copy(fx.speedCamera(moving));
+    fx.advanceCamera(moving,1000/fps);const first=copy(fx.speedCamera(moving));
+    assert(Math.abs(first.x-initial.x)<3&&Math.abs(first.roll-initial.roll)<.002,'no steering snap');
+    for(let n=1;n<fps/2;n++)fx.advanceCamera(moving,1000/fps);
+    const held=copy(fx.speedCamera(moving));moving.steer=-1;
+    assert.deepEqual(copy(fx.speedCamera(moving)),held,'reversing input waits for the update owner');
+    for(let n=0;n<fps/2;n++)fx.advanceCamera(moving,1000/fps);
+    const reversed=copy(fx.speedCamera(moving));assert(reversed.x>held.x+25,'camera follows the new turn after trailing');
+    const before=copy(moving);fx.speedCamera(moving);assert.deepEqual(copy(moving),before,'draw cannot advance follow');
+    endings.push(reversed);
+    fx.advanceCamera(moving,16,{reduced:true});assert.deepEqual(copy(fx.speedCamera(moving)),still,'accessibility clears accumulated camera momentum');
+  }
+  for(const end of endings)for(const key of ['zoom','x','y','roll'])
+    assert(Math.abs(end[key]-endings[0][key])<1e-10,'exact follow is frame-rate independent for equal input duration');
   assert.equal(fx.cameraEdgeMarker(still,{x:960,y:700,width:100,height:130}),null);
   for(const [x,y,angle] of [[10,700,Math.PI],[1910,700,0],[960,175,-Math.PI/2],[960,1080,Math.PI/2]]) {
     const marker=fx.cameraEdgeMarker(still,{x,y,width:70,height:40});

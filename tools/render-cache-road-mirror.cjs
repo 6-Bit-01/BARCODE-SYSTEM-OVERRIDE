@@ -665,7 +665,14 @@ async function main() {
       s.progress=reviewStart+local*52;
       s.passFlashMs=local>=5&&local<5.78?780-(local-5)*1000:0;s.passSide=1;
       s.stumbleMs=local>=9.5&&local<10.15?650-(local-9.5)*1000:0;
+      if(process.env.CACHE_REVIEW_CAMERA_REPAIR==='1') {
+        s.speed=70;s.gear=2;s.boostMs=0;
+        s.steer=local<2?0:local<5?1:local<8?-1:0;
+      }
     }
+    // Scripted presentation also uses the production follow owner. Gameplay
+    // already advances it once through update; drawing never advances it.
+    if(!gameplay)road.updateCamera(1000/fps);
     if(traceOnly)continue;
     sc.reset();frameDraws=0;
     const started=performance.now();

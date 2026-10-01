@@ -1527,12 +1527,15 @@ async function run() {
     'an earlier neighbor is not rewarded before a later vehicle at the same crossing hits');
   road.status = road.state.status = 'failed'; audio.context.currentTime = 0;
   assert(road.retry());
-  for (let frame = 1; frame <= 300 && road.status === 'playing'; frame++) {
+  // First-gear wreck recovery deliberately lowers physical travel afterward;
+  // the former 30-second cutoff no longer reaches the same traffic address.
+  for (let frame = 1; frame <= 900 && road.status === 'playing'; frame++) {
     audio.context.currentTime = frame / 10;
     road.handleActions({ inspect: { pressed: true } }); road.update(100);
   }
   assert.equal(road.status, 'failed', 'camping a lane cannot survive the authored traffic');
-  assert(road.state.musicBar <= 14 && road.state.peakStack < 4,
+  assert(road.state.integrity<=0,'camping fails from real traffic damage, not an exit or timer');
+  assert(road.state.musicBar < 48 && road.state.peakStack < 4,
     'RB spam and passive camping cannot build a four-lane multiplier');
   audio.context.currentTime = 0; assert(road.retry());
   road.state.progress = 980; road.state.lane = road.state.lanePos = 0;
@@ -1555,6 +1558,7 @@ async function run() {
   road.status = road.state.status = 'failed'; audio.context.currentTime = 0;
   assert(road.retry());
   road.state.progress = 845; road.state.lane = road.state.lanePos = road.state.visualLane = 0;
+  road.state.gear = 1; // This marker fixture explicitly studies the medium-speed route.
   road.state.speed = 54; road.state.echoEnergy = 0;
   audio.context.currentTime = 19;
   road.handleActions({}); road.update(100);

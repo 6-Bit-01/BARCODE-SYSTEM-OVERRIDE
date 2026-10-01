@@ -1,5 +1,19 @@
 # Repository Guidance
 
+## October 1, 2026 — repair first, overhaul afterward
+
+The owner requests a separate repair PR before the broader overhaul. Smooth
+the turn camera into a trailing follow and make genuine wrecks return to first
+gear. The owner explicitly scraps the existing finale for the later overhaul;
+do not clarify or redesign it in this repair. Base/checkpoint is merged #166,
+`8bcfc39d5b01b6b9ada07facf76d0a70a12cd3c9`. Preserve all other driving,
+cutscene, art, rhythm and save contracts. First-gear physical recovery uses the
+existing next-ONE trajectory boundary so revealed pads never move. Read
+`docs/source-pack/DRIVING_REPAIRS.md`. Full regression/all-file syntax and both
+final-head CI events remain publication gates under standing merge authority.
+Makko motion comfort remains owner acceptance. Keep the next overhaul separate.
+
+
 ## October 1, 2026 — corrected wind and dynamic speed camera
 
 The owner rejects the curling wind in merged #165 and requests a stronger
