@@ -311,8 +311,18 @@ async function main() {
   const reviewWorld=require('./cache-road-browser-world.cjs');
   const world=await evaluate(`(${reviewWorld.toString()})()`);
   assert(world.loadedAssets>200&&world.frames.length===192&&world.contextCalls<=4);
-  assert(Object.keys(world.animations).length===51 && world.animationRoutes.animatedKeys===51);
-  assert.equal(world.hosted.filter(entry=>entry.frames>1).length,51);
+  assert(Object.keys(world.animations).length===55 && world.animationRoutes.animatedKeys===55);
+  assert.equal(world.animationRoutes.legacyAnimatedKeys,51,
+    'all original legacy route assertions remain intact');
+  assert.equal(world.hosted.filter(entry=>entry.frames>1).length,55);
+  for(const [key,count] of [['cacheCombatBike',8],['cacheCombatHostiles',12],
+    ['cacheCombatBikeCrash',6],['cacheCombatBlast',6]]) {
+    const frames=Array.from({length:count},(_,i)=>i);
+    assert.deepEqual(world.animationRoutes.main[key],frames,
+      `${key}: diagnostic physical combat poses paint every cel through the full front road`);
+    assert.deepEqual(world.animationRoutes.mirror[key],frames,
+      `${key}: the same physical combat poses paint every cel through the rearview`);
+  }
   assert.deepEqual(world.animationRoutes.main.cachePursuitRig,[0,1,2,3,4,5,6,7],
     'all eight rig damage/action poses render through the production front camera');
   assert.deepEqual(world.animationRoutes.mirror.cachePursuitRig,[0,1,2,3,4,5,6,7],

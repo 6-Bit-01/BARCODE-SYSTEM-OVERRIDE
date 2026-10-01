@@ -1,5 +1,37 @@
 # Current State
 
+## October 1 — authored combat chase candidate in PR #169
+
+The playable mechanics checkpoint below now has painted kicking bikers,
+rammers, escorts and disruptors; real takedowns select physical flips, detached
+riders, wrecks and local explosions in the road and mirror. Asset ancestor
+`12af86c0641456cc443ff7f42db013e565088b13` remains immutable with local fallback.
+The four atlases add 28.779 MiB decoded memory; complete source PNGs/prompts
+and exact extraction/alpha/contact metadata remain in Git. No new runtime
+canvas, clock or lifecycle owner is introduced.
+
+The prototype feedback findings below are corrected: fresh face glyphs are
+data pieces, ordinary rewards say TAKEDOWN, GUARD READY makes no false block
+claim, projectile allegiance is explicit and rig attack art follows its real
+scan/ram/pulse phase. Active R2 blocks one ordinary traffic hit without consuming
+passive synchronization buffers or adding enemy damage. Obsolete Echo refill
+signs remain only for historical saved rules. The final frozen-source matrix
+clears all nine races with 535 real music captures and 212 earned takedowns;
+the passive steering probe finishes the song alive but cannot defeat the rig.
+Actual traffic guard consumption, expired/absent guards, held-button behavior,
+first-gear recovery and earned midboss Campaign restore are covered.
+
+The authored review is a silent, edited 28⅓-second native render sampled at
+six frames per second. All four new atlases were actually painted during its
+input-driven complete race; source/art fingerprints match the current files.
+The capture rate and native painter timings are diagnostics, not game FPS.
+See `review-cache-combat-chase/authored-preview.json` and the final
+`combat-integration.json`. Full local regression and all-file syntax pass on
+the final frozen source. Hosted browser validation and both exact final-head
+CI events remain publication gates; actual results belong in the PR/export
+receipt. Owner Makko/controller/audio/comfort/balance/fun/frame-pacing acceptance remains
+pending. Historical checkpoint results retain their original source hashes.
+
 ## October 1 — playable combat mechanics checkpoint
 
 Fresh v4 races separate four synchronization pieces from independently
@@ -9,7 +41,7 @@ through real attacks and a 12-HP rig; synchronization and steering alone do
 not win. Earned damage survives mid-boss save/reload, pause freezes state,
 and forged wins/future saves are rejected. Full local regression and all-file
 syntax pass. Exact source hashes and limits are in
-`review-cache-combat-chase/combat-integration.json`.
+`review-cache-combat-chase/combat-integration-mechanics-checkpoint.json`.
 
 This is the existing-art mechanics checkpoint, based on merged #168. New
 painted enemies/destruction and presentation corrections continue in this

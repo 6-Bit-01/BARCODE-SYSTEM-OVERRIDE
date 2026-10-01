@@ -33,11 +33,13 @@ and the full 100-bar recording remain the musical and delivery clock.
 The four skills recharge independently and work at zero synchronization.
 Turbo retains the next-ONE physical launch so a press cannot relocate an
 announced pad. Attack targets actual nearby foes or sends a visible forward
-shot; Defend is a timed contact counter; Disrupt interrupts enemy tracking and
+shot; Defend is a timed contact guard/counter; Disrupt interrupts enemy tracking and
 committed pressure. Direction, proximity and timing matter, independently of
 the musical catch. Poor synchronization reduces advantages, not access to
 fighting. Existing passive traffic contact buffers remain synchronization
-benefits; new combat foes use explicit combat defense.
+benefits. The active Defend window also blocks one ordinary traffic contact
+without spending these buffers or inventing combat damage; hostile contact
+can earn a real counter or reflected shot.
 
 ## Chase and completion
 
@@ -66,3 +68,22 @@ production browser gates and both exact final-head CI events under the existing
 merge authority. Archive export uses the actual committed/merged Git tree.
 Owner Makko/controller/audio, motion comfort, balance/fun and device frame
 pacing remain pending until recorded owner evidence is available.
+
+## Authored presentation candidate
+
+The mechanics checkpoint is committed at
+`668d57d662a99701383b683cccc0663a8249dc31` in PR #169. Its receipts retain
+that source attribution. New combat art is pinned to reachable ancestor
+`12af86c0641456cc443ff7f42db013e565088b13`: eight rider poses, twelve hostile
+chassis poses, six separate bike/rider wreck components and six explosion ages.
+Original PNGs, prompts, measured extraction/contact metadata and lossless
+runtime WebPs are retained in `assets/cache-road/combat/`. Four shared runtime
+atlases add 28.779 MiB of decoded images; source originals do not load.
+
+Pure painters consume actual enemy/attack/damage and physical wreck ages in
+both road views. They own no timer, input, state update or canvas. Reduced
+Motion keeps static identities; Flashes Off selects smoke/debris instead of
+bright bursts. Fresh face glyphs represent four data pieces, ordinary takedowns
+are labeled correctly, guard readiness differs from an earned block/counter,
+projectiles identify their allegiance, and rig art follows its actual attack.
+Full final-source and hosted browser/CI evidence must be recorded before merge.

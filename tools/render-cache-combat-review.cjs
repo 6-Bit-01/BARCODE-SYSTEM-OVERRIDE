@@ -4,6 +4,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), vm = require('node:vm');
 const crypto = require('node:crypto');
+const { performance } = require('node:perf_hooks');
 const { spawn, execFileSync } = require('node:child_process');
 const { once } = require('node:events');
 const { createCanvas, loadImage, GlobalFonts } = require('@napi-rs/canvas');
@@ -16,10 +17,15 @@ const round = n => Number(Number(n).toFixed(3));
 const FPS = 6, WIDTH = 1280, HEIGHT = 756;
 const WINDOWS = [{ name: 'Early bike skirmish', fromBar: 6, toBar: 10 },
   { name: 'Mixed chase', fromBar: 28, toBar: 31 }];
-const LABEL = process.env.CACHE_COMBAT_REVIEW_LABEL || 'MECHANICS PROTOTYPE / existing traffic art';
+const STAGE = process.env.CACHE_COMBAT_REVIEW_STAGE || 'prototype';
+assert(['prototype', 'authored'].includes(STAGE), 'CACHE_COMBAT_REVIEW_STAGE must be prototype or authored');
+const LABEL = process.env.CACHE_COMBAT_REVIEW_LABEL || (STAGE === 'authored' ?
+  'AUTHORED COMBAT REVIEW' : 'MECHANICS PROTOTYPE / existing traffic art');
+const COMBAT_ASSET_KEYS = ['cacheCombatBike', 'cacheCombatHostiles', 'cacheCombatBikeCrash', 'cacheCombatBlast'];
 let encoder;
 
 async function main() {
+  const startedAt = performance.now();
   const output = path.resolve(process.argv[2] || path.join(root, '..', 'combat-native-review'));
   assert(!output.startsWith(root + path.sep), 'Review output and intermediate frames belong outside the source repository.');
   fs.mkdirSync(output, { recursive: true });
@@ -38,6 +44,10 @@ async function main() {
   const defs = createRig(); defs.w.Image = undefined;
   vm.runInContext(registry.replace(cacheMarker, '  window.reviewEntries=entries;\n' + cacheMarker), defs.context);
   const entries = Object.fromEntries(Object.entries(defs.w.reviewEntries).filter(([key]) => key.startsWith('cache')));
+  if (STAGE === 'authored') {
+    assert(visualOwners.includes('src/game/cache-road-combat-art.js'), 'Authored review requires the registered production combat-art helper');
+    for (const key of COMBAT_ASSET_KEYS) assert(entries[key], `Authored review requires asset registration: ${key}`);
+  }
   const images = Object.fromEntries(await Promise.all(Object.entries(entries).map(async ([key, entry]) =>
     [key, await loadImage(path.join(root, entry.path))])));
   const assets = Object.fromEntries(Object.entries(entries).map(([key, entry]) => [key, {
@@ -90,6 +100,7 @@ async function main() {
         events.push(copy(event));
         if (event.type === 'takedown' && event.actorKind === 'bike') openWindow('Actual bike takedown', bar, 2500);
         if (event.type === 'takedown' && event.id === 'rig') openWindow('Actual rig defeat and wreck pass', bar, 5000);
+        if (event.type === 'defend-ready') openWindow('Actual guard activation', bar, 2200);
       }
       if (combat.boss && previousHp === null) openWindow('Rig approach', bar, 2000);
       if (combat.boss && previousHp !== null && combat.boss.hp < previousHp)
@@ -102,7 +113,9 @@ async function main() {
       // into an accidental speed-up of the exported sequence.
       if (state.elapsedMs - nextSampleMs > 1000 / FPS) nextSampleMs = state.elapsedMs;
       nextSampleMs += 1000 / FPS;
-      submissions = []; context.reset(); r.drawRoad(context);
+      submissions = []; context.reset();
+      const drawStartedAt = performance.now(); r.drawRoad(context);
+      const nativeDrawMs = performance.now() - drawStartedAt;
       vctx.reset(); vctx.drawImage(scene, 0, 0, WIDTH, 720);
       vctx.fillStyle = '#071b27'; vctx.fillRect(0, 720, WIDTH, HEIGHT - 720);
       vctx.font = '16px Oxanium, monospace'; vctx.fillStyle = '#d7ffe6';
@@ -112,7 +125,8 @@ async function main() {
         lane: round(state.lanePos), gear: state.gear + 1, speed: round(state.speed), integrity: state.integrity,
         camera: copy(state.cameraMotion), syncCount: combat.syncCount, boss: copy(combat.boss),
         actors: copy(combat.actors), wrecks: copy(combat.wrecks), projectiles: copy(combat.projectiles),
-        skills: copy(combat.skills), driverInputs: copy(driver.lastCombatPress), artSubmissions: copy(submissions) };
+        skills: copy(combat.skills), driverInputs: copy(driver.lastCombatPress), artSubmissions: copy(submissions),
+        nativeProductionDrawMs: round(nativeDrawMs) };
       frameEvidence.push(frame);
       const stillName = active.find(window => !selectedStills.has(window.name));
       if (stillName) {
@@ -129,17 +143,36 @@ async function main() {
   assert(frameEvidence.length > 30, 'the montage must contain played motion');
   assert(opened.has('Actual bike takedown'), 'a real bike takedown must be observed');
   assert(opened.has('Actual rig damage') && opened.has('Actual rig defeat and wreck pass'), 'earned boss damage and defeat must be observed');
+  if (STAGE === 'authored') {
+    assert(drawn.cacheCombatBike > 0 && drawn.cacheCombatHostiles > 0,
+      'Authored bike and heavy hostile art must be submitted by the production painter');
+    assert(frameEvidence.some(frame => frame.windows.includes('Actual guard activation') && frame.skills.defend.active),
+      'The authored control review must capture an actual timed guard activation');
+  }
   for (const [file, digest] of Object.entries(sourceHashes)) assert.equal(hash(path.join(root, file)), digest, `Source changed during capture: ${file}`);
   for (const asset of Object.values(assets)) assert.equal(hash(path.join(root, asset.path)), asset.sha256, `Artwork changed during capture: ${asset.path}`);
   const captured = frameEvidence.filter(frame => frame.windows.includes('Actual rig defeat and wreck pass'));
   const wreckPassed = captured.some(frame => frame.wrecks.some(wreck => wreck.id === 'rig' && wreck.at < frame.progress));
-  const report = { kind: 'native-input-driven-edited-combat-control-study', label: LABEL,
+  const drawTimes = frameEvidence.map(frame => frame.nativeProductionDrawMs).sort((a, b) => a - b);
+  const totalDrawMs = drawTimes.reduce((sum, ms) => sum + ms, 0);
+  const timing = { category: 'sampled native production draws on this host only',
+    samples: drawTimes.length, totalDrawMs: round(totalDrawMs),
+    meanDrawMs: round(totalDrawMs / drawTimes.length),
+    p50DrawMs: drawTimes[Math.floor((drawTimes.length - 1) * .5)],
+    p95DrawMs: drawTimes[Math.floor((drawTimes.length - 1) * .95)],
+    maxDrawMs: drawTimes[drawTimes.length - 1],
+    totalCaptureWallMs: round(performance.now() - startedAt),
+    scope: 'Painter time excludes asset decoding, full-race updates, video composition and encoding; capture wall time includes them. Native Canvas capture timing is observational and is not browser/device FPS or acceptance.' };
+  const report = { kind: 'native-input-driven-edited-combat-control-study', stage: STAGE, label: LABEL,
     recordedAtUtc: new Date().toISOString(), sourceFramesPerSecond: FPS, width: WIDTH, height: HEIGHT,
     frames: frameEvidence.length, durationSeconds: frameEvidence.length / FPS, windows,
     audio: 'silent; production audio clock is a controlled host; no listening acceptance',
     policy: 'One complete production Campaign + ActionInput + shared RAF combat race. Native images replace network delivery only. No road position, health, immunity, skills, sync, captures, score, enemy HP or camera state is assigned. Selected noncontiguous windows are edited together without interpolation; fixed six-fps samples snap to the real 20ms input-update clock, with each captured timestamp recorded.',
-    limitations: 'Deterministic input controller and native Canvas host. This mechanics prototype uses existing production traffic/rig art until the separately approved combat assets are installed. Six-fps sampling is a capture limit, not measured game FPS. Not a human, Makko, physical-controller, audio, comfort or device-performance acceptance.',
-    sourceHashes, sourcesStable: true, assets, drawnAssets: drawn, stills, frameEvidence,
+    limitations: 'Deterministic input controller and native Canvas host. ' + (STAGE === 'authored' ?
+      'Authored combat assets use the registered production helper; actual submitted keys and frames are recorded separately. ' :
+      'This mechanics prototype uses existing production traffic/rig art until the separately approved combat assets are installed. ') +
+      'Six-fps sampling is a capture limit, not measured game FPS. Not a human, Makko, physical-controller, audio, comfort or device-performance acceptance.',
+    sourceHashes, sourcesStable: true, assets, drawnAssets: drawn, stills, frameEvidence, timing,
     race: { difficulty: run.result.difficulty, gear: run.result.gear, profile: run.result.profile,
       encounterVersion: run.result.encounterVersion, status: run.result.status, finalBar: run.result.finalBar,
       damageTaken: run.result.damageTaken, accurate: run.result.accurate, attempts: run.result.attempts,
@@ -149,6 +182,6 @@ async function main() {
     checkoutRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim() };
   fs.writeFileSync(path.join(output, 'Combat-Mechanics-Preview.json'), JSON.stringify(report, null, 2) + '\n');
   console.log(JSON.stringify({ output, frames: report.frames, seconds: report.durationSeconds,
-    stills: stills.length, race: report.race.status, wreckPassed, videoBytes: report.videoBytes }));
+    stage: STAGE, stills: stills.length, race: report.race.status, wreckPassed, videoBytes: report.videoBytes, timing }));
 }
 main().catch(error => { encoder?.stdin.destroy(); encoder?.kill(); console.error(error.stack || error); process.exitCode = 1; });

@@ -106,6 +106,7 @@ jobs:
         env:
           CHROME_BIN: /usr/bin/google-chrome
           CACHE_COMBAT_BROWSER_OUTPUT: ${{ runner.temp }}/cache-combat-browser
+          CACHE_COMBAT_BROWSER_REQUIRE_HOSTED: '1'
         run: npm run check:cache-combat-browser
       - name: Upload combat chase browser evidence
         if: always()

@@ -66,7 +66,7 @@
     "check:cache-encounters": "node tools/check-cache-road-encounters.cjs && node tools/check-cache-road-reactions.cjs && node tools/check-cache-road-reaction-integration.cjs && node tools/check-cache-road-pursuit.cjs && node tools/check-cache-road-encounter-save.cjs && node tools/check-cache-road-races.cjs",
     "check:cache-pursuit": "node tools/check-cache-pursuit-art.cjs && node tools/check-cache-road-visibility-index.cjs && node tools/check-cache-pursuit-overhaul.cjs",
     "check:cache-pursuit-browser": "node tools/check-cache-pursuit-browser.cjs",
-    "check:cache-combat": "node tools/check-cache-combat-input.cjs && node tools/check-cache-road-combat.cjs && node tools/check-cache-combat-guidance.cjs && node tools/check-cache-combat-integration.cjs",
+    "check:cache-combat": "node tools/check-cache-combat-input.cjs && node tools/check-cache-road-combat.cjs && node tools/check-cache-combat-guidance.cjs && node tools/check-cache-combat-art.cjs && node tools/check-cache-combat-integration.cjs",
     "check:cache-combat-browser": "node tools/check-cache-combat-browser.cjs"
   },
   "devDependencies": {

@@ -41,7 +41,13 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   // Publication replaces this review token with the exact immutable art commit.
   const PURSUIT_ART_REV = 'c9ec41555ff7c473fb4119eb68a1438cebe4bd37';
   const cachePursuitRoot = `https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/${PURSUIT_ART_REV}/`;
+  const COMBAT_ART_REV = '12af86c0641456cc443ff7f42db013e565088b13';
+  const cacheCombatRoot = `https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/${COMBAT_ART_REV}/`;
   const entries = {
+    cacheCombatBike: {path:'assets/cache-road/combat/bike-rider-atlas.webp',root:cacheCombatRoot,columns:4,rows:2,frames:8,ax:.5,ay:1,smooth:true},
+    cacheCombatHostiles: {path:'assets/cache-road/combat/hostile-chassis-atlas.webp',root:cacheCombatRoot,columns:4,rows:3,frames:12,ax:.5,ay:1,smooth:true},
+    cacheCombatBikeCrash: {path:'assets/cache-road/combat/bike-crash-atlas.webp',root:cacheCombatRoot,columns:3,rows:2,frames:6,ax:.5,ay:1,smooth:true},
+    cacheCombatBlast: {path:'assets/cache-road/combat/combat-blast-atlas.webp',root:cacheCombatRoot,columns:3,rows:2,frames:6,ax:.5,ay:.5,smooth:true},
     cachePursuitRig: { path: 'assets/cache-road/pursuit/pursuit-rig-atlas.webp', root: cachePursuitRoot,
       columns: 4, rows: 2, frames: 8, ax: .5, ay: 473 / 512, smooth: true },
     cachePursuitImpact: { path: 'assets/cache-road/pursuit/pursuit-impact-atlas.webp', root: cachePursuitRoot,

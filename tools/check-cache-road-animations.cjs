@@ -8,7 +8,8 @@ w.BARCODE.Campaign={register(){},syncTitleButton(){}};
 load(context,'src/engine/cache-road-proof-profile.js');
 for(const file of ['src/game/cache-road-landscape.js','src/game/cache-road-guidance.js',
   'src/game/cache-road-encounters.js','src/game/cache-road-reactions.js',
-  'src/game/cache-road-pursuit.js','src/game/cache-road-boss-art.js'])load(context,file);
+  'src/game/cache-road-pursuit.js','src/game/cache-road-boss-art.js',
+  'src/game/cache-road-combat.js','src/game/cache-road-combat-art.js'])load(context,file);
 const source=fs.readFileSync('src/game/cache-road-proof.js','utf8');
 const marker='  B.Campaign.register(ID,';
 assert(source.includes(marker));
@@ -44,8 +45,11 @@ const road=w.BARCODE.CacheRoadProof;road.active=true;road.status='playing';
 road.state=w.animationNewState();
 const result=audit({B:w.BARCODE,ctx,newState:w.animationNewState,
   entities:w.animationEntities,definitions});
-assert.equal(result.animatedKeys,51,'inventory includes every retained road atlas plus the complete pursuit rig and live impact variants');
+assert.equal(result.animatedKeys,55,'inventory includes every retained road/pursuit atlas and all four authored combat atlases');
+assert.equal(result.legacyAnimatedKeys,51,'every original legacy animation assertion is retained');
+assert.deepEqual(result.authoredCombatKeys,
+  ['cacheCombatBike','cacheCombatHostiles','cacheCombatBikeCrash','cacheCombatBlast']);
 assert.equal(loaded.length,Object.keys(definitions).length);
 assert(stack.length===0,'all production canvas scopes restored');
 if(process.argv[2])fs.writeFileSync(process.argv[2],JSON.stringify(result,null,2)+'\n');
-console.log(`Cache Road animation routes passed: ${result.animatedKeys} atlas keys, ${result.productionDraws} production draws, ${atlasDraws} image submissions; all cels, both walking views/banks and rearview, all prop/ambient families, hit/actions/mirror, ships, eight pursuit poses in both cameras, all four live impacts and Reduced Motion.`);
+console.log(`Cache Road animation routes passed: ${result.animatedKeys} atlas keys (${result.legacyAnimatedKeys} legacy plus four authored combat), ${result.productionDraws} production draws, ${atlasDraws} image submissions; all cels, both walking views/banks and rearview, all prop/ambient families, hit/actions/mirror, ships, eight pursuit poses, four live impacts and all 32 combat cells in both cameras, and Reduced Motion. Diagnostic combat states are separate from earned-input race evidence.`);

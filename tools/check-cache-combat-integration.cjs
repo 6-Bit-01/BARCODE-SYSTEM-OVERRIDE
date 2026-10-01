@@ -77,7 +77,16 @@ function observeCombat(r) {
   };
   const hit = r.road.hit.bind(r.road);
   r.road.hit = function(...args) {
-    const integrity = this.state.integrity, result = hit(...args);
+    const s = this.state, integrity = s.integrity;
+    const before = { integrity, invulnerableMs: s.invulnerableMs, boostMs: s.boostMs,
+      ramMs: s.ramMs, shield: s.shield, defendMs: s.combat?.defendMs || 0,
+      blocks: s.combat?.stats.blocks || 0, enemyDamage: s.combat?.stats.damageDealt || 0 };
+    const result = hit(...args);
+    observed.event('physical-contact', { actor: args[0], actorId: args[1]?.id || null,
+      combatContact: args[2] === true, before, after: { integrity: s.integrity,
+        defendMs: s.combat?.defendMs || 0, defenseKind: s.defenseKind,
+        blocks: s.combat?.stats.blocks || 0,
+        enemyDamage: s.combat?.stats.damageDealt || 0 } });
     if (this.state.integrity < integrity) observed.event('wreck-recovery', {
       gear: this.state.gear, queuedRecovery: this.state.queuedRecovery,
       recoveryBeat: this.state.recoveryBeat, actor: args[0] });
@@ -192,7 +201,7 @@ async function runCombatRace({ difficulty = 'standard', gear = 1, profile = 'pra
   const s = r.road.state, chapter = r.road.chapter, combat = copy(r.road.encounterSnapshot().combat);
   const damage = observed.events.filter(event => event.kind === 'damage');
   const result = { difficulty, gear: gear + 1, profile, ...options, encounterVersion: chapter.encounterVersion,
-    status: r.road.status, finalBar: s.musicBeatFloat / 4, frames, gearFrames,
+    status: r.road.status, finalMessage: s.message, finalBar: s.musicBeatFloat / 4, frames, gearFrames,
     integrity: s.integrity, minimumIntegrity, damageTaken: chapter.damageTaken, drumMinimum, musicRoles,
     accurate: chapter.accurate, attempts: chapter.attempts, connected: chapter.connected,
     combat, bossChanges, announced: [...announced.values()], events: observed.events,
@@ -300,6 +309,84 @@ async function checkDamageRecovery() {
   return result;
 }
 
+async function checkOrdinaryTrafficDefend() {
+  const receipts = [];
+  for (const policy of ['active-window', 'expired-held', 'unprotected']) {
+    const r = await combatRig(), observed = observeCombat(r);
+    let target = null, guardAt = null, disruptSent = false, contact = null;
+    for (let frame = 0; frame < 5000 && r.road.status === 'playing'; frame++) {
+      const s = r.road.state, view = r.road.encounterSnapshot();
+      for (const button of r.pad.buttons) button.pressed = false;
+      if (s.gear < 1 && s.pendingGear == null && s.elapsedMs < 3000)
+        r.pad.buttons[12].pressed = frame % 13 === 0;
+      if (!target) target = view.hazards.find(actor => actor.collidable !== false &&
+        !['audit', 'block'].includes(actor.kind) && actor.distance > 100 && actor.distance < 350) || null;
+      const visible = target && view.hazards.find(actor => actor.id === target.id);
+      if (visible) target = { ...target, ...visible };
+      const distance = target ? target.at - s.progress : Infinity;
+      const eta = distance / Math.max(s.speed, 30);
+      const lane = target ? target.targetLane ?? target.lane : s.lanePos;
+      r.pad.axes[0] = Math.abs(lane - s.lanePos) > .045 ? Math.sign(lane - s.lanePos) : 0;
+      if (target && guardAt === null && policy !== 'unprotected' &&
+          eta <= (policy === 'active-window' ? .5 : 1.65)) guardAt = s.elapsedMs;
+      if (guardAt !== null) r.pad.buttons[7].pressed = true;
+      // Silence a simultaneously approaching combat lock through actual L2
+      // input. Disrupt causes no damage and cannot supply a traffic shield.
+      if (target && eta < .62 && !disruptSent && view.combat.skills.disrupt.ready) {
+        r.pad.buttons[6].pressed = true; disruptSent = true;
+      }
+      r.step(20, 50);
+      contact = observed.events.find(event => event.kind === 'physical-contact' &&
+        !event.combatContact && event.actorId === target?.id);
+      if (contact) break;
+    }
+    assert(target && contact, `${policy}: normal input reaches an actual visible civilian collision`);
+    assert.equal(contact.before.invulnerableMs, 0, `${policy}: collision grace cannot substitute for Defend`);
+    assert.equal(contact.before.boostMs, 0); assert.equal(contact.before.ramMs, 0); assert.equal(contact.before.shield, 0);
+    assert.equal(r.road.chapter.accurate, 0, 'the traffic guard probe never earns a passive face-button buffer');
+    assert.equal(contact.after.enemyDamage, contact.before.enemyDamage,
+      'guarding ordinary road traffic cannot fabricate enemy damage or a boss counter');
+    const guardInputs = observed.events.filter(event => event.kind === 'combat-input' && event.skill === 'defend');
+    if (policy === 'active-window') {
+      assert(contact.before.defendMs > 0, 'R2 is timed inside its actual active window');
+      assert.equal(contact.after.integrity, contact.before.integrity, 'timed R2 blocks the real ordinary road impact');
+      assert.match(contact.after.defenseKind, /^DEFEND/);
+      assert.equal(contact.after.defendMs, 0, 'ordinary contact consumes its one actual timed guard');
+      assert.equal(contact.after.blocks, contact.before.blocks + 1, 'the real ordinary guard records one block');
+    } else {
+      assert.equal(contact.before.defendMs, 0, 'an absent or expired guard is actually inactive at contact');
+      assert.equal(contact.after.integrity, contact.before.integrity - 1,
+        'ordinary contact genuinely wrecks the car when no timed guard remains');
+    }
+    let afterHeldCheck = null;
+    if (policy === 'unprotected') assert.equal(guardInputs.length, 0);
+    else {
+      assert.equal(guardInputs.length, 1); assert(guardInputs[0].accepted && guardInputs[0].syncBefore === 0);
+      const driver = new CombatDriver(r, PROFILES.practiced, 1, observed, { noCombat: true });
+      const heldStart = r.road.state.elapsedMs;
+      let heldFrames = 0;
+      for (; heldFrames < 230 && r.road.status === 'playing'; heldFrames++) {
+        driver.step(); r.pad.buttons[7].pressed = true; r.step(20, 50);
+      }
+      assert.equal(heldFrames, 230, 'the held-edge route stays alive for its complete cooldown observation');
+      assert.equal(r.road.state.elapsedMs - heldStart, 4600);
+      assert.equal(observed.events.filter(event => event.kind === 'combat-input' && event.skill === 'defend').length, 1,
+        'held R2 never reactivates after its cooldown; it needs a new released edge');
+      assert(r.road.encounterSnapshot().combat.skills.defend.ready,
+        'the held-edge check actually reaches the replenished Defend cooldown');
+      assert.equal(r.road.encounterSnapshot().combat.skills.defend.activeMs, 0);
+      afterHeldCheck = { heldForMsAfterContact: r.road.state.elapsedMs - heldStart, heldFrames,
+        ready: r.road.encounterSnapshot().combat.skills.defend.ready,
+        activeMs: r.road.encounterSnapshot().combat.skills.defend.activeMs };
+    }
+    receipts.push({ policy, target: { id: target.id, kind: target.kind, at: target.at, lane: target.lane },
+      guardAt, contact: copy(contact), guardInputs: copy(guardInputs), disruptSent,
+      damageTaken: r.road.chapter.damageTaken, heldRepeatPrevented: policy !== 'unprotected',
+      afterHeldCheck });
+  }
+  return receipts;
+}
+
 async function checkMusicNegatives() {
   const results = [];
   for (const options of [{ timingBiasMs: -240 }, { timingBiasMs: 240 }, { wrongFace: true }]) {
@@ -402,27 +489,113 @@ async function checkPassiveCannotWin() {
   assert(result.combat.boss?.arrived, 'ordinary delayed steering actually reaches the enforcement rig');
   assert.equal(result.combat.boss.hp, 12, 'dodging and musical captures cannot fabricate rig damage');
   assert.equal(result.combat.boss.defeated, false);
+  assert(Math.abs(result.finalBar - 100) < 1e-8 && result.integrity > 0,
+    'the no-combat route actually survives the full recording instead of failing from an earlier wreck');
   assert.equal(result.status, 'failed', 'an undefeated rig prevents delivery through the real mission owner');
+  assert.equal(result.finalMessage, 'PURSUIT HELD THE ORIGINAL',
+    'the real end-of-recording mission failure names the undefeated pursuit');
   assert(result.events.every(event => event.kind !== 'combat-input'), 'this control route withholds every combat action');
   return result;
+}
+
+const canonicalJSON = value => JSON.stringify(value, function(key, item) {
+  return item && typeof item === 'object' && !Array.isArray(item) ?
+    Object.fromEntries(Object.keys(item).sort().map(name => [name, item[name]])) : item;
+});
+const arrayHash = value => crypto.createHash('sha256').update(canonicalJSON(value)).digest('hex');
+function counted(items, key) {
+  const values = {};
+  for (const item of items) { const name = String(item[key]); values[name] = (values[name] || 0) + 1; }
+  return Object.fromEntries(Object.entries(values).sort(([a], [b]) => a.localeCompare(b)));
+}
+function eventSummary(events) {
+  const captures = events.filter(event => event.kind === 'capture');
+  const awards = events.filter(event => event.kind === 'music-award');
+  const combatEvents = events.filter(event => event.kind === 'combat-event');
+  const combatInputs = events.filter(event => event.kind === 'combat-input');
+  const offsets = events.filter(event => ['capture', 'missed-press'].includes(event.kind) &&
+    Number.isFinite(event.timingOffsetMs)).map(event => event.timingOffsetMs);
+  const acceptedOffsets = captures.map(event => event.timingOffsetMs).filter(Number.isFinite);
+  const keys = new Set(['kind', 'bar', 'elapsedMs', 'lane', 'integrity', 'type', 'sourceMethod',
+    'actorKind', 'id', 'cause', 'hp', 'maxHp', 'damage', 'skill', 'accepted', 'reason', 'syncBefore',
+    'action', 'feedback', 'timingOffsetMs', 'musicLane', 'targetBeat', 'awardedBeat', 'holdBars',
+    'gear', 'queuedRecovery', 'recoveryBeat', 'capturesBefore', 'capturesAfter', 'queuedBefore', 'queuedAfter']);
+  const samples = {};
+  for (const event of events) if (!samples[event.kind])
+    samples[event.kind] = Object.fromEntries(Object.entries(event).filter(([key]) => keys.has(key)));
+  return { count: events.length, sha256: arrayHash(events), countsByKind: counted(events, 'kind'),
+    combatEventCountsByType: counted(combatEvents, 'type'),
+    combatInputCountsByReason: counted(combatInputs, 'reason'),
+    acceptedControlsBySkill: counted(combatInputs.filter(event => event.accepted), 'skill'),
+    realDamageCauses: counted(combatEvents.filter(event => event.type === 'enemy-hit'), 'cause'),
+    music: { capturedFaceActions: [...new Set(captures.map(event => event.action))].sort(),
+      captureCount: captures.length, awardCount: awards.length,
+      uniqueAwardIds: new Set(awards.map(event => event.id)).size,
+      holdBars: [...new Set(awards.map(event => event.holdBars))].sort(),
+      actualAttemptOffsetRangeMs: offsets.length ? [Math.min(...offsets), Math.max(...offsets)] : null,
+      actualAcceptedOffsetRangeMs: acceptedOffsets.length ? [Math.min(...acceptedOffsets), Math.max(...acceptedOffsets)] : null }, samples };
+}
+function compactRun(run) {
+  const { events, announced, bossChanges, ...metrics } = run;
+  return { ...copy(metrics), eventsSummary: eventSummary(events), announcedPads: {
+    count: announced.length, uniqueIds: new Set(announced.map(pad => pad.id)).size,
+    allTargetsAreONE: announced.every(pad => pad.target % 4 === 0), immutableAddressesDuringRun: true,
+    verification: 'Runtime assertions checked every repeated visible id retained its target and world address.',
+    sha256: arrayHash(announced), samples: copy([...announced.slice(0, 2), ...announced.slice(-2)]) },
+    bossChanges: bossChanges.map(change => Object.fromEntries(Object.entries(change)
+      .filter(([key]) => ['bar', 'previousHp', 'hp', 'maxHp', 'health', 'defeated', 'phase', 'id'].includes(key)))) };
+}
+function compactReceipt(receipt, diagnostic) {
+  return { ...copy(Object.fromEntries(Object.entries(receipt).filter(([key]) =>
+    !['races', 'recovery', 'musicNegatives', 'passive'].includes(key)))), schemaVersion: 3,
+    races: receipt.races.map(compactRun), recovery: compactRun(receipt.recovery),
+    musicNegatives: receipt.musicNegatives.map(compactRun), passive: compactRun(receipt.passive),
+    summary: { matrixRuns: receipt.races.length, matrixClears: receipt.races.filter(run => run.status === 'clear').length,
+      matrixMusicCaptures: receipt.races.reduce((sum, run) => sum + run.accurate, 0),
+      matrixTakedowns: receipt.races.reduce((sum, run) => sum + run.combat.stats.takedowns, 0),
+      matrixActualDamageEvents: receipt.races.reduce((sum, run) => sum + run.damageTaken, 0),
+      matrixBossHPAtFinish: receipt.races.map(run => run.combat.boss.hp),
+      musicProbeRuns: receipt.musicNegatives.length,
+      rejectionMusicRuns: receipt.musicNegatives.filter(run => run.wrongFace || Math.abs(run.timingBiasMs) > 180).length,
+      expandedWindowMusicRuns: receipt.musicNegatives.filter(run => !run.wrongFace && Math.abs(run.timingBiasMs) <= 180).length,
+      sourcesVerifiedAgainstCurrentFiles: true },
+    reporting: { format: 'compact-recorded-production-run',
+      derivation: 'Run metrics, source hashes, final combat poses, HP transitions, actual recovery, controls, save/reload and negatives are retained. Raw repeated events and announced addresses are represented by exact counts, hashes and samples.',
+      omittedDetail: ['full repeated event arrays', 'complete announced-address arrays', 'duplicate boss pose fields on HP transitions'],
+      fullDiagnosticTrace: diagnostic,
+      canonicalArrayHashEncoding: 'UTF-8 JSON with recursively sorted object keys and no extra whitespace.' } };
+}
+function writeReceipt(receipt) {
+  assert(receipt.passed && receipt.sourcesStable, 'save only an actually passing stable production run');
+  assert.deepEqual(hashes(), receipt.sources, 'do not publish a receipt after its tested source has changed');
+  const out = path.join(root, 'docs/source-pack/review-cache-combat-chase');
+  const trace = path.resolve(process.env.CACHE_COMBAT_INTEGRATION_TRACE || path.join(path.dirname(root), 'combat-integration-full.json'));
+  assert(trace !== root && !trace.startsWith(root + path.sep), 'full diagnostic traces must remain outside the repository');
+  const raw = JSON.stringify(receipt, null, 2) + '\n';
+  fs.mkdirSync(path.dirname(trace), { recursive: true }); fs.writeFileSync(trace, raw);
+  const compact = compactReceipt(receipt, { path: trace, sha256: crypto.createHash('sha256').update(raw).digest('hex'),
+    bytes: Buffer.byteLength(raw), availability: 'Full diagnostic retained outside the checkout; this receipt omits the full trace.' });
+  const text = JSON.stringify(compact, null, 2) + '\n';
+  assert(Buffer.byteLength(text) < 200000, 'the committed receipt remains below the connector publication limit');
+  fs.mkdirSync(out, { recursive: true }); fs.writeFileSync(path.join(out, 'combat-integration.json'), text);
+  return compact;
 }
 
 async function main() {
   const sources = hashes(), zeroSync = await checkZeroSyncControls(), races = await checkNineRaces();
   const recovery = await checkDamageRecovery(), musicNegatives = await checkMusicNegatives();
   const persistence = await checkCombatPersistence(), passive = await checkPassiveCannotWin();
+  const trafficDefend = await checkOrdinaryTrafficDefend();
   assert.deepEqual(hashes(), sources, 'production and validation source remain frozen throughout the combat study');
-  const receipt = { passed: true, sources, sourcesStable: true, zeroSync, races, recovery, musicNegatives, persistence, passive,
+  const receipt = { passed: true, sources, sourcesStable: true, zeroSync, races, recovery, musicNegatives, persistence, passive, trafficDefend,
     evidence: 'Production Campaign + ActionInput + shared RAF, actual delayed visible observations, native button edges and physically earned damage.',
     limits: 'Controlled Canvas/audio/storage hosts; no gameplay state injection. Not Makko, physical-controller, listening, human success rate or frame-pacing acceptance.' };
-  if (process.argv.includes('--write')) {
-    const out = path.join(root, 'docs/source-pack/review-cache-combat-chase'); fs.mkdirSync(out, { recursive: true });
-    fs.writeFileSync(path.join(out, 'combat-integration.json'), JSON.stringify(receipt, null, 2) + '\n');
-  }
-  console.log('Cache combat integration passed: zero-sync controls, nine complete difficulty/gear races, real recovery, rejected music presses and earned combat persistence.');
+  if (process.argv.includes('--write')) writeReceipt(receipt);
+  console.log('Cache combat integration passed: zero-sync controls, nine complete difficulty/gear races, real recovery, rejected music presses, earned combat persistence and timed ordinary traffic Defend.');
   return receipt;
 }
 module.exports = { combatRig, observeCombat, CombatDriver, runCombatRace, assertClear,
   checkZeroSyncControls, checkNineRaces, checkDamageRecovery, checkMusicNegatives,
-  checkCombatPersistence, checkPassiveCannotWin, hashes, main };
+  checkCombatPersistence, checkPassiveCannotWin, checkOrdinaryTrafficDefend,
+  eventSummary, compactRun, compactReceipt, writeReceipt, hashes, main };
 if (require.main === module) main().catch(error => { console.error(error.stack || error); process.exitCode = 1; });

@@ -1,5 +1,25 @@
 # Recovery checkpoint — September 14
 
+## October 1 — authored combat chase in PR #169
+
+- Add four painted immutable atlases for kicking bikers, three hostile chassis,
+  separate bike/rider crashes and local explosion ages, retaining source art,
+  prompts, alpha and ground-contact metadata.
+- Render actual phase/damage/flip/ejection/wreck state in both road and mirror;
+  preserve the existing rig painter and follow its real scan/ram/pulse attacks.
+- Separate fresh data-piece glyphs from combat actions; distinguish GUARD READY,
+  actual counters, TAKEDOWN and RIG DESTROYED. Remove fresh-run Echo refill signs.
+- Let timed R2 guard one ordinary traffic contact without spending sync buffers
+  or awarding enemy damage; expired/absent guards retain genuine first-gear wrecks.
+- Validate nine complete input-driven combat races, five music-window probes,
+  zero-sync controls, passive failure, pause and earned checkpoint restore.
+  Preserve the mechanics checkpoint's original hashes and receipt separately.
+- Preserve all 51 historical animation routes and verify all 32 new combat cells
+  through diagnostic production road/mirror draws. Record the actual-input native
+  preview separately from staged art diagnostics and browser/device acceptance.
+- Final exact-head complete regression and both hosted CI events remain publication
+  gates. Makko/controller/audio/comfort/balance/fun/frame-pacing acceptance is pending.
+
 ## October 1 — combat mechanics checkpoint
 
 Built fresh v4 conflict with independent R1 Attack, L1 Turbo, R2 Defend and
