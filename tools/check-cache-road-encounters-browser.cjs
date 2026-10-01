@@ -185,7 +185,7 @@ async function main(){
   }
   // The ready panel is a saved-position fixture; Drive itself is native input
   // through the real bridge, road entry, profile selection, and checkpoint.
-  await evaluate('browserProof.boot()');
+  await evaluate(`{const create=BARCODE.CacheChapter.create.bind(BARCODE.CacheChapter);BARCODE.CacheChapter.create=options=>({...create(options),encounterVersion:2});browserProof.boot();}`);
   assert.equal(await evaluate('browserProof.musicStarts'),0);
   await key('Enter');await key('Enter',false);
   await until('BARCODE.CacheRoadProof.active&&!BARCODE.CacheBridge.active','native final Drive enters authored road');

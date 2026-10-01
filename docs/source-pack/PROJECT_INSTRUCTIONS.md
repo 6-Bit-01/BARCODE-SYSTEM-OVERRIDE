@@ -1,5 +1,19 @@
 # Project Instructions
 
+## October 1 — owner-authorized Break the Pursuit overhaul
+
+The owner approves one broader overhaul after the separate repair PR #167,
+with creative freedom and the existing exit explicitly scrapped. Fresh
+version-3 runs use scouts, convoy choices and three breakable rig systems,
+then deliver after boss defeat and the full song. Legacy saves retain their
+version-1/2 rules. Preserve original stems, beat ONE, announced world
+addresses, the repaired trailing camera/first-gear wrecks, shared lifecycle
+owners, Level 1 and shared cutscene/story handoffs. This supersedes earlier
+preserve-exit/presentation-only limits for this PR. Read
+`CACHE_PURSUIT_OVERHAUL.md`; exact tests/publication and remaining acceptance
+belong to the receipt.
+
+
 ## Current Cache Road constraint — September 29
 
 Queue gear changes for the next downbeat. Never reintroduce instantaneous

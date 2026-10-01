@@ -1,5 +1,22 @@
 # Recovery checkpoint — September 14
 
+## October 1 — Break the Pursuit overhaul candidate
+
+- Fresh version-3 races escalate scouts/convoys into a three-system rig with
+  six committed attack openings and ordinary-dodge/earned-ability counters.
+- Replace the fresh final Echo exit with boss defeat and complete-song
+  delivery; preserve old version-1/2 saved routes.
+- Persist real system breaks and counter attribution; discard partial attacks
+  on reload and reject malformed or forged boss wins.
+- Integrate painted rig damage/wreck poses, system-break effects and Turbo
+  exhaust; open the repaired camera during danger and keep fixed lane cues.
+- Query visible scenery indices and reuse exact bounded per-frame road/mirror
+  heights without changing rendering order or geometry.
+- Add production-input races, failure/retry/save probes, real Chromium
+  showdown, art anchors and output-equivalence gates. Exact results/revision
+  are recorded in the final receipt; Makko acceptance remains pending.
+
+
 ## October 1 — focused driving repair (candidate)
 
 - Follow turn/zoom targets through critically damped transient presentation

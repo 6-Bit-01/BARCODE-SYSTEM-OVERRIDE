@@ -1,5 +1,26 @@
 # Acceptance and Test Status
 
+## October 1 — pursuit overhaul requires fresh owner acceptance
+
+Import the exact overhaul revision in its receipt and start a fresh race
+(version 3). Compare its opening, scouts, convoys and rig approach; wait for
+committed lane locks, dodge to break equipment and try the earned alternatives.
+Miss early opportunities and confirm later recovery, take a genuine wreck
+and confirm first gear, pause during an attack and reload a mid-boss marker.
+Break all three systems, pass the real wreck into the mirror and complete the
+full original song into the existing delivered-original ending. The old exit
+is retained only by historical saved rules, not a fresh run.
+
+Review rig damage stages, system-break/exhaust paint, readable attack/pad
+addresses, danger camera aperture and neutral Reduced Motion. Listen to the
+five stems through damage/recovery, and test physical controller bindings,
+warning clarity, comfort, difficulty/fun and actual device frame pacing.
+Automated real-input races, Chromium checks, native art diagnostics and
+reduced renderer operation counts are evidence of implementation only.
+They do not establish owner Makko acceptance. Prior observations retain
+original revision attribution. See `CACHE_PURSUIT_OVERHAUL.md`.
+
+
 ## October 1 — trailing camera and first-gear wrecks
 
 The owner accepts the direction of turn offsets but rejects abrupt/jerky

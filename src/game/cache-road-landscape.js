@@ -280,6 +280,27 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-landscape.js', exports: [
           ...(original?{authoredAt:original.at,authoredRadial:original.base,
             family:plate.family,key:plate.key}:{})}))};
   }
+  // Build immutable-address indices once, after generation. Querying returns
+  // the original objects in their original painter order; it never mutates a
+  // parcel, graph node or artwork contact. Courts need a separate address from
+  // their street mouth, so their index must not reuse mouth ordering.
+  function addressIndex(records,address=record=>record.at) {
+    const ordered=records.map((record,order)=>({record,order,at:address(record)}))
+      .sort((a,b)=>b.at-a.at||a.order-b.order);
+    const painterOrdered=ordered.every((item,index)=>item.order===index);
+    return (near,far)=>{
+      if(!Number.isFinite(near)||!Number.isFinite(far)||near>far)return [];
+      let lo=0,hi=ordered.length;
+      while(lo<hi) {const mid=(lo+hi)>>>1;
+        if(ordered[mid].at>far)lo=mid+1;else hi=mid;}
+      const start=lo;hi=ordered.length;
+      while(lo<hi) {const mid=(lo+hi)>>>1;
+        if(ordered[mid].at>=near)lo=mid+1;else hi=mid;}
+      const selected=ordered.slice(start,lo);
+      if(!painterOrdered)selected.sort((a,b)=>a.order-b.order);
+      return selected.map(item=>item.record);
+    };
+  }
   function create(seed=0x6b4d,end=9840,protectedSites=[]) {
     if(!Number.isSafeInteger(seed)||!Number.isFinite(end)||end<0)
       throw Error('Invalid Cache Road landscape seed or length');
@@ -490,8 +511,44 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-landscape.js', exports: [
       clearance.satelliteCount=retained.length;
     };
     streets.sort((a,b)=>b.at-a.at);
+    const streetRange=addressIndex(streets),streetPartRange=addressIndex(streetParts);
+    const courts=streets.map(street=>Object.freeze({side:street.side,
+      at:street.nodes[2].at,family:street.family}));
+    const courtRange=addressIndex(courts);
+    const mouthHalfWidth=Math.max(0,...streets.map(street=>street.halfWidth));
     return Object.freeze({seed,chunks,plates,streets,streetParts,districts,
       parcels,graph,pitch:PITCH,span:SPAN,clearance,fitSatellites,
+      streetRange,streetPartRange,courtRange,
+      streetMouthRange(start,end,side) {
+        return streetRange(start-mouthHalfWidth,end+mouthHalfWidth)
+          .filter(street=>(side===undefined||street.side===side)&&
+            start<street.at+street.halfWidth&&end>street.at-street.halfWidth);
+      },
+      // A draw owns this bounded memo and may share it with its rear camera.
+      // Exact numeric coordinates remain the keys: there is no rounding,
+      // quantization, temporal reuse or change to the authored height field.
+      // A zero budget measures the same production sampler without caching.
+      createFrameHeightSampler(maxEntries=1024) {
+        if(!Number.isInteger(maxEntries)||maxEntries<0||maxEntries>4096)
+          throw Error('Invalid Cache Road frame-height sample budget');
+        const sides=new Map();let entries=0,calls=0,hits=0,computations=0;
+        const sample=(side,at,radial)=>{
+          calls++;
+          const addresses=sides.get(side),radii=addresses?.get(at);
+          if(radii?.has(radial)) {hits++;return radii.get(radial);}
+          computations++;const value=height(seed,side,at,radial);
+          if(entries<maxEntries&&Number.isFinite(side)&&Number.isFinite(at)&&Number.isFinite(radial)) {
+            const storedAddresses=addresses||new Map();
+            const storedRadii=radii||new Map();storedRadii.set(radial,value);
+            if(!radii)storedAddresses.set(at,storedRadii);
+            if(!addresses)sides.set(side,storedAddresses);
+            entries++;
+          }
+          return value;
+        };
+        sample.getStats=()=>Object.freeze({calls,hits,computations,entries,maxEntries});
+        return Object.freeze(sample);
+      },
       height:(side,at,radial)=>height(seed,side,at,radial),
       owns(side,at,margin=0) {
         return chunks.some(chunk=>chunk.side===side &&

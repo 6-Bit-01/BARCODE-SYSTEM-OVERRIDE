@@ -1,0 +1,47 @@
+{
+  "reviewDate": "2026-10-01",
+  "status": "local working-tree optimization evidence; final revision and CI belong to the PR receipt",
+  "checkpointRevision": "f385c919bedbf228f8ee5bf1d708ecb57d151178",
+  "productionChanges": {
+    "addressIndices": "Generated street mouths, parts and court addresses are indexed once. Visible queries return the same original objects in the original painter order; courts retain their own ground addresses.",
+    "terrainMemo": "One draw creates an exact-coordinate height sampler shared by the front and rear cameras. It caches at most 1024 unique samples by default, with a hard allowed maximum of 4096. There is no coordinate rounding, cross-frame cache, timer or new Canvas/context."
+  },
+  "focusedCheck": {
+    "command": "node tools/check-cache-road-visibility-index.cjs",
+    "passed": true,
+    "rangeQueries": 2340,
+    "generatorSeeds": [27469, 17, 92381],
+    "worldLengths": [9840, 15000],
+    "returnedStreetCandidates": 8954,
+    "equivalentFullScanCandidates": 282056,
+    "productionFrames": 26,
+    "productionBossFrames": 2,
+    "heightSampleRequests": 14195,
+    "reusedExactHeightSamples": 6051,
+    "unchanged": [
+      "serialized world geometry, parcel graph and artwork contacts",
+      "source object identities and original painter ordering",
+      "strict street-mouth intersection endpoints",
+      "front/rear image keys, order, projection arguments and filter values",
+      "native production vector and HUD pixels while image submissions are traced",
+      "exact height outputs and bounded per-frame cache"
+    ],
+    "fixtureLimits": "The two boss frames use a production committed attack and persistent rig body, with staged presentation timers. They are rendering diagnostics, not earned gameplay or a human playtest. Atlas source submissions are traced; this check does not inspect every source-art pixel.",
+    "ciHistoryRequirement": "none; default comparison uses the current production renderer and switches only the reference layout queries/memo to full scans/zero caching"
+  },
+  "historicalAudit": {
+    "command": "CACHE_INDEX_BASELINE=f385c919bedbf228f8ee5bf1d708ecb57d151178 node tools/check-cache-road-visibility-index.cjs",
+    "passed": true,
+    "productionFrames": 24,
+    "heightSampleRequests": 12970,
+    "reusedExactHeightSamples": 5576,
+    "meaning": "The PR167 production renderer with only indexed queries/shared exact height sampling substituted preserved geometry, image submission arguments/order and native vector/HUD pixels. This optional audit requires the named Git history."
+  },
+  "profiling": {
+    "tool": "tools/profile-cache-frame.cjs",
+    "scenarios": ["road", "traffic", "boss"],
+    "controls": ["PROFILE_REVISION", "PROFILE_POSITIONS", "PROFILE_FRAMES", "PROFILE_SPEED", "PROFILE_SCENARIO", "PROFILE_SEAMS", "PROFILE_TERRAIN_STEP", "PROFILE_CAPTURE"],
+    "reports": ["first draw", "warm median", "warm p95", "maximum", "stage CPU times", "image submissions", "filtered image submissions", "clips", "height sample reuse"],
+    "limits": "Native CPU timing varies substantially with host load and decode. A first draw uses predecoded images and is not cold network loading. The paint stage also includes traffic, car, rearview and HUD. Operation reductions do not establish browser FPS, total frame-time improvement, Makko performance, physical-controller comfort or owner acceptance. Final sequential same-host timing remains separate."
+  }
+}

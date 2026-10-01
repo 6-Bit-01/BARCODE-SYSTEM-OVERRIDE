@@ -102,6 +102,19 @@ jobs:
           CHROME_BIN: /usr/bin/google-chrome
           CACHE_ENCOUNTERS_BROWSER_OUTPUT: ${{ runner.temp }}/cache-encounters-browser
         run: npm run check:cache-encounters-browser
+      - name: Check Cache pursuit showdown in real Chromium
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+          CACHE_PURSUIT_BROWSER_OUTPUT: ${{ runner.temp }}/cache-pursuit-browser
+          CACHE_PURSUIT_BROWSER_REQUIRE_HOSTED: '1'
+        run: npm run check:cache-pursuit-browser
+      - name: Upload Cache pursuit browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cache-pursuit-browser-${{ github.sha }}
+          path: ${{ runner.temp }}/cache-pursuit-browser
+          if-no-files-found: ignore
       - name: Upload Cache Road encounter browser evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -133,6 +146,7 @@ jobs:
           Path(os.environ['PACK_RECEIPT']).write_text(json.dumps({
               'revision': os.environ['GITHUB_SHA'],
               'automatedTests': {'npm test': 'passed', 'npm run check:syntax:all': 'passed', 'npm run check:cache-road-browser': 'passed (real MP3s, missing local asset recovery, Drive catch and collision bus recovery)', 'node tools/check-music-audibility.cjs': 'passed (controlled and original MP3s)', 'node tools/check-background-browser.cjs': 'passed', 'node tools/check-intro-browser.cjs': 'passed', 'node tools/check-settings-browser.cjs': 'passed', 'node tools/check-cache-bridge-browser.cjs': 'passed (eight hosted byte-identical paintings, shared Canvas, production bridge input and final Drive guard)', 'MODE_SFX_REVIEW=1 node tools/check-music-audibility.cjs': 'passed'},
+              'cachePursuitBrowser': 'passed (production gamepad race, three-system boss defeat, real painted art, shared Canvas/RAF and paused state; staged visual diagnostics separately labelled)',
               'cacheEndingBrowser': 'passed (four hosted byte-identical paintings, production shared Canvas/input/RAF/audio and silent ending reload)',
               'cacheEncountersBrowser': 'passed (four hosted byte-identical sprites, native Drive/steering/Echo, shared Canvas and three explicitly staged production draw screenshots)',
               'makkoPlaytest': 'not recorded by CI',

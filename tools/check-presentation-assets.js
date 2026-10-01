@@ -11,12 +11,35 @@ w.Image = class Image {
 load(context, 'src/engine/presentation-assets.js');
 const art = w.BARCODE.PresentationAssets;
 for (let i = 0; i < 20; i++) art.preload();
-assert.strictEqual(images.length, 242, 'restarts reuse Cache traffic, six block families, ten travel sheets, six activity sheets, graph joins, ground, walkers, props, decals, practical lights, three static dashboard assets, four encounter effects and local effects');
+assert.strictEqual(images.length, 244, 'restarts reuse existing art plus the eight-pose pursuit rig and six-cell pursuit impact atlases');
 const speedRoot='https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/f9c2fad2472f3bebdb9554f13893293d74b8bece/';
 const windImage=images.find(im=>im.requests[0]===speedRoot+'assets/cache-road/effects/wind-streak-atlas-v2.png');
 assert(windImage,'painted speed atlas uses its published immutable revision');
 windImage.onerror();assert.deepEqual(windImage.requests,[speedRoot+'assets/cache-road/effects/wind-streak-atlas-v2.png','assets/cache-road/effects/wind-streak-atlas-v2.png']);
 assert(fs.existsSync(path.join(root,windImage.requests[1])));
+const pursuitSource = fs.readFileSync(path.join(root, 'src/engine/presentation-assets.js'), 'utf8');
+const pursuitRevision = pursuitSource.match(/const PURSUIT_ART_REV = '([a-f0-9]{40})';/)?.[1];
+assert(pursuitRevision, 'pursuit artwork must be pinned to a published immutable commit before validation');
+const pursuitRoot = `https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/${pursuitRevision}/`;
+const pursuitPaths = ['pursuit-rig-atlas.webp', 'pursuit-impact-atlas.webp']
+  .map(file => 'assets/cache-road/pursuit/' + file);
+const pursuitImages = images.filter(im => im.requests[0].startsWith(pursuitRoot));
+assert.deepEqual(pursuitImages.map(im => im.requests[0].slice(pursuitRoot.length)).sort(),
+  pursuitPaths.slice().sort(), 'both new pursuit atlases share their immutable source revision');
+for (const image of pursuitImages) {
+  image.onerror();
+  const local = image.requests[0].slice(pursuitRoot.length);
+  assert.deepEqual(image.requests, [pursuitRoot + local, local],
+    'a failed pursuit art request gets its matching bundled fallback once');
+  assert(fs.existsSync(path.join(root, local)), local + ' is included in the source tree');
+}
+const failedPursuitImage = pursuitImages.find(im => im.requests[0].endsWith('/pursuit-impact-atlas.webp'));
+failedPursuitImage.onerror();
+assert.equal(failedPursuitImage.onload, null);
+assert.equal(failedPursuitImage.onerror, null);
+art.preload();
+assert.equal(failedPursuitImage.requests.length, 2,
+  'missing pursuit art stops after its hosted and bundled requests both fail');
 const dashboardRoot='https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/dd1b3e9adc174da39e4b228c45079526c9c6a36a/';
 const dashboardImages=images.filter(im=>im.requests[0].startsWith(dashboardRoot));
 assert.equal(dashboardImages.length,3,'all three static instruments share their immutable artwork revision');
@@ -121,7 +144,7 @@ failedPaintedImage.onerror();
 assert.strictEqual(failedPaintedImage.onload,null);
 assert.strictEqual(failedPaintedImage.onerror,null);
 art.preload();
-assert.strictEqual(images.length,242,'failed painted and activity assets are not recreated on restart');
+assert.strictEqual(images.length,244,'failed painted, activity and pursuit assets are not recreated on restart');
 assert.strictEqual(failedPaintedImage.requests.length,2,'painted assets stop after both sources fail');
 assert.strictEqual(failedActivityImage.requests.length,2,'activity assets stop after both sources fail');
 const cacheRoadRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/37db98387b8791655e3ff352d6bc6d61cb0b574b/';
@@ -248,7 +271,7 @@ assert.deepStrictEqual(ops.find(op=>op[0]==='drawImage').slice(2),
   'the cleaner uses one complete registered fourth cel with its planted foot anchor');
 arrowImage.onerror(); arrowImage.onerror();
 assert.strictEqual(arrowImage.requests.length, 2); assert.strictEqual(arrowImage.onerror, null);
-art.preload(); assert.strictEqual(images.length, 242, 'failed assets do not retry forever');
+art.preload(); assert.strictEqual(images.length, 244, 'failed assets do not retry forever');
 pulseImage.naturalWidth = pulseImage.naturalHeight = 512; pulseImage.onload();
 ops.length = 0; art.draw('bossPulse', ctx, { y: 822, width: 64, height: 56, frame: 2 });
 assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2), [10, 351, 236, 145, -32, -56, 64, 56], 'pulse fills the dangerous height and retains the ground anchor');

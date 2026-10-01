@@ -74,6 +74,47 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
       {stumbleMs:350},{integrity:1}])render('mirror expression',1200,420,extra);
     for(const passSide of [-1,1])render('painted passing whoosh',1200,420,{passFlashMs:780,passSide});
     for(let cel=0;cel<122;cel++)render('sky traffic',1200,cel*40);
+    // Diagnostic production-state coverage, separate from the earned input
+    // race gate: the actual Pursuit owner creates and counters each attack.
+    // Only the rig's road address is staged to inspect each camera's draw.
+    const pursuitOwner=B.CacheRoadPursuit;
+    check(pursuitOwner&&B.CacheRoadBossArt,'Pursuit art owners were not loaded');
+    const clone=value=>JSON.parse(JSON.stringify(value));
+    const pursuit=pursuitOwner.create({version:3,barFloat:72});
+    const pursuitCases=[];let pursuitProgress=1200,pursuitBar=72;
+    const stepPursuit=(bar,dt=100,lane=1,next=pursuitProgress)=>{
+      const events=pursuitOwner.step(pursuit,{before:pursuitProgress,progress:next,
+        barFloat:bar,dt,lane,difficultyId:'standard',actors:[],protectedPulses:[]});
+      pursuitProgress=next;pursuitBar=bar;return events;
+    };
+    const capturePursuit=(frame,impact)=>pursuitCases.push({frame,impact,
+      pursuit:clone(pursuit),progress:pursuitProgress,bar:pursuitBar});
+    const lockPursuit=bar=>{for(let i=0;i<5;i++)stepPursuit(bar);};
+    const counterPursuit=bar=>{
+      const events=stepPursuit(bar,20,3,pursuit.actor.at+1);
+      const impact=events.find(event=>event.type==='boss-counter');
+      check(impact,`Diagnostic pursuit at bar ${bar} did not counter its actual attack`);
+      return impact;
+    };
+    stepPursuit(72,20);capturePursuit(0);
+    lockPursuit(76);capturePursuit(1);
+    capturePursuit(2,counterPursuit(77));
+    lockPursuit(80);capturePursuit(3);
+    capturePursuit(4,counterPursuit(81));
+    for(let i=0;i<11;i++)stepPursuit(81);
+    capturePursuit(5);
+    lockPursuit(84);capturePursuit(6);
+    capturePursuit(7,counterPursuit(85));
+    for(const fixture of pursuitCases)for(const camera of ['main','mirror']) {
+      const staged=clone(fixture.pursuit),clock=1000+fixture.frame*100;
+      staged.boss.rigAt=fixture.progress+(camera==='main'?230:-140);
+      const calls=render(`diagnostic pursuit pose-${fixture.frame}/${camera}`,
+        fixture.progress,clock,{pursuit:staged,musicBar:fixture.bar,
+          musicBeatFloat:fixture.bar*4,...(camera==='main'&&fixture.impact?
+            {bossImpact:{...fixture.impact,atMs:clock-50}}:{})});
+      check(calls.some(([key,frame])=>key==='cachePursuitRig'&&frame===fixture.frame),
+        `Production ${camera} missed diagnostic pursuit pose ${fixture.frame}`);
+    }
     const intentionalStable=['cacheCar','cacheCarLeft','cacheCarRight'];
     const inventory=Object.entries(definitions).filter(([key,entry])=>
       key.startsWith('cache')&&entry.frames>1);
@@ -81,12 +122,12 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
       const frames=coverage.main[key]??new Set();
       const expected=intentionalStable.includes(key)?1:entry.liveFrames?.length||entry.frames;
       if(entry.liveFrames)check(JSON.stringify([...frames].sort((a,b)=>a-b))===JSON.stringify(entry.liveFrames),
-        `${key}: live variant atlas must draw every intended effect and no reserved mist cel`);
+        `${key}: live variant atlas must draw every intended effect and no reserved source cel`);
       check(frames.size===expected,`${key}: actual world/HUD drew ${frames.size}/${expected} cels`);
       if(key.endsWith('Travel')||key.endsWith('Activity')||
           key.startsWith('cacheAmbient')||propKeys.includes(key)||
           ['cacheFreight','cacheCourier','cacheAudit','cacheSweeper',
-            'cacheTrike','cacheShuttle'].includes(key))
+            'cacheTrike','cacheShuttle','cachePursuitRig'].includes(key))
         check(coverage.mirror[key]?.size===entry.frames,
           `${key}: rearview did not play every authored cel`);
     }

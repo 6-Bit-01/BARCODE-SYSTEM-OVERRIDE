@@ -18,10 +18,10 @@ function saveRig(storage) {
 async function fresh(difficulty = 'standard', version = 2) {
   const r = saveRig(), before = r.finish();
   before.levelState.difficultyId = difficulty;
-  if (version === 1) {
+  if (version !== 3) {
     // Construct a pre-existing v1 run through the same entry/save owner.
     const create = r.B.CacheChapter.create.bind(r.B.CacheChapter);
-    r.B.CacheChapter.create = options => ({ ...create(options), encounterVersion: 1 });
+    r.B.CacheChapter.create = options => ({ ...create(options), encounterVersion: version });
   }
   await r.boot(before); r.bridge.skipToReady();
   assert((await r.bridge.drive()).ok);
@@ -96,7 +96,7 @@ async function transition(mode) {
 async function malformed(saved) {
   const r = saveRig();
   for (const mutate of [
-    candidate => { candidate.levelState.chapter.encounterVersion = 3; },
+    candidate => { candidate.levelState.chapter.encounterVersion = 4; },
     candidate => { candidate.levelState.proof.encounters.version = 3; },
     candidate => { candidate.levelState.chapter.encounterVersion = 1; },
     candidate => { candidate.levelState.proof.encounters.version = 1; },

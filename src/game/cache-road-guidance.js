@@ -87,6 +87,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
   }
   function objective(road) {
     const s=road.state,bar=s.musicBeatFloat/4;
+    if(road.chapter?.encounterVersion===3) {
+      if(s.pursuit?.defeated)return {stage:3,title:'PURSUIT BROKEN',instruction:'DELIVER THE ORIGINAL / KEEP DRIVING'};
+      if(bar>=72)return {stage:2,title:'BREAK THE PURSUIT',instruction:'BAIT THE LOCK / DODGE OR COUNTER'};
+      if(bar>=28)return {stage:1,title:'OUTRUN THE ENFORCEMENT',instruction:'EARN POWER / BREAK THROUGH THE CONVOY'};
+      return {stage:0,title:'PROTECT THE ORIGINAL',instruction:'FOLLOW THE PADS / WATCH YOUR MIRROR'};
+    }
     if(s.gateOpen)return {stage:3,title:'DELIVER THE ORIGINAL',instruction:'EXIT CLEAR  /  KEEP DRIVING'};
     if(s.gateAt!=null&&s.progress>=s.gateAt-220) return {stage:2,title:'SPLIT THE AUDIT',
       instruction:s.echo?'ECHO SENT  /  TAKE THE FAR-RIGHT EXIT':'HOLD LEFT  /  SEND ECHO  /  EXIT RIGHT'};
@@ -98,6 +104,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
   }
   function lesson(road,{nextPulse,nextCue}={}) {
     const s=road.state,bar=s.musicBeatFloat/4;
+    if(road.chapter?.encounterVersion===3&&bar>=72&&!s.pursuit?.defeated&&s.rivalWarning)
+      return {index:5,title:s.rivalEchoCommitted?'DECOY COMMITTED / MOVE':'LOCKED ATTACK / DODGE',detail:'A clean escape overloads its exposed system. Earned Push, Brace and Turbo can counter contact.'};
     if(s.gateAt!=null&&s.progress>=s.gateAt-220&&!s.gateOpen) return {index:5,
       title:s.echo?'DECOY LEFT / ORIGINAL RIGHT':'ECHO LEFT / EXIT RIGHT',
       detail:s.echo?'Take the far-right marked exit.':'Send the replay, then steer away from it.'};
@@ -208,9 +216,45 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
     fittedText(ctx,'EXIT',1760,191,90,15,exitColor);
     laneDiagram(ctx,s,1758,204,{lane:3,color:exitColor});
   }
+  function bossDiagram(ctx,road) {
+    const s=road.state,boss=B.CacheRoadPursuit?.boss?.(s.pursuit,{progress:s.progress});
+    if(!boss)return;
+    const color=boss.defeated?'#b9ffe0':'#ff917d';
+    panel(ctx,1470,174,420,86,color);
+    fittedText(ctx,boss.defeated?'PURSUIT BROKEN':'BREAK THE PURSUIT',1490,191,256,15,color);
+    const labels=['SCAN','RAM','CORE'];
+    for(let i=0;i<3;i++) {
+      const broken=boss.systems?.[i]?.broken===true;
+      const x=1490+i*67;
+      ctx.fillStyle=broken?'#5b706b':'#ff917d';ctx.fillRect(x,211,52,27);
+      ctx.strokeStyle=broken?'#b9ffe0':'#ffe4bd';ctx.lineWidth=2;
+      if(broken) {ctx.beginPath();ctx.moveTo(x+9,223);ctx.lineTo(x+21,233);ctx.lineTo(x+43,214);ctx.stroke();}
+      else fittedText(ctx,labels[i],x+26,225,46,12,'#152331','center');
+    }
+    if(s.rivalWarning&&!boss.defeated) {
+      // A danger map marks the attack address; it never guides the car into it.
+      const target=Math.round(s.rivalTarget),current=clamp(s.lanePos,0,3);
+      fittedText(ctx,'DODGE',1794,199,108,11,color,'center');
+      for(let lane=0;lane<4;lane++) {
+        const x=1740+lane*28;
+        ctx.fillStyle=lane===target?'#713f49':'#1b3540';ctx.fillRect(x,211,24,23);
+        if(lane===target) {
+          ctx.strokeStyle='#ffb9a6';ctx.lineWidth=2;ctx.beginPath();
+          ctx.moveTo(x+5,216);ctx.lineTo(x+19,229);
+          ctx.moveTo(x+19,216);ctx.lineTo(x+5,229);ctx.stroke();
+        }
+      }
+      carMark(ctx,1752+current*28,243);
+
+      const d=Math.max(0,s.nextRivalAt-s.progress);
+      ctx.fillStyle='#30474b';ctx.fillRect(1740,248,108,3);
+      ctx.fillStyle=color;ctx.fillRect(1740,248,108*clamp(1-d/180,0,1),3);
+    } else fittedText(ctx,boss.defeated?'DELIVER':'COUNTER',1794,225,116,15,color,'center');
+  }
   function cueDiagram(ctx,road,options,cue) {
     const s=road.state,bar=s.musicBeatFloat/4,{nextPulse,nextCue}=options;
-    if(!s.gateOpen&&(bar>=90||s.gateAt!=null&&s.progress>=s.gateAt-220)) {exitDiagram(ctx,s);return;}
+    if(road.chapter?.encounterVersion!==3&&!s.gateOpen&&(bar>=90||s.gateAt!=null&&s.progress>=s.gateAt-220)) {exitDiagram(ctx,s);return;}
+    if(road.chapter?.encounterVersion===3&&bar>=72) {bossDiagram(ctx,road);return;}
     if(!cue)return;
     // Routine instructions live in Pause. In motion, show the lane, the
     // actual mapped button and the ONE target the player is aiming for.
@@ -318,7 +362,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
       fittedText(ctx,BADGES[i].name,x+80,685,185,17,BADGES[i].color);
       fittedText(ctx,i===4?'Launch next ONE':'100% charge: replay',x+80,709,185,14,'#d4dfec');
     }
-    fittedText(ctx,'EXIT: ECHO LEFT / ORIGINAL FAR RIGHT',440,750,548,18,'#a0ffe4');
+    fittedText(ctx,road.chapter?.encounterVersion===3?'BOSS: BAIT THE LOCK / DODGE OR COUNTER':'EXIT: ECHO LEFT / ORIGINAL FAR RIGHT',440,750,548,18,'#a0ffe4');
     tape(ctx,456,784,27);fittedText(ctx,'Optional record: hold its lane for 0.65s.',484,784,506,16,'#e7d2b3');
     ctx.restore();
   }

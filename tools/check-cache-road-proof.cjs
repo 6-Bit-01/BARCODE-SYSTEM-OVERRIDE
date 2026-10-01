@@ -1753,6 +1753,10 @@ async function run() {
   // Actual chapter integration: legacy saves are still non-awarding with the
   // new module installed; only a full new drive creates eligible metadata.
   load(context, 'src/game/cache-chapter.js');
+  // This historical authored-exit matrix explicitly retains version 2.
+  // Fresh version-3 boss completion is covered by the real-input overhaul gate.
+  const currentChapter=B.CacheChapter;
+  B.CacheChapter={...currentChapter,create(...args){return {...currentChapter.create(...args),encounterVersion:2};}};
   const chapterAPI=B.CacheChapter;
   assert(road.restore(legacy));
   assert.equal(road.chapter,null);

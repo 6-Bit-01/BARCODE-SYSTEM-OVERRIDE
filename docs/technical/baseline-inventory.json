@@ -59,6 +59,7 @@
     "src/game/cache-road-encounters.js",
     "src/game/cache-road-reactions.js",
     "src/game/cache-road-pursuit.js",
+    "src/game/cache-road-boss-art.js",
     "src/game/cache-road-guidance.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
@@ -132,6 +133,7 @@
     "src/game/cache-road-encounters.js",
     "src/game/cache-road-reactions.js",
     "src/game/cache-road-pursuit.js",
+    "src/game/cache-road-boss-art.js",
     "src/game/cache-road-guidance.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
@@ -431,6 +433,10 @@
         "status": "pass"
       },
       {
+        "file": "src/game/cache-road-boss-art.js",
+        "status": "pass"
+      },
+      {
         "file": "src/game/cache-road-guidance.js",
         "status": "pass"
       },
@@ -497,11 +503,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 70,
+        "index": 71,
         "status": "pass"
       },
       {
-        "index": 72,
+        "index": 73,
         "status": "pass"
       }
     ]
@@ -902,6 +908,7 @@
     "src/game/cache-road-encounters.js",
     "src/game/cache-road-reactions.js",
     "src/game/cache-road-pursuit.js",
+    "src/game/cache-road-boss-art.js",
     "src/game/cache-road-guidance.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",

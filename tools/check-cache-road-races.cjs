@@ -21,7 +21,7 @@ const SNAPSHOT_KEYS = ['id', 'at', 'distance', 'lane', 'kind', 'targetLane', 'co
 const safeItem = item => Object.fromEntries(SNAPSHOT_KEYS.filter(key => item[key] !== undefined).map(key => [key, item[key]]));
 
 async function raceRig(difficulty) {
-  const r = completionRig();
+  const r = completionRig(undefined, { encounterVersion: 3 });
   // Companion owners are loaded before entry; existing regression rigs can
   // still intentionally exercise their legacy route without this chart.
   for (const [name, file] of [['CacheRoadEncounters', 'src/game/cache-road-encounters.js'],
@@ -84,10 +84,19 @@ function instrument(r) {
     if (before >= 100 && this.state.echoEnergy < before) event('echo');
     return result;
   };
+  const awardPulse = road.awardPulse.bind(road);
+  road.awardPulse = function(...args) {
+    const s = this.state, before = { pushMs: s.ramMs, shield: s.shield,
+      boost: s.boost, echoEnergy: s.echoEnergy };
+    const result = awardPulse(...args);
+    event('earned-action', { action: args[0]?.action, lane: args[0]?.lane,
+      before, after: { pushMs: s.ramMs, shield: s.shield, boost: s.boost, echoEnergy: s.echoEnergy } });
+    return result;
+  };
   return { events, pulses, event };
 }
 
-// The driver knows the road's controls and the shown final-exit instructions.
+// The driver knows the road's controls and the shown attack/exit instructions.
 // It sees only the production snapshot's announced pads, visible actors and
 // pursuit tell. Observation delay/replanning/timing error are explicit. It
 // never reads chart entries that have not appeared or searches a future run.
@@ -97,13 +106,15 @@ class Driver {
     this.frames = []; this.seen = new Map(); this.pressed = new Set(); this.omitted = new Set();
     this.target = 1; this.nextDecision = 0; this.lastEcho = -10000; this.lastTurbo = -10000;
     this.finalEcho = false; this.mistakeChosen = false; this.mistake = null; this.sequence = 0; this.mistakeTries = 0; this.mistakeActors = new Set();
-    this.lastPursuitStage = null; this.nextGearRequest = 200; this.ramTarget = null; this.echoEscape = null;
+    this.lastPursuitStage = null; this.nextGearRequest = 200; this.ramTarget = null; this.braceTarget = null; this.echoEscape = null;
+    this.bossOffers = new Map();
   }
   snapshot() {
     const raw = this.r.road.encounterSnapshot(), s = this.r.road.state;
     return { atMs: s.elapsedMs, progress: s.progress, lane: s.lanePos,
       hazards: (raw.hazards || []).map(safeItem), pulses: (raw.pulses || []).map(safeItem),
-      pursuit: raw.pursuit ? copy(raw.pursuit) : null, cue: raw.cue ? copy(raw.cue) : null, gate: raw.gate ? copy(raw.gate) : null };
+      pursuit: raw.pursuit ? copy(raw.pursuit) : null, boss: raw.boss ? copy(raw.boss) : null,
+      cue: raw.cue ? copy(raw.cue) : null, gate: raw.gate ? copy(raw.gate) : null };
   }
   step() {
     const { r, profile: p } = this, { road, pad } = r, s = road.state, now = s.elapsedMs;
@@ -131,6 +142,8 @@ class Driver {
     const targetBeat = pulse?.target;
     const pulseSec = Number.isFinite(targetBeat) ? (targetBeat - s.musicBeatFloat) * 60 / 128 : Infinity;
     const pursuit = view.pursuit;
+    const overhaul = road.chapter?.encounterVersion === 3;
+    if (pursuit?.boss && !this.bossOffers.has(pursuit.id)) this.bossOffers.set(pursuit.id, this.bossOffers.size + 1);
     if (this.echoEscape && s.progress >= this.echoEscape.at + 1) this.echoEscape = null;
     if (pursuit?.echoCommitted && !pursuit.crossed)
       this.echoEscape = { id: pursuit.id, at: pursuit.at, lane: pursuit.lockLane };
@@ -207,9 +220,18 @@ class Driver {
       if (actor) { this.ramTarget = actor; this.observed.event('push-route-input', { id: actor.id, actor: actor.kind }); }
     }
     if (this.ramTarget) this.target = this.ramTarget.targetLane ?? this.ramTarget.lane;
+    if (this.braceTarget && (s.shield <= 0 || s.progress > this.braceTarget.at + 1)) this.braceTarget = null;
+    if (this.options.seekBrace && !this.braceTarget && !this.ramTarget && s.musicBar < 70 && s.shield > 0 &&
+        !s.ramMs && !s.boostMs && !s.invulnerableMs) {
+      const actor = hazards.find(h => !['audit', 'block'].includes(h.kind) &&
+        h.distance / Math.max(s.speed, 30) > Math.abs(h.lane - s.lanePos) / 2.0 + .3 &&
+        h.distance / Math.max(s.speed, 30) < 2.5);
+      if (actor) { this.braceTarget = actor; this.observed.event('brace-route-input', { id: actor.id, actor: actor.kind }); }
+    }
+    if (this.braceTarget) this.target = this.braceTarget.targetLane ?? this.braceTarget.lane;
     const cue = view.cue;
-    if (!this.mistake && Array.isArray(cue) && /PREPARE|SPLIT|DELIVERY/.test(cue[0]) && s.gateAt == null) this.target = 0;
-    const final = view.gate?.at != null && !view.gate.open;
+    if (!overhaul && !this.mistake && Array.isArray(cue) && /PREPARE|SPLIT|DELIVERY/.test(cue[0]) && s.gateAt == null) this.target = 0;
+    const final = !overhaul && view.gate?.at != null && !view.gate.open;
     if (final && this.options.failFirstExit && !road.chapter.retries) {
       this.target = 3; // Explicit missed final Echo; exercise the real failure/retry route.
     } else if (final) {
@@ -222,7 +244,8 @@ class Driver {
           this.observed.event('final-echo-input');
         }
       } else this.target = 3;
-    } else if (s.echoEnergy >= 100 && now - this.lastEcho > 3500) {
+    } else if (!this.options.noEcho && !(overhaul && this.options.bossDodgeOnly && s.musicBar >= 72) &&
+        s.echoEnergy >= 100 && now - this.lastEcho > 3500) {
       const audit = hazards.find(h => h.kind === 'audit' && h.distance / Math.max(s.speed, 30) < 3.8);
       const pursuitWarning = pursuit?.warning ?? s.rivalWarning;
       if (audit || pursuitWarning) {
@@ -233,11 +256,14 @@ class Driver {
     }
     // Turbo is a deliberate response to close traffic, with no pulse due
     // during its immediate input. Its actual acceleration remains bar-owned.
-    if (!final && !earlyProbe && !this.mistake && !this.ramTarget && s.boost > 0 && !s.queuedTurbo && now - this.lastTurbo > 6500 &&
-        pulseSec > .4 && hazards.some(h => h.distance / Math.max(s.speed, 30) < 1.4 && Math.abs(h.lane - s.lanePos) < .7)) {
+    if (!this.options.noTurbo && !(overhaul && this.options.bossDodgeOnly && s.musicBar >= 72) &&
+        !final && !earlyProbe && !this.mistake && !this.ramTarget && !this.braceTarget && s.boost > 0 && !s.queuedTurbo && now - this.lastTurbo > 6500 &&
+        pulseSec > .4 && (this.options.seekTurbo && s.musicBar < 70 ||
+          hazards.some(h => h.distance / Math.max(s.speed, 30) < 1.4 && Math.abs(h.lane - s.lanePos) < .7))) {
       pad.buttons[4].pressed = true; this.lastTurbo = now; this.observed.event('turbo-input');
     }
-    if (!this.mistake && !this.ramTarget && pulse && !this.omitted.has(pulse.id)) {
+    if (!this.mistake && !this.ramTarget && !this.braceTarget && pulse && !this.omitted.has(pulse.id) &&
+        !(overhaul && this.options.bossDodgeOnly && s.musicBeatFloat / 4 >= 71.5)) {
       const record = this.seen.get(pulse.id), targetSec = record.target * 60 / 128 + record.jitter / 1000;
       const heardSec = s.musicBeatFloat * 60 / 128;
       if (heardSec >= targetSec && heardSec < targetSec + .07) {
@@ -248,21 +274,48 @@ class Driver {
       }
     }
     if (this.options.failFirstExit && !road.chapter.retries && s.musicBar >= 90) pad.buttons[5].pressed = false;
-    pad.axes[0] = Math.abs(this.target - s.lanePos) > p.aimTolerance ? Math.sign(this.target - s.lanePos) : 0;
+    let aimTolerance = p.aimTolerance;
+    if (overhaul && this.options.preferBossBrace && pursuit?.boss && pursuit.warning &&
+        pursuit.locked && !pursuit.crossed && s.shield > 0 && !s.ramMs && !s.boostMs) {
+      this.target = pursuit.lockLane;
+      this.observed.event('earned-brace-counter-input', { id: pursuit.id });
+      for (const index of [0, 1, 2, 3, 4, 5]) pad.buttons[index].pressed = false;
+    }
+    if (overhaul && this.options.bossDodgeOnly && pursuit?.boss && pursuit.warning && !pursuit.crossed) {
+      // Withhold combat inputs and respond only to the visible committed
+      // lane. The neutral phase lets the scanner finish announcing its lane.
+      // A narrow miss is a deliberate timing/route error, not a health write.
+      if (!pursuit.locked) this.target = s.lanePos;
+      else if (!road.chapter.retries && this.bossOffers.get(pursuit.id) <= (this.options.missBossAttacks || 0)) {
+        this.target = pursuit.lockLane + (pursuit.lockLane > 1.5 ? -.64 : .64);
+        aimTolerance = .012;
+      } else {
+        const safeLanes = [0, 1, 2, 3].filter(lane => Math.abs(lane - pursuit.lockLane) >= .95);
+        this.target = safeLanes.sort((a, b) => Math.abs(a - s.lanePos) - Math.abs(b - s.lanePos) || a - b)[0];
+      }
+      for (const index of [0, 1, 2, 3, 4, 5]) pad.buttons[index].pressed = false;
+    }
+    pad.axes[0] = Math.abs(this.target - s.lanePos) > aimTolerance ? Math.sign(this.target - s.lanePos) : 0;
   }
   resetAfterRetry() {
     this.frames = []; this.nextDecision = 0; this.finalEcho = false; this.mistake = null;
     this.pressed.clear(); this.seen.clear(); this.omitted.clear(); this.nextGearRequest = 200; this.target = this.r.road.state.lanePos; this.echoEscape = null;
+    this.bossOffers.clear(); this.ramTarget = null; this.braceTarget = null;
   }
 }
 
-async function runRace({ difficulty = 'standard', gear = 1, profile = 'practiced', retryLimit = 0, onReady, onFrame, gearSchedule = [], failFirstExit = false, seekPush = false, earlyHits = 0, timingBiasMs = 0 } = {}) {
+async function runRace({ difficulty = 'standard', gear = 1, profile = 'practiced', retryLimit = 0, onReady, onFrame,
+    gearSchedule = [], failFirstExit = false, seekPush = false, earlyHits = 0, timingBiasMs = 0,
+    noEcho = false, noTurbo = false, bossDodgeOnly = false, missBossAttacks = 0,
+    seekBrace = false, seekTurbo = false, preferBossBrace = false } = {}) {
   const r = await raceRig(difficulty), observed = instrument(r);
   // Rendering is a host boundary in this balance study. Preserve the real
   // renderer for native review callbacks without drawing 9,375 mock frames.
   r.drawRoad = r.road.draw.bind(r.road); r.road.draw = () => {};
   const initialTimerMs = r.road.state.timeMs;
-  const driver = new Driver(r, PROFILES[profile], gear, observed, { gearSchedule, failFirstExit, seekPush, earlyHits, timingBiasMs });
+  const driver = new Driver(r, PROFILES[profile], gear, observed,
+    { gearSchedule, failFirstExit, seekPush, earlyHits, timingBiasMs, noEcho, noTurbo, bossDodgeOnly,
+      missBossAttacks, seekBrace, seekTurbo, preferBossBrace });
   if (onReady) await onReady(r);
   let minimumIntegrity = r.road.state.integrity, frames = 0, retries = 0, maxStack = 0;
   const checkpoints = [], failures = [], gearFrames = [0, 0, 0];
@@ -272,10 +325,13 @@ async function runRace({ difficulty = 'standard', gear = 1, profile = 'practiced
   let lastCivilianPassMs = 0, longestCivilianGapMs = 0, civilianContactCount = 0;
   let expectedDrumMinimum = Infinity, emptyRoadMs = 0, longestEmptyRoadMs = 0, civilianVisibleMs = 0;
   let combatEmptyMs = 0, longestCombatEmptyMs = 0;
-  const mixSections = Object.fromEntries(['intro', 'verse', 'chorus', 'runway'].map(key => [key, { sampledMs: 0, fullStackMs: 0 }]));
+  const overhaul = r.road.chapter.encounterVersion === 3;
+  const mixSections = Object.fromEntries(['intro', 'verse', 'chorus', ...(overhaul ? ['boss'] : []), 'runway']
+    .map(key => [key, { sampledMs: 0, fullStackMs: 0 }]));
   const gains = Object.fromEntries(roleKeys.map(role => [role, { minimum: Infinity, maximum: 0, entrances: 0, exits: 0 }]));
   let lastCheckpoint = r.C.readResume()?.checkpointId;
   const originalRun = r.road.chapter.runId; let observedDeceptions = 0, lastDeceptions = 0;
+  let bossHealth = null, previousBoostMs = 0;
   for (; frames < 24000; frames++) {
     if (r.road.status !== 'playing') {
       if (r.road.status === 'clear' || retries >= retryLimit) break;
@@ -291,7 +347,7 @@ async function runRace({ difficulty = 'standard', gear = 1, profile = 'practiced
     if (visibleCivilians.length) { civilianVisibleMs += 20; emptyRoadMs = 0; }
     else { emptyRoadMs += 20; longestEmptyRoadMs = Math.max(longestEmptyRoadMs, emptyRoadMs); }
     const priorBar = r.road.state.musicBeatFloat / 4;
-    if (priorBar >= 4 && priorBar < 90 && !visibleCivilians.length) {
+    if (priorBar >= 4 && priorBar < (overhaul ? 72 : 90) && !visibleCivilians.length) {
       combatEmptyMs += 20; longestCombatEmptyMs = Math.max(longestCombatEmptyMs, combatEmptyMs);
     } else combatEmptyMs = 0;
     for (const actor of visibleCivilians)
@@ -299,11 +355,22 @@ async function runRace({ difficulty = 'standard', gear = 1, profile = 'practiced
     driver.step(); r.step(20, 50);
     if (onFrame) await onFrame(r, frames);
     const s = r.road.state;
+    const boss = r.road.encounterSnapshot().boss;
+    if (boss && Number.isFinite(boss.health) && boss.health !== bossHealth) {
+      observed.event('boss-health', { previousHealth: bossHealth, health: boss.health,
+        defeated: !!boss.defeated, counters: copy(boss.counters ?? null),
+        lastCounter: boss.lastCounter ? copy(boss.lastCounter) : null });
+      bossHealth = boss.health;
+    }
+    if (s.boostMs > 0 && previousBoostMs <= 0) observed.event('turbo-active', { durationMs: s.boostMs });
+    previousBoostMs = s.boostMs;
     minimumIntegrity = Math.min(minimumIntegrity, s.integrity); gearFrames[s.gear]++;
     sampledMs += 20;
     const activeRoles = new Set(r.B.musicDirector.state?.roles || []);
     const barFloat = s.musicBeatFloat / 4;
-    const sectionKey = barFloat < 4 ? 'intro' : barFloat >= 90 ? 'runway' : (barFloat - 4) % 24 >= 16 ? 'chorus' : 'verse';
+    const sectionKey = barFloat < 4 ? 'intro' : overhaul && barFloat >= 72 ?
+      (boss?.defeated ? 'runway' : 'boss') : !overhaul && barFloat >= 90 ? 'runway' :
+        (barFloat - 4) % 24 >= 16 ? 'chorus' : 'verse';
     mixSections[sectionKey].sampledMs += 20;
     if (activeRoles.size === 4) mixSections[sectionKey].fullStackMs += 20;
     for (const role of roleKeys) {
@@ -351,7 +418,11 @@ async function runRace({ difficulty = 'standard', gear = 1, profile = 'practiced
   const mix = { sampledMs, fullStackMs, fullStackFraction: round(fullStackMs / Math.max(1, sampledMs), 4),
     longestFullStackMs, drumMinimum: expectedDrumMinimum, sections: mixSections, roles: gains, transitions: mixTransitions };
   const traffic = { civilianPassed: civilianContactCount, longestCivilianGapMs, longestEmptyRoadMs, longestCombatEmptyMs, civilianVisibleMs };
-  const result = { encounterVersion: chapter.encounterVersion, difficulty, gear: gear + 1, profile, gearSchedule, failFirstExit, seekPush, earlyHits, timingBiasMs, inputTiming, mix, traffic, initialTimerMs, status: r.road.status, finalBar: round(s.musicBeatFloat / 4),
+  const result = { encounterVersion: chapter.encounterVersion, difficulty, gear: gear + 1, profile, gearSchedule,
+    failFirstExit, seekPush, earlyHits, timingBiasMs, noEcho, noTurbo, bossDodgeOnly, missBossAttacks,
+    seekBrace, seekTurbo, preferBossBrace,
+    boss: r.road.encounterSnapshot().boss ? copy(r.road.encounterSnapshot().boss) : null,
+    inputTiming, mix, traffic, initialTimerMs, status: r.road.status, finalBar: round(s.musicBeatFloat / 4),
     elapsedMs: round(chapter.elapsedMs), distance: round(s.progress), score: s.score,
     integrity: s.integrity, minimumIntegrity, gearFrames, damageTaken: chapter.damageTaken, retries,
     attempts: chapter.attempts, captured: chapter.accurate, perfect: chapter.perfect, announced: observed.pulses.size,
@@ -361,7 +432,7 @@ async function runRace({ difficulty = 'standard', gear = 1, profile = 'practiced
     turboUses: observed.events.filter(e => e.kind === 'turbo-input').length,
     pushContacts: observed.events.filter(e => e.kind === 'push').length,
     braceContacts: observed.events.filter(e => e.kind === 'brace').length,
-    gateOpen: s.gateOpen, gateFailure: s.gateFailure, finalMessage: s.message,
+    gateAt: s.gateAt, gateOpen: s.gateOpen, gateFailure: s.gateFailure, finalMessage: s.message,
     checkpoints, failures, recoveries, events: observed.events };
   for (const button of r.pad.buttons) button.pressed = false;
   return { result, rig: r, driver };
@@ -371,7 +442,7 @@ function report(results) {
   const policy = { framesPerSecond: 50, simulation: 'production ActionInput + RAF + road + music transport; mocked canvas/audio/storage boundaries',
     restrictions: 'No position/health/immunity/ability/capture/score writes. Only gamepad controls. No hidden chart lookup.',
     practiced: PROFILES.practiced, recovering: PROFILES.recovering,
-    civilianMetrics: 'Civilian means a visible non-audit, non-block traffic actor; empty-view durations exclude pursuit cars and include the intro/final runway. Combat-view duration is limited to bars 4–90.',
+    civilianMetrics: 'Civilian means a visible non-audit, non-block traffic actor. Civilian-free view durations exclude pursuit cars and the enforcement rig. Civilian-combat duration is bars 4–72 for the overhaul and 4–90 for retained legacy rules.',
     mixMetrics: 'Production MusicDirector target levels measured at each real RAF; source alignment and signal amplitude have separate audio gates.',
     caveat: 'Deterministic controller study; these are not human success rates, browser sound judgments, or Makko/device acceptance.' };
   const early = results.find(r => r.earlyHits === 2);
@@ -388,11 +459,13 @@ function report(results) {
     runs: results.length, results };
 }
 function markdown(data) {
+  const overhaul = data.rulesVersion.includes(3);
   return '# Cache Line full-race balance study\n\n' + data.policy.caveat + '\n\n' +
-    'The controller uses delayed production-visible observations and actual gamepad input. All road travel, captures, collisions, abilities, gate checks and checkpoint retries run through production code at 50 updates/second. No immunity or gameplay state is injected. Gears 1 and 3 engage using the normal first-bar queued gear input. The recovering profile skips every fifth offered action, has more timing error, and skips Brace before deliberately staying in visible convoy lanes until one unprotected contact probes recovery.\n\n' +
-    '| Driver | Difficulty | Gear | Result | Bar | Hits | Retries | Captures | Best chain | Push / Brace | Echo | Integrity |\n' +
-    '| --- | --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |\n' +
-    data.results.map(r => `| ${r.profile}${r.timingBiasMs ? ` / ${r.timingBiasMs} ms` : ''}${r.gearSchedule.length ? ' + gear changes' : r.failFirstExit ? ' + missed exit' : r.seekPush ? ' + ram route' : r.earlyHits ? ' + two early hits' : ''} | ${r.difficulty} | ${r.gear} | ${r.status} | ${r.finalBar} | ${r.damageTaken} | ${r.retries} | ${r.captured}/${r.announced} | ${r.bestCombo} | ${r.pushContacts} / ${r.braceContacts} | ${r.echoUses} | ${r.integrity} |`).join('\n') + '\n\n' +
+    'The controller uses delayed production-visible observations and actual gamepad input. All road travel, captures, collisions, abilities, showdown/gate checks and checkpoint retries run through production code at 50 updates/second. No immunity or gameplay state is injected. Gears 1 and 3 engage using the normal first-bar queued gear input. The recovering profile skips every fifth offered action, has more timing error, and skips Brace before deliberately staying in visible convoy lanes until one unprotected contact probes recovery.\n\n' +
+    (overhaul ? 'Fresh version-3 races break the enforcement rig’s three systems and continue through the full 100-bar recording. They do not require the retired final Echo split. The missed-boss case deliberately skirts all six attacks too narrowly to counter, then completes through the real checkpoint retry.\n\n' : '') +
+    '| Driver | Difficulty | Gear | Result | Bar | Hits | Retries | Captures | Best chain | Push / Brace | Echo | Rig breaks | Integrity |\n' +
+    '| --- | --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |\n' +
+    data.results.map(r => `| ${r.profile}${r.timingBiasMs ? ` / ${r.timingBiasMs} ms` : ''}${r.gearSchedule.length ? ' + gear changes' : r.missBossAttacks ? ' + missed boss' : r.failFirstExit ? ' + missed exit' : r.seekPush ? ' + ram route' : r.earlyHits ? ' + two early hits' : ''} | ${r.difficulty} | ${r.gear} | ${r.status} | ${r.finalBar} | ${r.damageTaken} | ${r.retries} | ${r.captured}/${r.announced} | ${r.bestCombo} | ${r.pushContacts} / ${r.braceContacts} | ${r.echoUses} | ${r.boss?.counters ?? 'legacy'} | ${r.integrity} |`).join('\n') + '\n\n' +
     `Completed: ${data.completed}/${data.runs}. Exact events, failures, checkpoints and recovery durations are in the companion JSON.\n\n` +
     (data.historicalTimerTuning?.after ? 'The 60-second opening budget comes from the earlier encounter pass: a 55-second start failed before the first checkpoint after two real hits. This pass repeats that probe against the denser chart; its current result is recorded in the table and JSON. Later verse checkpoints retain their established timer budget.\n\n' : '') +
     'Recovery samples below include an actual unprotected collision. Time to the next capture includes further timing mistakes, skipped inputs and driving around traffic; it is not a forced recovery delay.\n\n' +
@@ -422,8 +495,10 @@ async function main() {
         results.push(result); console.log(JSON.stringify({ ...result, mix: { ...result.mix, transitions: result.mix.transitions.length }, checkpoints: result.checkpoints.length, events: result.events.length, recoveries: result.recoveries }));
       }
   if (!requested('profile') && !requested('difficulty') && !requested('gear')) {
+    const bossRetry = results[0]?.encounterVersion === 3 ? { noEcho: true, noTurbo: true,
+      bossDodgeOnly: true, missBossAttacks: 6, retryLimit: 1 } : { failFirstExit: true, retryLimit: 1 };
     for (const options of [{ difficulty: 'standard', gear: 1, profile: 'practiced', gearSchedule: [{ bar: 24, gear: 0 }, { bar: 48, gear: 2 }, { bar: 80, gear: 1 }] },
-      { difficulty: 'standard', gear: 2, profile: 'practiced', failFirstExit: true, retryLimit: 1 },
+      { difficulty: 'standard', gear: 2, profile: 'practiced', ...bossRetry },
       { difficulty: 'standard', gear: 1, profile: 'practiced', seekPush: true },
       { difficulty: 'standard', gear: 1, profile: 'practiced', earlyHits: 2 },
       ...[-150, 150, -240, 240].map(timingBiasMs => ({ difficulty: 'standard', gear: 1, profile: 'practiced', timingBiasMs, retryLimit: 1 }))]) {
@@ -432,8 +507,10 @@ async function main() {
   }
   const data = report(results);
   data.sources = sources; data.sourcesStable = JSON.stringify(sources) === JSON.stringify(sourceHashes());
-  if (args.includes('--write')) {
-    const out = path.resolve(__dirname, '../docs/source-pack/review-cache-drive-feedback'); fs.mkdirSync(out, { recursive: true });
+  if (args.includes('--write') || process.env.CACHE_RACES_WRITE === '1') {
+    const out = path.resolve(__dirname, results[0]?.encounterVersion === 3 ?
+      '../docs/source-pack/review-cache-pursuit-overhaul' : '../docs/source-pack/review-cache-drive-feedback');
+    fs.mkdirSync(out, { recursive: true });
     fs.writeFileSync(path.join(out, 'full-race-balance.json'), JSON.stringify(data, null, 2) + '\n');
     fs.writeFileSync(path.join(out, 'full-race-balance.md'), markdown(data));
   }
@@ -441,18 +518,27 @@ async function main() {
     assert(data.sourcesStable, 'production and harness hashes must remain identical throughout the complete study');
     for (const result of results.filter(r => r.profile === 'practiced' && Math.abs(r.timingBiasMs) <= 180)) {
       assert.equal(result.status, 'clear', `${result.difficulty} gear ${result.gear}: practiced driver must complete a full race`);
-      if (!result.gearSchedule.length && !result.failFirstExit && !result.timingBiasMs) assert(result.echoDeceptions > 0, 'each full race visibly deceives the pursuit');
+      if (result.encounterVersion === 3) assert(result.boss?.defeated && result.boss.health === 0,
+        'each completed overhaul race earns its boss defeat');
+      else if (!result.gearSchedule.length && !result.failFirstExit && !result.timingBiasMs)
+        assert(result.echoDeceptions > 0, 'each legacy full race visibly deceives the pursuit');
       if (!result.gearSchedule.length) assert(result.gearFrames[result.gear - 1] > 9000, 'the requested gear actually owns the race');
       if (result.earlyHits) assert(result.events.filter(e => e.kind === 'damage' && e.bar < 28).length >= result.earlyHits, 'two early unprotected contacts exercise the first-checkpoint timer budget');
       if (result.seekPush) assert(result.pushContacts > 0, 'earned Push has a real visible traffic route and contact');
-      if (result.failFirstExit) assert.equal(result.retries, 1, 'the missed final Echo uses one genuine checkpoint retry');
+      if (result.failFirstExit && result.encounterVersion !== 3) assert.equal(result.retries, 1,
+        'the missed legacy final Echo uses one genuine checkpoint retry');
+      if (result.missBossAttacks === 6) {
+        assert.equal(result.retries, 1, 'six missed boss counters use one genuine checkpoint retry');
+        assert(result.failures.some(failure => failure.message === 'PURSUIT HELD THE ORIGINAL'),
+          'an undefeated rig blocks completion instead of requiring an old Echo exit');
+      }
     }
     const recovering = results.filter(r => r.profile === 'recovering');
     for (const result of results) {
       assert.equal(result.mix.drumMinimum, .60, 'the complete production race retains its drum backbone, including crashes');
       assert(result.traffic.civilianPassed > 0, 'civilian density records real passing road actors');
       for (const hit of result.events.filter(e => e.kind === 'capture' && Number.isFinite(e.timingOffsetMs)))
-        assert(Math.abs(hit.timingOffsetMs) <= 180.00001, 'actual accepted gamepad events remain inside the v2 window');
+        assert(Math.abs(hit.timingOffsetMs) <= 180.00001, 'actual accepted gamepad events remain inside the current authored window');
       if (!result.timingBiasMs && result.profile === 'practiced') for (const [role, gain] of Object.entries(result.mix.roles))
         assert(gain.entrances > 0 && gain.exits > 0 && gain.maximum > gain.minimum * 2,
           `${role}: actions must cause genuine audible-level entrances and exits`);
@@ -462,5 +548,6 @@ async function main() {
     if (recovering.length === 9) assert(recovering.every(r => r.status === 'clear' && r.damageTaken >= 1 && r.recoveries.some(hit => hit.nextCaptureMs !== null && hit.previous > 1 && hit.retained === hit.previous - 1)), 'all nine recovery races must complete with real damage, exactly one lost part and a later capture');
   }
 }
-module.exports = { raceRig, Driver, runRace, report, markdown, PROFILES };
+module.exports = { raceRig, instrument, Driver, runRace, report, markdown, sourceHashes, PROFILES,
+  safeItem, SNAPSHOT_KEYS, ACTION_BUTTON };
 if (require.main === module) main().catch(error => { console.error(error.stack || error); process.exitCode = 1; });
