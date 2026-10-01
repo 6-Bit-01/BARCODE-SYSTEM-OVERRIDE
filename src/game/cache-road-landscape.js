@@ -132,6 +132,19 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-landscape.js', exports: [
   const FAMILIES=Object.freeze(['market','homes','workshop','greenhouse','data','transit']);
   const FAMILY_ART=Object.freeze({market:MARKET_ART,homes:HOMES_ART,
     workshop:ART,greenhouse:GREENHOUSE_ART,data:DATA_ART,transit:TRANSIT_ART});
+  // Measured source coordinates anchor the painted inner footing, rather
+  // than empty pixels below it. These six aprons descend toward image right.
+  // The shallow homes strip keeps its facing and uses a neutral center foot.
+  const SOURCE_FITS=Object.freeze({
+    cacheTransitNook:Object.freeze({sourceSide:1,footU:.14,contactAt:725}),
+    cacheUtilityCorner:Object.freeze({sourceSide:1,footU:.14,contactAt:665}),
+    cacheGreenhouseWorkshop:Object.freeze({sourceSide:1,footU:.14,contactAt:828}),
+    cacheOutskirtsWorkshops:Object.freeze({sourceSide:1,footU:.14,contactAt:708}),
+    cacheRepairShop:Object.freeze({sourceSide:1,footU:.14,contactAt:940}),
+    cacheVendorStall:Object.freeze({sourceSide:1,footU:.14,contactAt:959}),
+    cacheOutskirtsHomes:Object.freeze({sourceSide:-1,footU:.5,contactAt:698})
+  });
+  const sourceFlip=(key,side)=>side!==SOURCE_FITS[key].sourceSide;
   const ACCENT_ART=Object.freeze([
     ['cacheTransitNook',1602,982,1650,260,210,982],
     ['cacheOutskirtsHomes',2022,778,1750,260,210,778],
@@ -139,7 +152,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-landscape.js', exports: [
     ['cacheGreenhouseWorkshop',1536,1024,1650,260,210,1024],
     ['cacheOutskirtsWorkshops',2022,778,1750,260,210,778],
     ['cacheRepairShop',1389,1132,1650,260,210,1132]
-  ]);
+  ].map(art=>{
+    const fit=SOURCE_FITS[art[0]];
+    return [...art,fit.contactAt,fit.footU===undefined?undefined:{footU:fit.footU}];
+  }));
   const random = n => {
     let x = Math.imul(n ^ n >>> 16,0x7feb352d);
     x = Math.imul(x ^ x >>> 15,0x846ca68b);
@@ -366,7 +382,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-landscape.js', exports: [
             const art=isAccent?ACCENT_ART[chunk.accentIndex]:familyArt[tier];
             plates.push({at,side,chunkId:chunk.id,family:chunk.family,tier,
               key:isAccent?'accent':tier,art,span:SPAN,
-              radialBand:art[4],flip:isAccent&&side>0,
+              radialBand:art[4],flip:isAccent&&sourceFlip(art[0],side),
               contact:[{at:at-75,radial:art[4]},{at:at+75,radial:art[4]}],
               socket:null});
             parcels.push({id:`${chunk.id}:${tier}`,chunkId:chunk.id,side,
@@ -378,11 +394,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-landscape.js', exports: [
           // An occupied court beyond the turn gives the visible local street
           // a destination without painting a closed facade through it.
           const donor=ACCENT_ART[chunk.accentIndex];
-          const art=[donor[0],donor[1],donor[2],1550,700,230,donor[6]];
+          const art=[donor[0],donor[1],donor[2],1550,700,230,donor[6],donor[7],donor[8]];
           const at=courtAt+40;
           plates.push({at,side,chunkId:chunk.id,family:chunk.family,
             tier:'rear',key:'accent',art,span:SPAN,radialBand:700,
-            flip:side>0,
+            flip:sourceFlip(art[0],side),
             contact:[{at:at-60,radial:700},{at:at+60,radial:700}],
             socket:null});
           parcels.push({id:`${chunk.id}:court`,chunkId:chunk.id,side,
@@ -482,5 +498,6 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-landscape.js', exports: [
           at>=chunk.startAt-margin&&at<chunk.endAt+margin);
       }});
   }
-  B.CacheRoadLandscape=Object.freeze({create,ART,FAMILY_ART,FAMILIES,frontageConflict,featuredFrontage});
+  B.CacheRoadLandscape=Object.freeze({create,ART,FAMILY_ART,FAMILIES,SOURCE_FITS,
+    sourceFlip,frontageConflict,featuredFrontage});
 })(window.BARCODE=window.BARCODE||{});

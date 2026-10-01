@@ -58,12 +58,13 @@ depth painted into its own roof, walls and footprint. It is placed as a whole
 object at a deterministic road-world coordinate and grows uniformly as it
 approaches the car. Its full footprint sits beyond the sidewalk edge with a
 small gap that grows on approach; there are no horizontal slices or per-column
-distortions. The source front is on the left for the market, house, parking,
-park, apartment, diner, substation, garden and construction site. Mirror these
-on the left side of the road so that their doors, gates and openings turn
-toward traffic. The garage's large bay is on the right of its source and uses
-the opposite mirror direction. Both the foreground and quieter background
-row use this facing rule.
+distortions. Facing follows the painted ground taper rather than a doorway
+alone. House and park are native LEFT: draw them unflipped on the left and
+mirror the whole image on the right. The garage and hydroponics default use
+the same direction; the fabrication default uses the opposite direction.
+The fenced substation remains LEFT-only and unmirrored, with a compatible
+replacement in its former right slots. Main and rear cameras share these
+rules. See `docs/source-pack/CACHE_ROAD_BANK_FIT.md` for the measured follow-up.
 
 | Runtime WebP / source PNG stem | Individual place | Visual role |
 | --- | --- | --- |

@@ -153,12 +153,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     '1:8158':'gardenHorizon',
     '1:8846':'capacitorExchange'
   };
-  // The hydroponics gate is on the right of its curved bank. It faces the
-  // left road directly and mirrors for the right road. The fabrication gate
-  // and other places are painted on the left, except the repair garage.
+  // Preserve the painted bank taper: its higher contact faces the road.
+  // Door positions alone cannot determine the house or park's source bank.
+  const PLACE_SOURCE_SIDES=Object.freeze({market:1,house:-1,garage:-1,
+    apartment:1,diner:1,park:-1,substation:-1,garden:-1,construction:1});
   const placeFacesRoad = (kind, side) =>
     PLACE_BANK_RULES[PLACE_ART[kind]?.[0]]?.flip ??
-      (kind === 'garage' || kind === 'garden' ? side > 0 : side < 0);
+      (side !== PLACE_SOURCE_SIDES[kind]);
   const PLACE_KINDS = [...Object.keys(PLACE_ART),'parking'];
   // Seeded choices keep the lots varied yet identical after pause, retry,
   // saved-road restore and frame-rate changes.
@@ -863,7 +864,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const socket=fit?.socketU===undefined?0:side<0?1-fit.socketU:fit.socketU;
         const roadward=bankX(p,side,base,growth)-side*width*socket;
         artX=roadward+side*width*.5;
-        const footX=fit?.footU===undefined?roadward:artX-width*.5+width*fit.footU;
+        const footU=plate.flip?1-fit?.footU:fit?.footU;
+        const footX=fit?.footU===undefined?roadward:artX-width*.5+width*footU;
         const radial=(side*(footX-p.x)-p.half)/miniature/(.1+.9*p.t)-190*p.t;
         foot=bankY(p,side,radial)+(contactAt?
           (contactBottom-contactAt)*width/sourceW+6*p.t*miniature:22*p.t*miniature);
@@ -873,7 +875,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         key=asset;width=Math.min(720,maxW)*cardScale(p.t)*miniature;
         height=width*sourceH/sourceW;
         artX=bankX(p,side,220)+side*(width*.5+29*p.t*miniature);
-        foot=bankY(p,side,220)+9*p.t*miniature;flip=side>0;
+        const fit=B.CacheRoadLandscape.SOURCE_FITS[asset];
+        flip=B.CacheRoadLandscape.sourceFlip(asset,side);
+        if(fit.contactAt!==undefined) {
+          const footU=flip?1-fit.footU:fit.footU;
+          const footX=artX-width*.5+width*footU;
+          const radial=(side*(footX-p.x)-p.half)/miniature/(.1+.9*p.t)-190*p.t;
+          foot=bankY(p,side,radial)+(sourceH-fit.contactAt)*width/sourceW+6*p.t*miniature;
+        } else foot=bankY(p,side,220)+9*p.t*miniature;
       } else if(item.place.kind!=='parking') {
         const place=item.place,variant=SIDE_VARIANTS[place.variant];
         const [asset,sourceW,sourceH,maxW]=(variant&&variant.art)||PLACE_ART[place.kind];
@@ -3134,8 +3143,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
             plate.side*width*socketFraction;
           const x=roadward+plate.side*width*.5;
           if(x+width*.5<0||x-width*.5>1920)return;
+          const footU=plate.flip?1-fit?.footU:fit?.footU;
           const footX=fit?.footU===undefined?roadward:
-            x-width*.5+width*fit.footU;
+            x-width*.5+width*footU;
           const height=width*(contactBottom||sourceH)/sourceW;
           const groundFoot=terrainAt(plate.side,t,footX)+
             (contactAt?(contactBottom-contactAt)*width/sourceW+6*t:22*t);
@@ -3182,11 +3192,16 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           const x=sidewalkEdge+side*(width*.5+29*t);
           if(x+width*.5<0||x-width*.5>1920)return;
           const height=width*sourceH/sourceW;
-          const groundFoot=terrainAt(side,t,x)+9*t;
+          const fit=B.CacheRoadLandscape.SOURCE_FITS[key];
+          const flip=B.CacheRoadLandscape.sourceFlip(key,side);
+          const footU=flip?1-fit.footU:fit.footU;
+          const footX=x-width*.5+width*footU;
+          const groundFoot=fit.contactAt===undefined?terrainAt(side,t,x)+9*t:
+            terrainAt(side,t,footX)+(sourceH-fit.contactAt)*width/sourceW+6*t;
           const y=areaFoot(side,t,sidewalkEdge+side*29*t,groundFoot,height);
           if(!inFrame(x,y,width,height))return;
           enqueue(area,y,()=>clipRoadside(t,()=>B.PresentationAssets?.draw?.(key,ctx,{
-            x,y,width,height,groundY:groundFoot,flip:side>0 }),side));
+            x,y,width,height,groundY:groundFoot,flip }),side));
         } else {
           const {place}=area,side=place.side;
           const [key,sourceW,sourceH,maxW]=
