@@ -1,5 +1,16 @@
 # Current State
 
+## October 1 — dynamic speed camera and wind correction
+
+Follow-up to merged #165: the owner rejects the curling wind and requests
+more camera range, speed-linked focus and cropped-traffic/button guidance.
+The candidate uses thin directional air streaks, full view at low speed, up
+to 1.335 zoom at high/Turbo speed, tire-plane anchoring, bounded wobble/shake,
+and actual cropped-body warnings with lane alerts. Existing shared cutscenes
+and all driving/music mechanics remain. See `DYNAMIC_SPEED_CAMERA.md`.
+Exact publication and test status belong in the manifest/receipt.
+Makko appearance, motion comfort, warning clarity and frame pacing are pending.
+
 ## Shared controls and stronger speed presentation — October 1
 
 The owner requests identical cutscene functions and controls, plus more

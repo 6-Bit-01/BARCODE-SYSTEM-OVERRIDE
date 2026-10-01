@@ -20,3 +20,12 @@ two lower-corner slashes and at most one event whoosh use that atlas. They
 are clipped away from the center road/timing line and beneath the HUD.
 Reduced Motion or Flashes Off omit this moving layer. Asset delivery is
 pinned to its published art commit with a bundled fallback.
+
+## October 1 — owner-rejected curls replaced
+
+`wind-streak-atlas-v2.png` is the original 1536 × 1024 RGBA imagegen output,
+copied without pixel editing. Six 512-pixel cells contain thin straight
+tapered air-line clusters. Frames 0, 1, 2, 3 and 5 are live; 4 is reserved.
+Directional motion replaces the old curls/crescent and permanent corner flare.
+The old PNG remains historical; no runtime consumer loads it. Immutable art
+revision: `f9c2fad2472f3bebdb9554f13893293d74b8bece`, with identical local fallback.

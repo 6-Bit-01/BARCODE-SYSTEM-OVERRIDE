@@ -1,5 +1,14 @@
 # Decision Register
 
+## October 1 — wind rejection and dynamic camera direction
+
+The owner rejects #165's wind appearance and asks for more dramatic zoom,
+shake and wobble: slow is the full view, fast is narrow and focused. The owner
+also requires readable button destinations and warnings for traffic outside
+the camera. The implemented bounded range and thin streak treatment are
+review candidates, not owner-tested acceptance. Use `DYNAMIC_SPEED_CAMERA.md`.
+No actual speed, timing, encounter or collision changes are authorized here.
+
 ## October 1, 2026 — identical cutscene functions and visual speed
 
 The owner explicitly requests the same dialogue/scene-skip features, layout,

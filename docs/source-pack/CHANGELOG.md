@@ -1,5 +1,16 @@
 # Recovery checkpoint — September 14
 
+## October 1 — thin wind, wider camera range and visibility guards
+
+- Replace live curling wind with thin, tapered directional air streaks.
+- Open the slow-speed view; progressively tighten high-speed/Turbo framing.
+- Add bounded zoom breathing, gear pressure, steering wobble and brief shakes.
+- Anchor zoom to the rear-tire timing line; keep all four destinations in view.
+- Add cropped-traffic edge markers, threatened-lane alerts and a cropped-button fallback.
+- Preserve #165's comic controls, actual mechanics and historical acceptance.
+
+See `DYNAMIC_SPEED_CAMERA.md`; final revision/tests are generated in the receipt.
+
 ## October 1, 2026 — shared reading controls and wind/pressure presentation
 
 - All twenty comic panels now share toolbar geometry, lettering, disabled

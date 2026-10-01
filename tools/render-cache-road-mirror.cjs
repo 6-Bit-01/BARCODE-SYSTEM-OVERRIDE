@@ -29,7 +29,7 @@ async function main() {
     loadImage(path.resolve(process.argv[3], `${String(i).padStart(3,'0')}.webp`)))) : null;
   GlobalFonts.registerFromPath(path.resolve('assets/studies/visual-overhaul/references/fonts/Oxanium.ttf'), 'Oxanium');
   const files = {
-    cacheWindWhoosh: 'assets/cache-road/effects/wind-whoosh-atlas.png',
+    cacheWindWhoosh: 'assets/cache-road/effects/wind-streak-atlas-v2.png',
     cacheMirror: 'assets/cache-road/hud/cache-back-mirror-expressions.webp',
     cacheCar: 'assets/cache-road/vehicles/animation/cache-center-frames.webp',
     cacheCarLeft: 'assets/cache-road/vehicles/animation/cache-left-frames.webp',
@@ -655,6 +655,17 @@ async function main() {
       s.shield=phase===1?1:0;s.ramMs=phase===2?1500:0;
       s.turboReadyMs=phase===3?700:0;
     }
+    if(process.env.CACHE_REVIEW_CAMERA==='1'&&!gameplay) {
+      // Scripted presentation sweep only, not earned shifts or playtest evidence.
+      const phase=(local%12)/12;
+      const speed=30+45*(.5-.5*Math.cos(phase*Math.PI*2));
+      s.speed=speed;s.boostMs=speed>72?900:0;s.stumbleMs=0;
+      s.lanePos=s.visualLane=1.5+.65*Math.sin(local*.55);s.lane=Math.round(s.lanePos);
+      s.steer=.5*Math.cos(local*.55);s.gear=speed>62?2:speed>40?1:0;
+      s.progress=reviewStart+local*52;
+      s.passFlashMs=local>=5&&local<5.78?780-(local-5)*1000:0;s.passSide=1;
+      s.stumbleMs=local>=9.5&&local<10.15?650-(local-9.5)*1000:0;
+    }
     if(traceOnly)continue;
     sc.reset();frameDraws=0;
     const started=performance.now();
@@ -690,7 +701,7 @@ async function main() {
     if (code !== 0) throw Error(error || `ffmpeg exited: ${signal}`);
   }
   fs.writeFileSync(path.join(out,'Cache-Road-Motion-Track.json'),
-    JSON.stringify({ fps,gameplay,seconds,reviewStart,landscapeSeed:landscapeSeed===undefined?
+    JSON.stringify({ fps,gameplay,cameraFixture:process.env.CACHE_REVIEW_CAMERA==='1',seconds,reviewStart,landscapeSeed:landscapeSeed===undefined?
       0x6b4d:Number(landscapeSeed),carCenters,audioEvents,mixEvents,engineEvents,playbackFrames,
       renderStats,assetCosts,assetFrames:Object.fromEntries(Object.entries(assetFrames)
         .map(([key,frames])=>[key,[...frames].sort((a,b)=>a-b)])) }, null, 2));
