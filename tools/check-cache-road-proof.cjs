@@ -657,7 +657,7 @@ async function run() {
   const places = uprightPlaces(roadArt);
   const market = places.filter(entry => entry.key === 'cachePlaceMarket' && entry.flip)
     .sort((a,b) => b.width-a.width)[0];
-  const house = places.filter(entry => entry.key === 'cachePlaceHouse' && !entry.flip)
+  const house = places.filter(entry => entry.key === 'cachePlaceHouse' && entry.x>960 && entry.flip)
     .sort((a,b) => b.width-a.width)[0];
   assert(market && house && places.length >= 2 &&
     new Set(places.map(entry => entry.key)).size >= 2 &&
@@ -688,6 +688,13 @@ async function run() {
     cachePlaceNightDataMarket:[1,true],cachePlaceEncryptedPump:[-1,false],
     cachePlaceDroneServiceNode:[-1,false]
   };
+  // Audited source banks, not the renderer's generic entrance heuristic.
+  // House/park are native LEFT; changing their placement must turn the
+  // complete painting so its foundation still rolls into that bank.
+  const legacySourceSides={cachePlaceMarket:1,cachePlaceHouse:-1,
+    cachePlaceGarage:-1,cachePlaceApartment:1,cachePlaceDiner:1,
+    cachePlacePark:-1,cachePlaceSubstation:-1,cachePlaceGarden:-1,
+    cachePlaceConstruction:1};
   const checkSetbackAndFacing = () => {
     for(const entry of uprightPlaces(roadArt).filter(item =>
       item.groundY >= 590 && item.groundY <= 1080 &&
@@ -705,9 +712,8 @@ async function run() {
         assert.equal(side,expectedSide,
           `${entry.key} keeps its native ground slope on the assigned bank`);
         assert.equal(entry.flip,expectedFlip,`${entry.key} uses its assigned facing`);
-      } else assert.equal(entry.flip,
-        entry.key === 'cachePlaceGarage' || entry.key === 'cachePlaceGarden' ? side>0 : side<0,
-        `${entry.key} entrance faces the road from the ${side<0?'left':'right'}`);
+      } else assert.equal(entry.flip,side!==legacySourceSides[entry.key],
+        `${entry.key} preserves its source bank shape on the ${side<0?'left':'right'}`);
     }
   };
   checkSetbackAndFacing();
@@ -878,6 +884,11 @@ async function run() {
   const infillKeys=['cacheTransitNook','cacheOutskirtsHomes',
     'cacheUtilityCorner','cacheGreenhouseWorkshop',
     'cacheOutskirtsWorkshops','cacheRepairShop','cacheVendorStall'];
+  // Six real source paintings descend toward the outer RIGHT. The shallow
+  // homes strip retains its earlier orientation while its taper is ambiguous.
+  const infillSourceSides={cacheTransitNook:1,cacheOutskirtsHomes:-1,
+    cacheUtilityCorner:1,cacheGreenhouseWorkshop:1,
+    cacheOutskirtsWorkshops:1,cacheRepairShop:1,cacheVendorStall:1};
   const infillSeen=new Set();
   for(let progress=0;progress<9800;progress+=160) {
     mirrorFrame({progress});
@@ -886,9 +897,9 @@ async function run() {
       entry.width<2000 && (!entry.sourceRect ||
         entry.sourceRect[0]===0 && entry.sourceRect[1]===0 &&
         entry.sourceRect[2]>1300 && entry.sourceRect[3]>700) &&
-      (entry.flip===(entry.x>960)||entry.width<30||
+      (entry.flip===((entry.x>960?1:-1)!==infillSourceSides[entry.key])||entry.width<30||
         entry.clipHeight<=entry.y-entry.height+4)),
-    'graph accents and site satellites stay opaque and face their bank');
+    'graph accents and site satellites stay opaque and preserve their audited bank taper');
     for(const entry of infill)infillSeen.add(entry.key);
     assert(!roadArt.some(entry=>entry.key==='cacheBusStop'),
       'bus-stop painting remains inactive until a believable service route exists');
@@ -930,10 +941,11 @@ async function run() {
   for(let progress=0;progress<2460;progress+=75) {
     mirrorFrame({progress});
     completePark ||=roadArt.some(entry=>entry.key==='cachePlacePark' &&
-      !entry.sourceRect && entry.width>300 && entry.flip===false);
+      !entry.sourceRect && entry.width>300 &&
+      entry.flip===((entry.x>960?1:-1)!==legacySourceSides.cachePlacePark));
   }
   assert(completePark,
-  'the whole road-facing park shares the scale of other painted sites');
+  'the whole bank-fitted park shares the scale of other painted sites');
   mirrorFrame({ progress: 600 });
   assert(trafficLabels.includes('CUT >') && beacons.some(light => light.translate?.[0] === 0),
     'opening trike calls its right cut and keeps its beacon in the chassis frame');

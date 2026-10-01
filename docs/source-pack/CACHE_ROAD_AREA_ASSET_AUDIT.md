@@ -1,5 +1,13 @@
 # Cache Road area asset side audit
 
+September 30 follow-up: the owner reported reversed and raised roadside
+pieces. House and park now retain their native LEFT taper on the left and
+mirror the whole source on the right. Six contextual sources use their
+measured native RIGHT apron and mirror on the left. Seven contextual sources
+also have measured opaque terrain contacts, including a neutral center foot
+for the shallow homes strip. The older doorway-only mirror rule below is
+historical. See [the bank-fit correction](CACHE_ROAD_BANK_FIT.md).
+
 September 25, 2026. The first audit covered **18** transparent area WebPs:
 ten original sources and eight later shape studies. Five cyber sources for
 the right and two more for the left bring the current folder to **25**. The
@@ -35,9 +43,9 @@ example calls for a taper that rolls into the planet on its own bank.
 
 The first 18 raw source shapes group as **9 LEFT, 4 RIGHT, 4 BOTH, 1 NEITHER**.
 Side is a silhouette direction, not an endorsement of the hard-edged original
-garden and yard. The seven other legacy paintings keep their existing
-road-facing mirror rule; this pass changes only the selected garden and yard
-sites. The two cyber defaults also mirror the whole source on the opposite
+garden and yard. At that audit, the seven other legacy paintings kept their
+doorway-facing mirror rule; that rule was subsequently corrected for house
+and park to preserve their painted bank taper. The two cyber defaults also mirror the whole source on the opposite
 bank, preserving their slope. The six older variants stay **unmirrored on
 their assigned bank**. No site is added: right-side addresses 3635 and 8158
 reuse existing substation and park positions, respectively, to bring the

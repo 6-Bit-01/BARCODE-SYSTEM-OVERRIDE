@@ -1,4 +1,18 @@
-# Continue here — Brace ring depth correction
+# Continue here — roadside bank fit
+
+## September 30, 2026 — current follow-up: side assets
+
+After approving the current play qualitatively, the owner reported reversed
+side artwork and unnatural raised foundations. The repair on
+`agent/cache-road-side-fit` starts from merged #162,
+`a664160dbaa4670444190222cfb56354ad6352e9`. House/park now follow their audited
+LEFT source bank. Six contextual sources follow their RIGHT apron, and all
+seven contextual sources use measured opaque terrain contacts. Main/rear
+rules match; addresses, widths, parcel clearance and foreground continuation
+remain. Read `docs/source-pack/CACHE_ROAD_BANK_FIT.md`. The exact final head,
+validation, PR and refresh state belong to the generated receipt. The new
+visual feedback requires focused Makko appearance review; positive general
+play feedback alone does not establish a completed fresh-race clear.
 
 ## September 30, 2026 — current follow-up: Brace ring
 

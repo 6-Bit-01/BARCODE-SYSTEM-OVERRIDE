@@ -1,5 +1,20 @@
 # Repository Guidance
 
+## September 30, 2026 — roadside bank fit
+
+The owner reports misplaced side assets and pieces jutting unnaturally from
+the landscape after PR #162. Restore the agreed higher inner/lower outer
+taper: house and park are native LEFT, six contextual sources native RIGHT.
+Use measured opaque source contacts in both cameras; the shallow homes
+strip keeps its facing and uses a center contact. Preserve actual parcels,
+addresses, conservative clearance, complete foreground exits, all gameplay
+and exact mirror `blur(2.3px)`. Do not hide a bad parcel with terrain masks
+or move it outward. Base/rollback is merged #162,
+`a664160dbaa4670444190222cfb56354ad6352e9`; branch
+`agent/cache-road-side-fit`. Read `docs/source-pack/CACHE_ROAD_BANK_FIT.md`.
+Use the existing full-regression, all-file syntax, native production review
+and both final-head CI gates. Makko appearance remains owner acceptance.
+
 ## September 30, 2026 — visual driving cues and complete foreground exits
 
 The owner requests fewer words during play and asks to see passed cars and
