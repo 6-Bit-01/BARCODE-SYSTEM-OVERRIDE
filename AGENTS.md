@@ -1,5 +1,18 @@
 # Repository Guidance
 
+## October 1, 2026 — corrected wind and dynamic speed camera
+
+The owner rejects the curling wind in merged #165 and requests a stronger
+slow/full-view to fast/focused camera, zoom breathing, wobble and short shakes,
+with protected button destinations and advance cues for cropped traffic.
+Read `docs/source-pack/DYNAMIC_SPEED_CAMERA.md`. Base/rollback is merged #165,
+`1ba468d3d3f4947e776758f0de05d8095fc51277`. Preserve the shared cutscenes,
+actual speed, distance, timing, encounters, collision, abilities, saves and
+rewards. Keep the camera on the tire-plane pivot, HUD/rearview outside it,
+Reduced Motion steady and exact mirror blur. Full regression/all-file syntax
+and both final-head CI events remain gates; refresh the exact published ZIP.
+Owner Makko appearance, comfort and frame-pacing acceptance remain pending.
+
 ## October 1, 2026 — identical reading controls and stronger speed effects
 
 The owner's latest direct request authorizes implementation: unify dialogue,

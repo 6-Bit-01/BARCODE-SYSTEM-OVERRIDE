@@ -38,7 +38,7 @@ async function main(){
   }
   const r=createRig();r.w.BARCODE.Campaign={register(){},syncTitleButton(){}};load(r.context,'src/engine/cache-road-proof-profile.js');load(r.context,'src/game/cache-road-landscape.js');
   const source=fs.readFileSync('src/game/cache-road-proof.js','utf8');
-  vm.runInContext(source.replace('  const road = B.CacheRoadProof = {','  window.speedFXTest={speedCamera,drawSpeedAtmosphere};\n  const road = B.CacheRoadProof = {'),r.context);
+  vm.runInContext(source.replace('  const road = B.CacheRoadProof = {','  window.speedFXTest={speedCamera,drawSpeedAtmosphere,cameraPoint,cameraEdgeMarker,drawCameraWarnings,CAMERA_PIVOT_Y};\n  const road = B.CacheRoadProof = {'),r.context);
   const fx=r.w.speedFXTest,draws=[],clips=[];
   r.w.BARCODE.PresentationAssets={draw:(key,ctx,opts)=>{draws.push({key,...opts});return true;}};
   const ctx=new Proxy({globalAlpha:1,rect:(...x)=>clips.push(x),createLinearGradient:()=>({addColorStop(){}})},
@@ -46,10 +46,10 @@ async function main(){
   for(let speed=30;speed<=100;speed+=5)for(const boostMs of [0,1000])for(const passSide of [-1,1]){
     const state={speed,boostMs,passSide,passFlashMs:780,stumbleMs:450,steer:.8,elapsedMs:10000,
       progress:777,musicBeatFloat:130,timeMs:29000,integrity:3};const before=copy(state);
-    const camera=fx.speedCamera(state);assert(camera.zoom>=1.015&&camera.zoom<=1.1541);
-    assert(Math.abs(camera.x)<=27.5&&Math.abs(camera.y)<=10&&Math.abs(camera.roll)<=.01);
+    const camera=fx.speedCamera(state);assert(camera.zoom>=1&&camera.zoom<=1.3351);
+    assert(Math.abs(camera.x)<=42&&Math.abs(camera.y)<=14&&Math.abs(camera.roll)<=.02);
     draws.length=0;clips.length=0;fx.drawSpeedAtmosphere(ctx,state);
-    assert.equal(draws.length,7,'bounded four wind ribbons, two corner slashes, one whoosh');
+    assert.equal(draws.length,7,'bounded six fine streaming clusters and one pass whoosh');
     assert(draws.every(d=>d.key==='cacheWindWhoosh'&&d.frame>=0&&d.frame<6&&d.width<=600));
     assert.deepEqual(clips,[[0,164,1920,916],[0,164,340,916],[1580,164,340,916]],'paint stays outside center lanes');
     draws.length=0;assert.deepEqual(copy(fx.speedCamera(state,{reduced:true})),{zoom:1,x:0,y:0,roll:0});
@@ -59,6 +59,47 @@ async function main(){
   }
   assert(fx.speedCamera({speed:75,boostMs:1000,passFlashMs:780,stumbleMs:0,elapsedMs:0}).zoom>
     fx.speedCamera({speed:30,boostMs:0,passFlashMs:0,stumbleMs:0,elapsedMs:0}).zoom);
-  console.log('Shared cutscenes: separate reading/page/final actions, transcript/pause, failed audio pause and independent skip holds passed. Speed FX: 60 live-state combinations, bounded draw/clip/camera, Reduced Motion and state immutability passed.');
+  // Slow gives the full aperture; acceleration/fast/Turbo visibly tighten it.
+  const state={speed:30,boostMs:0,passFlashMs:0,stumbleMs:0,steer:0,elapsedMs:0};
+  assert.equal(fx.speedCamera(state).zoom,1);
+  assert.deepEqual(copy(fx.speedCamera({...state,steer:1})),{zoom:1,x:0,y:0,roll:0},'slow steering retains the full un-cropped aperture');
+  assert(fx.speedCamera({...state,speed:70}).zoom>1.21);
+  assert(fx.speedCamera({...state,speed:75,boostMs:1000}).zoom>1.29);
+  const up={...state,speed:52,musicBeatFloat:.375,driveSections:[{beat:0,speed:70,v0:30}]};
+  const down={...up,driveSections:[{beat:0,speed:30,v0:70}]};
+  assert(fx.speedCamera(up).zoom>fx.speedCamera(down).zoom+.04,'opposite gear changes give opposite camera pressure');
+  const a=fx.speedCamera({...state,speed:70}),b=fx.speedCamera({...state,speed:70,elapsedMs:1000});
+  assert(Math.abs(a.zoom-b.zoom)>.005&&Math.abs(b.roll)>.001,'moving camera breathes and wobbles');
+  const still={zoom:1,x:0,y:0,roll:0};
+  assert.equal(fx.cameraEdgeMarker(still,{x:960,y:700,width:100,height:130}),null);
+  for(const [x,y,angle] of [[10,700,Math.PI],[1910,700,0],[960,175,-Math.PI/2],[960,1080,Math.PI/2]]) {
+    const marker=fx.cameraEdgeMarker(still,{x,y,width:70,height:40});
+    assert(marker&&marker.x>=58&&marker.x<=1862&&marker.y>=214&&marker.y<=1026);
+    assert.equal(marker.angle,angle,'warning points toward the cropped actor, even when partly visible');
+  }
+  for(let t=0;t<6000;t+=100)for(const speed of [30,52,70,75])for(const steer of [-1,0,1]) {
+    const camera=fx.speedCamera({...state,speed,steer,elapsedMs:t,boostMs:speed===75?900:0});
+    const tire=fx.cameraPoint(camera,960,fx.CAMERA_PIVOT_Y);
+    assert(Math.abs(tire.y-fx.CAMERA_PIVOT_Y)<=14,'zoom pivot keeps timing plane in view');
+    for(const x of [500,805,1115,1420]) {
+      const button=fx.cameraPoint(camera,x,fx.CAMERA_PIVOT_Y+78);
+      assert(button.y>184&&button.y<1040,'all four lane destinations fit throughout the camera envelope');
+    }
+  }
+  // Dense cropped actors cannot stack warnings for the same moving lane.
+  let warningPositions=[],buttons=[];
+  const warningCtx=new Proxy({save(){},restore(){},translate(x,y){warningPositions.push([x,y]);},rotate(){},
+    moveTo(){}}, {get:(o,k)=>k in o?o[k]:()=>{}});
+  r.w.BARCODE.CacheRoadGuidance={drawButton:(c,args)=>buttons.push(args)};
+  const warnings=Array.from({length:12},(_,i)=>({lane:i/4,d:120-i,marker:{x:58,y:250+i*55,angle:Math.PI}}));
+  fx.drawCameraWarnings(warningCtx,warnings,{x:1950,y:900,width:60,height:60,action:2,strike:true},still);
+  assert.equal(buttons.length,1);assert.equal(buttons[0].index,2);assert.equal(buttons[0].active,true);
+  assert.equal(warningPositions.length,5,'four distinct lane warnings plus one target, independent of actor density');
+  buttons=[];fx.drawCameraWarnings(warningCtx,[],{x:960,y:930,width:60,height:60,action:1},still);
+  assert.equal(buttons.length,0,'visible target gets no duplicate edge cue');
+  r.w.BARCODE_RENDER_QUALITY={flashes:false};draws.length=0;
+  assert.deepEqual(copy(fx.speedCamera({...state,speed:75,boostMs:1000})),still);
+  fx.drawSpeedAtmosphere(ctx,{...state,speed:75});assert.equal(draws.length,0);
+  console.log('Shared cutscenes: separate reading/page/final actions, transcript/pause, failed audio pause and independent skip holds passed. Speed FX: 60 live-state combinations, bounded draw/clip/camera, dynamic gear aperture, protected timing pivot, edge warnings, Reduced Motion/Flashes Off and state immutability passed.');
 }
 main().catch(e=>{console.error(e.stack);process.exitCode=1;});

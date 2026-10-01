@@ -37,9 +37,9 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   const cacheDashboardRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/dd1b3e9adc174da39e4b228c45079526c9c6a36a/';
   const cacheEncounterRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/8b9343cd365d2efc9c6f04c4d65295fd293eec9b/';
   // New art is bundled during local review; publication pins the exact art commit.
-  const speedEffectsRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a01f012f3afc3411e58b939f0c2911474ea51ead/';
+  const speedEffectsRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/f9c2fad2472f3bebdb9554f13893293d74b8bece/';
   const entries = {
-    cacheWindWhoosh: {path:'assets/cache-road/effects/wind-whoosh-atlas.png',root:speedEffectsRoot,columns:3,rows:2,frames:6,liveFrames:[0,1,2,3,5],ax:.5,ay:.5,smooth:true},
+    cacheWindWhoosh: {path:'assets/cache-road/effects/wind-streak-atlas-v2.png',root:speedEffectsRoot,columns:3,rows:2,frames:6,liveFrames:[0,1,2,3,5],ax:.5,ay:.5,smooth:true},
     cachePushArc: { path: 'assets/cache-road/encounters/push-arc.webp', root: cacheEncounterRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: .78, smooth: true },
     cacheBraceHalo: { path: 'assets/cache-road/encounters/brace-halo.webp', root: cacheEncounterRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: .75, smooth: true },
     cacheEchoRibbons: { path: 'assets/cache-road/encounters/echo-ribbons.webp', root: cacheEncounterRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: .78, smooth: true },

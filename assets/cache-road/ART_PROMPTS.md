@@ -62,3 +62,14 @@ peripheral speed slash with small gold accents. Gritty painted late-1980s
 cyberpunk comic brushwork, ragged ink/dry-brush grain, generous transparent
 gutters. No lettering, labels, car, scenery, frames or opaque background.
 The generated RGBA bytes are preserved as `effects/wind-whoosh-atlas.png`.
+
+## October 1 — thin air streak replacement (built-in imagegen)
+
+Transparent 1536 × 1024, 3 × 2 atlas of six 512-pixel cells. Sparse clusters
+of 5–8 very thin straight tapered parallel air streaks from upper left toward
+lower right. White/off-white, subtle mint, transparent gaps, small brighter
+tips, no filled ribbons. Three varied top clusters, longer passing cluster,
+quiet reserved cluster, fine corner cluster. No curls, spirals, smoke, debris,
+brush blobs, outlines, colored halos, background, text or environment. Original
+RGBA output copied unchanged as `effects/wind-streak-atlas-v2.png`. Runtime
+uses stretched directional clusters and no permanent corner flare.

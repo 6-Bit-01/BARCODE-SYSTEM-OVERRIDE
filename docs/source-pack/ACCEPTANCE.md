@@ -1,5 +1,18 @@
 # Acceptance and Test Status
 
+## October 1 — dynamic camera and replacement wind review
+
+The owner rejected #165's curling wind; that visual is not accepted. The new
+wind/camera implementation needs review in Makko at slow, middle, high and
+Turbo speeds: verify full → focused → full aperture, readable button lanes,
+clear upcoming traffic, short pass/hit shake and acceptable wobble. Verify
+edge car markers and the corresponding four-lane alerts if cropping occurs.
+Reduced Motion and Flashes Off must remove the new motion. Confirm all three
+comic groups retain #165's shared controls. No new owner acceptance is claimed.
+Scripted production renders and automated helper/regression results are
+separate from physical-controller, sound, comfort and hosted frame pacing.
+See `DYNAMIC_SPEED_CAMERA.md`; original results remain revision-attributed.
+
 ## Identical controls and stronger speed effects — October 1
 
 Import the candidate identified by its receipt. Compare all eight opening,
