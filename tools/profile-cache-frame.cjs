@@ -27,6 +27,15 @@ async function main(){
     'src/game/cache-road-landscape.js','src/game/cache-road-guidance.js'])
     vm.runInContext(sourceFor(file),context,{filename:file});
   let source=sourceFor('src/game/cache-road-proof.js');
+  const terrainStep=process.env.PROFILE_TERRAIN_STEP;
+  if(terrainStep!==undefined) {
+    const step=Number(terrainStep),period=Number(source.match(/const grainPeriod=(\d+)/)?.[1]);
+    if(!Number.isInteger(step)||step<=0||!period||period%step!==0)
+      throw Error('PROFILE_TERRAIN_STEP must be a positive integer divisor of the grain period');
+    const slab=/const layerStep=[^;]+;/;
+    if(!slab.test(source))throw Error('Missing diagnostic slab interval');
+    source=source.replace(slab,`const layerStep=${step};`);
+  }
   source=source.replace('  B.Campaign.register(ID,','  window.profileNewState=newState;\n  B.Campaign.register(ID,');
   for(const [label,call] of [['rearview',"drawRearview(ctx, s, ['#f6adbb', '#f3b276', '#d2a4f9', '#9aefce'][section], reduced);"],
     ['worldPaint','for(const item of worldPaint)item.draw();']]){
@@ -55,7 +64,7 @@ async function main(){
     '  const cache=Object.fromEntries(Object.entries(window.profileImages).map(([key,image])=>[key,{image,ready:true}]));'),context);
   B.CacheChapter={recordIds:['r1','r2','r3','r4']};
   const canvas=createCanvas(1920,1080),ctx=canvas.getContext('2d'),road=B.CacheRoadProof;
-  const positions=process.env.PROFILE_SEAMS ? [69,70,71,72,73,74,141,142,143,144] :
+  const positions=process.env.PROFILE_SEAMS ? [75,76,77,78,79,80,153,154,155,156,157,158] :
     [0,130,300,1000,5000];
   for(const progress of positions){
     const state=Object.assign(w.profileNewState(),{progress,elapsedMs:1000,
@@ -78,7 +87,7 @@ async function main(){
     }
     const median=key=>{const values=samples.slice(frames===3?0:2).map(s=>s[key]).sort((a,b)=>a-b);
       return Math.round((values[Math.floor((values.length-1)/2)]+values[Math.floor(values.length/2)])/2*100)/100;};
-    process.stdout.write(JSON.stringify({revision:revision||'HEAD',progress,totalMs:median('total'),rearviewMs:median('rearview'),worldPaintMs:median('worldPaint'),
+    process.stdout.write(JSON.stringify({revision:revision||'HEAD',terrainStepOverride:terrainStep===undefined?null:Number(terrainStep),progress,totalMs:median('total'),rearviewMs:median('rearview'),worldPaintMs:median('worldPaint'),
       terrainMs:median('terrain'),sidewalkMs:median('sidewalk'),roadMs:median('road'),worldMs:median('world'),paintMs:median('paint'),
       maxMs:Math.round(Math.max(...samples.map(s=>s.total))*100)/100})+'\n');
   }

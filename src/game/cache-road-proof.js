@@ -3284,10 +3284,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       });
       const groundCrest=Array.from({length:65},(_,i)=>[i*30,cityCrestY(i*30)]);
       const lowestCrest=Math.min(...groundCrest.map(point=>point[1]));
-      // Each slab samples the same world-aligned grain strip. Seventy-two
-      // world units preserve its mapped edges while cutting the clipped
-      // full-size texture draws that saturated the road's first frame.
-      const layerStep=72;
+      // Eight slabs divide the grain repeat exactly, so every world-aligned
+      // crop stays in its source band. Wider slabs cut the clipped texture
+      // draws that saturated the road's first frame.
+      const layerStep=grainPeriod/8;
       for(let at=Math.floor((progress+864)/layerStep)*layerStep;
         at>progress-200;at-=layerStep) {
         const far=sideDepth(at+layerStep-progress);

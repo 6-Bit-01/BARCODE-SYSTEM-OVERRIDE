@@ -1009,6 +1009,20 @@ async function run() {
       entry.sourceRect?.[2]===256 && entry.sourceRect?.[3]===64 &&
       entry.projected?.length===6),
   'world-fixed grain covers both banks; shared local texture stays inside graph streets and market courts');
+  // Check actual draw crops across the complete grain repeat, its boundary
+  // and later districts. A wider slab must never sample outside the painted
+  // source band when its world address wraps (including negative addresses
+  // in the opening foreground).
+  for(const progress of [...Array.from({length:17},(_,i)=>i*78),623,624,625,5000,12400]) {
+    mirrorFrame({progress});
+    const grain=roadArt.filter(entry=>entry.key==='cacheRollingGrain');
+    assert(grain.length>0,'every sampled route paints bank grain');
+    for(const entry of grain) {
+      const [x,y,w,h]=entry.sourceRect;
+      assert(x>=0&&w>0&&h>0&&y>=32-1e-9&&y+h<=855+1e-9,
+        `world grain crop stays inside its painted source band at ${progress}: ${entry.sourceRect}`);
+    }
+  }
   mirrorFrame({progress:2750});
   assert(roadArt.some(entry=>entry.key==='cacheLocalStreet') &&
     !roadArt.some(entry=>entry.key.startsWith('cacheMarket')),
