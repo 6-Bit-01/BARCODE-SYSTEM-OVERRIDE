@@ -1,5 +1,32 @@
 # Current State
 
+## September 30 — Makko title visibility repair (unmerged)
+
+Live Chrome testing reached the Makko studio and reproduced Continue restoring
+the Cache bridge while the title still covered the Canvas. The hidden overlay
+had inline opacity 1 from the boot fade. Its hidden CSS now takes precedence
+over that inline opacity; visible title behavior is retained on return.
+
+The owner approved replacing Makko's 161 local files from GitHub main. After
+that refresh, the one-line correction was reapplied and rebuilt. Continue
+revealed bridge page 08/08; Drive resumed the saved road marker. PR #161's
+compact route lights, lane diagrams and mapped badges appeared, and Pause
+retained full control/mission help. Bridge return and checkpoint retry also
+worked, with no reported preview errors. This is partial live acceptance:
+the saved late-race marker has not been cleared into a fresh Replay race.
+
+The review branch is based on merged #161, `4a6ead45d64eea92da3afdba0412b6a14230fc09`.
+Native Chromium now checks actual title opacity and Canvas hit testing after
+the production Continue/lifecycle route, delayed boot fade and boot fallback,
+plus visible/interactive return to title. Checkpoint storage/restore are host
+boundaries in that fixture. The full npm suite, all-file syntax audit and
+native Chromium regression passed; the original CSS failed the negative
+probe. Exact tested revision and logs belong to the review receipt. Physical
+controller, audible output and complete fresh-race PR #161 Makko acceptance
+remain pending. The owner approved publishing the repair branch and opening
+a draft PR; the final GitHub revision, PR and CI status belong to its receipt.
+No gameplay or artwork changes.
+
 ## September 30 — less reading, complete foreground motion
 
 Live driving uses compact route progress, optional-record lights, mapped

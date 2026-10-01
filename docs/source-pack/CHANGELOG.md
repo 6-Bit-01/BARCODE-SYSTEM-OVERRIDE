@@ -1,5 +1,24 @@
 # Recovery checkpoint — September 14
 
+## September 30, 2026 — title overlay repair (unmerged)
+
+- Make the hidden title overlay transparent even when boot writes inline
+  opacity 1 after Continue. Preserve visible controls when returning to title.
+- Add native Chromium checks for production Continue/lifecycle, actual late
+  boot fade and fallback, computed opacity, Canvas hit testing and title return.
+- Refresh Makko's 161 local files from GitHub main with owner approval,
+  reapply the correction and rebuild. Bridge 08/08, saved-road Drive handoff,
+  checkpoint retry, compact route cues and full Pause help became visible,
+  with no reported preview errors. Complete fresh races, physical controller
+  and audible-device acceptance remain pending.
+- Pass the full npm suite, all-file syntax audit and native Chromium
+  regression; confirm the original CSS fails the negative probe. Preserve
+  the locally committed repair for review. The owner approved publication
+  of the repair branch and a draft PR; exact publication/CI status belongs
+  to the final PR/receipt.
+- Base/rollback is merged #161, `4a6ead45d64eea92da3afdba0412b6a14230fc09`.
+  Final checks, tested head and merge status belong to the PR/generated receipt.
+
 ## September 30, 2026 — visual cues and natural foreground exits
 
 - Replace repeated route/tutorial prose with route lights, lane diagrams,
