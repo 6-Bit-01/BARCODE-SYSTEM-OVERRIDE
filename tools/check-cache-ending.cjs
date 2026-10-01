@@ -21,7 +21,7 @@ function rig(options={}) {
   const canvas={getBoundingClientRect:()=>({left:0,top:0,width:1920,height:1080})};
   const document={getElementById:()=>canvas,body:{appendChild(el){calls.dom.push(el);}},createElement:()=>({style:{},
     attrs:{},setAttribute(name,value){this.attrs[name]=value;},remove(){this.removed=true;}})};
-  const context={window,document,Image:class{constructor(){calls.images.push(this);} set src(v){this.url=v;}get src(){return this.url;}}};
+  const context={window,document,Image:class{constructor(){calls.images.push(this);} set src(v){this.url=v;if(options.loading!==true)this.onload?.();}get src(){return this.url;}}};
   for(const file of ['src/engine/intro-sequence.js','src/engine/cache-scene-layouts.js','src/engine/cache-scene-effects.js','src/engine/comic-dialogue.js'])
     vm.runInNewContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),context,{filename:file});
   vm.runInNewContext(source,context,{filename:'src/engine/cache-ending.js'});
@@ -45,7 +45,7 @@ function checkGuardAndProgress() {
   for(let page=0;page<4;page++)for(let cue=0;cue<3;cue++) {
     assert.equal(e.page,page);assert.equal(e.cue,cue);visited.push(`${page}:${cue}`);
     assert.deepEqual(copy(road.chapter.delivery.ending),{version:1,page,cue,done:false});
-    if(page===3&&cue===2)break;r.tap('Enter');
+    if(page===3&&cue===2)break;r.tap(cue<2?' ':'Enter');
   }
   r.step(30000);assert(e.active);assert.equal(e.done,false,'Ready does not silently finish');
   assert.deepEqual(copy(facts),initial,'reading never modifies campaign awards');
@@ -62,9 +62,9 @@ function checkTimingTranscriptAndControls() {
   const r=rig(),{e,window}=r;
   window.inputManager.resultKeysHeld.add('enter');e.start();
   r.key('Enter',true);assert.equal(e.cue,0,'carried keyboard confirm needs release');
-  r.key('Enter',false);r.key('Enter',true);assert.equal(e.cue,1);
-  for(let i=0;i<12;i++)r.key('Enter',true,true);
-  assert.equal(e.cue,1,'repeat cannot consume dialogue');r.key('Enter',false);
+  r.key('Enter',false);r.key(' ',true);assert.equal(e.cue,1);
+  for(let i=0;i<12;i++)r.key(' ',true,true);
+  assert.equal(e.cue,1,'repeat cannot consume dialogue');r.key(' ',false);
   r.step(3999);assert.equal(e.cue,1);r.step(1);assert.equal(e.cue,2);
   r.step(12000);assert.equal(e.cue,2);assert.equal(e.page,0);
   r.tap('Enter');assert.equal(e.page,1);assert.equal(e.cue,0);
@@ -92,7 +92,7 @@ function checkSkip() {
     assert.equal(e.page,3);assert.equal(e.cue,2);assert(e.active);assert.equal(e.done,false);
     r.step(8000);assert(e.active,'held skip never executes Finish chapter');r.key('s',false);
     r.tap('Escape');assert(!e.active);assert.equal(r.road.chapter.delivery.ending.done,false);
-    e.start(r.road.chapter.delivery.ending);r.pad();r.pad({b0:true},{b0:true});
+    e.start(r.road.chapter.delivery.ending);r.pad();r.pad({b5:true},{b5:true});
     assert(!e.active);assert.equal(r.road.chapter.delivery.ending.done,true);
   }
   const r=rig();r.window.inputManager.keys.s=true;r.e.start();r.key('s',true);r.step(6000);
@@ -105,7 +105,7 @@ function checkSavesAndMissingArt() {
     assert.equal(e.page,page);assert.equal(e.cue,cue);assert.equal(calls.audio.length,0,'all restored positions are silent');
     e.back();assert.deepEqual(copy(r.road.chapter.delivery.ending),{version:1,page,cue,done:false});
   }
-  const r=rig({save:false}),{e,calls}=r;
+  const r=rig({save:false,loading:true}),{e,calls}=r;
   for(const saved of [null,undefined,[],{version:2,page:3,cue:2,done:true}])
     assert.deepEqual(copy(e.normalize(saved)),{version:1,page:0,cue:0,done:false});
   assert.deepEqual(copy(e.normalize({version:1,page:99,cue:-2,done:'true'})),{version:1,page:3,cue:0,done:false});
@@ -117,7 +117,7 @@ function checkSavesAndMissingArt() {
   assert(calls.drawn.includes('SAVE UNAVAILABLE / KEEP THIS SESSION OPEN'));
   assert(!calls.drawn.includes('PROGRESS SAVED'),'ready archive alone cannot claim a successful save');
   assert(calls.drawn.some(text=>text.includes('PICTURE UNAVAILABLE')));
-  e.skipToReady();e.pointer({clientX:1500,clientY:1035});
+  e.skipToReady();e.pointer({clientX:600,clientY:1035});
   assert(!e.active);assert(r.road.chapter.delivery.ending.done,'save failure preserves session and usable final action');
   const oldLoad=calls.images[4].onload;assert.equal(oldLoad,null,'dispose removes stale image callbacks');
   const r2=rig();r2.facts.items=['stem.voice'];r2.e.start();r2.e.draw(r2.ctx);
@@ -130,7 +130,7 @@ function checkSavesAndMissingArt() {
 function checkSceneClock() {
   const r=rig(),{e,window}=r;e.start();assert.equal(e.sceneElapsedMs,0);
   r.step(300);assert.equal(e.sceneElapsedMs,300);
-  r.tap('Enter');assert.equal(e.cue,1);assert.equal(e.sceneElapsedMs,300,
+  r.tap(' ');assert.equal(e.cue,1);assert.equal(e.sceneElapsedMs,300,
     'a dialogue reveal preserves the scene effect clock');
   r.step(120);assert.equal(e.sceneElapsedMs,420);
   r.tap('T');r.step(1200);assert.equal(e.sceneElapsedMs,420,'transcript freezes scene effects');
@@ -139,7 +139,7 @@ function checkSceneClock() {
   window.isPaused=false;r.key('s',true);r.step(1200);
   assert.equal(e.sceneElapsedMs,420,'holding skip freezes scene effects');
   r.key('s',false);r.step(120);assert.equal(e.sceneElapsedMs,540);
-  r.tap('Enter');assert.equal(e.cue,2);assert.equal(e.sceneElapsedMs,540);
+  r.tap(' ');assert.equal(e.cue,2);assert.equal(e.sceneElapsedMs,540);
   r.tap('Enter');assert.equal(e.page,1);assert.equal(e.sceneElapsedMs,0,'page changes reset scene effects');
   assert.deepEqual(copy(e.serialize()),{version:1,page:1,cue:0,done:false});
   e.dispose();e.start({version:1,page:2,cue:1,done:false});

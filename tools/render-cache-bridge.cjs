@@ -97,8 +97,7 @@ async function main() {
         if(hit) {
           const [, [x,y,width,height]]=hit;
           assert(inside(entry.bounds,[x,y,x+width,y+height]),`Control label escapes ${hit[0]}`);
-        } else assert(inside(entry.bounds,page===7?[1018,1011,1275,1060]:[730,1011,1260,1060]),
-          `Skip control escapes its slot: ${entry.text}`);
+        } else assert(inside(entry.bounds,[1318,1011,1872,1060]),`Skip control escapes its slot: ${entry.text}`);
       }
       if(transcript&&entry.y>=154&&entry.y<744)
         assert(inside(entry.bounds,[160,154,1760,744]),`Transcript text escapes panel: ${entry.text}`);

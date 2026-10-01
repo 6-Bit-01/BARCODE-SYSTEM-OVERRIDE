@@ -38,6 +38,9 @@ window.CutsceneSystem = class CutsceneSystem {
     this.sceneElapsedMs = 0;
     this.lastCueTick = 0;
     this.presentationPaused = false;
+    this.userPaused = false;
+    this.transcriptOpen = false;
+    this.pausePending = false;
     this.isActive = false;
     this.canSkip = true;
     this.imageDisplayTime = 250; // Debounce a transition; reading pace belongs to the player.
@@ -52,6 +55,7 @@ window.CutsceneSystem = class CutsceneSystem {
     this.ownedIntervals = new Set();
     this.pendingImageLoads = new Set();
     this.skipHolds = new Map();
+    this.heldKeys = new Set();
     this.skipHoldDuration = 5000;
     this.isSkipHoldActive = false;
     this.skipHoldProgress = 0;
@@ -142,6 +146,8 @@ window.CutsceneSystem = class CutsceneSystem {
     this.cancelImageLoads(); this.clearOwnedCallbacks(); this.endSkipHold();
     const generation = this.cutsceneGeneration;
     this.isActive = true; this.currentImageIndex = 0; this.presentationPaused = false;
+    this.userPaused = false; this.transcriptOpen = false; this.pausePending = false;
+    this.heldKeys = new Set(window.inputManager?.resultKeysHeld || []);
     window.BARCODE.IntroSequence.reset();
     window.inputManager?.resetActionEdges?.();
     this.startPromise = new Promise(resolve => { this.onComplete = resolve; });
@@ -190,13 +196,19 @@ window.CutsceneSystem = class CutsceneSystem {
     }
     const actions = document.createElement('div');
     actions.style.cssText = 'position:absolute;left:2.5%;bottom:1.6%;display:flex;gap:14px;';
-    for (const [action, label] of [['dialogue', 'Dialogue'], ['scene', 'Next scene']]) {
+    if (this.introContext) actions.style.cssText = 'position:absolute;width:min(100vw,177.777778vh);height:min(100vh,56.25vw);pointer-events:none;';
+    for (const [action, label] of [['dialogue', 'Dialogue'], ['scene', 'Next scene'], ['transcript', 'Transcript'], ['pause', 'Pause']]) {
       const button = document.createElement('button');
       button.type = 'button'; button.textContent = label; button.dataset.introAction = action;
       button.style.cssText = 'min-height:42px;padding:8px 16px;border:2px solid #91ffe0;background:#091722;color:#f0eadc;font:700 17px Oxanium,monospace;cursor:pointer;';
+      if (this.introContext) {
+        const [x,y,w,h] = window.BARCODE.IntroSequence.controls[action];
+        button.style.cssText = `position:absolute;left:${x/19.2}%;top:${y/10.8}%;width:${w/19.2}%;height:${h/10.8}%;border:0;background:transparent;color:transparent;pointer-events:auto;cursor:pointer;`;
+      }
       actions.appendChild(button);
       if (action === 'scene') this.nextSceneButton = button;
-      else this.dialogueButton = button;
+      else if (action === 'dialogue') this.dialogueButton = button;
+      else if (action === 'pause') this.pauseButton = button;
     }
     container.appendChild(actions);
     // FullscreenManager owns the document root, so this stable DOM host stays
@@ -228,12 +240,13 @@ window.CutsceneSystem = class CutsceneSystem {
       index: this.currentImageIndex - 1,
       cueIndex: this.currentCueIndex, cueElapsedMs: this.cueElapsedMs,
       images: this.cutsceneImages, pad: !!window.BARCODE.GamepadUI?.connected,
-      skipProgress: this.skipHoldProgress, holding: this.isSkipHoldActive
+      skipProgress: this.skipHoldProgress, holding: this.isSkipHoldActive,
+      transcriptOpen: this.transcriptOpen, paused: this.userPaused
     });
   }
 
   updateTranscript() {
-    if (this.transcriptElement) this.transcriptElement.textContent = window.BARCODE.IntroSequence.transcript(this.currentImageIndex - 1, this.currentCueIndex);
+    if (this.transcriptElement) this.transcriptElement.textContent = window.BARCODE.IntroSequence.transcript(this.currentImageIndex - 1, this.transcriptOpen ? Infinity : this.currentCueIndex);
   }
 
   revealNextCue() {
@@ -249,7 +262,7 @@ window.CutsceneSystem = class CutsceneSystem {
     const now = Date.now(), delta = Math.min(250, Math.max(0, now - this.lastCueTick));
     this.lastCueTick = now;
     const image = this.cutsceneImages[this.currentImageIndex - 1];
-    if (document.hidden || this.presentationPaused || this.isSkipHoldActive || (this.introContext && image?.status === 'loading')) return;
+    if (document.hidden || this.presentationPaused || this.userPaused || this.transcriptOpen || this.isSkipHoldActive || (this.introContext && image?.status === 'loading')) return;
     this.sceneElapsedMs += delta; this.cueElapsedMs += delta;
     const cue = window.BARCODE.IntroSequence.getCues(this.currentImageIndex - 1)[this.currentCueIndex];
     if (cue && this.cueElapsedMs >= cue.holdMs) this.revealNextCue();
@@ -271,16 +284,26 @@ window.CutsceneSystem = class CutsceneSystem {
     }, 50);
     this.skipHandler = e => {
       const key = e.key?.toLowerCase();
-      if (![' ', 'enter', 's', 'arrowleft'].includes(key) && e.type !== 'click') return;
+      if (![' ', 'enter', 's', 'arrowleft', 't', 'p'].includes(key) && e.type !== 'click') return;
       e.preventDefault(); e.stopPropagation?.();
-      if (e.repeat) return;
-      if (key === 's') this.startSkipHold('keyboard');
+      if (e.type !== 'click') {
+        const wasHeld = this.heldKeys.has(key); this.heldKeys.add(key);
+        if (e.repeat || wasHeld) return;
+      }
+      const action = e.type === 'click' ? e.target?.dataset?.introAction : null;
+      if (key === 'p' || action === 'pause') this.togglePresentationPause();
+      else if (this.userPaused || this.pausePending || this.presentationPaused) return;
+      else if (key === 't' || action === 'transcript') this.toggleTranscript();
+      else if (key === 's') this.startSkipHold('keyboard');
       else if (key === 'arrowleft') this.inspectCaption();
-      else if (key === 'enter' || e.type === 'click' && e.target?.dataset?.introAction === 'scene') this.nextScene();
-      else this.skipCutscene();
+      else if (key === 'enter' || action === 'scene') this.nextScene();
+      else if (key === ' ' || action === 'dialogue') this.skipCutscene();
     };
-    this.skipHoldEndHandler = e => { if (e.key?.toLowerCase() === 's') { e.preventDefault(); this.endSkipHold('keyboard'); } };
-    this.blurHandler = () => { this.endSkipHold(); this.presentationPaused = true; this.lastCueTick = Date.now(); };
+    this.skipHoldEndHandler = e => {
+      this.heldKeys.delete(e.key?.toLowerCase());
+      if (e.key?.toLowerCase() === 's') { e.preventDefault(); this.endSkipHold('keyboard'); }
+    };
+    this.blurHandler = () => { this.endSkipHold(); this.heldKeys.clear(); this.presentationPaused = true; this.lastCueTick = Date.now(); };
     this.focusHandler = () => { this.presentationPaused = false; this.lastCueTick = Date.now(); };
     this.visibilityHandler = () => { if (document.hidden) this.endSkipHold(); this.lastCueTick = Date.now(); };
     document.addEventListener('keydown', this.skipHandler);
@@ -307,14 +330,16 @@ window.CutsceneSystem = class CutsceneSystem {
   }
 
   skipCutscene() {
-    if (!this.canSkip || !this.isActive || this.inputDisabled) return;
+    if (!this.canSkip || !this.isActive || this.inputDisabled || this.userPaused || this.presentationPaused || this.isSkipHoldActive) return;
+    if (this.transcriptOpen) { this.toggleTranscript(); return; }
     // Each press owns exactly one cue. A manual reveal restarts that cue's
     // reading interval, so an overdue automatic reveal cannot consume it too.
     if (this.revealNextCue()) this.disableInputTemporarily(this.imageDisplayTime);
   }
 
   nextScene() {
-    if (!this.canSkip || !this.isActive || this.inputDisabled) return false;
+    if (!this.canSkip || !this.isActive || this.inputDisabled || this.userPaused || this.presentationPaused || this.isSkipHoldActive) return false;
+    if (this.transcriptOpen) { this.toggleTranscript(); return true; }
     const cues = window.BARCODE.IntroSequence.getCues(this.currentImageIndex - 1);
     if (this.currentCueIndex < cues.length - 1) return false;
     this.showNextImage();
@@ -330,7 +355,7 @@ window.CutsceneSystem = class CutsceneSystem {
   // Each physical input owns its own continuous hold. A controller release or
   // disconnect must never cancel keyboard S (the PR39 regression).
   startSkipHold(source = 'keyboard') {
-    if (!this.isActive || this.skipHolds.has(source)) return;
+    if (!this.isActive || this.userPaused || this.presentationPaused || this.transcriptOpen || this.skipHolds.has(source)) return;
     this.skipHolds.set(source, Date.now()); this.isSkipHoldActive = true;
     this.updateSkipHoldProgress(); this.drawCurrentPanel();
   }
@@ -342,7 +367,7 @@ window.CutsceneSystem = class CutsceneSystem {
   }
 
   updateSkipHoldProgress() {
-    if (!this.isActive || !this.isSkipHoldActive) return;
+    if (!this.isActive || this.userPaused || this.presentationPaused || !this.isSkipHoldActive) return;
     const started = Math.min(...this.skipHolds.values());
     this.skipHoldProgress = Math.min(1, (Date.now() - started) / this.skipHoldDuration);
     if (this.skipHoldProgress >= 1) { this.endSkipHold(); this.skipAllCutscene(); }
@@ -350,8 +375,42 @@ window.CutsceneSystem = class CutsceneSystem {
 
   skipAllCutscene() {
     if (!this.isActive) return;
+    this.endSkipHold(); this.transcriptOpen = false;
     this.currentImageIndex = window.BARCODE.IntroSequence.panels.length;
-    this.endCutscene();
+    this.currentCueIndex = window.BARCODE.IntroSequence.getCues(this.currentImageIndex-1).length-1;
+    this.cueElapsedMs = 0; this.lastCueTick = Date.now();
+    this.disableInputTemporarily(this.imageDisplayTime);
+    this.updateTranscript(); this.drawCurrentPanel();
+  }
+
+  toggleTranscript() {
+    if (!this.isActive || this.userPaused || this.pausePending) return false;
+    this.endSkipHold(); this.transcriptOpen = !this.transcriptOpen;
+    this.lastCueTick = Date.now(); this.updateTranscript(); this.drawCurrentPanel(); return true;
+  }
+
+  async togglePresentationPause() {
+    if (!this.isActive || this.pausePending) return false;
+    this.endSkipHold(); this.pausePending = true;
+    const generation = this.cutsceneGeneration, next = !this.userPaused;
+    this.userPaused = true; this.drawCurrentPanel();
+    try {
+      const result = await window.audioSystem?.[next?'pauseRuntimeAudio':'resumeRuntimeAudio']?.();
+      if (generation !== this.cutsceneGeneration) {
+        if (next) await window.audioSystem?.resumeRuntimeAudio?.();
+        return false;
+      }
+      this.userPaused = result?.ok === false ? !next : next;
+      return result?.ok !== false;
+    } catch (error) {
+      if(generation===this.cutsceneGeneration)this.userPaused=!next;
+      console.warn('Comic pause could not change audio state:',error?.message||error);
+      return false;
+    } finally {
+      if (generation === this.cutsceneGeneration) {
+        this.pausePending = false; this.lastCueTick = Date.now(); this.drawCurrentPanel();
+      }
+    }
   }
 
   // End the cutscene and clean up
@@ -511,6 +570,12 @@ window.CutsceneSystem = class CutsceneSystem {
   }
 
   destroy() {
+    if (this.userPaused) {
+      try { window.audioSystem?.resumeRuntimeAudio?.()?.catch?.(error=>console.warn('Comic cleanup audio resume:',error?.message||error)); }
+      catch(error) { console.warn('Comic cleanup audio resume:',error?.message||error); }
+    }
+    this.userPaused = false; this.transcriptOpen = false;
+    this.heldKeys.clear();
     this.cutsceneGeneration++; this.isActive = false;
     this.removeEventListeners(); this.cancelImageLoads(); this.clearOwnedCallbacks();
     this.cutsceneContainer?.remove();

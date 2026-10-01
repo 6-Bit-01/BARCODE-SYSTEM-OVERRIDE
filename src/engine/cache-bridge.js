@@ -29,8 +29,7 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-bridge.js',exports:['BARCODE.C
   const sounds={'0:0':'relay','2:1':'original','3:1':'clean','4:1':'tape','6:1':'ignition'};
   const {ink,paper,mint,pink}=B.IntroSequence.format.palette,gold=pink;
   const frame=B.IntroSequence.format.frame;
-  const bounds=Object.freeze({advance:[1280,1011,575,49],transcript:[390,1011,242,49],
-    back:[64,1011,302,49],architecture:[655,1011,350,49]});
+  const bounds=B.IntroSequence.controls;
   const finite=(value,max)=>Number.isFinite(value)?Math.max(0,Math.min(max,Math.trunc(value))):0;
   function text(ctx,value,x,y,size=24,color=paper,bold=false) {
     ctx.fillStyle=color;ctx.font=`${bold?'bold ':''}${size}px monospace`;
@@ -47,7 +46,7 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-bridge.js',exports:['BARCODE.C
   }
   const bridge=B.CacheBridge={
     panels,cues,frame,bounds,active:false,page:0,cue:0,cueElapsedMs:0,sceneElapsedMs:0,skipMs:0,pending:false,
-    generation:0,images:[],heldKeys:new Set(),skipHolds:new Set(),padBlocked:new Set(),
+    generation:0,images:[],heldKeys:new Set(),skipHolds:new Map(),padBlocked:new Set(),
     padNeedsRelease:true,transcriptOpen:false,transcriptElement:null,
     normalize(saved) {
       if(!saved||typeof saved!=='object'||Array.isArray(saved)||saved.version!==1)
@@ -117,28 +116,33 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-bridge.js',exports:['BARCODE.C
       }
       if(this.transcriptOpen)return;
       if(this.skipHolds.size) {
-        this.skipMs+=dt;if(this.skipMs>=5000)this.skipToReady();return;
+        for(const [source,elapsed] of this.skipHolds)this.skipHolds.set(source,elapsed+dt);
+        this.skipMs=Math.max(...this.skipHolds.values());
+        if(this.skipMs>=5000)this.skipToReady();return;
       }
+      if(this.images[this.page]?.status==='loading')return;
       this.cueElapsedMs+=dt;this.sceneElapsedMs+=dt;
       if(this.cue<2&&this.cueElapsedMs>=cues[this.cue].holdMs)this.setCue(this.page,this.cue+1);
     },
-    advance() {
+    advance({scene=false}={}) {
       if(!this.active||this.pending||window.isPaused||this.skipHolds.size)return false;
       if(this.transcriptOpen){this.toggleTranscript();return true;}
-      if(this.cue<2)this.setCue(this.page,this.cue+1);
-      else if(this.page<7)this.setCue(this.page+1,0);
+      if(!scene){if(this.cue<2)this.setCue(this.page,this.cue+1);return true;}
+      if(this.cue<2)return false;
+      if(this.page<7)this.setCue(this.page+1,0);
       else return this.drive();
       return true;
     },
     skipToReady() {
       if(!this.active||this.pending)return false;
       this.skipHolds.clear();this.skipMs=0;this.transcriptOpen=false;
-      this.padBlocked.add('b1');
+      this.padBlocked.add('b1');this.padBlocked.add('b5');
       this.setCue(7,2);return true;
     },
     holdSkip(source,held) {
-      if(held)this.skipHolds.add(source);else this.skipHolds.delete(source);
-      if(!this.skipHolds.size)this.skipMs=0;
+      if(held){if(!this.skipHolds.has(source))this.skipHolds.set(source,0);}
+      else this.skipHolds.delete(source);
+      this.skipMs=this.skipHolds.size?Math.max(...this.skipHolds.values()):0;
     },
     toggleTranscript() {
       if(this.pending)return false;
@@ -168,13 +172,16 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-bridge.js',exports:['BARCODE.C
       if(!this.active)return false;
       event.preventDefault?.();const key=event.key.toLowerCase();
       const held=this.heldKeys.has(key);this.heldKeys.add(key);
-      if(this.pending||window.isPaused||event.repeat||held)return true;
+      if(event.repeat||held)return true;
+      if(window.isPaused){if(key==='p'){this.releaseInputs();this.heldKeys.add(key);B.RuntimeLifecycle?.togglePause?.();}return true;}
+      if(this.pending)return true;
       if(key==='escape')B.Campaign?.closeIntermission?.();
-      else if(key==='p'){this.releaseInputs();B.RuntimeLifecycle?.togglePause?.();}
+      else if(key==='p'){this.releaseInputs();this.heldKeys.add(key);B.RuntimeLifecycle?.togglePause?.();}
       else if(key==='s')this.holdSkip('keyboard',true);
       else if(key==='t')this.toggleTranscript();
       else if(key==='3')this.architecture();
-      else if(key===' '||key==='enter')this.advance();
+      else if(key===' ')this.advance();
+      else if(key==='enter')this.advance({scene:true});
       return true;
     },
     keyUp(event) {
@@ -188,7 +195,8 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-bridge.js',exports:['BARCODE.C
         this.padBlocked=new Set(Object.keys(held).filter(key=>held[key]));this.padNeedsRelease=false;
       }
       for(const key of this.padBlocked)if(!held[key])this.padBlocked.delete(key);
-      if(this.pending||window.isPaused)return true;
+      if(window.isPaused){if(pressed.b9&&!this.padBlocked.has('b9')){this.releaseInputs();B.RuntimeLifecycle?.togglePause?.();}return true;}
+      if(this.pending)return true;
       this.holdSkip('gamepad',!!held.b1&&!this.padBlocked.has('b1'));
       const edge=key=>!!pressed[key]&&!this.padBlocked.has(key);
       if(edge('b9')){this.releaseInputs();B.RuntimeLifecycle?.togglePause?.();}
@@ -196,16 +204,19 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-bridge.js',exports:['BARCODE.C
       else if(edge('b2'))this.toggleTranscript();
       else if(edge('b3'))this.architecture();
       else if(edge('b0'))this.advance();
+      else if(edge('b5'))this.advance({scene:true});
       return true;
     },
     pointer(event) {
-      if(!this.active||this.pending||window.isPaused)return false;
+      if(!this.active||this.pending)return false;
       const rect=document.getElementById('gameCanvas')?.getBoundingClientRect?.();
       if(!rect?.width||!rect?.height)return true;
       const x=(event.clientX-rect.left)*1920/rect.width,y=(event.clientY-rect.top)*1080/rect.height;
       const hit=name=>{const [bx,by,w,h]=bounds[name];return x>=bx&&x<=bx+w&&y>=by&&y<=by+h;};
-      if(hit('advance'))this.advance();else if(hit('transcript'))this.toggleTranscript();
-      else if(hit('back'))B.Campaign?.closeIntermission?.();else if(this.page===7&&hit('architecture'))this.architecture();
+      if(window.isPaused){if(hit('pause')){this.releaseInputs();B.RuntimeLifecycle?.togglePause?.();}return true;}
+      if(hit('dialogue'))this.advance();else if(hit('scene'))this.advance({scene:true});
+      else if(hit('transcript'))this.toggleTranscript();
+      else if(hit('pause')){this.releaseInputs();B.RuntimeLifecycle?.togglePause?.();}
       return true;
     },
     releaseInputs(){this.heldKeys.clear();this.skipHolds.clear();this.skipMs=0;this.padNeedsRelease=true;},
@@ -255,29 +266,11 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-bridge.js',exports:['BARCODE.C
       B.IntroSequence.drawFrame(ctx);
       if(!this.transcriptOpen)B.ComicDialogue.draw(ctx,this.dialogueLayouts(ctx),
         {cue:this.cue,cueElapsedMs:this.cueElapsedMs,reduced});
-      if(this.transcriptOpen) {
-        ctx.fillStyle='#09131cf5';ctx.fillRect(160,154,1600,590);
-        ctx.strokeStyle=mint;ctx.lineWidth=2;ctx.strokeRect(160,154,1600,590);
-        text(ctx,`TRANSCRIPT / ${this.page+1} OF 8`,205,194,24,mint,true);
-        ctx.font='26px monospace';let y=247;
-        for(const paragraph of [panel.visual,...panel.lines.map(line=>line.join(': '))]) {
-          for(const line of wrap(ctx,paragraph,1490)){text(ctx,line,205,y,26);y+=38;}y+=27;
-        }
-        text(ctx,pad?`${button(2)}: Close transcript / ${button(9)}: Pause`:'T: Close transcript / P: Pause',205,680,22,gold,true);
-      }
-      const labels={back:pad?`${button(8)}: Results`:'ESC: Results',transcript:pad?`${button(2)}: Transcript`:'T: Transcript',
-        architecture:pad?`${button(3)}: Level 3 test`:'3: Level 3 test',
-        advance:this.pending?'LOADING...':this.page===7&&this.cue===2?
-          `${pad?button(0):'ENTER / SPACE'}: DRIVE`:`${pad?button(0):'ENTER / SPACE'}: ${this.cue<2?'Next line':'Next scene'}`};
-      for(const [name,[x,y,w,h]] of Object.entries(bounds)) {
-        if(name==='architecture'&&this.page!==7)continue;
-        text(ctx,labels[name],x+16,y+13,20, name==='advance'?paper:'#b5bdcd');
-      }
-      const skipX=this.page===7?1030:748;
-      if(this.skipHolds.size) {
-        ctx.fillStyle='#354846';ctx.fillRect(skipX,1015,220,8);ctx.fillStyle=gold;ctx.fillRect(skipX,1015,220*Math.min(1,this.skipMs/5000),8);
-        text(ctx,`SKIP ${(5-this.skipMs/1000).toFixed(1)}s`,skipX+10,1034,17,gold,true);
-      } else text(ctx,`Hold ${pad?button(1):'S'} 5s: Skip`,skipX-4,1027,18,'#b8c8c5');
+      if(this.transcriptOpen)B.IntroSequence.drawTranscript(ctx,{...panel,index:this.page,count:panels.length,pad});
+      B.IntroSequence.drawControls(ctx,{complete:this.cue===2,
+        finalLabel:this.page===7?'DRIVE':'Next scene',pad,
+        holding:this.skipHolds.size>0,skipProgress:this.skipMs/5000,
+        transcriptOpen:this.transcriptOpen,pending:this.pending,paused:window.isPaused});
       if(B.Campaign?.roadAudioNotice)text(ctx,B.Campaign.roadAudioNotice,177,986,16,'#ffb281',true);
       else if(B.Campaign?.archive?.().status!=='ready')text(ctx,'Save unavailable / keep this session open.',177,986,16,'#ffb281');
       ctx.restore();

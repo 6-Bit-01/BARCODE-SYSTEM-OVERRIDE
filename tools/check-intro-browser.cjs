@@ -176,7 +176,7 @@ async function main() {
   assert(await evaluate('cutsceneSystem.currentImageIndex === 1 && cutsceneSystem.currentCueIndex === 2 && cutsceneSystem.transcriptElement.textContent.includes("One more pass") && !cutsceneSystem.transcriptElement.textContent.includes("part that proves")'), 'Space reveals one speech bubble; held repeat cannot reveal another');
   await delay(300); await key('Enter', 'Enter'); await key('Enter', 'Enter', false);
   assert(await evaluate('cutsceneSystem.currentImageIndex === 1 && cutsceneSystem.currentCueIndex === 2'), 'scene key cannot consume dialogue');
-  await delay(300); await click('#barcode-intro');
+  await delay(300); await click('[data-intro-action=dialogue]');
   assert(await evaluate('cutsceneSystem.currentImageIndex === 1 && cutsceneSystem.currentCueIndex === 3'), 'pointer reveals the second speech bubble on the same page');
   await visibleIntro('01-fullscreen');
   await evaluate('document.exitFullscreen()'); await until('!document.fullscreenElement', 'fullscreen exit');
@@ -213,6 +213,8 @@ async function main() {
   await key('s', 'KeyS'); await delay(2000); await key('s', 'KeyS', false);
   assert(await evaluate('cutsceneSystem.isPlaying() && !cutsceneSystem.isSkipHoldActive'), 'early release cancels skip');
   await key('s', 'KeyS'); await delay(5100); await key('s', 'KeyS', false);
+  assert(await evaluate('cutsceneSystem.isPlaying() && cutsceneSystem.currentImageIndex===8'),'skip waits at final scene');
+  await delay(300); await key('Enter','Enter'); await key('Enter','Enter',false);
   await until('BARCODE.RuntimeLifecycle.getState() === "running" && !document.getElementById("barcode-intro")', 'held S handoff');
   assert(await evaluate('tutorialSystem.targetText.includes("Still with you") && browserCheck.loops === 1'), 'skipped intro starts tutorial once');
   // Decode and draw the new production assets through the bundled fallback,

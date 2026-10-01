@@ -30,14 +30,12 @@ window.InputManager = class InputManager {
 
       if (window.BARCODE?.CacheEnding?.active) {
         e.preventDefault();
-        if(window.isPaused||window.gameState?.paused)window.BARCODE?.PauseMenu?.keyDown(e);
-        else window.BARCODE.CacheEnding.keyDown(e);
+        window.BARCODE.CacheEnding.keyDown(e);
         return;
       }
       if (window.BARCODE?.Campaign?.intermission) {
         e.preventDefault();
-        if(window.isPaused||window.gameState?.paused)window.BARCODE?.PauseMenu?.keyDown(e);
-        else window.BARCODE?.CacheBridge?.keyDown(e);
+        window.BARCODE?.CacheBridge?.keyDown(e);
         return;
       }
       if (window.BARCODE?.CacheRoadProof?.active && !(window.isPaused || window.gameState?.paused)) {
@@ -144,13 +142,11 @@ window.InputManager = class InputManager {
     window.addEventListener('mousemove', (e) => { if (window.BARCODE?.PauseMenu?.pointer(e, 'move')) return; this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
     window.addEventListener('mousedown', (e) => {
       if (window.BARCODE?.CacheEnding?.active) {
-        if(window.isPaused||window.gameState?.paused)window.BARCODE?.PauseMenu?.pointer(e,'down');
-        else window.BARCODE.CacheEnding.pointer(e);
+        window.BARCODE.CacheEnding.pointer(e);
         return;
       }
       if (window.BARCODE?.Campaign?.intermission) {
-        if(window.isPaused||window.gameState?.paused)window.BARCODE?.PauseMenu?.pointer(e,'down');
-        else window.BARCODE?.CacheBridge?.pointer(e);
+        window.BARCODE?.CacheBridge?.pointer(e);
         return;
       }
       if (window.BARCODE?.LevelDifficulty?.pointer(e) || window.BARCODE?.PauseMenu?.pointer(e, 'down')) return;
@@ -230,7 +226,9 @@ window.InputManager = class InputManager {
       const button = document.getElementById('startButton');
       if (button && !button.disabled) button.click();
     } else if (owner === 'intro') {
-      if (pressed.b0) window.cutsceneSystem?.skipCutscene?.();
+      if (pressed.b9) window.cutsceneSystem?.togglePresentationPause?.();
+      else if (pressed.b2) window.cutsceneSystem?.toggleTranscript?.();
+      else if (pressed.b0) window.cutsceneSystem?.skipCutscene?.();
       else if (pressed.b5) window.cutsceneSystem?.nextScene?.();
       // Retain the intro's existing five-second skip hold and its cleanup.
       if (pressed.left) window.cutsceneSystem?.inspectCaption?.();
@@ -241,7 +239,7 @@ window.InputManager = class InputManager {
 
   routeGamepadUI() {
     const BARCODE = window.BARCODE, menu = BARCODE?.PauseMenu;
-    const owner = BARCODE?.LevelDifficulty?.open ? 'difficulty' : (menu?.titleOpen || window.isPaused || window.gameState?.paused) ? 'pause' : BARCODE?.CacheEnding?.active ? 'ending' : BARCODE?.CacheBridge?.active ? 'bridge' :
+    const owner = BARCODE?.LevelDifficulty?.open ? 'difficulty' : BARCODE?.CacheEnding?.active ? 'ending' : BARCODE?.CacheBridge?.active ? 'bridge' : (menu?.titleOpen || window.isPaused || window.gameState?.paused) ? 'pause' :
       BARCODE?.CacheRoadProof?.active && BARCODE.CacheRoadProof.status !== 'playing' ? 'road-results' : window.hackingSystem?.isActive?.() ? 'hack' :
       (window.gameState?.gameOver || window.gameState?.victory) ? 'results' :
       window.tutorialSystem?.isActive?.() ? 'tutorial' : 'gameplay';

@@ -223,8 +223,48 @@ window.FILE_MANIFEST.push({ name: 'src/engine/intro-sequence.js', exports: ['BAR
     for (let y = 0; y < h; y += 5) ctx.fillRect(0, y, w, 1);
     ctx.restore();
   }
+  // A single reading toolbar and transcript are used by every comic owner.
+  const controls = freeze({ dialogue: [48,1011,260,49], scene: [328,1011,510,49],
+    transcript: [858,1011,235,49], pause: [1113,1011,185,49], skip: [1318,1011,554,49] });
+  function drawControls(ctx,{complete=false,finalLabel='Next scene',pad=false,holding=false,
+    skipProgress=0,pending=false,transcriptOpen=false,paused=false}={}) {
+    if(paused) {
+      ctx.fillStyle='#09131cf5';ctx.fillRect(610,432,700,180);
+      ctx.strokeStyle=mint;ctx.lineWidth=2;ctx.strokeRect(610,432,700,180);
+      text(ctx,'READING PAUSED',655,468,32,paper,true);
+      text(ctx,`${pad?(BARCODE.ControllerSettings?.button(9)||'Menu'):'P'}: Resume / your place is held`,655,544,22,mint);
+    }
+    const button=i=>BARCODE.ControllerSettings?.button(i)||({0:'A',1:'B',2:'X',5:'RB',9:'Menu'})[i];
+    const labels={dialogue:`${pad?button(0):'SPACE'}: Dialogue`,
+      scene:pending?'LOADING...':`${pad?button(5):'ENTER'}: ${complete?finalLabel:'Next scene'}`,
+      transcript:`${pad?button(2):'T'}: ${transcriptOpen?'Close text':'Transcript'}`,
+      pause:`${pad?button(9):'P'}: ${paused?'Resume':'Pause'}`};
+    for(const name of ['dialogue','scene','transcript','pause']) {
+      const [x,y,w,h]=controls[name],enabled=name==='pause'||(!paused&&(name==='dialogue'?!complete:name==='scene'?complete:true));
+      ctx.fillStyle='#091722';ctx.fillRect(x,y,w,h);
+      ctx.strokeStyle=enabled?mint:'#344253';ctx.lineWidth=2;ctx.strokeRect(x,y,w,h);
+      text(ctx,labels[name],x+16,y+13,20,enabled?paper:'#657184');
+    }
+    const [x,y,w]=controls.skip;
+    if(holding) {
+      ctx.fillStyle='#42284d';ctx.fillRect(x,y+4,w,8);
+      ctx.fillStyle=pink;ctx.fillRect(x,y+4,w*Math.max(0,Math.min(1,skipProgress)),8);
+      text(ctx,`SKIPPING IN ${(5*(1-skipProgress)).toFixed(1)}s / RELEASE TO CANCEL`,x+16,y+25,17,pink);
+    } else text(ctx,`Hold ${pad?button(1):'S'} 5s: Skip / release to cancel`,x+16,y+15,19,'#b5bdcd');
+  }
+  function drawTranscript(ctx,{title,visual,lines=[],index=0,count=8,pad=false}={}) {
+    ctx.save();ctx.fillStyle='#09131cf5';ctx.fillRect(160,154,1600,590);
+    ctx.strokeStyle=mint;ctx.lineWidth=2;ctx.strokeRect(160,154,1600,590);
+    text(ctx,`TRANSCRIPT / ${index+1} OF ${count}`,205,194,24,mint,true);
+    ctx.font='26px monospace';let y=247;
+    for(const paragraph of [visual,...lines.map(line=>line.join(': '))]) {
+      for(const line of wrap(ctx,paragraph,1490)){text(ctx,line,205,y,26);y+=38;}y+=20;
+    }
+    text(ctx,`${pad?(BARCODE.ControllerSettings?.button(2)||'X'):'T'}: Close transcript / ${pad?(BARCODE.ControllerSettings?.button(9)||'Menu'):'P'}: Pause`,205,700,20,pink,true);
+    ctx.restore();
+  }
   BARCODE.IntroSequence = {
-    panels, format, drawHeader, drawFrame, measureBalloon: balloonLayout, drawBalloon: balloon, inspectedGutter: false,
+    panels, format, controls, drawControls, drawTranscript, drawHeader, drawFrame, measureBalloon: balloonLayout, drawBalloon: balloon, inspectedGutter: false,
     getCues(index) { return cues[index] || []; },
     getCueState(index, cueIndex = Infinity) {
       const shown = (cues[index] || []).slice(0, cueIndex + 1);
@@ -244,17 +284,17 @@ window.FILE_MANIFEST.push({ name: 'src/engine/intro-sequence.js', exports: ['BAR
     getDialogueLayouts(ctx, index) {
       return panels[index]?.lines.map((line, i) => balloonLayout(ctx, line[1], compositions[index].balloons[i])) || [];
     },
-    draw(ctx, { index = 0, cueIndex = Infinity, cueElapsedMs = 250, images = [], pad = false, skipProgress = 0, holding = false } = {}) {
+    draw(ctx, { index = 0, cueIndex = Infinity, cueElapsedMs = 250, images = [], pad = false, skipProgress = 0, holding = false, transcriptOpen = false, paused = false } = {}) {
       const panel = panels[index]; if (!ctx || !panel) return;
-      const reduced = window.BARCODE_RENDER_QUALITY?.flashes === false;
+      const reduced = BARCODE.Preferences?.values?.reducedMotion || BARCODE.Preferences?.values?.flashes === false || window.BARCODE_RENDER_QUALITY?.flashes === false;
       const shown = this.getCueState(index, cueIndex), current = cues[index][cueIndex];
       ctx.save(); ctx.globalAlpha = 1; ctx.shadowBlur = 0;
       ctx.fillStyle = ink; ctx.fillRect(0, 0, 1920, 1080);
       drawHeader(ctx, { title: panel.title, index });
       drawArt(ctx, images, panel.image);
-      if (shown.screen) screenReadout(ctx, index, images);
+      if (!transcriptOpen && shown.screen) screenReadout(ctx, index, images);
       this.getDialogueLayouts(ctx, index).forEach((layout, i) => {
-        if (!shown.lines.includes(i)) return;
+        if (transcriptOpen || !shown.lines.includes(i)) return;
         ctx.save();
         if (!reduced && current?.kind === 'dialogue' && current.line === i) ctx.globalAlpha = 0.35 + 0.65 * Math.min(1, cueElapsedMs / 180);
         balloon(ctx, panel.lines[i][0], layout, i + 1); ctx.restore();
@@ -267,14 +307,10 @@ window.FILE_MANIFEST.push({ name: 'src/engine/intro-sequence.js', exports: ['BAR
         text(ctx, 'PLEASE WAIT...', 48 + offset, 980, 20, pink, true);
         text(ctx, this.inspectedGutter ? '"WAIT" IS NOT A PLAN.' : `${pad ? 'D-pad Left' : 'Left Arrow'}: inspect`, 280, 990, 20, '#e4cb93');
       }
+      if(transcriptOpen)drawTranscript(ctx,{...panel,index,count:panels.length,pad});
       const complete = cueIndex >= cues[index].length - 1;
-      const next = !complete ? 'Next line / caption' : index === panels.length - 1 ? 'Enter Dead Air District' : 'Next scene';
-      text(ctx, complete ? `${pad ? (window.BARCODE?.ControllerSettings?.button(5) || 'RB') : 'Enter'}: ${next}` : `${pad ? (window.BARCODE?.ControllerSettings?.button(0) || 'A') : 'Space'}: Dialogue`, 430, 1030, 22, paper);
-      if (holding) {
-        ctx.fillStyle = '#42284d'; ctx.fillRect(1340, 1015, 528, 9);
-        ctx.fillStyle = pink; ctx.fillRect(1340, 1015, 528 * skipProgress, 9);
-        text(ctx, `SKIPPING IN ${(5 * (1 - skipProgress)).toFixed(1)}s / RELEASE TO CANCEL`, 1340, 1034, 17, pink);
-      } else text(ctx, pad ? `Hold ${window.BARCODE?.ControllerSettings?.button(1) || 'B'} / S for 5s: Skip intro` : 'Hold S for 5s: Skip intro', 1370, 1032, 22, '#b5bdcd');
+      drawControls(ctx,{complete,finalLabel:index===panels.length-1?'Enter district':'Next scene',
+        pad,holding,skipProgress,transcriptOpen,paused});
       ctx.restore();
     },
     getDiagnostics() { return { panels: panels.length, inspected: this.inspectedGutter ? ['egg.comic.gutter'] : [] }; }

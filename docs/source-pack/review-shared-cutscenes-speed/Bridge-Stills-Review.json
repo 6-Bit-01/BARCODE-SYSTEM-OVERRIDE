@@ -1,0 +1,986 @@
+{
+  "passed": true,
+  "kind": "native production still-layout and sampled scene-motion review",
+  "mode": "stills-only",
+  "chapter": "bridge",
+  "canvas": [
+    1920,
+    1080
+  ],
+  "contactSheet": [
+    1920,
+    2160
+  ],
+  "openingFormat": {
+    "frame": {
+      "x": 48,
+      "y": 140,
+      "w": 1824,
+      "h": 828
+    },
+    "palette": {
+      "ink": "#090b15",
+      "paper": "#f1eadd",
+      "mint": "#95ffe0",
+      "pink": "#f696d9",
+      "radio": "#101a2b",
+      "border": "#282235",
+      "muted": "#a9b4ca",
+      "crew": {
+        "6 BIT": "#e6e5ee",
+        "DJ FLOPPYDISC": "#83e9ff",
+        "CACHE BACK": "#ffd65c",
+        "MAC MODEM": "#ff929c"
+      }
+    },
+    "fonts": {
+      "dialogue": "bold 30px sans-serif",
+      "label": "bold 21px monospace",
+      "title": "bold 36px sans-serif",
+      "control": "22px monospace"
+    }
+  },
+  "productionSources": {
+    "src/engine/audio.js": "a285397149f2377446801b7287206875608dc776ecf3c2135b44a9ce19dc5e65",
+    "src/engine/intro-sequence.js": "36a75120eb6930b00e8970d476e894b24b02fc462c243253e7c7d7502de91f42",
+    "src/engine/cache-scene-layouts.js": "c66365d0fb66cfba829a18af2f3e9fe95f75ed1696659db86c2fed31847a60d0",
+    "src/engine/cache-scene-effects.js": "b8a64520815ec647a2421b4fd88e8612c1e6fe33c62ffae4559dd3e21d673738",
+    "src/engine/comic-dialogue.js": "72a9af7a538b8d4ce9e2ad29f3f2d4e19464571b055224d6a751bc35495a669f",
+    "src/engine/cache-bridge.js": "42ecf4cd16025d557ae9cc83f2a0d8d9dc281b330b0f08f2a580daabef8ecf01"
+  },
+  "reviewSources": {
+    "tools/render-cache-bridge.cjs": "a4d91261a275d97c37406e57863f57ace869bb61f4a9241c14d06a956b4d2e9e",
+    "tools/lib/check-cache-scene-layout.cjs": "57f109ff77200f6bb6d724776c11e76f194a0f3e86cb906170d5f2a9664f4b41"
+  },
+  "counts": {
+    "scenes": 8,
+    "distinctContactTiles": 8,
+    "nativeLayoutChecks": 72,
+    "nativeTextBoundsChecks": 946,
+    "sampledSceneMotionChecks": 8
+  },
+  "images": [
+    {
+      "path": "assets/cache-bridge/bridge-01-district.webp",
+      "bytes": 569664,
+      "sha256": "fe73f4f9d99094d954f7cb7aac7c99642675eaf3cdd33f5fedcffef103fc97af",
+      "width": 1859,
+      "height": 846
+    },
+    {
+      "path": "assets/cache-bridge/bridge-02-uplink.webp",
+      "bytes": 520528,
+      "sha256": "830f668f43c3a1105baef7b93b788df6a4f7a31b17bb939e2402babbe085dd2e",
+      "width": 1860,
+      "height": 845
+    },
+    {
+      "path": "assets/cache-bridge/bridge-03-original.webp",
+      "bytes": 408208,
+      "sha256": "a76f3a1e5374c24708c33150de1facdda67b95737edd00b5500b29cd2b660e62",
+      "width": 1860,
+      "height": 845
+    },
+    {
+      "path": "assets/cache-bridge/bridge-04-clean-copy.webp",
+      "bytes": 415212,
+      "sha256": "3f5a11e0bd3f83fb328d9a52fb1f73abe291e616cf29d19c24536c53c69ba62c",
+      "width": 1862,
+      "height": 845
+    },
+    {
+      "path": "assets/cache-bridge/bridge-05-keep-it.webp",
+      "bytes": 498612,
+      "sha256": "08c7e189746f34ba8a1b021cb8326618a59be8641d64fc9a3a312b7ff2ad22b7",
+      "width": 1860,
+      "height": 845
+    },
+    {
+      "path": "assets/cache-bridge/bridge-06-departure.webp",
+      "bytes": 605690,
+      "sha256": "cfc655311f786a783fce330d89af459c075a1c690f863c97ac39dc3ad7f02ffa",
+      "width": 1859,
+      "height": 846
+    },
+    {
+      "path": "assets/cache-bridge/bridge-07-ignition.webp",
+      "bytes": 540428,
+      "sha256": "4940ef74ef8464ce8b2477f38afe5bccf6cd19097be180f8b3feaa9b57fa676e",
+      "width": 1860,
+      "height": 845
+    },
+    {
+      "path": "assets/cache-bridge/bridge-08-cache-line.webp",
+      "bytes": 600228,
+      "sha256": "acd64c5f5e958c3905a0da11ebaddc54dc6a4309f893c4dce423ac79a4ec23ab",
+      "width": 1860,
+      "height": 845
+    }
+  ],
+  "protectedArt": {
+    "balloonsClear": true,
+    "pointersClear": true,
+    "regions": [
+      {
+        "page": 1,
+        "labels": [
+          "6 Bit face and hat",
+          "relit district tower"
+        ]
+      },
+      {
+        "page": 2,
+        "labels": [
+          "Mac face and cap",
+          "Cache face and hat",
+          "Mac patch connection",
+          "protected original cassette"
+        ]
+      },
+      {
+        "page": 3,
+        "labels": [
+          "DJ face and visor",
+          "Cache face and hat",
+          "original waveform monitor",
+          "original cassette deck",
+          "DJ audition hand"
+        ]
+      },
+      {
+        "page": 4,
+        "labels": [
+          "DJ face and visor",
+          "Cache face and hat",
+          "clean-copy waveform monitor",
+          "comparison cassette deck",
+          "DJ comparison hand"
+        ]
+      },
+      {
+        "page": 5,
+        "labels": [
+          "DJ face and visor",
+          "Cache face and hat",
+          "protected original in Cache hands",
+          "Cache sealing hands",
+          "saved studio trace"
+        ]
+      },
+      {
+        "page": 6,
+        "labels": [
+          "Cache head from behind",
+          "protected case in Cache hand",
+          "yellow car and cassette cargo"
+        ]
+      },
+      {
+        "page": 7,
+        "labels": [
+          "Cache face and hat",
+          "actual rearview reflection",
+          "steering hand and wheel",
+          "cassette loading hand and deck"
+        ]
+      },
+      {
+        "page": 8,
+        "labels": [
+          "open-road vanishing point and tower",
+          "Cache car entering the road"
+        ]
+      }
+    ]
+  },
+  "layout": {
+    "actualNativeTextMetrics": true,
+    "dialogueInsideBody": true,
+    "speakerTabsFit": true,
+    "outerBoundsFit": true,
+    "controlsSeparated": true,
+    "overlaps": 0,
+    "escapes": 0,
+    "reducedMotionSameLayout": true,
+    "checks": [
+      {
+        "page": 1,
+        "cue": 0,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 9,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 2
+      },
+      {
+        "page": 1,
+        "cue": 0,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 9,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 2
+      },
+      {
+        "page": 1,
+        "cue": 1,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 12,
+        "balloonsChecked": 1,
+        "protectedRegionsChecked": 2
+      },
+      {
+        "page": 1,
+        "cue": 1,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 12,
+        "balloonsChecked": 1,
+        "protectedRegionsChecked": 2
+      },
+      {
+        "page": 1,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 15,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 2
+      },
+      {
+        "page": 1,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 15,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 2
+      },
+      {
+        "page": 1,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": true,
+        "textCount": 14,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 2
+      },
+      {
+        "page": 1,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": true,
+        "textCount": 14,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 2
+      },
+      {
+        "page": 1,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 15,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 2
+      },
+      {
+        "page": 2,
+        "cue": 0,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 9,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 2,
+        "cue": 0,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 9,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 2,
+        "cue": 1,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 13,
+        "balloonsChecked": 1,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 2,
+        "cue": 1,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 13,
+        "balloonsChecked": 1,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 2,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 16,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 2,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 16,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 2,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": true,
+        "textCount": 14,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 2,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": true,
+        "textCount": 14,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 2,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 16,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 3,
+        "cue": 0,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 9,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 3,
+        "cue": 0,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 9,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 3,
+        "cue": 1,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 13,
+        "balloonsChecked": 1,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 3,
+        "cue": 1,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 13,
+        "balloonsChecked": 1,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 3,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 16,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 3,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 16,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 3,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": true,
+        "textCount": 14,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 3,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": true,
+        "textCount": 14,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 3,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 16,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 4,
+        "cue": 0,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 9,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 4,
+        "cue": 0,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 9,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 4,
+        "cue": 1,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 12,
+        "balloonsChecked": 1,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 4,
+        "cue": 1,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 12,
+        "balloonsChecked": 1,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 4,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 16,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 4,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 16,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 4,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": true,
+        "textCount": 14,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 4,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": true,
+        "textCount": 14,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 4,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 16,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 5,
+        "cue": 0,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 9,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 5,
+        "cue": 0,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 9,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 5,
+        "cue": 1,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 12,
+        "balloonsChecked": 1,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 5,
+        "cue": 1,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 12,
+        "balloonsChecked": 1,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 5,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 16,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 5,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 16,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 5,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": true,
+        "textCount": 14,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 5,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": true,
+        "textCount": 14,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 5,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 16,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 6,
+        "cue": 0,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 9,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 3
+      },
+      {
+        "page": 6,
+        "cue": 0,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 9,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 3
+      },
+      {
+        "page": 6,
+        "cue": 1,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 13,
+        "balloonsChecked": 1,
+        "protectedRegionsChecked": 3
+      },
+      {
+        "page": 6,
+        "cue": 1,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 13,
+        "balloonsChecked": 1,
+        "protectedRegionsChecked": 3
+      },
+      {
+        "page": 6,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 16,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 3
+      },
+      {
+        "page": 6,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 16,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 3
+      },
+      {
+        "page": 6,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": true,
+        "textCount": 14,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 3
+      },
+      {
+        "page": 6,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": true,
+        "textCount": 14,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 3
+      },
+      {
+        "page": 6,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 16,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 3
+      },
+      {
+        "page": 7,
+        "cue": 0,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 9,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 7,
+        "cue": 0,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 9,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 7,
+        "cue": 1,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 13,
+        "balloonsChecked": 1,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 7,
+        "cue": 1,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 13,
+        "balloonsChecked": 1,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 7,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 16,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 7,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 16,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 7,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": true,
+        "textCount": 14,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 7,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": true,
+        "textCount": 14,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 7,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 16,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 8,
+        "cue": 0,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 9,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 2
+      },
+      {
+        "page": 8,
+        "cue": 0,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 9,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 2
+      },
+      {
+        "page": 8,
+        "cue": 1,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 12,
+        "balloonsChecked": 1,
+        "protectedRegionsChecked": 2
+      },
+      {
+        "page": 8,
+        "cue": 1,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 12,
+        "balloonsChecked": 1,
+        "protectedRegionsChecked": 2
+      },
+      {
+        "page": 8,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 15,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 2
+      },
+      {
+        "page": 8,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": false,
+        "textCount": 15,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 2
+      },
+      {
+        "page": 8,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": true,
+        "textCount": 14,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 2
+      },
+      {
+        "page": 8,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": true,
+        "textCount": 14,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 2
+      },
+      {
+        "page": 8,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "textCount": 15,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 2
+      }
+    ]
+  },
+  "motion": {
+    "sampledNativePixels": true,
+    "checks": [
+      {
+        "page": 1,
+        "normalMotion": true,
+        "reducedMotionStatic": true,
+        "flashesOffStatic": true,
+        "containPreserved": true,
+        "contextRestored": true,
+        "paintClipped": true
+      },
+      {
+        "page": 2,
+        "normalMotion": true,
+        "reducedMotionStatic": true,
+        "flashesOffStatic": true,
+        "containPreserved": true,
+        "contextRestored": true,
+        "paintClipped": true
+      },
+      {
+        "page": 3,
+        "normalMotion": true,
+        "reducedMotionStatic": true,
+        "flashesOffStatic": true,
+        "containPreserved": true,
+        "contextRestored": true,
+        "paintClipped": true
+      },
+      {
+        "page": 4,
+        "normalMotion": true,
+        "reducedMotionStatic": true,
+        "flashesOffStatic": true,
+        "containPreserved": true,
+        "contextRestored": true,
+        "paintClipped": true
+      },
+      {
+        "page": 5,
+        "normalMotion": true,
+        "reducedMotionStatic": true,
+        "flashesOffStatic": true,
+        "containPreserved": true,
+        "contextRestored": true,
+        "paintClipped": true
+      },
+      {
+        "page": 6,
+        "normalMotion": true,
+        "reducedMotionStatic": true,
+        "flashesOffStatic": true,
+        "containPreserved": true,
+        "contextRestored": true,
+        "paintClipped": true
+      },
+      {
+        "page": 7,
+        "normalMotion": true,
+        "reducedMotionStatic": true,
+        "flashesOffStatic": true,
+        "containPreserved": true,
+        "contextRestored": true,
+        "paintClipped": true
+      },
+      {
+        "page": 8,
+        "normalMotion": true,
+        "reducedMotionStatic": true,
+        "flashesOffStatic": true,
+        "containPreserved": true,
+        "contextRestored": true,
+        "paintClipped": true
+      }
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "Bridge-Contact.webp",
+      "bytes": 1436766,
+      "sha256": "56fdde027a854e64b2a3f84ec2f822807a10ab2f9aeda6ad8f48894c80377736"
+    },
+    {
+      "path": "Bridge-01.webp",
+      "bytes": 462466,
+      "sha256": "576b28220fbb8957f9cce94b06fcf4025833133204cad2279608d93d617a27cb"
+    },
+    {
+      "path": "Bridge-02.webp",
+      "bytes": 450900,
+      "sha256": "40a7b586cf13cd92c47b6b07f90745f7a85f7517bf9ad441f6af8cfa7bd73be2"
+    },
+    {
+      "path": "Bridge-03.webp",
+      "bytes": 355094,
+      "sha256": "357875e600fbc21774e603e64ec763f65448af3d8ec4c969f5f666a4b2e83ebe"
+    },
+    {
+      "path": "Bridge-04.webp",
+      "bytes": 353114,
+      "sha256": "e6d224ee94169654be8920a8ee1eae9098008f194eda65fdd3ada55a82451650"
+    },
+    {
+      "path": "Bridge-05.webp",
+      "bytes": 416744,
+      "sha256": "7fb420a80603c63e866152e2205220858e1ba42b0ffbe2ad0ecf6029ec007600"
+    },
+    {
+      "path": "Bridge-06.webp",
+      "bytes": 493432,
+      "sha256": "3f30a4824c0d32db9c774a35ced61efe483dc76736cd7613636aee35db28cf27"
+    },
+    {
+      "path": "Bridge-07.webp",
+      "bytes": 422388,
+      "sha256": "f362df051d733449c989e79834c0281699c3fcb029d0fe10f98939f4824032e0"
+    },
+    {
+      "path": "Bridge-08.webp",
+      "bytes": 484418,
+      "sha256": "29a26fd4d3b0600c40be8007ca7971ad0b194991846157bf3e7a2d57973d3e7e"
+    }
+  ],
+  "hostLimits": [
+    "Native Canvas and locally decoded art replace browser/network delivery; no hosted browser or Makko acceptance.",
+    "Campaign, road and persistence are fixture boundaries; no played race or physical controller is exercised.",
+    "Motion proof compares sampled production pixels and Canvas state; no real-time FPS or device performance is measured.",
+    "No audio render, listening check or movie is generated by --stills-only; older Review.mp4/Review.json remain historical prior-layout evidence."
+  ]
+}

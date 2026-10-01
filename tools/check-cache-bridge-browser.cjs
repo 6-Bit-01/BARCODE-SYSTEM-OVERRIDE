@@ -183,9 +183,9 @@ async function main(){
     assert(asset.width>=1000&&asset.height>=500);
   }
   // Native browser key events reach the actual InputManager, then the bridge.
-  await key('Enter');await key('Enter',true,true);await key('Enter');
+  await key(' ');await key(' ',true,true);await key(' ');
   assert.equal((await state()).cue,1,'repeat and a held non-repeat cannot advance twice');
-  await key('Enter',false);await tap('Enter');await render(0);
+  await key(' ',false);await tap(' ');await render(0);
   assert.equal((await state()).roadEntries,0);
   const beforeTranscript=await sceneClock();
   await tap('t');assert(await evaluate('BARCODE.CacheBridge.transcriptOpen&&audioSystem.combatVoices.size===0'));
@@ -196,7 +196,7 @@ async function main(){
   assert.equal(await sceneClock(),beforePause,'native pause input freezes scene effects');
   await tap('p');await evaluate('browserProof.pausePromise');assert(!(await evaluate('window.isPaused')));
   await evaluate('browserProof.step(40)');assert(await sceneClock()>beforePause);
-  for(let page=1;page<8;page++){await tap('Enter');await tap('Enter');await tap('Enter');await render(page);}
+  for(let page=1;page<8;page++){await tap('Enter');await tap(' ');await tap(' ');await render(page);}
   await evaluate('browserProof.step(12000)');
   assert.deepEqual(await state(),{active:true,page:7,cue:2,skip:0,roadEntries:0,voices:0},
     'final Ready page cannot auto-launch, advance world simulation or retain earlier cue voices');

@@ -1,5 +1,21 @@
 # Repository Guidance
 
+## October 1, 2026 — identical reading controls and stronger speed effects
+
+The owner's latest direct request authorizes implementation: unify dialogue,
+scene/skip controls and appearance across all twenty comic panels; add wind,
+whoosh and pressure paint, stronger zoom and dynamic movement without changing
+actual speed or mechanics. This supersedes maintenance-only scope for this
+direct task and the prior preserve-controls constraint. Preserve story/art,
+cue/audio timing, saves, final fresh confirmation, rewards and exact mirror
+blur. Use the shared toolbar/transcript/pause; Space/A reveals dialogue,
+Enter/RB advances a complete scene, S/B holds five seconds to final reading.
+Read `docs/source-pack/SHARED_CUTSCENE_SPEED_EFFECTS.md`. Base is merged #164,
+`3e9bfa1c517a618ca7a16e7073aeb17969f0aaab`. Full regression/all-file syntax
+and both final-head CI events remain publication gates. Makko acceptance is
+separate; record publication failures truthfully.
+
+
 ## October 1, 2026 — shared cutscene format and authorized merge
 
 The owner requests that the later Cache cutscenes match the opening and locks

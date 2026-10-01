@@ -19,7 +19,7 @@ window.FILE_MANIFEST.push({name:'src/engine/comic-dialogue.js',exports:['BARCODE
     const shown=measured.slice(0,cue);
     function paint(l,part) {
       ctx.save();ctx.lineJoin='round';ctx.shadowBlur=0;
-      ctx.globalAlpha*=!reduced&&cue===l.serial ? .4+.6*Math.min(1,Math.max(0,cueElapsedMs)/180):1;
+      ctx.globalAlpha*=!reduced&&cue===l.serial ? .35+.65*Math.min(1,Math.max(0,cueElapsedMs)/180):1;
       opening.drawBalloon(ctx,l.speaker,l,l.serial,part);ctx.restore();
     }
     // Pointers sit under every card, including the next speaker's.

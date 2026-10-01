@@ -72,13 +72,16 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
         pulseFlashAction:action,pulseFlashLane:action});
     for(const extra of [{},{pulseFlashMs:350},{boostMs:400},{cutFlashMs:300},
       {stumbleMs:350},{integrity:1}])render('mirror expression',1200,420,extra);
+    for(const passSide of [-1,1])render('painted passing whoosh',1200,420,{passFlashMs:780,passSide});
     for(let cel=0;cel<122;cel++)render('sky traffic',1200,cel*40);
     const intentionalStable=['cacheCar','cacheCarLeft','cacheCarRight'];
     const inventory=Object.entries(definitions).filter(([key,entry])=>
       key.startsWith('cache')&&entry.frames>1);
     for(const [key,entry] of inventory) {
       const frames=coverage.main[key]??new Set();
-      const expected=intentionalStable.includes(key)?1:entry.frames;
+      const expected=intentionalStable.includes(key)?1:entry.liveFrames?.length||entry.frames;
+      if(entry.liveFrames)check(JSON.stringify([...frames].sort((a,b)=>a-b))===JSON.stringify(entry.liveFrames),
+        `${key}: live variant atlas must draw every intended effect and no reserved mist cel`);
       check(frames.size===expected,`${key}: actual world/HUD drew ${frames.size}/${expected} cels`);
       if(key.endsWith('Travel')||key.endsWith('Activity')||
           key.startsWith('cacheAmbient')||propKeys.includes(key)||

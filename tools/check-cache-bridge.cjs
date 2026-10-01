@@ -114,7 +114,7 @@ async function checkPagesAndFacts() {
       assert(!road.active&&road.state===null&&r.roadStarts()===0,
         'reading/revealing every cue cannot start the road clock or song');
       if(page===7&&cue===2)break;
-      r.tap('Enter');
+      r.tap(cue<2?' ':'Enter');
     }
   }
   assert.equal(new Set(traversed).size,24,'every title and dialogue cue is traversed exactly once');
@@ -491,7 +491,7 @@ async function checkSceneClock() {
   const r=bridgeRig(),{bridge,B}=r;await r.boot();
   assert.equal(bridge.sceneElapsedMs,0,'fresh scene effects start at zero');
   r.step(300);const first=bridge.sceneElapsedMs;assert(first>=299&&first<=301);
-  r.tap('Enter');assert.equal(bridge.cue,1);
+  r.tap(' ');assert.equal(bridge.cue,1);
   assert.equal(bridge.sceneElapsedMs,first,'revealing another line does not restart scene effects');
   r.step(120);assert(bridge.sceneElapsedMs>first);
   const beforeTranscript=bridge.sceneElapsedMs;r.tap('t');r.step(1200);
@@ -503,7 +503,7 @@ async function checkSceneClock() {
   r.key('s',true);const beforeSkip=bridge.sceneElapsedMs;r.step(1200);
   assert.equal(bridge.sceneElapsedMs,beforeSkip,'holding skip freezes scene effects');
   r.key('s',false);r.step(120);assert(bridge.sceneElapsedMs>beforeSkip);
-  const samePage=bridge.sceneElapsedMs;r.tap('Enter');assert.equal(bridge.cue,2);
+  const samePage=bridge.sceneElapsedMs;r.tap(' ');assert.equal(bridge.cue,2);
   assert.equal(bridge.sceneElapsedMs,samePage);r.tap('Enter');
   assert.equal(bridge.page,1);assert.equal(bridge.sceneElapsedMs,0,'turning the page resets scene effects');
   assert.deepEqual(copy(bridge.serialize()),{version:1,page:1,cue:0},'the transient clock never changes the save schema');

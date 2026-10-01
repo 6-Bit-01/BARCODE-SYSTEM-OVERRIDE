@@ -809,7 +809,7 @@
     {
       "global": "window.startGameLoop",
       "file": "src/core/loop.js",
-      "line": 209,
+      "line": 211,
       "loaded": true
     },
     {

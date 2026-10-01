@@ -45,7 +45,7 @@ Oxanium lettering assumptions.
 The transcript replaces balloons while open. Missing/loading art uses two
 readable lower comms cards with no pointers; the original descriptive fallback
 and accessible DOM transcript remain available. Save/status notices sit above
-the unchanged footer controls. The tutorial and live road do not adopt the
+the common reading toolbar (updated by `SHARED_CUTSCENE_SPEED_EFFECTS.md`). The tutorial and live road do not adopt the
 comic page layout.
 
 ## Scene effects
@@ -112,3 +112,11 @@ candidate. See `ACCEPTANCE.md` for the opening/bridge/ending comparison and
 focused race import/reload route. Actual Makko, frame pacing and physical
 controller acceptance remain unrecorded. Build the source pack from the exact
 committed candidate or merge and retain current native scene-review evidence.
+
+## October 1 control follow-up
+
+The newest owner request unifies functions as well as paint. The common
+reading contract and stronger road effects are specified in
+`SHARED_CUTSCENE_SPEED_EFFECTS.md`; that entry supersedes this document’s
+earlier preserve-controls/opening-controls restrictions. Story and artwork
+contracts above remain in force.

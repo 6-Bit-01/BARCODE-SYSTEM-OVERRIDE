@@ -1629,6 +1629,53 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       status: clear ? 'clear' : 'playing' });
   }
 
+  // Presentation reads live state but never advances distance, music or input.
+  function speedCamera(s,{reduced=false,intro=null,playing=true}={}) {
+    if(intro!==null)return {zoom:reduced?1.045:1.13-.13*clamp((intro-1100)/3100,0,1),x:0,y:0,roll:0};
+    if(reduced||!playing)return {zoom:1,x:0,y:0,roll:0};
+    const rush=clamp((s.speed-30)/45,0,1),boost=s.boostMs>0?1:0;
+    const pass=clamp(s.passFlashMs/780,0,1),hit=clamp(s.stumbleMs/650,0,1);
+    const steering=clamp(s.steer||0,-1,1),t=s.elapsedMs/1000;
+    return {zoom:1.015+.055*rush+.065*boost+.019*pass,
+      x:-steering*18+Math.sin(t*2.4)*4*rush+Math.sin(t*69)*(7*hit+2*pass),
+      y:Math.sin(t*3.1)*5*rush+Math.cos(t*91)*(4*hit+pass),
+      roll:-steering*.008+Math.sin(t*1.9)*.0018*rush};
+  }
+  function drawSpeedAtmosphere(ctx,s,{reduced=false,playing=true,intro=null}={}) {
+    if(reduced||!playing||intro!==null)return;
+    const rush=clamp((s.speed-30)/45,0,1),boost=s.boostMs>0?1:0;
+    const intensity=.24+.48*rush+.24*boost,t=s.elapsedMs/1000;
+    const paint=(frame,x,y,width,height,alpha,flip=false,rotation=0)=>{
+      ctx.save();ctx.globalAlpha=alpha;ctx.translate(x,y);ctx.rotate(rotation);
+      B.PresentationAssets?.draw?.('cacheWindWhoosh',ctx,{frame,x:0,y:0,width,height,flip});ctx.restore();
+    };
+    // The center lanes, rear-tire timing line and HUD remain clear. Only four
+    // ribbons plus two lower corner slashes are drawn, without a scene copy,
+    // blur pass, per-frame canvas, particle list or persistent FX state.
+    ctx.save();ctx.beginPath();ctx.rect(0,164,1920,916);ctx.clip();
+    for(const side of [-1,1]) {
+      ctx.save();ctx.beginPath();ctx.rect(side<0?0:1580,164,340,916);ctx.clip();
+      for(let i=0;i<2;i++) {
+        const phase=(t*(.72+.6*rush+.45*boost)+i*.5+(side>0?.23:0))%1;
+        const fade=Math.sin(phase*Math.PI);
+        paint((i+(side>0?1:0))%3,960+side*(670+phase*300),260+phase*810,
+          180+90*intensity,300+270*intensity,.48*intensity*fade,side<0,side*.12);
+      }
+      paint(5,side<0?60:1860,1030,320,340,.25*intensity,side>0,side*.15);
+      if(s.passFlashMs>0) {
+        const age=1-clamp(s.passFlashMs/780,0,1);
+        if(side===(s.passSide||1))paint(3,960+side*(695+age*210),650+age*280,
+          310+age*100,210+age*170,.36*(1-age),side>0,side*.25);
+      }
+      ctx.restore();
+    }
+    // A quiet pressure rim breathes slowly; no full-screen flash or strobe.
+    const rim=ctx.createLinearGradient(0,0,1920,0);
+    rim.addColorStop(0,`rgba(149,255,224,${.09*intensity})`);
+    rim.addColorStop(.18,'#95ffe000');rim.addColorStop(.82,'#95ffe000');
+    rim.addColorStop(1,`rgba(246,214,155,${.09*intensity})`);
+    ctx.fillStyle=rim;ctx.fillRect(0,164,1920,916);ctx.restore();
+  }
   const road = B.CacheRoadProof = {
     active: false, status: null, state: null, chapter: null, returnTo: null, pending: false,
     configureEncounters(saved = null, refill = false) {
@@ -2860,16 +2907,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // and rearview are drawn after it is restored, with no second scene pass.
       ctx.save();
       const intro = this.introMs;
-      const zoom = intro !== null ? reduced ? 1.045 : 1.13-.13*clamp((intro-1100)/3100,0,1) :
-        reduced || this.status !== 'playing' ? 1 : 1+
-          .018*clamp((s.speed-34)/40,0,1)+
-          (s.boostMs>0?.026:0)+.012*clamp(s.passFlashMs/780,0,1);
-      const shake = reduced || intro !== null ? 0 :
-        7*clamp(s.stumbleMs/650,0,1)+2.5*clamp(s.passFlashMs/780,0,1)+
-          (s.boostMs>0?1.6:0);
-      const cx=960+Math.sin(s.elapsedMs*.069)*shake;
-      const cy=540+Math.cos(s.elapsedMs*.091)*shake*.57;
-      ctx.translate(cx,cy);ctx.scale(zoom,zoom);ctx.translate(-960,-540);
+      const camera=speedCamera(s,{reduced,intro,playing:this.status==='playing'});
+      ctx.translate(960+camera.x,620+camera.y);ctx.rotate(camera.roll);
+      ctx.scale(camera.zoom,camera.zoom);ctx.translate(-960,-620);
       ctx.globalAlpha=1;
       const beat = reduced ? 0 : s.musicBeatFloat || 0;
       const stack = Math.min(4,s.captures?.length || 0);
@@ -3712,13 +3752,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         if (rush > .02) {
           ctx.save();ctx.strokeStyle='#a7d7df';ctx.lineWidth=1+rush;
           ctx.globalAlpha=.055+.12*rush;
-          for (let at=Math.floor((progress-150)/78)*78;at<progress+330;at+=78) {
+          for (let at=Math.floor((progress-150)/52)*52;at<progress+330;at+=52) {
             const d=at-progress;
             if(d < -140)continue;
             for(const side of [-1,1]) {
               ctx.beginPath();
               for(let step=0;step<=3;step++) {
-                const t=depth(d+(8+20*rush)*step/3);
+                const t=depth(d+(14+40*rush)*step/3);
                 const x=center(t)+side*(half(t)-10-9*t),y=roadY(t);
                 if(!step)ctx.moveTo(x,y);else ctx.lineTo(x,y);
               }
@@ -4206,23 +4246,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.font='bold 12px Oxanium, monospace';ctx.fillText(s.cutFlashMs?'CLOSE CUT':'NEAR MISS',x,y+20);
         ctx.restore();
       }
-      // Peripheral streaks stretch with speed while staying outside the
-      // timing plane and center lanes. A few strokes cost no extra texture.
-      if (!reduced && intro === null && this.status === 'playing') {
-        const intensity=clamp((s.speed-40)/33,0,1)+(s.boostMs>0?.48:0);
-        if (intensity>.05) {
-          ctx.save();ctx.strokeStyle='#c5f4ef';ctx.lineWidth=1.3+intensity;
-          ctx.globalAlpha=.10*intensity;
-          for(let side of [-1,1])for(let i=0;i<7;i++) {
-            const phase=((s.elapsedMs*.00065*(1+intensity)+i/7)%1+1)%1;
-            const x=960+side*(690+phase*260+i%2*20);
-            const y=220+i*119+phase*55;
-            ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+side*(25+intensity*44),y+32+intensity*34);ctx.stroke();
-          }
-          ctx.restore();
-        }
-      }
       ctx.restore(); // world camera
+      drawSpeedAtmosphere(ctx,s,{reduced,intro,playing:this.status==='playing'});
       if (intro !== null) {
         const scene=intro<1350?0:intro<2700?1:2;
         const titles=['ORIGINAL RECORDING','AUDIT LOCK INCOMING','DELIVER THE ORIGINAL'];

@@ -27,7 +27,7 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-ending.js',exports:['BARCODE.C
     Object.freeze({text:'DELIVERED',x:363,y:336,width:250,font:28,color:'#b5fbd7',tilt:.15}),
     Object.freeze({text:'UNVERIFIED',x:721,y:384,width:175,font:20,color:'#ffe0a0',tilt:.14})
   ]);
-  const bounds=Object.freeze({advance:[1240,1011,615,49],transcript:[390,1011,242,49],back:[64,1011,302,49]});
+  const bounds=B.IntroSequence.controls;
   const finite=(value,max)=>Number.isFinite(value)?Math.max(0,Math.min(max,Math.trunc(value))):0;
   const paused=()=>!!(window.isPaused||window.gameState?.paused);
   function text(ctx,value,x,y,size=24,color=paper,bold=false) {
@@ -45,7 +45,7 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-ending.js',exports:['BARCODE.C
   }
   const ending=B.CacheEnding={
     panels,cues,frame,bounds,screenLabels,active:false,page:0,cue:0,done:false,cueElapsedMs:0,sceneElapsedMs:0,skipMs:0,
-    generation:0,images:[],heldKeys:new Set(),skipHolds:new Set(),padBlocked:new Set(),
+    generation:0,images:[],heldKeys:new Set(),skipHolds:new Map(),padBlocked:new Set(),
     padNeedsRelease:true,transcriptOpen:false,transcriptElement:null,
     normalize(saved) {
       if(!saved||typeof saved!=='object'||Array.isArray(saved)||saved.version!==1)
@@ -124,27 +124,32 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-ending.js',exports:['BARCODE.C
       }
       if(this.transcriptOpen)return;
       if(this.skipHolds.size) {
-        this.skipMs+=dt;if(this.skipMs>=5000)this.skipToReady();return;
+        for(const [source,elapsed] of this.skipHolds)this.skipHolds.set(source,elapsed+dt);
+        this.skipMs=Math.max(...this.skipHolds.values());
+        if(this.skipMs>=5000)this.skipToReady();return;
       }
+      if(this.images[this.page]?.status==='loading')return;
       this.cueElapsedMs+=dt;this.sceneElapsedMs+=dt;
       if(this.cue<2&&this.cueElapsedMs>=cues[this.cue].holdMs)this.setCue(this.page,this.cue+1);
     },
-    advance() {
+    advance({scene=false}={}) {
       if(!this.active||paused()||this.skipHolds.size)return false;
       if(this.transcriptOpen){this.toggleTranscript();return true;}
-      if(this.cue<2)this.setCue(this.page,this.cue+1);
-      else if(this.page<3)this.setCue(this.page+1,0);
+      if(!scene){if(this.cue<2)this.setCue(this.page,this.cue+1);return true;}
+      if(this.cue<2)return false;
+      if(this.page<3)this.setCue(this.page+1,0);
       else return this.finish();
       return true;
     },
     skipToReady() {
-      if(!this.active||paused())return false;
+      if(!this.active)return false;
       this.skipHolds.clear();this.skipMs=0;this.transcriptOpen=false;
-      this.padBlocked.add('b1');this.setCue(3,2);return true;
+      this.padBlocked.add('b1');this.padBlocked.add('b5');this.setCue(3,2);return true;
     },
     holdSkip(source,held) {
-      if(held)this.skipHolds.add(source);else this.skipHolds.delete(source);
-      if(!this.skipHolds.size)this.skipMs=0;
+      if(held){if(!this.skipHolds.has(source))this.skipHolds.set(source,0);}
+      else this.skipHolds.delete(source);
+      this.skipMs=this.skipHolds.size?Math.max(...this.skipHolds.values()):0;
     },
     toggleTranscript() {
       if(!this.active)return false;
@@ -152,7 +157,7 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-ending.js',exports:['BARCODE.C
       window.audioSystem?.stopCacheBridgeAudio?.();this.syncTranscript();return true;
     },
     back() {
-      if(!this.active||paused())return false;
+      if(!this.active)return false;
       this.save();this.dispose();B.CacheRoadProof?.armResultControls?.();return true;
     },
     finish() {
@@ -163,12 +168,14 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-ending.js',exports:['BARCODE.C
       if(!this.active)return false;
       event.preventDefault?.();const key=event.key.toLowerCase();
       const held=this.heldKeys.has(key);this.heldKeys.add(key);
-      if(paused()||event.repeat||held)return true;
+      if(event.repeat||held)return true;
+      if(paused()){if(key==='p'){this.releaseInputs();this.heldKeys.add(key);B.RuntimeLifecycle?.togglePause?.();}return true;}
       if(key==='escape')this.back();
-      else if(key==='p'){this.releaseInputs();B.RuntimeLifecycle?.togglePause?.();}
+      else if(key==='p'){this.releaseInputs();this.heldKeys.add(key);B.RuntimeLifecycle?.togglePause?.();}
       else if(key==='s')this.holdSkip('keyboard',true);
       else if(key==='t')this.toggleTranscript();
-      else if(key===' '||key==='enter')this.advance();
+      else if(key===' ')this.advance();
+      else if(key==='enter')this.advance({scene:true});
       return true;
     },
     keyUp(event) {
@@ -182,22 +189,26 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-ending.js',exports:['BARCODE.C
         this.padBlocked=new Set(Object.keys(held).filter(key=>held[key]));this.padNeedsRelease=false;
       }
       for(const key of this.padBlocked)if(!held[key])this.padBlocked.delete(key);
-      if(paused())return true;
+      if(paused()){if(pressed.b9&&!this.padBlocked.has('b9')){this.releaseInputs();B.RuntimeLifecycle?.togglePause?.();}return true;}
       this.holdSkip('gamepad',!!held.b1&&!this.padBlocked.has('b1'));
       const edge=key=>!!pressed[key]&&!this.padBlocked.has(key);
       if(edge('b9')){this.releaseInputs();B.RuntimeLifecycle?.togglePause?.();}
       else if(edge('b8'))this.back();
       else if(edge('b2'))this.toggleTranscript();
       else if(edge('b0'))this.advance();
+      else if(edge('b5'))this.advance({scene:true});
       return true;
     },
     pointer(event) {
-      if(!this.active||paused())return false;
+      if(!this.active)return false;
       const rect=document.getElementById('gameCanvas')?.getBoundingClientRect?.();
       if(!rect?.width||!rect?.height)return true;
       const x=(event.clientX-rect.left)*1920/rect.width,y=(event.clientY-rect.top)*1080/rect.height;
       const hit=name=>{const [bx,by,w,h]=bounds[name];return x>=bx&&x<=bx+w&&y>=by&&y<=by+h;};
-      if(hit('advance'))this.advance();else if(hit('transcript'))this.toggleTranscript();else if(hit('back'))this.back();
+      if(paused()){if(hit('pause')){this.releaseInputs();B.RuntimeLifecycle?.togglePause?.();}return true;}
+      if(hit('dialogue'))this.advance();else if(hit('scene'))this.advance({scene:true});
+      else if(hit('transcript'))this.toggleTranscript();
+      else if(hit('pause')){this.releaseInputs();B.RuntimeLifecycle?.togglePause?.();}
       return true;
     },
     releaseInputs(){this.heldKeys.clear();this.skipHolds.clear();this.skipMs=0;this.padNeedsRelease=true;},
@@ -253,31 +264,16 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-ending.js',exports:['BARCODE.C
       B.IntroSequence.drawFrame(ctx);
       if(!this.transcriptOpen)B.ComicDialogue.draw(ctx,this.dialogueLayouts(ctx),
         {cue:this.cue,cueElapsedMs:this.cueElapsedMs,reduced});
-      if(this.transcriptOpen) {
-        ctx.fillStyle='#09131cf5';ctx.fillRect(160,154,1600,590);
-        ctx.strokeStyle=mint;ctx.lineWidth=2;ctx.strokeRect(160,154,1600,590);
-        text(ctx,`TRANSCRIPT / ${this.page+1} OF 4`,205,194,24,mint,true);
-        ctx.font='26px monospace';let y=247;
-        for(const paragraph of [panel.visual,...panel.lines.map(line=>line.join(': '))]) {
-          for(const line of wrap(ctx,paragraph,1490)){text(ctx,line,205,y,26);y+=38;}y+=27;
-        }
-        text(ctx,pad?`${button(2)}: Close transcript / ${button(9)}: Pause`:'T: Close transcript / P: Pause',205,680,22,gold,true);
-      }
-      const final=this.page===3&&this.cue===2;
-      const labels={back:pad?`${button(8)}: Results`:'ESC: Results',transcript:pad?`${button(2)}: Transcript`:'T: Transcript',
-        advance:`${pad?button(0):'ENTER / SPACE'}: ${final?'FINISH CHAPTER':this.cue<2?'Next line':'Next scene'}`};
-      for(const [name,[x,y,w,h]] of Object.entries(bounds)) {
-        text(ctx,labels[name],x+16,y+13,20,name==='advance'?paper:'#b5bdcd');
-      }
-      if(this.skipHolds.size) {
-        ctx.fillStyle='#354846';ctx.fillRect(686,1015,220,8);ctx.fillStyle=gold;ctx.fillRect(686,1015,220*Math.min(1,this.skipMs/5000),8);
-        text(ctx,`SKIP ${(5-this.skipMs/1000).toFixed(1)}s`,696,1034,17,gold,true);
-      } else text(ctx,`Hold ${pad?button(1):'S'} 5s: Skip`,680,1027,18,'#b8c8c5');
+      if(this.transcriptOpen)B.IntroSequence.drawTranscript(ctx,{...panel,index:this.page,count:panels.length,pad});
+      B.IntroSequence.drawControls(ctx,{complete:this.cue===2,
+        finalLabel:this.page===3?'FINISH CHAPTER':'Next scene',pad,
+        holding:this.skipHolds.size>0,skipProgress:this.skipMs/5000,
+        transcriptOpen:this.transcriptOpen,pending:this.pending,paused:paused()});
       const archive=B.Campaign?.archive?.(),earned=archive?.record?.progress?.items?.includes('stem.bass');
       if(earned)text(ctx,'BASS RECOVERED',178,986,16,gold,true);
       const saved=B.CacheChapter?.saveStatus?.(B.CacheRoadProof);
       text(ctx,saved==='saved'?'PROGRESS SAVED':'SAVE UNAVAILABLE / KEEP THIS SESSION OPEN',earned?385:178,986,16,saved==='saved'?mint:'#ffb281');
-      if(final)text(ctx,"Mac's chapter is next.",1326,986,18,paper,true);
+      if(this.page===3&&this.cue===2)text(ctx,"Mac's chapter is next.",1326,986,18,paper,true);
       ctx.restore();
     }
   };
