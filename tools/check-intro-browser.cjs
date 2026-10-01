@@ -1,6 +1,6 @@
 // Real Chromium layout/fullscreen regression. Node 22+ and an installed Chrome
 // binary are required; no npm dependencies or Makko replacement are added.
-// Production DOM/CSS, Start adapter, fullscreen, intro, tutorial and lifecycle
+// Production DOM/CSS, Start/Continue adapters, fullscreen, intro, tutorial and lifecycle
 // run intact. Only the unavailable Makko initializer, gameplay loop and audio
 // boundary are omitted. Local assets exercise the existing bundled fallback.
 const assert = require('node:assert/strict');
@@ -21,10 +21,14 @@ const startTo = index.indexOf('// Add keyboard support for start button', startF
 assert(startFrom >= 0 && startTo > startFrom, 'production Start adapter is available');
 const styles = index.match(/<style>([\s\S]*?)<\/style>/)[0];
 const markup = index.slice(index.indexOf('<body>') + 6, index.indexOf('<!-- MakkoEngine'));
-const scripts = ['src/utils/math.js', 'src/core/fullscreen.js', 'src/engine/presentation-assets.js', 'src/game/comic-hud.js', 'src/engine/intro-sequence.js', 'src/engine/cutscene.js', 'src/game/tutorial.js', 'src/core/runtime-lifecycle.js'];
+const scripts = ['src/utils/math.js', 'src/core/fullscreen.js', 'src/engine/boot-loader.js', 'src/engine/presentation-assets.js', 'src/game/comic-hud.js', 'src/engine/intro-sequence.js', 'src/engine/cutscene.js', 'src/game/tutorial.js', 'src/core/runtime-lifecycle.js', 'src/game/campaign-services.js'];
 const fixture = `<!doctype html><html><head>${styles}<link rel="stylesheet" href="/style.css"></head><body>${markup}
 <script>
-window.browserCheck = { loops: 0, contexts: 0, fail: new URLSearchParams(location.search).has('fail') };
+window.browserCheck = { loops: 0, contexts: 0, restores: 0, fail: new URLSearchParams(location.search).has('fail') };
+// Persistence and checkpoint restoration remain host boundaries. Continue
+// uses the production Campaign method and the real lifecycle/DOM adapters.
+window.lostDataSystem = { archive: { record: { current: null } } };
+window.BARCODE = { MusicProfiles: { getActive: () => ({ profileId: 'level-01.main' }) } };
 const getContext = HTMLCanvasElement.prototype.getContext;
 HTMLCanvasElement.prototype.getContext = function(...args) {
   if (this.id !== 'gameCanvas' && ++browserCheck.contexts > 1) throw new Error('Intro requested its context again');
@@ -42,6 +46,16 @@ ${scripts.map(file => `<script src="/${file}"></script>`).join('\n')}
 <script>${index.slice(startFrom, startTo)}
 document.getElementById('startOverlay').style.display = 'flex';
 document.getElementById('startOverlay').style.opacity = '1';
+if (new URLSearchParams(location.search).has('continue')) {
+  const saved = { levelId: 'level-01', checkpointId: 'intermission', levelState: {} };
+  BARCODE.Campaign.readResume = () => saved;
+  BARCODE.Campaign.restore = checkpoint => {
+    browserCheck.restores++;
+    browserCheck.restoredCheckpoint = checkpoint.checkpointId;
+    return true;
+  };
+  BARCODE.Campaign.syncTitleButton();
+}
 </script></body></html>`;
 const server = http.createServer((req, res) => {
   const pathname = new URL(req.url, 'http://localhost').pathname;
@@ -121,6 +135,19 @@ async function main() {
     await send('Input.dispatchMouseEvent', { type: 'mouseReleased', button: 'left', clickCount: 1, ...point });
   };
   const key = async (key, code, down = true, autoRepeat = false) => send('Input.dispatchKeyEvent', { type: down ? 'keyDown' : 'keyUp', key, code, autoRepeat, windowsVirtualKeyCode: code === 'Space' ? 32 : key === 'Enter' ? 13 : 83 });
+  const hiddenTitle = async label => {
+    await until('Number(getComputedStyle(document.getElementById("startOverlay")).opacity) === 0', `${label}: title is transparent`);
+    const state = await evaluate(`(() => {
+      const overlay = document.getElementById('startOverlay'), style = getComputedStyle(overlay);
+      const canvas = document.getElementById('gameCanvas'), rect = canvas.getBoundingClientRect();
+      return { label: ${JSON.stringify(label)}, opacity: style.opacity, pointerEvents: style.pointerEvents,
+        inlineOpacity: overlay.style.opacity, hidden: overlay.classList.contains('hidden'),
+        canvasHit: document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2) === canvas };
+    })()`);
+    receipts.push(state);
+    assert(state.hidden && state.opacity === '0' && state.pointerEvents === 'none' && state.canvasHit,
+      `${label}: title is neither painted over nor intercepting the game: ${JSON.stringify(state)}`);
+  };
   const visibleIntro = async label => {
     const state = await evaluate(`(() => {
       const scene = window.cutsceneSystem, canvas = scene.introCanvas, r = canvas.getBoundingClientRect();
@@ -170,6 +197,7 @@ async function main() {
   }
   await until('BARCODE.RuntimeLifecycle.getState() === "running" && !document.getElementById("barcode-intro")', 'tutorial handoff');
   assert(await evaluate('tutorialSystem.targetText.includes("Still with you") && browserCheck.loops === 1 && gameCanvas.getBoundingClientRect().height > 100'), 'tutorial starts visibly once');
+  await hiddenTitle('tutorial-title-hidden');
   // Render the actual tutorial card on an explicitly empty gameplay boundary.
   await evaluate('tutorialSystem.update(5000); tutorialSystem.draw(gameCanvas.getContext("2d"))');
   await screenshot('05-tutorial-card');
@@ -201,9 +229,31 @@ async function main() {
     return [180, 450, 730].every(y => { const data = ctx.getImageData(100, y, 1650, 150).data; let filled = 0; for (let i = 3; i < data.length; i += 4) if (data[i] > 128) filled++; return filled > 1000; });
   })()`), 'cat, arrow and pulse produce visible opaque pixels in Chromium');
   await screenshot('08-presentation-assets');
+  await evaluate('document.exitFullscreen()');
+  await send('Page.navigate', { url: origin + '/?continue=1' });
+  await until('document.readyState === "complete" && !document.getElementById("continueButton").hidden', 'Continue fixture ready');
+  await click('#continueButton');
+  await until('BARCODE.RuntimeLifecycle.getState() === "running"', 'Continue lifecycle handoff');
+  assert(await evaluate('browserCheck.restores === 1 && browserCheck.restoredCheckpoint === "intermission" && browserCheck.loops === 1 && !cutsceneSystem.isPlaying()'),
+    'production Continue restores its saved checkpoint once without replaying the opening');
+  await hiddenTitle('continue-title-hidden');
+  // Exercise the actual delayed boot fade after Continue has hidden the title.
+  // No TitleScreen instance is supplied: the lifecycle fallback must suffice.
+  await evaluate(`window.audioSystem = { isInitialized: () => true, stopTitleScreenMusic() {} };
+    bootLoader.element = document.createElement('div'); bootLoader.transitionToTitleScreen();`);
+  await until('document.getElementById("startOverlay").style.opacity === "1" && document.getElementById("startOverlay").style.transition === "opacity 1.5s ease-in"', 'late production boot fade writes inline opacity');
+  await delay(1600);
+  await hiddenTitle('continue-after-late-boot-fade');
+  await evaluate('bootLoader.forceHide()');
+  await hiddenTitle('continue-after-boot-fallback');
+  await screenshot('09-continue-visible');
+  assert(await evaluate('BARCODE.RuntimeLifecycle.returnToTitle().then(result => result.ok)'), 'saved chapter can return to title');
+  await until('Number(getComputedStyle(document.getElementById("startOverlay")).opacity) === 1', 'title is visible again');
+  assert(await evaluate('!document.getElementById("startOverlay").classList.contains("hidden") && Boolean(document.elementFromPoint(innerWidth/2, innerHeight/2)?.closest("#startOverlay"))'),
+    'returning to title restores visible, interactive controls');
   assert.deepEqual(errors, [], 'no browser JavaScript exceptions');
-  fs.writeFileSync(path.join(output, 'result.json'), JSON.stringify({ passed: true, receipts, errors, limits: 'Real Chromium DOM/fullscreen/input and local artwork; Makko sprites, gameplay loop and audible audio are not exercised.' }, null, 2));
-  console.log(`Chromium timed cues, advancement, fullscreen, resize, retry, tutorial handoff and presentation assets passed. Evidence: ${output}`);
+  fs.writeFileSync(path.join(output, 'result.json'), JSON.stringify({ passed: true, receipts, errors, limits: 'Real Chromium DOM/fullscreen/input, production Continue/lifecycle/boot fade and local artwork; saved-checkpoint storage/restore, Makko sprites, gameplay loop and audible audio are host boundaries.' }, null, 2));
+  console.log(`Chromium timed cues, advancement, fullscreen, resize, retry, tutorial, Continue/title visibility and presentation assets passed. Evidence: ${output}`);
 }
 main().catch(error => {
   fs.writeFileSync(path.join(output, 'result.json'), JSON.stringify({ passed: false, error: error.stack, receipts, errors }, null, 2));

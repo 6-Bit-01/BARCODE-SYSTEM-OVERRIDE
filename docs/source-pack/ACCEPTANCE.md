@@ -1,5 +1,34 @@
 # Acceptance and Test Status
 
+## Title visibility in Makko — September 30 (unmerged repair)
+
+Live Chrome reproduced a title covering the restored Cache bridge. The owner
+approved replacing Makko's 161 local files from GitHub main, then the one-line
+hidden-opacity correction was reapplied. Continue revealed bridge page 08/08;
+Drive resumed the saved road marker. Compact route lights, lane diagrams,
+mapped badges, full Pause help, bridge return and checkpoint retry were
+observed; Makko reported no preview errors. The saved late-race marker has
+not been cleared into a fresh Replay race, so the complete visual driving
+checklist below remains open. Base/rollback is merged #161,
+`4a6ead45d64eea92da3afdba0412b6a14230fc09`.
+
+1. On the exact reviewed build, Continue the saved bridge and road, including
+   input during the boot fade. The title must stay absent over the scene.
+2. Return to title. Start, Continue and Settings must be visible and usable;
+   retry and fresh Drive input must continue to work.
+3. After the exact merged build is refreshed, choose Replay race and complete
+   the visual cues/foreground exits checklist below. Record gear, difficulty,
+   bar, lane, motion settings and device for any mismatch.
+
+The native Chromium regression uses real CSS, Continue, lifecycle and boot
+fade/fallback code. It checks computed opacity and Canvas hit testing, and
+rejects the original CSS. Saved-checkpoint storage/restore are explicit host
+boundaries; it does not establish physical-controller or audible-device feel.
+The full npm suite and all-file syntax audit also passed. Exact full-suite
+results, tested revision and logs belong to the review receipt. The owner
+approved publishing the repair branch and opening a draft PR. Its final
+revision, publication and CI status belong to the PR/receipt.
+
 ## Visual driving and foreground exits — September 30
 
 Import the exact merged revision from the PR/receipt through the normal Makko
