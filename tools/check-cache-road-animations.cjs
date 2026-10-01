@@ -42,7 +42,7 @@ const road=w.BARCODE.CacheRoadProof;road.active=true;road.status='playing';
 road.state=w.animationNewState();
 const result=audit({B:w.BARCODE,ctx,newState:w.animationNewState,
   entities:w.animationEntities,definitions});
-assert.equal(result.animatedKeys,48,'inventory deliberately includes ships and stateful mirror');
+assert.equal(result.animatedKeys,49,'inventory deliberately includes ships, stateful mirror and the non-sequential wind variant atlas');
 assert.equal(loaded.length,Object.keys(definitions).length);
 assert(stack.length===0,'all production canvas scopes restored');
 if(process.argv[2])fs.writeFileSync(process.argv[2],JSON.stringify(result,null,2)+'\n');

@@ -29,6 +29,7 @@ async function main() {
     loadImage(path.resolve(process.argv[3], `${String(i).padStart(3,'0')}.webp`)))) : null;
   GlobalFonts.registerFromPath(path.resolve('assets/studies/visual-overhaul/references/fonts/Oxanium.ttf'), 'Oxanium');
   const files = {
+    cacheWindWhoosh: 'assets/cache-road/effects/wind-whoosh-atlas.png',
     cacheMirror: 'assets/cache-road/hud/cache-back-mirror-expressions.webp',
     cacheCar: 'assets/cache-road/vehicles/animation/cache-center-frames.webp',
     cacheCarLeft: 'assets/cache-road/vehicles/animation/cache-left-frames.webp',
@@ -583,6 +584,8 @@ async function main() {
     s.candidateLane = !sceneryReview && chapterIndex === 1 ? 2 : null;
     s.boostMs = !sceneryReview && chapterIndex === 2 ? 800 : 0;
     s.cutFlashMs = !sceneryReview && chapterIndex === 3 ? Math.max(0,740-local*1000) : 0;
+    s.passFlashMs = !sceneryReview && chapterIndex === 3 ? Math.max(0,780-local*1000) : 0;
+    s.passSide = 1; s.passAward = 250;
     s.cutStreak = !sceneryReview && chapterIndex === 3 ? 2 : 0;
     s.cutAward = !sceneryReview && chapterIndex === 3 ? 250 : 0;
     s.stumbleMs = Number(process.env.CACHE_REVIEW_STUMBLE ??

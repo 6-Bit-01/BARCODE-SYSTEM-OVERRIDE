@@ -311,8 +311,8 @@ async function main() {
   const reviewWorld=require('./cache-road-browser-world.cjs');
   const world=await evaluate(`(${reviewWorld.toString()})()`);
   assert(world.loadedAssets>200&&world.frames.length===192&&world.contextCalls<=4);
-  assert(Object.keys(world.animations).length===48 && world.animationRoutes.animatedKeys===48);
-  assert.equal(world.hosted.filter(entry=>entry.frames>1).length,48);
+  assert(Object.keys(world.animations).length===49 && world.animationRoutes.animatedKeys===49);
+  assert.equal(world.hosted.filter(entry=>entry.frames>1).length,49);
   const dashboard=world.hosted.filter(entry=>entry.frames===1);
   assert.deepEqual(dashboard.map(entry=>entry.key).sort(),
     ['cacheDashBezel','cacheDashDigits','cacheDashIcons']);

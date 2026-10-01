@@ -1,5 +1,26 @@
 # Acceptance and Test Status
 
+## Identical controls and stronger speed effects — October 1
+
+Import the candidate identified by its receipt. Compare all eight opening,
+eight bridge and four ending scenes: same toolbar positions/look, cue/page
+separation, transcript and reading Pause/Resume overlay. Space/A reveals only;
+Enter/RB advances after the page completes. Hold S/B five seconds, cancel a
+partial hold, stagger both devices, and verify a full skip waits for a fresh
+final Scene action. Check held controls across startup, saved reload and
+results handoffs. Retain the actual dialogue, props, cue sounds and rewards.
+
+Drive normally, steer, use Turbo, make a close pass and take an impact. The
+wind/pressure paint and stronger zoom/roll should make motion more apparent
+while timing, actual speed, damage, captures and encounters feel unchanged.
+The rearview/dashboard stay stable; repeat with Reduced Motion and flashes
+disabled. Listen to reading Pause/Resume and test pointer/controller actions.
+Observe frame pacing on Makko after a fresh import. Native previews and
+production-owner checks do not count as this acceptance. This candidate is
+based on merged #164; its final publication and exact tests are recorded in
+the PR/receipt. See `SHARED_CUTSCENE_SPEED_EFFECTS.md`.
+
+
 ## Locked opening format across chapters — October 1
 
 Import the exact reviewed or merged revision identified by the PR/receipt,

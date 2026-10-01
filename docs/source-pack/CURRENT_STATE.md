@@ -1,5 +1,23 @@
 # Current State
 
+## Shared controls and stronger speed presentation — October 1
+
+The owner requests identical cutscene functions and controls, plus more
+visible wind/whoosh assets, zoom and dynamic movement without a mechanical
+speed change. The candidate unifies all twenty panels around one toolbar,
+transcript and reading-pause overlay. Dialogue and Scene are separate actions;
+a five-second skip reaches the final reading position and requires fresh
+Scene confirmation. Chapter-specific story/art and saved positions persist.
+
+Cache Road adds a transparent painted atlas, bounded peripheral whooshes,
+stronger state-driven camera and denser world-fixed asphalt glints. Actual
+speed, distance, music, encounters, damage and rewards remain unchanged.
+Reduced Motion removes the new moving effects/camera. This is implementation
+on a review branch based on merged PR #164; publication/test details belong
+to its receipt. Makko/controller/frame pacing acceptance is pending. See
+`SHARED_CUTSCENE_SPEED_EFFECTS.md` and its scripted visual evidence.
+
+
 ## October 1 — opening cutscene format locked (combined review candidate)
 
 The opening's visual layout is now the standard for the eight Cache bridge

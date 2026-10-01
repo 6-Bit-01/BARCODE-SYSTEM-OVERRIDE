@@ -99,7 +99,12 @@ function openingRig({ contextBudget = Infinity, contextUnavailable = false, real
   }
   w.inputManager = new w.InputManager(); w.initCutscene();
   const scene = w.cutsceneSystem;
-  const key = (value, type = 'keydown', repeat = false) => w.document.dispatch(type, { key: value, repeat });
+  const key = (value, type = 'keydown', repeat = false) => {
+    const event=w.document.dispatch(type,{key:value,repeat});
+    // Reading actions here are taps; explicit S remains a continuous hold.
+    if(type==='keydown'&&!repeat&&value.toLowerCase()!=='s')w.document.dispatch('keyup',{key:value});
+    return event;
+  };
   return { ...rig, scene, pad, key, advance, images, windowEvents, gameCanvas, canvasCalls, finishFullscreen, assertPresented };
 }
 const settle = () => new Promise(resolve => setImmediate(resolve));
@@ -115,12 +120,12 @@ async function main() {
     assertPresented(scene.cutsceneContainer);
     assertPresented(scene.introCanvas);
     advance(300);
-    scene.cutsceneContainer.dispatch('click'); assert.strictEqual(scene.currentImageIndex, 1); assert.strictEqual(scene.currentCueIndex, 1);
+    scene.cutsceneContainer.dispatch('click',{target:scene.dialogueButton}); assert.strictEqual(scene.currentImageIndex, 1); assert.strictEqual(scene.currentCueIndex, 1);
     await w.fullscreenManager.exit(); assertPresented(scene.cutsceneContainer);
     const reentered = w.fullscreenManager.enter(); finishFullscreen(); await reentered;
     assertPresented(scene.cutsceneContainer);
     advance(300); key('Enter'); assert.strictEqual(scene.currentImageIndex, 1); assert.strictEqual(scene.currentCueIndex, 1, 'scene action cannot reveal a cue'); key(' '); assert.strictEqual(scene.currentCueIndex, 2);
-    key('s'); advance(5000); await started; advance(500);
+    key('s'); advance(5000); assert(scene.isPlaying(),'skip waits for final confirmation'); key('s','keyup'); advance(300); key('Enter'); await started; advance(500);
     assertPresented(gameCanvas);
     assert.strictEqual(w.tutorialSystem.storyChapter, 0);
     assert(w.tutorialSystem.targetText.includes('Still with you'));
@@ -176,7 +181,7 @@ async function main() {
     assert.strictEqual(canvasCalls.length, 1, 'painting and image completion reuse one acquired context');
     assert(scene.getDiagnostics().assets.every(image => image.status === 'ready' && image.source.startsWith('assets/intro/')));
     assert.strictEqual(scene.pendingImageLoads.size, 0); assert.strictEqual(images.length, 16);
-    key('s'); advance(5000); assert(!scene.isPlaying()); scene.destroy();
+    key('s'); advance(5000); assert(scene.isPlaying()); key('s','keyup'); advance(300); key('Enter'); assert(!scene.isPlaying()); scene.destroy();
     assert.deepStrictEqual(calls.errors, []);
   }
   {
@@ -187,13 +192,13 @@ async function main() {
     assert.strictEqual(scene.pendingImageLoads.size, 0);
     assert(scene.transcriptElement.textContent.includes('Leave the room noise in.'));
     key('Enter'); advance(300); assert.strictEqual(scene.currentImageIndex, 2);
-    key('s'); advance(5000); assert(!scene.isPlaying());
+    key('s'); advance(5000); assert(scene.isPlaying()); key('s','keyup'); advance(300); key('Enter'); assert(!scene.isPlaying());
     assert.strictEqual(canvasCalls.length, 1, 'a rejected context is not retried by the paint poll'); scene.destroy();
   }
   for (const skip of [false, true]) {
     const { w, p, scene, key, advance, calls } = openingRig({ realTutorial: true });
     const started = w.BARCODE.RuntimeLifecycle.start(); await settle();
-    if (skip) { key('s'); advance(5000); }
+    if (skip) { key('s'); advance(5000); key('s','keyup'); advance(300); key('Enter'); }
     else while (scene.isPlaying()) { advance(300); const complete = scene.currentCueIndex >= w.BARCODE.IntroSequence.getCues(scene.currentImageIndex - 1).length - 1; key(complete ? 'Enter' : ' '); }
     await started;
     const tutorial = w.tutorialSystem;
@@ -255,7 +260,7 @@ async function main() {
     const pressed = key('s'); assert(pressed.prevented && pressed.stopped);
     advance(2500); key('s', 'keydown', true);
     assert.strictEqual(scene.skipHoldProgress, 0.5, 'S survives controller polling and keyboard repeat');
-    advance(2450); assert(scene.isPlaying()); advance(50); await started;
+    advance(2450); assert(scene.isPlaying()); advance(50); assert(scene.isPlaying()); key('s','keyup'); advance(300); key('Enter'); await started;
     assert(!scene.isPlaying()); assert.strictEqual(calls.tutorialStarts, 1); assert.strictEqual(calls.loopStarts, 1);
     assert.strictEqual(gameCanvas.style.display, 'block'); assert(!p.missionStarted);
     assert.strictEqual(calls.fades.length, 1); assert.strictEqual(calls.musicStarts, 0);
@@ -272,7 +277,7 @@ async function main() {
     key('s'); advance(2000); key('s', 'keyup'); advance(4000); assert(scene.isPlaying());
     key('s'); advance(1000); pad.buttons[1].pressed = true; advance(50);
     key('s', 'keyup'); advance(4950); assert(scene.isPlaying(), 'B must complete its own five seconds');
-    advance(50); assert(!scene.isPlaying()); scene.destroy();
+    advance(50); assert(scene.isPlaying()); pad.buttons[1].pressed=false; advance(300); key('Enter'); assert(!scene.isPlaying()); scene.destroy();
     scene.start(); advance(100); key('s'); advance(1000);
     w.navigator.getGamepads = () => []; advance(3000);
     assert(scene.isSkipHoldActive, 'pad disconnect cannot cancel keyboard');

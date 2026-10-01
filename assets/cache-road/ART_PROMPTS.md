@@ -51,3 +51,14 @@ One transparent diagonal acceleration plume: dirty mist, exhaust heat and tire
 spray curling back, with broken amber glints, cyan/gray translucent wisps and
 soot flecks. Graphic-novel/game-art treatment, asymmetric taper, narrow origin
 and wide tail. No flames, clean triangles, uniform glow, vehicle, road or text.
+
+## October 1 — wind/whoosh atlas
+
+Built-in imagegen, transparent background requested. One 1536 × 1024 atlas
+in a 3-column × 2-row grid, each 512 × 512 cell. Top row: three isolated
+icy-mint/warm-cream wind ribbons, upper-left to lower-right, tapered tips.
+Bottom row: gold passing crescent, mint wind mist wake, angular mint/cream
+peripheral speed slash with small gold accents. Gritty painted late-1980s
+cyberpunk comic brushwork, ragged ink/dry-brush grain, generous transparent
+gutters. No lettering, labels, car, scenery, frames or opaque background.
+The generated RGBA bytes are preserved as `effects/wind-whoosh-atlas.png`.

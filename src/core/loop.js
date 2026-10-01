@@ -93,7 +93,9 @@ window.gameLoop = function(timestamp) {
     if (window.inputManager && typeof window.inputManager.updatePausedInput === 'function') {
       window.inputManager.updatePausedInput();
     }
-    window.BARCODE?.PauseMenu?.render();
+    const comic=window.BARCODE?.CacheEnding?.active?window.BARCODE.CacheEnding:
+      window.BARCODE?.CacheBridge?.active?window.BARCODE.CacheBridge:null;
+    if(comic)comic.draw(getFrameContext());else window.BARCODE?.PauseMenu?.render();
     scheduleNextGameplayFrame();
     return;
   }

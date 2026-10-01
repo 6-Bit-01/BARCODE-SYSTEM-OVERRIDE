@@ -1,5 +1,23 @@
 # Decision Register
 
+## October 1, 2026 — identical cutscene functions and visual speed
+
+The owner explicitly requests the same dialogue/scene-skip features, layout,
+functions, behavior and appearance in every cutscene. The shared opening
+format now also owns the reading controls/transcript/pause. Space/A reveals,
+Enter/RB changes a completed scene, and independent five-second S/B holds
+skip only to the final position. Preserve chapter-specific final handoffs,
+source story/art/audio and saved progress. This supersedes the prior instruction
+to retain distinct chapter controls.
+
+The owner also approves new painted wind, whoosh and screen-pressure assets,
+stronger camera zoom/movement and a faster-looking road. This authorizes
+presentation changes only: actual speed, road progression, sockets, timing,
+collision, music and rewards remain locked. Keep the center timing area/HUD
+readable, drawing work finite and Reduced Motion steady. See
+`SHARED_CUTSCENE_SPEED_EFFECTS.md`. Appearance/feel still require owner review.
+
+
 ## October 1, 2026 — lock the first cutscenes' visual format
 
 The owner selects the beginning cutscenes as the common format and asks the

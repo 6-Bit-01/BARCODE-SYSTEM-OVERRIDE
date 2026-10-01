@@ -65,7 +65,7 @@ async function checkFreshEnding() {
   const receipt = copy(r.road.chapter.delivery.result), updates = r.observed.roadUpdates;
   const time = r.road.chapter.elapsedMs, starts = r.roadStarts(), sceneTime = r.ending.sceneElapsedMs;
   r.key('Enter', true, true); assert.equal(r.ending.cue, 0, 'held driving confirm cannot skip the ending title');
-  r.key('Enter', false); r.tap('Enter'); assert.equal(r.ending.cue, 1);
+  r.key('Enter', false); r.tap(' '); assert.equal(r.ending.cue, 1);
   r.tap('t'); assert(r.ending.transcriptOpen);
   r.step(6000); assert.equal(r.ending.cue, 1, 'transcript holds authored cue timing');
   assert.equal(r.observed.roadUpdates, updates); assert.equal(r.observed.worldUpdates, 0);
@@ -124,12 +124,12 @@ async function checkRecordsAndRetry() {
   const previousRun = r.road.chapter.runId, facts = copy(r.C.archive().record.progress);
   r.tap('Escape'); assert(!r.ending.active && r.road.status === 'clear');
   r.step(20); r.tap('Enter'); assert(r.ending.active); assert.equal(r.ending.cue, 1);
-  r.ending.skipToReady(); r.pad.buttons[0].pressed = true; r.input();
+  r.ending.skipToReady(); r.pad.buttons[5].pressed = true; r.input();
   // Opening a reading session release-arms the pad; release it once first.
-  if (r.ending.active) { r.pad.buttons[0].pressed = false; r.input(); r.pad.buttons[0].pressed = true; r.input(); }
+  if (r.ending.active) { r.pad.buttons[5].pressed = false; r.input(); r.pad.buttons[5].pressed = true; r.input(); }
   assert(!r.ending.active); for (let i = 0; i < 4; i++) r.input();
-  assert.equal(r.road.status, 'clear', 'finishing with A cannot replay on the next controller poll');
-  r.pad.buttons[0].pressed = false; r.input();
+  assert.equal(r.road.status, 'clear', 'finishing with RB cannot replay on the next controller poll');
+  r.pad.buttons[5].pressed = false; r.input();
   r.step(20); r.pad.buttons[2].pressed = true; r.input(); r.pad.buttons[2].pressed = false; r.input();
   assert.equal(r.road.status, 'playing'); assert.notEqual(r.road.chapter.runId, previousRun);
   assert.equal(r.road.chapter.elapsedMs, 0); assert.deepEqual(copy(r.road.chapter.records), []);

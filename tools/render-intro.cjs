@@ -17,7 +17,7 @@ async function main() {
     assert(fs.existsSync(file), `Bundled opening art is missing: ${item.url}`);
     item.element = await loadImage(file); item.loaded = true;
   }
-  const out = path.resolve(__dirname, '../docs/source-pack/verification'); fs.mkdirSync(out, { recursive: true });
+  const out = path.resolve(process.argv.slice(2).find(arg=>!arg.startsWith('--'))||path.join(root,'docs/source-pack/verification')); fs.mkdirSync(out, { recursive: true });
   const canvas = createCanvas(1920, 1080), raw = canvas.getContext('2d'), labels = [];
   const ctx = new Proxy(raw, {
     get(target, key) {
@@ -70,6 +70,16 @@ async function main() {
   scene.drawCurrentPanel(); fs.writeFileSync(path.join(out, 'intro-skip.webp'), canvas.toBuffer('image/webp'));
   w.BARCODE_RENDER_QUALITY = { flashes: false }; scene.inspectCaption(); scene.drawCurrentPanel();
   fs.writeFileSync(path.join(out, 'intro-reduced-effects.webp'), canvas.toBuffer('image/webp'));
+  for(let index=0;index<8;index++){
+    scene.currentImageIndex=index+1;scene.transcriptOpen=true;labels.length=0;scene.drawCurrentPanel();
+    for(const item of labels.filter(x=>x.y>=154&&x.y<744))assert(item.x>=160&&item.x+item.width<=1760,'Transcript clears its panel');
+  }
+  scene.transcriptOpen=false;scene.userPaused=true;scene.drawCurrentPanel();
+  fs.writeFileSync(path.join(out,'intro-pause.webp'),canvas.toBuffer('image/webp'));
+  scene.userPaused=false;
+  if(process.argv.includes('--comic-only')){
+    console.log('Eight comic panels, cue sheets, all transcripts, common pause, hold and Reduced Motion native bounds passed. Scripted local review, not Makko.');return;
+  }
   // Render every rewritten tutorial line with real metrics, then collect a
   // small typography strip. No fixture world is passed off as a live capture.
   const { w: tutorialWindow } = openingRig({ realTutorial: true });

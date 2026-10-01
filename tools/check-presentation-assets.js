@@ -11,7 +11,12 @@ w.Image = class Image {
 load(context, 'src/engine/presentation-assets.js');
 const art = w.BARCODE.PresentationAssets;
 for (let i = 0; i < 20; i++) art.preload();
-assert.strictEqual(images.length, 241, 'restarts reuse Cache traffic, six block families, ten travel sheets, six activity sheets, graph joins, ground, walkers, props, decals, practical lights, three static dashboard assets, four encounter effects and local effects');
+assert.strictEqual(images.length, 242, 'restarts reuse Cache traffic, six block families, ten travel sheets, six activity sheets, graph joins, ground, walkers, props, decals, practical lights, three static dashboard assets, four encounter effects and local effects');
+const speedRoot='https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/a01f012f3afc3411e58b939f0c2911474ea51ead/';
+const windImage=images.find(im=>im.requests[0]===speedRoot+'assets/cache-road/effects/wind-whoosh-atlas.png');
+assert(windImage,'painted speed atlas uses its published immutable revision');
+windImage.onerror();assert.deepEqual(windImage.requests,[speedRoot+'assets/cache-road/effects/wind-whoosh-atlas.png','assets/cache-road/effects/wind-whoosh-atlas.png']);
+assert(fs.existsSync(path.join(root,windImage.requests[1])));
 const dashboardRoot='https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/dd1b3e9adc174da39e4b228c45079526c9c6a36a/';
 const dashboardImages=images.filter(im=>im.requests[0].startsWith(dashboardRoot));
 assert.equal(dashboardImages.length,3,'all three static instruments share their immutable artwork revision');
@@ -116,7 +121,7 @@ failedPaintedImage.onerror();
 assert.strictEqual(failedPaintedImage.onload,null);
 assert.strictEqual(failedPaintedImage.onerror,null);
 art.preload();
-assert.strictEqual(images.length,241,'failed painted and activity assets are not recreated on restart');
+assert.strictEqual(images.length,242,'failed painted and activity assets are not recreated on restart');
 assert.strictEqual(failedPaintedImage.requests.length,2,'painted assets stop after both sources fail');
 assert.strictEqual(failedActivityImage.requests.length,2,'activity assets stop after both sources fail');
 const cacheRoadRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/37db98387b8791655e3ff352d6bc6d61cb0b574b/';
@@ -214,6 +219,13 @@ ops.length = 0; art.draw('cacheMirror', ctx, { x: 753, y: 70, width: 250, height
 assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2),
   [512, 662, 402, 185, -125, -55.5, 250, 111],
   'collision eyes come from the second row inside the same mirror crop');
+windImage.naturalWidth=1536;windImage.naturalHeight=1024;windImage.onload();
+for(let frame=0;frame<6;frame++){
+  ops.length=0;art.draw('cacheWindWhoosh',ctx,{x:100,y:200,width:200,height:300,frame});
+  assert.deepStrictEqual(ops.find(op=>op[0]==='drawImage').slice(2),
+    [frame%3*512,Math.floor(frame/3)*512,512,512,-100,-150,200,300],
+    'each transparent effect samples its own registered cell');
+}
 const cacheCelImage=images.find(im=>im.requests[0]===
   paintedRoot+'assets/cache-road/vehicles/animation/cache-center-frames.webp');
 cacheCelImage.naturalWidth=1472; cacheCelImage.naturalHeight=534; cacheCelImage.onload();
@@ -236,7 +248,7 @@ assert.deepStrictEqual(ops.find(op=>op[0]==='drawImage').slice(2),
   'the cleaner uses one complete registered fourth cel with its planted foot anchor');
 arrowImage.onerror(); arrowImage.onerror();
 assert.strictEqual(arrowImage.requests.length, 2); assert.strictEqual(arrowImage.onerror, null);
-art.preload(); assert.strictEqual(images.length, 241, 'failed assets do not retry forever');
+art.preload(); assert.strictEqual(images.length, 242, 'failed assets do not retry forever');
 pulseImage.naturalWidth = pulseImage.naturalHeight = 512; pulseImage.onload();
 ops.length = 0; art.draw('bossPulse', ctx, { y: 822, width: 64, height: 56, frame: 2 });
 assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2), [10, 351, 236, 145, -32, -56, 64, 56], 'pulse fills the dangerous height and retains the ground anchor');

@@ -1,5 +1,22 @@
 # Recovery checkpoint — September 14
 
+## October 1, 2026 — shared reading controls and wind/pressure presentation
+
+- All twenty comic panels now share toolbar geometry, lettering, disabled
+  states, transcript and reading-pause presentation.
+- Separate Dialogue from Scene; five-second skip ends at the final reading
+  position and never implicitly starts gameplay or completes a chapter.
+- Preserve physical release/hold handling, existing cue/story/audio timing,
+  later reading saves and explicit chapter handoffs.
+- Add a transparent six-cell wind/whoosh atlas and bounded peripheral paint;
+  increase live camera zoom/steering/feedback and world-fixed asphalt glints.
+- Preserve actual speed, progression, collision, music and rewards; keep HUD
+  and mirror stable and disable new movement with Reduced Motion/flashes off.
+- Add owner/production-render contract checks and scripted visual evidence.
+  Exact test/CI/publication outcomes belong to the receipt; Makko acceptance
+  remains pending. Prior test evidence retains its original revision.
+
+
 ## October 1, 2026 — opening cutscene layout becomes the standard (review candidate)
 
 - Lock the opening's frame, palette, header/page progress, speech/comms

@@ -196,14 +196,14 @@ async function main(){
   const pointer=async(x,y)=>{await send('Input.dispatchMouseEvent',{type:'mousePressed',x:x*2/3,y:y*2/3,button:'left',clickCount:1});
     await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:x*2/3,y:y*2/3,button:'left',clickCount:1});await evaluate('browserProof.step(40)');};
   // Native keyboard events reach the production InputManager and all 12 cues.
-  await key('Enter');await key('Enter',true,true);await key('Enter');
+  await key(' ');await key(' ',true,true);await key(' ');
   assert.equal((await state()).cue,1,'repeat and a held non-repeat cannot advance twice');
-  await key('Enter',false);await tap('Enter');await render(0);
+  await key(' ',false);await tap(' ');await render(0);
   const beforeTranscript=await sceneClock();
   await tap('t');assert(await evaluate('BARCODE.CacheEnding.transcriptOpen&&audioSystem.combatVoices.size===0'));
   await evaluate('browserProof.step(600)');assert.equal(await sceneClock(),beforeTranscript,'native transcript input freezes scene effects');
-  await pointer(500,1035);assert(!(await evaluate('BARCODE.CacheEnding.transcriptOpen')),'pointer closes transcript');
-  for(let page=1;page<4;page++){await tap('Enter');await tap('Enter');await tap('Enter');await render(page);}
+  await pointer(950,1035);assert(!(await evaluate('BARCODE.CacheEnding.transcriptOpen')),'pointer closes transcript');
+  for(let page=1;page<4;page++){await tap('Enter');await tap(' ');await tap(' ');await render(page);}
   await evaluate('browserProof.step(12000)');
   assert.deepEqual(await state(),{active:true,page:3,cue:2,skip:0,done:false,resultArms:0,voices:0},
     'final Ready waits indefinitely without finishing or retaining previous cue voices');
@@ -212,7 +212,7 @@ async function main(){
   assert.equal(await evaluate('BARCODE.CacheRoadProof.chapter.delivery.ending.done'),false);
   // The persisted reading position reopens silently; one explicit pointer choice finishes it.
   await evaluate('browserProof.boot("saved")');assert.equal((await state()).page,3);
-  assert.equal((await state()).voices,0);await pointer(1500,1035);
+  assert.equal((await state()).voices,0);await pointer(600,1035);
   assert(!(await state()).active);assert.equal(await evaluate('BARCODE.CacheRoadProof.chapter.delivery.ending.done'),true);
   // Held gamepad controls cannot cross an ownership boundary into the ending.
   await evaluate('browserProof.connectPad()');await pad(0,true);const priorActions=await evaluate('browserProof.resultActions');
@@ -241,7 +241,8 @@ async function main(){
   await pad(1,true);await evaluate('browserProof.step(5000)');
   assert.equal((await state()).page,3);assert.equal((await state()).cue,2);assert.equal((await state()).done,false);
   await evaluate('browserProof.step(8000)');assert((await state()).active);
-  await pad(1,false);await padTap(0);assert(!(await state()).active);
+  await pad(1,false);await padTap(0);assert((await state()).active,
+    'dialogue cannot finish the final scene');await padTap(5);assert(!(await state()).active);
   assert.equal(await evaluate('BARCODE.CacheRoadProof.chapter.delivery.ending.done'),true);
   assert.equal(await evaluate('browserProof.resultActions'),priorActions,'ending and carried controls never choose Replay/Title');
   assert.equal(await evaluate('browserProof.macEntries'),0);assert.equal(await evaluate('browserProof.musicStarts'),0);
