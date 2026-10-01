@@ -22,7 +22,7 @@ const scripts = ['src/engine/music-profiles.js', 'src/engine/music-transport.js'
   'src/engine/cache-road-proof-profile.js', 'src/engine/presentation-assets.js',
   'src/game/cache-chapter.js', 'src/game/cache-road-landscape.js',
   'src/game/cache-road-encounters.js', 'src/game/cache-road-reactions.js',
-  'src/game/cache-road-pursuit.js', 'src/game/cache-road-boss-art.js', 'src/game/cache-road-proof.js',
+  'src/game/cache-road-pursuit.js', 'src/game/cache-road-boss-art.js', 'src/game/cache-road-guidance.js', 'src/game/cache-road-proof.js',
   'src/engine/intro-sequence.js', 'src/engine/cache-scene-layouts.js',
   'src/engine/cache-scene-effects.js', 'src/engine/comic-dialogue.js',
   'src/engine/cache-bridge.js', 'src/engine/cache-ending.js',
@@ -33,14 +33,15 @@ const checkedFiles = [...scripts, 'tools/check-cache-road-races.cjs', 'tools/che
 const sourceHashes = () => Object.fromEntries(checkedFiles.map(file =>
   [file, crypto.createHash('sha256').update(fs.readFileSync(path.join(root, file))).digest('hex')]));
 const initialSourceHashes = sourceHashes();
-const fixture = `<!doctype html><style>
+const fixture = `<!doctype html><meta charset="utf-8"><style>
 @font-face{font-family:Oxanium;src:url('/assets/studies/visual-overhaul/references/fonts/Oxanium.ttf') format('truetype');font-weight:200 800}
 html,body{margin:0;background:#090e18;width:100%;height:100%;overflow:hidden}
 canvas{display:block;width:100vw;height:100vh;object-fit:contain}
 </style><canvas id="gameCanvas" width="1920" height="1080"></canvas><script>
 window.browserProof={contexts:0,extraCanvases:0,worldUpdates:0,roadUpdates:0,musicStarts:0,
   clock:0,images:[],drawn:{},rigCalls:0,impactCalls:0,rigHealth:{},drawCosts:[],saves:[],timingNegative:null,
-  completions:[],cues:[],raceFrames:0,pad:{index:0,id:'Standard browser test controller',
+  completions:[],completionRequests:[],guidanceCalls:0,bossGuidanceCalls:0,
+  cues:[],raceFrames:0,pad:{index:0,id:'Standard browser test controller',
     mapping:'standard',connected:true,timestamp:0,axes:[0,0],
     buttons:Array.from({length:17},()=>({pressed:false,touched:false,value:0}))}};
 const nativeGetContext=HTMLCanvasElement.prototype.getContext;
@@ -76,14 +77,24 @@ Object.defineProperty(navigator,'getGamepads',{value:()=>[browserProof.pad]});
 const parent={levelId:'level-01',checkpointId:'intermission',levelState:{difficultyId:'standard'}};
 let saved=structuredClone(parent);
 const archive={status:'ready',record:{current:structuredClone(parent),progress:{
-    completedLevels:['level-01'],unlockedLevels:['level-01','level-02'],items:['stem.voice'],results:{}}},
+    completedLevels:['level-01'],unlockedLevels:['level-01','level-02'],items:['stem.voice'],lore:[],results:{}}},
   checkpoint(value){saved=structuredClone(value);this.record.current=structuredClone(value);
     browserProof.saves.push(structuredClone(value));return true;},
   collect(){return true;},
   completeCampaignLevel(level,difficulty,result,item,unlock,options){
-    browserProof.completions.push({level,difficulty,result:structuredClone(result),item,unlock});
-    this.record.progress.completedLevels.push(level);this.record.progress.items.push(item);
-    this.record.progress.unlockedLevels.push(unlock);this.record.progress.results[level]=structuredClone(result);
+    const request={level,difficulty,result:structuredClone(result),item,unlock,
+      checkpoint:structuredClone(options.checkpoint),loreIds:structuredClone(options.loreIds||[]),
+      source:BARCODE.CacheEnding?.active?'ending-position':'earned-clear'};
+    browserProof.completionRequests.push(request);
+    // The production archive deduplicates reward facts while saving the same
+    // frozen receipt again as the ending's reading position changes.
+    if(!browserProof.completions.some(saved=>saved.level===level&&saved.difficulty===difficulty&&
+      saved.result.runId===result.runId))browserProof.completions.push(structuredClone(request));
+    this.record.progress.completedLevels=[...new Set([...this.record.progress.completedLevels,level])];
+    this.record.progress.items=[...new Set([...this.record.progress.items,item])];
+    this.record.progress.unlockedLevels=[...new Set([...this.record.progress.unlockedLevels,unlock])];
+    this.record.progress.lore=[...new Set([...this.record.progress.lore,...request.loreIds])];
+    this.record.progress.results[level]=structuredClone(result);
     return this.checkpoint(options.checkpoint);
   }};
 window.BARCODE={Preferences:{values:{reducedMotion:false,flashes:true,inputOffsetMs:0}},
@@ -121,6 +132,12 @@ BARCODE.CacheRoadBossArt={...bossArt,
   drawRig(ctx,options){browserProof.rigCalls++;browserProof.rigHealth[options.health]=
       (browserProof.rigHealth[options.health]||0)+1;return bossArt.drawRig(ctx,options);},
   drawImpact(...args){browserProof.impactCalls++;return bossArt.drawImpact(...args);}};
+const guidance=BARCODE.CacheRoadGuidance;
+if(!guidance)throw Error('Production guidance missing');
+BARCODE.CacheRoadGuidance={...guidance,draw(ctx,road,...args){browserProof.guidanceCalls++;
+  if(road.status==='playing'&&road.chapter?.encounterVersion===3&&road.state.musicBeatFloat/4>=72)
+    browserProof.bossGuidanceCalls++;
+  return guidance.draw(ctx,road,...args);}};
 const originalUpdate=BARCODE.CacheRoadProof.update;
 BARCODE.CacheRoadProof.update=function(...args){browserProof.roadUpdates++;return originalUpdate.apply(this,args);};
 const originalRoadDraw=BARCODE.CacheRoadProof.draw;
@@ -169,7 +186,10 @@ browserProof.summary=()=>{const road=BARCODE.CacheRoadProof,s=road.state,boss=ro
     camera:copy(s.cameraMotion),music:BARCODE.MusicTransport.sample(audioSystem.context.currentTime).grid?.beatFloat,
     drawn:{...browserProof.drawn},rigCalls:browserProof.rigCalls,impactCalls:browserProof.impactCalls,
     rigHealth:{...browserProof.rigHealth},raceFrames:browserProof.raceFrames,
-    saved:BARCODE.Campaign.readResume(),completions:copy(browserProof.completions)};};
+    guidanceCalls:browserProof.guidanceCalls,bossGuidanceCalls:browserProof.bossGuidanceCalls,
+    saved:BARCODE.Campaign.readResume(),completions:copy(browserProof.completions),
+    completionRequests:copy(browserProof.completionRequests),
+    rewardFacts:copy(BARCODE.Campaign.archive().record.progress)};};
 browserProof.frozen=()=>{const s=BARCODE.CacheRoadProof.state;return {
   progress:s.progress,elapsedMs:s.elapsedMs,timeMs:s.timeMs,musicBeat:s.musicBeatFloat,
   pursuit:BARCODE.CacheRoadPursuit.snapshot(s.pursuit),camera:copy(s.cameraMotion),
@@ -321,10 +341,24 @@ async function main() {
   assert.deepEqual([...seenHealth], [3, 2, 1, 0], 'all actual earned damage states were rendered');
   assert(state.rigCalls > 0 && state.drawn.cachePursuitRig > 0, 'production front/rear drawRig paints the new rig');
   assert(state.impactCalls > 0 && state.drawn.cachePursuitImpact > 0, 'earned counters paint actual impact art');
+  assert(state.guidanceCalls > 0 && state.bossGuidanceCalls > 0,
+    'production fixed route and three-system boss guidance is drawn during the earned race');
   for (const health of [3, 2, 1, 0]) assert(state.rigHealth[health] > 0, `drawRig painted health ${health}`);
   assert(paused, 'pause was exercised during actual boss approach');
   assert(state.chapter.delivery && state.chapter.delivery.result.accurate > 0 && state.chapter.delivery.result.elapsedMs >= 187500);
-  assert.equal(state.completions.length, 1, 'one earned Campaign completion request');
+  assert.equal(state.completions.length, 1, 'one unique earned Campaign run receipt');
+  assert.equal(state.completionRequests.length, 2, 'earned clear and initial ending position both persist');
+  assert.deepEqual(state.completionRequests.map(request=>request.source), ['earned-clear','ending-position']);
+  for(const request of state.completionRequests)
+    assert.deepEqual(request.result, state.chapter.delivery.result,
+      'repeated persistence keeps the same frozen earned receipt');
+  for(const [key,id] of [['completedLevels','level-02'],['items','stem.bass'],['unlockedLevels','level-03']])
+    assert.equal(state.rewardFacts[key].filter(value=>value===id).length, 1,
+      'the earned reward fact remains unique');
+  assert.deepEqual(state.rewardFacts.lore, [...new Set(state.chapter.records)],
+    'optional earned records are persisted without duplicate facts');
+  assert.deepEqual(state.saved.levelState.chapter.delivery.ending, state.chapter.delivery.ending,
+    'the second persistence stores the current ending position');
   assert.equal(state.completions[0].level, 'level-02');
   assert.equal(state.completions[0].item, 'stem.bass');
   assert.equal(state.completions[0].unlock, 'level-03');
@@ -359,7 +393,10 @@ async function main() {
       timingProbe: 'After the first actual late rejected press, clear policy bias for later offers; already observed offers retain their intended timing error.', observation: 'production visible encounter snapshot', controls: 'mock standard gamepad through production ActionInput' },
     checks: { freshNativeDrive: true, full100BarRace: true, earnedThreeCounters: true,
       actualDamageFrames: [3, 2, 1, 0], productionRigAndImpactDraws: true,
-      pausedRigCameraMusicFrozen: true, campaignCompletionCalledOnce: true,
+      productionFixedGuidanceDrawn: true,
+      pausedRigCameraMusicFrozen: true, uniqueEarnedRun: true, uniqueBassReward: true,
+      rawPersistenceCallCount: state.completionRequests.length,
+      identicalRepeatedReceipt: true, uniqueRewardFacts: true,
       actualLateControllerPressRejected: true, acceptedCaptureWindowMs: 180,
       canvasCount: 1, contextAcquisitions: 1, unrelatedWorldUpdates: 0, stateInjection: false },
     sourceHashes: initialSourceHashes, sourceStableThroughoutRun: true,
