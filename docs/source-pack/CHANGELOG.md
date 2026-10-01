@@ -1,5 +1,24 @@
 # Recovery checkpoint — September 14
 
+## October 1 — combat mechanics checkpoint
+
+Built fresh v4 conflict with independent R1 Attack, L1 Turbo, R2 Defend and
+L2 Disrupt while keeping face synchronization, chart3 and music contracts.
+Verified all nine difficulty/gear races, actual enemy/boss damage, zero-sync
+controls, recovery, checkpoint continuity and forged-save rejection. Local
+full regression and all-file syntax passed. Existing-art prototype feedback
+findings and final authored-art/browser/owner review remain explicitly pending.
+One PR continues from merged #168; older entries remain historical.
+
+## October 1 — Combat chase in progress
+
+- Preserve merged #168 as rollback and historical v1–3 rules.
+- Rename face pieces and separate four shoulder/trigger combat skills.
+- Preserve synchronization chart/music/captures and nextONE trajectory.
+- Build real enemy damage, counters, takedowns and active rig systems before art.
+- Record checkpoint/final verification in exact committed receipts; owner
+  acceptance remains pending.
+
 ## October 1 — Break the Pursuit overhaul candidate
 
 - Fresh version-3 races escalate scouts/convoys into a three-system rig with

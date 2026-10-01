@@ -9,9 +9,9 @@ window.FILE_MANIFEST.push({
 (function() {
   const BARCODE = window.BARCODE = window.BARCODE || {};
   const ACTIONS = ['move_left', 'move_right', 'move_up', 'move_down', 'jump', 'primary', 'interact', 'inspect', 'pause', 'rhythm_mode',
-    'road_a', 'road_b', 'road_x', 'road_y', 'road_turbo', 'road_echo'];
+    'road_a', 'road_b', 'road_x', 'road_y', 'road_turbo', 'road_echo', 'road_attack', 'road_defend', 'road_disrupt'];
   const EDGE_ACTIONS = new Set(['jump', 'primary', 'interact', 'inspect', 'pause', 'rhythm_mode',
-    'road_a', 'road_b', 'road_x', 'road_y', 'road_turbo', 'road_echo']);
+    'road_a', 'road_b', 'road_x', 'road_y', 'road_turbo', 'road_echo', 'road_attack', 'road_defend', 'road_disrupt']);
   // Dropping through a platform is deliberate: at least 70% downward travel,
   // within 35 degrees of straight down. Walking/menu deadzones stay separate.
   const DROP_STICK_MIN = 0.7;
@@ -29,7 +29,10 @@ window.FILE_MANIFEST.push({
     rhythm_mode: ['r'],
     // A right-hand diamond keeps the left hand free to steer and change speed.
     road_a: ['k'], road_b: ['l'], road_x: ['j'], road_y: ['i'],
-    road_turbo: [' '], road_echo: ['h']
+    road_turbo: [' '], road_echo: ['h'],
+    // Fresh combat uses shoulder/trigger skills. The old Echo action remains
+    // available to historical road versions; the road owner chooses its rules.
+    road_attack: ['f'], road_defend: ['g'], road_disrupt: ['v']
   };
   const DEFAULT_GAMEPAD = {
     move_left: [{ axis: 0, dir: -1 }, { button: 14 }],
@@ -44,7 +47,8 @@ window.FILE_MANIFEST.push({
     rhythm_mode: [{ button: 4 }],
     road_a: [{ button: 0 }], road_b: [{ button: 1 }],
     road_x: [{ button: 2 }], road_y: [{ button: 3 }],
-    road_turbo: [{ button: 4 }], road_echo: [{ button: 5 }]
+    road_turbo: [{ button: 4 }], road_echo: [{ button: 5 }],
+    road_attack: [{ button: 5 }], road_defend: [{ button: 7 }], road_disrupt: [{ button: 6 }]
   };
 
   function clone(value) { return JSON.parse(JSON.stringify(value)); }
@@ -153,7 +157,8 @@ window.FILE_MANIFEST.push({
       return pads.some(pad => buttons.some(binding => {
         if (binding.button !== undefined) {
           if (action === 'move_down' && binding.button === 13 && [12, 14, 15].some(index => pad.buttons[index]?.pressed)) return false;
-          return !!pad.buttons[binding.button]?.pressed;
+          const button = pad.buttons[binding.button];
+          return !!button?.pressed || (binding.button === 6 || binding.button === 7) && button?.value >= 0.5;
         }
         if (binding.axis !== undefined) {
           if (action === 'move_down') {

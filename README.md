@@ -4,6 +4,39 @@ A BARCODE simulation built around seven distinct retro game genres and the origi
 
 ## Current state
 
+The active work is one combat-chase PR on `agent/cache-combat-chase`, starting
+from merged [PR #168](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/168)
+at `de003813dac96022e1ad19327ec827c3d1bac159`, retained as rollback.
+Fresh Cache Line runs use version 4: fight hostile vehicles, defend committed
+attacks, disrupt tracking and damage an enforcement rig through three systems.
+Rhythm synchronization provides advantages and earned score during the chase.
+
+| Default controller input | Function | Keyboard |
+| --- | --- | --- |
+| A / Cross, B / Circle, X / Square, Y / Triangle | Four synchronization pieces | K, L, J, I |
+| R1 / RB | Attack | F |
+| L1 / LB | Turbo | Space |
+| R2 / RT | Defend | G |
+| L2 / LT | Disrupt | V |
+
+The face pieces retain the same lane chart, music, timing, captures, extensions
+and arrangement. All four active means optimum speed and power with the lowest
+tracking footprint. Combat skills recharge independently and work without
+synchronization; Turbo preserves its next-ONE launch. Historical version-1–3
+saves retain their rules. The delivered-original ending requires real rig
+defeat and the complete original song.
+
+The playable mechanics checkpoint passes production combat/input/guidance
+and integration race/save checks with existing art. Authored combat assets,
+final regression/browser checks and both final-head CI events are still
+pending. Makko/controller/audio, comfort, balance/fun and device performance
+remain owner review. See [the approved combat plan](docs/source-pack/CACHE_COMBAT_CHASE.md),
+[CURRENT_STATE.md](docs/source-pack/CURRENT_STATE.md) and
+[the acceptance route](docs/source-pack/ACCEPTANCE.md) for scope and evidence;
+the checkpoint is not a final publication or acceptance claim.
+
+## Historical development preview description
+
 Read [CURRENT_STATE.md](docs/source-pack/CURRENT_STATE.md) and [the acceptance route](docs/source-pack/ACCEPTANCE.md) for the active review. Level 1 and its Cache Back handoff are playable. A clearly labeled Broadcast Slum development preview starts from that handoff; merged #89 added roof shield nodes, counter surges, varied defenders and temporary scatter. The current review adds debug access to both levels. The Cache Line remains Level 2 in story order.
 
 The preview grants no later campaign completion or Drums key. Its owner Makko/audio/controller feel review is pending. The Cache Line and later story routes remain planned.

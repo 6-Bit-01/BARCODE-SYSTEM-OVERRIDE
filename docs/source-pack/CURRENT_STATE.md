@@ -1,5 +1,24 @@
 # Current State
 
+## October 1 — playable combat mechanics checkpoint
+
+Fresh v4 races separate four synchronization pieces from independently
+recharging Attack/Turbo/Defend/Disrupt, with the original lane chart, capture
+rules and actual music gains preserved. All nine difficulty/gear races clear
+through real attacks and a 12-HP rig; synchronization and steering alone do
+not win. Earned damage survives mid-boss save/reload, pause freezes state,
+and forged wins/future saves are rejected. Full local regression and all-file
+syntax pass. Exact source hashes and limits are in
+`review-cache-combat-chase/combat-integration.json`.
+
+This is the existing-art mechanics checkpoint, based on merged #168. New
+painted enemies/destruction and presentation corrections continue in this
+same PR. Prototype findings include ordinary takedowns mislabeled BOSS COUNTER,
+Defend-ready feedback claiming a block before contact, old face-action glyphs
+and player-shot color attribution. Final-head hosted browser/CI and owner
+Makko/controller/audio/comfort/fun/frame-pacing acceptance are pending.
+See `CACHE_COMBAT_CHASE.md`; earlier sections retain historical attribution.
+
 ## October 1 — Break the Pursuit overhaul candidate
 
 The broader owner-approved PR starts from merged #167 at

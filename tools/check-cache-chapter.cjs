@@ -26,13 +26,15 @@ function rig(shared = storage()) {
   load('src/game/cache-chapter.js');
   const chapter = w.BARCODE.CacheChapter;
   const road = { active: true, status: 'playing', chapter: chapter.create({ difficultyId: 'standard' }),
-    state: { status: 'playing', gateOpen: false, musicBar: 0, score: 7654, pursuit:{defeated:false} },
+    state: { status: 'playing', gateOpen: false, musicBar: 0, score: 7654,
+      pursuit: { defeated: false }, combat: { boss: { defeated: false } } },
     makeCheckpoint(id) { return { levelId: 'level-02', checkpointId: id,
       levelState: { proofVersion: 4, proof: copy(this.state), chapter: copy(this.chapter) } }; } };
   w.BARCODE.CacheRoadProof = road;
   return { w, chapter, road, storage: shared, get archive() { return archive; },
     reload() { archive = new w.BARCODE.LoreCollection(); return archive; },
-    clear() { Object.assign(road.state, { status: 'clear', gateOpen: true, musicBar: 100, pursuit:{defeated:true} }); road.status = 'clear'; }
+    clear() { Object.assign(road.state, { status: 'clear', gateOpen: true, musicBar: 100,
+      pursuit: { defeated: true }, combat: { boss: { defeated: true } } }); road.status = 'clear'; }
   };
 }
 function primaryWrites(r) { return r.storage.writes.filter(key => key === KEY).length; }
@@ -42,10 +44,11 @@ function primaryWrites(r) { return r.storage.writes.filter(key => key === KEY).l
 {
   const r = rig(), fresh = copy(r.road.chapter);
   assert.notEqual(fresh.runId, r.chapter.create().runId);
-  assert.equal(fresh.encounterVersion, 3, 'only fresh runs opt into the new drive rules');
-  assert.equal(r.chapter.normalize({ ...fresh, encounterVersion: 1 }).encounterVersion, 1,
-    'existing authored encounters keep their version');
-  assert.equal(r.chapter.normalize({ ...fresh, encounterVersion: 4 }), null,
+  assert.equal(fresh.encounterVersion, 4, 'only fresh runs opt into the combat chase rules');
+  for (const version of [1, 2, 3])
+    assert.equal(r.chapter.normalize({ ...fresh, encounterVersion: version }).encounterVersion, version,
+      'existing authored encounters keep their version');
+  assert.equal(r.chapter.normalize({ ...fresh, encounterVersion: 5 }), null,
     'future encounter metadata cannot invent an eligible run');
   for (const invalid of [null, undefined, {}, { ...fresh, version: 2 }, { ...fresh, elapsedMs: -1 },
     { ...fresh, retries: Infinity }, { ...fresh, attempts: 1e11 }, { ...fresh, runId: 'level-one-run' },
@@ -68,7 +71,8 @@ function primaryWrites(r) { return r.storage.writes.filter(key => key === KEY).l
   const r = rig();
   Object.assign(r.road.chapter, { elapsedMs: 192050, damageTaken: 3, retries: 2,
     attempts: 23, accurate: 18, perfect: 11, connected: 18, bestCombo: 5 });
-  for (const patch of [{ gateOpen: true, musicBar: 99 }, { gateOpen: false, musicBar: 100 }, {pursuit:{defeated:false}}]) {
+  for (const patch of [{ gateOpen: true, musicBar: 99 }, { gateOpen: false, musicBar: 100 },
+    { combat: { boss: { defeated: false } } }, { combat: null }]) {
     r.clear(); Object.assign(r.road.state, patch); assert.equal(r.chapter.finish(), null);
   }
   r.clear(); r.road.active = false; assert.equal(r.chapter.finish(), null); r.road.active = true;
@@ -96,6 +100,21 @@ function primaryWrites(r) { return r.storage.writes.filter(key => key === KEY).l
   assert.equal(r.chapter.normalize(badReceipt), null);
   const ending = copy(r.road.chapter); ending.delivery.ending = { version: 1, page: 99, cue: -3, done: 1 };
   assert.deepEqual(copy(r.chapter.normalize(ending).delivery.ending), { version: 1, page: 3, cue: 0, done: false });
+}
+
+// Already-saved pursuit runs retain their own earned-boss gate. The new
+// combat completion flag cannot substitute for an undefeated version-3 rig.
+{
+  const r = rig();
+  r.road.chapter = r.chapter.normalize({ ...copy(r.road.chapter), encounterVersion: 3 });
+  for (const pursuit of [{ defeated: false }, null]) {
+    r.clear(); r.road.state.pursuit = pursuit;
+    assert.equal(r.chapter.finish(), null);
+  }
+  assert.equal(primaryWrites(r), 0);
+  r.clear(); r.road.state.combat = null;
+  assert(r.chapter.finish(), 'a genuinely completed historical pursuit still awards its receipt');
+  assert.equal(primaryWrites(r), 1);
 }
 
 // Optional records are one-time archive IDs, yet a new attempt can show its

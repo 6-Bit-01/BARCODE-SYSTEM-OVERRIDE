@@ -4,11 +4,17 @@ window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({ name: 'src/core/gamepad-ui.js', exports: ['BARCODE.GamepadUI', 'BARCODE.ControllerSettings'], dependencies: [] });
 (function() {
   const B = window.BARCODE = window.BARCODE || {};
-  const defaults = { jump: 0, primary: 0, interact: 3, rhythm_mode: 4, inspect: 5 };
+  const levelDefaults = { jump: 0, primary: 0, interact: 3, rhythm_mode: 4, inspect: 5 };
+  const roadDefaults = { road_attack: 5, road_turbo: 4, road_defend: 7, road_disrupt: 6 };
+  const defaults = { ...levelDefaults, ...roadDefaults };
   const allowed = [0, 2, 3, 4, 5, 6, 7, 10, 11];
+  const roadAllowed = [4, 5, 6, 7];
   const storageKey = 'barcode.controller.v1';
   const shareable = (a, b) => a !== b && ['jump', 'primary'].includes(a) && ['jump', 'primary'].includes(b);
-  const validBindings = bindings => Object.keys(defaults).every(a => allowed.includes(bindings?.[a]) && Object.keys(defaults).every(b => a === b || bindings[a] !== bindings[b] || shareable(a, b)));
+  const group = action => Object.keys(action in roadDefaults ? roadDefaults : levelDefaults);
+  const buttonsFor = action => action in roadDefaults ? roadAllowed : allowed;
+  const validBindings = (bindings, actions) => actions.every(a => buttonsFor(a).includes(bindings?.[a]) && actions.every(b => a === b || bindings[a] !== bindings[b] || shareable(a, b)));
+  const buttonHeld = (pad, index) => !!pad?.buttons[index]?.pressed || (index === 6 || index === 7) && pad?.buttons[index]?.value >= 0.5;
   const settings = B.ControllerSettings = {
     bindings: { ...defaults }, deadzone: 0.2, labels: 'auto', vibration: true, saved: true,
     load() {
@@ -17,32 +23,40 @@ window.FILE_MANIFEST.push({ name: 'src/core/gamepad-ui.js', exports: ['BARCODE.G
         if (Number.isFinite(data.deadzone)) this.deadzone = Math.max(0.1, Math.min(0.5, data.deadzone));
         if (['auto', 'playstation', 'xbox'].includes(data.labels)) this.labels = data.labels;
         if (typeof data.vibration === 'boolean') this.vibration = data.vibration;
-        if (validBindings(data.bindings)) {
-          this.bindings = Object.fromEntries(Object.keys(defaults).map(key => [key, data.bindings[key]]));
+        if (validBindings(data.bindings, Object.keys(levelDefaults))) {
+          for (const key of Object.keys(levelDefaults)) this.bindings[key] = data.bindings[key];
           // Migrate the previous default face buttons without resetting unrelated
           // preferences or deliberately customized gameplay bindings.
-          if (data.layoutVersion !== 2 && this.bindings.jump === 0 && this.bindings.primary === 2) this.bindings.primary = 0;
+          if (!(data.layoutVersion >= 2) && this.bindings.jump === 0 && this.bindings.primary === 2) this.bindings.primary = 0;
+        }
+        // Road and Level 1 mappings are exclusive contexts. Missing/invalid new
+        // road preferences keep their own defaults, never reset a valid Level 1
+        // layout, and cannot assign skills to the face-piece buttons.
+        if (data.layoutVersion === 3 && validBindings(data.bindings, Object.keys(roadDefaults))) {
+          for (const key of Object.keys(roadDefaults)) this.bindings[key] = data.bindings[key];
         }
       } catch (_) { /* Corrupt or unavailable storage never prevents play. */ }
     },
     save() {
       try {
         if (!window.localStorage) throw new Error('unavailable');
-        window.localStorage.setItem(storageKey, JSON.stringify({ layoutVersion: 2, bindings: this.bindings, deadzone: this.deadzone, labels: this.labels, vibration: this.vibration })); this.saved = true;
+        window.localStorage.setItem(storageKey, JSON.stringify({ layoutVersion: 3, bindings: this.bindings, deadzone: this.deadzone, labels: this.labels, vibration: this.vibration })); this.saved = true;
       } catch (_) { this.saved = false; }
       B.GamepadUI?.reset(); window.inputManager?.actionInput?.reset();
     },
     bind(action, button) {
-      if (!(action in defaults) || !allowed.includes(button)) return false;
+      if (!(action in defaults) || !buttonsFor(action).includes(button)) return false;
       const old = this.bindings[action];
-      const conflicts = Object.keys(defaults).filter(key => key !== action && this.bindings[key] === button && !shareable(action, key));
+      const actions = group(action);
+      const conflicts = actions.filter(key => key !== action && this.bindings[key] === button && !shareable(action, key));
       this.bindings[action] = button;
       for (const key of conflicts) {
-        const replacement = [old, ...allowed].find(candidate => Object.keys(defaults).every(other => other === key || this.bindings[other] !== candidate || shareable(key, other)));
+        const replacement = [old, ...buttonsFor(key)].find(candidate => buttonsFor(key).includes(candidate) && actions.every(other => other === key || this.bindings[other] !== candidate || shareable(key, other)));
         this.bindings[key] = replacement;
       }
       this.save(); return true;
     },
+    allowedButtons(action) { return [...buttonsFor(action)]; },
     setDeadzone(value) { if (Number.isFinite(value)) { this.deadzone = Math.round(Math.max(0.1, Math.min(0.5, value)) * 100) / 100; this.save(); } },
     restore() { this.bindings = { ...defaults }; this.deadzone = 0.2; this.labels = 'auto'; this.vibration = true; this.save(); },
     button(index) {
@@ -71,7 +85,7 @@ window.FILE_MANIFEST.push({ name: 'src/core/gamepad-ui.js', exports: ['BARCODE.G
     },
     read() {
       const pad = this.selectPad(), held = {};
-      for (let i = 0; i < 17; i++) held['b' + i] = !!pad?.buttons[i]?.pressed;
+      for (let i = 0; i < 17; i++) held['b' + i] = buttonHeld(pad, i);
       const x = this.axis(0), y = this.axis(1);
       held.up = held.b12 || y < 0; held.down = held.b13 || y > 0;
       held.left = held.b14 || x < 0; held.right = held.b15 || x > 0;

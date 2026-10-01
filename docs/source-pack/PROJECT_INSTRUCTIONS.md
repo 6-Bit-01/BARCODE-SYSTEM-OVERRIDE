@@ -1,5 +1,56 @@
 # Project Instructions
 
+## October 1 — approved combat chase from the PR #168 checkpoint
+
+The owner approves one new PR on `agent/cache-combat-chase`, with merged
+PR #168 (`de003813dac96022e1ad19327ec827c3d1bac159`) retained as the
+rollback baseline. Build and verify playable mechanics with existing art
+first, then complete the chase, destruction, authored assets and polish in
+that same PR. This replaces version 3's dodge-to-damage finale for fresh
+runs; it does not replace the synchronization system.
+
+| Default controller input | Function | Keyboard |
+| --- | --- | --- |
+| A / Cross | Synchronization piece A | K |
+| B / Circle | Synchronization piece B | L |
+| X / Square | Synchronization piece X | J |
+| Y / Triangle | Synchronization piece Y | I |
+| R1 / RB | Attack | F |
+| L1 / LB | Turbo | Space |
+| R2 / RT | Defend | G |
+| L2 / LT | Disrupt | V |
+
+Face buttons are four pieces of synchronized data/adrenaline, not skills.
+Preserve their lane-based chart, announced physical pad addresses, timing,
+captures, extensions, arrangement, existing passive bonuses and original
+music. Four active parts represent optimum speed and power with the lowest
+enemy tracking footprint. The four deliberate combat skills recharge
+independently and remain usable at zero synchronization. Skill remaps stay
+within the four shoulders/triggers; face-piece addresses remain fixed.
+Turbo launches physically on the next ONE, preserving revealed pad positions.
+
+Fresh chapters use encounterVersion 4, the existing version-3 chart and a
+separate combat state. Make the chase the main conflict: actual hostile
+vehicles, warned attacks, timed defense, disruption, earned takedowns,
+explosions, flips and rider ejection. Dodging gives the rig a recovery opening;
+actual damage must break its three systems. Rhythm catches provide advantages,
+stack multipliers and measured ending points while pressure can force a
+voluntarily sacrificed piece. Completion still requires genuine rig defeat
+and the full original song. Preserve version-1–3 save rules, historical test
+attribution, the repaired camera and first-gear wrecks, shared runtime owners,
+Level 1 and the existing story/cutscene handoffs.
+
+The mechanics checkpoint passes the production combat/input/guidance and
+integration race/save checks using existing art. That is checkpoint evidence,
+not completion of the PR or owner acceptance. Authored combat art, final
+regression/browser validation and both exact final-head CI events remain
+pending. Standing publication/merge authority and exact-tree source export
+follow `AGENTS.md` and `UPDATE_PROTOCOL.md`; Makko/controller/audio, comfort,
+balance/fun and device frame pacing still need recorded owner evidence.
+Read `CACHE_COMBAT_CHASE.md` and the source-hashed mechanics receipt in
+`review-cache-combat-chase/combat-integration.json`. Earlier sections describe
+historical milestones and do not override this approved scope.
+
 ## October 1 — owner-authorized Break the Pursuit overhaul
 
 The owner approves one broader overhaul after the separate repair PR #167,
