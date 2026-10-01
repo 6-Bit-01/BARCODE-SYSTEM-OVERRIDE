@@ -1,5 +1,20 @@
 # Current State
 
+## October 1 — camera and wreck repair candidate
+
+The owner likes turn offsets but reports snapping/jerk, and requests first
+gear after wrecks. This focused follow-up starts from merged #166 at
+`8bcfc39d5b01b6b9ada07facf76d0a70a12cd3c9`. A transient critically damped
+camera follows the existing target using the shared update owner; drawing
+reads it without mutation. High-frequency shake becomes one soft impact
+oscillation. Genuine damage selects gear 1, cancels pending shifts/launches,
+and stays in gear 1 after the existing next-ONE recovery slowdown. Protected
+Push/Brace/Turbo/grace contacts do not downshift. The existing finale is
+untouched: the owner has explicitly selected replacement in a separate
+subsequent overhaul, not an exit-readability patch. See `DRIVING_REPAIRS.md`.
+Final revision, complete checks and publication belong in the receipt.
+
+
 ## October 1 — dynamic speed camera and wind correction
 
 Follow-up to merged #165: the owner rejects the curling wind and requests

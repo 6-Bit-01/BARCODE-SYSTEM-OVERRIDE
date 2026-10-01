@@ -79,6 +79,27 @@ function run() {
     tick(r,8.8);assert.equal(r.road.state.gear,2);
   }
   const endpoints=[];
+  // Real wrecks select first gear, clear pre-crash boosts/shifts and stay in
+  // first after the recovery bar. Revealed paint retains its physical ONE.
+  for(const protectedBy of ['none','push','brace','turbo','grace']) {
+    const r=rig({gear:2});tick(r,0);tick(r,2);const s=r.road.state;
+    s.invulnerableMs=protectedBy==='grace'?100:0;
+    s.ramMs=protectedBy==='push'?100:0;s.shield=protectedBy==='brace'?1:0;
+    s.boostMs=protectedBy==='turbo'?100:0;
+    s.pendingGear=1;s.pendingGearBeat=4;s.queuedTurbo=true;s.turboBeat=4;
+    s.queuedSurge=true;s.surgeBeat=4;
+    const addresses=JSON.stringify([s.pulseTargets,s.pulsePlaces]);
+    r.road.hit('van');
+    if(protectedBy!=='none') {assert.equal(s.gear,2,'blocked contact is not a wreck');continue;}
+    assert.equal(s.gear,0);assert.equal(s.pendingGear,null);assert(!s.queuedTurbo&&!s.queuedSurge);
+    assert.equal(JSON.stringify([s.pulseTargets,s.pulsePlaces]),addresses,'wreck never moves announced paint');
+    s.invulnerableMs=1e8;
+    // New requests during crash recovery cannot defeat the first-gear reset.
+    tick(r,3,{move_up:{pressed:true},road_turbo:{pressed:true}});
+    tick(r,4.8);assert.equal(s.gear,0);assert.equal(s.speed,30);assert(!s.queuedRecovery);
+    tick(r,8.8);assert.equal(s.gear,0);assert.equal(s.speed,30,'no automatic return to the old gear');
+    tick(r,9,{move_up:{pressed:true}});tick(r,12.8);assert.equal(s.gear,1,'normal manual acceleration resumes');
+  }
   for(const fps of [24,30,60,120]) {
     const r=rig();tick(r,0);
     for(let frame=1;frame<=fps*12;frame++)tick(r,frame/fps/beatSec,{},1000/fps);

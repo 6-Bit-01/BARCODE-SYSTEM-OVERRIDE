@@ -47,7 +47,7 @@ function queue(r, mode) {
     // An earned SURGE queues this exact road state. Its earning/input rules
     // are covered by the pulse and reaction gates; this case owns persistence.
     s.queuedSurge = true; s.surgeBeat = road.nextShiftBeat();
-  } else if (mode === 'recovery-start') {
+  } else if (mode.startsWith('recovery-')) {
     s.invulnerableMs = 0; s.shield = 0; s.ramMs = 0; road.hit('van');
     assert.equal(s.queuedRecovery, true);
   }
@@ -65,7 +65,10 @@ async function transition(mode) {
   assert.equal(p.musicBar, 28); assert(r.road.validate(saved));
   assert.equal(p.driveSection.beat, 112);
   assert.equal(p.driveSection.from, p.progress);
-  assert.notEqual(p.driveSection.v0, p.driveSection.speed, `${mode} actually exercises a transition`);
+  if(mode==='recovery-end') {
+    assert.equal(p.gear,0);assert.equal(p.driveSection.v0,30);assert.equal(p.driveSection.speed,30,
+      'recovery now stays in first rather than accelerating back to the pre-wreck gear');
+  } else assert.notEqual(p.driveSection.v0, p.driveSection.speed, `${mode} actually exercises a transition`);
   const pulse = p.encounters.pulses.find(item => item.target === 116);
   assert(pulse, 'the transition section already announced its next ONE');
   const retained = copy(p.encounters);
@@ -216,7 +219,23 @@ async function earnedGateReloads() {
   }
 }
 async function main() {
-  const modes = ['gear-up', 'gear-down', 'turbo-start', 'turbo-end', 'surge-start', 'surge-end', 'recovery-start'];
+  // A marker captured during a wreck retains the fixed current trajectory
+  // while selecting first gear. Its exact save must still validate and resume.
+  const wreck=await fresh();tick(wreck,0,{move_up:{pressed:true}});tick(wreck,112.8);
+  const s=wreck.road.state;s.invulnerableMs=0;s.boostMs=0;s.shield=0;s.ramMs=0;
+  const targets=copy([s.pulseTargets,s.pulsePlaces]);wreck.road.hit('van');
+  const snapshot=wreck.road.makeCheckpoint('road-verse-2');
+  assert(wreck.road.validate(snapshot),'mid-section wreck checkpoint remains valid');
+  assert.equal(snapshot.levelState.proof.gear,0);
+  assert(!('cameraMotion' in snapshot.levelState.proof),'camera momentum is transient');
+  assert.deepEqual(copy([s.pulseTargets,s.pulsePlaces]),targets,'wreck preserves every announced target');
+  const resumed=saveRig();await resumed.boot(snapshot);resumed.anchor();
+  for(const beat of [113,114,115.99,116,116.8,120.8]) {
+    tick(wreck,beat);tick(resumed,beat);
+    assert(Math.abs(wreck.road.state.progress-resumed.road.state.progress)<1e-8,'wreck resume follows the same committed trajectory');
+    assert.equal(resumed.road.state.gear,0,'wreck resume remains in first');
+  }
+  const modes = ['gear-up', 'gear-down', 'turbo-start', 'turbo-end', 'surge-start', 'surge-end', 'recovery-start','recovery-end'];
   let first;
   for (const mode of modes) { const result = await transition(mode); first ||= result; }
   await malformed(first.saved); await legacy(first.saved);

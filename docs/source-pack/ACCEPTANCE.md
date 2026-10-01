@@ -1,5 +1,20 @@
 # Acceptance and Test Status
 
+## October 1 — trailing camera and first-gear wrecks
+
+The owner accepts the direction of turn offsets but rejects abrupt/jerky
+response. Confirm smooth input onset, release and fast left/right reversals,
+trailing zoom, readable pad positions and steady HUD/rearview. Confirm the
+soft impact response and the neutral Reduced Motion/Flashes Off settings.
+A genuine wreck must select gear 1, slow smoothly on the next ONE and remain
+in gear 1 until manually shifted; blocked contacts must preserve the gear.
+Pending pre-crash Turbo is canceled with its unused charge returned. A request
+during the recovery bar cannot bypass the forced first-gear recovery.
+Automated camera/drive checks and scripted native renders do not establish
+Makko comfort, controller, listening or frame-pacing acceptance. The old exit
+remains for this repair only; its replacement belongs to the next PR.
+
+
 ## October 1 — dynamic camera and replacement wind review
 
 The owner rejected #165's curling wind; that visual is not accepted. The new

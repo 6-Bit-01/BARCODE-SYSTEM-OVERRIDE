@@ -1,5 +1,16 @@
 # Decision Register
 
+## October 1 — split repair and overhaul
+
+The owner changes the earlier one-PR overhaul request to two PRs: repair the
+jerky trailing camera and first-gear wreck behavior first; then perform the
+broader overhaul. The owner explicitly scraps the existing exit sequence and
+says not to clarify it in the repair. Merged #166 / `8bcfc39d5b01b6b9ada07facf76d0a70a12cd3c9`
+is the checkpoint/baseline. New boss, escalating pursuit, offensive/defensive
+choices and replacement finale are next-PR scope. No exact new boss identity,
+attack design or finale has been claimed as approved canon.
+
+
 ## October 1 — wind rejection and dynamic camera direction
 
 The owner rejects #165's wind appearance and asks for more dramatic zoom,

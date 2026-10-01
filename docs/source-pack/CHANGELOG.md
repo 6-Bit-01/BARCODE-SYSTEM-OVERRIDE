@@ -1,5 +1,17 @@
 # Recovery checkpoint — September 14
 
+## October 1 — focused driving repair (candidate)
+
+- Follow turn/zoom targets through critically damped transient presentation
+  state in the existing update owner; no draw-time advance or new timer.
+- Replace high-frequency pass/impact camera jitter with a soft bounded arc.
+- Genuine wrecks select first gear, clear queued gear/launch effects and keep
+  first after next-ONE recovery; protected contacts preserve gear.
+- Preserve the existing finale pending the separately authorized overhaul.
+- Verify input reversal, equal-time multi-rate follow, immunity/defense,
+  recovery precedence, manual acceleration and immutable announced pads.
+
+
 ## October 1 — thin wind, wider camera range and visibility guards
 
 - Replace live curling wind with thin, tapered directional air streaks.
