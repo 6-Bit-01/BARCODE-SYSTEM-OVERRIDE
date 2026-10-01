@@ -25,6 +25,7 @@ async function fresh(difficulty = 'standard', version = 2) {
   }
   await r.boot(before); r.bridge.skipToReady();
   assert((await r.bridge.drive()).ok);
+  assert(r.road.finishIntro());
   assert.equal(r.road.chapter.encounterVersion, version);
   assert.equal(r.road.state.encounters.version, version);
   assert.equal(r.road.chapter.difficultyId, difficulty);

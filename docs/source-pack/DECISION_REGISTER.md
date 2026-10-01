@@ -1,5 +1,33 @@
 # Decision Register
 
+## October 1, 2026 — lock the first cutscenes' visual format
+
+The owner selects the beginning cutscenes as the common format and asks the
+second round to match. Use the existing opening as the source of truth for
+page header/progress, full picture frame, palette, speech/comms shapes,
+lettering and top-crossing speaker tabs. Extend its pure presentation helpers
+for reuse; do not maintain another layout that can drift from the approved
+opening. Apply it to all eight Cache bridge and four delivery ending pages,
+with authored placements that keep the actual people and story props visible.
+
+Preserve source art, dialogue, timing, audio, input ownership, transcripts,
+saved reading positions, deliberate Drive/Finish and rewards. The opening's
+appearance and tutorial/road layouts retain their existing roles. The owner
+authorizes commit, PR and merge of the current combined candidate after its
+required checks; this includes the road frame-time and launch/speed work.
+That publication authority does not imply Makko acceptance: appearance,
+physical-device feel and repeating frame pacing still require review there.
+
+## October 1, 2026 — Cache Road race launch and speed feel
+
+The owner requests a short in-game race setup, more visible speed effects,
+camera zoom and shake. Place the sequence at a fresh road entry after the
+existing bridge. Start the song and race clock only when driving starts;
+preserve Continue/marker timing and a skippable input. Use the existing
+canvas world and inexpensive peripheral effects, with a steady Reduced
+Motion presentation. The reported repeating frame drop remains an acceptance
+blocker until the owner tests the combined build in Makko.
+
 ## September 30, 2026 — fewer words and foreground continuation
 
 The owner finds the previous live guidance too wordy and asks for a more

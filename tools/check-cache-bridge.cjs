@@ -12,7 +12,7 @@ function bridgeRig(storage) {
   const r=campaignRig(storage),{w,context,listeners}=r,B=w.BARCODE,C=B.Campaign;
   r.reachReady();
   for(const file of ['src/engine/cache-road-proof-profile.js','src/game/cache-road-landscape.js',
-    'src/game/cache-road-proof.js','src/engine/cache-scene-layouts.js','src/engine/cache-scene-effects.js',
+    'src/game/cache-road-proof.js','src/engine/intro-sequence.js','src/engine/cache-scene-layouts.js','src/engine/cache-scene-effects.js',
     'src/engine/comic-dialogue.js','src/engine/cache-bridge.js','src/core/action-input.js',
     'src/core/gamepad-ui.js','src/core/input.js'])load(context,file);
   const road=B.CacheRoadProof,bridge=B.CacheBridge;
@@ -127,11 +127,61 @@ async function checkPagesAndFacts() {
   assert.equal(w.gameState.score,points);assert.deepEqual(copy(C.archive().record.progress.results),results);
   r.tap('Enter');await flush();
   assert(road.active&&!bridge.active&&!C.intermission);
-  assert.equal(r.observed.roadEntries,1);assert.equal(r.roadStarts(),1);
+  assert.equal(r.observed.roadEntries,1);assert.equal(r.roadStarts(),0);
+  const openingTime=road.state.timeMs;
+  r.step(500);
+  assert.equal(road.state.timeMs,openingTime);
+  r.pad.buttons[0].pressed=true;r.input();
+  assert.equal(r.roadStarts(),1,'controller A skips and starts the race song exactly once');
+  r.pad.buttons[0].pressed=false;r.input();
   assert.equal(road.state.elapsedMs,0,'road simulation begins only after the final handoff');
   assert.equal(C.readResume().levelId,'level-02');
   assert(!C.archive().record.progress.items.includes('stem.bass'));
   return 24;
+}
+
+async function checkRoadIntroPauseAndFailure() {
+  for(const source of ['keyboard','controller']) {
+    const r=bridgeRig(),{B,road,w,pad}=r;await r.boot();
+    r.bridge.skipToReady();await r.bridge.drive();
+    load(r.context,'src/game/lore-records.js');load(r.context,'src/game/pause-menu.js');
+    B.PauseMenu.snapshot={};B.PauseMenu.snapshotContext={drawImage(){}};
+    if(source==='keyboard')w.navigator.getGamepads=()=>[];
+    r.input();r.step(500);
+    const beforeIntro=road.introMs,beforeTime=road.state.timeMs;
+    if(source==='keyboard')r.tap('p');
+    else {pad.buttons[9].pressed=true;r.input();}
+    await flush();assert(w.isPaused,`${source}: the real input router pauses the race setup`);
+    r.step(7000);
+    assert.equal(road.introMs,beforeIntro,'paused setup camera clock remains fixed');
+    assert.equal(road.state.timeMs,beforeTime,'paused setup never consumes race time');
+    assert.equal(r.roadStarts(),0);assert.equal(road.finishIntro(),false,'direct launch cannot bypass Pause');
+    assert.equal(B.MusicTransport.sample(r.audio.context.currentTime).running,false);
+    // Confirm belongs to Pause's Resume row. It must not also skip the race
+    // setup in the same event, even with a held physical controller button.
+    if(source==='keyboard')r.tap('Enter');
+    else {pad.buttons[9].pressed=false;r.input();pad.buttons[0].pressed=true;r.input();}
+    await flush();assert(!w.isPaused,`${source}: Pause confirms Resume`);
+    assert.equal(road.introMs,beforeIntro,'resuming preserves the unfinished setup');
+    assert.equal(r.roadStarts(),0,'Resume does not start music sources');
+    assert.equal(B.MusicTransport.sample(r.audio.context.currentTime).running,false,
+      'Resume leaves the prepared race transport idle until launch');
+    r.input();r.step(200);assert.notEqual(road.introMs,null,'carried Resume cannot skip the setup');
+    if(source==='keyboard')r.tap('Enter');
+    else {pad.buttons[0].pressed=false;r.input();pad.buttons[0].pressed=true;r.input();}
+    assert.equal(road.introMs,null);assert.equal(r.roadStarts(),1,'a fresh skip starts the race exactly once');
+  }
+  const r=bridgeRig(),{road,audio,B}=r;await r.boot();
+  r.bridge.skipToReady();await r.bridge.drive();
+  const start=audio.startRuntimeGameplayMusic,stops=r.calls.audioStops;
+  audio.startRuntimeGameplayMusic=()=>{throw new Error('audio-node-start-failed');};
+  assert.doesNotThrow(()=>r.step(4300),'a thrown launch failure cannot break the gameplay RAF');
+  assert.equal(road.status,'failed');assert.equal(road.state.message,'CACHE MUSIC UNAVAILABLE');
+  assert.equal(road.introMs,null);assert(r.calls.audioStops>stops,'partial startup audio is stopped');
+  assert.equal(B.MusicTransport.sample(audio.context.currentTime).running,false);
+  audio.startRuntimeGameplayMusic=start;
+  assert(road.retry());assert.equal(road.status,'playing');assert.equal(r.roadStarts(),1,
+    'the failed launch remains recoverable through the existing Retry action');
 }
 
 async function checkHeldControls() {
@@ -254,14 +304,25 @@ async function checkPendingAndFailure() {
     if(failure==='reject')audio.roadPreparation=async()=>{throw Error('boundary-fetch-rejected');};
     if(failure==='start')audio.failRoadStart=true;
     r.tap('Enter');await flush();
+    if(failure==='start') {
+      assert(road.active&&road.introMs===0&&r.roadStarts()===0,
+        'a prepared intro leaves the song idle until launch');
+      r.step(4300);
+      assert.equal(road.status,'failed','a failed launch shows a recoverable road result');
+      assert.equal(r.roadStarts(),0);
+      audio.failRoadStart=false;
+      assert(road.retry());assert.equal(r.roadStarts(),1);
+      continue;
+    }
     assert(!road.active&&!road.pending&&!bridge.pending&&bridge.active&&C.intermission,
       `${failure} failure restores a usable bridge`);
     assert.equal(bridge.page,7);assert.equal(bridge.cue,2);
     assert.equal(C.readResume().levelId,'level-01');assert.equal(r.roadStarts(),0);
     audio.roadPreparation=null;audio.failRoadStart=false;
     r.tap('Enter');await flush();
-    assert(road.active&&!bridge.active);assert.equal(r.roadStarts(),1,
-      'a fresh confirmation can retry audio without duplicate road starts');
+    assert(road.active&&!bridge.active&&road.introMs===0);
+    r.step(4300);assert.equal(r.roadStarts(),1,
+      'a fresh confirmation and launch retry audio without duplicate starts');
   }
   for(const cleanup of ['title','restart']) {
     const r=bridgeRig(),{bridge,road,audio,B}=r;
@@ -385,6 +446,7 @@ async function checkRoadResultControllerEdges() {
   for(const status of ['clear','failed'])for(const button of [0,3]) {
     const r=bridgeRig(),{B,road,pad}=r;await r.boot();
     r.bridge.skipToReady();await r.bridge.drive();
+    assert(road.finishIntro());
     load(r.context,'src/game/lore-records.js');load(r.context,'src/game/pause-menu.js');
     B.PauseMenu.snapshot={};B.PauseMenu.snapshotContext={drawImage(){}};
     r.input();assert.equal(B.GamepadUI.owner,'gameplay');
@@ -456,11 +518,12 @@ async function checkSceneClock() {
 
 async function main() {
   const cues=await checkPagesAndFacts();
+  await checkRoadIntroPauseAndFailure();
   await checkHeldControls();await checkSkipAndEscape();await checkSaves();await checkPendingAndFailure();
   await checkSceneClock();
   await checkArchitectureCancellation();await checkCancelledResume();await checkRoadResumeMusic();
   await checkRoadResultControllerEdges();
-  console.log(`Cache bridge: ${cues} production cues, physical held inputs, independent five-second skip, save/restore, audio retry, cancelled road/DEV handoffs, silent completed road, restored-bar playback, released road-result controls and paused/transcript/skip/pending scene-effect clocks passed.`);
+  console.log(`Cache bridge: ${cues} production cues, physical held inputs, independent five-second skip, save/restore, audio retry, cancelled road/DEV handoffs, silent completed road, restored-bar playback, released road-result controls, launch pause/resume and thrown-audio recovery, and paused/transcript/skip/pending scene-effect clocks passed.`);
 }
 module.exports={bridgeRig};
 if(require.main===module)main().catch(error=>{console.error(error.stack||error);process.exitCode=1;});

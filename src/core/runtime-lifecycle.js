@@ -278,9 +278,10 @@ window.BARCODE = window.BARCODE || {};
         projectCompatibility();
         return { ok: false, status: 'audio-resume-failed-still-paused', state, generation, diagnostic: audioResult };
       }
-      // Resuming the audio context must not resume a completed road clock.
+      // Resuming the audio context must not start a pre-race or completed road clock.
       // Its finite reading cues may be stopped; the next authored cue is fresh.
-      if (namespace.CacheEnding?.active || namespace.CacheRoadProof?.active && namespace.CacheRoadProof.status === 'clear') {
+      if (namespace.CacheEnding?.active || namespace.CacheRoadProof?.active &&
+          (namespace.CacheRoadProof.status === 'clear' || namespace.CacheRoadProof.introMs != null)) {
         window.audioSystem?.stopRuntimeAudio?.({ stopMusic: true });
         window.audioSystem?.stopRoadEngine?.();
       }

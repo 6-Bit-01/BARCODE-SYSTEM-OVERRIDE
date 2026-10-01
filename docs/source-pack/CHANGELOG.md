@@ -1,5 +1,32 @@
 # Recovery checkpoint — September 14
 
+## October 1, 2026 — opening cutscene layout becomes the standard (review candidate)
+
+- Lock the opening's frame, palette, header/page progress, speech/comms
+  geometry, dialogue lettering and top-crossing speaker tabs in shared
+  `IntroSequence.format` and pure presentation helpers.
+- Make all eight Cache bridge and four delivery ending pages use those
+  helpers; remeasure authored placements against the full opening frame
+  while protecting faces, hands, cassette hardware, monitor glass and gate.
+- Keep opening appearance, original paintings/scripts, staged cues, audio,
+  transcripts, input/save ownership and fresh-confirm Drive/Finish intact.
+- Update native font registration and scene/browser fixtures to measure the
+  actual shared fonts, body text, speaker tabs and exported outer bounds.
+- Combine this presentation change with the existing Cache Road frame-time
+  correction and skippable in-world launch/speed camera candidate. Exact
+  validation, hosted CI and publication status belong to the PR/receipt;
+  Makko visual feel and repeating frame-drop acceptance remain pending.
+
+## October 1, 2026 — race setup and camera speed pass (review branch)
+
+- Stage a short, skippable three-beat in-road launch before the first bar;
+  hold time, music, steering and abilities until the cue finishes.
+- Add bounded world-camera zoom/shake for speed, Turbo, near misses and
+  impacts, plus peripheral speed streaks. Reduced Motion is steady.
+- Preserve HUD, pad timing, rearview blur, save and checkpoint semantics.
+  The ground-slab frame-time fix shares this review branch; live Makko FPS
+  and visual feel remain unaccepted.
+
 ## September 30, 2026 — title overlay repair (unmerged)
 
 - Make the hidden title overlay transparent even when boot writes inline
@@ -1101,6 +1128,16 @@ Publication recovery also preserves the previously saved SpritePlayback clock, s
 Preserved the recovered 547-frame model-art implementation and live HUD. Draft PR #46 is open. Runtime validation and immutable delivery pins are in progress; missing final boss and vehicle exports are documented. Working originals remain for missing clips.
 
 # Changelog
+
+## October 1 — Cache Road frame-time review
+
+- Reduce the number of clipped roadside ground texture slabs per frame while
+  keeping their world-aligned source positions and the existing street/court
+  painter order. This addresses the measured opening-frame terrain cost.
+- Add production-draw timing diagnostics and retain a both-bank texture
+  regression. No controls, music, save, encounter or artwork files change.
+- Owner Makko frame pacing and appearance acceptance remain pending; exact
+  validation and publication status belong to the PR/receipt.
 
 ## September 23, 2026 — Cache Line chase slice draft
 

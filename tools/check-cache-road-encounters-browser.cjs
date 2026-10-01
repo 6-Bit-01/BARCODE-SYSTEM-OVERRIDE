@@ -20,7 +20,7 @@ const scripts=['src/engine/music-profiles.js','src/engine/music-transport.js',
   'src/game/cache-chapter.js','src/game/cache-road-landscape.js',
   'src/game/cache-road-encounters.js','src/game/cache-road-reactions.js',
   'src/game/cache-road-pursuit.js','src/game/cache-road-proof.js',
-  'src/engine/cache-scene-layouts.js','src/engine/cache-scene-effects.js','src/engine/comic-dialogue.js',
+  'src/engine/intro-sequence.js','src/engine/cache-scene-layouts.js','src/engine/cache-scene-effects.js','src/engine/comic-dialogue.js',
   'src/engine/cache-bridge.js','src/core/action-input.js','src/core/gamepad-ui.js',
   'src/core/input.js','src/core/loop.js'];
 const fixture=`<!doctype html><style>

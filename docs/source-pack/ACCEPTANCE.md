@@ -1,5 +1,55 @@
 # Acceptance and Test Status
 
+## Locked opening format across chapters — October 1
+
+Import the exact reviewed or merged revision identified by the PR/receipt,
+reload and compare the opening with all eight Cache bridge pages and four
+replayed delivery pages. They should use the same pink BARCODE tab, channel
+and title header, page count/progress, full picture frame, palette, angular
+cream speech, dark comms and printed speaker tabs. Dialogue uses the same
+large sans-serif lettering; colored labels use monospace and cross the top
+edge of the balloon. Every line, face, cassette/hand interaction, monitor
+status and street gate must remain legible. The opening itself should retain
+its established layout.
+
+Inspect the complete picture without a crop, including each page's animated
+and settled pose. Repeat with Reduced Motion and flashes disabled. Test the
+transcript, Pause, keyboard/controller/pointer advancement, five-second skip
+and saved page/cue reload. Drive and Finish still require a fresh final
+confirmation; scene reading must not start the race song or duplicate rewards.
+Loading/missing art must retain readable dialogue without speaker pointers.
+
+Native production renders and bounds checks use the shared opening helpers
+and actual text fonts; they check protected art and controls as well as tab,
+body and shadow geometry. Their exact results and hosted browser/CI results
+belong to the candidate PR/receipt. They are not Makko or physical-device
+acceptance. This candidate also contains the road frame-time correction and
+race launch/speed camera, so complete both October 1 race routes below on the
+same imported revision. Makko FPS, visual preference and audible/controller
+feel remain pending. Base/rollback is merged #163 (`8813ef7d`).
+
+## In-road launch and speed camera — October 1
+
+On a fresh Drive handoff, watch the brief start-line setup and the three
+story cues. Verify the song, time budget, traffic and controls begin together
+at launch; Enter/controller A can skip, while Pause stops the sequence.
+Continue a saved marker and retry there to ensure no intro or source seek is
+inserted. Compare ordinary speed, a near miss, Turbo and an impact for camera
+zoom/shake and edge streaks; repeat with Reduced Motion enabled. The dashboard,
+pad strike plane and rearview should remain readable and steady. Check on
+Makko with sound and note any frame stalls during the intro or race.
+
+## Cache Road repeating frame drop — October 1
+
+The owner reports immediate alternating lag and catch-up in Level 2. After
+importing the reviewed repair, run a fresh race and a saved-marker retry with
+sound. Observe the first minute, several districts and both road banks. The
+ground grain, street mouths, sidewalks, rearview and complete foreground
+exits should remain continuous. Record browser/device, gear/difficulty,
+imported SHA and a short clip if the frame drop persists. Native Canvas
+profiling and automated scene checks are diagnostics, not Makko FPS or
+physical-device acceptance. Base/rollback is merged #163 (`8813ef7d`).
+
 ## Title visibility in Makko — September 30 (unmerged repair)
 
 Live Chrome reproduced a title covering the restored Cache bridge. The owner

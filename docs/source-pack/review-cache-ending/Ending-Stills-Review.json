@@ -1,0 +1,742 @@
+{
+  "passed": true,
+  "kind": "native production still-layout and sampled scene-motion review",
+  "mode": "stills-only",
+  "chapter": "ending",
+  "canvas": [
+    1920,
+    1080
+  ],
+  "contactSheet": [
+    1920,
+    1080
+  ],
+  "openingFormat": {
+    "frame": {
+      "x": 48,
+      "y": 140,
+      "w": 1824,
+      "h": 828
+    },
+    "palette": {
+      "ink": "#090b15",
+      "paper": "#f1eadd",
+      "mint": "#95ffe0",
+      "pink": "#f696d9",
+      "radio": "#101a2b",
+      "border": "#282235",
+      "muted": "#a9b4ca",
+      "crew": {
+        "6 BIT": "#e6e5ee",
+        "DJ FLOPPYDISC": "#83e9ff",
+        "CACHE BACK": "#ffd65c",
+        "MAC MODEM": "#ff929c"
+      }
+    },
+    "fonts": {
+      "dialogue": "bold 30px sans-serif",
+      "label": "bold 21px monospace",
+      "title": "bold 36px sans-serif",
+      "control": "22px monospace"
+    }
+  },
+  "productionSources": {
+    "src/engine/audio.js": "a285397149f2377446801b7287206875608dc776ecf3c2135b44a9ce19dc5e65",
+    "src/engine/intro-sequence.js": "5008ccfcb8fd9ed63fd7a66649a8366e81f76aa58e6ba7f96dddb30a984432ec",
+    "src/engine/cache-scene-layouts.js": "c66365d0fb66cfba829a18af2f3e9fe95f75ed1696659db86c2fed31847a60d0",
+    "src/engine/cache-scene-effects.js": "b8a64520815ec647a2421b4fd88e8612c1e6fe33c62ffae4559dd3e21d673738",
+    "src/engine/comic-dialogue.js": "66ca7daea4c0120e27921ca5e21a00c4d31a32db9d1d74061d1c1329249602c4",
+    "src/engine/cache-ending.js": "9dd3f1de1c224e1e5cf0c031ba3f2ed4a95094d1bae6630cb62f17816a01eb88"
+  },
+  "reviewSources": {
+    "tools/render-cache-ending.cjs": "43aae75326cdaacd291c492d54a6e0981ab9167431c65caa1b70005a908d1cb9",
+    "tools/lib/check-cache-scene-layout.cjs": "57f109ff77200f6bb6d724776c11e76f194a0f3e86cb906170d5f2a9664f4b41"
+  },
+  "counts": {
+    "scenes": 4,
+    "distinctContactTiles": 4,
+    "nativeLayoutChecks": 52,
+    "nativeTextBoundsChecks": 842,
+    "sampledSceneMotionChecks": 4
+  },
+  "images": [
+    {
+      "path": "assets/cache-ending/ending-01-delivered.webp",
+      "bytes": 541290,
+      "sha256": "d351494cc4f3918ebf80fc32e8f3a7f3d98f9cdb61ebce18ee7b520a5f1de35e",
+      "width": 1860,
+      "height": 845
+    },
+    {
+      "path": "assets/cache-ending/ending-02-unverified.webp",
+      "bytes": 508898,
+      "sha256": "98a771fe0497e1ebbf6002008b6d0894e22c38a778581ed49f1473e08f9d410b",
+      "width": 1860,
+      "height": 845
+    },
+    {
+      "path": "assets/cache-ending/ending-03-held.webp",
+      "bytes": 499532,
+      "sha256": "f864da0ac3acc3a2db7c6bb8b115be916208ee34369ca92adcc6180ae37800b4",
+      "width": 1860,
+      "height": 845
+    },
+    {
+      "path": "assets/cache-ending/ending-04-street-access.webp",
+      "bytes": 659830,
+      "sha256": "83f6f0db54ff13cf43c76488204b7fd09bb190078d4406c8dacbf7a6604557c1",
+      "width": 1860,
+      "height": 845
+    }
+  ],
+  "protectedArt": {
+    "balloonsClear": true,
+    "pointersClear": true,
+    "regions": [
+      {
+        "page": 1,
+        "labels": [
+          "Cache face and hat",
+          "arrived yellow car",
+          "delivered original and receiving case",
+          "Cache delivery hand"
+        ]
+      },
+      {
+        "page": 2,
+        "labels": [
+          "Cache face and hat",
+          "DELIVERED monitor glass",
+          "UNVERIFIED monitor glass",
+          "delivered cassette below both monitors",
+          "Cache receiving-console hand"
+        ]
+      },
+      {
+        "page": 3,
+        "labels": [
+          "DJ face and visor",
+          "Mac face and cap",
+          "original trace monitor",
+          "copy trace monitor",
+          "both retained cassette decks"
+        ]
+      },
+      {
+        "page": 4,
+        "labels": [
+          "Mac face and cap",
+          "Mac patch lead and hand",
+          "closed street-enforcement gate"
+        ]
+      }
+    ]
+  },
+  "layout": {
+    "actualNativeTextMetrics": true,
+    "dialogueInsideBody": true,
+    "speakerTabsFit": true,
+    "outerBoundsFit": true,
+    "controlsSeparated": true,
+    "monitorLabelsInsideMeasuredGlass": true,
+    "overlaps": 0,
+    "escapes": 0,
+    "reducedMotionSameLayout": true,
+    "checks": [
+      {
+        "page": 1,
+        "cue": 0,
+        "reducedMotion": false,
+        "transcript": false,
+        "variant": "standard",
+        "textCount": 10,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 1,
+        "cue": 0,
+        "reducedMotion": true,
+        "transcript": false,
+        "variant": "standard",
+        "textCount": 10,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 1,
+        "cue": 1,
+        "reducedMotion": false,
+        "transcript": false,
+        "variant": "standard",
+        "textCount": 14,
+        "balloonsChecked": 1,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 1,
+        "cue": 1,
+        "reducedMotion": true,
+        "transcript": false,
+        "variant": "standard",
+        "textCount": 14,
+        "balloonsChecked": 1,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 1,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "variant": "standard",
+        "textCount": 17,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 1,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": false,
+        "variant": "standard",
+        "textCount": 17,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 1,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": true,
+        "variant": "standard",
+        "textCount": 15,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 1,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": true,
+        "variant": "standard",
+        "textCount": 15,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 1,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "variant": "standard",
+        "textCount": 17,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 2,
+        "cue": 0,
+        "reducedMotion": false,
+        "transcript": false,
+        "variant": "standard",
+        "textCount": 12,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 2,
+        "cue": 0,
+        "reducedMotion": true,
+        "transcript": false,
+        "variant": "standard",
+        "textCount": 12,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 2,
+        "cue": 1,
+        "reducedMotion": false,
+        "transcript": false,
+        "variant": "standard",
+        "textCount": 16,
+        "balloonsChecked": 1,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 2,
+        "cue": 1,
+        "reducedMotion": true,
+        "transcript": false,
+        "variant": "standard",
+        "textCount": 16,
+        "balloonsChecked": 1,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 2,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "variant": "standard",
+        "textCount": 19,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 2,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": false,
+        "variant": "standard",
+        "textCount": 19,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 2,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": true,
+        "variant": "standard",
+        "textCount": 15,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 2,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": true,
+        "variant": "standard",
+        "textCount": 15,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 2,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "variant": "standard",
+        "textCount": 19,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 3,
+        "cue": 0,
+        "reducedMotion": false,
+        "transcript": false,
+        "variant": "standard",
+        "textCount": 10,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 3,
+        "cue": 0,
+        "reducedMotion": true,
+        "transcript": false,
+        "variant": "standard",
+        "textCount": 10,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 3,
+        "cue": 1,
+        "reducedMotion": false,
+        "transcript": false,
+        "variant": "standard",
+        "textCount": 15,
+        "balloonsChecked": 1,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 3,
+        "cue": 1,
+        "reducedMotion": true,
+        "transcript": false,
+        "variant": "standard",
+        "textCount": 15,
+        "balloonsChecked": 1,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 3,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "variant": "standard",
+        "textCount": 21,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 3,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": false,
+        "variant": "standard",
+        "textCount": 21,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 3,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": true,
+        "variant": "standard",
+        "textCount": 16,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 3,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": true,
+        "variant": "standard",
+        "textCount": 16,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 3,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "variant": "standard",
+        "textCount": 21,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 4,
+        "cue": 0,
+        "reducedMotion": false,
+        "transcript": false,
+        "variant": "standard",
+        "textCount": 10,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 3
+      },
+      {
+        "page": 4,
+        "cue": 0,
+        "reducedMotion": true,
+        "transcript": false,
+        "variant": "standard",
+        "textCount": 10,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 3
+      },
+      {
+        "page": 4,
+        "cue": 1,
+        "reducedMotion": false,
+        "transcript": false,
+        "variant": "standard",
+        "textCount": 14,
+        "balloonsChecked": 1,
+        "protectedRegionsChecked": 3
+      },
+      {
+        "page": 4,
+        "cue": 1,
+        "reducedMotion": true,
+        "transcript": false,
+        "variant": "standard",
+        "textCount": 14,
+        "balloonsChecked": 1,
+        "protectedRegionsChecked": 3
+      },
+      {
+        "page": 4,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "variant": "standard",
+        "textCount": 18,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 3
+      },
+      {
+        "page": 4,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": false,
+        "variant": "standard",
+        "textCount": 18,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 3
+      },
+      {
+        "page": 4,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": true,
+        "variant": "standard",
+        "textCount": 16,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 3
+      },
+      {
+        "page": 4,
+        "cue": 2,
+        "reducedMotion": true,
+        "transcript": true,
+        "variant": "standard",
+        "textCount": 16,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 3
+      },
+      {
+        "page": 4,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "variant": "standard",
+        "textCount": 18,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 3
+      },
+      {
+        "page": 1,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "variant": "controller",
+        "textCount": 17,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 1,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": true,
+        "variant": "controller-transcript",
+        "textCount": 15,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 1,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "variant": "save-warning",
+        "textCount": 17,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 4
+      },
+      {
+        "page": 1,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "variant": "missing-art",
+        "textCount": 19,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 0
+      },
+      {
+        "page": 2,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "variant": "controller",
+        "textCount": 19,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 2,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": true,
+        "variant": "controller-transcript",
+        "textCount": 15,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 2,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "variant": "save-warning",
+        "textCount": 19,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 2,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "variant": "missing-art",
+        "textCount": 19,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 0
+      },
+      {
+        "page": 3,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "variant": "controller",
+        "textCount": 21,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 3,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": true,
+        "variant": "controller-transcript",
+        "textCount": 16,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 3,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "variant": "save-warning",
+        "textCount": 21,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 5
+      },
+      {
+        "page": 3,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "variant": "missing-art",
+        "textCount": 21,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 0
+      },
+      {
+        "page": 4,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "variant": "controller",
+        "textCount": 18,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 3
+      },
+      {
+        "page": 4,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": true,
+        "variant": "controller-transcript",
+        "textCount": 16,
+        "balloonsChecked": 0,
+        "protectedRegionsChecked": 3
+      },
+      {
+        "page": 4,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "variant": "save-warning",
+        "textCount": 18,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 3
+      },
+      {
+        "page": 4,
+        "cue": 2,
+        "reducedMotion": false,
+        "transcript": false,
+        "variant": "missing-art",
+        "textCount": 20,
+        "balloonsChecked": 2,
+        "protectedRegionsChecked": 0
+      }
+    ]
+  },
+  "motion": {
+    "sampledNativePixels": true,
+    "checks": [
+      {
+        "page": 1,
+        "normalMotion": true,
+        "reducedMotionStatic": true,
+        "flashesOffStatic": true,
+        "containPreserved": true,
+        "contextRestored": true,
+        "paintClipped": true
+      },
+      {
+        "page": 2,
+        "normalMotion": true,
+        "reducedMotionStatic": true,
+        "flashesOffStatic": true,
+        "containPreserved": true,
+        "contextRestored": true,
+        "paintClipped": true
+      },
+      {
+        "page": 3,
+        "normalMotion": true,
+        "reducedMotionStatic": true,
+        "flashesOffStatic": true,
+        "containPreserved": true,
+        "contextRestored": true,
+        "paintClipped": true
+      },
+      {
+        "page": 4,
+        "normalMotion": true,
+        "reducedMotionStatic": true,
+        "flashesOffStatic": true,
+        "containPreserved": true,
+        "contextRestored": true,
+        "paintClipped": true
+      }
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "Ending-Contact.webp",
+      "bytes": 726310,
+      "sha256": "96b1a74089fce6fdf171f7647d2cfdcf74b0a983d0b7352b6c1f5011b375ea91"
+    },
+    {
+      "path": "Ending-01.webp",
+      "bytes": 439004,
+      "sha256": "a91253aed1bfa309bd6a61ff603341986304fc4939575bd62add242356671f8a"
+    },
+    {
+      "path": "Ending-02.webp",
+      "bytes": 418078,
+      "sha256": "4375017bedd1f40eecf9a6bbdbdf747b6491df32cefb1c63f8f2a7e075a1a1c4"
+    },
+    {
+      "path": "Ending-03.webp",
+      "bytes": 417758,
+      "sha256": "2aaa365c9027061aaf90ea23a535e9d37700e67f0d5eaf922d01add782f833f5"
+    },
+    {
+      "path": "Ending-04.webp",
+      "bytes": 513688,
+      "sha256": "e043c5e77458a6f575e7d874978419344782a786d934ee31ff651fd2ec4ae529"
+    }
+  ],
+  "hostLimits": [
+    "Native Canvas and locally decoded art replace browser/network delivery; no hosted browser or Makko acceptance.",
+    "Campaign, road and persistence are fixture boundaries; no played race or physical controller is exercised.",
+    "Motion proof compares sampled production pixels and Canvas state; no real-time FPS or device performance is measured.",
+    "No audio render, listening check or movie is generated by --stills-only; older Review.mp4/Review.json remain historical prior-layout evidence."
+  ]
+}

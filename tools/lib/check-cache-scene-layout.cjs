@@ -16,25 +16,28 @@ function inspectDialogue({scene,B,chapter,ctx,texts}) {
   const protectedRegions=rect?B.CacheSceneLayouts[chapter][scene.page].protected.map(p=>({...p,
     bounds:[rect.x+p.x*rect.w,rect.y+p.y*rect.h,rect.x+(p.x+p.w)*rect.w,rect.y+(p.y+p.h)*rect.h]})):[];
   const shown=scene.transcriptOpen?[]:measured.slice(0,scene.cue);
+  const format=B.IntroSequence.format,geometry=format.balloon;
   for(const l of shown) {
-    const body=bounds(l),outer=[l.x-4,l.y-4,l.x+l.w+7,l.y+l.h+8];
-    assert(inside(outer,[48,103,1872,985]),`${chapter} ${scene.page+1}: balloon escapes readable area`);
-    assert(inside(bounds(l.labelRect),body),`${chapter} ${scene.page+1}: speaker tab escapes balloon`);
-    const meter=[l.x+l.w-109,l.y+13,l.x+l.w-77,l.y+34];
-    const serial=[l.x+l.w-53,l.y+16,l.x+l.w-25,l.y+36];
+    const outer=bounds(l.outerBounds);
+    assert(inside(outer,bounds(format.readable)),`${chapter} ${scene.page+1}: balloon escapes readable area`);
+    assert(inside(bounds(l.labelRect),[l.x+geometry.tabX,l.y+geometry.tabY,l.x+l.w-24,l.y+22]),
+      `${chapter} ${scene.page+1}: speaker tab escapes its top-edge band`);
+    const meter=[l.x+l.w-71,l.y-24,l.x+l.w-39,l.y-2];
+    const serial=[l.x+l.w-58,l.y+22,l.x+l.w-25,l.y+43];
     assert(!overlap(bounds(l.labelRect),serial),`${chapter} ${scene.page+1}: speaker tab overlaps serial`);
     if(l.radio)assert(!overlap(bounds(l.labelRect),meter),`${chapter} ${scene.page+1}: speaker tab overlaps radio meter`);
     for(const entry of texts) {
       if(entry.x===l.textRect.x&&entry.y>=l.textRect.y&&entry.y<l.textRect.y+l.textRect.h)
-        assert(inside(entry.bounds,[l.x+24,l.y+44,l.x+l.w-24,l.y+l.h-8]),`${chapter} ${scene.page+1}: dialogue escapes balloon: ${entry.text}`);
-      if(entry.x===l.labelRect.x+10&&entry.y===l.labelRect.y+4)
+        assert(inside(entry.bounds,[l.x+geometry.textInsetX,l.y+geometry.textInsetY,l.x+l.w-geometry.textInsetX,l.y+l.h-8]),`${chapter} ${scene.page+1}: dialogue escapes balloon: ${entry.text}`);
+      if(entry.x===l.labelRect.x+geometry.labelInsetX&&entry.y===l.labelRect.y+geometry.labelInsetY)
         assert(inside(entry.bounds,bounds(l.labelRect)),`${chapter} ${scene.page+1}: label escapes tab: ${entry.text}`);
     }
     let pointer=null;
     if(l.tail) {
-      const bx=l.x+Math.max(46,Math.min(l.w-46,Number.isFinite(l.tailBase)?l.tailBase*l.w:l.tail[0]-l.x));
-      const by=l.tail[1]>l.y+l.h/2?l.y+l.h-5:l.y+5;
-      pointer=[[bx-23,by],l.tail,[bx+23,by]];
+      const bx=Math.max(l.x+geometry.tailMinX,Math.min(l.x+l.w-geometry.tailMaxX,
+        Number.isFinite(l.tailBase)?l.x+l.tailBase*l.w:l.tail[0]));
+      const by=l.y+geometry.tailInsetY;
+      pointer=[[bx-geometry.tailLeft-5,by],l.tail,[bx+geometry.tailRight+5,by]];
       assert(inside([l.tail[0],l.tail[1],l.tail[0],l.tail[1]],bounds(rect)),`${chapter} ${scene.page+1}: pointer escapes painted image`);
     }
     for(const p of protectedRegions) {
@@ -44,7 +47,7 @@ function inspectDialogue({scene,B,chapter,ctx,texts}) {
   }
   for(let i=0;i<shown.length;i++)for(let j=i+1;j<shown.length;j++) {
     const a=shown[i],b=shown[j];
-    assert(!overlap([a.x-4,a.y-4,a.x+a.w+7,a.y+a.h+8],[b.x-4,b.y-4,b.x+b.w+7,b.y+b.h+8]),
+    assert(!overlap(bounds(a.outerBounds),bounds(b.outerBounds)),
       `${chapter} ${scene.page+1}: balloons overlap`);
   }
   return {balloons:shown.map(l=>({x:l.x,y:l.y,w:l.w,h:l.h,radio:l.radio,tail:l.tail,label:l.label,

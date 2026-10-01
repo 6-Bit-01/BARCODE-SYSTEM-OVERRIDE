@@ -364,6 +364,20 @@ async function run() {
   audio.context.currentTime = 0;
   assert((await road.enter()).ok);
   assert.equal(C.readResume().levelState.proofVersion, 4);
+  assert.equal(road.introMs, 0, 'a fresh race opens on an in-world setup');
+  assert.equal(B.MusicTransport.sample(audio.context.currentTime).running, false,
+    'the recording waits for the start cue');
+  const openingTime=road.state.timeMs;
+  road.handleActions({ move_right: { held: true }, road_turbo: { pressed: true } });
+  for(let frame=0;frame<12;frame++)road.update(100);
+  assert.equal(road.state.progress, 0, 'the car stays on the line during the setup');
+  assert.equal(road.state.timeMs, openingTime, 'the setup does not consume race time');
+  assert.equal(road.state.steer, 0, 'held inputs cannot steer the introductory shot');
+  assert(road.keyDown({key:'Enter',repeat:false,preventDefault(){}}),
+    'Enter is consumed by the race setup');
+  assert.equal(road.introMs, null);
+  assert.equal(B.MusicTransport.sample(audio.context.currentTime).running, true,
+    'skipping starts the recording from its first bar');
   const roadStart = copy(C.readResume());
   const liveState = road.state, oldArt = B.PresentationAssets;
   B.Preferences ||= {values:{}};
@@ -984,7 +998,9 @@ async function run() {
   const rollingGrain=roadArt.filter(entry=>entry.key==='cacheRollingGrain');
   const workshopPavement=roadArt.filter(entry=>entry.key==='cacheWorkshopPavement');
   const localStreet=roadArt.filter(entry=>entry.key==='cacheLocalStreet');
-  assert(rollingGrain.length>=40 &&
+  assert(rollingGrain.length>=24 && rollingGrain.length<=30 &&
+    rollingGrain.some(entry=>entry.projected?.[0]<0) &&
+    rollingGrain.some(entry=>entry.projected?.[0]>0) &&
     rollingGrain.every(entry=>entry.sourceRect?.[3]>0 &&
       entry.alpha===.44 && entry.projected?.length===6) &&
     workshopPavement.length===0 && localStreet.length>0 &&

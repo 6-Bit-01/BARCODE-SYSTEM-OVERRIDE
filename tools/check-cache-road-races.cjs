@@ -31,6 +31,7 @@ async function raceRig(difficulty) {
   saved.levelState.difficultyId = difficulty;
   saved.levelState.run.difficultyId = difficulty;
   await r.boot(saved); r.bridge.skipToReady(); await r.bridge.drive();
+  assert(r.road.finishIntro());
   assert.equal(r.road.chapter?.difficultyId, difficulty, 'fresh road inherits the selected campaign difficulty');
   assert.equal(r.road.state.invulnerableMs, 0, 'the balance rig starts without immunity');
   assert.equal(r.road.state.musicBar, 0);
