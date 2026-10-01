@@ -1,5 +1,26 @@
 # Current State
 
+## October 1 — Break the Pursuit overhaul candidate
+
+The broader owner-approved PR starts from merged #167 at
+`f385c919bedbf228f8ee5bf1d708ecb57d151178`. Fresh version-3 races now
+escalate through scouts and convoy traffic to a persistent enforcement rig.
+Three sequential system breaks come from clean locked-lane dodges or earned
+Push/Brace/Turbo/Echo counters. Six opportunities allow missed attempts;
+boss defeat plus the complete original song replaces the old exit gate.
+The wreck remains in the physical world and passes into the mirror.
+
+New painted rig damage poses and impact/exhaust effects are integrated.
+Danger opens the repaired camera while fixed HUD/lane cues remain readable.
+Visible-world indices and bounded shared terrain samples reduce repeated
+render work with exact output-equivalence checks. Old saves retain their
+original encounter rules; actual boss damage/counter state survives valid
+checkpoints. See `CACHE_PURSUIT_OVERHAUL.md`. This section describes code;
+exact frozen revision, validation and publication belong in the receipt.
+Makko/controller/audio, comfort, balance/fun and frame pacing are unaccepted
+until the owner tests this build. Earlier sections remain historical.
+
+
 ## October 1 — camera and wreck repair candidate
 
 The owner likes turn offsets but reports snapping/jerk, and requests first

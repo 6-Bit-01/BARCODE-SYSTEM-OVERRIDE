@@ -5,7 +5,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-encounters.js',
   exports: ['BARCODE.CacheRoadEncounters'], dependencies: [] });
 (function(B) {
   'use strict';
-  const VERSION = 2, REVEAL_DISTANCE = 440, MAX_ADDRESS = 16000;
+  const VERSION = 3, REVEAL_DISTANCE = 440, MAX_ADDRESS = 16000;
   const KINDS = ['freight', 'van', 'block', 'sweeper', 'trike', 'audit', 'shuttle'];
   const SETTINGS = Object.freeze({
     relaxed: Object.freeze({ id: 'relaxed', maxIntegrity: 4, collisionScale: .88,
@@ -20,7 +20,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-encounters.js',
     standard: Object.freeze({ ...SETTINGS.standard, minimumRowGap: 82 }),
     overclocked: Object.freeze({ ...SETTINGS.overclocked, minimumRowGap: 62 })
   });
-  const supportedVersion = version => version === 1 || version === VERSION;
+  const supportedVersion = version => version === 1 || version === 2 || version === VERSION;
   const ACTS = Object.freeze([
     Object.freeze({ id: 'intro', label: 'NIGHT DEPARTURE', startBar: 0, endBar: 4 }),
     Object.freeze({ id: 'escape', label: 'CITY ESCAPE', startBar: 4, endBar: 28 }),
@@ -30,6 +30,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-encounters.js',
     Object.freeze({ id: 'delivery', label: 'DELIVERY RUNWAY', startBar: 92, endBar: 100 }),
     Object.freeze({ id: 'complete', label: 'DELIVERED', startBar: 100, endBar: 101 })
   ]);
+  const BREAK_ACTS = Object.freeze([
+    Object.freeze({id:'intro',label:'NIGHT DEPARTURE',startBar:0,endBar:4}),
+    Object.freeze({id:'escape',label:'SCOUT PURSUIT',startBar:4,endBar:28}),
+    Object.freeze({id:'freight',label:'CONVOY PRESSURE',startBar:28,endBar:52}),
+    Object.freeze({id:'surveillance',label:'INTERCEPT GRID',startBar:52,endBar:72}),
+    Object.freeze({id:'pursuit',label:'BREAK THE PURSUIT',startBar:72,endBar:96}),
+    Object.freeze({id:'delivery',label:'BREAKAWAY RUNWAY',startBar:96,endBar:100}),
+    Object.freeze({id:'complete',label:'ORIGINAL DELIVERED',startBar:100,endBar:101})
+  ]);
   const clone = value => JSON.parse(JSON.stringify(value));
   const object = value => !!value && typeof value === 'object' && !Array.isArray(value);
   const integer = (value, low, high) => Number.isInteger(value) && value >= low && value <= high;
@@ -38,9 +47,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-encounters.js',
     const settings = version === 1 ? SETTINGS : LIVE_SETTINGS;
     return Object.hasOwn(settings, id) ? settings[id] : settings.standard;
   }
-  function act(bar) {
+  function act(bar, version = 2) {
     const measure = Number.isFinite(bar) ? Math.max(0, bar) : 0;
-    const info = ACTS.find(item => measure < item.endBar) || ACTS.at(-1);
+    const acts = version === 3 ? BREAK_ACTS : ACTS;
+    const info = acts.find(item => measure < item.endBar) || acts.at(-1);
     const phase = Math.max(0, (Math.floor(measure) - 4) % 24);
     return { ...info, chorus: measure >= 4 && measure < 100 && phase >= 16,
       phrase: measure < 4 ? 0 : Math.floor((measure - 4) / 8), phase };
@@ -71,6 +81,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-encounters.js',
     return [0, 1, 2, 3].filter(lane => lane >= low && lane <= high);
   }
   function rowDue(bar, settings, version) {
+    if(version===3) {
+      // The boss supplies the final pressure. Last civilian reveals clear
+      // its approach in the slowest gear, instead of trapping a committed
+      // counter between a rig strike and a hidden freight row.
+      if(bar<4||bar>68)return false;
+      const interval=settings.id==='relaxed'?4:settings.id==='standard'?2:1;
+      return bar%interval===0;
+    }
     if (version === 2) {
       // Even first gear clears a 440-unit reveal from bar 84 before the
       // bar-92 delivery split. The intro and final exit retain their runway.
@@ -115,9 +133,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-encounters.js',
     if (settings.id !== 'relaxed') specs.push({ kind: 'van', lane: side === 0 ? 3 : 0 });
     return specs;
   }
-  function sharesUpcomingPursuit(section, settings) {
-    const pursuit = B.CacheRoadPursuit, waves = pursuit?.waves || [];
-    const lead = pursuit?.tuning?.[settings.id]?.lead;
+  function sharesUpcomingPursuit(section, settings, version) {
+    const pursuit = B.CacheRoadPursuit, waves = pursuit?.wavesFor?.(version) || pursuit?.waves || [];
+    const lead = (pursuit?.tuningFor?.(version) || pursuit?.tuning)?.[settings.id]?.lead;
     if (!Number.isFinite(lead)) return false;
     const bar = section.beat / 4, committed = endpoint(section) - section.from;
     // The current bar is already fixed. Bound only the uncommitted bars by
@@ -134,7 +152,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-encounters.js',
     });
   }
   function liveRowActors(chart, bar, settings, section) {
-    const ordinal = chart.rows.length, scene = act(bar);
+    const ordinal = chart.rows.length, scene = act(bar,chart.version);
     // Each convoy leaves TWO ADJACENT lanes free. Successive pairs share a
     // free lane, so a driver never has to cross an entire road between rows.
     // The pursuer's existing chooseLane() also checks these same bodies and
@@ -149,7 +167,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-encounters.js',
         ['audit', 'van', 'shuttle', 'freight'];
     const kind = scene.id === 'escape' && Math.abs(pair[0]-pair[1]) === 1 && ordinal%3 === 2 ?
       'trike' : kinds[ordinal % kinds.length];
-    if (sharesUpcomingPursuit(section, settings))
+    if (sharesUpcomingPursuit(section, settings, chart.version))
       return [{ kind: scene.id === 'surveillance' ? 'van' : kind === 'trike' ? 'van' : kind, lane: 0 }];
     const doubled = settings.id === 'overclocked' ||
       settings.id === 'standard' && (scene.id !== 'escape' || ordinal % 3 === 2);
@@ -194,18 +212,25 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-encounters.js',
     const at = section.from + REVEAL_DISTANCE, previous = chart.rows.at(-1);
     if (!address(at) || (previous && at - previous.at < settings.minimumRowGap)) return null;
     let specs = chart.version === 1 ? rowActors(bar, settings) : liveRowActors(chart, bar, settings, section);
-    if (chart.version === 2) specs = safeLiveSpecs(chart, specs, at, protectedActors, reservedPursuit);
+    if (chart.version >= 2) specs = safeLiveSpecs(chart, specs, at, protectedActors, reservedPursuit);
     if (reservedPulse && Math.abs(reservedPulse.at - at) < 70)
       specs = specs.filter(spec => !occupiedLanes(spec).includes(reservedPulse.lane));
     if (!specs.length) return null;
-    const info = act(bar);
+    const info = act(bar,chart.version);
     const actors = specs.map((spec, index) => Object.freeze({ ...spec, at, bar, act: info.id,
       id: `traffic/${bar}/${index}`, encounter: true }));
     const row = Object.freeze({ id: `row/${bar}`, at, bar, act: info.id, actors: Object.freeze(actors) });
     chart.rows.push(row);
     return row;
   }
-  function pulseDue(bar) {
+  function pulseDue(bar,version=2) {
+    if(version===3) {
+      if(bar<4||bar>=99)return false;
+      // Boss rounds continue the existing earned-action vocabulary. A
+      // missed opportunity is followed by another offer, never a mandatory
+      // consumable check or a silent six-bar exit blackout.
+      return act(bar,version).chorus||bar%2===0;
+    }
     // The 150-unit delivery gate takes until bar 94.67 in first gear.
     // Keep its entire approach free of new cues which could pull Cache out
     // of the right lane; reward pulses return only after every gear clears.
@@ -216,7 +241,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-encounters.js',
   function pulse(chart, section, strikeDistance, { protectedActors = [], reservedPursuit } = {}) {
     const bar = sectionBar(section);
     if (bar === null || !supportedVersion(chart?.version) || !Number.isFinite(strikeDistance) ||
-        Math.abs(strikeDistance) > 100 || !pulseDue(bar)) return null;
+        Math.abs(strikeDistance) > 100 || !pulseDue(bar,chart.version)) return null;
     const existing = chart.pulses.find(item => item.bar === bar);
     if (existing) return existing;
     const at = endpoint(section) + strikeDistance;
@@ -245,7 +270,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-encounters.js',
     // Never force a two/three-lane scramble to retain a chart count. A rare
     // blocked beat stays quiet, with the next cue still one lane away.
     if (!options.length) return null;
-    const lane = options[0], info = act(bar), run = `song/${info.phrase}`;
+    const lane = options[0], info = act(bar,chart.version), run = `song/${info.phrase}`;
     const previous = chart.pulses.at(-1);
     const order = previous?.run === run ? previous.order + 1 : 0;
     const actionCycle = info.id === 'freight' ? [1, 2, 3, 0] :
@@ -276,7 +301,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-encounters.js',
     const chart = create(raw.difficultyId, raw.version), actorIds = new Set(), rowBars = new Set(), pulseBars = new Set();
     for (const row of raw.rows) {
       if (!object(row) || !integer(row.bar, 0, 99) || !raw.committedBars.includes(row.bar) ||
-          rowBars.has(row.bar) || row.id !== `row/${row.bar}` || !address(row.at) || row.act !== act(row.bar).id ||
+          rowBars.has(row.bar) || row.id !== `row/${row.bar}` || !address(row.at) || row.act !== act(row.bar,raw.version).id ||
           !Array.isArray(row.actors) || !row.actors.length || row.actors.length > 2 ||
           (chart.rows.length && row.at - chart.rows.at(-1).at < difficulty(raw.difficultyId, raw.version).minimumRowGap)) return null;
       const actors = [];
@@ -299,9 +324,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-encounters.js',
     }
     for (const item of raw.pulses) {
       if (!object(item) || !integer(item.bar, 0, 98) || !raw.committedBars.includes(item.bar) ||
-          pulseBars.has(item.bar) || item.id !== `song/${item.bar}` || item.run !== `song/${act(item.bar).phrase}` ||
+          pulseBars.has(item.bar) || item.id !== `song/${item.bar}` || item.run !== `song/${act(item.bar,raw.version).phrase}` ||
           !integer(item.order, 0, 7) || !integer(item.action, 0, 3) || !integer(item.lane, 0, 3) ||
-          !address(item.at) || item.target !== (item.bar + 1) * 4 || item.act !== act(item.bar).id ||
+          !address(item.at) || item.target !== (item.bar + 1) * 4 || item.act !== act(item.bar,raw.version).id ||
           item.encounter !== true || Math.abs(item.lane - (chart.pulses.at(-1)?.lane ?? 1)) > 1 ||
           (chart.pulses.length && item.bar <= chart.pulses.at(-1).bar)) return null;
       chart.pulses.push(Object.freeze({ id: item.id, run: item.run, order: item.order,

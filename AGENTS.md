@@ -1,5 +1,22 @@
 # Repository Guidance
 
+## October 1, 2026 — authorized pursuit overhaul after repair
+
+The owner approves the wild optimization/game overhaul after merged #167
+(`f385c919bedbf228f8ee5bf1d708ecb57d151178`) and gives creative freedom in
+one PR. Fresh Cache Road version 3 replaces the scrapped exit with escalating
+scouts and a three-system enforcement rig; repeated committed attacks support
+ordinary-steering overloads and earned ability counters. Preserve legacy
+version-1/2 saves and their historical rules. Keep music, physical announced
+pad addresses, shared owners, Level 1, delivered-original story and common
+cutscene controls dependable. See `docs/source-pack/CACHE_PURSUIT_OVERHAUL.md`.
+Full regression/all-file syntax, production input/browser gates and both
+final-head CI events remain gates under standing merge authority. Refresh
+from the actual merged tree. Makko/controller/fun/frame pacing acceptance
+remains owner evidence, not automation. This supersedes earlier preserve-exit
+and presentation-only restrictions for this authorized overhaul.
+
+
 ## October 1, 2026 — repair first, overhaul afterward
 
 The owner requests a separate repair PR before the broader overhaul. Smooth

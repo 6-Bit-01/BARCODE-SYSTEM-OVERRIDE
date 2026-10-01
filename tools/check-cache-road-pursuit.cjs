@@ -159,3 +159,4 @@ for (const difficultyId of ['relaxed', 'standard', 'overclocked']) for (const sp
   assert.equal(pursuit.pose(resumed, { progress: 200 }), null, 'A passed gate cannot recreate its audit car on resume');
 }
 console.log('Cache road pursuit: four staged fixed-address attacks, every-gear warnings, committed Echo, clear corridors and delivery runway passed.');
+require('./check-cache-break-pursuit.cjs');

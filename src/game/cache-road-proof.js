@@ -54,7 +54,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     CAR_HEIGHT*CAR_TIRE_CONTACT/(ROAD_BOTTOM-ROAD_HORIZON));
   const STRIKE_DISTANCE = (1-STRIKE_DEPTH)*520-80;
   const PULSE_WINDOW_SEC = .13;
-  const pulseWindowSec = s => s.encounters?.version === 2 ? .18 : PULSE_WINDOW_SEC;
+  const pulseWindowSec = s => s.encounters?.version >= 2 ? .18 : PULSE_WINDOW_SEC;
   const LANES = ['DRIVE', 'FLOW', 'BREAKAWAY', 'UNDERCURRENT'];
   // Wide, optional listening zones use lane dwell, never rhythm-button timing.
   const RECORD_ZONES = [[12,20,0],[36,44,2],[60,68,1],[84,90,3]];
@@ -664,7 +664,19 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   // The reflection looks back along the same world centerline as the main
   // camera. A real mirror cancels the rear camera's horizontal reversal, so
   // the physical lane order stays left-to-right while motion runs away.
-  function drawRearRoad(ctx, s, x, y, w, h, accent, reduced) {
+  function rigArtPhase(s,boss) {
+    if(boss.defeated)return 'defeated';
+    if(boss.health===1&&boss.counterMs>200)return 'armor-break';
+    const attack=B.CacheRoadPursuit?.pose?.(s.pursuit,{progress:s.progress});
+    if(attack?.boss&&attack.warning) {
+      if(attack.attackKind==='scan')return 'scan';
+      if(attack.attackKind==='ram')return 'ram';
+      if(attack.attackKind==='pulse'&&attack.locked)return 'core-hit';
+    }
+    return boss.phase;
+  }
+
+  function drawRearRoad(ctx, s, x, y, w, h, accent, reduced, heightSample=LANDSCAPE.height) {
     const progress = s.progress, reach = 440, horizon = y + 47, floor = y + h + 4;
     const profile = at => {
       const distance = clamp(progress - at, 0, reach);
@@ -681,7 +693,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     const bankX=(p,side,base,growth=190)=>p.x+side*(p.half+
       (base+growth*p.t)*(.1+.9*p.t)*miniature);
     const bankY=(p,side,radial)=>p.y+p.t*miniature*
-      (LANDSCAPE.height?.(side,p.at,Math.max(220,radial))??24);
+      (heightSample?.(side,p.at,Math.max(220,radial))??24);
     const paintQuad=(key,corners,sourceRect,alpha=1)=>{
       const [a,b,c,d]=corners;
       const half=(vertices,matrix)=>{
@@ -814,7 +826,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     }
     // Branch streets are the graph's actual mouths, opening through the
     // miniature sidewalk only once their addresses are behind the car.
-    for(const street of LANDSCAPE.streets) {
+    for(const street of (LANDSCAPE.streetRange?.(progress-reach,progress)||LANDSCAPE.streets)) {
       if(street.at>=progress || street.at<progress-reach)continue;
       const side=street.side;
       const close=profile(Math.min(progress,street.at+street.halfWidth));
@@ -924,10 +936,16 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       }
       ctx.globalAlpha=1;
     }
+    const boss=B.CacheRoadPursuit?.boss?.(s.pursuit,{progress});
+    if(boss&&boss.at<progress&&boss.at>progress-reach) {
+      const p=profile(boss.at);
+      B.CacheRoadBossArt?.drawRig?.(ctx,{x:laneX(boss.lane,p),y:p.y,width:20+p.t*45,height:24+p.t*57,
+        health:boss.health,phase:rigArtPhase(s,boss),elapsedMs:s.elapsedMs,reduced,alpha:.6+.4*p.t});
+    }
     const reflected=roadHazards(s).map(hazard=>({hazard,actor:actorPose(s,hazard)}));
     if(s.pursuit) {
       const rival=B.CacheRoadPursuit.pose(s.pursuit,{progress});
-      if(rival) {const reaction=actorPose(s,rival);
+      if(rival&&(!rival.boss||rival.attackKind==='ram')) {const reaction=actorPose(s,rival);
         reflected.push({hazard:{...rival,kind:'rival'},actor:{...reaction,alpha:rival.alpha*reaction.alpha}});}
     }
     for(const {hazard,actor} of reflected.filter(item=>item.actor.at<progress&&item.actor.at>progress-reach)
@@ -947,7 +965,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   }
 
   // One piece of glass contains both the passing road and Cache's eyes.
-  function drawRearview(ctx, s, accent, reduced) {
+  function drawRearview(ctx, s, accent, reduced, heightSample=LANDSCAPE.height) {
     const x = 638, y = 12, w = 690, h = 117;
     const expression = mirrorExpression(s);
     const edge = expression === 4 ? '#ff7c89' : expression === 5 ? '#f7b376' :
@@ -960,7 +978,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     glass.addColorStop(0, '#0e1b2d'); glass.addColorStop(.53, '#394a60');
     glass.addColorStop(1, '#10232e');
     ctx.fillStyle = glass; ctx.fillRect(x, y, w, h);
-    drawRearRoad(ctx,s,x,y,w,h,accent,reduced);
+    drawRearRoad(ctx,s,x,y,w,h,accent,reduced,heightSample);
     // Cache sits on the driver's side. His eyes face the windshield
     // for ordinary driving; only the impact cell glances across the mirror.
     ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
@@ -1029,6 +1047,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     if(chapter?.encounterVersion===undefined||!B.CacheRoadEncounters)return true;
     if(!B.CacheRoadEncounters.supportedVersion(chapter.encounterVersion))return false;
     const chart=B.CacheRoadEncounters.restore(proof?.encounters,chapter.difficultyId);
+    if(chapter.encounterVersion===3) {
+      const pursuit=B.CacheRoadPursuit?.restore?.(proof?.pursuit,{barFloat:proof?.musicBar,progress:proof?.progress});
+      if(!pursuit||(proof.gateOpen===true&&!pursuit.defeated))return false;
+    }
     if(!chart||chart.version!==chapter.encounterVersion)return false;
     const section=proof.driveSection;
     if(!section)return !chart.committedBars.includes(proof.musicBar);
@@ -1644,7 +1666,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     // A broad, slow breathing cycle opens/closes the aperture between bursts.
     // The tire-contact pivot keeps the hit plane centered through the zoom.
     const breathe=(.5+.5*Math.sin(t*1.45))*rush;
-    return {zoom:clamp(1+.235*rush+.05*boost+.024*breathe+.032*shift+.012*pass,1,1.335),
+    const danger=s.pursuit?.version===3&&s.rivalWarning?clamp(1-(s.nextRivalAt-s.progress)/300,0,1):0;
+    const victory=clamp((s.bossVictoryMs||0)/3600,0,1);
+    return {zoom:clamp(1+.235*rush+.05*boost+.024*breathe+.032*shift+.012*pass-.14*danger+.035*victory,1,1.335),
       x:-steering*23*rush+Math.sin(t*2.1)*7*rush,
       y:Math.sin(t*2.7)*6*rush,
       roll:-steering*.012*rush+Math.sin(t*1.7)*.0045*rush};
@@ -1770,7 +1794,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // The opening includes four intro bars before the first 24-bar act.
       // Its budget must also cover the nonfatal hits allowed by integrity.
       if(!saved||(refill&&s.musicBar===0))s.timeMs=60000;
-      s.pursuit=B.CacheRoadPursuit?.create({barFloat:s.musicBar});
+      s.pursuit=this.chapter.encounterVersion===3&&saved?.pursuit?
+        B.CacheRoadPursuit.restore(saved.pursuit,{barFloat:s.musicBar,progress:s.progress}):
+        B.CacheRoadPursuit?.create({barFloat:s.musicBar,version:this.chapter.encounterVersion===3?3:1});
+      if(this.chapter.encounterVersion===3) {s.gateAt=null;s.gateOpen=!!s.pursuit?.defeated;}
       for(const pulse of roadPulses(s)) {
         s.pulseTargets[pulse.id]=pulse.target;s.pulsePlaces[pulse.id]=pulse.at;
         if(pulse.target<=s.musicBar*4)s.caughtPulses[pulse.id]=true;
@@ -1788,7 +1815,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         pulses:roadPulses(s).filter(p=>s.pulseTargets[p.id]!==undefined&&!s.caughtPulses[p.id]&&
           s.pulseTargets[p.id]>=s.musicBeatFloat-.3).map(p=>({...p,
           at:s.pulsePlaces[p.id],distance:s.pulsePlaces[p.id]-s.progress,target:s.pulseTargets[p.id]})),
-        pursuit:s.pursuit?B.CacheRoadPursuit.pose(s.pursuit,{progress:s.progress}):null};
+        pursuit:s.pursuit?B.CacheRoadPursuit.pose(s.pursuit,{progress:s.progress}):null,
+        boss:s.pursuit?.version===3?B.CacheRoadPursuit.boss(s.pursuit,{progress:s.progress}):null};
     },
     exiting: false, audioDegraded: false, oldHint: null, introMs: null,
     finishIntro() {
@@ -1821,10 +1849,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const s = this.state, at = s.progress;
       if(s.encounters) {
         const bar=s.musicBeatFloat/4;
+        if(s.encounters.version===3) {
+          if(s.pursuit?.defeated)return ['PURSUIT BROKEN','Keep driving. The delivery runway is open.'];
+          if(bar>=72)return ['BREAK THE PURSUIT','Dodge the locked attack to overload its system. Push, Brace, Turbo and Echo counter too.'];
+          if(bar>=14&&bar<18)return ['SCOUT ON YOUR TAIL','Wait for its lane lock, then change lanes. Echo draws its scanner away.'];
+        }
         if(bar<4)return ['MINT PADS / BEAT ONE','Enter the marked lane. Press when the pad reaches the rear tires.'];
         if(bar>=28&&bar<30)return ['FREIGHT LINE','Draft the trucks. PUSH clears contact; BRACE absorbs a hit.'];
         if(bar>=56&&bar<59)return ['SCAN INCOMING / ECHO READY','Send Echo, then change lanes after the rival locks.'];
-        if(bar>=90&&bar<92)return ['SET UP THE SPLIT','Hold a left lane steady. At the exit, send Echo and steer far right.'];
+        if(s.encounters.version!==3&&bar>=90&&bar<92)return ['SET UP THE SPLIT','Hold a left lane steady. At the exit, send Echo and steer far right.'];
         if(bar>=76&&bar<78)return ['FINAL PURSUIT','Wait for the lock. Change lanes or send your Echo.'];
         return null;
       }
@@ -1884,7 +1917,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
             saved.checkpointId === 'road-clear' ? p.musicBar >= 99 :
               ['road-gate', 'road-verse-2', 'road-verse-3', 'road-verse-4'].includes(saved.checkpointId))) &&
         Number.isInteger(p.lane) && p.lane >= 0 && p.lane < 4 &&
-        Number.isInteger(p.integrity) && p.integrity >= 1 && p.integrity <= ([1,2].includes(s.chapter?.encounterVersion)&&s.chapter?.difficultyId==='relaxed'?4:3) &&
+        Number.isInteger(p.integrity) && p.integrity >= 1 && p.integrity <= ([1,2,3].includes(s.chapter?.encounterVersion)&&s.chapter?.difficultyId==='relaxed'?4:3) &&
         (s.proofVersion === 1 ||
           Number.isFinite(p.lanePos) && p.lanePos >= 0 && p.lanePos <= 3 &&
           Number.isFinite(p.speed) && p.speed >= 10 && p.speed <= 78 &&
@@ -1990,6 +2023,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           lockEnergy: Math.round(s.lockEnergy), echoEnergy: Math.round(s.echoEnergy),
           boost: s.boost, score: s.score, peakStack: s.peakStack,
           cleanBars: s.cleanBars, integrity: Math.max(1, s.integrity),
+          ...(s.pursuit?.version===3 ? {pursuit:B.CacheRoadPursuit.snapshot(s.pursuit)} : {}),
           ...(s.encounters ? {encounters:B.CacheRoadEncounters.snapshot(s.encounters),
             ...(s.driveSections.find(part=>part.beat===s.musicBar*4)?{driveSection:
               clone(s.driveSections.find(part=>part.beat===s.musicBar*4))}:{})} : {}) },
@@ -2167,7 +2201,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ({ lane, startBeat, endBeat })),
         // The aligned crew-vocal source is still needed before this can sound.
         bonusVocal: this.state.fullAdrenaline,
-        reactivityVersion: this.chapter?.encounterVersion === 2 ? 2 : 1,
+        reactivityVersion: this.chapter?.encounterVersion >= 2 ? 2 : 1,
         hitRecovery: this.state.hitRecovery };
     },
     startOffsetSec() { return (this.state?.musicBar || 0) * 1.875; },
@@ -2195,7 +2229,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     updateCaptures(music) {
       if (!music?.running || music.profileId !== PROFILE || !music.grid) return;
       const s = this.state, { beatIndex, barIndex } = music.grid;
-      const reactive = this.chapter?.encounterVersion === 2;
+      const reactive = this.chapter?.encounterVersion >= 2;
       const before = reactive ? new Set(s.mixActiveLanes || s.captures.map(c => c.lane)) : null;
       s.musicBeatFloat = music.grid.beatFloat;
       // Score a finished bar before retiring a part at its last beat.
@@ -2413,7 +2447,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const rawNow=Number.isFinite(pressTimeSec)?pressTimeSec:audio?.context?.currentTime;
       const now=Number.isFinite(audiblePressTimeSec)?audiblePressTimeSec:
         audio?.getOutputAudioTime?.(rawNow)??rawNow;
-      const judgment = B.MusicTransport?.judgeInput?.(this.chapter?.encounterVersion===2?'road-pulse-v2':'road-pulse', now,
+      const judgment = B.MusicTransport?.judgeInput?.(this.chapter?.encounterVersion>=2?'road-pulse-v2':'road-pulse', now,
         B.Preferences?.values?.inputOffsetMs || 0);
       if (this.chapter && !this.chapter.delivery && judgment?.available) this.chapter.attempts++;
       if(!judgment?.available)return false;
@@ -2468,7 +2502,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       }
       const long = s.pulseCombo >= 2;
       const startBeat = judgment.beatIndex;
-      const reactive = this.chapter?.encounterVersion === 2;
+      const reactive = this.chapter?.encounterVersion >= 2;
       const captureRules = reactive ? B.MusicProfiles.get(PROFILE).laneMix.reactive : null;
       const holdBars = reactive ? (long ? captureRules.comboBars : captureRules.captureBars) :
         (long ? 16 : 8);
@@ -2588,7 +2622,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       s.draftTarget=null;s.draftMs=0;s.passFlashMs=0;
       s.stumbleMs = 650; s.cutStreak = 0; s.cutFlashMs = 0; s.nearMisses = 0;
       s.message = ''; s.messageMs = 0;
-      if(this.chapter?.encounterVersion!==2)window.audioSystem?.playRoadStumble?.({sound:false});
+      if(!(this.chapter?.encounterVersion>=2))window.audioSystem?.playRoadStumble?.({sound:false});
       this.cue('damage',{material:kind,
         intensity:clamp(.55+s.speed/160+(['freight','sweeper','roadblock'].includes(kind)?.12:0),0,1)});
       if (s.integrity <= 0) {
@@ -2686,6 +2720,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       s.musicBar = Math.max(previousBar, bar);
       if (this.chapter && !this.chapter.delivery) this.chapter.elapsedMs += dt;
       s.recordFlashMs = Math.max(0, s.recordFlashMs - dt);
+      s.bossVictoryMs = Math.max(0,(s.bossVictoryMs||0)-dt);
       s.elapsedMs += dt; s.timeMs = Math.max(0, s.timeMs - dt);
       s.ramMs = Math.max(0, s.ramMs - dt);
       s.pulseFlashMs = Math.max(0, s.pulseFlashMs - dt);
@@ -2790,6 +2825,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const events=B.CacheRoadPursuit.step(s.pursuit,{before,progress:s.progress,
           barFloat:s.musicBeatFloat/4,dt,lane:s.lanePos,echo:s.echo,gateAt:s.gateOpen?null:s.gateAt,
           echoActive:!!s.echo&&s.rivalDistractedMs>0,difficultyId:this.chapter.difficultyId,
+          ramMs:s.ramMs,shield:s.shield,boostMs:s.boostMs,surgeMs:s.surgeMs,speed:s.speed,
           protectedPulses:roadPulses(s).filter(p=>p.target>=s.musicBeatFloat-.3),
           actors:roadHazards(s).map(h=>({...h,...actorPose(s,h),cleared:!actorPose(s,h).collidable}))});
         const rival=B.CacheRoadPursuit.pose(s.pursuit,{progress:s.progress});
@@ -2798,11 +2834,25 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         s.rivalEchoCommitted=!!rival?.echoCommitted;
         if(rival)s.nextRivalAt=rival.at;
         for(const event of events) {
-          if(event.type==='warning')this.cue('warning');
+          if(event.type==='warning'||event.type==='boss-warning')this.cue('warning');
+          else if(event.type==='boss-counter') {
+            if(event.consumePush)s.ramMs=0;if(event.consumeShield)s.shield=0;
+            s.bossImpact={at:event.at,lane:event.lane,kind:event.kind,systemIndex:event.systemIndex,atMs:s.elapsedMs};
+            s.passAward=event.kind==='dodge'?250:400;s.score+=s.passAward;
+            s.passFlashMs=780;s.passSide=Math.sign((event.lane??1.5)-s.lanePos)||1;
+            s.message=`${event.kind.toUpperCase()} // SYSTEM BROKEN`;s.messageMs=1200;
+            this.cue(event.kind==='brace'?'roadBrace':'roadPush',{intensity:1});
+          }
+          else if(event.type==='boss-defeated') {
+            s.gateOpen=true;s.gateAt=null;s.bossVictoryMs=3600;
+            s.timeMs=Math.max(s.timeMs,21000);
+            s.message='PURSUIT BROKEN // DELIVER';s.messageMs=3500;
+            this.cue('roadFull');this.checkpoint('road-gate');
+          }
           else if(event.type==='refill')s.echoEnergy=100;
           else if(event.type==='echo-lock') {s.message='ECHO LOCKED / CHANGE LANES';s.messageMs=1100;this.cue('data');}
           else if(event.type==='deception') {s.echoDeceptions++;s.score+=200;s.message='RIVAL TOOK THE REPLAY';s.messageMs=1200;}
-          else if(event.type==='hit') {this.hit('clean copy',rival);if(this.status==='failed')return;}
+          else if(event.type==='hit') {this.hit(event.kind||'clean copy',rival);if(this.status==='failed')return;}
         }
       }
       if (!s.encounters && s.musicBar >= 76 && s.musicBar < 100) {
@@ -2856,13 +2906,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         }
       }
       this.updateRecords(dt);
-      if (previousBar < 92 && s.musicBar >= 92 && s.gateAt == null) {
+      if (s.encounters?.version!==3 && previousBar < 92 && s.musicBar >= 92 && s.gateAt == null) {
         // Five seconds at the lowest gear, leaving a full Echo overlap and
         // ample music before the ending. No gear has an impossible exit.
         s.gateAt = s.progress + 150;
         s.echoEnergy = 100;
       }
-      if (!s.gateOpen && s.gateAt != null && before < s.gateAt && s.progress >= s.gateAt) {
+      if (s.encounters?.version!==3 && !s.gateOpen && s.gateAt != null && before < s.gateAt && s.progress >= s.gateAt) {
         if (s.lanePos < 2.45 || !s.echo || s.rivalDistractedMs <= 0 ||
             Math.abs(s.echo.lanePos - s.lanePos) < 0.75) {
           s.gateFailure = s.lanePos < 2.45 ? 'wrong-lane' :
@@ -2889,7 +2939,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         } else { this.checkpoint('road-clear'); this.armResultControls(); }
       }
       if (s.musicBar >= 100 && this.status === 'playing') {
-        this.status = s.status = 'failed'; s.message = 'ORIGINAL TAPE ENDED';
+        this.status = s.status = 'failed'; s.message = s.encounters?.version===3?'PURSUIT HELD THE ORIGINAL':'ORIGINAL TAPE ENDED';
         this.checkpointChapter();
       }
       if (this.status !== 'playing') window.audioSystem?.stopRuntimeAudio?.({ stopMusic: true });
@@ -2903,6 +2953,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     draw(ctx) {
       if (!ctx || !this.active) return;
       const s = this.state, progress = s.progress;
+      const heightSample=LANDSCAPE.createFrameHeightSampler?.()||LANDSCAPE.height;
       const section = s.musicBar < 4 ? 0 : Math.min(3, Math.floor((s.musicBar - 4) / 24));
       const names = ['RAINLINE', 'SERVICE LOOP', 'MIRROR VIADUCT', 'DISTRIBUTION CAUSEWAY'];
       const skyBottoms = ['#9b4f74', '#dc805b', '#d87891', '#86a89d'];
@@ -2963,7 +3014,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const terrainAt = (side,t,x) => {
         const at=bankAddress(t);
         const radial=(side*(x-center(t))-half(t))/(.1+.9*t)-190*t;
-        return roadY(t)+t*(LANDSCAPE.height?.(side,at,
+        return roadY(t)+t*(heightSample?.(side,at,
           Math.max(220,radial))??24);
       };
       const areaFoot=(side,t,x,groundFoot)=>groundFoot;
@@ -3408,13 +3459,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
             side));
         }
       };
-      const visibleStreetParts=(LANDSCAPE.streetParts||[]).filter(part=>{
+      const visibleStreetParts=(LANDSCAPE.streetPartRange?.(bankAddress(1.2),bankAddress(.09))||LANDSCAPE.streetParts||[]).filter(part=>{
         const t=sideDepth(part.at-progress);
         return t>.09&&t<1.2;
       });
-      const visibleCourts=(LANDSCAPE.streets||[]).map(street=>({
-        side:street.side,at:street.nodes[2].at,family:street.family
-      })).filter(court=>{
+      const visibleCourts=(LANDSCAPE.courtRange?.(bankAddress(1.17),bankAddress(.10))||
+        (LANDSCAPE.streets||[]).map(street=>({side:street.side,at:street.nodes[2].at,family:street.family}))).filter(court=>{
         const t=sideDepth(court.at-progress);
         return t>.10&&t<1.17;
       });
@@ -3528,7 +3578,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       }
       // Cut a street throat through the sidewalk only at graph sockets.
       // Its corners, paving and rail opening all share the same address.
-      for(const street of LANDSCAPE.streets) {
+      for(const street of (LANDSCAPE.streetRange?.(bankAddress(1.13),bankAddress(.16))||LANDSCAPE.streets)) {
         const t=sideDepth(street.at-progress);
         if(t<.16||t>1.13)continue;
         const nearAt=street.at-street.halfWidth;
@@ -3641,7 +3691,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           // A 38-unit mouth may fall inside a 62-unit parapet tile. Remove
           // only the graph's street width, keeping the illustrated wall
           // intact right up to both sidewalk corners.
-          const mouths=LANDSCAPE.streets.filter(street=>street.side===side &&
+          const mouths=LANDSCAPE.streetMouthRange?.(at,at+62,side)||LANDSCAPE.streets.filter(street=>street.side===side &&
             at<street.at+street.halfWidth &&
             at+62>street.at-street.halfWidth);
           const fx=roadsideX(side,far,46,58);
@@ -3676,7 +3726,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           }
         }
       }
-      for(const street of LANDSCAPE.streets) {
+      for(const street of (LANDSCAPE.streetRange?.(bankAddress(1.18),bankAddress(.15))||LANDSCAPE.streets)) {
         if(sideDepth(street.at-progress)<.15||
           sideDepth(street.at-progress)>1.18)continue;
         for(const edgeAt of [street.at-street.halfWidth,
@@ -4203,6 +4253,17 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           ctx.strokeRect(markX - 44, markY - 83, 88, 78);
         }
       }
+      const boss=B.CacheRoadPursuit?.boss?.(s.pursuit,{progress});
+      if(boss&&boss.at-progress>=frontNear&&boss.at-progress<=520) {
+        const t=depth(boss.at-progress),x=laneX(boss.lane,t),y=roadY(t),width=46+t*192,height=55+t*215;
+        vehicleAtDepth(t,()=>B.CacheRoadBossArt?.drawRig?.(ctx,{x,y,width,height,health:boss.health,
+          phase:rigArtPhase(s,boss),elapsedMs:s.elapsedMs,reduced,alpha:boss.alpha??1}));
+        if(s.bossImpact&&s.elapsedMs-s.bossImpact.atMs<1100) {
+          const age=(s.elapsedMs-s.bossImpact.atMs)/1100;
+          B.CacheRoadBossArt?.drawImpact?.(ctx,{x,y:y-height*.4,width:width*(1+age*.5),height:height,
+            kind:s.bossImpact.systemIndex===2?'core':s.bossImpact.systemIndex===1?'armor':'sparks',progress:age,alpha:1,reduced});
+        }
+      }
       if(s.pursuit) {
         const rival=B.CacheRoadPursuit.pose(s.pursuit,{progress});
         const reaction=rival&&actorPose(s,rival);
@@ -4213,7 +4274,17 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
             const marker=cameraEdgeMarker(camera,{x,y,width:(26+t*113)*1.35,height:(24+t*111)*1.25});
             if(marker)cameraWarnings.push({lane:reaction.lane,d,marker});
           }
-          vehicleAtDepth(t,()=>drawVehicle(ctx,x,y,26+t*113,24+t*111,'rival',{
+          if(rival.boss) {
+            // The rig is one body; its scanner/ram/pulse has a separately
+            // committed road footprint rather than another duplicate rig.
+            const l=laneEdge(Math.round(rival.lockLane),t),r=laneEdge(Math.round(rival.lockLane)+1,t);
+            const far=depth(d+45),fl=laneEdge(Math.round(rival.lockLane),far),fr=laneEdge(Math.round(rival.lockLane)+1,far);
+            ctx.save();ctx.globalAlpha=rival.locked?.46:.23;
+            polygon(ctx,[[l,y],[r,y],[fr,roadY(far)],[fl,roadY(far)]],rival.echoCommitted?'#a3f0e8':'#ff719b');
+            ctx.strokeStyle=rival.echoCommitted?'#c5fff0':'#ffc2a5';ctx.lineWidth=2+3*t;ctx.stroke();ctx.restore();
+            if(rival.attackKind==='ram')vehicleAtDepth(t,()=>drawVehicle(ctx,x,y,26+t*113,24+t*111,'rival',{
+              alpha:rival.alpha*reaction.alpha,phase:s.elapsedMs*.054+97,steer:reaction.steer,reduced}));
+          } else vehicleAtDepth(t,()=>drawVehicle(ctx,x,y,26+t*113,24+t*111,'rival',{
             alpha:rival.alpha*reaction.alpha,phase:s.elapsedMs*.054+97,steer:reaction.steer,reduced}));
           if(rival.warning&&reaction.collidable) {
             const target=laneX(rival.lockLane,t),w=35+65*t;
@@ -4286,6 +4357,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           ctx.lineTo(carX+112+spread,carY-46-spread);
         }ctx.stroke();ctx.restore();
       }
+      if(s.boostMs>0&&!reduced) {
+        // Physical exhaust ports move with the car, beneath its painted body.
+        // This is elapsed-state paint in the existing draw, not a particle loop.
+        const u=(s.elapsedMs%480)/480;
+        for(const side of [-1,1])B.CacheRoadBossArt?.drawImpact?.(ctx,{
+          x:carX+side*carWidth*.22,y:carY+19,width:carWidth*.39,height:carHeight*.55,
+          kind:'exhaust',progress:u,alpha:.65,reduced});
+      }
       drawVehicle(ctx, carX, carY, carWidth, carHeight, 'cache',
         { alpha: !s.stumbleMs && s.invulnerableMs && Math.floor(s.invulnerableMs / 90) % 2 ? .55 : 1,
           turbo: !!s.boostMs, phase: (s.elapsedMs||0)*.054, steer: s.steer, hit: s.stumbleMs,
@@ -4347,7 +4426,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.fillStyle='#071e29dc';ctx.fillRect(x-68,y-27,136,56);
         ctx.fillStyle='#beffe6';ctx.font='bold 23px Oxanium, monospace';
         ctx.fillText(`+${s.passAward}`,x,y);
-        ctx.font='bold 12px Oxanium, monospace';ctx.fillText(s.cutFlashMs?'CLOSE CUT':'NEAR MISS',x,y+20);
+        ctx.font='bold 12px Oxanium, monospace';ctx.fillText(s.bossImpact&&s.elapsedMs-s.bossImpact.atMs<780?'BOSS COUNTER':s.cutFlashMs?'CLOSE CUT':'NEAR MISS',x,y+20);
         ctx.restore();
       }
       ctx.restore(); // world camera
@@ -4405,7 +4484,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       ctx.fillStyle='#bcebd3';ctx.font='bold 17px Oxanium, monospace';
       ctx.fillText(String(s.score).padStart(6,'0'),410,131,73);
       ctx.font='bold 12px Oxanium, monospace';ctx.fillText(`×${stackSize(s)}`,488,131,27);
-      drawRearview(ctx, s, ['#f6adbb', '#f3b276', '#d2a4f9', '#9aefce'][section], reduced);
+      drawRearview(ctx, s, ['#f6adbb', '#f3b276', '#d2a4f9', '#9aefce'][section], reduced,heightSample);
       ctx.fillStyle = '#e4ede5'; ctx.font = 'bold 18px Oxanium, monospace'; ctx.textAlign = 'left';
       // Preview the next lane/action before its bar is committed, without
       // inventing a deadline or sliding a future pad when the gear changes.

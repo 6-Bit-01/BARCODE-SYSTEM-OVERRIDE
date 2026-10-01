@@ -311,8 +311,14 @@ async function main() {
   const reviewWorld=require('./cache-road-browser-world.cjs');
   const world=await evaluate(`(${reviewWorld.toString()})()`);
   assert(world.loadedAssets>200&&world.frames.length===192&&world.contextCalls<=4);
-  assert(Object.keys(world.animations).length===49 && world.animationRoutes.animatedKeys===49);
-  assert.equal(world.hosted.filter(entry=>entry.frames>1).length,49);
+  assert(Object.keys(world.animations).length===51 && world.animationRoutes.animatedKeys===51);
+  assert.equal(world.hosted.filter(entry=>entry.frames>1).length,51);
+  assert.deepEqual(world.animationRoutes.main.cachePursuitRig,[0,1,2,3,4,5,6,7],
+    'all eight rig damage/action poses render through the production front camera');
+  assert.deepEqual(world.animationRoutes.mirror.cachePursuitRig,[0,1,2,3,4,5,6,7],
+    'all eight rig damage/action poses render through the same rearview owner');
+  assert.deepEqual(world.animationRoutes.main.cachePursuitImpact,[0,1,4,5],
+    'all four live pursuit effects render; retained debris and skid source cells stay inactive');
   const dashboard=world.hosted.filter(entry=>entry.frames===1);
   assert.deepEqual(dashboard.map(entry=>entry.key).sort(),
     ['cacheDashBezel','cacheDashDigits','cacheDashIcons']);
@@ -329,7 +335,7 @@ async function main() {
     fs.writeFileSync(path.join(worldOutput,'World-Checks.json'),JSON.stringify(world,null,2));
   }
   assert.deepEqual(exceptions, []);
-  console.log(`Cache Road Chromium passed: ${frames.drawn} guarded frames; ${world.frames.length} world frames; ${world.drive.frames} driving frames in all gears; ${world.drive.arrivals} beat-1 arrivals; ${world.hosted.length} byte-identical published assets (48 animations, 3 static dashboard assets); five MP3s; ${chip.scheduled.length} exact chip cues and engine lifecycle.`);
+  console.log(`Cache Road Chromium passed: ${frames.drawn} guarded frames; ${world.frames.length} world frames; ${world.drive.frames} driving frames in all gears; ${world.drive.arrivals} beat-1 arrivals; ${world.hosted.length} byte-identical published assets (${world.animationRoutes.animatedKeys} animations, 3 static dashboard assets); five MP3s; ${chip.scheduled.length} exact chip cues and engine lifecycle.`);
 }
 main().catch(error => { console.error(error.stack || error); process.exitCode = 1; }).finally(async () => {
   socket?.close();

@@ -1,5 +1,20 @@
 # Decision Register
 
+## October 1 — creative overhaul authorized after the repair
+
+After the focused repair, the owner approves the proposed broader overhaul:
+“Make it happen” and “No walls. Make it better.” Merged #167 remains the
+checkpoint. This authorizes fresh-run gameplay and art changes in one PR,
+superseding earlier presentation-only/preserve-exit restrictions. New rules
+use escalating pursuit, three rig systems, repeat counter openings and a
+boss-defeat delivery condition. Ordinary steering can finish without a
+compulsory resource; earned abilities provide alternatives. The original
+recording, shared cutscene format, established campaign handoff and old saved
+rules remain. “Enforcement rig” is descriptive, not newly approved named
+villain canon. Makko acceptance and final exact revision are separate from
+this design authorization. See `CACHE_PURSUIT_OVERHAUL.md`.
+
+
 ## October 1 — split repair and overhaul
 
 The owner changes the earlier one-PR overhaul request to two PRs: repair the

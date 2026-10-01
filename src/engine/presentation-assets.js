@@ -38,7 +38,14 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   const cacheEncounterRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/8b9343cd365d2efc9c6f04c4d65295fd293eec9b/';
   // New art is bundled during local review; publication pins the exact art commit.
   const speedEffectsRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/f9c2fad2472f3bebdb9554f13893293d74b8bece/';
+  // Publication replaces this review token with the exact immutable art commit.
+  const PURSUIT_ART_REV = 'c9ec41555ff7c473fb4119eb68a1438cebe4bd37';
+  const cachePursuitRoot = `https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/${PURSUIT_ART_REV}/`;
   const entries = {
+    cachePursuitRig: { path: 'assets/cache-road/pursuit/pursuit-rig-atlas.webp', root: cachePursuitRoot,
+      columns: 4, rows: 2, frames: 8, ax: .5, ay: 473 / 512, smooth: true },
+    cachePursuitImpact: { path: 'assets/cache-road/pursuit/pursuit-impact-atlas.webp', root: cachePursuitRoot,
+      columns: 3, rows: 2, frames: 6, liveFrames: [0, 1, 4, 5], ax: .5, ay: .5, smooth: true },
     cacheWindWhoosh: {path:'assets/cache-road/effects/wind-streak-atlas-v2.png',root:speedEffectsRoot,columns:3,rows:2,frames:6,liveFrames:[0,1,2,3,5],ax:.5,ay:.5,smooth:true},
     cachePushArc: { path: 'assets/cache-road/encounters/push-arc.webp', root: cacheEncounterRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: .78, smooth: true },
     cacheBraceHalo: { path: 'assets/cache-road/encounters/brace-halo.webp', root: cacheEncounterRoot, columns: 1, rows: 1, frames: 1, ax: .5, ay: .75, smooth: true },

@@ -7,12 +7,15 @@ const { load } = require('./check-level-01-boss');
 const copy = value => JSON.parse(JSON.stringify(value));
 const flush = async () => { for (let i = 0; i < 24; i++) await Promise.resolve(); };
 
-function completionRig(storage) {
+function completionRig(storage,{encounterVersion=2}={}) {
   const r = bridgeRig(storage);
   // bridgeRig loads the shared visual owners before either reading surface.
   assert(r.B.CacheSceneLayouts && r.B.CacheSceneEffects && r.B.ComicDialogue);
   for (const file of ['src/game/cache-chapter.js', 'src/engine/cache-ending.js',
     'src/game/lore-records.js', 'src/game/pause-menu.js']) load(r.context, file);
+  // This retained gate exercises pre-overhaul version-2 saves and ending ownership.
+  const create=r.B.CacheChapter.create.bind(r.B.CacheChapter);
+  r.B.CacheChapter.create=options=>({...create(options),encounterVersion});
   r.B.PauseMenu.snapshot = {}; r.B.PauseMenu.snapshotContext = { drawImage() {} };
   return { ...r, ending: r.B.CacheEnding, chapter: r.B.CacheChapter };
 }

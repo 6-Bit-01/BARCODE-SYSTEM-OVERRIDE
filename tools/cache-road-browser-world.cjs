@@ -7,7 +7,10 @@ module.exports=async function reviewRoadWorld() {
     'url(/assets/studies/visual-overhaul/references/fonts/Oxanium.ttf)').load();
   document.fonts.add(font);
   B.Campaign={register(){},syncTitleButton(){}};
-  (0,eval)(await load('src/game/cache-road-landscape.js'));
+  for(const file of ['src/game/cache-road-landscape.js','src/game/cache-road-guidance.js',
+    'src/game/cache-road-encounters.js','src/game/cache-road-reactions.js',
+    'src/game/cache-road-pursuit.js','src/game/cache-road-boss-art.js'])
+    (0,eval)(await load(file));
   (0,eval)((await load('src/game/cache-road-proof.js')).replace(
     '  B.Campaign.register(ID,','  window.roadReviewState=newState;window.roadReviewEntities={HAZARDS,STREET_ITEMS,AMBIENT_PLATES:[...AMBIENT_PLATES]};window.roadReviewCues={PULSES,pulseVisual,shiftOffset};\n  B.Campaign.register(ID,'));
   (0,eval)((await load('src/engine/presentation-assets.js'))

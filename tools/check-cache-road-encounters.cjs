@@ -108,6 +108,26 @@ for (const result of legacy) {
   const hash = require('node:crypto').createHash('sha256').update(JSON.stringify(C.snapshot(result.chart))).digest('hex');
   assert.equal(hash, legacyHashes[`${result.difficulty}/${result.gear}`], 'version1 layout remains byte-identical to the pre-change chart');
 }
+// Exact v2 charts independently exported from merged PR #167 revision
+// f385c919bedbf228f8ee5bf1d708ecb57d151178, including the two save/restore
+// boundaries above. Self-contained constants keep shallow CI checkouts valid;
+// the test never requires Git history. Fresh v3 cannot retune ongoing races.
+const versionTwoHashes={
+  'relaxed/1':'666afd1d34d8fc6fa20da2555452fe157d3fe77a48ca9a769389365760832b4c',
+  'relaxed/2':'02937e2f253be4c6dc20bf39bd7b37999fffcb5daf0909025842cced6a00a130',
+  'relaxed/3':'261e73375493c289e453b0e16ea5451f7e879c78935b15121267b3341aa5ed42',
+  'standard/1':'8204177475617cf9016390b05a329b24e161c77ee9fd650946e9cc6b18c72a7a',
+  'standard/2':'788035886452ca1bf0e40fea4be3590d2f28835253c0ca6c899d9fa9c5d8cc97',
+  'standard/3':'493a2fe343b14a404a67e77b28353251b542136b1f335a62745858dca51d5d79',
+  'overclocked/1':'99318858b127be8fd99c4019dce04458a6929865bb9cbfb00a3bc42e320eff1a',
+  'overclocked/2':'5aa501ca7f7940fe2474e46dcd8ce019429709ff2fda11f88bade3006d48f4db',
+  'overclocked/3':'0f336579a4bc032a1b93ae2f2f26c2665ed9d67d2bbc25540cb0c119b0fab6cc'
+};
+for(const result of results) {
+  const hash=require('node:crypto').createHash('sha256').update(JSON.stringify(C.snapshot(result.chart))).digest('hex');
+  assert.equal(hash,versionTwoHashes[`${result.difficulty}/${result.gear}`],
+    'version2 layout stays byte-identical to the merged PR167 chart');
+}
 for (const result of results) {
   const { chart } = result;
   for(const lane of [0,1,2,3]) {
@@ -139,11 +159,11 @@ assert.equal(C.difficulty('invalid').id, 'standard');
 assert.equal(C.difficulty('toString').id, 'standard', 'prototype keys cannot masquerade as difficulty IDs');
 // Legacy/future proof metadata never silently opts into a chart. Invalid
 // saved data is rejected, rather than moving previously promised contacts.
-for (const invalid of [undefined, null, {}, { version: 3 }, { version: 4, progress: 1700 }])
+for (const invalid of [undefined, null, {}, { version: 4 }, { version: 4, progress: 1700 }])
   assert.equal(C.restore(invalid), null);
 const valid = C.snapshot(results[0].chart);
 for (const mutate of [
-  raw => { raw.version = 3; },
+  raw => { raw.version = 4; },
   raw => { raw.rows[0].actors[0].lane = 8; },
   raw => { raw.rows[0].actors[0].at++; },
   raw => { raw.pulses[0].target++; },
@@ -156,7 +176,7 @@ for (const mutate of [
   const bad = plain(valid); mutate(bad); assert.equal(C.restore(bad), null);
 }
 assert.equal(C.restore(valid, 'overclocked'), null, 'difficulty cannot change beneath a saved chart');
-const late = C.create('standard');
+const late = C.create('standard', 2);
 C.commit(late, { beat: 16, beatSec, from: 400, v0: 52, speed: 52 }, STRIKE, { allowPulse: false });
 assert.equal(C.hazards(late).length, 1, 'a late update still materializes its deterministic traffic');
 assert.equal(C.pulses(late).length, 0, 'a late update does not invent a shortened rhythm announcement');
@@ -165,24 +185,24 @@ assert.equal(C.commit(late, { beat: 16, beatSec, from: 400, v0: 52, speed: 52 },
 // complete turn can intentionally leave a quiet beat rather than a scramble.
 const reservationSection = { beat: 16, beatSec, from: 400, v0: 52, speed: 52 };
 const reservationAt = endpoint(reservationSection) + STRIKE;
-const reserved = C.commit(C.create(), reservationSection, STRIKE, {
+const reserved = C.commit(C.create('standard', 2), reservationSection, STRIKE, {
   protectedActors: [{ at: reservationAt, lane: 2, targetLane: 2, locked: true, crossed: false }]
 }).pulse;
 assert(reserved && reserved.lane !== 2, 'a committed rival lane takes precedence over an unannounced pad');
-assert.equal(C.commit(C.create(), reservationSection, STRIKE, {
+assert.equal(C.commit(C.create('standard', 2), reservationSection, STRIKE, {
   protectedActors: [{ at: reservationAt, lane: 0, targetLane: 2, locked: true, crossed: false }]
 }).pulse, null, 'a full nearby turn gets a quiet musical beat');
-assert.equal(C.commit(C.create(), reservationSection, STRIKE, {
+assert.equal(C.commit(C.create('standard', 2), reservationSection, STRIKE, {
   protectedActors: [{ at: reservationAt, lane: 2, targetLane: 2, locked: true, crossed: true }]
 }).pulse.lane, 2, 'passed rivals no longer reserve lanes');
-assert.equal(C.commit(C.create(), reservationSection, STRIKE, {
+assert.equal(C.commit(C.create('standard', 2), reservationSection, STRIKE, {
   reservedPursuit: { at: reservationAt, lane: 2 }
 }).pulse.lane, reserved.lane, 'the pose shortcut uses the same reserved corridor');
 // Protect the REAL pursuit schedule before its opponent is visible. Even
 // a later gear change can only move through the bounded 30..75 speed range;
 // the reserved row still carries one civilian rather than an empty highway.
 for (const wave of w.BARCODE.CacheRoadPursuit.waves) for (const speed of [30,52,70,75]) {
-  const chart=C.create('overclocked'), section={beat:(wave.bar-4)*4,beatSec,from:1000,v0:speed,speed};
+  const chart=C.create('overclocked', 2), section={beat:(wave.bar-4)*4,beatSec,from:1000,v0:speed,speed};
   const row=C.ensure(chart,section);
   assert(row&&row.actors.length===1&&row.actors[0].lane===0,
     `${wave.id}: prospective pursuit contact keeps three open lanes across future gears`);
@@ -191,18 +211,18 @@ for (const wave of w.BARCODE.CacheRoadPursuit.waves) for (const speed of [30,52,
 // rival's escape; the existing world contacts never get edited to make room.
 const liveReservationSection = { beat: 16, beatSec, from: 400, v0: 52, speed: 52 };
 const committedAt = liveReservationSection.from + C.revealDistance;
-const liveReserved = C.create('overclocked');
+const liveReserved = C.create('overclocked', 2);
 const clearRow = C.ensure(liveReserved, liveReservationSection, null, {
   protectedActors: [{ at: committedAt, lane: 0, targetLane: 0, locked: true, crossed: false }]
 });
 assert.equal(clearRow, null, 'a pair in the rival lane and its only adjacent escape is omitted before reveal');
 assert.equal(liveReserved.rows.length, 0, 'an unsafe new row never materializes');
-const knownPaint = C.create('overclocked');
+const knownPaint = C.create('overclocked', 2);
 knownPaint.pulses.push({ at: committedAt, lane: 0 });
 const paintedRow = C.ensure(knownPaint, liveReservationSection);
 assert(paintedRow && paintedRow.actors.every(actor => !C.occupiedLanes(actor).includes(0)),
   'published musical lane owns its contact before later traffic');
 assert.equal(C.supportedVersion(1), true);assert.equal(C.supportedVersion(2), true);
-assert.equal(C.supportedVersion(3), false);
+assert.equal(C.supportedVersion(3), true);assert.equal(C.supportedVersion(4), false);
 assert.equal(C.restore(C.snapshot(legacy[0].chart)).version, 1, 'legacy saves never silently adopt new density');
 console.log('Cache encounter chart passed:', results.map(({ chart, ...result }) => result));
