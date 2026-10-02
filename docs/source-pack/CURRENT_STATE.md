@@ -2,6 +2,14 @@
 
 ## October 1 — Combat polish candidate
 
+PR #170 recovery additionally prevents Turbo projectile absorption from
+damaging a distant shooter or spending its physical ram contact. Subsequent
+chassis contact remains eligible. The focused projectile/contact regression
+and refreshed integration receipt cover this correction. Historical previews
+keep their original source hashes. The legacy pursuit browser gate preserves
+every simulation update and samples native rendering, with visible progress
+and bounded browser lifecycle waits; both final-head CI events remain required.
+
 One locked player projectile, no projectile splash, physical swept Turbo rams,
 smoothed lateral paint, twelve authored FX cells and stronger synchronization
 power/recharge/points are implemented. Main-draw combat poses are reused and

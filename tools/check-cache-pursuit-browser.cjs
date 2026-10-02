@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 // Earned fresh version-3 showdown in real Chromium, through production
-// ActionInput, shared RAF, pursuit and Canvas rendering. Only the audio clock,
+// ActionInput, shared RAF, pursuit and Canvas rendering. The audio clock,
 // gamepad device and Campaign persistence are controlled host boundaries.
+// Every simulation/input frame uses the shared RAF; native Canvas samples
+// cover periodic play, live pursuit transitions and every earned damage state.
 // Never injects road progress, health, immunity, abilities, captures or boss hits.
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), os = require('node:os');
@@ -39,9 +41,9 @@ html,body{margin:0;background:#090e18;width:100%;height:100%;overflow:hidden}
 canvas{display:block;width:100vw;height:100vh;object-fit:contain}
 </style><canvas id="gameCanvas" width="1920" height="1080"></canvas><script>
 window.browserProof={contexts:0,extraCanvases:0,worldUpdates:0,roadUpdates:0,musicStarts:0,
-  clock:0,images:[],drawn:{},rigCalls:0,impactCalls:0,rigHealth:{},drawCosts:[],saves:[],timingNegative:null,
+  clock:0,images:[],drawn:{},rigCalls:0,impactCalls:0,rigHealth:{},impactHealth:{},drawCosts:[],saves:[],timingNegative:null,
   completions:[],completionRequests:[],guidanceCalls:0,bossGuidanceCalls:0,
-  cues:[],raceFrames:0,pad:{index:0,id:'Standard browser test controller',
+  cues:[],raceFrames:0,rafUpdates:0,simulationFrames:0,pad:{index:0,id:'Standard browser test controller',
     mapping:'standard',connected:true,timestamp:0,axes:[0,0],
     buttons:Array.from({length:17},()=>({pressed:false,touched:false,value:0}))}};
 const nativeGetContext=HTMLCanvasElement.prototype.getContext;
@@ -131,7 +133,9 @@ const bossArt=BARCODE.CacheRoadBossArt;
 BARCODE.CacheRoadBossArt={...bossArt,
   drawRig(ctx,options){browserProof.rigCalls++;browserProof.rigHealth[options.health]=
       (browserProof.rigHealth[options.health]||0)+1;return bossArt.drawRig(ctx,options);},
-  drawImpact(...args){browserProof.impactCalls++;return bossArt.drawImpact(...args);}};
+  drawImpact(...args){browserProof.impactCalls++;const painted=bossArt.drawImpact(...args);
+    if(painted){const health=BARCODE.CacheRoadProof.state.pursuit.boss.health;
+      browserProof.impactHealth[health]=(browserProof.impactHealth[health]||0)+1;}return painted;}};
 const guidance=BARCODE.CacheRoadGuidance;
 if(!guidance)throw Error('Production guidance missing');
 BARCODE.CacheRoadGuidance={...guidance,draw(ctx,road,...args){browserProof.guidanceCalls++;
@@ -141,9 +145,11 @@ BARCODE.CacheRoadGuidance={...guidance,draw(ctx,road,...args){browserProof.guida
 const originalUpdate=BARCODE.CacheRoadProof.update;
 BARCODE.CacheRoadProof.update=function(...args){browserProof.roadUpdates++;return originalUpdate.apply(this,args);};
 const originalRoadDraw=BARCODE.CacheRoadProof.draw;
-BARCODE.CacheRoadProof.draw=function(...args){const begin=performance.now();
+browserProof.renderedSamples=0;browserProof.drawNext=false;browserProof.drawReasons=[];
+BARCODE.CacheRoadProof.draw=function(...args){if(!browserProof.drawNext)return;
+  browserProof.drawNext=false;browserProof.renderedSamples++;const begin=performance.now();
   try{return originalRoadDraw.apply(this,args);}finally{
-    if(browserProof.drawCosts.length<10000)browserProof.drawCosts.push(performance.now()-begin);}};
+    browserProof.drawCosts.push(performance.now()-begin);}};
 const copy=value=>JSON.parse(JSON.stringify(value));
 const round=(value,digits=3)=>Number(Number(value||0).toFixed(digits));
 const clamp=(value,low,high)=>Math.max(low,Math.min(high,value));
@@ -152,7 +158,18 @@ const SNAPSHOT_KEYS=${JSON.stringify(SNAPSHOT_KEYS)},safeItem=${safeItem.toStrin
 const instrument=${instrument.toString()},Driver=${Driver.toString()};
 browserProof.step=ms=>{for(let left=ms;left>0;){const dt=Math.min(20,left);left-=dt;
   browserProof.clock+=dt;audioSystem.context.currentTime+=dt/1000;
+  browserProof.rafUpdates++;
+  if(BARCODE.CacheRoadProof.active&&BARCODE.CacheRoadProof.status==='playing'&&
+      BARCODE.CacheRoadProof.introMs===null&&!window.isPaused)browserProof.simulationFrames++;
   browserProof.pad.timestamp=browserProof.clock;gameLoop(browserProof.clock);}};
+browserProof.render=reason=>{const road=BARCODE.CacheRoadProof,before=browserProof.frozen();
+  browserProof.drawNext=true;road.draw(renderer.ctx);
+  if(JSON.stringify(browserProof.frozen())!==JSON.stringify(before))
+    throw Error('Selected native draw changed the pursuit simulation');
+  const boss=road.encounterSnapshot().boss;
+  browserProof.drawReasons.push({reason,frame:browserProof.raceFrames,
+    bar:road.state.musicBeatFloat/4,status:road.status,phase:road.state.pursuit.phase,
+    health:boss?.health??null,counterMs:boss?.counterMs??0});};
 browserProof.boot=()=>{window.lastTime=browserProof.clock;
   BARCODE.CacheBridge.start({version:1,page:7,cue:2});browserProof.step(20);};
 browserProof.startDriver=()=>{const r={B:BARCODE,road:BARCODE.CacheRoadProof,
@@ -164,17 +181,27 @@ browserProof.startDriver=()=>{const r={B:BARCODE,road:BARCODE.CacheRoadProof,
 browserProof.playChunk=count=>{const road=BARCODE.CacheRoadProof;
   const initialHealth=road.state.pursuit.boss.health;
   for(let frame=0;frame<count&&road.status==='playing';frame++){
+    const eventsBefore=browserProof.observed.events.length;
     browserProof.driver.step();browserProof.step(20);browserProof.raceFrames++;
     if(!browserProof.timingNegative){
       const rejected=browserProof.observed.events.find(event=>event.kind==='missed-press'&&
         Number.isFinite(event.timingOffsetMs)&&event.timingOffsetMs>=240);
       if(rejected){browserProof.timingNegative=copy(rejected);browserProof.driver.options.timingBiasMs=0;}
     }
-    const boss=road.encounterSnapshot().boss;
+    const view=road.encounterSnapshot(),boss=view.boss;
     if(boss?.arrived&&(!browserProof.lastBossHealth&&browserProof.lastBossHealth!==0||boss.health!==browserProof.lastBossHealth)){
       browserProof.observed.event('boss-health',{health:boss.health,defeated:boss.defeated,
         lastCounter:copy(boss.lastCounter)});browserProof.lastBossHealth=boss.health;
     }
+    const actor=view.pursuit,paintKey=JSON.stringify([road.state.pursuit.phase,
+      actor?.id,actor?.warning,actor?.locked,actor?.echoCommitted,actor?.crossed,
+      boss?.arrived,boss?.visible,boss?.health]);
+    const changed=paintKey!==browserProof.lastPaintKey;browserProof.lastPaintKey=paintKey;
+    const event=browserProof.observed.events.slice(eventsBefore).find(event=>
+      ['capture','missed-press','earned-action','damage','push','brace','echo',
+        'turbo-input','pursuit-stage','boss-health'].includes(event.kind));
+    if(changed||event||browserProof.raceFrames%25===0)
+      browserProof.render(event?.kind||(changed?'visible-pursuit-transition':'periodic'));
     if(road.state.pursuit.boss.health!==initialHealth)break;
   }
   return browserProof.summary();};
@@ -185,7 +212,10 @@ browserProof.summary=()=>{const road=BARCODE.CacheRoadProof,s=road.state,boss=ro
     pursuitSnapshot:BARCODE.CacheRoadPursuit.snapshot(s.pursuit),
     camera:copy(s.cameraMotion),music:BARCODE.MusicTransport.sample(audioSystem.context.currentTime).grid?.beatFloat,
     drawn:{...browserProof.drawn},rigCalls:browserProof.rigCalls,impactCalls:browserProof.impactCalls,
-    rigHealth:{...browserProof.rigHealth},raceFrames:browserProof.raceFrames,
+    rigHealth:{...browserProof.rigHealth},impactHealth:{...browserProof.impactHealth},raceFrames:browserProof.raceFrames,
+    roadUpdates:browserProof.roadUpdates,
+    rafUpdates:browserProof.rafUpdates,simulationFrames:browserProof.simulationFrames,
+    renderedSamples:browserProof.renderedSamples,
     guidanceCalls:browserProof.guidanceCalls,bossGuidanceCalls:browserProof.bossGuidanceCalls,
     saved:BARCODE.Campaign.readResume(),completions:copy(browserProof.completions),
     completionRequests:copy(browserProof.completionRequests),
@@ -214,9 +244,26 @@ const server = http.createServer((req, res) => {
 });
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'barcode-pursuit-chrome-'));
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+const startedAt = Date.now(), progressStages = [], pending = new Map();
+const progress = (stage, detail = '') => {
+  const elapsedSec = Number(((Date.now() - startedAt) / 1000).toFixed(1));
+  progressStages.push({ stage, elapsedSec, detail });
+  console.log(`Cache pursuit [${elapsedSec}s] ${stage}${detail ? ': ' + detail : ''}`);
+};
+const bounded = async (operation, ms, label) => {
+  let timeout;
+  try { return await Promise.race([operation, new Promise((_, reject) => {
+    timeout = setTimeout(() => reject(Error(`${label} timeout after ${ms} ms`)), ms);
+  })]); } finally { clearTimeout(timeout); }
+};
+const rejectPending = error => {
+  for (const { reject, timeout } of pending.values()) { clearTimeout(timeout); reject(error); }
+  pending.clear();
+};
 let chrome, chromeClosed, socket, receipt;
 async function main() {
-  server.listen(0, '127.0.0.1'); await once(server, 'listening');
+  progress('starting local host and Chromium');
+  server.listen(0, '127.0.0.1'); await bounded(once(server, 'listening'), 10000, 'Local host startup');
   const origin = `http://127.0.0.1:${server.address().port}`;
   chrome = spawn(chromePath, ['--headless=new', '--no-sandbox', '--disable-dev-shm-usage',
     '--autoplay-policy=no-user-gesture-required', '--no-first-run', '--remote-debugging-port=0',
@@ -227,17 +274,28 @@ async function main() {
     const timeout = setTimeout(() => fail(Error(`Chrome startup timeout: ${stderr}`)), 30000);
     const cleanup = () => { clearTimeout(timeout); chrome.off('error', fail); chrome.off('close', closed); chrome.stderr.off('data', read); };
     const fail = error => { cleanup(); reject(error); };
-    const closed = code => fail(Error(`Chrome exited ${code}: ${stderr}`));
+    const closed = (code, signal) => fail(Error(`Chrome exited ${signal || code}: ${stderr}`));
     const read = chunk => { stderr = (stderr + chunk).slice(-16384);
       const match = stderr.match(/DevTools listening on (ws:\/\/\S+)\s/);
       if (match) { cleanup(); resolve(match[1]); } };
     chrome.once('error', fail); chrome.once('close', closed); chrome.stderr.on('data', read);
   });
-  const target = await (await fetch(`${new URL(debuggerUrl).origin.replace('ws:', 'http:')}/json/new`, { method: 'PUT' })).json();
+  const target = await (await fetch(`${new URL(debuggerUrl).origin.replace('ws:', 'http:')}/json/new`,
+    { method: 'PUT', signal: AbortSignal.timeout(30000) })).json();
   socket = new WebSocket(target.webSocketDebuggerUrl);
-  await new Promise((resolve, reject) => { socket.addEventListener('open', resolve, { once: true }); socket.addEventListener('error', reject, { once: true }); });
+  await new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => fail(Error('Chrome DevTools connection timeout')), 30000);
+    const cleanup = () => { clearTimeout(timeout); socket.removeEventListener('open', opened);
+      socket.removeEventListener('error', fail); socket.removeEventListener('close', closed); };
+    const opened = () => { cleanup(); resolve(); };
+    const fail = error => { cleanup(); reject(error); };
+    const closed = () => fail(Error('Chrome DevTools closed before connection'));
+    socket.addEventListener('open', opened, { once: true }); socket.addEventListener('error', fail, { once: true });
+    socket.addEventListener('close', closed, { once: true });
+  });
   let serial = 0;
-  const pending = new Map();
+  socket.addEventListener('close', () => rejectPending(Error('Chrome DevTools connection closed')));
+  socket.addEventListener('error', () => rejectPending(Error('Chrome DevTools connection failed')));
   socket.addEventListener('message', event => {
     const message = JSON.parse(event.data);
     if (message.method === 'Runtime.exceptionThrown') errors.push(message.params.exceptionDetails);
@@ -247,8 +305,11 @@ async function main() {
       if (message.error) reject(Error(JSON.stringify(message.error))); else resolve(message.result); }
   });
   const send = (method, params = {}) => new Promise((resolve, reject) => {
+    if (socket.readyState !== WebSocket.OPEN) { reject(Error(`Chrome DevTools closed before ${method}`)); return; }
     const id = ++serial, timeout = setTimeout(() => { pending.delete(id); reject(Error(`${method} timeout`)); }, 30000);
-    pending.set(id, { resolve, reject, timeout }); socket.send(JSON.stringify({ id, method, params }));
+    pending.set(id, { resolve, reject, timeout });
+    try { socket.send(JSON.stringify({ id, method, params })); }
+    catch (error) { pending.delete(id); clearTimeout(timeout); reject(error); }
   });
   const evaluate = async expression => { const result = await send('Runtime.evaluate', {
     expression, returnByValue: true, awaitPromise: true, userGesture: true });
@@ -270,6 +331,7 @@ async function main() {
   await send('Page.enable'); await send('Runtime.enable'); await send('Network.enable');
   await send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 720, deviceScaleFactor: 1, mobile: false });
   await send('Page.navigate', { url: origin });
+  progress('loading production owners, input and painted art');
   await until('document.readyState==="complete"&&!!window.inputManager&&!!window.renderer', 'production scripts/input ready');
   await evaluate('document.fonts.ready');
   // Readiness is requested through the production loader; no Image override
@@ -278,6 +340,7 @@ async function main() {
     requireHosted ? 'both immutable pursuit assets decode' : 'both bundled pursuit assets decode');
   await until('["cacheCar","cacheRival","cacheDashBezel","cacheMirror","cachePulsePad"].every(key=>BARCODE.PresentationAssets.ready(key))',
     'prior cars/dashboard/road paint decode');
+  progress('verifying decoded pursuit asset bytes', requireHosted ? 'immutable hosted art' : 'bundled art');
   const decoded = await evaluate(`Promise.all(browserProof.images.filter(image=>
     image.src.includes('/assets/cache-road/pursuit/')).map(async image=>{
       const response=await fetch(image.src);if(!response.ok)throw Error('Pursuit image fetch failed');
@@ -302,6 +365,7 @@ async function main() {
   }
   // The retained native pursuit gate owns historical v3 behavior. Fresh
   // campaigns use the separate combat rules and their production browser gate.
+  progress('entering retained v3 race through native Drive');
   await evaluate(`{const create=BARCODE.CacheChapter.create.bind(BARCODE.CacheChapter);
     BARCODE.CacheChapter.create=options=>({...create(options),encounterVersion:3});browserProof.boot();}`);
   assert.equal(await evaluate('browserProof.musicStarts'), 0);
@@ -316,9 +380,16 @@ async function main() {
   assert.equal(await evaluate('browserProof.musicStarts'), 1, 'fresh native setup skip starts once');
   await evaluate('browserProof.startDriver()');
   let state, paused = false;
+  let lastHeartbeat = Date.now(), lastReportedHealth = null;
+  progress('playing full 100-bar race', 'every shared RAF/input update; selected native Canvas frames');
   const seenHealth = new Set();
   for (let chunk = 0; chunk < 500; chunk++) {
     state = await evaluate('browserProof.playChunk(40)');
+    if (Date.now() - lastHeartbeat >= 15000 || state.boss && state.boss.health !== lastReportedHealth) {
+      progress('race progress', `bar ${state.bar.toFixed(2)}, boss health ${state.boss?.health ?? 'approaching'}, ` +
+        `${state.simulationFrames} simulation / ${state.renderedSamples} Canvas frames`);
+      lastHeartbeat = Date.now(); lastReportedHealth = state.boss?.health ?? null;
+    }
     if (state.boss?.arrived && state.boss.visible !== false && !seenHealth.has(state.boss.health)) { seenHealth.add(state.boss.health); await shot(state); }
     if (state.boss?.arrived && state.boss.visible !== false && !paused) {
       for (const button of [0, 1, 2, 3, 4, 5, 12, 13])
@@ -336,6 +407,7 @@ async function main() {
     if (state.status !== 'playing') break;
   }
   assert(state, 'full browser race produced a result');
+  progress('verifying earned clear, art, timing, pause and persistence');
   assert.equal(state.status, 'clear', JSON.stringify({ status: state.status, bar: state.bar, integrity: state.integrity, boss: state.boss }));
   assert(state.bar >= 100 && state.bar <= 100.02);
   assert.equal(state.encounterVersion, 3);
@@ -347,6 +419,13 @@ async function main() {
   assert(state.guidanceCalls > 0 && state.bossGuidanceCalls > 0,
     'production fixed route and three-system boss guidance is drawn during the earned race');
   for (const health of [3, 2, 1, 0]) assert(state.rigHealth[health] > 0, `drawRig painted health ${health}`);
+  for (const health of [2, 1, 0]) assert(state.impactHealth[health] > 0,
+    `earned counter impact art was painted at health ${health}`);
+  assert(state.simulationFrames >= 9375, 'every 20 ms simulation update spans the full 187.5-second race');
+  assert.equal(state.roadUpdates, state.simulationFrames, 'every racing frame traverses the actual shared-RAF road update');
+  assert(state.rafUpdates > state.simulationFrames, 'shared RAF also processes bridge and paused input polling');
+  assert(state.renderedSamples >= 100 && state.renderedSamples < state.simulationFrames / 4,
+    'representative native Canvas samples supplement every actual simulation frame');
   assert(paused, 'pause was exercised during actual boss approach');
   assert(state.chapter.delivery && state.chapter.delivery.result.accurate > 0 && state.chapter.delivery.result.elapsedMs >= 187500);
   assert.equal(state.completions.length, 1, 'one unique earned Campaign run receipt');
@@ -386,16 +465,26 @@ async function main() {
   assert(captures.length > 0 && captures.every(event => Number.isFinite(event.timingOffsetMs) &&
     Math.abs(event.timingOffsetMs) <= 180 + 1e-6), 'every earned capture lies inside the existing 180 ms window');
   const costs = (await evaluate('browserProof.drawCosts')).sort((a, b) => a - b);
+  const drawSamples = await evaluate('browserProof.drawReasons');
+  assert.equal(costs.length, state.renderedSamples);
+  assert.equal(drawSamples.length, state.renderedSamples);
+  for (const health of [2, 1, 0]) assert(drawSamples.some(sample => sample.health === health && sample.counterMs > 0),
+    `the live earned counter at health ${health} has an immediate native draw sample`);
   const percentile = p => costs[Math.min(costs.length - 1, Math.floor(costs.length * p))];
   const drawCostMs = { samples: costs.length, mean: costs.reduce((a, b) => a + b, 0) / costs.length,
     median: percentile(.5), p95: percentile(.95), p99: percentile(.99), maximum: costs.at(-1),
-    meaning: 'Native headless Chromium synchronous production draw-call cost, accelerated deterministic host clock. Not display FPS, wall-clock pacing, or device performance acceptance.' };
+    meaning: 'Selected native headless Chromium synchronous production draw-call cost, accelerated deterministic host clock. Periodic, visible pursuit transition and earned event samples; not every display frame, display FPS, wall-clock pacing or device performance acceptance.' };
   receipt = { passed: true, artMode: requireHosted ? 'immutable-hosted' : 'bundled-local', decoded,
-    frames, final: state, requests, drawCostMs, events, timingNegative,
+    frames, final: state, requests, drawCostMs, drawSamples, events, timingNegative,
+    rendering: { simulationFrames: state.simulationFrames, sharedRafUpdates: state.rafUpdates,
+      nativeCanvasSamples: state.renderedSamples, periodicEverySimulationFrames: 25,
+      selection: 'Periodic plus visible pursuit phase/warning/lock/crossing and earned capture, action, damage and boss health events.',
+      simulationUnchangedBySampledDraws: true, everyDisplayFrameRendered: false },
     driverPolicy: { ...PROFILES.practiced, gear: 2, initialTimingBiasMs: 240,
       timingProbe: 'After the first actual late rejected press, clear policy bias for later offers; already observed offers retain their intended timing error.', observation: 'production visible encounter snapshot', controls: 'mock standard gamepad through production ActionInput' },
     checks: { freshNativeDrive: true, full100BarRace: true, earnedThreeCounters: true,
       actualDamageFrames: [3, 2, 1, 0], productionRigAndImpactDraws: true,
+      immediateEarnedCounterDraws: [2, 1, 0], everySharedRafSimulationFrame: true,
       productionFixedGuidanceDrawn: true,
       pausedRigCameraMusicFrozen: true, uniqueEarnedRun: true, uniqueBassReward: true,
       rawPersistenceCallCount: state.completionRequests.length,
@@ -403,13 +492,27 @@ async function main() {
       actualLateControllerPressRejected: true, acceptedCaptureWindowMs: 180,
       canvasCount: 1, contextAcquisitions: 1, unrelatedWorldUpdates: 0, stateInjection: false },
     sourceHashes: initialSourceHashes, sourceStableThroughoutRun: true,
-    limits: 'Real Chromium production input/RAF/pursuit/Canvas earned playthrough with prior art bundled. Audio clock, physical gamepad and Campaign persistence are controlled host boundaries; the final bridge-ready position is a saved reading fixture. No health/progress/immunity/resources/captures/boss-hit injection. Synchronous draw cost does not establish display pacing. Separate tests cover actual storage and recorded audio. Not Makko, physical-controller, human-balance or comfort acceptance.' };
-  console.log(`Cache pursuit Chromium passed: ${requireHosted ? 'immutable hosted' : 'bundled'} art bytes/decode; earned health 3/2/1/0; full 100-bar clear, rejected late press, one Canvas, native inputs, pause and completion.`);
+    limits: 'Real Chromium production input/RAF/pursuit earned playthrough with every shared-RAF simulation update and selected native Canvas samples, not every display frame. Prior art is bundled. Audio clock, physical gamepad and Campaign persistence are controlled host boundaries; the final bridge-ready position is a saved reading fixture. No health/progress/immunity/resources/captures/boss-hit injection. Synchronous sampled draw cost does not establish display pacing. Separate tests cover actual storage and recorded audio. Not Makko, physical-controller, human-balance or comfort acceptance.' };
+  progress('passed', `${requireHosted ? 'immutable hosted' : 'bundled'} art; earned health 3/2/1/0; full 100 bars, rejected late press, one Canvas, pause and completion; ` +
+    `${state.simulationFrames} simulation / ${state.renderedSamples} Canvas frames`);
 }
-main().catch(error => { receipt = { passed: false, error: error.stack, frames, requests, errors };
+bounded(main(), 10 * 60 * 1000, 'Full pursuit browser check').catch(error => {
+  receipt = { passed: false, error: error.stack, frames, requests, errors };
   console.error(error); process.exitCode = 1; }).finally(async () => {
+  progress('closing Chromium and local host');
+  rejectPending(Error('Pursuit browser check finished')); socket?.close();
+  try {
+    if (chrome && chrome.exitCode === null && chrome.signalCode === null) chrome.kill('SIGTERM');
+    if (chromeClosed) {
+      try { await bounded(chromeClosed, 5000, 'Chrome graceful shutdown'); }
+      catch { chrome.kill('SIGKILL'); await bounded(chromeClosed, 5000, 'Chrome forced shutdown'); }
+    }
+    server.closeAllConnections();
+    await bounded(new Promise(resolve => server.close(resolve)), 5000, 'Local host shutdown');
+    await fs.promises.rm(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  } catch (error) { receipt = { ...receipt, passed: false, cleanupError: error.stack };
+    console.error(error); process.exitCode = 1; }
+  receipt = { ...receipt, progressStages, wallTimeSec: Number(((Date.now() - startedAt) / 1000).toFixed(1)),
+    timeoutMs: 10 * 60 * 1000 };
   fs.writeFileSync(path.join(output, 'Pursuit-Browser-Checks.json'), JSON.stringify(receipt || { passed: false }, null, 2) + '\n');
-  socket?.close(); if (chrome && chrome.exitCode === null && chrome.signalCode === null) chrome.kill();
-  if (chromeClosed) await chromeClosed; server.close();
-  await fs.promises.rm(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
 });
