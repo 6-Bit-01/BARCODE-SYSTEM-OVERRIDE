@@ -48,6 +48,9 @@ function recorder() {
     translate(...args){assert(args.every(Number.isFinite));calls.push(['translate',...args]);},
     rotate(angle){assert(Number.isFinite(angle));calls.push(['rotate',angle]);},
     scale(...args){calls.push(['scale',...args]);},
+    beginPath(){calls.push(['beginPath']);},
+    ellipse(...args){assert(args.every(Number.isFinite));calls.push(['ellipse',...args]);},
+    fill(){calls.push(['fill']);},stroke(){calls.push(['stroke']);},
     drawImage(image,...args){assert(args.every(Number.isFinite));calls.push(['drawImage',image,...args]);}};
   return {ctx,calls,stack};
 }
@@ -108,6 +111,20 @@ function painterChecks() {
   assert(f.art.drawBody(r.ctx,{...options,kind:'bike',phase:'wreck',wreck:true,ageMs:800,
     flipAngle:Math.PI,lift:58,riderLift:95,riderOffset:45,reduced:true}));
   assert(!r.calls.some(call=>call[0]==='rotate'),'Reduced Motion retains static wreck/rider paint');
+  for(const reduced of [false,true]) {
+    r.calls.length=0;
+    const splat=Object.freeze({...options,kind:'bike',phase:'wreck',wreck:true,rider:true,
+      ageMs:2400,riderOffset:110,riderX:427,splattered:true,riderSplatAgeMs:80,reduced,
+      flashes:false});
+    const before=JSON.stringify(splat);
+    assert(f.art.drawBody(r.ctx,splat));
+    assert(r.calls.some(call=>call[0]==='translate'&&call[1]===427&&call[2]===310),
+      'rider and splat use the road-projected authoritative ground lane');
+    assert.equal(r.calls.filter(call=>call[0]==='ellipse').length,5,'bounded distinct comic ink splat');
+    assert(r.calls.some(call=>call[0]==='scale'&&call[1]===1&&call[2]===1),
+      'no-flash and Reduced Motion splats use stable grounded paint');
+    assert.equal(JSON.stringify(splat),before);assert.equal(r.stack.length,0);assert.equal(r.ctx.globalAlpha,.7);
+  }
   for(let frame=0;frame<6;frame++) {
     const o={...options,ageMs:frame*1900/6+1};
     assert.equal(f.art.blastFrameFor(o),frame);assert(f.art.drawBlast(r.ctx,o));

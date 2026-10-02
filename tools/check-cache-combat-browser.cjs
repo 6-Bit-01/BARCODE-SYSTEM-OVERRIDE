@@ -27,6 +27,7 @@ const critical = new Set(['src/engine/music-profiles.js', 'src/engine/music-tran
   'src/engine/music-director.js', 'src/engine/cache-road-proof-profile.js', 'src/engine/presentation-assets.js',
   'src/game/campaign-services.js', 'src/game/cache-chapter.js', 'src/game/cache-road-landscape.js', 'src/game/cache-road-encounters.js',
   'src/game/cache-road-reactions.js', 'src/game/cache-road-pursuit.js', 'src/game/cache-road-combat.js',
+  'src/game/cache-road-crosswalks.js', 'src/game/cache-road-mirror.js',
   'src/game/cache-road-boss-art.js', 'src/game/cache-road-guidance.js', 'src/game/cache-road-proof.js',
   'src/engine/intro-sequence.js', 'src/engine/cache-scene-layouts.js', 'src/engine/cache-scene-effects.js',
   'src/engine/comic-dialogue.js', 'src/engine/cache-bridge.js', 'src/engine/cache-ending.js',
@@ -190,6 +191,18 @@ BARCODE.PresentationAssets.draw=function(key,...args){const ready=originalAssetD
   if(ready)browserProof.drawn[key]=(browserProof.drawn[key]||0)+1;return ready;};
 const originalUpdate=BARCODE.CacheRoadProof.update,originalRoadDraw=BARCODE.CacheRoadProof.draw;
 browserProof.trafficGuards=[];browserProof.guardAttempts=0;browserProof.lastGuardPressMs=-10000;
+browserProof.pedestrianContacts=[];
+const crosswalkStep=BARCODE.CacheRoadCrosswalks.step;
+BARCODE.CacheRoadCrosswalks.step=function(...args){
+  const s=BARCODE.CacheRoadProof.state;
+  const economy=()=>JSON.stringify({score:s.score,integrity:s.integrity,captures:s.captures,
+    queued:s.queuedCaptures,ammo:s.combat.ammo,cooldowns:s.combat.cooldowns,
+    damage:s.combat.stats.damageDealt,takedowns:s.combat.stats.takedowns});
+  const before=economy(),events=crosswalkStep.apply(this,args);
+  if(economy()!==before)throw Error('Pedestrian contact altered the driving economy');
+  for(const event of events)browserProof.pedestrianContacts.push(copy(event));
+  return events;
+};
 const originalHit=BARCODE.CacheRoadProof.hit;
 BARCODE.CacheRoadProof.hit=function(...args){
   const s=this.state,before={integrity:s.integrity,damageTaken:this.chapter.damageTaken,
@@ -221,7 +234,9 @@ browserProof.release=()=>{for(const button of browserProof.pad.buttons){button.p
   browserProof.pad.axes=[0,0];};
 browserProof.render=reason=>{browserProof.drawNext=true;BARCODE.CacheRoadProof.draw(renderer.ctx);
   browserProof.drawReasons.push({reason,bar:BARCODE.CacheRoadProof.state.musicBeatFloat/4,
-    combat:copy(BARCODE.CacheRoadProof.encounterSnapshot().combat),preferences:copy(BARCODE.Preferences.values)});};
+    combat:copy(BARCODE.CacheRoadProof.encounterSnapshot().combat),
+    crosswalks:copy(BARCODE.CacheRoadProof.encounterSnapshot().crosswalks),
+    mirror:copy(BARCODE.CacheRoadProof.state.mirrorState),preferences:copy(BARCODE.Preferences.values)});};
 browserProof.boot=async()=>{window.lastTime=browserProof.clock;
   const saved=BARCODE.Campaign.readResume();
   if(!saved)throw Error('Persisted checkpoint rejected by actual Campaign adapter');
@@ -275,6 +290,7 @@ browserProof.playChunk=count=>{const road=BARCODE.CacheRoadProof;
 browserProof.summary=(includeEvents=true)=>{const road=BARCODE.CacheRoadProof,s=road.state,combat=road.encounterSnapshot().combat;
   return {status:road.status,encounterVersion:road.chapter.encounterVersion,bar:s.musicBeatFloat/4,
     progress:s.progress,integrity:s.integrity,gear:s.gear,chapter:copy(road.chapter),combat:copy(combat),
+    crosswalks:copy(s.crosswalks),pedestrianContacts:copy(browserProof.pedestrianContacts),mirror:copy(s.mirrorState),
     camera:copy(s.cameraMotion),music:BARCODE.MusicTransport.sample(audioSystem.context.currentTime).grid?.beatFloat,
     drumVolume:BARCODE.musicDirector.getVolume('cache-pressure'),events:includeEvents?copy(browserProof.observed?.events||[]):[],
     drawn:{...browserProof.drawn},combatPaints:copy(browserProof.combatPaints),
@@ -285,7 +301,7 @@ browserProof.summary=(includeEvents=true)=>{const road=BARCODE.CacheRoadProof,s=
     completionRequests:copy(browserProof.completionRequests),rewardFacts:copy(BARCODE.Campaign.archive().record.progress)};};
 browserProof.frozen=()=>{const s=BARCODE.CacheRoadProof.state;return {progress:s.progress,elapsedMs:s.elapsedMs,
   musicBeat:s.musicBeatFloat,captures:copy(s.captures),queued:copy(s.queuedCaptures),pending:copy(s.pendingPulseAwards),
-  combat:BARCODE.CacheRoadCombat.snapshot(s.combat),camera:copy(s.cameraMotion),
+  combat:BARCODE.CacheRoadCombat.snapshot(s.combat),crosswalks:copy(s.crosswalks),mirror:copy(s.mirrorState),camera:copy(s.cameraMotion),
   heardBeat:BARCODE.MusicTransport.sample(audioSystem.context.currentTime).grid?.beatFloat};};
 </script>`;
 const requests={head:0,localCombat:[],remoteCombat:[]},errors=[],frames=[];
@@ -463,6 +479,8 @@ async function main(){
       state=await evaluate('browserProof.summary()');
       assert.equal(state.chapter.runId,before.chapter.runId);assert.equal(state.combat.boss.hp,before.combat.boss.hp,'real weapon damage survives page reload');
       assert.equal(state.combat.stats.damageDealt,before.combat.stats.damageDealt);
+      assert.equal(state.crosswalks.hitCount,before.crosswalks.hitCount,'pedestrian contacts survive earned page reload');
+      assert.deepEqual(state.crosswalks.crossings.map(item=>item.hitMask),before.crosswalks.crossings.map(item=>item.hitMask));
       assert(state.combat.actors.every(actor=>!actor.locked),'resumed enemies receive their warning again');
       restoreReceipt={savedBar:earned.levelState.proof.musicBar,beforeHp:before.combat.boss.hp,afterHp:state.combat.boss.hp,
         runId:state.chapter.runId,damageDealt:state.combat.stats.damageDealt,forgedGateRejected:true};reloaded=true;
@@ -479,6 +497,12 @@ async function main(){
   trafficGuards.push(...state.trafficGuards);
   assert(state.bar>=100&&state.bar<=100.02);assert.equal(state.encounterVersion,4);
   assert(state.combat.boss.defeated&&state.combat.boss.hp===0);
+  assert.deepEqual(state.crosswalks.crossings.map(item=>item.bar),[10,30,50,70],
+    'the native full race commits exactly four crosswalks');
+  assert.deepEqual([...new Set(drawSamples.flatMap(sample=>sample.crosswalks?.crossings.map(item=>item.bar)||[]))].sort((a,b)=>a-b),
+    [10,30,50,70],'all four physical crosswalks are sampled in actual native draws');
+  assert(drawSamples.some(sample=>sample.crosswalks?.people.some(person=>person.phase==='walking')),
+    'real crossing pedestrians are drawn during the earned race');
   assert(bossHp.some(item=>item.hp===12)&&bossHp.some(item=>item.hp===0),'actual initial and destroyed rig states are sampled');
   assert(allEvents.some(event=>event.kind==='combat-event'&&event.type==='enemy-hit'&&event.id==='rig'));
   assert(allEvents.some(event=>event.kind==='wreck-recovery'&&event.gear===0&&event.queuedRecovery&&event.recoveryBeat%4===0),
@@ -520,7 +544,8 @@ async function main(){
     nativeCanvasSamples:totalSamples,sourceHashes:initialSourceHashes,sourceStableThroughoutRun:true,
     checks:{nativeControllerAndAnalogTriggers:true,zeroSyncFourSkills:true,actualWeaponBossDamage:true,
       nativeR2PreventsOrdinaryTrafficWreck:true,physicallyEarnedWreckAndFirstGear:true,actualBikeRiderAndFlipDrawn:true,pausedCombatCameraMusicFrozen:true,
-      earnedPageReload:true,forgedGateRejected:true,complete100Bars:true,independentFourFaceSync:true,
+      earnedPageReload:true,persistedPedestrianContacts:true,fourPhysicalCrosswalksDrawn:true,
+      pedestrianContactsPreserveEconomy:true,stableMirrorOwner:true,forgedGateRejected:true,complete100Bars:true,independentFourFaceSync:true,
       reducedMotionNoFlashesDrawn:true,oneCanvas:true,stateInjection:false},
     limits:'Production scripts in index order, controlled saved bridge-ready entry, native Chromium input/Canvas, every shared-RAF simulation update and selected Canvas samples. Does not exercise title boot or every display frame. Audio clock, gamepad device, lifecycle pause and Campaign persistence are controlled hosts. No progress, health, immunity, resources, captures or boss-damage injection. Not Makko, physical-controller, recorded listening, human balance, comfort or display-pacing acceptance.'};
   console.log(`Cache combat Chromium passed: zero-sync four controls, analog triggers, actual12HP rig damage, wreck/first gear, earned page reload, full100bars; ${totalFrames} simulation frames and ${totalSamples} sampled Canvas frames.`);

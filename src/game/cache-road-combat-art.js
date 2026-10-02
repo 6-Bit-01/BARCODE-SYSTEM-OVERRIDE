@@ -46,6 +46,21 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-combat-art.js',
     return !!B.PresentationAssets.draw(key,ctx,{frame,width,height,
       x:x+width*(.5-anchor[0]),y:y+height*(registrationY-anchor[1])});
   }
+  function drawRiderSplat(ctx,width,height,age,animated) {
+    // A small comic ink splash sits on the same ground contact as the rider.
+    // Stable shapes and no white ignition keep repeat draws and no-flash safe.
+    const spread=animated?1+Math.max(0,1-age/240)*.24:1;
+    ctx.save();
+    try {
+      ctx.scale(spread,spread);
+      ctx.fillStyle='#5b172b';ctx.strokeStyle='#25151d';ctx.lineWidth=Math.max(1,width*.014);
+      ctx.beginPath();ctx.ellipse(0,-height*.025,width*.43,height*.065,-.08,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#9b3048';
+      for(const [x,y,r] of [[-.48,-.12,.05],[.44,-.08,.06],[-.27,-.20,.035],[.58,-.16,.027]]) {
+        ctx.beginPath();ctx.ellipse(width*x,height*y,width*r,height*r*.52,.2,0,Math.PI*2);ctx.fill();
+      }
+    } finally {ctx.restore();}
+  }
   function drawBody(ctx,options={}) {
     if(!ctx||!valid(options))return false;
     const choice=frameFor(options);
@@ -78,12 +93,16 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-combat-art.js',
       const offset=finite(options.riderOffset)*scale*side;
       const riderLift=settled?0:Math.max(0,finite(options.riderLift))*scale;
       const width=options.width*.82,height=options.height*.72;
+      const splattered=settled&&options.splattered===true;
       ctx.save();
       try {
         ctx.globalAlpha*=clamp(finite(options.alpha,1),0,1);
-        ctx.translate(options.x+offset,options.y-riderLift-(settled?0:options.height*.52));
+        ctx.translate(finite(options.riderX,options.x+offset),options.y-riderLift-(settled?0:options.height*.52));
         if(!settled)ctx.rotate(finite(options.flipAngle)*.65*side);
-        paint(ctx,'cacheCombatBikeCrash',frame,{width,height,center:!settled});
+        if(splattered)drawRiderSplat(ctx,width,height,Math.max(0,finite(options.riderSplatAgeMs)),
+          !options.reduced&&options.flashes!==false);
+        paint(ctx,'cacheCombatBikeCrash',frame,{width:width*(splattered?1.06:1),
+          height:height*(splattered?.55:1),center:!settled});
       } finally {ctx.restore();}
     }
     return true;

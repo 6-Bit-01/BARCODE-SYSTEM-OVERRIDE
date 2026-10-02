@@ -16,7 +16,8 @@ const DIFFICULTIES = ['relaxed', 'standard', 'overclocked'];
 const BUTTONS = { attack: 5, turbo: 4, defend: 7, disrupt: 6 };
 const MUSIC_LEVELS = { drive: .19, flow: .55, breakaway: .50, undercurrent: .62 };
 const OWNERS = ['src/game/cache-road-encounters.js', 'src/game/cache-road-reactions.js',
-  'src/game/cache-road-pursuit.js', 'src/game/cache-road-combat.js'];
+  'src/game/cache-road-pursuit.js', 'src/game/cache-road-combat.js',
+  'src/game/cache-road-crosswalks.js','src/game/cache-road-mirror.js'];
 const SOURCES = [...OWNERS, 'src/game/cache-road-proof.js', 'src/game/cache-chapter.js',
   'src/core/action-input.js', 'src/core/gamepad-ui.js', 'src/core/input.js', 'src/core/loop.js',
   'src/core/runtime-lifecycle.js', 'src/engine/cache-road-proof-profile.js',

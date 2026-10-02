@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "verificationDate": "2026-10-02T03:38:13.545353+00:00",
+  "sourceMatchesCurrentTree": true,
+  "sourceHashDifferences": [],
+  "reportSha256": "4f0a4c0f7faf0d5b18ff9e9baabc8a78f0d787263b0a46a669ed0450e6d88d95",
+  "imageSha256": "f2d8c8ec9d5816b29fe50d1ea16c5250390f433ec11770c117a7b5be0485b703",
+  "sourceFiles": 89,
+  "frameEvidenceSamples": 190,
+  "scope": "Every production-input/shared-RAF simulation update and selected native Node Canvas draws. No physical browser/device frame pacing claim."
+}

@@ -1,5 +1,20 @@
 # Repository Guidance
 
+## October 1, 2026 — crosswalks, stable mirror and pursuit spacing
+
+Continue from merged #171 (`2042e3ebbd8840def0f8863e1362a185c38c9175`).
+The owner authorizes four hittable pedestrian crosswalks with varied shame
+messages and no economy penalty, grounded fallen-rider splats, sustained
+mirror moods, manageable hostile spacing and played optimization. Keep
+R1 Attack, L1 Turbo, R2 Defend, L2 Disrupt, face-piece synchronization, original
+music and historical v1–3 rules. Preserve compatible v4 saves. Iris-only
+editing could not preserve every other pixel; honor the owner's skip option
+and leave all cutscene images unchanged. Read
+`docs/source-pack/CACHE_STREET_SAFETY.md`. Complete full regression/all-file
+syntax and both exact final-head CI events under standing publication/merge
+authority; update the exact merged ZIP. Owner Makko/controller/audio, comfort,
+balance and device frame pacing remain separately unrecorded.
+
 ## October 1, 2026 — combat polish follow-up
 
 The owner likes merged #169 and authorizes a focused improvement PR: one target
