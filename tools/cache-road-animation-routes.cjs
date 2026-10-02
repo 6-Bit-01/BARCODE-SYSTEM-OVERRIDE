@@ -1,7 +1,10 @@
 // Run complete production world/HUD draws, not isolated atlas draws. Kept
 // self-contained so the same audit runs in the VM and real Chromium fixture.
-module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definitions}) {
+module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definitions,audio}) {
   const road=B.CacheRoadProof,originalState=road.state;
+  const originalChapter=road.chapter,originalAudioTime=audio?.context?.currentTime;
+  const originalTransport=B.MusicTransport,originalProfile=B.MusicProfiles?.getActive?.()?.profileId;
+  const beatSurface=B.CacheRoadBeatSurface,beatFeedback=B.CacheRoadBeatFeedback;
   const originalAssetsDraw=B.PresentationAssets.draw;
   const originalReduced=B.Preferences?.values?.reducedMotion;
   B.Preferences??={values:{}};B.Preferences.values??={};
@@ -42,6 +45,10 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
         record.item.at+(camera==='main'?-250:150),cel*period);
   };
   try {
+    // Retained pre-skin atlases still have real production fallback routes.
+    // Audit those with the optional skin owners unavailable, then separately
+    // exercise every new cel with both current owners fully enabled below.
+    B.CacheRoadBeatSurface=undefined;B.CacheRoadBeatFeedback=undefined;
     for(const id of [5,7,11,12,...Array.from({length:12},(_,i)=>i+15)])
       exerciseActor(`person-${id}`,candidates(item=>item.id===id),
         id===11?170:id===5?220:210,id===12?8:4);
@@ -247,6 +254,107 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
       for(const frame of [2,5])check(calls.some(([key,cel])=>key==='cacheBloodSplatter'&&cel===frame),
         `Production ${camera} missed physical rider blood cell ${frame}`);
     }
+    B.CacheRoadBeatSurface=beatSurface;B.CacheRoadBeatFeedback=beatFeedback;
+    const authoredBeatKeys=['cacheBeatHardware','cacheBeatEnergy','cacheBeatTiming'];
+    check(beatSurface&&beatFeedback&&B.CacheRoadAdrenaline&&B.CacheRoadInstruments&&B.CacheChapter,
+      'Current ground skin, feedback and adrenaline owners were not loaded');
+    check(audio?.context&&Number.isFinite(audio.context.currentTime),
+      'Ground animation route audit requires its explicit controlled audio clock');
+    road.chapter=B.CacheChapter.create({difficultyId:'standard'});
+    road.state=newState();
+    check(road.configureEncounters(),'The actual v4 chart failed to initialize');
+    check(typeof B.createMusicTransport==='function','Production music transport factory was not loaded');
+    B.MusicTransport=B.createMusicTransport();
+    road.selectMusicProfile();B.MusicTransport.start({sourceAnchorAudioSec:0,sourceOffsetTrackSec:0});
+    const beatMs=60/128*1000,actions=['road_a','road_b','road_x','road_y'];
+    const perfectActions=new Set(),beatReceipts=[],suppressedMisses=[];
+    let heardBeat=0,good=false,miss=false,diagnosticLane=null,observedMissId=null;
+    const advanceBeat=beat=>{
+      check(beat>=heardBeat,'Ground route diagnostic cannot run its heard clock backward');
+      // Keep simulation/receipt age in step with the heard source time.
+      // Jumping several song beats with one 20ms update would wrongly keep
+      // the preceding success alive when a later real miss expires.
+      while(beat-heardBeat>1e-10) {
+        const dt=Math.min(20,(beat-heardBeat)*beatMs);
+        heardBeat=dt<20?beat:heardBeat+dt/beatMs;
+        audio.context.currentTime=heardBeat*beatMs/1000;
+        road.state.timeMs=1e6;road.state.invulnerableMs=1e6;
+        const missedBefore=observedMissId&&road.state.missedPulses[observedMissId];
+        const driveBefore=road.state.driveFeedback,elapsedBefore=road.state.elapsedMs;
+        road.update(dt);
+        if(observedMissId&&!missedBefore&&road.state.missedPulses[observedMissId]&&
+            road.state.beatFeedback?.pulseId!==observedMissId) {
+          check(driveBefore&&elapsedBefore<driveBefore.expiresMs,
+            'A real miss receipt was suppressed without an existing live drive receipt');
+          suppressedMisses.push({id:observedMissId,driveKind:driveBefore.kind});
+        }
+        // This is a bounded isolated-lane route diagnostic, not a race or
+        // steering proof. Keep its staged lane against ordinary road drift.
+        if(diagnosticLane!==null)
+          road.state.lane=road.state.lanePos=road.state.visualLane=diagnosticLane;
+      }
+    };
+    const drawBeat=label=>{
+      const before=JSON.stringify(road.state);current=[];road.draw(ctx);
+      check(JSON.stringify(road.state)===before,'Ground route paint mutated actual chart or award facts');
+      const calls=current;current=null;
+      cases.push({label,progress:road.state.progress,elapsedMs:road.state.elapsedMs});
+      return calls;
+    };
+    const contains=(calls,key,frame)=>calls.some(([k,f])=>k===key&&f===frame);
+    for(let opportunity=0;opportunity<30&&(!good||!miss||perfectActions.size<4);opportunity++) {
+      let pulse=null;
+      while(heardBeat<360&&!pulse) {
+        advanceBeat(heardBeat+.25);
+        pulse=road.pulses().find(p=>p.target>heardBeat&&
+          !road.state.caughtPulses[p.id]&&!road.state.missedPulses[p.id]);
+      }
+      check(pulse,'The production chart did not announce the needed ground opportunity');
+      diagnosticLane=pulse.lane;
+      road.state.lane=road.state.lanePos=road.state.visualLane=diagnosticLane;
+      advanceBeat(pulse.target-2.4);
+      check(contains(drawBeat(`real ground ${pulse.id}/approach`),'cacheBeatTiming',0),
+        'The actual uncharged approach did not paint its dormant ring');
+      advanceBeat(pulse.target-.75);drawBeat(`real ground ${pulse.id}/charging`);
+      advanceBeat(pulse.target);
+      const onOne=drawBeat(`real ground ${pulse.id}/ONE`);
+      check(contains(onOne,'cacheBeatHardware',4+pulse.action)&&
+        contains(onOne,'cacheBeatTiming',2),'Actual accepted window did not paint its engaged plate and ONE ring');
+      const quality=perfectActions.size<4?'perfect':!good?'good':'miss';
+      if(quality==='miss') {
+        observedMissId=pulse.id;
+        advanceBeat(pulse.target+.5);
+        observedMissId=null;
+        check(road.state.missedPulses[pulse.id],'The real unheard-input opportunity did not expire');
+      } else {
+        if(quality==='good')advanceBeat(pulse.target+150/beatMs);
+        check(road.catchPulse(actions[pulse.action],audio.context.currentTime,audio.context.currentTime),
+          `Actual ${quality} input was rejected for ${pulse.id}`);
+        advanceBeat(heardBeat+80/beatMs);
+      }
+      const receipt=road.state.beatFeedback;
+      if(quality==='miss'&&receipt?.pulseId!==pulse.id) {
+        check(suppressedMisses.at(-1)?.id===pulse.id,
+          'The actual miss had neither its receipt nor the production live-receipt suppression');
+        drawBeat(`real ground ${pulse.id}/miss suppressed by live receipt`);
+        continue;
+      }
+      check(receipt?.pulseId===pulse.id&&receipt.kind===quality,
+        `Ground route ${pulse.id}/${quality} received ${receipt?.pulseId}/${receipt?.kind}`);
+      const calls=drawBeat(`real ground ${pulse.id}/${quality}`);
+      const shell=quality==='miss'?6:quality==='perfect'?5:4;
+      check(contains(calls,'cacheBeatTiming',shell),'The actual earned/missed receipt omitted its quality shell');
+      if(quality==='perfect') {
+        check(contains(calls,'cacheBeatEnergy',4+pulse.action)&&
+          contains(calls,'cacheBeatEnergy',8+pulse.action),
+          `Actual Perfect ${pulse.action} omitted its impact/shard source cels`);
+        perfectActions.add(pulse.action);
+      } else if(quality==='good')good=true;else miss=true;
+      beatReceipts.push({id:pulse.id,action:pulse.action,kind:receipt.kind,
+        delta:receipt.delta,chain:receipt.chain});
+    }
+    check(perfectActions.size===4&&good&&miss,
+      'Real chart inputs must cover all four Perfect actions plus Good and actual miss');
     const intentionalStable=['cacheCar','cacheCarLeft','cacheCarRight'];
     const inventory=Object.entries(definitions).filter(([key,entry])=>
       key.startsWith('cache')&&entry.frames>1);
@@ -265,6 +373,8 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
           `${key}: rearview did not play every authored cel`);
     }
     check(!coverage.mirror.cacheCrewCallouts,'Crew portraits must remain in the main HUD outside reflected scenery');
+    for(const key of authoredBeatKeys)check(!coverage.mirror[key],
+      `${key}: main-road ground timing must not enter reflected scenery`);
     // Reduced Motion freezes decorative clocks while reaction expressions
     // remain state-driven. This must not turn on hidden secondary loops.
     recording=false;B.Preferences.values.reducedMotion=true;
@@ -279,8 +389,8 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
     check(JSON.stringify(reducedAt(0))===JSON.stringify(reducedAt(1234)),
       'Reduced Motion advanced an animation');
     return {productionDraws:cases.length,animatedKeys:inventory.length,
-      legacyAnimatedKeys:inventory.length-authoredCombatKeys.length-authoredFeedbackKeys.length,
-      authoredCombatKeys,authoredFeedbackKeys,
+      legacyAnimatedKeys:inventory.length-authoredCombatKeys.length-authoredFeedbackKeys.length-authoredBeatKeys.length,
+      authoredCombatKeys,authoredFeedbackKeys,authoredBeatKeys,beatReceipts,suppressedMisses,
       intentionalStable,main:Object.fromEntries(Object.entries(coverage.main)
         .map(([key,frames])=>[key,[...frames].sort((a,b)=>a-b)])),
       mirror:Object.fromEntries(Object.entries(coverage.mirror)
@@ -288,6 +398,11 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
       reducedMotion:true};
   } finally {
     B.PresentationAssets.draw=originalAssetsDraw;road.state=originalState;
+    road.chapter=originalChapter;
+    B.MusicTransport=originalTransport;
+    B.MusicProfiles?.select?.(originalProfile??null);
+    B.CacheRoadBeatSurface=beatSurface;B.CacheRoadBeatFeedback=beatFeedback;
+    if(audio?.context&&Number.isFinite(originalAudioTime))audio.context.currentTime=originalAudioTime;
     B.Preferences.values.reducedMotion=originalReduced;
   }
 };

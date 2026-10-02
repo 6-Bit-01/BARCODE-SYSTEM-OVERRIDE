@@ -60,6 +60,12 @@ function stage(r,name) {
   }
   return s;
 }
+function focusedReceipt(r,{zoom=1.335,age=0}={}) {
+  const s=stage(r,'Perfect-Impact');
+  s.elapsedMs=s.beatFeedback.atMs+age;s.speed=75;s.steer=.8;
+  s.cameraMotion={zoom,x:24,y:6,roll:.01,velocity:{zoom:0,x:0,y:0,roll:0}};
+  return s;
+}
 function atlasRegistration(assets) {
   const r=prepared(assets),S=r.B.CacheRoadBeatSurface;
   assert(S,'the current projection module is loaded');
@@ -82,7 +88,8 @@ function atlasRegistration(assets) {
       const data=Buffer.from(ctx.getImageData(0,0,256,180).data);
       const col=frame%4,y=42+(row+Math.floor(frame/4))*220;
       sc.fillStyle='#17313d';sc.fillRect(col*256+4,y+29,248,179);
-      sc.drawImage(native,col*256,y+27);
+      // Copy completed pixels, avoiding live-canvas source reuse between cells.
+      sc.putImageData(ctx.getImageData(0,0,256,180),col*256,y+27);
       sc.fillStyle='#d4f4df';sc.font='14px Oxanium';
       sc.fillText(`${key.replace('cacheBeat','')} / ${frame}`,col*256+12,y+19);
       records.push({key,frame,pixelHash:sha(data),opaquePixels:Array.from(data)
@@ -106,23 +113,31 @@ async function main() {
   const sheet=createCanvas(1280,8*392/2+40),sc=sheet.getContext('2d'),records=[];
   sc.fillStyle='#081822';sc.fillRect(0,0,sheet.width,sheet.height);
   sc.fillStyle='#d4f4df';sc.font='19px Oxanium';sc.fillText('Current production / original art / staged review ages',18,28);
-  for(const [index,name] of names.entries()) {
-    const r=prepared(assets),s=stage(r,name),trace=[];
+  for(const [index,name] of [...names,'Focused-Perfect'].entries()) {
+    const r=prepared(assets),s=name==='Focused-Perfect'?focusedReceipt(r):stage(r,name),trace=[];
     const original=r.B.PresentationAssets.draw;
     r.B.PresentationAssets.draw=(key,c,args)=>{trace.push({key,...copy(args),filter:c.filter});return original(key,c,args);};
     ctx.reset();const before=JSON.stringify(s);r.road.draw(ctx);
     assert.equal(JSON.stringify(s),before,'native inspection preserves gameplay and paint state');
     const file=name+'.png',data=canvas.toBuffer('image/png');fs.writeFileSync(path.join(out,file),data);
-    const x=index%2*640,y=40+Math.floor(index/2)*392;
-    sc.fillStyle='#d4f4df';sc.font='16px Oxanium';sc.fillText(name,x+15,y+22);
-    sc.drawImage(canvas,x,y+30,640,360);
+    if(index<names.length) {
+      const x=index%2*640,y=40+Math.floor(index/2)*392;
+      sc.fillStyle='#d4f4df';sc.font='16px Oxanium';sc.fillText(name,x+15,y+22);
+      // Native Canvas can retain a live source across later resets. Commit an
+      // independent tile so every labeled review pose preserves its own pixels.
+      const tile=createCanvas(640,360),tc=tile.getContext('2d');
+      tc.drawImage(canvas,0,0,1920,1080,0,0,640,360);
+      sc.putImageData(tc.getImageData(0,0,640,360),x,y+30);
+    }
     records.push({name,file,sha256:sha(data),pulse:copy(r.pulse),beat:s.musicBeatFloat,
-      progress:s.progress,receipt:copy(s.beatFeedback),reduced:!!r.B.Preferences.values.reducedMotion,
+      progress:s.progress,receipt:copy(s.beatFeedback),cameraMotion:copy(s.cameraMotion),
+      reduced:!!r.B.Preferences.values.reducedMotion,
       authoredBeatCalls:trace.filter(call=>call.key.startsWith('cacheBeat')),
       images:trace.length,originalRearviewBlur:trace.some(call=>call.filter==='blur(2.3px)')});
   }
   fs.writeFileSync(path.join(out,'Production-Beat-Review.png'),sheet.toBuffer('image/png'));
-  const sourceFiles=['src/engine/presentation-assets.js','src/game/cache-road-proof.js',...modules]
+  const sourceFiles=['src/engine/presentation-assets.js','src/game/cache-road-proof.js',
+    'src/game/cache-road-guidance.js',...modules]
     .filter(file=>fs.existsSync(file));
   fs.writeFileSync(path.join(out,'Production-Beat-Review.json'),JSON.stringify({
     limitation:'Native current-production Canvas stills with original raster assets. Chart and judgments are real; receipt ages and focused camera pose are staged. No human controller, browser, Makko/device FPS or audio acceptance claim.',
@@ -130,5 +145,5 @@ async function main() {
     loadedAssets:Object.keys(assets.images).length,atlasRegistration:registration.records,records},null,2)+'\n');
   console.log(path.join(out,'Production-Beat-Review.png'));
 }
-module.exports={nativeAssets,prepared,stage,modules,atlasRegistration};
+module.exports={nativeAssets,prepared,stage,focusedReceipt,modules,atlasRegistration};
 if(require.main===module)main().catch(error=>{console.error(error.stack);process.exitCode=1;});

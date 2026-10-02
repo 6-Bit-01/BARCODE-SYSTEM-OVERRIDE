@@ -3,7 +3,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const crypto=require('node:crypto');
 const {createCanvas,loadImage,GlobalFonts}=require('@napi-rs/canvas');
-const {nativeAssets,prepared,stage,modules,atlasRegistration}=require('./render-cache-beat-visual-system.cjs');
+const {nativeAssets,prepared,stage,focusedReceipt,modules,atlasRegistration}=require('./render-cache-beat-visual-system.cjs');
 const {pressAt}=require('./check-cache-drive-feedback.cjs');
 const root=path.resolve(__dirname,'..');process.chdir(root);
 const copy=value=>JSON.parse(JSON.stringify(value)),hash=value=>crypto.createHash('sha256').update(value).digest('hex');
@@ -31,6 +31,53 @@ function protectedPixels(ctx,args) {
     const i=(yy*width+xx)*4;pixels.push(data[i],data[i+1],data[i+2],data[i+3]);
   }
   assert(pixels.length>4000);return Buffer.from(pixels);
+}
+function screenBounds(ctx,{left,right,top,bottom}) {
+  const m=ctx.getTransform(),points=[[left,top],[right,top],[right,bottom],[left,bottom]]
+    .map(([x,y])=>[m.a*x+m.c*y+m.e,m.b*x+m.d*y+m.f]);
+  return {left:Math.min(...points.map(p=>p[0])),right:Math.max(...points.map(p=>p[0])),
+    top:Math.min(...points.map(p=>p[1])),bottom:Math.max(...points.map(p=>p[1]))};
+}
+function focusedReceiptClearance(assets) {
+  // A previously proven clipped success shell at the production fast/max
+  // focus poses. Observe actual paint options and font ink, never mirror the
+  // renderer's card placement, dimensions, caption size or receipt lift.
+  const records=[];
+  for(const zoom of [1.253,1.335])for(const age of [0,80,360]) {
+    const r=prepared(assets),s=focusedReceipt(r,{zoom,age});
+    const canvas=createCanvas(1920,1080),ctx=canvas.getContext('2d'),shells=[],labels=[];
+    const H=r.B.CacheRoadBeatFeedback,draw=r.B.PresentationAssets.draw,fill=ctx.fillText.bind(ctx);
+    let inReceipt=false;
+    r.B.CacheRoadBeatFeedback={...H,drawReceipt(c,state,args) {
+      inReceipt=true;try{return H.drawReceipt(c,state,args);}finally{inReceipt=false;}
+    }};
+    r.B.PresentationAssets.draw=(key,c,args)=> {
+      if(inReceipt&&key==='cacheBeatTiming'&&args.frame===5) {
+        const e=assets.entries[key],left=args.x-args.width*e.ax,top=args.y-args.height*e.ay;
+        shells.push(screenBounds(c,{left,top,right:left+args.width,bottom:top+args.height}));
+      }
+      return draw(key,c,args);
+    };
+    ctx.fillText=(value,x,y,maxWidth)=> {
+      if(inReceipt&&(value==='PERFECT'||String(value).includes('ADRENALINE'))) {
+        const m=ctx.measureText(String(value)),scale=Math.min(1,maxWidth/m.width);
+        labels.push({value:String(value),bounds:screenBounds(ctx,{
+          left:x-m.actualBoundingBoxLeft*scale-1,right:x+m.actualBoundingBoxRight*scale+1,
+          top:y-m.actualBoundingBoxAscent-1,bottom:y+m.actualBoundingBoxDescent+1})});
+      }
+      return fill(value,x,y,maxWidth);
+    };
+    const before=JSON.stringify(s);r.road.draw(ctx);
+    assert.equal(JSON.stringify(s),before,'focused earned review retains the real judgment and paint state');
+    assert.equal(shells.length,1,'the actual earned Perfect paints one full custom quality shell');
+    assert.deepEqual(labels.map(label=>label.value),['PERFECT',`+${s.beatFeedback.delta} ADRENALINE`],
+      'both actual earned captions are measured under the real parent camera');
+    for(const bounds of [shells[0],...labels.map(label=>label.bounds)])
+      assert(bounds.left>=0&&bounds.right<=canvas.width&&bounds.top>=0&&bounds.bottom<=canvas.height,
+        `the complete earned shell and caption ink stay inside the viewport at zoom ${zoom}, age ${age}`);
+    records.push({zoom,age,shell:shells[0],labels});
+  }
+  return records;
 }
 async function perspectiveDiagnostic() {
   // A diagnostic source distinguishes every corner independently of the
@@ -70,7 +117,8 @@ async function perspectiveDiagnostic() {
 async function main() {
   GlobalFonts.registerFromPath(path.join(root,'assets/studies/visual-overhaul/references/fonts/Oxanium.ttf'),'Oxanium');
   const diagnostic=await perspectiveDiagnostic(),assets=await nativeAssets();
-  const fingerprints=Object.fromEntries(['src/engine/presentation-assets.js','src/game/cache-road-proof.js',...modules]
+  const fingerprints=Object.fromEntries(['src/engine/presentation-assets.js','src/game/cache-road-proof.js',
+    'src/game/cache-road-guidance.js',...modules]
     .filter(file=>fs.existsSync(file)).map(file=>[file,hash(fs.readFileSync(file))]));
   const atlas=[];
   for(const key of keys) {
@@ -96,6 +144,7 @@ async function main() {
   assert.equal(new Set(registration.map(frame=>frame.pixelHash)).size,28,
     'source registration, per-frame crops and true road projection produce 28 visibly distinct native states');
   assert(registration.every(frame=>frame.opaquePixels>200),'no registered source/crop combination becomes an empty rendered frame');
+  const focusedReceipts=focusedReceiptClearance(assets);
   const canvas=createCanvas(1920,1080),ctx=canvas.getContext('2d'),frames=[];
   for(const name of ['Approach','Ready-ONE','Perfect-Impact','Good','Miss','Reduced','Focused-Turn']) {
     const r=prepared(assets),s=stage(r,name),H=r.B.CacheRoadBeatFeedback,S=r.B.CacheRoadBeatSurface;
@@ -179,10 +228,11 @@ async function main() {
   }
   for(const [file,digest] of Object.entries(fingerprints))assert.equal(hash(fs.readFileSync(file)),digest,
     'all observed source bytes remain fixed during the native asset run');
-  const report={passed:true,diagnostic,atlases:atlas,registration,frames,consecutive,sourceHashes:fingerprints,
+  const report={passed:true,diagnostic,atlases:atlas,registration,frames,consecutive,focusedReceipts,sourceHashes:fingerprints,
     limitation:'Native loaded-art production fixtures and two actual chart/judgment pairs. No human controller, browser, audio, Makko/device FPS or comfort acceptance claim.'};
   if(process.argv[2])fs.writeFileSync(path.resolve(process.argv[2]),JSON.stringify(report,null,2)+'\n');
   console.log(JSON.stringify({gate:'cache-beat-visual-system',passed:true,atlases:atlas.length,
-    sourceCells:atlas.reduce((sum,a)=>sum+a.cells.length,0),diagnostic,frames,consecutive}));
+    sourceCells:atlas.reduce((sum,a)=>sum+a.cells.length,0),diagnostic,frames,consecutive,
+    focusedReceipts:focusedReceipts.length,worstFocusedShellBottom:Math.max(...focusedReceipts.map(r=>r.shell.bottom))}));
 }
 main().catch(error=>{console.error(error.stack);process.exitCode=1;});

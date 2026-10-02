@@ -226,8 +226,8 @@ window.FILE_MANIFEST.push({name:'src/game/cache-road-beat-feedback.js',
         }
       }
       ctx.globalAlpha=receipt.alpha;
-      const badgeY=y+70-receipt.lift*.25;
       const authoredReceipt=B.CacheRoadBeatSurface?.available?.('cacheBeatTiming');
+      const badgeY=y+(authoredReceipt?56:70)-receipt.lift*.25;
       B.CacheRoadBeatSurface?.drawRelease(ctx,receipt,x,badgeY);
       const badgeSize=authoredReceipt?(receipt.quiet?52:52+receipt.impact*(receipt.perfect?8:4)):
         receipt.quiet?60:60+receipt.impact*(receipt.perfect?20:10);
@@ -237,17 +237,17 @@ window.FILE_MANIFEST.push({name:'src/game/cache-road-beat-feedback.js',
       const card=[[x-cardWidth/2+8,cardY-13],[x+cardWidth/2-8,cardY-13],
         [x+cardWidth/2,cardY-5],[x+cardWidth/2,cardY+39],
         [x-cardWidth/2+8,cardY+39],[x-cardWidth/2,cardY+31],[x-cardWidth/2,cardY-5]];
-      const authoredCard=B.CacheRoadBeatSurface?.drawShell(ctx,receipt,x,cardY+42,cardWidth,92);
+      const authoredCard=B.CacheRoadBeatSurface?.drawShell(ctx,receipt,x,cardY+10,cardWidth,76);
       if(!authoredCard) {
         path(ctx,card);ctx.fillStyle=INK;ctx.fill();outline(ctx,card,receipt.color,2);
       }
-      text(ctx,receipt.perfect?'PERFECT':'ON BEAT',x,cardY+(authoredCard?32:1),
-        authoredCard?(receipt.perfect?20:18):(receipt.perfect?23:20),receipt.color,authoredCard?cardWidth-42:185);
+      text(ctx,receipt.perfect?'PERFECT':'ON BEAT',x,cardY+1,
+        authoredCard?(receipt.perfect?18:17):(receipt.perfect?23:20),receipt.color,authoredCard?cardWidth-42:185);
       const reward=receipt.delta>0?`+${receipt.delta} ADRENALINE`:receipt.value>=100?'MAX ADRENALINE':'SYNC HELD';
-      text(ctx,reward,x,cardY+(authoredCard?51:25),authoredCard?12:13,PAPER,authoredCard?cardWidth-42:186);
+      text(ctx,reward,x,cardY+(authoredCard?17:25),authoredCard?11:13,PAPER,authoredCard?cardWidth-42:186);
       // Four charge sockets answer a connected sequence with finite geometry.
       if(receipt.chain>1) {
-        const streakY=cardY+(authoredCard?86:45);
+        const streakY=cardY+(authoredCard?47:45);
         B.CacheRoadBeatSurface?.drawStreak(ctx,x,streakY);
         for(let i=0;i<4;i++) {
           ctx.fillStyle=i<Math.min(4,receipt.chain)?receipt.color:'#355354';

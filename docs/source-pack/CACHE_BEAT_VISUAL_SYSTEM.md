@@ -25,6 +25,8 @@ their actual adrenaline gain and chain facts; a local impact ring, up to four
 analytic shard clusters and release/streak housings answer the hit. Quiet misses
 use the gray housing. A previous result shares space with the next cue through
 the existing compact side ticket, leaving its button and countdown clear.
+Earned panels fit within the complete viewport at maximum focused zoom;
+mapped badges and title/gain rows clear the car and sit inside the dark face.
 
 All motion reads the existing simulation/music/receipt clocks. Pause holds
 pixels; Reduced Motion and Flashes Off keep steady cues and suppress traveling
