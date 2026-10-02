@@ -35,6 +35,11 @@ charge sweep highlights the newly earned part of the real meter; chain and
 early/wrong/lane presses do not invent an award. A missed real opportunity
 has a quiet receipt, retaining the existing first-miss grace and later losses.
 
+Consecutive bars keep the next mapped target, countdown and approach visible
+throughout the preceding success receipt. When both use the same lane, the
+earned result uses a compact ticket beside the next ring, leaving its timing
+and button unobstructed. The next action's color takes priority at the tire line.
+
 The existing Good/Perfect and tier sounds remain on their current audio bus,
 source timing and voice budget. Ground and meter responses read the same
 simulation receipt/time; pause holds them. Reduced Motion and Flashes Off

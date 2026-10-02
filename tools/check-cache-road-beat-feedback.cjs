@@ -37,8 +37,13 @@ assert.equal(capped.road.state.beatFeedback.value,100);
 const miss=prepared(60);miss.tick(miss.pulse.target+.5);
 assert.equal(miss.road.state.beatFeedback.kind,'miss');assert.equal(miss.road.state.beatFeedback.delta,0,
   'first-miss grace never invents an adrenaline penalty');
-const canvas=createCanvas(1920,1080),ctx=canvas.getContext('2d'),texts=[];
-const rawText=ctx.fillText.bind(ctx);ctx.fillText=(value,...args)=>{texts.push(String(value));return rawText(value,...args);};
+const canvas=createCanvas(1920,1080),ctx=canvas.getContext('2d'),texts=[],paintTexts=[];
+const rawText=ctx.fillText.bind(ctx);ctx.fillText=(value,...args)=>{
+  texts.push(String(value));paintTexts.push({value:String(value),x:args[0],y:args[1],
+    width:Math.min(args[2]??Infinity,ctx.measureText(String(value)).width),
+    size:Number(ctx.font.match(/([\d.]+)px/)?.[1]||12)});
+  return rawText(value,...args);
+};
 const counters={paths:0,vertices:0,arcs:0};
 for(const [name,key] of [['beginPath','paths'],['lineTo','vertices'],['arc','arcs']]) {
   const native=ctx[name].bind(ctx);ctx[name]=(...args)=>{counters[key]++;return native(...args);};
@@ -130,6 +135,86 @@ const actualONE=countdownFrame(r.pulse.target);
 assert(actualONE.cue.window);assert(actualONE.texts.includes('PRESS'));
 assert.deepEqual(actualONE.socket(3),[244,255,220,255],
   'only the actual accepted pad window lights the final ONE socket in paper ink');
+// A fresh-v4 production chart can announce another pad on the next 128 BPM
+// bar, including the same lane. Real road updates commit both addresses;
+// the previous pad is actually judged/awarded, never supplied as a fake win.
+function consecutiveRig(sameLane,offsetMs) {
+  const c=prepared();load(c.context,'src/game/cache-road-combat.js');
+  c.B.CacheChapter={recordIds:['r1','r2','r3','r4']};c.road.chapter.encounterVersion=4;
+  c.road.state=c.inspect.newState();assert(c.road.configureEncounters());
+  c.road.selectMusicProfile();c.B.MusicTransport.start({sourceAnchorAudioSec:0,sourceOffsetTrackSec:0});
+  for(let bar=0;bar<90;bar++) {
+    c.tick(bar*4);
+    const prior=c.road.pulses().find(pulse=>pulse.target===bar*4);
+    const next=c.road.pulses().find(pulse=>pulse.target===bar*4+4);
+    if(!prior||!next||(prior.lane===next.lane)!==sameLane)continue;
+    c.tick(prior.target+offsetMs/(60/128*1000));
+    // Isolate this timing fixture's physical lane as the original focused
+    // judgment gate does. Chart, deadline, gain and receipt stay production.
+    c.road.state.lane=c.road.state.lanePos=prior.lane;
+    const pressTime=prior.target*60/128+offsetMs/1000;
+    assert(c.road.catchPulse(['road_a','road_b','road_x','road_y'][prior.action],pressTime,pressTime));
+    const earned=copy(c.road.state.beatFeedback);
+    assert.equal(earned.pulseId,prior.id);assert.equal(earned.kind,offsetMs===0?'perfect':'good');
+    assert.equal(earned.delta,c.road.state.adrenaline.lastDelta);
+    assert.equal(next.target-prior.target,4);assert.equal(4*60/128*1000,1875);
+    return {c,prior,next,earned,pressBeat:prior.target+offsetMs/(60/128*1000)};
+  }
+  assert.fail('Actual current-v4 chart must contain this consecutive-lane fixture');
+}
+const consecutive=[];
+function compareNextTarget(fixture,{age,reduced=false,flashes=true,windowLane=null}={}) {
+  const {c,next,earned}=fixture,helper=c.B.CacheRoadBeatFeedback;
+  c.w.BARCODE_RENDER_QUALITY={flashes};let productionFrame=null;
+  c.B.CacheRoadBeatFeedback={...helper,drawTarget(drawCtx,state,args) {
+    productionFrame=args;return helper.drawTarget(drawCtx,state,args);
+  }};
+  ctx.reset();const beforeProduction=JSON.stringify(c.road.state);c.road.draw(ctx);
+  assert.equal(JSON.stringify(c.road.state),beforeProduction);
+  c.B.CacheRoadBeatFeedback=helper;
+  assert.equal(productionFrame.nextPulse.id,next.id,'real road rendering selects the consecutive next pad');
+  assert(productionFrame.nextCue.ready);
+  const state=windowLane===null?c.road.state:{...c.road.state,lanePos:windowLane,musicBeatFloat:next.target};
+  const cue=windowLane===null?productionFrame.nextCue:c.inspect.pulseVisual(next,state);
+  const p=productionFrame.projection,x=p.laneX(next.lane,p.strikeDepth);
+  const args={nextPulse:next,nextCue:cue,projection:p,reduced,road:c.road};
+  ctx.reset();ctx.clearRect(0,0,1920,1080);texts.length=0;paintTexts.length=0;
+  helper.drawTarget(ctx,{...state,beatFeedback:null},args);
+  const expectedTexts=[...texts],instruction=paintTexts.find(item=>['PRESS','CHANGE LANE','ON ONE'].includes(item.value));
+  assert(instruction);const halfWidth=Math.max(72,Math.ceil(instruction.width/2)+3);
+  const rect={x:Math.floor(x-halfWidth),y:Math.floor(p.strikeY+13),w:halfWidth*2+1,h:136};
+  const reference=Buffer.from(ctx.getImageData(rect.x,rect.y,rect.w,rect.h).data);
+  ctx.reset();ctx.clearRect(0,0,1920,1080);texts.length=0;paintTexts.length=0;
+  const untouched=JSON.stringify(state);helper.drawTarget(ctx,state,args);
+  const targetTexts=[...texts],targetPixels=Buffer.from(ctx.getImageData(rect.x,rect.y,rect.w,rect.h).data);
+  assert.deepEqual(targetTexts,expectedTexts,'earned success never suppresses any next mapped label/countdown/instruction');
+  assert.deepEqual(targetPixels,reference,'earned paint never changes the next target timing ink');
+  assert(helper.drawReceipt(ctx,state,args));
+  assert.deepEqual(Buffer.from(ctx.getImageData(rect.x,rect.y,rect.w,rect.h).data),reference,
+    'same-lane compact ticket and adjacent-lane impact leave the entire measured next target untouched');
+  assert.equal(JSON.stringify(state),untouched);
+  assert(texts.includes(earned.kind==='perfect'?'PERFECT':'ON BEAT'));
+  assert(texts.includes(next.lane===earned.lane?`+${earned.delta}`:`+${earned.delta} ADRENALINE`));
+  if(windowLane!==null)assert(targetTexts.includes(windowLane===next.lane?'PRESS':'CHANGE LANE'));
+  consecutive.push({sameLane:next.lane===earned.lane,quality:earned.kind,age,reduced,flashes,
+    priorId:fixture.prior.id,nextId:next.id,instruction:instruction.value,
+    measuredInstructionWidth:instruction.width,protectedHalfWidth:halfWidth});
+}
+for(const [sameLane,offsetMs] of [[false,150],[true,0]]) {
+  const fixture=consecutiveRig(sameLane,offsetMs),{c,earned}=fixture;
+  for(const age of [0,400,1000]) {
+    while(c.road.state.elapsedMs-earned.atMs<age)
+      c.tick(fixture.pressBeat+(c.road.state.elapsedMs-earned.atMs+20)/(60/128*1000));
+    assert.equal(c.road.state.elapsedMs-earned.atMs,age);
+    for(const options of [{reduced:false,flashes:true},{reduced:true,flashes:true},{reduced:false,flashes:false}])
+      compareNextTarget(fixture,{age,...options});
+  }
+  // Explicit presentation stress cases use the real next address while
+  // holding the earned receipt age. They cover the widest instruction ink,
+  // including a required lane change and the in-lane accepted PRESS cue.
+  for(const lanePos of [(fixture.next.lane+1)%4,fixture.next.lane])
+    compareNextTarget(fixture,{age:1000,reduced:false,windowLane:lanePos});
+}
 assert.equal(H.feedbackPose({...r.road.state,elapsedMs:at+1200}),null,'the receipt expires once at1200ms');
 // Drawing restores the exact inherited transform and opacity, including a
 // parent cinematic HUD fade on the existing main context.
@@ -165,10 +250,11 @@ if(outArg) {
   fs.writeFileSync(path.join(out,'Production-Road.png'),roadCanvas.toBuffer('image/png'));
   fs.writeFileSync(path.join(out,'receipt.json'),JSON.stringify({passed:true,sourceHashes,
     labels:p80.texts,perfectWork:p80.counters,goodWork:good.counters,missWork:missed.counters,
-    badgePixels,precedingONEQuiet:true,trueONEPress:true,used,limits:'Native presentation fixtures on actual earned production pad receipts; controlled host and staged review time. No human, physical-controller, browser or device frame-pacing acceptance.'},null,2)+'\n');
+    badgePixels,consecutive,precedingONEQuiet:true,trueONEPress:true,used,limits:'Native presentation fixtures on actual earned production pad receipts; controlled host and staged review time. Consecutive current-v4 chart updates and judgments are production, with physical lanes isolated; accepted-window overlap cases additionally hold receipt age as a presentation stress fixture. No human, physical-controller, browser or device frame-pacing acceptance.'},null,2)+'\n');
 }
 for(const [file,digest] of Object.entries(sourceHashes))assert.equal(hash(fs.readFileSync(file)),digest);
 console.log(JSON.stringify({gate:'cache-road-ground-beat-feedback',passed:true,
   earnedEarlyOnONE:true,actualCappedGain:true,duplicateReceiptStable:true,distinctJudgments:true,
   quietStable:true,pausedStable:true,precedingONEQuiet:true,trueONEPress:true,
-  mappedBadges:badgePixels,realRoadDispatch:used,perfectWork:p80.counters}));
+  consecutiveNextCueFrames:consecutive.length,mappedBadges:badgePixels,
+  realRoadDispatch:used,perfectWork:p80.counters}));

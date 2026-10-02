@@ -4652,7 +4652,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.restore();
       }
       const beatReceiptDrawn=showFeedback&&B.CacheRoadBeatFeedback?.drawReceipt(ctx,s,
-        {projection:beatProjection,reduced,road:this});
+        {nextPulse,nextCue,projection:beatProjection,reduced,road:this});
       if(showFeedback&&!beatReceiptDrawn&&s.pulseFlashMs>0&&s.pulseFlashLane!==null) {
         const lane=s.pulseFlashLane;
         const age=1-s.pulseFlashMs/650;
