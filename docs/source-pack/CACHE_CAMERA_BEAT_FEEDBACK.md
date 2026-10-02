@@ -39,6 +39,10 @@ Consecutive bars keep the next mapped target, countdown and approach visible
 throughout the preceding result. When both use the same lane, the earned or
 missed result uses a compact ticket beside the next ring, leaving its timing
 and button unobstructed. The next action's color takes priority at the tire line.
+All physical pads draw before the single active target pass, so passed pads
+cannot cover the next button or contracting ring. Missed pads retire with the
+same muted paint and disabled old symbol as caught pads; actual vehicles still
+draw over the complete ground feedback.
 
 The existing Good/Perfect and tier sounds remain on their current audio bus,
 source timing and voice budget. Ground and meter responses read the same

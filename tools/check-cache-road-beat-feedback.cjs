@@ -163,21 +163,83 @@ function consecutiveRig(sameLane,offsetMs) {
   assert.fail('Actual current-v4 chart must contain this consecutive-lane fixture');
 }
 const consecutive=[];
+function protectedProductionPixels(drawCtx,args) {
+  const p=args.projection,x=p.laneX(args.nextPulse.lane,p.strikeDepth),m=drawCtx.getTransform();
+  const local={left:x-72,right:x+72,top:p.strikeY+13,bottom:p.strikeY+149};
+  const corners=[[local.left,local.top],[local.right,local.top],[local.right,local.bottom],[local.left,local.bottom]]
+    .map(([xx,yy])=>[m.a*xx+m.c*yy+m.e,m.b*xx+m.d*yy+m.f]);
+  const left=Math.max(0,Math.floor(Math.min(...corners.map(point=>point[0]))));
+  const right=Math.min(1920,Math.ceil(Math.max(...corners.map(point=>point[0]))));
+  const top=Math.max(0,Math.floor(Math.min(...corners.map(point=>point[1]))));
+  const bottom=Math.min(1080,Math.ceil(Math.max(...corners.map(point=>point[1]))));
+  assert(right>left&&bottom>top,'the actual transformed next timing target has visible native pixels');
+  const width=right-left,height=bottom-top,data=drawCtx.getImageData(left,top,width,height).data;
+  const determinant=m.a*m.d-m.b*m.c,pixels=[];
+  for(let yy=0;yy<height;yy++)for(let xx=0;xx<width;xx++) {
+    const px=left+xx+.5-m.e,py=top+yy+.5-m.f;
+    const wx=(m.d*px-m.c*py)/determinant,wy=(-m.b*px+m.a*py)/determinant;
+    if(wx<local.left||wx>local.right||wy<local.top||wy>local.bottom)continue;
+    const offset=(yy*width+xx)*4;pixels.push(data[offset],data[offset+1],data[offset+2],data[offset+3]);
+  }
+  assert(pixels.length>4000,'the production pixel comparison covers the visible target, not an empty crop');
+  return Buffer.from(pixels);
+}
+function wholeProductionFrame(c,state,{reduced=false,flashes=true}={}) {
+  const helper=c.B.CacheRoadBeatFeedback,guidance=c.B.CacheRoadGuidance,live=c.road.state;
+  const preferences=c.B.Preferences,events=[],missedPads=[];let padScope=null,frame=null;
+  c.w.BARCODE_RENDER_QUALITY={flashes};c.B.Preferences={...(preferences||{}),
+    values:{...(preferences?.values||{}),reducedMotion:reduced,flashes}};
+  c.B.CacheRoadGuidance={...guidance,drawButton(drawCtx,args) {
+    if(padScope?.missed) {
+      assert.equal(args.disabled,true,'an actual expired physical pad paints its old mapped symbol as disabled');
+      padScope.disabled=true;
+    }
+    return guidance.drawButton(drawCtx,args);
+  }};
+  c.B.CacheRoadBeatFeedback={...helper,
+    drawPad(drawCtx,s,pulse,cue,args) {
+      const event={kind:'pad',id:pulse.id,missed:!!s.missedPulses[pulse.id],spent:args.spent};events.push(event);
+      if(event.missed) {assert.equal(args.spent,true,'the actual production loop treats missed pads as resolved');missedPads.push(event);}
+      padScope=event;const result=helper.drawPad(drawCtx,s,pulse,cue,args);padScope=null;return result;
+    },
+    drawTarget(drawCtx,s,args) {
+      events.push({kind:'target',id:args.nextPulse?.id});frame=args;
+      return helper.drawTarget(drawCtx,s,args);
+    },
+    drawReceipt(drawCtx,s,args) {
+      events.push({kind:'receipt',id:s.beatFeedback?.pulseId});
+      const reference=args.nextCue?.ready?protectedProductionPixels(drawCtx,args):null;
+      const result=helper.drawReceipt(drawCtx,s,args);
+      if(reference)assert.deepEqual(protectedProductionPixels(drawCtx,args),reference,
+        'the full production receipt preserves next timing pixels after every physical pad is painted');
+      return result;
+    }};
+  try {
+    c.road.state=state;ctx.reset();const before=JSON.stringify(state);c.road.draw(ctx);
+    assert.equal(JSON.stringify(state),before,'whole-scene Canvas observation cannot mutate actual chart or reward facts');
+    const targets=events.filter(event=>event.kind==='target');assert.equal(targets.length,1,'the next target paints exactly once');
+    const targetIndex=events.findIndex(event=>event.kind==='target');
+    assert(events.some(event=>event.kind==='pad'),'the ordering probe exercises the actual physical pad loop');
+    assert(events.every((event,index)=>event.kind!=='pad'||index<targetIndex),
+      'every actual physical pad paints before the next permanent timing target');
+    assert(events.findIndex(event=>event.kind==='receipt')>targetIndex,'the actual next target precedes the ground receipt');
+    assert(missedPads.every(event=>event.disabled),'expired old mapped symbols are actually disabled by the native badge helper');
+    return {frame,pads:events.filter(event=>event.kind==='pad').length,
+      missedPads:missedPads.map(event=>({id:event.id,spent:event.spent,disabled:event.disabled})),
+      order:events.map(event=>event.kind)};
+  } finally {
+    c.road.state=live;c.B.CacheRoadBeatFeedback=helper;c.B.CacheRoadGuidance=guidance;c.B.Preferences=preferences;
+  }
+}
 function compareNextTarget(fixture,{age,reduced=false,flashes=true,windowLane=null}={}) {
   const {c,next,earned}=fixture,helper=c.B.CacheRoadBeatFeedback;
-  c.w.BARCODE_RENDER_QUALITY={flashes};let productionFrame=fixture.productionFrame;
-  if(!productionFrame) {
-    c.B.CacheRoadBeatFeedback={...helper,drawTarget(drawCtx,state,args) {
-      productionFrame=args;return helper.drawTarget(drawCtx,state,args);
-    }};
-    ctx.reset();const beforeProduction=JSON.stringify(c.road.state);c.road.draw(ctx);
-    assert.equal(JSON.stringify(c.road.state),beforeProduction);
-    c.B.CacheRoadBeatFeedback=helper;
-  }
-  assert.equal(productionFrame.nextPulse.id,next.id,'real road rendering selects the consecutive next pad');
-  assert(productionFrame.nextCue.ready);
   const base=fixture.state?{...fixture.state,elapsedMs:earned.atMs+age}:c.road.state;
   const state=windowLane===null?base:{...base,lanePos:windowLane,musicBeatFloat:next.target};
+  const wholeScene=wholeProductionFrame(c,state,{reduced,flashes}),productionFrame=wholeScene.frame;
+  assert.equal(productionFrame.nextPulse.id,next.id,'real road rendering selects the consecutive next pad');
+  assert(productionFrame.nextCue.ready);
+  if(earned.kind==='miss')assert(wholeScene.missedPads.some(pad=>pad.id===earned.pulseId),
+    'the actual missed prior pad participates in the full production ordering comparison');
   const cue=windowLane===null?productionFrame.nextCue:c.inspect.pulseVisual(next,state);
   const p=productionFrame.projection,x=p.laneX(next.lane,p.strikeDepth);
   const args={nextPulse:next,nextCue:cue,projection:p,reduced,road:c.road};
@@ -205,7 +267,7 @@ function compareNextTarget(fixture,{age,reduced=false,flashes=true,windowLane=nu
   if(windowLane!==null)assert(targetTexts.includes(windowLane===next.lane?'PRESS':'CHANGE LANE'));
   consecutive.push({sameLane:next.lane===earned.lane,quality:earned.kind,age,reduced,flashes,
     priorId:fixture.prior.id,nextId:next.id,instruction:instruction.value,
-    delta:earned.delta,measuredInstructionWidth:instruction.width,protectedHalfWidth:halfWidth});
+    delta:earned.delta,measuredInstructionWidth:instruction.width,protectedHalfWidth:halfWidth,wholeScene});
 }
 for(const [sameLane,offsetMs] of [[false,150],[true,0]]) {
   const fixture=consecutiveRig(sameLane,offsetMs),{c,earned}=fixture;

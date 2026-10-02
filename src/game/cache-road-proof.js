@@ -4507,14 +4507,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const beatProjection={laneEdge,laneX,roadY,depth,strikeDepth:STRIKE_DEPTH,
         strikeDistance:STRIKE_DISTANCE,strikeY};
       const timingContext=ctx;
-      if(!cinema||cinema.kind==='handoff'||cinema.hudAlpha>.001) {
+      if(!B.CacheRoadBeatFeedback?.drawTarget&&
+        (!cinema||cinema.kind==='handoff'||cinema.hudAlpha>.001)) {
       ctx.save();
       if(cinema&&cinema.kind!=='handoff'&&cinema.hudAlpha<1) {
         ctx=B.CacheRoadCinematics.withHUDAlpha(timingContext,cinema.hudAlpha);
         ctx.globalAlpha=1;
       }
-      if(!B.CacheRoadBeatFeedback?.drawTarget(ctx,s,{nextPulse,nextCue,
-        projection:beatProjection,reduced,road:this})) {
       for(let lane=0;lane<4;lane++) {
         const active=nextCue&&nextCue.remaining<=4&&nextPulse.lane===lane;
         const caught=s.pulseFlashMs>0&&s.pulseFlashLane===lane;
@@ -4563,7 +4562,6 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       }
       ctx.fillStyle='#b8e1d5';ctx.font='bold 17px Oxanium, monospace';
       ctx.textAlign='center';ctx.fillText('1',laneEdge(0,STRIKE_DEPTH)-26,strikeY+6);
-      }
       ctx.restore();
       ctx=timingContext;
       }
@@ -4576,7 +4574,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const near = depth(d - 18), far = depth(d + 18), mid = depth(d);
         if (mid < .17 || near <= far) continue;
         const latched=s.pendingPulseAwards.some(hit=>hit.pulse.id===pulse.id);
-        const spent=!!s.caughtPulses[pulse.id]&&!latched,ready=cue.ready;
+        const spent=(!!s.caughtPulses[pulse.id]||!!s.missedPulses?.[pulse.id])&&!latched,
+          ready=cue.ready;
         if(B.CacheRoadBeatFeedback?.drawPad(ctx,s,pulse,cue,{projection:beatProjection,
           spent,latched,reduced,road:this}))continue;
         const downbeatWindow=cue.strike,downbeatCharge=cue.charge;
@@ -4650,6 +4649,20 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           ctx.fillText(B.GamepadUI?.connected?B.ControllerSettings?.button(face.button)||face.keyboard:face.keyboard,0,38);
         }
         ctx.restore();
+      }
+      // Resolved road pads retire below the next functional timing cue.
+      // Keep this single target pass beneath receipts and actual traffic.
+      if(B.CacheRoadBeatFeedback?.drawTarget&&
+        (!cinema||cinema.kind==='handoff'||cinema.hudAlpha>.001)) {
+        ctx.save();
+        if(cinema&&cinema.kind!=='handoff'&&cinema.hudAlpha<1) {
+          ctx=B.CacheRoadCinematics.withHUDAlpha(timingContext,cinema.hudAlpha);
+          ctx.globalAlpha=1;
+        }
+        B.CacheRoadBeatFeedback.drawTarget(ctx,s,{nextPulse,nextCue,
+          projection:beatProjection,reduced,road:this});
+        ctx.restore();
+        ctx=timingContext;
       }
       const beatReceiptDrawn=showFeedback&&B.CacheRoadBeatFeedback?.drawReceipt(ctx,s,
         {nextPulse,nextCue,projection:beatProjection,reduced,road:this});
