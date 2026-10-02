@@ -165,16 +165,19 @@ function consecutiveRig(sameLane,offsetMs) {
 const consecutive=[];
 function compareNextTarget(fixture,{age,reduced=false,flashes=true,windowLane=null}={}) {
   const {c,next,earned}=fixture,helper=c.B.CacheRoadBeatFeedback;
-  c.w.BARCODE_RENDER_QUALITY={flashes};let productionFrame=null;
-  c.B.CacheRoadBeatFeedback={...helper,drawTarget(drawCtx,state,args) {
-    productionFrame=args;return helper.drawTarget(drawCtx,state,args);
-  }};
-  ctx.reset();const beforeProduction=JSON.stringify(c.road.state);c.road.draw(ctx);
-  assert.equal(JSON.stringify(c.road.state),beforeProduction);
-  c.B.CacheRoadBeatFeedback=helper;
+  c.w.BARCODE_RENDER_QUALITY={flashes};let productionFrame=fixture.productionFrame;
+  if(!productionFrame) {
+    c.B.CacheRoadBeatFeedback={...helper,drawTarget(drawCtx,state,args) {
+      productionFrame=args;return helper.drawTarget(drawCtx,state,args);
+    }};
+    ctx.reset();const beforeProduction=JSON.stringify(c.road.state);c.road.draw(ctx);
+    assert.equal(JSON.stringify(c.road.state),beforeProduction);
+    c.B.CacheRoadBeatFeedback=helper;
+  }
   assert.equal(productionFrame.nextPulse.id,next.id,'real road rendering selects the consecutive next pad');
   assert(productionFrame.nextCue.ready);
-  const state=windowLane===null?c.road.state:{...c.road.state,lanePos:windowLane,musicBeatFloat:next.target};
+  const base=fixture.state?{...fixture.state,elapsedMs:earned.atMs+age}:c.road.state;
+  const state=windowLane===null?base:{...base,lanePos:windowLane,musicBeatFloat:next.target};
   const cue=windowLane===null?productionFrame.nextCue:c.inspect.pulseVisual(next,state);
   const p=productionFrame.projection,x=p.laneX(next.lane,p.strikeDepth);
   const args={nextPulse:next,nextCue:cue,projection:p,reduced,road:c.road};
@@ -193,12 +196,16 @@ function compareNextTarget(fixture,{age,reduced=false,flashes=true,windowLane=nu
   assert.deepEqual(Buffer.from(ctx.getImageData(rect.x,rect.y,rect.w,rect.h).data),reference,
     'same-lane compact ticket and adjacent-lane impact leave the entire measured next target untouched');
   assert.equal(JSON.stringify(state),untouched);
-  assert(texts.includes(earned.kind==='perfect'?'PERFECT':'ON BEAT'));
-  assert(texts.includes(next.lane===earned.lane?`+${earned.delta}`:`+${earned.delta} ADRENALINE`));
+  assert(texts.includes(earned.kind==='miss'?'MISSED':earned.kind==='perfect'?'PERFECT':'ON BEAT'));
+  if(earned.kind==='miss') {
+    assert(texts.includes(earned.delta<0?String(earned.delta):'NEXT ONE'));
+    if(earned.delta<0)assert(texts.includes('ADRENALINE'));
+    else assert(!texts.some(value=>/^[-+]\d+$/.test(value)),'real grace never invents a loss');
+  } else assert(texts.includes(next.lane===earned.lane?`+${earned.delta}`:`+${earned.delta} ADRENALINE`));
   if(windowLane!==null)assert(targetTexts.includes(windowLane===next.lane?'PRESS':'CHANGE LANE'));
   consecutive.push({sameLane:next.lane===earned.lane,quality:earned.kind,age,reduced,flashes,
     priorId:fixture.prior.id,nextId:next.id,instruction:instruction.value,
-    measuredInstructionWidth:instruction.width,protectedHalfWidth:halfWidth});
+    delta:earned.delta,measuredInstructionWidth:instruction.width,protectedHalfWidth:halfWidth});
 }
 for(const [sameLane,offsetMs] of [[false,150],[true,0]]) {
   const fixture=consecutiveRig(sameLane,offsetMs),{c,earned}=fixture;
@@ -215,6 +222,44 @@ for(const [sameLane,offsetMs] of [[false,150],[true,0]]) {
   for(const lanePos of [(fixture.next.lane+1)%4,fixture.next.lane])
     compareNextTarget(fixture,{age:1000,reduced:false,windowLane:lanePos});
 }
+// Real20ms heard-clock/update progression, with one actual catch resetting
+// the missed-opportunity streak. The next two same-lane pads genuinely miss:
+// first grace keeps20charge; the second loses12. No miss receipt is injected.
+const missedRun=prepared();load(missedRun.context,'src/game/cache-road-combat.js');
+missedRun.B.CacheChapter={recordIds:['r1','r2','r3','r4'],collect(){return false;}};
+missedRun.road.chapter.encounterVersion=4;missedRun.road.state=missedRun.inspect.newState();
+assert(missedRun.road.configureEncounters());missedRun.road.selectMusicProfile();
+missedRun.B.MusicTransport.start({sourceAnchorAudioSec:0,sourceOffsetTrackSec:0});
+const realMisses=[],seenMisses=new Set();let resetCaught=false;
+for(let frame=0;frame<3000&&realMisses.length<2;frame++) {
+  const beat=frame*20/(60/128*1000);missedRun.tick(beat);
+  const s=missedRun.road.state,reset=missedRun.road.pulses().find(p=>p.id==='song/22');
+  if(!resetCaught&&reset&&beat>=reset.target&&beat-reset.target<.06) {
+    s.lane=s.lanePos=reset.lane;const sourceTime=beat*60/128;
+    assert(missedRun.road.catchPulse(['road_a','road_b','road_x','road_y'][reset.action],sourceTime,sourceTime));
+    assert.equal(s.adrenaline.missStreak,0);assert.equal(s.adrenaline.value,20);resetCaught=true;
+  }
+  const receipt=s.beatFeedback;
+  if(!resetCaught||receipt?.kind!=='miss'||!['song/23','song/24'].includes(receipt.pulseId)||
+    seenMisses.has(receipt.pulseId))continue;
+  const prior=missedRun.road.pulses().find(p=>p.id===receipt.pulseId);
+  const next=missedRun.road.pulses().find(p=>p.target===prior.target+4&&p.lane===prior.lane);
+  assert(next,'the real missed-pad fixture has a same-lane consecutive target');
+  assert(s.missedPulses[prior.id]);assert.equal(receipt.delta,realMisses.length===0?0:-12);
+  assert.equal(s.adrenaline.value,realMisses.length===0?20:8);
+  let productionFrame=null;const helper=missedRun.B.CacheRoadBeatFeedback;
+  missedRun.B.CacheRoadBeatFeedback={...helper,drawTarget(drawCtx,state,args) {
+    productionFrame=args;return helper.drawTarget(drawCtx,state,args);
+  }};
+  ctx.reset();const unchanged=JSON.stringify(s);missedRun.road.draw(ctx);
+  assert.equal(JSON.stringify(s),unchanged);missedRun.B.CacheRoadBeatFeedback=helper;
+  realMisses.push({c:missedRun,prior,next,earned:copy(receipt),state:copy(s),productionFrame});
+  seenMisses.add(prior.id);
+}
+assert(resetCaught);assert.equal(realMisses.length,2,'both actual grace and actual loss must be sampled');
+for(const fixture of realMisses)for(const age of [0,400,980])
+  for(const options of [{reduced:false,flashes:true},{reduced:true,flashes:true},{reduced:false,flashes:false}])
+    compareNextTarget(fixture,{age,...options});
 assert.equal(H.feedbackPose({...r.road.state,elapsedMs:at+1200}),null,'the receipt expires once at1200ms');
 // Drawing restores the exact inherited transform and opacity, including a
 // parent cinematic HUD fade on the existing main context.

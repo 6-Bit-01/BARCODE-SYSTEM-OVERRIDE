@@ -138,23 +138,31 @@ window.FILE_MANIFEST.push({name:'src/game/cache-road-beat-feedback.js',
     const p=projection,lane=receipt.lane,x=p.laneX(lane,p.strikeDepth),y=p.strikeY;
     if(!Number.isInteger(lane)||lane<0||lane>3)return false;
     ctx.save();ctx.globalAlpha=receipt.alpha;
-    if(receipt.success) {
-      if(nextCue?.ready&&nextPulse?.lane===lane&&nextPulse.id!==receipt.pulseId) {
-        // The next real target always owns its entire timing area. Keep the
-        // earned receipt in a small past-result ticket beside that ring,
-        // with no old button or impact crossing the approaching next cue.
-        const ticketX=x+(lane<2?1:-1)*123,ticketY=y+83,halfWidth=47;
-        const ticket=[[ticketX-halfWidth+6,ticketY-33],[ticketX+halfWidth-6,ticketY-33],
-          [ticketX+halfWidth,ticketY-27],[ticketX+halfWidth,ticketY+27],
-          [ticketX+halfWidth-6,ticketY+33],[ticketX-halfWidth+6,ticketY+33],
-          [ticketX-halfWidth,ticketY+27],[ticketX-halfWidth,ticketY-27]];
-        path(ctx,ticket);ctx.fillStyle=INK;ctx.fill();outline(ctx,ticket,receipt.color,1.5);
-        text(ctx,receipt.perfect?'PERFECT':'ON BEAT',ticketX,ticketY-18,12,receipt.color,84);
+    if(nextCue?.ready&&nextPulse?.lane===lane&&nextPulse.id!==receipt.pulseId) {
+      // The next real target always owns its entire timing area. Keep every
+      // previous outcome in a small side ticket, including a genuine miss,
+      // with no old button, impact or correction ink crossing the next cue.
+      const ticketX=x+(lane<2?1:-1)*123,ticketY=y+83,halfWidth=47;
+      const ticket=[[ticketX-halfWidth+6,ticketY-33],[ticketX+halfWidth-6,ticketY-33],
+        [ticketX+halfWidth,ticketY-27],[ticketX+halfWidth,ticketY+27],
+        [ticketX+halfWidth-6,ticketY+33],[ticketX-halfWidth+6,ticketY+33],
+        [ticketX-halfWidth,ticketY+27],[ticketX-halfWidth,ticketY-27]];
+      path(ctx,ticket);ctx.fillStyle=INK;ctx.fill();outline(ctx,ticket,receipt.color,1.5);
+      text(ctx,receipt.success?(receipt.perfect?'PERFECT':'ON BEAT'):'MISSED',
+        ticketX,ticketY-18,12,receipt.color,84);
+      if(receipt.success) {
         text(ctx,receipt.delta>0?`+${receipt.delta}`:receipt.value>=100?'MAX':'SYNC',
           ticketX,ticketY+2,22,PAPER,84);
         text(ctx,'ADRENALINE',ticketX,ticketY+21,9,receipt.color,84);
-        ctx.restore();return true;
+      } else if(receipt.delta<0) {
+        text(ctx,receipt.delta,ticketX,ticketY+2,22,receipt.color,84);
+        text(ctx,'ADRENALINE',ticketX,ticketY+21,9,receipt.color,84);
+      } else {
+        text(ctx,'NEXT ONE',ticketX,ticketY+6,14,receipt.color,84);
       }
+      ctx.restore();return true;
+    }
+    if(receipt.success) {
       const near=p.depth(p.strikeDistance-12-receipt.expansion*38);
       const far=p.depth(p.strikeDistance+22+receipt.expansion*30);
       const margin=receipt.perfect?9:25;
