@@ -1,5 +1,18 @@
 # Current State
 
+## October 2 — Cache camera and ground timing feedback candidate
+
+Continues from merged #177. The owner reports a severe driving-stage frame
+drop and camera-shift glitch, and rejects the faint ground timing overlays.
+This pass repairs reproduced camera discontinuities and measures bounded
+production rendering work. Ground cues gain clearer mapped lane/approach and
+timing paint, distinct earned Good/Perfect impacts, and a visible connection
+to the actual adrenaline gain and threshold. Song/pad addresses, judgment,
+controls, benefits, saves and shared owners remain intact. Exact final gates
+and publication belong to the generated export receipt. Native host timing
+does not establish owner device FPS; appearance, fun and comfort remain an
+owner play check. See `CACHE_CAMERA_BEAT_FEEDBACK.md`.
+
 ## October 2 — Run polish, signal art and driving scenes candidate
 
 Continues from merged #176. The run receives a coherent, registered sibling

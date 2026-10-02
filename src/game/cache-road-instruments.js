@@ -111,37 +111,97 @@ window.FILE_MANIFEST.push({name:'src/game/cache-road-instruments.js',
   function adrenalinePose(s) {
     return s.adrenaline?.version===1?B.CacheRoadAdrenaline?.pose?.(s.adrenaline):null;
   }
-  function drawAdrenaline(ctx,s,{x=30,y=240,w=450,h=74,reduced=false}={}) {
+  function rewardPose(s,{reduced=false}={}) {
     const a=adrenalinePose(s);if(!a)return null;
-    const tier=TIERS[a.tier]||TIERS.cold,color=tier.color;
-    const quiet=reduced||window.BARCODE_RENDER_QUALITY?.flashes===false;
     const age=(s.elapsedMs||0)-(a.lastAtMs||0);
-    const recent=a.lastResult&&age>=0&&age<1200;
+    const recent=!!a.lastResult&&age>=0&&age<1200;
+    const earned=recent&&['good','perfect'].includes(a.lastResult);
+    const beat=B.CacheRoadBeatFeedback?.feedbackPose?.(s,{reduced});
+    const paired=beat&&beat.atMs===a.lastAtMs&&beat.quality===a.lastResult&&
+      beat.value===a.value&&beat.delta===a.lastDelta?beat:null;
+    const before=clamp(a.value-(a.lastDelta||0),0,100);
+    const previousTier=before>=70?'rush':before>=35?'charged':'cold';
+    const quiet=reduced||window.BARCODE_RENDER_QUALITY?.flashes===false;
+    // The value always paints in full. Only the ink over the genuinely earned
+    // interval sweeps, so a delayed animation never implies unavailable power.
+    const progress=quiet?1:clamp(age/560),sweep=1-Math.pow(1-progress,3);
+    return {a,age,recent,earned,quiet,before,after:a.value,
+      from:before/100,to:a.ratio,head:before/100+(a.ratio-before/100)*sweep,
+      quality:earned?a.lastResult:null,chain:Math.max(0,a.chain||0),
+      tierChanged:earned&&(paired?paired.tierChanged:previousTier!==a.tier),
+      paired:!!paired,color:paired?.color||(a.lastResult==='perfect'?'#ffe59c':'#b7f7aa')};
+  }
+  function drawAdrenaline(ctx,s,{x=30,y=240,w=450,h=74,reduced=false}={}) {
+    const reward=rewardPose(s,{reduced});if(!reward)return null;
+    const {a,age,recent,earned,quiet}=reward;
+    const tier=TIERS[a.tier]||TIERS.cold,color=tier.color;
     const delta=recent&&a.lastDelta?`${a.lastDelta>0?'+':''}${a.lastDelta}`:'';
     ctx.save();ctx.globalAlpha=1;panel(ctx,x,y,w,h,color,a.tier==='rush');
-    text(ctx,'ADRENALINE',x+16,y+14,12,PAPER,'left',140);
-    text(ctx,tier.label,x+w-63,y+14,11,color,'right',102);
+    text(ctx,'ADRENALINE',x+16,y+14,12,PAPER,'left',110);
+    if(a.chain>0) {
+      shape(ctx,x+131,y+5,76,18);ctx.fillStyle='#183c39';ctx.fill();
+      ctx.strokeStyle=earned?reward.color:'#71998c';ctx.lineWidth=1;ctx.stroke();
+      text(ctx,`CHAIN ×${a.chain}`,x+169,y+14,10,earned?reward.color:PAPER,'center',69);
+    }
+    if(earned)text(ctx,reward.quality.toUpperCase(),x+218,y+14,11,reward.color,'left',77);
+    else if(recent&&['miss','wreck','turbo','disrupt'].includes(a.lastResult))
+      text(ctx,a.lastResult.toUpperCase(),x+218,y+14,10,a.lastDelta<0?'#ffab95':MUTED,'left',77);
+    text(ctx,tier.label,x+w-58,y+14,11,color,'right',88);
     text(ctx,Math.round(a.value),x+w-17,y+14,16,color,'right',40);
-    glyph(ctx,'pulse',x+27,y+38,24,color);
+    const pulseSize=earned&&!quiet?24+3*Math.pow(1-clamp(age/700),2):24;
+    glyph(ctx,'pulse',x+27,y+38,pulseSize,earned?reward.color:color);
     const bx=x+54,by=y+31,bw=w-125,cells=20,gap=3,cw=(bw-(cells-1)*gap)/cells;
     for(let i=0;i<cells;i++) {
       const start=i/cells,fraction=clamp((a.ratio-start)*cells);
-      ctx.fillStyle='#203c46';ctx.fillRect(bx+i*(cw+gap),by,cw,14);
-      if(fraction>0) {ctx.fillStyle=color;ctx.fillRect(bx+i*(cw+gap),by,cw*fraction,14);}
+      const cx=bx+i*(cw+gap);
+      ctx.fillStyle='#203c46';ctx.fillRect(cx,by,cw,14);
+      if(fraction>0) {
+        ctx.fillStyle=color;ctx.fillRect(cx,by,cw*fraction,14);
+        ctx.fillStyle='#eaffde66';ctx.fillRect(cx,by,cw*fraction,2);
+      }
+      if(earned&&a.lastDelta>0) {
+        const from=clamp((reward.from-start)*cells),to=clamp((reward.head-start)*cells);
+        if(to>from) {
+          ctx.fillStyle=reward.color;ctx.fillRect(cx+cw*from,by+2,cw*(to-from),10);
+          ctx.fillStyle=PAPER;ctx.fillRect(cx+cw*from,by+2,cw*(to-from),2);
+        }
+      } else if(recent&&a.lastDelta<0) {
+        const from=clamp((a.ratio-start)*cells),to=clamp((reward.from-start)*cells);
+        if(to>from) {
+          ctx.fillStyle='#bd716680';ctx.fillRect(cx+cw*from,by+11,cw*(to-from),3);
+        }
+      }
     }
     // The two intensity marks stay fixed; benefits scale continuously.
     for(const value of [35,70]) {
       const tx=bx+bw*value/100;
       ctx.fillStyle=a.value>=value?PAPER:'#6b8e92';ctx.beginPath();
       ctx.moveTo(tx-3,by-5);ctx.lineTo(tx+3,by-5);ctx.lineTo(tx,by-1);ctx.closePath();ctx.fill();
+      if(reward.tierChanged&&value===(a.tier==='rush'?70:35)) {
+        const spread=quiet?5:5+5*(1-clamp(age/700));
+        ctx.strokeStyle=reward.color;ctx.lineWidth=2;ctx.beginPath();
+        ctx.moveTo(tx-spread,by-4);ctx.lineTo(tx-spread,by-7);ctx.lineTo(tx+spread,by-7);
+        ctx.lineTo(tx+spread,by-4);ctx.stroke();
+      }
+    }
+    if(earned&&a.lastDelta>0) {
+      const hx=bx+bw*reward.head;
+      ctx.fillStyle=reward.color;ctx.beginPath();
+      ctx.moveTo(hx-4,by+19);ctx.lineTo(hx+4,by+19);ctx.lineTo(hx,by+15);ctx.closePath();ctx.fill();
+      // Three short impact strokes recede after the charge sweeps into place.
+      // No unbounded particles, additive layers or full-panel flash.
+      if(!quiet&&age<700) {
+        const extension=3+7*clamp(age/700),alpha=1-clamp(age/700);
+        ctx.globalAlpha=alpha;ctx.strokeStyle=reward.color;ctx.lineWidth=2;
+        ctx.beginPath();ctx.moveTo(hx-3,by+19);ctx.lineTo(hx-3-extension,by+19+extension*.3);
+        ctx.moveTo(hx+3,by+19);ctx.lineTo(hx+3+extension,by+19+extension*.3);
+        ctx.moveTo(hx,by+20);ctx.lineTo(hx,by+23);ctx.stroke();ctx.globalAlpha=1;
+      }
     }
     if(delta) {
-      text(ctx,delta,x+w-15,y+38,17,a.lastDelta>0?'#dbffbc':'#ffab95','right',52);
-      // One bounded expanding tick, without screen flashes or a shadow filter.
-      if(!quiet&&a.lastDelta>0) {
-        ctx.globalAlpha=clamp(1-age/650);ctx.strokeStyle='#f0ffd2';ctx.lineWidth=2;
-        ctx.strokeRect(bx-2,by-2,bw+4,18);ctx.globalAlpha=1;
-      }
+      text(ctx,delta,x+w-15,y+38,earned?19:17,a.lastDelta>0?reward.color:'#ffab95','right',52);
+    } else if(earned&&a.value===100) {
+      text(ctx,'MAX',x+w-15,y+38,13,reward.color,'right',52);
     } else if(a.missStreak>0) {
       glyph(ctx,a.missStreak===1?'miss':'recharge',x+w-31,y+38,18,
         a.missStreak===1?'#dfcc9a':'#ffab95');
@@ -155,5 +215,5 @@ window.FILE_MANIFEST.push({name:'src/game/cache-road-instruments.js',
     ctx.restore();return {x,y,w,h};
   }
   B.CacheRoadInstruments=Object.freeze({skills:SKILLS,tiers:TIERS,glyph,drawSkills,
-    adrenalinePose,drawAdrenaline});
+    adrenalinePose,rewardPose,drawAdrenaline});
 })(window.BARCODE=window.BARCODE||{});

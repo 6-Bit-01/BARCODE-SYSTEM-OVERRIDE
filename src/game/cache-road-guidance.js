@@ -42,7 +42,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
       const key=keyboardLabel(badge.action,badge.key);
       return B.ControllerSettings?.prompt?.(badge.action,key)||key;
     }
-    return B.GamepadUI?.connected?B.ControllerSettings?.button(index)||badge.key:badge.key;
+    const key=keyboardLabel(['road_a','road_b','road_x','road_y'][index],badge.key);
+    return B.GamepadUI?.connected?B.ControllerSettings?.button(index)||key:key;
   }
   function fittedText(ctx,value,x,y,maxWidth,size=20,color='#d9eee6',align='left') {
     const text=String(value??'');ctx.textAlign=align;ctx.textBaseline='middle';
