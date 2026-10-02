@@ -48,6 +48,13 @@ B.GamepadUI.connected=false;
 w.inputManager.actionInput.keyboardBindings.road_attack=['q'];
 assert.equal(g.label(5,road),'Q','keyboard guidance follows the input owner’s remap');
 w.inputManager.actionInput.keyboardBindings.road_attack=['f'];
+const faces=['road_a','road_b','road_x','road_y'];
+faces.forEach((action,index)=>{w.inputManager.actionInput.keyboardBindings[action]=['z','c','n','m'].slice(index,index+1);});
+assert.deepEqual([0,1,2,3].map(i=>g.label(i,road)),['Z','C','N','M'],
+  'ground face-button prompts follow the actual keyboard input remaps');
+faces.forEach(action=>{delete w.inputManager.actionInput.keyboardBindings[action];});
+assert.deepEqual([0,1,2,3].map(i=>g.label(i,road)),['K','L','J','I'],
+  'unmapped historical input fixtures retain their existing face labels');
 clear();g.drawHelp(ctx,road);
 for(const name of ['SYNC A','SYNC B','SYNC X','SYNC Y','ATTACK','TURBO','DEFEND','DISRUPT'])assert(values().includes(name),name);
 assert(values().every(text=>!/(SURGE|PUSH|BRACE|REFILL|ECHO)/.test(text)),

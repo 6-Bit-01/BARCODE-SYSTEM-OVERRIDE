@@ -1,5 +1,22 @@
 # Acceptance and Test Status
 
+## October 2 — Cache camera and satisfying ground timing
+
+Drive Cache's stage through slow/fast gear changes, steering bends, Turbo,
+damage, opening handoff and the earned boss-to-horizon exit. Watch for abrupt
+camera resets, stale edge pixels, disappearing roadside pieces and frame
+spikes. Check the same transitions with Reduced Motion and Flashes Off.
+
+Read a ground cue's lane and actual mapped button before its approach. Follow
+the closing timing marker, then compare Good and Perfect impacts, real +15/+20
+charge, chain feedback and CHARGED/RUSH threshold payoff. Early/wrong inputs
+must not fake an earned hit; misses must read clearly without hiding traffic.
+Check keyboard, PlayStation/Xbox labels, pause and resumed checkpoints.
+Original judgments, song/addresses, skill access/economy and saved charge stay
+unchanged. Native production review and full regression/syntax/both exact-head
+CI results belong in the export receipt. Owner controller/audio/fun/comfort
+and device frame pacing remain unrecorded until played.
+
 ## October 2 — Run polish, signal art and driving scenes review
 
 - Compare walking and running in both directions, including held/released Shift

@@ -33,6 +33,7 @@ const critical = new Set(['src/engine/music-profiles.js', 'src/engine/music-tran
   'src/game/cache-road-reactions.js', 'src/game/cache-road-pursuit.js', 'src/game/cache-road-adrenaline.js', 'src/game/cache-road-combat.js',
   'src/game/cache-road-crosswalks.js', 'src/game/cache-road-mirror.js', 'src/game/cache-road-crew-callouts.js',
   'src/game/cache-road-boss-art.js', 'src/game/cache-road-instruments.js', 'src/game/cache-road-guidance.js',
+  'src/game/cache-road-beat-feedback.js',
   'src/game/cache-road-cinematics.js', 'src/game/cache-road-proof.js',
   'src/engine/intro-sequence.js', 'src/engine/cache-scene-layouts.js', 'src/engine/cache-scene-effects.js',
   'src/engine/comic-dialogue.js', 'src/engine/cache-bridge.js', 'src/engine/cache-ending.js',
@@ -166,6 +167,17 @@ const SNAPSHOT_KEYS=${JSON.stringify(SNAPSHOT_KEYS)},safeItem=${safeItem.toStrin
 const instrument=${instrument.toString()},Driver=${Driver.toString()},
   observeCombat=${observeCombat.toString()},CombatDriver=${CombatDriver.toString()};
 const originalAssetDraw=BARCODE.PresentationAssets.draw;
+const beatArt=BARCODE.CacheRoadBeatFeedback;
+browserProof.beatPaints={targets:0,pads:0,earned:0,qualities:[],gains:[]};
+BARCODE.CacheRoadBeatFeedback={...beatArt,
+  drawTarget(...args){browserProof.beatPaints.targets++;return beatArt.drawTarget(...args);},
+  drawPad(...args){const painted=beatArt.drawPad(...args);if(painted)browserProof.beatPaints.pads++;return painted;},
+  drawReceipt(ctx,state,options){
+    const painted=beatArt.drawReceipt(ctx,state,options),pose=beatArt.feedbackPose(state,options);
+    if(painted&&pose?.success){browserProof.beatPaints.earned++;
+      browserProof.beatPaints.qualities.push(pose.quality);browserProof.beatPaints.gains.push(pose.delta);}
+    return painted;
+  }};
 browserProof.combatPaints={kinds:{},wrecks:0,riders:0,flips:0,reduced:0,blasts:0,blastFrames:[],noFlashFrames:[],reducedBlastDraws:0};
 const combatArt=BARCODE.CacheRoadCombatArt;
 if(combatArt)BARCODE.CacheRoadCombatArt={...combatArt,drawBody(ctx,options){
@@ -620,6 +632,11 @@ async function main(){
   assert(state.chapter.delivery&&state.chapter.delivery.result.accurate>5);
   assert.equal(new Set(allEvents.filter(event=>event.kind==='capture').map(event=>event.action)).size,4,'all four face buttons still synchronize announced parts');
   assert.equal(state.rewardFacts.items.filter(item=>item==='stem.bass').length,1);
+  const beatPaints=await evaluate('browserProof.beatPaints');
+  assert(beatPaints.targets>0&&beatPaints.pads>0&&beatPaints.earned>0,
+    'actual native race paints the new ground target, physical pads and earned adrenaline receipts');
+  assert(beatPaints.gains.some(gain=>gain>0&&gain<=20),
+    'an earned native ground receipt shows a real bounded positive adrenaline gain');
   assert.equal(await evaluate('document.querySelectorAll("canvas").length'),1);
   assert.equal(await evaluate('browserProof.contexts'),1);assert.equal(await evaluate('browserProof.extraCanvases'),0);
   assert.equal(await evaluate('browserProof.worldUpdates'),0);assert(state.guidanceCalls>0);
@@ -634,7 +651,7 @@ async function main(){
   assert.deepEqual(sourceHashes(),initialSourceHashes,'source and authored assets remain frozen throughout the browser race');
   receipt={passed:true,assetDelivery:requireHosted?'immutable-hosted':'bundled',decoded,zeroSync,frames,bossHp,
     state,events:allEvents,restoreReceipt,comfort,cinematicNative,drawn:allDrawn,combatPaintSessions:paintSessions,drawSamples,trafficGuards,
-    renderedControlLabels:[...new Set(labels)],requests,errors,minimumDrums,
+    renderedControlLabels:[...new Set(labels)],beatPaints,requests,errors,minimumDrums,
     simulationFrames:totalFrames,driverFrames:totalDriverFrames,sharedRafUpdates:totalRafUpdates,
     nativeCanvasSamples:totalSamples,sourceHashes:initialSourceHashes,sourceStableThroughoutRun:true,
     checks:{nativeControllerAndAnalogTriggers:true,zeroSyncFourSkills:true,actualWeaponBossDamage:true,
@@ -643,7 +660,8 @@ async function main(){
       pedestrianContactsPreserveEconomy:true,customBloodAndCrewAtlasesDecoded:true,physicalHitCrewPopupDrawn:true,
       crewQueueIncludedInPauseFreeze:true,stableMirrorOwner:true,forgedGateRejected:true,complete100Bars:true,independentFourFaceSync:true,
       reducedMotionNoFlashesDrawn:true,nativeOpeningNoHUD:true,nativeExistingContextHUDFade:true,
-      unscoredStagedRam:true,nativeEarnedHorizonExit:true,freshOutroSkip:true,oneCanvas:true,stateInjection:false},
+      unscoredStagedRam:true,nativeEarnedHorizonExit:true,freshOutroSkip:true,
+      nativeGroundTimingAndEarnedAdrenalinePaint:true,oneCanvas:true,stateInjection:false},
     limits:'Production scripts in index order, controlled saved bridge-ready entry, native Chromium input/Canvas, every shared-RAF simulation update and selected Canvas samples. Does not exercise title boot or every display frame. Audio clock, gamepad device, lifecycle pause and Campaign persistence are controlled hosts. No progress, health, immunity, resources, captures or boss-damage injection. Not Makko, physical-controller, recorded listening, human balance, comfort or display-pacing acceptance.'};
   console.log(`Cache combat Chromium passed: zero-sync four controls, analog triggers, actual12HP rig damage, wreck/first gear, earned page reload, full100bars; ${totalFrames} simulation frames and ${totalSamples} sampled Canvas frames.`);
 }

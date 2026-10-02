@@ -1,5 +1,15 @@
 # Recovery checkpoint — September 14
 
+## October 2, 2026 — Cache camera and ground timing feedback
+
+- Repair reproduced camera transition jumps and bound off-view road paint.
+- Strengthen ground approach/timing cues with actual mapped buttons and
+  distinct earned Good/Perfect animations connected to adrenaline gains.
+- Preserve song/pad timing, judgment, controls, economy, compatible saves,
+  complete foreground exits, original mirror blur and shared render owners.
+- Record exact final verification/publication in the generated export receipt;
+  native host cost and owner device/fun/comfort acceptance remain distinct.
+
 ## October 2, 2026 — Run polish, signal artwork and road cinematics
 
 - Correct run pose continuity and body registration; retain walk/run gait phase,
