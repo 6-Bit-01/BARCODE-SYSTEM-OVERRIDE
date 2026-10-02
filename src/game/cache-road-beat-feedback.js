@@ -83,12 +83,14 @@ window.FILE_MANIFEST.push({name:'src/game/cache-road-beat-feedback.js',
           (count!==1||nextCue.window),xx=x+(i-1.5)*35;
         const shape=[[xx-13,p.strikeY+24],[xx+11,p.strikeY+24],[xx+15,p.strikeY+29],
           [xx+13,p.strikeY+44],[xx-13,p.strikeY+44],[xx-15,p.strikeY+39]];
-        if(!B.CacheRoadBeatSurface?.paintSprite(ctx,'cacheBeatHardware',{x:xx,y:p.strikeY+34,
-          width:34,height:29,frame:nextPulse.action+(selected?4:0),opacity:selected?1:.45})) {
+        const authoredCount=B.CacheRoadBeatSurface?.paintSprite(ctx,'cacheBeatHardware',{x:xx,y:p.strikeY+34,
+          width:34,height:29,frame:nextPulse.action+(selected?4:0),opacity:selected?1:.45});
+        if(!authoredCount) {
           path(ctx,shape);ctx.fillStyle=selected?(count===1?PAPER:color):'#183440';ctx.fill();
           outline(ctx,shape,selected?PAPER:'#58787a',selected?2:1,2);
         }
-        text(ctx,count,xx,p.strikeY+34,14,selected?INK:'#bbd4d0',24);
+        const chevronCount=authoredCount&&nextPulse.action===0;
+        text(ctx,count,xx,p.strikeY+(chevronCount?30:34),chevronCount?11:14,selected?INK:'#bbd4d0',24);
       }
       text(ctx,nextCue.window?(inLane?'PRESS':'CHANGE LANE'):'ON ONE',x,p.strikeY+130,
         nextCue.window?18:13,nextCue.window?PAPER:color,190);
