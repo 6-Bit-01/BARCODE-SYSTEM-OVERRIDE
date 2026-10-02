@@ -224,8 +224,14 @@ window.BARCODE = window.BARCODE || {};
     const stage = getStage();
     if(state.surge) {
       const s=state.surge,active=s.elapsed>=s.warningMs;
-      ctx.fillStyle=active?'rgba(255,120,90,0.38)':'rgba(255,190,105,0.12)';ctx.strokeStyle='#ffc478';ctx.lineWidth=3;
-      ctx.fillRect(s.x-s.width/2,s.groundY-270,s.width,278);ctx.strokeRect(s.x-s.width/2,s.groundY-270,s.width,278);
+      if(namespace.Level1SignalArt)namespace.Level1SignalArt.drawThreat(ctx,{
+        x:s.x-s.width/2,y:s.groundY-270,width:s.width,height:278,
+        elapsedMs:s.elapsed,warningMs:s.warningMs,active,reduced:!presentationAnimated()});
+      else {
+        // The precise outline remains legible in partial host-module loads.
+        ctx.strokeStyle='#ffc478';ctx.lineWidth=2;
+        ctx.strokeRect(s.x-s.width/2,s.groundY-270,s.width,278);
+      }
       ctx.fillStyle='#ffc478';ctx.font='bold 16px Oxanium, monospace';ctx.textAlign='center';ctx.textBaseline='alphabetic';
       ctx.fillText(active?'SIGNAL DISCHARGE':'SURGE — LEAVE THE MARKED AREA',s.x,s.groundY-286);
       ctx.fillRect(s.x-s.width/2,s.groundY+12,s.width*Math.min(1,s.elapsed/s.warningMs),6);

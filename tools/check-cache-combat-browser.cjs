@@ -30,9 +30,10 @@ const assets=[...combatAssets,...feedbackAssets];
 const critical = new Set(['src/engine/music-profiles.js', 'src/engine/music-transport.js',
   'src/engine/music-director.js', 'src/engine/cache-road-proof-profile.js', 'src/engine/presentation-assets.js',
   'src/game/campaign-services.js', 'src/game/cache-chapter.js', 'src/game/cache-road-landscape.js', 'src/game/cache-road-encounters.js',
-  'src/game/cache-road-reactions.js', 'src/game/cache-road-pursuit.js', 'src/game/cache-road-combat.js',
+  'src/game/cache-road-reactions.js', 'src/game/cache-road-pursuit.js', 'src/game/cache-road-adrenaline.js', 'src/game/cache-road-combat.js',
   'src/game/cache-road-crosswalks.js', 'src/game/cache-road-mirror.js', 'src/game/cache-road-crew-callouts.js',
-  'src/game/cache-road-boss-art.js', 'src/game/cache-road-guidance.js', 'src/game/cache-road-proof.js',
+  'src/game/cache-road-boss-art.js', 'src/game/cache-road-instruments.js', 'src/game/cache-road-guidance.js',
+  'src/game/cache-road-cinematics.js', 'src/game/cache-road-proof.js',
   'src/engine/intro-sequence.js', 'src/engine/cache-scene-layouts.js', 'src/engine/cache-scene-effects.js',
   'src/engine/comic-dialogue.js', 'src/engine/cache-bridge.js', 'src/engine/cache-ending.js',
   'src/core/action-input.js', 'src/core/gamepad-ui.js', 'src/core/input.js', 'src/core/loop.js']);
@@ -185,10 +186,12 @@ if(combatArt)BARCODE.CacheRoadCombatArt={...combatArt,drawBody(ctx,options){
   }
   return painted;
 }};
-browserProof.texts=[];
+browserProof.texts=[];browserProof.textPaints=[];browserProof.traceTextAlpha=false;
 const nativeFillText=CanvasRenderingContext2D.prototype.fillText;
 CanvasRenderingContext2D.prototype.fillText=function(value,...args){
   if(browserProof.texts.length<20000)browserProof.texts.push(String(value));
+  if(browserProof.traceTextAlpha&&browserProof.textPaints.length<20000)
+    browserProof.textPaints.push({value:String(value),alpha:this.globalAlpha});
   return nativeFillText.call(this,value,...args);
 };
 BARCODE.PresentationAssets.draw=function(key,...args){const ready=originalAssetDraw.call(this,key,...args);
@@ -288,6 +291,13 @@ browserProof.playChunk=count=>{const road=BARCODE.CacheRoadProof;
         browserProof.pad.buttons[7].value=.85;browserProof.guardAttempts++;
         browserProof.lastGuardPressMs=s.elapsedMs;
       }
+    }
+    // Cover a physical pedestrian contact with actual steering after the guard.
+    // Follow one visible moving person, then return to the normal chase driver.
+    if(browserProof.trafficGuards.length&&!s.crosswalks.hitCount){
+      const person=road.encounterSnapshot().crosswalks.people.find(person=>person.phase==='walking'&&
+        person.lane>=0&&person.lane<=3&&person.distance>0&&person.distance<200);
+      if(person)browserProof.pad.axes[0]=Math.abs(person.lane-s.lanePos)>.06?Math.sign(person.lane-s.lanePos):0;
     }
     // R2/L2 exercise the actual analog-trigger threshold, with pressed=false.
     for(const button of [6,7])if(browserProof.pad.buttons[button].pressed){browserProof.pad.buttons[button].pressed=false;browserProof.pad.buttons[button].value=.85;}
@@ -420,8 +430,42 @@ async function main(){
   assert.equal(await evaluate('BARCODE.CacheRoadProof.chapter.encounterVersion'),4);
   assert.equal(await evaluate('BARCODE.CacheRoadProof.state.invulnerableMs'),0);
   assert.equal(await evaluate('browserProof.musicStarts'),0,'fresh setup remains silent');
-  await tap('Enter');await evaluate('browserProof.release();browserProof.step(20);browserProof.observe();');
+  await evaluate('browserProof.traceTextAlpha=true');
+  const openingBefore=await evaluate('browserProof.frozen()');
+  const firstText=await evaluate('browserProof.textPaints.length');
+  await evaluate('browserProof.render("opening-no-hud")');
+  assert.equal(await evaluate('BARCODE.CacheRoadProof.cinematicPose().hudAlpha'),0);
+  assert(!(await evaluate(`browserProof.textPaints.slice(${firstText}).some(paint=>paint.value==='ATTACK')`)),
+    'the native opening begins with no combat HUD');
+  assert(!(await evaluate(`browserProof.textPaints.slice(${firstText}).some(paint=>paint.value==='1')`)),
+    'cinematic control also hides the ordinary tire-line input guide');
+  await shot('opening-no-hud',await evaluate('browserProof.summary()'));
+  await evaluate('browserProof.step(3000);browserProof.render("opening-surrounded")');
+  await shot('opening-surrounded',await evaluate('browserProof.summary()'));
+  await evaluate('browserProof.step(1500);browserProof.render("opening-staged-ram")');
+  assert(await evaluate('BARCODE.CacheRoadProof.cinematicPose().actors.some(actor=>actor.phase==="wreck")'));
+  await shot('opening-staged-ram',await evaluate('browserProof.summary()'));
+  await evaluate('browserProof.step(2500)');
+  const fadeText=await evaluate('browserProof.textPaints.length');
+  const openingAlpha=await evaluate('BARCODE.CacheRoadProof.cinematicPose().hudAlpha');
+  assert(openingAlpha>0&&openingAlpha<1);
+  await evaluate('browserProof.render("opening-real-hud-fade")');
+  const openingPaints=await evaluate(`browserProof.textPaints.slice(${fadeText}).filter(paint=>paint.value==='ATTACK')`);
+  assert(openingPaints.length&&openingPaints.every(paint=>paint.alpha>0&&paint.alpha<=openingAlpha+1e-8),
+    'actual native HUD alpha writes are multiplied by the cinematic fade on the existing context');
+  assert.equal(await evaluate('renderer.ctx.globalAlpha'),1,'HUD fade restores the main native context alpha');
+  assert.deepEqual(await evaluate('browserProof.frozen()'),openingBefore,
+    'staged native surround and ram do not change chart, combat, captures or physical progress');
+  await shot('opening-real-hud-fade',await evaluate('browserProof.summary()'));
+  await evaluate('browserProof.traceTextAlpha=false');
+  await tap('Enter');await evaluate('browserProof.release();browserProof.step(20);');
   assert.equal(await evaluate('browserProof.musicStarts'),1);
+  assert(await evaluate('BARCODE.CacheRoadProof.handoffMs!==null'));
+  await evaluate('browserProof.step(1400);browserProof.observe();');
+  assert.equal(await evaluate('BARCODE.CacheRoadProof.handoffMs'),null,
+    'native combat input begins only after the real gradual control handoff');
+  const cinematicNative={openingNoHUD:true,openingAlpha,openingPaints,stagedRamUnscored:true,
+    gradualControlHandoff:true,existingMainContext:true};
   const zeroSync=[];
   for(const [skill,button] of [['defend',7],['disrupt',6],['turbo',4]]){
     const before=await evaluate('browserProof.summary()');assert.equal(before.combat.syncCount,0);
@@ -511,6 +555,31 @@ async function main(){
   }
   assert.equal(state.status,'clear',JSON.stringify({status:state.status,bar:state.bar,integrity:state.integrity,boss:state.combat.boss}));
   await evaluate('browserProof.render("earned-clear")');state=await evaluate('browserProof.summary(false)');await shot('earned-clear',state);
+  assert.equal(await evaluate('BARCODE.CacheRoadProof.outroMs'),0);
+  assert.equal(await evaluate('!!BARCODE.CacheEnding.active'),false,'earned clear shows the horizon exit before the next overlay');
+  const outroBefore=await evaluate('browserProof.frozen()');
+  await evaluate('browserProof.release();browserProof.step(500)');
+  await evaluate('browserProof.traceTextAlpha=true');
+  const outroText=await evaluate('browserProof.textPaints.length');
+  const outroAlpha=await evaluate('BARCODE.CacheRoadProof.cinematicPose().hudAlpha');
+  await evaluate('browserProof.render("earned-horizon-hud-fade")');
+  const outroPaints=await evaluate(`browserProof.textPaints.slice(${outroText}).filter(paint=>paint.value==='ATTACK')`);
+  assert(outroPaints.length&&outroPaints.every(paint=>paint.alpha>0&&paint.alpha<=outroAlpha+1e-8));
+  assert.equal(await evaluate('renderer.ctx.globalAlpha'),1);
+  await shot('earned-horizon-hud-fade',await evaluate('browserProof.summary(false)'));
+  await evaluate('browserProof.traceTextAlpha=false');
+  await evaluate('browserProof.step(2500);browserProof.render("earned-receding-horizon")');
+  const receding=await evaluate('BARCODE.CacheRoadProof.cinematicPose()');
+  assert(receding.car.depth>0&&receding.car.depth<.1&&receding.hudAlpha===0);
+  assert.deepEqual(await evaluate('browserProof.frozen()'),outroBefore,
+    'earned native horizon exit changes presentation only after the actual full song and boss defeat');
+  await shot('earned-receding-horizon',await evaluate('browserProof.summary(false)'));
+  await tap('Enter');await evaluate('browserProof.step(20)');
+  assert.equal(await evaluate('BARCODE.CacheRoadProof.outroMs'),null);
+  assert(await evaluate('!!BARCODE.CacheEnding.active'),'fresh released native Enter skips to the earned ending');
+  Object.assign(cinematicNative,{earnedOutro:true,outroAlpha,outroPaints,recedingDepth:receding.car.depth,
+    outroEconomyFrozen:true,freshOutroSkip:true});
+  state=await evaluate('browserProof.summary(false)');
   allEvents.push(...await evaluate('browserProof.observed.events'));totalFrames+=state.simulationFrames;
   totalDriverFrames+=state.raceFrames;totalRafUpdates+=state.rafUpdates;totalSamples+=state.renderedSamples;
   paintSessions.push(state.combatPaints);drawSessions.push(state.drawn);drawSamples.push(...await evaluate('browserProof.drawReasons'));
@@ -564,7 +633,7 @@ async function main(){
   if(requireHosted)assert.deepEqual(requests.localCombat,[],'new combat/feedback art never silently falls back to bundled paths');
   assert.deepEqual(sourceHashes(),initialSourceHashes,'source and authored assets remain frozen throughout the browser race');
   receipt={passed:true,assetDelivery:requireHosted?'immutable-hosted':'bundled',decoded,zeroSync,frames,bossHp,
-    state,events:allEvents,restoreReceipt,comfort,drawn:allDrawn,combatPaintSessions:paintSessions,drawSamples,trafficGuards,
+    state,events:allEvents,restoreReceipt,comfort,cinematicNative,drawn:allDrawn,combatPaintSessions:paintSessions,drawSamples,trafficGuards,
     renderedControlLabels:[...new Set(labels)],requests,errors,minimumDrums,
     simulationFrames:totalFrames,driverFrames:totalDriverFrames,sharedRafUpdates:totalRafUpdates,
     nativeCanvasSamples:totalSamples,sourceHashes:initialSourceHashes,sourceStableThroughoutRun:true,
@@ -573,7 +642,8 @@ async function main(){
       earnedPageReload:true,persistedPedestrianContacts:true,fourPhysicalCrosswalksDrawn:true,
       pedestrianContactsPreserveEconomy:true,customBloodAndCrewAtlasesDecoded:true,physicalHitCrewPopupDrawn:true,
       crewQueueIncludedInPauseFreeze:true,stableMirrorOwner:true,forgedGateRejected:true,complete100Bars:true,independentFourFaceSync:true,
-      reducedMotionNoFlashesDrawn:true,oneCanvas:true,stateInjection:false},
+      reducedMotionNoFlashesDrawn:true,nativeOpeningNoHUD:true,nativeExistingContextHUDFade:true,
+      unscoredStagedRam:true,nativeEarnedHorizonExit:true,freshOutroSkip:true,oneCanvas:true,stateInjection:false},
     limits:'Production scripts in index order, controlled saved bridge-ready entry, native Chromium input/Canvas, every shared-RAF simulation update and selected Canvas samples. Does not exercise title boot or every display frame. Audio clock, gamepad device, lifecycle pause and Campaign persistence are controlled hosts. No progress, health, immunity, resources, captures or boss-damage injection. Not Makko, physical-controller, recorded listening, human balance, comfort or display-pacing acceptance.'};
   console.log(`Cache combat Chromium passed: zero-sync four controls, analog triggers, actual12HP rig damage, wreck/first gear, earned page reload, full100bars; ${totalFrames} simulation frames and ${totalSamples} sampled Canvas frames.`);
 }

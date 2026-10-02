@@ -1,5 +1,25 @@
 # Current State
 
+## October 2 — Run polish, signal art and driving scenes candidate
+
+Continues from merged #176. The run receives a coherent, registered sibling
+clip with eleven cels over 600 ms and equal 300 ms foot contacts. It preserves
+gait phase when switching between walking and running.
+Painted animated signal fields replace the Jammer discharge and boss SLAM
+rectangles; a battered animated amplifier replaces the plain Signal Amp.
+Damage extents, warning/contact timing, resource charges and original art remain
+unchanged.
+
+The requested Cache Back driving opening uses the actual road and vehicle art:
+automatic forward travel, surrounding foes, an unscored staged ram, no initial
+gameplay HUD, a HUD fade and a gradual steering handoff. Dialogue accompanies
+the opening and an earned post-boss drive toward the horizon. The authored song,
+pad addresses, saved race progress, real results and historical v1–3 behavior
+remain intact. The source names this driving chapter Level 2; the distinct
+Level 3 prototype is unchanged. See `RUN_POLISH_SIGNAL_CINEMATICS.md`. Exact
+local/native/browser/CI and merged identities belong to the export receipt;
+owner device acceptance remains unrecorded.
+
 ## October 2 — Run, required-enemy recovery and adrenaline candidate
 
 6 Bit gains grounded Shift/L2/LT running at 450 units/s with twelve registered

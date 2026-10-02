@@ -181,6 +181,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
     drawAmpIcon(ctx, x, y, size = 1, chargeCount = 3) {
       const { reduced, flashes } = this.powerSettings();
       const timeMs = reduced || !flashes ? 0 : this.timeMs;
+      if(BARCODE.Level1SignalArt?.drawAmp?.(ctx,{x,y,scale:size,chargeCount,timeMs,
+        reduced:reduced||!flashes}))return;
       const pulse = 0.5 + 0.5 * Math.sin(timeMs / 160);
       ctx.save(); ctx.translate(x, y); ctx.scale(size, size);
       ctx.fillStyle = '#0a1526'; ctx.strokeStyle = '#efa0ff'; ctx.lineWidth = 2;

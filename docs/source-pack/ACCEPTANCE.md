@@ -1,5 +1,29 @@
 # Acceptance and Test Status
 
+## October 2 — Run polish, signal art and driving scenes review
+
+- Compare walking and running in both directions, including held/released Shift
+  or L2/LT, roofs, pause, jump and repeated transitions. Head/torso registration,
+  planted/airborne boots, phase continuity and the loop join should stay smooth.
+- Trigger Jammer discharge and boss SLAM at all difficulties. Painted warning
+  and active fields must remain distinct, keep the player visible and show the
+  exact original damage boundaries/timing. Collect/use a Signal Amp and verify
+  its physical art and unchanged charge sockets, quiet settings and pause.
+- Enter a fresh Cache Back race. Watch automatic forward motion and the
+  surrounding enemies with no gameplay HUD. A physical staged sideswipe sends
+  one foe offroad; HUD and steering then hand over smoothly without ghost skills
+  or skipped song/pad addresses. Check skip, held buttons, pause and resuming.
+- Earn the real boss/result conditions and watch Cache drive toward the horizon
+  with dialogue before the existing ending. Check outro pause, skip, held
+  confirmation and earned-save reload. No cinematic grants fabricated defeats.
+- Recheck historical v1–3 races, old/current saves, original audio, pedestrian
+  frozen cels, adrenaline, skill controls and the separate Level 3 prototype.
+
+See `RUN_POLISH_SIGNAL_CINEMATICS.md`. Full local regression, all-file syntax,
+native production captures and both exact-head hosted CI events remain required.
+Actual final results belong to the export receipt. Owner Makko, physical
+controller, listening, motion comfort and device pacing remain unrecorded.
+
 ## October 2 — Run, required enemies and adrenaline review
 
 - Hold Shift or L2/LT while moving: compare 300-unit walking with grounded

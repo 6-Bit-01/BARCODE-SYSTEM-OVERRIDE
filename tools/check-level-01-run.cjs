@@ -5,10 +5,13 @@ const { spawn } = require('node:child_process'), { once } = require('node:events
 const { createRig, load } = require('./check-level-01-boss');
 const { createSprite, playerClips } = require('./makko-animation-fixture');
 const root = path.resolve(__dirname, '..'), out = process.argv[2] && path.resolve(process.argv[2]);
+const localReview = process.argv.includes('--local-review');
 const { createCanvas, loadImage } = require(require.resolve('@napi-rs/canvas', { paths: [process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES || root, root] }));
 const read = file => JSON.parse(fs.readFileSync(path.join(root, file)));
 const hash = data => crypto.createHash('sha256').update(data).digest('hex');
-const cal = read('assets/level1-run/calibration.json'), runMeta = read('assets/level1-run/6_bit_run_run.json');
+const installedRun = read('sprites-manifest.json').characters['6_bit_main'].animations['6_bit_run_run'];
+const runFolder = installedRun.image.includes('/assets/level1-run-v2/') ? 'assets/level1-run-v2' : 'assets/level1-run';
+const cal = read(runFolder+'/calibration.json'), runMeta = read(runFolder+'/6_bit_run_run.json');
 const near = (a,b,why) => assert(Math.abs(a-b)<1e-6, `${why}: ${a} / ${b}`);
 const clone = v => JSON.parse(JSON.stringify(v));
 function rig(saved) {
@@ -83,13 +86,13 @@ function controls() {
 }
 async function art() {
   const meta = runMeta, frames=Object.values(meta.frames), entry=read('sprites-manifest.json').characters['6_bit_main'].animations['6_bit_run_run'];
-  assert.equal(frames.length,12); assert.equal(entry.frameCount,12); assert.equal(entry.animationLength,.6); assert.equal(entry.fps,20);
-  const imagePin=/^https:\/\/raw\.githubusercontent\.com\/6-Bit-01\/BARCODE-SYSTEM-OVERRIDE\/([a-f0-9]{40})\/assets\/level1-run\/6_bit_run_run\.webp$/.exec(entry.image);
-  assert(imagePin,'new native run atlas uses an immutable production asset URL');
+  assert.equal(frames.length,cal.frames); assert.equal(entry.frameCount,cal.frames); assert.equal(entry.animationLength,.6); assert.equal(entry.fps,cal.frames/.6);
+  const imagePin=/^https:\/\/raw\.githubusercontent\.com\/6-Bit-01\/BARCODE-SYSTEM-OVERRIDE\/([a-f0-9]{40})\/assets\/level1-run(?:-v2)?\/6_bit_run_run\.webp$/.exec(entry.image);
+  assert(imagePin || localReview && entry.image.includes('/__RUN_ART_REVISION__/'+runFolder+'/'),'new native run atlas uses an immutable production asset URL (unpublished local review requires an explicit flag)');
   assert.equal(entry.json,entry.image.replace(/\.webp$/,'.json'),'run metadata shares its immutable atlas revision');
-  assert.deepEqual(entry.anchor,meta.meta.anchor); assert.equal(meta.meta.scale,1); assert.equal(cal.uniquePoses,12);
+  assert.deepEqual(entry.anchor,meta.meta.anchor); assert.equal(meta.meta.scale,1); assert.equal(cal.uniquePoses,cal.frames);
   near(cal.renderScale * cal.sourceMedianBodyHeight,cal.targetMedianBodyHeight,'run matches the measured canonical walk body height');
-  const bytes=fs.readFileSync(path.join(root,'assets/level1-run/6_bit_run_run.webp')); assert.equal(hash(bytes),cal.sha256);
+  const bytes=fs.readFileSync(path.join(root,runFolder,'6_bit_run_run.webp')); assert.equal(hash(bytes),cal.sha256);
   const original=read('assets/sprites-v3/original-manifest.json'),installed=read('sprites-manifest.json');
   for(const [character,record] of Object.entries(original.characters)) {
     assert.deepEqual(Object.keys(installed.characters[character].animations).sort(), [...Object.keys(record.animations),...(character==='6_bit_main'?['6_bit_run_run']:[])].sort());
@@ -97,20 +100,20 @@ async function art() {
   const oldCal=read('assets/sprites-v3/calibration.json');
   for(const [name,c] of Object.entries(oldCal)) assert.equal(hash(fs.readFileSync(path.join(root,'assets/sprites-v3/prepared',name+'.webp'))),c.sha256,`${name}: old raster bytes unchanged`);
   const clips={};
-  for(const [name,folder] of [['6_bit_walk_walk','assets/sprites-v3/prepared'],['6_bit_run_run','assets/level1-run']]) {
+  for(const [name,folder] of [['6_bit_walk_walk','assets/sprites-v3/prepared'],['6_bit_run_run',runFolder]]) {
     const data=read(folder+'/'+name+'.json'); clips[name]={meta:data,image:await loadImage(path.join(root,folder,name+'.webp')),frames:Object.values(data.frames)};
   }
-  const c=createCanvas(512,512),ctx=c.getContext('2d'),unique=new Set();
-  for(let i=0;i<12;i++) {
-    const f=frames[i].frame; ctx.clearRect(0,0,512,512); ctx.drawImage(clips['6_bit_run_run'].image,f.x,f.y,f.w,f.h,0,0,f.w,f.h);
-    const rgba=ctx.getImageData(0,0,512,512).data; unique.add(hash(rgba));
-    let bottom=-1; for(let y=0;y<512;y++)for(let x=0;x<512;x++)if(rgba[(y*512+x)*4+3]>=128)bottom=y;
+  const c=createCanvas(cal.width,cal.height),ctx=c.getContext('2d'),unique=new Set();
+  for(let i=0;i<cal.frames;i++) {
+    const f=frames[i].frame; ctx.clearRect(0,0,cal.width,cal.height); ctx.drawImage(clips['6_bit_run_run'].image,f.x,f.y,f.w,f.h,0,0,f.w,f.h);
+    const rgba=ctx.getImageData(0,0,cal.width,cal.height).data; unique.add(hash(rgba));
+    let bottom=-1; for(let y=0;y<cal.height;y++)for(let x=0;x<cal.width;x++)if(rgba[(y*cal.width+x)*4+3]>=128)bottom=y;
     assert.equal(bottom,cal.registration[i].visibleFootRow,'decoded cels retain measured contact/flight height');
-    assert.equal(frames[i].duration,50);
+    assert.equal(frames[i].duration,cal.frameDurationsMs?.[i]||cal.frameDurationMs);
   }
-  assert.equal(unique.size,12,'twelve genuinely distinct native run drawings');
+  assert.equal(unique.size,cal.frames,'all authored native run drawings remain distinct');
   function sprite() {
-    const s=createSprite({'6_bit_walk_walk':64,'6_bit_run_run':12}),play=s.play;
+    const s=createSprite({'6_bit_walk_walk':64,'6_bit_run_run':cal.frames}),play=s.play;
     s.play=function(name,...args){const ref=play.call(s,name,...args),sheet=s.currentSprite,d=clips[name];sheet.metadata.frames=Object.fromEntries(d.frames.map((f,i)=>[String(i),f]));sheet.getAnchorPoint=()=>d.meta.meta.anchor;sheet.hasManifestAnchor=()=>true;sheet.getManifestScale=()=>1;return ref;};
     s.draw=(canvas,x,y,o={})=>{const d=clips[s.getCurrentAnimation()],f=d.frames[s.currentSprite.currentFrame].frame,a=s.currentSprite.getAnchorPoint();canvas.save();canvas.translate(x,y);canvas.scale(o.flipH?-o.scale:o.scale,o.scale);canvas.globalAlpha*=o.alpha??1;canvas.drawImage(d.image,f.x,f.y,f.w,f.h,-a.x,-a.y,f.w,f.h);canvas.restore();};return s;
   }
@@ -136,9 +139,12 @@ async function art() {
     if(ff&&!ff.stdin.write(video.toBuffer('image/png')))await once(ff.stdin,'drain');
     if(i===20&&out)fs.writeFileSync(path.join(out,'walk-run-native.png'),video.toBuffer('image/png'));
   }
-  assert.equal(sampled.size,12,'production playback reaches all twelve run poses');
+  assert.equal(sampled.size,cal.frames,'production playback reaches every authored run pose');
   if(ff){ff.stdin.end();const [code]=await once(ff,'close');assert.equal(code,0);fs.writeFileSync(path.join(out,'run-phases.png'),review.toBuffer('image/png'));}
-  const evidence={groundSpeeds:{walk:300,run:450},controls:{keyboard:'Hold Shift',controller:'Hold L2 / LT (remappable)'},nativeRunFrames:12,gaitDurationMs:600,sourceSha256:cal.sourceSha256,atlasSha256:cal.sha256,limits:'Production owners with native Canvas/public Makko boundary; physical controller, hosted Makko and device FPS are separate acceptance.'};
+  const hashPaths = paths => Object.fromEntries(paths.map(file => [file,hash(fs.readFileSync(path.join(root,file)))]));
+  const sourcePaths = ['src/game/player.js','src/game/game-initializer.js','src/engine/sprite-playback.js','src/core/action-input.js','src/core/input.js','src/core/gamepad-ui.js','sprites-manifest.json','tools/makko-animation-fixture.js','tools/check-level-01-boss.js','tools/check-level-01-run.cjs','tools/check-level1-run-polish.cjs','tools/prepare-level1-run-v2.py'];
+  const assetPaths = fs.readdirSync(path.join(root,runFolder)).filter(file => fs.statSync(path.join(root,runFolder,file)).isFile()).map(file => runFolder+'/'+file);
+  const evidence={groundSpeeds:{walk:300,run:450},controls:{keyboard:'Hold Shift',controller:'Hold L2 / LT (remappable)'},nativeRunFrames:cal.frames,gaitDurationMs:600,sourceSha256:cal.sourceSha256||cal.sources.map(s=>s.sha256),atlasSha256:cal.sha256,sourceHashes:hashPaths(sourcePaths),assetHashes:hashPaths(assetPaths),immutableArtRevision:imagePin?.[1]||null,localReview,limits:'Production owners with native Canvas/public Makko boundary; physical controller, hosted Makko and device FPS are separate acceptance.'};
   if(out)fs.writeFileSync(path.join(out,'receipt.json'),JSON.stringify(evidence,null,2)+'\n');
   return evidence;
 }

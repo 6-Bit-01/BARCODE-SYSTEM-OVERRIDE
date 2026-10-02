@@ -1,5 +1,17 @@
 # Recovery checkpoint — September 14
 
+## October 2, 2026 — Run polish, signal artwork and road cinematics
+
+- Correct run pose continuity and body registration; retain walk/run gait phase,
+  ordinary movement/jump rules and the canonical appearance.
+- Replace flat Jammer/SLAM fields and the Signal Amp square with separate
+  painted animation atlases sampled from their existing owner clocks.
+- Add an in-drive Cache Back ambush, staged ram, hidden initial HUD and gradual
+  HUD/control handoff, followed by an earned horizon departure and radio lines.
+- Preserve real results, chart/song addresses, old saves/rules, pause, skip,
+  reduced motion, exact skill controls and the single existing main Canvas.
+- Keep exact final validation/publication in the generated export receipt.
+
 ## October 2, 2026 — Run, accessible enemies, adrenaline and instruments
 
 - Add Shift/L2/LT grounded running at 450 units/s with twelve canonical-style
