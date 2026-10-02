@@ -302,6 +302,11 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     bossLeap: { path: 'assets/upper-route/boss-leap.webp', root: upperRoot, columns: 4, rows: 2, frames: 8, ax: 0.5, ay: 0.9375, smooth: true },
     wetStreet: { path: 'assets/wet-street/rain-blacktop.webp', root: 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/6e1c8a4eb58252e1491dedc7878630dbab14929a/', columns: 1, rows: 1, frames: 1, ax: 0, ay: 0, smooth: true },
     steadyJammer: { path: 'assets/sprites-v3/prepared/broadcast_jammer_idle_idle.webp', root: 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/c6dc0116d08a70ca2c97edddb9404bd87e62906a/', columns: 8, rows: 6, frames: 48, ax: 0.5, ay: 340 / 352, smooth: true },
+    // Local delivery while authoring; publication pins these two new atlases.
+    level1SignalDischarge: {path:'assets/level1-signal-art/signal-discharge-atlas.webp',root:'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/330fa55849539b24393d66cc80faad1da658380f/',
+      columns:4,rows:2,frames:8,ax:0,ay:0,smooth:true},
+    level1SignalAmp: {path:'assets/level1-signal-art/signal-amp-atlas.webp',root:'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/330fa55849539b24393d66cc80faad1da658380f/',
+      columns:4,rows:2,frames:8,ax:.5,ay:.5,smooth:true},
   };
   const cache = {};
   function preload() {

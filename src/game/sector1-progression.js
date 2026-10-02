@@ -2476,10 +2476,16 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (this.state === STATES.BOSS_COMBAT) {
         if (boss.slam && (boss.phase === 'telegraph' || boss.slam.remainingMs > 0)) {
           const slam = boss.slam, active = slam.remainingMs > 0;
-          ctx.fillStyle = active ? 'rgba(255,190,100,0.7)' : 'rgba(255,140,60,0.12)';
-          ctx.fillRect(slam.x - slam.width / 2, slam.groundY - slam.height, slam.width, slam.height);
-          ctx.strokeStyle = active ? '#fff0c8' : '#ffb56a'; ctx.lineWidth = active ? 5 : 3;
-          ctx.strokeRect(slam.x - slam.width / 2, slam.groundY - slam.height, slam.width, slam.height);
+          const prefs=window.BARCODE?.Preferences?.values||{};
+          if(window.BARCODE?.Level1SignalArt)window.BARCODE.Level1SignalArt.drawThreat(ctx,{
+            x:slam.x-slam.width/2,y:slam.groundY-slam.height,width:slam.width,height:slam.height,
+            elapsedMs:boss.phaseElapsedMs,warningMs:boss.latePhase?BOSS_COMBAT.fastTelegraphMs:BOSS_COMBAT.telegraphMs,
+            active,activeAgeMs:360-slam.remainingMs,activeDurationMs:360,
+            reduced:!!prefs.reducedMotion||prefs.flashes===false});
+          else {
+            ctx.strokeStyle=active?'#fff0c8':'#ffb56a';ctx.lineWidth=2;
+            ctx.strokeRect(slam.x-slam.width/2,slam.groundY-slam.height,slam.width,slam.height);
+          }
           ctx.fillStyle = '#fff0c8'; ctx.font = 'bold 20px Oxanium, monospace'; ctx.textAlign = 'center';
           ctx.fillText(active ? 'SLAM' : 'MOVE CLEAR', slam.x, slam.groundY - slam.height - 15);
           for (let i = -2; i <= 2; i++) { ctx.beginPath(); ctx.moveTo(slam.x + i * 28 - 10, slam.groundY - 20); ctx.lineTo(slam.x + i * 28, slam.groundY - 7); ctx.lineTo(slam.x + i * 28 + 10, slam.groundY - 20); ctx.stroke(); }

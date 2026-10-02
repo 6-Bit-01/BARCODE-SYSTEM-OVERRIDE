@@ -11,11 +11,31 @@ w.Image = class Image {
 load(context, 'src/engine/presentation-assets.js');
 const art = w.BARCODE.PresentationAssets;
 for (let i = 0; i < 20; i++) art.preload();
-assert.strictEqual(images.length, 251, 'restarts reuse existing art plus pursuit, five combat atlases and the two custom feedback sheets');
+assert.strictEqual(images.length, 253, 'restarts reuse existing art plus pursuit, five combat atlases, the two custom feedback sheets and two Level 1 Signal atlases');
 const feedbackPaths=['assets/cache-road/blood/blood-splatter-atlas.webp','assets/cache-road/blood/crew-callout-portraits.webp'];
 assert.deepEqual(images.filter(image=>image.requests[0].includes('/assets/cache-road/blood/'))
   .map(image=>image.requests[0].slice(image.requests[0].indexOf('assets/cache-road/blood/'))).sort(),
   feedbackPaths.slice().sort(),'exactly the two requested custom sheets account for the additional shared images');
+const signalRoot='https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/330fa55849539b24393d66cc80faad1da658380f/';
+const signalPaths=['assets/level1-signal-art/signal-discharge-atlas.webp','assets/level1-signal-art/signal-amp-atlas.webp'];
+const signalImages=images.filter(image=>image.requests[0].startsWith(signalRoot));
+assert.deepEqual(signalImages.map(image=>image.requests[0]).sort(),
+  signalPaths.map(local=>signalRoot+local).sort(),
+  'exactly the two Level 1 Signal atlases load from their published A2 revision');
+for(const image of signalImages) {
+  const local=signalPaths.find(file=>image.requests[0]===signalRoot+file);
+  image.onerror();
+  assert.deepEqual(image.requests,[signalRoot+local,local],
+    'each failed Signal request tries its exact bundled atlas once');
+  assert(fs.existsSync(path.join(root,local)),local+' has a matching bundled fallback');
+  image.onerror();
+  assert.strictEqual(image.onload,null);
+  assert.strictEqual(image.onerror,null);
+}
+for(let i=0;i<20;i++)art.preload();
+assert.strictEqual(images.length,253,'restarts reuse both Signal image objects after their hosted and bundled attempts');
+for(const image of signalImages)assert.strictEqual(image.requests.length,2,
+  'failed Signal atlases stop after two attempts and are not retried on restart');
 const speedRoot='https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/f9c2fad2472f3bebdb9554f13893293d74b8bece/';
 const windImage=images.find(im=>im.requests[0]===speedRoot+'assets/cache-road/effects/wind-streak-atlas-v2.png');
 assert(windImage,'painted speed atlas uses its published immutable revision');
@@ -148,7 +168,7 @@ failedPaintedImage.onerror();
 assert.strictEqual(failedPaintedImage.onload,null);
 assert.strictEqual(failedPaintedImage.onerror,null);
 art.preload();
-assert.strictEqual(images.length,251,'failed painted, activity, pursuit, combat and feedback assets are not recreated on restart');
+assert.strictEqual(images.length,253,'failed painted, activity, pursuit, combat, feedback and Signal assets are not recreated on restart');
 assert.strictEqual(failedPaintedImage.requests.length,2,'painted assets stop after both sources fail');
 assert.strictEqual(failedActivityImage.requests.length,2,'activity assets stop after both sources fail');
 const cacheRoadRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/37db98387b8791655e3ff352d6bc6d61cb0b574b/';
@@ -275,7 +295,7 @@ assert.deepStrictEqual(ops.find(op=>op[0]==='drawImage').slice(2),
   'the cleaner uses one complete registered fourth cel with its planted foot anchor');
 arrowImage.onerror(); arrowImage.onerror();
 assert.strictEqual(arrowImage.requests.length, 2); assert.strictEqual(arrowImage.onerror, null);
-art.preload(); assert.strictEqual(images.length, 251, 'failed assets do not retry forever');
+art.preload(); assert.strictEqual(images.length, 253, 'failed assets do not retry forever');
 pulseImage.naturalWidth = pulseImage.naturalHeight = 512; pulseImage.onload();
 ops.length = 0; art.draw('bossPulse', ctx, { y: 822, width: 64, height: 56, frame: 2 });
 assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2), [10, 351, 236, 145, -32, -56, 64, 56], 'pulse fills the dangerous height and retains the ground anchor');

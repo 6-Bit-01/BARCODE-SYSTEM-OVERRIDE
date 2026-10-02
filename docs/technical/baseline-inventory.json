@@ -46,6 +46,7 @@
     "src/core/runtime-lifecycle.js",
     "src/game/player.js",
     "src/game/enemies.js",
+    "src/game/level1-signal-art.js",
     "src/game/jammer-environment.js",
     "src/game/hacking.js",
     "src/game/rhythm.js",
@@ -68,6 +69,7 @@
     "src/game/cache-road-boss-art.js",
     "src/game/cache-road-instruments.js",
     "src/game/cache-road-guidance.js",
+    "src/game/cache-road-cinematics.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
     "src/game/lost-data.js",
@@ -127,6 +129,7 @@
     "src/core/runtime-lifecycle.js",
     "src/game/player.js",
     "src/game/enemies.js",
+    "src/game/level1-signal-art.js",
     "src/game/jammer-environment.js",
     "src/game/hacking.js",
     "src/game/rhythm.js",
@@ -149,6 +152,7 @@
     "src/game/cache-road-boss-art.js",
     "src/game/cache-road-instruments.js",
     "src/game/cache-road-guidance.js",
+    "src/game/cache-road-cinematics.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
     "src/game/lost-data.js",
@@ -395,6 +399,10 @@
         "status": "pass"
       },
       {
+        "file": "src/game/level1-signal-art.js",
+        "status": "pass"
+      },
+      {
         "file": "src/game/jammer-environment.js",
         "status": "pass"
       },
@@ -483,6 +491,10 @@
         "status": "pass"
       },
       {
+        "file": "src/game/cache-road-cinematics.js",
+        "status": "pass"
+      },
+      {
         "file": "src/game/cache-road-proof.js",
         "status": "pass"
       },
@@ -545,11 +557,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 78,
+        "index": 80,
         "status": "pass"
       },
       {
-        "index": 80,
+        "index": 82,
         "status": "pass"
       }
     ]
@@ -737,7 +749,7 @@
     {
       "global": "window.player",
       "file": "src/game/player.js",
-      "line": 1882,
+      "line": 1927,
       "loaded": true
     },
     {
@@ -937,6 +949,7 @@
     "src/core/runtime-lifecycle.js",
     "src/game/player.js",
     "src/game/enemies.js",
+    "src/game/level1-signal-art.js",
     "src/game/jammer-environment.js",
     "src/game/hacking.js",
     "src/game/rhythm.js",
@@ -959,6 +972,7 @@
     "src/game/cache-road-boss-art.js",
     "src/game/cache-road-instruments.js",
     "src/game/cache-road-guidance.js",
+    "src/game/cache-road-cinematics.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
     "src/game/lost-data.js",

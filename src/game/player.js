@@ -32,7 +32,25 @@ const PLAYER_STOMP_REBOUND = 560;
 // Opaque cap crown, measured per existing jump frame (alpha > 180), inset
 // three source pixels. Hands and empty sprite padding cannot cause a bump.
 const PLAYER_JUMP_CROWN = Object.freeze([[127,85],[112,79],[102,67],[100,51],[98,54],[111,64],[114,84],[108,90],[109,106],[98,109],[104,105],[102,87],[102,66],[98,60],[95,51],[104,45],[104,51],[114,60],[102,75],[108,79],[112,81],[115,75],[113,72],[106,63],[100,51],[106,48],[104,51]]);
-const PLAYER_ANIMATION_PRESENTATION = Object.freeze({"idle":{"animation":"6_bit_idle_idle","scale":0.6666666666666666,"anchorX":160,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]},"walk":{"animation":"6_bit_walk_walk","scale":0.7171717171717171,"anchorX":144,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]},"jump":{"animation":"6_bit_jump_jump","scale":0.7967479674796748,"anchorX":96,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]},"rhythm":{"animation":"6_bit_r__h_mode_rhmode","scale":0.7843137254901961,"anchorX":96,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]},"run":{"animation":"6_bit_run_run","scale":0.5459506387200793,"anchorX":240,"anchorY":448,"footRows":[448,448,448,448,448,448,448,448,448,448,448,448]}});
+const PLAYER_ANIMATION_PRESENTATION = Object.freeze({"idle":{"animation":"6_bit_idle_idle","scale":0.6666666666666666,"anchorX":160,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]},"walk":{"animation":"6_bit_walk_walk","scale":0.7171717171717171,"anchorX":144,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]},"jump":{"animation":"6_bit_jump_jump","scale":0.7967479674796748,"anchorX":96,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]},"rhythm":{"animation":"6_bit_r__h_mode_rhmode","scale":0.7843137254901961,"anchorX":96,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]},"run":{"animation":"6_bit_run_run","scale":0.6045042570722329,"anchorX":256,"anchorY":512,"footRows":[514.0,512.0,508.0,513.0,505.2212630622444,510.0,511.0,504.0,506.0,504.1462971376647,499.96274420717856]}});
+const PLAYER_RUN_FRAME_DURATIONS_MS = Object.freeze([60,60,60,60,60,50,50,50,50,50,50]);
+// Generated from assets/level1-run-v2/calibration.json. Each immutable pose
+// shares the native anchor/ground rows; draw reads the actual cel only.
+const PLAYER_RUN_POSE_PRESENTATIONS = Object.freeze([
+  [0.5799736495388669, 324.7, 37.41731444354491],
+  [0.5867768595041322, 312.4, 34.71732450463007],
+  [0.5850611376927166, 310.0, 34.116959128379534],
+  [0.5833554200901139, 322.0, 36.88022164459586],
+  [0.6081790549875655, 326.3, 38.5816335804672],
+  [0.602683461117196, 315.4, 35.79939759036142],
+  [0.6175645342312008, 311.4, 35.164868632780255],
+  [0.6063360881542699, 328.1, 38.966371336586],
+  [0.6100332594235033, 321.3, 37.41370729035876],
+  [0.6137757947573897, 312.0, 35.22821635678238],
+  [0.6045042570722329, 299.9, 32.09473330840526],
+].map(([scale, headColumn, headOffsetXWorld]) => Object.freeze({
+  ...PLAYER_ANIMATION_PRESENTATION.run, scale, headColumn, headOffsetXWorld
+})));
 
 window.Player = class Player {
   static get VISUAL_FOOT_OFFSET_Y() { return PLAYER_VISUAL_FOOT_OFFSET_Y; }
@@ -327,6 +345,7 @@ window.Player = class Player {
   }
 
   getAnimationPresentation(state = this.state) {
+    if (state === 'run') return PLAYER_RUN_POSE_PRESENTATIONS[Math.max(0, Math.trunc(this.animationRef?.currentFrame || 0)) % PLAYER_RUN_POSE_PRESENTATIONS.length];
     if(state==='hack')return PLAYER_ANIMATION_PRESENTATION.idle;
     return PLAYER_ANIMATION_PRESENTATION[state === 'idle' && this.grounded && this.landingPoseActive ? 'jump' : state] || PLAYER_ANIMATION_PRESENTATION.idle;
   }
@@ -404,7 +423,9 @@ window.Player = class Player {
     const drawY = targetFootY + render.anchorOffsetY - footRow * render.frameScale;
     // The same legacy mismatch affects X and is mirrored when flipH is active.
     // Keep the source anchor column on position.x in either facing direction.
-    const drawX = this.position.x + render.flipSignX * (
+    const drawX = Number.isFinite(presentation.headColumn)
+      ? this.position.x + render.flipSignX * (presentation.headOffsetXWorld + render.anchorOffsetX - presentation.headColumn * render.frameScale)
+      : this.position.x + render.flipSignX * (
       render.anchorOffsetX - render.sourceAnchorX * render.frameScale
     );
 
@@ -561,8 +582,32 @@ window.Player = class Player {
     const sameFrame = frame === null || this.animationRef?.currentFrame === frame;
     if (sameClip && sameFrame && this.animationRef && !this.animationRef.isInterrupted && !freshJump) return;
     try {
+      let startFrame = frame === null ? 0 : Math.max(0, frame);
+      let phaseRemainderMs = 0;
+      // A speed change keeps the foot-cycle phase instead of snapping back to
+      // contact. Walking repeats its sixteen-pose gait four times; the run is
+      // one complete cycle. Jump/landing/entrance keep their authored starts.
+      if (frame === null && this.animationRef && !this.animationRef.isInterrupted) {
+        const fromWalk = this.currentAnimation === PLAYER_ANIMATION_PRESENTATION.walk.animation && animationName === 'run';
+        const fromRun = this.currentAnimation === PLAYER_ANIMATION_PRESENTATION.run.animation && animationName === 'walk' && !this.isEntering;
+        if (fromWalk || fromRun) {
+          const sourceCount = fromWalk ? 16 : PLAYER_RUN_FRAME_DURATIONS_MS.length;
+          const previousFrame = Math.max(0, Math.trunc(this.animationRef.currentFrame || 0)) % sourceCount;
+          let sourceMs = Math.max(0, this.sprite.currentSprite?.timeAccumulator || 0);
+          for (let i = 0; i < previousFrame; i++) sourceMs += fromWalk ? 62.5 : PLAYER_RUN_FRAME_DURATIONS_MS[i];
+          let targetMs = (sourceMs % (fromWalk ? 1000 : 600)) / (fromWalk ? 1000 : 600) * (fromWalk ? 600 : 1000);
+          startFrame = 0;
+          const targetCount = fromWalk ? PLAYER_RUN_FRAME_DURATIONS_MS.length : 16;
+          while (startFrame < targetCount - 1 && targetMs >= (fromWalk ? PLAYER_RUN_FRAME_DURATIONS_MS[startFrame] : 62.5) - 1e-7) {
+            targetMs -= fromWalk ? PLAYER_RUN_FRAME_DURATIONS_MS[startFrame] : 62.5;
+            startFrame++;
+          }
+          phaseRemainderMs = Math.max(0, targetMs);
+        }
+      }
       this.sprite.stop();
-      this.animationRef = this.sprite.play(fullName, true, frame === null ? 0 : Math.max(0, frame));
+      this.animationRef = this.sprite.play(fullName, true, startFrame);
+      if (phaseRemainderMs > 0) window.BARCODE?.SpritePlayback?.update(this.sprite, phaseRemainderMs);
       this.currentAnimation = fullName;
       if (animationName === 'jump') this.jumpAnimationStarted = true;
     } catch (error) {
