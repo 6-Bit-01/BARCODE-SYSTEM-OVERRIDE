@@ -1,5 +1,20 @@
 # Recovery checkpoint — September 14
 
+## October 2 — continuation checkpoint consistency review
+
+- Add one dated current-checkpoint record and deterministic generated headers at
+  the repository and source-pack entrypoints; identify merged PR #172 separately
+  from this documentation review and unrecorded owner device acceptance.
+- Retain historical task, branch, source-hash and validation notes as history;
+  check current remote/owner state before continuing rather than replaying them.
+- Add dependency-free mismatch/repair and exact-revision export regressions to
+  the existing npm validation gate. The source-pack builder verifies committed
+  headers before export and adds the committed continuation entrypoint at root.
+- Preserve the existing manifest, checksums, evidence receipts and CI artifact
+  workflow, including exact historical exports without new checkpoint metadata.
+- No gameplay, assets, roadmap, merge, deployment or canonical archive change.
+  Exact final validation and publication results belong to the PR/export receipt.
+
 ## October 1 — crosswalks and controlled pursuit
 
 - Add four trajectory-bound zebra crossings, eight physical walking people,
