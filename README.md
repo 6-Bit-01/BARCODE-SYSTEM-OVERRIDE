@@ -1,8 +1,33 @@
 # BARCODE: System Override
 
+<!-- CURRENT_CHECKPOINT:START -->
+## Current checkpoint
+
+Generated from `docs/source-pack/CURRENT_CHECKPOINT.json`; edit that record, then run `npm run checkpoint:sync`.
+Recorded at 2026-10-02T10:32:00Z; this is a dated handoff, not a live GitHub status query.
+
+- Latest verified merged code: [PR #172](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/172) on `main` at `351f9885397ca8aaf8ec2600c3b530ec144f1b28`
+- Merged checkpoint: Crosswalks, grounded rider splats, sustained mirror moods and controlled pursuit spacing; cutscene artwork unchanged
+- Latest recorded continuation task: Continuation/source-pack checkpoint consistency (review)
+- Review branch: `agent/checkpoint-consistency`; base `351f9885397ca8aaf8ec2600c3b530ec144f1b28`
+- Approved scope: One checkpoint record, synchronized current headers and drift validation; preserve history and the existing exact-revision source-pack automation; no gameplay or roadmap changes
+- Recorded automated validation: passed at `d29da48e5e1a397fb7adf273316df843f5ce6c99`; PR #172 final head: full regression, all-file syntax and hosted Chromium checks on both push and pull_request events; this is prior gameplay evidence, not validation of the current documentation review
+- Automated evidence: [run 36966098995](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/36966098995), [run 36966100957](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/36966100957)
+- Human acceptance: not-recorded; Owner Makko, physical controller, listening/audio, motion comfort, human balance/fun and device frame pacing for the merged checkpoint
+- Human evidence: No new owner acceptance recorded; scripted/native/CI results remain separate
+- Next step: Review the checkpoint-consistency draft and its exact-head checks; no merge or deployment is authorized for this maintenance task. Recheck remote work before any continuation
+
+The exported tree/review/merge status and exact test receipt belong to `SOURCE_MANIFEST.json` and `test-evidence.json` when present.
+A prior checkpoint or passing CI does not certify this review, owner acceptance, or permission to merge/deploy.
+Before continuing, recheck the current owner request and remote branch/PR state; update the record when those facts change.
+
+Earlier task/status descriptions below, including old current/next/candidate/publication wording, are historical. Do not resume an old task from them.
+Retained gameplay constraints and engineering rules still apply unless explicitly superseded by the owner.
+<!-- CURRENT_CHECKPOINT:END -->
+
 A BARCODE simulation built around seven distinct retro game genres and the original four: 6 Bit, DJ Floppydisc, Cache Back and Mac Modem.
 
-## Current state
+## Historical combat-chase checkpoint (#169)
 
 The active work is [combat-chase PR #169](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/169)
 on `agent/cache-combat-chase`, starting

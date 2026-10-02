@@ -10,6 +10,8 @@ import tarfile
 import zipfile
 from datetime import datetime, timezone
 
+import checkpoint_state
+
 ROOT = Path(__file__).resolve().parents[1]
 PACK_ROOT = "BARCODE-System-Override-Source-Pack-v5"
 DOC_PREFIX = "docs/source-pack/"
@@ -47,6 +49,30 @@ def git(*args):
     return subprocess.check_output(["git", "-C", str(ROOT), *args])
 
 
+def read_checkpoint(revision):
+    """Check the requested committed tree before the potentially large archive read."""
+    names = set(git("ls-tree", "-r", "--name-only", revision).decode().splitlines())
+    record_path = checkpoint_state.RECORD_PATH
+    if record_path not in names and "tools/checkpoint_state.py" not in names:
+        # Partial removal of new metadata must not silently look like a legacy tree.
+        for name in checkpoint_state.TARGETS:
+            if name in names:
+                content = git("show", revision + ":" + name).decode("utf-8")
+                if checkpoint_state.START in content or checkpoint_state.END in content:
+                    raise ValueError("Checkpoint markers without a committed record: " + name)
+        return None  # Older revisions keep their own bytes, never today's checkpoint.
+    if record_path not in names:
+        raise ValueError("Committed current checkpoint record is missing: " + record_path)
+    record = checkpoint_state.load_record(git("show", revision + ":" + record_path))
+    documents = {}
+    for name in checkpoint_state.TARGETS:
+        if name not in names:
+            raise ValueError("Committed checkpoint entrypoint is missing: " + name)
+        documents[name] = git("show", revision + ":" + name).decode("utf-8")
+    checkpoint_state.verify_documents(record, documents)
+    return record
+
+
 def build(args):
     revision = git("rev-parse", "--verify", args.revision + "^{commit}").decode().strip()
     base = git("rev-parse", "--verify", args.base + "^{commit}").decode().strip() if args.base else None
@@ -55,6 +81,7 @@ def build(args):
     output = Path(args.output).resolve()
     if output.is_relative_to(ROOT):
         raise ValueError("Write ZIPs outside the repository so generated exports cannot enter the source tree.")
+    checkpoint = read_checkpoint(revision)
     entries = {}
     tracked_count = 0
     exported_count = 0
@@ -83,6 +110,11 @@ def build(args):
     for required in ("README.md", "PROJECT_INSTRUCTIONS.md", "DECISION_REGISTER.md", "CURRENT_STATE.md", "UPDATE_PROTOCOL.md"):
         if required not in entries:
             raise ValueError("Committed source-pack document is missing: " + required)
+    if checkpoint is not None:
+        # Convenience entrypoint is byte-identical to the committed repository file.
+        if "CONTINUE_HERE.md" in entries:
+            raise ValueError("Duplicate exported path: CONTINUE_HERE.md")
+        entries["CONTINUE_HERE.md"] = entries["repository-snapshot/CONTINUE_HERE.md"]
     evidence = None
     if args.validation_file:
         evidence = json.loads(Path(args.validation_file).read_text())
@@ -110,6 +142,10 @@ def build(args):
         "historicalBaseline": "7788ebfab4d6231c18229bef9571d6b97b676764 (PR #25)",
         "supersedes": ["Source Pack v2", "Source Pack v3", "Source Pack v4"],
         "authority": "Newest explicit owner decisions, then current pack decisions; snapshot proves implementation, not design approval.",
+        "checkpointRecord": checkpoint_state.RECORD_PATH if checkpoint is not None else None,
+        "checkpointConsistency": "passed against exported revision" if checkpoint is not None else "not available in this legacy revision",
+        "checkpointRecordedAtUtc": checkpoint["recordedAtUtc"] if checkpoint is not None else None,
+        "checkpointStatusScope": "Dated continuation facts only; revision and implementationStatus above identify this export. No live branch or human acceptance is inferred.",
         "verification": evidence or {"automatedTests": "not recorded in this export", "makkoPlaytest": "not recorded in this export"},
         "runtimeLimitations": [
             "Makko supplies /lib/MakkoEngine.min.js; it is not included in Git.",
