@@ -148,7 +148,7 @@ class CombatDriver extends Driver {
       pad.buttons[BUTTONS[skill]].pressed = true; this.lastCombatPress[skill] = s.elapsedMs;
       this.observed.event('combat-driver-input', { skill });
     };
-    if (!this.combatOptions.noCombat && !this.mistake) {
+    if (!this.combatOptions.noCombat && !this.combatOptions.ramOnly && !this.mistake) {
       if (near.some(actor => Math.abs(actor.lane - s.lanePos) <= 1.02 && actor.distance < 260)) press('attack');
       if (threats.some(actor => actor.locked && actor.distance < 100) || incoming.length ||
           this.combatOptions.exerciseDefend&&near.some(actor=>actor.warning&&actor.distance<160)) press('defend');
@@ -158,6 +158,15 @@ class CombatDriver extends Driver {
     }
     if (this.combatOptions.wrongFace) for (const index of [0, 1, 2, 3]) if (pad.buttons[index].pressed) {
       pad.buttons[index].pressed = false; pad.buttons[(index + 1) % 4].pressed = true; break;
+    }
+    if(this.combatOptions.ramOnly) {
+      for(const index of [0,1,2,3,4,5,6,7])pad.buttons[index].pressed=false;
+      const ramTarget=actors.filter(actor=>actor.hp>0&&actor.phase!=='flee'&&actor.distance>=-20&&actor.distance<160)
+        .sort((a,b)=>a.distance-b.distance)[0];
+      if(ramTarget) {
+        this.target=ramTarget.lane;
+        if(skills.turbo.ready&&!s.queuedTurbo&&!s.boostMs&&ramTarget.distance<110)press('turbo');
+      }
     }
     if(this.combatOptions.noSync)for(const index of [0,1,2,3])pad.buttons[index].pressed=false;
     pad.axes[0] = Math.abs(this.target - s.lanePos) > this.profile.aimTolerance ? Math.sign(this.target - s.lanePos) : 0;
@@ -583,6 +592,22 @@ function writeReceipt(receipt) {
   return compact;
 }
 
+async function checkPhysicalRam() {
+  const r=await combatRig(),observed=observeCombat(r);
+  const driver=new CombatDriver(r,PROFILES.practiced,2,observed,{ramOnly:true});
+  let impacts=[],frames=0;
+  while(frames++<2000&&r.road.status==='playing'&&!impacts.length) {
+    driver.step();r.step(20,50);
+    impacts=observed.events.filter(e=>e.kind==='combat-event'&&e.type==='ram-impact');
+  }
+  const s=r.road.state,stats=r.road.encounterSnapshot().combat.stats;
+  assert(impacts.length>0,'L1 physically catches visible hostiles with Attack withheld');
+  assert.equal(stats.attacks,0);assert.equal(stats.defends,0);assert.equal(stats.disrupts,0);
+  assert.equal(r.road.chapter.accurate,0);assert(s.boostMs>0&&!s.queuedTurbo);
+  assert.equal(r.road.status,'playing');
+  return {bar:s.musicBeatFloat/4,integrity:s.integrity,frames,ramImpacts:impacts,stats,
+    scope:'Production-input contact probe stops at its first earned physical L1 ram. R1/R2/L2/face inputs withheld; physical steering only, no state injection. Not a full-race victory.'};
+}
 async function checkSyncIncentive() {
   const synced=(await runCombatRace({maxBar:28})).result;
   const ignored=(await runCombatRace({maxBar:28,noSync:true})).result;
@@ -597,9 +622,9 @@ async function main() {
   const sources = hashes(), zeroSync = await checkZeroSyncControls(), races = await checkNineRaces();
   const recovery = await checkDamageRecovery(), musicNegatives = await checkMusicNegatives();
   const persistence = await checkCombatPersistence(), passive = await checkPassiveCannotWin();
-  const trafficDefend = await checkOrdinaryTrafficDefend(),syncIncentive=await checkSyncIncentive();
+  const trafficDefend = await checkOrdinaryTrafficDefend(),syncIncentive=await checkSyncIncentive(),physicalRam=await checkPhysicalRam();
   assert.deepEqual(hashes(), sources, 'production and validation source remain frozen throughout the combat study');
-  const receipt = { passed: true, sources, sourcesStable: true, zeroSync, races, recovery, musicNegatives, persistence, passive, trafficDefend, syncIncentive,
+  const receipt = { passed: true, sources, sourcesStable: true, zeroSync, races, recovery, musicNegatives, persistence, passive, trafficDefend, syncIncentive, physicalRam,
     evidence: 'Production Campaign + ActionInput + shared RAF, actual delayed visible observations, native button edges and physically earned damage.',
     limits: 'Controlled Canvas/audio/storage hosts; no gameplay state injection. Not Makko, physical-controller, listening, human success rate or frame-pacing acceptance.' };
   if (process.argv.includes('--write')) writeReceipt(receipt);
@@ -608,6 +633,6 @@ async function main() {
 }
 module.exports = { combatRig, observeCombat, CombatDriver, runCombatRace, assertClear,
   checkZeroSyncControls, checkNineRaces, checkDamageRecovery, checkMusicNegatives,
-  checkCombatPersistence, checkPassiveCannotWin, checkOrdinaryTrafficDefend,
+  checkCombatPersistence, checkPassiveCannotWin, checkOrdinaryTrafficDefend, checkPhysicalRam,
   eventSummary, compactRun, compactReceipt, writeReceipt, hashes, main };
 if (require.main === module) main().catch(error => { console.error(error.stack || error); process.exitCode = 1; });

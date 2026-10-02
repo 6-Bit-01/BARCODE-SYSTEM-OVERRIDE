@@ -10,6 +10,8 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
   const copy=value=>JSON.parse(JSON.stringify(value));
   const round=n=>Math.round(n*1e6)/1e6;
   const MAX_ACTORS=3, MAX_PROJECTILES=6, MAX_WRECKS=6, MAX_LEDGER=96;
+  // The car nose reaches the hostile rear chassis before tire-plane overlap.
+  const RAM_REACH=48;
   const ROLES=Object.freeze({
     bike:Object.freeze({hp:2,attack:'kick'}),
     rammer:Object.freeze({hp:3,attack:'ram'}),
@@ -321,7 +323,7 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
         continue;
       }
       if(enemy.phase==='windup') {
-        enemy.at+=input.speed*dt/1000;
+        enemy.at+=(input.boosting?Math.min(input.speed,52):input.speed)*dt/1000;
         enemy.lane+=(enemy.attackLane-enemy.lane)*(1-Math.exp(-dt/200));
         if(pulseConflict(input,enemy.at,enemy.attackLane)||occupied(input,enemy.at,enemy.attackLane)) {
           enemy.phase='recover';enemy.phaseMs=0;
@@ -355,8 +357,10 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
     }
     if(input.boosting)for(const enemy of state.enemies) {
       const old=previousPositions.get(enemy.id);
-      if(old&&old.at-before>22&&enemy.at-input.progress<=22&&
-          Math.abs(enemy.lane-input.lanePos)<.62)ram(state,input,enemy,events);
+      const distance=enemy.at-input.progress;
+      const overlaps=distance>=-18&&distance<=RAM_REACH;
+      const crossed=old&&old.at-before>RAM_REACH&&distance<=RAM_REACH;
+      if(old&&(overlaps||crossed)&&Math.abs(enemy.lane-input.lanePos)<.62)ram(state,input,enemy,events);
     }
     const kept=[];
     for(const projectile of state.projectiles) {

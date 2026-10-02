@@ -13,9 +13,11 @@ and reflected bullets cannot cascade damage into a second enemy. Physical
 melee/ram destruction retains the existing bounded wreck-chain rule.
 
 Physical Turbo now catches approaching/recovering chassis as well as incoming
-commitments. A swept rear-contact crossing causes one ram per enemy per boost;
-queued next-ONE Turbo alone gives no damage/immunity. Neutral foes do not simply
-match the boosted speed. New checkpoints clear the transient ram ledger and
+commitments. The front nose/rear-chassis contact volume (−18 to 48 world units) handles
+swept catches and lateral entries, causing one ram per enemy per boost;
+queued next-ONE Turbo alone gives no damage/immunity. Neutral/winding-up foes do not simply
+match the boosted speed. A production L1-only probe verifies real catches
+while Attack, Defend, Disrupt and face presses are withheld. New checkpoints clear the transient ram ledger and
 old v4 checkpoints remain compatible. Ordinary hits still return to first gear.
 Hostile lateral follow and player visual lane follow use exponential smoothing.
 
