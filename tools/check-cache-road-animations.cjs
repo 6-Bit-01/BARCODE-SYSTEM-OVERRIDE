@@ -9,7 +9,9 @@ load(context,'src/engine/cache-road-proof-profile.js');
 for(const file of ['src/game/cache-road-landscape.js','src/game/cache-road-guidance.js',
   'src/game/cache-road-encounters.js','src/game/cache-road-reactions.js',
   'src/game/cache-road-pursuit.js','src/game/cache-road-boss-art.js',
-  'src/game/cache-road-combat.js','src/game/cache-road-combat-art.js'])load(context,file);
+  'src/game/cache-road-combat.js','src/game/cache-road-combat-art.js',
+  'src/game/cache-road-crosswalks.js','src/game/cache-road-mirror.js',
+  'src/game/cache-road-crew-callouts.js'])load(context,file);
 const source=fs.readFileSync('src/game/cache-road-proof.js','utf8');
 const marker='  B.Campaign.register(ID,';
 assert(source.includes(marker));
@@ -45,11 +47,16 @@ const road=w.BARCODE.CacheRoadProof;road.active=true;road.status='playing';
 road.state=w.animationNewState();
 const result=audit({B:w.BARCODE,ctx,newState:w.animationNewState,
   entities:w.animationEntities,definitions});
-assert.equal(result.animatedKeys,56,'inventory includes every retained road/pursuit atlas and all five authored combat atlases');
+assert.equal(result.animatedKeys,58,'inventory includes every retained road/pursuit atlas, five combat atlases and two contact-feedback atlases');
 assert.equal(result.legacyAnimatedKeys,51,'every original legacy animation assertion is retained');
 assert.deepEqual(result.authoredCombatKeys,
   ['cacheCombatBike','cacheCombatHostiles','cacheCombatBikeCrash','cacheCombatBlast','cacheCombatFX']);
+assert.deepEqual(result.authoredFeedbackKeys,['cacheBloodSplatter','cacheCrewCallouts']);
+assert.deepEqual(result.main.cacheBloodSplatter,[0,1,2,3,4,5]);
+assert.deepEqual(result.mirror.cacheBloodSplatter,[0,1,2,3,4,5]);
+assert.deepEqual(result.main.cacheCrewCallouts,[0,1,2]);
+assert(!result.mirror.cacheCrewCallouts,'crew portraits belong only to the main HUD');
 assert.equal(loaded.length,Object.keys(definitions).length);
 assert(stack.length===0,'all production canvas scopes restored');
 if(process.argv[2])fs.writeFileSync(process.argv[2],JSON.stringify(result,null,2)+'\n');
-console.log(`Cache Road animation routes passed: ${result.animatedKeys} atlas keys (${result.legacyAnimatedKeys} legacy plus five authored combat), ${result.productionDraws} production draws, ${atlasDraws} image submissions; all cels, both walking views/banks and rearview, all prop/ambient families, hit/actions/mirror, ships, eight pursuit poses, four live impacts and all 32 combat body cells in both cameras and 12 front projectile/contact cells, and Reduced Motion. Diagnostic combat states are separate from earned-input race evidence.`);
+console.log(`Cache Road animation routes passed: ${result.animatedKeys} atlas keys (${result.legacyAnimatedKeys} legacy plus five combat and two contact-feedback), ${result.productionDraws} production draws, ${atlasDraws} image submissions; all cels, both walking views/banks and rearview, all prop/ambient families, owner-selected mirror moods, ships, eight pursuit poses, four live impacts, all 32 combat body cells and six blood cells in both cameras, 12 front projectile/contact cells and three main-HUD crew portraits, and Reduced Motion. Staged physical-contact diagnostics remain separate from earned-input race evidence.`);

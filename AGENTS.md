@@ -1,5 +1,9 @@
 # Repository Guidance
 
+## October 2, 2026 — custom blood and crew assets
+
+The owner requests custom blood splatters and crew popups giving Cache Back shit for hitting pedestrians, continuing from merged #172. Create and integrate the artwork in one pass. Preserve contact/economy rules, canonical characters, existing cutscene bytes, shared owners, old saves and exact controls. Read `docs/source-pack/CACHE_BLOOD_CREW.md`. Full regression/all-file syntax and both exact final-head CI events retain standing publication/merge authority; update the exact merged ZIP.
+
 ## October 1, 2026 — crosswalks, stable mirror and pursuit spacing
 
 Continue from merged #171 (`2042e3ebbd8840def0f8863e1362a185c38c9175`).

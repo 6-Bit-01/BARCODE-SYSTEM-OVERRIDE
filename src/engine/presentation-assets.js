@@ -43,7 +43,10 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   const cachePursuitRoot = `https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/${PURSUIT_ART_REV}/`;
   const COMBAT_ART_REV = '12af86c0641456cc443ff7f42db013e565088b13';
   const cacheCombatRoot = `https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/${COMBAT_ART_REV}/`;
+  const cacheBloodCrewRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3ab4d860c46f4e5a8b2e6bd944648c95639761a6/';
   const entries = {
+    cacheBloodSplatter: {path:'assets/cache-road/blood/blood-splatter-atlas.webp',root:cacheBloodCrewRoot,columns:3,rows:2,frames:6,ax:.5,ay:1,smooth:true},
+    cacheCrewCallouts: {path:'assets/cache-road/blood/crew-callout-portraits.webp',root:cacheBloodCrewRoot,columns:3,rows:1,frames:3,ax:.5,ay:.5,smooth:true},
     cacheCombatBike: {path:'assets/cache-road/combat/bike-rider-atlas.webp',root:cacheCombatRoot,columns:4,rows:2,frames:8,ax:.5,ay:1,smooth:true},
     cacheCombatHostiles: {path:'assets/cache-road/combat/hostile-chassis-atlas.webp',root:cacheCombatRoot,columns:4,rows:3,frames:12,ax:.5,ay:1,smooth:true},
     cacheCombatBikeCrash: {path:'assets/cache-road/combat/bike-crash-atlas.webp',root:cacheCombatRoot,columns:3,rows:2,frames:6,ax:.5,ay:1,smooth:true},

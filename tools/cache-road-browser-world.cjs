@@ -10,8 +10,12 @@ module.exports=async function reviewRoadWorld() {
   for(const file of ['src/game/cache-road-landscape.js','src/game/cache-road-guidance.js',
     'src/game/cache-road-encounters.js','src/game/cache-road-reactions.js',
     'src/game/cache-road-pursuit.js','src/game/cache-road-boss-art.js',
-    'src/game/cache-road-combat.js','src/game/cache-road-combat-art.js'])
+    'src/game/cache-road-combat.js','src/game/cache-road-combat-art.js',
+    'src/game/cache-road-crosswalks.js','src/game/cache-road-mirror.js',
+    'src/game/cache-road-crew-callouts.js'])
     (0,eval)(await load(file));
+  if(!B.CacheRoadCrosswalks||!B.CacheRoadMirror||!B.CacheRoadCrewCallouts)
+    throw Error('Production crosswalk, mirror and crew feedback owners failed to load');
   (0,eval)((await load('src/game/cache-road-proof.js')).replace(
     '  B.Campaign.register(ID,','  window.roadReviewState=newState;window.roadReviewEntities={HAZARDS,STREET_ITEMS,AMBIENT_PLATES:[...AMBIENT_PLATES]};window.roadReviewCues={PULSES,pulseVisual,shiftOffset};\n  B.Campaign.register(ID,'));
   (0,eval)((await load('src/engine/presentation-assets.js'))
@@ -24,6 +28,11 @@ module.exports=async function reviewRoadWorld() {
     if(performance.now()-start>45000)
       throw Error('Missing road assets: '+keys.filter(key=>!B.PresentationAssets.ready(key)).join(','));
     await new Promise(resolve=>setTimeout(resolve,50));
+  }
+  for(const [key,frames] of [['cacheBloodSplatter',6],['cacheCrewCallouts',3]]) {
+    const definition=window.roadReviewDefinitions[key];
+    if(!definition||definition.frames!==frames||!B.PresentationAssets.ready(key))
+      throw Error(`Custom feedback sheet failed production registration/decode: ${key}`);
   }
   const road=B.CacheRoadProof,ctx=window.renderer.ctx;
   road.active=true;road.status='playing';road.audioDegraded=false;
