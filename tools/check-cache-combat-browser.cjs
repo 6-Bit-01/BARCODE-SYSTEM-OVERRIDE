@@ -292,6 +292,13 @@ browserProof.playChunk=count=>{const road=BARCODE.CacheRoadProof;
         browserProof.lastGuardPressMs=s.elapsedMs;
       }
     }
+    // Cover a physical pedestrian contact with actual steering after the guard.
+    // Follow one visible moving person, then return to the normal chase driver.
+    if(browserProof.trafficGuards.length&&!s.crosswalks.hitCount){
+      const person=road.encounterSnapshot().crosswalks.people.find(person=>person.phase==='walking'&&
+        person.lane>=0&&person.lane<=3&&person.distance>0&&person.distance<200);
+      if(person)browserProof.pad.axes[0]=Math.abs(person.lane-s.lanePos)>.06?Math.sign(person.lane-s.lanePos):0;
+    }
     // R2/L2 exercise the actual analog-trigger threshold, with pressed=false.
     for(const button of [6,7])if(browserProof.pad.buttons[button].pressed){browserProof.pad.buttons[button].pressed=false;browserProof.pad.buttons[button].value=.85;}
     const eventsBefore=browserProof.observed.events.length,contactsBefore=browserProof.pedestrianContacts.length;
