@@ -8,7 +8,7 @@ window.FILE_MANIFEST.push({
 
 (function() {
   const BARCODE = window.BARCODE = window.BARCODE || {};
-  const ACTIONS = ['move_left', 'move_right', 'move_up', 'move_down', 'jump', 'primary', 'interact', 'inspect', 'pause', 'rhythm_mode',
+  const ACTIONS = ['move_left', 'move_right', 'move_up', 'move_down', 'run', 'jump', 'primary', 'interact', 'inspect', 'pause', 'rhythm_mode',
     'road_a', 'road_b', 'road_x', 'road_y', 'road_turbo', 'road_echo', 'road_attack', 'road_defend', 'road_disrupt'];
   const EDGE_ACTIONS = new Set(['jump', 'primary', 'interact', 'inspect', 'pause', 'rhythm_mode',
     'road_a', 'road_b', 'road_x', 'road_y', 'road_turbo', 'road_echo', 'road_attack', 'road_defend', 'road_disrupt']);
@@ -21,6 +21,7 @@ window.FILE_MANIFEST.push({
     move_right: ['arrowright', 'd'],
     move_up: ['arrowup', 'w'],
     move_down: ['arrowdown', 's'],
+    run: ['shift'],
     jump: [' ', 'arrowup', 'w'],
     primary: ['arrowdown'],
     interact: ['h'],
@@ -39,6 +40,7 @@ window.FILE_MANIFEST.push({
     move_right: [{ axis: 0, dir: 1 }, { button: 15 }],
     move_up: [{ axis: 1, dir: -1 }, { button: 12 }],
     move_down: [{ axis: 1, dir: 1 }, { button: 13 }],
+    run: [{ button: 6 }],
     jump: [{ button: 0 }],
     primary: [{ button: 0 }],
     interact: [{ button: 3 }],

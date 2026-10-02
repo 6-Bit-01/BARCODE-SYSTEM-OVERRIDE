@@ -1,5 +1,24 @@
 # Recovery checkpoint — September 14
 
+## October 2, 2026 — Run, accessible enemies, adrenaline and instruments
+
+- Add Shift/L2/LT grounded running at 450 units/s with twelve canonical-style
+  50 ms cels; keep 300-unit walking, existing art, single jump and input locks.
+- Keep required encounter foes reachable before their closed wall can block
+  progression; preserve identity, health and real defeat credit.
+- Reduce crowded hack full-body echoes from 48→16 and 72→24 submissions;
+  reuse one native terrain crest path per frame, retaining sampled exact pixels
+  and original rearview blur. Hold struck pedestrians' contact cels permanently.
+- Add continuous saved adrenaline with Good/Perfect gains, miss grace and
+  escalating losses, accepted Turbo/Disrupt costs and genuine wreck loss.
+  Scale practical combat/recharge/guard/tracking benefits smoothly, including
+  zero-charge skill access and compatible checkpoint receipts.
+- Improve the live meter, distinct skill pictograms, mapped ready/active/queued
+  states, ammo sockets, pad locks, earned receipts, Pause help and existing cues.
+- Keep final-head regression/syntax/browser/CI and publication attribution in
+  the export receipt. Native work counts do not establish device FPS; human
+  Makko/controller/listening/comfort/balance/device review remains unrecorded.
+
 ## October 2, 2026 — Level 1 walk-in and animation pass
 
 - Replace the wall-clock spawn effect with a true grounded walk from beyond the left edge to the original spawn, with pause/input/mission/checkpoint handling.

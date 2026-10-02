@@ -12,6 +12,8 @@ window.FILE_MANIFEST.push({
 // on every frame. Player.position.y is the historical physics anchor, always
 // 72px above the visible foot-contact line. Keep that world-space contract
 // separate from Makko's source-frame anchor compensation below.
+// Run uses its registered source ground row on every cel; authored flight
+// frames lift the visible boots slightly above it without moving collision feet.
 const PLAYER_VISUAL_FOOT_OFFSET_Y = 72;
 // The real sidewalk-to-awning rise is taller than the legacy physics-space
 // gap. Scale every vertical jump term together so the route gains height while
@@ -30,7 +32,7 @@ const PLAYER_STOMP_REBOUND = 560;
 // Opaque cap crown, measured per existing jump frame (alpha > 180), inset
 // three source pixels. Hands and empty sprite padding cannot cause a bump.
 const PLAYER_JUMP_CROWN = Object.freeze([[127,85],[112,79],[102,67],[100,51],[98,54],[111,64],[114,84],[108,90],[109,106],[98,109],[104,105],[102,87],[102,66],[98,60],[95,51],[104,45],[104,51],[114,60],[102,75],[108,79],[112,81],[115,75],[113,72],[106,63],[100,51],[106,48],[104,51]]);
-const PLAYER_ANIMATION_PRESENTATION = Object.freeze({"idle":{"animation":"6_bit_idle_idle","scale":0.6666666666666666,"anchorX":160,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]},"walk":{"animation":"6_bit_walk_walk","scale":0.7171717171717171,"anchorX":144,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]},"jump":{"animation":"6_bit_jump_jump","scale":0.7967479674796748,"anchorX":96,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]},"rhythm":{"animation":"6_bit_r__h_mode_rhmode","scale":0.7843137254901961,"anchorX":96,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]}});
+const PLAYER_ANIMATION_PRESENTATION = Object.freeze({"idle":{"animation":"6_bit_idle_idle","scale":0.6666666666666666,"anchorX":160,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]},"walk":{"animation":"6_bit_walk_walk","scale":0.7171717171717171,"anchorX":144,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]},"jump":{"animation":"6_bit_jump_jump","scale":0.7967479674796748,"anchorX":96,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]},"rhythm":{"animation":"6_bit_r__h_mode_rhmode","scale":0.7843137254901961,"anchorX":96,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]},"run":{"animation":"6_bit_run_run","scale":0.5459506387200793,"anchorX":240,"anchorY":448,"footRows":[448,448,448,448,448,448,448,448,448,448,448,448]}});
 
 window.Player = class Player {
   static get VISUAL_FOOT_OFFSET_Y() { return PLAYER_VISUAL_FOOT_OFFSET_Y; }
@@ -50,6 +52,8 @@ window.Player = class Player {
     this.width = 86;  // Based on sprite dimensions
     this.height = 96; // Based on sprite dimensions
     this.speed = 300; // pixels per second
+    this.runSpeed = 450;
+    this.runHeld = false;
     this.airSpeed = PLAYER_DIRECTIONAL_AIR_SPEED;
     this.jumpPower = PLAYER_JUMP_POWER;
     this.jumpTime = 0;
@@ -300,7 +304,7 @@ window.Player = class Player {
     } else if (this.isRhythmPlanted() || this.primaryAttackAnimationMs > 0) {
       this.state = 'rhythm';
     } else if (Math.abs(this.velocity.x) > 5) {
-      this.state = 'walk';
+      this.state = this.isRunActive() && Math.abs(this.velocity.x) > this.speed + 1 ? 'run' : 'walk';
     } else {
       this.state = 'idle';
     }
@@ -490,6 +494,7 @@ window.Player = class Player {
   // One frame-owned transition path. Repeated requests for the same clip
   // preserve its progress; new jumps explicitly restart the jump clip.
   getAnimationPlaybackRate(state = this.state) {
+    if (state === 'run') return Math.max(0.3, Math.min(2, Math.abs(this.velocity.x) / this.runSpeed));
     if (state === 'walk') {
       // The accepted sixteen-pose stride is one second at normal walking
       // speed. Entrance travel and ordinary locomotion share that cadence;
@@ -569,11 +574,21 @@ window.Player = class Player {
     return this.grounded && !!window.rhythmSystem?.isActive?.();
   }
 
+  setRunHeld(held) { this.runHeld = !!held; }
+
+  isRunActive() {
+    return this.runHeld && this.grounded && this.allowMovement && !this.isEntering && !this.controlsDisabled &&
+      !window.isPaused && !window.gameState?.paused && !window.BARCODE?.LevelDifficulty?.open &&
+      !this.isRhythmPlanted() && !window.hackingSystem?.isActive?.() && !window.sector1Progression?.isGameplaySuppressed?.();
+  }
+
+  getGroundMoveSpeed() { return this.isRunActive() ? this.runSpeed : this.speed; }
+
   moveLeft() {
     if (this.isRhythmPlanted()) { this.velocity.x = 0; this.airInput = 0; return; }
     if (this.isEntering || !this.allowMovement) { return; }
     this.facing = -1;
-    if (this.grounded) this.velocity.x = -this.speed;
+    if (this.grounded) this.velocity.x = -this.getGroundMoveSpeed();
     else this.airInput = -1;
 
   }
@@ -582,7 +597,7 @@ window.Player = class Player {
     if (this.isRhythmPlanted()) { this.velocity.x = 0; this.airInput = 0; return; }
     if (this.isEntering || !this.allowMovement) { return; }
     this.facing = 1;
-    if (this.grounded) this.velocity.x = this.speed;
+    if (this.grounded) this.velocity.x = this.getGroundMoveSpeed();
     else this.airInput = 1;
 
   }
@@ -1466,8 +1481,8 @@ window.Player = class Player {
     // Handle directional flipping for animations
     let shouldFlip = false;
     
-    if (this.state === 'walk') {
-      // The complete model walk is authored facing right
+    if (this.state === 'walk' || this.state === 'run') {
+      // The complete model walk and dedicated run are authored facing right.
       shouldFlip = this.facing === -1;
     } else if (this.state === 'idle' || this.state === 'jump' || this.state === 'hack') {
       // Idle and jump should face the direction of movement
@@ -1706,6 +1721,7 @@ window.Player = class Player {
     this.facing = 1;
     this.state = 'walk';
     this.isEntering = true;
+    this.runHeld = false;
     this.controlsDisabled = true;
     // A fresh run cannot inherit a hit blink, held impact or portrait reaction
     // from the actor that was just replaced. Checkpoint restores bypass this.

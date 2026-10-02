@@ -1,5 +1,24 @@
 # Current State
 
+## October 2 — Run, required-enemy recovery and adrenaline candidate
+
+6 Bit gains grounded Shift/L2/LT running at 450 units/s with twelve registered
+50 ms cels; ordinary walking remains 300 and existing sprite/jump art is kept.
+Required encounter foes stay on the accessible side of closed gates, preserving
+real twenty-defeat progression. Crowded hack echo submissions fall 48→16 and
+72→24; one per-frame terrain crest path removes 660–858 redundant Canvas vertex
+calls with sampled native pixel identity. Hit pedestrian cels remain held.
+
+Cache Road gains a saved continuous adrenaline meter: Good/Perfect +15/+20,
+one-miss grace then escalating −12/−18/−24, accepted Turbo/Disrupt −10/−14,
+and genuine wreck −12. Positive charge improves power/recharge/ammo/guard and
+tracking smoothly; 35/70 tier labels introduce no hard skill lock. Distinct
+skill pictograms, live meter/receipts, readable mapped states, Pause help and
+bounded existing sound cues complete the visual feedback. See
+`RUN_ADRENALINE_PERFORMANCE.md`. Exact final-head gates/publication belong to
+the export receipt; owner Makko/controller/listening/comfort/balance/device
+pacing acceptance remains unrecorded.
+
 ## October 2 — Level 1 walk-in and animation coverage
 
 6 Bit enters from fully outside the left viewport using his grounded walking clip at normal speed, finishing at the established x=200 spawn. Shared delta freezes the entrance during pause/difficulty selection; checkpoint resumes and tutorial deaths use ordinary spawns. Mission checkpoints wait for arrival. Actors, the Jammer, HUD portrait, flying traffic, terminal, platform/gate/lift hardware, cat, inspection props, pickups and local atmosphere now have deliberate live presentation with separate rates. Faint motion is strengthened; construction/power-state variants stay attached to their physical owners. Canonical image bytes remain unchanged. See `LEVEL1_ANIMATION_PASS.md`; exact final validation/publication belongs to the generated export receipt, with owner device acceptance still unrecorded.

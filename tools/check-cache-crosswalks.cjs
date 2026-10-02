@@ -58,8 +58,14 @@ assert.equal(swept.length,2,'a fast world/lane sweep cannot tunnel through eithe
 const after=C.pose(sweep,{progress:1030});
 assert(after.people.every(person=>person.phase==='hit'&&person.hitAgeMs>=0));
 const hitLanes=after.people.map(person=>person.lane);
+const hitWalkingTimes=after.people.map(person=>person.walkingMs);
 assert.equal(C.step(sweep,200,{before:970,progress:1030,speed:110,previousLanePos:0,lanePos:3}).length,0);
 assert.deepEqual(C.pose(sweep,{progress:1030}).people.map(person=>person.lane),hitLanes,'hit bodies stop walking at their contact addresses');
+assert.deepEqual(C.pose(sweep,{progress:1030}).people.map(person=>person.walkingMs),hitWalkingTimes,
+  'hit bodies keep the exact contact walking clock instead of cycling sprite cels');
+for(let index=0;index<30;index++)C.step(sweep,250,{before:1030,progress:1030,speed:52,lanePos:3});
+assert.deepEqual(C.pose(sweep,{progress:1030}).people.map(person=>person.walkingMs),hitWalkingTimes,
+  'settled hit bodies retain the same walking cels as their impact');
 const timedMiss=fixture();Object.assign(timedMiss.crossings[0],{started:true,ageMs:4500});
 assert.equal(C.step(timedMiss,200,{before:995,progress:1045,speed:110,previousLanePos:0,lanePos:1.5}).length,0,
   'separate longitudinal and lateral overlaps do not create a collision at different frame times');

@@ -203,6 +203,7 @@ window.InputManager = class InputManager {
     this.pressedKeys.clear();
     this.releasedKeys.clear();
     this.keys = {};
+    window.player?.setRunHeld?.(false);
     window.BARCODE?.GamepadUI?.reset();
     if (this.actionInput && typeof this.actionInput.reset === 'function') this.actionInput.reset();
   }
@@ -346,6 +347,7 @@ window.InputManager = class InputManager {
       // Opposing directions cancel each other. This preserves the original
       // controller contract: pressing both directions is neutral, and
       // releasing either one immediately resumes the direction still held.
+      window.player.setRunHeld?.(!!actions.run?.held);
       const horizontal = Number(!!actions.move_right?.held) - Number(!!actions.move_left?.held);
       if (horizontal < 0) window.player.moveLeft();
       else if (horizontal > 0) window.player.moveRight();

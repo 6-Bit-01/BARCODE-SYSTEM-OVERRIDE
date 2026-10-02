@@ -15,7 +15,7 @@ const flush = async () => { for (let i = 0; i < 24; i++) await Promise.resolve()
 const DIFFICULTIES = ['relaxed', 'standard', 'overclocked'];
 const BUTTONS = { attack: 5, turbo: 4, defend: 7, disrupt: 6 };
 const MUSIC_LEVELS = { drive: .19, flow: .55, breakaway: .50, undercurrent: .62 };
-const OWNERS = ['src/game/cache-road-encounters.js', 'src/game/cache-road-reactions.js',
+const OWNERS = ['src/game/cache-road-adrenaline.js','src/game/cache-road-encounters.js', 'src/game/cache-road-reactions.js',
   'src/game/cache-road-pursuit.js', 'src/game/cache-road-combat.js',
   'src/game/cache-road-crosswalks.js','src/game/cache-road-mirror.js','src/game/cache-road-crew-callouts.js'];
 const SOURCES = [...OWNERS, 'src/game/cache-road-proof.js', 'src/game/cache-chapter.js',

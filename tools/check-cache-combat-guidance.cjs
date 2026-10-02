@@ -96,7 +96,7 @@ menu.drawController(ctx,value=>controllerTexts.push(String(value)));
 for(const name of ['Attack','Turbo','Defend','Disrupt','Reset skill mapping'])assert(controllerTexts.includes(name));
 assert(!controllerTexts.includes('Beat attack'));
 road.active=false;
-assert.equal(menu.controllerRowCount(),10,'Level1 retains its original settings rows and controls');
+assert.equal(menu.controllerRowCount(),11,'Level1 retains its original controls and adds the held Run setting');
 menu.controllerFocus=3;menu.activateController();assert.equal(menu.captureAction,'jump');menu.captureAction=null;
 road.active=true;road.chapter.encounterVersion=3;delete road.state.combat;
 clear();g.drawHelp(ctx,road);
