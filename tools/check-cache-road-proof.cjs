@@ -29,6 +29,7 @@ async function run() {
   load(context, 'src/engine/music-director.js');
   load(context, 'src/engine/audio.js');
   load(context, 'src/game/cache-road-landscape.js');
+  load(context, 'src/game/cache-road-mirror.js');
   const roadSource=fs.readFileSync('src/game/cache-road-proof.js','utf8');
   const sceneMarker='  const clone = value => JSON.parse(JSON.stringify(value));';
   assert(roadSource.includes(sceneMarker));
@@ -525,6 +526,7 @@ async function run() {
       pulseTargets:{'0/0/0':4,'0/0/1':12},
       pulsePlaces:{'0/0/0':146.469,'0/0/1':322.469},
       ...overrides };
+    road.state.mirrorState=overrides.mirrorState||B.CacheRoadMirror.create(road.state);
     const sectionBeat=Math.floor(road.state.musicBeatFloat/4)*4;
     road.state.driveSections=[{beat:sectionBeat,beatSec:60/128,
       from:road.state.progress-(road.state.musicBeatFloat-sectionBeat)*22,
@@ -1129,15 +1131,32 @@ async function run() {
     Math.abs(contacts.at(-1).x - 164*.51) < .01 &&
     Math.abs(contacts.at(-1).y - (-119*.275+2)) < .01,
   'right steer anchors its near rear and raised outer front tire separately');
-  assert.equal(mirrorFrame({ pulseFlashMs: 500 }), 1);
-  assert.equal(mirrorFrame({ boostMs: 600 }), 2);
-  assert.equal(mirrorFrame({ cutFlashMs: 500 }), 3);
-  assert.equal(mirrorFrame({ stumbleMs: 650, integrity: 1 }), 4,
+  const mirrorMood = (overrides,ms=500,hit=false) => {
+    const owner=B.CacheRoadMirror.create({integrity:3,timeMs:55000,status:'playing'});
+    if(hit)B.CacheRoadMirror.onHit(owner,overrides);
+    else for(let age=0;age<ms;age+=20)B.CacheRoadMirror.step(owner,20,
+      {integrity:3,timeMs:55000,status:'playing',...overrides});
+    return mirrorFrame({...overrides,mirrorState:owner});
+  };
+  assert.equal(mirrorFrame({ pulseFlashMs: 500 }), 0,
+    'a caught HUD flash does not switch Cache directly during draw');
+  assert.equal(mirrorMood({ pulseFlashMs: 500 }), 1);
+  assert.equal(mirrorMood({ boostMs: 600 }), 2);
+  assert.equal(mirrorMood({ cutFlashMs: 500 }), 3);
+  const heldMirror=B.CacheRoadMirror.create();
+  for(let age=0;age<500;age+=20)B.CacheRoadMirror.step(heldMirror,20,
+    {boostMs:600,integrity:3,timeMs:55000});
+  B.CacheRoadMirror.step(heldMirror,100,{integrity:3,timeMs:55000});
+  const heldSnapshot=copy(heldMirror);
+  assert.equal(mirrorFrame({mirrorState:heldMirror}),2,
+    'confidence remains through a short inactive Turbo boundary');
+  assert.deepEqual(copy(heldMirror),heldSnapshot,'native mirror paint only reads its owner');
+  assert.equal(mirrorMood({ stumbleMs: 650, integrity: 1 },0,true), 4,
     'a hit overrides low signal during the collision');
   assert(roadArt.some(entry => entry.key === 'cacheCarHit'), 'collision uses its jolt pose');
   assert(roadArt.filter(entry=>entry.key==='cacheCarHit').every(entry=>entry.frame===0),
     'impact animation begins on its first registered cel');
-  mirrorFrame({ stumbleMs: 240, integrity: 1 });
+  mirrorMood({ stumbleMs: 240, integrity: 1 },0,true);
   assert(roadArt.filter(entry=>entry.key==='cacheCarHit').every(entry=>entry.frame===5),
     'the hit pose walks through its one-shot eight-frame arc');
   assert.equal(mirrorFrame({ integrity: 1 }), 5);

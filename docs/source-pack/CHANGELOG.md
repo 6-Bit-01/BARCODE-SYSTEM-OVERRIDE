@@ -1,5 +1,30 @@
 # Recovery checkpoint — September 14
 
+## October 1 — crosswalks and controlled pursuit
+
+- Add four trajectory-bound zebra crossings, eight physical walking people,
+  swept single-contact detection, varied queued shame messages and save masks.
+- Keep pedestrian contacts separate from score/health/music/skill economy.
+- Add one grounded fallen-rider collision and cartoon splat using existing art;
+  retain ordinary bike destruction/reward facts and old checkpoints.
+- Spread waiting hostiles into separate slots, preserve committed attacks,
+  and let only the lead begin the next attack with an escape lane.
+- Add persistent mirror moods with settling, minimum dwell, actual-hit override
+  and deliberate recovery; retain pause/lifecycle ownership and exact blur.
+- Reuse one combat view across world/mirror and one actor pose per observation;
+  depth-sort people with all vehicle owners and wire Flashes Off to splat paint.
+- Keep locks, health bars, shots, hit effects, target reticles and rig impacts
+  above their own depth-sorted bodies; retain Cache and nearer-road occlusion.
+  Extend the existing native foreground check with four feedback paint cases.
+- Preserve cutscene bytes after skipping the unsuccessful iris-only edit.
+- Retain historical played/profile evidence unchanged and add a fresh complete
+  native Canvas race with all 89 source fingerprints matching current files.
+- Refresh the entrypoint inventory only for the two new script owners; no
+  baseline failure or gameplay assertion is suppressed.
+- Complete full local regression/all-file syntax and retain exact-source
+  evidence. The owner explicitly approves publication/PR/merge after CI;
+  final hosted results are attributed in the generated export receipt.
+
 ## October 1 — Combat polish follow-up
 
 Fix target identity and projectile death splash; prevent concurrent player

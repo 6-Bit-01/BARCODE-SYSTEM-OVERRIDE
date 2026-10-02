@@ -12,6 +12,7 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
   const MAX_ACTORS=3, MAX_PROJECTILES=6, MAX_WRECKS=6, MAX_LEDGER=96;
   // The car nose reaches the hostile rear chassis before tire-plane overlap.
   const RAM_REACH=48;
+  const RIDER_LAND_MS=1900, RIDER_LANE_THROW=.34, RIDER_CONTACT_GAP=.36;
   const ROLES=Object.freeze({
     bike:Object.freeze({hp:2,attack:'kick'}),
     rammer:Object.freeze({hp:3,attack:'ram'}),
@@ -40,7 +41,7 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
   function create({difficultyId='standard',seed=27469}={}) {
     return {version:4,difficultyId:Object.hasOwn(SETTINGS,difficultyId)?difficultyId:'standard',
       seed:integer(seed,0,0xffffffff)?seed:27469,elapsedMs:0,lastBar:0,lastProgress:0,
-      trackedLane:1.5,spawnSeq:0,nextSpawnMs:4500,enemies:[],projectiles:[],wrecks:[],ledger:[],
+      trackedLane:1.5,lastLanePos:1.5,spawnSeq:0,nextSpawnMs:4500,enemies:[],projectiles:[],wrecks:[],ledger:[],
       bossArrived:false,defeated:false,boss:null,projectileSeq:0,defendMs:0,disruptMs:0,
       turboPending:false,boosting:false,ramContacts:[],ammo:2,ammoMs:0,
       cooldowns:{attack:0,defend:0,turbo:0,disrupt:0},
@@ -68,6 +69,10 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
       vulnerable:['recover','stunned'].includes(enemy.phase),
       // Physical contacts are resolved once here, never by a second road hull.
       collidable:false,threatActive:enemy.phase==='attack',alpha:1};
+  }
+  function riderLane(wreck,settled=false) {
+    const side=wreck.lane>=1.5?-1:1;
+    return clamp(wreck.lane+side*RIDER_LANE_THROW*(settled?1:Math.min(1,wreck.ageMs/RIDER_LAND_MS)),0,3);
   }
   function bossPose(state,input) {
     if(!state.bossArrived)return null;
@@ -104,8 +109,12 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
       wrecks:state.wrecks.map(item=>({...item,phase:'wreck',wreck:true,distance:item.at-view.progress,
         flipAngle:item.flip?Math.min(1,item.ageMs/1600)*Math.PI*2:0,
         height:item.flip?Math.sin(Math.min(1,item.ageMs/1600)*Math.PI)*58:0,
-        riderHeight:item.rider?Math.sin(Math.min(1,item.ageMs/1900)*Math.PI)*95:0,
+        riderHeight:item.rider?Math.sin(Math.min(1,item.ageMs/RIDER_LAND_MS)*Math.PI)*95:0,
         riderOffset:item.rider?Math.min(110,item.ageMs*.06):0,
+        riderAt:item.rider?item.at:null,riderLane:item.rider?riderLane(item):null,
+        riderSide:item.lane>=1.5?-1:1,
+        splattered:Number.isFinite(item.riderSplatAtMs),
+        riderSplatAgeMs:Number.isFinite(item.riderSplatAtMs)?item.ageMs-item.riderSplatAtMs:0,
         alpha:clamp((720-(view.progress-item.at))/160,0,1)})),
       target:targetFor(state,view),boss:bossPose(state,view),
       skills:Object.fromEntries(Object.keys(SKILLS).map(kind=>[kind,{ready:state.cooldowns[kind]<=0&&(kind!=='attack'||!flight),
@@ -121,12 +130,53 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
     return (input.protectedPulses||[]).some(pulse=>Number.isFinite(pulse.at)&&Number.isFinite(pulse.lane)&&
       Math.abs(pulse.at-at)<95&&Math.abs(pulse.lane-lane)<.85);
   }
-  function laneFor(state,input,at,wanted) {
+  function laneFor(state,input,at,wanted,ignoreId=null) {
     const lanes=[0,1,2,3].sort((a,b)=>Math.abs(a-wanted)-Math.abs(b-wanted)||a-b);
     return lanes.find(lane=>!occupied(input,at,lane)&&!pulseConflict(input,at,lane)&&
+      !state.enemies.some(enemy=>enemy.id!==ignoreId&&enemy.hp>0&&enemy.phase!=='flee'&&
+        Math.abs(enemy.at-at)<100&&Math.abs(enemy.lane-lane)<.72)&&
       lanes.some(escape=>Math.abs(escape-lane)>=1&&!occupied(input,at,escape)&&
-        !state.enemies.some(enemy=>enemy.phase==='attack'&&
-          Math.abs(enemy.at-at)<100&&Math.abs(enemy.attackLane-escape)<.7)));
+        !state.enemies.some(enemy=>enemy.id!==ignoreId&&enemy.hp>0&&enemy.phase!=='flee'&&
+          Math.abs(enemy.at-at)<100&&Math.abs((['windup','attack'].includes(enemy.phase)?enemy.attackLane:enemy.lane)-escape)<.72)));
+  }
+  function attackRest(state) {
+    // One readable opening follows a resolved/cancelled attack. Waiting
+    // opponents do not immediately replace a dodged chassis with another tell.
+    for(const enemy of state.enemies)enemy.rearmMs=Math.max(enemy.rearmMs,1100);
+  }
+  function staging(state) {
+    const live=state.enemies.filter(enemy=>enemy.hp>0&&enemy.phase!=='flee');
+    live.sort((a,b)=>Number(['windup','attack'].includes(b.phase))-Number(['windup','attack'].includes(a.phase))||
+      Number(b.kind==='rig')-Number(a.kind==='rig')||b.ageMs-a.ageMs||a.id.localeCompare(b.id));
+    return new Map(live.map((enemy,index)=>[enemy.id,index]));
+  }
+  function stagingLane(state,input,enemy,at) {
+    const wanted=Math.round(enemy.lane);
+    const lanes=[0,1,2,3].sort((a,b)=>Math.abs(a-wanted)-Math.abs(b-wanted)||a-b);
+    const blocked=lane=>occupied(input,at,lane)||state.enemies.some(other=>other!==enemy&&other.hp>0&&other.phase!=='flee'&&
+      Math.abs(other.at-at)<100&&Math.abs(other.lane-lane)<.72);
+    return lanes.find(lane=>!blocked(lane)&&!pulseConflict(input,at,lane)&&
+      lanes.some(escape=>Math.abs(escape-lane)>=1&&!blocked(escape)));
+  }
+  function moveIntoStage(state,input,enemy,dt,target) {
+    // Traffic and announced pads keep their authored coordinates. Find room
+    // around the desired band, then approach that space with the same finite
+    // acceleration instead of stacking combat paint on a convoy or a pad.
+    let chosen;
+    for(const distance of [target,target+110,target+220,target-110]) {
+      if(distance<35||distance>440)continue;
+      const lane=stagingLane(state,input,enemy,input.progress+distance);
+      if(lane!==undefined){chosen={distance,lane};break;}
+    }
+    moveToward(enemy,input,dt,chosen?.distance??Math.min(440,target+110));
+    // A stunned/recovering target remains a usable physical opening. Separate
+    // waiting vehicles along the road; do not sidestep a Turbo already closing
+    // on a vulnerable chassis unless authored traffic or a pad requires it.
+    if(['stunned','recover'].includes(enemy.phase)&&!occupied(input,enemy.at,enemy.lane)&&
+      !pulseConflict(input,enemy.at,enemy.lane))return;
+    const lane=stagingLane(state,input,enemy,enemy.at);
+    const wanted=lane??chosen?.lane;
+    if(wanted!==undefined)enemy.lane+=(wanted-enemy.lane)*(1-Math.exp(-dt/700));
   }
   function roleFor(state,bar) {
     const roles=bar<20?['bike','rammer']:bar<44?['bike','rammer','escort']:
@@ -148,6 +198,7 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
   }
   function hurt(state,enemy,amount,cause,events,chain=false) {
     if(!enemy||enemy.hp<=0)return;
+    if(['windup','attack'].includes(enemy.phase))attackRest(state);
     const prior=enemy.hp,priorSystems=Math.ceil(prior/4);
     enemy.hp=round(Math.max(0,prior-amount));
     const dealt=round(prior-enemy.hp),record=ledgerFor(state,enemy.id);
@@ -162,7 +213,7 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
       enemy.phase='wreck';record.retired=true;
       state.projectiles=state.projectiles.filter(projectile=>projectile.friendly||projectile.sourceId!==enemy.id);
       state.wrecks.push({id:enemy.id,kind:enemy.kind,at:enemy.at,lane:enemy.lane,ageMs:0,
-        rollMs:1600,flip:enemy.kind!=='rig',rider:enemy.kind==='bike',chain});
+        rollMs:1600,flip:enemy.kind!=='rig',rider:enemy.kind==='bike',riderSplatAtMs:null,chain});
       if(state.wrecks.length>MAX_WRECKS)state.wrecks.shift();
       events.push(event('takedown',enemy,{damage:dealt,hp:0,maxHp:enemy.maxHp,cause,chain,
         flip:enemy.kind!=='rig',rider:enemy.kind==='bike'}));
@@ -251,6 +302,7 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
       state.cooldowns.disrupt=SKILLS.disrupt*benefits.recharge;state.disruptMs=1200+input.syncCount*100;state.stats.disrupts++;
       const affected=state.enemies.filter(enemy=>Math.abs(enemy.at-input.progress)<=260&&enemy.hp>0);
       for(const enemy of affected)stagger(enemy);
+      attackRest(state);
       const removed=state.projectiles.filter(item=>!item.friendly&&Math.abs(item.at-input.progress)<=320);
       state.projectiles=state.projectiles.filter(item=>!removed.includes(item));
       events.push({type:'disrupt',at:input.progress,lane:input.lanePos,
@@ -265,12 +317,37 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
     const chaseSpeed=input.boosting?Math.min(input.speed,52):input.speed;
     enemy.at+=Math.max(0,chaseSpeed+clamp((target-distance)*.75,-32,48))*dt/1000;
   }
+  function sweepInterval(from,to,lo,hi) {
+    if(Math.abs(to-from)<1e-9)return from>=lo&&from<=hi?[0,1]:null;
+    const a=(lo-from)/(to-from),b=(hi-from)/(to-from);
+    const start=Math.max(0,Math.min(a,b)),end=Math.min(1,Math.max(a,b));
+    return start<=end?[start,end]:null;
+  }
+  function stepWrecks(state,input,before,beforeLane,dt,events) {
+    for(const wreck of state.wrecks) {
+      const oldAt=wreck.at,oldAge=wreck.ageMs;
+      wreck.ageMs+=dt;wreck.at+=8*dt/1000;
+      if(!wreck.rider||Number.isFinite(wreck.riderSplatAtMs)||wreck.ageMs<RIDER_LAND_MS)continue;
+      const lane=riderLane(wreck,true);
+      const longitudinal=sweepInterval(oldAt-before,wreck.at-input.progress,-12,20);
+      const lateral=sweepInterval(beforeLane,input.lanePos,lane-RIDER_CONTACT_GAP,lane+RIDER_CONTACT_GAP);
+      if(!longitudinal||!lateral)continue;
+      const start=Math.max(longitudinal[0],lateral[0],(RIDER_LAND_MS-oldAge)/dt,0);
+      if(start>Math.min(longitudinal[1],lateral[1],1))continue;
+      wreck.riderSplatAtMs=oldAge+dt*start;
+      // Grounded rider contact is cosmetic. It never creates another hostile
+      // takedown, damage-ledger entry, point award or player integrity hit.
+      events.push(event('rider-splatter',wreck,{lane,combat:true}));
+    }
+    state.wrecks=state.wrecks.filter(wreck=>input.progress-wreck.at<=720&&wreck.ageMs<=30000);
+  }
   function step(state,delta,rawInput={}) {
     if(state?.version!==4)return [];
     const dt=clamp(finite(delta),0,100),input=inputOf(rawInput),events=[];
     if(!dt)return events;
-    const before=state.lastProgress,tuning=SETTINGS[state.difficultyId];
+    const before=state.lastProgress,beforeLane=state.lastLanePos??input.lanePos,tuning=SETTINGS[state.difficultyId];
     state.lastProgress=input.progress;state.lastBar=Math.max(state.lastBar,input.bar);state.elapsedMs+=dt;
+    state.lastLanePos=input.lanePos;
     state.trackedLane+=(input.lanePos-state.trackedLane)*Math.min(1,dt/(260+input.syncCount*140));
     state.defendMs=Math.max(0,state.defendMs-dt);state.disruptMs=Math.max(0,state.disruptMs-dt);
     if((!input.boosting||!state.boosting)&&state.ramContacts.length)state.ramContacts=[];
@@ -279,8 +356,7 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
     if(state.ammo<2){state.ammoMs+=dt;const refill=syncBenefits(input.syncCount).ammoMs;
       if(state.ammoMs>=refill){state.ammo++;state.ammoMs=Math.max(0,state.ammoMs-refill);}}
     else state.ammoMs=0;
-    for(const wreck of state.wrecks){wreck.ageMs+=dt;wreck.at+=8*dt/1000;}
-    state.wrecks=state.wrecks.filter(wreck=>input.progress-wreck.at<=720&&wreck.ageMs<=30000);
+    stepWrecks(state,input,before,beforeLane,dt,events);
     if(!state.defeated&&input.bar>=72&&!state.bossArrived) {
       // The rig gets a reserved slot; an old escaping foe is allowed to leave
       // naturally, rather than teleporting another hostile into the road.
@@ -294,27 +370,30 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
         tuning.spawnMs+(state.bossArrived?3500:0)+input.syncCount*200;
     }
     const previousPositions=new Map(state.enemies.map(enemy=>[enemy.id,{at:enemy.at,lane:enemy.lane}]));
+    const slots=staging(state);
     for(const enemy of state.enemies) {
       if(enemy.hp<=0)continue;
       enemy.ageMs+=dt;enemy.phaseMs+=dt;enemy.rearmMs=Math.max(0,enemy.rearmMs-dt);
       if(enemy.kind!=='rig'&&enemy.ageMs>30000&&enemy.phase!=='attack')enemy.phase='flee';
       if(enemy.phase==='flee'){enemy.at+=8*dt/1000;continue;}
       if(enemy.phase==='stunned') {
-        moveToward(enemy,input,dt,42);
+        moveIntoStage(state,input,enemy,dt,slots.get(enemy.id)===0?42:210+(slots.get(enemy.id)-1)*130);
         if(enemy.phaseMs>=1700){enemy.phase='recover';enemy.phaseMs=0;}continue;
       }
       if(enemy.phase==='recover') {
-        moveToward(enemy,input,dt,42);
+        moveIntoStage(state,input,enemy,dt,slots.get(enemy.id)===0?42:210+(slots.get(enemy.id)-1)*130);
         if(enemy.phaseMs>=2400+input.syncCount*100){enemy.phase='approach';enemy.phaseMs=0;}
         continue;
       }
       if(enemy.phase==='approach') {
-        moveToward(enemy,input,dt,70);
+        const slot=slots.get(enemy.id),target=slot===0?70:210+(slot-1)*130;
+        moveIntoStage(state,input,enemy,dt,target);
         const distance=enemy.at-input.progress;
-        if(distance>=35&&distance<=160&&enemy.phaseMs>=800&&enemy.rearmMs<=0&&state.disruptMs<=0&&
+        if(slot===0&&distance>=35&&distance<=160&&enemy.phaseMs>=800&&enemy.rearmMs<=0&&state.disruptMs<=0&&
+            !state.projectiles.some(projectile=>!projectile.friendly)&&
             !state.enemies.some(other=>other!==enemy&&['windup','attack'].includes(other.phase))) {
           const wanted=input.syncCount>=3?state.trackedLane:input.lanePos;
-          const lane=laneFor(state,input,enemy.at,wanted);
+          const lane=laneFor(state,input,enemy.at,wanted,enemy.id);
           if(lane!==undefined){enemy.attackLane=lane;enemy.phase='windup';enemy.phaseMs=0;
             enemy.attackKind=enemy.kind==='rig'?ROLES.rig.attack:ROLES[enemy.kind].attack;
             if(enemy.kind==='rig')enemy.attackKind=enemy.hp>8?'scan':enemy.hp>4?'ram':'pulse';
@@ -328,6 +407,7 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
         enemy.lane+=(enemy.attackLane-enemy.lane)*(1-Math.exp(-dt/200));
         if(pulseConflict(input,enemy.at,enemy.attackLane)||occupied(input,enemy.at,enemy.attackLane)) {
           enemy.phase='recover';enemy.phaseMs=0;
+          attackRest(state);
           events.push(event('disengage',enemy,{reason:'protected-road-address'}));continue;
         }
         if(enemy.phaseMs>=tuning.warningMs+input.syncCount*100) {
@@ -337,6 +417,7 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
             const projectile={id:`shot-${state.projectileSeq++}`,sourceId:enemy.id,owner:'enemy',friendly:false,
               at:enemy.at,lane:enemy.attackLane,ageMs:0,damage:1,kind:enemy.attackKind};
             state.projectiles.push(projectile);enemy.attackDone=true;enemy.phase='recover';enemy.phaseMs=0;
+            attackRest(state);
             events.push(event('enemy-shot',enemy,{projectile:copy(projectile)}));
           }
         }
@@ -347,6 +428,7 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
         const distance=enemy.at-input.progress;
         if(!enemy.attackDone&&distance<=22) {
           enemy.attackDone=true;
+          attackRest(state);
           if(pulseConflict(input,enemy.at,enemy.attackLane)||occupied(input,enemy.at,enemy.attackLane))
             events.push(event('disengage',enemy,{reason:'protected-road-address'}));
           else if(Math.abs(input.lanePos-enemy.attackLane)<tuning.gap)
@@ -379,6 +461,7 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
           contact(state,input,source||projectile,events,'combat projectile');
         else events.push(event('evaded',source||projectile,{opening:true}));
         consumed=true;
+        attackRest(state);
       }
       if(!consumed&&projectile.ageMs<=1800&&Math.abs(projectile.at-input.progress)<=460)kept.push(projectile);
     }
@@ -410,6 +493,7 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
       !number(raw.lastProgress,0,24000)||!number(progress,0,24000)||!number(bar,0,100)||
       Math.abs(progress-raw.lastProgress)>.001||bar<Math.floor(raw.lastBar)-.001||bar>raw.lastBar+.001||
       !number(raw.trackedLane,0,3)||!integer(raw.spawnSeq,0,MAX_LEDGER)||
+      (Object.hasOwn(raw,'lastLanePos')&&!number(raw.lastLanePos,0,3))||
       !number(raw.nextSpawnMs,0,1e10)||!integer(raw.projectileSeq,0,1e6)||
       !integer(raw.ammo,0,2)||!number(raw.ammoMs,0,4500)||!object(raw.cooldowns)||
       Object.keys(SKILLS).some(kind=>!number(raw.cooldowns[kind],0,SKILLS[kind]))||
@@ -456,6 +540,8 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
       if(!object(wreck)||!item||item.hp!==0||wreckIds.has(wreck.id)||wreck.kind!==item.kind||
         !number(wreck.at,0,25000)||!number(wreck.lane,0,3)||!number(wreck.ageMs,0,30000)||
         wreck.rollMs!==1600||wreck.flip!==(item.kind!=='rig')||wreck.rider!==(item.kind==='bike')||
+        (Object.hasOwn(wreck,'riderSplatAtMs')&&wreck.riderSplatAtMs!==null&&
+          (!wreck.rider||!number(wreck.riderSplatAtMs,RIDER_LAND_MS,wreck.ageMs)))||
         typeof wreck.chain!=='boolean')return null;
       wreckIds.add(wreck.id);
     }
@@ -465,6 +551,9 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
       raw.stats.shots>raw.stats.attacks||raw.stats.blocks>raw.stats.defends||
       (damage>0&&raw.stats.attacks+raw.stats.blocks+raw.stats.turbos===0))return null;
     const state=copy(raw);state.lastProgress=progress;state.ramContacts=[];
+    // A legacy checkpoint has no physical previous lane. The first step uses
+    // its actual input lane rather than inventing a sweep from tracking lag.
+    for(const wreck of state.wrecks)if(!Object.hasOwn(wreck,'riderSplatAtMs'))wreck.riderSplatAtMs=null;
     for(const enemy of state.enemies) {
       enemy.phase=state.defeated?'flee':'approach';enemy.phaseMs=0;enemy.rearmMs=1400;enemy.attackDone=true;
       enemy.attackLane=Math.round(enemy.lane);

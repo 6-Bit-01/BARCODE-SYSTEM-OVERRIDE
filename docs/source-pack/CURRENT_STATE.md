@@ -1,5 +1,38 @@
 # Current State
 
+## October 1 — crosswalk and pursuit control candidate
+
+Continues from merged #171. Fresh v4 roads commit four crosswalks at bars
+10/30/50/70 on their actual section trajectory. Eight authored pedestrians
+walk across, can be struck once and queue eight different shame messages.
+Contacts leave score, integrity, music captures and skill economy unchanged.
+Bike riders can be struck after landing and leave one cartoon splat. Waiting
+hostiles have separate follow distances and lanes; only the lead commits an
+attack, while existing locks/projectiles remain physical. Mirror moods have
+3-second dwell and cause settling, with immediate bounded actual-hit recovery.
+
+Combat views are reused across road/mirror and repeated encounter pose work
+is removed. Combat bodies now carry their lock/health feedback, projectiles,
+hit effects and target reticle in the same depth queue; rig impacts follow
+the rig body. Feedback stays above its owner while Cache and nearer traffic
+retain physical occlusion. Four native paint fixtures verify both sides of
+Cache with Reduced Motion off/on, one shared pose and pure rendering.
+A fresh native production-input complete race clears with all four crossings
+visible, two pedestrian contacts and one earned rider splat. All 89 recorded
+source hashes match the current files. Historical captures remain separately
+attributed; final browser/CI publication gates are still pending. Sampled
+native CPU timings are diagnostics with differing baseline/final cadences,
+not device FPS or a controlled percentage speedup. See `CACHE_STREET_SAFETY.md`.
+The initial candidate passed full local regression, all-file syntax and both
+hosted CI events. Automated review then identified and corrected the feedback
+draw order; final corrected-head results belong in the generated receipt.
+The owner explicitly approved
+publication, PR creation and merge after CI on October 1. Hosted Chromium and
+both exact final-head CI events remain required; exact publication results
+belong in the generated receipt. The iris-only
+attempt changed other artwork pixels and was skipped under owner instructions;
+all cutscene images retain their exact bytes. Owner device acceptance is pending.
+
 ## October 1 — Combat polish candidate
 
 PR #170 recovery additionally prevents Turbo projectile absorption from

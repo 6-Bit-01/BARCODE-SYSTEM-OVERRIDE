@@ -12,6 +12,7 @@ function bridgeRig(storage) {
   const r=campaignRig(storage),{w,context,listeners}=r,B=w.BARCODE,C=B.Campaign;
   r.reachReady();
   for(const file of ['src/engine/cache-road-proof-profile.js','src/game/cache-road-landscape.js',
+    'src/game/cache-road-crosswalks.js','src/game/cache-road-mirror.js',
     'src/game/cache-road-proof.js','src/engine/intro-sequence.js','src/engine/cache-scene-layouts.js','src/engine/cache-scene-effects.js',
     'src/engine/comic-dialogue.js','src/engine/cache-bridge.js','src/core/action-input.js',
     'src/core/gamepad-ui.js','src/core/input.js'])load(context,file);

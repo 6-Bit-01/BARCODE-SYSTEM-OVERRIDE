@@ -1,0 +1,11 @@
+{
+  "passed": false,
+  "error": "Error: Chrome exited null: [1002/043125.481761:WARNING:chrome/app/chrome_main_linux.cc:84] Read channel stable from /workspace/scratch/01b1778b0369/chrome-local/opt/google/chrome/CHROME_VERSION_EXTRA\n[19:19:1002/043125.764073:ERROR:ui/base/resource/data_pack.cc:337] Data pack file corruption: Entry #1190 past end.\n[17:17:1002/043125.764152:ERROR:ui/base/resource/data_pack.cc:337] Data pack file corruption: Entry #1190 past end.\n[19:19:1002/043125.766405:ERROR:ui/base/resource/resource_bundle.cc:1108] Failed to load /workspace/scratch/01b1778b0369/chrome-local/opt/google/chrome/resources.pak\nSome features may not be available.\n[17:17:1002/043125.766480:ERROR:ui/base/resource/resource_bundle.cc:1108] Failed to load /workspace/scratch/01b1778b0369/chrome-local/opt/google/chrome/resources.pak\nSome features may not be available.\n[13:13:1002/043125.812028:FATAL:chrome/browser/process_singleton_posix.cc:297] Check failed: . socket() failed: Operation not permitted (1)\n[1002/043125.813389:ERROR:third_party/crashpad/crashpad/util/linux/scoped_ptrace_attach.cc:27] ptrace: Operation not permitted (1)\n[1002/043125.814711:ERROR:third_party/crashpad/crashpad/util/file/directory_reader_posix.cc:43] opendir /proc/13/task: No such file or directory (2)\n\n    at ChildProcess.closed (/workspace/scratch/01b1778b0369/BARCODE-SYSTEM-OVERRIDE/tools/check-cache-combat-browser.cjs:334:68)\n    at Object.onceWrapper (node:events:631:26)\n    at ChildProcess.emit (node:events:521:24)\n    at maybeClose (node:internal/child_process:1141:16)\n    at Socket.<anonymous> (node:internal/child_process:498:11)\n    at Socket.emit (node:events:509:28)\n    at Pipe.<anonymous> (node:net:355:12)",
+  "frames": [],
+  "requests": {
+    "head": 0,
+    "localCombat": [],
+    "remoteCombat": []
+  },
+  "errors": []
+}

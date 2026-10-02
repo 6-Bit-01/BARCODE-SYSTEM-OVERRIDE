@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "verificationDate": "2026-10-02T04:46:46.925078+00:00",
+  "sourceMatchesCurrentTree": true,
+  "sourceHashDifferences": [],
+  "reportSha256": "c7c435e60deb4d5ec18c9174ace77300f3ef3f3a2d089a398dd289d5ecfa84a7",
+  "imageSha256": "f2d8c8ec9d5816b29fe50d1ea16c5250390f433ec11770c117a7b5be0485b703",
+  "sourceFiles": 89,
+  "frameEvidenceSamples": 190,
+  "scope": "Every production-input/shared-RAF simulation update and selected native Node Canvas draws after the depth-queued feedback correction. No physical browser/device frame pacing claim."
+}
