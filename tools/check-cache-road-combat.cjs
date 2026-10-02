@@ -152,7 +152,9 @@ const weapon=fixture();until(weapon,view=>view.actors.length,'visible first oppo
 const enemy=weapon.view().actors[0];weapon.input.lanePos=enemy.lane;
 assert.equal(weapon.view().target.attackMode,'shot');
 assert(weapon.act('attack').accepted);assert.equal(weapon.state.ammo,1);
-for(let i=0;i<11;i++)weapon.step();
+assert.equal(weapon.act('attack').reason,'recharging');
+until(weapon,()=>!weapon.state.projectiles.some(p=>p.friendly),'first shot resolves');
+until(weapon,view=>view.skills.attack.ready,'attack recharge');
 assert(weapon.act('attack').accepted);assert.equal(weapon.state.ammo,0);
 until(weapon,()=>weapon.state.ammo===1,'independent weapon recharge');
 assert(weapon.events.some(event=>event.type==='enemy-hit'&&event.cause==='shot'));

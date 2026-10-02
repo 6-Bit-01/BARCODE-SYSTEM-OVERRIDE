@@ -107,6 +107,19 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-combat-art.js',
         width:options.width,height:options.height});
     } finally {ctx.restore();}
   }
-  B.CacheRoadCombatArt=Object.freeze({drawBody,drawBlast,frameFor,blastFrameFor,
+  function drawFX(ctx,options={}) {
+    if(!ctx||!valid(options)||!loaded('cacheCombatFX'))return false;
+    let frame=options.frame;
+    if(!Number.isInteger(frame)||frame<0||frame>11)return false;
+    if(options.flashes===false&&[3,4,5,8,9,10].includes(frame))frame=11;
+    if(options.reduced&&frame>=3)return false;
+    ctx.save();
+    try {
+      ctx.globalAlpha*=clamp(finite(options.alpha,1),0,1);
+      ctx.translate(options.x,options.y);ctx.rotate(finite(options.angle));
+      return B.PresentationAssets.draw('cacheCombatFX',ctx,{frame,width:options.width,height:options.height});
+    } finally {ctx.restore();}
+  }
+  B.CacheRoadCombatArt=Object.freeze({drawBody,drawBlast,drawFX,frameFor,blastFrameFor,
     anchors:ANCHORS});
 })(window.BARCODE);

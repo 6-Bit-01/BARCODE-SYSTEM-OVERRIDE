@@ -311,10 +311,10 @@ async function main() {
   const reviewWorld=require('./cache-road-browser-world.cjs');
   const world=await evaluate(`(${reviewWorld.toString()})()`);
   assert(world.loadedAssets>200&&world.frames.length===192&&world.contextCalls<=4);
-  assert(Object.keys(world.animations).length===55 && world.animationRoutes.animatedKeys===55);
+  assert(Object.keys(world.animations).length===56 && world.animationRoutes.animatedKeys===56);
   assert.equal(world.animationRoutes.legacyAnimatedKeys,51,
     'all original legacy route assertions remain intact');
-  assert.equal(world.hosted.filter(entry=>entry.frames>1).length,55);
+  assert.equal(world.hosted.filter(entry=>entry.frames>1).length,56);
   for(const [key,count] of [['cacheCombatBike',8],['cacheCombatHostiles',12],
     ['cacheCombatBikeCrash',6],['cacheCombatBlast',6]]) {
     const frames=Array.from({length:count},(_,i)=>i);

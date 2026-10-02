@@ -21,7 +21,7 @@ const STAGE = process.env.CACHE_COMBAT_REVIEW_STAGE || 'prototype';
 assert(['prototype', 'authored'].includes(STAGE), 'CACHE_COMBAT_REVIEW_STAGE must be prototype or authored');
 const LABEL = process.env.CACHE_COMBAT_REVIEW_LABEL || (STAGE === 'authored' ?
   'AUTHORED COMBAT REVIEW' : 'MECHANICS PROTOTYPE / existing traffic art');
-const COMBAT_ASSET_KEYS = ['cacheCombatBike', 'cacheCombatHostiles', 'cacheCombatBikeCrash', 'cacheCombatBlast'];
+const COMBAT_ASSET_KEYS = ['cacheCombatBike', 'cacheCombatHostiles', 'cacheCombatBikeCrash', 'cacheCombatBlast','cacheCombatFX'];
 let encoder;
 
 async function main() {
@@ -74,7 +74,7 @@ async function main() {
     opened.add(name);
     windows.push({ name, fromBar: bar, toBar: Math.min(100, bar + durationMs / 1875), trigger: 'earned live observation' });
   }
-  const run = await runCombatRace({ difficulty: 'standard', gear: 1, profile: 'practiced',
+  const run = await runCombatRace({exerciseDefend:true, difficulty: 'standard', gear: 1, profile: 'practiced',
     async onFrame(r, observed, driver, inputFrame) {
       if (!installed) {
         for (const file of visualOwners) load(r.context, file);

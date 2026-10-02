@@ -11,7 +11,7 @@ w.Image = class Image {
 load(context, 'src/engine/presentation-assets.js');
 const art = w.BARCODE.PresentationAssets;
 for (let i = 0; i < 20; i++) art.preload();
-assert.strictEqual(images.length, 248, 'restarts reuse existing art plus pursuit and four authored combat atlases');
+assert.strictEqual(images.length, 249, 'restarts reuse existing art plus pursuit and five authored combat atlases');
 const speedRoot='https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/f9c2fad2472f3bebdb9554f13893293d74b8bece/';
 const windImage=images.find(im=>im.requests[0]===speedRoot+'assets/cache-road/effects/wind-streak-atlas-v2.png');
 assert(windImage,'painted speed atlas uses its published immutable revision');
@@ -144,7 +144,7 @@ failedPaintedImage.onerror();
 assert.strictEqual(failedPaintedImage.onload,null);
 assert.strictEqual(failedPaintedImage.onerror,null);
 art.preload();
-assert.strictEqual(images.length,248,'failed painted, activity, pursuit and combat assets are not recreated on restart');
+assert.strictEqual(images.length,249,'failed painted, activity, pursuit and combat assets are not recreated on restart');
 assert.strictEqual(failedPaintedImage.requests.length,2,'painted assets stop after both sources fail');
 assert.strictEqual(failedActivityImage.requests.length,2,'activity assets stop after both sources fail');
 const cacheRoadRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/37db98387b8791655e3ff352d6bc6d61cb0b574b/';
@@ -271,7 +271,7 @@ assert.deepStrictEqual(ops.find(op=>op[0]==='drawImage').slice(2),
   'the cleaner uses one complete registered fourth cel with its planted foot anchor');
 arrowImage.onerror(); arrowImage.onerror();
 assert.strictEqual(arrowImage.requests.length, 2); assert.strictEqual(arrowImage.onerror, null);
-art.preload(); assert.strictEqual(images.length, 248, 'failed assets do not retry forever');
+art.preload(); assert.strictEqual(images.length, 249, 'failed assets do not retry forever');
 pulseImage.naturalWidth = pulseImage.naturalHeight = 512; pulseImage.onload();
 ops.length = 0; art.draw('bossPulse', ctx, { y: 822, width: 64, height: 56, frame: 2 });
 assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2), [10, 351, 236, 145, -32, -56, 64, 56], 'pulse fills the dangerous height and retains the ground anchor');

@@ -45,11 +45,11 @@ const road=w.BARCODE.CacheRoadProof;road.active=true;road.status='playing';
 road.state=w.animationNewState();
 const result=audit({B:w.BARCODE,ctx,newState:w.animationNewState,
   entities:w.animationEntities,definitions});
-assert.equal(result.animatedKeys,55,'inventory includes every retained road/pursuit atlas and all four authored combat atlases');
+assert.equal(result.animatedKeys,56,'inventory includes every retained road/pursuit atlas and all five authored combat atlases');
 assert.equal(result.legacyAnimatedKeys,51,'every original legacy animation assertion is retained');
 assert.deepEqual(result.authoredCombatKeys,
-  ['cacheCombatBike','cacheCombatHostiles','cacheCombatBikeCrash','cacheCombatBlast']);
+  ['cacheCombatBike','cacheCombatHostiles','cacheCombatBikeCrash','cacheCombatBlast','cacheCombatFX']);
 assert.equal(loaded.length,Object.keys(definitions).length);
 assert(stack.length===0,'all production canvas scopes restored');
 if(process.argv[2])fs.writeFileSync(process.argv[2],JSON.stringify(result,null,2)+'\n');
-console.log(`Cache Road animation routes passed: ${result.animatedKeys} atlas keys (${result.legacyAnimatedKeys} legacy plus four authored combat), ${result.productionDraws} production draws, ${atlasDraws} image submissions; all cels, both walking views/banks and rearview, all prop/ambient families, hit/actions/mirror, ships, eight pursuit poses, four live impacts and all 32 combat cells in both cameras, and Reduced Motion. Diagnostic combat states are separate from earned-input race evidence.`);
+console.log(`Cache Road animation routes passed: ${result.animatedKeys} atlas keys (${result.legacyAnimatedKeys} legacy plus five authored combat), ${result.productionDraws} production draws, ${atlasDraws} image submissions; all cels, both walking views/banks and rearview, all prop/ambient families, hit/actions/mirror, ships, eight pursuit poses, four live impacts and all 32 combat body cells in both cameras and 12 front projectile/contact cells, and Reduced Motion. Diagnostic combat states are separate from earned-input race evidence.`);

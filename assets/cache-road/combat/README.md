@@ -54,3 +54,20 @@ systems remain production-controller/road responsibilities.
 
 Automated native art/geometry review and real-input combat previews are separate
 from owner Makko/controller/fun acceptance; creation alone claims none of those.
+
+## Projectile/contact polish after #169
+
+`cacheCombatFX` is a 1448x1086, 4x3 transparent atlas with twelve 362px cells.
+It adds about 6 MiB decoded memory and supplies player/hostile/reflected bullets,
+muzzle, sparks/ricochet/smoke, ram pressure/contact and disrupt/residue. Exact
+generated PNG/prompt and lossless WebP hashes/grid/alpha bounds are recorded in
+`fx-metadata.json`. Pillow verified exact decoded RGBA conversion; native
+Canvas checks source alpha (native decoder colour handling is separate).
+The immutable asset ancestor is `3500643aeebacedd8c679cb3db54ea842e13be32`.
+`drawFX` consumes projected position/angle/frame/alpha only. The road emits
+bounded transient contact records from actual actions/hits, and projectile
+paint retains actual allegiance/direction. Reduced Motion omits transient
+contact paint; Flashes Off selects residue. Projectiles remain visible.
+All twelve cells are checked through explicitly staged production front-road
+draws, alongside earned complete-race preview evidence. Historical body art
+and its provenance are unchanged.

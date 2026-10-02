@@ -1,5 +1,16 @@
 # Project Instructions
 
+## October 1 — combat polish after merged #169
+
+The owner approves a focused follow-up from the liked #169 checkpoint
+(`8e9287917bd3f377116d28b0b0c336d03fa2857f`): one target/shot at a time,
+physical ramming, smoother motion, bullet/contact art, optimization and
+stronger sync incentives. Read `CACHE_COMBAT_POLISH.md`. Preserve the exact
+controller mapping below, lane/music/pad contracts, old saves and shared
+owners. Full regression/all-file syntax, played-input/native review and both
+exact final-head CI events retain standing merge authority. The previous
+chase evidence remains historical; owner device acceptance stays separate.
+
 ## October 1 — approved combat chase from the PR #168 checkpoint
 
 The owner approves [PR #169](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/169)

@@ -1,5 +1,13 @@
 # Recovery checkpoint — September 14
 
+## October 1 — Combat polish follow-up
+
+Fix target identity and projectile death splash; prevent concurrent player
+shots; add physical Turbo rams with bounded per-boost contacts. Smooth lateral
+movement, reuse main-draw combat views, add twelve authored bullet/contact FX
+cells, strengthen actual sync power/reload/recharge/points and explain them
+in fixed HUD feedback. Preserve old checkpoints/rules and #169 test attribution.
+
 ## October 1 — authored combat chase in PR #169
 
 - Add four painted immutable atlases for kicking bikers, three hostile chassis,

@@ -121,7 +121,7 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
     // every pose through the actual Combat view owner and full road painter.
     // These explicitly staged diagnostic states are not earned race evidence.
     const authoredCombatKeys=['cacheCombatBike','cacheCombatHostiles',
-      'cacheCombatBikeCrash','cacheCombatBlast'];
+      'cacheCombatBikeCrash','cacheCombatBlast','cacheCombatFX'];
     const combatOwner=B.CacheRoadCombat;
     check(combatOwner&&B.CacheRoadCombatArt,'Authored combat owners were not loaded');
     const combatCases=[
@@ -170,6 +170,23 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
       if(fixture.blastFrame!==undefined)check(contains('cacheCombatBlast',fixture.blastFrame),
         `Production ${camera} missed real-age blast cell ${fixture.blastFrame}`);
     }
+    for(const fixture of [
+      {frame:0,shot:true,friendly:true},{frame:1,shot:true,friendly:false},
+      {frame:2,shot:true,friendly:true,kind:'reflected'},
+      {frame:3,type:'muzzle',age:0},{frame:4,type:'impact',age:0},
+      {frame:5,type:'impact',age:100},{frame:6,type:'impact',age:200},
+      {frame:7,type:'impact',age:300},{frame:8,type:'ram',age:0},
+      {frame:9,type:'ram',age:150},{frame:10,type:'disrupt',age:0},
+      {frame:11,type:'impact',age:375}]) {
+      const combat=combatOwner.create();
+      if(fixture.shot)combat.projectiles.push({id:'diagnostic-shot',at:1060,lane:1,
+        friendly:fixture.friendly,kind:fixture.kind||'shot',ageMs:0});
+      const calls=render(`diagnostic physical projectile/contact FX ${fixture.frame}`,1000,1000,
+        {combat,pursuit:null,combatFx:fixture.shot?[]:[{type:fixture.type,at:1060,lane:1,
+          atMs:1000-fixture.age,duration:400}]});
+      check(calls.some(([key,frame])=>key==='cacheCombatFX'&&frame===fixture.frame),
+        `Production world missed projectile/contact FX cell ${fixture.frame}`);
+    }
     const intentionalStable=['cacheCar','cacheCarLeft','cacheCarRight'];
     const inventory=Object.entries(definitions).filter(([key,entry])=>
       key.startsWith('cache')&&entry.frames>1);
@@ -182,7 +199,7 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
       if(key.endsWith('Travel')||key.endsWith('Activity')||
           key.startsWith('cacheAmbient')||propKeys.includes(key)||
           ['cacheFreight','cacheCourier','cacheAudit','cacheSweeper',
-            'cacheTrike','cacheShuttle','cachePursuitRig',...authoredCombatKeys].includes(key))
+            'cacheTrike','cacheShuttle','cachePursuitRig',...authoredCombatKeys.filter(key=>key!=='cacheCombatFX')].includes(key))
         check(coverage.mirror[key]?.size===entry.frames,
           `${key}: rearview did not play every authored cel`);
     }
