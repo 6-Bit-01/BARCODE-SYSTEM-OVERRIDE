@@ -5,7 +5,9 @@
 Verify a single retained reticle/projectile, no neighbour damage from a shot
 takedown, physical Turbo catches, smooth lane motion, readable projectiles and
 bounded impacts. Confirm nonlethal rams do not show zero/stale points and
-lethal rams keep the complete earned takedown receipt. Compare four
+lethal rams keep the complete earned takedown receipt.
+Verify Turbo absorbs a hostile bullet without a distant ram or shooter damage,
+then physically catching that shooter still produces the ram. Compare four
 synchronized parts against ignored pads: 2x power, 3x ammo refill and shorter
 skill recharge/bonus points. Test exact
 controls, save/reload, first gear, Reduced Motion/Flashes Off, original audio

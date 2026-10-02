@@ -9,6 +9,11 @@ cells, strengthen actual sync power/reload/recharge/points and explain them
 in fixed HUD feedback. Preserve old checkpoints/rules and #169 test attribution.
 Correct ram contact feedback to preserve earned receipts; nonlethal contact
 uses its paint/sound without inventing points or shortening a takedown popup.
+Absorb Turbo projectiles without remote shooter damage or a false physical
+contact; preserve the later chassis ram against the same shooter. Refresh the
+complete production-input integration receipt. Retain every simulation update
+in the legacy pursuit browser gate while sampling native rendering and
+reporting progress, with bounded browser connection and cleanup waits.
 
 ## October 1 — authored combat chase in PR #169
 

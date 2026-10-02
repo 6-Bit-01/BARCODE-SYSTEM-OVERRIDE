@@ -24,6 +24,28 @@ const ramEvents=[];for(let i=0;i<80;i++){ram.input.progress+=11;ramEvents.push(.
 assert(ramEvents.some(e=>e.type==='ram-impact'&&e.id==='foe-0'),'catching a recovering chassis causes physical ram contact');
 assert(ramEvents.find(e=>e.type==='ram-impact').at-ram.input.progress<0);
 for(const id of ['foe-0','foe-1'])assert(ramEvents.filter(e=>e.type==='ram-impact'&&e.id===id).length<=1);
+// Turbo absorbs an incoming bullet without remotely ramming its shooter or
+// consuming the later physical contact with that same vehicle.
+const absorbed=pair();absorbed.s.enemies=absorbed.s.enemies.slice(0,1);
+absorbed.s.ledger=absorbed.s.ledger.slice(0,1);
+for(const actor of [...absorbed.s.enemies,...absorbed.s.ledger])
+ Object.assign(actor,{kind:'rammer',hp:3,maxHp:3,at:1200});
+Object.assign(absorbed.input,{syncCount:0,boosting:true,speed:110,progress:1011});
+absorbed.s.projectiles.push({id:'hostile-probe',sourceId:'foe-0',owner:'enemy',friendly:false,
+ at:1020,lane:1,ageMs:0,damage:1,kind:'shot'});
+const absorbEvents=C.step(absorbed.s,100,absorbed.input);
+assert(absorbed.s.enemies[0].at-absorbed.input.progress>48);
+assert.equal(absorbed.s.ledger[0].hp,3,'absorbed bullet cannot damage the distant shooter');
+assert.equal(absorbed.s.projectiles.length,0,'Turbo still consumes the hostile bullet');
+assert.equal(absorbed.s.stats.playerHits,0,'Turbo still protects the player');
+assert.equal(absorbed.s.ramContacts.length,0,'bullet absorption cannot spend a physical ram');
+assert(absorbEvents.some(e=>e.type==='defend'&&e.cause==='turbo'));
+assert(!absorbEvents.some(e=>e.type==='enemy-hit'||e.type==='ram-impact'));
+const laterContact=[];
+for(let i=0;i<60&&!laterContact.some(e=>e.type==='ram-impact');i++){
+ absorbed.input.progress+=11;laterContact.push(...C.step(absorbed.s,100,absorbed.input));}
+assert.equal(laterContact.filter(e=>e.type==='ram-impact'&&e.id==='foe-0').length,1);
+assert.equal(absorbed.s.ledger[0].hp,1,'catching the actual shooter still earns the physical ram');
 for(const count of [0,4]){const f=pair();f.input.syncCount=count;f.s.ammo=0;f.s.enemies=[];f.s.ledger=[];
  for(let i=0;i<15;i++)C.step(f.s,100,f.input);
  assert.equal(f.s.ammo,count===4?1:0,'full-sync reload gives a practical 3x improvement');}

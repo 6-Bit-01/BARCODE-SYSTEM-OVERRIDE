@@ -193,7 +193,8 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
   }
   function contact(state,input,source,events,kind) {
     if(input.boosting) {
-      ram(state,input,source,events);
+      // Absorbing a bullet is not chassis contact with its distant shooter.
+      if(kind!=='combat projectile')ram(state,input,source,events);
       events.push(event('defend',source,{cause:'turbo',combat:true}));return;
     }
     if(state.defendMs>0) {

@@ -23,6 +23,10 @@ Ram contact uses its authored impact paint and sound without opening a score
 popup. It preserves existing earned points and the complete takedown receipt;
 nonlethal contact does not advertise zero or stale points. Regression probes
 exercise fresh contact, a preceding reward and the actual lethal event order.
+Turbo absorbs hostile projectiles without remotely damaging or staggering the
+shooter, emitting physical ram paint or spending that enemy's per-boost contact.
+A regression probe subsequently catches the same shooter and verifies that
+the actual chassis contact still performs one physical ram.
 Hostile lateral follow and player visual lane follow use exponential smoothing.
 
 Each active musical part adds 25% attack power and reduces skill recharge by
@@ -55,3 +59,10 @@ native previews, then require hosted Chromium and both final-head CI events.
 Exact results/revision belong in the current receipt/export. Preserve #169
 historical evidence unchanged. Makko/controller/audio/comfort/fun and physical
 device pacing require fresh owner evidence and are not inferred from approval.
+
+The historical version-3 pursuit browser gate now retains every production
+input and shared-RAF simulation update while sampling native Canvas draws and
+forcing actual boss-health, threat and impact transitions. It reports stages,
+progress and separate simulation/render counts; it does not infer display FPS.
+The prior all-frame run passed in 22 minutes 44 seconds, which explains its
+long silent CI step. Browser connection and process cleanup are bounded.
