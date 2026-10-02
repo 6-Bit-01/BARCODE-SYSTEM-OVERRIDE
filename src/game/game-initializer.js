@@ -13,10 +13,11 @@ let startGameInitializationComplete = false;
 
 // Makko can supply its own sprites-manifest.json and preload that registry.
 // Load the published game manifest explicitly, then identify all replacement clips.
-const MODEL_SPRITE_MANIFEST_URL = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/215fde24db9f7493f1ee862e14761eb097db55e9/sprites-manifest.json';
+const MODEL_SPRITE_MANIFEST_URL = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/dfeb67dad06fe2a4a14e43cf493a2835a18ad67e/sprites-manifest.json';
 const MODEL_SPRITE_ART_ROOT = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3e1af42b28521ff02efd7343792a890196493f70/assets/sprites-v3/prepared/';
+const RUN_SPRITE_ART_ROOT = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3aa6174c8583fe4559101ea17b455c7e0be81d32/assets/level1-run/';
 const MODEL_SPRITE_CLIPS = {
-  '6_bit_main': ['6_bit_idle_idle', '6_bit_jump_jump', '6_bit_walk_walk', '6_bit_r__h_mode_rhmode'],
+  '6_bit_main': ['6_bit_idle_idle', '6_bit_jump_jump', '6_bit_walk_walk', '6_bit_r__h_mode_rhmode', '6_bit_run_run'],
   'virus_virus': ['virus_idle_idle'],
   'corrupted_corrupted': ['corrupted_idle_idle', 'corrupted_walk_walk'],
   'firewall_firewall': ['firewall_idle_idle', 'firewall_walk_walk', 'firewall_attack_default'],
@@ -30,8 +31,8 @@ function hasCurrentModelSprites() {
   const characters = engine.getManifest?.()?.characters;
   return Object.entries(MODEL_SPRITE_CLIPS).every(([character, clips]) => clips.every(clip => {
     const entry = characters?.[character]?.animations?.[clip];
-    return entry?.image === MODEL_SPRITE_ART_ROOT + clip + '.webp' &&
-      entry?.json === MODEL_SPRITE_ART_ROOT + clip + '.json';
+    const artRoot = clip === '6_bit_run_run' ? RUN_SPRITE_ART_ROOT : MODEL_SPRITE_ART_ROOT;
+    return entry?.image === artRoot + clip + '.webp' && entry?.json === artRoot + clip + '.json';
   }));
 }
 

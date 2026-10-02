@@ -59,12 +59,14 @@
     "src/game/cache-road-encounters.js",
     "src/game/cache-road-reactions.js",
     "src/game/cache-road-pursuit.js",
+    "src/game/cache-road-adrenaline.js",
     "src/game/cache-road-combat.js",
     "src/game/cache-road-combat-art.js",
     "src/game/cache-road-crosswalks.js",
     "src/game/cache-road-crew-callouts.js",
     "src/game/cache-road-mirror.js",
     "src/game/cache-road-boss-art.js",
+    "src/game/cache-road-instruments.js",
     "src/game/cache-road-guidance.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
@@ -138,12 +140,14 @@
     "src/game/cache-road-encounters.js",
     "src/game/cache-road-reactions.js",
     "src/game/cache-road-pursuit.js",
+    "src/game/cache-road-adrenaline.js",
     "src/game/cache-road-combat.js",
     "src/game/cache-road-combat-art.js",
     "src/game/cache-road-crosswalks.js",
     "src/game/cache-road-crew-callouts.js",
     "src/game/cache-road-mirror.js",
     "src/game/cache-road-boss-art.js",
+    "src/game/cache-road-instruments.js",
     "src/game/cache-road-guidance.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
@@ -443,6 +447,10 @@
         "status": "pass"
       },
       {
+        "file": "src/game/cache-road-adrenaline.js",
+        "status": "pass"
+      },
+      {
         "file": "src/game/cache-road-combat.js",
         "status": "pass"
       },
@@ -464,6 +472,10 @@
       },
       {
         "file": "src/game/cache-road-boss-art.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/cache-road-instruments.js",
         "status": "pass"
       },
       {
@@ -533,11 +545,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 76,
+        "index": 78,
         "status": "pass"
       },
       {
-        "index": 78,
+        "index": 80,
         "status": "pass"
       }
     ]
@@ -623,7 +635,7 @@
     {
       "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 2165,
+      "line": 2175,
       "loaded": true
     },
     {
@@ -725,7 +737,7 @@
     {
       "global": "window.player",
       "file": "src/game/player.js",
-      "line": 1866,
+      "line": 1882,
       "loaded": true
     },
     {
@@ -803,25 +815,25 @@
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 463,
+      "line": 466,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 481,
+      "line": 484,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 561,
+      "line": 564,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 601,
+      "line": 604,
       "loaded": false
     },
     {
@@ -833,7 +845,7 @@
     {
       "global": "window.startGameInitialization",
       "file": "src/game/game-initializer.js",
-      "line": 363,
+      "line": 364,
       "loaded": true
     },
     {
@@ -938,12 +950,14 @@
     "src/game/cache-road-encounters.js",
     "src/game/cache-road-reactions.js",
     "src/game/cache-road-pursuit.js",
+    "src/game/cache-road-adrenaline.js",
     "src/game/cache-road-combat.js",
     "src/game/cache-road-combat-art.js",
     "src/game/cache-road-crosswalks.js",
     "src/game/cache-road-crew-callouts.js",
     "src/game/cache-road-mirror.js",
     "src/game/cache-road-boss-art.js",
+    "src/game/cache-road-instruments.js",
     "src/game/cache-road-guidance.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",

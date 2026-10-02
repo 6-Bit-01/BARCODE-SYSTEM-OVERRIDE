@@ -1510,8 +1510,10 @@ window.EnemyManager = class EnemyManager {
       }
     });
 
+    window.sector1Progression?.constrainEncounterEnemies?.();
     this.checkEnemyCollisions();
     this.checkCollisions(player);
+    window.sector1Progression?.constrainEncounterEnemies?.();
 
     // Clean up dead enemies; the manager is the authoritative defeat owner.
     const newlyDefeated = this.enemies.filter(e => !e.active && e.health <= 0 && !e._defeatRecorded);
@@ -1536,6 +1538,9 @@ window.EnemyManager = class EnemyManager {
 
     // Update crowd mechanics
     this.updateCrowdMechanics(hostileDeltaTime, player);
+    // Authored encounter gates constrain every required actor after movement,
+    // contact separation and crowd steering have all finished for this frame.
+    window.sector1Progression?.constrainEncounterEnemies?.();
   }
 
   checkEnemyCollisions() {
@@ -1889,7 +1894,7 @@ window.EnemyManager = class EnemyManager {
   clearHackTrails() { this.hackTrails.clear(); }
   hasHackTrails() {
     const prefs = window.BARCODE?.Preferences?.values;
-    return !!window.BARCODE?.TacticalFocusClock?.isActive?.() && !prefs?.reducedMotion && !prefs?.reducedFlashes;
+    return !!window.BARCODE?.TacticalFocusClock?.isActive?.() && !prefs?.reducedMotion && !prefs?.reducedFlashes && prefs?.flashes !== false;
   }
   updateHackTrails(deltaTime) {
     if (!this.hasHackTrails()) { this.clearHackTrails(); return; }
@@ -1912,7 +1917,11 @@ window.EnemyManager = class EnemyManager {
     const samples = this.hackTrails.get(enemy)?.samples;
     if (!samples?.length || !this.hasHackTrails()) return;
     ctx.save(); ctx.globalCompositeOperation = 'lighter';
-    for (const sample of samples) {
+    // The three ribbons retain the full movement history. One recent body
+    // echo is enough to show dilation without compositing five filtered,
+    // scaled canonical cels for each enemy in a crowded hack scene.
+    for (let i = samples.length - 1; i >= 0; i--) {
+      const sample = samples[i];
       if (Math.hypot(enemy.position.x - sample.x, enemy.position.y - sample.y) < 3) continue;
       ctx.save(); ctx.globalAlpha *= 0.22 * (1 - sample.ageMs / 700);
       ctx.translate(sample.x - enemy.position.x, sample.y - enemy.position.y);
@@ -1921,6 +1930,7 @@ window.EnemyManager = class EnemyManager {
         { x: enemy.position.x, y: enemy.position.y + 15, width: 156, height: 156, frame: 0, flip: enemy.facing < 0 });
       else if (enemy.spriteReady && enemy.sprite) enemy.drawSprite(ctx);
       ctx.restore();
+      break;
     }
     for (const [index, offset] of [-30, 0, 28].entries()) {
       ctx.globalAlpha = 0.3; ctx.strokeStyle = index === 1 ? '#bb99ff' : '#8bfff1'; ctx.lineWidth = index === 1 ? 2 : 1;

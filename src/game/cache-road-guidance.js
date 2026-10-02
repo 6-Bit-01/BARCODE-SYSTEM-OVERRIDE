@@ -88,8 +88,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
   }
   function panel(ctx,x,y,w,h,accent) {
     path(ctx,[[x+9,y],[x+w-9,y],[x+w,y+9],[x+w,y+h-9],[x+w-9,y+h],[x+9,y+h],[x,y+h-9],[x,y+9]]);
-    ctx.fillStyle='#081c28ed';ctx.fill();ctx.strokeStyle='#47636b';ctx.lineWidth=1;ctx.stroke();
+    ctx.fillStyle='#081c28ed';ctx.fill();ctx.strokeStyle='#06141f';ctx.lineWidth=4;ctx.stroke();
+    ctx.strokeStyle='#47636b';ctx.lineWidth=1;ctx.stroke();
     ctx.fillStyle=accent;ctx.fillRect(x+1,y+10,3,h-20);
+    ctx.fillRect(x+10,y+1,26,2);
   }
   function tape(ctx,x,y,size,color='#ffdd96') {
     ctx.save();ctx.translate(x,y);ctx.scale(size/40,size/40);
@@ -341,6 +343,16 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
     const active=!!cue.active;
     ctx.strokeStyle=active?'#fff5a8':'#47636b';ctx.lineWidth=active?4:2;
     ctx.beginPath();ctx.arc(1836,203,19,0,Math.PI*2);ctx.stroke();
+    // Four corners turn the accepted target into a clear lock, while its
+    // size/address and the actual judgment window remain unchanged.
+    if(active) {
+      ctx.strokeStyle='#fff5a8';ctx.lineWidth=2;ctx.beginPath();
+      for(const side of [-1,1])for(const vertical of [-1,1]) {
+        const x=1836+side*25,y=203+vertical*25;
+        ctx.moveTo(x-side*6,y);ctx.lineTo(x,y);ctx.lineTo(x,y-vertical*6);
+      }
+      ctx.stroke();
+    }
     if(nextCue?.ready&&!active) {
       ctx.strokeStyle=color;ctx.lineWidth=3;ctx.beginPath();
       ctx.arc(1836,203,19,-Math.PI/2,-Math.PI/2+Math.PI*2*clamp(1-nextCue.remaining/4,0,1));ctx.stroke();
@@ -348,7 +360,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
     fittedText(ctx,'1',1836,203,25,21,active?'#fff5a8':'#cfdfdf','center');
     if(active)fittedText(ctx,'PRESS NOW',1836,233,93,12,'#fff5a8','center');
   }
-  function receipt(ctx,s,road) {
+  function receipt(ctx,s,road,offsetY=0) {
     const live=value=>value&&Number.isFinite(value.expiresMs)&&s.elapsedMs<value.expiresMs;
     const drive=live(s.driveFeedback)?s.driveFeedback:null,mix=live(s.mixFeedback)?s.mixFeedback:null;
     if(!drive&&!mix)return null;
@@ -364,6 +376,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
     const color=failure?'#ffab95':d.kind==='record'||d.kind==='lost'?'#ffe085':'#b9ffe0';
     const title=names[d.kind]||'READY';
     const music=combined?mix:['join','extend','lost'].includes(d.kind)?d:null;
+    ctx.save();ctx.translate(0,offsetY);
     panel(ctx,30,240,370,56,color);
     if(d.kind==='record')tape(ctx,61,268,32);
     else if(Number.isInteger(d.action))drawButton(ctx,{index:d.action,x:61,y:268,size:38,active:!failure,road});
@@ -391,36 +404,40 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
     } else {
       ctx.strokeStyle=color;ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(315,269);ctx.lineTo(326,278);ctx.lineTo(346,258);ctx.stroke();
     }
-    return {x:30,y:240,w:370,h:56};
+    ctx.restore();return {x:30,y:240+offsetY,w:370,h:56};
   }
   function draw(ctx,road,options={}) {
     if(!road?.state||road.status!=='playing')return;
     ctx.save();ctx.globalAlpha=1;
     routeStrip(ctx,road);cueDiagram(ctx,road,options,lesson(road,options));
-    receipt(ctx,road.state,road);ctx.restore();
+    const meter=B.CacheRoadInstruments?.drawAdrenaline?.(ctx,road.state,{reduced:!!options.reduced});
+    receipt(ctx,road.state,road,meter?84:0);ctx.restore();
   }
   function drawHelp(ctx,road) {
     ctx.save();
     if(combatChase(road)) {
       fittedText(ctx,'STEER: LEFT / RIGHT   GEAR: UP / DOWN',440,433,545,19,'#d4dfec');
       for(let i=0;i<4;i++) {
-        const col=i%2,row=Math.floor(i/2),x=440+col*277,y=465+row*55,badge=getBadge(i,road);
+        const col=i%2,row=Math.floor(i/2),x=440+col*277,y=468+row*44,badge=getBadge(i,road);
         drawButton(ctx,{index:i,x:x+23,y:y+11,size:40,road});
         fittedText(ctx,badge.name,x+53,y,194,17,badge.color);
         fittedText(ctx,'Catch / hold a lane in the song',x+53,y+23,194,13,'#d4dfec');
       }
-      fittedText(ctx,'MATCH THE PAD / PRESS ON ONE AT THE TIRES',440,563,548,17,'#a0ffe4');
-      fittedText(ctx,'FULL SYNC: 2x POWER / 3x AMMO / LOWER FOOTPRINT',440,590,548,15,'#d4dfec');
+      fittedText(ctx,'MATCH THE PAD / PRESS ON ONE AT THE TIRES',440,558,548,17,'#a0ffe4');
+      fittedText(ctx,'FULL SYNC: 2x POWER / 3x AMMO / LOWER FOOTPRINT',440,581,548,15,'#d4dfec');
       const skillIndices=[5,4,6,7],details=['Strike close / fire aligned','Launch on the next ONE','Time your guard for contact','Interrupt the enemy lock'];
       for(let i=0;i<4;i++) {
-        const index=skillIndices[i],col=i%2,row=Math.floor(i/2),x=440+col*277,y=632+row*56,badge=getBadge(index,road);
+        const index=skillIndices[i],col=i%2,row=Math.floor(i/2),x=440+col*277,y=608+row*43,badge=getBadge(index,road);
         drawButton(ctx,{index,x:x+31,y:y+10,size:35,road});
         fittedText(ctx,badge.name,x+70,y-1,193,17,badge.color);
         fittedText(ctx,details[i],x+70,y+22,193,13,'#d4dfec');
       }
-      fittedText(ctx,'Skills recharge independently, even with zero sync.',440,734,548,16,'#a0ffe4');
-      fittedText(ctx,'BOSS: DODGE FOR AN OPENING / ATTACK TO BREAK IT',440,759,548,15,'#d4dfec');
-      tape(ctx,456,786,27);fittedText(ctx,'Optional record: hold its lane for 0.65s.',484,786,506,16,'#e7d2b3');
+      fittedText(ctx,'Skills recharge independently, even with zero sync.',440,687,548,14,'#a0ffe4');
+      fittedText(ctx,'ADRENALINE / 35 CHARGED / 70 RUSH',440,707,548,14,'#ffe18a');
+      fittedText(ctx,'Accurate pads feed it; 2+ misses drain it. Power / recharge / guard scale.',440,728,548,13,'#d4dfec');
+      fittedText(ctx,'Turbo −10 / Disrupt −14 · both usable at zero charge.',440,748,548,13,'#d4dfec');
+      fittedText(ctx,'BOSS: DODGE FOR AN OPENING / ATTACK TO BREAK IT',440,767,548,14,'#d4dfec');
+      tape(ctx,456,786,24);fittedText(ctx,'Optional record: hold its lane for 0.65s.',484,786,506,14,'#e7d2b3');
       ctx.restore();return;
     }
     fittedText(ctx,'STEER: LEFT / RIGHT   GEAR: UP / DOWN',440,433,545,19,'#d4dfec');

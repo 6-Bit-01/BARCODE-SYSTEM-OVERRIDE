@@ -397,7 +397,31 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     getVisibleWorldBounds() { const playerX = this.player?.position?.x || CAMERA_MIN; const cameraX = this.cameraOverrideActive && Number.isFinite(this.cameraX) ? clampCamera(this.cameraX) : clampCamera(playerX); const rawZoom = window.renderer && typeof window.renderer.getZoomLevel === 'function' ? window.renderer.getZoomLevel() : window.renderer?.zoomLevel; const zoom = Math.max(0.1, Number.isFinite(rawZoom) ? rawZoom : 1); const halfWidth = CANVAS_WIDTH / (2 * zoom); return { left: Math.max(0, cameraX - halfWidth), right: Math.min(WORLD_WIDTH, cameraX + halfWidth), center: cameraX, zoom }; }
     getSpawnBodyHalfWidth(type) { if (type === 'firewall') return 135; if (type === 'corrupted') return 50; return 40; }
     planSpawn(spec = {}) { const bounds = this.getVisibleWorldBounds(); const bodyHalf = this.getSpawnBodyHalfWidth(spec.type); const playerX = this.player?.position?.x || bounds.center; const left = { x: Math.max(bodyHalf, bounds.left - SPAWN.offscreenPadding - bodyHalf), side: 'left' }; const right = { x: Math.min(WORLD_WIDTH - bodyHalf, bounds.right + SPAWN.offscreenPadding + bodyHalf), side: 'right' }; const outside = candidate => candidate.x + bodyHalf <= bounds.left - SPAWN.offscreenPadding || candidate.x - bodyHalf >= bounds.right + SPAWN.offscreenPadding; const farFromPlayer = candidate => Math.abs(candidate.x - playerX) >= SPAWN.playerExclusionRadius + bodyHalf; const candidates = [left, right].filter(outside).sort((a, b) => Math.abs(a.x - (spec.x || playerX)) - Math.abs(b.x - (spec.x || playerX))); const accepted = candidates.find(farFromPlayer) || candidates[0] || [left, right].sort((a, b) => Math.abs(b.x - playerX) - Math.abs(a.x - playerX))[0]; this.lastSpawnPlan = { bounds, candidates, accepted: { x: accepted.x, y: Number.isFinite(spec.y) ? spec.y : GROUND_Y, side: accepted.side }, playerX, exclusionRadius: SPAWN.playerExclusionRadius, bodyHalf }; return { x: accepted.x, y: Number.isFinite(spec.y) ? spec.y : GROUND_Y, side: accepted.side }; }
-    planEntranceTarget(spec = {}, origin = {}, index = 0) { const bodyHalf = this.getSpawnBodyHalfWidth(spec.type); const playerX = this.player?.position?.x || CAMERA_MIN; const clearance = SPAWN.playerExclusionRadius + bodyHalf; const authoredX = Math.max(bodyHalf, Math.min(WORLD_WIDTH - bodyHalf, Number.isFinite(spec.x) ? spec.x : playerX)); const originSide = origin.side || (origin.x < playerX ? 'left' : 'right'); const side = originSide === 'left' ? -1 : 1; const authoredStaysOnApproachSide = side < 0 ? authoredX <= playerX - clearance : authoredX >= playerX + clearance; if (authoredStaysOnApproachSide) return { x: authoredX, y: Number.isFinite(spec.y) ? spec.y : GROUND_Y }; const spread = Math.min(180, Math.max(0, Number(index) || 0) * 45); let targetX = Math.max(bodyHalf, Math.min(WORLD_WIDTH - bodyHalf, playerX + side * (clearance + spread))); if (Math.abs(targetX - playerX) < clearance) targetX = Math.max(bodyHalf, Math.min(WORLD_WIDTH - bodyHalf, playerX - side * (clearance + spread))); return { x: targetX, y: Number.isFinite(spec.y) ? spec.y : GROUND_Y }; }
+    getEncounterEntranceBounds(encounterId, type) {
+      const half = this.getSpawnBodyHalfWidth(type);
+      const gate = ENCOUNTER_GATES.find(g => g.encounterId === encounterId);
+      return { left: half, right: gate ? gate.x - half - 8 : WORLD_WIDTH - half };
+    }
+    safeEntranceTargetX(authoredX, side, type, index, encounterId) {
+      const bounds = this.getEncounterEntranceBounds(encounterId, type);
+      const playerX = this.player?.position?.x || CAMERA_MIN;
+      const clearance = SPAWN.playerExclusionRadius + this.getSpawnBodyHalfWidth(type);
+      const spread = Math.min(180, Math.max(0, Number(index) || 0) * 45);
+      const clamp = x => Math.max(bounds.left, Math.min(bounds.right, x));
+      const onApproachSide = side < 0 ? authoredX <= playerX - clearance : authoredX >= playerX + clearance;
+      let targetX = clamp(onApproachSide ? authoredX : playerX + side * (clearance + spread));
+      // A locked gate takes precedence over an offscreen approach direction.
+      // Pick the other safe side when the wall leaves no clearance ahead.
+      if (Math.abs(targetX - playerX) < clearance) targetX = clamp(playerX - side * (clearance + spread));
+      return targetX;
+    }
+    planEntranceTarget(spec = {}, origin = {}, index = 0, encounterId = null) {
+      const playerX = this.player?.position?.x || CAMERA_MIN;
+      const authoredX = Number.isFinite(spec.x) ? spec.x : playerX;
+      const side = (origin.side || (origin.x < playerX ? 'left' : 'right')) === 'left' ? -1 : 1;
+      return { x: this.safeEntranceTargetX(authoredX, side, spec.type, index, encounterId),
+        y: Number.isFinite(spec.y) ? spec.y : GROUND_Y };
+    }
     spawnMissionEnemy(spec, encounterId, index, options = {}) {
       const guard = !options.jammerReinforcement && !options.tutorialEnemy ? ({
         encounter_1: { index: 2, surface: 'signal-roof' },
@@ -414,7 +438,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       const origin = options.origin || this.planSpawn({ ...spec, y: targetY });
       if (!options.origin && encounterId === 'encounter_2' && spec.type === 'virus')
         origin.y = 330 - PLAYER_VISUAL_FOOT_OFFSET;
-      const target = this.planEntranceTarget({ ...spec, y: targetY }, origin, index);
+      const target = this.planEntranceTarget({ ...spec, y: targetY }, origin, index,
+        options.tutorialEnemy && this.state === STATES.TUTORIAL ? this.getCurrentGate()?.encounterId :
+          !options.jammerReinforcement && !options.tutorialEnemy ? encounterId : null);
       const homeX = guard?.patrol ? (guard.patrol.left + guard.patrol.right) / 2 : home ? home.x + home.w / 2 : origin.x;
       const enemy = drone ? new window.RooftopDrone(homeX, targetY, home, guard.patrol)
         : new window.Enemy(origin.x, origin.y, spec.type);
@@ -459,7 +485,30 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       return enemy;
     }
     spawnTutorialEnemy(index = 0) { this.player = this.player || window.player; if (!window.enemyManager || !window.Enemy) return null; const playerX = this.player?.position?.x || CAMERA_MIN; const side = Number(index) % 2 === 0 ? -1 : 1; const spec = { type: 'virus', x: playerX + side * (SPAWN.playerExclusionRadius + 120 + Number(index) * 45), y: GROUND_Y }; return this.spawnMissionEnemy(spec, 'tutorial', index, { tutorialEnemy: true }); }
-    keepEntranceTargetSafe(enemy) { if (!enemy?._authoredEntranceActive || !enemy._entranceTarget || !this.player?.position) return; const bodyHalf = this.getSpawnBodyHalfWidth(enemy.type); const playerX = this.player.position.x; const clearance = SPAWN.playerExclusionRadius + bodyHalf; const side = enemy.position.x < playerX ? -1 : 1; const targetStaysOnApproachSide = side < 0 ? enemy._entranceTarget.x <= playerX - clearance : enemy._entranceTarget.x >= playerX + clearance; if (targetStaysOnApproachSide) return; const spread = Math.min(180, Math.max(0, Number(enemy._sector1Index) || 0) * 45); let targetX = Math.max(bodyHalf, Math.min(WORLD_WIDTH - bodyHalf, playerX + side * (clearance + spread))); if (Math.abs(targetX - playerX) < clearance) targetX = Math.max(bodyHalf, Math.min(WORLD_WIDTH - bodyHalf, playerX - side * (clearance + spread))); enemy._entranceTarget.x = targetX; }
+    keepEntranceTargetSafe(enemy) {
+      if (!enemy?._authoredEntranceActive || !enemy._entranceTarget || !this.player?.position) return;
+      const side = enemy.position.x < this.player.position.x ? -1 : 1;
+      enemy._entranceTarget.x = this.safeEntranceTargetX(enemy._entranceTarget.x, side,
+        enemy.type, enemy._sector1Index, enemy._isTutorialEnemy && this.state === STATES.TUTORIAL ?
+          this.getCurrentGate()?.encounterId : enemy._sector1MissionEnemy ? enemy._sector1EncounterId : null);
+    }
+    constrainEncounterEnemies() {
+      const gate = this.getCurrentGate();
+      if (!gate) return;
+      for (const enemy of window.enemyManager?.enemies || []) {
+        const requiredHere = enemy._isTutorialEnemy && this.state === STATES.TUTORIAL ||
+          enemy._sector1MissionEnemy && enemy._sector1EncounterId === gate.encounterId;
+        if (!enemy.active || !requiredHere ||
+            enemy._authoredEntranceActive || enemy.entranceComplete === false) continue;
+        const body = enemy.getHitbox();
+        const overlap = body.x + body.width - (gate.x - 8);
+        if (overlap <= 0) continue;
+        // Resolve only wall penetration, as for the player's physical gate.
+        // Feet, support, attack commitments and mission attribution stay owned.
+        enemy.position.x -= overlap;
+        if (enemy.velocity) enemy.velocity.x = Math.min(0, enemy.velocity.x || 0);
+      }
+    }
     onEnemyDefeated(authoritativeTotal, enemy) { if (!this.missionStarted || !enemy || !enemy._sector1MissionEnemy || this.countedEnemies.has(enemy)) return; this.countedEnemies.add(enemy); this.lastMissionDefeatAtMs = this.districtSignal.elapsedMs; this.missionDefeats = Math.min(this.requiredEnemyKills, this.missionDefeats + 1); if (window.gameState) window.gameState.enemiesDefeated = this.missionDefeats; if (window.objectivesSystem?.updateMissionDefeatProgress) window.objectivesSystem.updateMissionDefeatProgress(this.missionDefeats, this.requiredEnemyKills); if (this.missionDefeats === this.requiredEnemyKills && !this.jammerRevealed) this.revealJammer(); }
     chooseJammerPosition() {
       // Keep the entire attack position range clear of lift support. A player
@@ -1211,6 +1260,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         grounded: true, isEntering: false, controlsDisabled: false, allowMovement: true, supportedSurfaceId: null,
         dropSurfaceId: null, dropSurfaceIds: null, invulnerable: false, invulnerableUntil: 0,
         _enemyInvulnerableUntilMs: 0, bossReboundMs: 0, primaryAttackAnimationMs: 0 });
+      // Older checkpoints can hold an x beyond this still-locked encounter.
+      // Restore onto the player's playable side before input/render resumes.
+      this.applyGateCollision();
       if (window.gameState) Object.assign(window.gameState, { score: state.score || 0, enemiesDefeated: this.missionDefeats, running: true, victory: false, gameOver: false });
       if (window.enemyManager) window.enemyManager.defeatedCount = this.missionDefeats;
       if (window.lostDataSystem) { window.lostDataSystem.collectedLore = new Set((state.fragments || []).filter(id => /^lore\.l01\.0[1-3]$/.test(id))); window.lostDataSystem.fragments = []; }

@@ -1,5 +1,37 @@
 # Acceptance and Test Status
 
+## October 2 — Run, required enemies and adrenaline review
+
+- Hold Shift or L2/LT while moving: compare 300-unit walking with grounded
+  450-unit running and twelve 50 ms canonical-style cels. Check both directions,
+  street/roof supports, release, focus loss, remaps, pause, entrance, Rhythm Mode,
+  hacking and the existing single jump.
+- Clear all four encounters normally. Required foes must be reachable on the
+  correct side of closed walls; no automatic defeat credit or skipped gate.
+  Recheck a previously stranded/resumed foe and the twenty-defeat requirement.
+- Compare crowded hacking and dense Level 2 scenes. Native checks retain exact
+  sampled road/mirror pixels while reducing echo/terrain submissions; verify
+  scenery, foreground exits, original blur and quiet settings on the actual
+  device. Scripted/native CPU diagnostics do not prove device FPS.
+- Earn Good/Perfect charge (+15/+20), miss once without loss, then observe
+  −12/−18/−24 for successive misses. Recover through an accurate press; test
+  accepted Turbo −10, Disrupt −14 and genuine wreck −12. Rejected inputs cannot
+  spend charge; pedestrian contacts remain penalty-free.
+- Compare smoothly stronger combat/recharge/ammo/guard/tracking as charge rises.
+  CHARGED/RUSH at 35/70 are intensity markers. All four skills retain their
+  ordinary access at zero charge. Check old/earned saves, pause, original song,
+  all difficulties/gears and anti-duplicate opportunity receipts.
+- Check readable meter/deltas, distinct mapped skill icons, cooldown/active/
+  queued/shot states, two ammo sockets, accepted pad locks and Pause help.
+  Listen for bounded existing gain/tier/loss cues. Struck pedestrians must hold
+  their original contact cel during landing and later mirror passage.
+
+See `RUN_ADRENALINE_PERFORMANCE.md`. Complete final-head regression, all-file
+syntax, production browser and both exact-head CI results remain required and
+belong to the generated export receipt. Owner Makko, physical-controller,
+listening, motion comfort, human balance/fun and device pacing acceptance
+remain unrecorded.
+
 ## October 2 — Level 1 walk-in and complete animation pass
 
 Start fresh after the comic and watch 6 Bit walk from completely beyond the left

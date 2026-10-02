@@ -57,7 +57,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
     ['road_defend','Defend',7], ['road_disrupt','Disrupt',6]
   ];
   const levelControls = [['jump','Jump'],['primary','Beat attack'],['interact','Hack'],
-    ['rhythm_mode','Rhythm Mode'],['inspect','Inspect / collect']];
+    ['rhythm_mode','Rhythm Mode'],['inspect','Inspect / collect'],['run','Run (hold)']];
   const menu = BARCODE.PauseMenu = {
     open: false, dirty: false, focus: 0, drag: null, heldKeys: new Set(), snapshot: null, snapshotContext: null, resumePending: false, message: '',
     captureAction: null, captureReady: false, controllerFocus: 0,
@@ -69,6 +69,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
     },
     controllerControls() { return this.combatControls()?roadSkillControls:levelControls; },
     controllerRowCount() { return this.controllerControls().length+5; },
+    controllerRowStep() { return this.controllerControls().length > 5 ? 42 : 46; },
     isPaused() { return this.titleOpen || !!(window.isPaused || window.gameState?.paused); },
     canvas() { return this.titleOpen ? this.titleCanvas : document.getElementById('gameCanvas'); },
     openTitle() {
@@ -262,8 +263,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       if (this.view === 'controller') {
         if (phase !== 'down') return true;
         if (this.captureAction) { this.captureAction = null; this.dirty = true; return true; }
-        const index = Math.floor((y - 350) / 46);
-        if (x >= 440 && x <= 1480 && index >= 0 && index < this.controllerRowCount() && y < 350 + index * 46 + 40) {
+        const step = this.controllerRowStep(), index = Math.floor((y - 350) / step);
+        if (x >= 440 && x <= 1480 && index >= 0 && index < this.controllerRowCount() && y < 350 + index * step + 40) {
           this.controllerFocus = index;
           if (index === 0 && x >= 1110) BARCODE.ControllerSettings.setDeadzone(0.1 + Math.max(0, Math.min(1, (x - 1110) / 280)) * 0.4);
           else this.activateController();
@@ -348,7 +349,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
         combat?'Reset skill mapping':'Reset controller defaults',this.titleOpen ? 'Back to settings' : 'Back to pause'];
       const actions = controls.map(([action])=>action);
       labels.forEach((label, i) => {
-        const y = 350 + i * 46;
+        const y = 350 + i * this.controllerRowStep();
         ctx.fillStyle = i === this.controllerFocus ? '#16394b' : '#0d2032'; ctx.fillRect(440, y, 1040, 40);
         if (i === this.controllerFocus) { ctx.strokeStyle = '#94ffe3'; ctx.strokeRect(440, y, 1040, 40); }
         text(label, 460, y + 21, 22);
@@ -486,7 +487,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
         : proof ? (BARCODE.GamepadUI?.connected
         ? ['Stick / D-pad: Move', `${BARCODE.ControllerSettings.prompt('jump')}: Jump`, `${BARCODE.ControllerSettings.prompt('inspect')}: Fire`, 'Climb: break roof nodes, then relays.', 'Jump the lanes; watch for a runner.', `${BARCODE.ControllerSettings.button(9)}: Pause / Settings`]
         : ['A / D or Left / Right: Move', 'Space / W / Up: Jump', 'E: Fire / Hold E for repeat fire', 'Climb: break roof nodes, then relays.', 'Jump the lanes; watch for a runner.', 'P: Pause'])
-        : (BARCODE.GamepadUI?.connected ? ['Stick / D-pad: Move', `${BARCODE.ControllerSettings.prompt('jump')}: Jump / Down + Jump: Drop`, `${BARCODE.ControllerSettings.prompt('rhythm_mode')}: Rhythm Mode`, `${BARCODE.ControllerSettings.prompt('primary')}: Beat attack`, `${BARCODE.ControllerSettings.prompt('interact')}: Hack`, `${BARCODE.ControllerSettings.button(9)}: Pause / Settings`] : ['A / D or Left / Right: Move', 'Space / W / Up: Jump; Down + Jump: Drop', 'R: Enter Rhythm Mode', 'Down: Attack on the beat', 'H: Hack when unlocked', 'P: Pause']);
+        : (BARCODE.GamepadUI?.connected ? [`Stick / D-pad: Walk; hold ${BARCODE.ControllerSettings.prompt('run')}: Run`, `${BARCODE.ControllerSettings.prompt('jump')}: Jump / Down + Jump: Drop`, `${BARCODE.ControllerSettings.prompt('rhythm_mode')}: Rhythm Mode`, `${BARCODE.ControllerSettings.prompt('primary')}: Beat attack`, `${BARCODE.ControllerSettings.prompt('interact')}: Hack`, `${BARCODE.ControllerSettings.button(9)}: Pause / Settings`] : ['A / D or Left / Right: Walk; hold Shift: Run', 'Space / W / Up: Jump; Down + Jump: Drop', 'R: Enter Rhythm Mode', 'Down: Attack on the beat', 'H: Hack when unlocked', 'P: Pause']);
       if (road && BARCODE.CacheRoadGuidance) BARCODE.CacheRoadGuidance.drawHelp(ctx, BARCODE.CacheRoadProof);
       else controls.forEach((line, i) => text(line, 440, 448 + i * 46, 21));
       if (!road) text(proof ? 'PROTOTYPE CHANNEL 03' : 'RHYTHM MODE HOLDS YOUR STANCE', 440, 772, 20, '#a0ffe4');

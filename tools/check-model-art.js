@@ -52,7 +52,8 @@ assert.deepStrictEqual(Object.keys(installed.characters).sort(), Object.keys(ori
 let count = 0, frameCount = 0;
 for (const [character, record] of Object.entries(original.characters)) {
   const current = installed.characters[character].animations;
-  assert.deepStrictEqual(Object.keys(current).sort(), Object.keys(record.animations).sort(), `${character}: action IDs preserved`);
+  const expectedActions = [...Object.keys(record.animations), ...(character === '6_bit_main' ? ['6_bit_run_run'] : [])];
+  assert.deepStrictEqual(Object.keys(current).sort(), expectedActions.sort(), `${character}: original action IDs preserved; only 6 Bit adds the dedicated run`);
   for (const [clip, baseline] of Object.entries(record.animations)) {
     const entry = current[clip];
     for (const key of (clip === '6_bit_walk_walk' ? ['animationLength'] : ['fps', 'frameCount', 'animationLength'])) assert.strictEqual(entry[key], baseline[key], `${clip}: ${key} preserved`);
@@ -240,6 +241,9 @@ async function checkSpriteStartup() {
   const oldWalk = copy(installed);
   for (const key of ['image', 'json']) oldWalk.characters['6_bit_main'].animations['6_bit_walk_walk'][key] = installed.characters['6_bit_main'].animations['6_bit_walk_walk'][key].replace(/\/[a-f0-9]{40}\//, '/39410b034c9444861f8f30836e31f9ec252d92fe/');
   await scenario(oldWalk, 1);
+  const withoutRun = copy(installed);
+  delete withoutRun.characters['6_bit_main'].animations['6_bit_run_run'];
+  await scenario(withoutRun, 1);
   await scenario(installed, 0);
 }
 

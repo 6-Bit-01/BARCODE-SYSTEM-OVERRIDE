@@ -683,6 +683,16 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     return boss.phase;
   }
 
+  function mirrorSceneryInGlass(candidate,x,y,w,h) {
+    const a=candidate.args;
+    // The generous whole-body envelope includes atlas padding, authored
+    // activity width, lamp haze/pools and far more than the 2.3px blur tail.
+    // Only complete scenery outside the glass is skipped; visible source
+    // order, world addresses and full foreground exits remain unchanged.
+    const reach=Math.max(a.width*.8,a.height*(candidate.person?.82:.21)),blurPadding=12;
+    return a.x+reach>=x-blurPadding&&a.x-reach<=x+w+blurPadding&&
+      a.y+a.height*.24>=y-blurPadding&&a.y-a.height*1.02<=y+h+blurPadding;
+  }
   function drawRearRoad(ctx, s, x, y, w, h, accent, reduced, heightSample=LANDSCAPE.height, combatPose, crosswalkPose) {
     const progress = s.progress, reach = 440, horizon = y + 47, floor = y + h + 4;
     const profile = at => {
@@ -925,6 +935,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           side:scene.side,kind:'life',scene,item})))
       .filter(item=>item.at<progress&&item.at>progress-reach)
       .map(item=>({item,...mirrorGeometry(item)}))
+      .filter(candidate=>mirrorSceneryInGlass(candidate,x,y,w,h))
       // Wide card foundations sort by the same authored ground contacts
       // as their full-size view; roof heights do not determine occlusion.
       .sort((a,b)=>a.args.y-b.args.y||a.item.at-b.item.at);
@@ -1079,6 +1090,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         (proof.gateOpen===true&&!combat.boss?.defeated))return false;
       if(proof.crosswalks!==undefined&&!B.CacheRoadCrosswalks?.restore?.(proof.crosswalks,
         {bar:proof.musicBar,progress:proof.progress}))return false;
+      if(proof.adrenaline!==undefined) {
+        const adrenaline=B.CacheRoadAdrenaline?.restore?.(proof.adrenaline);
+        if(!adrenaline||adrenaline.receipts.some(receipt=>!chart?.pulses.some(pulse=>
+          pulse.id===receipt.id&&pulse.target<=proof.musicBar*4+.001)))return false;
+      }
     }
     if(!chart||chart.version!==chartVersion(chapter))return false;
     const section=proof.driveSection;
@@ -1828,6 +1844,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     }
   }
   function drawCombatSkills(ctx,s,pose) {
+    if(!B.CacheRoadInstruments?.drawSkills?.(ctx,s,pose)) {
     for(const [i,name] of ['attack','turbo','defend','disrupt'].entries()) {
       const skill=pose.skills[name],x=1366+i*128,action=`road_${name}`;
       const fallback={attack:'F',turbo:'SPACE',defend:'G',disrupt:'V'}[name];
@@ -1845,6 +1862,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     }
     ctx.fillStyle=pose.syncCount===4?'#eaffbc':'#a8d3c8';ctx.font='bold 13px Oxanium, monospace';ctx.textAlign='right';
     ctx.fillText(`SYNC ${pose.syncCount}/4 · POWER ×${pose.benefits.power.toFixed(2)} · AMMO ${(pose.benefits.ammoMs/1000).toFixed(1)}s`,1872,167);
+    }
     if(pose.boss?.hp>0&&pose.boss?.arrived!==false) {
       ctx.fillStyle='#071b26e8';ctx.fillRect(672,176,576,48);
       ctx.fillStyle='#ffceac';ctx.font='bold 17px Oxanium, monospace';ctx.textAlign='left';
@@ -2011,6 +2029,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         B.CacheRoadCombat?.restore?.(saved.combat,{bar:s.musicBar,progress:s.progress}) :
         B.CacheRoadCombat?.create?.({difficultyId:this.chapter.difficultyId}) : null;
       if(this.chapter.encounterVersion===4&&!s.combat)return false;
+      s.adrenaline=s.combat&&B.CacheRoadAdrenaline ? saved?.adrenaline ?
+        B.CacheRoadAdrenaline.restore(saved.adrenaline) : B.CacheRoadAdrenaline.create() : null;
+      if(saved?.adrenaline&&!s.adrenaline)return false;
+      if(s.adrenaline)s.lockEnergy=s.adrenaline.value;
       s.crosswalks=s.combat&&B.CacheRoadCrosswalks ? saved?.crosswalks ?
         B.CacheRoadCrosswalks.restore(saved.crosswalks,{bar:s.musicBar,progress:s.progress}) :
         B.CacheRoadCrosswalks.create({bar:s.musicBar,progress:s.progress}) : null;
@@ -2257,6 +2279,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           boost: s.boost, score: s.score, peakStack: s.peakStack,
           cleanBars: s.cleanBars, integrity: Math.max(1, s.integrity),
           ...(s.combat ? {combat:B.CacheRoadCombat.snapshot(s.combat,{progress:checkpointProgress})} : {}),
+          ...(s.adrenaline ? {adrenaline:B.CacheRoadAdrenaline.snapshot(s.adrenaline)} : {}),
           ...(s.crosswalks ? {crosswalks:B.CacheRoadCrosswalks.snapshot(s.crosswalks,{progress:checkpointProgress})} : {}),
           ...(s.pursuit?.version===3 ? {pursuit:B.CacheRoadPursuit.snapshot(s.pursuit)} : {}),
           ...(s.encounters ? {encounters:B.CacheRoadEncounters.snapshot(s.encounters),
@@ -2633,6 +2656,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         if(target===undefined||s.caughtPulses[pulse.id]||s.missedPulses[pulse.id]||
           (music.grid.beatFloat-target)*music.grid.beatDurationSec<=pulseWindowSec(s)+1e-8)continue;
         s.missedPulses[pulse.id]=true;
+        this.recordAdrenaline(B.CacheRoadAdrenaline?.resolve?.(s.adrenaline,
+          {id:pulse.id,result:'miss',atMs:s.elapsedMs}));
         if(music.grid.beatFloat-target<1&&
           !(s.driveFeedback&&s.elapsedMs<s.driveFeedback.expiresMs))
           this.pulseFeedback('miss',pulse);
@@ -2763,6 +2788,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         holdBars, atMs: s.elapsedMs, expiresMs: s.elapsedMs + 1200 };
       s.score += (judgment.timing === 'perfect' ? 80 : 50) * (fast ? 2 : 1) * (s.combat?1+s.captures.length*.5:1);
       if(s.combat)B.CacheRoadCombat.rewardSync(s.combat,judgment.timing==='perfect');
+      this.recordAdrenaline(B.CacheRoadAdrenaline?.resolve?.(s.adrenaline,
+        {id:pulse.id,result:judgment.timing==='perfect'?'perfect':'good',atMs:s.elapsedMs}));
       if (fast && ++s.fastPulses % 2 === 0) s.boost = 1;
       if (slow) s.echoEnergy = clamp(s.echoEnergy + 25, 0, 100);
       switch (action) {
@@ -2798,9 +2825,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       s.message = 'BUFFER ECHO // SPLIT THE LINE'; s.messageMs = 1700;
       this.cue('data');
     },
+    recordAdrenaline(result) {
+      const s=this.state;
+      if(!s?.adrenaline||!result?.accepted)return;
+      s.lockEnergy=s.adrenaline.value;
+      if(!result.tierChanged)return;
+      if(result.delta>0)this.cue(result.tier==='rush'?'roadFull':'roadTurboReady',{intensity:.4});
+      else if(result.result==='miss')this.cue('roadMiss',{intensity:.3});
+    },
     combatInput() {
       const s=this.state;
       return {progress:s.progress,lanePos:s.lanePos,speed:s.speed,bar:s.musicBeatFloat/4,
+        adrenaline:s.adrenaline?.value||0,
         syncCount:new Set(s.captures.map(part=>part.lane)).size,
         invulnerableMs:s.invulnerableMs,boosting:s.boostMs>0,
         protectedPulses:roadPulses(s).filter(p=>p.target>=s.musicBeatFloat-.3),
@@ -2871,6 +2907,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         for(const skill of ['attack','turbo','defend','disrupt'])if(actions[`road_${skill}`]?.pressed) {
           if(skill==='turbo'&&s.queuedTurbo)continue;
           const result=B.CacheRoadCombat.act(s.combat,skill,this.combatInput());
+          if(result.accepted)this.recordAdrenaline(B.CacheRoadAdrenaline?.spend?.(s.adrenaline,skill,{atMs:s.elapsedMs}));
           this.applyCombatEvents(result.events||[]);
           if(!result.accepted) {
             const reason=result.reason==='in-flight'?'SHOT IN FLIGHT':result.reason==='no-target'?'NO TARGET':result.reason==='weapon-recharging'?'WEAPON LOADING':
@@ -2916,6 +2953,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         s.messageMs = 900; this.cue('land'); return;
       }
       react('crash');
+      this.recordAdrenaline(B.CacheRoadAdrenaline?.wreck?.(s.adrenaline,{atMs:s.elapsedMs}));
       if (this.chapter && !this.chapter.delivery) this.chapter.damageTaken++;
       s.recordHoldMs = 0;
       s.integrity--; s.queuedRecovery = true;s.recoveryBeat=this.nextShiftBeat();
@@ -3292,6 +3330,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       if (!ctx || !this.active) return;
       const s = this.state, progress = s.progress;
       const combatPose=s.combat?B.CacheRoadCombat.pose(s.combat,{progress,lanePos:s.lanePos,
+        adrenaline:s.adrenaline?.value||0,
         syncCount:new Set(s.captures.map(part=>part.lane)).size}):null;
       const crosswalkPose=s.crosswalks?B.CacheRoadCrosswalks.pose(s.crosswalks,{progress}):null;
       const heightSample=LANDSCAPE.createFrameHeightSampler?.()||LANDSCAPE.height;
@@ -3811,6 +3850,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       });
       const groundCrest=Array.from({length:65},(_,i)=>[i*30,cityCrestY(i*30)]);
       const lowestCrest=Math.min(...groundCrest.map(point=>point[1]));
+      // Every terrain slab uses the same crest mask. Build its native path
+      // once per frame; rebuilding 65 vertices for each slab repeats costly
+      // host Canvas calls. The fallback retains the existing command path.
+      const groundClip=typeof window.Path2D==='function'?new window.Path2D():null;
+      if(groundClip) {
+        groundClip.moveTo(...groundCrest[0]);
+        for(let i=1;i<groundCrest.length;i++)groundClip.lineTo(...groundCrest[i]);
+        groundClip.lineTo(1920,bottom);groundClip.lineTo(0,bottom);groundClip.closePath();
+      }
       // Eight slabs divide the grain repeat exactly, so every world-aligned
       // crop stays in its source band. Wider slabs cut the clipped texture
       // draws that saturated the road's first frame.
@@ -3824,10 +3872,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         // above the visible bank need no texture or full-screen clip mask.
         // Buildings in those slabs still draw: their roofs can be visible.
         if(roadY(near)+65*near>=lowestCrest) {
-          ctx.save();ctx.beginPath();ctx.moveTo(...groundCrest[0]);
-          for(let i=1;i<groundCrest.length;i++)ctx.lineTo(...groundCrest[i]);
-          ctx.lineTo(1920,bottom);ctx.lineTo(0,bottom);
-          ctx.closePath();ctx.clip();
+          ctx.save();
+          if(groundClip)ctx.clip(groundClip);
+          else {
+            ctx.beginPath();ctx.moveTo(...groundCrest[0]);
+            for(let i=1;i<groundCrest.length;i++)ctx.lineTo(...groundCrest[i]);
+            ctx.lineTo(1920,bottom);ctx.lineTo(0,bottom);ctx.closePath();ctx.clip();
+          }
           for(const side of [-1,1]) {
           ctx.globalAlpha=1;
           drawSurfacePanel('cacheOuterGround',side,far,near,
