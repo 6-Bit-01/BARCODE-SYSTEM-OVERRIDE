@@ -71,7 +71,7 @@
     "check:level1-animation": "node tools/check-level-01-entrance.cjs && node tools/check-level1-machine-motion.cjs && node tools/check-level1-animation-native.cjs",
     "check:run-adrenaline": "node tools/check-level-01-run.cjs && node tools/check-level1-enemy-reachability.cjs && node tools/check-level1-hack-performance.cjs && node tools/check-cache-road-adrenaline.cjs --integration && node tools/check-cache-instruments.cjs && node tools/check-cache-road-render-cost.cjs",
     "check:run-polish-cinematics": "node tools/check-level1-run-polish.cjs && node tools/check-level1-signal-art.cjs && node tools/check-cache-road-cinematics.cjs",
-    "check:cache-camera-beat-feedback": "node tools/check-cache-camera-frame-time.cjs && node tools/check-cache-road-beat-feedback.cjs && node tools/check-cache-adrenaline-feedback.cjs"
+    "check:cache-camera-beat-feedback": "node tools/check-cache-camera-frame-time.cjs && node tools/check-cache-road-beat-feedback.cjs && node tools/check-cache-adrenaline-feedback.cjs && node tools/check-cache-beat-visual-system.cjs"
   },
   "devDependencies": {
     "@napi-rs/canvas": "0.1.100"

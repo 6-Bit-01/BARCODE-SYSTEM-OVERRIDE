@@ -16,7 +16,7 @@ const marker='  const cache = {};',modules=['src/engine/cache-road-proof-profile
   'src/game/cache-road-combat.js','src/game/cache-road-combat-art.js',
   'src/game/cache-road-crosswalks.js','src/game/cache-road-mirror.js',
   'src/game/cache-road-crew-callouts.js','src/game/cache-road-instruments.js',
-  'src/game/cache-road-beat-feedback.js','src/game/cache-road-cinematics.js'];
+  'src/game/cache-road-beat-surface.js','src/game/cache-road-beat-feedback.js','src/game/cache-road-cinematics.js'];
 const fingerprint=()=>Object.fromEntries(['src/game/cache-road-proof.js',
   'src/engine/presentation-assets.js',...modules,'tools/check-cache-camera-frame-time.cjs']
   .filter(file=>fs.existsSync(path.join(root,file))).map(file=>[file,

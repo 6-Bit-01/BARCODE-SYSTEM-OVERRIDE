@@ -68,15 +68,27 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
       ctx.lineTo(cx-size*.37,cy+size*.28);ctx.closePath();ctx.stroke();
     } else fittedText(ctx,text,cx,cy+1,maxWidth,size,text.length>3?'#12303a':'#0b2230','center');
   }
-  function drawButton(ctx,{index=0,x=0,y=0,size=60,label:override,active=false,disabled=false,road}={}) {
+  function drawButton(ctx,{index=0,x=0,y=0,size=60,label:override,active=false,disabled=false,road,skin=true}={}) {
     const badge=getBadge(index,road),width=size*(index>=4?1.55:1);
     ctx.save();ctx.translate(x-size/2,y-size/2);ctx.scale(size/100,size/100);
     ctx.globalAlpha*=disabled?.38:1;
-    ctx.lineJoin='round';ctx.lineWidth=8;path(ctx,badge.points);
-    ctx.strokeStyle='#06141f';ctx.stroke();ctx.fillStyle=badge.color;ctx.fill();
-    ctx.lineWidth=2;ctx.strokeStyle=active?'#fffce6':'#ffffff99';ctx.stroke();
-    if(active) {ctx.lineWidth=3;ctx.strokeStyle='#fffce6';path(ctx,badge.points);ctx.stroke();}
-    buttonGlyph(ctx,override??label(index,road),50,index===0?59:50,index>=4?29:43,index>=4?96:69);
+    // The blank authored face keeps remapped keyboard/Xbox/PlayStation
+    // glyphs live and sharp. Physical road pads already paint their skin
+    // onto the true trapezoid and ask for the same glyph alone.
+    let authoredFace=!skin;
+    if(skin) {
+      const authored=index<4&&B.CacheRoadBeatSurface?.paintSprite(ctx,'cacheBeatHardware',
+        {x:50,y:50,width:112,height:112,frame:index+(active?4:0)});
+      authoredFace=!!authored;
+      if(!authored) {
+        ctx.lineJoin='round';ctx.lineWidth=8;path(ctx,badge.points);
+        ctx.strokeStyle='#06141f';ctx.stroke();ctx.fillStyle=badge.color;ctx.fill();
+        ctx.lineWidth=2;ctx.strokeStyle=active?'#fffce6':'#ffffff99';ctx.stroke();
+        if(active) {ctx.lineWidth=3;ctx.strokeStyle='#fffce6';path(ctx,badge.points);ctx.stroke();}
+      }
+    }
+    buttonGlyph(ctx,override??label(index,road),50,index===0?(authoredFace?35:59):50,
+      index>=4?29:43,index>=4?96:69);
     // Tiny register marks distinguish shoulder functions without relying on hue.
     if(index>=4) {
       ctx.strokeStyle='#14303d';ctx.lineWidth=3;ctx.beginPath();
