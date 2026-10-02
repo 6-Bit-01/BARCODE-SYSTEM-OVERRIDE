@@ -295,7 +295,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       this.updateVerticalCamera(deltaTime);
       this.updateBarrierContacts(deltaTime);
       const tutorialDone = !!(window.tutorialSystem && typeof window.tutorialSystem.isCompleted === 'function' && window.tutorialSystem.isCompleted() && typeof window.tutorialSystem.isActive === 'function' && !window.tutorialSystem.isActive());
-      if (this.state === STATES.TUTORIAL && tutorialDone && !this.missionStarted) {
+      if (this.state === STATES.TUTORIAL && tutorialDone && !this.missionStarted && !this.player?.isEntering) {
         this.startMission();
       }
       if (this.state === STATES.TUTORIAL) this.applyGateCollision();
@@ -508,7 +508,24 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     prepareBossAssets() { if (this.bossAssetsRequested) return; this.bossAssetsRequested = true; this.requestSpriteOnce('boss', 'sector_1_boss_sector1boss', sprite => { this.preloadedBossSprite = sprite; this.preparedBossAnimations = ['sector_1_boss_walk_walk', 'sector_1_boss_attack_attack', 'sector_1_boss_idle_idle']; }); }
     prepareBossSprite() { if (!this.boss) return; if (!this.boss.sprite && this.preloadedBossSprite && !this.boss.fallbackLocked) this.boss.sprite = this.preloadedBossSprite; if (this.boss.sprite?.isLoaded?.()) { this.boss.spriteReady = true; if (this.boss.activeAnimation && this.boss.playedAnimation !== this.boss.activeAnimation && this.boss.sprite.play) { this.boss.animationRef = this.boss.sprite.play(this.boss.activeAnimation, this.boss.activeAnimation !== 'sector_1_boss_attack_attack') || null; this.boss.playedAnimation = this.boss.activeAnimation; } } }
     setBossAnimation(animation, loop) { this.prepareBossSprite(); if (!this.boss || this.boss.activeAnimation === animation) return this.boss?.animationRef || null; this.boss.activeAnimation = animation; this.boss.animationRef = null; if (this.boss.spriteReady && this.boss.sprite?.play) { this.boss.animationRef = this.boss.sprite.play(animation, loop) || null; this.boss.playedAnimation = animation; } return this.boss.animationRef; }
-    updateBossSprite(delta) { this.prepareBossSprite(); if (this.boss?.spriteReady && this.boss.sprite?.update) { if (window.BARCODE?.SpritePlayback) window.BARCODE.SpritePlayback.update(this.boss.sprite, delta); else this.boss.sprite.update(delta); } }
+    getBossAnimationPlaybackRate() {
+      // The huge boss breathes more slowly than small hostiles. His native
+      // walk becomes more urgent during the faster combat approach; authored
+      // leap/flourish painting still selects poses on the physical phase.
+      if (this.boss?.activeAnimation === 'sector_1_boss_idle_idle') return 0.8;
+      if (this.boss?.activeAnimation === 'sector_1_boss_walk_walk') {
+        return this.state === STATES.BOSS_WALK_IN ? 1 : BOSS_COMBAT.approachSpeed / CINEMATIC.bossSpeed;
+      }
+      return 1;
+    }
+    updateBossSprite(delta) {
+      this.prepareBossSprite();
+      if (this.boss?.spriteReady && this.boss.sprite?.update) {
+        const playbackDelta = delta * this.getBossAnimationPlaybackRate();
+        if (window.BARCODE?.SpritePlayback) window.BARCODE.SpritePlayback.update(this.boss.sprite, playbackDelta);
+        else this.boss.sprite.update(playbackDelta);
+      }
+    }
     updateBossWalk(delta) { this.setBossAnimation('sector_1_boss_walk_walk', true); this.boss.x -= CINEMATIC.bossSpeed * (delta / 1000); this.updateBossSprite(delta); if (this.boss.x <= CINEMATIC.bossStopX) { this.boss.x = CINEMATIC.bossStopX; this.startBossCloseUp(); if (window.gameState) window.gameState.collectionMessage = { text: 'SIGNAL RESTORED. BOSS APPROACHING.', timer: 160 }; } }
     startBossCloseUp() { this.state = STATES.BOSS_CLOSE_UP; this.phaseElapsed = 0; this.closeUpStartZoom = this.cinematicZoomOverride; this.boss.state = 'idle'; this.setBossAnimation('sector_1_boss_idle_idle', true); }
     updateBossCloseUp(delta) { this.phaseElapsed += delta; const t = Math.min(1, this.phaseElapsed / CINEMATIC.closeUpMs); this.cinematicZoomOverride = lerp(this.closeUpStartZoom, this.cinematicCloseZoom, easeOutCubic(t)); this.updateBossSprite(delta); if (t >= 1) { this.cinematicZoomOverride = this.cinematicCloseZoom; this.startBossFlourish(); } }
@@ -1280,6 +1297,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         ctx.restore();
       }
     }
+    getSceneryAnimationTime() {
+      const prefs = window.BARCODE?.Preferences?.values || {};
+      if (prefs.reducedMotion || prefs.flashes === false || window.BARCODE_RENDER_QUALITY?.flashes === false) return 0;
+      // Combat/stage clocks already run during training and freeze with pause.
+      // The district clock is available in the dependency-free host fixtures.
+      return window.BARCODE?.combatFX?.timeMs ?? window.BARCODE?.stageFX?.timeMs ?? this.districtSignal?.elapsedMs ?? 0;
+    }
     drawSignalLift(ctx, pass = 'all') {
       if (!ctx || !this.signalLift || !this.isSignalLiftAvailable()) return;
       const lift = this.signalLift, center = lift.x + lift.w / 2;
@@ -1288,6 +1312,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       const moving = lift.state === 'moving' || lift.state === 'returning';
       const powered = moving || lift.chargeFxMs > 0;
       const phase = (lift.driveTimeMs || 0) / 1000;
+      const standby = this.getSceneryAnimationTime();
       ctx.save();
       if (pass === 'all' || pass === 'drive') {
         // One stationary drive strip spans the complete travel plus cabin height.
@@ -1305,6 +1330,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         const offset = ((phase * 65) % 18 + 18) % 18;
         ctx.fillStyle = powered ? '#a2f2d5' : '#536b74';
         for (let y = railTop - 18 + offset; y < railBottom; y += 18) ctx.fillRect(center - 7, y, 14, 4);
+        // A narrow diagnostic light remains active at the stops. It is not
+        // cable movement, and never changes the carriage or support planes.
+        const scanY = railTop + ((standby / 4700) % 1) * (railBottom - railTop - 18);
+        ctx.fillStyle = 'rgba(169,243,228,0.65)'; ctx.fillRect(center + 15, scanY, 3, 18);
         ctx.restore();
       }
       if (pass === 'drive') { ctx.restore(); return; }
@@ -1318,6 +1347,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         ctx.fillStyle = '#253f48'; ctx.fillRect(lift.x, roof.y - 24, lift.w, 24);
         ctx.fillRect(lift.x, lift.y - 10, lift.w, 32);
       }
+      // Light travels along the painted top crossbar, inside both existing
+      // layer clips. The cabin artwork and every physical anchor stay fixed.
+      const cabinTop = lift.y - cabinHeight * SIGNAL_LIFT.footAnchor;
+      const glintX = lift.x + lift.w * (0.085 + ((standby / 2600) % 1) * 0.62);
+      ctx.fillStyle = 'rgba(205,255,248,0.85)';
+      ctx.fillRect(glintX, cabinTop + cabinHeight * 0.127, lift.w * 0.10, 2.5);
       if (pass === 'cabin') { ctx.restore(); return; }
       // Front rails and floor lip cover passengers; their backs and the deck
       // surface were drawn earlier. These motor/light details belong in front.
@@ -1331,6 +1366,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       for (let i = 0; i < 2; i++) {
         ctx.fillStyle = i < lift.charges ? '#b8ff88' : '#374d46';
         ctx.beginPath(); ctx.arc(lift.x + lift.w * (i ? 0.61 : 0.28), lift.y + cabinHeight * 0.105, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = i < lift.charges ? '#e4ffbf' : '#7eaca2'; ctx.lineWidth = 1.5;
+        const angle = standby / (moving ? 210 : 630) + i * Math.PI;
+        ctx.beginPath(); ctx.arc(lift.x + lift.w * (i ? 0.61 : 0.28), lift.y + cabinHeight * 0.105, 8, angle, angle + Math.PI * 0.7); ctx.stroke();
       }
       const roof = this.getLiftRoof();
       // A thin underside glint follows the actual front crossbar. Only this
@@ -1698,12 +1736,16 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       if (!ctx || this.signalAmpCollected) return;
       const fx = window.BARCODE?.combatFX;
       if (fx && !fx.visible(SIGNAL_AMP.x, SIGNAL_AMP.y, 90)) return;
-      const bob = Math.sin((fx?.timeMs || 0) / 280) * 4;
+      const time = this.getSceneryAnimationTime(), bob = Math.sin(time / 280) * 7;
       ctx.save();
       ctx.fillStyle = 'rgba(213,127,255,0.16)';
       ctx.beginPath(); ctx.ellipse(SIGNAL_AMP.x, SIGNAL_AMP.y + 40, 36, 6, 0, 0, Math.PI * 2); ctx.fill();
       if (fx) fx.drawAmpIcon(ctx, SIGNAL_AMP.x, SIGNAL_AMP.y + bob);
       else { ctx.strokeStyle = '#efa0ff'; ctx.lineWidth = 3; ctx.strokeRect(SIGNAL_AMP.x - 22, SIGNAL_AMP.y - 22, 44, 44); }
+      // A soft orbit gives the pickup a readable identity at gameplay zoom.
+      ctx.strokeStyle = '#edb6ff'; ctx.lineWidth = 2;
+      const orbit = time / 620;
+      ctx.beginPath(); ctx.arc(SIGNAL_AMP.x, SIGNAL_AMP.y + bob, 35, orbit, orbit + Math.PI * 0.7); ctx.stroke();
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = 'bold 14px monospace';
       ctx.fillStyle = '#0a1526'; ctx.fillRect(SIGNAL_AMP.x - 65, SIGNAL_AMP.y - 55, 130, 20);
       ctx.fillStyle = '#f4c1ff'; ctx.fillText('SIGNAL AMP', SIGNAL_AMP.x, SIGNAL_AMP.y - 45);
@@ -1788,6 +1830,21 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         ctx.save(); if (opening) ctx.globalAlpha *= 1-progress*.35;
         this.drawBarrierHardwareModules(ctx,gate,opening,progress); ctx.restore();
       }
+      // Off is a hardware state, not a stopped drawing. A slower diagnostic
+      // tracer remains after clearing without rebuilding the dissolved wall.
+      const time = this.getSceneryAnimationTime(), cleared = opening && progress >= 1;
+      const { path, roof } = this.getGateGeometry(gate), [mountX, baseY] = path[0];
+      const span = baseY - roof, rate = cleared ? 4100 : 1800;
+      const phase = ((time / rate + Number(gate.id.split('_')[1]) * 0.17) % 1 + 1) % 1;
+      ctx.strokeStyle = cleared ? '#89bbae' : '#dbbcfa'; ctx.lineWidth = cleared ? 2.5 : 3.5;
+      const statusY = roof + 12 + phase * Math.max(0, span - 50);
+      ctx.beginPath(); ctx.moveTo(mountX, statusY); ctx.lineTo(mountX, statusY + 26); ctx.stroke();
+      const groundPhase = ((time / (cleared ? 5300 : 2300) + phase) % 1 + 1) % 1;
+      const segment = Math.min(path.length - 2, Math.floor(groundPhase * (path.length - 1)));
+      const t = groundPhase * (path.length - 1) - segment;
+      const [ax, ay] = path[segment], [bx, by] = path[segment + 1];
+      ctx.fillStyle = cleared ? '#add8c9' : '#ead5ff';
+      ctx.beginPath(); ctx.arc(ax + (bx - ax) * t, ay + (by - ay) * t, cleared ? 2.5 : 3.5, 0, Math.PI * 2); ctx.fill();
       ctx.restore();
     }
     drawBarrierHardwareModules(ctx,gate,opening,progress) {
@@ -1815,7 +1872,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     drawEncounterGates(ctx, includeHardware = true) {
       if (!ctx) return;
       const fx = window.BARCODE?.combatFX;
-      const time = fx?.timeMs ?? this.districtSignal.elapsedMs;
+      const time = this.getSceneryAnimationTime();
       const animate = window.BARCODE_RENDER_QUALITY?.flashes !== false;
       for (const { gate, progress, opening } of this.getGatePresentation()) {
         const fade = 1 - progress;
@@ -1942,7 +1999,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
     }
     drawSkyCaches(ctx) {
       if (!this.missionStarted) return;
-      const time = this.districtSignal?.elapsedMs || 0;
+      const time = this.getSceneryAnimationTime();
       for (const cache of SKY_CACHES) {
         const surface = STAGE_SURFACES.find(s => s.id === cache.surfaceId);
         const y = surface.y, collected = this.skyCaches?.has(cache.id);
@@ -1955,11 +2012,17 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         ctx.beginPath(); ctx.moveTo(0, -12); ctx.lineTo(0, -44); ctx.stroke();
         ctx.beginPath(); ctx.arc(0, -42, 16, 0.12, Math.PI - 0.12); ctx.stroke();
         if (!collected) {
-          const bob = Math.sin(time / 350) * 3;
+          const bob = Math.sin(time / 350 + cache.x / 120) * 7;
           window.BARCODE?.combatFX?.drawAmpIcon?.(ctx, 0, -76 + bob);
           ctx.strokeStyle = 'rgba(190,245,156,0.32)'; ctx.lineWidth = 1;
-          ctx.beginPath(); ctx.arc(0, -76 + bob, 30 + Math.sin(time / 500) * 3, 0, Math.PI * 2); ctx.stroke();
+          ctx.beginPath(); ctx.arc(0, -76 + bob, 31 + Math.sin(time / 500) * 5, 0, Math.PI * 2); ctx.stroke();
         }
+        // The collected receiver continues relaying, at a quieter cadence.
+        const signal = time / (collected ? 760 : 410) + cache.x / 210;
+        ctx.strokeStyle = collected ? '#8dbca6' : '#d4fbb8'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(0, -42, 21, 0.22 + Math.sin(signal) * 0.22, Math.PI - 0.22 + Math.sin(signal) * 0.22); ctx.stroke();
+        ctx.fillStyle = collected ? '#8fbc9e' : '#c3ff99';
+        ctx.fillRect(-3, -18 - ((time / (collected ? 2700 : 1200)) % 1) * 20, 6, 4);
         for (let i = 0; i < 3; i++) { ctx.fillStyle = i < (this.skyCaches?.size || 0) ? '#beff92' : '#344c48'; ctx.fillRect(-11 + i * 9, -8, 5, 3); }
         ctx.restore();
       }
@@ -2030,8 +2093,33 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
       const span = mount.span || 410/512, width = prop.w/span;
       const x = prop.x-(mount.anchorX ?? 22/512)*width;
       const y = prop.y-(mount.anchorY ?? 182/512)*width;
-      if (window.BARCODE?.PresentationAssets?.draw(mount.asset || 'platformFacades', ctx,
-          { x, y, width, height: width, frame: mount.frame || 0 })) return true;
+      const illustrated = window.BARCODE?.PresentationAssets?.draw(mount.asset || 'platformFacades', ctx,
+          { x, y, width, height: width, frame: mount.frame || 0 });
+      if (illustrated) {
+        const time = this.getSceneryAnimationTime(), variant = mount.frame || 0;
+        const t = (time / (mount.asset ? 2800 : variant === 1 ? 1900 : 3400) + prop.x / 700) % 1;
+        // These are construction variants, never animation frames. Animate
+        // their front ventilation/lamp details instead of morphing the deck.
+        const row = mount.asset === 'platformSideRight' ? 230 : mount.asset === 'platformSideLeft' ? 207 : 219;
+        const lightX = mount.asset === 'platformSideRight' ? 56 : !mount.asset && variant === 1 ? 374 : 112;
+        const lightSpan = mount.asset === 'platformSideRight' || !mount.asset && variant === 1 ? 30 : 245;
+        const amber = variant === 1 || mount.asset === 'platformSideRight';
+        const lightHeight = amber ? 24 : 10;
+        ctx.save(); ctx.beginPath(); ctx.rect(x + lightX / 512 * width, y + (row - lightHeight / 2) / 512 * width,
+          lightSpan / 512 * width, lightHeight / 512 * width); ctx.clip();
+        ctx.fillStyle = amber ? '#ffd99b' : '#b2f4e4';
+        if (amber) {
+          // The small painted lamp needs its complete window to breathe;
+          // a two-pixel scanner alone disappears at normal gameplay zoom.
+          ctx.save(); ctx.globalAlpha *= 0.15 + (0.5 + 0.5 * Math.sin(time / 300 + prop.x / 240)) * 0.6;
+          ctx.fillRect(x + lightX / 512 * width, y + (row - lightHeight / 2) / 512 * width,
+            lightSpan / 512 * width, lightHeight / 512 * width); ctx.restore();
+        }
+        const scanWidth = Math.max(5, width * 0.065);
+        ctx.fillRect(x + (lightX + t * lightSpan) / 512 * width - scanWidth,
+          y + (row - 3) / 512 * width, scanWidth, Math.max(2.5, 6 / 512 * width));
+        ctx.restore(); return true;
+      }
       // Credible lightweight fallback if the shared raster is unavailable.
       ctx.fillStyle = '#3d535d'; ctx.fillRect(prop.x, prop.y, prop.w, prop.h);
       ctx.strokeStyle = '#9aadaa'; ctx.lineWidth = 3;
@@ -2043,6 +2131,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         ctx.fillStyle='#293b49';ctx.fillRect(x-6,prop.y+20,12,40);
         ctx.beginPath();ctx.moveTo(x,prop.y+55);ctx.lineTo(x-10,prop.y+prop.h);ctx.stroke();
       }
+      const time = this.getSceneryAnimationTime();
+      ctx.fillStyle = '#a2e5d2';
+      ctx.fillRect(prop.x + 12 + ((time / 3100 + prop.x / 700) % 1) * (prop.w - 30), prop.y + 6, 8, 3);
       return true;
     }
     drawTraversalProps(ctx, behindActors = true) {
@@ -2087,26 +2178,38 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
           ctx.fillStyle = '#82938e';
           for (const x of [prop.x + 8, prop.x + prop.w - 8]) for (const y of [prop.y + 15, prop.y + prop.h - 10]) ctx.fillRect(x - 2, y - 2, 4, 4);
         }
+        // The terminal's bounded painted fallback keeps the same active glass.
+        if (prop.asset) this.drawTerminalScreen(ctx, prop, 206 * 1054 / 959);
       }
       ctx.restore();
     }
     drawTerminalScreen(ctx, prop, height) {
-      // Reuse the painted waveform, clipped inside the glass. The shared
-      // scenery clock freezes with pause/reset; no new timer or image cache.
-      const phase = (this.districtSignal?.elapsedMs || 0) % 4200;
-      if (phase < 3880 || window.BARCODE_RENDER_QUALITY?.flashes === false) return;
+      // A readable continuous trace stays inside the original glass. The
+      // shared clock freezes with pause; no timer, jitter or second raster.
+      const time = this.getSceneryAnimationTime();
       const x = prop.x + 194 * 0.235, y = prop.y - height * 88 / 1054 + height * 0.238;
       const w = 194 * 0.328, h = height * 0.224;
       ctx.save(); ctx.beginPath();
       ctx.moveTo(x + 4, y); ctx.lineTo(x + w - 4, y); ctx.lineTo(x + w, y + 4);
       ctx.lineTo(x + w, y + h - 4); ctx.lineTo(x + w - 4, y + h);
       ctx.lineTo(x + 4, y + h); ctx.lineTo(x, y + h - 4); ctx.lineTo(x, y + 4); ctx.closePath(); ctx.clip();
-      const offset = Math.sin(Math.floor(phase / 45) * 2.7) * 1.4;
-      window.BARCODE?.PresentationAssets?.draw(prop.asset, ctx, {
-        x: prop.x + offset, y: prop.y - height * 88 / 1054 + offset * 0.3, width: 194, height
-      });
-      ctx.fillStyle = 'rgba(190,255,199,0.12)';
-      ctx.fillRect(x, y + (phase - 3880) / 320 * h, w, 1);
+      ctx.fillStyle = 'rgba(8,33,30,0.48)'; ctx.fillRect(x, y, w, h);
+      ctx.strokeStyle = '#b2f8bc'; ctx.lineWidth = 1.6; ctx.beginPath();
+      for (let i = 0; i <= 30; i++) {
+        const px = x + i / 30 * w;
+        const envelope = 0.2 + 0.8 * Math.sin(i / 30 * Math.PI);
+        const wave = Math.sin(i * 0.71 - time / 170) * Math.sin(i * 0.22 + time / 480);
+        const py = y + h * 0.42 + wave * h * 0.26 * envelope;
+        ctx[i ? 'lineTo' : 'moveTo'](px, py);
+      }
+      ctx.stroke();
+      for (let i = 0; i < 8; i++) {
+        const level = 3 + (1 + Math.sin(time / 280 + i * 1.4)) * h * 0.09;
+        ctx.fillStyle = i % 3 ? '#8bdcad' : '#d0ffc9';
+        ctx.fillRect(x + 4 + i * (w - 8) / 8, y + h - 4 - level, 3, level);
+      }
+      ctx.fillStyle = 'rgba(195,255,200,0.36)';
+      ctx.fillRect(x + ((time / 2100) % 1) * w, y + 2, 2, h - 4);
       ctx.restore();
     }
     drawRepairRoute(ctx) {
@@ -2117,7 +2220,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/sector1-progression.js', exports: ['
         for (const cell of this.repairs) {
           if (cell.collected) continue;
           ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fillRect(cell.x - 20, cell.surfaceY - 2, 40, 4);
-          drawRepairCell(ctx, cell.x, cell.y + Math.sin(this.repairTimeMs / 480 + cell.x) * 3);
+          const prefs = window.BARCODE?.Preferences?.values || {};
+          const quiet = prefs.reducedMotion || prefs.flashes === false || window.BARCODE_RENDER_QUALITY?.flashes === false;
+          const time = quiet ? 0 : this.repairTimeMs;
+          const bob = Math.sin(time / 480 + cell.x) * 8;
+          const beat = Math.pow(Math.max(0, Math.sin(time / 180 + cell.x)), 5);
+          drawRepairCell(ctx, cell.x, cell.y + bob, 1 + beat * 0.10);
+          ctx.strokeStyle = '#d2fda6'; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.arc(cell.x, cell.y + bob, 36 + beat * 7, -0.25, Math.PI * 0.75); ctx.stroke();
         }
       }
       if (this.repairFeedback) {

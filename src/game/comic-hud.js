@@ -197,13 +197,46 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
     if (rhythm?.isActive?.()) return combo >= 5 && combo % 5 < 3 ? 2 : 3;
     return 0;
   }
+  function portraitMotion(player, rhythm) {
+    const preferences=B.Preferences?.values;
+    if(preferences?.reducedMotion || preferences?.flashes===false || window.BARCODE_RENDER_QUALITY?.flashes===false)
+      return {x:0,angle:0,scaleY:1,blink:0};
+    // The HUD shares the paused simulation clock, but has its own readable
+    // cadence. Emotional cels continue to describe health/combat, not a loop.
+    const now=Math.max(0,window.gameState?.gameTime || 0), frame=portraitFrame(player,rhythm);
+    const breathMs=frame===4?1600:frame===2||frame===3?2100:frame===5?3400:2800;
+    const swayMs=frame===2||frame===3?3600:5200;
+    const phase=now/breathMs*Math.PI*2, sway=now/swayMs*Math.PI*2;
+    const blinkTime=now%5300;
+    const blink=frame===0 && blinkTime>=4050 && blinkTime<4230 ? Math.sin((blinkTime-4050)/180*Math.PI) : 0;
+    return {x:Math.sin(sway)*2.4,angle:Math.sin(sway)*.018,scaleY:1+(.5-.5*Math.cos(phase))*.024,blink};
+  }
+  function drawPortrait(c, player, rhythm) {
+    const frame=portraitFrame(player,rhythm), motion=portraitMotion(player,rhythm);
+    // Anchor at the shoulder line; breathing lifts the head without moving
+    // the frame, health marks or name. Clipping also covers the fallback art.
+    c.save();c.translate(85.5+motion.x,152);c.rotate(motion.angle);c.scale(1,motion.scaleY);c.translate(-85.5,-152);
+    const bounds={x:85.5,y:88.5,width:127,height:127};
+    const illustrated=B.PresentationAssets?.draw('hudExpressions',c,{...bounds,frame});
+    if(!illustrated && !B.PresentationAssets?.draw('hudPortrait',c,bounds)) text(c,'6 BIT',84,90,27,C.paper,700,'center');
+    if(illustrated && motion.blink>0) {
+      // Reuse only the already-painted closed eyes from the hurt cel. The
+      // neutral mouth, brows and selected expression never change for a blink.
+      c.save();c.beginPath();
+      for(const eye of [[[59,73],[81,73],[83,84],[59,85]],[[91,73],[115,73],[113,85],[90,84]]]) {
+        eye.forEach((point,index)=>index?c.lineTo(...point):c.moveTo(...point));c.closePath();
+      }
+      c.clip();c.globalAlpha*=motion.blink;B.PresentationAssets?.draw('hudExpressions',c,{...bounds,frame:1});c.restore();
+    }
+    c.restore();
+  }
   function basic(c, { player, rhythm, progress, score, pad, training }) {
     begin(c);
     const active=!!rhythm?.isActive?.(), max=Math.max(1,player?.maxHealth||3), hp=Math.max(0,Math.min(max,player?.health||0));
     plate(c,22,22,508,139);
     polygon(c,[[27,29],[144,27],[135,154],[31,154]],'#253441',C.paper);
     c.save();c.beginPath();c.rect(31,29,106,123);c.clip();
-    if(!B.PresentationAssets?.draw('hudExpressions',c,{x:85.5,y:88.5,width:127,height:127,frame:portraitFrame(player,rhythm)}) && !B.PresentationAssets?.draw('hudPortrait',c,{x:85.5,y:88.5,width:127,height:127})) text(c,'6 BIT',84,90,27,C.paper,700,'center');
+    drawPortrait(c,player,rhythm);
     c.restore();
     text(c,'6 BIT',157,51,32,C.paper,700);
     text(c,active?'RHYTHM COMBAT':'SIGNAL ACTIVE',505,53,16,active?C.green:C.muted,600,'right');
@@ -331,5 +364,5 @@ window.FILE_MANIFEST.push({ name: 'src/game/comic-hud.js', exports: ['BARCODE.Co
     text(c,`[${key}] HACK READY`,x+w/2,y+21,21,C.green,700,'center',w-24);
     c.restore();
   }
-  B.ComicHUD=Object.freeze({health,lore,C,polygon,plate,text,buttonText,basic,objectives,actionCard,portraitFrame,boss,rhythm,amp,hack});
+  B.ComicHUD=Object.freeze({health,lore,C,polygon,plate,text,buttonText,basic,objectives,actionCard,portraitFrame,portraitMotion,boss,rhythm,amp,hack});
 })();

@@ -179,13 +179,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/combat-fx.js', exports: ['BARCODE.Co
       }
     }
     drawAmpIcon(ctx, x, y, size = 1, chargeCount = 3) {
-      const pulse = 0.5 + 0.5 * Math.sin(this.timeMs / 160);
+      const { reduced, flashes } = this.powerSettings();
+      const timeMs = reduced || !flashes ? 0 : this.timeMs;
+      const pulse = 0.5 + 0.5 * Math.sin(timeMs / 160);
       ctx.save(); ctx.translate(x, y); ctx.scale(size, size);
       ctx.fillStyle = '#0a1526'; ctx.strokeStyle = '#efa0ff'; ctx.lineWidth = 2;
       ctx.fillRect(-22, -22, 44, 44); ctx.strokeRect(-22, -22, 44, 44);
       ctx.strokeStyle = '#a3ffee'; ctx.strokeRect(-9, -28, 18, 6);
       for (let i = 0; i < 9; i++) {
-        const height = 9 + (1 + Math.sin(i * 1.8 + this.timeMs / 160)) * 4;
+        const height = 9 + (1 + Math.sin(i * 1.8 + timeMs / 160)) * 4;
         ctx.fillStyle = i % 3 ? '#efa0ff' : '#a3ffee';
         ctx.fillRect(-17 + i * 4, -16, i % 3 ? 2 : 3, height);
       }

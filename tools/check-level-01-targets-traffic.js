@@ -94,15 +94,16 @@ async function runTraffic() {
     ships.spawnShip = () => {}; // Keep only the explicitly positioned traffic subjects.
     ships.ships = [0, 1, 2].map(type => ({ shipType: type, x: 600, y: 80, size: 200, speed: 0, direction: 1, bobOffset: 0, bobAmount: 0, rotation: 0 }));
     for (let i = 0; i < fps; i++) ships.update(1000 / fps);
-    assert.deepStrictEqual(ships.ships.map(s => ships.getAnimationFrame(s)), [25,25,25], 'all original frames advance at their authored 25 FPS');
+    assert.deepStrictEqual(ships.ships.map(s => ships.getAnimationFrame(s)), [28,20,25], 'nimble, heavy and thruster craft advance at distinct authored-time rates');
     const before = plain(ships.ships), ctx = drawing();
     ships.ships.forEach(s => ships.drawShip(ctx, s));
     assert.deepStrictEqual(plain(ships.ships), before, 'drawing never advances animation');
     assert(ctx.calls.filter(c => c[0] === 'drawImage').every(c => c.length === 10), 'all three types crop a frame from the atlas');
     for (const s of ships.ships) {
       const sheet = ships.shipSheets[s.shipType];
-      s.animationElapsedMs = sheet.durationMs - 1; assert.strictEqual(ships.getAnimationFrame(s), sheet.frameCount - 1);
-      s.animationElapsedMs = sheet.durationMs; assert.strictEqual(ships.getAnimationFrame(s), 0);
+      const rate = ships.getAnimationRate(s);
+      s.animationElapsedMs = (sheet.durationMs - 1) / rate; assert.strictEqual(ships.getAnimationFrame(s), sheet.frameCount - 1);
+      s.animationElapsedMs = sheet.durationMs / rate; assert.strictEqual(ships.getAnimationFrame(s), 0);
     }
     const paused = plain(ships.ships); w.gameState.paused = true; ships.update(10000);
     assert.deepStrictEqual(plain(ships.ships), paused); w.gameState.paused = false;

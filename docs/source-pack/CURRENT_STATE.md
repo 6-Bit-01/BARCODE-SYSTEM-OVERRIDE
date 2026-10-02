@@ -1,5 +1,9 @@
 # Current State
 
+## October 2 — Level 1 walk-in and animation coverage
+
+6 Bit enters from fully outside the left viewport using his grounded walking clip at normal speed, finishing at the established x=200 spawn. Shared delta freezes the entrance during pause/difficulty selection; checkpoint resumes and tutorial deaths use ordinary spawns. Mission checkpoints wait for arrival. Actors, the Jammer, HUD portrait, flying traffic, terminal, platform/gate/lift hardware, cat, inspection props, pickups and local atmosphere now have deliberate live presentation with separate rates. Faint motion is strengthened; construction/power-state variants stay attached to their physical owners. Canonical image bytes remain unchanged. See `LEVEL1_ANIMATION_PASS.md`; exact final validation/publication belongs to the generated export receipt, with owner device acceptance still unrecorded.
+
 ## October 2 — custom blood and crew callouts
 
 Custom red blood impact/stain atlases and new canonical 6 Bit, DJ Floppydisc and Mac Modem reaction portraits replace generic contact paint and plain shame text. Crew radio panels queue readable pedestrian-hit insults on the existing road clock. Physical contacts, grounded rider registration, pause, old saves, economy and exact controls remain unchanged. See `CACHE_BLOOD_CREW.md`. Required final validation/publication results belong to the generated export receipt; owner device acceptance remains unrecorded.

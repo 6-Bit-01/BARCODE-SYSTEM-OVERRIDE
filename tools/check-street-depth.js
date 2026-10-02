@@ -22,7 +22,8 @@ w.sector1Progression=original;
 w.BARCODE.JammerEnvironment=originalJammer;
 let draws=0,filters=0;const stack=[];
 const c={canvas:{width:1920,height:1080},globalAlpha:1,getTransform:()=>({a:1,b:0,c:0,d:1,e:0,f:0}),
- save(){stack.push(this.globalAlpha);},restore(){this.globalAlpha=stack.pop();},set filter(v){filters++;}};
+ save(){stack.push(this.globalAlpha);},restore(){this.globalAlpha=stack.pop();},set filter(v){filters++;},
+ beginPath(){},moveTo(){},lineTo(){},stroke(){},arc(){},fill(){}};
 w.BARCODE.PresentationAssets={ready:()=>true,draw(){draws++;return true;}};
 const gates=w.Sector1Progression.ENCOUNTER_GATES;
 p.drawBarrierHardware(c,gates[0],false,0);assert.strictEqual(draws,1,'one image for visible active hardware');

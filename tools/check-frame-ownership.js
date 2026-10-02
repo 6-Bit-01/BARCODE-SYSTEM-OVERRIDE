@@ -138,10 +138,16 @@ if (!player.includes('isBossCinematicActive')) {
   const actor = w.player;
   actor.spriteReady = true; actor.sprite = createSprite(playerClips);
   actor.state = 'idle'; actor.cinematicPoseActive = true;
+  const position = { x:actor.position.x, y:actor.position.y };
   for (let i = 0; i < 30; i++) actor.updateSpriteAnimation(100);
-  if (actor.animationRef.currentFrame !== 0 || calls.errors.length) fail('cinematic must hold the actual neutral sprite frame without host errors.');
+  const neutralFrame = actor.animationRef.currentFrame, neutralRef = actor.animationRef;
+  if (neutralFrame === 0 || actor.sprite.getCurrentAnimation() !== '6_bit_idle_idle' || calls.errors.length)
+    fail('cinematic must animate the actual neutral idle through the shared owner without host errors.');
+  if (actor.position.x !== position.x || actor.position.y !== position.y)
+    fail('living cinematic idle must keep the frozen actor position.');
   actor.cinematicPoseActive = false; actor.updateSpriteAnimation(100);
-  if (actor.animationRef.currentFrame === 0) fail('normal animation must resume after the cinematic releases ownership.');
+  if (actor.animationRef !== neutralRef || actor.animationRef.currentFrame === neutralFrame)
+    fail('normal animation must continue the same idle reference after the cinematic releases ownership.');
 }
 if (/this\.sprite\.(pause|resume)\(/.test(player)) {
   fail('cinematic pose ownership must not depend on optional Makko sprite pause/resume methods.');

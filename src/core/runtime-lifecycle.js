@@ -100,9 +100,9 @@ window.BARCODE = window.BARCODE || {};
     window.BARCODE?.Campaign?.resetSession();
     if (window.player) {
       window.player.health = window.player.maxHealth;
-      window.player.position = new window.Vector2D(200, 500);
+      window.player.cancelEntranceAnimation?.();
+      window.player.position = new window.Vector2D(200, window.Player?.GROUND_Y ?? 784);
       window.player.velocity = new window.Vector2D(0, 0);
-      if (typeof window.player.startEntranceAnimation === 'function') window.player.startEntranceAnimation();
     }
     const preserveDefeats = !!options.preserveProgress;
     if (window.enemyManager && typeof window.enemyManager.clear === 'function') window.enemyManager.clear({ preserveDefeats });
@@ -117,6 +117,12 @@ window.BARCODE = window.BARCODE || {};
       window.sector1Progression.reset({ preserveDefeats });
     }
     if (window.hackingSystem && typeof window.hackingSystem.reset === 'function') window.hackingSystem.reset();
+    if (options.entrance && window.player) {
+      window.renderer?.resetFollowCamera?.(200);
+      window.renderer?.clearCinematicZoomOverride?.();
+      if (window.renderer) window.renderer.zoomLevel = window.renderer.targetZoomLevel = 1;
+      window.player.startEntranceAnimation?.({ targetX: 200 });
+    }
   }
 
   async function runInitializer(options) {
@@ -151,7 +157,7 @@ window.BARCODE = window.BARCODE || {};
       if (loading) loading.classList.remove('visible');
     }
 
-    resetRunState({ preserveProgress: !!options.restart });
+    resetRunState({ preserveProgress: !!options.restart, entrance: !options.resume });
     if (!options.resume) window.BARCODE?.LevelDifficulty?.beginLevel('level-01');
     if (['level-02', 'level-03'].includes(options.resume?.levelId)) {
       const proof = options.resume.levelId === 'level-02' ? namespace.CacheRoadProof : namespace.RunAndGunProof;

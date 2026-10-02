@@ -108,6 +108,20 @@ function openingRig({ contextBudget = Infinity, contextUnavailable = false, real
   return { ...rig, scene, pad, key, advance, images, windowEvents, gameCanvas, canvasCalls, finishFullscreen, assertPresented };
 }
 const settle = () => new Promise(resolve => setImmediate(resolve));
+function finishStreetEntrance(w) {
+  const player = w.player;
+  assert(player.isEntering, 'the completed or skipped comic requests the real street walk-in');
+  if (w.BARCODE?.LevelDifficulty?.open) assert(w.BARCODE.LevelDifficulty.confirm());
+  // advance() above owns the reading/timer fixture, not actor simulation.
+  // Let the production walk reach its normal spawn before exercising the
+  // playable lesson, as the actual RAF does after difficulty confirmation.
+  for (let elapsed = 0; player.isEntering && elapsed <= player.entranceDuration + 50; elapsed += 50) player.update(50);
+  assert(!player.isEntering && player.grounded && player.position.x === 200,
+    'the actual animated walk finishes at the safe street spawn');
+  assert(!w.sector1Progression.missionStarted, 'walking in cannot bypass playable training');
+  assert(!w.inputManager.hasTrackedMovement && !w.inputManager.hasTrackedJump,
+    'authored entrance motion does not earn the tutorial actions');
+}
 async function main() {
   for (const timing of ['before-intro', 'after-intro', 'denied']) {
     const { w, scene, advance, key, calls, gameCanvas, finishFullscreen, assertPresented } = openingRig({ fullscreen: true, realTutorial: true });
@@ -208,6 +222,7 @@ async function main() {
     assert(tutorial.dialogue.some(line => /Dead Air District/.test(line.text) && /jammed/.test(line.text)), 'skip players receive the local situation too');
     assert(!p.missionStarted, 'intro completion cannot bypass the playable tutorial');
     assert.deepStrictEqual(Array.from(tutorial.objectives, objective => objective.id), ['movement', 'jump']);
+    finishStreetEntrance(w);
     const expectedObjectives = [['movement', 'jump'], ['combat'], ['rhythm_start', 'rhythm_combo', 'rhythm_exit'], ['hack_start', 'hack_complete']];
     const acknowledge = () => { if (!tutorial.readyToAdvance) tutorial.handleSpacePress(); tutorial.handleSpacePress(); };
     for (let chapter = 0; chapter < 4; chapter++) {
@@ -267,6 +282,7 @@ async function main() {
     advance(3950); assert.strictEqual(calls.musicStarts, 0); advance(50);
     assert.strictEqual(calls.musicStarts, 1); assert.strictEqual(calls.introStops, 1); assert.strictEqual(calls.backgroundStarts, 1);
     scene.skipAllCutscene(); advance(1000); assert.strictEqual(calls.musicStarts, 1, 'completion cannot duplicate audio startup');
+    finishStreetEntrance(w);
     w.tutorialSystem.active = false; w.tutorialSystem.completed = true; p.update(16);
     assert(p.missionStarted, 'no second story scene between tutorial and mission');
     assert.deepStrictEqual(calls.errors, []);

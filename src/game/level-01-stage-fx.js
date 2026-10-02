@@ -59,6 +59,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
     energyAt(x) {
       return Math.min(1, this.reactions.reduce((sum, r) => sum + r.strength * Math.max(0, 1 - Math.abs(x - r.x) / 750) * Math.max(0, 1 - r.age / 1000), 0));
     }
+    motionTimeMs() {
+      const prefs = B.Preferences?.values || {};
+      return prefs.reducedMotion || prefs.flashes === false || window.BARCODE_RENDER_QUALITY?.flashes === false ? 0 : this.timeMs;
+    }
+    getCatIdlePose() {
+      const time = this.motionTimeMs(), phase = time % 4200;
+      // Existing side/look/blink/paw drawings are deliberate held gestures,
+      // not a walk cycle or random emotional changes. No hold exceeds 800 ms.
+      const frame = phase < 550 ? 0 : phase < 1350 ? 1 : phase < 1490 ? 2 :
+        phase < 2050 ? 1 : phase < 2750 ? 3 : phase < 3550 ? 1 : phase < 3970 ? 0 : 1;
+      return { frame, breath: 1 + Math.sin(time / 530) * 0.035 };
+    }
     canInspect({ rat = false } = {}) {
       const o = this.owner, gs = window.gameState;
       if (!o?.missionStarted || window.tutorialSystem?.isActive?.() || window.isPaused || gs?.paused || !gs?.running ||
@@ -162,11 +174,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
       // Source-image coordinates, called inside the foreground's transform.
       // No second texture or canvas allocation; screens remain inside their glass.
       const sourceX = x => -152 + x * 4400 / 1279;
-      const phase = music.beatFloat || 0, phrase = Math.floor(phase / 4) % 4;
+      const time = this.motionTimeMs();
+      const phase = time === 0 ? 0 : music.beatFloat || time / 700, phrase = Math.floor(phase / 4) % 4;
       ctx.save();
       for (const [x, y] of [[390, 214], [785, 201]]) {
           const kick = this.energyAt(sourceX(x));
-        const swing = Math.sin(this.timeMs / 110) * kick * 9;
+        const swing = Math.sin(time / 1250 + x) * 3.5 + Math.sin(time / 110) * kick * 9;
         ctx.strokeStyle = '#182738'; ctx.lineWidth = 2;
         ctx.beginPath(); ctx.moveTo(x - 30, y - 22); ctx.quadraticCurveTo(x + swing, y + 32, x + 65, y - 16); ctx.stroke();
         for (let i = 0; i < 8; i++) {
@@ -187,7 +200,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
         }
       }
       const rattle = this.energyAt(sourceX(346));
-      ctx.save(); ctx.globalAlpha = 1; ctx.translate(346, 294); ctx.rotate(Math.sin(this.timeMs / 60) * rattle * 0.065);
+      ctx.save(); ctx.globalAlpha = 1; ctx.translate(346, 294);
+      ctx.rotate(Math.sin(time / 900) * 0.022 + Math.sin(time / 60) * rattle * 0.065);
       ctx.strokeStyle = '#788792'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 13); ctx.moveTo(24, 0); ctx.lineTo(24, 13); ctx.stroke();
       ctx.fillStyle = '#101d29'; ctx.fillRect(-3, 13, 30, 13); ctx.strokeStyle = '#a6f5db'; ctx.strokeRect(-3, 13, 30, 13);
       ctx.font = 'bold 6px monospace'; ctx.textAlign = 'center'; ctx.fillStyle = '#a6f5db'; ctx.fillText('ON AIR', 12, 22); ctx.restore();
@@ -253,14 +267,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
     }
     drawRat(ctx, x, y, scale = 1) {
       const moving = this.ratAge !== null;
-      const frame = moving ? Math.floor(this.ratAge / 110) % 4 : 0;
-      if (B.PresentationAssets?.draw('studioCat', ctx, { x, y, width: 116 * scale, frame })) return;
+      const time = this.motionTimeMs();
+      const frame = moving ? Math.floor(this.ratAge / 110) % 4 : Math.floor(time / 600) % 4;
+      ctx.save(); ctx.translate(x, y); ctx.scale(1, moving ? 1 : this.getCatIdlePose().breath);
+      const illustrated = B.PresentationAssets?.draw('studioCat', ctx, { x: 0, y: 0, width: 116 * scale, frame });
+      ctx.restore(); if (illustrated) return;
       ctx.save(); ctx.translate(x, y); ctx.scale(scale, scale);
-      ctx.strokeStyle = '#b5bfd3'; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(-12, -5); ctx.quadraticCurveTo(-45, -54, -29, -47); ctx.stroke();
+      const tail = Math.sin(time / 470) * 9;
+      ctx.strokeStyle = '#b5bfd3'; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(-12, -5); ctx.quadraticCurveTo(-45 + tail, -54, -29 + tail, -47); ctx.stroke();
       ctx.fillStyle = '#262d40'; ctx.strokeStyle = '#adb9cc'; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.ellipse(0, -9, 21, 12, -0.1, 0, TAU); ctx.fill(); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(9, -15); ctx.lineTo(10, -34); ctx.lineTo(20, -25); ctx.lineTo(30, -33); ctx.lineTo(33, -10); ctx.lineTo(18, -5); ctx.closePath(); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = '#a4ffe8'; ctx.fillRect(22, -12, 3, 3); ctx.fillRect(-10, 1, 9, 3); ctx.fillRect(8, 1, 9, 3);
+      ctx.fillStyle = '#a4ffe8'; ctx.fillRect(22, -12, 3, time % 3500 > 3300 ? 1 : 3); ctx.fillRect(-10, 1, 9, 3); ctx.fillRect(8, 1, 9, 3);
       ctx.restore();
     }
     drawTrafficLighting(ctx, { foreground = false } = {}) {
@@ -282,6 +300,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
     }
     drawWorld(ctx) {
       if (!this.owner?.missionStarted) return;
+      const time = this.motionTimeMs();
       ctx.save();
       this.drawRatEvent(ctx);
       for (const d of this.details) {
@@ -290,20 +309,43 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
         if (d.id === DETAILS[0].id) {
           if (this.ratRunConsumed) continue;
           if (!this.ratEvent) {
-            const frame = Math.floor(this.timeMs / 900) % 7 === 5 ? 2 : 1;
-            if (!B.PresentationAssets?.draw('studioCatEvent', ctx, { x: d.x, y: d.y, width: 136, frame })) this.drawRat(ctx, d.x, d.y);
+            const pose = this.getCatIdlePose();
+            ctx.save(); ctx.translate(d.x, d.y); ctx.scale(1, pose.breath);
+            const illustrated = B.PresentationAssets?.draw('studioCatEvent', ctx, { x: 0, y: 0, width: 136, frame: pose.frame });
+            ctx.restore(); if (!illustrated) this.drawRat(ctx, d.x, d.y);
           }
         }
         else {
-          ctx.save(); ctx.translate(d.x, d.y - 26); ctx.rotate(d === DETAILS[3] ? -0.1 : 0);
-          ctx.fillStyle = d === DETAILS[3] ? '#efe5cd' : '#142936'; ctx.strokeStyle = '#a6dfd6'; ctx.lineWidth = 2;
+          const flyer = d.id === DETAILS[3].id, route = d.id === DETAILS[2].id;
+          ctx.save(); ctx.translate(d.x, d.y - 49);
+          // Paper pivots from its attachment. Metal plates remain fixed;
+          // only their status/display details move at their own cadences.
+          if (flyer) { ctx.rotate(-0.1 + Math.sin(time / 670) * 0.065); ctx.scale(1 + Math.sin(time / 410) * 0.025, 1); }
+          ctx.translate(0, 23);
+          ctx.fillStyle = flyer ? '#efe5cd' : '#142936'; ctx.strokeStyle = '#a6dfd6'; ctx.lineWidth = 2;
           ctx.fillRect(-22, -23, 44, 43); ctx.strokeRect(-22, -23, 44, 43);
-          ctx.fillStyle = d === DETAILS[3] ? '#182735' : '#a6ffe3'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'center';
-          ctx.fillText(d === DETAILS[1] ? '2 BEATS' : d === DETAILS[2] ? '↗ AMP' : 'BARCODE', 0, -7);
+          ctx.fillStyle = flyer ? '#182735' : '#a6ffe3'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'center';
+          ctx.fillText(flyer ? 'BARCODE' : route ? '↗ AMP' : '2 BEATS', 0, -7);
           for (let i = 0; i < 7; i++) ctx.fillRect(-16 + i * 5, 1, i % 3 ? 2 : 3, 10);
+          if (!flyer) {
+            const progress = (time / (route ? 2500 : 1800)) % 1;
+            ctx.fillStyle = route ? '#d7fba7' : '#d2ffff';
+            if (route) {
+              ctx.globalAlpha *= 0.5 + 0.3 * Math.sin(time / 380);
+              ctx.beginPath(); ctx.moveTo(-10 + progress * 24, 16 - progress * 20);
+              ctx.lineTo(-4 + progress * 24, 16 - progress * 20); ctx.lineTo(-4 + progress * 24, 22 - progress * 20); ctx.stroke();
+            } else ctx.fillRect(-18 + progress * 30, 15, 6, 3);
+          } else {
+            ctx.strokeStyle = '#a99e87'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(-20, 17); ctx.quadraticCurveTo(0, 13 + Math.sin(time / 410) * 4, 20, 17); ctx.stroke();
+          }
           ctx.restore();
         }
-        if (!found) { ctx.strokeStyle = '#fff3c8'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(d.x, d.y - 67, 4, 0, TAU); ctx.stroke(); }
+        if (!found) {
+          ctx.strokeStyle = '#fff3c8'; ctx.lineWidth = 2;
+          const turn = time / 900 + d.x / 300;
+          ctx.beginPath(); ctx.arc(d.x, d.y - 67, 5, turn, turn + Math.PI * 1.5); ctx.stroke();
+        }
       }
       for (const e of this.events) {
         const t = e.age / e.duration, fade = Math.sin(t * Math.PI);
@@ -343,7 +385,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/level-01-stage-fx.js', exports: ['BA
         ctx.strokeStyle = '#ecabff'; ctx.lineWidth = 3; ctx.globalAlpha = 0.3 + strain * 0.3;
         for (let side = -1; side <= 1; side += 2) {
           ctx.beginPath(); ctx.moveTo(x, y);
-          for (let i = 1; i <= 7; i++) ctx.lineTo(x + side * i * 16, y + Math.sin(i * 3 + this.timeMs / 190) * 15 * strain);
+          for (let i = 1; i <= 7; i++) ctx.lineTo(x + side * i * 16, y + Math.sin(i * 3 + time / 190) * 15 * strain);
           ctx.stroke();
         }
       }

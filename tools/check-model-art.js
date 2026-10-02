@@ -154,7 +154,7 @@ player.sprite.currentSprite = {
 };
 player.drawWindEffects = () => {};
 player.afterimageMs = 0;
-const ctx = { save() {}, restore() {} };
+const ctx = { save() {}, restore() {}, transform() {} };
 const body = copy(player.getHitbox());
 for (const [state, clip] of Object.entries({ idle: '6_bit_idle_idle', walk: '6_bit_walk_walk', jump: '6_bit_jump_jump', rhythm: '6_bit_r__h_mode_rhmode' })) {
   player.state = state; player.landingPoseActive = false;

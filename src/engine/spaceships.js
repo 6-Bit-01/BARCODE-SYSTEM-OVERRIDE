@@ -147,6 +147,14 @@ window.SpaceShipSystem = class SpaceShipSystem {
     return Math.floor(Math.random() * this.shipImages.length);
   }
 
+  getAnimationRate(ship) {
+    // Nimble red craft have quick exhaust, the heavier green hull has a
+    // slower motor cycle, and the orange-thruster craft keeps its authored
+    // cadence. Close high-speed flybys run the motor 20% harder; perspective
+    // size alone never sets animation speed or alters physical travel.
+    return [1.15, .8, 1][ship.shipType] * (ship.isForeground ? 1.2 : 1);
+  }
+
   // Create fallback ship (rectangle)
   createFallbackShip() {
     this.imageLoaded = true;
@@ -247,7 +255,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
       shipType: selectedShipType, // Choose from ready optional imagery only
       isForeground: false, // Normal ships are not foreground
       animationFrame: 0,
-      animationSpeed: 0.1 + depth * 0.1, // Faster animation for closer ships
+      animationSpeed: this.getAnimationRate({shipType:selectedShipType,isForeground:false}),
       lastAnimationUpdate: Date.now(),
       rotation: 0, // Keep ships upright
       flipH: direction === -1, // CRITICAL FIX: Flip horizontally when going right-to-left
@@ -369,7 +377,7 @@ window.SpaceShipSystem = class SpaceShipSystem {
       shipType: selectedShipType, // Choose from ready optional imagery only
       isForeground: true, // Track if this is a foreground ship
       animationFrame: 0,
-      animationSpeed: 0.1 + depth * 0.1,
+      animationSpeed: this.getAnimationRate({shipType:selectedShipType,isForeground:true}),
       lastAnimationUpdate: Date.now(),
       rotation: 0,
       flipH: direction === -1,
@@ -558,7 +566,10 @@ window.SpaceShipSystem = class SpaceShipSystem {
   getAnimationFrame(ship) {
     const sheet = this.shipSheets[ship.shipType];
     if (!sheet) return 0;
-    const time = (Math.max(0, ship.animationElapsedMs || 0) + 0.000001) % sheet.durationMs;
+    const preferences=window.BARCODE?.Preferences?.values;
+    if(preferences?.reducedMotion || preferences?.flashes===false || window.BARCODE_RENDER_QUALITY?.flashes===false) return 0;
+    const rate=ship.animationSpeed ?? this.getAnimationRate(ship);
+    const time = (Math.max(0, ship.animationElapsedMs || 0) * rate + 0.000001) % sheet.durationMs;
     let end = 0;
     for (let frame = 0; frame < sheet.frameCount; frame++) {
       end += sheet.durationsMs[frame];
