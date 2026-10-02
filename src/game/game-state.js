@@ -155,9 +155,10 @@ window.checkGameConditions = function() {
 function respawnPlayerInTutorial() {
   window.player.health = window.player.maxHealth;
   window.player.hudReaction = null;
-  window.player.position = new window.Vector2D(200, 810);
+  window.player.cancelEntranceAnimation?.();
+  window.player.position = new window.Vector2D(200, window.Player.GROUND_Y);
   window.player.velocity = new window.Vector2D(0, 0);
-  if (typeof window.player.startEntranceAnimation === 'function') window.player.startEntranceAnimation();
+  window.player.grounded = true;
   window.player.invulnerable = true;
   setTimeout(() => { if (window.player) window.player.invulnerable = false; }, 2000);
   if (window.renderer && typeof window.renderer.addScreenShake === 'function') window.renderer.addScreenShake(10, 500);

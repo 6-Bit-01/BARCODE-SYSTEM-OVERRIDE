@@ -617,25 +617,25 @@
     {
       "global": "window.EnemyManager",
       "file": "src/game/enemies.js",
-      "line": 1401,
+      "line": 1438,
       "loaded": true
     },
     {
       "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 2128,
+      "line": 2165,
       "loaded": true
     },
     {
       "global": "window.enemyManager",
       "file": "tools/check-action-combat.js",
-      "line": 382,
+      "line": 384,
       "loaded": false
     },
     {
       "global": "window.enemyManager",
       "file": "tools/check-action-combat.js",
-      "line": 462,
+      "line": 464,
       "loaded": false
     },
     {
@@ -683,19 +683,19 @@
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 318,
+      "line": 320,
       "loaded": false
     },
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 416,
+      "line": 418,
       "loaded": false
     },
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 459,
+      "line": 461,
       "loaded": false
     },
     {
@@ -707,7 +707,7 @@
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 517,
+      "line": 519,
       "loaded": false
     },
     {
@@ -725,31 +725,31 @@
     {
       "global": "window.player",
       "file": "src/game/player.js",
-      "line": 1809,
+      "line": 1866,
       "loaded": true
     },
     {
       "global": "window.player",
       "file": "tools/check-action-combat.js",
-      "line": 319,
+      "line": 321,
       "loaded": false
     },
     {
       "global": "window.player",
       "file": "tools/check-action-combat.js",
-      "line": 381,
+      "line": 383,
       "loaded": false
     },
     {
       "global": "window.player",
       "file": "tools/check-action-combat.js",
-      "line": 417,
+      "line": 419,
       "loaded": false
     },
     {
       "global": "window.player",
       "file": "tools/check-action-combat.js",
-      "line": 460,
+      "line": 462,
       "loaded": false
     },
     {

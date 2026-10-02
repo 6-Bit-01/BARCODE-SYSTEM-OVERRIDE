@@ -1,5 +1,20 @@
 # Acceptance and Test Status
 
+## October 2 — Level 1 walk-in and complete animation pass
+
+Start fresh after the comic and watch 6 Bit walk from completely beyond the left
+screen edge to the existing street spawn. Pause and difficulty selection should
+freeze the walk; checkpoint resumes and tutorial deaths should use normal spawns.
+Inspect idle/performance/walk poses, enemy warnings and drone engines, the boss,
+all 48 Jammer cels, all six HUD conditions, each flying craft, terminals,
+platform/gate/lift status, pickups, collected receivers, Studio Cat and inspection
+props. Compare their distinct cadences and visible local motion without moving
+construction variants or collision supports. Check pause, Reduced Motion and
+Flashes Off. Native production rendering and source hashes are scripted evidence;
+owner Makko, controller, listening, comfort and device pacing remain unrecorded.
+Full regression, all-file syntax and both exact final-head CI events remain
+required; actual final results belong to the export receipt.
+
 ## October 2 — custom blood and crew popups
 
 Verify visible red splatters on pedestrian hits and one physical grounded-rider contact, with stable stains under Reduced Motion/Flashes Off. Crew portraits and short readable insults should appear below the mirror, clear of pad/rig guidance, with separate holds for successive hits and frozen ages while paused. Preserve economy, old saves, exact controls and cutscene art. Focused/native/full regression and both exact final-head CI events remain required; final results belong to the export receipt. Owner Makko/controller/audio/comfort/balance/device pacing remains unrecorded.

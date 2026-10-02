@@ -1,5 +1,9 @@
 # Repository Guidance
 
+## October 2, 2026 — Level 1 walk-in and complete animation pass
+
+Continue from merged #174 (`b4de6cc624d77dcc030e70818c2fb05e25bc2240`). The owner requests 6 Bit walking in from the left screen edge, no static sprites, stronger subtle animation and appropriate distinct speeds throughout Level 1. This authorizes replacing the old wall-clock entrance, frame-zero Jammer, frozen neutral cinematic pose and static prop/HUD presentation. Read `docs/source-pack/LEVEL1_ANIMATION_PASS.md`. Keep canonical raster bytes, contact registration, collision supports, combat phases, music, controls, checkpoints and Level 2 dependable. Use existing simulation clocks and public sprite playback; no new timer, RAF or Canvas owner. Full regression/all-file syntax, native production rendering and both exact final-head CI events retain standing publication/merge authority; export the actual merged ZIP. Owner Makko/controller/listening/comfort/device pacing acceptance remains separately unrecorded.
+
 ## October 2, 2026 — custom blood and crew assets
 
 The owner requests custom blood splatters and crew popups giving Cache Back shit for hitting pedestrians, continuing from merged #172. Create and integrate the artwork in one pass. Preserve contact/economy rules, canonical characters, existing cutscene bytes, shared owners, old saves and exact controls. Read `docs/source-pack/CACHE_BLOOD_CREW.md`. Full regression/all-file syntax and both exact final-head CI events retain standing publication/merge authority; update the exact merged ZIP.

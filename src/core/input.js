@@ -327,6 +327,7 @@ window.InputManager = class InputManager {
       if (!options.inputOnly && !window.isPaused) window.BARCODE.RunAndGunProof.handleActions(actions);
       return;
     }
+    if (window.player?.isEntering) return;
     const progressionSuppressesGameplay = !!(window.sector1Progression && window.sector1Progression.isGameplaySuppressed && window.sector1Progression.isGameplaySuppressed());
     if (!progressionSuppressesGameplay && actions.rhythm_mode && actions.rhythm_mode.pressed && window.rhythmSystem && !(window.hackingSystem && window.hackingSystem.isActive && window.hackingSystem.isActive())) {
       if (window.rhythmSystem.isActive && window.rhythmSystem.isActive()) {
@@ -390,7 +391,7 @@ window.InputManager = class InputManager {
     }
     return { ok: false, action: 'interact', reason: 'hacking-unavailable' };
   }
-  acceptsGameplay() { if (window.sector1Progression && window.sector1Progression.isGameplaySuppressed && window.sector1Progression.isGameplaySuppressed()) return false; return !(window.isPaused || window.isRunning === false || (window.gameState && (window.gameState.paused || window.gameState.gameOver || window.gameState.victory || window.gameState.running === false)) || (window.hackingSystem && window.hackingSystem.isActive && window.hackingSystem.isActive())); }
+  acceptsGameplay() { if (window.player?.isEntering || window.sector1Progression && window.sector1Progression.isGameplaySuppressed && window.sector1Progression.isGameplaySuppressed()) return false; return !(window.isPaused || window.isRunning === false || (window.gameState && (window.gameState.paused || window.gameState.gameOver || window.gameState.victory || window.gameState.running === false)) || (window.hackingSystem && window.hackingSystem.isActive && window.hackingSystem.isActive())); }
 };
 
 function createInputManager() { if (document && document.addEventListener) window.inputManager = new window.InputManager(); else setTimeout(createInputManager, 100); }

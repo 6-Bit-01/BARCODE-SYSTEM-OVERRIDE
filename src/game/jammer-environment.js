@@ -11,6 +11,14 @@ window.BARCODE = window.BARCODE || {};
 (function(namespace) {
   'use strict';
   const JAMMER_TEXTURE = Object.freeze({"scale":0.4666666666666666,"anchorX":176,"anchorY":340,"footRows":[340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340,340],"originalFootRows":[213,213,213,213,213,213,213,213,213,217,213,217,213,213,213,213,213,217,217,213,213,213,213,215,217,213,213,213,213,213,213,215,214,213,213,213,217,217,213,217,217,213,213,213,217,217,217,213]});
+  // The prepared 83 ms cels show a complete dish sweep and power cycle.
+  // Machinery has a slower cadence than walking or attack animation.
+  const JAMMER_PLAYBACK_RATE = 0.72;
+
+  function presentationAnimated() {
+    const preferences = namespace.Preferences?.values || {};
+    return !preferences.reducedMotion && preferences.flashes !== false && window.BARCODE_RENDER_QUALITY?.flashes !== false;
+  }
 
   function cloneStatus(state) {
     return Object.freeze({
@@ -148,7 +156,7 @@ window.BARCODE = window.BARCODE || {};
   }
 
   function update(deltaTime) {
-    if (!state.revealed || state.disposed) return cloneStatus(state);
+    if (!state.revealed || state.disposed || window.isPaused || window.gameState?.paused || window.gameState?.gameOver) return cloneStatus(state);
     pollSpriteReady();
     state.signalTimeMs += Math.max(0, Number(deltaTime) || 0);
     const surge=state.surge;
@@ -164,9 +172,10 @@ window.BARCODE = window.BARCODE || {};
       }
       if(surge.elapsed>=surge.warningMs+420)state.surge=null;
     }
-    if (state.spriteReady && state.sprite && typeof state.sprite.update === 'function') {
-      if (namespace.SpritePlayback) namespace.SpritePlayback.update(state.sprite, deltaTime);
-      else state.sprite.update(deltaTime);
+    if (presentationAnimated() && state.spriteReady && state.sprite && typeof state.sprite.update === 'function') {
+      const playbackDelta = Math.max(0, Number(deltaTime) || 0) * JAMMER_PLAYBACK_RATE;
+      if (namespace.SpritePlayback) namespace.SpritePlayback.update(state.sprite, playbackDelta);
+      else state.sprite.update(playbackDelta);
     }
     return cloneStatus(state);
   }
@@ -221,33 +230,28 @@ window.BARCODE = window.BARCODE || {};
       ctx.fillText(active?'SIGNAL DISCHARGE':'SURGE — LEAVE THE MARKED AREA',s.x,s.groundY-286);
       ctx.fillRect(s.x-s.width/2,s.groundY+12,s.width*Math.min(1,s.elapsed/s.warningMs),6);
     }
-    // A fixed whole-body drawing keeps the machinery bolted to the sidewalk.
-    // The old clip changes its silhouette and previously re-added legacy foot
-    // offsets; animate transmission light instead of shaking the chassis.
+    // Draw every authored cel from the actual Makko owner. Prepared foot rows
+    // replace the old unscaled offsets, so the base stays on the sidewalk as
+    // the dish, screens and electrical arcs move.
     const footY = state.position.y + state.presentation.drawOffsetY;
-    const steady = namespace.PresentationAssets?.draw('steadyJammer', ctx, {
-      x: state.position.x, y: footY, width: 352 * JAMMER_TEXTURE.scale, frame: 0
-    });
-    if (steady) {
-      const pulse = 0.5 + 0.5 * Math.sin(state.signalTimeMs / 650);
-      ctx.save(); ctx.globalAlpha *= 0.18 + pulse * 0.16;
-      ctx.fillStyle = stage.color;
-      ctx.fillRect(state.position.x - 37, footY - 64, 42, 15);
-      ctx.strokeStyle = stage.color; ctx.lineWidth = 1.5;
-      for (let ring = 0; ring < 2; ring++) {
-        const phase = ((state.signalTimeMs / 1800 + ring / 2) % 1);
-        ctx.globalAlpha = (1 - phase) * 0.35;
-        ctx.beginPath(); ctx.arc(state.position.x - 22, footY - 137, 10 + phase * 27, -2.7, -0.7); ctx.stroke();
-      }
-      ctx.restore();
-    } else if (state.spriteReady && state.sprite && typeof state.sprite.draw === 'function') {
+    let painted = false;
+    if (state.spriteReady && state.animationRef && state.sprite && typeof state.sprite.draw === 'function' && typeof window.Player?.prototype?.getMakkoRenderMetrics === 'function') {
       const frame = Math.max(0, Math.trunc(state.animationRef?.currentFrame || 0)) % JAMMER_TEXTURE.footRows.length;
       const metrics = window.Player.prototype.getMakkoRenderMetrics.call({ sprite: state.sprite }, JAMMER_TEXTURE, false);
       const targetFootY = state.position.y + state.presentation.drawOffsetY;
       const drawY = targetFootY + metrics.anchorOffsetY - JAMMER_TEXTURE.footRows[frame] * metrics.frameScale;
       const drawX = state.position.x + metrics.anchorOffsetX - JAMMER_TEXTURE.anchorX * metrics.frameScale;
       state.sprite.draw(ctx, drawX, drawY, { scale: JAMMER_TEXTURE.scale, flipH: false });
+      painted = true;
     } else {
+      // Bounded bundled delivery can paint the same full clip if Makko is
+      // unavailable. It samples the existing owner clock and allocates none.
+      const frame = presentationAnimated() ? Math.floor(state.signalTimeMs * JAMMER_PLAYBACK_RATE / 83) % JAMMER_TEXTURE.footRows.length : 0;
+      painted = !!namespace.PresentationAssets?.draw('steadyJammer', ctx, {
+        x: state.position.x, y: footY, width: 352 * JAMMER_TEXTURE.scale, frame
+      });
+    }
+    if (!painted) {
       ctx.strokeStyle = '#ff00ff';
       ctx.lineWidth = 3;
       const fallbackY = state.position.y + state.presentation.drawOffsetY;
@@ -259,6 +263,20 @@ window.BARCODE = window.BARCODE || {};
       ctx.textAlign = 'center';
       ctx.fillText('BROADCAST JAMMER', state.position.x, fallbackY - fallbackHeight - 10);
     }
+    // Transmission breathes on a 2.6 s cycle; the two travelling arcs have a
+    // separate 2.1 s period. Only these local accents move, never the collider.
+    const animated = presentationAnimated();
+    const pulse = animated ? 0.5 + 0.5 * Math.sin(state.signalTimeMs * Math.PI * 2 / 2600) : 0.5;
+    ctx.save(); ctx.globalAlpha *= 0.18 + pulse * 0.20;
+    ctx.fillStyle = stage.color;
+    ctx.fillRect(state.position.x - 37, footY - 64, 42, 15);
+    ctx.strokeStyle = stage.color; ctx.lineWidth = 2;
+    for (let ring = 0; ring < 2; ring++) {
+      const phase = animated ? ((state.signalTimeMs / 2100 + ring / 2) % 1) : 0.3 + ring * 0.35;
+      ctx.globalAlpha = animated ? (1 - phase) * 0.48 : 0.22;
+      ctx.beginPath(); ctx.arc(state.position.x - 22, footY - 137, 10 + phase * 31, -2.7, -0.7); ctx.stroke();
+    }
+    ctx.restore();
     if (state.targetable) {
       const barW = 140; const barH = 12; const hp = state.health / state.maxHealth; const barY = footY - 174;
       ctx.fillStyle = 'rgba(0,0,0,0.75)'; ctx.fillRect(state.position.x - barW / 2, barY, barW, barH);

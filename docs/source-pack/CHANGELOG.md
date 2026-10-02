@@ -1,5 +1,11 @@
 # Recovery checkpoint — September 14
 
+## October 2, 2026 — Level 1 walk-in and animation pass
+
+- Replace the wall-clock spawn effect with a true grounded walk from beyond the left edge to the original spawn, with pause/input/mission/checkpoint handling.
+- Give live actor poses, Jammer cels, HUD portrait, traffic and world props distinct cadences; strengthen quiet breathing, lights, waveforms, machinery, cat gestures and pickups using existing canonical art.
+- Preserve phase-owned attacks/jumps, supports, collision/economy/music/save contracts and shared lifecycle owners; add native animation coverage to the full regression. Exact published/tested revision is recorded by the source export.
+
 ## October 2 — blood splatters and crew radio popups
 
 Add three authored blood sprays with matching stable road stains, new canonical crew reaction portraits, compact comic radio callouts and distinct queued holds. Preserve contact ledgers, world/mirror ground depth, Reduced Motion/Flashes Off, score/health/resources and legacy rules. Add focused native raster/queue/layout checks and hosted browser readiness/painting checks; record exact final validation in the export receipt.
