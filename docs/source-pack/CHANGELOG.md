@@ -13,6 +13,9 @@
   and deliberate recovery; retain pause/lifecycle ownership and exact blur.
 - Reuse one combat view across world/mirror and one actor pose per observation;
   depth-sort people with all vehicle owners and wire Flashes Off to splat paint.
+- Keep locks, health bars, shots, hit effects, target reticles and rig impacts
+  above their own depth-sorted bodies; retain Cache and nearer-road occlusion.
+  Extend the existing native foreground check with four feedback paint cases.
 - Preserve cutscene bytes after skipping the unsuccessful iris-only edit.
 - Retain historical played/profile evidence unchanged and add a fresh complete
   native Canvas race with all 89 source fingerprints matching current files.

@@ -85,8 +85,8 @@ damage. Two pedestrian hits left score and integrity unchanged at the contact
 step and produced distinct messages; one landed rider was splattered. There were
 zero multi-near-hostile frames and zero simultaneous windups in this route.
 
-The current run's diagnostic total draw CPU median is 63.973 ms and p95 is
-297.849 ms. Concurrent local work and native CPU rendering make these unsuitable
+The current run's diagnostic total draw CPU median is 61.821 ms and p95 is
+277.886 ms. Concurrent local work and native CPU rendering make these unsuitable
 as device FPS or a matched performance claim.
 
 `current-crosswalk-30-played.png` is the untouched raw current-tree render of the
@@ -97,13 +97,16 @@ production scripts for its entire simulation. The recorded profile date is the
 runtime's original date; the separate receipt preserves the host verification
 time. No historical report or image was replaced.
 
-Local native Chromium and final CI remain unvalidated for this unpublished
-candidate; the blocked local browser startup above is distinct from the passing
-native Canvas race.
+The blocked local browser startup above is distinct from this passing native
+Canvas race. Hosted Chromium results belong to the exact tested-head receipt.
 
 ## Publication authorization
 
 The owner explicitly approved publication, PR creation and merge after CI on
-October 1. All game/runtime/test sources remain identical to the passing local
-checks and source-hashed final capture; only publication-status prose changed.
-Hosted results and merge state belong in the PR/export receipt.
+October 1. Both initial published-head CI events passed. Automated review then
+caught delayed body paint covering combat feedback. The corrected production
+draw owner and existing foreground check now queue feedback with its body and
+verify both sides of Cache, nearer occlusion, Reduced Motion and draw purity.
+The current profile is rerun from the corrected immutable source snapshot;
+historical baseline/final reports remain unchanged. Final corrected-head
+regression, hosted results and merge state belong in the PR/export receipt.

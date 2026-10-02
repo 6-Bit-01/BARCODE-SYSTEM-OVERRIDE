@@ -41,6 +41,14 @@ calculate each actor pose once. Pedestrians and all vehicle owners share
 ground-depth sorting. These reduce duplicated work without suppressing
 simulation updates, removing artwork or changing music.
 
+Combat body-local locks and health paint travel with their queued owner.
+Shots, hit effects and the selected target reticle are queued at their world
+depth after bodies; rig impacts follow the rig chassis. This corrects the
+automated-review finding that the later body flush covered feedback. Cache
+and nearer traffic still occlude farther cues. Four native paint fixtures
+cover both sides of Cache with Reduced Motion off/on, one shared pose and
+draw-state purity.
+
 The iris-only attempt failed the requirement to preserve all other pixels.
 Under the explicit skip option, no cutscene painting is changed.
 
@@ -60,7 +68,7 @@ A separate final local capture in `current-played-profile.json` completes
 All 89 source fingerprints independently match the current files; it clears
 100 bars, retains 58/62 accurate pads, 23 takedowns, both penalty-free person
 contacts and one grounded rider splat, and defeats the 12-HP rig. Current
-native draw CPU median is 63.973 ms and p95 is 297.849 ms under concurrent
+native draw CPU median is 61.821 ms and p95 is 277.886 ms under concurrent
 local work; these remain diagnostic observations. The raw current crossing
 image and independent verification receipt are retained separately.
 
@@ -69,7 +77,9 @@ head CI events remain required before merge under standing authority.
 The initial push was rejected by automatic approval review. No bypass was
 attempted; the owner subsequently explicitly authorized pushing the tested
 branch, opening its PR and merging after CI. Full local regression/all-file
-syntax pass. Hosted Chromium and both push/pull_request CI events remain
+syntax passed on the initial candidate; both initial-head hosted CI events
+also passed. The draw-order correction receives fresh full regression,
+all-file syntax and native Chromium checks. Both final push/pull_request CI events remain
 publication gates; exact results live in the PR and generated export receipt. Automated input/audio
 hosts and sampled native painting do not establish owner Makko, physical
 controller, listening, motion comfort, human balance/fun or device pacing.

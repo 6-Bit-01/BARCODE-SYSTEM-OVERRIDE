@@ -9,12 +9,18 @@ body: one grounded splat, no repeat hit. Check front/mirror depth, Reduced
 Motion and Flashes Off. Cache should sustain moods through ordinary events,
 close both eyes on real damage, recover deliberately, and show fixed results.
 Waiting hostiles should remain separate, offer escape space and take turns
-committing attacks without erasing already visible threats. Test every gear,
-difficulty, skill, actual music and old/earned checkpoints. Source-hashed
+committing attacks without erasing already visible threats.
+Keep combat locks, health, shots, hit effects, reticles and rig impacts above
+their owning body on either side of Cache; nearer bodies still occlude them.
+The native foreground regression covers four arranged paint cases with
+Reduced Motion off/on, shared-pose reuse and draw purity.
+Test every gear, difficulty, skill, actual music and old/earned checkpoints. Source-hashed
 scripted/native evidence is distinct from Makko, physical controller, listening,
 comfort, human balance and device frame pacing; those remain unrecorded.
 The final local native capture matches all 89 current source fingerprints.
-Full local regression and all-file syntax pass. The owner explicitly approves
+Initial-head full local regression, syntax and both hosted CI runs passed.
+The review draw-order correction requires fresh final-head checks recorded
+in the export receipt. The owner explicitly approves
 publication and merge after hosted Chromium and both final-head CI events;
 those final results are recorded in the PR/export receipt.
 The requested iris-only edit was skipped because other pixels changed; verify

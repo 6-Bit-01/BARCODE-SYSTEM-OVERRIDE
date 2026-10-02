@@ -38,7 +38,7 @@ function setup() {
     assert.equal(JSON.stringify(road.state),before,'foreground rendering cannot change gameplay state');
     return images;
   }
-  return {w,B,road,entities,draw};
+  return {w,B,road,entities,draw,ctx};
 }
 function run() {
   const r=setup(),original=[...r.entities.HAZARDS];let trafficFrames=0,edgeFrames=0;
@@ -98,6 +98,56 @@ function run() {
   assert(keys.indexOf('cacheCourier')>keys.indexOf('cacheCar')&&
     keys.indexOf('cacheFreight')>keys.lastIndexOf('cacheCourier'),
     'passed vehicles are sorted from farther to nearer after Cache');
+  // Production native draws of arranged combat addresses: owner-local
+  // feedback must remain visible above its chassis while a nearer road body
+  // can still occlude it. These paint fixtures are not played-race evidence.
+  const combatRig=setup(),paint=[],c=combatRig.ctx;
+  let poseReads=0;
+  const pose={actors:[{id:'paint-bike',kind:'bike',at:500,lane:1,phase:'committed',lockLane:1,hp:2,maxHp:2}],
+    wrecks:[],projectiles:[{at:500,lane:1,kind:'shot',friendly:false}],
+    target:{at:500,lane:1},boss:{at:500,lane:2,phase:'recover',health:2,hp:8,maxHp:12},
+    skills:{attack:{},turbo:{},defend:{},disrupt:{}},syncCount:0,benefits:{power:1,ammoMs:6000}};
+  const record=name=>{if(!c.filter.includes('blur'))paint.push(name);};
+  combatRig.B.CacheRoadCombat={pose(){poseReads++;return pose;}};
+  combatRig.B.CacheRoadCombatArt={drawBody(){record('combatBody');return true;},
+    drawFX(_ctx,args){record(args.frame===1?'projectile':'hitFX');return true;}};
+  combatRig.B.CacheRoadBossArt={drawRig(){record('rigBody');return true;},
+    drawImpact(){record('rigImpact');return true;}};
+  const assetDraw=combatRig.B.PresentationAssets.draw;
+  combatRig.B.PresentationAssets.draw=function(key,...args){
+    if(key==='cacheCar')record('Cache');
+    if(key==='cacheCourier')record('nearerTraffic');
+    return assetDraw.call(this,key,...args);
+  };
+  for(const [method,styles] of [['strokeRect',{'#ff9d8a':'lock','#ecffd2':'target','#ffb08d':'projectileLock'}],
+    ['fillRect',{'#ffb39b':'hp'}]]) {
+    const native=c[method];c[method]=function(...args){
+      const name=styles[method==='strokeRect'?this.strokeStyle:this.fillStyle];
+      if(name)record(name);return native.apply(this,args);
+    };
+  }
+  combatRig.entities.HAZARDS.splice(0,combatRig.entities.HAZARDS.length,{at:460,lane:1,kind:'van'});
+  let combatPaintFrames=0;
+  for(const reduced of [false,true])for(const d of [60,-30]) {
+    combatRig.B.Preferences={values:{reducedMotion:reduced}};
+    paint.length=0;poseReads=0;
+    combatRig.draw(500-d,{combat:{defendMs:0},elapsedMs:100,
+      bossImpact:{id:'rig',atMs:50,systemIndex:0},
+      combatFx:[{at:500,lane:1,atMs:50,duration:1000,type:'hit'}]});
+    assert.equal(poseReads,1,'front, mirror, rig and HUD reuse one combat observation');
+    const index=name=>{const i=paint.indexOf(name);assert(i>=0,`${name} is painted`);return i;};
+    for(const feedback of ['lock','hp','projectile','projectileLock','hitFX','target']) {
+      assert(index('combatBody')<index(feedback),`${feedback} remains above its own hostile chassis`);
+      assert(d>0?index(feedback)<index('Cache'):index(feedback)>index('Cache'),
+        `${feedback} stays on the owner's side of Cache`);
+      assert(index(feedback)<index('nearerTraffic'),`${feedback} remains behind nearer traffic`);
+    }
+    assert(index('rigBody')<index('rigImpact'),'rig impact remains above the rig chassis');
+    assert(d>0?index('rigImpact')<index('Cache'):index('rigImpact')>index('Cache'),
+      'rig impact stays on the rig side of Cache');
+    assert(index('rigImpact')<index('nearerTraffic'),'nearer traffic occludes rig feedback');
+    combatPaintFrames++;
+  }
   r.entities.HAZARDS.splice(0,r.entities.HAZARDS.length,...original);
   let padFrames=0;
   for(const d of [0,-30,-65,-90]) {
@@ -127,7 +177,7 @@ function run() {
   assert(new Set(records.map(row=>row.side)).size===2,'both banks retain partially visible foreground objects');
   assert(fs.readFileSync('src/game/cache-road-proof.js','utf8').includes("ctx.filter = 'blur(2.3px)'"),
     'rearview blur stays exact');
-  const report={trafficKinds:Object.keys(kinds).length,lanes:4,trafficFrames,padFrames,occlusionFrames,partlyBelowScreenFrames:edgeFrames,
+  const report={trafficKinds:Object.keys(kinds).length,lanes:4,trafficFrames,padFrames,occlusionFrames,combatPaintFrames,partlyBelowScreenFrames:edgeFrames,
     continuedRoadsideFrames:records.length,roadsideExamples:records.filter(row=>row.kind==='life').slice(0,8),
     pureRendering:true,mirrorBlur:'2.3px'};
   console.log(JSON.stringify(report));return report;

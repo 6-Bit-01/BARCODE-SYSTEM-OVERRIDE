@@ -1759,61 +1759,69 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       .sort((a,b)=>b.at-a.at)) {
       const d=actor.at-s.progress;if(d<frontNear||d>520)continue;
       const t=depth(d),x=laneX(actor.lane,t),y=roadY(t),w=26+113*t,h=24+111*t;
-      if(actor.kind!=='rig')vehicleAtDepth(t,()=>drawCombatBody(ctx,actor,{x,y,width:w,height:h,reduced,elapsedMs:s.elapsedMs,
-        riderX:Number.isFinite(actor.riderLane)?laneX(actor.riderLane,t):undefined}));
-      else if(actor.wreck)vehicleAtDepth(t,()=>B.CacheRoadCombatArt?.drawBlast?.(ctx,{
-        x,y:y-h*.55,width:w*2.35,height:h*2.05,ageMs:actor.ageMs,reduced,
-        flashes:window.BARCODE_RENDER_QUALITY?.flashes!==false,alpha:actor.alpha??1}));
-      const threatening=['windup','committed'].includes(actor.phase);
-      if(threatening) {
-        const lane=actor.lockLane??actor.targetLane??actor.lane;
-        const left=laneEdge(Math.round(lane),t),right=laneEdge(Math.round(lane)+1,t);
-        ctx.save();ctx.globalAlpha=actor.phase==='committed'?.62:.32;
-        ctx.strokeStyle='#ff9d8a';ctx.lineWidth=4;ctx.strokeRect(left,y-70*t,right-left,70*t);
-        ctx.fillStyle='#ffd4a7';ctx.font=`bold ${Math.round(12+18*t)}px Oxanium, monospace`;
-        ctx.textAlign='center';ctx.fillText(actor.phase==='committed'?'LOCKED':'WINDUP',laneX(lane,t),y-h-14);
-        ctx.restore();
-      }
+      vehicleAtDepth(t,()=>{
+        if(actor.kind!=='rig')drawCombatBody(ctx,actor,{x,y,width:w,height:h,reduced,elapsedMs:s.elapsedMs,
+          riderX:Number.isFinite(actor.riderLane)?laneX(actor.riderLane,t):undefined});
+        else if(actor.wreck)B.CacheRoadCombatArt?.drawBlast?.(ctx,{
+          x,y:y-h*.55,width:w*2.35,height:h*2.05,ageMs:actor.ageMs,reduced,
+          flashes:window.BARCODE_RENDER_QUALITY?.flashes!==false,alpha:actor.alpha??1});
+        const threatening=['windup','committed'].includes(actor.phase);
+        if(threatening) {
+          const lane=actor.lockLane??actor.targetLane??actor.lane;
+          const left=laneEdge(Math.round(lane),t),right=laneEdge(Math.round(lane)+1,t);
+          ctx.save();ctx.globalAlpha=actor.phase==='committed'?.62:.32;
+          ctx.strokeStyle='#ff9d8a';ctx.lineWidth=4;ctx.strokeRect(left,y-70*t,right-left,70*t);
+          ctx.fillStyle='#ffd4a7';ctx.font=`bold ${Math.round(12+18*t)}px Oxanium, monospace`;
+          ctx.textAlign='center';ctx.fillText(actor.phase==='committed'?'LOCKED':'WINDUP',laneX(lane,t),y-h-14);
+          ctx.restore();
+        }
+        if(actor.kind!=='rig'&&Number.isFinite(actor.hp)&&actor.hp>0) {
+          ctx.fillStyle='#241b20';ctx.fillRect(x-w*.35,y-h-6,w*.7,4);
+          ctx.fillStyle='#ffb39b';ctx.fillRect(x-w*.35,y-h-6,w*.7*actor.hp/(actor.maxHp||actor.hp),4);
+        }
+      });
       if(d>=-8&&d<=260) {
         const marker=cameraEdgeMarker(camera,{x,y,width:actor.kind==='rig'?46+t*192:w*1.35,
           height:actor.kind==='rig'?55+t*215:h*1.25});
         if(marker)cameraWarnings.push({lane:actor.lane,d,marker});
       }
-      if(actor.kind!=='rig'&&Number.isFinite(actor.hp)&&actor.hp>0) {
-        ctx.fillStyle='#241b20';ctx.fillRect(x-w*.35,y-h-6,w*.7,4);
-        ctx.fillStyle='#ffb39b';ctx.fillRect(x-w*.35,y-h-6,w*.7*actor.hp/(actor.maxHp||actor.hp),4);
-      }
     }
     for(const shot of pose.projectiles) {
       const d=shot.at-s.progress;if(d<frontNear||d>520)continue;
       const t=depth(d),x=laneX(shot.lane,t),y=roadY(t);
-      // Generated diagonal art rotates into the actual road-facing travel vector.
-      if(!B.CacheRoadCombatArt?.drawFX?.(ctx,{x,y:y-14*t,width:24+52*t,height:24+52*t,
-        frame:shot.kind==='reflected'?2:shot.friendly?0:1,angle:-Math.PI/4,
-        reduced,flashes:window.BARCODE_RENDER_QUALITY?.flashes!==false})) {
-        ctx.save();ctx.strokeStyle=shot.friendly?'#eaffbc':'#ff9387';ctx.lineWidth=2+4*t;
-        ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y-12-25*t);ctx.stroke();ctx.restore();
-      }
+      vehicleAtDepth(t,()=>{
+        // Generated diagonal art rotates into the actual road-facing travel vector.
+        if(!B.CacheRoadCombatArt?.drawFX?.(ctx,{x,y:y-14*t,width:24+52*t,height:24+52*t,
+          frame:shot.kind==='reflected'?2:shot.friendly?0:1,angle:-Math.PI/4,
+          reduced,flashes:window.BARCODE_RENDER_QUALITY?.flashes!==false})) {
+          ctx.save();ctx.strokeStyle=shot.friendly?'#eaffbc':'#ff9387';ctx.lineWidth=2+4*t;
+          ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y-12-25*t);ctx.stroke();ctx.restore();
+        }
+        if(!shot.friendly) {
+          ctx.save();ctx.strokeStyle='#ffb08d';ctx.lineWidth=2;
+          ctx.strokeRect(laneEdge(Math.round(shot.lane),t),y-25-40*t,
+            laneEdge(Math.round(shot.lane)+1,t)-laneEdge(Math.round(shot.lane),t),25+40*t);
+          ctx.restore();
+        }
+      });
       if(!shot.friendly) {
         const marker=cameraEdgeMarker(camera,{x,y,width:40+40*t,height:35+35*t});
         if(marker)cameraWarnings.push({lane:shot.lane,d,marker});
-        ctx.save();ctx.strokeStyle='#ffb08d';ctx.lineWidth=2;
-        ctx.strokeRect(laneEdge(Math.round(shot.lane),t),y-25-40*t,
-          laneEdge(Math.round(shot.lane)+1,t)-laneEdge(Math.round(shot.lane),t),25+40*t);
-        ctx.restore();
       }
     }
     for(const fx of s.combatFx||[]) {
       const age=s.elapsedMs-fx.atMs,d=fx.at-s.progress;if(age<0||age>=fx.duration||d<frontNear||d>520)continue;
       const t=depth(d),frame=fx.type==='muzzle'?3:fx.type==='ram'?age<100?8:9:
         fx.type==='disrupt'?10:age>=350?11:Math.min(7,4+Math.floor(age/100));
-      B.CacheRoadCombatArt?.drawFX?.(ctx,{x:laneX(fx.lane,t),y:roadY(t)-30*t,
+      vehicleAtDepth(t,()=>B.CacheRoadCombatArt?.drawFX?.(ctx,{x:laneX(fx.lane,t),y:roadY(t)-30*t,
         width:(fx.type==='ram'?50:28)+100*t,height:(fx.type==='ram'?50:28)+100*t,
-        frame,alpha:1-age/fx.duration,reduced,flashes:window.BARCODE_RENDER_QUALITY?.flashes!==false});
+        frame,alpha:1-age/fx.duration,reduced,flashes:window.BARCODE_RENDER_QUALITY?.flashes!==false}));
     }
     if(pose.target&&pose.target.at>=s.progress+frontNear&&pose.target.at<=s.progress+520) {
       const t=depth(pose.target.at-s.progress),x=laneX(pose.target.lane,t),y=roadY(t);
-      ctx.save();ctx.strokeStyle='#ecffd2';ctx.lineWidth=2;ctx.strokeRect(x-20-20*t,y-70*t,40+40*t,40+30*t);ctx.restore();
+      vehicleAtDepth(t,()=>{
+        ctx.save();ctx.strokeStyle='#ecffd2';ctx.lineWidth=2;ctx.strokeRect(x-20-20*t,y-70*t,40+40*t,40+30*t);ctx.restore();
+      });
     }
   }
   function drawCombatSkills(ctx,s,pose) {
@@ -4598,15 +4606,17 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const boss=s.combat?combatPose.boss:B.CacheRoadPursuit?.boss?.(s.pursuit,{progress});
       if(boss&&boss.at-progress>=frontNear&&boss.at-progress<=520) {
         const t=depth(boss.at-progress),x=laneX(boss.lane,t),y=roadY(t),width=46+t*192,height=55+t*215;
-        vehicleAtDepth(t,()=>B.CacheRoadBossArt?.drawRig?.(ctx,{x,y,width,height,health:boss.health,
-          phase:rigArtPhase(s,boss,combatPose),elapsedMs:s.elapsedMs,
-          reduced:reduced||!!s.combat&&window.BARCODE_RENDER_QUALITY?.flashes===false,alpha:boss.alpha??1}));
-        if(s.bossImpact&&(!s.combat||s.bossImpact.id==='rig')&&s.elapsedMs-s.bossImpact.atMs<1100) {
-          const age=(s.elapsedMs-s.bossImpact.atMs)/1100;
-          B.CacheRoadBossArt?.drawImpact?.(ctx,{x,y:y-height*.4,width:width*(1+age*.5),height:height,
-            kind:s.bossImpact.systemIndex===2?'core':s.bossImpact.systemIndex===1?'armor':'sparks',progress:age,alpha:1,
-            reduced:reduced||!!s.combat&&window.BARCODE_RENDER_QUALITY?.flashes===false});
-        }
+        vehicleAtDepth(t,()=>{
+          B.CacheRoadBossArt?.drawRig?.(ctx,{x,y,width,height,health:boss.health,
+            phase:rigArtPhase(s,boss,combatPose),elapsedMs:s.elapsedMs,
+            reduced:reduced||!!s.combat&&window.BARCODE_RENDER_QUALITY?.flashes===false,alpha:boss.alpha??1});
+          if(s.bossImpact&&(!s.combat||s.bossImpact.id==='rig')&&s.elapsedMs-s.bossImpact.atMs<1100) {
+            const age=(s.elapsedMs-s.bossImpact.atMs)/1100;
+            B.CacheRoadBossArt?.drawImpact?.(ctx,{x,y:y-height*.4,width:width*(1+age*.5),height:height,
+              kind:s.bossImpact.systemIndex===2?'core':s.bossImpact.systemIndex===1?'armor':'sparks',progress:age,alpha:1,
+              reduced:reduced||!!s.combat&&window.BARCODE_RENDER_QUALITY?.flashes===false});
+          }
+        });
       }
       if(s.pursuit) {
         const rival=B.CacheRoadPursuit.pose(s.pursuit,{progress});
