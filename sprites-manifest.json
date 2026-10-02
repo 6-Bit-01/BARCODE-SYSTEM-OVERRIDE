@@ -134,6 +134,39 @@
           },
           "frameCount": 48,
           "animationLength": 4
+        },
+        "6_bit_run_run": {
+          "fps": 20,
+          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3aa6174c8583fe4559101ea17b455c7e0be81d32/assets/level1-run/6_bit_run_run.json",
+          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3aa6174c8583fe4559101ea17b455c7e0be81d32/assets/level1-run/6_bit_run_run.webp",
+          "anchor": {
+            "x": 240,
+            "y": 448,
+            "normalized": {
+              "x": 0.46875,
+              "y": 0.875
+            },
+            "strategy": "registered-hip-ground"
+          },
+          "metadata": {
+            "anchor": {
+              "x": 240,
+              "y": 448,
+              "normalized": {
+                "x": 0.46875,
+                "y": 0.875
+              },
+              "strategy": "registered-hip-ground"
+            },
+            "scale": 1
+          },
+          "priority": "medium",
+          "dimensions": {
+            "width": 512,
+            "height": 512
+          },
+          "frameCount": 12,
+          "animationLength": 0.6
         }
       },
       "metadata": {
