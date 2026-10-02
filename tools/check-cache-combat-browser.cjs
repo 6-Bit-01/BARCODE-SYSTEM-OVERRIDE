@@ -19,15 +19,19 @@ const chromePath = process.env.CHROME_BIN || ['/usr/bin/google-chrome', '/usr/bi
 assert(chromePath, 'Set CHROME_BIN to an installed Chrome/Chromium executable. Node 22+ supplies WebSocket.');
 const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const metadata = JSON.parse(fs.readFileSync(path.join(root, 'assets/cache-road/combat/atlas-metadata.json'), 'utf8'));
-const assets = [...metadata.assets,...JSON.parse(fs.readFileSync(path.join(root,'assets/cache-road/combat/fx-metadata.json'))).assets];
-assert.deepEqual(assets.map(asset => asset.key).sort(),
+const combatAssets = [...metadata.assets,...JSON.parse(fs.readFileSync(path.join(root,'assets/cache-road/combat/fx-metadata.json'))).assets];
+assert.deepEqual(combatAssets.map(asset => asset.key).sort(),
   ['cacheCombatBike','cacheCombatBikeCrash','cacheCombatBlast','cacheCombatHostiles','cacheCombatFX'].sort(),
   'all five authored combat atlases are represented by their actual metadata');
+const feedbackAssets=JSON.parse(fs.readFileSync(path.join(root,'assets/cache-road/blood/atlas-metadata.json'))).assets;
+assert.deepEqual(feedbackAssets.map(asset=>asset.key).sort(),['cacheBloodSplatter','cacheCrewCallouts'],
+  'custom blood and canonical crew portrait sheets have independent delivery metadata');
+const assets=[...combatAssets,...feedbackAssets];
 const critical = new Set(['src/engine/music-profiles.js', 'src/engine/music-transport.js',
   'src/engine/music-director.js', 'src/engine/cache-road-proof-profile.js', 'src/engine/presentation-assets.js',
   'src/game/campaign-services.js', 'src/game/cache-chapter.js', 'src/game/cache-road-landscape.js', 'src/game/cache-road-encounters.js',
   'src/game/cache-road-reactions.js', 'src/game/cache-road-pursuit.js', 'src/game/cache-road-combat.js',
-  'src/game/cache-road-crosswalks.js', 'src/game/cache-road-mirror.js',
+  'src/game/cache-road-crosswalks.js', 'src/game/cache-road-mirror.js', 'src/game/cache-road-crew-callouts.js',
   'src/game/cache-road-boss-art.js', 'src/game/cache-road-guidance.js', 'src/game/cache-road-proof.js',
   'src/engine/intro-sequence.js', 'src/engine/cache-scene-layouts.js', 'src/engine/cache-scene-effects.js',
   'src/engine/comic-dialogue.js', 'src/engine/cache-bridge.js', 'src/engine/cache-ending.js',
@@ -38,7 +42,7 @@ const scripts = [...index.matchAll(/<script\s+src=["']([^"']+)["']/g)].map(match
   .filter(file => critical.has(file));
 assert.equal(new Set(scripts).size, critical.size, 'every critical production owner is present once in actual index script order');
 const assetFiles = [];
-for (const folder of ['assets/cache-road/combat', 'assets/cache-road/pursuit']) {
+for (const folder of ['assets/cache-road/combat', 'assets/cache-road/pursuit', 'assets/cache-road/blood']) {
   const visit = dir => { if (!fs.existsSync(path.join(root, dir))) return;
     for (const entry of fs.readdirSync(path.join(root, dir), { withFileTypes: true })) {
       const file = `${dir}/${entry.name}`;
@@ -76,15 +80,15 @@ document.createElement=function(tag,...args){
   return nativeCreate(tag,...args);
 };
 // Existing art is bundled at this controlled host. Hosted mode leaves the
-// pursuit and combat assets on their actual production immutable URLs and refuses
-// their bundled fallback; local review truthfully records bundled decoding.
+// pursuit, combat and custom feedback assets on production immutable URLs and
+// refuses their bundled fallback; local review records bundled decoding.
 const NativeImage=window.Image;
 const srcProperty=Object.getOwnPropertyDescriptor(HTMLImageElement.prototype,'src');
 window.Image=function(...args){const image=new NativeImage(...args);browserProof.images.push(image);
   Object.defineProperty(image,'src',{get(){return srcProperty.get.call(this);},set(value){
     this.proofOriginalSrc=value;
     if(typeof value==='string'&&value.startsWith('https://raw.githubusercontent.com/')&&
-       !(${requireHosted}&&(value.includes('/assets/cache-road/combat/')||value.includes('/assets/cache-road/pursuit/')))){
+       !(${requireHosted}&&(value.includes('/assets/cache-road/combat/')||value.includes('/assets/cache-road/pursuit/')||value.includes('/assets/cache-road/blood/')))){
       const at=value.indexOf('/assets/');if(at>=0)value=value.slice(at);
     }
     srcProperty.set.call(this,value);
@@ -192,6 +196,7 @@ BARCODE.PresentationAssets.draw=function(key,...args){const ready=originalAssetD
 const originalUpdate=BARCODE.CacheRoadProof.update,originalRoadDraw=BARCODE.CacheRoadProof.draw;
 browserProof.trafficGuards=[];browserProof.guardAttempts=0;browserProof.lastGuardPressMs=-10000;
 browserProof.pedestrianContacts=[];
+browserProof.crewReactions=[];
 const crosswalkStep=BARCODE.CacheRoadCrosswalks.step;
 BARCODE.CacheRoadCrosswalks.step=function(...args){
   const s=BARCODE.CacheRoadProof.state;
@@ -203,6 +208,15 @@ BARCODE.CacheRoadCrosswalks.step=function(...args){
   for(const event of events)browserProof.pedestrianContacts.push(copy(event));
   return events;
 };
+const crewCallouts=BARCODE.CacheRoadCrewCallouts;
+BARCODE.CacheRoadCrewCallouts={...crewCallouts,enqueue(state,event){
+  const economy=()=>JSON.stringify({score:state.score,integrity:state.integrity,timeMs:state.timeMs,
+    captures:state.captures,queued:state.queuedCaptures,ammo:state.combat.ammo,cooldowns:state.combat.cooldowns});
+  const before=economy(),accepted=crewCallouts.enqueue(state,event);
+  if(economy()!==before)throw Error('Crew reaction altered the driving economy');
+  if(accepted)browserProof.crewReactions.push({id:event.id,...copy(crewCallouts.lineFor(event.hitCount))});
+  return accepted;
+}};
 const originalHit=BARCODE.CacheRoadProof.hit;
 BARCODE.CacheRoadProof.hit=function(...args){
   const s=this.state,before={integrity:s.integrity,damageTaken:this.chapter.damageTaken,
@@ -236,6 +250,7 @@ browserProof.render=reason=>{browserProof.drawNext=true;BARCODE.CacheRoadProof.d
   browserProof.drawReasons.push({reason,bar:BARCODE.CacheRoadProof.state.musicBeatFloat/4,
     combat:copy(BARCODE.CacheRoadProof.encounterSnapshot().combat),
     crosswalks:copy(BARCODE.CacheRoadProof.encounterSnapshot().crosswalks),
+    crewCallout:copy(BARCODE.CacheRoadProof.state.crosswalkToast),
     mirror:copy(BARCODE.CacheRoadProof.state.mirrorState),preferences:copy(BARCODE.Preferences.values)});};
 browserProof.boot=async()=>{window.lastTime=browserProof.clock;
   const saved=BARCODE.Campaign.readResume();
@@ -276,11 +291,13 @@ browserProof.playChunk=count=>{const road=BARCODE.CacheRoadProof;
     }
     // R2/L2 exercise the actual analog-trigger threshold, with pressed=false.
     for(const button of [6,7])if(browserProof.pad.buttons[button].pressed){browserProof.pad.buttons[button].pressed=false;browserProof.pad.buttons[button].value=.85;}
-    const eventsBefore=browserProof.observed.events.length;browserProof.step(20);browserProof.raceFrames++;
+    const eventsBefore=browserProof.observed.events.length,contactsBefore=browserProof.pedestrianContacts.length;
+    browserProof.step(20);browserProof.raceFrames++;
     const events=browserProof.observed.events.slice(eventsBefore);
     const special=events.find(event=>event.kind==='combat-event'&&
       ['enemy-arrive','warning','lock','enemy-shot','takedown','boss-arrive','enemy-hit','boss-defeated','disrupt'].includes(event.type))||
-      events.find(event=>event.kind==='wreck-recovery');
+      events.find(event=>event.kind==='wreck-recovery')||
+      (browserProof.pedestrianContacts.length>contactsBefore?{type:'pedestrian-hit'}:null);
     if(special||browserProof.raceFrames%25===0)browserProof.render(special?special.type||special.kind:'periodic');
     const updatedCombat=road.encounterSnapshot().combat;
     if(updatedCombat?.boss&&updatedCombat.boss.hp!==browserProof.lastHp){browserProof.lastHp=updatedCombat.boss.hp;break;}
@@ -290,7 +307,8 @@ browserProof.playChunk=count=>{const road=BARCODE.CacheRoadProof;
 browserProof.summary=(includeEvents=true)=>{const road=BARCODE.CacheRoadProof,s=road.state,combat=road.encounterSnapshot().combat;
   return {status:road.status,encounterVersion:road.chapter.encounterVersion,bar:s.musicBeatFloat/4,
     progress:s.progress,integrity:s.integrity,gear:s.gear,chapter:copy(road.chapter),combat:copy(combat),
-    crosswalks:copy(s.crosswalks),pedestrianContacts:copy(browserProof.pedestrianContacts),mirror:copy(s.mirrorState),
+    crosswalks:copy(s.crosswalks),pedestrianContacts:copy(browserProof.pedestrianContacts),
+    crewCallout:copy(s.crosswalkToast),crewQueue:copy(s.crosswalkMessages),crewReactions:copy(browserProof.crewReactions),mirror:copy(s.mirrorState),
     camera:copy(s.cameraMotion),music:BARCODE.MusicTransport.sample(audioSystem.context.currentTime).grid?.beatFloat,
     drumVolume:BARCODE.musicDirector.getVolume('cache-pressure'),events:includeEvents?copy(browserProof.observed?.events||[]):[],
     drawn:{...browserProof.drawn},combatPaints:copy(browserProof.combatPaints),
@@ -302,6 +320,7 @@ browserProof.summary=(includeEvents=true)=>{const road=BARCODE.CacheRoadProof,s=
 browserProof.frozen=()=>{const s=BARCODE.CacheRoadProof.state;return {progress:s.progress,elapsedMs:s.elapsedMs,
   musicBeat:s.musicBeatFloat,captures:copy(s.captures),queued:copy(s.queuedCaptures),pending:copy(s.pendingPulseAwards),
   combat:BARCODE.CacheRoadCombat.snapshot(s.combat),crosswalks:copy(s.crosswalks),mirror:copy(s.mirrorState),camera:copy(s.cameraMotion),
+  crewCallout:copy(s.crosswalkToast),crewQueue:copy(s.crosswalkMessages),crewIds:copy(s.crosswalkCalloutIds),
   heardBeat:BARCODE.MusicTransport.sample(audioSystem.context.currentTime).grid?.beatFloat};};
 </script>`;
 const requests={head:0,localCombat:[],remoteCombat:[]},errors=[],frames=[];
@@ -309,7 +328,7 @@ const server=http.createServer((req,res)=>{
   const pathname=new URL(req.url,'http://localhost').pathname;
   if(req.method==='HEAD'){requests.head++;res.writeHead(405);res.end();return;}
   if(pathname==='/'){res.writeHead(200,{'Content-Type':'text/html'});res.end(fixture);return;}
-  if(pathname.startsWith('/assets/cache-road/combat/')){
+  if(/^\/assets\/cache-road\/(combat|blood)\//.test(pathname)){
     requests.localCombat.push(pathname);if(requireHosted){res.writeHead(404);res.end();return;}}
   const file=path.resolve(root,'.'+pathname);
   if(!file.startsWith(root+path.sep)||!fs.existsSync(file)||!fs.statSync(file).isFile()){
@@ -344,7 +363,7 @@ async function main(){
     const message=JSON.parse(event.data);
     if(message.method==='Runtime.exceptionThrown')errors.push(message.params.exceptionDetails);
     if(message.method==='Network.requestWillBeSent'&&message.params.request.url.startsWith('https://')&&
-      /\/assets\/cache-road\/combat\//.test(message.params.request.url))requests.remoteCombat.push(message.params.request.url);
+      /\/assets\/cache-road\/(combat|blood)\//.test(message.params.request.url))requests.remoteCombat.push(message.params.request.url);
     if(pending.has(message.id)){const{resolve,reject,timeout}=pending.get(message.id);pending.delete(message.id);clearTimeout(timeout);
       if(message.error)reject(Error(JSON.stringify(message.error)));else resolve(message.result);}
   });
@@ -370,27 +389,29 @@ async function main(){
     await evaluate('document.fonts.ready');
     await until('["cacheCar","cacheRival","cacheDashBezel","cacheMirror","cachePulsePad","cachePursuitRig"].every(key=>BARCODE.PresentationAssets.ready(key))','bundled cars/dashboard/rig decode');
     await until(`${JSON.stringify(assets.map(asset=>asset.key))}.every(key=>BARCODE.PresentationAssets.ready(key))`,
-      requireHosted?'all five immutable combat atlases decode':'all five bundled combat atlases decode');
+      requireHosted?'all seven immutable combat/feedback atlases decode':'all seven bundled combat/feedback atlases decode');
     assert(await evaluate('!!BARCODE.CacheRoadCombatArt'),'the registered production combat painter loads in actual index order');
+    assert(await evaluate('!!BARCODE.CacheRoadCrewCallouts'),'the registered crew reaction owner loads in actual index order');
   };
   await send('Page.enable');await send('Runtime.enable');await send('Network.enable');
   await send('Emulation.setDeviceMetricsOverride',{width:1280,height:720,deviceScaleFactor:1,mobile:false});
   await send('Page.navigate',{url:origin});await ready();
   const decoded=await evaluate(`Promise.all([...new Map(browserProof.images.filter(image=>
-    image.src.includes('/assets/cache-road/combat/')).map(image=>[image.src,image])).values()].map(async image=>{
+    image.src.includes('/assets/cache-road/combat/')||image.src.includes('/assets/cache-road/blood/'))
+    .map(image=>[image.src,image])).values()].map(async image=>{
       const response=await fetch(image.src);if(!response.ok)throw Error('Combat atlas fetch failed '+image.src);
       const bytes=await response.arrayBuffer(),digest=await crypto.subtle.digest('SHA-256',bytes);
       return {url:image.src,productionUrl:image.proofOriginalSrc,bytes:bytes.byteLength,
         width:image.naturalWidth,height:image.naturalHeight,
         sha256:[...new Uint8Array(digest)].map(value=>value.toString(16).padStart(2,'0')).join('')};}))`);
-  assert.equal(decoded.length,assets.length,'all five actually loaded combat atlases are independently fetched and verified');
+  assert.equal(decoded.length,assets.length,'all seven actually loaded combat/feedback atlases are independently fetched and verified');
   for(const asset of assets){
     const loaded=decoded.find(item=>new URL(item.url).pathname.endsWith('/'+asset.runtime));
     assert(loaded,`Missing decoded ${asset.key}`);
     assert.deepEqual([loaded.width,loaded.height],asset.size);
     assert.equal(loaded.bytes,asset.bytes?.runtime??fs.statSync(path.join(root,asset.runtime)).size);assert.equal(loaded.bytes,fs.statSync(path.join(root,asset.runtime)).size);
     assert.equal(loaded.sha256,typeof asset.sha256==='string'?asset.sha256:asset.sha256.runtime);assert.equal(loaded.sha256,initialSourceHashes[asset.runtime]);
-    if(requireHosted){assert.match(loaded.url,/^https:\/\/raw\.githubusercontent\.com\/6-Bit-01\/BARCODE-SYSTEM-OVERRIDE\/[0-9a-f]{40}\/assets\/cache-road\/combat\//);
+    if(requireHosted){assert.match(loaded.url,/^https:\/\/raw\.githubusercontent\.com\/6-Bit-01\/BARCODE-SYSTEM-OVERRIDE\/[0-9a-f]{40}\/assets\/cache-road\/(combat|blood)\//);
       assert.equal(loaded.url,loaded.productionUrl,'new art uses its immutable production URL without local substitution');}
   }
   await evaluate('browserProof.boot()');
@@ -503,6 +524,11 @@ async function main(){
     [10,30,50,70],'all four physical crosswalks are sampled in actual native draws');
   assert(drawSamples.some(sample=>sample.crosswalks?.people.some(person=>person.phase==='walking')),
     'real crossing pedestrians are drawn during the earned race');
+  const crewPaints=drawSamples.filter(sample=>sample.crewCallout?.speaker);
+  assert(crewPaints.length>0,'an actual physical pedestrian contact paints its crew popup in native Canvas');
+  assert(crewPaints.every(sample=>['6 BIT','DJ FLOPPYDISC','MAC MODEM'].includes(sample.crewCallout.speaker)&&
+    sample.crewCallout.remainingMs>0&&sample.crewCallout.remainingMs<=3200),
+    'native crew reactions retain authored identity and a shared-update readability clock');
   assert(bossHp.some(item=>item.hp===12)&&bossHp.some(item=>item.hp===0),'actual initial and destroyed rig states are sampled');
   assert(allEvents.some(event=>event.kind==='combat-event'&&event.type==='enemy-hit'&&event.id==='rig'));
   assert(allEvents.some(event=>event.kind==='wreck-recovery'&&event.gear===0&&event.queuedRecovery&&event.recoveryBeat%4===0),
@@ -535,7 +561,7 @@ async function main(){
     {road_attack:5,road_turbo:4,road_defend:7,road_disrupt:6},'actual saved/default bindings implement the approved four-control mapping');
   assert(totalSamples>=100&&totalSamples<totalFrames/4,'selected native Canvas samples supplement every actual simulation frame');
   assert.deepEqual(errors,[],'native browser raises no uncaught production exceptions');assert.equal(requests.head,0);
-  if(requireHosted)assert.deepEqual(requests.localCombat,[],'new combat art never silently falls back to bundled paths');
+  if(requireHosted)assert.deepEqual(requests.localCombat,[],'new combat/feedback art never silently falls back to bundled paths');
   assert.deepEqual(sourceHashes(),initialSourceHashes,'source and authored assets remain frozen throughout the browser race');
   receipt={passed:true,assetDelivery:requireHosted?'immutable-hosted':'bundled',decoded,zeroSync,frames,bossHp,
     state,events:allEvents,restoreReceipt,comfort,drawn:allDrawn,combatPaintSessions:paintSessions,drawSamples,trafficGuards,
@@ -545,7 +571,8 @@ async function main(){
     checks:{nativeControllerAndAnalogTriggers:true,zeroSyncFourSkills:true,actualWeaponBossDamage:true,
       nativeR2PreventsOrdinaryTrafficWreck:true,physicallyEarnedWreckAndFirstGear:true,actualBikeRiderAndFlipDrawn:true,pausedCombatCameraMusicFrozen:true,
       earnedPageReload:true,persistedPedestrianContacts:true,fourPhysicalCrosswalksDrawn:true,
-      pedestrianContactsPreserveEconomy:true,stableMirrorOwner:true,forgedGateRejected:true,complete100Bars:true,independentFourFaceSync:true,
+      pedestrianContactsPreserveEconomy:true,customBloodAndCrewAtlasesDecoded:true,physicalHitCrewPopupDrawn:true,
+      crewQueueIncludedInPauseFreeze:true,stableMirrorOwner:true,forgedGateRejected:true,complete100Bars:true,independentFourFaceSync:true,
       reducedMotionNoFlashesDrawn:true,oneCanvas:true,stateInjection:false},
     limits:'Production scripts in index order, controlled saved bridge-ready entry, native Chromium input/Canvas, every shared-RAF simulation update and selected Canvas samples. Does not exercise title boot or every display frame. Audio clock, gamepad device, lifecycle pause and Campaign persistence are controlled hosts. No progress, health, immunity, resources, captures or boss-damage injection. Not Makko, physical-controller, recorded listening, human balance, comfort or display-pacing acceptance.'};
   console.log(`Cache combat Chromium passed: zero-sync four controls, analog triggers, actual12HP rig damage, wreck/first gear, earned page reload, full100bars; ${totalFrames} simulation frames and ${totalSamples} sampled Canvas frames.`);

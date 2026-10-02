@@ -1,5 +1,9 @@
 # Recovery checkpoint — September 14
 
+## October 2 — blood splatters and crew radio popups
+
+Add three authored blood sprays with matching stable road stains, new canonical crew reaction portraits, compact comic radio callouts and distinct queued holds. Preserve contact ledgers, world/mirror ground depth, Reduced Motion/Flashes Off, score/health/resources and legacy rules. Add focused native raster/queue/layout checks and hosted browser readiness/painting checks; record exact final validation in the export receipt.
+
 ## October 1 — crosswalks and controlled pursuit
 
 - Add four trajectory-bound zebra crossings, eight physical walking people,

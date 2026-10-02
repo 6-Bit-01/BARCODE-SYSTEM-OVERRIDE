@@ -62,6 +62,7 @@
     "src/game/cache-road-combat.js",
     "src/game/cache-road-combat-art.js",
     "src/game/cache-road-crosswalks.js",
+    "src/game/cache-road-crew-callouts.js",
     "src/game/cache-road-mirror.js",
     "src/game/cache-road-boss-art.js",
     "src/game/cache-road-guidance.js",
@@ -140,6 +141,7 @@
     "src/game/cache-road-combat.js",
     "src/game/cache-road-combat-art.js",
     "src/game/cache-road-crosswalks.js",
+    "src/game/cache-road-crew-callouts.js",
     "src/game/cache-road-mirror.js",
     "src/game/cache-road-boss-art.js",
     "src/game/cache-road-guidance.js",
@@ -453,6 +455,10 @@
         "status": "pass"
       },
       {
+        "file": "src/game/cache-road-crew-callouts.js",
+        "status": "pass"
+      },
+      {
         "file": "src/game/cache-road-mirror.js",
         "status": "pass"
       },
@@ -527,11 +533,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 75,
+        "index": 76,
         "status": "pass"
       },
       {
-        "index": 77,
+        "index": 78,
         "status": "pass"
       }
     ]
@@ -935,6 +941,7 @@
     "src/game/cache-road-combat.js",
     "src/game/cache-road-combat-art.js",
     "src/game/cache-road-crosswalks.js",
+    "src/game/cache-road-crew-callouts.js",
     "src/game/cache-road-mirror.js",
     "src/game/cache-road-boss-art.js",
     "src/game/cache-road-guidance.js",

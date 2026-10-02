@@ -70,8 +70,16 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
     for(let action=0;action<4;action++)for(let cel=0;cel<8;cel++)
       render('action confirmation',1200,cel*82,{pulseFlashMs:650-cel*82,
         pulseFlashAction:action,pulseFlashLane:action});
-    for(const extra of [{},{pulseFlashMs:350},{boostMs:400},{cutFlashMs:300},
-      {stumbleMs:350},{integrity:1}])render('mirror expression',1200,420,extra);
+    const mirrorOwner=B.CacheRoadMirror;
+    check(mirrorOwner,'Sustained mirror owner was not loaded');
+    for(const [frame,extra] of [{},{pulseFlashMs:350},{boostMs:400},{cutFlashMs:300},
+      {stumbleMs:350},{integrity:1}].entries()) {
+      const mirrorState=mirrorOwner.create();
+      mirrorOwner.step(mirrorState,450,extra);
+      const calls=render(`diagnostic settled mirror expression ${frame}`,1200,420,{...extra,mirrorState});
+      check(calls.some(([key,cel])=>key==='cacheMirror'&&cel===frame),
+        `Production mirror missed owner-selected expression ${frame}`);
+    }
     for(const passSide of [-1,1])render('painted passing whoosh',1200,420,{passFlashMs:780,passSide});
     for(let cel=0;cel<122;cel++)render('sky traffic',1200,cel*40);
     // Diagnostic production-state coverage, separate from the earned input
@@ -187,6 +195,58 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
       check(calls.some(([key,frame])=>key==='cacheCombatFX'&&frame===fixture.frame),
         `Production world missed projectile/contact FX cell ${fixture.frame}`);
     }
+    // The new feedback atlases use physical contact age and crew identity,
+    // not autonomous clocks. Produce pedestrian and rider contacts through
+    // their real owners, then stage camera addresses only for visual route
+    // diagnostics. These draws do not claim an earned-input race.
+    const authoredFeedbackKeys=['cacheBloodSplatter','cacheCrewCallouts'];
+    const crossingOwner=B.CacheRoadCrosswalks,crewOwner=B.CacheRoadCrewCallouts;
+    check(crossingOwner&&crewOwner,'Pedestrian/crew feedback owners were not loaded');
+    const crossings=crossingOwner.create({progress:1000,bar:0}),pedestrianCases=[];
+    for(const [bar,at] of [[10,1200],[30,2000]]) {
+      crossingOwner.commit(crossings,{beat:bar*4,from:at-300});
+      // Hold a real approaching crossing outside contact until the two
+      // walkers reach Cache's lane. The final sweep hits both actual bodies.
+      for(let i=0;i<18;i++)crossingOwner.step(crossings,250,
+        {before:at-200,progress:at-200,lanePos:1.5,previousLanePos:1.5,speed:52,bar});
+      const events=crossingOwner.step(crossings,1,
+        {before:at-10,progress:at+10,lanePos:1.5,previousLanePos:1.5,speed:52,bar});
+      check(events.length===2&&events.every(event=>event.type==='pedestrian-hit'),
+        `Diagnostic crosswalk ${bar} did not physically hit both walkers`);
+      crossingOwner.step(crossings,79,
+        {before:at+10,progress:at+10,lanePos:1.5,previousLanePos:1.5,speed:52,bar});
+      pedestrianCases.push({at,events,crosswalks:clone(crossings)});
+    }
+    for(const fixture of pedestrianCases)for(const camera of ['main','mirror']) {
+      const progress=fixture.at+(camera==='main'?-150:140);
+      const calls=render(`diagnostic physical pedestrian blood/${camera}`,progress,5000,
+        {crosswalks:clone(fixture.crosswalks)});
+      for(const frame of [0,1,3,4])check(calls.some(([key,cel])=>key==='cacheBloodSplatter'&&cel===frame),
+        `Production ${camera} missed physical pedestrian blood cell ${frame}`);
+    }
+    for(const event of pedestrianCases.flatMap(fixture=>fixture.events).slice(0,3)) {
+      const feedback={crosswalkToast:null,crosswalkMessages:[],crosswalkCalloutIds:[]};
+      check(crewOwner.enqueue(feedback,event),'Real pedestrian contact did not enqueue crew feedback');
+      const frame=(event.hitCount-1)%3;
+      const calls=render(`diagnostic physical-contact crew portrait ${frame}`,1200,5000,feedback);
+      check(calls.some(([key,cel])=>key==='cacheCrewCallouts'&&cel===frame),
+        `Production HUD missed crew portrait ${frame}`);
+    }
+    const riderCombat=combatOwner.create();
+    riderCombat.lastProgress=1190;riderCombat.lastLanePos=1.34;
+    riderCombat.wrecks.push({id:'foe-0',kind:'bike',at:1200,lane:1,hp:0,maxHp:2,
+      ageMs:2400,rollMs:1600,flip:true,rider:true,riderSplatAtMs:null});
+    const riderEvents=combatOwner.step(riderCombat,1,{progress:1210,lanePos:1.34,bar:40});
+    check(riderEvents.some(event=>event.type==='rider-splatter'),
+      'Diagnostic rider did not receive actual grounded swept contact');
+    combatOwner.step(riderCombat,79,{progress:1210,lanePos:1.34,bar:40});
+    for(const camera of ['main','mirror']) {
+      const at=riderCombat.wrecks[0].at,progress=at+(camera==='main'?-150:140);
+      const calls=render(`diagnostic physical rider blood/${camera}`,progress,5000,
+        {combat:clone(riderCombat),pursuit:null});
+      for(const frame of [2,5])check(calls.some(([key,cel])=>key==='cacheBloodSplatter'&&cel===frame),
+        `Production ${camera} missed physical rider blood cell ${frame}`);
+    }
     const intentionalStable=['cacheCar','cacheCarLeft','cacheCarRight'];
     const inventory=Object.entries(definitions).filter(([key,entry])=>
       key.startsWith('cache')&&entry.frames>1);
@@ -199,10 +259,12 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
       if(key.endsWith('Travel')||key.endsWith('Activity')||
           key.startsWith('cacheAmbient')||propKeys.includes(key)||
           ['cacheFreight','cacheCourier','cacheAudit','cacheSweeper',
-            'cacheTrike','cacheShuttle','cachePursuitRig',...authoredCombatKeys.filter(key=>key!=='cacheCombatFX')].includes(key))
+            'cacheTrike','cacheShuttle','cachePursuitRig','cacheBloodSplatter',
+            ...authoredCombatKeys.filter(key=>key!=='cacheCombatFX')].includes(key))
         check(coverage.mirror[key]?.size===entry.frames,
           `${key}: rearview did not play every authored cel`);
     }
+    check(!coverage.mirror.cacheCrewCallouts,'Crew portraits must remain in the main HUD outside reflected scenery');
     // Reduced Motion freezes decorative clocks while reaction expressions
     // remain state-driven. This must not turn on hidden secondary loops.
     recording=false;B.Preferences.values.reducedMotion=true;
@@ -217,7 +279,8 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
     check(JSON.stringify(reducedAt(0))===JSON.stringify(reducedAt(1234)),
       'Reduced Motion advanced an animation');
     return {productionDraws:cases.length,animatedKeys:inventory.length,
-      legacyAnimatedKeys:inventory.length-authoredCombatKeys.length,authoredCombatKeys,
+      legacyAnimatedKeys:inventory.length-authoredCombatKeys.length-authoredFeedbackKeys.length,
+      authoredCombatKeys,authoredFeedbackKeys,
       intentionalStable,main:Object.fromEntries(Object.entries(coverage.main)
         .map(([key,frames])=>[key,[...frames].sort((a,b)=>a-b)])),
       mirror:Object.fromEntries(Object.entries(coverage.mirror)

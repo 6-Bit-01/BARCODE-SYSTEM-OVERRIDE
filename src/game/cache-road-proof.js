@@ -1678,7 +1678,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // Road lessons are momentary guidance, not save or music state.
       opening: { held: false, sealed: false, turbo: false, echo: false, auditFollowedEcho: false },
       message: '', messageMs: 0, recordHoldMs: 0, recordIndex: -1,
-      mirrorState:B.CacheRoadMirror?.create(saved),crosswalkToast:null,crosswalkMessages:[],
+      mirrorState:B.CacheRoadMirror?.create(saved),crosswalkToast:null,crosswalkMessages:[],crosswalkCalloutIds:[],
       recordFlashMs: 0, recordFlashIndex: -1, recordSigns: {},
       gateOpen: !!saved.gateOpen, gateFailure: null,
       // Camera follow is transient presentation state, never a save or clock.
@@ -1715,6 +1715,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   function drawCrosswalkPerson(ctx,person,{x,y,height,reduced}) {
     const carrier=person.side==='left',key=carrier?'cachePersonCrateCarrierTravel':'cachePersonHandheldPlayerTravel';
     const width=height*(carrier?432/384:278/384),hit=person.phase==='hit';
+    if(hit)B.CacheRoadCombatArt?.drawBlood?.(ctx,{x,y,width:height*.96,height:height*.46,
+      ageMs:person.hitAgeMs||0,variant:carrier?0:1,reduced,
+      flashes:window.BARCODE_RENDER_QUALITY?.flashes!==false});
     const frame=reduced||person.phase==='waiting'?0:
       Math.floor((person.walkingMs||0)/210)%(carrier?8:4);
     ctx.save();ctx.globalAlpha*=hit?.82:1;
@@ -3042,7 +3045,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       s.stumbleMs = Math.max(0, s.stumbleMs - dt);
       s.cutFlashMs = Math.max(0, s.cutFlashMs - dt);
       s.messageMs = Math.max(0, s.messageMs - dt);
-      if(s.crosswalkToast) {
+      if(B.CacheRoadCrewCallouts)B.CacheRoadCrewCallouts.step(s,dt);
+      else if(s.crosswalkToast) {
         s.crosswalkToast.remainingMs=Math.max(0,s.crosswalkToast.remainingMs-dt);
         if(!s.crosswalkToast.remainingMs)s.crosswalkToast=null;
       }
@@ -3147,10 +3151,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const events=B.CacheRoadCrosswalks.step(s.crosswalks,dt,{before,progress:s.progress,
           previousLanePos,lanePos:s.lanePos,speed:s.speed,bar:s.musicBeatFloat/4});
         for(const event of events)if(event.type==='pedestrian-hit') {
-          s.crosswalkMessages.push({message:event.message,id:event.id});
+          if(B.CacheRoadCrewCallouts)B.CacheRoadCrewCallouts.enqueue(s,event);
+          else s.crosswalkMessages.push({message:event.message,id:event.id});
           this.cue('damage',{material:'pedestrian',intensity:.35});
         }
-        if(!s.crosswalkToast&&s.crosswalkMessages.length)
+        if(!B.CacheRoadCrewCallouts&&!s.crosswalkToast&&s.crosswalkMessages.length)
           s.crosswalkToast={...s.crosswalkMessages.shift(),remainingMs:2000};
       }
       if(s.pursuit) {
@@ -4984,7 +4989,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         }
       }
       // One visual guidance layer owns route, split and outcome feedback;
-      if(s.crosswalkToast) {
+      if(this.status==='playing'&&B.CacheRoadCrewCallouts)B.CacheRoadCrewCallouts.draw(ctx,s);
+      else if(this.status==='playing'&&s.crosswalkToast) {
         ctx.save();ctx.fillStyle='#211e2ef0';ctx.fillRect(514,177,892,57);
         ctx.strokeStyle='#ffd19b';ctx.lineWidth=2;ctx.strokeRect(514,177,892,57);
         ctx.fillStyle='#ffe5bc';ctx.textAlign='center';ctx.font='bold 23px Oxanium, monospace';

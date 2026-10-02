@@ -8,6 +8,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-combat-art.js',
   const clamp=(value,lo,hi)=>Math.max(lo,Math.min(hi,value));
   const finite=(value,fallback=0)=>Number.isFinite(value)?value:fallback;
   const ANCHORS={"cacheCombatBike":[[0.4642857142857143,0.923828125],[0.34375,0.94921875],[0.6763392857142857,0.955078125],[0.5513392857142857,0.96484375],[0.5178571428571429,0.87890625],[0.5,0.880859375],[0.49330357142857145,0.876953125],[0.6651785714285714,0.93359375]],"cacheCombatHostiles":[[0.5370370370370371,0.8425],[0.5462962962962963,0.8325],[0.5,0.79],[0.7083333333333334,0.785],[0.5208333333333334,0.86],[0.5625,0.845],[0.4722222222222222,0.8125],[0.6851851851851852,0.83],[0.5092592592592593,0.7925],[0.5208333333333334,0.7925],[0.4930555555555556,0.795],[0.6041666666666666,0.8575]],"cacheCombatBikeCrash":[[0.6111111111111112,0.88125],[0.5,0.49895833333333334],[0.4270833333333333,0.975],[0.5,0.5],[0.4991319444444444,0.5],[0.7690972222222222,0.825]],"cacheCombatBlast":[[0.5,0.5],[0.5,0.4990530303030303],[0.49919871794871795,0.4990530303030303],[0.5,0.4990530303030303],[0.49919871794871795,0.5],[0.49919871794871795,0.4990530303030303]]};
+  // Source-sheet ground contacts: matching spray/stain pairs keep their
+  // own vertical padding while landing on the same physical road point.
+  ANCHORS.cacheBloodSplatter=[[.5,.86],[.5,.86],[.5,.86],[.5,.55],[.5,.55],[.5,.55]];
   for(const frames of Object.values(ANCHORS)) {
     frames.forEach(Object.freeze);Object.freeze(frames);
   }
@@ -46,19 +49,41 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-combat-art.js',
     return !!B.PresentationAssets.draw(key,ctx,{frame,width,height,
       x:x+width*(.5-anchor[0]),y:y+height*(registrationY-anchor[1])});
   }
-  function drawRiderSplat(ctx,width,height,age,animated) {
-    // A small comic ink splash sits on the same ground contact as the rider.
-    // Stable shapes and no white ignition keep repeat draws and no-flash safe.
-    const spread=animated?1+Math.max(0,1-age/240)*.24:1;
+  function fallbackBlood(ctx,width,height) {
+    // Loading/failure paint stays dark and still. It does not grow a new
+    // request, clock or flash while the shared image owner loads the sheet.
+    ctx.fillStyle='#5b172b';ctx.strokeStyle='#25151d';ctx.lineWidth=Math.max(1,width*.014);
+    ctx.beginPath();ctx.ellipse(0,-height*.025,width*.43,height*.065,-.08,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#9b3048';
+    for(const [x,y,r] of [[-.48,-.12,.05],[.44,-.08,.06],[-.27,-.20,.035],[.58,-.16,.027]]) {
+      ctx.beginPath();ctx.ellipse(width*x,height*y,width*r,height*r*.52,.2,0,Math.PI*2);ctx.fill();
+    }
+  }
+  function bloodVariantForId(id) {
+    if(typeof id!=='string')return 0;
+    let hash=0;
+    for(let i=0;i<id.length;i++)hash=(hash+id.charCodeAt(i))%3;
+    return hash;
+  }
+  function drawBlood(ctx,options={}) {
+    if(!ctx||!valid(options))return false;
+    const variant=((Math.trunc(finite(options.variant))%3)+3)%3;
+    const age=Math.max(0,finite(options.ageMs));
     ctx.save();
     try {
-      ctx.scale(spread,spread);
-      ctx.fillStyle='#5b172b';ctx.strokeStyle='#25151d';ctx.lineWidth=Math.max(1,width*.014);
-      ctx.beginPath();ctx.ellipse(0,-height*.025,width*.43,height*.065,-.08,0,Math.PI*2);ctx.fill();ctx.stroke();
-      ctx.fillStyle='#9b3048';
-      for(const [x,y,r] of [[-.48,-.12,.05],[.44,-.08,.06],[-.27,-.20,.035],[.58,-.16,.027]]) {
-        ctx.beginPath();ctx.ellipse(width*x,height*y,width*r,height*r*.52,.2,0,Math.PI*2);ctx.fill();
+      ctx.globalAlpha*=clamp(finite(options.alpha,1),0,1);
+      ctx.translate(options.x,options.y);
+      if(!loaded('cacheBloodSplatter')) {
+        fallbackBlood(ctx,options.width,options.height);return true;
       }
+      // Stain and spray share caller-owned ground registration. Draw only
+      // selects the saved contact age; repeated draws never advance it.
+      const painted=paint(ctx,'cacheBloodSplatter',3+variant,
+        {width:options.width,height:options.height});
+      if(!options.reduced&&options.flashes!==false&&age<200)
+        paint(ctx,'cacheBloodSplatter',variant,
+          {width:options.width,height:options.height});
+      return !!painted;
     } finally {ctx.restore();}
   }
   function drawBody(ctx,options={}) {
@@ -99,8 +124,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-combat-art.js',
         ctx.globalAlpha*=clamp(finite(options.alpha,1),0,1);
         ctx.translate(finite(options.riderX,options.x+offset),options.y-riderLift-(settled?0:options.height*.52));
         if(!settled)ctx.rotate(finite(options.flipAngle)*.65*side);
-        if(splattered)drawRiderSplat(ctx,width,height,Math.max(0,finite(options.riderSplatAgeMs)),
-          !options.reduced&&options.flashes!==false);
+        if(splattered)drawBlood(ctx,{x:0,y:0,width:width*1.2,height:height*.7,
+          ageMs:options.riderSplatAgeMs,variant:finite(options.bloodVariant,bloodVariantForId(options.id)),
+          reduced:options.reduced,flashes:options.flashes});
         paint(ctx,'cacheCombatBikeCrash',frame,{width:width*(splattered?1.06:1),
           height:height*(splattered?.55:1),center:!settled});
       } finally {ctx.restore();}
@@ -139,6 +165,6 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-combat-art.js',
       return B.PresentationAssets.draw('cacheCombatFX',ctx,{frame,width:options.width,height:options.height});
     } finally {ctx.restore();}
   }
-  B.CacheRoadCombatArt=Object.freeze({drawBody,drawBlast,drawFX,frameFor,blastFrameFor,
+  B.CacheRoadCombatArt=Object.freeze({drawBody,drawBlast,drawFX,drawBlood,frameFor,blastFrameFor,
     anchors:ANCHORS});
 })(window.BARCODE);

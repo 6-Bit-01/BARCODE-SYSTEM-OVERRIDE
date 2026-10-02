@@ -1,5 +1,9 @@
 # Current State
 
+## October 2 — custom blood and crew callouts
+
+Custom red blood impact/stain atlases and new canonical 6 Bit, DJ Floppydisc and Mac Modem reaction portraits replace generic contact paint and plain shame text. Crew radio panels queue readable pedestrian-hit insults on the existing road clock. Physical contacts, grounded rider registration, pause, old saves, economy and exact controls remain unchanged. See `CACHE_BLOOD_CREW.md`. Required final validation/publication results belong to the generated export receipt; owner device acceptance remains unrecorded.
+
 ## October 1 — crosswalk and pursuit control candidate
 
 Continues from merged #171. Fresh v4 roads commit four crosswalks at bars

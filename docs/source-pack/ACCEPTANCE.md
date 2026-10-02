@@ -1,5 +1,9 @@
 # Acceptance and Test Status
 
+## October 2 — custom blood and crew popups
+
+Verify visible red splatters on pedestrian hits and one physical grounded-rider contact, with stable stains under Reduced Motion/Flashes Off. Crew portraits and short readable insults should appear below the mirror, clear of pad/rig guidance, with separate holds for successive hits and frozen ages while paused. Preserve economy, old saves, exact controls and cutscene art. Focused/native/full regression and both exact final-head CI events remain required; final results belong to the export receipt. Owner Makko/controller/audio/comfort/balance/device pacing remains unrecorded.
+
 ## October 1 — street safety and pursuit control review
 
 Check the four zebra crossings, pedestrians visibly traversing both ways,

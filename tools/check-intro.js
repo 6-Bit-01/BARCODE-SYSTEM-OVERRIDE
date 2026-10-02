@@ -325,7 +325,10 @@ async function main() {
   console.log('Intro: fullscreen before/after startup, denied/exit/re-entry visibility, eight pages, keyboard/controller holds, release/focus/disconnect, caption discovery, tutorial/mission/audio handoff and cancellation passed.');
 }
 if (require.main === module) {
-  const timeout = setTimeout(() => { console.error('Intro check did not settle its lifecycle promise.'); process.exit(1); }, 3000);
+  // This real-clock watchdog catches unresolved lifecycle promises. Leave
+  // enough host time for the VM fixtures; gameplay timing is asserted above
+  // using their virtual clock and does not depend on this timeout.
+  const timeout = setTimeout(() => { console.error('Intro check did not settle its lifecycle promise.'); process.exit(1); }, 15000);
   main().then(() => clearTimeout(timeout), error => { clearTimeout(timeout); console.error(error); process.exitCode = 1; });
 }
 module.exports = { openingRig };

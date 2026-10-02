@@ -311,10 +311,18 @@ async function main() {
   const reviewWorld=require('./cache-road-browser-world.cjs');
   const world=await evaluate(`(${reviewWorld.toString()})()`);
   assert(world.loadedAssets>200&&world.frames.length===192&&world.contextCalls<=4);
-  assert(Object.keys(world.animations).length===56 && world.animationRoutes.animatedKeys===56);
+  assert(Object.keys(world.animations).length===58 && world.animationRoutes.animatedKeys===58);
   assert.equal(world.animationRoutes.legacyAnimatedKeys,51,
     'all original legacy route assertions remain intact');
-  assert.equal(world.hosted.filter(entry=>entry.frames>1).length,56);
+  assert.equal(world.hosted.filter(entry=>entry.frames>1).length,58);
+  assert.deepEqual(world.animationRoutes.authoredFeedbackKeys,['cacheBloodSplatter','cacheCrewCallouts']);
+  assert.deepEqual(world.animationRoutes.main.cacheBloodSplatter,[0,1,2,3,4,5],
+    'all six blood cells follow real staged pedestrian/rider contacts through the front road');
+  assert.deepEqual(world.animationRoutes.mirror.cacheBloodSplatter,[0,1,2,3,4,5],
+    'the same contacted bodies paint all blood cells through the rearview');
+  assert.deepEqual(world.animationRoutes.main.cacheCrewCallouts,[0,1,2],
+    'physical pedestrian hit events select all three crew portraits in the main HUD');
+  assert(!world.animationRoutes.mirror.cacheCrewCallouts,'crew portraits cannot enter reflected scenery');
   for(const [key,count] of [['cacheCombatBike',8],['cacheCombatHostiles',12],
     ['cacheCombatBikeCrash',6],['cacheCombatBlast',6]]) {
     const frames=Array.from({length:count},(_,i)=>i);
