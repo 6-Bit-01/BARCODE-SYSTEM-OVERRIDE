@@ -19,10 +19,10 @@ const chromePath = process.env.CHROME_BIN || ['/usr/bin/google-chrome', '/usr/bi
 assert(chromePath, 'Set CHROME_BIN to an installed Chrome/Chromium executable. Node 22+ supplies WebSocket.');
 const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const metadata = JSON.parse(fs.readFileSync(path.join(root, 'assets/cache-road/combat/atlas-metadata.json'), 'utf8'));
-const assets = metadata.assets;
+const assets = [...metadata.assets,...JSON.parse(fs.readFileSync(path.join(root,'assets/cache-road/combat/fx-metadata.json'))).assets];
 assert.deepEqual(assets.map(asset => asset.key).sort(),
-  ['cacheCombatBike','cacheCombatBikeCrash','cacheCombatBlast','cacheCombatHostiles'].sort(),
-  'all four authored combat atlases are represented by their actual metadata');
+  ['cacheCombatBike','cacheCombatBikeCrash','cacheCombatBlast','cacheCombatHostiles','cacheCombatFX'].sort(),
+  'all five authored combat atlases are represented by their actual metadata');
 const critical = new Set(['src/engine/music-profiles.js', 'src/engine/music-transport.js',
   'src/engine/music-director.js', 'src/engine/cache-road-proof-profile.js', 'src/engine/presentation-assets.js',
   'src/game/campaign-services.js', 'src/game/cache-chapter.js', 'src/game/cache-road-landscape.js', 'src/game/cache-road-encounters.js',
@@ -354,7 +354,7 @@ async function main(){
     await evaluate('document.fonts.ready');
     await until('["cacheCar","cacheRival","cacheDashBezel","cacheMirror","cachePulsePad","cachePursuitRig"].every(key=>BARCODE.PresentationAssets.ready(key))','bundled cars/dashboard/rig decode');
     await until(`${JSON.stringify(assets.map(asset=>asset.key))}.every(key=>BARCODE.PresentationAssets.ready(key))`,
-      requireHosted?'all four immutable combat atlases decode':'all four bundled combat atlases decode');
+      requireHosted?'all five immutable combat atlases decode':'all five bundled combat atlases decode');
     assert(await evaluate('!!BARCODE.CacheRoadCombatArt'),'the registered production combat painter loads in actual index order');
   };
   await send('Page.enable');await send('Runtime.enable');await send('Network.enable');
@@ -367,13 +367,13 @@ async function main(){
       return {url:image.src,productionUrl:image.proofOriginalSrc,bytes:bytes.byteLength,
         width:image.naturalWidth,height:image.naturalHeight,
         sha256:[...new Uint8Array(digest)].map(value=>value.toString(16).padStart(2,'0')).join('')};}))`);
-  assert.equal(decoded.length,4,'all four actually loaded combat atlases are independently fetched and verified');
+  assert.equal(decoded.length,assets.length,'all five actually loaded combat atlases are independently fetched and verified');
   for(const asset of assets){
     const loaded=decoded.find(item=>new URL(item.url).pathname.endsWith('/'+asset.runtime));
     assert(loaded,`Missing decoded ${asset.key}`);
     assert.deepEqual([loaded.width,loaded.height],asset.size);
-    assert.equal(loaded.bytes,asset.bytes.runtime);assert.equal(loaded.bytes,fs.statSync(path.join(root,asset.runtime)).size);
-    assert.equal(loaded.sha256,asset.sha256.runtime);assert.equal(loaded.sha256,initialSourceHashes[asset.runtime]);
+    assert.equal(loaded.bytes,asset.bytes?.runtime??fs.statSync(path.join(root,asset.runtime)).size);assert.equal(loaded.bytes,fs.statSync(path.join(root,asset.runtime)).size);
+    assert.equal(loaded.sha256,typeof asset.sha256==='string'?asset.sha256:asset.sha256.runtime);assert.equal(loaded.sha256,initialSourceHashes[asset.runtime]);
     if(requireHosted){assert.match(loaded.url,/^https:\/\/raw\.githubusercontent\.com\/6-Bit-01\/BARCODE-SYSTEM-OVERRIDE\/[0-9a-f]{40}\/assets\/cache-road\/combat\//);
       assert.equal(loaded.url,loaded.productionUrl,'new art uses its immutable production URL without local substitution');}
   }

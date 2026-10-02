@@ -1,5 +1,18 @@
 # Repository Guidance
 
+## October 1, 2026 — combat polish follow-up
+
+The owner likes merged #169 and authorizes a focused improvement PR: one target
+and one player shot at a time, no projectile splash, physical Turbo rams,
+smoother hostile/player paint, authored bullet/contact FX, practical sync power
+and recharge incentives with meaningful points. Baseline/rollback is #169 at
+`8e9287917bd3f377116d28b0b0c336d03fa2857f`. Preserve exact four-skill controls,
+lane chart, music capture/address timing, old saves/rules and shared owners.
+Read `docs/source-pack/CACHE_COMBAT_POLISH.md`. Complete played-input/native
+review, full regression/all-file syntax and both exact final-head CI events
+retain standing merge authority. Owner Makko/controller/audio/comfort/balance
+and actual device frame pacing acceptance remain separate.
+
 ## October 1, 2026 — combat chase and correct skill controls
 
 The owner approves a new one-PR combat chase from merged #168

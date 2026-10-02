@@ -1,5 +1,12 @@
 # Decision Register
 
+## October 1 — Combat polish authorized
+
+The owner likes #169 and asks for one targeted enemy per shot, improved ram
+contact, smoothing/optimization, bullet/contact artwork and practical sync
+incentives. This authorizes a focused follow-up from #169; exact controls,
+old rules/saves and physical pad/music timing remain. See `CACHE_COMBAT_POLISH.md`.
+
 ## October 1 — Combat chase and skill mapping approved
 
 The owner approves R1 Attack, L1 Turbo, R2 Defend and L2 Disrupt, all four

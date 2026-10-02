@@ -1,5 +1,17 @@
 # Acceptance and Test Status
 
+## October 1 — Combat polish requires fresh owner review
+
+Verify a single retained reticle/projectile, no neighbour damage from a shot
+takedown, physical Turbo catches, smooth lane motion, readable projectiles and
+bounded impacts. Confirm nonlethal rams do not show zero/stale points and
+lethal rams keep the complete earned takedown receipt. Compare four
+synchronized parts against ignored pads: 2x power, 3x ammo refill and shorter
+skill recharge/bonus points. Test exact
+controls, save/reload, first gear, Reduced Motion/Flashes Off, original audio
+and cropped hazard/pad cues. Scripted/native tests do not establish Makko,
+physical-controller, listening, comfort, human balance/fun or device FPS.
+
 ## October 1 — Combat chase needs fresh owner testing
 
 Test the exact candidate receipt with a fresh version4 race: distinguish

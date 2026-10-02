@@ -1,5 +1,26 @@
 # Current State
 
+## October 1 — Combat polish candidate
+
+One locked player projectile, no projectile splash, physical swept Turbo rams,
+smoothed lateral paint, twelve authored FX cells and stronger synchronization
+power/recharge/points are implemented. Main-draw combat poses are reused and
+JSON view serialization is removed. See `CACHE_COMBAT_POLISH.md`. Exact tested
+revision, scripted/native results and publication belong in the new receipt;
+#169 evidence below remains historical. The frozen matrix cleared nine races
+with 543 captures, 209 takedowns and zero player damage events. Dedicated
+recovery/save/guard probes remain separate. A matched 28-bar sync comparison
+earned 14,550 points versus 5,350 when face presses were ignored. See
+`review-cache-combat-polish/combat-integration.json`; owner device acceptance
+is pending. The actual L1-only contact probe earns its first ram/takedown at
+bar 7 with zero Attack/Defend/Disrupt/face presses and no player damage.
+The initial polish receipts retain their earlier source hashes separately;
+current receipts include the later physical contact correction.
+Ram contact now retains earned reward placement, points and full takedown
+duration. Nonlethal contact uses its authored FX/sound without a score popup.
+The prior physical-ram receipt remains separately attributed; final-head
+regression/browser/publication attestations belong to the generated export.
+
 ## October 1 — authored combat chase candidate in PR #169
 
 The playable mechanics checkpoint below now has painted kicking bikers,

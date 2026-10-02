@@ -410,7 +410,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-guidance.js',
         fittedText(ctx,'Catch / hold a lane in the song',x+53,y+23,194,13,'#d4dfec');
       }
       fittedText(ctx,'MATCH THE PAD / PRESS ON ONE AT THE TIRES',440,563,548,17,'#a0ffe4');
-      fittedText(ctx,'FOUR IN SYNC: OPTIMUM SPEED / POWER / LOW FOOTPRINT',440,590,548,15,'#d4dfec');
+      fittedText(ctx,'FULL SYNC: 2x POWER / 3x AMMO / LOWER FOOTPRINT',440,590,548,15,'#d4dfec');
       const skillIndices=[5,4,6,7],details=['Strike close / fire aligned','Launch on the next ONE','Time your guard for contact','Interrupt the enemy lock'];
       for(let i=0;i<4;i++) {
         const index=skillIndices[i],col=i%2,row=Math.floor(i/2),x=440+col*277,y=632+row*56,badge=getBadge(index,road);

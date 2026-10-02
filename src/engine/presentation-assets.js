@@ -47,6 +47,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     cacheCombatBike: {path:'assets/cache-road/combat/bike-rider-atlas.webp',root:cacheCombatRoot,columns:4,rows:2,frames:8,ax:.5,ay:1,smooth:true},
     cacheCombatHostiles: {path:'assets/cache-road/combat/hostile-chassis-atlas.webp',root:cacheCombatRoot,columns:4,rows:3,frames:12,ax:.5,ay:1,smooth:true},
     cacheCombatBikeCrash: {path:'assets/cache-road/combat/bike-crash-atlas.webp',root:cacheCombatRoot,columns:3,rows:2,frames:6,ax:.5,ay:1,smooth:true},
+    cacheCombatFX: {path:'assets/cache-road/combat/projectile-contact-atlas.webp',root:'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3500643aeebacedd8c679cb3db54ea842e13be32/',columns:4,rows:3,frames:12,ax:.5,ay:.5,smooth:true},
     cacheCombatBlast: {path:'assets/cache-road/combat/combat-blast-atlas.webp',root:cacheCombatRoot,columns:3,rows:2,frames:6,ax:.5,ay:.5,smooth:true},
     cachePursuitRig: { path: 'assets/cache-road/pursuit/pursuit-rig-atlas.webp', root: cachePursuitRoot,
       columns: 4, rows: 2, frames: 8, ax: .5, ay: 473 / 512, smooth: true },

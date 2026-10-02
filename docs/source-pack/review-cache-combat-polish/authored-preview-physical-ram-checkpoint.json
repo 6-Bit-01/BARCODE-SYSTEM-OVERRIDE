@@ -1,0 +1,671 @@
+{
+  "kind": "native-input-driven-edited-combat-control-study",
+  "stage": "authored",
+  "label": "COMBAT POLISH / actual production input",
+  "recordedAtUtc": "2026-10-02T00:15:46.842Z",
+  "sourceFramesPerSecond": 6,
+  "width": 1280,
+  "height": 756,
+  "frames": 169,
+  "durationSeconds": 28.166666666666668,
+  "windows": [
+    {
+      "name": "Early bike skirmish",
+      "fromBar": 6,
+      "toBar": 10
+    },
+    {
+      "name": "Mixed chase",
+      "fromBar": 28,
+      "toBar": 31
+    },
+    {
+      "name": "Actual bike takedown",
+      "fromBar": 4.895999999999943,
+      "toBar": 6.229333333333276,
+      "trigger": "earned live observation"
+    },
+    {
+      "name": "Actual guard activation",
+      "fromBar": 17.471999999999746,
+      "toBar": 18.645333333333078,
+      "trigger": "earned live observation"
+    },
+    {
+      "name": "Rig approach",
+      "fromBar": 72.01066666666414,
+      "toBar": 73.0773333333308,
+      "trigger": "earned live observation"
+    },
+    {
+      "name": "Actual rig damage",
+      "fromBar": 73.023999999998,
+      "toBar": 74.89066666666466,
+      "trigger": "earned live observation"
+    },
+    {
+      "name": "Actual rig defeat and wreck pass",
+      "fromBar": 76.35199999999969,
+      "toBar": 79.01866666666636,
+      "trigger": "earned live observation"
+    }
+  ],
+  "audio": "silent; production audio clock is a controlled host; no listening acceptance",
+  "policy": "One complete production Campaign + ActionInput + shared RAF combat race. Native images replace network delivery only. No road position, health, immunity, skills, sync, captures, score, enemy HP or camera state is assigned. Selected noncontiguous windows are edited together without interpolation; fixed six-fps samples snap to the real 20ms input-update clock, with each captured timestamp recorded.",
+  "limitations": "Deterministic input controller and native Canvas host. Authored combat assets use the registered production helper; actual submitted keys and frames are recorded separately. Six-fps sampling is a capture limit, not measured game FPS. Not a human, Makko, physical-controller, audio, comfort or device-performance acceptance.",
+  "sourceHashes": {
+    "src/game/cache-road-encounters.js": "6466de9becaa7f90303f79d2572ca22a3e981e6059286c05a537da1673fdba54",
+    "src/game/cache-road-reactions.js": "47748481a8426278bb23f3358916a9c3345c55af7507866bb561a8180ceb4753",
+    "src/game/cache-road-pursuit.js": "53ea656d99680c261bf9492ba6373efc5393bca23a34ab4203e8936908b6b00b",
+    "src/game/cache-road-combat.js": "0592c8a5ff6bcb368f6c4d7bd9aa03d7b14aade917d1e8cdb84b34027c526e4f",
+    "src/game/cache-road-proof.js": "e19d2246f6cf18e49f8ec7e43f794260f24fd89025cfa9b133259353f43b8f0c",
+    "src/game/cache-chapter.js": "570f2f28c68c9769d09768c36faefbf968a22ede0534644a0a1481d7ac98e55e",
+    "src/core/action-input.js": "0b83bff3df03cf3ca6ecfdc7f5ec29e719d18688347cd933a6bf2c43c0de73c9",
+    "src/core/gamepad-ui.js": "621309ea7c6c42ad3e05b2b5343fe301e75fe45017a94088bb55e545c8403aa7",
+    "src/core/input.js": "33cfde3ce29d19770574f04360008d3cc92629ec6402c1325f217d9377917442",
+    "src/core/loop.js": "a9d6ce5704c169e999938e3caa6b5727aff55d04d66e55f78f45057b0ffbc321",
+    "src/core/runtime-lifecycle.js": "b027736b2dec0f7f0aae12ae57f8591a5d1b876b53659b5fa9345c4afd6179da",
+    "src/engine/cache-road-proof-profile.js": "582cce91bdf042759d8c6dccbd8ed1d033088a8d052b72ef5a685131dea42b8f",
+    "src/engine/music-transport.js": "26c19d8e63871472a91055614b5fafe9fab8216ba16486dc02020e1b76ef41dd",
+    "src/engine/music-director.js": "1baeaf1a180e737e0757be809aec8d7f9c65abdde88d94e742cb2a931aa103bb",
+    "tools/check-cache-road-races.cjs": "2b0336b0dc8c47b352ef39b84982c84362d7e9495f56615503c8e6577559e3ce",
+    "tools/check-cache-completion-flow.cjs": "4e1aa750f4345f04232c1f1d901feef7d7823471b3d5ac034a48ba27d421f0af",
+    "tools/check-cache-combat-integration.cjs": "e186ff84c83a2178eb82aa6d1ac0e91e69f03cb8323e836b9a41f2218a597d4f",
+    "src/engine/presentation-assets.js": "2153dccec0342c64e6a40dddbb8f2fc0e3dfb80e237b3c5fd08a3a84c8ac78be",
+    "index.html": "0d4b043ae55de39e2a5db176901f5a8ddb4ee4d3ce4b1342f8838bbfd0fc7f95",
+    "src/game/cache-road-guidance.js": "d6b421ee0b12943d0195d2182b6a8d9f12baf113ed5bb356a828e24a5a83be94",
+    "src/game/cache-road-landscape.js": "edded8fd194927ea19e3d74156ed694b89cc8337f85eb70347dde78b9f355f03",
+    "src/game/cache-road-combat-art.js": "bee35432c370abec4ee646f8b5f8fa58e34614c57257458eb5da300e2ae4e451",
+    "src/game/cache-road-boss-art.js": "1ee094ebe878668eb276dfd7b3c91e6563ca053aa613fd4e0b06b6d40fe03c8b",
+    "tools/render-cache-combat-review.cjs": "7550320fc08ab492d2179bfb370e75f72bbe8f65256c0dbe9d62b3d5529478dd"
+  },
+  "sourcesStable": true,
+  "drawnAssets": {
+    "cacheDistantCity": 338,
+    "cacheOutskirts": 338,
+    "cacheMidCity": 338,
+    "cacheFly1": 338,
+    "cacheFly3": 507,
+    "cacheOuterGround": 7218,
+    "cacheRollingGrain": 7218,
+    "cacheLocalStreet": 3954,
+    "cacheDecalStopLine": 292,
+    "cacheDecalCrosswalk": 282,
+    "cacheDecalServiceStencil": 254,
+    "cacheDecalDrainage": 308,
+    "cacheSidewalk": 3944,
+    "cacheBlacktop": 7593,
+    "cachePylon": 1059,
+    "cacheStreetBenchPlanters": 435,
+    "cacheNewLoadingCrates": 343,
+    "cachePlaceApartment": 140,
+    "cacheNewBinsRecycling": 601,
+    "cachePlaceHouse": 163,
+    "cacheNewCrossingSignalR": 192,
+    "cachePersonBicycleCourierTravel": 392,
+    "cacheNewFencePlanter": 305,
+    "cacheNewLampR": 200,
+    "cacheNewVendorCart": 320,
+    "cacheWalkerMechanicTravel": 357,
+    "cacheWalkerCourierTravel": 349,
+    "cacheMarketRRear": 150,
+    "cacheWalkerGardenerTravel": 519,
+    "cachePersonGardenerActivity": 82,
+    "cacheWalkerResidentTravel": 208,
+    "cacheMarketRFrontGap": 62,
+    "cachePlaceGarden": 133,
+    "cachePlacePark": 101,
+    "cacheGreenhouseWorkshop": 75,
+    "cachePersonCrateCarrierTravel": 309,
+    "cacheParapet": 3601,
+    "cacheStreetBicycleRack": 314,
+    "cacheMarketLMiddle": 114,
+    "cacheStreetDataKiosk": 208,
+    "cacheMarketRFrontFill": 61,
+    "cacheAmbientMarket": 242,
+    "cacheMarketLFrontFill": 60,
+    "cachePlaceRelayExchange": 57,
+    "cachePersonElectricianActivity": 253,
+    "cachePersonHandheldPlayerTravel": 396,
+    "cacheMarketLRear": 79,
+    "cacheStreetDeliveryVan": 473,
+    "cacheNewUtilityCabinet": 408,
+    "cachePersonSweeperActivity": 219,
+    "cacheStreetWorkSupplies": 565,
+    "cacheOutskirtsWorkshops": 104,
+    "cacheJoinLStreetWall": 61,
+    "cacheMarketLFrontGap": 35,
+    "cacheJoinLEndcap": 45,
+    "cachePulseStrip": 242,
+    "cachePulsePad": 478,
+    "cacheBrakeReflection": 1564,
+    "cacheCourier": 789,
+    "cacheCombatBlast": 93,
+    "cacheCombatBikeCrash": 225,
+    "cacheCombatFX": 57,
+    "cacheCar": 122,
+    "cacheWindWhoosh": 1048,
+    "cacheDashBezel": 338,
+    "cacheDashDigits": 2028,
+    "cacheDashIcons": 507,
+    "cacheMarketRMiddle": 29,
+    "cachePersonSkateboarderTravel": 107,
+    "cachePlaceMarket": 131,
+    "cacheNewLampL": 152,
+    "cachePlaceGarage": 138,
+    "cacheNewCrossingSignalL": 158,
+    "cacheMirror": 169,
+    "cachePersonWavingResidentActivity": 172,
+    "cacheConfirmedBar": 764,
+    "cachePulseBurst": 96,
+    "cachePursuitImpact": 119,
+    "cacheSpeedMist": 104,
+    "cacheCarLeft": 22,
+    "cachePlaceConstruction": 205,
+    "cacheWalkerStudentTravel": 371,
+    "cacheJoinRStreetWall": 165,
+    "cacheJoinRTurn": 80,
+    "cacheJoinRCurb": 80,
+    "cacheRepairShop": 71,
+    "cachePersonStudent": 48,
+    "cacheCombatBike": 191,
+    "cacheJoinREndcap": 85,
+    "cacheFreight": 366,
+    "cachePersonUmbrella": 84,
+    "cacheCombatHostiles": 293,
+    "cacheBraceHalo": 290,
+    "cacheCarRight": 25,
+    "cacheWalkerMarketWorkerTravel": 366,
+    "cacheHomesRFrontGap": 92,
+    "cacheHomesLFrontFill": 37,
+    "cacheShuttle": 540,
+    "cacheHomesLMiddle": 76,
+    "cacheHomesLRear": 62,
+    "cachePlaceSubstation": 25,
+    "cachePlaceNightDataMarket": 14,
+    "cacheHomesRFrontFill": 14,
+    "cacheHomesRRear": 49,
+    "cacheTransitNook": 19,
+    "cachePlaceDiner": 48,
+    "cachePersonStreetCookActivity": 14,
+    "cacheAmbientHomes": 28,
+    "cacheResidentialPaving": 158,
+    "cachePlaceCapacitorExchange": 124,
+    "cacheUtilityCorner": 111,
+    "cachePlaceConstructionHorizon": 34,
+    "cacheWorkshopRMiddle": 68,
+    "cacheWorkshopLMiddle": 69,
+    "cacheWorkshopRFrontFill": 57,
+    "cacheAmbientWorkshop": 35,
+    "cacheHomesLFrontGap": 34,
+    "cacheWorkshopLFrontFill": 33,
+    "cachePlaceConstructionRounded": 33,
+    "cacheWorkshopLRear": 1,
+    "cacheServiceCourtPaving": 52,
+    "cacheDecalWetRepairPatch": 30,
+    "cachePersonBoardPlayerActivity": 66,
+    "cacheOutskirtsHomes": 64,
+    "cacheNewWayfindingSign": 117,
+    "cacheDataRFrontFill": 55,
+    "cacheAmbientData": 110,
+    "cacheDataRRear": 76,
+    "cachePlaceGardenHorizon": 37,
+    "cacheDataRFrontGap": 43,
+    "cacheDataLFrontGap": 33,
+    "cachePursuitRig": 89,
+    "cacheAudit": 144,
+    "cacheDataRMiddle": 23,
+    "cacheDataLRear": 25,
+    "cacheVendorStall": 60,
+    "cacheTransitLFrontGap": 71,
+    "cacheDecalLoadingBay": 88,
+    "cacheJoinLTurn": 30,
+    "cacheJoinLCurb": 30,
+    "cacheTransitRFrontGap": 30,
+    "cacheTransitLRear": 20,
+    "cacheTransitRRear": 14,
+    "cacheTransitRFrontFill": 10,
+    "cacheTransitRMiddle": 1
+  },
+  "stills": [
+    {
+      "file": "Still-01.png",
+      "frame": 0,
+      "window": "Actual bike takedown",
+      "sha256": "e680513d470f200f12f2649179ff5e11458dd8e4ff0ef47535ad3556ea2ed040"
+    },
+    {
+      "file": "Still-02.png",
+      "frame": 13,
+      "window": "Early bike skirmish",
+      "sha256": "278e2e12b44d14c0308c64c30a96e4e2204d7e7793bfc30ce93021c4259186d0"
+    },
+    {
+      "file": "Still-03.png",
+      "frame": 58,
+      "window": "Actual guard activation",
+      "sha256": "49d1cd36aa928b6e87816d96f1aaa2d0fb1be707c827c5af588c3ccefc009dfd"
+    },
+    {
+      "file": "Still-04.png",
+      "frame": 72,
+      "window": "Mixed chase",
+      "sha256": "e7bf64313c43ccc3f6346f24b889dbe1d36676358e63aee1a3d43becb2f18816"
+    },
+    {
+      "file": "Still-05.png",
+      "frame": 106,
+      "window": "Rig approach",
+      "sha256": "30f026cba37573ad6959e51e602fd1d2413047ff3088186723b517ca05d321de"
+    },
+    {
+      "file": "Still-06.png",
+      "frame": 118,
+      "window": "Actual rig damage",
+      "sha256": "1154bd7cbbfec72fe8c271c477714b786f3322102c5dcf3a929b944f54e0b3b4"
+    },
+    {
+      "file": "Still-07.png",
+      "frame": 139,
+      "window": "Actual rig defeat and wreck pass",
+      "sha256": "0631a7669d5d358e00c1569fbafa32239f6ca73a020fd791ae1574e4c4596253"
+    }
+  ],
+  "timing": {
+    "category": "sampled native production draws on this host only",
+    "samples": 169,
+    "totalDrawMs": 4281.015,
+    "meanDrawMs": 25.331,
+    "p50DrawMs": 21.828,
+    "p95DrawMs": 32.665,
+    "maxDrawMs": 274.413,
+    "totalCaptureWallMs": 54918.892,
+    "scope": "Painter time excludes asset decoding, full-race updates, video composition and encoding; capture wall time includes them. Native Canvas capture timing is observational and is not browser/device FPS or acceptance."
+  },
+  "race": {
+    "difficulty": "standard",
+    "gear": 2,
+    "profile": "practiced",
+    "encounterVersion": 4,
+    "status": "clear",
+    "finalBar": 100.0000000000118,
+    "damageTaken": 0,
+    "accurate": 58,
+    "attempts": 62,
+    "combat": {
+      "version": 4,
+      "actors": [],
+      "projectiles": [],
+      "wrecks": [],
+      "target": null,
+      "boss": {
+        "id": "rig",
+        "kind": "rig",
+        "arrived": true,
+        "at": null,
+        "lane": 1.5,
+        "hp": 0,
+        "maxHp": 12,
+        "health": 0,
+        "systems": [
+          {
+            "id": "scanner",
+            "broken": true
+          },
+          {
+            "id": "ram",
+            "broken": true
+          },
+          {
+            "id": "emitter",
+            "broken": true
+          }
+        ],
+        "defeated": true,
+        "phase": "defeated",
+        "alpha": 1,
+        "visible": false
+      },
+      "skills": {
+        "attack": {
+          "ready": true,
+          "cooldownMs": 0,
+          "rechargeMs": 550,
+          "activeMs": 0,
+          "active": false,
+          "charges": 2,
+          "inFlight": false
+        },
+        "defend": {
+          "ready": true,
+          "cooldownMs": 0,
+          "rechargeMs": 4000,
+          "activeMs": 0,
+          "active": false
+        },
+        "turbo": {
+          "ready": true,
+          "cooldownMs": 0,
+          "rechargeMs": 7000,
+          "activeMs": 0,
+          "active": false,
+          "pending": false
+        },
+        "disrupt": {
+          "ready": true,
+          "cooldownMs": 0,
+          "rechargeMs": 8500,
+          "activeMs": 0,
+          "active": false
+        }
+      },
+      "syncCount": 0,
+      "benefits": {
+        "power": 1,
+        "recharge": 1,
+        "ammoMs": 4500,
+        "footprint": 1
+      },
+      "footprint": 1,
+      "stats": {
+        "damageDealt": 73,
+        "takedowns": 24,
+        "playerHits": 0,
+        "blocks": 0,
+        "shots": 43,
+        "attacks": 49,
+        "defends": 6,
+        "turbos": 23,
+        "disrupts": 5
+      }
+    },
+    "bossChanges": [
+      {
+        "bar": 72.01066666666414,
+        "previousHp": null,
+        "id": "rig",
+        "kind": "rig",
+        "arrived": true,
+        "at": 8276.026446372978,
+        "lane": 3,
+        "hp": 12,
+        "maxHp": 12,
+        "health": 3,
+        "systems": [
+          {
+            "id": "scanner",
+            "broken": false
+          },
+          {
+            "id": "ram",
+            "broken": false
+          },
+          {
+            "id": "emitter",
+            "broken": false
+          }
+        ],
+        "defeated": false,
+        "phase": "approach",
+        "alpha": 1,
+        "visible": true
+      },
+      {
+        "bar": 73.023999999998,
+        "previousHp": 12,
+        "id": "rig",
+        "kind": "rig",
+        "arrived": true,
+        "at": 8321.138841800675,
+        "lane": 2.4065696597405988,
+        "hp": 10.5,
+        "maxHp": 12,
+        "health": 3,
+        "systems": [
+          {
+            "id": "scanner",
+            "broken": false
+          },
+          {
+            "id": "ram",
+            "broken": false
+          },
+          {
+            "id": "emitter",
+            "broken": false
+          }
+        ],
+        "defeated": false,
+        "phase": "stunned",
+        "alpha": 1,
+        "visible": true
+      },
+      {
+        "bar": 74.11199999999855,
+        "previousHp": 10.5,
+        "id": "rig",
+        "kind": "rig",
+        "arrived": true,
+        "at": 8366.90014864116,
+        "lane": 2.4065696597405988,
+        "hp": 8.4,
+        "maxHp": 12,
+        "health": 3,
+        "systems": [
+          {
+            "id": "scanner",
+            "broken": false
+          },
+          {
+            "id": "ram",
+            "broken": false
+          },
+          {
+            "id": "emitter",
+            "broken": false
+          }
+        ],
+        "defeated": false,
+        "phase": "recover",
+        "alpha": 1,
+        "visible": true
+      },
+      {
+        "bar": 74.42133333333204,
+        "previousHp": 8.4,
+        "id": "rig",
+        "kind": "rig",
+        "arrived": true,
+        "at": 8386.332530556801,
+        "lane": 2.4065696597405988,
+        "hp": 6.3,
+        "maxHp": 12,
+        "health": 2,
+        "systems": [
+          {
+            "id": "scanner",
+            "broken": true
+          },
+          {
+            "id": "ram",
+            "broken": false
+          },
+          {
+            "id": "emitter",
+            "broken": false
+          }
+        ],
+        "defeated": false,
+        "phase": "recover",
+        "alpha": 1,
+        "visible": true
+      },
+      {
+        "bar": 75.38133333333253,
+        "previousHp": 6.3,
+        "id": "rig",
+        "kind": "rig",
+        "arrived": true,
+        "at": 8473.102635721269,
+        "lane": 2.4065696597405988,
+        "hp": 5,
+        "maxHp": 12,
+        "health": 2,
+        "systems": [
+          {
+            "id": "scanner",
+            "broken": true
+          },
+          {
+            "id": "ram",
+            "broken": false
+          },
+          {
+            "id": "emitter",
+            "broken": false
+          }
+        ],
+        "defeated": false,
+        "phase": "approach",
+        "alpha": 1,
+        "visible": true
+      },
+      {
+        "bar": 75.47733333333258,
+        "previousHp": 5,
+        "id": "rig",
+        "kind": "rig",
+        "arrived": true,
+        "at": 8486.287583274703,
+        "lane": 2.4065696597405988,
+        "hp": 1,
+        "maxHp": 12,
+        "health": 1,
+        "systems": [
+          {
+            "id": "scanner",
+            "broken": true
+          },
+          {
+            "id": "ram",
+            "broken": true
+          },
+          {
+            "id": "emitter",
+            "broken": false
+          }
+        ],
+        "defeated": false,
+        "phase": "stunned",
+        "alpha": 1,
+        "visible": true
+      },
+      {
+        "bar": 76.35199999999969,
+        "previousHp": 1,
+        "id": "rig",
+        "kind": "rig",
+        "arrived": true,
+        "at": 8595.355531570496,
+        "lane": 2.4065696597405988,
+        "hp": 0,
+        "maxHp": 12,
+        "health": 0,
+        "systems": [
+          {
+            "id": "scanner",
+            "broken": true
+          },
+          {
+            "id": "ram",
+            "broken": true
+          },
+          {
+            "id": "emitter",
+            "broken": true
+          }
+        ],
+        "defeated": true,
+        "phase": "defeated",
+        "alpha": 1,
+        "visible": true
+      }
+    ]
+  },
+  "actualRigWreckPassedInCapturedFrames": true,
+  "artifact": "/workspace/scratch/a7a7f97e9bdd/combat-polish-final3-preview/Combat-Polish-Preview.mp4",
+  "videoSha256": "a600f0facb5c4330408f2301c77215bc607a5dcb4363a2ccb9594639e57458f5",
+  "videoBytes": 14054154,
+  "checkoutRevision": "e45f9fdef8d20c6a1f4d1b6207364a39592f4ea4",
+  "encodingVerification": {
+    "method": "Independent ffmpeg raw RGBA encode and ffprobe",
+    "rawBytes": 654151680,
+    "probe": {
+      "programs": [],
+      "streams": [
+        {
+          "width": 1280,
+          "height": 756,
+          "duration": "28.166667",
+          "nb_frames": "169"
+        }
+      ],
+      "format": {
+        "duration": "28.166667",
+        "size": "14054154"
+      }
+    }
+  },
+  "fullDiagnostic": {
+    "path": "/workspace/scratch/a7a7f97e9bdd/combat-polish-final3-preview/Combat-Mechanics-Preview.json",
+    "sha256": "730eba96deeda997a26c27cec886ed6bb14e4fb452abf547a79725ed1318a769",
+    "bytes": 920239
+  },
+  "assets": {
+    "cacheCombatBike": {
+      "path": "assets/cache-road/combat/bike-rider-atlas.webp",
+      "sha256": "938ef4b19f6f9828f62a5cd7af6d7d9f9c5ac9e934b67b7b951f2d8be5c732f7",
+      "width": 1792,
+      "height": 1024,
+      "columns": 4,
+      "rows": 2,
+      "frames": 8
+    },
+    "cacheCombatHostiles": {
+      "path": "assets/cache-road/combat/hostile-chassis-atlas.webp",
+      "sha256": "8be95816fb9eb9010b62f9b4e59eb23afe24a2caa267112d8248624d60412515",
+      "width": 1728,
+      "height": 1200,
+      "columns": 4,
+      "rows": 3,
+      "frames": 12
+    },
+    "cacheCombatBikeCrash": {
+      "path": "assets/cache-road/combat/bike-crash-atlas.webp",
+      "sha256": "a88665419fd43e44b7f74f8ef60450402aa88a89aa0ce89547327796690402bd",
+      "width": 1728,
+      "height": 960,
+      "columns": 3,
+      "rows": 2,
+      "frames": 6
+    },
+    "cacheCombatFX": {
+      "path": "assets/cache-road/combat/projectile-contact-atlas.webp",
+      "sha256": "de2389d2e8dbbcb4c8e94406f812bfcbdc100b27320b812f7dec60763b9c2493",
+      "width": 1448,
+      "height": 1086,
+      "columns": 4,
+      "rows": 3,
+      "frames": 12
+    },
+    "cacheCombatBlast": {
+      "path": "assets/cache-road/combat/combat-blast-atlas.webp",
+      "sha256": "32b384402d9c84fe5ef44b2604c41cee6e36ec5f4b0763eac18c9632deec5b3d",
+      "width": 1872,
+      "height": 1056,
+      "columns": 3,
+      "rows": 2,
+      "frames": 6
+    }
+  }
+}
