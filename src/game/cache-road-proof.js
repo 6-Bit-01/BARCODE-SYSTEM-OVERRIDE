@@ -2739,7 +2739,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           s.combatFx=(s.combatFx||[]).filter(fx=>s.elapsedMs-fx.atMs<fx.duration).slice(-11);
           s.combatFx.push({type,at:body.at,lane:body.lane,atMs:s.elapsedMs,duration:type==='muzzle'?130:400});
         }
-        if(event.type==='ram-impact'){s.passFlashMs=400;s.passKind='RAM IMPACT';this.cue('damage',{material:event.kind,intensity:.7});}
+        // Contact has authored paint/sound, but no score of its own. Preserve
+        // any earned receipt, including a takedown earlier in this sequence.
+        if(event.type==='ram-impact')this.cue('damage',{material:event.kind,intensity:.7});
         if(event.type==='hit')this.hit(event.kind,event,true);
         else if(event.type==='turbo') {
           s.queuedTurbo=true;s.turboBeat=this.nextShiftBeat();s.opening.turbo=true;

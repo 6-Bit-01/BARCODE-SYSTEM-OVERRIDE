@@ -5,7 +5,7 @@
     "src/game/cache-road-reactions.js": "47748481a8426278bb23f3358916a9c3345c55af7507866bb561a8180ceb4753",
     "src/game/cache-road-pursuit.js": "53ea656d99680c261bf9492ba6373efc5393bca23a34ab4203e8936908b6b00b",
     "src/game/cache-road-combat.js": "0592c8a5ff6bcb368f6c4d7bd9aa03d7b14aade917d1e8cdb84b34027c526e4f",
-    "src/game/cache-road-proof.js": "be5d12b4f3ada7719d1c3ea2e77f27c62b693e422485e8e4ad11d77a3a0509c9",
+    "src/game/cache-road-proof.js": "e19d2246f6cf18e49f8ec7e43f794260f24fd89025cfa9b133259353f43b8f0c",
     "src/game/cache-chapter.js": "570f2f28c68c9769d09768c36faefbf968a22ede0534644a0a1481d7ac98e55e",
     "src/core/action-input.js": "0b83bff3df03cf3ca6ecfdc7f5ec29e719d18688347cd933a6bf2c43c0de73c9",
     "src/core/gamepad-ui.js": "621309ea7c6c42ad3e05b2b5343fe301e75fe45017a94088bb55e545c8403aa7",
@@ -7385,8 +7385,8 @@
       "duplicate boss pose fields on HP transitions"
     ],
     "fullDiagnosticTrace": {
-      "path": "/workspace/scratch/a7a7f97e9bdd/combat-integration-full.json",
-      "sha256": "6d996b74ba59747adb7b91b96d4a57ee1b743d02c1efb74715e698dbe7a21b66",
+      "path": "/workspace/scratch/a7a7f97e9bdd/combat-polish-final3-integration-full.json",
+      "sha256": "c73b58ee47eccd6eb232b46dd3e93a4efad9db1019f698423fe28c8f68681e45",
       "bytes": 4394882,
       "availability": "Full diagnostic retained outside the checkout; this receipt omits the full trace."
     },

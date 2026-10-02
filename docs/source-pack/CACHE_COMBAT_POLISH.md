@@ -19,6 +19,10 @@ queued next-ONE Turbo alone gives no damage/immunity. Neutral/winding-up foes do
 match the boosted speed. A production L1-only probe verifies real catches
 while Attack, Defend, Disrupt and face presses are withheld. New checkpoints clear the transient ram ledger and
 old v4 checkpoints remain compatible. Ordinary hits still return to first gear.
+Ram contact uses its authored impact paint and sound without opening a score
+popup. It preserves existing earned points and the complete takedown receipt;
+nonlethal contact does not advertise zero or stale points. Regression probes
+exercise fresh contact, a preceding reward and the actual lethal event order.
 Hostile lateral follow and player visual lane follow use exponential smoothing.
 
 Each active musical part adds 25% attack power and reduces skill recharge by

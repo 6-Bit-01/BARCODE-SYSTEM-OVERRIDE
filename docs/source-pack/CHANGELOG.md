@@ -7,6 +7,8 @@ shots; add physical Turbo rams with bounded per-boost contacts. Smooth lateral
 movement, reuse main-draw combat views, add twelve authored bullet/contact FX
 cells, strengthen actual sync power/reload/recharge/points and explain them
 in fixed HUD feedback. Preserve old checkpoints/rules and #169 test attribution.
+Correct ram contact feedback to preserve earned receipts; nonlethal contact
+uses its paint/sound without inventing points or shortening a takedown popup.
 
 ## October 1 — authored combat chase in PR #169
 

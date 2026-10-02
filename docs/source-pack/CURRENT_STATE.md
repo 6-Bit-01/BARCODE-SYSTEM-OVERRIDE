@@ -16,6 +16,10 @@ is pending. The actual L1-only contact probe earns its first ram/takedown at
 bar 7 with zero Attack/Defend/Disrupt/face presses and no player damage.
 The initial polish receipts retain their earlier source hashes separately;
 current receipts include the later physical contact correction.
+Ram contact now retains earned reward placement, points and full takedown
+duration. Nonlethal contact uses its authored FX/sound without a score popup.
+The prior physical-ram receipt remains separately attributed; final-head
+regression/browser/publication attestations belong to the generated export.
 
 ## October 1 — authored combat chase candidate in PR #169
 
