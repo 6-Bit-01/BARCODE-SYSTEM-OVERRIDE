@@ -197,7 +197,8 @@ async function nativeRasterUnit(){
   assert.equal(retry.nativeFrames.length,8);
   assert(Object.values(w.bitmapReview.cache).reduce((sum,state)=>sum+
     (state.nativeBitmap?state.nativeBitmap.width*state.nativeBitmap.height:0)+
-    (state.nativeFrames||[]).reduce((pixels,bitmap)=>pixels+bitmap.width*bitmap.height,0),0)<=32*1024*1024);
+    (state.nativeFrames||[]).reduce((pixels,bitmap)=>pixels+bitmap.width*bitmap.height,0)+
+    (state.nativeWindows||[]).reduce((pixels,item)=>pixels+item.bitmap.width*item.bitmap.height,0),0)<=32*1024*1024);
   console.log('PASS: bounded original-size native frames, unchanged crop/registration, cross-cel fallback, atomic failures and concurrent reservations.');
 }
 
@@ -235,6 +236,49 @@ async function nativeSmallUnit(){
       (state.nativeBitmap?state.nativeBitmap.width*state.nativeBitmap.height:0),0)<=512*1024);
   }
   console.log('PASS: bounded original-size small native sources, concurrent reservations, unchanged filtered placement, reuse and failure fallback.');
+}
+
+async function nativeWindowUnit(){
+  for(const failure of ['none','reject','throw','invalid']){
+    const prepared=[],closed=[];
+    class Image{constructor(){this.naturalWidth=2039;this.naturalHeight=771;}}
+    const w={Image,BARCODE:{},createImageBitmap(image,...crop){
+      prepared.push(crop);
+      if(failure==='throw')throw Error('unsupported');
+      if(failure==='reject')return Promise.reject(Error('unsupported'));
+      return Promise.resolve({width:failure==='invalid'?0:crop[2],height:crop[3],close(){closed.push(this);}});
+    }};
+    vm.runInNewContext(inspected,{window:w});
+    const {cache}=w.bitmapReview,P=w.BARCODE.PresentationAssets;
+    cache.cacheMirror.image.naturalWidth=1536;cache.cacheMirror.image.naturalHeight=1024;
+    cache.cacheDashBezel.image.onload();cache.cacheMirror.image.onload();
+    await new Promise(setImmediate);
+    assert.equal(prepared.length,7);
+    assert.deepEqual(prepared[0],[10,118,2022,516]);
+    assert.deepEqual(prepared.slice(1),Array.from({length:6},(_,index)=>[index%3*512,Math.floor(index/3)*512+148,452,189]));
+    assert.equal(closed.length,failure==='invalid'?7:0);
+    for(const key of ['cacheDashBezel','cacheMirror']){
+      assert(cache[key].ready);assert.equal(cache[key].nativePending,false);
+      assert.equal(!!cache[key].nativeWindows,failure==='none');
+    }
+    const calls=[],ctx={imageSmoothingEnabled:true,filter:'none',save(){},restore(){},translate(){},scale(){},drawImage(...args){calls.push(args);}};
+    P.setRasterDetail(ctx,1/6);
+    P.draw('cacheDashBezel',ctx,{width:605,height:153,sourceRect:[12,120,2018,512]});
+    assert.equal(calls.at(-1)[0],cache.cacheDashBezel.nativeWindows?.[0].bitmap||cache.cacheDashBezel.image);
+    assert.deepEqual(calls.at(-1).slice(1),failure==='none'?[2,2,2018,512,0,0,605,153]:[12,120,2018,512,0,0,605,153]);
+    P.draw('cacheMirror',ctx,{width:280,height:111,frame:4,sourceRect:[0,150,450,185]});
+    assert.equal(calls.at(-1)[0],cache.cacheMirror.nativeWindows?.[4].bitmap||cache.cacheMirror.image);
+    assert.deepEqual(calls.at(-1).slice(1),failure==='none'?[0,2,450,185,-140,-55.5,280,111]:[512,662,450,185,-140,-55.5,280,111]);
+    P.draw('cacheMirror',ctx,{width:280,height:111,frame:4,sourceRect:[0,0,450,450]});
+    assert.equal(calls.at(-1)[0],cache.cacheMirror.image,'outside-window crops retain the complete original atlas');
+    assert.deepEqual(calls.at(-1).slice(1),[512,512,450,450,-140,-55.5,280,111]);
+    assert.equal(ctx.filter,'none');assert.equal(ctx.imageSmoothingEnabled,true);
+    const before=prepared.length;P.preload();
+    for(let i=0;i<10;i++)P.draw('cacheMirror',ctx,{width:280,height:111,frame:4,sourceRect:[0,150,450,185]});
+    assert.equal(prepared.length,before,'drawing and pause reuse immutable native windows');
+    assert(Object.values(cache).reduce((sum,state)=>sum+(state.nativeWindows||[]).reduce((n,item)=>n+item.bitmap.width*item.bitmap.height,0),0)<=32*1024*1024);
+  }
+  console.log('PASS: original-size bezel/face windows, native crop/cel registration, complete-atlas fallback, atomic failures and reuse.');
 }
 
 function budgetUnit(){
@@ -393,8 +437,8 @@ async function browser(){
       road.active=true;road.status='playing';road.audioDegraded=false;
       road.selectMusicProfile();BARCODE.MusicTransport.start({sourceAnchorAudioSec:0,sourceOffsetTrackSec:0});
       const bitmaps=Object.fromEntries(svg.map(key=>[key,cache[key].bitmap]));
-       const nativeBitmaps=Object.fromEntries(Object.entries(cache).filter(([,state])=>state.nativeBitmap||state.nativeFrames)
-         .map(([key,state])=>[key,{bitmap:state.nativeBitmap,frames:state.nativeFrames}]));
+       const nativeBitmaps=Object.fromEntries(Object.entries(cache).filter(([,state])=>state.nativeBitmap||state.nativeFrames||state.nativeWindows)
+         .map(([key,state])=>[key,{bitmap:state.nativeBitmap,frames:state.nativeFrames,windows:state.nativeWindows}]));
       const median=values=>{const v=values.slice().sort((a,b)=>a-b);return v[Math.floor(v.length/2)];};
       const rows=[],assetDraw=P.draw,bitmapFactory=window.createImageBitmap;
       const originalDrawImage=ctx.drawImage;let reflectionBlurs=0;
@@ -421,6 +465,7 @@ async function browser(){
          for(const [key,value]of Object.entries(nativeBitmaps)){
            cache[key].nativeBitmap=mode==='adaptive'?value.bitmap:undefined;
            cache[key].nativeFrames=mode==='adaptive'?value.frames:undefined;
+           cache[key].nativeWindows=mode==='adaptive'?value.windows:undefined;
          }
         road.chapter=structuredClone(scene.chapter);road.state=structuredClone(scene.state);
         BARCODE.Preferences.values.reducedMotion=scene.name==='Reduced';
@@ -502,7 +547,7 @@ async function browser(){
       }
       for(const key of svg)cache[key].bitmap=bitmaps[key];
        for(const [key,value]of Object.entries(nativeBitmaps)){
-          cache[key].nativeBitmap=value.bitmap;cache[key].nativeFrames=value.frames;
+          cache[key].nativeBitmap=value.bitmap;cache[key].nativeFrames=value.frames;cache[key].nativeWindows=value.windows;
         }
       window.createImageBitmap=bitmapFactory;bitmapReview.mode='adaptive';
       const frameComparisons=frameReviewScenes.map(({name})=>{
@@ -665,4 +710,4 @@ async function browser(){
     await fs.promises.rm(profile,{recursive:true,force:true,maxRetries:20,retryDelay:100});
   }
 }
-(async()=>{await unit();await backgroundRasterUnit();await nativeRasterUnit();await nativeSmallUnit();budgetUnit();if(process.argv.includes('--browser'))await browser();})().catch(e=>{console.error(e.stack);process.exitCode=1;});
+(async()=>{await unit();await backgroundRasterUnit();await nativeRasterUnit();await nativeSmallUnit();await nativeWindowUnit();budgetUnit();if(process.argv.includes('--browser'))await browser();})().catch(e=>{console.error(e.stack);process.exitCode=1;});

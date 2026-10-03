@@ -324,33 +324,38 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   const MAX_NATIVE_SMALL_PIXELS=512*1024;
   const MAX_NATIVE_RASTER_PIXELS=32*1024*1024;
   function prepareNativeRaster(key,entry,state) {
-    const image=state.image,w=image.naturalWidth,h=image.naturalHeight,pixels=w*h;
+    const image=state.image,w=image.naturalWidth,h=image.naturalHeight;
+    const fw=w/entry.columns,fh=h/entry.rows,cells=entry.columns*entry.rows;
+    const grid=entry.frames===cells&&Number.isInteger(fw)&&Number.isInteger(fh);
+    // These fixed HUD paints use only an interior source window. Retain its
+    // original texels plus a sampling margin; other crops use the original.
+    const windowCrop=grid&&key==='cacheDashBezel'&&fw>=2032&&fh>=634?
+      [10,118,2022,516]:grid&&key==='cacheMirror'&&fw>=452&&fh>=337?
+      [0,148,452,189]:null;
+    const pixels=windowCrop?windowCrop[2]*windowCrop[3]*cells:w*h;
     const smallNative=nativeSmallSources.has(key);
     if(!/^cache/.test(key)||(!/^assets\/cache-road\/(vehicles\/animation|combat|beat-system|hud)\//.test(entry.path)&&key!=='cachePursuitRig'&&!smallNative)||
       /\.svg$/i.test(entry.path)||pixels<(smallNative?64:256)*1024||
       smallNative&&pixels>MAX_NATIVE_SMALL_PIXELS-nativeSmallPixels||
       pixels>MAX_NATIVE_RASTER_PIXELS-nativeRasterPixels||
       typeof window.createImageBitmap!=='function')return;
-    // Decode once without resampling/cropping. Native foreground coordinates,
-    // detail and original-image fallback are unchanged; reserve before await.
     nativeRasterPixels+=pixels;if(smallNative)nativeSmallPixels+=pixels;state.nativePending=true;
     const fallback=()=>{nativeRasterPixels-=pixels;if(smallNative)nativeSmallPixels-=pixels;state.nativePending=false;};
-    const fw=w/entry.columns,fh=h/entry.rows,cells=entry.columns*entry.rows;
-    if(cells>1&&entry.frames===cells&&Number.isInteger(fw)&&Number.isInteger(fh)) {
-      // Keep each original-size cel as its own immutable source. Large full
-      // sheets otherwise enter clipped draws even for a tiny vehicle frame.
-      // The batch reserves no more pixels than the original complete atlas.
+    if(windowCrop||cells>1&&grid) {
+      const crop=windowCrop||[0,0,fw,fh],cw=crop[2],ch=crop[3];
       const preparations=Array.from({length:cells},(_,index)=>Promise.resolve().then(()=>
-        window.createImageBitmap(image,index%entry.columns*fw,
-          Math.floor(index/entry.columns)*fh,fw,fh)));
+        window.createImageBitmap(image,index%entry.columns*fw+crop[0],
+          Math.floor(index/entry.columns)*fh+crop[1],cw,ch)));
       Promise.allSettled(preparations).then(results=>{
         const valid=results.every(result=>result.status==='fulfilled'&&
-          result.value?.width===fw&&result.value?.height===fh);
+          result.value?.width===cw&&result.value?.height===ch);
         if(!valid){
           for(const result of results)if(result.status==='fulfilled')result.value?.close?.();
           fallback();return;
         }
-        state.nativeFrames=results.map(result=>result.value);state.nativePending=false;
+        if(windowCrop)state.nativeWindows=results.map(result=>({bitmap:result.value,crop}));
+        else state.nativeFrames=results.map(result=>result.value);
+        state.nativePending=false;
       });
       return;
     }
@@ -437,12 +442,16 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     const [sx, sy, sw, sh] = sourceRect || entry.frameCrops?.[index] || entry.crop || [0, 0, fw, fh];
     const h = height ?? width * sh / sw;
     const nativeFrame=!small&&sw>0&&sh>0&&sx>=0&&sy>=0&&sx+sw<=fw&&sy+sh<=fh&&state.nativeFrames?.[index];
-    const image=small||nativeFrame||state.nativeBitmap||state.bitmap||original;
+    const windowCandidate=!small&&sw>0&&sh>0&&state.nativeWindows?.[index];
+    const nativeWindow=windowCandidate&&sx>=windowCandidate.crop[0]&&sy>=windowCandidate.crop[1]&&
+      sx+sw<=windowCandidate.crop[0]+windowCandidate.crop[2]&&
+      sy+sh<=windowCandidate.crop[1]+windowCandidate.crop[3]?windowCandidate:null;
+    const image=small||nativeWindow?.bitmap||nativeFrame||state.nativeBitmap||state.bitmap||original;
     // Sample background sources directly at the already reduced footprint.
     // Functional sprites and diffuse native effects keep their authored sampler.
     const smooth=!!entry.smooth&&!(backgroundSources.has(key)&&(rasterDetail.get(ctx)||1)<=.25);
-    const sourceX = nativeFrame?sx:index % entry.columns * fw + sx;
-    const sourceY = nativeFrame?sy:Math.floor(index / entry.columns) * fh + sy;
+    const sourceX = nativeWindow?sx-nativeWindow.crop[0]:nativeFrame?sx:index % entry.columns * fw + sx;
+    const sourceY = nativeWindow?sy-nativeWindow.crop[1]:nativeFrame?sy:Math.floor(index / entry.columns) * fh + sy;
     const sourceScaleX=small?small.width/original.naturalWidth:1;
     const sourceScaleY=small?small.height/original.naturalHeight:1;
     if (flip || x !== 0 || y !== 0) {
