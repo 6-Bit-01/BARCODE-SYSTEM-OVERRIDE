@@ -321,7 +321,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   const nativeSmallSources=new Set(['cacheBrakeReflection','cacheDamagedExhaust',
     'cachePhraseStrip','cacheConfirmedBar','cachePulsePad','cachePulseStrip','cachePulseBurst']);
   let rasterPixels=0,nativeRasterPixels=0,nativeSmallPixels=0;
-  const MAX_NATIVE_SMALL_PIXELS=512*1024;
+  const MAX_NATIVE_SMALL_PIXELS=1536*1024;
   const MAX_NATIVE_RASTER_PIXELS=32*1024*1024;
   function prepareNativeRaster(key,entry,state) {
     const image=state.image,w=image.naturalWidth,h=image.naturalHeight;
@@ -331,11 +331,12 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     // original texels plus a sampling margin; other crops use the original.
     const windowCrop=grid&&key==='cacheDashBezel'&&fw>=2032&&fh>=634?
       [10,118,2022,516]:grid&&key==='cacheMirror'&&fw>=452&&fh>=337?
-      [0,148,452,189]:null;
+      [0,148,452,189]:grid&&key==='cacheBrakeReflection'&&fw>=194&&fh>=290?
+      [0,0,194,290]:null;
     const pixels=windowCrop?windowCrop[2]*windowCrop[3]*cells:w*h;
     const smallNative=nativeSmallSources.has(key);
     if(!/^cache/.test(key)||(!/^assets\/cache-road\/(vehicles\/animation|combat|beat-system|hud)\//.test(entry.path)&&key!=='cachePursuitRig'&&!smallNative)||
-      /\.svg$/i.test(entry.path)||pixels<(smallNative?64:256)*1024||
+      /\.svg$/i.test(entry.path)||!windowCrop&&pixels<(smallNative?32:256)*1024||
       smallNative&&pixels>MAX_NATIVE_SMALL_PIXELS-nativeSmallPixels||
       pixels>MAX_NATIVE_RASTER_PIXELS-nativeRasterPixels||
       typeof window.createImageBitmap!=='function')return;

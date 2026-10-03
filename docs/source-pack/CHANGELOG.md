@@ -1,5 +1,7 @@
 # Recovery checkpoint — September 14
 
+The small functional preparation pool now reserves up to 1.5 Mi-pixels inside the unchanged 32 Mi-pixel native budget, with a 32 Ki-pixel eligibility threshold. Real source sizes showed the previous 512 Ki-pixel pool excluded the repeatedly drawn 116,000-pixel brake reflection after two pulse sheets filled it, while the 64,256-pixel exhaust fell just below its old threshold. The brake preparation retains its used 192×290 source rectangle plus two right-edge sampling texels (194×290), saving 59,740 unused pixels without resampling; outside-window callers retain the full original. Concurrent pending reservations, exact pool exhaustion, native source coordinates, failures and original fallback remain tested. This follows the 0b9cb882 candidate's failed live-boss medians of 33.7/35.1 ms; all 33.33 ms gates remain unchanged.
+
 ## October 3, 2026 — continued lag repair after PR180 playtest
 
 - Adaptively sample background scenery on the existing display Canvas, then retain native actors, feedback, timing cues, face and HUD. Bound the lowest background to 320×180 and restore detail after sustained spare capacity.

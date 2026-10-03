@@ -1,5 +1,7 @@
 # Acceptance and Test Status
 
+The small functional preparation pool now reserves up to 1.5 Mi-pixels inside the unchanged 32 Mi-pixel native budget, with a 32 Ki-pixel eligibility threshold. Real source sizes showed the previous 512 Ki-pixel pool excluded the repeatedly drawn 116,000-pixel brake reflection after two pulse sheets filled it, while the 64,256-pixel exhaust fell just below its old threshold. The brake preparation retains its used 192×290 source rectangle plus two right-edge sampling texels (194×290), saving 59,740 unused pixels without resampling; outside-window callers retain the full original. Concurrent pending reservations, exact pool exhaustion, native source coordinates, failures and original fallback remain tested. This follows the 0b9cb882 candidate's failed live-boss medians of 33.7/35.1 ms; all 33.33 ms gates remain unchanged.
+
 ## October 3 — continued lag repair verification (PR #181)
 
 The exact tested revision is recorded in GitHub CI and the generated source-pack receipt. Before merge, require full `npm test`, `npm run check:syntax:all`, native loaded-art review and successful push and pull-request runs of both validation and Level 2 performance on the final head. Retain the actual merged tree in the exported manifest.

@@ -210,32 +210,53 @@ async function nativeSmallUnit(){
       prepared.push({image,args});
       if(failure==='throw')throw Error('unsupported');
       if(failure==='reject')return Promise.reject(Error('unsupported'));
-      return Promise.resolve({width:failure==='invalid'?0:400,height:290,close(){closed.push(this);}});
+      return Promise.resolve({width:failure==='invalid'?0:args[2]||400,height:args[3]||290,close(){closed.push(this);}});
     }};
     vm.runInNewContext(inspected,{window:w});
     const keys=['cacheBrakeReflection','cacheDamagedExhaust','cachePhraseStrip','cacheConfirmedBar','cachePulseBurst'];
     const {cache}=w.bitmapReview,P=w.BARCODE.PresentationAssets;
     for(const key of keys)cache[key].image.onload();
     await new Promise(setImmediate);
-    assert.equal(prepared.length,failure==='throw'?5:4,'small reservations include concurrent pending preparations');
-    assert(prepared.every(call=>call.args.length===0),'small native sources are unscaled complete originals');
-    assert.equal(closed.length,failure==='invalid'?4:0);
-    for(const key of keys.slice(0,4)){
+    assert.equal(prepared.length,5);
+    assert.deepEqual(prepared.find(call=>call.image===cache.cacheBrakeReflection.image).args,[0,0,194,290]);
+    assert(prepared.filter(call=>call.image!==cache.cacheBrakeReflection.image).every(call=>call.args.length===0),
+      'remaining small native sources are unscaled complete originals');
+    assert.equal(closed.length,failure==='invalid'?5:0);
+    for(const key of keys){
       const state=cache[key];assert(state.ready);assert.equal(state.nativePending,false);
-      assert.equal(!!state.nativeBitmap,failure==='none');
+      assert.equal(!!(state.nativeBitmap||state.nativeWindows),failure==='none');
     }
     const calls=[],ctx={globalAlpha:.37,filter:'hue-rotate(315deg)',imageSmoothingEnabled:true,
       save(){},restore(){},translate(){},scale(){},drawImage(...args){calls.push(args);}};
     P.setRasterDetail(ctx,1/6);
     for(let i=0;i<10;i++)P.draw('cacheBrakeReflection',ctx,
       {x:0,y:0,width:50,height:75,sourceRect:[0,0,192,290]});
-    assert(calls.every(call=>call[0]===(cache.cacheBrakeReflection.nativeBitmap||cache.cacheBrakeReflection.image)));
+    assert(calls.every(call=>call[0]===(cache.cacheBrakeReflection.nativeWindows?.[0].bitmap||cache.cacheBrakeReflection.image)));
     assert(calls.every(call=>JSON.stringify(call.slice(1))===JSON.stringify([0,0,192,290,-25,0,50,75])));
     assert.equal(ctx.filter,'hue-rotate(315deg)');assert.equal(ctx.globalAlpha,.37);
     assert(Object.values(cache).reduce((sum,state)=>sum+
-      (state.nativeBitmap?state.nativeBitmap.width*state.nativeBitmap.height:0),0)<=512*1024);
+      (state.nativeBitmap?state.nativeBitmap.width*state.nativeBitmap.height:0)+
+      (state.nativeWindows||[]).reduce((n,item)=>n+item.bitmap.width*item.bitmap.height,0),0)<=1536*1024);
   }
-  console.log('PASS: bounded original-size small native sources, concurrent reservations, unchanged filtered placement, reuse and failure fallback.');
+  // Concurrent pending sources count before any preparation resolves. Fill
+  // the small pool exactly, then confirm the next eligible crop falls back.
+  {
+    const prepared=[];
+    class Image{constructor(){this.naturalWidth=512;this.naturalHeight=512;}}
+    const w={Image,BARCODE:{},createImageBitmap(image){prepared.push(image);return Promise.resolve({width:512,height:512});}};
+    vm.runInNewContext(inspected,{window:w});
+    const {cache}=w.bitmapReview;
+    const keys=['cacheDamagedExhaust','cachePhraseStrip','cacheConfirmedBar','cachePulsePad','cachePulseStrip','cachePulseBurst'];
+    for(const key of keys)cache[key].image.onload();
+    cache.cacheBrakeReflection.image.onload();
+    assert.equal(prepared.length,6,'pending reservations cannot overbook the small pool');
+    assert(!cache.cacheBrakeReflection.nativePending,'a crop beyond the pool retains original-image fallback');
+    await new Promise(setImmediate);
+    assert(keys.every(key=>cache[key].nativeBitmap));
+    assert.equal(keys.reduce((sum,key)=>sum+cache[key].nativeBitmap.width*cache[key].nativeBitmap.height,0),1536*1024);
+    assert(!cache.cacheBrakeReflection.nativeWindows);
+  }
+  console.log('PASS: bounded original-size small native sources/crops, concurrent reservations, unchanged filtered placement, reuse and failure fallback.');
 }
 
 async function nativeWindowUnit(){
@@ -251,13 +272,15 @@ async function nativeWindowUnit(){
     vm.runInNewContext(inspected,{window:w});
     const {cache}=w.bitmapReview,P=w.BARCODE.PresentationAssets;
     cache.cacheMirror.image.naturalWidth=1536;cache.cacheMirror.image.naturalHeight=1024;
-    cache.cacheDashBezel.image.onload();cache.cacheMirror.image.onload();
+    cache.cacheBrakeReflection.image.naturalWidth=400;cache.cacheBrakeReflection.image.naturalHeight=290;
+    cache.cacheDashBezel.image.onload();cache.cacheMirror.image.onload();cache.cacheBrakeReflection.image.onload();
     await new Promise(setImmediate);
-    assert.equal(prepared.length,7);
+    assert.equal(prepared.length,8);
     assert.deepEqual(prepared[0],[10,118,2022,516]);
-    assert.deepEqual(prepared.slice(1),Array.from({length:6},(_,index)=>[index%3*512,Math.floor(index/3)*512+148,452,189]));
-    assert.equal(closed.length,failure==='invalid'?7:0);
-    for(const key of ['cacheDashBezel','cacheMirror']){
+    assert.deepEqual(prepared.slice(1,7),Array.from({length:6},(_,index)=>[index%3*512,Math.floor(index/3)*512+148,452,189]));
+    assert.deepEqual(prepared[7],[0,0,194,290]);
+    assert.equal(closed.length,failure==='invalid'?8:0);
+    for(const key of ['cacheDashBezel','cacheMirror','cacheBrakeReflection']){
       assert(cache[key].ready);assert.equal(cache[key].nativePending,false);
       assert.equal(!!cache[key].nativeWindows,failure==='none');
     }
@@ -272,13 +295,19 @@ async function nativeWindowUnit(){
     P.draw('cacheMirror',ctx,{width:280,height:111,frame:4,sourceRect:[0,0,450,450]});
     assert.equal(calls.at(-1)[0],cache.cacheMirror.image,'outside-window crops retain the complete original atlas');
     assert.deepEqual(calls.at(-1).slice(1),[512,512,450,450,-140,-55.5,280,111]);
+    P.draw('cacheBrakeReflection',ctx,{width:50,height:75,sourceRect:[0,0,192,290]});
+    assert.equal(calls.at(-1)[0],cache.cacheBrakeReflection.nativeWindows?.[0].bitmap||cache.cacheBrakeReflection.image);
+    assert.deepEqual(calls.at(-1).slice(1),[0,0,192,290,-25,0,50,75]);
+    P.draw('cacheBrakeReflection',ctx,{width:50,height:75,sourceRect:[0,0,400,290]});
+    assert.equal(calls.at(-1)[0],cache.cacheBrakeReflection.image,'unused reflection columns retain original fallback');
+    assert.deepEqual(calls.at(-1).slice(1),[0,0,400,290,-25,0,50,75]);
     assert.equal(ctx.filter,'none');assert.equal(ctx.imageSmoothingEnabled,true);
     const before=prepared.length;P.preload();
     for(let i=0;i<10;i++)P.draw('cacheMirror',ctx,{width:280,height:111,frame:4,sourceRect:[0,150,450,185]});
     assert.equal(prepared.length,before,'drawing and pause reuse immutable native windows');
     assert(Object.values(cache).reduce((sum,state)=>sum+(state.nativeWindows||[]).reduce((n,item)=>n+item.bitmap.width*item.bitmap.height,0),0)<=32*1024*1024);
   }
-  console.log('PASS: original-size bezel/face windows, native crop/cel registration, complete-atlas fallback, atomic failures and reuse.');
+  console.log('PASS: original-size bezel/face/brake windows, native crop/cel registration, complete-atlas fallback, atomic failures and reuse.');
 }
 
 function budgetUnit(){
