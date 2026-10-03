@@ -293,7 +293,7 @@ browserProof.step=ms=>{for(let left=ms;left>0;){const dt=Math.min(20,left);left-
   const cacheStates=measured?Object.values(window.bossPresentationReview.cache):[];
   const preparation=measured?{nativePending:cacheStates.filter(state=>state.nativePending||state.brakeTintPending).length,
     tintReady:cacheStates.filter(state=>state.brakeTintBitmap).length,
-    nativeReady:cacheStates.filter(state=>state.nativeBitmap||state.nativeFrames||state.nativeWindows).length,
+    nativeReady:cacheStates.filter(state=>state.nativeBitmap||state.nativeFrames||state.nativeWindows||state.brakeTintBitmap).length,
     backgroundPending:cacheStates.filter(state=>state.rasterPending).length,
     backgroundReady:cacheStates.filter(state=>state.rasterBitmap).length}:null;
   browserProof.paintPhases=[];let paintPhaseStarted=0;
@@ -885,7 +885,7 @@ async function main(){
       return {available:true,fixture:true,measuredCostMs:snapshot.measuredCostMs,worldScale:snapshot.worldScale,status:road.status,bar:road.state.musicBeatFloat/4,bossHP:road.state.combat.boss.hp,rows,
         unflushed,completeMs,finalFlushMs:completeMs-(submitted-start),renderFidelity,opaqueCopyFidelity,
         assetGroups:Object.entries(groups).sort((a,b)=>b[1].submitMs-a[1].submitMs).slice(0,24),
-        nativeInventory:Object.entries(cache).filter(([,state])=>state.nativeBitmap||state.nativeFrames||state.nativeWindows)
+        nativeInventory:Object.entries(cache).filter(([,state])=>state.nativeBitmap||state.nativeFrames||state.nativeWindows||state.brakeTintBitmap)
           .map(([key,state])=>({key,pixels:(state.nativeBitmap?state.nativeBitmap.width*state.nativeBitmap.height:0)+
             (state.nativeFrames||[]).reduce((sum,bitmap)=>sum+bitmap.width*bitmap.height,0)+
             (state.nativeWindows||[]).reduce((sum,item)=>sum+item.bitmap.width*item.bitmap.height,0)+

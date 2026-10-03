@@ -548,7 +548,7 @@ async function browser(){
       road.active=true;road.status='playing';road.audioDegraded=false;
       road.selectMusicProfile();BARCODE.MusicTransport.start({sourceAnchorAudioSec:0,sourceOffsetTrackSec:0});
       const bitmaps=Object.fromEntries(svg.map(key=>[key,cache[key].bitmap]));
-       const nativeBitmaps=Object.fromEntries(Object.entries(cache).filter(([,state])=>state.nativeBitmap||state.nativeFrames||state.nativeWindows)
+       const nativeBitmaps=Object.fromEntries(Object.entries(cache).filter(([,state])=>state.nativeBitmap||state.nativeFrames||state.nativeWindows||state.brakeTintBitmap)
          .map(([key,state])=>[key,{bitmap:state.nativeBitmap,frames:state.nativeFrames,windows:state.nativeWindows,tint:state.brakeTintBitmap}]));
       const median=values=>{const v=values.slice().sort((a,b)=>a-b);return v[Math.floor(v.length/2)];};
       const rows=[],assetDraw=P.draw,bitmapFactory=window.createImageBitmap;
