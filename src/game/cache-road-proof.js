@@ -3566,6 +3566,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const ni=point(near,inner),no=point(near,outer);
         // Fully offscreen slabs do not need a texture transform or clip.
         if(!quadInFrame([[fi.x,fi.y],[fo.x,fo.y],[ni.x,ni.y],[no.x,no.y]]))return;
+        // At reduced world detail, a texture slab thinner than one sample
+        // contributes no readable material. Its opaque ground remains painted.
+        // Keep every native-detail slab and all visible near/foreground pieces.
+        if(worldScale<1&&(Math.max(fi.y,fo.y,ni.y,no.y)-
+          Math.min(fi.y,fo.y,ni.y,no.y))*worldScale*camera.zoom<.75)return;
         const farWidth=Math.hypot(fo.x-fi.x,fo.y-fi.y);
         const nearWidth=Math.hypot(no.x-ni.x,no.y-ni.y);
         ctx.save();ctx.beginPath();ctx.moveTo(fi.x,fi.y);
@@ -5071,7 +5076,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         // snapshots the source before writing; no auxiliary Canvas is needed.
         // The subsequent dashboard and rearview retain native resolution.
         ctx.save();ctx.setTransform(1,0,0,1,0,0);
-        ctx.globalAlpha=1;ctx.globalCompositeOperation='copy';ctx.filter='none';
+        ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.filter='none';
         ctx.imageSmoothingEnabled=false;
         ctx.drawImage(ctx.canvas,0,0,1920*worldScale,1080*worldScale,0,0,1920,1080);
         ctx.restore();
