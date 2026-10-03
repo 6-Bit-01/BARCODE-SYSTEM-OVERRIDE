@@ -268,8 +268,14 @@ BARCODE.CacheRoadProof.hit=function(...args){
 BARCODE.CacheRoadProof.update=function(...args){browserProof.roadUpdates++;return originalUpdate.apply(this,args);};
 browserProof.renderedSamples=0;browserProof.drawNext=false;browserProof.drawReasons=[];
 browserProof.fullLoopCosts=[];browserProof.bossPaintFrames=0;browserProof.measureLoop=false;
+browserProof.displayCostMs=0;
 BARCODE.CacheRoadProof.draw=function(...args){if(!browserProof.drawNext)return;
   browserProof.drawNext=false;browserProof.renderedSamples++;const begin=performance.now();
+  // The controlled RAF clock preserves song/input deadlines. Supply the
+  // previous flushed display cost to presentation only, just as real RAF
+  // intervals expose queued raster work on the following display frame.
+  if(browserProof.measureLoop)this.renderFrameIntervalMs=Math.max(
+    this.renderFrameIntervalMs||0,browserProof.displayCostMs);
   try{return originalRoadDraw.apply(this,args);}finally{browserProof.drawCosts.push(performance.now()-begin);}};
 const originalGuidance=BARCODE.CacheRoadGuidance;
 BARCODE.CacheRoadGuidance={...originalGuidance,draw(...args){
@@ -284,11 +290,14 @@ browserProof.step=ms=>{for(let left=ms;left>0;){const dt=Math.min(20,left);left-
   gameLoop(browserProof.clock);
   if(measured){
     renderer.ctx.getImageData(0,0,1,1);
-    browserProof.fullLoopCosts.push({ms:performance.now()-begin,
+    const costMs=performance.now()-begin;
+    browserProof.fullLoopCosts.push({ms:costMs,
       bar:BARCODE.CacheRoadProof.state.musicBeatFloat/4,
       gear:BARCODE.CacheRoadProof.state.gear,boss:!!BARCODE.CacheRoadProof.state.combat?.boss,
-      worldScale:BARCODE.CacheRoadProof.renderBudget?.drawnScale??1});
-    browserProof.measureLoop=false;
+      worldScale:BARCODE.CacheRoadProof.renderBudget?.drawnScale??1,
+      frameIntervalMs:BARCODE.CacheRoadProof.renderFrameIntervalMs,
+      previousDisplayCostMs:browserProof.displayCostMs});
+    browserProof.displayCostMs=costMs;browserProof.measureLoop=false;
   }}};
 browserProof.release=()=>{for(const button of browserProof.pad.buttons){button.pressed=false;button.value=0;button.touched=false;}
   browserProof.pad.axes=[0,0];};
@@ -694,11 +703,15 @@ async function main(){
   assert(fullLoopCosts.length>=320,'consecutive complete gameplay frames cover road and live boss');
   assert(fullLoopCosts.some(frame=>frame.boss)&&fullLoopCosts.some(frame=>!frame.boss),
     'sustained diagnostics include actual chase and rig combat');
+  assert(fullLoopCosts.every(frame=>Number.isFinite(frame.frameIntervalMs)&&
+    frame.frameIntervalMs>=frame.previousDisplayCostMs),
+    'controlled display intervals must expose the previous flushed frame to production adaptation');
   const sortedLoopCosts=fullLoopCosts.map(frame=>frame.ms).sort((a,b)=>a-b);
   const fullLoopTiming={frames:fullLoopCosts.length,medianMs:sortedLoopCosts[Math.floor(sortedLoopCosts.length/2)],
     p95Ms:sortedLoopCosts[Math.ceil(sortedLoopCosts.length*.95)-1],
     over33Ms:fullLoopCosts.filter(frame=>frame.ms>1000/30).length,
-    gears:[...new Set(fullLoopCosts.map(frame=>frame.gear))],samples:fullLoopCosts,
+    gears:[...new Set(fullLoopCosts.map(frame=>frame.gear))],
+    worldScales:[...new Set(fullLoopCosts.map(frame=>frame.worldScale))],samples:fullLoopCosts,
     limitation:'Consecutive native Chromium shared-loop frames with raster flush; controlled audio/device hosts, not player-device FPS.'};
   console.log('SUSTAINED_FRAME_COST '+JSON.stringify({...fullLoopTiming,samples:undefined}));
   assert(fullLoopTiming.medianMs<=1000/30,'consecutive production chase/boss frames must fit the 30 Hz diagnostic median budget');

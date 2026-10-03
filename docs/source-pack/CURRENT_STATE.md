@@ -6,6 +6,15 @@ The owner reports continued lag after playing PR180. Raster flushes locate
 expensive full-resolution sky, city, terrain, asphalt and street lighting.
 Base/rollback: `0c821b2fb3b7b60b2b561d7c3a0040810c73181a`.
 PR181 continues on `agent/level2-raster-work-repair`.
+
+The final chase follow-up also observes sustained display intervals above
+33.33 ms, including queued raster work after draw submission. Invalid clocks,
+background gaps of 200 ms or more and pauses do not lower detail. The shared
+simulation/audio deadlines remain unchanged. The controlled browser fixture
+feeds the previous measured, flushed display cost into presentation on the
+next measured frame; it records and asserts that feedback rather than hiding
+it behind its fixed 20 ms simulation clock. The 33.33 ms median gate remains.
+
 The repair measures production draws and eligible slow shared-frame
 intervals. Fresh runs begin at full detail. Three sustained draws above
 24 ms reduce background sampling with raster headroom; 600 consecutive

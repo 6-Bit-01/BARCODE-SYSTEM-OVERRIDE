@@ -4,8 +4,13 @@
   const B=window.BARCODE=window.BARCODE||{};
   const scales=[1,.85,.7,.6,.5,.4,1/3,.25,.2,1/6];
   const create=()=>({scale:1,slowFrames:0,fastFrames:0,lastCostMs:0});
-  function observe(budget,costMs,{paused=false}={}){
+  function observe(budget,costMs,{paused=false,frameIntervalMs=0}={}){
     if(!budget||paused||!Number.isFinite(costMs)||costMs<0)return;
+    // The previous display interval includes raster work queued after draw
+    // submission. Sustained missed 30 Hz frames need the same headroom as
+    // expensive draws; ignore tab/background gaps and invalid host clocks.
+    if(Number.isFinite(frameIntervalMs)&&frameIntervalMs>1000/30&&frameIntervalMs<200)
+      costMs=Math.max(costMs,frameIntervalMs);
     budget.lastCostMs=costMs;
     if(costMs>24){
       budget.fastFrames=0;

@@ -3492,10 +3492,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         assets?.setRasterDetail?.(frameContext,priorRasterDetail);
         if(budgetEligible) {
         this.renderBudget.drawnScale=worldScale;
-        budgetOwner.observe(this.renderBudget,
-          Math.max(window.performance.now()-renderStarted,
-            this.renderFrameIntervalMs>38&&this.renderFrameIntervalMs<200?this.renderFrameIntervalMs:0),
-          {paused:!!window.isPaused});
+        budgetOwner.observe(this.renderBudget,window.performance.now()-renderStarted,
+          {paused:!!window.isPaused,frameIntervalMs:this.renderFrameIntervalMs});
       }};
       const combatPose=s.combat?B.CacheRoadCombat.pose(s.combat,{progress,lanePos:s.lanePos,
         adrenaline:s.adrenaline?.value||0,

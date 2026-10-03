@@ -19,6 +19,9 @@
 - Require absolute 33.33 ms scene and consecutive chase/boss median budgets,
   relative improvement, full-quality fidelity and loaded adaptive review.
 - Retain real hosted bytes/hash checks with origin-clean fixture readback.
+- Observe sustained display misses above 33.33 ms, retaining pause and
+  background-gap guards; feed prior flushed cost into the controlled chase
+  fixture without moving simulation/audio deadlines or relaxing the gate.
 - Require full regression/syntax and both exact final-head CI events.
   PR/export receipt record exact publication and merged revision.
 - Preserve the complete validated Git-tree inventory in the standalone pack.

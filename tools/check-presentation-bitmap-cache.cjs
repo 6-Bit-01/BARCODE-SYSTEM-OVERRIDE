@@ -118,9 +118,24 @@ function budgetUnit(){
   owner.observe(budget,1);assert.equal(budget.scale,.5);
   for(let i=0;i<30;i++)owner.observe(budget,200);
   assert.equal(budget.scale,1/6,'background sampling stops at a finite floor with native interactive paint');
+  const delayed=owner.create();
+  owner.observe(delayed,12,{frameIntervalMs:34.1});
+  owner.observe(delayed,12,{frameIntervalMs:34.1});
+  assert.equal(delayed.scale,1,'two missed display frames retain cold/impact tolerance');
+  owner.observe(delayed,12,{frameIntervalMs:34.1});
+  assert(delayed.scale<1,'sustained missed 30 Hz intervals include queued raster cost');
+  assert.equal(delayed.lastCostMs,34.1,'display delay is observed even when draw submission is cheap');
+  const delayedFrozen=JSON.stringify(delayed);
+  owner.observe(delayed,12,{paused:true,frameIntervalMs:60});
+  assert.equal(JSON.stringify(delayed),delayedFrozen,'paused display delay cannot reduce detail');
+  for(const interval of [1000/30,NaN,Infinity,-1,200,250]){
+    const ignored=owner.create();
+    for(let i=0;i<3;i++)owner.observe(ignored,12,{frameIntervalMs:interval});
+    assert.equal(ignored.scale,1,'healthy, invalid and background-gap intervals retain detail');
+  }
   const fresh=owner.create();assert.equal(fresh.scale,1);
   assert.equal(budget.scale,1/6,'a fresh run has independent presentation state');
-  console.log('PASS: bounded adaptive world quality, cold/impact tolerance, pause freeze, clock fallback, recovery hysteresis and fresh-run independence.');
+  console.log('PASS: bounded adaptive world quality, queued display cost, cold/impact tolerance, pause freeze, clock fallback, recovery hysteresis and fresh-run independence.');
 }
 
 const frameReviewCount=screens=>screens.length/3;

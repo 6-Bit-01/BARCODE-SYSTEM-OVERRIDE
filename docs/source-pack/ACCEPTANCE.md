@@ -3,7 +3,17 @@
 
 The owner's PR180 playtest remains laggy. Background adaptation preserves
 native functional road markings, timing feedback, cars, traffic/effects,
-HUD/rearview and the original blur. Review loaded adaptive output including
+HUD/rearview and the original blur.
+
+The final chase follow-up also observes sustained display intervals above
+33.33 ms, including queued raster work after draw submission. Invalid clocks,
+background gaps of 200 ms or more and pauses do not lower detail. The shared
+simulation/audio deadlines remain unchanged. The controlled browser fixture
+feeds the previous measured, flushed display cost into presentation on the
+next measured frame; it records and asserts that feedback rather than hiding
+it behind its fixed 20 ms simulation clock. The 33.33 ms median gate remains.
+
+Review loaded adaptive output including
 the lowest background detail; visible driving cues must remain readable.
 
 Background WebP sheets also prepare one quarter-size immutable ImageBitmap
