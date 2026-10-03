@@ -26,7 +26,8 @@ async function main() {
     if(factory)w.Path2D=function(){const path=new Path2D();created.push(path);return path;};
     let code=direct?source.replace('.filter(candidate=>mirrorSceneryInGlass(candidate,x,y,w,h))','')
       .replace('if(terrainBelowCrest) {','if(false) {')
-      .replace('if(tintedReflection) {','if(false) {'):source;
+      .replace('if(tintedReflection&&!ctx.shadowBlur&&!ctx.shadowOffsetX&&!ctx.shadowOffsetY) {','if(false) {')
+      .replace('if(!unfilteredLightBounds)return;','return;'):source;
     // The original baseline traverses the complete crest for each slab;
     // otherwise the new safe rectangular shortcut also changes the control.
     assert(!direct||code!==source,'comparison disables only off-glass scenery culling');

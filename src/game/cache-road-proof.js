@@ -388,6 +388,26 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         lensRadius:args.width*radius,poolRadius:args.height*.21};
     });
   }
+  function clipLightBlend(ctx,bounds) {
+    const matrix=ctx.getTransform?.();
+    const unfilteredLightBounds=ctx.filter==='none'&&!ctx.shadowBlur&&
+      !ctx.shadowOffsetX&&!ctx.shadowOffsetY&&matrix&&
+      ['a','b','c','d'].every(key=>Number.isFinite(matrix[key]))&&
+      bounds.length&&bounds.every(bound=>bound.every(Number.isFinite));
+    if(!unfilteredLightBounds)return;
+    const determinant=Math.abs(matrix.a*matrix.d-matrix.b*matrix.c);
+    if(determinant<1e-9)return;
+    // A lower bound for the smallest transform scale gives at least two
+    // device pixels of margin even with rotation, scale or shear.
+    const margin=2*Math.hypot(matrix.a,matrix.b,matrix.c,matrix.d)/determinant;
+    const left=Math.min(...bounds.map(bound=>bound[0]))-margin;
+    const top=Math.min(...bounds.map(bound=>bound[1]))-margin;
+    const right=Math.max(...bounds.map(bound=>bound[2]))+margin;
+    const bottom=Math.max(...bounds.map(bound=>bound[3]))+margin;
+    // Screen is pointwise; transparent source pixels leave the backdrop
+    // unchanged. Restrict its layer to the original light paintings.
+    ctx.beginPath();ctx.rect(left,top,right-left,bottom-top);ctx.clip();
+  }
   function drawLampLight(ctx,key,args,pass) {
     if(args.height<5 || B.PresentationAssets?.ready?.(key)===false)return;
     const geometry=lampLightGeometry(key,args);
@@ -395,7 +415,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     const detail=B.PresentationAssets?.rasterDetail?.(ctx)??1;
     const matrix=detail<1?ctx.getTransform?.():null;
     const sampleScale=matrix?Math.hypot(matrix.a,matrix.b):1;
-    ctx.save();ctx.globalCompositeOperation='screen';
+    ctx.save();
+    clipLightBlend(ctx,geometry.map(light=>{
+      const radius=pass==='pool'?light.poolRadius:Math.max(light.poolRadius,light.lensRadius);
+      return pass==='pool'?[light.x-radius,light.groundY-radius*.24,light.x+radius,light.groundY+radius*.24]:
+        [light.x-radius,Math.min(light.y,light.groundY),light.x+radius,Math.max(light.y,light.groundY)];
+    }));
+    ctx.globalCompositeOperation='screen';
     for(const light of geometry) {
       const {x,y,groundY,lensRadius,poolRadius}=light;
       if(pass==='pool') {
@@ -1502,7 +1528,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           kind === 'shuttle' ? .34 : kind === 'freight' ? .23 : .16;
         ctx.save();ctx.globalAlpha*=light;
         const tintedReflection=kind==='trike'||kind==='audit';
-        if(tintedReflection) {
+        if(tintedReflection&&!ctx.shadowBlur&&!ctx.shadowOffsetX&&!ctx.shadowOffsetY) {
           // Hue rotation is pointwise: it cannot paint beyond these source
           // rectangles. Bound its filter layer to the original reflections,
           // with a margin outside their antialiased edges, instead of the
@@ -1604,6 +1630,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         // Small changing reflections animate the painted rear lamps without
         // replacing the hand-painted vehicle poses or flashing a whole car.
         ctx.save();ctx.translate(jolt,bounce);ctx.rotate(roll);
+        clipLightBlend(ctx,lamps.map(lamp=>[lamp.x-lamp.width*.42,lamp.y-lamp.height*.33,
+          lamp.x+lamp.width*.42,lamp.y+lamp.height*.33]));
         ctx.globalCompositeOperation='screen';
         ctx.globalAlpha*=kind==='cache' && braking ? .72 :
           reduced?.18:.15+.14*(.5+.5*Math.sin(phase*.17+x*.01));
