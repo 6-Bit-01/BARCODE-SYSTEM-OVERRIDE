@@ -318,9 +318,9 @@ browserProof.step=ms=>{for(let left=ms;left>0;){const dt=Math.min(20,left);left-
     browserProof.displayCostMs=costMs;browserProof.measureLoop=false;
     if(browserProof.bossPaintFrames>=30&&BARCODE.CacheRoadProof.status==='playing'&&
         BARCODE.CacheRoadProof.state.combat?.boss?.hp>0&&
-        BARCODE.CacheRoadProof.renderBudget?.drawnScale===1/6&&
+        BARCODE.CacheRoadProof.renderBudget?.drawnScale<1&&
         costMs>(browserProof.phaseSnapshot?.measuredCostMs??0))
-      browserProof.phaseSnapshot={measuredCostMs:costMs,state:copy(BARCODE.CacheRoadProof.state),chapter:copy(BARCODE.CacheRoadProof.chapter),
+      browserProof.phaseSnapshot={measuredCostMs:costMs,worldScale:BARCODE.CacheRoadProof.renderBudget.drawnScale,state:copy(BARCODE.CacheRoadProof.state),chapter:copy(BARCODE.CacheRoadProof.chapter),
         host:Object.fromEntries(['status','introMs','handoffMs','outroMs','cinematicLane','audioDegraded'].map(key=>[key,BARCODE.CacheRoadProof[key]]))};
   }}};
 browserProof.release=()=>{for(const button of browserProof.pad.buttons){button.pressed=false;button.value=0;button.touched=false;}
@@ -791,12 +791,12 @@ async function main(){
       return {preparation:JSON.parse(key),frames:rows.length,bossFrames:rows.filter(frame=>frame.boss).length,
         medianMs:median(rows.map(frame=>frame.ms))};})));
   console.log('SUSTAINED_PAINT_PHASES '+JSON.stringify([false,true].map(boss=>{
-    const frames=fullLoopCosts.filter(frame=>frame.boss===boss&&frame.worldScale===1/6);
+    const frames=fullLoopCosts.filter(frame=>frame.boss===boss&&frame.worldScale<1);
     return {group:boss?'boss':'chase',frames:frames.length,
       phases:[...new Set(frames.flatMap(frame=>frame.paintPhases.map(row=>row.phase)))].map(phase=>({phase,
         medianMs:median(frames.map(frame=>frame.paintPhases.find(row=>row.phase===phase)?.ms).filter(Number.isFinite))}))};})));
   console.log('SUSTAINED_REPRESENTATIVE_FRAMES '+JSON.stringify([false,true].map(boss=>{
-    const frames=fullLoopCosts.filter(frame=>frame.boss===boss&&frame.worldScale===1/6).sort((a,b)=>a.ms-b.ms);
+    const frames=fullLoopCosts.filter(frame=>frame.boss===boss&&frame.worldScale<1).sort((a,b)=>a.ms-b.ms);
     return {group:boss?'boss':'chase',samples:[.25,.5,.75,.95].map(fraction=>frames[Math.min(frames.length-1,Math.floor(frames.length*fraction))]).filter(Boolean)
       .map(frame=>({ms:frame.ms,bar:frame.bar,drawMs:frame.drawMs,flushMs:frame.flushMs,paintPhases:frame.paintPhases}))};})));
   fs.writeFileSync(path.join(output,'Sustained-Frame-Cost.json'),JSON.stringify(fullLoopTiming,null,2)+'\n');
@@ -829,19 +829,26 @@ async function main(){
     };
     try{
       road.state=copy(snapshot.state);road.chapter=copy(snapshot.chapter);Object.assign(road,snapshot.host);
-      road.renderBudget=BARCODE.CacheRoadRenderBudget.create();road.renderBudget.scale=1/6;
+      road.renderBudget=BARCODE.CacheRoadRenderBudget.create();road.renderBudget.scale=snapshot.worldScale;
       road.renderBudgetState=road.state;road.renderFrameIntervalMs=0;
+      const paintSnapshot=()=>{
+        // Auxiliary repaints observe the captured real quality. They must not
+        // lower it merely because per-phase readbacks add diagnostic work.
+        road.renderBudget=BARCODE.CacheRoadRenderBudget.create();
+        road.renderBudget.scale=snapshot.worldScale;road.renderBudgetState=road.state;
+        road.renderFrameIntervalMs=0;originalRoadDraw.call(road,ctx);
+      };
       ctx.reset();ctx.imageSmoothingQuality='high';ctx.getImageData(0,0,1,1);
       window.canvasCostMark=phase=>{
         const submitted=performance.now();ctx.getImageData(0,0,1,1);const now=performance.now();
         if(phase!=='begin')rows.push({phase,submitMs:submitted-phaseStart,flushMs:now-submitted,totalMs:now-phaseStart,methods:methodCosts});
         methodCosts={};phaseStart=now;
       };
-      originalRoadDraw.call(road,ctx);window.canvasCostMark('hud-complete');
+      paintSnapshot();window.canvasCostMark('hud-complete');
       const reviewWebp=ctx.canvas.toDataURL('image/webp',.9).split(',')[1];
       const optimizedPixels=ctx.getImageData(0,0,ctx.canvas.width,ctx.canvas.height).data;
       window.canvasCostMark=undefined;window.forceCrestMask=true;window.forceLegacyWorldCopy=true;window.forceMirrorCopy=true;window.forceReflectionTintClip=true;
-      originalRoadDraw.call(road,ctx);
+      paintSnapshot();
       const referencePixels=ctx.getImageData(0,0,ctx.canvas.width,ctx.canvas.height).data;
       let difference=0,maxChannelDifference=0,maxAlphaDifference=0;
       for(let i=0;i<optimizedPixels.length;i++){
@@ -852,7 +859,7 @@ async function main(){
       const renderFidelity={meanRGB:difference/(optimizedPixels.length/4*3),maxChannelDifference,maxAlphaDifference};
       window.forceCrestMask=undefined;window.forceLegacyWorldCopy=undefined;window.forceMirrorCopy=undefined;window.forceReflectionTintClip=undefined;
       window.forceOriginalWorldCopy=true;window.forceCrestMask=true;window.forceMirrorCopy=true;window.forceReflectionTintClip=true;
-      originalRoadDraw.call(road,ctx);
+      paintSnapshot();
       const copyPixels=ctx.getImageData(0,0,ctx.canvas.width,ctx.canvas.height).data;
       let copyDifference=0,copyMaxChannelDifference=0,copyMaxAlphaDifference=0;
       for(let i=0;i<optimizedPixels.length;i++){
@@ -865,10 +872,10 @@ async function main(){
       window.forceOriginalWorldCopy=undefined;window.forceCrestMask=undefined;window.forceMirrorCopy=undefined;window.forceReflectionTintClip=undefined;
       const unflushed=[];let last=performance.now();
       window.canvasCostMark=phase=>{const now=performance.now();if(phase!=='begin')unflushed.push({phase,ms:now-last});last=now;};
-      const start=performance.now();originalRoadDraw.call(road,ctx);window.canvasCostMark('hud-complete');
+      const start=performance.now();paintSnapshot();window.canvasCostMark('hud-complete');
       const submitted=performance.now();ctx.getImageData(0,0,1,1);
       const completeMs=performance.now()-start;
-      return {available:true,fixture:true,measuredCostMs:snapshot.measuredCostMs,status:road.status,bar:road.state.musicBeatFloat/4,bossHP:road.state.combat.boss.hp,rows,
+      return {available:true,fixture:true,measuredCostMs:snapshot.measuredCostMs,worldScale:snapshot.worldScale,status:road.status,bar:road.state.musicBeatFloat/4,bossHP:road.state.combat.boss.hp,rows,
         unflushed,completeMs,finalFlushMs:completeMs-(submitted-start),renderFidelity,opaqueCopyFidelity,
         assetGroups:Object.entries(groups).sort((a,b)=>b[1].submitMs-a[1].submitMs).slice(0,24),
         nativeInventory:Object.entries(cache).filter(([,state])=>state.nativeBitmap||state.nativeFrames)
