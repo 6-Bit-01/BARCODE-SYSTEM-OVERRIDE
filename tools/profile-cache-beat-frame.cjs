@@ -19,6 +19,7 @@ async function main(){
         const start=performance.now(),ok=draw(key,c,args),elapsed=performance.now()-start;
         const group=key.startsWith('cacheBeat')?'beat-art':c.filter!=='none'?'filtered-art':'other-art';
         groups[group]=(groups[group]||0)+elapsed;counts[group]=(counts[group]||0)+1;
+        groups[key]=(groups[key]||0)+elapsed;
         return ok;
       };
       const H=B.CacheRoadBeatFeedback;
