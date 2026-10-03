@@ -1,4 +1,4 @@
-// Shared raster cache. One bounded pinned/bundled attempt per asset;
+// Shared image/bitmap cache. One bounded pinned/bundled attempt per asset;
 // no canvases, timers, frame loops or gameplay state. Reused across restarts.
 window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: ['BARCODE.PresentationAssets'], dependencies: [] });
@@ -319,7 +319,24 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
       if (cache[key]) continue;
       const image = new window.Image();
       const state = cache[key] = { image, ready: false, fallback: false };
-      image.onload = () => { state.ready = image.naturalWidth > 0 && image.naturalHeight > 0; image.onload = null; image.onerror = null; };
+      image.onload = () => {
+        const valid=image.naturalWidth>0&&image.naturalHeight>0;
+        image.onload=null;image.onerror=null;
+        if(!valid)return;
+        // SVG source rectangles otherwise rerasterize the whole vector sheet
+        // for every digit, terrain strip and filtered miniature. Prepare one
+        // immutable bitmap per loaded SVG outside the gameplay draw path.
+        // No display Canvas, getContext, timer or frame owner is added.
+        if(/\.svg$/i.test(entry.path)&&typeof window.createImageBitmap==='function') {
+          try {
+            Promise.resolve(window.createImageBitmap(image)).then(bitmap=>{
+              if(bitmap?.width>0&&bitmap?.height>0)state.bitmap=bitmap;
+              else bitmap?.close?.();
+              state.ready=true;
+            },()=>{state.ready=true;});
+          } catch {state.ready=true;}
+        } else state.ready=true;
+      };
       image.onerror = () => {
         if (!state.fallback) { state.fallback = true; image.src = entry.path; }
         else { image.onload = null; image.onerror = null; }
@@ -331,7 +348,8 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     flip = false, sourceRect = null } = {}) {
     const entry = entries[key], state = cache[key];
     if (!entry || !state?.ready) return false;
-    const image = state.image, fw = image.naturalWidth / entry.columns, fh = image.naturalHeight / entry.rows;
+    const original=state.image,image=state.bitmap||original;
+    const fw=original.naturalWidth/entry.columns,fh=original.naturalHeight/entry.rows;
     const index = Math.max(0, Math.floor(frame)) % entry.frames;
     const [sx, sy, sw, sh] = sourceRect || entry.frameCrops?.[index] || entry.crop || [0, 0, fw, fh];
     const h = height ?? width * sh / sw;

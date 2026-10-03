@@ -1,17 +1,24 @@
 // Diagnostic production draws with loaded art; timings describe the runner, not a player's device.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {performance}=require('node:perf_hooks');
-const {createCanvas,GlobalFonts}=require('@napi-rs/canvas');
+const {createCanvas,GlobalFonts,loadImage}=require('@napi-rs/canvas');
 const {nativeAssets,prepared,stage}=require('./render-cache-beat-visual-system.cjs');
 const root=path.resolve(__dirname,'..');process.chdir(root);
 const median=values=>{const v=values.slice().sort((a,b)=>a-b);return v[Math.floor(v.length/2)];};
 async function main(){
   GlobalFonts.registerFromPath(path.join(root,'assets/studies/visual-overhaul/references/fonts/Oxanium.ttf'),'Oxanium');
-  const assets=await nativeAssets(),canvas=createCanvas(1920,1080),ctx=canvas.getContext('2d');
+  const assets=await nativeAssets(),images={...assets.images},bitmapKeys=[];
+  // This native fixture mirrors Chromium's one-time createImageBitmap path.
+  // Production loader reuse and ownership are independently checked in Chromium.
+  for(const [key,entry] of Object.entries(assets.entries))if(images[key]&&entry.path.endsWith('.svg')){
+    const image=images[key],c=createCanvas(image.naturalWidth,image.naturalHeight);
+    c.getContext('2d').drawImage(image,0,0);images[key]=await loadImage(c.toBuffer('image/png'));bitmapKeys.push(key);
+  }
+  const bitmapAssets={...assets,images},canvas=createCanvas(1920,1080),ctx=canvas.getContext('2d');
   const results=[];
   for(const name of ['Approach','Ready-ONE','Perfect-Impact','Good','Miss','Reduced','Focused-Turn']){
-    for(const skin of [true,false]){
-      const r=prepared(assets),s=stage(r,name),B=r.B;
+    for(const {skin,mode} of [{skin:true,mode:'vector'},{skin:true,mode:'bitmap'},{skin:false,mode:'vector'}]){
+      const r=prepared(mode==='bitmap'?bitmapAssets:assets),s=stage(r,name),B=r.B;
       if(!skin)B.CacheRoadBeatSurface=undefined;
       let current,groups,counts;
       const draw=B.PresentationAssets.draw;
@@ -39,7 +46,7 @@ async function main(){
         s.elapsedMs+=16.667;
       }
       const warm=samples.slice(2);
-      const row={name,skin,coldMs:samples[0].ms,medianMs:median(warm.map(x=>x.ms)),
+      const row={name,skin,mode,coldMs:samples[0].ms,medianMs:median(warm.map(x=>x.ms)),
         p95Ms:Math.max(...warm.map(x=>x.ms)),
         groups:Object.fromEntries([...new Set(warm.flatMap(x=>Object.keys(x.groups)))]
           .map(k=>[k,median(warm.map(x=>x.groups[k]||0))])),
@@ -47,7 +54,13 @@ async function main(){
       results.push(row);console.log(JSON.stringify(row));
     }
   }
-  const report={revision:process.env.GITHUB_SHA||'local',results,
+  const improvements=['Approach','Ready-ONE','Perfect-Impact','Good','Miss','Reduced','Focused-Turn'].map(name=>{
+    const before=results.find(r=>r.name===name&&r.skin&&r.mode==='vector'),after=results.find(r=>r.name===name&&r.skin&&r.mode==='bitmap');
+    return {name,beforeMs:before.medianMs,afterMs:after.medianMs,ratio:after.medianMs/before.medianMs};
+  });
+  assert(improvements.every(row=>row.ratio<.8),'every loaded production scene must cut at least 20 percent of median draw time on the same host');
+  console.log(JSON.stringify({gate:'level2-svg-frame-cost',passed:true,preparedSVGs:bitmapKeys.length,improvements}));
+  const report={bitmapKeys,improvements,revision:process.env.GITHUB_SHA||'local',results,
     limitation:'Loaded production Canvas diagnostics on this host; fallback runs isolate beat-art work. No device FPS or human acceptance claim.'};
   if(process.argv[2])fs.writeFileSync(process.argv[2],JSON.stringify(report,null,2)+'\n');
 }
