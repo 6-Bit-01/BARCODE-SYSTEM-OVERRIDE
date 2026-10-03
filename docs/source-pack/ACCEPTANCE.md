@@ -1,6 +1,13 @@
 # Acceptance and Test Status
 ## October 3 — continued lag repair verification (PR #181)
 
+The shared road-frame owner resets its existing Canvas context before each
+active draw. This discards prior frame recorder/clip/filter state while
+retaining the same Canvas/context handle and prepared assets. The complete
+race timing includes that reset. Paused polling keeps the displayed frame;
+standalone Road.draw calls still preserve their caller's context. No new
+Canvas, getContext acquisition, timer, RAF or simulation/audio owner is added.
+
 Controlled display samples now return to the browser between RAF callbacks,
 so asynchronous once-only bitmap preparations can finish as they do during
 play. All startup and reload frames remain measured; the song/simulation
