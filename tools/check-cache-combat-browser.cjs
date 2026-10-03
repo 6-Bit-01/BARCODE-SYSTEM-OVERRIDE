@@ -803,6 +803,9 @@ async function main(){
       return {available:true,fixture:true,status:road.status,bar:road.state.musicBeatFloat/4,bossHP:road.state.combat.boss.hp,rows,
         unflushed,completeMs,finalFlushMs:completeMs-(submitted-start),maskFidelity,
         assetGroups:Object.entries(groups).sort((a,b)=>b[1].submitMs-a[1].submitMs).slice(0,24),
+        nativeInventory:Object.entries(cache).filter(([,state])=>state.nativeBitmap||state.nativeFrames)
+          .map(([key,state])=>({key,pixels:state.nativeBitmap?state.nativeBitmap.width*state.nativeBitmap.height:
+            state.nativeFrames.reduce((sum,bitmap)=>sum+bitmap.width*bitmap.height,0)})),
         reviewWebp};
     }finally{
       window.canvasCostMark=undefined;window.forceCrestMask=undefined;P.draw=assetDraw;

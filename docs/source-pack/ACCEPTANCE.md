@@ -2,6 +2,16 @@
 ## October 3 — continued lag repair verification (PR #181)
 
 
+Reserve native preparation for animated vehicles, combat/beat sheets, HUD and
+the pursuit rig within the unchanged 32-megapixel cap. Blood, crew portraits
+and legacy/decorative sheets retain their prior original-image rendering.
+Under sustained background load only diffuse mist, wind and impact dust may
+use the bounded quarter-size background cache in their original native
+coordinates; car/traffic bodies, functional attack/contact FX, mapped timing
+paint, face and HUD retain native source detail. Fresh full-detail output is
+unchanged. A separate saved decoration hint restores the caller on completion.
+
+
 Native animated sheets can prepare a batch of exact original-size cels,
 within the same whole-atlas 32-megapixel reservation. Draws use local crop
 coordinates on the selected cel; cross-cel crops retain the complete original

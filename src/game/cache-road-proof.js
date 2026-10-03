@@ -3504,9 +3504,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const worldScale=budgetEligible?this.renderBudget.scale:1;
       const assets=B.PresentationAssets;
       const priorRasterDetail=assets?.setRasterDetail?.(ctx,worldScale)??1;
+      const priorDecorationDetail=assets?.setDecorationDetail?.(ctx,worldScale)??1;
       const renderStarted=budgetEligible?window.performance.now():0;
       const finishRender=()=>{
         assets?.setRasterDetail?.(frameContext,priorRasterDetail);
+        assets?.setDecorationDetail?.(frameContext,priorDecorationDetail);
         if(budgetEligible) {
         this.renderBudget.drawnScale=worldScale;
         budgetOwner.observe(this.renderBudget,window.performance.now()-renderStarted,

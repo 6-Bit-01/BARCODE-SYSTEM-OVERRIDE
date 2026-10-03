@@ -313,12 +313,13 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
       columns:4,rows:2,frames:8,ax:.5,ay:.5,smooth:true},
   };
   const cache = {};
-  const rasterDetail=new WeakMap(),MAX_RASTER_PIXELS=32*1024*1024;
+  const rasterDetail=new WeakMap(),decorationDetail=new WeakMap(),MAX_RASTER_PIXELS=32*1024*1024;
+  const diffuseEffects=new Set(['cacheSpeedMist','cacheWindWhoosh','cacheImpactGrit']);
   let rasterPixels=0,nativeRasterPixels=0;
   const MAX_NATIVE_RASTER_PIXELS=32*1024*1024;
   function prepareNativeRaster(key,entry,state) {
     const image=state.image,w=image.naturalWidth,h=image.naturalHeight,pixels=w*h;
-    if(!/^cache/.test(key)||!/^assets\/cache-road\/(vehicles|combat|pursuit|beat-system|hud|blood|effects)\//.test(entry.path)||
+    if(!/^cache/.test(key)||(!/^assets\/cache-road\/(vehicles\/animation|combat|beat-system|hud)\//.test(entry.path)&&key!=='cachePursuitRig')||
       /\.svg$/i.test(entry.path)||pixels<256*1024||pixels>MAX_NATIVE_RASTER_PIXELS-nativeRasterPixels||
       typeof window.createImageBitmap!=='function')return;
     // Decode once without resampling/cropping. Native foreground coordinates,
@@ -356,7 +357,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   function prepareBackgroundRaster(key,entry,state) {
     const image=state.image,w=image.naturalWidth,h=image.naturalHeight;
     const background=/^assets\/cache-road\/(world|roadside)\//.test(entry.path)&&
-      !entry.path.includes('/beat/')||['cacheBlacktop','cacheFly1','cacheFly3'].includes(key);
+      !entry.path.includes('/beat/')||['cacheBlacktop','cacheFly1','cacheFly3'].includes(key)||diffuseEffects.has(key);
     if(!background||!/^cache/.test(key)||/\.svg$/i.test(entry.path)||w*h<256*1024||
       typeof window.createImageBitmap!=='function')return;
     const width=entry.columns*Math.ceil(w/entry.columns/4);
@@ -378,6 +379,12 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     const previous=rasterDetail.get(ctx)||1;
     if(Number.isFinite(scale)&&scale>0&&scale<1)rasterDetail.set(ctx,scale);
     else rasterDetail.delete(ctx);
+    return previous;
+  }
+  function setDecorationDetail(ctx,scale=1) {
+    const previous=decorationDetail.get(ctx)||1;
+    if(Number.isFinite(scale)&&scale>0&&scale<1)decorationDetail.set(ctx,scale);
+    else decorationDetail.delete(ctx);
     return previous;
   }
   function preload() {
@@ -415,7 +422,8 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     flip = false, sourceRect = null } = {}) {
     const entry = entries[key], state = cache[key];
     if (!entry || !state?.ready) return false;
-    const original=state.image,small=(rasterDetail.get(ctx)||1)<=.25&&state.rasterBitmap;
+    const original=state.image,small=((rasterDetail.get(ctx)||1)<=.25||
+      diffuseEffects.has(key)&&(decorationDetail.get(ctx)||1)<1)&&state.rasterBitmap;
     const fw=original.naturalWidth/entry.columns,fh=original.naturalHeight/entry.rows;
     const index = Math.max(0, Math.floor(frame)) % entry.frames;
     const [sx, sy, sw, sh] = sourceRect || entry.frameCrops?.[index] || entry.crop || [0, 0, fw, fh];
@@ -451,6 +459,6 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     }
     return true;
   }
-  B.PresentationAssets = { preload, draw, setRasterDetail, rasterDetail: ctx => rasterDetail.get(ctx)||1, ready: key => !!cache[key]?.ready };
+  B.PresentationAssets = { preload, draw, setRasterDetail, setDecorationDetail, decorationDetail: ctx => decorationDetail.get(ctx)||1, rasterDetail: ctx => rasterDetail.get(ctx)||1, ready: key => !!cache[key]?.ready };
   preload();
 })();

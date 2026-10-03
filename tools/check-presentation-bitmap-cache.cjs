@@ -123,6 +123,18 @@ async function backgroundRasterUnit(){
   smallAssets.setRasterDetail(smallCtx,1);
   smallAssets.draw('cacheNewCrossingSignalR',smallCtx,{width:80,height:40});
   assert.equal(smallCalls[1][0],smallState.image,'native lighting/signal detail retains the original sheet');
+  const diffuse=smallWindow.bitmapReview.cache.cacheSpeedMist;
+  diffuse.image.onload();await new Promise(setImmediate);
+  const diffuseCalls=[];
+  smallCtx.drawImage=(...args)=>diffuseCalls.push(args);
+  assert.equal(smallAssets.setDecorationDetail(smallCtx,1/6),1);
+  smallAssets.draw('cacheSpeedMist',smallCtx,{width:80,height:40});
+  assert.equal(diffuseCalls[0][0],diffuse.rasterBitmap,'only diffuse decoration can use a smaller source in native world coordinates');
+  smallAssets.draw('cacheNewCrossingSignalR',smallCtx,{width:80,height:40});
+  assert.equal(diffuseCalls[1][0],smallState.image,'decoration hint cannot coarsen normal foreground sources');
+  assert.equal(smallAssets.setDecorationDetail(smallCtx,1),1/6);
+  smallAssets.draw('cacheSpeedMist',smallCtx,{width:80,height:40});
+  assert.equal(diffuseCalls[2][0],diffuse.image,'full-detail diffuse artwork retains the original source');
   console.log('PASS: one bounded background derivative, source/crop geometry, original native routing, pause reuse, graceful failure and concurrent pixel reservations.');
 }
 
@@ -384,6 +396,7 @@ async function browser(){
             submitMs:submitted-began,flushMs:performance.now()-submitted}));
           if(ctx.imageSmoothingQuality!=='high')throw Error('road draw leaked its sampling quality');
           if(P.setRasterDetail(ctx,1)!==1)throw Error('road draw leaked its background raster hint');
+          if(P.setDecorationDetail(ctx,1)!==1)throw Error('road draw leaked its decoration hint');
           if(frame>=30)samples.push(elapsed);
           else if(mode==='adaptive')startupFrames.push({frame,ms:elapsed,
             worldScale:road.renderBudget.drawnScale});
