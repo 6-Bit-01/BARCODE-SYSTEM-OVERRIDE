@@ -265,7 +265,8 @@ BARCODE.CacheRoadProof.hit=function(...args){
   }
   return result;
 };
-BARCODE.CacheRoadProof.update=function(...args){browserProof.roadUpdates++;return originalUpdate.apply(this,args);};
+BARCODE.CacheRoadProof.update=function(...args){browserProof.roadUpdates++;const begin=performance.now();
+  try{return originalUpdate.apply(this,args);}finally{browserProof.updateCostMs=performance.now()-begin;}};
 browserProof.renderedSamples=0;browserProof.drawNext=false;browserProof.drawReasons=[];
 browserProof.fullLoopCosts=[];browserProof.bossPaintFrames=0;browserProof.measureLoop=false;
 browserProof.displayCostMs=0;
@@ -289,9 +290,11 @@ browserProof.step=ms=>{for(let left=ms;left>0;){const dt=Math.min(20,left);left-
   const measured=browserProof.measureLoop,begin=performance.now();
   gameLoop(browserProof.clock);
   if(measured){
-    renderer.ctx.getImageData(0,0,1,1);
+    const submitted=performance.now();renderer.ctx.getImageData(0,0,1,1);
     const costMs=performance.now()-begin;
-    browserProof.fullLoopCosts.push({ms:costMs,
+    browserProof.fullLoopCosts.push({ms:costMs,submitMs:submitted-begin,
+      drawMs:browserProof.drawCosts.at(-1),updateMs:browserProof.updateCostMs,
+      flushMs:costMs-(submitted-begin),
       bar:BARCODE.CacheRoadProof.state.musicBeatFloat/4,
       gear:BARCODE.CacheRoadProof.state.gear,boss:!!BARCODE.CacheRoadProof.state.combat?.boss,
       worldScale:BARCODE.CacheRoadProof.renderBudget?.drawnScale??1,
@@ -714,6 +717,14 @@ async function main(){
     worldScales:[...new Set(fullLoopCosts.map(frame=>frame.worldScale))],samples:fullLoopCosts,
     limitation:'Consecutive native Chromium shared-loop frames with raster flush; controlled audio/device hosts, not player-device FPS.'};
   console.log('SUSTAINED_FRAME_COST '+JSON.stringify({...fullLoopTiming,samples:undefined}));
+  const median=values=>values.slice().sort((a,b)=>a-b)[Math.floor(values.length/2)];
+  console.log('SUSTAINED_FRAME_DETAIL '+JSON.stringify(
+    [...new Set(fullLoopCosts.map(frame=>(frame.boss?'boss':'chase')+'/'+frame.worldScale))].map(group=>{
+      const rows=fullLoopCosts.filter(frame=>(frame.boss?'boss':'chase')+'/'+frame.worldScale===group);
+      return {group,frames:rows.length,medianMs:median(rows.map(frame=>frame.ms)),
+        drawMs:median(rows.map(frame=>frame.drawMs)),updateMs:median(rows.map(frame=>frame.updateMs)),
+        flushMs:median(rows.map(frame=>frame.flushMs))};})));
+  fs.writeFileSync(path.join(output,'Sustained-Frame-Cost.json'),JSON.stringify(fullLoopTiming,null,2)+'\n');
   assert(fullLoopTiming.medianMs<=1000/30,'consecutive production chase/boss frames must fit the 30 Hz diagnostic median budget');
   assert.deepEqual(errors,[],'native browser raises no uncaught production exceptions');assert.equal(requests.head,0);
   if(requireHosted)assert.deepEqual(requests.localCombat,[],'new combat/feedback art never silently falls back to bundled paths');

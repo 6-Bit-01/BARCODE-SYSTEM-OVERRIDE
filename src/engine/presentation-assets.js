@@ -314,7 +314,24 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   };
   const cache = {};
   const rasterDetail=new WeakMap(),MAX_RASTER_PIXELS=32*1024*1024;
-  let rasterPixels=0;
+  let rasterPixels=0,nativeRasterPixels=0;
+  const MAX_NATIVE_RASTER_PIXELS=32*1024*1024;
+  function prepareNativeRaster(key,entry,state) {
+    const image=state.image,w=image.naturalWidth,h=image.naturalHeight,pixels=w*h;
+    if(!/^cache/.test(key)||!/^assets\/cache-road\/(vehicles|combat|pursuit|beat-system|hud|blood|effects)\//.test(entry.path)||
+      /\.svg$/i.test(entry.path)||pixels<256*1024||pixels>MAX_NATIVE_RASTER_PIXELS-nativeRasterPixels||
+      typeof window.createImageBitmap!=='function')return;
+    // Decode once without resampling/cropping. Native foreground coordinates,
+    // detail and original-image fallback are unchanged; reserve before await.
+    nativeRasterPixels+=pixels;state.nativePending=true;
+    const fallback=()=>{nativeRasterPixels-=pixels;state.nativePending=false;};
+    try {
+      Promise.resolve(window.createImageBitmap(image)).then(bitmap=>{
+        if(bitmap?.width!==w||bitmap?.height!==h){bitmap?.close?.();fallback();return;}
+        state.nativeBitmap=bitmap;state.nativePending=false;
+      },fallback);
+    } catch {fallback();}
+  }
   // Keep the small background working set decoded across animated cels.
   // Original images remain authoritative for native foreground/HUD paint.
   function prepareBackgroundRaster(key,entry,state) {
@@ -366,7 +383,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
               state.ready=true;
             },()=>{state.ready=true;});
           } catch {state.ready=true;}
-        } else {state.ready=true;prepareBackgroundRaster(key,entry,state);}
+        } else {state.ready=true;prepareBackgroundRaster(key,entry,state);prepareNativeRaster(key,entry,state);}
       };
       image.onerror = () => {
         if (!state.fallback) { state.fallback = true; image.src = entry.path; }
@@ -380,7 +397,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     const entry = entries[key], state = cache[key];
     if (!entry || !state?.ready) return false;
     const original=state.image,small=(rasterDetail.get(ctx)||1)<=.25&&state.rasterBitmap;
-    const image=small||state.bitmap||original;
+    const image=small||state.nativeBitmap||state.bitmap||original;
     const fw=original.naturalWidth/entry.columns,fh=original.naturalHeight/entry.rows;
     const index = Math.max(0, Math.floor(frame)) % entry.frames;
     const [sx, sy, sw, sh] = sourceRect || entry.frameCrops?.[index] || entry.crop || [0, 0, fw, fh];

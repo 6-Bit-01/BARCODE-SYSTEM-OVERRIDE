@@ -35,6 +35,14 @@ art bytes, complete foreground exits, controls, deadlines, music, economy
 and compatible saves are unchanged. No extra Canvas, context, timer,
 frame/input/audio owner or persisted setting is added.
 
+
+Functional raster atlases can also prepare one unscaled ImageBitmap outside
+drawing, capped separately at 32 megapixels including pending reservations.
+The native cache keeps source/crop geometry and detail; rejection, mismatch
+or capacity exhaustion retains the original image. No canonical bytes change.
+The performance workflow now checks complete chase/boss frames before the
+long regression workflow, and retains submission/draw/update/flush breakdowns.
+
 Background WebP sheets also prepare one quarter-size immutable ImageBitmap
 outside drawing, with a 32-megapixel reservation cap and original-image
 fallback. Low-detail background/reflected scenery uses these decoded sources;
