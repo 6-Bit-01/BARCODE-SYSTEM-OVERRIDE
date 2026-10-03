@@ -4,14 +4,6 @@ The owner already played PR180 and reported continued lag. Do not restart
 that earlier handoff. Base/rollback:
 `0c821b2fb3b7b60b2b561d7c3a0040810c73181a`.
 PR181: `agent/level2-raster-work-repair`.
-Background WebP sheets also prepare one quarter-size immutable ImageBitmap
-outside drawing, with a 32-megapixel reservation cap and original-image
-fallback. Low-detail background/reflected scenery uses these decoded sources;
-functional foreground, face and HUD retain original sources and native detail.
-Under load the reflection uses one rectangular raster clip, then repaints the
-original curved bezel once. Its native projection and 2.3px blur remain.
-
-
 The repair adapts background sampling on the existing display Canvas.
 Fresh runs start at full detail; sustained slow draws/frame intervals reduce
 detail, pauses hold it, and sustained spare capacity restores it. Background
@@ -20,6 +12,13 @@ display. Expand that background once, then resume the original camera at
 native resolution for functional road paint, cars, traffic, effects and HUD.
 The mirror retains its native scene/face and original blur. Preserve sampler,
 style, dash and caller state. No extra Canvas, clock, input or audio owner.
+
+Background WebP sheets also prepare one quarter-size immutable ImageBitmap
+outside drawing, with a 32-megapixel reservation cap and original-image
+fallback. Low-detail background/reflected scenery uses these decoded sources;
+functional foreground, face and HUD retain original sources and native detail.
+Under load the reflection uses one rectangular raster clip, then repaints the
+original curved bezel once. Its native projection and 2.3px blur remain.
 
 Read CURRENT_STATE and ACCEPTANCE. Performance evidence uses unwrapped
 production draws, 30 startup frames retained separately and a subsequent
@@ -172,7 +171,6 @@ Unread tutorial, lore and inspection remain visible during play. Shared screen-s
 
 Preserve #78 elevator rear/passenger/front-rail layering, collisions, power and all other gameplay. Read SMART_BOX_MOTION_PASS.md and the newest ACCEPTANCE route. Publish a draft and refresh the existing v5 archive. Owner Makko/physical-controller acceptance remains pending before assistant merge; automated/native captures do not establish it.
 
-
 ## September 17, 2026 — smart panels and elevator front rails
 
 Base/rollback: merged #77, `78f67f4750a2d12f8a2063c895d06d5b9952d700`. Branch: `agent/tutorial-play-space`. The owner reports the tutorial hiding street enemies during jumps, the fixed hack panel hiding its locked target, and passengers appearing over the elevator's front rails. This pass implements those reports together.
@@ -279,7 +277,6 @@ Owner continuation: relocate the rhythm lift to x=2440, y=856→358 at the middl
 
 Read `CROSS_BEAT_STREET_PASS.md` for behavior, validation and the Makko route. Canonical pack v64 matched all 367 base source exports; its original manifest/test receipt are preserved in `verification/pr63-merged-history.json`. PR #62 remains owner-failed historical evidence. Automated/native checks are not physical DualSense or hosted Makko acceptance. Exact final revision, PR and CI belong to the generated receipt; keep the draft unmerged until owner acceptance.
 
-
 ## September 16, 2026 — controller playtest repair and car approach warnings
 
 Base/rollback is merged PR #62, `af8019a1e7755195c4e6e2cddf1e3d3f9f82002a`. Branch: `agent/controller-jump-traffic-warning`. The owner reports that #62's controller changes failed in play: RB still made a tiny jump and Cross stopped movement. Preserve that failure attribution; earlier passing automated checks were insufficient.
@@ -304,7 +301,6 @@ Base/rollback: merged PR #60, `5e0de1e16f2e40fd077468a18b0404e067cf634f`. Branch
 
 Asset ancestor: `3e1af42b28521ff02efd7343792a890196493f70`; manifest ancestor: `215fde24db9f7493f1ee862e14761eb097db55e9`. The active startup pin and registry detection require this repaired manifest, including when the old walk is already cached. Read `WALK_LOOP_PASS.md` for the native before/after, long-hold tests, controller recommendations and Makko route. Controller changes are recommendations only, pending owner selection. Exact head/PR/CI are in the generated receipt. Makko acceptance remains required before merge; previous current-work entries are historical.
 
-
 ## September 16, 2026 — upper routes, boss pursuit and readable guidance
 
 Current review branch: `agent/upper-route-boss-polish`. Base/rollback: merged PR #59 (`a4c16069b008c508a1dca60aeba3aab7e3c29b3f`). This expands the saved Jammer-arrow repair with the owner's later request for visible drones, faint roof landing lines, free boss-combat camera movement, more rooftop exploration, a sharp boss flourish, an illustrated elevator and boss participation above the street. Earlier current-work entries are history.
@@ -319,7 +315,6 @@ The continuation also narrows the existing continuous emitter artwork to 14 worl
 
 Read `UPPER_ROUTE_BOSS_PASS.md` and the latest acceptance route. Production-module and native-render evidence are not hosted Makko acceptance. Exact review revision, final test results and PR are in the generated receipt. Owner Makko review remains pending before merge.
 
-
 ## September 16, 2026 — restore Jammer arrow to the screen edge
 
 Base/rollback: merged PR #59 (`a4c16069b008c508a1dca60aeba3aab7e3c29b3f`). Branch: `agent/fix-jammer-arrow-edge`. The owner reports the guidance arrow appearing over the player. At zoom 1 and 1.2, the player's projected position lies below the arrow's safe bottom (770); the old ray starts on that clamped boundary and selects its zero-distance bottom intersection. Reproduction at player x=960, y=784 and Jammer x=3520 yielded arrow (960,770), directly over the player.
@@ -327,7 +322,6 @@ Base/rollback: merged PR #59 (`a4c16069b008c508a1dca60aeba3aab7e3c29b3f`). Branc
 For a Jammer beyond the left/right viewport, place the cue on that corresponding safe edge, clamp its height and point its artwork at the projected target. The normal-zoom reproduction now gives (1840,770). Keep current arrow artwork, distance, pulse/fade, single UI draw owner, on-screen hiding and gameplay. No asset changes. The circled facade-emitter appearance is not changed by this focused arrow correction.
 
 The production-module mission harness covers both directions, ground/jump heights and four zooms (24 combinations), target direction, HUD bounds and hiding on entry/removal. Required suite/syntax results and exact review head are recorded in the generated receipt. Native/VM checks do not establish hosted Makko acceptance. Earlier current-state entries below are historical.
-
 
 ## September 16, 2026 — street depth, one terminal and render cost
 

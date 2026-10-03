@@ -1,18 +1,17 @@
 # Acceptance and Test Status
-Background WebP sheets also prepare one quarter-size immutable ImageBitmap
-outside drawing, with a 32-megapixel reservation cap and original-image
-fallback. Low-detail background/reflected scenery uses these decoded sources;
-functional foreground, face and HUD retain original sources and native detail.
-Under load the reflection uses one rectangular raster clip, then repaints the
-original curved bezel once. Its native projection and 2.3px blur remain.
-
-
 ## October 3 — continued lag repair verification (PR #181)
 
 The owner's PR180 playtest remains laggy. Background adaptation preserves
 native functional road markings, timing feedback, cars, traffic/effects,
 HUD/rearview and the original blur. Review loaded adaptive output including
 the lowest background detail; visible driving cues must remain readable.
+
+Background WebP sheets also prepare one quarter-size immutable ImageBitmap
+outside drawing, with a 32-megapixel reservation cap and original-image
+fallback. Low-detail background/reflected scenery uses these decoded sources;
+functional foreground, face and HUD retain original sources and native detail.
+Under load the reflection uses one rectangular raster clip, then repaints the
+original curved bezel once. Its native projection and 2.3px blur remain.
 
 Measure seven actual moving scenes against PR180 with unwrapped production
 calls and a raster flush. Keep 30 startup costs/detail levels separately,
@@ -246,7 +245,6 @@ reduced renderer operation counts are evidence of implementation only.
 They do not establish owner Makko acceptance. Prior observations retain
 original revision attribution. See `CACHE_PURSUIT_OVERHAUL.md`.
 
-
 ## October 1 — trailing camera and first-gear wrecks
 
 The owner accepts the direction of turn offsets but rejects abrupt/jerky
@@ -260,7 +258,6 @@ during the recovery bar cannot bypass the forced first-gear recovery.
 Automated camera/drive checks and scripted native renders do not establish
 Makko comfort, controller, listening or frame-pacing acceptance. The old exit
 remains for this repair only; its replacement belongs to the next PR.
-
 
 ## October 1 — dynamic camera and replacement wind review
 
@@ -294,7 +291,6 @@ Observe frame pacing on Makko after a fresh import. Native previews and
 production-owner checks do not count as this acceptance. This candidate is
 based on merged #164; its final publication and exact tests are recorded in
 the PR/receipt. See `SHARED_CUTSCENE_SPEED_EFFECTS.md`.
-
 
 ## Locked opening format across chapters — October 1
 
@@ -1623,7 +1619,6 @@ Review the draft head from the generated receipt. Base/rollback: `ec89e7468a6f79
 
 Post-merge deployment: import the actual merged main revision into a fresh Makko preview, then repeat steps 1–5. Record the imported SHA, device and a short clip of panel plus actor for remaining issues. Hosted/physical-controller acceptance is pending.
 
-
 ## September 17 — smart panels and front rails
 
 Import the exact draft head from the generated receipt. Base/rollback: merged #77, `78f67f4750a2d12f8a2063c895d06d5b9952d700`. Owner Makko/physical-controller acceptance is pending.
@@ -1780,7 +1775,6 @@ Owner continuation: relocate the rhythm lift to x=2440, y=856→358 at the middl
 
 Read `CROSS_BEAT_STREET_PASS.md` for behavior, validation and the Makko route. Canonical pack v64 matched all 367 base source exports; its original manifest/test receipt are preserved in `verification/pr63-merged-history.json`. PR #62 remains owner-failed historical evidence. Automated/native checks are not physical DualSense or hosted Makko acceptance. Exact final revision, PR and CI belong to the generated receipt; keep the draft unmerged until owner acceptance.
 
-
 ## September 16, 2026 — controller playtest repair and car approach warnings
 
 Base/rollback is merged PR #62, `af8019a1e7755195c4e6e2cddf1e3d3f9f82002a`. Branch: `agent/controller-jump-traffic-warning`. The owner reports that #62's controller changes failed in play: RB still made a tiny jump and Cross stopped movement. Preserve that failure attribution; earlier passing automated checks were insufficient.
@@ -1805,7 +1799,6 @@ Base/rollback: merged PR #60, `5e0de1e16f2e40fd077468a18b0404e067cf634f`. Branch
 
 Asset ancestor: `3e1af42b28521ff02efd7343792a890196493f70`; manifest ancestor: `215fde24db9f7493f1ee862e14761eb097db55e9`. The active startup pin and registry detection require this repaired manifest, including when the old walk is already cached. Read `WALK_LOOP_PASS.md` for the native before/after, long-hold tests, controller recommendations and Makko route. Controller changes are recommendations only, pending owner selection. Exact head/PR/CI are in the generated receipt. Makko acceptance remains required before merge; previous current-work entries are historical.
 
-
 ## September 16, 2026 — upper routes, boss pursuit and readable guidance
 
 Current review branch: `agent/upper-route-boss-polish`. Base/rollback: merged PR #59 (`a4c16069b008c508a1dca60aeba3aab7e3c29b3f`). This expands the saved Jammer-arrow repair with the owner's later request for visible drones, faint roof landing lines, free boss-combat camera movement, more rooftop exploration, a sharp boss flourish, an illustrated elevator and boss participation above the street. Earlier current-work entries are history.
@@ -1820,7 +1813,6 @@ The continuation also narrows the existing continuous emitter artwork to 14 worl
 
 Read `UPPER_ROUTE_BOSS_PASS.md` and the latest acceptance route. Production-module and native-render evidence are not hosted Makko acceptance. Exact review revision, final test results and PR are in the generated receipt. Owner Makko review remains pending before merge.
 
-
 ## September 16, 2026 — restore Jammer arrow to the screen edge
 
 Base/rollback: merged PR #59 (`a4c16069b008c508a1dca60aeba3aab7e3c29b3f`). Branch: `agent/fix-jammer-arrow-edge`. The owner reports the guidance arrow appearing over the player. At zoom 1 and 1.2, the player's projected position lies below the arrow's safe bottom (770); the old ray starts on that clamped boundary and selects its zero-distance bottom intersection. Reproduction at player x=960, y=784 and Jammer x=3520 yielded arrow (960,770), directly over the player.
@@ -1832,7 +1824,6 @@ The production-module mission harness covers both directions, ground/jump height
 ### Focused Makko review — pending
 
 Import the exact draft revision from the receipt into a fresh preview. Reach the revealed Jammer with it offscreen: the arrow must sit at the far left/right edge toward it, not over 6 Bit, while standing, walking and jumping. Approach until the Jammer enters view: the arrow must disappear. Check the opposite direction on another reveal/debug placement, then destroy the Jammer and confirm the cue stays hidden through the boss handoff. Record the imported SHA and PASS/FAIL before merging. After merge, re-import the actual main SHA and repeat the focused route.
-
 
 ## September 16, 2026 — street depth, one terminal and render cost
 
@@ -1873,7 +1864,6 @@ Record imported SHA, PASS/FAIL and one short clip showing the sidewalk/curb/stre
 Use the exact new review SHA from the PR/source receipt. Walk PR #52 is already merged at `66c17d1880f5de933e9b928833e5dd2bfff6a817`; this new draft targets main directly and preserves all completed walk and hijack work. Follow `ENEMY_HIJACK_REPAIR_PASS.md`'s focused Makko route: both H puzzles, all three ordinary target types, one ally, enemy combat, player-friendly fire exclusion, target death/failure/cancel, early release, expiry/reboot, pause/restart, full-health/injured repairs, one carrier drop, both directions on the two supports, gate counts and boss retry. Preserve intro/music/lift/Cat/Amp/lore/Jammer/boss smoke checks.
 
 Capture imported SHA, PASS/FAIL and a clip covering target lock → conversion → enemy hit → expiry/reboot → repair. Automated checks and native Canvas review do not replace this owner test. After acceptance/merge re-import actual main merge SHA into a fresh Makko preview, repeat the route and record SHA/evidence. This pass's base/rollback is `66c17d1880f5de933e9b928833e5dd2bfff6a817`, retaining the merged walk; earlier pre-walk rollback is `ea2921960477e38c74740dda378fcb513a8f1cc1`. Neither merge nor automation claims a Makko PASS.
-
 
 ## Current review: stable 6 Bit walk and compact atlas
 
@@ -1938,9 +1928,7 @@ Native Canvas and deterministic tests do not certify Makko playback, audio or ga
 
 > **Recovery checkpoint, September 14.** Draft PR #46 exists. Twelve recovered complete-body clips (547 frames), the approved city layers and live HUD are being installed and checked on that same branch. Final boss walk/flourish and vehicle loop exports were removed by workspace maintenance before publication and could not be recovered from GitHub or the saved v5. The original working boss walk/flourish and traffic remain. Do not regenerate the approved designs, claim full completion, or merge this checkpoint. See MODEL_ART_RECOVERY.md.
 
-
 > **September 13 production checkpoint — in progress.** The owner approved integrating the model-based artwork and HUD as one combined pass on `agent/model-art-hud-integration`, from merged #45. Twelve complete-pose clips (547 frames) and the live HUD are prepared. Final two boss clips, vehicle loops, scenery/anchor calibration, delivery pins and full validation remain. No PR or Makko acceptance is claimed at this checkpoint. See `MODEL_ART_HUD_IMPLEMENTATION.md`; older review-only sections below are historical.
-
 
 ## Current review — model-based art, full-body trial and new HUD
 
@@ -2063,7 +2051,6 @@ The owner's next requested work is HUD/rhythm presentation and threshold-based a
 
 Older checklists below describe their own review milestones, not a replacement for the current gate.
 
-
 ## Current campaign planning review — after merged PR #37
 
 This pass changes development documents only. It does not create a new gameplay/Makko acceptance claim. Validate the exact committed review with the existing repository suite and all-file syntax check, inspect the diff for source/asset changes, and check the new plan's counts/references. The generated export receipt records commands, exit status and revision; historical reports below retain their original limits.
@@ -2102,7 +2089,6 @@ Review `agent/level1-discovery-traffic`, based on merged PR #35 (`c346e16e24c00b
 4. Enter R beside enemies. Cyan brackets indicate normal next-success reach, violet `AMP +` shows extended reach, and boss brackets distinguish guarded/open phases. Compare the preview with actual on-beat hits at the range edge. R-off, tutorial, pause and hacking must hide it. Looking/pausing must not spend charges.
 5. Watch all three traffic types: exhaust and source animation should advance, with existing direction, framing and travel. Pause freezes their frames; resume continues. Owner diagnostics may confirm `spaceShipSystem.getDiagnostics().animatedTypes === 3`; fallback imagery is not an animation PASS.
 6. Smoke-test opening/landing/contact/SFX, tutorial locks, two-hit lift, sixteen-hit Jammer, cinematic exit, boss lose/retry and win/rematch, full restart and saved pause controls. Record SHA, Makko project/origin, device and PASS/FAIL. After acceptance and merge, import the actual main merge SHA and repeat the focused collection/Amp/target/traffic checks.
-
 
 ## Current target: approved combined polish 1–9 — September 12, 2026
 

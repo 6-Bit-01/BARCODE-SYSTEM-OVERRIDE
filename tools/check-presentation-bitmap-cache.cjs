@@ -278,6 +278,7 @@ async function browser(){
           if(frame===45)console.log('FRAME_COST '+JSON.stringify({name:scene.name,mode,
             submitMs:submitted-began,flushMs:performance.now()-submitted}));
           if(ctx.imageSmoothingQuality!=='high')throw Error('road draw leaked its sampling quality');
+          if(P.setRasterDetail(ctx,1)!==1)throw Error('road draw leaked its background raster hint');
           if(frame>=30)samples.push(elapsed);
           else if(mode==='adaptive')startupFrames.push({frame,ms:elapsed,
             worldScale:road.renderBudget.drawnScale});
