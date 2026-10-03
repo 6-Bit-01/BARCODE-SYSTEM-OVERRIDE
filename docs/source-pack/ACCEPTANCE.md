@@ -2,6 +2,15 @@
 ## October 3 — continued lag repair verification (PR #181)
 
 
+The staged boss trace found a repeated original-image decode on sub-megapixel
+street signals. Background preparation now also covers sheets from 256 Ki
+pixels upward, within the same 32-megapixel reservation cap. Smaller signals,
+lamps and walkers use the same exact atlas coordinates on their thumbnail
+only at reduced detail; native sources and functional sprites stay unchanged.
+Review output includes the earned-boss scene and baseline/adaptive native
+frames, captured after measured samples for visual inspection.
+
+
 The reflection skips only complete terrain slabs outside the glass and blur
 envelope. Under sustained background load, sub-sample lamp haze bands merge
 using the mean of their original ten opacities; full-detail lighting keeps

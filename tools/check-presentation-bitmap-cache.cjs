@@ -100,6 +100,26 @@ async function backgroundRasterUnit(){
   assert(prepared.length>0&&prepared.length<=16);
   assert(Object.values(w.bitmapReview.cache).reduce((sum,state)=>
     sum+(state.rasterBitmap?state.rasterBitmap.width*state.rasterBitmap.height:0),0)<=32*1024*1024);
+  // Smaller animated street sheets also need a stable decoded thumbnail.
+  // The old one-megapixel cutoff missed signals, lamps and walking atlases.
+  const smallPrepared=[];
+  class SmallImage{constructor(){this.naturalWidth=1152;this.naturalHeight=576;}}
+  const smallWindow={Image:SmallImage,BARCODE:{},createImageBitmap(image,options){
+    smallPrepared.push(options);return Promise.resolve({width:options.resizeWidth,height:options.resizeHeight});}};
+  vm.runInNewContext(inspected,{window:smallWindow});
+  const smallState=smallWindow.bitmapReview.cache.cacheNewCrossingSignalR;
+  smallState.image.onload();await new Promise(setImmediate);
+  assert.equal(smallPrepared.length,1);
+  assert.deepEqual(smallPrepared[0],{resizeWidth:288,resizeHeight:144,resizeQuality:'high'});
+  const smallCalls=[],smallCtx={imageSmoothingEnabled:true,save(){},restore(){},translate(){},scale(){},drawImage(...args){smallCalls.push(args);}};
+  const smallAssets=smallWindow.BARCODE.PresentationAssets;
+  smallAssets.setRasterDetail(smallCtx,.25);
+  smallAssets.draw('cacheNewCrossingSignalR',smallCtx,{width:80,height:40,frame:2,sourceRect:[12,8,100,40]});
+  assert.equal(smallCalls[0][0],smallState.rasterBitmap);
+  assert.deepEqual(smallCalls[0].slice(1),[195,2,25,10,-40,-40,80,40]);
+  smallAssets.setRasterDetail(smallCtx,1);
+  smallAssets.draw('cacheNewCrossingSignalR',smallCtx,{width:80,height:40});
+  assert.equal(smallCalls[1][0],smallState.image,'native lighting/signal detail retains the original sheet');
   console.log('PASS: one bounded background derivative, source/crop geometry, original native routing, pause reuse, graceful failure and concurrent pixel reservations.');
 }
 
@@ -520,6 +540,10 @@ async function browser(){
     assert(result.result.value?.passed);
     const {screens,...report}=result.result.value;
     console.log(JSON.stringify(report));
+    for(const screen of screens.filter(screen=>
+      screen.name==='Ready-ONE'&&screen.mode!=='vector'||
+      screen.name==='Focused-Turn'&&screen.mode==='adaptive'))
+      console.log('NATIVE_REVIEW_FRAME '+JSON.stringify(screen));
     if(process.env.BITMAP_FRAME_REPORT) {
       const directory=path.dirname(process.env.BITMAP_FRAME_REPORT);fs.mkdirSync(directory,{recursive:true});
       for(const screen of screens)fs.writeFileSync(path.join(directory,screen.name+'-'+screen.mode+'.webp'),

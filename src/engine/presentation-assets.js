@@ -338,7 +338,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     const image=state.image,w=image.naturalWidth,h=image.naturalHeight;
     const background=/^assets\/cache-road\/(world|roadside)\//.test(entry.path)&&
       !entry.path.includes('/beat/')||['cacheBlacktop','cacheFly1','cacheFly3'].includes(key);
-    if(!background||!/^cache/.test(key)||/\.svg$/i.test(entry.path)||w*h<1024*1024||
+    if(!background||!/^cache/.test(key)||/\.svg$/i.test(entry.path)||w*h<256*1024||
       typeof window.createImageBitmap!=='function')return;
     const width=entry.columns*Math.ceil(w/entry.columns/4);
     const height=entry.rows*Math.ceil(h/entry.rows/4),pixels=width*height;

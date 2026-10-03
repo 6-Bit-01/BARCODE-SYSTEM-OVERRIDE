@@ -779,7 +779,8 @@ async function main(){
       };
       originalRoadDraw.call(road,ctx);window.canvasCostMark('hud-complete');
       return {available:true,fixture:true,bar:road.state.musicBeatFloat/4,bossHP:road.state.combat.boss.hp,rows,
-        assetGroups:Object.entries(groups).sort((a,b)=>b[1].submitMs-a[1].submitMs).slice(0,24)};
+        assetGroups:Object.entries(groups).sort((a,b)=>b[1].submitMs-a[1].submitMs).slice(0,24),
+        reviewWebp:ctx.canvas.toDataURL('image/webp',.9).split(',')[1]};
     }finally{
       window.canvasCostMark=undefined;P.draw=assetDraw;
       for(const name of methods)ctx[name]=originals[name];
@@ -787,8 +788,13 @@ async function main(){
       road.renderBudget=saved.budget;road.renderBudgetState=saved.budgetState;road.renderFrameIntervalMs=saved.interval;
     }
   })()`);
-  console.log('BOSS_RENDER_PHASES '+JSON.stringify(phaseCost));
-  fs.writeFileSync(path.join(output,'Boss-Render-Phases.json'),JSON.stringify(phaseCost,null,2)+'\n');
+  const {reviewWebp,...phaseReport}=phaseCost;
+  if(reviewWebp){
+    console.log('BOSS_RENDER_REVIEW '+JSON.stringify({fixture:true,bar:phaseCost.bar,webp:reviewWebp}));
+    fs.writeFileSync(path.join(output,'Boss-Render-Review.webp'),Buffer.from(reviewWebp,'base64'));
+  }
+  console.log('BOSS_RENDER_PHASES '+JSON.stringify(phaseReport));
+  fs.writeFileSync(path.join(output,'Boss-Render-Phases.json'),JSON.stringify(phaseReport,null,2)+'\n');
   const phaseMedians=Object.fromEntries([false,true].map(boss=>{const rows=fullLoopCosts.filter(frame=>frame.boss===boss);
     return [boss?'boss':'chase',median(rows.map(frame=>frame.ms))];}));
   console.log('SUSTAINED_PHASE_MEDIANS '+JSON.stringify(phaseMedians));
