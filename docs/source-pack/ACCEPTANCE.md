@@ -1,28 +1,32 @@
 # Acceptance and Test Status
 
-## October 3 — continued lag: raster candidate verification
+## October 3 — continued lag: adaptive candidate verification
 
-The owner's playtest of merged PR180 remains laggy. This is a failed device
-result, independent of the earlier relative Chromium improvement.
+The owner's playtest of merged PR180 remains laggy. The earlier relative
+Chromium improvement did not establish acceptable actual play.
 
-Verify bounded raster preparation, rejection/unsupported fallback, affine
-source/crop selection, unchanged anchors/filter/alpha and allocation-free
-warm, paused and re-entry draws. Compare seven loaded moving scenes against
-the actual PR180 SVG/composite-reflection path. Record every median/p95,
-require at least 25% aggregate improvement, no scene regression above 10%,
-a 33.33 ms scene-median diagnostic budget and mean RGB differences below 1.
-Keep the prior SVG/mirror checks, one display context and original blur.
+Verify fresh-run full detail, sustained slow-frame adaptation, cold/impact
+tolerance, pause freeze, invalid-clock fallback and recovery hysteresis.
+Keep the original loader, bitmap reuse/rejection tests and source registration.
+Compare seven loaded moving scenes directly against PR180: retain median/p95,
+require 25% aggregate improvement, no scene regression above 10% and a
+33.33 ms scene-median budget. Review actual adaptive output and report world
+detail and native HUD difference; independently compare full-quality pixels
+within one mean RGB level. Require one display context, one original mirror
+blur, unchanged gameplay and preserved caller viewport transforms.
 
-Paint consecutive real shared-loop chase and boss frames in the production
-combat browser route, including actual input/update ownership and controlled
-audio-host traversal. Record slow-frame counts and median/p95. Run complete
-regression/all-file syntax and both exact final-head CI events. Candidate
-browser and Node results are pending; do not claim the fix has passed them.
+Paint consecutive shared-loop chase/boss frames with real production
+input/update ownership and controlled audio-host traversal. Record slow-frame
+counts and median/p95. Complete regression/all-file syntax and both exact
+final-head CI events remain publication gates. Candidate Node/browser results
+are pending; do not claim they have passed.
 
-After the tested repair is merged/imported, check the reported lag through
-normal driving, the ambush, turns, Turbo, timing hits, dense encounters,
-boss, pause and re-entry. The user's existing lag report is already evidence;
-do not restart the handoff as though PR180 were awaiting its first playtest.
+After publication/import, check the lag through normal driving, ambush,
+turns, Turbo, timing hits, dense encounters, boss, pause and re-entry.
+World detail should stabilize without repeated changes; mirror/HUD remain
+sharp. Preserve Reduced Motion and Flashes Off. Do not restart the handoff
+as though PR180 were awaiting its first playtest. Device pacing/controller,
+listening, balance and comfort acceptance remain separate.
 
 ## October 3 — Level 2 reflection repair verification (PR #180)
 

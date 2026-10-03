@@ -1,17 +1,18 @@
 # Recovery checkpoint — September 14
 
-## October 3, 2026 — raster workload repair after failed PR180 playtest
+## October 3, 2026 — continued lag repair after failed PR180 playtest
 
-- Record the owner's continued Level 2 lag after PR180; its relative rendering
-  improvement did not establish acceptable actual play.
-- Prepare bounded, reusable smaller raster variants for distant road art;
-  choose by the transformed display footprint and retain original close art.
-- Preserve artwork files, source crops, anchors, blur, gameplay,
-  music, controls, saves and shared Canvas/frame owners.
-- Compare directly with PR180 in Chromium and require an absolute diagnostic
-  frame budget. Add consecutive full-loop chase and boss rendering metrics.
-- Production-loader V8 units pass; candidate Node/browser/full regression and
-  publication remain pending. Keep player-device acceptance unclaimed.
+- Record the owner's continued Level 2 lag after PR180.
+- Measure queued raster work between production sky, terrain, road, scenery,
+  vehicles, mirror and HUD phases.
+- Adapt world sampling after sustained slow shared-Canvas draws; preserve
+  native dashboard/rearview detail, pause quality and fresh-run full detail.
+- Expand the world on the same Canvas and preserve original art bytes,
+  contacts, foreground exits, rules, timing, music, controls and saves.
+- Compare against PR180 with an absolute scene-median frame budget and
+  native-quality fidelity checks; review the actual adaptive captures.
+- Add consecutive shared-loop chase/boss timing. Production-loader and
+  quality-policy V8 units pass; full regression/browser publication is pending.
 
 ## October 3, 2026 — Level 2 reflection raster cost repair
 

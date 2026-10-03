@@ -2,30 +2,32 @@
 
 ## October 3 — continued Level 2 lag after PR #180
 
-The owner reports that the merged reflection repair still lags. PR180's
-relative improvement is not device acceptance: its merged Chromium moving
-scenes still cost approximately 73–98 ms per frame on the software runner.
-Base/rollback is `0c821b2fb3b7b60b2b561d7c3a0040810c73181a`; continue on
-`agent/level2-raster-work-repair`.
+The owner reports that the merged reflection repair still lags. Its software
+Chromium scenes still cost approximately 73–98 ms per frame. Base/rollback
+is `0c821b2fb3b7b60b2b561d7c3a0040810c73181a`; draft PR181 continues on
+`agent/level2-raster-work-repair`. Do not repeat the previous test handoff.
 
-The next candidate prepares at most three smaller immutable raster variants
-per smooth road sheet, with two active preparations and a shared 32-megapixel
-reservation budget. Fair per-sheet allowances prevent later props from being
-starved by load order. Draws choose by the actual affine pixel footprint and
-preserve original atlas/crop addresses, destination anchors, alpha and blur.
-Close art and unsupported hosts retain original resolution. No artwork bytes,
-gameplay, audio, input, saves or Canvas/frame owners change.
+Phase raster flushes identify cost across the full-resolution sky, city,
+terrain, asphalt and street lighting. The candidate measures production
+draws on the existing shared Canvas and lowers world sampling only after
+three sustained slow frames. It starts each run at full detail, holds quality
+while paused, and restores detail only after sustained spare capacity.
+The world is expanded from the same display Canvas; the dashboard, rearview,
+Cache's mirror face and original 2.3px reflection blur remain native resolution.
+No auxiliary Canvas, context, timer, frame, input or audio owner is added.
+Canonical art bytes, complete foreground exits, projection, timing, controls,
+economy and compatible saves remain intact. Sampling is presentation state,
+not part of a saved game. The ineffective raster-pyramid draft is removed.
 
-Production-loader units pass in the current V8 execution environment.
-Node/full regression and real Chromium results are pending. The performance
-gate compares directly with the PR180 SVG/composite-mirror path, requires
-25% lower aggregate cost without a scene regression, and checks a 33.33 ms
-median frame budget rather than relative improvement alone. The combat
-browser route also paints consecutive shared-loop frames during real chase
-and boss input/update, recording complete-frame median/p95 and slow frames.
-Neither those controlled-host timings nor a merge establishes Makko/device
-or physical controller/listening acceptance. The owner's lag report remains
-open until the actual repaired build plays smoothly.
+Production-loader and quality-policy V8 units pass. Candidate full Node
+regression and Chromium results remain pending. The browser gate compares
+against PR180, requires 25% lower aggregate cost without a scene regression,
+and a 33.33 ms scene-median budget. Review adaptive captures, report detail
+levels and HUD differences, and verify native-quality appearance separately.
+Consecutive shared-loop chase and boss paint also records complete-frame
+median/p95 and slow frames. Host timings do not establish device/controller,
+listening, comfort or fun acceptance. The owner's lag report remains open
+until the actual repaired build plays smoothly.
 
 ## October 3 — Level 2 reflection frame-cost repair (PR #180)
 

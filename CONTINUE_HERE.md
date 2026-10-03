@@ -3,11 +3,14 @@
 The owner has already played the merged reflection repair and reports
 continued lag. Resume the performance repair, not the previous test handoff.
 Base/rollback: `0c821b2fb3b7b60b2b561d7c3a0040810c73181a`.
-Branch: `agent/level2-raster-work-repair`. Read the newest CURRENT_STATE,
-ACCEPTANCE and CHANGELOG entries. Smaller reusable raster variants and
-consecutive shared-loop Chromium measurements are prepared; Node/browser
-and full candidate regression are pending. Preserve gameplay/art/audio and
-finish exact-head validation under standing publication/merge authority.
+Draft PR181: `agent/level2-raster-work-repair`. Read the newest CURRENT_STATE,
+ACCEPTANCE and CHANGELOG entries. Raster-pyramid attempts did not reduce
+90ms software frames and have been removed. Adaptive world sampling now
+targets the measured full-scene raster bottleneck on the same display Canvas,
+with native HUD/rearview detail. Policy/loader V8 units pass; exact-head full
+regression and Chromium results remain pending. Finish checks, native review,
+publication and the actual merged source pack under standing authority.
+The owner's lag report remains unresolved by a relative benchmark alone.
 
 # Earlier continuation history
 

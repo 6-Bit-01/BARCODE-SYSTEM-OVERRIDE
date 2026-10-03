@@ -313,62 +313,6 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
       columns:4,rows:2,frames:8,ax:.5,ay:.5,smooth:true},
   };
   const cache = {};
-  // Distant road actors and the reflection otherwise repeatedly shrink large
-  // source sheets. Prepare a small, bounded raster pyramid once when each
-  // road image loads. Draws only read these immutable variants.
-  const rasterPixelBudget=32*1024*1024;
-  const rasterKeys=Object.keys(entries).filter(key=>key.startsWith('cache')&&
-    entries[key].smooth&&!/\.svg$/i.test(entries[key].path));
-  // A fair per-sheet allowance prevents earlier loads from starving a later
-  // visible prop. The summed reservations cannot exceed the global budget.
-  const rasterEntryBudget=Math.min(1024*1024,Math.floor(rasterPixelBudget/Math.max(1,rasterKeys.length)));
-  const rasterQueue=[];let rasterPixels=0,rasterInFlight=0;
-  function pumpRasterQueue() {
-    while(rasterInFlight<2&&rasterQueue.length) {
-      const job=rasterQueue.shift();rasterInFlight++;
-      const finish=()=>{
-        rasterInFlight--;job.state.rasterPending--;
-        job.state.preparingRaster=job.state.rasterPending>0;
-        pumpRasterQueue();
-      };
-      const fail=()=>{rasterPixels-=job.width*job.height;finish();};
-      try {
-        Promise.resolve(window.createImageBitmap(job.state.image,{
-          resizeWidth:job.width,resizeHeight:job.height,resizeQuality:'high'
-        })).then(bitmap=>{
-          if(bitmap?.width!==job.width||bitmap?.height!==job.height) {
-            bitmap?.close?.();fail();return;
-          }
-          job.state.rasters.push({image:bitmap,
-            scaleX:job.width/job.state.image.naturalWidth,
-            scaleY:job.height/job.state.image.naturalHeight});
-          job.state.rasters.sort((a,b)=>a.scaleX-b.scaleX);finish();
-        },fail);
-      } catch {fail();}
-    }
-  }
-  function prepareRoadRaster(key,entry,state) {
-    if(!key.startsWith('cache')||!entry.smooth||/\.svg$/i.test(entry.path)||
-        typeof window.createImageBitmap!=='function')return;
-    const image=state.image,frameEdge=Math.max(
-      image.naturalWidth/entry.columns,image.naturalHeight/entry.rows);
-    state.rasters=[];state.rasterPending=0;let entryPixels=0;
-    const levels=[];
-    for(let scale=.5;frameEdge*scale>=64&&levels.length<3;scale/=2) {
-      if(frameEdge*scale>512)continue;
-      const width=Math.max(entry.columns,Math.round(image.naturalWidth*scale/entry.columns)*entry.columns);
-      const height=Math.max(entry.rows,Math.round(image.naturalHeight*scale/entry.rows)*entry.rows);
-      levels.push({width,height});
-    }
-    // Reserve the miniature first, then progressively sharper road variants.
-    for(const {width,height}of levels.reverse()) {
-      const pixels=width*height;
-      if(entryPixels+pixels>rasterEntryBudget||rasterPixels+pixels>rasterPixelBudget)continue;
-      entryPixels+=pixels;rasterPixels+=pixels;state.rasterPending++;
-      rasterQueue.push({state,width,height});
-    }
-    state.preparingRaster=state.rasterPending>0;pumpRasterQueue();
-  }
   function preload() {
     if (typeof window.Image !== 'function') return;
     for (const [key, entry] of Object.entries(entries)) {
@@ -391,7 +335,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
               state.ready=true;
             },()=>{state.ready=true;});
           } catch {state.ready=true;}
-        } else {state.ready=true;prepareRoadRaster(key,entry,state);}
+        } else state.ready=true;
       };
       image.onerror = () => {
         if (!state.fallback) { state.fallback = true; image.src = entry.path; }
@@ -404,31 +348,17 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     flip = false, sourceRect = null } = {}) {
     const entry = entries[key], state = cache[key];
     if (!entry || !state?.ready) return false;
-    const original=state.image;let image=state.bitmap||original;
+    const original=state.image,image=state.bitmap||original;
     const fw=original.naturalWidth/entry.columns,fh=original.naturalHeight/entry.rows;
     const index = Math.max(0, Math.floor(frame)) % entry.frames;
     const [sx, sy, sw, sh] = sourceRect || entry.frameCrops?.[index] || entry.crop || [0, 0, fw, fh];
     const h = height ?? width * sh / sw;
-    let sourceX = index % entry.columns * fw + sx;
-    let sourceY = Math.floor(index / entry.columns) * fh + sy;
-    let sourceW=sw,sourceH=sh;
-    if(state.rasters?.length&&typeof ctx.getTransform==='function') {
-      const transform=ctx.getTransform();
-      // Include the caller's real affine transform: tiny mirror actors may
-      // use a small variant, while enlarged foreground art keeps its source.
-      const pixelWidth=Math.abs(width)*Math.hypot(transform.a,transform.b);
-      const pixelHeight=Math.abs(h)*Math.hypot(transform.c,transform.d);
-      const raster=state.rasters.find(candidate=>
-        sw*candidate.scaleX>=pixelWidth&&sh*candidate.scaleY>=pixelHeight);
-      if(raster) {
-        image=raster.image;sourceX*=raster.scaleX;sourceY*=raster.scaleY;
-        sourceW*=raster.scaleX;sourceH*=raster.scaleY;
-      }
-    }
+    const sourceX = index % entry.columns * fw + sx;
+    const sourceY = Math.floor(index / entry.columns) * fh + sy;
     if (flip || x !== 0 || y !== 0) {
       ctx.save(); ctx.translate(x, y); if (flip) ctx.scale(-1, 1);
       ctx.imageSmoothingEnabled = !!entry.smooth;
-      ctx.drawImage(image, sourceX, sourceY, sourceW, sourceH,
+      ctx.drawImage(image, sourceX, sourceY, sw, sh,
         -width * entry.ax, -h * entry.ay, width, h);
       ctx.restore();
     } else {
@@ -440,7 +370,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
       const changed = smoothing !== !!entry.smooth;
       if (changed) ctx.imageSmoothingEnabled = !!entry.smooth;
       try {
-        ctx.drawImage(image, sourceX, sourceY, sourceW, sourceH,
+        ctx.drawImage(image, sourceX, sourceY, sw, sh,
           x - width * entry.ax, y - h * entry.ay, width, h);
       } finally {
         if (changed) ctx.imageSmoothingEnabled = smoothing;

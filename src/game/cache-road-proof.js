@@ -3460,6 +3460,17 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         steer:cinema.kind==='handoff'?live.steer:cinema.car.steer,
         elapsedMs:cinema.kind==='opening'?this.introMs:cinema.kind==='outro'?live.elapsedMs+this.outroMs:live.elapsedMs}:live;
       const progress=s.progress,frameContext=ctx,showFeedback=cinema?.kind!=='outro';
+      const budgetOwner=B.CacheRoadRenderBudget;
+      const budgetEligible=!!budgetOwner&&ctx===window.renderer?.ctx&&
+        ctx.canvas?.width===1920&&ctx.canvas?.height===1080&&
+        typeof window.performance?.now==='function';
+      if(budgetEligible&&this.renderBudgetState!==live) {
+        this.renderBudget=budgetOwner.create();this.renderBudgetState=live;
+      }
+      const worldScale=budgetEligible?this.renderBudget.scale:1;
+      const renderStarted=budgetEligible?window.performance.now():0;
+      const finishRender=()=>{if(budgetEligible)budgetOwner.observe(this.renderBudget,
+        window.performance.now()-renderStarted,{paused:!!window.isPaused});};
       const combatPose=s.combat?B.CacheRoadCombat.pose(s.combat,{progress,lanePos:s.lanePos,
         adrenaline:s.adrenaline?.value||0,
         syncCount:new Set(s.captures.map(part=>part.lane)).size}):null;
@@ -3562,7 +3573,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           sourceRect});
         ctx.restore();
       };
-      ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.save(); ctx.setTransform(worldScale, 0, 0, worldScale, 0, 0);
       // One transform moves the existing world. The dashboard, timing cues
       // and rearview are drawn after it is restored, with no second scene pass.
       ctx.save();
@@ -5039,10 +5050,21 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       if(intro===null&&this.status==='playing')drawCameraWarnings(ctx,cameraWarnings,
         nextCue?.ready?{x:laneX(nextPulse.lane,STRIKE_DEPTH),y:strikeY+78,
           width:68,height:68,action:nextPulse.action,strike:nextCue.strike}:null,camera);
+      if(worldScale<1) {
+        // Reuse the display's own completed world pixels. Canvas self-copy
+        // snapshots the source before writing; no auxiliary Canvas is needed.
+        // The subsequent dashboard and rearview retain native resolution.
+        ctx.save();ctx.setTransform(1,0,0,1,0,0);
+        ctx.globalAlpha=1;ctx.globalCompositeOperation='copy';ctx.filter='none';
+        ctx.imageSmoothingEnabled=true;
+        ctx.drawImage(ctx.canvas,0,0,1920*worldScale,1080*worldScale,0,0,1920,1080);
+        ctx.restore();
+      }
+      ctx.setTransform(1,0,0,1,0,0);
       if(cinema&&cinema.kind!=='handoff'&&cinema.hudAlpha<=.001) {
         B.CacheRoadCinematics.drawOverlay(ctx,cinema,{reducedMotion:reduced,
           button:B.GamepadUI?.connected?B.ControllerSettings?.button(0)||'A':'ENTER'});
-        ctx.restore();return;
+        ctx.restore();finishRender();return;
       }
       if (intro !== null&&!cinema) {
         const scene=intro<1350?0:intro<2700?1:2;
@@ -5056,7 +5078,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.fillText(details[scene],960,970);
         ctx.font='18px Oxanium, monospace';
         ctx.fillText('ENTER / A TO SKIP',960,1025);
-        ctx.restore();return;
+        ctx.restore();finishRender();return;
       }
       if(cinema&&cinema.kind!=='handoff'&&cinema.hudAlpha<1) {
         ctx=B.CacheRoadCinematics.withHUDAlpha(frameContext,cinema.hudAlpha);
@@ -5312,6 +5334,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         B.CacheRoadCinematics.drawOverlay(frameContext,cinema,{reducedMotion:reduced,
           button:B.GamepadUI?.connected?B.ControllerSettings?.button(0)||'A':'ENTER'});
       }
+      finishRender();
     }
   };
   B.Campaign.register(ID, { validate: saved => road.validate(saved), restore: saved => road.restore(saved) });

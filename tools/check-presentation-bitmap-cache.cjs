@@ -33,63 +33,35 @@ async function unit(){
     assert.equal(ctx.filter,'blur(2.3px)');assert.equal(ctx.globalAlpha,.37);
     assert.equal(ctx.imageSmoothingEnabled,false,'direct projected draws restore smoothing');
     const raster=cache.cacheBeatHardware;raster.image.onload();
-    assert(raster.ready,'road raster art remains available during variant preparation');
-    await new Promise(setImmediate);
-    assert.equal(!!raster.rasters?.length,failure==='none',
-      'raster preparation succeeds once or keeps the original source on failure');
-    const rasterAttempts=prepared.filter(value=>value===raster.image).length;
-    assert(rasterAttempts>0&&rasterAttempts<=3,'each road sheet has at most three preparation attempts');
+    assert(raster.ready);assert.equal(prepared.length,1,'raster images retain the original decoding and draw path');
     const missing=cache.cacheSidewalk;missing.image.onerror();
     assert.equal(missing.image.src,entries.cacheSidewalk.path,'one pinned failure uses the bundled SVG');
     missing.image.onload();await new Promise(setImmediate);
-    assert(missing.ready);assert.equal(prepared.length,2+rasterAttempts);
-    w.BARCODE.PresentationAssets.preload();assert.equal(prepared.length,2+rasterAttempts,'re-entry reuses all prepared fallback art');
+    assert(missing.ready);assert.equal(prepared.length,2);
+    w.BARCODE.PresentationAssets.preload();assert.equal(prepared.length,2,'re-entry reuses prepared fallback art');
   }
   console.log('PASS: one SVG preparation per load, warm/pause reuse, exact source rectangles, context preservation, raster routing and graceful bitmap rejection.');
 }
 
-
-async function rasterUnit(){
-  const prepared=[],images=[],closed=[];let live=0,maxLive=0;
-  class Image{constructor(){this.naturalWidth=2048;this.naturalHeight=1024;images.push(this);}}
-  const w={Image,BARCODE:{},createImageBitmap(image,options){
-    prepared.push(image);live++;maxLive=Math.max(maxLive,live);
-    return Promise.resolve().then(()=>{live--;return {width:options.resizeWidth,height:options.resizeHeight,
-      close(){closed.push(this);}};});
-  }};
-  vm.runInNewContext(inspected,w.window?{window:w.window}:{window:w});
-  const {cache,entries}=w.bitmapReview;
-  // Exercise the actual loader/queue, not a second implementation.
-  for(const [key,state]of Object.entries(cache))
-    if(key.startsWith('cache')&&!entries[key].path.endsWith('.svg'))state.image.onload();
-  for(let wait=0;wait<3000&&Object.values(cache).some(s=>s.preparingRaster);wait++)await Promise.resolve();
-  assert(!Object.values(cache).some(s=>s.preparingRaster),'the finite preparation queue drains');
-  assert(maxLive<=2,'only two raster preparations may be active');
-  const pixels=Object.values(cache).flatMap(s=>s.rasters||[]).reduce((n,r)=>n+r.image.width*r.image.height,0);
-  assert(pixels<=32*1024*1024,'derived raster memory stays inside its global pixel budget');
-  assert(Object.values(cache).every(s=>(s.rasters?.length||0)<=3),'each sheet has a finite pyramid');
-  const key='cacheStreetBenchPlanters',state=cache[key],e=entries[key];
-  assert(state.rasters.length,'the expensive bench/planter sheet has prepared variants');
-  const calls=[],ctx={globalAlpha:.37,filter:'blur(2.3px)',imageSmoothingEnabled:false,
-    save(){},restore(){},translate(){},scale(){},getTransform(){return this.matrix;},
-    matrix:{a:.2,b:.03,c:0,d:.2,e:0,f:0},drawImage(...args){calls.push(args);}};
-  const count=prepared.length;
-  for(let i=0;i<120;i++)w.BARCODE.PresentationAssets.draw(key,ctx,
-    {width:180,height:100,sourceRect:[12,9,800,600]});
-  const raster=state.rasters.find(r=>r.image===calls[0][0]);assert(raster);
-  assert.deepEqual(calls[0].slice(1,5),[12*raster.scaleX,9*raster.scaleY,800*raster.scaleX,600*raster.scaleY]);
-  assert.deepEqual(calls[0].slice(5),[-180*e.ax,-100*e.ay,180,100],'anchors and destination remain exact');
-  assert.equal(prepared.length,count,'warm and paused draws never allocate another variant');
-  ctx.matrix={a:8,b:0,c:0,d:8,e:0,f:0};
-  w.BARCODE.PresentationAssets.draw(key,ctx,{width:1200,height:800});
-  assert.equal(calls.at(-1)[0],state.image,'large foreground art uses the original resolution');
-  ctx.getTransform=undefined;
-  w.BARCODE.PresentationAssets.draw(key,ctx,{width:24,height:16});
-  assert.equal(calls.at(-1)[0],state.image,'hosts without affine inspection keep the original source');
-  assert.equal(ctx.globalAlpha,.37);assert.equal(ctx.filter,'blur(2.3px)');
-  assert.equal(ctx.imageSmoothingEnabled,false);w.BARCODE.PresentationAssets.preload();
-  assert.equal(prepared.length,count,'re-entry retains the same finite prepared resources');
-  console.log('PASS: bounded raster memory/concurrency, affine source/crop registration, full-size fallback and allocation-free warm draws.');
+function budgetUnit(){
+  const w={BARCODE:{}};
+  vm.runInNewContext(fs.readFileSync(path.resolve(__dirname,'../src/game/cache-road-render-budget.js'),'utf8'),{window:w});
+  const owner=w.BARCODE.CacheRoadRenderBudget,budget=owner.create();
+  assert.equal(budget.scale,1,'each new run begins at full detail');
+  owner.observe(budget,90);owner.observe(budget,90);
+  assert.equal(budget.scale,1,'one or two cold/impact frames cannot reduce detail');
+  owner.observe(budget,90);assert.equal(budget.scale,.5,'sustained slow paint lowers only world sampling');
+  const frozen=JSON.stringify(budget);
+  for(let i=0;i<700;i++)owner.observe(budget,1,{paused:true});
+  assert.equal(JSON.stringify(budget),frozen,'paused repeated paint cannot change quality');
+  for(const cost of [NaN,Infinity,-1])owner.observe(budget,cost);
+  assert.equal(JSON.stringify(budget),frozen,'invalid clocks cannot alter a budget');
+  for(let i=0;i<599;i++)owner.observe(budget,1);
+  assert.equal(budget.scale,.5,'detail recovery needs sustained spare capacity');
+  owner.observe(budget,1);assert.equal(budget.scale,.6);
+  const fresh=owner.create();assert.equal(fresh.scale,1);
+  assert.equal(budget.scale,.6,'a fresh run has independent presentation state');
+  console.log('PASS: bounded adaptive world quality, cold/impact tolerance, pause freeze, clock fallback, recovery hysteresis and fresh-run independence.');
 }
 
 const frameReviewCount=screens=>screens.length/3;
@@ -107,7 +79,7 @@ async function browser(){
     'src/engine/cache-road-proof-profile.js','src/game/cache-road-landscape.js',
     'src/game/cache-road-encounters.js','src/game/cache-road-reactions.js',
     'src/game/cache-road-pursuit.js','src/game/cache-road-guidance.js',...modules,
-    'src/game/cache-road-proof.js'];
+    'src/game/cache-road-render-budget.js','src/game/cache-road-proof.js'];
   const chromePath=process.env.CHROME_BIN||'/usr/bin/google-chrome';
   let child,socket;
   const fixture=`<!doctype html><canvas id="gameCanvas" width="1920" height="1080"></canvas><script>
@@ -139,6 +111,9 @@ async function browser(){
       assert(road.includes('const compositeBlur=ctx.canvas?.width>0'));
       road=road.replace('const compositeBlur=ctx.canvas?.width>0',
         "const compositeBlur=window.bitmapReview.mode!=='vector'&&ctx.canvas?.width>0");
+      assert(road.includes('const budgetEligible=!!budgetOwner'));
+      road=road.replace('const budgetEligible=!!budgetOwner',
+        "const budgetEligible=window.bitmapReview.mode==='adaptive'&&!window.bitmapReview.fullQuality&&!!budgetOwner");
       for(const [marker,label]of [["      const live=this.state,cinema=this.cinematicPose();","begin"],["      // One opaque landscape continues beneath every roadside location.","sky"],["      // Neighboring strips sample adjacent rows of one world-fixed material.","city"],["      const groundCrest=Array.from({length:65},(_,i)=>[i*30,cityCrestY(i*30)]);","world-preparation"],["      // Road shoulders and the paint share a single curved road projection.","terrain"],["      const roadFog=ctx.createLinearGradient(0,horizon,0,horizon+170);","asphalt"],["      // Phrase paint is a road marking, not a second translucent lane overlay.","street-objects"],["      const boss=s.combat?combatPose.boss:B.CacheRoadPursuit?.boss?.(s.pursuit,{progress});","beat-and-traffic"],["      ctx.restore(); // world camera","vehicles-and-fx"],["      // A compact VFD instrument cluster leaves the original mirror and","atmosphere"],["    const far = profile(progress-reach);","mirror-start"],["    if(compositeBlur) {","mirror-scene"],["    // Only reflected scenery gets softened.","mirror-blur"],["      drawRearview(ctx, s, ['#f6adbb', '#f3b276', '#d2a4f9', '#9aefce'][section], reduced,heightSample,combatPose,crosswalkPose);","dashboard"]]) {
         assert(road.includes(marker),'phase marker '+label);
         road=road.replace(marker,"window.canvasCostMark?.("+JSON.stringify(label)+");\n"+marker);
@@ -174,7 +149,7 @@ async function browser(){
     await send('Page.enable');await send('Runtime.enable');await send('Page.navigate',{url:origin});
     const result=await send('Runtime.evaluate',{awaitPromise:true,returnByValue:true,expression:`(async()=>{
       const started=performance.now();
-      while(!window.bitmapReview||Object.values(bitmapReview.cache).some(state=>!state.ready||state.preparingRaster)){
+      while(!window.bitmapReview||Object.values(bitmapReview.cache).some(state=>!state.ready)){
         if(performance.now()-started>45000)throw Error('assets did not prepare');await new Promise(r=>setTimeout(r,25));
       }
       const {entries,cache}=bitmapReview,svg=Object.keys(entries).filter(key=>entries[key].path.endsWith('.svg'));
@@ -204,10 +179,6 @@ async function browser(){
       road.active=true;road.status='playing';road.audioDegraded=false;
       road.selectMusicProfile();BARCODE.MusicTransport.start({sourceAnchorAudioSec:0,sourceOffsetTrackSec:0});
       const bitmaps=Object.fromEntries(svg.map(key=>[key,cache[key].bitmap]));
-      const rasters=Object.fromEntries(Object.entries(cache).map(([key,state])=>[key,state.rasters]));
-      const rasterPixels=Object.values(rasters).flatMap(items=>items||[])
-        .reduce((sum,item)=>sum+item.image.width*item.image.height,0);
-      if(rasterPixels>32*1024*1024)throw Error('raster variants exceed the memory budget');
       const median=values=>{const v=values.slice().sort((a,b)=>a-b);return v[Math.floor(v.length/2)];};
       const rows=[],assetDraw=P.draw,bitmapFactory=window.createImageBitmap;
       const originalDrawImage=ctx.drawImage;let reflectionBlurs=0;
@@ -215,7 +186,7 @@ async function browser(){
         if(source===c&&this.filter==='blur(2.3px)')reflectionBlurs++;
         return originalDrawImage.call(this,source,...args);
       };
-      const framePixels=new Map(),pixelComparisons=[],screens=[];
+      const framePixels=new Map(),pixelComparisons=[],qualityComparisons=[],screens=[];
       let measuredGroups={};
       P.draw=(key,context,args)=>{
         const group=context.filter==='none'?'plain':'filtered';
@@ -227,31 +198,46 @@ async function browser(){
       // Draw identical moving production states in both representations.
       // A one-pixel readback flushes queued raster work into elapsed time.
       // These are controlled rendering diagnostics, not device gameplay FPS.
-      for(const scene of frameReviewScenes)for(const mode of ['vector','bitmap','raster']) {
+      for(const scene of frameReviewScenes)for(const mode of ['vector','bitmap','adaptive']) {
         bitmapReview.mode=mode;
         window.createImageBitmap=mode==='vector'?undefined:bitmapFactory;
         for(const key of svg)cache[key].bitmap=mode==='vector'?undefined:bitmaps[key];
-        for(const [key,items]of Object.entries(rasters))cache[key].rasters=mode==='raster'?items:undefined;
         road.chapter=structuredClone(scene.chapter);road.state=structuredClone(scene.state);
         BARCODE.Preferences.values.reducedMotion=scene.name==='Reduced';
         const samples=[];
-        for(let frame=0;frame<10;frame++) {
+        for(let frame=0;frame<14;frame++) {
           ctx.reset();measuredGroups={};reflectionBlurs=0;
           const stateBefore=JSON.stringify(road.state),began=performance.now();
           road.draw(ctx);const submitted=performance.now();ctx.getImageData(0,0,1,1);
           const elapsed=performance.now()-began;
-          if(frame===9)console.log('FRAME_COST '+JSON.stringify({name:scene.name,mode,
+          if(frame===13)console.log('FRAME_COST '+JSON.stringify({name:scene.name,mode,
             submitMs:submitted-began,flushMs:performance.now()-submitted,
             groups:Object.fromEntries(Object.entries(measuredGroups).filter(([key,value])=>value>1))}));
           if(JSON.stringify(road.state)!==stateBefore)throw Error('A measured draw changed gameplay');
           if(reflectionBlurs!==(mode==='vector'?0:1))throw Error('reflection blur was repeated or lost');
-          if(frame>=2)samples.push(elapsed);
-          if(frame===4) {
-            const pixels=ctx.getImageData(0,0,c.width,c.height).data;
+          if(frame>=6)samples.push(elapsed);
+          if(frame===8) {
+            const displayedPixels=ctx.getImageData(0,0,c.width,c.height).data;
             screens.push({name:scene.name,mode,webp:c.toDataURL('image/webp',.9).split(',')[1]});
+            let pixels=displayedPixels;
+            if(mode==='adaptive') {
+              const reference=framePixels.get(scene.name+'-bitmap');
+              let difference=0,hudDifference=0;
+              for(let i=0;i<displayedPixels.length;i++)if(i%4!==3) {
+                const delta=Math.abs(displayedPixels[i]-reference[i]);difference+=delta;
+                if(i<1920*164*4)hudDifference+=delta;
+              }
+              qualityComparisons.push({name:scene.name,worldScale:road.renderBudget.scale,
+                meanRGB:difference/(1920*1080*3),nativeHUDMeanRGB:hudDifference/(1920*164*3)});
+              // Verify unchanged native geometry/art at full quality as well
+              // as reviewing the actual adaptive output saved above.
+              bitmapReview.fullQuality=true;ctx.reset();road.draw(ctx);
+              pixels=ctx.getImageData(0,0,c.width,c.height).data;
+              bitmapReview.fullQuality=false;
+            }
             if(mode==='vector')framePixels.set(scene.name+'-vector',pixels);
             else {
-              const previous=framePixels.get(scene.name+'-'+(mode==='raster'?'bitmap':'vector'));let total=0,max=0;
+              const previous=framePixels.get(scene.name+'-'+(mode==='adaptive'?'bitmap':'vector'));let total=0,max=0;
               for(let i=0;i<pixels.length;i++)if(i%4!==3) {
                 const difference=Math.abs(pixels[i]-previous[i]);total+=difference;max=Math.max(max,difference);
               }
@@ -271,11 +257,10 @@ async function browser(){
         console.log('FRAME_COST '+JSON.stringify(rows.at(-1)));
       }
       for(const key of svg)cache[key].bitmap=bitmaps[key];
-      for(const [key,items]of Object.entries(rasters))cache[key].rasters=items;
-      window.createImageBitmap=bitmapFactory;bitmapReview.mode='raster';
+      window.createImageBitmap=bitmapFactory;bitmapReview.mode='adaptive';
       const frameComparisons=frameReviewScenes.map(({name})=>{
         const previous=rows.find(row=>row.name===name&&row.mode==='bitmap');
-        const after=rows.find(row=>row.name===name&&row.mode==='raster');
+        const after=rows.find(row=>row.name===name&&row.mode==='adaptive');
         return {name,beforeMs:previous.medianMs,afterMs:after.medianMs,p95Ms:after.p95Ms,
           ratio:after.medianMs/previous.medianMs};
       });
@@ -348,7 +333,7 @@ async function browser(){
       const performancePass=frameComparisons.every(row=>row.ratio<=1.1&&row.afterMs<=absoluteFrameBudgetMs)&&aggregateRatio<.75;
       if(contextCalls!==1||bitmapAttempts.filter(src=>src.endsWith('.svg')).length!==beforeSVG)throw Error('Measured road draws rebuilt shared resources');
       return {passed:true,performancePass,aggregateRatio,frameComparisons,frameSamples:rows,pixelComparisons,screens,viewportChecks,
-        preparedSVGs:svg.length,rasterPixels,absoluteFrameBudgetMs,reflectionBlursPerFrame:1,warmDraws:120,pausedPixels:true,displayContexts:contextCalls,
+        preparedSVGs:svg.length,qualityComparisons,absoluteFrameBudgetMs,reflectionBlursPerFrame:1,warmDraws:120,pausedPixels:true,displayContexts:contextCalls,
         preservedMirrorFilter:'blur(2.3px)',limitation:'Real Chromium loader/cache validation; owner device FPS remains unmeasured.'};
     })()`});
     if(result.exceptionDetails)throw Error(JSON.stringify(result.exceptionDetails));
@@ -367,15 +352,15 @@ async function browser(){
     const sheet=createCanvas(1920,frameReviewCount(screens)*390),paint=sheet.getContext('2d');
     paint.fillStyle='#0b141b';paint.fillRect(0,0,sheet.width,sheet.height);
     for(let i=0;i<screens.length;i++) {
-      const screen=screens[i],column=['vector','bitmap','raster'].indexOf(screen.mode),row=Math.floor(i/3);
+      const screen=screens[i],column=['vector','bitmap','adaptive'].indexOf(screen.mode),row=Math.floor(i/3);
       paint.fillStyle='#d4f4df';paint.font='16px sans-serif';
-      paint.fillText(screen.name+' — '+['pre-180','PR180','raster repair'][column],column*640+12,row*390+22);
+      paint.fillText(screen.name+' — '+['pre-180','PR180','adaptive world'][column],column*640+12,row*390+22);
       paint.drawImage(await loadImage(Buffer.from(screen.webp,'base64')),column*640,row*390+30,640,360);
     }
     const encoded=sheet.toBuffer('image/webp',80).toString('base64');
     for(let at=0;at<encoded.length;at+=24000)
       console.log('FRAME_REVIEW '+String(at/24000).padStart(4,'0')+' '+encoded.slice(at,at+24000));
-    assert(report.performancePass,'raster variants must cut PR180 frame/raster cost by 25 percent, avoid a scene regression, and fit the 30 Hz diagnostic frame budget');
+    assert(report.performancePass,'adaptive world painting must cut PR180 frame/raster cost by 25 percent, avoid a scene regression, and fit the 30 Hz diagnostic frame budget');
     assert(report.pixelComparisons.every(row=>row.meanRGB<1),
       'one reflection blur and SVG preparation must preserve loaded production appearance within one mean RGB level');
   }finally{
@@ -394,4 +379,4 @@ async function browser(){
     await fs.promises.rm(profile,{recursive:true,force:true,maxRetries:20,retryDelay:100});
   }
 }
-(async()=>{await unit();await rasterUnit();if(process.argv.includes('--browser'))await browser();})().catch(e=>{console.error(e.stack);process.exitCode=1;});
+(async()=>{await unit();budgetUnit();if(process.argv.includes('--browser'))await browser();})().catch(e=>{console.error(e.stack);process.exitCode=1;});
