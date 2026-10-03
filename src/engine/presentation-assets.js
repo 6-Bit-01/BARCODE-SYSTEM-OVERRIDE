@@ -324,7 +324,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     rasterCache.records.delete(record.id);rasterCache.pixels-=record.pixels;record.pixels=0;
     record.bitmap?.close?.();record.bitmap=null;
   }
-  function requestRaster(key,image,factor) {
+  function requestRaster(key,image,factor,allowEviction=false) {
     if(!key.startsWith('cache')||/\.svg$/i.test(entries[key]?.path||'')||
       typeof window.createImageBitmap!=='function')return null;
     const id=key+'|'+factor,existing=rasterCache.records.get(id);
@@ -334,6 +334,9 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     if(pixels>rasterCache.maxImagePixels||pixels>rasterCache.maxPixels)return null;
     while(rasterCache.records.size>=rasterCache.maxEntries||
       rasterCache.pixels+pixels>rasterCache.maxPixels) {
+      // A draw must never evict useful levels and repeatedly rebuild them.
+      // Only initial image preparation may replace startup reservations.
+      if(!allowEviction)return null;
       const oldest=rasterCache.records.values().next().value;
       if(!oldest)return null;evictRaster(oldest);
     }
@@ -360,19 +363,19 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     const transform=ctx.getTransform?.();
     const scaleX=transform?Math.hypot(transform.a,transform.b):1;
     const scaleY=transform?Math.hypot(transform.c,transform.d):1;
-    // Front-view art gets four samples per destination pixel; the already
-    // blurred mirror gets two. UVs and the on-screen blur remain unchanged.
-    const samples=ctx.filter==='none'||!ctx.filter?4:2;
+    // Front-view art gets at least two samples per destination pixel; the
+    // blurred mirror gets at least one. UVs and blur remain unchanged.
+    const samples=ctx.filter==='none'||!ctx.filter?2:1;
     const wanted=Math.min(1,Math.max(1/64,samples*Math.abs(width*scaleX/sw),
       samples*Math.abs(height*scaleY/sh)));
     const factor=2**Math.ceil(Math.log2(wanted));
-    requestRaster(key,image,factor);
     // A prepared higher-resolution level is also valid while a smaller one
     // is pending; never use an undersized level for newly enlarged scenery.
     for(let level=factor;level<=1;level*=2) {
       const record=rasterCache.records.get(key+'|'+level);
       if(record?.bitmap){touchRaster(record);return record.bitmap;}
     }
+    requestRaster(key,image,factor);
     return null;
   }
   const cache = {};
@@ -400,7 +403,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
           } catch {state.ready=true;}
         } else {
           state.ready=true;
-          requestRaster(key,image,1/8);
+          requestRaster(key,image,1/8,true);
         }
       };
       image.onerror = () => {

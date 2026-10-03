@@ -9,14 +9,16 @@ not satisfy the complete-frame performance gate.
 
 The shared loader prepares one reusable ImageBitmap per loaded SVG and a
 bounded cache of resized Cache Road raster atlases. Projection and the
-current Canvas transform select sufficient source resolution: four samples
-per front-view destination pixel and two for the already blurred mirror.
+current Canvas transform select sufficient source resolution: at least two samples
+per front-view destination pixel and one for the already blurred mirror.
 Original frame/crop coordinates scale into the prepared atlas; destination
 geometry, anchors, smoothing, clip, alpha and mirror `blur(2.3px)` are kept.
 The raster cache reserves pending allocations and caps resident pixels at
 64 MiB, each bitmap at 16 MiB and entries at 256. Eviction closes completed
 bitmaps and disposes late pending results. Unsupported, rejected or oversized
-preparations draw the original image. Readiness does not wait for raster
+preparations draw the original image. Budget pressure during gameplay retains
+warm levels and falls back instead of evicting and continuously preparing them.
+Readiness does not wait for raster
 preparation; preload and re-entry reuse existing resources.
 
 Canonical artwork bytes, beat art, controls, music, timing, rules and saves

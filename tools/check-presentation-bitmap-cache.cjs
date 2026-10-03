@@ -83,14 +83,18 @@ async function rasterUnit() {
       rasterCache.records.clear();rasterCache.pixels=0;
       rasterCache.maxEntries=2;rasterCache.maxPixels=4096;
       const previousClosed=closed.length;
-      for(const asset of ['cacheBeatHardware','cacheBeatEnergy','cacheBeatTiming']) {
-        const item=cache[asset];if(!item.ready)item.image.onload();
-        P.draw(asset,ctx,args);
+      for(const asset of ['cacheBeatEnergy','cacheBeatTiming','cacheCar']) {
+        const item=cache[asset];item.image.naturalWidth=512;item.image.naturalHeight=256;
+        item.image.onload();
       }
       await new Promise(setImmediate);
       assert(rasterCache.records.size<=2&&rasterCache.pixels<=4096,'pending allocations reserve the same bounded budget');
       assert(closed.length>previousClosed,'evicted pending results close instead of leaking bitmaps');
-      const before=attempts.length;P.preload();
+      const before=attempts.length;
+      assert(P.draw('cacheBeatEnergy',ctx,args));
+      assert.equal(calls.at(-1)[0],cache.cacheBeatEnergy.image,'budget pressure keeps the loaded original-image fallback');
+      assert.equal(attempts.length,before,'budget pressure during a draw must not evict and rebuild warm resources');
+      P.preload();
       assert.equal(attempts.length,before,'preload does not rebuild existing raster resources');
     }
   }
