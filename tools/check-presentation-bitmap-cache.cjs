@@ -434,11 +434,11 @@ function worldCopyUnit(){
   const road=fs.readFileSync(path.resolve(__dirname,'../src/game/cache-road-proof.js'),'utf8');
   const start=road.indexOf('  function copySampledWorldPixels('),end=road.indexOf('  function clipLightBlend(',start);
   assert(start>=0&&end>start,'exercise the production sampled-world transport helper');
-  const code=road.slice(start,end)+'\nwindow.copySampledWorldPixels=copySampledWorldPixels;';
+  const code=road.slice(start,end)+'\nwindow.copySampledWorldPixels=copySampledWorldPixels;window.copyOpaqueCanvasPixels=copyOpaqueCanvasPixels;';
   for(const failure of ['none','construct','read','draw','p3','alpha','native','missing','fractional','oversize','reference']){
     const calls=[],closed=[],data=new Uint8ClampedArray(320*180*4).fill(255),budget={};
     if(failure==='alpha')data[3]=254;
-    class Canvas {}
+    class Canvas {constructor(){this.width=1920;this.height=1080;}}
     class VideoFrame {
       constructor(pixels,options){
         calls.push(['construct',pixels,options]);
@@ -467,19 +467,33 @@ function worldCopyUnit(){
     assert.equal(closed.length,failure==='none'||failure==='draw'?1:0,'every constructed source is closed once');
     if(failure==='none'){
       const created=calls.find(call=>call[0]==='construct');assert.equal(created[1],data);
-      assert.deepEqual(created[2],{format:'RGBA',codedWidth:320,codedHeight:180,timestamp:0,
+      assert.deepEqual(JSON.parse(JSON.stringify(created[2])),{format:'RGBA',codedWidth:320,codedHeight:180,timestamp:0,
         colorSpace:{primaries:'bt709',transfer:'iec61966-2-1',matrix:'rgb',fullRange:true}});
-      assert.deepEqual(calls.find(call=>call[0]==='read').slice(1),[0,0,320,180,{colorSpace:'srgb'}]);
+      assert.deepEqual(JSON.parse(JSON.stringify(calls.find(call=>call[0]==='read').slice(1))),[0,0,320,180,{colorSpace:'srgb'}]);
     }
     if(['construct','read','draw'].includes(failure)){
-      assert.equal(budget.worldPixelCopyUnavailable,true);
+      assert.equal(budget.pixelCopyUnavailable,true);
       const count=calls.filter(call=>call[0]==='read').length;
       w.copySampledWorldPixels(ctx,320,180,budget);
       assert.equal(calls.filter(call=>call[0]==='read').length,count,'an unavailable API is attempted once per presentation budget');
       assert.equal(calls.at(-1)[1],canvas);
-    }else assert.equal(budget.worldPixelCopyUnavailable,undefined);
+    }else assert.equal(budget.pixelCopyUnavailable,undefined);
     if(['p3','native','missing','fractional','oversize','reference'].includes(failure))
       assert.equal(calls.filter(call=>call[0]==='read').length,0,'ineligible callers do not read pixels');
+  }
+  {
+    class Canvas {constructor(){this.width=1920;this.height=1080;}}
+    const calls=[],closed=[],data=new Uint8ClampedArray(714*141*4).fill(255);
+    class VideoFrame {constructor(pixels,options){calls.push(['construct',pixels,options]);}close(){closed.push(this);}}
+    const w={HTMLCanvasElement:Canvas,VideoFrame};vm.runInNewContext(code,{window:w});
+    const ctx={canvas:new Canvas(),filter:'blur(2.3px)',globalAlpha:1,
+      getContextAttributes(){return {colorSpace:'srgb'};},
+      getImageData(...args){calls.push(['read',...args]);return {width:714,height:141,colorSpace:'srgb',data};},
+      drawImage(...args){calls.push(['draw',...args]);}};
+    assert(w.copyOpaqueCanvasPixels(ctx,626,0,714,141,626,0,714,141,{}));
+    assert.deepEqual(JSON.parse(JSON.stringify(calls.find(call=>call[0]==='read').slice(1))),[626,0,714,141,{colorSpace:'srgb'}]);
+    assert.deepEqual(calls.at(-1).slice(2),[0,0,714,141,626,0,714,141]);
+    assert.equal(ctx.filter,'blur(2.3px)');assert.equal(ctx.globalAlpha,1);assert.equal(closed.length,1);
   }
   console.log('PASS: bounded opaque sRGB production transport, exact source/destination arguments, context preservation, source cleanup, original reference and unsupported/native/P3/alpha fallback.');
 }
@@ -530,7 +544,7 @@ async function browser(){
       let road=fs.readFileSync(path.join(root,'src/game/cache-road-proof.js'),'utf8');
       const copyMarker='  function clipLightBlend(ctx,bounds) {';
       assert(road.includes(copyMarker),'exercise the actual sampled-world helper in Chromium');
-      road=road.replace(copyMarker,'  window.bitmapReview.copySampledWorldPixels=copySampledWorldPixels;\n'+copyMarker);
+      road=road.replace(copyMarker,'  window.bitmapReview.copySampledWorldPixels=copySampledWorldPixels;window.bitmapReview.copyOpaqueCanvasPixels=copyOpaqueCanvasPixels;\n'+copyMarker);
       assert(road.includes('const compositeBlur=ctx.canvas?.width>0'));
       road=road.replace('const compositeBlur=ctx.canvas?.width>0',
         "const compositeBlur=window.bitmapReview.mode!=='vector'&&ctx.canvas?.width>0");
@@ -611,7 +625,7 @@ async function browser(){
       const rows=[],assetDraw=P.draw,bitmapFactory=window.createImageBitmap;
       const originalDrawImage=ctx.drawImage;let reflectionBlurs=0;
       const inspectDrawImage=function(source,...args){
-        if(source===c&&this.filter==='blur(2.3px)')reflectionBlurs++;
+        if((source===c||typeof VideoFrame==='function'&&source instanceof VideoFrame)&&this.filter==='blur(2.3px)')reflectionBlurs++;
         return originalDrawImage.call(this,source,...args);
       };
       const framePixels=new Map(),pixelComparisons=[],qualityComparisons=[],screens=[];
@@ -879,12 +893,38 @@ async function browser(){
           const delta=Math.abs(original[index]-candidate[index]);if(delta)changed++;max=Math.max(max,delta);
         }
         const row={scenario,used,changedComponents:changed,maxChannelDifference:max};
-        if(changed||used!==(scenario!=='alpha')||budget.worldPixelCopyUnavailable)
+        if(changed||used!==(scenario!=='alpha')||budget.pixelCopyUnavailable)
           throw Error('sampled-world transport changed source/caller pixels: '+JSON.stringify(row));
         worldSourceChecks.push(row);
       }
+      const mirrorSourceChecks=[];
+      for(const scenario of ['opaque','alpha']){
+        const paint=()=>{
+          ctx.reset();
+          const gradient=ctx.createLinearGradient(0,0,c.width,c.height);
+          gradient.addColorStop(0,'#1d7d99');gradient.addColorStop(.42,'#9b4f74');gradient.addColorStop(1,'#dc805b');
+          ctx.fillStyle=gradient;ctx.fillRect(0,0,c.width,c.height);
+          ctx.fillStyle='#fae986';ctx.fillRect(720,45,63,34);
+          if(scenario==='alpha')ctx.clearRect(650,30,7,13);
+          ctx.beginPath();ctx.rect(638,12,690,117);ctx.clip();
+          ctx.globalCompositeOperation='source-over';ctx.filter='blur(2.3px)';
+        };
+        paint();bitmapReview.copyOpaqueCanvasPixels(ctx,626,0,714,141,626,0,714,141,{},false);
+        const original=ctx.getImageData(0,0,c.width,c.height).data;
+        paint();const budget={},used=bitmapReview.copyOpaqueCanvasPixels(ctx,626,0,714,141,626,0,714,141,budget);
+        const candidate=ctx.getImageData(0,0,c.width,c.height).data;
+        let rgb=0,maxAlpha=0;
+        for(let index=0;index<original.length;index++){
+          const delta=Math.abs(original[index]-candidate[index]);
+          if(index%4===3)maxAlpha=Math.max(maxAlpha,delta);else rgb+=delta;
+        }
+        const row={scenario,used,meanRGB:rgb/(c.width*c.height*3),maxAlphaDifference:maxAlpha};
+        if(row.meanRGB>=.1||maxAlpha||used!==(scenario==='opaque')||budget.pixelCopyUnavailable)
+          throw Error('cropped mirror source changed original blur/caller pixels: '+JSON.stringify(row));
+        mirrorSourceChecks.push(row);
+      }
       ctx.reset();
-      return {passed:true,performancePass,aggregateRatio,frameComparisons,frameSamples:rows,pixelComparisons,screens,viewportChecks,tintSourceChecks,worldSourceChecks,
+      return {passed:true,performancePass,aggregateRatio,frameComparisons,frameSamples:rows,pixelComparisons,screens,viewportChecks,tintSourceChecks,worldSourceChecks,mirrorSourceChecks,
         preparedSVGs:svg.length,qualityComparisons,absoluteFrameBudgetMs,reflectionBlursPerFrame:1,warmDraws:120,pausedPixels:true,displayContexts:contextCalls,
         preservedMirrorFilter:'blur(2.3px)',limitation:'Real Chromium loader/cache validation; owner device FPS remains unmeasured.'};
     })()`});

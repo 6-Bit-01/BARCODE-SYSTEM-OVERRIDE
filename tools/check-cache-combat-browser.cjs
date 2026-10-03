@@ -314,7 +314,8 @@ browserProof.step=ms=>{for(let left=ms;left>0;){const dt=Math.min(20,left);left-
       status:BARCODE.CacheRoadProof.status,bossHP:BARCODE.CacheRoadProof.state.combat?.boss?.hp??null,
       worldScale:BARCODE.CacheRoadProof.renderBudget?.drawnScale??1,
       worldPixelCopyUsed:!!BARCODE.CacheRoadProof.renderBudget?.worldPixelCopyUsed,
-      worldPixelCopyUnavailable:!!BARCODE.CacheRoadProof.renderBudget?.worldPixelCopyUnavailable,
+      mirrorPixelCopyUsed:!!BARCODE.CacheRoadProof.renderBudget?.mirrorPixelCopyUsed,
+      pixelCopyUnavailable:!!BARCODE.CacheRoadProof.renderBudget?.pixelCopyUnavailable,
       frameIntervalMs:BARCODE.CacheRoadProof.renderFrameIntervalMs,
       previousDisplayCostMs:browserProof.displayCostMs});
     window.canvasCostMark=undefined;
@@ -466,6 +467,9 @@ const server=http.createServer((req,res)=>{
     const mirrorBoundary="ctx.globalCompositeOperation=opaqueNative?'source-over':'copy';";
     assert(source.includes(mirrorBoundary),'opaque mirror-copy fidelity boundary');
     source=source.replace(mirrorBoundary,"ctx.globalCompositeOperation=opaqueNative&&!window.forceMirrorCopy?'source-over':'copy';");
+    const mirrorPixelsBoundary='right-sx,bottom-sy,pixelBudget,opaqueNative);';
+    assert(source.includes(mirrorPixelsBoundary),'original mirror pixel transport comparison');
+    source=source.replace(mirrorPixelsBoundary,'right-sx,bottom-sy,pixelBudget,opaqueNative&&!window.forceMirrorCopy);');
     const tintBoundary='if(tintedReflection&&!ctx.shadowBlur&&!ctx.shadowOffsetX&&!ctx.shadowOffsetY) {';
     assert(source.includes(tintBoundary),'pointwise reflection-filter bounds boundary');
     source=source.replace(tintBoundary,'if(tintedReflection&&!ctx.shadowBlur&&!ctx.shadowOffsetX&&!ctx.shadowOffsetY&&!window.forceReflectionTintClip) {');
@@ -803,6 +807,9 @@ async function main(){
       const rows=fullLoopCosts.filter(frame=>JSON.stringify(frame.preparation)===key);
       return {preparation:JSON.parse(key),frames:rows.length,bossFrames:rows.filter(frame=>frame.boss).length,
         medianMs:median(rows.map(frame=>frame.ms))};})));
+  console.log('SUSTAINED_PIXEL_TRANSPORT '+JSON.stringify(
+    [...new Set(fullLoopCosts.map(frame=>JSON.stringify({world:frame.worldPixelCopyUsed,mirror:frame.mirrorPixelCopyUsed,unavailable:frame.pixelCopyUnavailable})))].map(key=>({
+      ...JSON.parse(key),frames:fullLoopCosts.filter(frame=>JSON.stringify({world:frame.worldPixelCopyUsed,mirror:frame.mirrorPixelCopyUsed,unavailable:frame.pixelCopyUnavailable})===key).length}))));
   console.log('SUSTAINED_PAINT_PHASES '+JSON.stringify([false,true].map(boss=>{
     const frames=fullLoopCosts.filter(frame=>frame.boss===boss&&frame.worldScale<1);
     return {group:boss?'boss':'chase',frames:frames.length,
