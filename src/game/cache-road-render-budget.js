@@ -7,7 +7,7 @@
   function observe(budget,costMs,{paused=false}={}){
     if(!budget||paused||!Number.isFinite(costMs)||costMs<0)return;
     budget.lastCostMs=costMs;
-    if(costMs>28){
+    if(costMs>24){
       budget.fastFrames=0;
       if(++budget.slowFrames<3)return;
       budget.slowFrames=0;

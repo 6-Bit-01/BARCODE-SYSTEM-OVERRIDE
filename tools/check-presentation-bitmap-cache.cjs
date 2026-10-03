@@ -210,19 +210,19 @@ async function browser(){
         road.chapter=structuredClone(scene.chapter);road.state=structuredClone(scene.state);
         BARCODE.Preferences.values.reducedMotion=scene.name==='Reduced';
         const samples=[];
-        for(let frame=0;frame<14;frame++) {
+        for(let frame=0;frame<18;frame++) {
           ctx.reset();ctx.imageSmoothingQuality='high';measuredGroups={};reflectionBlurs=0;
           const stateBefore=JSON.stringify(road.state),began=performance.now();
           road.draw(ctx);const submitted=performance.now();ctx.getImageData(0,0,1,1);
           const elapsed=performance.now()-began;
-          if(frame===13)console.log('FRAME_COST '+JSON.stringify({name:scene.name,mode,
+          if(frame===17)console.log('FRAME_COST '+JSON.stringify({name:scene.name,mode,
             submitMs:submitted-began,flushMs:performance.now()-submitted,
             groups:Object.fromEntries(Object.entries(measuredGroups).filter(([key,value])=>value>1))}));
           if(JSON.stringify(road.state)!==stateBefore)throw Error('A measured draw changed gameplay');
           if(ctx.imageSmoothingQuality!=='high')throw Error('road draw leaked its sampling quality');
           if(reflectionBlurs!==(mode==='vector'?0:1))throw Error('reflection blur was repeated or lost');
-          if(frame>=6)samples.push(elapsed);
-          if(frame===8) {
+          if(frame>=10)samples.push(elapsed);
+          if(frame===12) {
             const displayedPixels=ctx.getImageData(0,0,c.width,c.height).data;
             screens.push({name:scene.name,mode,webp:c.toDataURL('image/webp',.9).split(',')[1]});
             let pixels=displayedPixels;
@@ -233,7 +233,7 @@ async function browser(){
                 const delta=Math.abs(displayedPixels[i]-reference[i]);difference+=delta;
                 if(i<1920*164*4)hudDifference+=delta;
               }
-              qualityComparisons.push({name:scene.name,worldScale:road.renderBudget.scale,
+              qualityComparisons.push({name:scene.name,worldScale:road.renderBudget.drawnScale,
                 meanRGB:difference/(1920*1080*3),nativeHUDMeanRGB:hudDifference/(1920*164*3)});
               // Verify unchanged native geometry/art at full quality as well
               // as reviewing the actual adaptive output saved above.
@@ -259,7 +259,7 @@ async function browser(){
         }
         const sorted=samples.slice().sort((a,b)=>a-b);
         rows.push({name:scene.name,mode,medianMs:median(samples),
-          p95Ms:sorted[Math.ceil(sorted.length*.95)-1],frames:samples.length,worldScale:mode==='adaptive'?road.renderBudget.scale:1,includesRasterFlush:true});
+          p95Ms:sorted[Math.ceil(sorted.length*.95)-1],frames:samples.length,worldScale:mode==='adaptive'?road.renderBudget.drawnScale:1,includesRasterFlush:true});
         console.log('FRAME_COST '+JSON.stringify(rows.at(-1)));
       }
       for(const key of svg)cache[key].bitmap=bitmaps[key];
@@ -321,7 +321,7 @@ async function browser(){
       };
       road.chapter=structuredClone(scene.chapter);road.state=structuredClone(scene.state);
       BARCODE.Preferences.values.reducedMotion=false;
-      for(let warm=0;warm<6;warm++){ctx.reset();road.draw(ctx);ctx.getImageData(0,0,1,1);}
+      for(let warm=0;warm<12;warm++){ctx.reset();road.draw(ctx);ctx.getImageData(0,0,1,1);}
       window.canvasCostMark=costMark;
       for(let frame=0;frame<3;frame++) {
         ctx.reset();ctx.getImageData(0,0,1,1);
