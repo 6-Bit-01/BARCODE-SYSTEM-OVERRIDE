@@ -143,7 +143,15 @@ async function browser(){
       road.selectMusicProfile();BARCODE.MusicTransport.start({sourceAnchorAudioSec:0,sourceOffsetTrackSec:0});
       const bitmaps=Object.fromEntries(svg.map(key=>[key,cache[key].bitmap]));
       const median=values=>{const v=values.slice().sort((a,b)=>a-b);return v[Math.floor(v.length/2)];};
-      const rows=[];
+      const rows=[],assetDraw=P.draw;
+      let measuredGroups={};
+      P.draw=(key,context,args)=>{
+        const group=context.filter==='none'?'plain':'filtered';
+        const began=performance.now(),ok=assetDraw(key,context,args),ms=performance.now()-began;
+        measuredGroups[group]=(measuredGroups[group]||0)+ms;
+        measuredGroups[key]=(measuredGroups[key]||0)+ms;
+        return ok;
+      };
       // Draw identical moving production states in both representations.
       // A one-pixel readback flushes queued raster work into elapsed time.
       // These are controlled rendering diagnostics, not device gameplay FPS.
@@ -153,9 +161,13 @@ async function browser(){
         BARCODE.Preferences.values.reducedMotion=scene.name==='Reduced';
         const samples=[];
         for(let frame=0;frame<10;frame++) {
-          ctx.reset();const stateBefore=JSON.stringify(road.state),began=performance.now();
-          road.draw(ctx);ctx.getImageData(0,0,1,1);
+          ctx.reset();measuredGroups={};
+          const stateBefore=JSON.stringify(road.state),began=performance.now();
+          road.draw(ctx);const submitted=performance.now();ctx.getImageData(0,0,1,1);
           const elapsed=performance.now()-began;
+          if(frame===9)console.log('FRAME_COST '+JSON.stringify({name:scene.name,mode,
+            submitMs:submitted-began,flushMs:performance.now()-submitted,
+            groups:Object.fromEntries(Object.entries(measuredGroups).filter(([key,value])=>value>1))}));
           if(JSON.stringify(road.state)!==stateBefore)throw Error('A measured draw changed gameplay');
           if(frame>=2)samples.push(elapsed);
           road.state.progress+=road.state.speed/60;road.state.elapsedMs+=1000/60;
@@ -174,6 +186,25 @@ async function browser(){
         return {name,beforeMs:previous.medianMs,afterMs:after.medianMs,p95Ms:after.p95Ms,
           ratio:after.medianMs/previous.medianMs};
       });
+      const diagnostics=[];
+      const skin=BARCODE.CacheRoadBeatSurface,scene=frameReviewScenes.find(s=>s.name==='Ready-ONE');
+      for(const disableBeatArt of [false,true]) {
+        BARCODE.CacheRoadBeatSurface=disableBeatArt?undefined:skin;
+        road.chapter=structuredClone(scene.chapter);road.state=structuredClone(scene.state);
+        const samples=[];
+        for(let frame=0;frame<8;frame++) {
+          ctx.reset();measuredGroups={};const started=performance.now();road.draw(ctx);
+          const submitMs=performance.now()-started;ctx.getImageData(0,0,1,1);
+          if(frame>1)samples.push({totalMs:performance.now()-started,submitMs,groups:{...measuredGroups}});
+          road.state.progress+=road.state.speed/60;road.state.elapsedMs+=1000/60;
+        }
+        const last=samples.at(-1);
+        diagnostics.push({name:'isolated-beat-art',disableBeatArt,medianMs:median(samples.map(s=>s.totalMs)),
+          medianSubmitMs:median(samples.map(s=>s.submitMs)),
+          groups:Object.fromEntries(Object.entries(last.groups).filter(([key,value])=>value>1))});
+        console.log('FRAME_COST '+JSON.stringify(diagnostics.at(-1)));
+      }
+      BARCODE.CacheRoadBeatSurface=skin;P.draw=assetDraw;
       const aggregateRatio=frameComparisons.reduce((sum,row)=>sum+row.afterMs,0)/
         frameComparisons.reduce((sum,row)=>sum+row.beforeMs,0);
       console.log('FRAME_COST '+JSON.stringify({aggregateRatio,frameComparisons}));
