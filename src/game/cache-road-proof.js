@@ -727,7 +727,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         (d[0]-a[0])/256,(d[1]-a[1])/256]);
     };
     const far = profile(progress-reach);
+    // Blur the completed reflection once on the existing display Canvas.
+    // Per-object filters repeatedly allocate/rasterize intermediate surfaces.
+    const compositeBlur=!!ctx.canvas&&typeof ctx.getTransform==='function'&&
+      typeof ctx.setTransform==='function';
     ctx.save(); ctx.filter = 'blur(2.3px)';
+    if(compositeBlur)ctx.filter='none';
     ctx.fillStyle = accent; ctx.globalAlpha = .11;
     ctx.beginPath(); ctx.arc(x+425-(reduced?0:progress*.012)%55,y+31,29,0,Math.PI*2);ctx.fill();
     ctx.globalAlpha = 1;
@@ -993,6 +998,25 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       drawCrosswalkPerson(ctx,person,{x:laneX(person.lane,p),y:p.y,height:8+37*p.t,reduced});
     }
     ctx.restore();
+    if(compositeBlur) {
+      const m=ctx.getTransform(),xs=[],ys=[];
+      for(const [px,py]of [[x,y],[x+w,y],[x,y+h],[x+w,y+h]]) {
+        xs.push(m.a*px+m.c*py+m.e);ys.push(m.b*px+m.d*py+m.f);
+      }
+      const sx=clamp(Math.floor(Math.min(...xs))-12,0,ctx.canvas.width);
+      const sy=clamp(Math.floor(Math.min(...ys))-12,0,ctx.canvas.height);
+      const right=clamp(Math.ceil(Math.max(...xs))+12,0,ctx.canvas.width);
+      const bottom=clamp(Math.ceil(Math.max(...ys))+12,0,ctx.canvas.height);
+      if(right>sx&&bottom>sy) {
+        ctx.save();ctx.setTransform(1,0,0,1,0,0);
+        ctx.globalAlpha=1;ctx.globalCompositeOperation='copy';
+        ctx.filter = 'blur(2.3px)';
+        // Canvas self-draw snapshots the source before writing. Device-space
+        // coordinates preserve resized/letterboxed viewport transforms.
+        ctx.drawImage(ctx.canvas,sx,sy,right-sx,bottom-sy,sx,sy,right-sx,bottom-sy);
+        ctx.restore();
+      }
+    }
     // Only reflected scenery gets softened. Cache and the glass markings are
     // painted afterward at the HUD's native resolution.
   }

@@ -312,75 +312,6 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     level1SignalAmp: {path:'assets/level1-signal-art/signal-amp-atlas.webp',root:'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/330fa55849539b24393d66cc80faad1da658380f/',
       columns:4,rows:2,frames:8,ax:.5,ay:.5,smooth:true},
   };
-  // Keep raster atlases at the resolutions the current projection needs.
-  // Immutable bitmaps avoid repeatedly decoding/resampling full webp sheets,
-  // particularly inside the blurred rearview. No Canvas/context/frame owner.
-  const rasterCache={records:new Map(),pixels:0,maxEntries:256,maxPixels:16*1024*1024,
-    maxImagePixels:4*1024*1024};
-  function touchRaster(record) {
-    rasterCache.records.delete(record.id);rasterCache.records.set(record.id,record);
-  }
-  function evictRaster(record) {
-    rasterCache.records.delete(record.id);rasterCache.pixels-=record.pixels;record.pixels=0;
-    record.bitmap?.close?.();record.bitmap=null;
-  }
-  function requestRaster(key,image,factor,allowEviction=false) {
-    if(!key.startsWith('cache')||/\.svg$/i.test(entries[key]?.path||'')||
-      typeof window.createImageBitmap!=='function')return null;
-    const id=key+'|'+factor,existing=rasterCache.records.get(id);
-    if(existing){touchRaster(existing);return existing;}
-    const width=Math.max(1,Math.ceil(image.naturalWidth*factor));
-    const height=Math.max(1,Math.ceil(image.naturalHeight*factor)),pixels=width*height;
-    if(pixels>rasterCache.maxImagePixels||pixels>rasterCache.maxPixels)return null;
-    while(rasterCache.records.size>=rasterCache.maxEntries||
-      rasterCache.pixels+pixels>rasterCache.maxPixels) {
-      // A draw must never evict useful levels and repeatedly rebuild them.
-      // Only initial image preparation may replace startup reservations.
-      if(!allowEviction)return null;
-      const oldest=rasterCache.records.values().next().value;
-      if(!oldest)return null;evictRaster(oldest);
-    }
-    const record={id,key,factor,width,height,pixels,bitmap:null,failed:false};
-    rasterCache.records.set(id,record);rasterCache.pixels+=pixels;
-    const failed=()=>{
-      if(rasterCache.records.get(id)!==record)return;
-      rasterCache.pixels-=record.pixels;record.pixels=0;record.failed=true;
-    };
-    try {
-      Promise.resolve(window.createImageBitmap(image,{
-        resizeWidth:width,resizeHeight:height,resizeQuality:'high'
-      })).then(bitmap=>{
-        if(rasterCache.records.get(id)!==record){bitmap?.close?.();return;}
-        if(bitmap?.width===width&&bitmap?.height===height)record.bitmap=bitmap;
-        else {bitmap?.close?.();failed();}
-      },failed);
-    } catch {failed();}
-    return record;
-  }
-  function rasterFor(key,image,ctx,width,height,sw,sh) {
-    if(!key.startsWith('cache')||/\.svg$/i.test(entries[key]?.path||'')||
-      typeof window.createImageBitmap!=='function')return null;
-    // Keep the browser's native foreground image cache. Tiny filtered
-    // scenery needs its own compact sources to avoid full-atlas work.
-    if(ctx.filter==='none'||!ctx.filter)return null;
-    const transform=ctx.getTransform?.();
-    const scaleX=transform?Math.hypot(transform.a,transform.b):1;
-    const scaleY=transform?Math.hypot(transform.c,transform.d):1;
-    // The already blurred mirror gets at least one source sample per
-    // destination pixel. UVs and the original blur remain unchanged.
-    const samples=1;
-    const wanted=Math.min(1,Math.max(1/64,samples*Math.abs(width*scaleX/sw),
-      samples*Math.abs(height*scaleY/sh)));
-    const factor=2**Math.ceil(Math.log2(wanted));
-    // A prepared higher-resolution level is also valid while a smaller one
-    // is pending; never use an undersized level for newly enlarged scenery.
-    for(let level=factor;level<=1;level*=2) {
-      const record=rasterCache.records.get(key+'|'+level);
-      if(record?.bitmap){touchRaster(record);return record.bitmap;}
-    }
-    requestRaster(key,image,factor);
-    return null;
-  }
   const cache = {};
   function preload() {
     if (typeof window.Image !== 'function') return;
@@ -404,10 +335,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
               state.ready=true;
             },()=>{state.ready=true;});
           } catch {state.ready=true;}
-        } else {
-          state.ready=true;
-          requestRaster(key,image,1/8,true);
-        }
+        } else state.ready=true;
       };
       image.onerror = () => {
         if (!state.fallback) { state.fallback = true; image.src = entry.path; }
@@ -420,25 +348,17 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     flip = false, sourceRect = null } = {}) {
     const entry = entries[key], state = cache[key];
     if (!entry || !state?.ready) return false;
-    const original=state.image;
-    let image=state.bitmap||original;
+    const original=state.image,image=state.bitmap||original;
     const fw=original.naturalWidth/entry.columns,fh=original.naturalHeight/entry.rows;
     const index = Math.max(0, Math.floor(frame)) % entry.frames;
     const [sx, sy, sw, sh] = sourceRect || entry.frameCrops?.[index] || entry.crop || [0, 0, fw, fh];
     const h = height ?? width * sh / sw;
-    let sourceX = index % entry.columns * fw + sx;
-    let sourceY = Math.floor(index / entry.columns) * fh + sy;
-    let sourceWidth=sw,sourceHeight=sh;
-    const raster=rasterFor(key,original,ctx,width,h,sw,sh);
-    if(raster) {
-      image=raster;
-      const scaleX=raster.width/original.naturalWidth,scaleY=raster.height/original.naturalHeight;
-      sourceX*=scaleX;sourceY*=scaleY;sourceWidth*=scaleX;sourceHeight*=scaleY;
-    }
+    const sourceX = index % entry.columns * fw + sx;
+    const sourceY = Math.floor(index / entry.columns) * fh + sy;
     if (flip || x !== 0 || y !== 0) {
       ctx.save(); ctx.translate(x, y); if (flip) ctx.scale(-1, 1);
       ctx.imageSmoothingEnabled = !!entry.smooth;
-      ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight,
+      ctx.drawImage(image, sourceX, sourceY, sw, sh,
         -width * entry.ax, -h * entry.ay, width, h);
       ctx.restore();
     } else {
@@ -450,7 +370,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
       const changed = smoothing !== !!entry.smooth;
       if (changed) ctx.imageSmoothingEnabled = !!entry.smooth;
       try {
-        ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight,
+        ctx.drawImage(image, sourceX, sourceY, sw, sh,
           x - width * entry.ax, y - h * entry.ay, width, h);
       } finally {
         if (changed) ctx.imageSmoothingEnabled = smoothing;
