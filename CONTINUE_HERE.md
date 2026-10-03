@@ -20,6 +20,15 @@ functional foreground, face and HUD retain original sources and native detail.
 Under load the reflection uses one rectangular raster clip, then repaints the
 original curved bezel once. Its native projection and 2.3px blur remain.
 
+
+Native functional sheets also prepare unscaled bitmaps within a separate
+32-megapixel limit. Reduced backgrounds include smaller animated signals,
+lamps and walkers from 256 Ki pixels upward; native atlas coordinates stay
+unchanged. Sub-sample lamp bands average their original weights. Terrain
+slabs completely below the crest can use its rectangular bounds. Both chase
+and live-boss medians must independently fit 33.33 ms; review staged native
+captures with complete lifecycle fields restored.
+
 Read CURRENT_STATE and ACCEPTANCE. Performance evidence uses unwrapped
 production draws, 30 startup frames retained separately and a subsequent
 16-frame moving window. Trace/reflection/fidelity repaint runs afterward.

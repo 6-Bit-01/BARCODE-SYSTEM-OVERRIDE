@@ -4084,6 +4084,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       });
       const groundCrest=Array.from({length:65},(_,i)=>[i*30,cityCrestY(i*30)]);
       const lowestCrest=Math.min(...groundCrest.map(point=>point[1]));
+      const highestCrest=Math.max(...groundCrest.map(point=>point[1]));
       // Every terrain slab uses the same crest mask. Build its native path
       // once per frame; rebuilding 65 vertices for each slab repeats costly
       // host Canvas calls. The fallback retains the existing command path.
@@ -4106,8 +4107,19 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         // above the visible bank need no texture or full-screen clip mask.
         // Buildings in those slabs still draw: their roofs can be visible.
         if(roadY(near)+65*near>=lowestCrest) {
+          // A slab wholly below every crest vertex only needs the mask's
+          // rectangular side/bottom bounds. Its own quad keeps all texture
+          // pixels below the horizon, including a two-device-pixel AA margin.
+          const crestPadding=2/(worldScale*camera.zoom);
+          const terrainBelowCrest=[-1,1].every(side=>[far,near].every(t=>
+            [[220,190],[2500,440]].every(([base,growth])=>{
+              const x=roadsideX(side,t,base,growth);
+              return terrainAt(side,t,x)>highestCrest+crestPadding;
+            })));
           ctx.save();
-          if(groundClip)ctx.clip(groundClip);
+          if(terrainBelowCrest) {
+            ctx.beginPath();ctx.rect(0,0,1920,bottom);ctx.clip();
+          } else if(groundClip)ctx.clip(groundClip);
           else {
             ctx.beginPath();ctx.moveTo(...groundCrest[0]);
             for(let i=1;i<groundCrest.length;i++)ctx.lineTo(...groundCrest[i]);

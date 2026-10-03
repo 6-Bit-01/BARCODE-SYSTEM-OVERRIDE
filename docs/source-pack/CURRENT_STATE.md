@@ -3,6 +3,17 @@
 ## October 3 — continued Level 2 lag repair (PR #181)
 
 
+Terrain slabs proven wholly below the highest crest use the existing mask's
+rectangular side/bottom bounds; crossing slabs retain the full crest path.
+Projected corners and a two-device-pixel AA margin establish the safe case.
+Texture sampling, terrain geometry and pixel boundaries remain unchanged.
+The staged boss snapshot now restores its playing/cinematic host fields as
+well as chapter/state, preventing the later results overlay from polluting
+that diagnostic. It also records phases without intermediate readbacks, compares the bounded
+terrain mask against the original crest pixels, and gates undefeated active
+boss frames separately as well as the whole boss segment.
+
+
 The staged boss trace found a repeated original-image decode on sub-megapixel
 street signals. Background preparation now also covers sheets from 256 Ki
 pixels upward, within the same 32-megapixel reservation cap. Smaller signals,

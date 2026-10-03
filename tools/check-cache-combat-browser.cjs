@@ -297,12 +297,14 @@ browserProof.step=ms=>{for(let left=ms;left>0;){const dt=Math.min(20,left);left-
       flushMs:costMs-(submitted-begin),
       bar:BARCODE.CacheRoadProof.state.musicBeatFloat/4,
       gear:BARCODE.CacheRoadProof.state.gear,boss:!!BARCODE.CacheRoadProof.state.combat?.boss,
+      status:BARCODE.CacheRoadProof.status,bossHP:BARCODE.CacheRoadProof.state.combat?.boss?.hp??null,
       worldScale:BARCODE.CacheRoadProof.renderBudget?.drawnScale??1,
       frameIntervalMs:BARCODE.CacheRoadProof.renderFrameIntervalMs,
       previousDisplayCostMs:browserProof.displayCostMs});
     browserProof.displayCostMs=costMs;browserProof.measureLoop=false;
     if(browserProof.bossPaintFrames===40&&!browserProof.phaseSnapshot)
-      browserProof.phaseSnapshot={state:copy(BARCODE.CacheRoadProof.state),chapter:copy(BARCODE.CacheRoadProof.chapter)};
+      browserProof.phaseSnapshot={state:copy(BARCODE.CacheRoadProof.state),chapter:copy(BARCODE.CacheRoadProof.chapter),
+        host:Object.fromEntries(['status','introMs','handoffMs','outroMs','cinematicLane','audioDegraded'].map(key=>[key,BARCODE.CacheRoadProof[key]]))};
   }}};
 browserProof.release=()=>{for(const button of browserProof.pad.buttons){button.pressed=false;button.value=0;button.touched=false;}
   browserProof.pad.axes=[0,0];};
@@ -420,6 +422,9 @@ const server=http.createServer((req,res)=>{
       assert(source.includes(marker),'production phase boundary '+label);
       source=source.replace(marker,"window.canvasCostMark?.("+JSON.stringify(label)+");\n"+marker);
     }
+    const terrainBoundary='if(terrainBelowCrest) {';
+    assert(source.includes(terrainBoundary),'terrain crest mask fidelity boundary');
+    source=source.replace(terrainBoundary,'if(terrainBelowCrest&&!window.forceCrestMask) {');
     res.end(source);return;
   }
   fs.createReadStream(file).pipe(res);
@@ -746,7 +751,8 @@ async function main(){
     const road=BARCODE.CacheRoadProof,snapshot=browserProof.phaseSnapshot;
     if(!snapshot)return {available:false};
     const saved={state:road.state,chapter:road.chapter,budget:road.renderBudget,
-      budgetState:road.renderBudgetState,interval:road.renderFrameIntervalMs};
+      budgetState:road.renderBudgetState,interval:road.renderFrameIntervalMs,
+      host:Object.fromEntries(Object.keys(snapshot.host).map(key=>[key,road[key]]))};
     const rows=[],ctx=renderer.ctx,P=BARCODE.PresentationAssets,assetDraw=P.draw;
     const groups={},cache=window.bossPresentationReview.cache;
     let phaseStart=0;
@@ -768,7 +774,7 @@ async function main(){
       value.calls++;value.ms+=cost;return result;
     };
     try{
-      road.state=copy(snapshot.state);road.chapter=copy(snapshot.chapter);
+      road.state=copy(snapshot.state);road.chapter=copy(snapshot.chapter);Object.assign(road,snapshot.host);
       road.renderBudget=BARCODE.CacheRoadRenderBudget.create();road.renderBudget.scale=1/6;
       road.renderBudgetState=road.state;road.renderFrameIntervalMs=0;
       ctx.reset();ctx.imageSmoothingQuality='high';ctx.getImageData(0,0,1,1);
@@ -778,13 +784,30 @@ async function main(){
         methodCosts={};phaseStart=now;
       };
       originalRoadDraw.call(road,ctx);window.canvasCostMark('hud-complete');
-      return {available:true,fixture:true,bar:road.state.musicBeatFloat/4,bossHP:road.state.combat.boss.hp,rows,
+      const reviewWebp=ctx.canvas.toDataURL('image/webp',.9).split(',')[1];
+      const optimizedPixels=ctx.getImageData(0,0,ctx.canvas.width,ctx.canvas.height).data;
+      window.canvasCostMark=undefined;window.forceCrestMask=true;
+      originalRoadDraw.call(road,ctx);
+      const referencePixels=ctx.getImageData(0,0,ctx.canvas.width,ctx.canvas.height).data;
+      let difference=0,maxChannelDifference=0;
+      for(let i=0;i<optimizedPixels.length;i++)if(i%4!==3){
+        const delta=Math.abs(optimizedPixels[i]-referencePixels[i]);difference+=delta;maxChannelDifference=Math.max(maxChannelDifference,delta);
+      }
+      const maskFidelity={meanRGB:difference/(optimizedPixels.length/4*3),maxChannelDifference};
+      window.forceCrestMask=undefined;
+      const unflushed=[];let last=performance.now();
+      window.canvasCostMark=phase=>{const now=performance.now();if(phase!=='begin')unflushed.push({phase,ms:now-last});last=now;};
+      const start=performance.now();originalRoadDraw.call(road,ctx);window.canvasCostMark('hud-complete');
+      const submitted=performance.now();ctx.getImageData(0,0,1,1);
+      const completeMs=performance.now()-start;
+      return {available:true,fixture:true,status:road.status,bar:road.state.musicBeatFloat/4,bossHP:road.state.combat.boss.hp,rows,
+        unflushed,completeMs,finalFlushMs:completeMs-(submitted-start),maskFidelity,
         assetGroups:Object.entries(groups).sort((a,b)=>b[1].submitMs-a[1].submitMs).slice(0,24),
-        reviewWebp:ctx.canvas.toDataURL('image/webp',.9).split(',')[1]};
+        reviewWebp};
     }finally{
-      window.canvasCostMark=undefined;P.draw=assetDraw;
+      window.canvasCostMark=undefined;window.forceCrestMask=undefined;P.draw=assetDraw;
       for(const name of methods)ctx[name]=originals[name];
-      road.state=saved.state;road.chapter=saved.chapter;
+      road.state=saved.state;road.chapter=saved.chapter;Object.assign(road,saved.host);
       road.renderBudget=saved.budget;road.renderBudgetState=saved.budgetState;road.renderFrameIntervalMs=saved.interval;
     }
   })()`);
@@ -794,9 +817,14 @@ async function main(){
     fs.writeFileSync(path.join(output,'Boss-Render-Review.webp'),Buffer.from(reviewWebp,'base64'));
   }
   console.log('BOSS_RENDER_PHASES '+JSON.stringify(phaseReport));
+  assert(phaseReport.available&&phaseReport.status==='playing'&&phaseReport.bossHP>0,'staged diagnostic restores the actual live-boss lifecycle');
+  assert(phaseReport.maskFidelity.meanRGB<.1,'bounded terrain mask keeps the original crest output');
   fs.writeFileSync(path.join(output,'Boss-Render-Phases.json'),JSON.stringify(phaseReport,null,2)+'\n');
   const phaseMedians=Object.fromEntries([false,true].map(boss=>{const rows=fullLoopCosts.filter(frame=>frame.boss===boss);
     return [boss?'boss':'chase',median(rows.map(frame=>frame.ms))];}));
+  const liveBossCosts=fullLoopCosts.filter(frame=>frame.boss&&frame.bossHP>0&&frame.status==='playing');
+  assert(liveBossCosts.length>=80,'consecutive samples include active, undefeated rig combat');
+  phaseMedians.liveBoss=median(liveBossCosts.map(frame=>frame.ms));
   console.log('SUSTAINED_PHASE_MEDIANS '+JSON.stringify(phaseMedians));
   assert(Object.values(phaseMedians).every(ms=>ms<=1000/30),'each chase and live-boss phase must fit the 30 Hz diagnostic median budget');
   assert(fullLoopTiming.medianMs<=1000/30,'consecutive production chase/boss frames must fit the 30 Hz diagnostic median budget');
