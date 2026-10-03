@@ -432,9 +432,9 @@ function budgetUnit(){
 
 function worldCopyUnit(){
   const road=fs.readFileSync(path.resolve(__dirname,'../src/game/cache-road-proof.js'),'utf8');
-  const start=road.indexOf('  function expandSampledWorld('),end=road.indexOf('  function clipLightBlend(',start);
+  const start=road.indexOf('  function copySampledWorldPixels('),end=road.indexOf('  function clipLightBlend(',start);
   assert(start>=0&&end>start,'exercise the production sampled-world transport helper');
-  const code=road.slice(start,end)+'\nwindow.expandSampledWorld=expandSampledWorld;';
+  const code=road.slice(start,end)+'\nwindow.copySampledWorldPixels=copySampledWorldPixels;';
   for(const failure of ['none','construct','read','draw','p3','alpha','native','missing','fractional','oversize','reference']){
     const calls=[],closed=[],data=new Uint8ClampedArray(320*180*4).fill(255),budget={};
     if(failure==='alpha')data[3]=254;
@@ -459,7 +459,7 @@ function worldCopyUnit(){
         calls.push(['draw',...args]);if(failure==='draw'&&args[0]!==canvas)throw Error('unsupported source');
       }};
     const width=failure==='fractional'?320.5:failure==='oversize'?481:320;
-    const used=w.expandSampledWorld(ctx,width,180,budget,failure!=='reference');
+    const used=w.copySampledWorldPixels(ctx,width,180,budget,failure!=='reference');
     assert.equal(used,failure==='none');assert.equal(ctx.globalAlpha,.37);assert.equal(ctx.filter,'none');
     const drawn=calls.filter(call=>call[0]==='draw'),last=drawn.at(-1);
     assert.deepEqual(last.slice(2),[0,0,width,180,0,0,1920,1080]);
@@ -474,7 +474,7 @@ function worldCopyUnit(){
     if(['construct','read','draw'].includes(failure)){
       assert.equal(budget.worldPixelCopyUnavailable,true);
       const count=calls.filter(call=>call[0]==='read').length;
-      w.expandSampledWorld(ctx,320,180,budget);
+      w.copySampledWorldPixels(ctx,320,180,budget);
       assert.equal(calls.filter(call=>call[0]==='read').length,count,'an unavailable API is attempted once per presentation budget');
       assert.equal(calls.at(-1)[1],canvas);
     }else assert.equal(budget.worldPixelCopyUnavailable,undefined);
@@ -530,7 +530,7 @@ async function browser(){
       let road=fs.readFileSync(path.join(root,'src/game/cache-road-proof.js'),'utf8');
       const copyMarker='  function clipLightBlend(ctx,bounds) {';
       assert(road.includes(copyMarker),'exercise the actual sampled-world helper in Chromium');
-      road=road.replace(copyMarker,'  window.bitmapReview.expandSampledWorld=expandSampledWorld;\n'+copyMarker);
+      road=road.replace(copyMarker,'  window.bitmapReview.copySampledWorldPixels=copySampledWorldPixels;\n'+copyMarker);
       assert(road.includes('const compositeBlur=ctx.canvas?.width>0'));
       road=road.replace('const compositeBlur=ctx.canvas?.width>0',
         "const compositeBlur=window.bitmapReview.mode!=='vector'&&ctx.canvas?.width>0");
@@ -870,9 +870,9 @@ async function browser(){
             ctx.beginPath();ctx.rect(110,50,1400,900);ctx.clip();ctx.globalAlpha=.37;
           }
         };
-        paint();bitmapReview.expandSampledWorld(ctx,320,180,{},false);
+        paint();bitmapReview.copySampledWorldPixels(ctx,320,180,{},false);
         const original=ctx.getImageData(0,0,c.width,c.height).data;
-        paint();const budget={},used=bitmapReview.expandSampledWorld(ctx,320,180,budget);
+        paint();const budget={},used=bitmapReview.copySampledWorldPixels(ctx,320,180,budget);
         const candidate=ctx.getImageData(0,0,c.width,c.height).data;
         let changed=0,max=0;
         for(let index=0;index<original.length;index++){

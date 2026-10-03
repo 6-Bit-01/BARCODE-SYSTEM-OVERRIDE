@@ -388,7 +388,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         lensRadius:args.width*radius,poolRadius:args.height*.21};
     });
   }
-  function expandSampledWorld(ctx,width,height,budget,preferPixels=true) {
+  function copySampledWorldPixels(ctx,width,height,budget,preferPixels=true) {
     let frame,used=false;
     // Only the small, opaque sRGB background takes this path. Synchronous
     // readback and drawing stay inside the existing production frame, with
@@ -3759,7 +3759,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.save();ctx.setTransform(1,0,0,1,0,0);
         ctx.globalAlpha=1;ctx.globalCompositeOperation='copy';ctx.filter='none';
         ctx.imageSmoothingEnabled=false;
-        this.renderBudget.worldPixelCopyUsed=expandSampledWorld(ctx,1920*worldScale,1080*worldScale,this.renderBudget);
+        this.renderBudget.worldPixelCopyUsed=copySampledWorldPixels(ctx,1920*worldScale,1080*worldScale,this.renderBudget);
         ctx.restore();ctx.setTransform(1,0,0,1,0,0);ctx.save();
         ctx.setTransform(transform.a/worldScale,transform.b/worldScale,
           transform.c/worldScale,transform.d/worldScale,transform.e/worldScale,transform.f/worldScale);
