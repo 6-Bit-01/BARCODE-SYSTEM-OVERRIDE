@@ -14,7 +14,7 @@ async function main() {
   const images=Object.fromEntries(await Promise.all(Object.entries(definitions.w.costEntries)
     .filter(([key])=>key.startsWith('cache')).map(async([key,entry])=>
       [key,await loadImage(path.join(root,entry.path))])));
-  function rig(direct=false,factory=true,lightMode='bounded') {
+  function rig(direct=false,factory=true) {
     const r=createRig(),{w,context}=r,B=w.BARCODE,created=[],trace=[];
     B.Campaign={register(){},syncTitleButton(){}};
     B.CacheChapter={recordIds:['lore.l02.01','lore.l02.02','lore.l02.03','lore.l02.04']};
@@ -28,10 +28,6 @@ async function main() {
       .replace('if(terrainBelowCrest) {','if(false) {')
       .replace('if(tintedReflection&&!ctx.shadowBlur&&!ctx.shadowOffsetX&&!ctx.shadowOffsetY) {','if(false) {')
       .replace('if(!unfilteredLightBounds)return;','return;'):source;
-    if(lightMode==='off')code=code.replace('if(!unfilteredLightBounds)return;','return;');
-    if(lightMode==='scenery-off')code=code.replace('clipLightBlend(ctx,geometry.map','void(ctx,geometry.map');
-    if(lightMode==='vehicle-off')code=code.replace('clipLightBlend(ctx,lamps.map','void(ctx,lamps.map');
-    if(lightMode==='wide')code=code.replace('const margin=2*Math.hypot','const margin=64*Math.hypot');
     // The original baseline traverses the complete crest for each slab;
     // otherwise the new safe rectangular shortcut also changes the control.
     assert(!direct||code!==source,'comparison disables only off-glass scenery culling');
@@ -50,22 +46,10 @@ async function main() {
     ctx.lineTo=(...args)=>{commands.lineTo++;return lineTo(...args);};
     return {...r,created,trace,canvas,ctx,commands,review:w.costReview};
   }
-  function pixelDifference(reference,candidate) {
-    let changed=0,total=0,max=0,maxAlpha=0,left=1920,top=1080,right=-1,bottom=-1;
-    const histogram={},samples=[];
-    for(let i=0;i<reference.length;i++) {
-      const delta=Math.abs(reference[i]-candidate[i]);if(!delta)continue;
-      changed++;total+=delta;max=Math.max(max,delta);
-      histogram[delta]=(histogram[delta]||0)+1;
-      const pixel=Math.floor(i/4),x=pixel%1920,y=Math.floor(pixel/1920);
-      left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y);
-      if(i%4===3)maxAlpha=Math.max(maxAlpha,delta);
-      if(samples.length<12)samples.push({x,y,channel:i%4,reference:reference[i],candidate:candidate[i]});
-    }
-    return {changedComponents:changed,meanComponentDelta:total/reference.length,maxComponentDelta:max,
-      maxAlphaDelta:maxAlpha,bounds:changed?[left,top,right,bottom]:null,histogram,samples};
-  }
   const old=rig(true,false),now=rig(),fallback=rig(false,false),results=[];
+  // An available but unrelated Canvas constructor cannot select browser-only
+  // blend/blur paths for a native or embedded host.
+  fallback.w.HTMLCanvasElement=function NonDOMCanvas() {};
   for(const progress of [180,2680,5160,7620])for(const reduced of [false,true]) {
     const state=Object.assign(now.review.newState(),{progress,elapsedMs:5471,lanePos:1.5,
       visualLane:1.5,musicBar:64,musicBeatFloat:257.2,captures:[],speed:70,gear:2,timeMs:55000});
@@ -88,18 +72,6 @@ async function main() {
     const reference=Buffer.from(old.ctx.getImageData(0,0,1920,1080).data);
     const candidate=Buffer.from(now.ctx.getImageData(0,0,1920,1080).data);
     const unavailable=Buffer.from(fallback.ctx.getImageData(0,0,1920,1080).data);
-    if(!unavailable.equals(reference)) {
-      const variants={bounded:pixelDifference(reference,unavailable)};
-      for(const mode of ['off','scenery-off','vehicle-off','wide']) {
-        const r=rig(false,false,mode);
-        r.ctx.reset();r.ctx.fillStyle='#26364a';r.ctx.fillRect(0,0,1920,1080);
-        const road=r.w.BARCODE.CacheRoadProof;road.state=copy(state);road.active=true;road.status='playing';
-        road.chapter={records:[],difficultyId:'standard',encounterVersion:4};
-        r.w.BARCODE.Preferences={values:{reducedMotion:reduced}};road.draw(r.ctx);
-        variants[mode]=pixelDifference(reference,r.ctx.getImageData(0,0,1920,1080).data);
-      }
-      console.log('NATIVE_LIGHT_BOUNDS_DIAGNOSTIC '+JSON.stringify({progress,reduced,variants}));
-    }
     assert(unavailable.equals(reference),'hosts without Path2D retain the exact native frame');
     let changed=0,total=0,max=0;
     for(let i=0;i<reference.length;i++) {

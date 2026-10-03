@@ -390,7 +390,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   }
   function clipLightBlend(ctx,bounds) {
     const matrix=ctx.getTransform?.();
-    const unfilteredLightBounds=ctx.filter==='none'&&!ctx.shadowBlur&&
+    // Native/non-DOM hosts keep their original blend path exactly; their
+    // screen-layer rounding can change when an extra clip is introduced.
+    const browserCanvas=typeof window.HTMLCanvasElement==='function'&&
+      ctx.canvas instanceof window.HTMLCanvasElement;
+    const unfilteredLightBounds=browserCanvas&&ctx.filter==='none'&&!ctx.shadowBlur&&
       !ctx.shadowOffsetX&&!ctx.shadowOffsetY&&matrix&&
       ['a','b','c','d'].every(key=>Number.isFinite(matrix[key]))&&
       bounds.length&&bounds.every(bound=>bound.every(Number.isFinite));

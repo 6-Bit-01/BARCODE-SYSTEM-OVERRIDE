@@ -1,66 +1,14 @@
-# Continue here — continued Level 2 lag repair (PR #181)
+# Continue here — Level 2 lag repair (PR #181)
 
-Pointwise screen blending for scenery lamps and vehicle tail-lamp pulses is now clipped to its original glow/cone bounds with a transform-aware antialias margin. Callers with spreading filters or shadows retain the original layer. Shapes, light weights, alpha, source pixels, native projection and caller state remain unchanged; native/Chromium original-source comparisons disable only the new bounds. Bezel/face source windows saved 1,588,013 native pixels but the preceding live-boss medians still reached 35.0–35.2 ms. All scene/chase/whole-boss/live-boss limits remain 33.33 ms.
+Continue from PR180, base/rollback `0c821b2fb3b7b60b2b561d7c3a0040810c73181a`. PR181 bounds background, bitmap and pointwise filter/blend work on the existing display Canvas while retaining native driving feedback. Read the current PR181 sections in `docs/source-pack/CURRENT_STATE.md`, `ACCEPTANCE.md` and `CHANGELOG.md`.
 
-Native bitmap preparation now crops the bezel and each face cel to their fixed used source windows plus sampling margins, without resizing any texel. Original source coordinates, output placement, face poses and smoothing are retained; a crop outside the prepared window uses the complete original image. The existing native memory cap includes these pending/window pixels, and Chromium full-quality comparisons disable the window cache in the original-source reference. Source-window registration, all-or-nothing failures, caller state and reuse are checked explicitly. Traffic tint clipping preserved RGB/alpha but the slower subsequent live-boss run still reached 36.2 ms, so performance validation remains required.
+Non-browser Canvas hosts retain the original light blend path: diagnostic comparison isolated a few rounding differences caused by the extra clip, with identical results after a much larger margin. Browser light bounds retain original shapes, alpha and projection. Strict native equality and all original performance limits remain intact.
 
-Bounded pointwise traffic tinting reduced the latest 447-frame push sample to median 24.2 ms / p95 30.1 ms. Its auxiliary capture selector incorrectly required the lowest background scale, so it failed before the unchanged per-phase gates could report. The selector now captures an actual reduced-detail undefeated playing-boss frame at its measured scale, and reference repaints retain that captured scale despite added diagnostic readbacks. Startup/reload inclusion, single production draw, chase/whole-boss/live-boss 33.33 ms limits and all publication checks remain unchanged.
+Publication requires all regression/syntax/native review checks and both exact final-head push/pull-request validation and performance events. The final PR metadata and generated archive receipt establish merge/test state. After merge, refresh the same maintained `BARCODE-System-Override-Source-Pack-v5.zip` from the actual merged tree; preserve historical archive identities.
 
-Traffic brake-reflection hue layers are now clipped to the union of their original destination rectangles plus an antialias margin. Hue rotation is pointwise and retains the original source/crop, color, placement, alpha and native projection. Native and Chromium reference paths disable only this added clip to compare RGB/alpha with the original full-display/glass filter. Consecutive actual-frame traces showed substantial filter-related stalls; small-source/affine preparation alone still recorded live-boss medians 44.6 and 46.7 ms, so all publication gates remain required.
+The next owner review is a fresh race through opening, active rig combat, pause/reload and the earned ending. Owner-device FPS, physical-controller, listening and comfort/fun acceptance remain separately unrecorded.
 
-The background source-over experiment preserved RGB/alpha but did not reliably lower live-boss cost; the cleared copy expansion is retained. Small native feedback/effect sources now prepare unscaled immutable bitmaps under a 512-Ki-pixel sublimit within the existing 32-megapixel native reservation. Capped-width beat surfaces whose two triangle transforms coincide submit one complete native affine painting; unequal perspective surfaces retain both original triangles. Native UV corners, opacity/seam, filtered placement, context, failure and reservation checks cover these changes. Chase, whole-boss and undefeated playing-boss budgets remain 33.33 ms.
-
-The sampled background now uses source-over after the old display has been cleared, avoiding a second replacement layer. Its opaque output is compared with both the prior uncleared source-over path and the cleared copy path, including RGB and alpha. The preceding mirror-composition revision improved the push live-boss median to 36.3 ms, still over the unchanged 33.33 ms gate.
-
-A native opaque playing frame now composites the original 2.3px rearview blur with source-over; it matches copy on the opaque backdrop and retains copy for scaled/fading callers. Chromium compares RGB and alpha against the original copy path. Live shared-loop samples also record phase submission costs without extra paint or readbacks; the chase, whole-boss and undefeated playing-boss budgets remain unchanged. The previous background sampler candidate still failed the live-boss gate at 45.7 ms and is not publication evidence.
-
-The owner already played PR180 and reported continued lag. Do not restart
-that earlier handoff. Base/rollback:
-`0c821b2fb3b7b60b2b561d7c3a0040810c73181a`.
-PR181: `agent/level2-raster-work-repair`.
-The repair adapts background sampling on the existing display Canvas.
-Fresh runs start at full detail; sustained slow draws/frame intervals reduce
-detail, pauses hold it, and sustained spare capacity restores it. Background
-sky, terrain and scenery can reach a 320 × 180 footprint on a 1920 × 1080
-display. Expand that background once, then resume the original camera at
-native resolution for functional road paint, cars, traffic, effects and HUD.
-The mirror retains its native scene/face and original blur. Preserve sampler,
-style, dash and caller state. No extra Canvas, clock, input or audio owner.
-
-Background WebP sheets also prepare one quarter-size immutable ImageBitmap
-outside drawing, with a 32-megapixel reservation cap and original-image
-fallback. Low-detail background/reflected scenery uses these decoded sources;
-functional foreground, face and HUD retain original sources and native detail.
-Under load the reflection uses one rectangular raster clip, then repaints the
-original curved bezel once. Its native projection and 2.3px blur remain.
-
-
-Native functional sheets also prepare unscaled bitmaps within a separate
-32-megapixel limit. Reduced backgrounds include smaller animated signals,
-lamps and walkers from 256 Ki pixels upward; native atlas coordinates stay
-unchanged. Sub-sample lamp bands average their original weights. Terrain
-slabs completely below the crest can use its rectangular bounds. Both chase
-and live-boss medians must independently fit 33.33 ms; review staged native
-captures with complete lifecycle fields restored.
-
-Reduced background source sampling also uses nearest texels; functional
-foreground, face/HUD and diffuse native effects keep authored samplers.
-Controlled race frames paint once per RAF and yield between callbacks,
-retaining measured startup/reload costs and per-frame preparation readiness.
-
-Read CURRENT_STATE and ACCEPTANCE. Performance evidence uses unwrapped
-production draws, 30 startup frames retained separately and a subsequent
-16-frame moving window. Trace/reflection/fidelity repaint runs afterward.
-Require the absolute 33.33 ms scene/chase median budgets, full regression,
-all-file syntax, loaded native review and both exact final-head CI events.
-
-The generated export receipt and PR identify the final tested/merged
-revision. If that receipt says review, finish those gates and publication.
-If it says merged, use the current repaired build for actual device pacing
-through driving, dense encounters, boss, pause and re-entry; do not redo
-PR180. Controller/listening/comfort acceptance remains unrecorded.
-
-# Earlier continuation history
+## Prior checkpoints
 
 # Continue here — Cache race launch and shared cutscene format
 
@@ -199,6 +147,7 @@ Unread tutorial, lore and inspection remain visible during play. Shared screen-s
 
 Preserve #78 elevator rear/passenger/front-rail layering, collisions, power and all other gameplay. Read SMART_BOX_MOTION_PASS.md and the newest ACCEPTANCE route. Publish a draft and refresh the existing v5 archive. Owner Makko/physical-controller acceptance remains pending before assistant merge; automated/native captures do not establish it.
 
+
 ## September 17, 2026 — smart panels and elevator front rails
 
 Base/rollback: merged #77, `78f67f4750a2d12f8a2063c895d06d5b9952d700`. Branch: `agent/tutorial-play-space`. The owner reports the tutorial hiding street enemies during jumps, the fixed hack panel hiding its locked target, and passengers appearing over the elevator's front rails. This pass implements those reports together.
@@ -305,6 +254,7 @@ Owner continuation: relocate the rhythm lift to x=2440, y=856→358 at the middl
 
 Read `CROSS_BEAT_STREET_PASS.md` for behavior, validation and the Makko route. Canonical pack v64 matched all 367 base source exports; its original manifest/test receipt are preserved in `verification/pr63-merged-history.json`. PR #62 remains owner-failed historical evidence. Automated/native checks are not physical DualSense or hosted Makko acceptance. Exact final revision, PR and CI belong to the generated receipt; keep the draft unmerged until owner acceptance.
 
+
 ## September 16, 2026 — controller playtest repair and car approach warnings
 
 Base/rollback is merged PR #62, `af8019a1e7755195c4e6e2cddf1e3d3f9f82002a`. Branch: `agent/controller-jump-traffic-warning`. The owner reports that #62's controller changes failed in play: RB still made a tiny jump and Cross stopped movement. Preserve that failure attribution; earlier passing automated checks were insufficient.
@@ -329,6 +279,7 @@ Base/rollback: merged PR #60, `5e0de1e16f2e40fd077468a18b0404e067cf634f`. Branch
 
 Asset ancestor: `3e1af42b28521ff02efd7343792a890196493f70`; manifest ancestor: `215fde24db9f7493f1ee862e14761eb097db55e9`. The active startup pin and registry detection require this repaired manifest, including when the old walk is already cached. Read `WALK_LOOP_PASS.md` for the native before/after, long-hold tests, controller recommendations and Makko route. Controller changes are recommendations only, pending owner selection. Exact head/PR/CI are in the generated receipt. Makko acceptance remains required before merge; previous current-work entries are historical.
 
+
 ## September 16, 2026 — upper routes, boss pursuit and readable guidance
 
 Current review branch: `agent/upper-route-boss-polish`. Base/rollback: merged PR #59 (`a4c16069b008c508a1dca60aeba3aab7e3c29b3f`). This expands the saved Jammer-arrow repair with the owner's later request for visible drones, faint roof landing lines, free boss-combat camera movement, more rooftop exploration, a sharp boss flourish, an illustrated elevator and boss participation above the street. Earlier current-work entries are history.
@@ -343,6 +294,7 @@ The continuation also narrows the existing continuous emitter artwork to 14 worl
 
 Read `UPPER_ROUTE_BOSS_PASS.md` and the latest acceptance route. Production-module and native-render evidence are not hosted Makko acceptance. Exact review revision, final test results and PR are in the generated receipt. Owner Makko review remains pending before merge.
 
+
 ## September 16, 2026 — restore Jammer arrow to the screen edge
 
 Base/rollback: merged PR #59 (`a4c16069b008c508a1dca60aeba3aab7e3c29b3f`). Branch: `agent/fix-jammer-arrow-edge`. The owner reports the guidance arrow appearing over the player. At zoom 1 and 1.2, the player's projected position lies below the arrow's safe bottom (770); the old ray starts on that clamped boundary and selects its zero-distance bottom intersection. Reproduction at player x=960, y=784 and Jammer x=3520 yielded arrow (960,770), directly over the player.
@@ -350,6 +302,7 @@ Base/rollback: merged PR #59 (`a4c16069b008c508a1dca60aeba3aab7e3c29b3f`). Branc
 For a Jammer beyond the left/right viewport, place the cue on that corresponding safe edge, clamp its height and point its artwork at the projected target. The normal-zoom reproduction now gives (1840,770). Keep current arrow artwork, distance, pulse/fade, single UI draw owner, on-screen hiding and gameplay. No asset changes. The circled facade-emitter appearance is not changed by this focused arrow correction.
 
 The production-module mission harness covers both directions, ground/jump heights and four zooms (24 combinations), target direction, HUD bounds and hiding on entry/removal. Required suite/syntax results and exact review head are recorded in the generated receipt. Native/VM checks do not establish hosted Makko acceptance. Earlier current-state entries below are historical.
+
 
 ## September 16, 2026 — street depth, one terminal and render cost
 
