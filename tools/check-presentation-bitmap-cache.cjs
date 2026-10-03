@@ -50,17 +50,19 @@ function budgetUnit(){
   assert.equal(budget.scale,1,'each new run begins at full detail');
   owner.observe(budget,90);owner.observe(budget,90);
   assert.equal(budget.scale,1,'one or two cold/impact frames cannot reduce detail');
-  owner.observe(budget,90);assert.equal(budget.scale,.5,'sustained slow paint lowers only world sampling');
+  owner.observe(budget,90);assert.equal(budget.scale,.4,'sustained slow paint lowers only world sampling');
   const frozen=JSON.stringify(budget);
   for(let i=0;i<700;i++)owner.observe(budget,1,{paused:true});
   assert.equal(JSON.stringify(budget),frozen,'paused repeated paint cannot change quality');
   for(const cost of [NaN,Infinity,-1])owner.observe(budget,cost);
   assert.equal(JSON.stringify(budget),frozen,'invalid clocks cannot alter a budget');
   for(let i=0;i<599;i++)owner.observe(budget,1);
-  assert.equal(budget.scale,.5,'detail recovery needs sustained spare capacity');
-  owner.observe(budget,1);assert.equal(budget.scale,.6);
+  assert.equal(budget.scale,.4,'detail recovery needs sustained spare capacity');
+  owner.observe(budget,1);assert.equal(budget.scale,.5);
+  for(let i=0;i<30;i++)owner.observe(budget,200);
+  assert.equal(budget.scale,1/3,'sampling stops at a readable finite floor');
   const fresh=owner.create();assert.equal(fresh.scale,1);
-  assert.equal(budget.scale,.6,'a fresh run has independent presentation state');
+  assert.equal(budget.scale,1/3,'a fresh run has independent presentation state');
   console.log('PASS: bounded adaptive world quality, cold/impact tolerance, pause freeze, clock fallback, recovery hysteresis and fresh-run independence.');
 }
 
