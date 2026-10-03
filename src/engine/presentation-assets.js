@@ -325,6 +325,25 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     // detail and original-image fallback are unchanged; reserve before await.
     nativeRasterPixels+=pixels;state.nativePending=true;
     const fallback=()=>{nativeRasterPixels-=pixels;state.nativePending=false;};
+    const fw=w/entry.columns,fh=h/entry.rows,cells=entry.columns*entry.rows;
+    if(cells>1&&entry.frames===cells&&Number.isInteger(fw)&&Number.isInteger(fh)) {
+      // Keep each original-size cel as its own immutable source. Large full
+      // sheets otherwise enter clipped draws even for a tiny vehicle frame.
+      // The batch reserves no more pixels than the original complete atlas.
+      const preparations=Array.from({length:cells},(_,index)=>Promise.resolve().then(()=>
+        window.createImageBitmap(image,index%entry.columns*fw,
+          Math.floor(index/entry.columns)*fh,fw,fh)));
+      Promise.allSettled(preparations).then(results=>{
+        const valid=results.every(result=>result.status==='fulfilled'&&
+          result.value?.width===fw&&result.value?.height===fh);
+        if(!valid){
+          for(const result of results)if(result.status==='fulfilled')result.value?.close?.();
+          fallback();return;
+        }
+        state.nativeFrames=results.map(result=>result.value);state.nativePending=false;
+      });
+      return;
+    }
     try {
       Promise.resolve(window.createImageBitmap(image)).then(bitmap=>{
         if(bitmap?.width!==w||bitmap?.height!==h){bitmap?.close?.();fallback();return;}
@@ -397,13 +416,14 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     const entry = entries[key], state = cache[key];
     if (!entry || !state?.ready) return false;
     const original=state.image,small=(rasterDetail.get(ctx)||1)<=.25&&state.rasterBitmap;
-    const image=small||state.nativeBitmap||state.bitmap||original;
     const fw=original.naturalWidth/entry.columns,fh=original.naturalHeight/entry.rows;
     const index = Math.max(0, Math.floor(frame)) % entry.frames;
     const [sx, sy, sw, sh] = sourceRect || entry.frameCrops?.[index] || entry.crop || [0, 0, fw, fh];
     const h = height ?? width * sh / sw;
-    const sourceX = index % entry.columns * fw + sx;
-    const sourceY = Math.floor(index / entry.columns) * fh + sy;
+    const nativeFrame=!small&&sx>=0&&sy>=0&&sx+sw<=fw&&sy+sh<=fh&&state.nativeFrames?.[index];
+    const image=small||nativeFrame||state.nativeBitmap||state.bitmap||original;
+    const sourceX = nativeFrame?sx:index % entry.columns * fw + sx;
+    const sourceY = nativeFrame?sy:Math.floor(index / entry.columns) * fh + sy;
     const sourceScaleX=small?small.width/original.naturalWidth:1;
     const sourceScaleY=small?small.height/original.naturalHeight:1;
     if (flip || x !== 0 || y !== 0) {

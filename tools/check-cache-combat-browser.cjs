@@ -759,7 +759,7 @@ async function main(){
     P.draw=(key,context,args)=>{
       const began=performance.now(),ok=assetDraw(key,context,args),elapsed=performance.now()-began;
       const item=groups[key]||(groups[key]={calls:0,submitMs:0,
-        small:!!cache[key]?.rasterBitmap,native:!!cache[key]?.nativeBitmap,
+        small:!!cache[key]?.rasterBitmap,native:!!cache[key]?.nativeBitmap,nativeFrames:cache[key]?.nativeFrames?.length??0,
         width:cache[key]?.image.naturalWidth,height:cache[key]?.image.naturalHeight});
       item.calls++;item.submitMs+=elapsed;return ok;
     };

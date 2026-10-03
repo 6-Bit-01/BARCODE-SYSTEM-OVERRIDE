@@ -6,11 +6,14 @@ async function unit(){
   for(const failure of ['none','reject','throw','invalid']){
     const images=[],prepared=[],closed=[];
     class Image {constructor(){this.naturalWidth=1024;this.naturalHeight=512;images.push(this);}}
-    const w={Image,BARCODE:{},createImageBitmap(image,options){
+    const w={Image,BARCODE:{},createImageBitmap(image,...args){
+      const options=typeof args[0]==='object'?args[0]:undefined;
+      const cw=typeof args[0]==='number'?args[2]:image.naturalWidth;
+      const ch=typeof args[0]==='number'?args[3]:image.naturalHeight;
       prepared.push(image);
       if(failure==='throw')throw Error('unsupported');
       if(failure==='reject')return Promise.reject(Error('unsupported'));
-      return Promise.resolve({width:failure==='invalid'?0:(options?.resizeWidth||image.naturalWidth),height:options?.resizeHeight||image.naturalHeight,
+      return Promise.resolve({width:failure==='invalid'?0:(options?.resizeWidth||cw),height:options?.resizeHeight||ch,
         image,close(){closed.push(this);}});
     }},context={window:w};
     vm.runInNewContext(inspected,context);
@@ -34,13 +37,13 @@ async function unit(){
     assert.equal(ctx.imageSmoothingEnabled,false,'direct projected draws restore smoothing');
     const raster=cache.cacheBeatHardware;raster.image.onload();
     await new Promise(setImmediate);
-    assert(raster.ready);assert.equal(prepared.length,2,'functional raster prepares one native-resolution source');
-    assert.equal(!!raster.nativeBitmap,failure==='none');
+    assert(raster.ready);assert.equal(prepared.length,9,'functional atlas prepares each original-size frame once');
+    assert.equal(!!raster.nativeFrames,failure==='none');
     const missing=cache.cacheSidewalk;missing.image.onerror();
     assert.equal(missing.image.src,entries.cacheSidewalk.path,'one pinned failure uses the bundled SVG');
     missing.image.onload();await new Promise(setImmediate);
-    assert(missing.ready);assert.equal(prepared.length,3);
-    w.BARCODE.PresentationAssets.preload();assert.equal(prepared.length,3,'re-entry reuses prepared fallback art');
+    assert(missing.ready);assert.equal(prepared.length,10);
+    w.BARCODE.PresentationAssets.preload();assert.equal(prepared.length,10,'re-entry reuses prepared fallback art');
   }
   console.log('PASS: one SVG preparation per load, warm/pause reuse, exact source rectangles, context preservation, raster routing and graceful bitmap rejection.');
 }
@@ -127,39 +130,56 @@ async function nativeRasterUnit(){
   for(const failure of ['none','reject','throw','invalid']){
     const prepared=[],closed=[];
     class Image{constructor(){this.naturalWidth=2048;this.naturalHeight=1024;}}
-    const w={Image,BARCODE:{},createImageBitmap(image,options){
-      prepared.push({image,options});
+    const w={Image,BARCODE:{},createImageBitmap(image,...crop){
+      prepared.push({image,crop});
       if(failure==='throw')throw Error('unsupported');
       if(failure==='reject')return Promise.reject(Error('unsupported'));
-      return Promise.resolve({width:failure==='invalid'?0:image.naturalWidth,
-        height:image.naturalHeight,close(){closed.push(this);}});
+      return Promise.resolve({width:failure==='invalid'?0:(crop[2]||image.naturalWidth),
+        height:crop[3]||image.naturalHeight,close(){closed.push(this);}});
     }};
     vm.runInNewContext(inspected,{window:w});
     const {cache}=w.bitmapReview,assets=w.BARCODE.PresentationAssets,state=cache.cacheCombatBike;
     state.image.onload();await new Promise(setImmediate);
     assert(state.ready);assert.equal(state.nativePending,false);
-    assert.equal(prepared.length,1);assert.equal(prepared[0].options,undefined,'native decoding never requests resize/crop');
-    assert.equal(!!state.nativeBitmap,failure==='none');
-    assert.equal(closed.length,failure==='invalid'?1:0);
+    assert.equal(prepared.length,8,'one immutable crop per native cel');
+    assert.deepEqual(prepared.map(call=>call.crop),Array.from({length:8},(_,index)=>
+      [index%4*512,Math.floor(index/4)*512,512,512]),'native preparation crops exact unscaled cels');
+    assert.equal(!!state.nativeFrames,failure==='none');
+    assert.equal(closed.length,failure==='invalid'?8:0);
     const calls=[],ctx={imageSmoothingEnabled:false,save(){},restore(){},translate(){},scale(){},drawImage(...args){calls.push(args);}};
     assets.setRasterDetail(ctx,1/6);
     for(let repeat=0;repeat<25;repeat++)assets.draw('cacheCombatBike',ctx,{width:80,height:40,frame:3,sourceRect:[12,8,100,40]});
-    assert.equal(prepared.length,1,'drawing and pause reuse the one native preparation');
-    for(const call of calls){assert.equal(call[0],state.nativeBitmap||state.image);assert.deepEqual(call.slice(1),[1548,8,100,40,-40,-40,80,40]);}
-    assets.preload();assert.equal(prepared.length,1);
+    assert.equal(prepared.length,8,'drawing and pause reuse the prepared native frame batch');
+    for(const call of calls){assert.equal(call[0],state.nativeFrames?.[3]||state.image);
+      assert.deepEqual(call.slice(1),failure==='none'?[12,8,100,40,-40,-40,80,40]:[1548,8,100,40,-40,-40,80,40]);}
+    assets.draw('cacheCombatBike',ctx,{width:80,height:40,frame:3,sourceRect:[500,0,40,60]});
+    assert.equal(calls.at(-1)[0],state.image,'a cross-cel source crop retains the complete original source');
+    assert.deepEqual(calls.at(-1).slice(1),[2036,0,40,60,-40,-40,80,40]);
+    assets.preload();assert.equal(prepared.length,8);
   }
-  const prepared=[];
+  // A partial batch failure closes successful cels before releasing pixels.
+  const closed=[],attempts=[];
   class Image{constructor(){this.naturalWidth=8192;this.naturalHeight=4096;}}
-  const w={Image,BARCODE:{},createImageBitmap(image){
-    prepared.push(image);return Promise.resolve({width:image.naturalWidth,height:image.naturalHeight});}};
+  const w={Image,BARCODE:{},createImageBitmap(image,...crop){
+    attempts.push(crop);
+    if(attempts.length===3)return Promise.reject(Error('one missing cel'));
+    return Promise.resolve({width:crop[2]||image.naturalWidth,height:crop[3]||image.naturalHeight,close(){closed.push(this);}});}};
   vm.runInNewContext(inspected,{window:w});
   for(const key of ['cacheCombatBike','cacheCombatHostiles','cacheCar','cacheBeatHardware'])
     w.bitmapReview.cache[key].image.onload();
   await new Promise(setImmediate);
-  assert.equal(prepared.length,1,'concurrent native reservations stay within 32 megapixels');
+  assert.equal(attempts.length,8,'concurrent atlas reservation blocks other whole batches');
+  assert.equal(closed.length,7,'partial failure closes every successful cel');
+  assert.equal(!!w.bitmapReview.cache.cacheCombatBike.nativeFrames,false);
+  const next=w.bitmapReview.cache.cacheCar;next.image.onload?.();
+  // Start a fresh loaded asset after the failed reservation is released.
+  const retry=w.bitmapReview.cache.cacheCarLeft;retry.image.onload();await new Promise(setImmediate);
+  assert.equal(attempts.length,16);
+  assert.equal(retry.nativeFrames.length,8);
   assert(Object.values(w.bitmapReview.cache).reduce((sum,state)=>sum+
-    (state.nativeBitmap?state.nativeBitmap.width*state.nativeBitmap.height:0),0)<=32*1024*1024);
-  console.log('PASS: bounded native raster reuse, unchanged crops/frames/detail, concurrent reservations and original-source fallback.');
+    (state.nativeBitmap?state.nativeBitmap.width*state.nativeBitmap.height:0)+
+    (state.nativeFrames||[]).reduce((pixels,bitmap)=>pixels+bitmap.width*bitmap.height,0),0)<=32*1024*1024);
+  console.log('PASS: bounded original-size native frames, unchanged crop/registration, cross-cel fallback, atomic failures and concurrent reservations.');
 }
 
 function budgetUnit(){
@@ -318,7 +338,8 @@ async function browser(){
       road.active=true;road.status='playing';road.audioDegraded=false;
       road.selectMusicProfile();BARCODE.MusicTransport.start({sourceAnchorAudioSec:0,sourceOffsetTrackSec:0});
       const bitmaps=Object.fromEntries(svg.map(key=>[key,cache[key].bitmap]));
-       const nativeBitmaps=Object.fromEntries(Object.entries(cache).filter(([,state])=>state.nativeBitmap).map(([key,state])=>[key,state.nativeBitmap]));
+       const nativeBitmaps=Object.fromEntries(Object.entries(cache).filter(([,state])=>state.nativeBitmap||state.nativeFrames)
+         .map(([key,state])=>[key,{bitmap:state.nativeBitmap,frames:state.nativeFrames}]));
       const median=values=>{const v=values.slice().sort((a,b)=>a-b);return v[Math.floor(v.length/2)];};
       const rows=[],assetDraw=P.draw,bitmapFactory=window.createImageBitmap;
       const originalDrawImage=ctx.drawImage;let reflectionBlurs=0;
@@ -342,7 +363,10 @@ async function browser(){
         bitmapReview.mode=mode;
         window.createImageBitmap=mode==='vector'?undefined:bitmapFactory;
         for(const key of svg)cache[key].bitmap=mode==='vector'?undefined:bitmaps[key];
-         for(const [key,bitmap]of Object.entries(nativeBitmaps))cache[key].nativeBitmap=mode==='adaptive'?bitmap:undefined;
+         for(const [key,value]of Object.entries(nativeBitmaps)){
+           cache[key].nativeBitmap=mode==='adaptive'?value.bitmap:undefined;
+           cache[key].nativeFrames=mode==='adaptive'?value.frames:undefined;
+         }
         road.chapter=structuredClone(scene.chapter);road.state=structuredClone(scene.state);
         BARCODE.Preferences.values.reducedMotion=scene.name==='Reduced';
         // Up to nine detail transitions require three slow draws apiece.
@@ -421,7 +445,9 @@ async function browser(){
         console.log('FRAME_COST '+JSON.stringify(rows.at(-1)));
       }
       for(const key of svg)cache[key].bitmap=bitmaps[key];
-       for(const [key,bitmap]of Object.entries(nativeBitmaps))cache[key].nativeBitmap=bitmap;
+       for(const [key,value]of Object.entries(nativeBitmaps)){
+          cache[key].nativeBitmap=value.bitmap;cache[key].nativeFrames=value.frames;
+        }
       window.createImageBitmap=bitmapFactory;bitmapReview.mode='adaptive';
       const frameComparisons=frameReviewScenes.map(({name})=>{
         const previous=rows.find(row=>row.name===name&&row.mode==='bitmap');

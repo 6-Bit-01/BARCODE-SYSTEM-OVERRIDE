@@ -3,6 +3,14 @@
 ## October 3 — continued Level 2 lag repair (PR #181)
 
 
+Native animated sheets can prepare a batch of exact original-size cels,
+within the same whole-atlas 32-megapixel reservation. Draws use local crop
+coordinates on the selected cel; cross-cel crops retain the complete original
+image. No resampling occurs. Partial failure closes prepared cels and releases
+the reservation; nonintegral/static sheets retain their unscaled full bitmap.
+All preparation stays outside draws and each loaded batch is reused.
+
+
 Terrain slabs proven wholly below the highest crest use the existing mask's
 rectangular side/bottom bounds; crossing slabs retain the full crest path.
 Projected corners and a two-device-pixel AA margin establish the safe case.
