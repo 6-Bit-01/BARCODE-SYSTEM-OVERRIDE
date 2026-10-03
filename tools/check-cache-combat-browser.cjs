@@ -452,10 +452,10 @@ const server=http.createServer((req,res)=>{
       source=source.replace(marker,"window.canvasCostMark?.("+JSON.stringify(label)+");\n"+marker);
     }
     const clearBoundary='if(worldScale<1)ctx.clearRect(0,0,1920,1080);';
-    const copyBoundary="ctx.globalAlpha=1;ctx.globalCompositeOperation='copy';ctx.filter='none';";
+    const copyBoundary="ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.filter='none';";
     assert(source.includes(clearBoundary)&&source.includes(copyBoundary),'opaque world-copy fidelity boundaries');
     source=source.replace(clearBoundary,'if(worldScale<1&&!window.forceLegacyWorldCopy)ctx.clearRect(0,0,1920,1080);');
-    source=source.replace(copyBoundary,"ctx.globalAlpha=1;ctx.globalCompositeOperation=window.forceLegacyWorldCopy?'source-over':'copy';ctx.filter='none';");
+    source=source.replace(copyBoundary,"ctx.globalAlpha=1;ctx.globalCompositeOperation=window.forceOriginalWorldCopy?'copy':'source-over';ctx.filter='none';");
     const mirrorBoundary="ctx.globalCompositeOperation=opaqueNative?'source-over':'copy';";
     assert(source.includes(mirrorBoundary),'opaque mirror-copy fidelity boundary');
     source=source.replace(mirrorBoundary,"ctx.globalCompositeOperation=opaqueNative&&!window.forceMirrorCopy?'source-over':'copy';");
@@ -844,20 +844,32 @@ async function main(){
       }
       const renderFidelity={meanRGB:difference/(optimizedPixels.length/4*3),maxChannelDifference,maxAlphaDifference};
       window.forceCrestMask=undefined;window.forceLegacyWorldCopy=undefined;window.forceMirrorCopy=undefined;
+      window.forceOriginalWorldCopy=true;window.forceCrestMask=true;window.forceMirrorCopy=true;
+      originalRoadDraw.call(road,ctx);
+      const copyPixels=ctx.getImageData(0,0,ctx.canvas.width,ctx.canvas.height).data;
+      let copyDifference=0,copyMaxChannelDifference=0,copyMaxAlphaDifference=0;
+      for(let i=0;i<optimizedPixels.length;i++){
+        const delta=Math.abs(optimizedPixels[i]-copyPixels[i]);
+        if(i%4===3)copyMaxAlphaDifference=Math.max(copyMaxAlphaDifference,delta);
+        else {copyDifference+=delta;copyMaxChannelDifference=Math.max(copyMaxChannelDifference,delta);}
+      }
+      const opaqueCopyFidelity={meanRGB:copyDifference/(optimizedPixels.length/4*3),
+        maxChannelDifference:copyMaxChannelDifference,maxAlphaDifference:copyMaxAlphaDifference};
+      window.forceOriginalWorldCopy=undefined;window.forceCrestMask=undefined;window.forceMirrorCopy=undefined;
       const unflushed=[];let last=performance.now();
       window.canvasCostMark=phase=>{const now=performance.now();if(phase!=='begin')unflushed.push({phase,ms:now-last});last=now;};
       const start=performance.now();originalRoadDraw.call(road,ctx);window.canvasCostMark('hud-complete');
       const submitted=performance.now();ctx.getImageData(0,0,1,1);
       const completeMs=performance.now()-start;
       return {available:true,fixture:true,measuredCostMs:snapshot.measuredCostMs,status:road.status,bar:road.state.musicBeatFloat/4,bossHP:road.state.combat.boss.hp,rows,
-        unflushed,completeMs,finalFlushMs:completeMs-(submitted-start),renderFidelity,
+        unflushed,completeMs,finalFlushMs:completeMs-(submitted-start),renderFidelity,opaqueCopyFidelity,
         assetGroups:Object.entries(groups).sort((a,b)=>b[1].submitMs-a[1].submitMs).slice(0,24),
         nativeInventory:Object.entries(cache).filter(([,state])=>state.nativeBitmap||state.nativeFrames)
           .map(([key,state])=>({key,pixels:state.nativeBitmap?state.nativeBitmap.width*state.nativeBitmap.height:
             state.nativeFrames.reduce((sum,bitmap)=>sum+bitmap.width*bitmap.height,0)})),
         reviewWebp};
     }finally{
-      window.canvasCostMark=undefined;window.forceCrestMask=undefined;window.forceLegacyWorldCopy=undefined;window.forceMirrorCopy=undefined;P.draw=assetDraw;
+      window.canvasCostMark=undefined;window.forceCrestMask=undefined;window.forceLegacyWorldCopy=undefined;window.forceMirrorCopy=undefined;window.forceOriginalWorldCopy=undefined;P.draw=assetDraw;
       for(const name of methods)ctx[name]=originals[name];
       road.state=saved.state;road.chapter=saved.chapter;Object.assign(road,saved.host);
       road.renderBudget=saved.budget;road.renderBudgetState=saved.budgetState;road.renderFrameIntervalMs=saved.interval;
@@ -871,6 +883,7 @@ async function main(){
   console.log('BOSS_RENDER_PHASES '+JSON.stringify(phaseReport));
   assert(phaseReport.available&&phaseReport.status==='playing'&&phaseReport.bossHP>0,'staged diagnostic restores the actual live-boss lifecycle');
   assert(phaseReport.renderFidelity.meanRGB<.1&&phaseReport.renderFidelity.maxAlphaDifference===0,'bounded terrain/opaque frame copy keep the original rendered output');
+  assert(phaseReport.opaqueCopyFidelity.meanRGB<.1&&phaseReport.opaqueCopyFidelity.maxAlphaDifference===0,'opaque source-over retains the cleared copy RGB and alpha');
   fs.writeFileSync(path.join(output,'Boss-Render-Phases.json'),JSON.stringify(phaseReport,null,2)+'\n');
   const phaseMedians=Object.fromEntries([false,true].map(boss=>{const rows=fullLoopCosts.filter(frame=>frame.boss===boss);
     return [boss?'boss':'chase',median(rows.map(frame=>frame.ms))];}));
