@@ -24,7 +24,10 @@ async function main() {
       'src/game/cache-road-combat.js','src/game/cache-road-combat-art.js',
       'src/game/cache-road-crosswalks.js','src/game/cache-road-mirror.js'])load(context,file);
     if(factory)w.Path2D=function(){const path=new Path2D();created.push(path);return path;};
-    let code=direct?source.replace('.filter(candidate=>mirrorSceneryInGlass(candidate,x,y,w,h))',''):source;
+    let code=direct?source.replace('.filter(candidate=>mirrorSceneryInGlass(candidate,x,y,w,h))','')
+      .replace('if(terrainBelowCrest) {','if(false) {'):source;
+    // The original baseline traverses the complete crest for each slab;
+    // otherwise the new safe rectangular shortcut also changes the control.
     assert(!direct||code!==source,'comparison disables only off-glass scenery culling');
     code=code.replace('  B.Campaign.register(ID,',
       '  window.costReview={newState,drawRearview,drawCrosswalkPerson,LANDSCAPE};\n  B.Campaign.register(ID,');

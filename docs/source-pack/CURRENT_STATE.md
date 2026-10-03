@@ -2,6 +2,14 @@
 
 ## October 3 — continued Level 2 lag repair (PR #181)
 
+The race fixture now records event evidence from an already measured RAF
+without painting that state twice. Untimed review frames finish their raster
+work before the next timed frame. Every timed RAF asserts exactly one
+production draw; chase, whole-boss and undefeated live-boss median budgets
+remain 33.33 ms. Staged attribution restores the slowest earned live-boss
+pose at the minimum sampling scale. The older native vertex-cost baseline
+explicitly keeps its original per-slab crest traversal.
+
 
 Sampled frames clear the old full-display painting before building the small
 opaque background, then expand it with copy composition. The frame still uses

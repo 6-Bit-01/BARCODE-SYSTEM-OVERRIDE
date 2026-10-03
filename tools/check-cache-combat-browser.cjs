@@ -269,9 +269,9 @@ BARCODE.CacheRoadProof.update=function(...args){browserProof.roadUpdates++;const
   try{return originalUpdate.apply(this,args);}finally{browserProof.updateCostMs=performance.now()-begin;}};
 browserProof.renderedSamples=0;browserProof.drawNext=false;browserProof.drawReasons=[];
 browserProof.fullLoopCosts=[];browserProof.bossPaintFrames=0;browserProof.measureLoop=false;
-browserProof.displayCostMs=0;browserProof.phaseSnapshot=null;
+browserProof.displayCostMs=0;browserProof.phaseSnapshot=null;browserProof.frameDraws=0;
 BARCODE.CacheRoadProof.draw=function(...args){if(!browserProof.drawNext)return;
-  browserProof.drawNext=false;browserProof.renderedSamples++;const begin=performance.now();
+  browserProof.drawNext=false;browserProof.renderedSamples++;browserProof.frameDraws++;const begin=performance.now();
   // The controlled RAF clock preserves song/input deadlines. Supply the
   // previous flushed display cost to presentation only, just as real RAF
   // intervals expose queued raster work on the following display frame.
@@ -287,12 +287,14 @@ browserProof.step=ms=>{for(let left=ms;left>0;){const dt=Math.min(20,left);left-
   if(BARCODE.CacheRoadProof.active&&BARCODE.CacheRoadProof.status==='playing'&&
       BARCODE.CacheRoadProof.introMs===null&&!window.isPaused)browserProof.simulationFrames++;
   browserProof.pad.timestamp=browserProof.clock;
+  browserProof.frameDraws=0;
   const measured=browserProof.measureLoop,begin=performance.now();
   gameLoop(browserProof.clock);
   if(measured){
     const submitted=performance.now();renderer.ctx.getImageData(0,0,1,1);
     const costMs=performance.now()-begin;
-    browserProof.fullLoopCosts.push({ms:costMs,submitMs:submitted-begin,
+    if(browserProof.frameDraws!==1)throw Error('Measured shared RAF must paint exactly one production frame');
+    browserProof.fullLoopCosts.push({ms:costMs,submitMs:submitted-begin,displayDraws:browserProof.frameDraws,
       drawMs:browserProof.drawCosts.at(-1),updateMs:browserProof.updateCostMs,
       flushMs:costMs-(submitted-begin),
       bar:BARCODE.CacheRoadProof.state.musicBeatFloat/4,
@@ -302,14 +304,20 @@ browserProof.step=ms=>{for(let left=ms;left>0;){const dt=Math.min(20,left);left-
       frameIntervalMs:BARCODE.CacheRoadProof.renderFrameIntervalMs,
       previousDisplayCostMs:browserProof.displayCostMs});
     browserProof.displayCostMs=costMs;browserProof.measureLoop=false;
-    if(browserProof.bossPaintFrames===40&&!browserProof.phaseSnapshot)
-      browserProof.phaseSnapshot={state:copy(BARCODE.CacheRoadProof.state),chapter:copy(BARCODE.CacheRoadProof.chapter),
+    if(browserProof.bossPaintFrames>=30&&BARCODE.CacheRoadProof.status==='playing'&&
+        BARCODE.CacheRoadProof.state.combat?.boss?.hp>0&&
+        BARCODE.CacheRoadProof.renderBudget?.drawnScale===1/6&&
+        costMs>(browserProof.phaseSnapshot?.measuredCostMs??0))
+      browserProof.phaseSnapshot={measuredCostMs:costMs,state:copy(BARCODE.CacheRoadProof.state),chapter:copy(BARCODE.CacheRoadProof.chapter),
         host:Object.fromEntries(['status','introMs','handoffMs','outroMs','cinematicLane','audioDegraded'].map(key=>[key,BARCODE.CacheRoadProof[key]]))};
   }}};
 browserProof.release=()=>{for(const button of browserProof.pad.buttons){button.pressed=false;button.value=0;button.touched=false;}
   browserProof.pad.axes=[0,0];};
 browserProof.render=reason=>{browserProof.drawNext=true;BARCODE.CacheRoadProof.draw(renderer.ctx);
-  browserProof.drawReasons.push({reason,bar:BARCODE.CacheRoadProof.state.musicBeatFloat/4,
+  // Untimed review samples must complete before another measured RAF starts.
+  // Real presentation also finishes one frame before the next display.
+  renderer.ctx.getImageData(0,0,1,1);browserProof.noteRender(reason);};
+browserProof.noteRender=reason=>{browserProof.drawReasons.push({reason,bar:BARCODE.CacheRoadProof.state.musicBeatFloat/4,
     combat:copy(BARCODE.CacheRoadProof.encounterSnapshot().combat),
     crosswalks:copy(BARCODE.CacheRoadProof.encounterSnapshot().crosswalks),
     crewCallout:copy(BARCODE.CacheRoadProof.state.crosswalkToast),
@@ -371,7 +379,12 @@ browserProof.playChunk=count=>{const road=BARCODE.CacheRoadProof;
       ['enemy-arrive','warning','lock','enemy-shot','takedown','boss-arrive','enemy-hit','boss-defeated','disrupt'].includes(event.type))||
       events.find(event=>event.kind==='wreck-recovery')||
       (browserProof.pedestrianContacts.length>contactsBefore?{type:'pedestrian-hit'}:null);
-    if(special||browserProof.raceFrames%25===0)browserProof.render(special?special.type||special.kind:'periodic');
+    if(special||browserProof.raceFrames%25===0){
+      const reason=special?special.type||special.kind:'periodic';
+      // The measured shared RAF has already painted this updated state.
+      // Record its semantic evidence without a second fixture-only draw.
+      if(measure)browserProof.noteRender(reason);else browserProof.render(reason);
+    }
     const updatedCombat=road.encounterSnapshot().combat;
     if(updatedCombat?.boss&&updatedCombat.boss.hp!==browserProof.lastHp){browserProof.lastHp=updatedCombat.boss.hp;break;}
     if(events.some(event=>event.kind==='combat-event'&&event.type==='takedown')||events.some(event=>event.kind==='wreck-recovery'))break;
@@ -807,7 +820,7 @@ async function main(){
       const start=performance.now();originalRoadDraw.call(road,ctx);window.canvasCostMark('hud-complete');
       const submitted=performance.now();ctx.getImageData(0,0,1,1);
       const completeMs=performance.now()-start;
-      return {available:true,fixture:true,status:road.status,bar:road.state.musicBeatFloat/4,bossHP:road.state.combat.boss.hp,rows,
+      return {available:true,fixture:true,measuredCostMs:snapshot.measuredCostMs,status:road.status,bar:road.state.musicBeatFloat/4,bossHP:road.state.combat.boss.hp,rows,
         unflushed,completeMs,finalFlushMs:completeMs-(submitted-start),renderFidelity,
         assetGroups:Object.entries(groups).sort((a,b)=>b[1].submitMs-a[1].submitMs).slice(0,24),
         nativeInventory:Object.entries(cache).filter(([,state])=>state.nativeBitmap||state.nativeFrames)
@@ -834,6 +847,7 @@ async function main(){
     return [boss?'boss':'chase',median(rows.map(frame=>frame.ms))];}));
   const liveBossCosts=fullLoopCosts.filter(frame=>frame.boss&&frame.bossHP>0&&frame.status==='playing');
   assert(liveBossCosts.length>=80,'consecutive samples include active, undefeated rig combat');
+  assert(fullLoopCosts.every(frame=>frame.displayDraws===1),'each timed RAF submits one native production draw');
   phaseMedians.liveBoss=median(liveBossCosts.map(frame=>frame.ms));
   console.log('SUSTAINED_PHASE_MEDIANS '+JSON.stringify(phaseMedians));
   assert(Object.values(phaseMedians).every(ms=>ms<=1000/30),'each chase and live-boss phase must fit the 30 Hz diagnostic median budget');
