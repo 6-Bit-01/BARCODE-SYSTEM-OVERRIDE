@@ -12,7 +12,7 @@ async function unit(){
       if(failure==='reject')return Promise.reject(Error('unsupported'));
       return Promise.resolve({width:failure==='invalid'?0:image.naturalWidth,height:image.naturalHeight,
         image,close(){closed.push(this);}});
-    },context={window:w};
+    }},context={window:w};
     vm.runInNewContext(inspected,context);
     const {entries,cache}=w.bitmapReview,key='cacheDashDigits',state=cache[key],image=state.image;
     assert.equal(state.ready,false);image.onload();

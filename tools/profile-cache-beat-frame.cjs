@@ -15,7 +15,7 @@ async function main(){
     c.getContext('2d').drawImage(image,0,0);images[key]=await loadImage(c.toBuffer('image/png'));bitmapKeys.push(key);
   }
   const bitmapAssets={...assets,images},canvas=createCanvas(1920,1080),ctx=canvas.getContext('2d');
-  const results=[];
+  const results=[],pixelReferences=new Map(),pixelComparisons=[];
   for(const name of ['Approach','Ready-ONE','Perfect-Impact','Good','Miss','Reduced','Focused-Turn']){
     for(const {skin,mode} of [{skin:true,mode:'vector'},{skin:true,mode:'bitmap'},{skin:false,mode:'vector'}]){
       const r=prepared(mode==='bitmap'?bitmapAssets:assets),s=stage(r,name),B=r.B;
@@ -43,6 +43,19 @@ async function main(){
         current=performance.now()-start;
         assert.equal(JSON.stringify(s),before,'a timed production draw must not advance gameplay');
         samples.push({ms:current,groups:{...groups},counts:{...counts}});
+        if(i===2&&skin){
+          const pixels=Buffer.from(ctx.getImageData(0,0,canvas.width,canvas.height).data);
+          if(mode==='vector')pixelReferences.set(name,pixels);
+          else{
+            const reference=pixelReferences.get(name);let total=0,max=0,changed=0;
+            for(let at=0;at<pixels.length;at++)if(at%4!==3){
+              const d=Math.abs(pixels[at]-reference[at]);total+=d;max=Math.max(max,d);if(d)changed++;
+            }
+            const meanRGB=total/(canvas.width*canvas.height*3);
+            assert(meanRGB<.5,'bitmap preparation must preserve the loaded production appearance');
+            pixelComparisons.push({name,meanRGB,maxChannelDifference:max,changedChannels:changed});
+          }
+        }
         s.elapsedMs+=16.667;
       }
       const warm=samples.slice(2);
@@ -59,8 +72,8 @@ async function main(){
     return {name,beforeMs:before.medianMs,afterMs:after.medianMs,ratio:after.medianMs/before.medianMs};
   });
   assert(improvements.every(row=>row.ratio<.8),'every loaded production scene must cut at least 20 percent of median draw time on the same host');
-  console.log(JSON.stringify({gate:'level2-svg-frame-cost',passed:true,preparedSVGs:bitmapKeys.length,improvements}));
-  const report={bitmapKeys,improvements,revision:process.env.GITHUB_SHA||'local',results,
+  console.log(JSON.stringify({gate:'level2-svg-frame-cost',passed:true,preparedSVGs:bitmapKeys.length,improvements,pixelComparisons}));
+  const report={bitmapKeys,improvements,pixelComparisons,revision:process.env.GITHUB_SHA||'local',results,
     limitation:'Loaded production Canvas diagnostics on this host; fallback runs isolate beat-art work. No device FPS or human acceptance claim.'};
   if(process.argv[2])fs.writeFileSync(process.argv[2],JSON.stringify(report,null,2)+'\n');
 }

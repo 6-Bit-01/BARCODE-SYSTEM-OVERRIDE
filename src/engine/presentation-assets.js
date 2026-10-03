@@ -330,7 +330,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
         if(/\.svg$/i.test(entry.path)&&typeof window.createImageBitmap==='function') {
           try {
             Promise.resolve(window.createImageBitmap(image)).then(bitmap=>{
-              if(bitmap?.width>0&&bitmap?.height>0)state.bitmap=bitmap;
+              if(bitmap?.width===image.naturalWidth&&bitmap?.height===image.naturalHeight)state.bitmap=bitmap;
               else bitmap?.close?.();
               state.ready=true;
             },()=>{state.ready=true;});
