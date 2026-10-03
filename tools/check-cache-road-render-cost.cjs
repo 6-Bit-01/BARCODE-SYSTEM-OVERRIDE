@@ -24,7 +24,12 @@ async function main() {
       'src/game/cache-road-combat.js','src/game/cache-road-combat-art.js',
       'src/game/cache-road-crosswalks.js','src/game/cache-road-mirror.js'])load(context,file);
     if(factory)w.Path2D=function(){const path=new Path2D();created.push(path);return path;};
-    let code=direct?source.replace('.filter(candidate=>mirrorSceneryInGlass(candidate,x,y,w,h))',''):source;
+    let code=direct?source.replace('.filter(candidate=>mirrorSceneryInGlass(candidate,x,y,w,h))','')
+      .replace('if(terrainBelowCrest) {','if(false) {')
+      .replace('if(tintedReflection&&!ctx.shadowBlur&&!ctx.shadowOffsetX&&!ctx.shadowOffsetY) {','if(false) {')
+      .replace('if(!unfilteredLightBounds)return;','return;'):source;
+    // The original baseline traverses the complete crest for each slab;
+    // otherwise the new safe rectangular shortcut also changes the control.
     assert(!direct||code!==source,'comparison disables only off-glass scenery culling');
     code=code.replace('  B.Campaign.register(ID,',
       '  window.costReview={newState,drawRearview,drawCrosswalkPerson,LANDSCAPE};\n  B.Campaign.register(ID,');
@@ -42,6 +47,9 @@ async function main() {
     return {...r,created,trace,canvas,ctx,commands,review:w.costReview};
   }
   const old=rig(true,false),now=rig(),fallback=rig(false,false),results=[];
+  // An available but unrelated Canvas constructor cannot select browser-only
+  // blend/blur paths for a native or embedded host.
+  fallback.w.HTMLCanvasElement=function NonDOMCanvas() {};
   for(const progress of [180,2680,5160,7620])for(const reduced of [false,true]) {
     const state=Object.assign(now.review.newState(),{progress,elapsedMs:5471,lanePos:1.5,
       visualLane:1.5,musicBar:64,musicBeatFloat:257.2,captures:[],speed:70,gear:2,timeMs:55000});

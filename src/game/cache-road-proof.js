@@ -388,11 +388,84 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         lensRadius:args.width*radius,poolRadius:args.height*.21};
     });
   }
+  function copySampledWorldPixels(ctx,width,height,budget,preferPixels=true) {
+    return copyOpaqueCanvasPixels(ctx,0,0,width,height,0,0,1920,1080,budget,
+      preferPixels&&width<=480&&height<=270);
+  }
+  function copyOpaqueCanvasPixels(ctx,sx,sy,width,height,dx,dy,dw,dh,budget,preferPixels=true) {
+    let frame,used=false;
+    // Synchronous cropped readback and drawing stay inside the existing
+    // production frame. No Canvas, callback, clock or source is retained.
+    const pixelCopy=preferPixels&&budget&&!budget.pixelCopyUnavailable&&
+      typeof window.HTMLCanvasElement==='function'&&
+      ctx.canvas instanceof window.HTMLCanvasElement&&
+      typeof window.VideoFrame==='function'&&
+      typeof ctx.getContextAttributes==='function'&&
+      [sx,sy,width,height].every(Number.isInteger)&&sx>=0&&sy>=0&&
+      width>0&&height>0&&width*height<=480*270&&
+      sx+width<=ctx.canvas.width&&sy+height<=ctx.canvas.height;
+    if(pixelCopy)try {
+      if(ctx.getContextAttributes()?.colorSpace==='srgb') {
+        const pixels=ctx.getImageData(sx,sy,width,height,{colorSpace:'srgb'});
+        let opaque=pixels.colorSpace==='srgb'&&pixels.width===width&&
+          pixels.height===height&&pixels.data.length===width*height*4;
+        for(let at=3;opaque&&at<pixels.data.length;at+=4)
+          if(pixels.data[at]!==255)opaque=false;
+        if(opaque) {
+          frame=new window.VideoFrame(pixels.data,{format:'RGBA',
+            codedWidth:width,codedHeight:height,timestamp:0,
+            colorSpace:{primaries:'bt709',transfer:'iec61966-2-1',matrix:'rgb',fullRange:true}});
+          ctx.drawImage(frame,0,0,width,height,dx,dy,dw,dh);
+          used=true;
+        }
+      }
+    }catch(error) {
+      // Keep original source semantics and avoid per-frame API failures.
+      budget.pixelCopyUnavailable=true;
+    }finally {
+      if(frame)try{frame.close();}catch(error){}
+    }
+    if(!used)ctx.drawImage(ctx.canvas,sx,sy,width,height,dx,dy,dw,dh);
+    return used;
+  }
+  function clipLightBlend(ctx,bounds) {
+    const matrix=ctx.getTransform?.();
+    // Native/non-DOM hosts keep their original blend path exactly; their
+    // screen-layer rounding can change when an extra clip is introduced.
+    const browserCanvas=typeof window.HTMLCanvasElement==='function'&&
+      ctx.canvas instanceof window.HTMLCanvasElement;
+    const unfilteredLightBounds=browserCanvas&&ctx.filter==='none'&&!ctx.shadowBlur&&
+      !ctx.shadowOffsetX&&!ctx.shadowOffsetY&&matrix&&
+      ['a','b','c','d'].every(key=>Number.isFinite(matrix[key]))&&
+      bounds.length&&bounds.every(bound=>bound.every(Number.isFinite));
+    if(!unfilteredLightBounds)return;
+    const determinant=Math.abs(matrix.a*matrix.d-matrix.b*matrix.c);
+    if(determinant<1e-9)return;
+    // A lower bound for the smallest transform scale gives at least two
+    // device pixels of margin even with rotation, scale or shear.
+    const margin=2*Math.hypot(matrix.a,matrix.b,matrix.c,matrix.d)/determinant;
+    const left=Math.min(...bounds.map(bound=>bound[0]))-margin;
+    const top=Math.min(...bounds.map(bound=>bound[1]))-margin;
+    const right=Math.max(...bounds.map(bound=>bound[2]))+margin;
+    const bottom=Math.max(...bounds.map(bound=>bound[3]))+margin;
+    // Screen is pointwise; transparent source pixels leave the backdrop
+    // unchanged. Restrict its layer to the original light paintings.
+    ctx.beginPath();ctx.rect(left,top,right-left,bottom-top);ctx.clip();
+  }
   function drawLampLight(ctx,key,args,pass) {
     if(args.height<5 || B.PresentationAssets?.ready?.(key)===false)return;
     const geometry=lampLightGeometry(key,args);
     if(!geometry.length)return;
-    ctx.save();ctx.globalCompositeOperation='screen';
+    const detail=B.PresentationAssets?.rasterDetail?.(ctx)??1;
+    const matrix=detail<1?ctx.getTransform?.():null;
+    const sampleScale=matrix?Math.hypot(matrix.a,matrix.b):1;
+    ctx.save();
+    clipLightBlend(ctx,geometry.map(light=>{
+      const radius=pass==='pool'?light.poolRadius:Math.max(light.poolRadius,light.lensRadius);
+      return pass==='pool'?[light.x-radius,light.groundY-radius*.24,light.x+radius,light.groundY+radius*.24]:
+        [light.x-radius,Math.min(light.y,light.groundY),light.x+radius,Math.max(light.y,light.groundY)];
+    }));
+    ctx.globalCompositeOperation='screen';
     for(const light of geometry) {
       const {x,y,groundY,lensRadius,poolRadius}=light;
       if(pass==='pool') {
@@ -414,9 +487,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         beam.addColorStop(1,'rgba(255,208,124,.045)');
         ctx.fillStyle=beam;
         const alpha=ctx.globalAlpha;
-        for(let j=0;j<10;j++) {
-          const a=-1+j/5,b=a+.2;
-          ctx.globalAlpha=alpha*Math.pow(Math.max(0,1-Math.abs((a+b)/2)),.8);
+        // Merge bands that fall below the background's sampled footprint.
+        // Average the original ten weights, preserving total light energy.
+        // Native detail keeps the exact original geometry and opacity.
+        const sampledWidth=poolRadius*2*sampleScale*(sampleScale>=.5?detail:1);
+        const bands=detail<1?(sampledWidth<8?2:sampledWidth<20?5:10):10;
+        const stride=10/bands;
+        for(let j=0;j<bands;j++) {
+          const a=-1+j*2/bands,b=a+2/bands;
+          let weight=0;
+          for(let k=j*stride;k<(j+1)*stride;k++)
+            weight+=Math.pow(Math.max(0,1-Math.abs(-.9+k*.2)),.8)/stride;
+          ctx.globalAlpha=alpha*weight;
           ctx.beginPath();ctx.moveTo(x+lensRadius*a,y);
           ctx.lineTo(x+lensRadius*b,y);
           ctx.lineTo(x+poolRadius*b,groundY);
@@ -651,8 +733,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     return 0;
   }
 
-  function mirrorOutline(ctx, x, y, w, h) {
-    ctx.beginPath(); ctx.moveTo(x + 16, y); ctx.lineTo(x + w - 16, y);
+  function mirrorOutline(ctx, x, y, w, h, begin=true) {
+    if(begin)ctx.beginPath(); ctx.moveTo(x + 16, y); ctx.lineTo(x + w - 16, y);
     ctx.quadraticCurveTo(x + w, y, x + w, y + 16);
     ctx.lineTo(x + w - 7, y + h - 12);
     ctx.quadraticCurveTo(x + w - 9, y + h, x + w - 24, y + h);
@@ -693,7 +775,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     return a.x+reach>=x-blurPadding&&a.x-reach<=x+w+blurPadding&&
       a.y+a.height*.24>=y-blurPadding&&a.y-a.height*1.02<=y+h+blurPadding;
   }
-  function drawRearRoad(ctx, s, x, y, w, h, accent, reduced, heightSample=LANDSCAPE.height, combatPose, crosswalkPose) {
+  function drawRearRoad(ctx, s, x, y, w, h, accent, reduced, heightSample=LANDSCAPE.height, combatPose, crosswalkPose, opaqueBackdrop=false, pixelBudget=null) {
     const progress = s.progress, reach = 440, horizon = y + 47, floor = y + h + 4;
     const profile = at => {
       const distance = clamp(progress - at, 0, reach);
@@ -712,6 +794,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     const bankY=(p,side,radial)=>p.y+p.t*miniature*
       (heightSample?.(side,p.at,Math.max(220,radial))??24);
     const paintQuad=(key,corners,sourceRect,alpha=1)=>{
+      // Skip only complete reflection slabs beyond the glass/blur envelope.
+      // Every visible triangle keeps its original source and projection.
+      const xs=corners.map(point=>point[0]),ys=corners.map(point=>point[1]);
+      if(Math.max(...xs)<x-12||Math.min(...xs)>x+w+12||
+        Math.max(...ys)<y-12||Math.min(...ys)>y+h+12)return;
       const [a,b,c,d]=corners;
       const half=(vertices,matrix)=>{
         ctx.save();ctx.beginPath();ctx.moveTo(...a);
@@ -1012,11 +1099,19 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const bottom=clamp(Math.ceil(Math.max(...ys))+12,0,ctx.canvas.height);
       if(right>sx&&bottom>sy) {
         ctx.save();ctx.setTransform(1,0,0,1,0,0);
-        ctx.globalAlpha=1;ctx.globalCompositeOperation='copy';
+        ctx.globalAlpha=1;
+        // A native, opaque playing frame already supplies every backdrop
+        // sample inside the glass. Source-over then matches copy, avoiding
+        // its full-display replacement surface; scaled/fading callers retain copy.
+        const opaqueNative=opaqueBackdrop&&m.a===1&&m.b===0&&m.c===0&&
+          m.d===1&&m.e===0&&m.f===0;
+        ctx.globalCompositeOperation=opaqueNative?'source-over':'copy';
         ctx.filter = 'blur(2.3px)';
-        // Canvas self-draw snapshots the source before writing. Device-space
-        // coordinates preserve resized/letterboxed viewport transforms.
-        ctx.drawImage(ctx.canvas,sx,sy,right-sx,bottom-sy,sx,sy,right-sx,bottom-sy);
+        // Crop the opaque native source before applying the same single blur.
+        // Original self-copy preserves all other caller/viewport semantics.
+        if(pixelBudget)pixelBudget.mirrorPixelCopyUsed=copyOpaqueCanvasPixels(ctx,
+          sx,sy,right-sx,bottom-sy,sx,sy,right-sx,bottom-sy,pixelBudget,opaqueNative);
+        else ctx.drawImage(ctx.canvas,sx,sy,right-sx,bottom-sy,sx,sy,right-sx,bottom-sy);
         ctx.restore();
       }
     }
@@ -1025,7 +1120,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   }
 
   // One piece of glass contains both the passing road and Cache's eyes.
-  function drawRearview(ctx, s, accent, reduced, heightSample=LANDSCAPE.height, combatPose, crosswalkPose) {
+  function drawRearview(ctx, s, accent, reduced, heightSample=LANDSCAPE.height, combatPose, crosswalkPose, boundedClip=false, opaqueBackdrop=false, pixelBudget=null) {
     const x = 638, y = 12, w = 690, h = 117;
     const expression = mirrorExpression(s);
     const edge = expression === 4 ? '#ff7c89' : expression === 5 ? '#f7b376' :
@@ -1033,12 +1128,21 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     ctx.fillStyle = '#45616f'; ctx.fillRect(x + 338, 0, 14, 14);
     ctx.fillStyle = '#25394a'; mirrorOutline(ctx, x - 6, y - 5, w + 12, h + 10); ctx.fill();
     ctx.fillStyle = edge; mirrorOutline(ctx, x - 3, y - 2, w + 6, h + 4); ctx.fill();
-    ctx.save(); mirrorOutline(ctx, x, y, w, h); ctx.clip();
+    ctx.save();
+    if(boundedClip) {
+      // A rectangular raster clip avoids repeating the curved glass mask on
+      // every reflected triangle, actor and lamp. Repaint its exact bezel
+      // silhouette once after the completed native reflection/face.
+      ctx.beginPath();ctx.rect(x,y,w,h);
+    } else mirrorOutline(ctx,x,y,w,h);
+    ctx.clip();
     const glass = ctx.createLinearGradient(0, y, 0, y + h);
     glass.addColorStop(0, '#0e1b2d'); glass.addColorStop(.53, '#394a60');
     glass.addColorStop(1, '#10232e');
     ctx.fillStyle = glass; ctx.fillRect(x, y, w, h);
-    drawRearRoad(ctx,s,x,y,w,h,accent,reduced,heightSample,combatPose,crosswalkPose);
+    const priorRasterDetail=B.PresentationAssets?.setRasterDetail?.(ctx,boundedClip?.25:1)??1;
+    try {drawRearRoad(ctx,s,x,y,w,h,accent,reduced,heightSample,combatPose,crosswalkPose,opaqueBackdrop,pixelBudget);}
+    finally {B.PresentationAssets?.setRasterDetail?.(ctx,priorRasterDetail);}
     // Cache sits on the driver's side. His eyes face the windshield
     // for ordinary driving; only the impact cell glances across the mirror.
     ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
@@ -1064,6 +1168,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       ctx.fillStyle = '#ff74857d'; ctx.fillRect(x + 5, y + 87, w - 10, 3);
     }
     ctx.restore();
+    if(boundedClip) {
+      ctx.fillStyle='#25394a';
+      mirrorOutline(ctx,x-6,y-5,w+12,h+10);
+      mirrorOutline(ctx,x,y,w,h,false);ctx.fill('evenodd');
+      ctx.fillStyle=edge;
+      mirrorOutline(ctx,x-3,y-2,w+6,h+4);
+      mirrorOutline(ctx,x,y,w,h,false);ctx.fill('evenodd');
+    }
   }
   // Every supplied stem runs for the complete song. Some recorded passages
   // are softer, but that is not a reason to reject their lane captures.
@@ -1461,7 +1573,24 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const light = kind === 'cache' ? braking ? .76 : hit ? .56 : .11 :
           kind === 'shuttle' ? .34 : kind === 'freight' ? .23 : .16;
         ctx.save();ctx.globalAlpha*=light;
-        if(kind==='trike'||kind==='audit')ctx.filter='hue-rotate(315deg)';
+        const tintedReflection=kind==='trike'||kind==='audit';
+        const preparedTint=tintedReflection&&B.PresentationAssets?.brakeTintReady?.(ctx);
+        if(tintedReflection&&!ctx.shadowBlur&&!ctx.shadowOffsetX&&!ctx.shadowOffsetY) {
+          // Hue rotation is pointwise: it cannot paint beyond these source
+          // rectangles. Bound its filter layer to the original reflections,
+          // with a margin outside their antialiased edges, instead of the
+          // whole display/glass inherited by each miniature traffic painter.
+          const bounds=lamps.map(lamp=>{
+            const lampX=jolt+lamp.x*Math.cos(roll)-lamp.y*Math.sin(roll);
+            const width=lamp.width*2.8,height=h*(.66+(1-lamp.v)*.75);
+            return {left:lampX-width/2,right:lampX+width/2,bottom:-h*.22+height};
+          });
+          const left=Math.min(...bounds.map(bound=>bound.left))-2;
+          const right=Math.max(...bounds.map(bound=>bound.right))+2;
+          const top=-h*.22-2,bottom=Math.max(...bounds.map(bound=>bound.bottom))+2;
+          ctx.beginPath();ctx.rect(left,top,right-left,bottom-top);ctx.clip();
+        }
+        if(tintedReflection)ctx.filter=preparedTint?'none':'hue-rotate(315deg)';
         for(const lamp of lamps) {
           // Project one broken reflection beneath each real light. The
           // narrow source crop contains one column, not the old fixed pair.
@@ -1469,7 +1598,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           const lampX=jolt+lamp.x*Math.cos(roll)-lamp.y*Math.sin(roll);
           B.PresentationAssets.draw('cacheBrakeReflection',ctx,{
             x:lampX,y:-h*.22,width:lamp.width*2.8,
-            height:h*(.66+(1-lamp.v)*.75),sourceRect:[0,0,192,290] });
+            height:h*(.66+(1-lamp.v)*.75),sourceRect:[0,0,192,290],tone:preparedTint?'hue315':null });
         }
         ctx.restore();
       }
@@ -1548,6 +1677,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         // Small changing reflections animate the painted rear lamps without
         // replacing the hand-painted vehicle poses or flashing a whole car.
         ctx.save();ctx.translate(jolt,bounce);ctx.rotate(roll);
+        clipLightBlend(ctx,lamps.map(lamp=>[lamp.x-lamp.width*.42,lamp.y-lamp.height*.33,
+          lamp.x+lamp.width*.42,lamp.y+lamp.height*.33]));
         ctx.globalCompositeOperation='screen';
         ctx.globalAlpha*=kind==='cache' && braking ? .72 :
           reduced?.18:.15+.14*(.5+.5*Math.sin(phase*.17+x*.01));
@@ -3460,6 +3591,27 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         steer:cinema.kind==='handoff'?live.steer:cinema.car.steer,
         elapsedMs:cinema.kind==='opening'?this.introMs:cinema.kind==='outro'?live.elapsedMs+this.outroMs:live.elapsedMs}:live;
       const progress=s.progress,frameContext=ctx,showFeedback=cinema?.kind!=='outro';
+      const budgetOwner=B.CacheRoadRenderBudget;
+      const budgetEligible=!!budgetOwner&&ctx===window.renderer?.ctx&&
+        ctx.canvas?.width===1920&&ctx.canvas?.height===1080&&
+        typeof window.performance?.now==='function'&&typeof ctx.getTransform==='function';
+      if(budgetEligible&&this.renderBudgetState!==live) {
+        this.renderBudget=budgetOwner.create();this.renderBudgetState=live;
+      }
+      if(budgetEligible){this.renderBudget.worldPixelCopyUsed=false;this.renderBudget.mirrorPixelCopyUsed=false;}
+      const worldScale=budgetEligible?this.renderBudget.scale:1;
+      const assets=B.PresentationAssets;
+      const priorRasterDetail=assets?.setRasterDetail?.(ctx,worldScale)??1;
+      const priorDecorationDetail=assets?.setDecorationDetail?.(ctx,worldScale)??1;
+      const renderStarted=budgetEligible?window.performance.now():0;
+      const finishRender=()=>{
+        assets?.setRasterDetail?.(frameContext,priorRasterDetail);
+        assets?.setDecorationDetail?.(frameContext,priorDecorationDetail);
+        if(budgetEligible) {
+        this.renderBudget.drawnScale=worldScale;
+        budgetOwner.observe(this.renderBudget,window.performance.now()-renderStarted,
+          {paused:!!window.isPaused,frameIntervalMs:this.renderFrameIntervalMs});
+      }};
       const combatPose=s.combat?B.CacheRoadCombat.pose(s.combat,{progress,lanePos:s.lanePos,
         adrenaline:s.adrenaline?.value||0,
         syncCount:new Set(s.captures.map(part=>part.lane)).size}):null;
@@ -3550,6 +3702,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const ni=point(near,inner),no=point(near,outer);
         // Fully offscreen slabs do not need a texture transform or clip.
         if(!quadInFrame([[fi.x,fi.y],[fo.x,fo.y],[ni.x,ni.y],[no.x,no.y]]))return;
+        // At reduced world detail, a texture slab thinner than one sample
+        // contributes no readable material. Its opaque ground remains painted.
+        // Keep every native-detail slab and all visible near/foreground pieces.
+        if(worldScale<1&&(Math.max(fi.y,fo.y,ni.y,no.y)-
+          Math.min(fi.y,fo.y,ni.y,no.y))*worldScale*camera.zoom<.75)return;
         const farWidth=Math.hypot(fo.x-fi.x,fo.y-fi.y);
         const nearWidth=Math.hypot(no.x-ni.x,no.y-ni.y);
         ctx.save();ctx.beginPath();ctx.moveTo(fi.x,fi.y);
@@ -3562,7 +3719,24 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           sourceRect});
         ctx.restore();
       };
-      ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.save();ctx.setTransform(1,0,0,1,0,0);
+      // Keep native foreground blends inside the display as well as the
+      // sampled background. Foreground exits retain their complete projection.
+      ctx.beginPath();ctx.rect(0,0,1920,1080);ctx.clip();
+      // A sampled frame replaces the entire display. Discard its previous
+      // full-size painting before the small opaque backing is built.
+      if(worldScale<1)ctx.clearRect(0,0,1920,1080);
+      ctx.setTransform(worldScale,0,0,worldScale,0,0);
+      // Level 1's clear() requests high-quality image resampling. The road
+      // submits hundreds of projected/cropped textures on that same context;
+      // use its fast bilinear sampler here and restore the caller afterward.
+      ctx.imageSmoothingQuality='low';
+      if(worldScale<1) {
+        // Keep every world blend/filter inside the sampled source footprint.
+        // A scaled transform alone still rasterizes off-crop paint and leaves
+        // full-display blend surfaces active until the world is expanded.
+        ctx.save();ctx.beginPath();ctx.rect(0,0,1920,1080);ctx.clip();
+      }
       // One transform moves the existing world. The dashboard, timing cues
       // and rearview are drawn after it is restored, with no second scene pass.
       ctx.save();
@@ -3574,6 +3748,29 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       ctx.translate(960+camera.x,CAMERA_PIVOT_Y+camera.y);ctx.rotate(camera.roll);
       ctx.scale(camera.zoom,camera.zoom);ctx.translate(-960,-CAMERA_PIVOT_Y);
       ctx.globalAlpha=1;
+      let sampledWorld=worldScale<1;
+      const expandSampledWorld=()=>{
+        assets?.setRasterDetail?.(ctx,1);
+        if(!sampledWorld)return;
+        // Preserve the world paint state while lifting its backing clip.
+        // Resume the same camera at native resolution for interactive paint.
+        const transform=ctx.getTransform(),styleKeys=['fillStyle','strokeStyle',
+          'globalAlpha','globalCompositeOperation','lineWidth','lineCap','lineJoin',
+          'miterLimit','font','textAlign','textBaseline','shadowColor','shadowBlur',
+          'shadowOffsetX','shadowOffsetY','imageSmoothingEnabled','imageSmoothingQuality','filter'];
+        const styles=styleKeys.map(key=>ctx[key]),dash=ctx.getLineDash();
+        ctx.restore(); // sampled world camera
+        ctx.restore(); // sampled backing clip
+        ctx.save();ctx.setTransform(1,0,0,1,0,0);
+        ctx.globalAlpha=1;ctx.globalCompositeOperation='copy';ctx.filter='none';
+        ctx.imageSmoothingEnabled=false;
+        this.renderBudget.worldPixelCopyUsed=copySampledWorldPixels(ctx,1920*worldScale,1080*worldScale,this.renderBudget);
+        ctx.restore();ctx.setTransform(1,0,0,1,0,0);ctx.save();
+        ctx.setTransform(transform.a/worldScale,transform.b/worldScale,
+          transform.c/worldScale,transform.d/worldScale,transform.e/worldScale,transform.f/worldScale);
+        styleKeys.forEach((key,index)=>{ctx[key]=styles[index];});ctx.setLineDash(dash);
+        sampledWorld=false;
+      };
       const beat = reduced ? 0 : s.musicBeatFloat || 0;
       const stack = Math.min(4,s.captures?.length || 0);
       const beatPulse = reduced ? 0 : Math.pow(1-((beat%1+1)%1),5);
@@ -3990,6 +4187,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       });
       const groundCrest=Array.from({length:65},(_,i)=>[i*30,cityCrestY(i*30)]);
       const lowestCrest=Math.min(...groundCrest.map(point=>point[1]));
+      const highestCrest=Math.max(...groundCrest.map(point=>point[1]));
       // Every terrain slab uses the same crest mask. Build its native path
       // once per frame; rebuilding 65 vertices for each slab repeats costly
       // host Canvas calls. The fallback retains the existing command path.
@@ -4012,8 +4210,19 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         // above the visible bank need no texture or full-screen clip mask.
         // Buildings in those slabs still draw: their roofs can be visible.
         if(roadY(near)+65*near>=lowestCrest) {
+          // A slab wholly below every crest vertex only needs the mask's
+          // rectangular side/bottom bounds. Its own quad keeps all texture
+          // pixels below the horizon, including a two-device-pixel AA margin.
+          const crestPadding=2/(worldScale*camera.zoom);
+          const terrainBelowCrest=[-1,1].every(side=>[far,near].every(t=>
+            [[220,190],[2500,440]].every(([base,growth])=>{
+              const x=roadsideX(side,t,base,growth);
+              return terrainAt(side,t,x)>highestCrest+crestPadding;
+            })));
           ctx.save();
-          if(groundClip)ctx.clip(groundClip);
+          if(terrainBelowCrest) {
+            ctx.beginPath();ctx.rect(0,0,1920,bottom);ctx.clip();
+          } else if(groundClip)ctx.clip(groundClip);
           else {
             ctx.beginPath();ctx.moveTo(...groundCrest[0]);
             for(let i=1;i<groundCrest.length;i++)ctx.lineTo(...groundCrest[i]);
@@ -4300,6 +4509,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       for(const drawPool of lampPools)drawPool();
       worldPaint.sort((a,b)=>a.foot-b.foot||b.area.at-a.area.at);
       for(const item of worldPaint)item.draw();
+      // Expand the background once before functional road paint and vehicles.
+      // Their projection/order is unchanged and their detail remains native.
+      expandSampledWorld();
       // Phrase paint is a road marking, not a second translucent lane overlay.
       // Each bar is bounded by the same depth(), laneEdge() and roadY() used
       // for traffic and studs. Its near edge travels toward the car on the
@@ -5039,10 +5251,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       if(intro===null&&this.status==='playing')drawCameraWarnings(ctx,cameraWarnings,
         nextCue?.ready?{x:laneX(nextPulse.lane,STRIKE_DEPTH),y:strikeY+78,
           width:68,height:68,action:nextPulse.action,strike:nextCue.strike}:null,camera);
+      ctx.setTransform(1,0,0,1,0,0);
       if(cinema&&cinema.kind!=='handoff'&&cinema.hudAlpha<=.001) {
         B.CacheRoadCinematics.drawOverlay(ctx,cinema,{reducedMotion:reduced,
           button:B.GamepadUI?.connected?B.ControllerSettings?.button(0)||'A':'ENTER'});
-        ctx.restore();return;
+        ctx.restore();finishRender();return;
       }
       if (intro !== null&&!cinema) {
         const scene=intro<1350?0:intro<2700?1:2;
@@ -5056,7 +5269,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.fillText(details[scene],960,970);
         ctx.font='18px Oxanium, monospace';
         ctx.fillText('ENTER / A TO SKIP',960,1025);
-        ctx.restore();return;
+        ctx.restore();finishRender();return;
       }
       if(cinema&&cinema.kind!=='handoff'&&cinema.hudAlpha<1) {
         ctx=B.CacheRoadCinematics.withHUDAlpha(frameContext,cinema.hudAlpha);
@@ -5098,7 +5311,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       ctx.fillStyle='#bcebd3';ctx.font='bold 17px Oxanium, monospace';
       ctx.fillText(String(s.score).padStart(6,'0'),410,131,73);
       ctx.font='bold 12px Oxanium, monospace';ctx.fillText(`×${stackSize(s)}`,488,131,27);
-      drawRearview(ctx, s, ['#f6adbb', '#f3b276', '#d2a4f9', '#9aefce'][section], reduced,heightSample,combatPose,crosswalkPose);
+      drawRearview(ctx, s, ['#f6adbb', '#f3b276', '#d2a4f9', '#9aefce'][section], reduced,heightSample,combatPose,crosswalkPose,worldScale<1,
+        frameContext===ctx&&this.status==='playing'&&intro===null&&
+          (!cinema||cinema.hudAlpha===1)&&worldScale<1,budgetEligible?this.renderBudget:null);
       ctx.fillStyle = '#e4ede5'; ctx.font = 'bold 18px Oxanium, monospace'; ctx.textAlign = 'left';
       // Preview the next lane/action before its bar is committed, without
       // inventing a deadline or sliding a future pad when the gear changes.
@@ -5312,6 +5527,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         B.CacheRoadCinematics.drawOverlay(frameContext,cinema,{reducedMotion:reduced,
           button:B.GamepadUI?.connected?B.ControllerSettings?.button(0)||'A':'ENTER'});
       }
+      finishRender();
     }
   };
   B.Campaign.register(ID, { validate: saved => road.validate(saved), restore: saved => road.restore(saved) });

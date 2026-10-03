@@ -313,6 +313,150 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
       columns:4,rows:2,frames:8,ax:.5,ay:.5,smooth:true},
   };
   const cache = {};
+  const rasterDetail=new WeakMap(),decorationDetail=new WeakMap(),MAX_RASTER_PIXELS=32*1024*1024;
+  const diffuseEffects=new Set(['cacheSpeedMist','cacheWindWhoosh','cacheImpactGrit']);
+  const backgroundSources=new Set(Object.entries(entries).filter(([key,entry])=>/^cache/.test(key)&&
+    (/^assets\/cache-road\/(world|roadside)\//.test(entry.path)&&!entry.path.includes('/beat/')||
+      ['cacheBlacktop','cacheFly1','cacheFly3'].includes(key))).map(([key])=>key));
+  const nativeSmallSources=new Set(['cacheBrakeReflection','cacheDamagedExhaust',
+    'cachePhraseStrip','cacheConfirmedBar','cachePulsePad','cachePulseStrip','cachePulseBurst']);
+  let rasterPixels=0,nativeRasterPixels=0,nativeSmallPixels=0;
+  const MAX_NATIVE_SMALL_PIXELS=1536*1024;
+  const MAX_NATIVE_RASTER_PIXELS=32*1024*1024;
+  function prepareNativeRaster(key,entry,state) {
+    const image=state.image,w=image.naturalWidth,h=image.naturalHeight;
+    const fw=w/entry.columns,fh=h/entry.rows,cells=entry.columns*entry.rows;
+    const grid=entry.frames===cells&&Number.isInteger(fw)&&Number.isInteger(fh);
+    // These fixed HUD paints use only an interior source window. Retain its
+    // original texels plus a sampling margin; other crops use the original.
+    const windowCrop=grid&&key==='cacheDashBezel'&&fw>=2032&&fh>=634?
+      [10,118,2022,516]:grid&&key==='cacheMirror'&&fw>=452&&fh>=337?
+      [0,148,452,189]:grid&&key==='cacheBrakeReflection'&&fw>=194&&fh>=290?
+      [0,0,194,290]:null;
+    const pixels=windowCrop?windowCrop[2]*windowCrop[3]*cells:w*h;
+    const smallNative=nativeSmallSources.has(key);
+    if(!/^cache/.test(key)||(!/^assets\/cache-road\/(vehicles\/animation|combat|beat-system|hud)\//.test(entry.path)&&key!=='cachePursuitRig'&&!smallNative)||
+      /\.svg$/i.test(entry.path)||!windowCrop&&pixels<(smallNative?32:256)*1024||
+      smallNative&&pixels>MAX_NATIVE_SMALL_PIXELS-nativeSmallPixels||
+      pixels>MAX_NATIVE_RASTER_PIXELS-nativeRasterPixels||
+      typeof window.createImageBitmap!=='function')return;
+    nativeRasterPixels+=pixels;if(smallNative)nativeSmallPixels+=pixels;state.nativePending=true;
+    const fallback=()=>{nativeRasterPixels-=pixels;if(smallNative)nativeSmallPixels-=pixels;state.nativePending=false;};
+    if(windowCrop||cells>1&&grid) {
+      const crop=windowCrop||[0,0,fw,fh],cw=crop[2],ch=crop[3];
+      const preparations=Array.from({length:cells},(_,index)=>Promise.resolve().then(()=>
+        window.createImageBitmap(image,index%entry.columns*fw+crop[0],
+          Math.floor(index/entry.columns)*fh+crop[1],cw,ch)));
+      Promise.allSettled(preparations).then(results=>{
+        const valid=results.every(result=>result.status==='fulfilled'&&
+          result.value?.width===cw&&result.value?.height===ch);
+        if(!valid){
+          for(const result of results)if(result.status==='fulfilled')result.value?.close?.();
+          fallback();return;
+        }
+        if(windowCrop)state.nativeWindows=results.map(result=>({bitmap:result.value,crop}));
+        else state.nativeFrames=results.map(result=>result.value);
+        state.nativePending=false;
+      });
+      return;
+    }
+    try {
+      Promise.resolve(window.createImageBitmap(image)).then(bitmap=>{
+        if(bitmap?.width!==w||bitmap?.height!==h){bitmap?.close?.();fallback();return;}
+        state.nativeBitmap=bitmap;state.nativePending=false;
+      },fallback);
+    } catch {fallback();}
+  }
+  function prepareBrakeTint(key,entry,state) {
+    if(key!=='cacheBrakeReflection'||state.brakeTintAttempted)return;
+    state.brakeTintAttempted=true;
+    const image=state.image,w=image.naturalWidth,h=image.naturalHeight;
+    const pixels=194*290;
+    if(w<194||h<290||typeof window.HTMLCanvasElement!=='function'||
+      typeof window.fetch!=='function'||typeof window.btoa!=='function'||
+      typeof window.Blob!=='function'||typeof window.URL?.createObjectURL!=='function'||
+      typeof window.URL?.revokeObjectURL!=='function'||typeof window.createImageBitmap!=='function'||
+      pixels>MAX_NATIVE_SMALL_PIXELS-nativeSmallPixels||
+      pixels>MAX_NATIVE_RASTER_PIXELS-nativeRasterPixels)return;
+    nativeRasterPixels+=pixels;nativeSmallPixels+=pixels;state.brakeTintPending=true;
+    let done=false,url=null,tintImage=null;
+    const finish=bitmap=>{
+      if(done){bitmap?.close?.();return;}
+      done=true;
+      if(bitmap?.width===194&&bitmap?.height===290)state.brakeTintBitmap=bitmap;
+      else {bitmap?.close?.();nativeRasterPixels-=pixels;nativeSmallPixels-=pixels;}
+      state.brakeTintPending=false;
+      if(url)window.URL.revokeObjectURL(url);
+      if(tintImage){tintImage.onload=null;tintImage.onerror=null;}
+    };
+    try {
+      Promise.resolve(window.fetch(image.currentSrc||image.src)).then(response=>{
+        if(!response?.ok)throw Error('Reflection source unavailable');
+        return response.arrayBuffer();
+      }).then(buffer=>{
+        const bytes=new Uint8Array(buffer);
+        let binary='';
+        for(let offset=0;offset<bytes.length;offset+=8192)
+          binary+=String.fromCharCode(...bytes.subarray(offset,offset+8192));
+        // CSS hue rotation operates in sRGB. Rasterize its equivalent SVG
+        // matrix once at original texel size, outside the shared draw.
+        // https://www.w3.org/TR/filter-effects-1/#funcdef-filter-hue-rotate
+        const svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+h+
+          '" viewBox="0 0 '+w+' '+h+'"><defs><filter id="tone" color-interpolation-filters="sRGB">'+
+          '<feColorMatrix type="hueRotate" values="315"/></filter></defs>'+
+          '<image width="'+w+'" height="'+h+'" href="data:image/webp;base64,'+
+          window.btoa(binary)+'" filter="url(#tone)"/></svg>';
+        url=window.URL.createObjectURL(new window.Blob([svg],{type:'image/svg+xml'}));
+        tintImage=new window.Image();
+        tintImage.onload=()=>{
+          try {Promise.resolve(window.createImageBitmap(tintImage,0,0,194,290)).then(finish,()=>finish());}
+          catch {finish();}
+        };
+        tintImage.onerror=()=>finish();tintImage.src=url;
+      }).catch(()=>finish());
+    } catch {finish();}
+  }
+  const emptyShadows=new Set(['rgba(0, 0, 0, 0)','rgba(0,0,0,0)','#00000000','transparent']);
+  function brakeTintReady(ctx) {
+    return !!cache.cacheBrakeReflection?.brakeTintBitmap&&
+      typeof window.HTMLCanvasElement==='function'&&ctx?.canvas instanceof window.HTMLCanvasElement&&
+      !ctx.shadowBlur&&!ctx.shadowOffsetX&&!ctx.shadowOffsetY&&
+      (!ctx.shadowColor||emptyShadows.has(ctx.shadowColor));
+  }
+  // Keep the small background working set decoded across animated cels.
+  // Original images remain authoritative for native foreground/HUD paint.
+  function prepareBackgroundRaster(key,entry,state) {
+    const image=state.image,w=image.naturalWidth,h=image.naturalHeight;
+    const background=backgroundSources.has(key)||diffuseEffects.has(key);
+    if(!background||!/^cache/.test(key)||/\.svg$/i.test(entry.path)||w*h<256*1024||
+      typeof window.createImageBitmap!=='function')return;
+    const width=entry.columns*Math.ceil(w/entry.columns/4);
+    const height=entry.rows*Math.ceil(h/entry.rows/4),pixels=width*height;
+    if(rasterPixels+pixels>MAX_RASTER_PIXELS)return;
+    rasterPixels+=pixels;state.rasterPending=true;
+    const fallback=()=>{rasterPixels-=pixels;state.rasterPending=false;};
+    try {
+      Promise.resolve(window.createImageBitmap(image,{resizeWidth:width,
+        resizeHeight:height,resizeQuality:'high'})).then(bitmap=>{
+        if(bitmap?.width!==width||bitmap?.height!==height){
+          bitmap?.close?.();fallback();return;
+        }
+        state.rasterBitmap=bitmap;state.rasterPending=false;
+      },fallback);
+    } catch {fallback();}
+  }
+  function setRasterDetail(ctx,scale=1) {
+    const previous=rasterDetail.get(ctx)||1;
+    if(Number.isFinite(scale)&&scale>0&&scale<1)rasterDetail.set(ctx,scale);
+    else rasterDetail.delete(ctx);
+    return previous;
+  }
+  function setDecorationDetail(ctx,scale=1) {
+    const previous=decorationDetail.get(ctx)||1;
+    if(Number.isFinite(scale)&&scale>0&&scale<1)decorationDetail.set(ctx,scale);
+    else decorationDetail.delete(ctx);
+    return previous;
+  }
   function preload() {
     if (typeof window.Image !== 'function') return;
     for (const [key, entry] of Object.entries(entries)) {
@@ -335,7 +479,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
               state.ready=true;
             },()=>{state.ready=true;});
           } catch {state.ready=true;}
-        } else state.ready=true;
+        } else {state.ready=true;prepareBackgroundRaster(key,entry,state);prepareNativeRaster(key,entry,state);prepareBrakeTint(key,entry,state);}
       };
       image.onerror = () => {
         if (!state.fallback) { state.fallback = true; image.src = entry.path; }
@@ -345,20 +489,35 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     }
   }
   function draw(key, ctx, { x = 0, y = 0, width = 96, height, frame = 0,
-    flip = false, sourceRect = null } = {}) {
+    flip = false, sourceRect = null, tone = null } = {}) {
     const entry = entries[key], state = cache[key];
     if (!entry || !state?.ready) return false;
-    const original=state.image,image=state.bitmap||original;
+    const original=state.image,small=((rasterDetail.get(ctx)||1)<=.25||
+      diffuseEffects.has(key)&&(decorationDetail.get(ctx)||1)<1)&&state.rasterBitmap;
     const fw=original.naturalWidth/entry.columns,fh=original.naturalHeight/entry.rows;
     const index = Math.max(0, Math.floor(frame)) % entry.frames;
     const [sx, sy, sw, sh] = sourceRect || entry.frameCrops?.[index] || entry.crop || [0, 0, fw, fh];
     const h = height ?? width * sh / sw;
-    const sourceX = index % entry.columns * fw + sx;
-    const sourceY = Math.floor(index / entry.columns) * fh + sy;
+    const nativeFrame=!small&&sw>0&&sh>0&&sx>=0&&sy>=0&&sx+sw<=fw&&sy+sh<=fh&&state.nativeFrames?.[index];
+    const windowCandidate=!small&&sw>0&&sh>0&&state.nativeWindows?.[index];
+    const nativeWindow=windowCandidate&&sx>=windowCandidate.crop[0]&&sy>=windowCandidate.crop[1]&&
+      sx+sw<=windowCandidate.crop[0]+windowCandidate.crop[2]&&
+      sy+sh<=windowCandidate.crop[1]+windowCandidate.crop[3]?windowCandidate:null;
+    const preparedTone=!small&&key==='cacheBrakeReflection'&&tone==='hue315'&&
+      brakeTintReady(ctx)&&sx>=0&&sy>=0&&sw>0&&sh>0&&sx+sw<=194&&sy+sh<=290&&state.brakeTintBitmap;
+    const image=small||preparedTone||nativeWindow?.bitmap||nativeFrame||state.nativeBitmap||state.bitmap||original;
+    // Sample background sources directly at the already reduced footprint.
+    // Functional sprites and diffuse native effects keep their authored sampler.
+    const smooth=!!entry.smooth&&!(backgroundSources.has(key)&&(rasterDetail.get(ctx)||1)<=.25);
+    const sourceX = nativeWindow?sx-nativeWindow.crop[0]:nativeFrame?sx:index % entry.columns * fw + sx;
+    const sourceY = nativeWindow?sy-nativeWindow.crop[1]:nativeFrame?sy:Math.floor(index / entry.columns) * fh + sy;
+    const sourceScaleX=small?small.width/original.naturalWidth:1;
+    const sourceScaleY=small?small.height/original.naturalHeight:1;
     if (flip || x !== 0 || y !== 0) {
       ctx.save(); ctx.translate(x, y); if (flip) ctx.scale(-1, 1);
-      ctx.imageSmoothingEnabled = !!entry.smooth;
-      ctx.drawImage(image, sourceX, sourceY, sw, sh,
+      ctx.imageSmoothingEnabled = smooth;
+      ctx.drawImage(image, sourceX*sourceScaleX, sourceY*sourceScaleY,
+        sw*sourceScaleX, sh*sourceScaleY,
         -width * entry.ax, -h * entry.ay, width, h);
       ctx.restore();
     } else {
@@ -367,10 +526,11 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
       // whole Canvas state for every ground/street triangle. Keep translated
       // sprites on the original path to preserve filtered raster placement.
       const smoothing = ctx.imageSmoothingEnabled;
-      const changed = smoothing !== !!entry.smooth;
-      if (changed) ctx.imageSmoothingEnabled = !!entry.smooth;
+      const changed = smoothing !== smooth;
+      if (changed) ctx.imageSmoothingEnabled = smooth;
       try {
-        ctx.drawImage(image, sourceX, sourceY, sw, sh,
+        ctx.drawImage(image, sourceX*sourceScaleX, sourceY*sourceScaleY,
+        sw*sourceScaleX, sh*sourceScaleY,
           x - width * entry.ax, y - h * entry.ay, width, h);
       } finally {
         if (changed) ctx.imageSmoothingEnabled = smoothing;
@@ -378,6 +538,6 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     }
     return true;
   }
-  B.PresentationAssets = { preload, draw, ready: key => !!cache[key]?.ready };
+  B.PresentationAssets = { preload, draw, brakeTintReady, setRasterDetail, setDecorationDetail, decorationDetail: ctx => decorationDetail.get(ctx)||1, rasterDetail: ctx => rasterDetail.get(ctx)||1, ready: key => !!cache[key]?.ready };
   preload();
 })();

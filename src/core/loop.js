@@ -142,6 +142,7 @@ window.gameLoop = function(timestamp) {
     return;
   }
   if (window.BARCODE?.CacheRoadProof?.active) {
+    window.BARCODE.CacheRoadProof.renderFrameIntervalMs=deltaTime;
     window.BARCODE?.PauseMenu?.sync();
     window.inputManager?.update?.();
     window.BARCODE.CacheRoadProof.update(cappedDelta);

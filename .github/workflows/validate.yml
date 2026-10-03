@@ -14,12 +14,18 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm test
+      - run: npm run check:syntax:all
       - name: Check Cache Road music in real Chromium
         env:
           CHROME_BIN: /usr/bin/google-chrome
         run: npm run check:cache-road-browser
-      - run: npm test
-      - run: npm run check:syntax:all
+      - name: Check combat chase in real Chromium
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+          CACHE_COMBAT_BROWSER_OUTPUT: ${{ runner.temp }}/cache-combat-browser
+          CACHE_COMBAT_BROWSER_REQUIRE_HOSTED: '1'
+        run: npm run check:cache-combat-browser
       - name: Check music automation in real Chromium
         env:
           CHROME_BIN: /usr/bin/google-chrome
@@ -102,12 +108,6 @@ jobs:
           CHROME_BIN: /usr/bin/google-chrome
           CACHE_ENCOUNTERS_BROWSER_OUTPUT: ${{ runner.temp }}/cache-encounters-browser
         run: npm run check:cache-encounters-browser
-      - name: Check combat chase in real Chromium
-        env:
-          CHROME_BIN: /usr/bin/google-chrome
-          CACHE_COMBAT_BROWSER_OUTPUT: ${{ runner.temp }}/cache-combat-browser
-          CACHE_COMBAT_BROWSER_REQUIRE_HOSTED: '1'
-        run: npm run check:cache-combat-browser
       - name: Upload combat chase browser evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -159,7 +159,7 @@ jobs:
           Path(os.environ['PACK_RECEIPT']).write_text(json.dumps({
               'revision': os.environ['GITHUB_SHA'],
               'automatedTests': {'npm test': 'passed', 'npm run check:syntax:all': 'passed', 'npm run check:cache-road-browser': 'passed (real MP3s, missing local asset recovery, Drive catch and collision bus recovery)', 'node tools/check-music-audibility.cjs': 'passed (controlled and original MP3s)', 'node tools/check-background-browser.cjs': 'passed', 'node tools/check-intro-browser.cjs': 'passed', 'node tools/check-settings-browser.cjs': 'passed', 'node tools/check-cache-bridge-browser.cjs': 'passed (eight hosted byte-identical paintings, shared Canvas, production bridge input and final Drive guard)', 'MODE_SFX_REVIEW=1 node tools/check-music-audibility.cjs': 'passed'},
-              'cacheCombatBrowser': 'passed (fresh v4 real shoulder/trigger controls, actual attacks/12HP rig, earned saves and sampled production Canvas frames; controlled host clock, not Makko/device acceptance)',
+              'cacheCombatBrowser': 'passed (fresh v4 real shoulder/trigger controls, actual attacks/12HP rig, earned saves, and consecutive chase/boss shared-loop frames with raster flush within 33.33ms median; hosted byte-verified art, controlled host clock, not Makko/device acceptance)',
               'cachePursuitBrowser': 'passed (production gamepad race, three-system boss defeat, real painted art, shared Canvas/RAF and paused state; staged visual diagnostics separately labelled)',
               'cacheEndingBrowser': 'passed (four hosted byte-identical paintings, production shared Canvas/input/RAF/audio and silent ending reload)',
               'cacheEncountersBrowser': 'passed (four hosted byte-identical sprites, native Drive/steering/Echo, shared Canvas and three explicitly staged production draw screenshots)',
@@ -186,5 +186,6 @@ jobs:
         with:
           name: BARCODE-System-Override-Source-Pack-v5-content-${{ github.sha }}
           path: ${{ runner.temp }}/source-pack-content/
+          include-hidden-files: true
           if-no-files-found: error
           retention-days: 7
