@@ -367,6 +367,62 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
       },fallback);
     } catch {fallback();}
   }
+  function prepareBrakeTint(key,entry,state) {
+    if(key!=='cacheBrakeReflection'||state.brakeTintAttempted)return;
+    state.brakeTintAttempted=true;
+    const image=state.image,w=image.naturalWidth,h=image.naturalHeight;
+    const pixels=194*290;
+    if(w<194||h<290||typeof window.HTMLCanvasElement!=='function'||
+      typeof window.fetch!=='function'||typeof window.btoa!=='function'||
+      typeof window.Blob!=='function'||typeof window.URL?.createObjectURL!=='function'||
+      typeof window.URL?.revokeObjectURL!=='function'||typeof window.createImageBitmap!=='function'||
+      pixels>MAX_NATIVE_SMALL_PIXELS-nativeSmallPixels||
+      pixels>MAX_NATIVE_RASTER_PIXELS-nativeRasterPixels)return;
+    nativeRasterPixels+=pixels;nativeSmallPixels+=pixels;state.brakeTintPending=true;
+    let done=false,url=null,tintImage=null;
+    const finish=bitmap=>{
+      if(done){bitmap?.close?.();return;}
+      done=true;
+      if(bitmap?.width===194&&bitmap?.height===290)state.brakeTintBitmap=bitmap;
+      else {bitmap?.close?.();nativeRasterPixels-=pixels;nativeSmallPixels-=pixels;}
+      state.brakeTintPending=false;
+      if(url)window.URL.revokeObjectURL(url);
+      if(tintImage){tintImage.onload=null;tintImage.onerror=null;}
+    };
+    try {
+      Promise.resolve(window.fetch(image.currentSrc||image.src)).then(response=>{
+        if(!response?.ok)throw Error('Reflection source unavailable');
+        return response.arrayBuffer();
+      }).then(buffer=>{
+        const bytes=new Uint8Array(buffer);
+        let binary='';
+        for(let offset=0;offset<bytes.length;offset+=8192)
+          binary+=String.fromCharCode(...bytes.subarray(offset,offset+8192));
+        // CSS hue rotation operates in sRGB. Rasterize its equivalent SVG
+        // matrix once at original texel size, outside the shared draw.
+        // https://www.w3.org/TR/filter-effects-1/#funcdef-filter-hue-rotate
+        const svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+h+
+          '" viewBox="0 0 '+w+' '+h+'"><defs><filter id="tone" color-interpolation-filters="sRGB">'+
+          '<feColorMatrix type="hueRotate" values="315"/></filter></defs>'+
+          '<image width="'+w+'" height="'+h+'" href="data:image/webp;base64,'+
+          window.btoa(binary)+'" filter="url(#tone)"/></svg>';
+        url=window.URL.createObjectURL(new window.Blob([svg],{type:'image/svg+xml'}));
+        tintImage=new window.Image();
+        tintImage.onload=()=>{
+          try {Promise.resolve(window.createImageBitmap(tintImage,0,0,194,290)).then(finish,()=>finish());}
+          catch {finish();}
+        };
+        tintImage.onerror=()=>finish();tintImage.src=url;
+      }).catch(()=>finish());
+    } catch {finish();}
+  }
+  const emptyShadows=new Set(['rgba(0, 0, 0, 0)','rgba(0,0,0,0)','#00000000','transparent']);
+  function brakeTintReady(ctx) {
+    return !!cache.cacheBrakeReflection?.brakeTintBitmap&&
+      typeof window.HTMLCanvasElement==='function'&&ctx?.canvas instanceof window.HTMLCanvasElement&&
+      !ctx.shadowBlur&&!ctx.shadowOffsetX&&!ctx.shadowOffsetY&&
+      (!ctx.shadowColor||emptyShadows.has(ctx.shadowColor));
+  }
   // Keep the small background working set decoded across animated cels.
   // Original images remain authoritative for native foreground/HUD paint.
   function prepareBackgroundRaster(key,entry,state) {
@@ -423,7 +479,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
               state.ready=true;
             },()=>{state.ready=true;});
           } catch {state.ready=true;}
-        } else {state.ready=true;prepareBackgroundRaster(key,entry,state);prepareNativeRaster(key,entry,state);}
+        } else {state.ready=true;prepareBackgroundRaster(key,entry,state);prepareNativeRaster(key,entry,state);prepareBrakeTint(key,entry,state);}
       };
       image.onerror = () => {
         if (!state.fallback) { state.fallback = true; image.src = entry.path; }
@@ -433,7 +489,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     }
   }
   function draw(key, ctx, { x = 0, y = 0, width = 96, height, frame = 0,
-    flip = false, sourceRect = null } = {}) {
+    flip = false, sourceRect = null, tone = null } = {}) {
     const entry = entries[key], state = cache[key];
     if (!entry || !state?.ready) return false;
     const original=state.image,small=((rasterDetail.get(ctx)||1)<=.25||
@@ -447,7 +503,9 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     const nativeWindow=windowCandidate&&sx>=windowCandidate.crop[0]&&sy>=windowCandidate.crop[1]&&
       sx+sw<=windowCandidate.crop[0]+windowCandidate.crop[2]&&
       sy+sh<=windowCandidate.crop[1]+windowCandidate.crop[3]?windowCandidate:null;
-    const image=small||nativeWindow?.bitmap||nativeFrame||state.nativeBitmap||state.bitmap||original;
+    const preparedTone=!small&&key==='cacheBrakeReflection'&&tone==='hue315'&&
+      brakeTintReady(ctx)&&sx>=0&&sy>=0&&sw>0&&sh>0&&sx+sw<=194&&sy+sh<=290&&state.brakeTintBitmap;
+    const image=small||preparedTone||nativeWindow?.bitmap||nativeFrame||state.nativeBitmap||state.bitmap||original;
     // Sample background sources directly at the already reduced footprint.
     // Functional sprites and diffuse native effects keep their authored sampler.
     const smooth=!!entry.smooth&&!(backgroundSources.has(key)&&(rasterDetail.get(ctx)||1)<=.25);
@@ -480,6 +538,6 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     }
     return true;
   }
-  B.PresentationAssets = { preload, draw, setRasterDetail, setDecorationDetail, decorationDetail: ctx => decorationDetail.get(ctx)||1, rasterDetail: ctx => rasterDetail.get(ctx)||1, ready: key => !!cache[key]?.ready };
+  B.PresentationAssets = { preload, draw, brakeTintReady, setRasterDetail, setDecorationDetail, decorationDetail: ctx => decorationDetail.get(ctx)||1, rasterDetail: ctx => rasterDetail.get(ctx)||1, ready: key => !!cache[key]?.ready };
   preload();
 })();

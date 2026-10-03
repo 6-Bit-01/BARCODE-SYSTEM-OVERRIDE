@@ -291,7 +291,8 @@ browserProof.step=ms=>{for(let left=ms;left>0;){const dt=Math.min(20,left);left-
   browserProof.frameDraws=0;
   const measured=browserProof.measureLoop;
   const cacheStates=measured?Object.values(window.bossPresentationReview.cache):[];
-  const preparation=measured?{nativePending:cacheStates.filter(state=>state.nativePending).length,
+  const preparation=measured?{nativePending:cacheStates.filter(state=>state.nativePending||state.brakeTintPending).length,
+    tintReady:cacheStates.filter(state=>state.brakeTintBitmap).length,
     nativeReady:cacheStates.filter(state=>state.nativeBitmap||state.nativeFrames||state.nativeWindows).length,
     backgroundPending:cacheStates.filter(state=>state.rasterPending).length,
     backgroundReady:cacheStates.filter(state=>state.rasterBitmap).length}:null;
@@ -462,6 +463,9 @@ const server=http.createServer((req,res)=>{
     const tintBoundary='if(tintedReflection&&!ctx.shadowBlur&&!ctx.shadowOffsetX&&!ctx.shadowOffsetY) {';
     assert(source.includes(tintBoundary),'pointwise reflection-filter bounds boundary');
     source=source.replace(tintBoundary,'if(tintedReflection&&!ctx.shadowBlur&&!ctx.shadowOffsetX&&!ctx.shadowOffsetY&&!window.forceReflectionTintClip) {');
+    const preparedTintBoundary='const preparedTint=tintedReflection&&B.PresentationAssets?.brakeTintReady?.(ctx);';
+    assert(source.includes(preparedTintBoundary),'original reflection tint comparison boundary');
+    source=source.replace(preparedTintBoundary,'const preparedTint=!window.forceReflectionTintClip&&tintedReflection&&B.PresentationAssets?.brakeTintReady?.(ctx);');
     const lightBoundary='if(!unfilteredLightBounds)return;';
     assert(source.includes(lightBoundary),'pointwise light-blend bounds boundary');
     source=source.replace(lightBoundary,'if(!unfilteredLightBounds||window.forceLightBlendBounds)return;');
@@ -816,7 +820,7 @@ async function main(){
     P.draw=(key,context,args)=>{
       const began=performance.now(),ok=assetDraw(key,context,args),elapsed=performance.now()-began;
       const item=groups[key]||(groups[key]={calls:0,submitMs:0,
-        small:!!cache[key]?.rasterBitmap,native:!!cache[key]?.nativeBitmap,nativeFrames:cache[key]?.nativeFrames?.length??0,nativeWindows:cache[key]?.nativeWindows?.length??0,
+        small:!!cache[key]?.rasterBitmap,native:!!cache[key]?.nativeBitmap,nativeFrames:cache[key]?.nativeFrames?.length??0,nativeWindows:cache[key]?.nativeWindows?.length??0,preparedTint:!!cache[key]?.brakeTintBitmap,
         width:cache[key]?.image.naturalWidth,height:cache[key]?.image.naturalHeight});
       item.calls++;item.submitMs+=elapsed;return ok;
     };
@@ -884,7 +888,8 @@ async function main(){
         nativeInventory:Object.entries(cache).filter(([,state])=>state.nativeBitmap||state.nativeFrames||state.nativeWindows)
           .map(([key,state])=>({key,pixels:(state.nativeBitmap?state.nativeBitmap.width*state.nativeBitmap.height:0)+
             (state.nativeFrames||[]).reduce((sum,bitmap)=>sum+bitmap.width*bitmap.height,0)+
-            (state.nativeWindows||[]).reduce((sum,item)=>sum+item.bitmap.width*item.bitmap.height,0)})),
+            (state.nativeWindows||[]).reduce((sum,item)=>sum+item.bitmap.width*item.bitmap.height,0)+
+            (state.brakeTintBitmap?state.brakeTintBitmap.width*state.brakeTintBitmap.height:0)})),
         reviewWebp};
     }finally{
       window.canvasCostMark=undefined;window.forceCrestMask=undefined;window.forceLegacyWorldCopy=undefined;window.forceMirrorCopy=undefined;window.forceReflectionTintClip=undefined;window.forceLightBlendBounds=undefined;window.forceOriginalWorldCopy=undefined;P.draw=assetDraw;

@@ -1532,6 +1532,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           kind === 'shuttle' ? .34 : kind === 'freight' ? .23 : .16;
         ctx.save();ctx.globalAlpha*=light;
         const tintedReflection=kind==='trike'||kind==='audit';
+        const preparedTint=tintedReflection&&B.PresentationAssets?.brakeTintReady?.(ctx);
         if(tintedReflection&&!ctx.shadowBlur&&!ctx.shadowOffsetX&&!ctx.shadowOffsetY) {
           // Hue rotation is pointwise: it cannot paint beyond these source
           // rectangles. Bound its filter layer to the original reflections,
@@ -1547,7 +1548,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           const top=-h*.22-2,bottom=Math.max(...bounds.map(bound=>bound.bottom))+2;
           ctx.beginPath();ctx.rect(left,top,right-left,bottom-top);ctx.clip();
         }
-        if(tintedReflection)ctx.filter='hue-rotate(315deg)';
+        if(tintedReflection)ctx.filter=preparedTint?'none':'hue-rotate(315deg)';
         for(const lamp of lamps) {
           // Project one broken reflection beneath each real light. The
           // narrow source crop contains one column, not the old fixed pair.
@@ -1555,7 +1556,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           const lampX=jolt+lamp.x*Math.cos(roll)-lamp.y*Math.sin(roll);
           B.PresentationAssets.draw('cacheBrakeReflection',ctx,{
             x:lampX,y:-h*.22,width:lamp.width*2.8,
-            height:h*(.66+(1-lamp.v)*.75),sourceRect:[0,0,192,290] });
+            height:h*(.66+(1-lamp.v)*.75),sourceRect:[0,0,192,290],tone:preparedTint?'hue315':null });
         }
         ctx.restore();
       }

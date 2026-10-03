@@ -310,6 +310,88 @@ async function nativeWindowUnit(){
   console.log('PASS: original-size bezel/face/brake windows, native crop/cel registration, complete-atlas fallback, atomic failures and reuse.');
 }
 
+async function nativeTintUnit(){
+  for(const failure of ['none','fetch-reject','fetch-status','decode','bitmap-reject','bitmap-invalid','unsupported']){
+    const images=[],prepared=[],blobs=[],revoked=[],closed=[],fetched=[];
+    class Canvas{}
+    class Image {
+      constructor(){this.naturalWidth=400;this.naturalHeight=290;images.push(this);}
+      get src(){return this.url;}
+      set src(value){
+        this.url=value;
+        if(value.startsWith('blob:'))Promise.resolve().then(()=>
+          failure==='decode'?this.onerror?.():this.onload?.());
+      }
+    }
+    class Blob{constructor(parts,options){this.text=parts.join('');this.type=options.type;blobs.push(this);}}
+    const w={Image,Blob,HTMLCanvasElement:Canvas,BARCODE:{},
+      btoa:value=>{assert.equal(value.length,3);return 'AQID';},
+      URL:{createObjectURL:()=> 'blob:reflection-tint',revokeObjectURL:url=>revoked.push(url)},
+      fetch:url=>{fetched.push(url);
+        if(failure==='fetch-reject')return Promise.reject(Error('network'));
+        return Promise.resolve({ok:failure!=='fetch-status',arrayBuffer:()=>Promise.resolve(new Uint8Array([1,2,3]).buffer)});
+      },
+      createImageBitmap(image,...args){
+        const tinted=image.src.startsWith('blob:');prepared.push({image,args,tinted});
+        if(tinted&&failure==='bitmap-reject')return Promise.reject(Error('unsupported SVG'));
+        return Promise.resolve({width:tinted&&failure==='bitmap-invalid'?0:args[2]||image.naturalWidth,
+          height:args[3]||image.naturalHeight,close(){closed.push(this);}});
+      }};
+    if(failure==='unsupported')delete w.fetch;
+    vm.runInNewContext(inspected,{window:w});
+    const {cache}=w.bitmapReview,P=w.BARCODE.PresentationAssets,state=cache.cacheBrakeReflection;
+    state.image.onload();
+    await new Promise(setImmediate);
+    const success=failure==='none',ctx={canvas:new Canvas(),filter:'none',globalAlpha:.37,
+      shadowBlur:0,shadowOffsetX:0,shadowOffsetY:0,shadowColor:'rgba(0, 0, 0, 0)',
+      imageSmoothingEnabled:true,save(){},restore(){},translate(){},scale(){},drawImage(...args){this.calls.push(args);},calls:[]};
+    assert.equal(P.brakeTintReady(ctx),success);
+    assert.equal(!!state.brakeTintPending,false);
+    assert.equal(!!state.brakeTintBitmap,success);
+    assert.equal(fetched.length,failure==='unsupported'?0:1);
+    if(fetched.length)assert.equal(fetched[0],state.image.src);
+    const hadBlob=!['fetch-reject','fetch-status','unsupported'].includes(failure);
+    assert.equal(blobs.length,hadBlob?1:0);assert.equal(revoked.length,hadBlob?1:0);
+    if(hadBlob){
+      assert(blobs[0].text.includes('color-interpolation-filters="sRGB"'));
+      assert(blobs[0].text.includes('type="hueRotate" values="315"'));
+      assert(blobs[0].text.includes('width="400" height="290"'));
+      assert(blobs[0].text.includes('data:image/webp;base64,AQID'));
+      assert.equal(blobs[0].type,'image/svg+xml');
+      const image=images.find(image=>image.src?.startsWith('blob:'));
+      assert.equal(image.onload,null);assert.equal(image.onerror,null);
+    }
+    assert.equal(closed.length,failure==='bitmap-invalid'?1:0);
+    P.setRasterDetail(ctx,1/6);
+    P.draw('cacheBrakeReflection',ctx,{width:50,height:75,sourceRect:[0,0,192,290],tone:'hue315'});
+    assert.equal(ctx.calls.at(-1)[0],state.brakeTintBitmap||state.nativeWindows[0].bitmap);
+    assert.deepEqual(ctx.calls.at(-1).slice(1),[0,0,192,290,-25,0,50,75]);
+    assert.equal(ctx.filter,'none');assert.equal(ctx.globalAlpha,.37);
+    P.draw('cacheBrakeReflection',ctx,{width:50,height:75,sourceRect:[0,0,400,290],tone:'hue315'});
+    assert.equal(ctx.calls.at(-1)[0],state.image,'outside-window tint requests keep the complete original source');
+    for(const fields of [{canvas:{}},{shadowBlur:2},{shadowOffsetX:1},{shadowOffsetY:1},{shadowColor:'#ff0000'}])
+      assert.equal(P.brakeTintReady({...ctx,...fields}),false,'native/embedded and shadow callers retain the original filter');
+    const priorFetch=fetched.length,priorPrepared=prepared.length;P.preload();
+    for(let i=0;i<10;i++)P.draw('cacheBrakeReflection',ctx,{sourceRect:[0,0,192,290],tone:'hue315'});
+    assert.equal(fetched.length,priorFetch);assert.equal(prepared.length,priorPrepared);
+    // Five full sources leave room for the last probe only when failed tint
+    // preparation released its reservation. A ready tint keeps its pixels.
+    for(const key of ['cacheDamagedExhaust','cachePhraseStrip','cacheConfirmedBar','cachePulsePad','cachePulseStrip']){
+      cache[key].image.naturalWidth=512;cache[key].image.naturalHeight=512;cache[key].image.onload();
+    }
+    cache.cachePulseBurst.image.naturalWidth=512;cache.cachePulseBurst.image.naturalHeight=362;
+    cache.cachePulseBurst.image.onload();
+    await new Promise(setImmediate);
+    assert.equal(!!cache.cachePulseBurst.nativeBitmap,!success,'ready/pending tint pixels share the small pool and failed preparations release them');
+    const pixels=Object.values(cache).reduce((sum,item)=>sum+
+      (item.nativeBitmap?item.nativeBitmap.width*item.nativeBitmap.height:0)+
+      (item.nativeWindows||[]).reduce((n,part)=>n+part.bitmap.width*part.bitmap.height,0)+
+      (item.brakeTintBitmap?item.brakeTintBitmap.width*item.brakeTintBitmap.height:0),0);
+    assert(pixels<=1536*1024);
+  }
+  console.log('PASS: one bounded original-texel sRGB tint preparation, window routing, native/shadow fallback, URL cleanup, reservation release and draw/pause reuse.');
+}
+
 function budgetUnit(){
   const w={BARCODE:{}};
   vm.runInNewContext(fs.readFileSync(path.resolve(__dirname,'../src/game/cache-road-render-budget.js'),'utf8'),{window:w});
@@ -436,7 +518,7 @@ async function browser(){
     await send('Page.enable');await send('Runtime.enable');await send('Page.navigate',{url:origin});
     const result=await send('Runtime.evaluate',{awaitPromise:true,returnByValue:true,expression:`(async()=>{
       const started=performance.now();
-      while(!window.bitmapReview||Object.values(bitmapReview.cache).some(state=>!state.ready||state.rasterPending||state.nativePending)){
+      while(!window.bitmapReview||Object.values(bitmapReview.cache).some(state=>!state.ready||state.rasterPending||state.nativePending||state.brakeTintPending)){
         if(performance.now()-started>45000)throw Error('assets did not prepare');await new Promise(r=>setTimeout(r,25));
       }
       const {entries,cache}=bitmapReview,svg=Object.keys(entries).filter(key=>entries[key].path.endsWith('.svg'));
@@ -467,7 +549,7 @@ async function browser(){
       road.selectMusicProfile();BARCODE.MusicTransport.start({sourceAnchorAudioSec:0,sourceOffsetTrackSec:0});
       const bitmaps=Object.fromEntries(svg.map(key=>[key,cache[key].bitmap]));
        const nativeBitmaps=Object.fromEntries(Object.entries(cache).filter(([,state])=>state.nativeBitmap||state.nativeFrames||state.nativeWindows)
-         .map(([key,state])=>[key,{bitmap:state.nativeBitmap,frames:state.nativeFrames,windows:state.nativeWindows}]));
+         .map(([key,state])=>[key,{bitmap:state.nativeBitmap,frames:state.nativeFrames,windows:state.nativeWindows,tint:state.brakeTintBitmap}]));
       const median=values=>{const v=values.slice().sort((a,b)=>a-b);return v[Math.floor(v.length/2)];};
       const rows=[],assetDraw=P.draw,bitmapFactory=window.createImageBitmap;
       const originalDrawImage=ctx.drawImage;let reflectionBlurs=0;
@@ -495,6 +577,7 @@ async function browser(){
            cache[key].nativeBitmap=mode==='adaptive'?value.bitmap:undefined;
            cache[key].nativeFrames=mode==='adaptive'?value.frames:undefined;
            cache[key].nativeWindows=mode==='adaptive'?value.windows:undefined;
+           cache[key].brakeTintBitmap=mode==='adaptive'?value.tint:undefined;
          }
         road.chapter=structuredClone(scene.chapter);road.state=structuredClone(scene.state);
         BARCODE.Preferences.values.reducedMotion=scene.name==='Reduced';
@@ -576,7 +659,7 @@ async function browser(){
       }
       for(const key of svg)cache[key].bitmap=bitmaps[key];
        for(const [key,value]of Object.entries(nativeBitmaps)){
-          cache[key].nativeBitmap=value.bitmap;cache[key].nativeFrames=value.frames;cache[key].nativeWindows=value.windows;
+          cache[key].nativeBitmap=value.bitmap;cache[key].nativeFrames=value.frames;cache[key].nativeWindows=value.windows;cache[key].brakeTintBitmap=value.tint;
         }
       window.createImageBitmap=bitmapFactory;bitmapReview.mode='adaptive';
       const frameComparisons=frameReviewScenes.map(({name})=>{
@@ -739,4 +822,4 @@ async function browser(){
     await fs.promises.rm(profile,{recursive:true,force:true,maxRetries:20,retryDelay:100});
   }
 }
-(async()=>{await unit();await backgroundRasterUnit();await nativeRasterUnit();await nativeSmallUnit();await nativeWindowUnit();budgetUnit();if(process.argv.includes('--browser'))await browser();})().catch(e=>{console.error(e.stack);process.exitCode=1;});
+(async()=>{await unit();await backgroundRasterUnit();await nativeRasterUnit();await nativeSmallUnit();await nativeWindowUnit();await nativeTintUnit();budgetUnit();if(process.argv.includes('--browser'))await browser();})().catch(e=>{console.error(e.stack);process.exitCode=1;});
