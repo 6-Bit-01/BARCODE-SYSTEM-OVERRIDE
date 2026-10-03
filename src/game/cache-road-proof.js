@@ -3574,6 +3574,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.restore();
       };
       ctx.save(); ctx.setTransform(worldScale, 0, 0, worldScale, 0, 0);
+      if(worldScale<1) {
+        // Keep every world blend/filter inside the sampled source footprint.
+        // A scaled transform alone still rasterizes off-crop paint and leaves
+        // full-display blend surfaces active until the world is expanded.
+        ctx.save();ctx.beginPath();ctx.rect(0,0,1920,1080);ctx.clip();
+      }
       // One transform moves the existing world. The dashboard, timing cues
       // and rearview are drawn after it is restored, with no second scene pass.
       ctx.save();
@@ -5051,6 +5057,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         nextCue?.ready?{x:laneX(nextPulse.lane,STRIKE_DEPTH),y:strikeY+78,
           width:68,height:68,action:nextPulse.action,strike:nextCue.strike}:null,camera);
       if(worldScale<1) {
+        ctx.restore(); // sampled world clip
         // Reuse the display's own completed world pixels. Canvas self-copy
         // snapshots the source before writing; no auxiliary Canvas is needed.
         // The subsequent dashboard and rearview retain native resolution.

@@ -253,7 +253,7 @@ async function browser(){
         }
         const sorted=samples.slice().sort((a,b)=>a-b);
         rows.push({name:scene.name,mode,medianMs:median(samples),
-          p95Ms:sorted[Math.ceil(sorted.length*.95)-1],frames:samples.length,includesRasterFlush:true});
+          p95Ms:sorted[Math.ceil(sorted.length*.95)-1],frames:samples.length,worldScale:mode==='adaptive'?road.renderBudget.scale:1,includesRasterFlush:true});
         console.log('FRAME_COST '+JSON.stringify(rows.at(-1)));
       }
       for(const key of svg)cache[key].bitmap=bitmaps[key];
@@ -296,17 +296,19 @@ async function browser(){
         const value=methodCosts[group]||(methodCosts[group]={calls:0,ms:0});
         value.calls++;value.ms+=cost;return result;
       };
-      window.canvasCostMark=phase=>{
+      const costMark=phase=>{
         const submitted=performance.now();ctx.getImageData(0,0,1,1);
         const now=performance.now();
         if(phase!=='begin')phaseRows.push({phase,submitMs:submitted-phaseStart,
           flushMs:now-submitted,totalMs:now-phaseStart,methods:methodCosts});
         methodCosts={};phaseStart=now;
       };
+      road.chapter=structuredClone(scene.chapter);road.state=structuredClone(scene.state);
+      BARCODE.Preferences.values.reducedMotion=false;
+      for(let warm=0;warm<6;warm++){ctx.reset();road.draw(ctx);ctx.getImageData(0,0,1,1);}
+      window.canvasCostMark=costMark;
       for(let frame=0;frame<3;frame++) {
         ctx.reset();ctx.getImageData(0,0,1,1);
-        road.chapter=structuredClone(scene.chapter);road.state=structuredClone(scene.state);
-        BARCODE.Preferences.values.reducedMotion=false;
         road.draw(ctx);window.canvasCostMark('hud-complete');
         await new Promise(resolve=>setTimeout(resolve,0));
       }
