@@ -653,6 +653,12 @@
         "tools/check-intro.js",
         "tools/check-presentation-assets.js"
       ]
+    },
+    {
+      "host": "www.w3.org",
+      "sourceFiles": [
+        "src/engine/presentation-assets.js"
+      ]
     }
   ],
   "criticalGlobalAssignments": [
