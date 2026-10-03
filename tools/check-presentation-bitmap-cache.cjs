@@ -397,25 +397,24 @@ function budgetUnit(){
   vm.runInNewContext(fs.readFileSync(path.resolve(__dirname,'../src/game/cache-road-render-budget.js'),'utf8'),{window:w});
   const owner=w.BARCODE.CacheRoadRenderBudget,budget=owner.create();
   assert.equal(budget.scale,1,'each new run begins at full detail');
-  owner.observe(budget,90);owner.observe(budget,90);
-  assert.equal(budget.scale,1,'one or two cold/impact frames cannot reduce detail');
-  owner.observe(budget,90);assert.equal(budget.scale,.4,'sustained slow paint lowers only world sampling');
+  for(let i=0;i<700;i++)owner.observe(budget,90);
+  assert.equal(budget.scale,1,'sustained expensive draws must retain native artwork detail');
+  assert.equal(budget.lastCostMs,90,'expensive draws remain visible in timing diagnostics');
+  assert.equal(budget.slowFrames,700);
   const frozen=JSON.stringify(budget);
   for(let i=0;i<700;i++)owner.observe(budget,1,{paused:true});
   assert.equal(JSON.stringify(budget),frozen,'paused repeated paint cannot change quality');
   for(const cost of [NaN,Infinity,-1])owner.observe(budget,cost);
   assert.equal(JSON.stringify(budget),frozen,'invalid clocks cannot alter a budget');
-  for(let i=0;i<599;i++)owner.observe(budget,1);
-  assert.equal(budget.scale,.4,'detail recovery needs sustained spare capacity');
-  owner.observe(budget,1);assert.equal(budget.scale,.5);
+  for(let i=0;i<600;i++)owner.observe(budget,1);
+  assert.equal(budget.scale,1,'spare capacity never needs to restore lost artwork detail');
+  assert.equal(budget.fastFrames,600);
+  assert.equal(budget.slowFrames,0);
   for(let i=0;i<30;i++)owner.observe(budget,200);
-  assert.equal(budget.scale,1/6,'background sampling stops at a finite floor with native interactive paint');
+  assert.equal(budget.scale,1,'even very slow draws cannot substitute an enlarged low-resolution world');
   const delayed=owner.create();
-  owner.observe(delayed,12,{frameIntervalMs:34.1});
-  owner.observe(delayed,12,{frameIntervalMs:34.1});
-  assert.equal(delayed.scale,1,'two missed display frames retain cold/impact tolerance');
-  owner.observe(delayed,12,{frameIntervalMs:34.1});
-  assert(delayed.scale<1,'sustained missed 30 Hz intervals include queued raster cost');
+  for(let i=0;i<700;i++)owner.observe(delayed,12,{frameIntervalMs:34.1});
+  assert.equal(delayed.scale,1,'sustained delayed display frames must retain native detail');
   assert.equal(delayed.lastCostMs,34.1,'display delay is observed even when draw submission is cheap');
   const delayedFrozen=JSON.stringify(delayed);
   owner.observe(delayed,12,{paused:true,frameIntervalMs:60});
@@ -424,10 +423,59 @@ function budgetUnit(){
     const ignored=owner.create();
     for(let i=0;i<3;i++)owner.observe(ignored,12,{frameIntervalMs:interval});
     assert.equal(ignored.scale,1,'healthy, invalid and background-gap intervals retain detail');
+    assert.equal(ignored.lastCostMs,12,'invalid or background-gap display intervals cannot inflate diagnostics');
   }
   const fresh=owner.create();assert.equal(fresh.scale,1);
-  assert.equal(budget.scale,1/6,'a fresh run has independent presentation state');
-  console.log('PASS: bounded adaptive world quality, queued display cost, cold/impact tolerance, pause freeze, clock fallback, recovery hysteresis and fresh-run independence.');
+  assert.equal(fresh.lastCostMs,0,'a fresh run has independent timing diagnostics');
+  assert.equal(budget.lastCostMs,200);
+  console.log('PASS: native world detail through heavy draws and delayed display frames, queued cost diagnostics, pause freeze, clock fallback and fresh-run independence.');
+}
+
+function mirrorSourceUnit(){
+  const road=fs.readFileSync(path.resolve(__dirname,'../src/game/cache-road-proof.js'),'utf8');
+  const callStart=road.indexOf('      const nativeMirror=budgetEligible'),
+    callEnd=road.indexOf('      ctx.fillStyle',callStart);
+  assert(callStart>=0&&callEnd>callStart,'production mirror invocation is available');
+  for(const failure of ['none','budget','context','canvas','pause','intro','fade']){
+    class HTMLCanvasElement{}
+    const ctx={canvas:failure==='canvas'?{}:new HTMLCanvasElement()},pixelBudget={};
+    let invocation;
+    vm.runInNewContext('function invoke(){'+road.slice(callStart,callEnd)+'};invoke.call(runtime);',{
+      window:{HTMLCanvasElement},ctx,frameContext:failure==='context'?{}:ctx,
+      budgetEligible:failure!=='budget',runtime:{status:failure==='pause'?'paused':'playing',renderBudget:pixelBudget},
+      intro:failure==='intro'?{}:null,cinema:failure==='fade'?{hudAlpha:.5}:null,
+      s:{},section:0,reduced:false,heightSample:()=>0,combatPose:null,crosswalkPose:null,
+      drawRearview(...args){invocation=args;}
+    });
+    assert.equal(invocation[7],false,'production native reflection retains the original curved glass mask');
+    assert.equal(invocation[8],failure==='none','opaque native transport remains independent of world downsampling');
+    assert.equal(invocation[9],failure==='budget'?null:pixelBudget);
+  }
+  const start=road.indexOf('  function drawRearview('),end=road.indexOf('  // Every supplied stem',start);
+  assert(start>=0&&end>start,'production mirror painter is available');
+  for(const boundedClip of [false,true])for(const failure of [false,true]){
+    let detail=.25,reflectionCalls=0,faceCalls=0;
+    const pixelBudget={},ctx=new Proxy({createLinearGradient:()=>({addColorStop(){}})},
+      {get:(target,key)=>key in target?target[key]:()=>{}});
+    const B={PresentationAssets:{
+      setRasterDetail(context,value){assert.equal(context,ctx);const before=detail;detail=value;return before;},
+      draw(key){assert.equal(key,'cacheMirror');faceCalls++;return true;}
+    }},w={};
+    vm.runInNewContext(road.slice(start,end)+';window.testMirror=drawRearview;',{
+      window:w,B,LANDSCAPE:{height:()=>24},mirrorExpression:()=>0,mirrorOutline(){},
+      drawRearRoad(...args){
+        reflectionCalls++;assert.equal(detail,1,'clipped native reflections use original-size source artwork');
+        assert.equal(args.at(-2),true,'native opaque backdrop optimization remains independent of detail');
+        assert.equal(args.at(-1),pixelBudget);
+        if(failure)throw Error('mirror draw failed');
+      }
+    });
+    const draw=()=>w.testMirror(ctx,{},'#8fe3db',false,undefined,null,null,boundedClip,true,pixelBudget);
+    if(failure)assert.throws(draw,/mirror draw failed/);else draw();
+    assert.equal(reflectionCalls,1);assert.equal(faceCalls,failure?0:1);
+    assert.equal(detail,.25,'reflection painting restores the caller hint even after failure');
+  }
+  console.log('PASS: production curved mirror glass, native opaque transport eligibility, original-size reflection sources and caller-hint restoration after failure.');
 }
 
 function worldCopyUnit(){
@@ -660,6 +708,7 @@ async function browser(){
           ctx.reset();ctx.imageSmoothingQuality='high';measuredGroups={};reflectionBlurs=0;
           const began=performance.now();
           road.draw(ctx);const submitted=performance.now();ctx.getImageData(0,0,1,1);
+          if(mode==='adaptive'&&road.renderBudget.drawnScale!==1)throw Error('optimized production frames silently reduced native world detail');
           const elapsed=performance.now()-began;
           if(frame===45)console.log('FRAME_COST '+JSON.stringify({name:scene.name,mode,
             submitMs:submitted-began,flushMs:performance.now()-submitted}));
@@ -695,11 +744,8 @@ async function browser(){
               }
               qualityComparisons.push({name:scene.name,worldScale:road.renderBudget.drawnScale,
                 meanRGB:difference/(1920*1080*3),nativeHUDMeanRGB:hudDifference/(1920*164*3)});
-              // Verify unchanged native geometry/art at full quality as well
-              // as reviewing the actual adaptive output saved above.
-              bitmapReview.fullQuality=true;ctx.reset();road.draw(ctx);
-              pixels=ctx.getImageData(0,0,c.width,c.height).data;
-              bitmapReview.fullQuality=false;
+              // Fidelity is judged on the actual displayed native painting.
+              // A separate full-quality repaint cannot conceal lost detail.
             }
             if(mode==='vector')framePixels.set(scene.name+'-vector',pixels);
             else {
@@ -956,7 +1002,7 @@ async function browser(){
     const encoded=sheet.toBuffer('image/webp',80).toString('base64');
     for(let at=0;at<encoded.length;at+=24000)
       console.log('FRAME_REVIEW '+String(at/24000).padStart(4,'0')+' '+encoded.slice(at,at+24000));
-    assert(report.performancePass,'adaptive world painting must cut PR180 frame/raster cost by 25 percent, avoid a scene regression, and fit the 30 Hz diagnostic frame budget');
+    assert(report.performancePass,'native world painting must cut PR180 frame/raster cost by 25 percent, avoid a scene regression, and fit the 30 Hz diagnostic frame budget');
     assert(report.pixelComparisons.every(row=>row.meanRGB<1),
       'one reflection blur and SVG preparation must preserve loaded production appearance within one mean RGB level');
   }finally{
@@ -975,4 +1021,4 @@ async function browser(){
     await fs.promises.rm(profile,{recursive:true,force:true,maxRetries:20,retryDelay:100});
   }
 }
-(async()=>{await unit();await backgroundRasterUnit();await nativeRasterUnit();await nativeSmallUnit();await nativeWindowUnit();await nativeTintUnit();budgetUnit();worldCopyUnit();if(process.argv.includes('--browser'))await browser();})().catch(e=>{console.error(e.stack);process.exitCode=1;});
+(async()=>{await unit();await backgroundRasterUnit();await nativeRasterUnit();await nativeSmallUnit();await nativeWindowUnit();await nativeTintUnit();budgetUnit();mirrorSourceUnit();worldCopyUnit();if(process.argv.includes('--browser'))await browser();})().catch(e=>{console.error(e.stack);process.exitCode=1;});

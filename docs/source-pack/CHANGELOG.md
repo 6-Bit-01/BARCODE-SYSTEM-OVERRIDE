@@ -1,4 +1,18 @@
-# Recovery checkpoint — September 14
+# Changelog
+
+## October 3, 2026 — verified detail stability, unpublished review
+
+The final curved-glass candidate kept native scale 1 in all 24 staged Chrome moving frames, plus four native camera/gear poses and three advancing native frames. All 228 artwork hashes match PR181. Bounded bitmap/native-quality groups, all-file syntax, loaded-art still review, unchanged bundled combat integration and the remaining blood/crew checks passed. The global Node 24.18 full npm invocation ended with a native access violation; its bundled Node 24.19 integration retry and tail passed separately, so that original invocation is not a full-suite pass.
+
+Chrome complete-draw diagnostic medians were 175.8/204.1 ms, including raster flush and startup. This confirms detail stability, but does not pass the formal 30 Hz chase/boss gates or establish device FPS. Makko still runs PR181. This is an unpublished local review; no push, PR, merge or source replacement has occurred. Keyboard controls were audited separately and remain unchanged.
+
+## October 3, 2026 — owner correction: native-quality candidate, unmerged
+
+- The owner rejects PR #181's coarse adaptive scenery. Restore an always-native 1920×1080 background, retain `renderBudget` only for diagnostics, and add neither silent low-detail rendering nor a new opt-in quality UI.
+- Retain lossless preparations, original-texel vehicle cels and bezel/face windows, prepared tint, equivalent culling and the single original `blur(2.3px)` mirror pass. Preserve the original curved mirror glass. Decouple native playing-frame opaque cropped mirror transport from downsampled-world eligibility; keep the reflection source hint at `1`.
+- Baseline main is merged PR #181, `fce367dd5e5e3a0a1ed9792d61fca960852f36f4`. Its downsampled performance evidence does not establish native candidate speed. An earlier native draft diagnostic, measured before the final curved-glass correction, held scale `1` but still showed slow frame medians; it does not establish final-candidate timing, and formal performance validation remains pending. Candidate full regression, all-file syntax, native-art review and unchanged browser 30 Hz/25% improvement/fidelity gates are pending, as are exact final-head validation/performance CI events. Publication state is defined by the generated receipt; local review only, no external push, PR or merge.
+
+## Historical PR #181 recovery checkpoint — September 14
 
 The native opaque rearview now uses the same bounded sRGB pixel transport for its cropped source before applying the original single 2.3px blur. The shared helper bounds each source at 129,600 pixels, preserves source/destination coordinates and the caller's filter/clip/composition, and closes the temporary frame in the same draw. Fading/scaled/native/unsupported/transparent callers retain the original Canvas source. Original-mirror comparison flags disable the new transport; complete production RGB/alpha checks and a cropped-blur browser probe retain their existing limits. The background-only predecessor still exceeded the boss limit on one runner (34.8 ms), so the new mirror path must pass every final-head gate.
 
@@ -8,7 +22,7 @@ The repeated 315-degree brake-reflection hue operation is now prepared once from
 
 The small functional preparation pool now reserves up to 1.5 Mi-pixels inside the unchanged 32 Mi-pixel native budget, with a 32 Ki-pixel eligibility threshold. Real source sizes showed the previous 512 Ki-pixel pool excluded the repeatedly drawn 116,000-pixel brake reflection after two pulse sheets filled it, while the 64,256-pixel exhaust fell just below its old threshold. The brake preparation retains its used 192×290 source rectangle plus two right-edge sampling texels (194×290), saving 59,740 unused pixels without resampling; outside-window callers retain the full original. Concurrent pending reservations, exact pool exhaustion, native source coordinates, failures and original fallback remain tested. This follows the 0b9cb882 candidate's failed live-boss medians of 33.7/35.1 ms; all 33.33 ms gates remain unchanged.
 
-## October 3, 2026 — continued lag repair after PR180 playtest
+## Historical October 3, 2026 — continued lag repair after PR180 playtest (PR #181)
 
 - Adaptively sample background scenery on the existing display Canvas, then retain native actors, feedback, timing cues, face and HUD. Bound the lowest background to 320×180 and restore detail after sustained spare capacity.
 - Prepare reusable background and native functional bitmaps outside draw work with fixed pixel reservations, atomic cel/window failure and original-image fallback. Preserve texels in vehicle cels and bezel/face windows; save 1,588,013 native pixels through the fixed windows.

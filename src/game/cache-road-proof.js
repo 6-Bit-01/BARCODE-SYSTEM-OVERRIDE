@@ -1140,7 +1140,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     glass.addColorStop(0, '#0e1b2d'); glass.addColorStop(.53, '#394a60');
     glass.addColorStop(1, '#10232e');
     ctx.fillStyle = glass; ctx.fillRect(x, y, w, h);
-    const priorRasterDetail=B.PresentationAssets?.setRasterDetail?.(ctx,boundedClip?.25:1)??1;
+    const priorRasterDetail=B.PresentationAssets?.setRasterDetail?.(ctx,1)??1;
     try {drawRearRoad(ctx,s,x,y,w,h,accent,reduced,heightSample,combatPose,crosswalkPose,opaqueBackdrop,pixelBudget);}
     finally {B.PresentationAssets?.setRasterDetail?.(ctx,priorRasterDetail);}
     // Cache sits on the driver's side. His eyes face the windshield
@@ -3599,7 +3599,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         this.renderBudget=budgetOwner.create();this.renderBudgetState=live;
       }
       if(budgetEligible){this.renderBudget.worldPixelCopyUsed=false;this.renderBudget.mirrorPixelCopyUsed=false;}
-      const worldScale=budgetEligible?this.renderBudget.scale:1;
+      // Native artwork quality is unconditional; the budget records cost only.
+      const worldScale=1;
       const assets=B.PresentationAssets;
       const priorRasterDetail=assets?.setRasterDetail?.(ctx,worldScale)??1;
       const priorDecorationDetail=assets?.setDecorationDetail?.(ctx,worldScale)??1;
@@ -5311,9 +5312,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       ctx.fillStyle='#bcebd3';ctx.font='bold 17px Oxanium, monospace';
       ctx.fillText(String(s.score).padStart(6,'0'),410,131,73);
       ctx.font='bold 12px Oxanium, monospace';ctx.fillText(`×${stackSize(s)}`,488,131,27);
-      drawRearview(ctx, s, ['#f6adbb', '#f3b276', '#d2a4f9', '#9aefce'][section], reduced,heightSample,combatPose,crosswalkPose,worldScale<1,
-        frameContext===ctx&&this.status==='playing'&&intro===null&&
-          (!cinema||cinema.hudAlpha===1)&&worldScale<1,budgetEligible?this.renderBudget:null);
+      const nativeMirror=budgetEligible&&frameContext===ctx&&
+        typeof window.HTMLCanvasElement==='function'&&ctx.canvas instanceof window.HTMLCanvasElement&&
+        this.status==='playing'&&intro===null&&(!cinema||cinema.hudAlpha===1);
+      drawRearview(ctx, s, ['#f6adbb', '#f3b276', '#d2a4f9', '#9aefce'][section], reduced,heightSample,combatPose,crosswalkPose,
+        false,nativeMirror,budgetEligible?this.renderBudget:null);
       ctx.fillStyle = '#e4ede5'; ctx.font = 'bold 18px Oxanium, monospace'; ctx.textAlign = 'left';
       // Preview the next lane/action before its bar is committed, without
       // inventing a deadline or sliding a future pad when the gear changes.

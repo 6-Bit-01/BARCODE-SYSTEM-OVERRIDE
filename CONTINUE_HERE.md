@@ -1,4 +1,20 @@
-# Continue here — Level 2 lag repair (PR #181)
+# Continue here — native-quality Level 2 repair
+
+## October 3, 2026 — verified detail stability, unpublished review
+
+The final curved-glass candidate kept native scale 1 in all 24 staged Chrome moving frames, plus four native camera/gear poses and three advancing native frames. All 228 artwork hashes match PR181. Bounded bitmap/native-quality groups, all-file syntax, loaded-art still review, unchanged bundled combat integration and the remaining blood/crew checks passed. The global Node 24.18 full npm invocation ended with a native access violation; its bundled Node 24.19 integration retry and tail passed separately, so that original invocation is not a full-suite pass.
+
+Chrome complete-draw diagnostic medians were 175.8/204.1 ms, including raster flush and startup. This confirms detail stability, but does not pass the formal 30 Hz chase/boss gates or establish device FPS. Makko still runs PR181. This is an unpublished local review; no push, PR, merge or source replacement has occurred. Keyboard controls were audited separately and remain unchanged.
+
+## October 3, 2026 — owner correction and next gates
+
+The owner rejects PR #181's coarse adaptive scenery. The local, unmerged candidate restores an always-native 1920×1080 background; `renderBudget` is diagnostic only. It introduces neither silent low-detail rendering nor a new opt-in quality UI. Keep lossless SVG preparation, original-texel vehicle cels and bezel/face windows, prepared tint, equivalent culling and the single original `blur(2.3px)` mirror pass. Preserve the original curved mirror glass. Native playing-frame opaque cropped mirror transport is independent of downsampled-world eligibility; the reflection source hint stays at `1`.
+
+Candidate validation is pending. Next run full `npm test`, `npm run check:syntax:all` and loaded native-art review, then the unchanged Chromium gates: chase, whole-boss and active undefeated boss medians at or below 33.33 ms (30 Hz), at least 80 live-boss samples, the 25% complete-frame/raster improvement gate against PR180 with no scene median regression above 10%, and all existing fidelity, source/cel/blur-order, pause, caller and viewport checks. Both exact final-head push/pull-request validation and performance events remain required for publication. Publication state is defined by the generated receipt; local review only, no external push, PR or merge.
+
+Current main baseline is merged PR #181, `fce367dd5e5e3a0a1ed9792d61fca960852f36f4`. Its earlier performance evidence used background downsampling and does not establish the native candidate's speed. An earlier native draft diagnostic, measured before the final curved-glass correction, held scale `1` but still showed slow frame medians; it does not establish final-candidate timing, and formal performance validation remains pending. Owner device FPS, controller, listening, comfort and fresh-race acceptance remain unrecorded.
+
+## Historical PR #181 implementation notes — superseded by the owner correction
 
 The native opaque rearview now uses the same bounded sRGB pixel transport for its cropped source before applying the original single 2.3px blur. The shared helper bounds each source at 129,600 pixels, preserves source/destination coordinates and the caller's filter/clip/composition, and closes the temporary frame in the same draw. Fading/scaled/native/unsupported/transparent callers retain the original Canvas source. Original-mirror comparison flags disable the new transport; complete production RGB/alpha checks and a cropped-blur browser probe retain their existing limits. The background-only predecessor still exceeded the boss limit on one runner (34.8 ms), so the new mirror path must pass every final-head gate.
 

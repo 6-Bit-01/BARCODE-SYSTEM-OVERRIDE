@@ -1,5 +1,28 @@
 # Acceptance and Test Status
 
+## October 3, 2026 — verified detail stability, unpublished review
+
+The final curved-glass candidate kept native scale 1 in all 24 staged Chrome moving frames, plus four native camera/gear poses and three advancing native frames. All 228 artwork hashes match PR181. Bounded bitmap/native-quality groups, all-file syntax, loaded-art still review, unchanged bundled combat integration and the remaining blood/crew checks passed. The global Node 24.18 full npm invocation ended with a native access violation; its bundled Node 24.19 integration retry and tail passed separately, so that original invocation is not a full-suite pass.
+
+Chrome complete-draw diagnostic medians were 175.8/204.1 ms, including raster flush and startup. This confirms detail stability, but does not pass the formal 30 Hz chase/boss gates or establish device FPS. Makko still runs PR181. This is an unpublished local review; no push, PR, merge or source replacement has occurred. Keyboard controls were audited separately and remain unchanged.
+
+## October 3, 2026 — native-quality candidate: validation pending
+
+The owner rejects PR #181's coarse adaptive scenery. The local, unmerged candidate must keep the entire background at native 1920×1080, with `renderBudget` diagnostic only and no silent low-detail path or new opt-in quality UI. Retain lossless preparations, native cels/windows, prepared tint, equivalent culling and the single original `blur(2.3px)` mirror pass. Check that the original curved mirror glass is preserved and native playing-frame opaque cropped mirror transport works independently of downsampled-world eligibility, with reflection source hint fixed at `1`.
+
+Required gates remain unchanged:
+
+- Full `npm test`, `npm run check:syntax:all` and loaded native-art review.
+- One production paint per shared RAF with raster completion and startup/reload frames included; independent chase, whole-boss and active undefeated playing-boss medians at or below 33.33 ms (30 Hz), with at least 80 live-boss samples.
+- The 25% aggregate complete-frame/raster improvement gate against PR180, no scene median regression above 10%, and all existing loaded-art RGB/alpha fidelity limits, strict native equality, source/cel/blur ordering, fallback, warm/paused reuse, caller-state and scaled-viewport checks.
+- Successful push and pull-request validation and Level 2 performance events on the exact final head before publication.
+
+Current main baseline is merged PR #181, `fce367dd5e5e3a0a1ed9792d61fca960852f36f4`. Earlier PR181 performance used downsampling and cannot establish native candidate speed. All candidate gates are pending. Publication state is defined by the generated receipt; local review only, no external push, PR or merge. Owner device FPS, controller, listening, comfort and a fresh race through opening, active rig combat, pause/reload and the earned ending remain separate acceptance evidence.
+
+A short visible Chrome diagnostic of an earlier native draft, measured before the final curved-glass correction, kept scale at `1`: Ready-ONE median 194.6 ms and Focused-Turn 212.3 ms over 24 frames including startup and raster completion. The prior coarse PR181 diagnostic measured 127.8/111.3 ms and reached scale `1/6` in four draws. This evidence covers two staged scenes and does not establish exact final-candidate timing, the whole-chase/boss gates or live device FPS. Formal native performance validation remains pending.
+
+## Historical PR #181 recovery notes — superseded by the owner correction
+
 The native opaque rearview now uses the same bounded sRGB pixel transport for its cropped source before applying the original single 2.3px blur. The shared helper bounds each source at 129,600 pixels, preserves source/destination coordinates and the caller's filter/clip/composition, and closes the temporary frame in the same draw. Fading/scaled/native/unsupported/transparent callers retain the original Canvas source. Original-mirror comparison flags disable the new transport; complete production RGB/alpha checks and a cropped-blur browser probe retain their existing limits. The background-only predecessor still exceeded the boss limit on one runner (34.8 ms), so the new mirror path must pass every final-head gate.
 
 The sampled-world expansion now reads only an opaque sRGB background of at most 480×270 pixels into a synchronous RGBA VideoFrame, draws it through the existing saved Canvas state and closes it immediately. This bounds the source transport while preserving the original destination, clip, transform and composition. No new Canvas, context, RAF, timer or media clock is created. Translucent, P3, larger, native and unsupported callers keep the original self-copy; failed APIs are not retried on every frame. Actual work stays inside the measured production draw. Original-source controls explicitly retain the old transport. Unit checks cover cleanup, bounds, source coordinates and fallback; browser probes require exact opaque/caller pixels and unchanged translucent fallback. The tinted-source predecessor d525a7a1 still failed boss medians at 34.6/35.5 ms, so it is not publication evidence. All existing gates remain unchanged.
@@ -8,7 +31,7 @@ The repeated 315-degree brake-reflection hue operation is now prepared once from
 
 The small functional preparation pool now reserves up to 1.5 Mi-pixels inside the unchanged 32 Mi-pixel native budget, with a 32 Ki-pixel eligibility threshold. Real source sizes showed the previous 512 Ki-pixel pool excluded the repeatedly drawn 116,000-pixel brake reflection after two pulse sheets filled it, while the 64,256-pixel exhaust fell just below its old threshold. The brake preparation retains its used 192×290 source rectangle plus two right-edge sampling texels (194×290), saving 59,740 unused pixels without resampling; outside-window callers retain the full original. Concurrent pending reservations, exact pool exhaustion, native source coordinates, failures and original fallback remain tested. This follows the 0b9cb882 candidate's failed live-boss medians of 33.7/35.1 ms; all 33.33 ms gates remain unchanged.
 
-## October 3 — continued lag repair verification (PR #181)
+## Historical October 3 — continued lag repair verification (PR #181)
 
 The exact tested revision is recorded in GitHub CI and the generated source-pack receipt. Before merge, require full `npm test`, `npm run check:syntax:all`, native loaded-art review and successful push and pull-request runs of both validation and Level 2 performance on the final head. Retain the actual merged tree in the exported manifest.
 
