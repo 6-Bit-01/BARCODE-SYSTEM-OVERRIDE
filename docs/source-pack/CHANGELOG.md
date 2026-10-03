@@ -13,7 +13,9 @@
   foreground/HUD sources and graceful preparation fallback.
 - Prepare native functional raster sheets once without resampling, with a
   separate 32-megapixel reservation cap and original-image fallback.
-- Check chase/boss frames early and retain draw/update/raster-flush breakdowns.
+- Check chase/boss frames early, gate their medians separately and retain
+  draw/update/raster-flush and staged earned-boss phase breakdowns.
+- Bound native foreground blends to the display without shortening exits.
 - Bound reflection clipping with the original bezel painted once.
 - Preserve the original mirror blur, sampler/caller state, canonical art,
   projection, foreground exits, rules, deadlines, music, controls and saves.

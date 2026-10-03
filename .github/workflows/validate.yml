@@ -18,6 +18,12 @@ jobs:
         env:
           CHROME_BIN: /usr/bin/google-chrome
         run: npm run check:cache-road-browser
+      - name: Check combat chase in real Chromium
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+          CACHE_COMBAT_BROWSER_OUTPUT: ${{ runner.temp }}/cache-combat-browser
+          CACHE_COMBAT_BROWSER_REQUIRE_HOSTED: '1'
+        run: npm run check:cache-combat-browser
       - run: npm test
       - run: npm run check:syntax:all
       - name: Check music automation in real Chromium
@@ -102,12 +108,6 @@ jobs:
           CHROME_BIN: /usr/bin/google-chrome
           CACHE_ENCOUNTERS_BROWSER_OUTPUT: ${{ runner.temp }}/cache-encounters-browser
         run: npm run check:cache-encounters-browser
-      - name: Check combat chase in real Chromium
-        env:
-          CHROME_BIN: /usr/bin/google-chrome
-          CACHE_COMBAT_BROWSER_OUTPUT: ${{ runner.temp }}/cache-combat-browser
-          CACHE_COMBAT_BROWSER_REQUIRE_HOSTED: '1'
-        run: npm run check:cache-combat-browser
       - name: Upload combat chase browser evidence
         if: always()
         uses: actions/upload-artifact@v4

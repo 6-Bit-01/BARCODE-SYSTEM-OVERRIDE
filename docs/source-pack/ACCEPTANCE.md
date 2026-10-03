@@ -17,6 +17,14 @@ Review loaded adaptive output including
 the lowest background detail; visible driving cues must remain readable.
 
 
+
+The remaining failure was concentrated in boss drawing, not updates. The
+display clip now also bounds native foreground blends without shortening
+foreground exits. Require chase and boss medians separately within 33.33 ms;
+an aggregate median cannot hide a slower boss. Untimed phase readbacks use an
+explicitly staged copy of an earned live-boss snapshot and restore the actual
+state afterward. Both workflows check the full chase before longer work.
+
 Functional raster atlases can also prepare one unscaled ImageBitmap outside
 drawing, capped separately at 32 megapixels including pending reservations.
 The native cache keeps source/crop geometry and detail; rejection, mismatch

@@ -269,7 +269,7 @@ BARCODE.CacheRoadProof.update=function(...args){browserProof.roadUpdates++;const
   try{return originalUpdate.apply(this,args);}finally{browserProof.updateCostMs=performance.now()-begin;}};
 browserProof.renderedSamples=0;browserProof.drawNext=false;browserProof.drawReasons=[];
 browserProof.fullLoopCosts=[];browserProof.bossPaintFrames=0;browserProof.measureLoop=false;
-browserProof.displayCostMs=0;
+browserProof.displayCostMs=0;browserProof.phaseSnapshot=null;
 BARCODE.CacheRoadProof.draw=function(...args){if(!browserProof.drawNext)return;
   browserProof.drawNext=false;browserProof.renderedSamples++;const begin=performance.now();
   // The controlled RAF clock preserves song/input deadlines. Supply the
@@ -301,6 +301,8 @@ browserProof.step=ms=>{for(let left=ms;left>0;){const dt=Math.min(20,left);left-
       frameIntervalMs:BARCODE.CacheRoadProof.renderFrameIntervalMs,
       previousDisplayCostMs:browserProof.displayCostMs});
     browserProof.displayCostMs=costMs;browserProof.measureLoop=false;
+    if(browserProof.bossPaintFrames===40&&!browserProof.phaseSnapshot)
+      browserProof.phaseSnapshot={state:copy(BARCODE.CacheRoadProof.state),chapter:copy(BARCODE.CacheRoadProof.chapter)};
   }}};
 browserProof.release=()=>{for(const button of browserProof.pad.buttons){button.pressed=false;button.value=0;button.touched=false;}
   browserProof.pad.axes=[0,0];};
@@ -406,6 +408,15 @@ const server=http.createServer((req,res)=>{
     res.writeHead(404);res.end();return;}
   res.writeHead(200,{'Content-Type':{'.js':'text/javascript','.ttf':'font/ttf','.webp':'image/webp',
     '.png':'image/png','.svg':'image/svg+xml','.json':'application/json'}[path.extname(file)]||'application/octet-stream'});
+
+  if(pathname==='/src/game/cache-road-proof.js'){
+    let source=fs.readFileSync(file,'utf8');
+    for(const [marker,label]of [["      const live=this.state,cinema=this.cinematicPose();","begin"],["      // One opaque landscape continues beneath every roadside location.","sky"],["      // Neighboring strips sample adjacent rows of one world-fixed material.","city"],["      const groundCrest=Array.from({length:65},(_,i)=>[i*30,cityCrestY(i*30)]);","world-preparation"],["      // Road shoulders and the paint share a single curved road projection.","terrain"],["      const roadFog=ctx.createLinearGradient(0,horizon,0,horizon+170);","asphalt"],["      // Phrase paint is a road marking, not a second translucent lane overlay.","street-objects"],["      const boss=s.combat?combatPose.boss:B.CacheRoadPursuit?.boss?.(s.pursuit,{progress});","beat-and-traffic"],["      ctx.restore(); // world camera","vehicles-and-fx"],["      // A compact VFD instrument cluster leaves the original mirror and","atmosphere"],["    const far = profile(progress-reach);","mirror-start"],["    if(compositeBlur) {","mirror-scene"],["    // Only reflected scenery gets softened.","mirror-blur"],["      drawRearview(ctx, s,","dashboard"]]){
+      assert(source.includes(marker),'production phase boundary '+label);
+      source=source.replace(marker,"window.canvasCostMark?.("+JSON.stringify(label)+");\n"+marker);
+    }
+    res.end(source);return;
+  }
   fs.createReadStream(file).pipe(res);
 });
 const profile=fs.mkdtempSync(path.join(os.tmpdir(),'barcode-combat-chrome-'));
@@ -725,6 +736,36 @@ async function main(){
         drawMs:median(rows.map(frame=>frame.drawMs)),updateMs:median(rows.map(frame=>frame.updateMs)),
         flushMs:median(rows.map(frame=>frame.flushMs))};})));
   fs.writeFileSync(path.join(output,'Sustained-Frame-Cost.json'),JSON.stringify(fullLoopTiming,null,2)+'\n');
+
+  const phaseCost=await evaluate(`(()=>{
+    const road=BARCODE.CacheRoadProof,snapshot=browserProof.phaseSnapshot;
+    if(!snapshot)return {available:false};
+    const saved={state:road.state,chapter:road.chapter,budget:road.renderBudget,
+      budgetState:road.renderBudgetState,interval:road.renderFrameIntervalMs};
+    const rows=[],ctx=renderer.ctx;let phaseStart=0;
+    try{
+      road.state=copy(snapshot.state);road.chapter=copy(snapshot.chapter);
+      road.renderBudget=BARCODE.CacheRoadRenderBudget.create();road.renderBudget.scale=1/6;
+      road.renderBudgetState=road.state;road.renderFrameIntervalMs=0;
+      ctx.reset();ctx.imageSmoothingQuality='high';ctx.getImageData(0,0,1,1);
+      window.canvasCostMark=phase=>{
+        const submitted=performance.now();ctx.getImageData(0,0,1,1);const now=performance.now();
+        if(phase!=='begin')rows.push({phase,submitMs:submitted-phaseStart,flushMs:now-submitted,totalMs:now-phaseStart});
+        phaseStart=now;
+      };
+      originalRoadDraw.call(road,ctx);window.canvasCostMark('hud-complete');
+      return {available:true,fixture:true,bar:road.state.musicBeatFloat/4,bossHP:road.state.combat.boss.hp,rows};
+    }finally{
+      window.canvasCostMark=undefined;road.state=saved.state;road.chapter=saved.chapter;
+      road.renderBudget=saved.budget;road.renderBudgetState=saved.budgetState;road.renderFrameIntervalMs=saved.interval;
+    }
+  })()`);
+  console.log('BOSS_RENDER_PHASES '+JSON.stringify(phaseCost));
+  fs.writeFileSync(path.join(output,'Boss-Render-Phases.json'),JSON.stringify(phaseCost,null,2)+'\n');
+  const phaseMedians=Object.fromEntries([false,true].map(boss=>{const rows=fullLoopCosts.filter(frame=>frame.boss===boss);
+    return [boss?'boss':'chase',median(rows.map(frame=>frame.ms))];}));
+  console.log('SUSTAINED_PHASE_MEDIANS '+JSON.stringify(phaseMedians));
+  assert(Object.values(phaseMedians).every(ms=>ms<=1000/30),'each chase and live-boss phase must fit the 30 Hz diagnostic median budget');
   assert(fullLoopTiming.medianMs<=1000/30,'consecutive production chase/boss frames must fit the 30 Hz diagnostic median budget');
   assert.deepEqual(errors,[],'native browser raises no uncaught production exceptions');assert.equal(requests.head,0);
   if(requireHosted)assert.deepEqual(requests.localCombat,[],'new combat/feedback art never silently falls back to bundled paths');

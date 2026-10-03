@@ -3602,7 +3602,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           sourceRect});
         ctx.restore();
       };
-      ctx.save(); ctx.setTransform(worldScale, 0, 0, worldScale, 0, 0);
+      ctx.save();ctx.setTransform(1,0,0,1,0,0);
+      // Keep native foreground blends inside the display as well as the
+      // sampled background. Foreground exits retain their complete projection.
+      ctx.beginPath();ctx.rect(0,0,1920,1080);ctx.clip();
+      ctx.setTransform(worldScale,0,0,worldScale,0,0);
       // Level 1's clear() requests high-quality image resampling. The road
       // submits hundreds of projected/cropped textures on that same context;
       // use its fast bilinear sampler here and restore the caller afterward.

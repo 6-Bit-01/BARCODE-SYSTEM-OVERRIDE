@@ -33,7 +33,6 @@ jobs:
           CACHE_COMBAT_BROWSER_REQUIRE_HOSTED: '1'
         run: npm run check:cache-combat-browser
       - name: Check immutable bitmap preparation and real Chromium reuse
-        if: success() || failure()
         env:
           CHROME_BIN: /usr/bin/google-chrome
           BITMAP_FRAME_REPORT: ${{ runner.temp }}/level2-frame-review/browser-performance.json
