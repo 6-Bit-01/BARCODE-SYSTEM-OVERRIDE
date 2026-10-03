@@ -269,7 +269,7 @@ BARCODE.CacheRoadProof.update=function(...args){browserProof.roadUpdates++;const
   try{return originalUpdate.apply(this,args);}finally{browserProof.updateCostMs=performance.now()-begin;}};
 browserProof.renderedSamples=0;browserProof.drawNext=false;browserProof.drawReasons=[];
 browserProof.fullLoopCosts=[];browserProof.bossPaintFrames=0;browserProof.measureLoop=false;
-browserProof.displayCostMs=0;browserProof.phaseSnapshot=null;browserProof.frameDraws=0;
+browserProof.displayCostMs=0;browserProof.phaseSnapshot=null;browserProof.frameDraws=0;browserProof.paintPhases=[];
 BARCODE.CacheRoadProof.draw=function(...args){if(!browserProof.drawNext)return;
   browserProof.drawNext=false;browserProof.renderedSamples++;browserProof.frameDraws++;const begin=performance.now();
   // The controlled RAF clock preserves song/input deadlines. Supply the
@@ -277,7 +277,8 @@ BARCODE.CacheRoadProof.draw=function(...args){if(!browserProof.drawNext)return;
   // intervals expose queued raster work on the following display frame.
   if(browserProof.measureLoop)this.renderFrameIntervalMs=Math.max(
     this.renderFrameIntervalMs||0,browserProof.displayCostMs);
-  try{return originalRoadDraw.apply(this,args);}finally{browserProof.drawCosts.push(performance.now()-begin);}};
+  try{return originalRoadDraw.apply(this,args);}finally{if(browserProof.measureLoop)window.canvasCostMark?.('hud-complete');
+    browserProof.drawCosts.push(performance.now()-begin);}};
 const originalGuidance=BARCODE.CacheRoadGuidance;
 BARCODE.CacheRoadGuidance={...originalGuidance,draw(...args){
   browserProof.guidanceCalls++;return originalGuidance.draw.apply(originalGuidance,args);}};
@@ -294,6 +295,9 @@ browserProof.step=ms=>{for(let left=ms;left>0;){const dt=Math.min(20,left);left-
     nativeReady:cacheStates.filter(state=>state.nativeBitmap||state.nativeFrames).length,
     backgroundPending:cacheStates.filter(state=>state.rasterPending).length,
     backgroundReady:cacheStates.filter(state=>state.rasterBitmap).length}:null;
+  browserProof.paintPhases=[];let paintPhaseStarted=0;
+  if(measured)window.canvasCostMark=phase=>{const now=performance.now();
+    if(phase!=='begin')browserProof.paintPhases.push({phase,ms:now-paintPhaseStarted});paintPhaseStarted=now;};
   const begin=performance.now();
   gameLoop(browserProof.clock);
   if(measured){
@@ -302,6 +306,7 @@ browserProof.step=ms=>{for(let left=ms;left>0;){const dt=Math.min(20,left);left-
     if(browserProof.frameDraws!==1)throw Error('Measured shared RAF must paint exactly one production frame');
     browserProof.fullLoopCosts.push({ms:costMs,submitMs:submitted-begin,displayDraws:browserProof.frameDraws,preparation,
       drawMs:browserProof.drawCosts.at(-1),updateMs:browserProof.updateCostMs,
+      paintPhases:browserProof.paintPhases,
       flushMs:costMs-(submitted-begin),
       bar:BARCODE.CacheRoadProof.state.musicBeatFloat/4,
       gear:BARCODE.CacheRoadProof.state.gear,boss:!!BARCODE.CacheRoadProof.state.combat?.boss,
@@ -309,6 +314,7 @@ browserProof.step=ms=>{for(let left=ms;left>0;){const dt=Math.min(20,left);left-
       worldScale:BARCODE.CacheRoadProof.renderBudget?.drawnScale??1,
       frameIntervalMs:BARCODE.CacheRoadProof.renderFrameIntervalMs,
       previousDisplayCostMs:browserProof.displayCostMs});
+    window.canvasCostMark=undefined;
     browserProof.displayCostMs=costMs;browserProof.measureLoop=false;
     if(browserProof.bossPaintFrames>=30&&BARCODE.CacheRoadProof.status==='playing'&&
         BARCODE.CacheRoadProof.state.combat?.boss?.hp>0&&
@@ -450,6 +456,9 @@ const server=http.createServer((req,res)=>{
     assert(source.includes(clearBoundary)&&source.includes(copyBoundary),'opaque world-copy fidelity boundaries');
     source=source.replace(clearBoundary,'if(worldScale<1&&!window.forceLegacyWorldCopy)ctx.clearRect(0,0,1920,1080);');
     source=source.replace(copyBoundary,"ctx.globalAlpha=1;ctx.globalCompositeOperation=window.forceLegacyWorldCopy?'source-over':'copy';ctx.filter='none';");
+    const mirrorBoundary="ctx.globalCompositeOperation=opaqueNative?'source-over':'copy';";
+    assert(source.includes(mirrorBoundary),'opaque mirror-copy fidelity boundary');
+    source=source.replace(mirrorBoundary,"ctx.globalCompositeOperation=opaqueNative&&!window.forceMirrorCopy?'source-over':'copy';");
     const terrainBoundary='if(terrainBelowCrest) {';
     assert(source.includes(terrainBoundary),'terrain crest mask fidelity boundary');
     source=source.replace(terrainBoundary,'if(terrainBelowCrest&&!window.forceCrestMask) {');
@@ -778,6 +787,11 @@ async function main(){
       const rows=fullLoopCosts.filter(frame=>JSON.stringify(frame.preparation)===key);
       return {preparation:JSON.parse(key),frames:rows.length,bossFrames:rows.filter(frame=>frame.boss).length,
         medianMs:median(rows.map(frame=>frame.ms))};})));
+  console.log('SUSTAINED_PAINT_PHASES '+JSON.stringify([false,true].map(boss=>{
+    const frames=fullLoopCosts.filter(frame=>frame.boss===boss&&frame.worldScale===1/6);
+    return {group:boss?'boss':'chase',frames:frames.length,
+      phases:[...new Set(frames.flatMap(frame=>frame.paintPhases.map(row=>row.phase)))].map(phase=>({phase,
+        medianMs:median(frames.map(frame=>frame.paintPhases.find(row=>row.phase===phase)?.ms).filter(Number.isFinite))}))};})));
   fs.writeFileSync(path.join(output,'Sustained-Frame-Cost.json'),JSON.stringify(fullLoopTiming,null,2)+'\n');
 
   const phaseCost=await evaluate(`(()=>{
@@ -819,7 +833,7 @@ async function main(){
       originalRoadDraw.call(road,ctx);window.canvasCostMark('hud-complete');
       const reviewWebp=ctx.canvas.toDataURL('image/webp',.9).split(',')[1];
       const optimizedPixels=ctx.getImageData(0,0,ctx.canvas.width,ctx.canvas.height).data;
-      window.canvasCostMark=undefined;window.forceCrestMask=true;window.forceLegacyWorldCopy=true;
+      window.canvasCostMark=undefined;window.forceCrestMask=true;window.forceLegacyWorldCopy=true;window.forceMirrorCopy=true;
       originalRoadDraw.call(road,ctx);
       const referencePixels=ctx.getImageData(0,0,ctx.canvas.width,ctx.canvas.height).data;
       let difference=0,maxChannelDifference=0,maxAlphaDifference=0;
@@ -829,7 +843,7 @@ async function main(){
         else {difference+=delta;maxChannelDifference=Math.max(maxChannelDifference,delta);}
       }
       const renderFidelity={meanRGB:difference/(optimizedPixels.length/4*3),maxChannelDifference,maxAlphaDifference};
-      window.forceCrestMask=undefined;window.forceLegacyWorldCopy=undefined;
+      window.forceCrestMask=undefined;window.forceLegacyWorldCopy=undefined;window.forceMirrorCopy=undefined;
       const unflushed=[];let last=performance.now();
       window.canvasCostMark=phase=>{const now=performance.now();if(phase!=='begin')unflushed.push({phase,ms:now-last});last=now;};
       const start=performance.now();originalRoadDraw.call(road,ctx);window.canvasCostMark('hud-complete');
@@ -843,7 +857,7 @@ async function main(){
             state.nativeFrames.reduce((sum,bitmap)=>sum+bitmap.width*bitmap.height,0)})),
         reviewWebp};
     }finally{
-      window.canvasCostMark=undefined;window.forceCrestMask=undefined;window.forceLegacyWorldCopy=undefined;P.draw=assetDraw;
+      window.canvasCostMark=undefined;window.forceCrestMask=undefined;window.forceLegacyWorldCopy=undefined;window.forceMirrorCopy=undefined;P.draw=assetDraw;
       for(const name of methods)ctx[name]=originals[name];
       road.state=saved.state;road.chapter=saved.chapter;Object.assign(road,saved.host);
       road.renderBudget=saved.budget;road.renderBudgetState=saved.budgetState;road.renderFrameIntervalMs=saved.interval;

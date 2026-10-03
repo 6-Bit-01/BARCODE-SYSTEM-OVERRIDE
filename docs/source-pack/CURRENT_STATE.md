@@ -1,5 +1,7 @@
 # Current State
 
+A native opaque playing frame now composites the original 2.3px rearview blur with source-over; it matches copy on the opaque backdrop and retains copy for scaled/fading callers. Chromium compares RGB and alpha against the original copy path. Live shared-loop samples also record phase submission costs without extra paint or readbacks; the chase, whole-boss and undefeated playing-boss budgets remain unchanged. The previous background sampler candidate still failed the live-boss gate at 45.7 ms and is not publication evidence.
+
 ## October 3 — continued Level 2 lag repair (PR #181)
 
 At quarter or lower world detail, background source sampling uses nearest

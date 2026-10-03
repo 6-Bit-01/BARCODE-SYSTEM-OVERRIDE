@@ -1,6 +1,8 @@
 # Recovery checkpoint — September 14
 ## October 3, 2026 — continued lag repair after PR180 playtest
 
+A native opaque playing frame now composites the original 2.3px rearview blur with source-over; it matches copy on the opaque backdrop and retains copy for scaled/fading callers. Chromium compares RGB and alpha against the original copy path. Live shared-loop samples also record phase submission costs without extra paint or readbacks; the chase, whole-boss and undefeated playing-boss budgets remain unchanged. The previous background sampler candidate still failed the live-boss gate at 45.7 ms and is not publication evidence.
+
 At quarter or lower world detail, background source sampling uses nearest
 texels within its reduced footprint. This also applies to softly blurred
 background sources in the rearview, with its native projection and original

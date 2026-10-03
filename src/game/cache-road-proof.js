@@ -705,7 +705,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     return a.x+reach>=x-blurPadding&&a.x-reach<=x+w+blurPadding&&
       a.y+a.height*.24>=y-blurPadding&&a.y-a.height*1.02<=y+h+blurPadding;
   }
-  function drawRearRoad(ctx, s, x, y, w, h, accent, reduced, heightSample=LANDSCAPE.height, combatPose, crosswalkPose) {
+  function drawRearRoad(ctx, s, x, y, w, h, accent, reduced, heightSample=LANDSCAPE.height, combatPose, crosswalkPose, opaqueBackdrop=false) {
     const progress = s.progress, reach = 440, horizon = y + 47, floor = y + h + 4;
     const profile = at => {
       const distance = clamp(progress - at, 0, reach);
@@ -1029,7 +1029,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const bottom=clamp(Math.ceil(Math.max(...ys))+12,0,ctx.canvas.height);
       if(right>sx&&bottom>sy) {
         ctx.save();ctx.setTransform(1,0,0,1,0,0);
-        ctx.globalAlpha=1;ctx.globalCompositeOperation='copy';
+        ctx.globalAlpha=1;
+        // A native, opaque playing frame already supplies every backdrop
+        // sample inside the glass. Source-over then matches copy, avoiding
+        // its full-display replacement surface; scaled/fading callers retain copy.
+        const opaqueNative=opaqueBackdrop&&m.a===1&&m.b===0&&m.c===0&&
+          m.d===1&&m.e===0&&m.f===0;
+        ctx.globalCompositeOperation=opaqueNative?'source-over':'copy';
         ctx.filter = 'blur(2.3px)';
         // Canvas self-draw snapshots the source before writing. Device-space
         // coordinates preserve resized/letterboxed viewport transforms.
@@ -1042,7 +1048,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   }
 
   // One piece of glass contains both the passing road and Cache's eyes.
-  function drawRearview(ctx, s, accent, reduced, heightSample=LANDSCAPE.height, combatPose, crosswalkPose, boundedClip=false) {
+  function drawRearview(ctx, s, accent, reduced, heightSample=LANDSCAPE.height, combatPose, crosswalkPose, boundedClip=false, opaqueBackdrop=false) {
     const x = 638, y = 12, w = 690, h = 117;
     const expression = mirrorExpression(s);
     const edge = expression === 4 ? '#ff7c89' : expression === 5 ? '#f7b376' :
@@ -1063,7 +1069,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     glass.addColorStop(1, '#10232e');
     ctx.fillStyle = glass; ctx.fillRect(x, y, w, h);
     const priorRasterDetail=B.PresentationAssets?.setRasterDetail?.(ctx,boundedClip?.25:1)??1;
-    try {drawRearRoad(ctx,s,x,y,w,h,accent,reduced,heightSample,combatPose,crosswalkPose);}
+    try {drawRearRoad(ctx,s,x,y,w,h,accent,reduced,heightSample,combatPose,crosswalkPose,opaqueBackdrop);}
     finally {B.PresentationAssets?.setRasterDetail?.(ctx,priorRasterDetail);}
     // Cache sits on the driver's side. His eyes face the windshield
     // for ordinary driving; only the impact cell glances across the mirror.
@@ -5213,7 +5219,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       ctx.fillStyle='#bcebd3';ctx.font='bold 17px Oxanium, monospace';
       ctx.fillText(String(s.score).padStart(6,'0'),410,131,73);
       ctx.font='bold 12px Oxanium, monospace';ctx.fillText(`×${stackSize(s)}`,488,131,27);
-      drawRearview(ctx, s, ['#f6adbb', '#f3b276', '#d2a4f9', '#9aefce'][section], reduced,heightSample,combatPose,crosswalkPose,worldScale<1);
+      drawRearview(ctx, s, ['#f6adbb', '#f3b276', '#d2a4f9', '#9aefce'][section], reduced,heightSample,combatPose,crosswalkPose,worldScale<1,
+        frameContext===ctx&&this.status==='playing'&&intro===null&&
+          (!cinema||cinema.hudAlpha===1)&&worldScale<1);
       ctx.fillStyle = '#e4ede5'; ctx.font = 'bold 18px Oxanium, monospace'; ctx.textAlign = 'left';
       // Preview the next lane/action before its bar is committed, without
       // inventing a deadline or sliding a future pad when the gear changes.
