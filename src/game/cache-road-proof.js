@@ -3576,6 +3576,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.restore();
       };
       ctx.save(); ctx.setTransform(worldScale, 0, 0, worldScale, 0, 0);
+      // Level 1's clear() requests high-quality image resampling. The road
+      // submits hundreds of projected/cropped textures on that same context;
+      // use its fast bilinear sampler here and restore the caller afterward.
+      ctx.imageSmoothingQuality='low';
       if(worldScale<1) {
         // Keep every world blend/filter inside the sampled source footprint.
         // A scaled transform alone still rasterizes off-crop paint and leaves

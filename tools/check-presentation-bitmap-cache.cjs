@@ -116,6 +116,9 @@ async function browser(){
       assert(road.includes('const budgetEligible=!!budgetOwner'));
       road=road.replace('const budgetEligible=!!budgetOwner',
         "const budgetEligible=window.bitmapReview.mode==='adaptive'&&!window.bitmapReview.fullQuality&&!!budgetOwner");
+      assert(road.includes("ctx.imageSmoothingQuality='low';"));
+      road=road.replace("ctx.imageSmoothingQuality='low';",
+        "if(window.bitmapReview.mode==='adaptive')ctx.imageSmoothingQuality='low';");
       for(const [marker,label]of [["      const live=this.state,cinema=this.cinematicPose();","begin"],["      // One opaque landscape continues beneath every roadside location.","sky"],["      // Neighboring strips sample adjacent rows of one world-fixed material.","city"],["      const groundCrest=Array.from({length:65},(_,i)=>[i*30,cityCrestY(i*30)]);","world-preparation"],["      // Road shoulders and the paint share a single curved road projection.","terrain"],["      const roadFog=ctx.createLinearGradient(0,horizon,0,horizon+170);","asphalt"],["      // Phrase paint is a road marking, not a second translucent lane overlay.","street-objects"],["      const boss=s.combat?combatPose.boss:B.CacheRoadPursuit?.boss?.(s.pursuit,{progress});","beat-and-traffic"],["      ctx.restore(); // world camera","vehicles-and-fx"],["      // A compact VFD instrument cluster leaves the original mirror and","atmosphere"],["    const far = profile(progress-reach);","mirror-start"],["    if(compositeBlur) {","mirror-scene"],["    // Only reflected scenery gets softened.","mirror-blur"],["      drawRearview(ctx, s, ['#f6adbb', '#f3b276', '#d2a4f9', '#9aefce'][section], reduced,heightSample,combatPose,crosswalkPose);","dashboard"]]) {
         assert(road.includes(marker),'phase marker '+label);
         road=road.replace(marker,"window.canvasCostMark?.("+JSON.stringify(label)+");\n"+marker);
@@ -208,7 +211,7 @@ async function browser(){
         BARCODE.Preferences.values.reducedMotion=scene.name==='Reduced';
         const samples=[];
         for(let frame=0;frame<14;frame++) {
-          ctx.reset();measuredGroups={};reflectionBlurs=0;
+          ctx.reset();ctx.imageSmoothingQuality='high';measuredGroups={};reflectionBlurs=0;
           const stateBefore=JSON.stringify(road.state),began=performance.now();
           road.draw(ctx);const submitted=performance.now();ctx.getImageData(0,0,1,1);
           const elapsed=performance.now()-began;
@@ -216,6 +219,7 @@ async function browser(){
             submitMs:submitted-began,flushMs:performance.now()-submitted,
             groups:Object.fromEntries(Object.entries(measuredGroups).filter(([key,value])=>value>1))}));
           if(JSON.stringify(road.state)!==stateBefore)throw Error('A measured draw changed gameplay');
+          if(ctx.imageSmoothingQuality!=='high')throw Error('road draw leaked its sampling quality');
           if(reflectionBlurs!==(mode==='vector'?0:1))throw Error('reflection blur was repeated or lost');
           if(frame>=6)samples.push(elapsed);
           if(frame===8) {
