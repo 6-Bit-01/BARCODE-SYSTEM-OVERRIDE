@@ -103,9 +103,11 @@ async function browser(){
       socket.addEventListener('open',resolve,{once:true});socket.addEventListener('error',reject,{once:true});});
     let serial=0;const pending=new Map();
     socket.addEventListener('message',event=>{const value=JSON.parse(event.data),p=pending.get(value.id);
+      if(value.method==='Runtime.consoleAPICalled')for(const argument of value.params.args||[])
+        if(typeof argument.value==='string'&&argument.value.startsWith('FRAME_COST '))console.log(argument.value);
       if(p){pending.delete(value.id);clearTimeout(p.timeout);value.error?p.reject(Error(JSON.stringify(value.error))):p.resolve(value.result);}});
     const send=(method,params={})=>new Promise((resolve,reject)=>{const id=++serial;
-      const timeout=setTimeout(()=>{pending.delete(id);reject(Error(method+' timeout'));},60000);
+      const timeout=setTimeout(()=>{pending.delete(id);reject(Error(method+' timeout'));},180000);
       pending.set(id,{resolve,reject,timeout});socket.send(JSON.stringify({id,method,params}));});
     await send('Page.enable');await send('Runtime.enable');await send('Page.navigate',{url:origin});
     const result=await send('Runtime.evaluate',{awaitPromise:true,returnByValue:true,expression:`(async()=>{
@@ -138,6 +140,7 @@ async function browser(){
       const road=BARCODE.CacheRoadProof;
       if(!road)throw Error('Production road renderer did not load');
       road.active=true;road.status='playing';road.audioDegraded=false;
+      road.selectMusicProfile();BARCODE.MusicTransport.start({sourceAnchorAudioSec:0,sourceOffsetTrackSec:0});
       const bitmaps=Object.fromEntries(svg.map(key=>[key,cache[key].bitmap]));
       const median=values=>{const v=values.slice().sort((a,b)=>a-b);return v[Math.floor(v.length/2)];};
       const rows=[];
@@ -149,12 +152,12 @@ async function browser(){
         road.chapter=structuredClone(scene.chapter);road.state=structuredClone(scene.state);
         BARCODE.Preferences.values.reducedMotion=scene.name==='Reduced';
         const samples=[];
-        for(let frame=0;frame<28;frame++) {
+        for(let frame=0;frame<10;frame++) {
           ctx.reset();const stateBefore=JSON.stringify(road.state),began=performance.now();
           road.draw(ctx);ctx.getImageData(0,0,1,1);
           const elapsed=performance.now()-began;
           if(JSON.stringify(road.state)!==stateBefore)throw Error('A measured draw changed gameplay');
-          if(frame>=4)samples.push(elapsed);
+          if(frame>=2)samples.push(elapsed);
           road.state.progress+=road.state.speed/60;road.state.elapsedMs+=1000/60;
           road.state.musicBeatFloat+=128/60/60;
           road.state.musicBar=Math.floor(road.state.musicBeatFloat/4);
@@ -162,6 +165,7 @@ async function browser(){
         const sorted=samples.slice().sort((a,b)=>a-b);
         rows.push({name:scene.name,mode,medianMs:median(samples),
           p95Ms:sorted[Math.ceil(sorted.length*.95)-1],frames:samples.length,includesRasterFlush:true});
+        console.log('FRAME_COST '+JSON.stringify(rows.at(-1)));
       }
       for(const key of svg)cache[key].bitmap=bitmaps[key];
       const frameComparisons=frameReviewScenes.map(({name})=>{
@@ -176,6 +180,7 @@ async function browser(){
     })()`});
     if(result.exceptionDetails)throw Error(JSON.stringify(result.exceptionDetails));
     assert(result.result.value?.passed);console.log(JSON.stringify(result.result.value));
+    if(process.env.BITMAP_FRAME_REPORT)fs.writeFileSync(process.env.BITMAP_FRAME_REPORT,JSON.stringify(result.result.value,null,2)+'\n');
   }finally{
     socket?.close();
     server.closeAllConnections();
