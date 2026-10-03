@@ -1501,7 +1501,23 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const light = kind === 'cache' ? braking ? .76 : hit ? .56 : .11 :
           kind === 'shuttle' ? .34 : kind === 'freight' ? .23 : .16;
         ctx.save();ctx.globalAlpha*=light;
-        if(kind==='trike'||kind==='audit')ctx.filter='hue-rotate(315deg)';
+        const tintedReflection=kind==='trike'||kind==='audit';
+        if(tintedReflection) {
+          // Hue rotation is pointwise: it cannot paint beyond these source
+          // rectangles. Bound its filter layer to the original reflections,
+          // with a margin outside their antialiased edges, instead of the
+          // whole display/glass inherited by each miniature traffic painter.
+          const bounds=lamps.map(lamp=>{
+            const lampX=jolt+lamp.x*Math.cos(roll)-lamp.y*Math.sin(roll);
+            const width=lamp.width*2.8,height=h*(.66+(1-lamp.v)*.75);
+            return {left:lampX-width/2,right:lampX+width/2,bottom:-h*.22+height};
+          });
+          const left=Math.min(...bounds.map(bound=>bound.left))-2;
+          const right=Math.max(...bounds.map(bound=>bound.right))+2;
+          const top=-h*.22-2,bottom=Math.max(...bounds.map(bound=>bound.bottom))+2;
+          ctx.beginPath();ctx.rect(left,top,right-left,bottom-top);ctx.clip();
+        }
+        if(tintedReflection)ctx.filter='hue-rotate(315deg)';
         for(const lamp of lamps) {
           // Project one broken reflection beneath each real light. The
           // narrow source crop contains one column, not the old fixed pair.

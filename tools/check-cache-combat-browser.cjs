@@ -459,6 +459,9 @@ const server=http.createServer((req,res)=>{
     const mirrorBoundary="ctx.globalCompositeOperation=opaqueNative?'source-over':'copy';";
     assert(source.includes(mirrorBoundary),'opaque mirror-copy fidelity boundary');
     source=source.replace(mirrorBoundary,"ctx.globalCompositeOperation=opaqueNative&&!window.forceMirrorCopy?'source-over':'copy';");
+    const tintBoundary='if(tintedReflection) {';
+    assert(source.includes(tintBoundary),'pointwise reflection-filter bounds boundary');
+    source=source.replace(tintBoundary,'if(tintedReflection&&!window.forceReflectionTintClip) {');
     const terrainBoundary='if(terrainBelowCrest) {';
     assert(source.includes(terrainBoundary),'terrain crest mask fidelity boundary');
     source=source.replace(terrainBoundary,'if(terrainBelowCrest&&!window.forceCrestMask) {');
@@ -837,7 +840,7 @@ async function main(){
       originalRoadDraw.call(road,ctx);window.canvasCostMark('hud-complete');
       const reviewWebp=ctx.canvas.toDataURL('image/webp',.9).split(',')[1];
       const optimizedPixels=ctx.getImageData(0,0,ctx.canvas.width,ctx.canvas.height).data;
-      window.canvasCostMark=undefined;window.forceCrestMask=true;window.forceLegacyWorldCopy=true;window.forceMirrorCopy=true;
+      window.canvasCostMark=undefined;window.forceCrestMask=true;window.forceLegacyWorldCopy=true;window.forceMirrorCopy=true;window.forceReflectionTintClip=true;
       originalRoadDraw.call(road,ctx);
       const referencePixels=ctx.getImageData(0,0,ctx.canvas.width,ctx.canvas.height).data;
       let difference=0,maxChannelDifference=0,maxAlphaDifference=0;
@@ -847,8 +850,8 @@ async function main(){
         else {difference+=delta;maxChannelDifference=Math.max(maxChannelDifference,delta);}
       }
       const renderFidelity={meanRGB:difference/(optimizedPixels.length/4*3),maxChannelDifference,maxAlphaDifference};
-      window.forceCrestMask=undefined;window.forceLegacyWorldCopy=undefined;window.forceMirrorCopy=undefined;
-      window.forceOriginalWorldCopy=true;window.forceCrestMask=true;window.forceMirrorCopy=true;
+      window.forceCrestMask=undefined;window.forceLegacyWorldCopy=undefined;window.forceMirrorCopy=undefined;window.forceReflectionTintClip=undefined;
+      window.forceOriginalWorldCopy=true;window.forceCrestMask=true;window.forceMirrorCopy=true;window.forceReflectionTintClip=true;
       originalRoadDraw.call(road,ctx);
       const copyPixels=ctx.getImageData(0,0,ctx.canvas.width,ctx.canvas.height).data;
       let copyDifference=0,copyMaxChannelDifference=0,copyMaxAlphaDifference=0;
@@ -859,7 +862,7 @@ async function main(){
       }
       const opaqueCopyFidelity={meanRGB:copyDifference/(optimizedPixels.length/4*3),
         maxChannelDifference:copyMaxChannelDifference,maxAlphaDifference:copyMaxAlphaDifference};
-      window.forceOriginalWorldCopy=undefined;window.forceCrestMask=undefined;window.forceMirrorCopy=undefined;
+      window.forceOriginalWorldCopy=undefined;window.forceCrestMask=undefined;window.forceMirrorCopy=undefined;window.forceReflectionTintClip=undefined;
       const unflushed=[];let last=performance.now();
       window.canvasCostMark=phase=>{const now=performance.now();if(phase!=='begin')unflushed.push({phase,ms:now-last});last=now;};
       const start=performance.now();originalRoadDraw.call(road,ctx);window.canvasCostMark('hud-complete');
@@ -873,7 +876,7 @@ async function main(){
             state.nativeFrames.reduce((sum,bitmap)=>sum+bitmap.width*bitmap.height,0)})),
         reviewWebp};
     }finally{
-      window.canvasCostMark=undefined;window.forceCrestMask=undefined;window.forceLegacyWorldCopy=undefined;window.forceMirrorCopy=undefined;window.forceOriginalWorldCopy=undefined;P.draw=assetDraw;
+      window.canvasCostMark=undefined;window.forceCrestMask=undefined;window.forceLegacyWorldCopy=undefined;window.forceMirrorCopy=undefined;window.forceReflectionTintClip=undefined;window.forceOriginalWorldCopy=undefined;P.draw=assetDraw;
       for(const name of methods)ctx[name]=originals[name];
       road.state=saved.state;road.chapter=saved.chapter;Object.assign(road,saved.host);
       road.renderBudget=saved.budget;road.renderBudgetState=saved.budgetState;road.renderFrameIntervalMs=saved.interval;

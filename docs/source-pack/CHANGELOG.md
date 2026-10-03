@@ -1,6 +1,8 @@
 # Recovery checkpoint — September 14
 ## October 3, 2026 — continued lag repair after PR180 playtest
 
+Traffic brake-reflection hue layers are now clipped to the union of their original destination rectangles plus an antialias margin. Hue rotation is pointwise and retains the original source/crop, color, placement, alpha and native projection. Native and Chromium reference paths disable only this added clip to compare RGB/alpha with the original full-display/glass filter. Consecutive actual-frame traces showed substantial filter-related stalls; small-source/affine preparation alone still recorded live-boss medians 44.6 and 46.7 ms, so all publication gates remain required.
+
 The background source-over experiment preserved RGB/alpha but did not reliably lower live-boss cost; the cleared copy expansion is retained. Small native feedback/effect sources now prepare unscaled immutable bitmaps under a 512-Ki-pixel sublimit within the existing 32-megapixel native reservation. Capped-width beat surfaces whose two triangle transforms coincide submit one complete native affine painting; unequal perspective surfaces retain both original triangles. Native UV corners, opacity/seam, filtered placement, context, failure and reservation checks cover these changes. Chase, whole-boss and undefeated playing-boss budgets remain 33.33 ms.
 
 The sampled background now uses source-over after the old display has been cleared, avoiding a second replacement layer. Its opaque output is compared with both the prior uncleared source-over path and the cleared copy path, including RGB and alpha. The preceding mirror-composition revision improved the push live-boss median to 36.3 ms, still over the unchanged 33.33 ms gate.
