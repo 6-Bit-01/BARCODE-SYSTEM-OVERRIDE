@@ -1,25 +1,28 @@
 # Acceptance and Test Status
 
-## October 2 — Level 2 bitmap repair verification (PR #180)
+## October 3 — Level 2 bitmap repair verification (PR #180)
 
-Automated gates exercise asynchronous preparation, rejection/unsupported
-fallbacks, one preparation attempt per loaded SVG, source rectangles,
-filter/alpha/smoothing preservation, original raster routing, one display
-context, warm draws and paused pixels. The real Chromium test loads all
-production artwork and draws Approach, Ready-ONE, earned Perfect/Good, Miss,
-Reduced Motion and a focused turn in both SVG and bitmap representations.
-Its moving-state measurements include a raster flush and must reduce
-aggregate complete-frame time by 20% without a scene regression above 10%.
-Native moving frames must reduce hot SVG work by 65%, keep every median
-whole-frame cost within 5% of its baseline and preserve mean RGB difference
-below 0.5. Native caching makes a blanket 20% improvement in every entire
-frame an unreliable SVG-cache assertion; every whole-frame ratio is reported.
-The full regression, all-file syntax and both exact final-head CI events
-remain required. The generated receipt records exact tested/merged revisions.
+Automated checks exercise asynchronous SVG/raster preparation, rejection and
+unsupported fallbacks, one preparation attempt per loaded SVG, exact scaled
+frame/crop UVs, projection-aware resolution, filter/alpha/smoothing, bounded
+pending allocations, disposal after eviction, preload/re-entry reuse, one
+display context, warm draws and paused pixels. Original raster readiness
+remains immediate while its resized bitmap prepares.
 
-After importing the repaired main build, drive through the ambush/handoff,
-turns, gear/Turbo changes, repeated Good/Perfect hits, damage, pause/re-entry
-and the boss exit. Check stalling and skipping on the actual player device;
+The real Chromium test loads production artwork and renders Approach,
+Ready-ONE, earned Perfect/Good, Miss, Reduced Motion and a focused turn with
+the original image path and the prepared image cache. Moving-state timing
+includes a raster flush; aggregate complete-frame cost must fall by at least
+20%, with no scene median regression above 10%. Loaded before/after captures
+must keep mean RGB difference below 1. Native moving-frame diagnostics
+require 65% less hot SVG work, whole-frame medians within 5% of baseline and
+mean RGB difference below 0.5. Every scene ratio is retained. Full
+regression, all-file syntax and both exact final-head CI events remain
+required. The generated receipt records exact tested/merged revisions.
+
+After importing repaired main, drive through the ambush/handoff, turns,
+gear/Turbo changes, repeated Good/Perfect hits, damage, pause/re-entry and
+the boss exit. Check stalling and skipping on the actual player device;
 repeat with Reduced Motion/Flashes Off. Automated rendering diagnostics do
 not assert owner controller feel, listening, fun, comfort or device FPS.
 

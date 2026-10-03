@@ -36,5 +36,5 @@ jobs:
           name: level2-performance-${{ github.sha }}
           path: |
             ${{ runner.temp }}/level2-performance.json
-            ${{ runner.temp }}/level2-browser-performance.json
+            ${{ runner.temp }}/level2-frame-review
           if-no-files-found: ignore

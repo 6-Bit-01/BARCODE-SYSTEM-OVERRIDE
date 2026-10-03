@@ -1,15 +1,20 @@
 # Recovery checkpoint — September 14
 
-## October 2, 2026 — Level 2 reusable SVG surfaces and instruments
+## October 3, 2026 — Level 2 image raster cost repair
 
-- Prepare and reuse one immutable bitmap per loaded SVG without adding a
-  display Canvas, context, timer or animation-loop owner.
-- Preserve source rectangles, original art, projection, filters and state;
-  retain the original-image fallback when bitmap preparation is unavailable.
-- Validate loaded moving Chromium frames, raster time, native SVG cost,
-  paused pixels, retry/re-entry reuse and complete regression/syntax.
-- Await Chromium shutdown before removing test profiles. Timing reports retain
-  full scene ratios; native host timing and owner device FPS remain distinct.
+- Cache one immutable bitmap per loaded SVG and bounded projection-aware
+  resolutions of Cache Road raster atlases, including rearview scenery.
+- Preserve canonical artwork bytes, exact frame/crop UVs, destination
+  projection, smoothing, original mirror blur and all gameplay/audio state.
+- Cap raster resources at 64 MiB, 16 MiB per bitmap and 256 entries; reserve
+  pending allocations, close evicted/late results and retain original-image
+  fallbacks without delaying raster readiness or adding lifecycle owners.
+- Require real Chromium moving-frame/raster improvement and loaded-art
+  pixel comparisons, native SVG/whole-frame checks and complete regression,
+  syntax and both exact final-head CI events.
+- Retain full scene ratios and before/after captures in CI evidence. Await
+  Chromium shutdown before test-profile removal. Controlled host rendering
+  measurements remain separate from owner device and play acceptance.
 
 ## October 2, 2026 — Cache camera and ground timing feedback
 
