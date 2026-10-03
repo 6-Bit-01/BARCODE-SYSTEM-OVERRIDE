@@ -121,7 +121,19 @@ async function browser(){
     if(result.exceptionDetails)throw Error(JSON.stringify(result.exceptionDetails));
     assert(result.result.value?.passed);console.log(JSON.stringify(result.result.value));
   }finally{
-    socket?.close();child?.kill();server.close();fs.rmSync(profile,{recursive:true,force:true});
+    socket?.close();
+    server.closeAllConnections();
+    await new Promise(resolve=>server.close(resolve));
+    // Chromium can still write its profile after kill() returns. Await the
+    // process and retry transient child-process locks before removing it.
+    if(child&&child.exitCode===null&&child.signalCode===null) {
+      const stopped=once(child,'close');
+      child.kill();await stopped;
+    }
+    const tempRoot=path.resolve(os.tmpdir());
+    if(path.dirname(path.resolve(profile))!==tempRoot||!path.basename(profile).startsWith('barcode-bitmap-'))
+      throw Error('Refusing to remove a profile outside the test temporary directory');
+    await fs.promises.rm(profile,{recursive:true,force:true,maxRetries:20,retryDelay:100});
   }
 }
 (async()=>{await unit();if(process.argv.includes('--browser'))await browser();})().catch(e=>{console.error(e.stack);process.exitCode=1;});
