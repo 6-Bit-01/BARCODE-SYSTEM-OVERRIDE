@@ -25,6 +25,7 @@ jobs:
       - name: Check immutable bitmap preparation and real Chromium reuse
         env:
           CHROME_BIN: /usr/bin/google-chrome
+          BITMAP_FRAME_REPORT: ${{ runner.temp }}/level2-browser-performance.json
         run: node tools/check-presentation-bitmap-cache.cjs --browser
       - name: Measure loaded production frames
         run: node tools/profile-cache-beat-frame.cjs "$RUNNER_TEMP/level2-performance.json"
@@ -33,5 +34,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: level2-performance-${{ github.sha }}
-          path: ${{ runner.temp }}/level2-performance.json
+          path: |
+            ${{ runner.temp }}/level2-performance.json
+            ${{ runner.temp }}/level2-browser-performance.json
           if-no-files-found: ignore

@@ -174,8 +174,13 @@ async function browser(){
         return {name,beforeMs:previous.medianMs,afterMs:after.medianMs,p95Ms:after.p95Ms,
           ratio:after.medianMs/previous.medianMs};
       });
+      const aggregateRatio=frameComparisons.reduce((sum,row)=>sum+row.afterMs,0)/
+        frameComparisons.reduce((sum,row)=>sum+row.beforeMs,0);
+      console.log('FRAME_COST '+JSON.stringify({aggregateRatio,frameComparisons}));
+      if(frameComparisons.some(row=>row.ratio>1.1)||aggregateRatio>=.8)
+        throw Error('Prepared SVGs must cut at least 20 percent of aggregate Chromium frame/raster time without a scene regression');
       if(contextCalls!==1||bitmapAttempts.length!==before)throw Error('Measured road draws rebuilt shared resources');
-      return {passed:true,frameComparisons,frameSamples:rows,preparedSVGs:svg.length,warmDraws:120,pausedPixels:true,displayContexts:contextCalls,
+      return {passed:true,aggregateRatio,frameComparisons,frameSamples:rows,preparedSVGs:svg.length,warmDraws:120,pausedPixels:true,displayContexts:contextCalls,
         preservedMirrorFilter:'blur(2.3px)',limitation:'Real Chromium loader/cache validation; owner device FPS remains unmeasured.'};
     })()`});
     if(result.exceptionDetails)throw Error(JSON.stringify(result.exceptionDetails));

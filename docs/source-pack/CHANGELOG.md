@@ -1,5 +1,16 @@
 # Recovery checkpoint — September 14
 
+## October 2, 2026 — Level 2 reusable SVG surfaces and instruments
+
+- Prepare and reuse one immutable bitmap per loaded SVG without adding a
+  display Canvas, context, timer or animation-loop owner.
+- Preserve source rectangles, original art, projection, filters and state;
+  retain the original-image fallback when bitmap preparation is unavailable.
+- Validate loaded moving Chromium frames, raster time, native SVG cost,
+  paused pixels, retry/re-entry reuse and complete regression/syntax.
+- Await Chromium shutdown before removing test profiles. Timing reports retain
+  full scene ratios; native host timing and owner device FPS remain distinct.
+
 ## October 2, 2026 — Cache camera and ground timing feedback
 
 - Repair reproduced camera transition jumps and bound off-view road paint.

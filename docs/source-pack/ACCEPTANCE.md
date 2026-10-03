@@ -1,5 +1,28 @@
 # Acceptance and Test Status
 
+## October 2 — Level 2 bitmap repair verification (PR #180)
+
+Automated gates exercise asynchronous preparation, rejection/unsupported
+fallbacks, one preparation attempt per loaded SVG, source rectangles,
+filter/alpha/smoothing preservation, original raster routing, one display
+context, warm draws and paused pixels. The real Chromium test loads all
+production artwork and draws Approach, Ready-ONE, earned Perfect/Good, Miss,
+Reduced Motion and a focused turn in both SVG and bitmap representations.
+Its moving-state measurements include a raster flush and must reduce
+aggregate complete-frame time by 20% without a scene regression above 10%.
+Native moving frames must reduce hot SVG work by 65%, keep every median
+whole-frame cost within 5% of its baseline and preserve mean RGB difference
+below 0.5. Native caching makes a blanket 20% improvement in every entire
+frame an unreliable SVG-cache assertion; every whole-frame ratio is reported.
+The full regression, all-file syntax and both exact final-head CI events
+remain required. The generated receipt records exact tested/merged revisions.
+
+After importing the repaired main build, drive through the ambush/handoff,
+turns, gear/Turbo changes, repeated Good/Perfect hits, damage, pause/re-entry
+and the boss exit. Check stalling and skipping on the actual player device;
+repeat with Reduced Motion/Flashes Off. Automated rendering diagnostics do
+not assert owner controller feel, listening, fun, comfort or device FPS.
+
 ## October 2 — Cache camera and satisfying ground timing
 
 Drive Cache's stage through slow/fast gear changes, steering bends, Turbo,

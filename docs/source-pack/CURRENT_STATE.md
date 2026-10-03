@@ -1,5 +1,25 @@
 # Current State
 
+## October 2 — Level 2 SVG frame-cost repair (PR #180)
+
+Continues from merged #179 (`f9caed6cc64361388433bf9b27e5f01ddace7f57`).
+The shared loader prepares one reusable ImageBitmap for each loaded SVG.
+Ground/sidewalk projection and digital glyph draws retain their source
+rectangles, anchors, smoothing and original mirror `blur(2.3px)`. Raster
+artwork, beat art, controls, music, rules and saves retain their existing paths.
+Unsupported or failed preparation retains the original image; pending or
+completed loads never decode again on preload/re-entry.
+
+Verification includes loader/fallback/resource checks, real Chromium moving
+production frames with a raster flush, loaded native frame comparisons and
+pixel checks, full regression/syntax and both final-head CI events. Native
+Canvas warms its own vector raster cache: the native gate measures at least
+65% less hot SVG work and guards whole-frame regressions. Chromium separately
+requires at least 20% less aggregate complete-frame/raster time with no scene
+regression above 10%. All measured scene ratios remain in the reports.
+Exact gates/publication belong to the generated receipt and PR #180.
+Owner device/controller/audio/comfort acceptance remains a play check.
+
 ## October 2 — Cache camera and ground timing feedback candidate
 
 Continues from merged #177. The owner reports a severe driving-stage frame
