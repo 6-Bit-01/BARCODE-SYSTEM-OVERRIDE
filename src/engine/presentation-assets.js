@@ -420,7 +420,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     const index = Math.max(0, Math.floor(frame)) % entry.frames;
     const [sx, sy, sw, sh] = sourceRect || entry.frameCrops?.[index] || entry.crop || [0, 0, fw, fh];
     const h = height ?? width * sh / sw;
-    const nativeFrame=!small&&sx>=0&&sy>=0&&sx+sw<=fw&&sy+sh<=fh&&state.nativeFrames?.[index];
+    const nativeFrame=!small&&sw>0&&sh>0&&sx>=0&&sy>=0&&sx+sw<=fw&&sy+sh<=fh&&state.nativeFrames?.[index];
     const image=small||nativeFrame||state.nativeBitmap||state.bitmap||original;
     const sourceX = nativeFrame?sx:index % entry.columns * fw + sx;
     const sourceY = nativeFrame?sy:Math.floor(index / entry.columns) * fh + sy;

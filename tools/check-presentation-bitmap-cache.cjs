@@ -155,6 +155,9 @@ async function nativeRasterUnit(){
     assets.draw('cacheCombatBike',ctx,{width:80,height:40,frame:3,sourceRect:[500,0,40,60]});
     assert.equal(calls.at(-1)[0],state.image,'a cross-cel source crop retains the complete original source');
     assert.deepEqual(calls.at(-1).slice(1),[2036,0,40,60,-40,-40,80,40]);
+    assets.draw('cacheCombatBike',ctx,{width:80,height:40,frame:3,sourceRect:[8,8,-16,16]});
+    assert.equal(calls.at(-1)[0],state.image,'signed source dimensions retain complete-atlas semantics');
+    assert.deepEqual(calls.at(-1).slice(1),[1544,8,-16,16,-40,-40,80,40]);
     assets.preload();assert.equal(prepared.length,8);
   }
   // A partial batch failure closes successful cels before releasing pixels.
@@ -171,7 +174,6 @@ async function nativeRasterUnit(){
   assert.equal(attempts.length,8,'concurrent atlas reservation blocks other whole batches');
   assert.equal(closed.length,7,'partial failure closes every successful cel');
   assert.equal(!!w.bitmapReview.cache.cacheCombatBike.nativeFrames,false);
-  const next=w.bitmapReview.cache.cacheCar;next.image.onload?.();
   // Start a fresh loaded asset after the failed reservation is released.
   const retry=w.bitmapReview.cache.cacheCarLeft;retry.image.onload();await new Promise(setImmediate);
   assert.equal(attempts.length,16);
