@@ -360,12 +360,15 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   function rasterFor(key,image,ctx,width,height,sw,sh) {
     if(!key.startsWith('cache')||/\.svg$/i.test(entries[key]?.path||'')||
       typeof window.createImageBitmap!=='function')return null;
+    // Keep the browser's native foreground image cache. Tiny filtered
+    // scenery needs its own compact sources to avoid full-atlas work.
+    if(ctx.filter==='none'||!ctx.filter)return null;
     const transform=ctx.getTransform?.();
     const scaleX=transform?Math.hypot(transform.a,transform.b):1;
     const scaleY=transform?Math.hypot(transform.c,transform.d):1;
-    // Front-view art gets at least two samples per destination pixel; the
-    // blurred mirror gets at least one. UVs and blur remain unchanged.
-    const samples=ctx.filter==='none'||!ctx.filter?2:1;
+    // The already blurred mirror gets at least one source sample per
+    // destination pixel. UVs and the original blur remain unchanged.
+    const samples=1;
     const wanted=Math.min(1,Math.max(1/64,samples*Math.abs(width*scaleX/sw),
       samples*Math.abs(height*scaleY/sh)));
     const factor=2**Math.ceil(Math.log2(wanted));
