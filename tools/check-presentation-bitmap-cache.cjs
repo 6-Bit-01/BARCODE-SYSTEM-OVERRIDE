@@ -212,20 +212,20 @@ async function browser(){
         // Up to nine detail transitions require three slow draws apiece.
         // Retain startup costs, then measure a full settled 16-frame window.
         // Fidelity repaint happens after that window so it cannot perturb it.
-        const samples=[],startupFrames=[];
+        const samples=[],startupFrames=[],expectedState=structuredClone(scene.state);
         for(let frame=0;frame<46;frame++) {
           ctx.reset();ctx.imageSmoothingQuality='high';measuredGroups={};reflectionBlurs=0;
-          const stateBefore=JSON.stringify(road.state),began=performance.now();
+          const began=performance.now();
           road.draw(ctx);const submitted=performance.now();ctx.getImageData(0,0,1,1);
           const elapsed=performance.now()-began;
           if(frame===45)console.log('FRAME_COST '+JSON.stringify({name:scene.name,mode,
             submitMs:submitted-began,flushMs:performance.now()-submitted}));
-          if(JSON.stringify(road.state)!==stateBefore)throw Error('A measured draw changed gameplay');
           if(ctx.imageSmoothingQuality!=='high')throw Error('road draw leaked its sampling quality');
           if(frame>=30)samples.push(elapsed);
           else if(mode==='adaptive')startupFrames.push({frame,ms:elapsed,
             worldScale:road.renderBudget.drawnScale});
           if(frame===45) {
+            const stateBefore=JSON.stringify(road.state);
             const displayedPixels=ctx.getImageData(0,0,c.width,c.height).data;
             screens.push({name:scene.name,mode,webp:c.toDataURL('image/webp',.9).split(',')[1]});
             let pixels=displayedPixels;
@@ -270,8 +270,13 @@ async function browser(){
           road.state.progress+=road.state.speed/60;road.state.elapsedMs+=1000/60;
           road.state.musicBeatFloat+=128/60/60;
           road.state.musicBar=Math.floor(road.state.musicBeatFloat/4);
+          expectedState.progress+=expectedState.speed/60;expectedState.elapsedMs+=1000/60;
+          expectedState.musicBeatFloat+=128/60/60;
+          expectedState.musicBar=Math.floor(expectedState.musicBeatFloat/4);
           await new Promise(resolve=>setTimeout(resolve,0));
         }
+        if(JSON.stringify(road.state)!==JSON.stringify(expectedState))
+          throw Error('The measured moving window changed gameplay beyond fixture movement');
         const sorted=samples.slice().sort((a,b)=>a-b);
         rows.push({name:scene.name,mode,medianMs:median(samples),
           p95Ms:sorted[Math.ceil(sorted.length*.95)-1],frames:samples.length,
