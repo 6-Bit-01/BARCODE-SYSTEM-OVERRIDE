@@ -1,18 +1,26 @@
 # Recovery checkpoint — September 14
 
-## October 3, 2026 — continued lag repair after failed PR180 playtest
+## October 3, 2026 — continued lag repair after PR180 playtest
 
-- Record the owner's continued Level 2 lag after PR180.
-- Measure queued raster work between production sky, terrain, road, scenery,
-  vehicles, mirror and HUD phases.
-- Adapt world sampling after sustained slow shared-Canvas draws; preserve
-  native dashboard/rearview detail, pause quality and fresh-run full detail.
-- Expand the world on the same Canvas and preserve original art bytes,
-  contacts, foreground exits, rules, timing, music, controls and saves.
-- Compare against PR180 with an absolute scene-median frame budget and
-  native-quality fidelity checks; review the actual adaptive captures.
-- Add consecutive shared-loop chase/boss timing. Production-loader and
-  quality-policy V8 units pass; full regression/browser publication is pending.
+- Record the owner's continued Level 2 lag and measure queued raster work
+  across production sky, terrain, road, scenery, vehicles, mirror and HUD.
+- Adapt world sampling after sustained slow draws/shared-frame intervals;
+  preserve fresh-run full detail, paused detail and gradual recovery.
+- Clip world work to its sample footprint and expand on the same display
+  Canvas. Retain native dashboard/rearview and the original mirror blur.
+- Set road sampler quality inside saved context state; restore the caller.
+- Preserve canonical art bytes, contacts, foreground exits, rules, timing,
+  music, controls and saves. Remove the ineffective raster-pyramid experiment.
+- Verify seven actual moving scenes against PR180. Both production-runtime
+  performance runs pass: 24.6–30.4 ms scene medians and 59–67% aggregate
+  improvement; full-quality mean RGB difference below 0.087.
+- Review quarter-detail loaded captures; world paint becomes coarser and
+  native HUD/mirror remain sharp. Keep full p95 and detail reports.
+- Measure consecutive actual shared-loop chase/boss frames with hosted
+  byte-verified art and origin-clean fixture readback.
+- Require full regression/syntax and both exact final-head CI events.
+  Generated receipt/PR record final publication and merged-pack status.
+  Actual device/controller/listening/comfort acceptance remains separate.
 
 ## October 3, 2026 — Level 2 reflection raster cost repair
 

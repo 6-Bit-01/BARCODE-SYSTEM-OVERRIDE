@@ -1,32 +1,37 @@
 # Acceptance and Test Status
 
-## October 3 — continued lag: adaptive candidate verification
+## October 3 — continued lag repair verification (PR #181)
 
-The owner's playtest of merged PR180 remains laggy. The earlier relative
-Chromium improvement did not establish acceptable actual play.
+The owner's PR180 playtest remains laggy. The repair now uses an absolute
+33.33 ms diagnostic scene-median gate as well as a 25% aggregate improvement
+and no scene regression above 10%.
 
-Verify fresh-run full detail, sustained slow-frame adaptation, cold/impact
-tolerance, pause freeze, invalid-clock fallback and recovery hysteresis.
-Keep the original loader, bitmap reuse/rejection tests and source registration.
-Compare seven loaded moving scenes directly against PR180: retain median/p95,
-require 25% aggregate improvement, no scene regression above 10% and a
-33.33 ms scene-median budget. Review actual adaptive output and report world
-detail and native HUD difference; independently compare full-quality pixels
-within one mean RGB level. Require one display context, one original mirror
-blur, unchanged gameplay and preserved caller viewport transforms.
+Both performance runs on production runtime
+`cdca197799f5cdf3091a8d66a0c3d09d9a10bf1a` pass all seven loaded moving
+scenes: medians 24.6–30.4 ms versus 52.8–91.7 ms for PR180, aggregate cost
+59–67% lower. Reports keep every median/p95 and raster flush. p95 reaches
+42.7 ms on an individual scene; the evidence is not a zero-stall claim.
+Full-quality pixel differences remain below 0.087 mean RGB; adaptive native
+HUD differences remain below 0.169. Loaded quarter-detail captures were
+reviewed: world paint is visibly coarser, while the HUD/mirror remain sharp.
 
-Paint consecutive shared-loop chase/boss frames with real production
-input/update ownership and controlled audio-host traversal. Record slow-frame
-counts and median/p95. Complete regression/all-file syntax and both exact
-final-head CI events remain publication gates. Candidate Node/browser results
-are pending; do not claim they have passed.
+Checks cover fresh-run full detail, sustained adaptation, pause freeze,
+invalid clocks, recovery hysteresis, original loader/bitmap rejection and
+reuse, source registration, one display context/blur, draw purity and scaled
+caller viewports. The sampler preserves the caller's inherited setting.
+Consecutive production shared-loop chase and boss frames include actual
+input/update ownership and raster flush with controlled audio-host traversal.
+Require their median within 33.33 ms; retain p95, slow frames and detail levels.
+Hosted images remain on actual immutable URLs and are byte/hash verified.
+CORS is requested by the test fixture before loading for origin-clean readback.
 
-After publication/import, check the lag through normal driving, ambush,
-turns, Turbo, timing hits, dense encounters, boss, pause and re-entry.
-World detail should stabilize without repeated changes; mirror/HUD remain
-sharp. Preserve Reduced Motion and Flashes Off. Do not restart the handoff
-as though PR180 were awaiting its first playtest. Device pacing/controller,
-listening, balance and comfort acceptance remain separate.
+Complete regression/all-file syntax and both exact final-head CI events
+remain publication gates. Exact results and revision status belong to the PR
+and generated source-pack receipt. After publication/import, check ordinary
+driving, ambush, turns, Turbo, timed hits, dense encounters, boss, pause and
+re-entry. Detail should stabilize without repeated changes; HUD/mirror remain
+sharp. Preserve Reduced Motion and Flashes Off. Actual device pacing,
+controller, listening, balance and comfort acceptance remain unrecorded.
 
 ## October 3 — Level 2 reflection repair verification (PR #180)
 

@@ -7,6 +7,9 @@ on:
       - main
   pull_request:
     paths:
+      - src/core/loop.js
+      - src/game/cache-road-proof.js
+      - src/game/cache-road-render-budget.js
       - src/game/cache-road-beat-surface.js
       - src/engine/presentation-assets.js
       - tools/check-presentation-bitmap-cache.cjs

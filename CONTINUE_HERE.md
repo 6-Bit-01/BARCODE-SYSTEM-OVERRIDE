@@ -1,16 +1,32 @@
-# Continue here — Level 2 still lags after PR #180
+# Continue here — continued Level 2 lag repair (PR #181)
 
-The owner has already played the merged reflection repair and reports
-continued lag. Resume the performance repair, not the previous test handoff.
-Base/rollback: `0c821b2fb3b7b60b2b561d7c3a0040810c73181a`.
-Draft PR181: `agent/level2-raster-work-repair`. Read the newest CURRENT_STATE,
-ACCEPTANCE and CHANGELOG entries. Raster-pyramid attempts did not reduce
-90ms software frames and have been removed. Adaptive world sampling now
-targets the measured full-scene raster bottleneck on the same display Canvas,
-with native HUD/rearview detail. Policy/loader V8 units pass; exact-head full
-regression and Chromium results remain pending. Finish checks, native review,
-publication and the actual merged source pack under standing authority.
-The owner's lag report remains unresolved by a relative benchmark alone.
+The owner already played PR180 and reported continued lag. Do not restart
+that earlier playtest handoff. Base/rollback:
+`0c821b2fb3b7b60b2b561d7c3a0040810c73181a`.
+PR181: `agent/level2-raster-work-repair`.
+
+Adaptive world sampling now addresses the full-scene raster bottleneck on
+the existing display Canvas. Fresh runs start at full detail; three sustained
+slow draws lower detail, paused frames hold it, and sustained spare capacity
+restores it. Native HUD/rearview detail and the original mirror blur remain.
+The road draw also sets its sampler quality inside saved context state;
+the inherited shared-renderer setting is restored for the caller.
+
+Production-runtime Chromium comparisons on `cdca197799f5cdf3091a8d66a0c3d09d9a10bf1a`
+pass both push and PR performance runs: all seven scene medians are 24.6–30.4 ms
+versus 52.8–91.7 ms for PR180. Loaded adaptive captures were reviewed at the
+quarter-detail floor; world paint is coarser, and the HUD/mirror remain sharp.
+Policy/loader checks, paused pixels, gameplay purity and scaled viewports pass.
+The ineffective raster-pyramid attempt was removed.
+
+Read the newest CURRENT_STATE and ACCEPTANCE entries. Publication still
+requires full regression/all-file syntax, consecutive real shared-loop
+chase/boss raster timing, and both exact final-head CI events. The generated
+export receipt and PR establish the final tested/merged revision and state.
+Finish those gates before publication and refresh the actual merged pack.
+Once that receipt says merged, continue with the repaired build's actual
+device pacing through driving, encounters, boss, pause and re-entry.
+Controller, listening and comfort acceptance remain separately unrecorded.
 
 # Earlier continuation history
 
