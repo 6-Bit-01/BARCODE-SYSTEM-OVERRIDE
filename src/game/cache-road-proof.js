@@ -3774,7 +3774,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       };
       const beat = reduced ? 0 : s.musicBeatFloat || 0;
       const stack = Math.min(4,s.captures?.length || 0);
-      const beatPulse = reduced ? 0 : Math.pow(1-((beat%1+1)%1),5);
+      const beatPulse = reduced || window.BARCODE_RENDER_QUALITY?.flashes===false ? 0 :
+        Math.pow(1-((beat%1+1)%1),5);
       const energy = stack/4 + (s.boostMs ? .3 : 0) + beatPulse*.27;
       const hue = (186 + section*65 + Math.sin(beat*.31)*55 + energy*37 + 360)%360;
       const sky = ctx.createLinearGradient(0, 0, 0, horizon + 70);
@@ -4392,7 +4393,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // Adjacent slices read adjacent texels from horizon to car. Advancing
       // progress decreases the source offset so a mark moves toward the car.
       // Blend the wrap over the last 108 pixels into the first 108 pixels.
-      ctx.save();
+      ctx.save(); ctx.clip();
       for (let i = 0; i < 28; i++) {
         let c=((-progress*.82+i*22)%616+616)%616, consumed=0;
         while (consumed<22) {

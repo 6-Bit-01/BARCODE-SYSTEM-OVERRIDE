@@ -1,5 +1,13 @@
 # Current State
 
+## October 3, 2026 — final background review, unpublished
+
+The local review now also suppresses the sky beat pulse when Flash Off is selected and clips asphalt texture to the existing curved road boundary. The loaded-art probe removed 3,653 shoulder-spill pixels, preserved every interior pixel away from the antialiased edge, and retained identical texture coordinates, source order and Canvas/gameplay state. Flash On matches the preceding native candidate; Reduced Motion remains static. All 228 original asset hashes remain unchanged.
+
+The final source passed all-file syntax, the nine bitmap/native-quality groups, camera/frame ownership, ground beat feedback, adrenaline feedback, the seven-scene beat visual system and focused drive-feedback/control checks. All 24 fresh staged Chrome production draws retained native scale 1 without draw-time gameplay mutation. Complete-draw diagnostic medians were 180.3/193.6 ms including startup and forced raster flush; native frame pacing remains unresolved. A warmed mirror-copy A/B from the preceding exact commit showed no meaningful speed gain, so production transport is unchanged. The full formal chase/boss, 30 Hz, gain and regression gates are still unverified. Prior full-suite limitations below remain applicable; focused reruns are not a full npm-suite pass.
+
+Makko saved source and playable preview remain PR181; a 174-file recovery checkpoint named Before native detail preview - Oct 3 2026 was saved. The candidate is a local review only, with no push, PR, merge, public update or saved-source replacement. Keyboard audit found seven issue groups and passed nine focused checks; controls were not changed. Blocky detail, preference behavior and material-boundary fixes have bounded evidence; this is not an all-glitches-resolved or owner-device FPS claim.
+
 ## October 3, 2026 — verified detail stability, unpublished review
 
 The final curved-glass candidate kept native scale 1 in all 24 staged Chrome moving frames, plus four native camera/gear poses and three advancing native frames. All 228 artwork hashes match PR181. Bounded bitmap/native-quality groups, all-file syntax, loaded-art still review, unchanged bundled combat integration and the remaining blood/crew checks passed. The global Node 24.18 full npm invocation ended with a native access violation; its bundled Node 24.19 integration retry and tail passed separately, so that original invocation is not a full-suite pass.
