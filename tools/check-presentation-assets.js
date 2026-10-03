@@ -11,11 +11,27 @@ w.Image = class Image {
 load(context, 'src/engine/presentation-assets.js');
 const art = w.BARCODE.PresentationAssets;
 for (let i = 0; i < 20; i++) art.preload();
-assert.strictEqual(images.length, 253, 'restarts reuse existing art plus pursuit, five combat atlases, the two custom feedback sheets and two Level 1 Signal atlases');
+assert.strictEqual(images.length, 256, 'restarts reuse existing art plus pursuit, five combat atlases, the two custom feedback sheets two Level 1 Signal atlases and three beat-system atlases');
 const feedbackPaths=['assets/cache-road/blood/blood-splatter-atlas.webp','assets/cache-road/blood/crew-callout-portraits.webp'];
 assert.deepEqual(images.filter(image=>image.requests[0].includes('/assets/cache-road/blood/'))
   .map(image=>image.requests[0].slice(image.requests[0].indexOf('assets/cache-road/blood/'))).sort(),
   feedbackPaths.slice().sort(),'exactly the two requested custom sheets account for the additional shared images');
+const beatAssetSource=fs.readFileSync(path.join(root,'src/engine/presentation-assets.js'),'utf8');
+const beatRoot=beatAssetSource.match(/const cacheBeatRoot = '([^']+)';/)?.[1];
+assert(/^https:\/\/raw\.githubusercontent\.com\/6-Bit-01\/BARCODE-SYSTEM-OVERRIDE\/[a-f0-9]{40}\/$/.test(beatRoot),
+  'custom beat artwork is pinned to its immutable published source');
+const beatPaths=['hardware','energy','timing'].map(kind=>'assets/cache-road/beat-system/'+kind+'-atlas.webp');
+const beatImages=images.filter(image=>image.requests[0].startsWith(beatRoot));
+assert.deepEqual(beatImages.map(image=>image.requests[0]).sort(),beatPaths.map(file=>beatRoot+file).sort(),
+  'exactly three sheets own all 28 custom beat visual states');
+for(const image of beatImages) {
+  const local=image.requests[0].slice(beatRoot.length);image.onerror();
+  assert.deepEqual(image.requests,[beatRoot+local,local]);
+  assert(fs.existsSync(path.join(root,local)),'custom beat atlas is bundled');
+  image.onerror();assert.equal(image.onload,null);assert.equal(image.onerror,null);
+}
+art.preload();assert.equal(images.length,256,'failed beat sheets do not recreate image objects');
+for(const image of beatImages)assert.equal(image.requests.length,2,'each beat sheet stops after one hosted and one bundled attempt');
 const signalRoot='https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/330fa55849539b24393d66cc80faad1da658380f/';
 const signalPaths=['assets/level1-signal-art/signal-discharge-atlas.webp','assets/level1-signal-art/signal-amp-atlas.webp'];
 const signalImages=images.filter(image=>image.requests[0].startsWith(signalRoot));
@@ -33,7 +49,7 @@ for(const image of signalImages) {
   assert.strictEqual(image.onerror,null);
 }
 for(let i=0;i<20;i++)art.preload();
-assert.strictEqual(images.length,253,'restarts reuse both Signal image objects after their hosted and bundled attempts');
+assert.strictEqual(images.length,256,'restarts reuse both Signal image objects after their hosted and bundled attempts');
 for(const image of signalImages)assert.strictEqual(image.requests.length,2,
   'failed Signal atlases stop after two attempts and are not retried on restart');
 const speedRoot='https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/f9c2fad2472f3bebdb9554f13893293d74b8bece/';
@@ -168,7 +184,7 @@ failedPaintedImage.onerror();
 assert.strictEqual(failedPaintedImage.onload,null);
 assert.strictEqual(failedPaintedImage.onerror,null);
 art.preload();
-assert.strictEqual(images.length,253,'failed painted, activity, pursuit, combat, feedback and Signal assets are not recreated on restart');
+assert.strictEqual(images.length,256,'failed painted, activity, pursuit, combat, feedback and Signal assets are not recreated on restart');
 assert.strictEqual(failedPaintedImage.requests.length,2,'painted assets stop after both sources fail');
 assert.strictEqual(failedActivityImage.requests.length,2,'activity assets stop after both sources fail');
 const cacheRoadRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/37db98387b8791655e3ff352d6bc6d61cb0b574b/';
@@ -295,7 +311,7 @@ assert.deepStrictEqual(ops.find(op=>op[0]==='drawImage').slice(2),
   'the cleaner uses one complete registered fourth cel with its planted foot anchor');
 arrowImage.onerror(); arrowImage.onerror();
 assert.strictEqual(arrowImage.requests.length, 2); assert.strictEqual(arrowImage.onerror, null);
-art.preload(); assert.strictEqual(images.length, 253, 'failed assets do not retry forever');
+art.preload(); assert.strictEqual(images.length, 256, 'failed assets do not retry forever');
 pulseImage.naturalWidth = pulseImage.naturalHeight = 512; pulseImage.onload();
 ops.length = 0; art.draw('bossPulse', ctx, { y: 822, width: 64, height: 56, frame: 2 });
 assert.deepStrictEqual(ops.find(op => op[0] === 'drawImage').slice(2), [10, 351, 236, 145, -32, -56, 64, 56], 'pulse fills the dangerous height and retains the ground anchor');

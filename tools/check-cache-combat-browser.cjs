@@ -26,14 +26,25 @@ assert.deepEqual(combatAssets.map(asset => asset.key).sort(),
 const feedbackAssets=JSON.parse(fs.readFileSync(path.join(root,'assets/cache-road/blood/atlas-metadata.json'))).assets;
 assert.deepEqual(feedbackAssets.map(asset=>asset.key).sort(),['cacheBloodSplatter','cacheCrewCallouts'],
   'custom blood and canonical crew portrait sheets have independent delivery metadata');
-const assets=[...combatAssets,...feedbackAssets];
+const beatPacking=JSON.parse(fs.readFileSync(path.join(root,'assets/cache-road/beat-system/packing.json')));
+const beatAssets=Object.entries(beatPacking).map(([name,asset])=>({
+  key:{hardware:'cacheBeatHardware',energy:'cacheBeatEnergy',timing:'cacheBeatTiming'}[name],
+  runtime:asset.atlas,size:asset.atlasSize,sha256:asset.atlasSha256}));
+assert.deepEqual(beatAssets.map(asset=>asset.key).sort(),['cacheBeatHardware','cacheBeatEnergy','cacheBeatTiming'].sort(),
+  'all three custom beat sheets use actual packed runtime dimensions and byte hashes');
+const beatRoot=fs.readFileSync(path.join(root,'src/engine/presentation-assets.js'),'utf8')
+  .match(/const cacheBeatRoot = '([^']+)'/)?.[1];
+assert.match(beatRoot||'',/^https:\/\/raw\.githubusercontent\.com\/6-Bit-01\/BARCODE-SYSTEM-OVERRIDE\/[0-9a-f]{40}\/$/,
+  'custom beat art has an immutable published production source');
+const beatKeys=beatAssets.map(asset=>asset.key);
+const assets=[...combatAssets,...feedbackAssets,...beatAssets];
 const critical = new Set(['src/engine/music-profiles.js', 'src/engine/music-transport.js',
   'src/engine/music-director.js', 'src/engine/cache-road-proof-profile.js', 'src/engine/presentation-assets.js',
   'src/game/campaign-services.js', 'src/game/cache-chapter.js', 'src/game/cache-road-landscape.js', 'src/game/cache-road-encounters.js',
   'src/game/cache-road-reactions.js', 'src/game/cache-road-pursuit.js', 'src/game/cache-road-adrenaline.js', 'src/game/cache-road-combat.js',
   'src/game/cache-road-crosswalks.js', 'src/game/cache-road-mirror.js', 'src/game/cache-road-crew-callouts.js',
   'src/game/cache-road-boss-art.js', 'src/game/cache-road-instruments.js', 'src/game/cache-road-guidance.js',
-  'src/game/cache-road-beat-feedback.js',
+  'src/game/cache-road-beat-surface.js', 'src/game/cache-road-beat-feedback.js',
   'src/game/cache-road-cinematics.js', 'src/game/cache-road-proof.js',
   'src/engine/intro-sequence.js', 'src/engine/cache-scene-layouts.js', 'src/engine/cache-scene-effects.js',
   'src/engine/comic-dialogue.js', 'src/engine/cache-bridge.js', 'src/engine/cache-ending.js',
@@ -44,7 +55,8 @@ const scripts = [...index.matchAll(/<script\s+src=["']([^"']+)["']/g)].map(match
   .filter(file => critical.has(file));
 assert.equal(new Set(scripts).size, critical.size, 'every critical production owner is present once in actual index script order');
 const assetFiles = [];
-for (const folder of ['assets/cache-road/combat', 'assets/cache-road/pursuit', 'assets/cache-road/blood']) {
+for (const folder of ['assets/cache-road/combat', 'assets/cache-road/pursuit', 'assets/cache-road/blood',
+  'assets/cache-road/beat-system']) {
   const visit = dir => { if (!fs.existsSync(path.join(root, dir))) return;
     for (const entry of fs.readdirSync(path.join(root, dir), { withFileTypes: true })) {
       const file = `${dir}/${entry.name}`;
@@ -90,7 +102,7 @@ window.Image=function(...args){const image=new NativeImage(...args);browserProof
   Object.defineProperty(image,'src',{get(){return srcProperty.get.call(this);},set(value){
     this.proofOriginalSrc=value;
     if(typeof value==='string'&&value.startsWith('https://raw.githubusercontent.com/')&&
-       !(${requireHosted}&&(value.includes('/assets/cache-road/combat/')||value.includes('/assets/cache-road/pursuit/')||value.includes('/assets/cache-road/blood/')))){
+       !(${requireHosted}&&(value.includes('/assets/cache-road/combat/')||value.includes('/assets/cache-road/pursuit/')||value.includes('/assets/cache-road/blood/')||value.includes('/assets/cache-road/beat-system/')))){
       const at=value.indexOf('/assets/');if(at>=0)value=value.slice(at);
     }
     srcProperty.set.call(this,value);
@@ -168,14 +180,18 @@ const instrument=${instrument.toString()},Driver=${Driver.toString()},
   observeCombat=${observeCombat.toString()},CombatDriver=${CombatDriver.toString()};
 const originalAssetDraw=BARCODE.PresentationAssets.draw;
 const beatArt=BARCODE.CacheRoadBeatFeedback;
-browserProof.beatPaints={targets:0,pads:0,earned:0,qualities:[],gains:[]};
+browserProof.beatPaints={targets:0,pads:0,earned:0,earnedCustom:0,earnedCustomKeys:[],qualities:[],gains:[]};
 BARCODE.CacheRoadBeatFeedback={...beatArt,
   drawTarget(...args){browserProof.beatPaints.targets++;return beatArt.drawTarget(...args);},
   drawPad(...args){const painted=beatArt.drawPad(...args);if(painted)browserProof.beatPaints.pads++;return painted;},
   drawReceipt(ctx,state,options){
+    const before=Object.fromEntries(${JSON.stringify(beatKeys)}.map(key=>[key,browserProof.drawn[key]||0]));
     const painted=beatArt.drawReceipt(ctx,state,options),pose=beatArt.feedbackPose(state,options);
     if(painted&&pose?.success){browserProof.beatPaints.earned++;
-      browserProof.beatPaints.qualities.push(pose.quality);browserProof.beatPaints.gains.push(pose.delta);}
+      browserProof.beatPaints.qualities.push(pose.quality);browserProof.beatPaints.gains.push(pose.delta);
+      const customKeys=${JSON.stringify(beatKeys)}.filter(key=>(browserProof.drawn[key]||0)>before[key]);
+      if(customKeys.length){browserProof.beatPaints.earnedCustom++;
+        browserProof.beatPaints.earnedCustomKeys.push(...customKeys);}}
     return painted;
   }};
 browserProof.combatPaints={kinds:{},wrecks:0,riders:0,flips:0,reduced:0,blasts:0,blastFrames:[],noFlashFrames:[],reducedBlastDraws:0};
@@ -345,13 +361,15 @@ browserProof.frozen=()=>{const s=BARCODE.CacheRoadProof.state;return {progress:s
   crewCallout:copy(s.crosswalkToast),crewQueue:copy(s.crosswalkMessages),crewIds:copy(s.crosswalkCalloutIds),
   heardBeat:BARCODE.MusicTransport.sample(audioSystem.context.currentTime).grid?.beatFloat};};
 </script>`;
-const requests={head:0,localCombat:[],remoteCombat:[]},errors=[],frames=[];
+const requests={head:0,localCombat:[],remoteCombat:[],localBeat:[],remoteBeat:[]},errors=[],frames=[];
 const server=http.createServer((req,res)=>{
   const pathname=new URL(req.url,'http://localhost').pathname;
   if(req.method==='HEAD'){requests.head++;res.writeHead(405);res.end();return;}
   if(pathname==='/'){res.writeHead(200,{'Content-Type':'text/html'});res.end(fixture);return;}
   if(/^\/assets\/cache-road\/(combat|blood)\//.test(pathname)){
     requests.localCombat.push(pathname);if(requireHosted){res.writeHead(404);res.end();return;}}
+  if(/^\/assets\/cache-road\/beat-system\//.test(pathname)){
+    requests.localBeat.push(pathname);if(requireHosted){res.writeHead(404);res.end();return;}}
   const file=path.resolve(root,'.'+pathname);
   if(!file.startsWith(root+path.sep)||!fs.existsSync(file)||!fs.statSync(file).isFile()){
     res.writeHead(404);res.end();return;}
@@ -386,6 +404,8 @@ async function main(){
     if(message.method==='Runtime.exceptionThrown')errors.push(message.params.exceptionDetails);
     if(message.method==='Network.requestWillBeSent'&&message.params.request.url.startsWith('https://')&&
       /\/assets\/cache-road\/(combat|blood)\//.test(message.params.request.url))requests.remoteCombat.push(message.params.request.url);
+    if(message.method==='Network.requestWillBeSent'&&message.params.request.url.startsWith('https://')&&
+      /\/assets\/cache-road\/beat-system\//.test(message.params.request.url))requests.remoteBeat.push(message.params.request.url);
     if(pending.has(message.id)){const{resolve,reject,timeout}=pending.get(message.id);pending.delete(message.id);clearTimeout(timeout);
       if(message.error)reject(Error(JSON.stringify(message.error)));else resolve(message.result);}
   });
@@ -411,29 +431,33 @@ async function main(){
     await evaluate('document.fonts.ready');
     await until('["cacheCar","cacheRival","cacheDashBezel","cacheMirror","cachePulsePad","cachePursuitRig"].every(key=>BARCODE.PresentationAssets.ready(key))','bundled cars/dashboard/rig decode');
     await until(`${JSON.stringify(assets.map(asset=>asset.key))}.every(key=>BARCODE.PresentationAssets.ready(key))`,
-      requireHosted?'all seven immutable combat/feedback atlases decode':'all seven bundled combat/feedback atlases decode');
+      requireHosted?'all ten immutable combat/feedback/beat atlases decode':'all ten bundled combat/feedback/beat atlases decode');
     assert(await evaluate('!!BARCODE.CacheRoadCombatArt'),'the registered production combat painter loads in actual index order');
     assert(await evaluate('!!BARCODE.CacheRoadCrewCallouts'),'the registered crew reaction owner loads in actual index order');
+    assert(await evaluate('typeof BARCODE.CacheRoadBeatSurface?.paintQuad==="function"'),
+      'the actual custom beat projection owner loads in production index order');
   };
   await send('Page.enable');await send('Runtime.enable');await send('Network.enable');
   await send('Emulation.setDeviceMetricsOverride',{width:1280,height:720,deviceScaleFactor:1,mobile:false});
   await send('Page.navigate',{url:origin});await ready();
   const decoded=await evaluate(`Promise.all([...new Map(browserProof.images.filter(image=>
-    image.src.includes('/assets/cache-road/combat/')||image.src.includes('/assets/cache-road/blood/'))
+    image.src.includes('/assets/cache-road/combat/')||image.src.includes('/assets/cache-road/blood/')||image.src.includes('/assets/cache-road/beat-system/'))
     .map(image=>[image.src,image])).values()].map(async image=>{
       const response=await fetch(image.src);if(!response.ok)throw Error('Combat atlas fetch failed '+image.src);
       const bytes=await response.arrayBuffer(),digest=await crypto.subtle.digest('SHA-256',bytes);
       return {url:image.src,productionUrl:image.proofOriginalSrc,bytes:bytes.byteLength,
         width:image.naturalWidth,height:image.naturalHeight,
         sha256:[...new Uint8Array(digest)].map(value=>value.toString(16).padStart(2,'0')).join('')};}))`);
-  assert.equal(decoded.length,assets.length,'all seven actually loaded combat/feedback atlases are independently fetched and verified');
+  assert.equal(decoded.length,assets.length,'all ten actually loaded combat/feedback/beat atlases are independently fetched and verified');
   for(const asset of assets){
     const loaded=decoded.find(item=>new URL(item.url).pathname.endsWith('/'+asset.runtime));
     assert(loaded,`Missing decoded ${asset.key}`);
     assert.deepEqual([loaded.width,loaded.height],asset.size);
     assert.equal(loaded.bytes,asset.bytes?.runtime??fs.statSync(path.join(root,asset.runtime)).size);assert.equal(loaded.bytes,fs.statSync(path.join(root,asset.runtime)).size);
     assert.equal(loaded.sha256,typeof asset.sha256==='string'?asset.sha256:asset.sha256.runtime);assert.equal(loaded.sha256,initialSourceHashes[asset.runtime]);
-    if(requireHosted){assert.match(loaded.url,/^https:\/\/raw\.githubusercontent\.com\/6-Bit-01\/BARCODE-SYSTEM-OVERRIDE\/[0-9a-f]{40}\/assets\/cache-road\/(combat|blood)\//);
+    if(beatKeys.includes(asset.key))assert.equal(loaded.productionUrl,beatRoot+asset.runtime,
+      'the actual beat loader attempts the correct immutable production atlas before bundled review substitution');
+    if(requireHosted){assert.match(loaded.url,/^https:\/\/raw\.githubusercontent\.com\/6-Bit-01\/BARCODE-SYSTEM-OVERRIDE\/[0-9a-f]{40}\/assets\/cache-road\/(combat|blood|beat-system)\//);
       assert.equal(loaded.url,loaded.productionUrl,'new art uses its immutable production URL without local substitution');}
   }
   await evaluate('browserProof.boot()');
@@ -637,6 +661,8 @@ async function main(){
     'actual native race paints the new ground target, physical pads and earned adrenaline receipts');
   assert(beatPaints.gains.some(gain=>gain>0&&gain<=20),
     'an earned native ground receipt shows a real bounded positive adrenaline gain');
+  assert(beatPaints.earnedCustom>0&&beatPaints.earnedCustomKeys.includes('cacheBeatTiming'),
+    'at least one real earned native receipt submits custom beat artwork and its quality shell');
   assert.equal(await evaluate('document.querySelectorAll("canvas").length'),1);
   assert.equal(await evaluate('browserProof.contexts'),1);assert.equal(await evaluate('browserProof.extraCanvases'),0);
   assert.equal(await evaluate('browserProof.worldUpdates'),0);assert(state.guidanceCalls>0);
@@ -648,6 +674,7 @@ async function main(){
   assert(totalSamples>=100&&totalSamples<totalFrames/4,'selected native Canvas samples supplement every actual simulation frame');
   assert.deepEqual(errors,[],'native browser raises no uncaught production exceptions');assert.equal(requests.head,0);
   if(requireHosted)assert.deepEqual(requests.localCombat,[],'new combat/feedback art never silently falls back to bundled paths');
+  if(requireHosted)assert.deepEqual(requests.localBeat,[],'custom beat art never silently falls back to bundled paths');
   assert.deepEqual(sourceHashes(),initialSourceHashes,'source and authored assets remain frozen throughout the browser race');
   receipt={passed:true,assetDelivery:requireHosted?'immutable-hosted':'bundled',decoded,zeroSync,frames,bossHp,
     state,events:allEvents,restoreReceipt,comfort,cinematicNative,drawn:allDrawn,combatPaintSessions:paintSessions,drawSamples,trafficGuards,
@@ -661,7 +688,9 @@ async function main(){
       crewQueueIncludedInPauseFreeze:true,stableMirrorOwner:true,forgedGateRejected:true,complete100Bars:true,independentFourFaceSync:true,
       reducedMotionNoFlashesDrawn:true,nativeOpeningNoHUD:true,nativeExistingContextHUDFade:true,
       unscoredStagedRam:true,nativeEarnedHorizonExit:true,freshOutroSkip:true,
-      nativeGroundTimingAndEarnedAdrenalinePaint:true,oneCanvas:true,stateInjection:false},
+      nativeGroundTimingAndEarnedAdrenalinePaint:true,customBeatSheetsDecodedAndHashed:true,
+      immutableBeatSourceAttempt:true,customBeatProjectionOwnerLoaded:true,earnedCustomBeatReceipt:true,
+      oneCanvas:true,stateInjection:false},
     limits:'Production scripts in index order, controlled saved bridge-ready entry, native Chromium input/Canvas, every shared-RAF simulation update and selected Canvas samples. Does not exercise title boot or every display frame. Audio clock, gamepad device, lifecycle pause and Campaign persistence are controlled hosts. No progress, health, immunity, resources, captures or boss-damage injection. Not Makko, physical-controller, recorded listening, human balance, comfort or display-pacing acceptance.'};
   console.log(`Cache combat Chromium passed: zero-sync four controls, analog triggers, actual12HP rig damage, wreck/first gear, earned page reload, full100bars; ${totalFrames} simulation frames and ${totalSamples} sampled Canvas frames.`);
 }

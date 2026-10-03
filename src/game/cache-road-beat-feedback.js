@@ -1,8 +1,9 @@
 // Road timing paint reads immutable song targets and earned ONE receipts.
-// Fixed, small Canvas paths use the road's existing projection and clock.
+// Authored shallow hardware/energy use the road's projection and shared clock.
+// The same small Canvas paths remain readable while a sheet is unavailable.
 window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({name:'src/game/cache-road-beat-feedback.js',
-  exports:['BARCODE.CacheRoadBeatFeedback'],dependencies:['BARCODE.CacheRoadGuidance']});
+  exports:['BARCODE.CacheRoadBeatFeedback'],dependencies:['BARCODE.CacheRoadGuidance','BARCODE.CacheRoadBeatSurface']});
 (function(B) {
   'use strict';
   const INK='#071521',PAPER='#f4ffdc',COLORS=['#8bf2a6','#ff917d','#77ddff','#ffe085'];
@@ -22,8 +23,8 @@ window.FILE_MANIFEST.push({name:'src/game/cache-road-beat-feedback.js',
     ctx.font=`bold ${size}px Oxanium, monospace`;ctx.textAlign='center';
     ctx.textBaseline='middle';ctx.fillStyle=color;ctx.fillText(String(value),x,y,width);
   }
-  function badge(ctx,action,x,y,size,{active=false,disabled=false,road}={}) {
-    B.CacheRoadGuidance?.drawButton(ctx,{index:action,x,y,size,active,disabled,road});
+  function badge(ctx,action,x,y,size,{active=false,disabled=false,road,skin=true}={}) {
+    B.CacheRoadGuidance?.drawButton(ctx,{index:action,x,y,size,active,disabled,road,skin});
   }
   function feedbackPose(s,{reduced=false}={}) {
     const receipt=s?.beatFeedback;
@@ -48,6 +49,8 @@ window.FILE_MANIFEST.push({name:'src/game/cache-road-beat-feedback.js',
       const caught=!active&&receipt?.success&&receipt.age<650&&receipt.lane===lane;
       const color=active?COLORS[nextPulse.action]:caught?receipt.color:'#8badad';
       const left=p.laneEdge(lane,p.strikeDepth)+10,right=p.laneEdge(lane+1,p.strikeDepth)-10;
+      if(B.CacheRoadBeatSurface?.drawDock(ctx,lane,{projection:p,active,hot,caught,
+        action:active?nextPulse.action:caught?receipt.action:lane}))continue;
       ctx.globalAlpha=active||caught?1:.32;
       ctx.strokeStyle=INK;ctx.lineWidth=10;ctx.beginPath();
       ctx.moveTo(left,p.strikeY);ctx.lineTo(right,p.strikeY);ctx.stroke();
@@ -66,9 +69,12 @@ window.FILE_MANIFEST.push({name:'src/game/cache-road-beat-feedback.js',
       // The timing ring closes once on ONE. It follows the song rather than
       // a pulse oscillator; quiet preferences retain the same fixed target.
       const radius=calm?38:38+(1-clamp(nextCue.charge))*22;
-      ctx.strokeStyle=INK;ctx.lineWidth=8;ctx.beginPath();ctx.arc(x,y,radius,0,Math.PI*2);ctx.stroke();
-      ctx.strokeStyle=nextCue.window?PAPER:color;ctx.lineWidth=nextCue.window?4:2;
-      ctx.beginPath();ctx.arc(x,y,radius,0,Math.PI*2);ctx.stroke();
+      if(!B.CacheRoadBeatSurface?.drawTargetRing(ctx,x,y,radius,
+        {window:nextCue.window,charge:nextCue.charge,quiet:calm})) {
+        ctx.strokeStyle=INK;ctx.lineWidth=8;ctx.beginPath();ctx.arc(x,y,radius,0,Math.PI*2);ctx.stroke();
+        ctx.strokeStyle=nextCue.window?PAPER:color;ctx.lineWidth=nextCue.window?4:2;
+        ctx.beginPath();ctx.arc(x,y,radius,0,Math.PI*2);ctx.stroke();
+      }
       badge(ctx,nextPulse.action,x,y,nextCue.window&&!calm?67:61,{active:nextCue.window,road});
       for(let i=0;i<4;i++) {
         // The preceding bar also has a ONE. It cannot light the destination
@@ -77,9 +83,14 @@ window.FILE_MANIFEST.push({name:'src/game/cache-road-beat-feedback.js',
           (count!==1||nextCue.window),xx=x+(i-1.5)*35;
         const shape=[[xx-13,p.strikeY+24],[xx+11,p.strikeY+24],[xx+15,p.strikeY+29],
           [xx+13,p.strikeY+44],[xx-13,p.strikeY+44],[xx-15,p.strikeY+39]];
-        path(ctx,shape);ctx.fillStyle=selected?(count===1?PAPER:color):'#183440';ctx.fill();
-        outline(ctx,shape,selected?PAPER:'#58787a',selected?2:1,2);
-        text(ctx,count,xx,p.strikeY+34,14,selected?INK:'#bbd4d0',24);
+        const authoredCount=B.CacheRoadBeatSurface?.paintSprite(ctx,'cacheBeatHardware',{x:xx,y:p.strikeY+34,
+          width:34,height:29,frame:nextPulse.action+(selected?4:0),opacity:selected?1:.45});
+        if(!authoredCount) {
+          path(ctx,shape);ctx.fillStyle=selected?(count===1?PAPER:color):'#183440';ctx.fill();
+          outline(ctx,shape,selected?PAPER:'#58787a',selected?2:1,2);
+        }
+        const chevronCount=authoredCount&&nextPulse.action===0;
+        text(ctx,count,xx,p.strikeY+(chevronCount?30:34),chevronCount?11:14,selected?INK:'#bbd4d0',24);
       }
       text(ctx,nextCue.window?(inLane?'PRESS':'CHANGE LANE'):'ON ONE',x,p.strikeY+130,
         nextCue.window?18:13,nextCue.window?PAPER:color,190);
@@ -98,6 +109,15 @@ window.FILE_MANIFEST.push({name:'src/game/cache-road-beat-feedback.js',
       [p.laneX(pulse.lane,f)-width(f),p.roadY(f)]];
     const points=pointsAt(near,far),x=p.laneX(pulse.lane,mid),y=p.roadY(mid);
     ctx.save();
+    if(B.CacheRoadBeatSurface?.drawPad(ctx,s,pulse,cue,{projection:p,spent,latched,quiet:calm})) {
+      // The authored plate already occupies the true road quad. Only the
+      // preference-mapped glyph is sharp live paint above its blank face.
+      ctx.globalAlpha*=spent?.48:latched?.8:1;ctx.translate(x,y);
+      ctx.scale(Math.max(.50,mid),Math.max(.34,mid*.56));
+      badge(ctx,pulse.action,0,0,hot&&!calm?107:99,
+        {active:hot,disabled:spent,road,skin:false});
+      ctx.restore();return true;
+    }
     // Two colored rails connect the physical pad to its exact tire target.
     // A fixed three-step pattern shows travel without an extra emitter.
     const stripFar=p.depth(d+18);
@@ -147,18 +167,22 @@ window.FILE_MANIFEST.push({name:'src/game/cache-road-beat-feedback.js',
         [ticketX+halfWidth,ticketY-27],[ticketX+halfWidth,ticketY+27],
         [ticketX+halfWidth-6,ticketY+33],[ticketX-halfWidth+6,ticketY+33],
         [ticketX-halfWidth,ticketY+27],[ticketX-halfWidth,ticketY-27]];
-      path(ctx,ticket);ctx.fillStyle=INK;ctx.fill();outline(ctx,ticket,receipt.color,1.5);
+      const authoredTicket=B.CacheRoadBeatSurface?.drawShell(ctx,receipt,ticketX,ticketY,
+        halfWidth*2,88,{compact:true});
+      if(!authoredTicket) {
+        path(ctx,ticket);ctx.fillStyle=INK;ctx.fill();outline(ctx,ticket,receipt.color,1.5);
+      }
       text(ctx,receipt.success?(receipt.perfect?'PERFECT':'ON BEAT'):'MISSED',
-        ticketX,ticketY-18,12,receipt.color,84);
+        ticketX,ticketY-(authoredTicket?13:18),authoredTicket?10:12,receipt.color,authoredTicket?68:84);
       if(receipt.success) {
         text(ctx,receipt.delta>0?`+${receipt.delta}`:receipt.value>=100?'MAX':'SYNC',
-          ticketX,ticketY+2,22,PAPER,84);
-        text(ctx,'ADRENALINE',ticketX,ticketY+21,9,receipt.color,84);
+          ticketX,ticketY+(authoredTicket?1:2),authoredTicket?17:22,PAPER,authoredTicket?68:84);
+        text(ctx,'ADRENALINE',ticketX,ticketY+(authoredTicket?12:21),authoredTicket?7:9,receipt.color,authoredTicket?68:84);
       } else if(receipt.delta<0) {
-        text(ctx,receipt.delta,ticketX,ticketY+2,22,receipt.color,84);
-        text(ctx,'ADRENALINE',ticketX,ticketY+21,9,receipt.color,84);
+        text(ctx,receipt.delta,ticketX,ticketY+(authoredTicket?1:2),authoredTicket?17:22,receipt.color,authoredTicket?68:84);
+        text(ctx,'ADRENALINE',ticketX,ticketY+(authoredTicket?12:21),authoredTicket?7:9,receipt.color,authoredTicket?68:84);
       } else {
-        text(ctx,'NEXT ONE',ticketX,ticketY+6,14,receipt.color,84);
+        text(ctx,'NEXT ONE',ticketX,ticketY+6,authoredTicket?12:14,receipt.color,authoredTicket?68:84);
       }
       ctx.restore();return true;
     }
@@ -185,41 +209,61 @@ window.FILE_MANIFEST.push({name:'src/game/cache-road-beat-feedback.js',
         [[0,.74],[.13,1],[.5,.94],[.87,1],[1,.74],[1,.26],
           [.87,0],[.5,.06],[.13,0],[0,.26]]).map(([u,v])=>plane(u,v));
       if(receipt.age<650) {
-        ctx.globalAlpha=receipt.alpha*(receipt.quiet?.16:.12+receipt.impact*.22);
-        path(ctx,points);ctx.fillStyle=receipt.color;ctx.fill();
-        ctx.globalAlpha=receipt.alpha*(receipt.quiet?.7:1-receipt.age/750);
-        outline(ctx,points,receipt.color,receipt.perfect?5:3,4);
-        if(!receipt.quiet)for(let i=0;i<(receipt.perfect?6:4);i++) {
-          const side=i%2?1:-1,step=Math.floor(i/2),xx=x+side*(65+receipt.expansion*(37+step*15));
-          const yy=y-18+step*19,reach=(receipt.perfect?16:10)*(1-receipt.expansion*.5);
-          ctx.strokeStyle=receipt.perfect?PAPER:receipt.color;ctx.lineWidth=3;
-          ctx.beginPath();ctx.moveTo(xx,yy);ctx.lineTo(xx+side*reach,yy-7+step*5);ctx.stroke();
+        if(!B.CacheRoadBeatSurface?.drawImpact(ctx,receipt,corners)) {
+          ctx.globalAlpha=receipt.alpha*(receipt.quiet?.16:.12+receipt.impact*.22);
+          path(ctx,points);ctx.fillStyle=receipt.color;ctx.fill();
+          ctx.globalAlpha=receipt.alpha*(receipt.quiet?.7:1-receipt.age/750);
+          outline(ctx,points,receipt.color,receipt.perfect?5:3,4);
+        }
+        ctx.globalAlpha=receipt.alpha;
+        if(!B.CacheRoadBeatSurface?.drawSparks(ctx,receipt,x,y)&&!receipt.quiet) {
+          for(let i=0;i<(receipt.perfect?6:4);i++) {
+            const side=i%2?1:-1,step=Math.floor(i/2),xx=x+side*(65+receipt.expansion*(37+step*15));
+            const yy=y-18+step*19,reach=(receipt.perfect?16:10)*(1-receipt.expansion*.5);
+            ctx.strokeStyle=receipt.perfect?PAPER:receipt.color;ctx.lineWidth=3;
+            ctx.beginPath();ctx.moveTo(xx,yy);ctx.lineTo(xx+side*reach,yy-7+step*5);ctx.stroke();
+          }
         }
       }
       ctx.globalAlpha=receipt.alpha;
-      const badgeY=y+70-receipt.lift*.25;
-      badge(ctx,receipt.action,x,badgeY,receipt.quiet?60:60+receipt.impact*(receipt.perfect?20:10),
+      const authoredReceipt=B.CacheRoadBeatSurface?.available?.('cacheBeatTiming');
+      const badgeY=y+(authoredReceipt?56:70)-receipt.lift*.25;
+      B.CacheRoadBeatSurface?.drawRelease(ctx,receipt,x,badgeY);
+      const badgeSize=authoredReceipt?(receipt.quiet?52:52+receipt.impact*(receipt.perfect?8:4)):
+        receipt.quiet?60:60+receipt.impact*(receipt.perfect?20:10);
+      badge(ctx,receipt.action,x,badgeY,badgeSize,
         {active:true,road});
       const cardY=y+110-receipt.lift,cardWidth=receipt.perfect?202:182;
       const card=[[x-cardWidth/2+8,cardY-13],[x+cardWidth/2-8,cardY-13],
         [x+cardWidth/2,cardY-5],[x+cardWidth/2,cardY+39],
         [x-cardWidth/2+8,cardY+39],[x-cardWidth/2,cardY+31],[x-cardWidth/2,cardY-5]];
-      path(ctx,card);ctx.fillStyle=INK;ctx.fill();outline(ctx,card,receipt.color,2);
-      text(ctx,receipt.perfect?'PERFECT':'ON BEAT',x,cardY+1,receipt.perfect?23:20,receipt.color,185);
+      const authoredCard=B.CacheRoadBeatSurface?.drawShell(ctx,receipt,x,cardY+10,cardWidth,76);
+      if(!authoredCard) {
+        path(ctx,card);ctx.fillStyle=INK;ctx.fill();outline(ctx,card,receipt.color,2);
+      }
+      text(ctx,receipt.perfect?'PERFECT':'ON BEAT',x,cardY+1,
+        authoredCard?(receipt.perfect?18:17):(receipt.perfect?23:20),receipt.color,authoredCard?cardWidth-42:185);
       const reward=receipt.delta>0?`+${receipt.delta} ADRENALINE`:receipt.value>=100?'MAX ADRENALINE':'SYNC HELD';
-      text(ctx,reward,x,cardY+25,13,PAPER,186);
+      text(ctx,reward,x,cardY+(authoredCard?17:25),authoredCard?11:13,PAPER,authoredCard?cardWidth-42:186);
       // Four charge sockets answer a connected sequence with finite geometry.
-      if(receipt.chain>1)for(let i=0;i<4;i++) {
-        ctx.fillStyle=i<Math.min(4,receipt.chain)?receipt.color:'#355354';
-        ctx.fillRect(x-20+i*11,cardY+44,7,3);
+      if(receipt.chain>1) {
+        const streakY=cardY+(authoredCard?47:45);
+        B.CacheRoadBeatSurface?.drawStreak(ctx,x,streakY);
+        for(let i=0;i<4;i++) {
+          ctx.fillStyle=i<Math.min(4,receipt.chain)?receipt.color:'#355354';
+          ctx.fillRect(x-20+i*11,streakY-1,7,3);
+        }
       }
     } else {
       // A missed real opportunity gives one neutral receipt, no screen kick.
-      ctx.strokeStyle=receipt.color;ctx.lineWidth=2;
-      for(const side of [-1,1]) {ctx.beginPath();ctx.moveTo(x+side*65,y+18);
-        ctx.lineTo(x+side*91,y+18);ctx.stroke();}
+      const authoredMiss=B.CacheRoadBeatSurface?.drawShell(ctx,receipt,x,y+82,184,88);
+      if(!authoredMiss) {
+        ctx.strokeStyle=receipt.color;ctx.lineWidth=2;
+        for(const side of [-1,1]) {ctx.beginPath();ctx.moveTo(x+side*65,y+18);
+          ctx.lineTo(x+side*91,y+18);ctx.stroke();}
+      }
       text(ctx,'MISSED',x,y+70,18,receipt.color,150);
-      text(ctx,receipt.delta<0?`${receipt.delta} ADRENALINE`:'NEXT ONE',x,y+93,12,receipt.color,175);
+      text(ctx,receipt.delta<0?`${receipt.delta} ADRENALINE`:'NEXT ONE',x,y+(authoredMiss?92:93),12,receipt.color,authoredMiss?146:175);
     }
     ctx.restore();return true;
   }

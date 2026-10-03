@@ -6,13 +6,15 @@ module.exports=async function reviewRoadWorld() {
   const font=await new FontFace('Oxanium',
     'url(/assets/studies/visual-overhaul/references/fonts/Oxanium.ttf)').load();
   document.fonts.add(font);
-  B.Campaign={register(){},syncTitleButton(){}};
-  for(const file of ['src/game/cache-road-landscape.js','src/game/cache-road-guidance.js',
+  B.Campaign={register(){},syncTitleButton(){},readResume(){return null;}};
+  for(const file of ['src/game/cache-chapter.js','src/game/cache-road-landscape.js','src/game/cache-road-guidance.js',
     'src/game/cache-road-encounters.js','src/game/cache-road-reactions.js',
     'src/game/cache-road-pursuit.js','src/game/cache-road-boss-art.js',
     'src/game/cache-road-combat.js','src/game/cache-road-combat-art.js',
     'src/game/cache-road-crosswalks.js','src/game/cache-road-mirror.js',
-    'src/game/cache-road-crew-callouts.js'])
+    'src/game/cache-road-crew-callouts.js','src/game/cache-road-adrenaline.js',
+    'src/game/cache-road-instruments.js','src/game/cache-road-beat-surface.js',
+    'src/game/cache-road-beat-feedback.js'])
     (0,eval)(await load(file));
   if(!B.CacheRoadCrosswalks||!B.CacheRoadMirror||!B.CacheRoadCrewCallouts)
     throw Error('Production crosswalk, mirror and crew feedback owners failed to load');
@@ -29,7 +31,8 @@ module.exports=async function reviewRoadWorld() {
       throw Error('Missing road assets: '+keys.filter(key=>!B.PresentationAssets.ready(key)).join(','));
     await new Promise(resolve=>setTimeout(resolve,50));
   }
-  for(const [key,frames] of [['cacheBloodSplatter',6],['cacheCrewCallouts',3]]) {
+  for(const [key,frames] of [['cacheBloodSplatter',6],['cacheCrewCallouts',3],
+    ['cacheBeatHardware',8],['cacheBeatEnergy',12],['cacheBeatTiming',8]]) {
     const definition=window.roadReviewDefinitions[key];
     if(!definition||definition.frames!==frames||!B.PresentationAssets.ready(key))
       throw Error(`Custom feedback sheet failed production registration/decode: ${key}`);
@@ -107,8 +110,14 @@ module.exports=async function reviewRoadWorld() {
   new Function('module',await load('tools/cache-road-animation-routes.cjs'))(auditModule);
   const auditCanvas=document.createElement('canvas');auditCanvas.width=480;auditCanvas.height=270;
   const auditCtx=auditCanvas.getContext('2d');auditCtx.scale(.25,.25);
-  const animationRoutes=auditModule.exports({B,ctx:auditCtx,newState:window.roadReviewState,
-    entities:window.roadReviewEntities,definitions:window.roadReviewDefinitions});
+  const diagnosticAudio={context:{currentTime:0,state:'running',outputLatency:0,baseLatency:0},
+    getOutputAudioTime(raw=this.context.currentTime){return raw;},playCombatCue(){}};
+  let animationRoutes;
+  window.audioSystem=diagnosticAudio;
+  try {
+    animationRoutes=auditModule.exports({B,ctx:auditCtx,newState:window.roadReviewState,
+      entities:window.roadReviewEntities,definitions:window.roadReviewDefinitions,audio:diagnosticAudio});
+  } finally {window.audioSystem=actualAudio;}
   animationRoutes.canvasSize=[480,270];
   const usedAnimations=animationRoutes.main;
   // Every authored road animation must contain changing pixels at real cel

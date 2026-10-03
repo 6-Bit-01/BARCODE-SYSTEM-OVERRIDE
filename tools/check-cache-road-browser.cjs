@@ -311,10 +311,21 @@ async function main() {
   const reviewWorld=require('./cache-road-browser-world.cjs');
   const world=await evaluate(`(${reviewWorld.toString()})()`);
   assert(world.loadedAssets>200&&world.frames.length===192&&world.contextCalls<=4);
-  assert(Object.keys(world.animations).length===58 && world.animationRoutes.animatedKeys===58);
+  assert(Object.keys(world.animations).length===61 && world.animationRoutes.animatedKeys===61);
   assert.equal(world.animationRoutes.legacyAnimatedKeys,51,
     'all original legacy route assertions remain intact');
-  assert.equal(world.hosted.filter(entry=>entry.frames>1).length,58);
+  assert.equal(world.hosted.filter(entry=>entry.frames>1).length,61);
+  assert.deepEqual(world.animationRoutes.authoredBeatKeys,['cacheBeatHardware','cacheBeatEnergy','cacheBeatTiming']);
+  for(const [key,count] of [['cacheBeatHardware',8],['cacheBeatEnergy',12],['cacheBeatTiming',8]]) {
+    assert.deepEqual(world.animationRoutes.main[key],Array.from({length:count},(_,i)=>i),
+      `${key}: real production chart timing and receipts paint every new source cel`);
+    assert(!world.animationRoutes.mirror[key],`${key}: ground timing does not enter the rearview`);
+    const hosted=world.hosted.find(entry=>entry.key===key);
+    assert(hosted&&hosted.bytes>0&&hosted.frames===count&&hosted.productionLoader,
+      `${key}: exact immutable published bytes decode and draw through the remote-first loader`);
+  }
+  assert.deepEqual([...new Set(world.animationRoutes.beatReceipts.map(receipt=>receipt.kind))].sort(),
+    ['good','miss','perfect'],'native real chart judgments cover Good, Perfect and an actual miss');
   assert.deepEqual(world.animationRoutes.authoredFeedbackKeys,['cacheBloodSplatter','cacheCrewCallouts']);
   assert.deepEqual(world.animationRoutes.main.cacheBloodSplatter,[0,1,2,3,4,5],
     'all six blood cells follow real staged pedestrian/rider contacts through the front road');

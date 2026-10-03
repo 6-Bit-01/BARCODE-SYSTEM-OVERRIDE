@@ -44,7 +44,11 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   const COMBAT_ART_REV = '12af86c0641456cc443ff7f42db013e565088b13';
   const cacheCombatRoot = `https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/${COMBAT_ART_REV}/`;
   const cacheBloodCrewRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/3ab4d860c46f4e5a8b2e6bd944648c95639761a6/';
+  const cacheBeatRoot = 'https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/1e33660d658e340c76ac4f1069e1f446bc068ef1/';
   const entries = {
+    cacheBeatHardware: {path:'assets/cache-road/beat-system/hardware-atlas.webp',root:cacheBeatRoot,columns:4,rows:2,frames:8,ax:.5,ay:.5,smooth:true},
+    cacheBeatEnergy: {path:'assets/cache-road/beat-system/energy-atlas.webp',root:cacheBeatRoot,columns:4,rows:3,frames:12,ax:.5,ay:.5,smooth:true,frameCrops:{"0":[51,8,284,367],"1":[42,8,285,367],"2":[37,9,285,366],"3":[29,8,285,367],"4":[20,0,337,358],"5":[9,0,348,355],"6":[10,0,352,359],"7":[0,0,353,362],"8":[35,5,301,309],"9":[19,7,312,317],"10":[14,5,317,333],"11":[22,0,289,329]}},
+    cacheBeatTiming: {path:'assets/cache-road/beat-system/timing-atlas.webp',root:cacheBeatRoot,columns:4,rows:2,frames:8,ax:.5,ay:.5,smooth:true,frameCrops:{"0":[22,92,397,392],"1":[23,90,397,394],"2":[27,91,416,393],"3":[0,61,444,447],"4":[7,63,429,196],"5":[10,52,429,211],"6":[13,72,420,185],"7":[6,66,438,200]}},
     cacheBloodSplatter: {path:'assets/cache-road/blood/blood-splatter-atlas.webp',root:cacheBloodCrewRoot,columns:3,rows:2,frames:6,ax:.5,ay:1,smooth:true},
     cacheCrewCallouts: {path:'assets/cache-road/blood/crew-callout-portraits.webp',root:cacheBloodCrewRoot,columns:3,rows:1,frames:3,ax:.5,ay:.5,smooth:true},
     cacheCombatBike: {path:'assets/cache-road/combat/bike-rider-atlas.webp',root:cacheCombatRoot,columns:4,rows:2,frames:8,ax:.5,ay:1,smooth:true},
@@ -329,7 +333,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     if (!entry || !state?.ready) return false;
     const image = state.image, fw = image.naturalWidth / entry.columns, fh = image.naturalHeight / entry.rows;
     const index = Math.max(0, Math.floor(frame)) % entry.frames;
-    const [sx, sy, sw, sh] = sourceRect || entry.crop || [0, 0, fw, fh];
+    const [sx, sy, sw, sh] = sourceRect || entry.frameCrops?.[index] || entry.crop || [0, 0, fw, fh];
     const h = height ?? width * sh / sw;
     const sourceX = index % entry.columns * fw + sx;
     const sourceY = Math.floor(index / entry.columns) * fh + sy;
