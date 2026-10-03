@@ -187,13 +187,13 @@ async function browser(){
       const median=values=>{const v=values.slice().sort((a,b)=>a-b);return v[Math.floor(v.length/2)];};
       const rows=[],assetDraw=P.draw,bitmapFactory=window.createImageBitmap;
       const originalDrawImage=ctx.drawImage;let reflectionBlurs=0;
-      ctx.drawImage=function(source,...args){
+      const inspectDrawImage=function(source,...args){
         if(source===c&&this.filter==='blur(2.3px)')reflectionBlurs++;
         return originalDrawImage.call(this,source,...args);
       };
       const framePixels=new Map(),pixelComparisons=[],qualityComparisons=[],screens=[];
       let measuredGroups={};
-      P.draw=(key,context,args)=>{
+      const inspectAssetDraw=(key,context,args)=>{
         const group=context.filter==='none'?'plain':'filtered';
         const began=performance.now(),ok=assetDraw(key,context,args),ms=performance.now()-began;
         measuredGroups[group]=(measuredGroups[group]||0)+ms;
@@ -219,11 +219,9 @@ async function browser(){
           road.draw(ctx);const submitted=performance.now();ctx.getImageData(0,0,1,1);
           const elapsed=performance.now()-began;
           if(frame===39)console.log('FRAME_COST '+JSON.stringify({name:scene.name,mode,
-            submitMs:submitted-began,flushMs:performance.now()-submitted,
-            groups:Object.fromEntries(Object.entries(measuredGroups).filter(([key,value])=>value>1))}));
+            submitMs:submitted-began,flushMs:performance.now()-submitted}));
           if(JSON.stringify(road.state)!==stateBefore)throw Error('A measured draw changed gameplay');
           if(ctx.imageSmoothingQuality!=='high')throw Error('road draw leaked its sampling quality');
-          if(reflectionBlurs!==(mode==='vector'?0:1))throw Error('reflection blur was repeated or lost');
           if(frame>=24)samples.push(elapsed);
           else if(mode==='adaptive')startupFrames.push({frame,ms:elapsed,
             worldScale:road.renderBudget.drawnScale});
@@ -231,6 +229,18 @@ async function browser(){
             const displayedPixels=ctx.getImageData(0,0,c.width,c.height).data;
             screens.push({name:scene.name,mode,webp:c.toDataURL('image/webp',.9).split(',')[1]});
             let pixels=displayedPixels;
+            // Inspect reflection/resources separately from production timing.
+            // Per-draw wrappers allocate and query the native context hundreds
+            // of times; that diagnostic work must not enter the frame budget.
+            ctx.drawImage=inspectDrawImage;P.draw=inspectAssetDraw;
+            reflectionBlurs=0;measuredGroups={};ctx.reset();ctx.imageSmoothingQuality='high';
+            road.draw(ctx);ctx.getImageData(0,0,1,1);
+            if(reflectionBlurs!==(mode==='vector'?0:1))throw Error('reflection blur was repeated or lost');
+            if(JSON.stringify(road.state)!==stateBefore||ctx.imageSmoothingQuality!=='high')
+              throw Error('instrumented inspection leaked gameplay or sampling state');
+            console.log('FRAME_COST '+JSON.stringify({name:scene.name,mode,diagnosticOnly:true,
+              groups:Object.fromEntries(Object.entries(measuredGroups).filter(([key,value])=>value>1))}));
+            ctx.drawImage=originalDrawImage;P.draw=assetDraw;
             if(mode==='adaptive') {
               const reference=framePixels.get(scene.name+'-bitmap');
               let difference=0,hudDifference=0;
@@ -357,7 +367,7 @@ async function browser(){
           medianMs:median(costs),worldScale:road.renderBudget.drawnScale,animatedAtlasDimensions}));
       }
       P.draw=assetDraw;
-      const viewportChecks=[];
+      const viewportChecks=[];ctx.drawImage=inspectDrawImage;
       for(const [width,height,scale]of [[960,540,.5],[2400,1350,1.25]]) {
         c.width=width;c.height=height;ctx.setTransform(scale,0,0,scale,7,11);
         reflectionBlurs=0;const before=ctx.getTransform(),stateBefore=JSON.stringify(road.state);
