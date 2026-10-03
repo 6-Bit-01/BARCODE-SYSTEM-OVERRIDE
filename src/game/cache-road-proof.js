@@ -3625,6 +3625,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // Keep native foreground blends inside the display as well as the
       // sampled background. Foreground exits retain their complete projection.
       ctx.beginPath();ctx.rect(0,0,1920,1080);ctx.clip();
+      // A sampled frame replaces the entire display. Discard its previous
+      // full-size painting before the small opaque backing is built.
+      if(worldScale<1)ctx.clearRect(0,0,1920,1080);
       ctx.setTransform(worldScale,0,0,worldScale,0,0);
       // Level 1's clear() requests high-quality image resampling. The road
       // submits hundreds of projected/cropped textures on that same context;
@@ -3661,7 +3664,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.restore(); // sampled world camera
         ctx.restore(); // sampled backing clip
         ctx.save();ctx.setTransform(1,0,0,1,0,0);
-        ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.filter='none';
+        ctx.globalAlpha=1;ctx.globalCompositeOperation='copy';ctx.filter='none';
         ctx.imageSmoothingEnabled=false;
         ctx.drawImage(ctx.canvas,0,0,1920*worldScale,1080*worldScale,0,0,1920,1080);
         ctx.restore();ctx.setTransform(1,0,0,1,0,0);ctx.save();

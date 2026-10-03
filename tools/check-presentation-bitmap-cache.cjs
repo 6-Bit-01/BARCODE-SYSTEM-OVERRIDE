@@ -113,7 +113,9 @@ async function backgroundRasterUnit(){
   const smallState=smallWindow.bitmapReview.cache.cacheNewCrossingSignalR;
   smallState.image.onload();await new Promise(setImmediate);
   assert.equal(smallPrepared.length,1);
-  assert.deepEqual(smallPrepared[0],{resizeWidth:288,resizeHeight:144,resizeQuality:'high'});
+  assert.equal(smallPrepared[0].resizeWidth,288);
+  assert.equal(smallPrepared[0].resizeHeight,144);
+  assert.equal(smallPrepared[0].resizeQuality,'high');
   const smallCalls=[],smallCtx={imageSmoothingEnabled:true,save(){},restore(){},translate(){},scale(){},drawImage(...args){smallCalls.push(args);}};
   const smallAssets=smallWindow.BARCODE.PresentationAssets;
   smallAssets.setRasterDetail(smallCtx,.25);

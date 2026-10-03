@@ -2,6 +2,13 @@
 ## October 3, 2026 — continued lag repair after PR180 playtest
 
 
+Sampled frames clear the old full-display painting before building the small
+opaque background, then expand it with copy composition. The frame still uses
+the same single Canvas. Staged live-boss fidelity compares both RGB and alpha
+against the previous source-over expansion and original crest mask.
+The smaller-sheet test compares option values across VM contexts explicitly.
+
+
 Reserve native preparation for animated vehicles, combat/beat sheets, HUD and
 the pursuit rig within the unchanged 32-megapixel cap. Blood, crew portraits
 and legacy/decorative sheets retain their prior original-image rendering.

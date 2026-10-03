@@ -422,6 +422,11 @@ const server=http.createServer((req,res)=>{
       assert(source.includes(marker),'production phase boundary '+label);
       source=source.replace(marker,"window.canvasCostMark?.("+JSON.stringify(label)+");\n"+marker);
     }
+    const clearBoundary='if(worldScale<1)ctx.clearRect(0,0,1920,1080);';
+    const copyBoundary="ctx.globalAlpha=1;ctx.globalCompositeOperation='copy';ctx.filter='none';";
+    assert(source.includes(clearBoundary)&&source.includes(copyBoundary),'opaque world-copy fidelity boundaries');
+    source=source.replace(clearBoundary,'if(worldScale<1&&!window.forceLegacyWorldCopy)ctx.clearRect(0,0,1920,1080);');
+    source=source.replace(copyBoundary,"ctx.globalAlpha=1;ctx.globalCompositeOperation=window.forceLegacyWorldCopy?'source-over':'copy';ctx.filter='none';");
     const terrainBoundary='if(terrainBelowCrest) {';
     assert(source.includes(terrainBoundary),'terrain crest mask fidelity boundary');
     source=source.replace(terrainBoundary,'if(terrainBelowCrest&&!window.forceCrestMask) {');
@@ -786,29 +791,31 @@ async function main(){
       originalRoadDraw.call(road,ctx);window.canvasCostMark('hud-complete');
       const reviewWebp=ctx.canvas.toDataURL('image/webp',.9).split(',')[1];
       const optimizedPixels=ctx.getImageData(0,0,ctx.canvas.width,ctx.canvas.height).data;
-      window.canvasCostMark=undefined;window.forceCrestMask=true;
+      window.canvasCostMark=undefined;window.forceCrestMask=true;window.forceLegacyWorldCopy=true;
       originalRoadDraw.call(road,ctx);
       const referencePixels=ctx.getImageData(0,0,ctx.canvas.width,ctx.canvas.height).data;
-      let difference=0,maxChannelDifference=0;
-      for(let i=0;i<optimizedPixels.length;i++)if(i%4!==3){
-        const delta=Math.abs(optimizedPixels[i]-referencePixels[i]);difference+=delta;maxChannelDifference=Math.max(maxChannelDifference,delta);
+      let difference=0,maxChannelDifference=0,maxAlphaDifference=0;
+      for(let i=0;i<optimizedPixels.length;i++){
+        const delta=Math.abs(optimizedPixels[i]-referencePixels[i]);
+        if(i%4===3)maxAlphaDifference=Math.max(maxAlphaDifference,delta);
+        else {difference+=delta;maxChannelDifference=Math.max(maxChannelDifference,delta);}
       }
-      const maskFidelity={meanRGB:difference/(optimizedPixels.length/4*3),maxChannelDifference};
-      window.forceCrestMask=undefined;
+      const renderFidelity={meanRGB:difference/(optimizedPixels.length/4*3),maxChannelDifference,maxAlphaDifference};
+      window.forceCrestMask=undefined;window.forceLegacyWorldCopy=undefined;
       const unflushed=[];let last=performance.now();
       window.canvasCostMark=phase=>{const now=performance.now();if(phase!=='begin')unflushed.push({phase,ms:now-last});last=now;};
       const start=performance.now();originalRoadDraw.call(road,ctx);window.canvasCostMark('hud-complete');
       const submitted=performance.now();ctx.getImageData(0,0,1,1);
       const completeMs=performance.now()-start;
       return {available:true,fixture:true,status:road.status,bar:road.state.musicBeatFloat/4,bossHP:road.state.combat.boss.hp,rows,
-        unflushed,completeMs,finalFlushMs:completeMs-(submitted-start),maskFidelity,
+        unflushed,completeMs,finalFlushMs:completeMs-(submitted-start),renderFidelity,
         assetGroups:Object.entries(groups).sort((a,b)=>b[1].submitMs-a[1].submitMs).slice(0,24),
         nativeInventory:Object.entries(cache).filter(([,state])=>state.nativeBitmap||state.nativeFrames)
           .map(([key,state])=>({key,pixels:state.nativeBitmap?state.nativeBitmap.width*state.nativeBitmap.height:
             state.nativeFrames.reduce((sum,bitmap)=>sum+bitmap.width*bitmap.height,0)})),
         reviewWebp};
     }finally{
-      window.canvasCostMark=undefined;window.forceCrestMask=undefined;P.draw=assetDraw;
+      window.canvasCostMark=undefined;window.forceCrestMask=undefined;window.forceLegacyWorldCopy=undefined;P.draw=assetDraw;
       for(const name of methods)ctx[name]=originals[name];
       road.state=saved.state;road.chapter=saved.chapter;Object.assign(road,saved.host);
       road.renderBudget=saved.budget;road.renderBudgetState=saved.budgetState;road.renderFrameIntervalMs=saved.interval;
@@ -821,7 +828,7 @@ async function main(){
   }
   console.log('BOSS_RENDER_PHASES '+JSON.stringify(phaseReport));
   assert(phaseReport.available&&phaseReport.status==='playing'&&phaseReport.bossHP>0,'staged diagnostic restores the actual live-boss lifecycle');
-  assert(phaseReport.maskFidelity.meanRGB<.1,'bounded terrain mask keeps the original crest output');
+  assert(phaseReport.renderFidelity.meanRGB<.1&&phaseReport.renderFidelity.maxAlphaDifference===0,'bounded terrain/opaque frame copy keep the original rendered output');
   fs.writeFileSync(path.join(output,'Boss-Render-Phases.json'),JSON.stringify(phaseReport,null,2)+'\n');
   const phaseMedians=Object.fromEntries([false,true].map(boss=>{const rows=fullLoopCosts.filter(frame=>frame.boss===boss);
     return [boss?'boss':'chase',median(rows.map(frame=>frame.ms))];}));
