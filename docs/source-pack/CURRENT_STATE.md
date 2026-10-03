@@ -1,5 +1,37 @@
 # Current State
 
+## October 3 — Level 2 reflection frame-cost repair (PR #180)
+
+Continues from merged #179 (`f9caed6cc64361388433bf9b27e5f01ddace7f57`).
+Repeated filters across the mirror's scenery dominated production Chromium
+frame cost. The reflection is now painted and softened once with the original
+`blur(2.3px)` on the existing display Canvas. A bounded self-copy uses device
+pixel coordinates derived from the caller transform and retains the glass
+clip. Cache's face and glass markings are painted afterward at their original
+sharp resolution. Non-DOM/test contexts retain the original per-object path.
+
+The shared loader also prepares one reusable ImageBitmap per loaded SVG.
+Original source rectangles, projection, anchors, smoothing and canonical
+artwork bytes remain intact. Unsupported or failed preparation draws the
+original image; preload/re-entry never repeats an existing SVG preparation.
+Raster images retain their native loading and drawing path. No extra Canvas,
+context, timer or animation-loop owner is added. Beat artwork, controls,
+music, timing, economy, saves, camera repairs and comfort settings are kept.
+
+Real Chromium moving-state comparisons exercise Approach, Ready-ONE, earned
+Perfect/Good, Miss, Reduced Motion and a focused turn against the original
+per-object mirror/SVG path. Timing includes a raster flush; the gate requires
+20% less aggregate complete-frame cost, no scene regression above 10% and
+mean RGB difference below 1. It checks one reflection blur per frame, scaled
+viewport transforms, one display context, warm reuse and draw purity.
+Native fallback diagnostics require at least 65% less hot SVG work, no
+median whole-frame regression above 5% and mean RGB difference below 0.5.
+Reports retain every ratio and loaded-art before/after captures. Full
+regression/syntax and both exact final-head CI events remain required.
+Exact results/publication belong to the export receipt and PR #180; host
+diagnostics do not establish owner device/controller/audio/fun/comfort
+acceptance.
+
 ## October 2 — Cache camera and ground timing feedback candidate
 
 Continues from merged #177. The owner reports a severe driving-stage frame

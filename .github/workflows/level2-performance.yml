@@ -1,0 +1,40 @@
+name: level2-performance
+on:
+  push:
+    branches:
+      - agent/level2-frame-pacing-repair
+      - main
+  pull_request:
+    paths:
+      - src/game/cache-road-beat-surface.js
+      - src/engine/presentation-assets.js
+      - tools/check-presentation-bitmap-cache.cjs
+      - tools/profile-cache-beat-frame.cjs
+      - tools/check-cache-beat-frame-cost.cjs
+      - .github/workflows/level2-performance.yml
+jobs:
+  frame-cost:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Check immutable bitmap preparation and real Chromium reuse
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+          BITMAP_FRAME_REPORT: ${{ runner.temp }}/level2-frame-review/browser-performance.json
+        run: node tools/check-presentation-bitmap-cache.cjs --browser
+      - name: Measure loaded production frames
+        run: node tools/profile-cache-beat-frame.cjs "$RUNNER_TEMP/level2-performance.json"
+      - name: Upload frame timing evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: level2-performance-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/level2-performance.json
+            ${{ runner.temp }}/level2-frame-review
+          if-no-files-found: ignore

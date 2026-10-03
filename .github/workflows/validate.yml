@@ -14,12 +14,12 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm test
-      - run: npm run check:syntax:all
       - name: Check Cache Road music in real Chromium
         env:
           CHROME_BIN: /usr/bin/google-chrome
         run: npm run check:cache-road-browser
+      - run: npm test
+      - run: npm run check:syntax:all
       - name: Check music automation in real Chromium
         env:
           CHROME_BIN: /usr/bin/google-chrome
@@ -177,3 +177,14 @@ jobs:
           name: BARCODE-System-Override-Source-Pack-v5-${{ github.sha }}
           path: ${{ runner.temp }}/BARCODE-System-Override-Source-Pack-v5.zip
           if-no-files-found: error
+      - name: Prepare standalone merged source pack
+        if: github.ref == 'refs/heads/main'
+        run: python3 -m zipfile -e "$RUNNER_TEMP/BARCODE-System-Override-Source-Pack-v5.zip" "$RUNNER_TEMP/source-pack-content"
+      - name: Upload standalone merged source pack
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: BARCODE-System-Override-Source-Pack-v5-content-${{ github.sha }}
+          path: ${{ runner.temp }}/source-pack-content/
+          if-no-files-found: error
+          retention-days: 7

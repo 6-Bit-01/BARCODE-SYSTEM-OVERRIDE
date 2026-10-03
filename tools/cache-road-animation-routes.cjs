@@ -7,6 +7,7 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
   const beatSurface=B.CacheRoadBeatSurface,beatFeedback=B.CacheRoadBeatFeedback;
   const originalAssetsDraw=B.PresentationAssets.draw;
   const originalReduced=B.Preferences?.values?.reducedMotion;
+  const originalStackLimit=Error.stackTraceLimit;Error.stackTraceLimit=50;
   B.Preferences??={values:{}};B.Preferences.values??={};
   B.Preferences.values.reducedMotion=false;
   const coverage={main:{},mirror:{}},cases=[];
@@ -22,7 +23,12 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
       const frame=options.frame??0;
       check(Number.isInteger(frame)&&frame>=0&&frame<definition.frames,
         `Invalid live animation cel: ${key}/${frame}`);
-      remember(target.filter==='blur(2.3px)'?'mirror':'main',key,frame);
+      // The display Canvas now filters the completed reflection once, so
+      // source draws there no longer carry an individual filter. Trace the
+      // real production call path; retain legacy/native filter recognition.
+      const reflected=target.filter==='blur(2.3px)'||
+        (new Error().stack||'').includes('drawRearRoad');
+      remember(reflected?'mirror':'main',key,frame);
       if(current)current.push([key,frame]);
     }
     return drawn;
@@ -397,6 +403,7 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
         .map(([key,frames])=>[key,[...frames].sort((a,b)=>a-b)])),
       reducedMotion:true};
   } finally {
+    Error.stackTraceLimit=originalStackLimit;
     B.PresentationAssets.draw=originalAssetsDraw;road.state=originalState;
     road.chapter=originalChapter;
     B.MusicTransport=originalTransport;
