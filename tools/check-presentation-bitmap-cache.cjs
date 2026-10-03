@@ -45,6 +45,18 @@ async function unit(){
 async function browser(){
   const http=require('node:http'),os=require('node:os'),{spawn}=require('node:child_process'),{once}=require('node:events');
   const root=path.resolve(__dirname,'..'),profile=fs.mkdtempSync(path.join(os.tmpdir(),'barcode-bitmap-'));
+  const {prepared,stage,modules}=require('./render-cache-beat-visual-system.cjs');
+  const definitions={window:{BARCODE:{}}};vm.runInNewContext(inspected,definitions);
+  const entries=definitions.window.bitmapReview.entries;
+  const scenes=['Approach','Ready-ONE','Perfect-Impact','Good','Miss','Reduced','Focused-Turn'].map(name=>{
+    const r=prepared({manifest:source,entries,images:{}});
+    return {name,state:JSON.parse(JSON.stringify(stage(r,name))),chapter:r.road.chapter};
+  });
+  const production=['src/engine/music-profiles.js','src/engine/music-transport.js',
+    'src/engine/cache-road-proof-profile.js','src/game/cache-road-landscape.js',
+    'src/game/cache-road-encounters.js','src/game/cache-road-reactions.js',
+    'src/game/cache-road-pursuit.js','src/game/cache-road-guidance.js',...modules,
+    'src/game/cache-road-proof.js'];
   const chromePath=process.env.CHROME_BIN||'/usr/bin/google-chrome';
   let child,socket;
   const fixture=`<!doctype html><canvas id="gameCanvas" width="1920" height="1080"></canvas><script>
@@ -61,21 +73,26 @@ async function browser(){
     }});
     const bitmap=window.createImageBitmap.bind(window);
     window.createImageBitmap=(image)=>{bitmapAttempts.push(image.src);return bitmap(image);};
-  </script><script src="/registry.js"></script>`;
+    window.BARCODE={Campaign:{register(){},syncTitleButton(){}},GamepadUI:{connected:false},
+      CacheChapter:{recordIds:['r1','r2','r3','r4']},Preferences:{values:{reducedMotion:false,flashes:true}}};
+    window.audioSystem={context:{currentTime:0,state:'running'},playCombatCue(){}};
+    window.frameReviewScenes=${JSON.stringify(scenes)};
+  </script><script src="/registry.js"></script>
+  ${production.map(file=>'<script src="/'+file+'"></script>').join('')}`;
   const server=http.createServer((req,res)=>{
     const pathname=new URL(req.url,'http://localhost').pathname;
     if(pathname==='/'){res.setHeader('Content-Type','text/html');res.end(fixture);return;}
     if(pathname==='/registry.js'){res.setHeader('Content-Type','text/javascript');res.end(inspected);return;}
     const file=path.resolve(root,'.'+pathname);
     if(!file.startsWith(root+path.sep)||!fs.existsSync(file)||!fs.statSync(file).isFile()){res.writeHead(404);res.end();return;}
-    res.setHeader('Content-Type',pathname.endsWith('.svg')?'image/svg+xml':pathname.endsWith('.webp')?'image/webp':'image/png');
+    res.setHeader('Content-Type',pathname.endsWith('.js')?'text/javascript':pathname.endsWith('.ttf')?'font/ttf':pathname.endsWith('.svg')?'image/svg+xml':pathname.endsWith('.webp')?'image/webp':'image/png');
     fs.createReadStream(file).pipe(res);
   });
   try{
     server.listen(0,'127.0.0.1');await once(server,'listening');
     const origin='http://127.0.0.1:'+server.address().port;
     child=spawn(chromePath,['--headless=new','--no-sandbox','--disable-dev-shm-usage','--no-first-run',
-      '--remote-debugging-port=0','--user-data-dir='+profile,'about:blank'],{stdio:['ignore','ignore','pipe']});
+      '--remote-debugging-port=0','--user-data-dir='+profile,'about:blank'],{stdio:['ignore','ignore','pipe'],windowsHide:true});
     const debug=await new Promise((resolve,reject)=>{
       let output='';const timeout=setTimeout(()=>reject(Error('Chromium startup timed out')),30000);
       child.stderr.on('data',chunk=>{output+=chunk;const m=output.match(/DevTools listening on (ws:\/\/\S+)/);
@@ -115,7 +132,46 @@ async function browser(){
         P.draw('cacheDashDigits',ctx,{x:10,y:10,width:36,height:55,sourceRect:[0,0,64,100]});
       P.preload();if(bitmapAttempts.length!==before)throw Error('warm draws or preload rebuilt the cache');
       if(contextCalls!==1)throw Error('display Canvas ownership changed');
-      return {passed:true,preparedSVGs:svg.length,warmDraws:120,pausedPixels:true,displayContexts:contextCalls,
+      const font=await new FontFace('Oxanium',
+        'url(/assets/studies/visual-overhaul/references/fonts/Oxanium.ttf)').load();
+      document.fonts.add(font);window.renderer={canvas:c,ctx};
+      const road=BARCODE.CacheRoadProof;
+      if(!road)throw Error('Production road renderer did not load');
+      road.active=true;road.status='playing';road.audioDegraded=false;
+      const bitmaps=Object.fromEntries(svg.map(key=>[key,cache[key].bitmap]));
+      const median=values=>{const v=values.slice().sort((a,b)=>a-b);return v[Math.floor(v.length/2)];};
+      const rows=[];
+      // Draw identical moving production states in both representations.
+      // A one-pixel readback flushes queued raster work into elapsed time.
+      // These are controlled rendering diagnostics, not device gameplay FPS.
+      for(const scene of frameReviewScenes)for(const mode of ['vector','bitmap']) {
+        for(const key of svg)cache[key].bitmap=mode==='bitmap'?bitmaps[key]:undefined;
+        road.chapter=structuredClone(scene.chapter);road.state=structuredClone(scene.state);
+        BARCODE.Preferences.values.reducedMotion=scene.name==='Reduced';
+        const samples=[];
+        for(let frame=0;frame<28;frame++) {
+          ctx.reset();const stateBefore=JSON.stringify(road.state),began=performance.now();
+          road.draw(ctx);ctx.getImageData(0,0,1,1);
+          const elapsed=performance.now()-began;
+          if(JSON.stringify(road.state)!==stateBefore)throw Error('A measured draw changed gameplay');
+          if(frame>=4)samples.push(elapsed);
+          road.state.progress+=road.state.speed/60;road.state.elapsedMs+=1000/60;
+          road.state.musicBeatFloat+=128/60/60;
+          road.state.musicBar=Math.floor(road.state.musicBeatFloat/4);
+        }
+        const sorted=samples.slice().sort((a,b)=>a-b);
+        rows.push({name:scene.name,mode,medianMs:median(samples),
+          p95Ms:sorted[Math.ceil(sorted.length*.95)-1],frames:samples.length,includesRasterFlush:true});
+      }
+      for(const key of svg)cache[key].bitmap=bitmaps[key];
+      const frameComparisons=frameReviewScenes.map(({name})=>{
+        const previous=rows.find(row=>row.name===name&&row.mode==='vector');
+        const after=rows.find(row=>row.name===name&&row.mode==='bitmap');
+        return {name,beforeMs:previous.medianMs,afterMs:after.medianMs,p95Ms:after.p95Ms,
+          ratio:after.medianMs/previous.medianMs};
+      });
+      if(contextCalls!==1||bitmapAttempts.length!==before)throw Error('Measured road draws rebuilt shared resources');
+      return {passed:true,frameComparisons,frameSamples:rows,preparedSVGs:svg.length,warmDraws:120,pausedPixels:true,displayContexts:contextCalls,
         preservedMirrorFilter:'blur(2.3px)',limitation:'Real Chromium loader/cache validation; owner device FPS remains unmeasured.'};
     })()`});
     if(result.exceptionDetails)throw Error(JSON.stringify(result.exceptionDetails));
