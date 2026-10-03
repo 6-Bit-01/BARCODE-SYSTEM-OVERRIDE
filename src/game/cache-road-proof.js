@@ -729,7 +729,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     const far = profile(progress-reach);
     // Blur the completed reflection once on the existing display Canvas.
     // Per-object filters repeatedly allocate/rasterize intermediate surfaces.
-    const compositeBlur=!!ctx.canvas&&typeof ctx.getTransform==='function'&&
+    const mirrorTransform=ctx.getTransform?.();
+    const compositeBlur=ctx.canvas?.width>0&&ctx.canvas?.height>0&&
+      ['a','b','c','d','e','f'].every(field=>Number.isFinite(mirrorTransform?.[field]))&&
+      typeof window.HTMLCanvasElement==='function'&&ctx.canvas instanceof window.HTMLCanvasElement&&
       typeof ctx.setTransform==='function';
     ctx.save(); ctx.filter = 'blur(2.3px)';
     if(compositeBlur)ctx.filter='none';
@@ -999,7 +1002,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     }
     ctx.restore();
     if(compositeBlur) {
-      const m=ctx.getTransform(),xs=[],ys=[];
+      const m=mirrorTransform,xs=[],ys=[];
       for(const [px,py]of [[x,y],[x+w,y],[x,y+h],[x+w,y+h]]) {
         xs.push(m.a*px+m.c*py+m.e);ys.push(m.b*px+m.d*py+m.f);
       }

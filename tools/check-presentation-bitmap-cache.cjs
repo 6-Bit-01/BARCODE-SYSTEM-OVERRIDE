@@ -43,6 +43,7 @@ async function unit(){
   console.log('PASS: one SVG preparation per load, warm/pause reuse, exact source rectangles, context preservation, raster routing and graceful bitmap rejection.');
 }
 
+const frameReviewCount=screens=>screens.length/2;
 async function browser(){
   const http=require('node:http'),os=require('node:os'),{spawn}=require('node:child_process'),{once}=require('node:events');
   const root=path.resolve(__dirname,'..'),profile=fs.mkdtempSync(path.join(os.tmpdir(),'barcode-bitmap-'));
@@ -86,10 +87,10 @@ async function browser(){
     if(pathname==='/registry.js'){res.setHeader('Content-Type','text/javascript');res.end(inspected);return;}
     if(pathname==='/src/game/cache-road-proof.js') {
       const road=fs.readFileSync(path.join(root,'src/game/cache-road-proof.js'),'utf8');
-      assert(road.includes('const compositeBlur=!!ctx.canvas'));
+      assert(road.includes('const compositeBlur=ctx.canvas?.width>0'));
       res.setHeader('Content-Type','text/javascript');
-      res.end(road.replace('const compositeBlur=!!ctx.canvas',
-        "const compositeBlur=window.bitmapReview.mode!=='vector'&&!!ctx.canvas"));return;
+      res.end(road.replace('const compositeBlur=ctx.canvas?.width>0',
+        "const compositeBlur=window.bitmapReview.mode!=='vector'&&ctx.canvas?.width>0"));return;
     }
     const file=path.resolve(root,'.'+pathname);
     if(!file.startsWith(root+path.sep)||!fs.existsSync(file)||!fs.statSync(file).isFile()){res.writeHead(404);res.end();return;}
@@ -152,6 +153,11 @@ async function browser(){
       const bitmaps=Object.fromEntries(svg.map(key=>[key,cache[key].bitmap]));
       const median=values=>{const v=values.slice().sort((a,b)=>a-b);return v[Math.floor(v.length/2)];};
       const rows=[],assetDraw=P.draw,bitmapFactory=window.createImageBitmap;
+      const originalDrawImage=ctx.drawImage;let reflectionBlurs=0;
+      ctx.drawImage=function(source,...args){
+        if(source===c&&this.filter==='blur(2.3px)')reflectionBlurs++;
+        return originalDrawImage.call(this,source,...args);
+      };
       const framePixels=new Map(),pixelComparisons=[],screens=[];
       let measuredGroups={};
       P.draw=(key,context,args)=>{
@@ -172,7 +178,7 @@ async function browser(){
         BARCODE.Preferences.values.reducedMotion=scene.name==='Reduced';
         const samples=[];
         for(let frame=0;frame<10;frame++) {
-          ctx.reset();measuredGroups={};
+          ctx.reset();measuredGroups={};reflectionBlurs=0;
           const stateBefore=JSON.stringify(road.state),began=performance.now();
           road.draw(ctx);const submitted=performance.now();ctx.getImageData(0,0,1,1);
           const elapsed=performance.now()-began;
@@ -180,6 +186,7 @@ async function browser(){
             submitMs:submitted-began,flushMs:performance.now()-submitted,
             groups:Object.fromEntries(Object.entries(measuredGroups).filter(([key,value])=>value>1))}));
           if(JSON.stringify(road.state)!==stateBefore)throw Error('A measured draw changed gameplay');
+          if(reflectionBlurs!==(mode==='bitmap'?1:0))throw Error('reflection blur was repeated or lost');
           if(frame>=2)samples.push(elapsed);
           if(frame===4) {
             const pixels=ctx.getImageData(0,0,c.width,c.height).data;
@@ -232,13 +239,25 @@ async function browser(){
         console.log('FRAME_COST '+JSON.stringify(diagnostics.at(-1)));
       }
       BARCODE.CacheRoadBeatSurface=skin;P.draw=assetDraw;
+      const viewportChecks=[];
+      for(const [width,height,scale]of [[960,540,.5],[2400,1350,1.25]]) {
+        c.width=width;c.height=height;ctx.setTransform(scale,0,0,scale,7,11);
+        reflectionBlurs=0;const before=ctx.getTransform(),stateBefore=JSON.stringify(road.state);
+        road.draw(ctx);const after=ctx.getTransform();
+        if(reflectionBlurs!==1||JSON.stringify(road.state)!==stateBefore)
+          throw Error('scaled viewport lost reflection blur or changed gameplay');
+        if(['a','b','c','d','e','f'].some(key=>before[key]!==after[key]))
+          throw Error('reflection blur changed the caller viewport transform');
+        viewportChecks.push({width,height,scale,reflectionBlurs,transformPreserved:true});
+      }
+      c.width=1920;c.height=1080;ctx.drawImage=originalDrawImage;
       const aggregateRatio=frameComparisons.reduce((sum,row)=>sum+row.afterMs,0)/
         frameComparisons.reduce((sum,row)=>sum+row.beforeMs,0);
       console.log('FRAME_COST '+JSON.stringify({aggregateRatio,frameComparisons}));
       const performancePass=frameComparisons.every(row=>row.ratio<=1.1)&&aggregateRatio<.8;
       if(contextCalls!==1||bitmapAttempts.filter(src=>src.endsWith('.svg')).length!==beforeSVG)throw Error('Measured road draws rebuilt shared resources');
-      return {passed:true,performancePass,aggregateRatio,frameComparisons,frameSamples:rows,pixelComparisons,screens,
-        preparedSVGs:svg.length,warmDraws:120,pausedPixels:true,displayContexts:contextCalls,
+      return {passed:true,performancePass,aggregateRatio,frameComparisons,frameSamples:rows,pixelComparisons,screens,viewportChecks,
+        preparedSVGs:svg.length,reflectionBlursPerFrame:1,warmDraws:120,pausedPixels:true,displayContexts:contextCalls,
         preservedMirrorFilter:'blur(2.3px)',limitation:'Real Chromium loader/cache validation; owner device FPS remains unmeasured.'};
     })()`});
     if(result.exceptionDetails)throw Error(JSON.stringify(result.exceptionDetails));
@@ -251,6 +270,20 @@ async function browser(){
         Buffer.from(screen.webp,'base64'));
       fs.writeFileSync(process.env.BITMAP_FRAME_REPORT,JSON.stringify(report,null,2)+'\n');
     }
+    // Keep a compact visual review in the job log as well as the artifact.
+    // This is an offline diagnostic Canvas, independent of the display owner.
+    const {createCanvas,loadImage}=require('@napi-rs/canvas');
+    const sheet=createCanvas(1280,frameReviewCount(screens)*390),paint=sheet.getContext('2d');
+    paint.fillStyle='#0b141b';paint.fillRect(0,0,sheet.width,sheet.height);
+    for(let i=0;i<screens.length;i++) {
+      const screen=screens[i],column=screen.mode==='vector'?0:1,row=Math.floor(i/2);
+      paint.fillStyle='#d4f4df';paint.font='16px sans-serif';
+      paint.fillText(screen.name+' — '+(column?'repaired':'baseline'),column*640+12,row*390+22);
+      paint.drawImage(await loadImage(Buffer.from(screen.webp,'base64')),column*640,row*390+30,640,360);
+    }
+    const encoded=sheet.toBuffer('image/webp',80).toString('base64');
+    for(let at=0;at<encoded.length;at+=24000)
+      console.log('FRAME_REVIEW '+String(at/24000).padStart(4,'0')+' '+encoded.slice(at,at+24000));
     assert(report.performancePass,'prepared artwork must cut aggregate complete Chromium frame/raster time by 20 percent without a scene regression');
     assert(report.pixelComparisons.every(row=>row.meanRGB<1),
       'one reflection blur and SVG preparation must preserve loaded production appearance within one mean RGB level');

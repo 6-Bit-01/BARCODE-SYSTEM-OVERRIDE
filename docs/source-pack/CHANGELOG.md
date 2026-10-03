@@ -1,20 +1,20 @@
 # Recovery checkpoint — September 14
 
-## October 3, 2026 — Level 2 image raster cost repair
+## October 3, 2026 — Level 2 reflection raster cost repair
 
-- Cache one immutable bitmap per loaded SVG and bounded projection-aware
-  resolutions of Cache Road raster atlases, including rearview scenery.
-- Preserve canonical artwork bytes, exact frame/crop UVs, destination
-  projection, smoothing, original mirror blur and all gameplay/audio state.
-- Cap raster resources at 64 MiB, 16 MiB per bitmap and 256 entries; reserve
-  pending allocations, close evicted/late results and retain original-image
-  fallbacks without delaying raster readiness or adding lifecycle owners.
-- Require real Chromium moving-frame/raster improvement and loaded-art
-  pixel comparisons, native SVG/whole-frame checks and complete regression,
-  syntax and both exact final-head CI events.
-- Retain full scene ratios and before/after captures in CI evidence. Await
-  Chromium shutdown before test-profile removal. Controlled host rendering
-  measurements remain separate from owner device and play acceptance.
+- Apply the original 2.3px mirror blur once to the completed reflection on the
+  shared display Canvas; retain the original compatibility path elsewhere.
+- Convert mirror bounds through the caller viewport transform for the
+  clipped Canvas self-copy. Keep Cache's face/glass marks sharp afterward.
+- Prepare one reusable bitmap per loaded SVG, preserving original-image
+  fallback, source UVs and preload/re-entry reuse. Keep raster images native.
+- Preserve canonical art, beat presentation, controls, music, rules, saves,
+  camera/comfort handling and existing Canvas/input/audio/frame owners.
+- Require real Chromium complete-frame/raster improvement, moving loaded-art
+  comparisons, one reflection blur, scaled viewports, native SVG checks,
+  complete regression/syntax and both exact final-head CI events.
+- Retain before/after images and all scene ratios. Host diagnostics remain
+  separate from owner device FPS and controller/listening/fun acceptance.
 
 ## October 2, 2026 — Cache camera and ground timing feedback
 

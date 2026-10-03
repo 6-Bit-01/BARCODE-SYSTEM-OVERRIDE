@@ -1,30 +1,33 @@
 # Acceptance and Test Status
 
-## October 3 — Level 2 bitmap repair verification (PR #180)
-
-Automated checks exercise asynchronous SVG/raster preparation, rejection and
-unsupported fallbacks, one preparation attempt per loaded SVG, exact scaled
-frame/crop UVs, projection-aware resolution, filter/alpha/smoothing, bounded
-pending allocations, disposal after eviction, preload/re-entry reuse, one
-display context, warm draws and paused pixels. Original raster readiness
-remains immediate while its resized bitmap prepares.
+## October 3 — Level 2 reflection repair verification (PR #180)
 
 The real Chromium test loads production artwork and renders Approach,
 Ready-ONE, earned Perfect/Good, Miss, Reduced Motion and a focused turn with
-the original image path and the prepared image cache. Moving-state timing
-includes a raster flush; aggregate complete-frame cost must fall by at least
-20%, with no scene median regression above 10%. Loaded before/after captures
-must keep mean RGB difference below 1. Native moving-frame diagnostics
-require 65% less hot SVG work, whole-frame medians within 5% of baseline and
-mean RGB difference below 0.5. Every scene ratio is retained. Full
-regression, all-file syntax and both exact final-head CI events remain
-required. The generated receipt records exact tested/merged revisions.
+the original per-object mirror/SVG path and the repaired reflection/SVG
+path. Moving-state timing includes a raster flush; aggregate complete-frame
+cost must fall by at least 20%, with no scene median regression above 10%.
+Loaded before/after captures must keep mean RGB difference below 1.
+Structural checks require exactly one reflection blur per repaired frame,
+one display context, unchanged gameplay, warm/paused reuse and preservation
+of scaled/translated caller viewport transforms.
+
+Loader checks cover asynchronous preparation, rejection and unsupported
+fallbacks, one preparation attempt per loaded SVG, source rectangles,
+filter/alpha/smoothing, original raster routing and preload/re-entry reuse.
+Non-DOM/native contexts retain the original mirror filter path. Native
+moving-frame diagnostics require 65% less hot SVG work, whole-frame medians
+within 5% of baseline and mean RGB difference below 0.5. Every scene ratio
+and loaded-art capture is retained. Full regression, all-file syntax and
+both exact final-head CI events remain required. The generated receipt
+records exact tested/merged revisions.
 
 After importing repaired main, drive through the ambush/handoff, turns,
 gear/Turbo changes, repeated Good/Perfect hits, damage, pause/re-entry and
-the boss exit. Check stalling and skipping on the actual player device;
-repeat with Reduced Motion/Flashes Off. Automated rendering diagnostics do
-not assert owner controller feel, listening, fun, comfort or device FPS.
+the boss exit. Check stalling/skipping on the actual device; repeat with
+Reduced Motion/Flashes Off. Cache's face, glass labels and marks should stay
+sharp while scenery retains the original blur. Automated diagnostics do not
+assert owner controller feel, listening, fun, comfort or device FPS.
 
 ## October 2 — Cache camera and satisfying ground timing
 

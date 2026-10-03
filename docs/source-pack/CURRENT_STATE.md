@@ -1,38 +1,36 @@
 # Current State
 
-## October 3 — Level 2 reusable image resolutions (PR #180)
+## October 3 — Level 2 reflection frame-cost repair (PR #180)
 
 Continues from merged #179 (`f9caed6cc64361388433bf9b27e5f01ddace7f57`).
-Production browser profiling found repeated scenery draws, particularly the
-blurred rearview, dominating complete frame cost. Preparing SVGs alone did
-not satisfy the complete-frame performance gate.
+Repeated filters across the mirror's scenery dominated production Chromium
+frame cost. The reflection is now painted and softened once with the original
+`blur(2.3px)` on the existing display Canvas. A bounded self-copy uses device
+pixel coordinates derived from the caller transform and retains the glass
+clip. Cache's face and glass markings are painted afterward at their original
+sharp resolution. Non-DOM/test contexts retain the original per-object path.
 
-The shared loader prepares one reusable ImageBitmap per loaded SVG and a
-bounded cache of resized Cache Road raster atlases. Projection and the
-current Canvas transform select sufficient source resolution: at least two samples
-per front-view destination pixel and one for the already blurred mirror.
-Original frame/crop coordinates scale into the prepared atlas; destination
-geometry, anchors, smoothing, clip, alpha and mirror `blur(2.3px)` are kept.
-The raster cache reserves pending allocations and caps resident pixels at
-64 MiB, each bitmap at 16 MiB and entries at 256. Eviction closes completed
-bitmaps and disposes late pending results. Unsupported, rejected or oversized
-preparations draw the original image. Budget pressure during gameplay retains
-warm levels and falls back instead of evicting and continuously preparing them.
-Readiness does not wait for raster
-preparation; preload and re-entry reuse existing resources.
+The shared loader also prepares one reusable ImageBitmap per loaded SVG.
+Original source rectangles, projection, anchors, smoothing and canonical
+artwork bytes remain intact. Unsupported or failed preparation draws the
+original image; preload/re-entry never repeats an existing SVG preparation.
+Raster images retain their native loading and drawing path. No extra Canvas,
+context, timer or animation-loop owner is added. Beat artwork, controls,
+music, timing, economy, saves, camera repairs and comfort settings are kept.
 
-Canonical artwork bytes, beat art, controls, music, timing, rules and saves
-stay unchanged. No Canvas, context, timer or animation-loop owner is added.
-Verification includes fallback/resource/UV checks, moving production frames
-in real Chromium with raster flushes, before/after loaded-art captures,
-native frame comparisons, full regression/syntax and both final-head CI
-events. Chromium requires at least 20% less aggregate complete-frame cost,
-no scene regression above 10% and mean RGB difference below 1. Native tests
-require at least 65% less hot SVG work, no median whole-frame regression
-above 5% and mean RGB difference below 0.5. Every measured ratio is reported.
-Exact results and publication identity belong to the export receipt and
-PR #180. These controlled host diagnostics do not establish owner device
-FPS, controller feel, listening, fun or comfort acceptance.
+Real Chromium moving-state comparisons exercise Approach, Ready-ONE, earned
+Perfect/Good, Miss, Reduced Motion and a focused turn against the original
+per-object mirror/SVG path. Timing includes a raster flush; the gate requires
+20% less aggregate complete-frame cost, no scene regression above 10% and
+mean RGB difference below 1. It checks one reflection blur per frame, scaled
+viewport transforms, one display context, warm reuse and draw purity.
+Native fallback diagnostics require at least 65% less hot SVG work, no
+median whole-frame regression above 5% and mean RGB difference below 0.5.
+Reports retain every ratio and loaded-art before/after captures. Full
+regression/syntax and both exact final-head CI events remain required.
+Exact results/publication belong to the export receipt and PR #180; host
+diagnostics do not establish owner device/controller/audio/fun/comfort
+acceptance.
 
 ## October 2 — Cache camera and ground timing feedback candidate
 
