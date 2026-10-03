@@ -14,12 +14,12 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm test
-      - run: npm run check:syntax:all
       - name: Check Cache Road music in real Chromium
         env:
           CHROME_BIN: /usr/bin/google-chrome
         run: npm run check:cache-road-browser
+      - run: npm test
+      - run: npm run check:syntax:all
       - name: Check music automation in real Chromium
         env:
           CHROME_BIN: /usr/bin/google-chrome
