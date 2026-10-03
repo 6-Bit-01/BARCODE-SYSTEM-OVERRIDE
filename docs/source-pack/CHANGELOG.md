@@ -2,24 +2,24 @@
 
 ## October 3, 2026 — continued lag repair after PR180 playtest
 
-- Record the owner's continued Level 2 lag and measure queued raster work
-  across production sky, terrain, road, scenery, vehicles, mirror and HUD.
-- Adapt world sampling after sustained slow draws/shared-frame intervals;
-  preserve fresh-run full detail, paused detail and gradual recovery.
-- Clip world work to its sample footprint and expand on the same display
-  Canvas. Retain native dashboard/rearview and the original mirror blur.
-- Set road sampler quality inside saved context state; restore the caller.
-- Preserve canonical art bytes, contacts, foreground exits, rules, timing,
-  music, controls and saves. Remove the ineffective raster-pyramid experiment.
-- Verify seven actual moving scenes against PR180. Both production-runtime
-  performance runs pass: 24.6–30.4 ms scene medians and 59–67% aggregate
-  improvement; full-quality mean RGB difference below 0.087.
-- Review quarter-detail loaded captures; world paint becomes coarser and
-  native HUD/mirror remain sharp. Keep full p95 and detail reports.
-- Measure consecutive actual shared-loop chase/boss frames with hosted
-  byte-verified art and origin-clean fixture readback.
+- Record continued lag and measure queued raster work across production
+  sky, terrain, road, scenery, vehicles, mirror and HUD.
+- Adapt background detail after sustained slow draws/frame intervals;
+  preserve full-detail starts, paused detail and gradual recovery.
+- Clip low-detail background work, skip sub-sample material strips and
+  expand once on the existing display Canvas.
+- Resume the original camera/styles/dash at native resolution for timing
+  paint, earned feedback, cars, traffic/effects and HUD/rearview.
+- Preserve the original mirror blur, sampler/caller state, canonical art,
+  projection, foreground exits, rules, deadlines, music, controls and saves.
+- Compare unwrapped moving draws against PR180, retain startup costs and
+  perform tracing/fidelity checks outside the measured window.
+- Require absolute 33.33 ms scene and consecutive chase/boss median budgets,
+  relative improvement, full-quality fidelity and loaded adaptive review.
+- Retain real hosted bytes/hash checks with origin-clean fixture readback.
 - Require full regression/syntax and both exact final-head CI events.
-  Generated receipt/PR record final publication and merged-pack status.
+  PR/export receipt record exact publication and merged revision.
+- Preserve the complete validated Git-tree inventory in the standalone pack.
   Actual device/controller/listening/comfort acceptance remains separate.
 
 ## October 3, 2026 — Level 2 reflection raster cost repair

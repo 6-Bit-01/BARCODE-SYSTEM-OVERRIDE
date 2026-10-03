@@ -2,36 +2,40 @@
 
 ## October 3 — continued lag repair verification (PR #181)
 
-The owner's PR180 playtest remains laggy. The repair now uses an absolute
-33.33 ms diagnostic scene-median gate as well as a 25% aggregate improvement
-and no scene regression above 10%.
+The owner's PR180 playtest remains laggy. Background adaptation preserves
+native functional road markings, timing feedback, cars, traffic/effects,
+HUD/rearview and the original blur. Review loaded adaptive output including
+the lowest background detail; visible driving cues must remain readable.
 
-Both performance runs on production runtime
-`cdca197799f5cdf3091a8d66a0c3d09d9a10bf1a` pass all seven loaded moving
-scenes: medians 24.6–30.4 ms versus 52.8–91.7 ms for PR180, aggregate cost
-59–67% lower. Reports keep every median/p95 and raster flush. p95 reaches
-42.7 ms on an individual scene; the evidence is not a zero-stall claim.
-Full-quality pixel differences remain below 0.087 mean RGB; adaptive native
-HUD differences remain below 0.169. Loaded quarter-detail captures were
-reviewed: world paint is visibly coarser, while the HUD/mirror remain sharp.
+Measure seven actual moving scenes against PR180 with unwrapped production
+calls and a raster flush. Keep 30 startup costs/detail levels separately,
+then measure a 16-frame moving window. Trace/reflection/native-fidelity
+repaints run outside that window. Require 25% aggregate improvement,
+no scene regression above 10%, and every scene median within 33.33 ms.
+Report p95 and chosen background scale rather than asserting zero stalls.
+Require full-quality mean RGB difference below 1. Inspect native adaptive
+cars, ground cues and HUD as well as the coarser background.
 
-Checks cover fresh-run full detail, sustained adaptation, pause freeze,
-invalid clocks, recovery hysteresis, original loader/bitmap rejection and
-reuse, source registration, one display context/blur, draw purity and scaled
-caller viewports. The sampler preserves the caller's inherited setting.
-Consecutive production shared-loop chase and boss frames include actual
-input/update ownership and raster flush with controlled audio-host traversal.
-Require their median within 33.33 ms; retain p95, slow frames and detail levels.
-Hosted images remain on actual immutable URLs and are byte/hash verified.
-CORS is requested by the test fixture before loading for origin-clean readback.
+Check fresh-run full detail, sustained adaptation, pause freeze, invalid
+clocks, recovery hysteresis, original loader/bitmap rejection and reuse,
+script registration, one context/blur, draw purity and scaled caller
+viewports. Expansion must preserve camera transform, styles, dash and
+the caller's inherited sampler. Keep canonical asset bytes and gameplay.
 
+Consecutive production shared-loop chase and live boss frames include
+actual input/update ownership and raster flush with controlled audio hosts.
+Require their median within 33.33 ms; keep p95, slow frames and detail levels.
+Hosted images retain immutable URLs and exact byte/hash verification.
+The fixture requests CORS before loading to measure origin-clean pixels.
 Complete regression/all-file syntax and both exact final-head CI events
-remain publication gates. Exact results and revision status belong to the PR
-and generated source-pack receipt. After publication/import, check ordinary
-driving, ambush, turns, Turbo, timed hits, dense encounters, boss, pause and
-re-entry. Detail should stabilize without repeated changes; HUD/mirror remain
-sharp. Preserve Reduced Motion and Flashes Off. Actual device pacing,
-controller, listening, balance and comfort acceptance remain unrecorded.
+remain publication gates; exact results/revisions belong to the PR and
+generated source-pack receipt.
+
+After publication/import, check ordinary driving, ambush, turns, Turbo,
+timed hits, dense encounters, boss, pause and re-entry. Background detail
+should stabilize; interactive paint/HUD/mirror should remain sharp.
+Preserve Reduced Motion and Flashes Off. Actual device pacing, controller,
+listening, balance and comfort acceptance remains unrecorded.
 
 ## October 3 — Level 2 reflection repair verification (PR #180)
 

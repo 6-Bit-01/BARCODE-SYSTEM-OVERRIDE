@@ -60,9 +60,9 @@ function budgetUnit(){
   assert.equal(budget.scale,.4,'detail recovery needs sustained spare capacity');
   owner.observe(budget,1);assert.equal(budget.scale,.5);
   for(let i=0;i<30;i++)owner.observe(budget,200);
-  assert.equal(budget.scale,.25,'sampling stops at a readable finite floor');
+  assert.equal(budget.scale,1/6,'background sampling stops at a finite floor with native interactive paint');
   const fresh=owner.create();assert.equal(fresh.scale,1);
-  assert.equal(budget.scale,.25,'a fresh run has independent presentation state');
+  assert.equal(budget.scale,1/6,'a fresh run has independent presentation state');
   console.log('PASS: bounded adaptive world quality, cold/impact tolerance, pause freeze, clock fallback, recovery hysteresis and fresh-run independence.');
 }
 
@@ -209,23 +209,23 @@ async function browser(){
         for(const key of svg)cache[key].bitmap=mode==='vector'?undefined:bitmaps[key];
         road.chapter=structuredClone(scene.chapter);road.state=structuredClone(scene.state);
         BARCODE.Preferences.values.reducedMotion=scene.name==='Reduced';
-        // Up to seven detail transitions require three slow draws apiece.
+        // Up to nine detail transitions require three slow draws apiece.
         // Retain startup costs, then measure a full settled 16-frame window.
         // Fidelity repaint happens after that window so it cannot perturb it.
         const samples=[],startupFrames=[];
-        for(let frame=0;frame<40;frame++) {
+        for(let frame=0;frame<46;frame++) {
           ctx.reset();ctx.imageSmoothingQuality='high';measuredGroups={};reflectionBlurs=0;
           const stateBefore=JSON.stringify(road.state),began=performance.now();
           road.draw(ctx);const submitted=performance.now();ctx.getImageData(0,0,1,1);
           const elapsed=performance.now()-began;
-          if(frame===39)console.log('FRAME_COST '+JSON.stringify({name:scene.name,mode,
+          if(frame===45)console.log('FRAME_COST '+JSON.stringify({name:scene.name,mode,
             submitMs:submitted-began,flushMs:performance.now()-submitted}));
           if(JSON.stringify(road.state)!==stateBefore)throw Error('A measured draw changed gameplay');
           if(ctx.imageSmoothingQuality!=='high')throw Error('road draw leaked its sampling quality');
-          if(frame>=24)samples.push(elapsed);
+          if(frame>=30)samples.push(elapsed);
           else if(mode==='adaptive')startupFrames.push({frame,ms:elapsed,
             worldScale:road.renderBudget.drawnScale});
-          if(frame===39) {
+          if(frame===45) {
             const displayedPixels=ctx.getImageData(0,0,c.width,c.height).data;
             screens.push({name:scene.name,mode,webp:c.toDataURL('image/webp',.9).split(',')[1]});
             let pixels=displayedPixels;
@@ -275,7 +275,7 @@ async function browser(){
         const sorted=samples.slice().sort((a,b)=>a-b);
         rows.push({name:scene.name,mode,medianMs:median(samples),
           p95Ms:sorted[Math.ceil(sorted.length*.95)-1],frames:samples.length,
-          warmupFrames:24,startupFrames:mode==='adaptive'?startupFrames:undefined,worldScale:mode==='adaptive'?road.renderBudget.drawnScale:1,includesRasterFlush:true});
+          warmupFrames:30,startupFrames:mode==='adaptive'?startupFrames:undefined,worldScale:mode==='adaptive'?road.renderBudget.drawnScale:1,includesRasterFlush:true});
         console.log('FRAME_COST '+JSON.stringify(rows.at(-1)));
       }
       for(const key of svg)cache[key].bitmap=bitmaps[key];

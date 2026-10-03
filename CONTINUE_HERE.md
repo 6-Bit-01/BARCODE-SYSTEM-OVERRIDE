@@ -1,32 +1,30 @@
 # Continue here — continued Level 2 lag repair (PR #181)
 
 The owner already played PR180 and reported continued lag. Do not restart
-that earlier playtest handoff. Base/rollback:
+that earlier handoff. Base/rollback:
 `0c821b2fb3b7b60b2b561d7c3a0040810c73181a`.
 PR181: `agent/level2-raster-work-repair`.
 
-Adaptive world sampling now addresses the full-scene raster bottleneck on
-the existing display Canvas. Fresh runs start at full detail; three sustained
-slow draws lower detail, paused frames hold it, and sustained spare capacity
-restores it. Native HUD/rearview detail and the original mirror blur remain.
-The road draw also sets its sampler quality inside saved context state;
-the inherited shared-renderer setting is restored for the caller.
+The repair adapts background sampling on the existing display Canvas.
+Fresh runs start at full detail; sustained slow draws/frame intervals reduce
+detail, pauses hold it, and sustained spare capacity restores it. Background
+sky, terrain and scenery can reach a 320 × 180 footprint on a 1920 × 1080
+display. Expand that background once, then resume the original camera at
+native resolution for functional road paint, cars, traffic, effects and HUD.
+The mirror retains its native scene/face and original blur. Preserve sampler,
+style, dash and caller state. No extra Canvas, clock, input or audio owner.
 
-Production-runtime Chromium comparisons on `cdca197799f5cdf3091a8d66a0c3d09d9a10bf1a`
-pass both push and PR performance runs: all seven scene medians are 24.6–30.4 ms
-versus 52.8–91.7 ms for PR180. Loaded adaptive captures were reviewed at the
-quarter-detail floor; world paint is coarser, and the HUD/mirror remain sharp.
-Policy/loader checks, paused pixels, gameplay purity and scaled viewports pass.
-The ineffective raster-pyramid attempt was removed.
+Read CURRENT_STATE and ACCEPTANCE. Performance evidence uses unwrapped
+production draws, 30 startup frames retained separately and a subsequent
+16-frame moving window. Trace/reflection/fidelity repaint runs afterward.
+Require the absolute 33.33 ms scene/chase median budgets, full regression,
+all-file syntax, loaded native review and both exact final-head CI events.
 
-Read the newest CURRENT_STATE and ACCEPTANCE entries. Publication still
-requires full regression/all-file syntax, consecutive real shared-loop
-chase/boss raster timing, and both exact final-head CI events. The generated
-export receipt and PR establish the final tested/merged revision and state.
-Finish those gates before publication and refresh the actual merged pack.
-Once that receipt says merged, continue with the repaired build's actual
-device pacing through driving, encounters, boss, pause and re-entry.
-Controller, listening and comfort acceptance remain separately unrecorded.
+The generated export receipt and PR identify the final tested/merged
+revision. If that receipt says review, finish those gates and publication.
+If it says merged, use the current repaired build for actual device pacing
+through driving, dense encounters, boss, pause and re-entry; do not redo
+PR180. Controller/listening/comfort acceptance remains unrecorded.
 
 # Earlier continuation history
 

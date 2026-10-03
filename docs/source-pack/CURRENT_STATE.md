@@ -2,49 +2,50 @@
 
 ## October 3 — continued Level 2 lag repair (PR #181)
 
-The owner reports continued lag after playing PR180. Phase raster flushes
-identify expensive full-resolution sky, city, terrain, asphalt and street
-lighting across the world. Base/rollback:
-`0c821b2fb3b7b60b2b561d7c3a0040810c73181a`.
+The owner reports continued lag after playing PR180. Raster flushes locate
+expensive full-resolution sky, city, terrain, asphalt and street lighting.
+Base/rollback: `0c821b2fb3b7b60b2b561d7c3a0040810c73181a`.
 PR181 continues on `agent/level2-raster-work-repair`.
 
-The repair measures actual production draws and eligible slow shared-frame
-intervals on the existing Canvas. Fresh runs start at full detail. Three
-sustained draws above 24 ms lower world sampling with raster headroom; 600
-consecutive draws below 10 ms recover one detail step. Pauses and invalid
-clocks hold detail. The minimum world footprint is 480 × 270 on a 1920 × 1080
-display; the world expands from the same Canvas with a bounded self-copy.
-A backing clip confines low-resolution world blends to that footprint.
-The road sampler uses low quality inside saved context state and restores
-the caller's inherited setting. No extra Canvas, context, timer, frame,
-input, audio or persisted-state owner is added.
+The repair measures production draws and eligible slow shared-frame
+intervals. Fresh runs begin at full detail. Three sustained draws above
+24 ms reduce background sampling with raster headroom; 600 consecutive
+draws below 10 ms recover one detail step. Pauses and invalid clocks hold it.
+The minimum background footprint is 320 × 180 on the 1920 × 1080 display.
+A backing clip confines low-detail blends; sub-sample terrain textures can
+skip while their opaque ground remains. A bounded self-copy expands the
+completed background on the existing display Canvas.
 
-Dashboard, rearview, Cache's mirror face and original 2.3px reflection blur
-remain native resolution. Canonical art bytes, foreground exits, projection,
-timing, controls, economy and compatible saves remain. Under sustained load
-the world becomes coarser, including vehicles and ground feedback; the art
-and gameplay addresses are unchanged. The ineffective raster-pyramid
-experiment was removed.
+Before functional road markings and vehicles, lift the backing clip and
+resume the same camera at native resolution, preserving paint styles/dash.
+Timing pads, earned ground feedback, cars, traffic, effects and the HUD
+retain native detail and original projection/order. Dashboard, rearview,
+Cache's face and original 2.3px mirror blur remain native too. The road
+sampler uses low quality inside saved context state and restores the caller.
+Background scenery becomes coarser only under sustained load. Canonical
+art bytes, complete foreground exits, controls, deadlines, music, economy
+and compatible saves are unchanged. No extra Canvas, context, timer,
+frame/input/audio owner or persisted setting is added.
 
-Both production-runtime performance runs on
-`cdca197799f5cdf3091a8d66a0c3d09d9a10bf1a` pass. Across seven loaded moving
-scenes PR180 medians are 52.8–91.7 ms, repaired medians 24.6–30.4 ms, and
-aggregate cost falls by 59–67%. Individual p95s reach 42.7 ms, so occasional
-host stalls remain visible in the report. Full-quality mean RGB differences
-stay below 0.087; adaptive HUD differences stay below 0.169. Adaptive
-quarter-detail captures preserve layout and readable native HUD/mirror.
-Loader/policy checks, paused pixels, draw purity, one context/blur and caller
-viewport preservation pass. These are software-host diagnostics.
+Verification compares seven loaded moving scenes directly against PR180.
+Unwrapped production timing includes a raster flush, retains 30 startup
+frames and measures the next 16 frames. Per-asset tracing, reflection
+inspection and native fidelity repaint run outside the timing window.
+Require 25% aggregate improvement, no scene regression above 10%, and
+scene medians within 33.33 ms. Retain p95 and actual background detail.
+Check full-quality pixel fidelity, native adaptive captures, paused pixels,
+draw purity, one context/blur, resource reuse and caller viewport preservation.
 
-Consecutive production shared-loop chase/boss frames also measure input,
-update, drawing and a raster flush with actual hosted byte-verified artwork.
-The fixture requests CORS for hosted images before loading so readback can
-measure queued work, and includes the new budget owner in actual index order.
-Full regression, all-file syntax, native loaded-art review and both exact
-final-head CI events remain publication gates. The PR and generated export
-receipt establish final tested/merged status. The owner's actual-device lag
-and controller/listening/comfort acceptance require the repaired playtest;
-do not infer them from relative benchmarks.
+Consecutive actual shared-loop chase/boss frames measure input, update,
+drawing and raster flush with hosted byte-verified artwork and controlled
+audio/device hosts. The fixture includes the budget owner in index order
+and requests CORS before loading hosted images for origin-clean readback.
+Their median must fit 33.33 ms too. Full regression/all-file syntax, loaded
+review and both exact final-head CI events remain publication gates. Exact
+results/revision status belong to the PR and generated export receipt.
+Refresh the actual merged pack with its complete validated file inventory.
+Actual player-device lag/controller/listening/comfort acceptance remains
+separately unrecorded; do not infer smoothness from relative host benchmarks.
 
 ## October 3 — Level 2 reflection frame-cost repair (PR #180)
 

@@ -3463,7 +3463,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const budgetOwner=B.CacheRoadRenderBudget;
       const budgetEligible=!!budgetOwner&&ctx===window.renderer?.ctx&&
         ctx.canvas?.width===1920&&ctx.canvas?.height===1080&&
-        typeof window.performance?.now==='function';
+        typeof window.performance?.now==='function'&&typeof ctx.getTransform==='function';
       if(budgetEligible&&this.renderBudgetState!==live) {
         this.renderBudget=budgetOwner.create();this.renderBudgetState=live;
       }
@@ -3605,6 +3605,28 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       ctx.translate(960+camera.x,CAMERA_PIVOT_Y+camera.y);ctx.rotate(camera.roll);
       ctx.scale(camera.zoom,camera.zoom);ctx.translate(-960,-CAMERA_PIVOT_Y);
       ctx.globalAlpha=1;
+      let sampledWorld=worldScale<1;
+      const expandSampledWorld=()=>{
+        if(!sampledWorld)return;
+        // Preserve the world paint state while lifting its backing clip.
+        // Resume the same camera at native resolution for interactive paint.
+        const transform=ctx.getTransform(),styleKeys=['fillStyle','strokeStyle',
+          'globalAlpha','globalCompositeOperation','lineWidth','lineCap','lineJoin',
+          'miterLimit','font','textAlign','textBaseline','shadowColor','shadowBlur',
+          'shadowOffsetX','shadowOffsetY','imageSmoothingEnabled','imageSmoothingQuality','filter'];
+        const styles=styleKeys.map(key=>ctx[key]),dash=ctx.getLineDash();
+        ctx.restore(); // sampled world camera
+        ctx.restore(); // sampled backing clip
+        ctx.save();ctx.setTransform(1,0,0,1,0,0);
+        ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.filter='none';
+        ctx.imageSmoothingEnabled=false;
+        ctx.drawImage(ctx.canvas,0,0,1920*worldScale,1080*worldScale,0,0,1920,1080);
+        ctx.restore();ctx.setTransform(1,0,0,1,0,0);ctx.save();
+        ctx.setTransform(transform.a/worldScale,transform.b/worldScale,
+          transform.c/worldScale,transform.d/worldScale,transform.e/worldScale,transform.f/worldScale);
+        styleKeys.forEach((key,index)=>{ctx[key]=styles[index];});ctx.setLineDash(dash);
+        sampledWorld=false;
+      };
       const beat = reduced ? 0 : s.musicBeatFloat || 0;
       const stack = Math.min(4,s.captures?.length || 0);
       const beatPulse = reduced ? 0 : Math.pow(1-((beat%1+1)%1),5);
@@ -4331,6 +4353,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       for(const drawPool of lampPools)drawPool();
       worldPaint.sort((a,b)=>a.foot-b.foot||b.area.at-a.area.at);
       for(const item of worldPaint)item.draw();
+      // Expand the background once before functional road paint and vehicles.
+      // Their projection/order is unchanged and their detail remains native.
+      expandSampledWorld();
       // Phrase paint is a road marking, not a second translucent lane overlay.
       // Each bar is bounded by the same depth(), laneEdge() and roadY() used
       // for traffic and studs. Its near edge travels toward the car on the
@@ -5070,17 +5095,6 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       if(intro===null&&this.status==='playing')drawCameraWarnings(ctx,cameraWarnings,
         nextCue?.ready?{x:laneX(nextPulse.lane,STRIKE_DEPTH),y:strikeY+78,
           width:68,height:68,action:nextPulse.action,strike:nextCue.strike}:null,camera);
-      if(worldScale<1) {
-        ctx.restore(); // sampled world clip
-        // Reuse the display's own completed world pixels. Canvas self-copy
-        // snapshots the source before writing; no auxiliary Canvas is needed.
-        // The subsequent dashboard and rearview retain native resolution.
-        ctx.save();ctx.setTransform(1,0,0,1,0,0);
-        ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.filter='none';
-        ctx.imageSmoothingEnabled=false;
-        ctx.drawImage(ctx.canvas,0,0,1920*worldScale,1080*worldScale,0,0,1920,1080);
-        ctx.restore();
-      }
       ctx.setTransform(1,0,0,1,0,0);
       if(cinema&&cinema.kind!=='handoff'&&cinema.hudAlpha<=.001) {
         B.CacheRoadCinematics.drawOverlay(ctx,cinema,{reducedMotion:reduced,
