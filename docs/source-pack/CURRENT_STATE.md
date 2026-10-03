@@ -2,6 +2,14 @@
 
 ## October 3 — continued Level 2 lag repair (PR #181)
 
+
+The reflection skips only complete terrain slabs outside the glass and blur
+envelope. Under sustained background load, sub-sample lamp haze bands merge
+using the mean of their original ten opacities; full-detail lighting keeps
+all ten bands. Original lamp locations, ground pools and total light energy
+remain. Staged boss diagnostics also attribute draw submissions to assets and
+Canvas methods; instrumentation remains outside the timing gate.
+
 The owner reports continued lag after playing PR180. Raster flushes locate
 expensive full-resolution sky, city, terrain, asphalt and street lighting.
 Base/rollback: `0c821b2fb3b7b60b2b561d7c3a0040810c73181a`.

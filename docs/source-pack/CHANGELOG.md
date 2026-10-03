@@ -1,6 +1,14 @@
 # Recovery checkpoint — September 14
 ## October 3, 2026 — continued lag repair after PR180 playtest
 
+
+The reflection skips only complete terrain slabs outside the glass and blur
+envelope. Under sustained background load, sub-sample lamp haze bands merge
+using the mean of their original ten opacities; full-detail lighting keeps
+all ten bands. Original lamp locations, ground pools and total light energy
+remain. Staged boss diagnostics also attribute draw submissions to assets and
+Canvas methods; instrumentation remains outside the timing gate.
+
 - Record continued lag and measure queued raster work across production
   sky, terrain, road, scenery, vehicles, mirror and HUD.
 - Adapt background detail after sustained slow draws/frame intervals;

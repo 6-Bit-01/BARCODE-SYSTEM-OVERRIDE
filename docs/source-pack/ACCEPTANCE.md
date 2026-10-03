@@ -1,6 +1,14 @@
 # Acceptance and Test Status
 ## October 3 — continued lag repair verification (PR #181)
 
+
+The reflection skips only complete terrain slabs outside the glass and blur
+envelope. Under sustained background load, sub-sample lamp haze bands merge
+using the mean of their original ten opacities; full-detail lighting keeps
+all ten bands. Original lamp locations, ground pools and total light energy
+remain. Staged boss diagnostics also attribute draw submissions to assets and
+Canvas methods; instrumentation remains outside the timing gate.
+
 The owner's PR180 playtest remains laggy. Background adaptation preserves
 native functional road markings, timing feedback, cars, traffic/effects,
 HUD/rearview and the original blur.

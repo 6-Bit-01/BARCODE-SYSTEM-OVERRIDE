@@ -431,6 +431,6 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     }
     return true;
   }
-  B.PresentationAssets = { preload, draw, setRasterDetail, ready: key => !!cache[key]?.ready };
+  B.PresentationAssets = { preload, draw, setRasterDetail, rasterDetail: ctx => rasterDetail.get(ctx)||1, ready: key => !!cache[key]?.ready };
   preload();
 })();

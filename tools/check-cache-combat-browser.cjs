@@ -409,6 +409,11 @@ const server=http.createServer((req,res)=>{
   res.writeHead(200,{'Content-Type':{'.js':'text/javascript','.ttf':'font/ttf','.webp':'image/webp',
     '.png':'image/png','.svg':'image/svg+xml','.json':'application/json'}[path.extname(file)]||'application/octet-stream'});
 
+  if(pathname==='/src/engine/presentation-assets.js'){
+    const source=fs.readFileSync(file,'utf8');
+    assert(source.includes('  const cache = {};'),'read-only presentation inspection boundary');
+    res.end(source.replace('  const cache = {};','  const cache = {};window.bossPresentationReview={entries,cache};'));return;
+  }
   if(pathname==='/src/game/cache-road-proof.js'){
     let source=fs.readFileSync(file,'utf8');
     for(const [marker,label]of [["      const live=this.state,cinema=this.cinematicPose();","begin"],["      // One opaque landscape continues beneath every roadside location.","sky"],["      // Neighboring strips sample adjacent rows of one world-fixed material.","city"],["      const groundCrest=Array.from({length:65},(_,i)=>[i*30,cityCrestY(i*30)]);","world-preparation"],["      // Road shoulders and the paint share a single curved road projection.","terrain"],["      const roadFog=ctx.createLinearGradient(0,horizon,0,horizon+170);","asphalt"],["      // Phrase paint is a road marking, not a second translucent lane overlay.","street-objects"],["      const boss=s.combat?combatPose.boss:B.CacheRoadPursuit?.boss?.(s.pursuit,{progress});","beat-and-traffic"],["      ctx.restore(); // world camera","vehicles-and-fx"],["      // A compact VFD instrument cluster leaves the original mirror and","atmosphere"],["    const far = profile(progress-reach);","mirror-start"],["    if(compositeBlur) {","mirror-scene"],["    // Only reflected scenery gets softened.","mirror-blur"],["      drawRearview(ctx, s,","dashboard"]]){
@@ -742,7 +747,26 @@ async function main(){
     if(!snapshot)return {available:false};
     const saved={state:road.state,chapter:road.chapter,budget:road.renderBudget,
       budgetState:road.renderBudgetState,interval:road.renderFrameIntervalMs};
-    const rows=[],ctx=renderer.ctx;let phaseStart=0;
+    const rows=[],ctx=renderer.ctx,P=BARCODE.PresentationAssets,assetDraw=P.draw;
+    const groups={},cache=window.bossPresentationReview.cache;
+    let phaseStart=0;
+    P.draw=(key,context,args)=>{
+      const began=performance.now(),ok=assetDraw(key,context,args),elapsed=performance.now()-began;
+      const item=groups[key]||(groups[key]={calls:0,submitMs:0,
+        small:!!cache[key]?.rasterBitmap,native:!!cache[key]?.nativeBitmap,
+        width:cache[key]?.image.naturalWidth,height:cache[key]?.image.naturalHeight});
+      item.calls++;item.submitMs+=elapsed;return ok;
+    };
+    const methods=['fill','stroke','fillRect','fillText','drawImage'];
+    const originals=Object.fromEntries(methods.map(name=>[name,ctx[name]]));
+    let methodCosts={};
+    for(const name of methods)ctx[name]=function(...args){
+      const start=performance.now(),result=originals[name].apply(this,args),cost=performance.now()-start;
+      const group=name+(this.globalCompositeOperation==='screen'?':screen':'')+
+        (name==='drawImage'&&args[0]===ctx.canvas?':self':'');
+      const value=methodCosts[group]||(methodCosts[group]={calls:0,ms:0});
+      value.calls++;value.ms+=cost;return result;
+    };
     try{
       road.state=copy(snapshot.state);road.chapter=copy(snapshot.chapter);
       road.renderBudget=BARCODE.CacheRoadRenderBudget.create();road.renderBudget.scale=1/6;
@@ -750,13 +774,16 @@ async function main(){
       ctx.reset();ctx.imageSmoothingQuality='high';ctx.getImageData(0,0,1,1);
       window.canvasCostMark=phase=>{
         const submitted=performance.now();ctx.getImageData(0,0,1,1);const now=performance.now();
-        if(phase!=='begin')rows.push({phase,submitMs:submitted-phaseStart,flushMs:now-submitted,totalMs:now-phaseStart});
-        phaseStart=now;
+        if(phase!=='begin')rows.push({phase,submitMs:submitted-phaseStart,flushMs:now-submitted,totalMs:now-phaseStart,methods:methodCosts});
+        methodCosts={};phaseStart=now;
       };
       originalRoadDraw.call(road,ctx);window.canvasCostMark('hud-complete');
-      return {available:true,fixture:true,bar:road.state.musicBeatFloat/4,bossHP:road.state.combat.boss.hp,rows};
+      return {available:true,fixture:true,bar:road.state.musicBeatFloat/4,bossHP:road.state.combat.boss.hp,rows,
+        assetGroups:Object.entries(groups).sort((a,b)=>b[1].submitMs-a[1].submitMs).slice(0,24)};
     }finally{
-      window.canvasCostMark=undefined;road.state=saved.state;road.chapter=saved.chapter;
+      window.canvasCostMark=undefined;P.draw=assetDraw;
+      for(const name of methods)ctx[name]=originals[name];
+      road.state=saved.state;road.chapter=saved.chapter;
       road.renderBudget=saved.budget;road.renderBudgetState=saved.budgetState;road.renderFrameIntervalMs=saved.interval;
     }
   })()`);

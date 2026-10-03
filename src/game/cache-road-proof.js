@@ -392,6 +392,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     if(args.height<5 || B.PresentationAssets?.ready?.(key)===false)return;
     const geometry=lampLightGeometry(key,args);
     if(!geometry.length)return;
+    const detail=B.PresentationAssets?.rasterDetail?.(ctx)??1;
+    const matrix=detail<1?ctx.getTransform?.():null;
+    const sampleScale=matrix?Math.hypot(matrix.a,matrix.b):1;
     ctx.save();ctx.globalCompositeOperation='screen';
     for(const light of geometry) {
       const {x,y,groundY,lensRadius,poolRadius}=light;
@@ -414,9 +417,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         beam.addColorStop(1,'rgba(255,208,124,.045)');
         ctx.fillStyle=beam;
         const alpha=ctx.globalAlpha;
-        for(let j=0;j<10;j++) {
-          const a=-1+j/5,b=a+.2;
-          ctx.globalAlpha=alpha*Math.pow(Math.max(0,1-Math.abs((a+b)/2)),.8);
+        // Merge bands that fall below the background's sampled footprint.
+        // Average the original ten weights, preserving total light energy.
+        // Native detail keeps the exact original geometry and opacity.
+        const sampledWidth=poolRadius*2*sampleScale*(sampleScale>=.5?detail:1);
+        const bands=detail<1?(sampledWidth<8?2:sampledWidth<20?5:10):10;
+        const stride=10/bands;
+        for(let j=0;j<bands;j++) {
+          const a=-1+j*2/bands,b=a+2/bands;
+          let weight=0;
+          for(let k=j*stride;k<(j+1)*stride;k++)
+            weight+=Math.pow(Math.max(0,1-Math.abs(-.9+k*.2)),.8)/stride;
+          ctx.globalAlpha=alpha*weight;
           ctx.beginPath();ctx.moveTo(x+lensRadius*a,y);
           ctx.lineTo(x+lensRadius*b,y);
           ctx.lineTo(x+poolRadius*b,groundY);
@@ -712,6 +724,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     const bankY=(p,side,radial)=>p.y+p.t*miniature*
       (heightSample?.(side,p.at,Math.max(220,radial))??24);
     const paintQuad=(key,corners,sourceRect,alpha=1)=>{
+      // Skip only complete reflection slabs beyond the glass/blur envelope.
+      // Every visible triangle keeps its original source and projection.
+      const xs=corners.map(point=>point[0]),ys=corners.map(point=>point[1]);
+      if(Math.max(...xs)<x-12||Math.min(...xs)>x+w+12||
+        Math.max(...ys)<y-12||Math.min(...ys)>y+h+12)return;
       const [a,b,c,d]=corners;
       const half=(vertices,matrix)=>{
         ctx.save();ctx.beginPath();ctx.moveTo(...a);
