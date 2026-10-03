@@ -1,4 +1,11 @@
 # Acceptance and Test Status
+Background WebP sheets also prepare one quarter-size immutable ImageBitmap
+outside drawing, with a 32-megapixel reservation cap and original-image
+fallback. Low-detail background/reflected scenery uses these decoded sources;
+functional foreground, face and HUD retain original sources and native detail.
+Under load the reflection uses one rectangular raster clip, then repaints the
+original curved bezel once. Its native projection and 2.3px blur remain.
+
 
 ## October 3 — continued lag repair verification (PR #181)
 

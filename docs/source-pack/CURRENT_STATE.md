@@ -6,6 +6,13 @@ The owner reports continued lag after playing PR180. Raster flushes locate
 expensive full-resolution sky, city, terrain, asphalt and street lighting.
 Base/rollback: `0c821b2fb3b7b60b2b561d7c3a0040810c73181a`.
 PR181 continues on `agent/level2-raster-work-repair`.
+Background WebP sheets also prepare one quarter-size immutable ImageBitmap
+outside drawing, with a 32-megapixel reservation cap and original-image
+fallback. Low-detail background/reflected scenery uses these decoded sources;
+functional foreground, face and HUD retain original sources and native detail.
+Under load the reflection uses one rectangular raster clip, then repaints the
+original curved bezel once. Its native projection and 2.3px blur remain.
+
 
 The repair measures production draws and eligible slow shared-frame
 intervals. Fresh runs begin at full detail. Three sustained draws above

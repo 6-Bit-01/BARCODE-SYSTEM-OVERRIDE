@@ -651,8 +651,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     return 0;
   }
 
-  function mirrorOutline(ctx, x, y, w, h) {
-    ctx.beginPath(); ctx.moveTo(x + 16, y); ctx.lineTo(x + w - 16, y);
+  function mirrorOutline(ctx, x, y, w, h, begin=true) {
+    if(begin)ctx.beginPath(); ctx.moveTo(x + 16, y); ctx.lineTo(x + w - 16, y);
     ctx.quadraticCurveTo(x + w, y, x + w, y + 16);
     ctx.lineTo(x + w - 7, y + h - 12);
     ctx.quadraticCurveTo(x + w - 9, y + h, x + w - 24, y + h);
@@ -1025,7 +1025,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   }
 
   // One piece of glass contains both the passing road and Cache's eyes.
-  function drawRearview(ctx, s, accent, reduced, heightSample=LANDSCAPE.height, combatPose, crosswalkPose) {
+  function drawRearview(ctx, s, accent, reduced, heightSample=LANDSCAPE.height, combatPose, crosswalkPose, boundedClip=false) {
     const x = 638, y = 12, w = 690, h = 117;
     const expression = mirrorExpression(s);
     const edge = expression === 4 ? '#ff7c89' : expression === 5 ? '#f7b376' :
@@ -1033,12 +1033,21 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     ctx.fillStyle = '#45616f'; ctx.fillRect(x + 338, 0, 14, 14);
     ctx.fillStyle = '#25394a'; mirrorOutline(ctx, x - 6, y - 5, w + 12, h + 10); ctx.fill();
     ctx.fillStyle = edge; mirrorOutline(ctx, x - 3, y - 2, w + 6, h + 4); ctx.fill();
-    ctx.save(); mirrorOutline(ctx, x, y, w, h); ctx.clip();
+    ctx.save();
+    if(boundedClip) {
+      // A rectangular raster clip avoids repeating the curved glass mask on
+      // every reflected triangle, actor and lamp. Repaint its exact bezel
+      // silhouette once after the completed native reflection/face.
+      ctx.beginPath();ctx.rect(x,y,w,h);
+    } else mirrorOutline(ctx,x,y,w,h);
+    ctx.clip();
     const glass = ctx.createLinearGradient(0, y, 0, y + h);
     glass.addColorStop(0, '#0e1b2d'); glass.addColorStop(.53, '#394a60');
     glass.addColorStop(1, '#10232e');
     ctx.fillStyle = glass; ctx.fillRect(x, y, w, h);
-    drawRearRoad(ctx,s,x,y,w,h,accent,reduced,heightSample,combatPose,crosswalkPose);
+    const priorRasterDetail=B.PresentationAssets?.setRasterDetail?.(ctx,boundedClip?.25:1)??1;
+    try {drawRearRoad(ctx,s,x,y,w,h,accent,reduced,heightSample,combatPose,crosswalkPose);}
+    finally {B.PresentationAssets?.setRasterDetail?.(ctx,priorRasterDetail);}
     // Cache sits on the driver's side. His eyes face the windshield
     // for ordinary driving; only the impact cell glances across the mirror.
     ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
@@ -1064,6 +1073,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       ctx.fillStyle = '#ff74857d'; ctx.fillRect(x + 5, y + 87, w - 10, 3);
     }
     ctx.restore();
+    if(boundedClip) {
+      ctx.fillStyle='#25394a';
+      mirrorOutline(ctx,x-6,y-5,w+12,h+10);
+      mirrorOutline(ctx,x,y,w,h,false);ctx.fill('evenodd');
+      ctx.fillStyle=edge;
+      mirrorOutline(ctx,x-3,y-2,w+6,h+4);
+      mirrorOutline(ctx,x,y,w,h,false);ctx.fill('evenodd');
+    }
   }
   // Every supplied stem runs for the complete song. Some recorded passages
   // are softer, but that is not a reason to reject their lane captures.
@@ -3468,8 +3485,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         this.renderBudget=budgetOwner.create();this.renderBudgetState=live;
       }
       const worldScale=budgetEligible?this.renderBudget.scale:1;
+      const assets=B.PresentationAssets;
+      const priorRasterDetail=assets?.setRasterDetail?.(ctx,worldScale)??1;
       const renderStarted=budgetEligible?window.performance.now():0;
-      const finishRender=()=>{if(budgetEligible) {
+      const finishRender=()=>{
+        assets?.setRasterDetail?.(frameContext,priorRasterDetail);
+        if(budgetEligible) {
         this.renderBudget.drawnScale=worldScale;
         budgetOwner.observe(this.renderBudget,
           Math.max(window.performance.now()-renderStarted,
@@ -3607,6 +3628,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       ctx.globalAlpha=1;
       let sampledWorld=worldScale<1;
       const expandSampledWorld=()=>{
+        assets?.setRasterDetail?.(ctx,1);
         if(!sampledWorld)return;
         // Preserve the world paint state while lifting its backing clip.
         // Resume the same camera at native resolution for interactive paint.
@@ -5155,7 +5177,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       ctx.fillStyle='#bcebd3';ctx.font='bold 17px Oxanium, monospace';
       ctx.fillText(String(s.score).padStart(6,'0'),410,131,73);
       ctx.font='bold 12px Oxanium, monospace';ctx.fillText(`×${stackSize(s)}`,488,131,27);
-      drawRearview(ctx, s, ['#f6adbb', '#f3b276', '#d2a4f9', '#9aefce'][section], reduced,heightSample,combatPose,crosswalkPose);
+      drawRearview(ctx, s, ['#f6adbb', '#f3b276', '#d2a4f9', '#9aefce'][section], reduced,heightSample,combatPose,crosswalkPose,worldScale<1);
       ctx.fillStyle = '#e4ede5'; ctx.font = 'bold 18px Oxanium, monospace'; ctx.textAlign = 'left';
       // Preview the next lane/action before its bar is committed, without
       // inventing a deadline or sliding a future pad when the gear changes.

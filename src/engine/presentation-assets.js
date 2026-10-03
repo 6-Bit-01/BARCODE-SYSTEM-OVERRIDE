@@ -313,6 +313,37 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
       columns:4,rows:2,frames:8,ax:.5,ay:.5,smooth:true},
   };
   const cache = {};
+  const rasterDetail=new WeakMap(),MAX_RASTER_PIXELS=32*1024*1024;
+  let rasterPixels=0;
+  // Keep the small background working set decoded across animated cels.
+  // Original images remain authoritative for native foreground/HUD paint.
+  function prepareBackgroundRaster(key,entry,state) {
+    const image=state.image,w=image.naturalWidth,h=image.naturalHeight;
+    const background=/^assets\/cache-road\/(world|roadside)\//.test(entry.path)&&
+      !entry.path.includes('/beat/')||['cacheBlacktop','cacheFly1','cacheFly3'].includes(key);
+    if(!background||!/^cache/.test(key)||/\.svg$/i.test(entry.path)||w*h<1024*1024||
+      typeof window.createImageBitmap!=='function')return;
+    const width=entry.columns*Math.ceil(w/entry.columns/4);
+    const height=entry.rows*Math.ceil(h/entry.rows/4),pixels=width*height;
+    if(rasterPixels+pixels>MAX_RASTER_PIXELS)return;
+    rasterPixels+=pixels;state.rasterPending=true;
+    const fallback=()=>{rasterPixels-=pixels;state.rasterPending=false;};
+    try {
+      Promise.resolve(window.createImageBitmap(image,{resizeWidth:width,
+        resizeHeight:height,resizeQuality:'high'})).then(bitmap=>{
+        if(bitmap?.width!==width||bitmap?.height!==height){
+          bitmap?.close?.();fallback();return;
+        }
+        state.rasterBitmap=bitmap;state.rasterPending=false;
+      },fallback);
+    } catch {fallback();}
+  }
+  function setRasterDetail(ctx,scale=1) {
+    const previous=rasterDetail.get(ctx)||1;
+    if(Number.isFinite(scale)&&scale>0&&scale<1)rasterDetail.set(ctx,scale);
+    else rasterDetail.delete(ctx);
+    return previous;
+  }
   function preload() {
     if (typeof window.Image !== 'function') return;
     for (const [key, entry] of Object.entries(entries)) {
@@ -335,7 +366,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
               state.ready=true;
             },()=>{state.ready=true;});
           } catch {state.ready=true;}
-        } else state.ready=true;
+        } else {state.ready=true;prepareBackgroundRaster(key,entry,state);}
       };
       image.onerror = () => {
         if (!state.fallback) { state.fallback = true; image.src = entry.path; }
@@ -348,17 +379,21 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     flip = false, sourceRect = null } = {}) {
     const entry = entries[key], state = cache[key];
     if (!entry || !state?.ready) return false;
-    const original=state.image,image=state.bitmap||original;
+    const original=state.image,small=(rasterDetail.get(ctx)||1)<=.25&&state.rasterBitmap;
+    const image=small||state.bitmap||original;
     const fw=original.naturalWidth/entry.columns,fh=original.naturalHeight/entry.rows;
     const index = Math.max(0, Math.floor(frame)) % entry.frames;
     const [sx, sy, sw, sh] = sourceRect || entry.frameCrops?.[index] || entry.crop || [0, 0, fw, fh];
     const h = height ?? width * sh / sw;
     const sourceX = index % entry.columns * fw + sx;
     const sourceY = Math.floor(index / entry.columns) * fh + sy;
+    const sourceScaleX=small?small.width/original.naturalWidth:1;
+    const sourceScaleY=small?small.height/original.naturalHeight:1;
     if (flip || x !== 0 || y !== 0) {
       ctx.save(); ctx.translate(x, y); if (flip) ctx.scale(-1, 1);
       ctx.imageSmoothingEnabled = !!entry.smooth;
-      ctx.drawImage(image, sourceX, sourceY, sw, sh,
+      ctx.drawImage(image, sourceX*sourceScaleX, sourceY*sourceScaleY,
+        sw*sourceScaleX, sh*sourceScaleY,
         -width * entry.ax, -h * entry.ay, width, h);
       ctx.restore();
     } else {
@@ -370,7 +405,8 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
       const changed = smoothing !== !!entry.smooth;
       if (changed) ctx.imageSmoothingEnabled = !!entry.smooth;
       try {
-        ctx.drawImage(image, sourceX, sourceY, sw, sh,
+        ctx.drawImage(image, sourceX*sourceScaleX, sourceY*sourceScaleY,
+        sw*sourceScaleX, sh*sourceScaleY,
           x - width * entry.ax, y - h * entry.ay, width, h);
       } finally {
         if (changed) ctx.imageSmoothingEnabled = smoothing;
@@ -378,6 +414,6 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     }
     return true;
   }
-  B.PresentationAssets = { preload, draw, ready: key => !!cache[key]?.ready };
+  B.PresentationAssets = { preload, draw, setRasterDetail, ready: key => !!cache[key]?.ready };
   preload();
 })();
