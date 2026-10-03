@@ -342,7 +342,11 @@ async function browser(){
       };
       road.chapter=structuredClone(scene.chapter);road.state=structuredClone(scene.state);
       BARCODE.Preferences.values.reducedMotion=false;
-      for(let warm=0;warm<12;warm++){ctx.reset();road.draw(ctx);ctx.getImageData(0,0,1,1);}
+      for(let warm=0;warm<26;warm++){
+        ctx.reset();road.draw(ctx);ctx.getImageData(0,0,1,1);
+        road.state.progress+=road.state.speed/60;road.state.elapsedMs+=1000/60;
+        road.state.musicBeatFloat+=128/60/60;road.state.musicBar=Math.floor(road.state.musicBeatFloat/4);
+      }
       window.canvasCostMark=costMark;
       for(let frame=0;frame<3;frame++) {
         ctx.reset();ctx.getImageData(0,0,1,1);
@@ -372,6 +376,55 @@ async function browser(){
           medianMs:median(costs),worldScale:road.renderBudget.drawnScale,animatedAtlasDimensions}));
       }
       P.draw=assetDraw;
+      // Diagnose decoded-image working-set pressure separately from production.
+      // Keep both arms on the same draw wrapper; prepare every derivative first.
+      const seenImages=new Set(),smallImages=new Map();
+      road.chapter=structuredClone(scene.chapter);road.state=structuredClone(scene.state);
+      P.draw=(key,context,args)=>{seenImages.add(key);return assetDraw(key,context,args);};
+      for(let frame=0;frame<40;frame++){
+        ctx.reset();road.draw(ctx);ctx.getImageData(0,0,1,1);
+        road.state.progress+=road.state.speed/60;road.state.elapsedMs+=1000/60;
+        road.state.musicBeatFloat+=128/60/60;road.state.musicBar=Math.floor(road.state.musicBeatFloat/4);
+      }
+      P.draw=assetDraw;
+      let preparedPixels=0;
+      for(const key of seenImages){
+        const entry=bitmapReview.entries[key],state=cache[key],image=state?.image;
+        if(!image||entry.path.endsWith('.svg')||image.naturalWidth*image.naturalHeight<1024*1024)continue;
+        const width=entry.columns*Math.ceil(image.naturalWidth/entry.columns/4);
+        const height=entry.rows*Math.ceil(image.naturalHeight/entry.rows/4);
+        if(preparedPixels+width*height>32*1024*1024)continue;
+        const small=await bitmapFactory(image,{resizeWidth:width,resizeHeight:height,resizeQuality:'high'});
+        smallImages.set(image,{bitmap:small,x:width/image.naturalWidth,y:height/image.naturalHeight,key});
+        preparedPixels+=width*height;
+      }
+      let useSmallImages=false;
+      ctx.drawImage=function(source,...args){
+        const small=useSmallImages&&smallImages.get(source);
+        if(small&&args.length===8){
+          args[0]*=small.x;args[1]*=small.y;args[2]*=small.x;args[3]*=small.y;
+          source=small.bitmap;
+        }
+        return originalDrawImage.call(this,source,...args);
+      };
+      for(const kind of ['original-images','prepared-small-images']){
+        useSmallImages=kind==='prepared-small-images';
+        road.chapter=structuredClone(scene.chapter);road.state=structuredClone(scene.state);
+        const costs=[];
+        for(let frame=0;frame<46;frame++){
+          ctx.reset();ctx.imageSmoothingQuality='high';
+          const begin=performance.now();road.draw(ctx);ctx.getImageData(0,0,1,1);
+          if(frame>=30)costs.push(performance.now()-begin);
+          road.state.progress+=road.state.speed/60;road.state.elapsedMs+=1000/60;
+          road.state.musicBeatFloat+=128/60/60;road.state.musicBar=Math.floor(road.state.musicBeatFloat/4);
+          await new Promise(resolve=>setTimeout(resolve,0));
+        }
+        console.log('FRAME_COST '+JSON.stringify({name:'decoded-image-working-set',kind,
+          medianMs:median(costs),p95Ms:costs.slice().sort((a,b)=>a-b)[15],
+          preparedPixels,preparedKeys:[...smallImages.values()].map(row=>row.key)}));
+      }
+      ctx.drawImage=originalDrawImage;
+      for(const {bitmap}of smallImages.values())bitmap.close();
       const viewportChecks=[];ctx.drawImage=inspectDrawImage;
       for(const [width,height,scale]of [[960,540,.5],[2400,1350,1.25]]) {
         c.width=width;c.height=height;ctx.setTransform(scale,0,0,scale,7,11);
