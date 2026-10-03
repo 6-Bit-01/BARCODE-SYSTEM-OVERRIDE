@@ -3670,9 +3670,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.restore(); // sampled world camera
         ctx.restore(); // sampled backing clip
         ctx.save();ctx.setTransform(1,0,0,1,0,0);
-        ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.filter='none';
-        // The old display was cleared before the opaque sampled world.
-        // Source-over replaces those pixels without an additional copy layer.
+        ctx.globalAlpha=1;ctx.globalCompositeOperation='copy';ctx.filter='none';
         ctx.imageSmoothingEnabled=false;
         ctx.drawImage(ctx.canvas,0,0,1920*worldScale,1080*worldScale,0,0,1920,1080);
         ctx.restore();ctx.setTransform(1,0,0,1,0,0);ctx.save();

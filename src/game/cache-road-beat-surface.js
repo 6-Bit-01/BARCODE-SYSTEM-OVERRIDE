@@ -18,11 +18,22 @@ window.FILE_MANIFEST.push({name:'src/game/cache-road-beat-surface.js',
     if(!available(key)||points?.length!==4||!points.every(point=>
       point?.length===2&&point.every(value=>Number.isFinite(value)&&Math.abs(value)<1e6)))return false;
     const [a,b,c,d]=points;
+    const forward=[(c[0]-d[0])/UNIT,(c[1]-d[1])/UNIT,
+      (b[0]-c[0])/UNIT,(b[1]-c[1])/UNIT];
+    const reverse=[(b[0]-a[0])/UNIT,(b[1]-a[1])/UNIT,
+      (a[0]-d[0])/UNIT,(a[1]-d[1])/UNIT];
+    // Capped-width pads and pulses often form a true parallelogram.
+    // Both original triangle warps are then the same affine paint. Clip its
+    // complete native quad once, retaining UV orientation, opacity and camera.
+    if(forward.every((value,index)=>Math.abs(value-reverse[index])<=1e-10)){
+      ctx.save();ctx.globalAlpha*=clamp(opacity);polygon(ctx,points);ctx.clip();
+      ctx.transform(...forward,d[0],d[1]);
+      B.PresentationAssets.draw(key,ctx,{x:UNIT/2,y:UNIT/2,width:UNIT,height:UNIT,frame});
+      ctx.restore();return true;
+    }
     for(const [triangle,matrix] of [
-      [[d,c,b],[(c[0]-d[0])/UNIT,(c[1]-d[1])/UNIT,
-        (b[0]-c[0])/UNIT,(b[1]-c[1])/UNIT]],
-      [[d,b,a],[(b[0]-a[0])/UNIT,(b[1]-a[1])/UNIT,
-        (a[0]-d[0])/UNIT,(a[1]-d[1])/UNIT]]
+      [[d,c,b],forward],
+      [[d,b,a],reverse]
     ]) {
       ctx.save();ctx.globalAlpha*=clamp(opacity);polygon(ctx,triangle);ctx.clip();
       ctx.transform(...matrix,d[0],d[1]);

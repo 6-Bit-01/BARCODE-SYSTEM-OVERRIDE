@@ -452,10 +452,10 @@ const server=http.createServer((req,res)=>{
       source=source.replace(marker,"window.canvasCostMark?.("+JSON.stringify(label)+");\n"+marker);
     }
     const clearBoundary='if(worldScale<1)ctx.clearRect(0,0,1920,1080);';
-    const copyBoundary="ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.filter='none';";
+    const copyBoundary="ctx.globalAlpha=1;ctx.globalCompositeOperation='copy';ctx.filter='none';";
     assert(source.includes(clearBoundary)&&source.includes(copyBoundary),'opaque world-copy fidelity boundaries');
     source=source.replace(clearBoundary,'if(worldScale<1&&!window.forceLegacyWorldCopy)ctx.clearRect(0,0,1920,1080);');
-    source=source.replace(copyBoundary,"ctx.globalAlpha=1;ctx.globalCompositeOperation=window.forceOriginalWorldCopy?'copy':'source-over';ctx.filter='none';");
+    source=source.replace(copyBoundary,"ctx.globalAlpha=1;ctx.globalCompositeOperation=window.forceLegacyWorldCopy&&!window.forceOriginalWorldCopy?'source-over':'copy';ctx.filter='none';");
     const mirrorBoundary="ctx.globalCompositeOperation=opaqueNative?'source-over':'copy';";
     assert(source.includes(mirrorBoundary),'opaque mirror-copy fidelity boundary');
     source=source.replace(mirrorBoundary,"ctx.globalCompositeOperation=opaqueNative&&!window.forceMirrorCopy?'source-over':'copy';");
@@ -792,6 +792,10 @@ async function main(){
     return {group:boss?'boss':'chase',frames:frames.length,
       phases:[...new Set(frames.flatMap(frame=>frame.paintPhases.map(row=>row.phase)))].map(phase=>({phase,
         medianMs:median(frames.map(frame=>frame.paintPhases.find(row=>row.phase===phase)?.ms).filter(Number.isFinite))}))};})));
+  console.log('SUSTAINED_REPRESENTATIVE_FRAMES '+JSON.stringify([false,true].map(boss=>{
+    const frames=fullLoopCosts.filter(frame=>frame.boss===boss&&frame.worldScale===1/6).sort((a,b)=>a.ms-b.ms);
+    return {group:boss?'boss':'chase',samples:[.25,.5,.75,.95].map(fraction=>frames[Math.min(frames.length-1,Math.floor(frames.length*fraction))]).filter(Boolean)
+      .map(frame=>({ms:frame.ms,bar:frame.bar,drawMs:frame.drawMs,flushMs:frame.flushMs,paintPhases:frame.paintPhases}))};})));
   fs.writeFileSync(path.join(output,'Sustained-Frame-Cost.json'),JSON.stringify(fullLoopTiming,null,2)+'\n');
 
   const phaseCost=await evaluate(`(()=>{

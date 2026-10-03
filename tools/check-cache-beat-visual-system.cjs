@@ -87,14 +87,15 @@ async function perspectiveDiagnostic() {
   for(const [i,[x,y]] of [[0,[0,0]],[1,[128,0]],[2,[128,128]],[3,[0,128]]]) {
     sc.fillStyle=colors[i];sc.fillRect(x,y,128,128);
   }
-  const image=await loadImage(source.toBuffer('image/png')),w={BARCODE:{}};
+  const image=await loadImage(source.toBuffer('image/png')),w={BARCODE:{}};let diagnosticDraws=0;
   w.BARCODE.PresentationAssets={ready:key=>key==='diagnostic',draw(key,ctx,a) {
-    assert.equal(key,'diagnostic');ctx.drawImage(image,a.x-a.width/2,a.y-a.height/2,a.width,a.height);return true;
+    assert.equal(key,'diagnostic');diagnosticDraws++;ctx.drawImage(image,a.x-a.width/2,a.y-a.height/2,a.width,a.height);return true;
   }};
   vm.runInNewContext(fs.readFileSync('src/game/cache-road-beat-surface.js','utf8'),{window:w});
   const S=w.BARCODE.CacheRoadBeatSurface,c=createCanvas(420,340),ctx=c.getContext('2d');
   const points=[[35,300],[380,280],[285,45],[150,70]];
   assert(S.paintQuad(ctx,'diagnostic',points));
+  assert.equal(diagnosticDraws,2,'unequal perspective warps retain both original triangles');
   const center=[points.reduce((a,p)=>a+p[0],0)/4,points.reduce((a,p)=>a+p[1],0)/4];
   for(const [corner,expected] of [[3,[255,0,0]],[2,[0,255,0]],[1,[0,0,255]],[0,[255,255,0]]]) {
     const p=points[corner],x=Math.round(p[0]*.82+center[0]*.18),y=Math.round(p[1]*.82+center[1]*.18);
@@ -106,6 +107,15 @@ async function perspectiveDiagnostic() {
     const x=Math.round(points[3][0]*(1-t)+points[1][0]*t),y=Math.round(points[3][1]*(1-t)+points[1][1]*t);
     assert(ctx.getImageData(x,y,1,1).data[3]>=180,'the two true road triangles do not leave a transparent diagonal crack');
   }
+  ctx.reset();const parallel=[[35,300],[380,280],[350,45],[5,65]],beforeDraws=diagnosticDraws;
+  assert(S.paintQuad(ctx,'diagnostic',parallel));
+  assert.equal(diagnosticDraws-beforeDraws,1,'an equal affine surface submits one native painting');
+  const mid=[parallel.reduce((sum,p)=>sum+p[0],0)/4,parallel.reduce((sum,p)=>sum+p[1],0)/4];
+  for(const [corner,expected]of [[3,[255,0,0]],[2,[0,255,0]],[1,[0,0,255]],[0,[255,255,0]]]){
+    const p=parallel[corner],pixel=Array.from(ctx.getImageData(Math.round(p[0]*.82+mid[0]*.18),Math.round(p[1]*.82+mid[1]*.18),1,1).data);
+    assert.deepEqual(pixel.slice(0,3),expected,'single affine paint retains every authored UV corner');assert.equal(pixel[3],255);
+  }
+  assert.equal(ctx.getImageData(Math.round(mid[0]),Math.round(mid[1]),1,1).data[3],255,'the merged surface has no internal alpha seam');
   ctx.reset();ctx.translate(13,17);ctx.rotate(.027);ctx.globalAlpha=.37;ctx.lineWidth=7;
   const parent=snapshotContext(ctx);assert(S.paintQuad(ctx,'diagnostic',points,{opacity:.6}));
   assert.deepEqual(snapshotContext(ctx),parent,'perspective texture restores the inherited camera/context');

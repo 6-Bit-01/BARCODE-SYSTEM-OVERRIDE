@@ -201,6 +201,42 @@ async function nativeRasterUnit(){
   console.log('PASS: bounded original-size native frames, unchanged crop/registration, cross-cel fallback, atomic failures and concurrent reservations.');
 }
 
+async function nativeSmallUnit(){
+  for(const failure of ['none','reject','throw','invalid']){
+    const prepared=[],closed=[];
+    class Image{constructor(){this.naturalWidth=400;this.naturalHeight=290;}}
+    const w={Image,BARCODE:{},createImageBitmap(image,...args){
+      prepared.push({image,args});
+      if(failure==='throw')throw Error('unsupported');
+      if(failure==='reject')return Promise.reject(Error('unsupported'));
+      return Promise.resolve({width:failure==='invalid'?0:400,height:290,close(){closed.push(this);}});
+    }};
+    vm.runInNewContext(inspected,{window:w});
+    const keys=['cacheBrakeReflection','cacheDamagedExhaust','cachePhraseStrip','cacheConfirmedBar','cachePulseBurst'];
+    const {cache}=w.bitmapReview,P=w.BARCODE.PresentationAssets;
+    for(const key of keys)cache[key].image.onload();
+    await new Promise(setImmediate);
+    assert.equal(prepared.length,failure==='throw'?5:4,'small reservations include concurrent pending preparations');
+    assert(prepared.every(call=>call.args.length===0),'small native sources are unscaled complete originals');
+    assert.equal(closed.length,failure==='invalid'?4:0);
+    for(const key of keys.slice(0,4)){
+      const state=cache[key];assert(state.ready);assert.equal(state.nativePending,false);
+      assert.equal(!!state.nativeBitmap,failure==='none');
+    }
+    const calls=[],ctx={globalAlpha:.37,filter:'hue-rotate(315deg)',imageSmoothingEnabled:true,
+      save(){},restore(){},translate(){},scale(){},drawImage(...args){calls.push(args);}};
+    P.setRasterDetail(ctx,1/6);
+    for(let i=0;i<10;i++)P.draw('cacheBrakeReflection',ctx,
+      {x:0,y:0,width:50,height:75,sourceRect:[0,0,192,290]});
+    assert(calls.every(call=>call[0]===(cache.cacheBrakeReflection.nativeBitmap||cache.cacheBrakeReflection.image)));
+    assert(calls.every(call=>JSON.stringify(call.slice(1))===JSON.stringify([0,0,192,290,-25,0,50,75])));
+    assert.equal(ctx.filter,'hue-rotate(315deg)');assert.equal(ctx.globalAlpha,.37);
+    assert(Object.values(cache).reduce((sum,state)=>sum+
+      (state.nativeBitmap?state.nativeBitmap.width*state.nativeBitmap.height:0),0)<=512*1024);
+  }
+  console.log('PASS: bounded original-size small native sources, concurrent reservations, unchanged filtered placement, reuse and failure fallback.');
+}
+
 function budgetUnit(){
   const w={BARCODE:{}};
   vm.runInNewContext(fs.readFileSync(path.resolve(__dirname,'../src/game/cache-road-render-budget.js'),'utf8'),{window:w});
@@ -629,4 +665,4 @@ async function browser(){
     await fs.promises.rm(profile,{recursive:true,force:true,maxRetries:20,retryDelay:100});
   }
 }
-(async()=>{await unit();await backgroundRasterUnit();await nativeRasterUnit();budgetUnit();if(process.argv.includes('--browser'))await browser();})().catch(e=>{console.error(e.stack);process.exitCode=1;});
+(async()=>{await unit();await backgroundRasterUnit();await nativeRasterUnit();await nativeSmallUnit();budgetUnit();if(process.argv.includes('--browser'))await browser();})().catch(e=>{console.error(e.stack);process.exitCode=1;});

@@ -318,17 +318,23 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   const backgroundSources=new Set(Object.entries(entries).filter(([key,entry])=>/^cache/.test(key)&&
     (/^assets\/cache-road\/(world|roadside)\//.test(entry.path)&&!entry.path.includes('/beat/')||
       ['cacheBlacktop','cacheFly1','cacheFly3'].includes(key))).map(([key])=>key));
-  let rasterPixels=0,nativeRasterPixels=0;
+  const nativeSmallSources=new Set(['cacheBrakeReflection','cacheDamagedExhaust',
+    'cachePhraseStrip','cacheConfirmedBar','cachePulsePad','cachePulseStrip','cachePulseBurst']);
+  let rasterPixels=0,nativeRasterPixels=0,nativeSmallPixels=0;
+  const MAX_NATIVE_SMALL_PIXELS=512*1024;
   const MAX_NATIVE_RASTER_PIXELS=32*1024*1024;
   function prepareNativeRaster(key,entry,state) {
     const image=state.image,w=image.naturalWidth,h=image.naturalHeight,pixels=w*h;
-    if(!/^cache/.test(key)||(!/^assets\/cache-road\/(vehicles\/animation|combat|beat-system|hud)\//.test(entry.path)&&key!=='cachePursuitRig')||
-      /\.svg$/i.test(entry.path)||pixels<256*1024||pixels>MAX_NATIVE_RASTER_PIXELS-nativeRasterPixels||
+    const smallNative=nativeSmallSources.has(key);
+    if(!/^cache/.test(key)||(!/^assets\/cache-road\/(vehicles\/animation|combat|beat-system|hud)\//.test(entry.path)&&key!=='cachePursuitRig'&&!smallNative)||
+      /\.svg$/i.test(entry.path)||pixels<(smallNative?64:256)*1024||
+      smallNative&&pixels>MAX_NATIVE_SMALL_PIXELS-nativeSmallPixels||
+      pixels>MAX_NATIVE_RASTER_PIXELS-nativeRasterPixels||
       typeof window.createImageBitmap!=='function')return;
     // Decode once without resampling/cropping. Native foreground coordinates,
     // detail and original-image fallback are unchanged; reserve before await.
-    nativeRasterPixels+=pixels;state.nativePending=true;
-    const fallback=()=>{nativeRasterPixels-=pixels;state.nativePending=false;};
+    nativeRasterPixels+=pixels;if(smallNative)nativeSmallPixels+=pixels;state.nativePending=true;
+    const fallback=()=>{nativeRasterPixels-=pixels;if(smallNative)nativeSmallPixels-=pixels;state.nativePending=false;};
     const fw=w/entry.columns,fh=h/entry.rows,cells=entry.columns*entry.rows;
     if(cells>1&&entry.frames===cells&&Number.isInteger(fw)&&Number.isInteger(fh)) {
       // Keep each original-size cel as its own immutable source. Large full
