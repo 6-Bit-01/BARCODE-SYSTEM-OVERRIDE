@@ -771,7 +771,35 @@ async function browser(){
       const absoluteFrameBudgetMs=1000/30;
       const performancePass=frameComparisons.every(row=>row.ratio<=1.1&&row.afterMs<=absoluteFrameBudgetMs)&&aggregateRatio<.75;
       if(contextCalls!==1||bitmapAttempts.filter(src=>src.endsWith('.svg')).length!==beforeSVG)throw Error('Measured road draws rebuilt shared resources');
-      return {passed:true,performancePass,aggregateRatio,frameComparisons,frameSamples:rows,pixelComparisons,screens,viewportChecks,
+      // Outside every timing window, compare the actual prepared source
+      // with the original live filter on transparent pixels, using this same
+      // display context. Native texels must keep exact alpha; scaled sampling
+      // allows one alpha level of renderer rounding and no missing painting.
+      const tintSourceChecks=[];
+      for(const [width,height,quality]of [[192,290,'low'],[50,75,'low'],[50,75,'high']]){
+        ctx.reset();ctx.imageSmoothingQuality=quality;
+        if(!P.brakeTintReady(ctx))throw Error('native browser did not prepare the reflection tint');
+        const pixelWidth=Math.ceil(width),pixelHeight=Math.ceil(height),options={
+          x:width/2,y:0,width,height,sourceRect:[0,0,192,290]};
+        ctx.filter='hue-rotate(315deg)';P.draw('cacheBrakeReflection',ctx,options);
+        const original=ctx.getImageData(0,0,pixelWidth,pixelHeight).data;
+        ctx.clearRect(0,0,c.width,c.height);ctx.filter='none';
+        P.draw('cacheBrakeReflection',ctx,{...options,tone:'hue315'});
+        const prepared=ctx.getImageData(0,0,pixelWidth,pixelHeight).data;
+        let rgb=0,alpha=0,maxAlpha=0,painted=0;
+        for(let index=0;index<original.length;index++){
+          const delta=Math.abs(original[index]-prepared[index]);
+          if(index%4===3){alpha+=delta;maxAlpha=Math.max(maxAlpha,delta);if(prepared[index])painted++;}
+          else rgb+=delta;
+        }
+        const pixels=pixelWidth*pixelHeight,row={width,height,quality,meanRGB:rgb/(pixels*3),
+          meanAlpha:alpha/pixels,maxAlphaDifference:maxAlpha,paintedPixels:painted};
+        if(!painted||row.meanRGB>=1||row.meanAlpha>=.05||maxAlpha>(width===192?0:1))
+          throw Error('prepared tint changed the original source painting: '+JSON.stringify(row));
+        tintSourceChecks.push(row);
+      }
+      ctx.reset();
+      return {passed:true,performancePass,aggregateRatio,frameComparisons,frameSamples:rows,pixelComparisons,screens,viewportChecks,tintSourceChecks,
         preparedSVGs:svg.length,qualityComparisons,absoluteFrameBudgetMs,reflectionBlursPerFrame:1,warmDraws:120,pausedPixels:true,displayContexts:contextCalls,
         preservedMirrorFilter:'blur(2.3px)',limitation:'Real Chromium loader/cache validation; owner device FPS remains unmeasured.'};
     })()`});
