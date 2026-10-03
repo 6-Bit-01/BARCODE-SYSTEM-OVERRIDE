@@ -288,13 +288,19 @@ browserProof.step=ms=>{for(let left=ms;left>0;){const dt=Math.min(20,left);left-
       BARCODE.CacheRoadProof.introMs===null&&!window.isPaused)browserProof.simulationFrames++;
   browserProof.pad.timestamp=browserProof.clock;
   browserProof.frameDraws=0;
-  const measured=browserProof.measureLoop,begin=performance.now();
+  const measured=browserProof.measureLoop;
+  const cacheStates=measured?Object.values(window.bossPresentationReview.cache):[];
+  const preparation=measured?{nativePending:cacheStates.filter(state=>state.nativePending).length,
+    nativeReady:cacheStates.filter(state=>state.nativeBitmap||state.nativeFrames).length,
+    backgroundPending:cacheStates.filter(state=>state.rasterPending).length,
+    backgroundReady:cacheStates.filter(state=>state.rasterBitmap).length}:null;
+  const begin=performance.now();
   gameLoop(browserProof.clock);
   if(measured){
     const submitted=performance.now();renderer.ctx.getImageData(0,0,1,1);
     const costMs=performance.now()-begin;
     if(browserProof.frameDraws!==1)throw Error('Measured shared RAF must paint exactly one production frame');
-    browserProof.fullLoopCosts.push({ms:costMs,submitMs:submitted-begin,displayDraws:browserProof.frameDraws,
+    browserProof.fullLoopCosts.push({ms:costMs,submitMs:submitted-begin,displayDraws:browserProof.frameDraws,preparation,
       drawMs:browserProof.drawCosts.at(-1),updateMs:browserProof.updateCostMs,
       flushMs:costMs-(submitted-begin),
       bar:BARCODE.CacheRoadProof.state.musicBeatFloat/4,
@@ -345,7 +351,7 @@ browserProof.observe=()=>{const r={B:BARCODE,road:BARCODE.CacheRoadProof,pad:bro
   browserProof.observed=observeCombat(r);return r;};
 browserProof.startDriver=()=>{const r=browserProof.observed?{B:BARCODE,road:BARCODE.CacheRoadProof,pad:browserProof.pad,audio:audioSystem}:browserProof.observe();
   browserProof.driver=new CombatDriver(r,PROFILES.recovering,1,browserProof.observed,{earlyHits:1});};
-browserProof.playChunk=count=>{const road=BARCODE.CacheRoadProof;
+browserProof.playChunk=async count=>{const road=BARCODE.CacheRoadProof;
   for(let frame=0;frame<count&&road.status==='playing';frame++){
     browserProof.release();browserProof.driver.step();
     // One visibly anticipated civilian contact gets a genuine analog guard.
@@ -385,6 +391,10 @@ browserProof.playChunk=count=>{const road=BARCODE.CacheRoadProof;
       // Record its semantic evidence without a second fixture-only draw.
       if(measure)browserProof.noteRender(reason);else browserProof.render(reason);
     }
+    // A real display returns to the browser between RAF callbacks. Let the
+    // once-only immutable preparations finish, retaining every startup and
+    // reload frame in the measured window without advancing the song clock.
+    if(measure)await new Promise(resolve=>setTimeout(resolve,0));
     const updatedCombat=road.encounterSnapshot().combat;
     if(updatedCombat?.boss&&updatedCombat.boss.hp!==browserProof.lastHp){browserProof.lastHp=updatedCombat.boss.hp;break;}
     if(events.some(event=>event.kind==='combat-event'&&event.type==='takedown')||events.some(event=>event.kind==='wreck-recovery'))break;
@@ -763,6 +773,11 @@ async function main(){
       return {group,frames:rows.length,medianMs:median(rows.map(frame=>frame.ms)),
         drawMs:median(rows.map(frame=>frame.drawMs)),updateMs:median(rows.map(frame=>frame.updateMs)),
         flushMs:median(rows.map(frame=>frame.flushMs))};})));
+  console.log('SUSTAINED_PREPARATION '+JSON.stringify(
+    [...new Set(fullLoopCosts.map(frame=>JSON.stringify(frame.preparation)))].map(key=>{
+      const rows=fullLoopCosts.filter(frame=>JSON.stringify(frame.preparation)===key);
+      return {preparation:JSON.parse(key),frames:rows.length,bossFrames:rows.filter(frame=>frame.boss).length,
+        medianMs:median(rows.map(frame=>frame.ms))};})));
   fs.writeFileSync(path.join(output,'Sustained-Frame-Cost.json'),JSON.stringify(fullLoopTiming,null,2)+'\n');
 
   const phaseCost=await evaluate(`(()=>{

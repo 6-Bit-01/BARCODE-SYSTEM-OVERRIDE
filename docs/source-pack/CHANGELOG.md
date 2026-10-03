@@ -1,6 +1,13 @@
 # Recovery checkpoint — September 14
 ## October 3, 2026 — continued lag repair after PR180 playtest
 
+Controlled display samples now return to the browser between RAF callbacks,
+so asynchronous once-only bitmap preparations can finish as they do during
+play. All startup and reload frames remain measured; the song/simulation
+clock does not advance during that host yield. Per-frame cache readiness is
+recorded alongside costs. Static regression/syntax run before browser timing
+in validate; the separate performance workflow still checks the chase first.
+
 The race fixture now records event evidence from an already measured RAF
 without painting that state twice. Untimed review frames finish their raster
 work before the next timed frame. Every timed RAF asserts exactly one
