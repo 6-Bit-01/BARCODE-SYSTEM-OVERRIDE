@@ -337,6 +337,25 @@ async function browser(){
       window.canvasCostMark=undefined;
       for(const name of methods)ctx[name]=originals[name];
       console.log('FRAME_COST '+JSON.stringify({name:'production-phase-costs',phaseRows}));
+      // Hold the late moving scene and isolate decorative animated atlases.
+      // These diagnostic suppressions never run in production or gate fidelity.
+      const animatedAtlasDimensions=Object.fromEntries(['cacheFly1','cacheFly3','cacheWindWhoosh'].map(key=>
+        [key,{width:cache[key].image.naturalWidth,height:cache[key].image.naturalHeight}]));
+      for(const omitted of [[],['cacheFly1','cacheFly3'],['cacheWindWhoosh']]) {
+        const skipped=new Set(omitted);P.draw=(key,context,args)=>skipped.has(key)||assetDraw(key,context,args);
+        road.chapter=structuredClone(scene.chapter);road.state=structuredClone(scene.state);
+        BARCODE.Preferences.values.reducedMotion=false;
+        const costs=[];
+        for(let frame=0;frame<40;frame++) {
+          ctx.reset();ctx.imageSmoothingQuality='high';const begin=performance.now();road.draw(ctx);
+          ctx.getImageData(0,0,1,1);if(frame>=24)costs.push(performance.now()-begin);
+          road.state.progress+=road.state.speed/60;road.state.elapsedMs+=1000/60;
+          road.state.musicBeatFloat+=128/60/60;road.state.musicBar=Math.floor(road.state.musicBeatFloat/4);
+          await new Promise(resolve=>setTimeout(resolve,0));
+        }
+        console.log('FRAME_COST '+JSON.stringify({name:'animated-atlas-isolation',omitted,
+          medianMs:median(costs),worldScale:road.renderBudget.drawnScale,animatedAtlasDimensions}));
+      }
       P.draw=assetDraw;
       const viewportChecks=[];
       for(const [width,height,scale]of [[960,540,.5],[2400,1350,1.25]]) {
