@@ -313,6 +313,8 @@ browserProof.step=ms=>{for(let left=ms;left>0;){const dt=Math.min(20,left);left-
       gear:BARCODE.CacheRoadProof.state.gear,boss:!!BARCODE.CacheRoadProof.state.combat?.boss,
       status:BARCODE.CacheRoadProof.status,bossHP:BARCODE.CacheRoadProof.state.combat?.boss?.hp??null,
       worldScale:BARCODE.CacheRoadProof.renderBudget?.drawnScale??1,
+      worldPixelCopyUsed:!!BARCODE.CacheRoadProof.renderBudget?.worldPixelCopyUsed,
+      worldPixelCopyUnavailable:!!BARCODE.CacheRoadProof.renderBudget?.worldPixelCopyUnavailable,
       frameIntervalMs:BARCODE.CacheRoadProof.renderFrameIntervalMs,
       previousDisplayCostMs:browserProof.displayCostMs});
     window.canvasCostMark=undefined;
@@ -457,6 +459,10 @@ const server=http.createServer((req,res)=>{
     assert(source.includes(clearBoundary)&&source.includes(copyBoundary),'opaque world-copy fidelity boundaries');
     source=source.replace(clearBoundary,'if(worldScale<1&&!window.forceLegacyWorldCopy)ctx.clearRect(0,0,1920,1080);');
     source=source.replace(copyBoundary,"ctx.globalAlpha=1;ctx.globalCompositeOperation=window.forceLegacyWorldCopy&&!window.forceOriginalWorldCopy?'source-over':'copy';ctx.filter='none';");
+    const pixelCopyBoundary='this.renderBudget.worldPixelCopyUsed=expandSampledWorld(ctx,1920*worldScale,1080*worldScale,this.renderBudget);';
+    assert(source.includes(pixelCopyBoundary),'sampled-world transport fidelity boundary');
+    source=source.replace(pixelCopyBoundary,
+      'this.renderBudget.worldPixelCopyUsed=expandSampledWorld(ctx,1920*worldScale,1080*worldScale,this.renderBudget,!window.forceLegacyWorldCopy&&!window.forceOriginalWorldCopy);');
     const mirrorBoundary="ctx.globalCompositeOperation=opaqueNative?'source-over':'copy';";
     assert(source.includes(mirrorBoundary),'opaque mirror-copy fidelity boundary');
     source=source.replace(mirrorBoundary,"ctx.globalCompositeOperation=opaqueNative&&!window.forceMirrorCopy?'source-over':'copy';");

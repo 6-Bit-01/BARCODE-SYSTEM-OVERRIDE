@@ -388,6 +388,43 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         lensRadius:args.width*radius,poolRadius:args.height*.21};
     });
   }
+  function expandSampledWorld(ctx,width,height,budget,preferPixels=true) {
+    let frame,used=false;
+    // Only the small, opaque sRGB background takes this path. Synchronous
+    // readback and drawing stay inside the existing production frame, with
+    // no new Canvas, frame callback, media clock or retained source.
+    const pixelCopy=preferPixels&&budget&&!budget.worldPixelCopyUnavailable&&
+      typeof window.HTMLCanvasElement==='function'&&
+      ctx.canvas instanceof window.HTMLCanvasElement&&
+      typeof window.VideoFrame==='function'&&
+      typeof ctx.getContextAttributes==='function'&&
+      Number.isInteger(width)&&Number.isInteger(height)&&
+      width>0&&height>0&&width<=480&&height<=270;
+    if(pixelCopy)try {
+      if(ctx.getContextAttributes()?.colorSpace==='srgb') {
+        const pixels=ctx.getImageData(0,0,width,height,{colorSpace:'srgb'});
+        let opaque=pixels.colorSpace==='srgb'&&pixels.width===width&&
+          pixels.height===height&&pixels.data.length===width*height*4;
+        for(let at=3;opaque&&at<pixels.data.length;at+=4)
+          if(pixels.data[at]!==255)opaque=false;
+        if(opaque) {
+          frame=new window.VideoFrame(pixels.data,{format:'RGBA',
+            codedWidth:width,codedHeight:height,timestamp:0,
+            colorSpace:{primaries:'bt709',transfer:'iec61966-2-1',matrix:'rgb',fullRange:true}});
+          ctx.drawImage(frame,0,0,width,height,0,0,1920,1080);
+          used=true;
+        }
+      }
+    }catch(error) {
+      // Unsupported/readback-failed callers keep the original self-copy and
+      // do not retry an unavailable API on every subsequent frame.
+      budget.worldPixelCopyUnavailable=true;
+    }finally {
+      if(frame)try{frame.close();}catch(error){}
+    }
+    if(!used)ctx.drawImage(ctx.canvas,0,0,width,height,0,0,1920,1080);
+    return used;
+  }
   function clipLightBlend(ctx,bounds) {
     const matrix=ctx.getTransform?.();
     // Native/non-DOM hosts keep their original blend path exactly; their
@@ -3556,6 +3593,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       if(budgetEligible&&this.renderBudgetState!==live) {
         this.renderBudget=budgetOwner.create();this.renderBudgetState=live;
       }
+      if(budgetEligible)this.renderBudget.worldPixelCopyUsed=false;
       const worldScale=budgetEligible?this.renderBudget.scale:1;
       const assets=B.PresentationAssets;
       const priorRasterDetail=assets?.setRasterDetail?.(ctx,worldScale)??1;
@@ -3721,7 +3759,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.save();ctx.setTransform(1,0,0,1,0,0);
         ctx.globalAlpha=1;ctx.globalCompositeOperation='copy';ctx.filter='none';
         ctx.imageSmoothingEnabled=false;
-        ctx.drawImage(ctx.canvas,0,0,1920*worldScale,1080*worldScale,0,0,1920,1080);
+        this.renderBudget.worldPixelCopyUsed=expandSampledWorld(ctx,1920*worldScale,1080*worldScale,this.renderBudget);
         ctx.restore();ctx.setTransform(1,0,0,1,0,0);ctx.save();
         ctx.setTransform(transform.a/worldScale,transform.b/worldScale,
           transform.c/worldScale,transform.d/worldScale,transform.e/worldScale,transform.f/worldScale);

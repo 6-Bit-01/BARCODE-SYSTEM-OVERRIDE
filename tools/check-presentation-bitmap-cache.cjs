@@ -430,6 +430,60 @@ function budgetUnit(){
   console.log('PASS: bounded adaptive world quality, queued display cost, cold/impact tolerance, pause freeze, clock fallback, recovery hysteresis and fresh-run independence.');
 }
 
+function worldCopyUnit(){
+  const road=fs.readFileSync(path.resolve(__dirname,'../src/game/cache-road-proof.js'),'utf8');
+  const start=road.indexOf('  function expandSampledWorld('),end=road.indexOf('  function clipLightBlend(',start);
+  assert(start>=0&&end>start,'exercise the production sampled-world transport helper');
+  const code=road.slice(start,end)+'\nwindow.expandSampledWorld=expandSampledWorld;';
+  for(const failure of ['none','construct','read','draw','p3','alpha','native','missing','fractional','oversize','reference']){
+    const calls=[],closed=[],data=new Uint8ClampedArray(320*180*4).fill(255),budget={};
+    if(failure==='alpha')data[3]=254;
+    class Canvas {}
+    class VideoFrame {
+      constructor(pixels,options){
+        calls.push(['construct',pixels,options]);
+        if(failure==='construct')throw Error('unsupported frame');
+        this.pixels=pixels;
+      }
+      close(){closed.push(this);}
+    }
+    const w={HTMLCanvasElement:Canvas,VideoFrame:failure==='missing'?undefined:VideoFrame};
+    vm.runInNewContext(code,{window:w});
+    const canvas=failure==='native'?{}:new Canvas(),ctx={canvas,globalAlpha:.37,filter:'none',
+      getContextAttributes(){return {colorSpace:failure==='p3'?'display-p3':'srgb'};},
+      getImageData(...args){
+        calls.push(['read',...args]);if(failure==='read')throw Error('readback unavailable');
+        return {width:320,height:180,colorSpace:'srgb',data};
+      },
+      drawImage(...args){
+        calls.push(['draw',...args]);if(failure==='draw'&&args[0]!==canvas)throw Error('unsupported source');
+      }};
+    const width=failure==='fractional'?320.5:failure==='oversize'?481:320;
+    const used=w.expandSampledWorld(ctx,width,180,budget,failure!=='reference');
+    assert.equal(used,failure==='none');assert.equal(ctx.globalAlpha,.37);assert.equal(ctx.filter,'none');
+    const drawn=calls.filter(call=>call[0]==='draw'),last=drawn.at(-1);
+    assert.deepEqual(last.slice(2),[0,0,width,180,0,0,1920,1080]);
+    assert.equal(last[1]===canvas,failure!=='none');
+    assert.equal(closed.length,failure==='none'||failure==='draw'?1:0,'every constructed source is closed once');
+    if(failure==='none'){
+      const created=calls.find(call=>call[0]==='construct');assert.equal(created[1],data);
+      assert.deepEqual(created[2],{format:'RGBA',codedWidth:320,codedHeight:180,timestamp:0,
+        colorSpace:{primaries:'bt709',transfer:'iec61966-2-1',matrix:'rgb',fullRange:true}});
+      assert.deepEqual(calls.find(call=>call[0]==='read').slice(1),[0,0,320,180,{colorSpace:'srgb'}]);
+    }
+    if(['construct','read','draw'].includes(failure)){
+      assert.equal(budget.worldPixelCopyUnavailable,true);
+      const count=calls.filter(call=>call[0]==='read').length;
+      w.expandSampledWorld(ctx,320,180,budget);
+      assert.equal(calls.filter(call=>call[0]==='read').length,count,'an unavailable API is attempted once per presentation budget');
+      assert.equal(calls.at(-1)[1],canvas);
+    }else assert.equal(budget.worldPixelCopyUnavailable,undefined);
+    if(['p3','native','missing','fractional','oversize','reference'].includes(failure))
+      assert.equal(calls.filter(call=>call[0]==='read').length,0,'ineligible callers do not read pixels');
+  }
+  console.log('PASS: bounded opaque sRGB production transport, exact source/destination arguments, context preservation, source cleanup, original reference and unsupported/native/P3/alpha fallback.');
+}
+
 const frameReviewCount=screens=>screens.length/3;
 async function browser(){
   const http=require('node:http'),os=require('node:os'),{spawn}=require('node:child_process'),{once}=require('node:events');
@@ -474,6 +528,9 @@ async function browser(){
     if(pathname==='/registry.js'){res.setHeader('Content-Type','text/javascript');res.end(inspected);return;}
     if(pathname==='/src/game/cache-road-proof.js') {
       let road=fs.readFileSync(path.join(root,'src/game/cache-road-proof.js'),'utf8');
+      const copyMarker='  function clipLightBlend(ctx,bounds) {';
+      assert(road.includes(copyMarker),'exercise the actual sampled-world helper in Chromium');
+      road=road.replace(copyMarker,'  window.bitmapReview.expandSampledWorld=expandSampledWorld;\n'+copyMarker);
       assert(road.includes('const compositeBlur=ctx.canvas?.width>0'));
       road=road.replace('const compositeBlur=ctx.canvas?.width>0',
         "const compositeBlur=window.bitmapReview.mode!=='vector'&&ctx.canvas?.width>0");
@@ -597,7 +654,7 @@ async function browser(){
           if(P.setDecorationDetail(ctx,1)!==1)throw Error('road draw leaked its decoration hint');
           if(frame>=30)samples.push(elapsed);
           else if(mode==='adaptive')startupFrames.push({frame,ms:elapsed,
-            worldScale:road.renderBudget.drawnScale});
+            worldScale:road.renderBudget.drawnScale,worldPixelCopyUsed:!!road.renderBudget.worldPixelCopyUsed});
           if(frame===45) {
             const stateBefore=JSON.stringify(road.state);
             const displayedPixels=ctx.getImageData(0,0,c.width,c.height).data;
@@ -654,7 +711,7 @@ async function browser(){
         const sorted=samples.slice().sort((a,b)=>a-b);
         rows.push({name:scene.name,mode,medianMs:median(samples),
           p95Ms:sorted[Math.ceil(sorted.length*.95)-1],frames:samples.length,
-          warmupFrames:30,startupFrames:mode==='adaptive'?startupFrames:undefined,worldScale:mode==='adaptive'?road.renderBudget.drawnScale:1,includesRasterFlush:true});
+          warmupFrames:30,startupFrames:mode==='adaptive'?startupFrames:undefined,worldScale:mode==='adaptive'?road.renderBudget.drawnScale:1,includesRasterFlush:true,worldPixelCopyUsed:!!road.renderBudget?.worldPixelCopyUsed});
         console.log('FRAME_COST '+JSON.stringify(rows.at(-1)));
       }
       for(const key of svg)cache[key].bitmap=bitmaps[key];
@@ -798,8 +855,36 @@ async function browser(){
           throw Error('prepared tint changed the original source painting: '+JSON.stringify(row));
         tintSourceChecks.push(row);
       }
+      const worldSourceChecks=[];
+      for(const scenario of ['opaque','alpha','clipped-caller']){
+        const paint=()=>{
+          ctx.reset();
+          const gradient=ctx.createLinearGradient(0,0,320,180);
+          gradient.addColorStop(0,'#9b4f74');gradient.addColorStop(.37,'#1d7d99');gradient.addColorStop(1,'#dc805b');
+          ctx.fillStyle=gradient;ctx.fillRect(0,0,320,180);
+          ctx.fillStyle='#081321';ctx.fillRect(17,13,31,22);
+          ctx.fillStyle='#fae986';ctx.fillRect(93,41,54,73);
+          if(scenario==='alpha')ctx.clearRect(5,5,13,11);
+          ctx.globalCompositeOperation='copy';ctx.imageSmoothingEnabled=false;
+          if(scenario==='clipped-caller'){
+            ctx.beginPath();ctx.rect(110,50,1400,900);ctx.clip();ctx.globalAlpha=.37;
+          }
+        };
+        paint();bitmapReview.expandSampledWorld(ctx,320,180,{},false);
+        const original=ctx.getImageData(0,0,c.width,c.height).data;
+        paint();const budget={},used=bitmapReview.expandSampledWorld(ctx,320,180,budget);
+        const candidate=ctx.getImageData(0,0,c.width,c.height).data;
+        let changed=0,max=0;
+        for(let index=0;index<original.length;index++){
+          const delta=Math.abs(original[index]-candidate[index]);if(delta)changed++;max=Math.max(max,delta);
+        }
+        const row={scenario,used,changedComponents:changed,maxChannelDifference:max};
+        if(changed||used!==(scenario!=='alpha')||budget.worldPixelCopyUnavailable)
+          throw Error('sampled-world transport changed source/caller pixels: '+JSON.stringify(row));
+        worldSourceChecks.push(row);
+      }
       ctx.reset();
-      return {passed:true,performancePass,aggregateRatio,frameComparisons,frameSamples:rows,pixelComparisons,screens,viewportChecks,tintSourceChecks,
+      return {passed:true,performancePass,aggregateRatio,frameComparisons,frameSamples:rows,pixelComparisons,screens,viewportChecks,tintSourceChecks,worldSourceChecks,
         preparedSVGs:svg.length,qualityComparisons,absoluteFrameBudgetMs,reflectionBlursPerFrame:1,warmDraws:120,pausedPixels:true,displayContexts:contextCalls,
         preservedMirrorFilter:'blur(2.3px)',limitation:'Real Chromium loader/cache validation; owner device FPS remains unmeasured.'};
     })()`});
@@ -850,4 +935,4 @@ async function browser(){
     await fs.promises.rm(profile,{recursive:true,force:true,maxRetries:20,retryDelay:100});
   }
 }
-(async()=>{await unit();await backgroundRasterUnit();await nativeRasterUnit();await nativeSmallUnit();await nativeWindowUnit();await nativeTintUnit();budgetUnit();if(process.argv.includes('--browser'))await browser();})().catch(e=>{console.error(e.stack);process.exitCode=1;});
+(async()=>{await unit();await backgroundRasterUnit();await nativeRasterUnit();await nativeSmallUnit();await nativeWindowUnit();await nativeTintUnit();budgetUnit();worldCopyUnit();if(process.argv.includes('--browser'))await browser();})().catch(e=>{console.error(e.stack);process.exitCode=1;});
