@@ -135,11 +135,15 @@ async function browser(){
     if(pathname==='/'){res.setHeader('Content-Type','text/html');res.end(fixture);return;}
     if(pathname==='/registry.js'){res.setHeader('Content-Type','text/javascript');res.end(inspected);return;}
     if(pathname==='/src/game/cache-road-proof.js') {
-      const road=fs.readFileSync(path.join(root,'src/game/cache-road-proof.js'),'utf8');
+      let road=fs.readFileSync(path.join(root,'src/game/cache-road-proof.js'),'utf8');
       assert(road.includes('const compositeBlur=ctx.canvas?.width>0'));
-      res.setHeader('Content-Type','text/javascript');
-      res.end(road.replace('const compositeBlur=ctx.canvas?.width>0',
-        "const compositeBlur=window.bitmapReview.mode!=='vector'&&ctx.canvas?.width>0"));return;
+      road=road.replace('const compositeBlur=ctx.canvas?.width>0',
+        "const compositeBlur=window.bitmapReview.mode!=='vector'&&ctx.canvas?.width>0");
+      for(const [marker,label]of [["      const live=this.state,cinema=this.cinematicPose();","begin"],["      // One opaque landscape continues beneath every roadside location.","sky"],["      // Neighboring strips sample adjacent rows of one world-fixed material.","city"],["      const groundCrest=Array.from({length:65},(_,i)=>[i*30,cityCrestY(i*30)]);","world-preparation"],["      // Road shoulders and the paint share a single curved road projection.","terrain"],["      const roadFog=ctx.createLinearGradient(0,horizon,0,horizon+170);","asphalt"],["      // Phrase paint is a road marking, not a second translucent lane overlay.","street-objects"],["      const boss=s.combat?combatPose.boss:B.CacheRoadPursuit?.boss?.(s.pursuit,{progress});","beat-and-traffic"],["      ctx.restore(); // world camera","vehicles-and-fx"],["      // A compact VFD instrument cluster leaves the original mirror and","atmosphere"],["    const far = profile(progress-reach);","mirror-start"],["    if(compositeBlur) {","mirror-scene"],["    // Only reflected scenery gets softened.","mirror-blur"],["      drawRearview(ctx, s, ['#f6adbb', '#f3b276', '#d2a4f9', '#9aefce'][section], reduced,heightSample,combatPose,crosswalkPose);","dashboard"]]) {
+        assert(road.includes(marker),'phase marker '+label);
+        road=road.replace(marker,"window.canvasCostMark?.("+JSON.stringify(label)+");\n"+marker);
+      }
+      res.setHeader('Content-Type','text/javascript');res.end(road);return;
     }
     const file=path.resolve(root,'.'+pathname);
     if(!file.startsWith(root+path.sep)||!fs.existsSync(file)||!fs.statSync(file).isFile()){res.writeHead(404);res.end();return;}
@@ -294,7 +298,37 @@ async function browser(){
           groups:Object.fromEntries(Object.entries(last.groups).filter(([key,value])=>value>1))});
         console.log('FRAME_COST '+JSON.stringify(diagnostics.at(-1)));
       }
-      BARCODE.CacheRoadBeatSurface=skin;P.draw=assetDraw;
+      BARCODE.CacheRoadBeatSurface=skin;
+      // Flush between production phases only in this diagnostic. Queued
+      // Canvas work can otherwise be charged to a later, unrelated image.
+      const phaseRows=[],methods=['fill','stroke','fillRect','strokeRect','fillText','strokeText','drawImage'];
+      const originals=Object.fromEntries(methods.map(name=>[name,ctx[name]]));
+      let methodCosts={},phaseStart=0;
+      for(const name of methods)ctx[name]=function(...args){
+        const start=performance.now(),result=originals[name].apply(this,args),cost=performance.now()-start;
+        const group=name+(this.globalCompositeOperation==='screen'?':screen':'')+
+          (name==='drawImage'&&args[0]===c?':self':'');
+        const value=methodCosts[group]||(methodCosts[group]={calls:0,ms:0});
+        value.calls++;value.ms+=cost;return result;
+      };
+      window.canvasCostMark=phase=>{
+        const submitted=performance.now();ctx.getImageData(0,0,1,1);
+        const now=performance.now();
+        if(phase!=='begin')phaseRows.push({phase,submitMs:submitted-phaseStart,
+          flushMs:now-submitted,totalMs:now-phaseStart,methods:methodCosts});
+        methodCosts={};phaseStart=now;
+      };
+      for(let frame=0;frame<3;frame++) {
+        ctx.reset();ctx.getImageData(0,0,1,1);
+        road.chapter=structuredClone(scene.chapter);road.state=structuredClone(scene.state);
+        BARCODE.Preferences.values.reducedMotion=false;
+        road.draw(ctx);window.canvasCostMark('hud-complete');
+        await new Promise(resolve=>setTimeout(resolve,0));
+      }
+      window.canvasCostMark=undefined;
+      for(const name of methods)ctx[name]=originals[name];
+      console.log('FRAME_COST '+JSON.stringify({name:'production-phase-costs',phaseRows}));
+      P.draw=assetDraw;
       const viewportChecks=[];
       for(const [width,height,scale]of [[960,540,.5],[2400,1350,1.25]]) {
         c.width=width;c.height=height;ctx.setTransform(scale,0,0,scale,7,11);
