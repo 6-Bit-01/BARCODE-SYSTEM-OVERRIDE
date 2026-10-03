@@ -1,3 +1,16 @@
+# Continue here — Level 2 still lags after PR #180
+
+The owner has already played the merged reflection repair and reports
+continued lag. Resume the performance repair, not the previous test handoff.
+Base/rollback: `0c821b2fb3b7b60b2b561d7c3a0040810c73181a`.
+Branch: `agent/level2-raster-work-repair`. Read the newest CURRENT_STATE,
+ACCEPTANCE and CHANGELOG entries. Smaller reusable raster variants and
+consecutive shared-loop Chromium measurements are prepared; Node/browser
+and full candidate regression are pending. Preserve gameplay/art/audio and
+finish exact-head validation under standing publication/merge authority.
+
+# Earlier continuation history
+
 # Continue here — Cache race launch and shared cutscene format
 
 ## October 1, 2026 — immediate Level 2 lag

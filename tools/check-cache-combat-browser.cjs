@@ -263,6 +263,7 @@ BARCODE.CacheRoadProof.hit=function(...args){
 };
 BARCODE.CacheRoadProof.update=function(...args){browserProof.roadUpdates++;return originalUpdate.apply(this,args);};
 browserProof.renderedSamples=0;browserProof.drawNext=false;browserProof.drawReasons=[];
+browserProof.fullLoopCosts=[];browserProof.bossPaintFrames=0;browserProof.measureLoop=false;
 BARCODE.CacheRoadProof.draw=function(...args){if(!browserProof.drawNext)return;
   browserProof.drawNext=false;browserProof.renderedSamples++;const begin=performance.now();
   try{return originalRoadDraw.apply(this,args);}finally{browserProof.drawCosts.push(performance.now()-begin);}};
@@ -274,7 +275,16 @@ browserProof.step=ms=>{for(let left=ms;left>0;){const dt=Math.min(20,left);left-
   browserProof.rafUpdates++;
   if(BARCODE.CacheRoadProof.active&&BARCODE.CacheRoadProof.status==='playing'&&
       BARCODE.CacheRoadProof.introMs===null&&!window.isPaused)browserProof.simulationFrames++;
-  browserProof.pad.timestamp=browserProof.clock;gameLoop(browserProof.clock);}};
+  browserProof.pad.timestamp=browserProof.clock;
+  const measured=browserProof.measureLoop,begin=performance.now();
+  gameLoop(browserProof.clock);
+  if(measured){
+    renderer.ctx.getImageData(0,0,1,1);
+    browserProof.fullLoopCosts.push({ms:performance.now()-begin,
+      bar:BARCODE.CacheRoadProof.state.musicBeatFloat/4,
+      gear:BARCODE.CacheRoadProof.state.gear,boss:!!BARCODE.CacheRoadProof.state.combat?.boss});
+    browserProof.measureLoop=false;
+  }}};
 browserProof.release=()=>{for(const button of browserProof.pad.buttons){button.pressed=false;button.value=0;button.touched=false;}
   browserProof.pad.axes=[0,0];};
 browserProof.render=reason=>{browserProof.drawNext=true;BARCODE.CacheRoadProof.draw(renderer.ctx);
@@ -330,6 +340,10 @@ browserProof.playChunk=count=>{const road=BARCODE.CacheRoadProof;
     // R2/L2 exercise the actual analog-trigger threshold, with pressed=false.
     for(const button of [6,7])if(browserProof.pad.buttons[button].pressed){browserProof.pad.buttons[button].pressed=false;browserProof.pad.buttons[button].value=.85;}
     const eventsBefore=browserProof.observed.events.length,contactsBefore=browserProof.pedestrianContacts.length;
+    // Consecutive production frames traverse the shared input/update/audio owners.
+    const measure=browserProof.raceFrames<160||!!s.combat.boss&&browserProof.bossPaintFrames<160;
+    if(measure){browserProof.drawNext=true;browserProof.measureLoop=true;
+      if(s.combat.boss)browserProof.bossPaintFrames++;}
     browserProof.step(20);browserProof.raceFrames++;
     const events=browserProof.observed.events.slice(eventsBefore);
     const special=events.find(event=>event.kind==='combat-event'&&
@@ -529,7 +543,7 @@ async function main(){
   assert.equal(state.chapter.accurate,0,'combat cannot award a face-button music capture');
   await shot('zero-sync-four-controls',state);await evaluate('browserProof.release();browserProof.step(20);browserProof.startDriver()');
   let paused=false,reloaded=false,drawnWreck=false,drawnRider=false,drawnFlip=false,comfort=null,restoreReceipt=null;
-  const bossHp=[],allEvents=[],allDrawn={},drawSessions=[],paintSessions=[],drawSamples=[],trafficGuards=[];
+  const bossHp=[],allEvents=[],allDrawn={},drawSessions=[],paintSessions=[],drawSamples=[],trafficGuards=[],fullLoopCosts=[];
   let totalFrames=0,totalDriverFrames=0,totalRafUpdates=0,totalSamples=0,minimumDrums=Infinity,lastHp=null;
   for(let chunk=0;chunk<900;chunk++){
     state=await evaluate('browserProof.playChunk(50)');
@@ -573,7 +587,7 @@ async function main(){
       allEvents.push(...await evaluate('browserProof.observed.events'));totalFrames+=before.simulationFrames;
       totalDriverFrames+=before.raceFrames;totalRafUpdates+=before.rafUpdates;totalSamples+=before.renderedSamples;
       paintSessions.push(before.combatPaints);drawSessions.push(before.drawn);drawSamples.push(...await evaluate('browserProof.drawReasons'));
-      trafficGuards.push(...before.trafficGuards);
+      trafficGuards.push(...before.trafficGuards);fullLoopCosts.push(...await evaluate('browserProof.fullLoopCosts'));
       await send('Page.reload');await ready();await evaluate('browserProof.boot();');
       await until('BARCODE.CacheRoadProof.active&&BARCODE.CacheRoadProof.introMs===null','actual saved race re-enters after page reload');
       await evaluate('browserProof.release();browserProof.step(20);browserProof.startDriver();browserProof.render("earned-midboss-reload")');
@@ -620,7 +634,7 @@ async function main(){
   totalDriverFrames+=state.raceFrames;totalRafUpdates+=state.rafUpdates;totalSamples+=state.renderedSamples;
   paintSessions.push(state.combatPaints);drawSessions.push(state.drawn);drawSamples.push(...await evaluate('browserProof.drawReasons'));
   for(const session of drawSessions)for(const[key,value]of Object.entries(session))allDrawn[key]=(allDrawn[key]||0)+value;
-  trafficGuards.push(...state.trafficGuards);
+  trafficGuards.push(...state.trafficGuards);fullLoopCosts.push(...await evaluate('browserProof.fullLoopCosts'));
   assert(state.bar>=100&&state.bar<=100.02);assert.equal(state.encounterVersion,4);
   assert(state.combat.boss.defeated&&state.combat.boss.hp===0);
   assert.deepEqual(state.crosswalks.crossings.map(item=>item.bar),[10,30,50,70],
@@ -672,6 +686,16 @@ async function main(){
   assert.deepEqual(await evaluate('Object.fromEntries(["road_attack","road_turbo","road_defend","road_disrupt"].map(action=>[action,BARCODE.ControllerSettings.bindings[action]]))'),
     {road_attack:5,road_turbo:4,road_defend:7,road_disrupt:6},'actual saved/default bindings implement the approved four-control mapping');
   assert(totalSamples>=100&&totalSamples<totalFrames/4,'selected native Canvas samples supplement every actual simulation frame');
+  assert(fullLoopCosts.length>=320,'consecutive complete gameplay frames cover road and live boss');
+  assert(fullLoopCosts.some(frame=>frame.boss)&&fullLoopCosts.some(frame=>!frame.boss),
+    'sustained diagnostics include actual chase and rig combat');
+  const sortedLoopCosts=fullLoopCosts.map(frame=>frame.ms).sort((a,b)=>a-b);
+  const fullLoopTiming={frames:fullLoopCosts.length,medianMs:sortedLoopCosts[Math.floor(sortedLoopCosts.length/2)],
+    p95Ms:sortedLoopCosts[Math.ceil(sortedLoopCosts.length*.95)-1],
+    over33Ms:fullLoopCosts.filter(frame=>frame.ms>1000/30).length,
+    gears:[...new Set(fullLoopCosts.map(frame=>frame.gear))],samples:fullLoopCosts,
+    limitation:'Consecutive native Chromium shared-loop frames with raster flush; controlled audio/device hosts, not player-device FPS.'};
+  console.log('SUSTAINED_FRAME_COST '+JSON.stringify({...fullLoopTiming,samples:undefined}));
   assert.deepEqual(errors,[],'native browser raises no uncaught production exceptions');assert.equal(requests.head,0);
   if(requireHosted)assert.deepEqual(requests.localCombat,[],'new combat/feedback art never silently falls back to bundled paths');
   if(requireHosted)assert.deepEqual(requests.localBeat,[],'custom beat art never silently falls back to bundled paths');
@@ -680,7 +704,7 @@ async function main(){
     state,events:allEvents,restoreReceipt,comfort,cinematicNative,drawn:allDrawn,combatPaintSessions:paintSessions,drawSamples,trafficGuards,
     renderedControlLabels:[...new Set(labels)],beatPaints,requests,errors,minimumDrums,
     simulationFrames:totalFrames,driverFrames:totalDriverFrames,sharedRafUpdates:totalRafUpdates,
-    nativeCanvasSamples:totalSamples,sourceHashes:initialSourceHashes,sourceStableThroughoutRun:true,
+    nativeCanvasSamples:totalSamples,fullLoopTiming,sourceHashes:initialSourceHashes,sourceStableThroughoutRun:true,
     checks:{nativeControllerAndAnalogTriggers:true,zeroSyncFourSkills:true,actualWeaponBossDamage:true,
       nativeR2PreventsOrdinaryTrafficWreck:true,physicallyEarnedWreckAndFirstGear:true,actualBikeRiderAndFlipDrawn:true,pausedCombatCameraMusicFrozen:true,
       earnedPageReload:true,persistedPedestrianContacts:true,fourPhysicalCrosswalksDrawn:true,

@@ -1,5 +1,29 @@
 # Acceptance and Test Status
 
+## October 3 — continued lag: raster candidate verification
+
+The owner's playtest of merged PR180 remains laggy. This is a failed device
+result, independent of the earlier relative Chromium improvement.
+
+Verify bounded raster preparation, rejection/unsupported fallback, affine
+source/crop selection, unchanged anchors/filter/alpha and allocation-free
+warm, paused and re-entry draws. Compare seven loaded moving scenes against
+the actual PR180 SVG/composite-reflection path. Record every median/p95,
+require at least 25% aggregate improvement, no scene regression above 10%,
+a 33.33 ms scene-median diagnostic budget and mean RGB differences below 1.
+Keep the prior SVG/mirror checks, one display context and original blur.
+
+Paint consecutive real shared-loop chase and boss frames in the production
+combat browser route, including actual input/update ownership and controlled
+audio-host traversal. Record slow-frame counts and median/p95. Run complete
+regression/all-file syntax and both exact final-head CI events. Candidate
+browser and Node results are pending; do not claim the fix has passed them.
+
+After the tested repair is merged/imported, check the reported lag through
+normal driving, the ambush, turns, Turbo, timing hits, dense encounters,
+boss, pause and re-entry. The user's existing lag report is already evidence;
+do not restart the handoff as though PR180 were awaiting its first playtest.
+
 ## October 3 — Level 2 reflection repair verification (PR #180)
 
 The real Chromium test loads production artwork and renders Approach,

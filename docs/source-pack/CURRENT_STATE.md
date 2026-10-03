@@ -1,5 +1,32 @@
 # Current State
 
+## October 3 — continued Level 2 lag after PR #180
+
+The owner reports that the merged reflection repair still lags. PR180's
+relative improvement is not device acceptance: its merged Chromium moving
+scenes still cost approximately 73–98 ms per frame on the software runner.
+Base/rollback is `0c821b2fb3b7b60b2b561d7c3a0040810c73181a`; continue on
+`agent/level2-raster-work-repair`.
+
+The next candidate prepares at most three smaller immutable raster variants
+per smooth road sheet, with two active preparations and a shared 32-megapixel
+reservation budget. Fair per-sheet allowances prevent later props from being
+starved by load order. Draws choose by the actual affine pixel footprint and
+preserve original atlas/crop addresses, destination anchors, alpha and blur.
+Close art and unsupported hosts retain original resolution. No artwork bytes,
+gameplay, audio, input, saves or Canvas/frame owners change.
+
+Production-loader units pass in the current V8 execution environment.
+Node/full regression and real Chromium results are pending. The performance
+gate compares directly with the PR180 SVG/composite-mirror path, requires
+25% lower aggregate cost without a scene regression, and checks a 33.33 ms
+median frame budget rather than relative improvement alone. The combat
+browser route also paints consecutive shared-loop frames during real chase
+and boss input/update, recording complete-frame median/p95 and slow frames.
+Neither those controlled-host timings nor a merge establishes Makko/device
+or physical controller/listening acceptance. The owner's lag report remains
+open until the actual repaired build plays smoothly.
+
 ## October 3 — Level 2 reflection frame-cost repair (PR #180)
 
 Continues from merged #179 (`f9caed6cc64361388433bf9b27e5f01ddace7f57`).

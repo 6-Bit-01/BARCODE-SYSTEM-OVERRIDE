@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - agent/level2-frame-pacing-repair
+      - agent/level2-raster-work-repair
       - main
   pull_request:
     paths:
