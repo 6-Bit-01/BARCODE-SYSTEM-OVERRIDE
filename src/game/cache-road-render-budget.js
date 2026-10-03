@@ -2,7 +2,7 @@
 // It owns no gameplay clock, frame callback, input, audio or persisted state.
 (function(){
   const B=window.BARCODE=window.BARCODE||{};
-  const scales=[1,.85,.7,.6,.5,.4,1/3];
+  const scales=[1,.85,.7,.6,.5,.4,1/3,.25];
   const create=()=>({scale:1,slowFrames:0,fastFrames:0,lastCostMs:0});
   function observe(budget,costMs,{paused=false}={}){
     if(!budget||paused||!Number.isFinite(costMs)||costMs<0)return;

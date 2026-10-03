@@ -60,9 +60,9 @@ function budgetUnit(){
   assert.equal(budget.scale,.4,'detail recovery needs sustained spare capacity');
   owner.observe(budget,1);assert.equal(budget.scale,.5);
   for(let i=0;i<30;i++)owner.observe(budget,200);
-  assert.equal(budget.scale,1/3,'sampling stops at a readable finite floor');
+  assert.equal(budget.scale,.25,'sampling stops at a readable finite floor');
   const fresh=owner.create();assert.equal(fresh.scale,1);
-  assert.equal(budget.scale,1/3,'a fresh run has independent presentation state');
+  assert.equal(budget.scale,.25,'a fresh run has independent presentation state');
   console.log('PASS: bounded adaptive world quality, cold/impact tolerance, pause freeze, clock fallback, recovery hysteresis and fresh-run independence.');
 }
 
@@ -286,6 +286,16 @@ async function browser(){
         console.log('FRAME_COST '+JSON.stringify(diagnostics.at(-1)));
       }
       BARCODE.CacheRoadBeatSurface=skin;
+      // Paused repeat paint retains both the chosen detail and exact pixels.
+      window.isPaused=true;ctx.reset();road.draw(ctx);
+      const pausedScale=road.renderBudget.scale,pausedImage=ctx.getImageData(0,0,c.width,c.height).data;
+      for(let repeat=0;repeat<5;repeat++) {
+        ctx.reset();road.draw(ctx);
+        const current=ctx.getImageData(0,0,c.width,c.height).data;
+        if(current.some((value,index)=>value!==pausedImage[index])||road.renderBudget.scale!==pausedScale)
+          throw Error('paused world sampling or pixels changed');
+      }
+      window.isPaused=false;
       // Flush between production phases only in this diagnostic. Queued
       // Canvas work can otherwise be charged to a later, unrelated image.
       const phaseRows=[],methods=['fill','stroke','fillRect','strokeRect','fillText','strokeText','drawImage'];
