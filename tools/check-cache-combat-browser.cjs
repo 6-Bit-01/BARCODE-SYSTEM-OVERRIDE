@@ -45,7 +45,7 @@ const critical = new Set(['src/engine/music-profiles.js', 'src/engine/music-tran
   'src/game/cache-road-crosswalks.js', 'src/game/cache-road-mirror.js', 'src/game/cache-road-crew-callouts.js',
   'src/game/cache-road-boss-art.js', 'src/game/cache-road-instruments.js', 'src/game/cache-road-guidance.js',
   'src/game/cache-road-beat-surface.js', 'src/game/cache-road-beat-feedback.js',
-  'src/game/cache-road-cinematics.js', 'src/game/cache-road-proof.js',
+  'src/game/cache-road-cinematics.js', 'src/game/cache-road-render-budget.js', 'src/game/cache-road-proof.js',
   'src/engine/intro-sequence.js', 'src/engine/cache-scene-layouts.js', 'src/engine/cache-scene-effects.js',
   'src/engine/comic-dialogue.js', 'src/engine/cache-bridge.js', 'src/engine/cache-ending.js',
   'src/core/action-input.js', 'src/core/gamepad-ui.js', 'src/core/input.js', 'src/core/loop.js']);
@@ -105,6 +105,9 @@ window.Image=function(...args){const image=new NativeImage(...args);browserProof
        !(${requireHosted}&&(value.includes('/assets/cache-road/combat/')||value.includes('/assets/cache-road/pursuit/')||value.includes('/assets/cache-road/blood/')||value.includes('/assets/cache-road/beat-system/')))){
       const at=value.indexOf('/assets/');if(at>=0)value=value.slice(at);
     }
+    // Readback measures queued raster work with the actual hosted bytes.
+    // Request CORS before src so those production images keep the Canvas origin-clean.
+    if(typeof value==='string'&&value.startsWith('https://'))this.crossOrigin='anonymous';
     srcProperty.set.call(this,value);
   }});return image;
 };
@@ -170,6 +173,7 @@ window.audioSystem={context:{currentTime:0,state:'running'},musicTracks:{},
 </script>${scripts.map(file => `<script src="/${file}"></script>`).join('')}
 <script>
 const canvas=document.getElementById('gameCanvas');window.renderer={canvas,ctx:canvas.getContext('2d')};
+renderer.ctx.imageSmoothingQuality='high'; // inherited shared-renderer setting in production
 const copy=value=>JSON.parse(JSON.stringify(value));
 const round=(value,digits=3)=>Number(Number(value||0).toFixed(digits));
 const clamp=(value,low,high)=>Math.max(low,Math.min(high,value));
@@ -282,7 +286,8 @@ browserProof.step=ms=>{for(let left=ms;left>0;){const dt=Math.min(20,left);left-
     renderer.ctx.getImageData(0,0,1,1);
     browserProof.fullLoopCosts.push({ms:performance.now()-begin,
       bar:BARCODE.CacheRoadProof.state.musicBeatFloat/4,
-      gear:BARCODE.CacheRoadProof.state.gear,boss:!!BARCODE.CacheRoadProof.state.combat?.boss});
+      gear:BARCODE.CacheRoadProof.state.gear,boss:!!BARCODE.CacheRoadProof.state.combat?.boss,
+      worldScale:BARCODE.CacheRoadProof.renderBudget?.drawnScale??1});
     browserProof.measureLoop=false;
   }}};
 browserProof.release=()=>{for(const button of browserProof.pad.buttons){button.pressed=false;button.value=0;button.touched=false;}
