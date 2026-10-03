@@ -146,12 +146,7 @@ window.gameLoop = function(timestamp) {
     window.BARCODE?.PauseMenu?.sync();
     window.inputManager?.update?.();
     window.BARCODE.CacheRoadProof.update(cappedDelta);
-    const roadContext=getFrameContext();
-    // Road frames replace the full display. Reset prior Canvas recorder,
-    // clip and filter state through this existing frame/context owner.
-    // Keep the same Canvas and context handle, with prepared sources intact.
-    roadContext?.reset?.();
-    window.BARCODE.CacheRoadProof.draw(roadContext);
+    window.BARCODE.CacheRoadProof.draw(getFrameContext());
     window.audioSystem?.updateLayers?.();
     window.lastTime = timestamp;
     scheduleNextGameplayFrame();

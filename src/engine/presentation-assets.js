@@ -315,6 +315,9 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   const cache = {};
   const rasterDetail=new WeakMap(),decorationDetail=new WeakMap(),MAX_RASTER_PIXELS=32*1024*1024;
   const diffuseEffects=new Set(['cacheSpeedMist','cacheWindWhoosh','cacheImpactGrit']);
+  const backgroundSources=new Set(Object.entries(entries).filter(([key,entry])=>/^cache/.test(key)&&
+    (/^assets\/cache-road\/(world|roadside)\//.test(entry.path)&&!entry.path.includes('/beat/')||
+      ['cacheBlacktop','cacheFly1','cacheFly3'].includes(key))).map(([key])=>key));
   let rasterPixels=0,nativeRasterPixels=0;
   const MAX_NATIVE_RASTER_PIXELS=32*1024*1024;
   function prepareNativeRaster(key,entry,state) {
@@ -356,8 +359,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   // Original images remain authoritative for native foreground/HUD paint.
   function prepareBackgroundRaster(key,entry,state) {
     const image=state.image,w=image.naturalWidth,h=image.naturalHeight;
-    const background=/^assets\/cache-road\/(world|roadside)\//.test(entry.path)&&
-      !entry.path.includes('/beat/')||['cacheBlacktop','cacheFly1','cacheFly3'].includes(key)||diffuseEffects.has(key);
+    const background=backgroundSources.has(key)||diffuseEffects.has(key);
     if(!background||!/^cache/.test(key)||/\.svg$/i.test(entry.path)||w*h<256*1024||
       typeof window.createImageBitmap!=='function')return;
     const width=entry.columns*Math.ceil(w/entry.columns/4);
@@ -430,13 +432,16 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     const h = height ?? width * sh / sw;
     const nativeFrame=!small&&sw>0&&sh>0&&sx>=0&&sy>=0&&sx+sw<=fw&&sy+sh<=fh&&state.nativeFrames?.[index];
     const image=small||nativeFrame||state.nativeBitmap||state.bitmap||original;
+    // Sample background sources directly at the already reduced footprint.
+    // Functional sprites and diffuse native effects keep their authored sampler.
+    const smooth=!!entry.smooth&&!(backgroundSources.has(key)&&(rasterDetail.get(ctx)||1)<=.25);
     const sourceX = nativeFrame?sx:index % entry.columns * fw + sx;
     const sourceY = nativeFrame?sy:Math.floor(index / entry.columns) * fh + sy;
     const sourceScaleX=small?small.width/original.naturalWidth:1;
     const sourceScaleY=small?small.height/original.naturalHeight:1;
     if (flip || x !== 0 || y !== 0) {
       ctx.save(); ctx.translate(x, y); if (flip) ctx.scale(-1, 1);
-      ctx.imageSmoothingEnabled = !!entry.smooth;
+      ctx.imageSmoothingEnabled = smooth;
       ctx.drawImage(image, sourceX*sourceScaleX, sourceY*sourceScaleY,
         sw*sourceScaleX, sh*sourceScaleY,
         -width * entry.ax, -h * entry.ay, width, h);
@@ -447,8 +452,8 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
       // whole Canvas state for every ground/street triangle. Keep translated
       // sprites on the original path to preserve filtered raster placement.
       const smoothing = ctx.imageSmoothingEnabled;
-      const changed = smoothing !== !!entry.smooth;
-      if (changed) ctx.imageSmoothingEnabled = !!entry.smooth;
+      const changed = smoothing !== smooth;
+      if (changed) ctx.imageSmoothingEnabled = smooth;
       try {
         ctx.drawImage(image, sourceX*sourceScaleX, sourceY*sourceScaleY,
         sw*sourceScaleX, sh*sourceScaleY,

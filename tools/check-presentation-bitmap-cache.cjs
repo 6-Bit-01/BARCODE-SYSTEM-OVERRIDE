@@ -116,15 +116,17 @@ async function backgroundRasterUnit(){
   assert.equal(smallPrepared[0].resizeWidth,288);
   assert.equal(smallPrepared[0].resizeHeight,144);
   assert.equal(smallPrepared[0].resizeQuality,'high');
-  const smallCalls=[],smallCtx={imageSmoothingEnabled:true,save(){},restore(){},translate(){},scale(){},drawImage(...args){smallCalls.push(args);}};
+  const smallCalls=[],smallSampling=[],smallCtx={imageSmoothingEnabled:true,save(){},restore(){},translate(){},scale(){},drawImage(...args){smallCalls.push(args);smallSampling.push(this.imageSmoothingEnabled);}};
   const smallAssets=smallWindow.BARCODE.PresentationAssets;
   smallAssets.setRasterDetail(smallCtx,.25);
   smallAssets.draw('cacheNewCrossingSignalR',smallCtx,{width:80,height:40,frame:2,sourceRect:[12,8,100,40]});
   assert.equal(smallCalls[0][0],smallState.rasterBitmap);
+  assert.equal(smallSampling[0],false,'reduced background uses its sampled source directly');
   assert.deepEqual(smallCalls[0].slice(1),[195,2,25,10,-40,-40,80,40]);
   smallAssets.setRasterDetail(smallCtx,1);
   smallAssets.draw('cacheNewCrossingSignalR',smallCtx,{width:80,height:40});
   assert.equal(smallCalls[1][0],smallState.image,'native lighting/signal detail retains the original sheet');
+  assert.equal(smallSampling[1],true,'native background keeps its authored sampler');
   const diffuse=smallWindow.bitmapReview.cache.cacheSpeedMist;
   diffuse.image.onload();await new Promise(setImmediate);
   const diffuseCalls=[];
@@ -160,10 +162,11 @@ async function nativeRasterUnit(){
       [index%4*512,Math.floor(index/4)*512,512,512]),'native preparation crops exact unscaled cels');
     assert.equal(!!state.nativeFrames,failure==='none');
     assert.equal(closed.length,failure==='invalid'?8:0);
-    const calls=[],ctx={imageSmoothingEnabled:false,save(){},restore(){},translate(){},scale(){},drawImage(...args){calls.push(args);}};
+    const calls=[],sampling=[],ctx={imageSmoothingEnabled:false,save(){},restore(){},translate(){},scale(){},drawImage(...args){calls.push(args);sampling.push(this.imageSmoothingEnabled);}};
     assets.setRasterDetail(ctx,1/6);
     for(let repeat=0;repeat<25;repeat++)assets.draw('cacheCombatBike',ctx,{width:80,height:40,frame:3,sourceRect:[12,8,100,40]});
     assert.equal(prepared.length,8,'drawing and pause reuse the prepared native frame batch');
+    assert(sampling.every(Boolean),'native combat keeps authored smoothing at every background detail');
     for(const call of calls){assert.equal(call[0],state.nativeFrames?.[3]||state.image);
       assert.deepEqual(call.slice(1),failure==='none'?[12,8,100,40,-40,-40,80,40]:[1548,8,100,40,-40,-40,80,40]);}
     assets.draw('cacheCombatBike',ctx,{width:80,height:40,frame:3,sourceRect:[500,0,40,60]});

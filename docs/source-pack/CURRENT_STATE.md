@@ -2,12 +2,13 @@
 
 ## October 3 — continued Level 2 lag repair (PR #181)
 
-The shared road-frame owner resets its existing Canvas context before each
-active draw. This discards prior frame recorder/clip/filter state while
-retaining the same Canvas/context handle and prepared assets. The complete
-race timing includes that reset. Paused polling keeps the displayed frame;
-standalone Road.draw calls still preserve their caller's context. No new
-Canvas, getContext acquisition, timer, RAF or simulation/audio owner is added.
+At quarter or lower world detail, background source sampling uses nearest
+texels within its reduced footprint. This also applies to softly blurred
+background sources in the rearview, with its native projection and original
+2.3px blur retained. Functional sprites, mapped timing paint, face/HUD and
+native diffuse effects keep their authored samplers. Full-detail source
+sampling and caller settings remain unchanged. The speculative per-frame
+Canvas reset showed no timing benefit and is removed from the shared loop.
 
 Controlled display samples now return to the browser between RAF callbacks,
 so asynchronous once-only bitmap preparations can finish as they do during

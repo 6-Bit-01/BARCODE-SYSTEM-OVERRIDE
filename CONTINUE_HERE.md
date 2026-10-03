@@ -29,12 +29,10 @@ slabs completely below the crest can use its rectangular bounds. Both chase
 and live-boss medians must independently fit 33.33 ms; review staged native
 captures with complete lifecycle fields restored.
 
-The shared active road-frame owner also resets its existing Canvas context
-before each complete draw, retaining prepared sources and the same context
-handle. Paused polling keeps its frame. Standalone draw calls preserve their
-caller state. Complete chase costs include the frame reset. Controlled race
-samples paint once per RAF and yield to the browser between callbacks;
-startup and reload frames stay measured with cache readiness recorded.
+Reduced background source sampling also uses nearest texels; functional
+foreground, face/HUD and diffuse native effects keep authored samplers.
+Controlled race frames paint once per RAF and yield between callbacks,
+retaining measured startup/reload costs and per-frame preparation readiness.
 
 Read CURRENT_STATE and ACCEPTANCE. Performance evidence uses unwrapped
 production draws, 30 startup frames retained separately and a subsequent
