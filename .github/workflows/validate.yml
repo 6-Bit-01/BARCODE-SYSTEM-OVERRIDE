@@ -186,5 +186,6 @@ jobs:
         with:
           name: BARCODE-System-Override-Source-Pack-v5-content-${{ github.sha }}
           path: ${{ runner.temp }}/source-pack-content/
+          include-hidden-files: true
           if-no-files-found: error
           retention-days: 7
