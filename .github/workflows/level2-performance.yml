@@ -15,6 +15,7 @@ on:
       - src/game/cache-road-beat-surface.js
       - src/engine/presentation-assets.js
       - tools/check-presentation-bitmap-cache.cjs
+      - tools/check-cache-combat-browser.cjs
       - tools/profile-cache-beat-frame.cjs
       - tools/check-cache-beat-frame-cost.cjs
       - .github/workflows/level2-performance.yml
@@ -33,6 +34,7 @@ jobs:
           CHROME_BIN: /usr/bin/google-chrome
           CACHE_COMBAT_BROWSER_OUTPUT: ${{ runner.temp }}/level2-frame-review/chase
           CACHE_COMBAT_BROWSER_REQUIRE_HOSTED: '1'
+          CACHE_COMBAT_BROWSER_GPU_BACKEND: swiftshader
         run: npm run check:cache-combat-browser
       - name: Check immutable bitmap preparation and real Chromium reuse
         env:

@@ -14,6 +14,18 @@ const root = path.resolve(__dirname, '..');
 const output = path.resolve(process.env.CACHE_COMBAT_BROWSER_OUTPUT ||
   path.join(os.tmpdir(), 'barcode-cache-combat-browser'));
 const requireHosted = process.env.CACHE_COMBAT_BROWSER_REQUIRE_HOSTED === '1';
+function browserGpuConfig(value) {
+  const backend = value ?? '';
+  assert(backend === '' || backend === 'swiftshader',
+    'CACHE_COMBAT_BROWSER_GPU_BACKEND must be unset or swiftshader');
+  // Full SwANGLE exercises GPU rendering paths on CPU-only bots; the WebGL
+  // fallback variant leaves other rendering in software. This is a requested
+  // backend, not proof of acceleration or performance acceptance.
+  // https://chromium.googlesource.com/chromium/src/+/HEAD/docs/gpu/swiftshader.md
+  return { requestedBackend: backend || 'default', flags: backend === 'swiftshader' ?
+    ['--use-gl=angle', '--use-angle=swiftshader'] : [] };
+}
+const browserGpu = browserGpuConfig(process.env.CACHE_COMBAT_BROWSER_GPU_BACKEND);
 const chromePath = process.env.CHROME_BIN || ['/usr/bin/google-chrome', '/usr/bin/chromium',
   '/usr/bin/chromium-browser'].find(fs.existsSync);
 assert(chromePath, 'Set CHROME_BIN to an installed Chrome/Chromium executable. Node 22+ supplies WebSocket.');
@@ -525,13 +537,49 @@ const server=http.createServer((req,res)=>{
 });
 const profile=fs.mkdtempSync(path.join(os.tmpdir(),'barcode-combat-chrome-'));
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-let chrome,chromeClosed,socket,receipt;
+let chrome,chromeClosed,socket,receipt,browserBackend;
+async function inspectBrowserBackend(debuggerUrl) {
+  // SystemInfo is a browser-target command. Keep this separate from the page
+  // session and close the diagnostic connection before gameplay measurement.
+  const diagnosticSocket = new WebSocket(debuggerUrl), pending = new Map();
+  let serial = 0;
+  diagnosticSocket.addEventListener('message', event => {
+    const message = JSON.parse(event.data), request = pending.get(message.id);
+    if (!request) return;
+    pending.delete(message.id); clearTimeout(request.timeout);
+    if (message.error) request.reject(Error(JSON.stringify(message.error)));
+    else request.resolve(message.result);
+  });
+  const send = (method) => new Promise((resolve, reject) => {
+    const id = ++serial, timeout = setTimeout(() => {
+      pending.delete(id); reject(Error(`${method} backend diagnostic timeout`));
+    }, 30000);
+    pending.set(id, { resolve, reject, timeout });
+    diagnosticSocket.send(JSON.stringify({ id, method, params: {} }));
+  });
+  try {
+    await new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject(Error('Browser backend connection timeout')), 30000);
+      diagnosticSocket.addEventListener('open', () => { clearTimeout(timeout); resolve(); }, { once:true });
+      diagnosticSocket.addEventListener('error', () => { clearTimeout(timeout); reject(Error('Browser backend connection failed')); }, { once:true });
+    });
+    const [version, systemInfo] = await Promise.all([
+      send('Browser.getVersion'), send('SystemInfo.getInfo')]);
+    return { version, systemInfo };
+  } finally {
+    for (const request of pending.values()) {
+      clearTimeout(request.timeout); request.reject(Error('Browser backend connection closed'));
+    }
+    pending.clear(); diagnosticSocket.close();
+  }
+}
 async function main(){
   server.listen(0,'127.0.0.1');await once(server,'listening');
   const origin=`http://127.0.0.1:${server.address().port}`;
-  chrome=spawn(chromePath,['--headless=new','--no-sandbox','--disable-dev-shm-usage',
+  const launchFlags=['--headless=new','--no-sandbox','--disable-dev-shm-usage',
     '--autoplay-policy=no-user-gesture-required','--no-first-run','--remote-debugging-port=0',
-    `--user-data-dir=${profile}`,'about:blank'],{stdio:['ignore','ignore','pipe']});
+    ...browserGpu.flags,`--user-data-dir=${profile}`,'about:blank'];
+  chrome=spawn(chromePath,launchFlags,{stdio:['ignore','ignore','pipe']});
   chromeClosed=new Promise(resolve=>chrome.once('close',resolve));
   const debuggerUrl=await new Promise((resolve,reject)=>{
     let stderr='';const timeout=setTimeout(()=>fail(Error(`Chrome startup timeout: ${stderr}`)),30000);
@@ -541,6 +589,19 @@ async function main(){
       if(match){cleanup();resolve(match[1]);}};
     chrome.once('error',fail);chrome.once('close',closed);chrome.stderr.on('data',read);
   });
+  browserBackend={requestedBackend:browserGpu.requestedBackend,launchFlags,
+    ...await inspectBrowserBackend(debuggerUrl)};
+  console.log('BROWSER_BACKEND '+JSON.stringify(browserBackend));
+  fs.writeFileSync(path.join(output,'Browser-Backend.json'),JSON.stringify(browserBackend,null,2)+'\n');
+  if(browserGpu.requestedBackend==='swiftshader') {
+    const gpu=browserBackend.systemInfo.gpu;
+    assert.match(gpu.auxAttributes?.glRenderer||'',/swiftshader/i,
+      'requested SwANGLE trial must report the actual SwiftShader renderer');
+    assert.equal(gpu.featureStatus?.['2d_canvas'],'enabled',
+      'requested SwANGLE trial must advertise an enabled Canvas2D feature');
+    assert.equal(gpu.featureStatus?.rasterization,'enabled',
+      'requested SwANGLE trial must advertise an enabled GPU rasterization feature');
+  }
   const target=await(await fetch(`${new URL(debuggerUrl).origin.replace('ws:','http:')}/json/new`,{method:'PUT'})).json();
   socket=new WebSocket(target.webSocketDebuggerUrl);
   await new Promise((resolve,reject)=>{socket.addEventListener('open',resolve,{once:true});socket.addEventListener('error',reject,{once:true});});
@@ -999,7 +1060,7 @@ async function main(){
   if(requireHosted)assert.deepEqual(requests.localCombat,[],'new combat/feedback art never silently falls back to bundled paths');
   if(requireHosted)assert.deepEqual(requests.localBeat,[],'custom beat art never silently falls back to bundled paths');
   assert.deepEqual(sourceHashes(),initialSourceHashes,'source and authored assets remain frozen throughout the browser race');
-  receipt={passed:true,assetDelivery:requireHosted?'immutable-hosted':'bundled',decoded,zeroSync,frames,bossHp,
+  receipt={passed:true,browserBackend,assetDelivery:requireHosted?'immutable-hosted':'bundled',decoded,zeroSync,frames,bossHp,
     state,events:allEvents,restoreReceipt,comfort,cinematicNative,drawn:allDrawn,combatPaintSessions:paintSessions,drawSamples,trafficGuards,
     renderedControlLabels:[...new Set(labels)],beatPaints,beatFrames,requests,errors,minimumDrums,
     simulationFrames:totalFrames,driverFrames:totalDriverFrames,sharedRafUpdates:totalRafUpdates,
@@ -1018,7 +1079,7 @@ async function main(){
     limits:'Production scripts in index order, controlled saved bridge-ready entry, native Chromium input/Canvas, every shared-RAF simulation update and selected Canvas samples. Does not exercise title boot or every display frame. Audio clock, gamepad device, lifecycle pause and Campaign persistence are controlled hosts. No progress, health, immunity, resources, captures or boss-damage injection. Not Makko, physical-controller, recorded listening, human balance, comfort or display-pacing acceptance.'};
   console.log(`Cache combat Chromium passed: zero-sync four controls, analog triggers, actual12HP rig damage, wreck/first gear, earned page reload, full100bars; ${totalFrames} simulation frames and ${totalSamples} sampled Canvas frames.`);
 }
-main().catch(error=>{receipt={passed:false,error:error.stack,frames,requests,errors};console.error(error);process.exitCode=1;})
+main().catch(error=>{receipt={passed:false,browserBackend:browserBackend||null,error:error.stack,frames,requests,errors};console.error(error);process.exitCode=1;})
   .finally(async()=>{fs.writeFileSync(path.join(output,'Combat-Browser-Checks.json'),JSON.stringify(receipt||{passed:false},null,2)+'\n');
     socket?.close();if(chrome&&chrome.exitCode===null&&chrome.signalCode===null)chrome.kill();if(chromeClosed)await chromeClosed;
     server.close();await fs.promises.rm(profile,{recursive:true,force:true,maxRetries:10,retryDelay:100});});
