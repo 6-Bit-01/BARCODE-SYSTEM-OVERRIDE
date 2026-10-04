@@ -23,6 +23,7 @@ const fixture = `<!doctype html><canvas id="gameCanvas" width="1920" height="108
 <script>
 window.requestAnimationFrame=()=>1;window.cancelAnimationFrame=()=>{};
 window.contextCalls=0;
+window.contextRequests=[];
 window.publishedRequests=[];
 ${livePublished ? '' : `const nativeFetch=window.fetch.bind(window);
 window.fetch=(url,...options)=>{
@@ -34,7 +35,10 @@ window.fetch=(url,...options)=>{
 };`}
 const getContext=HTMLCanvasElement.prototype.getContext;
 HTMLCanvasElement.prototype.getContext=function(...args){
-  if(this.id==='gameCanvas' && ++window.contextCalls>4) throw Error('Canvas context creation limit exceeded');
+  if(this.id==='gameCanvas') {
+    window.contextRequests.push({type:args[0],options:args[1]||null});
+    if(++window.contextCalls>4) throw Error('Canvas context creation limit exceeded');
+  }
   return getContext.apply(this,args);
 };
 </script>${scripts.map(file => `<script src="/${file}"></script>`).join('')}`;
@@ -150,15 +154,29 @@ async function main() {
     return;
   }
   const frames = await evaluate(`(()=>{
-    let drawn=0;
+    let drawn=0,readbacks=0;
+    const ctx=renderer.ctx,attributesBefore=ctx.getContextAttributes();
     BARCODE.CacheRoadProof={active:true,update(){},draw(ctx){if(!ctx)throw Error('No road canvas');drawn++;ctx.fillRect(0,0,1,1);}};
     window.inputManager={update(){}};window.audioSystem.updateLayers=()=>{};
     window.isRunning=true;window.lastTime=0;
-    for(let frame=1;frame<=600;frame++)window.gameLoop(frame*16);
-    return {drawn,contextCalls};
+    for(let frame=1;frame<=600;frame++) {
+      window.gameLoop(frame*16);
+      if(frame%10===0){ctx.getImageData(0,0,1,1);readbacks++;}
+    }
+    return {drawn,contextCalls,contextRequests,readbacks,
+      attributesBefore,attributesAfter:ctx.getContextAttributes(),sameContext:getFrameContext()===ctx};
   })()`);
   assert.equal(frames.drawn, 600);
   assert(frames.contextCalls <= 2, `road reacquired its canvas ${frames.contextCalls} times`);
+  assert.deepEqual(frames.contextRequests[0],{type:'2d',options:{willReadFrequently:false}},
+    'actual Renderer initialization forwards the explicit draw-heavy hint at first acquisition');
+  assert.equal(frames.attributesBefore.willReadFrequently,false);
+  assert.equal(frames.attributesBefore.alpha,true);
+  assert.equal(frames.attributesBefore.colorSpace,'srgb');
+  assert.equal(frames.attributesBefore.desynchronized,false);
+  assert.deepEqual(frames.attributesAfter,frames.attributesBefore,
+    'repeated native pixel reads retain original context attributes');
+  assert.equal(frames.readbacks,60);assert.equal(frames.sameContext,true);
 
   async function checkAudio(missingLocal) {
     omitLocalStems = missingLocal;

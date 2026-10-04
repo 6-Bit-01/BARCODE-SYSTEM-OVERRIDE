@@ -1,5 +1,7 @@
 const fs = require('fs');
 const path = require('path');
+const assert = require('node:assert/strict');
+const vm = require('node:vm');
 
 const ROOT = path.resolve(__dirname, '..');
 const read = (file) => fs.readFileSync(path.join(ROOT, file), 'utf8');
@@ -182,6 +184,103 @@ for (const phrase of [
   'milliseconds at manager/API boundaries'
 ]) {
   if (!knownIssues.includes(phrase)) fail(`KNOWN_ISSUES.md must document active enemy ownership: ${phrase}`);
+}
+
+// Exercise the real acquisition owners, including an alternate scene that
+// starts before Renderer. These check forwarding/reuse, not GPU availability.
+{
+  const contextRig = ({ unavailable = false } = {}) => {
+    const calls = [], events = {}, timers = [];
+    const makeCanvas = () => {
+      const canvas = { id: 'gameCanvas', width: 1920, height: 1080 };
+      const ctx = { canvas, save() {}, restore() {}, clearRect() {}, fillRect() {}, setTransform() {},
+        translate() {}, scale() {}, getTransform: () => ({ a:1,b:0,c:0,d:1,e:0,f:0 }) };
+      canvas.context = ctx;
+      canvas.getContext = (type, options) => {
+        calls.push({ canvas, type, options: options && JSON.parse(JSON.stringify(options)) });
+        return unavailable ? null : ctx;
+      };
+      return canvas;
+    };
+    const rig = { calls, events, timers, makeCanvas, canvas: makeCanvas() };
+    const w = { BARCODE: {}, console: { log() {}, warn() {}, error() {} },
+      document: { readyState: 'loading', getElementById: () => rig.canvas,
+        addEventListener: (name, callback) => { events[name] = callback; } },
+      setTimeout: callback => { timers.push(callback); return timers.length; },
+      requestAnimationFrame: () => { throw Error('Acquisition scheduled a frame'); },
+      cancelAnimationFrame() {}, performance: { now: () => 0 } };
+    w.window = w;
+    rig.w = w; rig.context = vm.createContext(w);
+    rig.load = file => vm.runInContext(read(file), rig.context, { filename:file });
+    rig.acquire = () => vm.runInContext('getFrameContext()', rig.context);
+    rig.assertCalls = expected => {
+      assert.equal(calls.length, expected, 'shared context has one acquisition per actual owner/canvas');
+      for (const call of calls) {
+        assert.equal(call.type, '2d');
+        assert.deepEqual(call.options, { willReadFrequently:false },
+          'first acquisition explicitly selects draw-heavy behavior without overriding alpha/color defaults');
+      }
+      assert.equal(timers.length, 0, 'context policy creates no retry timer or frame owner');
+    };
+    return rig;
+  };
+  {
+    const rig = contextRig();
+    rig.load('src/engine/renderer.js'); rig.events.DOMContentLoaded();
+    rig.load('src/core/loop.js');
+    for (let i=0;i<30;i++) assert.strictEqual(rig.acquire(), rig.w.renderer.ctx);
+    vm.runInContext('initializeRenderer()', rig.context);
+    rig.assertCalls(1);
+    const canvas = rig.makeCanvas(), renderer = new rig.w.Renderer(canvas);
+    assert.strictEqual(renderer.ctx.canvas, canvas); rig.assertCalls(2);
+    const injected = new rig.w.Renderer(canvas, renderer.ctx);
+    assert.strictEqual(injected.ctx, renderer.ctx); rig.assertCalls(2);
+  }
+  {
+    const rig = contextRig(); rig.load('src/core/loop.js');
+    const first = rig.acquire();
+    for (let i=0;i<30;i++) assert.strictEqual(rig.acquire(), first);
+    rig.w.renderer = { canvas:rig.canvas, ctx:first };
+    assert.strictEqual(rig.acquire(), first); rig.assertCalls(1);
+    rig.canvas = rig.makeCanvas();
+    const replacement = rig.acquire();
+    assert.notStrictEqual(replacement, first);
+    for (let i=0;i<30;i++) assert.strictEqual(rig.acquire(), replacement);
+    rig.assertCalls(2);
+  }
+  {
+    const rig = contextRig({ unavailable:true }); rig.load('src/core/loop.js');
+    for (let i=0;i<30;i++) assert.equal(rig.acquire(), null);
+    rig.assertCalls(1);
+  }
+  {
+    const rig = contextRig({ unavailable:true }); rig.load('src/engine/renderer.js');
+    rig.events.DOMContentLoaded(); vm.runInContext('initializeRenderer()', rig.context);
+    assert.equal(rig.w.renderer.ctx, null); rig.assertCalls(1);
+  }
+  for (const rendererFirst of [false,true]) {
+    const rig = contextRig();
+    if (rendererFirst) { rig.load('src/engine/renderer.js'); rig.events.DOMContentLoaded(); }
+    rig.load('src/game/render-coordinator.js');
+    // World content is irrelevant to first-context ownership; run the real
+    // coordinator acquisition/clear/reuse route with its scene body stubbed.
+    vm.runInContext('drawGameElements = () => {};', rig.context);
+    if (rendererFirst) rig.w.renderer.applyPostEffects = () => {};
+    for (let i=0;i<30;i++) rig.w.renderGame();
+    rig.assertCalls(1);
+  }
+  {
+    const rig = contextRig();
+    const renderPause = vm.runInContext('(function(){'+
+      functionBody(read('src/game/pause-menu.js'), '    render() {')+'})',rig.context);
+    const menu = { sync() {}, open:true, dirty:true, titleOpen:false,
+      canvas:() => rig.canvas, draw() {} };
+    renderPause.call(menu); rig.assertCalls(1);
+    assert.equal(menu.dirty,false,'actual pause fallback finishes the existing dirty paint');
+    rig.w.renderer = { canvas:rig.canvas, ctx:rig.canvas.context };
+    for (let i=0;i<30;i++) { menu.dirty=true; renderPause.call(menu); }
+    rig.assertCalls(1);
+  }
 }
 
 if (process.exitCode) process.exit(process.exitCode);

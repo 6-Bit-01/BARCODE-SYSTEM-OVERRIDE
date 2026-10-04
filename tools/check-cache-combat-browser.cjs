@@ -86,6 +86,7 @@ const nativeGetContext=HTMLCanvasElement.prototype.getContext;
 HTMLCanvasElement.prototype.getContext=function(...args){
   if(this.id!=='gameCanvas')throw Error('Unexpected secondary Canvas context');
   if(++browserProof.contexts>1)throw Error('Repeated main Canvas context acquisition');
+  browserProof.contextRequest={type:args[0],options:args[1]||null};
   return nativeGetContext.apply(this,args);
 };
 const nativeCreate=document.createElement.bind(document);
@@ -172,8 +173,14 @@ window.audioSystem={context:{currentTime:0,state:'running'},musicTracks:{},
   playCombatCue(kind){browserProof.cues.push(kind);return true;},stopCacheBridgeAudio(){}};
 </script>${scripts.map(file => `<script src="/${file}"></script>`).join('')}
 <script>
-const canvas=document.getElementById('gameCanvas');window.renderer={canvas,ctx:canvas.getContext('2d')};
+// Exercise the alternate-scene production acquisition owner; a harness-only
+// option would not verify the actual game's first context policy.
+const canvas=document.getElementById('gameCanvas');window.renderer={canvas,ctx:getFrameContext()};
 renderer.ctx.imageSmoothingQuality='high'; // inherited shared-renderer setting in production
+browserProof.contextAttributesBefore=renderer.ctx.getContextAttributes();
+browserProof.readbacks=0;
+const nativeReadPixels=renderer.ctx.getImageData;
+renderer.ctx.getImageData=function(...args){browserProof.readbacks++;return nativeReadPixels.apply(this,args);};
 const copy=value=>JSON.parse(JSON.stringify(value));
 const round=(value,digits=3)=>Number(Number(value||0).toFixed(digits));
 const clamp=(value,low,high)=>Math.max(low,Math.min(high,value));
@@ -816,6 +823,20 @@ async function main(){
     'existing native HUD renders an actually earned judgment and its exact positive gain');
   assert.equal(await evaluate('document.querySelectorAll("canvas").length'),1);
   assert.equal(await evaluate('browserProof.contexts'),1);assert.equal(await evaluate('browserProof.extraCanvases'),0);
+  const contextPolicy=await evaluate(`({request:browserProof.contextRequest,
+    before:browserProof.contextAttributesBefore,after:renderer.ctx.getContextAttributes(),
+    readbacks:browserProof.readbacks,sameContext:getFrameContext()===renderer.ctx})`);
+  assert.deepEqual(contextPolicy.request,{type:'2d',options:{willReadFrequently:false}},
+    'real alternate scene owner forwards the explicit draw-heavy hint on first acquisition');
+  assert.equal(contextPolicy.before.willReadFrequently,false);
+  assert.equal(contextPolicy.before.alpha,true);assert.equal(contextPolicy.before.colorSpace,'srgb');
+  assert.equal(contextPolicy.before.desynchronized,false);
+  assert.deepEqual(contextPolicy.after,contextPolicy.before,
+    'actual consecutive mirror/diagnostic readbacks preserve the original context attributes');
+  assert(contextPolicy.readbacks>2&&contextPolicy.sameContext,
+    'actual repeated readbacks keep the same acquired production context');
+  console.log('CONTEXT_READBACK_POLICY '+JSON.stringify(contextPolicy));
+  fs.writeFileSync(path.join(output,'Context-Readback-Policy.json'),JSON.stringify(contextPolicy,null,2)+'\n');
   assert.equal(await evaluate('browserProof.worldUpdates'),0);assert(state.guidanceCalls>0);
   const labels=await evaluate('browserProof.texts');
   for(const label of ['ATTACK','TURBO','DEFEND','DISRUPT','RB','LB','RT','LT'])
