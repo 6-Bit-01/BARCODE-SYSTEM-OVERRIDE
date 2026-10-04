@@ -188,6 +188,13 @@ def verify_runtime(payloads):
     stylesheets = re.findall(r'<link\b[^>]*\brel=["\']stylesheet["\'][^>]*\bhref=["\']([^"\']+)', index, re.I)
     for name in stylesheets:
         require(name in payloads, f"Missing linked stylesheet: {name}")
+    local_links = []
+    for tag in re.findall(r'<link\b[^>]*>', index, re.I):
+        href = re.search(r'\bhref=["\']([^"\']+)', tag, re.I)
+        require(href is not None, "Index link has no href")
+        value = href.group(1)
+        if not re.match(r'(?:[A-Za-z][A-Za-z0-9+.-]*:|//)', value):
+            local_links.append(re.split(r'[?#]', value)[0].removeprefix('./'))
     manifest = json.loads(payloads["sprites-manifest.json"])
     original = json.loads((ROOT / "sprites-manifest.json").read_text(encoding="utf-8-sig"))
     calibration = json.loads(json.dumps(manifest))
@@ -215,7 +222,8 @@ def verify_runtime(payloads):
             allowed = any(url.startswith(prefix) for prefix in exceptions.get(name, set()))
             require(allowed, f"Unexpected external reference in {name}: {url}")
             external.append({"path": name, "url": url, "purpose": "font stylesheet" if name == "index.html" else "inert original GIF provenance"})
-    return {"orderedScripts": scripts, "spriteAnimations": total, "remainingExternalReferences": external}
+    return {"orderedScripts": scripts, "localIndexLinks": local_links,
+            "spriteAnimations": total, "remainingExternalReferences": external}
 
 
 def build(output, receipt):
@@ -304,6 +312,8 @@ def build(output, receipt):
                 f"Output asset hash mismatch: {record['path']}")
     for name in checks["orderedScripts"]:
         require(safe_path(output, name).is_file(), f"Script not emitted: {name}")
+    for name in checks["localIndexLinks"]:
+        require(safe_path(output, name).is_file(), f"Index link not emitted: {name}")
     manifest = json.loads(payloads["sprites-manifest.json"])
     for character in manifest["characters"].values():
         for entry in character["animations"].values():

@@ -25,6 +25,14 @@ const localAsset = url => {
 
 async function main() {
   const index = read('index.html');
+  const localIndexLinks = [];
+  for (const match of index.matchAll(/<link\b[^>]*>/gi)) {
+    const href = match[0].match(/\bhref=["']([^"']+)/i)?.[1];
+    assert(href, 'Index link has no href');
+    if (!/^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(href)) {
+      localAsset(href.split(/[?#]/)[0]); localIndexLinks.push(href);
+    }
+  }
   const viewport = index.match(/<style id="standalone-viewport-style">([\s\S]*?)<\/style>/);
   assert(viewport, 'Standalone viewport override is missing');
   assert(index.indexOf(viewport[0]) > index.indexOf('href="style.css"'), 'Fit rules must follow the source stylesheet');
@@ -131,7 +139,7 @@ async function main() {
     productionInitializerManifest: true, registeredMusicProfiles: profileIDs, localMusicSources,
     localPresentationRequests: registryCount,
     localAnimatedShipTypes: 3, forcedShipAtlasRetry: true, existingBootOwnerSpritePreload: true,
-    containedNativeViewportCSS: true, linkedStylesheet: true,
+    containedNativeViewportCSS: true, linkedStylesheet: true, localIndexLinks,
     limits: 'VM contracts and local files only; no browser, listening or performance acceptance' }));
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });
