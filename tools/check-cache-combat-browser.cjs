@@ -516,9 +516,8 @@ const server=http.createServer((req,res)=>{
     const mirrorBoundary="ctx.globalCompositeOperation=opaqueNative?'source-over':'copy';";
     assert(source.includes(mirrorBoundary),'opaque mirror-copy fidelity boundary');
     source=source.replace(mirrorBoundary,"ctx.globalCompositeOperation=opaqueNative&&!window.forceMirrorCopy?'source-over':'copy';");
-    const mirrorPixelsBoundary='right-sx,bottom-sy,pixelBudget,opaqueNative);';
-    assert(source.includes(mirrorPixelsBoundary),'original mirror pixel transport comparison');
-    source=source.replace(mirrorPixelsBoundary,'right-sx,bottom-sy,pixelBudget,opaqueNative&&!window.forceMirrorCopy);');
+    const mirrorPixelsBoundary='right-sx,bottom-sy,pixelBudget,false);';
+    assert(source.includes(mirrorPixelsBoundary),'production mirror uses cropped self-copy without readback');
     const tintBoundary='if(tintedReflection&&!ctx.shadowBlur&&!ctx.shadowOffsetX&&!ctx.shadowOffsetY) {';
     assert(source.includes(tintBoundary),'pointwise reflection-filter bounds boundary');
     source=source.replace(tintBoundary,'if(tintedReflection&&!ctx.shadowBlur&&!ctx.shadowOffsetX&&!ctx.shadowOffsetY&&!window.forceReflectionTintClip) {');

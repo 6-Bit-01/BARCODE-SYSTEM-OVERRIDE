@@ -1,6 +1,32 @@
 # Level 2 road feedback performance
 
-## October 3, 2026 — minimal candidate, unpublished
+## October 4, 2026 — accepted private preview, local mirror fix
+
+The owner accepted the native minimal Level 2 private preview based on source `897480f`, reporting “So much better,” then explicitly instructed “Alright fix it and publish on site.” This authorizes the scoped website publication. The final local mirror fix is implemented; publication/deployment are pending verification, and the source PR remains draft while its required performance gate is unresolved. Preview acceptance does not establish a numerical FPS or an accepted final deployed build.
+
+The runtime fix changes only the final argument at the mirror caller of `copyOpaqueCanvasPixels` from `opaqueNative` to `false`. The mirror now uses the existing bounded display-Canvas self-copy without `getImageData` or a temporary `VideoFrame`. It retains the same device-space crop and padding, identity copy transform, curved glass clip, native opaque `source-over` versus scaled/fading `copy`, original single `blur(2.3px)` and unblurred face/HUD. The helper, sampled-world transport and unsupported-host per-object fallback are retained. No artwork, native resolution, music, input/judgment/state clocks, save rules, pause behavior or shared owners changed.
+
+The recorded headed Chrome `154.0.8037.93` used ANGLE D3D11 on AMD Radeon 660M, with the shared context still reporting `willReadFrequently: false`. Hardware comparisons varied only this mirror transport within the same minimal runtime. The first native scene, an actual curved-road third-gear scene and an actually played damaged live-boss scene (boss HP `9.746`) each produced **zero changed RGBA bytes** across the full frame, with zero baseline-repeat differences. Labels, gameplay state and context attributes matched, one original blur remained, and mirror readbacks changed from one to zero. The first comparison used the paused actual page; curved and boss comparisons staged snapshots earned through controlled production inputs for synchronous GPU draws, restoring the actual page state before any update. This is exact transport evidence for those cases, not a claim that all earlier cue omissions are pixel-identical to the original release.
+
+Four warmed four-second real shared-RAF windows used balanced Original / Direct / Direct / Original order. No measurement readbacks were added; Original retained its internal mirror readback. Geometry/audio/gameplay advanced naturally, so the windows do not hold identical scenery. The figures below average the two per-window statistics for each mode:
+
+| Recorded metric | Original | Direct self-copy |
+| --- | ---: | ---: |
+| CPU draw wall-time median average | 35.80 ms | 11.95 ms |
+| CPU draw wall-time p95 average | 74.00 ms | 54.75 ms |
+| RAF interval median average | 33.45 ms | 33.25 ms |
+| RAF interval p95 average | 75.15 ms | 58.55 ms |
+| Frames across the two timed windows | 188 | 272 |
+
+The CPU median-average reduction is 66.6% on this device/backend. CPU wall time includes synchronization in the old readback path; the direct path can leave GPU work queued. RAF intervals measure browser frame opportunity, not physical scanout or a universal 30 FPS guarantee. Curved/boss checks are pixel/lifecycle checks, not sustained boss timing measurements.
+
+Earlier exact-source Linux CI still failed the unchanged `1000/30` ms native chase/live-boss median gate (default-backend run `37184050074`: 84.2 / 86.2 ms). The explicit SwiftShader trial also failed and its mandatory workflow override was removed in `dd2b805`; optional strict backend diagnostics remain available. These software/readback-completion receipts are not owner-device FPS. Neither the local hardware result nor preview acceptance clears that failed gate. Final candidate regression/syntax/browser/package/CI and actual site publication results must be recorded separately.
+
+Parent receipts outside this checkout: `verification/standalone-migration-audit/beat-overlay-followup-20261003/mirror-direct-hardware-retest-20261004/display-timing.json`, `mirror-direct-hardware-staged-pixels-20261004/display-timing.json`, and `mirror-direct-caller-regression.json`. The existing full-suite mirror test exercises the actual eligibility/crop/caller: the original capable-host call fails the no-readback assertion and the one-argument candidate passes native, fade, scale, rotation and unsupported-host cases with caller context restored. Sampled-world helper tests and browser fidelity/performance thresholds remain unchanged.
+
+## Historical October 3, 2026 — initial minimal candidate, unpublished
+
+The following sections record earlier candidates and measurements. Their original “mirror unchanged” and pending-acceptance statements describe those checkpoints, before the October 4 mirror repair and owner instructions above.
 
 The BARCODE game is independently hosted at `/system-override`, with its tiny footer © shortcut, through website PR478 and merged site commit `272f3eec6a854aa97091c1b939be1fd71880c208`. That released bundle identifies source `90a80762cf919b9f2efb70b95a0a04bfc189542c`. It uses native scale 1, canonical artwork/music and the original mirror copy/blur; the vendor Makko engine is replaced by the local standalone adapter. This candidate starts from that exact source on `agent/level2-minimal-road-cues`. It is not a production update.
 
@@ -18,7 +44,7 @@ Focused real-source checks cover mapped controls, actual earned Perfect/Good/Mis
 
 A mirror-boundary diagnostic difference of at most 3 RGB levels also occurs in the earlier both-hidden comparison; no mirror interior, alpha, HUD control labels or artwork change was observed. Mirror code remains unchanged, and the low-level cause is unproven. Do not claim full-frame exact-pixel equivalence. Final source/runtime/browser gates remain required. Parent audit evidence is kept in `verification/standalone-migration-audit/beat-overlay-audit-20261003` and `beat-overlay-followup-20261003` outside this clean checkout.
 
-## First-context readback fallback trial
+## Historical first-context readback fallback trial
 
 The full suite caught a removed `beatDistance` helper still used by the legacy missing-art countdown. Its exact original definition was restored and the complete road-proof check passes. The inherited browser profiler also captured only downscaled boss frames, despite native rendering being unconditional; it now captures the actually played native boss and retains the original lifecycle, fidelity and 33.3 ms performance assertions.
 
