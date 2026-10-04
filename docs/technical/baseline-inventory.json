@@ -179,6 +179,7 @@
     "src/core/game-manager.js",
     "src/engine/game-logic.js",
     "src/engine/jammer-arrow-indicator.js",
+    "src/engine/standalone-sprites.js",
     "src/game/cache-road-districts.js",
     "src/game/cache-road-puppet-study.js",
     "src/game/jammer-arrow.js",
@@ -233,6 +234,8 @@
     "tools/check-runtime-lifecycle.js",
     "tools/check-smart-box-motion.js",
     "tools/check-solid-ledges.js",
+    "tools/check-standalone-build.js",
+    "tools/check-standalone-sprites.js",
     "tools/check-startup-lifecycle.js",
     "tools/check-street-depth.js",
     "tools/check-syntax.js",
@@ -635,6 +638,13 @@
         "src/game/lost-data.js",
         "tools/check-level-01-targets-traffic.js",
         "tools/fixtures/original-traffic-6e375.js"
+      ]
+    },
+    {
+      "host": "localhost",
+      "sourceFiles": [
+        "src/engine/standalone-sprites.js",
+        "tools/check-standalone-sprites.js"
       ]
     },
     {

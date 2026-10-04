@@ -320,9 +320,59 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
       ['cacheBlacktop','cacheFly1','cacheFly3'].includes(key))).map(([key])=>key));
   const nativeSmallSources=new Set(['cacheBrakeReflection','cacheDamagedExhaust',
     'cachePhraseStrip','cacheConfirmedBar','cachePulsePad','cachePulseStrip','cachePulseBurst']);
+  // Reserve this measured working set before any image finishes loading.
+  // Complete original sheets retain every texel, crop, cel edge and alpha.
+  // Their reservations share the existing background budget with thumbnails.
+  const nativeBackgroundPlan={
+    cacheDistantCity:[2079,756],cacheOutskirts:[2172,724],cacheMidCity:[2172,724],
+    cacheStreetDeliveryVan:[1498,1016],cacheNewBinsRecycling:[1312,1199],
+    cacheStreetBenchPlanters:[1546,1040],cacheNewWayfindingSign:[1152,576],
+    cacheBlacktop:[2172,724],cachePlaceCapacitorExchange:[960,721],
+    cacheUtilityCorner:[1585,992],cacheWalkerMarketWorkerTravel:[1024,768],
+    cachePersonCrateCarrierTravel:[1604,768],cacheStreetBicycleRack:[1526,1023],
+    cacheWalkerStudentTravel:[1024,768],cacheWalkerMechanicTravel:[1024,768]
+  };
+  const nativeBackgroundReservations=new Map();
   let rasterPixels=0,nativeRasterPixels=0,nativeSmallPixels=0;
   const MAX_NATIVE_SMALL_PIXELS=1536*1024;
   const MAX_NATIVE_RASTER_PIXELS=32*1024*1024;
+  function reserveNativeBackground() {
+    if(typeof window.createImageBitmap!=='function')return;
+    for(const [key,[width,height]] of Object.entries(nativeBackgroundPlan)) {
+      if(cache[key]||nativeBackgroundReservations.has(key))continue;
+      const pixels=width*height;
+      if(rasterPixels+pixels>MAX_RASTER_PIXELS)continue;
+      rasterPixels+=pixels;
+      nativeBackgroundReservations.set(key,{width,height,pixels});
+    }
+  }
+  function releaseNativeBackground(key,state) {
+    const slot=nativeBackgroundReservations.get(key);
+    if(slot?.pixels) {rasterPixels-=slot.pixels;slot.pixels=0;}
+    state.nativeBackgroundPending=false;
+  }
+  function prepareNativeBackground(key,state) {
+    const slot=nativeBackgroundReservations.get(key);
+    if(!slot?.pixels||state.nativeBackgroundAttempted)return;
+    state.nativeBackgroundAttempted=true;
+    const image=state.image;
+    if(image.naturalWidth!==slot.width||image.naturalHeight!==slot.height||
+      typeof window.createImageBitmap!=='function') {
+      releaseNativeBackground(key,state);return;
+    }
+    state.nativeBackgroundPending=true;
+    const finish=bitmap=>{
+      if(slot.pixels>0&&bitmap?.width===slot.width&&bitmap?.height===slot.height) {
+        state.nativeBackgroundBitmap=bitmap;state.nativeBackgroundPending=false;return;
+      }
+      try {bitmap?.close?.();}catch(error){}
+      releaseNativeBackground(key,state);
+    };
+    try {
+      Promise.resolve(window.createImageBitmap(image)).then(finish,
+        ()=>releaseNativeBackground(key,state));
+    }catch(error) {releaseNativeBackground(key,state);}
+  }
   function prepareNativeRaster(key,entry,state) {
     const image=state.image,w=image.naturalWidth,h=image.naturalHeight;
     const fw=w/entry.columns,fh=h/entry.rows,cells=entry.columns*entry.rows;
@@ -459,6 +509,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   }
   function preload() {
     if (typeof window.Image !== 'function') return;
+    reserveNativeBackground();
     for (const [key, entry] of Object.entries(entries)) {
       if (cache[key]) continue;
       const image = new window.Image();
@@ -466,7 +517,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
       image.onload = () => {
         const valid=image.naturalWidth>0&&image.naturalHeight>0;
         image.onload=null;image.onerror=null;
-        if(!valid)return;
+        if(!valid){releaseNativeBackground(key,state);return;}
         // SVG source rectangles otherwise rerasterize the whole vector sheet
         // for every digit, terrain strip and filtered miniature. Prepare one
         // immutable bitmap per loaded SVG outside the gameplay draw path.
@@ -479,11 +530,11 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
               state.ready=true;
             },()=>{state.ready=true;});
           } catch {state.ready=true;}
-        } else {state.ready=true;prepareBackgroundRaster(key,entry,state);prepareNativeRaster(key,entry,state);prepareBrakeTint(key,entry,state);}
+        } else {state.ready=true;prepareNativeBackground(key,state);prepareBackgroundRaster(key,entry,state);prepareNativeRaster(key,entry,state);prepareBrakeTint(key,entry,state);}
       };
       image.onerror = () => {
         if (!state.fallback) { state.fallback = true; image.src = entry.path; }
-        else { image.onload = null; image.onerror = null; }
+        else { image.onload = null; image.onerror = null;releaseNativeBackground(key,state); }
       };
       image.src = (entry.root ?? root) + entry.path;
     }
@@ -505,7 +556,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
       sy+sh<=windowCandidate.crop[1]+windowCandidate.crop[3]?windowCandidate:null;
     const preparedTone=!small&&key==='cacheBrakeReflection'&&tone==='hue315'&&
       brakeTintReady(ctx)&&sx>=0&&sy>=0&&sw>0&&sh>0&&sx+sw<=194&&sy+sh<=290&&state.brakeTintBitmap;
-    const image=small||preparedTone||nativeWindow?.bitmap||nativeFrame||state.nativeBitmap||state.bitmap||original;
+    const image=small||preparedTone||nativeWindow?.bitmap||nativeFrame||state.nativeBitmap||state.nativeBackgroundBitmap||state.bitmap||original;
     // Sample background sources directly at the already reduced footprint.
     // Functional sprites and diffuse native effects keep their authored sampler.
     const smooth=!!entry.smooth&&!(backgroundSources.has(key)&&(rasterDetail.get(ctx)||1)<=.25);

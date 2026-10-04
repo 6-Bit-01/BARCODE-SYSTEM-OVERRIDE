@@ -1,4 +1,55 @@
-# Continue here — Level 2 lag repair (PR #181)
+# Continue here — existing BARCODE website hosting
+
+## October 3, 2026 — sustained Level 2 HUD lag
+
+The owner reports smooth Level 1 play and persistent lag when Level 2's HUD
+appears. Review the bounded native mirror candidate and its outstanding timing
+gates in `docs/source-pack/LEVEL2_HUD_PERFORMANCE.md`. The website has a verified
+preview and hidden footer-copyright shortcut; both PRs remain drafts and the
+owner requires testing before a production release. No frame-rate fix or full
+keyboard repair has yet been accepted.
+
+The native mirror alone failed both d517e05 timing events. Native phase capture
+points to city and street painting as the largest submitted costs. The next
+candidate prepares 15 full original scenery sheets inside the existing shared
+background budget; crops, transparency and native detail are preserved. All
+original timing and fidelity gates still apply before a website preview update.
+
+## October 3, 2026 — standalone BARCODE website migration
+
+The owner requested replacing Makko hosting with the existing BARCODE website. The standalone builder preserves canonical asset bytes, mirrors 21 original remote sprites/audio/title assets with SHA-256 receipts, and substitutes an independent manifest-backed sprite adapter for the vendor SDK. The adapter preserves authored animation timing, scaled anchors, flips, hitboxes and cloned playback state without a new RAF or timer. Generated runtime URLs resolve beneath `/games/system-override/`; the website entry is `/system-override`. Saves belong to the website origin and do not automatically transfer from Makko.
+
+Before migration, the owner-approved native-detail source at `41a2f0bf7afa0f81a5fb863cf8d4941f865763cf` was applied to the connected Makko editor after the 174-file recovery checkpoint. Both files were saved and re-read, the preview rebuilt, Continue entered the moving Cache Line scene and P paused it. Makko remains paused; no public Makko Update/Share was performed. This supersedes the earlier notes below stating that its saved source still remained PR181.
+
+Standalone adapter checks cover all 15 original clips, 60 source-crop/facing pixel comparisons, actual player contact anchors, playback timing, clone isolation, completion callbacks, Canvas state and failed-start retry. Generated-build checks cover runtime/inline syntax, sprite preloading, local presentation and music URLs, three ship animation types and fallback, and unchanged boot-monitor timer ownership. The original art is retained. Native frame pacing, complete chase/boss performance gates and owner-device acceptance remain unresolved; moving hosts does not itself prove a frame-rate improvement. The keyboard audit remains recorded separately and its seven issue groups have not yet been repaired.
+
+The build is reviewable locally. Publication, exact-head CI and live website acceptance are separate steps and must be recorded when completed. Earlier sections describe historical checkpoints and are superseded by this section where they conflict.
+
+
+
+## October 3, 2026 — final background review, unpublished
+
+The local review now also suppresses the sky beat pulse when Flash Off is selected and clips asphalt texture to the existing curved road boundary. The loaded-art probe removed 3,653 shoulder-spill pixels, preserved every interior pixel away from the antialiased edge, and retained identical texture coordinates, source order and Canvas/gameplay state. Flash On matches the preceding native candidate; Reduced Motion remains static. All 228 original asset hashes remain unchanged.
+
+The final source passed all-file syntax, the nine bitmap/native-quality groups, camera/frame ownership, ground beat feedback, adrenaline feedback, the seven-scene beat visual system and focused drive-feedback/control checks. All 24 fresh staged Chrome production draws retained native scale 1 without draw-time gameplay mutation. Complete-draw diagnostic medians were 180.3/193.6 ms including startup and forced raster flush; native frame pacing remains unresolved. A warmed mirror-copy A/B from the preceding exact commit showed no meaningful speed gain, so production transport is unchanged. The full formal chase/boss, 30 Hz, gain and regression gates are still unverified. Prior full-suite limitations below remain applicable; focused reruns are not a full npm-suite pass.
+
+Makko saved source and playable preview remain PR181; a 174-file recovery checkpoint named Before native detail preview - Oct 3 2026 was saved. The candidate is a local review only, with no push, PR, merge, public update or saved-source replacement. Keyboard audit found seven issue groups and passed nine focused checks; controls were not changed. Blocky detail, preference behavior and material-boundary fixes have bounded evidence; this is not an all-glitches-resolved or owner-device FPS claim.
+
+## October 3, 2026 — verified detail stability, unpublished review
+
+The final curved-glass candidate kept native scale 1 in all 24 staged Chrome moving frames, plus four native camera/gear poses and three advancing native frames. All 228 artwork hashes match PR181. Bounded bitmap/native-quality groups, all-file syntax, loaded-art still review, unchanged bundled combat integration and the remaining blood/crew checks passed. The global Node 24.18 full npm invocation ended with a native access violation; its bundled Node 24.19 integration retry and tail passed separately, so that original invocation is not a full-suite pass.
+
+Chrome complete-draw diagnostic medians were 175.8/204.1 ms, including raster flush and startup. This confirms detail stability, but does not pass the formal 30 Hz chase/boss gates or establish device FPS. Makko still runs PR181. This is an unpublished local review; no push, PR, merge or source replacement has occurred. Keyboard controls were audited separately and remain unchanged.
+
+## October 3, 2026 — owner correction and next gates
+
+The owner rejects PR #181's coarse adaptive scenery. The local, unmerged candidate restores an always-native 1920×1080 background; `renderBudget` is diagnostic only. It introduces neither silent low-detail rendering nor a new opt-in quality UI. Keep lossless SVG preparation, original-texel vehicle cels and bezel/face windows, prepared tint, equivalent culling and the single original `blur(2.3px)` mirror pass. Preserve the original curved mirror glass. Native playing-frame opaque cropped mirror transport is independent of downsampled-world eligibility; the reflection source hint stays at `1`.
+
+Candidate validation is pending. Next run full `npm test`, `npm run check:syntax:all` and loaded native-art review, then the unchanged Chromium gates: chase, whole-boss and active undefeated boss medians at or below 33.33 ms (30 Hz), at least 80 live-boss samples, the 25% complete-frame/raster improvement gate against PR180 with no scene median regression above 10%, and all existing fidelity, source/cel/blur-order, pause, caller and viewport checks. Both exact final-head push/pull-request validation and performance events remain required for publication. Publication state is defined by the generated receipt; local review only, no external push, PR or merge.
+
+Current main baseline is merged PR #181, `fce367dd5e5e3a0a1ed9792d61fca960852f36f4`. Its earlier performance evidence used background downsampling and does not establish the native candidate's speed. An earlier native draft diagnostic, measured before the final curved-glass correction, held scale `1` but still showed slow frame medians; it does not establish final-candidate timing, and formal performance validation remains pending. Owner device FPS, controller, listening, comfort and fresh-race acceptance remain unrecorded.
+
+## Historical PR #181 implementation notes — superseded by the owner correction
 
 The native opaque rearview now uses the same bounded sRGB pixel transport for its cropped source before applying the original single 2.3px blur. The shared helper bounds each source at 129,600 pixels, preserves source/destination coordinates and the caller's filter/clip/composition, and closes the temporary frame in the same draw. Fading/scaled/native/unsupported/transparent callers retain the original Canvas source. Original-mirror comparison flags disable the new transport; complete production RGB/alpha checks and a cropped-blur browser probe retain their existing limits. The background-only predecessor still exceeded the boss limit on one runner (34.8 ms), so the new mirror path must pass every final-head gate.
 

@@ -2,6 +2,156 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const source=fs.readFileSync(path.resolve(__dirname,'../src/engine/presentation-assets.js'),'utf8');
 const inspected=source.replace('  const cache = {};','  const cache = {};window.bitmapReview={entries,cache};');
+const nativeBackgroundPlan={
+  cacheDistantCity:[2079,756],cacheOutskirts:[2172,724],cacheMidCity:[2172,724],
+  cacheStreetDeliveryVan:[1498,1016],cacheNewBinsRecycling:[1312,1199],
+  cacheStreetBenchPlanters:[1546,1040],cacheNewWayfindingSign:[1152,576],
+  cacheBlacktop:[2172,724],cachePlaceCapacitorExchange:[960,721],
+  cacheUtilityCorner:[1585,992],cacheWalkerMarketWorkerTravel:[1024,768],
+  cachePersonCrateCarrierTravel:[1604,768],cacheStreetBicycleRack:[1526,1023],
+  cacheWalkerStudentTravel:[1024,768],cacheWalkerMechanicTravel:[1024,768]
+};
+const nativeBackgroundPixels=Object.values(nativeBackgroundPlan).reduce((sum,[w,h])=>sum+w*h,0);
+const backgroundInspected=inspected.replace('  preload();',
+  '  window.bitmapReview.background={plan:nativeBackgroundPlan,reservations:nativeBackgroundReservations,pixels:()=>rasterPixels,max:MAX_RASTER_PIXELS};\n  preload();');
+
+async function nativeBackgroundUnit(){
+  assert.equal(nativeBackgroundPixels,19072502);
+  for(const failure of ['none','reject','throw','invalid','dimensions','missing','unsupported','unavailable']){
+    const prepared=[],closed=[],images=[];let w;
+    class Image {constructor(){
+      if(!images.length)assert.equal(w.bitmapReview.background.pixels(),failure==='unsupported'?0:nativeBackgroundPixels,
+        'all priority pixels are reserved before the first image is created');
+      this.naturalWidth=2079;this.naturalHeight=756;images.push(this);
+    }}
+    w={Image,BARCODE:{},createImageBitmap(image,...args){
+      prepared.push({image,args});
+      const options=args[0];
+      if(!options&&failure==='throw')throw Error('native decode unsupported');
+      if(!options&&failure==='reject')return Promise.reject(Error('native decode rejected'));
+      return Promise.resolve({width:!options&&failure==='invalid'?1:(options?.resizeWidth||image.naturalWidth),
+        height:options?.resizeHeight||image.naturalHeight,close(){closed.push(this);}});
+    }};
+    if(failure==='unsupported')delete w.createImageBitmap;
+    vm.runInNewContext(backgroundInspected,{window:w});
+    const {cache,background}=w.bitmapReview,state=cache.cacheDistantCity,P=w.BARCODE.PresentationAssets;
+    assert.deepEqual(JSON.parse(JSON.stringify(background.plan)),nativeBackgroundPlan);
+    if(failure==='unavailable')delete w.createImageBitmap;
+    if(failure==='dimensions')state.image.naturalWidth++;
+    if(failure==='missing')state.image.naturalHeight=0;
+    state.image.onload();
+    if(failure==='none'||failure==='reject'||failure==='invalid')assert(state.nativeBackgroundPending,
+      'full original sheet has its own asynchronous preparation state');
+    const calls=[],ctx={imageSmoothingEnabled:false,filter:'blur(2.3px)',globalAlpha:.37,
+      save(){},restore(){},translate(){},scale(){},drawImage(...args){calls.push(args);}};
+    if(failure!=='missing'){
+      P.draw('cacheDistantCity',ctx,{width:80,height:40,sourceRect:[12,8,100,40]});
+      assert.equal(calls.at(-1)[0],state.image,'pending native preparation keeps original-image drawing');
+    }
+    await new Promise(setImmediate);
+    assert.equal(!!state.nativeBackgroundBitmap,failure==='none');
+    assert(!state.nativeBackgroundPending);
+    assert.equal(prepared.filter(call=>!call.args.length).length,
+      ['none','reject','throw','invalid'].includes(failure)?1:0,'one unresized native attempt or no unsupported attempt');
+    assert.equal(closed.length,failure==='invalid'?1:0,'invalid native results are closed');
+    assert.equal(background.reservations.get('cacheDistantCity')?.pixels||0,
+      failure==='none'?2079*756:0,'failed/unsupported/decode-invalid slots release their full reservation');
+    const before=prepared.length;P.preload();assert.equal(images.length,Object.keys(cache).length);
+    if(failure!=='missing')for(let repeat=0;repeat<12;repeat++){
+      P.draw('cacheDistantCity',ctx,{width:80,height:40,sourceRect:[12,8,100,40]});
+      assert.equal(calls.at(-1)[0],state.nativeBackgroundBitmap||state.image);
+      assert.deepEqual(calls.at(-1).slice(1),[12,8,100,40,0,-40,80,40]);
+    }
+    assert.equal(prepared.length,before,'warm/paused draw and preload cannot rebuild native backgrounds');
+    assert.equal(ctx.imageSmoothingEnabled,false);assert.equal(ctx.filter,'blur(2.3px)');assert.equal(ctx.globalAlpha,.37);
+    assert(background.pixels()<=background.max);
+  }
+  // Load unrelated giant thumbnails first. Their unresolved reservations
+  // cannot consume the priority slots reserved before any image constructor.
+  const pending=[],images=[];
+  class Image {constructor(){this.naturalWidth=8192;this.naturalHeight=4096;images.push(this);}}
+  const w={Image,BARCODE:{},createImageBitmap(image,...args){return new Promise((resolve,reject)=>
+    pending.push({image,args,resolve,reject}));}};
+  vm.runInNewContext(backgroundInspected,{window:w});
+  const {cache,entries,background}=w.bitmapReview;
+  for(const [key,entry]of Object.entries(entries))if(!nativeBackgroundPlan[key]&&
+      /^assets\/cache-road\/(world|roadside)\//.test(entry.path)&&entry.path.endsWith('.webp')){
+    cache[key].image.onload();assert(background.pixels()<=background.max);
+  }
+  const thumbnails=pending.filter(call=>call.args[0]?.resizeWidth);
+  assert(thumbnails.length>0&&thumbnails.length<16,'overbudget thumbnails retain original art without an attempt');
+  for(const [key,[width,height]]of Object.entries(nativeBackgroundPlan)){
+    Object.assign(cache[key].image,{naturalWidth:width,naturalHeight:height});cache[key].image.onload();
+    assert(cache[key].nativeBackgroundPending);assert(background.pixels()<=background.max);
+  }
+  assert.equal(pending.filter(call=>!call.args.length).length,15,'concurrent thumbnail work cannot starve any measured native slot');
+  const retainedBefore=background.pixels();w.BARCODE.PresentationAssets.preload();assert.equal(background.pixels(),retainedBefore);
+  for(const call of pending){const options=call.args[0];call.resolve({
+    width:options?.resizeWidth||call.image.naturalWidth,height:options?.resizeHeight||call.image.naturalHeight});}
+  await new Promise(setImmediate);
+  assert(Object.keys(nativeBackgroundPlan).every(key=>cache[key].nativeBackgroundBitmap&&!cache[key].nativeBackgroundPending));
+  const retained=Object.values(cache).reduce((sum,state)=>sum+
+    (state.rasterBitmap?state.rasterBitmap.width*state.rasterBitmap.height:0)+
+    (state.nativeBackgroundBitmap?state.nativeBackgroundBitmap.width*state.nativeBackgroundBitmap.height:0),0);
+  assert.equal(retained,background.pixels());assert(retained<=32*1024*1024,'native and thumbnail retention share the unchanged 32 Mi-pixel pool');
+  // Adversarial queued image errors after onload must release only once and
+  // close the late immutable result rather than resurrecting a failed slot.
+  let complete;const closed=[];
+  const late={Image,BARCODE:{},createImageBitmap(image,options){if(options)return Promise.reject(Error('no thumbnail'));
+    return new Promise(resolve=>{complete=resolve;});}};
+  vm.runInNewContext(backgroundInspected,{window:late});
+  const state=late.bitmapReview.cache.cacheDistantCity,error=state.image.onerror;
+  Object.assign(state.image,{naturalWidth:2079,naturalHeight:756});state.image.onload();
+  error();error();const released=late.bitmapReview.background.pixels();error();
+  assert.equal(late.bitmapReview.background.pixels(),released,'duplicate failure cannot subtract retained pixels twice');
+  complete({width:2079,height:756,close(){closed.push(this);}});await new Promise(setImmediate);
+  assert.equal(closed.length,1);assert(!state.nativeBackgroundBitmap&&!state.nativeBackgroundPending);
+  assert.equal(late.bitmapReview.background.reservations.get('cacheDistantCity').pixels,0);
+  console.log('PASS: exact 15-sheet native priority plan, unresized one-time preparation, pending original fallback, unsupported/throw/reject/invalid/decode failures, bounded concurrent reservations and late-result cleanup.');
+}
+
+async function nativeBackgroundArtUnit(){
+  const {createCanvas,loadImage}=require('@napi-rs/canvas');
+  const definitions={window:{BARCODE:{}}};vm.runInNewContext(inspected,definitions);
+  let cases=0;
+  for(const key of ['cacheDistantCity','cacheBlacktop','cacheStreetDeliveryVan','cacheNewWayfindingSign','cacheWalkerMarketWorkerTravel']){
+    const entry=definitions.window.bitmapReview.entries[key],bytes=fs.readFileSync(path.resolve(__dirname,'..',entry.path));
+    const image=await loadImage(bytes),decoded=await loadImage(bytes),[width,height]=nativeBackgroundPlan[key];
+    assert.deepEqual([image.width,image.height],[width,height],'priority dimensions match unchanged original artwork');
+    class Image {constructor(){this.naturalWidth=width;this.naturalHeight=height;this.image=image;}}
+    const attempts=[],w={Image,BARCODE:{},createImageBitmap(input,...args){attempts.push(args);
+      return Promise.resolve(args.length?{width:args[0].resizeWidth,height:args[0].resizeHeight}:decoded);}};
+    vm.runInNewContext(backgroundInspected,{window:w});
+    const state=w.bitmapReview.cache[key],P=w.BARCODE.PresentationAssets;state.image.onload();await new Promise(setImmediate);
+    assert.equal(state.nativeBackgroundBitmap,decoded);assert.deepEqual(attempts[0],[],'full sheet is decoded without crop/resize/options');
+    const canvas=createCanvas(384,224),ctx=canvas.getContext('2d'),originalDraw=ctx.drawImage.bind(ctx),draws=[];
+    ctx.drawImage=function(input,...args){draws.push([input,...args]);return originalDraw(input.image||input,...args);};
+    const fw=width/entry.columns,fh=height/entry.rows;
+    for(const scenario of ['plain','alpha-transform','filtered-clip','flip']){
+      const args={x:164,y:156,width:218,height:112,frame:entry.frames-1,
+        sourceRect:[7,5,fw-16,fh-12],flip:scenario==='flip'};
+      const paint=native=>{
+        ctx.reset();ctx.clearRect(0,0,384,224);ctx.save();ctx.translate(11,7);ctx.rotate(.017);
+        ctx.globalAlpha=scenario==='alpha-transform'?.37:1;
+        ctx.filter=scenario==='filtered-clip'?'blur(2.3px)':'none';ctx.imageSmoothingEnabled=false;ctx.imageSmoothingQuality='high';
+        ctx.beginPath();ctx.rect(23,17,303,184);ctx.clip();
+        state.nativeBackgroundBitmap=native?decoded:undefined;
+        const before=ctx.getTransform(),alpha=ctx.globalAlpha,filter=ctx.filter;
+        assert(P.draw(key,ctx,args));
+        assert.deepEqual(ctx.getTransform(),before);assert.equal(ctx.globalAlpha,alpha);assert.equal(ctx.filter,filter);
+        assert.equal(ctx.imageSmoothingEnabled,false);assert.equal(P.rasterDetail(ctx),1);
+        ctx.restore();return Buffer.from(ctx.getImageData(0,0,384,224).data);
+      };
+      const reference=paint(false),actual=paint(true);
+      assert(actual.equals(reference),`${key}/${scenario} preserves exact loaded-art RGBA in the native Canvas contract model`);
+      assert.equal(draws.at(-1)[0],decoded);assert.deepEqual(draws.at(-1).slice(1,5),
+        [(entry.frames-1)%entry.columns*fw+7,Math.floor((entry.frames-1)/entry.columns)*fh+5,fw-16,fh-12]);
+      cases++;
+    }
+    assert.equal(attempts.filter(args=>!args.length).length,1,'frames/filter/paused repaints reuse the full native sheet');
+  }
+  console.log(`PASS: ${cases} original-art native background crop/frame/anchor/flip/sampler/alpha/filter/clip/transform comparisons using independent full-size native decodes; actual ImageBitmap browser pixels remain a Chromium gate.`);
+}
 async function unit(){
   for(const failure of ['none','reject','throw','invalid']){
     const images=[],prepared=[],closed=[];
@@ -397,25 +547,24 @@ function budgetUnit(){
   vm.runInNewContext(fs.readFileSync(path.resolve(__dirname,'../src/game/cache-road-render-budget.js'),'utf8'),{window:w});
   const owner=w.BARCODE.CacheRoadRenderBudget,budget=owner.create();
   assert.equal(budget.scale,1,'each new run begins at full detail');
-  owner.observe(budget,90);owner.observe(budget,90);
-  assert.equal(budget.scale,1,'one or two cold/impact frames cannot reduce detail');
-  owner.observe(budget,90);assert.equal(budget.scale,.4,'sustained slow paint lowers only world sampling');
+  for(let i=0;i<700;i++)owner.observe(budget,90);
+  assert.equal(budget.scale,1,'sustained expensive draws must retain native artwork detail');
+  assert.equal(budget.lastCostMs,90,'expensive draws remain visible in timing diagnostics');
+  assert.equal(budget.slowFrames,700);
   const frozen=JSON.stringify(budget);
   for(let i=0;i<700;i++)owner.observe(budget,1,{paused:true});
   assert.equal(JSON.stringify(budget),frozen,'paused repeated paint cannot change quality');
   for(const cost of [NaN,Infinity,-1])owner.observe(budget,cost);
   assert.equal(JSON.stringify(budget),frozen,'invalid clocks cannot alter a budget');
-  for(let i=0;i<599;i++)owner.observe(budget,1);
-  assert.equal(budget.scale,.4,'detail recovery needs sustained spare capacity');
-  owner.observe(budget,1);assert.equal(budget.scale,.5);
+  for(let i=0;i<600;i++)owner.observe(budget,1);
+  assert.equal(budget.scale,1,'spare capacity never needs to restore lost artwork detail');
+  assert.equal(budget.fastFrames,600);
+  assert.equal(budget.slowFrames,0);
   for(let i=0;i<30;i++)owner.observe(budget,200);
-  assert.equal(budget.scale,1/6,'background sampling stops at a finite floor with native interactive paint');
+  assert.equal(budget.scale,1,'even very slow draws cannot substitute an enlarged low-resolution world');
   const delayed=owner.create();
-  owner.observe(delayed,12,{frameIntervalMs:34.1});
-  owner.observe(delayed,12,{frameIntervalMs:34.1});
-  assert.equal(delayed.scale,1,'two missed display frames retain cold/impact tolerance');
-  owner.observe(delayed,12,{frameIntervalMs:34.1});
-  assert(delayed.scale<1,'sustained missed 30 Hz intervals include queued raster cost');
+  for(let i=0;i<700;i++)owner.observe(delayed,12,{frameIntervalMs:34.1});
+  assert.equal(delayed.scale,1,'sustained delayed display frames must retain native detail');
   assert.equal(delayed.lastCostMs,34.1,'display delay is observed even when draw submission is cheap');
   const delayedFrozen=JSON.stringify(delayed);
   owner.observe(delayed,12,{paused:true,frameIntervalMs:60});
@@ -424,10 +573,59 @@ function budgetUnit(){
     const ignored=owner.create();
     for(let i=0;i<3;i++)owner.observe(ignored,12,{frameIntervalMs:interval});
     assert.equal(ignored.scale,1,'healthy, invalid and background-gap intervals retain detail');
+    assert.equal(ignored.lastCostMs,12,'invalid or background-gap display intervals cannot inflate diagnostics');
   }
   const fresh=owner.create();assert.equal(fresh.scale,1);
-  assert.equal(budget.scale,1/6,'a fresh run has independent presentation state');
-  console.log('PASS: bounded adaptive world quality, queued display cost, cold/impact tolerance, pause freeze, clock fallback, recovery hysteresis and fresh-run independence.');
+  assert.equal(fresh.lastCostMs,0,'a fresh run has independent timing diagnostics');
+  assert.equal(budget.lastCostMs,200);
+  console.log('PASS: native world detail through heavy draws and delayed display frames, queued cost diagnostics, pause freeze, clock fallback and fresh-run independence.');
+}
+
+function mirrorSourceUnit(){
+  const road=fs.readFileSync(path.resolve(__dirname,'../src/game/cache-road-proof.js'),'utf8');
+  const callStart=road.indexOf('      const nativeMirror=budgetEligible'),
+    callEnd=road.indexOf('      ctx.fillStyle',callStart);
+  assert(callStart>=0&&callEnd>callStart,'production mirror invocation is available');
+  for(const failure of ['none','budget','context','canvas','pause','intro','fade']){
+    class HTMLCanvasElement{}
+    const ctx={canvas:failure==='canvas'?{}:new HTMLCanvasElement()},pixelBudget={};
+    let invocation;
+    vm.runInNewContext('function invoke(){'+road.slice(callStart,callEnd)+'};invoke.call(runtime);',{
+      window:{HTMLCanvasElement},ctx,frameContext:failure==='context'?{}:ctx,
+      budgetEligible:failure!=='budget',runtime:{status:failure==='pause'?'paused':'playing',renderBudget:pixelBudget},
+      intro:failure==='intro'?{}:null,cinema:failure==='fade'?{hudAlpha:.5}:null,
+      s:{},section:0,reduced:false,heightSample:()=>0,combatPose:null,crosswalkPose:null,
+      drawRearview(...args){invocation=args;}
+    });
+    assert.equal(invocation[7],false,'production native reflection retains the original curved glass mask');
+    assert.equal(invocation[8],failure==='none','opaque native transport remains independent of world downsampling');
+    assert.equal(invocation[9],failure==='budget'?null:pixelBudget);
+  }
+  const start=road.indexOf('  function drawRearview('),end=road.indexOf('  // Every supplied stem',start);
+  assert(start>=0&&end>start,'production mirror painter is available');
+  for(const boundedClip of [false,true])for(const failure of [false,true]){
+    let detail=.25,reflectionCalls=0,faceCalls=0;
+    const pixelBudget={},ctx=new Proxy({createLinearGradient:()=>({addColorStop(){}})},
+      {get:(target,key)=>key in target?target[key]:()=>{}});
+    const B={PresentationAssets:{
+      setRasterDetail(context,value){assert.equal(context,ctx);const before=detail;detail=value;return before;},
+      draw(key){assert.equal(key,'cacheMirror');faceCalls++;return true;}
+    }},w={};
+    vm.runInNewContext(road.slice(start,end)+';window.testMirror=drawRearview;',{
+      window:w,B,LANDSCAPE:{height:()=>24},mirrorExpression:()=>0,mirrorOutline(){},
+      drawRearRoad(...args){
+        reflectionCalls++;assert.equal(detail,1,'clipped native reflections use original-size source artwork');
+        assert.equal(args.at(-2),true,'native opaque backdrop optimization remains independent of detail');
+        assert.equal(args.at(-1),pixelBudget);
+        if(failure)throw Error('mirror draw failed');
+      }
+    });
+    const draw=()=>w.testMirror(ctx,{},'#8fe3db',false,undefined,null,null,boundedClip,true,pixelBudget);
+    if(failure)assert.throws(draw,/mirror draw failed/);else draw();
+    assert.equal(reflectionCalls,1);assert.equal(faceCalls,failure?0:1);
+    assert.equal(detail,.25,'reflection painting restores the caller hint even after failure');
+  }
+  console.log('PASS: production curved mirror glass, native opaque transport eligibility, original-size reflection sources and caller-hint restoration after failure.');
 }
 
 function worldCopyUnit(){
@@ -498,6 +696,239 @@ function worldCopyUnit(){
   console.log('PASS: bounded opaque sRGB production transport, exact source/destination arguments, context preservation, source cleanup, original reference and unsupported/native/P3/alpha fallback.');
 }
 
+function reflectionBlurCounterUnit(){
+  const harness=fs.readFileSync(__filename,'utf8');
+  const start=harness.indexOf('      const '+'inspectDrawImage=function(source,...args){');
+  const end=harness.indexOf('      const '+'framePixels=',start);
+  assert(start>=0&&end>start,'exercise the actual browser blur counter');
+  class VideoFrame{}class OffscreenCanvas{}class Canvas{}
+  const c=new Canvas(),offscreen=new OffscreenCanvas(),video=new VideoFrame(),image={};
+  for(const missing of ['none','video','offscreen','both']){
+    const submissions=[],w={},context={window:w,c,reflectionBlurs:0,
+      VideoFrame:missing==='video'||missing==='both'?undefined:VideoFrame,
+      OffscreenCanvas:missing==='offscreen'||missing==='both'?undefined:OffscreenCanvas,
+      originalDrawImage(...args){submissions.push({context:this,args});return 'submitted';}};
+    vm.runInNewContext(harness.slice(start,end)+'\nwindow.counter=inspectDrawImage;',context);
+    const ctx={filter:'blur(2.3px)'},args=[0,0,714,141,626,0,714,141];
+    for(const source of [c,offscreen,video,image,new Canvas()]){
+      const before=context.reflectionBlurs;
+      assert.equal(w.counter.call(ctx,source,...args),'submitted');
+      const expected=source===c||source===offscreen&&!['offscreen','both'].includes(missing)||
+        source===video&&!['video','both'].includes(missing);
+      assert.equal(context.reflectionBlurs-before,expected?1:0,'only each supported reflection source contributes one blur');
+      assert.equal(submissions.at(-1).context,ctx);assert.equal(submissions.at(-1).args[0],source);
+      assert.deepEqual(submissions.at(-1).args.slice(1),args,'diagnostics preserve the original draw submission');
+      assert.equal(ctx.filter,'blur(2.3px)');
+    }
+    ctx.filter='none';const before=context.reflectionBlurs;
+    w.counter.call(ctx,c,...args);w.counter.call(ctx,offscreen,...args);w.counter.call(ctx,video,...args);
+    assert.equal(context.reflectionBlurs,before,'unfiltered mirror resource draws never count as a blur');
+  }
+  console.log('PASS: actual browser blur counter recognizes main Canvas, OffscreenCanvas and VideoFrame exactly once, excludes unrelated/unfiltered sources, preserves draws and tolerates missing APIs.');
+}
+
+function mirrorSurfaceUnit(){
+  const road=fs.readFileSync(path.resolve(__dirname,'../src/game/cache-road-proof.js'),'utf8');
+  const start=road.indexOf('  function copyBoundedMirrorPixels('),end=road.indexOf('  function clipLightBlend(',start);
+  assert(start>=0&&end>start,'exercise the production bounded mirror surface helper');
+  const code=road.slice(start,end)+'\nwindow.copyBoundedMirrorPixels=copyBoundedMirrorPixels;';
+  for(const failure of ['none','construct','context','copy','draw','metadata','lost','lost-copy','p3','native','missing','fractional','oversize','bounds','reference']){
+    const calls=[],budget={},stack=[],allocated=[];
+    class Canvas {constructor(){this.width=1920;this.height=1080;}}
+    const copy={filter:'blur(9px)',globalAlpha:.23,globalCompositeOperation:'source-in',imageSmoothingEnabled:true,
+      matrix:[.5,0,0,.5,7,11],getContextAttributes(){return {alpha:true,colorSpace:failure==='metadata'?'display-p3':'srgb'};},
+      isContextLost(){return failure==='lost'||failure==='lost-copy'&&calls.some(call=>call[0]==='copy');},
+      save(){stack.push([this.filter,this.globalAlpha,this.globalCompositeOperation,this.imageSmoothingEnabled,this.matrix]);},
+      restore(){[this.filter,this.globalAlpha,this.globalCompositeOperation,this.imageSmoothingEnabled,this.matrix]=stack.pop();},
+      setTransform(...args){this.matrix=args;},
+      getImageData(){throw Error('mirror surface must not read pixels');},
+      drawImage(...args){calls.push(['copy',...args,{alpha:this.globalAlpha,filter:this.filter,
+        composite:this.globalCompositeOperation,smoothing:this.imageSmoothingEnabled,matrix:this.matrix}]);
+        if(failure==='copy')throw Error('copy unavailable');}};
+    class OffscreenCanvas {
+      constructor(width,height){
+        calls.push(['construct',width,height]);if(failure==='construct')throw Error('surface unavailable');
+        this.width=width;this.height=height;allocated.push(this);
+      }
+      getContext(kind,options){calls.push(['context',kind,options]);return failure==='context'?null:copy;}
+    }
+    const w={HTMLCanvasElement:Canvas,OffscreenCanvas:failure==='missing'?undefined:OffscreenCanvas,
+      VideoFrame:class{constructor(){throw Error('mirror surface must not construct VideoFrame');}}};
+    vm.runInNewContext(code,{window:w});
+    const canvas=failure==='native'?{}:new Canvas(),ctx={canvas,filter:'blur(2.3px)',globalAlpha:.37,
+      globalCompositeOperation:'copy',getContextAttributes(){return {colorSpace:failure==='p3'?'display-p3':'srgb'};},
+      getImageData(){throw Error('mirror surface must not read display pixels');},
+      drawImage(...args){calls.push(['draw',...args]);if(failure==='draw'&&args[0]!==canvas)throw Error('unsupported frame');}};
+    const sx=failure==='bounds'?1910:626,width=failure==='fractional'?714.5:failure==='oversize'?1920:714;
+    const used=w.copyBoundedMirrorPixels(ctx,sx,0,width,141,sx,0,width,141,budget,failure!=='reference');
+    assert.equal(used,failure==='none');
+    assert.equal(ctx.filter,'blur(2.3px)');assert.equal(ctx.globalAlpha,.37);assert.equal(ctx.globalCompositeOperation,'copy');
+    const constructed=calls.find(call=>call[0]==='construct'),drawn=calls.filter(call=>call[0]==='draw');
+    if(constructed){
+      assert.deepEqual(constructed.slice(1),[714,141],'surface allocation has one fixed native bounded footprint');
+      if(failure!=='construct')assert.deepEqual(JSON.parse(JSON.stringify(calls.find(call=>call[0]==='context').slice(1))),
+        ['2d',{alpha:true,colorSpace:'srgb'}]);
+    }
+    assert.equal(stack.length,0,'private surface state is restored even when copying throws');
+    assert.equal(copy.filter,'blur(9px)');assert.equal(copy.globalAlpha,.23);
+    assert.equal(copy.globalCompositeOperation,'source-in');assert.equal(copy.imageSmoothingEnabled,true);
+    assert.deepEqual(copy.matrix,[.5,0,0,.5,7,11]);
+    const copied=calls.find(call=>call[0]==='copy');
+    if(copied){
+      assert.equal(copied[1],canvas);assert.deepEqual(copied.slice(2,-1),[626,0,714,141,0,0,714,141]);
+      assert.deepEqual(JSON.parse(JSON.stringify(copied.at(-1))),{alpha:1,filter:'none',composite:'copy',smoothing:false,matrix:[1,0,0,1,0,0]});
+    }
+    assert.deepEqual(drawn.at(-1).slice(2),used?[0,0,width,141,sx,0,width,141]:[sx,0,width,141,sx,0,width,141]);
+    assert.equal(drawn.at(-1)[1]===canvas,!used,'unsupported callers retain the original direct source');
+    if(['construct','context','copy','draw','metadata','lost','lost-copy'].includes(failure)){
+      assert.equal(budget.mirrorSurfaceUnavailable,true);
+      assert(!budget.mirrorSurface,'failed private resources are released');
+      for(const surface of allocated){assert.equal(surface.width,0);assert.equal(surface.height,0);}
+      if(failure==='lost')assert(!copied,'already-lost contexts never attempt a silent no-op copy');
+      if(failure==='lost-copy')assert.equal(drawn.length,1,'context loss during copy never paints a transparent private surface');
+      const count=calls.filter(call=>call[0]==='construct').length;
+      w.copyBoundedMirrorPixels(ctx,626,0,714,141,626,0,714,141,budget);
+      assert.equal(calls.filter(call=>call[0]==='construct').length,count,'failed surface APIs are attempted once');
+    }else assert.equal(budget.mirrorSurfaceUnavailable,undefined);
+    if(used){
+      assert.equal(budget.mirrorSurface.canvas.width,714);assert.equal(budget.mirrorSurface.canvas.height,141);
+      w.copyBoundedMirrorPixels(ctx,626,0,714,141,626,0,714,141,budget);
+      assert.equal(calls.filter(call=>call[0]==='construct').length,1,'warm frames reuse the same bounded surface');
+      assert.equal(calls.filter(call=>call[0]==='context').length,1,'warm frames reuse its one private context');
+    }
+  }
+  console.log('PASS: one fixed714x141 native mirror surface/context, neutral exact-crop copy, zero readbacks/VideoFrames, warm reuse, private state restoration, initial/during-copy silent context-loss fallback and zero-sized failure cleanup.');
+}
+
+async function nativeMirrorCanvasUnit(){
+  const {createCanvas,Path2D}=require('@napi-rs/canvas');
+  const {createRig,load}=require('./check-level-01-boss');
+  const {nativeAssets}=require('./render-cache-beat-visual-system.cjs');
+  const root=path.resolve(__dirname,'..'),assets=await nativeAssets();
+  const road=fs.readFileSync(path.join(root,'src/game/cache-road-proof.js'),'utf8');
+  const r=createRig(),{w,context}=r,B=w.BARCODE;
+  B.Campaign={register(){},syncTitleButton(){}};
+  for(const file of ['src/engine/cache-road-proof-profile.js','src/game/cache-road-landscape.js',
+    'src/game/cache-road-encounters.js','src/game/cache-road-reactions.js',
+    'src/game/cache-road-pursuit.js','src/game/cache-road-boss-art.js',
+    'src/game/cache-road-combat.js','src/game/cache-road-combat-art.js',
+    'src/game/cache-road-crosswalks.js','src/game/cache-road-mirror.js','src/game/cache-road-cinematics.js'])load(context,file);
+  w.Path2D=Path2D;w.Image=undefined;w.mirrorNativeImages=assets.images;
+  vm.runInContext(assets.manifest.replace('  const cache = {};',
+    '  const cache=Object.fromEntries(Object.entries(window.mirrorNativeImages).map(([key,image])=>[key,{image,ready:true}]));'),context);
+  assert(road.includes('  B.Campaign.register(ID,'));
+  vm.runInContext(road.replace('  B.Campaign.register(ID,',
+    '  window.nativeMirrorReview={newState,drawRearview};\n  B.Campaign.register(ID,'),context);
+  const canvases=[createCanvas(1920,1080),createCanvas(1920,1080)];
+  w.HTMLCanvasElement=canvases[0].constructor;
+  let reads=0,frames=0,privateContexts=0,cases=0;
+  const surfaces=[],candidateBudget={};
+  // Native Canvas has no OffscreenCanvas API. This model supplies its actual
+  // native drawing surface; real OffscreenCanvas fidelity is checked in Chromium.
+  w.VideoFrame=class{constructor(){frames++;throw Error('mirror surface must not construct VideoFrame');}};
+  w.OffscreenCanvas=class{
+    constructor(width,height){
+      assert.equal(width,714);assert.equal(height,141);
+      let raster=createCanvas(width,height),surfaceWidth=width,surfaceHeight=height;
+      // Native Canvas maps dimension0 to a default size. OffscreenCanvas permits
+      // zero; this contract model releases its raster at that browser boundary.
+      const surface={
+        get width(){return surfaceWidth;},set width(value){surfaceWidth=value;if(!value)raster=null;},
+        get height(){return surfaceHeight;},set height(value){surfaceHeight=value;if(!value)raster=null;},
+        get image(){return raster;},
+        getContext(kind,options){
+          privateContexts++;assert.equal(kind,'2d');assert.deepEqual(JSON.parse(JSON.stringify(options)),{alpha:true,colorSpace:'srgb'});
+          const ctx=raster.getContext(kind);ctx.getContextAttributes=()=>({alpha:true,colorSpace:'srgb'});
+          ctx.getImageData=()=>{reads++;throw Error('mirror surface must not read pixels');};return ctx;
+        }
+      };
+      surfaces.push(surface);return surface;
+    }
+  };
+  const contexts=canvases.map(canvas=>{
+    const ctx=canvas.getContext('2d'),read=ctx.getImageData.bind(ctx),draw=ctx.drawImage.bind(ctx),selfCopies=[];
+    ctx.getContextAttributes=()=>({colorSpace:'srgb'});
+    ctx.getImageData=()=>{reads++;throw Error('Native rearview must not read the display canvas');};
+    ctx.drawImage=(...args)=>{
+      if(args[0]===canvas||surfaces.includes(args[0])){
+        selfCopies.push({args:args.slice(1),surface:surfaces.includes(args[0]),
+          filter:ctx.filter,composite:ctx.globalCompositeOperation});
+        if(surfaces.includes(args[0]))args[0]=args[0].image;
+      }
+      return draw(...args);
+    };
+    return {ctx,read,selfCopies};
+  });
+  for(const progress of [180,7620])for(const reduced of [false,true])
+    for(const caller of ['native','paused','fade','transformed']){
+      const pose=Object.assign(w.nativeMirrorReview.newState(),{progress,elapsedMs:5471,lanePos:1.5,
+        visualLane:1.5,musicBar:64,musicBeatFloat:257.2,captures:[],speed:70,gear:2,timeMs:55000});
+      const stateBefore=JSON.stringify(pose),budgets=[];
+      for(let index=0;index<contexts.length;index++){
+        const {ctx,selfCopies}=contexts[index];ctx.reset();selfCopies.length=0;
+        ctx.fillStyle='#26364a';ctx.fillRect(0,0,1920,1080);
+        if(caller==='transformed')ctx.setTransform(.75,0,0,.75,120,10);
+        ctx.globalAlpha=.73;
+        const before={alpha:ctx.globalAlpha,filter:ctx.filter,composite:ctx.globalCompositeOperation,
+          transform:JSON.stringify(ctx.getTransform())};
+        const callerCtx=caller==='fade'?B.CacheRoadCinematics.withHUDAlpha(ctx,.4):ctx;
+        const budget=index===0?null:candidateBudget;budgets.push(budget);
+        // Null budget executes the original direct-canvas reference branch.
+        // The candidate receives the same retained bounded surface owner.
+        w.nativeMirrorReview.drawRearview(callerCtx,pose,'#8fe3db',reduced,undefined,null,null,
+          false,caller==='native',budget);
+        assert.equal(JSON.stringify(pose),stateBefore,'native reflection painting preserves gameplay');
+        assert.deepEqual({alpha:ctx.globalAlpha,filter:ctx.filter,composite:ctx.globalCompositeOperation,
+          transform:JSON.stringify(ctx.getTransform())},before,'native reflection restores caller state');
+        assert.equal(selfCopies.length,1,'each completed reflection has one original canvas copy');
+        assert.equal(selfCopies[0].filter,'blur(2.3px)','the original glass blur is retained');
+        assert.equal(selfCopies[0].composite,caller==='native'?'source-over':'copy');
+        if(caller==='native')assert.deepEqual(selfCopies[0].args,index===0?
+          [626,0,714,141,626,0,714,141]:[0,0,714,141,626,0,714,141]);
+      }
+      assert.equal(reads,0,'even eligible native rearview frames never invoke getImageData');
+      assert.equal(frames,0,'native mirrors never construct VideoFrame');
+      assert.equal(budgets[1].mirrorPixelCopyUsed,caller!=='transformed');
+      assert.equal(budgets[1].pixelCopyUnavailable,undefined,'readback is absent, not caught as a failure');
+      assert.equal(budgets[1].mirrorSurfaceUnavailable,undefined,'supported surface does not fall back');
+      const originalCopy=contexts[0].selfCopies[0],candidateCopy=contexts[1].selfCopies[0];
+      assert.equal(candidateCopy.filter,originalCopy.filter);assert.equal(candidateCopy.composite,originalCopy.composite);
+      assert.equal(candidateCopy.surface,caller!=='transformed');
+      assert.deepEqual(candidateCopy.args,caller!=='transformed'?[0,0,714,141,626,0,714,141]:originalCopy.args,
+        'native-size active/paused/fade callers use bounded coordinates while transformed callers retain direct-copy coordinates');
+      const reference=Buffer.from(contexts[0].read(0,0,1920,1080).data);
+      const candidate=Buffer.from(contexts[1].read(0,0,1920,1080).data);
+      assert(candidate.equals(reference),`original native reflected pixels changed at ${progress}/${reduced}/${caller}`);
+      cases++;
+    }
+  assert.equal(frames,0);assert.equal(surfaces.length,1);assert.equal(privateContexts,1);
+  const owner=B.CacheRoadProof,surface=candidateBudget.mirrorSurface;
+  assert.equal(typeof owner.dispose,'function','exercise the actual production road lifecycle owner');
+  let audioStops=0,endingStops=0;
+  w.audioSystem={...w.audioSystem,stopRoadEngine(){audioStops++;}};
+  B.CacheEnding={dispose(){endingStops++;}};
+  owner.renderBudget=candidateBudget;owner.renderBudgetState={};owner.active=true;owner.pending=true;
+  const generation=owner.entryGeneration||0;
+  owner.state=w.nativeMirrorReview.newState();owner.chapter={};owner.oldHint=null;
+  const displayStates=contexts.map(({ctx})=>({alpha:ctx.globalAlpha,filter:ctx.filter,
+    composite:ctx.globalCompositeOperation,transform:JSON.stringify(ctx.getTransform())}));
+  owner.dispose();
+  assert.equal(surface.canvas.width,0);assert.equal(surface.canvas.height,0);
+  assert.equal(surface.canvas.image,null,'zero-sized contract surfaces release their actual native raster');
+  assert.equal(candidateBudget.mirrorSurface,null);assert.equal(owner.renderBudget,null);
+  assert.equal(owner.renderBudgetState,null);assert.equal(owner.active,false);assert.equal(owner.pending,false);
+  assert.equal(owner.entryGeneration,generation+1);
+  assert.equal(owner.state,null);assert.equal(owner.chapter,null);
+  assert.equal(audioStops,1);assert.equal(endingStops,1);
+  assert.deepEqual(contexts.map(({ctx})=>({alpha:ctx.globalAlpha,filter:ctx.filter,
+    composite:ctx.globalCompositeOperation,transform:JSON.stringify(ctx.getTransform())})),displayStates,
+    'disposing a private mirror resource never changes either display context');
+  owner.dispose();assert.equal(owner.renderBudget,null);assert.equal(owner.renderBudgetState,null);
+  assert.equal(privateContexts,1);assert.equal(reads,0);assert.equal(frames,0);
+  console.log(`PASS: ${cases} loaded-art native mirror comparisons using one bounded OffscreenCanvas contract model, zero display readbacks/VideoFrames, original curved glass/crop/blur/blend, paused/fade surface reuse, transformed fallback and pure gameplay/context state; actual OffscreenCanvas pixels remain a Chromium gate.`);
+  console.log('PASS: actual production road.dispose releases and zero-sizes the retained mirror surface, clears its budget/state references, preserves existing audio/ending cleanup and display contexts, and supports repeated disposal.');
+}
+
 const frameReviewCount=screens=>screens.length/3;
 async function browser(){
   const http=require('node:http'),os=require('node:os'),{spawn}=require('node:child_process'),{once}=require('node:events');
@@ -517,7 +948,7 @@ async function browser(){
   const chromePath=process.env.CHROME_BIN||'/usr/bin/google-chrome';
   let child,socket;
   const fixture=`<!doctype html><canvas id="gameCanvas" width="1920" height="1080"></canvas><script>
-    window.bitmapAttempts=[];window.contextCalls=0;
+    window.bitmapAttempts=[];window.bitmapCalls=[];window.contextCalls=0;
     const originalContext=HTMLCanvasElement.prototype.getContext;
     HTMLCanvasElement.prototype.getContext=function(...args){
       if(++contextCalls>1)throw Error('extra display Canvas context');return originalContext.apply(this,args);
@@ -529,7 +960,8 @@ async function browser(){
       descriptor.set.call(this,value);
     }});
     const bitmap=window.createImageBitmap.bind(window);
-    window.createImageBitmap=(image,...args)=>{bitmapAttempts.push(image.src);return bitmap(image,...args);};
+    window.createImageBitmap=(image,...args)=>{bitmapAttempts.push(image.src);
+      bitmapCalls.push({src:image.src,width:image.naturalWidth,height:image.naturalHeight,args});return bitmap(image,...args);};
     window.BARCODE={Campaign:{register(){},syncTitleButton(){}},GamepadUI:{connected:false},
       CacheChapter:{recordIds:['r1','r2','r3','r4']},Preferences:{values:{reducedMotion:false,flashes:true}}};
     window.audioSystem={context:{currentTime:0,state:'running'},playCombatCue(){}};
@@ -544,7 +976,7 @@ async function browser(){
       let road=fs.readFileSync(path.join(root,'src/game/cache-road-proof.js'),'utf8');
       const copyMarker='  function clipLightBlend(ctx,bounds) {';
       assert(road.includes(copyMarker),'exercise the actual sampled-world helper in Chromium');
-      road=road.replace(copyMarker,'  window.bitmapReview.copySampledWorldPixels=copySampledWorldPixels;window.bitmapReview.copyOpaqueCanvasPixels=copyOpaqueCanvasPixels;\n'+copyMarker);
+      road=road.replace(copyMarker,'  window.bitmapReview.copySampledWorldPixels=copySampledWorldPixels;window.bitmapReview.copyOpaqueCanvasPixels=copyOpaqueCanvasPixels;window.bitmapReview.copyBoundedMirrorPixels=copyBoundedMirrorPixels;window.bitmapReview.drawRearview=drawRearview;window.bitmapReview.mirrorOutline=mirrorOutline;\n'+copyMarker);
       assert(road.includes('const compositeBlur=ctx.canvas?.width>0'));
       road=road.replace('const compositeBlur=ctx.canvas?.width>0',
         "const compositeBlur=window.bitmapReview.mode!=='vector'&&ctx.canvas?.width>0");
@@ -589,14 +1021,70 @@ async function browser(){
     await send('Page.enable');await send('Runtime.enable');await send('Page.navigate',{url:origin});
     const result=await send('Runtime.evaluate',{awaitPromise:true,returnByValue:true,expression:`(async()=>{
       const started=performance.now();
-      while(!window.bitmapReview||Object.values(bitmapReview.cache).some(state=>!state.ready||state.rasterPending||state.nativePending||state.brakeTintPending)){
+      while(!window.bitmapReview||Object.values(bitmapReview.cache).some(state=>!state.ready||state.rasterPending||state.nativePending||state.nativeBackgroundPending||state.brakeTintPending)){
         if(performance.now()-started>45000)throw Error('assets did not prepare');await new Promise(r=>setTimeout(r,25));
       }
       const {entries,cache}=bitmapReview,svg=Object.keys(entries).filter(key=>entries[key].path.endsWith('.svg'));
       if(svg.some(key=>!(cache[key].bitmap instanceof ImageBitmap)))throw Error('SVG bitmap preparation failed');
       if(bitmapAttempts.filter(src=>src.endsWith('.svg')).length!==svg.length)throw Error('SVG preparations were duplicated');
-      const c=document.getElementById('gameCanvas'),ctx=c.getContext('2d'),P=BARCODE.PresentationAssets;
+      // Keep the normal accelerated backend while diagnostic readbacks drain
+      // draws. Production native driving never requests those pixel reads.
+      const c=document.getElementById('gameCanvas'),ctx=c.getContext('2d',{willReadFrequently:false}),P=BARCODE.PresentationAssets;
       const beforeSVG=bitmapAttempts.filter(src=>src.endsWith('.svg')).length,pixels=[];
+      const expectedBackgroundPlan=${JSON.stringify(nativeBackgroundPlan)},nativeBackgroundChecks=[];
+      // Compare actual Chromium ImageBitmaps with their original HTML images
+      // at unchanged native source coordinates, including transparent artwork.
+      const backgroundAttempts=bitmapCalls.length,backgroundDrawImage=ctx.drawImage;
+      try{
+        for(const [key,[width,height]]of Object.entries(expectedBackgroundPlan)){
+          const state=cache[key],entry=entries[key],prepared=state.nativeBackgroundBitmap;
+          if(!(prepared instanceof ImageBitmap)||prepared.width!==width||prepared.height!==height||
+              state.image.naturalWidth!==width||state.image.naturalHeight!==height)
+            throw Error('Native background dimensions/preparation failed '+key);
+          if(bitmapCalls.filter(call=>call.src.endsWith('/'+entry.path)&&!call.args.length).length!==1)
+            throw Error('Native background preparation resized, duplicated or omitted '+key);
+          const fw=width/entry.columns,fh=height/entry.rows;
+          try{
+            for(const scenario of ['plain','alpha-flip','filtered-transform','signed-crop']){
+              const frame=scenario==='plain'?entry.frames-1:entry.frames+1;
+              const args={x:216,y:180,width:228,height:124,frame,flip:scenario==='alpha-flip',
+                sourceRect:scenario==='signed-crop'?[fw-3,5,-fw+16,fh-12]:[7,5,fw-16,fh-12]};
+              let submitted;
+              ctx.drawImage=function(image,...crop){submitted={image,crop};return backgroundDrawImage.call(this,image,...crop);};
+              const paint=native=>{
+                ctx.reset();ctx.clearRect(0,0,c.width,c.height);ctx.save();ctx.translate(11,7);ctx.rotate(.017);
+                ctx.globalAlpha=scenario==='alpha-flip'?.37:1;
+                ctx.filter=scenario==='filtered-transform'?'blur(2.3px)':'none';ctx.imageSmoothingEnabled=false;ctx.imageSmoothingQuality='high';
+                ctx.beginPath();ctx.rect(23,17,403,204);ctx.clip();
+                state.nativeBackgroundBitmap=native?prepared:undefined;
+                const before=ctx.getTransform(),alpha=ctx.globalAlpha,filter=ctx.filter;
+                if(!P.draw(key,ctx,args))throw Error('Native background draw failed '+key);
+                if(JSON.stringify(ctx.getTransform())!==JSON.stringify(before)||ctx.globalAlpha!==alpha||ctx.filter!==filter||
+                    ctx.imageSmoothingEnabled!==false||ctx.imageSmoothingQuality!=='high'||P.rasterDetail(ctx)!==1)
+                  throw Error('Native background leaked caller state '+key+'/'+scenario);
+                if(submitted.image!==(native?prepared:state.image))throw Error('Native background selected an incorrect source '+key);
+                const index=Math.max(0,Math.floor(frame))%entry.frames;
+                const crop=[index%entry.columns*fw+args.sourceRect[0],Math.floor(index/entry.columns)*fh+args.sourceRect[1],...args.sourceRect.slice(2)];
+                if(JSON.stringify(submitted.crop.slice(0,4))!==JSON.stringify(crop))throw Error('Native background altered crop/cel addresses '+key);
+                ctx.restore();return ctx.getImageData(0,0,512,224).data;
+              };
+              const reference=paint(false),actual=paint(true);let difference=0,maxChannelDifference=0,maxAlphaDifference=0;
+              for(let i=0;i<actual.length;i++){const delta=Math.abs(actual[i]-reference[i]);
+                if(i%4===3)maxAlphaDifference=Math.max(maxAlphaDifference,delta);
+                else {difference+=delta;maxChannelDifference=Math.max(maxChannelDifference,delta);}}
+              const meanRGB=difference/(actual.length/4*3);
+              if(meanRGB>=.1||maxAlphaDifference!==0)throw Error('Native background fidelity failed '+key+'/'+scenario+' '+meanRGB+'/'+maxAlphaDifference);
+              nativeBackgroundChecks.push({key,scenario,width,height,meanRGB,maxChannelDifference,maxAlphaDifference});
+            }
+          }finally{state.nativeBackgroundBitmap=prepared;}
+        }
+      }finally{ctx.drawImage=backgroundDrawImage;ctx.reset();}
+      if(bitmapCalls.length!==backgroundAttempts)throw Error('Native background draws rebuilt the cache');
+      const backgroundInventory=Object.entries(cache).filter(([,state])=>state.nativeBackgroundBitmap||state.rasterBitmap)
+        .map(([key,state])=>({key,nativePixels:state.nativeBackgroundBitmap?state.nativeBackgroundBitmap.width*state.nativeBackgroundBitmap.height:0,
+          quarterPixels:state.rasterBitmap?state.rasterBitmap.width*state.rasterBitmap.height:0}));
+      const backgroundRetainedPixels=backgroundInventory.reduce((sum,item)=>sum+item.nativePixels+item.quarterPixels,0);
+      if(backgroundRetainedPixels>32*1024*1024)throw Error('Shared background bitmap retention exceeded its existing pixel bound');
       for(let repeat=0;repeat<2;repeat++){
         ctx.clearRect(0,0,c.width,c.height);ctx.save();ctx.translate(42,57);ctx.rotate(.013);ctx.globalAlpha=.7;
         P.draw('cacheOuterGround',ctx,{x:0,y:0,width:1530,height:850});
@@ -619,13 +1107,14 @@ async function browser(){
       road.active=true;road.status='playing';road.audioDegraded=false;
       road.selectMusicProfile();BARCODE.MusicTransport.start({sourceAnchorAudioSec:0,sourceOffsetTrackSec:0});
       const bitmaps=Object.fromEntries(svg.map(key=>[key,cache[key].bitmap]));
-       const nativeBitmaps=Object.fromEntries(Object.entries(cache).filter(([,state])=>state.nativeBitmap||state.nativeFrames||state.nativeWindows||state.brakeTintBitmap)
-         .map(([key,state])=>[key,{bitmap:state.nativeBitmap,frames:state.nativeFrames,windows:state.nativeWindows,tint:state.brakeTintBitmap}]));
+       const nativeBitmaps=Object.fromEntries(Object.entries(cache).filter(([,state])=>state.nativeBitmap||state.nativeFrames||state.nativeWindows||state.nativeBackgroundBitmap||state.brakeTintBitmap)
+         .map(([key,state])=>[key,{bitmap:state.nativeBitmap,frames:state.nativeFrames,windows:state.nativeWindows,background:state.nativeBackgroundBitmap,tint:state.brakeTintBitmap}]));
       const median=values=>{const v=values.slice().sort((a,b)=>a-b);return v[Math.floor(v.length/2)];};
       const rows=[],assetDraw=P.draw,bitmapFactory=window.createImageBitmap;
       const originalDrawImage=ctx.drawImage;let reflectionBlurs=0;
       const inspectDrawImage=function(source,...args){
-        if((source===c||typeof VideoFrame==='function'&&source instanceof VideoFrame)&&this.filter==='blur(2.3px)')reflectionBlurs++;
+        if((source===c||typeof VideoFrame==='function'&&source instanceof VideoFrame||
+          typeof OffscreenCanvas==='function'&&source instanceof OffscreenCanvas)&&this.filter==='blur(2.3px)')reflectionBlurs++;
         return originalDrawImage.call(this,source,...args);
       };
       const framePixels=new Map(),pixelComparisons=[],qualityComparisons=[],screens=[];
@@ -648,6 +1137,7 @@ async function browser(){
            cache[key].nativeBitmap=mode==='adaptive'?value.bitmap:undefined;
            cache[key].nativeFrames=mode==='adaptive'?value.frames:undefined;
            cache[key].nativeWindows=mode==='adaptive'?value.windows:undefined;
+           cache[key].nativeBackgroundBitmap=mode==='adaptive'?value.background:undefined;
            cache[key].brakeTintBitmap=mode==='adaptive'?value.tint:undefined;
          }
         road.chapter=structuredClone(scene.chapter);road.state=structuredClone(scene.state);
@@ -660,6 +1150,7 @@ async function browser(){
           ctx.reset();ctx.imageSmoothingQuality='high';measuredGroups={};reflectionBlurs=0;
           const began=performance.now();
           road.draw(ctx);const submitted=performance.now();ctx.getImageData(0,0,1,1);
+          if(mode==='adaptive'&&road.renderBudget.drawnScale!==1)throw Error('optimized production frames silently reduced native world detail');
           const elapsed=performance.now()-began;
           if(frame===45)console.log('FRAME_COST '+JSON.stringify({name:scene.name,mode,
             submitMs:submitted-began,flushMs:performance.now()-submitted}));
@@ -695,11 +1186,8 @@ async function browser(){
               }
               qualityComparisons.push({name:scene.name,worldScale:road.renderBudget.drawnScale,
                 meanRGB:difference/(1920*1080*3),nativeHUDMeanRGB:hudDifference/(1920*164*3)});
-              // Verify unchanged native geometry/art at full quality as well
-              // as reviewing the actual adaptive output saved above.
-              bitmapReview.fullQuality=true;ctx.reset();road.draw(ctx);
-              pixels=ctx.getImageData(0,0,c.width,c.height).data;
-              bitmapReview.fullQuality=false;
+              // Fidelity is judged on the actual displayed native painting.
+              // A separate full-quality repaint cannot conceal lost detail.
             }
             if(mode==='vector')framePixels.set(scene.name+'-vector',pixels);
             else {
@@ -730,7 +1218,7 @@ async function browser(){
       }
       for(const key of svg)cache[key].bitmap=bitmaps[key];
        for(const [key,value]of Object.entries(nativeBitmaps)){
-          cache[key].nativeBitmap=value.bitmap;cache[key].nativeFrames=value.frames;cache[key].nativeWindows=value.windows;cache[key].brakeTintBitmap=value.tint;
+          cache[key].nativeBitmap=value.bitmap;cache[key].nativeFrames=value.frames;cache[key].nativeWindows=value.windows;cache[key].nativeBackgroundBitmap=value.background;cache[key].brakeTintBitmap=value.tint;
         }
       window.createImageBitmap=bitmapFactory;bitmapReview.mode='adaptive';
       const frameComparisons=frameReviewScenes.map(({name})=>{
@@ -923,8 +1411,95 @@ async function browser(){
           throw Error('cropped mirror source changed original blur/caller pixels: '+JSON.stringify(row));
         mirrorSourceChecks.push(row);
       }
+      const mirrorSurfaceChecks=[];
+      const readPixels=ctx.getImageData.bind(ctx),OriginalOffscreenCanvas=window.OffscreenCanvas,
+        OriginalVideoFrame=window.VideoFrame,surfaceBudget={};
+      let surfaceReads=0,surfaceConstructed=0,surfaceContexts=0,surfaceFrames=0;
+      // Pixel reads occur only after each completed draw through the saved
+      // native method; the actual production helper cannot read either surface.
+      ctx.getImageData=()=>{surfaceReads++;throw Error('production mirror surface read the display');};
+      window.VideoFrame=class{constructor(){surfaceFrames++;throw Error('mirror surface created a VideoFrame');}};
+      window.OffscreenCanvas=class{
+        constructor(width,height){
+          if(width!==714||height!==141)throw Error('mirror surface exceeded its fixed native bound');
+          surfaceConstructed++;
+          const canvas=new OriginalOffscreenCanvas(width,height),getContext=canvas.getContext.bind(canvas);
+          canvas.getContext=(kind,options)=>{
+            surfaceContexts++;
+            if(kind!=='2d'||options.alpha!==true||options.colorSpace!=='srgb')
+              throw Error('mirror surface changed alpha/color space');
+            const privateContext=getContext(kind,options);
+            privateContext.getImageData=()=>{surfaceReads++;throw Error('production mirror surface read private pixels');};
+            return privateContext;
+          };
+          return canvas;
+        }
+      };
+      const compareSurface=(scenario,paint,draw,expectedUsed)=>{
+        paint();draw(null);
+        const original=readPixels(0,0,c.width,c.height).data;
+        paint();const budget=surfaceBudget;draw(budget);
+        const candidate=readPixels(0,0,c.width,c.height).data;
+        let rgb=0,maxAlpha=0;
+        for(let index=0;index<original.length;index++){
+          const delta=Math.abs(original[index]-candidate[index]);
+          if(index%4===3)maxAlpha=Math.max(maxAlpha,delta);else rgb+=delta;
+        }
+        const row={scenario,used:budget.mirrorPixelCopyUsed,meanRGB:rgb/(c.width*c.height*3),
+          maxAlphaDifference:maxAlpha,constructed:surfaceConstructed,privateContexts:surfaceContexts,
+          readbacks:surfaceReads,videoFrames:surfaceFrames,surfaceWidth:budget.mirrorSurface?.canvas.width,
+          surfaceHeight:budget.mirrorSurface?.canvas.height};
+        if(row.meanRGB>=.1||maxAlpha||row.used!==expectedUsed||surfaceReads||surfaceFrames||
+          surfaceConstructed!==1||surfaceContexts!==1||budget.mirrorSurfaceUnavailable||
+          row.surfaceWidth!==714||row.surfaceHeight!==141)
+          throw Error('bounded mirror surface changed original curved mirror/alpha/caller pixels: '+JSON.stringify(row));
+        mirrorSurfaceChecks.push(row);
+      };
+      try{
+        for(const scenario of ['opaque','alpha']){
+          const paint=()=>{
+            ctx.reset();const gradient=ctx.createLinearGradient(0,0,c.width,c.height);
+            gradient.addColorStop(0,'#1d7d99');gradient.addColorStop(.42,'#9b4f74');gradient.addColorStop(1,'#dc805b');
+            ctx.fillStyle=gradient;ctx.fillRect(0,0,c.width,c.height);
+            ctx.fillStyle='#fae986';ctx.fillRect(720,45,63,34);
+            if(scenario==='alpha')ctx.clearRect(650,30,7,13);
+            bitmapReview.mirrorOutline(ctx,638,12,690,117);ctx.clip();
+            ctx.globalCompositeOperation='source-over';ctx.filter='blur(2.3px)';
+          };
+          compareSurface('curved-'+scenario,paint,budget=>{
+            if(budget)budget.mirrorPixelCopyUsed=bitmapReview.copyBoundedMirrorPixels(ctx,
+              626,0,714,141,626,0,714,141,budget,true);
+            else ctx.drawImage(c,626,0,714,141,626,0,714,141);
+          },true);
+        }
+        const state=frameReviewScenes.find(scene=>scene.name==='Focused-Turn').state;
+        const stateBefore=JSON.stringify(state);
+        for(const caller of ['native','paused','fade','transformed']){
+          let callerContext,before;
+          const paint=()=>{
+            ctx.reset();ctx.fillStyle='#26364a';ctx.fillRect(0,0,c.width,c.height);
+            if(caller==='transformed')ctx.setTransform(.75,0,0,.75,120,10);
+            ctx.globalAlpha=.73;
+            before=JSON.stringify({alpha:ctx.globalAlpha,filter:ctx.filter,composite:ctx.globalCompositeOperation,
+              matrix:[ctx.getTransform().a,ctx.getTransform().b,ctx.getTransform().c,ctx.getTransform().d,ctx.getTransform().e,ctx.getTransform().f]});
+            callerContext=caller==='fade'?BARCODE.CacheRoadCinematics.withHUDAlpha(ctx,.4):ctx;
+          };
+          compareSurface('loaded-art-'+caller,paint,budget=>{
+            bitmapReview.drawRearview(callerContext,state,'#8fe3db',false,undefined,null,null,
+              false,caller==='native',budget);
+            const after=JSON.stringify({alpha:ctx.globalAlpha,filter:ctx.filter,composite:ctx.globalCompositeOperation,
+              matrix:[ctx.getTransform().a,ctx.getTransform().b,ctx.getTransform().c,ctx.getTransform().d,ctx.getTransform().e,ctx.getTransform().f]});
+            if(after!==before||JSON.stringify(state)!==stateBefore)
+              throw Error('bounded mirror reflection mutated caller state or gameplay');
+          },caller!=='transformed');
+        }
+        if(surfaceConstructed!==1||surfaceContexts!==1||surfaceFrames||surfaceReads)
+          throw Error('bounded mirror surface allocation/reuse changed');
+      }finally{
+        ctx.getImageData=readPixels;window.VideoFrame=OriginalVideoFrame;window.OffscreenCanvas=OriginalOffscreenCanvas;
+      }
       ctx.reset();
-      return {passed:true,performancePass,aggregateRatio,frameComparisons,frameSamples:rows,pixelComparisons,screens,viewportChecks,tintSourceChecks,worldSourceChecks,mirrorSourceChecks,
+      return {passed:true,performancePass,aggregateRatio,frameComparisons,frameSamples:rows,pixelComparisons,screens,viewportChecks,tintSourceChecks,worldSourceChecks,mirrorSourceChecks,mirrorSurfaceChecks,nativeBackgroundChecks,backgroundInventory,backgroundRetainedPixels,
         preparedSVGs:svg.length,qualityComparisons,absoluteFrameBudgetMs,reflectionBlursPerFrame:1,warmDraws:120,pausedPixels:true,displayContexts:contextCalls,
         preservedMirrorFilter:'blur(2.3px)',limitation:'Real Chromium loader/cache validation; owner device FPS remains unmeasured.'};
     })()`});
@@ -956,7 +1531,7 @@ async function browser(){
     const encoded=sheet.toBuffer('image/webp',80).toString('base64');
     for(let at=0;at<encoded.length;at+=24000)
       console.log('FRAME_REVIEW '+String(at/24000).padStart(4,'0')+' '+encoded.slice(at,at+24000));
-    assert(report.performancePass,'adaptive world painting must cut PR180 frame/raster cost by 25 percent, avoid a scene regression, and fit the 30 Hz diagnostic frame budget');
+    assert(report.performancePass,'native world painting must cut PR180 frame/raster cost by 25 percent, avoid a scene regression, and fit the 30 Hz diagnostic frame budget');
     assert(report.pixelComparisons.every(row=>row.meanRGB<1),
       'one reflection blur and SVG preparation must preserve loaded production appearance within one mean RGB level');
   }finally{
@@ -975,4 +1550,4 @@ async function browser(){
     await fs.promises.rm(profile,{recursive:true,force:true,maxRetries:20,retryDelay:100});
   }
 }
-(async()=>{await unit();await backgroundRasterUnit();await nativeRasterUnit();await nativeSmallUnit();await nativeWindowUnit();await nativeTintUnit();budgetUnit();worldCopyUnit();if(process.argv.includes('--browser'))await browser();})().catch(e=>{console.error(e.stack);process.exitCode=1;});
+(async()=>{await unit();await backgroundRasterUnit();await nativeBackgroundUnit();await nativeBackgroundArtUnit();await nativeRasterUnit();await nativeSmallUnit();await nativeWindowUnit();await nativeTintUnit();budgetUnit();mirrorSourceUnit();worldCopyUnit();reflectionBlurCounterUnit();mirrorSurfaceUnit();await nativeMirrorCanvasUnit();if(process.argv.includes('--browser'))await browser();})().catch(e=>{console.error(e.stack);process.exitCode=1;});

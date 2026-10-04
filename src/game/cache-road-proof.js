@@ -428,6 +428,53 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     if(!used)ctx.drawImage(ctx.canvas,sx,sy,width,height,dx,dy,dw,dh);
     return used;
   }
+  function copyBoundedMirrorPixels(ctx,sx,sy,width,height,dx,dy,dw,dh,budget,preferSurface=true) {
+    let used=false;
+    // This fixed native crop is a presentation resource on the existing
+    // road/frame owner. Reuse its private context; never read display pixels
+    // or retain a full-display snapshot while painting the blurred result.
+    const bounded=preferSurface&&budget&&!budget.mirrorSurfaceUnavailable&&
+      typeof window.HTMLCanvasElement==='function'&&
+      ctx.canvas instanceof window.HTMLCanvasElement&&
+      typeof window.OffscreenCanvas==='function'&&
+      typeof ctx.getContextAttributes==='function'&&
+      [sx,sy,width,height].every(Number.isInteger)&&sx>=0&&sy>=0&&
+      width===714&&height===141&&
+      sx+width<=ctx.canvas.width&&sy+height<=ctx.canvas.height;
+    if(bounded)try {
+      if(ctx.getContextAttributes()?.colorSpace==='srgb') {
+        if(!budget.mirrorSurface) {
+          const canvas=new window.OffscreenCanvas(width,height);
+          budget.mirrorSurface={canvas,context:null};
+          const context=canvas.getContext('2d',{alpha:true,colorSpace:'srgb'});
+          if(!context||context.getContextAttributes?.().colorSpace!=='srgb')
+            throw Error('Native mirror surface unavailable');
+          budget.mirrorSurface.context=context;
+        }
+        const surface=budget.mirrorSurface,copy=surface.context;
+        if(copy.isContextLost?.())throw Error('Native mirror context lost');
+        copy.save();
+        try {
+          copy.setTransform(1,0,0,1,0,0);copy.globalAlpha=1;
+          copy.globalCompositeOperation='copy';copy.filter='none';
+          copy.imageSmoothingEnabled=false;
+          copy.drawImage(ctx.canvas,sx,sy,width,height,0,0,width,height);
+        }finally {copy.restore();}
+        if(copy.isContextLost?.())throw Error('Native mirror context lost');
+        ctx.drawImage(surface.canvas,0,0,width,height,dx,dy,dw,dh);
+        used=true;
+      }
+    }catch(error) {
+      // Unsupported hosts retain the original copy without repeated failures.
+      if(budget.mirrorSurface) {
+        budget.mirrorSurface.canvas.width=0;budget.mirrorSurface.canvas.height=0;
+        budget.mirrorSurface=null;
+      }
+      budget.mirrorSurfaceUnavailable=true;
+    }
+    if(!used)ctx.drawImage(ctx.canvas,sx,sy,width,height,dx,dy,dw,dh);
+    return used;
+  }
   function clipLightBlend(ctx,bounds) {
     const matrix=ctx.getTransform?.();
     // Native/non-DOM hosts keep their original blend path exactly; their
@@ -1107,10 +1154,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           m.d===1&&m.e===0&&m.f===0;
         ctx.globalCompositeOperation=opaqueNative?'source-over':'copy';
         ctx.filter = 'blur(2.3px)';
-        // Crop the opaque native source before applying the same single blur.
-        // Original self-copy preserves all other caller/viewport semantics.
-        if(pixelBudget)pixelBudget.mirrorPixelCopyUsed=copyOpaqueCanvasPixels(ctx,
-          sx,sy,right-sx,bottom-sy,sx,sy,right-sx,bottom-sy,pixelBudget,opaqueNative);
+        // Copy the exact native reflection into one bounded reusable surface
+        // before the original blurred composite writes back into the display.
+        if(pixelBudget)pixelBudget.mirrorPixelCopyUsed=copyBoundedMirrorPixels(ctx,
+          sx,sy,right-sx,bottom-sy,sx,sy,right-sx,bottom-sy,pixelBudget,true);
         else ctx.drawImage(ctx.canvas,sx,sy,right-sx,bottom-sy,sx,sy,right-sx,bottom-sy);
         ctx.restore();
       }
@@ -1140,7 +1187,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     glass.addColorStop(0, '#0e1b2d'); glass.addColorStop(.53, '#394a60');
     glass.addColorStop(1, '#10232e');
     ctx.fillStyle = glass; ctx.fillRect(x, y, w, h);
-    const priorRasterDetail=B.PresentationAssets?.setRasterDetail?.(ctx,boundedClip?.25:1)??1;
+    const priorRasterDetail=B.PresentationAssets?.setRasterDetail?.(ctx,1)??1;
     try {drawRearRoad(ctx,s,x,y,w,h,accent,reduced,heightSample,combatPose,crosswalkPose,opaqueBackdrop,pixelBudget);}
     finally {B.PresentationAssets?.setRasterDetail?.(ctx,priorRasterDetail);}
     // Cache sits on the driver's side. His eyes face the windshield
@@ -2540,6 +2587,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       if (hint && this.oldHint !== null) hint.textContent = this.oldHint;
       this.oldHint = null;
       B.CacheEnding?.dispose?.();
+      if(this.renderBudget?.mirrorSurface) {
+        this.renderBudget.mirrorSurface.canvas.width=0;
+        this.renderBudget.mirrorSurface.canvas.height=0;
+        this.renderBudget.mirrorSurface=null;
+      }
+      this.renderBudget=null;this.renderBudgetState=null;
       this.active = false; this.status = null; this.state = null; this.chapter = null;
       this.returnTo = null; this.exiting = false; this.audioDegraded = false; this.introMs = null;
       this.handoffMs=null;this.outroMs=null;
@@ -3599,7 +3652,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         this.renderBudget=budgetOwner.create();this.renderBudgetState=live;
       }
       if(budgetEligible){this.renderBudget.worldPixelCopyUsed=false;this.renderBudget.mirrorPixelCopyUsed=false;}
-      const worldScale=budgetEligible?this.renderBudget.scale:1;
+      // Native artwork quality is unconditional; the budget records cost only.
+      const worldScale=1;
       const assets=B.PresentationAssets;
       const priorRasterDetail=assets?.setRasterDetail?.(ctx,worldScale)??1;
       const priorDecorationDetail=assets?.setDecorationDetail?.(ctx,worldScale)??1;
@@ -3773,7 +3827,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       };
       const beat = reduced ? 0 : s.musicBeatFloat || 0;
       const stack = Math.min(4,s.captures?.length || 0);
-      const beatPulse = reduced ? 0 : Math.pow(1-((beat%1+1)%1),5);
+      const beatPulse = reduced || window.BARCODE_RENDER_QUALITY?.flashes===false ? 0 :
+        Math.pow(1-((beat%1+1)%1),5);
       const energy = stack/4 + (s.boostMs ? .3 : 0) + beatPulse*.27;
       const hue = (186 + section*65 + Math.sin(beat*.31)*55 + energy*37 + 360)%360;
       const sky = ctx.createLinearGradient(0, 0, 0, horizon + 70);
@@ -4391,7 +4446,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // Adjacent slices read adjacent texels from horizon to car. Advancing
       // progress decreases the source offset so a mark moves toward the car.
       // Blend the wrap over the last 108 pixels into the first 108 pixels.
-      ctx.save();
+      ctx.save(); ctx.clip();
       for (let i = 0; i < 28; i++) {
         let c=((-progress*.82+i*22)%616+616)%616, consumed=0;
         while (consumed<22) {
@@ -5311,9 +5366,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       ctx.fillStyle='#bcebd3';ctx.font='bold 17px Oxanium, monospace';
       ctx.fillText(String(s.score).padStart(6,'0'),410,131,73);
       ctx.font='bold 12px Oxanium, monospace';ctx.fillText(`×${stackSize(s)}`,488,131,27);
-      drawRearview(ctx, s, ['#f6adbb', '#f3b276', '#d2a4f9', '#9aefce'][section], reduced,heightSample,combatPose,crosswalkPose,worldScale<1,
-        frameContext===ctx&&this.status==='playing'&&intro===null&&
-          (!cinema||cinema.hudAlpha===1)&&worldScale<1,budgetEligible?this.renderBudget:null);
+      const nativeMirror=budgetEligible&&frameContext===ctx&&
+        typeof window.HTMLCanvasElement==='function'&&ctx.canvas instanceof window.HTMLCanvasElement&&
+        this.status==='playing'&&intro===null&&(!cinema||cinema.hudAlpha===1);
+      drawRearview(ctx, s, ['#f6adbb', '#f3b276', '#d2a4f9', '#9aefce'][section], reduced,heightSample,combatPose,crosswalkPose,
+        false,nativeMirror,budgetEligible?this.renderBudget:null);
       ctx.fillStyle = '#e4ede5'; ctx.font = 'bold 18px Oxanium, monospace'; ctx.textAlign = 'left';
       // Preview the next lane/action before its bar is committed, without
       // inventing a deadline or sliding a future pad when the gear changes.
