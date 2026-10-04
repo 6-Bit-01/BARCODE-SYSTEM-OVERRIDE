@@ -60,12 +60,22 @@ assert.deepEqual(result.main.cacheCrewCallouts,[0,1,2]);
 assert(!result.mirror.cacheCrewCallouts,'crew portraits belong only to the main HUD');
 assert.deepEqual(result.authoredBeatKeys,['cacheBeatHardware','cacheBeatEnergy','cacheBeatTiming']);
 for(const [key,count] of [['cacheBeatHardware',8],['cacheBeatEnergy',12],['cacheBeatTiming',8]]) {
-  assert.deepEqual(result.main[key],Array.from({length:count},(_,i)=>i),
-    `${key}: actual world/HUD draws every new cel through real chart timing and receipts`);
+  assert.equal(definitions[key].frames,count,`${key}: all native source cels remain registered`);
+  const liveFrames={cacheBeatHardware:[0,1,2,3,4,5,6,7],cacheBeatEnergy:[],cacheBeatTiming:[0,1,2]}[key];
+  assert.deepEqual(result.minimalBeatLiveFrames[key],liveFrames);
+  assert.deepEqual(result.main[key]||[],liveFrames,
+    `${key}: actual chart draws only the intentional minimal ground cells`);
   assert(!result.mirror[key],`${key}: ground timing remains in the main driving view`);
 }
 assert.deepEqual([...new Set(result.beatReceipts.map(receipt=>receipt.kind))].sort(),['good','miss','perfect']);
+assert.deepEqual([...new Set(result.beatHUDReceipts.map(receipt=>receipt.quality))].sort(),['good','miss','perfect'],
+  'real Perfect/Good/Miss judgments, actual values and nonzero deltas remain visible in the existing HUD');
+assert(result.beatHUDReceipts.some(receipt=>receipt.delta>0&&receipt.texts.includes(receipt.deltaText)),
+  'the actual earned HUD retains its bounded positive adrenaline gain');
+assert(result.groundReceipt.calls>0&&result.groundReceipt.handled===result.groundReceipt.calls);
+assert.equal(result.groundReceipt.assetSubmissions,0);
+assert.equal(result.groundReceipt.textPaints,0);
 assert.equal(loaded.length,Object.keys(definitions).length);
 assert(stack.length===0,'all production canvas scopes restored');
 if(process.argv[2])fs.writeFileSync(process.argv[2],JSON.stringify(result,null,2)+'\n');
-console.log(`Cache Road animation routes passed: ${result.animatedKeys} atlas keys (${result.legacyAnimatedKeys} legacy plus five combat, two contact-feedback and three beat-system), ${result.productionDraws} production draws, ${atlasDraws} image submissions; all cels, both walking views/banks and rearview, all prop/ambient families, owner-selected mirror moods, ships, eight pursuit poses, four live impacts, all 32 combat body cells and six blood cells in both cameras, 12 front projectile/contact cells, three main-HUD crew portraits, all 28 beat cels through actual chart/Good/Perfect/miss receipts, and Reduced Motion. Staged physical-contact/isolated-lane diagnostics remain separate from complete earned-input race evidence.`);
+console.log(`Cache Road animation routes passed: ${result.animatedKeys} atlas keys (${result.legacyAnimatedKeys} legacy plus five combat, two contact-feedback and three beat-system), ${result.productionDraws} production draws, ${atlasDraws} image submissions; all retained legacy/combat/contact cels, both walking views/banks and rearview, all prop/ambient families, owner-selected mirror moods, ships, eight pursuit poses, four live impacts, all 32 combat body cells and six blood cells in both cameras, 12 front projectile/contact cells, three main-HUD crew portraits, all 28 native beat source cels registered, eight live hardware cells and ring cells 0/1/2, zero live energy or ground receipt paint, actual Good/Perfect/Miss HUD results and deltas, and Reduced Motion. Staged physical-contact/isolated-lane diagnostics remain separate from complete earned-input race evidence.`);

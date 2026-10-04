@@ -5,6 +5,7 @@ on:
       - agent/level2-frame-pacing-repair
       - agent/level2-raster-work-repair
       - agent/native-road-quality-repair
+      - agent/level2-minimal-road-cues
       - main
   pull_request:
     paths:

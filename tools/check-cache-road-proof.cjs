@@ -1207,18 +1207,21 @@ async function run() {
   assert(Math.abs(timingLabels[0].y-6-(400+.83*.83*680-119*.14))<1e-9,
     'the drawn timing line and the announced pad share the rear tire contact');
   const phrase={lane:0,startBeat:32,endBeat:64};
+  const phraseJSON=JSON.stringify(phrase);
   mirrorFrame({progress:385,musicBeatFloat:32,captures:[],queuedCaptures:[phrase]});
   assert(!drawOrder.includes('cacheConfirmedBar') &&
-    drawOrder.includes('cachePhraseStrip'),
-    'an unconfirmed phrase keeps a subdued preview');
+    !drawOrder.includes('cachePhraseStrip') && litRunways.length===0,
+    'queued phrases submit no decorative road preview or lane wash');
+  assert.equal(JSON.stringify(road.state.queuedCaptures),`[${phraseJSON}]`,
+    'omitting paint preserves the queued phrase world/beat address');
   mirrorFrame({progress:385,musicBeatFloat:32,captures:[phrase],queuedCaptures:[]});
   const confirmed=roadArt.filter(entry=>entry.key==='cacheConfirmedBar');
-  assert.equal(confirmed.length,2,'only the committed road bar is painted; future gear sections are not guessed');
-  assert.equal(litRunways.length,1,'one continuous lane wash follows the committed bar');
-  assert(litRunways[0][12].y-litRunways[0][0].y>100 &&
-    confirmed.every(entry=>entry.alpha===.30 && entry.projected?.length===6) &&
-    drawOrder.indexOf('cacheConfirmedBar')<drawOrder.indexOf('cacheFreight'),
-    'subdued captured phrases follow road depth and stay beneath traffic');
+  assert.equal(confirmed.length,0,'committed phrases do not add projected texture layers');
+  assert.equal(litRunways.length,0,'committed phrases do not add a broad translucent lane wash');
+  assert.equal(JSON.stringify(road.state.captures),`[${phraseJSON}]`);
+  assert.equal(JSON.stringify(phrase),phraseJSON,'draw cannot rewrite capture duration or lane');
+  assert(drawOrder.includes('cacheFreight')&&drawOrder.includes('cacheBlacktop'),
+    'ordinary native road and traffic remain while decorative phrase paint is omitted');
   mirrorFrame({ progress: 130, pulseFlashMs: 500 });
   assert(drawOrder.includes('cachePulseBurst'),
     'a successful catch gets its own brief painted HUD burst');

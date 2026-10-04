@@ -184,20 +184,43 @@ const instrument=${instrument.toString()},Driver=${Driver.toString()},
   observeCombat=${observeCombat.toString()},CombatDriver=${CombatDriver.toString()};
 const originalAssetDraw=BARCODE.PresentationAssets.draw;
 const beatArt=BARCODE.CacheRoadBeatFeedback;
-browserProof.beatPaints={targets:0,pads:0,earned:0,earnedCustom:0,earnedCustomKeys:[],qualities:[],gains:[]};
+let beatHUDTexts=null,groundReceiptActive=false;
+browserProof.assetSubmissions=0;browserProof.beatFrames={};
+browserProof.beatPaints={targets:0,pads:0,earned:0,receiptCalls:0,receiptHandled:0,
+  receiptAssetSubmissions:0,receiptTextPaints:0,qualities:[],gains:[],hudReceipts:[]};
 BARCODE.CacheRoadBeatFeedback={...beatArt,
   drawTarget(...args){browserProof.beatPaints.targets++;return beatArt.drawTarget(...args);},
   drawPad(...args){const painted=beatArt.drawPad(...args);if(painted)browserProof.beatPaints.pads++;return painted;},
   drawReceipt(ctx,state,options){
-    const before=Object.fromEntries(${JSON.stringify(beatKeys)}.map(key=>[key,browserProof.drawn[key]||0]));
-    const painted=beatArt.drawReceipt(ctx,state,options),pose=beatArt.feedbackPose(state,options);
-    if(painted&&pose?.success){browserProof.beatPaints.earned++;
-      browserProof.beatPaints.qualities.push(pose.quality);browserProof.beatPaints.gains.push(pose.delta);
-      const customKeys=${JSON.stringify(beatKeys)}.filter(key=>(browserProof.drawn[key]||0)>before[key]);
-      if(customKeys.length){browserProof.beatPaints.earnedCustom++;
-        browserProof.beatPaints.earnedCustomKeys.push(...customKeys);}}
-    return painted;
+    const before=browserProof.assetSubmissions,previous=groundReceiptActive;
+    const counters=browserProof.beatPaints;counters.receiptCalls++;groundReceiptActive=true;
+    try{
+      const handled=beatArt.drawReceipt(ctx,state,options),pose=beatArt.feedbackPose(state,options);
+      if(handled===true)counters.receiptHandled++;
+      if(pose?.success){counters.earned++;counters.qualities.push(pose.quality);counters.gains.push(pose.delta);}
+      return handled;
+    }finally{counters.receiptAssetSubmissions+=browserProof.assetSubmissions-before;groundReceiptActive=previous;}
   }};
+const beatInstruments=BARCODE.CacheRoadInstruments,seenHUDReceipts=new Set();
+BARCODE.CacheRoadInstruments={...beatInstruments,drawAdrenaline(ctx,state,options){
+  const previous=beatHUDTexts,texts=[];beatHUDTexts=texts;
+  try{
+    const result=beatInstruments.drawAdrenaline(ctx,state,options),reward=beatInstruments.rewardPose(state,options);
+    if(reward?.recent&&['perfect','good','miss'].includes(reward.a.lastResult)){
+      const a=reward.a,label=a.lastResult.toUpperCase(),delta=a.lastDelta,
+        deltaText=delta?(delta>0?'+':'')+delta:null;
+      if(!texts.includes(label)||!texts.includes(String(Math.round(a.value)))||
+        deltaText&&!texts.includes(deltaText)||!delta&&reward.earned&&a.value===100&&!texts.includes('MAX'))
+        throw Error('Existing adrenaline HUD omitted actual '+a.lastResult+' judgment/value/delta');
+      const id=[a.lastAtMs,a.lastResult,delta,a.value].join(':');
+      if(!seenHUDReceipts.has(id)){
+        seenHUDReceipts.add(id);browserProof.beatPaints.hudReceipts.push({quality:a.lastResult,
+          delta,value:a.value,chain:a.chain,paired:reward.paired,texts,deltaText});
+      }
+    }
+    return result;
+  }finally{beatHUDTexts=previous;}
+}};
 browserProof.combatPaints={kinds:{},wrecks:0,riders:0,flips:0,reduced:0,blasts:0,blastFrames:[],noFlashFrames:[],reducedBlastDraws:0};
 const combatArt=BARCODE.CacheRoadCombatArt;
 if(combatArt)BARCODE.CacheRoadCombatArt={...combatArt,drawBody(ctx,options){
@@ -221,13 +244,19 @@ if(combatArt)BARCODE.CacheRoadCombatArt={...combatArt,drawBody(ctx,options){
 browserProof.texts=[];browserProof.textPaints=[];browserProof.traceTextAlpha=false;
 const nativeFillText=CanvasRenderingContext2D.prototype.fillText;
 CanvasRenderingContext2D.prototype.fillText=function(value,...args){
+  if(beatHUDTexts)beatHUDTexts.push(String(value));
+  if(groundReceiptActive)browserProof.beatPaints.receiptTextPaints++;
   if(browserProof.texts.length<20000)browserProof.texts.push(String(value));
   if(browserProof.traceTextAlpha&&browserProof.textPaints.length<20000)
     browserProof.textPaints.push({value:String(value),alpha:this.globalAlpha});
   return nativeFillText.call(this,value,...args);
 };
-BARCODE.PresentationAssets.draw=function(key,...args){const ready=originalAssetDraw.call(this,key,...args);
-  if(ready)browserProof.drawn[key]=(browserProof.drawn[key]||0)+1;return ready;};
+BARCODE.PresentationAssets.draw=function(key,...args){browserProof.assetSubmissions++;
+  const ready=originalAssetDraw.call(this,key,...args);
+  if(ready){browserProof.drawn[key]=(browserProof.drawn[key]||0)+1;
+    if(${JSON.stringify(beatKeys)}.includes(key)){
+      const frames=browserProof.beatFrames[key]||(browserProof.beatFrames[key]={});frames[args[1]?.frame??0]=true;
+    }}return ready;};
 const originalUpdate=BARCODE.CacheRoadProof.update,originalRoadDraw=BARCODE.CacheRoadProof.draw;
 browserProof.trafficGuards=[];browserProof.guardAttempts=0;browserProof.lastGuardPressMs=-10000;
 browserProof.pedestrianContacts=[];
@@ -757,7 +786,13 @@ async function main(){
   assert(drawnWreck&&drawnRider&&drawnFlip,'an actually destroyed bike/car is rendered with physical flip and separated rider');
   assert(paintSessions.some(session=>session.wrecks>0&&session.riders>0&&session.flips>0),
     'the actual production painter returns successful wreck, airborne-rider and rotating-chassis paints');
-  for(const key of assets.map(asset=>asset.key))assert(allDrawn[key]>0,`the native production race paints ${key}`);
+  for(const key of assets.map(asset=>asset.key).filter(key=>key!=='cacheBeatEnergy'))
+    assert(allDrawn[key]>0,`the native production race paints ${key}`);
+  assert.equal(allDrawn.cacheBeatEnergy||0,0,'native race submits no omitted ground energy texture');
+  const beatFrames=await evaluate('Object.fromEntries(Object.entries(browserProof.beatFrames).map(([key,frames])=>[key,Object.keys(frames).map(Number).sort((a,b)=>a-b)]))');
+  assert((beatFrames.cacheBeatHardware||[]).every(frame=>Number.isInteger(frame)&&frame>=0&&frame<8));
+  assert((beatFrames.cacheBeatTiming||[]).every(frame=>[0,1,2].includes(frame)),
+    'native ground timing submits only approach/charging/ONE cells');
   for(const kind of ['bike','rammer','escort','disruptor'])
     assert(paintSessions.some(session=>session.kinds[kind]>0),`the actual ${kind} is painted in the played chase`);
   assert(paintSessions.every(session=>session.reducedBlastDraws===0));
@@ -767,11 +802,17 @@ async function main(){
   assert.equal(state.rewardFacts.items.filter(item=>item==='stem.bass').length,1);
   const beatPaints=await evaluate('browserProof.beatPaints');
   assert(beatPaints.targets>0&&beatPaints.pads>0&&beatPaints.earned>0,
-    'actual native race paints the new ground target, physical pads and earned adrenaline receipts');
+    'actual native race paints readable ground targets/pads and retains genuinely earned receipt facts');
   assert(beatPaints.gains.some(gain=>gain>0&&gain<=20),
-    'an earned native ground receipt shows a real bounded positive adrenaline gain');
-  assert(beatPaints.earnedCustom>0&&beatPaints.earnedCustomKeys.includes('cacheBeatTiming'),
-    'at least one real earned native receipt submits custom beat artwork and its quality shell');
+    'an actual native judgment retains a real bounded positive adrenaline gain');
+  assert(beatPaints.receiptCalls>0&&beatPaints.receiptHandled===beatPaints.receiptCalls,
+    'ground receipt owner handles every call so the old fallback remains suppressed');
+  assert.equal(beatPaints.receiptAssetSubmissions,0,'ground receipt submits no texture');
+  assert.equal(beatPaints.receiptTextPaints,0,'ground receipt paints no duplicate text');
+  assert(beatPaints.hudReceipts.some(receipt=>receipt.paired&&receipt.delta>0&&receipt.delta<=20&&
+    ['perfect','good'].includes(receipt.quality)&&receipt.texts.includes(receipt.quality.toUpperCase())&&
+    receipt.texts.includes(receipt.deltaText)),
+    'existing native HUD renders an actually earned judgment and its exact positive gain');
   assert.equal(await evaluate('document.querySelectorAll("canvas").length'),1);
   assert.equal(await evaluate('browserProof.contexts'),1);assert.equal(await evaluate('browserProof.extraCanvases'),0);
   assert.equal(await evaluate('browserProof.worldUpdates'),0);assert(state.guidanceCalls>0);
@@ -936,7 +977,7 @@ async function main(){
   assert.deepEqual(sourceHashes(),initialSourceHashes,'source and authored assets remain frozen throughout the browser race');
   receipt={passed:true,assetDelivery:requireHosted?'immutable-hosted':'bundled',decoded,zeroSync,frames,bossHp,
     state,events:allEvents,restoreReceipt,comfort,cinematicNative,drawn:allDrawn,combatPaintSessions:paintSessions,drawSamples,trafficGuards,
-    renderedControlLabels:[...new Set(labels)],beatPaints,requests,errors,minimumDrums,
+    renderedControlLabels:[...new Set(labels)],beatPaints,beatFrames,requests,errors,minimumDrums,
     simulationFrames:totalFrames,driverFrames:totalDriverFrames,sharedRafUpdates:totalRafUpdates,
     nativeCanvasSamples:totalSamples,fullLoopTiming,sourceHashes:initialSourceHashes,sourceStableThroughoutRun:true,
     checks:{nativeControllerAndAnalogTriggers:true,zeroSyncFourSkills:true,actualWeaponBossDamage:true,
@@ -947,7 +988,8 @@ async function main(){
       reducedMotionNoFlashesDrawn:true,nativeOpeningNoHUD:true,nativeExistingContextHUDFade:true,
       unscoredStagedRam:true,nativeEarnedHorizonExit:true,freshOutroSkip:true,
       nativeGroundTimingAndEarnedAdrenalinePaint:true,customBeatSheetsDecodedAndHashed:true,
-      immutableBeatSourceAttempt:true,customBeatProjectionOwnerLoaded:true,earnedCustomBeatReceipt:true,
+      immutableBeatSourceAttempt:true,customBeatProjectionOwnerLoaded:true,minimalGroundReceiptNoWork:true,
+      existingHUDEarnedJudgmentAndDelta:true,noLiveGroundEnergy:true,
       oneCanvas:true,stateInjection:false},
     limits:'Production scripts in index order, controlled saved bridge-ready entry, native Chromium input/Canvas, every shared-RAF simulation update and selected Canvas samples. Does not exercise title boot or every display frame. Audio clock, gamepad device, lifecycle pause and Campaign persistence are controlled hosts. No progress, health, immunity, resources, captures or boss-damage injection. Not Makko, physical-controller, recorded listening, human balance, comfort or display-pacing acceptance.'};
   console.log(`Cache combat Chromium passed: zero-sync four controls, analog triggers, actual12HP rig damage, wreck/first gear, earned page reload, full100bars; ${totalFrames} simulation frames and ${totalSamples} sampled Canvas frames.`);
