@@ -9,6 +9,12 @@ preview and hidden footer-copyright shortcut; both PRs remain drafts and the
 owner requires testing before a production release. No frame-rate fix or full
 keyboard repair has yet been accepted.
 
+The native mirror alone failed both d517e05 timing events. Native phase capture
+points to city and street painting as the largest submitted costs. The next
+candidate prepares 15 full original scenery sheets inside the existing shared
+background budget; crops, transparency and native detail are preserved. All
+original timing and fidelity gates still apply before a website preview update.
+
 ## October 3, 2026 — standalone BARCODE website migration
 
 The owner requested replacing Makko hosting with the existing BARCODE website. The standalone builder preserves canonical asset bytes, mirrors 21 original remote sprites/audio/title assets with SHA-256 receipts, and substitutes an independent manifest-backed sprite adapter for the vendor SDK. The adapter preserves authored animation timing, scaled anchors, flips, hitboxes and cloned playback state without a new RAF or timer. Generated runtime URLs resolve beneath `/games/system-override/`; the website entry is `/system-override`. Saves belong to the website origin and do not automatically transfer from Makko.

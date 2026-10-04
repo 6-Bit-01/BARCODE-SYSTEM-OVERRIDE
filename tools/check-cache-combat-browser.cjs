@@ -297,6 +297,8 @@ browserProof.step=ms=>{for(let left=ms;left>0;){const dt=Math.min(20,left);left-
     tintReady:cacheStates.filter(state=>state.brakeTintBitmap).length,
     nativeReady:cacheStates.filter(state=>state.nativeBitmap||state.nativeFrames||state.nativeWindows||state.brakeTintBitmap).length,
     backgroundPending:cacheStates.filter(state=>state.rasterPending).length,
+    nativeBackgroundPending:cacheStates.filter(state=>state.nativeBackgroundPending).length,
+    nativeBackgroundReady:cacheStates.filter(state=>state.nativeBackgroundBitmap).length,
     backgroundReady:cacheStates.filter(state=>state.rasterBitmap).length}:null;
   browserProof.paintPhases=[];let paintPhaseStarted=0;
   if(measured)window.canvasCostMark=phase=>{const now=performance.now();
@@ -450,7 +452,7 @@ const server=http.createServer((req,res)=>{
   if(pathname==='/src/engine/presentation-assets.js'){
     const source=fs.readFileSync(file,'utf8');
     assert(source.includes('  const cache = {};'),'read-only presentation inspection boundary');
-    res.end(source.replace('  const cache = {};','  const cache = {};window.bossPresentationReview={entries,cache};'));return;
+    res.end(source.replace('  const cache = {};','  const cache = {};window.bossPresentationReview={entries,cache,nativeBackgroundKeys:()=>Object.keys(nativeBackgroundPlan)};'));return;
   }
   if(pathname==='/src/game/cache-road-proof.js'){
     let source=fs.readFileSync(file,'utf8');
@@ -544,6 +546,8 @@ async function main(){
     await until('["cacheCar","cacheRival","cacheDashBezel","cacheMirror","cachePulsePad","cachePursuitRig"].every(key=>BARCODE.PresentationAssets.ready(key))','bundled cars/dashboard/rig decode');
     await until(`${JSON.stringify(assets.map(asset=>asset.key))}.every(key=>BARCODE.PresentationAssets.ready(key))`,
       requireHosted?'all ten immutable combat/feedback/beat atlases decode':'all ten bundled combat/feedback/beat atlases decode');
+    await until('!!window.bossPresentationReview&&bossPresentationReview.nativeBackgroundKeys().every(key=>bossPresentationReview.cache[key]?.ready&&!bossPresentationReview.cache[key]?.nativeBackgroundPending)',
+      'native background preparations settle before sustained frame measurement');
     assert(await evaluate('!!BARCODE.CacheRoadCombatArt'),'the registered production combat painter loads in actual index order');
     assert(await evaluate('!!BARCODE.CacheRoadCrewCallouts'),'the registered crew reaction owner loads in actual index order');
     assert(await evaluate('typeof BARCODE.CacheRoadBeatSurface?.paintQuad==="function"'),
@@ -832,18 +836,35 @@ async function main(){
       host:Object.fromEntries(Object.keys(snapshot.host).map(key=>[key,road[key]]))};
     const rows=[],ctx=renderer.ctx,P=BARCODE.PresentationAssets,assetDraw=P.draw;
     const groups={},cache=window.bossPresentationReview.cache;
+    const nativeBackgroundBitmaps=Object.fromEntries(Object.entries(cache)
+      .filter(([,state])=>state.nativeBackgroundBitmap).map(([key,state])=>[key,state.nativeBackgroundBitmap]));
+    const setNativeBackground=enabled=>{for(const [key,bitmap]of Object.entries(nativeBackgroundBitmaps))
+      cache[key].nativeBackgroundBitmap=enabled?bitmap:undefined;};
+    let activeAssetKey=null;
     let phaseStart=0;
     P.draw=(key,context,args)=>{
-      const began=performance.now(),ok=assetDraw(key,context,args),elapsed=performance.now()-began;
       const item=groups[key]||(groups[key]={calls:0,submitMs:0,
-        small:!!cache[key]?.rasterBitmap,native:!!cache[key]?.nativeBitmap,nativeFrames:cache[key]?.nativeFrames?.length??0,nativeWindows:cache[key]?.nativeWindows?.length??0,preparedTint:!!cache[key]?.brakeTintBitmap,
+        quarterAvailable:!!cache[key]?.rasterBitmap,nativeBackgroundAvailable:!!cache[key]?.nativeBackgroundBitmap,
+        nativeAvailable:!!cache[key]?.nativeBitmap,nativeFrames:cache[key]?.nativeFrames?.length??0,nativeWindows:cache[key]?.nativeWindows?.length??0,preparedTint:!!cache[key]?.brakeTintBitmap,
+        selectedSources:{},
         width:cache[key]?.image.naturalWidth,height:cache[key]?.image.naturalHeight});
-      item.calls++;item.submitMs+=elapsed;return ok;
+      const began=performance.now(),previous=activeAssetKey;activeAssetKey=key;
+      try{return assetDraw(key,context,args);}finally{
+        activeAssetKey=previous;item.calls++;item.submitMs+=performance.now()-began;
+      }
     };
     const methods=['fill','stroke','fillRect','fillText','drawImage'];
     const originals=Object.fromEntries(methods.map(name=>[name,ctx[name]]));
     let methodCosts={};
     for(const name of methods)ctx[name]=function(...args){
+      if(name==='drawImage'&&activeAssetKey&&groups[activeAssetKey]){
+        const state=cache[activeAssetKey],image=args[0];
+        const route=image===state.rasterBitmap?'quarter':image===state.nativeBackgroundBitmap?'native-background':
+          image===state.nativeBitmap?'native-sheet':state.nativeFrames?.includes(image)?'native-frame':
+          state.nativeWindows?.some(item=>item.bitmap===image)?'native-window':image===state.brakeTintBitmap?'native-tint':
+          image===state.bitmap?'svg-bitmap':image===state.image?'original-image':'other';
+        const selected=groups[activeAssetKey].selectedSources;selected[route]=(selected[route]||0)+1;
+      }
       const start=performance.now(),result=originals[name].apply(this,args),cost=performance.now()-start;
       const group=name+(this.globalCompositeOperation==='screen'?':screen':'')+
         (name==='drawImage'&&args[0]===ctx.canvas?':self':'');
@@ -870,6 +891,7 @@ async function main(){
       paintSnapshot();window.canvasCostMark('hud-complete');
       const reviewWebp=ctx.canvas.toDataURL('image/webp',.9).split(',')[1];
       const optimizedPixels=ctx.getImageData(0,0,ctx.canvas.width,ctx.canvas.height).data;
+      setNativeBackground(false);
       window.canvasCostMark=undefined;window.forceCrestMask=true;window.forceLegacyWorldCopy=true;window.forceMirrorCopy=true;window.forceReflectionTintClip=true;window.forceLightBlendBounds=true;
       paintSnapshot();
       const referencePixels=ctx.getImageData(0,0,ctx.canvas.width,ctx.canvas.height).data;
@@ -892,6 +914,7 @@ async function main(){
       }
       const opaqueCopyFidelity={meanRGB:copyDifference/(optimizedPixels.length/4*3),
         maxChannelDifference:copyMaxChannelDifference,maxAlphaDifference:copyMaxAlphaDifference};
+      setNativeBackground(true);
       window.forceOriginalWorldCopy=undefined;window.forceCrestMask=undefined;window.forceMirrorCopy=undefined;window.forceReflectionTintClip=undefined;window.forceLightBlendBounds=undefined;
       const unflushed=[];let last=performance.now();
       window.canvasCostMark=phase=>{const now=performance.now();if(phase!=='begin')unflushed.push({phase,ms:now-last});last=now;};
@@ -906,8 +929,12 @@ async function main(){
             (state.nativeFrames||[]).reduce((sum,bitmap)=>sum+bitmap.width*bitmap.height,0)+
             (state.nativeWindows||[]).reduce((sum,item)=>sum+item.bitmap.width*item.bitmap.height,0)+
             (state.brakeTintBitmap?state.brakeTintBitmap.width*state.brakeTintBitmap.height:0)})),
+        backgroundInventory:Object.entries(cache).filter(([,state])=>state.nativeBackgroundBitmap||state.rasterBitmap)
+          .map(([key,state])=>({key,nativePixels:state.nativeBackgroundBitmap?state.nativeBackgroundBitmap.width*state.nativeBackgroundBitmap.height:0,
+            quarterPixels:state.rasterBitmap?state.rasterBitmap.width*state.rasterBitmap.height:0})),
         reviewWebp};
     }finally{
+      setNativeBackground(true);
       window.canvasCostMark=undefined;window.forceCrestMask=undefined;window.forceLegacyWorldCopy=undefined;window.forceMirrorCopy=undefined;window.forceReflectionTintClip=undefined;window.forceLightBlendBounds=undefined;window.forceOriginalWorldCopy=undefined;P.draw=assetDraw;
       for(const name of methods)ctx[name]=originals[name];
       road.state=saved.state;road.chapter=saved.chapter;Object.assign(road,saved.host);

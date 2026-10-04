@@ -2,6 +2,156 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const source=fs.readFileSync(path.resolve(__dirname,'../src/engine/presentation-assets.js'),'utf8');
 const inspected=source.replace('  const cache = {};','  const cache = {};window.bitmapReview={entries,cache};');
+const nativeBackgroundPlan={
+  cacheDistantCity:[2079,756],cacheOutskirts:[2172,724],cacheMidCity:[2172,724],
+  cacheStreetDeliveryVan:[1498,1016],cacheNewBinsRecycling:[1312,1199],
+  cacheStreetBenchPlanters:[1546,1040],cacheNewWayfindingSign:[1152,576],
+  cacheBlacktop:[2172,724],cachePlaceCapacitorExchange:[960,721],
+  cacheUtilityCorner:[1585,992],cacheWalkerMarketWorkerTravel:[1024,768],
+  cachePersonCrateCarrierTravel:[1604,768],cacheStreetBicycleRack:[1526,1023],
+  cacheWalkerStudentTravel:[1024,768],cacheWalkerMechanicTravel:[1024,768]
+};
+const nativeBackgroundPixels=Object.values(nativeBackgroundPlan).reduce((sum,[w,h])=>sum+w*h,0);
+const backgroundInspected=inspected.replace('  preload();',
+  '  window.bitmapReview.background={plan:nativeBackgroundPlan,reservations:nativeBackgroundReservations,pixels:()=>rasterPixels,max:MAX_RASTER_PIXELS};\n  preload();');
+
+async function nativeBackgroundUnit(){
+  assert.equal(nativeBackgroundPixels,19072502);
+  for(const failure of ['none','reject','throw','invalid','dimensions','missing','unsupported','unavailable']){
+    const prepared=[],closed=[],images=[];let w;
+    class Image {constructor(){
+      if(!images.length)assert.equal(w.bitmapReview.background.pixels(),failure==='unsupported'?0:nativeBackgroundPixels,
+        'all priority pixels are reserved before the first image is created');
+      this.naturalWidth=2079;this.naturalHeight=756;images.push(this);
+    }}
+    w={Image,BARCODE:{},createImageBitmap(image,...args){
+      prepared.push({image,args});
+      const options=args[0];
+      if(!options&&failure==='throw')throw Error('native decode unsupported');
+      if(!options&&failure==='reject')return Promise.reject(Error('native decode rejected'));
+      return Promise.resolve({width:!options&&failure==='invalid'?1:(options?.resizeWidth||image.naturalWidth),
+        height:options?.resizeHeight||image.naturalHeight,close(){closed.push(this);}});
+    }};
+    if(failure==='unsupported')delete w.createImageBitmap;
+    vm.runInNewContext(backgroundInspected,{window:w});
+    const {cache,background}=w.bitmapReview,state=cache.cacheDistantCity,P=w.BARCODE.PresentationAssets;
+    assert.deepEqual(JSON.parse(JSON.stringify(background.plan)),nativeBackgroundPlan);
+    if(failure==='unavailable')delete w.createImageBitmap;
+    if(failure==='dimensions')state.image.naturalWidth++;
+    if(failure==='missing')state.image.naturalHeight=0;
+    state.image.onload();
+    if(failure==='none'||failure==='reject'||failure==='invalid')assert(state.nativeBackgroundPending,
+      'full original sheet has its own asynchronous preparation state');
+    const calls=[],ctx={imageSmoothingEnabled:false,filter:'blur(2.3px)',globalAlpha:.37,
+      save(){},restore(){},translate(){},scale(){},drawImage(...args){calls.push(args);}};
+    if(failure!=='missing'){
+      P.draw('cacheDistantCity',ctx,{width:80,height:40,sourceRect:[12,8,100,40]});
+      assert.equal(calls.at(-1)[0],state.image,'pending native preparation keeps original-image drawing');
+    }
+    await new Promise(setImmediate);
+    assert.equal(!!state.nativeBackgroundBitmap,failure==='none');
+    assert(!state.nativeBackgroundPending);
+    assert.equal(prepared.filter(call=>!call.args.length).length,
+      ['none','reject','throw','invalid'].includes(failure)?1:0,'one unresized native attempt or no unsupported attempt');
+    assert.equal(closed.length,failure==='invalid'?1:0,'invalid native results are closed');
+    assert.equal(background.reservations.get('cacheDistantCity')?.pixels||0,
+      failure==='none'?2079*756:0,'failed/unsupported/decode-invalid slots release their full reservation');
+    const before=prepared.length;P.preload();assert.equal(images.length,Object.keys(cache).length);
+    if(failure!=='missing')for(let repeat=0;repeat<12;repeat++){
+      P.draw('cacheDistantCity',ctx,{width:80,height:40,sourceRect:[12,8,100,40]});
+      assert.equal(calls.at(-1)[0],state.nativeBackgroundBitmap||state.image);
+      assert.deepEqual(calls.at(-1).slice(1),[12,8,100,40,0,-40,80,40]);
+    }
+    assert.equal(prepared.length,before,'warm/paused draw and preload cannot rebuild native backgrounds');
+    assert.equal(ctx.imageSmoothingEnabled,false);assert.equal(ctx.filter,'blur(2.3px)');assert.equal(ctx.globalAlpha,.37);
+    assert(background.pixels()<=background.max);
+  }
+  // Load unrelated giant thumbnails first. Their unresolved reservations
+  // cannot consume the priority slots reserved before any image constructor.
+  const pending=[],images=[];
+  class Image {constructor(){this.naturalWidth=8192;this.naturalHeight=4096;images.push(this);}}
+  const w={Image,BARCODE:{},createImageBitmap(image,...args){return new Promise((resolve,reject)=>
+    pending.push({image,args,resolve,reject}));}};
+  vm.runInNewContext(backgroundInspected,{window:w});
+  const {cache,entries,background}=w.bitmapReview;
+  for(const [key,entry]of Object.entries(entries))if(!nativeBackgroundPlan[key]&&
+      /^assets\/cache-road\/(world|roadside)\//.test(entry.path)&&entry.path.endsWith('.webp')){
+    cache[key].image.onload();assert(background.pixels()<=background.max);
+  }
+  const thumbnails=pending.filter(call=>call.args[0]?.resizeWidth);
+  assert(thumbnails.length>0&&thumbnails.length<16,'overbudget thumbnails retain original art without an attempt');
+  for(const [key,[width,height]]of Object.entries(nativeBackgroundPlan)){
+    Object.assign(cache[key].image,{naturalWidth:width,naturalHeight:height});cache[key].image.onload();
+    assert(cache[key].nativeBackgroundPending);assert(background.pixels()<=background.max);
+  }
+  assert.equal(pending.filter(call=>!call.args.length).length,15,'concurrent thumbnail work cannot starve any measured native slot');
+  const retainedBefore=background.pixels();w.BARCODE.PresentationAssets.preload();assert.equal(background.pixels(),retainedBefore);
+  for(const call of pending){const options=call.args[0];call.resolve({
+    width:options?.resizeWidth||call.image.naturalWidth,height:options?.resizeHeight||call.image.naturalHeight});}
+  await new Promise(setImmediate);
+  assert(Object.keys(nativeBackgroundPlan).every(key=>cache[key].nativeBackgroundBitmap&&!cache[key].nativeBackgroundPending));
+  const retained=Object.values(cache).reduce((sum,state)=>sum+
+    (state.rasterBitmap?state.rasterBitmap.width*state.rasterBitmap.height:0)+
+    (state.nativeBackgroundBitmap?state.nativeBackgroundBitmap.width*state.nativeBackgroundBitmap.height:0),0);
+  assert.equal(retained,background.pixels());assert(retained<=32*1024*1024,'native and thumbnail retention share the unchanged 32 Mi-pixel pool');
+  // Adversarial queued image errors after onload must release only once and
+  // close the late immutable result rather than resurrecting a failed slot.
+  let complete;const closed=[];
+  const late={Image,BARCODE:{},createImageBitmap(image,options){if(options)return Promise.reject(Error('no thumbnail'));
+    return new Promise(resolve=>{complete=resolve;});}};
+  vm.runInNewContext(backgroundInspected,{window:late});
+  const state=late.bitmapReview.cache.cacheDistantCity,error=state.image.onerror;
+  Object.assign(state.image,{naturalWidth:2079,naturalHeight:756});state.image.onload();
+  error();error();const released=late.bitmapReview.background.pixels();error();
+  assert.equal(late.bitmapReview.background.pixels(),released,'duplicate failure cannot subtract retained pixels twice');
+  complete({width:2079,height:756,close(){closed.push(this);}});await new Promise(setImmediate);
+  assert.equal(closed.length,1);assert(!state.nativeBackgroundBitmap&&!state.nativeBackgroundPending);
+  assert.equal(late.bitmapReview.background.reservations.get('cacheDistantCity').pixels,0);
+  console.log('PASS: exact 15-sheet native priority plan, unresized one-time preparation, pending original fallback, unsupported/throw/reject/invalid/decode failures, bounded concurrent reservations and late-result cleanup.');
+}
+
+async function nativeBackgroundArtUnit(){
+  const {createCanvas,loadImage}=require('@napi-rs/canvas');
+  const definitions={window:{BARCODE:{}}};vm.runInNewContext(inspected,definitions);
+  let cases=0;
+  for(const key of ['cacheDistantCity','cacheBlacktop','cacheStreetDeliveryVan','cacheNewWayfindingSign','cacheWalkerMarketWorkerTravel']){
+    const entry=definitions.window.bitmapReview.entries[key],bytes=fs.readFileSync(path.resolve(__dirname,'..',entry.path));
+    const image=await loadImage(bytes),decoded=await loadImage(bytes),[width,height]=nativeBackgroundPlan[key];
+    assert.deepEqual([image.width,image.height],[width,height],'priority dimensions match unchanged original artwork');
+    class Image {constructor(){this.naturalWidth=width;this.naturalHeight=height;this.image=image;}}
+    const attempts=[],w={Image,BARCODE:{},createImageBitmap(input,...args){attempts.push(args);
+      return Promise.resolve(args.length?{width:args[0].resizeWidth,height:args[0].resizeHeight}:decoded);}};
+    vm.runInNewContext(backgroundInspected,{window:w});
+    const state=w.bitmapReview.cache[key],P=w.BARCODE.PresentationAssets;state.image.onload();await new Promise(setImmediate);
+    assert.equal(state.nativeBackgroundBitmap,decoded);assert.deepEqual(attempts[0],[],'full sheet is decoded without crop/resize/options');
+    const canvas=createCanvas(384,224),ctx=canvas.getContext('2d'),originalDraw=ctx.drawImage.bind(ctx),draws=[];
+    ctx.drawImage=function(input,...args){draws.push([input,...args]);return originalDraw(input.image||input,...args);};
+    const fw=width/entry.columns,fh=height/entry.rows;
+    for(const scenario of ['plain','alpha-transform','filtered-clip','flip']){
+      const args={x:164,y:156,width:218,height:112,frame:entry.frames-1,
+        sourceRect:[7,5,fw-16,fh-12],flip:scenario==='flip'};
+      const paint=native=>{
+        ctx.reset();ctx.clearRect(0,0,384,224);ctx.save();ctx.translate(11,7);ctx.rotate(.017);
+        ctx.globalAlpha=scenario==='alpha-transform'?.37:1;
+        ctx.filter=scenario==='filtered-clip'?'blur(2.3px)':'none';ctx.imageSmoothingEnabled=false;ctx.imageSmoothingQuality='high';
+        ctx.beginPath();ctx.rect(23,17,303,184);ctx.clip();
+        state.nativeBackgroundBitmap=native?decoded:undefined;
+        const before=ctx.getTransform(),alpha=ctx.globalAlpha,filter=ctx.filter;
+        assert(P.draw(key,ctx,args));
+        assert.deepEqual(ctx.getTransform(),before);assert.equal(ctx.globalAlpha,alpha);assert.equal(ctx.filter,filter);
+        assert.equal(ctx.imageSmoothingEnabled,false);assert.equal(P.rasterDetail(ctx),1);
+        ctx.restore();return Buffer.from(ctx.getImageData(0,0,384,224).data);
+      };
+      const reference=paint(false),actual=paint(true);
+      assert(actual.equals(reference),`${key}/${scenario} preserves exact loaded-art RGBA in the native Canvas contract model`);
+      assert.equal(draws.at(-1)[0],decoded);assert.deepEqual(draws.at(-1).slice(1,5),
+        [(entry.frames-1)%entry.columns*fw+7,Math.floor((entry.frames-1)/entry.columns)*fh+5,fw-16,fh-12]);
+      cases++;
+    }
+    assert.equal(attempts.filter(args=>!args.length).length,1,'frames/filter/paused repaints reuse the full native sheet');
+  }
+  console.log(`PASS: ${cases} original-art native background crop/frame/anchor/flip/sampler/alpha/filter/clip/transform comparisons using independent full-size native decodes; actual ImageBitmap browser pixels remain a Chromium gate.`);
+}
 async function unit(){
   for(const failure of ['none','reject','throw','invalid']){
     const images=[],prepared=[],closed=[];
@@ -546,6 +696,37 @@ function worldCopyUnit(){
   console.log('PASS: bounded opaque sRGB production transport, exact source/destination arguments, context preservation, source cleanup, original reference and unsupported/native/P3/alpha fallback.');
 }
 
+function reflectionBlurCounterUnit(){
+  const harness=fs.readFileSync(__filename,'utf8');
+  const start=harness.indexOf('      const '+'inspectDrawImage=function(source,...args){');
+  const end=harness.indexOf('      const '+'framePixels=',start);
+  assert(start>=0&&end>start,'exercise the actual browser blur counter');
+  class VideoFrame{}class OffscreenCanvas{}class Canvas{}
+  const c=new Canvas(),offscreen=new OffscreenCanvas(),video=new VideoFrame(),image={};
+  for(const missing of ['none','video','offscreen','both']){
+    const submissions=[],w={},context={window:w,c,reflectionBlurs:0,
+      VideoFrame:missing==='video'||missing==='both'?undefined:VideoFrame,
+      OffscreenCanvas:missing==='offscreen'||missing==='both'?undefined:OffscreenCanvas,
+      originalDrawImage(...args){submissions.push({context:this,args});return 'submitted';}};
+    vm.runInNewContext(harness.slice(start,end)+'\nwindow.counter=inspectDrawImage;',context);
+    const ctx={filter:'blur(2.3px)'},args=[0,0,714,141,626,0,714,141];
+    for(const source of [c,offscreen,video,image,new Canvas()]){
+      const before=context.reflectionBlurs;
+      assert.equal(w.counter.call(ctx,source,...args),'submitted');
+      const expected=source===c||source===offscreen&&!['offscreen','both'].includes(missing)||
+        source===video&&!['video','both'].includes(missing);
+      assert.equal(context.reflectionBlurs-before,expected?1:0,'only each supported reflection source contributes one blur');
+      assert.equal(submissions.at(-1).context,ctx);assert.equal(submissions.at(-1).args[0],source);
+      assert.deepEqual(submissions.at(-1).args.slice(1),args,'diagnostics preserve the original draw submission');
+      assert.equal(ctx.filter,'blur(2.3px)');
+    }
+    ctx.filter='none';const before=context.reflectionBlurs;
+    w.counter.call(ctx,c,...args);w.counter.call(ctx,offscreen,...args);w.counter.call(ctx,video,...args);
+    assert.equal(context.reflectionBlurs,before,'unfiltered mirror resource draws never count as a blur');
+  }
+  console.log('PASS: actual browser blur counter recognizes main Canvas, OffscreenCanvas and VideoFrame exactly once, excludes unrelated/unfiltered sources, preserves draws and tolerates missing APIs.');
+}
+
 function mirrorSurfaceUnit(){
   const road=fs.readFileSync(path.resolve(__dirname,'../src/game/cache-road-proof.js'),'utf8');
   const start=road.indexOf('  function copyBoundedMirrorPixels('),end=road.indexOf('  function clipLightBlend(',start);
@@ -767,7 +948,7 @@ async function browser(){
   const chromePath=process.env.CHROME_BIN||'/usr/bin/google-chrome';
   let child,socket;
   const fixture=`<!doctype html><canvas id="gameCanvas" width="1920" height="1080"></canvas><script>
-    window.bitmapAttempts=[];window.contextCalls=0;
+    window.bitmapAttempts=[];window.bitmapCalls=[];window.contextCalls=0;
     const originalContext=HTMLCanvasElement.prototype.getContext;
     HTMLCanvasElement.prototype.getContext=function(...args){
       if(++contextCalls>1)throw Error('extra display Canvas context');return originalContext.apply(this,args);
@@ -779,7 +960,8 @@ async function browser(){
       descriptor.set.call(this,value);
     }});
     const bitmap=window.createImageBitmap.bind(window);
-    window.createImageBitmap=(image,...args)=>{bitmapAttempts.push(image.src);return bitmap(image,...args);};
+    window.createImageBitmap=(image,...args)=>{bitmapAttempts.push(image.src);
+      bitmapCalls.push({src:image.src,width:image.naturalWidth,height:image.naturalHeight,args});return bitmap(image,...args);};
     window.BARCODE={Campaign:{register(){},syncTitleButton(){}},GamepadUI:{connected:false},
       CacheChapter:{recordIds:['r1','r2','r3','r4']},Preferences:{values:{reducedMotion:false,flashes:true}}};
     window.audioSystem={context:{currentTime:0,state:'running'},playCombatCue(){}};
@@ -839,7 +1021,7 @@ async function browser(){
     await send('Page.enable');await send('Runtime.enable');await send('Page.navigate',{url:origin});
     const result=await send('Runtime.evaluate',{awaitPromise:true,returnByValue:true,expression:`(async()=>{
       const started=performance.now();
-      while(!window.bitmapReview||Object.values(bitmapReview.cache).some(state=>!state.ready||state.rasterPending||state.nativePending||state.brakeTintPending)){
+      while(!window.bitmapReview||Object.values(bitmapReview.cache).some(state=>!state.ready||state.rasterPending||state.nativePending||state.nativeBackgroundPending||state.brakeTintPending)){
         if(performance.now()-started>45000)throw Error('assets did not prepare');await new Promise(r=>setTimeout(r,25));
       }
       const {entries,cache}=bitmapReview,svg=Object.keys(entries).filter(key=>entries[key].path.endsWith('.svg'));
@@ -849,6 +1031,60 @@ async function browser(){
       // draws. Production native driving never requests those pixel reads.
       const c=document.getElementById('gameCanvas'),ctx=c.getContext('2d',{willReadFrequently:false}),P=BARCODE.PresentationAssets;
       const beforeSVG=bitmapAttempts.filter(src=>src.endsWith('.svg')).length,pixels=[];
+      const expectedBackgroundPlan=${JSON.stringify(nativeBackgroundPlan)},nativeBackgroundChecks=[];
+      // Compare actual Chromium ImageBitmaps with their original HTML images
+      // at unchanged native source coordinates, including transparent artwork.
+      const backgroundAttempts=bitmapCalls.length,backgroundDrawImage=ctx.drawImage;
+      try{
+        for(const [key,[width,height]]of Object.entries(expectedBackgroundPlan)){
+          const state=cache[key],entry=entries[key],prepared=state.nativeBackgroundBitmap;
+          if(!(prepared instanceof ImageBitmap)||prepared.width!==width||prepared.height!==height||
+              state.image.naturalWidth!==width||state.image.naturalHeight!==height)
+            throw Error('Native background dimensions/preparation failed '+key);
+          if(bitmapCalls.filter(call=>call.src.endsWith('/'+entry.path)&&!call.args.length).length!==1)
+            throw Error('Native background preparation resized, duplicated or omitted '+key);
+          const fw=width/entry.columns,fh=height/entry.rows;
+          try{
+            for(const scenario of ['plain','alpha-flip','filtered-transform','signed-crop']){
+              const frame=scenario==='plain'?entry.frames-1:entry.frames+1;
+              const args={x:216,y:180,width:228,height:124,frame,flip:scenario==='alpha-flip',
+                sourceRect:scenario==='signed-crop'?[fw-3,5,-fw+16,fh-12]:[7,5,fw-16,fh-12]};
+              let submitted;
+              ctx.drawImage=function(image,...crop){submitted={image,crop};return backgroundDrawImage.call(this,image,...crop);};
+              const paint=native=>{
+                ctx.reset();ctx.clearRect(0,0,c.width,c.height);ctx.save();ctx.translate(11,7);ctx.rotate(.017);
+                ctx.globalAlpha=scenario==='alpha-flip'?.37:1;
+                ctx.filter=scenario==='filtered-transform'?'blur(2.3px)':'none';ctx.imageSmoothingEnabled=false;ctx.imageSmoothingQuality='high';
+                ctx.beginPath();ctx.rect(23,17,403,204);ctx.clip();
+                state.nativeBackgroundBitmap=native?prepared:undefined;
+                const before=ctx.getTransform(),alpha=ctx.globalAlpha,filter=ctx.filter;
+                if(!P.draw(key,ctx,args))throw Error('Native background draw failed '+key);
+                if(JSON.stringify(ctx.getTransform())!==JSON.stringify(before)||ctx.globalAlpha!==alpha||ctx.filter!==filter||
+                    ctx.imageSmoothingEnabled!==false||ctx.imageSmoothingQuality!=='high'||P.rasterDetail(ctx)!==1)
+                  throw Error('Native background leaked caller state '+key+'/'+scenario);
+                if(submitted.image!==(native?prepared:state.image))throw Error('Native background selected an incorrect source '+key);
+                const index=Math.max(0,Math.floor(frame))%entry.frames;
+                const crop=[index%entry.columns*fw+args.sourceRect[0],Math.floor(index/entry.columns)*fh+args.sourceRect[1],...args.sourceRect.slice(2)];
+                if(JSON.stringify(submitted.crop.slice(0,4))!==JSON.stringify(crop))throw Error('Native background altered crop/cel addresses '+key);
+                ctx.restore();return ctx.getImageData(0,0,512,224).data;
+              };
+              const reference=paint(false),actual=paint(true);let difference=0,maxChannelDifference=0,maxAlphaDifference=0;
+              for(let i=0;i<actual.length;i++){const delta=Math.abs(actual[i]-reference[i]);
+                if(i%4===3)maxAlphaDifference=Math.max(maxAlphaDifference,delta);
+                else {difference+=delta;maxChannelDifference=Math.max(maxChannelDifference,delta);}}
+              const meanRGB=difference/(actual.length/4*3);
+              if(meanRGB>=.1||maxAlphaDifference!==0)throw Error('Native background fidelity failed '+key+'/'+scenario+' '+meanRGB+'/'+maxAlphaDifference);
+              nativeBackgroundChecks.push({key,scenario,width,height,meanRGB,maxChannelDifference,maxAlphaDifference});
+            }
+          }finally{state.nativeBackgroundBitmap=prepared;}
+        }
+      }finally{ctx.drawImage=backgroundDrawImage;ctx.reset();}
+      if(bitmapCalls.length!==backgroundAttempts)throw Error('Native background draws rebuilt the cache');
+      const backgroundInventory=Object.entries(cache).filter(([,state])=>state.nativeBackgroundBitmap||state.rasterBitmap)
+        .map(([key,state])=>({key,nativePixels:state.nativeBackgroundBitmap?state.nativeBackgroundBitmap.width*state.nativeBackgroundBitmap.height:0,
+          quarterPixels:state.rasterBitmap?state.rasterBitmap.width*state.rasterBitmap.height:0}));
+      const backgroundRetainedPixels=backgroundInventory.reduce((sum,item)=>sum+item.nativePixels+item.quarterPixels,0);
+      if(backgroundRetainedPixels>32*1024*1024)throw Error('Shared background bitmap retention exceeded its existing pixel bound');
       for(let repeat=0;repeat<2;repeat++){
         ctx.clearRect(0,0,c.width,c.height);ctx.save();ctx.translate(42,57);ctx.rotate(.013);ctx.globalAlpha=.7;
         P.draw('cacheOuterGround',ctx,{x:0,y:0,width:1530,height:850});
@@ -871,13 +1107,14 @@ async function browser(){
       road.active=true;road.status='playing';road.audioDegraded=false;
       road.selectMusicProfile();BARCODE.MusicTransport.start({sourceAnchorAudioSec:0,sourceOffsetTrackSec:0});
       const bitmaps=Object.fromEntries(svg.map(key=>[key,cache[key].bitmap]));
-       const nativeBitmaps=Object.fromEntries(Object.entries(cache).filter(([,state])=>state.nativeBitmap||state.nativeFrames||state.nativeWindows||state.brakeTintBitmap)
-         .map(([key,state])=>[key,{bitmap:state.nativeBitmap,frames:state.nativeFrames,windows:state.nativeWindows,tint:state.brakeTintBitmap}]));
+       const nativeBitmaps=Object.fromEntries(Object.entries(cache).filter(([,state])=>state.nativeBitmap||state.nativeFrames||state.nativeWindows||state.nativeBackgroundBitmap||state.brakeTintBitmap)
+         .map(([key,state])=>[key,{bitmap:state.nativeBitmap,frames:state.nativeFrames,windows:state.nativeWindows,background:state.nativeBackgroundBitmap,tint:state.brakeTintBitmap}]));
       const median=values=>{const v=values.slice().sort((a,b)=>a-b);return v[Math.floor(v.length/2)];};
       const rows=[],assetDraw=P.draw,bitmapFactory=window.createImageBitmap;
       const originalDrawImage=ctx.drawImage;let reflectionBlurs=0;
       const inspectDrawImage=function(source,...args){
-        if((source===c||typeof VideoFrame==='function'&&source instanceof VideoFrame)&&this.filter==='blur(2.3px)')reflectionBlurs++;
+        if((source===c||typeof VideoFrame==='function'&&source instanceof VideoFrame||
+          typeof OffscreenCanvas==='function'&&source instanceof OffscreenCanvas)&&this.filter==='blur(2.3px)')reflectionBlurs++;
         return originalDrawImage.call(this,source,...args);
       };
       const framePixels=new Map(),pixelComparisons=[],qualityComparisons=[],screens=[];
@@ -900,6 +1137,7 @@ async function browser(){
            cache[key].nativeBitmap=mode==='adaptive'?value.bitmap:undefined;
            cache[key].nativeFrames=mode==='adaptive'?value.frames:undefined;
            cache[key].nativeWindows=mode==='adaptive'?value.windows:undefined;
+           cache[key].nativeBackgroundBitmap=mode==='adaptive'?value.background:undefined;
            cache[key].brakeTintBitmap=mode==='adaptive'?value.tint:undefined;
          }
         road.chapter=structuredClone(scene.chapter);road.state=structuredClone(scene.state);
@@ -980,7 +1218,7 @@ async function browser(){
       }
       for(const key of svg)cache[key].bitmap=bitmaps[key];
        for(const [key,value]of Object.entries(nativeBitmaps)){
-          cache[key].nativeBitmap=value.bitmap;cache[key].nativeFrames=value.frames;cache[key].nativeWindows=value.windows;cache[key].brakeTintBitmap=value.tint;
+          cache[key].nativeBitmap=value.bitmap;cache[key].nativeFrames=value.frames;cache[key].nativeWindows=value.windows;cache[key].nativeBackgroundBitmap=value.background;cache[key].brakeTintBitmap=value.tint;
         }
       window.createImageBitmap=bitmapFactory;bitmapReview.mode='adaptive';
       const frameComparisons=frameReviewScenes.map(({name})=>{
@@ -1261,7 +1499,7 @@ async function browser(){
         ctx.getImageData=readPixels;window.VideoFrame=OriginalVideoFrame;window.OffscreenCanvas=OriginalOffscreenCanvas;
       }
       ctx.reset();
-      return {passed:true,performancePass,aggregateRatio,frameComparisons,frameSamples:rows,pixelComparisons,screens,viewportChecks,tintSourceChecks,worldSourceChecks,mirrorSourceChecks,mirrorSurfaceChecks,
+      return {passed:true,performancePass,aggregateRatio,frameComparisons,frameSamples:rows,pixelComparisons,screens,viewportChecks,tintSourceChecks,worldSourceChecks,mirrorSourceChecks,mirrorSurfaceChecks,nativeBackgroundChecks,backgroundInventory,backgroundRetainedPixels,
         preparedSVGs:svg.length,qualityComparisons,absoluteFrameBudgetMs,reflectionBlursPerFrame:1,warmDraws:120,pausedPixels:true,displayContexts:contextCalls,
         preservedMirrorFilter:'blur(2.3px)',limitation:'Real Chromium loader/cache validation; owner device FPS remains unmeasured.'};
     })()`});
@@ -1312,4 +1550,4 @@ async function browser(){
     await fs.promises.rm(profile,{recursive:true,force:true,maxRetries:20,retryDelay:100});
   }
 }
-(async()=>{await unit();await backgroundRasterUnit();await nativeRasterUnit();await nativeSmallUnit();await nativeWindowUnit();await nativeTintUnit();budgetUnit();mirrorSourceUnit();worldCopyUnit();mirrorSurfaceUnit();await nativeMirrorCanvasUnit();if(process.argv.includes('--browser'))await browser();})().catch(e=>{console.error(e.stack);process.exitCode=1;});
+(async()=>{await unit();await backgroundRasterUnit();await nativeBackgroundUnit();await nativeBackgroundArtUnit();await nativeRasterUnit();await nativeSmallUnit();await nativeWindowUnit();await nativeTintUnit();budgetUnit();mirrorSourceUnit();worldCopyUnit();reflectionBlurCounterUnit();mirrorSurfaceUnit();await nativeMirrorCanvasUnit();if(process.argv.includes('--browser'))await browser();})().catch(e=>{console.error(e.stack);process.exitCode=1;});
