@@ -711,7 +711,7 @@
     {
       "global": "window.gameLoop",
       "file": "src/core/loop.js",
-      "line": 86,
+      "line": 88,
       "loaded": true
     },
     {
@@ -837,13 +837,13 @@
     {
       "global": "window.renderer",
       "file": "src/engine/renderer.js",
-      "line": 547,
+      "line": 550,
       "loaded": true
     },
     {
       "global": "window.renderer",
       "file": "src/engine/renderer.js",
-      "line": 564,
+      "line": 567,
       "loaded": true
     },
     {
@@ -903,7 +903,7 @@
     {
       "global": "window.startGameLoop",
       "file": "src/core/loop.js",
-      "line": 212,
+      "line": 214,
       "loaded": true
     },
     {
