@@ -428,6 +428,53 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     if(!used)ctx.drawImage(ctx.canvas,sx,sy,width,height,dx,dy,dw,dh);
     return used;
   }
+  function copyBoundedMirrorPixels(ctx,sx,sy,width,height,dx,dy,dw,dh,budget,preferSurface=true) {
+    let used=false;
+    // This fixed native crop is a presentation resource on the existing
+    // road/frame owner. Reuse its private context; never read display pixels
+    // or retain a full-display snapshot while painting the blurred result.
+    const bounded=preferSurface&&budget&&!budget.mirrorSurfaceUnavailable&&
+      typeof window.HTMLCanvasElement==='function'&&
+      ctx.canvas instanceof window.HTMLCanvasElement&&
+      typeof window.OffscreenCanvas==='function'&&
+      typeof ctx.getContextAttributes==='function'&&
+      [sx,sy,width,height].every(Number.isInteger)&&sx>=0&&sy>=0&&
+      width===714&&height===141&&
+      sx+width<=ctx.canvas.width&&sy+height<=ctx.canvas.height;
+    if(bounded)try {
+      if(ctx.getContextAttributes()?.colorSpace==='srgb') {
+        if(!budget.mirrorSurface) {
+          const canvas=new window.OffscreenCanvas(width,height);
+          budget.mirrorSurface={canvas,context:null};
+          const context=canvas.getContext('2d',{alpha:true,colorSpace:'srgb'});
+          if(!context||context.getContextAttributes?.().colorSpace!=='srgb')
+            throw Error('Native mirror surface unavailable');
+          budget.mirrorSurface.context=context;
+        }
+        const surface=budget.mirrorSurface,copy=surface.context;
+        if(copy.isContextLost?.())throw Error('Native mirror context lost');
+        copy.save();
+        try {
+          copy.setTransform(1,0,0,1,0,0);copy.globalAlpha=1;
+          copy.globalCompositeOperation='copy';copy.filter='none';
+          copy.imageSmoothingEnabled=false;
+          copy.drawImage(ctx.canvas,sx,sy,width,height,0,0,width,height);
+        }finally {copy.restore();}
+        if(copy.isContextLost?.())throw Error('Native mirror context lost');
+        ctx.drawImage(surface.canvas,0,0,width,height,dx,dy,dw,dh);
+        used=true;
+      }
+    }catch(error) {
+      // Unsupported hosts retain the original copy without repeated failures.
+      if(budget.mirrorSurface) {
+        budget.mirrorSurface.canvas.width=0;budget.mirrorSurface.canvas.height=0;
+        budget.mirrorSurface=null;
+      }
+      budget.mirrorSurfaceUnavailable=true;
+    }
+    if(!used)ctx.drawImage(ctx.canvas,sx,sy,width,height,dx,dy,dw,dh);
+    return used;
+  }
   function clipLightBlend(ctx,bounds) {
     const matrix=ctx.getTransform?.();
     // Native/non-DOM hosts keep their original blend path exactly; their
@@ -1107,10 +1154,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           m.d===1&&m.e===0&&m.f===0;
         ctx.globalCompositeOperation=opaqueNative?'source-over':'copy';
         ctx.filter = 'blur(2.3px)';
-        // Crop the opaque native source before applying the same single blur.
-        // Original self-copy preserves all other caller/viewport semantics.
-        if(pixelBudget)pixelBudget.mirrorPixelCopyUsed=copyOpaqueCanvasPixels(ctx,
-          sx,sy,right-sx,bottom-sy,sx,sy,right-sx,bottom-sy,pixelBudget,opaqueNative);
+        // Copy the exact native reflection into one bounded reusable surface
+        // before the original blurred composite writes back into the display.
+        if(pixelBudget)pixelBudget.mirrorPixelCopyUsed=copyBoundedMirrorPixels(ctx,
+          sx,sy,right-sx,bottom-sy,sx,sy,right-sx,bottom-sy,pixelBudget,true);
         else ctx.drawImage(ctx.canvas,sx,sy,right-sx,bottom-sy,sx,sy,right-sx,bottom-sy);
         ctx.restore();
       }
@@ -2540,6 +2587,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       if (hint && this.oldHint !== null) hint.textContent = this.oldHint;
       this.oldHint = null;
       B.CacheEnding?.dispose?.();
+      if(this.renderBudget?.mirrorSurface) {
+        this.renderBudget.mirrorSurface.canvas.width=0;
+        this.renderBudget.mirrorSurface.canvas.height=0;
+        this.renderBudget.mirrorSurface=null;
+      }
+      this.renderBudget=null;this.renderBudgetState=null;
       this.active = false; this.status = null; this.state = null; this.chapter = null;
       this.returnTo = null; this.exiting = false; this.audioDegraded = false; this.introMs = null;
       this.handoffMs=null;this.outroMs=null;

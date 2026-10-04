@@ -1,5 +1,14 @@
 # Continue here — existing BARCODE website hosting
 
+## October 3, 2026 — sustained Level 2 HUD lag
+
+The owner reports smooth Level 1 play and persistent lag when Level 2's HUD
+appears. Review the bounded native mirror candidate and its outstanding timing
+gates in `docs/source-pack/LEVEL2_HUD_PERFORMANCE.md`. The website has a verified
+preview and hidden footer-copyright shortcut; both PRs remain drafts and the
+owner requires testing before a production release. No frame-rate fix or full
+keyboard repair has yet been accepted.
+
 ## October 3, 2026 — standalone BARCODE website migration
 
 The owner requested replacing Makko hosting with the existing BARCODE website. The standalone builder preserves canonical asset bytes, mirrors 21 original remote sprites/audio/title assets with SHA-256 receipts, and substitutes an independent manifest-backed sprite adapter for the vendor SDK. The adapter preserves authored animation timing, scaled anchors, flips, hitboxes and cloned playback state without a new RAF or timer. Generated runtime URLs resolve beneath `/games/system-override/`; the website entry is `/system-override`. Saves belong to the website origin and do not automatically transfer from Makko.

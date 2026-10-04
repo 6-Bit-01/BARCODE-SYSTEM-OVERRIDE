@@ -546,6 +546,208 @@ function worldCopyUnit(){
   console.log('PASS: bounded opaque sRGB production transport, exact source/destination arguments, context preservation, source cleanup, original reference and unsupported/native/P3/alpha fallback.');
 }
 
+function mirrorSurfaceUnit(){
+  const road=fs.readFileSync(path.resolve(__dirname,'../src/game/cache-road-proof.js'),'utf8');
+  const start=road.indexOf('  function copyBoundedMirrorPixels('),end=road.indexOf('  function clipLightBlend(',start);
+  assert(start>=0&&end>start,'exercise the production bounded mirror surface helper');
+  const code=road.slice(start,end)+'\nwindow.copyBoundedMirrorPixels=copyBoundedMirrorPixels;';
+  for(const failure of ['none','construct','context','copy','draw','metadata','lost','lost-copy','p3','native','missing','fractional','oversize','bounds','reference']){
+    const calls=[],budget={},stack=[],allocated=[];
+    class Canvas {constructor(){this.width=1920;this.height=1080;}}
+    const copy={filter:'blur(9px)',globalAlpha:.23,globalCompositeOperation:'source-in',imageSmoothingEnabled:true,
+      matrix:[.5,0,0,.5,7,11],getContextAttributes(){return {alpha:true,colorSpace:failure==='metadata'?'display-p3':'srgb'};},
+      isContextLost(){return failure==='lost'||failure==='lost-copy'&&calls.some(call=>call[0]==='copy');},
+      save(){stack.push([this.filter,this.globalAlpha,this.globalCompositeOperation,this.imageSmoothingEnabled,this.matrix]);},
+      restore(){[this.filter,this.globalAlpha,this.globalCompositeOperation,this.imageSmoothingEnabled,this.matrix]=stack.pop();},
+      setTransform(...args){this.matrix=args;},
+      getImageData(){throw Error('mirror surface must not read pixels');},
+      drawImage(...args){calls.push(['copy',...args,{alpha:this.globalAlpha,filter:this.filter,
+        composite:this.globalCompositeOperation,smoothing:this.imageSmoothingEnabled,matrix:this.matrix}]);
+        if(failure==='copy')throw Error('copy unavailable');}};
+    class OffscreenCanvas {
+      constructor(width,height){
+        calls.push(['construct',width,height]);if(failure==='construct')throw Error('surface unavailable');
+        this.width=width;this.height=height;allocated.push(this);
+      }
+      getContext(kind,options){calls.push(['context',kind,options]);return failure==='context'?null:copy;}
+    }
+    const w={HTMLCanvasElement:Canvas,OffscreenCanvas:failure==='missing'?undefined:OffscreenCanvas,
+      VideoFrame:class{constructor(){throw Error('mirror surface must not construct VideoFrame');}}};
+    vm.runInNewContext(code,{window:w});
+    const canvas=failure==='native'?{}:new Canvas(),ctx={canvas,filter:'blur(2.3px)',globalAlpha:.37,
+      globalCompositeOperation:'copy',getContextAttributes(){return {colorSpace:failure==='p3'?'display-p3':'srgb'};},
+      getImageData(){throw Error('mirror surface must not read display pixels');},
+      drawImage(...args){calls.push(['draw',...args]);if(failure==='draw'&&args[0]!==canvas)throw Error('unsupported frame');}};
+    const sx=failure==='bounds'?1910:626,width=failure==='fractional'?714.5:failure==='oversize'?1920:714;
+    const used=w.copyBoundedMirrorPixels(ctx,sx,0,width,141,sx,0,width,141,budget,failure!=='reference');
+    assert.equal(used,failure==='none');
+    assert.equal(ctx.filter,'blur(2.3px)');assert.equal(ctx.globalAlpha,.37);assert.equal(ctx.globalCompositeOperation,'copy');
+    const constructed=calls.find(call=>call[0]==='construct'),drawn=calls.filter(call=>call[0]==='draw');
+    if(constructed){
+      assert.deepEqual(constructed.slice(1),[714,141],'surface allocation has one fixed native bounded footprint');
+      if(failure!=='construct')assert.deepEqual(JSON.parse(JSON.stringify(calls.find(call=>call[0]==='context').slice(1))),
+        ['2d',{alpha:true,colorSpace:'srgb'}]);
+    }
+    assert.equal(stack.length,0,'private surface state is restored even when copying throws');
+    assert.equal(copy.filter,'blur(9px)');assert.equal(copy.globalAlpha,.23);
+    assert.equal(copy.globalCompositeOperation,'source-in');assert.equal(copy.imageSmoothingEnabled,true);
+    assert.deepEqual(copy.matrix,[.5,0,0,.5,7,11]);
+    const copied=calls.find(call=>call[0]==='copy');
+    if(copied){
+      assert.equal(copied[1],canvas);assert.deepEqual(copied.slice(2,-1),[626,0,714,141,0,0,714,141]);
+      assert.deepEqual(JSON.parse(JSON.stringify(copied.at(-1))),{alpha:1,filter:'none',composite:'copy',smoothing:false,matrix:[1,0,0,1,0,0]});
+    }
+    assert.deepEqual(drawn.at(-1).slice(2),used?[0,0,width,141,sx,0,width,141]:[sx,0,width,141,sx,0,width,141]);
+    assert.equal(drawn.at(-1)[1]===canvas,!used,'unsupported callers retain the original direct source');
+    if(['construct','context','copy','draw','metadata','lost','lost-copy'].includes(failure)){
+      assert.equal(budget.mirrorSurfaceUnavailable,true);
+      assert(!budget.mirrorSurface,'failed private resources are released');
+      for(const surface of allocated){assert.equal(surface.width,0);assert.equal(surface.height,0);}
+      if(failure==='lost')assert(!copied,'already-lost contexts never attempt a silent no-op copy');
+      if(failure==='lost-copy')assert.equal(drawn.length,1,'context loss during copy never paints a transparent private surface');
+      const count=calls.filter(call=>call[0]==='construct').length;
+      w.copyBoundedMirrorPixels(ctx,626,0,714,141,626,0,714,141,budget);
+      assert.equal(calls.filter(call=>call[0]==='construct').length,count,'failed surface APIs are attempted once');
+    }else assert.equal(budget.mirrorSurfaceUnavailable,undefined);
+    if(used){
+      assert.equal(budget.mirrorSurface.canvas.width,714);assert.equal(budget.mirrorSurface.canvas.height,141);
+      w.copyBoundedMirrorPixels(ctx,626,0,714,141,626,0,714,141,budget);
+      assert.equal(calls.filter(call=>call[0]==='construct').length,1,'warm frames reuse the same bounded surface');
+      assert.equal(calls.filter(call=>call[0]==='context').length,1,'warm frames reuse its one private context');
+    }
+  }
+  console.log('PASS: one fixed714x141 native mirror surface/context, neutral exact-crop copy, zero readbacks/VideoFrames, warm reuse, private state restoration, initial/during-copy silent context-loss fallback and zero-sized failure cleanup.');
+}
+
+async function nativeMirrorCanvasUnit(){
+  const {createCanvas,Path2D}=require('@napi-rs/canvas');
+  const {createRig,load}=require('./check-level-01-boss');
+  const {nativeAssets}=require('./render-cache-beat-visual-system.cjs');
+  const root=path.resolve(__dirname,'..'),assets=await nativeAssets();
+  const road=fs.readFileSync(path.join(root,'src/game/cache-road-proof.js'),'utf8');
+  const r=createRig(),{w,context}=r,B=w.BARCODE;
+  B.Campaign={register(){},syncTitleButton(){}};
+  for(const file of ['src/engine/cache-road-proof-profile.js','src/game/cache-road-landscape.js',
+    'src/game/cache-road-encounters.js','src/game/cache-road-reactions.js',
+    'src/game/cache-road-pursuit.js','src/game/cache-road-boss-art.js',
+    'src/game/cache-road-combat.js','src/game/cache-road-combat-art.js',
+    'src/game/cache-road-crosswalks.js','src/game/cache-road-mirror.js','src/game/cache-road-cinematics.js'])load(context,file);
+  w.Path2D=Path2D;w.Image=undefined;w.mirrorNativeImages=assets.images;
+  vm.runInContext(assets.manifest.replace('  const cache = {};',
+    '  const cache=Object.fromEntries(Object.entries(window.mirrorNativeImages).map(([key,image])=>[key,{image,ready:true}]));'),context);
+  assert(road.includes('  B.Campaign.register(ID,'));
+  vm.runInContext(road.replace('  B.Campaign.register(ID,',
+    '  window.nativeMirrorReview={newState,drawRearview};\n  B.Campaign.register(ID,'),context);
+  const canvases=[createCanvas(1920,1080),createCanvas(1920,1080)];
+  w.HTMLCanvasElement=canvases[0].constructor;
+  let reads=0,frames=0,privateContexts=0,cases=0;
+  const surfaces=[],candidateBudget={};
+  // Native Canvas has no OffscreenCanvas API. This model supplies its actual
+  // native drawing surface; real OffscreenCanvas fidelity is checked in Chromium.
+  w.VideoFrame=class{constructor(){frames++;throw Error('mirror surface must not construct VideoFrame');}};
+  w.OffscreenCanvas=class{
+    constructor(width,height){
+      assert.equal(width,714);assert.equal(height,141);
+      let raster=createCanvas(width,height),surfaceWidth=width,surfaceHeight=height;
+      // Native Canvas maps dimension0 to a default size. OffscreenCanvas permits
+      // zero; this contract model releases its raster at that browser boundary.
+      const surface={
+        get width(){return surfaceWidth;},set width(value){surfaceWidth=value;if(!value)raster=null;},
+        get height(){return surfaceHeight;},set height(value){surfaceHeight=value;if(!value)raster=null;},
+        get image(){return raster;},
+        getContext(kind,options){
+          privateContexts++;assert.equal(kind,'2d');assert.deepEqual(JSON.parse(JSON.stringify(options)),{alpha:true,colorSpace:'srgb'});
+          const ctx=raster.getContext(kind);ctx.getContextAttributes=()=>({alpha:true,colorSpace:'srgb'});
+          ctx.getImageData=()=>{reads++;throw Error('mirror surface must not read pixels');};return ctx;
+        }
+      };
+      surfaces.push(surface);return surface;
+    }
+  };
+  const contexts=canvases.map(canvas=>{
+    const ctx=canvas.getContext('2d'),read=ctx.getImageData.bind(ctx),draw=ctx.drawImage.bind(ctx),selfCopies=[];
+    ctx.getContextAttributes=()=>({colorSpace:'srgb'});
+    ctx.getImageData=()=>{reads++;throw Error('Native rearview must not read the display canvas');};
+    ctx.drawImage=(...args)=>{
+      if(args[0]===canvas||surfaces.includes(args[0])){
+        selfCopies.push({args:args.slice(1),surface:surfaces.includes(args[0]),
+          filter:ctx.filter,composite:ctx.globalCompositeOperation});
+        if(surfaces.includes(args[0]))args[0]=args[0].image;
+      }
+      return draw(...args);
+    };
+    return {ctx,read,selfCopies};
+  });
+  for(const progress of [180,7620])for(const reduced of [false,true])
+    for(const caller of ['native','paused','fade','transformed']){
+      const pose=Object.assign(w.nativeMirrorReview.newState(),{progress,elapsedMs:5471,lanePos:1.5,
+        visualLane:1.5,musicBar:64,musicBeatFloat:257.2,captures:[],speed:70,gear:2,timeMs:55000});
+      const stateBefore=JSON.stringify(pose),budgets=[];
+      for(let index=0;index<contexts.length;index++){
+        const {ctx,selfCopies}=contexts[index];ctx.reset();selfCopies.length=0;
+        ctx.fillStyle='#26364a';ctx.fillRect(0,0,1920,1080);
+        if(caller==='transformed')ctx.setTransform(.75,0,0,.75,120,10);
+        ctx.globalAlpha=.73;
+        const before={alpha:ctx.globalAlpha,filter:ctx.filter,composite:ctx.globalCompositeOperation,
+          transform:JSON.stringify(ctx.getTransform())};
+        const callerCtx=caller==='fade'?B.CacheRoadCinematics.withHUDAlpha(ctx,.4):ctx;
+        const budget=index===0?null:candidateBudget;budgets.push(budget);
+        // Null budget executes the original direct-canvas reference branch.
+        // The candidate receives the same retained bounded surface owner.
+        w.nativeMirrorReview.drawRearview(callerCtx,pose,'#8fe3db',reduced,undefined,null,null,
+          false,caller==='native',budget);
+        assert.equal(JSON.stringify(pose),stateBefore,'native reflection painting preserves gameplay');
+        assert.deepEqual({alpha:ctx.globalAlpha,filter:ctx.filter,composite:ctx.globalCompositeOperation,
+          transform:JSON.stringify(ctx.getTransform())},before,'native reflection restores caller state');
+        assert.equal(selfCopies.length,1,'each completed reflection has one original canvas copy');
+        assert.equal(selfCopies[0].filter,'blur(2.3px)','the original glass blur is retained');
+        assert.equal(selfCopies[0].composite,caller==='native'?'source-over':'copy');
+        if(caller==='native')assert.deepEqual(selfCopies[0].args,index===0?
+          [626,0,714,141,626,0,714,141]:[0,0,714,141,626,0,714,141]);
+      }
+      assert.equal(reads,0,'even eligible native rearview frames never invoke getImageData');
+      assert.equal(frames,0,'native mirrors never construct VideoFrame');
+      assert.equal(budgets[1].mirrorPixelCopyUsed,caller!=='transformed');
+      assert.equal(budgets[1].pixelCopyUnavailable,undefined,'readback is absent, not caught as a failure');
+      assert.equal(budgets[1].mirrorSurfaceUnavailable,undefined,'supported surface does not fall back');
+      const originalCopy=contexts[0].selfCopies[0],candidateCopy=contexts[1].selfCopies[0];
+      assert.equal(candidateCopy.filter,originalCopy.filter);assert.equal(candidateCopy.composite,originalCopy.composite);
+      assert.equal(candidateCopy.surface,caller!=='transformed');
+      assert.deepEqual(candidateCopy.args,caller!=='transformed'?[0,0,714,141,626,0,714,141]:originalCopy.args,
+        'native-size active/paused/fade callers use bounded coordinates while transformed callers retain direct-copy coordinates');
+      const reference=Buffer.from(contexts[0].read(0,0,1920,1080).data);
+      const candidate=Buffer.from(contexts[1].read(0,0,1920,1080).data);
+      assert(candidate.equals(reference),`original native reflected pixels changed at ${progress}/${reduced}/${caller}`);
+      cases++;
+    }
+  assert.equal(frames,0);assert.equal(surfaces.length,1);assert.equal(privateContexts,1);
+  const owner=B.CacheRoadProof,surface=candidateBudget.mirrorSurface;
+  assert.equal(typeof owner.dispose,'function','exercise the actual production road lifecycle owner');
+  let audioStops=0,endingStops=0;
+  w.audioSystem={...w.audioSystem,stopRoadEngine(){audioStops++;}};
+  B.CacheEnding={dispose(){endingStops++;}};
+  owner.renderBudget=candidateBudget;owner.renderBudgetState={};owner.active=true;owner.pending=true;
+  const generation=owner.entryGeneration||0;
+  owner.state=w.nativeMirrorReview.newState();owner.chapter={};owner.oldHint=null;
+  const displayStates=contexts.map(({ctx})=>({alpha:ctx.globalAlpha,filter:ctx.filter,
+    composite:ctx.globalCompositeOperation,transform:JSON.stringify(ctx.getTransform())}));
+  owner.dispose();
+  assert.equal(surface.canvas.width,0);assert.equal(surface.canvas.height,0);
+  assert.equal(surface.canvas.image,null,'zero-sized contract surfaces release their actual native raster');
+  assert.equal(candidateBudget.mirrorSurface,null);assert.equal(owner.renderBudget,null);
+  assert.equal(owner.renderBudgetState,null);assert.equal(owner.active,false);assert.equal(owner.pending,false);
+  assert.equal(owner.entryGeneration,generation+1);
+  assert.equal(owner.state,null);assert.equal(owner.chapter,null);
+  assert.equal(audioStops,1);assert.equal(endingStops,1);
+  assert.deepEqual(contexts.map(({ctx})=>({alpha:ctx.globalAlpha,filter:ctx.filter,
+    composite:ctx.globalCompositeOperation,transform:JSON.stringify(ctx.getTransform())})),displayStates,
+    'disposing a private mirror resource never changes either display context');
+  owner.dispose();assert.equal(owner.renderBudget,null);assert.equal(owner.renderBudgetState,null);
+  assert.equal(privateContexts,1);assert.equal(reads,0);assert.equal(frames,0);
+  console.log(`PASS: ${cases} loaded-art native mirror comparisons using one bounded OffscreenCanvas contract model, zero display readbacks/VideoFrames, original curved glass/crop/blur/blend, paused/fade surface reuse, transformed fallback and pure gameplay/context state; actual OffscreenCanvas pixels remain a Chromium gate.`);
+  console.log('PASS: actual production road.dispose releases and zero-sizes the retained mirror surface, clears its budget/state references, preserves existing audio/ending cleanup and display contexts, and supports repeated disposal.');
+}
+
 const frameReviewCount=screens=>screens.length/3;
 async function browser(){
   const http=require('node:http'),os=require('node:os'),{spawn}=require('node:child_process'),{once}=require('node:events');
@@ -592,7 +794,7 @@ async function browser(){
       let road=fs.readFileSync(path.join(root,'src/game/cache-road-proof.js'),'utf8');
       const copyMarker='  function clipLightBlend(ctx,bounds) {';
       assert(road.includes(copyMarker),'exercise the actual sampled-world helper in Chromium');
-      road=road.replace(copyMarker,'  window.bitmapReview.copySampledWorldPixels=copySampledWorldPixels;window.bitmapReview.copyOpaqueCanvasPixels=copyOpaqueCanvasPixels;\n'+copyMarker);
+      road=road.replace(copyMarker,'  window.bitmapReview.copySampledWorldPixels=copySampledWorldPixels;window.bitmapReview.copyOpaqueCanvasPixels=copyOpaqueCanvasPixels;window.bitmapReview.copyBoundedMirrorPixels=copyBoundedMirrorPixels;window.bitmapReview.drawRearview=drawRearview;window.bitmapReview.mirrorOutline=mirrorOutline;\n'+copyMarker);
       assert(road.includes('const compositeBlur=ctx.canvas?.width>0'));
       road=road.replace('const compositeBlur=ctx.canvas?.width>0',
         "const compositeBlur=window.bitmapReview.mode!=='vector'&&ctx.canvas?.width>0");
@@ -643,7 +845,9 @@ async function browser(){
       const {entries,cache}=bitmapReview,svg=Object.keys(entries).filter(key=>entries[key].path.endsWith('.svg'));
       if(svg.some(key=>!(cache[key].bitmap instanceof ImageBitmap)))throw Error('SVG bitmap preparation failed');
       if(bitmapAttempts.filter(src=>src.endsWith('.svg')).length!==svg.length)throw Error('SVG preparations were duplicated');
-      const c=document.getElementById('gameCanvas'),ctx=c.getContext('2d'),P=BARCODE.PresentationAssets;
+      // Keep the normal accelerated backend while diagnostic readbacks drain
+      // draws. Production native driving never requests those pixel reads.
+      const c=document.getElementById('gameCanvas'),ctx=c.getContext('2d',{willReadFrequently:false}),P=BARCODE.PresentationAssets;
       const beforeSVG=bitmapAttempts.filter(src=>src.endsWith('.svg')).length,pixels=[];
       for(let repeat=0;repeat<2;repeat++){
         ctx.clearRect(0,0,c.width,c.height);ctx.save();ctx.translate(42,57);ctx.rotate(.013);ctx.globalAlpha=.7;
@@ -969,8 +1173,95 @@ async function browser(){
           throw Error('cropped mirror source changed original blur/caller pixels: '+JSON.stringify(row));
         mirrorSourceChecks.push(row);
       }
+      const mirrorSurfaceChecks=[];
+      const readPixels=ctx.getImageData.bind(ctx),OriginalOffscreenCanvas=window.OffscreenCanvas,
+        OriginalVideoFrame=window.VideoFrame,surfaceBudget={};
+      let surfaceReads=0,surfaceConstructed=0,surfaceContexts=0,surfaceFrames=0;
+      // Pixel reads occur only after each completed draw through the saved
+      // native method; the actual production helper cannot read either surface.
+      ctx.getImageData=()=>{surfaceReads++;throw Error('production mirror surface read the display');};
+      window.VideoFrame=class{constructor(){surfaceFrames++;throw Error('mirror surface created a VideoFrame');}};
+      window.OffscreenCanvas=class{
+        constructor(width,height){
+          if(width!==714||height!==141)throw Error('mirror surface exceeded its fixed native bound');
+          surfaceConstructed++;
+          const canvas=new OriginalOffscreenCanvas(width,height),getContext=canvas.getContext.bind(canvas);
+          canvas.getContext=(kind,options)=>{
+            surfaceContexts++;
+            if(kind!=='2d'||options.alpha!==true||options.colorSpace!=='srgb')
+              throw Error('mirror surface changed alpha/color space');
+            const privateContext=getContext(kind,options);
+            privateContext.getImageData=()=>{surfaceReads++;throw Error('production mirror surface read private pixels');};
+            return privateContext;
+          };
+          return canvas;
+        }
+      };
+      const compareSurface=(scenario,paint,draw,expectedUsed)=>{
+        paint();draw(null);
+        const original=readPixels(0,0,c.width,c.height).data;
+        paint();const budget=surfaceBudget;draw(budget);
+        const candidate=readPixels(0,0,c.width,c.height).data;
+        let rgb=0,maxAlpha=0;
+        for(let index=0;index<original.length;index++){
+          const delta=Math.abs(original[index]-candidate[index]);
+          if(index%4===3)maxAlpha=Math.max(maxAlpha,delta);else rgb+=delta;
+        }
+        const row={scenario,used:budget.mirrorPixelCopyUsed,meanRGB:rgb/(c.width*c.height*3),
+          maxAlphaDifference:maxAlpha,constructed:surfaceConstructed,privateContexts:surfaceContexts,
+          readbacks:surfaceReads,videoFrames:surfaceFrames,surfaceWidth:budget.mirrorSurface?.canvas.width,
+          surfaceHeight:budget.mirrorSurface?.canvas.height};
+        if(row.meanRGB>=.1||maxAlpha||row.used!==expectedUsed||surfaceReads||surfaceFrames||
+          surfaceConstructed!==1||surfaceContexts!==1||budget.mirrorSurfaceUnavailable||
+          row.surfaceWidth!==714||row.surfaceHeight!==141)
+          throw Error('bounded mirror surface changed original curved mirror/alpha/caller pixels: '+JSON.stringify(row));
+        mirrorSurfaceChecks.push(row);
+      };
+      try{
+        for(const scenario of ['opaque','alpha']){
+          const paint=()=>{
+            ctx.reset();const gradient=ctx.createLinearGradient(0,0,c.width,c.height);
+            gradient.addColorStop(0,'#1d7d99');gradient.addColorStop(.42,'#9b4f74');gradient.addColorStop(1,'#dc805b');
+            ctx.fillStyle=gradient;ctx.fillRect(0,0,c.width,c.height);
+            ctx.fillStyle='#fae986';ctx.fillRect(720,45,63,34);
+            if(scenario==='alpha')ctx.clearRect(650,30,7,13);
+            bitmapReview.mirrorOutline(ctx,638,12,690,117);ctx.clip();
+            ctx.globalCompositeOperation='source-over';ctx.filter='blur(2.3px)';
+          };
+          compareSurface('curved-'+scenario,paint,budget=>{
+            if(budget)budget.mirrorPixelCopyUsed=bitmapReview.copyBoundedMirrorPixels(ctx,
+              626,0,714,141,626,0,714,141,budget,true);
+            else ctx.drawImage(c,626,0,714,141,626,0,714,141);
+          },true);
+        }
+        const state=frameReviewScenes.find(scene=>scene.name==='Focused-Turn').state;
+        const stateBefore=JSON.stringify(state);
+        for(const caller of ['native','paused','fade','transformed']){
+          let callerContext,before;
+          const paint=()=>{
+            ctx.reset();ctx.fillStyle='#26364a';ctx.fillRect(0,0,c.width,c.height);
+            if(caller==='transformed')ctx.setTransform(.75,0,0,.75,120,10);
+            ctx.globalAlpha=.73;
+            before=JSON.stringify({alpha:ctx.globalAlpha,filter:ctx.filter,composite:ctx.globalCompositeOperation,
+              matrix:[ctx.getTransform().a,ctx.getTransform().b,ctx.getTransform().c,ctx.getTransform().d,ctx.getTransform().e,ctx.getTransform().f]});
+            callerContext=caller==='fade'?BARCODE.CacheRoadCinematics.withHUDAlpha(ctx,.4):ctx;
+          };
+          compareSurface('loaded-art-'+caller,paint,budget=>{
+            bitmapReview.drawRearview(callerContext,state,'#8fe3db',false,undefined,null,null,
+              false,caller==='native',budget);
+            const after=JSON.stringify({alpha:ctx.globalAlpha,filter:ctx.filter,composite:ctx.globalCompositeOperation,
+              matrix:[ctx.getTransform().a,ctx.getTransform().b,ctx.getTransform().c,ctx.getTransform().d,ctx.getTransform().e,ctx.getTransform().f]});
+            if(after!==before||JSON.stringify(state)!==stateBefore)
+              throw Error('bounded mirror reflection mutated caller state or gameplay');
+          },caller!=='transformed');
+        }
+        if(surfaceConstructed!==1||surfaceContexts!==1||surfaceFrames||surfaceReads)
+          throw Error('bounded mirror surface allocation/reuse changed');
+      }finally{
+        ctx.getImageData=readPixels;window.VideoFrame=OriginalVideoFrame;window.OffscreenCanvas=OriginalOffscreenCanvas;
+      }
       ctx.reset();
-      return {passed:true,performancePass,aggregateRatio,frameComparisons,frameSamples:rows,pixelComparisons,screens,viewportChecks,tintSourceChecks,worldSourceChecks,mirrorSourceChecks,
+      return {passed:true,performancePass,aggregateRatio,frameComparisons,frameSamples:rows,pixelComparisons,screens,viewportChecks,tintSourceChecks,worldSourceChecks,mirrorSourceChecks,mirrorSurfaceChecks,
         preparedSVGs:svg.length,qualityComparisons,absoluteFrameBudgetMs,reflectionBlursPerFrame:1,warmDraws:120,pausedPixels:true,displayContexts:contextCalls,
         preservedMirrorFilter:'blur(2.3px)',limitation:'Real Chromium loader/cache validation; owner device FPS remains unmeasured.'};
     })()`});
@@ -1021,4 +1312,4 @@ async function browser(){
     await fs.promises.rm(profile,{recursive:true,force:true,maxRetries:20,retryDelay:100});
   }
 }
-(async()=>{await unit();await backgroundRasterUnit();await nativeRasterUnit();await nativeSmallUnit();await nativeWindowUnit();await nativeTintUnit();budgetUnit();mirrorSourceUnit();worldCopyUnit();if(process.argv.includes('--browser'))await browser();})().catch(e=>{console.error(e.stack);process.exitCode=1;});
+(async()=>{await unit();await backgroundRasterUnit();await nativeRasterUnit();await nativeSmallUnit();await nativeWindowUnit();await nativeTintUnit();budgetUnit();mirrorSourceUnit();worldCopyUnit();mirrorSurfaceUnit();await nativeMirrorCanvasUnit();if(process.argv.includes('--browser'))await browser();})().catch(e=>{console.error(e.stack);process.exitCode=1;});

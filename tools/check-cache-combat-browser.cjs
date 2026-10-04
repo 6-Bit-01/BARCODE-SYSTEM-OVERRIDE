@@ -172,7 +172,9 @@ window.audioSystem={context:{currentTime:0,state:'running'},musicTracks:{},
   playCombatCue(kind){browserProof.cues.push(kind);return true;},stopCacheBridgeAudio(){}};
 </script>${scripts.map(file => `<script src="/${file}"></script>`).join('')}
 <script>
-const canvas=document.getElementById('gameCanvas');window.renderer={canvas,ctx:canvas.getContext('2d')};
+// Measurement readbacks must not change the production rendering backend.
+// Live driving does not read canvas pixels; diagnostics still drain each draw.
+const canvas=document.getElementById('gameCanvas');window.renderer={canvas,ctx:canvas.getContext('2d',{willReadFrequently:false})};
 renderer.ctx.imageSmoothingQuality='high'; // inherited shared-renderer setting in production
 const copy=value=>JSON.parse(JSON.stringify(value));
 const round=(value,digits=3)=>Number(Number(value||0).toFixed(digits));
@@ -322,7 +324,8 @@ browserProof.step=ms=>{for(let left=ms;left>0;){const dt=Math.min(20,left);left-
     browserProof.displayCostMs=costMs;browserProof.measureLoop=false;
     if(browserProof.bossPaintFrames>=30&&BARCODE.CacheRoadProof.status==='playing'&&
         BARCODE.CacheRoadProof.state.combat?.boss?.hp>0&&
-        BARCODE.CacheRoadProof.renderBudget?.drawnScale<1&&
+        BARCODE.CacheRoadProof.renderBudget?.drawnScale>0&&
+        BARCODE.CacheRoadProof.renderBudget?.drawnScale<=1&&
         costMs>(browserProof.phaseSnapshot?.measuredCostMs??0))
       browserProof.phaseSnapshot={measuredCostMs:costMs,worldScale:BARCODE.CacheRoadProof.renderBudget.drawnScale,state:copy(BARCODE.CacheRoadProof.state),chapter:copy(BARCODE.CacheRoadProof.chapter),
         host:Object.fromEntries(['status','introMs','handoffMs','outroMs','cinematicLane','audioDegraded'].map(key=>[key,BARCODE.CacheRoadProof[key]]))};
@@ -467,9 +470,9 @@ const server=http.createServer((req,res)=>{
     const mirrorBoundary="ctx.globalCompositeOperation=opaqueNative?'source-over':'copy';";
     assert(source.includes(mirrorBoundary),'opaque mirror-copy fidelity boundary');
     source=source.replace(mirrorBoundary,"ctx.globalCompositeOperation=opaqueNative&&!window.forceMirrorCopy?'source-over':'copy';");
-    const mirrorPixelsBoundary='right-sx,bottom-sy,pixelBudget,opaqueNative);';
-    assert(source.includes(mirrorPixelsBoundary),'original mirror pixel transport comparison');
-    source=source.replace(mirrorPixelsBoundary,'right-sx,bottom-sy,pixelBudget,opaqueNative&&!window.forceMirrorCopy);');
+    const mirrorPixelsBoundary='right-sx,bottom-sy,pixelBudget,true);';
+    assert(source.includes(mirrorPixelsBoundary),'bounded native mirror retains the original canvas-copy reference');
+    source=source.replace(mirrorPixelsBoundary,'right-sx,bottom-sy,pixelBudget,!window.forceMirrorCopy);');
     const tintBoundary='if(tintedReflection&&!ctx.shadowBlur&&!ctx.shadowOffsetX&&!ctx.shadowOffsetY) {';
     assert(source.includes(tintBoundary),'pointwise reflection-filter bounds boundary');
     source=source.replace(tintBoundary,'if(tintedReflection&&!ctx.shadowBlur&&!ctx.shadowOffsetX&&!ctx.shadowOffsetY&&!window.forceReflectionTintClip) {');
@@ -811,12 +814,12 @@ async function main(){
     [...new Set(fullLoopCosts.map(frame=>JSON.stringify({world:frame.worldPixelCopyUsed,mirror:frame.mirrorPixelCopyUsed,unavailable:frame.pixelCopyUnavailable})))].map(key=>({
       ...JSON.parse(key),frames:fullLoopCosts.filter(frame=>JSON.stringify({world:frame.worldPixelCopyUsed,mirror:frame.mirrorPixelCopyUsed,unavailable:frame.pixelCopyUnavailable})===key).length}))));
   console.log('SUSTAINED_PAINT_PHASES '+JSON.stringify([false,true].map(boss=>{
-    const frames=fullLoopCosts.filter(frame=>frame.boss===boss&&frame.worldScale<1);
+    const frames=fullLoopCosts.filter(frame=>frame.boss===boss);
     return {group:boss?'boss':'chase',frames:frames.length,
       phases:[...new Set(frames.flatMap(frame=>frame.paintPhases.map(row=>row.phase)))].map(phase=>({phase,
         medianMs:median(frames.map(frame=>frame.paintPhases.find(row=>row.phase===phase)?.ms).filter(Number.isFinite))}))};})));
   console.log('SUSTAINED_REPRESENTATIVE_FRAMES '+JSON.stringify([false,true].map(boss=>{
-    const frames=fullLoopCosts.filter(frame=>frame.boss===boss&&frame.worldScale<1).sort((a,b)=>a.ms-b.ms);
+    const frames=fullLoopCosts.filter(frame=>frame.boss===boss).sort((a,b)=>a.ms-b.ms);
     return {group:boss?'boss':'chase',samples:[.25,.5,.75,.95].map(fraction=>frames[Math.min(frames.length-1,Math.floor(frames.length*fraction))]).filter(Boolean)
       .map(frame=>({ms:frame.ms,bar:frame.bar,drawMs:frame.drawMs,flushMs:frame.flushMs,paintPhases:frame.paintPhases}))};})));
   fs.writeFileSync(path.join(output,'Sustained-Frame-Cost.json'),JSON.stringify(fullLoopTiming,null,2)+'\n');
@@ -948,7 +951,7 @@ async function main(){
       unscoredStagedRam:true,nativeEarnedHorizonExit:true,freshOutroSkip:true,
       nativeGroundTimingAndEarnedAdrenalinePaint:true,customBeatSheetsDecodedAndHashed:true,
       immutableBeatSourceAttempt:true,customBeatProjectionOwnerLoaded:true,earnedCustomBeatReceipt:true,
-      oneCanvas:true,stateInjection:false},
+      oneDisplayCanvas:true,stateInjection:false},
     limits:'Production scripts in index order, controlled saved bridge-ready entry, native Chromium input/Canvas, every shared-RAF simulation update and selected Canvas samples. Does not exercise title boot or every display frame. Audio clock, gamepad device, lifecycle pause and Campaign persistence are controlled hosts. No progress, health, immunity, resources, captures or boss-damage injection. Not Makko, physical-controller, recorded listening, human balance, comfort or display-pacing acceptance.'};
   console.log(`Cache combat Chromium passed: zero-sync four controls, analog triggers, actual12HP rig damage, wreck/first gear, earned page reload, full100bars; ${totalFrames} simulation frames and ${totalSamples} sampled Canvas frames.`);
 }
