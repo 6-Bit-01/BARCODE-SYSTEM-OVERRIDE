@@ -34,7 +34,6 @@ jobs:
           CHROME_BIN: /usr/bin/google-chrome
           CACHE_COMBAT_BROWSER_OUTPUT: ${{ runner.temp }}/level2-frame-review/chase
           CACHE_COMBAT_BROWSER_REQUIRE_HOSTED: '1'
-          CACHE_COMBAT_BROWSER_GPU_BACKEND: swiftshader
         run: npm run check:cache-combat-browser
       - name: Check immutable bitmap preparation and real Chromium reuse
         env:
