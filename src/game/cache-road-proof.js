@@ -4525,6 +4525,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // Input calibration adjusts a physical tap only. It must never move
       // the visible countdown away from the song's actual beat.
       const nextCue=nextPulse&&pulseVisual(nextPulse,s,cueBeatSec);
+      const beatDistance=beat=>{
+        const at=roadAtBeat(s,beat);
+        return at===null?null:STRIKE_DISTANCE+at-progress;
+      };
       // Captures still own the real music layers and duration. Their broad
       // road washes/tiles duplicated pad/HUD feedback and are omitted here.
       for (const side of [-1, 1]) {

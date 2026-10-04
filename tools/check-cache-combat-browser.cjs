@@ -349,9 +349,10 @@ browserProof.step=ms=>{for(let left=ms;left>0;){const dt=Math.min(20,left);left-
       previousDisplayCostMs:browserProof.displayCostMs});
     window.canvasCostMark=undefined;
     browserProof.displayCostMs=costMs;browserProof.measureLoop=false;
+    // Capture a genuinely played live-boss frame at its actual native quality.
+    // Native rendering stays at scale 1; capture must not require downscaling.
     if(browserProof.bossPaintFrames>=30&&BARCODE.CacheRoadProof.status==='playing'&&
         BARCODE.CacheRoadProof.state.combat?.boss?.hp>0&&
-        BARCODE.CacheRoadProof.renderBudget?.drawnScale<1&&
         costMs>(browserProof.phaseSnapshot?.measuredCostMs??0))
       browserProof.phaseSnapshot={measuredCostMs:costMs,worldScale:BARCODE.CacheRoadProof.renderBudget.drawnScale,state:copy(BARCODE.CacheRoadProof.state),chapter:copy(BARCODE.CacheRoadProof.chapter),
         host:Object.fromEntries(['status','introMs','handoffMs','outroMs','cinematicLane','audioDegraded'].map(key=>[key,BARCODE.CacheRoadProof[key]]))};
@@ -852,12 +853,12 @@ async function main(){
     [...new Set(fullLoopCosts.map(frame=>JSON.stringify({world:frame.worldPixelCopyUsed,mirror:frame.mirrorPixelCopyUsed,unavailable:frame.pixelCopyUnavailable})))].map(key=>({
       ...JSON.parse(key),frames:fullLoopCosts.filter(frame=>JSON.stringify({world:frame.worldPixelCopyUsed,mirror:frame.mirrorPixelCopyUsed,unavailable:frame.pixelCopyUnavailable})===key).length}))));
   console.log('SUSTAINED_PAINT_PHASES '+JSON.stringify([false,true].map(boss=>{
-    const frames=fullLoopCosts.filter(frame=>frame.boss===boss&&frame.worldScale<1);
+    const frames=fullLoopCosts.filter(frame=>frame.boss===boss);
     return {group:boss?'boss':'chase',frames:frames.length,
       phases:[...new Set(frames.flatMap(frame=>frame.paintPhases.map(row=>row.phase)))].map(phase=>({phase,
         medianMs:median(frames.map(frame=>frame.paintPhases.find(row=>row.phase===phase)?.ms).filter(Number.isFinite))}))};})));
   console.log('SUSTAINED_REPRESENTATIVE_FRAMES '+JSON.stringify([false,true].map(boss=>{
-    const frames=fullLoopCosts.filter(frame=>frame.boss===boss&&frame.worldScale<1).sort((a,b)=>a.ms-b.ms);
+    const frames=fullLoopCosts.filter(frame=>frame.boss===boss).sort((a,b)=>a.ms-b.ms);
     return {group:boss?'boss':'chase',samples:[.25,.5,.75,.95].map(fraction=>frames[Math.min(frames.length-1,Math.floor(frames.length*fraction))]).filter(Boolean)
       .map(frame=>({ms:frame.ms,bar:frame.bar,drawMs:frame.drawMs,flushMs:frame.flushMs,paintPhases:frame.paintPhases}))};})));
   fs.writeFileSync(path.join(output,'Sustained-Frame-Cost.json'),JSON.stringify(fullLoopTiming,null,2)+'\n');
@@ -958,7 +959,9 @@ async function main(){
     fs.writeFileSync(path.join(output,'Boss-Render-Review.webp'),Buffer.from(reviewWebp,'base64'));
   }
   console.log('BOSS_RENDER_PHASES '+JSON.stringify(phaseReport));
-  assert(phaseReport.available&&phaseReport.status==='playing'&&phaseReport.bossHP>0,'staged diagnostic restores the actual live-boss lifecycle');
+  assert(phaseReport.available,'staged diagnostic captures an actually played live-boss frame at its observed quality');
+  assert(phaseReport.status==='playing'&&phaseReport.bossHP>0,'staged diagnostic restores the actual live-boss lifecycle');
+  assert(phaseReport.worldScale===1,'staged diagnostic preserves the actually played native scale');
   assert(phaseReport.renderFidelity.meanRGB<.1&&phaseReport.renderFidelity.maxAlphaDifference===0,'bounded terrain/opaque frame copy keep the original rendered output');
   assert(phaseReport.opaqueCopyFidelity.meanRGB<.1&&phaseReport.opaqueCopyFidelity.maxAlphaDifference===0,'opaque source-over retains the cleared copy RGB and alpha');
   fs.writeFileSync(path.join(output,'Boss-Render-Phases.json'),JSON.stringify(phaseReport,null,2)+'\n');
