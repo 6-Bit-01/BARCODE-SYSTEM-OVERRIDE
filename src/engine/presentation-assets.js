@@ -321,33 +321,62 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   const nativeSmallSources=new Set(['cacheBrakeReflection','cacheDamagedExhaust',
     'cachePhraseStrip','cacheConfirmedBar','cachePulsePad','cachePulseStrip','cachePulseBurst']);
   const nativeDecodeSources=new Set(['cacheRepairShop','cacheMarketRFrontGap',
-    'cacheStreetBicycleRack']);
-  let rasterPixels=0,nativeRasterPixels=0,nativeSmallPixels=0;
+    'cacheStreetBicycleRack','cacheBlacktop','cacheGreenhouseWorkshop']);
+  const nativeDeferredSources=new Set(['cacheBeatEnergy','cachePhraseStrip','cacheConfirmedBar']);
+  // Hold these exact whole-source slots before asynchronous load order can
+  // spend the pool on optional atlases. These are canonical source dimensions.
+  const nativePriorityReservations=new Map([
+    ['cacheBlacktop',2172*724],['cacheGreenhouseWorkshop',1536*1024]]);
+  const nativePriorityReservedPixels=[...nativePriorityReservations.values()].reduce((sum,pixels)=>sum+pixels,0);
+  let rasterPixels=0,nativeRasterPixels=nativePriorityReservedPixels,nativeSmallPixels=0;
   let backgroundRasterRequested=false,diffuseRasterRequested=false;
   const MAX_NATIVE_SMALL_PIXELS=1536*1024;
   const MAX_NATIVE_RASTER_PIXELS=32*1024*1024;
-  function prepareNativeRaster(key,entry,state) {
+  function releaseNativePriorityReservation(key) {
+    const pixels=nativePriorityReservations.get(key)||0;
+    if(pixels){nativePriorityReservations.delete(key);nativeRasterPixels-=pixels;}
+    return pixels;
+  }
+  function prepareNativeRaster(key,entry,state,requested=false,requestedFrames=null) {
+    if(!requested&&nativeDeferredSources.has(key)||state.nativePending)return false;
     const image=state.image,w=image.naturalWidth,h=image.naturalHeight;
     const fw=w/entry.columns,fh=h/entry.rows,cells=entry.columns*entry.rows;
     const grid=entry.frames===cells&&Number.isInteger(fw)&&Number.isInteger(fh);
-    // These fixed HUD paints use only an interior source window. Retain its
-    // original texels plus a sampling margin; other crops use the original.
     const windowCrop=grid&&key==='cacheDashBezel'&&fw>=2032&&fh>=634?
       [10,118,2022,516]:grid&&key==='cacheMirror'&&fw>=452&&fh>=337?
       [0,148,452,189]:grid&&key==='cacheBrakeReflection'&&fw>=194&&fh>=290?
       [0,0,194,290]:null;
-    const pixels=windowCrop?windowCrop[2]*windowCrop[3]*cells:w*h;
-    const smallNative=nativeSmallSources.has(key);
-    if(!/^cache/.test(key)||(!/^assets\/cache-road\/(vehicles\/animation|combat|beat-system|hud)\//.test(entry.path)&&key!=='cachePursuitRig'&&!smallNative&&!nativeDecodeSources.has(key))||
-      /\.svg$/i.test(entry.path)||!windowCrop&&pixels<(smallNative?32:256)*1024||
-      smallNative&&pixels>MAX_NATIVE_SMALL_PIXELS-nativeSmallPixels||
-      pixels>MAX_NATIVE_RASTER_PIXELS-nativeRasterPixels||
-      typeof window.createImageBitmap!=='function')return;
-    nativeRasterPixels+=pixels;if(smallNative)nativeSmallPixels+=pixels;state.nativePending=true;
-    const fallback=()=>{nativeRasterPixels-=pixels;if(smallNative)nativeSmallPixels-=pixels;state.nativePending=false;};
-    if(windowCrop||cells>1&&grid) {
-      const crop=windowCrop||[0,0,fw,fh],cw=crop[2],ch=crop[3];
-      const preparations=Array.from({length:cells},(_,index)=>Promise.resolve().then(()=>
+    const sourcePixels=windowCrop?windowCrop[2]*windowCrop[3]*cells:w*h;
+    const smallNative=nativeSmallSources.has(key),priority=nativePriorityReservations.get(key)||0;
+    const eligible=/^cache/.test(key)&&(/^assets\/cache-road\/(vehicles\/animation|combat|beat-system|hud)\//.test(entry.path)||
+      key==='cachePursuitRig'||smallNative||nativeDecodeSources.has(key));
+    if(!eligible||/\.svg$/i.test(entry.path)||!windowCrop&&sourcePixels<(smallNative?32:256)*1024||
+      typeof window.createImageBitmap!=='function'){
+      releaseNativePriorityReservation(key);return false;
+    }
+    const framed=!!windowCrop||cells>1&&grid;
+    if(requestedFrames!==null&&(!Array.isArray(requestedFrames)||!requestedFrames.length||
+      requestedFrames.some(index=>!Number.isInteger(index)||index<0||index>=(framed?cells:1))))return false;
+    const indices=framed?[...new Set(requestedFrames||(!requested&&key==='cacheBeatTiming'?[0,1,2]:
+      Array.from({length:cells},(_,index)=>index)))].filter(index=>!state.nativeFrameAttempts?.has(index)):[0];
+    if(!indices.length||!framed&&state.nativeAttempted)return false;
+    const crop=windowCrop||[0,0,fw,fh],cw=crop[2],ch=crop[3];
+    const pixels=framed?cw*ch*indices.length:w*h;
+    if(smallNative&&pixels>MAX_NATIVE_SMALL_PIXELS-nativeSmallPixels||
+      pixels>MAX_NATIVE_RASTER_PIXELS-nativeRasterPixels+priority){
+      // A changed/unsupported priority source cannot strand its reserved slot.
+      releaseNativePriorityReservation(key);return false;
+    }
+    releaseNativePriorityReservation(key);
+    nativeRasterPixels+=pixels;if(smallNative)nativeSmallPixels+=pixels;
+    state.nativePending=true;
+    let released=false;
+    const fallback=()=>{if(released)return;released=true;nativeRasterPixels-=pixels;
+      if(smallNative)nativeSmallPixels-=pixels;state.nativePending=false;};
+    if(framed) {
+      const attempted=state.nativeFrameAttempts||(state.nativeFrameAttempts=new Set());
+      for(const index of indices)attempted.add(index);
+      const preparations=indices.map(index=>Promise.resolve().then(()=>
         window.createImageBitmap(image,index%entry.columns*fw+crop[0],
           Math.floor(index/entry.columns)*fh+crop[1],cw,ch)));
       Promise.allSettled(preparations).then(results=>{
@@ -357,18 +386,36 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
           for(const result of results)if(result.status==='fulfilled')result.value?.close?.();
           fallback();return;
         }
-        if(windowCrop)state.nativeWindows=results.map(result=>({bitmap:result.value,crop}));
-        else state.nativeFrames=results.map(result=>result.value);
+        const destination=windowCrop?(state.nativeWindows||(state.nativeWindows=Array(cells))):
+          (state.nativeFrames||(state.nativeFrames=Array(cells)));
+        for(let at=0;at<indices.length;at++)destination[indices[at]]=windowCrop?
+          {bitmap:results[at].value,crop}:results[at].value;
         state.nativePending=false;
       });
-      return;
+      return true;
     }
+    state.nativeAttempted=true;
     try {
       Promise.resolve(window.createImageBitmap(image)).then(bitmap=>{
         if(bitmap?.width!==w||bitmap?.height!==h){bitmap?.close?.();fallback();return;}
         state.nativeBitmap=bitmap;state.nativePending=false;
       },fallback);
     } catch {fallback();}
+    return true;
+  }
+  // Explicit requests run outside a shared draw. Original art stays ready while
+  // the existing native factory is queued; no Canvas, timer or RAF is added.
+  function prepareNativeAssets(requests) {
+    if(!Array.isArray(requests))return Promise.resolve(0);
+    return Promise.resolve().then(()=>{
+      let started=0;
+      for(const request of requests){
+        const key=typeof request==='string'?request:request?.key;
+        const entry=entries[key],state=cache[key],frames=typeof request==='string'?null:request?.frames??null;
+        if(entry&&state?.ready&&prepareNativeRaster(key,entry,state,true,frames))started++;
+      }
+      return started;
+    });
   }
   function prepareBrakeTint(key,entry,state) {
     if(key!=='cacheBrakeReflection'||state.brakeTintAttempted)return;
@@ -486,7 +533,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
       image.onload = () => {
         const valid=image.naturalWidth>0&&image.naturalHeight>0;
         image.onload=null;image.onerror=null;
-        if(!valid)return;
+        if(!valid){releaseNativePriorityReservation(key);return;}
         // SVG source rectangles otherwise rerasterize the whole vector sheet
         // for every digit, terrain strip and filtered miniature. Prepare one
         // immutable bitmap per loaded SVG outside the gameplay draw path.
@@ -503,7 +550,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
       };
       image.onerror = () => {
         if (!state.fallback) { state.fallback = true; image.src = entry.path; }
-        else { image.onload = null; image.onerror = null; }
+        else { image.onload = null; image.onerror = null; releaseNativePriorityReservation(key); }
       };
       image.src = (entry.root ?? root) + entry.path;
     }
@@ -523,8 +570,12 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     const nativeWindow=windowCandidate&&sx>=windowCandidate.crop[0]&&sy>=windowCandidate.crop[1]&&
       sx+sw<=windowCandidate.crop[0]+windowCandidate.crop[2]&&
       sy+sh<=windowCandidate.crop[1]+windowCandidate.crop[3]?windowCandidate:null;
-    const preparedTone=!small&&key==='cacheBrakeReflection'&&tone==='hue315'&&
+    const tintSource=!small&&key==='cacheBrakeReflection'&&tone==='hue315'&&
       brakeTintReady(ctx)&&sx>=0&&sy>=0&&sw>0&&sh>0&&sx+sw<=194&&sy+sh<=290&&state.brakeTintBitmap;
+    // High-quality resampling can change alpha after a hue tint is baked.
+    // Keep that sampler on the original live-filter path, including miniatures.
+    const liveTone=!!tintSource&&ctx.imageSmoothingQuality==='high';
+    const preparedTone=!liveTone&&tintSource;
     const image=small||preparedTone||nativeWindow?.bitmap||nativeFrame||state.nativeBitmap||state.bitmap||original;
     // Sample background sources directly at the already reduced footprint.
     // Functional sprites and diffuse native effects keep their authored sampler.
@@ -533,13 +584,19 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     const sourceY = nativeWindow?sy-nativeWindow.crop[1]:nativeFrame?sy:Math.floor(index / entry.columns) * fh + sy;
     const sourceScaleX=small?small.width/original.naturalWidth:1;
     const sourceScaleY=small?small.height/original.naturalHeight:1;
+    const filter=liveTone?ctx.filter:null;
+    const liveFilter=liveTone?'hue-rotate(315deg)'+
+      (filter&&filter!=='none'?' '+filter:''):null;
     if (flip || x !== 0 || y !== 0) {
-      ctx.save(); ctx.translate(x, y); if (flip) ctx.scale(-1, 1);
-      ctx.imageSmoothingEnabled = smooth;
-      ctx.drawImage(image, sourceX*sourceScaleX, sourceY*sourceScaleY,
-        sw*sourceScaleX, sh*sourceScaleY,
-        -width * entry.ax, -h * entry.ay, width, h);
-      ctx.restore();
+      ctx.save();
+      try {
+        ctx.translate(x, y); if (flip) ctx.scale(-1, 1);
+        ctx.imageSmoothingEnabled = smooth;
+        if(liveTone)ctx.filter=liveFilter;
+        ctx.drawImage(image, sourceX*sourceScaleX, sourceY*sourceScaleY,
+          sw*sourceScaleX, sh*sourceScaleY,
+          -width * entry.ax, -h * entry.ay, width, h);
+      } finally {ctx.restore();}
     } else {
       // Projected textures already draw at the caller's local origin.
       // Preserve its transform, clip, alpha and filter without copying the
@@ -548,16 +605,18 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
       const smoothing = ctx.imageSmoothingEnabled;
       const changed = smoothing !== smooth;
       if (changed) ctx.imageSmoothingEnabled = smooth;
+      if(liveTone)ctx.filter=liveFilter;
       try {
         ctx.drawImage(image, sourceX*sourceScaleX, sourceY*sourceScaleY,
         sw*sourceScaleX, sh*sourceScaleY,
           x - width * entry.ax, y - h * entry.ay, width, h);
       } finally {
         if (changed) ctx.imageSmoothingEnabled = smoothing;
+        if(liveTone)ctx.filter=filter;
       }
     }
     return true;
   }
-  B.PresentationAssets = { preload, draw, brakeTintReady, setRasterDetail, setDecorationDetail, decorationDetail: ctx => decorationDetail.get(ctx)||1, rasterDetail: ctx => rasterDetail.get(ctx)||1, ready: key => !!cache[key]?.ready };
+  B.PresentationAssets = { preload, draw, prepareNativeAssets, brakeTintReady, setRasterDetail, setDecorationDetail, decorationDetail: ctx => decorationDetail.get(ctx)||1, rasterDetail: ctx => rasterDetail.get(ctx)||1, ready: key => !!cache[key]?.ready };
   preload();
 })();

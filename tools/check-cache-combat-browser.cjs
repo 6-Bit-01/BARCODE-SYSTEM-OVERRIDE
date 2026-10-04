@@ -1036,8 +1036,10 @@ async function main(){
   })()`);
   const {reviewWebp,...phaseReport}=phaseCost;
   if(reviewWebp){
-    console.log('BOSS_RENDER_REVIEW '+JSON.stringify({fixture:true,bar:phaseCost.bar,webp:reviewWebp}));
-    fs.writeFileSync(path.join(output,'Boss-Render-Review.webp'),Buffer.from(reviewWebp,'base64'));
+    const file='Boss-Render-Review.webp',bytes=Buffer.from(reviewWebp,'base64');
+    fs.writeFileSync(path.join(output,file),bytes);
+    console.log('BOSS_RENDER_REVIEW '+JSON.stringify({fixture:true,bar:phaseCost.bar,file,
+      bytes:bytes.length,sha256:crypto.createHash('sha256').update(bytes).digest('hex')}));
   }
   console.log('BOSS_RENDER_PHASES '+JSON.stringify(phaseReport));
   assert(phaseReport.available,'staged diagnostic captures an actually played live-boss frame at its observed quality');

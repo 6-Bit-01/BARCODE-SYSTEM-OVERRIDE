@@ -273,6 +273,11 @@ async function nativeRasterUnit(){
     if(attempts.length===3)return Promise.reject(Error('one missing cel'));
     return Promise.resolve({width:crop[2]||image.naturalWidth,height:crop[3]||image.naturalHeight,close(){closed.push(this);}});}};
   vm.runInNewContext(inspected,{window:w});
+  // This fixture tests a complete ordinary atlas after unused priorities have
+  // terminally failed; its original exact-cap/atomic-close assertions remain.
+  for(const key of ['cacheBlacktop','cacheGreenhouseWorkshop']){
+    const image=w.bitmapReview.cache[key].image;image.onerror();image.onerror();
+  }
   for(const key of ['cacheCombatBike','cacheCombatHostiles','cacheCar','cacheBeatHardware'])
     w.bitmapReview.cache[key].image.onload();
   await new Promise(setImmediate);
@@ -295,6 +300,8 @@ async function nativeMappedDecodeUnit(){
   // unsupported, pending and budget-limited cases keep the original source.
   const keys=['cacheRepairShop','cacheMarketRFrontGap','cacheStreetBicycleRack'];
   const dims={cacheRepairShop:[1389,1132],cacheMarketRFrontGap:[1942,809],cacheStreetBicycleRack:[1526,1023]};
+  const priorityDims={cacheBlacktop:[2172,724],cacheGreenhouseWorkshop:[1536,1024]};
+  const reserved=Object.values(priorityDims).reduce((n,[w,h])=>n+w*h,0);
   const pixels=Object.values(dims).reduce((n,[w,h])=>n+w*h,0),cap=32*1024*1024;
   const flush=()=>new Promise(setImmediate);
   function fixture(mode='pending') {
@@ -366,13 +373,14 @@ async function nativeMappedDecodeUnit(){
     return selected;
   }
   const pending=fixture();
+  assert.equal(pending.review.nativeUsage().pixels,reserved,'unloaded priorities already reserve their exact whole-source pixels');
   for(const key of keys){
     const ctx=context(),before=ctx.snapshot();
     assert.equal(pending.P.draw(key,ctx,{width:123}),false,'not-loaded source retains existing missing-art return');
     assert.equal(ctx.calls.length,0);assert.deepEqual(ctx.snapshot(),before);
   }
   preparationsProof(pending);
-  assert.equal(pending.review.nativeUsage().pixels,pixels);assert.equal(pending.review.nativeUsage().small,0);
+  assert.equal(pending.review.nativeUsage().pixels,pixels+reserved);assert.equal(pending.review.nativeUsage().small,0);
   const pendingMappings={};
   for(const key of keys){
     const state=pending.review.cache[key];assert.equal(state.nativePending,true);assert.equal(state.nativeBitmap,undefined);
@@ -387,33 +395,196 @@ async function nativeMappedDecodeUnit(){
     for(let repeat=0;repeat<12;repeat++)mappingProof(pending,key,state.nativeBitmap);
   }
   pending.P.preload();assert.equal(pending.calls.length,3,'draw/cached/restart reuse causes no new factory call');
-  for(const key of ['cacheDistantCity','cacheNewWayfindingSign','cacheBlacktop',
+  for(const key of ['cacheDistantCity','cacheNewWayfindingSign',
     'cacheStreetDeliveryVan','cacheNewBinsRecycling','cacheStreetBenchPlanters','cachePersonStudent'])pending.load(key,[1024,512]);
   await flush();assert.equal(pending.calls.length,3,'city, prior no-gain props and other decoded sources remain excluded');
-  assert.equal(pending.review.nativeUsage().pixels,pixels);
+  assert.equal(pending.review.nativeUsage().pixels,pixels+reserved);
+  for(const [key,size]of Object.entries(priorityDims)){
+    const state=pending.load(key,size),call=pending.calls.at(-1);
+    assert.equal(call.image,state.image);assert.equal(call.args.length,0,'priorities use exactly the whole-original default factory');
+    assert(state.ready&&state.nativePending,'priority preparation retains immediate original readiness');
+    const ctx=context();pending.P.draw(key,ctx,{width:123,height:61});
+    assert.equal(ctx.calls[0].args[0],state.image,'pending priority draws retain the original');
+  }
+  assert.equal(pending.calls.length,5);assert.equal(pending.review.nativeUsage().pixels,pixels+reserved);
+  pending.pending.slice(3).forEach(resolve=>resolve());await flush();
+  for(const key of Object.keys(priorityDims)){
+    const ctx=context(),state=pending.review.cache[key];pending.P.draw(key,ctx,{width:123,height:61});
+    assert.equal(ctx.calls[0].args[0],state.nativeBitmap);assert.equal(state.nativePending,false);
+  }
+  const warmCount=pending.calls.length;pending.P.preload();assert.equal(pending.calls.length,warmCount);
   for(const mode of ['unavailable','reject','throw','invalid']){
     const f=fixture(mode);for(const key of keys)f.load(key);
     for(const key of keys)mappingProof(f,key,f.review.cache[key].image);
-    await flush();assert.equal(f.review.nativeUsage().pixels,0,'unsupported/malformed prep releases all native reservations');
+    await flush();assert.equal(f.review.nativeUsage().pixels,reserved,'mapped failures release their allocations and retain unloaded priority slots');
     assert.equal(f.review.nativeUsage().small,0);
     assert.equal(f.closed.length,mode==='invalid'?3:0,'only returned malformed bitmaps close');
     for(const key of keys){const state=f.review.cache[key];assert.equal(state.nativeBitmap,undefined);mappingProof(f,key,state.image);}
+    for(const [key,size]of Object.entries(priorityDims))f.load(key,size);
+    await flush();assert.equal(f.review.nativeUsage().pixels,0,'failed priorities release their reserved slots exactly once');
+    assert.equal(f.closed.length,mode==='invalid'?5:0,'all and only returned malformed backings close');
     const count=f.calls.length,images=f.images.length;f.P.preload();
     assert.equal(f.calls.length,count);assert.equal(f.images.length,images,'failure/re-entry does not recreate images or preparations');
     if(mode!=='unavailable'){
       f.load('cachePursuitRig',[4096,8192]);assert.equal(f.review.nativeUsage().pixels,cap,'released reservation permits a later exact-cap atlas');
-      await flush();assert.equal(f.calls.length,11);assert.equal(f.review.nativeUsage().pixels,0);
+      await flush();assert.equal(f.calls.length,count+8);assert.equal(f.review.nativeUsage().pixels,0);
     }
 
   }
-  const blocked=fixture();blocked.load('cachePursuitRig',[4096,8192]);
+  // Virtual original dimensions fill exactly the ordinary headroom while both
+  // real priority slots remain reserved. The 4x2 atlas cels stay integral.
+  const blocked=fixture(),availablePixels=cap-reserved;
+  assert.equal(availablePixels%8,0);blocked.load('cachePursuitRig',[20,availablePixels/20]);
   assert.equal(blocked.review.nativeUsage().pixels,cap);
   for(const key of keys){blocked.load(key);mappingProof(blocked,key,blocked.review.cache[key].image);}
   await flush();assert.equal(blocked.calls.length,8,'budget decline starts no mapped-source factory call');
   assert.equal(blocked.review.nativeUsage().pixels,cap);assert.equal(blocked.review.nativeUsage().small,0);
   for(const key of keys){assert.equal(blocked.review.cache[key].nativeBitmap,undefined);assert.equal(blocked.review.cache[key].nativePending,undefined);}
   blocked.P.preload();assert.equal(blocked.calls.length,8);
+  for(const [key,size]of Object.entries(priorityDims))blocked.load(key,size);
+  assert.equal(blocked.calls.length,10,'priority slots remain usable at the combined exact cap');
+  assert.equal(blocked.review.nativeUsage().pixels,cap);
+  blocked.pending.forEach(resolve=>resolve());await flush();
+  for(const key of Object.keys(priorityDims))assert(blocked.review.cache[key].nativeBitmap);
   console.log('PASS: three mapped default whole-source native sources, pending/original fallback, exact mapped/context-preserving draws, exclusion, reuse, failure close/release and shared-cap decline.');
+}
+
+async function nativePriorityUnit(){
+  const cap=32*1024*1024,reserved=2172*724+1536*1024;
+  const flush=()=>new Promise(setImmediate);
+  function fixture(mode='pending'){
+    const calls=[],closed=[],images=[];
+    class Image {constructor(){this.naturalWidth=512;this.naturalHeight=512;images.push(this);}}
+    const w={Image,BARCODE:{}};
+    function bitmap(call,invalid=false){const frame=typeof call.args[0]==='number';
+      const result={width:invalid?0:frame?call.args[2]:call.image.naturalWidth,
+        height:frame?call.args[3]:call.image.naturalHeight,source:call.image,
+        close(){closed.push(result);}};call.bitmap=result;return result;}
+    w.createImageBitmap=(image,...args)=>{
+      const call={image,args};calls.push(call);
+      assert(!args.some(arg=>arg&&typeof arg==='object'),'no resampling/options factory argument');
+      const usage=w.cachePriorityReview.usage();assert(usage.total<=cap&&usage.small<=1536*1024,'both bounds include pending and priority slots');
+      if(mode==='throw')throw Error('factory unavailable');
+      if(mode==='reject')return Promise.reject(Error('decode rejection'));
+      if(mode==='invalid')return Promise.resolve(bitmap(call,true));
+      if(mode==='partial')return args[0]===444?Promise.reject(Error('one cell failure')):Promise.resolve(bitmap(call));
+      return new Promise((resolve,reject)=>{call.resolve=()=>resolve(bitmap(call));call.reject=reject;});
+    };
+    let inspected=source.replace('  const cache = {};','  const cache = {};window.cachePriorityReview={entries,cache};');
+    inspected=inspected.replace('  B.PresentationAssets = {','  window.cachePriorityReview.usage=()=>({total:nativeRasterPixels,small:nativeSmallPixels,reserved:[...nativePriorityReservations.values()].reduce((sum,n)=>sum+n,0)});\n  B.PresentationAssets = {');
+    vm.runInNewContext(inspected,{window:w});
+    const review=w.cachePriorityReview,P=w.BARCODE.PresentationAssets;
+    const keyFor=image=>Object.keys(review.cache).find(key=>review.cache[key].image===image);
+    const load=(key,width,height)=>{const state=review.cache[key];state.image.naturalWidth=width;state.image.naturalHeight=height;state.image.onload();return state;};
+    const settle=async()=>{for(const call of calls)if(call.resolve&&!call.settled){call.settled=true;call.resolve();}await flush();};
+    const drawn=[];
+    const ctx={globalAlpha:.42,filter:'none',imageSmoothingEnabled:false,
+      save(){},restore(){},translate(){},scale(){},drawImage(...args){drawn.push(args);}};
+    return {w,P,review,calls,closed,images,keyFor,load,settle,drawn,ctx};
+  }
+  async function priorityOrder(){
+    const f=fixture();assert.equal(f.review.usage().total,reserved);
+    const ordinary=f.load('cacheStreetBicycleRack',4096,7424);
+    assert.equal(f.calls.length,1);
+    const denied=f.load('cacheRepairShop',1024,1024);
+    assert(denied.ready&&!denied.nativePending);assert.equal(f.calls.length,1,'ordinary copy cannot spend priority reservations');
+    const black=f.load('cacheBlacktop',2172,724),green=f.load('cacheGreenhouseWorkshop',1536,1024);
+    assert.equal(f.calls.length,3);assert.equal(f.review.usage().reserved,0);
+    assert.equal(f.review.usage().total,4096*7424+reserved);assert(f.review.usage().total<=cap);
+    for(const key of ['cacheBlacktop','cacheGreenhouseWorkshop','cacheRepairShop']){
+      const before=f.calls.length;assert(f.P.draw(key,f.ctx,{width:200,height:80}));
+      assert.equal(f.drawn.at(-1)[0],f.review.cache[key].image,'pending/denied source draws the original immediately');
+      assert.equal(f.calls.length,before,'draw creates no bitmap');
+    }
+    assert(black.ready&&green.ready&&ordinary.ready,'pending preparation never blocks source readiness');
+    for(const call of f.calls)assert.equal(call.args.length,0,'whole priorities keep the whole-original factory');
+    await f.settle();
+    const count=f.calls.length,imageCount=f.images.length;
+    for(let n=0;n<80;n++)for(const key of ['cacheBlacktop','cacheGreenhouseWorkshop','cacheRepairShop'])f.P.draw(key,f.ctx,{width:130,height:40});
+    assert.equal(f.calls.length,count,'warm and repeated draws perform zero factories');
+    f.P.preload();assert.equal(f.images.length,imageCount,'preload reuses every loaded/pending Image');
+    assert.equal(await f.P.prepareNativeAssets(['cacheBlacktop','cacheGreenhouseWorkshop']),0,'ready priorities cannot re-reserve or reprepare');
+    const energy=f.load('cacheBeatEnergy',1500,1086);assert(energy.ready);
+    const before=f.calls.length;assert.equal(await f.P.prepareNativeAssets([{key:'cacheBeatEnergy',frames:[4]}]),0);
+    await flush();assert.equal(f.calls.length,before,'explicit deferred request obeys the same saturated cap');
+    assert.equal(f.review.usage().total,4096*7424+reserved);
+  }
+  async function deferredAndCells(){
+    const f=fixture();
+    for(const [key,w,h]of [['cacheBeatEnergy',1500,1086],['cachePhraseStrip',512,400],['cacheConfirmedBar',512,256]])f.load(key,w,h);
+    assert.equal(f.calls.length,0,'unused legacy sources allocate no native backing at preload');
+    const timing=f.load('cacheBeatTiming',1776,1100);assert(timing.ready);assert.equal(f.calls.length,0,'cell factories are queued outside onload');
+    await flush();assert.equal(f.calls.length,3,'only the actual road-ring cells 0/1/2 prefill');
+    assert.deepEqual(f.calls.map(c=>Array.from(c.args)),[[0,0,444,550],[444,0,444,550],[888,0,444,550]]);
+    const pending=f.calls.length;
+    assert.equal(await f.P.prepareNativeAssets([{key:'cacheBeatTiming',frames:[0,1,2]}]),0);
+    assert.equal(f.calls.length,pending,'overlapping pending request cannot reserve again');
+    f.P.draw('cacheBeatTiming',f.ctx,{frame:2,width:100});assert.equal(f.drawn.at(-1)[0],timing.image);
+    await f.settle();
+    assert([0,1,2].every(i=>timing.nativeFrames[i]));
+    assert([3,4,5,6,7].every(i=>!timing.nativeFrames[i]),'dormant cells retain original source fallback');
+    assert([3,4,5,6,7].every(i=>!Object.hasOwn(timing.nativeFrames,i)),
+      'unprepared cells are sparse holes, not assigned undefined inventory entries');
+    assert.equal(timing.nativeFrames.reduce((pixels,bitmap)=>pixels+bitmap.width*bitmap.height,0),3*444*550);
+    assert.equal(f.review.usage().total,reserved+3*444*550);
+    const before=f.calls.length;
+    const requested=f.P.prepareNativeAssets([{key:'cacheBeatTiming',frames:[3,7]},
+      {key:'cacheBeatEnergy',frames:[4,5]},'cachePhraseStrip']);
+    assert.equal(f.calls.length,before,'explicit API starts no synchronous factory in its caller');
+    assert.equal(await requested,3);await flush();assert.equal(f.calls.length,before+5);
+    assert.equal(f.review.usage().small,512*400);
+    await f.settle();
+    assert(timing.nativeFrames[3]&&timing.nativeFrames[7]&&!timing.nativeFrames[4]);
+    const energy=f.review.cache.cacheBeatEnergy;
+    assert(energy.nativeFrames[4]&&energy.nativeFrames[5]);
+    f.P.draw('cacheBeatEnergy',f.ctx,{frame:4,sourceRect:[2,3,40,20],width:80,height:40});
+    assert.equal(f.drawn.at(-1)[0],energy.nativeFrames[4]);
+    assert.deepEqual(f.drawn.at(-1).slice(1,5),[2,3,40,20],'prepared-cell registration/source texels are unchanged');
+    f.P.draw('cacheBeatTiming',f.ctx,{frame:4,width:90});
+    assert.equal(f.drawn.at(-1)[0],timing.image,'unrequested cell selects original atlas with original registration');
+    const count=f.calls.length,total=f.review.usage().total;
+    assert.equal(await f.P.prepareNativeAssets([{key:'cacheBeatTiming',frames:[3,7]},
+      {key:'cacheBeatEnergy',frames:[4,5]},'cachePhraseStrip']),0);
+    for(const requests of [null,[{key:'cacheBeatTiming',frames:[]}],[{key:'cacheBeatTiming',frames:[8]}],
+      [{key:'cacheBeatTiming',frames:[-1]}],['noSuchSource']])assert.equal(await f.P.prepareNativeAssets(requests),0);
+    await flush();assert.equal(f.calls.length,count);assert.equal(f.review.usage().total,total,'duplicate/invalid requests preserve accounting');
+  }
+  async function failures(){
+    for(const mode of ['throw','reject','invalid']){
+      const f=fixture(mode),s=f.load('cacheBlacktop',2172,724);
+      assert(s.ready);await flush();assert(!s.nativePending&&!s.nativeBitmap);
+      assert.equal(f.review.usage().total,1536*1024,'failure releases only its own reservation');
+      assert.equal(f.closed.length,mode==='invalid'?1:0,'invalid returned backing is closed');
+      const count=f.calls.length;
+      f.P.draw('cacheBlacktop',f.ctx,{width:90,height:20});assert.equal(f.drawn.at(-1)[0],s.image);
+      assert.equal(await f.P.prepareNativeAssets(['cacheBlacktop']),0,'a failed whole-source attempt is not repeated');
+      assert.equal(f.calls.length,count);
+      f.load('cacheGreenhouseWorkshop',1536,1024);await flush();
+      assert.equal(f.review.usage().total,0,'both unsuccessful priorities release their slots exactly once');
+    }
+    const f=fixture('partial');f.load('cacheBeatTiming',1776,1100);await flush();
+    assert.equal(f.calls.length,3);assert.equal(f.closed.length,2,'failed cell batch closes all fulfilled backing siblings');
+    assert(!f.review.cache.cacheBeatTiming.nativeFrames);
+    assert.equal(f.review.usage().total,reserved,'failed cell batch releases its complete reserved allocation');
+    assert.equal(await f.P.prepareNativeAssets([{key:'cacheBeatTiming',frames:[0,1,2]}]),0);
+    const unsupported=fixture();delete unsupported.w.createImageBitmap;
+    unsupported.load('cacheBlacktop',2172,724);unsupported.load('cacheGreenhouseWorkshop',1536,1024);
+    assert.equal(unsupported.calls.length,0);assert.equal(unsupported.review.usage().total,0);
+  }
+  async function imageLifecycle(){
+    const f=fixture(),black=f.review.cache.cacheBlacktop;
+    black.image.onerror();assert.equal(black.image.src,f.review.entries.cacheBlacktop.path,'remote failure retains bundled source fallback');
+    assert.equal(f.review.usage().reserved,reserved,'first fallback attempt keeps its priority slot');
+    black.image.onerror();assert.equal(black.image.onload,null);assert.equal(black.image.onerror,null);
+    assert.equal(f.review.usage().reserved,1536*1024,'terminal failure releases the stranded priority slot');
+    const green=f.load('cacheGreenhouseWorkshop',0,0);assert(!green.ready,'invalid Image readiness follows original loader');
+    assert.equal(f.review.usage().total,0,'invalid original source releases its unneeded priority slot');
+    const imageCount=f.images.length;f.P.preload();assert.equal(f.images.length,imageCount);
+  }
+  await priorityOrder();console.log('PASS: priority load order, saturated cap, original/pending fallback, whole-source factories and warm reuse.');
+  await deferredAndCells();console.log('PASS: unused eager suppression, exact Timing cells, explicit queued demand, registration and request guards.');
+  await failures();console.log('PASS: priority factory failures, invalid backing closure, atomic cell rollback and no duplicate attempts.');
+  await imageLifecycle();console.log('PASS: priority bundled fallback, terminal/invalid-image reservation cleanup and preload ownership.');
 }
 
 async function nativeSmallUnit(){
@@ -430,6 +601,7 @@ async function nativeSmallUnit(){
     const keys=['cacheBrakeReflection','cacheDamagedExhaust','cachePhraseStrip','cacheConfirmedBar','cachePulseBurst'];
     const {cache}=w.bitmapReview,P=w.BARCODE.PresentationAssets;
     for(const key of keys)cache[key].image.onload();
+    await P.prepareNativeAssets(['cachePhraseStrip','cacheConfirmedBar']);
     await new Promise(setImmediate);
     assert.equal(prepared.length,5);
     assert.deepEqual(prepared.find(call=>call.image===cache.cacheBrakeReflection.image).args,[0,0,194,290]);
@@ -455,16 +627,19 @@ async function nativeSmallUnit(){
   // Concurrent pending sources count before any preparation resolves. Fill
   // the small pool exactly, then confirm the next eligible crop falls back.
   {
-    const prepared=[];
+    const prepared=[],pending=[];
     class Image{constructor(){this.naturalWidth=512;this.naturalHeight=512;}}
-    const w={Image,BARCODE:{},createImageBitmap(image){prepared.push(image);return Promise.resolve({width:512,height:512});}};
+    const w={Image,BARCODE:{},createImageBitmap(image){prepared.push(image);
+      return new Promise(resolve=>pending.push(()=>resolve({width:512,height:512})));}};
     vm.runInNewContext(inspected,{window:w});
-    const {cache}=w.bitmapReview;
+    const {cache}=w.bitmapReview,P=w.BARCODE.PresentationAssets;
     const keys=['cacheDamagedExhaust','cachePhraseStrip','cacheConfirmedBar','cachePulsePad','cachePulseStrip','cachePulseBurst'];
     for(const key of keys)cache[key].image.onload();
+    await P.prepareNativeAssets(['cachePhraseStrip','cacheConfirmedBar']);
     cache.cacheBrakeReflection.image.onload();
     assert.equal(prepared.length,6,'pending reservations cannot overbook the small pool');
     assert(!cache.cacheBrakeReflection.nativePending,'a crop beyond the pool retains original-image fallback');
+    pending.forEach(resolve=>resolve());
     await new Promise(setImmediate);
     assert(keys.every(key=>cache[key].nativeBitmap));
     assert.equal(keys.reduce((sum,key)=>sum+cache[key].nativeBitmap.width*cache[key].nativeBitmap.height,0),1536*1024);
@@ -593,6 +768,7 @@ async function nativeTintUnit(){
     for(const key of ['cacheDamagedExhaust','cachePhraseStrip','cacheConfirmedBar','cachePulsePad','cachePulseStrip']){
       cache[key].image.naturalWidth=512;cache[key].image.naturalHeight=512;cache[key].image.onload();
     }
+    await P.prepareNativeAssets(['cachePhraseStrip','cacheConfirmedBar']);
     cache.cachePulseBurst.image.naturalWidth=512;cache.cachePulseBurst.image.naturalHeight=362;
     cache.cachePulseBurst.image.onload();
     await new Promise(setImmediate);
@@ -1235,4 +1411,4 @@ async function browser(){
     await fs.promises.rm(profile,{recursive:true,force:true,maxRetries:20,retryDelay:100});
   }
 }
-(async()=>{await unit();await backgroundRasterUnit();await nativeRasterUnit();await nativeSmallUnit();await nativeWindowUnit();await nativeTintUnit();budgetUnit();mirrorSourceUnit();worldCopyUnit();await nativeMappedDecodeUnit();if(process.argv.includes('--browser'))await browser();})().catch(e=>{console.error(e.stack);process.exitCode=1;});
+(async()=>{await unit();await backgroundRasterUnit();await nativeRasterUnit();await nativeSmallUnit();await nativeWindowUnit();await nativeTintUnit();budgetUnit();mirrorSourceUnit();worldCopyUnit();await nativeMappedDecodeUnit();await nativePriorityUnit();if(process.argv.includes('--browser'))await browser();})().catch(e=>{console.error(e.stack);process.exitCode=1;});

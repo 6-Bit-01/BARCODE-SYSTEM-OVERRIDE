@@ -3728,10 +3728,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // full-size painting before the small opaque backing is built.
       if(worldScale<1)ctx.clearRect(0,0,1920,1080);
       ctx.setTransform(worldScale,0,0,worldScale,0,0);
-      // Level 1's clear() requests high-quality image resampling. The road
-      // submits hundreds of projected/cropped textures on that same context;
-      // use its fast bilinear sampler here and restore the caller afterward.
-      ctx.imageSmoothingQuality='low';
+      // Native artwork retains the shared renderer's high-quality sampling.
+      // Only the legacy reduced backing uses the cheaper bilinear sampler.
+      // The enclosing save/restore keeps the caller's sampling setting intact.
+      if(worldScale<1)ctx.imageSmoothingQuality='low';
       if(worldScale<1) {
         // Keep every world blend/filter inside the sampled source footprint.
         // A scaled transform alone still rasterizes off-crop paint and leaves
@@ -3782,12 +3782,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       sky.addColorStop(0, `hsl(${hue},48%,${9+energy*3}%)`);
       sky.addColorStop(.48, `hsl(${(hue+42)%360},58%,${14+energy*5}%)`);
       sky.addColorStop(1, skyBottoms[section]);
+      // The later opaque land replaces sky below this conservative fringe.
+      // Keep 16 device pixels across its antialiased, transformed boundary.
+      const skyPaintBottom=Math.min(worldViewport.bottom,horizon+16/(worldScale*camera.zoom));
       ctx.fillStyle = sky; ctx.fillRect(worldViewport.left,worldViewport.top,
-        worldViewport.right-worldViewport.left,worldViewport.bottom-worldViewport.top);
-      ctx.fillStyle = '#122236'; ctx.fillRect(0, horizon, 1920, bottom - horizon);
+        worldViewport.right-worldViewport.left,skyPaintBottom-worldViewport.top);
+      ctx.fillStyle = '#122236'; ctx.fillRect(0,horizon,1920,Math.max(0,skyPaintBottom-horizon));
       // Wide veils move with the shared beat and the number of parts playing.
       // Reduced Motion holds their geometry in place.
-      ctx.save(); ctx.globalCompositeOperation='screen';
+      ctx.save();
+      ctx.beginPath();ctx.rect(worldViewport.left-32,worldViewport.top-32,
+        worldViewport.right-worldViewport.left+64,skyPaintBottom-worldViewport.top+32);ctx.clip();
+      ctx.globalCompositeOperation='screen';
       for (let k=0;k<4;k++) {
         const cx=230+k*490+Math.sin(beat*(.18+k*.037)+k*1.8)*180;
         const cy=80+k%2*105+Math.cos(beat*.29+k*2)*28;
@@ -4393,6 +4399,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // Adjacent slices read adjacent texels from horizon to car. Advancing
       // progress decreases the source offset so a mark moves toward the car.
       // Blend the wrap over the last 108 pixels into the first 108 pixels.
+      const roadTextureAlpha=ctx.globalAlpha;
       ctx.save(); ctx.clip();
       for (let i = 0; i < 28; i++) {
         let c=((-progress*.82+i*22)%616+616)%616, consumed=0;
@@ -4413,16 +4420,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           consumed+=length; c=(c+length)%616;
         }
       }
-      ctx.restore();
+      ctx.globalAlpha=roadTextureAlpha;
       const roadFog=ctx.createLinearGradient(0,horizon,0,horizon+170);
       roadFog.addColorStop(0,'#1c293b9e'); roadFog.addColorStop(1,'#1c293b00');
-      ctx.save(); ctx.beginPath();
-      for (let i=0;i<=28;i++) {
-        const t=i/28; if (!i) ctx.moveTo(center(t)-half(t),roadY(t));
-        else ctx.lineTo(center(t)-half(t),roadY(t));
-      }
-      for (let i=28;i>=0;i--) { const t=i/28; ctx.lineTo(center(t)+half(t),roadY(t)); }
-      ctx.closePath(); ctx.clip(); ctx.fillStyle=roadFog; ctx.fillRect(0,horizon,1920,170);
+      // Asphalt and fog share this identical road mask and paint order.
+      ctx.fillStyle=roadFog; ctx.fillRect(0,horizon,1920,170);
       ctx.restore();
       // Stretch adjacent wall segments between the same projected road points.
       // This makes one continuous side wall rather than floating sign panels.
