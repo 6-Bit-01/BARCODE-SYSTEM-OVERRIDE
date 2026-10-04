@@ -857,7 +857,7 @@ async function browser(){
       const {entries,cache}=bitmapReview,svg=Object.keys(entries).filter(key=>entries[key].path.endsWith('.svg'));
       if(svg.some(key=>!(cache[key].bitmap instanceof ImageBitmap)))throw Error('SVG bitmap preparation failed');
       if(bitmapAttempts.filter(src=>src.endsWith('.svg')).length!==svg.length)throw Error('SVG preparations were duplicated');
-      const c=document.getElementById('gameCanvas'),ctx=c.getContext('2d'),P=BARCODE.PresentationAssets;
+      const c=document.getElementById('gameCanvas'),ctx=c.getContext('2d',{willReadFrequently:false}),P=BARCODE.PresentationAssets;
       const beforeSVG=bitmapAttempts.filter(src=>src.endsWith('.svg')).length,pixels=[];
       for(let repeat=0;repeat<2;repeat++){
         ctx.clearRect(0,0,c.width,c.height);ctx.save();ctx.translate(42,57);ctx.rotate(.013);ctx.globalAlpha=.7;
