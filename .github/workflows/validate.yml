@@ -16,6 +16,10 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run check:syntax:all
+      - name: Verify standalone website package
+        run: |
+          python3 tools/build-standalone.py --output "$RUNNER_TEMP/system-override" --receipt "$RUNNER_TEMP/standalone-build-receipt.json"
+          node tools/check-standalone-build.js "$RUNNER_TEMP/system-override"
       - name: Check Cache Road music in real Chromium
         env:
           CHROME_BIN: /usr/bin/google-chrome

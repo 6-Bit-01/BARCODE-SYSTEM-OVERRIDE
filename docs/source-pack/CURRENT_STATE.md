@@ -1,5 +1,17 @@
 # Current State
 
+## October 3, 2026 — standalone BARCODE website migration
+
+The owner requested replacing Makko hosting with the existing BARCODE website. The standalone builder preserves canonical asset bytes, mirrors 21 original remote sprites/audio/title assets with SHA-256 receipts, and substitutes an independent manifest-backed sprite adapter for the vendor SDK. The adapter preserves authored animation timing, scaled anchors, flips, hitboxes and cloned playback state without a new RAF or timer. Generated runtime URLs resolve beneath `/games/system-override/`; the website entry is `/system-override`. Saves belong to the website origin and do not automatically transfer from Makko.
+
+Before migration, the owner-approved native-detail source at `41a2f0bf7afa0f81a5fb863cf8d4941f865763cf` was applied to the connected Makko editor after the 174-file recovery checkpoint. Both files were saved and re-read, the preview rebuilt, Continue entered the moving Cache Line scene and P paused it. Makko remains paused; no public Makko Update/Share was performed. This supersedes the earlier notes below stating that its saved source still remained PR181.
+
+Standalone adapter checks cover all 15 original clips, 60 source-crop/facing pixel comparisons, actual player contact anchors, playback timing, clone isolation, completion callbacks, Canvas state and failed-start retry. Generated-build checks cover runtime/inline syntax, sprite preloading, local presentation and music URLs, three ship animation types and fallback, and unchanged boot-monitor timer ownership. The original art is retained. Native frame pacing, complete chase/boss performance gates and owner-device acceptance remain unresolved; moving hosts does not itself prove a frame-rate improvement. The keyboard audit remains recorded separately and its seven issue groups have not yet been repaired.
+
+The build is reviewable locally. Publication, exact-head CI and live website acceptance are separate steps and must be recorded when completed. Earlier sections describe historical checkpoints and are superseded by this section where they conflict.
+
+
+
 ## October 3, 2026 — final background review, unpublished
 
 The local review now also suppresses the sky beat pulse when Flash Off is selected and clips asphalt texture to the existing curved road boundary. The loaded-art probe removed 3,653 shoulder-spill pixels, preserved every interior pixel away from the antialiased edge, and retained identical texture coordinates, source order and Canvas/gameplay state. Flash On matches the preceding native candidate; Reduced Motion remains static. All 228 original asset hashes remain unchanged.
