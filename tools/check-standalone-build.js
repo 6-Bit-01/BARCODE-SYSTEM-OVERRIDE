@@ -294,6 +294,15 @@ async function main() {
   const scripts = [...read('index.html').matchAll(/<script\b[^>]*\bsrc=["']([^"']+)/gi)].map(match => match[1]);
   assert.equal(scripts[0], 'src/engine/standalone-sprites.js');
   assert.equal(scripts.filter(name => name.includes('standalone-sprites')).length, 1);
+  const touchScript = 'src/core/touch-controls.js';
+  assert.equal(scripts.filter(name => name === touchScript).length, 1,
+    'Touch controls must have one launched owner');
+  localAsset(touchScript);
+  for (const name of ['src/core/action-input.js', 'src/core/input.js']) {
+    assert.equal(scripts.filter(script => script === name).length, 1, name);
+    assert(scripts.indexOf(name) < scripts.indexOf(touchScript),
+      'Touch controls must follow the existing input owners');
+  }
   const vendorRoot = 'src/vendor/pixi-8.22.0/';
   const vendorHashes = {
     'pixi.min.js': '06d9ef9823e743518793083c296d801e752db128cb1f519fbabe37e1259567ea',

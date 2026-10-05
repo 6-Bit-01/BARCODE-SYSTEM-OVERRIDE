@@ -1,5 +1,20 @@
 # Acceptance and Test Status
 
+## October 5, 2026 — mobile acceptance pending
+
+Performance source PR183 is merged at `42b2a3157638a8742717095fbdea7055b6efeb71`; the finite physical GPU evidence below remains valid for that runtime. The initial whole-game touch implementation passes 20 focused contracts and independent input/lifecycle/ownership/syntax/89-script prototype checks. Actual bounded prototype flow passed title/settings, opening/difficulty, Level 1 multitouch and earned Level 2 gestures at 390×844, 844×390, 375×667 and 320×568. This is distinct from final release acceptance and the prototype's stale touch-only receipt hash.
+
+| Required mobile evidence | Current status |
+| --- | --- |
+| Virtual actions independent of held physical keys; simultaneous joystick/buttons and between-frame taps | Contracts and bounded Level 1/earned-road browser flow pass |
+| Opening, menus, difficulty/tutorial, hacking, Level 1, road/skills, bridge, ending and results through their real owners | Contracts pass; bounded title/opening/difficulty/Level 1/road browser flow passes; full-flow release review pending |
+| Safe-area portrait/landscape layout, at least 44 CSS-pixel targets, cancellation/lost-capture/blur/visibility/context release | Initial browser rectangles pass; settings readout/short-road layout correction and final recheck pending |
+| Shared frame/input/audio ownership; existing keyboard/gamepad, saves, GPU/native recovery and original asset integrity | Ownership/input and original asset checks pass; final browser regression pending |
+| Focused mobile tests, real browser touch flow, full regression and exact-head source CI | 20 contracts including real-menu readout/bounded browser flow/full source regression/syntax/C113 standalone pass; final strict-build visual recheck/CI pending |
+| Mobile source merge, final built package, site rechecks/deployment and live verification | Pending |
+
+Actual review found missing selected-settings feedback and cramped short-portrait road controls. Their corrections are implemented; control-polish and the added real-menu readout group pass within 20 contracts. Final strict-build browser visuals remain pending. Full source `npm test`, all-file syntax and immutable C113 standalone checks passed. The prototype receipt differs only for its touch-script correction; final corrected packaging remains required. GPU-only site PR481 passed earlier CI/preview checks and remains draft. Publication follows completed mobile release checks. Preserve existing assertions and numerical hardware gates.
+
 ## October 4, 2026 — final physical pair passes local performance acceptance
 
 Code checkpoint `a7b2ba5ed3115bcd24903a7729b5060efacadd92` passed fresh run 23 and earned-boss run 24 with the compiler active for images and analytic gradients in both views, including after genuine graphics loss/full native fallback/restoration. All measured frames completed both GPU views and final presentation.

@@ -1,5 +1,15 @@
 # Current State
 
+## October 5, 2026 — whole-game mobile controls implemented; validation pending
+
+The Level 2 performance release merged through PR183 at `42b2a3157638a8742717095fbdea7055b6efeb71`. The mobile work starts from that renderer and preserves all 624 original assets, native resolution, music, gameplay rules and compatible saves. Historical PR183 pending/draft statements below are superseded.
+
+The owner requests touch access throughout the game: menus and opening, difficulty/tutorial, hacking, Level 1, road steering/gears/pads/skills, bridge, ending and results. The implementation feeds virtual semantic actions into the existing input owner while keeping physical keys independent. Its DOM joystick/buttons use responsive safe areas and 44-pixel targets; cancellation, lost capture, focus/visibility loss and screen changes must release holds. Existing frame/audio owners remain.
+
+The initial implementation passes 20 focused contracts, independent input/lifecycle/ownership/syntax checks and the 89-script prototype standalone checks, including unchanged original assets. Actual prototype browser flow passed title/settings, opening/difficulty, Level 1 multitouch and earned Level 2 gestures at 390×844, 844×390, 375×667 and 320×568. Its touch-only receipt hash is stale after prototype corrections; final committed packaging must refresh it.
+
+Browser review found missing selected-settings feedback and cramped short-portrait road controls. The readout and compact road layout corrections are implemented; the added real-menu readout group passes, bringing focused contracts to 20. Final strict-build visual/layout recheck remains pending. Full source `npm test`, all-file syntax and immutable C113 standalone checks passed, as did corrected control-polish. Exact corrected-source CI/merge, refreshed site package/checks and authorized publication remain pending. GPU-only site PR481 passed earlier CI/preview checks and remains draft. No complete mobile or published-release pass is claimed.
+
 ## October 4, 2026 — scenery compiler accepted locally; release pending
 
 Tested code checkpoint `a7b2ba5ed3115bcd24903a7729b5060efacadd92` combines compatible ordered images, convex fills and analytic gradients into retained GPU batches. The frame-local path cache reuses immutable geometry and clip identity by authored revision, exact transform and fill rule. Original projection/crops, native foreground, complete fallback replay and the existing gameplay/input/audio owners remain.

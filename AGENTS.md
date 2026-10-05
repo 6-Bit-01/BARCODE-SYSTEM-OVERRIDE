@@ -1,5 +1,15 @@
 # Repository Guidance
 
+## October 5, 2026 — whole-game mobile controls implemented; release checks pending
+
+The owner confirms mobile joystick and touch controls for the whole game before publication. Continue from merged performance PR183, `42b2a3157638a8742717095fbdea7055b6efeb71`. Preserve its retained GPU renderer, native 1920×1080 frame, all 624 original asset hashes, gameplay judgments, music and compatible saves. Earlier pending/draft statements for PR183 below are historical.
+
+Use `BARCODE.TouchControls` through the existing InputManager/ActionInput and screen owners. Virtual semantic actions must remain independent of physical keys. Cover menus, opening, difficulty/tutorial, hacking, Level 1, road/skills, bridge, ending and results. Keep one input, gameplay-frame and audio owner; add no control RAF, timer or Canvas. Require responsive safe areas, targets of at least 44 CSS pixels and release on cancellation, lost capture, blur, hidden document and context changes.
+
+The initial implementation passes 20 focused mobile contracts and independent action/combat, lifecycle, frame ownership, syntax and prototype standalone checks. Actual prototype browser flow passed title/settings, opening/difficulty, Level 1 multitouch and earned Level 2 gestures across portrait 390×844, landscape 844×390, short 375×667 and small 320×568 viewports. These are bounded prototype checks; its touch-only hash differs from its earlier receipt, requiring a final build.
+
+Actual review found missing selected-settings feedback and cramped short-portrait road controls. Their readout/compact-layout corrections are implemented; the added real-menu readout contract passes within the 20 groups. Final strict-build visual/layout recheck remains pending. Full source `npm test`, all-file syntax and immutable C113 standalone checks passed; the corrected menu's control-polish regression also passed. Exact corrected-source CI/merge, final site packaging/rechecks and publication remain pending. GPU-only site PR481 remains draft with earlier CI/preview checks passed. Record final results separately and preserve every existing gate.
+
 ## October 4, 2026 — current GPU compiler acceptance and CI environment
 
 The current Level 2 renderer uses retained ordered GPU scenery batches and immutable frame-local path/clip geometry, with the original native foreground, full-detail artwork, complete native recovery and shared gameplay/input/audio owners. Physical fresh/boss runs 23/24 at `a7b2ba5ed3115bcd24903a7729b5060efacadd92` passed the unchanged hardware gates, controls/audio and real graphics recovery. Read `docs/source-pack/LEVEL2_GPU_RENDERER.md` and `docs/source-pack/ACCEPTANCE.md` for exact counts and remaining tails. This current architecture supersedes conflicting historical implementation notes below; preserve their gameplay, artwork and ownership requirements.

@@ -1,3 +1,17 @@
+# Add whole-game mobile joystick and touch controls
+
+## Current implementation and release status — October 5, 2026
+
+Mobile players need access to the complete game flow: menus/opening, difficulty/tutorial, hacking, Level 1, road steering/gears/pads/skills, bridge, ending and results. This work adds a DOM joystick and contextual buttons through the existing InputManager/ActionInput and screen owners. Virtual actions remain independent of physical keys; cancellation, lost capture, blur, hidden documents and context changes release holds. Responsive safe areas and at least 44 CSS-pixel targets support portrait and landscape use.
+
+The base performance release is merged PR183 / `42b2a3157638a8742717095fbdea7055b6efeb71`. Retained GPU rendering, all 624 original asset hashes, native 1920×1080, gameplay rules, music, saves and existing input/frame/audio owners remain. No new control loop or Canvas is added.
+
+The initial implementation passes 20 focused contracts plus independent input/lifecycle/ownership/syntax/89-script prototype checks and original asset integrity. Actual bounded prototype flow passed title/settings, opening/difficulty, Level 1 multitouch and earned Level 2 gestures at 390×844, 844×390, 375×667 and 320×568. Its touch file differs from its earlier receipt; final committed packaging must refresh the receipt.
+
+Actual review found missing selected-settings feedback and cramped short-portrait road controls. The corrections are implemented; control-polish and the added real-menu readout group pass within 20 contracts. Final strict-build visual/layout recheck remains pending. Full source `npm test`, all-file syntax and immutable C113 standalone checks passed. Exact corrected-source CI/merge and final site package/rechecks remain pending. GPU-only site PR481 passed earlier CI/preview checks and remains draft. Publication is authorized but has not occurred. See [MOBILE_CONTROLS.md](MOBILE_CONTROLS.md).
+
+## Earlier GPU release description (historical)
+
 # Render Level 2 scenery through retained GPU batches
 
 ## Problem and resulting behavior

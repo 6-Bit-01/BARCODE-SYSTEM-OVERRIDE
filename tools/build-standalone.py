@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 RAW_ROOT = "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/"
 RAW_PATTERN = re.compile(re.escape(RAW_ROOT) + r"(?:[A-Za-z0-9._-]+|\$\{[^{}\r\n]+\})/")
 ADAPTER = "src/engine/standalone-sprites.js"
+TOUCH_SCRIPT = "src/core/touch-controls.js"
 VENDOR_ROOT = "src/vendor/pixi-8.22.0/"
 BASIS_ROOT = "src/vendor/basis-2.50/"
 BINARY_VENDOR_FILES = {BASIS_ROOT + "basis_transcoder.wasm"}
@@ -227,6 +228,10 @@ def verify_runtime(payloads):
             "Sprite adapter must precede existing playback owners")
     for name in scripts:
         require(name in payloads, f"Missing browser script: {name}")
+    require(scripts.count(TOUCH_SCRIPT) == 1 and
+            all(scripts.count(name) == 1 and scripts.index(name) < scripts.index(TOUCH_SCRIPT)
+                for name in ("src/core/action-input.js", "src/core/input.js")),
+            "Touch controls must launch once after the existing input owners")
     gpu_scripts = [VENDOR_ROOT + "pixi.min.js", "src/engine/cache-road-texture-bank.js",
                    "src/engine/cache-road-gpu-renderer.js",
                    "src/engine/cache-road-gpu-context.js", "src/game/cache-road-proof.js"]
