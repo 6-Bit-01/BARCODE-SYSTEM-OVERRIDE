@@ -291,6 +291,27 @@ function run(){
   r.B.RunAndGunProof={active:true,status:'playing'};surface('level3',['jump','inspect','pause']);r.B.RunAndGunProof.status='failed';surface('proof-results',['proof:retry','proof:exit','pause']);
   assert.deepEqual(r.work,r.before,'Whole-game context changes add no extra Canvas/frame/time owner');
  });
+ check('readable selected menu values follow the real owner without rebuilding controls',()=>{
+  const r=rig();r.load('src/game/lore-records.js');r.load('src/game/pause-menu.js');const menu=r.B.PauseMenu;
+  r.setState('paused');menu.open=true;menu.focus=0;r.load('src/core/touch-controls.js');const T=r.B.TouchControls;
+  assert.equal(T.readout.hidden,false);assert.match(T.readout.textContent,/Music\n100%/);
+  const button=T.buttons.get('menu:left').node;r.manager.touchCommand('menu:left');T.sync();assert.match(T.readout.textContent,/Music\n95%/);
+  assert.equal(T.buttons.get('menu:left').node,button,'Changing a value in one menu context does not rebuild input controls');
+  r.manager.touchCommand('menu:down');T.sync();assert.match(T.readout.textContent,/SFX\n100%/);
+  menu.view='controller';menu.controllerFocus=0;T.sync();assert.match(T.readout.textContent,/deadzone/i);assert.match(T.readout.textContent,/%/);
+  menu.controllerFocus=3;T.sync();assert.match(T.readout.textContent,/Jump/);assert(T.readout.textContent.includes(r.B.ControllerSettings.button(r.B.ControllerSettings.bindings.jump)));
+  menu.view='timing';menu.timingFocus=0;r.B.Preferences.values.inputOffsetMs=35;T.sync();assert.match(T.readout.textContent,/\+35 ms/);
+  menu.view='archive';menu.archiveLevel=1;menu.archiveFocus=0;T.sync();assert.match(T.readout.textContent,/UNRECOVERED/);
+  const record=r.B.LoreRecords.level1[0];r.w.lostDataSystem={archive:{getIds:()=>[record.id],status:'ready'}};T.sync();assert(T.readout.textContent.includes(record.title));assert.match(T.readout.textContent,/RECOVERED/);
+  menu.view='crew';r.w.tutorialSystem={recentDialogue:[{speaker:'Cache Back',text:'Keep the original.'}]};T.sync();assert.match(T.readout.textContent,/Cache Back: Keep the original\./);
+  const readoutEvent={type:'pointerdown',pointerId:99,pointerType:'touch',clientX:100,clientY:500,bubbles:true};T.readout.dispatchEvent(readoutEvent);
+  assert(!readoutEvent.defaultPrevented&&readoutEvent.propagationStopped,'Readout text keeps native pan/selection without reaching underlying controls');assert.equal(T.pointers.size,0);
+  let writes=0,text=T.readout.textContent;Object.defineProperty(T.readout,'textContent',{get:()=>text,set:value=>{writes++;text=value;}});T.sync();T.sync();assert.equal(writes,0,'Unchanged readout does not write DOM every frame');
+  r.setState('running');r.w.tutorialSystem={isActive:()=>false};T.sync();assert(T.readout.hidden&&!T.readout.textContent,'Menu readout is hidden during gameplay');
+  r.B.LevelDifficulty.profile=()=>({choices:[{label:'RELAXED',description:'More time.'},{label:'STANDARD',description:'Regular rhythm.'},{label:'OVERCLOCKED',description:'Faster enemies.'}]});
+  r.B.LevelDifficulty.open=true;r.B.LevelDifficulty.selected=1;T.sync();assert.match(T.readout.textContent,/STANDARD/);
+  r.B.LevelDifficulty.selected=2;T.sync();assert.match(T.readout.textContent,/OVERCLOCKED/);
+ });
  console.log('PASS: '+count+' touch action contracts');
 }
 if(require.main===module)run();

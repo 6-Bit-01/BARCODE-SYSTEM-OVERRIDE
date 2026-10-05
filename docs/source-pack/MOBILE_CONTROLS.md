@@ -1,12 +1,12 @@
 # Whole-game mobile controls
 
-Current work: October 5, 2026. Implementation is complete; 19 focused mobile contracts pass. Actual browser/layout acceptance, full regression, exact-head CI and publication are pending. Base: merged performance PR183, `42b2a3157638a8742717095fbdea7055b6efeb71`.
+Current work: October 5, 2026. The implementation passes 20 mobile contracts and bounded prototype browser flow. Full source regression, all-file syntax and immutable C113 standalone checks pass. Settings readout/short-road layout corrections are implemented; control-polish and the added real-menu readout group pass. Final strict-build visual/layout recheck, exact corrected-source CI/merge and publication remain pending. Base: merged performance PR183, `42b2a3157638a8742717095fbdea7055b6efeb71`.
 
 The owner requests mobile joystick and touch controls throughout the game before the website release. Cover the real opening/title/menu, difficulty/tutorial, hacking, Level 1, road steering/gears/beat pads/skills, bridge, ending and results. Contextual actions must call the existing screen owners and keep their timing, completion and pause rules.
 
 `src/core/touch-controls.js` exports `BARCODE.TouchControls` and launches once after `src/core/action-input.js` and `src/core/input.js`. Its DOM controls submit a virtual semantic input channel to the existing ActionInput/InputManager. Keep physical keyboard keys independent: releasing a finger must not release a held key, and vice versa. Support simultaneous stick/button touches and preserve short edge-triggered taps.
 
-Controls enable for a primary coarse pointer or an actual touch, keeping a hybrid laptop's fine-pointer use dormant. The 19 passing contracts include release outside the control surface when pointer capture is refused, preservation of unrelated pointers, shared pointer/keyboard skip holds and independent physical keys. Actual browser/layout flow remains separately pending.
+Controls enable for a primary coarse pointer or an actual touch, keeping a hybrid laptop's fine-pointer use dormant. The 20 passing contracts include refused-capture outside release, unrelated-pointer preservation, shared pointer/keyboard skip holds, independent physical keys and real-menu readout/privacy/pan routing. Actual prototype title/settings, opening/difficulty, Level 1 multitouch and earned Level 2 gestures passed at 390×844, 844×390, 375×667 and 320×568. The prototype's touch-only hash differs from its earlier receipt. Readout/compact-layout corrections are implemented; final strict-build visual acceptance remains pending.
 
 Use responsive safe-area layout and touch targets of at least 44 CSS pixels. Release every virtual hold on pointer cancellation, lost capture, blur, document hiding, layout changes and context transitions; a changed screen must not inherit a held action. Preserve accessible button names and normal browser behavior outside the control surface.
 

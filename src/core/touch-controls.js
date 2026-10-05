@@ -29,6 +29,11 @@ window.FILE_MANIFEST.push({ name: 'src/core/touch-controls.js', exports: ['BARCO
       this.stickLabel.textContent = 'MOVE';
       this.actions = make('div', 'touch-actions', this.root);
       this.utilities = make('div', 'touch-utilities', this.root);
+      this.readout = make('div', 'touch-readout', this.root); this.readout.id = 'touchReadout';
+      this.readout.setAttribute('role', 'status'); this.readout.setAttribute('aria-live', 'polite');
+      this.readout.hidden = true;
+      // Reading/scrolling the status must not activate a canvas menu beneath it.
+      for (const type of ['pointerdown', 'mousedown', 'click']) this.readout.addEventListener(type, e => e.stopPropagation());
       this.hint = make('div', 'touch-hint', this.root); this.hint.setAttribute('aria-live', 'polite');
       this.onDown = e => this.pointerDown(e);
       this.onMove = e => this.pointerMove(e);
@@ -42,7 +47,7 @@ window.FILE_MANIFEST.push({ name: 'src/core/touch-controls.js', exports: ['BARCO
       window.addEventListener('pointercancel', this.onUp, { capture: true });
       // Only the control surface suppresses gestures. The rest of the page and
       // native controls keep their normal browser behavior.
-      this.root.addEventListener('contextmenu', e => { e.preventDefault(); e.stopPropagation(); });
+      this.root.addEventListener('contextmenu', e => { if (!this.readout.contains(e.target)) { e.preventDefault(); e.stopPropagation(); } });
       this.root.addEventListener('keydown', e => {
         if (![' ', 'Enter'].includes(e.key)) return;
         const spec = this.buttons.get(e.target.dataset?.touchAction)?.spec;
@@ -133,6 +138,7 @@ window.FILE_MANIFEST.push({ name: 'src/core/touch-controls.js', exports: ['BARCO
       // control layout. A real touch or coarse-pointer device enables it.
       if (!this.enabled) { this.root.hidden = true; return; }
       const context = this.getContext(), signature = `${this.enabled}:${context.key}`;
+      this.updateReadout(context);
       if (signature === this.signature) return;
       this.releaseAll('context-change');
       this.context = context; this.signature = signature;
@@ -163,9 +169,20 @@ window.FILE_MANIFEST.push({ name: 'src/core/touch-controls.js', exports: ['BARCO
         });
       }
     },
+    updateReadout(context) {
+      let text = '';
+      if (context.name === 'menu') text = B.PauseMenu?.touchReadout?.() || '';
+      else if (context.name === 'difficulty') {
+        const difficulty = B.LevelDifficulty, choice = difficulty?.profile?.()?.choices[difficulty.selected];
+        if (choice) text = `${choice.label}\n${choice.description}\nRecovery: ${difficulty.recoveryMode === 'full-run' ? 'Full run' : 'Objective checkpoints'}`;
+      }
+      if (this.readout.textContent !== text) this.readout.textContent = text;
+      if (this.readout.hidden !== !text) this.readout.hidden = !text;
+    },
     consume(event) { event.preventDefault?.(); event.stopPropagation?.(); },
     pointerDown(event) {
       if (event.button != null && event.button !== 0) return;
+      if (this.readout.contains(event.target)) return;
       this.consume(event); this.sync();
       if (this.root.hidden || this.pointers.has(event.pointerId)) return;
       const joystick = event.target === this.joystick || this.joystick.contains(event.target);

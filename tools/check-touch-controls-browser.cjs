@@ -100,7 +100,7 @@ async function main(){server.listen(0,'127.0.0.1');await once(server,'listening'
  await touch('touchStart',[tp(stick,1)]);await touch('touchMove',[tp({x:stick.x+36,y:stick.y},1)]);await delay(100);
  await touch('touchStart',[tp({x:stick.x+36,y:stick.y},1),tp(jump,2)]);await delay(100);
  assert(await evaluate('mobileSmoke.rows.some(row=>row.move_right.held&&row.jump.pressed)'),'Real multitouch jump preserves joystick movement');
- await touch('touchEnd',[tp({x:stick.x+36,y:stick.y},1)]);await delay(80);assert(await evaluate('inputManager.actionInput.held("move_right")&&!inputManager.actionInput.held("jump")'),'Finger releases independently');
+ await touch('touchEnd',[tp(jump,2)]);await delay(80);assert(await evaluate('inputManager.actionInput.held("move_right")&&!inputManager.actionInput.held("jump")'),'Finger releases independently');
  await touch('touchCancel');await delay(80);assert.equal(await evaluate('inputManager.actionInput.virtualOwners.size'),0);
  await key('keyDown','ArrowRight','ArrowRight',39);await touch('touchStart',[tp(stick,1)]);await touch('touchMove',[tp({x:stick.x-36,y:stick.y},1)]);await delay(100);
  assert(await evaluate('inputManager.actionInput.held("move_left")&&inputManager.actionInput.held("move_right")'),'Touch and physical keyboard coexist');
