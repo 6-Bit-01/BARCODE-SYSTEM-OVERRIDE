@@ -1,5 +1,13 @@
 # Repository Guidance
 
+## October 5, 2026 — whole-game mobile controls implemented; release checks pending
+
+The owner confirms mobile joystick and touch controls for the whole game before publication. Continue from merged performance PR183, `42b2a3157638a8742717095fbdea7055b6efeb71`. Preserve its retained GPU renderer, native 1920×1080 frame, all 624 original asset hashes, gameplay judgments, music and compatible saves. Earlier pending/draft statements for PR183 below are historical.
+
+Use `BARCODE.TouchControls` through the existing InputManager/ActionInput and screen owners. Virtual semantic actions must remain independent of physical keys. Cover menus, opening, difficulty/tutorial, hacking, Level 1, road/skills, bridge, ending and results. Keep one input, gameplay-frame and audio owner; add no control RAF, timer or Canvas. Require responsive safe areas, targets of at least 44 CSS pixels and release on cancellation, lost capture, blur, hidden document and context changes.
+
+Implementation is complete and 19 focused mobile contracts pass. Independent existing action/combat, runtime lifecycle, frame ownership, syntax and prototype standalone checks also pass. Real browser touch/layout flow, full regression, exact-head CI, mobile source merge, final site package/rechecks and publication remain pending. Rebuild the final touch code to replace the prototype's stale touch-only receipt hash. Current GPU-only site PR481 is draft with CI/preview checks passed. Record each final result separately; unit and prior keyboard/performance evidence do not establish browser mobile acceptance.
+
 ## October 4, 2026 — current GPU compiler acceptance and CI environment
 
 The current Level 2 renderer uses retained ordered GPU scenery batches and immutable frame-local path/clip geometry, with the original native foreground, full-detail artwork, complete native recovery and shared gameplay/input/audio owners. Physical fresh/boss runs 23/24 at `a7b2ba5ed3115bcd24903a7729b5060efacadd92` passed the unchanged hardware gates, controls/audio and real graphics recovery. Read `docs/source-pack/LEVEL2_GPU_RENDERER.md` and `docs/source-pack/ACCEPTANCE.md` for exact counts and remaining tails. This current architecture supersedes conflicting historical implementation notes below; preserve their gameplay, artwork and ownership requirements.

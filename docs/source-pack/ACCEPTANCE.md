@@ -1,5 +1,20 @@
 # Acceptance and Test Status
 
+## October 5, 2026 — mobile acceptance pending
+
+Performance source PR183 is merged at `42b2a3157638a8742717095fbdea7055b6efeb71`; the finite physical GPU evidence below remains valid for that runtime. Whole-game touch controls are implemented without changing the renderer, original artwork/audio, gameplay rules or native resolution. All 19 focused mobile contracts pass. Independent action/combat, lifecycle, frame ownership, all-file syntax and 89-script prototype standalone checks pass. Prior keyboard/controller or VM checks do not establish actual browser mobile behavior.
+
+| Required mobile evidence | Current status |
+| --- | --- |
+| Virtual actions independent of held physical keys; simultaneous joystick/buttons and between-frame taps | Focused contracts pass; browser pending |
+| Opening, menus, difficulty/tutorial, hacking, Level 1, road/skills, bridge, ending and results through their real owners | Focused contracts pass; browser pending |
+| Safe-area portrait/landscape layout, at least 44 CSS-pixel targets, cancellation/lost-capture/blur/visibility/context release | Pending |
+| Shared frame/input/audio ownership; existing keyboard/gamepad, saves, GPU/native recovery and original asset integrity | Ownership/input and original asset checks pass; final browser regression pending |
+| Focused mobile tests, real browser touch flow, full regression and exact-head source CI | 19 contracts pass; browser/full regression/CI pending |
+| Mobile source merge, final built package, site rechecks/deployment and live verification | Pending |
+
+The prototype receipt differs only for the final touch-script correction; a fresh final build is required. GPU-only site PR481 has passed its CI and hosted preview checks and remains draft. Publication is authorized after the completed mobile release checks. Record actual results and any unexercised scenarios; preserve existing fidelity/resource assertions and numerical hardware gates.
+
 ## October 4, 2026 — final physical pair passes local performance acceptance
 
 Code checkpoint `a7b2ba5ed3115bcd24903a7729b5060efacadd92` passed fresh run 23 and earned-boss run 24 with the compiler active for images and analytic gradients in both views, including after genuine graphics loss/full native fallback/restoration. All measured frames completed both GPU views and final presentation.

@@ -15,6 +15,7 @@
     "src/core/gamepad-ui.js",
     "src/game/player-combat.js",
     "src/core/input.js",
+    "src/core/touch-controls.js",
     "src/engine/music-profiles.js",
     "src/engine/music-transport.js",
     "src/engine/level-01-music-profile.js",
@@ -106,6 +107,7 @@
     "src/core/gamepad-ui.js",
     "src/game/player-combat.js",
     "src/core/input.js",
+    "src/core/touch-controls.js",
     "src/engine/music-profiles.js",
     "src/engine/music-transport.js",
     "src/engine/level-01-music-profile.js",
@@ -293,6 +295,10 @@
       },
       {
         "file": "src/core/input.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/core/touch-controls.js",
         "status": "pass"
       },
       {
@@ -610,11 +616,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 88,
+        "index": 89,
         "status": "pass"
       },
       {
-        "index": 90,
+        "index": 91,
         "status": "pass"
       }
     ]
@@ -1003,6 +1009,7 @@
     "src/core/gamepad-ui.js",
     "src/game/player-combat.js",
     "src/core/input.js",
+    "src/core/touch-controls.js",
     "src/engine/music-profiles.js",
     "src/engine/music-transport.js",
     "src/engine/level-01-music-profile.js",

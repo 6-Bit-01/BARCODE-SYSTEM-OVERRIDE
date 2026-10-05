@@ -1,5 +1,13 @@
 # Changelog
 
+## October 5, 2026 — whole-game mobile controls implemented, unpublished
+
+- Continue from merged performance PR183 / `42b2a3157638a8742717095fbdea7055b6efeb71`; preserve the retained GPU renderer, native 1920×1080 frame and all 624 original artwork/audio asset hashes.
+- Implement joystick and contextual touch buttons for opening/menus, difficulty/tutorial, hacking, Level 1, road/skills, bridge, ending and results through existing screen and semantic input owners. Keep virtual input independent of physical keys and retain the single gameplay frame/audio owners.
+- Require responsive safe areas, at least 44 CSS-pixel targets and complete hold release on cancellation, capture/focus/visibility loss and context changes.
+- Register the touch script once after its input dependencies in source and site package contracts. Complete implementation and pass 19 mobile contracts plus independent action/combat, lifecycle, frame ownership, all-file syntax and 89-script prototype standalone checks. Rebuild the final touch code to replace the prototype's stale touch-only receipt hash; actual browser/layout validation remains pending.
+- Keep source mobile CI/merge, final package, site rechecks and authorized publication pending. GPU-only site PR481 passed CI/preview checks and remains draft. Preserve earlier sections as historical evidence.
+
 ## October 4, 2026 — retained scenery compiler accepted locally, unpublished
 
 - Implement compatible ordered image, convex-solid and analytic-gradient batches plus frame-local path/clip identity reuse; preserve exact transforms, original UV/crop/projection, clip/blend boundaries and complete native replay.
