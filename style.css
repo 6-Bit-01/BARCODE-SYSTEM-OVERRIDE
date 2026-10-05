@@ -288,6 +288,16 @@
 @media (orientation: landscape) {
     .touch-utilities { flex-direction: column; }
 }
+@media (orientation: landscape) and (max-aspect-ratio: 21/10) {
+    /* With no wide side gutter, Pause sits above the left-hand gear pair,
+       clear of the native HUD and the active right-thumb skill cluster. */
+    .touch-road .touch-utilities {
+        top: auto;
+        right: auto;
+        left: calc(max(var(--touch-edge), env(safe-area-inset-left)) + var(--touch-stick-width));
+        bottom: calc(max(var(--touch-edge), env(safe-area-inset-bottom)) + 124px);
+    }
+}
 @media (max-height: 450px) and (orientation: landscape) {
     .touch-controls { --touch-size: 44px; }
     .touch-actions { bottom: max(8px, env(safe-area-inset-bottom)); }
