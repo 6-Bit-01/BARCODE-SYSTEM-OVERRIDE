@@ -1,5 +1,17 @@
 # Level 2 GPU renderer replacement
 
+## October 4, 2026 — retained compiler implemented and accepted locally
+
+Tested checkpoint `a7b2ba5ed3115bcd24903a7729b5060efacadd92` batches compatible ordered images, convex solid fills and analytic gradients in one retained world pipeline, while keeping complex paths, strokes and clip/blend boundaries on their existing paths. Immutable path geometry and clip identities reuse exact authored revisions, transforms and fill rules within each frame. Native replay, full-resolution source crops, projection, fade and gameplay/input/audio ownership remain complete.
+
+Fresh run 23 completed 786 GPU frames: draw median/p95/max 15.5/24.3/42.8 ms (3 above 1000/30 ms), RAF 16.7/33.4/83.6 ms (83/783 above). Boss run 24 completed 232: draw 16.0/23.5/35.4 ms (1 above), RAF 16.7/33.4/66.7 ms (36/230 above). Fresh draw median/p95 improved from bank-only 32.0/43.8 ms. Scoped fresh recording/scene/foreground/presentation medians are 7.0/3.5/1.7/2.9 ms, previously 13.4/7.3/2.8/7.4 ms; scoped medians are not additive frame totals.
+
+Both runs verified image/analytic-gradient compilation in both views after real graphics loss/native fallback/restoration, controls/audio and ordinary Level 1 return/bridge pause. All 171 sources retain 260,390,544 mip bytes (149 BC7/22 exact SVG), worker termination, zero driving copies/uploads/fallbacks and unchanged 415 input hashes. The last fresh frame reported forward 87 batches/354 commands (223 images/97 gradients) and rear 38/225 (100/31); 138 pooled batches retained 2,019,840 buffer bytes. These are compiler submissions, not measured GL draw calls.
+
+Local 70 GPU contract groups, path-cache, syntax and generated-bundle checks pass. Full local npm test was interrupted without failures; exact-head CI full regression, final release review/packaging and authorized publication remain pending. The median performance gate is unchanged. These bounded runs do not establish universal 60 FPS, entire-race or glitch-free behavior.
+
+## Earlier implementation and acceptance record
+
 Status: implemented and unpublished; the full-resolution compressed texture bank is complete and final gameplay acceptance is pending. The preceding resource-owning renderer `ed666b7efbf767a147b43ddf0e3e34658b045986af5f34c63ebafb60582a5c41` recovered successfully from graphics loss, but physical memory remained tight and frame pacing regressed. That preceding result is not accepted as resolved lag.
 
 The owner has asked to replace the sequence of small performance patches with the rendering approach used by established games. The current Canvas painter rebuilds and submits scrolling texture slabs, clipped scenery, lamps and an independent rear scene every frame. The chosen replacement keeps the existing route geometry and gameplay but renders scenery with retained GPU textures, textured triangles and sprite batches through PixiJS WebGL.

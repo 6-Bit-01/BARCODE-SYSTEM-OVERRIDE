@@ -1,10 +1,12 @@
 # Changelog
 
-## October 4, 2026 — compile compatible scenery into retained GPU batches, unpublished
+## October 4, 2026 — retained scenery compiler accepted locally, unpublished
 
-- Reuse immutable ground-path geometry and clip identity within a frame, invalidating by authored revision, exact transform and fill rule; preserve complete native replay.
-- Combine ordered image, convex solid and short analytic gradient triangles through one retained world shader, preserving texture UVs, straight-RGBA gradient interpolation, alpha, clip and blend boundaries. Unsupported primitives retain their complete existing rendering path.
-- Preserve the complete full-resolution bank and its actual run 21/22 ownership/recovery results. Fresh 32-ms draw median remains unaccepted; final compiler pacing and authorized publication are pending.
+- Implement compatible ordered image, convex-solid and analytic-gradient batches plus frame-local path/clip identity reuse; preserve exact transforms, original UV/crop/projection, clip/blend boundaries and complete native replay.
+- Accept local physical fresh 23 and boss 24 at tested checkpoint `a7b2ba5ed3115bcd24903a7729b5060efacadd92`: 786/232 complete GPU frames; CPU draw median/p95 15.5/24.3 and 16.0/23.5 ms. Fresh improves from 32.0/43.8 ms. Draw and RAF tails remain documented in ACCEPTANCE.md.
+- Verify compiler batches in both views before/after real graphics loss and native restoration; preserve controls/audio, road P/Escape, Level 1 return/bridge P/P, 171 original sources and exact 260,390,544 mip bytes. Driving copies/uploads/fallbacks are zero; worker terminates; all 415 input hashes remain unchanged.
+- Pass local 70 GPU groups, path-cache, all-syntax and built-package checks. Full local npm test was interrupted without failures; exact-head CI full regression and final source/site packaging remain pending.
+- Publication is authorized and pending. PR183 stays draft; live source d41be793/site PR480 is unchanged. These finite runs do not certify every race frame or universal 60 FPS.
 
 ## October 4, 2026 — adopt compressed scenery textures, unpublished
 

@@ -1,10 +1,17 @@
 # Acceptance and Test Status
 
-## October 4, 2026 — full bank functional; compiler pacing pending
+## October 4, 2026 — final physical pair passes local performance acceptance
 
-Source checkpoint `bf99ed98a61120611593420c333353fca9b8dd9f` passed fresh run 21 (412 complete GPU frames) and earned-boss run 22 (206), with all 171 sources resident, 248.328 MiB exact mip storage and zero playing uploads/copies/fallbacks. Real steering/gear, audio, road P/Escape, genuine graphics loss/full native fallback/ordinary restoration, Level 1 resource reload and authored bridge P/P pause passed. Decoder ownership and all 415 input hashes remained intact. Fresh draw median/p95/max was 32.0/43.8/63.9 ms; boss was 18.8/24.1/34.3 ms. This functional/resource result does not accept the remaining fresh lag.
+Code checkpoint `a7b2ba5ed3115bcd24903a7729b5060efacadd92` passed fresh run 23 and earned-boss run 24 with the compiler active for images and analytic gradients in both views, including after genuine graphics loss/full native fallback/restoration. All measured frames completed both GPU views and final presentation.
 
-The combined ordered world batches and frame-local clip cache require final built-game acceptance. The hardware checker now records and requires actual image/analytic-gradient batches in both views and after graphics recovery. It distinguishes submitted batch counts from measured GL calls; the timing threshold is unchanged and software remains performanceUnexercised. Publication is authorized and pending the actual improved result plus source/site delivery checks.
+| Run | Complete frames | CPU draw median/p95/max (ms) | Draws above 1000/30 ms | RAF median/p95/max (ms) | RAF intervals above 1000/30 ms |
+| --- | ---: | --- | --- | --- | --- |
+| Fresh 23 | 786 | 15.5 / 24.3 / 42.8 | 3 / 786 | 16.7 / 33.4 / 83.6 | 83 / 783 |
+| Boss 24 | 232 | 16.0 / 23.5 / 35.4 | 1 / 232 | 16.7 / 33.4 / 66.7 | 36 / 230 |
+
+The unchanged median gate passes; observed tails remain. RAF intervals do not establish physical-display FPS. Both runs retained 149 BC7 plus 22 original SVG sources, exact 260,390,544 mip bytes, terminated-worker ownership and zero driving copies/uploads/fallbacks. Keyboard/gear, audio, road P/Escape, Level 1 return/bridge P/P and all 415 input hashes passed. Fresh HUD/restoration was visually reviewed.
+
+Seventy GPU contract groups, focused path-cache checks, all syntax and generated-bundle checks pass locally. Full local npm test was interrupted after no failures and does not count as complete regression. Exact-head CI, final packaging/visual release review and authorized publication are pending; no entire-race, universal 60-FPS or glitch-free claim is made.
 
 ## October 4, 2026 — compressed GPU revision requires final acceptance
 

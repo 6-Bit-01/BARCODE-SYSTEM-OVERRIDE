@@ -1,10 +1,12 @@
 # Current State
 
-## October 4, 2026 — compound GPU scenery compiler in progress
+## October 4, 2026 — scenery compiler accepted locally; release pending
 
-The complete bank at source checkpoint `bf99ed98a61120611593420c333353fca9b8dd9f` passed fresh run 21 and earned-boss run 22 through controls/audio, genuine graphics loss/native fallback/restoration and ordinary Level 1 return. All measured frames used complete GPU output with zero driving uploads/copies/fallbacks and 149 BC7 plus 22 original SVG sources (248.328 MiB of mip storage). All 415 tested input hashes stayed unchanged. Fresh draw median/p95 remained 32.0/43.8 ms, so the repair is still not accepted as resolved lag.
+Tested code checkpoint `a7b2ba5ed3115bcd24903a7729b5060efacadd92` combines compatible ordered images, convex fills and analytic gradients into retained GPU batches. The frame-local path cache reuses immutable geometry and clip identity by authored revision, exact transform and fill rule. Original projection/crops, native foreground, complete fallback replay and the existing gameplay/input/audio owners remain.
 
-The next scene compiler reuses the authored ground clip within a frame and combines compatible images, convex solid fills and analytic gradients into ordered retained GPU batches. Path edits, exact transforms and fill rules invalidate clip geometry correctly; native replay remains complete. Final combined gameplay pacing, exact-head source/site checks and authorized publication remain pending. PR183 remains draft; the public website still uses source d41be793 through site PR480. LEVEL2_GPU_RENDERER.md retains the detailed actual evidence and primary engine references.
+Fresh run 23 completed 786 GPU frames with draw median/p95/max 15.5/24.3/42.8 ms; earned-boss run 24 completed 232 at 16.0/23.5/35.4 ms. Fresh median/p95 improved from the preceding 32.0/43.8 ms. Both runs passed real graphics loss, complete native fallback and restoration, keyboard/gear/audio, road P/Escape and ordinary Level 1 return with authored bridge P/P. All 171 sources retained exact 260,390,544-byte mip storage (149 BC7, 22 original SVG); the worker terminated, measured driving used zero copies/uploads/fallbacks, and all 415 input hashes stayed unchanged.
+
+Local GPU/path-cache, complete syntax and generated-bundle checks pass. Full local npm test was interrupted without an observed failure; exact-head CI full regression, final release packaging and authorized publication remain pending. This is local performance acceptance, not universal 60 FPS, entire-race or glitch-free certification. PR183 remains draft and live source d41be793/site PR480 remains unchanged.
 
 ## October 4, 2026 — full-resolution compressed GPU bank being integrated
 
