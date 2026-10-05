@@ -72,6 +72,9 @@
         }
         
         /* Game UI overlay - positioned over canvas */
+        #cacheRoadGpuCanvas { display: none; pointer-events: none; }
+        #gameCanvas.cache-road-gpu-active { background: transparent; }
+
         .topbar {
             background: linear-gradient(135deg, rgba(0,255,255,0.9), rgba(255,0,255,0.9));
             border: 4px solid #000000;
@@ -602,6 +605,7 @@
     <script src="src/engine/spaceships.js"></script>
     <script src="src/engine/lore.js"></script>
     <script src="src/engine/presentation-assets.js"></script>
+    <script src="src/engine/level-scene-resources.js"></script>
     <script src="src/engine/jammer-indicator.js"></script>
     <script src="src/engine/title-screen.js"></script>
     <script src="src/game/objectives.js"></script>
@@ -645,6 +649,11 @@
     <script src="src/game/cache-road-beat-feedback.js"></script>
     <script src="src/game/cache-road-cinematics.js"></script>
     <script src="src/game/cache-road-render-budget.js"></script>
+    <!-- Pinned local GPU renderer; the existing loop remains the frame owner. -->
+    <script src="src/vendor/pixi-8.22.0/pixi.min.js"></script>
+    <script src="src/engine/cache-road-texture-bank.js"></script>
+    <script src="src/engine/cache-road-gpu-renderer.js"></script>
+    <script src="src/engine/cache-road-gpu-context.js"></script>
     <script src="src/game/cache-road-proof.js"></script>
     <script src="src/game/broadcast-slum-proof.js"></script>
     <script src="src/game/lost-data.js"></script>

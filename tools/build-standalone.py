@@ -18,6 +18,40 @@ ROOT = Path(__file__).resolve().parents[1]
 RAW_ROOT = "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/"
 RAW_PATTERN = re.compile(re.escape(RAW_ROOT) + r"(?:[A-Za-z0-9._-]+|\$\{[^{}\r\n]+\})/")
 ADAPTER = "src/engine/standalone-sprites.js"
+VENDOR_ROOT = "src/vendor/pixi-8.22.0/"
+BASIS_ROOT = "src/vendor/basis-2.50/"
+BINARY_VENDOR_FILES = {BASIS_ROOT + "basis_transcoder.wasm"}
+# Exact npm 8.22.0 bytes; never localize or rewrite third-party source.
+VENDOR_FILES = {
+    VENDOR_ROOT + "pixi.min.js": "06d9ef9823e743518793083c296d801e752db128cb1f519fbabe37e1259567ea",
+    VENDOR_ROOT + "LICENSE": "5ce7447bc57f7349ffc48338782fbcabe613696e00712b20d66bc58e780f9473",
+    VENDOR_ROOT + "provenance.json": "a5c6a646c2b1b37cbd65356d0475474d9b307910a8d888f8885918d860032075",
+    BASIS_ROOT + "basis_transcoder.js": "720dd9bd09c7cada6d87f1b7b70cec713df04da88cd641ac3212559353834dc8",
+    BASIS_ROOT + "basis_transcoder.wasm": "a0f65d4a30ecb3269d01ead7d0a3477d2b0208146d083625a90623f473f6c139",
+    BASIS_ROOT + "LICENSE": "065fcf48d6af21c0b75e23be5ed5753aee75c892e1c2cf178fa6736305614a5c",
+    BASIS_ROOT + "provenance.json": "49c856c675a79368ecc76e356eec90ce7aa87bf2f1da302cf51aa1f647fa03ed",
+}
+VENDOR_REFERENCES = {
+    VENDOR_ROOT + "pixi.min.js": {
+        "http://www.opensource.org/licenses/mit-license": "upstream MIT license reference",
+        "http://www.pixijs.com/": "upstream console credit",
+        **{f"https://cdn.jsdelivr.net/npm/pixi.js/transcoders/{name}":
+           "inert upstream loader default; the game uses its own local pinned transcoder"
+           for name in ("basis/basis_transcoder.js", "basis/basis_transcoder.wasm",
+                        "ktx/libktx.js", "ktx/libktx.wasm")},
+    },
+    VENDOR_ROOT + "provenance.json": {
+        "https://github.com/pixijs/pixijs/releases/tag/v8.22.0": "pinned vendor release provenance",
+        "https://registry.npmjs.org/pixi.js/-/pixi.js-8.22.0.tgz": "integrity-verified npm provenance",
+    },
+    BASIS_ROOT + "LICENSE": {
+        "http://www.apache.org/licenses/": "upstream Apache license reference",
+        "http://www.apache.org/licenses/LICENSE-2.0": "upstream Apache license reference",
+    },
+    BASIS_ROOT + "provenance.json": {
+        "https://github.com/BinomialLLC/basis_universal/releases/tag/v2_50": "pinned decoder release provenance",
+    },
+}
 OWNER_FILE = ".standalone-build.json"
 TOOL_ID = "barcode-system-override-standalone-v1"
 VIEWPORT_STYLE = """<style id="standalone-viewport-style">
@@ -27,12 +61,15 @@ VIEWPORT_STYLE = """<style id="standalone-viewport-style">
   width: 100vw; height: 100vh; margin: 0; padding: 0;
   background: #000; overflow: hidden;
 }
-#gameCanvas {
+#gameCanvas, #cacheRoadGpuCanvas {
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
   flex: none; margin: 0; padding: 0; border: 0; box-sizing: border-box;
   width: min(100vw, 177.777778vh); height: min(100vh, 56.25vw);
   max-width: none; max-height: none; object-fit: contain; image-rendering: auto;
 }
+#gameCanvas { z-index: 1; }
+#cacheRoadGpuCanvas { z-index: 0; pointer-events: none; }
+#gameCanvas.cache-road-gpu-active { background: transparent; }
 /* Keep redundant DOM status and control descriptions available to readers. */
 .game-container > .topbar, .game-container > .hint {
   display: block !important; position: absolute !important; flex: none;
@@ -99,6 +136,11 @@ def read_originals():
 
 
 def rewrite(name, data, mapping):
+    if name.startswith((VENDOR_ROOT, BASIS_ROOT)):
+        require(name in VENDOR_FILES and sha(data) == VENDOR_FILES[name],
+                f"Pinned vendor bytes changed: {name}")
+        return data, [{"kind": "exact-pinned-vendor-bytes",
+                       "version": "8.22.0" if name.startswith(VENDOR_ROOT) else "2.50"}]
     text = data.decode("utf-8-sig")
     changes = []
     raw_roots = RAW_PATTERN.findall(text)
@@ -185,6 +227,20 @@ def verify_runtime(payloads):
             "Sprite adapter must precede existing playback owners")
     for name in scripts:
         require(name in payloads, f"Missing browser script: {name}")
+    gpu_scripts = [VENDOR_ROOT + "pixi.min.js", "src/engine/cache-road-texture-bank.js",
+                   "src/engine/cache-road-gpu-renderer.js",
+                   "src/engine/cache-road-gpu-context.js", "src/game/cache-road-proof.js"]
+    require(all(scripts.count(name) == 1 for name in gpu_scripts),
+            "Expected one pinned GPU renderer and context before the road owner")
+    positions = [scripts.index(name) for name in gpu_scripts]
+    require(positions == sorted(positions) and
+            scripts.index("src/engine/presentation-assets.js") < positions[1],
+            "GPU renderer load order changed")
+    for name, expected in VENDOR_FILES.items():
+        require(name in payloads and sha(payloads[name]) == expected,
+                f"Missing or changed pinned vendor file: {name}")
+    require("src/engine/cache-road-texture-worker.js" in payloads,
+            "Owned compressed-texture worker is missing")
     stylesheets = re.findall(r'<link\b[^>]*\brel=["\']stylesheet["\'][^>]*\bhref=["\']([^"\']+)', index, re.I)
     for name in stylesheets:
         require(name in payloads, f"Missing linked stylesheet: {name}")
@@ -216,14 +272,69 @@ def verify_runtime(payloads):
                   "index.html": {"https://fonts.googleapis.com"}}
     external = []
     for name, data in payloads.items():
+        if name in BINARY_VENDOR_FILES:
+            continue  # Exact hash-pinned WASM is preserved as binary, never decoded or rewritten.
         for url in re.findall(r"https?://[^\s'\"`<>]+", data.decode("utf-8")):
             if url.startswith(("http://www.w3.org/", "https://www.w3.org/", "http://localhost/")):
                 continue
-            allowed = any(url.startswith(prefix) for prefix in exceptions.get(name, set()))
+            vendor_purpose = VENDOR_REFERENCES.get(name, {}).get(url)
+            allowed = vendor_purpose or any(url.startswith(prefix) for prefix in exceptions.get(name, set()))
             require(allowed, f"Unexpected external reference in {name}: {url}")
-            external.append({"path": name, "url": url, "purpose": "font stylesheet" if name == "index.html" else "inert original GIF provenance"})
+            external.append({"path": name, "url": url, "purpose": vendor_purpose or
+                             ("font stylesheet" if name == "index.html" else "inert original GIF provenance")})
     return {"orderedScripts": scripts, "localIndexLinks": local_links,
-            "spriteAnimations": total, "remainingExternalReferences": external}
+            "spriteAnimations": total, "remainingExternalReferences": external,
+            "vendoredRenderer": {"name": "pixi.js", "version": "8.22.0",
+                                 "license": "MIT", "files": VENDOR_FILES,
+                                 "runtimeSource": "local pinned bundle; full-resolution compressed textures with original-image fallback"},
+            "vendoredTranscoder": {"name": "Basis Universal", "version": "2.50",
+                                   "license": "Apache-2.0", "runtimeSource": "local owned worker; no CDN loader"}}
+
+
+def verify_texture_bank(output, files):
+    prefix = "assets/cache-road/gpu-textures/"
+    manifest_name = prefix + "manifest.json"
+    require(manifest_name in files, "Compressed texture bank must be committed before building")
+    bank = json.loads(safe_path(output, manifest_name).read_text(encoding="utf-8"))
+    require(bank.get("version") == 1 and bank.get("sourceCount") == 171 and
+            bank.get("compressedCount") == 149 and bank.get("originalCount") == 22,
+            "Compressed bank source inventory changed")
+    require(bank.get("encoderCommit") == "4d6fc70eaf62ad0558e63e8d97eb9766118327a6" and
+            bank.get("transcoderCommit") == "9bebe16726b3a61c8c213eeee3b7cffb462ef34e" and
+            bank.get("alphaMode") == "premultiplied-alpha" and bank.get("colorSpace") == "unorm",
+            "Compressed bank provenance or alpha/color contract changed")
+    entries = bank.get("entries")
+    require(isinstance(entries, dict) and len(entries) == 171, "Incomplete road texture bank")
+    derivatives, compressed, original = {manifest_name}, 0, 0
+    for key, entry in entries.items():
+        require(re.fullmatch(r"[A-Za-z0-9_.-]+", key), "Unsafe road texture key")
+        original_name = entry.get("originalPath")
+        require(original_name in files and
+                files[original_name]["sha256"] == entry.get("originalSHA256"),
+                f"Texture original differs from canonical HEAD artwork: {key}")
+        if entry.get("kind") == "compressed":
+            name = prefix + key + ".ktx2"
+            require(entry.get("path") == name and name in files and
+                    files[name] == {"sha256": entry.get("sha256"), "bytes": entry.get("bytes")},
+                    f"Texture derivative differs from committed bank: {key}")
+            require(original_name.endswith(".webp"), f"Unexpected compressed source type: {key}")
+            derivatives.add(name)
+            compressed += 1
+        else:
+            require(entry.get("kind") == "original" and entry.get("path") == original_name and
+                    original_name.endswith(".svg"), f"Unexpected original texture exemption: {key}")
+            original += 1
+    require(compressed == 149 and original == 22, "Incomplete raster/vector bank accounting")
+    require({name for name in files if name.startswith(prefix)} == derivatives,
+            "Unowned texture derivative or private generation receipt entered the package")
+    originals = sorted([name, record["bytes"], record["sha256"]]
+                       for name, record in files.items() if name.startswith("assets/") and name not in derivatives)
+    require(len(originals) == 624 and sha(json.dumps(originals, separators=(",", ":")).encode("utf-8")) ==
+            "0b2ac58dc88ddb68b595fb8592d242d8478c426d78309fe4ff45b88c04027f56",
+            "Original 624 artwork/audio identities or bytes changed")
+    return {"sources": 171, "compressedSources": 149, "originalSvgSources": 22,
+            "derivativeCount": len(derivatives), "unchangedOriginalCount": len(originals),
+            "gpuMipBytes": bank.get("allGpuMipBytes"), "runtimeAcceptance": "not established by packaging"}
 
 
 def build(output, receipt):
@@ -327,6 +438,7 @@ def build(output, receipt):
     file_hashes.update({record["path"]: {"sha256": record["outputSHA256"], "bytes": record["bytes"]}
                        for record in sources})
     require(set(file_hashes) == names - {OWNER_FILE}, "Public hash manifest is incomplete")
+    checks["compressedTextureBank"] = verify_texture_bank(output, file_hashes)
     public = {"builder": TOOL_ID, "status": "complete", "sourceCommit": head, "sourceTree": tree,
               "builderSHA256": sha(Path(__file__).read_bytes()), "files": file_hashes,
               "sourceMode": "working-tree runtime scripts; exact HEAD canonical asset blobs",

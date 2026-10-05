@@ -1,5 +1,21 @@
 # Acceptance and Test Status
 
+## October 4, 2026 — compressed GPU revision requires final acceptance
+
+The adopted revision prepares all 171 scenery sources before driving: 149 full-resolution compressed raster images and 22 small original browser-rendered vector images. It uses a local pinned decoder and one bounded worker. Original art bytes, native foreground, controls/music/saves and the single frame owner remain. The complete compressed build is not yet accepted or published; full-bank integrity, fresh play, earned boss, actual memory/cadence, graphics loss/restoration and exact-head source/site delivery remain required. The existing 33.333 ms hardware draw gate is unchanged; software GL remains performanceUnexercised.
+
+The preceding ed666 resource lifetime run 20 completed 415/415 GPU frames with zero copies/uploads and passed actual graphics loss/native fallback/restoration plus Level 1 reload. CPU draw median/p95/max was 30.9/44.1/57.5 ms and RAF intervals 33.4/50.2/133.5 ms; physical memory stayed tight at 624 MiB HUD/509 MiB restored. These results do not establish resolved lag. Completed-Level-1 bridge pause/resume uses its authored P/P contract, while Road's existing P/Escape behavior remains required. The earlier graphics-loss failure remains historical evidence, not a passing result.
+
+## October 4, 2026 — resource pipeline final browser checks pending
+
+Current ed666 GPU/resource implementation passes 51 GPU and 10 presentation-loader contracts. Original sprite verification covers 15 atlases, 60 exact pixel cases and 10 player-contact cases; suspension/reload restores original pixels. Production scene-owner/audio checks cover recreation, prepared road/title preservation, pending-job omission, cancellation and saves. These checks establish resource ownership, not reclaimed OS memory.
+
+Scene primary images fall from 256/1108.37 to 197/835.55 MiB raw equivalents (272.82 MiB difference); 22 conditional fallbacks total 132.12 MiB. Level 1 sprite retirement covers 269.81 MiB; its PA originals total 98.75 MiB with 22.69 MiB overlap, and other Level 1 image owners total about 106.58 MiB. GPU originals/budget remain unchanged.
+
+Prior 4eb5 run 19b passed 684 driving frames at 19/26/42.5 ms CPU median/p95/max and 41/41 fade frames with zero copies/uploads, plus controls/audio. Forced loss failed before native/restore evidence and the renderer vanished; high memory use is observed, termination cause unproved.
+
+The 87-script private build awaits fresh run 20, earned-boss and exact-head checks. Hardware's 33.333 ms gate remains unchanged; software GL is unexercised. Publication is authorized but pending. PR183 remains draft; live PR480/source d41be793 unchanged.
+
 ## October 4, 2026 — accepted scenery preparation, release verification pending
 
 The minimal road cues, short gear-tap repair and mirror readback removal are already published through [site PR479](https://github.com/6-Bit-01/barcode-network-site/pull/479), merged and deployed at `c484c6e4f06078df756d712ef2e039b02fa19f74`. Its verified standalone bundle identifies source `9cdcaad82804472782a1f06b5cfa38fa88f6b45d`. The game uses its independent local adapter and BARCODE-hosted files at `/system-override`, with the tiny footer © shortcut and native document `/games/system-override/index.html`. Those release results belong to that published baseline.

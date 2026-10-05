@@ -1,5 +1,23 @@
 # Current State
 
+## October 4, 2026 — full-resolution compressed GPU bank being integrated
+
+The owner-directed engine replacement now adopts offline legacy UASTC KTX2 derivatives for 149 raster images in the 171-source Level 2 GPU bank, a pinned local Basis Universal 2.50 decoder in one loading worker, and direct compressed Pixi textures. The 22 small vector images keep their original browser rasterization as GPU image textures. All 171 sources must be ready before driving. The 624 canonical originals remain unchanged. Full mip chains, premultiplied alpha, original logical dimensions/crops and native 1920×1080 presentation remain. Encoding uses KTX-Software 4.4.2; its source provenance is separate from the decoder. No transcode or new artwork upload belongs to playing frames. The worker terminates after warmup; mip buffers release at level exit and remain available only for graphics recovery while the level owns them.
+
+Resource lifetime run 20 succeeded through real graphics loss, complete native fallback and ordinary restoration. All 415 measured GPU frames completed both views without copies/uploads; Return restored Level 1 artwork/sprites and its three retired owners. Draw median/p95/max was 30.9/44.1/57.5 ms and RAF intervals 33.4/50.2/133.5 ms. Available physical memory was still only 624 MiB at the HUD and 509 MiB after restoration. This is successful recovery, not accepted lag resolution. The high-quality two-source compressed prototype used about one quarter of the GPU mip bytes at full original resolution, with sharp vehicle edges and neon art visually reviewed.
+
+The complete compressed bank, fresh/earned-boss runtime acceptance, exact-head source/site checks and authorized publication remain pending. PR183 remains draft, and live PR480/source d41be793 is unchanged. Earlier entries below describe their own historical checkpoints; the adopted compressed pipeline supersedes their optional/unadopted wording. Details and primary engine references are in LEVEL2_GPU_RENDERER.md.
+
+## October 4, 2026 — scene resource lifecycle implemented; final acceptance pending
+
+The current ed666 GPU revision preserves direct forward/Gaussian rear presentation, trusted HUD proxies, transparent native foreground and one pause composite. Scene preparation now loads 197 primary originals (835.55 MiB raw RGBA equivalent), versus 256/1108.37 MiB previously; 22 conditional originals (132.12 MiB) load only when authored animation fails. Level 1 sprites, parallax/video, comic/traffic images and old music buffers retire at the prepared road handoff and reload through their original initializers. Pending old jobs remain owned and reported.
+
+GPU source allocation remains 974.90 MiB equivalent for 171 originals, within the unchanged 1 GiB logical budget including targets/glyphs. These estimates do not claim OS reclamation. All 624 original assets remain; optional compression was not adopted.
+
+Earlier 4eb5 run 19b passed 684 normal driving frames (CPU median/p95/max 19/26/42.5 ms), 41/41 fade frames without copies/uploads, controls and audio. Forced graphics loss then became unresponsive before native/restore evidence; the renderer vanished with Chrome at 4.35 GiB and 462 MiB host memory available. Termination cause is unproved.
+
+The private build has 87 scripts. Final fresh run 20, earned-boss/exact-head verification and authorized publication remain pending. PR183 stays draft; live PR480/source d41be793 is unchanged.
+
 ## October 4, 2026 — accepted scenery preparation, release verification pending
 
 The minimal road cues, short gear-tap repair and mirror readback removal are already published through [site PR479](https://github.com/6-Bit-01/barcode-network-site/pull/479), merged and deployed at `c484c6e4f06078df756d712ef2e039b02fa19f74`. Its verified standalone bundle identifies source `9cdcaad82804472782a1f06b5cfa38fa88f6b45d`. The game uses its independent local adapter and BARCODE-hosted files at `/system-override`, with the tiny footer © shortcut and native document `/games/system-override/index.html`. Those release results belong to that published baseline.

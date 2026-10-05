@@ -1,5 +1,6 @@
 // Loader lifecycle and production Chromium frame/raster comparisons.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
+const nativeFallbackDiagnostic=process.env.CACHE_NATIVE_FALLBACK_DIAGNOSTIC==='1';
 const source=fs.readFileSync(path.resolve(__dirname,'../src/engine/presentation-assets.js'),'utf8');
 const inspected=source.replace('  const cache = {};','  const cache = {};window.bitmapReview={entries,cache};');
 async function unit(){
@@ -46,6 +47,58 @@ async function unit(){
     w.BARCODE.PresentationAssets.preload();assert.equal(prepared.length,10,'re-entry reuses prepared fallback art');
   }
   console.log('PASS: one SVG preparation per load, warm/pause reuse, exact source rectangles, context preservation, raster routing and graceful bitmap rejection.');
+}
+
+async function gpuOriginalReadinessUnit(){
+  let finishBitmap,decodeCalls=0,bitmapAttempts=0;
+  class Image {
+    constructor(){this.naturalWidth=256;this.naturalHeight=256;}
+    decode(){decodeCalls++;return Promise.resolve();}
+  }
+  const w={Image,BARCODE:{},createImageBitmap(){
+    bitmapAttempts++;return new Promise(resolve=>{finishBitmap=resolve;});
+  }};
+  vm.runInNewContext(inspected,{window:w});
+  const {entries,cache}=w.bitmapReview,P=w.BARCODE.PresentationAssets,
+    key='cacheSidewalk',state=cache[key],image=state.image;
+  let readySources;
+  const readiness=P.waitForGpuSources([key,key]).then(value=>{readySources=value;});
+  image.onload();await new Promise(setImmediate);
+  assert(readySources,'a pending SVG derivative cannot hold valid original readiness');
+  await readiness;
+  assert.equal(state.ready,true);assert.equal(state.bitmap,undefined);
+  assert.equal(readySources.length,1);assert.equal(readySources[0].image,image);
+  assert.equal(readySources[0].path,entries[key].path);
+  assert.equal(bitmapAttempts,1);assert.equal(decodeCalls,0,'GPU warmup remains the sole decode owner');
+  const nativeCalls=[],gpuCalls=[],native={imageSmoothingEnabled:true,save(){},restore(){},
+    translate(){},scale(){},drawImage(...args){nativeCalls.push(args);}},
+    gpu={...native,isGpuScene:true,drawImage(...args){gpuCalls.push(args);}};
+  const draw={x:0,y:0,width:64,height:64};
+  assert(P.draw(key,native,draw));assert.equal(nativeCalls.at(-1)[0],image,
+    'native recovery can draw the valid original while its optional bitmap is pending');
+  assert(P.draw(key,gpu,draw));assert.equal(gpuCalls.at(-1)[0],image);
+  const bitmap={width:256,height:256};finishBitmap(bitmap);await new Promise(setImmediate);
+  assert.equal(state.bitmap,bitmap);assert(P.draw(key,native,draw));assert.equal(nativeCalls.at(-1)[0],bitmap);
+  assert(P.draw(key,gpu,draw));assert.equal(gpuCalls.at(-1)[0],image);
+  assert.equal(bitmapAttempts,1);assert.equal(decodeCalls,0);
+
+  const fallback=cache.cacheOuterGround;let fallbackResult;
+  const fallbackWait=P.waitForGpuSources(['cacheOuterGround']).then(value=>{fallbackResult=value;});
+  fallback.image.onerror();await new Promise(setImmediate);
+  assert.equal(fallbackResult,undefined,'the first pinned failure still waits for its bundled original');
+  assert.equal(fallback.image.src,entries.cacheOuterGround.path);
+  fallback.image.onload();await fallbackWait;
+  assert.equal(fallbackResult[0].image,fallback.image);assert.equal(fallback.ready,true);
+
+  const invalid=cache.cacheJoinLTurn,failed=cache.cacheJoinRTurn;
+  invalid.image.naturalWidth=0;invalid.image.onload();
+  const invalidResult=await P.waitForGpuSources(['cacheJoinLTurn']);
+  assert.equal(invalidResult.length,0);assert.equal(invalid.ready,false);
+  const failedWait=P.waitForGpuSources(['cacheJoinRTurn']);
+  failed.image.onerror();failed.image.onerror();
+  assert.equal((await failedWait).length,0);assert.equal(failed.ready,false);
+  assert.equal(decodeCalls,0);
+  console.log('PASS: loaded-original GPU readiness, pending SVG derivative native fallback, sole warmup decode ownership and honest bundled/invalid-source handling.');
 }
 
 async function backgroundRasterUnit(){
@@ -986,12 +1039,13 @@ async function browser(){
       assert(road.includes('const compositeBlur=ctx.canvas?.width>0'));
       road=road.replace('const compositeBlur=ctx.canvas?.width>0',
         "const compositeBlur=window.bitmapReview.mode!=='vector'&&ctx.canvas?.width>0");
-      assert(road.includes('const budgetEligible=!!budgetOwner'));
-      road=road.replace('const budgetEligible=!!budgetOwner',
-        "const budgetEligible=window.bitmapReview.mode==='adaptive'&&!window.bitmapReview.fullQuality&&!!budgetOwner");
-      assert(road.includes("ctx.imageSmoothingQuality='low';"));
-      road=road.replace("ctx.imageSmoothingQuality='low';",
-        "if(window.bitmapReview.mode==='adaptive')ctx.imageSmoothingQuality='low';");
+      const budgetMarker='const budgetEligible=!this.gpuRecoveryPainting&&!!budgetOwner';
+      assert(road.includes(budgetMarker),'preserve the production native-recovery budget guard');
+      road=road.replace(budgetMarker,
+        "const budgetEligible=window.bitmapReview.mode==='adaptive'&&!window.bitmapReview.fullQuality&&!this.gpuRecoveryPainting&&!!budgetOwner");
+      // Keep the actual production sampler in every representation. The old
+      // adaptive-only low-quality mutation compared unlike painting and failed
+      // baseline fidelity as well as the current build; it cannot judge caches.
       for(const [marker,label]of [["      const live=this.state,cinema=this.cinematicPose();","begin"],["      // One opaque landscape continues beneath every roadside location.","sky"],["      // Neighboring strips sample adjacent rows of one world-fixed material.","city"],["      const groundCrest=Array.from({length:65},(_,i)=>[i*30,cityCrestY(i*30)]);","world-preparation"],["      // Road shoulders and the paint share a single curved road projection.","terrain"],["      const roadFog=ctx.createLinearGradient(0,horizon,0,horizon+170);","asphalt"],["      // Phrase paint is a road marking, not a second translucent lane overlay.","street-objects"],["      const boss=s.combat?combatPose.boss:B.CacheRoadPursuit?.boss?.(s.pursuit,{progress});","beat-and-traffic"],["      ctx.restore(); // world camera","vehicles-and-fx"],["      // A compact VFD instrument cluster leaves the original mirror and","atmosphere"],["    const far = profile(progress-reach);","mirror-start"],["    if(compositeBlur) {","mirror-scene"],["    // Only reflected scenery gets softened.","mirror-blur"],["      drawRearview(ctx, s,","dashboard"]]) {
         assert(road.includes(marker),'phase marker '+label);
         road=road.replace(marker,"window.canvasCostMark?.("+JSON.stringify(label)+");\n"+marker);
@@ -1367,7 +1421,17 @@ async function browser(){
     if(result.exceptionDetails)throw Error(JSON.stringify(result.exceptionDetails));
     assert(result.result.value?.passed);
     const {screens,...report}=result.result.value;
+    report.nativeFallbackDiagnostic=nativeFallbackDiagnostic;
+    report.performanceAssertionsEnforced=!nativeFallbackDiagnostic;
+    report.performanceAcceptance=false;
+    report.rendererContract='native fallback fixture';
+    report.samplingContract='All representations retain unmodified production sampling. The previous adaptive-only low sampler failed baseline fidelity; this fixture repair makes no performance acceptance claim.';
+    report.nativeTiming={mode:nativeFallbackDiagnostic?'diagnostic':'enforced',
+      timingPass:report.performancePass,budgetMs:report.absoluteFrameBudgetMs,
+      requiredAggregateRatioBelow:.75,maximumSceneRatio:1.1,performanceAcceptance:false};
+    report.limitation+=' This native-only fixture excludes the GPU renderer and cannot accept standalone GPU performance.';
     console.log(JSON.stringify(report));
+    console.log('NATIVE_FALLBACK_TIMING '+JSON.stringify(report.nativeTiming));
     for(const screen of screens.filter(screen=>
       screen.name==='Ready-ONE'&&screen.mode!=='vector'||
       screen.name==='Focused-Turn'&&screen.mode==='adaptive'))
@@ -1392,7 +1456,8 @@ async function browser(){
     const encoded=sheet.toBuffer('image/webp',80).toString('base64');
     for(let at=0;at<encoded.length;at+=24000)
       console.log('FRAME_REVIEW '+String(at/24000).padStart(4,'0')+' '+encoded.slice(at,at+24000));
-    assert(report.performancePass,'native world painting must cut PR180 frame/raster cost by 25 percent, avoid a scene regression, and fit the 30 Hz diagnostic frame budget');
+    if(!nativeFallbackDiagnostic)
+      assert(report.performancePass,'native world painting must cut PR180 frame/raster cost by 25 percent, avoid a scene regression, and fit the 30 Hz diagnostic frame budget');
     assert(report.pixelComparisons.every(row=>row.meanRGB<1),
       'one reflection blur and SVG preparation must preserve loaded production appearance within one mean RGB level');
   }finally{
@@ -1411,4 +1476,4 @@ async function browser(){
     await fs.promises.rm(profile,{recursive:true,force:true,maxRetries:20,retryDelay:100});
   }
 }
-(async()=>{await unit();await backgroundRasterUnit();await nativeRasterUnit();await nativeSmallUnit();await nativeWindowUnit();await nativeTintUnit();budgetUnit();mirrorSourceUnit();worldCopyUnit();await nativeMappedDecodeUnit();await nativePriorityUnit();if(process.argv.includes('--browser'))await browser();})().catch(e=>{console.error(e.stack);process.exitCode=1;});
+(async()=>{await unit();await gpuOriginalReadinessUnit();await backgroundRasterUnit();await nativeRasterUnit();await nativeSmallUnit();await nativeWindowUnit();await nativeTintUnit();budgetUnit();mirrorSourceUnit();worldCopyUnit();await nativeMappedDecodeUnit();await nativePriorityUnit();if(process.argv.includes('--browser'))await browser();})().catch(e=>{console.error(e.stack);process.exitCode=1;});

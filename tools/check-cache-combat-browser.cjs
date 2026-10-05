@@ -14,6 +14,10 @@ const root = path.resolve(__dirname, '..');
 const output = path.resolve(process.env.CACHE_COMBAT_BROWSER_OUTPUT ||
   path.join(os.tmpdir(), 'barcode-cache-combat-browser'));
 const requireHosted = process.env.CACHE_COMBAT_BROWSER_REQUIRE_HOSTED === '1';
+// This fixture deliberately retains the complete native painter and one Canvas
+// contract. Its timings cannot certify the standalone GPU renderer. CI may keep
+// them as explicit diagnostics while every functional/quality assertion runs.
+const nativeFallbackDiagnostic = process.env.CACHE_NATIVE_FALLBACK_DIAGNOSTIC === '1';
 function browserGpuConfig(value) {
   const backend = value ?? '';
   assert(backend === '' || backend === 'swiftshader',
@@ -536,7 +540,7 @@ const server=http.createServer((req,res)=>{
 });
 const profile=fs.mkdtempSync(path.join(os.tmpdir(),'barcode-combat-chrome-'));
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-let chrome,chromeClosed,socket,receipt,browserBackend;
+let chrome,chromeClosed,socket,receipt,browserBackend,nativeTiming;
 async function inspectBrowserBackend(debuggerUrl) {
   // SystemInfo is a browser-target command. Keep this separate from the page
   // session and close the diagnostic connection before gameplay measurement.
@@ -1055,13 +1059,24 @@ async function main(){
   assert(fullLoopCosts.every(frame=>frame.displayDraws===1),'each timed RAF submits one native production draw');
   phaseMedians.liveBoss=median(liveBossCosts.map(frame=>frame.ms));
   console.log('SUSTAINED_PHASE_MEDIANS '+JSON.stringify(phaseMedians));
-  assert(Object.values(phaseMedians).every(ms=>ms<=1000/30),'each chase and live-boss phase must fit the 30 Hz diagnostic median budget');
-  assert(fullLoopTiming.medianMs<=1000/30,'consecutive production chase/boss frames must fit the 30 Hz diagnostic median budget');
+  nativeTiming={rendererContract:'native fallback fixture',
+    mode:nativeFallbackDiagnostic?'diagnostic':'enforced',budgetMs:1000/30,phaseMedians,
+    fullLoopMedianMs:fullLoopTiming.medianMs,
+    timingPass:Object.values(phaseMedians).every(ms=>ms<=1000/30)&&fullLoopTiming.medianMs<=1000/30,
+    performanceAssertionsEnforced:!nativeFallbackDiagnostic,performanceAcceptance:false,
+    limitation:'Native-only fixture excludes the GPU renderer. Timing failures remain recorded; standalone hardware performance is checked separately.'};
+  console.log('NATIVE_FALLBACK_TIMING '+JSON.stringify(nativeTiming));
+  fs.writeFileSync(path.join(output,'Native-Fallback-Timing.json'),JSON.stringify(nativeTiming,null,2)+'\n');
+  if(!nativeFallbackDiagnostic){
+    assert(Object.values(phaseMedians).every(ms=>ms<=1000/30),'each chase and live-boss phase must fit the 30 Hz diagnostic median budget');
+    assert(fullLoopTiming.medianMs<=1000/30,'consecutive production chase/boss frames must fit the 30 Hz diagnostic median budget');
+  }
   assert.deepEqual(errors,[],'native browser raises no uncaught production exceptions');assert.equal(requests.head,0);
   if(requireHosted)assert.deepEqual(requests.localCombat,[],'new combat/feedback art never silently falls back to bundled paths');
   if(requireHosted)assert.deepEqual(requests.localBeat,[],'custom beat art never silently falls back to bundled paths');
   assert.deepEqual(sourceHashes(),initialSourceHashes,'source and authored assets remain frozen throughout the browser race');
-  receipt={passed:true,browserBackend,assetDelivery:requireHosted?'immutable-hosted':'bundled',decoded,zeroSync,frames,bossHp,
+  receipt={passed:true,functionalPassed:true,performanceAcceptance:false,nativeFallbackDiagnostic,nativeTiming,
+    browserBackend,assetDelivery:requireHosted?'immutable-hosted':'bundled',decoded,zeroSync,frames,bossHp,
     state,events:allEvents,restoreReceipt,comfort,cinematicNative,drawn:allDrawn,combatPaintSessions:paintSessions,drawSamples,trafficGuards,
     renderedControlLabels:[...new Set(labels)],beatPaints,beatFrames,requests,errors,minimumDrums,
     simulationFrames:totalFrames,driverFrames:totalDriverFrames,sharedRafUpdates:totalRafUpdates,
@@ -1078,9 +1093,9 @@ async function main(){
       existingHUDEarnedJudgmentAndDelta:true,noLiveGroundEnergy:true,
       oneCanvas:true,stateInjection:false},
     limits:'Production scripts in index order, controlled saved bridge-ready entry, native Chromium input/Canvas, every shared-RAF simulation update and selected Canvas samples. Does not exercise title boot or every display frame. Audio clock, gamepad device, lifecycle pause and Campaign persistence are controlled hosts. No progress, health, immunity, resources, captures or boss-damage injection. Not Makko, physical-controller, recorded listening, human balance, comfort or display-pacing acceptance.'};
-  console.log(`Cache combat Chromium passed: zero-sync four controls, analog triggers, actual12HP rig damage, wreck/first gear, earned page reload, full100bars; ${totalFrames} simulation frames and ${totalSamples} sampled Canvas frames.`);
+  console.log(`Cache combat native fallback functional checks passed: zero-sync four controls, analog triggers, actual12HP rig damage, wreck/first gear, earned page reload, full100bars; ${totalFrames} simulation frames and ${totalSamples} sampled Canvas frames. Native timing ${nativeTiming.timingPass?'passed':'failed'} (${nativeTiming.mode}); standalone GPU performance is not accepted by this fixture.`);
 }
-main().catch(error=>{receipt={passed:false,browserBackend:browserBackend||null,error:error.stack,frames,requests,errors};console.error(error);process.exitCode=1;})
+main().catch(error=>{receipt={passed:false,performanceAcceptance:false,nativeFallbackDiagnostic,nativeTiming:nativeTiming||null,browserBackend:browserBackend||null,error:error.stack,frames,requests,errors};console.error(error);process.exitCode=1;})
   .finally(async()=>{fs.writeFileSync(path.join(output,'Combat-Browser-Checks.json'),JSON.stringify(receipt||{passed:false},null,2)+'\n');
     socket?.close();if(chrome&&chrome.exitCode===null&&chrome.signalCode===null)chrome.kill();if(chromeClosed)await chromeClosed;
     server.close();await fs.promises.rm(profile,{recursive:true,force:true,maxRetries:10,retryDelay:100});});

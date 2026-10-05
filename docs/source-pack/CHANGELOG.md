@@ -1,5 +1,23 @@
 # Changelog
 
+## October 4, 2026 — adopt compressed scenery textures, unpublished
+
+- Adopt full-resolution offline legacy UASTC KTX2 for 149 raster sources, retaining the 22 small original vector sources on the GPU with their exact browser rasterization. Preserve all 171 required sources, original dimensions/crops, padded edges, complete mips and premultiplied UNORM alpha. Preserve all 624 original assets.
+- Load a hash-pinned local Basis Universal 2.50 decoder in one owned worker before gameplay; transfer hardware-format mip arrays directly to Pixi compressed sources, terminate worker/decoder heap after warmup and release the level's mip arrays at exit. Keep original native fallback and existing frame/input/audio owners.
+- Verify the preceding scene lifecycle revision's actual graphics recovery and Level 1 reload in run 20, while recording slower draw tails and low host memory. Do not accept or publish its incomplete performance result. Complete compressed-build gameplay and release checks remain pending.
+
+## October 4, 2026 — scene resource lifetime repair, unpublished
+
+- Preserve ed666 direct GPU scenery/Gaussian rear, trusted HUD alpha, native face/text fades, transparent foreground and complete native recovery. Keep 171 original GPU sources (974.90 MiB equivalent) and the 1 GiB logical budget including targets/glyphs.
+
+- Replace eager 256-image loading (1108.37 MiB raw equivalent) with 197 primary originals (835.55 MiB); load 22 conditional originals (132.12 MiB) only after authored animation failure. Retire inactive Level 1 sprite/media/music owners and reload through existing initializers; preserve pending jobs, saves and active road/title resources. These are allocation estimates, not OS reclamation claims.
+
+- Pass 51 GPU/10 loader contracts, 15-atlas/60-pixel/10-contact sprite checks, exact suspension/reload pixels and production resource-owner/audio tests. Preserve all 624 original assets; optional compression remains unused.
+
+- Retain prior 4eb5 run 19b evidence: 684 normal frames at 19/26/42.5 ms and 41/41 fade frames without copies/uploads, controls/audio passed. Forced loss became unresponsive and renderer vanished before native/restore evidence; termination cause remains unproved.
+
+- Build 87 scripts privately. Final fresh run 20, earned-boss/exact-head checks and authorized publication remain pending. PR183 stays draft; live PR480/source d41be793 unchanged.
+
 ## October 4, 2026 — accepted scenery preparation, release verification pending
 
 The minimal road cues, short gear-tap repair and mirror readback removal are already published through [site PR479](https://github.com/6-Bit-01/barcode-network-site/pull/479), merged and deployed at `c484c6e4f06078df756d712ef2e039b02fa19f74`. Its verified standalone bundle identifies source `9cdcaad82804472782a1f06b5cfa38fa88f6b45d`. The game uses its independent local adapter and BARCODE-hosted files at `/system-override`, with the tiny footer © shortcut and native document `/games/system-override/index.html`. Those release results belong to that published baseline.

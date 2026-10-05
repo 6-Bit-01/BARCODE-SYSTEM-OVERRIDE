@@ -313,6 +313,43 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
       columns:4,rows:2,frames:8,ax:.5,ay:.5,smooth:true},
   };
   const cache = {};
+  // The standalone adapter opts into scene lifetimes. Embedded/Makko callers
+  // keep the original eager catalog unless they explicitly select a scene.
+  let sceneKeys=B.StandaloneSprites?new Set(Object.keys(entries).filter(key=>!/^cache/.test(key))):null;
+  let sceneNativeKeys=null,sceneGeneration=0;
+  const roadNativeKeys=Object.freeze([
+    'cacheMirror','cacheCar','cacheCarLeft','cacheCarRight','cacheCarHit',
+    'cacheDashBezel','cacheDashDigits','cacheDashIcons','cachePulsePad',
+    'cachePulseStrip','cachePulseBurst','cachePulseSurge','cachePulsePush',
+    'cachePulseBrace','cachePulseRefill','cacheWindWhoosh','cachePushArc',
+    'cacheBraceHalo','cacheEchoRibbons','cacheDeliveryBeacon','cacheImpactGrit',
+    'cacheBeatHardware','cacheBeatEnergy','cacheBeatTiming','cacheCombatFX','cacheCrewCallouts'
+  ]);
+  const roadNativeShared=Object.freeze([
+    'cacheFreight','cacheCourier','cacheBarricade','cacheRival','cacheAudit',
+    'cacheSweeper','cacheTrike','cacheShuttle','cacheBrakeReflection',
+    'cacheDamagedExhaust','cacheSpeedMist','cacheCombatBike','cacheCombatHostiles',
+    'cacheCombatBikeCrash','cacheCombatBlast','cacheBloodSplatter','cachePursuitRig','cachePursuitImpact'
+  ]);
+  const roadFallbacks=Object.freeze([
+    ['cachePersonElectricianActivity','cachePersonElectrician'],
+    ['cachePersonWavingResidentActivity','cachePersonWavingResident'],
+    ['cachePersonHandheldPlayerTravel','cachePersonHandheldPlayer'],
+    ['cachePersonCrateCarrierTravel','cachePersonCrateCarrier'],
+    ['cachePersonSkateboarderTravel','cachePersonSkateboarder'],
+    ['cachePersonGardenerActivity','cachePersonGardener'],
+    ['cachePersonBicycleCourierTravel','cachePersonBicycleCourier'],
+    ['cachePersonSweeperActivity','cachePersonSweeper'],
+    ['cachePersonBoardPlayerActivity','cachePersonBoardPlayer'],
+    ['cachePersonStreetCookActivity','cachePersonStreetCook'],
+    ...['Courier','Mechanic','MarketWorker','Student','Gardener','Resident'].flatMap(identity=>
+      ['Toward','Away'].map(direction=>['cacheWalker'+identity+'Travel','cacheWalker'+identity+direction]))
+  ]);
+  const selected=key=>sceneKeys===null||sceneKeys.has(key);
+  const nativeAllowed=key=>selected(key)&&(sceneNativeKeys===null||sceneNativeKeys.has(key));
+  const currentAsset=(key,state)=>cache[key]===state&&!state.released;
+  const currentDerivative=(key,state,generation)=>currentAsset(key,state)&&nativeAllowed(key)&&
+    (state.derivativeGeneration||0)===generation;
   const rasterDetail=new WeakMap(),decorationDetail=new WeakMap(),MAX_RASTER_PIXELS=32*1024*1024;
   const diffuseEffects=new Set(['cacheSpeedMist','cacheWindWhoosh','cacheImpactGrit']);
   const backgroundSources=new Set(Object.entries(entries).filter(([key,entry])=>/^cache/.test(key)&&
@@ -325,8 +362,9 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   const nativeDeferredSources=new Set(['cacheBeatEnergy','cachePhraseStrip','cacheConfirmedBar']);
   // Hold these exact whole-source slots before asynchronous load order can
   // spend the pool on optional atlases. These are canonical source dimensions.
-  const nativePriorityReservations=new Map([
+  const nativePriorityDimensions=new Map([
     ['cacheBlacktop',2172*724],['cacheGreenhouseWorkshop',1536*1024]]);
+  const nativePriorityReservations=new Map(nativePriorityDimensions);
   const nativePriorityReservedPixels=[...nativePriorityReservations.values()].reduce((sum,pixels)=>sum+pixels,0);
   let rasterPixels=0,nativeRasterPixels=nativePriorityReservedPixels,nativeSmallPixels=0;
   let backgroundRasterRequested=false,diffuseRasterRequested=false;
@@ -337,7 +375,77 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     if(pixels){nativePriorityReservations.delete(key);nativeRasterPixels-=pixels;}
     return pixels;
   }
+  function reservePixels(state,pixels,{native=false,small=false}={}) {
+    if(native)nativeRasterPixels+=pixels;else rasterPixels+=pixels;
+    if(small)nativeSmallPixels+=pixels;
+    const allocations=state.allocations||(state.allocations=new Set());let held=true;
+    const release=()=>{
+      if(!held)return;held=false;allocations.delete(release);
+      if(native)nativeRasterPixels-=pixels;else rasterPixels-=pixels;
+      if(small)nativeSmallPixels-=pixels;
+    };
+    allocations.add(release);return release;
+  }
+  function releaseDerivatives(state) {
+    state.derivativeGeneration=(state.derivativeGeneration||0)+1;
+    for(const cancel of state.pendingJobs||[])cancel();
+    state.pendingJobs?.clear();
+    for(const release of [...(state.allocations||[])])release();
+    const bitmaps=new Set([state.bitmap,state.nativeBitmap,state.rasterBitmap,state.brakeTintBitmap,
+      ...(state.nativeFrames||[]),...(state.nativeWindows||[]).map(window=>window?.bitmap)]);
+    for(const bitmap of bitmaps)bitmap?.close?.();
+    for(const field of ['bitmap','nativeBitmap','rasterBitmap','brakeTintBitmap','nativeFrames','nativeWindows'])delete state[field];
+    state.nativePending=false;state.nativeAttempted=false;state.nativeFrameAttempts?.clear();
+    state.rasterPending=false;state.rasterAttempted=false;
+    state.brakeTintPending=false;state.brakeTintAttempted=false;state.svgAttempted=false;
+  }
+  function releaseAsset(key) {
+    const state=cache[key];releaseNativePriorityReservation(key);if(!state)return;
+    state.released=true;releaseDerivatives(state);state.resolveReady?.(false);state.resolveReady=null;
+    const image=state.image;
+    if(image){image.onload=null;image.onerror=null;
+      if(typeof image.removeAttribute==='function')image.removeAttribute('src');else image.src='';}
+    state.image=null;state.ready=false;delete cache[key];
+  }
+  function selectScene(keys,{nativeKeys=null}={}) {
+    if(keys!==null&&!Array.isArray(keys)||nativeKeys!==null&&!Array.isArray(nativeKeys))
+      throw TypeError('Presentation scene keys must be arrays or null');
+    sceneGeneration++;
+    sceneKeys=keys===null?null:new Set(keys.filter(key=>Object.hasOwn(entries,key)));
+    sceneNativeKeys=nativeKeys===null?null:new Set(nativeKeys.filter(key=>Object.hasOwn(entries,key)));
+    for(const key of Object.keys(cache)){
+      if(!selected(key))releaseAsset(key);
+      else if(!nativeAllowed(key))releaseDerivatives(cache[key]);
+    }
+    for(const key of [...nativePriorityReservations.keys()])if(!nativeAllowed(key))releaseNativePriorityReservation(key);
+    preload(null);
+    // A retained original can regain optional native preparation on a later
+    // native scene without refetching or weakening its original readiness.
+    for(const [key,state] of Object.entries(cache))if(state.ready&&nativeAllowed(key))prepareDerivatives(key,entries[key],state);
+    return sceneGeneration;
+  }
+  function releaseScene(){return selectScene([],{nativeKeys:[]});}
+  async function selectLevel1Scene() {
+    const keys=Object.keys(entries).filter(key=>!/^cache/.test(key)),generation=selectScene(keys);
+    const sources=await waitForGpuSources(keys);return generation===sceneGeneration?sources:[];
+  }
+  async function selectRoadScene(gpuKeys) {
+    const primary=[...new Set([...(gpuKeys||[]),...roadNativeKeys])],
+      native=[...roadNativeKeys,...roadNativeShared];
+    let generation=selectScene(primary,{nativeKeys:native});
+    await waitForGpuSources(primary);
+    if(generation!==sceneGeneration)return {cancelled:true};
+    // Planted poses are an existing failed-animation fallback. Load them only
+    // after the corresponding original animation exhausts its two attempts.
+    const fallbackKeys=[...new Set(roadFallbacks.filter(([animation])=>primary.includes(animation)&&!cache[animation]?.ready)
+      .map(([,fallback])=>fallback))];
+    const keys=[...new Set([...primary,...fallbackKeys])];
+    if(fallbackKeys.length){generation=selectScene(keys,{nativeKeys:[...native,...fallbackKeys]});await waitForGpuSources(fallbackKeys);}
+    if(generation!==sceneGeneration)return {cancelled:true};
+    return {cancelled:false,keys,fallbackKeys,missingKeys:keys.filter(key=>!cache[key]?.ready)};
+  }
   function prepareNativeRaster(key,entry,state,requested=false,requestedFrames=null) {
+    if(!currentAsset(key,state)||!nativeAllowed(key)){releaseNativePriorityReservation(key);return false;}
     if(!requested&&nativeDeferredSources.has(key)||state.nativePending)return false;
     const image=state.image,w=image.naturalWidth,h=image.naturalHeight;
     const fw=w/entry.columns,fh=h/entry.rows,cells=entry.columns*entry.rows;
@@ -368,19 +476,17 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
       releaseNativePriorityReservation(key);return false;
     }
     releaseNativePriorityReservation(key);
-    nativeRasterPixels+=pixels;if(smallNative)nativeSmallPixels+=pixels;
+    const release=reservePixels(state,pixels,{native:true,small:smallNative}),generation=state.derivativeGeneration||0;
     state.nativePending=true;
-    let released=false;
-    const fallback=()=>{if(released)return;released=true;nativeRasterPixels-=pixels;
-      if(smallNative)nativeSmallPixels-=pixels;state.nativePending=false;};
+    const fallback=()=>{release();if(currentDerivative(key,state,generation))state.nativePending=false;};
     if(framed) {
       const attempted=state.nativeFrameAttempts||(state.nativeFrameAttempts=new Set());
       for(const index of indices)attempted.add(index);
       const preparations=indices.map(index=>Promise.resolve().then(()=>
-        window.createImageBitmap(image,index%entry.columns*fw+crop[0],
-          Math.floor(index/entry.columns)*fh+crop[1],cw,ch)));
+        currentDerivative(key,state,generation)?window.createImageBitmap(image,index%entry.columns*fw+crop[0],
+          Math.floor(index/entry.columns)*fh+crop[1],cw,ch):null));
       Promise.allSettled(preparations).then(results=>{
-        const valid=results.every(result=>result.status==='fulfilled'&&
+        const valid=currentDerivative(key,state,generation)&&results.every(result=>result.status==='fulfilled'&&
           result.value?.width===cw&&result.value?.height===ch);
         if(!valid){
           for(const result of results)if(result.status==='fulfilled')result.value?.close?.();
@@ -397,7 +503,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     state.nativeAttempted=true;
     try {
       Promise.resolve(window.createImageBitmap(image)).then(bitmap=>{
-        if(bitmap?.width!==w||bitmap?.height!==h){bitmap?.close?.();fallback();return;}
+        if(!currentDerivative(key,state,generation)||bitmap?.width!==w||bitmap?.height!==h){bitmap?.close?.();fallback();return;}
         state.nativeBitmap=bitmap;state.nativePending=false;
       },fallback);
     } catch {fallback();}
@@ -418,7 +524,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     });
   }
   function prepareBrakeTint(key,entry,state) {
-    if(key!=='cacheBrakeReflection'||state.brakeTintAttempted)return;
+    if(!currentAsset(key,state)||!nativeAllowed(key)||key!=='cacheBrakeReflection'||state.brakeTintAttempted)return;
     state.brakeTintAttempted=true;
     const image=state.image,w=image.naturalWidth,h=image.naturalHeight;
     const pixels=194*290;
@@ -428,22 +534,30 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
       typeof window.URL?.revokeObjectURL!=='function'||typeof window.createImageBitmap!=='function'||
       pixels>MAX_NATIVE_SMALL_PIXELS-nativeSmallPixels||
       pixels>MAX_NATIVE_RASTER_PIXELS-nativeRasterPixels)return;
-    nativeRasterPixels+=pixels;nativeSmallPixels+=pixels;state.brakeTintPending=true;
+    const release=reservePixels(state,pixels,{native:true,small:true}),generation=state.derivativeGeneration||0;
+    state.brakeTintPending=true;
     let done=false,url=null,tintImage=null;
+    const controller=typeof window.AbortController==='function'?new window.AbortController():null;
+    const jobs=state.pendingJobs||(state.pendingJobs=new Set()),cancel=()=>{controller?.abort();finish();};
     const finish=bitmap=>{
       if(done){bitmap?.close?.();return;}
-      done=true;
-      if(bitmap?.width===194&&bitmap?.height===290)state.brakeTintBitmap=bitmap;
-      else {bitmap?.close?.();nativeRasterPixels-=pixels;nativeSmallPixels-=pixels;}
-      state.brakeTintPending=false;
+      done=true;jobs.delete(cancel);
+      if(currentDerivative(key,state,generation)&&bitmap?.width===194&&bitmap?.height===290)state.brakeTintBitmap=bitmap;
+      else {bitmap?.close?.();release();}
+      if(currentDerivative(key,state,generation))state.brakeTintPending=false;
       if(url)window.URL.revokeObjectURL(url);
-      if(tintImage){tintImage.onload=null;tintImage.onerror=null;}
+      if(tintImage){tintImage.onload=null;tintImage.onerror=null;
+        if(!currentDerivative(key,state,generation)){
+          if(typeof tintImage.removeAttribute==='function')tintImage.removeAttribute('src');else tintImage.src='';}}
     };
+    jobs.add(cancel);
     try {
-      Promise.resolve(window.fetch(image.currentSrc||image.src)).then(response=>{
+      Promise.resolve(window.fetch(image.currentSrc||image.src,controller?{signal:controller.signal}:undefined)).then(response=>{
+        if(!currentDerivative(key,state,generation)){finish();return null;}
         if(!response?.ok)throw Error('Reflection source unavailable');
         return response.arrayBuffer();
       }).then(buffer=>{
+        if(!buffer||!currentDerivative(key,state,generation)){finish();return;}
         const bytes=new Uint8Array(buffer);
         let binary='';
         for(let offset=0;offset<bytes.length;offset+=8192)
@@ -459,6 +573,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
         url=window.URL.createObjectURL(new window.Blob([svg],{type:'image/svg+xml'}));
         tintImage=new window.Image();
         tintImage.onload=()=>{
+          if(!currentDerivative(key,state,generation)){finish();return;}
           try {Promise.resolve(window.createImageBitmap(tintImage,0,0,194,290)).then(finish,()=>finish());}
           catch {finish();}
         };
@@ -476,7 +591,7 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
   // Keep a reduced working set only after a caller actually requests it.
   // Native-only loads retain their original images without unused thumbnails.
   function prepareBackgroundRaster(key,entry,state) {
-    if(state.rasterAttempted)return;
+    if(!currentAsset(key,state)||!nativeAllowed(key)||state.rasterAttempted)return;
     const image=state.image,w=image.naturalWidth,h=image.naturalHeight;
     const background=backgroundSources.has(key)||diffuseEffects.has(key);
     if(!background||!/^cache/.test(key)||/\.svg$/i.test(entry.path)||w*h<256*1024||
@@ -485,12 +600,12 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     const width=entry.columns*Math.ceil(w/entry.columns/4);
     const height=entry.rows*Math.ceil(h/entry.rows/4),pixels=width*height;
     if(rasterPixels+pixels>MAX_RASTER_PIXELS)return;
-    rasterPixels+=pixels;state.rasterPending=true;
-    const fallback=()=>{rasterPixels-=pixels;state.rasterPending=false;};
+    const release=reservePixels(state,pixels),generation=state.derivativeGeneration||0;state.rasterPending=true;
+    const fallback=()=>{release();if(currentDerivative(key,state,generation))state.rasterPending=false;};
     try {
       Promise.resolve(window.createImageBitmap(image,{resizeWidth:width,
         resizeHeight:height,resizeQuality:'high'})).then(bitmap=>{
-        if(bitmap?.width!==width||bitmap?.height!==height){
+        if(!currentDerivative(key,state,generation)||bitmap?.width!==width||bitmap?.height!==height){
           bitmap?.close?.();fallback();return;
         }
         state.rasterBitmap=bitmap;state.rasterPending=false;
@@ -524,33 +639,50 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     }
     return previous;
   }
-  function preload() {
+  function prepareDerivatives(key,entry,state) {
+    if(!currentAsset(key,state)||!nativeAllowed(key))return;
+    if(/\.svg$/i.test(entry.path)&&typeof window.createImageBitmap==='function') {
+      if(state.svgAttempted)return;state.svgAttempted=true;
+      const image=state.image,generation=state.derivativeGeneration||0;
+      try {Promise.resolve(window.createImageBitmap(image)).then(bitmap=>{
+        if(currentDerivative(key,state,generation)&&bitmap?.width===image.naturalWidth&&bitmap?.height===image.naturalHeight)
+          state.bitmap=bitmap;
+        else bitmap?.close?.();
+      },()=>{});}catch {}
+    } else {prepareRequestedBackgroundRaster(key,entry,state);prepareNativeRaster(key,entry,state);prepareBrakeTint(key,entry,state);}
+  }
+  function preload(keys=null) {
     if (typeof window.Image !== 'function') return;
-    for (const [key, entry] of Object.entries(entries)) {
+    for(const key of [...nativePriorityReservations.keys()])if(!nativeAllowed(key))releaseNativePriorityReservation(key);
+    for(const [key,pixels] of nativePriorityDimensions)if(nativeAllowed(key)&&!nativePriorityReservations.has(key)&&
+      !cache[key]?.nativeAttempted&&!cache[key]?.nativePending){nativePriorityReservations.set(key,pixels);nativeRasterPixels+=pixels;}
+    const requested=Array.isArray(keys)?keys:sceneKeys===null?Object.keys(entries):[...sceneKeys];
+    for (const key of requested) {
+      const entry=entries[key];if(!entry||!selected(key))continue;
       if (cache[key]) continue;
       const image = new window.Image();
       const state = cache[key] = { image, ready: false, fallback: false };
+      // Readiness belongs to the valid loaded original, including the existing
+      // bundled fallback. Native bitmaps are optional derivatives; a pending
+      // preparation must not hold GPU handoff or complete native fallback.
+      state.readyPromise=new Promise(resolve=>{state.resolveReady=resolve;});
+      const settleReady=ready=>{if(!currentAsset(key,state))return;state.ready=ready;state.resolveReady?.(ready);state.resolveReady=null;};
       image.onload = () => {
+        if(!currentAsset(key,state))return;
         const valid=image.naturalWidth>0&&image.naturalHeight>0;
         image.onload=null;image.onerror=null;
-        if(!valid){releaseNativePriorityReservation(key);return;}
+        if(!valid){releaseNativePriorityReservation(key);settleReady(false);return;}
+        settleReady(true);
         // SVG source rectangles otherwise rerasterize the whole vector sheet
         // for every digit, terrain strip and filtered miniature. Prepare one
         // immutable bitmap per loaded SVG outside the gameplay draw path.
         // No display Canvas, getContext, timer or frame owner is added.
-        if(/\.svg$/i.test(entry.path)&&typeof window.createImageBitmap==='function') {
-          try {
-            Promise.resolve(window.createImageBitmap(image)).then(bitmap=>{
-              if(bitmap?.width===image.naturalWidth&&bitmap?.height===image.naturalHeight)state.bitmap=bitmap;
-              else bitmap?.close?.();
-              state.ready=true;
-            },()=>{state.ready=true;});
-          } catch {state.ready=true;}
-        } else {state.ready=true;prepareRequestedBackgroundRaster(key,entry,state);prepareNativeRaster(key,entry,state);prepareBrakeTint(key,entry,state);}
+        prepareDerivatives(key,entry,state);
       };
       image.onerror = () => {
+        if(!currentAsset(key,state))return;
         if (!state.fallback) { state.fallback = true; image.src = entry.path; }
-        else { image.onload = null; image.onerror = null; releaseNativePriorityReservation(key); }
+        else { image.onload = null; image.onerror = null; releaseNativePriorityReservation(key); settleReady(false); }
       };
       image.src = (entry.root ?? root) + entry.path;
     }
@@ -559,24 +691,28 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     flip = false, sourceRect = null, tone = null } = {}) {
     const entry = entries[key], state = cache[key];
     if (!entry || !state?.ready) return false;
-    const original=state.image,small=((rasterDetail.get(ctx)||1)<=.25||
+    // A recorded GPU scene keeps one texture per original atlas. Cell/window
+    // bitmaps and reduced backings belong only to the native Canvas painter.
+    const gpu=ctx?.isGpuScene===true;
+    const original=state.image,small=!gpu&&((rasterDetail.get(ctx)||1)<=.25||
       diffuseEffects.has(key)&&(decorationDetail.get(ctx)||1)<1)&&state.rasterBitmap;
     const fw=original.naturalWidth/entry.columns,fh=original.naturalHeight/entry.rows;
     const index = Math.max(0, Math.floor(frame)) % entry.frames;
     const [sx, sy, sw, sh] = sourceRect || entry.frameCrops?.[index] || entry.crop || [0, 0, fw, fh];
     const h = height ?? width * sh / sw;
-    const nativeFrame=!small&&sw>0&&sh>0&&sx>=0&&sy>=0&&sx+sw<=fw&&sy+sh<=fh&&state.nativeFrames?.[index];
-    const windowCandidate=!small&&sw>0&&sh>0&&state.nativeWindows?.[index];
+    const nativeFrame=!gpu&&!small&&sw>0&&sh>0&&sx>=0&&sy>=0&&sx+sw<=fw&&sy+sh<=fh&&state.nativeFrames?.[index];
+    const windowCandidate=!gpu&&!small&&sw>0&&sh>0&&state.nativeWindows?.[index];
     const nativeWindow=windowCandidate&&sx>=windowCandidate.crop[0]&&sy>=windowCandidate.crop[1]&&
       sx+sw<=windowCandidate.crop[0]+windowCandidate.crop[2]&&
       sy+sh<=windowCandidate.crop[1]+windowCandidate.crop[3]?windowCandidate:null;
-    const tintSource=!small&&key==='cacheBrakeReflection'&&tone==='hue315'&&
+    const tintSource=!gpu&&!small&&key==='cacheBrakeReflection'&&tone==='hue315'&&
       brakeTintReady(ctx)&&sx>=0&&sy>=0&&sw>0&&sh>0&&sx+sw<=194&&sy+sh<=290&&state.brakeTintBitmap;
     // High-quality resampling can change alpha after a hue tint is baked.
     // Keep that sampler on the original live-filter path, including miniatures.
-    const liveTone=!!tintSource&&ctx.imageSmoothingQuality==='high';
+    const liveTone=gpu&&key==='cacheBrakeReflection'&&tone==='hue315'||
+      !!tintSource&&ctx.imageSmoothingQuality==='high';
     const preparedTone=!liveTone&&tintSource;
-    const image=small||preparedTone||nativeWindow?.bitmap||nativeFrame||state.nativeBitmap||state.bitmap||original;
+    const image=gpu?original:small||preparedTone||nativeWindow?.bitmap||nativeFrame||state.nativeBitmap||state.bitmap||original;
     // Sample background sources directly at the already reduced footprint.
     // Functional sprites and diffuse native effects keep their authored sampler.
     const smooth=!!entry.smooth&&!(backgroundSources.has(key)&&(rasterDetail.get(ctx)||1)<=.25);
@@ -617,6 +753,35 @@ window.FILE_MANIFEST.push({ name: 'src/engine/presentation-assets.js', exports: 
     }
     return true;
   }
-  B.PresentationAssets = { preload, draw, prepareNativeAssets, brakeTintReady, setRasterDetail, setDecorationDetail, decorationDetail: ctx => decorationDetail.get(ctx)||1, rasterDetail: ctx => rasterDetail.get(ctx)||1, ready: key => !!cache[key]?.ready };
+  function gpuSources(keys=null) {
+    // Metadata lookup only. Texture residency/preparation stays with the GPU
+    // update owner; asking for descriptors never loads or decodes an image.
+    const selected=Array.isArray(keys)?keys:Object.keys(entries);
+    return selected.flatMap(key=>{
+      const entry=entries[key],state=cache[key];
+      if(!entry||!state?.ready)return [];
+      return [{key,image:state.image,path:entry.path,columns:entry.columns,
+        rows:entry.rows,frames:entry.frames,ax:entry.ax,ay:entry.ay,
+        smooth:!!entry.smooth,crop:entry.crop,frameCrops:entry.frameCrops}];
+    });
+  }
+  async function waitForGpuSources(keys) {
+    // Level entry awaits original load/fallback settlement. The GPU warmup
+    // owner decodes once before upload; native derivative jobs are optional.
+    const selected=[...new Set(keys||[])];
+    preload(selected);
+    await Promise.all(selected.map(key=>cache[key]?.readyPromise));
+    return gpuSources(selected);
+  }
+  function diagnostics() {
+    let readySources=0,originalPixels=0;const keys=Object.keys(cache);
+    for(const key of keys){const state=cache[key];if(state.ready){readySources++;originalPixels+=state.image.naturalWidth*state.image.naturalHeight;}}
+    return {registeredSources:Object.keys(entries).length,sceneScoped:sceneKeys!==null,
+      selectedSources:sceneKeys?.size??Object.keys(entries).length,cachedSources:keys.length,
+      readySources,loadingSources:keys.filter(key=>cache[key].resolveReady).length,originalPixels,
+      nativeRasterPixels,nativeSmallPixels,rasterPixels};
+  }
+  B.PresentationAssets = { preload, selectScene, releaseScene, selectRoadScene, selectLevel1Scene, diagnostics,
+    draw, prepareNativeAssets, gpuSources, waitForGpuSources, brakeTintReady, setRasterDetail, setDecorationDetail, decorationDetail: ctx => decorationDetail.get(ctx)||1, rasterDetail: ctx => rasterDetail.get(ctx)||1, ready: key => !!cache[key]?.ready };
   preload();
 })();
