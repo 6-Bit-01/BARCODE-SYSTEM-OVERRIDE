@@ -108,6 +108,10 @@
 }
 .touch-primary .touch-icon, [data-kind="primary"] .touch-icon { font-size: 26px; }
 .touch-primary .touch-label, [data-kind="primary"] .touch-label { font-size: 11px; font-weight: 700; }
+.touch-road .touch-actions { grid-template-rows: 52px 64px; }
+.touch-road .touch-actions > [data-touch-action="road:beat"] { grid-row: 2; }
+.touch-road .touch-actions > [data-touch-action="road_attack"] { grid-row: 1; grid-column: 1; }
+.touch-road .touch-actions > [data-touch-action="road_defend"] { grid-row: 1; grid-column: 2; }
 .touch-secondary .touch-icon, [data-kind="secondary"] .touch-icon { font-size: 20px; }
 .touch-secondary .touch-label, [data-kind="secondary"] .touch-label { font-size: 10px; }
 .touch-utilities {
@@ -251,6 +255,9 @@
     .touch-readout { left: 12px; right: 12px; width: auto; }
     .touch-keypad .touch-actions { left: 50%; right: auto; transform: translateX(-50%); width: min(276px, calc(100vw - 24px)); }
     .touch-hint { bottom: calc(max(var(--touch-edge), env(safe-area-inset-bottom)) + 154px); left: 84px; width: 144px; }
+}
+@media (orientation: landscape) {
+    .touch-utilities { flex-direction: column; }
 }
 @media (max-height: 450px) and (orientation: landscape) {
     .touch-controls { --touch-size: 44px; }
